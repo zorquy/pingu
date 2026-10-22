@@ -12,6 +12,8 @@
 // pública, sin nada que se pueda tocar.
 import { escapeHtml, getSession, profileUrl, avatarStyle, getInitial } from './app.js'
 import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, vistaAlDia } from './ultima-vista.js'
+import { claveDeSet, leerGuardado, guardar as guardarCartasDeSet } from './mi-coleccion/cartas-guardadas.js'
+import { COLUMNAS_CARTA_DE_SET } from './mi-coleccion/columnas-set.js'
 import { urlParaCss } from './html.js'
 import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
@@ -3384,6 +3386,53 @@ function vigilarCabeceraDeAlbum() {
   io.observe(cabecera)
 }
 
+// ── ENTRAR DESLIZANDO (979, propuesta «Que cargue al momento») ──
+//
+// PINGU, con Dex delante: la expansión entra por la derecha ENCIMA de la
+// estantería y sale igual. Solo en el móvil, solo al entrar en una expansión
+// y al volver (en la R13 se descartaron las transiciones en general; esta la
+// pidió), y nunca con «menos movimiento». Es una transición de la MISMA
+// página (`startViewTransition`): el cambio de zonas va dentro y la
+// expansión se rellena después en vivo, que la imagen nueva de una
+// transición no es una foto fija. Sin la API, el cambio es el de siempre.
+// La estantería se queda donde estaba: al volver, el sitio que tenías.
+let sitioDeLaEstanteria = 0
+function deslizando(sentido, cambiar, alAcabar = null) {
+  const puede = document.startViewTransition && window.matchMedia('(max-width: 720px)').matches &&
+    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (!puede) {
+    cambiar()
+    alAcabar?.()
+    return
+  }
+  const raiz = document.documentElement
+  raiz.dataset.desliza = sentido
+  const t = document.startViewTransition(() => { cambiar() })
+  t.finished.finally(() => {
+    if (raiz.dataset.desliza === sentido) delete raiz.dataset.desliza
+    alAcabar?.()
+  })
+}
+function entrarEnExpansion(setId) {
+  sitioDeLaEstanteria = window.scrollY
+  deslizando('entra', () => {
+    void abrirAlbum(setId)
+    window.scrollTo({ top: 0, behavior: 'instant' })
+  }, () => {
+    // Dentro de la transición Chrome deja el desplazamiento unos píxeles por
+    // debajo de lo pedido (de 2 a 130, según lo que mida la página): al
+    // acabar, arriba del todo si sigue cerca.
+    if (window.scrollY > 0 && window.scrollY < 300) window.scrollTo({ top: 0, behavior: 'instant' })
+  })
+}
+function salirDeExpansion() {
+  const volver = () => window.scrollTo({ top: sitioDeLaEstanteria, behavior: 'instant' })
+  deslizando('sale', () => {
+    volverALaEstanteria()
+    volver()
+  }, () => { if (Math.abs(window.scrollY - sitioDeLaEstanteria) > 2) volver() })
+}
+
 function volverALaEstanteria({ push = true } = {}) {
   $('mcAlbumPegada')?.classList.add('hidden')
   if (push) irA({ set: null })
@@ -3430,27 +3479,116 @@ async function abrirAlbum(setId, { push = true } = {}) {
   // del HTML que esta función repinta, y el clic va delegado en la zona
   // (ver `mcArchivadorZona`), así que no hay oyente que volver a colgar.
   $('mcAlbumMigas').innerHTML = migasHtml([{ texto: 'Expansiones', id: 'mcAlbumVolver' }])
-  $('mcAlbum').innerHTML = esqueletoDeAlbum()
+  // LA PANTALLA YA MONTADA (977, propuesta «Que cargue al momento»): la
+  // estantería sabe cuántas cartas tiene el set y cuántas tienes, así que
+  // la tira y los huecos salen con su tamaño definitivo al tocar. Antes eran
+  // doce bloques que se tiraban enteros al llegar las cartas, y la página
+  // daba un salto de 12 a 251.
+  pintarPantallaMontada(setId, set)
   void pintarHermanos(setId)
+  // Una expansión PLEGADA se abre entera (649): la tarjeta dice «1 de 128»
+  // contando las dos mitades del 30 aniversario, y abrirla tenía que enseñar
+  // solo las 92 del Celebration, con tu Charizard de la Classic en ninguna
+  // parte. El orden bloque a bloque lo pone `cartasDelAlbumFiltradas`.
+  const ids = idsDeColeccion(setId)
+  const clave = claveDeSet(mercado, ids.length ? ids : [setId], COLUMNAS_CARTA_DE_SET)
+  // Las cartas y sus versiones (862) salen de un TEXTO (978): el guardado
+  // en el navegador o el que acaba de contestar la base. Cada vez se lee
+  // entero de nuevo, porque `pegarVersiones` le pega cosas a cada carta y lo
+  // de la petición en camino se comparte entre aperturas.
+  const poner = (texto) => {
+    const r = JSON.parse(texto)
+    datos.registrarVersiones(r.versiones)
+    album.cartas = [...r.cartas].sort(porNumero)
+    pegarVersiones(album.cartas, r.versiones)
+  }
+  // LO DE LA ÚLTIMA VEZ, AL MOMENTO (978): si este set ya se abrió en este
+  // navegador, se pinta con eso mientras se pregunta.
+  let pintado = null
+  const guardado = await leerGuardado(clave).catch(() => null)
+  if (album.set !== setId) return
+  if (guardado) {
+    try {
+      poner(guardado)
+      pintarAlbum()
+      void cargarPreciosDelAlbum(setId)
+      pintado = guardado
+    } catch {
+      pintado = null
+    }
+  }
+  let texto
   try {
-    // Una expansión PLEGADA se abre entera (649): la tarjeta dice «1 de
-    // 128» contando las dos mitades del 30 aniversario, y abrirla tenía
-    // que enseñar solo las 92 del Celebration, con tu Charizard de la
-    // Classic en ninguna parte. El orden bloque a bloque lo pone
-    // `cartasDelAlbumFiltradas`, que es quien ordena.
-    const ids = idsDeColeccion(setId)
-    const lista = ids.length > 1 ? await datos.cartasDeSets(ids, mercado) : await datos.cartasDeSet(setId, mercado)
-    album.cartas = lista.sort(porNumero)
-    // Las versiones de TCGGO del set (862), pegadas a cada carta antes de
-    // pintar: con ellas «separar variantes» abre una casilla por versión.
-    pegarVersiones(album.cartas, await datos.versionesDeSets(ids.length ? ids : [setId], mercado).catch(() => []))
-    if (album.set !== setId) return
-    void cargarPreciosDelAlbum(setId)
+    // Las cartas y las versiones A LA VEZ (977), y desde la CDN si contesta
+    // (978). Si el dedo ya tocó la fila, la petición está en camino.
+    const r = await pedirSet(setId, ids)
+    texto = JSON.stringify({ cartas: r.cartas, versiones: r.versiones })
   } catch (err) {
-    $('mcAlbum').innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
+    // Sin red pero con lo guardado, se queda lo guardado: es el catálogo.
+    if (!pintado && album.set === setId) $('mcAlbum').innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
     return
   }
+  void guardarCartasDeSet(clave, texto)
+  if (album.set !== setId || texto === pintado) return
+  // Ha cambiado algo desde la última vez (o no había última vez): se repinta.
+  poner(texto)
+  if (!pintado) void cargarPreciosDelAlbum(setId)
   pintarAlbum()
+}
+
+// ── ADELANTARSE AL DEDO (977) ──
+//
+// La petición de un set sale al TOCAR su fila (`pointerdown`) y, con ratón,
+// al pasar por encima: entre que el dedo baja y se levanta pasan 100–300 ms
+// que antes se perdían. `abrirAlbum` recoge la misma promesa. Una que falla
+// no se queda guardada, y una vieja (medio minuto) se vuelve a pedir.
+const enCamino = new Map()
+function pedirSet(setId, ids = idsDeColeccion(setId)) {
+  const clave = `${mercado}|${setId}`
+  const hay = enCamino.get(clave)
+  if (hay && Date.now() - hay.t < 30000) return hay.promesa
+  const todos = ids.length ? ids : [setId]
+  // Primero la CDN (978); si no contesta, las dos consultas a Supabase.
+  const promesa = datos.cartasDeSetsDesdeLaCdn(todos, mercado).then((r) => r || Promise.all([
+    ids.length > 1 ? datos.cartasDeSets(ids, mercado) : datos.cartasDeSet(setId, mercado),
+    datos.versionesDeSets(todos, mercado).catch(() => []),
+  ]).then(([cartas, versiones]) => ({ cartas, versiones })))
+  promesa.catch(() => enCamino.delete(clave))
+  enCamino.set(clave, { promesa, t: Date.now() })
+  return promesa
+}
+function precargarSet(setId) {
+  if (!setId || album.set === setId) return
+  void pedirSet(setId).catch(() => null)
+}
+
+// Lo que se pinta al tocar, antes de tener las cartas (977): la tira con lo
+// que dice la estantería y un hueco por carta, del mismo tamaño que el de
+// verdad. Las cuentas son las de la fila que se acaba de tocar (plegada, con
+// las de sus galerías), así que no cambian al llegar los datos. Sin set (se
+// entra por la dirección y la estantería no ha llegado) o en la vista de
+// archivador, el esqueleto de siempre.
+function pintarPantallaMontada(setId, set) {
+  const ids = idsDeColeccion(setId)
+  const delSet = ids.length ? (todosLosSets || []).filter((x) => ids.includes(String(x.id).toLowerCase())) : set ? [set] : []
+  const total = delSet.reduce((n, x) => n + totalDe(x), 0)
+  if (!total || album.vista === 'archivador') {
+    $('mcAlbum').innerHTML = esqueletoDeAlbum()
+    return
+  }
+  const tengo = cuantasPorSet().get(setId) || 0
+  const pct = Math.round((tengo / total) * 100)
+  const n = (x) => x.toLocaleString('es-ES', { useGrouping: 'always' })
+  if ($('mcAlbumProgreso')) {
+    $('mcAlbumProgreso').innerHTML = `<div class="mc-avance">
+      <p class="mc-avance-linea"><b>${n(tengo)} de ${n(total)}</b> <span>· ${pct} %</span></p>
+      <span class="mc-avance-barra" role="progressbar" aria-label="Lo que tienes de esta expansión" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="--ancho:${pct}%"></i></span>
+    </div>`
+  }
+  if ($('mcAlbumLinea')) $('mcAlbumLinea').textContent = `${n(tengo)} de ${n(total)} · ${pct} %`
+  const clase = album.vista === 'lista' ? 'mc-album-lista' : 'mc-album-rejilla'
+  const hueco = album.vista === 'lista' ? '<i class="mc-hueco mc-hueco-fila"></i>' : '<i class="mc-bolsillo mc-hueco"></i>'
+  $('mcAlbum').innerHTML = `<p class="sr-only">Cargando la colección…</p><div class="${clase} mc-huecos" aria-hidden="true">${hueco.repeat(Math.min(total, 1200))}</div>`
 }
 
 // EL LOGO ARRIBA (749, E5). Con logo, el nombre se queda pequeño a su lado
@@ -7272,8 +7410,20 @@ function enganchar() {
   })
   $('mcEstanteriaRejilla').addEventListener('click', (e) => {
     const b = e.target.closest('[data-set]')
-    if (b) abrirAlbum(b.dataset.set)
+    if (b) entrarEnExpansion(b.dataset.set)
   })
+  // Adelantarse al dedo (977): la fila tocada, y con ratón la que se mira.
+  const setDe = (el) => el?.closest?.('[data-set]')?.dataset.set || el?.closest?.('[data-hermano]')?.dataset.hermano
+  for (const caja of [$('mcEstanteriaRejilla'), $('mcAlbumHermanos')]) {
+    caja?.addEventListener('pointerdown', (e) => precargarSet(setDe(e.target)))
+    let espera = null
+    caja?.addEventListener('pointerover', (e) => {
+      if (e.pointerType !== 'mouse') return
+      const id = setDe(e.target)
+      clearTimeout(espera)
+      if (id) espera = setTimeout(() => precargarSet(id), 120)
+    })
+  }
   respaldarNombresDeSet($('mcEstanteriaRejilla'))
   $('mcAlbumFavorito').addEventListener('click', cambiarFavorita)
 
@@ -7308,7 +7458,7 @@ function enganchar() {
   $('mcArchivadorZona').addEventListener('click', (e) => {
     // Los tres botones de volver (856): la miga, la fila de la lateral del
     // PC y la barra pegada del móvil.
-    if (e.target.closest('#mcAlbumVolver, #mcHermanosVolver, #mcAlbumPegadaVolver')) volverALaEstanteria()
+    if (e.target.closest('#mcAlbumVolver, #mcHermanosVolver, #mcAlbumPegadaVolver')) salirDeExpansion()
   })
   vigilarCabeceraDeAlbum()
   // ESC SUBE UN NIVEL (856), en el PC: lo mismo que el botón de volver. No

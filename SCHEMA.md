@@ -41785,6 +41785,66 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tandas 977, 978 y 979 — Abrir una expansión al momento, como Dex
+
+PINGU, con capturas de Dex: «la manera en que se cargan las cosas es como
+instantánea; no carga un esqueleto para luego romperlo todo». Propuesta con
+maquetas: https://claude.ai/artifact/J47wdYM1gYLfnNsPKyABSR; «dale con lo
+recomendado» (solo Expansiones, deslizar sí y solo aquí, hueco con número,
+nombre y versión).
+
+**977 — la pantalla, montada al tocar** (`js/mi-coleccion.js`, `abrirAlbum`):
+- `pintarPantallaMontada(setId, set)`: con lo que ya sabe la estantería (las
+  cuentas de la fila, plegada con sus galerías) pinta la tira «4 de 18 · 22 %»
+  y UN hueco por carta (`.mc-bolsillo.mc-hueco` en `.mc-album-rejilla
+  .mc-huecos`, quietos, sin latido), del tamaño de la casilla de verdad. Antes
+  eran doce bloques (`esqueletoDeAlbum`) que se tiraban al llegar las cartas y
+  la página daba un salto de 12 a 251. Sin la cuenta (se entra por la
+  dirección antes de que llegue la estantería) o en vista archivador, el
+  esqueleto de siempre. Como no lleva `.mc-esq`, la llegada no escalona.
+- `pedirSet(setId, ids)`: las cartas y las versiones (862) a la vez
+  (`Promise.all`; iban una detrás de otra). La promesa se recuerda medio
+  minuto por catálogo y set; una que falla se olvida.
+- Adelantarse al dedo: `pointerdown` en una fila de la estantería o de la
+  lateral de hermanos llama a `precargarSet`; con ratón, 120 ms encima.
+
+**978 — lo de la última vez y la CDN**:
+- `js/mi-coleccion/cartas-guardadas.js`: IndexedDB `pokedoc-catalogo`, almacén
+  `cartas-de-set` (el TEXTO de `{cartas, versiones}`) y `cuando` (para
+  recortar a los 40 más recientes sin leer los textos). La llave lleva el
+  catálogo, los ids y una huella de `COLUMNAS_CARTA_DE_SET`: una columna nueva
+  invalida lo guardado (la 523). Todo fallo devuelve `null` y carga como antes.
+  No se borra al salir de la cuenta: es el catálogo, igual para todos.
+- `abrirAlbum` pinta con lo guardado en el acto, pide lo nuevo, lo guarda y
+  repinta SOLO si el texto ha cambiado. Sin red y con lo guardado, se queda.
+  Se parsea el texto cada vez (`poner`): `pegarVersiones` le pega cosas a las
+  cartas y la promesa en camino se comparte entre aperturas.
+- `netlify/functions/cartas-set.mjs` (`?market=WEST&sets=sm11,sm11tg`, hasta
+  8 ids válidos por `esIdDeSet`): una petición por set y las versiones a
+  trozos, con el respaldo de las columnas a mano (934). Las cabeceras son las
+  de `sets.mjs`: 10 min en la CDN con la etiqueta `sets`, así que
+  `sets-purgar` tira las dos. Un fallo, `no-store`. El cliente
+  (`datos.cartasDeSetsDesdeLaCdn`, 4 s) cae a Supabase si no contesta.
+- `js/mi-coleccion/columnas-set.js`: las columnas de las cartas de un set y de
+  las versiones, sin dependencias, para la web y la función.
+- `admin/js/avisar-web.js`: `avisarALaWeb()` sale de colecciones.js y lo
+  llama también el editor de cartas (guardar, crear, quitar corrección,
+  borrar, fotos y versiones a mano), que no avisaba.
+
+**979 — entrar deslizando** (solo móvil ≤ 720 px, con `startViewTransition` y
+sin «menos movimiento»): `entrarEnExpansion` / `salirDeExpansion` envuelven el
+cambio de zonas en `deslizando(sentido, cambiar, alAcabar)`, que pone
+`html[data-desliza]`; el CSS da `view-transition-name` a las dos zonas, quita
+la animación de la raíz y hace entrar la expansión por la derecha encima de la
+estantería (que se va un 24 % a la izquierda) y al revés al volver. Se entra
+arriba y se vuelve al sitio de la estantería; dentro de la transición Chrome
+deja el desplazamiento unos píxeles corrido, así que `alAcabar` lo vuelve a
+poner. `requestAnimationFrame` NO corre mientras dura el cambio: no se espera
+a él dentro del `startViewTransition`. Atrás del navegador (y el gesto de iOS,
+que ya anima) no desliza.
+
+Prueba: `test-tanda-977-pantalla.mjs` (las tres); 551 y 885 al día.
+
 ## Tanda 976 — /admin → Colecciones enseña lo que enseña la web
 
 PINGU: «veo duplicado Silver Tempest Trainer Gallery… en la web no están…

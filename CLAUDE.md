@@ -735,6 +735,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   sitemap. Y antes de abrir miles de páginas a Google, mira en Search
   Console cuántas tiene «descubiertas sin indexar»: si la cola ya es
   larga, abrir más la alarga.
+- **Abrir una expansión no espera a la base** (tandas 977–979): la pantalla
+  sale montada con lo de la estantería (`pintarPantallaMontada`: tira y un
+  hueco por carta, sin esqueleto que salte), las cartas salen de lo guardado
+  en el navegador (`cartas-guardadas.js`, llave con la huella de
+  `COLUMNAS_CARTA_DE_SET`) o de la CDN (`cartas-set`, etiqueta `sets`) y
+  `pedirSet` las pide a la vez y al tocar. Una columna nueva de las cartas de
+  un set va en `js/mi-coleccion/columnas-set.js` (la piden la web y la
+  función). Lo que cambie cartas desde /admin llama a `avisarALaWeb()`
+  (`admin/js/avisar-web.js`), o la CDN la enseña vieja hasta diez minutos.
+  Y dentro de un `startViewTransition` no se espera a `requestAnimationFrame`:
+  no corre y la transición se cuelga.
 - **Las colecciones son eras, y la web las coloca con la MISMA cuenta que
   /admin** (tanda 975, que deja vieja la de abajo): `erasDeEstanteria` en
   `js/mi-coleccion/estanteria.js`. No hay «Otros sets» ni «Sets especiales»

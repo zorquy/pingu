@@ -6851,6 +6851,10 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-esq-fila { height: 56px; margin: 0 var(--e-sm); }
 .mc-esq-grafica { height: 56px; margin: 0 var(--e-sm); }
 .mc-esq-bolsillo { aspect-ratio: 245 / 342; border-radius: var(--radius-md) !important; }
+/* Los huecos de una expansión antes de sus cartas (977): del tamaño de la
+   casilla de verdad, quietos (sin latido), para que al llegar no se mueva nada. */
+.mc-hueco { display: block; }
+.mc-hueco-fila { min-height: 56px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--white); }
 @media (prefers-reduced-motion: reduce) {
   .mc-esq i { animation: none; }
 }
@@ -7136,10 +7140,33 @@ input.mc-alb-titulo:not([readonly]):focus {
   animation-duration: 0.3s;
 }
 
+/* ── 979: la expansión entra deslizando encima de la estantería (SCHEMA 979) ── */
+html[data-desliza] #mcEstanteriaZona { view-transition-name: mc-estante; }
+html[data-desliza] #mcArchivadorZona { view-transition-name: mc-expansion; }
+html[data-desliza]::view-transition-old(root),
+html[data-desliza]::view-transition-new(root) { animation: none; }
+html[data-desliza]::view-transition-group(mc-estante),
+html[data-desliza]::view-transition-group(mc-expansion) { animation: none; }
+html[data-desliza='entra']::view-transition-new(mc-expansion) { animation: mc-desliza-entra 0.32s var(--ease) both; box-shadow: var(--shadow-md); }
+html[data-desliza='entra']::view-transition-old(mc-estante) { animation: mc-desliza-fondo 0.32s var(--ease) both; }
+html[data-desliza='sale']::view-transition-old(mc-expansion) { animation: mc-desliza-entra 0.28s var(--ease) reverse both; box-shadow: var(--shadow-md); }
+html[data-desliza='sale']::view-transition-new(mc-estante) { animation: mc-desliza-fondo 0.28s var(--ease) reverse both; }
+html[data-desliza='sale']::view-transition-old(mc-expansion) { z-index: 1; }
+@keyframes mc-desliza-entra { from { transform: translateX(100%); } }
+@keyframes mc-desliza-fondo { to { transform: translateX(-24%); opacity: 0.6; } }
+
 @media (prefers-reduced-motion: reduce) {
   .mc-entra-derecha,
   .mc-entra-izquierda,
-  ::view-transition-group(mc-carta-que-crece) {
+  ::view-transition-group(mc-carta-que-crece),
+  html[data-desliza]::view-transition-old(root),
+  html[data-desliza]::view-transition-new(root),
+  html[data-desliza]::view-transition-group(mc-estante),
+  html[data-desliza]::view-transition-group(mc-expansion),
+  html[data-desliza='entra']::view-transition-new(mc-expansion),
+  html[data-desliza='entra']::view-transition-old(mc-estante),
+  html[data-desliza='sale']::view-transition-old(mc-expansion),
+  html[data-desliza='sale']::view-transition-new(mc-estante) {
     animation: none;
   }
 }

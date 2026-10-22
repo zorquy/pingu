@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (212) — PINGU-Claude (977–979 — abrir una expansión al momento, como Dex)
+
+**Hecho**: lo recomendado de la propuesta «Que cargue al momento». Al tocar
+una expansión sale ya la tira y un hueco por carta de su tamaño (sin el
+esqueleto de doce que saltaba), las cartas y las versiones se piden a la vez y
+la petición sale al tocar la fila (977); lo de cada set se guarda en el
+navegador y la segunda vez sale al momento, y la primera llega por la CDN
+(`cartas-set`, etiqueta `sets`) con respaldo a Supabase (978); en el móvil la
+expansión entra deslizando y al volver la estantería sigue donde estaba (979).
+Sin migración.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`,
+`js/mi-coleccion/cartas-guardadas.js` (nuevo), `js/mi-coleccion/columnas-set.js`
+(nuevo), `netlify/functions/cartas-set.mjs` (nueva), `admin/js/avisar-web.js`
+(nuevo), `admin/js/colecciones.js`, `admin/js/catalogo-cartas.js`,
+`css/mi-coleccion.css`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`,
+`BITACORA.md`. En `pruebas`: `test-tanda-977-pantalla.mjs`.
+Pasadas: el subconjunto de Mi colección y del panel (303 pruebas) en carriles: 282 verdes; de los 21 rojos, la 313 y la 908 eran de esta tanda y ya están (lista de «menos movimiento» y la 908 leyendo `avisar-web.js`); los otros 16 salen igual sin esta tanda (467, 586, 648, 651, 653, 780, 829, 851, 852, 874, 885, 893, 895, 943, 957, 961) y 446 y 577 eran del carril (en serie, verdes). La 895 (peso de `mi-coleccion.js`) ya estaba en rojo: 134 → 136 KB gzip con esta tanda.
+
+**Pendiente**: si PINGU lo nota bien, pasar lo mismo a Cartas, Pokédex y
+álbumes (la decisión 1 de la propuesta).
+
 ## 2026-10-22 (211) — PINGU-Claude (976 — el panel de colecciones enseña lo que la web; mover y borrar)
 
 **Hecho**: /admin → Colecciones lee el catálogo entero (a trozos) y lo

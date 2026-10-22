@@ -20,6 +20,7 @@
 import { supabase } from '../../js/supabase.js'
 import { escapeHtml, validateImageFile, uploadGuideImage } from '../../js/app.js'
 import { showToast } from '../../js/toast.js'
+import { avisarALaWeb } from './avisar-web.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../../js/escaneo-carta.js'
 import { iconoDeVersion, ICONOS_A_ELEGIR } from '../../js/mi-coleccion/iconos-version.js'
 import { varianteDeEtiqueta, variantesDeCarta, pegarVersiones, nombreDeVariante } from '../../js/mi-coleccion/variantes.js'
@@ -205,6 +206,7 @@ async function abrirBorrado(id) {
     const { error: e } = await supabase.rpc('catalogo_borrar_carta', { p_id: c.id, p_market: mercado, p_destino: destino })
     if (e) return showToast(faltaLaMigracion(e) ? AVISO_MIGRACION : e.message.slice(0, 140), 'error')
     showToast(destino ? 'Copias movidas y carta borrada' : 'Carta borrada', 'success')
+    avisarALaWeb()
     await cargar()
     pintarLista()
   })
@@ -303,6 +305,7 @@ function abrirFicha(id) {
       const { error } = await supabase.rpc('catalogo_descorregir', { p_tabla: 'tcg_cards', p_id: c.id, p_market: mercado, p_columna: b.dataset.quitar })
       if (error) return showToast(faltaLaMigracion(error) ? AVISO_MIGRACION : error.message.slice(0, 140), 'error')
       showToast('Corrección quitada: vuelve lo del catálogo', 'success')
+      avisarALaWeb()
       await cargar()
       abrirFicha(c.id)
     })
@@ -329,12 +332,14 @@ function abrirFicha(id) {
       const { error } = await supabase.rpc('catalogo_corregir', { p_tabla: 'tcg_cards', p_id: idNuevo, p_market: mercado, p_cambios: cambios, p_crear: true })
       if (error) return showToast(faltaLaMigracion(error) ? AVISO_MIGRACION : error.message.slice(0, 140), 'error')
       showToast('Carta creada', 'success')
+      avisarALaWeb()
     } else {
       const cambios = loQueCambia(c, valores)
       if (!Object.keys(cambios).length) return showToast('No has cambiado nada.')
       const { error } = await supabase.rpc('catalogo_corregir', { p_tabla: 'tcg_cards', p_id: c.id, p_market: mercado, p_cambios: cambios })
       if (error) return showToast(faltaLaMigracion(error) ? AVISO_MIGRACION : error.message.slice(0, 140), 'error')
       showToast(`Guardado: ${Object.keys(cambios).length === 1 ? '1 corrección' : `${Object.keys(cambios).length} correcciones`}`, 'success')
+      avisarALaWeb()
     }
     await cargar()
     pintarLista()
@@ -459,6 +464,7 @@ function abrirFotoDeVersion(c, variante, nombre, fila) {
     const { error } = await supabase.rpc('catalogo_version_foto', { p_card_id: c.id, p_market: mercado, p_variante: variante, p_imagen: imagen })
     if (error) return showToast(/catalogo_version_foto|PGRST202|42883/.test(`${error.code} ${error.message}`) ? 'Falta ejecutar supabase-migration-935-ediciones-wizards.sql.' : error.message.slice(0, 160), 'error')
     showToast(imagen ? 'Foto guardada' : 'Foto quitada', 'success')
+    avisarALaWeb()
     volver()
   }
   $('catFotoVerGuardar').addEventListener('click', () => {
@@ -538,12 +544,14 @@ function abrirVersion(c, v) {
     const { error } = await supabase.rpc('catalogo_version_mano', { p_card_id: c.id, p_market: mercado, p_datos: datos, p_tcggo_id: nueva ? null : v.tcggo_id })
     if (error) return showToast(/catalogo_version_mano|PGRST202|42883/.test(`${error.code} ${error.message}`) ? 'Falta ejecutar supabase-migration-934-versiones-a-mano.sql.' : error.message.slice(0, 160), 'error')
     showToast(nueva ? 'Versión creada' : 'Versión guardada', 'success')
+    avisarALaWeb()
     volver()
   })
   $('catVerBorrar')?.addEventListener('click', async () => {
     const { error } = await supabase.rpc('catalogo_borrar_version_mano', { p_tcggo_id: v.tcggo_id })
     if (error) return showToast(error.message.slice(0, 160), 'error')
     showToast('Versión borrada', 'success')
+    avisarALaWeb()
     volver()
   })
 }

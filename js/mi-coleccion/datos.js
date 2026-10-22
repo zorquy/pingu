@@ -9,6 +9,7 @@ import { urlDePrecio, precioDe, precioDeFila, claveDeLinea, valorDeLinea } from 
 import { MERCADO_POR_DEFECTO } from '../mercados.js'
 import { deSetVisible } from '../catalogo-series.js'
 import { varianteDeEtiqueta, esFilaDeLaCarta, esClasica } from './variantes.js'
+import { COLUMNAS_CARTA_DE_SET, COLUMNAS_VERSION, COLUMNAS_A_MANO, faltanColumnasAMano as faltanEn } from './columnas-set.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-mi-coleccion.sql'
 
@@ -300,19 +301,32 @@ export async function cartasPorIds(ids, mercado = 'WEST') {
 export async function cartasDeSet(setId, mercado = 'WEST') {
   const { data, error } = await supabase
     .from('tcg_cards')
-    // `category` desde la 382: sin ella el filtro de categoría del
-    // álbum tendría un desplegable vacío y no filtraría nada — y no
-    // daría ningún error, que es lo de siempre.
-    // `serie_id` desde la 434: hace falta para montar a mano la ruta del
-    // asset de TCGdex cuando `image_path` está a null.
-    // `release_date` desde la 953: sin ella la R de un set japonés nuevo
-    // salía «Normal» y no «Holo» (la regla de la 950 mira el día del set).
-    .select('id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,category,variants,cm_id_product_propio,tp_id_product_propio,tcg_sets(tcg_online_code,serie_id,release_date)')
+    // La lista, en `columnas-set.js` (978): la comparte la función de la CDN.
+    .select(COLUMNAS_CARTA_DE_SET)
     .eq('market', mercado)
     .eq('set_id', setId)
     .limit(1000)
   if (error) throw traducir(error)
   return data || []
+}
+
+// ── LAS CARTAS DE UN SET DESDE LA CDN (978) ──
+//
+// La misma respuesta para todo el mundo, así que la guarda Netlify cerca de
+// quien la pide (`netlify/functions/cartas-set.mjs`, como la estantería
+// desde la 813): la primera visita a un set ya no espera a la base. Si no
+// contesta en cuatro segundos, o dice cualquier otra cosa, `null` y quien
+// llama pide a Supabase como siempre.
+export async function cartasDeSetsDesdeLaCdn(ids, mercado = 'WEST', { fetchImpl = fetch } = {}) {
+  try {
+    const res = await fetchImpl(`/.netlify/functions/cartas-set?market=${encodeURIComponent(mercado)}&sets=${encodeURIComponent(ids.join(','))}`, { signal: AbortSignal.timeout(4000) })
+    if (!res.ok) return null
+    const r = await res.json()
+    if (!Array.isArray(r?.cartas) || !Array.isArray(r?.versiones)) return null
+    return { cartas: r.cartas, versiones: registrarVersiones(r.versiones) }
+  } catch {
+    return null
+  }
 }
 
 // Las de VARIOS sets a la vez (649): una expansión plegada —el 30
@@ -435,14 +449,13 @@ export function precioDeLinea(linea, guardados, vivos) {
 // o por carta (un diálogo, las copias que son una versión) y se recuerdan
 // aquí para el precio de las líneas. Sin la tabla (la migración de la 807
 // sin ejecutar) no hay versiones, no hay error.
-const COLUMNAS_VERSION = 'tcggo_id,card_id,set_id,etiqueta,cm_id_product,link_cm,cm_low,cm_low_en,cm_low_de,cm_low_fr,cm_low_es,cm_low_it,cm_avg7,cm_avg30,cm_disponibles,tp_market_eur,tp_mid_eur,actualizado_at'
-// Las de las versiones a mano (934), con respaldo (la 624): sin la migración
-// no existen, y una consulta que las nombra falla ENTERA. Se piden y, si la
-// base dice que no existen, se repite sin ellas y no se vuelven a pedir.
-const COLUMNAS_A_MANO = ',numero,imagen,icono,salio_en,lanzamiento,clase,origen'
+// Las columnas, en `columnas-set.js` (978). Las de las versiones a mano (934)
+// van con respaldo (la 624): sin la migración no existen, y una consulta que
+// las nombra falla ENTERA. Se piden y, si la base dice que no existen, se
+// repite sin ellas y no se vuelven a pedir.
 let sinColumnasAMano = false
 const columnasDeVersion = () => (sinColumnasAMano ? COLUMNAS_VERSION : COLUMNAS_VERSION + COLUMNAS_A_MANO)
-const faltanColumnasAMano = (error) => !sinColumnasAMano && /42703|imagen|salio_en|lanzamiento|clase|origen|icono|numero/.test(`${error?.code} ${error?.message}`)
+const faltanColumnasAMano = (error) => !sinColumnasAMano && faltanEn(`${error?.code} ${error?.message}`)
 const versionesPorCarta = new Map()
 export function registrarVersiones(filas) {
   for (const f of filas || []) {
