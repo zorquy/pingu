@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (201) — PINGU-Claude (966 — foro: la lista de temas, solo con el título)
+
+**Hecho** (PINGU: «yo pondría solo el título, porque es demasiado lioso»):
+la fila de cada tema ya no lleva el trozo del último mensaje; quedan las
+chapas, la hora, el título, el avatar de quien escribió lo último, el punto y
+las respuestas. De paso, en el móvil las chapas y la hora pasan a otra línea
+si no caben (se metían debajo del punto de no leído).
+
+**Ficheros**: `js/foro.js`, `css/foro.css`, `novedades.json`, `SCHEMA.md`,
+`BITACORA.md`. En `pruebas`: 804 y 746 comprueban ahora que NO hay trozo.
+Pasadas 804, 746, foro-2, 299, 305, 312 (la 310, roja como antes).
+
 ## 2026-10-22 (200) — PINGU-Claude (965 — Reviving Legends japonés, de vuelta a la 951) · MIGRACIÓN NUEVA
 
 **Hecho** (PINGU: «la he liado… hay hasta cinco versiones de la misma carta;

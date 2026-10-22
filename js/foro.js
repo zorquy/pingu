@@ -22,7 +22,7 @@ import { casillaHtml, botonMenuHtml, engancharModeracion } from './foro-moderar.
 import { marcasDeLectura, estaSinLeer, marcarTodoLeido, sinLeerPorForo } from './foro-lecturas.js'
 import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, vistaAlDia } from './ultima-vista.js'
 import { plegarTexto } from './texto.js'
-import { fragmento, ultimosPorTema, avatarSpan } from './foro-conversaciones.js'
+import { ultimosPorTema, avatarSpan } from './foro-conversaciones.js'
 import { formularioEncuestaHtml, engancharFormularioEncuesta, leerFormularioEncuesta, crearEncuesta } from './encuesta.js'
 
 // El foro. Esta página hace dos cosas según la URL:
@@ -652,13 +652,14 @@ async function pintarListaDeTemas(foro) {
   ])
   const totalPaginas = Math.max(1, Math.ceil((count || 0) / PAGINA))
 
-  // El último mensaje de cada tema de la página, para la fila de
-  // conversación (804): quién lo dijo y un trozo. Una consulta para toda la
-  // página; si falla, la fila dice quién abrió el tema y sigue.
+  // Quién escribió lo último en cada tema de la página, para el avatar de
+  // la fila (804). Sin el texto: desde la 966 la fila es solo el título
+  // (PINGU: «es demasiado lioso; si quieres saber de qué va, entras»). Una
+  // consulta para toda la página; si falla, el avatar es el de quien lo abrió.
   const ultimos = lista.length
     ? await supabase
         .from('forum_posts')
-        .select('thread_id, author_id, body_html, created_at')
+        .select('thread_id, author_id, created_at')
         .in('thread_id', lista.map((t) => t.id))
         .order('created_at', { ascending: false })
         .limit(lista.length * 6)
@@ -669,7 +670,7 @@ async function pintarListaDeTemas(foro) {
 
   // LA FILA DE TEMA COMO UNA CONVERSACIÓN (804). PINGU: «cada tema que sea
   // como lo nuevo». El avatar de quien escribió lo último, las chapas y la
-  // etiqueta con la hora, el título y «Misty: lo que dijo». A la derecha el
+  // etiqueta con la hora, y el título (sin trozo desde la 966). A la derecha el
   // punto de lo no leído y las respuestas. Toda la fila lleva al tema (el
   // enlace del título se estira con CSS); la etiqueta, el punto y lo de
   // moderar quedan por encima y siguen siendo suyos.
@@ -686,7 +687,6 @@ async function pintarListaDeTemas(foro) {
     // `last_post_author_id` llega de supabase-migration-foro-ultimo-autor.sql;
     // sin ella, el autor del tema (en uno sin respuestas es el mismo).
     const quien = perfiles[ultimo?.author_id || t.last_post_author_id] || perfiles[t.author_id]
-    const trozo = ultimo ? fragmento(ultimo.body_html) : ''
     const respuestas = Math.max(0, (t.post_count || 1) - 1)
     return `
     <div class="foro-tema-fila foro-tema-conv ${t.is_pinned ? 'foro-tema-fijado' : ''} ${sinLeer ? 'foro-tema-nuevo' : ''} ${leido ? 'foro-tema-leido' : ''}">
@@ -706,11 +706,6 @@ async function pintarListaDeTemas(foro) {
           <time datetime="${escapeHtml(t.last_post_at || '')}" title="${escapeHtml(fechaLarga(t.last_post_at))}">${escapeHtml(haceCuanto(t.last_post_at))}</time>
         </span>
         <h3 class="foro-conv-titulo"><a href="${destino}">${escapeHtml(t.title)}</a></h3>
-        <span class="foro-conv-trozo">${
-          trozo
-            ? `${escapeHtml(nombreDe(quien))}: ${escapeHtml(trozo)}`
-            : `Lo abrió ${escapeHtml(nombreDe(perfiles[t.author_id]))}`
-        }</span>
       </div>
       <span class="foro-conv-lado">
         ${sinLeer ? `<a class="foro-punto-nuevo foro-conv-punto" href="${destino}" aria-label="Ir al primer mensaje sin leer" tabindex="-1"></a>` : ''}

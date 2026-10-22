@@ -41785,6 +41785,15 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 966 — La fila de tema, solo el título
+
+`js/foro.js` (`filaTema`): fuera `.foro-conv-trozo` («Misty: lo que dijo» o
+«Lo abrió X»). La consulta de los últimos mensajes de la página sigue, sin
+`body_html`, solo para el avatar de quien escribió lo último. `fragmento` se
+queda en `js/foro-conversaciones.js` (lo usa la prueba 746, y es puro). Y
+`.foro-conv-arriba` lleva `flex-wrap`: en el móvil las chapas y la hora no
+cabían y se metían debajo del punto de no leído.
+
 ## Tanda 965 — Reviving Legends (japonés), de vuelta a la 951
 
 `supabase-migration-965-reviving-legends-versiones.sql`, un `do` sobre los
