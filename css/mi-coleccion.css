@@ -7140,33 +7140,18 @@ input.mc-alb-titulo:not([readonly]):focus {
   animation-duration: 0.3s;
 }
 
-/* ── 979: la expansión entra deslizando encima de la estantería (SCHEMA 979) ── */
-html[data-desliza] #mcEstanteriaZona { view-transition-name: mc-estante; }
-html[data-desliza] #mcArchivadorZona { view-transition-name: mc-expansion; }
-html[data-desliza]::view-transition-old(root),
-html[data-desliza]::view-transition-new(root) { animation: none; }
-html[data-desliza]::view-transition-group(mc-estante),
-html[data-desliza]::view-transition-group(mc-expansion) { animation: none; }
-html[data-desliza='entra']::view-transition-new(mc-expansion) { animation: mc-desliza-entra 0.32s var(--ease) both; box-shadow: var(--shadow-md); }
-html[data-desliza='entra']::view-transition-old(mc-estante) { animation: mc-desliza-fondo 0.32s var(--ease) both; }
-html[data-desliza='sale']::view-transition-old(mc-expansion) { animation: mc-desliza-entra 0.28s var(--ease) reverse both; box-shadow: var(--shadow-md); }
-html[data-desliza='sale']::view-transition-new(mc-estante) { animation: mc-desliza-fondo 0.28s var(--ease) reverse both; }
-html[data-desliza='sale']::view-transition-old(mc-expansion) { z-index: 1; }
-@keyframes mc-desliza-entra { from { transform: translateX(100%); } }
-@keyframes mc-desliza-fondo { to { transform: translateX(-24%); opacity: 0.6; } }
+/* ── 979/980: la expansión entra deslizando (SCHEMA 980) ── */
+html[data-desliza='entra'] #mcArchivadorZona { animation: mc-desliza-entra 0.26s var(--ease) both; }
+html[data-desliza='sale'] #mcEstanteriaZona { animation: mc-desliza-vuelve 0.26s var(--ease) both; }
+@keyframes mc-desliza-entra { from { transform: translateX(32%); opacity: 0; } }
+@keyframes mc-desliza-vuelve { from { transform: translateX(-16%); opacity: 0; } }
 
 @media (prefers-reduced-motion: reduce) {
   .mc-entra-derecha,
   .mc-entra-izquierda,
   ::view-transition-group(mc-carta-que-crece),
-  html[data-desliza]::view-transition-old(root),
-  html[data-desliza]::view-transition-new(root),
-  html[data-desliza]::view-transition-group(mc-estante),
-  html[data-desliza]::view-transition-group(mc-expansion),
-  html[data-desliza='entra']::view-transition-new(mc-expansion),
-  html[data-desliza='entra']::view-transition-old(mc-estante),
-  html[data-desliza='sale']::view-transition-old(mc-expansion),
-  html[data-desliza='sale']::view-transition-new(mc-estante) {
+  html[data-desliza='entra'] #mcArchivadorZona,
+  html[data-desliza='sale'] #mcEstanteriaZona {
     animation: none;
   }
 }

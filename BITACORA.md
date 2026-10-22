@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (213) — PINGU-Claude (980 — abrir una expansión ya no se atasca)
+
+**Hecho**: PINGU: «se queda pillado y no carga hasta dentro de un rato». Fuera
+la transición de página (`startViewTransition`, congelaba la pantalla para
+fotografiar la estantería y la rejilla enteras): ahora se anima solo la zona
+que entra con un `transform`. La red sale sin esperar a lo guardado (150 ms
+como mucho para IndexedDB) y la CDN tiene 700 ms antes de preguntar también a
+Supabase. Sin migración.
+
+**Ficheros**: `js/mi-coleccion.js`, `css/mi-coleccion.css`, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`. En `pruebas`: `test-tanda-977-pantalla.mjs` con los
+dos casos que atascaban.
+
+**Pendiente**: lo de toda la web (PINGU: «me refería a hacerlo para toda la
+web… que no cargue con el esqueleto para luego romperlo, sube y baja la
+pantalla»): medir los saltos página a página y quitarlos, en la tanda
+siguiente.
+
 ## 2026-10-22 (212) — PINGU-Claude (977–979 — abrir una expansión al momento, como Dex)
 
 **Hecho**: lo recomendado de la propuesta «Que cargue al momento». Al tocar

@@ -41785,6 +41785,32 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 980 — Abrir una expansión ya no se atasca
+
+PINGU, en el móvil: «cuando le das a una expansión se queda pillado y no
+carga hasta dentro de un rato; cuando carga, carga del tirón». Se quitan las
+tres cosas de la 977–979 que podían bloquear la apertura:
+
+- **`startViewTransition` fuera.** Saca una foto de lo que sale y de lo que
+  entra con la pantalla congelada, y aquí eran la estantería y la rejilla
+  enteras (miles de píxeles). Ahora el cambio de zonas es inmediato y se anima
+  solo la que entra: `html[data-desliza='entra'] #mcArchivadorZona` (y
+  `'sale'` en la estantería) con un `transform`, la marca quitada por
+  temporizador a los 400 ms.
+- **La red sale antes de leer lo guardado**: `abrirAlbum` lanza `pedirSet`
+  y a IndexedDB le da 150 ms (en Safari puede tardar o no contestar).
+- **La CDN tiene 700 ms**: si no ha contestado, se pregunta también a
+  Supabase y gana la primera que llegue bien (`Promise.any`); antes esperaba
+  hasta cuatro segundos.
+
+Y una nota de pruebas: el «no se queda arriba» de la 979 era de la PRUEBA,
+que movía la página con `scrollTo(0, 400)` y `html { scroll-behavior: smooth }`;
+el desplazamiento suave seguía en marcha y pisaba al nuestro. En una prueba,
+`behavior: 'instant'`.
+
+Prueba: `test-tanda-977-pantalla.mjs` (con un IndexedDB que no contesta y una
+CDN que tarda 3,5 s).
+
 ## Tandas 977, 978 y 979 — Abrir una expansión al momento, como Dex
 
 PINGU, con capturas de Dex: «la manera en que se cargan las cosas es como

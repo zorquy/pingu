@@ -3386,51 +3386,46 @@ function vigilarCabeceraDeAlbum() {
   io.observe(cabecera)
 }
 
-// ── ENTRAR DESLIZANDO (979, propuesta «Que cargue al momento») ──
+// ── ENTRAR DESLIZANDO (979, rehecho en la 980) ──
 //
-// PINGU, con Dex delante: la expansión entra por la derecha ENCIMA de la
-// estantería y sale igual. Solo en el móvil, solo al entrar en una expansión
-// y al volver (en la R13 se descartaron las transiciones en general; esta la
-// pidió), y nunca con «menos movimiento». Es una transición de la MISMA
-// página (`startViewTransition`): el cambio de zonas va dentro y la
-// expansión se rellena después en vivo, que la imagen nueva de una
-// transición no es una foto fija. Sin la API, el cambio es el de siempre.
-// La estantería se queda donde estaba: al volver, el sitio que tenías.
+// PINGU, con Dex delante: la expansión entra por la derecha y al volver la
+// estantería sigue donde estaba. Solo en el móvil y nunca con «menos
+// movimiento» (en la R13 se descartaron las transiciones en general; esta la
+// pidió).
+//
+// La 979 lo hacía con `startViewTransition`, y PINGU: «se queda pillado y no
+// carga hasta dentro de un rato». Esa API saca una FOTO de lo que sale y de
+// lo que entra antes de animar, y con la pantalla congelada mientras tanto:
+// aquí eran la estantería y la rejilla enteras, miles de píxeles de alto.
+// Ahora el cambio es inmediato y solo se anima la zona que entra, con una
+// clase y un `transform` (lo que mueve la tarjeta gráfica sin repintar). La
+// marca se quita con un temporizador, que con la pestaña detrás o sin
+// animación `animationend` no llega (la 313).
 let sitioDeLaEstanteria = 0
-function deslizando(sentido, cambiar, alAcabar = null) {
-  const puede = document.startViewTransition && window.matchMedia('(max-width: 720px)').matches &&
-    !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  if (!puede) {
-    cambiar()
-    alAcabar?.()
-    return
-  }
+let finDeDeslizar = null
+function deslizando(sentido, cambiar) {
+  cambiar()
+  const puede = window.matchMedia('(max-width: 720px)').matches && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  if (!puede) return
   const raiz = document.documentElement
+  clearTimeout(finDeDeslizar)
+  delete raiz.dataset.desliza
+  void raiz.offsetWidth
   raiz.dataset.desliza = sentido
-  const t = document.startViewTransition(() => { cambiar() })
-  t.finished.finally(() => {
-    if (raiz.dataset.desliza === sentido) delete raiz.dataset.desliza
-    alAcabar?.()
-  })
+  finDeDeslizar = setTimeout(() => { delete raiz.dataset.desliza }, 400)
 }
 function entrarEnExpansion(setId) {
   sitioDeLaEstanteria = window.scrollY
   deslizando('entra', () => {
     void abrirAlbum(setId)
     window.scrollTo({ top: 0, behavior: 'instant' })
-  }, () => {
-    // Dentro de la transición Chrome deja el desplazamiento unos píxeles por
-    // debajo de lo pedido (de 2 a 130, según lo que mida la página): al
-    // acabar, arriba del todo si sigue cerca.
-    if (window.scrollY > 0 && window.scrollY < 300) window.scrollTo({ top: 0, behavior: 'instant' })
   })
 }
 function salirDeExpansion() {
-  const volver = () => window.scrollTo({ top: sitioDeLaEstanteria, behavior: 'instant' })
   deslizando('sale', () => {
     volverALaEstanteria()
-    volver()
-  }, () => { if (Math.abs(window.scrollY - sitioDeLaEstanteria) > 2) volver() })
+    window.scrollTo({ top: sitioDeLaEstanteria, behavior: 'instant' })
+  })
 }
 
 function volverALaEstanteria({ push = true } = {}) {
@@ -3504,8 +3499,12 @@ async function abrirAlbum(setId, { push = true } = {}) {
   }
   // LO DE LA ÚLTIMA VEZ, AL MOMENTO (978): si este set ya se abrió en este
   // navegador, se pinta con eso mientras se pregunta.
+  // La red sale YA (980): antes se esperaba a leer lo guardado, y en Safari
+  // IndexedDB puede tardar en contestar; lo guardado tiene 150 ms para llegar.
+  const red = pedirSet(setId, ids)
+  red.catch(() => null)
   let pintado = null
-  const guardado = await leerGuardado(clave).catch(() => null)
+  const guardado = await Promise.race([leerGuardado(clave).catch(() => null), new Promise((ok) => setTimeout(ok, 150, null))])
   if (album.set !== setId) return
   if (guardado) {
     try {
@@ -3521,7 +3520,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
   try {
     // Las cartas y las versiones A LA VEZ (977), y desde la CDN si contesta
     // (978). Si el dedo ya tocó la fila, la petición está en camino.
-    const r = await pedirSet(setId, ids)
+    const r = await red
     texto = JSON.stringify({ cartas: r.cartas, versiones: r.versiones })
   } catch (err) {
     // Sin red pero con lo guardado, se queda lo guardado: es el catálogo.
@@ -3548,11 +3547,17 @@ function pedirSet(setId, ids = idsDeColeccion(setId)) {
   const hay = enCamino.get(clave)
   if (hay && Date.now() - hay.t < 30000) return hay.promesa
   const todos = ids.length ? ids : [setId]
-  // Primero la CDN (978); si no contesta, las dos consultas a Supabase.
-  const promesa = datos.cartasDeSetsDesdeLaCdn(todos, mercado).then((r) => r || Promise.all([
+  // Primero la CDN (978). Si en 700 ms no ha contestado (980: la función
+  // fría tarda, y antes se le daban cuatro segundos enteros), se pregunta
+  // también a Supabase y gana la primera que conteste bien.
+  const cdn = datos.cartasDeSetsDesdeLaCdn(todos, mercado)
+  const directo = () => Promise.all([
     ids.length > 1 ? datos.cartasDeSets(ids, mercado) : datos.cartasDeSet(setId, mercado),
     datos.versionesDeSets(todos, mercado).catch(() => []),
-  ]).then(([cartas, versiones]) => ({ cartas, versiones })))
+  ]).then(([cartas, versiones]) => ({ cartas, versiones }))
+  const promesa = Promise.race([cdn, new Promise((ok) => setTimeout(ok, 700, null))])
+    .then((r) => r || Promise.any([cdn.then((x) => x || Promise.reject(null)), directo()]))
+    .catch((e) => { throw e?.errors?.find(Boolean) || e })
   promesa.catch(() => enCamino.delete(clave))
   enCamino.set(clave, { promesa, t: Date.now() })
   return promesa

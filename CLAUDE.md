@@ -744,8 +744,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   un set va en `js/mi-coleccion/columnas-set.js` (la piden la web y la
   función). Lo que cambie cartas desde /admin llama a `avisarALaWeb()`
   (`admin/js/avisar-web.js`), o la CDN la enseña vieja hasta diez minutos.
-  Y dentro de un `startViewTransition` no se espera a `requestAnimationFrame`:
-  no corre y la transición se cuelga.
+  Nada de `startViewTransition` para entrar en una pantalla grande (980):
+  congela la pantalla para fotografiar lo que sale y lo que entra, y con una
+  rejilla de miles de píxeles el teléfono «se queda pillado». Se anima solo lo
+  que entra, con un `transform`. Y nada que se lea del navegador va DELANTE
+  de la red: la red sale primero y lo guardado tiene un tope (150 ms).
 - **Las colecciones son eras, y la web las coloca con la MISMA cuenta que
   /admin** (tanda 975, que deja vieja la de abajo): `erasDeEstanteria` en
   `js/mi-coleccion/estanteria.js`. No hay «Otros sets» ni «Sets especiales»
