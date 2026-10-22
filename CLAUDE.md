@@ -1705,10 +1705,13 @@ de la base (supabase-migration-torneos-publico.sql). **No metas un
 
 **Quién lleva un torneo (tandas 295 y 296)**: hay UN criterio y tiene
 nombre — `torneos_mando(p_torneo)` en la base, `puedeLlevar(perfil,
-torneo, userId)` en el cliente. Es el admin del sitio, o alguien con el
+torneo, userId, esJuez)` en el cliente. Es el admin del sitio, o alguien con el
 rol `is_tournament_admin` (una comunidad de fuera lleva los torneos de
 PokeDoc y se reparte desde /admin → Usuarios), o quien creó ESE torneo
-—crear está abierto a todo el mundo desde la tanda 266—. Si añades una
+—crear está abierto a todo el mundo desde la tanda 266—, o un JUEZ
+aprobado de ese torneo (tanda 970, PINGU: «los mismos permisos que el
+organizador»; borrar el torneo no, y la mesa viva y la baja las sigue
+haciendo por sus funciones de la 394). Si añades una
 puerta de torneos, pásala por ahí: no repartas `is_admin` a mano. Lo
 único que NO entra en el mando y sigue siendo del admin del SITIO es el
 sello de OFICIAL de PokeDoc (`torneos_soy_admin_del_sitio()`) y repartir

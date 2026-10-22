@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (205) — PINGU-Claude (970 — los jueces llevan el torneo; propuesta de pareos y buscador)
+
+**Hecho**: un juez aprobado lleva su torneo como el organizador (pareos,
+rondas, saltar jornada, inscripciones, listas, mesas, editar), menos
+borrarlo. Migración 970 (**ejecutarla antes del torneo de mañana**: sin ella
+el juez ve los botones y la base no le deja). La mesa viva y la baja siguen
+por las funciones de la 394. Y una propuesta con maquetas
+(https://claude.ai/artifact/FS4stkbJZbXQDhjR82jtn1): pareos de liga por
+jornada (A/B/C) y seis mejoras del buscador (B1–B6), para que PINGU elija.
+
+**Ficheros**: `supabase-migration-970-jueces-como-organizador.sql`,
+`js/torneos/comun.js`, `torneo.js`, `ronda.js`, `jueces.js`, `tablon.js`,
+`novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En `pruebas`:
+`test-tanda-970.mjs` y `sql-tanda-970.sql`. Las 83 pruebas de torneos: 79
+verdes; 895, 310 y 386 ya fallaban antes, y `test-correos` cae por
+`torneo_aviso` (de la 878).
+
+**Pendiente**: que PINGU elija en la propuesta (pareos y buscador).
+
 ## 2026-10-22 (204) — PINGU-Claude (969 — el idioma de un producto, y Buscar al cambiar de catálogo)
 
 **Hecho**: al añadir un producto se elige el idioma («¿En qué idioma lo

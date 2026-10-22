@@ -97,14 +97,14 @@ function filaHtml(a, puedoBorrar) {
 function puedoEscribir() {
   if (!ctx?.session) return false
   if (['draft', 'cancelled'].includes(ctx.torneo.status)) return false
-  return puedeLlevar(ctx.perfil, ctx.torneo, ctx.session.user.id) || Boolean(ctx.esJuez)
+  return puedeLlevar(ctx.perfil, ctx.torneo, ctx.session.user.id, ctx.esJuez)
 }
 
 function pintarLista() {
   const lista = document.getElementById('torneoTablonLista')
   if (!lista) return
   const yo = ctx?.session?.user?.id
-  const mando = yo ? puedeLlevar(ctx.perfil, ctx.torneo, yo) : false
+  const mando = yo ? puedeLlevar(ctx.perfil, ctx.torneo, yo, ctx.esJuez) : false
   const visibles = todas ? avisos : avisos.slice(0, A_LA_VISTA)
   const html = avisos.length
     ? `<ul class="torneo-tablon-items">${visibles.map((a) => filaHtml(a, a.kind === 'aviso' && (a.author_id === yo || mando))).join('')}</ul>

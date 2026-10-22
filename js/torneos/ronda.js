@@ -66,7 +66,10 @@ const $ = (id) => document.getElementById(id)
 // partida» ni reportes — solo mesas, rondas y clasificación.
 const miId = () => ctx.session?.user?.id ?? null
 // Quién LLEVA este torneo: el equipo, o quien lo creó (tanda 296).
-const mando = () => puedeLlevar(ctx.perfil, ctx.torneo, miId())
+const mando = () => puedeLlevar(ctx.perfil, ctx.torneo, miId(), ctx.esJuez)
+// Quien lleva el torneo SIN contar a los jueces (970): un juez resuelve una
+// mesa VIVA por su función de la 394, que vale con y sin la migración 970.
+const organiza = () => puedeLlevar(ctx.perfil, ctx.torneo, miId(), false)
 
 const ahora = () => new Date().toISOString()
 
@@ -1078,7 +1081,7 @@ async function resolverPartida(partida, resultado) {
   // update de abajo no tocaba nada SIN DAR ERROR y aquí salía «Mesa
   // resuelta» en verde: el resolutor lleva enseñándose a los jueces
   // desde la tanda 207 y no les ha funcionado nunca.
-  if (!mando()) {
+  if (!organiza() && !TERMINALES.has(partida.status)) {
     const { error } = await supabase.rpc('torneos_resolver_como_juez', { p_partida: partida.id, p_resultado: resultado })
     if (error) {
       showToast(

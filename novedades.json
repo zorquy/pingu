@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Los jueces de un torneo pueden llevarlo como el organizador: generar pareos, empezar y cerrar rondas, saltar jornada y resolver mesas.", "enlace": "/torneos.html" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Al añadir un producto sellado eliges su idioma, como con una carta, y vale lo de ese idioma. Puedes tener la misma lata en inglés y en español.", "enlace": "/mi-coleccion?ver=productos" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "En Cartas › Buscar, al cambiar entre Pokémon y Pokémon Japón, lo que buscabas se busca otra vez en el otro catálogo.", "enlace": "/cartas?ver=buscar&q=scyther" },
     { "fecha": "2026-10-22", "tipo": "nuevo", "texto": "Productos especiales: las latas y colecciones que no son de ninguna expansión (como las de Mega Charizard X y Mega Charizard Y) tienen su sitio, el primero, en Productos.", "enlace": "/cartas?ver=productos" },

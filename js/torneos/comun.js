@@ -212,8 +212,13 @@ export function puedeOrganizar(perfil) {
 // (supabase-migration-torneos-dueno.sql). Que digan lo mismo NO es
 // opcional aquí: si la pantalla enseña de más, el botón no da error —
 // la política rechaza en silencio y la persona se queda pulsando.
-export function puedeLlevar(perfil, torneo, userId) {
+//
+// Y desde la 970, un JUEZ aprobado de ese torneo (`esJuez`): PINGU, «cuando
+// pones a alguien de juez tiene que tener los mismos permisos que el
+// organizador». Borrar el torneo no entra (`puedeBorrarTorneo` no lo pasa).
+export function puedeLlevar(perfil, torneo, userId, esJuez = false) {
   if (puedeOrganizar(perfil)) return true
+  if (esJuez && userId) return true
   return Boolean(userId && torneo?.admin_id && torneo.admin_id === userId)
 }
 

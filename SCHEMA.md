@@ -41785,6 +41785,25 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 970 — Los jueces llevan el torneo como el organizador
+
+PINGU, la víspera de un torneo con dos jueces: «no tienen la opción de
+generar pareos ni de saltar ronda; tienen que tener los mismos permisos que
+el organizador». `supabase-migration-970-jueces-como-organizador.sql`:
+`torneos_mando(t)` suma `torneos_soy_juez(t)` (con eso valen todas las
+políticas y funciones que preguntan por el mando: rondas, mesas,
+resultados, historial de cruces, inscripciones, listas, jornadas, tablón) y
+`torneos_juez_edita` deja al juez hacer UPDATE de su `tournaments` (estado,
+ronda en curso, ajustes). Borrar no (`torneos_borrar`), ni el sello oficial.
+
+En la web, `puedeLlevar(perfil, torneo, userId, esJuez)`; todas las llamadas
+de `js/torneos/` le pasan el juez (lo vigila `test-tanda-970.mjs`) salvo dos
+con `false` a propósito (`organiza()`): resolver una mesa VIVA
+(`torneos_resolver_como_juez`) y la puerta vieja de la baja, que un juez
+sigue haciendo por sus funciones de la 394 porque valen con y sin la 970.
+La ficha carga los jueces antes que las jornadas (`cargarJornadas` pide
+todas si mandas). Probado en `sql-tanda-970.sql` (13 casos).
+
 ## Tanda 969 — El idioma de un producto, y Buscar al cambiar de catálogo
 
 PINGU: «cuando agregas un producto, que te pregunte el idioma, como una

@@ -34,7 +34,10 @@ const $ = (id) => document.getElementById(id)
 // cuenta (modo escaparate), y entonces no hay «yo».
 const yo = () => ctx.session?.user?.id ?? null
 // Quién LLEVA este torneo: el equipo, o quien lo creó (tanda 296).
-const mando = () => puedeLlevar(ctx.perfil, ctx.torneo, yo())
+const mando = () => puedeLlevar(ctx.perfil, ctx.torneo, yo(), ctx.esJuez)
+// Sin contar a los jueces (970): la puerta vieja de la baja es solo de quien
+// organiza; un juez va por `torneos_dar_de_baja`.
+const organiza = () => puedeLlevar(ctx.perfil, ctx.torneo, yo(), false)
 
 function nombreDe(userId) {
   const inscrito = ctx.inscripciones.find((i) => i.user_id === userId)
@@ -232,7 +235,7 @@ async function darDeBaja(boton) {
     // con `.select('id')` para no cantar victoria si la política dice
     // que no. Un juez, no: se le dice qué falta en vez de fingir que
     // funcionó (tanda 293).
-    if (!mando()) {
+    if (!organiza()) {
       showToast(avisoDeMigracion('supabase-migration-torneos-jueces.sql'), 'error')
       boton.disabled = false
       return

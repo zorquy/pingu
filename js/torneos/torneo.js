@@ -61,7 +61,7 @@ let jornadaElegida = null
 const esUnaLiga = () => torneo?.format === 'league'
 // Quién LLEVA este torneo: el equipo, o quien lo creó (tanda 296). Se
 // lee de las tres variables de arriba, así que cambia sola al recargar.
-const mando = () => puedeLlevar(perfil, torneo, session?.user?.id)
+const mando = () => puedeLlevar(perfil, torneo, session?.user?.id, esJuez)
 // MODO ESCAPARATE (tanda 229): la ficha se abre TAMBIÉN sin cuenta, para
 // que un enlace compartido enseñe algo en vez de rebotar. Quien mira sin
 // entrar ve el cartel, los inscritos, las mesas y la clasificación; no
@@ -1833,10 +1833,11 @@ function pintarTodo() {
 
 async function recargar() {
   await cargarInscripciones()
-  jornadas = await cargarJornadas(torneo, { userId: session?.user?.id || null, todas: Boolean(session && mando()) })
-  // Un juez aprobado resuelve mesas igual que el organizador (SPEC §6.7),
-  // y además ve las decklists ajenas: por eso esto va ANTES de cargarlas.
+  // Un juez aprobado lleva el torneo como el organizador (970) y ve las
+  // decklists ajenas: por eso va ANTES de las jornadas y las listas, que
+  // preguntan por el mando.
   await cargarJueces()
+  jornadas = await cargarJornadas(torneo, { userId: session?.user?.id || null, todas: Boolean(session && mando()) })
   await cargarDecklists()
   pintarTodo()
   const contexto = {
