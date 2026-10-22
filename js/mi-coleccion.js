@@ -3003,7 +3003,7 @@ async function pintarEstanteria() {
   // mismo tres veces («TIENES 16 de 252», «252 CARTAS», «Ver →»).
   const lista = true
   $('mcEstanteriaRejilla').innerHTML = grupos
-    .map((g) => `${g.grupoTitulo ? `<h2 class="mc-estanteria-grupo">${escapeHtml(g.grupoTitulo)}</h2>` : ''}${g.titulo ? `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>` : ''}
+    .map((g) => `${g.titulo ? `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>` : ''}
       <div class="mc-estanteria${lista ? ' mc-estanteria-lista' : ''}">${g.sets.map((x) => (lista ? filaDeSet : tarjetaDeSet)(x, cuantas.get(x.id) || 0)).join('')}</div>`)
     .join('')
   // `hay` es el total SIN filtrar, y es lo que distingue las dos cosas:

@@ -670,13 +670,42 @@ body {
 .col-barra select, .col-barra input[type="search"] { min-height: 36px; }
 .col-barra input[type="search"] { flex: 1; min-width: 220px; }
 .col-resumen { color: var(--text-mid); font-size: var(--t-xs); }
-.col-lista { display: flex; flex-direction: column; gap: var(--e-md); margin-top: var(--e-sm); }
-.col-era { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-.col-era-cab { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-sm); background: var(--bg); }
-.col-era-cab h3 { margin: 0; font-size: var(--t-sm); flex: 1; min-width: 0; }
-/* El rótulo de «Otros sets» (904), encima de las eras que cuelgan de él. */
-.col-grupo { margin: var(--e-xl) 0 var(--e-sm); padding-top: var(--e-md); border-top: 1px solid var(--border); font-size: var(--t-md); }
-.col-era-cuenta { color: var(--text-mid); font-size: var(--t-2xs); }
+.col-barra-2 { margin-top: calc(-1 * var(--e-xs)); }
+/* Las eras plegables (975): una tarjeta por era; la cabecera entera abre. */
+.col-lista { display: flex; flex-direction: column; gap: var(--e-sm); margin-top: var(--e-sm); }
+.col-era { border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; background: var(--white); }
+.col-era-abierta { border-color: var(--border-strong); }
+.col-era-cab { display: flex; align-items: center; gap: var(--e-xs); padding: var(--e-xs) var(--e-sm); min-height: 56px; }
+.col-era-abierta .col-era-cab { background: var(--bg); border-bottom: 1px solid var(--border); }
+.col-era-destino { outline: 2px solid var(--navy); outline-offset: -2px; background: var(--ice); }
+.col-era-plegar { flex: 1; min-width: 0; display: flex; align-items: center; gap: var(--e-sm); min-height: 44px; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; padding: 0 var(--e-xs); border-radius: var(--radius-sm); }
+.col-era-plegar:hover { background: var(--ice); }
+.col-era-plegar h3 { margin: 0; font-size: var(--t-md); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.col-chevron { color: var(--text-mid); transition: transform .15s var(--ease); flex-shrink: 0; }
+.col-era-abierta .col-chevron { transform: rotate(90deg); }
+.col-era-cuenta { color: var(--navy); background: var(--ice); font-size: var(--t-2xs); font-weight: 700; padding: 2px 8px; border-radius: var(--radius-pill); font-variant-numeric: tabular-nums; flex-shrink: 0; }
+.col-era-logos { display: flex; gap: var(--e-xs); margin-left: auto; flex-shrink: 0; }
+.col-era-logos img { width: 48px; height: 20px; object-fit: contain; }
+.col-era-mandos { display: flex; gap: var(--e-xs); align-items: center; flex-shrink: 0; }
+.col-icono { min-width: 32px; min-height: 32px; border: 0; border-radius: var(--radius-sm); background: var(--ice); color: var(--navy); font-weight: 700; cursor: pointer; }
+.col-icono:disabled { opacity: .35; cursor: default; }
+.col-chapa-orden { border: 0; border-radius: var(--radius-pill); background: var(--warning-bg); color: var(--warning); font-size: var(--t-2xs); font-weight: 700; padding: 4px 8px; cursor: pointer; flex-shrink: 0; }
+.col-vacia { padding: var(--e-md); color: var(--text-mid); font-size: var(--t-xs); text-align: center; }
+.col-era-cuenta + .col-era-logos { margin-left: auto; }
+.col-marcar { width: 20px; height: 20px; flex-shrink: 0; accent-color: var(--navy); }
+.col-set-marcada { background: var(--ice); }
+/* Las marcadas: una barra pegada abajo con lo que se puede hacer con ellas. */
+.col-seleccion { position: sticky; bottom: var(--e-sm); z-index: 5; margin-top: var(--e-md); display: flex; align-items: center; gap: var(--e-sm); flex-wrap: wrap; background: var(--navy-solid); color: var(--blanco-fijo); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); }
+.col-seleccion[hidden] { display: none; }
+.col-seleccion b { margin-right: auto; }
+.col-seleccion .btn-primary { background: var(--blanco-fijo); color: var(--navy-solid-dark); }
+.col-destinos { display: flex; flex-direction: column; gap: var(--e-xs); margin: var(--e-sm) 0; max-height: 60vh; overflow-y: auto; }
+.col-hoja .col-destino { display: flex; align-items: center; gap: var(--e-sm); min-height: 44px; padding: 0 var(--e-sm); border: 1px solid var(--border); border-radius: var(--radius-md); margin: 0; color: var(--text); font-size: var(--t-sm); cursor: pointer; }
+.col-hoja .col-destino:has(input:checked) { border-color: var(--navy); background: var(--ice); font-weight: 600; }
+.col-destino input { margin: 0; accent-color: var(--navy); }
+.col-destino small { margin-left: auto; color: var(--text-mid); }
+
+
 /* El asa de arrastre: la fila entera se arrastra, pero el asa es lo que lo
    DICE — y es un botón de verdad para poder moverla con las flechas. */
 .col-asa {
@@ -713,7 +742,7 @@ body {
 .col-hoja label input[type="text"], .col-hoja label input[type="url"], .col-hoja label input[type="number"] { width: 100%; margin-top: 4px; }
 .col-hoja .col-check { display: flex; align-items: center; gap: var(--e-xs); }
 .col-hoja .col-check input { width: auto; margin: 0; }
-.col-hoja-pie { display: flex; gap: var(--e-xs); align-items: center; margin-top: var(--e-md); }
+.col-hoja-pie { display: flex; flex-wrap: wrap; gap: var(--e-xs); align-items: center; margin-top: var(--e-md); }
 /* El catálogo editable (885): la lista de cartas de un set y su ficha. */
 .col-hoja label textarea, .col-hoja label input[type="date"] { width: 100%; margin-top: 4px; }
 .cat-cab { display: flex; align-items: center; gap: var(--e-sm); margin-bottom: var(--e-sm); }
@@ -766,6 +795,17 @@ body {
 @media (max-width: 720px) {
   .col-set { flex-wrap: wrap; }
   .col-set-logo { width: 48px; }
+  /* En el móvil se mueve con ↑ ↓ y «Mover a…»: sin logos en la cabecera y
+     las acciones de la colección en su propia línea. */
+  .col-era-logos { display: none; }
+  .col-era-cab { flex-wrap: wrap; }
+  .col-era-plegar { flex-basis: calc(100% - 48px); }
+  .col-era-mandos { margin-left: auto; }
+  .col-set-acciones { width: 100%; justify-content: flex-end; }
+}
+@media (pointer: coarse) {
+  .col-icono, .col-asa { min-width: 44px; min-height: 44px; }
+  .col-set .col-asa { display: none; }
 }
 
 /* El semáforo de las pasadas de TCGGO (817). */
@@ -982,7 +1022,7 @@ body {
   .an-columnas { gap: var(--e-xs); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .an-panel { transition: none; }
+  .an-panel, .col-chevron { transition: none; }
 }
 
 /* Lo de siempre de debajo (velocidad, guías, cursos, comunidad), en las

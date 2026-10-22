@@ -735,7 +735,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   sitemap. Y antes de abrir miles de páginas a Google, mira en Search
   Console cuántas tiene «descubiertas sin indexar»: si la cola ya es
   larga, abrir más la alarga.
-- **Una era con `grupo` no es una era: cuelga de «Otros sets», al fondo**
+- **Las colecciones son eras, y la web las coloca con la MISMA cuenta que
+  /admin** (tanda 975, que deja vieja la de abajo): `erasDeEstanteria` en
+  `js/mi-coleccion/estanteria.js`. No hay «Otros sets» ni «Sets especiales»
+  ni una lista de nombres que saque colecciones de su era: PINGU las coloca
+  en /admin → Colecciones (plegables, ↑ ↓, «Mover a…», «+ Nueva era»). Si
+  vuelves a querer una regla automática, va en esa función y el panel la
+  enseña; nunca solo en la web. `grupo` solo deja al fondo a las que lo
+  tenían hasta que se coloquen.
+- **(Hasta la 975) Una era con `grupo` no es una era: cuelga de «Otros sets», al fondo**
   (tanda 904). `tcg_eras.grupo` (`NULL` / `'otros'`) manda sobre el
   `orden`: la estantería la pinta detrás de TODAS las eras bajo el rótulo
   del grupo (`TITULOS_DE_GRUPO`, en `estanteria.js`, el único sitio con

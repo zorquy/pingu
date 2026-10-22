@@ -15,43 +15,15 @@ import { eraDeSet } from '../catalogo-series.js'
 // con datos a mano, que es donde están los casos raros (un set sin
 // fecha, una serie sin nombre, un set sin serie).
 
-// ── Qué es un set ESPECIAL ──
+// ── LOS SETS «ESPECIALES» YA NO SE SACAN SOLOS (tanda 975) ──
 //
-// La lista es de lo ESPECIAL y no de lo normal, y eso es a propósito: lo
-// que se queda viejo es la lista, y conviene que al quedarse vieja falle
-// por el lado bueno. Si mañana sale una era nueva y la lista fuera de
-// «eras de verdad», esa era entera caería al fondo —justo lo más
-// buscado—; siendo de especiales, lo que pasa es que una colección de
-// promos nueva se cuela en medio, que molesta mucho menos.
-const SERIES_ESPECIALES = ['tk', 'pop', 'np']
-// Y por el nombre, para los que no traen serie. `\b` a los dos lados y no
-// «contiene»: la trampa de siempre es que al barrer por una cadena cuenta
-// todo lo que la CONTIENE, y aquí buscamos la PALABRA.
-//
-// La lista creció en la 415 con lo que PINGU fue viendo: «has metido
-// McDonald's Collection entre Espada y Escudo y Escarlata y Púrpura;
-// McDonald's también debería ir para abajo porque no es un set como tal.
-// Pokémon Futsal también, porque no es un set de Espada y Escudo. Solo
-// los sets principales y las promos deberían ir ahí».
-//
-// Son colaboraciones y productos sueltos: salen con el número de una era
-// pero no son de su línea. Y sí, es una lista a mano y se quedará vieja
-// —el día que salga otra colaboración se colará en medio—, pero el error
-// por ese lado es que una colección rara aparezca entre las buenas, no
-// que una ERA entera caiga al fondo.
-// «POP SERIES» SE SALE DE AQUÍ (tanda 536). Estaba en la lista desde que
-// se escribió, y por eso las diez colecciones de POP salían al fondo
-// sueltas en vez de juntas: PINGU las quiere como una era, que es lo que
-// son —diez entregas numeradas de la misma línea—.
-const NOMBRES_ESPECIALES =
-  /\btrainer kit\b|\bprerelease\b|\bmcdonald'?s\b|\bfutsal\b|\bbattle academy\b|\btrick or trade\b|\bmy first battle\b|\bholiday calendar\b|\btheme deck\b/i
-
-export function esEspecial(set) {
-  if (SERIES_ESPECIALES.includes(String(set?.serie_id || '').toLowerCase())) return true
-  // LOS DOS NOMBRES (tanda 546): estas palabras son inglesas y el nombre
-  // de un set japonés está en kanji, así que sin `name_en` no casa ni una.
-  return NOMBRES_ESPECIALES.test(`${set?.name || ''} ${set?.name_en || ''}`)
-}
+// Hasta la 975 una lista a mano (series `tk`, `pop`, `np` y nombres como
+// McDonald's, Futsal o Trainer Kit) sacaba esas colecciones de su era y las
+// juntaba en «Sets especiales», al fondo, DIGA LO QUE DIGA EL PANEL: PINGU
+// metía POP Series en su era y la web la seguía enseñando revuelta con todo.
+// PINGU: «que sean todo eras y yo voy moviendo el orden». Ahora cada
+// colección sale en la era que tenga (`serie_id`), y las eras se colocan en
+// /admin → Colecciones, que usa esta misma función.
 
 // Los PROMOS de una era no son especiales: son de su era (PINGU, al ver
 // la primera versión: «las Black Star Promo de cada era tienen que ir en
@@ -62,7 +34,7 @@ export function esEspecial(set) {
 const ES_PROMO = /\bpromos?\b/i
 
 export function esPromoDeEra(set) {
-  return !esEspecial(set) && ES_PROMO.test(`${set?.name || ''} ${set?.name_en || ''}`)
+  return ES_PROMO.test(`${set?.name || ''} ${set?.name_en || ''}`)
 }
 
 // El año de un set, para ordenar. Sin fecha no se inventa uno: se va al
@@ -74,57 +46,43 @@ function cuando(set) {
 
 const porFecha = (a, b) => cuando(b) - cuando(a)
 
-// Los grupos de la estantería, en el orden en que se pintan.
+// Las eras de la estantería, en el orden en que se pintan, cada una con sus
+// sets ordenados. LA USAN LA WEB Y /admin (975): lo que se ve en el panel es
+// lo que sale en la web, porque es la misma cuenta.
 //
-// `favoritos` es un Set de identificadores. Si no hay ninguno, no hay
-// grupo de favoritos: un rótulo encima de nada es ruido.
-// ── Y DESDE LA 550, LO QUE DIGA PINGU MANDA ──
+// `eras` es el mapa de `tcg_eras`: `serie_id → { nombre, orden, grupo }`
+// (550). Lo que hay ahí se respeta tal cual; lo que no esté sigue como
+// siempre —ordenado por su set más nuevo y rotulado con el nombre del
+// catálogo—. Una era a medio configurar no rompe nada: las puestas a mano van
+// primero, en su orden, y las demás detrás con el suyo de siempre.
 //
-// `eras` es el mapa de `tcg_eras`: `serie_id → { nombre, orden, grupo }`.
-// Lo que hay ahí se respeta tal cual; lo que no esté sigue como siempre
-// —ordenado por su set más nuevo y rotulado con el nombre del catálogo—.
-// Una era a medio configurar no rompe nada: las puestas a mano van primero,
-// en su orden, y las demás detrás con el suyo de siempre.
+// `grupo` (904, «Otros sets») ya no pinta ningún rótulo: todo son eras al
+// mismo nivel (975). Solo sigue mandando al fondo a las que lo tienen, para
+// que la estantería no cambie hasta que PINGU las coloque; colocar las eras
+// en el panel les quita el grupo a todas.
 //
-// ── Y DESDE LA 904, «OTROS SETS» ──
-//
-// Una era con `grupo` ('otros') no es una era de verdad: es una línea que
-// no cabe en ninguna —los Play! Pokémon Prize Pack, que son nueve series
-// de sobres de premio—. Esas van TODAS al fondo, después de la última era
-// (Base), bajo un rótulo común, «Otros sets», que también cubre los sets
-// especiales de siempre: el rótulo lo lleva el primer grupo que cae ahí
-// (`grupoTitulo`), y la pantalla lo pinta como un título por encima.
-export const TITULOS_DE_GRUPO = { otros: 'Otros sets' }
-
-export function gruposDeEstanteria(sets, favoritos = new Set(), eras = null) {
-  const grupos = []
-  const favs = sets.filter((s) => favoritos.has(s.id)).sort(porFecha)
-  if (favs.length) grupos.push({ id: 'favoritos', titulo: 'Tus favoritas', sets: favs })
-
-  const resto = sets.filter((s) => !favoritos.has(s.id))
-  const especiales = resto.filter(esEspecial).sort(porFecha)
-  const normales = resto.filter((s) => !esEspecial(s))
-
-  // Por era. El nombre de la serie manda sobre el identificador, pero el
-  // identificador es la CLAVE: dos series pueden llamarse igual en dos
-  // idiomas y no se pueden juntar por el nombre.
+// `vacias`: el panel quiere ver también las eras sin colecciones (una recién
+// creada), la web no.
+export function erasDeEstanteria(sets, eras = null, { vacias = false } = {}) {
   const porEra = new Map()
-  for (const s of normales) {
-    const clave = s.serie_id || ''
-    if (!porEra.has(clave)) {
-      const aMano = eras?.get?.(clave) || null
-      porEra.set(clave, {
-        id: clave,
-        titulo: aMano?.nombre || eraDeSet(s) || s.serie_id || 'Sin serie',
-        orden: Number.isFinite(Number(aMano?.orden)) ? Number(aMano.orden) : null,
-        grupo: TITULOS_DE_GRUPO[aMano?.grupo] ? aMano.grupo : null,
-        sets: [],
-      })
+  const nueva = (clave, s) => {
+    const aMano = eras?.get?.(clave) || null
+    return {
+      id: clave,
+      titulo: aMano?.nombre || (s && eraDeSet(s)) || clave || 'Sin serie',
+      suya: !!aMano,
+      orden: Number.isFinite(Number(aMano?.orden)) ? Number(aMano.orden) : null,
+      grupo: aMano?.grupo || null,
+      sets: [],
     }
+  }
+  for (const s of sets) {
+    const clave = s.serie_id || ''
+    if (!porEra.has(clave)) porEra.set(clave, nueva(clave, s))
     porEra.get(clave).sets.push(s)
   }
+  if (vacias && eras?.forEach) eras.forEach((_, clave) => { if (!porEra.has(clave)) porEra.set(clave, nueva(clave, null)) })
   const listaDeEras = [...porEra.values()]
-  // Los promos de la era, al fondo; el resto por fecha, lo nuevo arriba.
   for (const e of listaDeEras) {
     // El orden a mano gana, y solo entre los que lo tienen: un set con
     // número va antes que uno sin él, y los que no tienen ninguno siguen
@@ -145,7 +103,7 @@ export function gruposDeEstanteria(sets, favoritos = new Set(), eras = null) {
   // Una era vale lo que vale su set MÁS NUEVO, mirando todos y no el
   // primero de la lista: desde que los promos se van al fondo, el primero
   // ya no es el más nuevo si la era SOLO tiene promos.
-  const masNuevo = (sets) => Math.max(...sets.map(cuando))
+  const masNuevo = (sets) => (sets.length ? Math.max(...sets.map(cuando)) : -Infinity)
   // Y DOS ERAS SIN NINGUNA FECHA NO SE PUEDEN RESTAR (tanda 451): las dos
   // valen `-Infinity`, y `-Infinity - (-Infinity)` es **NaN**. Un
   // comparador que devuelve NaN no ordena: deja el orden que le dé la gana
@@ -159,8 +117,7 @@ export function gruposDeEstanteria(sets, favoritos = new Set(), eras = null) {
   // Mientras no tengan fecha no hay forma de saber cuál es más nueva, pero
   // sí se puede dejar un orden ESTABLE en vez de uno al azar.
   listaDeEras.sort((a, b) => {
-    // Lo de «Otros sets» va detrás de todas las eras de verdad, se haya
-    // colocado a mano o no: su orden solo cuenta dentro del grupo.
+    // Las que tenían grupo (904) siguen al fondo hasta que se coloquen.
     if (!!a.grupo !== !!b.grupo) return a.grupo ? 1 : -1
     // Una era colocada a mano va delante de todas las que no lo están: si
     // compitiera por fecha con las demás, poner una en su sitio obligaría
@@ -175,15 +132,16 @@ export function gruposDeEstanteria(sets, favoritos = new Set(), eras = null) {
     if (Number.isFinite(nb)) return 1
     return String(a.id).localeCompare(String(b.id))
   })
-  grupos.push(...listaDeEras)
+  return listaDeEras
+}
 
-  if (especiales.length) {
-    grupos.push({ id: 'especiales', titulo: 'Sets especiales', sets: especiales, grupo: 'otros' })
-  }
-  // El rótulo del grupo, en el primero que cae en él: así la pantalla no
-  // tiene que saber qué eras son de qué grupo, solo pintar el título cuando
-  // viene.
-  const primero = grupos.find((g) => g.grupo)
-  if (primero) primero.grupoTitulo = TITULOS_DE_GRUPO[primero.grupo]
+// Los grupos de la estantería: «Tus favoritas» arriba (si hay) y las eras.
+// `favoritos` es un Set de identificadores; sin ninguno no hay grupo: un
+// rótulo encima de nada es ruido.
+export function gruposDeEstanteria(sets, favoritos = new Set(), eras = null) {
+  const grupos = []
+  const favs = sets.filter((s) => favoritos.has(s.id)).sort(porFecha)
+  if (favs.length) grupos.push({ id: 'favoritos', titulo: 'Tus favoritas', sets: favs })
+  grupos.push(...erasDeEstanteria(sets.filter((s) => !favoritos.has(s.id)), eras))
   return grupos
 }

@@ -41785,6 +41785,48 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 975 — Colecciones: todo eras, plegadas, y moverlas sin números
+
+PINGU vio la propuesta (https://claude.ai/artifact/VerHVryeJscUJgqMdLRmtE) y
+la recortó: «que sea plegable y más visual… quita el apartado de otros sets…
+que sean todo eras y yo voy moviendo el orden. El orden de ahora está bien,
+no muevas nada».
+
+- **Por qué no funcionaba**: la web tenía una regla propia (`esEspecial`:
+  series `tk`/`pop`/`np` y nombres como McDonald's, Futsal, Trainer Kit,
+  Prerelease…) que sacaba esas colecciones de su era a «Sets especiales»,
+  diga lo que diga el panel; y el panel ordenaba con su propia copia
+  (`porEras`), que no la aplicaba. POP Series en su era salía revuelta con
+  todo en «Otros sets».
+- **Una sola cuenta**: `erasDeEstanteria(sets, eras, { vacias })` en
+  `js/mi-coleccion/estanteria.js` la usan la web (`gruposDeEstanteria`) y
+  /admin (`porEras`, con `vacias` para ver las eras recién creadas). Sin
+  `esEspecial`, sin «Sets especiales», sin `TITULOS_DE_GRUPO` ni
+  `grupoTitulo`: todo son eras al mismo nivel. `grupo` (904) solo sigue
+  mandando al fondo a las eras que lo tienen, para que nada se mueva solo;
+  colocar las eras desde el panel lo quita a todas.
+- **Lo que cambia en la web sin tocar datos**: lo que la regla sacaba vuelve
+  a la era que tiene (McDonald's a Espada y Escudo, los Trainer Kits a «tk»,
+  POP a la suya) hasta que PINGU lo mueva.
+- **El panel** (`admin/js/colecciones.js`): eras plegadas (abiertas
+  recordadas por catálogo en `pd-col-abiertas-<mercado>`; buscar abre las
+  que casan y esconde el resto), ↑ ↓ por era y arrastrar por el asa
+  (`guardarOrdenDeEras`: un upsert con TODAS en el orden de pantalla, 10, 20…,
+  y `grupo = null`), un set soltado sobre la cabecera de otra era se mueve a
+  ella, casillas para marcar varias con su barra («Mover a…» por nombre de
+  era, `moverA`, la era como corrección 908 y el orden de antes a null),
+  «+ Nueva era» (nombre, dónde va —arriba, abajo o detrás de otra— y meter
+  las marcadas; el id sale de `idDeEraNueva`, `conEraEn` coloca, los dos
+  puros en `orden-arrastrable.js`), «a mano · por fecha» quita el orden de
+  dentro de una era, y renombrar sin número ni grupo. El editor de una
+  colección elige la era en un desplegable con sus nombres y ya no pide
+  «orden» ni «nombre de era nueva». En el móvil: sin logos en la cabecera,
+  ↑ ↓ de 44 px, sin asa en las filas, la hoja con sus botones que saltan de
+  línea. `.col-seleccion[hidden]` va aparte: su `display: flex` pisaba el
+  atributo y la barra vacía no se escondía.
+
+Prueba: `test-tanda-975-pantalla.mjs`; 330, 409, 415, 533, 536 y 904 al día.
+
 ## Tanda 974 — Un solo «Me ha servido» en las guías
 
 PINGU eligió la A de la propuesta (https://claude.ai/artifact/J65ETmU4U21AGmmMsaoiEB):

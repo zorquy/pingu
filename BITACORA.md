@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (210) — PINGU-Claude (975 — colecciones: todo eras, plegadas, y moverlas sin números)
+
+**Hecho**: en la web todo son eras al mismo nivel (sin «Otros sets» ni
+«Sets especiales»: la regla automática que pisaba al panel se fue) y el
+panel usa la MISMA cuenta que la web. /admin → Colecciones con eras
+plegables, ↑ ↓ y arrastre, marcar varias y «Mover a…», «+ Nueva era» con
+nombre y sitio, y el editor de una colección con la era en un desplegable.
+El orden de las eras no se toca hasta que PINGU las mueva; lo que la regla
+sacaba vuelve a la era que tiene. Sin migración.
+
+**Ficheros**: `js/mi-coleccion/estanteria.js`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `admin/js/colecciones.js`,
+`admin/js/orden-arrastrable.js`, `admin/css/admin.css`, `admin/index.html`,
+`novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En `pruebas`:
+`test-tanda-975-pantalla.mjs`; 330, 409, 415, 533, 536 y 904 al día.
+Pruebas del panel, la estantería y Mi colección (272): los rojos que quedan fallan igual sin la 975 (310, 386, 446, 467, 586, 648, 651, 653, 780, 829, 851, 852, 874, 893, 895, 943); 934, 935, 949, 956 y 958 despliegan ahora las eras antes de «Editar».
+
+**Pendiente**: que PINGU coloque las eras a su gusto desde el panel.
+
 ## 2026-10-22 (209) — PINGU-Claude (974 — un solo «Me ha servido» en las guías)
 
 **Hecho** (PINGU: «vamos con lo que recomiendas», la A): la caja «¿Te ha

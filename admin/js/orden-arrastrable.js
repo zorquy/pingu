@@ -48,3 +48,27 @@ export function dondeCae(cajas, y) {
   }
   return null
 }
+
+// El identificador de una era nueva, sacado de su nombre (975): PINGU pone
+// «McDonald's» y nadie tiene que inventarse «mcdonalds». Minúsculas, sin
+// acentos y con guiones —lo que pide `serie_id`—, y si ya existe, con -2, -3…
+export function idDeEraNueva(nombre, existentes = []) {
+  const base = String(nombre || '')
+    .normalize('NFD').replace(/[̀-ͯ]/g, '')
+    .toLowerCase().replace(/'/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'era'
+  const usados = new Set(existentes.map((x) => String(x).toLowerCase()))
+  if (!usados.has(base)) return base
+  let n = 2
+  while (usados.has(`${base}-${n}`)) n++
+  return `${base}-${n}`
+}
+
+// El orden de las eras con una nueva metida donde se ha pedido: arriba del
+// todo, abajo del todo o justo después de otra.
+export function conEraEn(ids, nueva, donde) {
+  const sin = ids.filter((x) => x !== nueva)
+  if (donde === '__arriba') return [nueva, ...sin]
+  const i = sin.indexOf(donde)
+  if (donde === '__abajo' || i < 0) return [...sin, nueva]
+  return [...sin.slice(0, i + 1), nueva, ...sin.slice(i + 1)]
+}

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Las expansiones van todas por eras, sin el apartado de «Otros sets»: POP Series, McDonald's o los Trainer Kits salen en su era, como cualquier otra colección.", "enlace": "/cartas" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Las guías tienen un solo botón para decir que te han servido, en vez de dos que preguntaban lo mismo. Toca la cuenta de al lado para ver a quién más le ha servido. En los perfiles ya no sale una media de estrellas: sale a cuántas personas les han servido sus guías.", "enlace": "/aprender" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Las noticias ya no se hacen pasar por guías: en el buscador tienen su propio apartado, y cuando a alguien le gusta una noticia el aviso dice «noticia», no «guía».", "enlace": "/buscar?q=pokemon" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "El buscador de arriba encuentra expansiones (por nombre o por su código, como «MEW»), pone arriba la carta que buscas si escribes su número («mew 151»), dice cuántos resultados hay en cada pestaña y avisa si también hay cartas japonesas. «Cartas» te lleva directo a Cartas › Buscar, y con «@» delante busca solo gente.", "enlace": "/buscar?q=151" },

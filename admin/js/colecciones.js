@@ -23,10 +23,10 @@
 import { supabase } from '../../js/supabase.js'
 import { escapeHtml, validateImageFile, uploadGuideImage, getSession } from '../../js/app.js'
 import { showToast } from '../../js/toast.js'
-import { nombreDeSet, eraDeSet } from '../../js/catalogo-series.js'
+import { nombreDeSet } from '../../js/catalogo-series.js'
 import { MERCADOS_VISIBLES, NOMBRE_MERCADO } from '../../js/mercados.js'
-import { moverEnLista, loQueCambia, dondeCae } from './orden-arrastrable.js'
-import { TITULOS_DE_GRUPO } from '../../js/mi-coleccion/estanteria.js'
+import { moverEnLista, loQueCambia, dondeCae, idDeEraNueva, conEraEn } from './orden-arrastrable.js'
+import { erasDeEstanteria } from '../../js/mi-coleccion/estanteria.js'
 import { loQueCambia as cambiosDe, faltaLaMigracion as esFaltaDeRpc } from './catalogo-puro.js'
 import { cartasDeLista, idDeCartaAMano } from './lista-cartas-puro.js'
 
@@ -102,51 +102,39 @@ async function cargar() {
   }
 }
 
-// Las eras de este catálogo, en el orden en que se van a enseñar. Cada una
-// con sus sets. Mismo criterio que la biblioteca: lo puesto a mano primero
-// y en su orden, lo demás detrás por su set más nuevo.
+// Las eras de este catálogo, en el orden en que se van a enseñar, con la
+// MISMA cuenta que la web (`erasDeEstanteria`, 975): lo que se ve aquí es lo
+// que sale. Con las eras sin colecciones también, que una recién creada se
+// tiene que ver para meterle cosas.
 function porEras() {
-  const grupos = new Map()
-  for (const s of sets) {
-    const clave = s.serie_id || ''
-    if (!grupos.has(clave)) {
-      const aMano = eras.get(clave)
-      grupos.set(clave, {
-        id: clave,
-        nombre: aMano?.nombre || eraDeSet(s) || clave || 'Sin era',
-        suya: !!aMano,
-        orden: Number.isFinite(Number(aMano?.orden)) ? Number(aMano.orden) : null,
-        grupo: TITULOS_DE_GRUPO[aMano?.grupo] ? aMano.grupo : null,
-        sets: [],
-      })
-    }
-    grupos.get(clave).sets.push(s)
-  }
-  const fecha = (x) => Date.parse(x?.release_date || '') || -Infinity
-  const lista = [...grupos.values()]
-  for (const g of lista) {
-    g.sets.sort((a, b) => {
-      const oa = Number.isFinite(Number(a.orden)) ? Number(a.orden) : null
-      const ob = Number.isFinite(Number(b.orden)) ? Number(b.orden) : null
-      if (oa !== null && ob !== null && oa !== ob) return oa - ob
-      if (oa !== null && ob === null) return -1
-      if (oa === null && ob !== null) return 1
-      return fecha(b) - fecha(a)
-    })
-  }
-  lista.sort((a, b) => {
-    // Las de «Otros sets» al fondo, como en la biblioteca (904).
-    if (!!a.grupo !== !!b.grupo) return a.grupo ? 1 : -1
-    if (a.orden !== null && b.orden !== null && a.orden !== b.orden) return a.orden - b.orden
-    if (a.orden !== null && b.orden === null) return -1
-    if (a.orden === null && b.orden !== null) return 1
-    const na = Math.max(...a.sets.map(fecha))
-    const nb = Math.max(...b.sets.map(fecha))
-    if (Number.isFinite(na) && Number.isFinite(nb)) return nb - na
-    return String(a.id).localeCompare(String(b.id))
-  })
-  return lista
+  return erasDeEstanteria(sets, eras, { vacias: true }).map((g) => ({ ...g, nombre: g.titulo }))
 }
+
+// Las opciones de un desplegable de era, por su nombre (975: antes había que
+// escribir el identificador a mano).
+function opcionesDeEra(actual) {
+  const lista = porEras()
+  if (actual && !lista.some((g) => g.id === actual)) lista.push({ id: actual, nombre: actual })
+  return `<option value=""${actual ? '' : ' selected'}>Sin era</option>` +
+    lista.filter((g) => g.id).map((g) => `<option value="${escapeHtml(g.id)}"${g.id === actual ? ' selected' : ''}>${escapeHtml(g.nombre)}</option>`).join('')
+}
+
+// ── PLEGADAS (975) ──
+//
+// PINGU: «que esté plegado». 231 colecciones abiertas eran una lista que no
+// se podía recorrer. Se pliegan todas de salida y se recuerda cuáles abres,
+// por catálogo; buscar abre las que tienen algo que casa y esconde las demás.
+let abiertas = new Set()
+const claveAbiertas = () => `pd-col-abiertas-${mercado}`
+function leerAbiertas() {
+  try { abiertas = new Set(JSON.parse(localStorage.getItem(claveAbiertas()) || '[]')) } catch { abiertas = new Set() }
+}
+function guardarAbiertas() {
+  try { localStorage.setItem(claveAbiertas(), JSON.stringify([...abiertas])) } catch { /* sin almacenamiento, se pliegan al volver */ }
+}
+
+// Las marcadas para «Mover a…». Por id de set; se vacían al cambiar de catálogo.
+let marcadas = new Set()
 
 function casa(s) {
   if (!filtro) return true
@@ -175,7 +163,9 @@ function filaDeSet(s) {
   // números, quiero simplemente arrastrar una colección arriba o abajo».
   // Es un `<button>` y no un adorno porque arrastrar no se puede hacer con
   // el teclado: con el asa enfocada, las flechas mueven la colección.
-  return `<li class="col-set${s.oculto ? ' col-set-oculto' : ''}" data-set="${escapeHtml(s.id)}" draggable="true">
+  const marcada = marcadas.has(s.id)
+  return `<li class="col-set${s.oculto ? ' col-set-oculto' : ''}${marcada ? ' col-set-marcada' : ''}" data-set="${escapeHtml(s.id)}" draggable="true">
+    <input type="checkbox" class="col-marcar" data-marcar="${escapeHtml(s.id)}" aria-label="Marcar ${escapeHtml(nombreDeSet(s) || s.id)}"${marcada ? ' checked' : ''}>
     <button class="col-asa" data-asa="${escapeHtml(s.id)}" aria-label="Mover ${escapeHtml(nombreDeSet(s) || s.id)}. Arrastra, o usa las flechas arriba y abajo." title="Arrastra para colocar (o flechas ↑ ↓)">⠿</button>
     <span class="col-set-logo">${logo ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy">` : '<span class="col-set-sinlogo">sin logo</span>'}</span>
     <span class="col-set-nombre">
@@ -201,31 +191,54 @@ export function pintarColecciones() {
   if (resumen) {
     const ocultos = sets.filter((s) => s.oculto).length
     resumen.textContent =
-      `${sets.length} colecciones en ${grupos.length} eras` +
+      `${sets.length} colecciones en ${grupos.filter((g) => g.sets.length).length} eras` +
       (ocultos ? ` · ${ocultos} escondida${ocultos === 1 ? '' : 's'}` : '') +
       ` · ${sets.filter((s) => !logoDe(s)).length} sin logo`
   }
-  let rotuloPuesto = false
   caja.innerHTML = grupos
-    .map((g) => {
+    .map((g, i) => {
       const visibles = g.sets.filter(casa)
-      if (!visibles.length) return ''
-      // El rótulo del grupo, una vez, encima de la primera era que cae en
-      // él. Va FUERA de la sección para que arrastrar una era no lo mueva.
-      let rotulo = ''
-      if (g.grupo && !rotuloPuesto) { rotuloPuesto = true; rotulo = `<h2 class="col-grupo">${escapeHtml(TITULOS_DE_GRUPO[g.grupo])}</h2>` }
-      return `${rotulo}<section class="col-era" data-era="${escapeHtml(g.id)}" draggable="true">
+      if (filtro && !visibles.length) return ''
+      const abierta = filtro ? true : abiertas.has(g.id)
+      const logos = g.sets.map(logoDe).filter(Boolean).slice(0, 4)
+      const aMano = g.sets.some((x) => x.orden !== null && x.orden !== undefined)
+      return `<section class="col-era${abierta ? ' col-era-abierta' : ''}" data-era="${escapeHtml(g.id)}" draggable="true">
         <header class="col-era-cab">
           <button class="col-asa" data-asa-era="${escapeHtml(g.id)}" aria-label="Mover la era ${escapeHtml(g.nombre)}. Arrastra, o usa las flechas arriba y abajo." title="Arrastra para colocar (o flechas ↑ ↓)">⠿</button>
-          <h3>${escapeHtml(g.nombre)}</h3>
-          <span class="col-era-cuenta">${g.sets.length}</span>
-          <button class="btn-outline btn-small" data-era-editar="${escapeHtml(g.id)}">Renombrar</button>
+          <button class="col-era-plegar" data-plegar="${escapeHtml(g.id)}" aria-expanded="${abierta}">
+            <span class="col-chevron" aria-hidden="true">▸</span>
+            <h3>${escapeHtml(g.nombre)}</h3>
+            <span class="col-era-cuenta">${g.sets.length}</span>
+            <span class="col-era-logos" aria-hidden="true">${logos.map((l) => `<img src="${escapeHtml(l)}" alt="" loading="lazy">`).join('')}</span>
+          </button>
+          ${aMano ? `<button class="col-chapa-orden" data-por-fecha="${escapeHtml(g.id)}" title="Quita el orden puesto a mano dentro de esta era">a mano · por fecha</button>` : ''}
+          <span class="col-era-mandos">
+            <button class="col-icono" data-subir-era="${escapeHtml(g.id)}" aria-label="Subir la era ${escapeHtml(g.nombre)}"${i === 0 ? ' disabled' : ''}>↑</button>
+            <button class="col-icono" data-bajar-era="${escapeHtml(g.id)}" aria-label="Bajar la era ${escapeHtml(g.nombre)}"${i === grupos.length - 1 ? ' disabled' : ''}>↓</button>
+            <button class="btn-outline btn-small" data-era-editar="${escapeHtml(g.id)}">Renombrar</button>
+          </span>
         </header>
-        <ul class="col-sets">${visibles.map(filaDeSet).join('')}</ul>
+        <ul class="col-sets"${abierta ? '' : ' hidden'}>${visibles.map(filaDeSet).join('') || '<li class="col-vacia">Sin colecciones. Arrastra aquí, o márcalas y «Mover a…».</li>'}</ul>
       </section>`
     })
     .join('') || '<p class="empty-state">Ninguna colección coincide con el filtro.</p>'
+  pintarSeleccion()
   escuchar()
+}
+
+// La barra de las marcadas, pegada abajo: lo que se hace con varias a la vez.
+function pintarSeleccion() {
+  const barra = $('coleccionesSeleccion')
+  if (!barra) return
+  for (const id of [...marcadas]) if (!sets.some((x) => x.id === id)) marcadas.delete(id)
+  barra.hidden = !marcadas.size
+  barra.innerHTML = marcadas.size
+    ? `<b>${marcadas.size} ${marcadas.size === 1 ? 'marcada' : 'marcadas'}</b>
+       <button class="btn-primary btn-small" id="colMoverA">Mover a…</button>
+       <button class="btn-secondary btn-small" id="colQuitarMarcas">Quitar marcas</button>`
+    : ''
+  $('colMoverA')?.addEventListener('click', () => abrirMoverA([...marcadas]))
+  $('colQuitarMarcas')?.addEventListener('click', () => { marcadas.clear(); pintarColecciones() })
 }
 
 // Guardar un puñado de columnas de un set. Devuelve si ha ido bien: una
@@ -325,6 +338,9 @@ async function guardarOrden(ids, enLaEra = null) {
 
 // El que se está arrastrando. Uno a la vez, así que una variable basta.
 let arrastrando = null
+// La era PLEGADA sobre cuya cabecera está un set (975): soltarlo ahí lo mete
+// en esa era sin tener que abrirla.
+let cabeceraDestino = null
 
 // Lo de arriba traducido a elementos: el módulo puro habla de cajas y aquí
 // se le dan las de verdad.
@@ -336,6 +352,13 @@ function filaDondeCae(contenedor, y) {
   })
   const i = dondeCae(cajas, y)
   return i === null ? null : hijos[i]
+}
+
+function marcarCabecera(cab) {
+  if (cabeceraDestino === cab) return
+  cabeceraDestino?.classList.remove('col-era-destino')
+  cabeceraDestino = cab
+  cab?.classList.add('col-era-destino')
 }
 
 function escucharArrastre() {
@@ -356,8 +379,19 @@ function escucharArrastre() {
   lista.addEventListener('dragover', (e) => {
     if (!arrastrando) return
     const esSet = !!arrastrando.dataset.set
-    // Un set se suelta en la lista de sets de CUALQUIER era —que es como
-    // se mueve de era arrastrando— y una era entre las eras.
+    if (esSet) {
+      // Sobre la cabecera de OTRA era: soltarlo ahí la mueve a esa era.
+      const cab = e.target.closest('.col-era-cab')
+      if (cab && cab.closest('[data-era]') !== arrastrando.closest('[data-era]')) {
+        e.preventDefault()
+        e.dataTransfer.dropEffect = 'move'
+        marcarCabecera(cab)
+        return
+      }
+      marcarCabecera(null)
+    }
+    // Un set se suelta en la lista de sets de CUALQUIER era abierta —que es
+    // como se mueve de era arrastrando— y una era entre las eras.
     const destino = esSet ? e.target.closest('.col-sets') : lista
     if (!destino) return
     e.preventDefault()
@@ -373,8 +407,31 @@ function escucharArrastre() {
     const fila = arrastrando
     arrastrando = null
     fila.classList.remove('col-arrastrando')
+    const cab = cabeceraDestino
+    marcarCabecera(null)
+    if (cab && fila.dataset.set) {
+      await moverA([fila.dataset.set], cab.closest('[data-era]').dataset.era)
+      return
+    }
     await guardarLoQueSeVe(fila)
   })
+}
+
+// El orden de TODAS las eras tal como quedan, en una sola escritura (975).
+// Cada una con su nombre —una era sin fila en `tcg_eras` la estrena con el
+// que se le ve— y sin grupo: colocar las eras las deja todas al mismo nivel.
+async function guardarOrdenDeEras(ids) {
+  const nombres = new Map(porEras().map((g) => [g.id, g.nombre]))
+  const filas = ids.filter((id) => id !== '').map((id, i) => {
+    const fila = { market: mercado, id, nombre: eras.get(id)?.nombre || nombres.get(id) || id, orden: (i + 1) * 10 }
+    if (hayGrupo) fila.grupo = null
+    return fila
+  })
+  const { error } = await supabase.from('tcg_eras').upsert(filas, { onConflict: 'market,id' })
+  if (error) { showToast(error.message.slice(0, 120), 'error'); return false }
+  for (const f of filas) eras.set(f.id, { nombre: f.nombre, orden: f.orden, grupo: null })
+  avisarALaWeb()
+  return true
 }
 
 // Lo que hay en pantalla ES el orden. Se lee del DOM y se guarda.
@@ -387,11 +444,101 @@ async function guardarLoQueSeVe(fila) {
     if (n) showToast(n === 1 ? 'Colocada' : `Colocadas ${n}`)
   } else {
     const ids = [...$('coleccionesLista').querySelectorAll(':scope > [data-era]')].map((x) => x.dataset.era)
-    for (let i = 0; i < ids.length; i++) await guardarEra(ids[i], { orden: (i + 1) * 10 })
-    showToast('Eras colocadas')
+    if (await guardarOrdenDeEras(ids)) showToast('Eras colocadas')
   }
   await cargar()
   pintarColecciones()
+}
+
+// Mover colecciones a una era (marcadas con «Mover a…», o una soltada sobre
+// la cabecera de una era plegada). Llegan por fecha a la nueva: su número de
+// la vieja no significa nada allí. La era va como corrección (908).
+async function moverA(ids, era) {
+  let n = 0
+  const nombres = []
+  for (const id of ids) {
+    const s = sets.find((x) => x.id === id)
+    if (!s || (s.serie_id || '') === (era || '')) continue
+    nombres.push(id)
+    if (await guardarSet(id, { serie_id: era || null }, { comoCorreccion: true })) {
+      if (s.orden !== null && s.orden !== undefined) await guardarSet(id, { orden: null })
+      n++
+    }
+  }
+  const destino = porEras().find((g) => g.id === era)?.nombre || era || 'Sin era'
+  for (const id of ids) marcadas.delete(id)
+  abiertas.add(era); guardarAbiertas()
+  await cargar()
+  pintarColecciones()
+  if (n) showToast(`${n === 1 ? '1 colección movida' : `${n} colecciones movidas`} a «${destino}»`, 'success')
+  return n
+}
+
+// ── «MOVER A…» (975) ──
+//
+// Arrastrar en un móvil no se puede, y con 231 colecciones tampoco apetece en
+// el ordenador: se marcan las que sean y se elige la era en una lista. Desde
+// aquí mismo se puede crear la era nueva.
+function abrirMoverA(ids) {
+  if (!ids.length) return
+  const lista = porEras().filter((g) => g.id)
+  abrirHoja(`
+    <h3>Mover ${ids.length === 1 ? '1 colección' : `${ids.length} colecciones`} a…</h3>
+    <div class="col-destinos" role="radiogroup" aria-label="Era de destino">
+      ${lista.map((g, i) => `<label class="col-destino"><input type="radio" name="colDestino" value="${escapeHtml(g.id)}"${i === 0 ? ' checked' : ''}><span>${escapeHtml(g.nombre)}</span><small>${g.sets.length}</small></label>`).join('')}
+    </div>
+    <div class="col-hoja-pie">
+      <button class="btn-secondary" id="colMoverNueva">+ En una era nueva</button>
+      <span style="flex:1"></span>
+      <button class="btn-secondary" data-cerrar-hoja>Cancelar</button>
+      <button class="btn-primary" id="colMoverAqui">Mover aquí</button>
+    </div>`)
+  $('colMoverAqui').addEventListener('click', async () => {
+    const era = document.querySelector('input[name="colDestino"]:checked')?.value
+    if (!era) return
+    cerrarHoja()
+    await moverA(ids, era)
+  })
+  $('colMoverNueva').addEventListener('click', () => abrirNuevaEra(ids))
+}
+
+// ── «NUEVA ERA» (975) ──
+//
+// Antes una era se «creaba» escribiendo el mismo identificador en cada una de
+// sus colecciones. Ahora: un nombre, dónde va y, si hay marcadas, meterlas.
+// El identificador sale del nombre (`idDeEraNueva`) y no lo ve nadie.
+function abrirNuevaEra(ids = []) {
+  const lista = porEras().filter((g) => g.id)
+  abrirHoja(`
+    <h3>Nueva era</h3>
+    <label>Cómo se llama<input id="colNuevaEraNombre" type="text" maxlength="80" placeholder="McDonald's"></label>
+    <label>Dónde va
+      <select id="colNuevaEraDonde">
+        <option value="__arriba">Arriba del todo</option>
+        ${lista.map((g) => `<option value="${escapeHtml(g.id)}">Después de «${escapeHtml(g.nombre)}»</option>`).join('')}
+        <option value="__abajo" selected>Abajo del todo</option>
+      </select></label>
+    ${ids.length ? `<label class="col-check"><input type="checkbox" id="colNuevaEraMeter" checked> Meter las ${ids.length} marcadas</label>` : ''}
+    <div class="col-hoja-pie">
+      <button class="btn-secondary" data-cerrar-hoja>Cancelar</button>
+      <button class="btn-primary" id="colNuevaEraCrear">Crear era</button>
+    </div>`)
+  $('colNuevaEraNombre').focus()
+  $('colNuevaEraCrear').addEventListener('click', async () => {
+    const nombre = $('colNuevaEraNombre').value.trim()
+    if (!nombre) return showToast('La era necesita un nombre.', 'error')
+    const id = idDeEraNueva(nombre, [...new Set([...eras.keys(), ...sets.map((x) => x.serie_id).filter(Boolean)])])
+    const orden = conEraEn(lista.map((g) => g.id), id, $('colNuevaEraDonde').value)
+    // Se lee ANTES de cerrar la hoja, que se lleva la casilla con ella.
+    const meter = ids.length > 0 && !!$('colNuevaEraMeter')?.checked
+    eras.set(id, { nombre, orden: 0, grupo: null })
+    if (!(await guardarOrdenDeEras(orden))) return
+    cerrarHoja()
+    abiertas.add(id); guardarAbiertas()
+    if (meter) await moverA(ids, id)
+    else { await cargar(); pintarColecciones() }
+    showToast(`Era «${nombre}» creada`, 'success')
+  })
 }
 
 function escuchar() {
@@ -418,6 +565,46 @@ function escuchar() {
       document.querySelector(`[${atributo}="${CSS.escape(fila.dataset.set || fila.dataset.era)}"]`)?.focus()
     })
   )
+  // ↑ ↓ de cada era: lo mismo sin arrastrar, que en el móvil es la forma.
+  document.querySelectorAll('[data-subir-era], [data-bajar-era]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const id = b.dataset.subirEra ?? b.dataset.bajarEra
+      const ids = porEras().map((g) => g.id)
+      const movida = moverEnLista(ids, id, b.dataset.subirEra !== undefined ? -1 : 1)
+      if (movida.join() === ids.join()) return
+      if (await guardarOrdenDeEras(movida)) { await cargar(); pintarColecciones(); document.querySelector(`[${b.dataset.subirEra !== undefined ? 'data-subir-era' : 'data-bajar-era'}="${CSS.escape(id)}"]`)?.focus() }
+    })
+  )
+  document.querySelectorAll('[data-plegar]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const id = b.dataset.plegar
+      if (filtro) return
+      if (abiertas.has(id)) abiertas.delete(id)
+      else abiertas.add(id)
+      guardarAbiertas()
+      const seccion = b.closest('.col-era')
+      const abierta = abiertas.has(id)
+      seccion.classList.toggle('col-era-abierta', abierta)
+      seccion.querySelector('.col-sets').hidden = !abierta
+      b.setAttribute('aria-expanded', String(abierta))
+    })
+  )
+  document.querySelectorAll('[data-marcar]').forEach((c) =>
+    c.addEventListener('change', () => {
+      if (c.checked) marcadas.add(c.dataset.marcar)
+      else marcadas.delete(c.dataset.marcar)
+      c.closest('.col-set')?.classList.toggle('col-set-marcada', c.checked)
+      pintarSeleccion()
+    })
+  )
+  document.querySelectorAll('[data-por-fecha]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const g = porEras().find((x) => x.id === b.dataset.porFecha)
+      if (!g) return
+      for (const x of g.sets) if (x.orden !== null && x.orden !== undefined) await guardarSet(x.id, { orden: null })
+      await cargar(); pintarColecciones(); showToast(`«${g.nombre}» vuelve a ir por fecha`)
+    })
+  )
   document.querySelectorAll('[data-ocultar]').forEach((b) =>
     b.addEventListener('click', async () => {
       const s = sets.find((x) => x.id === b.dataset.ocultar)
@@ -434,13 +621,11 @@ function escuchar() {
 
 // ── Las eras ──
 //
-// Una era no se «crea» en ninguna parte: la era de un set es su
-// `serie_id`, y lo que se guarda aquí es cómo se llama y dónde va. Por eso
-// crear una es escribir un identificador y un nombre, y meterle sets es
-// editar los sets. Lo contrario —una tabla de la que cuelguen— obligaría a
-// migrar los ~40 identificadores que ya vienen de los catálogos.
+// La era de un set es su `serie_id`, y lo que se guarda en `tcg_eras` es
+// cómo se llama y dónde va. Lo contrario —una tabla de la que cuelguen—
+// obligaría a migrar los ~40 identificadores que ya vienen de los catálogos.
 async function guardarEra(id, campos) {
-  const antes = eras.get(id) || { nombre: id, orden: 0, grupo: null }
+  const antes = eras.get(id) || { nombre: porEras().find((g) => g.id === id)?.nombre || id, orden: 0, grupo: null }
   const fila = { market: mercado, id, nombre: campos.nombre ?? antes.nombre, orden: campos.orden ?? antes.orden ?? 0 }
   // El grupo solo se escribe si la columna existe (904): un upsert que
   // nombra una columna que no está falla ENTERO, nombre y orden incluidos.
@@ -452,20 +637,15 @@ async function guardarEra(id, campos) {
   return true
 }
 
+// Renombrar, sin números ni grupos (975): el sitio se le da arrastrando o con
+// ↑ ↓, y el grupo de la 904 ya no existe.
 function abrirEditorDeEra(id) {
   const g = porEras().find((x) => x.id === id)
   if (!g) return
   abrirHoja(`
     <h3>La era «${escapeHtml(g.nombre)}»</h3>
-    <p class="admin-note">Identificador: <code>${escapeHtml(id || '(sin era)')}</code> · ${g.sets.length} colecciones.</p>
+    <p class="admin-note">${g.sets.length === 1 ? '1 colección' : `${g.sets.length} colecciones`}.</p>
     <label>Cómo se llama<input id="colEraNombre" type="text" maxlength="80" value="${escapeHtml(g.nombre)}"></label>
-    <label>En qué orden va <small>(menor = más arriba; vacío = por fecha)</small>
-      <input id="colEraOrden" type="number" inputmode="numeric" value="${g.orden ?? ''}"></label>
-    ${hayGrupo ? `<label>Dónde va <small>(«Otros sets» cuelga al fondo, debajo de la última era)</small>
-      <select id="colEraGrupo">
-        <option value=""${g.grupo ? '' : ' selected'}>Entre las eras</option>
-        ${Object.entries(TITULOS_DE_GRUPO).map(([v, t]) => `<option value="${escapeHtml(v)}"${g.grupo === v ? ' selected' : ''}>En «${escapeHtml(t)}»</option>`).join('')}
-      </select></label>` : ''}
     <div class="col-hoja-pie">
       <button class="btn-secondary" data-cerrar-hoja>Cancelar</button>
       <button class="btn-primary" id="colEraGuardar">Guardar</button>
@@ -473,10 +653,7 @@ function abrirEditorDeEra(id) {
   $('colEraGuardar').addEventListener('click', async () => {
     const nombre = $('colEraNombre').value.trim()
     if (!nombre) return showToast('La era necesita un nombre.', 'error')
-    const o = $('colEraOrden').value.trim()
-    const campos = { nombre, orden: o === '' ? 0 : Number(o) }
-    if (hayGrupo) campos.grupo = $('colEraGrupo').value || null
-    if (await guardarEra(id, campos)) {
+    if (await guardarEra(id, { nombre })) {
       cerrarHoja(); pintarColecciones(); showToast('Era guardada')
     }
   })
@@ -485,7 +662,6 @@ function abrirEditorDeEra(id) {
 function abrirEditor(id) {
   const s = sets.find((x) => x.id === id)
   if (!s) return
-  const erasDisponibles = [...new Set(sets.map((x) => x.serie_id).filter(Boolean))].sort()
   const corr = correcciones.get(s.id) || new Map()
   const quitar = (col, rotulo = 'corregida · quitar') => corr.has(col) ? ` <button type="button" class="cat-quitar" data-quitar-set="${col}" title="Quitar la corrección y volver a lo que traía el catálogo">${rotulo}</button>` : ''
   const clase = (col) => corr.has(col) ? ' class="cat-campo-corregida"' : ''
@@ -504,14 +680,8 @@ function abrirEditor(id) {
       <label class="cat-campo-medio${corr.has('card_count_official') ? ' cat-campo-corregida' : ''}">Cartas (oficial)${quitar('card_count_official')}<input id="colCuentaOficial" type="number" inputmode="numeric" value="${s.card_count_official ?? ''}"></label>
       <label class="cat-campo-medio${corr.has('card_count_total') ? ' cat-campo-corregida' : ''}">Cartas (total)${quitar('card_count_total')}<input id="colCuentaTotal" type="number" inputmode="numeric" value="${s.card_count_total ?? ''}"></label>
     </div>
-    <label>Era
-      <input id="colEra" type="text" list="colErasLista" value="${escapeHtml(s.serie_id || '')}" placeholder="mcdonalds">
-      <datalist id="colErasLista">${erasDisponibles.map((e) => `<option value="${escapeHtml(e)}">`).join('')}</datalist>
-    </label>
-    <label>Cómo se llama esa era <small>(solo si la estás creando)</small>
-      <input id="colEraNombreNuevo" type="text" maxlength="80" placeholder="McDonald's"></label>
-    <label>Orden dentro de la era <small>(vacío = por fecha)</small>
-      <input id="colOrden" type="number" inputmode="numeric" value="${s.orden ?? ''}"></label>
+    <label>Era <small>(para una nueva, «+ Nueva era» arriba; dentro de la era se coloca arrastrando)</small>
+      <select id="colEra">${opcionesDeEra(s.serie_id || '')}</select></label>
     <label${corr.has('logo_scrydex') || corr.has('logo_tcggo') ? ' class="cat-campo-corregida"' : ''}>Logo <small>(vacío = el que traiga el catálogo)</small>${quitar('logo_scrydex', 'corregido · quitar')}
       <span class="col-logo-caja">
         <span class="col-logo-ver" id="colLogoVer">${logoDe(s) ? `<img src="${escapeHtml(logoDe(s))}" alt="">` : '<span class="col-set-sinlogo">sin logo</span>'}</span>
@@ -590,17 +760,14 @@ function abrirEditor(id) {
   )
 
   $('colGuardar').addEventListener('click', async () => {
-    const era = $('colEra').value.trim().toLowerCase()
-    if (era && !/^[a-z0-9][a-z0-9-]*$/.test(era)) {
-      return showToast('El identificador de la era va en minúsculas, sin espacios (p. ej. «mcdonalds»).', 'error')
-    }
-    const o = $('colOrden').value.trim()
+    const era = $('colEra').value
     const numero = (id) => { const t = $(id).value.trim(); return t === '' ? null : Number(t) }
     const campos = {
       name: $('colNombre').value.trim() || s.name,
       name_en: $('colNombreEn').value.trim() || null,
       serie_id: era || null,
-      orden: o === '' ? null : Number(o),
+      // Cambiar de era la deja por fecha en la nueva; si no, su sitio se queda.
+      orden: (era || null) === (s.serie_id || null) ? s.orden ?? null : null,
       release_date: $('colFecha').value.trim() || null,
       tcg_online_code: $('colCodigo').value.trim() || null,
       card_count_official: numero('colCuentaOficial'),
@@ -613,8 +780,6 @@ function abrirEditor(id) {
     // occidental, y las dos las reescriben sus pasadas.
     const logo = $('colLogo').value.trim() || null
     if (logo !== (logoActual || null)) { campos.logo_scrydex = logo; campos.logo_tcggo = logo }
-    const nombreEra = $('colEraNombreNuevo').value.trim()
-    if (era && nombreEra) await guardarEra(era, { nombre: nombreEra })
     if (await guardarSet(s.id, campos, { comoCorreccion: true })) {
       await cargar(); cerrarHoja(); pintarColecciones(); showToast('Colección guardada', 'success')
     }
@@ -690,9 +855,8 @@ function abrirNuevaColeccion() {
       <label class="cat-campo-medio">Fecha de salida<input id="colNuevoFecha" type="date"></label>
       <label class="cat-campo-medio">Código (TCG Live)<input id="colNuevoCodigo" type="text"></label>
       <label class="cat-campo-medio">Cartas (total)<input id="colNuevoCuenta" type="number" inputmode="numeric"></label>
-      <label class="cat-campo-medio">Era<input id="colNuevoEra" type="text" list="colErasLista" placeholder="pcg"></label>
+      <label class="cat-campo-medio">Era<select id="colNuevoEra">${opcionesDeEra('')}</select></label>
     </div>
-    <datalist id="colErasLista">${[...new Set(sets.map((x) => x.serie_id).filter(Boolean))].sort().map((e) => `<option value="${escapeHtml(e)}">`).join('')}</datalist>
     <label>Las cartas <small>(opcional: una por línea con su número, su nombre y, si quieres, el nombre en inglés, separados por ·)</small>
       <textarea id="colNuevoLista" rows="8" placeholder="001 · ストライク · Scyther&#10;002 · アサナン · Meditite"></textarea></label>
     <p class="admin-note" id="colNuevoListaResumen" aria-live="polite"></p>
@@ -725,7 +889,7 @@ function abrirNuevaColeccion() {
     if ($('colNuevoCodigo').value.trim()) cambios.tcg_online_code = $('colNuevoCodigo').value.trim()
     if (cuenta !== '') { cambios.card_count_total = Number(cuenta); cambios.card_count_official = Number(cuenta) }
     else if (lista.cartas.length) { cambios.card_count_total = lista.cartas.length; cambios.card_count_official = lista.cartas.length }
-    if ($('colNuevoEra').value.trim()) cambios.serie_id = $('colNuevoEra').value.trim().toLowerCase()
+    if ($('colNuevoEra').value) cambios.serie_id = $('colNuevoEra').value
     const { error } = await supabase.rpc('catalogo_corregir', { p_tabla: 'tcg_sets', p_id: id, p_market: mercado, p_cambios: cambios, p_crear: true })
     if (error) return showToast(esFaltaDeRpc(error) ? 'Falta ejecutar supabase-migration-885-catalogo-correcciones.sql: sin ella no se pueden crear colecciones a mano.' : error.message.slice(0, 140), 'error')
     // Las cartas de la lista, una a una por la misma función que «Nueva
@@ -768,6 +932,7 @@ export async function iniciarColecciones() {
     sel.value = mercado
     sel.addEventListener('change', async () => {
       mercado = sel.value
+      marcadas.clear(); leerAbiertas()
       await cargar()
       pintarColecciones()
     })
@@ -776,6 +941,10 @@ export async function iniciarColecciones() {
   $('coleccionesRecargar')?.addEventListener('click', async () => { await cargar(); pintarColecciones(); showToast('Recargado') })
   $('coleccionesReordenar')?.addEventListener('click', volverAlOrdenDelCatalogo)
   $('coleccionesNueva')?.addEventListener('click', abrirNuevaColeccion)
+  $('coleccionesNuevaEra')?.addEventListener('click', () => abrirNuevaEra([...marcadas]))
+  $('coleccionesDesplegar')?.addEventListener('click', () => { abiertas = new Set(porEras().map((g) => g.id)); guardarAbiertas(); pintarColecciones() })
+  $('coleccionesPlegar')?.addEventListener('click', () => { abiertas.clear(); guardarAbiertas(); pintarColecciones() })
+  leerAbiertas()
   await cargar()
   pintarColecciones()
 }
