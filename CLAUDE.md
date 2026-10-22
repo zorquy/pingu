@@ -1750,6 +1750,12 @@ justo antes de ESA ronda quien no tiene lista (`montarSnapshot`), así que
 el motor no se toca; y al emparejar, esas listas pasan a
 `tournament_decklists`, que sigue siendo «la» lista para todo lo demás.
 Si añades otro camino que empareje, que pase por `montarSnapshot`.
+Y desde la 971 **cada jornada se empareja de cero** (PINGU eligió la
+opción A): al motor le llega solo lo de SU jornada, renumerado
+(`snapshotDeJornada` en `js/torneos/rondas-jornada.js`), así que su ronda
+1 va al azar con una semilla por jornada y las demás por los puntos y los
+cruces de la jornada. La CLASIFICACIÓN no pasa por ahí: sigue sumando la
+liga entera con `montarSnapshot`.
 
 **Los arquetipos (tanda 230) NO se guardan**: se deducen de la decklist
 al pintarla. Eso es lo que hace que la regla de visibilidad no se pueda

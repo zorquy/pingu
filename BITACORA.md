@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (206) — PINGU-Claude (971 — en una liga, cada jornada se empareja de cero)
+
+**Hecho** (PINGU eligió la A de la propuesta): la ronda 1 de cada jornada,
+al azar (semilla por jornada); las demás, por los puntos y los cruces de esa
+jornada. La clasificación de la liga no cambia. Migraciones 969 y 970 ya
+ejecutadas por PINGU.
+
+**Ficheros**: `js/torneos/rondas-jornada.js` (`snapshotDeJornada`),
+`js/torneos/ronda.js`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`,
+`BITACORA.md`. En `pruebas`: `test-tanda-971.mjs`; 849, 833, 635, 290, 970 y
+torneos-17 en verde.
+
+**Pendiente**: el buscador B1–B6 (la 972, en curso).
+
 ## 2026-10-22 (205) — PINGU-Claude (970 — los jueces llevan el torneo; propuesta de pareos y buscador)
 
 **Hecho**: un juez aprobado lleva su torneo como el organizador (pareos,

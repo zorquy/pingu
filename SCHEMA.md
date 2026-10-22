@@ -41785,6 +41785,27 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 971 — En una liga, cada jornada se empareja de cero
+
+PINGU, por un jugador («siempre me toca con los buenos»), y eligió la opción
+A de la propuesta: antes solo la ronda 1 de la LIGA iba al azar, y todas las
+demás —la primera de cada jornada también— se emparejaban por los puntos de
+la liga entera y sin repetir rival nunca (`pairing_history`), así que quien
+iba arriba se cruzaba con los de arriba toda la temporada.
+
+`snapshotDeJornada(torneo, snapshot, n)` (puro, en `rondas-jornada.js`): de
+la foto de siempre (`montarSnapshot(n)`, con los retirados por no tener lista
+de la jornada) se queda con las mesas de la jornada de `n`, renumeradas desde
+1; los retirados se renumeran igual (antes de la jornada → 0, no juegan); la
+semilla pasa a `<semilla>:jornada:<J>`; y devuelve los cruces de la jornada
+como historial. `generarPareos` lo usa solo si `format === 'league'`: ronda 1
+de la jornada → `pairRound1`; las demás → `pairSwissRound` con la ronda
+relativa y ese historial (no se pide `pairing_history`, que se sigue
+escribiendo). La clasificación, el bye y todo lo demás siguen con
+`montarSnapshot` y la liga entera. Con una ronda por jornada, todas al azar.
+El motor no se toca. Prueba: `test-tanda-971.mjs` (una liga de 8 con el motor
+de verdad).
+
 ## Tanda 970 — Los jueces llevan el torneo como el organizador
 
 PINGU, la víspera de un torneo con dos jueces: «no tienen la opción de

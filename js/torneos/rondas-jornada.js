@@ -78,3 +78,40 @@ export function cuandoLaCita(fecha, ahora = Date.now()) {
   if (dias === 1) return `mañana a las ${hora}`
   return `el ${d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })} a las ${hora}`
 }
+
+// CADA JORNADA SE EMPAREJA DE CERO (tanda 971, opción A que eligió PINGU:
+// «cada jornada debería ser individual y empezar aleatoriamente»). Hasta
+// ahora solo la ronda 1 de la LIGA iba al azar y todo lo demás —también la
+// primera de cada jornada— se emparejaba por los puntos de la liga entera y
+// sin repetir rival nunca, así que quien iba arriba se cruzaba con los de
+// arriba toda la temporada.
+//
+// Para emparejar la ronda `n` de una liga, el motor recibe solo lo de SU
+// jornada, renumerado como si fuera un torneo de un día: la primera ronda de
+// la jornada es su «ronda 1» (al azar, con una semilla por jornada) y las
+// siguientes van por los puntos y los cruces de la jornada. La clasificación
+// de la liga NO pasa por aquí: sigue sumando todo (`montarSnapshot`). El
+// motor no se toca (es TrainerArena 1:1). Devuelve `{ snapshot, ronda,
+// historial }`: la ronda en la jornada y los cruces ya jugados en ella, con
+// la clave del motor (`menor:mayor`).
+export function snapshotDeJornada(torneo, snapshot, n) {
+  const primera = primeraRondaDe(torneo, jornadaDeRonda(torneo, n))
+  const relativa = (r) => Number(r) - primera + 1
+  const matches = (snapshot.matches || [])
+    .filter((m) => m.roundNumber >= primera && m.roundNumber < n)
+    .map((m) => ({ ...m, roundNumber: relativa(m.roundNumber) }))
+  const players = (snapshot.players || []).map((p) => ({
+    ...p,
+    // Retirado antes de esta jornada: 0, o sea, no juega ninguna ronda suya.
+    droppedAfterRoundNumber: p.droppedAfterRoundNumber == null ? p.droppedAfterRoundNumber : Math.max(0, relativa(p.droppedAfterRoundNumber)),
+  }))
+  const historial = new Set()
+  for (const m of matches) {
+    if (m.playerAId && m.playerBId) historial.add(m.playerAId < m.playerBId ? `${m.playerAId}:${m.playerBId}` : `${m.playerBId}:${m.playerAId}`)
+  }
+  return {
+    snapshot: { ...snapshot, pairingSeed: `${snapshot.pairingSeed}:jornada:${jornadaDeRonda(torneo, n)}`, currentRoundNumber: relativa(n), players, matches },
+    ronda: relativa(n),
+    historial,
+  }
+}

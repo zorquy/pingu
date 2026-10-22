@@ -31,7 +31,7 @@ import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { TERMINALES, progresoDeMesas, mesasQueFaltan, fraseDeMesas } from './mesas.js'
 import { apuntarEnTablon } from './tablon.js'
 import { cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada, rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, nombreDeRondaDeLiga, entreJornadas, proximaJornada } from './jornadas.js'
-import { cuandoLaCita } from './rondas-jornada.js'
+import { cuandoLaCita, snapshotDeJornada } from './rondas-jornada.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
 import { agruparMeta, metaHtml, ordenFinal } from './meta-torneo.js'
@@ -522,14 +522,19 @@ async function generarPareos() {
     }
   }
 
-  const snapshot = montarSnapshot(n)
+  // En una liga, cada jornada se empareja de cero (971): su primera ronda al
+  // azar y las demás por lo jugado EN ELLA (`snapshotDeJornada`). Fuera de
+  // una liga, el suizo de siempre con el historial de cruces del torneo.
+  const deJornada = esLiga() ? snapshotDeJornada(ctx.torneo, montarSnapshot(n), n) : null
+  const snapshot = deJornada ? deJornada.snapshot : montarSnapshot(n)
+  const k = deJornada ? deJornada.ronda : n
   // El historial solo se pide aquí, y solo si de verdad se va a usar:
   // la ronda 1 no tiene cruces previos que respetar.
-  if (n > 1) await cargarHistorial()
+  if (!deJornada && n > 1) await cargarHistorial()
   let plan
   let sinParear = []
   try {
-    plan = n === 1 ? pairRound1(snapshot) : pairSwissRound({ snapshot, roundNumber: n, history: historialSet() })
+    plan = k === 1 ? pairRound1(snapshot) : pairSwissRound({ snapshot, roundNumber: k, history: deJornada ? deJornada.historial : historialSet() })
   } catch (e) {
     if (!(e instanceof ManualPairingRequired)) throw e
     // Se aplican los parciales y el resto se parea a mano (SPEC §6.2).
