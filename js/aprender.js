@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo } from './articulos.js'
 import { escapeHtml, getSession, tintClassForKey, categoryIconHtml } from './app.js'
+import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { tarjetaDeGuia, NIVELES } from './guia-tarjeta.js'
 import { icons } from './icons.js'
@@ -388,6 +389,8 @@ function pintarTema({ tema, guias, progreso, session, list }) {
 
 async function init() {
   const session = await getSession()
+  // Lo de la última vez, ya (984): la lista de categorías con tu progreso.
+  vistaVigilada(claveDeVista('aprender', session?.user?.id), ['categoriesList', 'medallero'], { atributos: ['medallero'] })
   await loadCategories(session)
 }
 

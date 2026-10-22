@@ -620,7 +620,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   identificadores libres, SCHEMA 895) a cada módulo nuevo: un `...pTodo()`
   se le escapa a cualquier regex.
 - **Una lista que se abre cada día se pinta primero con lo de la última
-  vez** (tanda 894, R2): `js/ultima-vista.js` guarda por id el HTML de unos
+  vez** (tanda 894, R2; una pantalla de varios bloques, con `vistaVigilada`,
+  984): `js/ultima-vista.js` guarda por id el HTML de unos
   huecos y lo pinta al volver con el punto `html.uv-actualizando` hasta que
   llega lo nuevo. Si añades una pantalla de lista, pásala por ahí: la clave
   lleva a QUIEN mira (o `anon`), se guarda DESPUÉS de pintar de verdad

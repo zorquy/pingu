@@ -3,6 +3,8 @@ import { conVueltaAtrasDeTipo } from './articulos.js'
 import { escapeHtml, getSession, getProfile, avatarStyle, getInitial } from './app.js'
 import { icons } from './icons.js'
 import { montarPrimerosPasos } from './primeros-pasos.js'
+import { vistaVigilada, leerVista, claveDeVista } from './ultima-vista.js'
+import { hojaInyectada } from './hoja.js'
 
 
 async function loadHeroGuideCount() {
@@ -298,9 +300,32 @@ function setupModals() {
   })
 }
 
+// Lo de la última vez (984): la portada del miembro sale ya con lo que
+// tenía, bloque a bloque, y cada bloque se cambia al llegar lo suyo. «Hoy»
+// no está en el HTML (lo pone hoy.js): su caja se crea aquí, para pintarla
+// de lo guardado —con su hoja, o sale sin estilo— y para vigilarla.
+function pintarPortadaGuardada(session) {
+  const clave = claveDeVista('portada', session.user.id)
+  const seccion = document.getElementById('bienvenidaSeccion')
+  if (seccion && !document.getElementById('hoyPortada')) {
+    const caja = document.createElement('div')
+    caja.className = 'hoy'
+    caja.id = 'hoyPortada'
+    caja.dataset.uv = ''
+    caja.setAttribute('aria-label', 'Hoy')
+    if (leerVista(clave)?.partes?.hoyPortada) {
+      caja.style.visibility = 'hidden'
+      hojaInyectada('css/hoy.css').then(() => caja.style.removeProperty('visibility'))
+    }
+    seccion.appendChild(caja)
+  }
+  vistaVigilada(clave, ['bienvenida', 'hoyPortada', 'foroVivo', 'aprende', 'torneoPortada', 'lanzamientoPortada', 'noticiaPortada', 'retoTarjetas', 'clasificacion'])
+}
+
 async function init() {
   setupModals()
   const session = await getSession()
+  if (session) pintarPortadaGuardada(session)
 
   if (!session) {
     document.getElementById('signupBanner').style.display = 'block'

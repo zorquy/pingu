@@ -11,6 +11,7 @@ import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirPestania, vi
 import { pintarTorneosDe } from './perfil-torneos.js'
 import { lineaDeQuienHtml, medalleroHtml } from './perfil-cabecera.js'
 import { showToast } from './toast.js'
+import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 import { cifrasHtml, contarCartasYTorneos } from './perfil-cifras.js'
 import { estadoDeGuia, ESTADOS } from './guia-estado.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
@@ -713,6 +714,10 @@ async function init() {
   const session = await requireAuth()
   if (!session) return
   currentSession = session
+  // Lo de la última vez, ya (984): cabecera, cifras y trofeos; lo de ahora lo
+  // sustituye en cuanto llega. El banner solo por su aspecto: dentro lleva
+  // sus botones, que no se tocan.
+  vistaVigilada(claveDeVista('perfil', session.user.id), ['heroInfo', 'heroAvatar', 'profileStats', 'followersCount', 'followingCount', 'achievementsCount', 'achievementsGrid', 'myGuidesList'], { atributos: ['heroBanner', 'heroAvatar'] })
 
   const profile = await loadProfile(session)
   // Lo de abajo solo necesita el perfil, no lo uno de lo otro: todo a la vez

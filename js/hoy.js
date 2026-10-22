@@ -210,21 +210,25 @@ async function intentar(fn) {
 
 export async function montarHoy(session, { doc = document } = {}) {
   const seccion = doc.getElementById('bienvenidaSeccion')
-  if (!session || !seccion || doc.getElementById('hoyPortada')) return null
+  // La caja que dejó la portada para lo de la última vez (984, `data-uv`) se
+  // aprovecha: lo guardado se queda a la vista hasta que llega lo de ahora.
+  const previa = doc.getElementById('hoyPortada')
+  if (!session || !seccion || (previa && !previa.hasAttribute('data-uv'))) return null
+  previa?.removeAttribute('data-uv')
   const hoja = hojaInyectada('css/hoy.css')
   const uid = session.user.id
-  const caja = doc.createElement('div')
+  const caja = previa || doc.createElement('div')
   caja.className = 'hoy'
   caja.id = 'hoyPortada'
   caja.setAttribute('aria-label', 'Hoy')
   // El hueco con la forma de lo que llega (la tarjeta y las cuatro fichas):
   // si llegara de golpe, lo de debajo pegaría un salto.
-  caja.innerHTML = `<h2 class="sr-only">Hoy</h2><div class="hoy-rejilla"><div class="skeleton hoy-esq-valor"></div>${'<div class="skeleton hoy-esq-ficha"></div>'.repeat(4)}</div>`
+  if (!caja.querySelector('.hoy-rejilla')) caja.innerHTML = `<h2 class="sr-only">Hoy</h2><div class="hoy-rejilla"><div class="skeleton hoy-esq-valor"></div>${'<div class="skeleton hoy-esq-ficha"></div>'.repeat(4)}</div>`
   // Con su hoja ya puesta (748): sin ella el hueco no mide nada y crece al
   // llegar, que es un salto más.
   await hoja
-  if (doc.getElementById('hoyPortada')) return null
-  seccion.appendChild(caja)
+  if (!previa && doc.getElementById('hoyPortada')) return null
+  if (!previa) seccion.appendChild(caja)
 
   const hoy = hoyISO()
   const [valor, reto, mio, abierto, sets, sigue, respuestas, productos, retos] = await Promise.all([

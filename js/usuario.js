@@ -13,6 +13,7 @@ import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirPestania, vitrinaLista } from './perfil-pestanias.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
+import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
 let profileId = idParam
@@ -329,13 +330,17 @@ async function loadMedallero() {
 }
 
 async function init() {
+  // Lo de la última vez de esta persona, ya (984), antes incluso de buscarla.
+  // La clave lleva a quien mira (lo que ve depende de si la sigue, de si es
+  // su colección…).
+  currentSession = await getSession()
+  if (usernameParam || profileId) vistaVigilada(claveDeVista(`usuario:${(usernameParam || profileId).toLowerCase()}`, currentSession?.user?.id), ['heroInfo', 'heroAvatar', 'profileStats', 'followersCount', 'followingCount', 'achievementsCount', 'achievementsGrid', 'publishedGuides'], { atributos: ['heroBanner', 'heroAvatar'] })
   const found = await resolveProfileId()
   if (!found) {
     document.querySelector('main').innerHTML = `<p class="empty-state">Usuario no encontrado.</p>`
     return
   }
 
-  currentSession = await getSession()
   // Quien mira y a quién se mira, a la vez (983).
   const [ok, yo] = await Promise.all([loadHeader(), currentSession ? getProfile(currentSession.user.id) : null])
   isViewerAdmin = !!yo?.is_admin

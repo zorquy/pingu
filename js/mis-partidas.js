@@ -45,6 +45,7 @@ import {
 import { graficoBarras, graficoEvolucion } from './graficos-partidas.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { resultadoDeJuegos, filasVisibles, recortar, aColumnas, deColumnas, textoMarcador, decidida, cifrasDeJuegos } from './partidas-juegos.js'
+import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -1693,6 +1694,8 @@ async function init() {
     $('partidasSinCuenta').classList.remove('hidden')
     return
   }
+  // Lo de la última vez, ya (984): el resumen y los torneos, mientras llegan.
+  vistaVigilada(claveDeVista('mis-partidas', session.user.id), ['partidasHero', 'partidasTorneos'], { atributos: ['partidasHero'] })
 
   // El catálogo, una vez: lo necesitan tanto los arquetipos de torneo
   // como las partidas escritas a mano, para que caigan en la misma

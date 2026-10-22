@@ -84,6 +84,63 @@ export function pintarUltimaVista(clave, { doc = document, storage, ahora, ttl }
   return v
 }
 
+// LAS PANTALLAS DE VARIOS BLOQUES (984): la portada o un perfil no tienen un
+// «ya está» en un solo sitio, cada bloque llega por su lado. Se pinta lo
+// guardado y se mira el DOM: un bloque cuenta como al día en cuanto alguien le
+// cambia el contenido DESPUÉS de pintar lo guardado. Se guarda al ratito de
+// cada cambio y al irse, y de los bloques que no se han vuelto a pintar se
+// queda lo de la vez anterior, nunca su esqueleto. `atributos`: huecos cuyo
+// `style` y `class` también cuentan (el banner y el avatar de un perfil).
+// Lo pintado desde lo guardado no tiene manejadores hasta que se sustituye.
+export function vistaVigilada(clave, ids, { atributos = [], doc = document, storage = almacen(), espera = 800, ttl } = {}) {
+  const previa = leerVista(clave, { storage, ttl })
+  const atrs = previa?.atributos || {}
+  if (previa) {
+    pintarUltimaVista(clave, { doc, storage, ttl })
+    for (const [id, a] of Object.entries(atrs)) {
+      const el = doc.getElementById(id)
+      if (!el || !a) continue
+      if (typeof a.style === 'string') el.setAttribute('style', a.style)
+      if (typeof a.clase === 'string') el.className = a.clase
+    }
+  }
+  const frescos = new Set()
+  let reloj = null
+  const guardar = () => {
+    clearTimeout(reloj)
+    if (!frescos.size) return
+    const partes = { ...(previa?.partes || {}) }
+    const nuevosAtrs = { ...atrs }
+    for (const id of frescos) {
+      const el = doc.getElementById(id)
+      if (!el) continue
+      if (ids.includes(id)) partes[id] = el.innerHTML
+      if (atributos.includes(id)) nuevosAtrs[id] = { style: el.getAttribute('style') || '', clase: el.className }
+    }
+    try {
+      const texto = JSON.stringify({ t: Date.now(), partes, visibles: null, atributos: nuevosAtrs })
+      if (texto.length <= MAX_CARACTERES) storage.setItem(clave, texto)
+    } catch {}
+  }
+  const vigilados = [...new Set([...ids, ...atributos])]
+  for (const id of vigilados) {
+    const el = doc.getElementById(id)
+    if (!el) continue
+    new MutationObserver(() => {
+      frescos.add(id)
+      // El punto se apaga cuando se ha vuelto a pintar todo lo que salió de lo
+      // guardado (lo que no estaba guardado no estaba enseñando nada viejo).
+      if (Object.keys(previa?.partes || {}).every((i) => frescos.has(i) || !doc.getElementById(i))) vistaAlDia(doc)
+      clearTimeout(reloj)
+      reloj = setTimeout(guardar, espera)
+    }).observe(el, atributos.includes(id) ? { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['style', 'class'] } : { childList: true, subtree: true, characterData: true })
+  }
+  doc.defaultView?.addEventListener('pagehide', guardar)
+  // Lo que no llegue nunca (un bloque que falla) no deja el punto encendido.
+  setTimeout(() => vistaAlDia(doc), 10_000)
+  return previa
+}
+
 export function vistaAlDia(doc = document) {
   doc.documentElement.classList.remove('uv-actualizando')
 }

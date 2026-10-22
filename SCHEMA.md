@@ -41785,6 +41785,37 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 984 — Lo de la última vez, en las pantallas que faltaban (propuesta «Rápida al volver», C)
+
+La 894 lo hizo en el foro, el meta, las noticias, los lanzamientos, los
+torneos y el Panel, que tienen un «ya está» en un sitio. La portada y los
+perfiles no: cada bloque llega por su lado. Para esas, `vistaVigilada(clave,
+ids, { atributos })` en `js/ultima-vista.js`:
+
+- pinta lo guardado (y, de los `atributos`, el `style` y la `class`: el
+  banner y el avatar, cuyo interior lleva botones que no se tocan);
+- vigila cada hueco con un MutationObserver puesto DESPUÉS de pintar lo
+  guardado: un hueco cuenta como al día cuando alguien le cambia el contenido;
+- guarda al ratito de cada cambio y en `pagehide`, y de los que no se han
+  vuelto a pintar se queda lo de antes: un esqueleto no se guarda nunca;
+- apaga el punto de «pidiendo lo nuevo» cuando se ha vuelto a pintar todo lo
+  que salió de lo guardado (o a los 10 s, si un bloque no llega).
+
+Dónde: la portada del miembro (saludo, «Hoy», foro, Aprende, torneo,
+lanzamiento, noticia, reto y clasificación; «Hoy» no está en el HTML, así que
+`pintarPortadaGuardada` le crea la caja con `data-uv` y `montarHoy` la
+aprovecha en vez de crear otra), tu perfil y el de otra persona (cabecera,
+cifras, seguidores, trofeos y guías; la clave lleva a quien mira), Aprender
+(la lista) y Mis partidas (el resumen y los torneos). Fuera, a propósito:
+Mensajes (PINGU: no dejar conversaciones guardadas en un móvil prestado),
+Ajustes (son campos de un formulario: pintar valores viejos en un formulario
+es peor que esperar 0,1 s) y la Pokédex (lo que tarda es pintar, no la base).
+«Primeros pasos» tampoco: se esconde a sí mismo dejando el `hidden` del HTML,
+y lo guardado lo volvería a enseñar.
+
+Prueba: `test-tanda-984.mjs` (la pieza a mano y las cinco pantallas con la
+base a 1,5 s por consulta).
+
 ## Tanda 983 — Menos esperas en fila (propuesta «Rápida al volver», B)
 
 Con `herramientas/medir-esperas.mjs` (qué fichero pide cada consulta y en qué

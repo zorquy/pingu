@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (217) — PINGU-Claude (984 — lo de la última vez en las que faltaban)
+
+**Hecho**: la C de «Rápida al volver». `vistaVigilada` (ultima-vista.js)
+para pantallas de varios bloques: la portada del miembro (con «Hoy»), tu
+perfil, el de otra persona, Aprender y Mis partidas salen al volver con lo de
+la última vez y se cambian bloque a bloque. Mensajes, Ajustes y la Pokédex
+fuera (ver SCHEMA). Sin migración.
+
+**Ficheros**: `js/ultima-vista.js`, `js/home.js`, `js/hoy.js`, `js/perfil.js`,
+`js/usuario.js`, `js/aprender.js`, `js/mis-partidas.js`, `CLAUDE.md`,
+`novedades.json`, `SCHEMA.md`, `BITACORA.md`. En `pruebas`:
+`test-tanda-984.mjs`.
+Pruebas de las pantallas tocadas (155) en carriles: todos los rojos salen
+igual sin la tanda; 848 y 879 dependen de la hora.
+
+**Pendiente**: 985. En curso por mí: `sw.js`, `js/supabase.js`, `js/app.js`.
+
 ## 2026-10-22 (216) — PINGU-Claude (983 — menos esperas en fila)
 
 **Hecho**: la B de «Rápida al volver». Tu perfil se pide una vez por página
