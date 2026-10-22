@@ -41785,6 +41785,22 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 963 — smL, TCG Classic (seis barajas) y svG, a mano
+
+`supabase-migration-963-classic-family-y-special-deck.sql`, de las tablas de
+Bulbapedia que pasó PINGU (las leí de sus capturas). Sets `origen = 'mano'`:
+`sml_ja` (JP, 2019-03-15, 51), `clv`/`clc`/`clb` (WEST, 2023-11-17, 34,
+códigos CLV/CLC/CLB, solo inglés), `clf_ja`/`cll_ja`/`clk_ja` (JP, sin día,
+32 + las dos energías con letras GRA/FIG, FIR/LIG, WAT/PSY; ja, ko, zh) y
+`svg_ja` (JP, 2023-11-10, 49/52, ja y ko). Cartas `<set>-<número>`, nombre
+en inglés en `name` y `name_en`, `category`, `types` y `dex_ids` (de
+`especiesDeCarta`); sin rareza, PS, marca ni foto. La era: el `serie_id` del
+set del mismo catálogo que salió justo antes (el japonés de Classic, con
+finales de octubre de 2023). Un set que ya tenga otro con su código en ese
+catálogo (que TCGGO lo haya traído) no se crea, y la tabla del final lo dice.
+Generado con un guion de un solo uso (`scratchpad/m963/gen.mjs`), no está en
+el repo.
+
 ## Tanda 962 — La tabla de Bulbapedia, pegada tal cual
 
 `cartasDeLista` (admin/js/lista-cartas-puro.js) acepta el número con su

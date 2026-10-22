@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (198) — PINGU-Claude (963 — smL, las seis barajas de TCG Classic y svG) · MIGRACIÓN NUEVA
+
+**Hecho**: con las tablas de Bulbapedia que pasó PINGU (capturas),
+`supabase-migration-963-classic-family-y-special-deck.sql`: Sun & Moon Family
+Pokémon Card Game (smL, 51), Pokémon TCG Classic por barajas (CLV, CLC, CLB en
+el occidental; CLF, CLL, CLK en el japonés; 34 cada una) y Venusaur &
+Charizard & Blastoise Special Deck Set ex (svG, 52). Nombre en inglés, tipo y
+Pokédex; sin rareza ni foto. No crea una colección si ya hay otro set con su
+código en ese catálogo.
+
+**Ficheros**: `supabase-migration-963-classic-family-y-special-deck.sql`,
+`novedades.json`, `SCHEMA.md`, `BITACORA.md`. En `pruebas`:
+`test-tanda-963.mjs` + `sql-tanda-963.sql`. Pasadas 631 y 963 (la 391 roja
+como antes).
+
+**Pendiente**: que PINGU la ejecute y suba las fotos con «Fotos de todas»;
+el día de salida del Classic japonés; las versiones (no se saben: la hoja
+ofrece las cuatro avisando) y las marcas de regulación del svG. WCD08 se
+deja para más adelante (PINGU).
+
 ## 2026-10-22 (197) — PINGU-Claude (962 — la tabla de Bulbapedia, pegada tal cual al crear una colección)
 
 **Hecho**: PINGU quiere smL, CLF (japonés), CLV (occidental) y svG, y desde
