@@ -175,6 +175,9 @@ async function abrir({ sesion = 'admin-1', fallos = null } = {}) {
   await p.waitForTimeout(500)
   await p.locator('#coleccionesMercado').selectOption('JP', { timeout: 3000 }).catch(() => {})
   await p.waitForTimeout(500)
+  // Desde la 975 las eras salen plegadas.
+  await p.locator('#coleccionesDesplegar').click({ timeout: 3000 }).catch(() => {})
+  await p.waitForTimeout(300)
   return { p, ctx, errores }
 }
 const rpcs = (p, nombre) => p.evaluate((n) => (window.__RPCS__ || []).filter((r) => r.nombre === n), nombre)
@@ -226,6 +229,11 @@ const tabla = (p, t) => p.evaluate((n) => window.__TABLAS__[n], t)
   await p.waitForTimeout(500)
   llamadas = await rpcs(p, 'catalogo_corregir')
   check('«Esconder» va como corrección de `oculto`', JSON.stringify(llamadas[llamadas.length - 1]?.args.p_cambios) === '{"oculto":true}', JSON.stringify(llamadas[llamadas.length - 1]?.args))
+
+  // Desde la 976 la escondida se va al bloque de «Escondidas», plegado.
+  check('  …y se va a «Escondidas»', await p.locator('[data-escondidas] [data-set="s12a"]').count() === 1)
+  await p.locator('[data-plegar="__escondidas"]').click()
+  await p.waitForTimeout(200)
 
   // ── Las cartas ──
   await p.locator('[data-editar="s12a"]').click()
@@ -366,12 +374,12 @@ const tabla = (p, t) => p.evaluate((n) => window.__TABLAS__[n], t)
   await p.locator('#colNuevoNombreEn').fill('Silver Deck Kit')
   await p.locator('#colNuevoFecha').fill('2004-10-15')
   await p.locator('#colNuevoCuenta').fill('20')
-  await p.locator('#colNuevoEra').fill('pcg')
+  await p.locator('#colNuevoEra').selectOption('s')
   await p.locator('#colNuevoCrear').click()
   await p.waitForTimeout(600)
   const setNuevo = (await rpcs(p, 'catalogo_corregir')).find((l) => l.args.p_tabla === 'tcg_sets' && l.args.p_crear)
   check('crear la colección llama a catalogo_corregir con p_crear', !!setNuevo, JSON.stringify(setNuevo))
-  check('  …con nombre, fecha, cuenta y era', setNuevo?.args.p_id === 'pcg-silver_ja' && setNuevo?.args.p_cambios.release_date === '2004-10-15' && setNuevo?.args.p_cambios.card_count_total === 20 && setNuevo?.args.p_cambios.serie_id === 'pcg', JSON.stringify(setNuevo?.args))
+  check('  …con nombre, fecha, cuenta y era', setNuevo?.args.p_id === 'pcg-silver_ja' && setNuevo?.args.p_cambios.release_date === '2004-10-15' && setNuevo?.args.p_cambios.card_count_total === 20 && setNuevo?.args.p_cambios.serie_id === 's', JSON.stringify(setNuevo?.args))
   check('  …y se abre su editor directamente', await p.locator('#colCartas').isVisible() && /pcg-silver_ja/.test(await p.locator('#coleccionesHoja').innerText()))
   check('la colección nueva sale en la lista con la chapa «a mano»', /a mano/.test(await p.locator('[data-set="pcg-silver_ja"]').innerText()))
 

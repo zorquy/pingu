@@ -74,8 +74,9 @@ console.log('── 4. Y en la pantalla: ni una caja de números ──')
   const js = leer('admin/js/colecciones.js')
   const html = leer('admin/index.html')
   check('no quedan cajas de número para ordenar', !/data-orden=|data-orden-era=/.test(js), 'queda una caja de número')
-  check('las filas se arrastran', /draggable="true"/.test(js))
-  check('  …y las eras también', (js.match(/draggable="true"/g) || []).length >= 2)
+  // Desde la 976 la fila de una escondida no se arrastra (no es una era).
+  check('las filas se arrastran', /draggable="\$\{s\.oculto \? 'false' : 'true'\}"/.test(js))
+  check('  …y las eras también', /class="col-era[^"]*"[^>]*draggable="true"/.test(js))
   // El asa es un BOTÓN y no un adorno: arrastrar no se puede hacer con el
   // teclado, así que con el asa enfocada las flechas mueven.
   check('el asa es un botón', /<button class="col-asa"/.test(js))
