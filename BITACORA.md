@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (200) — PINGU-Claude (965 — Reviving Legends japonés, de vuelta a la 951) · MIGRACIÓN NUEVA
+
+**Hecho** (PINGU: «la he liado… hay hasta cinco versiones de la misma carta;
+revértelo y ponlo con la lógica que hiciste tú»):
+`supabase-migration-965-reviving-legends-versiones.sql` deja cada carta de
+Reviving Legends (JP) con «1st Edition» y «Unlimited» (las de la 951),
+quita lo añadido encima con «Versiones de todas» o a mano, pone las que
+falten y pasa las copias a la que queda. Guarda copia de lo que había en
+`scrydex_estado.reviving_legends_965` por si hay que deshacerlo.
+
+**Ficheros**: `supabase-migration-965-reviving-legends-versiones.sql`,
+`SCHEMA.md`, `BITACORA.md`. En `pruebas`: `test-tanda-965.mjs` +
+`sql-tanda-965.sql` (dos pasadas). Pasadas 965 y 631.
+
+**Pendiente**: que PINGU la ejecute. Si Reviving Legends sí tuvo Reverse
+(Sergio en el foro), se ponen las dos con «Versiones de todas» marcando solo
+«1.ª edición Reverse» y «Unlimited Reverse».
+
 ## 2026-10-22 (199) — PINGU-Claude (964 — foro: citar a varios y adjuntar desde el móvil)
 
 **Hecho** (PINGU: «el botón de citar creo que solo cita a una persona» y

@@ -41785,6 +41785,18 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 965 — Reviving Legends (japonés), de vuelta a la 951
+
+`supabase-migration-965-reviving-legends-versiones.sql`, un `do` sobre los
+sets JP visibles llamados Reviving Legends / よみがえる伝説: copia de sus
+filas `tcg_card_versions` de origen `edicion`/`mano` en
+`scrydex_estado.reviving_legends_965` (`antes`), borra las que no son
+«1st Edition» ni «Unlimited» (sin caja) y las repetidas (se queda la de
+`tcggo_id` mayor, la más antigua), pone las que falten como la 951 (la
+Unlimited con `cm_id_product_propio`) y pasa a `primera`/`unlimited` las
+copias de `user_collection` con otra variante. Las de TCGGO (`origen` nulo) no
+se tocan. La segunda pasada no cambia nada ni pisa la copia.
+
 ## Tanda 964 — Citar a varios y adjuntar imágenes desde el móvil (foro)
 
 **Citar** (js/tema.js): el primer «Citar» ancla la respuesta (`reply_to_id`);
