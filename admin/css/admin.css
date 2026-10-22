@@ -720,6 +720,19 @@ body {
 .cat-cab h3 { margin: 0; flex: 1; min-width: 0; font-size: var(--t-md); }
 .cat-barra { display: flex; gap: var(--e-xs); align-items: center; margin-bottom: var(--e-sm); }
 .cat-barra input[type="search"] { flex: 1; min-width: 0; min-height: 36px; }
+.cat-barra { flex-wrap: wrap; }
+/* Fotos de todas (961) */
+.fl-bloque { margin-block: var(--e-md); padding: var(--e-md); border-radius: var(--radius-lg); background: var(--bg); }
+.fl-bloque h4 { margin: 0 0 var(--e-xs); }
+.fl-soltar { display: grid; place-items: center; gap: var(--e-xs); min-height: 96px; padding: var(--e-md); border: 2px dashed var(--border); border-radius: var(--radius-lg); color: var(--text-mid); text-align: center; cursor: pointer; }
+.fl-soltar.fl-encima { border-color: var(--navy); color: var(--navy); }
+.fl-soltar input { max-width: 100%; }
+.fl-casadas { margin: var(--e-sm) 0 0; padding: 0; list-style: none; font-size: var(--t-sm); max-height: 320px; overflow: auto; }
+.fl-casadas li { display: flex; justify-content: space-between; gap: var(--e-sm); padding: var(--e-xs) 0; border-bottom: 1px solid var(--border); }
+.fl-casadas li > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.fl-mal { color: var(--danger); }
+.fl-patron { width: 100%; min-height: 36px; margin-block: var(--e-xs); }
+.fl-tambien { display: flex; align-items: center; gap: var(--e-xs); font-size: var(--t-sm); }
 /* «Versiones de todas» (949, SCHEMA). */
 .lote-caja { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: var(--e-sm); margin: 0 0 var(--e-sm); }
 .lote-caja legend { font-weight: 700; padding: 0 var(--e-xs); }

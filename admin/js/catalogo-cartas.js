@@ -117,6 +117,7 @@ export function pintarLista() {
     <div class="cat-barra">
       <input type="search" id="catFiltro" placeholder="Número o nombre…" aria-label="Buscar una carta" value="${escapeHtml(filtro)}">
       <button class="btn-secondary btn-small" id="catLote">Versiones de todas</button>
+      <button class="btn-secondary btn-small" id="catFotos">Fotos de todas</button>
       <button class="btn-primary btn-small" id="catNueva">Nueva carta</button>
     </div>
     <ul class="cat-lista" id="catLista">${visibles.map(filaDeCarta).join('') || '<li class="empty-state">Ninguna carta coincide.</li>'}</ul>`)
@@ -131,6 +132,11 @@ export function pintarLista() {
   $('catLote').addEventListener('click', async () => {
     const { abrirVersionesDeTodas } = await import('./versiones-lote.js')
     abrirVersionesDeTodas({ set, mercado, cartas, hoja, volver: pintarLista })
+  })
+  // Y las fotos de muchas a la vez (961), también en su módulo.
+  $('catFotos').addEventListener('click', async () => {
+    const { abrirFotosDeTodas } = await import('./fotos-lote.js')
+    abrirFotosDeTodas({ set, mercado, cartas, hoja, volver: async () => { await cargar(); pintarLista() } })
   })
   escucharLista()
   $('catFiltro').focus()

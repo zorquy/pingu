@@ -41785,6 +41785,27 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 961 — Las fotos de todas las cartas de un set a la vez
+
+/admin → Colecciones → una colección → «Ver y editar sus cartas» → «Fotos de
+todas» (`admin/js/fotos-lote.js`, por `import()`; lo puro en
+`fotos-lote-puro.js`). Dos caminos, y los dos guardan `image_path` como
+corrección (`catalogo_corregir`, 885):
+- **Soltar las fotos**: `cartaDeFichero(nombre, cartas)` casa por el id
+  entero de la carta en el nombre o por el primer trozo que parece un número
+  de carta (`[a-z]{0,4}\d+[a-z]?`, comparado con `numeroComparable`: sin
+  ceros delante ni mayúsculas), en orden, para que «4-64» sea la 4. Dos
+  cartas con el mismo número no se casan; dos ficheros para la misma carta
+  son «repetida» y no se sube ninguno. Se comprime (`comprimirImagen`, 891) y
+  sube a `guide-images/<uid>/cartas/…`.
+- **Una dirección con hueco**: `urlDePatron` con `{n}`, `{n2}`, `{n3}`
+  (ceros delante solo si el número es solo cifras), `{id}`, `{set}`; solo
+  https y con al menos un hueco. El navegador la carga con `<img>` (8 s de
+  espera, de cuatro en cuatro) y solo guarda las que cargan; por defecto solo
+  las cartas sin foto a mano (`tieneFotoAMano`).
+Y la lista pegada al crear una colección (957) acepta en la línea la
+dirección de la foto (`image_path`).
+
 ## Tanda 960 — Los idiomas del set sin precio, en una línea
 
 `tarjetasDePrecio` pinta una tarjeta por idioma de `IDIOMAS_CON_PRECIO` (lo

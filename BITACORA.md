@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (196) — PINGU-Claude (961 — las fotos de todas las cartas de un set a la vez, en /admin)
+
+**Hecho** (PINGU: «es un poco tedioso tener que descargarme 60 imágenes y
+meterlas una a una»): en la lista de cartas de un set, «Fotos de todas»:
+soltar todas las fotos de golpe (cada una a su carta por el número del nombre
+del fichero; lo que no casa o va repetido se dice y no se sube), o una
+dirección con el número dentro (`{n}`, `{n3}`…) que el navegador prueba carta
+a carta y solo guarda las que cargan. Y la lista pegada al crear una
+colección acepta la dirección de la foto en cada línea.
+
+**Ficheros**: `admin/js/fotos-lote.js`, `admin/js/fotos-lote-puro.js`,
+`admin/js/catalogo-cartas.js`, `admin/js/lista-cartas-puro.js`,
+`admin/css/admin.css`, `SCHEMA.md`, `BITACORA.md`. En `pruebas`:
+`test-tanda-961.mjs`. Pasadas 524, 885, 934, 949, 957, 305, 312 e imports.
+
+**Pendiente**: la 959 (que PINGU la ejecute) y las listas que faltan.
+
 ## 2026-10-22 (195) — PINGU-Claude (960 — los idiomas del set sin precio, en la ficha)
 
 **Hecho** (PINGU, con el Jolteon de Jungle: el añadir ofrece NL y PT y la
