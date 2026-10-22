@@ -81,25 +81,18 @@ const idDe = (href) => (String(href).match(/([a-z0-9]+)-(\d+)$/) || [''])[0]
 const TOTAL = 39
 
 console.log('── 1. Solo cartas: las tres de 151, todas, por expansión ──')
+// Desde la 972 «solo cartas» ES Cartas › Buscar: /buscar?en=cartas lleva
+// allí con la búsqueda puesta (B3), así que se mira en esa pantalla.
 let deBuscar = []
 {
   const { page, ctx, errores } = await abrir('/buscar.html?q=zapdos&en=cartas')
+  await page.waitForTimeout(1500)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const hs = (await page.$$eval('#searchResults .bs-fila.bs-cartas', (as) => as.map((a) => a.getAttribute('href')))).map(idDe)
+  check('«solo cartas» lleva a Cartas › Buscar con la búsqueda puesta', /\/cartas\?ver=buscar&q=zapdos$/.test(page.url()), page.url())
+  const hs = await page.$$eval('#mcBuscarResultados .mc-resultado', (as) => [...new Set(as.map((a) => a.dataset.carta))])
   deBuscar = hs
   check('salen los tres Zapdos ex de 151', ['sv3pt5-145', 'sv3pt5-192', 'sv3pt5-202'].every((x) => hs.includes(x)), JSON.stringify(hs.slice(0, 8)))
   check(`salen todas (${TOTAL}), no las 24 de antes`, hs.length === TOTAL, hs.length)
-  const cabeceras = await page.$$eval('#searchResults .bs-set b', (bs) => bs.map((b) => b.textContent.trim()))
-  check('una cabecera por expansión, de la más nueva a la más vieja', cabeceras.slice(0, 7).join(' | ') === '30th Celebration | Destined Rivals | 151 | Prize Pack Series Two | Prize Pack Series One | Hidden Fates | Set viejo 27', cabeceras.slice(0, 7).join(' | '))
-  const de151 = await page.$eval('#searchResults .bs-set:nth-of-type(3) small', (s) => s.textContent.trim()).catch(() => '')
-  check('la de 151 dice «3 resultados»', de151 === '3 resultados', de151)
-  check('dentro de 151, por número', hs.slice(2, 5).join() === 'sv3pt5-145,sv3pt5-192,sv3pt5-202', hs.slice(2, 5).join())
-  const cuenta = await page.$eval('.bs-cuenta span', (s) => s.textContent.trim()).catch(() => '')
-  check(`la cuenta dice «${TOTAL} cartas»`, cuenta === `${TOTAL} cartas`, cuenta)
-  const enlace = await page.$eval('.bs-cuenta a', (a) => a.getAttribute('href')).catch(() => '')
-  check('«Verlas en Cartas» lleva a Buscar de Cartas con la búsqueda puesta', enlace === '/cartas?ver=buscar&q=zapdos', enlace)
-  const alto = await page.$eval('.bs-cuenta a', (a) => a.getBoundingClientRect().height).catch(() => 0)
-  check('  …y se puede tocar (44 px)', alto >= 44, alto)
   await ctx.close()
 }
 
@@ -116,21 +109,11 @@ console.log('── 2. «Todo»: las de la expansión más nueva, y cuántas hay
   const texto = (await boton.textContent().catch(() => '')).trim()
   check(`el botón dice «Ver las ${TOTAL} cartas»`, texto === `Ver las ${TOTAL} cartas`, texto)
   check('  …y lleva a Cartas › Buscar con la búsqueda puesta', (await boton.getAttribute('href')) === '/cartas?ver=buscar&q=zapdos', await boton.getAttribute('href'))
-  await page.click('#bsChips [data-grupo="cartas"]')
-  await page.waitForTimeout(1200)
-  const todas = await page.$$eval('#searchResults .bs-fila.bs-cartas', (as) => as.length)
-  check('la chapa «Cartas» las enseña todas', todas === TOTAL, todas)
-  await ctx.close()
-}
-
-console.log('── 3. /buscar y /cartas devuelven LAS MISMAS cartas ──')
-{
-  const { page, ctx, errores } = await abrir('/cartas?ver=buscar&q=zapdos', { movil: false })
-  check('sin errores', errores.length === 0, errores.join(' | '))
-  const ids = await page.$$eval('#mcBuscarResultados .mc-resultado', (as) => as.map((a) => a.dataset.carta))
-  const a = [...new Set(ids)].sort().join()
-  const b = [...deBuscar].sort().join()
-  check(`las mismas ${TOTAL} cartas en las dos`, a === b && ids.length === TOTAL, `${ids.length} contra ${deBuscar.length}`)
+  // 972: la chapa «Cartas» también lleva allí, y dice cuántas hay.
+  const chapa = (await page.textContent('#bsChips [data-grupo="cartas"]')).replace(/\s+/g, ' ').trim()
+  check(`la chapa «Cartas» dice ${TOTAL}`, chapa.replace(/\s/g, "") === `Cartas${TOTAL}`, chapa)
+  await Promise.all([page.waitForURL(/\/cartas\?ver=buscar/, { timeout: 8000 }).catch(() => {}), page.click('#bsChips [data-grupo="cartas"]')])
+  check('  …y lleva a Cartas › Buscar', /\/cartas\?ver=buscar&q=zapdos$/.test(page.url()), page.url())
   await ctx.close()
 }
 

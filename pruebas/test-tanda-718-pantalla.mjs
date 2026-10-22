@@ -76,11 +76,12 @@ console.log('── 1. /buscar en un iPhone: todo a la vez ──')
 
   // 968: «Ver más cartas» lleva directo a Cartas › Buscar; la chapa sigue.
   check('«Ver las N cartas» lleva a Cartas › Buscar con lo escrito', /^\/cartas\?ver=buscar&q=char/.test(await page.getAttribute('#searchResults a.bs-mas', 'href') || ''), await page.getAttribute('#searchResults a.bs-mas', 'href'))
-  await page.click('#bsChips [data-grupo="cartas"]')
-  await page.waitForTimeout(600)
-  const solo = await grupos(page)
-  check('«Ver más cartas» se queda con las cartas: cinco, sin los demás grupos', solo.length === 1 && solo[0].titulo === 'Cartas' && solo[0].filas.length === 5, JSON.stringify(solo.map((g) => [g.titulo, g.filas.length])))
-  check('  …con su chip puesto y apuntado en la dirección', (await page.getAttribute('#bsChips [data-grupo="cartas"]', 'aria-pressed')) === 'true' && /[?&]en=cartas/.test(page.url()) && /[?&]q=char/.test(page.url()), page.url())
+  // 972: la chapa «Cartas» también lleva a Cartas › Buscar (B3): una
+  // pantalla de cartas, no dos.
+  await Promise.all([page.waitForURL(/\/cartas\?ver=buscar&q=char/, { timeout: 8000 }).catch(() => {}), page.click('#bsChips [data-grupo="cartas"]')])
+  check('la chapa «Cartas» lleva a Cartas › Buscar con lo escrito', /\/cartas\?ver=buscar&q=char/.test(page.url()), page.url())
+  await page.goto(`${BASE}/buscar.html?q=char`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(1500)
   await page.click('#bsChips [data-grupo="gente"]')
   await page.waitForTimeout(600)
   check('en Gente, sin nadie con eso, lo dice', (await grupos(page)).length === 1 || /Nada en gente/.test(await page.innerText('#searchResults')))
