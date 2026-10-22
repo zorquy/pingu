@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "En el foro ya puedes citar a varias personas en una respuesta (también un mensaje que solo es una foto), y desde el móvil el botón de Imagen abre la galería.", "enlace": "/foro" },
     { "fecha": "2026-10-22", "tipo": "nuevo", "texto": "Ocho colecciones nuevas: las seis barajas de Pokémon TCG Classic (Venusaur y Lugia, Charizard y Ho-Oh, Blastoise y Suicune, en inglés y en japonés), Sun & Moon Family Pokémon Card Game y el Special Deck Set ex de Venusaur, Charizard y Blastoise.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "La ficha de una carta dice también en qué otros idiomas salió aunque no haya precio de ellos: Jungle, en portugués y neerlandés.", "enlace": "/cartas?ver=album&set=base2" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Una carta de un set que no salió en tu idioma ya no enseña precio en ese idioma: el Bulbasaur de Dark Explorers sale con el precio inglés, no con un anuncio «en español» que no existe. Y Supreme Victors, Arceus y Rising Rivals, con sus idiomas de verdad y sus SH en Reverse.", "enlace": "/cartas?ver=album&set=bw5" },

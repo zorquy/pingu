@@ -2110,7 +2110,9 @@ a.foro-cita-quien:hover {
 }
 
 /* Y la caja de responder, fija abajo como la de un chat: recogida hasta
-   que escribes en ella. */
+   que escribes en ella, y abierta (`.abierta`, tema.js) hasta que tocas
+   fuera: en el iPhone un botón no se queda el foco, y la barra se escondía
+   bajo el dedo al tocar «Imagen» (SCHEMA 964). */
 #temaResponder {
   position: sticky;
   bottom: 0;
@@ -2120,11 +2122,11 @@ a.foro-cita-quien:hover {
   background: var(--bg);
 }
 
-#temaResponder .foro-form:not(:focus-within) .rte-toolbar {
+#temaResponder .foro-form:not(.abierta):not(:focus-within) .rte-toolbar {
   display: none;
 }
 
-#temaResponder .foro-form:not(:focus-within) .rte-surface {
+#temaResponder .foro-form:not(.abierta):not(:focus-within) .rte-surface {
   min-height: 44px;
   max-height: 96px;
 }
@@ -2490,28 +2492,28 @@ html:has(#temaResponder) {
 
   /* La caja de responder, recogida, es una fila: el campo y el botón de
      enviar redondo, como un chat. Al escribir vuelve a ser la entera. */
-  #temaResponder .foro-form:not(:focus-within) {
+  #temaResponder .foro-form:not(.abierta):not(:focus-within) {
     display: flex;
     align-items: center;
     gap: var(--e-sm);
     padding: var(--e-sm);
   }
 
-  #temaResponder .foro-form:not(:focus-within) .rte-wrap {
+  #temaResponder .foro-form:not(.abierta):not(:focus-within) .rte-wrap {
     flex: 1 1 auto;
     min-width: 0;
   }
 
-  #temaResponder .foro-form:not(:focus-within) .foro-form-acciones {
+  #temaResponder .foro-form:not(.abierta):not(:focus-within) .foro-form-acciones {
     flex: none;
     margin: 0;
   }
 
-  #temaResponder .foro-form:not(:focus-within) #btnVistaPrevia {
+  #temaResponder .foro-form:not(.abierta):not(:focus-within) #btnVistaPrevia {
     display: none;
   }
 
-  #temaResponder .foro-form:not(:focus-within) #btnResponder {
+  #temaResponder .foro-form:not(.abierta):not(:focus-within) #btnResponder {
     width: 48px;
     min-width: 48px;
     height: 48px;
@@ -2520,7 +2522,7 @@ html:has(#temaResponder) {
     font-size: 0;
   }
 
-  #temaResponder .foro-form:not(:focus-within) #btnResponder svg {
+  #temaResponder .foro-form:not(.abierta):not(:focus-within) #btnResponder svg {
     width: 20px;
     height: 20px;
   }
@@ -2668,6 +2670,6 @@ html:has(#temaResponder) {
   font-size: var(--t-xs);
 }
 
-#temaResponder .foro-form:focus-within .foro-ayuda-cartas {
+#temaResponder .foro-form:is(.abierta, :focus-within) .foro-ayuda-cartas {
   display: block;
 }

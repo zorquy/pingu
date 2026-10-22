@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (199) — PINGU-Claude (964 — foro: citar a varios y adjuntar desde el móvil)
+
+**Hecho** (PINGU: «el botón de citar creo que solo cita a una persona» y
+«desde el móvil no puedes adjuntar imágenes… no te lo abre»):
+- Citar: un mensaje que solo es una foto ya no sustituye a la primera cita;
+  el aviso nombra a todos («Citando a Ash y Misty»); en el móvil «Citar» no
+  abre el teclado ni mueve la página, así que se puede seguir citando; y las
+  citas que se suman no te llevan abajo.
+- Adjuntar: la caja del tema se queda abierta hasta que tocas fuera; en el
+  iPhone la barra se escondía al tocar «Imagen» y la galería no se abría.
+
+**Ficheros**: `js/tema.js`, `css/foro.css`, `novedades.json`, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`. En `pruebas`: `test-tanda-964-pantalla.mjs`
+(ordenador y móvil; Safari imitado; falla con el código de antes). Pasadas
+foro-2, 256, 314, 340, 549, 746, 748, 804, 812, 899, 524, 299, 312, 737 e
+imports (la 386, roja como antes).
+
+**Pendiente**: que PINGU lo pruebe en su iPhone de verdad (la prueba imita
+Safari, no es Safari).
+
 ## 2026-10-22 (198) — PINGU-Claude (963 — smL, las seis barajas de TCG Classic y svG) · MIGRACIÓN NUEVA
 
 **Hecho**: con las tablas de Bulbapedia que pasó PINGU (capturas),

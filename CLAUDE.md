@@ -572,6 +572,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   tocado el cuadro lo enfoca con el `mousedown`, el editor crece y el botón
   se va de debajo del ratón, así que el clic cae en el formulario y no
   envía nada. Se escribe como la gente: enfocar el cuadro primero.
+  Y la caja de un tema se queda ABIERTA (`.abierta`) hasta un clic fuera
+  (964): con `:focus-within` a secas, en el iPhone tocar «Imagen» le quitaba
+  el foco, la barra se escondía bajo el dedo y la galería no se abría.
 - **Un cambio entre dos personas es una PROPUESTA** (tanda 942): las cartas
   de cada lado (la copia concreta, con su línea), el dinero APUNTADO (quién,
   cuánto y cómo; PokeDoc no cobra ni comprueba) y su estado. Todo pasa por

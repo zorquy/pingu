@@ -850,6 +850,8 @@ let citandoA = null
 // siguientes entran como blockquote en la caja, y aquí se apuntan sus
 // mensajes para que el aviso les llegue también a sus autores.
 let citadosExtra = new Set()
+// Los perfiles de la página, para nombrar a todos los citados en el aviso.
+let perfilesCitados = new Map()
 
 function enganchar(perfiles) {
   // El «⋯» de cada mensaje (748): en el móvil saca editar, borrar, marcar
@@ -870,26 +872,35 @@ function enganchar(perfiles) {
     b.addEventListener('click', () => {
       const id = b.dataset.citar
       const autorId = elMensajes.querySelector(`[data-mensaje="${id}"]`)?.dataset.autor
+      perfilesCitados = new Map(Object.entries(perfiles))
       // MULTICITA: si ya se está citando OTRO mensaje, este segundo (y
       // los que vengan) entran como blockquote en la caja, con el aviso
       // apuntado. El primero sigue siendo el ancla de la respuesta.
       if (citandoA && citandoA !== id && !citadosExtra.has(id)) {
-        const texto = elMensajes
-          .querySelector(`[data-mensaje="${id}"] .foro-mensaje-texto`)
-          ?.innerText.replace(/\s+/g, ' ')
-          .trim()
-          .slice(0, 400)
-        if (texto) {
-          citadosExtra.add(id)
-          citarTexto(`${nombreDe(perfiles[autorId])}: ${texto}`, null, null, { anclar: false })
-          showToast(`Cita añadida (${citadosExtra.size + 1} mensajes citados).`, 'success')
-          return
-        }
+        // Un mensaje que solo es una imagen (o una carta) no tiene texto,
+        // y antes eso lo convertía en la cita principal: la primera se
+        // perdía (964). Se cita igual, diciendo qué era.
+        const caja = elMensajes.querySelector(`[data-mensaje="${id}"] .foro-mensaje-texto`)
+        const texto = caja?.innerText.replace(/\s+/g, ' ').trim().slice(0, 400) || (caja?.querySelector('img') ? '[imagen]' : '[mensaje]')
+        citadosExtra.add(id)
+        // Sin enfocar ni mover la página: la caja está pegada abajo, y
+        // llevarte hasta ella obligaba a volver a subir para citar el
+        // siguiente (en el móvil, además, abría el teclado).
+        citarTexto(`${nombreDe(perfiles[autorId])}: ${texto}`, null, null, { anclar: false, enfocar: false })
+        pintarAvisoDeCita(perfiles[elMensajes.querySelector(`[data-mensaje="${citandoA}"]`)?.dataset.autor])
+        showToast(`Cita añadida (${citadosExtra.size + 1} mensajes citados).`, 'success')
+        return
       }
+      if (citadosExtra.has(id)) return
       citandoA = id
       pintarAvisoDeCita(perfiles[autorId])
-      document.getElementById('respuestaCuerpo')?.focus()
-      document.getElementById('temaResponder')?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      // En el móvil no se enfoca la caja: abriría el teclado encima del
+      // hilo y no se podría tocar «Citar» en otro mensaje (964).
+      if (window.matchMedia?.('(pointer: coarse)').matches) {
+        showToast('Citado. Toca «Citar» en otro mensaje para citarlo también, o escribe tu respuesta.')
+        return
+      }
+      document.getElementById('respuestaCuerpo')?.focus({ preventScroll: true })
     })
   )
   elMensajes.querySelectorAll('[data-borrar]').forEach((b) =>
@@ -1010,7 +1021,16 @@ function pintarAvisoDeCita(perfil, nombre) {
   if (!aviso) return
   aviso.classList.toggle('hidden', !citandoA)
   const quien = aviso.querySelector('[data-quien]')
-  if (quien) quien.textContent = nombre || (perfil ? nombreDe(perfil) : 'un mensaje')
+  if (!quien) return
+  // Con varias citas, todas: «Ash y Misty» (antes solo salía la primera y
+  // parecía que la segunda no había entrado, 964).
+  const primero = nombre || (perfil ? nombreDe(perfil) : 'un mensaje')
+  const otros = [...citadosExtra].map((id) => {
+    const autor = elMensajes.querySelector(`[data-mensaje="${id}"]`)?.dataset.autor
+    return nombreDe(perfilesCitados.get(autor))
+  })
+  const todos = [primero, ...otros]
+  quien.textContent = todos.length > 1 ? `${todos.slice(0, -1).join(', ')} y ${todos[todos.length - 1]}` : primero
 }
 
 async function alternarReaccion(postId, kind, boton) {
@@ -1157,6 +1177,20 @@ async function montarRespuesta() {
   document.getElementById('btnQuitarCita').addEventListener('click', () => {
     citandoA = null
     pintarAvisoDeCita()
+  })
+
+  // La caja se queda ABIERTA (con su barra) desde que entras en ella hasta
+  // que tocas fuera (964). Con `:focus-within` a secas, en el iPhone tocar
+  // «Imagen» quitaba el foco al cuadro (un botón allí no se lo queda), la
+  // barra se escondía bajo el dedo y la galería no se abría nunca. Un
+  // diálogo (el de las cartas) o el selector de fotos no cuentan como fuera.
+  // Se recoge al ACABAR el clic de fuera, no al empezarlo: recogerse con el
+  // botón pulsado movía lo de encima y el clic caía en otra cosa (la 899).
+  const formulario = document.getElementById('respuestaForm')
+  formulario.addEventListener('focusin', () => formulario.classList.add('abierta'))
+  document.addEventListener('click', (e) => {
+    if (!formulario.isConnected || formulario.contains(e.target) || e.target.closest?.('dialog')) return
+    formulario.classList.remove('abierta')
   })
 
   let enviando = false
@@ -1349,7 +1383,7 @@ function engancharCitarSeleccion() {
   })
 }
 
-function citarTexto(texto, postId, quien, { anclar = true } = {}) {
+function citarTexto(texto, postId, quien, { anclar = true, enfocar = true } = {}) {
   const superficie = document.getElementById('respuestaCuerpo')
   if (!superficie) {
     showToast('Entra con tu cuenta para poder citar.')
@@ -1370,6 +1404,7 @@ function citarTexto(texto, postId, quien, { anclar = true } = {}) {
   if (anclar) superficie.prepend(cita, hueco)
   else superficie.append(cita, hueco)
   superficie.dispatchEvent(new Event('input', { bubbles: true }))
+  if (!enfocar) return
   superficie.focus()
   hueco.scrollIntoView({ behavior: 'smooth', block: 'center' })
 }

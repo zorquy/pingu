@@ -41785,6 +41785,29 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 964 — Citar a varios y adjuntar imágenes desde el móvil (foro)
+
+**Citar** (js/tema.js): el primer «Citar» ancla la respuesta (`reply_to_id`);
+los siguientes entran como `<blockquote>` en la caja (`citadosExtra`). Tres
+fallos: un mensaje sin texto (solo una imagen o una carta) no cumplía
+`if (texto)` y pasaba a ser el ancla, perdiendo la primera (ahora entra como
+«[imagen]»/«[mensaje]»); el aviso nombraba solo al primero (ahora «Ash y
+Misty», con `perfilesCitados`); y cada cita enfocaba la caja y movía la
+página: en el móvil abría el teclado encima del hilo. Ahora el primero solo
+enfoca en el ordenador (`preventScroll`) y los siguientes no enfocan
+(`citarTexto(…, { enfocar: false })`); en el móvil un aviso dice que se
+puede seguir citando.
+
+**Adjuntar** (css/foro.css + js/tema.js): la barra del cuadro del tema se
+enseñaba con `:focus-within`, y en Safari de iOS tocar un botón le quita el
+foco al cuadro sin dárselo al botón: la barra se escondía bajo el dedo y el
+clic de «Imagen» no llegaba. El formulario lleva `.abierta` desde `focusin`
+hasta un `click` fuera (al ACABAR el clic, no en el `pointerdown`: recogerse
+con el botón pulsado movía lo de encima y el clic caía en otra cosa, la 899);
+un `dialog` no cuenta como fuera. Las reglas son
+`.foro-form:not(.abierta):not(:focus-within)`. La prueba imita Safari
+quitando el foco en el mismo toque, y falla con el código de antes.
+
 ## Tanda 963 — smL, TCG Classic (seis barajas) y svG, a mano
 
 `supabase-migration-963-classic-family-y-special-deck.sql`, de las tablas de
