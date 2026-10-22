@@ -54,7 +54,9 @@ console.log('\n── 2. Lo que escribe Colecciones avisa a la web ──')
   check('guardar una colección avisa', /avisarALaWeb\(\)\n  return true/.test(cuerpo('guardarSet')))
   check('guardar una era avisa', /avisarALaWeb\(\)\n  return true/.test(cuerpo('guardarEra')))
   check('quitar una corrección, borrar y crear también', (c.match(/avisarALaWeb\(\)/g) || []).length >= 6)
-  check('  …una vez por tanda de cambios (un segundo después del último)', /clearTimeout\(vaciado\)/.test(c) && /\}, 1000\)/.test(c))
+  // Desde la 978 el aviso vive en admin/js/avisar-web.js (lo usa también el editor de cartas).
+  const aviso = leer('admin/js/avisar-web.js')
+  check('  …una vez por tanda de cambios (un segundo después del último)', /clearTimeout\(vaciado\)/.test(aviso) && /\}, 1000\)/.test(aviso) && /import \{ avisarALaWeb \} from '\.\/avisar-web\.js'/.test(c))
   check('arrastrar a otra era la mueve como CORRECCIÓN, y el orden sigue directo', /guardarSet\(s\.id, \{ serie_id: enLaEra \}, \{ comoCorreccion: true \}\)/.test(cuerpo('guardarOrden')) && /guardarSet\(s\.id, campos\)\) tocadas\+\+/.test(cuerpo('guardarOrden')))
 }
 
@@ -83,7 +85,7 @@ console.log('\n── 3. En pantalla: renombrar una era vacía la caché ──'
   await page.waitForTimeout(1800)
   // El doble no da `access_token` (una sesión de verdad sí): la ficha de
   // la sesión se comprueba en el código, y aquí que la cabecera va.
-  check('guardar pide vaciar la caché, una vez y con la cabecera de la sesión', vaciados === 1 && /^Bearer/.test(autorizacion) && /authorization: `Bearer \$\{session\?\.access_token \|\| ''\}`/.test(leer('admin/js/colecciones.js')), `${vaciados} · ${autorizacion}`)
+  check('guardar pide vaciar la caché, una vez y con la cabecera de la sesión', vaciados === 1 && /^Bearer/.test(autorizacion) && /authorization: `Bearer \$\{session\?\.access_token \|\| ''\}`/.test(leer('admin/js/avisar-web.js')), `${vaciados} · ${autorizacion}`)
   const avisos = await page.locator('.toast').allInnerTexts().catch(() => [])
   check('  …y lo dice', avisos.some((t) => /La web ya enseña los cambios/.test(t)), avisos.join(' | '))
   check('sin errores', errores.length === 0, errores.join(' | '))
