@@ -6,7 +6,7 @@ import importlib.util
 src = open('/tmp/wt-pruebas/herramientas/servir.py').read().rsplit('http.server.ThreadingHTTPServer', 1)[0]
 ns = {}
 exec(src, ns)
-H, RAIZ = ns['H'], ns['RAIZ']
+H, RAIZ = ns['H'], __import__('os').environ.get('SRV_RAIZ') or ns['RAIZ']
 class G(H):
     def send_head(self):
         f = super().send_head()

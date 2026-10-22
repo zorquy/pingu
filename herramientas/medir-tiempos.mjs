@@ -82,7 +82,7 @@ for (const ruta of rutas) {
     const medirTexto = () => {
       pendiente = false
       const main = document.querySelector('main, .page-content') || document.body
-      if (main) window.__textos.push([performance.now(), main.textContent.replace(/\s+/g, '').length])
+      if (main) window.__textos.push([performance.now(), (main.innerText || '').replace(/\s+/g, '').length])
     }
     new MutationObserver(() => { if (!pendiente) { pendiente = true; setTimeout(medirTexto, 0) } }).observe(document, { childList: true, subtree: true, characterData: true })
     new MutationObserver((ms) => {
