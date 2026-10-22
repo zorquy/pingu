@@ -57,6 +57,9 @@ for (const f of ficheros) {
   )) {
     conocidas.add(m[1].toLowerCase())
   }
+  // Las de antes que se crearon sin «public.» (guide_reviews, 974): en
+  // Supabase van a public igual.
+  for (const m of sql.matchAll(/create\s+table\s+(?:if\s+not\s+exists\s+)?(\w+)\s*\(/gi)) conocidas.add(`public.${m[1].toLowerCase()}`)
 }
 console.log(`\n── ${ficheros.length} migraciones, ${conocidas.size} tablas y vistas conocidas ──`)
 

@@ -21,7 +21,8 @@ const guia = leer('js/guia.js')
 check('PA5: la categoría una vez (sin el icono grande)', !/emoji-big/.test(guia))
 check('  …sin repetir la descripción en el cuerpo', !/escapeHtml\(guide\.description \|\| 'Esta guía todavía/.test(guia))
 check('  …Guardar y Compartir como iconos', /guia-accion-icono" id="btnSave" aria-label="Guardar"/.test(guia) && /texto: ''/.test(guia))
-check('  …y «¿Te ha servido?» con dos botones', /class="seg-btn sirve-boton" data-value="5"/.test(leer('js/guide-rating.js')) && !/star-pick"/.test(leer('js/guide-rating.js')))
+// 974: la caja «¿Te ha servido? Sí / No tanto» se fue; queda «Me ha servido».
+check('  …y una sola señal: «Me ha servido» (la caja de dos botones se fue en la 974)', /montarBotonHelpful\(/.test(guia) && !/renderRatingWidget|guide-rating\.js/.test(guia))
 check('PA6: ¿Más caro? sin cartas no enseña el tablero', /function sinTablero/.test(leer('js/mas-caro-juego.js')))
 check('PA16: la fila de filtros del meta, una sola y deslizable', /\.meta-filtros-cab \{[^}]*overflow-x: auto/.test(leer('css/meta.css')))
 

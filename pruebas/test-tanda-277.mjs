@@ -44,7 +44,8 @@ console.log('\n── 2. Una guía las conserva ──')
   // Lo de arriba no puede haberse llevado por delante lo de las guías,
   // que es donde SÍ tiene sentido.
   const { page, errores } = await abrir('/guia?slug=guia-1')
-  check('la guía sigue pudiendo valorarse', (await page.locator('#guideRating').textContent()).trim().length > 0)
+  // Desde la 974 se «valora» con el «Me ha servido» (la caja de abajo se fue).
+  check('la guía sigue pudiendo valorarse', (await page.locator('#guideHelpful .helpful-btn').count()) === 1)
   check('y sigue invitando a escribir', (await page.locator('#guideWriteInvite').textContent()).includes('Escribe tu propia guía'))
   check('sin errores', errores.length === 0, errores[0] || '')
   await page.close()

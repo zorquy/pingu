@@ -85,7 +85,8 @@ console.log('── 1. El PC: la lista y el apartado, abriendo por Avisos ──
   await page.click('#ajCanal [data-interruptor="guias"]')
   await page.waitForTimeout(600)
   let p = await perfilGuardado(page)
-  check('apagar «tus guías» escribe los tres tipos del grupo en notification_prefs_disabled', ['guide_comment', 'guide_rating', 'guide_helpful'].every((t) => (p?.notification_prefs_disabled || []).includes(t)) && (p?.notification_prefs_disabled || []).length === 3, JSON.stringify(p?.notification_prefs_disabled))
+  // 974: «Valoraciones» (guide_rating) se fue con la caja «Sí / No tanto».
+  check('apagar «tus guías» escribe los dos tipos del grupo en notification_prefs_disabled', ['guide_comment', 'guide_helpful'].every((t) => (p?.notification_prefs_disabled || []).includes(t)) && (p?.notification_prefs_disabled || []).length === 2, JSON.stringify(p?.notification_prefs_disabled))
   await page.click('#ajCanal [data-interruptor="guias"]')
   await page.waitForTimeout(600)
   p = await perfilGuardado(page)

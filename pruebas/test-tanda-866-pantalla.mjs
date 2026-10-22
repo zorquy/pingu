@@ -87,10 +87,11 @@ console.log('── 3. La guía: «Más de este tema» ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const r = await page.evaluate(() => {
     const c = document.getElementById('guiaMasDelTema')
-    const rating = document.getElementById('guideRating')
-    return c && { visible: getComputedStyle(c).display !== 'none', titulo: c.querySelector('.guia-mas-tema-titulo')?.textContent, filas: [...c.querySelectorAll('.guia-fila')].map((f) => f.getAttribute('href')), todo: c.querySelector('.guia-mas-tema-todo')?.getAttribute('href'), antesDeValorar: rating ? c.compareDocumentPosition(rating) & Node.DOCUMENT_POSITION_FOLLOWING : null }
+    // 974: la caja de valoración se fue; «Más de este tema» va tras «Me ha servido».
+    const servido = document.getElementById('guideHelpful')
+    return c && { visible: getComputedStyle(c).display !== 'none', titulo: c.querySelector('.guia-mas-tema-titulo')?.textContent, filas: [...c.querySelectorAll('.guia-fila')].map((f) => f.getAttribute('href')), todo: c.querySelector('.guia-mas-tema-todo')?.getAttribute('href'), despuesDeServir: servido ? c.compareDocumentPosition(servido) & Node.DOCUMENT_POSITION_PRECEDING : null }
   })
-  check('«Más de Mazos & estrategia»: tres del tema, nunca ella misma, y «Todo el tema →», antes de la valoración', r?.visible && r.titulo === 'Más de Mazos & estrategia' && r.filas.length === 3 && !r.filas.some((h) => /guia-2$/.test(h)) && r.filas.every((h) => /^\/guia\/guia-/.test(h)) && r.todo === '/aprender?tema=mazos' && r.antesDeValorar, JSON.stringify(r))
+  check('«Más de Mazos & estrategia»: tres del tema, nunca ella misma, y «Todo el tema →», después de «Me ha servido»', r?.visible && r.titulo === 'Más de Mazos & estrategia' && r.filas.length === 3 && !r.filas.some((h) => /guia-2$/.test(h)) && r.filas.every((h) => /^\/guia\/guia-/.test(h)) && r.todo === '/aprender?tema=mazos' && r.despuesDeServir, JSON.stringify(r))
   await ctx.close()
   const sola = await abrir('/guia.html?slug=guia-5')
   check('una guía sola en su tema no enseña el bloque', await sola.page.evaluate(() => document.getElementById('guiaMasDelTema')?.classList.contains('hidden')))
