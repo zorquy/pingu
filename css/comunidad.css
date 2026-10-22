@@ -76,6 +76,12 @@
   gap: 12px;
   margin-bottom: 24px;
 }
+/* En el móvil, una fila que se desliza (981): al llegar las cuentas las
+   chapas crecían, una saltaba a la segunda fila y empujaba la página. */
+@media (max-width: 560px) {
+  .com-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .com-chip { flex-shrink: 0; }
+}
 
 .com-chip {
   display: inline-flex;
@@ -138,6 +144,12 @@
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+}
+
+/* En una columna (981), la lateral va debajo de la lista: sin una pantalla
+   de sitio, se veía al abrir y la lista la empujaba fuera al llegar. */
+@media (max-width: 959px) {
+  .com-principal { min-height: 100svh; }
 }
 
 @media (min-width: 960px) {

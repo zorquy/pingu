@@ -348,7 +348,9 @@ body:has(> .footer) {
 }
 body:has(> .footer) .page-content {
   flex: 1 0 auto;
-  min-height: 0;
+  /* Una pantalla como mínimo (981): con menos, el pie se ve al abrir y lo
+     empuja abajo todo lo que llega después (SCHEMA 981). */
+  min-height: 100svh;
   /* S780.15 */
   width: 100%;
 }

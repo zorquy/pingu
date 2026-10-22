@@ -83,6 +83,13 @@
   font-size: var(--t-sm);
 }
 
+/* Una línea de sitio antes de rellenarse (981): vacías al abrir, la XP y la
+   cuenta atrás llegaban después y bajaban todo lo de debajo. */
+.rt-tudia .rt-fila {
+  min-height: 1.5em;
+  min-height: 1lh;
+}
+
 .rt-fila span {
   display: inline-flex;
   align-items: center;

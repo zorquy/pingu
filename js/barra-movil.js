@@ -295,7 +295,12 @@ function montarTu(doc, win) {
 }
 
 export function montarBarraMovil({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin) } = {}) {
-  if (!doc.getElementById('navbar') || doc.documentElement.classList.contains('con-barra-movil')) return null
+  // Montada una vez. La CLASE ya no sirve de marca (981): la pone el guion
+  // de la cabecera de cada página antes del primer pintado, para que el
+  // hueco y la barra del móvil estén desde el principio y no salte todo
+  // 64 px cuando llega este módulo.
+  if (!doc.getElementById('navbar') || doc.documentElement.dataset.bmMontada) return null
+  doc.documentElement.dataset.bmMontada = '1'
   hojaInyectada('css/movil.css')
   const secciones = seccionesDeLaBarra(doc)
   const actual = seccionActual(secciones, clave)

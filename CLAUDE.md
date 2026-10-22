@@ -735,6 +735,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   sitemap. Y antes de abrir miles de páginas a Google, mira en Search
   Console cuántas tiene «descubiertas sin indexar»: si la cola ya es
   larga, abrir más la alarga.
+- **Una página no salta al cargar** (tanda 981): se mide con
+  `herramientas/medir-saltos.mjs` (rama `pruebas`; CLS en un iPhone, con sesión
+  y la base lenta) y `test-tanda-981-pantalla.mjs` exige menos de 0,1 en 20
+  páginas. Lo que hace falta: el contenido mide una pantalla (el pie fuera de
+  la vista); lo que cambia el dibujo en el móvil está ANTES del primer
+  pintado —la clase `con-barra-movil` la pone la cabecera, detrás del
+  `viewport` (antes, `matchMedia` cree 980 px), y `css/movil.css` va en la
+  cabecera con `media`—; esconder es `visibility`, no `display:none`, si lo
+  de debajo se ve; y un bloque que se rellena después tiene su sitio
+  reservado o se pinta entero de una vez. Una página nueva con barra pasa
+  por `generar-barra-movil.mjs`, que le pone la hoja y la clase.
 - **Abrir una expansión no espera a la base** (tandas 977–979): la pantalla
   sale montada con lo de la estantería (`pintarPantallaMontada`: tira y un
   hueco por carta, sin esqueleto que salte), las cartas salen de lo guardado

@@ -41785,6 +41785,55 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 981 — Que la web no suba y baje al cargar
+
+PINGU: «quiero que cargue más al instante, sin que cargue con el esqueleto
+para luego romperlo… empieza y sube y baja la pantalla; al menos que cargue
+los espacios». Antes de tocar nada se MIDIÓ: `herramientas/medir-saltos.mjs`
+(rama `pruebas`) abre cada página en un iPhone simulado, con sesión y con
+TODA la base retrasada 500 ms, y suma los `layout-shift` del navegador (el
+CLS, la cifra de Google) diciendo qué elemento se movió. De 32 páginas: 8,3
+en total y 18 por encima de 0,1 («malo»). Después: 0,5 y ninguna.
+
+Lo que salía, por orden de lo que pesaba:
+
+- **El pie a media pantalla** (25 de 32). La 312 dejó que el contenido no
+  midiera una pantalla («el pie pegado abajo sin vacío»), y al abrir, con la
+  página aún vacía, el pie se veía a la altura del título y todo lo que
+  llegaba lo empujaba. Ahora `body:has(> .footer) .page-content` lleva
+  `min-height: 100svh`: el pie empieza fuera de la vista. Una página corta
+  pide bajar para verlo; a cambio, nada se mueve. (La 312 se puso al día.)
+- **La clase del móvil llegaba con el JavaScript**. `con-barra-movil` (quita
+  el hueco de escritorio de 76 px, entre otras cosas) la ponía
+  `montarBarraMovil` al cargar el módulo: la página se pintaba con el hueco
+  y subía 64 px de golpe. Ahora la pone un guion de una línea en la cabecera
+  de las 44 páginas con barra, JUSTO DESPUÉS de la etiqueta `viewport`
+  (antes de ella `matchMedia` cree que la pantalla mide 980 px y no casa).
+  La marca de «ya montada» es `data-bm-montada`.
+- **La hoja del móvil también llegaba tarde** (`hojaInyectada` desde
+  barra-movil.js). Ahora va en la cabecera con `media="(max-width: 900px)"`
+  (la escribe `generar-barra-movil.mjs`, `conHojaMovil`): en el móvil está
+  desde el primer pintado; el ordenador la baja sin esperarla y no la aplica.
+  La portada pasa a 120,3 KB (+6 de esta hoja, por la `media`).
+- **El hueco de la burbuja y el degradado de abajo** crecían 64 px al llegar
+  la burbuja: el hueco va en toda página con barra y el degradado mide
+  siempre 160 (transparente arriba donde no hay burbuja).
+- **/torneos y /torneo** escondían el `<main>` con `display:none` hasta tener
+  la sesión: ahora `visibility:hidden`, que ocupa su sitio.
+- **El Panel de Mi colección** se pintaba a trozos debajo del esqueleto y al
+  quitarse este subía 648 px: mientras el esqueleto se ve, el Panel no
+  (`#mcContenido:has(#mcCargando:not(.hidden)) #mcPanelResumen`). Y tu
+  colección pone la cabecera pequeña ya en el primer pintado si hay sesión
+  guardada (la clave `sb-…-auth-token`, como la portada).
+- **Pequeños**: /usuarios con las chapas en una fila deslizable en el móvil y
+  la lista con una pantalla de alto; /retos con su línea reservada y el texto
+  del día perfecto igual al que se pinta; Carpetas sin el esqueleto de 200 px
+  de las carpetas viejas; la Pokédex con el sitio de su título; la nota de
+  precios de Cartas escondida hasta que hay cartas.
+
+Prueba: `test-tanda-981-pantalla.mjs` (20 páginas por debajo de 0,1 y las
+piezas en el HTML); 312 y 704 al día.
+
 ## Tanda 980 — Abrir una expansión ya no se atasca
 
 PINGU, en el móvil: «cuando le das a una expansión se queda pillado y no

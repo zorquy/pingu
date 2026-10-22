@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil')</script>
   <title>¿Qué carta es? — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
@@ -46,6 +47,7 @@
   <link rel="stylesheet" href="css/elegir-carta.css" />
   <link rel="stylesheet" href="css/retos-juego.css" />
   <link rel="stylesheet" href="css/carta-del-dia.css" />
+  <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
 <body>
   <!-- Saltar al contenido (tanda 313). Primero de todo en el cuerpo

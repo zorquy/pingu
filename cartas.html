@@ -7,6 +7,7 @@
   <!-- El esqueleto del Panel, solo en el Panel (912): si la dirección abre otra pestaña, fuera ya en el primer pintado; y si abre Expansiones (o es /cartas), Expansiones ya en su sitio con su esqueleto. -->
   <script>(function(){var v=(location.search.match(/[?&]ver=([a-z]+)/)||[])[1],c=/^\/cartas/.test(location.pathname),h=document.documentElement.classList;if((v&&v!=='resumen')||c)h.add('mc-sin-esq-panel');if(v==='album'||(c&&!v))h.add('mc-ver-album')})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil')</script>
   <title>Cartas de Pokémon TCG en español — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
@@ -45,6 +46,7 @@
   <link rel="stylesheet" href="/css/carta-holo.css" />
   <link rel="stylesheet" href="/css/cardmarket.css" />
   <link rel="stylesheet" href="/css/mi-coleccion.css" />
+  <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
 <body data-modo="catalogo">
   <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
@@ -148,8 +150,8 @@
       <dl class="mc-resumen" id="mcResumen"></dl>
       <p class="mc-nota" id="mcResumenNota"></p>
     </header>
-    <!-- Fuera del Panel la cabecera va en pequeño (`pintarCabecera`): ya en el primer pintado, o sube 86 px al correr el JS (912). -->
-    <script>if(document.documentElement.classList.contains('mc-sin-esq-panel')&&!/^\/cartas/.test(location.pathname)){document.getElementById('mcHero').classList.add('mc-hero-mini');document.getElementById('mcTitulo').classList.add('sr-only')}</script>
+    <!-- La cabecera va en pequeño en TU colección (`pintarCabecera`) y fuera del Panel: ya en el primer pintado, o sube 86 px al correr el JS (912; la tuya con sesión guardada, 981). -->
+    <script>(function(){if(/^\/cartas/.test(location.pathname))return;var s=false;try{s=!/[?&]u=/.test(location.search)&&Object.keys(localStorage).some(function(k){return/^sb-.+-auth-token$/.test(k)})}catch(e){}if(s||document.documentElement.classList.contains('mc-sin-esq-panel')){document.getElementById('mcHero').classList.add('mc-hero-mini');document.getElementById('mcTitulo').classList.add('sr-only')}})()</script>
     <div id="mcAviso" class="mc-aviso hidden" role="status"></div>
 
     <div class="mc-entrar hidden" id="mcEntrar">

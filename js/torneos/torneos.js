@@ -1224,7 +1224,10 @@ async function init() {
   // casa», así que sigue siendo de `is_admin` a secas — igual que el
   // disparador que la defiende en la base (tanda 295).
   document.getElementById('torneoOficialCampo')?.classList.toggle('hidden', !perfil?.is_admin)
+  // Escondida con `visibility` y no con `display` (981): ocupando su sitio
+  // desde el principio, el pie no se ve a media pantalla y luego cae.
   document.getElementById('torneosContenido').style.display = ''
+  document.getElementById('torneosContenido').style.visibility = ''
   // El aviso de «borrado» lo deja la ficha antes de traernos aquí: allí
   // no se podía enseñar, porque la página que lo diría ya no existe.
   const borrado = sessionStorage.getItem('torneo-borrado')

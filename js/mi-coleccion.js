@@ -5844,7 +5844,9 @@ async function abrirCarpetas() {
   const caja = $('mcCarpetasPanel')
   if (!caja) return
   if (!carpetas) {
-    caja.innerHTML = '<div class="skeleton" style="height:200px"></div>'
+    // Sin esqueleto (981): las carpetas viejas casi nunca tienen nada (desde
+    // la 759 pasan a álbumes solas), y un bloque de 200 px que se iba al
+    // cargar subía «Mis álbumes» de golpe.
     try {
       carpetas = await import('./mi-coleccion/carpetas.js')
     } catch (err) {

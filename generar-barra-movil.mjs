@@ -69,6 +69,28 @@ export function conBarra(html, fichero) {
   throw new Error(`${fichero}: no encuentro el cierre de la barra de arriba`)
 }
 
+// LA HOJA DEL MÓVIL, EN LA CABECERA (tanda 981). Hasta aquí la inyectaba
+// js/barra-movil.js (704), y llegaba DESPUÉS del primer pintado: las
+// cabeceras de una línea, la burbuja y los márgenes del móvil se aplicaban
+// con la página ya en pantalla y todo bajaba de golpe (medido: un salto en
+// /glosario, /retos, /mazos, /torneos… en cada carga). Con `media`, el
+// ordenador no la espera para pintar: la baja sin prisa, detrás de todo.
+export const HOJA_MOVIL = '<link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">'
+export function conHojaMovil(html) {
+  if (html.includes('href="/css/movil.css"')) return html
+  return html.replace('</head>', `  ${HOJA_MOVIL}\n</head>`)
+}
+
+// Y LA CLASE DEL MÓVIL, antes del primer pintado (981): con ella la página
+// se pinta ya con el hueco y la barra del móvil, en vez de subir 64 px cuando
+// llega js/barra-movil.js. DETRÁS de la etiqueta `viewport`: antes de ella
+// `matchMedia` cree que la pantalla mide 980 px y no casa nunca.
+export const CLASE_MOVIL = "<script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil')</script>"
+export function conClaseMovil(html) {
+  if (html.includes(CLASE_MOVIL)) return html
+  return html.replace(/(\n(\s*)<meta name="viewport"[^>]*>)/, (m, linea, sangria) => `${linea}\n${sangria}${CLASE_MOVIL}`)
+}
+
 // cartas.html sale de mi-coleccion.html (generar-cartas.mjs): no se toca aquí.
 export const PAGINAS = () => readdirSync(RAIZ).filter((f) => f.endsWith('.html') && f !== 'cartas.html')
 
@@ -78,7 +100,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const ruta = join(RAIZ, f)
     const antes = readFileSync(ruta, 'utf8')
     if (!antes.includes('id="navbar"')) continue
-    const despues = conBarra(antes, f)
+    const despues = conClaseMovil(conHojaMovil(conBarra(antes, f)))
     if (despues !== antes) { writeFileSync(ruta, despues); n++ }
   }
   console.log(`barra de abajo al día en ${n} páginas`)

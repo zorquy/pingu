@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (214) — PINGU-Claude (981 — que la web no suba y baje al cargar)
+
+**Hecho**: medido página a página con `herramientas/medir-saltos.mjs` (CLS en
+un iPhone, con sesión y la base lenta): de 8,3 a 0,5 y de 18 páginas «malas»
+a ninguna. El pie empieza fuera de la vista; la clase y la hoja del móvil van
+en la cabecera de las 44 páginas con barra (ya no llegan con el JS); el hueco
+de la burbuja y el degradado, fijos; /torneos sin `display:none`; el Panel de
+Mi colección sale entero en su sitio; y arreglos pequeños en /usuarios,
+/retos, Carpetas, Pokédex y Cartas. Sin migración.
+
+**Ficheros**: las 44 páginas con barra (cabecera), `generar-barra-movil.mjs`,
+`cartas.html` (generado), `css/style.css`, `css/movil.css`,
+`css/comunidad.css`, `css/retos.css`, `css/mi-coleccion.css`,
+`js/barra-movil.js`, `js/torneos/torneos.js`, `js/torneos/torneo.js`,
+`js/mi-coleccion.js`, `mi-coleccion.html`, `retos.html`, `torneos.html`,
+`torneo.html`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En
+`pruebas`: `test-tanda-981-pantalla.mjs`, `herramientas/medir-saltos.mjs`;
+312 y 704 al día.
+Suite entera en carriles: 562 verdes y 32 rojos, ninguno de esta tanda (salen igual sin ella: 255, 308, 310, 386, 391, 467, 493, 514, 532, 543, 586, 648, 651, 653, 780, 782, 789, 794, 829, 834, 851, 852, 874, 885, 893, 895, 943, 957, 961, test-correos; 269 y 578 eran del carril y en serie dan verde). `generar-barra-movil.mjs` escribe ahora también la clase del móvil (`conClaseMovil`).
+
+**Pendiente**: lo que queda por encima de 0,05 (la portada, /meta, /perfil,
+/retos) son bloques que crecen al llegar sus datos; se puede seguir con lo
+guardado de la última vez (894).
+
 ## 2026-10-22 (213) — PINGU-Claude (980 — abrir una expansión ya no se atasca)
 
 **Hecho**: PINGU: «se queda pillado y no carga hasta dentro de un rato». Fuera

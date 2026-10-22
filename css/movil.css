@@ -14,7 +14,11 @@
   }
   /* LA BURBUJA DE LA SECCIÓN (704d): la misma píldora que Mi colección
      (452), flotando encima de la barra, con icono y palabra, deslizable. */
-  html.con-burbuja-movil body {
+  /* El sitio de la burbuja, en TODA página con barra (981): la burbuja la
+     pone el JavaScript y su hueco llegaba con ella, empujando el final de la
+     página 64 px en cada carga. Donde no hay burbuja sobra un poco de aire. */
+  html.con-burbuja-movil body,
+  html.con-barra-movil body:has(> .bm) {
     padding-bottom: calc(72px + 64px + env(safe-area-inset-bottom));
   }
   .bm-burbuja {
@@ -670,14 +674,16 @@
     inset-inline: 0;
     bottom: 0;
     z-index: 89;
-    height: calc(96px + env(safe-area-inset-bottom));
-    background: linear-gradient(to bottom, transparent, var(--bg) 72%);
+    /* Siempre de 160 (981): crecía de 96 a 160 al llegar la burbuja y eso
+       también es un salto. Sin burbuja, lo de arriba es transparente. */
+    height: calc(160px + env(safe-area-inset-bottom));
+    background: linear-gradient(to bottom, transparent calc(100% - 96px - env(safe-area-inset-bottom)), var(--bg) calc(100% - 28px - env(safe-area-inset-bottom)));
     pointer-events: none;
     transition: transform 0.3s var(--ease);
   }
   html.con-burbuja-movil body::after,
   html.con-barra-movil:has(.mc-pestanias) body::after {
-    height: calc(160px + env(safe-area-inset-bottom));
+    background: linear-gradient(to bottom, transparent, var(--bg) 72%);
   }
   html.bm-escondidas.con-barra-movil body::after {
     transform: translateY(84px);

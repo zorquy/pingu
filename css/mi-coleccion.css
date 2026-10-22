@@ -7402,6 +7402,19 @@ html[data-desliza='sale'] #mcEstanteriaZona { animation: mc-desliza-vuelve 0.26s
 }
 
 /* ── 730 (V5): la carga con la forma del Panel (SCHEMA 730) ── */
+/* Mientras sale el esqueleto, el Panel no se pinta debajo a medias (981):
+   llegaba por trozos, se apilaba bajo el esqueleto y al quitarse este subía
+   648 px de golpe. Así sale entero en su sitio. */
+/* El título de la Pokédex (región y anillo) llega con los datos: su sitio,
+   reservado, para que el buscador no baje 84 px (981). */
+@media (max-width: 900px) {
+  #mcPdxEncabezado:empty { min-height: 84px; }
+}
+/* La nota de los precios va debajo de las cartas: hasta que haya cartas, no
+   se ve (se veía arriba y las cartas la empujaban, 981). */
+body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
+#mcContenido:has(#mcCargando:not(.hidden)) #mcPanelResumen { display: none; }
+
 .mc-cargando {
   display: flex;
   flex-direction: column;

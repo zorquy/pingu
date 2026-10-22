@@ -1889,6 +1889,7 @@ async function init() {
   }
 
   document.getElementById('torneoContenido').style.display = ''
+  document.getElementById('torneoContenido').style.visibility = ''
   montarCompartir()
   await recargar()
   arrancarSondeoFicha()
