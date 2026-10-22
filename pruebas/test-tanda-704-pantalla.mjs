@@ -116,8 +116,10 @@ console.log('── 5. Sin cuenta, y en el escritorio ──')
   await ctx.close()
   const d = await abrir('/index.html', { movil: false })
   // Desde la 753 la barra viene en el HTML: en el escritorio está, pero no
-  // se ve (y su CSS grande sigue sin bajarse).
-  check('en el escritorio no se ve la barra, ni hay burbuja, ni se descarga su CSS', (await d.page.locator('.bm').count()) === 1 && !(await d.page.locator('.bm').isVisible()) && (await d.page.locator('.bm-burbuja').count()) === 0 && (await d.page.locator('link[href$="css/movil.css"]').count()) === 0)
+  // se ve. Y desde la 981 su hoja va en la cabecera con `media`, para que en
+  // el móvil esté desde el primer pintado: el escritorio la baja sin
+  // esperarla y no la aplica (ni la clase del móvil se pone).
+  check('en el escritorio no se ve la barra, ni hay burbuja, ni se aplica su CSS', (await d.page.locator('.bm').count()) === 1 && !(await d.page.locator('.bm').isVisible()) && (await d.page.locator('.bm-burbuja').count()) === 0 && (await d.page.locator('link[href="/css/movil.css"][media="(max-width: 900px)"]').count()) === 1 && !(await d.page.evaluate(() => document.documentElement.classList.contains('con-barra-movil'))))
   check('  …y la barra de arriba sigue con sus desplegables (tres desde la 758: Aprender, Comunidad y Jugar)', (await d.page.locator('.nav-links .nav-grupo-btn').count()) === 3)
   await d.ctx.close()
 }

@@ -140,10 +140,13 @@ console.log('\n── 2. El pie de página ofrece algo, y las páginas cortas no
   // una tarjeta deja hueco por definición— sino que el CONTENIDO estaba
   // obligado a medir una pantalla entera él solo, así que el pie caía
   // debajo de eso y había que bajar a buscarlo.
-  check('el contenido no está obligado a medir una pantalla', r.minAlto < r.pantalla,
+  // DESDE LA 981 AL REVÉS, a propósito: el contenido mide UNA PANTALLA como
+  // mínimo, para que el pie empiece fuera de la vista. Con el pie a media
+  // pantalla al abrir, todo lo que llegaba después lo empujaba hacia abajo
+  // —el mayor salto de 25 páginas de 32, medido con herramientas/medir-saltos.mjs—.
+  // Una página corta pide bajar para ver el pie; a cambio, nada se mueve.
+  check('el contenido mide una pantalla, y el pie empieza fuera de la vista (981)', r.minAlto >= r.pantalla - 2,
     `min-height ${r.minAlto} con pantalla de ${r.pantalla}`)
-  check('  …así que una página corta cabe sin hacer scroll', r.alturaDoc <= r.pantalla + 2,
-    `${r.alturaDoc} vs ${r.pantalla}`)
   // Y la columna no se encogió al volver el cuerpo flexible: un margen
   // automático en el eje transversal anula el estirado.
   check('  …sin que el contenido se estreche', r.anchoMain > r.anchoVentana * 0.9,
