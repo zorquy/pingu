@@ -1102,6 +1102,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
 - **Las páginas `noindex` no necesitan `meta description`** y las
   indexables sí. Son cosas distintas: contar «páginas sin descripción»
   sin mirar el `robots` da un número que no significa nada.
+- **Una guía tiene UNA señal: «Me ha servido»** (tanda 974, PINGU eligió
+  la A): la caja «¿Te ha servido? Sí / No tanto» se fue porque preguntaba
+  lo mismo justo debajo. Es `guide_helpful` (`js/guide-helpful.js`, con su
+  «ver quién»; «Me gusta» en una noticia) y lo que antes era una media de
+  estrellas es «a cuántos les ha servido» (`js/guias-servido.js`). No
+  vuelvas a poner una nota ni un segundo botón: lo negativo va por
+  «Sugerir una corrección». `guide_reviews` sigue en la base, sin pintarse.
 - **Una guía se dibuja con UNA tarjeta** (tanda 316): el molde vive en
   `js/guia-tarjeta.js` y su CSS en `components.css`, porque lo bajan la
   portada Y /aprender. Había dos moldes para el mismo objeto sin una

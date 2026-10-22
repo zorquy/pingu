@@ -5,7 +5,6 @@ import { guideHasCourse } from './guia-contenido.js'
 import { renderReferenceBlocksHtml } from './bloques-lectura.js'
 import { hydrateDecks } from './cards-block.js'
 import { hydrateVideos } from './video-youtube.js'
-import { renderRatingWidget } from './guide-rating.js'
 import { initGuideForum } from './guide-forum.js'
 import { markGuideRead, READ_XP } from './gamification.js'
 import { showToast } from './toast.js'
@@ -403,7 +402,6 @@ async function init() {
     <div id="guideHelpful"></div>
     <div id="guideSuggestion"></div>
     <div class="guia-mas-tema hidden" id="guiaMasDelTema"></div>
-    <div id="guideRating"></div>
     <div id="guideWriteInvite"></div>
     <section class="guide-forum">
       <h2 class="section-title">${icons.messageSquare(18)} Comentarios</h2>
@@ -452,9 +450,9 @@ async function init() {
   // Los enlaces internos pegados a pelo se convierten en tarjetitas.
   import('./enlaces-internos.js').then((m) => m.enriquecerEnlacesInternos(main)).catch(() => {})
 
-  // "Me ha servido" va ANTES de las estrellas, y es a propósito: es lo
-  // que va a pulsar la mayoría. Pedir una nota de 1 a 5 nada más
-  // terminar de leer es pedir un juicio; esto solo pide un gracias.
+  // "Me ha servido" es la única señal de una guía desde la 974 (la caja
+  // «¿Te ha servido? Sí / No tanto» de debajo preguntaba lo mismo). En una
+  // noticia dice «Me gusta» (973).
   montarBotonHelpful(document.getElementById('guideHelpful'), guide, session).catch(() => {})
 
   // Sugerir una corrección va DESPUÉS de agradecer, y en tono menor: la
@@ -462,24 +460,10 @@ async function init() {
   // justo aquí, al terminar.
   montarSugerencia(document.getElementById('guideSuggestion'), guide, session).catch(() => {})
 
-  // La valoración va al FINAL, después de haber leído. Antes solo se
-  // podía valorar desde el pop-up de la tarjeta, o sea sin leer nada.
-  // En una noticia NO. «¿Te ha servido esta guía?» no tiene sentido
-  // debajo de que han anunciado una película: una guía se valora porque
-  // te ha enseñado algo o no, y una noticia solo cuenta lo que ha
-  // pasado. Para opinar está el hilo del foro.
   // MÁS DE ESTE TEMA (866): al acabar de leer, tres guías más del mismo
   // tema y el enlace al tema entero; es el «siguiente reto» de la 860
   // llevado a las guías. Antes una guía terminaba en la valoración.
   if (!esNoticia && guide.category_id) void pintarMasDelTema(guide)
-
-  if (!esNoticia) {
-    renderRatingWidget(document.getElementById('guideRating'), {
-      guideId: guide.id,
-      session,
-      guide,
-    }).catch(() => {})
-  }
 
   // Invitación a escribir, al terminar de leer.
   //

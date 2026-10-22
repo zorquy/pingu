@@ -41785,6 +41785,44 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 974 — Un solo «Me ha servido» en las guías
+
+PINGU eligió la A de la propuesta (https://claude.ai/artifact/J65ETmU4U21AGmmMsaoiEB):
+al final de una guía había dos cosas que preguntaban lo mismo, el botón «Me
+ha servido» (`guide_helpful`) y la caja «¿Te ha servido esta guía? Sí / No
+tanto» (`guide_reviews`, Sí = 5 y No tanto = 2, de la 787). Queda el botón.
+
+- **La guía**: `js/guide-rating.js` se fue entero (la caja, su lista y la
+  media). El botón (`js/guide-helpful.js`) lleva ahora su «ver quién»: la
+  cuenta («A 13 personas les ha servido · ver quién») es un botón que
+  despliega la lista (`#helpfulQuien`, la más nueva primero, quien tiene
+  `hide_activity` como «Un usuario» y sin enlace). El autor ve la cuenta
+  («… tu guía») y la lista, sin botón. En una noticia sigue «Me gusta» (973).
+  Lo negativo va por «Sugerir una corrección».
+- **Lo que era una media de estrellas** pasa a «a cuántos les ha servido»,
+  con el brote y desde `js/guias-servido.js` (`servidoPorGuia`,
+  `servidoDeAutor`, `frasePersonas`; aparte para no arrastrar el botón):
+  la cifra «Guías» del perfil (`cifrasHtml({ servido })`, antes
+  `nota`/`votos`), las estadísticas de tus guías («A 3 les ha servido», sin
+  la nota) y la fila de /usuarios (`data-card-rating`). Las tarjetas de la
+  portada y /aprender no enseñaban nota.
+- **Avisos**: `guide_rating` sale de `NOTIFICATION_TYPES` y del grupo
+  «guias» de Ajustes (que pasa a «Comentarios en tus guías, y cuando le
+  sirven a alguien»); su título agrupado se queda para los avisos viejos.
+- **CSS**: la caja (`.rating-box`, `.sirve-boton`, `.star-pick`…) salió de
+  `components.css`, que baja todo el mundo; la lista (`.rater-*`) vive en
+  `guia.css`, con la inicial del avatar en `--blanco-fijo`.
+- **Migración** `supabase-migration-974-servido-desde-valoraciones.sql`:
+  copia los «Sí» (rating >= 4) a `guide_helpful` con su día, sin el autor y
+  sin pisar lo que ya hay, con `trg_xp_autor_por_agradecimiento` apagado
+  SOLO durante la copia (todo en un `do`: si falla no queda apagado), para
+  no darle al autor el XP otra vez. `guide_reviews` no se borra. Se puede
+  ejecutar dos veces. La web funciona sin ella (solo se ven los botones ya
+  pulsados).
+
+Pruebas: `test-tanda-974-pantalla.mjs` y `sql-tanda-974.sql` (con la
+migración de verdad); 277, 787 y 866 al día.
+
 ## Tanda 973 — Las noticias no son guías: ni en el buscador ni en el aviso
 
 PINGU: «cuando te dan un like dice alguien ha reaccionado a tu guía… en el

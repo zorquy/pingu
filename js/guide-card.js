@@ -12,16 +12,14 @@
 //
 // Peor aún, dentro se podía comentar y valorar una guía SIN HABERLA
 // ABIERTO. Los comentarios ya viven dentro de la guía (mismo hilo, se
-// pintaba en dos sitios) y la valoración se movió al final de la guía y
-// del curso (js/guide-rating.js).
+// pintaba en dos sitios) y lo de valorar es el «Me ha servido» del final
+// de la guía (js/guide-helpful.js, la única señal desde la 974).
 import { supabase } from './supabase.js'
 import { escapeHtml, getSession, profileUrl } from './app.js'
 import { icons } from './icons.js'
-import { starsHtml as _stars } from './guide-rating.js'
+import { servidoPorGuia, frasePersonas } from './guias-servido.js'
 import { medallasPorCurso, chipMedallaHtml } from './medallero.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
-
-export { starsHtml } from './guide-rating.js'
 
 export async function toggleSaved(session, guideId) {
   const { data: profile } = await supabase.from('user_profiles').select('saved_guides').eq('id', session.user.id).single()
@@ -38,20 +36,7 @@ async function getSavedIds(session) {
   return profile?.saved_guides || []
 }
 
-async function getRatingStats(guideIds) {
-  if (guideIds.length === 0) return {}
-  const { data } = await supabase.from('guide_reviews').select('guide_id, rating').in('guide_id', guideIds)
-  const stats = {}
-  ;(data || []).forEach((r) => {
-    const s = stats[r.guide_id] || { sum: 0, count: 0 }
-    s.sum += r.rating
-    s.count += 1
-    stats[r.guide_id] = s
-  })
-  return stats
-}
-
-// Rellena el estado de guardado y la valoración media de las tarjetas ya
+// Rellena el estado de guardado y cuántas veces han servido las tarjetas ya
 // pintadas en containerEl (deben tener data-guide-id), y engancha el botón
 // de guardar rápido. No toca el click de abrir el modal — eso lo hace cada
 // página, ya que varía según cómo esté montada la lista.
@@ -78,7 +63,7 @@ export async function decorateGuideCards(containerEl, session) {
 
   const autorIds = cards.map((c) => c.dataset.authorId).filter(Boolean)
   const [stats, savedIds, autores, medallas] = await Promise.all([
-    getRatingStats(ids),
+    servidoPorGuia(ids),
     getSavedIds(session),
     autoresPorId(autorIds),
     // La mejor medalla del que mira en cada curso: convierte la lista
@@ -90,8 +75,10 @@ export async function decorateGuideCards(containerEl, session) {
     const id = card.dataset.guideId
     const ratingEl = card.querySelector('[data-card-rating]')
     if (ratingEl) {
-      const s = stats[id]
-      ratingEl.innerHTML = s ? `${_stars(s.sum / s.count, 12)} ${(s.sum / s.count).toFixed(1)}` : 'Sin valorar'
+      // Desde la 974, cuántas veces ha servido (no una media de estrellas).
+      // null = no se ha podido preguntar: no se pinta nada.
+      const n = stats ? stats[id] || 0 : null
+      ratingEl.innerHTML = n == null ? '' : n ? `<span title="${frasePersonas(n)}">${icons.sprout(12)} ${n}</span>` : ''
     }
 
     // La medalla, solo en tarjetas CON curso y solo si la hay: una

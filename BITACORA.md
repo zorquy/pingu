@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (209) — PINGU-Claude (974 — un solo «Me ha servido» en las guías)
+
+**Hecho** (PINGU: «vamos con lo que recomiendas», la A): la caja «¿Te ha
+servido? Sí / No tanto» se fue; queda «Me ha servido», con «ver quién». El
+perfil y /usuarios enseñan a cuántos les ha servido en vez de la media de
+estrellas. Ajustes pierde «Valoraciones en tus guías».
+
+**Migración**: `supabase-migration-974-servido-desde-valoraciones.sql`
+(copia los «Sí» que ya había al contador, sin dar XP otra vez). **PINGU:
+ejecútala en el SQL Editor**; sin ella la web va bien, pero las guías
+enseñan solo los «Me ha servido» pulsados.
+
+**Ficheros**: `js/guide-helpful.js`, `js/guias-servido.js` (nuevo),
+`js/guide-rating.js` (borrado), `js/guia.js`, `js/guide-card.js`,
+`js/usuarios.js`, `js/perfil.js`, `js/usuario.js`, `js/perfil-cifras.js`,
+`js/notifications.js`, `js/avisos-prefs.js`, `js/schema-check.js`,
+`css/components.css`, `css/guia.css`, la migración, `novedades.json`,
+`SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En `pruebas`:
+`test-tanda-974-pantalla.mjs`, `sql-tanda-974.sql`; 277, 787 y 866 al día.
+Suite entera (en carriles): 573 verdes y 33 rojos, ninguno de la 974 — los dos que lo eran (migraciones y 868) eran de la prueba y están al día; los demás fallan igual sin la 974 (correos, 255, 269, 308, 310, 386, 391, 467, 493, 514, 532, 543, 586, 648, 651, 653, 780, 782, 789, 794, 829, 834, 851, 852, 874, 893, 895, 943, 957): para mirarlos aparte.
+
+**Pendiente**: que PINGU ejecute la migración 974.
+
 ## 2026-10-22 (208) — PINGU-Claude (973 — las noticias no son guías)
 
 **Hecho**: el buscador (y la paleta) separa Guías y Noticias (grupo y chapa

@@ -5,7 +5,7 @@ import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { getAllAchievements, contributorTier, levelLadderHtml, tierLadderHtml } from './gamification.js'
-import { authorRatingSummary, starsHtml } from './guide-rating.js'
+import { servidoDeAutor } from './guias-servido.js'
 import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.js'
 import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirPestania, vitrinaLista } from './perfil-pestanias.js'
 import { pintarTorneosDe } from './perfil-torneos.js'
@@ -77,14 +77,14 @@ async function loadStats(session, profile) {
     contarCartasYTorneos(supabase, session.user.id),
   ])
 
-  // La nota es la de SUS GUÍAS, no una nota puesta a la persona.
-  const { media: avgRating, total: totalNotas } = await authorRatingSummary(session.user.id)
+  // A cuántos les han servido SUS GUÍAS (974), no una nota puesta a la persona.
+  const servido = await servidoDeAutor(session.user.id)
   const tier = contributorTier(approvedGuidesCount || 0)
 
   // Las cifras (867): cartas, guías y torneos; seguidores y siguiendo ya
   // vienen en el HTML. Guías y Torneos abren su pestaña.
   const lote = document.getElementById('profileStats')
-  lote.innerHTML = cifrasHtml({ cartas, guias: approvedGuidesCount ?? null, nota: avgRating, votos: totalNotas, torneos, propia: true })
+  lote.innerHTML = cifrasHtml({ cartas, guias: approvedGuidesCount ?? null, servido, torneos, propia: true })
   for (const b of lote.querySelectorAll('[data-ver]')) b.addEventListener('click', () => abrirPestania(b.dataset.ver))
 
   // El rango NO es una cifra —es un título, con su icono— así que sube
@@ -318,10 +318,9 @@ function statsHtml(s) {
   return `
     <p class="my-guide-stats">
       ${trozo(s.lecturas, 'lectura', 'lecturas')}
-      ${trozo(s.agradecimientos, 'gracias', 'gracias')}
+      ${Number(s.agradecimientos) > 0 ? `<span>A <strong>${s.agradecimientos}</strong> ${Number(s.agradecimientos) === 1 ? 'le ha' : 'les ha'} servido</span>` : ''}
       ${trozo(s.guardados, 'guardado', 'guardados')}
       ${trozo(s.comentarios, 'comentario', 'comentarios')}
-      ${s.nota ? `<span>${starsHtml(Number(s.nota), 12)} <strong>${s.nota}</strong></span>` : ''}
     </p>`
 }
 

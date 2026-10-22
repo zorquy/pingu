@@ -1,9 +1,9 @@
 // Las cifras del perfil (743, J4; desde la 867, cinco iguales): cartas,
 // guías y torneos aquí, y seguidores y siguiendo ya escritos en el HTML. Las
 // mismas en tu perfil y en el que ven los demás, y con UNA definición (la
-// 628: si dos pantallas cuentan lo mismo, lo cuenta una función). La nota de
-// tus guías va pegada a «Guías»: es la de lo que escribes, no una nota
-// puesta a ti. La racha ya no es una cifra: es un estado, y va en la línea
+// 628: si dos pantallas cuentan lo mismo, lo cuenta una función). Pegado a
+// «Guías», a cuántos les han servido (974; antes era la media de estrellas):
+// es lo que escribes, no una nota puesta a ti. La racha ya no es una cifra: es un estado, y va en la línea
 // de la cabecera con el nivel y el rango.
 //
 // Cada cifra lleva a un sitio: Cartas a tu colección (y a la de otro si la
@@ -20,8 +20,8 @@ export const urlDeColeccion = (username) => `/mi-coleccion?u=${encodeURIComponen
 const n = (v) => (typeof v === 'number' && Number.isFinite(v) ? v.toLocaleString('es-ES', { useGrouping: 'always' }) : '—')
 
 // Puro: lo prueba node.
-export function cifrasHtml({ cartas = null, guias = null, nota = null, votos = 0, torneos = null, propia = false, coleccion = '' } = {}) {
-  const conNota = typeof nota === 'number' && nota > 0
+export function cifrasHtml({ cartas = null, guias = null, servido = null, torneos = null, propia = false, coleccion = '' } = {}) {
+  const conServido = typeof servido === 'number' && servido > 0
   const cifra = (valor, rotulo, { href = '', ver = '', title = '' } = {}) => {
     const dentro = `<span class="valor">${valor}</span><span class="rotulo">${rotulo}</span>`
     const t = title ? ` title="${escapeHtml(title)}"` : ''
@@ -31,9 +31,9 @@ export function cifrasHtml({ cartas = null, guias = null, nota = null, votos = 0
   }
   return (
     cifra(n(cartas), 'Cartas', { href: propia ? '/mi-coleccion' : coleccion }) +
-    cifra(`${n(guias)}${conNota ? ` <small class="perfil-cifra-nota">${icons.star(12)} ${nota.toFixed(1)}</small>` : ''}`, 'Guías', {
+    cifra(`${n(guias)}${conServido ? ` <small class="perfil-cifra-nota">${icons.sprout(12)} ${n(servido)}</small>` : ''}`, 'Guías', {
       ver: 'guides',
-      title: conNota ? `Nota de sus guías: ${nota.toFixed(1)} (${votos} ${votos === 1 ? 'voto' : 'votos'})` : '',
+      title: conServido ? (servido === 1 ? 'A 1 persona le han servido sus guías' : `A ${n(servido)} personas les han servido sus guías`) : '',
     }) +
     cifra(n(torneos), 'Torneos', { ver: 'torneos' })
   )

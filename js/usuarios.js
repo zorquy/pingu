@@ -288,7 +288,7 @@ function renderCommunityGuideRowHtml(guide) {
       <p>${guide.authorName ? `De ${escapeHtml(guide.authorName)} — ` : ''}${escapeHtml(guide.description || '')}</p>
     </div>
     <div class="community-guide-row-meta">
-      <span data-card-rating>Sin valorar</span>
+      <span data-card-rating></span>
       <span>${guide.estimated_mins || 5} min</span>
     </div>
   </div>`

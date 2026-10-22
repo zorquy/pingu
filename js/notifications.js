@@ -9,8 +9,9 @@ import { anotarEnPestania } from './pestania.js'
 export const NOTIFICATION_TYPES = {
   guide_comment: 'Comentarios en tus guías',
   comment_reply: 'Respuestas a tus comentarios',
-  guide_rating: 'Valoraciones en tus guías',
-  guide_helpful: 'Cuando a alguien le sirve tu guía',
+  // `guide_rating` se fue en la 974 con la caja «Sí / No tanto»: la única
+  // señal de una guía es esta (y «Me gusta» en una noticia).
+  guide_helpful: 'Cuando a alguien le sirve tu guía o le gusta tu noticia',
   guide_suggestion: 'Correcciones que te sugieren',
   guide_suggestion_accepted: 'Cuando aceptan tu corrección',
   guide_request_fulfilled: 'Cuando se escribe una guía que pediste',

@@ -8,7 +8,7 @@
 // cambian. Puro: lo prueba node.
 
 export const GRUPOS_CAMPANITA = [
-  { id: 'guias', titulo: 'Comentarios y valoraciones en tus guías', tipos: ['guide_comment', 'guide_rating', 'guide_helpful'] },
+  { id: 'guias', titulo: 'Comentarios en tus guías, y cuando le sirven a alguien', tipos: ['guide_comment', 'guide_helpful'] },
   { id: 'correcciones', titulo: 'Correcciones que te sugieren, y cuando aceptan la tuya', tipos: ['guide_suggestion', 'guide_suggestion_accepted'] },
   { id: 'revision', titulo: 'Cuando tu guía se aprueba o necesita cambios', tipos: ['guide_approved', 'guide_rejected'] },
   { id: 'peticion', titulo: 'Cuando se escribe una guía que pediste', tipos: ['guide_request_fulfilled'] },

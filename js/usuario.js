@@ -1,5 +1,5 @@
 import { supabase } from './supabase.js'
-import { authorRatingSummary } from './guide-rating.js'
+import { servidoDeAutor } from './guias-servido.js'
 import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profileParamsFromLocation, achievementIconHtml, avatarStyle, applyAvatarTo, bannerPorDefecto } from './app.js'
 import { urlParaCss } from './html.js'
 import { contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml } from './gamification.js'
@@ -102,9 +102,9 @@ async function loadReputationAndGuides() {
     .eq('author_id', profileId)
     .eq('review_status', 'approved')
 
-  // La nota es la que ha sacado lo que ESCRIBE, no una nota puesta a la
+  // A cuántos les ha servido lo que ESCRIBE (974), no una nota puesta a la
   // persona: eso último se quitó (ver SCHEMA.md).
-  const { media: avgRating, total: totalNotas } = await authorRatingSummary(profileId)
+  const servido = await servidoDeAutor(profileId)
 
   const tier = contributorTier(approvedCount || 0)
 
@@ -114,7 +114,7 @@ async function loadReputationAndGuides() {
   const lote = document.getElementById('profileStats')
   // Con la colección pública, «Cartas» la abre entera (944).
   const coleccion = profile?.coleccion_publica && profile.username ? urlDeColeccion(profile.username) : ''
-  lote.innerHTML = cifrasHtml({ cartas, guias: approvedCount ?? null, nota: avgRating, votos: totalNotas, torneos, coleccion })
+  lote.innerHTML = cifrasHtml({ cartas, guias: approvedCount ?? null, servido, torneos, coleccion })
   for (const b of lote.querySelectorAll('[data-ver]')) b.addEventListener('click', () => abrirPestania(b.dataset.ver))
   contarPestania('torneos', torneos || 0)
 

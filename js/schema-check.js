@@ -27,7 +27,6 @@ export const REQUISITOS = [
   { tabla: 'user_profiles', columna: 'is_banned', fichero: 'supabase-migration-user-moderation.sql', rompe: 'No se puede banear ni silenciar a nadie.' },
   { tabla: 'guides', columna: 'review_status', fichero: 'supabase-migration-community-guides.sql', rompe: 'Las guías de la comunidad y la cola de revisión no funcionan.' },
   { tabla: 'categories', columna: 'icon_image', fichero: 'supabase-migration-category-icon-image.sql', rompe: 'Los iconos de categoría no se ven.' },
-  { tabla: 'guide_reviews', columna: 'rating', fichero: 'supabase-migration-guide-reviews.sql', rompe: 'No se pueden valorar las guías.' },
   { tabla: 'user_follows', columna: 'follower_id', fichero: 'supabase-migration-follows.sql', rompe: 'No se puede seguir a nadie.' },
   { tabla: 'content_reports', columna: 'status', fichero: 'supabase-migration-content-reports.sql', rompe: 'No se puede reportar contenido.' },
   { tabla: 'app_feedback', columna: 'body', fichero: 'supabase-migration-app-feedback.sql', rompe: 'El botón de feedback no guarda nada.' },
