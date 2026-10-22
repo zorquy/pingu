@@ -41785,6 +41785,29 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 973 — Las noticias no son guías: ni en el buscador ni en el aviso
+
+PINGU: «cuando te dan un like dice alguien ha reaccionado a tu guía… en el
+buscador las noticias salen como guías». Dos sitios que leían `guides` sin
+mirar `kind`:
+
+- **El buscador** (/buscar y la paleta): `CONSULTAS.guias` pedía todo lo
+  publicado, así que una noticia salía en «Guías» y enlazaba a /guia/. Ahora
+  `articulos(kind, …)` pide `kind = 'guide'` para Guías y `kind = 'news'`
+  (la más nueva primero) para el grupo nuevo **Noticias**, detrás de Guías,
+  con su chapa, el icono de periódico, «Noticia · día» y
+  `rutaDeArticulo('news', slug)`.
+- **El botón de una noticia** (`js/guide-helpful.js`, el mismo de las guías,
+  sobre `guide_helpful`): en una noticia dice «Me gusta» / «Te gusta» con el
+  pulgar, y el aviso es «A alguien le ha gustado tu noticia» con su
+  /noticias/ (`rutaDeArticulo`). Agrupados, `TITULOS.guide_helpful(n, link)`
+  mira el enlace: «A N personas les ha gustado tu noticia». Los avisos viejos
+  que ya están en la base siguen diciendo «guía» (su /guia/ redirige a la
+  noticia).
+
+Pendiente de PINGU: con cuál de los dos de una guía nos quedamos («Me ha
+servido» o «¿Te ha servido? Sí / No tanto»). Prueba: `test-tanda-973-pantalla.mjs`.
+
 ## Tanda 972 — El buscador de arriba: expansiones, el mejor resultado y una sola pantalla de cartas
 
 PINGU eligió B1–B6 de la propuesta (Sergio: «el buscador es horroroso para

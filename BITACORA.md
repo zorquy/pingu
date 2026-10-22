@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (208) — PINGU-Claude (973 — las noticias no son guías)
+
+**Hecho**: el buscador (y la paleta) separa Guías y Noticias (grupo y chapa
+nuevos; la noticia lleva a /noticias/). En una noticia el botón dice «Me
+gusta» y el aviso «A alguien le ha gustado tu noticia», con su enlace de
+noticia. Sin migración.
+
+**Ficheros**: `js/buscador.js`, `js/buscador-filas.js`, `buscar.html`,
+`js/guide-helpful.js`, `js/avisos-grupos.js`, `novedades.json`, `SCHEMA.md`,
+`BITACORA.md`. En `pruebas`: `test-tanda-973-pantalla.mjs`; 718, 909, 968,
+972, noticias, 868, 524, 299, 305, 311–313, 906 e imports en verde.
+
+**Pendiente**: propuesta con maquetas para dejar UNA sola de las dos
+(«Me ha servido» o «¿Te ha servido? Sí / No tanto») en las guías.
+
 ## 2026-10-22 (207) — PINGU-Claude (972 — el buscador de arriba, B1–B6)
 
 **Hecho** (PINGU: «sigue con tus propuestas»): /buscar y la paleta buscan

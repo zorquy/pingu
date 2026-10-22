@@ -23,7 +23,7 @@ const TITULOS = {
   guide_comment: (n) => `${n} comentarios nuevos en tu guía`,
   comment_reply: (n) => `${n} respuestas a tu comentario`,
   guide_rating: (n) => `${n} valoraciones nuevas en tu guía`,
-  guide_helpful: (n) => `A ${n} personas les ha servido tu guía`,
+  guide_helpful: (n, link) => (/^\/noticias\//.test(link || '') ? `A ${n} personas les ha gustado tu noticia` : `A ${n} personas les ha servido tu guía`),
   guide_suggestion: (n) => `${n} correcciones sugeridas en tu guía`,
   forum_reply: (n) => `${n} mensajes nuevos para ti en este tema`,
   forum_reaction: (n) => `${n} reacciones a tu mensaje`,
@@ -85,7 +85,7 @@ export function agruparAvisos(lista, ahora = Date.now()) {
     // perfil) no describen al grupo: el cuerpo se quita y se va a tu
     // perfil, que es donde está la lista de quien te sigue.
     const juntoPorTipo = POR_TIPO.has(g.tipo) && n > 1
-    const titulo = n === 1 ? g.titulos[0] : TITULOS[g.tipo]?.(n) || `${g.titulos[0]} (y ${n - 1} más)`
+    const titulo = n === 1 ? g.titulos[0] : TITULOS[g.tipo]?.(n, g.link) || `${g.titulos[0]} (y ${n - 1} más)`
     const link = juntoPorTipo ? '/perfil.html' : g.link
     salida[TRAMOS.indexOf(tramoDe(g.fecha, ahora))].grupos.push({ ids: g.ids, tipo: g.tipo, link, titulo, cuerpo: juntoPorTipo ? null : g.cuerpo, fecha: g.fecha, n, leido: g.leido })
   }

@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { createNotification } from './notifications.js'
+import { rutaDeArticulo } from './articulos.js'
 
 // "Me ha servido": el agradecimiento de un clic.
 //
@@ -17,8 +18,13 @@ import { createNotification } from './notifications.js'
 // propósito, porque el XP que te dan OTROS no se puede dejar en manos
 // del navegador de quien te lo da.
 
-const TEXTO_SIN_MARCAR = 'Me ha servido'
-const TEXTO_MARCADO = 'Te ha servido'
+// En una NOTICIA es «Me gusta» (973): de una noticia no se dice que te ha
+// servido, y el aviso decía «tu guía» de algo que no lo es.
+const TEXTOS = {
+  guide: { sin: 'Me ha servido', con: 'Te ha servido', uno: 'A 1 persona le ha servido', varios: (n) => `A ${n} personas les ha servido`, aviso: 'A alguien le ha servido tu guía', tuyo: 'tu guía' },
+  news: { sin: 'Me gusta', con: 'Te gusta', uno: 'A 1 persona le ha gustado', varios: (n) => `A ${n} personas les ha gustado`, aviso: 'A alguien le ha gustado tu noticia', tuyo: 'tu noticia' },
+}
+const textosDe = (guide) => TEXTOS[guide?.kind === 'news' ? 'news' : 'guide']
 
 // La columna no existe hasta que se ejecuta la migración. Igual que en
 // el buscador: mejor esconder el botón que dejar la guía con un error a
@@ -53,14 +59,14 @@ async function leerEstado(guideId, userId) {
   return { total: count || 0, mio }
 }
 
-function pintar(boton, contador, estado) {
+function pintar(boton, contador, estado, t) {
   boton.classList.toggle('helpful-on', estado.mio)
   boton.setAttribute('aria-pressed', String(estado.mio))
-  boton.querySelector('[data-helpful-texto]').textContent = estado.mio ? TEXTO_MARCADO : TEXTO_SIN_MARCAR
+  boton.querySelector('[data-helpful-texto]').textContent = estado.mio ? t.con : t.sin
   // Con cero, no se enseña un "0" pelado: un contador a cero en una guía
   // recién publicada desanima al autor más que no poner nada.
   contador.textContent =
-    estado.total === 0 ? '' : estado.total === 1 ? 'A 1 persona le ha servido' : `A ${estado.total} personas les ha servido`
+    estado.total === 0 ? '' : estado.total === 1 ? t.uno : t.varios(estado.total)
 }
 
 // `contenedor` es donde se pinta. `guide` necesita id, title, slug y
@@ -68,6 +74,7 @@ function pintar(boton, contador, estado) {
 export async function montarBotonHelpful(contenedor, guide, session) {
   if (!contenedor || !guide?.id) return
 
+  const t = textosDe(guide)
   const esMia = !!session && guide.author_id === session.user.id
   const estado = await leerEstado(guide.id, session?.user?.id)
 
@@ -78,29 +85,27 @@ export async function montarBotonHelpful(contenedor, guide, session) {
   // pero sí tiene que ver el número: es justo el dato que le interesa.
   if (esMia) {
     if (estado.total === 0) return
-    contenedor.innerHTML = `<p class="helpful-solo-contador">${
-      estado.total === 1 ? 'A 1 persona le ha servido tu guía' : `A ${estado.total} personas les ha servido tu guía`
-    }</p>`
+    contenedor.innerHTML = `<p class="helpful-solo-contador">${estado.total === 1 ? t.uno : t.varios(estado.total)} ${t.tuyo}</p>`
     return
   }
 
   contenedor.innerHTML = `
     <div class="helpful-wrap">
       <button type="button" class="helpful-btn" aria-pressed="false">
-        ${icons.sprout(16)}<span data-helpful-texto>${TEXTO_SIN_MARCAR}</span>
+        ${guide.kind === 'news' ? icons.thumbsUp(16) : icons.sprout(16)}<span data-helpful-texto>${t.sin}</span>
       </button>
       <span class="helpful-count" data-helpful-count></span>
     </div>`
 
   const boton = contenedor.querySelector('.helpful-btn')
   const contador = contenedor.querySelector('[data-helpful-count]')
-  pintar(boton, contador, estado)
+  pintar(boton, contador, estado, t)
 
   let enCurso = false
   boton.addEventListener('click', async () => {
     if (enCurso) return
     if (!session) {
-      showToast('Entra con tu cuenta para decirle al autor que su guía te ha servido.')
+      showToast(guide.kind === 'news' ? 'Entra con tu cuenta para decir que te gusta.' : 'Entra con tu cuenta para decirle al autor que su guía te ha servido.')
       return
     }
     enCurso = true
@@ -111,7 +116,7 @@ export async function montarBotonHelpful(contenedor, guide, session) {
     const antes = { ...estado }
     estado.mio = !estado.mio
     estado.total += estado.mio ? 1 : -1
-    pintar(boton, contador, estado)
+    pintar(boton, contador, estado, t)
 
     const { error } = estado.mio
       ? await supabase.from('guide_helpful').insert({ guide_id: guide.id, user_id: session.user.id })
@@ -119,7 +124,7 @@ export async function montarBotonHelpful(contenedor, guide, session) {
 
     if (error) {
       Object.assign(estado, antes)
-      pintar(boton, contador, estado)
+      pintar(boton, contador, estado, t)
       showToast('No se ha podido guardar: ' + error.message)
     } else if (estado.mio) {
       // El aviso al autor es el objetivo de todo esto. Va una sola vez
@@ -129,9 +134,9 @@ export async function montarBotonHelpful(contenedor, guide, session) {
         recipientId: guide.author_id,
         actorId: session.user.id,
         type: 'guide_helpful',
-        title: 'A alguien le ha servido tu guía',
+        title: t.aviso,
         body: guide.title,
-        link: `/guia/${encodeURIComponent(guide.slug)}`,
+        link: rutaDeArticulo(guide.kind, guide.slug),
       })
     }
 

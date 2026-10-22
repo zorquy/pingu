@@ -56,9 +56,28 @@ export const GRUPOS = [
   // Los productos sellados (968, Sergio: «tampoco busca sellado»).
   ['productos', 'Productos'],
   ['guias', 'Guías'],
+  // Las noticias van aparte (973): viven en `guides` con kind = 'news' y
+  // salían rotuladas como guías y llevando a /guia/.
+  ['noticias', 'Noticias'],
   ['temas', 'Foro'],
   ['gente', 'Gente'],
 ]
+
+// Guías y noticias, cada una con su `kind`. Las noticias, la más nueva
+// primero: de una noticia importa cuándo salió.
+async function articulos(kind, crudo, limite) {
+  const patron = `%${terminoParaFiltro(crudo)}%`
+  const base = () => {
+    const q = supabase.from('guides').select('slug, title, description, cover_emoji, kind, published_at').not('published_at', 'is', null).eq('kind', kind)
+    return kind === 'news' ? q.order('published_at', { ascending: false }) : q
+  }
+  const { data, error } = await conVueltaAtras(
+    () => base().ilike('search_norm', patron).limit(limite),
+    () => base().ilike('title', `%${crudo.replace(/[,()%]/g, ' ')}%`).limit(limite)
+  )
+  if (error) throw error
+  return data || []
+}
 
 // Lo que cada grupo pregunta. Las columnas van contadas: una que no existe
 // tumba la consulta entera (42703, la 624), así que aquí solo van las que
@@ -122,16 +141,8 @@ const CONSULTAS = {
     const filas = data || []
     return { filas: filas.slice(0, limite), hayMas: filas.length > limite }
   },
-  async guias(crudo, limite) {
-    const patron = `%${terminoParaFiltro(crudo)}%`
-    const base = () => supabase.from('guides').select('slug, title, description, cover_emoji').not('published_at', 'is', null)
-    const { data, error } = await conVueltaAtras(
-      () => base().ilike('search_norm', patron).limit(limite),
-      () => base().ilike('title', `%${crudo.replace(/[,()%]/g, ' ')}%`).limit(limite)
-    )
-    if (error) throw error
-    return data || []
-  },
+  guias: (crudo, limite) => articulos('guide', crudo, limite),
+  noticias: (crudo, limite) => articulos('news', crudo, limite),
   async temas(crudo, limite) {
     const patron = `%${terminoParaFiltro(crudo)}%`
     // Solo temas de foros que se ven (876): sin esto los hilos del subforo

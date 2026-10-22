@@ -12,6 +12,7 @@ import { euros } from './cardmarket.js'
 import { atributosDeRango } from './rangos.js'
 import { nombreDeTipo, precioDeProducto, rutaDeProducto } from './productos.js'
 import { rutaDeExpansion } from './buscador-puro.js'
+import { rutaDeArticulo } from './articulos.js'
 
 // Adónde lleva cada fila. Va aparte del HTML porque la paleta navega con
 // el teclado y necesita la dirección sin pintar nada.
@@ -19,7 +20,8 @@ export function destinoDe(grupo, f) {
   if (grupo === 'cartas') return rutaDeCarta(f)
   if (grupo === 'productos') return rutaDeProducto(f)
   if (grupo === 'expansiones') return rutaDeExpansion(f)
-  if (grupo === 'guias') return `/guia/${encodeURIComponent(f.slug)}`
+  if (grupo === 'guias') return rutaDeArticulo('guide', f.slug)
+  if (grupo === 'noticias') return rutaDeArticulo('news', f.slug)
   if (grupo === 'temas') return `/tema/${encodeURIComponent(f.id)}`
   if (grupo === 'gente') return profileUrl(f)
   return f.href || '#'
@@ -57,6 +59,11 @@ export function interiorDe(grupo, f) {
   if (grupo === 'guias') {
     return `<span class="bs-icono" aria-hidden="true">${icons.bookOpen(18)}</span>
       <span class="bs-texto"><b>${escapeHtml(f.title)}</b>${f.description ? `<small>${escapeHtml(f.description)}</small>` : ''}</span>`
+  }
+  if (grupo === 'noticias') {
+    const dia = f.published_at ? new Date(f.published_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
+    return `<span class="bs-icono" aria-hidden="true">${icons.newspaper(18)}</span>
+      <span class="bs-texto"><b>${escapeHtml(f.title)}</b><small>${escapeHtml(['Noticia', dia].filter(Boolean).join(' · '))}</small></span>`
   }
   if (grupo === 'temas') {
     return `<span class="bs-icono" aria-hidden="true">${icons.messageSquare(18)}</span>
