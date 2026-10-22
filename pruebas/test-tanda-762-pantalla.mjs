@@ -77,7 +77,7 @@ console.log('── 2. La función programada ──')
     }
     return { llamadas, escritas, restImpl, fetchImpl, estado: () => guardado }
   }
-  const env = { SUPABASE_SERVICE_ROLE_KEY: 'x', TCGGO_API_KEY: 'k' }
+  const env = { SUPABASE_SERVICE_ROLE_KEY: 'x', TCGGO_API_KEY: 'k', TCGGO_EPISODIOS_SUELTOS: '' }
   const ahora = new Date('2026-10-08T10:00:00Z')
   {
     const m = montar({ sinTabla: true })

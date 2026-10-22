@@ -110,14 +110,16 @@ console.log('── 2. «Todo»: las de la expansión más nueva, y cuántas hay
   const hs = (await page.$$eval('#searchResults .bs-fila.bs-cartas', (as) => as.map((a) => a.getAttribute('href')))).map(idDe)
   check('cuatro, empezando por la más nueva (30th Celebration)', hs.length === 4 && hs[0] === '30c-12', JSON.stringify(hs))
   check('  …y la de 151 entre ellas', hs.includes('sv3pt5-145'), JSON.stringify(hs))
-  const boton = page.locator('[data-ver="cartas"]')
+  // Desde la 968 el botón lleva DIRECTO a Cartas › Buscar (Sergio: eran
+  // tres pasos para llegar a la misma pantalla).
+  const boton = page.locator('#searchResults a.bs-mas')
   const texto = (await boton.textContent().catch(() => '')).trim()
   check(`el botón dice «Ver las ${TOTAL} cartas»`, texto === `Ver las ${TOTAL} cartas`, texto)
-  await boton.click()
+  check('  …y lleva a Cartas › Buscar con la búsqueda puesta', (await boton.getAttribute('href')) === '/cartas?ver=buscar&q=zapdos', await boton.getAttribute('href'))
+  await page.click('#bsChips [data-grupo="cartas"]')
   await page.waitForTimeout(1200)
   const todas = await page.$$eval('#searchResults .bs-fila.bs-cartas', (as) => as.length)
-  check('al tocarlo, salen todas', todas === TOTAL, todas)
-  check('  …con el chip «Cartas» puesto', (await page.getAttribute('#bsChips [data-grupo="cartas"]', 'aria-pressed')) === 'true')
+  check('la chapa «Cartas» las enseña todas', todas === TOTAL, todas)
   await ctx.close()
 }
 

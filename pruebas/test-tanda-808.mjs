@@ -123,7 +123,7 @@ console.log('\n── 2. La función: cada catálogo por su puerta ──')
     }
     return { llamadas, escritas, restImpl, fetchImpl, estado: () => guardado }
   }
-  const env = { SUPABASE_SERVICE_ROLE_KEY: 'x', TCGGO_API_KEY: 'k' }
+  const env = { SUPABASE_SERVICE_ROLE_KEY: 'x', TCGGO_API_KEY: 'k', TCGGO_EPISODIOS_SUELTOS: '' }
   const ahora = new Date('2026-10-13T10:00:00Z')
   const m = montar()
   await fn.procesar({ env, ahora, restImpl: m.restImpl, fetchImpl: m.fetchImpl })

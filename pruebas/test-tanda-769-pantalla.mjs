@@ -68,7 +68,7 @@ for (const existen of [true, false]) {
     throw new Error(`ruta inesperada ${ruta}`)
   }
   const fetchImpl = async () => new Response(JSON.stringify({ data: REAL.lista.data.slice(0, 3), paging: { current: 1, total: 1 } }), { status: 200 })
-  await procesarProductos({ env: { SUPABASE_SERVICE_ROLE_KEY: 'x', TCGGO_API_KEY: 'k' }, ahora: new Date('2026-10-08T10:00:00Z'), restImpl, fetchImpl })
+  await procesarProductos({ env: { SUPABASE_SERVICE_ROLE_KEY: 'x', TCGGO_API_KEY: 'k', TCGGO_EPISODIOS_SUELTOS: '' }, ahora: new Date('2026-10-08T10:00:00Z'), restImpl, fetchImpl })
   const conPais = escritas.filter((f) => 'cm_lowest_de' in f).length
   check(existen ? 'con la migración, se escriben' : 'sin ella, no se mandan (la fila entera se rechazaría)', escritas.length === 3 && conPais === (existen ? 3 : 0), `${escritas.length} filas, ${conPais} con país`)
 }

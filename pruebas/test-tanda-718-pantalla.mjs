@@ -74,7 +74,9 @@ console.log('── 1. /buscar en un iPhone: todo a la vez ──')
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
   check('la página no se va de ancho', ancho <= 1, String(ancho))
 
-  await page.click('#searchResults [data-ver="cartas"]')
+  // 968: «Ver más cartas» lleva directo a Cartas › Buscar; la chapa sigue.
+  check('«Ver las N cartas» lleva a Cartas › Buscar con lo escrito', /^\/cartas\?ver=buscar&q=char/.test(await page.getAttribute('#searchResults a.bs-mas', 'href') || ''), await page.getAttribute('#searchResults a.bs-mas', 'href'))
+  await page.click('#bsChips [data-grupo="cartas"]')
   await page.waitForTimeout(600)
   const solo = await grupos(page)
   check('«Ver más cartas» se queda con las cartas: cinco, sin los demás grupos', solo.length === 1 && solo[0].titulo === 'Cartas' && solo[0].filas.length === 5, JSON.stringify(solo.map((g) => [g.titulo, g.filas.length])))

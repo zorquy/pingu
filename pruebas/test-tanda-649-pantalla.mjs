@@ -33,7 +33,7 @@ console.log('── 0. cartas.html es lo que sale del generador, byte a byte ─
   check('  …indexable, con su descripción y su canónica (sin .html desde la 906)', !/name="robots"/.test(cartas) && /<meta name="description"/.test(cartas) && /rel="canonical" href="https:\/\/pokedoc\.es\/cartas"/.test(cartas))
   check('  …empieza por el doctype', cartas.startsWith('<!DOCTYPE html>\n'))
   check('  …y en modo catálogo', /<body data-modo="catalogo">/.test(cartas))
-  check('  …con dos pestañas: Expansiones y Buscar', /data-pestania="album"[^>]*>[^<]*<span class="mc-menu-texto">Expansiones/.test(cartas) && /data-pestania="buscar"/.test(cartas) && !/data-pestania="resumen"/.test(cartas) && !/data-pestania="cambios"/.test(cartas))
+  check('  …con sus pestañas: Expansiones, Productos y Buscar', /data-pestania="album"[^>]*>[^<]*<span class="mc-menu-texto">Expansiones/.test(cartas) && /data-pestania="buscar"/.test(cartas) && /data-pestania="productos"/.test(cartas) && !/data-pestania="resumen"/.test(cartas) && !/data-pestania="cambios"/.test(cartas))
   const mc = leer('mi-coleccion.html')
   check('Mi colección sigue en noindex y conserva su pestaña de Expansiones',
     /name="robots" content="noindex"/.test(mc) && /<button[^>]*data-pestania="album"[^>]*aria-controls="mcPanelAlbum"/.test(mc))
@@ -91,7 +91,8 @@ console.log('\n── 1. /cartas sin cuenta: todas las expansiones, la de Mi col
   check('la puerta de «entra para guardar tus cartas» NO sale', !(await page.locator('#mcEntrar').isVisible()))
   check('ni el avatar ni las cifras de perfil', !(await page.locator('#mcHeroAvatar').isVisible()) && !(await page.locator('#mcResumen').isVisible()))
   const pestanas = (await page.locator('#mcMenu .mc-pestania').allInnerTexts()).map(limpio)
-  check('dos pestañas: Expansiones y Buscar', pestanas.join('|') === 'Expansiones|Buscar', pestanas.join('|'))
+  // 968: y Productos en medio (adonde lleva un producto desde el buscador de arriba).
+  check('tres pestañas: Expansiones, Productos y Buscar', pestanas.join('|') === 'Expansiones|Productos|Buscar', pestanas.join('|'))
   const nombres = (await page.locator('.mc-set-tarjeta .mc-set-nombre').allInnerTexts()).map(limpio)
   check('las TRES expansiones, tengas o no (sin cuenta no tienes ninguna)', nombres.length === 3 && nombres.includes('Chispas Fulgurantes'), nombres.join(' | '))
   const treinta = page.locator('.mc-set-tarjeta').filter({ hasText: '30th Celebration' })
