@@ -29,7 +29,8 @@ import { escapeHtml } from '../html.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { marcaCardmarket } from '../cardmarket-marca.js'
-import { TIPOS, OTRO, nombreDeTipo, precioDeProducto, esPreventa, valorDeProductos, preciosPorSitio, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto } from '../productos.js'
+import { banderaHtml } from '../precio-vista.js'
+import { TIPOS, OTRO, nombreDeTipo, precioDeProducto, esPreventa, valorDeProductos, preciosPorIdioma, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto } from '../productos.js'
 import { nombreDeSet } from '../catalogo-series.js'
 import { misProductos, productosPorIds } from '../productos-valor.js'
 
@@ -317,7 +318,7 @@ function pintarMandoDeFicha(f) {
 
 export function fichaDeProductoHtml(f, s = null) {
   const p = precioDeProducto(f)
-  const sitios = preciosPorSitio(f)
+  const idiomas = preciosPorIdioma(f)
   const cm = enlaceCardmarketDeProducto(f)
   const tp = enlaceTcgplayerDeProducto(f)
   const medias = [
@@ -336,7 +337,7 @@ export function fichaDeProductoHtml(f, s = null) {
     </div>
     <div class="pv">
       <div class="pv-fuente pv-cardmarket"><div class="pv-fuente-cab"><span class="pv-fuente-nombre">Cardmarket</span>${cm ? `<a class="btn-cardmarket pv-boton" href="${escapeHtml(cm)}" target="_blank" rel="noopener">${marcaCardmarket(18)}<span>Cardmarket</span></a>` : ''}</div>
-        ${sitios.length || medias ? `<table class="pv-tabla"><thead><tr><th>Dónde</th><th>Mínimo</th></tr></thead><tbody>${sitios.map((x) => `<tr class="pv-fila${p && x.columna === `cm_lowest_${p.donde === 'España' ? 'es' : p.donde === 'Europa' ? 'eu' : ''}` ? ' pv-activa' : ''}"><td><span class="pv-fila-enlace">${escapeHtml(x.nombre)}</span></td><td class="pv-precio">${escapeHtml(euros(x.valor))}</td></tr>`).join('')}${medias}</tbody></table>` : '<p class="pv-pie">Todavía sin precios de Cardmarket.</p>'}
+        ${idiomas.length || medias ? `<table class="pv-tabla"><thead><tr><th>Idioma</th><th>Mínimo</th></tr></thead><tbody>${idiomas.map((x) => `<tr class="pv-fila${p && x.id === p.idioma ? ' pv-activa' : ''}"><td><span class="pv-fila-enlace mc-prodf-idioma">${banderaHtml(x.id)}${escapeHtml(x.nombre)}</span></td><td class="pv-precio">${escapeHtml(euros(x.valor))}</td></tr>`).join('')}${medias}</tbody></table>` : '<p class="pv-pie">Todavía sin precios de Cardmarket.</p>'}
       </div>
       ${tp ? `<div class="pv-fuente pv-tcgplayer"><div class="pv-fuente-cab"><span class="pv-fuente-nombre">TCGplayer</span><a class="btn-tcgplayer pv-boton" href="${escapeHtml(tp)}" target="_blank" rel="noopener">${icons.zap(16)}<span>TCGplayer</span></a></div></div>` : ''}
       ${f.tcggo_url ? `<p class="pv-pie"><a href="${escapeHtml(f.tcggo_url)}" target="_blank" rel="noopener">Ver en TCGGO</a>, de donde salen los precios.</p>` : ''}

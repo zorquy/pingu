@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "Los precios de los productos sellados van por idioma con su bandera (español, inglés, alemán, francés, italiano), no por país: «España» o «Europa» no eran lo que decían.", "enlace": "/mi-coleccion?ver=productos" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "La lista de temas del foro es más limpia: solo el título, sin el trozo del último mensaje.", "enlace": "/foro" },
     { "fecha": "2026-10-22", "tipo": "arreglo", "texto": "En el foro ya puedes citar a varias personas en una respuesta (también un mensaje que solo es una foto), y desde el móvil el botón de Imagen abre la galería.", "enlace": "/foro" },
     { "fecha": "2026-10-22", "tipo": "nuevo", "texto": "Ocho colecciones nuevas: las seis barajas de Pokémon TCG Classic (Venusaur y Lugia, Charizard y Ho-Oh, Blastoise y Suicune, en inglés y en japonés), Sun & Moon Family Pokémon Card Game y el Special Deck Set ex de Venusaur, Charizard y Blastoise.", "enlace": "/cartas?catalogo=JP" },

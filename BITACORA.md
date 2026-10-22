@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (202) — PINGU-Claude (967 — los precios de los productos, por idioma)
+
+**Hecho** (Sergio.M, con la web de TCGGO delante: «no pone inglés, pone
+Europa»): la ficha de un producto decía España, Europa, Alemania, Francia,
+Italia y Todo Cardmarket; son idiomas. Ahora: Español, Inglés (o Japonés en
+los japoneses), Alemán, Francés, Italiano, con su bandera; el precio de
+arriba dice «mínimo en español» (o en inglés) y lo mismo las tarjetas y
+Lanzamientos.
+
+**Ficheros**: `js/productos.js`, `js/mi-coleccion/productos.js`,
+`css/mi-coleccion-productos.css`, `novedades.json`, `SCHEMA.md`,
+`BITACORA.md`. En `pruebas`: 762 y 769 al día (idiomas, japonés, sin
+Europa). Pasadas 762, 769, 299, 305 e imports (310, roja como antes).
+
+**Pendiente**: los productos que no son de ninguna expansión (las latas de
+Mega Charizard X e Y, episodio «Pokémon» 226 de TCGGO) — la 968.
+
 ## 2026-10-22 (201) — PINGU-Claude (966 — foro: la lista de temas, solo con el título)
 
 **Hecho** (PINGU: «yo pondría solo el título, porque es demasiado lioso»):

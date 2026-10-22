@@ -41785,6 +41785,20 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 967 — Los precios de un producto, por idioma
+
+`js/productos.js`: los campos de TCGGO de un producto son por IDIOMA, como
+en las cartas (`lowest_ES` = el producto en español…; cada uno con su
+`_EU_only`), y `lowest_EU_only`/`lowest` son los del idioma del propio
+producto (`lang`: inglés, o japonés). Lo comprobó Sergio.M con su web y lo
+confirma la respuesta de la lata de Mega Charizard X (31415): `lowest` =
+`lowest_EU_only` = 30, `lowest_ES` = 28. `precioDeProducto` → `{ valor,
+donde, idioma }` con `donde` = «español» o el idioma del producto;
+`preciosPorIdioma(f)` (sustituye a `SITIOS`/`preciosPorSitio`) → español,
+el suyo (`cm_lowest_eu ?? cm_lowest`), alemán, francés, italiano, solo con
+cifra; ya no hay fila «Todo Cardmarket». La ficha pinta «Idioma | Mínimo»
+con `banderaHtml` (`.mc-prodf-idioma`).
+
 ## Tanda 966 — La fila de tema, solo el título
 
 `js/foro.js` (`filaTema`): fuera `.foro-conv-trozo` («Misty: lo que dijo» o

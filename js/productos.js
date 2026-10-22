@@ -65,15 +65,25 @@ export function filaDeProducto(p, { ahora = new Date() } = {}) {
   }
 }
 
-// EL PRECIO QUE SE ENSEÑA: el mínimo en ESPAÑA, que es lo que PINGU pidió.
-// Si nadie lo vende en España, el de Europa, y si no el mínimo a secas —
-// diciendo de dónde es: «8,78 €» a secas sería afirmar que es el español—.
-// `null` es «no se sabe» (la 319), y no un cero.
+// LOS PRECIOS DE UN PRODUCTO SON POR IDIOMA, no por país (967). TCGGO da
+// `lowest_ES`, `lowest_DE`… igual que en las cartas: el producto EN español,
+// en alemán… (Sergio.M, con su web delante: «English, German, French…»). Y
+// `lowest_EU_only` y `lowest` son el del idioma del propio producto (el
+// inglés en el occidental, el japonés en el japonés): el mínimo de vendedores
+// de Europa y el de todos. Se rotulaban «España», «Europa», «Alemania»… y
+// «Todo Cardmarket», que no son lo que dicen.
+const NOMBRE_DE_IDIOMA = { es: 'español', en: 'inglés', ja: 'japonés', de: 'alemán', fr: 'francés', it: 'italiano', ko: 'coreano', zh: 'chino' }
+export const idiomaDelProducto = (f) => (NOMBRE_DE_IDIOMA[String(f?.lang || 'en').slice(0, 2)] ? String(f?.lang || 'en').slice(0, 2) : 'en')
+const suIdioma = (f) => numero(f?.cm_lowest_eu) ?? numero(f?.cm_lowest)
+
+// EL PRECIO QUE SE ENSEÑA: el del producto en ESPAÑOL, que es lo que PINGU
+// pidió. Si no hay, el de su idioma (el inglés), diciendo cuál: «8,78 €» a
+// secas sería afirmar que es el español. `null` es «no se sabe» (la 319).
 export function precioDeProducto(f) {
   if (!f) return null
-  if (numero(f.cm_lowest_es) != null) return { valor: Number(f.cm_lowest_es), donde: 'España' }
-  if (numero(f.cm_lowest_eu) != null) return { valor: Number(f.cm_lowest_eu), donde: 'Europa' }
-  if (numero(f.cm_lowest) != null) return { valor: Number(f.cm_lowest), donde: 'Cardmarket' }
+  if (numero(f.cm_lowest_es) != null) return { valor: Number(f.cm_lowest_es), donde: NOMBRE_DE_IDIOMA.es, idioma: 'es' }
+  const propio = suIdioma(f)
+  if (propio != null) return { valor: propio, donde: NOMBRE_DE_IDIOMA[idiomaDelProducto(f)], idioma: idiomaDelProducto(f) }
   return null
 }
 
@@ -103,19 +113,16 @@ export function valorDeProductos(mios, porId) {
 // con una columna que no existe se rechaza ENTERO.
 export const COLUMNAS_POR_PAIS = ['cm_lowest_de', 'cm_lowest_fr', 'cm_lowest_it']
 
-// LO QUE ENSEÑA LA FICHA DE UN PRODUCTO (769): el mínimo en cada sitio, del
-// más cercano al más lejano, solo los que tienen cifra (lo que no se sabe no
-// se pinta, la 319).
-export const SITIOS = [
-  { id: 'es', columna: 'cm_lowest_es', nombre: 'España' },
-  { id: 'eu', columna: 'cm_lowest_eu', nombre: 'Europa' },
-  { id: 'de', columna: 'cm_lowest_de', nombre: 'Alemania' },
-  { id: 'fr', columna: 'cm_lowest_fr', nombre: 'Francia' },
-  { id: 'it', columna: 'cm_lowest_it', nombre: 'Italia' },
-  { id: 'todo', columna: 'cm_lowest', nombre: 'Todo Cardmarket' },
-]
-export function preciosPorSitio(f) {
-  return SITIOS.map((s) => ({ ...s, valor: numero(f?.[s.columna]) })).filter((s) => s.valor != null)
+// LO QUE ENSEÑA LA FICHA DE UN PRODUCTO (769, por idioma desde la 967): el
+// mínimo en cada idioma, el español primero y luego el del propio producto;
+// solo los que tienen cifra (lo que no se sabe no se pinta, la 319).
+const COLUMNA_DE_IDIOMA = { es: 'cm_lowest_es', de: 'cm_lowest_de', fr: 'cm_lowest_fr', it: 'cm_lowest_it' }
+export function preciosPorIdioma(f) {
+  const propio = idiomaDelProducto(f)
+  const orden = ['es', propio, 'de', 'fr', 'it'].filter((id, i, l) => l.indexOf(id) === i)
+  return orden
+    .map((id) => ({ id, nombre: NOMBRE_DE_IDIOMA[id][0].toUpperCase() + NOMBRE_DE_IDIOMA[id].slice(1), valor: id === propio ? suIdioma(f) : numero(f?.[COLUMNA_DE_IDIOMA[id]]) }))
+    .filter((x) => x.valor != null)
 }
 
 // Los enlaces: Cardmarket por su id de producto (sin filtro de idioma: un
