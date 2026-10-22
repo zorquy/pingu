@@ -3,9 +3,8 @@
 // PINGU, con la lista de «Errores»: «mira todos estos errores, seguro que
 // puedes revisar más tú y ver por qué pasa». Lo que se mira:
 //   1. Módulos de dos despliegues («Importing binding name 'TOPE_CARTAS' is
-//      not found», «…'deDondeSaleElValor'…»): el service worker vacía sus
-//      cachés DE UNA VEZ, y una revisión que empezó antes de un vaciado no
-//      guarda lo suyo. Se ejecuta el sw.js de verdad en una caja (como la 820).
+//      not found», «…'deDondeSaleElValor'…»): el service worker no mezcla
+//      (desde la 982, por generaciones; antes vaciaba DE UNA VEZ). Se ejecuta el sw.js de verdad en una caja (como la 820).
 //   2. Y si aun así pasa, la página vacía las cachés y se recarga una vez.
 //   3. El registro: «Revisa tu email» petaba al escribir en un párrafo que la
 //      790 cambió por la lista de ventajas, y el formulario se quedaba a la vista.
@@ -78,16 +77,18 @@ console.log('── 1. El service worker no mezcla dos despliegues ──')
   check('b.js sale de la caché (A) y se revisa por detrás', (await pb.r.text()) === 'b de A')
   const pa = await caja.pedir('/js/a.js')
   check('a.js sale de la caché (A)', (await pa.r.text()) === 'a de A')
-  await pa.detras
-  const tras = caja.almacen.get(ASSETS)
-  check('al ver que a.js cambió, la caché se vacía ENTERA de una vez (no queda c.js de A)', !tras?.has(`${ORIGEN}/js/c.js`), JSON.stringify([...(tras?.keys() || [])]))
-  check('  …y entra el a.js nuevo', tras?.has(`${ORIGEN}/js/a.js`) && (await tras.get(`${ORIGEN}/js/a.js`).clone().text()) === 'a de B')
+  // Desde la 982 el cambio no vacía: llena la generación 2 y cambia de golpe
+  // (lo de fondo está en test-tanda-982). Aquí, lo de esta prueba: b.js, cuya
+  // revisión salió ANTES del despliegue, no mete nada viejo en la nueva.
   soltarB(fichero('b de A', '"b-A"'))
   await pb.detras
-  const fin = caja.almacen.get(ASSETS)
-  check('la revisión de b.js que empezó ANTES del vaciado no mete lo viejo en la caché nueva', !fin?.has(`${ORIGEN}/js/b.js`), JSON.stringify([...(fin?.keys() || [])]))
+  await pa.detras
+  const nueva = caja.almacen.get('pokedoc-ficheros-2')
+  check('al ver que a.js cambió, se llena la generación 2 con el a.js nuevo', nueva?.has(`${ORIGEN}/js/a.js`) && (await nueva.get(`${ORIGEN}/js/a.js`).clone().text()) === 'a de B', JSON.stringify([...(nueva?.keys() || [])]))
+  check('  …y la 1 sigue entera para quien la usa (c.js de A)', (await caja.almacen.get(ASSETS)?.get(`${ORIGEN}/js/c.js`)?.clone().text()) === 'c de A')
+  check('  …y c.js en la 2 es lo que dice la red AHORA, no lo de A', (await nueva?.get(`${ORIGEN}/js/c.js`)?.clone().text()) === '?')
   const pc = await caja.pedir('/js/c.js')
-  check('c.js, sin copia, va a la red', (await pc.r.text()) === '?')
+  check('una pestaña sin generación conocida abre la nueva (c.js de la red)', (await pc.r.text()) === '?')
 }
 
 console.log('\n── 2. Si aun así llega una mezcla, una recarga ──')

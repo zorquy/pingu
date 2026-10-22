@@ -6,7 +6,8 @@
 // (Playwright intercepta también lo que pide el worker): la tercera carga
 // de /aprender llega desde el worker; tras el despliegue B se sirve una
 // pantalla vieja —como mucho una— y la revisión deja guardada la nueva; y un
-// cambio en un FICHERO (despliegue C) vacía también las páginas.
+// cambio en un FICHERO (despliegue C) pasa también las páginas a la
+// generación nueva (desde la 982 no se vacían: se renuevan).
 import { readFileSync, writeFileSync, utimesSync, unlinkSync } from 'node:fs'
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
@@ -22,13 +23,14 @@ const check = (l, ok, extra = '') => {
 console.log('── 1. Lo estático ──')
 {
   const sw = leer('sw.js')
-  check('las páginas tienen su caché y entran por la navegación', /const PAGINAS = 'pokedoc-paginas-\d+'/.test(sw) && /if \(esPaginaDeCache\(new URL\(req\.url\)\)\) \{\s*e\.respondWith\(paginaDeCasa\(req, e\)\)/.test(sw))
+  check('las páginas tienen su caché y entran por la navegación', /const paginas = \(g\) => `pokedoc-paginas-\$\{g\}`/.test(sw) && /if \(esPaginaDeCache\(new URL\(req\.url\)\)\) \{\s*e\.respondWith\(paginaDeCasa\(req, e\)\)/.test(sw))
   check('  …solo la dirección pelada: sin consulta, un solo trozo', /if \(url\.origin !== self\.location\.origin \|\| url\.search\) return false/.test(sw) && /\^\\\/\(\[a-z0-9-\]\*\)\(\\\.html\)\?\$/.test(sw))
   for (const p of ['feria', 'sin-conexion', 'auth', 'admin', 'guia', 'carta', 'coleccion', 'curso', 'categoria']) check(`  …y /${p} se queda fuera`, new RegExp(`SIN_PAGINA = new Set\\(\\[[^\\]]*'${p}'`).test(sw))
-  check('un cambio en una página o en un fichero vacía LAS DOS cachés', /if \(cambio\) await vaciarTodo\(\)/.test(sw) && /caches\.delete\(ASSETS\), caches\.delete\(PAGINAS\)/.test(sw))
-  check('  …y la de páginas sobrevive al activar', /k !== PAGINAS/.test(sw))
-  check('la copia guardada se sirve ya y la red va por detrás', /const guardada = await \(await caches\.open\(PAGINAS\)\)\.match\(req\.url\)[\s\S]*?if \(guardada\) \{\s*e\.waitUntil\(revision\.catch/.test(sw))
-  check('  …una respuesta redirigida no se guarda', /fresca\.redirected\) return fresca/.test(sw))
+  // Desde la 982 un cambio no vacía las dos: llena las dos de la generación siguiente (test-tanda-982).
+  check('un cambio en una página o en un fichero renueva LAS DOS cachés', /\[await caches\.open\(ficheros\(g\)\), await caches\.open\(ficheros\(n\)\)\],\s*\[await caches\.open\(paginas\(g\)\), await caches\.open\(paginas\(n\)\)\]/.test(sw))
+  check('  …y las de cada generación sobreviven al activar', /!DE_GENERACION\.test\(k\)/.test(sw))
+  check('la copia guardada se sirve ya y la red va por detrás', /const guardada = await \(await caches\.open\(paginas\(g\)\)\)\.match\(req\.url\)\s*if \(guardada\) \{[\s\S]*?e\.waitUntil\(revisar\(req\.url/.test(sw))
+  check('  …una respuesta redirigida no se guarda', /const sirve = \(r\) => r\.ok && r\.type === 'basic' && !r\.redirected/.test(sw) && /if \(!sirve\(fresca\)\) return fresca/.test(sw))
 }
 
 console.log('\n── 2. En Chromium, con dos despliegues ──')
@@ -61,7 +63,9 @@ const b = await chromium.launch()
     p.off('response', oir)
     return sw
   }
-  const guardada = () => p.evaluate(async () => { const r = await caches.match('/t897.html', { cacheName: 'pokedoc-paginas-1' }); return r ? /name="despliegue" content="([A-Z])"/.exec(await r.text())?.[1] : null })
+  // La de la generación activa (982).
+  const gen = () => p.evaluate(async () => { const r = await (await caches.open('pokedoc-estado-1')).match('/__generacion'); return r ? Number(await r.text()) : 1 })
+  const guardada = async () => p.evaluate(async (g) => { const r = await caches.match('/t897.html', { cacheName: `pokedoc-paginas-${g}` }); return r ? /name="despliegue" content="([A-Z])"/.exec(await r.text())?.[1] : null }, await gen())
   await p.goto(`${BASE}/t897.html`, { waitUntil: 'load' })
   await p.evaluate(async () => { await navigator.serviceWorker.ready })
   // Segunda carga: ya controlada, el worker guarda la página. Tercera: de ahí.
@@ -88,8 +92,9 @@ const b = await chromium.launch()
   desplegar('css/t897.css', '/* C */')
   await p.evaluate(async () => { await (await fetch('/css/t897.css')).text() })
   await p.waitForTimeout(1500)
-  const tras = await p.evaluate(async () => ({ paginas: (await (await caches.open('pokedoc-paginas-1')).keys()).length, ficheros: (await (await caches.open('pokedoc-ficheros-1')).keys()).map((r) => new URL(r.url).pathname) }))
-  check('un cambio en un FICHERO vacía también las páginas (las dos cachés van atadas)', tras.paginas === 0 && tras.ficheros.length === 1 && tras.ficheros[0] === '/css/t897.css', JSON.stringify(tras))
+  const g = await gen()
+  const tras = await p.evaluate(async (g) => ({ pagina: !!(await (await caches.open(`pokedoc-paginas-${g}`)).match('/t897.html')), hoja: await (await (await caches.open(`pokedoc-ficheros-${g}`)).match('/css/t897.css'))?.text(), estilo: !!(await (await caches.open(`pokedoc-ficheros-${g}`)).match('/css/style.css')) }), g)
+  check('un cambio en un FICHERO pasa a otra generación con las dos cachés (982)', g === 3 && tras.hoja === '/* C */' && tras.pagina && tras.estilo, JSON.stringify({ g, ...tras }))
   await ctx.close()
 }
 for (const f of ['t897.html', 'css/t897.css']) try { unlinkSync(`${SITIO}/${f}`) } catch {}

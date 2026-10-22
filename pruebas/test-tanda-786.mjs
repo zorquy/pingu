@@ -16,10 +16,9 @@ const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
 console.log('── 1. Estático ──')
 check('LO8: sin el reintento con los tres parámetros', !/tresDeAntes/.test(leer('js/torneos/torneo.js')))
 const sw = leer('sw.js')
-check('LO1: el service worker sirve /css, /js y /assets desde su caché', /\^\\\/\(css\|js\|assets\)\\\//.test(sw) && /e\.waitUntil\(revision/.test(sw))
-// Desde la 897 el vaciado es de las dos cachés (ficheros y páginas): `vaciarTodo`.
-check('  …y al primer cambio vacía la caché entera', /if \(cambio\) await vaciarTodo\(\)/.test(sw) && /caches\.delete\(ASSETS\)/.test(sw))
-check('  …con una versión que se sube a mano', /const ASSETS_VERSION = \d+/.test(sw))
+check('LO1: el service worker sirve /css, /js y /assets desde su caché', /\^\\\/\(css\|js\|assets\)\\\//.test(sw) && /e\.waitUntil\(revisar\(req, 'ficheros', guardada, g\)/.test(sw))
+// Desde la 982 un cambio no vacía: llena la generación siguiente y cambia de golpe (test-tanda-982).
+check('  …y al primer cambio, la generación siguiente', /await renovar\(g, peticion, fresca\.clone\(\)\)/.test(sw))
 check('MV8: el tema cambia con una ola', /startViewTransition\(cambiar\)/.test(leer('js/theme.js')) && /html\.ola-tema::view-transition-new\(root\)/.test(leer('css/style.css')))
 check('MV14: la Poké Ball de refrescar', /bm-bola-aro/.test(leer('js/tirar-refrescar.js')) && /\.bm-bola-aro \{\s*stroke-dasharray: 1;/.test(leer('css/movil.css')))
 check('MV13: los sets y las cartas se levantan con el ratón', /@media \(hover: hover\) and \(pointer: fine\) \{\s*\.mc-set-tarjeta,/.test(leer('css/mi-coleccion.css')))
