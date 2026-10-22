@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-22 (194) — PINGU-Claude (959 — idiomas y SH de Platino; sin precio en un idioma en que el set no salió) · MIGRACIÓN NUEVA
+
+**Hecho** (PINGU, set a set, y con el Bulbasaur de Dark Explorers: «el español
+sí aparece como idioma y con precio… está mal»):
+- `supabase-migration-959-platino-idiomas-y-sh.sql` (después de la 958):
+  Supreme Victors solo en/fr/de; Arceus y Rising Rivals en/fr/de/it (sin
+  español ni portugués); las SH de Platinum, Supreme Victors y Arceus,
+  Reverse (y ni Holo ni Normal), y las de Platinum en español, Holo (como el
+  Duskull). Rising Rivals no tiene SH. Platinum no toca sus idiomas.
+- El precio: si el set no salió en tu idioma, las tarjetas de precio no lo
+  enseñan (ni la cifra ni «tu idioma»): la primera es la del primer idioma en
+  que salió. En la ficha de Mi colección también el aviso y la gráfica; en
+  /carta cambia el idioma de la página (sin recordarlo como tuyo). La de tu
+  copia se enseña siempre. `idiomaDePrecioDelSet` en `js/cardmarket.js`.
+- Un tropiezo cazado por la prueba: la regla entró primero en
+  `bloqueDePrecio` (la función de al lado tiene la misma primera línea) y sin
+  importar. La prueba ahora pinta las tarjetas en Node en vez de mirar el
+  fuente.
+
+**Ficheros**: `supabase-migration-959-platino-idiomas-y-sh.sql`,
+`js/cardmarket.js`, `js/precio-vista.js`, `js/mi-coleccion.js`,
+`js/carta-mercado.js`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`.
+
+En `pruebas`: `test-tanda-959.mjs` + `sql-tanda-959.sql` +
+`sql-tanda-959-casos.sql`, `test-tanda-959-pantalla.mjs`. Pasadas 915, 916,
+920, 923, 926, 900, 956-pantalla, 958, 958-pantalla, 524, 299 e imports.
+
+**Pendiente**: que PINGU ejecute la 959. Las listas de smL, svG, CLF/CLV y
+WCD08 pasan a la 960.
+
 ## 2026-10-22 (193) — PINGU-Claude (958 — versiones por idioma carta a carta: el Duskull SH2) · MIGRACIÓN NUEVA
 
 **Hecho** (PINGU, con el Duskull SH2 de Stormfront: «en español solo está en

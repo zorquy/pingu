@@ -37,7 +37,7 @@ import {
 } from './cardmarket.js'
 import { tarjetasDePrecio, chapasDeImpresiones, chipDeIdiomaHtml } from './precio-vista.js'
 import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, actualizar, borrar, tieneCifras } from './mi-coleccion/datos.js'
-import { precioDeFila, precioParaIdioma, idiomasParaAnadirEn, versionesDelIdioma, avisoDeVersiones } from './cardmarket.js'
+import { precioDeFila, precioParaIdioma, idiomasParaAnadirEn, versionesDelIdioma, avisoDeVersiones, idiomaDePrecioDelSet } from './cardmarket.js'
 import { idiomasDeSet, reglasDeVersiones, sinReglas, hayReglas } from './idiomas-de-set.js'
 import { engancharAvisos } from './avisos-precio.js'
 import * as laQuiero from './la-quiero.js'
@@ -195,6 +195,14 @@ export async function pintarMercado(carta) {
   void idiomasDeSet(carta.set_id, carta.market || MERCADO).then((lista) => {
     if (!lista?.length) return
     idiomasDelSet = lista
+    // Si el set no salió en tu idioma, el precio, la gráfica y el aviso van
+    // con el primero en que sí (959); no se recuerda: no lo has elegido tú.
+    const otro = estado.deTuCopia ? estado.idioma : idiomaDePrecioDelSet(estado.idioma, lista)
+    if (otro !== estado.idioma) {
+      estado.idioma = otro
+      if ($('cmIdioma')) $('cmIdioma').value = otro
+      repintarHistorial?.()
+    }
     pintarPrecio()
   }).catch(() => {})
   $('cmPrecios').addEventListener('click', (e) => {

@@ -564,6 +564,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   Cambios del perfil lo pintó así tres días y dos personas lo vieron. Si
   pintas un precio en una pantalla nueva, pide la fila entera y pasa por
   `valorDe`; dos pantallas con dos números para la misma carta no dan error.
+  Y el idioma que se enseña es uno en que el SET salió (959,
+  `idiomaDePrecioDelSet`): Dark Explorers no salió en español y un anuncio
+  mal catalogado le daba «ES · tu idioma · 0,02 €». La de tu copia, sí.
 - **El cuadro de responder del foro es un editor COMPACTO que crece al
   tener el foco** (tanda 899): en una prueba, pulsar «Responder» sin haber
   tocado el cuadro lo enfoca con el `mousedown`, el editor crece y el botón

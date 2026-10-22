@@ -25,7 +25,7 @@
 // Sin DOM: devuelve HTML. El CSS vive en css/cardmarket.css, que cargan
 // las dos páginas y nadie más.
 import { escapeHtml } from './html.js'
-import { euros, dolares, precioParaIdioma, idiomaDe, estadoDe, enlaceCardmarket, enlaceTcgplayer, IDIOMAS_CON_PRECIO, IDIOMA_POR_DEFECTO, ESTADO_POR_DEFECTO } from './cardmarket.js'
+import { euros, dolares, precioParaIdioma, idiomaDe, estadoDe, enlaceCardmarket, enlaceTcgplayer, IDIOMAS_CON_PRECIO, IDIOMA_POR_DEFECTO, ESTADO_POR_DEFECTO, idiomaDePrecioDelSet } from './cardmarket.js'
 import { marcaCardmarket } from './cardmarket-marca.js'
 import { icons } from './icons.js'
 
@@ -225,6 +225,12 @@ export function bloqueDePrecio(precio, { idioma = IDIOMA_POR_DEFECTO, estado = E
 // cifra. La de tu copia va la primera y en azul, y TCGplayer la última y
 // aparte: no es un idioma. Cada tarjeta abre Cardmarket con ese idioma.
 export function tarjetasDePrecio(precio, { idioma = IDIOMA_POR_DEFECTO, estado = ESTADO_POR_DEFECTO, variante = 'normal', nombre = '', tcgplayerId = null, rotuloActivo = 'tu idioma', idiomasDelSet = null } = {}) {
+  // Un idioma en el que el set no salió no se enseña con precio (959): ni el
+  // tuyo, salvo que sea el de tu copia.
+  if (rotuloActivo !== 'tu copia') {
+    const delSet = idiomaDePrecioDelSet(idioma, idiomasDelSet)
+    if (delSet !== idioma) { idioma = delSet; rotuloActivo = '' }
+  }
   const enlace = (id) => enlaceCardmarket({ idProduct: precio?.idProduct, url: precio?.url, dudoso: precio?.dudoso, idioma: id, estado, variante, nombre })
   const e = estadoDe(estado)
   const por = precio?.porIdioma || {}
@@ -234,7 +240,7 @@ export function tarjetasDePrecio(precio, { idioma = IDIOMA_POR_DEFECTO, estado =
   const cab = (id, extra = '') => `<span class="pv-t-cab">${banderaHtml(id)}<b>${escapeHtml(String(id).toUpperCase())}</b>${extra}</span>`
   const titulo = (id) => `Cardmarket, ${idiomaDe(id).nombre.toLowerCase()} · ${e.nombre}`
   const tarjetas = [
-    `<a class="pv-tarjeta pv-tarjeta-tuya" href="${escapeHtml(enlace(idioma))}" target="_blank" rel="noopener" title="${escapeHtml(precio?.idProduct && !precio?.dudoso ? titulo(idioma) : 'Buscar en Cardmarket')}">${cab(idioma, `<span class="pv-chapa-tuya">${escapeHtml(rotuloActivo)}</span>`)}${
+    `<a class="pv-tarjeta pv-tarjeta-tuya" href="${escapeHtml(enlace(idioma))}" target="_blank" rel="noopener" title="${escapeHtml(precio?.idProduct && !precio?.dudoso ? titulo(idioma) : 'Buscar en Cardmarket')}">${cab(idioma, rotuloActivo ? `<span class="pv-chapa-tuya">${escapeHtml(rotuloActivo)}</span>` : '')}${
       p
         ? `<span class="pv-cifra">${euros(p.valor)}</span><span class="pv-de">${escapeHtml(deQueEs(p, { idioma, estado, precio }))}</span>`
         : '<span class="pv-cifra pv-sin">Sin precio</span><span class="pv-de">Ni Cardmarket ni TCGplayer la tienen todavía.</span>'

@@ -115,6 +115,17 @@ export function versionesDelIdioma(versiones, reglas, idioma, cardId = null) {
   if (!quedan.length) return { versiones, quitadas: [], puestas: [] }
   return { versiones: quedan, quitadas: versiones.filter((v) => fuera.has(v.id)), puestas }
 }
+// EL IDIOMA DEL PRECIO QUE SE ENSEÑA (959). Dark Explorers no salió en
+// español y la ficha ponía «ES · tu idioma · 0,02 €» de un anuncio mal
+// catalogado: si el set no salió en tu idioma, el precio que se enseña es el
+// del primero en que sí salió. Sin saber los del set, el tuyo; y la de TU
+// copia no se cambia (la tienes en la mano).
+export function idiomaDePrecioDelSet(idioma, idiomasDelSet) {
+  if (!Array.isArray(idiomasDelSet) || !idiomasDelSet.length) return idioma
+  const conPrecio = IDIOMAS_CON_PRECIO.filter((id) => idiomasDelSet.includes(id))
+  return !conPrecio.length || conPrecio.includes(idioma) ? idioma : conPrecio[0]
+}
+
 // Las filas de `tcg_version_idioma`, en la forma que lee lo de arriba (958).
 export const sinReglas = () => ({ set: new Map(), cartas: new Map() })
 // Lo de un set solo QUITA (un «sí» del set entero no pone una versión en

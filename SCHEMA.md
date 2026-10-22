@@ -41785,6 +41785,23 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 959 — Platino a mano y el precio de un idioma que no salió
+
+`supabase-migration-959-platino-idiomas-y-sh.sql`: `tcg_set_idiomas_mano` de
+`pl2` y `pl4` (en, fr, de, it) y `pl3` (en, fr, de), con `hay = true` lo que
+salió y `false` es/it/pt lo demás; las SH (`pl1-SH4..6`, `pl3-SH7..9`,
+`pl4-SH10..12`) con filas de carta (958): reverse sí, holo y normal no en sus
+idiomas, y en `pl1` en español al revés (holo sí).
+
+`idiomaDePrecioDelSet(idioma, idiomasDelSet)` (`js/cardmarket.js`): el
+idioma si el set salió en él (o si no se saben, o si el set solo dice idiomas
+sin precio), y si no el primero de `IDIOMAS_CON_PRECIO` que el set tiene.
+`tarjetasDePrecio` lo aplica salvo con `rotuloActivo: 'tu copia'` y entonces
+quita la chapa «tu idioma». La ficha de Mi colección lo usa también para el
+aviso de precio y la gráfica (`idiomaDePrecioDeFicha`, y
+`repintarHistorialDeFicha` al llegar los idiomas); /carta cambia
+`estado.idioma` y `#cmIdioma` al llegar los idiomas (sin `recordarIdioma`).
+
 ## Tanda 958 — Versiones por idioma, carta a carta
 
 `tcg_version_idioma` gana `card_id text not null default ''` y la clave pasa a

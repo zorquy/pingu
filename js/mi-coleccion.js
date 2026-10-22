@@ -41,7 +41,7 @@ import {
   estadoDe,
   varianteDe,
   euros,
-  valorDeLinea, deDondeSaleElValor, resumenDePrecio , precioParaIdioma, idiomasParaAnadirEn, versionesDelIdioma, avisoDeVersiones } from './cardmarket.js'
+  valorDeLinea, deDondeSaleElValor, resumenDePrecio , precioParaIdioma, idiomasParaAnadirEn, versionesDelIdioma, avisoDeVersiones, idiomaDePrecioDelSet } from './cardmarket.js'
 import { idiomasDeSet, reglasDeVersiones, sinReglas, hayReglas } from './idiomas-de-set.js'
 import { tarjetasDePrecio, banderaHtml, chipDeIdiomaHtml } from './precio-vista.js'
 import { icons, icon } from './icons.js'
@@ -704,10 +704,18 @@ let avisoDatos = null
 // tarjetas de precio cuando llegan: un idioma en el que salió y nadie vende
 // sale en gris (915).
 const idiomasDeLaFicha = new Map()
+// El idioma del precio que se enseña (959): el de tu copia, o el tuyo si el
+// set salió en él; si no, el primero en que salió.
+function idiomaDePrecioDeFicha(l, c, tuya) {
+  if (tuya) return l.idioma
+  const market = c?.market || l.market || 'WEST'
+  return idiomaDePrecioDelSet(l.idioma, c?.set_id ? idiomasDeLaFicha.get(`${market}:${c.set_id}`) : null)
+}
+let repintarHistorialDeFicha = null
 function pintarPrecioDeFicha(l, c, tuya) {
   const precio = precioDe(l)
   const market = c?.market || l.market || 'WEST'
-  avisoDatos = { market, idioma: l.idioma, precio: precioParaIdioma(precio, l.idioma)?.valor ?? null }
+  avisoDatos = { market, idioma: idiomaDePrecioDeFicha(l, c, tuya), precio: precioParaIdioma(precio, idiomaDePrecioDeFicha(l, c, tuya))?.valor ?? null }
   const clave = c?.set_id ? `${market}:${c.set_id}` : null
   $('mcEdPrecioBloque').innerHTML = tarjetasDePrecio(precio, {
     idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c), tcgplayerId: c?.tp_id_product_propio || null,
@@ -717,7 +725,10 @@ function pintarPrecioDeFicha(l, c, tuya) {
     idiomasDeLaFicha.set(clave, null)
     void idiomasDeSet(c.set_id, market).then((lista) => {
       idiomasDeLaFicha.set(clave, lista || null)
-      if (lista?.length && $('mcEditor').open && cartaAbierta === l.card_id) pintarPrecioDeFicha(lineaDeLaFicha() || l, c, tuya)
+      if (lista?.length && $('mcEditor').open && cartaAbierta === l.card_id) {
+        pintarPrecioDeFicha(lineaDeLaFicha() || l, c, tuya)
+        repintarHistorialDeFicha?.()
+      }
     })
   }
   // El resumen de tu copia (645), con los campos plegados: se abre para
@@ -2410,8 +2421,10 @@ function abrirEditor(l) {
     historial.classList.add('hidden')
     historial.innerHTML = ''
     const esta = l.card_id
+    repintarHistorialDeFicha = null
     import('./carta-historial.js')
-      .then(({ montarHistorial, cargadorDeMarcas }) => (d.dataset.linea === String(l.id) || cartaAbierta === esta ? montarHistorial(historial, esta, () => l.idioma, { marcas: cargadorDeMarcas(supabase, c?.market || l.market || 'WEST'), ...(fichaAncha() ? { alto: 120 } : {}) }) : null))
+      .then(({ montarHistorial, cargadorDeMarcas }) => (d.dataset.linea === String(l.id) || cartaAbierta === esta ? montarHistorial(historial, esta, () => idiomaDePrecioDeFicha(l, c, tuya), { marcas: cargadorDeMarcas(supabase, c?.market || l.market || 'WEST'), ...(fichaAncha() ? { alto: 120 } : {}) }) : null))
+      .then((r) => { if (cartaAbierta === esta && typeof r === 'function') repintarHistorialDeFicha = r })
       .catch(() => {})
     cartaAbierta = esta
   }
