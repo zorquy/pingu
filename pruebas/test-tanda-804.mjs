@@ -82,10 +82,11 @@ for (const movil of [false, true]) {
   })))
   check(`[${nombre}] dos temas, los dos en fila de conversación`, filas.length === 2 && filas.every((f) => f.conv && f.avatar), JSON.stringify(filas))
   const iono = filas.find((f) => /Iono/.test(f.titulo || ''))
-  check(`[${nombre}] quién dijo lo último y un trozo, sin la cita ni etiquetas`, iono?.trozo === 'jesus: Arven busca un Objeto y una Herramienta.', iono?.trozo)
+  // Desde la 966 la fila es solo el título (PINGU: «es demasiado lioso»).
+  check(`[${nombre}] la fila es solo el título: sin trozo del mensaje`, iono && iono.trozo === undefined, iono?.trozo)
   check(`[${nombre}] y cuántas respuestas lleva`, iono?.resp === '2', iono?.resp)
   const estadio = filas.find((f) => /Estadio/.test(f.titulo || ''))
-  check(`[${nombre}] un tema sin respuestas dice quién lo abrió`, /^Lo abrió /.test(estadio?.trozo || ''), estadio?.trozo)
+  check(`[${nombre}] un tema sin respuestas, tampoco`, estadio && estadio.trozo === undefined, estadio?.trozo)
   check(`[${nombre}] el fijado, con su chapa`, estadio?.fijado === true)
   // Toda la fila lleva al tema: tocar a la derecha del título abre el tema.
   const caja = await page.locator('.foro-tema-fila', { hasText: 'Iono' }).boundingBox()

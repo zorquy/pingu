@@ -90,7 +90,7 @@ console.log('── 2. Los temas de un foro, como conversaciones (804) ──')
   const f = await filas(page)
   check('los temas de ESE foro, el más reciente primero', f.map((x) => x.t).join('|') === '¿Esta Pikachu es legal?|Duda con Boss', JSON.stringify(f.map((x) => x.t)))
   check('lo no leído lleva punto y va a lo nuevo', f[0].punto && f[0].nueva && /\?nuevo=1$/.test(f[0].href), JSON.stringify(f[0]))
-  check('quién dijo lo último y qué (sin la cita)', f[0].trozo === 'Misty: Es de una promo vieja', f[0].trozo)
+  check('la fila es solo el título, sin el trozo del último mensaje (966)', f[0].trozo === undefined, f[0].trozo)
   check('las filas se pulsan con 44 o más', f.every((x) => x.alto >= 44))
   await ctx.close()
 }
