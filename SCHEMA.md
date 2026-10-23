@@ -41785,6 +41785,78 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 987 — Las cartas repetidas de TCGGO, convertidas en versiones
+
+PINGU, con el N's Darmanitan SVP 181 dos veces en las promos (la normal y la
+Staff, con «STAFF» impreso): «¿no es mejor traernos solamente una y meterle dos
+variantes?», y que el panel avise de cada repetida y él elija. Propuesta con
+maquetas («Repetidas en versiones»); eligió lo recomendado: la lista propone y
+él decide, una Staff o una Prerelease es un SELLO (no cuenta para completar la
+colección) y la principal es la que ya teníamos.
+
+**Por qué pasa.** En Cardmarket la Staff es otro producto; TCGGO lista cada
+producto como una carta con el mismo nombre y el mismo número, sin decir cuál
+es la Staff, y el catálogo (640) crea lo que no casa. Es la forma de la 945 (las
+Poké Ball de Black Bolt), que se arregló set a set con una migración.
+
+**La base** (`supabase-migration-987-repetidas-en-versiones.sql`, después de la
+934):
+
+- `catalogo_posibles_repetidas(p_market, p_limite)`: grupos de cartas de la
+  MISMA colección con el mismo número (`catalogo_numero_comparable`, cada tramo
+  de dígitos sin sus ceros: «060» y «60» casan) y el mismo nombre (sin acentos
+  ni caja). Sin colecciones escondidas ni lo marcado «distintas». Cada carta
+  trae fotos, PS, ataques, ilustrador, producto, precio y quién la tiene; la
+  primera es la que ya teníamos (TCGdex, luego a mano, luego TCGGO por
+  antigüedad). Devuelve también las hechas sin deshacer y las distintas.
+- `catalogo_repetida_resolver(carta, destino, market, 'version'|'misma',
+  etiqueta, clase, imagen)`: guarda en `tcg_repetidas_hechas` la fila, el
+  precio, las correcciones y lo apuntado (copias con su versión, deseos —y los
+  que se borran por repetidos—, avisos, vitrina, posiciones en los álbumes);
+  con «version», crea en la principal una fila `tcg_card_versions` con `origen
+  = 'fundida'`, id negativo (la secuencia de la 934), la foto que manda /admin,
+  el producto de Cardmarket de la repetida y su último precio, o reutiliza la
+  que la principal ya tenga con ese nombre; pasa las copias a la principal con
+  esa versión (con «misma», sin tocar la versión); y borra la repetida con
+  LÁPIDA para su id y para el `tcggo-<tcggo_id>` que la volvería a crear (si la
+  repetida era la de TCGdex, la de TCGGO que casaba con ella nacería así).
+  Todo sin salirse del catálogo: el japonés y el occidental comparten ids
+  (`catalogo_borrar_carta` de la 934 movía las copias sin mirar el `market`).
+- `catalogo_repetida_deshacer(id)`: las correcciones primero (el disparador de
+  la 885 las pone encima al reescribir la carta), la carta sin las columnas
+  generadas (`name_key` no se puede escribir: la lista sale de
+  `information_schema`), su precio y lo apuntado que siga donde se dejó; la
+  versión creada se quita si nadie más la ha apuntado entretanto. El histórico
+  de precios de la repetida no vuelve.
+- `catalogo_repetidas_distintas`: se guarda con los ids del grupo; si aparece
+  otra carta en él, vuelve a salir.
+
+**El precio de la versión.** `tcggo-precios` pregunta por las versiones
+`edicion`, `tcgdex` y ahora `fundida` por su producto (`preciosDeEdiciones`):
+la Staff sigue teniendo su precio cada día. Solo en el occidental (como las
+ediciones); en el japonés se queda con el de la conversión.
+
+**/admin → Colecciones → «Posibles repetidas»** (`admin/js/repetidas.js` por
+`import()`, lo puro en `repetidas-puro.js`): un `<details>` que dice cuántas hay
+sin abrirlo; por grupo, la principal (con «Hacer principal» en las demás), las
+señales (número, nombre, PS, ataques, ilustrador, producto; «no se sabe» no es
+«distintos»), las etiquetas de un toque (Staff, Prerelease, Sello de evento,
+Pokémon Center, «Otra…»), «Cuenta para completar la colección» (impresión) y
+los tres botones; el mismo producto sugiere «Es la misma carta». «Convertir las
+marcadas» hace de una vez las que tienen nombre elegido. «Hechas» y «Distintas»
+lo deshacen. Cada cambio llama a `avisarALaWeb()`. Los ataques se comparan
+aquí y no con `huellaDeCarta`: importar `carta-nucleo.js` arrastraba a /admin
+las clases de la ficha y la 299 lo cantó.
+
+**La web.** Una versión `fundida` se pinta como una de a mano: va detrás de las
+de siempre con su clase (`variantesDeCarta`), con su foto (la ficha la repinta
+al llegar las versiones, como la de a mano) y con su precio.
+
+Prueba: `test-tanda-987.mjs` (33 casos contra PostgreSQL, lo puro, la web y la
+pasada de precios, y la caja de /admin en PC y móvil, con y sin la migración).
+Con la restauración de las correcciones después de la carta, deshacer perdía la
+foto corregida a mano y la prueba lo cazó.
+
 ## Tanda 986 — Una carta japonesa en la ficha completa y en la ventana de su expansión
 
 PINGU, con el Raichu & Alolan Raichu GX de GG End (japonés): desde el buscador

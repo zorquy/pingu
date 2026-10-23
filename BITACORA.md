@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-23 (220) — PINGU-Claude (987 — las repetidas, en versiones)
+
+**Hecho**: /admin → Colecciones tiene «Posibles repetidas»: las cartas de una
+colección con el mismo número y el mismo nombre (la Staff del Darmanitan SVP
+181), con las fotos y las señales, para decidir con un toque «es una versión»
+(Staff, Prerelease…, como sello), «es la misma carta» o «son distintas», y
+deshacerlo. La versión conserva su foto y su precio (la pasada de precios la
+sigue por su producto) y lo que la gente tenía apuntado pasa con ella.
+
+**Ficheros**: `supabase-migration-987-repetidas-en-versiones.sql` (nueva),
+`admin/js/repetidas.js` y `admin/js/repetidas-puro.js` (nuevos),
+`admin/index.html`, `admin/css/admin.css`, `admin/js/colecciones.js`,
+`admin/js/catalogo-cartas.js`, `netlify/functions/tcggo-precios.mjs`,
+`js/mi-coleccion.js`, `CLAUDE.md`, `novedades.json`, `SCHEMA.md`,
+`BITACORA.md`. En `pruebas`: `test-tanda-987.mjs`, `sql-tanda-987*.sql`, el
+doble con las cuatro funciones, y 935 y 945 aceptan la lista de orígenes nueva.
+Pasadas: 987, 885, 934, 935, 945, 949, 956, 958, 965, 299, 305, 309, 311–313 y
+986 en verde (885 y 310 con sus rojos de siempre).
+
+**Pendiente**: ejecutar `supabase-migration-987-repetidas-en-versiones.sql` en
+el SQL Editor (hasta entonces la caja lo dice y no toca nada).
+
 ## 2026-10-23 (219) — PINGU-Claude (986 — la japonesa de GG End)
 
 **Hecho**: «Ficha completa» de una carta japonesa ya no da «Carta no

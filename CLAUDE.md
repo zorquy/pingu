@@ -163,6 +163,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   etiqueta es la de TCGGO, para que no salgan dos; el precio llega por el
   producto, como el de las ediciones. Para otro set así, una entrada más en
   `herramientas/versiones-ball/leer.mjs` (rama `pruebas`) y otra migración.
+- **Una carta repetida (misma colección, número y nombre) se convierte en
+  VERSIÓN desde /admin → Colecciones → «Posibles repetidas»** (tanda 987): la
+  Staff del Darmanitan SVP 181 que TCGGO trae como otra carta. Queda como fila
+  `tcg_card_versions` con `origen = 'fundida'` (foto, producto y precio de la
+  que era; `tcggo-precios` la sigue por su producto), las copias pasan con esa
+  versión y la repetida deja lápida para su id y su `tcggo-<id>`. Una pasada
+  nueva que escriba o borre versiones respeta `fundida` como respeta `mano`; y
+  las reimpresiones de OTRA colección no son versiones: son cartas aparte.
 - **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
   911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
   ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets

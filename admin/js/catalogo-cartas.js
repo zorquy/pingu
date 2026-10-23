@@ -380,7 +380,7 @@ async function pintarVersionesDeLaCarta(c) {
     const todas = filas.filter((v) => varianteDeEtiqueta(v.etiqueta) === id)
     return todas.find((v) => v.imagen) || todas.find((v) => v.origen === 'mano') || todas.find((v) => v.origen === 'edicion') || todas[0] || null
   }
-  const ORIGENES = { mano: 'a mano', edicion: 'edición (TCGdex)', foto: 'de siempre' }
+  const ORIGENES = { mano: 'a mano', edicion: 'edición (TCGdex)', foto: 'de siempre', fundida: 'era una carta repetida (Posibles repetidas)' }
   const linea = (o) => {
     const v = filaDe(o.nuestro)
     const sub = v

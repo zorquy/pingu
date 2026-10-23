@@ -459,6 +459,25 @@
           <div id="coleccionesSeleccion" class="col-seleccion" hidden></div>
         </div>
         <div id="coleccionesHoja" class="col-hoja hidden"></div>
+
+        <details class="admin-card rep-caja" id="repetidasCaja">
+          <summary class="rep-resumen"><span class="rep-titulo">Posibles repetidas</span> <span class="col-resumen" id="repetidasResumen">Mirando…</span></summary>
+          <p class="admin-note">
+            Cartas de la <strong>misma colección</strong> con el <strong>mismo número</strong> y el <strong>mismo nombre</strong>: casi siempre una versión que Cardmarket vende aparte (una Staff, una Prerelease) y que TCGGO trae como otra carta.
+            Mira las fotos y decide. <strong>Es una versión</strong> la cuelga de la principal con su foto y su precio, y lo que la gente tuviera apuntado pasa con ella; <strong>Es la misma carta</strong> deja una sola; <strong>Son cartas distintas</strong> no la vuelve a enseñar.
+            Todo se deshace desde «Hechas». Las reimpresiones de otras colecciones no salen aquí: son cartas aparte.
+          </p>
+          <div class="rep-barra">
+            <div class="rep-vistas" role="group" aria-label="Qué enseñar">
+              <button type="button" class="chip-filtro" aria-pressed="true" data-rep-vista="revisar">Por revisar</button>
+              <button type="button" class="chip-filtro" aria-pressed="false" data-rep-vista="hechas">Hechas</button>
+              <button type="button" class="chip-filtro" aria-pressed="false" data-rep-vista="distintas">Distintas</button>
+            </div>
+            <input type="search" enterkeyhint="search" id="repetidasFiltro" placeholder="Filtrar por colección o carta…" aria-label="Filtrar las repetidas">
+            <button type="button" class="btn-primary btn-small" id="repetidasLote" hidden></button>
+          </div>
+          <div id="repetidasLista" class="rep-lista"></div>
+        </details>
       </section>
 
       <section class="admin-section" id="section-cards">

@@ -2388,8 +2388,9 @@ function abrirEditor(l) {
     if (!hay || !$('mcEditor')?.open) return
     const puesta = $('mcEdVariante').value
     $('mcEdVariante').innerHTML = opciones(variantesParaEditar(c, puesta), puesta)
-    // Una versión a mano trae su foto y sus datos (934).
-    if (cartaAbierta === l.card_id && versionDeVariante(c, l.variante)?.origen === 'mano') {
+    // Una versión a mano trae su foto y sus datos (934), y una que era una
+    // carta repetida (987), su foto.
+    if (cartaAbierta === l.card_id && ['mano', 'fundida'].includes(versionDeVariante(c, l.variante)?.origen)) {
       pintarFotoDeFicha(c, l)
       $('mcEdTabla').innerHTML = tablaDeCarta(c, l.variante)
     }

@@ -1128,4 +1128,6 @@ export async function iniciarColecciones() {
   leerAbiertas()
   await cargar()
   pintarColecciones()
+  // Las repetidas (987), por su módulo: se miran poco.
+  import('./repetidas.js').then((m) => m.iniciarRepetidas()).catch(() => {})
 }
