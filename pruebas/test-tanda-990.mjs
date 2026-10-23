@@ -84,7 +84,6 @@ check('ninguna novedad lo promete', !/\[\[/.test(JSON.stringify(nov)))
 const dest = nov.destacadas.filter((d) => d.mes === '2026-10')
 check('las tres destacadas de octubre siguen, una es Parejas con su dibujo', dest.length === 3 && dest.some((d) => d.enlace === '/parejas' && d.dibujo === 'parejas'), dest.map((d) => d.titulo).join(' | '))
 check('el dibujo de Parejas existe y el del foro se fue', /^\s*parejas: \(\) =>/m.test(leer('js/novedades.js')) && !/'foro-carta'/.test(leer('js/novedades.js')))
-check('el carrusel de redes tampoco lo cuenta', !/\[\[Arven\]\] y sale/.test(leer('js/redes-carrusel.js')))
 
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLA(S)` : '\n✅ TODO BIEN')

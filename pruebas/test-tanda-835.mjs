@@ -97,6 +97,10 @@ if (hay.status === 0) {
   check('los diez logros, activos y con un tipo que el cliente sabe contar', sql(`select count(*) from achievement_definitions where is_active and condition->>'type' in ('retos_racha','retos_perfectos','carta_primera','carta_aciertos','caro_perfectos','retos_jugados')`) === '10')
 
   console.log('\n── 4. La XP de js/retos-xp.js es la de la base ──')
+  // La web va con la XP de hoy: la de la 989 (Parejas) y la 991 (la silueta
+  // borrosa da +30/+20/+10). Lo de arriba se guardó con la de la 835.
+  psql(['-d', BD, '-f', join(REPO, 'supabase-migration-989-parejas.sql')])
+  psql(['-d', BD, '-f', join(REPO, 'supabase-migration-991-quien-es.sql')])
   const casos = []
   for (let i = 1; i <= 7; i++) for (const ac of [true, false]) { casos.push(['carta', 0, 0, i, ac, null]); casos.push(['silueta', 0, 0, i, ac, null]); casos.push(['ordena', 0, 0, i, ac, null]) }
   for (let a = 0; a <= 6; a++) casos.push(['expansion', a, 5, null, false, null], ['caro', a, 5, null, false, null])
@@ -106,9 +110,8 @@ if (hay.status === 0) {
   const deLaBase = sql(consulta).split('\n').map(Number)
   const distintos = casos.filter(([j, a, t, i, ac, tira], k) => xpDe(j, { aciertos: a, total: t, intentos: i, acertada: ac, tira }) !== deLaBase[k])
   check(`los ${casos.length} casos dan lo mismo en las dos`, deLaBase.length === casos.length && !distintos.length, JSON.stringify(distintos.slice(0, 4)))
-  // Desde la 989 el sexto es «Parejas» (migración 989) y el cuestionario
-  // ('reto') sale del menú: la base lo sigue aceptando por lo de antes.
-  psql(['-d', BD, '-f', join(REPO, 'supabase-migration-989-parejas.sql')])
+  // Desde la 989 el sexto es «Parejas» (migración 989, cargada arriba) y el
+  // cuestionario ('reto') sale del menú: la base lo sigue aceptando por lo de antes.
   const acepta = sql(`select pg_get_constraintdef(oid) from pg_constraint where conname = 'retos_resultados_juego'`).replace(/::text/g, '')
   check('los seis retos del menú son juegos que acepta la base (con la 989)', RETOS.map((x) => x.juego).join() === 'carta,caro,silueta,ordena,expansion,parejas' && RETOS.every((x) => acepta.includes(`'${x.juego}'`)), acepta)
   psql(['-c', `drop database if exists ${BD}`])

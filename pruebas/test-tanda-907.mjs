@@ -8,8 +8,8 @@
 //   1. Lo puro (js/reto-portada.js): qué portada sale de las preguntas de
 //      hoy, los temas, el color, los textos y los números de la noche.
 //   2. Lo estático: quién pasa qué al marco nuevo.
-//   3. En pantalla: las imágenes se dibujan con el marco (el logo arriba),
-//      y /admin → Redes saca la de la mañana y la de la noche con su tuit.
+//   3. En pantalla: las imágenes se dibujan con el marco (el logo arriba).
+//      (/admin → Redes, que sacaba las de la cuenta, se quitó en la 991.)
 import { readFileSync } from 'node:fs'
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
@@ -108,43 +108,6 @@ const browser = await chromium.launch()
   check('seis filas de «¿Qué carta es?» con foto no pisan el lema', r.seisFilas === 0, String(r.seisFilas))
   check('las de la cuenta se dibujan (mañana y noche, también sin nadie)', r.manana >= 6 && r.noche >= 6 && r.nocheX === 1200, JSON.stringify([r.manana, r.noche]))
   check('sin errores', errores.length === 0, errores.join(' | '))
-  await page.close()
-}
-{
-  const page = await browser.newPage({ viewport: { width: 1250, height: 900 } })
-  const errores = []
-  page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
-  await page.addInitScript(() => {
-    window.__FAKE_SESSION__ = 'admin-1'
-    const hoy = new Date().toISOString().slice(0, 10)
-    window.__FAKE_GUIAS__ = [
-      { id: 'g1', slug: 'pull', title: 'Pull rates: cómo funcionan', blocks: [{ type: 'quiz', question: '¿Cuántas ex?', options: ['1', '2'], correct: 0 }, { type: 'truefalse', statement: 'Sale una por sobre', is_true: false }] },
-      { id: 'g2', slug: 'rarezas', title: 'Rarezas', blocks: [{ type: 'cartaquiz', question: '¿Cuál es la ilustración?', card_ids: ['sv1-1', 'sv1-2'], correct_id: 'sv1-1' }, { type: 'quiz', question: '¿Qué símbolo?', options: ['a', 'b'], correct: 1 }] },
-      { id: 'g3', slug: 'reglas', title: 'Reglas', blocks: [{ type: 'quiz', question: '¿Cuándo evolucionas?', options: ['a', 'b'], correct: 1 }] },
-    ]
-    window.__FAKE_CARTAS__ = [
-      { id: 'sv1-1', market: 'WEST', set_id: 'sv1', local_id: '1', name: 'Charizard ex', image_path: 'sv/sv1/1', types: ['Fuego'] },
-      { id: 'sv1-2', market: 'WEST', set_id: 'sv1', local_id: '2', name: 'Pikachu', image_path: 'sv/sv1/2', types: ['Lightning'] },
-    ]
-    window.__FAKE_RETOS__ = [{ correct: 5, total: 5, day: hoy, user_id: 'u1' }, { correct: 4, total: 5, day: hoy, user_id: 'u2' }, { correct: 3, total: 5, day: hoy, user_id: 'u3' }]
-  })
-  await page.route(/assets\.tcgdex\.net|limitlesstcg|images\.tcggo|imagen-carta/, (r) => r.fulfill({ status: 200, contentType: 'image/png', body: png1x1 }))
-  await page.goto(`${BASE}/admin/`, { waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(1500)
-  await page.locator('[data-section="redes"]').click()
-  await page.waitForTimeout(400)
-  check('/admin → Redes tiene «El reto de hoy» con su día puesto', await page.locator('#btnRedesRetoManana').isVisible() && (await page.inputValue('#redesRetoDia')) === new Date().toISOString().slice(0, 10))
-  await page.locator('#btnRedesRetoManana').click()
-  await page.waitForFunction(() => document.querySelectorAll('#redesRetoLienzos canvas').length === 2, null, { timeout: 20000 }).catch(() => {})
-  const m = await page.evaluate(() => ({ n: document.querySelectorAll('#redesRetoLienzos canvas').length, formatos: [...document.querySelectorAll('#redesRetoLienzos canvas')].map((c) => `${c.width}x${c.height}`), texto: document.getElementById('redesRetoTexto').value, tuit: !document.getElementById('redesRetoTuit').hidden }))
-  check('la de la mañana: historia y X', m.n === 2 && m.formatos.join() === '1080x1350,1200x630', JSON.stringify(m.formatos))
-  check('  …con el tuit escrito (número del día y sus temas)', m.tuit && /Ya está el reto de hoy \(#\d+\)/.test(m.texto) && /rarezas/.test(m.texto), m.texto)
-  await page.locator('#btnRedesRetoNoche').click()
-  await page.waitForFunction(() => /Así fue/.test(document.getElementById('redesRetoTexto').value), null, { timeout: 20000 }).catch(() => {})
-  const n = await page.evaluate(() => ({ n: document.querySelectorAll('#redesRetoLienzos canvas').length, texto: document.getElementById('redesRetoTexto').value, descargas: document.querySelectorAll('#redesRetoLienzos figcaption button').length }))
-  check('la de la noche: las dos, con sus descargas, y los números de todos en el tuit', n.n === 2 && n.descargas === 2 && /3 personas, 4 aciertos de media y un 33 % de plenos/.test(n.texto), n.texto)
-  check('sin errores', errores.length === 0, errores.join(' | '))
-  await page.screenshot({ path: `${process.env.PD_CAPTURAS || '/tmp'}/907-admin.png`, fullPage: true }).catch(() => {})
   await page.close()
 }
 await browser.close()

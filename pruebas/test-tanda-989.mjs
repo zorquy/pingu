@@ -92,6 +92,8 @@ if (psql(['-c', 'select 1']).status === 0) {
   const base = sql(casos.map((m) => `select public.retos_xp('parejas', 6, 6, ${m}, true, null)`).join(' union all ')).split('\n').map(Number)
   const distintos = casos.filter((m, k) => X.xpDe('parejas', { intentos: m }) !== base[k])
   check('la XP de Parejas es la misma en la base y en retos-xp.js (0–39 movimientos)', base.length === casos.length && !distintos.length, distintos.join(','))
+  // La silueta cambió en la 991: se compara con ella cargada.
+  psql(['-d', BD, '-f', join(RAIZ, 'supabase-migration-991-quien-es.sql')])
   const resto = [['carta', 0, 0, 3, true], ['silueta', 0, 0, 1, true], ['caro', 4, 5, null, false], ['ordena', 0, 0, 2, true], ['expansion', 3, 5, null, false]]
   const rb = sql(resto.map(([j, a, t, i, ac]) => `select public.retos_xp('${j}', ${a}, ${t}, ${i ?? 'null'}, ${ac}, null)`).join(' union all ')).split('\n').map(Number)
   check('  …y la de los demás sigue igual', resto.every(([j, a, t, i, ac], k) => X.xpDe(j, { aciertos: a, total: t, intentos: i, acertada: ac }) === rb[k]), rb.join(','))
