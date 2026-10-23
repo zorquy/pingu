@@ -107,6 +107,7 @@ console.log('── 3. En el navegador ──')
       sessionStorage.setItem('cd-limpio', '1')
     }
     navigator.share = async (d) => { window.__compartido = d; return true }
+    navigator.canShare = () => true
   }, [SETS, CARTAS])
   await page.goto(`${BASE}/carta-del-dia.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
@@ -176,7 +177,7 @@ console.log('── 3. En el navegador ──')
   check('  …y la carta nítida', (await desenfoque()) === 0 || Number.isNaN(await desenfoque()), String(await desenfoque()))
   await page.locator('#cdCompartir').click()
   await page.waitForTimeout(800)
-  check('«Compartir» abre la hoja común (871) con sus tres pestañas', (await page.locator('.ch-hoja[open] [data-ch-pestana]').count()) === 3)
+  check('«Compartir» abre la hoja común con Instagram y X (988)', (await page.locator('.ch-hoja[open] [data-ch-red]').count()) === 2)
   await page.locator('[data-ch-compartir]').click()
   await page.waitForTimeout(400)
   const texto = (await page.evaluate(() => window.__compartido))?.text || ''

@@ -72,6 +72,7 @@ console.log('── 3. En la pantalla del resultado ──')
     // El menú de compartir del sistema, de mentira: lo que importa es el
     // texto que se le da.
     navigator.share = async (d) => { window.__compartido = d; return true }
+    navigator.canShare = () => true
   }, [GUIA, [diaMenos(1), diaMenos(2)].map((d, i) => ({ id: `r${i}`, user_id: 'admin-1', day: d, correct: 3, total: 5, score: 30 }))])
   await page.goto(`${BASE}/curso.html?reto=hoy`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
@@ -105,11 +106,11 @@ console.log('── 3. En la pantalla del resultado ──')
   const tira = await page.$$eval('.reward-tira span', (ss) => ss.map((s) => (s.classList.contains('bien') ? 1 : 0)).join(''))
   check('la tira de la pantalla es la jugada', tira === '10111', tira)
   check('  …con el número del día', (await page.locator('.reward-tira-num').textContent()).trim() === `Reto #${numeroDelDia(hoy)}`, await page.locator('.reward-tira-num').textContent())
-  // Desde la 871 «Compartir» abre la hoja común con la vista previa; el
-  // texto sale por su botón «Compartir…».
+  // Desde la 871 «Compartir» abre la hoja común con la vista previa; desde
+  // la 988, sin pestaña de texto: el texto va con la imagen por «Compartir…».
   await page.locator('#btnPresumir').click()
   await page.waitForTimeout(800)
-  check('«Compartir» abre la hoja con el texto a la vista', (await page.locator('.ch-hoja[open] .ch-texto').count()) === 1)
+  check('«Compartir» abre la hoja con Instagram y X (988)', (await page.locator('.ch-hoja[open] [data-ch-red]').count()) === 2)
   await page.locator('[data-ch-compartir]').click()
   await page.waitForTimeout(600)
   compartido = await page.evaluate(() => window.__compartido)

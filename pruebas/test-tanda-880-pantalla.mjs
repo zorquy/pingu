@@ -45,7 +45,8 @@ async function abrir(ruta, { noticias = [NOTICIA], guias = [], movil = false } =
   return { ctx, page, errores }
 }
 const medida = (page) => page.locator('#chPrevia img').evaluate((img) => ({ w: img.naturalWidth, h: img.naturalHeight })).catch(() => null)
-const pestana = async (page, id) => { await page.click(`[data-ch-pestana="${id}"]`); await page.waitForTimeout(1200) }
+// Desde la 988: Instagram (Historia y Publicación) y X, sin pestaña de texto.
+const pestana = async (page, sel) => { await page.click(sel); await page.waitForTimeout(1200) }
 // El color del punto (x, y) de la imagen de la vista previa, leído del PNG.
 const pixel = (page, x, y) => page.locator('#chPrevia img').evaluate((img, [x, y]) => new Promise((res) => {
   const i = new Image()
@@ -65,23 +66,20 @@ console.log('── 1. La ficha de la noticia: la hoja con el texto, la portada 
   await page.waitForTimeout(1200)
   const hoja = page.locator('.ch-hoja[open]')
   check('se abre la hoja común, «Compartir la noticia»', (await hoja.count()) === 1 && (await page.locator('#chTitulo').innerText()) === 'Compartir la noticia')
-  check('  …con tres pestañas: Texto, Historia, Para X', (await page.locator('[data-ch-pestana]').allInnerTexts()).join('|') === 'Texto|Historia|Para X')
+  check('  …con Instagram y X (988)', (await page.locator('[data-ch-red]').count()) === 2 && (await page.locator('[data-ch-pestana]').count()) === 0)
+  await pestana(page, '[data-ch-red="x"]')
   const esperado = textoConEnlace({ titulo: NOTICIA.title, descripcion: NOTICIA.description, url: URL_NOTICIA })
-  check('el texto es título + entradilla + enlace a /noticias/<slug>', (await page.locator('.ch-texto').innerText()) === esperado, await page.locator('.ch-texto').innerText())
+  check('en X, el texto es título + entradilla + enlace a /noticias/<slug>', (await page.locator('#chTextoX').innerText()) === esperado, await page.locator('#chTextoX').innerText())
   const x = page.locator('[data-ch-x]')
   const href = await x.getAttribute('href')
   check('«Publicar en X» abre el cuadro de X con ese texto y el enlace aparte, en otra pestaña', href === direccionDeX({ texto: textoParaX({ titulo: NOTICIA.title, descripcion: NOTICIA.description }), url: URL_NOTICIA }) && (await x.getAttribute('target')) === '_blank' && /noopener/.test(await x.getAttribute('rel')), href)
-  check('  …y mide 44 px, a lo ancho debajo de los otros dos', (await x.evaluate((a) => { const r = a.getBoundingClientRect(); const otro = a.parentElement.querySelector('[data-ch-copiar]').getBoundingClientRect(); return r.height >= 44 && r.width > otro.width * 1.5 && r.top >= otro.bottom })))
-  check('  …la nota dice que en X sale la portada sola', /portada/.test(await page.locator('#chNota').innerText()))
-  await page.click('[data-ch-compartir]')
-  await page.waitForTimeout(400)
-  check('«Compartir…» manda el texto por la hoja del sistema', (await page.evaluate(() => window.__compartido?.text)) === esperado)
-  await pestana(page, 'apaisada')
-  check('«Para X» dibuja a 1200×630', JSON.stringify(await medida(page)) === '{"w":1200,"h":630}', JSON.stringify(await medida(page)))
+  check('  …y mide 44 px, a lo ancho debajo de los otros dos', (await x.evaluate((a) => { const r = a.getBoundingClientRect(); const otro = a.parentElement.querySelector('[data-ch-descargar]').getBoundingClientRect(); return r.height >= 44 && r.width > otro.width * 1.5 && r.top >= otro.bottom })))
+  check('X dibuja a 1200×630', JSON.stringify(await medida(page)) === '{"w":1200,"h":630}', JSON.stringify(await medida(page)))
   const p = await pixel(page, 600, 160)
   check('  …con la portada de fondo (el punto del centro-arriba es rojo, por el velo)', p && p[0] > 150 && p[1] < 60 && p[2] < 60, JSON.stringify(p))
-  await pestana(page, 'historia')
-  check('«Historia» dibuja a 1080×1350', JSON.stringify(await medida(page)) === '{"w":1080,"h":1350}', JSON.stringify(await medida(page)))
+  await pestana(page, '[data-ch-red="instagram"]')
+  await pestana(page, '[data-ch-forma="publicacion"]')
+  check('«Publicación» dibuja a 1080×1350', JSON.stringify(await medida(page)) === '{"w":1080,"h":1350}', JSON.stringify(await medida(page)))
   const p2 = await pixel(page, 540, 400)
   check('  …también con la portada', p2 && p2[0] > 150 && p2[1] < 60, JSON.stringify(p2))
   await page.click('[data-ch-compartir]')
@@ -98,8 +96,8 @@ console.log('\n── 2. Sin portada se dibuja igual (el degradado), y en el mó
   await page.click('#btnCompartir')
   await page.waitForTimeout(1200)
   check('la hoja se abre', (await page.locator('.ch-hoja[open]').count()) === 1)
-  await pestana(page, 'apaisada')
-  check('«Para X» dibuja a 1200×630 sin foto', JSON.stringify(await medida(page)) === '{"w":1200,"h":630}')
+  await pestana(page, '[data-ch-red="x"]')
+  check('X dibuja a 1200×630 sin foto', JSON.stringify(await medida(page)) === '{"w":1200,"h":630}')
   const p = await pixel(page, 600, 160)
   check('  …sobre el azul de los retos (no rojo)', p && p[2] > p[0] && p[0] < 80, JSON.stringify(p))
   check('sin errores', errores.length === 0, errores.join(' | '))

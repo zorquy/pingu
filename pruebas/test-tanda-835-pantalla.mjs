@@ -147,6 +147,7 @@ async function abrir(pagina, { sesion = 'none', local = {}, rpc = {}, movil = fa
       sessionStorage.setItem('limpio', '1')
     }
     navigator.share = async (d) => { window.__compartido = d; return true }
+    navigator.canShare = () => true
   }, [sesion, local, rpc])
   const page = await ctx.newPage()
   const errores = []
@@ -242,7 +243,7 @@ const GUARDADO = (x) => ({ retos_guardar: { nuevo: true, xp: x, perfecto: false,
   await page.click('#qxCompartir')
   await page.waitForTimeout(800)
   await page.click('[data-ch-compartir]')
-  await page.waitForTimeout(300)
+  await page.waitForTimeout(1500)
   const t = (await page.evaluate(() => window.__compartido))?.text || ''
   check('  …el texto compartido: 4/5 y la tira', /4\/5/.test(t) && /🟩🟥🟩🟩🟩/.test(t), t)
   await ctx.close()

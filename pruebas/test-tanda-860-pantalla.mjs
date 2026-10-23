@@ -76,10 +76,13 @@ console.log('── 2. Al acabar la silueta de hoy ──')
 {
   const { page, ctx, errores } = await abrir('/quien-es.html')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const sig = await caja(page, '#qeFinal .rj-adonde .rj-siguiente')
+  // Desde la 988, las salidas son tres (`salidasHtml`): el siguiente grande,
+  // Compartir y «Jugar otra vez»; la vuelta va en la flecha de arriba.
+  const sig = await caja(page, '#qeFinal .rj-salidas .rj-siguiente')
   check('«Siguiente: ¿De qué expansión es? →» (se salta el de ordenar, que está hecho), de 44 px y a lo ancho', sig?.visible && sig.texto === 'Siguiente: ¿De qué expansión es? →' && sig.href === '/que-expansion' && sig.alto >= 44 && sig.ancho > 300, JSON.stringify(sig))
-  const volver = await caja(page, '#qeFinal .rj-adonde .rj-volver-retos')
-  check('  …y debajo «Volver a los retos»', volver?.visible && volver.href === '/retos' && volver.texto === 'Volver a los retos', JSON.stringify(volver))
+  const otra = await caja(page, '#qeFinal .rj-salidas .rj-otra')
+  check('  …y debajo «Jugar otra vez», a una partida libre', otra?.visible && /^\/quien-es\?libre=\d+$/.test(otra.href) && otra.texto === 'Jugar otra vez' && otra.alto >= 44, JSON.stringify(otra))
+  check('  …sin «Volver a los retos» (988)', (await page.locator('#qeFinal .rj-volver-retos').count()) === 0)
   check('  …y Compartir ya no es el botón grande', (await page.locator('#qeCompartir.btn-secondary').count()) === 1)
   await ctx.close()
 }

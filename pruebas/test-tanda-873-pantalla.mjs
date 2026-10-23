@@ -37,12 +37,15 @@ async function abrir(ruta, { sesion = 'user-1', movil = true, semilla = () => {}
   return { page, ctx, errores }
 }
 const medida = (page) => page.locator('#chPrevia img').evaluate((img) => ({ w: img.naturalWidth, h: img.naturalHeight })).catch(() => null)
-async function pestana(page, id) { await page.click(`[data-ch-pestana="${id}"]`); await page.waitForTimeout(1000) }
+// Desde la 988: Instagram (Historia 1080×1920 y Publicación 1080×1350) y X.
+async function pestana(page, sel) { await page.click(sel); await page.waitForTimeout(1000) }
 async function dosFormatos(page, que) {
-  await pestana(page, 'historia')
-  check(`${que}: la historia mide 1080×1350`, JSON.stringify(await medida(page)) === '{"w":1080,"h":1350}', JSON.stringify(await medida(page)))
+  await pestana(page, '[data-ch-forma="historia"]')
+  check(`${que}: la historia mide 1080×1920`, JSON.stringify(await medida(page)) === '{"w":1080,"h":1920}', JSON.stringify(await medida(page)))
   if (CAPS) await page.screenshot({ path: `${CAPS}/873-${que.replace(/\W+/g, '-')}-historia.png` })
-  await pestana(page, 'apaisada')
+  await pestana(page, '[data-ch-forma="publicacion"]')
+  check(`  …la publicación, 1080×1350`, JSON.stringify(await medida(page)) === '{"w":1080,"h":1350}', JSON.stringify(await medida(page)))
+  await pestana(page, '[data-ch-red="x"]')
   check(`  …y la apaisada 1200×630`, JSON.stringify(await medida(page)) === '{"w":1200,"h":630}')
   if (CAPS) {
     const src = await page.locator('#chPrevia img').getAttribute('src')

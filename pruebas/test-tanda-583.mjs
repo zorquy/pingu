@@ -90,30 +90,31 @@ console.log('── 4. Acabar y compartir ──')
   check('  …y los botones se esconden', !(await page.locator('#mcrAcciones').isVisible()))
   check('  …con UN «Compartir» (871: texto e imagen van en la misma hoja)', (await page.locator('#mcrCompartir').count()) === 1 && (await page.locator('#mcrImagen').count()) === 0)
   if (CAPS) await page.screenshot({ path: `${CAPS}/movil-mas-caro-2.png` })
-  // El texto, por el portapapeles (sin navigator.share en Chromium headless):
-  // «Compartir» abre la hoja (871), y «Copiar» en la pestaña de texto copia.
-  await page.evaluate(() => {
-    window.__copiado = null
-    navigator.clipboard.writeText = async (t) => { window.__copiado = t }
-  })
+  // Desde la 988 la hoja es Instagram y X, sin pestaña de texto: el texto
+  // es el que se publica en X, y se ve en su pestaña.
   await page.click('#mcrCompartir')
   await page.waitForTimeout(800)
-  check('«Compartir» abre la hoja con la vista previa del texto', (await page.locator('.ch-hoja[open] .ch-texto').count()) === 1)
-  await page.click('[data-ch-copiar]')
-  await page.waitForTimeout(400)
-  const texto = await page.evaluate(() => window.__copiado)
+  check('«Compartir» abre la hoja con Instagram y X', (await page.locator('.ch-hoja[open] [data-ch-red]').count()) === 2)
+  await page.click('[data-ch-red="x"]')
+  await page.waitForTimeout(1000)
+  const texto = await page.locator('#chTextoX').innerText()
   check('el texto lleva número, 4/5, la tira y el enlace', new RegExp(`#${numeroDelDia(hoy)} · Más caro o barato · 4/5`).test(texto || '') && /🟩🟥🟩🟩🟩/.test(texto || '') && /pokedoc\.es\/mas-caro/.test(texto || ''), JSON.stringify(texto))
-  // La imagen: la pestaña «Historia» la dibuja a 1080×1350 y «Descargar» la baja.
-  await page.click('[data-ch-pestana="historia"]')
+  // La imagen: Instagram › Publicación la dibuja a 1080×1350, la Historia a
+  // 1080×1920 (988), y «Descargar» la baja.
+  await page.click('[data-ch-red="instagram"]')
+  await page.waitForTimeout(1000)
+  const historia = await page.locator('#chPrevia img').evaluate((img) => ({ w: img.naturalWidth, h: img.naturalHeight })).catch(() => null)
+  check('la historia se pinta a 1080×1920', historia?.w === 1080 && historia?.h === 1920, JSON.stringify(historia))
+  await page.click('[data-ch-forma="publicacion"]')
   await page.waitForTimeout(1000)
   const previa = await page.locator('#chPrevia img').evaluate((img) => ({ w: img.naturalWidth, h: img.naturalHeight })).catch(() => null)
-  check('la imagen se pinta a 1080×1350', previa?.w === 1080 && previa?.h === 1350, JSON.stringify(previa))
+  check('la publicación se pinta a 1080×1350', previa?.w === 1080 && previa?.h === 1350, JSON.stringify(previa))
   const [descarga] = await Promise.all([
     page.waitForEvent('download', { timeout: 8000 }).catch(() => null),
-    page.click('[data-ch-copiar]'),
+    page.click('[data-ch-descargar]'),
   ])
-  check('  …y se descarga (sin hoja de compartir)', !!descarga && /mas-caro-\d+\.png/.test(descarga.suggestedFilename()), descarga?.suggestedFilename())
-  await page.click('[data-ch-pestana="apaisada"]')
+  check('  …y se descarga', !!descarga && /mas-caro-\d+\.png/.test(descarga.suggestedFilename()), descarga?.suggestedFilename())
+  await page.click('[data-ch-red="x"]')
   await page.waitForTimeout(1000)
   const apaisada = await page.locator('#chPrevia img').evaluate((img) => ({ w: img.naturalWidth, h: img.naturalHeight })).catch(() => null)
   check('«Para X» la pinta a 1200×630', apaisada?.w === 1200 && apaisada?.h === 630, JSON.stringify(apaisada))

@@ -99,20 +99,17 @@ console.log('── 4. El texto de «Mi día» ──')
 
 console.log('── 5. El botón en el bloque del siguiente reto ──')
 {
+  // Desde la 988, «Compartir mi día» ya no sale al acabar: se comparte
+  // cada reto (PINGU). El bloque del cuestionario es el siguiente y la vuelta.
   const con = siguienteRetoHtml({ ruta: '/mas-caro', titulo: 'Más caro' }, { dia: hoy })
-  const sin = siguienteRetoHtml({ ruta: '/mas-caro', titulo: 'Más caro' })
-  check('con `dia`, «Compartir mi día» con el día en data-mi-dia', /class="btn-secondary rj-mi-dia" data-mi-dia="2026-10-15"/.test(con) && /Compartir mi día/.test(con), con)
-  check('  …entre el siguiente y la vuelta', con.indexOf('rj-siguiente') < con.indexOf('rj-mi-dia') && con.indexOf('rj-mi-dia') < con.indexOf('rj-volver-retos'))
-  check('sin `dia`, sin botón', !/rj-mi-dia/.test(sin))
-  const todos = siguienteRetoHtml(null, { dia: hoy })
-  check('con todos hechos, también', /rj-mi-dia/.test(todos) && /Todos hechos por hoy/.test(todos))
-  // Las seis pantallas se lo pasan, y /retos lo pinta en «Tu día».
+  check('al acabar ya no hay «Compartir mi día» (988)', !/rj-mi-dia|Compartir mi día/.test(con) && /rj-siguiente/.test(con) && /rj-volver-retos/.test(con), con)
+  check('  …y con todos hechos, la vuelta diciéndolo', /Todos hechos por hoy/.test(siguienteRetoHtml(null)))
   for (const f of ['carta-del-dia-juego', 'mas-caro-juego', 'quien-es-juego', 'ordena-precio-juego', 'que-expansion-juego']) {
     const s = readFileSync(`${RAIZ}/js/${f}.js`, 'utf8')
-    check(`  …${f} pasa el día al bloque`, /siguienteRetoHtml\(siguienteReto\('[a-z]+', hechoHoy\(dia\)\), \{ dia \}\)/.test(s))
+    check(`  …${f} pinta las salidas comunes, con el día de HOY`, /salidasHtml\(\{ juego: '[a-z]+', ruta: '\/[a-z-]+', dia: hoy, libre,/.test(s) && !/siguienteRetoHtml|data-mi-dia/.test(s))
   }
   const curso = readFileSync(`${RAIZ}/js/curso.js`, 'utf8')
-  check('  …y el cuestionario, con hoyISO() y dejando su tira para «Mi día»', /siguienteRetoHtml\(siguienteReto\('reto', hechoHoy\(hoyISO\(\)\)\), \{ dia: hoyISO\(\) \}\)/.test(curso) && /localStorage\.setItem\(CLAVE_RETO_LOCAL/.test(curso))
+  check('  …y el cuestionario deja su tira para «Mi día»', /siguienteRetoHtml\(siguienteReto\('reto', hechoHoy\(hoyISO\(\)\)\)\)/.test(curso) && /localStorage\.setItem\(CLAVE_RETO_LOCAL/.test(curso))
   const retos = readFileSync(`${RAIZ}/js/retos.js`, 'utf8')
   check('/retos: «Compartir mi día» en «Tu día» con un reto hecho, por import()', /hechos >= 1\) partes\.push\(`<button[^`]*rt-compartir-dia[^`]*data-mi-dia="\$\{hoy\}"/.test(retos) && /import\('\.\/mi-dia-compartir\.js'\)/.test(retos))
   check('  …y un solo número para los seis (sin numeroDelDiaCarta ni MasCaro)', !/numeroDelDiaCarta|numeroDelDiaMasCaro|numeroDelDiaNuevos/.test(retos) && /const NUMERO = \(\) => `Reto #\$\{numeroDelDia\(hoy\)\}`/.test(retos))

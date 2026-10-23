@@ -1,5 +1,5 @@
-// Tanda 871 — la hoja de compartir común (Texto · Historia · Para X) y
-// «Compartir mi día» en pantalla.
+// Tanda 871 — la hoja de compartir común (desde la 988: Instagram, con
+// Historia y Publicación, y X) y «Compartir mi día» en pantalla.
 //
 // Se juega «¿Más caro o más barato?» entero (como la 583) y de ahí se abre
 // la hoja: las tres pestañas, la vista previa de cada una, los dos
@@ -58,7 +58,6 @@ async function jugarMasCaro(page) {
   }
 }
 const medida = (page) => page.locator('#chPrevia img').evaluate((img) => ({ w: img.naturalWidth, h: img.naturalHeight })).catch(() => null)
-const pestana = async (page, id) => { await page.click(`[data-ch-pestana="${id}"]`); await page.waitForTimeout(900) }
 
 console.log('── 1. La hoja desde un reto (móvil) ──')
 {
@@ -67,68 +66,57 @@ console.log('── 1. La hoja desde un reto (móvil) ──')
   check('sin errores al jugar', errores.length === 0, errores.join(' | '))
   check('un solo «Compartir» (sin «Como imagen» aparte)', (await page.locator('#mcrCompartir').count()) === 1 && (await page.locator('#mcrImagen').count()) === 0)
   await page.click('#mcrCompartir')
-  await page.waitForTimeout(900)
+  await page.waitForTimeout(1200)
   const hoja = page.locator('.ch-hoja[open]')
   check('se abre la hoja, modal', (await hoja.count()) === 1 && (await hoja.evaluate((d) => d.matches(':modal'))))
   check('  …con el título del reto', (await page.locator('#chTitulo').innerText()) === '¿Más caro o más barato?')
-  check('  …y tres pestañas: Texto, Historia, Para X', (await page.locator('[data-ch-pestana]').allInnerTexts()).join('|') === 'Texto|Historia|Para X')
-  check('  …Texto activa', (await page.locator('[data-ch-pestana="texto"]').getAttribute('aria-pressed')) === 'true')
-  // Las respuestas de arriba: 12>5 ✓, 3<12 ✓, 40>3 ✗ («menos»), 7<40 ✓, 9>7 ✓.
-  const esperado = textoParaCompartir({ dia: hoy, tira: [true, true, false, true, true], rachaDias: 0 })
-  check('la vista previa es EL texto que se va a mandar', (await page.locator('.ch-texto').innerText()) === esperado, await page.locator('.ch-texto').innerText())
-  check('  …con la cabecera única (870)', esperado.startsWith(`PokeDoc #${numeroDelDia(hoy)} · Más caro o barato · 4/5`))
-  const caja = await hoja.evaluate((d) => d.getBoundingClientRect().toJSON())
-  check('en el móvil sale desde abajo, a lo ancho', caja && caja.width >= 380 && Math.abs(caja.y + caja.height - 844) < 2, JSON.stringify(caja))
-  const botones = await page.locator('.ch-acciones button').evaluateAll((bs) => bs.map((b) => ({ t: b.innerText.trim(), h: b.getBoundingClientRect().height })))
-  check('los dos botones miden 44 px: «Compartir…» y «Copiar»', botones.length === 2 && botones.every((b) => b.h >= 44) && botones[0].t.includes('Compartir') && botones[1].t === 'Copiar', JSON.stringify(botones))
-  await page.click('[data-ch-compartir]')
-  await page.waitForTimeout(400)
-  const c = await page.evaluate(() => window.__compartido)
-  check('«Compartir…» manda el texto por la hoja del sistema', c?.text === esperado, JSON.stringify(c))
-  // Copiar, por el portapapeles.
-  await page.evaluate(() => { window.__copiado = null; navigator.clipboard.writeText = async (t) => { window.__copiado = t } })
-  await page.click('[data-ch-copiar]')
-  await page.waitForTimeout(300)
-  check('«Copiar» lo pone en el portapapeles', (await page.evaluate(() => window.__copiado)) === esperado)
-  // Historia.
-  await pestana(page, 'historia')
-  check('«Historia» dibuja la imagen a 1080×1350', JSON.stringify(await medida(page)) === '{"w":1080,"h":1350}', JSON.stringify(await medida(page)))
-  check('  …el segundo botón pasa a «Descargar»', (await page.locator('[data-ch-copiar]').innerText()).trim() === 'Descargar')
-  check('  …y la nota lo dice', /Instagram/.test(await page.locator('#chNota').innerText()))
+  // 988: dos redes, sin pestaña de texto.
+  check('  …y dos pestañas: Instagram y X (988, sin «Texto»)', (await page.locator('[data-ch-red]').count()) === 2 && /Instagram/.test(await page.locator('[data-ch-red="instagram"]').innerText()) && (await page.locator('[data-ch-red="x"]').getAttribute('aria-label')) === 'X' && (await page.locator('[data-ch-pestana]').count()) === 0)
+  check('  …Instagram › Historia de entrada', (await page.locator('[data-ch-red="instagram"]').getAttribute('aria-pressed')) === 'true' && (await page.locator('[data-ch-forma="historia"]').getAttribute('aria-pressed')) === 'true')
+  check('la historia es de verdad: 1080×1920', JSON.stringify(await medida(page)) === '{"w":1080,"h":1920}', JSON.stringify(await medida(page)))
+  check('  …y la nota lo dice', /1080 × 1920/.test(await page.locator('#chNota').innerText()))
   const alto = await page.locator('#chPrevia img').evaluate((i) => i.getBoundingClientRect().height)
   check('  …y en el móvil la vertical no se come la pantalla (≤ 40 vh)', alto <= 844 * 0.4 + 1, String(alto))
+  const caja = await hoja.evaluate((d) => d.getBoundingClientRect().toJSON())
+  check('en el móvil sale desde abajo, a lo ancho', caja && caja.width >= 380 && Math.abs(caja.y + caja.height - 844) < 2, JSON.stringify(caja))
+  const botones = await page.locator('.ch-acciones > :not([hidden])').evaluateAll((bs) => bs.map((b) => ({ t: b.innerText.trim(), h: b.getBoundingClientRect().height })))
+  check('dos botones de 44 px: «Compartir…» y «Descargar»', botones.length === 2 && botones.every((b) => b.h >= 44) && botones[0].t.includes('Compartir') && botones[1].t === 'Descargar', JSON.stringify(botones))
+  // Las respuestas de arriba: 12>5 ✓, 3<12 ✓, 40>3 ✗ («menos»), 7<40 ✓, 9>7 ✓.
+  const esperado = textoParaCompartir({ dia: hoy, tira: [true, true, false, true, true], rachaDias: 0 })
+  check('  …con la cabecera única (870)', esperado.startsWith(`PokeDoc #${numeroDelDia(hoy)} · Más caro o barato · 4/5`))
   await page.click('[data-ch-compartir]')
-  await page.waitForTimeout(600)
-  const c2 = await page.evaluate(() => window.__compartido)
-  check('«Compartir…» manda el PNG con el texto', c2?.ficheros?.[0] === `mas-caro-${numeroDelDia(hoy)}.png` && c2?.text === esperado, JSON.stringify(c2))
-  // Para X.
-  await pestana(page, 'apaisada')
-  check('«Para X» la dibuja a 1200×630', JSON.stringify(await medida(page)) === '{"w":1200,"h":630}', JSON.stringify(await medida(page)))
-  await page.evaluate(() => { navigator.share = undefined })
-  const [descarga] = await Promise.all([page.waitForEvent('download', { timeout: 8000 }).catch(() => null), page.click('[data-ch-copiar]')])
+  await page.waitForTimeout(800)
+  const c = await page.evaluate(() => window.__compartido)
+  check('«Compartir…» manda la historia en PNG con el texto', c?.ficheros?.[0] === `mas-caro-${numeroDelDia(hoy)}-historia.png` && c?.text === esperado, JSON.stringify(c))
+  // Publicación.
+  await page.click('[data-ch-forma="publicacion"]')
+  await page.waitForTimeout(900)
+  check('«Publicación» la dibuja a 1080×1350', JSON.stringify(await medida(page)) === '{"w":1080,"h":1350}', JSON.stringify(await medida(page)))
+  await page.click('[data-ch-compartir]')
+  await page.waitForTimeout(800)
+  check('  …y «Compartir…» manda «mas-caro-N.png»', (await page.evaluate(() => window.__compartido))?.ficheros?.[0] === `mas-caro-${numeroDelDia(hoy)}.png`)
+  // X.
+  await page.click('[data-ch-red="x"]')
+  await page.waitForTimeout(900)
+  check('X la dibuja apaisada, 1200×630', JSON.stringify(await medida(page)) === '{"w":1200,"h":630}', JSON.stringify(await medida(page)))
+  check('  …sin las formas de Instagram', await page.locator('#chFormas').isHidden())
+  check('  …con el texto que se publica a la vista', (await page.locator('#chTextoX').innerText()) === esperado, await page.locator('#chTextoX').innerText())
+  const x = page.locator('[data-ch-x]')
+  check('  …y «Publicar en X» abre su cuadro con ese texto', await x.isVisible() && decodeURIComponent(new URL(await x.getAttribute('href')).searchParams.get('text') || '') === esperado)
+  await page.evaluate(() => { navigator.share = undefined; navigator.canShare = undefined })
+  const [descarga] = await Promise.all([page.waitForEvent('download', { timeout: 8000 }).catch(() => null), page.click('[data-ch-descargar]')])
   check('  …y «Descargar» baja «mas-caro-N-x.png»', descarga?.suggestedFilename() === `mas-caro-${numeroDelDia(hoy)}-x.png`, descarga?.suggestedFilename())
+  const [descarga2] = await Promise.all([page.waitForEvent('download', { timeout: 8000 }).catch(() => null), page.click('[data-ch-compartir]')])
+  check('sin hoja del sistema (el PC), «Compartir…» descarga', descarga2?.suggestedFilename() === `mas-caro-${numeroDelDia(hoy)}-x.png`, descarga2?.suggestedFilename())
   await page.click('[data-ch-cerrar]')
   await page.waitForTimeout(300)
   check('la X cierra', (await page.locator('.ch-hoja[open]').count()) === 0)
   check('sin errores', errores.length === 0, errores.join(' | '))
 
-  console.log('── 2. «Compartir mi día» desde el final del reto ──')
-  const miDia = page.locator('#mcrFinal .rj-adonde .rj-mi-dia')
-  check('el botón está en el bloque del siguiente reto, de 44 px', (await miDia.count()) === 1 && (await miDia.evaluate((b) => b.getBoundingClientRect().height)) >= 44)
-  await miDia.click()
-  await page.waitForTimeout(1000)
-  check('abre la hoja «Mi día en PokeDoc»', (await page.locator('.ch-hoja[open]').count()) === 1 && (await page.locator('#chTitulo').innerText()) === 'Mi día en PokeDoc')
-  const t = await page.locator('.ch-texto').innerText()
-  const lineas = t.split('\n')
-  check('  …con 4 de 6: el reto, la carta, el más caro recién jugado y el quién es', lineas[0] === `PokeDoc #${numeroDelDia(hoy)} · 4/6 retos`, lineas[0])
-  check('  …la tira del más caro es la jugada', lineas[3] === '💶 Más caro o barato  🟩🟩🟥🟩🟩', lineas[3])
-  check('  …los dos sin jugar en gris', lineas[5] === '🔢 Ordena por precio  ⬜⬜⬜' && lineas[6] === '📦 ¿Qué expansión?  ⬜⬜⬜⬜⬜')
-  check('  …y el enlace a /retos', lineas.at(-1) === 'pokedoc.es/retos')
-  await pestana(page, 'historia')
-  check('la imagen de «Mi día», 1080×1350', JSON.stringify(await medida(page)) === '{"w":1080,"h":1350}')
-  await pestana(page, 'apaisada')
-  check('  …y apaisada, 1200×630', JSON.stringify(await medida(page)) === '{"w":1200,"h":630}')
-  check('sin errores', errores.length === 0, errores.join(' | '))
+  console.log('── 2. El final: tres salidas, sin «Compartir mi día» (988) ──')
+  check('ya no hay «Compartir mi día» al acabar', (await page.locator('#mcrFinal .rj-mi-dia, #mcrFinal [data-mi-dia]').count()) === 0)
+  const salidas = await page.locator('#mcrFinal .rj-salidas a, #mcrFinal .rj-salidas button').evaluateAll((es) => es.map((e) => e.innerText.trim()))
+  check('  …el siguiente, Compartir y Jugar otra vez', salidas.length === 3 && /^Siguiente: /.test(salidas[0]) && salidas[1] === 'Compartir' && salidas[2] === 'Jugar otra vez', JSON.stringify(salidas))
   await ctx.close()
 }
 
