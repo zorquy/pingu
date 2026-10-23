@@ -4,7 +4,7 @@
 // nombre (`catalogo_posibles_repetidas`); aquí se dice qué tienen en común,
 // qué se sugiere y qué nombre de versión vale. Lo que se ve en la foto
 // (el «STAFF» impreso) no lo sabe ningún campo: decide quien mira.
-import { varianteDeEtiqueta, esClasica } from '../../js/mi-coleccion/variantes.js'
+import { varianteDeEtiqueta, esClasica, brillaDeSerie } from '../../js/mi-coleccion/variantes.js'
 import { normalizeSearch } from '../../js/texto.js'
 
 // Los nombres que se ofrecen con un toque; «Otra…» deja escribir. Holo y
@@ -106,4 +106,38 @@ export function filtrarGrupos(grupos, texto) {
   if (!t) return grupos || []
   return (grupos || []).filter((g) => [g.set?.name, g.set?.name_en, g.set_id, ...(g.cartas || []).flatMap((c) => [c.name, c.name_es, c.id])]
     .some((x) => String(x || '').toLowerCase().includes(t)))
+}
+
+// ── El Prize Pack, solo (987c) ──
+//
+// PINGU: «hay dos cartas, una tiene más precio que otra: la que tiene más
+// precio seguramente sea la holo… si no hay diferencia, déjalos como duda».
+// Solo en las colecciones del Play! Pokémon Prize Pack, solo en pares de dos
+// con precio las dos, y solo cuando la cara vale al menos UMBRAL veces la
+// otra. Y nunca en una carta que brilla de serie (una ex, una V): ahí las dos
+// brillan y «la cara es la holo» no dice nada.
+export const UMBRAL_PRIZE_PACK = 1.5
+export const esPrizePack = (g) => /prize\s*pack/i.test(`${g?.set?.name || ''} ${g?.set?.name_en || ''}`)
+// El precio que se compara: el inglés (el Prize Pack es casi todo inglés) o el
+// mínimo de todos.
+export function precioDeComparar(c) {
+  const v = Number(c?.precio?.cm_low_en ?? c?.precio?.cm_low)
+  return Number.isFinite(v) && v > 0 ? v : null
+}
+// { normal, holo } si se puede decidir solo; si no, { duda: 'por qué' }.
+export function holoDelPrizePack(g, umbral = UMBRAL_PRIZE_PACK) {
+  if (!esPrizePack(g)) return { duda: 'no es del Prize Pack' }
+  const cartas = g?.cartas || []
+  if (cartas.length !== 2) return { duda: 'no son dos' }
+  if (cartas.some((c) => brillaDeSerie(c))) return { duda: 'brilla de serie' }
+  const [a, b] = cartas
+  const pa = precioDeComparar(a)
+  const pb = precioDeComparar(b)
+  if (!pa || !pb) return { duda: 'sin precio' }
+  const [normal, holo] = pa <= pb ? [a, b] : [b, a]
+  const barato = Math.min(pa, pb)
+  const caro = Math.max(pa, pb)
+  // En céntimos: 0,1 × 1,5 no da 0,15 en coma flotante, y el umbral justo cuenta.
+  if (Math.round(caro * 100) < Math.round(barato * umbral * 100)) return { duda: 'precio parecido' }
+  return { normal, holo }
 }

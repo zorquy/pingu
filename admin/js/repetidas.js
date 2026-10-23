@@ -14,7 +14,7 @@ import { showToast } from '../../js/toast.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../../js/escaneo-carta.js'
 import { avisarALaWeb } from './avisar-web.js'
 import { faltaLaMigracion } from './catalogo-puro.js'
-import { ETIQUETAS, claveDeGrupo, senalesDelPar, sugerencia, etiquetaValida, esImpresionDeSiempre, principalDe, claseDe, precioCorto, quienLaTiene, filtrarGrupos } from './repetidas-puro.js'
+import { ETIQUETAS, claveDeGrupo, senalesDelPar, sugerencia, etiquetaValida, esImpresionDeSiempre, principalDe, claseDe, precioCorto, quienLaTiene, filtrarGrupos, holoDelPrizePack } from './repetidas-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const AVISO = 'Falta ejecutar supabase-migration-987-repetidas-en-versiones.sql en el SQL Editor: hasta entonces aquí no se puede decidir nada.'
@@ -35,7 +35,7 @@ const mercadoActual = () => $('coleccionesMercado')?.value || 'WEST'
 async function cargar() {
   cargando = true
   pintar()
-  const { data, error } = await supabase.rpc('catalogo_posibles_repetidas', { p_market: mercadoActual(), p_limite: 300 })
+  const { data, error } = await supabase.rpc('catalogo_posibles_repetidas', { p_market: mercadoActual(), p_limite: 1000 })
   cargando = false
   if (error) {
     datos = { total: 0, grupos: [], hechas: [], distintas: [], error: faltaLaMigracion(error) ? AVISO : `No se ha podido mirar: ${error.message}` }
@@ -142,6 +142,9 @@ function pintar() {
   document.querySelectorAll('[data-rep-vista]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.repVista === vista)))
   const todas = $('repetidasTodas')
   if (todas) todas.hidden = vista !== 'revisar' || !datos.grupos.length
+  const prize = $('repetidasPrize')
+  const np = vista === 'revisar' ? delPrizePack().length : 0
+  if (prize && !prize.dataset.ocupado) { prize.hidden = !np; prize.textContent = prize.dataset.confirmar ? `¿Convertir ${np}? Pulsa otra vez` : `Prize Pack: la más cara es la Holo (${np})` }
   const lote = $('repetidasLote')
   const n = vista === 'revisar' ? marcados().length : 0
   if (lote) { lote.hidden = !n; lote.textContent = `Convertir las marcadas (${n})` }
@@ -258,6 +261,43 @@ function ponerATodas(etiqueta) {
   pintar()
 }
 
+// Las del Prize Pack que se deciden solas (987c): la cara es la Holo.
+const delPrizePack = () => datos.grupos.map((g) => holoDelPrizePack(g)).filter((r) => r.holo)
+
+async function convertirPrizePack() {
+  const boton = $('repetidasPrize')
+  // Dos toques: son cientos de una vez (se deshacen una a una en «Hechas»).
+  if (!boton.dataset.confirmar) {
+    boton.dataset.confirmar = '1'
+    pintar()
+    setTimeout(() => { delete boton.dataset.confirmar; pintar() }, 6000)
+    return
+  }
+  delete boton.dataset.confirmar
+  boton.dataset.ocupado = '1'
+  boton.disabled = true
+  let hechas = 0
+  let fallo = false
+  // A tandas: la lista trae como mucho mil grupos y detrás puede haber más.
+  for (let vuelta = 0; vuelta < 10 && !fallo; vuelta++) {
+    const lista = delPrizePack()
+    if (!lista.length) break
+    for (const { normal, holo } of lista) {
+      boton.textContent = `Convirtiendo ${hechas + 1}…`
+      const r = await resolver({ carta: holo, destino: normal.id, decision: 'version', etiqueta: 'Holo', clase: 'impresion' }, { silencio: true })
+      if (!r) { fallo = true; break }
+      hechas++
+    }
+    await cargar()
+  }
+  delete boton.dataset.ocupado
+  boton.disabled = false
+  const quedan = datos.grupos.filter((g) => holoDelPrizePack(g).duda && holoDelPrizePack(g).duda !== 'no es del Prize Pack').length
+  showToast(`${hechas} del Prize Pack convertidas en «Holo» (la más cara). ${quedan ? `${quedan} se quedan para que las mires (precio parecido, sin precio o brillan de serie).` : ''} Se deshacen desde «Hechas».`, fallo ? 'error' : 'success')
+  if (hechas) avisarALaWeb()
+  pintar()
+}
+
 async function convertirMarcadas() {
   const lista = marcados()
   if (!lista.length) return
@@ -302,6 +342,7 @@ export async function iniciarRepetidas() {
       deGrupo(parEl.dataset.repGrupo).cuenta.set(parEl.dataset.repCarta, e.target.checked)
     })
     $('repetidasLote')?.addEventListener('click', convertirMarcadas)
+    $('repetidasPrize')?.addEventListener('click', convertirPrizePack)
     const todas = $('repetidasTodas')
     if (todas) {
       todas.innerHTML = '<option value="">Poner a todas las que se ven…</option>' + ETIQUETAS.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('')

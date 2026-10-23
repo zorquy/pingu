@@ -41785,6 +41785,34 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 987c — El Prize Pack, solo: la más cara es la Holo
+
+PINGU: «hay dos cartas, una tiene más precio que otra: la que tiene más precio
+seguramente sea la holo… hazlo automático, solo en los Prize Pack; si no hay
+diferencia, déjalos como duda». En /admin → «Posibles repetidas», el botón
+«Prize Pack: la más cara es la Holo (N)» (dos toques: son cientos) convierte
+cada pareja que `holoDelPrizePack` decide (`admin/js/repetidas-puro.js`):
+
+- la colección se llama Prize Pack (`esPrizePack`, por el nombre del set);
+- son DOS cartas, las dos con precio (`precioDeComparar`: el mínimo inglés,
+  que el Prize Pack es casi todo inglés, y si no el de todos);
+- la cara vale al menos `UMBRAL_PRIZE_PACK` (1,5) veces la barata, contado en
+  céntimos (0,1 × 1,5 no da 0,15 en coma flotante y la prueba lo cazó);
+- ninguna brilla de serie (`brillaDeSerie`: una ex o una V brillan las dos y
+  «la cara es la holo» no dice nada; con la holo de serie, además, la web
+  juntaría la versión «Holo» con la carta).
+
+La barata queda de principal y la cara pasa a ser su versión «Holo»
+(impresión), con su foto, su producto y su precio, por el mismo
+`catalogo_repetida_resolver` de siempre: cada una se deshace en «Hechas». Lo
+demás (precio parecido, sin precio, brilla de serie, tres cartas) se queda en
+la lista. Va a tandas (la lista trae mil grupos como mucho; hasta diez vueltas)
+y la lista se pide con `p_limite` 1000.
+
+Y de paso: `#repetidasCaja [hidden]` en admin.css. Los `.btn-*` llevan
+`display: inline-flex`, que pisa al atributo `hidden`, así que «Convertir las
+marcadas (0)» se veía con cero.
+
 ## Tanda 987b — La regla de orígenes y el Prize Pack
 
 Al convertir la primera, PINGU: «new row for relation "tcg_card_versions"

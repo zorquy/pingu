@@ -1082,6 +1082,8 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
 
 /* Posibles repetidas (987): la principal a la izquierda y cada repetida con sus señales y sus botones. */
 .rep-caja { margin-top: var(--e-lg); }
+/* Los .btn-* llevan display propio, que pisa a [hidden]. */
+#repetidasCaja [hidden] { display: none; }
 .rep-resumen { cursor: pointer; display: flex; align-items: baseline; gap: var(--e-sm); flex-wrap: wrap; min-height: 44px; align-content: center; }
 .rep-titulo { font-size: var(--t-lg); font-weight: 700; }
 .rep-barra { display: flex; flex-wrap: wrap; gap: var(--e-sm); align-items: center; margin-block: var(--e-md); }

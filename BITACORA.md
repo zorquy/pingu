@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-23 (222) — PINGU-Claude (987c — el Prize Pack, solo)
+
+**Hecho**: en /admin → «Posibles repetidas», «Prize Pack: la más cara es la
+Holo»: convierte cada pareja del Prize Pack en la que una vale al menos 1,5
+veces la otra (la barata, principal; la cara, versión «Holo»), salvo las que
+brillan de serie o no tienen precio, que se quedan para PINGU. Se deshace una a
+una en «Hechas». Y los botones de la caja con `hidden` ya se esconden.
+
+**Ficheros**: `admin/js/repetidas.js`, `admin/js/repetidas-puro.js`,
+`admin/index.html`, `admin/css/admin.css`, `CLAUDE.md`, `SCHEMA.md`,
+`BITACORA.md`. En `pruebas`: `test-tanda-987.mjs` (lo puro del Prize Pack y la
+pantalla). Sin migración nueva (sigue pendiente volver a ejecutar la 987).
+
+**Pendiente**: lo mismo de la 221 (ejecutar otra vez la migración 987).
+
 ## 2026-10-23 (221) — PINGU-Claude (987b — la regla de orígenes y el Prize Pack)
 
 **Hecho**: la 987 fallaba al convertir («violates check constraint
