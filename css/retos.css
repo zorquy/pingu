@@ -1,189 +1,95 @@
-/* Retos diarios (tanda 569; rehecha en la 835 con la maqueta que aprobó
-   PINGU). Solo la carga retos.html; lo común de los retos está en
-   retos-juego.css. Sin `.rt-pagina` estrecha: a lo ancho, como las demás
-   (782, SI1). */
+/* Retos diarios (tanda 569; rehecha en la 835 y compacta desde la 989,
+   «Retos, más limpios»): una línea arriba, la barra del día perfecto, las
+   seis baldosas y el historial plegado. Solo la carga retos.html; lo común
+   de los retos está en retos-juego.css. El porqué, en SCHEMA 989. */
 
 .rt-cabecera {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: var(--e-lg);
-  align-items: end;
-  margin-bottom: var(--e-lg);
-}
-
-.rt-cabecera h1 {
-  margin-bottom: var(--e-xs);
-}
-
-.rt-cabecera .subtext {
-  margin: 0;
-}
-
-/* «Tu día»: el anillo de los seis, la XP de hoy, la racha y la cuenta atrás. */
-.rt-tudia {
-  display: flex;
-  align-items: center;
-  gap: var(--e-md);
-  padding: var(--e-md) var(--e-lg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  background: var(--white);
-}
-
-.rt-anillo {
-  position: relative;
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 72px;
-  height: 72px;
-  border-radius: 50%;
-  background: conic-gradient(var(--success) 0 calc(var(--hecho) * 1%), var(--border) calc(var(--hecho) * 1%) 100%);
-}
-
-.rt-anillo::before {
-  content: '';
-  position: absolute;
-  inset: 8px;
-  border-radius: 50%;
-  background: var(--white);
-}
-
-.rt-anillo b {
-  position: relative;
-  font-family: var(--font-display);
-  font-size: var(--t-xl);
-}
-
-.rt-anillo small {
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-}
-
-.rt-tudia-datos {
-  display: grid;
-  gap: var(--e-xs);
-}
-
-.rt-tudia-datos > * {
-  margin: 0;
-}
-
-.rt-tudia-datos strong {
-  font-family: var(--font-display);
-  font-size: var(--t-lg);
-}
-
-.rt-fila {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm) var(--e-md);
+  margin-bottom: var(--e-md);
+}
+
+.rt-cabecera h1 {
+  margin: 0;
+}
+
+/* «3/6 · +65 XP · 5 días»: lo de hoy en una píldora. */
+.rt-pildora {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: var(--e-xs) var(--e-md);
-  color: var(--text-mid);
+  min-height: 40px;
+  padding: var(--e-xs) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
   font-size: var(--t-sm);
+  font-weight: 700;
 }
 
-/* Una línea de sitio antes de rellenarse (981): vacías al abrir, la XP y la
-   cuenta atrás llegaban después y bajaban todo lo de debajo. */
-.rt-tudia .rt-fila {
-  min-height: 1.5em;
-  min-height: 1lh;
-}
-
-.rt-fila span {
+.rt-pildora span {
   display: inline-flex;
   align-items: center;
   gap: var(--e-xs);
 }
 
-.rt-compartir-dia,
-.rt-compartir-mes {
-  min-height: 44px;
-}
-
-.rt-mes-compartir {
-  margin: var(--e-md) 0 0;
-}
-
 .rt-xp {
   color: var(--success);
-  font-weight: 700;
 }
 
 .rt-fuego {
   color: var(--warning);
-  font-weight: 700;
 }
 
-/* El día perfecto: los seis retos de hoy. */
+/* El día perfecto: una barra fina y su frase, con la cuenta atrás dentro. */
 .rt-perfecto {
-  display: flex;
-  align-items: center;
-  gap: var(--e-md);
-  margin-bottom: var(--e-lg);
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid color-mix(in srgb, var(--warning) 40%, transparent);
-  border-radius: var(--radius-lg);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--warning) 18%, transparent), color-mix(in srgb, var(--warning) 4%, transparent));
-}
-
-.rt-perfecto.hecho {
-  border-color: color-mix(in srgb, var(--success) 50%, transparent);
-  background: linear-gradient(90deg, color-mix(in srgb, var(--success) 22%, transparent), color-mix(in srgb, var(--success) 4%, transparent));
-}
-
-.rt-perfecto-icono {
   display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: var(--radius-md);
-  background: var(--warning);
-  color: var(--blanco-fijo);
+  gap: var(--e-xs);
+  margin-bottom: var(--e-lg);
 }
 
-.rt-perfecto.hecho .rt-perfecto-icono {
+.rt-barra-dia {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+}
+
+.rt-barra-dia i {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--warning);
+}
+
+.rt-perfecto.hecho .rt-barra-dia i {
   background: var(--success);
 }
 
 .rt-perfecto p {
-  flex: 1;
+  min-height: 1.5em;
   margin: 0;
+  color: var(--text-mid);
   font-size: var(--t-sm);
 }
 
 .rt-perfecto p b {
-  font-size: var(--t-md);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
 }
 
-.rt-pasos {
-  display: flex;
-  flex-shrink: 0;
-  gap: var(--e-xs);
-}
-
-.rt-pasos i {
-  width: 24px;
-  height: 8px;
-  border-radius: var(--radius-sm);
-  background: var(--border);
-}
-
-.rt-pasos i.si {
-  background: var(--warning);
-}
-
-.rt-perfecto.hecho .rt-pasos i.si {
-  background: var(--success);
-}
-
-/* Las seis tarjetas, con su dibujo arriba. */
+/* Las seis baldosas: el dibujo, el nombre y UNA línea. La baldosa entera es
+   el enlace. Tres por fila en el PC, dos en el móvil: se ven todas. */
 .rt-lista {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--e-md);
-  margin-bottom: var(--e-xl);
+  margin-bottom: var(--e-lg);
 }
 
 .rt-reto {
@@ -193,16 +99,32 @@
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   background: var(--white);
+  color: var(--text);
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+}
+
+.rt-reto:hover {
+  border-color: var(--navy);
+}
+
+.rt-reto:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
 }
 
 .rt-arte {
   position: relative;
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
   place-items: center;
-  height: 152px;
+  height: 112px;
   overflow: hidden;
   color: var(--blanco-fijo);
-  text-decoration: none;
+}
+
+.rt-arte > :not(.rt-sello):not(.rt-nuevo) {
+  transform: scale(0.7);
 }
 
 .rt-arte::after {
@@ -213,142 +135,135 @@
   pointer-events: none;
 }
 
-.rt-sello {
+.rt-sello,
+.rt-nuevo {
   position: absolute;
   top: var(--e-sm);
-  right: var(--e-sm);
   z-index: 2;
   display: inline-flex;
   align-items: center;
   gap: var(--e-xs);
-  padding: var(--e-xs) var(--e-sm);
+  padding: 2px var(--e-sm);
   border-radius: var(--radius-pill);
-  background: rgb(0 0 0 / 45%);
-  color: var(--blanco-fijo);
   font-size: var(--t-xs);
   font-weight: 700;
+}
+
+.rt-sello {
+  right: var(--e-sm);
+  background: rgb(0 0 0 / 45%);
+  color: var(--blanco-fijo);
 }
 
 .rt-sello.ok {
   background: var(--rj-si);
 }
 
+/* «Nuevo», la primera semana de un reto. */
+.rt-nuevo {
+  left: var(--e-sm);
+  background: var(--warning);
+  color: var(--blanco-fijo);
+  text-transform: uppercase;
+}
+
 .rt-cuerpo {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: var(--e-sm);
-  padding: var(--e-md);
+  display: grid;
+  gap: var(--e-xs);
+  padding: var(--e-sm) var(--e-md) var(--e-md);
 }
 
-.rt-cuerpo h2 {
-  margin: 0;
-  font-size: var(--t-lg);
-}
-
-.rt-cuerpo h2 a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.rt-cuerpo > .subtext {
-  flex: 1;
-  margin: 0;
-  font-size: var(--t-sm);
+.rt-nombre {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  line-height: 1.25;
 }
 
 .rt-reto-estado {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 1.5em;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.rt-reto-estado.hecho {
+  color: var(--success);
+  font-weight: 700;
+}
+
+/* Tu historial, plegado: la liga, «Hoy en PokeDoc», los logros y los días. */
+.rt-historial {
+  margin-bottom: var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.rt-historial > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  min-height: 56px;
+  padding: var(--e-sm) var(--e-md);
+  cursor: pointer;
+  list-style: none;
+}
+
+.rt-historial > summary::-webkit-details-marker {
+  display: none;
+}
+
+.rt-historial > summary span {
+  display: grid;
+}
+
+.rt-historial > summary small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.rt-historial > summary svg {
+  flex-shrink: 0;
+  color: var(--text-mid);
+  transition: transform 0.15s ease;
+}
+
+.rt-historial[open] > summary svg {
+  transform: rotate(90deg);
+}
+
+.rt-historial-cuerpo {
+  display: grid;
+  gap: var(--e-xl);
+  padding: var(--e-md);
+  border-top: 1px solid var(--border);
+}
+
+.rt-historial-cuerpo .rt-seccion {
+  margin-bottom: 0;
+}
+
+.rt-liga {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--e-sm);
+  margin: 0;
+}
+
+.rt-compartir-mes {
   min-height: 44px;
 }
 
-.rt-reto-estado .subtext {
-  margin: 0;
-}
-
-.rt-reto-num {
-  margin: 0;
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-}
-
-.rt-hecho {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-sm);
-  color: var(--success);
-  font-weight: 700;
-}
-
-.rt-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-xs);
-  padding: 2px var(--e-sm);
-  border-radius: var(--radius-pill);
-  background: var(--bg);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 700;
-}
-
-.rt-chip-racha {
-  background: var(--warning-bg);
-  color: var(--warning);
-}
-
-/* Los cinco puntos del reto, como en la portada. */
-.rt-puntos {
-  display: inline-flex;
-  gap: var(--e-xs);
-}
-
-.rt-punto {
-  width: 12px;
-  height: 12px;
-  border-radius: var(--radius-pill);
-  background: var(--border-strong);
-}
-
-.rt-punto.acertado {
-  background: var(--success);
+.rt-mes-compartir {
+  margin: var(--e-md) 0 0;
 }
 
 /* Los dibujos de las tarjetas: una miniatura del juego hecha con HTML. */
-.rt-d-pregunta {
-  display: grid;
-  gap: var(--e-xs);
-  width: 196px;
-  padding: var(--e-sm) var(--e-md);
-  border-radius: var(--radius-md);
-  background: rgb(255 255 255 / 96%);
-  color: #13212e;
-  font-size: var(--t-xs);
-  box-shadow: 0 12px 30px rgb(0 0 0 / 30%);
-  transform: rotate(-3deg) scale(0.92);
-}
-
-.rt-d-pregunta b {
-  font-size: var(--t-sm);
-}
-
-.rt-d-pregunta span {
-  padding: 2px var(--e-sm);
-  border: 1px solid #d5dde4;
-  border-radius: var(--radius-sm);
-}
-
-.rt-d-pregunta span.si {
-  border-color: #0d9e6e;
-  background: #e6f7f2;
-  color: #0b7a55;
-  font-weight: 700;
-}
-
 .rt-d-borrosa,
 .rt-d-silueta {
   display: grid;
@@ -457,6 +372,27 @@
 
 .rt-d-expansion b.si {
   background: #34d399;
+}
+
+/* Parejas (989): dos cartas boca abajo, una dada la vuelta. */
+.rt-d-parejas {
+  display: flex;
+  gap: var(--e-sm);
+}
+
+.rt-d-parejas i {
+  width: 64px;
+  aspect-ratio: 245 / 342;
+  border: 2px solid var(--blanco-fijo);
+  border-radius: var(--radius-sm);
+  background: repeating-linear-gradient(45deg, var(--navy-solid) 0 6px, var(--navy-solid-light) 6px 12px);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 35%);
+  transform: rotate(-6deg);
+}
+
+.rt-d-parejas i + i {
+  background: linear-gradient(160deg, #fde68a, #f59e0b 60%, #b45309);
+  transform: rotate(6deg);
 }
 
 /* Tus logros de retos. */
@@ -610,33 +546,7 @@
   color: var(--text-mid);
 }
 
-@media (max-width: 960px) {
-  .rt-lista {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
 @media (max-width: 760px) {
-  .rt-cabecera {
-    grid-template-columns: 1fr;
-  }
-
-  .rt-tudia {
-    padding: var(--e-sm) var(--e-md);
-  }
-
-  .rt-pasos i {
-    width: 12px;
-  }
-
-  .rt-lista {
-    grid-template-columns: 1fr;
-  }
-
-  .rt-arte {
-    height: 128px;
-  }
-
   .rt-calendario-caja {
     grid-template-columns: 1fr;
     gap: var(--e-md);
@@ -734,36 +644,70 @@
   .rt-com-reto-txt small { text-align: left; }
 }
 
-/* ── 893: «Retos diarios» en una línea con «Tu día» compacto al lado (SCHEMA 893) ── */
-@media (max-width: 900px) {
-  .rt-cabecera { margin-bottom: var(--e-sm); }
-  .rt-tudia {
+/* En el móvil: dos por fila y el dibujo más bajo. */
+@media (max-width: 760px) {
+  .rt-lista {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--e-sm);
-    padding: var(--e-xs) var(--e-sm) var(--e-xs) var(--e-xs);
-    border-radius: var(--radius-pill);
   }
-  .rt-anillo { width: 40px; height: 40px; }
-  .rt-anillo::before { inset: 4px; }
-  .rt-anillo b { font-size: var(--t-sm); }
-  .rt-anillo small { font-size: var(--t-2xs); }
-  .rt-tudia-datos { gap: 0; }
-  .rt-tudia-datos strong { display: none; }
-  .rt-tudia .rt-fila { gap: var(--e-xs); font-size: var(--t-2xs); }
+
+  .rt-arte {
+    height: 56px;
+  }
+
+  .rt-arte > :not(.rt-sello):not(.rt-nuevo) {
+    transform: scale(0.4);
+  }
+
+  .rt-sello,
+  .rt-nuevo {
+    top: var(--e-xs);
+    padding: 2px var(--e-xs);
+    font-size: var(--t-2xs);
+  }
+
+  .rt-sello {
+    right: var(--e-xs);
+  }
+
+  .rt-nuevo {
+    left: var(--e-xs);
+  }
+
+  .rt-cuerpo {
+    padding: var(--e-xs) var(--e-sm) var(--e-sm);
+  }
+
+  .rt-nombre {
+    font-size: var(--t-sm);
+  }
+
+  .rt-reto-estado {
+    font-size: var(--t-xs);
+  }
+
+  /* La XP de cada uno ya suma en la píldora: aquí no cabe en una línea. */
+  .rt-estado-xp {
+    display: none;
+  }
+
+  .rt-pildora {
+    flex-wrap: nowrap;
+    gap: var(--e-sm);
+    min-height: 32px;
+    padding: var(--e-xs) var(--e-sm);
+    font-size: var(--t-xs);
+    white-space: nowrap;
+  }
+
+  .rt-historial-cuerpo {
+    padding: var(--e-sm);
+  }
 }
 
-/* ── 896: en el móvil, los seis retos en una rejilla de dos columnas (I5 de
-   «Rápida y limpia»): dibujo, nombre y estado; el detalle, al tocar. La
-   página medía 3.100 px con una tarjeta entera por reto. ── */
-@media (max-width: 760px) {
-  .rt-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
-  .rt-arte { height: 88px; }
-  .rt-arte > :not(.rt-sello) { transform: scale(0.55); }
-  .rt-sello { top: var(--e-xs); right: var(--e-xs); padding: 2px var(--e-xs); font-size: var(--t-2xs); }
-  .rt-cuerpo { gap: var(--e-xs); padding: var(--e-sm); }
-  .rt-cuerpo h2 { font-size: var(--t-sm); line-height: 1.25; }
-  .rt-cuerpo > .subtext,
-  .rt-cuerpo .rj-chips { display: none; }
-  .rt-reto-estado .btn-primary,
-  .rt-reto-estado .btn-secondary { min-height: 44px; padding: 0 var(--e-sm); font-size: var(--t-xs); }
-  .rt-reto-estado .subtext { font-size: var(--t-2xs); }
+@media (prefers-reduced-motion: reduce) {
+  .rt-reto,
+  .rt-historial > summary svg {
+    transition: none;
+  }
 }

@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-23 (224) — PINGU-Claude (989 — retos, 2.ª tanda: Parejas, el menú en una pantalla, la liga en los finales)
+
+**Hecho**: el sexto reto es «Parejas» (doce cartas boca abajo, seis parejas;
++30 con 6 o 7 movimientos, +20 hasta 10, +10 hasta 14, +5 si más), en
+`/parejas`, con sus seis cartas del día elegidas por una función nueva. «El
+reto de hoy» sale de los retos, la portada y el onboarding, y `/reto` lleva a
+`/retos`. El menú de /retos cabe en una pantalla del móvil (píldora, barra del
+día perfecto y las seis fichas; la liga, «Hoy en PokeDoc», los logros y el
+calendario plegados en «Tu historial»). Al acabar un reto con cuenta, la línea
+de la liga («¡Subes del 5.º al 3.º…!»). Fuera «Compartir mi día» del menú.
+
+**Ficheros**: nuevos `parejas.html`, `js/parejas.js`, `js/parejas-juego.js`,
+`css/parejas.css`, `netlify/functions/parejas.mjs`,
+`supabase-migration-989-parejas.sql`, `assets/social/reto-parejas.png`;
+cambiados `retos.html`, `css/retos.css`, `css/retos-juego.css`, `js/retos.js`,
+`js/retos-xp.js`, `js/retos-ui.js`, `js/retos-datos.js`,
+`js/retos-siguiente.js`, `js/retos-comunidad.js`, `js/mi-dia.js`,
+`js/reto-compartir.js`, `js/hoy.js`, `js/portada-retos.js`, `js/home.js`,
+`js/curso.js`, `js/barra-movil.js`, `onboarding.html`, `netlify.toml`,
+`netlify/edge-functions/meta-social.js`, `netlify/functions/sitemap.mjs`,
+`assets/social/reto-retos.png`, `CLAUDE.md`, `SCHEMA.md`, `novedades.json`,
+`BITACORA.md`. En `pruebas`: `test-tanda-989.mjs` y al día 568, 569, 581, 583,
+744-pantalla, 835, 835-pantalla, 843-pantalla, 860-pantalla, 870,
+871-pantalla, 872, 873-pantalla, 896, `herramientas/servir.py` y
+`herramientas/tarjetas-872.mjs`.
+
+**Pendiente**: que PINGU ejecute `supabase-migration-989-parejas.sql` (hasta
+entonces Parejas se juega pero no guarda ni da XP) y vuelva a ejecutar la 987.
+Queda la tanda 990 («¿Quién es?» borroso y +30/+20/+10, con migración) y las
+imágenes del día de /admin → Redes, que aún hablan del quiz.
+
 ## 2026-10-23 (223) — PINGU-Claude (988 — retos, 1.ª tanda: buscador, salidas, jugar otra vez, Instagram/X)
 
 **Hecho**: el buscador de «¿Qué carta es?» ya no apila las cartas (enteras,

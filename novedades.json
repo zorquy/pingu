@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-23", "tipo": "nuevo", "texto": "Nuevo reto diario: Parejas. Doce cartas boca abajo, seis parejas: cuantos menos movimientos, más experiencia. Sustituye a «El reto de hoy».", "enlace": "/parejas" },
+    { "fecha": "2026-10-23", "tipo": "mejora", "texto": "Los retos caben en una pantalla: los seis a la vista, lo que llevas hoy arriba, y tu liga, tus logros y tus días plegados en «Tu historial». Y al acabar un reto te dice si subes en la liga de la semana.", "enlace": "/retos" },
     { "fecha": "2026-10-23", "tipo": "arreglo", "texto": "En «¿Qué carta es?», el buscador ya no amontona las cartas: salen enteras, por colección y con el nombre y el número debajo.", "enlace": "/carta-del-dia" },
     { "fecha": "2026-10-23", "tipo": "nuevo", "texto": "Al acabar un reto puedes jugar otra vez las veces que quieras (esas partidas no dan experiencia), y se comparte por Instagram, en historia o en publicación, o por X.", "enlace": "/quien-es" },
     { "fecha": "2026-10-23", "tipo": "mejora", "texto": "Las cartas que salían dos veces en una expansión, como las Staff de las promos, pasan a ser una versión de la misma carta, con su foto y su precio, y ya no cuentan de más al completarla.", "enlace": "/cartas" },

@@ -31,7 +31,7 @@ const MEDALLA = { oro: '🥇', plata: '🥈', bronce: '🥉' }
 // mismo día), y la cabecera es una: «PokeDoc #77 · ¿Qué carta es? · 3/6».
 // El nombre corto de cada reto, el que cabe en un tuit y en una fila de
 // «Mi día» (mi-dia.js).
-export const NOMBRE_CORTO = { reto: 'El reto', carta: '¿Qué carta es?', caro: 'Más caro o barato', silueta: '¿Quién es?', ordena: 'Ordena por precio', expansion: '¿Qué expansión?' }
+export const NOMBRE_CORTO = { reto: 'El reto', carta: '¿Qué carta es?', caro: 'Más caro o barato', silueta: '¿Quién es?', ordena: 'Ordena por precio', expansion: '¿Qué expansión?', parejas: 'Parejas' }
 
 export function cabeceraDeReto({ dia, nombre, cuenta, extra = '' }) {
   return `PokeDoc #${numeroDelDia(dia)} · ${nombre} · ${cuenta}${extra ? ` ${extra}` : ''}`

@@ -45,6 +45,7 @@ const ESTATICAS = [
   ['/carta-del-dia', '0.7'],
   ['/mas-caro', '0.7'],
   ['/quien-es', '0.7'],
+  ['/parejas', '0.7'],
   ['/ordena-precio', '0.7'],
   ['/que-expansion', '0.7'],
   // El glosario (792): contenido propio que se busca palabra por palabra.

@@ -27,6 +27,8 @@ function avatar(p, t = 32) {
 export function textoDeReto(juego, x) {
   if (!x?.jugadores) return 'Nadie todavía'
   const quien = `${x.jugadores} ${x.jugadores === 1 ? 'jugó' : 'jugaron'}`
+  // Parejas siempre se acaba (989): «acertó» y «de media» no dicen nada.
+  if (juego === 'parejas') return quien
   if (DE_ACERTAR.has(juego)) return `${quien} · ${Math.round((x.acertaron / x.jugadores) * 100)} % acertó`
   if (!x.total) return quien
   const media = (x.aciertos / x.jugadores).toLocaleString('es-ES', { maximumFractionDigits: 1 })

@@ -26,7 +26,7 @@ export const ORDEN = ['Inicio', 'Aprender', 'Cartas', 'Comunidad', 'Jugar']
 // Una página que no está en ningún desplegable (la ficha de una carta, un
 // tema del foro, un torneo…) pertenece a la sección de lo que enseña.
 export const SECCION_DE = {
-  Aprender: ['aprender', 'retos', 'guardados', 'guia', 'curso', 'categoria', 'carta-del-dia', 'mas-caro', 'quien-es', 'ordena-precio', 'que-expansion', 'nueve', 'glosario'],
+  Aprender: ['aprender', 'retos', 'guardados', 'guia', 'curso', 'categoria', 'carta-del-dia', 'mas-caro', 'quien-es', 'ordena-precio', 'que-expansion', 'parejas', 'nueve', 'glosario'],
   Cartas: ['cartas', 'mi-coleccion', 'carta', 'coleccion', 'ilustrador', 'feria'],
   Comunidad: ['foro', 'usuarios', 'tema', 'usuario', 'mensajes', 'buscar', 'colabora'],
   Jugar: ['torneos', 'torneo', 'meta', 'mazo-meta', 'constructor', 'laboratorio', 'mazos', 'mis-partidas', 'repeticiones'],

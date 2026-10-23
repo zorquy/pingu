@@ -402,16 +402,13 @@ async function cargarReto() {
   // lleva al registro — el gancho de volver mañana empieza a trabajar
   // antes de que exista la cuenta.
   if (!session) {
-    // El «5» es PREGUNTAS_POR_RETO (js/reto-diario.js), a mano a
-    // propósito: importar el módulo solo por un número le cargaría al
-    // visitante el motor del curso entero, y la portada tiene
-    // presupuesto de peso (test-carga).
+    // Los seis retos (989: el cuestionario de cinco preguntas ya no está).
     document.getElementById('retoTarjetas').innerHTML = heroeReto({
-      rotulo: 'Reto de hoy',
-      titular: 'Cinco preguntas al día',
-      puntos: puntosHtml(0, 5),
-      sub: 'Las mismas para todo el mundo. Se juega en un minuto y suma XP.',
-      boton: '<a class="btn-primary reto-hoy-boton" href="/auth.html">Crear cuenta y jugar →</a>',
+      rotulo: 'Retos de hoy',
+      titular: 'Seis retos al día',
+      puntos: puntosHtml(0, 6),
+      sub: 'Los mismos para todo el mundo. Se juegan en un minuto y suman XP.',
+      boton: '<a class="btn-primary reto-hoy-boton" href="/retos">Jugar →</a>',
     })
     seccion.style.display = ''
     return
@@ -436,7 +433,7 @@ async function cargarReto() {
       rotulo: 'Retos de hoy',
       titular: 'Seis retos al día',
       puntos: '',
-      sub: 'Preguntas, cartas, precios y siluetas. Cada uno suma XP.',
+      sub: 'Cartas, precios, siluetas y parejas. Cada uno suma XP.',
       boton: '<a class="btn-primary reto-hoy-boton" href="/retos">Ver los retos →</a>',
       repaso,
     })

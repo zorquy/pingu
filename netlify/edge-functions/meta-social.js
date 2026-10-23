@@ -1240,14 +1240,14 @@ async function metaDeRepeticion(url) {
   }
 }
 
-// Las tarjetas de los retos (tanda 872). Un enlace a /reto, /retos o a uno
+// Las tarjetas de los retos (tanda 872). Un enlace a /retos o a uno
 // de los seis juegos sale en WhatsApp o en X con SU tarjeta —el nombre del
 // reto, qué es en una frase y el número de hoy— en vez de la genérica del
 // sitio. El número es el común de todos (870) y se calcula aquí, en el
 // borde: la imagen es FIJA (assets/social/reto-<juego>.png, 1200×630) y el
 // título lleva el día. Sin consulta a la base: no hay nada que preguntar.
 const RUTA_DE_RETO = {
-  '/reto': 'reto', '/carta-del-dia': 'carta', '/mas-caro': 'caro', '/quien-es': 'silueta', '/ordena-precio': 'ordena', '/que-expansion': 'expansion',
+  '/carta-del-dia': 'carta', '/mas-caro': 'caro', '/quien-es': 'silueta', '/ordena-precio': 'ordena', '/que-expansion': 'expansion', '/parejas': 'parejas',
 }
 
 export function metaDeReto(url, hoy = new Date().toISOString().slice(0, 10)) {
@@ -1257,7 +1257,7 @@ export function metaDeReto(url, hoy = new Date().toISOString().slice(0, 10)) {
     return {
       url: `${SITIO}/retos`,
       titulo: `Los retos diarios de PokeDoc · #${n}`,
-      descripcion: recortar('Seis juegos al día, los mismos para todo el mundo: el reto de preguntas, ¿Qué carta es?, ¿Más caro o más barato?, ¿Quién es ese Pokémon?, Ordena por precio y ¿De qué expansión es? Juega, comparte tu día y vuelve mañana.'),
+      descripcion: recortar('Seis juegos al día, los mismos para todo el mundo: ¿Qué carta es?, ¿Más caro o más barato?, ¿Quién es ese Pokémon?, Ordena por precio, ¿De qué expansión es? y Parejas. Juega, comparte y vuelve mañana.'),
       imagen: `${SITIO}/assets/social/reto-retos.png`,
       imagenAncha: true,
     }
@@ -1278,7 +1278,7 @@ async function calcularMeta(url) {
   const ruta = url.pathname
   // Los retos van ANTES que la ficha de carta: '/carta-del-dia' empieza
   // por '/carta' y la guarda de abajo mira el final, pero mejor no fiarse.
-  if (/^\/(reto|retos|carta-del-dia|mas-caro|quien-es|ordena-precio|que-expansion)(\.html)?$/.test(ruta)) return metaDeReto(url)
+  if (/^\/(retos|carta-del-dia|mas-caro|quien-es|ordena-precio|que-expansion|parejas)(\.html)?$/.test(ruta)) return metaDeReto(url)
   // Antes que /guia: una noticia se sirve DESDE guia.html, pero se pide
   // por /noticias/<slug> y es lo que hay que mirar.
   // Con cuidado, que es la trampa de siempre: '/cartas' (el índice)
@@ -1376,7 +1376,6 @@ export const config = {
     '/repeticiones',
     '/repeticiones.html',
     // Los retos diarios (872): cada uno con su tarjeta y el número de hoy.
-    '/reto',
     '/retos',
     '/retos.html',
     '/carta-del-dia',
@@ -1389,5 +1388,7 @@ export const config = {
     '/ordena-precio.html',
     '/que-expansion',
     '/que-expansion.html',
+    '/parejas',
+    '/parejas.html',
   ],
 }

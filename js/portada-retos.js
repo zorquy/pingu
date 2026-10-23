@@ -5,7 +5,7 @@
 //
 // Lo de hoy sale de la base (`retos_mis_numeros`, la 835) y, si no está, del
 // navegador (las claves de cada juego en `RETOS[].local`), como en /retos.
-// El de preguntas sale de `daily_challenge_results`, que viene de antes.
+// El cuestionario («El reto de hoy») ya no es uno de los seis (989).
 // Sin importar gamification.js ni retos-datos.js: la portada tiene
 // presupuesto de peso y aquí solo se lee.
 import { supabase } from './supabase.js'
@@ -31,16 +31,12 @@ export function estadoDeHoy(uid) {
 
 async function cargar(uid) {
   const dia = hoyUTC()
-  const [numeros, quiz] = await Promise.all([
-    supabase.rpc('retos_mis_numeros', { p_dias: 7 }).then(({ data, error }) => (error ? null : data || null)),
-    // El de preguntas va por el día de AQUÍ (como reto-diario.js), no el UTC.
-    uid ? supabase.from('daily_challenge_results').select('correct,total').eq('user_id', uid).eq('day', new Date().toLocaleDateString('sv')).maybeSingle().then(({ data, error }) => (error ? null : data || false)) : null,
-  ])
-  return resumenDelDia(numeros, quiz, dia, (clave) => leer(clave))
+  const numeros = uid ? await supabase.rpc('retos_mis_numeros', { p_dias: 7 }).then(({ data, error }) => (error ? null : data || null)) : null
+  return resumenDelDia(numeros, dia, (clave) => leer(clave))
 }
 
 // Puro: qué retos llevas hoy, cuánta XP y tu racha.
-export function resumenDelDia(numeros, quiz, dia, leerLocal = () => null) {
+export function resumenDelDia(numeros, dia, leerLocal = () => null) {
   const hechos = new Set()
   let xp = numeros?.xpHoy ?? 0
   for (const r of RETOS) {
@@ -49,7 +45,6 @@ export function resumenDelDia(numeros, quiz, dia, leerLocal = () => null) {
     if (base?.hecho || local?.hecho) hechos.add(r.juego)
     if (!numeros && local?.hecho) xp += local.xp || 0
   }
-  if (quiz) hechos.add('reto')
   const siguiente = RETOS.find((r) => !hechos.has(r.juego)) || null
   return { hechos, total: RETOS.length, xp, racha: numeros?.racha || 0, siguiente }
 }

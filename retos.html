@@ -12,7 +12,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="PokeDoc" />
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
-  <meta name="description" content="Los seis retos diarios de PokeDoc: preguntas de Pokémon TCG, ¿qué carta es?, ¿más caro o más barato?, la silueta, ordenar por precio y ¿de qué expansión es? Con XP, rachas y logros." />
+  <meta name="description" content="Los seis retos diarios de PokeDoc: ¿qué carta es?, ¿más caro o más barato?, la silueta, ordenar por precio, ¿de qué expansión es? y parejas. Con XP, rachas, liga semanal y logros." />
   <!-- meta-social:inicio -->
   <link rel="canonical" href="https://pokedoc.es/retos" />
   <meta property="og:url" content="https://pokedoc.es/retos" />
@@ -20,14 +20,14 @@
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_ES" />
   <meta property="og:title" content="Retos diarios de Pokémon TCG" />
-  <meta property="og:description" content="Cinco preguntas al día, las mismas para todo el mundo. Liga semanal y rachas." />
+  <meta property="og:description" content="Seis juegos al día, los mismos para todo el mundo. Liga semanal y rachas." />
   <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@pokedoc_es" />
   <meta name="twitter:title" content="Retos diarios de Pokémon TCG" />
-  <meta name="twitter:description" content="Cinco preguntas al día, las mismas para todo el mundo. Liga semanal y rachas." />
+  <meta name="twitter:description" content="Seis juegos al día, los mismos para todo el mundo. Liga semanal y rachas." />
   <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <!-- meta-social:fin -->
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
@@ -126,116 +126,59 @@
   <!-- /barra-movil -->
 
     <main id="contenido" class="page-content container rt-pagina">
-    <!-- RETOS DIARIOS (tanda 569; rehecho en la 835 con la maqueta que
-         aprobó PINGU). Seis juegos al día, los mismos para todo el mundo:
-         arriba «Tu día» (cuántos llevas, la XP de hoy, la racha), el «día
-         perfecto», una tarjeta por juego con su dibujo y su estado de hoy,
-         tus logros de retos y tus últimos 60 días. Las tarjetas van aquí
-         para que estén aunque el JS no llegue; su estado lo pinta js/retos.js. -->
+    <!-- RETOS DIARIOS (569; compactos desde la 989, «Retos, más limpios»):
+         una línea arriba con lo de hoy, la barra del día perfecto, los seis
+         juegos en baldosas (la baldosa entera es el enlace) y el historial
+         plegado. Las baldosas van aquí para que estén aunque el JS no llegue;
+         su estado lo pinta js/retos.js. -->
     <header class="rt-cabecera cabecera-pagina cab-lista">
-      <div>
-        <h1>Retos diarios</h1>
-        <p class="subtext cab-lema">Seis juegos al día, los mismos para todo el mundo. Juega, gana XP y vuelve mañana.</p>
-      </div>
-      <div class="rt-tudia" id="rtDia" aria-live="polite">
-        <span class="rt-anillo" id="rtAnillo" style="--hecho: 0"><b>0<small>/6</small></b></span>
-        <span class="rt-tudia-datos">
-          <strong>Tu día</strong>
-          <span class="rt-fila" id="rtDiaFila"></span>
-          <span class="rt-fila rj-cuenta" id="rtCuenta"></span>
-        </span>
-      </div>
+      <h1>Retos diarios</h1>
+      <p class="rt-pildora" id="rtDia" aria-live="polite"><span id="rtHechos">0/6 hoy</span></p>
     </header>
 
     <div class="rt-perfecto" id="rtPerfecto">
-      <span class="rt-perfecto-icono" id="rtPerfectoIcono" aria-hidden="true"></span>
-      <p id="rtPerfectoTexto"><b>Día perfecto: te faltan 6.</b><br>Completa los seis retos de hoy y llévate +25 XP extra.</p>
-      <span class="rt-pasos" id="rtPerfectoPasos" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      <span class="rt-barra-dia" aria-hidden="true"><i id="rtBarraDia" style="width: 0%"></i></span>
+      <p id="rtPerfectoTexto">Día perfecto: completa los seis de hoy y llévate +25 XP extra.</p>
     </div>
 
-    <!-- «Hoy en PokeDoc» (842): lo de todos de hoy. Lo pinta js/retos-comunidad.js. -->
-    <section class="rt-seccion rt-comunidad hidden" id="rtComunidad" aria-labelledby="rtComunidadTitulo"></section>
-
-    <section class="rt-lista" id="rtLista" aria-label="Los retos">
-      <article class="rt-reto" id="rtHoy" data-juego="reto">
-        <a class="rt-arte" href="/reto" tabindex="-1" aria-hidden="true" style="background: var(--arte-azul)">
-          <span class="rt-sello hidden" id="rtSello-reto"></span>
-          <span class="rt-d-pregunta"><b>¿Cuántas cartas tiene un mazo?</b><span>40</span><span class="si">60</span><span>80</span></span>
-        </a>
-        <div class="rt-cuerpo">
-          <h2><a href="/reto">El reto de hoy</a></h2>
-          <p class="subtext">Cinco preguntas sacadas de los cursos. Liga semanal y rachas.</p>
-          <div class="rj-chips"><span class="rj-chip xp">+15 XP</span><span class="rj-chip">5 preguntas</span></div>
-          <div class="rt-reto-estado" id="rtHoyEstado"><a class="btn-primary" href="/reto">Jugar el reto de hoy →</a></div>
-        </div>
-      </article>
-      <article class="rt-reto" id="rtCarta" data-juego="carta">
-        <a class="rt-arte" href="/carta-del-dia" tabindex="-1" aria-hidden="true" style="background: var(--arte-morado)">
-          <span class="rt-sello hidden" id="rtSello-carta"></span>
-          <span class="rt-d-borrosa"><b>?</b></span>
-        </a>
-        <div class="rt-cuerpo">
-          <h2><a href="/carta-del-dia">¿Qué carta es?</a></h2>
-          <p class="subtext">Una carta borrosa que se aclara con cada intento. Tienes seis.</p>
-          <div class="rj-chips"><span class="rj-chip xp">Hasta +50 XP</span><span class="rj-chip">6 intentos</span></div>
-          <div class="rt-reto-estado" id="rtCartaEstado"><a class="btn-primary" href="/carta-del-dia">Jugar →</a></div>
-        </div>
-      </article>
-      <article class="rt-reto" id="rtMasCaro" data-juego="caro">
-        <a class="rt-arte" href="/mas-caro" tabindex="-1" aria-hidden="true" style="background: var(--arte-ambar)">
-          <span class="rt-sello hidden" id="rtSello-caro"></span>
-          <span class="rt-d-vs"><i></i><b>VS</b><i></i></span>
-        </a>
-        <div class="rt-cuerpo">
-          <h2><a href="/mas-caro">¿Más caro o más barato?</a></h2>
-          <p class="subtext">Dos cartas con precio real de Cardmarket. ¿Cuál vale más? Cinco al día.</p>
-          <div class="rj-chips"><span class="rj-chip xp">Hasta +30 XP</span><span class="rj-chip">5 rondas</span></div>
-          <div class="rt-reto-estado" id="rtMasCaroEstado"><a class="btn-primary" href="/mas-caro">Jugar →</a></div>
-        </div>
-      </article>
-      <article class="rt-reto" id="rtSilueta" data-juego="silueta">
-        <a class="rt-arte" href="/quien-es" tabindex="-1" aria-hidden="true" style="background: var(--arte-cian)">
-          <span class="rt-sello hidden" id="rtSello-silueta"></span>
-          <span class="rt-d-silueta"><b>?</b></span>
-        </a>
-        <div class="rt-cuerpo">
-          <h2><a href="/quien-es">¿Quién es ese Pokémon?</a></h2>
-          <p class="subtext">La silueta de siempre, como en la tele. Elige entre cuatro.</p>
-          <div class="rj-chips"><span class="rj-chip xp">Hasta +20 XP</span><span class="rj-chip">3 intentos</span></div>
-          <div class="rt-reto-estado" id="rtSiluetaEstado"><a class="btn-primary" href="/quien-es">Jugar →</a></div>
-        </div>
-      </article>
-      <article class="rt-reto" id="rtOrdena" data-juego="ordena">
-        <a class="rt-arte" href="/ordena-precio" tabindex="-1" aria-hidden="true" style="background: var(--arte-verde)">
-          <span class="rt-sello hidden" id="rtSello-ordena"></span>
-          <span class="rt-d-orden"><i>1</i><i>2</i><i>3</i><i>4</i></span>
-        </a>
-        <div class="rt-cuerpo">
-          <h2><a href="/ordena-precio">Ordena por precio</a></h2>
-          <p class="subtext">Cuatro cartas: ponlas de la más barata a la más cara.</p>
-          <div class="rj-chips"><span class="rj-chip xp">Hasta +25 XP</span><span class="rj-chip">3 intentos</span></div>
-          <div class="rt-reto-estado" id="rtOrdenaEstado"><a class="btn-primary" href="/ordena-precio">Jugar →</a></div>
-        </div>
-      </article>
-      <article class="rt-reto" id="rtExpansion" data-juego="expansion">
-        <a class="rt-arte" href="/que-expansion" tabindex="-1" aria-hidden="true" style="background: var(--arte-rosa)">
-          <span class="rt-sello hidden" id="rtSello-expansion"></span>
-          <span class="rt-d-expansion"><i></i><span><b></b><b class="si"></b><b></b></span></span>
-        </a>
-        <div class="rt-cuerpo">
-          <h2><a href="/que-expansion">¿De qué expansión es?</a></h2>
-          <p class="subtext">Sale una carta: ¿de qué colección es? Para los que se saben las eras.</p>
-          <div class="rj-chips"><span class="rj-chip xp">Hasta +20 XP</span><span class="rj-chip">5 rondas</span></div>
-          <div class="rt-reto-estado" id="rtExpansionEstado"><a class="btn-primary" href="/que-expansion">Jugar →</a></div>
-        </div>
-      </article>
+    <section class="rt-lista" id="rtLista" aria-label="Los seis retos">
+      <a class="rt-reto" id="rtCarta" data-juego="carta" href="/carta-del-dia">
+        <span class="rt-arte" style="background: var(--arte-morado)" aria-hidden="true"><span class="rt-sello hidden" id="rtSello-carta"></span><span class="rt-d-borrosa"><b>?</b></span></span>
+        <span class="rt-cuerpo"><b class="rt-nombre">¿Qué carta es?</b><span class="rt-reto-estado" id="rtCartaEstado">Hasta +50 XP · 6 intentos</span></span>
+      </a>
+      <a class="rt-reto" id="rtMasCaro" data-juego="caro" href="/mas-caro">
+        <span class="rt-arte" style="background: var(--arte-ambar)" aria-hidden="true"><span class="rt-sello hidden" id="rtSello-caro"></span><span class="rt-d-vs"><i></i><b>VS</b><i></i></span></span>
+        <span class="rt-cuerpo"><b class="rt-nombre">¿Más caro o más barato?</b><span class="rt-reto-estado" id="rtMasCaroEstado">Hasta +30 XP · 5 rondas</span></span>
+      </a>
+      <a class="rt-reto" id="rtSilueta" data-juego="silueta" href="/quien-es">
+        <span class="rt-arte" style="background: var(--arte-cian)" aria-hidden="true"><span class="rt-sello hidden" id="rtSello-silueta"></span><span class="rt-d-silueta"><b>?</b></span></span>
+        <span class="rt-cuerpo"><b class="rt-nombre">¿Quién es ese Pokémon?</b><span class="rt-reto-estado" id="rtSiluetaEstado">Hasta +20 XP · 3 intentos</span></span>
+      </a>
+      <a class="rt-reto" id="rtOrdena" data-juego="ordena" href="/ordena-precio">
+        <span class="rt-arte" style="background: var(--arte-verde)" aria-hidden="true"><span class="rt-sello hidden" id="rtSello-ordena"></span><span class="rt-d-orden"><i>1</i><i>2</i><i>3</i><i>4</i></span></span>
+        <span class="rt-cuerpo"><b class="rt-nombre">Ordena por precio</b><span class="rt-reto-estado" id="rtOrdenaEstado">Hasta +25 XP · 3 intentos</span></span>
+      </a>
+      <a class="rt-reto" id="rtExpansion" data-juego="expansion" href="/que-expansion">
+        <span class="rt-arte" style="background: var(--arte-rosa)" aria-hidden="true"><span class="rt-sello hidden" id="rtSello-expansion"></span><span class="rt-d-expansion"><i></i><span><b></b><b class="si"></b><b></b></span></span></span>
+        <span class="rt-cuerpo"><b class="rt-nombre">¿De qué expansión es?</b><span class="rt-reto-estado" id="rtExpansionEstado">Hasta +20 XP · 5 rondas</span></span>
+      </a>
+      <a class="rt-reto" id="rtParejas" data-juego="parejas" href="/parejas">
+        <span class="rt-arte" style="background: var(--arte-azul)" aria-hidden="true"><span class="rt-sello hidden" id="rtSello-parejas"></span><span class="rt-d-parejas"><i></i><i></i></span></span>
+        <span class="rt-cuerpo"><b class="rt-nombre">Parejas</b><span class="rt-reto-estado" id="rtParejasEstado">Hasta +30 XP · 6 parejas</span></span>
+      </a>
     </section>
 
-    <!-- Tus logros de retos (835): los diez de supabase-migration-retos-xp.sql. -->
-    <section class="rt-seccion hidden" id="rtLogros" aria-label="Tus logros de retos"></section>
-
-    <!-- Tus últimos 60 días (787, PA6; con tonos por cuántos retos, 835). -->
-    <section class="rt-seccion rt-calendario hidden" id="rtCalendario" aria-label="Tus últimos 60 días"></section>
+    <!-- Tu historial (989): la liga, «Hoy en PokeDoc», los logros y los
+         últimos 60 días. Plegado; se pide al abrirlo. -->
+    <details class="rt-historial" id="rtHistorial">
+      <summary><span><b>Tu historial</b><small>La liga de la semana, «Hoy en PokeDoc», tus logros y tus últimos 60 días</small></span><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"></polyline></svg></summary>
+      <div class="rt-historial-cuerpo">
+        <section class="rt-seccion hidden" id="rtLiga" aria-label="La liga de la semana"></section>
+        <section class="rt-seccion rt-comunidad hidden" id="rtComunidad" aria-labelledby="rtComunidadTitulo"></section>
+        <section class="rt-seccion hidden" id="rtLogros" aria-label="Tus logros de retos"></section>
+        <section class="rt-seccion rt-calendario hidden" id="rtCalendario" aria-label="Tus últimos 60 días"></section>
+      </div>
+    </details>
   </main>
 
   <footer class="footer">

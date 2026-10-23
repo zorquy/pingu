@@ -41785,6 +41785,83 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 989 — Retos, más limpios (2.ª): «Parejas», el menú en una pantalla y la liga en cada final
+
+Segunda tanda de la propuesta «Retos, más limpios» (PINGU: «si, me gustan
+las parejas. adelante con todo lo recomendado»). Junta lo que la propuesta
+llamaba T2 y T4: el menú compacto, fuera «El reto de hoy», el sexto juego y
+la liga de los seis.
+
+**«Parejas» sustituye a «El reto de hoy».** Doce cartas boca abajo, seis
+parejas. Un MOVIMIENTO es cada par de cartas vueltas, y la XP sale de los
+movimientos (`xpDeMovimientos` en `js/retos-xp.js`, y la misma cuenta en
+`retos_xp` de la base): 6 o 7 → +30, hasta 10 → +20, hasta 14 → +10, y +5
+si se tarda más. Siempre se acaba, así que se guarda `aciertos = total = 6`,
+`acertada = true`, `intentos` = movimientos y la `tira` (verde = pareja).
+
+- **Las seis cartas** las elige `netlify/functions/parejas.mjs` con la forma
+  de «Ordena por precio»: la PRIMERA petición del día las deja en
+  `retos_reto_del_dia` (juego `parejas`) y todo el mundo juega las mismas.
+  Salen de las mismas que «¿Qué carta es?» (`FILTRO_ELEGIBLES`: Pokémon
+  occidentales con foto y rareza, sin TCG Pocket) y **con nombres
+  distintos** (`cartasQueSirven`, que también quita el «ex/GX/V…» del final):
+  dos Pikachu en la misma mesa harían de una pareja un acertijo.
+- **El sitio de cada carta en la mesa** sale de la fecha (`mesaDelDia`, un
+  Fisher-Yates con `azarDelDia`): no se guarda, y con la misma fecha sale la
+  misma mesa en cualquier aparato.
+- **Lo puro** (la mesa, `mover`, `acabada`, la XP que queda, el texto de
+  compartir) vive en `js/parejas.js`; la pantalla en `js/parejas-juego.js` y
+  `css/parejas.css` (cuatro por fila en el móvil, seis en el PC; el dorso,
+  una Poké Ball de tokens; el giro respeta «menos movimiento»).
+- **Partida libre (988)** igual que los otros: `?libre=N`, su llave, la
+  función no toca la tabla y no da XP.
+- **La imagen de compartir** no enseña las cartas: quien la ve todavía puede
+  jugar las de hoy. Es la tira, en filas de ocho, con su marco (907).
+
+La migración `supabase-migration-989-parejas.sql` amplía la regla de
+`retos_resultados.juego` con `parejas`, deja que `intentos` llegue a 99 (los
+movimientos pasan de 10) y redefine `retos_xp` entera (el cuerpo de la 835
+más la rama de Parejas). Hasta que se ejecute, Parejas se juega pero no
+guarda: la base rechaza el juego y el final no enseña XP. El «día perfecto»
+sigue siendo seis juegos distintos el mismo día: los seis de ahora.
+
+**«El reto de hoy» se va de los retos.** Sale de `RETOS`, de la portada
+(`hoy.js` y `portada-retos.js` ya no preguntan por el quiz), del onboarding
+y del menú. `/reto` es un 301 a `/retos` (netlify.toml y `servir.py`), y
+`curso.html?reto=hoy` hace `location.replace('/retos')`. El modo REPASO del
+curso sigue. Sus resultados viejos siguen en la base con `juego = 'reto'`,
+que la regla sigue aceptando.
+
+**El menú de /retos cabe en una pantalla.** Arriba una línea: el título y
+una píldora («3/6 hoy · +65 XP · 5 días»), y debajo una barra fina con el
+día perfecto y la cuenta atrás. Luego las seis fichas (dos por fila en el
+móvil, tres en el PC): dibujo, nombre y una línea de estado. Todo lo demás
+(la liga, «Hoy en PokeDoc», los logros y el calendario con «Compartir mi
+mes») va plegado en «Tu historial» y se carga AL ABRIRLO. En el móvil la
+XP de cada reto hecho no cabe en la línea y se esconde (`.rt-estado-xp`):
+ya suma en la píldora. El dibujo de las fichas va con `grid-template-rows:
+minmax(0, 1fr)`: con la fila automática, un dibujo más alto que su caja la
+estiraba y, al escalarlo, quedaba cortado por abajo. Medido en un iPhone 13:
+las seis acaban por encima de la burbuja de la sección.
+
+**La liga en cada final.** `portada_clasificacion('semana')` ya sumaba la
+XP de los retos; lo que faltaba era decirlo donde se gana. `guardarResultado`
+pregunta el puesto antes y después de un guardado nuevo (`puestoEnLiga`, que
+si falla devuelve `null` y no se pinta nada) y `premiosHtml` añade la línea
+de `textoSaltoLiga` («¡Subes del 5.º al 3.º en la liga de la semana!»), que
+lleva a `/#clasificacion`.
+
+**«Compartir mi día» sale también del menú** (la 988 lo quitó de los
+finales): `retos-siguiente.js` ya no escucha `[data-mi-dia]`. `mi-dia.js`
+se queda para el calendario y sabe pintar Parejas (🧠, seis casillas).
+
+**Pruebas**: `test-tanda-989.mjs` (lo puro; la migración contra PostgreSQL;
+la función con y sin tabla y en libre; la pantalla jugada entera, con y sin
+cuenta, la liga en el final; el menú en el móvil y en el PC; el quiz fuera
+de todas partes). Al día 568, 569, 581, 583, 744-pantalla, 835,
+835-pantalla, 843-pantalla, 860-pantalla, 870, 871-pantalla, 872,
+873-pantalla y 896, y `herramientas/tarjetas-872.mjs` y `servir.py`.
+
 ## Tanda 988 — Retos, más limpios (1.ª): el buscador, tres salidas, «Jugar otra vez» y Instagram/X
 
 Primera de las cuatro tandas de la propuesta «Retos, más limpios» (PINGU:

@@ -5,6 +5,7 @@ import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
 import { siguienteReto, hechoHoy } from './retos-siguiente.js'
 import { otraLibre, rutaLibre } from './retos-libre.js'
+import { textoSaltoLiga } from './liga-salto.js'
 
 // Lo que falta para el reto de mañana (medianoche UTC, como `numeroDelDia`).
 export function hastaManana(ahora = new Date()) {
@@ -38,7 +39,11 @@ export function premiosHtml(guardado, { posible = 0, volver = '/retos', racha = 
     premios.push(`<div class="rj-premio"><b>+${posible} XP</b><small><a href="/auth.html?registro=1&amp;volver=${encodeURIComponent(volver)}">Crea tu cuenta</a> y cuentan</small></div>`)
   }
   if (racha >= 2) premios.push(`<div class="rj-premio racha"><b>${racha} días</b><small>${escapeHtml(rachaTexto)}</small></div>`)
-  return premios.length ? `<div class="rj-premios">${premios.join('')}</div>` : ''
+  // La liga de la semana (989): la XP de los seis retos, de lunes a domingo.
+  // Se ve entera en la portada.
+  const liga = guardado?.liga ? textoSaltoLiga(guardado.liga.antes, guardado.liga.despues) : ''
+  const ligaHtml = liga ? `<a class="rj-liga" href="/#clasificacion">${icons.trophy(16)} ${escapeHtml(liga)}</a>` : ''
+  return premios.length || ligaHtml ? `<div class="rj-premios">${premios.join('')}${ligaHtml}</div>` : ''
 }
 
 // El reparto: `cuentas` = { 1: n, 2: n… }; `tuyo` = la fila de hoy.

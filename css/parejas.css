@@ -1,0 +1,168 @@
+/* Parejas (tanda 989). Solo la carga parejas.html; lo común de los retos
+   está en retos-juego.css. El porqué, en SCHEMA 989. */
+
+.pa-pagina {
+  max-width: 760px;
+}
+
+.pa-tablero {
+  display: grid;
+  gap: var(--e-md);
+}
+
+.pa-marcador {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--e-md);
+  margin: 0;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  border: 1px solid var(--border);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.pa-marcador b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Cuatro por fila en el móvil (tres filas) y seis en el PC (dos filas). */
+.pa-mesa {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--e-sm);
+}
+
+@media (min-width: 640px) {
+  .pa-mesa {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: var(--e-md);
+  }
+}
+
+/* Una carta: el dorso y la cara de espaldas, y se gira al volverla. */
+.pa-carta {
+  position: relative;
+  aspect-ratio: 245 / 342;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  cursor: pointer;
+  perspective: 600px;
+}
+
+.pa-carta:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+}
+
+.pa-dorso,
+.pa-cara {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  backface-visibility: hidden;
+  transition: transform 0.3s ease;
+}
+
+/* El dorso: el azul de la casa con una Poké Ball en medio. */
+.pa-dorso {
+  display: grid;
+  place-items: center;
+  border: 2px solid var(--blanco-fijo);
+  background: repeating-linear-gradient(45deg, var(--navy-solid) 0 8px, var(--navy-solid-light) 8px 16px);
+  box-shadow: var(--shadow-sm);
+}
+
+.pa-dorso::after {
+  content: '';
+  width: 44%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--blanco-fijo) 0 18%, var(--navy-solid) 19% 26%, transparent 27%), linear-gradient(var(--danger-solid) 0 46%, var(--navy-solid) 46% 54%, var(--blanco-fijo) 54%);
+  box-shadow: 0 0 0 2px var(--navy-solid);
+}
+
+.pa-cara {
+  transform: rotateY(180deg);
+  background: var(--bg);
+  box-shadow: var(--shadow-sm);
+}
+
+.pa-cara img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pa-carta.vuelta .pa-dorso {
+  transform: rotateY(180deg);
+}
+
+.pa-carta.vuelta .pa-cara {
+  transform: rotateY(0deg);
+}
+
+.pa-carta.hecha {
+  cursor: default;
+}
+
+.pa-carta.hecha .pa-cara {
+  box-shadow: 0 0 0 2px var(--success);
+}
+
+.pa-carta:disabled {
+  opacity: 1;
+}
+
+/* El final: las seis cartas, que se tocan para ver su ficha. */
+.pa-repaso {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pa-repaso a {
+  display: grid;
+  gap: var(--e-xs);
+  min-width: 0;
+  color: var(--text);
+  font-size: var(--t-2xs);
+  text-decoration: none;
+}
+
+.pa-repaso img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-sm);
+}
+
+.pa-repaso span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 520px) {
+  .pa-repaso {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pa-dorso,
+  .pa-cara {
+    transition: none;
+  }
+}

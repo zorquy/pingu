@@ -25,10 +25,10 @@ export { numeroDelDia, ENLACE, cabeceraDeReto }
 // «Mi día» manda al menú de los retos, no a uno.
 export const ENLACE_RETOS = 'pokedoc.es/retos'
 
-export const EMOJI = { reto: '📚', carta: '🃏', caro: '💶', silueta: '👤', ordena: '🔢', expansion: '📦' }
+export const EMOJI = { reto: '📚', carta: '🃏', caro: '💶', silueta: '👤', ordena: '🔢', expansion: '📦', parejas: '🧠' }
 export const CORTO = NOMBRE_CORTO
 // Cuántos cuadrados tiene cada reto cuando no se ha jugado (en gris).
-export const TAMANO = { reto: 5, carta: 6, caro: 5, silueta: 3, ordena: 3, expansion: 5 }
+export const TAMANO = { reto: 5, carta: 6, caro: 5, silueta: 3, ordena: 3, expansion: 5, parejas: 6 }
 // El reto de preguntas no guarda partida en el navegador (es de la base);
 // el cuestionario deja aquí su tira de hoy para que «Mi día» la lea sin
 // esperar a la base: { dia, tira }.
@@ -41,6 +41,8 @@ export const CLAVE_RETO_LOCAL = 'pokedoc-reto-hoy'
 export function tiraDeBase(juego, h) {
   if (!h) return null
   if (Array.isArray(h.tira) && h.tira.length) return h.tira.map(Boolean)
+  // Parejas (989): la tira de movimientos va en la partida guardada.
+  if (juego === 'parejas') return Array.isArray(h.estado?.tira) && h.estado.tira.length ? h.estado.tira.map(Boolean) : null
   if (['carta', 'silueta', 'ordena'].includes(juego)) {
     const n = Math.max(1, Number(h.intentos) || 1)
     return Array.from({ length: n }, (_, i) => Boolean(h.acertada) && i === n - 1)
@@ -72,6 +74,7 @@ export function tiraLocal(juego, g, dia) {
     return Array.from({ length: n }, (_, i) => Boolean(g.acertada) && i === n - 1)
   }
   if (juego === 'expansion') return (g.elegidas || []).length >= 5 ? (g.tira || []).slice(0, 5).map(Boolean) : null
+  if (juego === 'parejas') return (g.hechas || []).length >= TAMANO.parejas ? (g.tira || []).map(Boolean) : null
   return null
 }
 
@@ -87,8 +90,9 @@ export function filasDeMiDia(resultados = {}) {
       nombre: CORTO[r.juego] || r.titulo,
       tira,
       hecho: Boolean(tira),
-      // En los de una respuesta, «acertado» es el último cuadrado en verde.
-      acertado: tira ? (unaRespuesta ? tira[tira.length - 1] === true : tira.every(Boolean)) : null,
+      // En los de una respuesta, «acertado» es el último cuadrado en verde;
+      // Parejas siempre se acaba (989): hecho es acertado.
+      acertado: tira ? (r.juego === 'parejas' || (unaRespuesta ? tira[tira.length - 1] === true : tira.every(Boolean))) : null,
     }
   })
 }

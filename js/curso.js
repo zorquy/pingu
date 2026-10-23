@@ -1823,7 +1823,13 @@ async function loadCourse() {
   // barra se queda en /reto, sin la consulta, así que se lee la ruta. Sin
   // esto, desde la 780 el reto de /retos acababa en /aprender (802).
   const reto = params.get('reto') || (/^\/reto\/?$/.test(window.location.pathname) ? 'hoy' : null)
-  if (reto === 'hoy' || reto === 'repaso') {
+  // El cuestionario diario ya no es un reto (989): su sitio es «Parejas» y
+  // quien llega por un enlace viejo va al menú. El repaso sigue.
+  if (reto === 'hoy') {
+    location.replace('/retos')
+    return
+  }
+  if (reto === 'repaso') {
     modo = reto === 'hoy' ? 'diario' : 'repaso'
     await cargarReto()
     return

@@ -758,6 +758,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   del día. Y la hoja de compartir es Instagram (Historia 1080×1920 y
   Publicación) y X, sin pestaña de texto: una pantalla le da la vertical de
   1080×1350 y la apaisada, y la historia la monta la hoja (`historiaDe`).
+- **Los retos son seis y el sexto es «Parejas»** (tanda 989): «El reto de
+  hoy» (el quiz) salió de `RETOS`, de la portada y del onboarding, y `/reto`
+  es un 301 a `/retos`. Un reto nuevo es una entrada de `RETOS`
+  (`js/retos-xp.js`), su rama en `retos_xp` (la base) y en la regla de
+  `retos_resultados_juego`, en la MISMA migración, y su ficha en el menú.
+  El menú de /retos cabe en una pantalla del móvil: lo que no es jugar va
+  plegado en «Tu historial» y se carga al abrirlo; si añades algo, va ahí.
+  Y cada final con cuenta dice cómo te mueve en la liga (`data.liga` de
+  `guardarResultado`, pintado por `premiosHtml`).
 - **Una página tiene UNA dirección para Google** (tanda 906). La canónica
   la arma `urlCanonica` (meta-social.js): sin `.html`, en pokedoc.es y solo
   con los parámetros que eligen el contenido (`PARAMETROS_CANONICOS`); la de

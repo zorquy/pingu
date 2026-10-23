@@ -32,9 +32,17 @@ export async function guardarResultado(juego, dia, r = {}) {
   // parámetro y PostgREST no la encuentra: se repite sin él, que el
   // resultado y la XP valen más que la partida.
   const partida = partidaLocal(juego, dia)
+  // El puesto en la liga de la semana antes de guardar (989): la liga es la
+  // XP de los seis retos (`portada_clasificacion`), y al acabar se dice si
+  // subes. Sin la función, no se dice nada.
+  const antes = await puestoEnLiga()
   let { data, error } = await supabase.rpc('retos_guardar', partida ? { ...args, p_estado: partida } : args)
   if (error && partida && noHayFuncion(error)) ({ data, error } = await supabase.rpc('retos_guardar', args))
   if (error) return noHayFuncion(error) ? { faltaMigracion: true } : { error: error.message }
+  if (data?.nuevo && antes !== null) {
+    const despues = await puestoEnLiga()
+    if (despues) data = { ...data, liga: { antes, despues } }
+  }
   if (data?.nuevo) {
     const ganado = (data.xp || 0) + (data.xpPerfecto || 0) + (data.xpRacha || 0)
     try {
@@ -47,6 +55,17 @@ export async function guardarResultado(juego, dia, r = {}) {
     }
   }
   return data || {}
+}
+
+// Tu puesto en la liga de la semana: 0 si no estás, null si no se sabe.
+async function puestoEnLiga() {
+  try {
+    const { data, error } = await supabase.rpc('portada_clasificacion', { p_periodo: 'semana' })
+    if (error || !data) return null
+    return Number(data.tu?.puesto) || 0
+  } catch {
+    return null
+  }
 }
 
 // La partida de hoy de un juego, como la guarda su página en el navegador.

@@ -34,14 +34,3 @@ export function hechoHoy(dia, numerosHoy = null) {
 export function siguienteRetoHtml(siguiente) {
   return `${siguiente ? `<a class="btn-primary rj-siguiente" href="${escapeHtml(siguiente.ruta)}">Siguiente: ${escapeHtml(siguiente.titulo)} →</a>` : ''}<a class="btn-secondary rj-volver-retos" href="/retos">${siguiente ? 'Volver a los retos' : 'Todos hechos por hoy · Volver a los retos'}</a>`
 }
-
-// El botón de arriba, en cualquier pantalla que lo pinte: abre la hoja con
-// lo de hoy. Lo que la pantalla acaba de jugar ya está en localStorage
-// cuando se pinta el final, así que no hay que pasarle nada.
-if (typeof document !== 'undefined') {
-  document.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-mi-dia]')
-    if (!b) return
-    import('./mi-dia-compartir.js').then(({ compartirMiDia }) => compartirMiDia({ dia: b.dataset.miDia })).catch(() => {})
-  })
-}

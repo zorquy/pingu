@@ -5,20 +5,33 @@
 // solo para enseñarla antes de jugar.
 
 // Los seis, en el orden del menú. `juego` es la clave de `retos_resultados`.
+// Desde la 989 el sexto es «Parejas» y «El reto de hoy» (el cuestionario,
+// 'reto') ya no está: sus resultados viejos siguen en la base.
 // `local` es dónde guarda el navegador la partida de hoy (se puede jugar sin
 // cuenta): el menú lo lee para pintar «Hecho» también sin sesión.
 export const RETOS = [
-  { juego: 'reto', titulo: 'El reto de hoy', ruta: '/reto', arte: 'azul', icono: 'helpCircle', texto: 'Cinco preguntas sacadas de los cursos. Liga semanal.', chips: ['+15 XP', '5 preguntas'], local: null },
   { juego: 'carta', titulo: '¿Qué carta es?', ruta: '/carta-del-dia', arte: 'morado', icono: 'eye', texto: 'Una carta borrosa que se aclara con cada intento. Tienes seis.', chips: ['Hasta +50 XP', '6 intentos'], local: 'pokedoc-carta-del-dia' },
   { juego: 'caro', titulo: '¿Más caro o más barato?', ruta: '/mas-caro', arte: 'ambar', icono: 'coins', texto: 'Dos cartas con precio real de Cardmarket. ¿Cuál vale más?', chips: ['Hasta +30 XP', '5 rondas'], local: 'pokedoc-mas-caro' },
   { juego: 'silueta', titulo: '¿Quién es ese Pokémon?', ruta: '/quien-es', arte: 'cian', icono: 'sparkles', texto: 'La silueta de siempre, como en la tele. Elige entre cuatro.', chips: ['Hasta +20 XP', '3 intentos'], local: 'pokedoc-quien-es' },
   { juego: 'ordena', titulo: 'Ordena por precio', ruta: '/ordena-precio', arte: 'verde', icono: 'trendingUp', texto: 'Cuatro cartas: ponlas de la más barata a la más cara.', chips: ['Hasta +25 XP', '3 intentos'], local: 'pokedoc-ordena-precio' },
   { juego: 'expansion', titulo: '¿De qué expansión es?', ruta: '/que-expansion', arte: 'rosa', icono: 'layers', texto: 'Sale una carta: ¿de qué colección es? Para los que se saben las eras.', chips: ['Hasta +20 XP', '5 rondas'], local: 'pokedoc-que-expansion' },
+  { juego: 'parejas', titulo: 'Parejas', ruta: '/parejas', arte: 'azul', icono: 'cards', texto: 'Doce cartas boca abajo: encuentra las seis parejas en los menos movimientos.', chips: ['Hasta +30 XP', '6 parejas'], local: 'pokedoc-parejas' },
 ]
 
 // Los que hacen falta para el «día perfecto» (los seis) y su premio.
 export const XP_DIA_PERFECTO = 25
 export const XP_RACHA_SEMANA = 50
+
+// Parejas (989): con los mínimos (6) o uno de más, +30; hasta 10, +20;
+// hasta 14, +10; y +5 si tardas más. Siempre se acaba.
+export const PAREJAS = 6
+export function xpDeMovimientos(m) {
+  const n = Number(m) || 0
+  if (n <= PAREJAS + 1) return 30
+  if (n <= 10) return 20
+  if (n <= 14) return 10
+  return 5
+}
 
 const XP_CARTA = { 1: 50, 2: 45, 3: 40, 4: 30, 5: 20, 6: 15 }
 const XP_SILUETA = { 1: 20, 2: 10, 3: 5 }
@@ -42,6 +55,8 @@ export function xpDe(juego, r = {}) {
   if (juego === 'silueta') return r.acertada ? XP_SILUETA[r.intentos] ?? 5 : 0
   if (juego === 'ordena') return r.acertada ? XP_ORDENA[r.intentos] ?? 8 : 2
   if (juego === 'expansion') return Math.min(5, aciertos) * 4
+  // Parejas: `intentos` son los movimientos (989).
+  if (juego === 'parejas') return xpDeMovimientos(r.intentos)
   return 0
 }
 
@@ -99,6 +114,12 @@ export function resumenLocal(juego, g, dia) {
     const hecho = Boolean(g.acertada) || n >= 3
     return { hecho, empezado: true, texto: g.acertada ? `Ordenadas en ${n}` : hecho ? 'No ordenadas' : `${n} de 3 intentos`, xp: hecho ? xpDe('ordena', { acertada: g.acertada, intentos: n }) : 0 }
   }
+  if (juego === 'parejas') {
+    const m = Number(g.movimientos) || 0
+    if (!m) return null
+    const hecho = (g.hechas || []).length >= PAREJAS
+    return { hecho, empezado: true, texto: hecho ? `${m} movimientos` : `${(g.hechas || []).length} de ${PAREJAS} parejas`, xp: hecho ? xpDeMovimientos(m) : 0 }
+  }
   if (juego === 'expansion') {
     const e = g.elegidas || []
     if (!e.length) return null
@@ -112,6 +133,6 @@ export function resumenLocal(juego, g, dia) {
 // Del resultado de la base (`retos_mis_numeros().hoy[juego]`) al mismo resumen.
 export function resumenDeBase(juego, h) {
   if (!h) return null
-  const t = { carta: h.acertada ? `Acertada en ${h.intentos}` : 'No acertada', caro: h.aciertos === 5 ? 'Perfecto' : `${h.aciertos} de 5`, silueta: h.acertada ? (h.intentos === 1 ? 'A la primera' : `Acertado en ${h.intentos}`) : 'No acertado', ordena: h.acertada ? `Ordenadas en ${h.intentos}` : 'No ordenadas', expansion: h.aciertos === 5 ? 'Perfecto' : `${h.aciertos} de 5`, reto: `${h.aciertos} de ${h.total}` }
+  const t = { carta: h.acertada ? `Acertada en ${h.intentos}` : 'No acertada', caro: h.aciertos === 5 ? 'Perfecto' : `${h.aciertos} de 5`, silueta: h.acertada ? (h.intentos === 1 ? 'A la primera' : `Acertado en ${h.intentos}`) : 'No acertado', ordena: h.acertada ? `Ordenadas en ${h.intentos}` : 'No ordenadas', expansion: h.aciertos === 5 ? 'Perfecto' : `${h.aciertos} de 5`, reto: `${h.aciertos} de ${h.total}`, parejas: `${h.intentos} movimientos` }
   return { hecho: true, empezado: true, texto: t[juego] || 'Hecho', xp: h.xp || 0 }
 }
