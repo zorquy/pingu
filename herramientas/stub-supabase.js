@@ -1670,6 +1670,44 @@ export const supabase = {
       }
       return { data: { cartas: cartasL.length, nuevas, ya, copias }, error: null }
     }
+    // Las repetidas (987): la lista la CALCULA la base (se prueba contra
+    // PostgreSQL de verdad); aquí la da la prueba en __FAKE_REPETIDAS__, y
+    // resolver la quita de su grupo y la apunta en «hechas», como la base.
+    if (nombre === 'catalogo_posibles_repetidas' || nombre === 'catalogo_repetida_resolver' || nombre === 'catalogo_repetida_deshacer' || nombre === 'catalogo_repetidas_distintas') {
+      const yo = sesion?.user?.id || null
+      const perfil = T.user_profiles.find((p) => p.id === yo) || {}
+      if (!yo || !perfil.is_admin) return { data: null, error: { code: '42501', message: 'Solo el admin corrige el catálogo.' } }
+      const R = (typeof window !== 'undefined' && window.__FAKE_REPETIDAS__) || null
+      if (!R) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
+      R.hechas ||= []
+      R.distintas ||= []
+      const clave = (g) => `${g.market}|${g.set_id}|${g.numero}|${g.nombre}`
+      if (nombre === 'catalogo_posibles_repetidas') {
+        const grupos = R.grupos.filter((g) => g.market === (args.p_market || g.market) && !R.distintas.some((d) => clave(d) === clave(g)))
+        return { data: { total: grupos.length, grupos: JSON.parse(JSON.stringify(grupos)), hechas: R.hechas.filter((h) => !h.deshecha), distintas: R.distintas }, error: null }
+      }
+      if (nombre === 'catalogo_repetida_resolver') {
+        const g = R.grupos.find((x) => x.cartas.some((c) => c.id === args.p_carta) && x.cartas.some((c) => c.id === args.p_destino))
+        if (!g) return { data: null, error: { code: 'P0002', message: 'No existe la carta.' } }
+        const carta = g.cartas.find((c) => c.id === args.p_carta)
+        g.cartas = g.cartas.filter((c) => c.id !== args.p_carta)
+        if (g.cartas.length < 2) R.grupos = R.grupos.filter((x) => x !== g)
+        const id = R.hechas.length + 1
+        R.hechas.unshift({ id, market: args.p_market, carta: args.p_carta, destino: args.p_destino, decision: args.p_decision, etiqueta: args.p_etiqueta, nombre: carta.name, hecha_at: new Date().toISOString(), _g: g, _c: carta })
+        return { data: { hecha: id, version: -1, creada: true }, error: null }
+      }
+      if (nombre === 'catalogo_repetida_deshacer') {
+        const h = R.hechas.find((x) => x.id === args.p_hecha && !x.deshecha)
+        if (!h) return { data: null, error: { code: '22023', message: 'Eso ya se deshizo.' } }
+        h.deshecha = true
+        h._g.cartas.push(h._c)
+        if (!R.grupos.includes(h._g)) R.grupos.push(h._g)
+        return { data: { carta: h.carta, version_quitada: true }, error: null }
+      }
+      if (args.p_quitar) R.distintas = R.distintas.filter((d) => !(d.market === args.p_market && d.set_id === args.p_set && d.numero === args.p_numero && d.nombre === args.p_nombre))
+      else R.distintas.push({ market: args.p_market, set_id: args.p_set, numero: args.p_numero, nombre: args.p_nombre, ids: args.p_ids, creado_at: new Date().toISOString() })
+      return { data: true, error: null }
+    }
     if (nombre === 'catalogo_quien_tiene_carta' || nombre === 'catalogo_version_mano' || nombre === 'catalogo_borrar_version_mano' || nombre === 'catalogo_version_foto') {
       const yo = sesion?.user?.id || null
       const perfil = T.user_profiles.find((p) => p.id === yo) || {}

@@ -129,7 +129,7 @@ console.log('\n── 3. La web ──')
 console.log('\n── 4. La pasada de precios ──')
 {
   const precios = readFileSync(join(RAIZ, 'netlify/functions/tcggo-precios.mjs'), 'utf8')
-  check('pregunta por las versiones de TCGdex con las ediciones, por producto', /origen=in\.\(edicion,tcgdex\)&cm_id_product=in\.\(/.test(precios))
+  check('pregunta por las versiones de TCGdex con las ediciones, por producto', /origen=in\.\(edicion,tcgdex[^)]*\)&cm_id_product=in\.\(/.test(precios))
   const { preciosDeEdiciones } = await import(`${RAIZ}/netlify/lib/tcggo.mjs`)
   const suya = { id: 99001, name: 'Pansage', card_number: '004', cardmarket_id: 836261, prices: { cardmarket: { lowest_near_mint: 1.75, lowest_near_mint_ES: 2.1 } } }
   const r = preciosDeEdiciones([{ tcggo_id: -1, card_id: 'sv10.5b-004', set_id: 'sv10.5b', etiqueta: 'Poké Ball', clase: 'impresion', cm_id_product: 836261 }], new Map([[836261, suya]]), { ahora: new Date('2026-10-22T10:00:00Z') })
