@@ -139,7 +139,22 @@
     </header>
     <section class="pa-tablero">
       <p class="pa-marcador" aria-live="polite"><span>Movimientos <b id="paMovimientos">0</b></span><span>Parejas <b id="paHechas">0/6</b></span></p>
-      <div class="pa-mesa" id="paMesa" role="group" aria-label="Las doce cartas"></div>
+      <!-- Las doce boca abajo desde el primer pintado (990): el dorso no necesita
+           las cartas, así que la mesa está antes de que lleguen. -->
+      <div class="pa-mesa" id="paMesa" role="group" aria-label="Las doce cartas" aria-busy="true">
+        <button type="button" class="pa-carta" disabled aria-label="Carta 1, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+        <button type="button" class="pa-carta" disabled aria-label="Carta 2, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+        <button type="button" class="pa-carta" disabled aria-label="Carta 3, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+        <button type="button" class="pa-carta" disabled aria-label="Carta 4, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+        <button type="button" class="pa-carta" disabled aria-label="Carta 5, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+        <button type="button" class="pa-carta" disabled aria-label="Carta 6, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+        <button type="button" class="pa-carta" disabled aria-label="Carta 7, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+        <button type="button" class="pa-carta" disabled aria-label="Carta 8, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+        <button type="button" class="pa-carta" disabled aria-label="Carta 9, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+        <button type="button" class="pa-carta" disabled aria-label="Carta 10, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+        <button type="button" class="pa-carta" disabled aria-label="Carta 11, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+        <button type="button" class="pa-carta" disabled aria-label="Carta 12, boca abajo"><span class="pa-dorso" aria-hidden="true"></span><span class="pa-cara"></span></button>
+      </div>
       <div class="pa-final hidden" id="paFinal"></div>
     </section>
   </main>

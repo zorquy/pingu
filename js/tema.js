@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { getSession, escapeHtml } from './app.js'
 import { icons } from './icons.js'
+import { paginacionHtml } from './paginacion.js'
 import { showToast } from './toast.js'
 import { reportButtonHtml, wireReportButtons } from './report.js'
 import { sanitizeRichText } from './richtext-format.js'
@@ -581,13 +582,15 @@ async function pintarMensajes() {
   // botones y, antes, partía un «[[Herramienta Inventada]]» en trozos.
   const glosario = () => import('./glosario.js').then((m) => { const vistos = new Set(); elMensajes.querySelectorAll('.foro-mensaje-cuerpo').forEach((c) => m.subrayarGlosario(c, vistos)) }).catch(() => {})
 
-  elPaginacion.innerHTML = paginacionHtml(totalPaginas)
+  elPaginacion.innerHTML = paginacionHtml(pagina, totalPaginas)
   elPaginacion.querySelectorAll('[data-pagina]').forEach((b) =>
     b.addEventListener('click', () => {
       pagina = Number(b.dataset.pagina)
       const url = new URL(window.location.href)
       url.searchParams.set('p', String(pagina))
       window.history.replaceState({}, '', url)
+      // A la página nueva se llega por arriba, no por el pie de la vieja.
+      elMensajes.scrollIntoView({ block: 'start' })
       pintarMensajes()
     })
   )
@@ -833,15 +836,6 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { seguido = fals
 function recortar(html) {
   const texto = String(html || '')
   return texto.length > 600 ? texto.slice(0, 600) + '…' : texto
-}
-
-function paginacionHtml(total) {
-  if (total <= 1) return ''
-  let botones = ''
-  for (let i = 1; i <= total; i++) {
-    botones += `<button type="button" class="page-btn ${i === pagina ? 'active' : ''}" data-pagina="${i}">${i}</button>`
-  }
-  return `<div class="pagination">${botones}</div>`
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -1138,7 +1132,6 @@ async function montarRespuesta() {
         <span class="foro-previa-eti">Así se va a ver</span>
         <div class="article-body foro-mensaje-texto" id="respuestaPreviaCuerpo"></div>
       </div>
-      <p class="foro-ayuda-cartas">Escribe <b>[[Arven]]</b> y se verá la carta, con su precio.</p>
       <div class="foro-form-acciones">
         <button type="submit" class="btn-primary" id="btnResponder">${icons.send(14)} Responder</button>
         <button type="button" class="btn-secondary" id="btnVistaPrevia">${icons.eye(14)} Vista previa</button>

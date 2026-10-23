@@ -758,6 +758,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   del día. Y la hoja de compartir es Instagram (Historia 1080×1920 y
   Publicación) y X, sin pestaña de texto: una pantalla le da la vertical de
   1080×1350 y la apaisada, y la historia la monta la hoja (`historiaDe`).
+- **El paginador del foro es UNO: `js/paginacion.js`** (tanda 990), para la
+  lista de temas y un tema largo: «Anterior», páginas con «…» y «Siguiente»,
+  y en el móvil cinco casillas sin texto. Antes eran `.page-btn` sin una
+  sola regla de CSS. Una lista nueva con páginas pasa por ahí. Y el foro ya
+  no anuncia «[[Arven]]» en ninguna parte (PINGU: «yo lo obviaría»): el
+  código de la 819 sigue, pero no se promete.
 - **Los retos son seis y el sexto es «Parejas»** (tanda 989): «El reto de
   hoy» (el quiz) salió de `RETOS`, de la portada y del onboarding, y `/reto`
   es un 301 a `/retos`. Un reto nuevo es una entrada de `RETOS`

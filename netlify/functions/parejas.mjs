@@ -44,6 +44,17 @@ async function cartasDe(ids, pedir) {
   return ids.map((id) => porId.get(id)).filter(Boolean)
 }
 
+// Cuántas cartas pueden salir: contarlas es lo más lento de elegir, y el
+// número apenas cambia en un día, así que una función ya caliente lo reusa.
+let cuenta = null
+export async function cuantasHay(pedir, ahora = Date.now()) {
+  if (cuenta && ahora - cuenta.cuando < 6 * 3600e3) return cuenta.total
+  const { total } = await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
+  if (total) cuenta = { total, cuando: ahora }
+  return total
+}
+export const olvidarCuenta = () => { cuenta = null }
+
 export async function elegirParejas({ dia, pedir, guardar, libre = null }) {
   if (libre) dia = diaLibre(libre)
   let ids = null
@@ -54,13 +65,14 @@ export async function elegirParejas({ dia, pedir, guardar, libre = null }) {
     if (!sinTabla(e)) throw e
   }
   if (!ids?.length) {
-    const { total } = await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
+    const total = await cuantasHay(pedir)
     if (!total || total < PAREJAS) return { error: 'No hay cartas para elegir.' }
-    const candidatas = []
-    for (const i of indicesDelDia(dia, total, Math.min(CANDIDATAS, total), SAL)) {
-      const fila = (await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&order=id.asc&limit=1&offset=${i}`)).datos?.[0]
-      if (fila?.id) candidatas.push(fila.id)
-    }
+    // A la vez (990): una detrás de otra eran 24 viajes a la base, varios
+    // segundos de espera cada vez que tocaba elegir (la primera partida del
+    // día y cada «Jugar otra vez»).
+    const filas = await Promise.all(indicesDelDia(dia, total, Math.min(CANDIDATAS, total), SAL)
+      .map((i) => pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&order=id.asc&limit=1&offset=${i}`).then((r) => r.datos?.[0]?.id || null)))
+    const candidatas = filas.filter(Boolean)
     const elegidas = cartasQueSirven(await cartasDe(candidatas, pedir))
     if (elegidas.length < PAREJAS) return { error: 'No se han podido elegir seis cartas.' }
     ids = elegidas.map((c) => c.id)
@@ -89,7 +101,10 @@ export default async (req) => {
       guardar: (tabla, fila) => rest(tabla, claveServicio, { metodo: 'POST', cuerpo: [fila], cabeceras: { prefer: 'resolution=ignore-duplicates,return=minimal' } }),
     })
     if (r.error) return Response.json(r, { status: 503, headers: { 'cache-control': 'no-store' } })
-    return Response.json(r, { headers: libre ? CABECERAS_LIBRE : { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
+    // Las del día son las mismas para todo el mundo hasta medianoche: que las
+    // sirva la CDN y no la función (990).
+    const hasta = segundosHastaManana()
+    return Response.json(r, { headers: libre ? CABECERAS_LIBRE : { 'cache-control': `public, max-age=${hasta}`, 'netlify-cdn-cache-control': `public, durable, max-age=${hasta}` } })
   } catch (err) {
     return Response.json({ error: String(err?.message || err).slice(0, 200) }, { status: 502, headers: { 'cache-control': 'no-store' } })
   }

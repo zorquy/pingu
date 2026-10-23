@@ -82,6 +82,10 @@ function pintarFinal() {
   f.classList.remove('hidden')
   $('paCompartir')?.addEventListener('click', compartir)
   cuentaAtras($('paCuenta'), 'Mañana, otras:')
+  // La partida de «Jugar otra vez» se pide ya, por detrás: al tocar, sus
+  // cartas salen de la caché del navegador en vez de esperar a elegirlas.
+  const otra = Number(new URL(f.querySelector('.rj-otra')?.href || location.href).searchParams.get('libre'))
+  if (otra) pedirCartas(otra).catch(() => {})
   if (libre) return
   pintarPremios()
   // La media de la gente, en movimientos: es lo que se compara.
@@ -169,10 +173,18 @@ function sinMesa(texto) {
   $('paSub').classList.add('hidden')
 }
 
+const pedirCartas = (n) => fetch(`/.netlify/functions/parejas${n ? `?libre=${n}` : ''}`, { headers: { accept: 'application/json' } })
+
 async function init() {
+  // La mesa ya sale tapada desde el HTML (990). Las tres cosas que hacen
+  // falta para jugar se piden a la vez: antes iban una detrás de otra.
+  const diaUTC = new Date().toISOString().slice(0, 10)
+  const cuenta = getSession().catch(() => null)
+  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
+  const partida = libre ? Promise.resolve(false) : traerPartidaDeHoy('parejas', diaUTC).catch(() => false)
   let r
   try {
-    const res = await fetch(`/.netlify/functions/parejas${libre ? `?libre=${libre}` : ''}`, { headers: { accept: 'application/json' } })
+    const res = await pedirCartas(libre)
     r = await res.json()
     if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
   } catch {
@@ -183,11 +195,12 @@ async function init() {
   cartas = (r.cartas || []).slice(0, PAREJAS)
   if (cartas.length < PAREJAS) { sinMesa('Hoy no hay cartas para este reto. Vuelve mañana.'); return }
   mesa = mesaDelDia(dia)
-  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
-  if (!libre) await traerPartidaDeHoy('parejas', dia).catch(() => false)
+  await partida
+  if (!libre && dia !== diaUTC) await traerPartidaDeHoy('parejas', dia).catch(() => false)
   const g = leer(CLAVE, null)
   estado = g && g.dia === dia && Array.isArray(g.hechas) ? g : { dia, movimientos: 0, hechas: [], tira: [] }
-  sesion = await getSession().catch(() => null)
+  sesion = await cuenta
+  $('paMesa').removeAttribute('aria-busy')
   if (libre) $('paSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('parejas'), '/parejas'))
   pintarTodo()
   $('paMesa').addEventListener('click', (e) => {

@@ -45,8 +45,8 @@ export const DIAPOSITIVAS = [
   { tipo: 'coleccion', fondo: 'azul', titulo: 'Tu colección, con lo que vale hoy', puntos: ['Añade cartas escaneando con la cámara o buscando por nombre', 'Cada una con su precio en Cardmarket, en tu idioma, al día', 'Lo que vale todo y cuánto ha subido este mes'] },
   { tipo: 'expansiones', fondo: 'cian', titulo: 'Expansiones, álbumes y Pokédex', puntos: ['Cada expansión con lo que tienes y lo que te falta, en occidental y japonés', 'Archivadores como los de verdad, para colocar tus cartas', 'Tu Pokédex: qué especies tienes y cuáles no'] },
   { tipo: 'cambios', fondo: 'rosa', titulo: 'Cambios entre coleccionistas', puntos: ['Apunta las cartas que das y las que buscas', 'PokeDoc te cruza con quien tiene lo que te falta', 'Avisos de precio: te avisa cuando una carta baja de lo que pagarías'] },
-  { tipo: 'foro', fondo: 'morado', titulo: 'Un foro de verdad', puntos: ['Hilos, encuestas, menciones y mensajes privados con fotos', 'Escribe [[Arven]] y sale la carta con su foto y su precio', 'Perfiles con vitrina, medallas y lo que cada uno cambia'] },
-  { tipo: 'retos', fondo: 'verde', titulo: 'Un reto cada día', puntos: ['Seis retos: ¿qué carta es?, ¿quién es ese Pokémon?, ¿más cara o más barata?, ordena por precio, ¿qué expansión?', 'Liga mensual, rachas y logros', 'Experiencia por jugar y una imagen para presumir'] },
+  { tipo: 'foro', fondo: 'morado', titulo: 'Un foro de verdad', puntos: ['Hilos, encuestas, menciones y mensajes privados con fotos', 'Avisos cuando te responden o te mencionan', 'Perfiles con vitrina, medallas y lo que cada uno cambia'] },
+  { tipo: 'retos', fondo: 'verde', titulo: 'Un reto cada día', puntos: ['Seis retos: ¿qué carta es?, ¿quién es ese Pokémon?, ¿más cara o más barata?, ordena por precio, ¿qué expansión? y parejas', 'Liga mensual, rachas y logros', 'Experiencia por jugar y una imagen para presumir'] },
   { tipo: 'torneos', fondo: 'ambar', titulo: 'Torneos en línea', puntos: ['Pareos suizos, top cut y ligas por jornadas', 'Listas de mazo, reportes, clasificación y podio', 'Abiertos a todo el mundo: cualquiera puede crear uno'] },
   { tipo: 'mazos', fondo: 'cian', titulo: 'Mazos, laboratorio y meta', puntos: ['Constructor de mazos con legalidad y lo que te falta por comprar', 'Laboratorio: juega tu mazo contra ti mismo, prueba manos y evoluciones', 'Los mazos del meta, con su porcentaje y sus cartas'] },
   { tipo: 'guias', fondo: 'azul', titulo: 'Guías, cursos y noticias', puntos: ['Aprende a leer una carta, a detectar falsas y a entender rarezas', 'Cursos jugables con puntos y niveles', 'Noticias, calendario de lanzamientos y productos con precio'] },
@@ -372,7 +372,7 @@ const DIBUJOS = {
     const chip = c ? `${nombreDeCarta(c)} · ${euros(c.precio)}` : 'Umbreon ex · 312 €'
     let y = burbuja(ctx, { quien: 'pingu · hace 2 h', t: `¿Merece la pena abrir sobres este mes? Yo saqué un ${chip}`, x: 70, y: 650, maxAncho: 860 })
     burbuja(ctx, { quien: 'maria_tcg · hace 1 h', t: 'Yo ya tengo 3 cajas abiertas y ni una buena 😭', x: 70, y: y + 20, maxAncho: 860 })
-    // La carta de la que hablan, al lado: es lo que hace [[Arven]].
+    // La carta de la que hablan, al lado.
     if (c && datos.fotoForo) dibujarCarta(ctx, datos.fotoForo, { x: 790, y: 880, w: 220, h: 307, r: 16, nombre: nombreDeCarta(c) })
   },
   async retos(ctx, d, datos) {

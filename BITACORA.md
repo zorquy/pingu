@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-23 (225) — PINGU-Claude (990 — paginador del foro, fuera «[[Arven]]», Parejas sin esperas)
+
+**Hecho**: el paginador del foro (lista de temas y tema largo) es uno nuevo,
+`js/paginacion.js`, con CSS por fin («Anterior», páginas con «…»,
+«Siguiente»; 44 px; en el móvil cinco casillas). Fuera la pista «Escribe
+[[Arven]]» de la caja de responder, la destacada de /novedades (ahora
+Parejas, con su dibujo) y el punto del carrusel de Redes. Parejas: la mesa
+tapada sale desde el HTML, las tres peticiones del arranque van a la vez, la
+función elige con las 24 consultas a la vez y la cuenta reusada, las del día
+se sirven desde la CDN y «Jugar otra vez» se pide por detrás al acabar.
+
+**Ficheros**: `js/paginacion.js` (nuevo), `js/foro.js`, `js/tema.js`,
+`css/foro.css`, `js/novedades.js`, `css/novedades.css`,
+`js/redes-carrusel.js`, `parejas.html`, `js/parejas-juego.js`,
+`netlify/functions/parejas.mjs`, `CLAUDE.md`, `SCHEMA.md`, `novedades.json`,
+`BITACORA.md`. En `pruebas`: `test-tanda-990.mjs` (nueva) y al día 989 y
+819-pantalla. Sin migración.
+
+**Pendiente**: lo de la 224 (ejecutar la migración 989 y otra vez la 987) y
+la 991 («¿Quién es?» borroso, con migración).
+
 ## 2026-10-23 (224) — PINGU-Claude (989 — retos, 2.ª tanda: Parejas, el menú en una pantalla, la liga en los finales)
 
 **Hecho**: el sexto reto es «Parejas» (doce cartas boca abajo, seis parejas;

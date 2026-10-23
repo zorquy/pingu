@@ -14,11 +14,11 @@
     {
       "mes": "2026-10",
       "tipo": "nuevo",
-      "titulo": "Cartas en el foro",
-      "texto": "Escribe [[Arven]] en un mensaje y sale la carta con su foto y su precio.",
-      "enlace": "/foro",
-      "boton": "Ir al foro",
-      "dibujo": "foro-carta",
+      "titulo": "Parejas, el reto nuevo",
+      "texto": "Doce cartas boca abajo y seis parejas: cuantos menos movimientos, más experiencia. Cada día, las mismas para todos.",
+      "enlace": "/parejas",
+      "boton": "Jugar",
+      "dibujo": "parejas",
       "fondo": "azul"
     },
     {
@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-23", "tipo": "arreglo", "texto": "El paso de página del foro se ve bien: «Anterior» y «Siguiente», botones grandes y, en los temas muy largos, solo las páginas que importan.", "enlace": "/foro" },
+    { "fecha": "2026-10-23", "tipo": "mejora", "texto": "Parejas sale al momento: las cartas boca abajo están desde el principio, y «Jugar otra vez» ya tiene su partida lista al tocarlo.", "enlace": "/parejas" },
     { "fecha": "2026-10-23", "tipo": "nuevo", "texto": "Nuevo reto diario: Parejas. Doce cartas boca abajo, seis parejas: cuantos menos movimientos, más experiencia. Sustituye a «El reto de hoy».", "enlace": "/parejas" },
     { "fecha": "2026-10-23", "tipo": "mejora", "texto": "Los retos caben en una pantalla: los seis a la vista, lo que llevas hoy arriba, y tu liga, tus logros y tus días plegados en «Tu historial». Y al acabar un reto te dice si subes en la liga de la semana.", "enlace": "/retos" },
     { "fecha": "2026-10-23", "tipo": "arreglo", "texto": "En «¿Qué carta es?», el buscador ya no amontona las cartas: salen enteras, por colección y con el nombre y el número debajo.", "enlace": "/carta-del-dia" },

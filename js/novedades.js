@@ -22,9 +22,9 @@ const DIBUJOS = {
     <span class="nv-mini-era">Neo</span>
     <span class="nv-mini-fila"><i class="nv-tono-3"></i><span>Gold, Silver, to a New World</span><b>8 €</b></span>
   </div>`,
-  'foro-carta': () => `<div class="nv-mini nv-mini-msg" aria-hidden="true">
-    <span class="nv-mini-avatar">P</span>
-    <span class="nv-mini-bocadillo">Para mí la clave es <span class="nv-mini-carta"><i></i>Arven <b>0,40 €</b></span> en el turno uno</span>
+  parejas: () => `<div class="nv-mini nv-mini-parejas" aria-hidden="true">
+    <i></i><i class="nv-par"></i><i></i><i></i>
+    <i></i><i></i><i class="nv-par"></i><i></i>
   </div>`,
   retos: () => `<div class="nv-mini nv-mini-estante" aria-hidden="true">
     <span class="nv-mini-era">Tu día · 4 de 6</span>

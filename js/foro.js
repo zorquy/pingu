@@ -2,6 +2,7 @@ import { supabase } from './supabase.js'
 import { COLUMNAS_RANGO } from './rangos.js'
 import { getSession, escapeHtml } from './app.js'
 import { icons } from './icons.js'
+import { paginacionHtml } from './paginacion.js'
 import { showToast } from './toast.js'
 import {
   haceCuanto,
@@ -780,7 +781,7 @@ async function pintarListaDeTemas(foro) {
           : lista.map(filaTema).join('')
       }
     </section>
-    ${paginacionHtml(totalPaginas)}`
+    ${paginacionHtml(paginaActual, totalPaginas)}`
 
   document.querySelectorAll('[data-pagina]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -798,17 +799,6 @@ async function pintarListaDeTemas(foro) {
   // Se devuelve si hay algo sin leer para que la cabecera decida si
   // enseña el botón de "marcar todo como leído".
   return lista.some((t) => estaSinLeer(t, marcas))
-}
-
-function paginacionHtml(total) {
-  if (total <= 1) return ''
-  const botones = []
-  for (let i = 1; i <= total; i++) {
-    botones.push(
-      `<button type="button" class="page-btn ${i === paginaActual ? 'active' : ''}" data-pagina="${i}">${i}</button>`
-    )
-  }
-  return `<div class="pagination">${botones.join('')}</div>`
 }
 
 // ─────────────────────────────────────────────────────────────

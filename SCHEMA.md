@@ -41785,6 +41785,57 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 990 — El paginador del foro, fuera «[[Arven]]» y Parejas sin esperas
+
+Tres cosas que PINGU vio el 2026-10-23 al probar la 989.
+
+**El paginador del foro no tenía CSS.** Desde que existe, la lista de temas
+y un tema largo pintaban `<button class="page-btn">` dentro de
+`.pagination`, y no había ni una regla para ninguna de las dos clases: los
+botones del navegador, diminutos, y uno por página (un tema de 30 páginas,
+30 botones). Ahora es UNO, `js/paginacion.js`, para los dos sitios:
+«Anterior», las páginas que importan (`paginasAVer`: la primera, la última y
+las de al lado de la tuya, con «…»; siete casillas como mucho) y
+«Siguiente». En el móvil, `paginasAVerEstrecho` (cinco como mucho) y las
+flechas sin texto; las dos listas van en el HTML y la hoja enseña una u otra.
+Todo de 44 px, la tuya en `--navy-solid`, y el hueco de la flecha que falta
+se queda (`visibility: hidden`) para que los números no bailen. En un tema,
+cambiar de página sube al primer mensaje (`scroll-margin-top` de
+`#temaMensajes`, por la barra de arriba). Su CSS, en `foro.css`.
+
+**Fuera «escribe [[Arven]]».** PINGU: «eso yo lo obviaría». Se van la pista
+de la caja de responder (`.foro-ayuda-cartas`), la destacada de octubre de
+/novedades (en su sitio, Parejas, con el dibujo `parejas` de
+`js/novedades.js`) y el punto del carrusel de /admin → Redes. El código que
+pinta las cartas (`js/foro-cartas.js`, 819) se queda: lo que ya se escribió
+así se sigue viendo, pero la web ya no lo promete.
+
+**Parejas tardaba en salir.** Tres esperas una detrás de otra:
+
+1. La página no pintaba nada hasta tener las cartas. Ahora las doce boca
+   abajo van en el HTML (`aria-busy` hasta que llegan): el dorso no necesita
+   saber qué cartas son.
+2. El cliente pedía las cartas, DESPUÉS la partida de otro aparato
+   (`traerPartidaDeHoy`) y DESPUÉS la sesión. Ahora las tres a la vez; la
+   partida se pide con el día UTC del navegador y, si la función contesta
+   otro día (justo a medianoche), se vuelve a pedir con el suyo.
+3. La función, cuando tenía que ELEGIR (la primera partida del día y cada
+   «Jugar otra vez», que no se guarda), contaba las cartas y hacía 24
+   consultas por desplazamiento una detrás de otra. Ahora las 24 van a la
+   vez (`Promise.all`) y la cuenta se reusa seis horas en una función
+   caliente (`cuantasHay`; `olvidarCuenta` para las pruebas). Las del día
+   llevan además `netlify-cdn-cache-control: public, durable` hasta
+   medianoche: las sirve la CDN y no la función. Y al acabar, la partida de
+   «Jugar otra vez» se pide por detrás (su `?libre=N` sale del enlace), así
+   que al tocarlo ya está en la caché del navegador.
+
+**Pruebas**: `test-tanda-990.mjs` (lo puro del paginador; un tema de 120
+mensajes en el PC y en el móvil: lo que se ve, 44 px, el azul, que no se
+sale y que «Siguiente» lleva a la página 2 desde arriba; que nada promete
+[[Arven]]). En `test-tanda-989.mjs`: las candidatas a la vez, la cuenta
+reusada, la cabecera de CDN y la mesa tapada mientras llegan las cartas. Al
+día `test-tanda-819-pantalla.mjs` (la caja ya no lo anuncia).
+
 ## Tanda 989 — Retos, más limpios (2.ª): «Parejas», el menú en una pantalla y la liga en cada final
 
 Segunda tanda de la propuesta «Retos, más limpios» (PINGU: «si, me gustan

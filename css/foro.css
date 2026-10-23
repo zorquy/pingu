@@ -2654,14 +2654,100 @@ html:has(#temaResponder) {
   color: var(--blanco-fijo);
 }
 
-/* La pista de [[carta]] (819): solo con la caja abierta, que recogida no cabe. */
-.foro-ayuda-cartas {
-  display: none;
-  margin: var(--e-xs) 0 0;
-  color: var(--text-mid);
-  font-size: var(--t-xs);
+/* El paginador (tanda 990, js/paginacion.js): flechas con texto en el PC,
+   solo flecha en el móvil, y la página tuya en azul. */
+#temaMensajes {
+  scroll-margin-top: 96px;
 }
 
-#temaResponder .foro-form:is(.abierta, :focus-within) .foro-ayuda-cartas {
-  display: block;
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-sm);
+  margin: var(--e-lg) 0;
+}
+
+.pag-numeros {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.pag-num,
+.pag-flecha {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+button.pag-num:hover,
+button.pag-flecha:hover {
+  color: var(--navy);
+}
+
+.pag-num:focus-visible,
+.pag-flecha:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.pag-actual {
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  cursor: default;
+}
+
+/* Sin anterior o sin siguiente, el hueco se queda para que los números no bailen. */
+span.pag-flecha {
+  visibility: hidden;
+}
+
+.pag-flecha {
+  padding: 0 var(--e-md);
+}
+
+.pag-ant svg {
+  transform: scaleX(-1);
+}
+
+.pag-hueco {
+  min-width: 16px;
+  color: var(--text-mid);
+  text-align: center;
+}
+
+.pag-estrecho {
+  display: none;
+}
+
+@media (max-width: 560px) {
+  .pag-ancho {
+    display: none;
+  }
+
+  .pag-estrecho {
+    display: flex;
+  }
+
+  .pag-texto {
+    display: none;
+  }
+
+  .pag-flecha {
+    padding: 0;
+  }
 }
