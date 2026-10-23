@@ -17,8 +17,8 @@ end $$;
 set prueba.uid = '00000000-0000-0000-0000-00000000000a';
 -- ── La lista ──
 create temp table lista as select public.catalogo_posibles_repetidas('WEST') as v;
-insert into resultado (caso, ok) select 'salen el Darmanitan, el Pikachu («060» y «60»), el Snorlax y el Escavalier de la 934 («060» y «60»)',
-  (v->>'total')::int = 4 and (select array_agg(g->>'numero' order by g->>'numero') from jsonb_array_elements(v->'grupos') g) = array['181', '200', '60', '60'] from lista;
+insert into resultado (caso, ok) select 'salen el Darmanitan, el Pikachu («060» y «60»), el Snorlax, el Escavalier de la 934 y los dos del Prize Pack',
+  (v->>'total')::int = 6 and (select array_agg(g->>'numero' order by g->>'numero') from jsonb_array_elements(v->'grupos') g) = array['12', '181', '20', '200', '60', '60'] from lista;
 insert into resultado (caso, ok) select '  …ni Mew contra Mewtwo (otro nombre) ni lo de una colección escondida',
   not exists (select 1 from lista, jsonb_array_elements(v->'grupos') g where g->>'numero' in ('100', '1')) from lista limit 1;
 insert into resultado (caso, ok) select 'la primera de cada grupo es la que ya teníamos (la de TCGdex antes que la de TCGGO)',
@@ -31,9 +31,12 @@ insert into resultado (caso, ok) select 'el japonés no se mezcla: con el catál
 
 -- ── Errores ──
 do $$ begin
-  begin perform public.catalogo_repetida_resolver('tcggo-48211', 'svp-181', 'WEST', 'version', 'Reverse Holo');
-    insert into resultado (caso, ok) values ('un nombre de las de siempre no vale', false);
-  exception when invalid_parameter_value then insert into resultado (caso, ok) values ('un nombre de las de siempre no vale', true); end;
+  begin perform public.catalogo_repetida_resolver('tcggo-48211', 'svp-181', 'WEST', 'version', 'Standard');
+    insert into resultado (caso, ok) values ('«Standard» (la carta misma de TCGGO) no vale como versión', false);
+  exception when invalid_parameter_value then insert into resultado (caso, ok) values ('«Standard» (la carta misma de TCGGO) no vale como versión', true); end;
+  begin perform public.catalogo_repetida_resolver('tcggo-48211', 'svp-181', 'WEST', 'version', '1st Edition');
+    insert into resultado (caso, ok) values ('  …ni la 1.ª edición (las ediciones son de la 935)', false);
+  exception when invalid_parameter_value then insert into resultado (caso, ok) values ('  …ni la 1.ª edición (las ediciones son de la 935)', true); end;
   begin perform public.catalogo_repetida_resolver('tcggo-48211', 'svp-181', 'WEST', 'version', null);
     insert into resultado (caso, ok) values ('sin nombre no hay versión', false);
   exception when invalid_parameter_value then insert into resultado (caso, ok) values ('sin nombre no hay versión', true); end;
@@ -123,6 +126,21 @@ select public.catalogo_repetida_deshacer((select (v->>'hecha')::bigint from r4))
 insert into resultado (caso, ok) select '  …y deshacerla quita las dos',
   exists (select 1 from tcg_cards where id = 'svp-060') and (select count(*) from tcg_correcciones where id in ('svp-060', 'tcggo-47700')) = 0
   and exists (select 1 from user_collection where card_id = 'svp-060');
+
+-- ── El Prize Pack: la holo es la versión «Holo» de la normal ──
+create temp table r5 as select public.catalogo_repetida_resolver('tcggo-9013', 'tcggo-9012', 'WEST', 'version', 'Holo', 'sello', 'https://tcggo/arcanine-holo.png') as v;
+insert into resultado (caso, ok) select 'Prize Pack: «Holo» vale, la versión es fundida, cuenta (impresión aunque se pida sello) y lleva su producto',
+  count(*) = 1 and bool_and(origen = 'fundida' and clase = 'impresion' and cm_id_product = 990013 and imagen = 'https://tcggo/arcanine-holo.png')
+  from tcg_card_versions where card_id = 'tcggo-9012' and etiqueta = 'Holo';
+insert into resultado (caso, ok) select '  …y la copia de la holo pasa como «holo» (el id de la web)',
+  exists (select 1 from user_collection where card_id = 'tcggo-9012' and variante = 'holo' and idioma = 'es');
+select public.catalogo_repetida_resolver('tcggo-9021', 'tcggo-9020', 'WEST', 'version', 'Reverse Holo');
+insert into resultado (caso, ok) select '«Reverse Holo» se apunta como «reverse», que es como lo lee la web',
+  public.catalogo_variante_de_etiqueta('Reverse Holo') = 'reverse' and public.catalogo_variante_de_etiqueta('Holofoil') = 'holo'
+  and public.catalogo_variante_de_etiqueta('Staff') = 'staff' and exists (select 1 from tcg_card_versions where card_id = 'tcggo-9020' and etiqueta = 'Reverse Holo' and clase = 'impresion');
+select public.catalogo_repetida_deshacer((select (v->>'hecha')::bigint from r5));
+insert into resultado (caso, ok) select '  …y deshacer el Prize Pack devuelve la copia a la holo como estaba',
+  exists (select 1 from user_collection where card_id = 'tcggo-9013' and variante = 'normal') and not exists (select 1 from tcg_card_versions where card_id = 'tcggo-9012' and etiqueta = 'Holo');
 
 -- ── «Son distintas» ──
 select public.catalogo_repetidas_distintas('WEST', 'svp', '200', 'snorlax', array['svp-200', 'tcggo-200']);
