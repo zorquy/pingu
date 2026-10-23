@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-24 (227) — PINGU-Claude (992 — tapar lo que vale la colección)
+
+**Hecho**: un ojo al lado del valor (cabecera y Panel de /mi-coleccion) lo
+cambia por asteriscos, con el cambio, los chips y los rótulos de la gráfica;
+se recuerda en el navegador. Lo tapa la hoja con `html.mc-valor-oculto`.
+
+**Ficheros**: `js/mi-coleccion/valor-oculto.js` (nuevo), `js/mi-coleccion.js`,
+`js/mi-coleccion/panel.js`, `css/mi-coleccion.css`, `SCHEMA.md`,
+`novedades.json`, `BITACORA.md`. En `pruebas`: `test-tanda-992.mjs`. Sin
+migración.
+
+**Pendiente**: lo de la 226 (ejecutar la 989, después la 991, y otra vez la
+987).
+
 ## 2026-10-23 (226) — PINGU-Claude (991 — «¿Quién es?» borroso y +30/+20/+10; fuera /admin → Redes)
 
 **Hecho**: en «¿Quién es ese Pokémon?» la silueta sale borrosa en el primer

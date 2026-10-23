@@ -47,6 +47,7 @@ import {
 import { idiomasDeSet, reglasDeVersiones, sinReglas, hayReglas } from './idiomas-de-set.js'
 import { tarjetasDePrecio, banderaHtml, chipDeIdiomaHtml } from './precio-vista.js'
 import { icons, icon } from './icons.js'
+import { botonOcultarHtml } from './mi-coleccion/valor-oculto.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // La marca de Cardmarket, dibujada (su CSS va en css/cardmarket.css, que
 // cargan esta página y la ficha de una carta).
@@ -1150,7 +1151,7 @@ function pintarResumen() {
     <div class="mc-cifra"><dt>Cartas</dt><dd>${copias.toLocaleString('es-ES', { useGrouping: 'always' })}</dd></div>
     <div class="mc-cifra"><dt>Distintas</dt><dd>${distintas.toLocaleString('es-ES', { useGrouping: 'always' })}</dd></div>
     <div class="mc-cifra"><dt>Colecciones</dt><dd>${sets.toLocaleString('es-ES', { useGrouping: 'always' })}</dd></div>
-    <div class="mc-cifra mc-cifra-valor"><dt>Valor</dt><dd>${euros(valor)}</dd><small class="mc-cifra-cambio hidden" id="mcCifraCambio"></small></div>
+    <div class="mc-cifra mc-cifra-valor"><dt>Valor${botonOcultarHtml()}</dt><dd>${euros(valor)}</dd><small class="mc-cifra-cambio hidden" id="mcCifraCambio"></small></div>
 `
   // Y el cambio del mes, si el histórico ya ha llegado (tanda 582).
   pintarCambioDelMes()

@@ -13,6 +13,7 @@ import { rarezaDeCarta } from '../carta-traducciones.js'
 import { padreDeColeccion, registrarEpisodios, nombreDeSet } from '../catalogo-series.js'
 import { euros, valorDeLinea } from '../cardmarket.js'
 import { icons, icon } from '../icons.js'
+import { botonOcultarHtml } from './valor-oculto.js'
 import * as datos from './datos.js'
 import { diapoHtml, tiraHtml } from './diapos.js'
 import { balanceDeCompra } from './balance.js'
@@ -73,7 +74,7 @@ export function pintarResumenPanel() {
          mide lo mismo que ella, así que nada salta. Las tres fichas y lo
          que más se mueve van debajo, como en cualquier app de cartera. -->
     <section class="mc-cartera" id="mcValorCaja">
-      <h2 class="mc-cartera-etiqueta">Lo que vale ${ctx.esMia ? 'tu' : 'esta'} colección</h2>
+      <h2 class="mc-cartera-etiqueta">Lo que vale ${ctx.esMia ? 'tu' : 'esta'} colección ${botonOcultarHtml()}</h2>
       <p class="mc-cartera-cifra">${escapeHtml(ctx.eurosConMiles(ctx.valorDeAhora()))}</p>
       ${ctx.fichasDeCartera()}
       ${ctx.esMia ? '<div class="mc-cartera-reparto hidden" id="mcCarteraReparto"></div>' : ''}

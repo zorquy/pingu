@@ -41785,6 +41785,33 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 992 — Tapar lo que vale la colección
+
+PINGU: «una opción rápida en mi colección para que no se vea el total… para
+la gente que hace directos o capturas».
+
+Un ojo al lado de «Valor» en la cabecera y de «Lo que vale tu colección» en
+el Panel (`botonOcultarHtml`, `js/mi-coleccion/valor-oculto.js`). Tocarlo pone
+`html.mc-valor-oculto`, y lo guarda en el navegador (`pokedoc-valor-oculto`);
+el módulo lo pone al cargarse, antes de que nadie pinte el valor, así que al
+volver no se ve ni un instante.
+
+Lo tapa la HOJA y no quien pinta (`css/mi-coleccion.css`): la cifra cuenta
+sola al abrir (`contarCifra`), el cambio del mes llega después y la gráfica se
+repinta al cambiar de rango, y con una clase arriba todo eso sale tapado sin
+tocar ninguno. Cada cifra se queda con su texto pero transparente (y sus
+hijos, escondidos) y un `::after` pinta `*****` encima, con el mismo
+`padding`. Lo que se tapa: el valor de la cabecera y su cambio, la cifra
+grande del Panel y su cambio, los chips de 7 y 30 días, el «ahora» de la
+gráfica, el globo al pasar el dedo, el reparto cartas/productos y los
+rótulos de la gráfica (su forma no dice cifras). Lo que NO: el precio de cada
+carta, que no es «lo que vale la colección», y la imagen de «Mi colección en
+una imagen», que solo se comparte si se pide.
+
+**Pruebas**: `test-tanda-992.mjs` (PC y móvil: el ojo, los asteriscos donde
+iban las cifras, la gráfica sin rótulos, que se recuerda al volver y que otro
+toque lo enseña).
+
 ## Tanda 991 — «¿Quién es ese Pokémon?», borroso al principio; y fuera /admin → Redes
 
 La última de la propuesta «Retos, más limpios» (la T3). PINGU: «sigue con

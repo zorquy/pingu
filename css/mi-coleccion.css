@@ -12419,3 +12419,70 @@ button.mc-fila:hover {
   object-fit: contain;
   vertical-align: -2px;
 }
+
+/* Tapar lo que vale (992, js/mi-coleccion/valor-oculto.js): el ojo al lado
+   del valor y, con `html.mc-valor-oculto`, asteriscos en vez de cifras. */
+.mc-ojo-valor {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  margin: -8px 0 -8px var(--e-xs);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-mid);
+  vertical-align: middle;
+  cursor: pointer;
+}
+
+.mc-ojo-valor:hover,
+.mc-ojo-valor[aria-pressed='true'] {
+  color: var(--navy);
+  background: var(--ice);
+}
+
+.mc-ojo-valor:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+@media (pointer: coarse) {
+  .mc-ojo-valor {
+    min-width: 44px;
+    min-height: 44px;
+    margin: -12px 0 -12px 0;
+  }
+}
+
+.mc-valor-oculto :is(.mc-cifra-valor dd, .mc-cifra-cambio, .mc-cartera-cifra, .mc-cartera .mc-valor-cambio, .mc-valor-ahora, .mc-valor-chip b, .mc-reparto-ficha b, .mc-valor-lectura-globo b) {
+  position: relative;
+  color: transparent !important;
+  text-shadow: none;
+  user-select: none;
+}
+
+.mc-valor-oculto :is(.mc-cifra-valor dd, .mc-cifra-cambio, .mc-cartera-cifra, .mc-cartera .mc-valor-cambio, .mc-valor-ahora, .mc-valor-chip b, .mc-reparto-ficha b, .mc-valor-lectura-globo b) > * {
+  visibility: hidden;
+}
+
+.mc-valor-oculto :is(.mc-cifra-valor dd, .mc-cifra-cambio, .mc-cartera-cifra, .mc-cartera .mc-valor-cambio, .mc-valor-ahora, .mc-valor-chip b, .mc-reparto-ficha b, .mc-valor-lectura-globo b)::after {
+  content: '*****';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  box-sizing: border-box;
+  padding: inherit;
+  overflow: hidden;
+  color: var(--text);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}
+
+/* La forma de la gráfica no dice cifras; sus rótulos, sí. */
+.mc-valor-oculto .mc-valor-rotulos {
+  visibility: hidden;
+}
