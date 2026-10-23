@@ -85,6 +85,24 @@ console.log('\n── 2. Lo puro ──')
   check('las etiquetas de un toque: la Staff la primera, y Holo y Normal para el Prize Pack', r.ETIQUETAS[0] === 'Staff' && r.ETIQUETAS.includes('Holo') && r.ETIQUETAS.includes('Normal') && r.ETIQUETAS.every((t) => r.etiquetaValida(t)))
 }
 
+console.log('\n── 2b. Lo puro del Prize Pack: la cara es la Holo ──')
+{
+  const r = await import(`${RAIZ}/admin/js/repetidas-puro.js`)
+  const set = { name: 'Play! Pokémon Prize Pack Series Two', name_en: 'Play! Pokémon Prize Pack Series Two' }
+  const carta = (id, en, extra = {}) => ({ id, name: 'Arcanine', rarity: 'Uncommon', market: 'WEST', tcg_sets: { release_date: '2022-06-01' }, precio: en == null ? null : { cm_low_en: en, cm_low: en }, ...extra })
+  const g = (cartas, s2 = set) => ({ set: s2, cartas })
+  const claro = r.holoDelPrizePack(g([carta('a', 3.5), carta('b', 0.4)]))
+  check('una vale vez y media la otra: la cara es la Holo y la barata la principal', claro.holo?.id === 'a' && claro.normal?.id === 'b', JSON.stringify(claro))
+  check('  …da igual en qué orden lleguen', r.holoDelPrizePack(g([carta('b', 0.4), carta('a', 3.5)])).holo?.id === 'a')
+  check('precio parecido: duda', r.holoDelPrizePack(g([carta('a', 0.12), carta('b', 0.1)])).duda === 'precio parecido')
+  check('  …y justo en el umbral (1,5×) ya decide', r.holoDelPrizePack(g([carta('a', 0.15), carta('b', 0.1)])).holo?.id === 'a' && r.UMBRAL_PRIZE_PACK === 1.5)
+  check('sin precio una de las dos: duda', r.holoDelPrizePack(g([carta('a', 3), carta('b', null)])).duda === 'sin precio' && r.holoDelPrizePack(g([carta('a', 3), carta('b', 0)])).duda === 'sin precio')
+  check('compara el inglés (el Prize Pack es casi todo inglés) y si no, el mínimo', r.precioDeComparar({ precio: { cm_low_en: 2, cm_low: 0.5 } }) === 2 && r.precioDeComparar({ precio: { cm_low: 0.5 } }) === 0.5)
+  check('una que brilla de serie (una ex) no se decide sola', r.holoDelPrizePack(g([carta('a', 9, { name: 'Charizard ex', rarity: 'Double Rare' }), carta('b', 2, { name: 'Charizard ex', rarity: 'Double Rare' })])).duda === 'brilla de serie')
+  check('tres cartas: duda', r.holoDelPrizePack(g([carta('a', 3), carta('b', 1), carta('c', 0.1)])).duda === 'no son dos')
+  check('fuera del Prize Pack no hace nada', r.holoDelPrizePack(g([carta('a', 3.5), carta('b', 0.4)], { name: 'SVP Black Star Promos' })).duda === 'no es del Prize Pack' && r.esPrizePack({ set: { name: 'x', name_en: 'Prize Pack Series One' } }))
+}
+
 console.log('\n── 3. La web y la pasada de precios con una versión «fundida» ──')
 {
   const v = await import(`${RAIZ}/js/mi-coleccion/variantes.js`)
@@ -272,6 +290,51 @@ console.log('\n── 5b. /admin: «Poner a todas las que se ven» (el Prize Pac
   await p.waitForTimeout(800)
   const ll = await rpcs(p, 'catalogo_repetida_resolver')
   check('  …y convertir la manda como «Holo» e impresión', ll.length === 1 && ll[0].args.p_etiqueta === 'Holo' && ll[0].args.p_clase === 'impresion', JSON.stringify(ll.map((x) => x.args)))
+  check('sin errores', !errores.length, errores.join(' | '))
+  await ctx.close()
+}
+
+console.log('\n── 5c. /admin: «Prize Pack: la más cara es la Holo» ──')
+{
+  const pp = { id: 'pps2', name: 'Play! Pokémon Prize Pack Series Two', name_en: 'Play! Pokémon Prize Pack Series Two' }
+  const t2 = { serie_id: 'swsh', release_date: '2022-06-01' }
+  const c = (id, n, nombre, en, extra = {}) => ({ id, market: 'WEST', set_id: 'pps2', local_id: n, name: nombre, rarity: 'Uncommon', hp: 100, origen: 'tcggo', image_tcggo: `https://images.tcggo.com/${id}.png`, precio: en == null ? null : { cm_low_en: en, cm_low: en }, personas: 0, tcg_sets: t2, ...extra })
+  const R = { grupos: [
+    { market: 'WEST', set_id: 'pps2', numero: '12', nombre: 'arcanine', set: pp, cartas: [c('tcggo-1', '12', 'Arcanine', 4), c('tcggo-2', '12', 'Arcanine', 0.3)] },
+    { market: 'WEST', set_id: 'pps2', numero: '20', nombre: 'growlithe', set: pp, cartas: [c('tcggo-3', '20', 'Growlithe', 0.1), c('tcggo-4', '20', 'Growlithe', 0.5)] },
+    { market: 'WEST', set_id: 'pps2', numero: '30', nombre: 'eevee', set: pp, cartas: [c('tcggo-5', '30', 'Eevee', 0.1), c('tcggo-6', '30', 'Eevee', 0.11)] },
+    { market: 'WEST', set_id: 'pps2', numero: '40', nombre: 'pikachu', set: pp, cartas: [c('tcggo-7', '40', 'Pikachu', null), c('tcggo-8', '40', 'Pikachu', 2)] },
+    { market: 'WEST', set_id: 'svp', numero: '181', nombre: "n's darmanitan", set: { id: 'svp', name: 'SVP Black Star Promos' }, cartas: [c('svp-181', '181', "N's Darmanitan", 6.5), c('tcggo-48211', '181', "N's Darmanitan", 19)] },
+  ] }
+  const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 }, locale: 'es-ES' })
+  await ctx.addInitScript((d) => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    try { localStorage.setItem('pokedoc-instalar-no', String(Date.now())) } catch {}
+    Object.assign(window, { __FAKE_SETS__: d.SETS, __FAKE_CARTAS__: [], __FAKE_ERAS__: [], __FAKE_REPETIDAS__: d.R })
+  }, { SETS, R })
+  await ctx.route(/images\.tcggo\.com|assets\.tcgdex\.net|limitlesstcg/, (r) => r.fulfill({ status: 200, contentType: 'image/png', body: PNG }))
+  await ctx.route(/\/\.netlify\/functions\//, (r) => r.fulfill({ status: 404, contentType: 'application/json', body: '{}' }))
+  const p = await ctx.newPage()
+  const errores = []
+  p.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
+  await p.goto(`${BASE}/admin/`, { waitUntil: 'domcontentloaded' })
+  await p.waitForTimeout(1800)
+  await p.locator('[data-section="colecciones"]').click()
+  await p.waitForTimeout(1200)
+  await p.locator('#repetidasCaja > summary').click()
+  const boton = p.locator('#repetidasPrize')
+  check('«Convertir las marcadas» no se ve sin ninguna marcada', await p.locator('#repetidasLote').isHidden())
+  check('el botón cuenta solo las del Prize Pack con la diferencia clara (2 de 4)', (await boton.innerText()) === 'Prize Pack: la más cara es la Holo (2)', await boton.innerText())
+  await boton.click()
+  check('  …el primer toque pregunta', (await boton.innerText()) === '¿Convertir 2? Pulsa otra vez' && !(await rpcs(p, 'catalogo_repetida_resolver')).length)
+  await boton.click()
+  await p.waitForTimeout(1500)
+  const ll = (await rpcs(p, 'catalogo_repetida_resolver')).map((x) => `${x.args.p_carta}→${x.args.p_destino}:${x.args.p_etiqueta}:${x.args.p_clase}`).sort()
+  check('  …y el segundo convierte la cara en «Holo» de la barata, como impresión', ll.join() === 'tcggo-1→tcggo-2:Holo:impresion,tcggo-4→tcggo-3:Holo:impresion', ll.join())
+  const quedan = await p.locator('.rep-grupo h3').allInnerTexts()
+  check('  …y quedan para ti la de precio parecido, la que no tiene precio y la que no es del Prize Pack', quedan.length === 3 && quedan.some((x) => /Eevee/.test(x)) && quedan.some((x) => /Pikachu/.test(x)) && quedan.some((x) => /Darmanitan/.test(x)), quedan.join(' | '))
+  check('  …dicho en el aviso', /2 del Prize Pack convertidas en «Holo».*2 se quedan para que las mires/.test((await p.locator('.toast').allInnerTexts()).join(' ')), (await p.locator('.toast').allInnerTexts()).join(' | '))
+  check('  …y ya no se ofrece', await boton.isHidden())
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }
