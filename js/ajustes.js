@@ -108,7 +108,21 @@ async function pintarPush(caja) {
         zona.innerHTML = `<p class="subtext">Las notificaciones están bloqueadas para PokeDoc en los ajustes del navegador. Desbloquéalas ahí y vuelve.</p>`
         return
       }
-      zona.innerHTML = interruptor({ id: 'push', texto: 'Avisos en este dispositivo', detalle: suscrito ? 'Activados en este navegador' : 'Desactivados en este navegador', activo: suscrito })
+      zona.innerHTML = interruptor({ id: 'push', texto: 'Avisos en este dispositivo', detalle: suscrito ? 'Activados en este navegador' : 'Desactivados en este navegador', activo: suscrito }) +
+        (suscrito ? '<div class="aj-push-prueba"><button type="button" class="btn-secondary" id="ajPushProbar">Enviarme un aviso de prueba</button><p class="aj-nota" id="ajPushProbarTexto" aria-live="polite"></p></div>' : '')
+      // Con los avisos puestos, este dispositivo se vuelve a dar de alta
+      // (993): si su fila se perdió, el interruptor decía «Activados» igual.
+      if (suscrito) push.sincronizarPush(session.user.id).catch(() => {})
+      zona.querySelector('#ajPushProbar')?.addEventListener('click', async (e) => {
+        const b = e.currentTarget
+        const texto = zona.querySelector('#ajPushProbarTexto')
+        b.disabled = true
+        texto.textContent = 'Enviando…'
+        await push.sincronizarPush(session.user.id).catch(() => {})
+        const r = await push.probarPush()
+        texto.textContent = r.ok ? `Enviado${r.dispositivos > 1 ? ` a tus ${r.dispositivos} dispositivos` : ''}. Si en unos segundos no te sale, mira que el móvil deje mostrar notificaciones de PokeDoc.` : r.motivo
+        b.disabled = false
+      })
       zona.querySelector('[data-interruptor="push"]').addEventListener('change', async (e) => {
         e.target.disabled = true
         const r = suscrito ? await push.desactivarPush() : await push.activarPush(session.user.id)

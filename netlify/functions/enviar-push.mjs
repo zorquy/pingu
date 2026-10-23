@@ -40,15 +40,44 @@ async function restReal(ruta, clave, opciones = {}) {
 // El trabajo de verdad, con sus dos puertas al mundo (la base y el
 // servicio de push) inyectables: así la prueba lo ejecuta entero sin
 // red, con dobles, igual que se probó la función de correo.
-export async function procesar({ env = process.env, rest = restReal, enviar = null } = {}) {
+// Lo que pasa en cada pasada va al ESTADO (`scrydex_estado`, clave
+// `enviar_push`, tanda 993), que /admin enseña en su semáforo: hasta aquí,
+// sin la clave privada o sin la pública la función se saltaba TODO y lo
+// decía solo en su respuesta, que no lee nadie (la 655), y un envío que
+// fallaba por otra cosa que 404/410 se tragaba entero.
+export const CLAVE_ESTADO = 'enviar_push'
+
+export async function procesar({ env = process.env, rest = restReal, enviar = null, ahora = new Date() } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
-  const privada = env.PUSH_VAPID_PRIVATE
   if (!clave) return { ok: true, saltado: 'sin SUPABASE_SERVICE_ROLE_KEY: no se envía nada' }
-  if (!privada) return { ok: true, saltado: 'sin PUSH_VAPID_PRIVATE: no se envía nada' }
+  const apuntar = (valor) =>
+    rest('scrydex_estado', clave, {
+      method: 'POST',
+      headers: { prefer: 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify([{ clave: CLAVE_ESTADO, valor: { ...valor, ultimaPasada: ahora.toISOString() }, updated_at: ahora.toISOString() }]),
+    }).catch(() => {})
+  const saltar = async (motivo) => {
+    await apuntar({ parado: { motivo } })
+    return { ok: true, saltado: motivo }
+  }
+  // Lo que falle de aquí abajo (la base, una columna que no existe) también
+  // va al estado: si se escapara, volvería solo en la respuesta (la 655).
+  try {
+    return await pasada({ env, rest, enviar, ahora, clave, apuntar, saltar })
+  } catch (e) {
+    const motivo = String(e?.message || e).slice(0, 200)
+    await apuntar({ ultimoError: { fecha: ahora.toISOString(), motivo } })
+    return { ok: false, error: motivo }
+  }
+}
+
+async function pasada({ env, rest, enviar, ahora, clave, apuntar, saltar }) {
+  const privada = env.PUSH_VAPID_PRIVATE
+  if (!privada) return saltar('falta PUSH_VAPID_PRIVATE en Netlify: no se envía nada')
 
   const ajustes = await rest(`site_settings?key=eq.push_vapid_public&select=value`, clave)
   const publica = ajustes?.[0]?.value?.clave
-  if (!publica) return { ok: true, saltado: 'sin clave pública: genérala en /admin' }
+  if (!publica) return saltar('falta la clave pública: genérala en /admin (Inicio → Avisos push)')
 
   const sitio = env.SITE_URL || 'https://pokedoc.es'
   const mandar =
@@ -66,7 +95,10 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
       `&select=id,recipient_id,type,title,body,link&order=created_at.asc&limit=${POR_PASADA}`,
     clave
   )
-  if (!avisos || avisos.length === 0) return { ok: true, enviados: 0, revisados: 0 }
+  if (!avisos || avisos.length === 0) {
+    await apuntar({ hecho: true, enviados: 0, revisados: 0 })
+    return { ok: true, enviados: 0, revisados: 0 }
+  }
 
   const destinatarios = [...new Set(avisos.map((a) => a.recipient_id).filter(Boolean))]
   const subs = destinatarios.length
@@ -80,6 +112,8 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
 
   let enviados = 0
   let caducadas = 0
+  let fallidos = 0
+  let ultimoError = null
   for (const aviso of avisos) {
     for (const s of porUsuario[aviso.recipient_id] || []) {
       try {
@@ -102,9 +136,14 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
           }).catch(() => {})
           caducadas++
         }
-        // Otros fallos (el servicio de push caído) se dejan estar: el
-        // aviso se marca revisado igualmente — reintentar push viejos
-        // en bucle sería spam en diferido.
+        // Otros fallos (el servicio de push caído, una clave que no casa
+        // con la de la suscripción) se dejan estar: el aviso se marca
+        // revisado igualmente —reintentar push viejos en bucle sería spam
+        // en diferido—, pero se APUNTA, que es como se ve que no llegan.
+        else {
+          fallidos++
+          ultimoError = { fecha: ahora.toISOString(), motivo: `${e?.statusCode || ''} ${String(e?.body || e?.message || e).slice(0, 200)}`.trim() }
+        }
       }
     }
   }
@@ -117,7 +156,9 @@ export async function procesar({ env = process.env, rest = restReal, enviar = nu
     body: JSON.stringify({ pushed_at: new Date().toISOString() }),
   })
 
-  return { ok: true, enviados, caducadas, revisados: avisos.length }
+  const suscripciones = (subs || []).length
+  await apuntar({ hecho: true, enviados, caducadas, fallidos, revisados: avisos.length, suscripciones, ...(ultimoError ? { ultimoError } : {}) })
+  return { ok: true, enviados, caducadas, fallidos, revisados: avisos.length }
 }
 
 export default async function handler() {

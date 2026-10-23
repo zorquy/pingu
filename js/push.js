@@ -96,3 +96,58 @@ export async function desactivarPush() {
     return { ok: false, motivo: String(e?.message || e).slice(0, 120) }
   }
 }
+
+// Vuelve a dar de alta ESTE dispositivo (tanda 993). El interruptor miraba
+// solo al navegador: si su fila de push_subscriptions se había borrado (un
+// 404/410 de una vez, otra cuenta en el mismo móvil) o se hizo con una clave
+// pública que ya no es la del sitio, decía «Activados» y no llegaba nada.
+export async function sincronizarPush(userId) {
+  if (!userId || !soportaPush() || Notification.permission !== 'granted') return { ok: false }
+  try {
+    const reg = await navigator.serviceWorker.getRegistration('/sw.js')
+    let sub = reg && (await reg.pushManager.getSubscription())
+    if (!sub) return { ok: false }
+    const clave = await clavePublica()
+    if (!clave) return { ok: false }
+    const actual = sub.options?.applicationServerKey ? new Uint8Array(sub.options.applicationServerKey) : null
+    const buena = aBytes(clave)
+    if (actual && (actual.length !== buena.length || actual.some((b, i) => b !== buena[i]))) {
+      // Hecha con otra clave: el servicio de push la rechazaría siempre.
+      await sub.unsubscribe().catch(() => {})
+      sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: buena })
+    }
+    const json = sub.toJSON()
+    const { error } = await supabase.from('push_subscriptions').upsert(
+      { endpoint: json.endpoint, user_id: userId, p256dh: json.keys?.p256dh || '', auth: json.keys?.auth || '' },
+      { onConflict: 'endpoint' }
+    )
+    return { ok: !error, endpoint: json.endpoint }
+  } catch {
+    return { ok: false }
+  }
+}
+
+// Una push de prueba AHORA, a tus dispositivos (netlify/functions/push-prueba).
+// Contesta el motivo tal cual si no sale, que es lo que hacía falta saber.
+export async function probarPush() {
+  try {
+    const { data } = await supabase.auth.getSession()
+    const token = data?.session?.access_token
+    if (!token) return { ok: false, motivo: 'Entra con tu cuenta.' }
+    let endpoint = null
+    try {
+      const reg = await navigator.serviceWorker.getRegistration('/sw.js')
+      endpoint = (await reg?.pushManager.getSubscription())?.endpoint || null
+    } catch {}
+    const res = await fetch('/.netlify/functions/push-prueba', {
+      method: 'POST',
+      headers: { authorization: `Bearer ${token}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ endpoint }),
+    })
+    const r = await res.json().catch(() => ({}))
+    if (r.ok && r.deEste === false) return { ...r, ok: false, motivo: 'Se ha enviado a tus otros dispositivos, pero este no está dado de alta: desactiva y vuelve a activar los avisos aquí.' }
+    return r.ok ? r : { ok: false, motivo: r.motivo || `No se ha podido probar (${res.status}).` }
+  } catch (e) {
+    return { ok: false, motivo: 'No se ha podido probar: ' + String(e?.message || e).slice(0, 120) }
+  }
+}

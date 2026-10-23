@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-24", "tipo": "arreglo", "texto": "Cuando te responden en un tema tuyo te llega un aviso, no dos.", "enlace": "/foro" },
+    { "fecha": "2026-10-24", "tipo": "nuevo", "texto": "En Ajustes, con los avisos activados, «Enviarme un aviso de prueba» te manda uno al momento y, si no llega, te dice por qué.", "enlace": "/ajustes" },
     { "fecha": "2026-10-24", "tipo": "nuevo", "texto": "En Mi colección, el ojo al lado del valor tapa lo que vale tu colección con asteriscos: para hacer directos o capturas sin enseñarlo. Se queda así hasta que lo vuelvas a tocar.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-10-23", "tipo": "mejora", "texto": "«¿Quién es ese Pokémon?» es más difícil al principio: la silueta sale borrosa y se aclara con cada fallo. Acertar a la primera da +30 de experiencia.", "enlace": "/quien-es" },
     { "fecha": "2026-10-23", "tipo": "arreglo", "texto": "El paso de página del foro se ve bien: «Anterior» y «Siguiente», botones grandes y, en los temas muy largos, solo las páginas que importan.", "enlace": "/foro" },

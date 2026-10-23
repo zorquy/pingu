@@ -762,6 +762,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   XP es +30/+20/+10, en `retos-xp.js` y en `retos_xp` (migración 991, que
   redefine la de la 989 entera). Y /admin → Redes se fue (PINGU: «no sirve
   de nada»): la cuenta de PokeDoc no saca imágenes del reto desde el panel.
+- **Un aviso del foro llega UNA vez** (tanda 993): la web avisa al autor, a
+  los citados y a los mencionados, y a `forum_avisar_suscritos` le pasa esos
+  mismos en `p_ya_avisados`, que se salta (el autor está suscrito solo). Un
+  camino nuevo que avise de una respuesta hace lo mismo. Y los push dejan
+  rastro: `enviar-push` escribe `scrydex_estado.enviar_push` (en `PASADAS`) y
+  /ajustes tiene «Enviarme un aviso de prueba» (`push-prueba`), que dice el
+  motivo tal cual cuando no sale.
 - **El paginador del foro es UNO: `js/paginacion.js`** (tanda 990), para la
   lista de temas y un tema largo: «Anterior», páginas con «…» y «Siguiente»,
   y en el móvil cinco casillas sin texto. Antes eran `.page-btn` sin una

@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-24 (229) — PINGU-Claude (993 — un aviso por respuesta y los push que se ven)
+
+**Hecho**: al responder en un tema, el autor (y quien citas o mencionas)
+recibe un aviso y no dos: la web le pasa a `forum_avisar_suscritos` a quién
+ya avisó (migración nueva). Los push: `enviar-push` apunta cada pasada en el
+estado (semáforo «Avisos push» en /admin, con el motivo si falta una clave o
+el servicio rechaza), /ajustes tiene «Enviarme un aviso de prueba» y vuelve a
+dar de alta el dispositivo al abrirse.
+
+**Ficheros**: `supabase-migration-993-avisos-sin-duplicar.sql` (nueva),
+`js/foro-lecturas.js`, `js/tema.js`, `netlify/functions/enviar-push.mjs`,
+`netlify/functions/push-prueba.mjs` (nueva), `admin/js/semaforo.js`,
+`js/push.js`, `js/ajustes.js`, `css/ajustes.css`, `SCHEMA.md`, `CLAUDE.md`,
+`novedades.json`, `BITACORA.md`. En `pruebas`: `test-tanda-993.mjs` y
+`sql-tanda-993.sql`.
+
+**Pendiente**: ejecutar la 993 (hasta entonces sigue el doble). Mirar en
+/admin el semáforo «Avisos push» y, en el móvil, el botón de prueba de
+/ajustes. Y lo de la 226 (la 989, después la 991, y otra vez la 987).
+
 ## 2026-10-24 (228) — PINGU-Claude (992b — tapar el valor también en la portada)
 
 **Hecho**: la tarjeta «Tu colección» de la portada respeta el ojo de Mi

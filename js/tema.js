@@ -1407,7 +1407,8 @@ function citarTexto(texto, postId, quien, { anclar = true, enfocar = true } = {}
 //   · a quien abrió el tema,
 //   · a quien se ha citado,
 //   · a quien se ha mencionado con @nombre,
-//   · y a quien SIGUE el tema (eso lo hace la base, ver más abajo).
+//   · y a quien SIGUE el tema (eso lo hace la base, ver más abajo), menos
+//     a los de arriba, que ya tienen el suyo (993).
 //
 // Los tres primeros van en un Set: si son la misma persona, un aviso y no
 // tres.
@@ -1461,7 +1462,9 @@ async function avisar(cuerpo) {
     .order('created_at', { ascending: false })
     .limit(1)
     .maybeSingle()
-  if (mio?.id) await avisarSuscritos(tema.id, mio.id, tema.title)
+  // Sin los que ya se han avisado arriba (993): el autor sigue su tema solo
+  // y le llegaban dos avisos por cada respuesta.
+  if (mio?.id) await avisarSuscritos(tema.id, mio.id, tema.title, destinatarios)
 }
 
 // ─────────────────────────────────────────────────────────────

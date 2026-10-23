@@ -41785,6 +41785,46 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 993 — Un aviso por respuesta y los push que se ven
+
+PINGU: «si me responden un tema que yo he abierto, me llegan dos
+notificaciones… aparece un 2» y «tengo la aplicación instalada y nunca me
+llega una notificación push».
+
+**El doble.** Quien abre un tema queda suscrito solo (el disparador de
+foro-mejoras). Al responder, `avisar()` de `js/tema.js` avisa al autor del
+tema, a los citados y a los mencionados («Te han respondido en el foro») y
+luego `forum_avisar_suscritos` avisa a TODOS los que siguen el tema («Nueva
+respuesta en un tema que sigues»): el autor recibía las dos. La migración
+`supabase-migration-993-avisos-sin-duplicar.sql` le da a la función un
+cuarto argumento, `p_ya_avisados uuid[] default '{}'`, y la web le pasa los
+que ya avisó. Se borra la firma de tres (PostgREST no sabría a cuál llamar)
+y, mientras la base no tenga la 993, `avisarSuscritos` reintenta con la
+vieja (`PGRST202`): hasta ejecutarla, sigue el doble.
+
+**Los push, a la vista.** `enviar-push` se saltaba todo sin la clave privada
+o sin la pública y lo decía solo en su respuesta (la 655), y un envío que
+fallaba por algo que no fuera 404/410 se tragaba. Ahora cada pasada escribe
+`scrydex_estado.enviar_push` (`parado` si falta una clave, `ultimoError` y
+`fallidos` si el servicio de push rechaza, y lo que se escape de la base,
+también) y /admin lo pinta en su semáforo («Avisos push», en `PASADAS`).
+
+**Probar desde el móvil.** /ajustes → Avisos, con los avisos activados, tiene
+«Enviarme un aviso de prueba» (`probarPush` → `netlify/functions/push-prueba`):
+manda uno al momento a los dispositivos de quien lo pide —el token se le
+pregunta a Supabase— y contesta el motivo tal cual si no sale (sin clave
+privada, sin clave pública, sin dispositivos, el error del servicio, o «este
+dispositivo no está dado de alta»). Y al pintar los avisos,
+`sincronizarPush` vuelve a escribir la suscripción de este navegador en
+`push_subscriptions` (si su fila se borró, el interruptor decía «Activados» y
+no llegaba nada) y la rehace si se hizo con una clave pública que ya no es la
+del sitio.
+
+**Pruebas**: `test-tanda-993.mjs` (la migración contra PostgreSQL, sentencia
+a sentencia y dos veces; `procesar` y `probar` enteros con dobles; las piezas
+de la web). Verdes foro-1, foro-2, 314, 804, 812, 816-pantalla, 819-pantalla,
+823, 899, 868-pantalla, 299, 312, 313 y test-imports.
+
 ## Tanda 992 — Tapar lo que vale la colección
 
 PINGU: «una opción rápida en mi colección para que no se vea el total… para

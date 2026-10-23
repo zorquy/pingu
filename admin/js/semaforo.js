@@ -24,6 +24,7 @@ export const PASADAS = [
   ['scrydex_rellenar_set', 'Relleno (Scrydex)'],
   // Las redes (902): lo que falla al publicar en X se apunta aquí.
   ['x_noticias', 'X (noticias)'],
+  ['enviar_push', 'Avisos push'],
 ]
 
 const DIA_MS = 24 * 60 * 60 * 1000

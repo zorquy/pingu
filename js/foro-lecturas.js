@@ -168,14 +168,17 @@ export async function desuscribir(userId, threadId) {
 // puede leer quién sigue un tema: la política solo deja ver las
 // suscripciones propias. La función sí las ve, y solo devuelve cuántos
 // avisos ha creado.
-export async function avisarSuscritos(threadId, postId, titulo) {
+//
+// `yaAvisados` (993): a quien la web ya ha avisado (el autor del tema, los
+// citados, los mencionados). Sin pasarlo, el autor —que sigue su tema solo—
+// recibía dos avisos por respuesta. Sin la migración 993 la función no
+// conoce el cuarto argumento: se vuelve a llamar como antes.
+export async function avisarSuscritos(threadId, postId, titulo, yaAvisados = []) {
   if (!threadId || !postId) return 0
+  const base = { p_thread: threadId, p_post: postId, p_titulo: titulo || '' }
   try {
-    const { data, error } = await supabase.rpc('forum_avisar_suscritos', {
-      p_thread: threadId,
-      p_post: postId,
-      p_titulo: titulo || '',
-    })
+    let { data, error } = await supabase.rpc('forum_avisar_suscritos', { ...base, p_ya_avisados: [...yaAvisados] })
+    if (error && /PGRST202|p_ya_avisados|Could not find the function/i.test(`${error.code} ${error.message}`)) ({ data, error } = await supabase.rpc('forum_avisar_suscritos', base))
     return error ? 0 : data || 0
   } catch {
     return 0

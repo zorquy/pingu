@@ -284,3 +284,11 @@
     display: flex;
   }
 }
+
+/* La prueba de los avisos push (993): el botón y lo que contesta. */
+.aj-push-prueba {
+  display: grid;
+  gap: var(--e-xs);
+  justify-items: start;
+  margin-top: var(--e-sm);
+}
