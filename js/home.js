@@ -52,6 +52,10 @@ async function cargarNumerosComunidad() {
 // mete su peso en la portada, que va al límite de los 170 KB, por UNA
 // cadena. Una copia sin vigilar se separa, así que la compara
 // test-tanda-362.mjs — la misma norma que `IDIOMA_POR_MERCADO` (322).
+// Lo que vale tu colección, tapado si lo tapaste en Mi colección (992): la
+// misma marca en <html>, y hoy.css pone los asteriscos.
+try { if (localStorage.getItem('pokedoc-valor-oculto') === '1') document.documentElement.classList.add('mc-valor-oculto') } catch {}
+
 const ASSETS_CARTAS = 'https://assets.tcgdex.net'
 
 // ── Las tres cartas del héroe, de verdad (tanda 362) ──

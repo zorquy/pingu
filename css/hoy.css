@@ -250,3 +250,23 @@
 }
 
 .hoy-destaca .hoy-retos-anillo strong { background: var(--navy-solid); }
+
+/* Tapado desde Mi colección (992): asteriscos donde iban las cifras. */
+.mc-valor-oculto .hoy-valor-texto :is(b:not(.hoy-valor-invita), .hoy-valor-mes) {
+  position: relative;
+  color: transparent;
+  user-select: none;
+}
+
+.mc-valor-oculto .hoy-valor-texto :is(b:not(.hoy-valor-invita), .hoy-valor-mes) > * {
+  visibility: hidden;
+}
+
+.mc-valor-oculto .hoy-valor-texto :is(b:not(.hoy-valor-invita), .hoy-valor-mes)::after {
+  content: '*****';
+  position: absolute;
+  inset: 0;
+  color: var(--text);
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+}

@@ -41808,6 +41808,13 @@ rótulos de la gráfica (su forma no dice cifras). Lo que NO: el precio de cada
 carta, que no es «lo que vale la colección», y la imagen de «Mi colección en
 una imagen», que solo se comparte si se pide.
 
+**992b — también en la portada.** La tarjeta «Tu colección» de «Hoy» seguía
+enseñando la cifra (PINGU lo vio). `js/home.js` pone la misma marca
+(`html.mc-valor-oculto`) al cargarse leyendo `pokedoc-valor-oculto`, y
+`css/hoy.css` tapa el valor y «este mes» con los mismos asteriscos. Va por la
+hoja y no en `valorHtml` porque la portada pinta primero lo de la última vez
+(`ultima-vista`), que pudo guardarse con la cifra a la vista.
+
 **Pruebas**: `test-tanda-992.mjs` (PC y móvil: el ojo, los asteriscos donde
 iban las cifras, la gráfica sin rótulos, que se recuerda al volver y que otro
 toque lo enseña).

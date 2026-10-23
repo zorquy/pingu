@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-24 (228) — PINGU-Claude (992b — tapar el valor también en la portada)
+
+**Hecho**: la tarjeta «Tu colección» de la portada respeta el ojo de Mi
+colección: con el valor tapado, el total y «este mes» salen en asteriscos.
+
+**Ficheros**: `js/home.js`, `css/hoy.css`, `SCHEMA.md`, `BITACORA.md`. En
+`pruebas`: `test-tanda-992.mjs` (la portada, tapada y sin tapar). Sin
+migración. Portada: 125,0 KB de 170.
+
+**Pendiente**: lo de la 226 (ejecutar la 989, después la 991, y otra vez la
+987).
+
 ## 2026-10-24 (227) — PINGU-Claude (992 — tapar lo que vale la colección)
 
 **Hecho**: un ojo al lado del valor (cabecera y Panel de /mi-coleccion) lo
