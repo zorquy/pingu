@@ -55,6 +55,24 @@ for (const movil of [false, true]) {
   check('  sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }
+// Y la tarjeta «Tu colección» de la portada (lo vio PINGU: allí seguía la cifra).
+for (const oculto of [true, false]) {
+  const ctx = await browser.newContext({ ...devices['iPhone 13'] })
+  await ctx.addInitScript((o) => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    const hoy = Date.now()
+    window.__FAKE_VALOR__ = Array.from({ length: 40 }, (_, i) => ({ user_id: 'admin-1', dia: new Date(hoy - (39 - i) * 864e5).toISOString().slice(0, 10), valor: 1000 + i * 2 }))
+    window.__FAKE_COLECCION__ = [{ id: 'l1', user_id: 'admin-1', card_id: 'sv1-1', market: 'WEST', cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', valor_manual: 1078 }]
+    try { localStorage.setItem('pokedoc-instalar-no', String(Date.now())); localStorage.setItem('pokedoc-valor-oculto', o ? '1' : '0') } catch {}
+  }, oculto)
+  const page = await ctx.newPage()
+  await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
+  await page.waitForSelector('.hoy-valor-texto b', { timeout: 15000 }).catch(() => {})
+  await page.waitForTimeout(800)
+  const v = await page.evaluate(() => [...document.querySelectorAll('.hoy-valor-texto b, .hoy-valor-mes')].map((e) => ({ color: getComputedStyle(e).color, tapa: getComputedStyle(e, '::after').content, texto: e.textContent.trim() })))
+  check(oculto ? 'portada, tapado: «Tu colección» enseña asteriscos (valor y cambio del mes)' : 'portada, sin tapar: la cifra se ve', v.length >= 2 && v.every((x) => oculto ? x.color === 'rgba(0, 0, 0, 0)' && x.tapa === '"*****"' : x.tapa === 'none' && x.color !== 'rgba(0, 0, 0, 0)') && /€/.test(v[0].texto), JSON.stringify(v))
+  await ctx.close()
+}
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLA(S)` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)
