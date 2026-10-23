@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-23 (219) — PINGU-Claude (986 — la japonesa de GG End)
+
+**Hecho**: «Ficha completa» de una carta japonesa ya no da «Carta no
+encontrada» (/carta y meta-social buscaban solo en el occidental; ahora el
+enlace lleva `?catalogo=` y se busca en todos). Y la ventana de una carta
+abierta desde su expansión dice el nombre del set (no «sm10a_ja») y trae el
+ilustrador, la Pokédex y el tipo. Sin migración.
+
+**Ficheros**: `js/carta.js`, `js/carta-ruta.js`, `js/mi-coleccion.js`,
+`netlify/edge-functions/meta-social.js`, `novedades.json`, `SCHEMA.md`,
+`BITACORA.md`. En `pruebas`: `test-tanda-986.mjs`.
+Pruebas de /carta, Mi colección y meta-social (370) en carriles: los rojos
+son los de siempre (los de la 214); 446 y 578 eran del carril y en serie dan
+verde.
+
+**Pendiente**: nada.
+
 ## 2026-10-22 (218) — PINGU-Claude (985 — adelantarse a la página siguiente)
 
 **Hecho**: la D y la E de «Rápida al volver». En Chrome las listas se preparan

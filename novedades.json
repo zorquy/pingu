@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-23", "tipo": "arreglo", "texto": "La ficha completa de una carta japonesa ya se abre (antes decía «Carta no encontrada»), y al abrir una carta desde su expansión sale el nombre de la expansión, el ilustrador y su número de Pokédex.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Al tocar un enlace la página siguiente empieza a bajarse antes de que levantes el dedo, y en Chrome sale ya hecha. Con wifi, las secciones de la barra de abajo se guardan de antemano.", "enlace": "/foro" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Al volver a la portada, a tu perfil, al de otra persona, a Aprender o a Mis partidas, sale al instante lo que viste la última vez mientras llega lo nuevo.", "enlace": "/perfil" },
     { "fecha": "2026-10-22", "tipo": "mejora", "texto": "Tu perfil, el de los demás, el foro y la portada piden todo a la vez en vez de una cosa detrás de otra: salen enteros antes.", "enlace": "/perfil" },

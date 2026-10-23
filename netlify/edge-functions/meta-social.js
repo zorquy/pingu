@@ -49,6 +49,7 @@ import {
   rejillaDeCartas,
   rutaDeColeccion,
 } from '../../js/carta-nucleo.js'
+import { mercadoDeRuta, elegirCartaDeRuta } from '../../js/carta-ruta.js'
 import { esDelTCG, padreDeColeccion, prefijoDeColeccion, nombreDeCarta } from '../../js/catalogo-series.js'
 import { numeroDelDia } from '../../js/reto-compartir.js'
 import { rutaDeArticulo } from '../../js/articulos.js'
@@ -514,7 +515,9 @@ async function contar(ruta) {
 // canónica de sí misma y Google repartía la fuerza entre las copias. Ahora
 // se queda solo con los parámetros que ELIGEN el contenido de la página y
 // sin el `.html`, que Netlify sirve igual.
-const PARAMETROS_CANONICOS = ['tema', 'slug', 'reto']
+// `catalogo` desde la 986: una carta japonesa es OTRA página que la
+// occidental con el mismo id.
+const PARAMETROS_CANONICOS = ['tema', 'slug', 'reto', 'catalogo']
 export function urlCanonica(url) {
   // Se reconstruye a partir del dominio bueno: si alguien llega por el
   // subdominio de Netlify, la canónica tiene que seguir apuntando a
@@ -969,7 +972,7 @@ async function metaDeTorneo(url) {
 // eso pinta el núcleo entero en el servidor y por eso decide aquí si la
 // página merece salir en Google.
 const COLUMNAS_CARTA =
-  'id,set_id,local_id,name,name_es,name_key,name_en,image_path,image_scrydex,category,rarity,types,hp,illustrator,' +
+  'id,market,set_id,local_id,name,name_es,name_key,name_en,image_path,image_scrydex,category,rarity,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,' +
   'tcg_sets(id,name,name_en,serie_name_en,release_date,card_count_official,card_count_total,tcg_online_code)'
@@ -1042,7 +1045,9 @@ async function metaDeCarta(url) {
   if (!buscar.length) return null
 
   const lista = buscar.map((c) => `"${encodeURIComponent(c)}"`).join(',')
-  const carta = await pedir(`tcg_cards?id=in.(${lista})&market=eq.WEST&select=${COLUMNAS_CARTA}&limit=1`)
+  // De cualquier catálogo (986): una japonesa daba «no encontrada». La que
+  // pide `?catalogo=`, o la occidental, o la que haya.
+  const carta = elegirCartaDeRuta(await pedirVarias(`tcg_cards?id=in.(${lista})&select=${COLUMNAS_CARTA}&limit=10`), mercadoDeRuta(url.search))
   if (!carta) return null
 
   const set = carta.tcg_sets || null

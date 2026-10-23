@@ -15,7 +15,7 @@
 // `js/mercados.js` no importa nada (tanda 438), asi que esto se puede
 // seguir importando desde una funcion de Netlify y desde /torneo, que es
 // justo de lo que trata el comentario de arriba.
-import { idiomaDeMercado } from './mercados.js'
+import { idiomaDeMercado, MERCADOS, MERCADO_POR_DEFECTO } from './mercados.js'
 
 const ASSETS = 'https://assets.tcgdex.net'
 
@@ -41,7 +41,23 @@ export function rutaDeCarta(carta) {
   // resuelve, así que el nombre de delante puede cambiar sin romper
   // ningún enlace viejo.
   const nombre = (typeof carta?.name_es === 'string' && carta.name_es.trim()) || carta?.name
-  return `/carta/${aSlug(nombre)}-${id}`
+  // Una carta japonesa (986) dice su catálogo: el id solo no basta, que la
+  // clave es (id, mercado) y los dos catálogos pueden repetir ids.
+  const m = carta?.market
+  const catalogo = m && m !== MERCADO_POR_DEFECTO ? `?catalogo=${encodeURIComponent(m)}` : ''
+  return `/carta/${aSlug(nombre)}-${id}${catalogo}`
+}
+
+// De las filas que casan con los candidatos de una dirección, la del catálogo
+// que pide (`?catalogo=`); sin catálogo, la occidental; y si solo hay de otro,
+// esa (un enlace viejo a una japonesa no llevaba el catálogo). Pura (986).
+export function mercadoDeRuta(search = '') {
+  const m = String(new URLSearchParams(search).get('catalogo') || '').toUpperCase()
+  return Object.prototype.hasOwnProperty.call(MERCADOS, m) ? m : MERCADO_POR_DEFECTO
+}
+export function elegirCartaDeRuta(filas, mercado = MERCADO_POR_DEFECTO) {
+  const lista = (filas || []).filter(Boolean)
+  return lista.find((f) => (f.market || MERCADO_POR_DEFECTO) === mercado) || lista.find((f) => (f.market || MERCADO_POR_DEFECTO) === MERCADO_POR_DEFECTO) || lista[0] || null
 }
 
 export function aSlug(texto) {

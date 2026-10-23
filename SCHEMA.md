@@ -41785,6 +41785,38 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 986 — Una carta japonesa en la ficha completa y en la ventana de su expansión
+
+PINGU, con el Raichu & Alolan Raichu GX de GG End (japonés): desde el buscador
+la ventana decía «GG End · 008», con ilustrador y número de Pokédex; desde la
+expansión, «sm10a_ja · 008» y sin ellos; y «Ficha completa» daba «Carta no
+encontrada». Eran dos fallos distintos:
+
+1. **/carta solo buscaba en el occidental** (`const MERCADO = 'WEST'` en
+   `js/carta.js` y `market=eq.WEST` en `meta-social.js`). Como la clave de
+   `tcg_cards` es `(id, market)` y los catálogos pueden repetir ids, el
+   enlace dice ahora su catálogo: `rutaDeCarta` añade `?catalogo=JP` a una
+   carta que no es occidental, y las dos mitades buscan en todos y eligen con
+   `elegirCartaDeRuta(filas, mercadoDeRuta(search))` (`js/carta-ruta.js`): la
+   del catálogo que pide, o la occidental, o la que haya (un enlace viejo a
+   una japonesa no llevaba el catálogo). La carta lleva `market` en sus
+   columnas, así que fotos, precio, idiomas y «Añadir» van con el suyo (ya lo
+   miraban: `carta.market || MERCADO`). `catalogo` entra en
+   `PARAMETROS_CANONICOS`: una japonesa es otra página que la occidental del
+   mismo id.
+2. **Las cartas de una expansión llegan con lo justo de su set**
+   (`COLUMNAS_CARTA_DE_SET`: código, serie y día; sin nombre ni cuenta) y sin
+   ilustrador, Pokédex ni tipo. La ventana pintaba `nombreDeSet(c.tcg_sets) ||
+   c.set_id`: el id. Ahora `setDeCarta(c)` junta el set de la estantería con
+   lo que trae la carta, y `completarDatosDeFicha` pide en una consulta lo que
+   no vino (si la columna falta —`undefined`, no `null`—, una vez por carta) y
+   repinta la tabla. Pasaba igual en el occidental, con ids como «sv8»; en el
+   japonés se nota más porque el id lleva el `_ja`.
+
+Prueba: `test-tanda-986.mjs` (la ruta, la ficha completa de una japonesa con y
+sin catálogo, y la ventana desde la expansión con las cartas como llegan de la
+CDN; con el código de antes, la ventana falla tres comprobaciones).
+
 ## Tanda 985 — Adelantarse a la página siguiente y guardar las secciones (propuesta «Rápida al volver», D y E)
 
 `js/precarga.js` (723) ya pedía la página al posar el dedo: en Chrome con

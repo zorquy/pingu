@@ -38,14 +38,17 @@ import {
   rarezaEs,
   rarezaDeCarta,
 } from './carta-nucleo.js'
+import { mercadoDeRuta, elegirCartaDeRuta } from './carta-ruta.js'
 
-const MERCADO = 'WEST'
+// El catálogo lo dice la carta (986): /carta abría solo las occidentales, y
+// «Ficha completa» de una japonesa daba «Carta no encontrada».
+let mercado = 'WEST'
 
 // Las columnas de la ficha. Se piden por su nombre y no con `*` a
 // propósito: `*` traería también `name_search` y `dex_ids`, que no pinta
 // nadie, en TODAS las visitas.
 const COLUMNAS =
-  'id,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,category,rarity,rarity_en,types,hp,illustrator,' +
+  'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,category,rarity,rarity_en,types,hp,illustrator,' +
   'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,variants,' +
   'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,detalle_lang,cm_id_product_propio,tp_id_product_propio,' +
   'tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,card_count_official,card_count_total,tcg_online_code,logo_scrydex,logo_tcggo,logo_path)'
@@ -66,12 +69,12 @@ async function cargar() {
   const { data, error } = await supabase
     .from('tcg_cards')
     .select(COLUMNAS)
-    .eq('market', MERCADO)
     .in('id', buscar)
-    .limit(1)
+    .limit(10)
   if (error || !data?.length) return fallo()
 
-  const carta = data[0]
+  const carta = elegirCartaDeRuta(data, mercadoDeRuta(location.search))
+  mercado = carta.market || 'WEST'
   const set = carta.tcg_sets || null
 
   // Una carta de Pokémon TCG Pocket no tiene ficha aquí: es otro juego.
@@ -325,8 +328,8 @@ async function versiones(carta) {
 
   const { data, error } = await supabase
     .from('tcg_cards')
-    .select('id,name,name_es,name_en,local_id,image_path,image_scrydex,image_tcggo,rarity,rarity_en,set_id,category,hp,stage,types,attacks,detalle_lang,tcg_sets(name,name_en,serie_id,serie_name_en)')
-    .eq('market', MERCADO)
+    .select('id,market,name,name_es,name_en,local_id,image_path,image_scrydex,image_tcggo,rarity,rarity_en,set_id,category,hp,stage,types,attacks,detalle_lang,tcg_sets(name,name_en,serie_id,serie_name_en)')
+    .eq('market', mercado)
     .eq('name', carta.name)
     .neq('id', carta.id)
     // Se piden más de las que se enseñan: el nombre es solo el
@@ -350,7 +353,7 @@ async function versiones(carta) {
   if (!caja) return
   caja.innerHTML = mismas
     .map((v) => {
-      const img = urlDeImagen(v.image_path, 'low')
+      const img = urlDeImagen(v.image_path, 'low', mercado)
       const pie = [v.local_id, rarezaDeCarta(v)].filter(Boolean).join(' · ')
       return (
         `<a class="carta-version" href="${escapeHtml(rutaDeCarta(v))}" data-marca-carta="${escapeHtml(v.id)}">` +

@@ -2349,9 +2349,9 @@ function abrirEditor(l) {
   // Y desde la 667 el nombre del set LLEVA a la expansión (PINGU: «que
   // sea clicable todo»): un enlace de verdad, que vale en las dos
   // pantallas y en una pestaña nueva.
-  const suSet = c ? (todosLosSets || []).find((s) => s.id === c.set_id && (s.market || mercado) === (c.market || mercado)) : null
+  const suSet = setDeCarta(c)
   $('mcEdSet').innerHTML = c
-    ? `<a href="${escapeHtml(direccionDeSet(c))}">${simboloDeSetHtml(suSet)}${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id || '')}</a>${c.local_id ? ` · ${escapeHtml(c.local_id)}` : ''}`
+    ? `<a href="${escapeHtml(direccionDeSet(c))}">${simboloDeSetHtml(suSet)}${escapeHtml(nombreDeSet(suSet) || c.set_id || '')}</a>${c.local_id ? ` · ${escapeHtml(c.local_id)}` : ''}`
     : escapeHtml(l.card_id)
   // Las chapas de TU copia, para no tener que leer los desplegables:
   // versión, idioma, estado, gradeo y cuántas das.
@@ -2364,6 +2364,7 @@ function abrirEditor(l) {
   // que enseña qué se puede pedir. Una fila que no se sabe NO se pinta —
   // «Ilustrador: —» ocupa lo mismo que el dato y no dice nada.
   $('mcEdTabla').innerHTML = tablaDeCarta(c, l.variante)
+  void completarDatosDeFicha(c, l)
   // Las carpetas cuelgan de una LÍNEA, así que sin ella no hay nada que
   // enseñar; el «quién la tiene» es de la carta y sí vale siempre.
   if (l.id) pintarCarpetasDeLaFicha(l.id)
@@ -2495,19 +2496,46 @@ function direccionDeIlustrador(c) {
 // su clase. «Salió en: Celebrations Ultra-Premium Collection» va primero,
 // que es lo que hace distinta a la metálica de su Charizard de Base Set.
 const CLASES_DE_VERSION = { impresion: 'Impresión', sello: 'Sello', adicional: 'Adicional' }
+// El set de una carta para la ficha (986): las cartas de una expansión llegan
+// con lo justo de su set (`COLUMNAS_CARTA_DE_SET`: código, serie y día, sin el
+// nombre ni la cuenta), y la ficha enseñaba el id («sm10a_ja · 008») donde la
+// misma carta abierta desde el buscador decía «GG End · 008». Lo que falta lo
+// tiene la estantería, que ya está cargada.
+function setDeCarta(c) {
+  if (!c) return null
+  const deEstanteria = (todosLosSets || []).find((s) => s.id === c.set_id && (s.market || mercado) === (c.market || mercado)) || null
+  return deEstanteria || c.tcg_sets ? { ...(deEstanteria || {}), ...(c.tcg_sets || {}) } : null
+}
+
+// Y lo de la carta que esas filas no traen (986): el ilustrador, la Pokédex,
+// el tipo. Si la columna no vino (`undefined`, no `null`: la 319), se pide
+// una vez y se repinta la tabla si la ficha sigue en esa carta.
+const datosPedidos = new Set()
+async function completarDatosDeFicha(c, l) {
+  if (!c?.id || 'illustrator' in c) return
+  const clave = `${c.market || mercado}|${c.id}`
+  if (datosPedidos.has(clave)) return
+  datosPedidos.add(clave)
+  const { data, error } = await supabase.from('tcg_cards').select('illustrator,dex_ids,types,hp').eq('id', c.id).eq('market', c.market || mercado).maybeSingle()
+  if (error || !data) return datosPedidos.delete(clave)
+  for (const [k, v] of Object.entries(data)) if (!(k in c)) c[k] = v
+  if ($('mcEditor')?.open && cartaAbierta === l.card_id) $('mcEdTabla').innerHTML = tablaDeCarta(c, l.variante)
+}
+
 function tablaDeCarta(c, variante = null) {
   if (!c) return ''
   const suya = variante ? versionDeVariante(c, variante) : null
   const aMano = suya?.origen === 'mano' ? suya : null
-  const fecha = aMano?.lanzamiento || c.tcg_sets?.release_date
+  const elSet = setDeCarta(c)
+  const fecha = aMano?.lanzamiento || elSet?.release_date
   const fila = (icono, rotulo, valor, href = null) => {
     const dentro = `<span class="mc-fila-ico" aria-hidden="true">${icono}</span><span class="mc-fila-texto"><small>${escapeHtml(rotulo)}</small><b>${valor}</b></span>`
     return href
       ? `<a class="mc-fila mc-atrib" href="${escapeHtml(href)}">${dentro}<span class="mc-fila-flecha" aria-hidden="true">${icons.chevronRight(16)}</span></a>`
       : `<div class="mc-fila mc-atrib">${dentro}</div>`
   }
-  const set = nombreDeSet(c.tcg_sets) || c.set_id
-  const numero = aMano?.numero || (c.local_id ? `${c.local_id}${c.tcg_sets?.card_count_official ? `/${c.tcg_sets.card_count_official}` : ''}` : '')
+  const set = nombreDeSet(elSet) || c.set_id
+  const numero = aMano?.numero || (c.local_id ? `${c.local_id}${elSet?.card_count_official ? `/${elSet.card_count_official}` : ''}` : '')
   const tipos = Array.isArray(c.types) ? c.types.filter(Boolean) : []
   const filas = [
     aMano?.salio_en ? fila(icons.cards(18), 'Salió en', escapeHtml(aMano.salio_en)) : '',
