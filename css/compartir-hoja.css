@@ -1,5 +1,5 @@
-/* La hoja de compartir (871): Texto · Historia · Para X con vista previa.
-   La inyecta js/compartir-hoja.js al abrirla; el porqué en SCHEMA 871. */
+/* La hoja de compartir (871; Instagram y X desde la 988) con vista previa.
+   La inyecta js/compartir-hoja.js al abrirla; el porqué en SCHEMA 871 y 988. */
 .ch-hoja {
   width: min(520px, calc(100vw - 2 * var(--e-lg)));
   max-height: calc(100dvh - 2 * var(--e-2xl));
@@ -48,10 +48,16 @@
   color: var(--text-mid);
 }
 
-.ch-pestanas .seg-btn {
+.ch-pestanas .seg-btn,
+.ch-formas .seg-btn {
   flex: 1 1 0;
   justify-content: center;
+  gap: var(--e-xs);
   min-height: 44px;
+}
+
+.ch-formas[hidden] {
+  display: none;
 }
 
 .ch-previa {
@@ -76,6 +82,18 @@
   white-space: pre-wrap;
 }
 
+/* En la pestaña X, el texto que se publica, debajo de la imagen. */
+.ch-texto-x {
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  font-size: var(--t-sm);
+}
+
+.ch-texto-x[hidden] {
+  display: none;
+}
+
 .ch-imagen {
   display: block;
   max-width: 100%;
@@ -83,7 +101,8 @@
   box-shadow: var(--shadow-sm);
 }
 
-.ch-imagen.ch-historia {
+.ch-imagen.ch-historia,
+.ch-imagen.ch-publicacion {
   max-height: 40vh;
 }
 
@@ -101,6 +120,18 @@
 
 .ch-acciones > * {
   min-height: 44px;
+}
+
+.ch-acciones > [hidden] {
+  display: none;
+}
+
+.ch-descargar,
+.ch-copiar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
 }
 
 /* «Publicar en X» (880): a lo ancho, debajo de los dos de siempre. */

@@ -10,7 +10,8 @@
 import { indicesDelDia } from '../../js/mas-caro.js'
 import { opcionesDeExpansion, numeroDelDia, RONDAS } from '../../js/que-expansion.js'
 import { esDelTCG, ID_DE_POCKET, plegarHermanos, padreDeColeccion } from '../../js/catalogo-series.js'
-import { hoyUTC, segundosHastaManana, rest } from './mas-caro.mjs'
+import { hoyUTC, segundosHastaManana, rest, libreDePeticion, CABECERAS_LIBRE } from './mas-caro.mjs'
+import { diaLibre } from '../../js/retos-libre.js'
 
 export const JUEGO = 'expansion'
 export const CANDIDATAS = 20
@@ -23,7 +24,9 @@ export const COLUMNAS_SET = 'id,market,name,name_en,serie_id,release_date,logo_p
 const sinTabla = (e) => /retos_reto_del_dia|42P01|PGRST205/.test(String(e?.message || e))
 const enLista = (ids) => ids.map((id) => `"${String(id).replace(/"/g, '')}"`).join(',')
 
-export async function elegirExpansion({ dia, pedir, guardar }) {
+// Con `libre` (988), una partida libre: el día suyo, sin la tabla del día.
+export async function elegirExpansion({ dia, pedir, guardar, libre = null }) {
+  if (libre) dia = diaLibre(libre)
   const todos = ((await pedir(`tcg_sets?select=${COLUMNAS_SET}&market=eq.WEST&oculto=is.false&limit=1000`)).datos || []).filter(esDelTCG)
   // LAS EXPANSIONES COMO LAS ENSEÑA LA WEB (976): plegadas. Sin esto una
   // Trainer Gallery era una opción más, al lado de su expansión y de las
@@ -38,7 +41,7 @@ export async function elegirExpansion({ dia, pedir, guardar }) {
     return (padre && porId.get(padre)) || porId.get(String(id ?? '').toLowerCase()) || null
   }
   let rondas = null
-  try {
+  if (!libre) try {
     const g = (await pedir(`retos_reto_del_dia?select=datos&juego=eq.${JUEGO}&day=eq.${dia}&limit=1`)).datos
     rondas = Array.isArray(g?.[0]?.datos?.rondas) ? g[0].datos.rondas : null
   } catch (e) {
@@ -56,7 +59,7 @@ export async function elegirExpansion({ dia, pedir, guardar }) {
     }
     if (elegidas.length < RONDAS) return { error: 'No se han podido elegir cinco cartas.' }
     rondas = elegidas.map((c, r) => ({ card_id: c.id, set_ids: opcionesDeExpansion(expansionDe(c.set_id), sets, dia, r).map((s) => s.id) }))
-    try {
+    if (!libre) try {
       await guardar('retos_reto_del_dia', { juego: JUEGO, day: dia, datos: { rondas } })
       const otra = (await pedir(`retos_reto_del_dia?select=datos&juego=eq.${JUEGO}&day=eq.${dia}&limit=1`)).datos
       if (Array.isArray(otra?.[0]?.datos?.rondas) && otra[0].datos.rondas.length) rondas = otra[0].datos.rondas
@@ -79,20 +82,22 @@ export async function elegirExpansion({ dia, pedir, guardar }) {
     })
     .filter((r) => r.carta && r.set_id && r.opciones.length >= 2 && r.opciones.some((s) => s.id === r.set_id))
   if (fuera.length < RONDAS) return { error: 'Las cartas del día ya no están en el catálogo.' }
-  return { dia, numero: numeroDelDia(dia), rondas: fuera }
+  return libre ? { dia, libre, rondas: fuera } : { dia, numero: numeroDelDia(dia), rondas: fuera }
 }
 
-export default async () => {
+export default async (req) => {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return Response.json({ error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' }, { status: 500 })
+  const libre = libreDePeticion(req)
   try {
     const r = await elegirExpansion({
       dia: hoyUTC(),
+      libre,
       pedir: (ruta, o = {}) => rest(ruta, clave, o),
       guardar: (tabla, fila) => rest(tabla, clave, { metodo: 'POST', cuerpo: [fila], cabeceras: { prefer: 'resolution=ignore-duplicates,return=minimal' } }),
     })
     if (r.error) return Response.json(r, { status: 503, headers: { 'cache-control': 'no-store' } })
-    return Response.json(r, { headers: { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
+    return Response.json(r, { headers: libre ? CABECERAS_LIBRE : { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
   } catch (err) {
     return Response.json({ error: String(err?.message || err).slice(0, 200) }, { status: 502, headers: { 'cache-control': 'no-store' } })
   }

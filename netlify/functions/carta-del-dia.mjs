@@ -12,6 +12,7 @@
 // de las llamadas.
 import { indiceDelDia, numeroDelDia } from '../../js/carta-del-dia.js'
 import { ID_DE_POCKET } from '../../js/catalogo-series.js'
+import { numeroLibre, diaLibre } from '../../js/retos-libre.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 
@@ -26,6 +27,19 @@ export const FILTRO_ELEGIBLES = `market=eq.WEST&category=eq.Pokemon&rarity=not.i
 export const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,types,illustrator,hp,dex_ids,tcg_sets(name,name_en,tcg_online_code,serie_id,release_date)'
 
 export const hoyUTC = () => new Date().toISOString().slice(0, 10)
+
+// La partida libre de la dirección (`?libre=N`), o null.
+export function libreDePeticion(req) {
+  try {
+    return numeroLibre(new URL(req.url).searchParams.get('libre'))
+  } catch {
+    return null
+  }
+}
+
+// Una partida libre no cambia con el día: la CDN la guarda un día entero y
+// repetirla no cuesta una función (988).
+export const CABECERAS_LIBRE = { 'cache-control': 'public, max-age=3600', 'netlify-cdn-cache-control': 'public, durable, max-age=86400' }
 
 // Segundos hasta la medianoche UTC: lo que puede vivir la respuesta en
 // caché, porque mañana es otra carta.
@@ -54,9 +68,18 @@ async function rest(ruta, clave, { metodo = 'GET', cuerpo = null, cabeceras = {}
 // La lógica, con sus dos puertas inyectables:
 //   pedir(ruta, { cabeceras }) → { datos, total }
 //   guardar(ruta, fila)        → inserta ignorando duplicados
-export async function elegirCartaDelDia({ dia, pedir, guardar }) {
-  const guardada = (await pedir(`carta_del_dia?select=card_id&day=eq.${dia}&limit=1`)).datos
+// Con `libre` (988, «Jugar otra vez»), la carta de una partida libre: la
+// misma cuenta con el día de esa partida, sin leer ni escribir la del día.
+export async function elegirCartaDelDia({ dia, pedir, guardar, libre = null }) {
+  if (libre) dia = diaLibre(libre)
+  const guardada = libre ? null : (await pedir(`carta_del_dia?select=card_id&day=eq.${dia}&limit=1`)).datos
   let cardId = guardada?.[0]?.card_id || null
+  if (!cardId && libre) {
+    const { total } = await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
+    if (!total) return { error: 'No hay cartas elegibles.' }
+    cardId = (await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&order=id.asc&limit=1&offset=${indiceDelDia(dia, total)}`)).datos?.[0]?.id || null
+    if (!cardId) return { error: 'No se ha podido elegir la carta.' }
+  }
   if (!cardId) {
     const { total } = await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
     if (!total) return { error: 'No hay cartas elegibles.' }
@@ -72,6 +95,7 @@ export async function elegirCartaDelDia({ dia, pedir, guardar }) {
   }
   const carta = (await pedir(`tcg_cards?select=${COLUMNAS_CARTA}&id=eq.${encodeURIComponent(cardId)}&market=eq.WEST&limit=1`)).datos?.[0]
   if (!carta) return { error: 'La carta del día no está en el catálogo.' }
+  if (libre) return { dia, libre, carta, ayer: null }
   // Y la de AYER, por su nombre (tanda 572): «ayer era Gastly» es lo que
   // hace que quien no jugó ayer vuelva mañana. Si no la hay, nada.
   let ayer = null
@@ -89,18 +113,20 @@ export async function elegirCartaDelDia({ dia, pedir, guardar }) {
   return { dia, numero: numeroDelDia(dia), carta, ayer }
 }
 
-export default async () => {
+export default async (req) => {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return Response.json({ error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' }, { status: 500 })
   const dia = hoyUTC()
+  const libre = libreDePeticion(req)
   try {
     const r = await elegirCartaDelDia({
       dia,
+      libre,
       pedir: (ruta, o = {}) => rest(ruta, clave, o),
       guardar: (tabla, fila) => rest(tabla, clave, { metodo: 'POST', cuerpo: [fila], cabeceras: { prefer: 'resolution=ignore-duplicates,return=minimal' } }),
     })
     if (r.error) return Response.json(r, { status: 503, headers: { 'cache-control': 'no-store' } })
-    return Response.json(r, { headers: { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
+    return Response.json(r, { headers: libre ? CABECERAS_LIBRE : { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
   } catch (err) {
     return Response.json({ error: String(err?.message || err).slice(0, 200) }, { status: 502, headers: { 'cache-control': 'no-store' } })
   }

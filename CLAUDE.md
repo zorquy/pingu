@@ -749,6 +749,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   el enunciado: el reto es el mismo para todos y no se destripa. Y la
   cuenta de PokeDoc no sube el resultado de nadie: sus dos imágenes del
   día (mañana y noche) salen de /admin → Redes.
+- **Un reto acaba con tres salidas y se puede jugar otra vez** (tanda 988):
+  `salidasHtml` (retos-ui.js) pinta el siguiente, Compartir y «Jugar otra
+  vez»; la partida libre es `?libre=N` (`js/retos-libre.js`), se juega como
+  el día `diaLibre(N)` y va en su llave (`claveLibre`): no guarda en la base,
+  no suma racha, no se comparte y avisa de que no da XP. Un reto nuevo pasa
+  por las dos cosas, y su función de Netlify, con `libre`, no toca la tabla
+  del día. Y la hoja de compartir es Instagram (Historia 1080×1920 y
+  Publicación) y X, sin pestaña de texto: una pantalla le da la vertical de
+  1080×1350 y la apaisada, y la historia la monta la hoja (`historiaDe`).
 - **Una página tiene UNA dirección para Google** (tanda 906). La canónica
   la arma `urlCanonica` (meta-social.js): sin `.html`, en pokedoc.es y solo
   con los parámetros que eligen el contenido (`PARAMETROS_CANONICOS`); la de

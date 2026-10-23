@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-23 (223) — PINGU-Claude (988 — retos, 1.ª tanda: buscador, salidas, jugar otra vez, Instagram/X)
+
+**Hecho**: el buscador de «¿Qué carta es?» ya no apila las cartas (enteras,
+por colección, nombre y número debajo; tres por fila en el móvil, seis en el
+PC). Los cinco juegos acaban con tres salidas: el siguiente reto, Compartir y
+«Jugar otra vez», una partida libre (`?libre=N`) que no da XP, no toca la de
+hoy ni la base y lo avisa. Fuera «Compartir mi día» del final. La hoja de
+compartir es, en toda la web, Instagram (Historia 1080×1920 y Publicación) y
+X, sin pestaña de texto. La carta resuelta se toca y abre su ficha.
+
+**Ficheros**: `js/retos-libre.js` (nuevo), `js/retos-ui.js`,
+`js/retos-siguiente.js`, `js/compartir-hoja.js`, los cinco `js/*-juego.js`,
+`js/nueve.js`, `js/curso.js`, las cuatro funciones de Netlify
+(`carta-del-dia`, `mas-caro`, `ordena-precio`, `que-expansion`),
+`css/elegir-carta.css`, `css/retos-juego.css`, `css/compartir-hoja.css`,
+`css/carta-del-dia.css`, `CLAUDE.md`, `SCHEMA.md`, `novedades.json`,
+`BITACORA.md`. En `pruebas`: `test-tanda-988.mjs` y al día 568, 570, 583,
+835-pantalla, 860-pantalla, 870, 871-pantalla, 873-pantalla, 880-pantalla.
+Sin migración.
+
+**Pendiente**: las tandas 989 (menú de /retos y fuera «El reto de hoy»), 990
+(«¿Quién es?» borroso, con migración) y 991 (Parejas y la liga de los seis,
+con migración). Sigue pendiente volver a ejecutar la migración 987.
+
 ## 2026-10-23 (222) — PINGU-Claude (987c — el Prize Pack, solo)
 
 **Hecho**: en /admin → «Posibles repetidas», «Prize Pack: la más cara es la

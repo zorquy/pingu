@@ -13,11 +13,17 @@ import { euros } from './cardmarket.js'
 import { RONDAS, numeroDelDia, acierta, textoParaCompartir, rachaDeDias, ENLACE } from './mas-caro.js'
 import { xpDe, xpDelSiguienteCaro, mejorQue } from './retos-xp.js'
 import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
-import { premiosHtml, cuentaAtras } from './retos-ui.js'
-import { siguienteReto, hechoHoy, siguienteRetoHtml } from './retos-siguiente.js'
+import { premiosHtml, cuentaAtras, salidasHtml, avisoLibreHtml } from './retos-ui.js'
+import { hechoHoy } from './retos-siguiente.js'
+import { libreDeDireccion, claveLibre } from './retos-libre.js'
+import { hoyISO } from './reto-diario.js'
 
 const $ = (id) => document.getElementById(id)
-const CLAVE = 'pokedoc-mas-caro'
+// Una partida libre (988, `?libre=N`): otras seis, en su propia llave, sin
+// XP, sin racha y sin compartir.
+const libre = libreDeDireccion(location.search)
+const hoy = hoyISO()
+const CLAVE = claveLibre('pokedoc-mas-caro', libre)
 const CLAVE_DIAS = 'pokedoc-mas-caro-jugados'
 
 let dia = null
@@ -55,6 +61,7 @@ function diasJugados() {
 }
 
 function apuntarDia() {
+  if (libre) return
   const d = diasJugados()
   if (!d.includes(dia)) d.push(dia)
   try {
@@ -140,22 +147,19 @@ function pintarFinal() {
   }).join('')
   final.innerHTML = `
     <div class="mcr-final-cab">
-      <small>Reto #${numeroDelDia(dia)}</small>
+      <small>${libre ? 'Partida libre' : `Reto #${numeroDelDia(dia)}`}</small>
       <p class="mcr-final-titulo">${aciertos === RONDAS ? '¡Las cinco!' : `${aciertos} de ${RONDAS}`}</p>
       <ol class="rj-pasos mcr-tira" aria-hidden="true">${estado.respuestas.map((b) => `<li class="rj-paso ${b ? 'si' : 'no'}">${b ? icons.checkCircle(18) : icons.xCircle(18)}</li>`).join('')}</ol>
       <p class="subtext" id="mcrGente" style="margin:0;color:inherit"></p>
       <div id="mcrPremios"></div>
-      <div class="rj-botones">
-        <button type="button" class="btn-secondary" id="mcrCompartir">${icons.share(16)} Compartir</button>
-        <span class="rj-cuenta" id="mcrCuenta"></span>
-      </div>
-      <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('caro', hechoHoy(dia)), { dia })}</div>
+      ${salidasHtml({ juego: 'caro', ruta: '/mas-caro', dia: hoy, libre, compartirId: 'mcrCompartir', cuentaId: 'mcrCuenta' })}
     </div>
     <ol class="mcr-rondas" aria-label="Las cinco rondas">${rondas}</ol>`
   final.classList.remove('hidden')
-  $('mcrCompartir').addEventListener('click', compartir)
+  $('mcrCompartir')?.addEventListener('click', compartir)
   pararCuenta()
-  pararCuenta = cuentaAtras($('mcrCuenta'), 'Cinco más en')
+  pararCuenta = cuentaAtras($('mcrCuenta'), 'Mañana, otras:')
+  if (libre) return
   pintarPremios()
   estadisticas('caro', dia).then((s) => {
     const m = mejorQue(s?.porAciertos, aciertos)
@@ -174,7 +178,7 @@ function pintarPremios() {
 }
 
 async function guardar() {
-  if (!terminado() || estado.guardado) return
+  if (libre || !terminado() || estado.guardado) return
   const r = await guardarResultado('caro', dia, {
     aciertos: estado.respuestas.filter(Boolean).length,
     total: RONDAS,
@@ -192,7 +196,7 @@ function pintarTodo() {
   pintarPar()
   pintarTira()
   pintarFinal()
-  $('mcrSub').textContent = `Reto #${numeroDelDia(dia)} · ${terminado() ? 'resuelto' : `pregunta ${ronda() + 1} de ${RONDAS}`}`
+  $('mcrSub').textContent = `${libre ? 'Partida libre' : `Reto #${numeroDelDia(dia)}`} · ${terminado() ? 'resuelto' : `pregunta ${ronda() + 1} de ${RONDAS}`}`
 }
 
 function textoDeHoy() {
@@ -241,7 +245,7 @@ function responder(respuesta) {
   const ver = $('mcrVeredicto')
   ver.className = `mcr-veredicto${bien ? '' : ' mal'}`
   const dice = Number(b.precio) > Number(a.precio) ? 'Vale más' : 'Vale menos'
-  ver.innerHTML = `<b>${bien ? icons.checkCircle(24) : icons.xCircle(24)} ${bien ? `¡Bien! ${dice}` : `¡Vaya! ${dice}`}</b>${bien ? `<span class="rj-chip xp">${icons.zap(14)} +${vale} XP${vale === 6 ? ' (×2)' : ''}</span>` : ''}`
+  ver.innerHTML = `<b>${bien ? icons.checkCircle(24) : icons.xCircle(24)} ${bien ? `¡Bien! ${dice}` : `¡Vaya! ${dice}`}</b>${bien && !libre ? `<span class="rj-chip xp">${icons.zap(14)} +${vale} XP${vale === 6 ? ' (×2)' : ''}</span>` : ''}`
   pintarTira()
   // Con «menos movimiento» no hay pausa que esperar: se pasa ya.
   const pausa = sinMovimiento() ? 0 : 1500
@@ -268,7 +272,7 @@ async function init() {
   $('mcrIconoMenos').innerHTML = `<span style="display:inline-flex;transform:scaleY(-1)">${icons.trendingUp(24)}</span>`
   let r
   try {
-    const res = await fetch('/.netlify/functions/mas-caro', { headers: { accept: 'application/json' } })
+    const res = await fetch(`/.netlify/functions/mas-caro${libre ? `?libre=${libre}` : ''}`, { headers: { accept: 'application/json' } })
     r = await res.json()
     if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
   } catch (err) {
@@ -282,11 +286,12 @@ async function init() {
     return
   }
   // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
-  await traerPartidaDeHoy('caro', dia).catch(() => false)
+  if (!libre) await traerPartidaDeHoy('caro', dia).catch(() => false)
+  if (libre) $('mcrSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('caro'), '/mas-caro'))
   cargarEstado()
   sesion = await getSession().catch(() => null)
   pintarTodo()
-  if (sesion && terminado()) {
+  if (sesion && terminado() && !libre) {
     if (!estado.guardado) guardar()
     else misNumeros(1).then((n) => { if (n?.hoy?.caro) { guardado = { nuevo: false, xp: n.hoy.caro.xp }; pintarPremios() } }).catch(() => {})
   }

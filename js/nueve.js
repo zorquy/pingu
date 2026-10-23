@@ -117,7 +117,7 @@ async function buscar() {
     .map(
       (c) => `<button type="button" class="nv-resultado" data-elegir="${escapeHtml(c.id)}" aria-label="${escapeHtml(nombreDeCarta(c))}, ${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} ${escapeHtml(c.local_id)}">
         ${fotoHtml(c, 'nv-resultado-foto')}
-        <span class="nv-resultado-pie">${escapeHtml(nombreDeCarta(c))} · ${escapeHtml(c.local_id)}</span>
+        <span class="nv-resultado-pie"><b>${escapeHtml(nombreDeCarta(c))}</b><small>${escapeHtml(c.local_id)}</small></span>
       </button>`
     )
     .join('')

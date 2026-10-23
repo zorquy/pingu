@@ -10,6 +10,9 @@
 // Patrón inyectable: `pedir` y `guardar` se cambian en las pruebas.
 import { indicesDelDia, cartasQueSirven, numeroDelDia, CARTAS_POR_DIA, PRECIO_MINIMO } from '../../js/mas-caro.js'
 import { ID_DE_POCKET } from '../../js/catalogo-series.js'
+import { diaLibre } from '../../js/retos-libre.js'
+export { libreDePeticion, CABECERAS_LIBRE } from './carta-del-dia.mjs'
+import { libreDePeticion, CABECERAS_LIBRE } from './carta-del-dia.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 
@@ -52,8 +55,10 @@ export async function cartasConPrecio(ids, pedir) {
   return ids.map((id) => (porId.has(id) ? { ...porId.get(id), precio: precioDe.get(id) ?? null } : null)).filter(Boolean)
 }
 
-export async function elegirMasCaro({ dia, pedir, guardar }) {
-  const guardado = (await pedir(`mas_caro_del_dia?select=card_ids&day=eq.${dia}&limit=1`)).datos
+// Con `libre` (988), una partida libre: el día suyo, sin la tabla del día.
+export async function elegirMasCaro({ dia, pedir, guardar, libre = null }) {
+  if (libre) dia = diaLibre(libre)
+  const guardado = libre ? null : (await pedir(`mas_caro_del_dia?select=card_ids&day=eq.${dia}&limit=1`)).datos
   let ids = Array.isArray(guardado?.[0]?.card_ids) ? guardado[0].card_ids : null
   if (!ids?.length) {
     const { total } = await pedir(`tcg_card_prices?select=card_id&${FILTRO_PRECIOS}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
@@ -67,27 +72,29 @@ export async function elegirMasCaro({ dia, pedir, guardar }) {
     const elegidas = cartasQueSirven(await cartasConPrecio(candidatas, pedir))
     if (elegidas.length < CARTAS_POR_DIA) return { error: 'No se han podido elegir seis cartas.' }
     ids = elegidas.map((c) => c.id)
-    await guardar('mas_caro_del_dia', { day: dia, card_ids: ids })
-    const otra = (await pedir(`mas_caro_del_dia?select=card_ids&day=eq.${dia}&limit=1`)).datos
+    if (!libre) await guardar('mas_caro_del_dia', { day: dia, card_ids: ids })
+    const otra = libre ? null : (await pedir(`mas_caro_del_dia?select=card_ids&day=eq.${dia}&limit=1`)).datos
     if (Array.isArray(otra?.[0]?.card_ids) && otra[0].card_ids.length) ids = otra[0].card_ids
   }
   const cartas = await cartasConPrecio(ids, pedir)
   if (cartas.length < CARTAS_POR_DIA) return { error: 'Las cartas del día ya no están en el catálogo.' }
-  return { dia, numero: numeroDelDia(dia), cartas }
+  return libre ? { dia, libre, cartas } : { dia, numero: numeroDelDia(dia), cartas }
 }
 
-export default async () => {
+export default async (req) => {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return Response.json({ error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' }, { status: 500 })
   const dia = hoyUTC()
+  const libre = libreDePeticion(req)
   try {
     const r = await elegirMasCaro({
       dia,
+      libre,
       pedir: (ruta, o = {}) => rest(ruta, clave, o),
       guardar: (tabla, fila) => rest(tabla, clave, { metodo: 'POST', cuerpo: [fila], cabeceras: { prefer: 'resolution=ignore-duplicates,return=minimal' } }),
     })
     if (r.error) return Response.json(r, { status: 503, headers: { 'cache-control': 'no-store' } })
-    return Response.json(r, { headers: { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
+    return Response.json(r, { headers: libre ? CABECERAS_LIBRE : { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
   } catch (err) {
     return Response.json({ error: String(err?.message || err).slice(0, 200) }, { status: 502, headers: { 'cache-control': 'no-store' } })
   }

@@ -21,11 +21,17 @@ import {
 import { mismaFamilia } from './familias-pokemon.js'
 import { xpDe, xpSiAciertasCarta } from './retos-xp.js'
 import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
-import { premiosHtml, repartoHtml, cuentaAtras, genteHtml } from './retos-ui.js'
-import { siguienteReto, hechoHoy, siguienteRetoHtml } from './retos-siguiente.js'
+import { premiosHtml, repartoHtml, cuentaAtras, genteHtml, salidasHtml, avisoLibreHtml } from './retos-ui.js'
+import { hechoHoy } from './retos-siguiente.js'
+import { libreDeDireccion, claveLibre } from './retos-libre.js'
+import { hoyISO } from './reto-diario.js'
 
 const $ = (id) => document.getElementById(id)
-const CLAVE = 'pokedoc-carta-del-dia'
+// Una partida libre (988, `?libre=N`): otra carta, en su propia llave, sin
+// XP, sin racha y sin compartir.
+const libre = libreDeDireccion(location.search)
+const hoy = hoyISO()
+const CLAVE = claveLibre('pokedoc-carta-del-dia', libre)
 const CLAVE_DIAS = 'pokedoc-carta-del-dia-acertados'
 // En cuántos intentos se acertó cada día (0 = no), para el reparto de quien
 // juega sin cuenta. Con cuenta manda la base.
@@ -68,11 +74,13 @@ function diasAcertados() {
   return Array.isArray(d) ? d : []
 }
 function apuntarAcierto() {
+  if (libre) return
   const d = diasAcertados()
   if (!d.includes(dia)) d.push(dia)
   escribirJson(CLAVE_DIAS, d.slice(-120))
 }
 function apuntarHistorial() {
+  if (libre) return
   const h = leerJson(CLAVE_HISTORIAL, {})
   h[dia] = estado.acertada ? estado.intentos.length : 0
   escribirJson(CLAVE_HISTORIAL, Object.fromEntries(Object.entries(h).slice(-200)))
@@ -106,9 +114,17 @@ function pintarFoto() {
   const px = terminado() ? 0 : DESENFOQUES[Math.min(n, DESENFOQUES.length - 1)]
   $('cdRecorte').style.setProperty('--cd-desenfoque', `${px}px`)
   $('cdRecorte').classList.toggle('resuelta', terminado() && estado.acertada)
+  // Resuelta, la carta es el enlace a su ficha (988).
+  const recorte = $('cdRecorte')
+  recorte.classList.toggle('abrible', terminado())
+  if (terminado()) {
+    recorte.setAttribute('role', 'link')
+    recorte.tabIndex = 0
+    recorte.setAttribute('aria-label', `Ver la ficha de ${nombreDeCarta(respuesta)}`)
+  }
   // Lo que vale acertar ahora (835): baja con cada fallo.
   const bote = $('cdBote')
-  bote.classList.toggle('hidden', terminado())
+  bote.classList.toggle('hidden', terminado() || Boolean(libre))
   bote.innerHTML = `${icons.zap(14)} ${sesion ? 'Ahora vale' : 'Con cuenta, ahora vale'} <b>+${xpSiAciertasCarta(n)} XP</b>`
   $('cdGastados').innerHTML = Array.from({ length: INTENTOS }, (_, i) => `<i${i < n ? ' class="gastado"' : ''}></i>`).join('')
 }
@@ -184,19 +200,15 @@ function pintarFinal() {
   final.className = `cd-final rj-final${estado.acertada ? '' : ' fallado'}`
   final.innerHTML = `
     <p class="rj-final-titulo cd-final-titulo">${estado.acertada ? `¡Acertada en ${n}!` : `Era ${escapeHtml(nombre)}`}</p>
-    <p class="subtext cd-final-sub">${escapeHtml(nombre)} · ${escapeHtml(nombreDeSet(respuesta.tcg_sets) || respuesta.set_id)} · ${escapeHtml(respuesta.local_id || '')}<span id="cdGente"></span></p>
+    <p class="subtext cd-final-sub">${escapeHtml(nombre)} · ${escapeHtml(nombreDeSet(respuesta.tcg_sets) || respuesta.set_id)} · ${escapeHtml(respuesta.local_id || '')}<span id="cdGente"></span> · toca la carta para ver su ficha</p>
     <div id="cdPremios"></div>
     <div id="cdReparto"></div>
-    <div class="rj-botones">
-      <button type="button" class="btn-secondary" id="cdCompartir">${icons.share(16)} Compartir</button>
-      <a class="btn-secondary" href="${escapeHtml(rutaDeCarta(respuesta))}">Ver la carta</a>
-      <span class="rj-cuenta" id="cdCuenta"></span>
-    </div>
-    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('carta', hechoHoy(dia)), { dia })}</div>`
+    ${salidasHtml({ juego: 'carta', ruta: '/carta-del-dia', dia: hoy, libre, compartirId: 'cdCompartir', cuentaId: 'cdCuenta' })}`
   final.classList.remove('hidden')
-  $('cdCompartir').addEventListener('click', compartir)
+  $('cdCompartir')?.addEventListener('click', compartir)
   pararCuenta()
-  pararCuenta = cuentaAtras($('cdCuenta'))
+  pararCuenta = cuentaAtras($('cdCuenta'), 'Mañana, otra:')
+  if (libre) return
   pintarPremios()
   estadisticas('carta', dia).then((s) => { const c = $('cdGente'); if (c) c.textContent = genteHtml(s) }).catch(() => {})
 }
@@ -223,7 +235,7 @@ function pintarPremios() {
 }
 
 async function guardar() {
-  if (!terminado() || estado.guardado) return
+  if (libre || !terminado() || estado.guardado) return
   const r = await guardarResultado('carta', dia, { aciertos: estado.acertada ? 1 : 0, total: 1, intentos: estado.intentos.length, acertada: estado.acertada }).catch(() => ({ error: true }))
   if (r && (r.nuevo === true || r.nuevo === false)) {
     estado.guardado = true
@@ -268,7 +280,7 @@ function pintarTodo() {
   pintarPistas()
   pintarIntentos()
   pintarFinal()
-  $('cdSub').textContent = `Reto #${numeroDelDia(dia)} · ${terminado() ? 'resuelta' : `intento ${estado.intentos.length + 1} de ${INTENTOS}`}`
+  $('cdSub').textContent = `${libre ? 'Partida libre' : `Reto #${numeroDelDia(dia)}`} · ${terminado() ? 'resuelta' : `intento ${estado.intentos.length + 1} de ${INTENTOS}`}`
 }
 
 // La hoja de compartir (871): el texto y la imagen en dos formatos, con
@@ -340,12 +352,14 @@ async function setsConLogo() {
   return setsDeLogos
 }
 
-function resultadoHtml(c) {
+function resultadoHtml(c, set = null) {
   const [primera, ...resto] = cadenaDeEscaneo(c, c?.tcg_sets?.tcg_online_code || null)
   const salto = "var r=(this.dataset.respaldos||'').split(' ').filter(Boolean);if(r.length){this.src=r.shift();this.dataset.respaldos=r.join(' ')}else{this.remove()}"
+  const total = Number(set?.card_count_official) || 0
+  const numero = `${c.local_id}${total && /^\d+$/.test(String(c.local_id)) ? `/${total}` : ''}`
   return `<button type="button" class="nv-resultado" data-elegir="${escapeHtml(c.id)}" aria-label="${escapeHtml(nombreDeCarta(c))}, ${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} ${escapeHtml(c.local_id)}">
-      ${primera ? `<img src="${primera}"${resto.length ? ` data-respaldos="${resto.join(' ')}"` : ''} onerror="${salto}" alt="" width="245" height="342" loading="lazy" />` : ''}
-      <span class="nv-resultado-pie">${escapeHtml(nombreDeCarta(c))} · ${escapeHtml(c.local_id)}</span>
+      <span class="nv-resultado-carta">${primera ? `<img src="${primera}"${resto.length ? ` data-respaldos="${resto.join(' ')}"` : ''} onerror="${salto}" alt="" width="245" height="342" loading="lazy" />` : ''}</span>
+      <span class="nv-resultado-pie"><b>${escapeHtml(nombreDeCarta(c))}</b><small>${escapeHtml(numero)}</small></span>
     </button>`
 }
 
@@ -368,7 +382,7 @@ export function gruposHtml(lista, sets = []) {
         <span class="nv-grupo-texto"><b>${escapeHtml(nombreDeSet(set) || nombreDeSet(c.tcg_sets) || c.set_id)}</b><small>${escapeHtml([anio, `${n} ${n === 1 ? 'carta' : 'cartas'}`].filter(Boolean).join(' · '))}</small></span>
       </div>`)
     }
-    partes.push(resultadoHtml(c))
+    partes.push(resultadoHtml(c, porSet.get(c.set_id)))
   }
   return partes.join('')
 }
@@ -425,7 +439,7 @@ async function init() {
   $('cdLupa').innerHTML = icons.search(18)
   let r
   try {
-    const res = await fetch('/.netlify/functions/carta-del-dia', { headers: { accept: 'application/json' } })
+    const res = await fetch(`/.netlify/functions/carta-del-dia${libre ? `?libre=${libre}` : ''}`, { headers: { accept: 'application/json' } })
     r = await res.json()
     // Sin día o sin carta tampoco hay reto: el mismo aviso (780, LO9).
     if (!res.ok || r.error || !r.dia || !r.carta) throw new Error(r?.error || `HTTP ${res.status}`)
@@ -438,8 +452,13 @@ async function init() {
   respuesta = r.carta
   ayer = r.ayer || null
   // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
-  await traerPartidaDeHoy('carta', dia).catch(() => false)
+  if (!libre) await traerPartidaDeHoy('carta', dia).catch(() => false)
   cargarEstado()
+  if (libre) $('cdSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('carta'), '/carta-del-dia'))
+  // La carta resuelta se toca y abre su ficha (988: sin botón «Ver la carta»).
+  const abrirFicha = () => { if (terminado()) location.href = rutaDeCarta(respuesta) }
+  $('cdRecorte').addEventListener('click', abrirFicha)
+  $('cdRecorte').addEventListener('keydown', (e) => { if (e.key === 'Enter') abrirFicha() })
   // «Ayer era X»: lo que hace volver a quien no jugó ayer.
   if (ayer?.name) {
     $('cdAyer').textContent = `Ayer era ${nombreDeCarta(ayer)}${ayer.tcg_sets ? ` (${nombreDeSet(ayer.tcg_sets)})` : ''}.`
@@ -454,7 +473,7 @@ async function init() {
   pintarTodo()
   // Tus números (lo ganado hoy y tu reparto) y, si se acabó antes sin
   // guardarse (sin red, sin cuenta entonces), se guarda ahora.
-  if (sesion) {
+  if (sesion && !libre) {
     misNumeros(400).then((n) => { numeros = n; pintarPremios() }).catch(() => {})
     if (terminado() && !estado.guardado) guardar()
   }

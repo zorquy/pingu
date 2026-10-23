@@ -3,6 +3,8 @@
 // css/retos-juego.css. Sin Supabase: lo que se pinta llega ya calculado.
 import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
+import { siguienteReto, hechoHoy } from './retos-siguiente.js'
+import { otraLibre, rutaLibre } from './retos-libre.js'
 
 // Lo que falta para el reto de mañana (medianoche UTC, como `numeroDelDia`).
 export function hastaManana(ahora = new Date()) {
@@ -55,3 +57,30 @@ export function genteHtml(stats, texto = 'lo ha acertado') {
   return ` · hoy ${texto} el ${Math.round(((Number(stats.acertaron) || 0) / j) * 100)} % de la gente`
 }
 
+
+// Las salidas del final, las mismas en los cinco juegos (988, PINGU:
+// «demasiados botones»): el siguiente reto que te quede hoy, grande; debajo,
+// Compartir y «Jugar otra vez»; y la cuenta atrás. Sin «Compartir mi día» ni
+// «Volver a los retos» (la flecha de arriba ya vuelve), salvo cuando ya no
+// queda ninguno: entonces el botón grande es la vuelta. En una partida libre
+// no se comparte (la de hoy es la misma para todos; una libre no la compara
+// nadie), y si la de hoy no está hecha, el botón grande lleva a ella.
+// `dia` es el de HOY de verdad, también en una libre.
+export function salidasHtml({ juego, ruta, dia, libre = null, compartirId = '', cuentaId = '', numerosHoy = null }) {
+  const hecho = hechoHoy(dia, numerosHoy)
+  const siguiente = siguienteReto(juego, hecho)
+  const principal = libre && !hecho(juego)
+    ? `<a class="btn-primary rj-siguiente" href="${escapeHtml(ruta)}">Jugar la de hoy, que da XP →</a>`
+    : siguiente
+      ? `<a class="btn-primary rj-siguiente" href="${escapeHtml(siguiente.ruta)}">Siguiente: ${escapeHtml(siguiente.titulo)} →</a>`
+      : '<a class="btn-primary rj-siguiente" href="/retos">Todos hechos por hoy · Volver a los retos</a>'
+  const compartir = libre ? '' : `<button type="button" class="btn-secondary" id="${escapeHtml(compartirId)}">${icons.share(16)} Compartir</button>`
+  const otra = `<a class="btn-secondary rj-otra" href="${escapeHtml(rutaLibre(ruta, otraLibre(libre)))}">${icons.refreshCw(16)} ${libre ? 'Otra más' : 'Jugar otra vez'}</a>`
+  return `<div class="rj-salidas">${principal}<div class="rj-salidas-fila">${compartir}${otra}</div>${cuentaId ? `<span class="rj-cuenta" id="${escapeHtml(cuentaId)}"></span>` : ''}</div>`
+}
+
+// El aviso de arriba en una partida libre: que no da XP, y si la de hoy no
+// está hecha, a ella.
+export function avisoLibreHtml(hechaHoy, ruta) {
+  return `<p class="rj-libre" role="note">${icons.refreshCw(16)}<span><b>Partida libre:</b> esta no da XP. ${hechaHoy ? 'La de hoy ya la tienes.' : `<a href="${escapeHtml(ruta)}">Juega antes la de hoy</a>, que sí da.`}</span></p>`
+}

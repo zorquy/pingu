@@ -50,6 +50,15 @@
   transition: filter 0.3s ease;
 }
 
+.cd-recorte.abrible {
+  cursor: pointer;
+}
+
+.cd-recorte.abrible:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 4px;
+}
+
 .cd-recorte.resuelta {
   box-shadow: 0 0 0 4px var(--success), 0 0 60px color-mix(in srgb, var(--success) 45%, transparent);
 }

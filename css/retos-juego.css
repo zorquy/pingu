@@ -202,21 +202,55 @@
   color: var(--blanco-fijo);
 }
 
-.rj-botones {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+/* Las salidas del final (988): el siguiente, grande; Compartir y «Jugar
+   otra vez» en una fila; la cuenta atrás debajo. */
+.rj-salidas {
+  display: grid;
+  gap: var(--e-sm);
+  width: 100%;
+  max-width: 440px;
+  padding-top: var(--e-md);
+  border-top: 1px solid var(--border);
+}
+
+.rj-salidas-fila {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
   gap: var(--e-sm);
 }
 
-/* A dónde ir al acabar (860): el siguiente reto grande y la vuelta debajo. */
-.rj-adonde {
+.rj-salidas a,
+.rj-salidas button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  text-align: center;
+}
+
+.rj-salidas .rj-cuenta {
+  justify-content: center;
+}
+
+/* El aviso de una partida libre (988). */
+.rj-libre {
   display: flex;
-  flex-direction: column;
-  gap: var(--e-sm);
   align-items: flex-start;
-  padding-top: var(--e-sm);
-  border-top: 1px solid var(--border);
+  gap: var(--e-sm);
+  margin: 0;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+.rj-libre svg {
+  flex: none;
+  margin-top: 2px;
+  color: var(--navy);
 }
 
 .rj-cuenta {
@@ -251,11 +285,6 @@
 @media (max-width: 760px) {
   .rj-final {
     padding: var(--e-md);
-  }
-
-  .rj-adonde {
-    align-items: stretch;
-    text-align: center;
   }
 
   .rj-final-titulo {

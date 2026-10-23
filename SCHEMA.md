@@ -41785,6 +41785,66 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 988 — Retos, más limpios (1.ª): el buscador, tres salidas, «Jugar otra vez» y Instagram/X
+
+Primera de las cuatro tandas de la propuesta «Retos, más limpios» (PINGU:
+«adelante con todo lo recomendado»).
+
+**El buscador de «¿Qué carta es?» apilaba las cartas.** No era un diseño,
+era un fallo: `.nv-resultado` llevaba `aspect-ratio` y `overflow: hidden`, y
+un elemento con `overflow` distinto de `visible` tiene 0 de tamaño mínimo
+automático; dentro de una rejilla que es un hijo flexible de un diálogo de
+alto fijo, las filas se encogían hasta la tira del nombre y las cartas se
+pintaban unas encima de otras. Ahora la proporción la lleva la caja de la
+foto (`.nv-resultado-carta`), el botón no recorta, la rejilla tiene
+`grid-auto-rows: max-content` y `min-height: 0`, y el nombre y el número
+(«57/191») van DEBAJO, no encima. Tres por fila en el móvil y seis en el PC
+(`minmax(100px, 1fr)`). La prueba que lo caza mira que el pie quede debajo
+de la foto: con el `overflow: hidden` de vuelta, falla.
+
+**Las salidas del final son tres y las pinta `salidasHtml`** (retos-ui.js,
+no retos-siguiente.js: el cuestionario importa este último y no carga
+`retos-juego.css`, la guarda de la 299). El siguiente reto que te quede
+(grande), Compartir y «Jugar otra vez», con la cuenta atrás debajo. Fuera
+«Compartir mi día» y «Volver a los retos» (la flecha de arriba ya vuelve);
+sin ninguno pendiente, el grande ES la vuelta. «Ver la carta» se va: en
+«¿Qué carta es?» la carta resuelta es el enlace (`role="link"`, Tab y
+Enter), y en «¿Quién es?» «sus cartas» va en la frase.
+
+**«Jugar otra vez» es una partida LIBRE** (`js/retos-libre.js`): `?libre=N`,
+con N del 1 al 1.000, y se juega como si fuera otro día, el de
+`diaLibre(N)` en 1900. Todo lo que ya elegía por la fecha (la silueta, las
+cartas de las funciones, las opciones) sirve sin cambiar, y lo libre:
+- va en su llave del navegador (`claveLibre`: `pokedoc-quien-es-libre`), así
+  que la de hoy —la que lee el menú para pintar «Hecho»— no se toca;
+- no llama a `retos_guardar`, no apunta días para la racha y no se comparte
+  (la de hoy es la misma para todos; una libre no la compara nadie);
+- avisa arriba (`avisoLibreHtml`): «Partida libre: esta no da XP», y si la
+  de hoy no está hecha, manda a ella y el botón grande del final también.
+Las cuatro funciones de Netlify leen `libre` de la consulta
+(`libreDePeticion`) y con él NO leen ni escriben la tabla del día. Son mil y
+no infinitas a propósito: cada una es una dirección que la CDN guarda un día
+(`CABECERAS_LIBRE`), así que repetir no cuesta una función por partida.
+
+**La hoja de compartir es Instagram y X** (PINGU: «quitaría la opción de
+texto»), para toda la web (decisión 4). Instagram tiene Historia (1080×1920)
+y Publicación (1080×1350); X, la apaisada (1200×630), «Publicar en X» y el
+texto que se publica a la vista. Las pantallas siguen dibujando DOS formas
+(`historia` = la vertical de 1080×1350, y `apaisada`): la historia de verdad
+la monta la hoja con `historiaDe`, la vertical encima de sí misma ampliada y
+desenfocada, para que ninguna pantalla tenga que dibujar tres. «Compartir…»
+manda el PNG con el texto por la hoja del sistema; sin ella (el PC),
+descarga y lo dice. Sin imagen queda la hoja de texto de antes (Compartir y
+Copiar). Los dos iconos nuevos (Instagram, descargar) se dibujan en la hoja
+con `icon()`, no en icons.js, que lo baja la portada.
+
+**Pruebas**: `test-tanda-988.mjs` (lo libre, las funciones con su doble, el
+buscador en el móvil y el PC, «¿Quién es?» libre y la de hoy, «¿Qué carta
+es?» libre y la carta que se toca); al día 568, 570, 583, 835-pantalla,
+860-pantalla, 870, 871-pantalla, 873-pantalla y 880-pantalla (la hoja ya no
+tiene pestaña de texto). Verdes también 299, 305, 309, 311, 312, 313, 737,
+835, 939, 566 y test-imports; 310 y 829 con sus rojos de antes.
+
 ## Tanda 987c — El Prize Pack, solo: la más cara es la Holo
 
 PINGU: «hay dos cartas, una tiene más precio que otra: la que tiene más precio

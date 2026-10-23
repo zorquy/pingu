@@ -9,12 +9,18 @@ import { urlDeLogo } from './carta-ruta.js'
 import { RONDAS, numeroDelDia, textoParaCompartir, ENLACE } from './que-expansion.js'
 import { xpDe, mejorQue } from './retos-xp.js'
 import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
-import { premiosHtml, cuentaAtras } from './retos-ui.js'
-import { siguienteReto, hechoHoy, siguienteRetoHtml } from './retos-siguiente.js'
+import { premiosHtml, cuentaAtras, salidasHtml, avisoLibreHtml } from './retos-ui.js'
+import { hechoHoy } from './retos-siguiente.js'
 import { rachaDeDias } from './reto-compartir.js'
+import { libreDeDireccion, claveLibre } from './retos-libre.js'
+import { hoyISO } from './reto-diario.js'
 
 const $ = (id) => document.getElementById(id)
-const CLAVE = 'pokedoc-que-expansion'
+// Una partida libre (988, `?libre=N`): otras cinco, en su propia llave, sin
+// XP, sin racha y sin compartir.
+const libre = libreDeDireccion(location.search)
+const hoy = hoyISO()
+const CLAVE = claveLibre('pokedoc-que-expansion', libre)
 const CLAVE_DIAS = 'pokedoc-que-expansion-jugados'
 
 let dia = null
@@ -82,17 +88,14 @@ function pintarFinal() {
   f.className = `qx-final rj-final${aciertos >= 3 ? '' : ' fallado'}`
   f.innerHTML = `
     <p class="rj-final-titulo">${aciertos === RONDAS ? '¡Las cinco!' : `${aciertos} de ${RONDAS}`}</p>
-    <p class="subtext" style="margin:0" id="qxGente">Reto #${numeroDelDia(dia)}</p>
+    <p class="subtext" style="margin:0" id="qxGente">${libre ? 'Partida libre' : `Reto #${numeroDelDia(dia)}`}</p>
     <ol class="qx-repaso">${rondas.map((r, i) => `<li class="${t[i] ? 'si' : ''}"><span class="qx-mini">${fotoHtml(r.carta)}</span><span>${t[i] ? icons.checkCircle(14) : icons.xCircle(14)} ${escapeHtml(nombreBueno(r))}</span></li>`).join('')}</ol>
     <div id="qxPremios"></div>
-    <div class="rj-botones">
-      <button type="button" class="btn-secondary" id="qxCompartir">${icons.share(16)} Compartir</button>
-      <span class="rj-cuenta" id="qxCuenta"></span>
-    </div>
-    <div class="rj-adonde">${siguienteRetoHtml(siguienteReto('expansion', hechoHoy(dia)), { dia })}</div>`
+    ${salidasHtml({ juego: 'expansion', ruta: '/que-expansion', dia: hoy, libre, compartirId: 'qxCompartir', cuentaId: 'qxCuenta' })}`
   f.classList.remove('hidden')
-  $('qxCompartir').addEventListener('click', compartir)
-  cuentaAtras($('qxCuenta'), 'Cinco más en')
+  $('qxCompartir')?.addEventListener('click', compartir)
+  cuentaAtras($('qxCuenta'), 'Mañana, otras:')
+  if (libre) return
   pintarPremios()
   estadisticas('expansion', dia).then((s) => {
     const m = mejorQue(s?.porAciertos, aciertos)
@@ -114,11 +117,11 @@ function pintarTodo() {
   pintarPasos()
   if (!terminado()) pintarRonda()
   pintarFinal()
-  $('qxSub').textContent = `Reto #${numeroDelDia(dia)} · ${terminado() ? 'resuelto' : `carta ${ronda() + 1} de ${RONDAS}`}`
+  $('qxSub').textContent = `${libre ? 'Partida libre' : `Reto #${numeroDelDia(dia)}`} · ${terminado() ? 'resuelto' : `carta ${ronda() + 1} de ${RONDAS}`}`
 }
 
 async function guardar() {
-  if (!terminado() || estado.guardado) return
+  if (libre || !terminado() || estado.guardado) return
   const r = await guardarResultado('expansion', dia, { aciertos: tira().filter(Boolean).length, total: RONDAS, tira: tira() }).catch(() => ({ error: true }))
   if (r && (r.nuevo === true || r.nuevo === false)) { estado.guardado = true; escribir(CLAVE, estado); guardado = r } else if (r?.sinCuenta) guardado = r
   pintarPremios()
@@ -132,7 +135,7 @@ function elegir(setId) {
   // tener las rondas.
   estado.tira = tira()
   escribir(CLAVE, estado)
-  if (terminado()) {
+  if (terminado() && !libre) {
     const d = diasJugados()
     if (!d.includes(dia)) escribir(CLAVE_DIAS, [...d, dia].slice(-400))
   }
@@ -141,7 +144,7 @@ function elegir(setId) {
   pintarPasos()
   const v = $('qxVeredicto')
   v.className = `qx-veredicto${bien ? '' : ' mal'}`
-  v.innerHTML = bien ? `${icons.checkCircle(22)} ¡Bien!${sesion ? ' +4 XP' : ''}` : `${icons.xCircle(22)} Era ${escapeHtml(nombreBueno(rondas[i]))}`
+  v.innerHTML = bien ? `${icons.checkCircle(22)} ¡Bien!${sesion && !libre ? ' +4 XP' : ''}` : `${icons.xCircle(22)} Era ${escapeHtml(nombreBueno(rondas[i]))}`
   pasando = true
   setTimeout(() => {
     pasando = false
@@ -183,7 +186,7 @@ function sinTablero(texto) {
 async function init() {
   let r
   try {
-    const res = await fetch('/.netlify/functions/que-expansion', { headers: { accept: 'application/json' } })
+    const res = await fetch(`/.netlify/functions/que-expansion${libre ? `?libre=${libre}` : ''}`, { headers: { accept: 'application/json' } })
     r = await res.json()
     if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
   } catch {
@@ -194,7 +197,8 @@ async function init() {
   rondas = (r.rondas || []).slice(0, RONDAS)
   if (rondas.length < RONDAS) { sinTablero('Hoy no hay cartas para este reto. Vuelve mañana.'); return }
   // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
-  await traerPartidaDeHoy('expansion', dia).catch(() => false)
+  if (!libre) await traerPartidaDeHoy('expansion', dia).catch(() => false)
+  if (libre) $('qxSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('expansion'), '/que-expansion'))
   const g = leer(CLAVE, null)
   estado = g && g.dia === dia && Array.isArray(g.elegidas) ? g : { dia, elegidas: [] }
   sesion = await getSession().catch(() => null)
@@ -203,7 +207,7 @@ async function init() {
     const b = e.target.closest('[data-set]')
     if (b && !b.disabled) elegir(b.dataset.set)
   })
-  if (sesion && terminado()) {
+  if (sesion && terminado() && !libre) {
     if (!estado.guardado) guardar()
     else misNumeros(1).then((n) => { if (n?.hoy?.expansion) { guardado = { nuevo: false, xp: n.hoy.expansion.xp }; pintarPremios() } }).catch(() => {})
   }
