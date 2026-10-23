@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-23 (226) — PINGU-Claude (991 — «¿Quién es?» borroso y +30/+20/+10; fuera /admin → Redes)
+
+**Hecho**: en «¿Quién es ese Pokémon?» la silueta sale borrosa en el primer
+intento, menos en el segundo y nítida en el tercero; la XP pasa a +30/+20/+10
+(antes +20/+10/+5), en la web y en la migración nueva. Y se quita /admin →
+Redes entero (PINGU: «no sirve de nada»).
+
+**Ficheros**: `supabase-migration-991-quien-es.sql` (nueva),
+`js/quien-es-juego.js`, `css/quien-es.css`, `quien-es.html`, `js/retos-xp.js`,
+`retos.html`, `js/novedades.js`, `admin/index.html`, `admin/js/admin.js`,
+`admin/css/admin.css`; borrados `admin/js/redes.js` y `js/redes-carrusel.js`.
+`CLAUDE.md`, `SCHEMA.md`, `novedades.json`, `BITACORA.md`. En `pruebas`:
+`test-tanda-991.mjs` (nueva), fuera `test-tanda-903.mjs`, y al día 907, 835,
+989 y 990.
+
+**Pendiente**: que PINGU ejecute la 989, DESPUÉS la 991 (la 991 redefine el
+cálculo entero de la 989; hasta entonces la base da +20/+10/+5 a la silueta),
+y otra vez la 987.
+
 ## 2026-10-23 (225) — PINGU-Claude (990 — paginador del foro, fuera «[[Arven]]», Parejas sin esperas)
 
 **Hecho**: el paginador del foro (lista de temas y tema largo) es uno nuevo,

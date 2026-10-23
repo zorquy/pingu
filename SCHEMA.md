@@ -41785,6 +41785,39 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 991 — «¿Quién es ese Pokémon?», borroso al principio; y fuera /admin → Redes
+
+La última de la propuesta «Retos, más limpios» (la T3). PINGU: «sigue con
+la 991, y lo de admin redes lo puedes quitar, no sirve de nada».
+
+**La silueta se aclara con cada fallo.** El intento va en la escena
+(`#qeEscena[data-intento]`, ya a `1` en el HTML para el primer pintado) y la
+hoja le pone el filtro: `brightness(0) blur(14px)` en el primero, `blur(6px)`
+en el segundo y la silueta nítida de siempre en el tercero; al resolver,
+`.revelado` (que va después en la hoja y gana) la enseña en color. La línea de
+debajo lo dice («borroso, y cada fallo lo aclara»). Con `transition` en el
+filtro, y sin ella con «menos movimiento».
+
+**La XP sube porque el primer intento es más difícil**: +30 a la primera, +20
+a la segunda, +10 a la tercera (antes +20/+10/+5), y 0 sin acertar. En
+`XP_SILUETA` de `js/retos-xp.js` y en `retos_xp` de la base:
+`supabase-migration-991-quien-es.sql` es una sola sentencia con el cuerpo de
+la 989 y la rama de la silueta nueva, así que va DETRÁS de la 989. Lo ya
+guardado no cambia. El menú dice «Hasta +30 XP».
+
+**Fuera /admin → Redes.** El botón y la sección de `admin/index.html`, su
+`import()` en `admin/js/admin.js`, `admin/js/redes.js`, `js/redes-carrusel.js`
+(solo lo usaba el panel) y sus reglas de `admin/css/admin.css`. Las funciones
+que publican noticias en X e Instagram (902, 903) no eran del panel y siguen;
+`pintarAnuncioReto` y `pintarResumenReto` de `js/reto-imagen.js` se quedan
+sin quien las llame.
+
+**Pruebas**: `test-tanda-991.mjs` (la XP; la migración contra PostgreSQL,
+igual que la web; en pantalla, el borrón que baja con cada fallo y la XP que
+dice el bote; /admin sin Redes). Fuera `test-tanda-903.mjs` y el bloque de
+/admin de la 907; la 835 y la 989 comparan la XP de la base con la 991
+cargada.
+
 ## Tanda 990 — El paginador del foro, fuera «[[Arven]]» y Parejas sin esperas
 
 Tres cosas que PINGU vio el 2026-10-23 al probar la 989.

@@ -51,8 +51,6 @@ function initSidebar() {
       // Las colecciones se piden al abrir su sección y no al arrancar: son
       // ~231 filas por catálogo y casi siempre se entra a otra cosa.
       if (btn.dataset.section === 'colecciones') iniciarColecciones()
-      // Las redes (903): diez lienzos que solo hacen falta aquí.
-      if (btn.dataset.section === 'redes') import('./redes.js').then((m) => m.montarRedes()).catch((e) => showToast(`No se ha podido abrir Redes: ${e?.message || e}`, 'error'))
     })
   })
 }

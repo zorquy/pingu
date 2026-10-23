@@ -12,7 +12,7 @@
 export const RETOS = [
   { juego: 'carta', titulo: '¿Qué carta es?', ruta: '/carta-del-dia', arte: 'morado', icono: 'eye', texto: 'Una carta borrosa que se aclara con cada intento. Tienes seis.', chips: ['Hasta +50 XP', '6 intentos'], local: 'pokedoc-carta-del-dia' },
   { juego: 'caro', titulo: '¿Más caro o más barato?', ruta: '/mas-caro', arte: 'ambar', icono: 'coins', texto: 'Dos cartas con precio real de Cardmarket. ¿Cuál vale más?', chips: ['Hasta +30 XP', '5 rondas'], local: 'pokedoc-mas-caro' },
-  { juego: 'silueta', titulo: '¿Quién es ese Pokémon?', ruta: '/quien-es', arte: 'cian', icono: 'sparkles', texto: 'La silueta de siempre, como en la tele. Elige entre cuatro.', chips: ['Hasta +20 XP', '3 intentos'], local: 'pokedoc-quien-es' },
+  { juego: 'silueta', titulo: '¿Quién es ese Pokémon?', ruta: '/quien-es', arte: 'cian', icono: 'sparkles', texto: 'La silueta de la tele, borrosa al principio: cada fallo la aclara. Elige entre cuatro.', chips: ['Hasta +30 XP', '3 intentos'], local: 'pokedoc-quien-es' },
   { juego: 'ordena', titulo: 'Ordena por precio', ruta: '/ordena-precio', arte: 'verde', icono: 'trendingUp', texto: 'Cuatro cartas: ponlas de la más barata a la más cara.', chips: ['Hasta +25 XP', '3 intentos'], local: 'pokedoc-ordena-precio' },
   { juego: 'expansion', titulo: '¿De qué expansión es?', ruta: '/que-expansion', arte: 'rosa', icono: 'layers', texto: 'Sale una carta: ¿de qué colección es? Para los que se saben las eras.', chips: ['Hasta +20 XP', '5 rondas'], local: 'pokedoc-que-expansion' },
   { juego: 'parejas', titulo: 'Parejas', ruta: '/parejas', arte: 'azul', icono: 'cards', texto: 'Doce cartas boca abajo: encuentra las seis parejas en los menos movimientos.', chips: ['Hasta +30 XP', '6 parejas'], local: 'pokedoc-parejas' },
@@ -34,7 +34,8 @@ export function xpDeMovimientos(m) {
 }
 
 const XP_CARTA = { 1: 50, 2: 45, 3: 40, 4: 30, 5: 20, 6: 15 }
-const XP_SILUETA = { 1: 20, 2: 10, 3: 5 }
+// 991: el primer intento va borroso y vale más.
+const XP_SILUETA = { 1: 30, 2: 20, 3: 10 }
 const XP_ORDENA = { 1: 25, 2: 15, 3: 8 }
 
 // Lo que da un resultado. `r` = { aciertos, total, intentos, acertada, tira }.
@@ -52,7 +53,7 @@ export function xpDe(juego, r = {}) {
     if (r.tira.length === 5 && r.tira.every(Boolean)) puntos += 6
     return Math.min(30, puntos)
   }
-  if (juego === 'silueta') return r.acertada ? XP_SILUETA[r.intentos] ?? 5 : 0
+  if (juego === 'silueta') return r.acertada ? XP_SILUETA[r.intentos] ?? 10 : 0
   if (juego === 'ordena') return r.acertada ? XP_ORDENA[r.intentos] ?? 8 : 2
   if (juego === 'expansion') return Math.min(5, aciertos) * 4
   // Parejas: `intentos` son los movimientos (989).

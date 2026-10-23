@@ -29,7 +29,7 @@ const DIBUJOS = {
   retos: () => `<div class="nv-mini nv-mini-estante" aria-hidden="true">
     <span class="nv-mini-era">Tu día · 4 de 6</span>
     <span class="nv-mini-fila"><i class="nv-tono-2"></i><span>¿Qué carta es?</span><b>+45 XP</b></span>
-    <span class="nv-mini-fila"><i class="nv-tono-1"></i><span>¿Quién es ese Pokémon?</span><b>+20 XP</b></span>
+    <span class="nv-mini-fila"><i class="nv-tono-1"></i><span>¿Quién es ese Pokémon?</span><b>+30 XP</b></span>
     <span class="nv-mini-fila"><i class="nv-tono-3"></i><span>Ordena por precio</span><b>Jugar</b></span>
   </div>`,
   'sin-conexion': () => `<div class="nv-mini nv-mini-guia" aria-hidden="true">

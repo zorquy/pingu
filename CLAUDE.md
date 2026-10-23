@@ -746,9 +746,7 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `detalle`). Un reto nuevo
   le pasa su `numero` y su `lema`, no un «Reto #N» en el detalle. Lo que
   sale de las preguntas del día (la portada, la chapa) dice el TEMA y no
-  el enunciado: el reto es el mismo para todos y no se destripa. Y la
-  cuenta de PokeDoc no sube el resultado de nadie: sus dos imágenes del
-  día (mañana y noche) salen de /admin → Redes.
+  el enunciado: el reto es el mismo para todos y no se destripa.
 - **Un reto acaba con tres salidas y se puede jugar otra vez** (tanda 988):
   `salidasHtml` (retos-ui.js) pinta el siguiente, Compartir y «Jugar otra
   vez»; la partida libre es `?libre=N` (`js/retos-libre.js`), se juega como
@@ -758,6 +756,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   del día. Y la hoja de compartir es Instagram (Historia 1080×1920 y
   Publicación) y X, sin pestaña de texto: una pantalla le da la vertical de
   1080×1350 y la apaisada, y la historia la monta la hoja (`historiaDe`).
+- **«¿Quién es ese Pokémon?» se aclara con cada fallo** (tanda 991): el
+  primer intento va borroso (`data-intento` en la escena y su `blur` en
+  `css/quien-es.css`), el segundo menos y el tercero es la silueta nítida; la
+  XP es +30/+20/+10, en `retos-xp.js` y en `retos_xp` (migración 991, que
+  redefine la de la 989 entera). Y /admin → Redes se fue (PINGU: «no sirve
+  de nada»): la cuenta de PokeDoc no saca imágenes del reto desde el panel.
 - **El paginador del foro es UNO: `js/paginacion.js`** (tanda 990), para la
   lista de temas y un tema largo: «Anterior», páginas con «…» y «Siguiente»,
   y en el móvil cinco casillas sin texto. Antes eran `.page-btn` sin una

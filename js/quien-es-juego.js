@@ -51,6 +51,8 @@ function pintarDibujo() {
     img.src = urls[0]
   }
   $('qeEscena').classList.toggle('revelado', terminado())
+  // 991: borroso en el primer intento y más claro con cada fallo.
+  $('qeEscena').dataset.intento = String(Math.min(INTENTOS, fallos().length + 1))
   img.alt = terminado() ? nombre(buena) : 'La silueta del Pokémon del día'
 }
 
@@ -102,7 +104,7 @@ function pintarTodo() {
   pintarOpciones()
   pintarBote()
   pintarFinal()
-  $('qeSub').textContent = `${libre ? 'Partida libre' : `Reto #${numeroDelDia(dia)}`} · ${terminado() ? 'resuelto' : `intento ${fallos().length + 1} de ${INTENTOS}`}`
+  $('qeSub').textContent = `${libre ? 'Partida libre' : `Reto #${numeroDelDia(dia)}`} · ${terminado() ? 'resuelto' : fallos().length ? `intento ${fallos().length + 1} de ${INTENTOS}: ahora se ve mejor` : `intento 1 de ${INTENTOS}: borroso, y cada fallo lo aclara`}`
 }
 
 async function guardar() {

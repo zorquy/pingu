@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-23", "tipo": "mejora", "texto": "«¿Quién es ese Pokémon?» es más difícil al principio: la silueta sale borrosa y se aclara con cada fallo. Acertar a la primera da +30 de experiencia.", "enlace": "/quien-es" },
     { "fecha": "2026-10-23", "tipo": "arreglo", "texto": "El paso de página del foro se ve bien: «Anterior» y «Siguiente», botones grandes y, en los temas muy largos, solo las páginas que importan.", "enlace": "/foro" },
     { "fecha": "2026-10-23", "tipo": "mejora", "texto": "Parejas sale al momento: las cartas boca abajo están desde el principio, y «Jugar otra vez» ya tiene su partida lista al tocarlo.", "enlace": "/parejas" },
     { "fecha": "2026-10-23", "tipo": "nuevo", "texto": "Nuevo reto diario: Parejas. Doce cartas boca abajo, seis parejas: cuantos menos movimientos, más experiencia. Sustituye a «El reto de hoy».", "enlace": "/parejas" },
