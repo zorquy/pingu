@@ -160,7 +160,7 @@ const dia = (n, valor, sinPrecio = 0) => ({
 
   // El hueco está reservado: sin alto fijo el resumen pega un salto
   // cuando llega la consulta.
-  const alto = await caja.locator('svg').evaluate((e) => Math.round(e.getBoundingClientRect().height))
+  const alto = await caja.locator('svg.mc-valor-grafica').evaluate((e) => Math.round(e.getBoundingClientRect().height))
   // 180 desde la 464, que le dio sitio para que se lea con relieve. Lo
   // que esta tanda defiende no es el número sino que el hueco ESTÉ: sin
   // alto fijo el resumen pega un salto cuando llega la consulta. Así que
@@ -175,7 +175,7 @@ const dia = (n, valor, sinPrecio = 0) => ({
   // Con `\s` y no con un espacio: `Intl` mete un espacio FINO antes del
   // € (U+202F), que no es el de la barra espaciadora. Buscar el normal
   // deja la prueba roja por algo que en pantalla se lee igual.
-  const alt = await caja.locator('svg').getAttribute('aria-label')
+  const alt = await caja.locator('svg.mc-valor-grafica').getAttribute('aria-label')
   check('la gráfica se puede leer', /de 100,00\s€ a 150,00\s€/.test(alt || ''), alt)
   await page.close()
 }
