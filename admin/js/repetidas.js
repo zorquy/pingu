@@ -14,7 +14,7 @@ import { showToast } from '../../js/toast.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../../js/escaneo-carta.js'
 import { avisarALaWeb } from './avisar-web.js'
 import { faltaLaMigracion } from './catalogo-puro.js'
-import { ETIQUETAS, claveDeGrupo, senalesDelPar, sugerencia, etiquetaValida, principalDe, claseDe, precioCorto, quienLaTiene, filtrarGrupos } from './repetidas-puro.js'
+import { ETIQUETAS, claveDeGrupo, senalesDelPar, sugerencia, etiquetaValida, esImpresionDeSiempre, principalDe, claseDe, precioCorto, quienLaTiene, filtrarGrupos } from './repetidas-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const AVISO = 'Falta ejecutar supabase-migration-987-repetidas-en-versiones.sql en el SQL Editor: hasta entonces aquí no se puede decidir nada.'
@@ -82,7 +82,9 @@ function par(g, clave, p, c) {
         <button type="button" class="chip-filtro" data-rep-otra aria-pressed="${otra}">Otra…</button>
         ${otra ? `<input type="text" class="rep-otra" maxlength="40" placeholder="Nombre de la versión" aria-label="Nombre de la versión" value="${escapeHtml(elegida)}">` : ''}
       </div>
-      <label class="rep-cuenta"><input type="checkbox" data-rep-cuenta ${e.cuenta.get(c.id) ? 'checked' : ''}> Cuenta para completar la colección (si no, es un sello)</label>
+      ${esImpresionDeSiempre(elegida)
+        ? '<p class="rep-cuenta">Una impresión de siempre: cuenta para completar la colección.</p>'
+        : `<label class="rep-cuenta"><input type="checkbox" data-rep-cuenta ${e.cuenta.get(c.id) ? 'checked' : ''}> Cuenta para completar la colección (si no, es un sello)</label>`}
       <div class="rep-botones">
         <button type="button" class="${sug === 'version' ? 'btn-primary' : 'btn-secondary'} btn-small" data-rep-hacer="version" ${valida ? '' : 'disabled'}>Es una versión de la principal</button>
         <button type="button" class="${sug === 'misma' ? 'btn-primary' : 'btn-secondary'} btn-small" data-rep-hacer="misma">Es la misma carta</button>
@@ -129,7 +131,7 @@ function marcados() {
     const e = eleccion.get(clave)
     if (!e) continue
     const idP = principalDe(g, e.principal)
-    for (const c of g.cartas) if (c.id !== idP && etiquetaValida(e.etiquetas.get(c.id))) fuera.push({ g, clave, carta: c, destino: idP, etiqueta: e.etiquetas.get(c.id).trim(), clase: claseDe(e.cuenta.get(c.id)) })
+    for (const c of g.cartas) if (c.id !== idP && etiquetaValida(e.etiquetas.get(c.id))) fuera.push({ g, clave, carta: c, destino: idP, etiqueta: e.etiquetas.get(c.id).trim(), clase: claseDe(e.cuenta.get(c.id), e.etiquetas.get(c.id)) })
   }
   return fuera
 }
@@ -138,6 +140,8 @@ function pintar() {
   const resumen = $('repetidasResumen')
   if (resumen) resumen.textContent = cargando ? 'Mirando…' : datos.error ? 'sin la migración' : `${datos.total} por revisar · ${datos.hechas.length} hechas · ${datos.distintas.length} distintas`
   document.querySelectorAll('[data-rep-vista]').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.repVista === vista)))
+  const todas = $('repetidasTodas')
+  if (todas) todas.hidden = vista !== 'revisar' || !datos.grupos.length
   const lote = $('repetidasLote')
   const n = vista === 'revisar' ? marcados().length : 0
   if (lote) { lote.hidden = !n; lote.textContent = `Convertir las marcadas (${n})` }
@@ -232,12 +236,26 @@ function alClic(e) {
     const etiqueta = (el.etiquetas.get(carta.id) || '').trim()
     t.disabled = true
     t.textContent = 'Haciendo…'
-    resolver({ carta, destino, decision: t.dataset.repHacer, etiqueta, clase: claseDe(el.cuenta.get(carta.id)) }).then((r) => {
+    resolver({ carta, destino, decision: t.dataset.repHacer, etiqueta, clase: claseDe(el.cuenta.get(carta.id), etiqueta) }).then((r) => {
       if (!r) { pintar(); return }
       avisarALaWeb()
       return cargar()
     })
   }
+}
+
+// El mismo nombre a todas las repetidas que se ven (con el filtro puesto, las
+// de una colección): el Prize Pack son cientos, todas «Holo». Solo las elige;
+// convertir sigue siendo «Convertir las marcadas», después de mirarlas.
+function ponerATodas(etiqueta) {
+  if (!etiquetaValida(etiqueta)) return
+  for (const g of filtrarGrupos(datos.grupos, filtro)) {
+    const clave = claveDeGrupo(g)
+    const e = deGrupo(clave)
+    const idP = principalDe(g, e.principal)
+    for (const c of g.cartas) if (c.id !== idP) { e.etiquetas.set(c.id, etiqueta); e.otra.delete(c.id) }
+  }
+  pintar()
 }
 
 async function convertirMarcadas() {
@@ -284,6 +302,11 @@ export async function iniciarRepetidas() {
       deGrupo(parEl.dataset.repGrupo).cuenta.set(parEl.dataset.repCarta, e.target.checked)
     })
     $('repetidasLote')?.addEventListener('click', convertirMarcadas)
+    const todas = $('repetidasTodas')
+    if (todas) {
+      todas.innerHTML = '<option value="">Poner a todas las que se ven…</option>' + ETIQUETAS.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('')
+      todas.addEventListener('change', () => { ponerATodas(todas.value); todas.value = '' })
+    }
     $('coleccionesMercado')?.addEventListener('change', () => { eleccion.clear(); cargar() })
   }
   await cargar()

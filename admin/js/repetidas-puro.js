@@ -7,8 +7,10 @@
 import { varianteDeEtiqueta, esClasica } from '../../js/mi-coleccion/variantes.js'
 import { normalizeSearch } from '../../js/texto.js'
 
-// Los nombres que se ofrecen con un toque; «Otra…» deja escribir.
-export const ETIQUETAS = ['Staff', 'Prerelease', 'Sello de evento', 'Pokémon Center']
+// Los nombres que se ofrecen con un toque; «Otra…» deja escribir. Holo y
+// Normal, por el Prize Pack: la normal y la holo son dos productos y TCGGO
+// las da como dos cartas.
+export const ETIQUETAS = ['Staff', 'Prerelease', 'Sello de evento', 'Pokémon Center', 'Holo', 'Normal']
 
 // Los ataques, como la huella de una reimpresión (carta-nucleo.js): nombre,
 // daño y coste, sin el texto (cambia entre erratas). Aquí y no importando
@@ -64,13 +66,18 @@ export function sugerencia(a, b) {
   return pa && pb && pa === pb ? 'misma' : 'version'
 }
 
-// Un nombre de versión vale si no es una de las de siempre (la base dice lo
-// mismo: «Ese nombre es el de una versión de siempre»).
+// Un nombre de versión vale salvo la «Standard» de TCGGO (es la carta misma)
+// y la 1.ª edición (las ediciones son de la 935). La base dice lo mismo.
+const NO_VALEN = new Set(['standard', '1st edition', 'first edition', 'primera edicion', 'primera'])
 export function etiquetaValida(texto) {
   const t = String(texto || '').trim()
   if (!t || t.length > 40) return false
-  return !esClasica(varianteDeEtiqueta(t))
+  return !NO_VALEN.has(normalizeSearch(t).replace(/[^a-z0-9]+/g, ' ').trim())
 }
+
+// Holo, Normal y Reverse son impresiones: cuentan para completar la colección
+// siempre (la base pone la clase).
+export const esImpresionDeSiempre = (texto) => etiquetaValida(texto) && esClasica(varianteDeEtiqueta(texto))
 
 // La principal: la elegida a mano, o la primera (la base las da con la que
 // ya teníamos delante: TCGdex, luego a mano, luego TCGGO por antigüedad).
@@ -79,7 +86,7 @@ export function principalDe(grupo, elegida = null) {
   return elegida && ids.includes(elegida) ? elegida : ids[0] || null
 }
 
-export const claseDe = (cuenta) => (cuenta ? 'impresion' : 'sello')
+export const claseDe = (cuenta, etiqueta = '') => (cuenta || esImpresionDeSiempre(etiqueta) ? 'impresion' : 'sello')
 
 const EUROS = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' })
 export function precioCorto(c) {

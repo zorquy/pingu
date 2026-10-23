@@ -171,6 +171,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   versión y la repetida deja lápida para su id y su `tcggo-<id>`. Una pasada
   nueva que escriba o borre versiones respeta `fundida` como respeta `mano`; y
   las reimpresiones de OTRA colección no son versiones: son cartas aparte.
+  «Holo» y «Normal» también valen (987b: el Prize Pack trae las dos como dos
+  cartas) y cuentan para completar. Un origen nuevo de versión amplía
+  `tcg_card_versions_origen_ok` en la MISMA migración, y el fixture de su
+  prueba lleva esa regla (sin ella la 987 salió verde y falló en la base).
 - **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
   911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
   ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets

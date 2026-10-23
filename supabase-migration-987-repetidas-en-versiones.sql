@@ -32,6 +32,10 @@
 --  4. `catalogo_repetidas_distintas`: «son distintas» (y quitarlo). Se guarda
 --     con los ids del grupo: si aparece otra carta en él, vuelve a salir.
 --
+-- Y la forma del Play! Pokémon Prize Pack: la normal y la holo son dos
+-- productos, así que «Holo», «Normal» y «Reverse Holo» también valen como
+-- nombre (impresiones, cuentan para completar).
+--
 -- Va DESPUÉS de la 934 (la lápida, la secuencia de ids negativos y
 -- `catalogo_id_de_version`) y de la 935 (la columna `origen` de las
 -- versiones se usa con `in.(…)` en la pasada de precios). Se puede ejecutar
@@ -39,7 +43,15 @@
 -- ============================================================
 begin;
 
--- ── 0. Las tablas ──
+-- ── 0. El origen nuevo y las tablas ──
+-- La regla de orígenes de la 935 y la 945 no dejaba escribir «fundida»
+-- (PINGU, la primera vez: «violates check constraint
+-- tcg_card_versions_origen_ok»). La llamada falla entera, así que no quedó
+-- nada a medias.
+alter table public.tcg_card_versions drop constraint if exists tcg_card_versions_origen_ok;
+alter table public.tcg_card_versions add constraint tcg_card_versions_origen_ok
+  check (origen is null or origen in ('mano', 'edicion', 'foto', 'tcgdex', 'fundida'));
+
 create table if not exists public.tcg_repetidas_distintas (
   market text not null,
   set_id text not null,
@@ -94,6 +106,18 @@ language sql
 immutable
 as $$
   select regexp_replace(lower(trim(coalesce(p, ''))), '(^|[^0-9])0+([0-9])', '\1\2', 'g')
+$$;
+
+-- El id con el que la web apunta una versión (`varianteDeEtiqueta` en
+-- js/mi-coleccion/variantes.js): «Reverse Holo» es `reverse` y «Holofoil»,
+-- `holo`; lo demás, como `catalogo_id_de_version`.
+create or replace function public.catalogo_variante_de_etiqueta(p text)
+returns text
+language sql
+immutable
+as $$
+  select case v when 'reverse-holo' then 'reverse' when 'reverse-holofoil' then 'reverse' when 'holofoil' then 'holo' else v end
+    from (select public.catalogo_id_de_version(p) as v) x
 $$;
 
 -- ── 1. Las posibles repetidas ──
@@ -222,9 +246,19 @@ begin
     if v_etiqueta is null then
       raise exception 'La versión necesita un nombre.' using errcode = '22023';
     end if;
-    v_var := public.catalogo_id_de_version(v_etiqueta);
-    if v_var in ('normal', 'reverse', 'holo', 'primera', 'reverse-holo', 'standard', '1st-edition', 'first-edition') or v_var = '' then
-      raise exception 'Ese nombre es el de una versión de siempre: ponle otro (p. ej. «Staff»).' using errcode = '22023';
+    -- Holo, Normal y Reverse valen: en el Prize Pack la normal y la holo son
+    -- dos productos de Cardmarket y TCGGO las da como dos cartas. Esas son
+    -- impresiones (cuentan). La «Standard» de TCGGO (la carta misma) y las
+    -- ediciones de Wizards (la 935) no se crean aquí.
+    if public.catalogo_id_de_version(v_etiqueta) in ('standard', '1st-edition', 'first-edition', 'primera', 'primera-edicion') then
+      raise exception 'Ese nombre no vale para una versión de aquí (p. ej. «Staff» u «Holo»).' using errcode = '22023';
+    end if;
+    v_var := public.catalogo_variante_de_etiqueta(v_etiqueta);
+    if v_var = '' then
+      raise exception 'La versión necesita un nombre.' using errcode = '22023';
+    end if;
+    if v_var in ('normal', 'holo', 'reverse') then
+      v_clase := 'impresion';
     end if;
     if v_clase not in ('impresion', 'sello', 'adicional') then
       raise exception 'La clase es impresion, sello o adicional.' using errcode = '22023';
@@ -254,7 +288,7 @@ begin
   -- con id negativo (la secuencia de la 934: ninguna pasada los escribe).
   if p_decision = 'version' then
     select tcggo_id into v_version from public.tcg_card_versions
-     where card_id = p_destino and market = p_market and public.catalogo_id_de_version(etiqueta) = v_var
+     where card_id = p_destino and market = p_market and public.catalogo_variante_de_etiqueta(etiqueta) = v_var
      order by tcggo_id limit 1;
     if v_version is null then
       v_version := -nextval('public.tcg_card_versions_mano_seq')::int;
@@ -387,7 +421,7 @@ begin
 
   -- La versión nueva se va si nadie más la ha apuntado mientras tanto.
   if h.decision = 'version' and h.version_creada and h.version_id is not null then
-    v_var := public.catalogo_id_de_version(h.etiqueta);
+    v_var := public.catalogo_variante_de_etiqueta(h.etiqueta);
     if not exists (select 1 from public.user_collection where card_id = h.destino and market = h.market and variante = v_var) then
       delete from public.tcg_card_versions where tcggo_id = h.version_id and origen = 'fundida';
       v_quita := true;

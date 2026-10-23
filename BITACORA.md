@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-23 (221) — PINGU-Claude (987b — la regla de orígenes y el Prize Pack)
+
+**Hecho**: la 987 fallaba al convertir («violates check constraint
+tcg_card_versions_origen_ok»: la regla de orígenes de la 935/945 no tenía
+`fundida`); la migración la amplía, corregida en su sitio. Y «Holo», «Normal» y
+«Reverse Holo» valen como versión (el Prize Pack trae la normal y la holo como
+dos cartas), cuentan para completar, y /admin tiene «Poner a todas las que se
+ven» para marcarlas de una vez.
+
+**Ficheros**: `supabase-migration-987-repetidas-en-versiones.sql`,
+`admin/js/repetidas.js`, `admin/js/repetidas-puro.js`, `admin/index.html`,
+`CLAUDE.md`, `SCHEMA.md`, `BITACORA.md`. En `pruebas`: el fixture de la 987 con
+la regla de producción (con la migración de antes da el error de PINGU) y los
+casos del Prize Pack.
+
+**Pendiente**: VOLVER A EJECUTAR `supabase-migration-987-repetidas-en-versiones.sql`
+entera en el SQL Editor (se puede ejecutar dos veces).
+
 ## 2026-10-23 (220) — PINGU-Claude (987 — las repetidas, en versiones)
 
 **Hecho**: /admin → Colecciones tiene «Posibles repetidas»: las cartas de una

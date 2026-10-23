@@ -41785,6 +41785,31 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 987b — La regla de orígenes y el Prize Pack
+
+Al convertir la primera, PINGU: «new row for relation "tcg_card_versions"
+violates check constraint "tcg_card_versions_origen_ok"». La 935 y la 945
+dejan los orígenes en una lista (`mano`, `edicion`, `foto`, `tcgdex`) y la 987
+escribía `fundida` sin ampliarla. La llamada falla entera, así que no quedó
+nada a medias. **La prueba no lo vio porque el doble de PostgreSQL no tenía la
+regla**: la 437 otra vez (un doble más simple que la base). Ahora el fixture
+la lleva tal cual está en producción, y con la migración de antes la prueba da
+el mismo error que vio PINGU. La 987 se corrige en su sitio (amplía la regla)
+y se vuelve a ejecutar entera: se puede ejecutar dos veces.
+
+Y el Play! Pokémon Prize Pack: la normal y la holo son dos productos de
+Cardmarket y TCGGO las da como dos cartas con el mismo número. Son la misma
+carta en dos impresiones, así que «Holo», «Normal» y «Reverse Holo» valen ahora
+como nombre de versión (antes se rechazaban por ser «de siempre»): cuentan para
+completar (clase `impresion` aunque se pida sello) y la copia se apunta con el
+id de la web (`catalogo_variante_de_etiqueta`: «Reverse Holo» → `reverse`). Lo
+que sigue sin valer es la «Standard» de TCGGO (la carta misma) y la 1.ª
+edición (las ediciones son de la 935). Para los cientos del Prize Pack, en
+/admin «Poner a todas las que se ven» elige el mismo nombre en todos los grupos
+del filtro; convertir sigue siendo «Convertir las marcadas», después de mirar.
+Conviene que la principal sea la NORMAL y la holo, la versión «Holo»; si en un
+grupo la principal es la holo, la otra va como «Normal».
+
 ## Tanda 987 — Las cartas repetidas de TCGGO, convertidas en versiones
 
 PINGU, con el N's Darmanitan SVP 181 dos veces en las promos (la normal y la
