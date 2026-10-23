@@ -41,16 +41,18 @@ console.log('── 1. La función pura ──')
   check('  …y la canónica sin .html', m.url === 'https://pokedoc.es/mas-caro' && metaDeReto(new URL('https://pokedoc.es/mas-caro.html'), '2026-10-15').url === 'https://pokedoc.es/mas-caro')
   const r = metaDeReto(new URL('https://pokedoc.es/retos'), '2026-10-15')
   check('/retos: la del menú, con el número', r.titulo === `Los retos diarios de PokeDoc · #${numeroDelDia('2026-10-15')}` && r.imagen.endsWith('/reto-retos.png') && /Seis juegos al día/.test(r.descripcion), r.titulo)
-  check('/reto (el de preguntas) tiene la suya', metaDeReto(new URL('https://pokedoc.es/reto'), '2026-10-15').imagen.endsWith('/reto-reto.png'))
+  // Desde la 989 /reto lleva al menú (un 301) y el sexto es Parejas.
+  check('/parejas tiene la suya', metaDeReto(new URL('https://pokedoc.es/parejas'), '2026-10-15').imagen.endsWith('/reto-parejas.png'))
+  check('  …y /reto ya no tiene tarjeta propia (va al menú)', metaDeReto(new URL('https://pokedoc.es/reto'), '2026-10-15') === null)
   for (const x of RETOS) check(`  …${x.juego}: título «${x.titulo} · PokeDoc #N»`, metaDeReto(new URL(`https://pokedoc.es${x.ruta}`), '2026-10-15').titulo === `${x.titulo} · PokeDoc #${numeroDelDia('2026-10-15')}`)
   check('una ruta que no es de retos no es de retos', metaDeReto(new URL('https://pokedoc.es/carta'), '2026-10-15') === null && metaDeReto(new URL('https://pokedoc.es/cartas'), '2026-10-15') === null)
 }
 
 console.log('── 2. Por el edge entero ──')
 {
-  const html = await correr('https://pokedoc.es/reto')
-  check('/reto: el título de la página lleva el número de hoy', html.includes(`<title>El reto de hoy · PokeDoc #${n}</title>`), html.match(/<title>[^<]*/)?.[0])
-  check('  …og:image es la tarjeta del reto, con sus medidas', html.includes('og:image" content="https://pokedoc.es/assets/social/reto-reto.png"') && html.includes('og:image:width" content="1200"') && html.includes('og:image:height" content="630"'))
+  const html = await correr('https://pokedoc.es/parejas')
+  check('/parejas: el título de la página lleva el número de hoy', html.includes(`<title>Parejas · PokeDoc #${n}</title>`), html.match(/<title>[^<]*/)?.[0])
+  check('  …og:image es la tarjeta del reto, con sus medidas', html.includes('og:image" content="https://pokedoc.es/assets/social/reto-parejas.png"') && html.includes('og:image:width" content="1200"') && html.includes('og:image:height" content="630"'))
   check('  …twitter:card grande', html.includes('twitter:card" content="summary_large_image"'))
   check('  …el bloque viejo se sustituye, no se duplica', !html.includes('content="viejo"') && (html.match(/meta-social:inicio/g) || []).length === 1)
   check('  …y sin preguntar nada a la base', llamadas === 0, String(llamadas))
@@ -66,7 +68,8 @@ console.log('── 2. Por el edge entero ──')
 
 console.log('── 3. Las rutas están registradas y las imágenes existen ──')
 {
-  for (const r of ['/reto', '/retos', '/retos.html', '/carta-del-dia', '/carta-del-dia.html', '/mas-caro', '/mas-caro.html', '/quien-es', '/quien-es.html', '/ordena-precio', '/ordena-precio.html', '/que-expansion', '/que-expansion.html']) {
+  // Desde la 989 /reto es un 301 al menú (no pasa por aquí) y entra /parejas.
+  for (const r of ['/retos', '/retos.html', '/parejas', '/parejas.html', '/carta-del-dia', '/carta-del-dia.html', '/mas-caro', '/mas-caro.html', '/quien-es', '/quien-es.html', '/ordena-precio', '/ordena-precio.html', '/que-expansion', '/que-expansion.html']) {
     check(`  …${r} en config.path`, config.path.includes(r))
   }
   const medida = (f) => {

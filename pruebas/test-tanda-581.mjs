@@ -48,9 +48,14 @@ console.log('── 1. La bienvenida ──')
   check('  …y las otras dos siguen ahí', (await page.locator('#onbAcciones .onb-accion').count()) === 3)
   check('  …más la puerta de importar un CSV', /Impórtala/.test(await page.locator('.onb-importar').innerText()))
   if (CAPS) await page.screenshot({ path: `${CAPS}/movil-onboarding.png` })
+  // Desde la 989 «jugar» lleva a los seis retos (el cuestionario ya no
+  // está). /retos lleva la barra, y con el perfil de mentira sin acabar el
+  // onboarding la barra devuelve aquí: se mira a dónde se fue, no dónde está.
+  const idas = []
+  page.on('framenavigated', (f) => { if (f === page.mainFrame()) idas.push(f.url()) })
   await primera.click()
   await page.waitForTimeout(1500)
-  check('al elegir se va ALLÍ, no a la portada', /\/reto/.test(page.url()), page.url())
+  check('al elegir se va ALLÍ, no a la portada', /\/retos/.test(idas[0] || ''), idas.join(' → '))
   // Lo guardado: vuelve a abrir la bienvenida y mira el doble.
   await page.goto(`${BASE}/onboarding.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(800)

@@ -22,7 +22,8 @@ const check = (l, ok, extra = '') => {
 
 console.log('── 1. Lo estático ──')
 {
-  check('retos.css: dos columnas en el móvil, sin párrafo ni chips', /max-width: 760px\) \{\n  \.rt-lista \{ grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/.test(leer('css/retos.css')) && /\.rt-cuerpo > \.subtext,\n  \.rt-cuerpo \.rj-chips \{ display: none; \}/.test(leer('css/retos.css')))
+  // Desde la 989 las baldosas ya no llevan párrafo ni chips en ningún ancho.
+  check('retos.css: dos columnas en el móvil', /max-width: 760px\) \{\n  \.rt-lista \{\n    grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/.test(leer('css/retos.css')) && !/rj-chips/.test(leer('retos.html')))
   check('comunidad.css: en el móvil las cifras van al final', /\.com-cifras \{ order: 10/.test(leer('css/comunidad.css')))
   const gl = leer('js/glosario.js')
   check('glosario: índice de letras, buscador, <details> por término (abiertos en el PC) y la ancla abre', /export function pintarMandos\(/.test(gl) && /<details class="glosario-termino"/.test(gl) && /abiertos: !window\.matchMedia\?\.\('\(max-width: 900px\)'\)\.matches/.test(gl) && /hashchange/.test(gl) && /enterkeyhint="search" id="glosarioBuscar"/.test(leer('glosario.html')))
@@ -43,8 +44,9 @@ console.log('\n── 2. Retos y Comunidad en el iPhone ──')
 {
   const ctx = await movil()
   const p = await abrir(ctx, 'retos.html')
-  const r = await p.evaluate(() => { const retos = [...document.querySelectorAll('.rt-reto')]; const tops = retos.map((x) => Math.round(x.getBoundingClientRect().top)); return { n: retos.length, enParejas: tops[0] === tops[1] && tops[2] === tops[3] && tops[4] === tops[5], subtextos: retos.filter((x) => x.querySelector('.rt-cuerpo > .subtext')?.getBoundingClientRect().height > 0).length, alto: document.documentElement.scrollHeight, botones: retos.every((x) => (x.querySelector('.rt-reto-estado a, .rt-reto-estado button')?.getBoundingClientRect().height || 0) >= 44) } })
-  check('los seis retos en parejas, sin párrafo, con su botón de 44 y la página por debajo de 2.000 px (era 3.100)', r.n === 6 && r.enParejas && r.subtextos === 0 && r.alto < 2000 && r.botones && !p.errores.length, JSON.stringify(r))
+  const r = await p.evaluate(() => { const retos = [...document.querySelectorAll('.rt-reto')]; const tops = retos.map((x) => Math.round(x.getBoundingClientRect().top)); return { n: retos.length, enParejas: tops[0] === tops[1] && tops[2] === tops[3] && tops[4] === tops[5], subtextos: retos.filter((x) => x.querySelector('.rt-cuerpo > .subtext')?.getBoundingClientRect().height > 0).length, alto: document.documentElement.scrollHeight, botones: retos.every((x) => x.tagName === 'A' && x.getBoundingClientRect().height >= 44) } })
+  // Desde la 989 la baldosa entera es el enlace.
+  check('los seis retos en parejas, sin párrafo, que se tocan enteros y la página por debajo de 2.000 px (era 3.100)', r.n === 6 && r.enParejas && r.subtextos === 0 && r.alto < 2000 && r.botones && !p.errores.length, JSON.stringify(r))
   const u = await abrir(ctx, 'usuarios.html')
   const o = await u.evaluate(() => ({ cifras: Math.round(document.querySelector('.com-cifras').getBoundingClientRect().top), gente: Math.round(document.querySelector('.com-dos').getBoundingClientRect().top) }))
   check('en Comunidad la gente va antes que las cifras', o.gente < o.cifras, JSON.stringify(o))

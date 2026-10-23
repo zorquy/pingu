@@ -42,6 +42,12 @@ async function abrir(ruta, { sesion = 'user-1', comunidad, numeros, quiz = 0, mo
   p.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
   await p.goto(`${BASE}${ruta}`, { waitUntil: 'load' })
   await p.waitForTimeout(1800)
+  // Desde la 989 «Hoy en PokeDoc» va en el historial plegado de /retos, y se
+  // pide al abrirlo.
+  if (ruta.startsWith('/retos')) {
+    await p.click('#rtHistorial summary').catch(() => {})
+    await p.waitForTimeout(900)
+  }
   return { p, ctx, errores }
 }
 
@@ -108,9 +114,10 @@ console.log('── 2. La portada ──')
   await ctx.close()
 }
 {
-  // El de preguntas va por daily_challenge_results, como siempre; los otros cinco, por la base nueva.
+  // Desde la 989 los seis son los de la base (Parejas en vez del cuestionario).
   const todos = Object.fromEntries(['carta', 'silueta', 'caro', 'ordena', 'expansion'].map((j) => [j, { aciertos: 1, total: 1, acertada: true, xp: 10 }]))
-  const { p, ctx } = await abrir('/', { numeros: { ...NUMEROS, hoy: todos, xpHoy: 60 }, quiz: 1 })
+  todos.parejas = { aciertos: 6, total: 6, intentos: 8, acertada: true, xp: 20 }
+  const { p, ctx } = await abrir('/', { numeros: { ...NUMEROS, hoy: todos, xpHoy: 70 } })
   check('con los seis hechos: «¡Los seis hechos!», sin «Jugar»', /Los seis hechos/.test(await p.locator('.tr-titular').innerText().catch(() => '')) && /Día perfecto/.test(await p.locator('.tr-siguiente').innerText().catch(() => '')), await p.locator('.tr-bloque').innerText().catch((e) => String(e)))
   check('  …y sin la RPC de la comunidad, el bloque sale igual sin la línea de gente', !(await p.locator('.tr-gente').count()))
   await ctx.close()

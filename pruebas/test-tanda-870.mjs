@@ -77,24 +77,26 @@ console.log('── 3. Las tiras: del navegador y de la base ──')
 
 console.log('── 4. El texto de «Mi día» ──')
 {
-  const resultados = { reto: [true, false, true, true, true], carta: [false, false, false, false, false, false], caro: [true, true, true, true, true], silueta: [false, true], ordena: null, expansion: null }
+  // Desde la 989 los seis son carta, caro, silueta, ordena, expansión y
+  // Parejas (el cuestionario ya no está).
+  const resultados = { carta: [false, false, false, false, false, false], caro: [true, true, true, true, true], silueta: [false, true], ordena: null, expansion: null, parejas: [true, false, true, true, true, true, true] }
   const t = textoDeMiDia({ dia: hoy, resultados, rachaDias: 3 })
   const lineas = t.split('\n')
   check('la cabecera: «PokeDoc #N · 4/6 retos»', lineas[0] === `PokeDoc #${n} · 4/6 retos`, lineas[0])
   check('una línea por reto, en el orden del menú', lineas.length === 1 + RETOS.length + 2 && RETOS.every((r, i) => lineas[i + 1].startsWith(`${EMOJI[r.juego]} ${CORTO[r.juego]}  `)), t)
-  check('  …el reto con su tira', lineas[1] === '📚 El reto  🟩🟥🟩🟩🟩', lineas[1])
-  check('  …la carta fallada con su aspa', lineas[2] === '🃏 ¿Qué carta es?  🟥🟥🟥🟥🟥🟥 ✗', lineas[2])
-  check('  …los no jugados en gris, con el tamaño del reto', lineas[5] === '🔢 Ordena por precio  ⬜⬜⬜' && lineas[6] === '📦 ¿Qué expansión?  ⬜⬜⬜⬜⬜', `${lineas[5]} | ${lineas[6]}`)
+  check('  …la carta fallada con su aspa', lineas[1] === '🃏 ¿Qué carta es?  🟥🟥🟥🟥🟥🟥 ✗', lineas[1])
+  check('  …los no jugados en gris, con el tamaño del reto', lineas[4] === '🔢 Ordena por precio  ⬜⬜⬜' && lineas[5] === '📦 ¿Qué expansión?  ⬜⬜⬜⬜⬜', `${lineas[4]} | ${lineas[5]}`)
+  check('  …Parejas con su tira de movimientos', lineas[6] === '🧠 Parejas  🟩🟥🟩🟩🟩🟩🟩', lineas[6])
   check('  …la racha', lineas[7] === '🔥 3 días seguidos')
   check('  …y el enlace al menú de los retos', lineas[8] === ENLACE_RETOS && ENLACE_RETOS === 'pokedoc.es/retos')
   check('no desvela nada: ni nombre de carta ni de Pokémon', !/Pikachu|Charizard|sv8/.test(t))
-  const perfecto = textoDeMiDia({ dia: hoy, resultados: { reto: [true], carta: [true], caro: [true], silueta: [true], ordena: [true], expansion: [true] } })
+  const perfecto = textoDeMiDia({ dia: hoy, resultados: { carta: [true], caro: [true], silueta: [true], ordena: [true], expansion: [true], parejas: [true] } })
   check('con los seis, la corona', perfecto.split('\n')[0] === `PokeDoc #${n} · 6/6 retos 👑`, perfecto.split('\n')[0])
   check('sin racha (1 día), no se dice', !/días seguidos/.test(textoDeMiDia({ dia: hoy, resultados, rachaDias: 1 })))
   const corto = textoCortoDeMiDia({ dia: hoy, resultados, rachaDias: 3 })
-  check('el corto: un cuadrado por reto (amarillo = parte, rojo = nada, gris = sin jugar)', corto === `PokeDoc #${n} · 4/6 · 🟨🟥🟩🟩⬜⬜ · 🔥 3 · ${ENLACE_RETOS}`, corto)
+  check('el corto: un cuadrado por reto (amarillo = parte, rojo = nada, gris = sin jugar)', corto === `PokeDoc #${n} · 4/6 · 🟥🟩🟩⬜⬜🟩 · 🔥 3 · ${ENLACE_RETOS}`, corto)
   const filas = filasDeMiDia(resultados)
-  check('filasDeMiDia: hecho y acertado', filas.map((f) => `${f.juego}:${f.hecho ? 1 : 0}${f.acertado === null ? '-' : f.acertado ? 'v' : 'x'}`).join(' ') === 'reto:1x carta:1x caro:1v silueta:1v ordena:0- expansion:0-', JSON.stringify(filas.map((f) => [f.juego, f.hecho, f.acertado])))
+  check('filasDeMiDia: hecho y acertado', filas.map((f) => `${f.juego}:${f.hecho ? 1 : 0}${f.acertado === null ? '-' : f.acertado ? 'v' : 'x'}`).join(' ') === 'carta:1x caro:1v silueta:1v ordena:0- expansion:0- parejas:1v', JSON.stringify(filas.map((f) => [f.juego, f.hecho, f.acertado])))
 }
 
 console.log('── 5. El botón en el bloque del siguiente reto ──')
@@ -110,9 +112,10 @@ console.log('── 5. El botón en el bloque del siguiente reto ──')
   }
   const curso = readFileSync(`${RAIZ}/js/curso.js`, 'utf8')
   check('  …y el cuestionario deja su tira para «Mi día»', /siguienteRetoHtml\(siguienteReto\('reto', hechoHoy\(hoyISO\(\)\)\)\)/.test(curso) && /localStorage\.setItem\(CLAVE_RETO_LOCAL/.test(curso))
+  // Desde la 989 /retos tampoco lo tiene (decisión 5 de la propuesta).
   const retos = readFileSync(`${RAIZ}/js/retos.js`, 'utf8')
-  check('/retos: «Compartir mi día» en «Tu día» con un reto hecho, por import()', /hechos >= 1\) partes\.push\(`<button[^`]*rt-compartir-dia[^`]*data-mi-dia="\$\{hoy\}"/.test(retos) && /import\('\.\/mi-dia-compartir\.js'\)/.test(retos))
-  check('  …y un solo número para los seis (sin numeroDelDiaCarta ni MasCaro)', !/numeroDelDiaCarta|numeroDelDiaMasCaro|numeroDelDiaNuevos/.test(retos) && /const NUMERO = \(\) => `Reto #\$\{numeroDelDia\(hoy\)\}`/.test(retos))
+  check('/retos: ya no hay «Compartir mi día» en el menú (989)', !/rt-compartir-dia|data-mi-dia|compartirMiDia/.test(retos) && /compartirMiMes/.test(retos))
+  check('  …y sin numeroDelDiaCarta ni MasCaro', !/numeroDelDiaCarta|numeroDelDiaMasCaro|numeroDelDiaNuevos/.test(retos))
 }
 
 console.log(fails ? `\n${fails} FALLOS` : '\nTODO OK')

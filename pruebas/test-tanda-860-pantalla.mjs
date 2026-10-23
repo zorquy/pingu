@@ -23,9 +23,10 @@ const { RETOS } = await import(`${RAIZ}/js/retos-xp.js`)
 {
   const hechos = (lista) => (j) => lista.includes(j)
   check('tras la silueta, con «ordena» hecho, toca la expansión', siguienteReto('silueta', hechos(['ordena']))?.juego === 'expansion', siguienteReto('silueta', hechos(['ordena']))?.juego)
-  check('da la vuelta: tras la expansión con todo lo de después hecho, el primero de la lista', siguienteReto('expansion', hechos(['reto']))?.juego === 'carta')
+  // Desde la 989 el último es Parejas (el cuestionario ya no está).
+  check('da la vuelta: tras la expansión con todo lo de después hecho, el primero de la lista', siguienteReto('expansion', hechos(['parejas']))?.juego === 'carta')
   check('nunca el mismo; y con todos hechos, nada', siguienteReto('carta', hechos(RETOS.map((r) => r.juego).filter((j) => j !== 'carta'))) === null)
-  const html = siguienteRetoHtml(RETOS[3])
+  const html = siguienteRetoHtml(RETOS.find((r) => r.juego === 'silueta'))
   check('el HTML: el grande con el título y su ruta, y la vuelta a /retos', /class="btn-primary rj-siguiente" href="\/quien-es">Siguiente: ¿Quién es ese Pokémon\? →/.test(html) && /class="btn-secondary rj-volver-retos" href="\/retos">Volver a los retos</.test(html), html)
   check('  …y sin siguiente, solo la vuelta, diciendo que están todos', !/rj-siguiente/.test(siguienteRetoHtml(null)) && /Todos hechos por hoy/.test(siguienteRetoHtml(null)))
 }

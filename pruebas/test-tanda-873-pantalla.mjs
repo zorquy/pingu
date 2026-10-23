@@ -53,7 +53,7 @@ async function dosFormatos(page, que) {
   }
 }
 
-console.log('── 1. «Mi mes» y «Mi día» desde /retos, con los números de la base ──')
+console.log('── 1. «Mi mes» desde /retos, con los números de la base (989: sin «Mi día») ──')
 {
   const { page, ctx, errores } = await abrir('/retos.html', {
     semilla: ({ hoy, hace }) => {
@@ -64,6 +64,9 @@ console.log('── 1. «Mi mes» y «Mi día» desde /retos, con los números d
     },
   })
   check('sin errores', errores.length === 0, errores.join(' | '))
+  // Desde la 989 el calendario va en el historial plegado.
+  await page.click('#rtHistorial summary')
+  await page.waitForTimeout(800)
   const mes = page.locator('.rt-compartir-mes')
   check('el calendario ofrece «Compartir mi mes», de 44 px', (await mes.count()) === 1 && (await mes.evaluate((b) => b.getBoundingClientRect().height)) >= 44)
   await mes.click()
@@ -75,12 +78,6 @@ console.log('── 1. «Mi mes» y «Mi día» desde /retos, con los números d
   await dosFormatos(page, 'mi mes')
   await page.click('[data-ch-cerrar]')
   await page.waitForTimeout(300)
-  // «Mi día» con lo de la base (nada en localStorage): la tira del más caro
-  // y el quién es a la segunda.
-  await page.click('#rtDiaFila .rt-compartir-dia')
-  await page.waitForTimeout(1000)
-  const d = await page.locator('.ch-texto').innerText()
-  check('«Mi día» lee lo de la base: la tira del más caro y el quién es a la segunda, y la racha', /2\/6 retos/.test(d) && /💶 Más caro o barato  🟩🟩🟥🟩🟩/.test(d) && /👤 ¿Quién es\?  🟥🟩/.test(d) && /🔥 3 días seguidos/.test(d), d)
   await ctx.close()
 }
 

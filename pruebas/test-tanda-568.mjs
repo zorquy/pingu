@@ -47,78 +47,18 @@ console.log('── 2. El texto de Wordle ──')
   check('  …y el enlace corto', t.trim().endsWith(ENLACE))
   check('con un día de racha no se presume de racha', !/días seguidos/.test(textoParaCompartir({ dia: hoy, tira: [true], correct: 1, total: 1, medal: 'oro', rachaDias: 1 })))
   check('  …y sin medalla, la diana', /🎯/.test(textoParaCompartir({ dia: hoy, tira: [false, false], correct: 0, total: 2, medal: null })))
-  check('/reto está en netlify.toml', /from = "\/reto"\s*\n\s*to = "\/curso\.html\?reto=hoy"/.test(readFileSync('/home/user/pingu/netlify.toml', 'utf8')))
+  // Desde la 989 el cuestionario ya no es un reto: /reto lleva al menú.
+  check('/reto lleva a /retos en netlify.toml (989, un 301)', /from = "\/reto"\s*\n\s*to = "\/retos"\s*\n\s*status = 301/.test(readFileSync('/home/user/pingu/netlify.toml', 'utf8')))
 }
 
-console.log('── 3. En la pantalla del resultado ──')
+console.log('── 3. El cuestionario ya no se juega como reto (989) ──')
 {
-  // Una guía publicada con cinco preguntas: el reto del día sale de ahí.
-  const quiz = (i) => ({ type: 'quiz', question: `Pregunta ${i}`, options: ['Mal', 'Bien', 'Peor'], correct_index: 1, explanation: 'Porque sí.' })
-  const GUIA = {
-    id: 'g1', slug: 'guia-uno', title: 'Guía uno', category_id: 'c1', author_id: 'admin-1', review_status: 'published',
-    published_at: '2026-09-01T10:00:00Z', estimated_mins: 5, blocks: [1, 2, 3, 4, 5].map(quiz),
-  }
   const browser = await chromium.launch()
   const page = await browser.newPage({ viewport: { width: 1100, height: 1000 } })
-  const errores = []
-  page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
-  let compartido = null
-  await page.addInitScript(([g, retos]) => {
-    window.__FAKE_SESSION__ = 'admin-1'
-    window.__FAKE_GUIAS__ = [g]
-    window.__FAKE_CATEGORIAS__ = [{ id: 'c1', name: 'Básico', slug: 'basico' }]
-    // Dos días seguidos antes de hoy: con el de hoy, racha de tres.
-    window.__FAKE_RETOS__ = retos
-    // El menú de compartir del sistema, de mentira: lo que importa es el
-    // texto que se le da.
-    navigator.share = async (d) => { window.__compartido = d; return true }
-    navigator.canShare = () => true
-  }, [GUIA, [diaMenos(1), diaMenos(2)].map((d, i) => ({ id: `r${i}`, user_id: 'admin-1', day: d, correct: 3, total: 5, score: 30 }))])
+  await page.addInitScript(() => { window.__FAKE_SESSION__ = 'admin-1' })
   await page.goto(`${BASE}/curso.html?reto=hoy`, { waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(2500)
-  check('sin errores', errores.length === 0, errores.join(' | '))
-  // La primera pantalla es la portada del reto («El reto de hoy»): se
-  // pasa con Continuar y empiezan las preguntas.
-  await page.locator('#btnContinue').click()
-  await page.waitForTimeout(600)
-  // Se juega: 1.ª bien, 2.ª mal, 3.ª bien, 4.ª bien, 5.ª bien.
-  const plan = [1, 0, 1, 1, 1]
-  for (let i = 0; i < 5; i++) {
-    const opciones = page.locator('.quiz-option')
-    if (!(await opciones.count())) { check(`hay pregunta ${i + 1}`, false, 'sin opciones'); break }
-    await opciones.nth(plan[i]).click()
-    await page.waitForTimeout(500)
-    const continuar = page.locator('#btnContinue')
-    await continuar.click()
-    await page.waitForTimeout(700)
-  }
-  // La que has fallado vuelve al final como REPESCA: se contesta (bien)
-  // y no toca la tira — eso es justo lo que la sección 1 comprueba en
-  // Node, y aquí se ve en la pantalla.
-  for (let i = 0; i < 3 && (await page.locator('.quiz-option').count()); i++) {
-    await page.locator('.quiz-option').nth(1).click()
-    await page.waitForTimeout(500)
-    await page.locator('#btnContinue').click()
-    await page.waitForTimeout(700)
-  }
-  await page.waitForTimeout(1500)
-  check('se llega a la pantalla del resultado', (await page.locator('.block-reward').count()) === 1)
-  const tira = await page.$$eval('.reward-tira span', (ss) => ss.map((s) => (s.classList.contains('bien') ? 1 : 0)).join(''))
-  check('la tira de la pantalla es la jugada', tira === '10111', tira)
-  check('  …con el número del día', (await page.locator('.reward-tira-num').textContent()).trim() === `Reto #${numeroDelDia(hoy)}`, await page.locator('.reward-tira-num').textContent())
-  // Desde la 871 «Compartir» abre la hoja común con la vista previa; desde
-  // la 988, sin pestaña de texto: el texto va con la imagen por «Compartir…».
-  await page.locator('#btnPresumir').click()
-  await page.waitForTimeout(800)
-  check('«Compartir» abre la hoja con Instagram y X (988)', (await page.locator('.ch-hoja[open] [data-ch-red]').count()) === 2)
-  await page.locator('[data-ch-compartir]').click()
-  await page.waitForTimeout(600)
-  compartido = await page.evaluate(() => window.__compartido)
-  const texto = compartido?.text || ''
-  check('el texto que se comparte lleva el número', texto.includes(`PokeDoc #${numeroDelDia(hoy)} · El reto`), texto)
-  check('  …la tira jugada', texto.includes('🟩🟥🟩🟩🟩'), texto)
-  check('  …la racha, contando hoy', texto.includes('🔥 3 días seguidos'), texto)
-  check('  …y el enlace corto', texto.includes(ENLACE), texto)
+  await page.waitForURL(/\/retos/, { timeout: 8000 }).catch(() => {})
+  check('un enlace viejo a curso.html?reto=hoy acaba en /retos', /\/retos(\.html)?$/.test(new URL(page.url()).pathname), page.url())
   await browser.close()
 }
 

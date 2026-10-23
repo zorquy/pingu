@@ -162,11 +162,12 @@ const GUARDADO = (x) => ({ retos_guardar: { nuevo: true, xp: x, perfecto: false,
   // El menú, sin cuenta: seis tarjetas y el estado de lo jugado en el navegador.
   const { page, ctx, errores } = await abrir('retos', { local: { 'pokedoc-carta-del-dia': { dia: hoy, acertada: true, intentos: [{}, {}] }, 'pokedoc-mas-caro': { dia: hoy, respuestas: [true, false] } } })
   check('menú: sin errores', !errores.length, errores.join(' | '))
-  check('  …seis retos, cada uno con su página', (await page.locator('.rt-reto').count()) === 6 && (await page.$$eval('.rt-reto h2 a', (as) => as.map((a) => a.getAttribute('href')).join())) === '/reto,/carta-del-dia,/mas-caro,/quien-es,/ordena-precio,/que-expansion')
-  check('  …la carta, «Hecho» y «Acertada en 2»; Más caro, a medias', /Acertada en 2/.test(await page.locator('#rtCartaEstado').innerText()) && /Hecho/.test(await page.locator('#rtSello-carta').innerText()) && /Seguir/.test(await page.locator('#rtMasCaroEstado').innerText()))
-  check('  …«Tu día»: 1 de 6, y el día perfecto dice que faltan cinco', /1\/6/.test(await page.locator('#rtAnillo').innerText()) && /te faltan 5/.test(await page.locator('#rtPerfectoTexto').innerText()) && (await page.locator('#rtPerfectoPasos i.si').count()) === 1)
-  check('  …y sin cuenta dice que con cuenta cada reto da XP', /Crea tu cuenta/.test(await page.locator('#rtDiaFila').innerText()))
-  check('  …con la cuenta atrás del día', /\d\d:\d\d:\d\d/.test(await page.locator('#rtCuenta').innerText()))
+  // Desde la 989: baldosas que son enlaces, una línea, la píldora y la barra.
+  check('  …seis retos, cada uno con su página', (await page.locator('.rt-reto').count()) === 6 && (await page.$$eval('.rt-reto', (as) => as.map((a) => a.getAttribute('href')).join())) === '/carta-del-dia,/mas-caro,/quien-es,/ordena-precio,/que-expansion,/parejas')
+  check('  …la carta, «Hecho» y «Acertada en 2»; Más caro, a medias', /Acertada en 2/.test(await page.locator('#rtCartaEstado').innerText()) && /Hecho/.test(await page.locator('#rtSello-carta').innerText()) && /A medias/.test(await page.locator('#rtMasCaroEstado').innerText()))
+  check('  …la píldora: 1 de 6, y el día perfecto dice que faltan cinco', /1\/6 hoy/.test(await page.locator('#rtDia').innerText()) && /te faltan 5/.test(await page.locator('#rtPerfectoTexto').innerText()))
+  check('  …y sin cuenta dice que con cuenta cada reto da XP', /Crea tu cuenta/.test(await page.locator('#rtPerfectoTexto').innerText()))
+  check('  …con la cuenta atrás del día', /\d\d:\d\d:\d\d/.test(await page.locator('#rtPerfectoTexto').innerText()))
   await ctx.close()
 }
 {
@@ -175,7 +176,10 @@ const GUARDADO = (x) => ({ retos_guardar: { nuevo: true, xp: x, perfecto: false,
   const { page, ctx, errores } = await abrir('retos', { sesion: 'admin-1', rpc: { retos_mis_numeros: numeros } })
   check('menú con cuenta: sin errores', !errores.length, errores.join(' | '))
   check('  …lo de hoy sale de la base: la silueta a la primera, ordenadas en 2, 4 de 5', /A la primera/.test(await page.locator('#rtSiluetaEstado').innerText()) && /Ordenadas en 2/.test(await page.locator('#rtOrdenaEstado').innerText()) && /4 de 5/.test(await page.locator('#rtExpansionEstado').innerText()))
-  check('  …la XP de hoy y la racha en «Tu día»', /\+85 XP hoy/.test(await page.locator('#rtDiaFila').innerText()) && /4 días seguidos/.test(await page.locator('#rtDiaFila').innerText()), await page.locator('#rtDiaFila').innerText())
+  check('  …la XP de hoy y la racha en la píldora (989)', /\+85 XP/.test(await page.locator('#rtDia').innerText()) && /4 días/.test(await page.locator('#rtDia').innerText()), await page.locator('#rtDia').innerText())
+  // El calendario va en el historial plegado (989): se pide al abrirlo.
+  await page.click('#rtHistorial summary')
+  await page.waitForTimeout(600)
   check('  …y el calendario con las cifras: 30 jugados, mejor racha 9, 2 días perfectos', /30[\s\S]*retos jugados[\s\S]*9[\s\S]*tu mejor racha[\s\S]*2[\s\S]*días perfectos/.test(await page.locator('#rtCalendario').innerText()) && (await page.locator('#rtCalendario .rt-dias .rt-dia.jugado.n2').count()) === 1)
   await ctx.close()
 }

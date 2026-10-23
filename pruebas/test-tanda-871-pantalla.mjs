@@ -137,23 +137,15 @@ console.log('── 3. En el ordenador, centrada ──')
   await ctx.close()
 }
 
-console.log('── 4. /retos: «Compartir mi día» en «Tu día» ──')
+console.log('── 4. /retos: sin «Compartir mi día» (989) ──')
 {
+  // PINGU: «compartir mi día lo quitaría directamente». Se comparte cada reto.
   const { ctx, page, errores } = await contexto()
   await page.goto(`${BASE}/retos.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1500)
-  const b = page.locator('#rtDiaFila .rt-compartir-dia')
-  check('con retos hechos, el botón está en «Tu día»', (await b.count()) === 1 && (await b.evaluate((x) => x.getBoundingClientRect().height)) >= 44)
-  await b.click()
-  await page.waitForTimeout(1000)
-  check('  …y abre la hoja de «Mi día»', (await page.locator('.ch-hoja[open]').count()) === 1 && /PokeDoc #\d+ · \d\/6 retos/.test(await page.locator('.ch-texto').innerText()))
+  check('con retos hechos, el menú ya no ofrece «Compartir mi día»', (await page.locator('.rt-compartir-dia, [data-mi-dia]').count()) === 0)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
-  const sin = await contexto({ conPartidas: false })
-  await sin.page.goto(`${BASE}/retos.html`, { waitUntil: 'domcontentloaded' })
-  await sin.page.waitForTimeout(1500)
-  check('sin nada jugado, no hay nada que compartir y el botón no sale', (await sin.page.locator('.rt-compartir-dia').count()) === 0)
-  await sin.ctx.close()
 }
 
 console.log('── 5. Los otros cuatro retos y el cuestionario van por la misma hoja ──')

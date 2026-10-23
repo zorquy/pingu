@@ -48,39 +48,38 @@ async function abrir({ sesion, retos = [] }) {
   return { page, errores }
 }
 
+// Desde la 989 el menú es compacto: la baldosa entera es el enlace, con UNA
+// línea de estado; el cuestionario ya no está (su sitio es «Parejas»).
+const RUTAS = { carta: '/carta-del-dia', caro: '/mas-caro', silueta: '/quien-es', ordena: '/ordena-precio', expansion: '/que-expansion', parejas: '/parejas' }
+
 console.log('── 2. Sin cuenta ──')
 {
   const { page, errores } = await abrir({ sesion: 'none' })
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('hay un h1 «Retos diarios»', (await page.locator('h1').textContent()).trim() === 'Retos diarios')
-  // Tres desde la 583 («¿Más caro o más barato?»); seis desde la 835.
-  check('seis retos en la lista', (await page.locator('.rt-reto').count()) === 6)
-  const boton = page.locator('#rtHoyEstado a')
-  check('el de hoy manda a crear cuenta', /auth\.html/.test((await boton.getAttribute('href')) || ''), await boton.getAttribute('href'))
-  check('  …y dice el número del día', (await page.locator('#rtHoyEstado').innerText()).includes(`Reto #${numeroDelDia(hoy)}`))
-  // Desde la 570 se juega: su tarjeta lleva al juego.
-  check('«¿Qué carta es?» lleva al juego', (await page.locator('#rtCartaEstado a').getAttribute('href')) === '/carta-del-dia')
+  const baldosas = await page.$$eval('.rt-reto', (as) => as.map((a) => [a.dataset.juego, a.getAttribute('href'), a.tagName]))
+  check('seis retos, y la baldosa entera lleva a su juego', baldosas.length === 6 && baldosas.every(([j, h, t]) => t === 'A' && h === RUTAS[j]), JSON.stringify(baldosas))
+  check('  …sin el cuestionario', (await page.locator('#rtHoy, [href="/reto"]').count()) === 0)
+  check('sin jugar, cada una dice lo que da', /^Hasta \+50 XP · 6 intentos$/.test((await page.locator('#rtCartaEstado').innerText()).trim()), await page.locator('#rtCartaEstado').innerText())
+  check('  …y arriba, que con cuenta cada reto da XP', /Crea tu cuenta/.test(await page.locator('#rtPerfectoTexto').innerText()) && /auth\.html/.test(await page.locator('#rtPerfectoTexto a').getAttribute('href')))
   await page.close()
 }
 
-console.log('── 3. Con cuenta y sin jugar hoy ──')
+console.log('── 3. Con cuenta ──')
 {
-  const { page } = await abrir({ sesion: 'admin-1', retos: [diaMenos(1), diaMenos(2)].map((d, i) => ({ id: `r${i}`, user_id: 'admin-1', day: d, correct: 4, total: 5, score: 40 })) })
-  const boton = page.locator('#rtHoyEstado a')
-  check('el botón lleva a /reto', (await boton.getAttribute('href')) === '/reto', await boton.getAttribute('href'))
-  // Sin el de hoy no hay racha que enseñar: la racha cuenta hasta hoy.
-  check('sin el de hoy, no presume de racha', (await page.locator('.rt-chip-racha').count()) === 0)
-  await page.close()
-}
-
-console.log('── 4. Con cuenta y ya jugado ──')
-{
-  const { page } = await abrir({ sesion: 'admin-1', retos: [hoy, diaMenos(1), diaMenos(2)].map((d, i) => ({ id: `r${i}`, user_id: 'admin-1', day: d, correct: i ? 4 : 3, total: 5, score: 40 })) })
-  const texto = await page.locator('#rtHoyEstado').innerText()
-  check('enseña tu marca de hoy', /3 de 5/.test(texto), texto)
-  check('  …y la racha contando hoy', /3 días seguidos/.test(texto), texto)
-  check('  …con tres puntos acertados', (await page.locator('.rt-punto.acertado').count()) === 3)
-  check('  …y manda a la liga, no a jugar otra vez', /usuarios\.html/.test((await page.locator('#rtHoyEstado a').getAttribute('href')) || ''))
+  const page = await browser.newPage({ viewport: { width: 1000, height: 900 } })
+  await page.addInitScript((hoy) => {
+    window.__FAKE_SESSION__ = 'admin-1'
+    window.__FAKE_RETOS_NUMEROS__ = { hoy: { carta: { aciertos: 1, total: 1, intentos: 2, acertada: true, xp: 45 } }, racha: 3, dias: { [hoy]: 1 }, jugados: 5, mejorRacha: 3, diasPerfectos: 0, xpHoy: 45 }
+  }, hoy)
+  await page.goto(`${BASE}/retos.html`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(1800)
+  const pildora = (await page.locator('#rtDia').innerText()).replace(/\s+/g, ' ')
+  check('la píldora: cuántos hoy, la XP y la racha', /1\/6 hoy/.test(pildora) && /\+45 XP/.test(pildora) && /3 días/.test(pildora), pildora)
+  check('la hecha, «Acertada en 2 · +45 XP» y su sello', /Acertada en 2 · \+45 XP/.test((await page.locator('#rtCartaEstado').textContent()).replace(/\s+/g, ' ')) && (await page.locator('#rtSello-carta.ok').count()) === 1)
+  check('la barra del día perfecto, a un sexto', Math.round(await page.locator('#rtBarraDia').evaluate((i) => parseFloat(i.style.width))) === 17)
+  check('  …y su frase con la cuenta atrás', /te faltan 5 \(\+25 XP\) · los de mañana salen en \d\d:\d\d:\d\d/.test(await page.locator('#rtPerfectoTexto').innerText()), await page.locator('#rtPerfectoTexto').innerText())
+  check('sin «Compartir mi día» (988)', (await page.locator('[data-mi-dia], .rt-compartir-dia').count()) === 0)
   await page.close()
 }
 

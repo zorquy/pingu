@@ -106,7 +106,11 @@ if (hay.status === 0) {
   const deLaBase = sql(consulta).split('\n').map(Number)
   const distintos = casos.filter(([j, a, t, i, ac, tira], k) => xpDe(j, { aciertos: a, total: t, intentos: i, acertada: ac, tira }) !== deLaBase[k])
   check(`los ${casos.length} casos dan lo mismo en las dos`, deLaBase.length === casos.length && !distintos.length, JSON.stringify(distintos.slice(0, 4)))
-  check('los seis retos del menú son los seis juegos que acepta la base', RETOS.map((x) => x.juego).join() === 'reto,carta,caro,silueta,ordena,expansion' && /'reto', 'carta', 'caro', 'silueta', 'ordena', 'expansion'/.test(sql(`select pg_get_constraintdef(oid) from pg_constraint where conname = 'retos_resultados_juego'`).replace(/::text/g, '')), '')
+  // Desde la 989 el sexto es «Parejas» (migración 989) y el cuestionario
+  // ('reto') sale del menú: la base lo sigue aceptando por lo de antes.
+  psql(['-d', BD, '-f', join(REPO, 'supabase-migration-989-parejas.sql')])
+  const acepta = sql(`select pg_get_constraintdef(oid) from pg_constraint where conname = 'retos_resultados_juego'`).replace(/::text/g, '')
+  check('los seis retos del menú son juegos que acepta la base (con la 989)', RETOS.map((x) => x.juego).join() === 'carta,caro,silueta,ordena,expansion,parejas' && RETOS.every((x) => acepta.includes(`'${x.juego}'`)), acepta)
   psql(['-c', `drop database if exists ${BD}`])
 }
 console.log(fails ? `\n${fails} FALLOS` : '\nTODO OK')

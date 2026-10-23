@@ -140,12 +140,13 @@ console.log('── 6. En /retos y en los otros dos retos ──')
   await p3.waitForTimeout(1200)
   check('el índice lista SEIS retos (835)', (await p3.locator('.rt-reto').count()) === 6)
   const caja = p3.locator('#rtMasCaroEstado')
-  check('  …con el tercero sin jugar: número y «Jugar»', new RegExp(`#${numeroDelDia(hoy)}`).test(await caja.innerText()) && /Jugar/.test(await caja.innerText()), await caja.innerText())
+  // Desde la 989 la baldosa entera es el enlace y lleva UNA línea.
+  check('  …con el tercero sin jugar: lo que da, y la baldosa lleva al juego', /Hasta \+30 XP · 5 rondas/.test(await caja.innerText()) && (await p3.locator('#rtMasCaro').getAttribute('href')) === '/mas-caro', await caja.innerText())
   // Con una partida a medias guardada en el navegador, lo dice.
   await p3.evaluate((d) => localStorage.setItem('pokedoc-mas-caro', JSON.stringify({ dia: d, respuestas: [true, false] })), hoy)
   await p3.reload({ waitUntil: 'domcontentloaded' })
   await p3.waitForTimeout(1000)
-  check('  …y a medias dice por dónde vas', /(pregunta|ronda) 3 de 5/i.test(await caja.innerText()) && /Seguir/.test(await caja.innerText()), await caja.innerText())
+  check('  …y a medias dice por dónde vas', /^A medias · Ronda 3 de 5$/i.test((await caja.innerText()).trim()) && (await p3.locator('#rtSello-mas-caro, #rtSello-caro').first().innerText()).includes('A medias'), await caja.innerText())
   await p3.close()
   // Los otros dos retos llevan el botón de imagen (se dibuja con la misma
   // pieza, reto-imagen.js). Aquí se mira que exista y use la pieza; la

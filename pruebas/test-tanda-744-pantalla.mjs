@@ -35,7 +35,9 @@ console.log('── 1. Las reglas ──')
   const f = (x) => fichasHtml(x, AHORA)
   // Desde la 748 cada ficha es la de su maqueta (J5): lo que es en grande
   // y el detalle debajo («Reto del día · Sin hacer · 7 h»).
-  check('el reto: hecho, por hacer, o «no se sabe» (sin afirmar nada)', /Hecho: 4 de 5/.test(f({ reto: { correct: 4, total: 5 } })) && /Sin hacer · \d+ h/.test(f({ reto: false })) && !/Hecho|Sin hacer/.test(f({ reto: null })))
+  // Desde la 989 la ficha es siempre la de los seis retos (el cuestionario
+  // ya no está): sin saber lo de hoy, la de «Seis retos · quedan N h».
+  check('los retos: lo de hoy, o la ficha sin cifras si no se sabe', /2\/6/.test(f({ retos: { hechos: new Set(['carta', 'caro']), total: 6, xp: 10 } })) && /Seis retos · quedan \d+ h/.test(f({ retos: null })))
   check('las respuestas: con cifra, «nada nuevo», o el foro a secas si no se sabe', /<b>2 respuestas<\/b>/.test(f({ respuestas: 2 })) && /Nada nuevo/.test(f({ respuestas: 0 })) && /<b>El foro<\/b>/.test(f({ respuestas: null })))
   check('el valor: sin la migración no sale; sin fotos, invita', valorHtml(null) === '' && /Empieza a llevarla/.test(valorHtml([])))
 }
@@ -78,8 +80,9 @@ console.log('── 2. La portada con cuenta ──')
   check('el bloque «Hoy», debajo del saludo, con su hoja', h?.debajo && h.borde === '1px', JSON.stringify(h))
   check('  …lo que vale tu colección, su cambio en 30 días y su línea', /250,00 €/.test(n(h?.valor)) && /Sube 50,00 € este mes/.test(n(h?.valor)) && h.linea, n(h?.valor))
   const t = (h?.fichas || []).map((f) => f.t).join(' | ')
-  // Desde la 843 la ficha cuenta los seis retos: el de preguntas, hecho, es 1/6.
-  check('  …el reto, hecho hoy', /1\/6 Retos de hoy/.test(t), t)
+  // Desde la 843 la ficha cuenta los seis retos; desde la 989 el
+  // cuestionario no es uno de ellos: con él hecho, siguen siendo 0/6.
+  check('  …los retos de hoy (el cuestionario ya no cuenta)', /0\/6 Retos de hoy/.test(t), t)
   check('  …tu próximo torneo (estás apuntado), y lleva a él', /Torneo en 2 días Liga de otoño/i.test(t) && h.fichas.some((f) => f.href === '/torneo?slug=liga-otono'), t)
   check('  …el próximo lanzamiento', /Sale mañana Héroes Ascendentes/.test(t), t)
   check('  …y las respuestas en tus hilos (solo las del foro)', /2 respuestas en tus hilos del foro/.test(t), t)

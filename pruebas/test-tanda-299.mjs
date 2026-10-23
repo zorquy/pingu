@@ -83,12 +83,13 @@ const MENSAJES = [
 ]
 
 const browser = await chromium.launch()
-const abrir = async (url, { sesion = 'user-1', ancho = 1280, noticias = NOTICIA, retos = [], guias = GUIAS } = {}) => {
+const abrir = async (url, { sesion = 'user-1', ancho = 1280, noticias = NOTICIA, retos = [], guias = GUIAS, numeros = null } = {}) => {
   const page = await browser.newPage({ viewport: { width: ancho, height: 1100 } })
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
-  await page.addInitScript(([s, c, g, p, n, r, se, fo, te, me]) => {
+  await page.addInitScript(([s, c, g, p, n, r, se, fo, te, me, nu]) => {
     window.__FAKE_SESSION__ = s
+    if (nu) window.__FAKE_RETOS_NUMEROS__ = nu
     window.__FAKE_CATEGORIAS__ = c
     window.__FAKE_GUIAS__ = g
     window.__FAKE_PROGRESO__ = p
@@ -98,7 +99,7 @@ const abrir = async (url, { sesion = 'user-1', ancho = 1280, noticias = NOTICIA,
     window.__FAKE_FOROS__ = fo
     window.__FAKE_TEMAS__ = te
     window.__FAKE_MENSAJES__ = me
-  }, [sesion, CATS, guias, PROGRESO, noticias, retos, SECCIONES, FOROS, TEMAS, MENSAJES])
+  }, [sesion, CATS, guias, PROGRESO, noticias, retos, SECCIONES, FOROS, TEMAS, MENSAJES, numeros])
   await page.goto(BASE + url, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
   return { page, errores }
@@ -488,19 +489,20 @@ console.log('\n── 5. F · El reto abre la portada, en grande ──')
   const casillas = page.locator('.tr-casilla')
   check('salen las seis casillas', (await casillas.count()) === 6, String(await casillas.count()))
   check('  …ninguna hecha si no has jugado', (await page.locator('.tr-casilla.hecha').count()) === 0)
-  check('  …y «Jugar» lleva al reto de preguntas, el primero', (await page.locator('.tr-jugar').getAttribute('href')) === '/reto',
+  // Desde la 989 el primero es «¿Qué carta es?»: el de preguntas se fue.
+  check('  …y «Jugar» lleva al primero, «¿Qué carta es?»', (await page.locator('.tr-jugar').getAttribute('href')) === '/carta-del-dia',
     await page.locator('.tr-jugar').getAttribute('href'))
   await page.close()
 }
 
 console.log('\n── 6. F · Lo jugado cuenta ──')
 {
-  const { page } = await abrir('/index.html', { retos: [{ user_id: 'user-1', correct: 3, total: 5, score: 30 }] })
+  const { page } = await abrir('/index.html', { numeros: { hoy: { carta: { aciertos: 1, total: 1, intentos: 2, acertada: true, xp: 45 } }, xpHoy: 45, racha: 1, dias: {}, jugados: 1, mejorRacha: 1, diasPerfectos: 0 } })
   check('el titular da lo hecho', /1 de 6 hechos/.test((await page.locator('.tr-titular').textContent()) || ''),
     await page.locator('.tr-titular').textContent())
-  check('  …con la casilla del reto de preguntas hecha', (await page.locator('.tr-casilla.hecha[href="/reto"]').count()) === 1 && (await page.locator('.tr-casilla.hecha').count()) === 1)
-  // Jugado no puede llevar otra vez al de preguntas: se juega una vez.
-  check('  …y «Jugar» ya lleva a otro', (await page.locator('.tr-jugar').getAttribute('href')) !== '/reto', await page.locator('.tr-jugar').getAttribute('href'))
+  check('  …con la casilla de «¿Qué carta es?» hecha', (await page.locator('.tr-casilla.hecha[href="/carta-del-dia"]').count()) === 1 && (await page.locator('.tr-casilla.hecha').count()) === 1)
+  // Jugado no puede llevar otra vez al mismo: se juega una vez al día.
+  check('  …y «Jugar» ya lleva a otro', (await page.locator('.tr-jugar').getAttribute('href')) !== '/carta-del-dia', await page.locator('.tr-jugar').getAttribute('href'))
   await page.close()
 }
 
@@ -509,8 +511,10 @@ console.log('\n── 7. F · Sin cuenta, y sin noticia ──')
   const { page, errores } = await abrir('/index.html', { sesion: 'none' })
   check('sin errores de JavaScript sin cuenta', errores.length === 0, errores.join(' | '))
   check('al visitante también se le enseña el reto', await page.locator('.reto-hoy').isVisible())
-  check('  …con los cinco puntos', (await page.locator('.reto-punto').count()) === 5)
-  check('  …y el botón lleva a crear cuenta', /auth/.test((await page.locator('.reto-hoy-boton').getAttribute('href')) || ''),
+  // Desde la 989 son los seis retos (antes, las cinco preguntas del quiz), y
+  // se juegan sin cuenta: el botón lleva a /retos.
+  check('  …con los seis puntos', (await page.locator('.reto-punto').count()) === 6)
+  check('  …y el botón lleva a los retos', (await page.locator('.reto-hoy-boton').getAttribute('href')) === '/retos',
     await page.locator('.reto-hoy-boton').getAttribute('href'))
   await page.close()
 }

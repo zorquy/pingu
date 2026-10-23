@@ -12,7 +12,8 @@ RAIZ = '/tmp/claude-0/-home-user/b9afdd5d-e7a3-5d00-bfc6-d85d45049058/scratchpad
 REESCRITURAS = [
     (re.compile(r'^/carta/[^/]+$'), '/carta.html'),
     # La 568: la barra se queda en /reto, sin la consulta (802).
-    (re.compile(r'^/reto/?$'), '/curso.html'),
+    # Desde la 989 /reto lleva a /retos (en Netlify, un 301).
+    (re.compile(r'^/reto/?$'), '/retos.html'),
     (re.compile(r'^/coleccion/[^/]+$'), '/coleccion.html'),
     (re.compile(r'^/usuario/[^/]+$'), '/usuario.html'),
     (re.compile(r'^/tema/[^/]+$'), '/tema.html'),

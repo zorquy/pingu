@@ -8,14 +8,14 @@ const RAIZ = '/home/user/pingu'
 mkdirSync(`${RAIZ}/assets/social`, { recursive: true })
 
 const TARJETAS = [
-  { fichero: 'reto-retos', arriba: 'PokeDoc · retos diarios', titulo: 'Seis retos al día', texto: 'Los mismos para todo el mundo. Juega, comparte tu día y vuelve mañana.', enlace: 'pokedoc.es/retos', tira: [1, 1, 0, 1, 1, 1] },
+  { fichero: 'reto-retos', arriba: 'PokeDoc · retos diarios', titulo: 'Seis retos al día', texto: 'Los mismos para todo el mundo. Juega, comparte y vuelve mañana.', enlace: 'pokedoc.es/retos', tira: [1, 1, 0, 1, 1, 1] },
   ...RETOS.map((r) => ({
     fichero: `reto-${r.juego}`,
     arriba: 'PokeDoc · reto diario',
     titulo: r.titulo,
     texto: r.texto,
     enlace: `pokedoc.es${r.ruta}`,
-    tira: { reto: [1, 0, 1, 1, 1], carta: [0, 0, 1, 1], caro: [1, 1, 0, 1, 1], silueta: [0, 1], ordena: [1, 0, 1, 1], expansion: [1, 1, 1, 0, 1] }[r.juego],
+    tira: { reto: [1, 0, 1, 1, 1], carta: [0, 0, 1, 1], caro: [1, 1, 0, 1, 1], silueta: [0, 1], ordena: [1, 0, 1, 1], expansion: [1, 1, 1, 0, 1], parejas: [1, 0, 1, 1, 0, 1] }[r.juego],
   })),
 ]
 
@@ -43,8 +43,12 @@ p { margin: 0; font: 500 32px/1.35 Inter, sans-serif; color: rgba(255,255,255,.8
 
 const browser = await chromium.launch()
 const page = await browser.newPage({ viewport: { width: 1200, height: 630 }, deviceScaleFactor: 1 })
-for (const t of TARJETAS) {
-  await page.goto('http://localhost:8892/retos.html', { waitUntil: 'domcontentloaded' }); await page.setContent(html(t), { waitUntil: 'load' })
+// SOLO=reto-parejas,reto-retos para no reescribir las demás (989).
+const SOLO = process.env.SOLO ? process.env.SOLO.split(',') : null
+for (const t of TARJETAS.filter((x) => !SOLO || SOLO.includes(x.fichero))) {
+  // Un fichero sin JavaScript, para el origen de las fuentes: desde retos.html
+  // se colaba la barra de «subir» del app.js (989).
+  await page.goto('http://localhost:8892/robots.txt', { waitUntil: 'domcontentloaded' }); await page.setContent(html(t), { waitUntil: 'load' })
   await page.evaluate(() => document.fonts.ready)
   await page.waitForTimeout(150)
   await page.screenshot({ path: `${RAIZ}/assets/social/${t.fichero}.png`, type: 'png' })
