@@ -36,7 +36,7 @@ import {
   varianteDe,
 } from './cardmarket.js'
 import { tarjetasDePrecio, chapasDeImpresiones, chipDeIdiomaHtml } from './precio-vista.js'
-import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, actualizar, borrar, tieneCifras } from './mi-coleccion/datos.js'
+import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, actualizar, borrar, tieneCifras, versionesDeCartas } from './mi-coleccion/datos.js'
 import { precioDeFila, precioParaIdioma, idiomasParaAnadirEn, versionesDelIdioma, avisoDeVersiones, idiomaDePrecioDelSet } from './cardmarket.js'
 import { idiomasDeSet, reglasDeVersiones, sinReglas, hayReglas } from './idiomas-de-set.js'
 import { engancharAvisos } from './avisos-precio.js'
@@ -45,7 +45,6 @@ import { deseosDeCarta } from './mi-coleccion/cambios.js'
 import { supabase } from './supabase.js'
 import { variantesDeCarta, versionDeVariante, TODAS, seSabenVariantes, corregirVersionesImposibles } from './mi-coleccion/variantes.js'
 import { montarEleccion } from './mi-coleccion/elegir-version.js'
-import { versionesDe as versionesDeTcggo } from './carta-versiones.js'
 import { especiesPorNombres, especiePorDex } from './pokedex-especies.js'
 import { atributosDeRango } from './rangos.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
@@ -134,7 +133,7 @@ function colocarPrecioAlLado(caja) {
 export async function pintarMercado(carta) {
   const caja = $('cartaMercado')
   if (!caja || !carta?.id) return
-  const [vivo, guardadas, versiones] = await Promise.all([preciosEnVivo(carta.id), preciosGuardados([carta.id]).catch(() => new Map()), versionesDeTcggo(carta).catch(() => [])])
+  const [vivo, guardadas, versiones] = await Promise.all([preciosEnVivo(carta.id), preciosGuardados([carta.id]).catch(() => new Map()), versionesDeCartas([carta.id]).catch(() => [])])
   const guardada = guardadas.get(carta.id) || null
   // Las impresiones: lo que diga TCGdex en vivo y, si no contesta, lo que
   // guardamos de él en la carta (645); y las versiones de TCGGO (862).
@@ -166,13 +165,10 @@ export async function pintarMercado(carta) {
       <div class="carta-historial hidden" id="cmHistorial"></div>
       <!-- Quién da ESTA carta (376), sin cuenta también: es el escaparate. -->
       <div class="carta-cambios hidden" id="cmCambios"></div>
-      <!-- Las otras versiones de TCGGO (822): js/carta-versiones.js. -->
-      <div class="carta-versiones hidden" id="cmVersiones"></div>
       <div class="carta-mercado-pie">${enlaceDeEspecie(carta)}</div>
     </div>`
   caja.classList.remove('hidden')
   colocarPrecioAlLado(caja)
-  import('./carta-versiones.js').then((m) => m.pintarVersiones(carta, $('cmVersiones'), { precio: guardada, variants: vivo?.variants ?? carta.variants ?? null, filas: versiones })).catch(() => {})
 
   const pintarPrecio = () => {
     const reverse = estado.variante === 'reverse'

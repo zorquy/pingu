@@ -167,6 +167,8 @@ if (modoCatalogo && window.matchMedia?.('(max-width: 900px)').matches) {
   const sel = document.querySelector('.mc-estanteria-fila2 .mc-mercado')
   const quien = document.querySelector('.mc-hero-quien')
   if (sel && quien) quien.appendChild(sel)
+  // Y el de Buscar sobra (998): con el de arriba eran dos iguales a la vista.
+  if (sel && quien) document.querySelector('#mcBuscarBarra .mc-mercado')?.remove()
 }
 let albumesAbiertos = false
 
@@ -8390,8 +8392,27 @@ async function iniciarCatalogo() {
     coleccionCargada()
     if (pestania === 'album') await pintarEstanteria()
     if (pestania === 'album' && params.get('set')) void abrirAlbum(params.get('set'), { push: false })
+    void abrirCartaDeDireccion()
   }
   window.addEventListener('resize', () => album.set && pintarAlbum())
+}
+
+// `?carta=<id>` (998): la lupa de arriba y /buscar abren una carta AQUÍ, en
+// el pop-up, y no en la ficha completa: buscar una carta es lo mismo la
+// busques donde la busques. Se quita de la dirección al abrirla, que al
+// recargar o volver atrás no salte otra vez. Con `#anadir` (Mayús+Intro en
+// la paleta, 718) se abre además el diálogo de añadir.
+async function abrirCartaDeDireccion() {
+  const id = params.get('carta')
+  if (!id) return
+  const anadirYa = location.hash === '#anadir'
+  const sin = new URL(location.href)
+  sin.searchParams.delete('carta')
+  history.replaceState(history.state, '', sin.pathname + sin.search + (anadirYa ? '' : sin.hash))
+  const fila = cartas.get(id) || (await datos.cartasPorIds([id], mercado).catch(() => new Map())).get(id)
+  if (!fila) return
+  abrirCarta(id, fila)
+  if (anadirYa && sesion && esMia) abrirAnadir(id)
 }
 
 // La carga, suelta desde la tanda 437 porque se hace DOS veces: al entrar
@@ -8478,6 +8499,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   // entra con la cámara pedida: se abre en cuanto se sabe qué tienes, que
   // es lo que la bandeja enseña al lado de cada carta leída.
   if (primeraVez && esMia && pestania === 'buscar' && params.get('escanear')) void abrirEscaner()
+  if (primeraVez) void abrirCartaDeDireccion()
   // Los álbumes de la barra lateral (741), si ya está puesta; si llega
   // después, avisa ella (`pokedoc:lateral`).
   if (primeraVez) void montarAlbumesLaterales()

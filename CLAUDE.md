@@ -116,6 +116,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   la carta a la izquierda, los datos en dos columnas a la derecha. Una hoja
   que se abra DENTRO de la ficha en el móvil (versión, tus copias) lleva
   `data-sin-arrastre`, o el arrastre de hojas (804) cierra la ficha entera.
+- **/carta y el pop-up enseñan una carta con LO MISMO** (tanda 998, PINGU:
+  «cojamos solo un sitio»): las versiones son las chapas del precio y salen de
+  `versionesDeCartas` (con las de a mano), la rareza de `rarezaCrudaDeCarta`
+  con `rarity_en` pedida también en el SERVIDOR (`meta-social.js`), y no hay
+  un segundo bloque de versiones debajo. Y una carta del buscador se abre en el
+  pop-up: la lupa de arriba lleva a `/cartas?ver=buscar&q=…&carta=<id>`
+  (`rutaDeCartaEnBuscar`); /carta queda para Google y para los enlaces.
 - **Las versiones que se ofrecen son las que EXISTEN** (tanda 922): las que
   la carta dice y, si no dice, `variantesDeducidas` (set y rareza: el 30
   aniversario solo holo, la 1.ª edición solo en Wizards); las cuatro solo

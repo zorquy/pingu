@@ -48,6 +48,20 @@ export function rutaDeCarta(carta) {
   return `/carta/${aSlug(nombre)}-${id}${catalogo}`
 }
 
+// La misma carta abierta en el pop-up de /cartas → Buscar (998): adonde lleva
+// un resultado de la lupa de arriba o de /buscar. Con lo buscado, que al
+// cerrar el pop-up se quede la lista detrás.
+export function rutaDeCartaEnBuscar(carta, q = '') {
+  const id = String(carta?.id ?? '')
+  if (!id) return '/cartas?ver=buscar'
+  const p = new URLSearchParams({ ver: 'buscar' })
+  if (String(q || '').trim()) p.set('q', String(q).trim())
+  p.set('carta', id)
+  const m = carta?.market
+  if (m && m !== MERCADO_POR_DEFECTO) p.set('catalogo', m)
+  return `/cartas?${p}`
+}
+
 // De las filas que casan con los candidatos de una dirección, la del catálogo
 // que pide (`?catalogo=`); sin catálogo, la occidental; y si solo hay de otro,
 // esa (un enlace viejo a una japonesa no llevaba el catálogo). Pura (986).

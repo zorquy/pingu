@@ -5,7 +5,7 @@
 import { icons } from './icons.js'
 import { escapeHtml } from './html.js'
 import { avatarStyle, getInitial, profileUrl } from './app.js'
-import { rutaDeCarta } from './carta-ruta.js'
+import { rutaDeCartaEnBuscar } from './carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { euros } from './cardmarket.js'
@@ -15,9 +15,10 @@ import { rutaDeExpansion } from './buscador-puro.js'
 import { rutaDeArticulo } from './articulos.js'
 
 // Adónde lleva cada fila. Va aparte del HTML porque la paleta navega con
-// el teclado y necesita la dirección sin pintar nada.
-export function destinoDe(grupo, f) {
-  if (grupo === 'cartas') return rutaDeCarta(f)
+// el teclado y necesita la dirección sin pintar nada. Una carta se abre en
+// el pop-up de /cartas → Buscar, como si la hubieras buscado allí (998).
+export function destinoDe(grupo, f, q = '') {
+  if (grupo === 'cartas') return rutaDeCartaEnBuscar(f, q)
   if (grupo === 'productos') return rutaDeProducto(f)
   if (grupo === 'expansiones') return rutaDeExpansion(f)
   if (grupo === 'guias') return rutaDeArticulo('guide', f.slug)

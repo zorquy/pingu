@@ -1431,52 +1431,6 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   margin-top: var(--e-lg);
 }
 
-.cv-titulo {
-  margin: 0 0 var(--e-xs);
-  font-size: var(--t-md);
-}
-
-.cv-nota {
-  margin: 0 0 var(--e-sm);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
-
-.cv-lista {
-  display: grid;
-  gap: var(--e-xs);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.cv-fila {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 44px;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  color: var(--text);
-  text-decoration: none;
-}
-
-a.cv-fila:hover {
-  border-color: var(--border-strong);
-}
-
-/* La Standard, esta carta (861): sin enlace, marcada. */
-.cv-fila.cv-principal {
-  border-color: var(--border-strong);
-  background: var(--ice);
-}
-
-.cv-precio {
-  font-weight: 700;
-}
-
 /* ── Las tarjetas de precio por idioma (915, SCHEMA 915) ──
    Una por idioma que se desliza, como las de tienda de Dex; la de tu copia
    la primera y en azul, la de TCGplayer la última y aparte. */

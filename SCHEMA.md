@@ -41785,6 +41785,54 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 998 — Una carta, un sitio: la ficha completa como el pop-up, y el buscador
+
+PINGU, con el Aerodactyl de Legend Maker (1/92): en el pop-up, «Holo / Reverse
+holo», los precios por idioma y «Rara Holo»; en la ficha completa, lo mismo
+arriba y DEBAJO un bloque «Versiones en Cardmarket» («Cada versión con su precio
+mínimo…»: Standard 6,45 €, Standard 35,00 €, Reverse Holo sin precio) y la
+rareza «★ Rara». «Que seamos congruentes y cojamos solo un sitio.»
+
+- **Fuera el bloque** (`js/carta-versiones.js` borrado, su CSS `.cv-*` también).
+  Era de la 822, de antes de que las versiones de TCGGO fueran chapas del
+  precio (862): repetía lo de arriba con otra cuenta (la «Standard» era la fila
+  de la carta con el mínimo de TODOS los idiomas; la otra «Standard», la fila de
+  la versión con la etiqueta que da TCGGO).
+- **Las versiones, del mismo cargador que el pop-up**: `pintarMercado` pide
+  `versionesDeCartas([carta.id])` (`mi-coleccion/datos.js`), que lleva las
+  columnas de las versiones a mano (934: `origen`, `imagen`, `icono`, `clase`…,
+  con su respaldo). Antes /carta pedía las de TCGGO a secas y una versión
+  metida desde /admin (la Cosmos Holo) llegaba sin lo suyo.
+- **La rareza**: la ficha la pinta primero el SERVIDOR (`meta-social.js`), y su
+  `COLUMNAS_CARTA` pedía `rarity` sin `rarity_en`: `rarezaCrudaDeCarta` caía a
+  la gruesa de TCGdex («Rare» → «Rara»). Es la 523 otra vez; su barrido miraba
+  solo `js/` y ahora mira también `netlify/edge-functions` y `netlify/functions`.
+- **Una carta del buscador se abre siempre en el pop-up.** El «a veces el
+  pop-up, a veces la ficha completa» era el sitio desde el que se buscaba: en
+  /cartas → Buscar la ficha es el pop-up; en la lupa de arriba (la paleta y
+  /buscar) el resultado llevaba a /carta. Ahora `destinoDe('cartas', f, q)` es
+  `rutaDeCartaEnBuscar` (`js/carta-ruta.js`): `/cartas?ver=buscar&q=…&carta=<id>`
+  (con `catalogo=JP` si es japonesa), y `abrirCartaDeDireccion` la abre al
+  cargar —con cuenta, cuando ya se sabe lo que tienes— y quita `carta` de la
+  dirección. Las demás pantallas siguen enlazando a /carta (es la página de
+  Google y la del enlace que se comparte).
+- **Los filtros de Buscar, en una fila.** En /cartas en el móvil el catálogo ya
+  va junto al título (893), así que el de la fila de Buscar sobraba: se quita
+  al mudar el otro. Y «afinar» (serie, expansión, «Solo las que tengo»,
+  «Variantes juntas») vive DENTRO de `.mc-mandos` con `display: contents`: son
+  mandos más de la tira que se desliza, a 36/44 px, en vez de una segunda fila
+  de desplegables a 16 px (el `max(16px, 1em) !important` contra el zoom de
+  iOS). Ojo: un hijo de un `display: contents` no es `.mc-mandos > *`, así que
+  no cogía el `flex: 0 0 auto`, «Solo las que tengo» se partía en dos
+  renglones y estiraba la fila a 66 px; va nombrado al lado. En el móvil las
+  cartas empiezan a 275 px (antes 336).
+
+**Pruebas**: `test-tanda-998-pantalla.mjs` (lo puro; /carta sin el bloque, con
+la Cosmos Holo de a mano como chapa y «Rara Holo»; `?carta=` abre el pop-up sin
+y con cuenta; el móvil con un catálogo, la fila única y las cartas antes de
+300 px; el PC con el suyo). La 822 se fue y la 861 pierde sus partes 3 y 4 (el
+bloque); la 523 barre también Netlify.
+
 ## Tanda 997b — La historia entera y la marca en vez del aviso
 
 PINGU, al probarla: la publicación y la de X, bien; la historia, «se ve que

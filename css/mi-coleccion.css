@@ -634,7 +634,8 @@
 
 /* Un hijo de flex CEDE antes de desbordar (la lección de la 320): sin
    esto, los mandos se encogen hasta ser ilegibles en vez de deslizarse. */
-.mc-mandos > * {
+.mc-mandos > *,
+.mc-mandos .mc-bus-afinar > * {
   flex: 0 0 auto;
   scroll-snap-align: start;
 }
@@ -9407,15 +9408,9 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   font-size: var(--t-sm);
 }
 
-.mc-bus-afinar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-sm);
-  margin-top: var(--e-sm);
-}
-
-.mc-bus-afinar select {
-  max-width: 100%;
+/* Afinar va en la fila de los mandos (998): sus cuatro son mandos más. */
+.mc-mandos .mc-bus-afinar {
+  display: contents;
 }
 
 @media (max-width: 599px) {
@@ -10789,29 +10784,22 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
-/* Pequeños del móvil (788, PA10b): los cuatro de Deseos y cambios y los
-   desplegables de Buscar, en una fila que se desliza en vez de partirse. */
+/* Pequeños del móvil (788, PA10b): los cuatro de Deseos y cambios, en una
+   fila que se desliza en vez de partirse. */
 @media (max-width: 599px) {
-  .mc-deseos-seg,
-  .mc-bus-afinar {
+  .mc-deseos-seg {
     flex-wrap: nowrap;
     max-width: 100%;
     overflow-x: auto;
     scrollbar-width: none;
   }
 
-  .mc-deseos-seg::-webkit-scrollbar,
-  .mc-bus-afinar::-webkit-scrollbar {
+  .mc-deseos-seg::-webkit-scrollbar {
     display: none;
   }
 
-  .mc-deseos-seg > *,
-  .mc-bus-afinar > * {
+  .mc-deseos-seg > * {
     flex: 0 0 auto;
-  }
-
-  .mc-bus-afinar select {
-    max-width: 60vw;
   }
 }
 .mc-confianza { margin: 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }

@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-24", "tipo": "arreglo", "texto": "La ficha completa de una carta enseña lo mismo que su ventana: las versiones una sola vez, arriba y con su precio, y la rareza buena («Rara Holo», no «Rara»).", "enlace": "/cartas?ver=buscar&q=aerodactyl" },
+    { "fecha": "2026-10-24", "tipo": "mejora", "texto": "Una carta buscada desde la lupa de arriba se abre en su ventana, como en Cartas › Buscar, y los filtros de Buscar caben en una sola fila: en el móvil el catálogo ya no sale dos veces.", "enlace": "/cartas?ver=buscar" },
     { "fecha": "2026-10-24", "tipo": "nuevo", "texto": "En Mis partidas, cada partida y cada torneo tienen «Compartir»: te hace una imagen con el resultado, tus mazos y las rondas, lista para Instagram o X.", "enlace": "/mis-partidas" },
     { "fecha": "2026-10-24", "tipo": "mejora", "texto": "En el foro, el paso de página está arriba y abajo: en la lista de temas y dentro de los temas largos.", "enlace": "/foro" },
     { "fecha": "2026-10-24", "tipo": "nuevo", "texto": "En el móvil te preguntamos una vez si quieres los avisos: un toque en «Activar los avisos» y te llegan aunque tengas la web cerrada.", "enlace": "/ajustes" },

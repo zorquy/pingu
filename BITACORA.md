@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-24 (235) — PINGU-Claude (998 — una carta, un sitio; el buscador en una fila)
+
+**Hecho**: la ficha completa (/carta) enseña lo mismo que el pop-up. Fuera el
+bloque «Versiones en Cardmarket» (`js/carta-versiones.js` borrado): las
+versiones son las chapas del precio y salen de `versionesDeCartas`, con las de
+a mano. La rareza la pintaba el servidor sin `rarity_en` («Rara» por «Rara
+Holo»): `meta-social.js` la pide. La lupa de arriba (paleta y /buscar) abre la
+carta en el pop-up de Cartas › Buscar (`?carta=`, y `#anadir` con Mayús+Intro)
+en vez de en la ficha completa. En Buscar, el catálogo ya no sale dos veces en
+el móvil, y serie, expansión, «Solo las que tengo» y «Variantes juntas» van en
+la tira de Filtros y orden.
+
+**Ficheros**: `js/carta-mercado.js`, `js/carta-ruta.js`
+(`rutaDeCartaEnBuscar`), `js/buscador-filas.js`, `js/paleta.js`,
+`js/search.js`, `js/mi-coleccion.js` (`abrirCartaDeDireccion`, el catálogo
+repetido), `mi-coleccion.html` + `cartas.html` (generado),
+`css/mi-coleccion.css`, `css/cardmarket.css` (fuera `.cv-*`),
+`netlify/edge-functions/meta-social.js`, `SCHEMA.md`, `CLAUDE.md`,
+`novedades.json`, `BITACORA.md`. Sin migración. En `pruebas`:
+`test-tanda-998-pantalla.mjs` (nuevo), 718, 788, 861 y 523 al día, la 822
+fuera. Subconjunto de /mi-coleccion + 299/305/311/312/313: los rojos (326,
+446 a ratos, 467, 586, 648, 651, 653, 747 y 766 a ratos, 780, 829, 851, 852,
+874, 893, 895, 943) fallan igual sin esta tanda.
+
+**Pendiente**: la 999 («Una versión a varias», aprobada por PINGU) va detrás.
+Lo de la 996 y la 993 sigue.
+
 ## 2026-10-24 (234) — PINGU-Claude (997b — historia entera y marca abajo)
 
 **Hecho**: la historia de Instagram de una partida o un torneo se dibuja

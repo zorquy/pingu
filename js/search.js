@@ -62,15 +62,15 @@ function seccion(g, estado, q) {
     // sí: «ninguna carta» es la respuesta.
     return grupo ? `<p class="empty-state">Nada en ${NOMBRE[g].toLowerCase()} con «${escapeHtml(q)}».</p>` : ''
   }
-  const filas = lista.map((f) => fila(g, f)).join('') + japon
+  const filas = lista.map((f) => fila(g, f, '', q)).join('') + japon
   const mas = g === 'productos' ? masProductos(estado, q) : grupo ? '' : g === 'cartas' ? masCartas(estado, q) : estado.filas.length >= EN_TODO ? `<button type="button" class="bs-mas" data-ver="${g}">Ver más ${g === 'gente' ? 'gente' : NOMBRE[g].toLowerCase()}</button>` : ''
   return `<section class="bs-grupo"><h2 class="bs-seccion">${NOMBRE[g]}</h2>${filas}${mas}</section>`
 }
 
-const fila = (g, f, extra = '') => `<a class="bs-fila bs-${g}${extra}" href="${escapeHtml(destinoDe(g, f))}">${interiorDe(g, f)}</a>`
+const fila = (g, f, extra = '', q = '') => `<a class="bs-fila bs-${g}${extra}" href="${escapeHtml(destinoDe(g, f, q))}">${interiorDe(g, f)}</a>`
 
 // B2 (972): la carta que lo escrito señala, arriba y en grande.
-const mejorHtml = (estado) => (estado?.mejor ? `<section class="bs-grupo"><h2 class="bs-seccion">Lo más probable</h2>${fila('cartas', estado.mejor, ' bs-mejor')}</section>` : '')
+const mejorHtml = (estado, q = '') => (estado?.mejor ? `<section class="bs-grupo"><h2 class="bs-seccion">Lo más probable</h2>${fila('cartas', estado.mejor, ' bs-mejor', q)}</section>` : '')
 
 // B3 (972): cuántas hay en el catálogo japonés, a Cartas › Buscar allí.
 function lineaDeJapon(estado, q) {
@@ -131,7 +131,7 @@ async function buscar() {
   const preguntados = GRUPOS.map(([g]) => g).filter((g) => r[g])
   resultados.innerHTML = todoVacio(r)
     ? `<p class="empty-state">Nada con «${escapeHtml(q)}». Prueba con menos letras o con otra palabra.</p>`
-    : (grupo ? '' : mejorHtml(r.cartas)) + preguntados.map((g) => seccion(g, r[g], q)).join('')
+    : (grupo ? '' : mejorHtml(r.cartas, q)) + preguntados.map((g) => seccion(g, r[g], q)).join('')
   if (!esPersona(q)) pintarCuentas(q, r)
   // «La tienes» y «La quieres» en cada carta (943).
   import('./marcas-carta.js').then((m) => m.marcarCartas(resultados)).catch(() => {})

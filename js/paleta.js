@@ -139,14 +139,14 @@ function montar() {
     if (acciones.length) bloques.push(['Acciones', acciones])
     // B2 (972): la carta que lo escrito señala, la primera y en grande.
     const mejor = remotos.cartas?.mejor || null
-    if (mejor) bloques.unshift(['Lo más probable', [{ grupo: 'cartas', mejor: true, fila: mejor, href: destinoDe('cartas', mejor) }]])
+    if (mejor) bloques.unshift(['Lo más probable', [{ grupo: 'cartas', mejor: true, fila: mejor, href: destinoDe('cartas', mejor, q) }]])
     for (const [g] of GRUPOS) {
       const r = remotos[g]
       if (r?.error) { bloques.push([NOMBRE[g], [{ fila: { nombre: `No se ha podido buscar en ${NOMBRE[g].toLowerCase()}`, detalle: 'Pulsa para reintentar', icono: 'refreshCw' }, hacer: () => buscar(true) }]]); continue }
       if (!r) continue
       const filas = (r.filas || []).filter((f) => f !== mejor)
       const mas = masDe(g, r, q)
-      if (filas.length || mas.length) bloques.push([NOMBRE[g], [...filas.map((f) => ({ grupo: g, fila: f, href: destinoDe(g, f) })), ...mas]])
+      if (filas.length || mas.length) bloques.push([NOMBRE[g], [...filas.map((f) => ({ grupo: g, fila: f, href: destinoDe(g, f, q) })), ...mas]])
     }
     const paginas = casan(paginasDeLaBarra(), q).map((p) => ({ fila: p, href: p.href }))
     if (paginas.length) bloques.push(['Ir a', q ? paginas : paginas.slice(0, 8)])
