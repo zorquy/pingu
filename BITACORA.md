@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-24 (230) — PINGU-Claude (994 — invitar a los avisos en el móvil)
+
+**Hecho**: una tarjeta en el móvil, con cuenta, «¿Te avisamos en el móvil?»
+con «Activar los avisos» (activarlos solo no se puede: el permiso lo pide un
+toque). Una vez por sesión, no si ya están, si el permiso se denegó o si
+está la de instalar; «Ahora no» la calla un mes y a la segunda no vuelve.
+`activarPush` acepta la clave ya pedida para que el permiso sea lo primero.
+Y las pruebas de pantalla de la 993 se repitieron con la copia servida al
+día (la primera vez se pasaron contra una copia vieja): verdes.
+
+**Ficheros**: `js/invitar-push.js` (nuevo), `js/barra-movil.js`,
+`js/push.js`, `css/movil.css`, `SCHEMA.md`, `CLAUDE.md`, `novedades.json`,
+`BITACORA.md`. En `pruebas`: `test-tanda-994-pantalla.mjs`. Sin migración.
+
+**Pendiente**: ejecutar la 993; lo de la 226 (la 989, después la 991, y otra
+vez la 987).
+
 ## 2026-10-24 (229) — PINGU-Claude (993 — un aviso por respuesta y los push que se ven)
 
 **Hecho**: al responder en un tema, el autor (y quien citas o mencionas)

@@ -504,6 +504,22 @@
     border-radius: var(--radius-lg);
   }
   .bm-instalar-tarjeta img { flex: none; border-radius: var(--radius-md); }
+  .bm-push {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: var(--e-sm) var(--e-md);
+  }
+  .bm-push > .btn-primary { grid-column: 1 / -1; min-height: 44px; }
+  .bm-push-icono {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--ice);
+    color: var(--navy);
+  }
   .bm-instalar-texto {
     display: flex;
     flex: 1;

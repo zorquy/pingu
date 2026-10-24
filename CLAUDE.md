@@ -768,7 +768,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   camino nuevo que avise de una respuesta hace lo mismo. Y los push dejan
   rastro: `enviar-push` escribe `scrydex_estado.enviar_push` (en `PASADAS`) y
   /ajustes tiene «Enviarme un aviso de prueba» (`push-prueba`), que dice el
-  motivo tal cual cuando no sale.
+  motivo tal cual cuando no sale. En el móvil se INVITA a activarlos (994,
+  `js/invitar-push.js`): activarlos solo no se puede, el permiso lo pide un
+  toque, y en ese toque lo primero es la pregunta del sistema.
 - **El paginador del foro es UNO: `js/paginacion.js`** (tanda 990), para la
   lista de temas y un tema largo: «Anterior», páginas con «…» y «Siguiente»,
   y en el móvil cinco casillas sin texto. Antes eran `.page-btn` sin una

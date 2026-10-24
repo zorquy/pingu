@@ -41785,6 +41785,35 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 994 — Invitar a los avisos en el móvil
+
+PINGU, con la prueba de la 993 funcionando: «¿se puede poner en móvil
+activado automáticamente? o al menos un pop up». Solo no: el navegador (y
+el iPhone sobre todo) solo saca la pregunta del permiso si la pide un toque
+de la persona. Así que una tarjeta propia, «¿Te avisamos en el móvil?», con
+«Activar los avisos», que es ese toque (`js/invitar-push.js`).
+
+Entra por `barra-movil.js` (el escritorio no baja nada), con cuenta y en las
+mismas páginas que la de instalar (la portada y las de lista de cada
+sección), una vez por sesión del navegador y a los tres segundos. No sale si
+el navegador no sabe de push (Safari del iPhone fuera de la app instalada),
+si ya están activados, si el permiso ya se dio o se denegó, si el sitio no
+tiene claves, o si está a la vista la de instalar (va primero). «Ahora no»
+(la ×) la calla un mes, y a la segunda no vuelve (`pokedoc-push-no`, con la
+fecha y las veces). La regla es pura: `tocaInvitar`.
+
+Al tocar, lo PRIMERO es `Notification.requestPermission`: la clave pública
+ya se pidió antes de enseñar la tarjeta y `activarPush(userId, claveYa)` la
+recibe, porque una consulta a la base delante puede gastar el gesto en el
+iPhone. Si sale bien, «Avisos activados» y se va sola; si no, el motivo en
+la misma tarjeta. Su CSS, en `css/movil.css` (la forma de
+`.bm-instalar-tarjeta` en dos filas, `.bm-push`).
+
+**Pruebas**: `test-tanda-994-pantalla.mjs` (lo puro; en un iPhone de
+mentira con el push simulado: sale, cabe encima de la barra, «Activar» pide
+el permiso una vez y guarda la suscripción, «Ahora no» la calla; no sale en
+el PC, sin claves, con el permiso denegado o ya dado).
+
 ## Tanda 993 — Un aviso por respuesta y los push que se ven
 
 PINGU: «si me responden un tema que yo he abierto, me llegan dos

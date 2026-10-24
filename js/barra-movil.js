@@ -371,6 +371,8 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   import('./instalar.js')
     .then((m) => (m.estaInstalada(window) ? import('./tirar-refrescar.js').then((t) => t.montarTirarRefrescar()) : m.montarInstalar({ aqui: clave === 'index' || Boolean(enLista) })))
     .catch(() => {})
+  // Y los avisos en el móvil (994): con cuenta y en las mismas páginas.
+  if (conSesion && (clave === 'index' || enLista)) import('./invitar-push.js').then((m) => m.montarInvitarPush()).catch(() => {})
   const propia = clave === 'mi-coleccion' ? doc.querySelector('.mc-pestanias') : null
   if (seccion && enLista && (propia || seccion.enlaces.length > 1)) {
     const item = (e, clase) => { const k = claveDePagina(e.href); return `<a class="${clase}" href="${e.href}"${k === clave ? ' aria-current="page"' : ''} title="${e.texto}">${icons[iconoDePagina(k)]?.(24) || ''}<span class="bm-texto">${rotuloCorto(k, e.texto)}</span></a>` }

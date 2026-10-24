@@ -47,11 +47,19 @@ export async function estadoPush() {
   return { soportado: true, permiso: Notification.permission, suscrito }
 }
 
-export async function activarPush(userId) {
+// ¿Tiene el sitio sus claves? Para no invitar a algo que no podría salir.
+export async function hayClavePush() {
+  return (await clavePublica()) || null
+}
+
+// `claveYa`: quien ya la tiene (la invitación del móvil, 994) la pasa, para
+// que pedir el permiso sea lo PRIMERO tras el toque: el iPhone solo saca su
+// pregunta dentro del gesto, y una consulta a la base delante puede gastarlo.
+export async function activarPush(userId, claveYa = null) {
   if (!userId) return { ok: false, motivo: 'Entra con tu cuenta.' }
   if (!soportaPush()) return { ok: false, motivo: 'Este navegador no soporta notificaciones push.' }
 
-  const clave = await clavePublica()
+  const clave = claveYa || (await clavePublica())
   if (!clave) return { ok: false, motivo: 'El sitio aún no tiene las claves push configuradas.' }
 
   const permiso = await Notification.requestPermission()
