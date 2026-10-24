@@ -181,7 +181,10 @@ async function resolver({ carta, destino, decision, etiqueta = null, clase = 'se
     return null
   }
   if (!silencio) {
-    showToast(decision === 'version' ? `Hecho: ahora es la versión «${etiqueta}» de ${destino}` : `Hecho: ${carta.id} ya es ${destino}`, 'success', {
+    // Con la 996 sus versiones se mudan a la principal (antes se borraban).
+    const movidas = Number(data?.versiones_movidas) || 0
+    const mas = movidas ? ` · ${movidas === 1 ? 'su versión pasa' : `sus ${movidas} versiones pasan`} a la principal` : ''
+    showToast((decision === 'version' ? `Hecho: ahora es la versión «${etiqueta}» de ${destino}` : `Hecho: ${carta.id} ya es ${destino}`) + mas, 'success', {
       accion: { texto: 'Deshacer', alPulsar: () => deshacer(data?.hecha) },
     })
   }

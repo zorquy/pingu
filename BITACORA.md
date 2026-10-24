@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-24 (232) — PINGU-Claude (996 — repetidas de las promos de TCGGO)
+
+**Hecho**: el Mewtwo ex SVP 205 salía dos veces (`svp-205` en la expansión,
+`tcggo-48064` en el buscador, con la versión puesta a mano). La de TCGGO lleva
+el número «SVP 205» y «Posibles repetidas» no la juntaba con «205». La
+migración nueva lo junta y, al resolver, muda las versiones de la repetida a
+la principal (antes se borraban); deshacer las devuelve. El aviso de /admin
+dice cuántas se han pasado.
+
+**Ficheros**: `supabase-migration-996-repetidas-promos.sql` (nueva),
+`admin/js/repetidas.js`, `SCHEMA.md`, `CLAUDE.md`, `BITACORA.md`. En
+`pruebas`: `test-tanda-996.mjs`, `sql-tanda-996-casos.sql`.
+
+**Pendiente**: ejecutar la 987 (si no está) y DESPUÉS la 996; luego /admin →
+Colecciones → «Posibles repetidas» → el Mewtwo SVP 205: «Es la misma carta»
+(o «versión» si es la del sello). Y la 993; lo de la 226 (989, 991).
+
 ## 2026-10-24 (231) — PINGU-Claude (995 — el paginador del foro, arriba y abajo)
 
 **Hecho**: el paginador sale también encima de la lista de temas de un foro

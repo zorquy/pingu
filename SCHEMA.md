@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 996 — «Posibles repetidas» ve las promos de TCGGO
+
+PINGU, con el Mewtwo ex del Team Rocket SVP 205: desde la expansión salía
+una carta (`svp-205`, la de TCGdex, con foto y sin la versión que le había
+puesto) y desde el buscador otra (`tcggo-48064`, sin foto y con la versión).
+«Creo que esto pasa en más cartas.»
+
+Lo que pasa: en las promos TCGGO trae a veces DOS cartas con los mismos
+dígitos (la normal y la del sello, dos productos de Cardmarket). El
+emparejador (`emparejarPorNumero`) no sabe cuál es la nuestra —a propósito,
+la 588 lo prueba—, así que las dos nacen como `tcggo-<id>` con el número de
+TCGGO tal cual: «SVP 205». La 987 está para juntarlas, pero agrupaba por
+`catalogo_numero_comparable`, y «svp 205» no es «205»: esas cartas no salían
+nunca en la lista. Su prueba lo daba por bueno porque el fixture ponía «181»
+en la de TCGGO (la 501: un fixture inventado). El número de verdad está en el
+de la 588: «SVP 002», «MEP 001».
+
+`supabase-migration-996-repetidas-promos.sql` (va DESPUÉS de la 987):
+
+- `catalogo_numero_de_repetida`: quita el código de delante cuando lleva
+  espacio y luego solo cifras («SVP 205» → «205»). Sin espacio no toca nada
+  («TG01» es otra numeración), así que lo marcado como «son distintas»
+  sigue casando. Lo usa `catalogo_posibles_repetidas`.
+- Resolver (la misma o versión) MUDA las versiones de la repetida a la
+  principal en vez de borrarlas (se queda fuera la que repite una que la
+  principal ya tiene); las apunta en `tcg_repetidas_hechas.versiones` y al
+  deshacer vuelven todas a la repetida. Devuelve `versiones_movidas`, que el
+  aviso de /admin enseña.
+
+**Pruebas**: `test-tanda-996.mjs` + `sql-tanda-996-casos.sql` (PostgreSQL:
+el Mewtwo sale en la lista, «TG01» no se junta con «1», la misma y la
+versión mudan el sello y no duplican la Reverse, deshacer lo devuelve todo; y
+los casos de la 987 siguen saliendo con la 996 puesta). Verdes 987 y
+test-imports.
+
 ## Tanda 995 — El paginador del foro, arriba y abajo
 
 PINGU: «en otros foros lo de la paginación siempre está arriba y abajo». El

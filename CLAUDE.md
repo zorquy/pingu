@@ -177,6 +177,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   brilla de serie o no tiene precio se queda para PINGU). Un origen nuevo de versión amplía
   `tcg_card_versions_origen_ok` en la MISMA migración, y el fixture de su
   prueba lleva esa regla (sin ella la 987 salió verde y falló en la base).
+  Y las de TCGGO llevan SU número («SVP 205», no «205»): la lista agrupa con
+  `catalogo_numero_de_repetida` (996), y lo que se junta MUDA sus versiones
+  a la principal (antes se borraban).
 - **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
   911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
   ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets
