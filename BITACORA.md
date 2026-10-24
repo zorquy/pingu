@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-24 (233) — PINGU-Claude (997 — compartir partidas y torneos en una imagen)
+
+**Hecho**: «Compartir» en cada partida suelta y en cada torneo con rondas de
+/mis-partidas. Abre la hoja de compartir con una imagen con el marco de
+PokeDoc: el resultado y los dos mazos con sus sprites (una partida), o el
+récord y una fila por ronda (un torneo), en vertical y apaisada.
+
+**Ficheros**: `js/partida-imagen.js` (nuevo), `js/mis-partidas.js`,
+`js/reto-imagen.js` (exporta `cabecera` e `invitacionAbajo`),
+`js/torneos/sprite-lienzo.js` (nuevo: `fuenteDeSprite` y `cajaVisible`,
+sacadas de `meta-imagen.js`, que las importa y reexporta; si no, la 299
+veía /mis-partidas llegar a las clases del meta), `js/torneos/meta-imagen.js`,
+`SCHEMA.md`, `CLAUDE.md`, `novedades.json`, `BITACORA.md`. En `pruebas`:
+`test-tanda-997-pantalla.mjs`. Sin migración. Verdes 997, 299, 425, 511 y
+las 23 que nombran /mis-partidas salvo 310, 782 y 893, que ya estaban rojas
+antes de esta tanda (comprobado sin ella).
+
+**Pendiente**: lo de la 996 (987 y 996, luego «Posibles repetidas»), la 993,
+y la 989/991 si no están.
+
 ## 2026-10-24 (232) — PINGU-Claude (996 — repetidas de las promos de TCGGO)
 
 **Hecho**: el Mewtwo ex SVP 205 salía dos veces (`svp-205` en la expansión,

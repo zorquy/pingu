@@ -351,6 +351,7 @@ function pintarLista(partidas) {
         p.deTorneo
           ? ''
           : `<span class="partidas-fila-acciones">
+              <button class="btn-outline" data-compartir="${escapeHtml(p.id)}">Compartir</button>
               ${p.repeticion ? `<a class="btn-outline" href="/repeticiones?r=${encodeURIComponent(p.repeticion)}">Ver la repetición</a>` : ''}
               <button class="btn-outline" data-editar="${escapeHtml(p.id)}">Editar</button>
               <button class="btn-outline partidas-borrar" data-borrar="${escapeHtml(p.id)}">Borrar</button>
@@ -362,6 +363,12 @@ function pintarLista(partidas) {
     (ocultas > 0
       ? `<button type="button" class="btn-secondary torneo-ver-mas" id="btnVerMasSueltas">Ver ${ocultas} más</button>`
       : '')
+  caja.querySelectorAll('[data-compartir]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const partida = todas.find((x) => x.id === b.dataset.compartir)
+      if (partida) compartirUna(partida)
+    })
+  )
   caja.querySelectorAll('[data-borrar]').forEach((b) =>
     b.addEventListener('click', async () => {
       if (!b.dataset.armado) {
@@ -400,7 +407,7 @@ function mazoGuardadoHtml(id) {
 // nombre. Un mazo-objeto (Martillos) usa el sprite del objeto si lo
 // hay. Sin nada que enseñar devuelve cadena vacía y el nombre carga con
 // todo el peso, que ya lo hacía antes.
-function spritesDeMazoHtml(nombre, clave) {
+function urlsDeSpritesDeMazo(nombre, clave) {
   let urls = []
   if (String(clave || '').startsWith('a:')) {
     const arq = catalogo.find((a) => `a:${a.id}` === clave)
@@ -411,6 +418,11 @@ function spritesDeMazoHtml(nombre, clave) {
     const objeto = spriteDeObjeto(nombre)
     if (objeto) urls = [objeto]
   }
+  return urls
+}
+
+function spritesDeMazoHtml(nombre, clave) {
+  const urls = urlsDeSpritesDeMazo(nombre, clave)
   // Si un sprite no llega, atributosDeRespaldo recorre la cadena: la
   // especie base (una mega que la CDN aún no tiene) y luego el segundo
   // ORIGEN, por si la que está caída es la CDN entera — pasó el
@@ -544,17 +556,53 @@ function tarjetaTorneoHtml(t) {
 }
 
 function accionesDeTorneoHtml(t) {
-  if (!t.aMano) return `<a class="btn-secondary" href="${escapeHtml(t.enlace || '/torneos.html')}">Ver el torneo</a>`
+  // Compartir (997): en todos, con alguna ronda que enseñar.
+  const compartir = t.rondas.length ? `<button class="btn-secondary" data-compartir-torneo="${escapeHtml(t.id)}">Compartir</button>` : ''
+  if (!t.aMano) return `${compartir}<a class="btn-secondary" href="${escapeHtml(t.enlace || '/torneos.html')}">Ver el torneo</a>`
   const id = escapeHtml(t.id)
   if (t.cerrado) {
     return `<span class="subtext partidas-cerrado-nota">Cerrado. Reábrelo si tienes que arreglar algo.</span>
+      ${compartir}
       <button class="btn-secondary" data-reabrir-torneo="${id}">Reabrir</button>
       <button class="btn-outline" data-borrar-torneo="${id}">Borrar</button>`
   }
-  return `<button class="btn-secondary" data-anadir-ronda="${id}">+ Añadir ronda</button>
+  return `${compartir}<button class="btn-secondary" data-anadir-ronda="${id}">+ Añadir ronda</button>
       <button class="btn-secondary" data-editar-torneo="${id}">Editar torneo</button>
       <button class="btn-secondary" data-cerrar-torneo="${id}">Cerrar torneo</button>
       <button class="btn-outline" data-borrar-torneo="${id}">Borrar</button>`
+}
+
+// ── Compartir una partida o un torneo en una imagen (tanda 997) ──
+//
+// El dibujo y la hoja viven en js/partida-imagen.js, que entra por
+// `import()` al pulsar. Aquí solo se le pasa lo que ya se ve en la tarjeta:
+// los nombres, los sprites (sus direcciones, que el módulo carga con su
+// cadena de respaldos) y los resultados.
+let tarjetasPintadas = new Map()
+const mazoParaCompartir = (nombre, clave) => (nombre ? { nombre, urls: urlsDeSpritesDeMazo(nombre, clave) } : null)
+const rondaParaCompartir = (p) => ({
+  mio: mazoParaCompartir(p.mioNombre, p.mio),
+  rival: mazoParaCompartir(p.rivalNombre, p.rival),
+  resultado: p.resultado,
+  tipo: p.tipo,
+  formato: p.formato,
+  juegos: p.juegos,
+  donde: p.donde,
+  fecha: p.fecha,
+})
+function compartirUna(p) {
+  import('./partida-imagen.js')
+    .then((m) => m.compartirPartida(rondaParaCompartir(p)))
+    .catch(() => showToast('No se ha podido abrir la imagen para compartir', 'error'))
+}
+function compartirElTorneo(t) {
+  const rondas = t.rondas
+    .slice()
+    .sort((a, b) => String(a.creada || '').localeCompare(String(b.creada || '')))
+    .map((p, i) => ({ ...rondaParaCompartir(p), ronda: i + 1 }))
+  import('./partida-imagen.js')
+    .then((m) => m.compartirTorneo({ nombre: t.nombre, donde: t.aMano ? t.donde : 'Torneo de PokeDoc', fecha: t.fecha, mazo: mazoParaCompartir(t.mazo, t.mazoClave), rondas }))
+    .catch(() => showToast('No se ha podido abrir la imagen para compartir', 'error'))
 }
 
 function pintarTorneos() {
@@ -624,6 +672,7 @@ function pintarTorneos() {
   for (const t of forzados) if (!visibles.includes(t)) visibles.push(t)
   const ocultos = casan.length - visibles.length
 
+  tarjetasPintadas = new Map(visibles.map((t) => [t.id, t]))
   caja.innerHTML =
     visibles.map(tarjetaTorneoHtml).join('') +
     (ocultos > 0
@@ -640,6 +689,12 @@ function pintarTorneos() {
       if (torneosAbiertos.has(id)) torneosAbiertos.delete(id)
       else torneosAbiertos.add(id)
       pintarTorneos()
+    })
+  )
+  caja.querySelectorAll('[data-compartir-torneo]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const t = tarjetasPintadas.get(b.dataset.compartirTorneo)
+      if (t) compartirElTorneo(t)
     })
   )
   caja.querySelectorAll('[data-anadir-ronda]').forEach((b) =>

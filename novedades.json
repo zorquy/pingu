@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-24", "tipo": "nuevo", "texto": "En Mis partidas, cada partida y cada torneo tienen «Compartir»: te hace una imagen con el resultado, tus mazos y las rondas, lista para Instagram o X.", "enlace": "/mis-partidas" },
     { "fecha": "2026-10-24", "tipo": "mejora", "texto": "En el foro, el paso de página está arriba y abajo: en la lista de temas y dentro de los temas largos.", "enlace": "/foro" },
     { "fecha": "2026-10-24", "tipo": "nuevo", "texto": "En el móvil te preguntamos una vez si quieres los avisos: un toque en «Activar los avisos» y te llegan aunque tengas la web cerrada.", "enlace": "/ajustes" },
     { "fecha": "2026-10-24", "tipo": "arreglo", "texto": "Cuando te responden en un tema tuyo te llega un aviso, no dos.", "enlace": "/foro" },

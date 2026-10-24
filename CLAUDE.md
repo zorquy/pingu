@@ -791,6 +791,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   plegado en «Tu historial» y se carga al abrirlo; si añades algo, va ahí.
   Y cada final con cuenta dice cómo te mueve en la liga (`data.liga` de
   `guardarResultado`, pintado por `premiosHtml`).
+- **Una partida o un torneo de /mis-partidas se comparte en una imagen**
+  (tanda 997): `js/partida-imagen.js` (por `import()`) con la hoja de
+  siempre y el marco de los retos (`cabecera` e `invitacionAbajo` de
+  `reto-imagen.js`). Los sprites, los mismos de la tarjeta
+  (`urlsDeSpritesDeMazo`), por `/sprite` y la cadena de respaldos, que un
+  lienzo con una imagen sin permiso no se exporta.
 - **Una página tiene UNA dirección para Google** (tanda 906). La canónica
   la arma `urlCanonica` (meta-social.js): sin `.html`, en pokedoc.es y solo
   con los parámetros que eligen el contenido (`PARAMETROS_CANONICOS`); la de

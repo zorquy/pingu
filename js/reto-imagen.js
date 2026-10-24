@@ -109,7 +109,7 @@ function mezclar(a, b, t) {
 }
 
 // La cabecera: el logo (la «P» de la web), el nombre y el número del día.
-function cabecera(ctx, { x, y, ancho, arriba, numero, cuerpo }) {
+export function cabecera(ctx, { x, y, ancho, arriba, numero, cuerpo }) {
   const lado = Math.round(cuerpo * 1.55)
   ctx.save()
   ctx.fillStyle = '#8ec5ea'
@@ -132,7 +132,7 @@ function cabecera(ctx, { x, y, ancho, arriba, numero, cuerpo }) {
 }
 
 // La invitación: una píldora con «¿Lo superas?» y el enlace en amarillo.
-function invitacionAbajo(ctx, { cx, y, ancho, alto, texto, enlace, cuerpo }) {
+export function invitacionAbajo(ctx, { cx, y, ancho, alto, texto, enlace, cuerpo }) {
   ctx.save()
   ctx.fillStyle = 'rgba(255,255,255,0.10)'
   ctx.strokeStyle = 'rgba(255,255,255,0.24)'

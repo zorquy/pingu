@@ -41785,6 +41785,47 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 997 — Compartir una partida o un torneo en una imagen
+
+PINGU: «imagínate que haces un torneo y lo acabas y quieres compartir el
+resultado… al lado de cada partida suelta o cada torneo, si lo abres, un
+botón de compartir que genere una imagen con el resultado, así bonito, que
+ponga PokeDoc».
+
+`js/partida-imagen.js` (entra por `import()` al pulsar «Compartir», como la
+hoja): `compartirPartida` y `compartirTorneo` cargan los sprites y abren la
+hoja de siempre (`compartir-hoja.js`: Instagram en historia o publicación, X,
+compartir y descargar). El dibujo lleva el marco de los retos —el fondo, la
+«P» con «PokeDoc · Mis partidas/torneos» y la píldora «Apunta las tuyas en
+pokedoc.es»—, para lo que `reto-imagen.js` exporta ahora `cabecera` e
+`invitacionAbajo`.
+
+- Una partida: el resultado en su color (Victoria / Derrota / Empate, con el
+  marcador de un mejor de tres), tus sprites y los del rival con «VS», los
+  juegos en cuadraditos, el sitio y el día. Un bye, con «Bye» en el hueco
+  del rival.
+- Un torneo: el nombre, sitio y día; una banda con tu mazo y el récord
+  («4-1-1», en verde si ganas más de lo que pierdes) y su leyenda si cabe
+  entera; debajo, una fila por ronda (rival con sprites, ID o no
+  presentado, el marcador y la letra). Caben doce; las demás, «y N rondas
+  más» (`rondasQueCaben`).
+- La apaisada (X) pone lo mismo a dos columnas.
+
+Los sprites se cargan como en la imagen del meta: la CDN de Limitless por
+`/sprite` (nuestra, con permiso CORS) y luego la cadena de respaldos; sin
+ninguno, una Poké Ball de trazo. `fuenteDeSprite` y `cajaVisible` viven ahora
+en `js/torneos/sprite-lienzo.js` (sin dependencias de pantalla): importarlas
+de `meta-imagen.js` arrastraba `cartas-decklist.js` y la 299 veía
+/mis-partidas usar clases del meta sin su hoja. En /mis-partidas, `urlsDeSpritesDeMazo` sale
+de `spritesDeMazoHtml` para que la tarjeta y la imagen usen los mismos. El
+botón va en cada partida suelta y en cada torneo con rondas (también los de
+PokeDoc); uno sin rondas no lo lleva.
+
+**Pruebas**: `test-tanda-997-pantalla.mjs` (lo puro; los botones; la hoja
+con la imagen de 1080 de ancho y los sprites por /sprite, en el PC y el
+móvil; y las seis imágenes —partida, torneo, torneo de catorce rondas y
+bye, en los dos formatos— guardadas en /tmp para mirarlas).
+
 ## Tanda 996 — «Posibles repetidas» ve las promos de TCGGO
 
 PINGU, con el Mewtwo ex del Team Rocket SVP 205: desde la expansión salía
