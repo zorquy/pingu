@@ -27,7 +27,8 @@ check('PA8: el catálogo usa la fila compacta de Expansiones', /const lista = tr
 check('  …en varias columnas en el PC', /@media \(min-width: 1100px\) \{\s*\.mc-estanteria-lista \{\s*display: grid;/.test(leer('css/mi-coleccion.css')))
 // PA9 se quitó en la 914 (PINGU: «cuando clicas en una expansión, se pliega. No me gusta»).
 check('PA9 (914): con una expansión abierta, la lateral ya NO se pliega sola', !/plegarLateralSola|lat-plegada/.test(mc))
-check('PA10b: Deseos y cambios y los desplegables de Buscar, en una fila deslizable', /\.mc-deseos-seg,\s*\.mc-bus-afinar \{\s*flex-wrap: nowrap;/.test(leer('css/mi-coleccion.css')))
+// Los de Buscar, desde la 998, dentro de la tira de mandos (test-tanda-998-pantalla).
+check('PA10b: Deseos y cambios en una fila deslizable', /\.mc-deseos-seg \{\s*flex-wrap: nowrap;/.test(leer('css/mi-coleccion.css')))
 check('  …y la píldora centra la activa si el control se desliza', /caja\.scrollWidth > caja\.clientWidth \+ 1/.test(leer('js/pildora.js')))
 
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')

@@ -178,6 +178,12 @@ console.log('── 8. EL BARRIDO: quién pide `rarity_en` y quién se la deja �
     }
   }
   andar(raiz)
+  // Y las funciones de Netlify (998): el borde pinta la ficha de /carta y
+  // pedía `rarity` sin `rarity_en` — «Rara» en la ficha, «Rara Holo» en el
+  // pop-up, de la misma carta.
+  for (const d of ['/home/user/pingu/netlify/edge-functions', '/home/user/pingu/netlify/functions']) {
+    for (const e of readdirSync(d)) if (/\.m?js$/.test(e)) ficheros.push(`${d}/${e}`)
+  }
   check('el barrido llega', ficheros.length > 100, ficheros.length)
 
   // Una lista de columnas de PostgREST: lo que va dentro de `select(…)` o
