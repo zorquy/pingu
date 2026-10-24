@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-24 (236) — PINGU-Claude (999 — una versión a mano a varias cartas)
+
+**Hecho**: en /admin → Colecciones → set → cartas, «Una versión a varias»: la
+misma versión a mano (la Cosmos Holo) a todas las cartas que se marquen,
+tocándolas o pegando sus números, con Deshacer. Usa la RPC de la 934 carta a
+carta; la que ya la tiene no se repite. Sin migración.
+
+**Ficheros**: `admin/js/version-varias.js` y `admin/js/version-varias-puro.js`
+(nuevos), `admin/js/catalogo-cartas.js` (el botón), `admin/css/admin.css`,
+`SCHEMA.md`, `BITACORA.md`. En `pruebas`: `test-tanda-999-pantalla.mjs`.
+Verdes 999, 949, 934 y test-imports; la 885 y la 961 se cuelgan igual sin esta
+tanda (no encuentran «Editar» con las eras plegadas de la 975).
+
+**Pendiente**: lo de la 235.
+
 ## 2026-10-24 (235) — PINGU-Claude (998 — una carta, un sitio; el buscador en una fila)
 
 **Hecho**: la ficha completa (/carta) enseña lo mismo que el pop-up. Fuera el

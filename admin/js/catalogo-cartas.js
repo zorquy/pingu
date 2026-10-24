@@ -118,6 +118,7 @@ export function pintarLista() {
     <div class="cat-barra">
       <input type="search" id="catFiltro" placeholder="Número o nombre…" aria-label="Buscar una carta" value="${escapeHtml(filtro)}">
       <button class="btn-secondary btn-small" id="catLote">Versiones de todas</button>
+      <button class="btn-secondary btn-small" id="catVarias">Una versión a varias</button>
       <button class="btn-secondary btn-small" id="catFotos">Fotos de todas</button>
       <button class="btn-primary btn-small" id="catNueva">Nueva carta</button>
     </div>
@@ -133,6 +134,11 @@ export function pintarLista() {
   $('catLote').addEventListener('click', async () => {
     const { abrirVersionesDeTodas } = await import('./versiones-lote.js')
     abrirVersionesDeTodas({ set, mercado, cartas, hoja, volver: pintarLista })
+  })
+  // Una versión A MANO (la Cosmos Holo) a muchas cartas (999), en su módulo.
+  $('catVarias').addEventListener('click', async () => {
+    const { abrirVersionVarias } = await import('./version-varias.js')
+    abrirVersionVarias({ set, mercado, cartas, hoja, volver: pintarLista })
   })
   // Y las fotos de muchas a la vez (961), también en su módulo.
   $('catFotos').addEventListener('click', async () => {

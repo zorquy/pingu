@@ -41785,6 +41785,33 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 999 — «Una versión a varias»: la Cosmos Holo de golpe
+
+PINGU metía la Cosmos Holo (las de blíster, en sets que tuvieron promo Cosmos)
+carta a carta, rellenando lo mismo cada vez; vio la propuesta con maquetas y:
+«adelante, me ahorrará mucho tiempo».
+
+- /admin → Colecciones → el set → «Ver y editar sus cartas» → **«Una versión a
+  varias»** (`admin/js/version-varias.js`, por `import()`; lo puro en
+  `version-varias-puro.js`). Nombre, «Salió en», clase (por defecto Adicional:
+  no cuenta para el set maestro) y lanzamiento, una vez; las cartas se marcan
+  tocándolas o pegando números (`4, 25, 58, 101-103`; «SVP 205» es uno, «TG01»
+  casa con «TG1»). Lo pegado SUMA marcas.
+- Cada una se crea con `catalogo_version_mano` (la 934), una a una: nace
+  `origen = 'mano'`, sin icono (la web lo saca del nombre: «Cosmos» →
+  destellos), y una que falla no para a las demás. La que ya lleva una versión
+  con ese nombre (cualquier origen, comparando con `varianteDeEtiqueta`) sale
+  «ya» y no se repite. **Deshacer** borra solo las de esa vez
+  (`catalogo_borrar_version_mano`). Sin migración.
+- No es «Versiones de todas» (la 949): aquella escribe filas de EDICIÓN, y con
+  ediciones `variantesDeCarta` ofrece solo esas: en un set moderno la carta
+  perdería su Holo y su Normal. Una versión de blíster, mazo o caja va por aquí.
+- La foto y el Cardmarket de cada una, después en su ficha; sin producto, la
+  chapa sale sin precio.
+
+**Pruebas**: `test-tanda-999-pantalla.mjs` (lo puro; la pantalla: el botón,
+pegar, «ya», tocar, crear con la 934, Deshacer solo lo de esa vez).
+
 ## Tanda 998 — Una carta, un sitio: la ficha completa como el pop-up, y el buscador
 
 PINGU, con el Aerodactyl de Legend Maker (1/92): en el pop-up, «Holo / Reverse

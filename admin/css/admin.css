@@ -780,6 +780,19 @@ body {
 .lote-opciones { display: flex; flex-wrap: wrap; gap: var(--e-xs) var(--e-sm); margin-bottom: var(--e-xs); }
 .lote-version { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 32px; }
 .lote-rango { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+/* «Una versión a varias» (999, SCHEMA). */
+.vv-campos { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0 var(--e-sm); }
+.vv-campos > * { min-width: 0; }
+.vv-campos select { width: 100%; }
+.vv-rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: var(--e-sm); margin: var(--e-sm) 0; max-height: 40vh; overflow: auto; padding: 2px; }
+.vv-carta { display: grid; gap: 2px; padding: 0; border: 0; background: none; color: var(--text-mid); font: inherit; font-size: var(--t-2xs); cursor: pointer; text-align: center; }
+.vv-foto { position: relative; display: block; aspect-ratio: 63 / 88; border-radius: 4px; overflow: hidden; background: var(--bg); outline: 2px solid transparent; outline-offset: 1px; }
+.vv-foto img { width: 100%; height: 100%; object-fit: cover; }
+.vv-carta[aria-pressed="true"] .vv-foto { outline: 3px solid var(--navy); }
+.vv-carta[aria-pressed="true"] .vv-foto::after { content: "✓"; position: absolute; left: 2px; top: 2px; width: 20px; height: 20px; border-radius: 50%; background: var(--navy-solid); color: var(--blanco-fijo); font-size: var(--t-xs); font-weight: 700; display: grid; place-items: center; }
+.vv-carta[aria-pressed="true"] .vv-num { color: var(--navy); font-weight: 700; }
+.vv-carta:focus-visible { outline: none; box-shadow: var(--shadow-ring); border-radius: 4px; }
+.vv-ya { position: absolute; top: 2px; right: 2px; padding: 0 4px; border-radius: 999px; background: var(--navy-solid); color: var(--blanco-fijo); font-size: var(--t-2xs); line-height: 16px; }
 .cat-lista { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--border); }
 .cat-carta { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-xs) 0; border-bottom: 1px solid var(--border); }
 .cat-carta-foto { width: 36px; height: 48px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: 4px; overflow: hidden; }
