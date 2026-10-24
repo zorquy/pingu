@@ -5,15 +5,15 @@
 //
 // Entra por `import()` al pulsar «Compartir»: la página no lo baja hasta
 // entonces. La hoja es la de siempre (`compartir-hoja.js`: Instagram en
-// historia o publicación, X, compartir y descargar) y el marco el de los
-// retos (`reto-imagen.js`: fondo, la «P» con «PokeDoc · …» y la píldora con
-// el enlace), para que todo lo que sale de PokeDoc se reconozca igual.
+// historia o publicación, X, compartir y descargar), con la historia dibujada
+// entera (`historiaPropia`); el fondo, el de los retos (`reto-imagen.js`), y
+// abajo la marca de PokeDoc, sin frase de invitación.
 //
 // Lo puro (los textos, qué rondas caben) va exportado para probarlo en Node;
 // el dibujo recibe los sprites ya cargados (`img` o null), así que la prueba
 // puede dibujar sin red.
 import { redondeado } from './imagen-compartir.js'
-import { fondo, cabecera, invitacionAbajo, medidasDe } from './reto-imagen.js'
+import { fondo, medidasDe } from './reto-imagen.js'
 
 export const ENLACE = 'pokedoc.es'
 const TITULAR = 'Fredoka, Inter, sans-serif'
@@ -190,16 +190,69 @@ function juegos(ctx, lista, { cx, y, lado }) {
   }
 }
 
-export function pintarPartida(lienzo, p, formato = 'historia') {
-  const { w, h } = medidasDe(formato)
+// La historia de Instagram (1080×1920) se dibuja ENTERA, con el mismo fondo
+// liso (997, PINGU: la de la hoja, con la publicación encima de sí misma
+// agrandada y difuminada, «está muy mal»): lo de la publicación, bajado para
+// que quede en medio de la pantalla, y la marca abajo del todo.
+const ALTO_LARGA = 1920
+const BAJADA = 250
+
+function prepararLienzo(lienzo, formato) {
+  const larga = formato === 'larga'
+  const { w, h } = medidasDe(larga ? 'historia' : formato)
   lienzo.width = w
-  lienzo.height = h
+  lienzo.height = larga ? ALTO_LARGA : h
   const ctx = lienzo.getContext('2d')
-  fondo(ctx, w, h)
+  fondo(ctx, w, lienzo.height)
+  if (larga) ctx.translate(0, BAJADA)
+  return { ctx, w, h, larga }
+}
+
+// Arriba, qué es («MIS PARTIDAS»), sin más; la marca va abajo.
+function rotulo(ctx, texto, { x, y, cuerpo }) {
+  ctx.save()
+  ctx.font = `700 ${cuerpo}px ${TEXTO}`
+  ctx.fillStyle = 'rgba(255,255,255,0.7)'
+  ctx.textAlign = 'left'
+  if ('letterSpacing' in ctx) ctx.letterSpacing = `${Math.round(cuerpo * 0.14)}px`
+  ctx.fillText(texto.toUpperCase(), x, y)
+  ctx.restore()
+}
+
+// La marca: la «P» de la web y «PokeDoc», centrados. Sin frase ni enlace
+// (PINGU: «apunta las tuyas en pokedoc.es» era «muy cargante»).
+function marca(ctx, { cx, y, lado }) {
+  ctx.save()
+  ctx.font = `700 ${Math.round(lado * 0.62)}px ${TITULAR}`
+  const palabra = ctx.measureText('PokeDoc').width
+  const hueco = lado * 0.32
+  const x = cx - (lado + hueco + palabra) / 2
+  ctx.fillStyle = '#8ec5ea'
+  redondeado(ctx, x, y, lado, lado, Math.round(lado / 4))
+  ctx.fill()
+  ctx.fillStyle = '#0d1b2a'
+  ctx.textAlign = 'center'
+  ctx.fillText('P', x + lado / 2, y + lado * 0.74)
+  ctx.fillStyle = '#fff'
+  ctx.textAlign = 'left'
+  ctx.fillText('PokeDoc', x + lado + hueco, y + lado * 0.74)
+  ctx.restore()
+}
+
+function marcaAbajo(ctx, { w, h, larga, apaisada, cx = w / 2 }) {
+  if (larga) {
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    marca(ctx, { cx, y: ALTO_LARGA - 260, lado: 84 })
+  } else if (apaisada) marca(ctx, { cx, y: h - 84, lado: 48 })
+  else marca(ctx, { cx, y: h - 150, lado: 72 })
+}
+
+export function pintarPartida(lienzo, p, formato = 'historia') {
+  const { ctx, w, h, larga } = prepararLienzo(lienzo, formato)
   const r = RESULTADO[p.resultado] || RESULTADO.draw
   const apaisada = formato === 'apaisada'
   const margen = apaisada ? 56 : 72
-  cabecera(ctx, { x: margen, y: apaisada ? 72 : 118, ancho: w - margen * 2, arriba: 'PokeDoc · Mis partidas', cuerpo: apaisada ? 30 : 40 })
+  rotulo(ctx, 'Mis partidas', { x: margen, y: apaisada ? 68 : 118, cuerpo: apaisada ? 24 : 32 })
   const marcador = p.formato === 'bo3' && p.juegos?.length ? marcadorDe(p.juegos) : ''
   const bye = p.tipo === 'bye'
   // El resultado, en grande y en su color.
@@ -243,20 +296,15 @@ export function pintarPartida(lienzo, p, formato = 'historia') {
     ctx.fillText(recortar(ctx, lugar, 520), w - margen, 72)
     ctx.restore()
   }
-  if (!apaisada) invitacionAbajo(ctx, { cx: w / 2, y: h - 170, ancho: 720, alto: 96, texto: 'Apunta las tuyas en', enlace: ENLACE, cuerpo: 36 })
-  else invitacionAbajo(ctx, { cx: w / 2, y: h - 78, ancho: 520, alto: 54, texto: 'Apunta las tuyas en', enlace: ENLACE, cuerpo: 24 })
+  marcaAbajo(ctx, { w, h, larga, apaisada })
   return lienzo
 }
 
 export function pintarTorneo(lienzo, t, formato = 'historia') {
-  const { w, h } = medidasDe(formato)
-  lienzo.width = w
-  lienzo.height = h
-  const ctx = lienzo.getContext('2d')
-  fondo(ctx, w, h)
+  const { ctx, w, h, larga } = prepararLienzo(lienzo, formato)
   const apaisada = formato === 'apaisada'
   const margen = apaisada ? 56 : 72
-  cabecera(ctx, { x: margen, y: apaisada ? 72 : 118, ancho: w - margen * 2, arriba: 'PokeDoc · Mis torneos', cuerpo: apaisada ? 30 : 40 })
+  rotulo(ctx, 'Mis torneos', { x: margen, y: apaisada ? 68 : 118, cuerpo: apaisada ? 24 : 32 })
   const rec = recordDe(t.rondas)
   const colorRec = rec.win > rec.loss ? RESULTADO.win.color : rec.loss > rec.win ? RESULTADO.loss.color : RESULTADO.draw.color
   const lugar = lugarYFecha(t.donde, t.fecha)
@@ -368,8 +416,7 @@ export function pintarTorneo(lienzo, t, formato = 'historia') {
   if (fuera) textoCentrado(ctx, `y ${fuera} ${fuera === 1 ? 'ronda' : 'rondas'} más`, { cx: caja.x + caja.w / 2, y: caja.y + visibles.length * fila + fila * 0.62, cuerpo: Math.round(fila * 0.34), color: 'rgba(255,255,255,0.7)' })
   if (!t.rondas?.length) textoCentrado(ctx, 'Sin rondas todavía', { cx: caja.x + caja.w / 2, y: caja.y + 60, cuerpo: apaisada ? 24 : 32, color: 'rgba(255,255,255,0.7)' })
 
-  if (!apaisada) invitacionAbajo(ctx, { cx: w / 2, y: h - 150, ancho: 720, alto: 96, texto: 'Apunta los tuyos en', enlace: ENLACE, cuerpo: 36 })
-  else invitacionAbajo(ctx, { cx: margen + 240, y: h - 78, ancho: 440, alto: 54, texto: 'Apunta los tuyos en', enlace: ENLACE, cuerpo: 22 })
+  marcaAbajo(ctx, { w, h, larga, apaisada, cx: apaisada ? margen + 240 : w / 2 })
   return lienzo
 }
 
@@ -411,6 +458,7 @@ export async function compartirPartida(p) {
     titulo: 'Compartir la partida',
     texto: textoDePartida(p),
     nombre: `partida-${nombreDeFichero(`${p.mio?.nombre || ''}-vs-${p.rival?.nombre || ''}`)}`,
+    historiaPropia: true,
     imagen: async (formato) => pintarPartida(document.createElement('canvas'), await listo, formato),
   })
 }
@@ -424,6 +472,7 @@ export async function compartirTorneo(t) {
     titulo: 'Compartir el torneo',
     texto: textoDeTorneo(t),
     nombre: `torneo-${nombreDeFichero(t.nombre)}`,
+    historiaPropia: true,
     imagen: async (formato) => pintarTorneo(document.createElement('canvas'), await listo, formato),
   })
 }

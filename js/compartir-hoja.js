@@ -17,6 +17,10 @@
 //             propio fondo, así ninguna pantalla tiene que dibujar tres
 //             formas. Sin `imagen`, solo el texto (Compartir y Copiar).
 //     nombre: el del fichero, sin extensión («mi-dia-77»)
+//     historiaPropia: la pantalla dibuja también la historia de 1080×1920
+//             (`imagen('larga')`), en vez de la vertical sobre ella misma
+//             difuminada (997, PINGU: «se ve que es la publicación y por
+//             detrás otra más grande»)
 //     x:      { texto, url } (880): lo que se escribe en X; sin él, `texto`
 //
 // Es un <dialog>: desde abajo en el móvil, centrado en el PC. Entra por
@@ -126,7 +130,7 @@ async function compartirImagen(lienzo, nombreFichero, texto) {
   showToast('Descargada. Súbela desde tu galería.', 'success')
 }
 
-export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', imagen = null, nombre = 'pokedoc', x = null } = {}) {
+export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', imagen = null, nombre = 'pokedoc', x = null, historiaPropia = false } = {}) {
   await hojaInyectada('css/compartir-hoja.css')
   const d = asegurarDialogo()
   const conImagen = typeof imagen === 'function'
@@ -172,6 +176,7 @@ export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', ima
 
   async function lienzoDe(f) {
     if (lienzos[f]) return lienzos[f]
+    if (f === 'historia' && historiaPropia) return (lienzos[f] = await imagen('larga'))
     const dibujo = await imagen(FORMAS[f].pide)
     lienzos[f] = f === 'historia' ? historiaDe(dibujo) : dibujo
     return lienzos[f]

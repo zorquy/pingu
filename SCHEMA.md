@@ -41785,6 +41785,24 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 997b — La historia entera y la marca en vez del aviso
+
+PINGU, al probarla: la publicación y la de X, bien; la historia, «se ve que
+es la publicación y por detrás otra más grande», y «apunta las tuyas en
+pokedoc.es» es «muy cargante: pondría el logo, la P, algo sencillito».
+
+- `abrirHojaCompartir` acepta `historiaPropia`: la pantalla dibuja la
+  historia de 1080×1920 ella misma (`imagen('larga')`) en vez de la vertical
+  sobre su propia copia difuminada (`historiaDe`). Sin la opción, todo
+  sigue como estaba (los retos, la colección).
+- `partida-imagen.js` dibuja la `larga` con el mismo fondo liso: lo de la
+  publicación bajado 250 px, para que quede en medio de la pantalla (arriba
+  y abajo Instagram pone lo suyo), y la marca abajo del todo.
+- Arriba ya no va la «P» con «PokeDoc · …»: solo qué es, en versalitas
+  («MIS PARTIDAS», «MIS TORNEOS»). Y abajo, en lugar de la píldora con la
+  invitación, la marca: la «P» y «PokeDoc». El texto que acompaña a la
+  imagen sigue llevando el enlace.
+
 ## Tanda 997 — Compartir una partida o un torneo en una imagen
 
 PINGU: «imagínate que haces un torneo y lo acabas y quieres compartir el

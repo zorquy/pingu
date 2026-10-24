@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-24 (234) — PINGU-Claude (997b — historia entera y marca abajo)
+
+**Hecho**: la historia de Instagram de una partida o un torneo se dibuja
+entera (1080×1920, fondo liso), en vez de la publicación encima de su copia
+difuminada; arriba solo «MIS PARTIDAS»/«MIS TORNEOS» y abajo la marca (la «P»
+y «PokeDoc») en lugar de «Apunta las tuyas en pokedoc.es». La hoja de
+compartir acepta `historiaPropia` (los demás, igual que antes).
+
+**Ficheros**: `js/partida-imagen.js`, `js/compartir-hoja.js`, `SCHEMA.md`,
+`CLAUDE.md`, `BITACORA.md`. En `pruebas`: `test-tanda-997-pantalla.mjs`.
+Verdes 997, 583, 871, 299 y test-imports.
+
+**Pendiente**: lo de la 233.
+
 ## 2026-10-24 (233) — PINGU-Claude (997 — compartir partidas y torneos en una imagen)
 
 **Hecho**: «Compartir» en cada partida suelta y en cada torneo con rondas de

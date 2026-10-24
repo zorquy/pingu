@@ -796,7 +796,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   siempre y el marco de los retos (`cabecera` e `invitacionAbajo` de
   `reto-imagen.js`). Los sprites, los mismos de la tarjeta
   (`urlsDeSpritesDeMazo`), por `/sprite` y la cadena de respaldos, que un
-  lienzo con una imagen sin permiso no se exporta.
+  lienzo con una imagen sin permiso no se exporta. La historia la dibuja
+  ella entera (`historiaPropia`, 997b) y abajo va la marca, sin «Apunta las
+  tuyas» (PINGU: «muy cargante»).
 - **Una página tiene UNA dirección para Google** (tanda 906). La canónica
   la arma `urlCanonica` (meta-social.js): sin `.html`, en pokedoc.es y solo
   con los parámetros que eligen el contenido (`PARAMETROS_CANONICOS`); la de
