@@ -25,6 +25,7 @@ check('marcador de un mejor de tres', P.marcadorDe([{ r: 'W' }, { r: 'L' }, { r:
 const tp = P.textoDePartida({ mio: { nombre: 'Dragapult ex' }, rival: { nombre: 'Gardevoir ex' }, resultado: 'win', formato: 'bo3', juegos: [{ r: 'W' }, { r: 'L' }, { r: 'W' }], donde: 'Liga de Cádiz', fecha: '2026-10-24' })
 check('el texto de una partida dice resultado, marcador, mazos, sitio y el enlace', /✅ Victoria 2-1 con Dragapult ex contra Gardevoir ex/.test(tp) && /Liga de Cádiz · 24 de octubre de 2026/.test(tp) && /pokedoc\.es/.test(tp), tp)
 check('  …y un bye no tiene rival', /con Dragapult ex bye/.test(P.textoDePartida({ mio: { nombre: 'Dragapult ex' }, resultado: 'win', tipo: 'bye' })))
+check('la imagen ya no lleva «Apunta las tuyas»: abajo, solo la marca', !/Apunta l(a|o)s tuy/.test(readFileSync(`${RAIZ}/js/partida-imagen.js`, 'utf8')))
 const tt = P.textoDeTorneo({ nombre: 'Liga del jueves', donde: 'Tienda', fecha: '2026-10-23', mazo: { nombre: 'Dragapult ex' }, rondas: [{ resultado: 'win' }, { resultado: 'loss' }] })
 check('el texto de un torneo dice el récord y el mazo', /🏆 Liga del jueves: 1-1 con Dragapult ex/.test(tt) && /pokedoc\.es/.test(tt), tt)
 const r = P.rondasQueCaben(Array.from({ length: 12 }, (_, i) => ({ i })), 9)
@@ -92,7 +93,7 @@ for (const movil of [false, true]) {
   })
   check(`${que}: «Compartir» del torneo abre la hoja`, !!hoja, '')
   check(`${que}:   …con su título y las formas de Instagram`, hoja && /Compartir el torneo/.test(hoja.texto) && /Historia/.test(hoja.texto) && /Publicación/.test(hoja.texto), hoja?.texto)
-  check(`${que}:   …y la imagen ya dibujada (vertical 1080 de ancho)`, hoja && hoja.imgs.some((i) => i.w === 1080), JSON.stringify(hoja?.imgs))
+  check(`${que}:   …y la historia dibujada entera (1080 × 1920)`, hoja && hoja.imgs.some((i) => i.w === 1080 && i.h === 1920), JSON.stringify(hoja?.imgs))
   check(`${que}: los sprites pasan por /sprite (el lienzo se puede exportar)`, pedidos.some((u) => /\/sprite\//.test(u)), pedidos.slice(0, 3).join(' '))
   if (!movil) await page.screenshot({ path: '/tmp/997-hoja.png' })
   check(`${que}: sin errores`, !errores.length, errores.join(' | '))
@@ -112,7 +113,7 @@ console.log('── 3. Las imágenes, en los dos formatos ──')
     const torneo = { nombre: 'Liga del jueves', donde: 'Tienda de Cádiz', fecha: '2026-10-23', mazo: mazo('Dragapult ex'), rondas: rivales.map((n, i) => ({ rival: mazo(n), resultado: ['win', 'loss', 'win', 'draw', 'win', 'win'][i], tipo: i === 3 ? 'id' : 'normal', formato: i === 0 ? 'bo3' : null, juegos: i === 0 ? [{ r: 'W' }, { r: 'L' }, { r: 'W' }] : null, ronda: i + 1 })) }
     const largo = { ...torneo, nombre: 'Regional de Madrid con un nombre muy largo', rondas: Array.from({ length: 14 }, (_, i) => ({ ...torneo.rondas[i % 6], ronda: i + 1 })) }
     const fuera = {}
-    for (const f of ['historia', 'apaisada']) {
+    for (const f of ['historia', 'apaisada', 'larga']) {
       fuera[`partida-${f}`] = m.pintarPartida(document.createElement('canvas'), partida, f).toDataURL('image/png')
       fuera[`torneo-${f}`] = m.pintarTorneo(document.createElement('canvas'), torneo, f).toDataURL('image/png')
     }
@@ -123,7 +124,7 @@ console.log('── 3. Las imágenes, en los dos formatos ──')
   for (const [k, v] of Object.entries(fotos)) {
     writeFileSync(`/tmp/997-${k}.png`, Buffer.from(v.split(',')[1], 'base64'))
   }
-  check('salen las seis imágenes y se pueden exportar', Object.keys(fotos).length === 6 && Object.values(fotos).every((v) => v.startsWith('data:image/png') && v.length > 20000), Object.keys(fotos).join())
+  check('salen las ocho imágenes (también la historia entera) y se pueden exportar', Object.keys(fotos).length === 8 && Object.values(fotos).every((v) => v.startsWith('data:image/png') && v.length > 20000), Object.keys(fotos).join())
   await ctx.close()
 }
 await browser.close()
