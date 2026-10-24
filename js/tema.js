@@ -51,6 +51,7 @@ const elMigas = document.getElementById('temaMigas')
 const elCabecera = document.getElementById('temaCabecera')
 const elMensajes = document.getElementById('temaMensajes')
 const elPaginacion = document.getElementById('temaPaginacion')
+const elPaginacionArriba = document.getElementById('temaPaginacionArriba')
 const elResponder = document.getElementById('temaResponder')
 
 let sesion = null
@@ -583,7 +584,9 @@ async function pintarMensajes() {
   const glosario = () => import('./glosario.js').then((m) => { const vistos = new Set(); elMensajes.querySelectorAll('.foro-mensaje-cuerpo').forEach((c) => m.subrayarGlosario(c, vistos)) }).catch(() => {})
 
   elPaginacion.innerHTML = paginacionHtml(pagina, totalPaginas)
-  elPaginacion.querySelectorAll('[data-pagina]').forEach((b) =>
+  // Y arriba también (995); una pestaña con el tema.html de antes no lo tiene.
+  if (elPaginacionArriba) elPaginacionArriba.innerHTML = paginacionHtml(pagina, totalPaginas, { arriba: true })
+  ;[elPaginacion, elPaginacionArriba].filter(Boolean).flatMap((el) => [...el.querySelectorAll('[data-pagina]')]).forEach((b) =>
     b.addEventListener('click', () => {
       pagina = Number(b.dataset.pagina)
       const url = new URL(window.location.href)

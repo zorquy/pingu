@@ -770,6 +770,7 @@ async function pintarListaDeTemas(foro) {
     <div id="formularioTema"></div>
     ${vistasHtml}
     ${filtroHtml}
+    ${paginacionHtml(paginaActual, totalPaginas, { arriba: true })}
     <section class="foro-seccion${soyStaff ? ' foro-lista-moderable' : ''}" id="foroTemas">
       ${
         lista.length === 0

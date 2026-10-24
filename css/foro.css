@@ -2668,6 +2668,10 @@ html:has(#temaResponder) {
   margin: var(--e-lg) 0;
 }
 
+.paginacion-arriba {
+  margin: 0 0 var(--e-md);
+}
+
 .pag-numeros {
   display: flex;
   align-items: center;

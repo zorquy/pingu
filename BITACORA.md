@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-24 (231) — PINGU-Claude (995 — el paginador del foro, arriba y abajo)
+
+**Hecho**: el paginador sale también encima de la lista de temas de un foro
+y encima de los mensajes de un tema; los dos iguales y los dos llevan a su
+página.
+
+**Ficheros**: `js/paginacion.js`, `js/foro.js`, `js/tema.js`, `tema.html`,
+`css/foro.css`, `SCHEMA.md`, `CLAUDE.md`, `novedades.json`, `BITACORA.md`. En
+`pruebas`: `test-tanda-995-pantalla.mjs`. Sin migración.
+
+**Pendiente**: ejecutar la 993; lo de la 226 (la 989, después la 991, y otra
+vez la 987).
+
 ## 2026-10-24 (230) — PINGU-Claude (994 — invitar a los avisos en el móvil)
 
 **Hecho**: una tarjeta en el móvil, con cuenta, «¿Te avisamos en el móvil?»

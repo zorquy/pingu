@@ -33,7 +33,10 @@ export function paginasAVerEstrecho(actual, total) {
   return fuera
 }
 
-export function paginacionHtml(actual, total) {
+// `arriba`: el mismo paginador encima de la lista (tanda 995, PINGU: «en otros
+// foros siempre está arriba y abajo»). Dos `nav` en la página, así que cada
+// uno dice cuál es.
+export function paginacionHtml(actual, total, { arriba = false } = {}) {
   if (total <= 1) return ''
   const flecha = (p, texto, clase) => p >= 1 && p <= total
     ? `<button type="button" class="pag-flecha ${clase}" data-pagina="${p}" aria-label="${texto}: página ${p}">${clase === 'pag-ant' ? `${icons.chevronRight(16)}<span class="pag-texto">${texto}</span>` : `<span class="pag-texto">${texto}</span>${icons.chevronRight(16)}`}</button>`
@@ -43,7 +46,7 @@ export function paginacionHtml(actual, total) {
     : p === actual
       ? `<span class="pag-num pag-actual" aria-current="page">${p}</span>`
       : `<button type="button" class="pag-num" data-pagina="${p}" aria-label="Página ${p}">${p}</button>`).join('')
-  return `<nav class="paginacion" aria-label="Páginas: estás en la ${actual} de ${total}">
+  return `<nav class="paginacion${arriba ? ' paginacion-arriba' : ''}" aria-label="Páginas${arriba ? ' (arriba)' : ''}: estás en la ${actual} de ${total}">
     ${flecha(actual - 1, 'Anterior', 'pag-ant')}
     <span class="pag-numeros pag-ancho">${numeros(paginasAVer(actual, total))}</span>
     <span class="pag-numeros pag-estrecho">${numeros(paginasAVerEstrecho(actual, total))}</span>

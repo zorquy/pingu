@@ -41785,6 +41785,23 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 995 — El paginador del foro, arriba y abajo
+
+PINGU: «en otros foros lo de la paginación siempre está arriba y abajo». El
+mismo paginador de la 990 (`paginacionHtml`) sale ahora también ENCIMA de la
+lista: en la lista de temas de un foro (después de las vistas y del filtro de
+etiqueta) y dentro de un tema (`#temaPaginacionArriba`, entre la encuesta y
+los mensajes). Lleva `{ arriba: true }`: la clase `paginacion-arriba` (menos
+margen, en `foro.css`) y su `aria-label` propio, porque son dos `nav` en la
+página. En un tema los dos se enganchan igual y cualquiera lleva a la página
+vista desde arriba; si una pestaña tiene el `tema.html` de antes, sale solo el
+de abajo. Con una página sola no sale ninguno.
+
+**Pruebas**: `test-tanda-995-pantalla.mjs` (PC y móvil: los dos paginadores,
+el de arriba antes de la lista, iguales, y que el de arriba y el de abajo
+llevan a su página). Verdes 990, foro-1, foro-2, 314, 804, 812, 816, 819,
+823, 899, 981, 299, 312, 313 y test-imports.
+
 ## Tanda 994 — Invitar a los avisos en el móvil
 
 PINGU, con la prueba de la 993 funcionando: «¿se puede poner en móvil

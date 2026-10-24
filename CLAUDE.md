@@ -774,7 +774,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
 - **El paginador del foro es UNO: `js/paginacion.js`** (tanda 990), para la
   lista de temas y un tema largo: «Anterior», páginas con «…» y «Siguiente»,
   y en el móvil cinco casillas sin texto. Antes eran `.page-btn` sin una
-  sola regla de CSS. Una lista nueva con páginas pasa por ahí. Y el foro ya
+  sola regla de CSS. Una lista nueva con páginas pasa por ahí, y va ARRIBA Y
+  ABAJO (995, PINGU: «en otros foros siempre está arriba y abajo»): el de
+  arriba con `{ arriba: true }`. Y el foro ya
   no anuncia «[[Arven]]» en ninguna parte (PINGU: «yo lo obviaría»): el
   código de la 819 sigue, pero no se promete.
 - **Los retos son seis y el sexto es «Parejas»** (tanda 989): «El reto de
