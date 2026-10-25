@@ -3396,7 +3396,9 @@ async function tcggoEstado() {
       const hechos = Object.entries(e.hechos || {})
       return [
         `REEMPLAZOS (tcggo_reemplazos) — ${de('tcggo_reemplazos')?.updated_at || 'nunca'}: ${hechos.length} hechos · intentos: ${JSON.stringify(e.intentos || {})}`,
-        ...hechos.map(([k, x]) => `  ✓ ${k} (${x.fecha}, expansión ${x.episodio} por ${x.por}): suyas ${x.resumen?.suyas ?? '?'}, escritas ${x.resumen?.escritas ?? '?'}, nuevas ${x.resumen?.nuevas ?? '?'}, borradas ${x.resumen?.borradas ?? '?'}, se quedan ${(x.resumen?.seQuedan || []).length}, líneas sin destino ${(x.resumen?.lineasSinDestino || []).length}`),
+        ...hechos.map(([k, x]) => `  ✓ ${k} (${x.fecha}, expansión ${x.episodio} por ${x.por}): suyas ${x.resumen?.suyas ?? '?'}, escritas ${x.resumen?.escritas ?? '?'}, nuevas ${x.resumen?.nuevas ?? '?'}, borradas ${x.resumen?.borradas ?? '?'}${x.resumen?.fueraDeSuLista != null ? `, fuera de su lista (se quedan) ${x.resumen.fueraDeSuLista}` : ''}, se quedan ${(x.resumen?.seQuedan || []).length}, líneas sin destino ${(x.resumen?.lineasSinDestino || []).length}`),
+        // Lo que espera a saber su expansión (1000), y el porqué.
+        ...(Array.isArray(e.esperando) ? e.esperando : []).map((x) => `  … ${x.clave}: esperando (${x.motivo})`),
         e.ultimo ? `  último: ${e.ultimo.clave} (${e.ultimo.fecha}): ${e.ultimo.error || e.ultimo.aviso || ''}` : '',
       ]
     })(),

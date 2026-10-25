@@ -41785,6 +41785,39 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1000 — Las promos de Mega Evolución (MEP), de TCGGO y sin borrar
+
+PINGU: «mep black star promos, faltan cartas, te puedes traer la expansión
+desde TCGGO? Faltan promos que ya han salido y sí están en TCGGO». Un set de
+promos crece cada mes, y TCGdex (de donde salió `mep`) va por detrás.
+
+- Una entrada más en `REEMPLAZOS` (`tcggo-reemplazar-set`): `mep-promos`, como
+  la de Black Bolt (`conservarPorNumero`: lo que casa por su id de TCGGO o por
+  número conserva NUESTRO id, su URL y su español; TCGGO escribe «MEP 016» y
+  casa por los dígitos), con dos opciones nuevas de `procesar`:
+  - `sinBorrar`: nada «se va». Una promo que TCGdex tiene y TCGGO no lista se
+    queda, no se reapunta lo de nadie y no hace falta el freno del 90 % (con
+    nada que borrar, una lista a medias solo añade). El total del set es lo
+    de TCGGO más lo nuestro que no lista (`fueraDeSuLista`, en el resumen).
+  - `numeroComoElNuestro`: las nuevas llevan el número como las del set
+    (`numeroComoLosNuestros`: «MEP 016» → «016» si las nuestras son cifras),
+    que con el de TCGGO salían repetidas como las «SVP 205» de la 996.
+- La expansión sale de la fila (`tcggo_id`), de los pares o por código y
+  nombre. **Una entrada que aún no la sabe ya no tapa nada**: antes `find`
+  cogía la primera pendiente, devolvía «esperando» y la pasada no hacía nada
+  más, ni las de detrás ni el barrido de huecos. Ahora se salta, se apunta en
+  `tcggo_reemplazos.esperando` (lo enseña /admin → Estado, con el motivo) y no
+  gasta intento.
+- Corre sola (cada cinco minutos, una vez). Lo repetido que ya hubiera en
+  `mep` (una «tcggo-…» de una pasada vieja junto a la de TCGdex) no se toca:
+  sale en /admin → «Posibles repetidas» (987/996).
+
+**Pruebas**: `test-tanda-1000.mjs` (la entrada y lo puro; `procesar` con las
+promos: se conservan las once con su español, entran las tres que faltaban
+con «014», la que TCGGO no lista se queda; sin `sinBorrar`, como Black Bolt;
+la pasada con sus opciones, y la que espera sin tapar a la de detrás ni al
+barrido). La 654, al día (lo que espera se apunta).
+
 ## Tanda 999 — «Una versión a varias»: la Cosmos Holo de golpe
 
 PINGU metía la Cosmos Holo (las de blíster, en sets que tuvieron promo Cosmos)

@@ -136,6 +136,14 @@ export const REEMPLAZOS = [
   // y el número es el de TCGGO (`numerosDeTcggo`), por si el Antique Cover
   // Fossil lleva un 60 que no es el suyo.
   { clave: 'sv10.5b-limpio', sets: ['sv10.5b'], destino: 'sv10.5b', mercado: 'WEST', conservarPorNumero: true, numerosDeTcggo: true },
+  // Las promos de Mega Evolution (1000). PINGU: «mep black star promos,
+  // faltan cartas, te puedes traer la expansión desde TCGGO? Faltan promos
+  // que ya han salido y sí están en TCGGO». Un set de promos CRECE cada mes y
+  // TCGdex se queda atrás. Como Black Bolt (lo que casa por número conserva
+  // su id y su español), pero SIN BORRAR: una promo que TCGdex tiene y TCGGO
+  // no lista se queda. Y las nuevas, con el número escrito como el nuestro
+  // («016», no «MEP 016», que en el 996 hizo repetidas «SVP 205»).
+  { clave: 'mep-promos', sets: ['mep'], destino: 'mep', mercado: 'WEST', conservarPorNumero: true, sinBorrar: true, numeroComoElNuestro: true },
 ]
 // En el modo entero, un set que se va tiene que estar DENTRO de la
 // expansión de TCGGO: si menos de la mitad de sus cartas (y tiene al menos
@@ -255,6 +263,19 @@ export function numerosNuevos(suyas, porTcggoId) {
   return m
 }
 
+// El número de una carta NUEVA escrito como los del set (1000): TCGGO numera
+// las promos con su prefijo («MEP 016») y las nuestras de TCGdex van a pelo
+// («016»). Si los nuestros son cifras, el suyo con prefijo de letras pasa a
+// sus cifras con los ceros de los nuestros; lo demás, tal cual. Puro.
+export function numeroComoLosNuestros(suyo, nuestros) {
+  const t = suyo == null ? '' : String(suyo).trim()
+  const m = t.match(/^[A-Za-z]+[\s-]*(\d+)$/)
+  const cifras = (nuestros || []).map((n) => String(n ?? '').trim()).filter((n) => /^\d+$/.test(n))
+  if (!m || !cifras.length || cifras.length * 2 < (nuestros || []).length) return t
+  const ancho = Math.max(...cifras.map((n) => n.length))
+  return String(Number(m[1])).padStart(ancho, '0')
+}
+
 export function paresPorNumero(nuestras, suyas) {
   const pares = []
   const usadasNuestras = new Set()
@@ -315,6 +336,10 @@ export async function procesar({
   // Black Bolt (931): a una carta que se conserva se le pone el NÚMERO de
   // TCGGO si el suyo dice otro (con los ceros de delante que llevara).
   numerosDeTcggo = false,
+  // Las promos (1000): `sinBorrar` deja todo lo nuestro (solo se añade y se
+  // casa), y `numeroComoElNuestro` escribe el número de las nuevas como el
+  // de las del set (`numeroComoLosNuestros`).
+  sinBorrar = false, numeroComoElNuestro = false,
   reloj = () => Date.now(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)),
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
@@ -402,19 +427,24 @@ export async function procesar({
   // daba 90 de 262). Sin el modo entero, lo que no está en su lista se
   // borra, así que si TCGGO trae menos del 90 % de los números distintos que
   // tenemos, no se toca nada.
-  if (conservarPorNumero && !entero) {
+  if (conservarPorNumero && !entero && !sinBorrar) {
     const nuestrosNumeros = new Set(nuestras.filter((c) => c.set_id === setDestino).map((c) => numeroComparable(c.local_id)).filter(Boolean))
     if (nuestrosNumeros.size && suyas.length < Math.ceil(nuestrosNumeros.size * 0.9)) return { ok: false, peticiones, error: `TCGGO da ${suyas.length} cartas de «${setDestino}» y nosotros tenemos ${nuestrosNumeros.size} números distintos: lista a medias, no se toca nada.` }
   }
   const filas = []
   const conservadas = []
+  const numerosDelDestino = nuestras.filter((c) => c.set_id === setDestino).map((c) => c.local_id)
   for (const s of suyas) {
     const n = porTcggoId.get(s.id)
     if (n) conservadas.push(n.id)
-    filas.push(filaDeCartaTcggo(s, { setId: setDestino, nuestra: n || null }))
+    const fila = filaDeCartaTcggo(s, { setId: setDestino, nuestra: n || null })
+    if (!n && numeroComoElNuestro) fila.local_id = numeroComoLosNuestros(fila.local_id, numerosDelDestino)
+    filas.push(fila)
   }
   const idsNuevos = new Set(filas.map((f) => f.id))
-  const seVan = nuestras.filter((c) => !idsNuevos.has(c.id))
+  // Sin borrar (1000), nada «se va»: ni se borra ni se le reapunta nada.
+  const fueraDeSuLista = nuestras.filter((c) => !idsNuevos.has(c.id))
+  const seVan = sinBorrar ? [] : fueraDeSuLista
   if (entero && !mismaExpansion) {
     const fuera = setsQueNoCubre(nuestras.filter((c) => c.set_id !== setDestino), suyas)
     if (fuera.length) return { ok: false, peticiones, error: `TCGGO no trae las cartas de ${fuera.map((f) => `«${f.set}» (${f.conNombre} de ${f.cartas} con una suya del mismo nombre)`).join(', ')}: no es la misma expansión y no se reemplaza nada.` }
@@ -553,7 +583,8 @@ export async function procesar({
       setsBorrados.push(s)
     }
     // ── 6. El destino, apuntado a su expansión ──
-    await pedir(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(setDestino)}`, { method: 'PATCH', body: JSON.stringify({ tcggo_id: idEpisodio, card_count_total: suyas.length }) })
+    const total = sinBorrar ? filas.length + fueraDeSuLista.filter((c) => c.set_id === setDestino).length : suyas.length
+    await pedir(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(setDestino)}`, { method: 'PATCH', body: JSON.stringify({ tcggo_id: idEpisodio, card_count_total: total }) })
   } catch (e) {
     return { ok: false, peticiones, escritas, lineasMovidas, error: `nuestra base al recoger los sets: ${String(e?.message || e).slice(0, 160)}` }
   }
@@ -561,7 +592,7 @@ export async function procesar({
   return {
     ok: true, mercado, episodio: idEpisodio, destino: setDestino, sets: idsSets, peticiones, entero,
     suyas: suyas.length, versiones: versiones.length, descartadas, escritas, conservadas: conservadas.length, porNumero: porNumero.length, renumeradas: renumeradas.size, recolocadasPorNumero: [...equiv.values()].filter((e) => e.por === 'numero').length, ajustadas: ajustes.length, nuevas: filas.length - conservadas.length,
-    borradas: seBorran.length, equivalencias: [...equiv].map(([de, e]) => ({ de, a: e.a, por: e.por })),
+    borradas: seBorran.length, fueraDeSuLista: sinBorrar ? fueraDeSuLista.length : undefined, equivalencias: [...equiv].map(([de, e]) => ({ de, a: e.a, por: e.por })),
     lineasMovidas, deseosMovidos, albumesTocados,
     seQuedan: seQuedan.map((c) => ({ id: c.id, nombre: c.name_en || c.name, motivo: c.origen === 'relleno' ? 'rellenada desde Scrydex (TCGGO no la lista)' : aMano(c) ? 'escrita a mano desde /admin' : 'alguien la tiene y TCGGO no tiene ninguna con ese nombre' })),
     aproximadas: [...equiv].filter(([, e]) => e.por === 'nombre aproximado').map(([de, e]) => ({ de, a: e.a, nombre: nombreDe(de) })),
@@ -633,41 +664,57 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
     const mercado = reemplazos.find((x) => x.clave === k)?.mercado || 'WEST'
     h.preciosAvisados = await avisarAPrecios(mercado, h.episodio, k)
   }
-  const pendiente = reemplazos.find((r) => !estado.hechos[r.clave] && (Number(estado.intentos[r.clave]) || 0) < MAXIMO_INTENTOS)
+  // Una entrada cuya expansión aún no se sabe ESPERA, pero no tapa a las de
+  // detrás ni al barrido (1000): antes `find` la cogía en cada pasada,
+  // devolvía «esperando» y nada más se hacía nunca.
+  const pendientes = reemplazos.filter((r) => !estado.hechos[r.clave] && (Number(estado.intentos[r.clave]) || 0) < MAXIMO_INTENTOS)
+  let pendiente = null
+  let set = null
+  let episodio = null
+  let por = null
+  const esperando = []
+  for (const r of pendientes) {
+    // El set destino, para resolver su expansión.
+    let fila = null
+    try {
+      fila = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,tcggo_id&market=eq.${r.mercado || 'WEST'}&id=eq.${encodeURIComponent(r.destino)}&limit=1`))?.[0] || null
+    } catch (e) {
+      return { ok: false, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
+    }
+    if (!fila) {
+      estado.intentos[r.clave] = (Number(estado.intentos[r.clave]) || 0) + 1
+      estado.ultimo = { clave: r.clave, fecha: ahora.toISOString(), error: `el set «${r.destino}» no existe` }
+      await guardarEstado(CLAVE_ESTADO, estado)
+      return { ok: false, clave: r.clave, error: estado.ultimo.error }
+    }
+    // Una expansión escrita en la lista manda (666: la dio PINGU de la
+    // propia respuesta de TCGGO); si no, la de los pares.
+    const e = Number.isInteger(r.episodio) && r.episodio > 0 ? { episodio: r.episodio, por: 'lista' } : episodioDe(fila, pares)
+    // Sin expansión suya no se cuenta como intento: no se ha gastado nada y
+    // el emparejador puede traerla en su próxima pasada.
+    if (!e.episodio) { esperando.push({ clave: r.clave, motivo: `sin expansión de TCGGO para «${fila.id}»: ${e.por}` }); continue }
+    pendiente = r
+    set = fila
+    episodio = e.episodio
+    por = e.por
+    break
+  }
+  estado.esperando = esperando
   if (!pendiente) {
-    // Con la lista hecha, el barrido de huecos (670).
+    // Con la lista hecha (o lo que queda esperando), el barrido de huecos (670).
     let catalogo = {}
     try { catalogo = await leerEstado(CLAVE_CATALOGO) } catch { catalogo = {} }
     const huecos = await barrerHuecos({ env, restImpl, pedir, estado, pares, catalogo, procesarImpl, ahora, ...resto })
     await guardarEstado(CLAVE_ESTADO, estado)
-    return { ok: true, hecho: true, hechos: Object.keys(estado.hechos), parados: reemplazos.filter((r) => !estado.hechos[r.clave]).map((r) => r.clave), huecos }
+    return { ok: true, hecho: !esperando.length, hechos: Object.keys(estado.hechos), parados: reemplazos.filter((r) => !estado.hechos[r.clave]).map((r) => r.clave), esperando, huecos }
   }
-  // El set destino, para resolver su expansión.
-  let set = null
-  try {
-    set = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,tcggo_id&market=eq.${pendiente.mercado || 'WEST'}&id=eq.${encodeURIComponent(pendiente.destino)}&limit=1`))?.[0] || null
-  } catch (e) {
-    return { ok: false, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
-  }
-  if (!set) {
-    estado.intentos[pendiente.clave] = (Number(estado.intentos[pendiente.clave]) || 0) + 1
-    estado.ultimo = { clave: pendiente.clave, fecha: ahora.toISOString(), error: `el set «${pendiente.destino}» no existe` }
-    await guardarEstado(CLAVE_ESTADO, estado)
-    return { ok: false, clave: pendiente.clave, error: estado.ultimo.error }
-  }
-  // Una expansión escrita en la lista manda (666: la dio PINGU de la
-  // propia respuesta de TCGGO); si no, la de los pares.
-  const { episodio, por } = Number.isInteger(pendiente.episodio) && pendiente.episodio > 0 ? { episodio: pendiente.episodio, por: 'lista' } : episodioDe(set, pares)
-  // Sin expansión suya no se cuenta como intento: no se ha gastado nada y
-  // el emparejador puede traerla en su próxima pasada.
-  if (!episodio) return { ok: true, clave: pendiente.clave, esperando: `sin expansión de TCGGO para «${set.id}»: ${por}` }
   // Las opciones del entero que lleve la entrada (881): recolocar por
   // número y no borrar lo que alguien tiene, como hace el calco japonés.
   const opciones = {}
-  for (const k of ['recolocarPorNumero', 'borrarSinDestino', 'conservarPorNumero', 'numerosDeTcggo']) if (k in pendiente) opciones[k] = pendiente[k]
+  for (const k of ['recolocarPorNumero', 'borrarSinDestino', 'conservarPorNumero', 'numerosDeTcggo', 'sinBorrar', 'numeroComoElNuestro']) if (k in pendiente) opciones[k] = pendiente[k]
   const r = await (procesarImpl || procesar)({ env, restImpl, sets: pendiente.sets, destino: pendiente.destino, mercado: pendiente.mercado || 'WEST', episodio, entero: !!pendiente.entero, ...opciones, ...resto })
   if (r.ok) {
-    estado.hechos[pendiente.clave] = { fecha: ahora.toISOString(), episodio, por, preciosAvisados: await avisarAPrecios(pendiente.mercado, episodio, pendiente.clave), resumen: { suyas: r.suyas, escritas: r.escritas, conservadas: r.conservadas, renumeradas: r.renumeradas, nuevas: r.nuevas, borradas: r.borradas, lineasMovidas: r.lineasMovidas, deseosMovidos: r.deseosMovidos, albumesTocados: r.albumesTocados, seQuedan: r.seQuedan, aproximadas: r.aproximadas, lineasSinDestino: r.lineasSinDestino, setsBorrados: r.setsBorrados, setsQueSeQuedan: r.setsQueSeQuedan } }
+    estado.hechos[pendiente.clave] = { fecha: ahora.toISOString(), episodio, por, preciosAvisados: await avisarAPrecios(pendiente.mercado, episodio, pendiente.clave), resumen: { suyas: r.suyas, escritas: r.escritas, conservadas: r.conservadas, fueraDeSuLista: r.fueraDeSuLista, renumeradas: r.renumeradas, nuevas: r.nuevas, borradas: r.borradas, lineasMovidas: r.lineasMovidas, deseosMovidos: r.deseosMovidos, albumesTocados: r.albumesTocados, seQuedan: r.seQuedan, aproximadas: r.aproximadas, lineasSinDestino: r.lineasSinDestino, setsBorrados: r.setsBorrados, setsQueSeQuedan: r.setsQueSeQuedan } }
   } else {
     estado.intentos[pendiente.clave] = (Number(estado.intentos[pendiente.clave]) || 0) + 1
     estado.ultimo = { clave: pendiente.clave, fecha: ahora.toISOString(), error: r.error }

@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (237) — PINGU-Claude (1000 — las promos MEP desde TCGGO)
+
+**Hecho**: `mep-promos` en `REEMPLAZOS` de `tcggo-reemplazar-set`: trae la
+expansión de TCGGO a `mep` conservando por número lo nuestro (con su español),
+añadiendo lo que falta con el número como el nuestro («016») y SIN BORRAR nada
+(opciones nuevas `sinBorrar` y `numeroComoElNuestro`). Y una entrada sin
+expansión conocida ya no bloquea a las de detrás ni al barrido de huecos: se
+apunta en `esperando` (/admin → Estado lo enseña). Corre sola en la siguiente
+pasada (cada cinco minutos, una vez).
+
+**Ficheros**: `netlify/functions/tcggo-reemplazar-set.mjs`,
+`admin/js/admin.js` (la línea de «esperando» y lo que se quedó fuera),
+`SCHEMA.md`, `CLAUDE.md`, `novedades.json`, `BITACORA.md`. En `pruebas`:
+`test-tanda-1000.mjs` (nuevo) y la 654 al día. Verdes 654, 666, 670, 674,
+755, 806, 811, 831, 854, 886, 931 y test-imports (la 885 se cuelga igual sin
+esto).
+
+**Pendiente**: mirar en /admin → Estado (REEMPLAZOS) que `mep-promos` sale
+hecho y cuántas nuevas trajo; si dice «esperando», es que TCGGO no tiene
+emparejada la expansión de `mep` y hay que escribirla en la entrada
+(`episodio`). Lo de la 235 sigue.
+
 ## 2026-10-24 (236) — PINGU-Claude (999 — una versión a mano a varias cartas)
 
 **Hecho**: en /admin → Colecciones → set → cartas, «Una versión a varias»: la

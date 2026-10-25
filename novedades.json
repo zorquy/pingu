@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "Las promos de Mega Evolución se completan con las que faltaban y ya han salido.", "enlace": "/cartas?ver=album&set=mep" },
     { "fecha": "2026-10-24", "tipo": "arreglo", "texto": "La ficha completa de una carta enseña lo mismo que su ventana: las versiones una sola vez, arriba y con su precio, y la rareza buena («Rara Holo», no «Rara»).", "enlace": "/cartas?ver=buscar&q=aerodactyl" },
     { "fecha": "2026-10-24", "tipo": "mejora", "texto": "Una carta buscada desde la lupa de arriba se abre en su ventana, como en Cartas › Buscar, y los filtros de Buscar caben en una sola fila: en el móvil el catálogo ya no sale dos veces.", "enlace": "/cartas?ver=buscar" },
     { "fecha": "2026-10-24", "tipo": "nuevo", "texto": "En Mis partidas, cada partida y cada torneo tienen «Compartir»: te hace una imagen con el resultado, tus mazos y las rondas, lista para Instagram o X.", "enlace": "/mis-partidas" },

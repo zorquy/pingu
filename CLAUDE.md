@@ -540,7 +540,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (886: de VSTAR Universe solo da las 173–262) se completa de Scrydex con
   `scrydex-rellenar-set` (lista `RELLENOS`, una vez por entrada, solo las
   que faltan por NÚMERO, `origen = 'relleno'`, que el reemplazo nunca
-  borra). Para otro set a medias, una entrada más en `RELLENOS`. Y una
+  borra). Para otro set a medias, una entrada más en `RELLENOS`. Y si lo que
+  falta SÍ lo tiene TCGGO (las promos que crecen, 1000), una entrada en
+  `REEMPLAZOS` de `tcggo-reemplazar-set` con `conservarPorNumero`,
+  `sinBorrar` y `numeroComoElNuestro`, como `mep-promos`. Y una
   clave de estado nueva va en `PASADAS` (`admin/js/semaforo.js`), que es
   la lista que /admin LEE: la 883 y la 884 escribieron su bloque sin
   meterla y el panel decía «todavía no ha corrido» de algo que corría.
