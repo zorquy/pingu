@@ -41785,6 +41785,37 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1003 — Las versiones del buscador, pedidas al volver la búsqueda
+
+PINGU, con la 1002 ya puesta: «nope, sigue sin salir a la primera». La 1002
+repintaba la ficha cuando llegaban las versiones, pero la ficha se seguía
+pintando ANTES, con «Holo» sola, y en producción la consulta de
+`tcg_card_versions` tarda: lo que se ve al abrir es la ficha sin el sello. En el
+doble no se veía porque contesta al momento; con `__FAKE_RETRASO__ = {
+tcg_card_versions: 1500 }` sale lo mismo que en el PC de PINGU.
+
+Ahora `buscarEnTodo`, nada más volver la búsqueda, llama a
+`versionesDeLaLista(lista)`: UNA consulta (`versionesDeCartas`, a trozos de
+150) para todas las cartas que han vuelto, sin esperarla para pintar la lista.
+Mientras va de camino, `versionesEnCamino` la guarda por carta y
+`completarVersionesDe` espera a ESA en vez de pedir otra; las filas se pegan a
+la carta de la ficha aunque sea otro objeto (la de `cartas`, si es tuya). Y
+devuelve «hay» aunque la lista las haya pegado antes a la misma carta: quien
+espera tiene que repintar. Así, al tocar una carta las versiones ya están, y si
+se toca antes, salen al llegar (la 1002).
+
+La lista NO se repinta al llegar las versiones: con «separar versiones» la
+Expansion Stamp no sale como resultado aparte hasta la búsqueda siguiente
+(repintar movería las casillas bajo el dedo y el «22 de 60»).
+
+**Pruebas**: `test-tanda-1002-pantalla.mjs`, bloque 3 (con la base lenta, con
+cuenta y desde Mi colección: sin tenerla falla sin el arreglo; teniéndola en
+holo ya salía, porque la colección pide las versiones de las copias que no son
+«normal»). Verdes 447, 450, 451, 557, 719, 760, 761, 765, 767, 772, 779, 807,
+853, 862, 909, 929–931, 934, 935, 937, 945, 948, 949, 956, 958, 959, 965, 969,
+972, 977, 998, 1002 y test-imports; 852, 874, 943 y 957 rojas también sin el
+cambio.
+
 ## Tanda 1002 — Las versiones de una carta abierta desde el buscador, a la primera
 
 PINGU, con el Reshiram ex de Journey Together: «entro por el buscador general,

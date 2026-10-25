@@ -927,12 +927,36 @@ function variantesParaEditar(carta, variante) {
 
 // Las versiones de TCGGO de UNA carta (862), si no vinieron con su set:
 // para el diálogo de añadir y el editor. Dice si había alguna.
+// Si ya van de camino (las del buscador, `versionesDeLaLista`), espera a esas.
+const versionesEnCamino = new Map()
 async function completarVersionesDe(c) {
   if (!c?.id || c.versiones !== undefined) return false
-  const filas = await datos.versionesDeCartas([c.id]).catch(() => [])
-  pegarVersiones([c], filas)
+  const filas = await (versionesEnCamino.get(c.id) || datos.versionesDeCartas([c.id])).catch(() => [])
+  // La de la lista puede haberlas pegado ya a esta misma carta: se dice igual
+  // que las hay, que quien espera tiene que repintar.
+  const suyas = filas.filter((f) => f.card_id === c.id)
+  if (c.versiones === undefined) pegarVersiones([c], suyas)
   if (c.versiones === undefined) c.versiones = []
-  return filas.length > 0
+  return suyas.length > 0
+}
+
+// LAS VERSIONES DE LO QUE HA VUELTO EL BUSCADOR (1003): en una expansión
+// llegan con el set, y del buscador la carta llegaba sin ellas; la ficha las
+// pedía al abrirse y con la base lenta se pintaba sin la Expansion Stamp del
+// Reshiram ex (PINGU: «sigue sin salir a la primera»). Se piden todas en una
+// consulta nada más volver la búsqueda, sin esperarlas para pintar la lista.
+function versionesDeLaLista(lista) {
+  const sin = lista.filter((c) => c?.id && c.versiones === undefined && !versionesEnCamino.has(c.id))
+  if (!sin.length) return
+  const pedido = datos.versionesDeCartas(sin.map((c) => c.id))
+  for (const c of sin) versionesEnCamino.set(c.id, pedido)
+  pedido
+    .then((filas) => {
+      pegarVersiones(sin, filas)
+      for (const c of sin) if (c.versiones === undefined) c.versiones = []
+    })
+    .catch(() => {})
+    .finally(() => { for (const c of sin) if (versionesEnCamino.get(c.id) === pedido) versionesEnCamino.delete(c.id) })
 }
 
 // El gradeo son dos desplegables y un escape (tanda 563). El escape no
@@ -4948,6 +4972,7 @@ async function buscarEnTodo({ variantes = null } = {}) {
   // Aquí el tope de la consulta manda: con 120 de vuelta pueden ser más.
   rotularVer('mcBuscarFiltrosVer', lista.length, { mas: lista.length >= TOPE })
   ultimaBusqueda = lista
+  versionesDeLaLista(lista)
   // Lo de afinar vuelve a «todo» con cada búsqueda nueva: una serie que
   // se queda puesta de la búsqueda anterior deja esta vacía sin decir por qué.
   afinar = { serie: '', set: '', soloMias: afinar.soloMias }

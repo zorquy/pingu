@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (240) — PINGU-Claude (1003 — las versiones del buscador, sin esperar)
+
+**Hecho**: la 1002 no bastaba en producción (PINGU: «sigue sin salir a la
+primera»): la ficha se pintaba antes de que llegaran las versiones. Ahora el
+buscador pide las versiones de todos sus resultados en una consulta nada más
+volver, y la ficha espera a esa misma en vez de lanzar otra. Al tocar el
+Reshiram ex, la Expansion Stamp ya está.
+
+**Ficheros**: `js/mi-coleccion.js` (`versionesDeLaLista`, `versionesEnCamino`,
+`completarVersionesDe`, la llamada en `buscarEnTodo`), `SCHEMA.md`,
+`BITACORA.md`. Sin línea nueva en `novedades.json`: la de la 1002 dice esto
+mismo. En `pruebas`: `test-tanda-1002-pantalla.mjs` con el bloque de la base
+lenta (falla sin el arreglo). Verdes las 33 del buscador y las versiones y
+test-imports; 852, 874, 943 y 957 rojas también sin el cambio.
+
+**Pendiente**: lo de la 237.
+
 ## 2026-10-25 (239) — PINGU-Claude (1002 — versiones a la primera desde el buscador)
 
 **Hecho**: el pop-up de una carta abierta desde el buscador (o por `?carta=`)
