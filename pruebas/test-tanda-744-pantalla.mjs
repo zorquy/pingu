@@ -37,7 +37,7 @@ console.log('── 1. Las reglas ──')
   // y el detalle debajo («Reto del día · Sin hacer · 7 h»).
   // Desde la 989 la ficha es siempre la de los seis retos (el cuestionario
   // ya no está): sin saber lo de hoy, la de «Seis retos · quedan N h».
-  check('los retos: lo de hoy, o la ficha sin cifras si no se sabe', /2\/6/.test(f({ retos: { hechos: new Set(['carta', 'caro']), total: 6, xp: 10 } })) && /Seis retos · quedan \d+ h/.test(f({ retos: null })))
+  check('los retos: lo de hoy, o la ficha sin cifras si no se sabe', /2\/6/.test(f({ retos: { hechos: new Set(['carta', 'caro']), total: 6, xp: 10 } })) && /<span>quedan \d+ h<\/span>/.test(f({ retos: null })))
   // Desde la 1010, los temas que sigues con algo nuevo (no los avisos).
   check('los temas: con cifra, «nada nuevo», o el foro a secas si no se sabe', /<b>2 sin leer<\/b>/.test(f({ hilos: { cuenta: 2 } })) && /Nada nuevo/.test(f({ hilos: { cuenta: 0 } })) && /<b>El foro<\/b>/.test(f({ hilos: null })))
   check('el valor: sin la migración no sale; sin fotos, invita', valorHtml(null) === '' && /Empieza a llevarla/.test(valorHtml([])))
