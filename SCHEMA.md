@@ -41785,6 +41785,26 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1001 — La racha de otra persona: solo si es racha y está viva
+
+PINGU, con /usuarios delante: «parece que si no tienen racha sale 1 fuego, pero
+debería no salir nada». El comentario de `userCardHtml` ya decía «su racha si
+la tiene viva», pero se pintaba `current_streak` tal cual, y esa columna no
+vuelve a cero hasta que la persona vuelve: salían el «1» de quien entró un día
+y las rachas de quien no aparece desde hace semanas.
+
+- `js/racha-visible.js` (puro, sin dependencias): `rachaVisible(perfil)` es la
+  racha si es de **dos días o más** y la persona entró **hoy o ayer**; si no, 0
+  y no se pinta. La usan /usuarios (cada tarjeta) y /usuario (la línea de la
+  cabecera de otra persona). Tu propio perfil y la hoja «Tú» siguen enseñando
+  tu racha tal cual.
+- La cifra de rachas de /usuarios cuenta lo MISMO (`current_streak >= 2` y
+  `last_active_date >= ayer`): una cifra al lado de unas tarjetas usa su misma
+  definición (la 628).
+
+**Pruebas**: `test-tanda-1001-pantalla.mjs` (lo puro y /usuarios con una de 41
+días, una de un día y una de quien se fue). Verdes 301, 306, 867, 983 y 299.
+
 ## Tanda 1000 — Las promos de Mega Evolución (MEP), de TCGGO y sin borrar
 
 PINGU: «mep black star promos, faltan cartas, te puedes traer la expansión

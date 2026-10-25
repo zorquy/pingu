@@ -8,6 +8,7 @@ import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
 import { plegarTexto, contienePlegado } from './texto.js'
 import { initPeticiones } from './peticiones.js'
+import { rachaVisible } from './racha-visible.js'
 
 let allUsers = []
 // Si hay algo escrito en el buscador: manda el resultado entero, sin
@@ -124,7 +125,7 @@ async function cargarCifras() {
     // contarían rachas de gente que no aparece desde hace meses, que es
     // justo lo contrario de lo que el número promete.
     cuenta(() =>
-      supabase.from('user_profiles').select('id', { count: 'exact', head: true }).gt('current_streak', 0).gte('last_active_date', ayer)
+      supabase.from('user_profiles').select('id', { count: 'exact', head: true }).gte('current_streak', 2).gte('last_active_date', ayer)
     ),
   ])
   poner('cifraMiembros', miembros)
@@ -257,7 +258,7 @@ async function loadUsers() {
     rank: i + 1,
     approvedGuidesCount: guiasPorAutor[p.id] || 0,
     mensajes: mensajesPorAutor[p.id] || 0,
-    racha: p.current_streak || 0,
+    racha: rachaVisible(p),
   }))
   render(allUsers)
   cargarPodio(allUsers)

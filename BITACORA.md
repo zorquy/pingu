@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (238) — PINGU-Claude (1001 — la racha de otra persona, solo viva)
+
+**Hecho**: en /usuarios y en la ficha de otra persona (/usuario) la racha sale
+solo si es de dos días o más y la persona entró hoy o ayer
+(`js/racha-visible.js`); antes salía el «1» de quien acaba de llegar y la
+racha vieja de quien no vuelve. La cifra de rachas de /usuarios cuenta igual.
+
+**Ficheros**: `js/racha-visible.js` (nuevo), `js/usuarios.js`, `js/usuario.js`,
+`SCHEMA.md`, `novedades.json`, `BITACORA.md`. En `pruebas`:
+`test-tanda-1001-pantalla.mjs`. Verdes 1001, 301, 306, 867, 983, 299 y
+test-imports.
+
+**Pendiente**: lo de la 237.
+
 ## 2026-10-25 (237) — PINGU-Claude (1000 — las promos MEP desde TCGGO)
 
 **Hecho**: `mep-promos` en `REEMPLAZOS` de `tcggo-reemplazar-set`: trae la

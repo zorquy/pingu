@@ -14,6 +14,7 @@ import { MOSTRAR_PLANES } from './planes.js'
 import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirPestania, vitrinaLista } from './perfil-pestanias.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 import { vistaVigilada, claveDeVista } from './ultima-vista.js'
+import { rachaVisible } from './racha-visible.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
 let profileId = idParam
@@ -94,7 +95,7 @@ async function loadHeader() {
          ficha de persona es la persona. -->
     <h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1>
     ${profile.username ? `<p class="perfil-arroba">@${escapeHtml(profile.username)}</p>` : ''}
-    ${lineaDeQuienHtml({ xp, racha: profile.current_streak })}
+    ${lineaDeQuienHtml({ xp, racha: rachaVisible(profile) })}
     ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
     ${showcase ? `<div class="achievement-tile perfil-logro-chapa"><span class="icon rarity-${showcase.rarity || 'bronze'}">${achievementIconHtml(showcase, 16)}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}`
 
