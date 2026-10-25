@@ -41785,6 +41785,29 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1008 — Repetidas: el enlace a Cardmarket y juntar las del mismo producto
+
+PINGU, con las SWSH Black Star Promos en «Posibles repetidas»: «pon el enlace a
+Cardmarket… si son el mismo producto damos por hecho que es la misma carta,
+¿no puedes unir todos los que sean el mismo producto?».
+
+- Cada carta de un grupo lleva «Ver en Cardmarket» (`enlaceDeProducto`:
+  `/es/Pokemon/Products?idProduct=`, en otra pestaña), para mirar allí qué
+  versión es la de TCGGO antes de decidir. Sin producto, lo dice.
+- «Mismo producto y precio: juntar (N)» hace «Es la misma carta» en todas las
+  que ve el filtro y cumplen `mismasSeguras`. Pide un segundo toque, como el del
+  Prize Pack, y cada una se deshace en «Hechas». No basta con el producto:
+  TCGGO da a veces a una VERSIÓN el id de Cardmarket de la carta (la 806), y
+  juntarla se la comería. Así que, frente a la principal (la elegida o la
+  primera), todas las demás del grupo tienen que tener el mismo producto, el
+  mismo precio en céntimos (sin precio no cuenta como igual) y ninguna señal en
+  contra (PS, ataques, ilustrador). El Prize Pack queda fuera: tiene su botón.
+
+**Pruebas**: `test-tanda-1008-pantalla.mjs` (lo puro con el Burnet, el
+Professor's Research, un Duraludon con otro precio, un Eevee con otro ilustrador
+y un Pikachu sin producto; en /admin, los enlaces, la cuenta, el doble toque y
+que solo se junta el Burnet). Verdes la 987, la 299, la 312 y test-imports.
+
 ## Tanda 1007 — Repetidas con otro nombre y la «Normal» que no existe
 
 **Las repetidas.** PINGU, con las SM Black Star Promos: el Reshiram & Charizard

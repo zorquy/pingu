@@ -14,7 +14,7 @@ import { showToast } from '../../js/toast.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../../js/escaneo-carta.js'
 import { avisarALaWeb } from './avisar-web.js'
 import { faltaLaMigracion } from './catalogo-puro.js'
-import { ETIQUETAS, claveDeGrupo, senalesDelPar, sugerencia, etiquetaValida, esImpresionDeSiempre, principalDe, claseDe, precioCorto, quienLaTiene, filtrarGrupos, holoDelPrizePack } from './repetidas-puro.js'
+import { ETIQUETAS, claveDeGrupo, senalesDelPar, sugerencia, etiquetaValida, esImpresionDeSiempre, principalDe, claseDe, precioCorto, quienLaTiene, filtrarGrupos, holoDelPrizePack, enlaceDeProducto, mismasSeguras } from './repetidas-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const AVISO = 'Falta ejecutar supabase-migration-987-repetidas-en-versiones.sql en el SQL Editor: hasta entonces aquí no se puede decidir nada.'
@@ -57,6 +57,7 @@ function figura(c, { principal, grupo }) {
       ${principal ? '<span class="rep-chapa">Principal</span>' : `<button type="button" class="btn-secondary btn-small" data-rep-principal="${escapeHtml(c.id)}" data-rep-grupo="${escapeHtml(grupo)}">Hacer principal</button>`}
       <code>${escapeHtml(c.id)}</code>
       <span>${escapeHtml(precioCorto(c))} · ${escapeHtml(quienLaTiene(c))}</span>
+      ${enlaceDeProducto(c) ? `<a class="btn-secondary btn-small rep-cm" href="${escapeHtml(enlaceDeProducto(c))}" target="_blank" rel="noopener">Ver en Cardmarket</a>` : '<span class="rep-cm-no">sin producto en Cardmarket</span>'}
     </figcaption>
   </figure>`
 }
@@ -145,6 +146,9 @@ function pintar() {
   const prize = $('repetidasPrize')
   const np = vista === 'revisar' ? delPrizePack().length : 0
   if (prize && !prize.dataset.ocupado) { prize.hidden = !np; prize.textContent = prize.dataset.confirmar ? `¿Convertir ${np}? Pulsa otra vez` : `Prize Pack: la más cara es la Holo (${np})` }
+  const mismas = $('repetidasMismas')
+  const nm = vista === 'revisar' ? lasMismas().length : 0
+  if (mismas && !mismas.dataset.ocupado) { mismas.hidden = !nm; mismas.textContent = mismas.dataset.confirmar ? `¿Juntar ${nm}? Pulsa otra vez` : `Mismo producto y precio: juntar (${nm})` }
   const lote = $('repetidasLote')
   const n = vista === 'revisar' ? marcados().length : 0
   if (lote) { lote.hidden = !n; lote.textContent = `Convertir las marcadas (${n})` }
@@ -301,6 +305,43 @@ async function convertirPrizePack() {
   pintar()
 }
 
+// Las del mismo producto y precio, sin nada en contra (1008): «Es la misma
+// carta» en todas de una vez. Las que vea el filtro, con la principal elegida.
+const lasMismas = () => filtrarGrupos(datos.grupos, filtro).flatMap((g) => mismasSeguras(g, eleccion.get(claveDeGrupo(g))?.principal || null))
+
+async function juntarMismas() {
+  const boton = $('repetidasMismas')
+  // Dos toques, como el Prize Pack: pueden ser muchas (se deshacen en «Hechas»).
+  if (!boton.dataset.confirmar) {
+    boton.dataset.confirmar = '1'
+    pintar()
+    setTimeout(() => { delete boton.dataset.confirmar; pintar() }, 6000)
+    return
+  }
+  delete boton.dataset.confirmar
+  boton.dataset.ocupado = '1'
+  boton.disabled = true
+  let hechas = 0
+  let fallo = false
+  // A tandas: la lista trae como mucho mil grupos y detrás puede haber más.
+  for (let vuelta = 0; vuelta < 10 && !fallo; vuelta++) {
+    const lista = lasMismas()
+    if (!lista.length) break
+    for (const { carta, destino } of lista) {
+      boton.textContent = `Juntando ${hechas + 1}…`
+      const r = await resolver({ carta, destino, decision: 'misma' }, { silencio: true })
+      if (!r) { fallo = true; break }
+      hechas++
+    }
+    await cargar()
+  }
+  delete boton.dataset.ocupado
+  boton.disabled = false
+  showToast(`${hechas} ${hechas === 1 ? 'repetida juntada' : 'repetidas juntadas'} con su principal (mismo producto y precio). Las de otro producto o precio se quedan para ti. Se deshacen desde «Hechas».`, fallo ? 'error' : 'success')
+  if (hechas) avisarALaWeb()
+  pintar()
+}
+
 async function convertirMarcadas() {
   const lista = marcados()
   if (!lista.length) return
@@ -346,6 +387,7 @@ export async function iniciarRepetidas() {
     })
     $('repetidasLote')?.addEventListener('click', convertirMarcadas)
     $('repetidasPrize')?.addEventListener('click', convertirPrizePack)
+    $('repetidasMismas')?.addEventListener('click', juntarMismas)
     const todas = $('repetidasTodas')
     if (todas) {
       todas.innerHTML = '<option value="">Poner a todas las que se ven…</option>' + ETIQUETAS.map((t) => `<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join('')

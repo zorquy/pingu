@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (246) — PINGU-Claude (1008 — repetidas: Cardmarket y juntar las seguras)
+
+**Hecho**: en /admin → «Posibles repetidas», cada carta lleva «Ver en
+Cardmarket». Además hay un botón que junta como «la misma carta» todas las que
+tienen el mismo producto, el mismo precio y nada en contra (pide un segundo
+toque y se deshace desde «Hechas»). PINGU ejecutó la 1007. Y en el chat, la
+respuesta a Search Console: 844 «descubiertas sin indexar» es la cola de
+rastreo de un sitio nuevo, no un fallo. Queda pendiente mirar qué tipo de
+páginas son para recortar el sitemap si son temas del foro escasos.
+
+**Ficheros**: `admin/js/repetidas-puro.js` (`enlaceDeProducto`, `mismasSeguras`),
+`admin/js/repetidas.js`, `admin/index.html`, `admin/css/admin.css`, `SCHEMA.md`,
+`BITACORA.md`. Sin línea en `novedades.json`: es del panel. En `pruebas`:
+`test-tanda-1008-pantalla.mjs`.
+
+**Pendiente**: lo de la 237; ver los ejemplos de «Descubierta: actualmente sin
+indexar» cuando PINGU los pase.
+
 ## 2026-10-25 (245) — PINGU-Claude (1007 — repetidas con guion y la «Normal» que no existe)
 
 **Hecho**:

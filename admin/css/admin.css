@@ -1101,6 +1101,7 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
 .rep-fig img, .rep-sinfoto { width: 120px; height: 168px; object-fit: contain; border-radius: var(--radius-sm); background: var(--bg); display: grid; place-items: center; color: var(--text-mid); font-size: var(--t-xs); }
 .rep-fig figcaption { display: flex; flex-direction: column; gap: var(--e-xs); font-size: var(--t-xs); color: var(--text-mid); align-items: flex-start; }
 .rep-fig code { font-size: var(--t-2xs); word-break: break-all; }
+.rep-cm-no { color: var(--text-mid); }
 .rep-chapa { background: var(--navy-solid); color: var(--blanco-fijo); border-radius: 999px; padding: 0 var(--e-sm); font-weight: 700; font-size: var(--t-2xs); line-height: 20px; }
 .rep-datos { display: flex; flex-direction: column; gap: var(--e-sm); min-width: 0; }
 .rep-senales { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--e-xs); }

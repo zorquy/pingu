@@ -59,6 +59,35 @@ export function senalesDelPar(a, b) {
   return s
 }
 
+// El producto en Cardmarket (1008), para mirar allí qué versión es antes de
+// decidir: la redirección de `idProduct` lleva a la página de la carta.
+export function enlaceDeProducto(c) {
+  const id = productoDe(c)
+  return id ? `https://www.cardmarket.com/es/Pokemon/Products?idProduct=${id}` : null
+}
+
+// LAS QUE SE JUNTAN SOLAS (1008). PINGU: «si son el mismo producto de
+// Cardmarket damos por hecho que es la misma carta, ¿no puedes unir todas?».
+// Casi: TCGGO a veces da a una VERSIÓN el id de Cardmarket de la carta (la
+// 806), y juntarla se comería la versión. Así que solo cuando todo cuadra con
+// la principal: el mismo producto, el mismo precio (en céntimos; sin precio
+// no cuenta como igual) y ninguna señal en contra (PS, ataques, ilustrador).
+// El Prize Pack va por su botón. Devuelve las de un grupo, o [] si no se puede.
+const centimos = (c) => {
+  const v = Number(c?.precio?.cm_low)
+  return Number.isFinite(v) && v > 0 ? Math.round(v * 100) : null
+}
+export function mismasSeguras(g, elegida = null) {
+  if (esPrizePack(g)) return []
+  const idP = principalDe(g, elegida)
+  const p = (g?.cartas || []).find((c) => c.id === idP)
+  const otras = (g?.cartas || []).filter((c) => c.id !== idP)
+  if (!p || !otras.length || !productoDe(p) || centimos(p) == null) return []
+  const vale = (c) => productoDe(c) === productoDe(p) && centimos(c) === centimos(p)
+    && senalesDelPar(p, c).every((x) => x.aviso || x.coincide !== false)
+  return otras.every(vale) ? otras.map((carta) => ({ carta, destino: idP })) : []
+}
+
 // Con el mismo producto, son dos filas de una carta; con otro, una versión.
 export function sugerencia(a, b) {
   const pa = productoDe(a)
