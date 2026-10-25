@@ -17,7 +17,7 @@ check('PA4: la cuenta atrás dice días y horas', relojHasta('2026-10-21', ahora
 check('  …y en el último día, horas y minutos', relojHasta('2026-10-10', ahora + 30 * 6e4) === 'faltan 3 h y 30 min', relojHasta('2026-10-10', ahora + 30 * 6e4))
 check('  …y lo que ya salió no tiene reloj', relojHasta('2026-10-01', ahora) === '')
 const lz = leer('js/lanzamientos.js')
-check('  …el reloj corre cada minuto y lo pasado enlaza a sus cartas', /setInterval\(\(\) => \{[\s\S]{0,160}relojHasta/.test(lz) && /Ver sus cartas →/.test(lz) && !/>Ya salió</.test(lz))
+check('  …el reloj corre cada minuto y lo pasado enlaza a sus cartas', /setInterval\(\(\) => \{[\s\S]{0,160}(relojHasta|cuentaDelDestacado)/.test(lz) && /Ver sus cartas →/.test(lz) && !/>Ya salió</.test(lz))
 const cm = leer('js/carta-mercado.js')
 check('PA7: el precio se muda a la columna de la derecha en el PC', /function colocarPrecioAlLado/.test(cm) && /datos\.prepend\(caja\)/.test(cm) && /min-width: 1100px/.test(cm))
 // Desde la 916 «Añadir» es el «+» de «− Tienes N +», y sin copias ocupa la fila entera.
