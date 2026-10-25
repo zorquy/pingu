@@ -41785,6 +41785,49 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1013 — Seis pequeños de lógica del repaso
+
+Los seis de «lógica» de la propuesta (PINGU: «adelante con lo recomendado»),
+después de la 1011 por ser rápidos y verse.
+
+- **L1 · La pestaña inicial de Mis partidas es la que tiene algo**:
+  `pestaniaConAlgo` (`js/matriz-partidas.js`, pura): con torneos, Torneos; sin
+  torneos y con partidas sueltas, Partidas; sin nada, Torneos (ahí está
+  «Apuntar un torneo»). Manda la dirección (`?ver=`), luego la última que se
+  abrió (`pokedoc-partidas-vista`, que se escribe al pulsar una pestaña) y, si
+  no hay ninguna, la que tiene algo al llegar los datos (`cargar`). Antes era
+  siempre Torneos: con 14 sueltas y cero torneos, «Aquí saldrán tus torneos».
+- **L2 · Una sola regla para los mensajes del foro**: el mensaje que abre un
+  tema es una fila de `forum_posts`, así que `contarActividadDelForo` ya no
+  suma los temas aparte (los contaba dos veces: «1» en la chapa de alguien con
+  un tema, y la lista «ningún mensaje» porque apartaba el que abre). La lista
+  de Mensajes tampoco lo aparta: la cifra y la lista cuentan lo mismo.
+- **L3 · El podio de Comunidad en el móvil** (`css/comunidad.css`, ≤ 560 px):
+  en rejilla `cara | nombre y XP | medalla` con áreas; el nombre tiene su fila
+  y ya no cede ante «+3.590 XP este mes» y «ORO» («Br…»).
+- **L6 · Una sola cuenta atrás en el destacado de Lanzamientos**:
+  `cuentaDelDestacado(fecha, ahora)` (pura): con más de tres días, «Faltan N
+  días»; con tres o menos, la precisa («Faltan 1 día y 4 h», «Faltan 3 h y 30
+  min»); el reloj de cada minuto la repinta entera. Antes salían las dos, una
+  debajo de la otra. `relojHasta` sigue para la 788.
+- **L9 · El logo de /auth sin hueco**: `.auth-logo` es `inline-flex` con
+  `gap`, y el gap caía entre el texto «Poke» y el `<span>Doc</span>`. El nombre
+  va en UN envoltorio (`.auth-logo-nombre`, con `<b>Doc</b>`).
+- **L12 · Un icono que no existe sale como el de por defecto**:
+  `contentIconHtml` dibujaba como TEXTO cualquier valor desconocido («award»
+  en un trofeo). Ahora una palabra con forma de nombre de icono
+  (`/^[a-z][a-zA-Z0-9]*$/`) que `icons.js` no tiene cae al `fallback`; un
+  emoji de verdad se sigue respetando. Y /admin → Logros no guarda un nombre
+  que no exista («No hay ningún icono que se llame…»).
+
+**Pruebas**: `test-tanda-1013.mjs` (lo puro: la pestaña, la cuenta atrás, el
+icono desconocido, la regla de los mensajes, la validación de /admin, el
+envoltorio del logo; y en pantalla: /auth sin hueco, el podio a 390 px con
+«Cynthia de Sinnoh» entera y la XP debajo, Mis partidas con tres sueltas y
+sin torneos abriendo en Partidas y recordando la pestaña). Al día: 788.
+Pasadas: 301, 306, 627, 628, 790, 859, 899, partidas-pagina (386 y 893 rojas
+de antes).
+
 ## Tanda 1011 — Rendimiento: Mi colección por vistas y las rondas por import()
 
 Lo primero de la propuesta del repaso (PINGU: «adelante con lo recomendado»).

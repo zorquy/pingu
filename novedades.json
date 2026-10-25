@@ -33,6 +33,9 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "Mis partidas abre en la pestaña que tiene algo (tus partidas sueltas, si no hay torneos) y recuerda la última que miraste.", "enlace": "/mis-partidas" },
+    { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "La cuenta de mensajes del foro en los perfiles ya cuadra con la lista: el mensaje que abre un tema cuenta como mensaje.", "enlace": "/usuarios" },
+    { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "Pequeños: el podio de Comunidad en el móvil enseña los nombres enteros, Lanzamientos dice la cuenta atrás una sola vez y el logo de la pantalla de entrar ya no sale con un hueco.", "enlace": "/lanzamientos" },
     { "fecha": "2026-10-25", "tipo": "mejora", "texto": "Cartas y Mi colección cargan más ligeras: el escáner, la selección, la Pokédex y el importador solo se bajan cuando los abres. La ficha de un torneo se pinta antes de bajar las rondas.", "enlace": "/cartas" },
     { "fecha": "2026-10-25", "tipo": "mejora", "texto": "Escribir una guía ya está a mano: un botón en Aprender y, en tu portada, la invitación en el sitio del calendario repetido. Cualquiera puede escribirla; la revisamos y sale en Aprender.", "enlace": "/aprender" },
     { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "En tu portada, la ficha del foro cuenta los temas que sigues con mensajes que no has visto (antes decía «Nada nuevo» aunque los hubiera), y la del próximo lanzamiento enseña el logo del set.", "enlace": "/" },

@@ -76,8 +76,10 @@ export function contentIconHtml(valor, size = 24, fallback = 'bookOpen') {
   if (nombre) return icons[nombre](size)
 
   const v = String(valor ?? '').trim()
-  // Ni icono ni emoji conocido: si hay algo escrito, se respeta.
-  if (v) return `<span style="font-size:${size}px; line-height:1;">${escapeHtml(v)}</span>`
+  // Un emoji de verdad se respeta; una PALABRA que no es ningún icono (un
+  // nombre mal escrito desde /admin) sale como el de por defecto, no como
+  // texto («award» en un trofeo, 1013 L12).
+  if (v && !/^[a-z][a-zA-Z0-9]*$/.test(v)) return `<span style="font-size:${size}px; line-height:1;">${escapeHtml(v)}</span>`
   return icons[fallback] ? icons[fallback](size) : icons.bookOpen(size)
 }
 

@@ -19,7 +19,7 @@ import { escapeHtml, getSession } from './app.js'
 import { showToast } from './toast.js'
 import { arquetipoDeMazo, claveDeArquetipo, claveCanonicaDeMazo, dexesDeNombre } from './torneos/arquetipos.js'
 import { urlDeSprite, spriteDeCarta, spriteDeObjeto, atributosDeRespaldo } from './torneos/sprites-pokemon.js'
-import { construirMatriz, resumen, porcentaje, miResultado, filtrarTorneos, enfrentamientosDe } from './matriz-partidas.js'
+import { construirMatriz, resumen, porcentaje, miResultado, filtrarTorneos, enfrentamientosDe, pestaniaConAlgo } from './matriz-partidas.js'
 import { montarSelectorMazo } from './torneos/selector-mazo.js'
 import {
   arquetipoDeMazoGuardado,
@@ -1326,6 +1326,9 @@ function rellenarFormConPartida(p, esRonda) {
 // anterior —como en trainingcourt—, hasta que la partida está decidida.
 // El resultado de la partida no se elige: sale de los juegos.
 const CLAVE_FORMATO = 'pokedoc-partidas-formato'
+const CLAVE_VISTA = 'pokedoc-partidas-vista'
+// Hasta que llegan los datos no se sabe qué pestaña tiene algo (1013, L1).
+let pestaniaInicialPendiente = false
 const PALABRA_JUEGO = { W: 'Ganado', L: 'Perdido', T: 'Empate' }
 const PALABRA_PARTIDA = { W: 'Ganada', L: 'Perdida', T: 'Empate' }
 const LETRA_JUEGO = { W: 'V', L: 'D', T: 'E' }
@@ -1732,6 +1735,11 @@ async function cargar() {
   torneosLog = torneos
   rellenarFiltroYSugerencias()
   repintar()
+  if (pestaniaInicialPendiente) {
+    pestaniaInicialPendiente = false
+    const inicial = pestaniaConAlgo({ torneos: (torneosLog || []).length + deTorneos.length, sueltas: apuntadas.length })
+    if (inicial !== 'torneos') document.querySelector(`#partidasTabs .seg-btn[data-vista="${inicial}"]`)?.click()
+  }
 }
 
 async function init() {
@@ -1826,9 +1834,21 @@ async function init() {
       if (btn.dataset.vista === 'stats') pintarGraficos()
     })
   )
+  // La pestaña con la que se abre (1013, L1): la de la dirección; si no, la
+  // de la última vez; si no, la que TIENE algo. Antes era siempre «Torneos»,
+  // y con 14 partidas sueltas y cero torneos la página abría en «Aquí
+  // saldrán tus torneos» con las partidas en la pestaña de al lado.
   const verPedida = new URLSearchParams(location.search).get('ver')
   const botonPedido = verPedida && document.querySelector(`#partidasTabs .seg-btn[data-vista="${CSS.escape(verPedida)}"]`)
   if (botonPedido) botonPedido.click()
+  else {
+    let recordada = null
+    try { recordada = localStorage.getItem(CLAVE_VISTA) } catch {}
+    const boton = recordada && document.querySelector(`#partidasTabs .seg-btn[data-vista="${CSS.escape(recordada)}"]`)
+    if (boton && boton.dataset.vista !== 'torneos') boton.click()
+    else pestaniaInicialPendiente = !boton
+  }
+  document.querySelectorAll('#partidasTabs .seg-btn').forEach((btn) => btn.addEventListener('click', () => { try { localStorage.setItem(CLAVE_VISTA, btn.dataset.vista) } catch {} }))
 
   $('btnApuntarPartida').addEventListener('click', () => {
     // Si ya está abierto en modo suelto, el botón lo cierra; si está en

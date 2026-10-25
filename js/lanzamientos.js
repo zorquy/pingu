@@ -49,6 +49,16 @@ export function relojHasta(fecha, ahora = Date.now()) {
   return `faltan ${horas} h y ${minutos} min`
 }
 
+// UNA cuenta atrás en el destacado (1013, L6): antes decía «Faltan 12 días»
+// y debajo «faltan 11 días y 6 h». Con más de tres días, los días a secas;
+// con tres o menos, la precisa, que es cuando importa.
+export function cuentaDelDestacado(fecha, ahora = Date.now()) {
+  const dias = diasHasta(fecha, new Date(ahora).toISOString().slice(0, 10))
+  if (dias > 3) return cuentaAtras(dias)
+  const reloj = relojHasta(fecha, ahora)
+  return reloj ? `Faltan ${reloj.slice('faltan '.length)}` : cuentaAtras(dias)
+}
+
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
 export function fechaBonita(fecha) {
@@ -220,7 +230,7 @@ function destacadoHtml(e) {
         <h2>${e.href ? `<a href="${escapeHtml(e.href)}">${escapeHtml(e.nombre)}</a>` : escapeHtml(e.nombre)}</h2>
         <p class="subtext">${detalleHtml(e)}</p>
       </div>
-      <span class="lanzamiento-cuenta lanzamiento-cuenta-grande">${cuentaAtras(diasHasta(e.fecha))}<small class="lanz-reloj" data-fecha="${escapeHtml(e.fecha)}">${relojHasta(e.fecha)}</small></span>
+      <span class="lanzamiento-cuenta lanzamiento-cuenta-grande lanz-reloj" data-fecha="${escapeHtml(e.fecha)}">${cuentaDelDestacado(e.fecha)}</span>
     </div>`
 }
 
@@ -266,7 +276,7 @@ async function pintar(mercado) {
     clearInterval(pintar.reloj)
     pintar.reloj = setInterval(() => {
       const r = destacadoEl.querySelector('.lanz-reloj')
-      if (r) r.textContent = relojHasta(r.dataset.fecha)
+      if (r) r.textContent = cuentaDelDestacado(r.dataset.fecha)
     }, 60_000)
   }
   if (proximos.length) {

@@ -194,3 +194,12 @@ export function filtrarTorneos(torneos, texto = '', estado = '') {
     return donde.includes(q)
   })
 }
+
+// Pura (1013, L1): con torneos, Torneos; sin torneos y con partidas sueltas,
+// Partidas; sin nada, Torneos, que es donde está «Apuntar un torneo» y donde
+// entran solos los de PokeDoc.
+export function pestaniaConAlgo({ torneos = 0, sueltas = 0 }) {
+  if (torneos > 0) return 'torneos'
+  if (sueltas > 0) return 'sueltas'
+  return 'torneos'
+}

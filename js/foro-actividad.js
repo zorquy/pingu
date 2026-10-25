@@ -32,7 +32,10 @@ export async function contarActividadDelForo(userId) {
   // Sin foro montado no hay nada que contar, y desde luego no hay que
   // enseñar un error en una chapa.
   if (faltaElForo(error)) return 0
-  return (nTemas || 0) + (nMensajes || 0) + (nComentarios || 0)
+  // El mensaje que abre un tema ES un mensaje de `forum_posts` (1013, L2):
+  // sumar los temas aparte lo contaba dos veces, y la chapa decía «1» de
+  // alguien con un tema y la lista de abajo «ningún mensaje».
+  return (nMensajes || 0) + (nComentarios || 0)
 }
 
 // Un comentario en una noticia o en una guía (876): una noticia ya no abre
@@ -134,21 +137,9 @@ export async function pintarActividadDelForo(contenedor, userId, { esMio = false
   const listaTemas = temas || []
   const listaMensajes = mensajes || []
 
-  // El primer mensaje de un tema ES el tema: enseñarlo también en la lista
-  // de mensajes sería contar dos veces lo mismo. Se piden los mensajes de
-  // sus temas ordenados y se aparta el primero de cada uno.
-  let aperturas = new Set()
-  if (listaTemas.length) {
-    const { data: suyos } = await supabase
-      .from('forum_posts')
-      .select('id, thread_id, created_at')
-      .in('thread_id', listaTemas.map((t) => t.id))
-      .order('created_at', { ascending: true })
-    const primeroDe = {}
-    for (const p of suyos || []) if (!primeroDe[p.thread_id]) primeroDe[p.thread_id] = p.id
-    aperturas = new Set(Object.values(primeroDe))
-  }
-  const respuestas = listaMensajes.filter((m) => !aperturas.has(m.id))
+  // Desde la 1013 (L2) el mensaje que abre un tema cuenta como mensaje,
+  // aquí y en la chapa de la pestaña: una sola regla, la del foro.
+  const respuestas = listaMensajes
 
   const listaComentarios = comentarios || []
   const [{ data: foros }, { data: temasDeMensajes }, { data: articulos }] = await Promise.all([

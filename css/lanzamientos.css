@@ -313,14 +313,7 @@ a.lanzamiento-tarjeta:hover { border-color: var(--navy); }
   }
 }
 
-/* La cuenta atrás que corre y el enlace de lo que ya salió (788, PA4). */
-.lanz-reloj {
-  display: block;
-  margin-top: var(--e-xs);
-  font-size: var(--t-xs);
-  font-weight: 600;
-  opacity: 0.85;
-}
+/* La cuenta atrás que corre va en la propia chapa desde la 1013 (una línea). */
 
 .lanzamiento-ver {
   margin-left: auto;

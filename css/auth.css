@@ -54,8 +54,11 @@
   transform: rotate(-6deg);
 }
 
-.auth-logo span {
+/* El nombre va en UN envoltorio (1013, L9): el `gap` del flex se metía
+   entre «Poke» y «Doc» y salía «Poke   Doc». */
+.auth-logo-nombre b {
   color: var(--navy);
+  font-weight: inherit;
 }
 
 /* El título y su subtexto viven DENTRO de cada paso (#stepLogin…), no

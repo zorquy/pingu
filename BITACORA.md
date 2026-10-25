@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (250) — PINGU-Claude (1013 — seis pequeños de lógica)
+
+**Hecho**: los seis de lógica de la propuesta del repaso. Mis partidas abre en
+la pestaña que tiene algo y recuerda la última; el perfil cuenta los mensajes
+del foro con una sola regla (el que abre un tema cuenta); el podio de
+Comunidad en el móvil ya no corta los nombres; Lanzamientos dice la cuenta
+atrás una sola vez; el logo de /auth sin hueco; un icono que no existe sale
+como el de por defecto y /admin no deja guardarlo.
+
+**Ficheros**: `js/mis-partidas.js`, `js/matriz-partidas.js`,
+`js/foro-actividad.js`, `css/comunidad.css`, `js/lanzamientos.js`,
+`css/lanzamientos.css`, `auth.html`, `css/auth.css`, `js/content-icon.js`,
+`admin/js/admin.js`, `SCHEMA.md`, `novedades.json`, `BITACORA.md`. En
+`pruebas`: `test-tanda-1013.mjs` (nueva), 788 al día.
+
+**Pendiente**: 1012 (portada), 1014, 1015, 1016 (letra B), 1017; las capturas
+del carrusel; los ejemplos de Search Console; lo de la 237.
+
 ## 2026-10-25 (249) — PINGU-Claude (1011 — Mi colección por vistas, ronda.js por import())
 
 **Hecho**: lo primero de la propuesta del repaso («adelante con lo

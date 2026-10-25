@@ -1027,10 +1027,18 @@ function openAchievementModal(achievement) {
   attachEmojiPicker(document.getElementById('aEmoji'))
 
   document.getElementById('btnSaveAchievement').addEventListener('click', async () => {
+    // Un nombre de icono que icons.js no conoce no se guarda (1013, L12):
+    // en el trofeo saldría la medalla de por defecto, sin que nadie se
+    // entere de que se escribió mal. Un emoji de verdad sí vale.
+    const iconoEscrito = document.getElementById('aEmoji').value.trim()
+    if (/^[a-z][a-zA-Z0-9]*$/.test(iconoEscrito) && !icons[iconoEscrito]) {
+      showToast(`No hay ningún icono que se llame «${iconoEscrito}»: elige uno de la lista.`)
+      return
+    }
     const payload = {
       title: document.getElementById('aTitle').value.trim(),
       description: document.getElementById('aDescription').value.trim(),
-      emoji: document.getElementById('aEmoji').value.trim(),
+      emoji: iconoEscrito,
       icon_url: document.getElementById('aIconUrl').value.trim() || null,
       cover_image: document.getElementById('aCoverImage').value.trim() || null,
       rarity: document.getElementById('aRarity').value,
