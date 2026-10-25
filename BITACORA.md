@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (254) — PINGU-Claude (1016 — la letra, opción B)
+
+**Hecho**: los títulos, botones y chapas de toda la web van en Inter;
+Fredoka queda para la marca (los logos) y las cifras grandes (la cartera, el
+perfil, el marcador de un torneo, los retos…). Dos tokens en `style.css`
+(`--font-display`, `--font-marca`) y 29 reglas de cifras cambiadas en sus
+hojas. Suite entera en carriles: el resultado va al final de esta entrada.
+
+**Ficheros**: `css/style.css` y las hojas con cifras (`mi-coleccion`,
+`torneos`, `retos`, `retos-juego`, `partidas`, `hoy`, `comunidad`,
+`aprender`, `meta`, `laboratorio`, `carta`, `mas-caro`, `ordena-precio`,
+`constructor`, `curso`, `repeticiones`), `SCHEMA.md`, `novedades.json`,
+`BITACORA.md`; y por la suite, `css/torneos.css` (el botón del mazo se parte
+a 320 px), `css/retos.css` + `js/retos.js` (el menú de /retos cabe en un
+iPhone con Inter: cabecera en una fila, «hoy» escondido en el móvil, arte a
+44 px) y `mi-coleccion.html`/`cartas.html` (el enlace a Ajustes, botón
+suave). En `pruebas`: `test-tanda-1016-pantalla.mjs` (nueva), 782 al día, y
+al día por lo que la 1011–1015 movió: 309, 315, 368, 384, 427, 535, 749,
+817, 836, 989.
+
+**Suite entera en carriles**: 679 verdes y 89 rojos la primera pasada. De
+los rojos, 38 pedían el PostgreSQL de pruebas (estaba apagado; arrancado, 36
+pasan y 848 depende del día de la semana), 4 eran de la letra (torneos-15,
+298, 989; arreglados en CSS) y 12 miraban ficheros que la 1011 movió o
+diseños de la 1012–1015 (pruebas puestas al día). Quedan los de siempre:
+255, 269, 308, 310, 316, 326, 386, 391, 446, 467, 493, 514, 532, 543, 586,
+648, 651, 653, 780, 782 (Mensajes), 789, 794, 829, 834, 848, 851, 852, 874,
+885, 893, 943, 957, 961 y test-correos.
+
+**Pendiente**: 1017 (consultas: `portada_hoy()` y `foro_resumen()`, con
+migración, y la portada en tres olas); las capturas del carrusel; los
+ejemplos de Search Console; lo de la 237.
+
 ## 2026-10-25 (253) — PINGU-Claude (1015 — Mi colección y torneo)
 
 **Hecho**: el Panel de Mi colección compacto (una línea bajo Estadísticas,

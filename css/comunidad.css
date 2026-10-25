@@ -53,7 +53,7 @@
 
 .com-cifra b {
   display: block;
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-2xl);
   font-weight: 600;
   line-height: 1.1;

@@ -2180,7 +2180,7 @@ button.lab-pila:hover {
 }
 
 .lab-cifra-valor {
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-weight: 700;
   font-size: var(--t-xl);
   color: var(--navy);

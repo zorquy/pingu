@@ -302,7 +302,7 @@
 
 .carta-mov-dano {
   margin-left: auto;
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-xl);
   color: var(--navy);
 }
@@ -820,7 +820,7 @@
 
 .juego-cifras dd {
   margin: 0;
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-2xl);
   color: var(--navy);
   line-height: 1.1;
@@ -1211,7 +1211,7 @@
   }
   .carta-precio-corto b {
     color: var(--text);
-    font-family: var(--font-display);
+    font-family: var(--font-marca);
     font-size: var(--t-xl);
     font-variant-numeric: tabular-nums;
   }

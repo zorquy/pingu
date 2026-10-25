@@ -380,7 +380,7 @@
 }
 
 .cm-total strong {
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-xl);
   color: var(--text);
 }
@@ -904,7 +904,7 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
 .cm-contador-num {
   min-width: 32px;
   text-align: center;
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-weight: 700;
   font-size: var(--t-2xl);
 }

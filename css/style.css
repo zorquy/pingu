@@ -108,7 +108,12 @@
 
   --container-w: 1160px;
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
-  --font-display: 'Fredoka', 'Inter', sans-serif;
+  /* La letra de los títulos es Inter desde la 1016 (opción B del repaso):
+     Fredoka, redonda, se leía infantil en un título largo. Queda para la
+     marca y las cifras grandes (`--font-marca`), que es lo que hace
+     reconocible a PokeDoc. */
+  --font-display: 'Inter', sans-serif;
+  --font-marca: 'Fredoka', 'Inter', sans-serif;
 }
 
 /* S780.6 */
@@ -203,11 +208,20 @@ body {
 
 h1, h2, h3,
 .btn-primary, .btn-secondary, .btn-outline,
-.nav-logo, .auth-logo,
 .hero-pill, .badge, .pill, .rarity-chip,
-.perfil-cifra .valor, .hero-panel-stat .value, .xp-display, .achievement-xp,
 .eyebrow {
   font-family: var(--font-display);
+  font-weight: 600;
+}
+
+h1, h2, h3 {
+  letter-spacing: -0.01em;
+}
+
+/* La marca y las cifras grandes, en Fredoka (1016). */
+.nav-logo, .auth-logo, .pie-marca,
+.perfil-cifra .valor, .hero-panel-stat .value, .xp-display, .achievement-xp {
+  font-family: var(--font-marca);
   font-weight: 600;
 }
 
@@ -1631,7 +1645,7 @@ button.btn-block {
 }
 
 .pie-marca {
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-xl);
   font-weight: 800;
   color: var(--text);

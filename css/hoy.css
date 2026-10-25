@@ -50,7 +50,7 @@
 }
 
 .hoy-valor b {
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-3xl);
   font-weight: 800;
   line-height: 1.05;

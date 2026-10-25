@@ -31,7 +31,11 @@
   font-weight: 700;
 }
 
-.rt-pildora span {
+/* Los chips con icono (la XP y la racha). «1/6 hoy» es texto y se queda
+   en línea: si fuera flex, el «hoy» (que el móvil esconde, 1016) iría a
+   su propia caja. */
+.rt-xp,
+.rt-fuego {
   display: inline-flex;
   align-items: center;
   gap: var(--e-xs);
@@ -538,7 +542,7 @@
 
 .rt-cifra b {
   display: block;
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-2xl);
 }
 
@@ -571,7 +575,7 @@
 
 .rt-com-cab { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-md) var(--e-lg); }
 .rt-com-cab .subtext { margin: var(--e-xs) 0 0; }
-.rt-com-grande b { display: block; font-family: var(--font-display); font-size: var(--t-3xl); line-height: 1; }
+.rt-com-grande b { display: block; font-family: var(--font-marca); font-size: var(--t-3xl); line-height: 1; }
 .rt-com-grande small { color: var(--text-mid); font-size: var(--t-sm); }
 .rt-com-chip { display: inline-flex; align-items: center; gap: var(--e-xs); padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--bg); color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }
 .rt-com-chip.sube { background: var(--success-bg); color: var(--success); }
@@ -646,17 +650,29 @@
 
 /* En el móvil: dos por fila y el dibujo más bajo. */
 @media (max-width: 760px) {
+  /* Los seis caben en la pantalla de un iPhone sin bajar (989), también
+     con Inter (1016): la cabecera en una línea, menos aire y el arte más
+     bajo. Un nombre de dos líneas no se corta. */
+  .rt-cabecera {
+    flex-wrap: nowrap;
+    margin-bottom: var(--e-sm);
+  }
+
+  .rt-perfecto {
+    margin-bottom: var(--e-sm);
+  }
+
   .rt-lista {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--e-sm);
   }
 
   .rt-arte {
-    height: 56px;
+    height: 44px;
   }
 
   .rt-arte > :not(.rt-sello):not(.rt-nuevo) {
-    transform: scale(0.4);
+    transform: scale(0.34);
   }
 
   .rt-sello,
@@ -675,11 +691,13 @@
   }
 
   .rt-cuerpo {
-    padding: var(--e-xs) var(--e-sm) var(--e-sm);
+    gap: 2px;
+    padding: var(--e-xs) var(--e-sm);
   }
 
   .rt-nombre {
     font-size: var(--t-sm);
+    line-height: 1.2;
   }
 
   .rt-reto-estado {
@@ -688,6 +706,11 @@
 
   /* La XP de cada uno ya suma en la píldora: aquí no cabe en una línea. */
   .rt-estado-xp {
+    display: none;
+  }
+
+  /* «hoy» sobra: la píldora ya es lo de hoy (1016, y así cabe la cabecera). */
+  .rt-pildora .cab-largo {
     display: none;
   }
 

@@ -1052,7 +1052,7 @@ button.perfil-cifra:hover .rotulo {
 
 .perfil-cifra .valor {
   color: var(--text);
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-2xl);
 }
 

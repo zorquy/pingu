@@ -41785,6 +41785,62 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1016 — La letra: Inter en los títulos, Fredoka en la marca y las cifras (opción B)
+
+La V1 del repaso, con la opción B que recomendé y PINGU aceptó («adelante
+con lo recomendado»). Fredoka, redonda y simpática, se leía infantil en un
+título largo («Gradear o no gradear: lo que cuesta y lo que vale») y restaba
+seriedad en el foro y en las guías de competitivo; Inter ya estaba (es la
+del cuerpo), así que no cuesta un byte.
+
+- **Dos tokens** en `css/style.css`: `--font-display` pasa a `'Inter',
+  sans-serif` (los títulos, los botones, las chapas, todo lo que lo pedía:
+  112 reglas en 40 hojas, sin tocarlas) y nace `--font-marca: 'Fredoka',
+  'Inter', sans-serif`. Los títulos llevan `letter-spacing: -0.01em`, que
+  Inter a 600 lo agradece.
+- **Qué sigue en Fredoka**: la marca (`.nav-logo`, `.auth-logo`,
+  `.pie-marca`) y las cifras grandes: en style.css `.perfil-cifra .valor`,
+  `.hero-panel-stat .value`, `.xp-display`, `.achievement-xp`; y en su hoja
+  29 reglas más (la cartera y las cifras del Panel, el marcador y las mesas
+  de un torneo, las cifras de retos, partidas, Hoy, Comunidad, Aprender,
+  el laboratorio, la carta, los retos de precio, el constructor, el curso y
+  las repeticiones), cambiadas por un guion que tocó solo los bloques de
+  esos selectores. Una cifra nueva que quiera la letra de la marca pide
+  `var(--font-marca)`; un título, nada (ya es Inter).
+
+**Pruebas**: `test-tanda-1016-pantalla.mjs` (los tokens, las hojas con
+cifras, y en pantalla: el título de Aprender y los botones en Inter, los dos
+logos en Fredoka, la cifra de la cartera y las del perfil en Fredoka). Al día:
+782 (los títulos de las cuatro páginas, en Inter). Suite entera en carriles:
+el resultado, en la bitácora.
+
+**Lo que la suite entera sacó** (y por qué una tanda «pequeña» que toca
+todas las páginas la pide): Inter es más ANCHA que Fredoka al mismo cuerpo,
+y dos sitios del móvil estaban medidos al milímetro con la de antes.
+«Usar un mazo del constructor» (`.torneo-desde-mazo .btn-secondary`) se
+salía 2 px a 320 px: ahora se parte (`white-space: normal`, `max-width:
+100%`). Y el menú de /retos en un iPhone 13 (la 989: los seis retos a la
+vista sin bajar) tenía 6 px de margen con Fredoka y con Inter se pasaba
+55: la cabecera se iba a dos filas (el título y la píldora) y un nombre de
+dos líneas hacía la tarjeta 17 px más alta. En `retos.css` (≤ 760 px): la
+cabecera en una fila (el «hoy» de «1/6 hoy» en `cab-largo`, que el móvil
+esconde —la píldora ya es lo de hoy—), menos aire bajo la cabecera y la
+barra del día, el arte a 44 px y las tarjetas sin hueco de más. Y de paso
+`.rt-pildora span` pasó a ser `.rt-xp, .rt-fuego`: «1/6 hoy» es texto, y un
+hijo de un flex se vuelve bloque aunque le pidas `inline`.
+
+Lo demás que salió rojo no era de la letra: doce pruebas miraban ficheros
+que la 1011 mudó (la Pokédex en `mc-pokedex.css`, el aro del escáner en
+`mc-escaner.css`, `porNumero` en los módulos, la expansión más completa en
+`extras.js`) o diseños de la 1012–1015 (el orden del móvil de la portada,
+seis colores de tarjeta por seis categorías, la cabecera de expansión a dos
+líneas, la pestaña inicial de Mis partidas, el enlace a Ajustes —ahora botón
+suave, que un `.link-btn` suelto era «pocho» para la 465—) y la 817 contaba
+catorce pasadas cuando la 993 puso la quince. Todas al día. Y treinta y ocho
+pedían el PostgreSQL de pruebas, que estaba apagado desde que se reinició
+el contenedor: `su postgres -c 'pg_ctl -D /var/tmp/pg364 -o "-p 5433 -k
+/var/tmp" start'` lo levanta, y con él pasan.
+
 ## Tanda 1015 — Mi colección y torneo: lo que quedaba de la propuesta del repaso
 
 Los nueve pequeños de «Mi colección y torneo» y los dos del móvil (PINGU:

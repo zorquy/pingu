@@ -82,7 +82,7 @@
   background: var(--navy-solid);
   display: grid;
   place-items: center;
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-xs);
 }
 .aprender-seguir-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }

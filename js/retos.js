@@ -112,7 +112,7 @@ function pintarJuego(juego, r) {
 let pararCuenta = () => {}
 function pintarDia(hechos, numeros, session) {
   const total = RETOS.length
-  const partes = [`<span id="rtHechos">${hechos}/${total} hoy</span>`]
+  const partes = [`<span id="rtHechos">${hechos}/${total} <span class="cab-largo">hoy</span></span>`]
   if (numeros) partes.push(`<span class="rt-xp">${icons.zap(14)} +${numeros.xpHoy || 0} XP</span>`)
   if (numeros?.racha >= 1) partes.push(`<span class="rt-fuego">${icons.flame(14)} ${numeros.racha} ${numeros.racha === 1 ? 'día' : 'días'}</span>`)
   $('rtDia').innerHTML = partes.join('')

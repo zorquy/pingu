@@ -676,12 +676,12 @@
 }
 
 .partidas-hero-anillo::before { content: ''; position: absolute; inset: 12px; border-radius: 50%; background: var(--white); }
-.partidas-hero-anillo b { position: relative; font-family: var(--font-display); font-size: var(--t-2xl); line-height: 1; text-align: center; }
+.partidas-hero-anillo b { position: relative; font-family: var(--font-marca); font-size: var(--t-2xl); line-height: 1; text-align: center; }
 .partidas-hero-anillo small { display: block; margin-top: var(--e-xs); font-size: var(--t-xs); font-weight: 600; color: var(--text-mid); }
 
 .partidas-hero-datos { display: grid; gap: var(--e-sm); min-width: 0; }
 .partidas-hero-cifras { display: flex; flex-wrap: wrap; gap: var(--e-lg); }
-.partidas-hero-cifras b { display: block; font-family: var(--font-display); font-size: var(--t-xl); }
+.partidas-hero-cifras b { display: block; font-family: var(--font-marca); font-size: var(--t-xl); }
 .partidas-hero-cifras small { color: var(--text-mid); font-size: var(--t-xs); }
 
 .partidas-hero-mazo {

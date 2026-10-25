@@ -295,7 +295,7 @@
   border-radius: var(--radius-pill);
   background: var(--danger-solid);
   color: var(--blanco-fijo);
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-2xl);
   line-height: 1.3;
   font-variant-numeric: tabular-nums;
@@ -383,7 +383,7 @@
   border-radius: var(--radius-pill);
   background: var(--danger-solid);
   color: var(--blanco-fijo);
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-xl);
   font-weight: 700;
   line-height: 1.3;

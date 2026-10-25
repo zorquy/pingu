@@ -73,7 +73,7 @@
   border-radius: 50%;
   background: var(--navy-solid);
   color: var(--blanco-fijo);
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-lg);
   font-weight: 700;
   box-shadow: 0 4px 12px rgb(0 0 0 / 35%);
@@ -105,7 +105,7 @@
 }
 
 .op-precio {
-  font-family: var(--font-display);
+  font-family: var(--font-marca);
   font-size: var(--t-xl);
   font-weight: 700;
 }
