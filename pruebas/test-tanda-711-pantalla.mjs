@@ -57,7 +57,7 @@ console.log('── 1b. Los ocho tipos se leen, en los dos temas ──')
   // cambio de proporción que deje el amarillo ilegible se ve aquí, aunque
   // la pantalla solo pinte dos tipos.
   const { readFileSync } = await import('node:fs')
-  const hoja = readFileSync('/home/user/pingu/css/mi-coleccion.css', 'utf8')
+  const hoja = readFileSync('/home/user/pingu/css/mc-pokedex.css', 'utf8') // 1011: la Pokédex tiene su hoja
   const estilo = readFileSync('/home/user/pingu/css/style.css', 'utf8')
   const pBg = Number(hoja.match(/--pdx-bg: color-mix\(in srgb, var\(--tipo-energia\) (\d+)%/)[1]) / 100
   const pTi = Number(hoja.match(/--pdx-tinta: color-mix\(in srgb, var\(--tipo-energia\) (\d+)%/)[1]) / 100

@@ -65,7 +65,7 @@ console.log('── 4. Y el escáner NO se cierra ──')
 {
   // Volver a abrirlo para repetir el tiro es la parte que convierte un
   // fallo de encuadre en abandonar.
-  const mc = readFileSync('/home/user/pingu/js/mi-coleccion.js', 'utf8')
+  const mc = readFileSync('/home/user/pingu/js/mi-coleccion/escaner-ui.js', 'utf8')
   const trozo = mc.split('SI ESO NO PUEDE SER UNA CARTA')[1]?.split('cerrarEscaner()')[0] || ''
   check('el juicio va ANTES de cerrar el escáner', trozo.includes('pareceNombreDeCarta'), 'el juicio va después de cerrar')
   check('  …y vuelve sin buscar', /return/.test(trozo))

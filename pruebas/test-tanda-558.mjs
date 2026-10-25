@@ -115,7 +115,7 @@ console.log('── 5b. Y se DICE lo que se ha leído ──')
   // Sin esto, «no he podido leer el número» y «lo he leído y no casaba» se
   // ven exactamente igual: una lista larga de cartas parecidas. PINGU vio
   // 23 Charizards y tuvo que adivinar cuál de las dos cosas era.
-  const mc = readFileSync('/home/user/pingu/js/mi-coleccion.js', 'utf8')
+  const mc = readFileSync('/home/user/pingu/js/mi-coleccion/escaner-ui.js', 'utf8')
   // Desde la 754 el disparo se parte en recortar y `leerYBuscar` (lo usan
   // también las fotos de la galería): lo leído se dice en las dos.
   const trozo = ['async function dispararEscaner', 'async function leerYBuscar'].map((f) => mc.split(f)[1]?.split('\n}')[0] || '').join('\n')
@@ -129,7 +129,7 @@ console.log('── 6. La red de debajo: una sola palabra ──')
   // La limpieza quita lo que SE SABE que no es el nombre; esto es para lo
   // que no se sabe. Si con todas las palabras no sale nada, se prueba con
   // la más larga — mismo criterio que con el número: lo preciso primero.
-  const mc = readFileSync('/home/user/pingu/js/mi-coleccion.js', 'utf8')
+  const mc = readFileSync('/home/user/pingu/js/mi-coleccion/escaner-ui.js', 'utf8')
   const trozo = mc.split('UN ÚLTIMO INTENTO CON UNA SOLA PALABRA')[1]?.split('} catch')[0] || ''
   check('existe el último intento', trozo.length > 0, 'no está')
   check('  …solo si no ha salido nada', /querySelector\('\.mc-resultado'\)/.test(trozo), trozo.slice(0, 120))

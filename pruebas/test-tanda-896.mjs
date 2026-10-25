@@ -32,7 +32,7 @@ console.log('── 1. Lo estático ──')
   const deseos = leer('js/mi-coleccion/deseos.js')
   check('«La quiero»: la carta entra (y sale) de la lista antes de que conteste la base, y vuelve si falla', /provisional/.test(deseos) && /ctx\.deseos = ctx\.deseos\.filter\(\(x\) => x !== provisional\)/.test(deseos) && /const quitadas = ctx\.deseos\.filter/.test(deseos))
   check('torneo: el check-in se marca al pulsar y vuelve si falla', /btn\.textContent = 'Participación confirmada'/.test(leer('js/torneos/torneo.js')) && /btn\.disabled = false\n      btn\.textContent = antes/.test(leer('js/torneos/torneo.js')))
-  check('meter las marcadas en un álbum cierra el diálogo y sale del modo en el acto', /\$\('mcElegirAlbum'\)\.close\(\)\n  modoMarcar\(false\)\n  try \{\n    const r = await albumes\.meterCartas/.test(leer('js/mi-coleccion.js')))
+  check('meter las marcadas en un álbum cierra el diálogo y sale del modo en el acto', /\$\('mcElegirAlbum'\)\.close\(\)\n  modoMarcar\(false\)\n  try \{\n    const r = await albumes\.meterCartas/.test(leer('js/mi-coleccion/seleccion.js')))
 }
 
 const b = await chromium.launch()
