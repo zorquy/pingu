@@ -35,7 +35,9 @@ for (const f of ['retos', 'carta-del-dia', 'repeticiones', 'guardados']) {
     const cs = getComputedStyle(h), cab = getComputedStyle(h.parentElement)
     return { alinea: cab.textAlign, fuente: cs.fontFamily, tam: cs.fontSize }
   })
-  check(`${f}: el título a la izquierda y en Fredoka`, r && r.alinea !== 'center' && /Fredoka/i.test(r.fuente), JSON.stringify(r))
+  // Desde la 1016 (opción B del repaso) los títulos van en Inter; Fredoka queda
+  // para la marca y las cifras grandes.
+  check(`${f}: el título a la izquierda y en la letra de los títulos (Inter)`, r && r.alinea !== 'center' && /Inter/i.test(r.fuente) && !/Fredoka/i.test(r.fuente), JSON.stringify(r))
 }
 await p.goto(`${BASE}/retos.html`, { waitUntil: 'domcontentloaded' })
 const cols = await p.evaluate(() => getComputedStyle(document.getElementById('rtLista')).gridTemplateColumns.split(' ').length)

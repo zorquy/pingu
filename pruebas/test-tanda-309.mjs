@@ -212,7 +212,7 @@ console.log('\n── 5. Los bordes tienen escala ──')
   // lo ancho de todas: el aro del disparador del escáner (tanda 447) es
   // de 4px porque dibuja un botón de hacer foto, pero un 4px suelto en
   // cualquier otro sitio sigue siendo un despiste.
-  const FIGURAS_POR_HOJA = { 'mi-coleccion.css': ['4'] }
+  const FIGURAS_POR_HOJA = { 'mi-coleccion.css': ['4'], 'mc-escaner.css': ['4'] } // el escáner vive en su hoja desde la 1011
   const sinComentarios = (t) => t.replace(/\/\*[\s\S]*?\*\//g, '')
   const hojas = readdirSync(`${RAIZ}/css`).filter((f) => f.endsWith('.css'))
   const fuera = []

@@ -292,7 +292,8 @@ for (const movil of [true, false]) {
   // En el móvil la XP de cada reto no cabe y ya suma en la píldora.
   const estadoParejas = await page.locator('#rtParejasEstado').innerText()
   check(`  …Parejas: «Nuevo», su sello y «9 movimientos${movil ? '' : ' · +20 XP'}»`, (await page.locator('#rtParejas .rt-nuevo').count()) === (hoy <= '2026-10-30' ? 1 : 0) && (await page.locator('#rtSello-parejas.ok').count()) === 1 && (movil ? /9 movimientos$/.test(estadoParejas.trim()) : /9 movimientos · \+20 XP/.test(await page.locator('#rtParejasEstado').textContent())), estadoParejas)
-  check('  …la píldora', /1\/6 hoy/.test(await page.locator('#rtDia').innerText()) && /\+20 XP/.test(await page.locator('#rtDia').innerText()))
+  // En el móvil «hoy» sobra (1016: la píldora ya es lo de hoy, y con Inter no cabía).
+  check('  …la píldora', (movil ? /1\/6/ : /1\/6 hoy/).test(await page.locator('#rtDia').innerText()) && /\+20 XP/.test(await page.locator('#rtDia').innerText()))
   check('  …el historial, plegado y sin pedir nada todavía', !(await page.locator('#rtHistorial').evaluate((d) => d.open)) && !(await page.evaluate(() => (window.__RPCS__ || []).some((r) => r.nombre === 'portada_clasificacion' || r.nombre === 'retos_comunidad'))))
   await page.click('#rtHistorial summary')
   await page.waitForTimeout(900)

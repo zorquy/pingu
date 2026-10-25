@@ -134,9 +134,12 @@ console.log('\n── 4. Y las tarjetas siguen teniendo su color ──')
   const page = await browser.newPage({ viewport: { width: 1100, height: 900 } })
   await page.addInitScript(() => {
     window.__FAKE_SESSION__ = 'user-1'
-    window.__FAKE_CATEGORIAS__ = [{ id: 'cat-1', name: 'Mazos', slug: 'mazos' }]
+    // Desde la 1014 el color de la tarjeta es el de su CATEGORÍA (PINGU
+    // eligió «un color por categoría»): seis guías de seis temas con seis
+    // colores distintos (`arteDe` reparte los slugs por su hash).
+    window.__FAKE_CATEGORIAS__ = ['mazos', 'coleccion', 'cartas', 'precios', 'eventos', 'formatos'].map((s, i) => ({ id: `cat-${i + 1}`, name: s, slug: s }))
     window.__FAKE_GUIAS__ = [1, 2, 3, 4, 5, 6].map((i) => ({
-      id: `g${i}`, slug: `g${i}`, title: `Guía ${i}`, description: 'x', category_id: 'cat-1',
+      id: `g${i}`, slug: `g${i}`, title: `Guía ${i}`, description: 'x', category_id: `cat-${i}`,
     }))
   })
   await page.goto(`${BASE}/aprender`, { waitUntil: 'domcontentloaded' })

@@ -118,7 +118,9 @@ console.log('\n── 3. Una sola copia de `porNumero` ──')
   const js = leer('js/mi-coleccion.js')
   check('`mi-coleccion.js` ya no lo define', !/^function porNumero\(/m.test(js))
   check('  …lo importa de `orden.js`', /import \{[^}]*porNumero[^}]*\} from '\.\/mi-coleccion\/orden\.js'/.test(js))
-  check('  …y lo sigue usando', /porNumero\(/.test(js))
+  // Desde la 1011 lo usan los módulos de las vistas: el principal lo pasa
+  // en el `ctx` (albumes.js) y filtros.js lo recibe en `ayudas`.
+  check('  …y lo sigue usando', /porNumero/.test(js) && /porNumero\(/.test(leer('js/mi-coleccion/albumes.js') + leer('js/mi-coleccion/filtros.js')))
   check('`orden.js` lo exporta', /export function porNumero/.test(leer('js/mi-coleccion/orden.js')))
 }
 

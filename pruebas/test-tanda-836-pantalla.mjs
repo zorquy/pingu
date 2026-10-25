@@ -123,6 +123,10 @@ console.log('── 4. Mis partidas ──')
   const { page, errores, ctx } = await abrir('/mis-partidas')
   check('arriba, el resumen de todo lo jugado', await page.isVisible('#partidasHero') && /68 %/.test(await page.textContent('#partidasHero')) && /7-3-1/.test(await page.textContent('#partidasHero')), await page.textContent('#partidasHero'))
   check('  …con tu mazo más jugado', /Psyduck/.test(await page.textContent('#partidasHero')))
+  // Sin torneos en el fixture la página abre en «Partidas sueltas» (1013):
+  // a la pestaña de torneos primero.
+  await page.click('#partidasTabs .seg-btn[data-vista="torneos"]')
+  await page.waitForTimeout(200)
   check('los filtros de torneos, plegados tras «Filtrar»', !(await page.isVisible('#torneoBuscar')))
   await page.click('#torneoFiltrar')
   check('  …que los abre', await page.isVisible('#torneoBuscar') && (await page.getAttribute('#torneoFiltrar', 'aria-expanded')) === 'true')

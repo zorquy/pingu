@@ -66,8 +66,10 @@ console.log('── 3. Y LO QUE TIENES SE SUMA, que es la otra mitad ──')
     /const suyo = padreDeColeccion\(s\) \|\| s\n\s+cuantas\.set\(suyo,/.test(mc))
   check('la estantería pliega antes de pintar',
     /plegarHermanos\(sets\.map\(\(s\) => \(\{ \.\.\.s \}\)\)\)/.test(mc))
+  // Desde la 1011 la cuenta de «la expansión más completa» vive en
+  // js/mi-coleccion/extras.js (la imagen de la colección).
   check('y el vistazo del panel también cuenta las del hijo',
-    /\(padreDeColeccion\(c\.set_id\) \|\| c\.set_id\) === s\.id/.test(mc))
+    /\(padreDeColeccion\(c\.set_id\) \|\| c\.set_id\) === s\.id/.test(readFileSync('/home/user/pingu/js/mi-coleccion/extras.js', 'utf8')))
   // Y se pliega sobre una COPIA: `plegarHermanos` suma las cuentas en el
   // objeto del padre, así que plegar la misma lista dos veces las sumaría
   // dos veces. La estantería se repinta en cada filtro.

@@ -106,7 +106,9 @@ console.log('── 3. Dentro de una expansión, el logo arriba y el nombre pequ
   })
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('con logo: el logo y, a su lado, el nombre pequeño (≤ 16 px) con código y fecha', m.conLogo && m.logo && m.tam <= 16 && m.titulo === 'Llamas Obsidianas' && /^OBF · agosto de 2023 · 4 cartas$/.test(m.meta || ''), JSON.stringify(m))
-  check('  …y la cabecera no crece (≤ 80 px) ni ensancha la página', m.alto <= 80 && m.ancho <= m.ventana, JSON.stringify(m))
+  // Desde la 1015 el nombre va entero en su línea y los datos debajo (dos
+  // líneas): hasta 112 px.
+  check('  …y la cabecera no crece (≤ 112 px) ni ensancha la página', m.alto <= 112 && m.ancho <= m.ventana, JSON.stringify(m))
   await ctx.close()
 }
 {

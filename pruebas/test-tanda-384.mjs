@@ -492,7 +492,7 @@ console.log('\n── 5. La paleta de energías es COPIA de la de la ficha ─�
   check('los once colores coinciden', Object.keys(ficha).length === 11 && distintas.length === 0, distintas.join(', '))
   // Y la tercera copia (711): las fichas de la Pokédex tiñen con los ocho
   // tipos que tienen símbolo de energía.
-  const pdx = Object.fromEntries([...leer('css/mi-coleccion.css').matchAll(/\.pdx-especie\.tipo-([A-Z])\s*\{\s*--tipo-energia:\s*(#[0-9a-f]{6})/gi)].map((m) => [m[1], m[2].toLowerCase()]))
+  const pdx = Object.fromEntries([...leer('css/mc-pokedex.css').matchAll(/\.pdx-especie\.tipo-([A-Z])\s*\{\s*--tipo-energia:\s*(#[0-9a-f]{6})/gi)].map((m) => [m[1], m[2].toLowerCase()]))
   // Desde la 748 son ONCE: Dragón, Incolora y Hada también tiñen, porque
   // el tipo de cada especie se sabe aunque no tengas su carta.
   // La Incolora es la ÚNICA que no copia, y a propósito: en la ficha es el
