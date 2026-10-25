@@ -20,6 +20,7 @@ import { rutaDeArticulo, cuandoFue, conVueltaAtrasDeTipo } from './articulos.js'
 import { haceCuanto, perfilesPorId, urlTema, etiquetaHtml, nombreDe } from './foro-comun.js'
 import { tarjetaDeGuia } from './guia-tarjeta.js'
 import { filaDeGuia, hoja as hojaFila } from './guia-fila.js'
+import { sinMigracion } from './sin-migracion.js'
 
 export const hoja = typeof document !== 'undefined' ? hojaInyectada('css/portada-bloques.css') : Promise.resolve()
 
@@ -92,9 +93,50 @@ export function foroHtml({ temas, perfiles = {}, foros = {}, hoy = {}, escribien
     <div class="pb-pie-enlace">${verTodo('/foro', 'Todo el foro')}</div>`
 }
 
+// Lo que pinta el bloque, de UNA vez (1017): `portada_foro()` trae los
+// cuatro temas de los foros que se ven, lo de hoy, el último mensaje del que
+// más se mueve, quién escribe y, con cuenta, lo que no has leído; antes
+// eran siete consultas en cinco olas (`datosDelForoAntiguo`, que se queda
+// para mientras la migración no esté). `p_desde` es TU medianoche: «lo más
+// hablado hoy» se cuenta en la hora de quien mira.
+async function datosDelForo(session) {
+  const medianoche = new Date()
+  medianoche.setHours(0, 0, 0, 0)
+  const { data, error } = await supabase.rpc('portada_foro', { p_desde: medianoche.toISOString() })
+  if (error) {
+    if (!sinMigracion(error)) console.warn('portada_foro', error.message || error)
+    return datosDelForoAntiguo(session)
+  }
+  if (!data) return datosDelForoAntiguo(session)
+  const perfiles = data.perfiles || {}
+  return {
+    temas: data.temas || [],
+    perfiles,
+    foros: data.foros || {},
+    hoy: data.hoy || {},
+    escribiendo: Number(data.escribiendo) || 0,
+    ultimo: data.ultimo || null,
+    participantes: (data.participantes || []).map((id) => perfiles[id]).filter(Boolean),
+    nuevos: data.nuevos || {},
+    sesion: Boolean(session),
+  }
+}
+
 async function montarForo(session) {
   const hueco = document.getElementById('foroVivo')
   if (!hueco) return []
+  const d = await datosDelForo(session)
+  if (!d.temas?.length) {
+    recoger('foroVivoSeccion')
+    return []
+  }
+  await hoja
+  hueco.innerHTML = foroHtml(d)
+  document.getElementById('foroVivoSeccion').style.display = ''
+  return d.temas.map((t) => `tema:${t.id}`)
+}
+
+async function datosDelForoAntiguo(session) {
   // Primero los foros que se VEN (876): la lectura de los temas es abierta,
   // así que sin esto los hilos viejos del subforo de Noticias —escondido
   // desde la 876— seguían encabezando la portada. Administración recibe
@@ -107,10 +149,7 @@ async function montarForo(session) {
     .select('id, title, prefix, post_count, created_at, last_post_at, author_id, last_post_author_id, board_id')
   if (visibles.length) q = q.in('board_id', visibles.map((f) => f.id))
   const { data: temas, error } = await q.order('last_post_at', { ascending: false }).limit(4)
-  if (error || !temas?.length) {
-    recoger('foroVivoSeccion')
-    return []
-  }
+  if (error || !temas?.length) return { temas: [] }
   const medianoche = new Date()
   medianoche.setHours(0, 0, 0, 0)
   const { data: deHoy } = await supabase.from('forum_posts').select('thread_id, author_id').gte('created_at', medianoche.toISOString()).limit(1000)
@@ -144,8 +183,7 @@ async function montarForo(session) {
       }
     } catch {}
   }
-  await hoja
-  hueco.innerHTML = foroHtml({
+  return {
     temas: ordenados,
     perfiles,
     foros: Object.fromEntries((foros || []).map((f) => [f.id, f.name])),
@@ -155,9 +193,7 @@ async function montarForo(session) {
     participantes,
     nuevos,
     sesion: Boolean(session),
-  })
-  document.getElementById('foroVivoSeccion').style.display = ''
-  return temas.map((t) => `tema:${t.id}`)
+  }
 }
 
 // ── 3 · Aprende, con los temas dentro ──

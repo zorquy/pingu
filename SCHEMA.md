@@ -41785,6 +41785,106 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1017 — La portada con cuenta en tres olas: `portada_hoy()`, `portada_foro()` y `foro_resumen()`
+
+La R3 del repaso. Al abrir la portada con sesión se hacían 50 consultas a
+Supabase en 6 olas seguidas (cada ola espera a la anterior) y el índice
+del foro 32: casi todas pequeñas, pero las olas suman, y con la base a
+250 ms eran 1,5 s hasta la última pieza. Ahora lo que pintan las fichas de
+«Hoy», el bloque «Ahora en el foro» y el índice del foro salen de UNA
+función cada uno, calculada en la base con las MISMAS reglas que tenía el
+navegador. Medido con el doble (la base a 250 ms por consulta, la cuenta
+de la 983): la portada con cuenta pasa de 55 consultas a 36, y todo lo de
+hoy y el foro llegan en la PRIMERA ola; lo que queda en la segunda son los
+productos (su precio por idioma vive en `js/productos.js` y no se copia a
+SQL), las ocho consultas del hilo de actividad de «En la comunidad» (que
+no se tocan: lo que trae `portada_comunidad` se junta con el hilo de
+siempre, `js/activity.js`) y lo de fondo (visitas, avisos, mensajes).
+
+**La migración** (`supabase-migration-1017-portada-consultas.sql`, cada
+sentencia por su lado, re-ejecutable; necesita la 905, la 844, la 835, la
+842 y las del foro):
+
+- `valor_de_copia(c, pr)` y `sin_precio(c, pr)`: lo que vale UNA línea con
+  su fila de precios y si no tiene precio. Es el `case` que tenía dentro
+  `coleccion_foto_diaria` desde la 905 («Tu valor» manda; si no, la nota de
+  una gradeada; si no, `valor_de_linea`), y `coleccion_foto_diaria` pasa a
+  sumar por ellas. `coleccion_valor_de(p_user)`: lo que vale la colección
+  de alguien AHORA (la tuya, o una pública por `coleccion_es_publica`;
+  null si no se puede mirar). Así la foto de cada noche y la cifra de la
+  portada salen de la misma función, que es lo que la 377 dejó escrito y
+  la 756 arregló en la web (`valorDeLineas`): la prueba suma las seis
+  líneas de la 905 y exige 10.474 por los dos caminos.
+- `portada_hoy()`: para `auth.uid()` (anon ni puede llamarla), la historia
+  de 60 días y la suma de ahora; tus torneos con inscripción activa, TODOS
+  con sus `matchday_dates` (quién es el próximo lo sigue decidiendo
+  `proximaCita` en el navegador, la 879); el próximo abierto; los tres
+  próximos lanzamientos occidentales sin Pocket (las de TCGGO escondidas
+  van, como en el calendario, y las filtra la web); lo a medias (las cuatro
+  últimas guías empezadas sin acabar con `bloques` contados y `curso` —si
+  hay algo que jugar, la lista `v_practica`, COPIA de `PRACTICE_TYPES` que
+  vigila la prueba— y los tres últimos mazos con sus cartas contadas; qué
+  va en «Sigue» lo decide `loQueTienesAMedias`, ahora pura y compartida
+  por los dos caminos); los temas que sigues con algo nuevo, con la regla
+  exacta de `estaSinLeer` (el último mensaje no es tuyo y es posterior a
+  tu marca del tema o a «todo leído», la más nueva; sin ninguna, sin
+  leer); `retos_mis_numeros(7)` y `retos_comunidad(hoy)`; las preguntas
+  por repasar y los primeros pasos (el trofeo y las tres cuentas).
+- `portada_foro(p_desde)`: los cuatro temas más recientes de los foros que
+  se ven, lo de hoy por tema (desde `p_desde`, que es la MEDIANOCHE de
+  quien mira: «lo más hablado hoy» se cuenta en su hora), quién escribe,
+  el de delante (más mensajes hoy; a igualdad, el más reciente), sus diez
+  últimos mensajes (el cuerpo cortado a 1.500 caracteres: el extracto son
+  170), los perfiles y, con cuenta, lo no leído: el de delante con su
+  cuenta exacta (los de otros tras tu marca, uno como poco; sin marca,
+  los que tiene hasta diez) y los demás con su punto.
+- `foro_resumen()`: las secciones, los foros visibles de
+  `forum_boards_resumen` con sus cuentas, cuántos temas sin leer tiene
+  cada foro (la misma regla, SIN el tope de mil que tenía
+  `sinLeerPorForo`), los perfiles del último que escribió, tu rol y si hay
+  marcas.
+
+**La web**: `datosDeHoy(uid)` en `js/hoy.js` pide `portada_hoy` UNA vez por
+visita y la comparten `montarHoy`, el bloque de retos de home.js (que ya no
+pide `retos_mis_numeros`, `course_review_queue` ni `retos_comunidad`:
+`estadoDeHoy(uid, numeros)` acepta los números ya traídos) y los primeros
+pasos (que ya no piden el perfil ni las tres cuentas). `deLaBase` traduce
+lo que llega a lo que las ocho consultas de antes devolvían, en el mismo
+orden, y lo de antes se queda entero detrás: si la función no existe
+(`sinMigracion`, en `js/sin-migracion.js`, un módulo sin dependencias que
+reúne lo que cambio-propuesta, cambios-hechos y enlace-corto tenían cada
+uno a mano), cada trozo se pide como antes y la pantalla no se entera. Lo
+mismo en `portada-bloques.js` (`datosDelForo` → `datosDelForoAntiguo`) y en
+`foro.js` (`resumenDelForo`; las lecturas de antes, `cargarLecturas`, solo
+se piden en el índice si la función falta, y en un foro o una búsqueda
+siempre, que ahí se siguen usando tema a tema). Y con sesión el héroe del
+visitante no pide sus cinco consultas (`pintarHeroe` solo sin sesión o si
+la sesión no vale y vuelve el héroe).
+
+**Lo que NO se movió a SQL**, a propósito: el valor de los productos
+(`valorDeProductos` tiene la regla por idioma de la 967 y el Panel la suma
+en el navegador: dos definiciones del mismo número no dan error, la 900) y
+el hilo de actividad de «En la comunidad» (ocho consultas de `activity.js`
+que también usa /usuarios).
+
+**El doble** (`stub-supabase.js`): las tres funciones se CALCULAN de sus
+tablas con las mismas reglas (no se devuelven a mano), con
+`__SIN_1017__` para probar el camino de antes y, si una tabla que leen
+está en `__SIN_TABLAS__`, un 42P01 que tumba la función entera, como en
+Postgres (la 314 finge que no hay lecturas y el cliente cae a lo de antes).
+El valor de ahora lo suma con `valorDeLineas` de la web. Y la 894 retrasa
+también `foro_resumen` (su índice llega ahora por ahí).
+
+**Pruebas**: `test-tanda-1017.mjs`: la migración contra PostgreSQL
+sentencia a sentencia y dos veces, con las funciones de precio de verdad;
+el valor por los dos caminos y su puerta; las tres funciones con y sin
+cuenta (el escondido, el tuyo, la marca, «todo leído», el moderador); lo
+estático (la copia de `PRACTICE_TYPES`, los respaldos); y en pantalla, la
+portada con cuenta pidiendo cada función una vez y ninguna de las de antes,
+LO MISMO sin la migración con las de antes, y el índice del foro contando
+por `foro_resumen`. Al día: 894. Pasan además 299, 314, 368, 680, 744, 748,
+783, 804, 844, 876, 983, 984, 1010, 1012 y 1013.
+
 ## Tanda 1016 — La letra: Inter en los títulos, Fredoka en la marca y las cifras (opción B)
 
 La V1 del repaso, con la opción B que recomendé y PINGU aceptó («adelante

@@ -76,6 +76,20 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mismo: lo que solo usa una pantalla, a su hoja. `components.css` y `js/app.js` los
   baja TODO el mundo — el CSS o JS de una sola página va en su propio
   fichero (mira css/lanzamientos.css o css/curso.css como ejemplo).
+- **Lo de HOY de la portada, el bloque del foro y el índice del foro salen
+  de UNA función cada uno** (tanda 1017, migración
+  `supabase-migration-1017-portada-consultas.sql`): `portada_hoy()`
+  (`datosDeHoy` en `js/hoy.js`, una vez por visita; la comparten el bloque
+  de retos y los primeros pasos), `portada_foro(p_desde)` (`datosDelForo`
+  en `portada-bloques.js`) y `foro_resumen()` (`resumenDelForo` en
+  `foro.js`). Con sesión, eran 50 consultas en 6 olas. Si algo nuevo de la
+  portada necesita un dato tuyo, va DENTRO de `portada_hoy` (con su regla
+  copiada de donde estuviera y su prueba en `test-tanda-1017.mjs`), no en
+  otra consulta suelta; y el camino de antes se queda detrás de
+  `sinMigracion` (`js/sin-migracion.js`) hasta que PINGU ejecute la
+  migración, sin una pantalla rota entre medias. Y lo que vale tu colección
+  AHORA es `valor_de_copia` en la base, la misma función que suma la foto
+  diaria: una cifra nueva de «lo que vale» no se suma por otro camino.
 - **El buscador de cartas es UNO: `js/buscar-cartas.js`** (tanda 909).
   /cartas → Buscar y la barra de arriba (/buscar, la paleta) llaman a
   `buscarComoEnCartas`; la copia «con las mismas reglas» de /buscar tenía

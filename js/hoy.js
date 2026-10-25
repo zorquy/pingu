@@ -12,7 +12,13 @@
 // Cada ficha se pinta con lo que haya y dice «no se sabe» con un guion, no
 // con un cero (la 319): si una consulta falla, la ficha se queda, sin
 // cifra inventada.
+//
+// Desde la 1017 todo lo de aquí llega de UNA vez por `portada_hoy()`
+// (`datosDeHoy`): eran doce consultas en tres olas, y con ellas las de los
+// retos (home.js) y las de los primeros pasos. Mientras la migración no esté
+// (`sinMigracion`), cada trozo se pide como antes.
 import { supabase } from './supabase.js'
+import { sinMigracion } from './sin-migracion.js'
 import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
 import { euros } from './cardmarket.js'
@@ -25,6 +31,27 @@ import { marcasDeLectura, estaSinLeer } from './foro-lecturas.js'
 
 // La de js/foro-comun.js, sin traerse el módulo (y sus dependencias) entero.
 const urlTema = (id) => `/tema/${encodeURIComponent(id)}`
+
+// Lo tuyo de hoy, de una vez (1017): la cartera, tus torneos, los próximos
+// lanzamientos, lo que tienes a medias, los temas que sigues, los retos y la
+// gente de hoy, las preguntas por repasar y los primeros pasos. UNA vez por
+// visita, para quien lo pida primero (hoy.js, el bloque de retos de home.js,
+// primeros-pasos.js). `null` si la migración no está o la base no contesta:
+// cada uno hace entonces lo de antes.
+let pedidoDeHoy = null
+export function datosDeHoy(uid) {
+  if (!uid) return Promise.resolve(null)
+  if (!pedidoDeHoy) {
+    pedidoDeHoy = supabase.rpc('portada_hoy').then(({ data, error }) => {
+      if (error) {
+        if (!sinMigracion(error)) console.warn('portada_hoy', error.message || error)
+        return null
+      }
+      return data || null
+    }).catch(() => null)
+  }
+  return pedidoDeHoy
+}
 
 const DIA = 86_400_000
 const hoyISO = (ahora = Date.now()) => new Date(ahora).toISOString().slice(0, 10)
@@ -137,7 +164,7 @@ export function tarjetaSigueHtml(x) {
     </a>`
   }
   const g = x.guia
-  const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
+  const bloques = Number.isFinite(Number(g.bloques)) ? Number(g.bloques) : Array.isArray(g.blocks) ? g.blocks.length : 0
   const voy = Math.min(x.fila.current_block || 0, bloques)
   const pct = bloques ? Math.round((voy / bloques) * 100) : 0
   const mins = g.estimated_mins && bloques ? Math.max(1, Math.round((g.estimated_mins * (bloques - voy)) / bloques)) : 0
@@ -154,7 +181,18 @@ export function sigueHtml(items) {
 }
 
 // Lo que tienes a medias: hasta dos guías o cursos empezados (los últimos que
-// abriste) y el último mazo que tocaste si no llega a 60.
+// abriste) y el último mazo que tocaste si no llega a 60. Puro: `filas` son
+// tus filas de progreso con su guía (`guia`, con `bloques` y `curso` si la
+// base los contó) y `mazos` tus mazos con sus cartas contadas (`cartas`).
+export function loQueTienesAMedias(filas, mazos) {
+  const items = (filas || [])
+    .filter((f) => f.guia && !f.read_at)
+    .slice(0, 2)
+    .map((f) => ({ tipo: 'guia', guia: f.guia, fila: f, curso: typeof f.guia.curso === 'boolean' ? f.guia.curso : guideHasCourse(f.guia) }))
+  const mazo = (mazos || []).find((m) => m.cartas > 0 && m.cartas !== 60)
+  if (mazo) items.push({ tipo: 'mazo', id: mazo.id, nombre: mazo.name, cartas: mazo.cartas })
+  return items
+}
 async function aMedias(uid) {
   const [{ data: filas }, { data: mazos }] = await Promise.all([
     supabase.from('user_progress').select('guide_id, current_block, status, started_at, read_at').eq('user_id', uid).neq('status', 'completed').not('started_at', 'is', null).order('started_at', { ascending: false }).limit(4),
@@ -163,13 +201,10 @@ async function aMedias(uid) {
   const ids = (filas || []).map((f) => f.guide_id)
   const { data: guias } = ids.length ? await supabase.from('guides').select('id, slug, title, blocks, estimated_mins').in('id', ids) : { data: [] }
   const porId = Object.fromEntries((guias || []).map((g) => [g.id, g]))
-  const items = (filas || [])
-    .filter((f) => porId[f.guide_id] && !f.read_at)
-    .slice(0, 2)
-    .map((f) => ({ tipo: 'guia', guia: porId[f.guide_id], fila: f, curso: guideHasCourse(porId[f.guide_id]) }))
-  const mazo = (mazos || []).map((m) => ({ ...m, n: (m.cards || []).reduce((t, c) => t + (Number(c.n) || 0), 0) })).find((m) => m.n > 0 && m.n !== 60)
-  if (mazo) items.push({ tipo: 'mazo', id: mazo.id, nombre: mazo.name, cartas: mazo.n })
-  return items
+  return loQueTienesAMedias(
+    (filas || []).map((f) => ({ ...f, guia: porId[f.guide_id] || null })),
+    (mazos || []).map((m) => ({ ...m, cartas: (m.cards || []).reduce((t, c) => t + (Number(c.n) || 0), 0) }))
+  )
 }
 
 // Lo que vale tu colección AHORA, como lo suma el Panel (756): tus líneas
@@ -240,6 +275,27 @@ async function intentar(fn) {
   try { return await fn() } catch { return undefined }
 }
 
+// Lo mismo que piden las ocho consultas de abajo, sacado de `portada_hoy()`
+// (1017), en el mismo orden y con las mismas decisiones: la cita de una liga
+// la sigue poniendo `proximaCita`, y qué va en «Sigue», `loQueTienesAMedias`.
+async function deLaBase(d, uid, hoy, productosP) {
+  const valor = (() => {
+    const historia = Array.isArray(d.valor?.historia) ? d.valor.historia : []
+    const ahora = d.valor?.ahora
+    if (!ahora) return historia
+    if (!Number(ahora.lineas)) return []
+    return conElValorDeAhora(historia, ahora.valor, hoy)
+  })()
+  const conCita = (d.torneos || []).map((t) => ({ t, cita: proximaCita(t) })).filter((x) => x.cita)
+  conCita.sort((a, b) => Date.parse(a.cita.fecha) - Date.parse(b.cita.fecha))
+  const mio = conCita[0] ? { ...conCita[0].t, start_at: conCita[0].cita.fecha, jornada: conCita[0].cita.jornada } : null
+  const sets = (d.sets || []).filter((s) => (!s.oculto || s.tcggo_id) && s.release_date)
+  const sigue = loQueTienesAMedias(d.sigue?.progreso || [], (d.sigue?.mazos || []).map((m) => ({ ...m, cartas: Number(m.cartas) || 0 })))
+  const hilos = d.hilos ? { cuenta: Number(d.hilos.cuenta) || 0, uno: d.hilos.uno || null, titulo: d.hilos.titulo || '' } : null
+  const retos = await intentar(() => estadoDeHoy(uid, d.retos ?? null))
+  return [valor, mio, d.abierto || null, sets, sigue, hilos, await productosP, retos]
+}
+
 export async function montarHoy(session, { doc = document } = {}) {
   const seccion = doc.getElementById('bienvenidaSeccion')
   // La caja que dejó la portada para lo de la última vez (984, `data-uv`) se
@@ -263,7 +319,11 @@ export async function montarHoy(session, { doc = document } = {}) {
   if (!previa) seccion.appendChild(caja)
 
   const hoy = hoyISO()
-  const [valor, mio, abierto, sets, sigue, hilos, productos, retos] = await Promise.all([
+  // Lo que valen tus productos (766), como lo suma el Panel: va aparte en
+  // los dos caminos (su regla por idioma vive en js/productos.js, la 967).
+  const productosP = intentar(async () => (await import('./productos-valor.js')).valorParaElPanel(uid))
+  const datos = await datosDeHoy(uid)
+  const [valor, mio, abierto, sets, sigue, hilos, productos, retos] = datos ? await deLaBase(datos, uid, hoy, productosP) : await Promise.all([
     intentar(async () => {
       const [historia, ahora] = await Promise.all([
         supabase.from('user_collection_value').select('dia,valor').eq('user_id', uid).gte('dia', hoyISO(Date.now() - 60 * DIA)).order('dia', { ascending: true }).then(({ data, error }) => (error ? null : data || [])),
@@ -302,8 +362,7 @@ export async function montarHoy(session, { doc = document } = {}) {
     }),
     intentar(() => aMedias(uid)),
     intentar(() => hilosConNovedades(uid)),
-    // Lo que valen tus productos (766), como lo suma el Panel.
-    intentar(async () => (await import('./productos-valor.js')).valorParaElPanel(uid)),
+    productosP,
     // Los seis retos de hoy (843).
     intentar(() => estadoDeHoy(uid)),
   ])

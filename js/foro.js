@@ -21,6 +21,7 @@ import {
 } from './foro-comun.js'
 import { casillaHtml, botonMenuHtml, engancharModeracion } from './foro-moderar.js'
 import { marcasDeLectura, estaSinLeer, marcarTodoLeido, sinLeerPorForo } from './foro-lecturas.js'
+import { sinMigracion } from './sin-migracion.js'
 import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, vistaAlDia } from './ultima-vista.js'
 import { plegarTexto } from './texto.js'
 import { ultimosPorTema, avatarSpan } from './foro-conversaciones.js'
@@ -239,25 +240,55 @@ async function calientesHtml(idsForosVisibles = null) {
   return filas ? `<section class="foro-calientes"><h2>Lo que se está hablando</h2><div class="foro-calientes-rejilla">${filas}</div></section>` : ''
 }
 
+// El índice de UNA vez (1017): `foro_resumen()` trae las secciones, los foros
+// que se ven con sus cuentas, cuántos temas sin leer tiene cada uno (contados
+// en la base, sin bajar mil temas), los perfiles del último que escribió y
+// tu rol. `null` si la migración no está: entonces, las consultas de antes.
+async function resumenDelForo() {
+  const { data, error } = await supabase.rpc('foro_resumen')
+  if (error) {
+    if (!sinMigracion(error)) console.warn('foro_resumen', error.message || error)
+    return null
+  }
+  return data || null
+}
+
 async function pintarIndice() {
   // Los números de la lateral no dependen de nada de esto: salen ya y se
   // esperan al final (894, R3).
   const lateralLista = pintarLateral().catch(() => {})
-  const [seccionesRes, forosRes] = await Promise.all([
-    supabase.from('forum_sections').select('*').order('position'),
-    supabase.from('forum_boards_resumen').select('*').order('position'),
-  ])
+  let secciones, foros, perfiles, calientes
+  const resumen = await resumenDelForo()
+  if (resumen) {
+    secciones = resumen.secciones || []
+    foros = (resumen.foros || []).filter((f) => !f.is_hidden)
+    perfiles = resumen.perfiles || {}
+    if (sesion) {
+      nuevosPorForo = resumen.nuevos || {}
+      // Las marcas tema a tema no hacen falta aquí: las cuentas ya vienen.
+      marcas = { porTema: {}, todoHasta: null, hayDatos: Boolean(resumen.marcas), mio: sesion.user.id }
+      soyStaff = Boolean(resumen.rol?.staff)
+      soyAdmin = Boolean(resumen.rol?.admin)
+    }
+    calientes = await calientesHtml(foros.map((f) => f.id))
+  } else {
+    if (sesion) lecturas = cargarLecturas()
+    const [seccionesRes, forosRes] = await Promise.all([
+      supabase.from('forum_sections').select('*').order('position'),
+      supabase.from('forum_boards_resumen').select('*').order('position'),
+    ])
 
-  if (faltaElForo(seccionesRes.error) || faltaElForo(forosRes.error)) return sinActivar()
+    if (faltaElForo(seccionesRes.error) || faltaElForo(forosRes.error)) return sinActivar()
 
-  const secciones = seccionesRes.data || []
-  // Un foro ESCONDIDO no sale en el índice para nadie (876): la RLS se lo
-  // enseña a administración, y verlo aquí sin ninguna marca confunde. El
-  // de Noticias se esconde desde la 876 con sus hilos viejos dentro.
-  const foros = (forosRes.data || []).filter((f) => !f.is_hidden)
-  // Los perfiles del último que escribió y la franja de lo que se está
-  // hablando, a la vez: las dos salen de la lista de foros (894, R3).
-  const [perfiles, calientes] = await Promise.all([perfilesPorId(foros.map((f) => f.last_post_author_id)), calientesHtml(foros.map((f) => f.id)), lecturas])
+    secciones = seccionesRes.data || []
+    // Un foro ESCONDIDO no sale en el índice para nadie (876): la RLS se lo
+    // enseña a administración, y verlo aquí sin ninguna marca confunde. El
+    // de Noticias se esconde desde la 876 con sus hilos viejos dentro.
+    foros = (forosRes.data || []).filter((f) => !f.is_hidden)
+    // Los perfiles del último que escribió y la franja de lo que se está
+    // hablando, a la vez: las dos salen de la lista de foros (894, R3).
+    ;[perfiles, calientes] = await Promise.all([perfilesPorId(foros.map((f) => f.last_post_author_id)), calientesHtml(foros.map((f) => f.id)), lecturas])
+  }
 
   const hijosDe = (id) => foros.filter((f) => f.parent_id === id).sort((a, b) => a.position - b.position)
 
@@ -1140,6 +1171,13 @@ function engancharBuscador() {
   })
 }
 
+async function cargarLecturas() {
+  let rol
+  ;[rol, marcas] = await Promise.all([rolEnElEquipo(sesion), marcasDeLectura(sesion.user.id)])
+  ;({ staff: soyStaff, admin: soyAdmin } = rol)
+  nuevosPorForo = await sinLeerPorForo(marcas)
+}
+
 async function init() {
   sesion = await getSession()
   // El índice de la última vez, ya (894), mientras llega el de ahora. La
@@ -1148,16 +1186,11 @@ async function init() {
     document.body.classList.add('foro-en-indice')
     pintarUltimaVista(claveDeVista('foro', sesion?.user?.id))
   }
-  if (sesion) {
-    // El rol y las marcas no dependen una de otra: a la vez (894, R3). Y el
-    // índice no los espera para pedir lo suyo (983): solo para pintarlo.
-    lecturas = (async () => {
-      let rol
-      ;[rol, marcas] = await Promise.all([rolEnElEquipo(sesion), marcasDeLectura(sesion.user.id)])
-      ;({ staff: soyStaff, admin: soyAdmin } = rol)
-      nuevosPorForo = await sinLeerPorForo(marcas)
-    })()
-  }
+  // El rol y las marcas no dependen una de otra: a la vez (894, R3). Y la
+  // pantalla no los espera para pedir lo suyo (983): solo para pintarlo. El
+  // índice los trae con `foro_resumen()` (1017) y solo los pide así si la
+  // migración no está.
+  if (sesion && (consulta || slugForo)) lecturas = cargarLecturas()
   engancharBuscador()
   if (consulta) {
     await lecturas

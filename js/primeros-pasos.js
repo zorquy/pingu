@@ -113,14 +113,23 @@ export async function montarPrimerosPasos(contenedor, session) {
   // es una carrera, y una carrera acaba dando por bueno lo que no lo es.
   const acabar = () => contenedor.setAttribute('data-pasos', 'listo')
   try {
-    const { data: perfil } = await supabase
-      .from('user_profiles')
-      .select('achievements')
-      .eq('id', session.user.id)
-      .single()
-    if ((perfil?.achievements || []).includes(LOGRO_PRIMEROS_PASOS)) return acabar()
-
-    const estado = await estadoPrimerosPasos(session.user.id)
+    // Lo trae `portada_hoy()` con lo demás de hoy (1017, `pasos`); sin la
+    // migración, el trofeo y las tres cuentas como antes.
+    let estado
+    const d = await import('./hoy.js').then((m) => m.datosDeHoy(session.user.id)).catch(() => null)
+    if (d?.pasos) {
+      if (d.pasos.logro) return acabar()
+      const hecho = { leer: !!d.pasos.leer, curso: !!d.pasos.curso, foro: !!d.pasos.foro }
+      estado = { hecho, hechos: PASOS.filter((p) => hecho[p.clave]).length }
+    } else {
+      const { data: perfil } = await supabase
+        .from('user_profiles')
+        .select('achievements')
+        .eq('id', session.user.id)
+        .single()
+      if ((perfil?.achievements || []).includes(LOGRO_PRIMEROS_PASOS)) return acabar()
+      estado = await estadoPrimerosPasos(session.user.id)
+    }
     if (estado.hechos >= PASOS.length) {
       // Ya están los tres: se le da el trofeo (con su modal) y el panel
       // desaparece para siempre.

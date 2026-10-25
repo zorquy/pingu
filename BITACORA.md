@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (255) — PINGU-Claude (1017 — la portada con cuenta en tres olas)
+
+**Hecho**: lo de «Hoy», el bloque «Ahora en el foro» y el índice del foro
+salen de UNA función de la base cada uno (`portada_hoy()`,
+`portada_foro()`, `foro_resumen()`), con las mismas reglas que tenía el
+navegador y el camino de antes detrás hasta que se ejecute la migración.
+Con el doble, la portada con cuenta pasa de 55 consultas a 36 y lo de hoy
+y el foro llegan en la primera ola; el índice del foro, de 33 a 28. Y lo
+que vale tu colección ahora lo suma la base con la misma función que la
+foto diaria (`valor_de_copia`).
+
+**PINGU, para ejecutar en el SQL Editor**:
+`supabase-migration-1017-portada-consultas.sql` (cada sentencia por su
+lado, re-ejecutable). Hasta entonces la web hace lo de antes, sin ruido.
+
+**Ficheros**: `supabase-migration-1017-portada-consultas.sql` (nueva),
+`js/sin-migracion.js` (nuevo), `js/hoy.js`, `js/home.js`,
+`js/primeros-pasos.js`, `js/portada-retos.js`, `js/portada-bloques.js`,
+`js/foro.js`, `CLAUDE.md`, `SCHEMA.md`, `novedades.json`, `BITACORA.md`.
+En `pruebas`: `test-tanda-1017.mjs` y `sql-tanda-1017.sql` (nuevos), el
+doble (`stub-supabase.js`, las tres funciones calculadas), 894 al día.
+
+**Pendiente**: las capturas del carrusel; los ejemplos de Search Console;
+lo de la 237.
+
 ## 2026-10-25 (254) — PINGU-Claude (1016 — la letra, opción B)
 
 **Hecho**: los títulos, botones y chapas de toda la web van en Inter;

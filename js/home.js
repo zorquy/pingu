@@ -235,6 +235,9 @@ async function cargarBienvenida(session) {
   // un token guardado; si la sesión no vale (caducada, cerrada en otro
   // sitio), se retira la clase y vuelve el hero del visitante.
   if (!session) return document.documentElement.classList.remove('con-sesion')
+  // Con sesión el héroe no se ve (la clase `con-sesion` del <head> lo
+  // esconde desde el primer pintado): sus cinco consultas se piden solo si
+  // la sesión no vale y el héroe vuelve (1017).
   const seccion = document.getElementById('bienvenidaSeccion')
   const hueco = document.getElementById('bienvenida')
   if (!seccion || !hueco) return
@@ -247,7 +250,10 @@ async function cargarBienvenida(session) {
     // antes iban en otra consulta detrás (sin la migración del protector la
     // columna no viene y son cero).
     const profile = await getProfile(session.user.id)
-    if (!profile) return document.documentElement.classList.remove('con-sesion')
+    if (!profile) {
+      document.documentElement.classList.remove('con-sesion')
+      return pintarHeroe()
+    }
 
     const nombre = profile.display_name || profile.username || ''
     // En el PC la racha ya va en la barra de arriba (780, LO6): aquí, solo en el móvil.
@@ -326,6 +332,10 @@ function pintarPortadaGuardada(session) {
   vistaVigilada(clave, ['bienvenida', 'hoyPortada', 'foroVivo', 'aprende', 'torneoPortada', 'lanzamientoPortada', 'noticiaPortada', 'retoTarjetas', 'clasificacion'])
 }
 
+// Lo que pinta el héroe del visitante: la cuenta de guías, los números de
+// la comunidad y las tres cartas. Con sesión no se pide (1017).
+const pintarHeroe = () => Promise.all([loadHeroGuideCount(), cargarNumerosComunidad(), cartasDelHeroe()])
+
 async function init() {
   setupModals()
   const session = await getSession()
@@ -341,9 +351,7 @@ async function init() {
   // El foro, «Aprende», las noticias, la clasificación y la comunidad los
   // pinta js/portada-bloques.js (844), que entra por import() al final.
   await Promise.all([
-    loadHeroGuideCount(),
-    cargarNumerosComunidad(),
-    cartasDelHeroe(),
+    session ? null : pintarHeroe(),
     cargarTorneoPortada(),
     cargarBienvenida(session),
     montarPrimerosPasos(document.getElementById('primerosPasos'), session),
@@ -420,11 +428,14 @@ async function cargarReto() {
 
   // Los seis retos de hoy (843): el bloque habla de todos, y lleva al
   // siguiente que te falta. El repaso de preguntas sigue de segunda línea.
-  const [retos, { cuantasParaRepasar }] = await Promise.all([import('./portada-retos.js'), import('./curso-datos.js')])
+  // Lo de hoy llega de una vez con `portada_hoy()` (1017, `datosDeHoy`, que
+  // hoy.js ya ha pedido); sin la migración, las tres consultas de antes.
+  const [retos, { cuantasParaRepasar }, hoyMod] = await Promise.all([import('./portada-retos.js'), import('./curso-datos.js'), import('./hoy.js').catch(() => null)])
+  const datos = hoyMod ? await hoyMod.datosDeHoy(session.user.id) : null
   const [estado, porRepasar, comunidad] = await Promise.all([
-    retos.estadoDeHoy(session.user.id),
-    cuantasParaRepasar(session.user.id).catch(() => 0),
-    retos.comunidadDeHoy().catch(() => null),
+    retos.estadoDeHoy(session.user.id, datos ? datos.retos ?? null : undefined),
+    datos ? Number(datos.repaso) || 0 : cuantasParaRepasar(session.user.id).catch(() => 0),
+    datos ? datos.comunidad || null : retos.comunidadDeHoy().catch(() => null),
   ])
   const repaso =
     porRepasar > 0

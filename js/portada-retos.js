@@ -24,8 +24,10 @@ const leer = (clave) => { try { return JSON.parse(localStorage.getItem(clave) ||
 
 let pedido = null
 // Lo de hoy, una vez por visita (lo piden la ficha y el bloque a la vez).
-export function estadoDeHoy(uid) {
-  if (!pedido) pedido = cargar(uid).catch(() => null)
+// Con `numeros` (los de `retos_mis_numeros` que ya trajo `portada_hoy`, la
+// 1017) no se pide nada; sin ellos (`undefined`), se piden.
+export function estadoDeHoy(uid, numeros) {
+  if (!pedido) pedido = (numeros !== undefined ? Promise.resolve(resumenDelDia(numeros, hoyUTC(), (clave) => leer(clave))) : cargar(uid)).catch(() => null)
   return pedido
 }
 
