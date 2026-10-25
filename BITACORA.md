@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (247) — PINGU-Claude (1009 — My First Battle)
+
+**Hecho**: `supabase-migration-1009-my-first-battle.sql` crea las cuatro barajas
+de My First Battle (Bulbasaur, Charmander, Pikachu y Squirtle), doce cartas
+cada una, a mano y sin foto. El número es el orden de la lista; el primer
+Pokémon y la energía inicial van aparte con su rótulo.
+
+**Ficheros**: `supabase-migration-1009-my-first-battle.sql` (nueva),
+`SCHEMA.md`, `BITACORA.md`. Sin línea en `novedades.json` hasta que esté
+ejecutada. En `pruebas`: `test-tanda-1009.mjs` (PostgreSQL).
+
+**Pendiente**: PINGU ejecuta la 1009 (la cuenta del final: cuatro de doce), le
+pone fecha y fotos desde /admin y la coloca en su era si no es la de
+Escarlata y Púrpura. Lo de la 237.
+
 ## 2026-10-25 (246) — PINGU-Claude (1008 — repetidas: Cardmarket y juntar las seguras)
 
 **Hecho**: en /admin → «Posibles repetidas», cada carta lleva «Ver en

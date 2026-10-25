@@ -41785,6 +41785,30 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1009 — Las cuatro barajas de «My First Battle»
+
+`supabase-migration-1009-my-first-battle.sql` crea cuatro colecciones del
+catálogo occidental, con `origen = 'mano'`, visibles, en la era de `sv01` y sin
+fecha: `mfb-bulbasaur`, `mfb-charmander`, `mfb-pikachu` y `mfb-squirtle`
+(«My First Battle: Pikachu Deck»…). Cada una tiene doce cartas distintas
+(`mano-<set>-<n>`, el id de «Nueva carta» del panel).
+
+- Las cartas no llevan número impreso, pero `local_id` es obligatorio: es el
+  orden de la lista de Bulbapedia (1–12).
+- El primer Pokémon y la energía inicial son cartas aparte de su gemela, y lo
+  dicen en el nombre: «Pikachu (First Pokémon)» / «Pikachu (primer Pokémon)»,
+  «Energía Fuego (energía inicial)».
+- Pokémon con su tipo y su `dex_ids`; Poción y Cambio, `Trainer`/`Item`;
+  energías `Energy`/`Basic`.
+- Versión «Normal», sin foto ni PS ni ataques. PINGU sube las fotos desde
+  /admin.
+
+Tres sentencias sueltas (sets, cartas, la cuenta final: cuatro de doce), que se
+pueden ejecutar dos veces.
+
+**Pruebas**: `test-tanda-1009.mjs`, contra PostgreSQL con la 885 debajo, cada
+sentencia en su conexión y dos veces.
+
 ## Tanda 1008 — Repetidas: el enlace a Cardmarket y juntar las del mismo producto
 
 PINGU, con las SWSH Black Star Promos en «Posibles repetidas»: «pon el enlace a
