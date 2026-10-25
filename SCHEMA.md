@@ -41785,6 +41785,35 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1004 — «Separar variantes» en el buscador, como en una expansión
+
+PINGU, con «Reshiram» en la búsqueda general y «separar variantes» puesto: el
+Reshiram ex de Journey Together salía en UNA casilla sin su Expansion Stamp al
+lado (en el pop-up sí estaba), y las cartas de una sola versión salían sin
+chapa: «aunque sea la única, debería mostrar algo… su variante normal es la
+holo». En la expansión el Reshiram ex de White Flare sí lleva su chapa Holo.
+
+Eran dos diferencias con la expansión:
+
+- `pintarResultadosBuscar` separaba solo las cartas con dos o más versiones
+  (`tieneVarias`). La expansión separa TODAS con `variantesConLasTuyas`: una
+  casilla por versión aunque sea la única (la Holo de una Rara Doble, que sale
+  de `brillaDeSerie`) y las versiones que TIENES aunque la carta no las diga
+  (la 931). Ahora el buscador usa la misma función.
+- La lista se pintaba antes de que llegaran las versiones de TCGGO (la 1003 las
+  pide al volver la búsqueda). Con las versiones separadas, `buscarEnTodo`
+  espera a esa consulta antes de pintar, porque la lista ES de versiones. Con
+  ellas juntas no cambian la lista y no se esperan; si se separan antes de que
+  lleguen, se repinta al llegar.
+
+**Pruebas**: `test-tanda-1004-pantalla.mjs` (con la base lenta: el Reshiram ex
+de Journey Together en Holo + Expansion Stamp, el de White Flare con su chapa
+Holo, una común en Normal + Reverse, y juntas sin chapa; sin el arreglo fallan
+las dos primeras). `test-tanda-779-pantalla.mjs` al día: separadas son 25 y no
+24, la holo tuya del Bulbasaur 3 sale como en la expansión. Verdes 761, 767,
+779, 760, 765, 909, 922, 950, 953, 954, 972, 998, 1002 y test-imports; la 943
+roja también sin el cambio.
+
 ## Tanda 1003 — Las versiones del buscador, pedidas al volver la búsqueda
 
 PINGU, con la 1002 ya puesta: «nope, sigue sin salir a la primera». La 1002

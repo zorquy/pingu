@@ -945,18 +945,22 @@ async function completarVersionesDe(c) {
 // pedía al abrirse y con la base lenta se pintaba sin la Expansion Stamp del
 // Reshiram ex (PINGU: «sigue sin salir a la primera»). Se piden todas en una
 // consulta nada más volver la búsqueda, sin esperarlas para pintar la lista.
+// Devuelve cuándo están todas (las de antes de camino incluidas), para quien
+// pinta las versiones en la lista (1004).
 function versionesDeLaLista(lista) {
+  const yaDeCamino = [...new Set(lista.map((c) => versionesEnCamino.get(c?.id)).filter(Boolean))]
   const sin = lista.filter((c) => c?.id && c.versiones === undefined && !versionesEnCamino.has(c.id))
-  if (!sin.length) return
+  if (!sin.length) return Promise.all(yaDeCamino).catch(() => {})
   const pedido = datos.versionesDeCartas(sin.map((c) => c.id))
   for (const c of sin) versionesEnCamino.set(c.id, pedido)
-  pedido
+  const listo = pedido
     .then((filas) => {
       pegarVersiones(sin, filas)
       for (const c of sin) if (c.versiones === undefined) c.versiones = []
     })
     .catch(() => {})
     .finally(() => { for (const c of sin) if (versionesEnCamino.get(c.id) === pedido) versionesEnCamino.delete(c.id) })
+  return Promise.all([listo, ...yaDeCamino]).catch(() => {})
 }
 
 // El gradeo son dos desplegables y un escape (tanda 563). El escape no
@@ -4972,13 +4976,20 @@ async function buscarEnTodo({ variantes = null } = {}) {
   // Aquí el tope de la consulta manda: con 120 de vuelta pueden ser más.
   rotularVer('mcBuscarFiltrosVer', lista.length, { mas: lista.length >= TOPE })
   ultimaBusqueda = lista
-  versionesDeLaLista(lista)
+  const versiones = versionesDeLaLista(lista)
   // Lo de afinar vuelve a «todo» con cada búsqueda nueva: una serie que
   // se queda puesta de la búsqueda anterior deja esta vacía sin decir por qué.
   afinar = { serie: '', set: '', soloMias: afinar.soloMias }
   if (!todosLosSets) await cargarSets().catch(() => null)
+  // Con las versiones separadas (1004), la lista ES de versiones: se pinta con
+  // ellas, o la Expansion Stamp del Reshiram ex no salía en su casilla.
+  // Juntas no cambian nada de la lista y no se esperan; si luego se separan
+  // con ellas ya aquí, se repinta al llegar.
+  if (album.split) await versiones
   if (mio !== turnoBuscarTodo) return
   pintarResultadosBuscar()
+  const conEllas = album.split
+  void versiones.then(() => { if (!conEllas && album.split && mio === turnoBuscarTodo) pintarResultadosBuscar() })
 }
 
 // LOS RESULTADOS POR EXPANSIÓN (761, B1). PINGU, en la ronda 3: «el añadir
@@ -5044,6 +5055,8 @@ function pintarResultadosBuscar() {
   }
   const sets = new Map((todosLosSets || []).map((x) => [x.id, x]))
   const grupos = gruposPorExpansion(lista, { asc: ordenCatalogo === 'fecha' && sentidoCatalogo === 'asc' })
+  // Separadas, como en una expansión (1004): una casilla por versión AUNQUE
+  // sea la única, con su chapa (la Holo de una Rara Doble).
   caja.innerHTML = grupos.map((g) => {
     const set = sets.get(g.set.id) || g.set
     const logos = contexto.logosDeSet(set)
@@ -5053,7 +5066,7 @@ function pintarResultadosBuscar() {
     return `<div class="mc-bus-grupo" data-grupo-set="${escapeHtml(g.set.id)}">
         <span class="mc-bus-grupo-logo">${logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="96" height="48" loading="lazy" />` : ''}</span>
         <span class="mc-bus-grupo-texto"><b>${escapeHtml(nombreDeSet(set) || g.set.id)}</b><small>${escapeHtml(partes.join(' · '))}</small></span>
-      </div>${g.cartas.map((c) => (album.split && tieneVarias(c) ? variantesDeCarta(c).map((v) => resultadoHtml(c, v)).join('') : resultadoHtml(c))).join('')}`
+      </div>${g.cartas.map((c) => (album.split ? variantesConLasTuyas(c).map((v) => resultadoHtml(c, v)).join('') : resultadoHtml(c))).join('')}`
   }).join('')
 }
 // Los desplegables de afinar salen de lo que HA VUELTO: una serie que no

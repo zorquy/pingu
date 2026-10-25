@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (241) — PINGU-Claude (1004 — separar variantes en el buscador)
+
+**Hecho**: con «separar variantes», el buscador hace lo mismo que la expansión:
+una casilla por versión aunque sea la única, con su chapa (la Holo de una Rara
+Doble), y las versiones de TCGGO en su casilla (la Expansion Stamp del Reshiram
+ex), esperando a que lleguen antes de pintar la lista.
+
+**Ficheros**: `js/mi-coleccion.js` (`pintarResultadosBuscar` con
+`variantesConLasTuyas`, `buscarEnTodo` espera las versiones si están separadas,
+`versionesDeLaLista` devuelve cuándo están), `SCHEMA.md`, `novedades.json`,
+`BITACORA.md`. En `pruebas`: `test-tanda-1004-pantalla.mjs` (falla sin el
+arreglo) y la 779 al día (25 casillas: la holo tuya sale como en la expansión).
+
+**Pendiente**: lo de la 237.
+
 ## 2026-10-25 (240) — PINGU-Claude (1003 — las versiones del buscador, sin esperar)
 
 **Hecho**: la 1002 no bastaba en producción (PINGU: «sigue sin salir a la

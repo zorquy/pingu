@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "Con «separar variantes», el buscador enseña cada versión en su casilla como en una expansión: también las que solo tienen una (con su chapa, Holo si brilla de serie) y las especiales como el sello de expansión.", "enlace": "/cartas?ver=buscar&q=reshiram" },
     { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "Una carta abierta desde el buscador enseña todas sus versiones a la primera (antes alguna, como el sello de expansión, solo salía al abrirla otra vez).", "enlace": "/cartas?ver=buscar" },
     { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "En Comunidad el fueguito de racha sale solo a quien la tiene de verdad: dos días o más y sin haberla perdido.", "enlace": "/usuarios" },
     { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "Las promos de Mega Evolución se completan con las que faltaban y ya han salido.", "enlace": "/cartas?ver=album&set=mep" },
