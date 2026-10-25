@@ -38,7 +38,8 @@ console.log('── 1. Las reglas ──')
   // Desde la 989 la ficha es siempre la de los seis retos (el cuestionario
   // ya no está): sin saber lo de hoy, la de «Seis retos · quedan N h».
   check('los retos: lo de hoy, o la ficha sin cifras si no se sabe', /2\/6/.test(f({ retos: { hechos: new Set(['carta', 'caro']), total: 6, xp: 10 } })) && /Seis retos · quedan \d+ h/.test(f({ retos: null })))
-  check('las respuestas: con cifra, «nada nuevo», o el foro a secas si no se sabe', /<b>2 respuestas<\/b>/.test(f({ respuestas: 2 })) && /Nada nuevo/.test(f({ respuestas: 0 })) && /<b>El foro<\/b>/.test(f({ respuestas: null })))
+  // Desde la 1010, los temas que sigues con algo nuevo (no los avisos).
+  check('los temas: con cifra, «nada nuevo», o el foro a secas si no se sabe', /<b>2 sin leer<\/b>/.test(f({ hilos: { cuenta: 2 } })) && /Nada nuevo/.test(f({ hilos: { cuenta: 0 } })) && /<b>El foro<\/b>/.test(f({ hilos: null })))
   check('el valor: sin la migración no sale; sin fotos, invita', valorHtml(null) === '' && /Empieza a llevarla/.test(valorHtml([])))
 }
 
@@ -85,7 +86,9 @@ console.log('── 2. La portada con cuenta ──')
   check('  …los retos de hoy (el cuestionario ya no cuenta)', /0\/6 Retos de hoy/.test(t), t)
   check('  …tu próximo torneo (estás apuntado), y lleva a él', /Torneo en 2 días Liga de otoño/i.test(t) && h.fichas.some((f) => f.href === '/torneo?slug=liga-otono'), t)
   check('  …el próximo lanzamiento', /Sale mañana Héroes Ascendentes/.test(t), t)
-  check('  …y las respuestas en tus hilos (solo las del foro)', /2 respuestas en tus hilos del foro/.test(t), t)
+  // Desde la 1010, los temas que sigues; los avisos ya no cuentan, y sin
+  // suscripciones sembradas no hay ninguno.
+  check('  …y los temas que sigues', /Nada nuevo en los temas que sigues/.test(t), t)
   check('todo se pulsa con 44 o más', await page.$$eval('#hoyPortada a', (as) => as.length === 5 && as.every((a) => a.getBoundingClientRect().height >= 44)))
   await ctx.close()
 }

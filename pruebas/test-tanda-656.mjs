@@ -130,7 +130,7 @@ console.log('\n── 5. La portada ──')
   await page.close()
   // Y si lo anunciado a mano sale ANTES, gana.
   const page2 = await browser.newPage({ viewport: { width: 1200, height: 900 } })
-  await page2.addInitScript(({ sets }) => { window.__FAKE_SETS__ = sets; window.__FAKE_AJUSTES__ = [{ key: 'lanzamientos', value: { sets: [{ nombre: 'Antes', fecha: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10) }] } }] }, { sets: SETS })
+  await page2.addInitScript(({ sets }) => { window.__FAKE_SESSION__ = 'none'; window.__FAKE_SETS__ = sets; window.__FAKE_AJUSTES__ = [{ key: 'lanzamientos', value: { sets: [{ nombre: 'Antes', fecha: new Date(Date.now() + 2 * 86400000).toISOString().slice(0, 10) }] } }] }, { sets: SETS })
   await page2.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
   await page2.waitForTimeout(1800)
   check('  …y gana el que salga antes, venga de donde venga', /Faltan 2 días/.test(limpio(await page2.locator('#lanzamientoPortada').innerText())) && /Antes/.test(limpio(await page2.locator('#lanzamientoPortada').innerText())), limpio(await page2.locator('#lanzamientoPortada').innerText()))
