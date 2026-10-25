@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (243) — PINGU-Claude (1005 ejecutada)
+
+**Hecho**: PINGU ejecutó la 1005 (30 y 30). Su línea en `novedades.json`.
+Y la pregunta de la baraja de Treecko (`adv-treecko_ja`) en coreano, solo en
+1.ª edición: se contesta con lo que ya hay en /admin (sin código). Primero
+«Versiones de todas» (la 949), con 1st Edition y Unlimited. Luego se pone el
+coreano en los idiomas del set (la 956) y, en «Versiones por idioma», ✕ a la
+Unlimited en KO.
+
+**Ficheros**: `novedades.json`, `BITACORA.md`.
+
+**Pendiente**: lo de la 237.
+
 ## 2026-10-25 (242) — PINGU-Claude (1005 — Trick or Trade 2023 y 2024)
 
 **Hecho**: `supabase-migration-1005-trick-or-trade.sql` mete las versiones a
