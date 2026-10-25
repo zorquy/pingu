@@ -183,7 +183,7 @@ export function aprendeHtml({ guias, temas = [], activo = '', progreso = null, d
     <div class="pb-aprende-cuerpo">${cuerpo}</div>`
 }
 
-const COLUMNAS_GUIA = 'id, slug, title, description, kind, category_id, level, guide_rarity, estimated_mins, blocks, cover_image, author_id, published_at, categories(name, slug)'
+const COLUMNAS_GUIA = 'id, slug, title, description, kind, category_id, level, guide_rarity, estimated_mins, blocks, cover_image, author_id, published_at, categories(name, slug, emoji)'
 
 async function guiasDe(tema) {
   const consulta = (filtrar) => {

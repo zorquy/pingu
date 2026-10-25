@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (252) — PINGU-Claude (1014 — las guías)
+
+**Hecho**: las tarjetas de guía sin portada llevan el color de su categoría
+y el icono de la categoría en la chapa; la guía con curso ofrece el curso
+UNA vez, en una tarjeta con el borde azul antes del texto (fuera el botón
+de arriba, la frase y la caja morada); el icono de portada del editor se
+elige en una rejilla a la vista con los nombres en español.
+
+**Ficheros**: `js/guia-tarjeta.js`, `js/guia.js`, `js/guardados.js`,
+`js/portada-bloques.js`, `js/aprender.js`, `css/components.css`,
+`css/guia.css`, `js/emoji-picker.js`, `js/editor-guia.js`,
+`editor-guia.html`, `css/editor-texto.css`, `SCHEMA.md`, `novedades.json`,
+`BITACORA.md`. En `pruebas`: `test-tanda-1014-pantalla.mjs` (nueva), 316 y
+308 al día.
+
+**Pendiente**: 1015, 1016 (letra B), 1017; las capturas del carrusel; los
+ejemplos de Search Console; lo de la 237.
+
 ## 2026-10-25 (251) — PINGU-Claude (1012 — la portada en el móvil)
 
 **Hecho**: en el móvil el bloque de retos se queda en la línea «Empieza

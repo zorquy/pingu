@@ -190,7 +190,7 @@ async function loadCategories(session) {
   const caja = { chips: list.querySelector('#apChips'), lista: list.querySelector('#apLista') }
 
   // El tema de cada guía, para la chapa-enlace de la tarjeta (866).
-  const temaDe = new Map((categories || []).map((c) => [c.id, { nombre: c.name, slug: c.slug }]))
+  const temaDe = new Map((categories || []).map((c) => [c.id, { nombre: c.name, slug: c.slug, emoji: c.emoji || '' }]))
   const pintar = () => {
     const q = normalizeSearch(busqueda)
     const visibles = guias.filter((g) => {

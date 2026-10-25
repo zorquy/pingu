@@ -2879,6 +2879,7 @@ body.portada-compacta .page-content {
 .guia-chapa-min {
   display: inline-flex;
   align-items: center;
+  gap: 4px;
   border-radius: var(--radius-pill);
   padding: 4px 12px;
   font-size: var(--t-2xs);

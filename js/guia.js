@@ -139,7 +139,7 @@ async function init() {
 
   const { data: guide, error } = await supabase
     .from('guides')
-    .select('*, categories(name, slug)')
+    .select('*, categories(name, slug, emoji)')
     .eq('slug', slug)
     .single()
 
@@ -246,7 +246,8 @@ async function init() {
     ? renderReferenceBlocksHtml(guide.reference_blocks, headings)
     // La descripción ya va debajo del título: repetirla aquí era decir lo
     // mismo dos veces en las guías que son solo curso (787, PA5).
-    : `<p class="subtext">${guideHasCourse(guide) ? 'Esta guía se aprende jugando: empieza el curso.' : 'Esta guía todavía no tiene contenido de referencia.'}</p>`
+    // Con curso y sin texto, la tarjeta del curso ya lo dice (1014).
+    : guideHasCourse(guide) ? '' : '<p class="subtext">Esta guía todavía no tiene contenido de referencia.</p>'
 
   // Los minutos de lectura se calculan del texto de verdad (unas 200
   // palabras por minuto), no del numerito que puso el autor al crearla:
@@ -353,25 +354,25 @@ async function init() {
               ? `<a class="btn-secondary guia-editar-mia" href="/editor-guia.html?id=${encodeURIComponent(guide.id)}">${icons.edit(14)} Editar</a>`
               : ''
           }
-          ${
-            // Arriba va DISCRETO, junto a Guardar: quien ya sabe que
-            // quiere el curso lo encuentra sin leerse la teoría entera, y
-            // a quien viene a leer no le tapa nada. La llamada de verdad
-            // va abajo, al terminar de leer.
-            //
-            // `guia-ir-al-curso` ya no lleva estilo propio —el tamaño lo
-            // da el grupo—, pero la clase se queda: es el asidero por el
-            // que encuentra este botón `test-tanda-548.mjs`. (Antes esta
-            // línea nombraba `test-guia-curso.mjs`, que NO EXISTE: se
-            // perdió con el contenedor el 2026-08-28 y el comentario se
-            // quedó afirmando una red que no había.)
-            hayCurso
-              ? `<a class="btn-secondary guia-ir-al-curso" href="/curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(14)} Hacer el curso</a>`
-              : ''
-          }
         </div>
       </div>
     </div>
+    ${
+      // UNA sola llamada al curso (1014, L5), antes del texto: una tarjeta
+      // con el borde de la casa. Antes eran tres —un botón arriba, una frase
+      // y una caja morada abajo— antes de leer una línea. `guia-ir-al-curso`
+      // sigue en el botón: es el asidero de las pruebas 548 y 549.
+      hayCurso
+        ? `
+    <div class="guia-cta-curso">
+      <div>
+        <h2>Esta guía tiene curso</h2>
+        <p class="subtext">Preguntas, racha y medalla · ${guide.estimated_mins || 5} min</p>
+      </div>
+      <a class="btn-primary guia-ir-al-curso" href="/curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(15)} Hacer el curso</a>
+    </div>`
+        : ''
+    }
     ${
       mostrarPro
         ? `
@@ -384,21 +385,6 @@ async function init() {
         : `<div class="article-body">${bodyHtml}</div>`
     }
     <div id="articleEndSentinel" aria-hidden="true"></div>
-    ${
-      // Al terminar de leer, la pregunta que toca. Va ANTES de "me ha
-      // servido" y de las estrellas a propósito: acabas de leer y lo
-      // siguiente que quieres hacer es ponerlo a prueba, no puntuar.
-      hayCurso
-        ? `
-    <div class="guia-cta-curso">
-      <div>
-        <h2>¿Te ha servido? Ponlo a prueba</h2>
-        <p class="subtext">Esta guía tiene curso: preguntas, racha y medalla. Se tarda ${guide.estimated_mins || 5} minutos.</p>
-      </div>
-      <a class="btn-primary" href="/curso.html?slug=${encodeURIComponent(guide.slug)}">${icons.zap(15)} Hacer el curso</a>
-    </div>`
-        : ''
-    }
     <div id="guideHelpful"></div>
     <div id="guideSuggestion"></div>
     <div class="guia-mas-tema hidden" id="guiaMasDelTema"></div>

@@ -398,23 +398,28 @@ a.rater-name:hover {
    enlazaban entre sí. Esto es la llamada del final de la guía; el botón
    pequeño de arriba y el de vuelta desde el curso reutilizan
    .btn-secondary tal cual. */
+/* La única llamada al curso (1014): una tarjeta con el borde de la casa,
+   antes del texto. El degradado índigo era el único morado de una web azul. */
 .guia-cta-curso {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
   flex-wrap: wrap;
-  margin: 24px 0 4px;
+  margin: 16px 0 24px;
   padding: 16px 24px;
-  background: linear-gradient(135deg, var(--navy), var(--indigo));
-  color: var(--white);
+  background: var(--white);
+  border: 1px solid var(--navy);
   border-radius: var(--radius-lg);
 }
 
 .guia-cta-curso h2 {
   margin: 0;
-  font-size: var(--t-xl);
-  color: var(--white);
+  font-size: var(--t-lg);
+}
+
+.guia-cta-curso .subtext {
+  margin: 2px 0 0;
 }
 
 /* Los botones de la cabecera de la guía: Guardar, Compartir y, si la hay,

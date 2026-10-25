@@ -356,7 +356,9 @@ async function init() {
   if (!currentSession) return
 
   wireTabs()
-  attachEmojiPicker(document.getElementById('mgCoverEmoji'))
+  // En rejilla a la vista (1014, L4): quien escribe no tiene que saber cómo
+  // se llama un icono en el código.
+  attachEmojiPicker(document.getElementById('mgCoverEmoji'), { abierto: true })
 
   if (guideId) await loadExistingGuide(currentSession)
 

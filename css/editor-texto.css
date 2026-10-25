@@ -601,3 +601,18 @@
   background: var(--navy);
   color: var(--white);
 }
+
+/* En rejilla a la vista (1014, L4): sin botón, sin campo escrito, los iconos
+   con su nombre al pasar por encima y el elegido dicho debajo. */
+.emoji-picker-abierto { flex-wrap: wrap; }
+/* Más específico que `.emoji-picker-wrap input`, o el flex lo estira. */
+.emoji-picker-wrap input.emoji-picker-campo-oculto { position: absolute; flex: none; width: 1px; min-width: 0; height: 1px; padding: 0; border: 0; opacity: 0; pointer-events: none; }
+.emoji-picker-fijo {
+  position: static;
+  width: 100%;
+  grid-template-columns: repeat(auto-fill, minmax(34px, 1fr));
+  box-shadow: none;
+  z-index: auto;
+}
+.emoji-picker-etiqueta { flex-basis: 100%; margin: 0; }
+.editor-icono-portada { grid-column: 1 / -1; }

@@ -41785,6 +41785,46 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1014 — Las guías: un color por categoría, una llamada al curso, iconos en rejilla
+
+Los tres de «guías» de la propuesta del repaso (PINGU: «adelante con lo
+recomendado»).
+
+- **V2 · Las tarjetas sin portada, por categoría**: `arteDe` se llamaba con
+  la guía, así que dos de Competitivo salían de colores distintos y el color
+  no decía nada. `tarjetaDeGuia` (`js/guia-tarjeta.js`) lo llama con la
+  CATEGORÍA (`tema.slug` → `g.categories.slug` → `g.category_id`), y la chapa
+  del tema lleva el icono de la categoría (`contentIconHtml(emoji, 12)`, SVG
+  de icons.js, nunca emoji). Para eso las consultas de guías embeben
+  `categories(name, slug, emoji)` (guia.js, guardados.js, portada-bloques.js)
+  y el `temaDe` de Aprender lleva `emoji`. Con imagen de portada, la imagen
+  manda, como antes.
+- **L5 · Una sola llamada al curso**: eran tres antes de leer una línea (el
+  botón de arriba junto a Guardar, la frase «Esta guía se aprende jugando» y
+  la caja morada «¿Te ha servido? Ponlo a prueba», el único índigo de una web
+  azul). Queda UNA tarjeta antes del texto (`.guia-cta-curso`, `css/guia.css`:
+  fondo de superficie y borde `--navy`): «Esta guía tiene curso · Preguntas,
+  racha y medalla · N min · Hacer el curso». El botón sigue llamándose
+  `guia-ir-al-curso` (asidero de las pruebas 548 y 549). Con curso y sin
+  texto de referencia, el cuerpo va vacío: la tarjeta ya lo dice.
+- **L4 · El icono de portada se elige en una rejilla a la vista**:
+  `attachEmojiPicker(input, { abierto: true })` (`js/emoji-picker.js`) pinta
+  la rejilla fija (`.emoji-picker-fijo`), sin botón que la despliegue y con el
+  campo escondido (`.emoji-picker-campo-oculto`, que es lo que guarda el
+  editor), cada icono con su nombre en español (`NOMBRES`, `nombreDeIcono`) y
+  el elegido dicho debajo («Trofeo · elegido. Si subes una imagen de portada,
+  el icono no se usa»). El editor de bloques sigue con el selector plegado.
+
+**Pruebas**: `test-tanda-1014-pantalla.mjs` (Aprender con dos guías de una
+categoría y una de otra: mismo color las dos, otro la tercera, el icono en la
+chapa; la guía con curso: «Hacer el curso» una vez, en una tarjeta antes del
+texto, sin degradado y con borde; el editor: la rejilla a la vista, sin botón
+ni campo, se toca Trofeo y queda elegido con su nombre). Al día: 316 (la
+regla del móvil de la 1012; su comprobación de escritorio ya estaba roja
+antes de esta sesión: «Tus primeros pasos» a 984 px en la 1010) y 308 (la
+chapa del foro cuenta 9 con la regla de la 1013; sus otras comprobaciones
+son rojas de antes). Pasadas: 548, 549, 866, 299, 305, 312, 737, 1010, 340.
+
 ## Tanda 1012 — La portada en el móvil: un solo bloque de retos, textos que caben y el orden
 
 Los tres de «portada» de la propuesta del repaso (PINGU: «adelante con lo

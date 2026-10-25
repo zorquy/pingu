@@ -9,7 +9,7 @@ import { icons } from './icons.js'
 import { filaDeGuia, estadoDeGuia, hoja } from './guia-fila.js'
 import { showToast } from './toast.js'
 
-const COLUMNAS = 'id, slug, title, description, kind, level, estimated_mins, blocks, cover_image, category_id, categories(name, slug)'
+const COLUMNAS = 'id, slug, title, description, kind, level, estimated_mins, blocks, cover_image, category_id, categories(name, slug, emoji)'
 
 const vacioHtml = () => `
   <div class="empty-state">

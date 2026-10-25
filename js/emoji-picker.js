@@ -39,12 +39,28 @@ const OPCIONES = [
 
 const POR_DEFECTO = 'bookOpen'
 
-export function attachEmojiPicker(input) {
+// Cómo se llama cada uno para quien escribe (1014, L4): nadie sabe que el
+// libro se llama «bookOpen» en el código, y no tiene por qué.
+const NOMBRES = {
+  search: 'Lupa', scan: 'Escáner', eye: 'Ojo', shield: 'Escudo', triangleAlert: 'Aviso', checkCircle: 'Visto',
+  cards: 'Cartas', layers: 'Capas', package: 'Paquete', bookmark: 'Marcador', gem: 'Gema', star: 'Estrella',
+  sparkles: 'Destellos', crown: 'Corona', trophy: 'Trofeo', target: 'Diana', flame: 'Llama', zap: 'Rayo',
+  coins: 'Monedas', trendingUp: 'Subida', receipt: 'Recibo', lock: 'Candado',
+  bookOpen: 'Libro', graduationCap: 'Birrete', lightbulb: 'Bombilla', listOrdered: 'Lista', hash: 'Número', ruler: 'Regla',
+  gamepad: 'Mando', droplet: 'Gota', leaf: 'Hoja', sprout: 'Brote', snowflake: 'Copo', palette: 'Paleta',
+  clock: 'Reloj', folder: 'Carpeta', pin: 'Chincheta', refreshCw: 'Ciclo',
+}
+export const nombreDeIcono = (n) => NOMBRES[n] || n
+
+// `abierto` (1014, L4): la rejilla a la vista desde el principio, sin botón
+// que la despliegue, con el elegido dicho con su nombre; el campo de texto
+// se queda escondido (es lo que guarda el editor).
+export function attachEmojiPicker(input, { abierto = false } = {}) {
   if (!input || input.dataset.emojiPickerAttached) return
   input.dataset.emojiPickerAttached = '1'
 
   const wrap = document.createElement('div')
-  wrap.className = 'emoji-picker-wrap'
+  wrap.className = abierto ? 'emoji-picker-wrap emoji-picker-abierto' : 'emoji-picker-wrap'
   input.parentNode.insertBefore(wrap, input)
   wrap.appendChild(input)
 
@@ -64,20 +80,40 @@ export function attachEmojiPicker(input) {
   pintarBoton()
 
   const panel = document.createElement('div')
-  panel.className = 'emoji-picker-panel hidden'
+  panel.className = abierto ? 'emoji-picker-panel emoji-picker-fijo' : 'emoji-picker-panel hidden'
   panel.setAttribute('role', 'listbox')
   panel.innerHTML = OPCIONES.map(
-    (n) => `<button type="button" class="emoji-picker-option" data-icon="${n}" title="${n}" aria-label="${n}">${icons[n](20)}</button>`
+    (n) => `<button type="button" class="emoji-picker-option" data-icon="${n}" title="${nombreDeIcono(n)}" aria-label="${nombreDeIcono(n)}">${icons[n](20)}</button>`
   ).join('')
   wrap.appendChild(panel)
 
-  const close = () => panel.classList.add('hidden')
+  const close = () => { if (!abierto) panel.classList.add('hidden') }
+
+  // Lo elegido, con su nombre (solo abierto): «Libro · elegido».
+  const etiqueta = abierto ? document.createElement('p') : null
+  if (etiqueta) {
+    etiqueta.className = 'emoji-picker-etiqueta subtext'
+    wrap.appendChild(etiqueta)
+  }
+  const pintarEtiqueta = () => {
+    if (!etiqueta) return
+    const actual = iconNameFor(input.value.trim())
+    etiqueta.textContent = `${actual ? `${nombreDeIcono(actual)} · elegido` : 'Elige un icono'}. Si subes una imagen de portada, el icono no se usa.`
+  }
 
   const marcarElegido = () => {
     const actual = iconNameFor(input.value.trim())
     panel.querySelectorAll('.emoji-picker-option').forEach((o) => {
       o.classList.toggle('selected', o.dataset.icon === actual)
     })
+    pintarEtiqueta()
+  }
+  if (abierto) {
+    btn.classList.add('hidden')
+    input.classList.add('emoji-picker-campo-oculto')
+    input.setAttribute('aria-hidden', 'true')
+    input.tabIndex = -1
+    marcarElegido()
   }
 
   btn.addEventListener('click', () => {
@@ -98,7 +134,7 @@ export function attachEmojiPicker(input) {
     })
   )
 
-  input.addEventListener('input', pintarBoton)
+  input.addEventListener('input', () => { pintarBoton(); if (abierto) marcarElegido() })
 
   document.addEventListener('click', (e) => {
     if (!wrap.contains(e.target)) close()

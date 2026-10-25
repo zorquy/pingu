@@ -14,6 +14,7 @@
 import { escapeHtml, arteDe } from './app.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { energiaDeTexto } from './energia-de-texto.js'
+import { contentIconHtml } from './content-icon.js'
 
 export const NIVELES = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado' }
 export const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Platino' }
@@ -38,7 +39,11 @@ export const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinu
 // la tarjeta (un enlace dentro de otro no existe en HTML), colocado encima
 // del arte en el mismo sitio. Sin slug, la chapa de texto de siempre.
 export function tarjetaDeGuia(g, { progreso = null, categoria = '', tema = null, pie = false } = {}) {
-  const t = tema || (g.categories?.slug ? { nombre: g.categories.name || g.categories.slug, slug: g.categories.slug } : null)
+  const t = tema || (g.categories?.slug ? { nombre: g.categories.name || g.categories.slug, slug: g.categories.slug, emoji: g.categories.emoji || '' } : null)
+  // El color del arte es el de la CATEGORÍA (1014, V2): dos guías de
+  // Competitivo salían de colores distintos y el color no decía nada.
+  const arte = arteDe(t?.slug || g.categories?.slug || g.category_id || g)
+  const iconoCat = t?.emoji || g.categories?.emoji ? contentIconHtml(t?.emoji || g.categories.emoji, 12, 'bookOpen') : ''
   const seSabe = progreso !== null && progreso !== undefined
   const p = (seSabe && progreso[g.id]) || null
   const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
@@ -63,10 +68,10 @@ export function tarjetaDeGuia(g, { progreso = null, categoria = '', tema = null,
   return `
   <article class="guia-tarjeta" data-guide-id="${escapeHtml(g.id || '')}" data-author-id="${escapeHtml(g.author_id || '')}">
     <a class="guia-tarjeta-enlace" href="/guia/${encodeURIComponent(g.slug)}">
-      <span class="guia-arte arte-${arteDe(g)}${energia ? ' con-energia' : ''}"${energia ? ` style="--energia:url('/assets/energias/${energia}.svg')"` : ''}>
+      <span class="guia-arte arte-${arte}${energia ? ' con-energia' : ''}"${energia ? ` style="--energia:url('/assets/energias/${energia}.svg')"` : ''}>
         ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" onerror="this.style.display='none'" />` : ''}
         <span class="guia-arte-info">
-          ${!t?.slug && (categoria || t?.nombre) ? `<span class="guia-chapa-cat">${escapeHtml(categoria || t.nombre)}</span>` : '<span></span>'}
+          ${!t?.slug && (categoria || t?.nombre) ? `<span class="guia-chapa-cat">${iconoCat}${escapeHtml(categoria || t.nombre)}</span>` : '<span></span>'}
           ${g.estimated_mins ? `<span class="guia-chapa-min">${g.estimated_mins} min</span>` : ''}
         </span>
       </span>
@@ -88,7 +93,7 @@ export function tarjetaDeGuia(g, { progreso = null, categoria = '', tema = null,
         }
       </span>
     </a>
-    ${t?.slug ? `<a class="guia-chapa-tema" href="/aprender?tema=${encodeURIComponent(t.slug)}" aria-label="${escapeHtml(`Tema: ${t.nombre}`)}"><span class="guia-chapa-cat">${escapeHtml(t.nombre)}</span></a>` : ''}
+    ${t?.slug ? `<a class="guia-chapa-tema" href="/aprender?tema=${encodeURIComponent(t.slug)}" aria-label="${escapeHtml(`Tema: ${t.nombre}`)}"><span class="guia-chapa-cat">${iconoCat}${escapeHtml(t.nombre)}</span></a>` : ''}
     ${
       pie
         ? `<div class="guia-pie">
