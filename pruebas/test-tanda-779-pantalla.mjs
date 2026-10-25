@@ -87,7 +87,9 @@ for (const ancho of [390, 1280]) {
   await boton.click()
   await page.waitForTimeout(600)
   r = await resultados(page)
-  check('separadas: uno por versión (24)', r.length === 24, `${r.length}`)
+  // 25 y no 24 desde la 1004: como en la expansión (931), la holo TUYA de la 3
+  // sale aunque no sea una de sus versiones.
+  check('separadas: uno por versión (24) y la holo tuya de la 3', r.length === 25 && r.some((x) => x.id === 'sv8-3' && x.v === 'holo'), `${r.length}`)
   check('  …con su chapa: la normal y la reverse, con su dibujo (930)', r[0].chapa === 'Normal' && r[0].dibujo === 'normal' && r[1].chapa === 'Reverse holo' && r[1].dibujo === 'reverse', r.slice(0, 2).map((x) => `${x.dibujo}:${x.chapa}`).join(' | '))
   check('  …el velo solo en la reverse', r.every((x) => x.velo === (x.v === 'reverse')))
   const bulba2 = r.filter((x) => x.id === 'sv8-2')
@@ -127,7 +129,7 @@ console.log('\n── Cambiar de catálogo no la olvida ──')
   // se queda con su HTML de antes y no diría nada.
   await buscar(page, 'bulbasaur')
   const r = await resultados(page)
-  check('de vuelta al occidental, sigue separada (24 resultados con chapa)', sel && r.length === 24 && r.every((x) => x.chapa), `${cambio}${sel} ${r.length}`)
+  check('de vuelta al occidental, sigue separada (25 resultados con chapa)', sel && r.length === 25 && r.every((x) => x.chapa), `${cambio}${sel} ${r.length}`)
   check('  …y el botón de Buscar lo dice', (await page.textContent('#mcBuscarVariantes')) === 'Variantes separadas')
   check('  …y la vista es la misma', (await page.evaluate(() => localStorage.getItem('mc-album-vista'))) === vista)
   check('sin errores', errores.length === 0, errores.join(' | '))
