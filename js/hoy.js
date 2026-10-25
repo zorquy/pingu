@@ -3,8 +3,8 @@
 // reto, torneo, foro, lanzamiento…— y lo de HOY había que ir a buscarlo
 // bajando. Ahora, debajo del saludo con tu racha, un bloque con lo que
 // cambia cada día: lo que vale tu colección con su línea de 30 días y
-// cuatro fichas —el reto, tu próximo torneo, el próximo lanzamiento y las
-// respuestas en tus hilos—. Lo de debajo sigue igual: es el detalle.
+// cuatro fichas —el reto, tu próximo torneo, el próximo lanzamiento y los
+// temas del foro que sigues con algo nuevo—. Lo de debajo sigue igual: es el detalle.
 //
 // Entra por `import()` desde home.js y solo con sesión, con su hoja: la
 // portada tiene 0,4 KB de presupuesto y esto no los toca (la 704).
@@ -21,6 +21,10 @@ import { lineasDeTodo, preciosGuardados, valorDeLineas } from './mi-coleccion/da
 import { estadoDeHoy, fichaRetosHtml } from './portada-retos.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { proximaCita } from './torneos/rondas-jornada.js'
+import { marcasDeLectura, estaSinLeer } from './foro-lecturas.js'
+
+// La de js/foro-comun.js, sin traerse el módulo (y sus dependencias) entero.
+const urlTema = (id) => `/tema/${encodeURIComponent(id)}`
 
 const DIA = 86_400_000
 const hoyISO = (ahora = Date.now()) => new Date(ahora).toISOString().slice(0, 10)
@@ -61,15 +65,38 @@ export function cuandoEs(fecha, ahora = Date.now()) {
 
 // Una ficha de la maqueta (748): el icono arriba, lo que es en grande y el
 // detalle debajo. `rotulo` se queda para quien escucha: «Reto de hoy:
-// Hecho, 4 de 5».
-const ficha = ({ href, icono, rotulo, titular, sub, hecho = false, destaca = false }) => `
+// Hecho, 4 de 5». Con `logo` (1010, el del set que sale), el logo va en el
+// sitio del detalle; si no carga, se queda el nombre.
+const ficha = ({ href, icono, rotulo, titular, sub, logo = '', hecho = false, destaca = false }) => `
   <a class="hoy-ficha${hecho ? ' hoy-hecho' : ''}${destaca ? ' hoy-destaca' : ''}" href="${escapeHtml(href)}" aria-label="${escapeHtml([rotulo, titular, sub].filter(Boolean).join(': '))}">
     <span class="hoy-ficha-icono" aria-hidden="true">${icons[icono]?.(22) || ''}</span>
-    <b>${escapeHtml(titular)}</b>${sub ? `<span>${escapeHtml(sub)}</span>` : ''}
+    <b>${escapeHtml(titular)}</b>${
+      logo
+        ? `<span class="hoy-ficha-logo"><img src="${escapeHtml(logo)}" alt="${escapeHtml(sub || '')}" width="120" height="32" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.replaceWith(this.alt)"></span>`
+        : sub ? `<span>${escapeHtml(sub)}</span>` : ''
+    }
   </a>`
 
+// La ficha del foro (1010): los temas que sigues —escribir en uno te
+// suscribe— con mensajes que no has visto. Antes contaba los avisos de
+// respuesta sin leer, que se marcan leídos al abrir la campana: decía «Nada
+// nuevo» con temas por leer. Con uno solo, la ficha lleva a ese tema. Puro.
+function fichaForo(hilos) {
+  const n = hilos?.cuenta
+  if (n == null) return { href: '/foro.html', icono: 'messageSquare', rotulo: 'Tus temas', titular: 'El foro', sub: 'De lo que se habla' }
+  if (!n) return { href: '/foro.html', icono: 'messageSquare', rotulo: 'Tus temas', titular: 'Nada nuevo', sub: 'en los temas que sigues' }
+  return {
+    href: n === 1 && hilos.uno ? urlTema(hilos.uno) : '/foro.html',
+    icono: 'messageSquare',
+    rotulo: 'Tus temas',
+    // Corto: la ficha mide un quinto de la fila y se cortaba.
+    titular: `${n} sin leer`,
+    sub: n === 1 && hilos.titulo ? hilos.titulo : 'en los temas que sigues',
+  }
+}
+
 // Las cuatro fichas, con lo que se sepa de cada una. Puro.
-export function fichasHtml({ retos = null, torneo = null, lanzamiento = null, respuestas = null } = {}, ahora = Date.now()) {
+export function fichasHtml({ retos = null, torneo = null, lanzamiento = null, hilos = null } = {}, ahora = Date.now()) {
   const cuando = torneo ? cuandoEs(torneo.start_at, ahora) : ''
   // Con la hora si es hoy o mañana (879): «Torneo hoy a las 19:00».
   const hora = torneo && /^(hoy|mañana)$/.test(cuando) && Number.isFinite(Date.parse(torneo.start_at)) ? ` a las ${new Date(torneo.start_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}` : ''
@@ -84,16 +111,10 @@ export function fichasHtml({ retos = null, torneo = null, lanzamiento = null, re
     ),
     ficha(
       lanzamiento
-        ? { href: '/lanzamientos.html', icono: 'calendar', rotulo: 'Próximo lanzamiento', titular: `Sale ${cuandoEs(lanzamiento.fecha, ahora)}`, sub: lanzamiento.nombre }
+        ? { href: '/lanzamientos.html', icono: 'calendar', rotulo: 'Próximo lanzamiento', titular: `Sale ${cuandoEs(lanzamiento.fecha, ahora)}`, sub: lanzamiento.nombre, logo: lanzamiento.logo || '' }
         : { href: '/lanzamientos.html', icono: 'calendar', rotulo: 'Lanzamientos', titular: 'Lanzamientos', sub: 'El calendario' }
     ),
-    ficha({
-      href: '/foro.html',
-      icono: 'messageSquare',
-      rotulo: 'Tus hilos',
-      titular: respuestas == null ? 'El foro' : respuestas ? `${respuestas} ${respuestas === 1 ? 'respuesta' : 'respuestas'}` : 'Nada nuevo',
-      sub: respuestas == null ? 'De lo que se habla' : 'en tus hilos del foro',
-    }),
+    ficha(fichaForo(hilos)),
   ].join('')
 }
 
@@ -192,6 +213,24 @@ export function valorHtml(filas, { productos = 0 } = {}) {
 // La cifra con el punto de los miles SIEMPRE (747): «4817,20 €» se lee mal.
 const conMiles = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', useGrouping: 'always' })
 
+// Los temas que sigues con algo que no has visto: las suscripciones (las
+// últimas 200), sus temas y tus marcas de lectura, con la MISMA regla que
+// pone en negrita la lista del foro (`estaSinLeer`). Sin las tablas, null:
+// «no se sabe», no «nada nuevo» (la 319).
+async function hilosConNovedades(uid) {
+  const { data: subs, error } = await supabase.from('forum_subscriptions').select('thread_id').eq('user_id', uid).order('created_at', { ascending: false }).limit(200)
+  if (error) return null
+  const ids = (subs || []).map((s) => s.thread_id).filter(Boolean)
+  if (!ids.length) return { cuenta: 0 }
+  const [marcas, { data: temas, error: e2 }] = await Promise.all([
+    marcasDeLectura(uid),
+    supabase.from('forum_threads').select('id, title, last_post_at, last_post_author_id').in('id', ids).order('last_post_at', { ascending: false }),
+  ])
+  if (e2 || !marcas.hayDatos) return null
+  const nuevos = (temas || []).filter((t) => estaSinLeer(t, marcas))
+  return { cuenta: nuevos.length, uno: nuevos[0]?.id || null, titulo: nuevos[0]?.title || '' }
+}
+
 async function intentar(fn) {
   try { return await fn() } catch { return undefined }
 }
@@ -219,7 +258,7 @@ export async function montarHoy(session, { doc = document } = {}) {
   if (!previa) seccion.appendChild(caja)
 
   const hoy = hoyISO()
-  const [valor, mio, abierto, sets, sigue, respuestas, productos, retos] = await Promise.all([
+  const [valor, mio, abierto, sets, sigue, hilos, productos, retos] = await Promise.all([
     intentar(async () => {
       const [historia, ahora] = await Promise.all([
         supabase.from('user_collection_value').select('dia,valor').eq('user_id', uid).gte('dia', hoyISO(Date.now() - 60 * DIA)).order('dia', { ascending: true }).then(({ data, error }) => (error ? null : data || [])),
@@ -251,24 +290,22 @@ export async function montarHoy(session, { doc = document } = {}) {
       return (data || [])[0] || null
     }),
     intentar(async () => {
-      const { data } = await supabase.from('tcg_sets').select('name,name_en,release_date,oculto,tcggo_id').eq('market', 'WEST').neq('serie_id', 'tcgp').gte('release_date', hoy).order('release_date').limit(3)
+      const { data } = await supabase.from('tcg_sets').select('name,name_en,release_date,logo_tcggo,logo_scrydex,oculto,tcggo_id').eq('market', 'WEST').neq('serie_id', 'tcgp').gte('release_date', hoy).order('release_date').limit(3)
       // Las próximas de TCGGO nacen escondidas (756) y cuentan, como en
       // el calendario.
       return (data || []).filter((s) => (!s.oculto || s.tcggo_id) && s.release_date)
     }),
     intentar(() => aMedias(uid)),
-    intentar(async () => {
-      const { count, error } = await supabase.from('user_notifications').select('id', { count: 'exact', head: true }).eq('recipient_id', uid).eq('type', 'forum_reply').is('read_at', null)
-      return error ? null : count ?? null
-    }),
+    intentar(() => hilosConNovedades(uid)),
     // Lo que valen tus productos (766), como lo suma el Panel.
     intentar(async () => (await import('./productos-valor.js')).valorParaElPanel(uid)),
     // Los seis retos de hoy (843).
     intentar(() => estadoDeHoy(uid)),
   ])
   const torneo = mio ? { ...mio, mio: true } : abierto || null
-  const lanzamiento = sets?.[0] ? { nombre: sets[0].name || sets[0].name_en, fecha: sets[0].release_date } : null
-  caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null, { productos: productos?.unidades ? productos.total : 0 }) + fichasHtml({ retos: retos ?? null, torneo, lanzamiento, respuestas: respuestas ?? null })
+  // El logo, el mismo que la miniatura de la portada sin cuenta (home.js).
+  const lanzamiento = sets?.[0] ? { nombre: sets[0].name || sets[0].name_en, fecha: sets[0].release_date, logo: sets[0].logo_scrydex || sets[0].logo_tcggo || '' } : null
+  caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null, { productos: productos?.unidades ? productos.total : 0 }) + fichasHtml({ retos: retos ?? null, torneo, lanzamiento, hilos: hilos ?? null })
   // La cifra cuenta desde la de la última vez (783, MV2).
   const cifra = caja.querySelector('.hoy-valor b:not(.hoy-valor-invita)')
   if (cifra && valor?.length) {

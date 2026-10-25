@@ -463,6 +463,17 @@ async function cargarLanzamiento() {
   const seccion = document.getElementById('lanzamientoSeccion')
   const hueco = document.getElementById('lanzamientoPortada')
   if (!seccion || !hueco) return
+  // Con cuenta, el próximo lanzamiento ya sale en las fichas de «Hoy», y aquí
+  // iba repetido; en su sitio, que se puede escribir una guía (1010: la gente
+  // nueva solo veía guías y no sabía que podía escribirlas).
+  if (await getSession().catch(() => null)) {
+    hueco.href = '/editor-guia.html'
+    hueco.innerHTML = `<span class="lanzamiento-portada-icono">${icons.edit(18)}</span>
+      <span class="lanzamiento-portada-texto"><strong>Escribe una guía</strong><span class="subtext">Cualquiera puede: la revisamos y sale en Aprender</span></span>
+      <span class="reto-flecha">→</span>`
+    seccion.style.display = ''
+    return
+  }
   try {
     const hoy = new Date().toISOString().slice(0, 10)
     // Del CATÁLOGO (656): el primer set occidental con fecha de hoy en

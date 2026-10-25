@@ -25,6 +25,9 @@
   white-space: nowrap;
 }
 .medallero:hover { border-color: var(--navy); }
+/* Escribir una guía (1010): a la derecha, detrás del medallero si sale. */
+.ap-escribir { margin-left: auto; }
+.medallero:not(.hidden) + .ap-escribir { margin-left: 0; }
 .medallero-titulo { display: inline-flex; color: var(--text-mid); }
 .medallero .medalla-chip { font-size: var(--t-2xs); }
 @media (max-width: 640px) {

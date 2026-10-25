@@ -470,7 +470,8 @@ export function suggestedNameFromSession(session) {
 export async function requireAuth() {
   const session = await getSession()
   if (!session) {
-    window.location.href = '/auth.html'
+    // De vuelta adonde ibas al entrar (1010: «Escribir una guía» sin cuenta).
+    window.location.href = `/auth.html?volver=${encodeURIComponent(location.pathname + location.search)}`
     return null
   }
   return session

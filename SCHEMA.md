@@ -41785,6 +41785,43 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1010 — Escribir una guía se ve, y «Hoy» dice lo que es
+
+PINGU: «la gente nueva no sabe que se puede escribir guías… el botón solo está
+en el perfil». Y en la portada con cuenta el próximo lanzamiento salía dos
+veces (la ficha de «Hoy» y la franja de la lateral), y la ficha del foro decía
+«Nada nuevo» con temas por leer.
+
+- **La franja de la lateral** (`#lanzamientoPortada`, `cargarLanzamiento` de
+  `js/home.js`): con sesión es «Escribe una guía» → `/editor-guia.html`, con el
+  mismo molde (icono, texto, flecha) y sin consulta. Sin sesión sigue siendo el
+  calendario, que es lo único que lo enseña.
+- **/aprender**: «Escribir una guía» (`.ap-escribir`, `btn-primary`) a la
+  derecha del título, detrás del medallero si sale (la regla de la 893).
+- **`requireAuth`** (`js/app.js`) manda a `/auth.html?volver=<ruta>`: el
+  editor sin cuenta vuelve al editor al entrar (`destinoTrasEntrar` ya filtraba
+  lo que no es de la casa).
+- **La ficha del lanzamiento** lleva el logo del set (`logo_scrydex` o
+  `logo_tcggo`, como la miniatura sin cuenta) en el sitio del nombre, a 32 px
+  (`.hoy-ficha-logo`); si no carga, el `onerror` deja el nombre.
+- **La ficha del foro** contaba los avisos `forum_reply` sin leer, y la campana
+  los marca leídos al abrirla: «Nada nuevo» con temas por leer. Ahora son los
+  temas que SIGUES (`forum_subscriptions`: escribir en uno te suscribe, la
+  `forum_suscribir_al_escribir`) con algo que no has visto, con la misma regla
+  que la negrita del foro (`estaSinLeer`: tu marca o «todo leído», y lo último
+  tuyo no cuenta). «N sin leer»; con uno, su título y su enlace. Sin las tablas,
+  `null` → «El foro» (la 319). `urlTema` va copiada en una línea para no
+  traerse `foro-comun.js` y sus dependencias.
+
+**Pruebas**: `test-tanda-1010-pantalla.mjs` (lo puro; la portada con cuenta:
+la franja, el logo a 32 px, el foro con cuatro temas —sin leer, leído, lo
+último tuyo y uno que no sigues— y con todo leído aunque haya avisos; sin
+cuenta, el calendario; /aprender y el editor sin cuenta con `volver`). Al día
+744 (las fichas) y 656 (la segunda página va sin sesión: el stub da admin por
+defecto). Verdes 299, 312, 313, 305, 981, test-imports; la 310 da los dos rojos
+de antes (duraciones de transición y una imagen de mi-coleccion.js), igual sin
+esta tanda.
+
 ## Tanda 1009 — Las cuatro barajas de «My First Battle»
 
 `supabase-migration-1009-my-first-battle.sql` crea cuatro colecciones del

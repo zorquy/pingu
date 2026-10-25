@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (248) — PINGU-Claude (1010 — escribir una guía y la portada «Hoy»)
+
+**Hecho**: «Escribir una guía» en /aprender (a la derecha del título) y, en la
+portada con cuenta, la franja del calendario de la lateral (repetía la ficha
+del lanzamiento) pasa a «Escribe una guía». La ficha del lanzamiento enseña el
+logo del set. La ficha del foro cuenta los temas que sigues con algo sin ver
+(antes, los avisos sin leer, que la campana marca leídos: decía «Nada nuevo»).
+`requireAuth` lleva `volver`, así el editor sin cuenta vuelve al editor. El
+carrusel de novedades para redes queda aparcado (PINGU), con la plantilla nueva
+hecha y a la espera de sus capturas.
+
+**Ficheros**: `js/home.js`, `js/hoy.js`, `css/hoy.css`, `js/app.js`,
+`aprender.html`, `css/aprender.css`, `SCHEMA.md`, `novedades.json`,
+`BITACORA.md`. En `pruebas`: `test-tanda-1010-pantalla.mjs` (nueva),
+`test-tanda-744-pantalla.mjs` y `test-tanda-656.mjs` al día.
+
+**Pendiente**: las capturas del carrusel; los ejemplos de Search Console; lo de
+la 237.
+
 ## 2026-10-25 (247) — PINGU-Claude (1009 — My First Battle)
 
 **Hecho**: `supabase-migration-1009-my-first-battle.sql` crea las cuatro barajas

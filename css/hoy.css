@@ -140,6 +140,16 @@
   white-space: nowrap;
 }
 
+/* El logo del set que sale (1010), en el sitio del nombre. */
+.hoy-ficha-logo img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  height: 32px;
+  object-fit: contain;
+  object-position: left center;
+}
+
 /* El reto que te toca hacer va de color: es lo que cambia cada día. */
 .hoy-ficha.hoy-destaca {
   border-color: transparent;
