@@ -2603,6 +2603,116 @@ export const supabase = {
     // Y si la prueba dice qué tiene que devolver, se devuelve: la RPC de
     // reportar contesta 'esperando' o 'conciliado' y el cliente pinta
     // cosas distintas.
+    // La portada en tres olas (1017): `portada_hoy`, `portada_foro` y
+    // `foro_resumen`, CALCULADAS de las tablas con las mismas reglas que las
+    // funciones de la base (devolverlas a mano probaría la semilla). Con
+    // `window.__SIN_1017__`, como sin la migración.
+    if (nombre === 'portada_hoy' || nombre === 'portada_foro' || nombre === 'foro_resumen') {
+      if (typeof window !== 'undefined' && window.__SIN_1017__) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
+      // Una tabla que «no existe» (__SIN_TABLAS__) tumba la función entera,
+      // como en Postgres (42P01): el cliente hace entonces lo de antes.
+      const faltan = (typeof window !== 'undefined' && window.__SIN_TABLAS__) || []
+      const lee = nombre === 'portada_hoy' ? ['user_collection_value', 'user_collection', 'tcg_card_prices', 'tournaments', 'tournament_registrations', 'tcg_sets', 'user_progress', 'guides', 'user_decks', 'forum_subscriptions', 'forum_threads', 'forum_thread_reads', 'course_review_queue', 'forum_posts']
+        : nombre === 'portada_foro' ? ['forum_boards', 'forum_threads', 'forum_posts', 'forum_thread_reads', 'user_profiles']
+        : ['forum_sections', 'forum_boards', 'forum_threads', 'forum_posts', 'forum_thread_reads', 'user_profiles']
+      const falta = lee.find((t) => faltan.includes(t))
+      if (falta) return { data: null, error: { code: '42P01', message: `relation "public.${falta}" does not exist` } }
+      const yo = sesion?.user?.id || null
+      const ms = (x) => (x ? Date.parse(x) : NaN)
+      const perfilJson = (p) => ({ id: p.id, username: p.username ?? null, display_name: p.display_name ?? null, avatar_url: p.avatar_url ?? null, level: p.level ?? null, total_xp: p.total_xp ?? null, hide_activity: p.hide_activity ?? false, is_admin: p.is_admin ?? false, is_moderator: p.is_moderator ?? false })
+      const perfiles = (ids) => Object.fromEntries(T.user_profiles.filter((p) => ids.includes(p.id)).map((p) => [p.id, perfilJson(p)]))
+      const hasta = yo ? T.user_profiles.find((p) => p.id === yo)?.forum_read_all_at || null : null
+      // La referencia de `estaSinLeer`: tu marca del tema o «todo leído», la más nueva.
+      const ref = (t) => {
+        const propia = (T.forum_thread_reads || []).find((x) => x.user_id === yo && x.thread_id === t.id)?.last_read_at
+        const r = [propia, hasta].filter(Boolean).sort((x, y) => ms(x) - ms(y)).pop()
+        return r || null
+      }
+      const sinLeer = (t) => Boolean(yo && t.last_post_at && (!t.last_post_author_id || t.last_post_author_id !== yo) && (!ref(t) || ms(t.last_post_at) > ms(ref(t))))
+      if (nombre === 'portada_hoy') {
+        if (!yo) return { data: null, error: null }
+        const hoy = new Date().toISOString().slice(0, 10)
+        const hace60 = new Date(Date.now() - 60 * 86400e3).toISOString().slice(0, 10)
+        const lineas = (T.user_collection || []).filter((l) => l.user_id === yo)
+        const { valorDeLineas } = await import('./mi-coleccion/datos.js')
+        const { guideHasCourse } = await import('./guia-contenido.js')
+        const precios = new Map((T.tcg_card_prices || []).map((f) => [f.card_id, f]))
+        const cantidad = (l) => Math.max(0, Number(l.cantidad ?? 1) || 0)
+        const registros = (T.tournament_registrations || []).filter((r) => r.user_id === yo && (r.status || 'active') === 'active').map((r) => r.tournament_id)
+        const abierto = T.tournaments.filter((t) => t.status === 'registration_open' && ms(t.start_at) >= Date.now()).sort((a, b) => ms(a.start_at) - ms(b.start_at))[0]
+        const progreso = (T.user_progress || []).filter((p) => p.user_id === yo && p.status != null && p.status !== 'completed' && p.started_at).sort((a, b) => ms(b.started_at) - ms(a.started_at)).slice(0, 4)
+          .map((p) => { const g = T.guides.find((x) => x.id === p.guide_id); return g ? { guide_id: p.guide_id, current_block: p.current_block ?? null, status: p.status, started_at: p.started_at, read_at: p.read_at ?? null, guia: { id: g.id, slug: g.slug, title: g.title, estimated_mins: g.estimated_mins ?? null, bloques: Array.isArray(g.blocks) ? g.blocks.length : 0, curso: guideHasCourse(g) } } : null }).filter(Boolean)
+        const mazos = (T.user_decks || []).filter((d) => d.user_id === yo).sort((a, b) => ms(b.updated_at) - ms(a.updated_at)).slice(0, 3)
+          .map((d) => ({ id: d.id, name: d.name, updated_at: d.updated_at, cartas: (Array.isArray(d.cards) ? d.cards : []).reduce((t, c) => t + (Number(c.n) || 0), 0) }))
+        const subs = (T.forum_subscriptions || []).filter((s) => s.user_id === yo).sort((a, b) => ms(b.created_at) - ms(a.created_at)).slice(0, 200)
+        const nuevos = subs.map((s) => T.forum_threads.find((t) => t.id === s.thread_id)).filter((t) => t && sinLeer(t)).sort((a, b) => ms(b.last_post_at) - ms(a.last_post_at))
+        const perfil = T.user_profiles.find((p) => p.id === yo) || {}
+        const mios = (T.user_progress || []).filter((p) => p.user_id === yo)
+        return { data: {
+          dia: hoy,
+          valor: {
+            historia: (T.user_collection_value || []).filter((h) => h.user_id === yo && String(h.dia) >= hace60).sort((a, b) => String(a.dia).localeCompare(String(b.dia))).map((h) => ({ dia: h.dia, valor: h.valor })),
+            ahora: { valor: valorDeLineas(lineas, precios), copias: lineas.reduce((t, l) => t + cantidad(l), 0), lineas: lineas.length, distintas: new Set(lineas.map((l) => l.card_id)).size, sin_precio: 0 },
+          },
+          torneos: T.tournaments.filter((t) => registros.includes(t.id)).map((t) => ({ id: t.id, slug: t.slug, name: t.name, start_at: t.start_at, status: t.status, format: t.format ?? 'standard', matchday_dates: t.matchday_dates ?? null })),
+          abierto: abierto ? { id: abierto.id, slug: abierto.slug, name: abierto.name, start_at: abierto.start_at } : null,
+          sets: (T.tcg_sets || []).filter((s) => (s.market || 'WEST') === 'WEST' && s.serie_id != null && s.serie_id !== 'tcgp' && s.release_date && String(s.release_date).slice(0, 10) >= hoy).sort((a, b) => String(a.release_date).localeCompare(String(b.release_date))).slice(0, 3)
+            .map((s) => ({ name: s.name ?? null, name_en: s.name_en ?? null, release_date: s.release_date, logo_tcggo: s.logo_tcggo ?? null, logo_scrydex: s.logo_scrydex ?? null, oculto: s.oculto ?? false, tcggo_id: s.tcggo_id ?? null })),
+          sigue: { progreso, mazos },
+          hilos: { cuenta: nuevos.length, uno: nuevos[0]?.id || null, titulo: nuevos[0]?.title || null },
+          retos: (typeof window !== 'undefined' && window.__FAKE_RETOS_NUMEROS__) || null,
+          comunidad: (typeof window !== 'undefined' && window.__FAKE_RETOS_COMUNIDAD__) || null,
+          repaso: (T.course_review_queue || []).filter((q) => q.user_id === yo && ms(q.review_after) <= Date.now()).length,
+          pasos: { logro: (perfil.achievements || []).includes('primeros_pasos'), leer: mios.some((p) => p.read_at), curso: mios.some((p) => p.status === 'completed'), foro: T.forum_posts.some((m) => m.author_id === yo) },
+        }, error: null }
+      }
+      if (nombre === 'portada_foro') {
+        const desde = ms(args.p_desde) || new Date(new Date().setHours(0, 0, 0, 0)).getTime()
+        const visibles = T.forum_boards.filter((b) => !b.is_hidden)
+        const porFecha = (a, b) => (ms(b.last_post_at) || -1) - (ms(a.last_post_at) || -1)
+        const temas = T.forum_threads.filter((t) => visibles.some((b) => b.id === t.board_id)).sort(porFecha).slice(0, 4)
+        const deHoy = T.forum_posts.filter((m) => ms(m.created_at) >= desde).slice(0, 1000)
+        const hoy = {}
+        for (const m of deHoy) hoy[m.thread_id] = (hoy[m.thread_id] || 0) + 1
+        const top = [...temas].sort((a, b) => (hoy[b.id] || 0) - (hoy[a.id] || 0) || porFecha(a, b))[0]
+        const ultimos = top ? T.forum_posts.filter((m) => m.thread_id === top.id).sort((a, b) => ms(b.created_at) - ms(a.created_at)).slice(0, 10).map((m) => ({ id: m.id, author_id: m.author_id ?? null, body_html: String(m.body_html || '').slice(0, 1500), created_at: m.created_at })) : []
+        const nuevos = {}
+        for (const t of temas) {
+          if (!sinLeer(t)) continue
+          if (top && t.id === top.id) {
+            const r = ref(t)
+            nuevos[t.id] = r ? Math.max(ultimos.filter((u) => ms(u.created_at) > ms(r) && u.author_id !== yo).length, 1) : Math.min(t.post_count || 1, 10)
+          } else nuevos[t.id] = 1
+        }
+        const ultimoDe = {}
+        for (const u of ultimos) if (u.author_id && !(u.author_id in ultimoDe)) ultimoDe[u.author_id] = ms(u.created_at)
+        const campos = (t) => ({ id: t.id, title: t.title ?? null, prefix: t.prefix ?? null, post_count: t.post_count ?? null, created_at: t.created_at ?? null, last_post_at: t.last_post_at ?? null, author_id: t.author_id ?? null, last_post_author_id: t.last_post_author_id ?? null, board_id: t.board_id ?? null })
+        return { data: {
+          temas: (top ? [top, ...temas.filter((t) => t !== top)] : temas).map(campos),
+          foros: Object.fromEntries(visibles.map((b) => [b.id, b.name])),
+          hoy,
+          escribiendo: new Set(deHoy.map((m) => m.author_id)).size,
+          ultimo: ultimos[0] || null,
+          participantes: Object.keys(ultimoDe).sort((a, b) => ultimoDe[b] - ultimoDe[a]),
+          perfiles: perfiles([...temas.flatMap((t) => [t.author_id, t.last_post_author_id]), ...ultimos.map((u) => u.author_id)].filter(Boolean)),
+          nuevos,
+          sesion: Boolean(yo),
+        }, error: null }
+      }
+      // foro_resumen
+      const foros = resumenDeForos().filter((f) => !f.is_hidden).sort((a, b) => (a.position || 0) - (b.position || 0))
+      const nuevos = {}
+      for (const t of T.forum_threads) if (sinLeer(t)) nuevos[t.board_id] = (nuevos[t.board_id] || 0) + 1
+      const p = yo ? T.user_profiles.find((x) => x.id === yo) : null
+      return { data: {
+        secciones: [...T.forum_sections].sort((a, b) => (a.position || 0) - (b.position || 0)),
+        foros,
+        nuevos,
+        perfiles: perfiles(foros.map((f) => f.last_post_author_id).filter(Boolean)),
+        rol: p ? { staff: Boolean(p.is_admin || p.is_moderator), admin: Boolean(p.is_admin) } : null,
+        marcas: Boolean(yo),
+      }, error: null }
+    }
     const respuesta = (typeof window !== 'undefined' && window.__RPC_RESPUESTAS__) || {}
     if (nombre in respuesta) return { data: respuesta[nombre], error: null }
     return { data: null, error: null }

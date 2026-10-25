@@ -101,7 +101,7 @@ console.log('\n── 4. Al volver se pinta lo guardado antes de que conteste la
     arrancar()
   `
   const casos = [
-    ['foro.html', 'pokedoc-uv-foro|admin-1', { foroPrincipal: '<div class="foro-fila" id="uvMarca">de la última vez</div>' }, null, { forum_boards_resumen: 1500, forum_sections: 1500 }, '#foroPrincipal .foro-fila'],
+    ['foro.html', 'pokedoc-uv-foro|admin-1', { foroPrincipal: '<div class="foro-fila" id="uvMarca">de la última vez</div>' }, null, { forum_boards_resumen: 1500, forum_sections: 1500, foro_resumen: 1500 }, '#foroPrincipal .foro-fila'],
     ['meta.html?dias=30', 'pokedoc-uv-meta:todos:30|anon', { metaRanking: '<li id="uvMarca">de la última vez</li>', metaTotales: 'x' }, { metaCabeceraTabla: true }, null, '#metaRanking'],
     ['noticias.html', 'pokedoc-uv-noticias|anon', { noticiasRejilla: '<p id="uvMarca">de la última vez</p>' }, null, { guides: 1500 }, '#noticiasRejilla'],
     ['lanzamientos.html', 'pokedoc-uv-lanzamientos:WEST|anon', { listaPasados: '<p id="uvMarca">de la última vez</p>' }, { seccionPasados: true }, { tcg_sets: 1500 }, '#listaPasados'],
@@ -109,7 +109,8 @@ console.log('\n── 4. Al volver se pinta lo guardado antes de que conteste la
     ['mi-coleccion.html?ver=resumen', 'pokedoc-uv-panel|admin-1', { mcVistazos: '<section class="mc-vistazo" id="uvMarca">de la última vez</section>' }, null, { user_collection: 1500 }, '#mcVistazos'],
   ]
   for (const [ruta, clave, partes, visibles, retraso, caja] of casos) {
-    const ctx = await nuevo((retraso ? `window.__FAKE_RETRASO__ = ${JSON.stringify(retraso)}\n` : '') + 'window.__FAKE_SECCIONES__ = [{}]; window.__FAKE_FOROS__ = [{}, {}, {}]; window.__FAKE_NOTICIAS__ = [{}, {}, {}]\n' + sembrar(clave, partes, visibles))
+    // El índice del foro llega por `foro_resumen()` desde la 1017: el retraso vale para las tablas y para las funciones.
+    const ctx = await nuevo((retraso ? `window.__FAKE_RETRASO__ = ${JSON.stringify(retraso)}; window.__RPC_RETRASO__ = ${JSON.stringify(retraso)}\n` : '') + 'window.__FAKE_SECCIONES__ = [{}]; window.__FAKE_FOROS__ = [{}, {}, {}]; window.__FAKE_NOTICIAS__ = [{}, {}, {}]\n' + sembrar(clave, partes, visibles))
     const p = await ctx.newPage()
     await p.goto(`${BASE}/${ruta}`, { waitUntil: 'domcontentloaded' })
     // Mientras la base tarda: la marca a la vista y el punto encendido.
