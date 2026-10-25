@@ -49,7 +49,9 @@ console.log('\n── 1. Cada pestaña dice cuánto hay ──')
     const { page, errores } = await abrir(ruta, { sesion })
     check(`${ruta}: sin errores de JavaScript`, errores.length === 0, errores[0] || '')
     const foro = await page.locator('.tab-btn[data-ptab="foro"] .pest-cuenta').textContent()
-    check(`${ruta}: la del foro suma temas y mensajes`, foro === '13', String(foro))
+    // Desde la 1013 (L2) la chapa cuenta mensajes y comentarios: el que abre
+    // un tema ya es un mensaje, y sumar los temas lo contaba dos veces.
+    check(`${ruta}: la del foro cuenta los mensajes (el que abre un tema ya es uno)`, foro === '9', String(foro))
     // El cero NO se pinta: «Muro 0» ocupa sitio para decir que no hay
     // nada, y para eso ya está el panel cuando entras.
     check(`${ruta}: la del muro, vacía, no lleva chapa`,

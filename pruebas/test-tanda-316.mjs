@@ -190,7 +190,8 @@ console.log('\n── 4. En el móvil, los primeros pasos van arriba ──')
     const { page } = await abrir('/index.html', ancho)
     const r = await page.evaluate(() => {
       const n = [...document.querySelectorAll('*')].find((e) => e.children.length === 0 && /Tus primeros pasos/.test(e.textContent))
-      return n ? { y: Math.round(n.getBoundingClientRect().top + window.scrollY), alto: document.body.scrollHeight } : null
+      const top = (id) => Math.round((document.getElementById(id)?.getBoundingClientRect().top || 0) + window.scrollY)
+      return n ? { y: Math.round(n.getBoundingClientRect().top + window.scrollY), alto: document.body.scrollHeight, aprende: top('recientesSeccion'), clasificacion: top('clasificacionSeccion') } : null
     })
     await page.close()
     return r
@@ -201,8 +202,12 @@ console.log('\n── 4. En el móvil, los primeros pasos van arriba ──')
   if (movil && escritorio) {
     // La FORMA: que esté en el primer tercio, no un número exacto —un
     // número exacto se rompe en cuanto cambie cualquier bloque de arriba.
-    check('  …y en el móvil está en el primer tercio de la portada',
-      movil.y < movil.alto / 3, `y=${movil.y} de ${movil.alto}`)
+    // Desde la 1012 (P3) en el móvil «Primeros pasos» (para quien acaba de
+    // llegar) va DETRÁS de «Sigue», el foro, la noticia y Aprende, y antes
+    // de la clasificación: ya no está en el primer tercio a propósito.
+    check('  …y en el móvil va después de Aprende y antes de la clasificación (1012)',
+      // (la clasificación puede no salir en el doble: entonces solo lo primero)
+      movil.y > movil.aprende && (!movil.clasificacion || movil.y < movil.clasificacion), `y=${movil.y}, aprende=${movil.aprende}, clasificación=${movil.clasificacion}`)
     check('  …y en escritorio sigue arriba en la lateral', escritorio.y < 900, `y=${escritorio.y}`)
   }
 }
