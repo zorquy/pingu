@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (242) — PINGU-Claude (1005 — Trick or Trade 2023 y 2024)
+
+**Hecho**: `supabase-migration-1005-trick-or-trade.sql` mete las versiones a
+mano «Trick or Trade 2023» (30 cartas) y «Trick or Trade 2024» (30), con
+«Trick or Trade BOOster Bundle 20xx» y su fecha. Casa cada carta por colección
+y número, y copia la clase y el icono de la 2022 que hizo PINGU.
+
+**Ficheros**: `supabase-migration-1005-trick-or-trade.sql` (nuevo),
+`SCHEMA.md`, `BITACORA.md`. En `pruebas`: `test-tanda-1005.mjs` (PostgreSQL).
+Sin línea en `novedades.json` hasta que esté ejecutada.
+
+**Pendiente**: PINGU ejecuta la 1005 en el SQL Editor (la cuenta del final
+tiene que decir 30 y 30). Y lo de la 237.
+
 ## 2026-10-25 (241) — PINGU-Claude (1004 — separar variantes en el buscador)
 
 **Hecho**: con «separar variantes», el buscador hace lo mismo que la expansión:

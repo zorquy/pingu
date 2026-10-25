@@ -41785,6 +41785,35 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1005 — Las versiones «Trick or Trade 2023» y «2024», por migración
+
+PINGU, con las dos listas de Bulbapedia: «métele una variante que se llame
+Trick or Trade y el año… salieron en Trick or Trade BOOster Bundle». La de
+2022 la metió él desde /admin, carta a carta; estas son 30 + 30 cartas de
+catorce colecciones (de Espada y Escudo a Twilight Masquerade).
+
+`supabase-migration-1005-trick-or-trade.sql` crea cada una como versión A MANO
+(la 934: `origen = 'mano'`, id negativo de `tcg_card_versions_mano_seq`, así
+que ninguna pasada la pisa), con `salio_en` «Trick or Trade BOOster Bundle
+2023/2024» y el lanzamiento (1-9-2023 y 30-8-2024). La clase y el icono los
+copia de la Trick or Trade 2022 que ya existe, para que las tres vayan igual;
+sin ella, «sello». Es un `do` (las 60 filas en un `values` dentro, la 631) y
+una cuenta final que tiene que decir 30 y 30.
+
+Cada carta se casa por colección y NÚMERO, que es lo impreso, y no por nombre,
+que puede estar en español (la 505). La colección, por su id de TCGdex y, si
+no, por su código de TCG Live y su cuenta. El número, sin ceros delante (en
+Espada y Escudo es «89», no «089»). Si una «tcggo-…» repite el número, gana la
+original. Si el nombre no casa, se crea igual y sale un NOTICE «MIRAR EL
+NOMBRE». Lo que no está se salta con un NOTICE «NO ENCONTRADA». Es idempotente:
+una carta que ya tiene la versión no se repite.
+
+**Pruebas**: `test-tanda-1005.mjs`, contra PostgreSQL con la 885 y la 934
+debajo y cada sentencia en su conexión. Comprueba la lista (30 y 30, sin
+repetir), la colección casada por código, los números sin ceros, la original
+antes que la «tcggo-», la clase y el icono copiados de la 2022 (o «sello»),
+los avisos, la cuenta y que a la segunda no crea nada.
+
 ## Tanda 1004 — «Separar variantes» en el buscador, como en una expansión
 
 PINGU, con «Reshiram» en la búsqueda general y «separar variantes» puesto: el
