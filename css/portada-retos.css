@@ -73,3 +73,16 @@
 
 .tr-cara:first-child { margin-left: 0; }
 .tr-repaso { display: flex; align-items: center; gap: var(--e-xs); }
+
+/* En el móvil (1012, P1) los seis ya están en la ficha de «Hoy», cuatro dedos
+   más arriba: del bloque queda solo la línea del siguiente («Empieza por…»),
+   que es lo único que la ficha no decía. */
+/* El hueco mientras llega mide lo que va a medir (981): el bloque entero en
+   el PC, la línea sola en el móvil. */
+.tr-esqueleto { height: 168px; }
+
+@media (max-width: 959px) {
+  .tr-cabeza, .tr-gente, .tr-repaso { display: none; }
+  .tr-cuerpo { padding: var(--e-sm) var(--e-md); }
+  .tr-esqueleto { height: 68px; }
+}

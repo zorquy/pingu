@@ -266,16 +266,18 @@
     display: contents;
   }
 
-  /* S780.188 · el orden del móvil, 844: lo de hoy arriba y la comunidad al final. */
+  /* S780.188 · el orden del móvil (844; 1012 P3): lo de hoy arriba, lo de
+     quien ya está (Sigue) antes que lo de quien acaba de llegar (Primeros
+     pasos), y la comunidad al final. */
+  #retoSeccion { order: -10; }
   #torneoPortadaSeccion { order: -9; }
-  #retoSeccion { order: -8; }
-  #primerosPasos { order: -7; }
-  #sigueSeccion { order: -6; }
-  #foroVivoSeccion { order: -5; }
-  #noticiaPortadaSeccion { order: -4; }
-  #recientesSeccion { order: -3; }
-  #lanzamientoSeccion { order: -2; }
-  #clasificacionSeccion { order: -1; }
+  #sigueSeccion { order: -8; }
+  #foroVivoSeccion { order: -7; }
+  #noticiaPortadaSeccion { order: -6; }
+  #recientesSeccion { order: -5; }
+  #primerosPasos { order: -4; }
+  #lanzamientoSeccion { order: -3; }
+  #clasificacionSeccion { order: -2; }
 }
 
 /* S780.189 */

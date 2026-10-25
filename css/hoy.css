@@ -221,6 +221,18 @@
   .hoy-sg { flex: 0 0 78%; scroll-snap-align: start; }
 }
 
+/* A dos columnas el detalle puede ir en DOS líneas (1012, P2): una ficha
+   cortada con puntos suspensivos parece rota aunque no lo esté. */
+@media (max-width: 900px) {
+  .hoy-ficha > span:not(.hoy-ficha-icono):not(.hoy-ficha-logo):not(.hoy-retos-anillo) {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    white-space: normal;
+    line-height: 1.25;
+  }
+}
+
 @media (max-width: 900px) {
   .hoy-rejilla {
     grid-template-columns: repeat(2, minmax(0, 1fr));

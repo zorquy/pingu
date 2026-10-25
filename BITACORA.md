@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (251) — PINGU-Claude (1012 — la portada en el móvil)
+
+**Hecho**: en el móvil el bloque de retos se queda en la línea «Empieza
+por…» (los seis ya están en la ficha de Hoy), las fichas de Hoy llevan textos
+que caben a dos columnas (y dos líneas si no), y el orden pone «Sigue donde lo
+dejaste» antes que «Primeros pasos». El PC no cambia.
+
+**Ficheros**: `index.html`, `css/portada-retos.css`, `css/portada.css`,
+`css/hoy.css`, `js/hoy.js`, `js/portada-retos.js`, `SCHEMA.md`,
+`novedades.json`, `BITACORA.md`. En `pruebas`: `test-tanda-1012-pantalla.mjs`
+(nueva), 744 al día.
+
+**Pendiente**: 1014 (guías), 1015, 1016 (letra B), 1017; las capturas del
+carrusel; los ejemplos de Search Console; lo de la 237.
+
 ## 2026-10-25 (250) — PINGU-Claude (1013 — seis pequeños de lógica)
 
 **Hecho**: los seis de lógica de la propuesta del repaso. Mis partidas abre en

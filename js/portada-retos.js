@@ -58,7 +58,9 @@ const horasHastaMañana = () => {
 export function fichaRetosHtml(e) {
   const n = e ? e.hechos.size : 0
   const total = e?.total || RETOS.length
-  const sub = !e ? `Seis retos · quedan ${horasHastaMañana()} h` : n >= total ? '¡Día perfecto!' : n ? `${e.xp ? `+${e.xp} XP · ` : ''}te ${total - n === 1 ? 'queda 1' : `quedan ${total - n}`}` : `Seis retos · quedan ${horasHastaMañana()} h`
+  // Corto (1012, P2): «Seis retos · quedan 7 h» se cortaba a dos columnas, y
+  // los seis ya los dice el anillo.
+  const sub = !e ? `quedan ${horasHastaMañana()} h` : n >= total ? '¡Día perfecto!' : n ? `${e.xp ? `+${e.xp} XP · ` : ''}te ${total - n === 1 ? 'queda 1' : `quedan ${total - n}`}` : `quedan ${horasHastaMañana()} h`
   return `<a class="hoy-ficha hoy-retos${n >= total ? ' hoy-hecho' : ' hoy-destaca'}" href="/retos" aria-label="${escapeHtml(`Retos de hoy: ${n} de ${total}. ${sub}`)}">
     <span class="hoy-retos-anillo" style="--lleno:${Math.round((n / total) * 360)}deg" aria-hidden="true"><strong>${n}/${total}</strong></span>
     <b>Retos de hoy</b><span>${escapeHtml(sub)}</span>

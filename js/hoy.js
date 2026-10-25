@@ -53,6 +53,11 @@ export function chispaSvg(filas, { ancho = 160, alto = 56 } = {}) {
   return `<svg class="hoy-chispa" viewBox="0 0 ${ancho} ${alto}" width="${ancho}" height="${alto}" aria-hidden="true" preserveAspectRatio="none"><path class="hoy-chispa-area" d="${d} L${ancho},${alto} L0,${alto} Z"/><path d="${d}" fill="none" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"/></svg>`
 }
 
+// El nombre de un torneo sin lo que va entre corchetes o paréntesis (1012,
+// P2): «Liga FDN [Oct–Dic]» no cabe en una ficha de dos columnas y se cortaba
+// en «Liga FDN [Oct–Dic] …»; «Liga FDN · jornada 3» sí. Puro.
+export const nombreCorto = (nombre) => String(nombre || '').replace(/\s*[\[(][^\])]*[\])]/g, '').replace(/\s+/g, ' ').trim() || String(nombre || '')
+
 // «hoy», «mañana», «en 3 días» o la fecha. Puro.
 export function cuandoEs(fecha, ahora = Date.now()) {
   const d = Math.round((Date.parse(`${String(fecha).slice(0, 10)}T00:00:00Z`) - Date.parse(`${hoyISO(ahora)}T00:00:00Z`)) / DIA)
@@ -106,7 +111,7 @@ export function fichasHtml({ retos = null, torneo = null, lanzamiento = null, hi
     fichaRetosHtml(retos),
     ficha(
       torneo
-        ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: /^\d/.test(cuando) ? `Torneo el ${cuando}` : `Torneo ${cuando}${hora}`, sub: torneo.jornada ? `${torneo.name} · jornada ${torneo.jornada}` : torneo.name }
+        ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: /^\d/.test(cuando) ? `Torneo el ${cuando}` : `Torneo ${cuando}${hora}`, sub: torneo.jornada ? `${nombreCorto(torneo.name)} · jornada ${torneo.jornada}` : nombreCorto(torneo.name) }
         : { href: '/torneos.html', icono: 'trophy', rotulo: 'Torneos', titular: 'Torneos', sub: 'Ninguno a la vista' }
     ),
     ficha(

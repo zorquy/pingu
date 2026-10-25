@@ -41785,6 +41785,37 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1012 — La portada en el móvil: un solo bloque de retos, textos que caben y el orden
+
+Los tres de «portada» de la propuesta del repaso (PINGU: «adelante con lo
+recomendado»). En el PC no cambia nada.
+
+- **P1 · Los retos salían dos veces**: la ficha «Retos de hoy · 0/6» en Hoy
+  y, cuatro dedos más abajo, el bloque «Tus retos de hoy» con los mismos seis
+  iconos (lo mismo que PINGU dijo del calendario en la 1010). En el móvil
+  (`css/portada-retos.css`, ≤ 959 px) del bloque queda solo la línea del
+  siguiente («Empieza por… / El siguiente…», con «Jugar»), que es lo único que
+  la ficha no decía; la cabecera, la gente y el repaso se esconden. El hueco
+  de carga (`.tr-esqueleto`) mide lo que va a medir en cada ancho (68 px en el
+  móvil), o el bloque al llegar subía lo de debajo (981).
+- **P2 · Las fichas de «Hoy» se cortaban a dos columnas**: «Liga FDN [Oct–Dic]
+  …», «Seis retos · quedan…», «en los temas que si…». Textos para dos
+  columnas: `nombreCorto` (`js/hoy.js`, pura) quita lo que va entre corchetes
+  o paréntesis del nombre del torneo («Liga FDN · jornada 3»); la ficha de
+  retos dice «quedan 7 h» (los seis ya los dice el anillo). Y si aun así no
+  cabe, DOS líneas en vez de puntos suspensivos (`css/hoy.css`, ≤ 900 px,
+  `-webkit-line-clamp: 2`; el anillo de los retos queda fuera de la regla).
+- **P3 · El orden del móvil** (`css/portada.css`): retos (la línea) → torneo
+  (el banner con «Apuntarme») → Sigue donde lo dejaste → Ahora en el foro →
+  Noticia → Aprende → Primeros pasos → lanzamiento → clasificación →
+  comunidad. «Primeros pasos» (para quien acaba de llegar) iba por delante de
+  «Sigue donde lo dejaste» (para quien ya está).
+
+**Pruebas**: `test-tanda-1012-pantalla.mjs` (lo puro: `nombreCorto` y las
+dos fichas; a 390 px con cuenta: solo la línea del siguiente, ningún detalle
+cortado y ninguno a más de dos líneas, el orden por `order`, nada se sale).
+Al día: 744. Pasadas: 843, 844, 1010, 785, 984, 299, 981.
+
 ## Tanda 1013 — Seis pequeños de lógica del repaso
 
 Los seis de «lógica» de la propuesta (PINGU: «adelante con lo recomendado»),
