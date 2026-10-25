@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (239) — PINGU-Claude (1002 — versiones a la primera desde el buscador)
+
+**Hecho**: el pop-up de una carta abierta desde el buscador (o por `?carta=`)
+pintaba solo las versiones que ya traía; las de TCGGO llegaban después y solo
+se metían en el desplegable escondido. Ahora también se repinta la fila de
+versiones que se ve (y el texto de «Añadir…»).
+
+**Ficheros**: `js/mi-coleccion.js` (el `then` de `completarVersionesDe` en
+`abrirEditor`), `SCHEMA.md`, `novedades.json`, `BITACORA.md`. En `pruebas`:
+`test-tanda-1002-pantalla.mjs` (falla sin el arreglo). Verdes 998, 761, 862,
+915, 921, 922, 927, 929, 930, 931, 934, 935, 956, 958, 645 y test-imports.
+
+**Pendiente**: lo de la 237.
+
 ## 2026-10-25 (238) — PINGU-Claude (1001 — la racha de otra persona, solo viva)
 
 **Hecho**: en /usuarios y en la ficha de otra persona (/usuario) la racha sale

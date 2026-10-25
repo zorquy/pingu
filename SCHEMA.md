@@ -41785,6 +41785,28 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1002 — Las versiones de una carta abierta desde el buscador, a la primera
+
+PINGU, con el Reshiram ex de Journey Together: «entro por el buscador general,
+clico, me sale el pop-up y solo tiene una versión. Minimizas, clicas otra vez y
+te sale la versión con el stamp». Una carta que viene de una expansión llega
+con sus versiones de TCGGO (`versionesDeSets`); la del buscador (y la de
+`?carta=`, la 998) llega sin ellas, y el pop-up las pide al abrir
+(`completarVersionesDe`). Al llegar, solo se repintaba el `<select>` escondido
+del editor (`mcEdVariante`): la fila de versiones que se ve (`mcEdVersiones`,
+`pintarVersionDeFicha`) se había pintado antes, con «Holo» sola. A la segunda
+apertura la carta ya las tenía en memoria.
+
+Ahora, si la ficha sigue siendo la de esa carta (`cartaAbierta`), también se
+repintan la fila de versiones y el texto de «Añadir…». Un camino nuevo que
+abra el pop-up con una carta sin `versiones` no necesita nada más: lo cubre
+el mismo `then`.
+
+**Pruebas**: `test-tanda-1002-pantalla.mjs` (por `?carta=` y tocando el
+resultado de Cartas › Buscar, la Expansion Stamp sale a la primera; sin el
+arreglo sale solo «Holo»). Verdes 998, 761, 862, 915, 921, 922, 927, 929, 930,
+931, 934, 935, 956, 958, 645 y test-imports.
+
 ## Tanda 1001 — La racha de otra persona: solo si es racha y está viva
 
 PINGU, con /usuarios delante: «parece que si no tienen racha sale 1 fuego, pero

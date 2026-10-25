@@ -2391,6 +2391,14 @@ function abrirEditor(l) {
     if (!hay || !$('mcEditor')?.open) return
     const puesta = $('mcEdVariante').value
     $('mcEdVariante').innerHTML = opciones(variantesParaEditar(c, puesta), puesta)
+    // Y la fila de versiones que SE VE (1002): desde el buscador la carta
+    // llega sin ellas y se pintaba sin la Expansion Stamp hasta reabrirla
+    // (en una expansión vienen con el set). Con su texto de «Añadir…».
+    if (cartaAbierta === l.card_id) {
+      pintarVersionDeFicha(l, c)
+      const texto = $('mcEdMas')?.querySelector('.mc-mas-texto')
+      if (texto) texto.textContent = versionDeLaFicha && tieneVarias(c) ? `Añadir ${nombreDeVariante(versionDeLaFicha)}` : 'Añadir a mi colección'
+    }
     // Una versión a mano trae su foto y sus datos (934), y una que era una
     // carta repetida (987), su foto.
     if (cartaAbierta === l.card_id && ['mano', 'fundida'].includes(versionDeVariante(c, l.variante)?.origen)) {

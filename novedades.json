@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "Una carta abierta desde el buscador enseña todas sus versiones a la primera (antes alguna, como el sello de expansión, solo salía al abrirla otra vez).", "enlace": "/cartas?ver=buscar" },
     { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "En Comunidad el fueguito de racha sale solo a quien la tiene de verdad: dos días o más y sin haberla perdido.", "enlace": "/usuarios" },
     { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "Las promos de Mega Evolución se completan con las que faltaban y ya han salido.", "enlace": "/cartas?ver=album&set=mep" },
     { "fecha": "2026-10-24", "tipo": "arreglo", "texto": "La ficha completa de una carta enseña lo mismo que su ventana: las versiones una sola vez, arriba y con su precio, y la rareza buena («Rara Holo», no «Rara»).", "enlace": "/cartas?ver=buscar&q=aerodactyl" },
