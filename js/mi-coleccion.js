@@ -6652,16 +6652,8 @@ function enganchar() {
     if (b) elegir(b.dataset.carta)
   })
   $('mcAnadirForm').addEventListener('submit', anadirSeleccion)
-  $('mcPublica')?.addEventListener('change', async (e) => {
-    try {
-      dueno.coleccion_publica = await datos.ponerPublica(sesion.user.id, e.target.checked)
-      pintarCompartir()
-      showToast(dueno.coleccion_publica ? 'Tu colección ya es pública.' : 'Tu colección vuelve a ser privada.', 'success')
-    } catch (err) {
-      e.target.checked = !e.target.checked
-      showToast(err.message, 'error')
-    }
-  })
+  // El interruptor de «Colección pública» vive en /ajustes?ver=privacidad
+  // desde la 1015 (L7); aquí solo se dice cómo está.
   $('mcCopiarEnlace')?.addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(`${location.origin}/mi-coleccion?u=${encodeURIComponent(dueno.username)}`)
@@ -6693,7 +6685,7 @@ function pintarCompartir() {
   pintarCabecera()
   if (!esMia) return
   $('mcCompartir').classList.remove('hidden')
-  $('mcPublica').checked = Boolean(dueno.coleccion_publica)
+  $('mcPublicaEstado').textContent = dueno.coleccion_publica ? 'Tu colección es pública.' : 'Tu colección es privada.'
   $('mcCopiarEnlace').classList.toggle('hidden', !dueno.coleccion_publica || !dueno.username)
 }
 

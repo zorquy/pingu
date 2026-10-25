@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-25", "tipo": "mejora", "texto": "El Panel de Mi colección es más corto, y si tu colección es pública o privada se decide en Ajustes › Privacidad.", "enlace": "/ajustes?ver=privacidad" },
+    { "fecha": "2026-10-25", "tipo": "mejora", "texto": "En una liga, tu próxima jornada va grande con su botón y las demás en una lista corta. En el móvil, la Pokédex va a cuatro columnas y el catálogo de Cartas tiene el buscador a todo el ancho.", "enlace": "/torneos" },
     { "fecha": "2026-10-25", "tipo": "mejora", "texto": "Las guías sin portada llevan el color y el icono de su categoría, y una guía con curso lo ofrece una sola vez, antes del texto.", "enlace": "/aprender" },
     { "fecha": "2026-10-25", "tipo": "mejora", "texto": "Al escribir una guía, el icono de portada se elige tocando uno de una rejilla: ya no hay que saber cómo se llama.", "enlace": "/editor-guia" },
     { "fecha": "2026-10-25", "tipo": "mejora", "texto": "La portada en el móvil es más corta: los retos salen una vez (con el que te toca empezar), las fichas de Hoy ya no se cortan y lo tuyo a medias va antes que los primeros pasos.", "enlace": "/" },

@@ -402,3 +402,15 @@
 .pdx-region.activa .pdx-region-barra i {
   background: var(--blanco-fijo);
 }
+
+/* En el móvil, cuatro columnas (1015): a tres, Kanto eran 50 filas. Los que
+   te faltan, apagados y solo con su número (sin «??? · te falta» en cada
+   uno): se ve de un vistazo cuáles tienes. */
+@media (max-width: 600px) {
+  .pdx-rejilla { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-xs); }
+  .pdx-especie { gap: 2px; }
+  .pdx-especie:not(.tengo) { opacity: 0.55; }
+  .pdx-especie:not(.tengo) .pdx-nombre,
+  .pdx-especie:not(.tengo) .pdx-cuenta { display: none; }
+  .pdx-nombre { font-size: var(--t-xs); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}

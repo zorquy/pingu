@@ -3561,3 +3561,18 @@ html.torneo-jugando #torneoNombre {
   .torneo-tablon-escribir input[type='text'] { min-width: 100%; }
   .torneo-tablon-fila { grid-template-columns: 44px 1fr; }
 }
+
+/* La próxima jornada, grande (1015, L8): las demás son una lista corta con
+   su estado. Y los chips J1–J3 de la cabecera sobran cuando esto está. */
+.torneo-mis-jornadas-proxima {
+  padding: var(--e-md);
+  border: 1px solid var(--navy);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+.torneo-mis-jornadas-proxima .torneo-mis-jornadas-cual { font-size: var(--t-md); }
+.torneo-mis-jornadas-aviso { flex-basis: 100%; color: var(--text-mid); font-size: var(--t-sm); }
+.torneo-mis-jornadas-fila:not(.torneo-mis-jornadas-proxima) { font-size: var(--t-xs); }
+.torneo-mis-jornadas-fila:not(.torneo-mis-jornadas-proxima) .btn-primary,
+.torneo-mis-jornadas-fila:not(.torneo-mis-jornadas-proxima) .btn-secondary { font-size: var(--t-xs); padding-inline: var(--e-sm); }
+.torneo-jornadas.con-mis-jornadas { display: none; }

@@ -26,7 +26,12 @@
 }
 .medallero:hover { border-color: var(--navy); }
 /* Escribir una guía (1010): a la derecha, detrás del medallero si sale. */
-.ap-escribir { margin-left: auto; }
+.ap-escribir { margin-left: auto; gap: var(--e-xs); }
+/* En el móvil solo el lápiz, 44 px (1015, L10): con el medallero al lado el
+   texto caía a una segunda línea. */
+@media (max-width: 640px) {
+  .ap-escribir { min-width: 44px; padding-inline: 0; justify-content: center; }
+}
 .medallero:not(.hidden) + .ap-escribir { margin-left: 0; }
 .medallero-titulo { display: inline-flex; color: var(--text-mid); }
 .medallero .medalla-chip { font-size: var(--t-2xs); }

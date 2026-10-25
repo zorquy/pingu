@@ -216,11 +216,16 @@ const privacidadHtml = () => `
     <h2>Privacidad</h2>
     <div class="aj-filas">
       ${interruptor({ id: 'hide_activity', texto: 'No mostrar mi actividad en Comunidad', detalle: 'Lo que leas y los cursos que hagas dejan de aparecer en el hilo de actividad y de ser visibles para el resto.', activo: Boolean(perfil?.hide_activity) })}
+      ${interruptor({ id: 'coleccion_publica', texto: 'Mi colección es pública', detalle: 'Cualquiera con el enlace puede ver tus cartas y lo que valen. Privada, solo la ves tú. Desde Mi colección se copia el enlace.', activo: Boolean(perfil?.coleccion_publica) })}
     </div>`
 
 function montarPrivacidad(panel) {
   panel.querySelector('[data-interruptor="hide_activity"]').addEventListener('change', async (e) => {
     if (!(await guardar({ hide_activity: e.target.checked }))) e.target.checked = !e.target.checked
+  })
+  // Antes vivía en el Panel de Mi colección (1015, L7).
+  panel.querySelector('[data-interruptor="coleccion_publica"]').addEventListener('change', async (e) => {
+    if (!(await guardar({ coleccion_publica: e.target.checked }))) e.target.checked = !e.target.checked
   })
 }
 

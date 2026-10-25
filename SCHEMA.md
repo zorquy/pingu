@@ -41785,6 +41785,55 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1015 — Mi colección y torneo: lo que quedaba de la propuesta del repaso
+
+Los nueve pequeños de «Mi colección y torneo» y los dos del móvil (PINGU:
+«adelante con lo recomendado»).
+
+- **L7 · El Panel, compacto** (`js/mi-coleccion/panel.js`): «Estadísticas ·
+  Ver todas» era un título sin nada debajo; ahora lleva una línea con lo ya
+  contado («14 cartas distintas · 3 copias repetidas», `.mc-vistazo-linea`).
+  Las cuatro losetas de 90 px (imagen, importar, exportar, feria) son chips
+  de una fila con el mismo id (los manejadores y las pruebas cuelgan de él).
+  Y **«Colección pública» vive en /ajustes?ver=privacidad** (`js/ajustes.js`,
+  un interruptor más que escribe `coleccion_publica` por `guardar`); en el
+  Panel queda `#mcCompartir` diciendo cómo está, «Copiar enlace» y «Cambiarlo
+  en Ajustes». `datos.ponerPublica` sigue para quien la llame.
+- **L8 · La liga en el móvil** (`js/torneos/jornadas.js`): en «Tus
+  jornadas» la PRÓXIMA (la primera abierta sin lista, o la primera abierta)
+  lleva `torneo-mis-jornadas-proxima` —grande, con borde y el aviso «Sin
+  lista todavía. Si no la envías antes, no juegas esta jornada»— y las demás
+  son una lista corta con su estado y sus botones pequeños (los mismos:
+  «Enviar lista» de la J3 sigue abriendo la J3, la 635). Y los chips J1–J3
+  de la cabecera (`#torneoJornadas`) se esconden con `con-mis-jornadas`
+  cuando el bloque está, porque ya están ahí.
+- **L10 · Aprender en el móvil**: «Escribir una guía» es el lápiz solo (44
+  px, `aria-label`, el texto en `cab-largo`); en el PC sigue con texto.
+- **L11 · El catálogo en el móvil** (`[data-modo='catalogo']
+  .mc-estanteria-barra`, ≤ 900 px): era UNA fila que se deslizaba y se
+  cortaba («Orden · Buscar una cole… · Empeza…»); ahora es una rejilla: la
+  cabecera, el buscador a todo el ancho y los chips Todas/Empezadas/Completas
+  debajo, como /aprender.
+- **V3 · La vitrina del perfil** (`css/perfil.css`): el título «Vitrina»
+  vuelve a verse y «Compartir» y «Cambiar» van en su fila, como «Ver todas»
+  en el Panel (flotaban a la derecha encima de la rejilla). **El constructor**:
+  el chip del coste (`#cmCoste`) deja de ser lo único amarillo sobre la
+  portada, pregunta «¿Cuánto me falta?» y contesta corto («Faltan 18 ·
+  616 €», como el chip de Mis mazos); lo largo va en el `title`.
+- **Móvil · La Pokédex** (`css/mc-pokedex.css`, ≤ 600 px): cuatro columnas
+  (a tres, Kanto eran 50 filas); los que te faltan, apagados y solo con su
+  número y su silueta, sin «??? · te falta» en cada uno. **La cabecera de una
+  expansión** (≤ 900 px): el nombre entero en su línea y los datos debajo
+  (`«Corona A…» cortado al lado de «SSP · noviembre de 2024 · 252 cartas»`).
+
+**Pruebas**: `test-tanda-1015-pantalla.mjs` (lo estático de L8 y L7; el
+Panel con la línea, los chips y el estado de la colección; Ajustes ›
+Privacidad guardando `coleccion_publica`; Aprender y el catálogo a 390 px;
+la vitrina y el chip del constructor; la Pokédex a cuatro por fila con los
+que faltan apagados). Pasadas: 651, 748, 711, 750, 635, 801, 833, 849, 1010,
+873, 868, 792, 649, 919, 299, 312, 981, 374, 410, 440, 443, 546, 562, 653,
+324, 372, 485, 753.
+
 ## Tanda 1014 — Las guías: un color por categoría, una llamada al curso, iconos en rejilla
 
 Los tres de «guías» de la propuesta del repaso (PINGU: «adelante con lo

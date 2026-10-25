@@ -5,6 +5,8 @@ import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { tarjetaDeGuia, NIVELES } from './guia-tarjeta.js'
 import { icons } from './icons.js'
+// El lápiz de «Escribir una guía» (1015, L10): en el móvil el botón es solo él.
+for (const el of document.querySelectorAll('.ap-escribir [data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(16) || ''
 import { medallasPorCurso } from './medallero.js'
 import { filaDeGuia } from './guia-fila.js'
 import { normalizeSearch } from './texto.js'

@@ -1332,7 +1332,8 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   font-weight: 600;
 }
 
-.cm-hero .cm-coste { background: rgba(245, 197, 24, 0.92); color: #3b2a05; }
+/* Un chip como los demás (1015, V3): era la única cosa amarilla sobre la
+   portada del mazo. */
 .cm-hero .cm-coste .link-btn { color: inherit; font-size: inherit; font-weight: 700; text-decoration: none; }
 .cm-hero .cm-guardado { margin-left: 0; color: rgba(255, 255, 255, 0.8); font-size: var(--t-xs); }
 

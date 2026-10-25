@@ -114,6 +114,9 @@ export function listaAnterior(lista, n) {
 // mandado lista) y lo que puedes hacer mientras siga abierta.
 export function misJornadasHtml(lista, fechaBonita) {
   if (!lista.length) return ''
+  // La PRÓXIMA (1015, L8): la primera abierta sin lista, o la primera abierta.
+  // Es la única que importa ahora, y va grande; las demás, en una lista corta.
+  const proxima = (lista.find((j) => j.abierta && !j.lista) || lista.find((j) => j.abierta))?.n ?? null
   const filas = lista
     .map((j) => {
       const fecha = j.fecha ? ` · ${escapeHtml(fechaBonita(j.fecha))}` : ''
@@ -133,9 +136,11 @@ export function misJornadasHtml(lista, fechaBonita) {
       } else {
         acciones = `<button type="button" class="btn-primary torneo-jornada-cambiar" data-jornada="${j.n}" data-accion="lista">Enviar lista</button>`
       }
-      return `<li class="torneo-mis-jornadas-fila${j.lista && !j.saltada ? '' : ' torneo-mis-jornadas-fuera'}">
+      const esProxima = j.n === proxima
+      const aviso = esProxima && !j.lista ? '<span class="torneo-mis-jornadas-aviso">Sin lista todavía. Si no la envías antes, no juegas esta jornada.</span>' : ''
+      return `<li class="torneo-mis-jornadas-fila${j.lista && !j.saltada ? '' : ' torneo-mis-jornadas-fuera'}${esProxima ? ' torneo-mis-jornadas-proxima' : ''}">
           <span class="torneo-mis-jornadas-cual">${icons.calendar(14)} <strong>Jornada ${j.n}</strong>${fecha}</span>
-          ${estado}<span class="torneo-mis-jornadas-acciones">${acciones}</span>
+          ${estado}${aviso}<span class="torneo-mis-jornadas-acciones">${acciones}</span>
         </li>`
     })
     .join('')

@@ -93,6 +93,7 @@ export function pintarResumenPanel() {
   if (ctx.esMia && cifraPanel) import('../contar.js').then(({ contarCifra }) => contarCifra(cifraPanel, 'valor', ctx.valorDeAhora(), ctx.eurosConMiles)).catch(() => {})
 
   const mas = $('mcMasEstadisticas')
+  const distintas = new Set(ls.map(clave)).size
   if (mas) {
     mas.innerHTML = `
     <!-- CON LA MISMA CABECERA QUE LOS DEMÁS BLOQUES DEL PANEL (tanda
@@ -109,6 +110,9 @@ export function pintarResumenPanel() {
         <h2 class="mc-subtitulo">Estadísticas</h2>
         <button type="button" class="link-btn" id="mcVerTodo" aria-expanded="false" aria-controls="mcEstadisticas">Ver todas</button>
       </div>
+      <!-- Un título sin nada debajo no dice nada (1015, L7): una línea con lo
+           que ya está contado. -->
+      <p class="mc-vistazo-linea">${distintas} ${distintas === 1 ? 'carta distinta' : 'cartas distintas'} · ${sobran} ${sobran === 1 ? 'copia repetida' : 'copias repetidas'}</p>
     </section>
 
     <div class="mc-estadisticas hidden" id="mcEstadisticas">
@@ -416,6 +420,8 @@ function vistazoDeCambios() {
 // portada, que no tiene sitio (CLAUDE.md), y esto solo lo usa el Panel.
 const ICONO_DESCARGAR = (size) => icon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>', size)
 
+// Desde la 1015 (L7) son CHIPS en una fila y no losetas de 90 px: son cosas
+// que se hacen una vez al mes. Los ids se quedan.
 // LAS ACCIONES DEL PANEL, EN LOSETAS (651): la imagen para compartir,
 // importar y exportar eran dos tarjetas con un párrafo cada una y un
 // enlace pequeño. Son tres botones; se pintan como tres botones. Los ids
@@ -428,10 +434,10 @@ function vistazoDeAcciones() {
         <h2 class="mc-subtitulo">Compartir, importar y exportar</h2>
       </div>
       <div class="mc-acciones-rejilla">
-        ${hay ? loseta('mcImagenCrear', icons.image(24), 'Mi colección en una imagen') : ''}
-        ${loseta('mcImportarAbrir', icons.upload(24), 'Importar un CSV')}
-        ${loseta('mcExportar', ICONO_DESCARGAR(24), 'Descargar mi colección (CSV)', hay ? '' : ' disabled')}
-        <a class="mc-accion-loseta" id="mcModoFeria" href="/feria"><span class="mc-accion-icono" aria-hidden="true">${icons.scan(24)}</span><span>Modo feria</span></a>
+        ${hay ? loseta('mcImagenCrear', icons.image(18), 'Imagen') : ''}
+        ${loseta('mcImportarAbrir', icons.upload(18), 'Importar CSV')}
+        ${loseta('mcExportar', ICONO_DESCARGAR(18), 'Exportar CSV', hay ? '' : ' disabled')}
+        <a class="mc-accion-loseta" id="mcModoFeria" href="/feria"><span class="mc-accion-icono" aria-hidden="true">${icons.scan(18)}</span><span>Modo feria</span></a>
       </div>
     </section>`
 }

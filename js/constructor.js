@@ -1185,7 +1185,10 @@ function enganchar() {
       const { costeDeResueltas } = await import('./coste-mazo.js')
       const r = await costeDeResueltas(lista().map((x) => ({ linea: { n: x.n }, carta: x.carta })), estado.sesion.user.id)
       const euros = r.euros ? ` · unos ${r.euros.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 })} en Cardmarket` : ''
-      caja.textContent = !r.total ? 'Sin cartas que contar (las energías básicas no cuentan).' : !r.faltan ? 'Ya tienes todas (sin contar las energías básicas).' : `Tienes ${r.tienes} de ${r.total} · te faltan ${r.faltan}${euros}.`
+      // Corto, como el chip «Faltan 18 · 616 €» de Mis mazos (1015, V3); lo largo, en el título.
+      const corto = r.euros ? r.euros.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }) : ''
+      caja.textContent = !r.total ? 'Sin cartas que contar' : !r.faltan ? 'Las tienes todas' : `Faltan ${r.faltan}${corto ? ` · ${corto}` : ''}`
+      caja.title = !r.total ? 'Sin cartas que contar (las energías básicas no cuentan).' : !r.faltan ? 'Ya tienes todas (sin contar las energías básicas).' : `Tienes ${r.tienes} de ${r.total} · te faltan ${r.faltan}${euros}.`
     } catch {
       caja.textContent = 'No he podido mirar tu colección ahora.'
     }

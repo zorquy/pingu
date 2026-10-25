@@ -1159,17 +1159,9 @@ button.perfil-cifra:hover .rotulo {
   margin: 0 0 var(--e-xl);
 }
 
-/* El nivel ya dice «Vitrina»: el título se queda para quien lee en voz alta. */
-#perfilVitrina .vitrina-cabeza .section-title {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
-#perfilVitrina .vitrina-cabeza { justify-content: flex-end; }
+/* El título se ve (1015, V3): «Compartir» y «Cambiar» van en su fila, como
+   «Ver todas» en el Panel, y no flotando a la derecha encima de la rejilla. */
+#perfilVitrina .vitrina-cabeza .section-title { font-size: var(--t-md); margin: 0; }
 
 /* Medallas (867): el medallero de los cursos como la píldora de Aprender,
    el logro destacado en una línea, y los trofeos. */

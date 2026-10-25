@@ -318,7 +318,7 @@ function pintarFicha() {
   if (esLiga && fechasLiga.length) {
     $('torneoFormato').insertAdjacentHTML(
       'afterend',
-      `<div class="torneo-jornadas" id="torneoJornadas">${fechasLiga
+      `<div class="torneo-jornadas${$('torneoMisJornadas') ? ' con-mis-jornadas' : ''}" id="torneoJornadas">${fechasLiga
         .map((f, i) => `<span class="torneo-jornada-chip">${icons.calendar(14)} J${i + 1} · ${escapeHtml(fechaBonita(f))}</span>`)
         .join('')}</div>`
     )
@@ -1086,6 +1086,8 @@ function pintarMiPlaza() {
       <button class="btn-secondary" id="btnBaja">Darme de baja</button>`)) return
     engancharConfirmarParticipacion()
     engancharJornadas()
+    // Con «Tus jornadas» pintadas, los chips J1–J3 de la cabecera sobran (1015).
+    $('torneoJornadas')?.classList.toggle('con-mis-jornadas', Boolean($('torneoMisJornadas')))
     engancharEditarTcgLive()
     engancharBaja()
     return

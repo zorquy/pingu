@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (253) — PINGU-Claude (1015 — Mi colección y torneo)
+
+**Hecho**: el Panel de Mi colección compacto (una línea bajo Estadísticas,
+las acciones en chips) y «Colección pública» en Ajustes › Privacidad; en la
+liga, la próxima jornada grande y las demás en lista, sin los chips J1–J3
+repetidos; «Escribir una guía» es el lápiz en el móvil; la barra del catálogo
+en el móvil con el buscador a todo el ancho y los chips debajo; la vitrina con
+su título y los botones en su fila; el chip del coste del constructor sin
+amarillo; la Pokédex a cuatro columnas en el móvil con los que faltan
+apagados; la cabecera de una expansión a dos líneas en el móvil.
+
+**Ficheros**: `js/mi-coleccion/panel.js`, `mi-coleccion.html`, `cartas.html`
+(generado), `js/mi-coleccion.js`, `js/ajustes.js`, `js/torneos/jornadas.js`,
+`js/torneos/torneo.js`, `css/torneos.css`, `aprender.html`, `js/aprender.js`,
+`css/aprender.css`, `css/mi-coleccion.css`, `css/perfil.css`,
+`css/constructor.css`, `constructor.html`, `js/constructor.js`,
+`css/mc-pokedex.css`, `SCHEMA.md`, `novedades.json`, `BITACORA.md`. En
+`pruebas`: `test-tanda-1015-pantalla.mjs` (nueva).
+
+**Pendiente**: 1016 (letra, opción B, suite entera), 1017 (consultas, con
+migración); las capturas del carrusel; los ejemplos de Search Console; lo de
+la 237.
+
 ## 2026-10-25 (252) — PINGU-Claude (1014 — las guías)
 
 **Hecho**: las tarjetas de guía sin portada llevan el color de su categoría
