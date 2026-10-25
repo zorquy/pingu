@@ -1,6 +1,7 @@
 // Tanda 958, en pantalla: el Duskull SH2 de Stormfront es Holo en español y
-// Reverse en inglés, y la hoja de añadir lo cambia al cambiar de idioma (en
-// Mi colección y en /carta). En /admin, la matriz de una carta escribe por la
+// Reverse en inglés; desde la 1006 la hoja de añadir enseña las dos y la
+// versión elegida apaga los idiomas en que no salió (en Mi colección y en
+// /carta). En /admin, la matriz de una carta escribe por la
 // función con `p_carta`.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
@@ -53,32 +54,42 @@ const ir = async (page, ruta) => { await page.goto(`${BASE}${ruta}`, { waitUntil
 const versiones = (page, sel) => page.$$eval(`${sel} option`, (os) => os.map((o) => o.value).join())
 const idioma = async (page, sel, l) => { await page.click(`${sel} .mc-idioma-chip[data-idioma="${l}"]`); await page.waitForTimeout(250) }
 
+// Desde la 1006 la versión manda: las dos versiones a la vista, sin aviso, y
+// cada una deja tocar solo los idiomas en que salió.
+const apagados = (page, sel) => page.$$eval(`${sel} .mc-idioma-chip`, (cs) => cs.filter((c) => c.disabled).map((c) => c.dataset.idioma).join())
+const activo = (page, sel) => page.$eval(`${sel} .mc-idioma-chip.activo`, (c) => c.dataset.idioma).catch(() => '')
+const elegir = async (page, pre, v) => {
+  if (await page.locator(`#${pre}Elegir`).isHidden()) await page.click(`#${pre}VersionFija [data-vp-cambiar]`)
+  await page.click(`#${pre}Elegir [data-vp-version="${v}"]`)
+  await page.waitForTimeout(250)
+}
+
 console.log('── Mi colección: el Duskull SH2 ──')
 {
   const { ctx, page, errores } = await abrir()
   await ir(page, '/mi-coleccion.html?ver=album&set=dp7')
   await page.click('#mcAlbum .mc-mas[data-anadir="dp7-SH2"]')
   await page.waitForTimeout(900)
-  await idioma(page, '#mcAdIdiomas', 'es')
-  check('en español, solo la Holo', (await versiones(page, '#mcAdVariante')) === 'holo', await versiones(page, '#mcAdVariante'))
-  await idioma(page, '#mcAdIdiomas', 'en')
-  check('en inglés, solo la Reverse', (await versiones(page, '#mcAdVariante')) === 'reverse', await versiones(page, '#mcAdVariante'))
-  check('  …ya elegida, sin preguntar', (await page.locator('#mcAdVariante').inputValue()) === 'reverse' && await page.locator('#mcAdElegir').isHidden())
-  const aviso = await page.locator('#mcAdAvisoIdioma').textContent()
-  check('  …y lo dice', await page.locator('#mcAdAvisoIdioma').isVisible() && /En inglés, Stormfront no salió en Holo/.test(aviso), aviso)
+  check('las dos versiones a la vista: Holo y Reverse, sin aviso', (await versiones(page, '#mcAdVariante')) === 'holo,reverse' && (await page.locator('#mcAdAvisoIdioma').count()) === 0, await versiones(page, '#mcAdVariante'))
+  await elegir(page, 'mcAd', 'holo')
+  check('con la Holo, solo el español se puede tocar', (await apagados(page, '#mcAdIdiomas')) === 'en,fr,de,it' && (await activo(page, '#mcAdIdiomas')) === 'es', `${await apagados(page, '#mcAdIdiomas')} · ${await activo(page, '#mcAdIdiomas')}`)
+  await elegir(page, 'mcAd', 'reverse')
+  check('con la Reverse, el español no, y el idioma salta a uno que vale', (await apagados(page, '#mcAdIdiomas')) === 'es' && (await activo(page, '#mcAdIdiomas')) !== 'es', `${await apagados(page, '#mcAdIdiomas')} · ${await activo(page, '#mcAdIdiomas')}`)
   const fija = await page.locator('#mcAdVersionFija').textContent().catch(() => '')
   check('  …y la versión que se enseña es la Reverse', /Reverse/.test(fija || ''), fija)
   await idioma(page, '#mcAdIdiomas', 'it')
-  check('en italiano, también la Reverse', (await versiones(page, '#mcAdVariante')) === 'reverse')
+  check('  …tocar el italiano no cambia la versión', (await page.locator('#mcAdVariante').inputValue()) === 'reverse' && (await activo(page, '#mcAdIdiomas')) === 'it')
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(900)
   const linea = await page.evaluate(() => window.__TABLAS__.user_collection.find((l) => l.card_id === 'dp7-SH2'))
   check('  …y se guarda en italiano como Reverse', linea?.idioma === 'it' && linea?.variante === 'reverse', JSON.stringify(linea))
   await page.click('#mcAlbum .mc-mas[data-anadir="dp7-50"]').catch(() => {})
   await page.waitForTimeout(900)
-  if (await page.locator('#mcAdElegir').isVisible()) await page.click('#mcAdElegir [data-vp-version="normal"]')
-  await idioma(page, '#mcAdIdiomas', 'en')
-  check('otra carta del set no cambia: Normal y Reverse en inglés', (await versiones(page, '#mcAdVariante')).split(',').sort().join() === 'normal,reverse', await versiones(page, '#mcAdVariante'))
+  check('otra carta del set: Normal y Reverse', (await versiones(page, '#mcAdVariante')).split(',').sort().join() === 'normal,reverse', await versiones(page, '#mcAdVariante'))
+  await elegir(page, 'mcAd', 'reverse')
+  check('  …con su Reverse, el español no (lo del set)', (await apagados(page, '#mcAdIdiomas')) === 'es', await apagados(page, '#mcAdIdiomas'))
+  await elegir(page, 'mcAd', 'normal')
+  check('  …y con la Normal, todos', (await apagados(page, '#mcAdIdiomas')) === '', await apagados(page, '#mcAdIdiomas'))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
@@ -90,10 +101,11 @@ console.log('── /carta ──')
   await page.waitForTimeout(2600)
   await page.click('#cmAnadir')
   await page.waitForTimeout(900)
-  await idioma(page, '#cmAdIdiomas', 'es')
-  check('en español, la Holo', (await versiones(page, '#cmAdVariante')) === 'holo', await versiones(page, '#cmAdVariante'))
-  await idioma(page, '#cmAdIdiomas', 'fr')
-  check('en francés, la Reverse', (await versiones(page, '#cmAdVariante')) === 'reverse' && /no salió en Holo/.test(await page.locator('#cmAdAvisoIdioma').textContent()), await versiones(page, '#cmAdVariante'))
+  check('las dos versiones, sin aviso', (await versiones(page, '#cmAdVariante')).split(',').sort().join() === 'holo,reverse' && (await page.locator('#cmAdAvisoIdioma').count()) === 0, await versiones(page, '#cmAdVariante'))
+  await elegir(page, 'cmAd', 'holo')
+  check('con la Holo, solo el español', (await apagados(page, '#cmAdIdiomas')) === 'en,fr,de,it' && (await activo(page, '#cmAdIdiomas')) === 'es', await apagados(page, '#cmAdIdiomas'))
+  await elegir(page, 'cmAd', 'reverse')
+  check('con la Reverse, todos menos el español', (await apagados(page, '#cmAdIdiomas')) === 'es' && (await activo(page, '#cmAdIdiomas')) !== 'es', await apagados(page, '#cmAdIdiomas'))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

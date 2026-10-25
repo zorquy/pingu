@@ -1,5 +1,6 @@
 // Tanda 956, en pantalla: la hoja de añadir de Mi colección y la de /carta
-// quitan la versión que no salió en el idioma elegido y lo dicen; Jungle
+// no dejan elegir el idioma en que la versión elegida no salió (1006; antes
+// quitaban la versión y lo decían); Jungle
 // ofrece el neerlandés; y en /admin, los idiomas del set y la matriz de
 // versiones por idioma escriben por sus funciones.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
@@ -57,28 +58,35 @@ const elegirSiPregunta = async (page, lista, version) => {
   await page.waitForTimeout(200)
 }
 
-console.log('── Mi colección: Stormfront en español, sin Reverse ──')
+console.log('── Mi colección: Stormfront, la Reverse no salió en español ──')
+// Desde la 1006 la versión manda (PINGU: «cuando eliges la Unlimited, que no
+// te dé el idioma coreano»): se ofrecen las versiones de todos los idiomas,
+// sin aviso, y el idioma en que la elegida no salió no se puede tocar.
+const apagado = (page, sel, idioma) => page.locator(`${sel} .mc-idioma-chip[data-idioma="${idioma}"]`).isDisabled()
+const activo = (page, sel) => page.$eval(`${sel} .mc-idioma-chip.activo`, (c) => c.dataset.idioma).catch(() => '')
 {
   const { ctx, page, errores } = await abrir()
   await ir(page, '/mi-coleccion.html?ver=album&set=dp7')
   await page.click('#mcAlbum .mc-mas[data-anadir="dp7-5"]')
   await page.waitForTimeout(900)
-  // El idioma recordado es el español: la Reverse ya no se ofrece y no hay
-  // nada que preguntar.
-  check('al abrir en español no pregunta «¿Cuál tienes?»: solo hay Holo', await page.locator('#mcAdElegir').isHidden() && (await versiones(page, '#mcAdVariante')) === 'holo', await versiones(page, '#mcAdVariante'))
-  await page.click('#mcAdIdiomas .mc-idioma-chip[data-idioma="en"]')
-  await page.waitForTimeout(200)
-  check('en inglés, Holo y Reverse', (await versiones(page, '#mcAdVariante')) === 'reverse,holo', await versiones(page, '#mcAdVariante'))
-  check('  …sin aviso', await page.locator('#mcAdAvisoIdioma').isHidden())
+  check('se ofrecen la Reverse y la Holo aunque el idioma recordado sea el español', (await versiones(page, '#mcAdVariante')) === 'reverse,holo', await versiones(page, '#mcAdVariante'))
+  check('  …sin aviso (ya no existe)', (await page.locator('#mcAdAvisoIdioma').count()) === 0)
+  await elegirSiPregunta(page, '#mcAdElegir', 'reverse')
+  if (await page.locator('#mcAdVariante').inputValue() !== 'reverse') {
+    await page.click('#mcAdVersionFija [data-vp-cambiar]')
+    await page.click('#mcAdElegir [data-vp-version="reverse"]')
+    await page.waitForTimeout(200)
+  }
+  check('con la Reverse, el español apagado y los demás no', await apagado(page, '#mcAdIdiomas', 'es') && !(await apagado(page, '#mcAdIdiomas', 'en')) && !(await apagado(page, '#mcAdIdiomas', 'fr')))
+  check('  …y el idioma puesto pasa a uno en que sí salió', !['es', ''].includes(await activo(page, '#mcAdIdiomas')), await activo(page, '#mcAdIdiomas'))
+  check('  …y el chip dice por qué', /no salió en Reverse/i.test(await page.locator('#mcAdIdiomas .mc-idioma-chip[data-idioma="es"]').getAttribute('title')))
   await page.click('#mcAdVersionFija [data-vp-cambiar]')
-  await page.click('#mcAdElegir [data-vp-version="reverse"]')
+  await page.click('#mcAdElegir [data-vp-version="holo"]')
   await page.waitForTimeout(200)
+  check('con la Holo, el español vuelve', !(await apagado(page, '#mcAdIdiomas', 'es')))
   await page.click('#mcAdIdiomas .mc-idioma-chip[data-idioma="es"]')
   await page.waitForTimeout(200)
-  check('en español, solo la Holo', (await versiones(page, '#mcAdVariante')) === 'holo', await versiones(page, '#mcAdVariante'))
-  check('  …y la Reverse que estaba elegida pasa a Holo', (await page.locator('#mcAdVariante').inputValue()) === 'holo')
-  const aviso = await page.locator('#mcAdAvisoIdioma').textContent()
-  check('  …y lo dice', await page.locator('#mcAdAvisoIdioma').isVisible() && /En español, Stormfront no salió en Reverse/.test(aviso), aviso)
+  check('  …y al tocarlo no cambia la versión', (await activo(page, '#mcAdIdiomas')) === 'es' && (await page.locator('#mcAdVariante').inputValue()) === 'holo')
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(900)
   const linea = await page.evaluate(() => window.__TABLAS__.user_collection.find((l) => l.card_id === 'dp7-5'))
@@ -124,14 +132,13 @@ console.log('── /carta ──')
   await page.waitForTimeout(2600)
   await page.click('#cmAnadir')
   await page.waitForTimeout(900)
-  await elegirSiPregunta(page, '#cmAdElegir', 'holo')
-  await page.click('#cmAdIdiomas .mc-idioma-chip[data-idioma="es"]')
+  check('la hoja de /carta ofrece la Reverse y la Holo, sin aviso', (await versiones(page, '#cmAdVariante')).split(',').sort().join() === 'holo,reverse' && (await page.locator('#cmAdAvisoIdioma').count()) === 0, await versiones(page, '#cmAdVariante'))
+  await elegirSiPregunta(page, '#cmAdElegir', 'reverse')
+  check('  …con la Reverse, el español apagado y el francés no', await apagado(page, '#cmAdIdiomas', 'es') && !(await apagado(page, '#cmAdIdiomas', 'fr')) && (await activo(page, '#cmAdIdiomas')) !== 'es')
+  await page.click('#cmAdVersionFija [data-vp-cambiar]')
+  await page.click('#cmAdElegir [data-vp-version="holo"]')
   await page.waitForTimeout(200)
-  check('la hoja de /carta, en español: solo la Holo', (await versiones(page, '#cmAdVariante')) === 'holo', await versiones(page, '#cmAdVariante'))
-  check('  …y lo dice', /no salió en Reverse/.test(await page.locator('#cmAdAvisoIdioma').textContent()) && await page.locator('#cmAdAvisoIdioma').isVisible())
-  await page.click('#cmAdIdiomas .mc-idioma-chip[data-idioma="fr"]')
-  await page.waitForTimeout(200)
-  check('  …y en francés vuelve la Reverse', (await versiones(page, '#cmAdVariante')).includes('reverse') && await page.locator('#cmAdAvisoIdioma').isHidden(), await versiones(page, '#cmAdVariante'))
+  check('  …con la Holo, el español vuelve', !(await apagado(page, '#cmAdIdiomas', 'es')))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

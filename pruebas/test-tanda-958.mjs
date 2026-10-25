@@ -66,7 +66,9 @@ check('el Duskull SH2 en español: Holo', ids(cm.versionesDelIdioma(SOLO_HOLO, r
 const en = cm.versionesDelIdioma(SOLO_HOLO, reglas, 'en', 'dp7-SH2')
 check('  …en inglés: Reverse, y solo Reverse', ids(en.versiones) === 'reverse', ids(en.versiones))
 check('  …con su nombre de siempre', en.versiones[0]?.nombre === 'Reverse holo')
-check('  …y la frase dice que la Holo no salió', cm.avisoDeVersiones(en.quitadas, 'en', 'Stormfront') === 'En inglés, Stormfront no salió en Holo.')
+check('  …y en la hoja salen las dos (1006): Holo y Reverse', ids(cm.versionesDeLosIdiomas(SOLO_HOLO, reglas, ['es', 'en', 'pt'], 'dp7-SH2')) === 'holo,reverse')
+check('  …con la Reverse elegida, solo inglés, francés, alemán e italiano', cm.idiomasDeLaVersion(['es', 'en', 'fr', 'de', 'it', 'pt'], SOLO_HOLO, reglas, 'reverse', 'dp7-SH2').join() === 'en,fr,de,it')
+check('  …con la Holo, español y portugués', cm.idiomasDeLaVersion(['es', 'en', 'fr', 'de', 'it', 'pt'], SOLO_HOLO, reglas, 'holo', 'dp7-SH2').join() === 'es,pt')
 check('  …igual en francés, alemán e italiano', ['fr', 'de', 'it'].every((l) => ids(cm.versionesDelIdioma(SOLO_HOLO, reglas, l, 'dp7-SH2').versiones) === 'reverse'))
 check('  …y en portugués, lo de la carta (no se ha dicho nada)', ids(cm.versionesDelIdioma(SOLO_HOLO, reglas, 'pt', 'dp7-SH2').versiones) === 'holo')
 const VS = [{ id: 'normal', nombre: 'Normal' }, { id: 'reverse', nombre: 'Reverse holo' }]
@@ -82,7 +84,9 @@ check('la web pide `*` y no nombra `card_id` (antes de la 958 no existe, la 624)
 const adm = readFileSync(join(RAIZ, 'admin/js/idiomas-set.js'), 'utf8')
 check('  …y el panel igual', /from\('tcg_version_idioma'\)\.select\('\*'\)/.test(adm))
 for (const f of ['js/mi-coleccion.js', 'js/carta-mercado.js']) {
-  check(`${f} pasa la carta a versionesDelIdioma`, /versionesDelIdioma\(.*, (c|hojaDeVersiones\.carta\?)\.id\)/.test(readFileSync(join(RAIZ, f), 'utf8')))
+  // Desde la 1006, a las dos de la hoja: las versiones y los idiomas.
+  const t = readFileSync(join(RAIZ, f), 'utf8')
+  check(`${f} pasa la carta a versionesDeLosIdiomas y a idiomasDeLaVersion`, /versionesDeLosIdiomas\(.*, (c|hojaDeVersiones\.carta\?)\.id\)/.test(t) && /idiomasDeLaVersion\(.*, (c|hojaDeVersiones\.carta\?)\.id\)/.test(t))
 }
 
 console.log('── Lo del panel ──')

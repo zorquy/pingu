@@ -60,9 +60,13 @@ check('en español Stormfront no ofrece la Reverse', ids(es.versiones) === 'norm
 check('  …y en inglés sí', ids(cm.versionesDelIdioma(VS, no, 'en').versiones) === 'normal,reverse,holo')
 check('  …si quitara todas, se queda la lista (un dato mal puesto no deja la hoja sin versiones)', ids(cm.versionesDelIdioma(VS, no, 'pt').versiones) === 'normal,reverse,holo')
 check('  …y sin datos, todas', ids(cm.versionesDelIdioma(VS, new Map(), 'es').versiones) === 'normal,reverse,holo')
-check('la frase dice idioma, set y versión', cm.avisoDeVersiones(es.quitadas, 'es', 'Stormfront') === 'En español, Stormfront no salió en Reverse holo.', cm.avisoDeVersiones(es.quitadas, 'es', 'Stormfront'))
-check('  …con dos versiones, las dos', cm.avisoDeVersiones(VS.slice(0, 2), 'pt', 'X') === 'En portugués, X no salió en Normal ni en Reverse holo.')
-check('  …y sin quitadas, nada', cm.avisoDeVersiones([], 'es', 'X') === '')
+// Desde la 1006 la versión manda: sin frase, y el idioma se acota a ella.
+check('la hoja ofrece las versiones de TODOS los idiomas (1006)', ids(cm.versionesDeLosIdiomas(VS, no, ['es', 'en'])) === 'normal,reverse,holo')
+check('  …y si en ninguno salió una, esa no', ids(cm.versionesDeLosIdiomas(VS, new Map([['es', new Set(['reverse'])], ['en', new Set(['reverse'])]]), ['es', 'en'])) === 'normal,holo')
+check('con la Reverse elegida, el español no se puede elegir', cm.idiomasDeLaVersion(['es', 'en'], VS, no, 'reverse').join() === 'en')
+check('  …con la Normal, los dos', cm.idiomasDeLaVersion(['es', 'en'], VS, no, 'normal').join() === 'es,en')
+check('  …y una que no salió en ninguno no bloquea la hoja', cm.idiomasDeLaVersion(['es'], VS, no, 'reverse').join() === 'es')
+check('el aviso de antes ya no existe', cm.avisoDeVersiones === undefined)
 
 console.log('── Lo del panel ──')
 const p = await import(join(RAIZ, 'admin/js/idiomas-set-puro.js'))
