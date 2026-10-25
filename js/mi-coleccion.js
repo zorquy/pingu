@@ -930,6 +930,22 @@ function variantesParaEditar(carta, variante) {
 
 // Las versiones de TCGGO de UNA carta (862), si no vinieron con su set:
 // para el diálogo de añadir y el editor. Dice si había alguna.
+// LA «NORMAL» QUE NO EXISTE, OTRA VEZ CUANDO LLEGAN LAS VERSIONES (1007).
+// PINGU, con el Reshiram de Legendary Treasures: copias suyas en «Normal» de
+// una carta que solo existe en Holo, y al separar versiones salían las dos
+// casillas. La 927 las corrige al cargar la colección, pero ahí la carta aún
+// no trae sus versiones de TCGGO y «Normal» parece valer; llegan después (con
+// el set, el buscador, la especie, la ficha) y nadie volvía a mirar. Se
+// corrige en memoria, como en la 927: guardar la copia la guarda ya en Holo.
+function corregirConVersiones(conVersiones) {
+  const por = new Map((conVersiones || []).filter((c) => c?.id && c.versiones).map((c) => [c.id, c]))
+  if (!por.size) return
+  const de = (l) => por.get(l.card_id)
+  const suyas = (l) => por.has(l.card_id) && (l.market || 'WEST') === (por.get(l.card_id).market || 'WEST')
+  corregirVersionesImposibles(lineas.filter(suyas), de)
+  corregirVersionesImposibles(lineasTodo.filter(suyas), de)
+}
+
 // Si ya van de camino (las del buscador, `versionesDeLaLista`), espera a esas.
 const versionesEnCamino = new Map()
 async function completarVersionesDe(c) {
@@ -940,6 +956,7 @@ async function completarVersionesDe(c) {
   const suyas = filas.filter((f) => f.card_id === c.id)
   if (c.versiones === undefined) pegarVersiones([c], suyas)
   if (c.versiones === undefined) c.versiones = []
+  corregirConVersiones([c])
   return suyas.length > 0
 }
 
@@ -960,6 +977,7 @@ function versionesDeLaLista(lista) {
     .then((filas) => {
       pegarVersiones(sin, filas)
       for (const c of sin) if (c.versiones === undefined) c.versiones = []
+      corregirConVersiones(sin)
     })
     .catch(() => {})
     .finally(() => { for (const c of sin) if (versionesEnCamino.get(c.id) === pedido) versionesEnCamino.delete(c.id) })
@@ -3585,6 +3603,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
     datos.registrarVersiones(r.versiones)
     album.cartas = [...r.cartas].sort(porNumero)
     pegarVersiones(album.cartas, r.versiones)
+    corregirConVersiones(album.cartas)
   }
   // LO DE LA ÚLTIMA VEZ, AL MOMENTO (978): si este set ya se abrió en este
   // navegador, se pinta con eso mientras se pregunta.
@@ -6229,6 +6248,7 @@ async function pintarEspecie(dex, { push = true } = {}) {
   // Pokémon Day) y las ediciones de Wizards. Sin ellas la especie solo sabía
   // lo que dice TCGdex, y PINGU veía la versión en la ficha y no aquí.
   pegarVersiones(lista, await datos.versionesDeCartas(lista.map((c) => c.id)).catch(() => []))
+  corregirConVersiones(lista)
   // Otra especie abierta mientras llegaban: esta ya no se pinta.
   if (especieAbierta !== dex) return
   // Se guardan para la ficha (tanda 418): al pulsar una carta de aquí

@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (245) — PINGU-Claude (1007 — repetidas con guion y la «Normal» que no existe)
+
+**Hecho**:
+- `supabase-migration-1007-repetidas-nombres.sql`: «Posibles repetidas»
+  compara los nombres sin guiones ni signos. El Reshiram & Charizard GX de las
+  SM promos salía como «-GX» en TCGdex y como « GX» en TCGGO.
+- En la web, una carta Rara Holo cuya «Holo» trae TCGGO ya no ofrece además la
+  «Normal».
+- La corrección de las copias en «Normal» imposible se repite al llegar las
+  versiones, y en Wizards va a la Unlimited.
+
+**Ficheros**: `supabase-migration-1007-repetidas-nombres.sql` (nueva),
+`js/mi-coleccion/variantes.js` (`conSuBrillo`, `versionPosible`),
+`js/mi-coleccion.js` (`corregirConVersiones` y sus cuatro llamadas),
+`SCHEMA.md`, `novedades.json`, `BITACORA.md`. En `pruebas`:
+`test-tanda-1007-pantalla.mjs` (falla sin el arreglo), `sql-tanda-1007-casos.sql`
+y `test-tanda-996.mjs` con la 1007 encima.
+
+**Pendiente**: PINGU ejecuta la 1007 en el SQL Editor. Y lo de la 237.
+
 ## 2026-10-25 (244) — PINGU-Claude (1006 — la versión manda en la hoja de añadir)
 
 **Hecho**: en las dos hojas de añadir (Mi colección y /carta) se ofrecen las

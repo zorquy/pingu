@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "Las cartas que solo existen en holo ya no salen también como «Normal» al separar versiones, y tu copia apuntada como normal cuenta como la holo.", "enlace": "/cartas?ver=buscar&q=reshiram" },
     { "fecha": "2026-10-25", "tipo": "mejora", "texto": "Al añadir una carta, eliges primero la versión y solo puedes elegir los idiomas en que salió: si una versión no existe en coreano o en español, ese idioma sale apagado en vez de avisarte.", "enlace": "/cartas" },
     { "fecha": "2026-10-25", "tipo": "nuevo", "texto": "Las cartas de los Trick or Trade BOOster Bundle de 2023 y 2024 ya tienen su versión con el sello de la calabaza: 30 de cada año, para apuntarlas en tu colección.", "enlace": "/cartas?ver=buscar&q=gengar" },
     { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "Con «separar variantes», el buscador enseña cada versión en su casilla como en una expansión: también las que solo tienen una (con su chapa, Holo si brilla de serie) y las especiales como el sello de expansión.", "enlace": "/cartas?ver=buscar&q=reshiram" },

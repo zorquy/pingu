@@ -41785,6 +41785,43 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1007 — Repetidas con otro nombre y la «Normal» que no existe
+
+**Las repetidas.** PINGU, con las SM Black Star Promos: el Reshiram & Charizard
+GX dos veces (la dorada y la normal, y las dos «Oversized», las Jumbo) y ninguna
+en «Posibles repetidas». La lista no se apunta en ninguna parte: la calcula
+`catalogo_posibles_repetidas` al abrir el panel, juntando las cartas de una
+colección por número y por NOMBRE, y el nombre se comparaba tal cual. TCGdex
+escribe «Reshiram & Charizard-GX» y TCGGO «Reshiram & Charizard GX», así que no
+caían juntas. `supabase-migration-1007-repetidas-nombres.sql` (después de la
+996) añade `catalogo_nombre_de_repetida`: sin tildes, sin lo que va entre
+paréntesis o corchetes, sin «Jumbo» ni «Oversized» y sin nada que no sea letra o
+número. Lo marcado «son distintas» se reconoce ahora por SUS CARTAS (mismo set,
+`ids <@ d.ids`) y no por el nombre guardado, que con el nombre nuevo no casaría.
+
+**La «Normal».** PINGU, con el Reshiram de Legendary Treasures y las versiones
+separadas: dos casillas, Holo y Normal, de una carta que «solo existe en
+holográfica». Es Rara Holo, TCGdex dice `normal` y TCGGO trae su fila «Holo». La
+regla de la 950 (`conSuBrillo`) cambiaba la Normal por la Holo solo si la Holo no
+estaba, y aquí ya la ponía TCGGO, así que se quedaban las dos. Ahora, si brilla de
+serie, la Normal se quita también en ese caso. Solo se queda si TCGdex dice las
+dos (`variants.normal` y `variants.holo`, como Pitch Black).
+
+Y la corrección de la 927 (`corregirVersionesImposibles`: una copia en «Normal»
+que no existe se lee como la versión de la carta) corría solo al cargar la
+colección, cuando la carta aún no trae sus versiones de TCGGO.
+`corregirConVersiones` la repite cuando llegan (el set, el buscador, la especie,
+la ficha), en memoria como en la 927. Y `versionPosible` ya no pone la PRIMERA
+versión, sino la de por defecto (`varianteDeCarta`): en una carta de Wizards con
+ediciones, la Unlimited y no la 1.ª.
+
+**Pruebas**: `test-tanda-1007-pantalla.mjs` (lo puro, y Buscar y la expansión
+con las versiones separadas: una sola casilla, la Holo, con tu copia; sin el
+arreglo, Normal y Holo). `test-tanda-996.mjs` con un bloque 3: la 1007 encima
+(`sql-tanda-1007-casos.sql`: el nombre, el grupo de tres, el Pikachu V que no es
+el VMAX, lo marcado con el nombre viejo, marcar y desmarcar) y los casos de la
+987 y la 996 con ella puesta.
+
 ## Tanda 1006 — La versión manda y el idioma se acota a ella
 
 PINGU, con la baraja de Treecko (キモリデッキ) en coreano solo en 1.ª edición

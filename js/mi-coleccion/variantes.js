@@ -235,6 +235,12 @@ function conSuBrillo(lista, carta) {
   if (fuera.some((e) => e?.nuestro === 'normal') && !fuera.some((e) => e?.nuestro === 'holo')) {
     const holo = EQUIVALE.find((e) => e.nuestro === 'holo')
     fuera = fuera.map((e) => (e?.nuestro === 'normal' ? holo : e))
+  } else if (fuera.some((e) => e?.nuestro === 'normal') && !(carta?.variants?.normal === true && carta?.variants?.holo === true)) {
+    // La Holo ya está porque la trae TCGGO (su fila «Holo») y la «Normal» es
+    // la de por defecto de TCGdex (1007, el Reshiram de Legendary Treasures:
+    // «no tiene dos variantes, solo existe la holográfica»). Se queda solo si
+    // TCGdex dice las dos, como Pitch Black.
+    fuera = fuera.filter((e) => e?.nuestro !== 'normal')
   }
   const reverseDeTcggo = (carta?.versiones || []).some((f) => !f.origen && varianteDeEtiqueta(f.etiqueta) === 'reverse')
   if (brillaSiempre(carta) && fuera.length > 1) {
@@ -345,7 +351,9 @@ export function versionPosible(variante, carta) {
   const v = variante || VARIANTE_POR_DEFECTO
   if (v !== VARIANTE_POR_DEFECTO || !carta || !seSabenVariantes(carta)) return v
   const hay = variantesDeCarta(carta).map((e) => e.nuestro)
-  return hay.length && !hay.includes(v) ? hay[0] : v
+  // La de por defecto de la carta y no la primera (1007): con ediciones, la
+  // Unlimited, no la 1.ª edición.
+  return hay.length && !hay.includes(v) ? varianteDeCarta(carta) : v
 }
 
 // Lo mismo sobre una lista de copias, en el sitio: se cargan una vez y todo
