@@ -172,7 +172,10 @@ console.log('\n── 3. La pasada programada: sola, una vez, y apuntada ──'
   // Sin expansión suya todavía, se espera sin gastar ni contar.
   const b5 = montar({}, {})
   const r5 = await pasada({ env: ENV, ...SOLO, ...b5, procesarImpl: async () => { throw new Error('no debería llamarse') } })
-  check('sin expansión de TCGGO para el set, espera sin contar intento', r5.ok && /esperando/.test(JSON.stringify(r5)) && !b5.guardados.length, JSON.stringify(r5))
+  // Desde la 1000 lo que espera se apunta (`esperando`) y la pasada sigue al
+  // barrido; lo que no hace es contar un intento.
+  const guardado = b5.guardados.map((g) => g?.valor ?? g).find((v) => v && v.esperando) || null
+  check('sin expansión de TCGGO para el set, espera sin contar intento', r5.ok && r5.esperando?.[0]?.clave === '30th' && !(guardado?.intentos || {})['30th'], JSON.stringify(r5))
 }
 
 console.log('\n── 4. Lo estático ──')
