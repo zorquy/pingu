@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-25", "tipo": "mejora", "texto": "Cartas y Mi colección cargan más ligeras: el escáner, la selección, la Pokédex y el importador solo se bajan cuando los abres. La ficha de un torneo se pinta antes de bajar las rondas.", "enlace": "/cartas" },
     { "fecha": "2026-10-25", "tipo": "mejora", "texto": "Escribir una guía ya está a mano: un botón en Aprender y, en tu portada, la invitación en el sitio del calendario repetido. Cualquiera puede escribirla; la revisamos y sale en Aprender.", "enlace": "/aprender" },
     { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "En tu portada, la ficha del foro cuenta los temas que sigues con mensajes que no has visto (antes decía «Nada nuevo» aunque los hubiera), y la del próximo lanzamiento enseña el logo del set.", "enlace": "/" },
     { "fecha": "2026-10-25", "tipo": "arreglo", "texto": "Las cartas que solo existen en holo ya no salen también como «Normal» al separar versiones, y tu copia apuntada como normal cuenta como la holo.", "enlace": "/cartas?ver=buscar&q=reshiram" },

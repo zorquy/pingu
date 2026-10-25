@@ -264,6 +264,8 @@
   }
 }
 
+
+
 .mc-resumen:empty {
   display: none;
 }
@@ -288,6 +290,8 @@
     border-left: 1px solid var(--border);
   }
 }
+
+
 
 .mc-cifra dt {
   color: var(--text-mid);
@@ -432,6 +436,8 @@
     }
   }
 
+
+
   /* Un icono y nada más. El NOMBRE NO SE BORRA, se esconde para la vista:
      es lo que lee en voz alta un lector de pantalla, y un menú de cinco
      dibujos sin nombre no se puede usar sin ver. `display: none` lo sacaría
@@ -506,6 +512,8 @@
     color: inherit;
   }
 }
+
+
 
 @media (min-width: 900px) {
   /* La columna a la izquierda y el panel a la derecha. Las pestañas que no
@@ -588,6 +596,8 @@
     max-width: none;
   }
 }
+
+
 
 /* ── Las cartas ── */
 /* ── LA BARRA, COMO LA DE DEX (tanda 444) ──
@@ -686,6 +696,8 @@
   }
 }
 
+
+
 /* Con sitio de sobra no hace falta deslizar nada, así que la fila deja de
    ser una tira y se queda quieta. */
 @media (min-width: 900px) {
@@ -696,6 +708,8 @@
     overflow-x: visible;
   }
 }
+
+
 
 /* LA BARRA (tanda 405, rehecha en la 444). El campo tiene ahora su propia
    fila, así que puede ocupar el ancho sin empujar a nadie — lo que la 405
@@ -751,6 +765,8 @@
     min-height: 44px;
   }
 }
+
+
 
 .mc-chip-mando {
   display: inline-flex;
@@ -978,6 +994,8 @@
   }
 }
 
+
+
 /* La variante, debajo y callada: solo sale cuando NO es la normal, que
    es cuando la ilustración no basta para distinguirla (un reverso holo
    y un normal son el mismo dibujo). */
@@ -1042,6 +1060,8 @@
     display: none;
   }
 }
+
+
 
 /* El código corto, en su redondel: es lo que se reconoce de lejos cuando
    el nombre no cabe. */
@@ -1298,11 +1318,15 @@
   }
 }
 
+
+
 @media (prefers-reduced-motion: reduce) {
   .mc-accion {
     transition: none;
   }
 }
+
+
 
 /* El estado vacío LLEVA a algún sitio (tanda 510); el porqué, en SCHEMA. */
 .mc-vacio {
@@ -1404,6 +1428,8 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
 
 /* ── El resumen (tanda 374) ──
  * Cuatro cajas: repetidas, lo más valioso y los dos repartos. En
@@ -1900,6 +1926,8 @@
     transition: none;
   }
 }
+
+
 
 /* La cabecera del archivador abierto: ahora solo el nombre (tanda 459),
    que volver tiene su fila y los mandos la suya. */
@@ -2399,6 +2427,8 @@
   }
 }
 
+
+
 /* Las cartas del vistazo se miden a SÍ MISMAS y no a la ventana (la
    lección de la 316): este bloque vive dentro del panel, que tiene un ancho
    propio distinto del de la página. */
@@ -2474,6 +2504,8 @@
 @media (pointer: coarse) {
   .mc-mas { width: 44px; height: 44px; }
 }
+
+
 
 /* Las que más se mueven: desde la 748 es una lista (bloque «748: la cartera»). */
 
@@ -2615,6 +2647,8 @@ html.mc-seleccionando .mc-pagina {
     visibility: hidden;
   }
 }
+
+
 
 /* Mantener pulsada una carta no saca la vista previa del iPhone ni
    selecciona texto: es el gesto de seleccionar (747). */
@@ -2864,6 +2898,8 @@ html.mc-seleccionando .mc-pagina {
 @media (max-width: 480px) {
   .mc-ficha-tuyas .mc-editor-campos > label:not(.mc-contador) { grid-column: 1 / -1; }
 }
+
+
 .mc-ficha-tuyas .mc-editor-notas { grid-column: 1 / -1; }
 .mc-ficha-tuyas .mc-editor-notas .mc-anadir-nota { min-height: 36px; font-size: var(--t-xs); }
 /* El «Quitar de mi colección» largo repetía el «Quitar» del resumen. */
@@ -2874,6 +2910,8 @@ html.mc-seleccionando .mc-pagina {
   .mc-ficha-tuyas .mc-editor-campos .mc-contador-btn,
   .mc-ficha-tuyas .mc-copia-acciones button { min-height: 44px; }
 }
+
+
 
 /* El selector de catálogo es la cápsula compartida (`.seg`, 678); aquí
    el tamaño de su bandera y, en la barra de mandos, la misma altura que
@@ -2889,6 +2927,8 @@ html.mc-seleccionando .mc-pagina {
 .mc-mandos .seg { padding: 1px; }
 .mc-mandos .seg-btn { min-height: 32px; font-size: var(--t-xs); }
 @media (pointer: coarse) { .mc-mandos .seg-btn { min-height: 40px; } }
+
+
 .mc-ficha-set a, .mc-ficha-tabla dd a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border-strong); }
 .mc-ficha-set a:hover, .mc-ficha-tabla dd a:hover { color: var(--navy); border-color: var(--navy); }
 
@@ -2948,6 +2988,8 @@ html.mc-seleccionando .mc-pagina {
   }
 }
 
+
+
 @media (max-width: 760px) {
   .mc-ficha {
     grid-template-columns: minmax(0, 1fr);
@@ -2996,6 +3038,8 @@ html.mc-seleccionando .mc-pagina {
   }
 
 }
+
+
 
 .mc-ficha-set {
   margin: 0;
@@ -3729,17 +3773,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
-/* ── La Pokédex (tanda 381) ──
-   La gente no colecciona sets, colecciona Pokémon. */
-/* La misma barra que las otras dos desde la 445. Antes era un `flex-wrap`
-   con el buscador, el interruptor, dos desplegables y la cuenta, y en un
-   móvil eso son TRES filas — y el buscador, encogido por sus compañeros de
-   fila, cortaba el texto a media palabra: «Busca un Pokémon o su nú…». */
-.pdx-mandos {
-  display: grid;
-  gap: var(--e-sm);
-  margin-bottom: var(--e-md);
-}
 
 /* El interruptor no es un chip, pero va en la fila de mandos, así que no
    se encoge y respeta el alto de lo que se pulsa. */
@@ -3757,199 +3790,7 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
-/* Sin `padding`: lo pone `.mc-buscador input` y ahí está el hueco de la
-   lupa (tanda 412). Al unificar los buscadores en la 406, esta regla —que
-   va después— le devolvía el relleno de la izquierda a 12 px y el texto
-   de ejemplo se pintaba ENCIMA de la lupa. */
-.pdx-mandos input[type='search'] {
-  border: 1px solid var(--border);
-  background: var(--white);
-  color: var(--text);
-  font-size: var(--t-md);
-}
 
-/* Se mide a SÍ MISMA y no a la ventana (lección de la 316): esta
-   rejilla vive dentro de un panel con su propio ancho. */
-.pdx-rejilla {
-  display: grid;
-  gap: var(--e-sm);
-  /* La Pokédex iba de dos en dos en el móvil y es la que más se recorre
-     (tanda 452). */
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 108px), 1fr));
-}
-
-.pdx-especie {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--e-xs);
-  /* 44 de alto porque es un botón. El ancho lo pone la rejilla. */
-  min-height: 44px;
-  padding: var(--e-sm);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  color: var(--text);
-  cursor: pointer;
-  text-align: center;
-  transition: border-color 0.15s, transform 0.15s;
-}
-
-.pdx-especie:hover {
-  border-color: var(--navy);
-  transform: translateY(-2px);
-}
-
-/* Lo que NO tienes se apaga, igual que un bolsillo vacío del álbum: es
-   el mismo gesto y no hay que aprender otro. Pero se apaga el SPRITE y
-   no el texto — un nombre que no se lee no es una Pokédex. */
-.pdx-especie:not(.tengo) .pdx-sprite img {
-  filter: saturate(0.1) brightness(1.2) contrast(0.75);
-  opacity: 0.5;
-}
-
-.pdx-especie.completo {
-  border-color: var(--success);
-  box-shadow: 0 0 0 1px var(--success);
-}
-
-/* El hueco del sprite va reservado: son 1.025 y sin esto la rejilla
-   baila entera según van llegando. */
-/* 48 y no 68 (tanda 458). PINGU: «los sprites están como muy estirados
-   algunos; no hace falta que sean tan grandes, si lo puedes hacer más
-   pequeño pero que se vea bien, adelante».
-   
-   No estaban deformados —`max-width/max-height` respetan la proporción—:
-   estaban AGRANDADOS. Son dibujos de pocos píxeles, y pintarlos más
-   grandes que su tamaño original enseña las escaleras. Aquí achicar no es
-   una concesión: se ven MEJOR. */
-.pdx-sprite {
-  display: flex;
-  width: 48px;
-  height: 40px;
-  align-items: center;
-  justify-content: center;
-}
-
-.pdx-sprite img {
-  max-width: 100%;
-  max-height: 100%;
-  image-rendering: pixelated;
-}
-
-/* 64 y no 96 (tanda 458). PINGU: «el Bulbasaur es demasiado grande». Y lo
-   era por lo mismo que los de la rejilla: estos sprites son dibujos de
-   pocos píxeles y al estirarlos se ven las escaleras. Más pequeño se ve
-   MEJOR, no solo ocupa menos. */
-.pdx-sprite-grande {
-  width: 64px;
-  height: 56px;
-}
-
-.pdx-num {
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
-  font-variant-numeric: tabular-nums;
-}
-
-.pdx-nombre {
-  font-size: var(--t-sm);
-  font-weight: 600;
-  line-height: 1.2;
-}
-
-.pdx-cuenta {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-variant-numeric: tabular-nums;
-}
-
-.pdx-especie .mc-barra {
-  flex: 0 0 4px;
-  width: 100%;
-}
-
-.pdx-cabecera {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--e-md);
-  margin-bottom: var(--e-lg);
-}
-
-.pdx-cabecera h3 {
-  margin: 0;
-  font-size: var(--t-xl);
-}
-
-.pdx-cabecera p {
-  margin: 0;
-}
-
-.pdx-cartas {
-  display: grid;
-  gap: var(--e-md);
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 104px), 1fr));
-}
-
-.pdx-carta {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-xs);
-  color: var(--text);
-  text-decoration: none;
-}
-
-/* `height: auto` NO es de adorno: el `<img>` lleva `height="342"` para
-   reservar su hueco antes de llegar, y ese atributo se aplica como CSS
-   —de baja prioridad, pero CSS al fin— así que la altura queda DEFINIDA
-   y `aspect-ratio` no actúa (solo actúa si un lado es auto). Resultado:
-   cartas de 144×342 en vez de 144×201, largas como una tira. Se midió,
-   no se dedujo. */
-/* La foto va en su caja (692): la chapa de la versión, el velo de la
-   reverse y el «+» se colocan sobre la FOTO, no sobre el rótulo del set. */
-.pdx-carta-foto {
-  display: block;
-  position: relative;
-  border-radius: var(--radius-sm);
-}
-
-.pdx-carta img {
-  width: 100%;
-  height: auto;
-  aspect-ratio: 245 / 342;
-  border-radius: var(--radius-sm);
-  object-fit: cover;
-}
-
-/* Las que no tienes, en gris; las tuyas a color y con su marco. Mismo
-   trato que los bolsillos del álbum. */
-.pdx-carta:not(.tengo) img {
-  filter: saturate(0.12) brightness(1.3) contrast(0.72);
-  opacity: 0.6;
-}
-
-.pdx-carta.tengo img {
-  box-shadow: 0 0 0 2px var(--success);
-}
-
-.pdx-carta-set {
-  overflow: hidden;
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .pdx-especie {
-    transition: none;
-  }
-
-  .pdx-especie:hover {
-    transform: none;
-  }
-}
 
 /* Los filtros dentro de una colección (tanda 382, rehechos en la 459).
    Ya NO maquetan: desde la 459 la fila es un `.mc-mandos`, la misma pieza
@@ -4004,6 +3845,8 @@ input.mc-alb-titulo:not([readonly]):focus {
     grid-column: 1 / -1;
   }
 }
+
+
 
 /* Aquí vivían `.mc-vista-variantes` y `.mc-chip-vista`, el grupo de dos
    chapas de «juntar / separar» (fuera en la tanda 473). Ahora es UN botón
@@ -4121,6 +3964,8 @@ input.mc-alb-titulo:not([readonly]):focus {
     display: none;
   }
 }
+
+
 
 .mc-columna-sets {
   display: none;
@@ -4292,6 +4137,8 @@ input.mc-alb-titulo:not([readonly]):focus {
     transition: none;
   }
 }
+
+
 
 .mc-panel-pie {
   display: flex;
@@ -4526,6 +4373,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
+
+
 /* ── EL PANEL: AQUÍ VIVÍA LA TIRA DE TARJETAS (tanda 410) ──
    Se la llevó la 440 del Panel y la 459 del álbum, que era el último sitio
    donde quedaba. Lo que la mató no fue el gusto: una tira de tarjetas con
@@ -4745,6 +4594,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
+
+
 .mc-burbuja-abrir:focus-visible,
 .mc-burbuja-mas:focus-visible {
   outline: 2px solid var(--navy);
@@ -4932,6 +4783,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
+
+
 /* ── El anillo de la Pokédex (tanda 414) ──
    Es el mismo dato que el pie, pero un número suelto no dice si vas por
    la mitad o por el final. Un `conic-gradient` y un agujero encima: ni
@@ -4960,28 +4813,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   position: relative;
   font-size: var(--t-2xs);
   font-weight: 800;
-}
-
-/* El rótulo de una generación (tanda 414): el nombre a la izquierda y
-   cuántos llevas a la derecha, que es lo que convierte un muro de mil
-   casillas en un índice. */
-.pdx-generacion {
-  display: flex;
-  gap: var(--e-md);
-  align-items: baseline;
-  justify-content: space-between;
-  margin: var(--e-xl) 0 var(--e-md);
-  font-size: var(--t-md);
-}
-
-.pdx-generacion:first-child {
-  margin-top: 0;
-}
-
-.pdx-generacion small {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 600;
 }
 
 /* El nombre de la colección DENTRO de la cabecera (tanda 415), para
@@ -5048,6 +4879,8 @@ input.mc-alb-titulo:not([readonly]):focus {
     display: none;
   }
 }
+
+
 
 /* `display: grid` en la clase GANA al `[hidden]` del navegador, que es
    una regla de etiqueta: la flecha apagada se seguía viendo. Es la misma
@@ -5123,6 +4956,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
+
+
 /* ── LOS DATOS DE UNA EXPANSIÓN: UNA TIRA QUE SE DESLIZA (tanda 467) ──
  *
  * PINGU, con Dex al lado: «las estadísticas, en deslizables, ¿ves que se
@@ -5190,6 +5025,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
+
+
 /* ── LOS PUNTOS ──
  * Dicen cuántas tarjetas hay y en cuál estás. Son botones y no adornos:
  * pulsar uno lleva a su tarjeta, que es lo que espera quien los ve. */
@@ -5251,6 +5088,8 @@ input.mc-alb-titulo:not([readonly]):focus {
     transition: none;
   }
 }
+
+
 
 /* Por CLASE desde la tanda 476: la Pokédex tiene su propio anillo en la
    primera tarjeta y una tarjeta de datos tiene que leerse igual en las dos
@@ -5314,6 +5153,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
+
+
 /* ── Las flechas del archivador, a los lados (tanda 418) ──
    PINGU: «los botones de anterior y siguiente deberían ir a la izquierda
    y a la derecha, y las páginas quizá abajo, para no recargar demasiado
@@ -5350,6 +5191,8 @@ input.mc-alb-titulo:not([readonly]):focus {
     display: none;
   }
 }
+
+
 
 /* El cuerpo del diálogo se desplaza y el pie se queda (tanda 419). Sin
    esto, en una pantalla de móvil el diálogo crecía más que la ventana y
@@ -5485,379 +5328,6 @@ input.mc-alb-titulo:not([readonly]):focus {
 .mc-resultados .mc-resultado:focus-visible .mc-resultado-foto {
   outline: 2px solid var(--navy);
   outline-offset: 2px;
-}
-
-/* ══════════════════════════════════════════════════════════════════
-   EL ESCÁNER (tanda 447)
-   ══════════════════════════════════════════════════════════════════
-   A pantalla completa y en negro: lo que importa es lo que ve la cámara,
-   y cualquier cosa alrededor compite con el encuadre. */
-.mc-escaner {
-  width: 100vw;
-  max-width: 100vw;
-  height: 100dvh;
-  max-height: 100dvh;
-  margin: 0;
-  padding: 0;
-  border: 0;
-  background: #000;
-  color: var(--blanco-fijo);
-  overscroll-behavior: contain;
-}
-
-.mc-escaner::backdrop {
-  background: #000;
-}
-
-.mc-escaner-video {
-  width: 100%;
-  height: 100%;
-  /* `cover` para que la cámara llene la pantalla sin deformarse. Ojo: con
-     esto las coordenadas de la PANTALLA dejan de ser las del fotograma, y
-     por eso el recorte las recalcula en `marcoEnElVideo`. */
-  object-fit: cover;
-}
-
-/* El velo con el agujero del marco. Es una sola capa con `box-shadow`
-   enorme hacia fuera: así el oscurecido de alrededor y el marco son la
-   MISMA pieza y no pueden descuadrarse entre ellos. */
-.mc-escaner-velo {
-  display: grid;
-  position: absolute;
-  inset: 0;
-  place-items: center;
-  pointer-events: none;
-}
-
-.mc-escaner-marco {
-  position: relative;
-  /* La proporción de una carta de Pokémon. El ancho se queda corto a
-     propósito: con el marco pegado a los bordes nadie sabe si le sobra o
-     le falta encuadre. */
-  width: min(78vw, 46vh);
-  aspect-ratio: 63 / 88;
-  border-radius: var(--radius-xl);
-  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 62%);
-  outline: 2px solid rgb(255 255 255 / 85%);
-  outline-offset: -2px;
-}
-
-/* Las dos franjas que se leen, dibujadas donde se van a recortar. No son
-   un adorno: enseñan EXACTAMENTE qué parte de la carta hay que encuadrar
-   bien, que es lo que hace que el escaneo salga a la primera. */
-.mc-escaner-guia {
-  display: flex;
-  position: absolute;
-  left: 4%;
-  align-items: center;
-  width: 92%;
-  border: 1px solid rgb(255 255 255 / 70%);
-  border-radius: var(--radius-md);
-  background: rgb(255 255 255 / 8%);
-}
-
-/* El rótulo va FUERA de su franja, no dentro. Dentro se pone encima de
-   justo lo que hay que encuadrar bien —el nombre de la carta— y tapa lo
-   único que la guía existe para enseñar. Fuera cae sobre el dibujo, que
-   aquí no se lee. */
-.mc-escaner-guia i {
-  position: absolute;
-  top: calc(100% + var(--e-xs));
-  right: 8px;
-  color: rgb(255 255 255 / 85%);
-  font-size: var(--t-2xs);
-  font-style: normal;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
-  white-space: nowrap;
-}
-
-/* Los mismos números que `FRANJAS` en js/mi-coleccion/escaner.js. Si
-   cambias uno, cambia el otro: el dibujo tiene que enseñar dónde se
-   RECORTA de verdad, o el marco estaría mintiendo. */
-.mc-escaner-guia-arriba {
-  top: 3%;
-  height: 14%;
-}
-
-.mc-escaner-guia-abajo {
-  top: 86%;
-  height: 12%;
-}
-
-/* La de abajo, por encima de su franja: debajo se saldría de la carta. */
-.mc-escaner-guia-abajo i {
-  top: auto;
-  right: auto;
-  bottom: calc(100% + var(--e-xs));
-  left: 8px;
-}
-
-.mc-escaner-arriba {
-  display: flex;
-  position: absolute;
-  top: 0;
-  left: 0;
-  gap: var(--e-md);
-  align-items: center;
-  width: 100%;
-  padding: var(--e-lg);
-  /* `env(safe-area-inset-top)` por la muesca del iPhone: sin esto el botón
-     de cerrar se mete debajo de la hora. */
-  padding-top: calc(var(--e-lg) + env(safe-area-inset-top, 0px));
-  /* Un velo que se desvanece. La sombra del texto sola basta sobre una
-     escena oscura, pero la gente escanea cartas con la lámpara encima: una
-     ayuda blanca sobre un folio blanco no se lee, y el botón de cerrar
-     desaparece. El degradado no tapa el encuadre porque el marco vive en
-     el centro. */
-  background: linear-gradient(to bottom, rgb(0 0 0 / 55%), rgb(0 0 0 / 0%));
-}
-
-.mc-escaner-ayuda {
-  margin: 0;
-  color: rgb(255 255 255 / 85%);
-  font-size: var(--t-sm);
-  text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
-}
-
-.mc-escaner-redondo {
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: rgb(255 255 255 / 18%);
-  color: var(--blanco-fijo);
-  font-size: var(--t-lg);
-  cursor: pointer;
-}
-
-.mc-escaner-redondo:hover {
-  background: rgb(255 255 255 / 28%);
-}
-
-.mc-escaner-abajo {
-  display: flex;
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  gap: var(--e-md);
-  align-items: center;
-  /* Centrados, no repartidos de lado a lado: en un portátil el
-     desplegable del idioma se quedaba solo en la esquina, a setecientos
-     píxeles del disparador. Los mandos de una cámara van juntos, y el
-     hueco de la derecha mantiene el disparador en el centro exacto. El
-     velo, en cambio, sí va de lado a lado — por eso el ancho se queda. */
-  justify-content: center;
-  width: 100%;
-  padding: var(--e-xl);
-  padding-bottom: calc(var(--e-xl) + env(safe-area-inset-bottom, 0px));
-  /* El mismo velo que arriba, por el mismo motivo. */
-  background: linear-gradient(to top, rgb(0 0 0 / 55%), rgb(0 0 0 / 0%));
-}
-
-/* El disparador, redondo y grande: es lo único que se pulsa aquí y se
-   pulsa con el pulgar, a veces con una mano sola. */
-.mc-escaner-disparo {
-  flex: 0 0 auto;
-  width: 72px;
-  height: 72px;
-  padding: 0;
-  /* 4px, y es una EXCEPCIÓN declarada en test-tanda-309.mjs: este borde
-     no rodea un contenido, DIBUJA el aro de un disparador de cámara —la
-     misma categoría que la lupa del buscador y el canto de una carta—. A
-     2px el aro se ve como un contorno cualquiera y deja de parecer un
-     botón de hacer foto. */
-  border: 4px solid rgb(255 255 255 / 90%);
-  border-radius: 50%;
-  background: rgb(255 255 255 / 25%);
-  cursor: pointer;
-  transition: transform 0.15s var(--ease), background 0.15s var(--ease);
-}
-
-.mc-escaner-disparo:hover {
-  background: rgb(255 255 255 / 40%);
-}
-
-.mc-escaner-disparo:active {
-  transform: scale(0.93);
-}
-
-.mc-escaner-disparo[disabled] {
-  opacity: 0.5;
-  cursor: default;
-}
-
-/* El hueco de la derecha existe para que el disparador quede CENTRADO: con
-   el desplegable solo a la izquierda, el botón se iba hacia un lado. */
-/* 128 y no 110: con 110 «Español» se cortaba a «Españo». El hueco de la
-   derecha mide lo mismo para que el disparador quede centrado de verdad. */
-.mc-escaner-fotos,
-.mc-escaner-abajo .mc-chapa-select {
-  flex: 0 0 128px;
-  width: 128px;
-}
-
-.mc-escaner-abajo .mc-chapa-select {
-  border-color: rgb(255 255 255 / 30%);
-  background-color: rgb(255 255 255 / 15%);
-  color: var(--blanco-fijo);
-}
-
-/* La bandeja de la ráfaga (719): encima de los mandos, sobre la cámara. */
-.mc-escaner-bandeja {
-  position: absolute;
-  right: var(--e-md);
-  bottom: calc(120px + env(safe-area-inset-bottom, 0px));
-  left: var(--e-md);
-  padding: var(--e-sm);
-  border-radius: var(--radius-lg);
-  background: rgb(0 0 0 / 72%);
-}
-
-/* Con la bandeja, el marco arriba y algo más pequeño: el recorte lee el
-   marco donde ESTÉ (`marcoEnElVideo`), así que moverlo no lo descuadra. */
-.mc-escaner.con-bandeja .mc-escaner-velo {
-  place-items: start center;
-  padding-top: calc(88px + env(safe-area-inset-top, 0px));
-}
-
-.mc-escaner.con-bandeja .mc-escaner-marco {
-  width: min(64vw, 34vh);
-}
-
-/* Las leídas, en UNA fila que se desliza: tres filas apiladas subían la
-   bandeja hasta la mitad de la pantalla. */
-.mc-escaner-candidatas {
-  display: flex;
-  gap: var(--e-sm);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-}
-
-.mc-escaner-candidata {
-  display: flex;
-  flex: 0 0 min(320px, 88%);
-  align-items: center;
-  gap: var(--e-sm);
-  padding-right: var(--e-xs);
-  border-radius: var(--radius-md);
-  background: rgb(255 255 255 / 8%);
-  scroll-snap-align: start;
-}
-
-.mc-escaner-candidata:only-child {
-  flex-basis: 100%;
-}
-
-.mc-escaner-cand-carta {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: var(--e-md);
-  min-width: 0;
-  min-height: 64px;
-  padding: var(--e-xs);
-  border: 0;
-  border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--blanco-fijo);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.mc-escaner-cand-foto {
-  flex: none;
-  width: 40px;
-  height: 56px;
-  overflow: hidden;
-  border-radius: var(--radius-sm);
-  background: rgb(255 255 255 / 12%);
-}
-
-.mc-escaner-cand-foto img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.mc-escaner-cand-texto {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-}
-
-.mc-escaner-cand-texto b,
-.mc-escaner-cand-texto small {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.mc-escaner-cand-texto small {
-  color: rgb(255 255 255 / 75%);
-  font-size: var(--t-sm);
-}
-
-.mc-escaner-mas,
-.mc-escaner-hecha {
-  flex: none;
-  min-width: 44px;
-  min-height: 44px;
-  border: 0;
-  border-radius: var(--radius-pill);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.mc-escaner-mas {
-  background: var(--blanco-fijo);
-  color: var(--navy-solid);
-  font-size: var(--t-xl);
-}
-
-.mc-escaner-hecha {
-  padding: 0 var(--e-md);
-  background: rgb(255 255 255 / 18%);
-  color: var(--blanco-fijo);
-  font-size: var(--t-sm);
-}
-
-.mc-escaner-ver {
-  width: 100%;
-  min-height: 44px;
-  margin-top: var(--e-xs);
-  border: 0;
-  background: transparent;
-  color: var(--blanco-fijo);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 600;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
-.mc-escaner-nada {
-  margin: var(--e-sm);
-  color: rgb(255 255 255 / 85%);
-  font-size: var(--t-sm);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mc-escaner-disparo {
-    transition: none;
-  }
-
-  .mc-escaner-disparo:active {
-    transform: none;
-  }
 }
 
 /* El interruptor de sentido: UNA pregunta con dos respuestas. Dos botones
@@ -6070,6 +5540,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
+
+
 /* LA BARRA PEGADA DEL MÓVIL (856). Al bajar por una expansión, el nombre y
    la flecha se quedan arriba, donde la barra del sitio acaba de apartarse
    (la 709): volver no obliga a subir toda la lista. Solo en el móvil. */
@@ -6125,11 +5597,15 @@ input.mc-alb-titulo:not([readonly]):focus {
     white-space: nowrap;
   }
 }
+
+
 @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
   .mc-album-pegada:not(.hidden) {
     transition: none;
   }
 }
+
+
 
 
 /* ── EL MENÚ DE ⋮ DE UNA EXPANSIÓN (tanda 475) ──
@@ -6412,6 +5888,8 @@ input.mc-alb-titulo:not([readonly]):focus {
     display: block;
   }
 }
+
+
 
 .mc-album-fila-cuenta {
   flex: 0 0 40px;
@@ -6712,6 +6190,8 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
+
+
 /* Dentro de un álbum, las carpetas de encima no se ven (578). */
 .mc-album-abierto > :not(.mc-bloque-albumes),
 .mc-album-abierto .mc-bloque-albumes > .mc-subtitulo {
@@ -6733,6 +6213,8 @@ input.mc-alb-titulo:not([readonly]):focus {
     max-width: 560px;
   }
 }
+
+
 
 /* El «Quitar de mi colección» de la ficha (tanda 574): al final del
    bloque de tu copia, pequeño y en rojo. */
@@ -6793,6 +6275,8 @@ input.mc-alb-titulo:not([readonly]):focus {
     width: min(100% - var(--e-lg) * 2, 640px);
   }
 }
+
+
 
 /* El dibujo del estado vacío del Panel (tanda 581); la caja es `.mc-vacio` (510). */
 .mc-vacio-icono {
@@ -6859,6 +6343,8 @@ input.mc-alb-titulo:not([readonly]):focus {
 @media (prefers-reduced-motion: reduce) {
   .mc-esq i { animation: none; }
 }
+
+
 
 /* ── 710: el anillo de progreso y la fila compacta del móvil ──
    El porqué, en SCHEMA 710. El anillo es un conic-gradient con `--pct`. */
@@ -6932,51 +6418,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   }
 }
 
-/* ── 711: la Pokédex con el color de su tipo (SCHEMA 711) ──
-   El color de cada tipo es `--tipo-energia`, la paleta de identidad de
-   css/carta.css (324; la prueba 384 vigila que las copias digan lo mismo).
-   El fondo y la tinta SALEN de él mezclándolo con la superficie y el
-   texto de la página, así que en oscuro se adaptan solos. Solo los ocho
-   con símbolo de energía: el color nunca va solo. */
-.pdx-especie { position: relative; }
-.pdx-especie.tipo-G { --tipo-energia: #4faa5a; }
-.pdx-especie.tipo-R { --tipo-energia: #e8564a; }
-.pdx-especie.tipo-W { --tipo-energia: #3aa2dd; }
-.pdx-especie.tipo-L { --tipo-energia: #e9c227; }
-.pdx-especie.tipo-P { --tipo-energia: #a06bc4; }
-.pdx-especie.tipo-F { --tipo-energia: #c8722f; }
-.pdx-especie.tipo-D { --tipo-energia: #3d4a57; }
-.pdx-especie.tipo-M { --tipo-energia: #8c9aa5; }
-.pdx-especie[class*='tipo-'] {
-  --pdx-bg: color-mix(in srgb, var(--tipo-energia) 16%, var(--white));
-  --pdx-tinta: color-mix(in srgb, var(--tipo-energia) 45%, var(--text));
-}
-.pdx-especie[class*='tipo-'] {
-  border-color: transparent;
-  background: var(--pdx-bg);
-}
-.pdx-especie[class*='tipo-'] .pdx-num,
-.pdx-especie[class*='tipo-'] .pdx-cuenta {
-  color: var(--pdx-tinta);
-  font-weight: 700;
-}
-.pdx-especie[class*='tipo-'] .mc-barra i {
-  background: var(--pdx-tinta);
-}
-.pdx-energia {
-  position: absolute;
-  top: var(--e-xs);
-  right: var(--e-xs);
-}
-/* Los que faltan, en silueta: se lee el nombre y no el dibujo. */
-.pdx-especie:not(.tengo) .pdx-sprite img {
-  filter: brightness(0);
-  opacity: 0.18;
-}
-:root[data-theme='dark'] .pdx-especie:not(.tengo) .pdx-sprite img {
-  filter: brightness(0) invert(1);
-  opacity: 0.22;
-}
 
 .mc-ea-lista {
   display: flex;
@@ -7073,6 +6514,8 @@ input.mc-alb-titulo:not([readonly]):focus {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+
 .mc-resumen .mc-cifra,
 .mc-resumen .mc-cifra:nth-child(odd),
 .mc-resumen .mc-cifra:nth-child(odd):not(:first-child) {
@@ -7108,6 +6551,8 @@ input.mc-alb-titulo:not([readonly]):focus {
     font-size: var(--t-3xl);
   }
 }
+
+
 
 /* ── 720: la ficha con el dedo y la carta que crece (SCHEMA 720) ── */
 .mc-editor.mc-editor-entera {
@@ -7156,6 +6601,8 @@ html[data-desliza='sale'] #mcEstanteriaZona { animation: mc-desliza-vuelve 0.26s
     animation: none;
   }
 }
+
+
 
 /* ── 725: enseñar la colección y el set completo (SCHEMA 725) ── */
 .mc-ensenar {
@@ -7340,6 +6787,8 @@ html[data-desliza='sale'] #mcEstanteriaZona { animation: mc-desliza-vuelve 0.26s
   }
 }
 
+
+
 /* ── 727 (V2): en oscuro, cada carta con un filo de luz (SCHEMA 727) ── */
 :root[data-theme='dark'] .mc-carta-foto img,
 :root[data-theme='dark'] .mc-bolsillo img,
@@ -7396,21 +6845,14 @@ html[data-desliza='sale'] #mcEstanteriaZona { animation: mc-desliza-vuelve 0.26s
   }
 }
 
+
+
 /* ── 729 (V6): el vacío con la mascota (SCHEMA 729) ── */
 .mc-vacio-img {
   display: block;
   margin: 0 auto var(--e-md);
 }
 
-/* ── 730 (V5): la carga con la forma del Panel (SCHEMA 730) ── */
-/* Mientras sale el esqueleto, el Panel no se pinta debajo a medias (981):
-   llegaba por trozos, se apilaba bajo el esqueleto y al quitarse este subía
-   648 px de golpe. Así sale entero en su sitio. */
-/* El título de la Pokédex (región y anillo) llega con los datos: su sitio,
-   reservado, para que el buscador no baje 84 px (981). */
-@media (max-width: 900px) {
-  #mcPdxEncabezado:empty { min-height: 84px; }
-}
 /* La nota de los precios va debajo de las cartas: hasta que haya cartas, no
    se ve (se veía arriba y las cartas la empujaban, 981). */
 body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
@@ -7512,6 +6954,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     transform: translate(-50%, -50%);
   }
 }
+
+
 
 /* Qué cartas: todas, las tengo, me faltan. */
 .mc-seg-que button {
@@ -7627,76 +7071,6 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
-/* ── 748: la Pokédex como en su maqueta (C3; SCHEMA 748) ── */
-.pdx-especie.tipo-N { --tipo-energia: #b59433; }
-.pdx-especie.tipo-C { --tipo-energia: #a7a49b; }
-.pdx-especie.tipo-Y { --tipo-energia: #e07bb0; }
-
-.pdx-encabezado {
-  display: flex;
-  gap: var(--e-md);
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: var(--e-md);
-}
-
-.pdx-titulo {
-  margin: 0;
-  font-family: var(--font-display);
-  font-size: var(--t-2xl);
-}
-
-.pdx-sub {
-  margin: 2px 0 0;
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-  font-variant-numeric: tabular-nums;
-}
-
-.pdx-regiones {
-  display: flex;
-  gap: var(--e-sm);
-  margin: 0 calc(-1 * var(--e-xl)) var(--e-md);
-  padding: 0 var(--e-xl);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.pdx-region {
-  flex-shrink: 0;
-  min-height: 44px;
-  padding: 0 var(--e-lg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--white);
-  color: var(--text-mid);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.pdx-region.activa {
-  border-color: var(--navy-solid);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-}
-
-/* El número arriba a la izquierda y el símbolo a la derecha, como en la
-   maqueta; el de los que faltan, apagado. */
-.pdx-especie .pdx-num {
-  align-self: flex-start;
-}
-
-.pdx-especie:not(.tengo) .pdx-energia {
-  filter: grayscale(1);
-  opacity: 0.45;
-}
-
-.pdx-especie:not(.tengo) .pdx-nombre,
-.pdx-especie:not(.tengo) .pdx-cuenta {
-  color: var(--text-mid);
-}
 
 /* ── 748: la cartera (la C1 de su maqueta; el porqué, en SCHEMA 748) ── */
 .mc-hero.mc-hero-panel #mcResumen,
@@ -7925,6 +7299,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* ── 748: las Expansiones de su maqueta (C2; SCHEMA 748) ── */
 .mc-estanteria-cabeza {
   display: flex;
@@ -8122,6 +7498,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* ── 748: la expansión en tres columnas (D2; SCHEMA 748) ── */
 .mc-hermanos,
 .mc-album-que,
@@ -8291,6 +7669,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* Sin su columna desde el primer pintado: el menú se va a la lateral. */
 @media (min-width: 1400px) and (pointer: fine) {
   #mcContenido {
@@ -8307,6 +7687,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     border-left: 0;
   }
 }
+
+
 
 /* ── 749: el logo en la fila y su color detrás (E1, E2 y E4; SCHEMA 749) ── */
 .mc-set-tarjeta.mc-set-fila {
@@ -8443,12 +7825,16 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* Una carta más por fila en el ordenador (749, Y8). */
 @media (min-width: 1200px) {
   .mc-album-rejilla {
     gap: var(--e-sm);
   }
 }
+
+
 
 /* ── 749: el logo arriba de una expansión (E5; SCHEMA 749) ── */
 /* z-index y no `isolation`: el contexto tiene que quedar POR ENCIMA de lo
@@ -8529,50 +7915,6 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 
 .mc-set-fila:has(.sin-logo) .mc-set-corta-codigo {
   display: none;
-}
-
-/* ── 750: cada región dice cuántas llevas (K7; SCHEMA 750) ── */
-.pdx-region.con-cuenta {
-  display: grid;
-  gap: 2px;
-  min-width: 88px;
-  padding: var(--e-sm) var(--e-md);
-  border-radius: var(--radius-lg);
-  text-align: left;
-}
-
-.pdx-region-cuenta {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-}
-
-.pdx-region-barra {
-  display: block;
-  height: 3px;
-  overflow: hidden;
-  border-radius: var(--radius-pill);
-  background: var(--border);
-}
-
-.pdx-region-barra i {
-  display: block;
-  width: var(--ancho);
-  height: 100%;
-  background: var(--navy);
-}
-
-.pdx-region.activa .pdx-region-cuenta {
-  color: var(--blanco-fijo);
-}
-
-.pdx-region.activa .pdx-region-barra {
-  background: rgb(255 255 255 / 30%);
-}
-
-.pdx-region.activa .pdx-region-barra i {
-  background: var(--blanco-fijo);
 }
 
 .mc-precio-atajos {
@@ -8683,26 +8025,6 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 
 .mc-quiero-aviso.cumple svg { color: var(--success); }
 
-/* Desde tus fotos (754, K5): en el hueco que equilibraba el idioma. */
-.mc-escaner-fotos {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--e-xs);
-  min-height: 44px;
-  padding: 0 var(--e-sm);
-  border: 1px solid rgb(255 255 255 / 30%);
-  border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 15%);
-  color: var(--blanco-fijo);
-  font-size: var(--t-xs);
-  font-weight: 700;
-  line-height: 1.1;
-  cursor: pointer;
-}
-
-.mc-escaner-fotos:disabled { opacity: 0.5; }
-
 /* ── 757: lo que falta en gris, lo tuyo con su marca (SCHEMA 757) ── */
 .mc-bolsillo:not(.tengo) img,
 .mc-rejilla-celda:not(.tengo) img {
@@ -8774,6 +8096,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     background: var(--success);
   }
 }
+
+
 
 /* La tuya se suma desde su ficha, como en Dex. */
 .mc-bolsillo.tengo .mc-mas,
@@ -8980,6 +8304,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     gap: var(--e-sm);
   }
 }
+
+
 
 /* El diálogo: un `display` solo en `[open]` (la 473). */
 .mc-albn {
@@ -9245,6 +8571,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* El bolsillo vacío de un binder se toca para meter una carta AHÍ. */
 .mc-bolsillo-hueco {
   display: grid;
@@ -9331,6 +8659,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* La hoja que llega entra por su lado. */
 .mc-archivador.mc-pasa-adelante {
   transform-origin: left center;
@@ -9359,6 +8689,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     animation: none;
   }
 }
+
+
 
 /* ── 761: Buscar, por expansión (B1). El porqué, en SCHEMA.md (tanda 761). ── */
 .mc-bus-grupo {
@@ -9420,6 +8752,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* ── 762: los productos sellados (PR1, PR2). El porqué, en SCHEMA.md
    (tanda 762). ── */
 .mc-cartera-reparto {
@@ -9466,6 +8800,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* ── 763: Deseos y cambios (DC1). El porqué, en SCHEMA.md (tanda 763). ── */
 .mc-deseos-cabeza {
   display: flex;
@@ -9499,6 +8835,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     flex: 1 1 0;
   }
 }
+
+
 
 /* ── 764: la portada de un binder (Z4) y lo demás de los álbumes. El porqué,
    en SCHEMA.md (tanda 764). ── */
@@ -9644,6 +8982,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     animation: none;
   }
 }
+
+
 
 /* 766 (PR1): la expansión con su logo y la marca de lo que tienes. */
 .mc-prod-set {
@@ -9868,6 +9208,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* ── 770: el Mercado y lo común de Deseos y cambios (cuentas del selector,
    los tres pasos, la baldosa con quién la da). El porqué, en SCHEMA.md
    (tanda 770). ── */
@@ -9917,6 +9259,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 .mc-deseos-pasos {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -9952,6 +9296,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     grid-template-columns: 1fr;
   }
 }
+
+
 
 .mc-mercado-entrar {
   margin: 0 0 var(--e-md);
@@ -9996,6 +9342,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     flex: 0 0 auto;
   }
 }
+
+
 
 .mc-bloque-mercado .mc-cuantas {
   margin: 0 0 var(--e-sm);
@@ -10101,6 +9449,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     gap: var(--e-md) var(--e-sm);
   }
 }
+
+
 
 .mc-mercado-rejilla > .mc-quiero-vacio {
   grid-column: 1 / -1;
@@ -10217,6 +9567,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     background: #be185d;
   }
 }
+
+
 
 .mc-merc-nombre,
 .mc-merc-set {
@@ -10402,6 +9754,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 .mc-merf .mc-merf-foto {
   aspect-ratio: 245 / 342;
 }
@@ -10498,6 +9852,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 .mc-doy-cuantas {
   color: var(--text);
   font-weight: 700;
@@ -10575,6 +9931,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     display: none;
   }
 }
+
+
 
 .mc-cruce-lado {
   display: grid;
@@ -10674,6 +10032,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* Los anillos se llenan al entrar en pantalla, la primera vez de la sesión
    (783, MV10). Solo el que lleva `.por-llenar` pinta `--pct-visto`. */
 @property --pct-visto {
@@ -10703,6 +10063,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   .por-llenar.llenando { animation: none; --pct-visto: var(--pct); }
 }
 
+
+
 /* El set completo (784, MV4): la medalla entra girando y el botón de compartir. */
 .mc-completo-gira .mc-completo-medalla {
   animation: mc-medalla-gira 0.9s cubic-bezier(0.34, 1.56, 0.64, 1) both;
@@ -10719,6 +10081,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .mc-completo-gira .mc-completo-medalla { animation: none; }
 }
+
+
 
 /* Detalles de PC (786, MV13): con ratón, la fila de un set y la carta de una
    expansión se levantan 2 px; la carta, además, se separa de sus vecinas. */
@@ -10742,11 +10106,15 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 @media (prefers-reduced-motion: reduce) {
   .mc-set-tarjeta:hover,
   .mc-rejilla-celda:hover,
   .mc-bolsillo:hover { transform: none; }
 }
+
+
 
 /* La llegada escalonada (787, MV6; escalonarLlegada en js/mi-coleccion.js). */
 .llega {
@@ -10761,6 +10129,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .llega { animation: none; }
 }
+
+
 
 /* La estantería en dos o tres columnas en el PC (788, PA8). */
 @media (min-width: 1100px) {
@@ -10784,6 +10154,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* Pequeños del móvil (788, PA10b): los cuatro de Deseos y cambios, en una
    fila que se desliza en vez de partirse. */
 @media (max-width: 599px) {
@@ -10802,6 +10174,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     flex: 0 0 auto;
   }
 }
+
+
 .mc-confianza { margin: 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }
 .mc-confianza:empty { display: none; }
 
@@ -10867,6 +10241,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   }
 }
 
+
+
 /* ── 911: las que quieres y no tienes llevan su corazón (SCHEMA 911) ── */
 .mc-quiero-marca {
   display: grid;
@@ -10931,6 +10307,8 @@ body[data-modo='catalogo'] #mcCargando {
   }
 }
 
+
+
 /* En /cartas, hasta 900 px el catálogo se muda junto al título (893) y la
    fila se queda vacía; por encima, lleva sus botones. */
 @media (min-width: 901px) {
@@ -10938,6 +10316,8 @@ body[data-modo='catalogo'] #mcCargando {
     min-height: 46px;
   }
 }
+
+
 
 /* ── 915: la ficha como el Dex del móvil (SCHEMA 915) ──
    La carta sola arriba y una columna de filas grandes debajo; en el
@@ -11282,6 +10662,8 @@ button.mc-fila:hover {
   }
 }
 
+
+
 /* En el móvil: la carta arriba y grande, el nombre centrado DEBAJO (como en
    Dex; la 669 lo había subido encima). */
 @media (max-width: 760px) {
@@ -11302,6 +10684,8 @@ button.mc-fila:hover {
     justify-content: center;
   }
 }
+
+
 
 /* 920: con el dedo, sin mando arriba (PINGU: «con los gestos funciona»): ni
    cerrar ni «‹ 1 de 3 ›». Queda el tirador, que dice «arrástrala», y el
@@ -11355,12 +10739,16 @@ button.mc-fila:hover {
   }
 }
 
+
+
 /* En el ordenador, la columna de datos con aire y los atributos en dos. */
 @media (min-width: 761px) {
   .mc-editor .mc-atributos {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+
 
 /* ── 921: en el ordenador, un pop-up ancho como el de Dex (SCHEMA 921) ──
    La carta a la izquierda sobre sus colores; a la derecha, los datos en dos
@@ -11708,6 +11096,8 @@ button.mc-fila:hover {
   }
 }
 
+
+
 /* ── 923: en el ordenador, todo dentro y sin desplazarse (SCHEMA 923) ──
    PINGU: «que entre en un pop-up toda la información… no quiero scrolls».
    Más pequeño todo lo que hace falta: la gráfica se dibuja más baja, los
@@ -12006,11 +11396,15 @@ button.mc-fila:hover {
   }
 }
 
+
+
 @media (min-width: 761px) and (pointer: coarse) {
   .mc-editor .mc-versiones .mc-version {
     min-height: 44px;
   }
 }
+
+
 
 /* En el móvil, la versión y tus copias se abren en su propia hoja encima
    de la ficha (921): al cerrarla sigues donde estabas. */
@@ -12054,6 +11448,8 @@ button.mc-fila:hover {
   }
 }
 
+
+
 @keyframes mc-subhoja {
   from {
     transform: translateY(100%);
@@ -12066,6 +11462,8 @@ button.mc-fila:hover {
     animation: none;
   }
 }
+
+
 
 /* ── 919: la cabecera de una expansión, más sencilla (SCHEMA 919) ── */
 /* Una barra en vez del carrusel: «4 de 18 · 22 %» y lo que vale lo tuyo. */
@@ -12162,6 +11560,8 @@ button.mc-fila:hover {
     font-size: 0;
   }
 }
+
+
 
 /* Cada barra del «⋯»: nombre y cuenta en una línea, la barra debajo. */
 .mc-menu-cifras .mc-barra-fila {
@@ -12282,6 +11682,8 @@ button.mc-fila:hover {
     flex: none;
   }
 }
+
+
 
 /* La hoja de la vista: cada opción con su línea de explicación. */
 .mc-menu-opcion-doble {
@@ -12444,6 +11846,8 @@ button.mc-fila:hover {
     margin: -12px 0 -12px 0;
   }
 }
+
+
 
 .mc-valor-oculto :is(.mc-cifra-valor dd, .mc-cifra-cambio, .mc-cartera-cifra, .mc-cartera .mc-valor-cambio, .mc-valor-ahora, .mc-valor-chip b, .mc-reparto-ficha b, .mc-valor-lectura-globo b) {
   position: relative;

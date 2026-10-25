@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (249) — PINGU-Claude (1011 — Mi colección por vistas, ronda.js por import())
+
+**Hecho**: lo primero de la propuesta del repaso («adelante con lo
+recomendado»). De `js/mi-coleccion.js` salen cinco módulos que entran por
+`import()` con el molde de la 895: `escaner-ui.js`, `seleccion.js`,
+`carpetas-ui.js` (con `dialogo-adorno`, que ya no importa el principal),
+`pokedex-ui.js` y `extras.js` (importar, exportar, imagen). El CSS del escáner
+y de la Pokédex va en `css/mc-escaner.css` y `css/mc-pokedex.css`, inyectados
+por su módulo. En /torneo, `ronda.js` entra por `import()` antes de
+`montarCiclo`. /cartas pasa de 574 a 513 KB gzip de grafo estático y /torneo
+de 431 a 358 (SCHEMA 1011 dice lo que queda y por qué no llega a 180).
+
+**Ficheros**: `js/mi-coleccion.js`, `js/mi-coleccion/escaner-ui.js`,
+`seleccion.js`, `carpetas-ui.js`, `pokedex-ui.js`, `extras.js` (nuevos),
+`css/mi-coleccion.css`, `css/mc-escaner.css`, `css/mc-pokedex.css` (nuevas),
+`js/torneos/torneo.js`, `SCHEMA.md`, `novedades.json`, `BITACORA.md`. En
+`pruebas`: `test-tanda-1011.mjs` (nueva), `herramientas/ctxear.mjs` y
+`libres.mjs` (nuevas), 558, 560, 561 y 896 al día.
+
+**Pendiente**: el resto de la propuesta en el orden acordado (1013 lógica,
+1012 portada, 1014, 1015, 1016 letra B, 1017 consultas); las capturas del
+carrusel; los ejemplos de Search Console; lo de la 237.
+
 ## 2026-10-25 (248) — PINGU-Claude (1010 — escribir una guía y la portada «Hoy»)
 
 **Hecho**: «Escribir una guía» en /aprender (a la derecha del título) y, en la

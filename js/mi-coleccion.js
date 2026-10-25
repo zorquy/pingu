@@ -65,7 +65,6 @@ import { ORDENES_COLECCION, GRUPOS_FILTRO, ordenarLineas, pasaLosFiltros, filtro
 import { balanceDeCompra } from './mi-coleccion/balance.js'
 import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
-import { iniciarDialogoAdorno, abrirDialogoAdorno } from './mi-coleccion/dialogo-adorno.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
 import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, pegarVersiones, varianteDeEtiqueta, seSabenVariantes, corregirVersionesImposibles, cuentaParaMaestro, versionDeVariante, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { montarEleccion } from './mi-coleccion/elegir-version.js'
@@ -460,7 +459,7 @@ const cartasDeFuera = new Map()
 // nadie, y `cargarColeccion` las vuelve a poner.
 const preciosDeFuera = new Map()
 function cartaPorId(cardId) {
-  return cartas.get(cardId) || cartasDeFuera.get(cardId) || cartaDeLineaTodo({ card_id: cardId, market: mercado }) || album.cartas.find((x) => x.id === cardId) || ultimaBusqueda.find((x) => x.id === cardId) || cartasDeLaEspecie.find((x) => x.id === cardId) || null
+  return cartas.get(cardId) || cartasDeFuera.get(cardId) || cartaDeLineaTodo({ card_id: cardId, market: mercado }) || album.cartas.find((x) => x.id === cardId) || ultimaBusqueda.find((x) => x.id === cardId) || cartasDeLaEspecieAhora().find((x) => x.id === cardId) || null
 }
 
 const misLineasDe = (cardId) => lineas.filter((l) => l.card_id === cardId)
@@ -1762,8 +1761,9 @@ function lineaHtml(l) {
   const etiqueta = `${nombreDe(c)}${nombreDeSet(c?.tcg_sets) ? `, ${nombreDeSet(c.tcg_sets)}` : ''}${
     variante ? `, ${variante}` : ''
   }${l.cantidad > 1 ? `, ${l.cantidad} copias` : ''}`
-  const marcando = marcadas && marcarEn === 'cartas'
-  const puesta = marcando && marcadas.has(l.id)
+  const sel = marcadasAhora()
+  const marcando = sel && marcarEnAhora() === 'cartas'
+  const puesta = marcando && sel.has(l.id)
   return `
     <article class="mc-carta${puesta ? ' marcada' : ''}" data-linea="${escapeHtml(l.id)}">
       <button type="button" class="mc-carta-foto carta-scan-holo"${
@@ -2284,7 +2284,7 @@ function abrirCarta(cardId, carta = null, variante = null) {
   const encontrada = carta
     || cartas.get(cardId)
     || album.cartas?.find((x) => x.id === cardId)
-    || cartasDeLaEspecie.find((x) => x.id === cardId)
+    || cartasDeLaEspecieAhora().find((x) => x.id === cardId)
     || ultimaBusqueda.find((x) => x.id === cardId)
     || (miaDeTodo ? cartaDeLineaTodo(miaDeTodo) : null)
   // Al mapa del catálogo solo entra lo que es de ese catálogo: una
@@ -3554,7 +3554,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
   // estantería era la misma guarda dos veces —el único camino de vuelta a
   // una rejilla pasa por aquí—, y una guarda con red de repuesto no se
   // puede probar, porque quitarla no cambia nada (CLAUDE.md).
-  if (marcadas) modoMarcar(false)
+  if (marcadasAhora()) modoMarcar(false)
   album.set = setId
   album.pagina = 0
   // La estantería se va y sale el archivador (tanda 372). Los dos viven
@@ -3754,12 +3754,13 @@ function pintarLogoDeAlbum(set) {
 // marcar, el − y el + se esconden con `display: none` —que además los saca
 // del tabulador—, así que cada casilla tiene UN solo destino.
 function marcaDeBolsillo(cardId, variante = 'normal') {
-  if (!marcadas) return ''
+  const sel = marcadasAhora()
+  if (!sel) return ''
   const clave = claveMarca(cardId, variante)
-  return ` data-marca="${escapeHtml(clave)}" role="button" aria-pressed="${marcadas.has(clave) ? 'true' : 'false'}"`
+  return ` data-marca="${escapeHtml(clave)}" role="button" aria-pressed="${sel.has(clave) ? 'true' : 'false'}"`
 }
 const claseMarcada = (cardId, variante = 'normal') =>
-  marcadas?.has(claveMarca(cardId, variante)) ? ' marcada' : ''
+  marcadasAhora()?.has(claveMarca(cardId, variante)) ? ' marcada' : ''
 
 // ── LA CHAPA DE LA VERSIÓN (tanda 461) ──
 //
@@ -4588,288 +4589,36 @@ function masValiosasDe(filas, cuantas = 3) {
 
 // `variante` llega desde «una por versión» (tanda 398): ahí el + suma a
 // ESA versión y no a la normal, que es lo que distingue las casillas.
-// ── Marcar varias de golpe (tanda 426) ──
+// ── MARCAR VARIAS (426 → 1011): vive en ./mi-coleccion/seleccion.js y entra por import() ──
 //
-// PINGU no lo pidió con estas palabras, pero es lo que cuesta de verdad:
-// apuntar un sobre son diez cartas, y una a una eran diez botones
-// pequeños, diez repintados de la rejilla y veinte peticiones.
-//
-// NO es el interruptor de la tanda 365 que se quitó en la 368. Aquel
-// obligaba a elegir —con él puesto no se podía abrir una ficha, sin él no
-// se podía añadir— y vivía puesto para siempre. Este se enciende, se usa
-// y se apaga, lleva su barra diciendo en qué estás y no guarda NADA hasta
-// que lo dices. Mientras está apagado la rejilla se comporta igual que
-// siempre.
-//
-// La clave lleva la versión porque en «separar variantes» cada casilla ES
-// una versión: con el id de la carta a secas, marcar el reverse holo
-// marcaría también la normal.
-let marcadas = null // Set de `cardId|variante` (expansión) o de ids de línea (Cartas); null = apagado
+// La clave de una casilla lleva la versión: en «separar variantes» cada
+// casilla ES una versión. Se queda aquí porque la rejilla la escribe en sus
+// atributos (`marcaDeBolsillo`) antes de que el módulo exista.
 const claveMarca = (cardId, variante = 'normal') => `${cardId}|${variante || 'normal'}`
-// DÓNDE se selecciona (747). En una expansión se marca cada CARTA (y su
-// versión); en «Cartas» se marca cada COPIA tuya, que es una línea: dos
-// copias de la misma carta en dos idiomas son dos casillas distintas.
-let marcarEn = 'album'
-
-function modoMarcar(encender, donde = pestania === 'cartas' ? 'cartas' : 'album', { repintar = true } = {}) {
-  const antes = marcarEn
-  marcadas = encender ? new Set() : null
-  if (encender) marcarEn = donde
-  $('mcMarcarAbrir')?.setAttribute('aria-pressed', encender ? 'true' : 'false')
-  $('mcMarcarBarra')?.classList.toggle('hidden', !encender)
-  document.documentElement.classList.toggle('mc-seleccionando', Boolean(encender))
-  $('mcAlbum')?.classList.toggle('mc-album-marcando', Boolean(encender) && marcarEn === 'album')
-  $('mcCartas')?.classList.toggle('mc-cartas-marcando', Boolean(encender) && marcarEn === 'cartas')
-  pintarMarcadas()
-  if (!repintar) return
-  if ((encender ? marcarEn : antes) === 'cartas') pintarCartas()
-  else pintarAlbum()
+const ctxSeleccion = {
+  get pestania() { return pestania },
+  get lineas() { return lineas },
+  get cartas() { return cartas },
+  get sesion() { return sesion },
+  get mercado() { return mercado },
+  get todosLosSets() { return todosLosSets },
+  get album() { return album },
+  get esMia() { return esMia },
+  get cambios() { return cambios },
+  set cambios(x) { cambios = x },
+  get deseos() { return deseos },
+  set deseos(x) { deseos = x },
+  pintarCartas, pintarAlbum, misLineasDe, cambiarLinea, quitarLinea, repintar, refrescarCorazones, meterLinea, pintarResumen, claveMarca,
 }
-
-// Lo marcado, como una lista de {cardId, variante, linea} sea cual sea la
-// rejilla: las acciones no tienen que saber de dónde viene.
-function entradasMarcadas() {
-  if (!marcadas) return []
-  if (marcarEn === 'cartas') {
-    return [...marcadas].map((id) => lineas.find((l) => l.id === id)).filter(Boolean)
-      .map((l) => ({ cardId: l.card_id, variante: l.variante || 'normal', linea: l }))
-  }
-  return [...marcadas].map((k) => {
-    const corte = k.lastIndexOf('|')
-    return { cardId: k.slice(0, corte), variante: k.slice(corte + 1), linea: null }
-  })
-}
-
-function pintarMarcadas() {
-  const cuantas = marcadas ? marcadas.size : 0
-  const cuenta = $('mcMarcarCuenta')
-  if (cuenta) {
-    cuenta.textContent = cuantas
-      ? `${cuantas} ${cuantas === 1 ? 'seleccionada' : 'seleccionadas'}`
-      : 'Toca las cartas'
-  }
-  const guardar = $('mcMarcarGuardar')
-  if (guardar) {
-    guardar.disabled = !cuantas
-    // El botón dice CUÁNTAS va a añadir: «Añadir» a secas, con doce
-    // marcadas, no deja claro si añade una o las doce.
-    $('mcMarcarGuardarTexto').textContent = cuantas ? `Añadir ${cuantas}` : 'Añadir'
-  }
-  // 713: lo demás que se hace con varias. «Quitar» cuenta solo las tuyas.
-  for (const id of ['mcMarcarAlbum', 'mcMarcarQuiero']) if ($(id)) $(id).disabled = !cuantas
-  confirmarQuitar = false
-  const tuyas = lineasDeLasMarcadas().length
-  const quitar = $('mcMarcarQuitar')
-  if (quitar) {
-    quitar.disabled = !tuyas
-    $('mcMarcarQuitarTexto').textContent = tuyas ? `Quitar ${tuyas}` : 'Quitar'
-    quitar.classList.remove('confirmando')
-  }
-}
-
-// «Seleccionar todas»: las que están A LA VISTA en la rejilla, con los
-// filtros puestos —seleccionar las 400 de la colección con un filtro de
-// «Fuego» delante no es lo que nadie espera—.
-function marcarTodas() {
-  if (!marcadas) return
-  if (marcarEn === 'cartas') {
-    for (const t of $('mcCartas').querySelectorAll('.mc-carta[data-linea]')) { marcadas.add(t.dataset.linea); t.classList.add('marcada'); t.querySelector('[data-ficha]')?.setAttribute('aria-pressed', 'true') }
-  } else {
-    for (const a of $('mcAlbum').querySelectorAll('.mc-bolsillo-enlace[data-marca]')) { marcadas.add(a.dataset.marca); a.setAttribute('aria-pressed', 'true'); a.closest('.mc-bolsillo')?.classList.add('marcada') }
-  }
-  pintarMarcadas()
-}
-
-// Marcar o desmarcar una copia de la rejilla de Cartas. Sin repintar: con
-// cientos de casillas, repintar a cada toque se nota.
-function alternarLinea(tarjeta) {
-  if (!marcadas || marcarEn !== 'cartas') return
-  const id = tarjeta.dataset.linea
-  if (marcadas.has(id)) marcadas.delete(id)
-  else marcadas.add(id)
-  const puesta = marcadas.has(id)
-  tarjeta.classList.toggle('marcada', puesta)
-  tarjeta.querySelector('[data-ficha]')?.setAttribute('aria-pressed', puesta ? 'true' : 'false')
-  pintarMarcadas()
-}
-
-// ── Lo demás que se hace con varias (713, C4) ──
-//
-// PINGU eligió la selección múltiple de la lista de propuestas: con varias
-// marcadas, además de añadirlas, mandarlas a un álbum, apuntarlas como «la
-// quiero» o quitarlas. Lo que se quita es UNA copia de cada una que
-// tengas (de la línea de esa versión con más copias): quitar una carta
-// entera con todos sus idiomas desde una rejilla sería demasiado para un
-// toque, y para eso está su ficha.
-const idsDeLasMarcadas = () => [...new Set(entradasMarcadas().map((e) => e.cardId))]
-function lineasDeLasMarcadas() {
-  const out = []
-  for (const e of entradasMarcadas()) {
-    // En «Cartas» lo marcado YA es una línea; en una expansión, la tuya de
-    // esa versión con más copias.
-    if (e.linea) { out.push(e.linea); continue }
-    const suyas = misLineasDe(e.cardId).filter((l) => (l.variante || 'normal') === e.variante)
-    if (suyas.length) out.push(suyas.sort((a, b) => (b.cantidad || 0) - (a.cantidad || 0))[0])
-  }
-  return out
-}
-
-let confirmarQuitar = false
-let quitarTiempo = null
-async function quitarMarcadas() {
-  const ls = lineasDeLasMarcadas()
-  if (!ls.length) return
-  const b = $('mcMarcarQuitar')
-  // Un segundo toque confirma: quitar es lo único de la barra que borra.
-  if (!confirmarQuitar) {
-    confirmarQuitar = true
-    b.classList.add('confirmando')
-    $('mcMarcarQuitarTexto').textContent = `¿Quitar ${ls.length}? Toca otra vez`
-    clearTimeout(quitarTiempo)
-    quitarTiempo = setTimeout(() => pintarMarcadas(), 4000)
-    return
-  }
-  clearTimeout(quitarTiempo)
-  b.disabled = true
-  let hechas = 0
-  try {
-    for (const l of ls) {
-      if ((Number(l.cantidad) || 1) > 1) cambiarLinea(l.id, await datos.actualizar(l.id, { cantidad: Number(l.cantidad) - 1 }))
-      else { await datos.borrar(l.id); quitarLinea(l.id) }
-      hechas++
-    }
-    showToast(`${hechas} ${hechas === 1 ? 'copia quitada' : 'copias quitadas'} de tu colección.`, 'success')
-  } catch (err) {
-    showToast(`${hechas ? `Quitadas ${hechas}; ` : ''}${err.message}`, 'error')
-  }
-  modoMarcar(false)
-  repintar()
-}
-
-async function quererMarcadas() {
-  const ids = idsDeLasMarcadas()
-  if (!ids.length) return
-  const b = $('mcMarcarQuiero')
-  b.disabled = true
-  try {
-    cambios = cambios || (await import('./mi-coleccion/cambios.js'))
-    let nuevas = 0
-    for (const id of ids) {
-      try {
-        const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: id })
-        if (Array.isArray(deseos)) deseos = [d, ...deseos]
-        nuevas++
-      } catch (err) {
-        if (!err.yaEstaba) throw err
-      }
-    }
-    refrescarCorazones()
-    showToast(nuevas ? `${nuevas} ${nuevas === 1 ? 'carta apuntada' : 'cartas apuntadas'} en «La quiero».` : 'Ya estaban todas en «La quiero».', 'success')
-    modoMarcar(false)
-  } catch (err) {
-    showToast(err.message, 'error')
-  } finally {
-    b.disabled = false
-  }
-}
-
-async function elegirAlbumParaMarcadas() {
-  const d = $('mcElegirAlbum')
-  const lista = $('mcEaLista')
-  lista.innerHTML = '<p class="subtext">Cargando tus álbumes…</p>'
-  if (!d.open) d.showModal()
-  try {
-    const todos = await albumes.albumesParaElegir(sesion.user.id)
-    lista.innerHTML = todos.length
-      ? todos.map((a) => `<button type="button" class="mc-ea-album" data-album="${escapeHtml(a.id)}"><b>${escapeHtml(a.nombre || 'Sin nombre')}</b><span>${(a.cartas || []).length} cartas</span></button>`).join('')
-      : `<p class="subtext">Todavía no tienes ningún álbum.</p><a class="btn-secondary" href="?ver=carpetas">Crear uno en Álbumes</a>`
-  } catch (err) {
-    lista.innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
-  }
-}
-
-async function meterMarcadasEnAlbum(albumId) {
-  const ids = idsDeLasMarcadas()
-  // CAMBIA YA (896, R6): el diálogo se cierra y se sale del modo marcar en
-  // el acto; el resultado llega después como aviso.
-  $('mcElegirAlbum').close()
-  modoMarcar(false)
-  try {
-    const r = await albumes.meterCartas(albumId, ids)
-    const partes = [`${r.anadidas} ${r.anadidas === 1 ? 'carta' : 'cartas'} a «${r.nombre}»`]
-    if (r.yaEstaban) partes.push(`${r.yaEstaban} ya estaban`)
-    if (r.sinSitio) partes.push(`${r.sinSitio} no caben`)
-    showToast(partes.join(' · ') + '.', r.sinSitio ? 'error' : 'success')
-    albumes.repintar?.()
-  } catch (err) {
-    showToast(err.message, 'error')
-  }
-}
-
-// Marcar o desmarcar una casilla. No toca la base: lo que se marca vive
-// en memoria hasta que se pulsa «Añadir», que es lo que permite
-// corregirse sin haber escrito nada.
-function alternarMarca(enlace) {
-  if (!marcadas) return
-  const clave = enlace.dataset.marca
-  if (!clave) return
-  if (marcadas.has(clave)) marcadas.delete(clave)
-  else marcadas.add(clave)
-  const puesta = marcadas.has(clave)
-  enlace.setAttribute('aria-pressed', puesta ? 'true' : 'false')
-  // La clase va en la CAJA, que es la que se puede dibujar entera; el
-  // enlace es solo la foto. Y se toca a mano en vez de repintar la
-  // rejilla: con 200 casillas, repintar a cada toque se nota.
-  enlace.closest('.mc-bolsillo')?.classList.toggle('marcada', puesta)
-  pintarMarcadas()
-}
-
-async function guardarMarcadas() {
-  if (!marcadas?.size) return
-  const boton = $('mcMarcarGuardar')
-  const idioma = $('mcTocarIdioma')?.value || 'es'
-  const estado = $('mcTocarEstado')?.value || 'NM'
-  // Desde «Cartas», una copia MÁS de cada una, con su idioma y su estado:
-  // es «otra igual que esta», no una carta nueva.
-  const lineasNuevas = entradasMarcadas().map((e) => ({
-    card_id: e.cardId, variante: e.variante, idioma: e.linea?.idioma || idioma, estado: e.linea?.estado || estado,
-  }))
-  boton.disabled = true
-  try {
-    const puestas = await datos.anadirVarias(sesion.user.id, lineasNuevas, mercado)
-    // Las que ya estaban vuelven ACTUALIZADAS y las nuevas, nuevas: se
-    // mezclan por id para no acabar con la misma línea dos veces en la
-    // lista, que es lo que pasa si se hace `unshift` a lo bruto.
-    //
-    // Y CON SU CARTA, en la MISMA pasada (tanda 487). Esto eran DOS bucles
-    // —uno para las líneas y otro para el catálogo— y al pasar el primero
-    // por `meterLinea` se quedó el segundo rellenando solo `cartas` y no
-    // `cartasTodo`. Resultado: el Panel, que desde la 485 se pinta con la
-    // memoria global, sacaba las recién marcadas SIN NOMBRE («Carta») en
-    // «Tus cartas». No daba ningún error — lo cazó la suite entera, con un
-    // clic que esas tarjetas sin nombre interceptaban.
-    //
-    // La lección es la de siempre con dos memorias: un solo camino. Si la
-    // carta va en el mismo sitio que la línea, no hay un segundo bucle que
-    // se pueda quedar corto.
-    const elSet = (todosLosSets || []).find((x) => x.id === album.set)
-    for (const l of puestas) {
-      const c = (album.cartas || []).find((x) => x.id === l.card_id)
-      meterLinea(l, c ? { ...c, tcg_sets: elSet ? { id: elSet.id, name: elSet.name, release_date: elSet.release_date } : null } : cartas.get(l.card_id) || null)
-    }
-    const cuantas = puestas.length
-    modoMarcar(false)
-    pintarResumen()
-    pintarCartas()
-    showToast(`${cuantas} ${cuantas === 1 ? 'carta añadida' : 'cartas añadidas'} a tu colección.`, 'success')
-  } catch (err) {
-    showToast(err.message || 'No se han podido añadir.', 'error')
-    boton.disabled = false
-  }
-}
-
-// `tocarBolsillo` (el «+» con el idioma y el estado del álbum) se fue en
-// la 650: añadir pasa siempre por el diálogo, que pregunta el idioma.
+let selMod = null
+const seleccionModulo = () => selMod ? Promise.resolve(selMod) : import('./mi-coleccion/seleccion.js').then((m) => { m.montar(ctxSeleccion); selMod = m; return m })
+// Sin el módulo no hay nada marcado: la rejilla pinta como siempre.
+const marcadasAhora = () => (selMod ? selMod.marcadasAhora() : null)
+const marcarEnAhora = () => (selMod ? selMod.marcarEnAhora() : 'album')
+function modoMarcar(...a) { return selMod ? selMod.modoMarcar(...a) : seleccionModulo().then((m) => m.modoMarcar(...a)) }
+// Estas dos solo se llaman con algo marcado, o sea con el módulo puesto.
+function alternarMarca(...a) { return selMod?.alternarMarca(...a) }
+function alternarLinea(...a) { return selMod?.alternarLinea(...a) }
 
 
 
@@ -5116,452 +4865,41 @@ function pintarAfinar(lista) {
   solo.classList.toggle('hidden', !(esMia && sesion))
 }
 
-// ── EL ESCÁNER (tanda 447) ──
-//
-// El módulo con las cuentas entra por un `import()` dinámico: quien no
-// abra el escáner no se baja ni una línea de él, igual que la pestaña del
-// foro de los perfiles. Y la cámara no se pide hasta que se abre — pedirla
-// al cargar la página saca el aviso del navegador sin que nadie lo haya
-// pedido, que es la forma más rápida de que te digan que no para siempre.
-let escaner = null
-let camara = null
-
-async function abrirEscaner() {
-  const caja = $('mcEscanerCaja')
-  if (!caja) return
-  const ayuda = $('mcEscanerAyuda')
-  try {
-    escaner = escaner || (await import('./mi-coleccion/escaner.js'))
-  } catch {
-    showToast('No se ha podido cargar el escáner.', 'error')
-    return
-  }
-  const sel = $('mcEscanerIdioma')
-  if (sel) {
-    // Se repinta CADA VEZ que se abre el escáner, y no solo la primera
-    // (tanda 472). El idioma por defecto sale del catálogo que miras, y el
-    // catálogo cambia sin recargar la página: con el `!sel.options.length`
-    // de antes, quien abría el escáner una vez en español se lo llevaba
-    // en español al catálogo japonés el resto de la visita.
-    sel.innerHTML = escaner.IDIOMAS_ESCANER
-      .map((i) => `<option value="${i.id}">${escapeHtml(i.nombre)}</option>`)
-      .join('')
-    // El idioma de la carta se recuerda —quien colecciona japonés escanea
-    // japonés veinte veces seguidas— y se recuerda POR CATÁLOGO, por lo
-    // mismo que los otros dos desplegables.
-    //
-    // La lista del escáner es la suya y no `IDIOMAS`: aquí el idioma dice
-    // en qué está ESCRITA la carta que tienes delante, que es otra pregunta.
-    const clave = claveDeIdioma('mc-escaner-idioma')
-    const porDefecto = escaner.IDIOMAS_ESCANER.some((i) => i.id === idiomaDeLaVista())
-      ? idiomaDeLaVista()
-      : sel.value
-    sel.value = porDefecto
-    try {
-      const guardado = localStorage.getItem(clave)
-      if (guardado && escaner.IDIOMAS_ESCANER.some((i) => i.id === guardado)) sel.value = guardado
-    } catch {
-      // Ventana privada: se queda el del catálogo y ya está.
-    }
-    // `onchange` y no `addEventListener`: esto corre cada vez que se abre
-    // el escáner, y con `addEventListener` se apilaría un oyente por
-    // apertura, cada uno escribiendo en la clave de otro catálogo.
-    sel.onchange = () => {
-      try {
-        localStorage.setItem(clave, sel.value)
-      } catch {
-        // Lo mismo: no poder recordarlo no impide escanear.
-      }
-    }
-  }
-  if (!caja.open) caja.showModal()
-  if (ayuda) ayuda.textContent = 'Pidiendo permiso para la cámara…'
-  try {
-    // `environment` es la cámara de atrás. Y se PIDE, no se exige: un
-    // portátil solo tiene la de delante y con `exact` fallaría del todo.
-    camara = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
-      audio: false,
-    })
-  } catch (err) {
-    // Aquí hay que distinguir: que digas que NO es distinto de que el
-    // aparato no tenga cámara, y un mensaje que no distingue deja a la
-    // gente dándole al botón sin saber qué pasa.
-    const nombre = String(err?.name || '')
-    if (ayuda) {
-      ayuda.textContent = nombre === 'NotAllowedError'
-        ? 'Has dicho que no a la cámara. Dale permiso en el candado de la barra de direcciones, o elige una foto con «Desde tus fotos».'
-        : nombre === 'NotFoundError'
-          ? 'Este aparato no tiene cámara: elige una foto con «Desde tus fotos».'
-          : 'No se ha podido abrir la cámara. Puedes elegir una foto con «Desde tus fotos».'
-    }
-    $('mcEscanerDisparo')?.setAttribute('disabled', '')
-    return
-  }
-  const video = $('mcEscanerVideo')
-  video.srcObject = camara
-  await video.play().catch(() => null)
-  $('mcEscanerDisparo')?.removeAttribute('disabled')
-  if (ayuda) ayuda.textContent = 'Encuadra la carta dentro del marco'
+// ── EL ESCÁNER (1011): vive en ./mi-coleccion/escaner-ui.js y entra por import() ──
+// La cámara, la ráfaga y «desde tus fotos» solo los abre quien tiene cuenta:
+// el catálogo público no tiene por qué bajarlos. Lo que necesita de aquí
+// va en `ctx` (getters: el estado cambia), como el Panel de la 895.
+const ctxEscaner = {
+  get esMia() {
+    return esMia
+  },
+  get sesion() {
+    return sesion
+  },
+  get mercado() {
+    return mercado
+  },
+  get ultimaBusqueda() {
+    return ultimaBusqueda
+  },
+  abrirAnadir,
+  claveDeIdioma,
+  idiomaDeLaVista,
+  idiomasDeLaVista,
+  misLineasDe,
+  nombreDe,
+  variantesParaEditar,
+  meterLinea,
+  repintar,
+  deshacerAnadida,
+  cambiarPestania,
+  buscarEnTodo,
 }
-
-// APAGAR LA CÁMARA AL CERRAR, y esto no es limpieza opcional: una pista de
-// vídeo que se queda viva deja el piloto del móvil encendido y se come la
-// batería hasta que recargas la página.
-function cerrarEscaner() {
-  const caja = $('mcEscanerCaja')
-  const video = $('mcEscanerVideo')
-  if (camara) {
-    for (const pista of camara.getTracks()) pista.stop()
-    camara = null
-  }
-  if (video) video.srcObject = null
-  if (caja?.open) caja.close()
-  $('mcEscanerBandeja')?.classList.add('hidden')
-  caja?.classList.remove('con-bandeja')
-  enRafaga = { cartas: new Map(), hechas: 0 }
-}
-
-// ── LA BANDEJA DE LA RÁFAGA (719) ──
-//
-// Las tres primeras de lo que encontró la búsqueda, cada una con su «+».
-// El «+» añade UNA copia con lo que el escáner ya sabe —el idioma en el
-// que está escrita, si el catálogo lo admite— y el estado por defecto: es
-// el camino rápido, y por eso lleva su Deshacer al lado. Para elegir
-// estado, versión o copias, la carta se toca y abre el diálogo de siempre.
-// Las dos van por `datos.anadir` (la 650).
-let enRafaga = { cartas: new Map(), hechas: 0 }
-
-function pintarBandejaEscaner(lista) {
-  const bandeja = $('mcEscanerBandeja')
-  if (!bandeja) return
-  bandeja.classList.remove('hidden')
-  // Con la bandeja puesta el marco sube y encoge: la bandeja no puede tapar
-  // la franja de abajo, que es la que hay que encuadrar para la siguiente.
-  $('mcEscanerCaja')?.classList.add('con-bandeja')
-  enRafaga.cartas = new Map(lista.map((c) => [c.id, c]))
-  $('mcEscanerCandidatas').innerHTML = lista.length
-    ? lista.map((c) => {
-        const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-        const tengo = misLineasDe(c.id).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
-        return `<div class="mc-escaner-candidata" data-carta="${escapeHtml(c.id)}">
-          <button type="button" class="mc-escaner-cand-carta" data-escaner-abrir="${escapeHtml(c.id)}">
-            <span class="mc-escaner-cand-foto">${escaneo ? `<img ${escaneo} alt="" width="40" height="56" loading="lazy" />` : ''}</span>
-            <span class="mc-escaner-cand-texto"><b>${escapeHtml(nombreDe(c))}</b><small>${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}${tengo ? ` · tienes ${tengo}` : ''}</small></span>
-          </button>
-          <button type="button" class="mc-escaner-mas" data-escaner-anadir="${escapeHtml(c.id)}" aria-label="Añadir ${escapeHtml(nombreDe(c))} a tu colección">+</button>
-        </div>`
-      }).join('')
-    : '<p class="mc-escaner-nada">No la encuentro en el catálogo. Encuádrala otra vez, o cierra y búscala a mano.</p>'
-}
-
-function idiomaDeRafaga() {
-  const leido = $('mcEscanerIdioma')?.value
-  const vale = idiomasDeLaVista()
-  if (vale.some((i) => i.id === leido)) return leido
-  const recordado = $('mcTocarIdioma')?.value || idiomaDeLaVista()
-  return vale.some((i) => i.id === recordado) ? recordado : vale[0]?.id || idiomaDeLaVista()
-}
-
-async function anadirDesdeEscaner(id, boton) {
-  const c = enRafaga.cartas.get(id)
-  if (!c || !sesion || !esMia) return
-  const vs = variantesParaEditar(c, null)
-  const linea = {
-    card_id: c.id,
-    idioma: idiomaDeRafaga(),
-    estado: $('mcTocarEstado')?.value || ESTADO_POR_DEFECTO,
-    variante: vs.some((v) => v.id === 'normal') ? 'normal' : vs[0]?.id || 'normal',
-    cantidad: 1,
-  }
-  boton.disabled = true
-  try {
-    const nueva = await datos.anadir(sesion.user.id, linea, mercado)
-    meterLinea(nueva, c)
-    repintar()
-    enRafaga.hechas++
-    const plan = comoDeshacer(linea, nueva)
-    const fila = boton.closest('.mc-escaner-candidata')
-    const total = misLineasDe(c.id).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
-    fila.querySelector('small').textContent = `${nombreDeSet(c.tcg_sets) || c.set_id} · ${c.local_id} · tienes ${total}`
-    const hecho = document.createElement('button')
-    hecho.type = 'button'
-    hecho.className = 'mc-escaner-hecha'
-    hecho.textContent = 'Deshacer'
-    hecho.setAttribute('aria-label', `Deshacer: quitar la copia de ${nombreDe(c)} que acabas de añadir`)
-    hecho.addEventListener('click', async () => {
-      hecho.disabled = true
-      if (await deshacerAnadida(plan, c)) {
-        enRafaga.hechas = Math.max(0, enRafaga.hechas - 1)
-        hecho.replaceWith(boton)
-        boton.disabled = false
-        const resto = misLineasDe(c.id).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
-        fila.querySelector('small').textContent = `${nombreDeSet(c.tcg_sets) || c.set_id} · ${c.local_id}${resto ? ` · tienes ${resto}` : ''}`
-        $('mcEscanerAyuda').textContent = `Deshecho: ${nombreDe(c)} vuelve a como estaba.`
-      } else hecho.disabled = false
-    })
-    boton.replaceWith(hecho)
-    $('mcEscanerAyuda').textContent = `${nombreDe(c)} añadida · ${enRafaga.hechas === 1 ? 'una en esta ráfaga' : `${enRafaga.hechas} en esta ráfaga`}. Encuadra la siguiente.`
-  } catch (err) {
-    $('mcEscanerAyuda').textContent = err.message
-    boton.disabled = false
-  }
-}
-
-// DISPARAR. Se recortan las dos franjas en el navegador y se mandan a
-// leer. No se manda la foto: una foto de cámara son dos o tres megas para
-// leer cuatro palabras, y el dibujo de la carta es justo donde un OCR se
-// inventa texto.
-let leyendo = false
-
-async function dispararEscaner() {
-  if (leyendo || !escaner) return
-  const video = $('mcEscanerVideo')
-  const marco = $('mcEscanerMarco')
-  const lienzo = $('mcEscanerLienzo')
-  const ayuda = $('mcEscanerAyuda')
-  const boton = $('mcEscanerDisparo')
-  const franjas = escaner.recortarFranjas(video, marco, lienzo)
-  if (!franjas) {
-    if (ayuda) ayuda.textContent = 'No he podido leer la imagen. Inténtalo otra vez.'
-    return
-  }
-  leyendo = true
-  boton?.setAttribute('disabled', '')
-  if (ayuda) ayuda.textContent = 'Leyendo la carta…'
-  try {
-    const r = await leerYBuscar(franjas)
-    if (r.aviso) {
-      if (ayuda) ayuda.textContent = r.aviso
-      return
-    }
-    showToast(`He leído: ${r.nombreLeido}${r.aflojado}`)
-    // El aviso se queda DEBAJO de la cámara (la capa de arriba es suya),
-    // así que lo leído se dice también aquí.
-    if (ayuda) ayuda.textContent = `He leído: ${r.nombreLeido}${r.aflojado}`
-    pintarBandejaEscaner(r.lista)
-  } catch {
-    if (ayuda) ayuda.textContent = 'No he podido conectar. Mira tu conexión.'
-  } finally {
-    leyendo = false
-    boton?.removeAttribute('disabled')
-  }
-}
-
-
-// DESDE TUS FOTOS (754, K5). Cada foto se lee como un disparo: se da por
-// hecho que la carta está en el centro y la llena (`marcoEnLaFoto`), se
-// recortan sus dos franjas y pasan por la misma lectura y la misma
-// búsqueda que la cámara. De cada foto sale su primera carta a la bandeja,
-// con su «+», como en la ráfaga. Doce como mucho: cada foto es una lectura
-// del servidor.
-const MAX_FOTOS = 12
-
-function imagenDeFichero(f) {
-  if (typeof createImageBitmap === 'function') return createImageBitmap(f).catch(() => imagenPorUrl(f))
-  return imagenPorUrl(f)
-}
-function imagenPorUrl(f) {
-  return new Promise((resolve) => {
-    const img = new Image()
-    const url = URL.createObjectURL(f)
-    img.onload = () => { URL.revokeObjectURL(url); resolve(img) }
-    img.onerror = () => { URL.revokeObjectURL(url); resolve(null) }
-    img.src = url
-  })
-}
-
-async function leerFotos(ficheros) {
-  const lista = [...(ficheros || [])].filter((f) => /^image\//.test(f.type || 'image/')).slice(0, MAX_FOTOS)
-  if (leyendo || !lista.length) return
-  try {
-    escaner = escaner || (await import('./mi-coleccion/escaner.js'))
-  } catch {
-    showToast('No se ha podido cargar el escáner.', 'error')
-    return
-  }
-  const lienzo = $('mcEscanerLienzo')
-  const ayuda = $('mcEscanerAyuda')
-  const botones = [$('mcEscanerDisparo'), $('mcEscanerFotos')]
-  leyendo = true
-  for (const b of botones) b?.setAttribute('disabled', '')
-  const encontradas = []
-  let sinCarta = 0
-  let sinRed = false
-  try {
-    for (const [i, f] of lista.entries()) {
-      if (ayuda) ayuda.textContent = lista.length > 1 ? `Leyendo la foto ${i + 1} de ${lista.length}…` : 'Leyendo la foto…'
-      const img = await imagenDeFichero(f)
-      const ancho = img?.naturalWidth || img?.width
-      const alto = img?.naturalHeight || img?.height
-      const marco = img && escaner.marcoEnLaFoto(ancho, alto)
-      const franjas = marco && escaner.recortarFranjasDe(img, marco, lienzo)
-      img?.close?.()
-      if (!franjas) { sinCarta++; continue }
-      const r = await leerYBuscar(franjas).catch(() => { sinRed = true; return null })
-      if (!r || r.aviso || !r.lista.length) { sinCarta++; continue }
-      encontradas.push(r.lista[0])
-    }
-  } finally {
-    leyendo = false
-    for (const b of botones) b?.removeAttribute('disabled')
-    if (!camara) $('mcEscanerDisparo')?.setAttribute('disabled', '')
-  }
-  const unicas = [...new Map(encontradas.map((c) => [c.id, c])).values()]
-  pintarBandejaEscaner(unicas)
-  const n = lista.length
-  const texto = sinRed && !encontradas.length
-    ? 'No he podido conectar. Mira tu conexión.'
-    : `${n === 1 ? (encontradas.length ? 'He leído la foto' : 'No he reconocido ninguna carta en la foto') : `${encontradas.length} de ${n} fotos con su carta`}${sinCarta && n > 1 ? ` · en ${sinCarta} no la he reconocido (mejor la carta sola, de frente)` : ''}${encontradas.length ? '. Toca «+» para añadir cada una.' : ''}`
-  if (ayuda) ayuda.textContent = texto
-  showToast(texto)
-}
-
-// LEER DOS FRANJAS Y BUSCAR LA CARTA (suelto en la 754: lo usan la cámara
-// y las fotos de la galería). Devuelve { aviso } si no hay carta que
-// buscar, o lo leído con lo que encontró la búsqueda.
-async function leerYBuscar(franjas) {
-  const res = await fetch('/.netlify/functions/leer-carta', {
-    method: 'POST',
-    headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ nombre: franjas.nombre, codigo: franjas.codigo, idioma: $('mcEscanerIdioma')?.value || 'es' }),
-  })
-  const datos = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    // El mensaje del servidor tal cual: distingue «no está montado» de
-    // «no se te ha leído la carta», y quien lo prueba necesita saber
-    // cuál de las dos es.
-    //
-    // Y con `sinConfigurar` se enseña ADEMÁS el detalle, que dice POR QUÉ
-    // no llega la clave (otro nombre, o sin el ámbito «Functions»). No es
-    // un secreto: ahí van NOMBRES de variables, nunca valores. Y es un
-    // estado pasajero que desaparece en cuanto el escáner funciona —
-    // mientras dura, es la diferencia entre arreglarlo en un minuto y
-    // mirar el panel de Netlify a ciegas desde el móvil.
-    return { aviso: datos.sinConfigurar && datos.detalle ? `${datos.error} ${datos.detalle}` : datos.error || 'No he podido leer la carta.' }
-  }
-  // CÓMO SE USA LO LEÍDO, que no es «meterlo todo en el buscador».
-  //
-  // El buscador cruza contra `name_search`, o sea contra el NOMBRE. Si
-  // se le echa el texto entero —«Charizard ex SSP 125»— exige que «SSP»
-  // y «125» estén también en el nombre, y no lo están: salen CERO
-  // resultados con la carta correcta delante. Lo descubrió la primera
-  // prueba del camino completo.
-  //
-  // Así que cada franja hace su trabajo: la de arriba BUSCA y la de
-  // abajo AFINA. El número de la franja del código se usa para quedarse
-  // con la carta que lo lleva, que es lo que distingue una Charizard de
-  // las otras veinte.
-  // LA FRANJA DE ARRIBA NO ES EL NOMBRE (tanda 451). Lleva la fase a la
-  // izquierda, el nombre en medio y los puntos de vida con su símbolo a
-  // la derecha, y el OCR las lee las tres porque las tres están ahí.
-  // PINGU escaneó un Reshiram y en el buscador le quedó «BÁSICO Reshiram
-  // EX pv180·»: cero resultados.
-  const nombreLeido = escaner.nombreDeLaFranja(datos?.textos?.nombre)
-  if (!nombreLeido) return { aviso: 'No he reconocido el nombre. Acerca más la carta.' }
-  // ── SI ESO NO PUEDE SER UNA CARTA, SE DICE AQUÍ (tanda 560) ──
-  //
-  // PINGU escaneó y el aviso dijo «He leído: 19:054 Card Trader 111 5G»:
-  // el reloj, el nombre de la app y la cobertura. El marco pilló la
-  // PANTALLA del móvil que tenía delante, no la carta de dentro.
-  //
-  // Hasta ahora eso cerraba el escáner, saltaba a Buscar y enseñaba «no
-  // encuentro ninguna carta así» — la MISMA pantalla que cuando la carta
-  // no está en el catálogo. Dos cosas muy distintas con la misma cara, y
-  // la que toca es «vuelve a encuadrar». Así que el escáner se queda
-  // ABIERTO y lo dice: volver a abrirlo para repetir el tiro es la parte
-  // que convierte un fallo de encuadre en abandonar.
-  const idiomaCarta = $('mcEscanerIdioma')?.value || 'es'
-  const juicio = escaner.pareceNombreDeCarta(nombreLeido, idiomaCarta)
-  if (!juicio.vale) {
-    return {
-      aviso: juicio.porque === 'pantalla'
-        ? `He leído «${nombreLeido}»: eso es una pantalla, no una carta. Encuadra solo la carta dentro del marco.`
-        : `He leído «${nombreLeido}», que no parece el nombre de una carta japonesa. Encuadra solo la carta, o cambia el idioma si no es japonesa.`,
-    }
-  }
-  // El número impreso viene como «22/99»: lo de delante de la barra es
-  // la carta, lo de detrás cuántas tiene el set.
-  const numero = escaner.numeroDeLaFranja(datos?.textos?.codigo)
-  // EN RÁFAGA (719, N4): leer ya NO cierra la cámara. La búsqueda de
-  // siempre —con sus cuatro aflojes— rellena Buscar por detrás, y lo
-  // primero de lo que encuentre sale en la bandeja con su «+»: se añade
-  // y se sigue encuadrando la siguiente. Cerrar deja ver la lista entera.
-  cambiarPestania('buscar')
-  // PRIMERO CON EL NÚMERO, Y SI NO SALE NADA, SIN ÉL. Desde la tanda 450
-  // el buscador entiende «Mewtwo 64», así que la búsqueda más fina es
-  // nombre + número; pero el número lo ha leído un OCR de una foto a
-  // pulso, y un 8 donde hay un 6 dejaría cero resultados con la carta
-  // delante. Así que se intenta lo preciso y se afloja si no hay nada:
-  // nunca se acaba en una pantalla vacía por culpa de una cifra.
-  const campo = $('mcBuscarTodo')
-  campo.value = numero ? `${nombreLeido} ${numero}` : nombreLeido
-  await buscarEnTodo()
-  // ── LO QUE SE HA LEÍDO, DICHO (tanda 558b) ──
-  //
-  // Sin esto, «no he podido leer el número» y «lo he leído y no casaba»
-  // se ven EXACTAMENTE IGUAL: una lista larga de cartas parecidas. Es la
-  // familia de siempre —un vacío que se lee como una respuesta— y aquí
-  // además deja a quien lo usa sin saber si acercar más la carta o si es
-  // que esa carta no está. PINGU vio 23 Charizards y tuvo que
-  // adivinar cuál de las dos cosas era.
-  let aflojado = numero ? '' : ' · no he podido leer el número'
-  if (numero && !$('mcBuscarResultados').querySelector('.mc-resultado')) {
-    // Y al aflojar, el número SE TIRA. Aquí vivía `afinarPorNumero`, que
-    // lo usaba para subir la carta probable; se quitó al ver que en este
-    // punto ese número YA HA FALLADO —si casara con algo, la búsqueda de
-    // arriba habría encontrado esa carta—. Volver a confiarle el orden
-    // es confiar en una lectura que acaba de demostrarse mala, y lo que
-    // haría es poner PRIMERA una carta equivocada: peor que no ordenar.
-    campo.value = nombreLeido
-    await buscarEnTodo()
-    aflojado = ` · el nº ${numero} no casaba con ninguna`
-  }
-  // ── Y UN ÚLTIMO INTENTO CON UNA SOLA PALABRA (tanda 558) ──
-  //
-  // La búsqueda exige TODAS las palabras: un `like` por cada una. Así
-  // que basta con que el OCR cuele una basura para que no case nada
-  // aunque el nombre esté perfecto — que es exactamente lo que le pasó a
-  // PINGU con una リザードンex: en el buscador quedó «己進化 リザードン ex
-  // シダードか テ テキス…» y cero resultados.
-  //
-  // La limpieza de la franja ya quita lo que SE SABE que no es el
-  // nombre; esto es la red de debajo, para lo que no se sabe. Se queda
-  // con la palabra más larga, que es la que más se parece a un nombre, y
-  // afloja todo lo demás. Es el mismo criterio que con el número: lo
-  // preciso primero, y si no hay nada, menos exigente.
-  if (!$('mcBuscarResultados').querySelector('.mc-resultado')) {
-    const palabras = nombreLeido.split(/\s+/).filter((p) => p.length >= 2)
-    const masLarga = palabras.length > 1 ? palabras.reduce((a, b) => (b.length > a.length ? b : a)) : null
-    if (masLarga) {
-      campo.value = masLarga
-      await buscarEnTodo()
-      aflojado += ' · he buscado solo por la palabra más larga'
-    }
-  }
-  // ── Y LO ÚLTIMO: LAS MARCAS QUE EL OCR SE COME (tanda 561) ──
-  //
-  // PINGU escaneó una リザードン y el aviso dijo «He leído: リサードン»:
-  // el dakuten de ザ —dos comillitas de dos píxeles— se perdió en la
-  // foto. Con un carácter cambiado el `like` se va a cero, y hasta aquí
-  // eso se veía como «esa carta no está».
-  //
-  // Es el error más común leyendo japonés, así que se prueban las
-  // variantes del nombre con una marca puesta o quitada, todas en UNA
-  // consulta. Va al final porque es lo más flojo que se hace: si algo
-  // casó antes, esto ni se pregunta.
-  if (!$('mcBuscarResultados').querySelector('.mc-resultado') && tieneCJK(nombreLeido)) {
-    const variantes = variantesDeMarcas(nombreLeido)
-    if (variantes.length > 1) {
-      campo.value = nombreLeido
-      await buscarEnTodo({ variantes })
-      if ($('mcBuscarResultados').querySelector('.mc-resultado')) {
-        aflojado += ' · puede que se perdiera algún dakuten, he probado las variantes'
-      }
-    }
-  }
-  const hay = $('mcBuscarResultados').querySelector('.mc-resultado')
-  return { nombreLeido, aflojado, lista: hay ? ultimaBusqueda.slice(0, 3) : [] }
+let escanerMod = null
+const escanerModulo = () =>
+  escanerMod ? Promise.resolve(escanerMod) : import('./mi-coleccion/escaner-ui.js').then((m) => { m.montar(ctxEscaner); escanerMod = m; return m })
+function abrirEscaner() {
+  return escanerModulo().then((m) => m.abrirEscaner()).catch(() => showToast('No se ha podido cargar el escáner.', 'error'))
 }
 
 // ── Pestaña «Añadir» ──
@@ -5769,7 +5107,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
   if (eligiendo && nueva !== 'buscar') dejarDeElegir()
   const otra = nueva !== pestania
   // Lo seleccionado es de la rejilla que estabas mirando.
-  if (otra && marcadas) modoMarcar(false)
+  if (otra && marcadasAhora()) modoMarcar(false)
   pestania = nueva
   for (const b of document.querySelectorAll('[data-pestania]')) {
     // «Deseos y cambios» (765) es una puerta para dos pestañas: los cruces
@@ -5920,355 +5258,69 @@ async function pintarQuienLaTiene(cardId) {
   }, { once: true })
 }
 
-async function pintarCarpetasDeLaFicha(lineId) {
-  const bloque = $('mcEdCarpetasBloque')
-  const hueco = $('mcEdCarpetas')
-  if (!bloque || !hueco) return
-  if (!carpetas) {
-    try {
-      carpetas = await import('./mi-coleccion/carpetas.js')
-    } catch {
-      bloque.classList.add('hidden')
-      return
-    }
+// ── LAS CARPETAS (402 → 1011): la pestaña, las chips de la ficha y su
+// diálogo viven en ./mi-coleccion/carpetas-ui.js y entran por import(). El
+// estado se queda aquí: lo leen la lateral y el Panel.
+const ctxCarpetas = {
+  get carpetas() { return carpetas },
+  set carpetas(x) { carpetas = x },
+  get carpetasLista() { return carpetasLista },
+  set carpetasLista(x) { carpetasLista = x },
+  get carpetasResumen() { return carpetasResumen },
+  set carpetasResumen(x) { carpetasResumen = x },
+  get carpetaAbierta() { return carpetaAbierta },
+  set carpetaAbierta(x) { carpetaAbierta = x },
+  get lineas() { return lineas },
+  get cartas() { return cartas },
+  get pestania() { return pestania },
+  lineaHtml, cambiarPestania,
+}
+let carpetasMod = null
+const carpetasModulo = () => carpetasMod ? Promise.resolve(carpetasMod) : import('./mi-coleccion/carpetas-ui.js').then((m) => { m.montar(ctxCarpetas); carpetasMod = m; return m })
+function abrirCarpetas() { return carpetasModulo().then((m) => m.abrirCarpetas()).catch((err) => { const caja = $('mcCarpetasPanel'); if (caja) caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` }) }
+function recargarCarpetas() { return carpetasModulo().then((m) => m.recargarCarpetas()) }
+function pintarCarpetasDeLaFicha(lineId) {
+  // Si la lateral ya preguntó y no hay carpetas (lo normal desde la 759),
+  // el bloque se esconde sin bajar el módulo.
+  if (carpetas && !carpetasLista.length && !carpetasMod) {
+    $('mcEdCarpetasBloque')?.classList.add('hidden')
+    $('mcEdCopiaAlbum')?.classList.add('hidden')
+    return Promise.resolve()
   }
-  if (!carpetasLista.length) {
-    const lista = await carpetas.listarCarpetas().catch(() => null)
-    carpetasLista = lista || []
-  }
-  const linea = $('mcEdCopiaAlbum')
-  linea?.classList.add('hidden')
-  if (!carpetasLista.length) {
-    bloque.classList.add('hidden')
-    return
-  }
-  bloque.classList.remove('hidden')
-  const dentro = new Set(await carpetas.carpetasDeLinea(lineId).catch(() => []))
-  // La línea de arriba (752, Y5), si la ficha sigue en esta copia.
-  const suyas = carpetasLista.filter((c) => dentro.has(c.id))
-  if (linea && suyas.length && $('mcEditor').dataset.linea === lineId) {
-    linea.innerHTML = `${icons.folder ? icons.folder(14) : ''}<span>${suyas.length === 1 ? 'En tu álbum' : 'En tus álbumes'}</span> ${suyas.map((c) => `<button type="button" class="link-btn" data-abrir-carpeta="${escapeHtml(c.id)}">${escapeHtml(c.emoji ? `${c.emoji} ` : '')}${escapeHtml(c.nombre)}</button>`).join(', ')}`
-    linea.classList.remove('hidden')
-  }
-  hueco.innerHTML = carpetasLista
-    .map((c) => {
-      const puesta = dentro.has(c.id)
-      return `<button type="button" class="chip-filtro${puesta ? ' activa' : ''}" data-carpeta-chip="${escapeHtml(c.id)}" aria-pressed="${puesta ? 'true' : 'false'}">${escapeHtml(c.emoji ? `${c.emoji} ` : '')}${escapeHtml(c.nombre)}</button>`
-    })
-    .join('')
+  return carpetasModulo().then((m) => m.pintarCarpetasDeLaFicha(lineId)).catch(() => $('mcEdCarpetasBloque')?.classList.add('hidden'))
 }
 
-async function abrirCarpetas() {
-  const caja = $('mcCarpetasPanel')
-  if (!caja) return
-  if (!carpetas) {
-    // Sin esqueleto (981): las carpetas viejas casi nunca tienen nada (desde
-    // la 759 pasan a álbumes solas), y un bloque de 200 px que se iba al
-    // cargar subía «Mis álbumes» de golpe.
-    try {
-      carpetas = await import('./mi-coleccion/carpetas.js')
-    } catch (err) {
-      caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
-      return
-    }
-  }
-  await recargarCarpetas()
+// ── LA POKÉDEX (381 → 1011): vive en ./mi-coleccion/pokedex-ui.js y entra por
+// import(). El estado se queda aquí: lo leen la dirección y el cambio de catálogo.
+const ctxPokedex = {
+  get pokedex() { return pokedex },
+  set pokedex(x) { pokedex = x },
+  get pokedexCargada() { return pokedexCargada },
+  set pokedexCargada(x) { pokedexCargada = x },
+  get totalesPokedex() { return totalesPokedex },
+  set totalesPokedex(x) { totalesPokedex = x },
+  get especieAbierta() { return especieAbierta },
+  set especieAbierta(x) { especieAbierta = x },
+  get pdxSoloMios() { return pdxSoloMios },
+  set pdxSoloMios(x) { pdxSoloMios = x },
+  get pdxSoloFaltan() { return pdxSoloFaltan },
+  set pdxSoloFaltan(x) { pdxSoloFaltan = x },
+  get pdxIdioma() { return pdxIdioma },
+  set pdxIdioma(x) { pdxIdioma = x },
+  get mercado() { return mercado },
+  get lineas() { return lineas },
+  get cartas() { return cartas },
+  get album() { return album },
+  params, AYUDAS,
+  rotularVer, idiomasDeLaVista, masHtml, nombreDe, tengoDe, versionesQueTienes, marcaDeTengoHtml, quieroHtml, laQuieres, pintarVistas, pintarIconos, irA, corregirConVersiones, subirNivel, pintarVistaVariantes,
 }
-
-async function recargarCarpetas() {
-  const caja = $('mcCarpetasPanel')
-  const lista = await carpetas.listarCarpetas().catch(() => null)
-  // `null` = la migración no está puesta. Es distinto de «no tienes
-  // ninguna»: lo primero se arregla ejecutando un SQL y lo segundo
-  // creando una carpeta, y decir lo que no es manda a la gente a buscar
-  // un botón que no existe.
-  if (lista === null) {
-    // Sin carpetas en la base no hay nada que enseñar aquí: los álbumes
-    // son lo de abajo (759).
-    caja.innerHTML = ''
-    return
-  }
-  carpetasLista = lista
-  carpetasResumen = await carpetas.resumenDeCarpetas().catch(() => new Map())
-  pintarCarpetas()
-}
-
-function pintarCarpetas() {
-  const caja = $('mcCarpetasPanel')
-  const migas = $('mcCarpetaMigas')
-  const barra = $('mcCarpetaBarra')
-  const buscador = $('mcCarpetaBuscadorCaja')
-  if (carpetaAbierta) {
-    const c = carpetasLista.find((x) => x.id === carpetaAbierta)
-    if (!c) {
-      carpetaAbierta = null
-      return pintarCarpetas()
-    }
-    const hijas = carpetasLista.filter((x) => x.parent_id === c.id).map((x) => ({ ...x, hijas: [] }))
-    // La miga, en su forma CORTA desde la tanda 477: el nombre lo dice el
-    // título grande de debajo, como en una expansión, y repetirlo en la
-    // miga era decir dos veces lo mismo en dos renglónes seguidos.
-    migas.innerHTML = migasHtml([{ texto: 'Álbumes', id: 'mcCarpetaVolver' }])
-    $('mcCarpetaTitulo').textContent = c.nombre
-    barra.classList.remove('hidden')
-    buscador.classList.remove('hidden')
-    // Dentro de una carpeta lo que se crea es una SUBcarpeta, y eso vive
-    // en el ⋮: dos botones que crean cosas distintas con el mismo rótulo
-    // es justo cómo se pulsa el que no era.
-    caja.innerHTML = (hijas.length ? carpetas.rejillaHtml(hijas, carpetasResumen) : '') +
-      '<div class="mc-cartas" id="mcCarpetaCartas"></div>'
-    pintarCartasDeCarpeta(c.id)
-    return
-  }
-  migas.textContent = ''
-  barra.classList.add('hidden')
-  buscador.classList.add('hidden')
-  // Al salir se olvida lo buscado: un filtro que sobrevive a la pantalla
-  // que lo puso deja la siguiente medio vacía sin decir por qué.
-  if ($('mcCarpetaBuscar')) $('mcCarpetaBuscar').value = ''
-  // Las que queden son las que no se han podido pasar a binder (759): sin
-  // ninguna, nada (ni el «todavía no tienes carpetas», que mandaba a crear
-  // una con un botón que ya no existe).
-  caja.innerHTML = carpetasLista.length ? carpetas.rejillaHtml(carpetas.arbolDeCarpetas(carpetasLista), carpetasResumen) : ''
-}
-
-// Las de dentro se piden UNA vez y se guardan: el buscador de la 477
-// filtra en memoria, y volver a preguntar en cada tecla sería una consulta
-// por letra.
-let lineasDeLaCarpeta = []
-
-async function pintarCartasDeCarpeta(id) {
-  const hueco = $('mcCarpetaCartas')
-  if (!hueco) return
-  const ids = new Set(await carpetas.lineasDeCarpeta(id).catch(() => []))
-  lineasDeLaCarpeta = lineas.filter((l) => ids.has(l.id))
-  pintarCartasDeCarpetaFiltradas()
-}
-
-function pintarCartasDeCarpetaFiltradas() {
-  const hueco = $('mcCarpetaCartas')
-  if (!hueco) return
-  const texto = normalizeSearch($('mcCarpetaBuscar')?.value || '').trim()
-  // Por nombre y por colección, igual que el buscador de la pestaña
-  // «Cartas»: dentro de una carpeta de 200 cartas, llegar a una a ojo es
-  // lo mismo de imposible que dentro de una expansión (la lección de la
-  // 417).
-  const dentro = texto
-    ? lineasDeLaCarpeta.filter((l) => {
-        const c = cartas.get(l.card_id)
-        return normalizeSearch(`${nombresDeCartaParaBuscar(c)} ${c?.local_id || ''} ${nombreDeSet(c?.tcg_sets)}`).includes(texto)
-      })
-    : lineasDeLaCarpeta
-  hueco.innerHTML = dentro.length
-    ? dentro.map(lineaHtml).join('')
-    // Y el vacío DICE CUÁL de los dos vacíos es: una carpeta sin cartas no
-    // es lo mismo que una búsqueda sin resultados, y la primera frase
-    // mandaba a la ficha de una carta cuando el problema era lo escrito.
-    : texto
-      ? '<p class="empty-state">Ninguna carta de esta carpeta encaja con lo que buscas.</p>'
-      : '<p class="empty-state">Esta carpeta todavía no tiene cartas. Ábrelas desde tu colección y métela en una carpeta desde su ficha.</p>'
-}
-
-// ── La Pokédex (tanda 381) ──
-//
-// Lo que TIENES no se consulta: tu colección ya está en memoria y de qué
-// Pokémon es cada carta sale de su nombre. Lo único que se pregunta es
-// cuántas hay en el catálogo de cada una, una vez por visita.
-async function abrirPokedex() {
-  const caja = $('mcPokedexPanel')
-  if (!caja) return
-  if (!pokedexCargada) {
-    caja.innerHTML = '<div class="skeleton" style="height:240px"></div>'
-    try {
-      const [modulo, totales] = await Promise.all([
-        import('./mi-coleccion/pokedex.js'),
-        datos.pokedexResumen(mercado).catch(() => []),
-      ])
-      pokedex = modulo
-      totalesPokedex = new Map((totales || []).map((f) => [Number(f.dex), Number(f.cartas)]))
-      pokedexCargada = true
-    } catch (err) {
-      caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
-      return
-    }
-  }
-  // `?dex=25` entra directa a una especie (tanda 384): es lo que hace
-  // que el enlace desde la ficha de una carta lleve a algún sitio y no
-  // a una rejilla de 1.025 donde hay que buscarla otra vez.
-  const pedida = Number(params.get('dex'))
-  if (!especieAbierta && pedida >= 1 && pedida <= 1025) especieAbierta = pedida
-  if (especieAbierta) return pintarEspecie(especieAbierta)
-  pintarPokedex()
-}
-
-// La región que se mira en la Pokédex (748): la primera, al entrar.
-let pdxRegion = 0
-
-function pintarPokedex() {
-  const caja = $('mcPokedexPanel')
-  $('mcPdxMandos').classList.remove('hidden')
-  const mio = pokedex.loMioPorEspecie(lineas, cartas)
-  const filas = pokedex.filasDePokedex({
-    mio,
-    totales: totalesPokedex,
-    soloMios: pdxSoloMios,
-    texto: $('mcPdxBuscar').value,
-    tipos: pokedex.tiposPorEspecie(lineas, cartas),
-  })
-  // La cabecera con las cuatro cifras (tanda 400), y debajo la rejilla.
-  // Se pinta siempre, incluso filtrando: «llevas 701 de 1.025» no puede
-  // cambiar porque estés buscando «char», igual que el progreso de un
-  // set no cambia al filtrar por rareza.
-  const resumen = pokedex.resumenDePokedex({ mio, totales: totalesPokedex })
-  // Como en su maqueta (748): el título con la región y el anillo, las
-  // pestañas por región y la rejilla de UNA región. Buscando o en «los que
-  // casi completas», la lista de siempre: ahí la región no ayuda.
-  const orden = $('mcPdxOrden')?.value || 'dex'
-  const buscando = Boolean(String($('mcPdxBuscar').value || '').trim())
-  const todas = pokedex.filasDePokedex({ mio, totales: totalesPokedex, soloMios: pdxSoloMios, tipos: pokedex.tiposPorEspecie(lineas, cartas) })
-  const encabezado = $('mcPdxEncabezado')
-  if (encabezado) encabezado.innerHTML = pokedex.encabezadoHtml(todas, { region: pdxRegion, registrados: resumen.registrados })
-  caja.innerHTML = buscando || orden !== 'dex'
-    ? pokedex.rejillaHtml(filas, orden)
-    : pokedex.regionesHtml(pdxRegion, pdxSoloMios ? pokedex.filasDePokedex({ mio, totales: totalesPokedex, soloMios: false, tipos: pokedex.tiposPorEspecie(lineas, cartas) }) : todas) + pokedex.rejillaDeRegionHtml(filas, pdxRegion)
-  // El contador de arriba cuenta especies DISTINTAS, no cartas: es una
-  // Pokédex, y lo que se llena son huecos de Pokémon.
-  // Lo dice el anillo de arriba (748): aquí solo para quien lee en voz alta.
-  $('mcPdxCuenta').textContent = `${resumen.registrados} de 1.025 Pokémon`
-  $('mcPdxCuenta').classList.add('sr-only')
-}
-
-let cartasDeLaEspecie = []
-// Los filtros de la especie abierta (tanda 453). Se vacían al abrir otra:
-// las rarezas de un Pikachu no son las de un Charizard, así que arrastrar
-// un filtro de una especie a la siguiente dejaría la pantalla vacía sin
-// que nada dijera por qué.
-const filtrosEspecie = filtrosCatalogoVacios()
-let textoEspecie = ''
-
-// Repinta la especie abierta con los filtros puestos. Las cartas no se
-// vuelven a pedir: están todas en memoria desde que se abrió, así que
-// aquí se filtra en memoria —al revés que en Buscar, donde la consulta
-// trae 120 de 21.000 y filtrar lo que vuelve sería filtrar la muestra.
-function pintarEspecieFiltrada() {
-  const caja = $('mcPokedexPanel')
-  if (!caja || especieAbierta == null) return
-  // «La tengo» en el idioma elegido, o en cualquiera (577). Y por versión
-  // (692): con las variantes separadas cada casilla es UNA versión.
-  const mias = lineas.filter((l) => !pdxIdioma || l.idioma === pdxIdioma)
-  const tuyas = new Set(mias.map((l) => l.card_id))
-  const tuyasPorVersion = new Map()
-  for (const l of mias) tuyasPorVersion.set(l.card_id, (tuyasPorVersion.get(l.card_id) || new Map()).set(l.variante || 'normal', (tuyasPorVersion.get(l.card_id)?.get(l.variante || 'normal') || 0) + (Number(l.cantidad) || 1)))
-  const versionesDe = (c) => variantesDeCarta(c).map((v) => ({ id: v.nuestro, nombre: v.nombre, corto: v.corto }))
-  const tengoVersion = (c, id) => tuyasPorVersion.get(c.id)?.get(id) || 0
-  const grupos = valoresDeCartas(cartasDeLaEspecie, AYUDAS)
-  // Se compara por el RÓTULO traducido y no por el valor crudo: la columna
-  // tiene las dos formas mezcladas porque TCGdex traduce los enums y el
-  // catálogo se ha importado en varios idiomas (tanda 455).
-  const texto = normalizeSearch(textoEspecie).trim()
-  const lista = cartasDeLaEspecie.filter((c) => {
-    // Con las versiones separadas, «me falta» es que falte ALGUNA versión.
-    if (pdxSoloFaltan && (album.split ? versionesDe(c).every((v) => tengoVersion(c, v.id) > 0) : tuyas.has(c.id))) return false
-    if (!pasaFiltrosDeCarta(c, filtrosEspecie, AYUDAS)) return false
-    // Por nombre, número o ilustrador, igual que el buscador de Buscar
-    // (tanda 458). Aquí se hace en memoria porque las cartas de la especie
-    // ya están todas cargadas; allí va en la consulta porque son 21.000.
-    if (!texto) return true
-    return normalizeSearch(`${nombresDeCartaParaBuscar(c)} ${c.local_id || ''} ${c.illustrator || ''} ${nombreDeSet(c.tcg_sets)}`).includes(texto)
-  })
-  // Los chips viven en el panel, que está FUERA de la caja que se repinta:
-  // si se pintaran dentro, abrir el panel después de filtrar enseñaría los
-  // de antes.
-  const hueco = $('mcPdxGrupos')
-  if (hueco) hueco.innerHTML = pokedex.gruposDeEspecieHtml(grupos, filtrosEspecie)
-  rotularVer('mcPdxFiltrosVer', lista.length)
-  caja.innerHTML = pokedex.especieHtml({
-    dex: especieAbierta,
-    cartas: lista,
-    tuyas,
-    sinCatalogo: cartasDeLaEspecie.length === 0,
-    grupos,
-    puestos: filtrosEspecie,
-    deCuantas: cartasDeLaEspecie.length,
-    texto: textoEspecie,
-    soloFaltan: pdxSoloFaltan,
-    idioma: pdxIdioma,
-    idiomas: idiomasDeLaVista(),
-    separadas: album.split,
-    versionesDe,
-    tengoVersion,
-    masDe: (c, variante) => masHtml(c, nombreDe(c), variante),
-    // Las marcas de la expansión, también aquí (943). PINGU: «en la Pokédex
-    // no tenemos el corazoncito… debería estar en cualquier lado de la web».
-    // Cuentan en el idioma del filtro de la especie, como el «la tengo».
-    marcasDe: (c, variante) => {
-      const enIdioma = (id, v = null) => tengoDe(id, v, pdxIdioma || null)
-      const n = variante ? tengoVersion(c, variante) : enIdioma(c.id)
-      const vs = n && !variante ? versionesQueTienes(c, enIdioma) : []
-      return marcaDeTengoHtml(n, vs) + quieroHtml(c.id, n)
-    },
-    quiereDe: (c) => laQuieres(c.id),
-  })
-  // El selector de catálogo se repinta porque la cabecera entera es HTML
-  // nuevo: sus `<option>` los pone `pintarVistas`, y sin esta llamada
-  // saldría vacío — un desplegable sin opciones es peor que no tenerlo.
-  pintarVistas()
-  pintarIconos()
-}
-
-async function pintarEspecie(dex, { push = true } = {}) {
-  const caja = $('mcPokedexPanel')
-  if (push) irA({ ver: 'pokedex', dex })
-  especieAbierta = dex
-  $('mcPdxMandos').classList.add('hidden')
-  // El título de la Pokédex es de la rejilla, no de una especie (748).
-  if ($('mcPdxEncabezado')) $('mcPdxEncabezado').innerHTML = ''
-  caja.innerHTML = '<div class="skeleton" style="height:240px"></div>'
-  let delCatalogo = []
-  try {
-    delCatalogo = await datos.cartasDeEspecie(dex, 300, mercado)
-  } catch {
-    // Que no se vea el catálogo no puede dejar la pantalla en blanco:
-    // abajo se enseña lo tuyo igualmente.
-  }
-  const tuyas = new Set(lineas.map((l) => l.card_id))
-  // Las TUYAS salen siempre, vengan o no del catálogo. Mientras la
-  // columna `dex_ids` se esté rellenando, la consulta de arriba devuelve
-  // poco o nada — y lo tuyo es justo lo que has venido a ver. Se saca
-  // del NOMBRE, que ya está en memoria, así que no cuesta nada.
-  // Sin TCG Pocket (694): la consulta va por `dex_ids` y los sets de
-  // Pocket también los llevan. PINGU: «ya dijimos que eso fuera».
-  const porId = new Map(delCatalogo.filter((c) => esDelTCG(c.tcg_sets || { id: c.set_id })).map((c) => [c.id, c]))
-  for (const id of tuyas) {
-    const c = cartas.get(id)
-    if (c && !porId.has(id) && pokedex.esDeLaEspecie(c, dex)) porId.set(id, c)
-  }
-  const lista = [...porId.values()].sort(porSetYNumero)
-  // Sus versiones de verdad (935): las de TCGGO, las de a mano (el Pikachu de
-  // Pokémon Day) y las ediciones de Wizards. Sin ellas la especie solo sabía
-  // lo que dice TCGdex, y PINGU veía la versión en la ficha y no aquí.
-  pegarVersiones(lista, await datos.versionesDeCartas(lista.map((c) => c.id)).catch(() => []))
-  corregirConVersiones(lista)
-  // Otra especie abierta mientras llegaban: esta ya no se pinta.
-  if (especieAbierta !== dex) return
-  // Se guardan para la ficha (tanda 418): al pulsar una carta de aquí
-  // hay que poder pintarla, y las que no son tuyas no están en `cartas`.
-  cartasDeLaEspecie = lista
-  for (const g of FILTROS_CATALOGO) filtrosEspecie[g.id].clear()
-  textoEspecie = ''
-  // Y los de la 577, por lo mismo: una especie no hereda lo de otra.
-  pdxSoloFaltan = false
-  pdxIdioma = ''
-  pintarEspecieFiltrada()
-}
-
-// Por colección y, dentro, por número impreso: es el orden del álbum, y
-// así una especie se lee como se leería en el archivador.
-function porSetYNumero(a, b) {
-  const fa = a.tcg_sets?.release_date || ''
-  const fb = b.tcg_sets?.release_date || ''
-  return String(fb).localeCompare(String(fa)) || porNumero(a, b)
-}
+let pdxMod = null
+const pokedexModulo = () => pdxMod ? Promise.resolve(pdxMod) : import('./mi-coleccion/pokedex-ui.js').then((m) => { m.montar(ctxPokedex); pdxMod = m; return m })
+function abrirPokedex() { return pokedexModulo().then((m) => m.abrirPokedex()).catch((err) => { const caja = $('mcPokedexPanel'); if (caja) caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` }) }
+function pintarPokedex() { return pdxMod ? pdxMod.pintarPokedex() : pokedexModulo().then((m) => m.pintarPokedex()) }
+function pintarEspecie(...a) { return pokedexModulo().then((m) => m.pintarEspecie(...a)) }
+// Sin el módulo no hay especie abierta: la ficha busca en lo demás.
+const cartasDeLaEspecieAhora = () => (pdxMod ? pdxMod.cartasDeLaEspecieAhora() : [])
 
 // ── Los cambios (tanda 376) ──
 //
@@ -6533,6 +5585,21 @@ function pintarIconos() {
   }
 }
 
+// ── IMPORTAR, EXPORTAR Y LA IMAGEN (1011): ./mi-coleccion/extras.js, por import() ──
+const ctxExtras = {
+  get sesion() { return sesion },
+  get mercado() { return mercado },
+  get dueno() { return dueno },
+  get lineasTodo() { return lineasTodo },
+  get lineas() { return lineas },
+  get cartasTodo() { return cartasTodo },
+  get cartas() { return cartas },
+  get resumenHero() { return resumenHero },
+  cargarColeccion, repintar, pTodo, masValiosas, nombreDe, cargarSets, tengoDe,
+}
+let extrasMod = null
+const extrasModulo = () => extrasMod ? Promise.resolve(extrasMod) : import('./mi-coleccion/extras.js').then((m) => { m.montar(ctxExtras); extrasMod = m; return m })
+
 function enganchar() {
   pintarIconos()
   // El selector de catálogo (tanda 437), en los tres sitios a la vez.
@@ -6575,172 +5642,12 @@ function enganchar() {
     })
   }
 
-  // ── Importar y exportar (tanda 580) ──
-  document.addEventListener('click', async (e) => {
-    if (e.target.closest('#mcImportarAbrir, .mc-importar-abrir')) {
-      const { abrirImportar } = await import('./mi-coleccion/importar.js')
-      abrirImportar({
-        sesion,
-        mercado,
-        alTerminar: async () => {
-          await cargarColeccion(dueno.id)
-          repintar()
-        },
-      })
-    } else if (e.target.closest('#mcExportar')) {
-      const { descargarExport } = await import('./mi-coleccion/importar.js')
-      const todas = lineasTodo.length ? lineasTodo : lineas
-      descargarExport({ lineas: todas, cartaDe: (l) => cartasTodo.get(datos.claveDeLineaEnMercado(l)) || cartas.get(l.card_id) || null })
-    }
-  })
-
-  // ── Mi colección en una imagen (tanda 571; cinco dibujos desde la 689) ──
-  // El carrusel: un lienzo a la vista y uno escondido por variante, que se
-  // pinta la primera vez que se pasa por ella y se copia al visible. Así
-  // pasar de una a otra es instantáneo y compartir coge siempre lo que se
-  // ve. `window.__mcImagenDatos` y `__mcImagenVariante` quedan a mano para
-  // la prueba y para depurar.
-  const carrusel = { indice: 0, datos: null, pintados: new Map(), version: 0 }
-  const variantesDeImagen = async () => (await import('./mi-coleccion/imagen.js')).VARIANTES_IMAGEN
-  async function enseñarVariante(i) {
-    const variantes = await variantesDeImagen()
-    carrusel.indice = (i + variantes.length) % variantes.length
-    const v = variantes[carrusel.indice]
-    window.__mcImagenVariante = v.id
-    const rotulo = $('mcImagenRotulo')
-    if (rotulo) rotulo.textContent = `${v.nombre} · ${carrusel.indice + 1} de ${variantes.length}`
-    document.querySelectorAll('#mcImagenPuntos .mc-imagen-punto').forEach((b, k) => b.setAttribute('aria-current', k === carrusel.indice ? 'true' : 'false'))
-    const visible = $('mcImagenLienzo')
-    const version = carrusel.version
-    let escondido = carrusel.pintados.get(v.id)
-    if (!escondido) {
-      escondido = document.createElement('canvas')
-      escondido.width = visible.width
-      escondido.height = visible.height
-      visible.classList.add('mc-imagen-pintando')
-      await v.pintar(escondido, carrusel.datos)
-      // Si mientras se pintaba se cerró y se volvió a abrir con otros
-      // datos, lo pintado es de la pintada vieja (la 663): no se guarda.
-      if (version !== carrusel.version) return
-      carrusel.pintados.set(v.id, escondido)
-    }
-    if (carrusel.indice !== variantes.indexOf(v)) return
-    visible.getContext('2d').drawImage(escondido, 0, 0)
-    visible.classList.remove('mc-imagen-pintando')
-  }
-  document.addEventListener('click', async (e) => {
-    if (!e.target.closest('#mcImagenCrear')) return
-    const d = $('mcImagenDialogo')
-    if (!d || !resumenHero) return
-    const [ls, clave, busca] = pTodo()
-    // Las tres que más valen siguen en los datos (la prueba de la 571 las
-    // mira), pero desde la 691 ningún dibujo las pinta: la imagen no va de
-    // dinero.
-    const valiosas = masValiosas(3, ls, clave, busca).map((v) => ({
-      nombre: nombreDe(v.carta),
-      cadena: cadenaDeEscaneo(v.carta, v.carta?.tcg_sets?.tcg_online_code || null, 'high'),
-      valor: euros(v.valor),
-      expansion: nombreDeSet(v.carta?.tcg_sets) || v.carta?.set_id || '',
-      anio: v.carta?.tcg_sets?.release_date ? String(v.carta.tcg_sets.release_date).slice(0, 4) : '',
-      rareza: rarezaDeCarta(v.carta) || '',
-    }))
-    // La expansión más completa: la misma cuenta que el vistazo de
-    // Expansiones, y el total oficial del set.
-    const sets = await cargarSets().catch(() => null)
-    let mejorSet = null
-    for (const s of sets || []) {
-      const suyas = [...cartas.values()].filter((c) => c?.set_id && (padreDeColeccion(c.set_id) || c.set_id) === s.id)
-      const tengo = suyas.filter((c) => tengoDe(c.id) > 0).length
-      const total = Number(s.card_count_total) || Number(s.card_count_official) || suyas.length
-      if (!tengo || !total) continue
-      const pct = tengo / total
-      if (!mejorSet || pct > mejorSet.pct) mejorSet = { nombre: nombreDeSet(s) || s.id, tengo, total, pct }
-    }
-    // Lo que cuentan los dibujos (689, 691): el equipo, el perfil, el
-    // viaje y la Pokédex. Sin un euro.
-    const { cartasDistintas, resumenDelMes, resumenDePokedex, masRepetido, equipoDe6, viajeEnElTiempo, perfilDeColeccionista } = await import('./mi-coleccion/imagen-datos.js')
-    const { urlDeSprite, cadenaDeRespaldos } = await import('./torneos/sprites-pokemon.js')
-    const distintas = cartasDistintas(ls, busca)
-    const conCadena = (c) => ({ nombre: nombreDe(c), cadena: cadenaDeEscaneo(c, c?.tcg_sets?.tcg_online_code || null, 'high'), expansion: nombreDeSet(c?.tcg_sets) || c?.set_id || '' })
-    const mes = resumenDelMes(distintas, { nombreDeSet: (c) => nombreDeSet(c?.tcg_sets) || c?.set_id || '' })
-    const pokedex = resumenDePokedex(distintas)
-    const favorito = masRepetido(distintas)
-    const alCien = (sets || []).filter((s) => {
-      const suyas = [...cartas.values()].filter((c) => c?.set_id && (padreDeColeccion(c.set_id) || c.set_id) === s.id)
-      const total = Number(s.card_count_total) || Number(s.card_count_official) || 0
-      return total > 0 && suyas.filter((c) => tengoDe(c.id) > 0).length >= total
-    }).length
-    const equipo = equipoDe6(distintas).map((m) => {
-      const sprite = urlDeSprite(m.dex)
-      return { ...m, sprites: sprite ? [sprite, ...cadenaDeRespaldos(sprite)] : [], ejemplos: m.ejemplos.map(conCadena) }
-    })
-    const viaje = viajeEnElTiempo(distintas)
-    const perfil = perfilDeColeccionista(distintas, { pokedex, mejorSet, alCien })
-    // Las tres cartas de firma: las del líder del equipo y, si no, las
-    // tres primeras que entraron.
-    const firma = (equipo[0]?.ejemplos?.length ? equipo[0].ejemplos : distintas.slice(0, 3).map((x) => conCadena(x.carta))).slice(0, 3)
-    const datos = {
-      quien: dueno?.username || null,
-      ...resumenHero,
-      valiosas,
-      mejorSet: mejorSet ? { nombre: mejorSet.nombre, tengo: mejorSet.tengo, total: mejorSet.total } : null,
-      alCien,
-      desde: $('mcHeroDesde')?.textContent?.trim() || '',
-      mes: { nuevas: mes.nuevas, ultimas: mes.ultimas.map(conCadena), expansionesNuevas: mes.expansionesNuevas },
-      pokedex: {
-        especies: pokedex.especies, total: pokedex.total, pct: pokedex.pct, tipos: pokedex.tipos, regiones: pokedex.regiones,
-        masAntigua: pokedex.masAntigua ? { nombre: nombreDe(pokedex.masAntigua.carta), anio: pokedex.masAntigua.anio, expansion: nombreDeSet(pokedex.masAntigua.carta?.tcg_sets) || pokedex.masAntigua.carta?.set_id || '' } : null,
-        favorito,
-      },
-      equipo,
-      viaje: viaje ? { ...viaje, antigua: { ...conCadena(viaje.antigua.carta), anio: viaje.antigua.anio }, nueva: { ...conCadena(viaje.nueva.carta), anio: viaje.nueva.anio } } : null,
-      perfil,
-      firma,
-    }
-    // A mano, para la prueba y para depurar: lo que se le dio al dibujo.
-    window.__mcImagenDatos = datos
-    carrusel.datos = datos
-    carrusel.pintados = new Map()
-    carrusel.version++
-    const variantes = await variantesDeImagen()
-    const puntos = $('mcImagenPuntos')
-    if (puntos) puntos.innerHTML = variantes.map((v, i) => `<button type="button" class="mc-imagen-punto" data-indice="${i}" aria-label="${escapeHtml(v.nombre)}" aria-current="${i === 0 ? 'true' : 'false'}"></button>`).join('')
-    d.showModal()
-    await enseñarVariante(0)
-  })
-  $('mcImagenCerrar')?.addEventListener('click', () => $('mcImagenDialogo').close())
-  $('mcImagenAnterior')?.addEventListener('click', () => enseñarVariante(carrusel.indice - 1))
-  $('mcImagenSiguiente')?.addEventListener('click', () => enseñarVariante(carrusel.indice + 1))
-  $('mcImagenPuntos')?.addEventListener('click', (e) => {
-    const b = e.target.closest('.mc-imagen-punto')
-    if (b) enseñarVariante(Number(b.dataset.indice) || 0)
-  })
-  // Con el dedo: un arrastre horizontal sobre la imagen pasa de variante.
-  let arrastre = null
-  $('mcImagenLienzo')?.addEventListener('pointerdown', (e) => { arrastre = { x: e.clientX, y: e.clientY } })
-  $('mcImagenLienzo')?.addEventListener('pointerup', (e) => {
-    if (!arrastre) return
-    const dx = e.clientX - arrastre.x
-    const dy = e.clientY - arrastre.y
-    arrastre = null
-    if (Math.abs(dx) < 40 || Math.abs(dx) < Math.abs(dy)) return
-    enseñarVariante(carrusel.indice + (dx < 0 ? 1 : -1))
-  })
-  $('mcImagenDialogo')?.addEventListener('keydown', (e) => {
-    if (e.key === 'ArrowLeft') enseñarVariante(carrusel.indice - 1)
-    else if (e.key === 'ArrowRight') enseñarVariante(carrusel.indice + 1)
-  })
-  const nombreDeFicheroDeImagen = () => `mi-coleccion${dueno?.username ? `-${dueno.username}` : ''}${carrusel.indice ? `-${window.__mcImagenVariante || ''}` : ''}.png`
-  $('mcImagenCompartir')?.addEventListener('click', async () => {
-    const { compartirLienzo } = await import('./imagen-compartir.js')
-    compartirLienzo($('mcImagenLienzo'), {
-      nombreFichero: nombreDeFicheroDeImagen(),
-      texto: 'Mi colección de Pokémon TCG en PokeDoc. pokedoc.es/mi-coleccion',
-    })
-  })
-  $('mcImagenDescargar')?.addEventListener('click', async () => {
-    const { descargarLienzo } = await import('./imagen-compartir.js')
-    descargarLienzo($('mcImagenLienzo'), nombreDeFicheroDeImagen())
+  // ── Importar, exportar y «Mi colección en una imagen» (580 y 571 → 1011) ──
+  // Viven en ./mi-coleccion/extras.js y entran al pulsar uno de sus botones.
+  document.addEventListener('click', (e) => {
+    const b = e.target.closest('#mcImportarAbrir, .mc-importar-abrir, #mcExportar, #mcImagenCrear')
+    if (!b) return
+    void extrasModulo().then((m) => m.pulsar(b)).catch((err) => showToast(err.message || 'No se ha podido cargar.', 'error'))
   })
 
   // ── La nota, plegada (tanda 405) ──
@@ -6880,113 +5787,7 @@ function enganchar() {
     guardarEditor()
   })
 
-  // ── Las carpetas (tandas 402 y 411) ──
-  //
-  // El `window.prompt` se fue en la 411: pedía el nombre y nada más, así
-  // que una carpeta nacía sin cara y había que ir a editarla para
-  // ponérsela. Ahora el diálogo pregunta las tres cosas de una vez.
-  iniciarDialogoAdorno()
-  // Sin «Nueva carpeta» desde la 759: lo que se crea son álbumes (las
-  // carpetas que había pasan a binders solas, en albumes.js).
-  // ── El ⋮ de una carpeta abierta (tanda 477) ──
-  //
-  // Las dos acciones que antes solo existían desde FUERA: crear dentro
-  // —que era pulsar «Nueva carpeta» estando dentro, y no lo decía ninguna
-  // palabra— y cambiarla, que pedía salir, buscar su burbuja y pulsar su
-  // engranaje.
-  $('mcCarpetaEditar')?.addEventListener('click', () => {
-    const c = carpetasLista.find((x) => x.id === carpetaAbierta)
-    if (c) editarCarpeta(c)
-  })
-  $('mcCarpetaBuscar')?.addEventListener('input', pintarCartasDeCarpetaFiltradas)
-
-  $('mcCarpetasPanel').addEventListener('click', async (e) => {
-    const abrir = e.target.closest('[data-abrir]')
-    if (abrir) {
-      carpetaAbierta = abrir.dataset.abrir
-      return pintarCarpetas()
-    }
-    const editar = e.target.closest('[data-ajustes]')
-    if (!editar) return
-    const c = carpetasLista.find((x) => x.id === editar.dataset.ajustes)
-    if (!c) return
-    editarCarpeta(c)
-  })
-
-  // El diálogo de cambiar una carpeta, en una función: lo abren el
-  // engranaje de su burbuja y el ⋮ de dentro (tanda 477), y escribirlo dos
-  // veces es como se separan dos cosas que tenían que ser una.
-  function editarCarpeta(c) {
-    abrirDialogoAdorno({
-      titulo: 'Cambiar la carpeta',
-      boton: 'Guardar',
-      valores: { nombre: c.nombre, icono: c.icono, dex_id: c.dex_id, emoji: c.emoji, color: c.color },
-      alGuardar: async (v) => {
-        try {
-          await carpetas.renombrarCarpeta(c.id, v)
-          await recargarCarpetas()
-        } catch (err) {
-          showToast(err.message, 'error')
-        }
-      },
-      alBorrar: async () => {
-        // Borrar se lleva las SUBcarpetas, así que se avisa de eso y no
-        // de «se borrará la carpeta» a secas. Las cartas no se tocan:
-        // viven en tu colección, no en la carpeta.
-        const hijas = carpetasLista.filter((x) => x.parent_id === c.id).length
-        const aviso = hijas
-          ? `¿Borrar «${c.nombre}» y sus ${hijas} subcarpetas? Las cartas se quedan en tu colección.`
-          : `¿Borrar «${c.nombre}»? Las cartas se quedan en tu colección.`
-        if (!window.confirm(aviso)) return
-        try {
-          await carpetas.borrarCarpeta(c.id)
-          if (carpetaAbierta === c.id) carpetaAbierta = c.parent_id || null
-          await recargarCarpetas()
-        } catch (err) {
-          showToast(err.message, 'error')
-        }
-      },
-    })
-  }
-
-  $('mcCarpetaMigas').addEventListener('click', (e) => {
-    // Por ID desde la tanda 474: la miga ya no lleva `data-volver-carpetas`
-    // —el molde común pone un identificador y nada más—, y el viejo se
-    // queda admitido por si alguna prueba o algún sitio lo usa todavía.
-    if (!e.target.closest('#mcCarpetaVolver, [data-volver-carpetas]')) return
-    const c = carpetasLista.find((x) => x.id === carpetaAbierta)
-    carpetaAbierta = c?.parent_id || null
-    pintarCarpetas()
-  })
-
-  // Meter y sacar la carta abierta de una carpeta, desde su ficha.
-  // «En tu álbum X» (752): abre ese álbum.
-  $('mcEdCopiaAlbum')?.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-abrir-carpeta]')
-    if (!b) return
-    carpetaAbierta = b.dataset.abrirCarpeta
-    $('mcEditor').close()
-    if (pestania === 'carpetas') void recargarCarpetas()
-    else cambiarPestania('carpetas')
-  })
-  $('mcEdCarpetas').addEventListener('click', async (e) => {
-    const chip = e.target.closest('[data-carpeta-chip]')
-    if (!chip) return
-    const id = $('mcEditor').dataset.linea
-    if (!id) return
-    const folder = chip.dataset.carpetaChip
-    const dentro = chip.getAttribute('aria-pressed') === 'true'
-    try {
-      if (dentro) await carpetas.sacarDeCarpeta(folder, id)
-      else await carpetas.meterEnCarpeta(folder, id)
-      // Se repinta desde la base y no a ojo: si la escritura falló, el
-      // chip se quedaría diciendo que está dentro cuando no lo está.
-      await pintarCarpetasDeLaFicha(id)
-      carpetasResumen = await carpetas.resumenDeCarpetas().catch(() => carpetasResumen)
-    } catch (err) {
-      showToast(err.message, 'error')
-    }
-  })
+  // Las carpetas (402 → 1011) las engancha su módulo al llegar.
 
   // ── El panel de filtros (tanda 399) ──
   $('mcAbrirFiltros').addEventListener('click', () => {
@@ -7080,7 +5881,7 @@ function enganchar() {
     // cada fila (tanda 392). `data-editar` se sigue aceptando: lo usan
     // otras pantallas que todavía pintan la fila con su botón.
     // Seleccionando (747), tocar una carta la marca en vez de abrirla.
-    if (marcadas && marcarEn === 'cartas') {
+    if (marcadasAhora() && marcarEnAhora() === 'cartas') {
       const t = e.target.closest('.mc-carta[data-linea]')
       if (t) { e.preventDefault(); alternarLinea(t) }
       return
@@ -7135,114 +5936,8 @@ function enganchar() {
     void abrirAlbum(set.dataset.set)
   })
 
-  // ── Marcar varias (tanda 426) ──
-  $('mcMarcarAbrir')?.addEventListener('click', () => modoMarcar(!marcadas))
-  $('mcMarcarCancelar')?.addEventListener('click', () => modoMarcar(false))
-  $('mcMarcarTodas')?.addEventListener('click', () => marcarTodas())
-  $('mcMarcarGuardar')?.addEventListener('click', () => void guardarMarcadas())
-  $('mcMarcarQuitar')?.addEventListener('click', () => void quitarMarcadas())
-  $('mcMarcarQuiero')?.addEventListener('click', () => void quererMarcadas())
-  $('mcMarcarAlbum')?.addEventListener('click', () => void elegirAlbumParaMarcadas())
-  $('mcEaCerrar')?.addEventListener('click', () => $('mcElegirAlbum').close())
-  $('mcEaLista')?.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-album]')
-    if (b) void meterMarcadasEnAlbum(b.dataset.album)
-  })
-  // MANTENER PULSADA UNA CARTA LA MARCA (713). Es el gesto de cualquier
-  // galería de fotos: medio segundo quieto encima enciende el modo y deja
-  // esa carta marcada. Moverse más de 10 px es desplazarse, no pulsar; y el
-  // clic que llega al soltar se come, o abriría la ficha encima.
-  //
-  // Durante la pulsación NO se repinta nada: solo se marca la casilla a la
-  // vista. Con el dedo el navegador manda el «soltar» al elemento donde
-  // EMPEZÓ, y si la rejilla se repinta a mitad ese elemento ya no está en
-  // la página: el soltar no llega a nadie y el gesto se queda a medias. El
-  // modo de verdad se enciende al soltar.
-  //
-  // Y EN LAS DOS REJILLAS (747). Hasta aquí solo estaba en la de una
-  // expansión, y PINGU lo probaba —con razón— en «Cartas». En la de Cartas
-  // no se repinta nada al marcar (solo clases), así que el modo se enciende
-  // en cuanto se cumple el medio segundo, que es lo que hace la galería
-  // del iPhone; en la expansión sigue esperando al soltar, por lo de arriba.
-  // Lo que en el iPhone se comía el gesto —la vista previa del sistema al
-  // mantener un enlace o una imagen— lo quita la hoja (`-webkit-touch-
-  // callout`), y el menú contextual, el `contextmenu` de abajo.
-  {
-    let reloj = null, origen = null, pendiente = null, comer = false, yaEncendido = false
-    const parar = () => { clearTimeout(reloj); reloj = null }
-    const aplicar = () => {
-      const p = pendiente
-      pendiente = null
-      if (!p) return
-      const zona = $('mcAlbum')
-      if (!marcadas) modoMarcar(true, 'album')
-      const nuevo = zona.querySelector(`.mc-bolsillo-enlace[data-marca="${CSS.escape(claveMarca(p.carta, p.variante))}"]`) || zona.querySelector(`.mc-bolsillo-enlace[data-carta="${CSS.escape(p.carta)}"][data-marca]`)
-      if (nuevo && !marcadas.has(nuevo.dataset.marca)) alternarMarca(nuevo)
-    }
-    const zonas = [
-      { zona: $('mcAlbum'), casilla: '.mc-bolsillo-enlace[data-carta]', yaMarcando: () => marcadas && marcarEn === 'album',
-        alCumplir: (el) => {
-          pendiente = { carta: el.dataset.carta, variante: el.dataset.variante || 'normal' }
-          el.closest('.mc-bolsillo')?.classList.add('marcada')
-        } },
-      { zona: $('mcCartas'), casilla: '.mc-carta[data-linea]', yaMarcando: () => marcadas && marcarEn === 'cartas',
-        alCumplir: (el) => {
-          if (!marcadas) modoMarcar(true, 'cartas', { repintar: false })
-          if (!marcadas.has(el.dataset.linea)) alternarLinea(el)
-          yaEncendido = true
-        } },
-    ]
-    for (const { zona, casilla, yaMarcando, alCumplir } of zonas) {
-      zona?.addEventListener('pointerdown', (e) => {
-        const el = e.target.closest(casilla)
-        if (!el || !esMia || !sesion || e.button !== 0) return
-        // Con el modo ya puesto, un toque marca: no hace falta mantener.
-        if (yaMarcando()) return
-        origen = { x: e.clientX, y: e.clientY }
-        parar()
-        reloj = setTimeout(() => {
-          reloj = null
-          alCumplir(el)
-          navigator.vibrate?.(10)
-        }, 450)
-      })
-      zona?.addEventListener('pointermove', (e) => {
-        if (reloj && origen && Math.hypot(e.clientX - origen.x, e.clientY - origen.y) > 10) parar()
-      })
-      zona?.addEventListener('pointerup', () => {
-        parar()
-        if (!pendiente && !yaEncendido) return
-        // El clic de este mismo soltar se come; si no llega, a los 250 ms se
-        // deja de esperar para no comerse el siguiente toque de verdad.
-        // Y el modo se enciende DESPUÉS de ese clic: encenderlo saca la barra
-        // de marcar, que empuja la rejilla, y el clic caía en su «Cancelar».
-        comer = true
-        yaEncendido = false
-        setTimeout(() => { comer = false }, 250)
-        if (pendiente) setTimeout(aplicar, 60)
-      })
-      zona?.addEventListener('pointercancel', () => { parar(); yaEncendido = false; if (pendiente) setTimeout(aplicar, 0) })
-      zona?.addEventListener('pointerleave', parar)
-      zona?.addEventListener('contextmenu', (e) => { if (e.target.closest(casilla)) e.preventDefault() })
-    }
-    // En el DOCUMENTO y no en la zona: si el clic acaba en otro sitio (la
-    // barra que acaba de salir), también se lo come.
-    document.addEventListener('click', (e) => {
-      if (!comer) return
-      comer = false
-      e.preventDefault()
-      e.stopImmediatePropagation()
-    }, true)
-  }
-  // Con el teclado: un enlace ya responde a Intro, pero `role="button"`
-  // promete también la BARRA ESPACIADORA, y un enlace no la tiene.
-  $('mcAlbum')?.addEventListener('keydown', (e) => {
-    if (e.key !== ' ' && e.key !== 'Spacebar') return
-    const enlace = e.target.closest('.mc-bolsillo-enlace[data-marca]')
-    if (!marcadas || !enlace) return
-    e.preventDefault()
-    alternarMarca(enlace)
-  })
+  // ── Marcar varias (426 → 1011): lo demás lo engancha su módulo al llegar ──
+  $('mcMarcarAbrir')?.addEventListener('click', () => void seleccionModulo().then((m) => m.modoMarcar(!m.marcadasAhora())).catch(() => showToast('No se ha podido cargar la selección.', 'error')))
 
   // Las flechas y el cerrar de la ficha (tanda 422).
   $('mcEdAnterior')?.addEventListener('click', () => void abrirVecino(-1))
@@ -7366,37 +6061,13 @@ function enganchar() {
     $(id).addEventListener(id === 'mcEstanteriaBuscar' ? 'input' : 'change', () => pintarEstanteria())
   }
   // El escáner (tanda 447). Desde la 747 no tiene botón en Buscar: lo pide
-  // el «Escanear» de la burbuja del móvil con este aviso.
+  // el «Escanear» de la burbuja del móvil con este aviso. Lo demás del
+  // escáner se engancha al cargar su módulo (1011).
   document.addEventListener('pokedoc:escanear', (e) => {
     if (!esMia) return
     e.preventDefault()
     void abrirEscaner()
   })
-  $('mcEscanerVer')?.addEventListener('click', () => cerrarEscaner())
-  $('mcEscanerCandidatas')?.addEventListener('click', (e) => {
-    const mas = e.target.closest('[data-escaner-anadir]')
-    if (mas) return void anadirDesdeEscaner(mas.dataset.escanerAnadir, mas)
-    // Tocar la carta abre el diálogo de añadir de siempre, ENCIMA de la
-    // cámara (la capa de arriba admite dos): al guardar o cerrar, se
-    // vuelve a encuadrar.
-    const abrir = e.target.closest('[data-escaner-abrir]')
-    const c = abrir && enRafaga.cartas.get(abrir.dataset.escanerAbrir)
-    if (c) abrirAnadir(c.id)
-  })
-  $('mcEscanerCerrar')?.addEventListener('click', cerrarEscaner)
-  $('mcEscanerDisparo')?.addEventListener('click', () => void dispararEscaner())
-  // Desde tus fotos (754): el botón abre el selector de la galería.
-  for (const i of document.querySelectorAll('[data-icono-escaner]')) i.innerHTML = icons[i.dataset.iconoEscaner]?.(20) || ''
-  $('mcEscanerFotos')?.addEventListener('click', () => $('mcEscanerFicheros')?.click())
-  $('mcEscanerFicheros')?.addEventListener('change', (e) => {
-    const ficheros = [...(e.target.files || [])]
-    e.target.value = ''
-    void leerFotos(ficheros)
-  })
-  // Y con la tecla de escape, que es como se cierra un diálogo. El evento
-  // `close` lo cubre todo: lo dispara tanto el botón como el escape, así
-  // que la cámara se apaga por los dos caminos sin escribirlo dos veces.
-  $('mcEscanerCaja')?.addEventListener('close', cerrarEscaner)
 
   // El buscador de todo el catálogo (tanda 447).
   $('mcBuscarTodo')?.addEventListener('input', () => void buscarEnTodo())
@@ -7602,41 +6273,7 @@ function enganchar() {
     if (subirNivel()) e.preventDefault()
   })
 
-  // ── La Pokédex (tanda 381) ──
-  //
-  // Los dos mandos y la delegación del clic van AQUÍ y no dentro de la
-  // pestaña: el panel se repinta entero en cada filtro, así que un
-  // oyente puesto dentro se duplicaría en cada tecla. La caja de fuera
-  // no se repinta nunca.
-  for (const id of ['mcPdxBuscar', 'mcPdxOrden']) {
-    $(id).addEventListener(id === 'mcPdxBuscar' ? 'input' : 'change', () => {
-      // Al filtrar se vuelve a la rejilla: filtrar con una especie
-      // abierta no significa nada.
-      especieAbierta = null
-      if (pokedexCargada) pintarPokedex()
-    })
-  }
-  // «Solo los que tengo» es una CHAPA desde la 465, así que su estado lo
-  // guarda una variable y no un `checked`.
-  $('mcPdxSoloMios').addEventListener('click', () => {
-    pdxSoloMios = !pdxSoloMios
-    $('mcPdxSoloMios').classList.toggle('activo', pdxSoloMios)
-    $('mcPdxSoloMios').setAttribute('aria-pressed', pdxSoloMios ? 'true' : 'false')
-    especieAbierta = null
-    if (pokedexCargada) pintarPokedex()
-  })
-  $('mcPanelPokedex').addEventListener('click', (e) => {
-    const region = e.target.closest('[data-pdx-region]')
-    if (region) {
-      pdxRegion = Number(region.dataset.pdxRegion) || 0
-      pintarPokedex()
-      $('mcPokedexPanel')?.querySelector('.pdx-regiones .activa')?.scrollIntoView({ block: 'nearest', inline: 'center' })
-      return
-    }
-    const especie = e.target.closest('[data-dex]')
-    if (especie) return pintarEspecie(Number(especie.dataset.dex))
-    if (e.target.closest('#pdxVolver')) subirNivel()
-  })
+  // La Pokédex (381 → 1011) la engancha su módulo al llegar.
   for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumEnergia', 'mcAlbumOrden', 'mcAlbumIdioma', 'mcAlbumVersion']) {
     // Con `?.`: una página que no lleve uno de ellos (una copia vieja de
     // cartas.html en caché) no puede quedarse sin JavaScript por él.
@@ -7774,7 +6411,7 @@ function enganchar() {
       // En modo marcar, pulsar una casilla la MARCA. Y aquí sí se le gana
       // al Ctrl+clic: con el modo encendido, abrir la carta en otra
       // pestaña no es lo que estabas haciendo.
-      if (marcadas && enlace.dataset.marca) {
+      if (marcadasAhora() && enlace.dataset.marca) {
         e.preventDefault()
         return alternarMarca(enlace)
       }
@@ -7874,62 +6511,6 @@ function enganchar() {
       if (!l) return
       return abrirAviso({ cardId: l.card_id, market: cartas.get(l.card_id)?.market || mercado, idioma: l.idioma || 'es', precio: valorDeLinea({ ...l, cantidad: 1 }, precioDe(l)) ?? null })
     }
-  })
-  $('mcPokedexPanel')?.addEventListener('click', (e) => {
-    if (e.target.closest('#pdxAbrirFiltros')) $('mcPdxPanelFiltros').showModal()
-    if (e.target.closest('#pdxSoloFaltan')) {
-      pdxSoloFaltan = !pdxSoloFaltan
-      pintarEspecieFiltrada()
-    }
-    // Juntas / separadas, la MISMA memoria que en una expansión (692):
-    // quien colecciona set maestro lo quiere igual en los dos sitios.
-    if (e.target.closest('#pdxVariantes')) {
-      album.split = !album.split
-      try { localStorage.setItem('mc-split', album.split ? '1' : '0') } catch {}
-      pintarVistaVariantes()
-      pintarEspecieFiltrada()
-    }
-  })
-  // El idioma de la especie, en delegación por lo mismo que el buscador:
-  // la cabecera se repinta entera.
-  $('mcPokedexPanel')?.addEventListener('change', (e) => {
-    if (e.target.id !== 'pdxIdioma') return
-    pdxIdioma = e.target.value
-    pintarEspecieFiltrada()
-  })
-  // En DELEGACIÓN, no en el campo: la cabecera de la especie se vuelve a
-  // pintar entera con cada tecla, así que un oyente puesto sobre el
-  // `<input>` se perdería con el primer repintado. Y el foco y el cursor
-  // se devuelven a mano por lo mismo.
-  $('mcPokedexPanel')?.addEventListener('input', (e) => {
-    if (e.target.id !== 'pdxEspecieBuscar') return
-    const donde = e.target.selectionStart
-    textoEspecie = e.target.value
-    pintarEspecieFiltrada()
-    const campo = $('pdxEspecieBuscar')
-    if (campo) {
-      campo.focus()
-      campo.setSelectionRange(donde, donde)
-    }
-  })
-  $('mcPdxGrupos')?.addEventListener('click', (e) => {
-    const chip = e.target.closest('[data-egrupo]')
-    if (!chip) return
-    const conjunto = filtrosEspecie[chip.dataset.egrupo]
-    if (conjunto.has(chip.dataset.evalor)) conjunto.delete(chip.dataset.evalor)
-    else conjunto.add(chip.dataset.evalor)
-    pintarEspecieFiltrada()
-  })
-  $('mcPdxFiltrosCerrar')?.addEventListener('click', () => $('mcPdxPanelFiltros').close())
-  $('mcPdxFiltrosVer')?.addEventListener('click', () => $('mcPdxPanelFiltros').close())
-  $('mcPdxFiltrosLimpiar')?.addEventListener('click', () => {
-    for (const g of FILTROS_CATALOGO) filtrosEspecie[g.id].clear()
-    pintarEspecieFiltrada()
-  })
-  $('mcPdxPanelFiltros')?.addEventListener('click', (e) => {
-    const c = e.currentTarget.getBoundingClientRect()
-    const dentro = e.clientX >= c.left && e.clientX <= c.right && e.clientY >= c.top && e.clientY <= c.bottom
-    if (!dentro) e.currentTarget.close()
   })
   // Y los resultados de Buscar (tanda 452). PINGU: «cuando abres una carta
   // desde el buscador te va a la ficha completa, y hemos dicho que toda
@@ -8375,6 +6956,9 @@ async function iniciar() {
   if (esMia) {
     void panel().catch(() => {})
     if (sesion) void deseosModulo().catch(() => {})
+    // Marcar varias (1011): en un rato libre, que mantener pulsada una carta
+    // ya la marca y eso lo engancha el módulo.
+    if (sesion) (window.requestIdleCallback || ((f) => setTimeout(f, 600)))(() => void seleccionModulo().catch(() => {}))
   }
   // El Panel de la última vez, ya (894), mientras llegan las líneas: es
   // tuyo, así que la clave te lleva, y solo si es lo que se abre.

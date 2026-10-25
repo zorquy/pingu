@@ -26,7 +26,6 @@ import {
   PUESTO_MAXIMO,
   PREMIO_MAXIMO,
 } from './comun.js'
-import { montarCiclo, resumenDeGloria, podioDelTorneo } from './ronda.js'
 import { montarJueces, pendientesDeJuez } from './jueces.js'
 import { montarTablon } from './tablon.js'
 import { cargarJornadas, misJornadas, misJornadasHtml, listaAnterior, enviarListaJornada, quitarListaJornada, primeraAbierta, quienesJuegan, numJornadas, rondasPorJornada } from './jornadas.js'
@@ -41,6 +40,8 @@ import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.j
 import { pintarSiCambia, textoSiCambia } from './pintar.js'
 import { atributosDeRango, COLUMNAS_RANGO } from '../rangos.js'
 
+// El módulo de las rondas, cuando llega (1011): antes, nada que leer de él.
+let ronda = null
 let session = null
 let perfil = null
 let torneo = null
@@ -761,7 +762,7 @@ async function otorgarGloria() {
   if (torneo.status !== 'finished' || !miInscripcion) return
   // Quien se borró antes de empezar no jugó: sin ronda no hay medalla.
   if (miInscripcion.status === 'dropped' && !miInscripcion.dropped_after_round_id) return
-  const gloria = resumenDeGloria()
+  const gloria = ronda?.resumenDeGloria()
   if (!gloria) return
 
   // Los hitos se cuentan sobre TODO el palmarés, no sobre este torneo
@@ -805,7 +806,7 @@ async function otorgarGloria() {
 // permiso de escritura mientras los torneos son de admins).
 async function sellarResultado() {
   if (torneo.status !== 'finished' || !mando()) return
-  const podio = podioDelTorneo()
+  const podio = ronda ? ronda.podioDelTorneo() : []
   if (!podio.length) return
 
   if (!torneo.champion_id || !torneo.podium) {
@@ -847,7 +848,7 @@ function nombreDeInscrito(id) {
 // que se repinta sola cada 10 s).
 function celebrarSiGane() {
   if (torneo.status !== 'finished') return
-  const podio = podioDelTorneo()
+  const podio = ronda ? ronda.podioDelTorneo() : []
   if (podio[0] !== session?.user?.id) return
   const marca = `pokedoc-torneo-campeon-${torneo.id}`
   try {
@@ -1854,7 +1855,11 @@ async function recargar() {
     // que recoloquen también las pestañas al hacerlo.
     alRepintar: pintarPestanas,
   }
-  await montarCiclo(contexto)
+  // Las rondas (ronda.js, el módulo más grande de la ficha) entran por
+  // import() desde la 1011: la ficha se pinta sin esperar a bajarlo y
+  // analizarlo, y lo que lo necesita (la gloria, el podio) viene detrás.
+  ronda = await import('./ronda.js')
+  await ronda.montarCiclo(contexto)
   await montarJueces(contexto)
   // El tablón (878): después de los jueces, que es quien sabe si quien
   // mira puede escribir en él.

@@ -1,0 +1,394 @@
+
+
+/* ══════════════════════════════════════════════════════════════════
+   EL ESCÁNER (tanda 447)
+   ══════════════════════════════════════════════════════════════════
+   A pantalla completa y en negro: lo que importa es lo que ve la cámara,
+   y cualquier cosa alrededor compite con el encuadre. */
+.mc-escaner {
+  width: 100vw;
+  max-width: 100vw;
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #000;
+  color: var(--blanco-fijo);
+  overscroll-behavior: contain;
+}
+
+.mc-escaner::backdrop {
+  background: #000;
+}
+
+.mc-escaner-video {
+  width: 100%;
+  height: 100%;
+  /* `cover` para que la cámara llene la pantalla sin deformarse. Ojo: con
+     esto las coordenadas de la PANTALLA dejan de ser las del fotograma, y
+     por eso el recorte las recalcula en `marcoEnElVideo`. */
+  object-fit: cover;
+}
+
+/* El velo con el agujero del marco. Es una sola capa con `box-shadow`
+   enorme hacia fuera: así el oscurecido de alrededor y el marco son la
+   MISMA pieza y no pueden descuadrarse entre ellos. */
+.mc-escaner-velo {
+  display: grid;
+  position: absolute;
+  inset: 0;
+  place-items: center;
+  pointer-events: none;
+}
+
+.mc-escaner-marco {
+  position: relative;
+  /* La proporción de una carta de Pokémon. El ancho se queda corto a
+     propósito: con el marco pegado a los bordes nadie sabe si le sobra o
+     le falta encuadre. */
+  width: min(78vw, 46vh);
+  aspect-ratio: 63 / 88;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 0 0 100vmax rgb(0 0 0 / 62%);
+  outline: 2px solid rgb(255 255 255 / 85%);
+  outline-offset: -2px;
+}
+
+/* Las dos franjas que se leen, dibujadas donde se van a recortar. No son
+   un adorno: enseñan EXACTAMENTE qué parte de la carta hay que encuadrar
+   bien, que es lo que hace que el escaneo salga a la primera. */
+.mc-escaner-guia {
+  display: flex;
+  position: absolute;
+  left: 4%;
+  align-items: center;
+  width: 92%;
+  border: 1px solid rgb(255 255 255 / 70%);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 8%);
+}
+
+/* El rótulo va FUERA de su franja, no dentro. Dentro se pone encima de
+   justo lo que hay que encuadrar bien —el nombre de la carta— y tapa lo
+   único que la guía existe para enseñar. Fuera cae sobre el dibujo, que
+   aquí no se lee. */
+.mc-escaner-guia i {
+  position: absolute;
+  top: calc(100% + var(--e-xs));
+  right: 8px;
+  color: rgb(255 255 255 / 85%);
+  font-size: var(--t-2xs);
+  font-style: normal;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
+  white-space: nowrap;
+}
+
+/* Los mismos números que `FRANJAS` en js/mi-coleccion/escaner.js. Si
+   cambias uno, cambia el otro: el dibujo tiene que enseñar dónde se
+   RECORTA de verdad, o el marco estaría mintiendo. */
+.mc-escaner-guia-arriba {
+  top: 3%;
+  height: 14%;
+}
+
+.mc-escaner-guia-abajo {
+  top: 86%;
+  height: 12%;
+}
+
+/* La de abajo, por encima de su franja: debajo se saldría de la carta. */
+.mc-escaner-guia-abajo i {
+  top: auto;
+  right: auto;
+  bottom: calc(100% + var(--e-xs));
+  left: 8px;
+}
+
+.mc-escaner-arriba {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  gap: var(--e-md);
+  align-items: center;
+  width: 100%;
+  padding: var(--e-lg);
+  /* `env(safe-area-inset-top)` por la muesca del iPhone: sin esto el botón
+     de cerrar se mete debajo de la hora. */
+  padding-top: calc(var(--e-lg) + env(safe-area-inset-top, 0px));
+  /* Un velo que se desvanece. La sombra del texto sola basta sobre una
+     escena oscura, pero la gente escanea cartas con la lámpara encima: una
+     ayuda blanca sobre un folio blanco no se lee, y el botón de cerrar
+     desaparece. El degradado no tapa el encuadre porque el marco vive en
+     el centro. */
+  background: linear-gradient(to bottom, rgb(0 0 0 / 55%), rgb(0 0 0 / 0%));
+}
+
+.mc-escaner-ayuda {
+  margin: 0;
+  color: rgb(255 255 255 / 85%);
+  font-size: var(--t-sm);
+  text-shadow: 0 1px 3px rgb(0 0 0 / 70%);
+}
+
+.mc-escaner-redondo {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 18%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+
+.mc-escaner-redondo:hover {
+  background: rgb(255 255 255 / 28%);
+}
+
+.mc-escaner-abajo {
+  display: flex;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  gap: var(--e-md);
+  align-items: center;
+  /* Centrados, no repartidos de lado a lado: en un portátil el
+     desplegable del idioma se quedaba solo en la esquina, a setecientos
+     píxeles del disparador. Los mandos de una cámara van juntos, y el
+     hueco de la derecha mantiene el disparador en el centro exacto. El
+     velo, en cambio, sí va de lado a lado — por eso el ancho se queda. */
+  justify-content: center;
+  width: 100%;
+  padding: var(--e-xl);
+  padding-bottom: calc(var(--e-xl) + env(safe-area-inset-bottom, 0px));
+  /* El mismo velo que arriba, por el mismo motivo. */
+  background: linear-gradient(to top, rgb(0 0 0 / 55%), rgb(0 0 0 / 0%));
+}
+
+/* El disparador, redondo y grande: es lo único que se pulsa aquí y se
+   pulsa con el pulgar, a veces con una mano sola. */
+.mc-escaner-disparo {
+  flex: 0 0 auto;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  /* 4px, y es una EXCEPCIÓN declarada en test-tanda-309.mjs: este borde
+     no rodea un contenido, DIBUJA el aro de un disparador de cámara —la
+     misma categoría que la lupa del buscador y el canto de una carta—. A
+     2px el aro se ve como un contorno cualquiera y deja de parecer un
+     botón de hacer foto. */
+  border: 4px solid rgb(255 255 255 / 90%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 25%);
+  cursor: pointer;
+  transition: transform 0.15s var(--ease), background 0.15s var(--ease);
+}
+
+.mc-escaner-disparo:hover {
+  background: rgb(255 255 255 / 40%);
+}
+
+.mc-escaner-disparo:active {
+  transform: scale(0.93);
+}
+
+.mc-escaner-disparo[disabled] {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* El hueco de la derecha existe para que el disparador quede CENTRADO: con
+   el desplegable solo a la izquierda, el botón se iba hacia un lado. */
+/* 128 y no 110: con 110 «Español» se cortaba a «Españo». El hueco de la
+   derecha mide lo mismo para que el disparador quede centrado de verdad. */
+.mc-escaner-fotos,
+.mc-escaner-abajo .mc-chapa-select {
+  flex: 0 0 128px;
+  width: 128px;
+}
+
+.mc-escaner-abajo .mc-chapa-select {
+  border-color: rgb(255 255 255 / 30%);
+  background-color: rgb(255 255 255 / 15%);
+  color: var(--blanco-fijo);
+}
+
+/* La bandeja de la ráfaga (719): encima de los mandos, sobre la cámara. */
+.mc-escaner-bandeja {
+  position: absolute;
+  right: var(--e-md);
+  bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  left: var(--e-md);
+  padding: var(--e-sm);
+  border-radius: var(--radius-lg);
+  background: rgb(0 0 0 / 72%);
+}
+
+/* Con la bandeja, el marco arriba y algo más pequeño: el recorte lee el
+   marco donde ESTÉ (`marcoEnElVideo`), así que moverlo no lo descuadra. */
+.mc-escaner.con-bandeja .mc-escaner-velo {
+  place-items: start center;
+  padding-top: calc(88px + env(safe-area-inset-top, 0px));
+}
+
+.mc-escaner.con-bandeja .mc-escaner-marco {
+  width: min(64vw, 34vh);
+}
+
+/* Las leídas, en UNA fila que se desliza: tres filas apiladas subían la
+   bandeja hasta la mitad de la pantalla. */
+.mc-escaner-candidatas {
+  display: flex;
+  gap: var(--e-sm);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.mc-escaner-candidata {
+  display: flex;
+  flex: 0 0 min(320px, 88%);
+  align-items: center;
+  gap: var(--e-sm);
+  padding-right: var(--e-xs);
+  border-radius: var(--radius-md);
+  background: rgb(255 255 255 / 8%);
+  scroll-snap-align: start;
+}
+
+.mc-escaner-candidata:only-child {
+  flex-basis: 100%;
+}
+
+.mc-escaner-cand-carta {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--e-md);
+  min-width: 0;
+  min-height: 64px;
+  padding: var(--e-xs);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--blanco-fijo);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-escaner-cand-foto {
+  flex: none;
+  width: 40px;
+  height: 56px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: rgb(255 255 255 / 12%);
+}
+
+.mc-escaner-cand-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.mc-escaner-cand-texto {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mc-escaner-cand-texto b,
+.mc-escaner-cand-texto small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-escaner-cand-texto small {
+  color: rgb(255 255 255 / 75%);
+  font-size: var(--t-sm);
+}
+
+.mc-escaner-mas,
+.mc-escaner-hecha {
+  flex: none;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-escaner-mas {
+  background: var(--blanco-fijo);
+  color: var(--navy-solid);
+  font-size: var(--t-xl);
+}
+
+.mc-escaner-hecha {
+  padding: 0 var(--e-md);
+  background: rgb(255 255 255 / 18%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-sm);
+}
+
+.mc-escaner-ver {
+  width: 100%;
+  min-height: 44px;
+  margin-top: var(--e-xs);
+  border: 0;
+  background: transparent;
+  color: var(--blanco-fijo);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.mc-escaner-nada {
+  margin: var(--e-sm);
+  color: rgb(255 255 255 / 85%);
+  font-size: var(--t-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-escaner-disparo {
+    transition: none;
+  }
+
+  .mc-escaner-disparo:active {
+    transform: none;
+  }}
+
+
+/* Desde tus fotos (754, K5): en el hueco que equilibraba el idioma. */
+.mc-escaner-fotos {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 1px solid rgb(255 255 255 / 30%);
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 15%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  line-height: 1.1;
+  cursor: pointer;
+}
+
+.mc-escaner-fotos:disabled { opacity: 0.5; }

@@ -1,0 +1,404 @@
+
+
+
+/* ── La Pokédex (tanda 381) ──
+   La gente no colecciona sets, colecciona Pokémon. */
+/* La misma barra que las otras dos desde la 445. Antes era un `flex-wrap`
+   con el buscador, el interruptor, dos desplegables y la cuenta, y en un
+   móvil eso son TRES filas — y el buscador, encogido por sus compañeros de
+   fila, cortaba el texto a media palabra: «Busca un Pokémon o su nú…». */
+.pdx-mandos {
+  display: grid;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+
+/* Sin `padding`: lo pone `.mc-buscador input` y ahí está el hueco de la
+   lupa (tanda 412). Al unificar los buscadores en la 406, esta regla —que
+   va después— le devolvía el relleno de la izquierda a 12 px y el texto
+   de ejemplo se pintaba ENCIMA de la lupa. */
+.pdx-mandos input[type='search'] {
+  border: 1px solid var(--border);
+  background: var(--white);
+  color: var(--text);
+  font-size: var(--t-md);
+}
+
+/* Se mide a SÍ MISMA y no a la ventana (lección de la 316): esta
+   rejilla vive dentro de un panel con su propio ancho. */
+.pdx-rejilla {
+  display: grid;
+  gap: var(--e-sm);
+  /* La Pokédex iba de dos en dos en el móvil y es la que más se recorre
+     (tanda 452). */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 108px), 1fr));
+}
+
+.pdx-especie {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-xs);
+  /* 44 de alto porque es un botón. El ancho lo pone la rejilla. */
+  min-height: 44px;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color 0.15s, transform 0.15s;
+}
+
+.pdx-especie:hover {
+  border-color: var(--navy);
+  transform: translateY(-2px);
+}
+
+/* Lo que NO tienes se apaga, igual que un bolsillo vacío del álbum: es
+   el mismo gesto y no hay que aprender otro. Pero se apaga el SPRITE y
+   no el texto — un nombre que no se lee no es una Pokédex. */
+.pdx-especie:not(.tengo) .pdx-sprite img {
+  filter: saturate(0.1) brightness(1.2) contrast(0.75);
+  opacity: 0.5;
+}
+
+.pdx-especie.completo {
+  border-color: var(--success);
+  box-shadow: 0 0 0 1px var(--success);
+}
+
+/* El hueco del sprite va reservado: son 1.025 y sin esto la rejilla
+   baila entera según van llegando. */
+/* 48 y no 68 (tanda 458). PINGU: «los sprites están como muy estirados
+   algunos; no hace falta que sean tan grandes, si lo puedes hacer más
+   pequeño pero que se vea bien, adelante».
+   
+   No estaban deformados —`max-width/max-height` respetan la proporción—:
+   estaban AGRANDADOS. Son dibujos de pocos píxeles, y pintarlos más
+   grandes que su tamaño original enseña las escaleras. Aquí achicar no es
+   una concesión: se ven MEJOR. */
+.pdx-sprite {
+  display: flex;
+  width: 48px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+}
+
+.pdx-sprite img {
+  max-width: 100%;
+  max-height: 100%;
+  image-rendering: pixelated;
+}
+
+/* 64 y no 96 (tanda 458). PINGU: «el Bulbasaur es demasiado grande». Y lo
+   era por lo mismo que los de la rejilla: estos sprites son dibujos de
+   pocos píxeles y al estirarlos se ven las escaleras. Más pequeño se ve
+   MEJOR, no solo ocupa menos. */
+.pdx-sprite-grande {
+  width: 64px;
+  height: 56px;
+}
+
+.pdx-num {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.pdx-nombre {
+  font-size: var(--t-sm);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.pdx-cuenta {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.pdx-especie .mc-barra {
+  flex: 0 0 4px;
+  width: 100%;
+}
+
+.pdx-cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+}
+
+.pdx-cabecera h3 {
+  margin: 0;
+  font-size: var(--t-xl);
+}
+
+.pdx-cabecera p {
+  margin: 0;
+}
+
+.pdx-cartas {
+  display: grid;
+  gap: var(--e-md);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 104px), 1fr));
+}
+
+.pdx-carta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* `height: auto` NO es de adorno: el `<img>` lleva `height="342"` para
+   reservar su hueco antes de llegar, y ese atributo se aplica como CSS
+   —de baja prioridad, pero CSS al fin— así que la altura queda DEFINIDA
+   y `aspect-ratio` no actúa (solo actúa si un lado es auto). Resultado:
+   cartas de 144×342 en vez de 144×201, largas como una tira. Se midió,
+   no se dedujo. */
+/* La foto va en su caja (692): la chapa de la versión, el velo de la
+   reverse y el «+» se colocan sobre la FOTO, no sobre el rótulo del set. */
+.pdx-carta-foto {
+  display: block;
+  position: relative;
+  border-radius: var(--radius-sm);
+}
+
+.pdx-carta img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+/* Las que no tienes, en gris; las tuyas a color y con su marco. Mismo
+   trato que los bolsillos del álbum. */
+.pdx-carta:not(.tengo) img {
+  filter: saturate(0.12) brightness(1.3) contrast(0.72);
+  opacity: 0.6;
+}
+
+.pdx-carta.tengo img {
+  box-shadow: 0 0 0 2px var(--success);
+}
+
+.pdx-carta-set {
+  overflow: hidden;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pdx-especie {
+    transition: none;
+  }
+
+  .pdx-especie:hover {
+    transform: none;
+  }}
+
+
+/* El rótulo de una generación (tanda 414): el nombre a la izquierda y
+   cuántos llevas a la derecha, que es lo que convierte un muro de mil
+   casillas en un índice. */
+.pdx-generacion {
+  display: flex;
+  gap: var(--e-md);
+  align-items: baseline;
+  justify-content: space-between;
+  margin: var(--e-xl) 0 var(--e-md);
+  font-size: var(--t-md);
+}
+
+.pdx-generacion:first-child {
+  margin-top: 0;
+}
+
+.pdx-generacion small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+
+/* ── 711: la Pokédex con el color de su tipo (SCHEMA 711) ──
+   El color de cada tipo es `--tipo-energia`, la paleta de identidad de
+   css/carta.css (324; la prueba 384 vigila que las copias digan lo mismo).
+   El fondo y la tinta SALEN de él mezclándolo con la superficie y el
+   texto de la página, así que en oscuro se adaptan solos. Solo los ocho
+   con símbolo de energía: el color nunca va solo. */
+.pdx-especie { position: relative; }
+.pdx-especie.tipo-G { --tipo-energia: #4faa5a; }
+.pdx-especie.tipo-R { --tipo-energia: #e8564a; }
+.pdx-especie.tipo-W { --tipo-energia: #3aa2dd; }
+.pdx-especie.tipo-L { --tipo-energia: #e9c227; }
+.pdx-especie.tipo-P { --tipo-energia: #a06bc4; }
+.pdx-especie.tipo-F { --tipo-energia: #c8722f; }
+.pdx-especie.tipo-D { --tipo-energia: #3d4a57; }
+.pdx-especie.tipo-M { --tipo-energia: #8c9aa5; }
+.pdx-especie[class*='tipo-'] {
+  --pdx-bg: color-mix(in srgb, var(--tipo-energia) 16%, var(--white));
+  --pdx-tinta: color-mix(in srgb, var(--tipo-energia) 45%, var(--text));
+}
+.pdx-especie[class*='tipo-'] {
+  border-color: transparent;
+  background: var(--pdx-bg);
+}
+.pdx-especie[class*='tipo-'] .pdx-num,
+.pdx-especie[class*='tipo-'] .pdx-cuenta {
+  color: var(--pdx-tinta);
+  font-weight: 700;
+}
+.pdx-especie[class*='tipo-'] .mc-barra i {
+  background: var(--pdx-tinta);
+}
+.pdx-energia {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+}
+/* Los que faltan, en silueta: se lee el nombre y no el dibujo. */
+.pdx-especie:not(.tengo) .pdx-sprite img {
+  filter: brightness(0);
+  opacity: 0.18;
+}
+:root[data-theme='dark'] .pdx-especie:not(.tengo) .pdx-sprite img {
+  filter: brightness(0) invert(1);
+  opacity: 0.22;
+}
+
+/* ── 730 (V5): la carga con la forma del Panel (SCHEMA 730) ── */
+/* Mientras sale el esqueleto, el Panel no se pinta debajo a medias (981):
+   llegaba por trozos, se apilaba bajo el esqueleto y al quitarse este subía
+   648 px de golpe. Así sale entero en su sitio. */
+/* El título de la Pokédex (región y anillo) llega con los datos: su sitio,
+   reservado, para que el buscador no baje 84 px (981). */
+@media (max-width: 900px) {
+  #mcPdxEncabezado:empty { min-height: 84px; }}
+
+
+
+/* ── 748: la Pokédex como en su maqueta (C3; SCHEMA 748) ── */
+.pdx-especie.tipo-N { --tipo-energia: #b59433; }
+.pdx-especie.tipo-C { --tipo-energia: #a7a49b; }
+.pdx-especie.tipo-Y { --tipo-energia: #e07bb0; }
+
+.pdx-encabezado {
+  display: flex;
+  gap: var(--e-md);
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--e-md);
+}
+
+.pdx-titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+}
+
+.pdx-sub {
+  margin: 2px 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.pdx-regiones {
+  display: flex;
+  gap: var(--e-sm);
+  margin: 0 calc(-1 * var(--e-xl)) var(--e-md);
+  padding: 0 var(--e-xl);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.pdx-region {
+  flex-shrink: 0;
+  min-height: 44px;
+  padding: 0 var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.pdx-region.activa {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+/* El número arriba a la izquierda y el símbolo a la derecha, como en la
+   maqueta; el de los que faltan, apagado. */
+.pdx-especie .pdx-num {
+  align-self: flex-start;
+}
+
+.pdx-especie:not(.tengo) .pdx-energia {
+  filter: grayscale(1);
+  opacity: 0.45;
+}
+
+.pdx-especie:not(.tengo) .pdx-nombre,
+.pdx-especie:not(.tengo) .pdx-cuenta {
+  color: var(--text-mid);
+}
+
+/* ── 750: cada región dice cuántas llevas (K7; SCHEMA 750) ── */
+.pdx-region.con-cuenta {
+  display: grid;
+  gap: 2px;
+  min-width: 88px;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-lg);
+  text-align: left;
+}
+
+.pdx-region-cuenta {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.pdx-region-barra {
+  display: block;
+  height: 3px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+}
+
+.pdx-region-barra i {
+  display: block;
+  width: var(--ancho);
+  height: 100%;
+  background: var(--navy);
+}
+
+.pdx-region.activa .pdx-region-cuenta {
+  color: var(--blanco-fijo);
+}
+
+.pdx-region.activa .pdx-region-barra {
+  background: rgb(255 255 255 / 30%);
+}
+
+.pdx-region.activa .pdx-region-barra i {
+  background: var(--blanco-fijo);
+}

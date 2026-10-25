@@ -41785,6 +41785,83 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1011 — Rendimiento: Mi colección por vistas y las rondas por import()
+
+Lo primero de la propuesta del repaso (PINGU: «adelante con lo recomendado»).
+`js/mi-coleccion.js` tenía 8.800 líneas y /cartas —la misma pantalla sin
+cuenta, la pública— bajaba el escáner, la selección múltiple, las carpetas con
+su diálogo de adorno (que arrastra la Pokédex de especies y los sprites), la
+Pokédex y el importador con la imagen compartible. Nada de eso lo usa quien
+mira el catálogo.
+
+- **Cinco módulos con el molde de la 895** (`montar(ctx)`, el estado por
+  getters y setters, los puentes en el principal, `enganchar()` dentro):
+  - `js/mi-coleccion/escaner-ui.js`: la cámara, la ráfaga y «desde tus
+    fotos». Entra al pulsar «Escanear» (o `?escanear`, o `pokedoc:escanear`).
+  - `js/mi-coleccion/seleccion.js`: marcar varias, con el mantener pulsado
+    de la 747 y la barra. Entra en un rato libre (`requestIdleCallback`) cuando
+    la colección es tuya, o al pulsar «Seleccionar» si llega antes. La rejilla
+    pregunta `marcadasAhora()`/`marcarEnAhora()`: sin el módulo, null, que es
+    «apagado». `claveMarca` se queda en el principal porque la escribe la
+    rejilla en sus atributos antes de que el módulo exista.
+  - `js/mi-coleccion/carpetas-ui.js`: la pestaña de carpetas viejas, las
+    chips de la ficha y `dialogo-adorno` (que ya no importa el principal: −28
+    KB del grafo estático). Entra al abrir la pestaña o al pintar la ficha de
+    una copia tuya; si la lateral ya preguntó y no hay carpetas (lo normal
+    desde la 759), el puente esconde el bloque sin bajar nada. El estado
+    (`carpetas`, `carpetasLista`, `carpetasResumen`, `carpetaAbierta`) se
+    queda en el principal: lo leen la lateral y el Panel.
+  - `js/mi-coleccion/pokedex-ui.js`: la rejilla por regiones, una especie y
+    sus mandos. Entra al abrir la pestaña o por `?dex=`. El estado que lee la
+    dirección y el cambio de catálogo sigue en el principal; la ficha pide
+    `cartasDeLaEspecieAhora()` para las cartas de la especie que no son tuyas.
+  - `js/mi-coleccion/extras.js`: importar, exportar y «Mi colección en una
+    imagen». El principal escucha los tres botones y, al primero, baja el
+    módulo y le pasa el botón (`pulsar`).
+- **Las dos hojas con prefijo propio salen de `css/mi-coleccion.css`**:
+  `css/mc-escaner.css` y `css/mc-pokedex.css`, que inyecta su módulo con
+  `hojaInyectada` y espera antes de pintar (lo de la 748). Las sacó un guion
+  que mueve solo las reglas cuyos selectores son TODOS del prefijo, también
+  dentro de un `@media` (reescrito en la hoja nueva con las suyas); lo que
+  mezcla se queda. Una regla que se queda y compite con una que se fue cambia
+  de orden: las pruebas de pantalla de las dos vistas lo vigilan.
+- **`js/torneos/ronda.js` por `import()` en /torneo**: era el módulo más
+  grande de la ficha (47 KB gzip, 160 KB en claro) y estaba en el grafo
+  estático, así que la ficha no empezaba a pintar hasta tenerlo analizado.
+  Ahora `torneo.js` lo baja justo antes de `montarCiclo` (después de
+  `pintarTodo`), y la gloria y el podio lo leen de `ronda` cuando está.
+- **Lo que mide `pesar.mjs`** (grafo estático gzip): /cartas y /mi-coleccion
+  574 → 513 KB (JS 425 → 369; CSS 117 → 112; 71 → 64 módulos); /torneo 431 →
+  358 (63 → 54 módulos). Queda lejos de los 180 de la propuesta: lo grande que
+  sigue en el grafo es `mi-coleccion.js` (119 KB gzip), `supabase-js` (39),
+  `albumes.js` (15, con muchas llamadas síncronas desde el principal) y
+  `css/mi-coleccion.css` (70 KB gzip, 287 KB en claro: la ficha, el Panel, la
+  expansión y los álbumes, mezclados por tandas). El siguiente paso es la
+  pestaña Cartas con sus filtros y el editor de línea; y `albumes.js` pide
+  antes convertir sus lectores síncronos.
+- **La herramienta**: `scratchpad/ctxear.mjs` (de la rama `pruebas`, en
+  `herramientas/`) reescribe un bloque sacado del principal poniendo `ctx.`
+  solo a los nombres que quedan LIBRES, con la misma cuenta de ámbitos que
+  `libres.mjs` (un parámetro `repintar` no es `ctx.repintar`; una propiedad
+  abreviada `{ sesion }` pasa a `sesion: ctx.sesion` una sola vez). Un regex
+  a pelo tocaba cadenas y comentarios (`'mc-album-marcando'` → `'mc-ctx.album-
+  marcando'`).
+- **Dos trampas al mudar**: un `import('./mi-coleccion/x.js')` dentro de lo
+  mudado apunta un directorio más abajo (pasó en los tres módulos: 404 sin más
+  aviso que la prueba); y lo que escribía una rejilla con el bloque dentro
+  (`marcadas`, `cartasDeLaEspecie`) se lee ahora por una función que contesta
+  «no» mientras el módulo no está.
+
+**Pruebas**: `test-tanda-1011.mjs` (los cinco entran por `import()` y ninguno
+por `from`; `dialogo-adorno` y `ronda.js` fuera del grafo estático de su
+página; las dos hojas con su `hojaInyectada` y sin rastro del prefijo en
+`mi-coleccion.css`; cada módulo sin identificadores libres; /cartas sin cuenta
+no pide ninguno de los cinco; con cuenta, la selección llega sola). Al día:
+558, 560, 561 y 896 (leen el módulo). Pasadas: 299, 305, 311, 312, 313, 737,
+981, 447, 719, 754, 381, 748, 750, 711, 713, 747, 426, 402, 411, 417, 477, 474,
+759, 752, 764, 571, 574, 580, 581, 582, 689, 729, 651, 578 (una vez roja en
+frío, con el código viejo igual) y las de torneos.
+
 ## Tanda 1010 — Escribir una guía se ve, y «Hoy» dice lo que es
 
 PINGU: «la gente nueva no sabe que se puede escribir guías… el botón solo está
