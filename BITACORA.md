@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-25 (244) — PINGU-Claude (1006 — la versión manda en la hoja de añadir)
+
+**Hecho**: en las dos hojas de añadir (Mi colección y /carta) se ofrecen las
+versiones de todos los idiomas del set, sin aviso, y los idiomas en que la
+versión elegida no salió se apagan. Unlimited de la baraja de Treecko: sin
+coreano. Reverse de Stormfront: sin español. Fuera el aviso «En X no salió en Y».
+
+**Ficheros**: `js/cardmarket.js` (`versionesDeLosIdiomas`, `idiomasDeLaVersion`;
+fuera `avisoDeVersiones`), `js/precio-vista.js` (`chipDeIdiomaHtml` con
+`noSalio`), `js/mi-coleccion.js`, `js/carta-mercado.js`, `css/cardmarket.css`,
+`mi-coleccion.html` y `cartas.html` (sin el párrafo del aviso), `SCHEMA.md`,
+`novedades.json`, `BITACORA.md`. En `pruebas`: `test-tanda-1006-pantalla.mjs`
+(nueva, falla sin el arreglo), 956 y 958 (puras y de pantalla) al día.
+
+**Pendiente**: lo de la 237.
+
 ## 2026-10-25 (243) — PINGU-Claude (1005 ejecutada)
 
 **Hecho**: PINGU ejecutó la 1005 (30 y 30). Su línea en `novedades.json`.

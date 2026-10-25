@@ -983,16 +983,6 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   font-weight: 600;
 }
 
-/* La versión que no salió en el idioma elegido (956). */
-.mc-ad-aviso-idioma {
-  margin: 0;
-  padding: var(--e-xs) var(--e-sm);
-  border-radius: var(--radius-md);
-  background: var(--warning-bg);
-  color: var(--warning);
-  font-size: var(--t-xs);
-}
-
 .mc-idioma-chips {
   display: flex;
   flex-wrap: wrap;
@@ -1019,6 +1009,14 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   border-color: var(--navy);
   background: var(--navy-solid);
   color: var(--blanco-fijo);
+}
+
+/* Un idioma en que la versión elegida no salió (1006): se ve, no se toca. */
+.mc-idioma-chip:disabled {
+  border-style: dashed;
+  color: var(--text-dim);
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .mc-ad-campos {

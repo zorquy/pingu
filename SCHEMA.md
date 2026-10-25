@@ -41785,6 +41785,43 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1006 — La versión manda y el idioma se acota a ella
+
+PINGU, con la baraja de Treecko (キモリデッキ) en coreano solo en 1.ª edición
+(lo puso él en /admin: «Versiones de todas», el coreano en los idiomas del set y
+✕ a la Unlimited en KO): «ese aviso me da igual, estoy eligiendo la primera
+edición, que sí existe en coreano… si eliges la Unlimited, que no te dé el
+idioma coreano, simplemente que no te deje elegir». Y lo mismo para los sets
+que no salieron en un idioma y para el Duskull SH2.
+
+Antes (956) el idioma acotaba las versiones: al tocar «KO» la Unlimited
+desaparecía y salía «En coreano, … no salió en Unlimited». Ahora es al revés:
+
+- La hoja ofrece las versiones que salieron en ALGÚN idioma del set
+  (`versionesDeLosIdiomas`, en `js/cardmarket.js`: la unión de
+  `versionesDelIdioma` por idioma, en el orden de la carta y detrás las que
+  pone una carta, la 958).
+- Elegida una, los idiomas en que no salió se pintan apagados
+  (`idiomasDeLaVersion`; `chipDeIdiomaHtml(i, activo, { noSalio })` les pone
+  `disabled` y el título «Coreano: no salió en Unlimited»). Si el idioma puesto
+  deja de valer, pasa al primero que sí.
+- Si la versión no salió en ninguno (una que la copia ya tiene, la 472), valen
+  todos: no se bloquea la hoja.
+- Fuera `avisoDeVersiones`, `#mcAdAvisoIdioma`, `#cmAdAvisoIdioma` y su CSS.
+
+En Mi colección los idiomas se pintan DESPUÉS de poner la versión
+(`prepararAnadir`), y en /carta `hojaDeVersiones` y el desplegable se vacían
+antes de pintarlos: la versión de la carta anterior apagaba idiomas que en la
+nueva valen. Cambiar de versión (el `change` del desplegable, que también
+dispara «¿Cuál tienes?») repinta los idiomas; cambiar de idioma ya no toca las
+versiones.
+
+**Pruebas**: `test-tanda-1006-pantalla.mjs` (la baraja de Treecko: 1.ª edición
+→ JA y KO; Unlimited → KO apagado y el idioma pasa a JA; se guarda la coreana
+en 1.ª; sin el arreglo falla). La 956 y la 958, puras y de pantalla, al día con
+el nuevo comportamiento (Stormfront y el Duskull SH2, en Mi colección y en
+/carta).
+
 ## Tanda 1005 — Las versiones «Trick or Trade 2023» y «2024», por migración
 
 PINGU, con las dos listas de Bulbapedia: «métele una variante que se llame

@@ -111,9 +111,12 @@ export function banderaHtml(idioma) {
 // en `aria-label` y `title`. La comparten la hoja de añadir de Mi colección
 // y la de /carta, y «¿En qué idioma la quieres?». «Cualquiera» (id '') no
 // tiene bandera ni sigla: va con su palabra.
-export function chipDeIdiomaHtml(i, activo = false) {
+// `noSalio` (1006): el nombre de la versión elegida si en este idioma no salió;
+// el chip se ve apagado y no se puede tocar.
+export function chipDeIdiomaHtml(i, activo = false, { noSalio = '' } = {}) {
   const texto = i.id ? i.id.toUpperCase() : i.nombre
-  return `<button type="button" class="mc-idioma-chip${activo ? ' activo' : ''}" role="radio" aria-checked="${activo ? 'true' : 'false'}" data-idioma="${escapeHtml(i.id)}" aria-label="${escapeHtml(i.nombre)}" title="${escapeHtml(i.nombre)}">${i.id ? banderaHtml(i.id) : ''}<span>${escapeHtml(texto)}</span></button>`
+  const titulo = noSalio ? `${i.nombre}: no salió en ${noSalio}` : i.nombre
+  return `<button type="button" class="mc-idioma-chip${activo ? ' activo' : ''}" role="radio" aria-checked="${activo ? 'true' : 'false'}" data-idioma="${escapeHtml(i.id)}" aria-label="${escapeHtml(titulo)}" title="${escapeHtml(titulo)}"${noSalio ? ' disabled' : ''}>${i.id ? banderaHtml(i.id) : ''}<span>${escapeHtml(texto)}</span></button>`
 }
 
 // El rango entre idiomas: el más barato y el más caro, con quién es cada

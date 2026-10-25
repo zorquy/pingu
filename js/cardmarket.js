@@ -145,13 +145,29 @@ export function reglasDeFilas(filas) {
   }
   return r
 }
-// Y la frase que lo dice, debajo del idioma.
-export function avisoDeVersiones(quitadas, idioma, nombreDeSet) {
-  if (!quitadas?.length) return ''
-  const nombres = quitadas.map((v) => v.nombre)
-  const lista = nombres.length > 1 ? `${nombres.slice(0, -1).join(', ')} ni en ${nombres[nombres.length - 1]}` : nombres[0]
-  const lengua = (IDIOMAS.find((i) => i.id === idioma)?.nombre || idioma).toLowerCase()
-  return `En ${lengua}${nombreDeSet ? `, ${nombreDeSet}` : ''} no salió en ${lista}.`
+// LA VERSIÓN MANDA, Y LOS IDIOMAS SE ACOTAN A ELLA (1006). PINGU, con la
+// baraja de Treecko (en coreano solo la 1.ª edición): «ese aviso me da igual,
+// estoy eligiendo la primera edición, que sí existe en coreano… cuando eliges
+// la Unlimited, que no te dé el idioma coreano». Antes el idioma acotaba las
+// versiones y salía una frase; ahora se ofrecen las versiones de TODOS los
+// idiomas del set y, elegida una, los idiomas en que no salió no se tocan.
+// `idiomas` son ids. Lo de cada idioma sigue siendo `versionesDelIdioma`.
+export function versionesDeLosIdiomas(versiones, reglas, idiomas, cardId = null) {
+  const lenguas = (idiomas || []).filter(Boolean)
+  if (!lenguas.length) return versiones
+  const hay = new Map()
+  for (const l of lenguas) for (const v of versionesDelIdioma(versiones, reglas, l, cardId).versiones) if (!hay.has(v.id)) hay.set(v.id, v)
+  // En el orden de la carta; detrás, las que solo pone alguna carta (958).
+  const enOrden = versiones.filter((v) => hay.has(v.id))
+  return [...enOrden, ...[...hay.values()].filter((v) => !enOrden.includes(v))]
+}
+// Los ids de los idiomas en que salió `variante`. Si no salió en ninguno (una
+// versión que la copia ya tiene, la 472) valen todos: no se bloquea la hoja.
+export function idiomasDeLaVersion(idiomas, versiones, reglas, variante, cardId = null) {
+  const ids = (idiomas || []).map((i) => (typeof i === 'string' ? i : i.id))
+  if (!variante) return ids
+  const valen = ids.filter((l) => !l || versionesDelIdioma(versiones, reglas, l, cardId).versiones.some((v) => v.id === variante))
+  return valen.some(Boolean) ? valen : ids
 }
 
 // Los estados, con el número del filtro `minCondition` de Cardmarket.
