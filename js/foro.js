@@ -409,16 +409,21 @@ async function pintarIndice() {
 // EL BOTÓN DE ESCRIBIR (748): flotante, como en su maqueta. Abrir un tema
 // pide saber en qué foro, así que pregunta eso y te deja en ese foro con el
 // formulario abierto (`?nuevo=1`). Sin cuenta, a entrar.
+// Desde la 1021 (D4 de «PokeDoc como app») ya no flota: va en la cabecera,
+// al lado de «Leído» y la lupa, como botón principal «Escribir». Flotando
+// tapaba el texto de la última tarjeta y en el PC salía abajo a la derecha
+// aunque la cabecera ya tenía sitio.
 function montarEscribir(foros) {
   if (document.getElementById('foroEscribir')) return
+  const sitio = document.getElementById('foroAcciones') || document.body
   const boton = document.createElement(sesion ? 'button' : 'a')
-  boton.className = 'foro-fab'
+  boton.className = 'btn-primary foro-escribir'
   boton.id = 'foroEscribir'
   boton.setAttribute('aria-label', 'Abrir un tema')
-  boton.innerHTML = icons.edit(22)
+  boton.innerHTML = `${icons.edit(16)}<span>Escribir</span>`
   if (!sesion) {
     boton.href = `/auth.html?volver=${encodeURIComponent('/foro.html')}`
-    document.body.appendChild(boton)
+    sitio.appendChild(boton)
     return
   }
   boton.type = 'button'
@@ -427,7 +432,8 @@ function montarEscribir(foros) {
   hoja.setAttribute('aria-labelledby', 'foroElegirTitulo')
   hoja.innerHTML = `<div class="foro-elegir-cabeza"><h2 id="foroElegirTitulo">¿En qué foro?</h2><button type="button" class="foro-elegir-cerrar" aria-label="Cerrar">${icons.xCircle(20)}</button></div>
     <nav class="foro-elegir-lista">${foros.filter((f) => !f.is_locked).map((f) => `<a href="${urlForo(f.slug)}?nuevo=1">${icons.messageSquare(18)}<span>${escapeHtml(f.name)}</span></a>`).join('')}</nav>`
-  document.body.append(boton, hoja)
+  sitio.appendChild(boton)
+  document.body.appendChild(hoja)
   boton.addEventListener('click', () => hoja.showModal())
   hoja.addEventListener('click', (e) => { if (e.target === hoja || e.target.closest('.foro-elegir-cerrar')) hoja.close() })
 }
@@ -608,25 +614,13 @@ async function pintarForo() {
   await pintarLateral()
 
   document.getElementById('btnNuevoTema')?.addEventListener('click', () => abrirFormularioTema(foro))
-  // En el móvil, «Abrir un tema» es el botón rosa (813, FO2), como en el
-  // índice; el de la cabecera se esconde con CSS. Sin cuenta, a entrar.
-  if (puedeEscribir && !document.getElementById('foroEscribir')) {
-    const fab = document.createElement(sesion ? 'button' : 'a')
-    fab.className = 'foro-fab foro-fab-foro'
-    fab.id = 'foroEscribir'
-    fab.setAttribute('aria-label', 'Abrir un tema')
-    fab.innerHTML = icons.edit(22)
-    if (sesion) {
-      fab.type = 'button'
-      fab.addEventListener('click', () => {
-        document.getElementById('btnNuevoTema')?.click()
-        // El formulario sale arriba de la lista: que se vea al tocar.
-        setTimeout(() => document.getElementById('formularioTema')?.scrollIntoView({ block: 'start' }), 300)
-      })
-    } else {
-      fab.href = `/auth.html?volver=${encodeURIComponent(location.pathname)}`
-    }
-    document.body.appendChild(fab)
+  // Dentro de un foro, en el móvil, «Abrir un tema» era el botón rosa
+  // flotante (813, FO2); desde la 1021 es el mismo botón de la cabecera en
+  // todas las pantallas (`#btnNuevoTema`, que el CSS del móvil acorta a
+  // «Escribir»). Sin cuenta, el botón lleva a entrar.
+  if (puedeEscribir && !sesion) {
+    const b = document.getElementById('btnNuevoTema')
+    if (b) b.addEventListener('click', (e) => { e.preventDefault(); location.href = `/auth.html?volver=${encodeURIComponent(location.pathname)}` })
   }
   // Desde el botón de escribir del índice (748): el formulario, ya abierto.
   if (new URLSearchParams(location.search).get('nuevo')) document.getElementById('btnNuevoTema')?.click()

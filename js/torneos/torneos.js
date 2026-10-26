@@ -687,8 +687,20 @@ function engancharVistas() {
     $('torneosCalendario').classList.toggle('hidden', !calendario)
     $('listaTorneos').classList.toggle('hidden', calendario)
     if (calendario) $('torneosVacio').classList.add('hidden')
+    // El icono de la cabecera (1021, móvil): enseña la OTRA vista.
+    const icono = $('torneosVistaIcono')
+    if (icono) {
+      icono.hidden = false
+      icono.innerHTML = calendario ? (icons.alignLeft?.(20) || '') : (icons.calendar?.(20) || '')
+      icono.setAttribute('aria-label', calendario ? 'Ver como lista' : 'Ver como calendario')
+    }
     pintarCalendario()
   }
+  $('torneosVistaIcono')?.addEventListener('click', () => {
+    vistaTorneos = vistaTorneos === 'calendario' ? 'lista' : 'calendario'
+    localStorage.setItem('pokedoc-torneos-vista', vistaTorneos)
+    aplicar()
+  })
   document.querySelectorAll('[data-vista-torneos]').forEach((b) =>
     b.addEventListener('click', () => {
       vistaTorneos = b.dataset.vistaTorneos

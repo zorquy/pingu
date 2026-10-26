@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (259) — PINGU-Claude (1021 — foro, torneos y constructor)
+
+**Hecho**: el botón rosa flotante del foro se va; «Escribir» va en la
+cabecera (y dentro de un foro, «Abrir un tema» en todas las pantallas). En
+/torneos, en el móvil, Lista/Calendario es un icono junto a «Crear torneo»,
+la semana va fina y los chips en una fila deslizable; en el PC conmutador y
+semana en una fila, y el pie de la tarjeta sin «Ins…». En el constructor
+(móvil) las acciones van arriba, bajo las pestañas, y el título grande se
+queda para quien escucha: abajo solo la burbuja y la barra.
+
+**Ficheros**: `js/foro.js`, `css/foro.css`, `torneos.html`,
+`js/torneos/torneos.js`, `css/torneos.css`, `css/constructor.css`,
+`SCHEMA.md`, `novedades.json`. En `pruebas`: 816 al día.
+
+**Pruebas**: 297, 748, 790, 813, 860, 816 en verde; `test-imports` en verde.
+
+**Pendiente**: la migración 1017 (PINGU, SQL Editor); 1022 y 1023; lo de
+siempre.
+
 ## 2026-10-26 (258) — PINGU-Claude (1020 — Mi colección: Panel, expansión abierta y catálogo)
 
 **Hecho**: en el móvil, las cuatro acciones del Panel en losetas iguales,

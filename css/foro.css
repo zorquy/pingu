@@ -392,16 +392,16 @@
   text-decoration: none;
 }
 
-/* El botón rosa dentro de un foro es del móvil; en el ordenador está
-   «Abrir un tema» en la cabecera. */
-@media (min-width: 901px) {
-  .foro-fab.foro-fab-foro {
-    display: none;
-  }
-}
-
 @media (max-width: 900px) {
-  body:has(.foro-fab-foro) #btnNuevoTema {
+  /* 1021: en el móvil «Abrir un tema» (de un foro) y «Escribir» (del
+     índice) van en la cabecera, cortos y a 44 px. */
+  #btnNuevoTema,
+  .foro-escribir {
+    min-height: 44px;
+    padding: 0 var(--e-md);
+    font-size: var(--t-sm);
+  }
+  .foro-escribir svg {
     display: none;
   }
 
@@ -2163,21 +2163,11 @@ html:has(#temaResponder) {
   display: none;
 }
 
-.foro-fab {
-  position: fixed;
-  right: var(--e-xl);
-  bottom: var(--e-xl);
-  z-index: 92;
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  border: 0;
-  border-radius: 50%;
-  background: var(--pink);
-  box-shadow: var(--shadow-lg);
-  color: var(--blanco-fijo);
-  cursor: pointer;
+/* El botón de escribir, en la cabecera (1021; antes flotaba, rosa). */
+.foro-escribir {
+  gap: var(--e-xs);
+  padding: 12px 16px;
+  font-size: var(--t-md);
 }
 
 .foro-elegir[open] {
@@ -2422,10 +2412,6 @@ html:has(#temaResponder) {
 
   .foro-seccion .foro-tema-fila.foro-tema-conv {
     padding-inline: var(--e-md);
-  }
-
-  .foro-fab {
-    bottom: calc(72px + var(--e-xl) + env(safe-area-inset-bottom));
   }
 
   /* El hilo: la cabecera en dos renglones y lo demás tras «⋯». */

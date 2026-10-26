@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "mejora", "texto": "El botón de escribir del foro va en la cabecera y ya no tapa nada. En Torneos, los mandos caben en una fila (el calendario es un icono en el móvil) y en el constructor Guardar y sus botones van arriba, bajo las pestañas, en vez de apilados sobre las cartas.", "enlace": "/torneos" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "Mi colección en el móvil: las acciones del Panel en cuatro losetas iguales y sin el hueco al final; dentro de una expansión, la tira del set en una línea y el check de «la tienes» pequeño en la esquina, sin tapar el dibujo; en Cartas, el buscador y el orden en una fila.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, al abrir una guía, un tema del foro o un torneo, la barra de arriba es la de una app: volver, de dónde vienes y compartir, y el título sube a la barra al bajar. El pie es más corto y los datos de un torneo van en dos columnas.", "enlace": "/foro" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "Letra nueva en los títulos, el logo y las cifras: más redonda y con más carácter, sin perder la lectura del texto. Y cada sección tiene su color: verde en Aprender, ámbar en Cartas, rosa en Comunidad y violeta en Jugar, en el menú de abajo, en la burbuja y en el botón principal.", "enlace": "/aprender" },

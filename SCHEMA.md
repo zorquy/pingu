@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1021 — El foro, los torneos y el constructor (D4, D5 y D6 de «PokeDoc como app»)
+
+**D4, el botón de escribir del foro.** El botón rosa flotante (748, 813)
+tapaba el texto de la última tarjeta en el móvil y en el PC salía abajo a
+la derecha aunque la cabecera ya tenía sitio. Ahora es un botón principal
+«Escribir» en `#foroAcciones`, al lado de «Leído» y la lupa (`.foro-escribir`,
+en el índice: elige el foro en la misma hoja de siempre), y dentro de un foro
+es el `#btnNuevoTema` de la cabecera en todas las pantallas (el CSS del móvil
+lo acorta a 44 px; sin cuenta lleva a entrar). `.foro-fab` ya no existe. Con
+la regla 1 de la propuesta —nada flota sobre el contenido— lo único fijo
+del móvil vuelve a ser la barra y la burbuja.
+
+**D5, los mandos de /torneos.** Antes del primer torneo había cuatro filas:
+el conmutador Lista/Calendario solo, siete cajas de día de 77 px, y cuatro
+chips en dos filas. En el móvil el conmutador es un icono en la cabecera
+junto a «Crear torneo» (`#torneosVistaIcono`, calendario ↔ lista, que
+`engancharVistas` pinta y engancha; el `.seg` se esconde), la semana va
+fina (sin la hora, 44 px) y los chips en UNA fila que se desliza. En el PC
+el conmutador y la semana comparten fila (`.torneos-mandos`, nuevo en
+`torneos.html`) y la acción del pie de cada tarjeta es más corta para que
+«Inscrito · Organiza Misty» no salga como «Ins…» en una tarjeta de 350 px.
+
+**D6, el constructor en el móvil.** Las acciones (Guardar y los iconos) iban
+pegadas ABAJO, encima de la burbuja de Jugar y de la barra: tres barras
+apiladas sobre las cartas, 180 px. Como la burbuja se queda (PINGU), las
+acciones pasan ARRIBA, pegadas debajo de las pestañas «Tu mazo | Buscar
+cartas» (que ya eran sticky; las dos bajan a 0 cuando las barras se
+esconden, `html.bm-escondidas`). Y el título «Constructor de mazos» se queda
+solo para quien escucha (visualmente escondido): el nombre del mazo es el
+título y la miga «‹ Mis mazos» ya dice dónde estás. Abajo quedan la burbuja
+y la barra.
+
+Pruebas: 297, 748, 790, 813, 860 en verde; 816 al día («Abrir un tema» en
+la cabecera, ya no en un botón rosa).
+
 ## Tanda 1020 — Mi colección: el Panel, la expansión abierta y el catálogo (D1, D2 y D3 de «PokeDoc como app»)
 
 **D1, el final del Panel** (la captura de PINGU). Las cuatro acciones

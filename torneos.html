@@ -122,6 +122,8 @@
         <p class="cab-lema">Te apuntas aquí, juegas en TCG Live y reportas el resultado: pareos suizos, top cut y clasificación en vivo.</p>
       </div>
       <div class="torneos-heroe-acciones">
+        <!-- 1021: en el móvil, Lista/Calendario es este icono (el conmutador de abajo se esconde); lo engancha js/torneos/torneos.js. -->
+        <button type="button" class="btn-secondary torneos-vista-icono" id="torneosVistaIcono" aria-label="Ver como calendario" hidden></button>
         <!-- Mis partidas y el constructor salieron de aquí en la 839: ya
              están en el menú de Jugar y en la burbuja del móvil. -->
         <button class="btn-primary" id="btnNuevoTorneo">Crear torneo</button>
@@ -318,16 +320,19 @@
     <!-- Lista o calendario (tanda 242, pedido por Ibai): el calendario
          pinta el año entero, mes a mes, con los días de torneo
          marcados en navy; pulsar un día enseña sus torneos debajo. -->
-    <nav class="seg torneo-vista-conmutador" aria-label="Cómo ver los torneos">
-      <button type="button" class="seg-btn activa" data-vista-torneos="lista">Lista</button>
-      <button type="button" class="seg-btn" data-vista-torneos="calendario">Calendario</button>
-    </nav>
+    <!-- 1021 (D5): el conmutador y la semana en la misma fila. -->
+    <div class="torneos-mandos">
+      <nav class="seg torneo-vista-conmutador" aria-label="Cómo ver los torneos">
+        <button type="button" class="seg-btn activa" data-vista-torneos="lista">Lista</button>
+        <button type="button" class="seg-btn" data-vista-torneos="calendario">Calendario</button>
+      </nav>
+      <!-- La semana de un vistazo (790, PA15); la pinta js/torneos/torneos.js. -->
+      <nav class="torneos-semana hidden" id="torneosSemana" aria-label="Los próximos siete días"></nav>
+    </div>
     <div id="torneosCalendario" class="hidden"></div>
     <!-- La silueta de la lista mientras llega (681): tres tarjetas con
          su cartel, como las de /noticias. js/torneos/torneos.js la
          sustituye entera, también cuando no hay ninguno o falla. -->
-    <!-- La semana de un vistazo (790, PA15); la pinta js/torneos/torneos.js. -->
-    <nav class="torneos-semana hidden" id="torneosSemana" aria-label="Los próximos siete días"></nav>
     <div id="listaTorneos" class="torneos-lista">
       <div class="torneos-rejilla" aria-hidden="true">
         <div class="esq-tarjeta">

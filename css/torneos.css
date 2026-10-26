@@ -556,6 +556,9 @@
 .torneo-pie .torneo-duplicar,
 .torneo-pie .torneo-borrar { flex-shrink: 0; }
 .torneo-pie-accion { margin-left: auto; flex-shrink: 0; }
+/* 1021: la acción del pie, más corta, para que «Inscrito · Organiza…» tenga
+   sitio al lado y no salga «Ins…» (en una tarjeta de 350 px). */
+.torneo-pie .torneo-pie-accion.btn-secondary { padding: 10px 12px; font-size: var(--t-sm); }
 /* «Apuntarme» en verde: es la única acción de toda la sección que suma
    gente, y tiene que distinguirse de «ver» a un metro de distancia. */
 .torneo-btn-apuntarse {
@@ -659,7 +662,26 @@
    los días con torneo en navy (pulsables). Debajo, los torneos del día
    elegido. Las flechas pasan de mes con un deslizamiento en la
    dirección del viaje, y las tarjetas de mes entran escalonadas. */
-.torneo-vista-conmutador { margin-bottom: 16px; }
+/* 1021 (D5): el conmutador y la semana en una fila en el PC; en el móvil
+   el conmutador es el icono de la cabecera y la semana va fina. */
+.torneos-mandos { display: flex; align-items: center; gap: 16px; margin: 0 0 16px; }
+.torneos-mandos .torneo-vista-conmutador { flex: 0 0 auto; margin: 0; }
+.torneos-mandos .torneos-semana { flex: 1 1 auto; margin: 0; }
+.torneos-vista-icono { display: none; }
+@media (max-width: 900px) {
+  .torneos-mandos .torneo-vista-conmutador { display: none; }
+  .torneos-vista-icono { display: inline-grid; place-items: center; width: 44px; min-width: 44px; height: 44px; padding: 0; border-radius: var(--radius-pill); }
+  .torneos-vista-icono[hidden] { display: none; }
+  .torneos-heroe-acciones { display: flex; align-items: center; gap: var(--e-sm); }
+  .torneos-mandos { margin-bottom: 12px; }
+  .tsem-dia { min-height: 0; padding: var(--e-xs) 0; gap: 0; }
+  .tsem-dia b { font-size: var(--t-sm); }
+  .tsem-dia small { display: none; }
+  /* Los chips de la lista en UNA fila que se desliza, no en dos. */
+  .torneo-pestanas-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin: 0 calc(-1 * var(--e-lg)) 16px; padding: 0 var(--e-lg); }
+  .torneo-pestanas-chips::-webkit-scrollbar { display: none; }
+  .torneo-pestanas-chips .chip-filtro { flex: 0 0 auto; }
+}
 .torneo-cal-cabecera {
   display: flex;
   align-items: center;

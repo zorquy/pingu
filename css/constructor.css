@@ -1401,26 +1401,29 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   .cm-acciones > .cm-guardar { max-width: none; padding: 0 var(--e-sm); }
   .cm-panel-mazo .cm-acciones { gap: var(--e-xs); }
 
-  /* En el móvil, las acciones van pegadas abajo, encima de la burbuja de
-     Jugar (y bajan con ella cuando las barras se esconden). */
-  .cm-panel-mazo { display: flex; flex-direction: column; }
-  .cm-panel-mazo .cm-acciones {
-    order: 99;
-    position: sticky;
-    bottom: calc(150px + env(safe-area-inset-bottom));
-    z-index: 30;
-    margin: var(--e-md) calc(-1 * var(--e-sm)) 0;
-    padding: var(--e-sm);
-    background: var(--white);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-lg);
-    transition: transform 0.3s var(--ease);
+  /* 1021 (D6): las acciones iban pegadas ABAJO, encima de la burbuja de
+     Jugar y de la barra: tres barras apiladas sobre las cartas. Ahora van
+     pegadas ARRIBA, debajo de las pestañas (que ya son sticky), y abajo
+     quedan solo la burbuja y la barra. Y el título «Constructor de mazos»
+     se queda para quien escucha: el nombre del mazo es el título. */
+  .cm-cabecera-pagina {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
   }
-
-  html.bm-escondidas .cm-panel-mazo .cm-acciones { transform: translateY(calc(80px + var(--e-xs))); }
-
-  .cm-acciones .cm-menu-lista { top: auto; bottom: calc(100% + var(--e-sm)); }
+  .cm-panel-mazo .cm-acciones {
+    position: sticky;
+    top: calc(64px + 60px);
+    z-index: 5;
+    margin: 0 calc(-1 * var(--e-sm)) var(--e-md);
+    padding: var(--e-sm);
+    background: var(--bg);
+  }
+  html.bm-escondidas .cm-pestanias { top: 0; }
+  html.bm-escondidas .cm-panel-mazo .cm-acciones { top: 60px; }
   .cm-hero .cm-nombre { font-size: var(--t-xl); }
   .cm-hero-arte { width: 55%; }
 }
