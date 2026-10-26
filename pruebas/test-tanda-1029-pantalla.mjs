@@ -126,6 +126,14 @@ console.log('\n── 4. Lo que queda escrito ──')
   check('la página guarda las fotos en esa misma caché', /caches\.open\(CACHE_FOTOS\)/.test(readFileSync(`${RAIZ}/js/evento.js`, 'utf8')) && /CACHE_FOTOS = 'pokedoc-evento-fotos'/.test(readFileSync(`${RAIZ}/js/evento.js`, 'utf8')))
   check('no queda ningún feria.html, feria.css ni feria.js', !['feria.html', 'css/feria.css', 'js/feria.js'].some((f) => { try { readFileSync(`${RAIZ}/${f}`); return true } catch { return false } }))
   check('la barra del móvil sabe que /evento es de Cartas', /'evento'\]/.test(readFileSync(`${RAIZ}/js/barra-movil.js`, 'utf8')))
+  // Lo que la página pide a `user_wants` existe en la base (624): la primera
+  // 1029 pedía `market`, que no está, y en producción la consulta falló entera
+  // con el doble en verde (el doble no rechaza columnas que no existen).
+  const sql = readFileSync(`${RAIZ}/supabase-migration-intercambios.sql`, 'utf8')
+  const tabla = sql.slice(sql.indexOf('create table if not exists public.user_wants'), sql.indexOf(');', sql.indexOf('create table if not exists public.user_wants')))
+  const columnas = new Set([...tabla.matchAll(/^\s+([a-z_]+)\s+(?:uuid|text|int|timestamptz|boolean)/gm)].map((m) => m[1]))
+  const pedidas = (readFileSync(`${RAIZ}/js/evento.js`, 'utf8').match(/from\('user_wants'\)\.select\('([^']+)'\)/) || [])[1]?.split(',') || []
+  check('las columnas que pide a user_wants existen en su migración', pedidas.length > 0 && pedidas.every((c) => columnas.has(c)), `pide ${pedidas.join(',')}; hay ${[...columnas].join(',')}`)
 }
 
 await b.close()
