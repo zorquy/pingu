@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "nuevo", "texto": "La ficha de un producto sellado dice qué lleva dentro (y si el pack sale mejor que comprarlo suelto), en qué packs viene un sobre y cuál es su PVP oficial frente al precio de hoy.", "enlace": "/mi-coleccion?ver=productos" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el ordenador, la página en la que estás dentro de cada sección del menú va en el color de esa sección (Guías en verde, Gente en rosa…). Y el podio del mes de la comunidad ocupa la mitad.", "enlace": "/usuarios" },
     { "fecha": "2026-10-26", "tipo": "arreglo", "texto": "En el tema oscuro, Inicio ya no se pinta en azul marino (parecía apagado): va en el mismo azul claro que lo demás. Y en el ordenador, el menú de Inicio ya no repite «Inicio» debajo.", "enlace": "/" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, abrir una guía, un tema o un torneo desliza desde la derecha y volver atrás sale hacia la derecha, como en una app; y las tarjetas responden al tocarlas.", "enlace": "/foro" },

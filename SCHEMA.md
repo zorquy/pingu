@@ -41785,6 +41785,84 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1026 — Qué lleva dentro un producto sellado, y su PVP (lo nuevo de TCGGO)
+
+TCGGO anunció el 25 de octubre de 2026 dos cosas en su API (PINGU pegó los
+dos avisos del Discord y la especificación OpenAPI v1, `api-1_5.json`, y
+dijo «adelante» a la propuesta https://claude.ai/artifact/MyDEGqn4za9pR2RNe1ZDR1):
+con `include_contained_items=1` un producto trae `contained_items` (lo que
+lleva dentro: sobres, cartas promo, accesorios, con `quantity`, foto y precios
+«slim») y `found_in` (en qué packs viene); y cada producto trae `msrp`, el
+PVP oficial por región (`eu` en euros, `us`, `uk`). Las dos van en el listado
+por expansión que `tcggo-productos` ya pedía: **cero peticiones de más**. Lo
+demás del anuncio (moneda, inventarios, ventas de eBay con foto) no nos
+aporta; las versiones japonesas Poké Ball / Master Ball y TCGplayer en
+japonés llegan solos por la pasada de precios (929: `include_variants=1` se
+pide en los dos catálogos). Y el «mínimo en España» de los productos, que la
+propuesta daba por nuevo, ya existía desde la 762 (`cm_lowest_es`).
+
+**La base** (`supabase-migration-1026-productos-contenido.sql`):
+`tcg_products.pvp_eur` y la tabla `tcg_product_contenido` (product_id →
+contenido_tipo `product`|`card`, contenido_id, cantidad, nombre, image,
+cm_lowest, tp_market; clave ajena al producto con `on delete cascade`,
+índice por lo contenido, RLS de lectura para todos). `contenido_id` de un
+producto es el nuestro (con el desplazamiento japonés de la 808); el de una
+carta, su id de TCGGO, sin clave ajena (puede que no la tengamos). «Viene
+en» es la misma tabla leída al revés. Probada en el PostgreSQL de pruebas:
+la cascada borra el contenido con el producto.
+
+**Lo puro** (`js/productos.js`): `filaDeProducto` saca `pvp_eur` de `msrp.eu`
+solo si es EUR (`COLUMNAS_1026`, que la función quita si falta la columna);
+`filasDeContenido(p, { productId, ahora, idDe })` monta las filas (solo
+`product` y `card`, sin repetidos, cantidad 1–10000, el mínimo NM de una
+carta); `cuentaDelPack(precioDelPack, contenido)` suma lo de dentro con
+precio contra el pack y da `mejor`/`peor`/`igual`, o `parcial` si algo de
+dentro no tiene precio (una ETB con accesorios): con algo sin contar no se
+afirma «sale a cuenta»; `porUnidad` (pack / unidades) y `relacionConPvp`
+(«hoy en el PVP» ±5 %, «hoy al doble», «hoy a 3,2×», «un N % por encima /
+debajo»).
+
+**La pasada** (`tcggo-productos`): dos sondeos gratis más (`pvp_eur` y la
+tabla); con la tabla, `urlDeProductos(…, { contenido: true })` añade el flag;
+los productos se escriben primero (la tabla cuelga de ellos) y el contenido
+se REESCRIBE entero por producto (un `DELETE … product_id=in.(…)` por cada
+cien y un POST): un sobre que TCGGO quite de un pack no puede seguir contado.
+Un fallo al escribir para la pasada como siempre (526). El resumen lleva
+`contenidos`. La sonda de /admin tiene el modo «un producto, con lo que lleva
+dentro» (`/products/{id}?include_contained_items=1`).
+
+**La ficha** (`js/mi-coleccion/productos.js`): la chapa `.mc-prod-pvp`
+(«PVP 29,99 € · hoy un 60 % por encima», contra el precio que se enseña,
+el español); y `#mcProdContenido`, que llega después de pintar
+(`pintarContenido`, con la guarda de ficha vieja de la 663) con dos bloques:
+«Qué lleva dentro» (una fila por cosa, las que son productos nuestros se
+abren con `data-prod-ficha`, y la cuenta en `.mc-prodc-cuenta` con su
+veredicto) y «Viene en» (los packs que lo llevan, ordenados por lo que sale
+cada unidad, cinco a la vista y «Ver N más», que despliega y se va). Los
+productos de dentro y los padres se piden con `productosPorIds` para poder
+abrirlos. Sin la migración, las dos consultas fallan y no se pinta nada:
+ni «no lleva nada» (la 319). CSS en `css/mi-coleccion-productos.css`
+(`.mc-prodc-*`).
+
+**El doble**: `tcg_product_contenido` en `T` y el gancho
+`__FAKE_PRODUCTO_CONTENIDO__`.
+
+**Pruebas**: `test-tanda-1026.mjs` (lo puro sobre el fixture
+`pruebas/fixtures/tcggo-producto-1026.json`, que son los ejemplos de su
+especificación tal cual —el 48447 con `found_in` real, 28 packs, y la lista
+del 431 con `msrp`—, y la pasada con y sin migración) y
+`test-tanda-1026-pantalla.mjs` (el bundle con PVP y su cuenta, el sobre con
+«Viene en» y «Ver 2 más», una ETB con cosas sin precio en el iPhone). **Lo
+que la especificación NO trae** es un pack con `contained_items` lleno: la
+fila se monta con la forma de las de `found_in`, que es lo que dice la
+descripción del parámetro. Lo confirma PINGU con la sonda sobre el 48449
+(Booster Bundle); si la forma real difiere, el fixture pasa a ser esa
+respuesta (501) y `filasDeContenido` se ajusta.
+
+**Después de ejecutar la migración**: la pasada de productos (cada hora)
+vuelve a mirar cada expansión cuando le toca (las cercanas a su salida cada
+día, las demás a la semana); para tenerlo todo antes, subir `REVISION`.
+
 ## Tanda 1025 — La página activa de la lateral en el color de su sección, y el podio en filas (lo que quedaba de D12)
 
 PINGU, con la 1024 ya desplegada (2026-10-26): «inicio tiene sus

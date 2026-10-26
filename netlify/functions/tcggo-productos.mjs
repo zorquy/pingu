@@ -31,7 +31,7 @@
 // opcionales TCGGO_BASE, TCGGO_TOPE_PRODUCTOS, TCGGO_RUTA_PRODUCTOS y
 // TCGGO_EPISODIOS_SUELTOS («226,JP:12»: sustituye a la lista).
 import { cabeceras, baseDe, baseJpDe, hayMasPaginas, esLimiteDelPlan } from '../lib/tcggo.mjs'
-import { filaDeProducto, COLUMNAS_POR_PAIS } from '../../js/productos.js'
+import { filaDeProducto, COLUMNAS_POR_PAIS, COLUMNAS_1026, filasDeContenido } from '../../js/productos.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_productos'
@@ -115,7 +115,9 @@ export function expansionesQueTocan(sets, hechos = {}, hoy) {
   return lista.sort((a, b) => distancia(a) - distancia(b) || b.id - a.id)
 }
 
-export const urlDeProductos = (plantilla, id, pagina, base) => `${base}${plantilla.replace('{id}', encodeURIComponent(id)).replace('{pagina}', pagina)}`
+// Con `contenido`, lo que lleva dentro cada producto viene en la misma
+// petición (1026, `include_contained_items=1`): no cuesta una más.
+export const urlDeProductos = (plantilla, id, pagina, base, { contenido = false } = {}) => `${base}${plantilla.replace('{id}', encodeURIComponent(id)).replace('{pagina}', pagina)}${contenido ? '&include_contained_items=1' : ''}`
 
 export async function procesar({ env = process.env, fetchImpl = fetch, restImpl = null, ahora = new Date() } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
@@ -138,6 +140,12 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
   // decir de qué catálogo es lo mezclaría con el occidental.
   let conMercado = true
   try { await pedir('tcg_products?select=market&limit=1') } catch { conMercado = false }
+  // La 1026: el PVP (columna) y lo que lleva dentro (tabla). Sin su
+  // migración, ni se manda la columna ni se pide el contenido a TCGGO.
+  let conPvp = true
+  try { await pedir(`tcg_products?select=${COLUMNAS_1026.join(',')}&limit=1`) } catch { conPvp = false }
+  let conContenido = true
+  try { await pedir('tcg_product_contenido?select=product_id&limit=1') } catch { conContenido = false }
   let estado = {}
   try { estado = (await pedir(`scrydex_estado?select=valor&clave=eq.${CLAVE_ESTADO}&limit=1`))?.[0]?.valor || {} } catch { estado = {} }
   estado = { hechos: {}, fallidos: {}, ...estado }
@@ -180,6 +188,7 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
     if (estado.peticiones >= tope) break
     if (e.mercado === 'JP' && estado.jpSinRuta?.hasta > hoy) continue
     const filas = []
+    const contenidos = []
     const suelta = sueltas.has(e.clave)
     // Un suelto sigue por donde lo dejó la pasada anterior.
     const desde = suelta ? Math.max(1, Number(estado.sigue[e.clave]) || 1) : 1
@@ -197,7 +206,7 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
         if (estado.peticiones >= tope) break
         estado.peticiones++
         resumen.peticiones++
-        const res = await fetchImpl(urlDeProductos(plantilla, e.id, pagina, bases[e.mercado]), { headers: cabeceras(env.TCGGO_API_KEY, host) })
+        const res = await fetchImpl(urlDeProductos(plantilla, e.id, pagina, bases[e.mercado], { contenido: conContenido }), { headers: cabeceras(env.TCGGO_API_KEY, host) })
         const texto = await res.text()
         if (esLimiteDelPlan(res.status, texto)) {
           estado.sinPlanHasta = hoy
@@ -241,10 +250,14 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
         const f = filaDeProducto(p, { ahora })
         if (!f) continue
         if (!porPais) for (const c of COLUMNAS_POR_PAIS) delete f[c]
+        if (!conPvp) for (const c of COLUMNAS_1026) delete f[c]
         const fila = { ...f, episode_id: f.episode_id ?? e.id }
         if (conMercado) fila.market = e.mercado
         if (e.mercado === 'JP') fila.id = ID_JP + f.id
         filas.push(fila)
+        // Lo que lleva dentro (1026), colgado de NUESTRO id del producto; un
+        // producto contenido japonés va desplazado igual que su padre.
+        if (conContenido) contenidos.push(...filasDeContenido(p, { productId: fila.id, ahora, idDe: (id) => (e.mercado === 'JP' ? ID_JP + id : id) }))
       }
       if (!hayMasPaginas(respuesta)) { acabada = true; break }
       acabada = false
@@ -258,6 +271,15 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
     if (filas.length) {
       try {
         await pedir('tcg_products', { method: 'POST', body: JSON.stringify(filas) })
+        // El contenido se reescribe entero por producto (1026): lo de antes
+        // fuera y lo de ahora dentro, que un sobre que TCGGO quite de un pack
+        // no puede seguir contado. Los productos van primero: la tabla cuelga
+        // de ellos por clave ajena.
+        if (conContenido) {
+          const ids = filas.map((f) => f.id)
+          for (let i = 0; i < ids.length; i += 100) await pedir(`tcg_product_contenido?product_id=in.(${ids.slice(i, i + 100).join(',')})`, { method: 'DELETE' })
+          if (contenidos.length) await pedir('tcg_product_contenido', { method: 'POST', body: JSON.stringify(contenidos) })
+        }
       } catch (err) {
         // Lo NUESTRO para: seguir sería pagar peticiones para no escribir nada.
         estado.parado = `no se han podido escribir los productos: ${String(err?.message || err).slice(0, 160)}`
@@ -275,6 +297,7 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
     delete estado.fallidos[e.clave]
     resumen.expansiones++
     resumen.productos += filas.length
+    resumen.contenidos = (resumen.contenidos || 0) + contenidos.length
     resumen.porCatalogo[e.mercado] += filas.length
   }
   estado.ultimaPasada = { ...resumen, at: ahora.toISOString() }

@@ -100,6 +100,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   «Cartas» y `?en=cartas` llevan a `/cartas?ver=buscar&q=`; lo puro de
   arriba (expansiones que casan, el mejor resultado, las cuentas, «@») vive
   en `js/buscador-puro.js`.
+  **Lo que lleva dentro un producto y su PVP salen de TCGGO en el mismo
+  listado** (1026, `include_contained_items=1` y `msrp`): tabla
+  `tcg_product_contenido` (reescrita entera por producto en cada pasada) y
+  `tcg_products.pvp_eur`; la ficha pinta «Qué lleva dentro» con
+  `cuentaDelPack` (con algo sin precio, «orientativa», nunca «sale a
+  cuenta») y «Viene en» (la misma tabla al revés). Un dato nuevo de un
+  producto que TCGGO dé en el listado va en `filaDeProducto` con su columna
+  sondeada en la pasada (como `COLUMNAS_1026`), no en otra petición.
   Los productos sellados, con `buscarProductos` (`js/productos-valor.js`,
   968): un `or` por palabra con su traducción (`terminosDeProducto`: «lata»
   es «tin»). Y desde fuera, un producto se abre en `/cartas?ver=productos&

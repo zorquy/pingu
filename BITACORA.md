@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (264) — PINGU-Claude (1026 — qué lleva dentro un producto y su PVP, de lo nuevo de TCGGO)
+
+**Hecho**: lo nuevo de la API de TCGGO aplicado a los productos: el PVP
+oficial de Europa como chapa en la ficha («PVP 29,99 € · hoy un 60 % por
+encima») y los bloques «Qué lleva dentro» (con la cuenta de si el pack sale
+mejor que lo suelto) y «Viene en» (los packs que lo llevan, con lo que sale
+cada unidad). Cero peticiones de más: va en el listado que ya pedíamos.
+
+**MIGRACIÓN PENDIENTE (PINGU)**: `supabase-migration-1026-productos-contenido.sql`
+(una columna y una tabla). Hasta que esté, la pasada no pide el contenido
+ni manda el PVP, y la ficha no pinta nada nuevo: nada se rompe. Después,
+en /admin → Sonda de TCGGO → «un producto, con lo que lleva dentro» con el
+48449 (el Booster Bundle del 30 aniversario): es para ver la forma real de
+`contained_items`, que la especificación no trae de ejemplo.
+
+**Ficheros**: `supabase-migration-1026-productos-contenido.sql`,
+`js/productos.js`, `netlify/functions/tcggo-productos.mjs`,
+`netlify/functions/tcggo-sonda.mjs`, `admin/index.html`,
+`js/mi-coleccion/productos.js`, `css/mi-coleccion-productos.css`,
+`SCHEMA.md` (1026), `novedades.json`, `CLAUDE.md`. En `pruebas`:
+`test-tanda-1026.mjs`, `test-tanda-1026-pantalla.mjs`, el fixture
+`fixtures/tcggo-producto-1026.json` y el doble (`tcg_product_contenido`).
+Verdes también 762, 766, 769, 808, 968, 969 y `test-imports`. La 829 está en rojo hoy CON y SIN esta
+entrada (el «nuevo para ti» por semanas y el lunes): es de la fecha, no
+de la línea nueva.
+
+**Pendiente**: la 1027 (comprobar mañana que las versiones japonesas Poké
+Ball / Master Ball han entrado por la pasada de precios, y las expansiones
+hermanas de TCGGO para casar sets JP ↔ EN).
+
 ## 2026-10-26 (263) — PINGU-Claude (1025 — la página activa de la lateral en su color y el podio en filas)
 
 **Hecho**: en la lateral del PC, la página activa dentro del cajón (Guías

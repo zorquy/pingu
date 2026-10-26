@@ -30,7 +30,7 @@ import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { marcaCardmarket } from '../cardmarket-marca.js'
 import { banderaHtml } from '../precio-vista.js'
-import { TIPOS, OTRO, nombreDeTipo, precioDeProducto, esPreventa, valorDeProductos, preciosPorIdioma, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto, idiomasDeProducto, nombreDeIdioma, precioDeProductoEnIdioma } from '../productos.js'
+import { TIPOS, OTRO, nombreDeTipo, tipoDeProducto, precioDeProducto, esPreventa, valorDeProductos, preciosPorIdioma, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto, idiomasDeProducto, nombreDeIdioma, precioDeProductoEnIdioma, cuentaDelPack, porUnidad, relacionConPvp } from '../productos.js'
 import { nombreDeSet } from '../catalogo-series.js'
 import { misProductos, productosPorIds, buscarProductos } from '../productos-valor.js'
 
@@ -510,7 +510,7 @@ export function fichaDeProductoHtml(f, s = null) {
   return `<div class="mc-prodf-arriba">
       <span class="mc-prodf-foto">${f.image ? `<img src="${escapeHtml(f.image)}" alt="" width="320" height="320" onerror="this.remove()" />` : ''}</span>
       <div class="mc-prodf-datos">
-        <span class="mc-prod-chapas"><span class="mc-prod-tipo">${escapeHtml(nombreDeTipo(f.tipo))}</span>${esPreventa(f) ? '<span class="mc-prod-preventa">Preventa</span>' : ''}</span>
+        <span class="mc-prod-chapas"><span class="mc-prod-tipo">${escapeHtml(nombreDeTipo(f.tipo))}</span>${esPreventa(f) ? '<span class="mc-prod-preventa">Preventa</span>' : ''}${pvpHtml(f, p)}</span>
         ${s ? `<p class="mc-prodf-set">${logoHtml(s, 96, 40)}<span>${escapeHtml(nombreDeSet(s) || s.id)}${s.release_date ? ` · ${escapeHtml(fechaLarga(s.release_date))}` : ''}</span></p>` : ''}
         <p class="mc-prodf-precio">${p ? `<b>${escapeHtml(euros(p.valor))}</b> <small>mínimo en ${escapeHtml(p.donde)}</small>` : '<b class="mc-prod-sin">Sin precio todavía</b>'}</p>
         <div id="mcProdFichaMando" class="mc-prodf-mando"></div>
@@ -523,7 +523,93 @@ export function fichaDeProductoHtml(f, s = null) {
       ${tp ? `<div class="pv-fuente pv-tcgplayer"><div class="pv-fuente-cab"><span class="pv-fuente-nombre">TCGplayer</span><a class="btn-tcgplayer pv-boton" href="${escapeHtml(tp)}" target="_blank" rel="noopener">${icons.zap(16)}<span>TCGplayer</span></a></div></div>` : ''}
       ${f.tcggo_url ? `<p class="pv-pie"><a href="${escapeHtml(f.tcggo_url)}" target="_blank" rel="noopener">Ver en TCGGO</a>, de donde salen los precios.</p>` : ''}
     </div>
+    <div class="mc-prodc hidden" id="mcProdContenido"></div>
     <div class="carta-historial hidden" id="mcProdHistorial"></div>`
+}
+
+// EL PVP (1026): el oficial de Europa y a cuánto está hoy de él. Es una
+// chapa al lado del tipo; sin PVP no hay chapa, y sin precio de hoy solo el PVP.
+function pvpHtml(f, p = precioDeProducto(f)) {
+  if (f?.pvp_eur == null) return ''
+  const rel = relacionConPvp(p?.valor, f.pvp_eur)
+  return `<span class="mc-prod-pvp" title="Precio de venta recomendado en Europa">PVP ${escapeHtml(euros(f.pvp_eur))}${rel ? ` · ${escapeHtml(rel.texto)}` : ''}</span>`
+}
+
+// ── Qué lleva dentro y en qué viene (1026) ──
+// Las dos lecturas de `tcg_product_contenido`: lo que cuelga de este producto
+// y los productos de los que cuelga este. `null` = no se sabe (sin la
+// migración, o la base no contesta): no se pinta nada, ni «no lleva nada».
+async function contenidoDe(id) {
+  const [dentro, padres] = await Promise.all([
+    supabase.from('tcg_product_contenido').select('*').eq('product_id', id).order('cantidad', { ascending: false }).order('nombre').limit(200),
+    supabase.from('tcg_product_contenido').select('*').eq('contenido_tipo', 'product').eq('contenido_id', id).limit(200),
+  ])
+  if (dentro.error || padres.error) return null
+  return { dentro: dentro.data || [], padres: padres.data || [] }
+}
+
+const fotoHtml = (src, extra = '') => `<span class="mc-prodc-foto">${src ? `<img src="${escapeHtml(src)}" alt="" width="44" height="44" loading="lazy" onerror="this.remove()" />` : ''}${extra}</span>`
+
+// «Qué lleva dentro»: una fila por cosa (las que son productos nuestros se
+// abren), y la cuenta del pack contra lo suelto (`cuentaDelPack`).
+function contenidoHtml(f, dentro) {
+  if (!dentro.length) return ''
+  const filas = dentro.map((c) => {
+    const p = c.contenido_tipo === 'product' ? fichas.get(Number(c.contenido_id)) : null
+    const precio = c.cm_lowest ?? c.tp_market
+    const n = Math.max(1, Number(c.cantidad) || 1)
+    const etiqueta = c.contenido_tipo === 'card' ? 'Carta' : nombreDeTipo(p?.tipo || tipoDeProducto(c.nombre))
+    const dentroHtml = `${fotoHtml(c.image, `<b>×${n}</b>`)}<span class="mc-prodc-texto"><b>${escapeHtml(c.nombre)}</b><small>${escapeHtml(etiqueta)}${precio != null ? ` · ${escapeHtml(euros(precio))} cada uno` : ' · sin precio'}</small></span><span class="mc-prodc-eur">${precio != null ? escapeHtml(euros(precio * n)) : '—'}</span>`
+    return p
+      ? `<button type="button" class="mc-prodc-fila" data-prod-ficha="${p.id}" aria-label="Ver la ficha de ${escapeHtml(c.nombre)}">${dentroHtml}</button>`
+      : `<div class="mc-prodc-fila">${dentroHtml}</div>`
+  })
+  const cuenta = cuentaDelPack(precioDeProducto(f)?.valor, dentro)
+  let veredicto = ''
+  if (cuenta?.veredicto === 'mejor') veredicto = `<span class="mc-prodc-veredicto bien">El pack sale ${escapeHtml(euros(cuenta.diferencia))} mejor que comprarlo suelto</span>`
+  else if (cuenta?.veredicto === 'peor') veredicto = `<span class="mc-prodc-veredicto mal">Comprarlo suelto sale ${escapeHtml(euros(-cuenta.diferencia))} mejor que el pack</span>`
+  else if (cuenta?.veredicto === 'igual') veredicto = '<span class="mc-prodc-veredicto">El pack y lo suelto, lo mismo</span>'
+  else if (cuenta) veredicto = `<span class="mc-prodc-veredicto parcial">${cuenta.sinPrecio} ${cuenta.sinPrecio === 1 ? 'cosa' : 'cosas'} de dentro sin precio: la cuenta es orientativa</span>`
+  const cuentaHtml = cuenta
+    ? `<div class="mc-prodc-cuenta"><span>${cuenta.sinPrecio ? 'Lo de dentro con precio, suelto' : 'Todo lo de dentro, suelto'}</span><b>${escapeHtml(euros(cuenta.suelto))}</b><span>El pack hoy</span><b>${escapeHtml(euros(cuenta.pack))}</b>${veredicto}</div>`
+    : ''
+  return `<section class="mc-prodc-bloque"><h3>Qué lleva dentro</h3><div class="mc-prodc-lista">${filas.join('')}</div>${cuentaHtml}</section>`
+}
+
+// «Viene en»: los packs que llevan este producto, con lo que sale cada
+// unidad dentro, los mejores primero; cinco a la vista y «Ver más».
+const VIENE_EN_A_LA_VISTA = 5
+function vieneEnHtml(f, padres) {
+  const lista = padres
+    .map((x) => ({ fila: x, p: fichas.get(Number(x.product_id)) }))
+    .filter((x) => x.p)
+    .map(({ fila, p }) => ({ fila, p, precio: precioDeProducto(p), unidad: porUnidad(precioDeProducto(p)?.valor, fila.cantidad) }))
+    .sort((a, b) => (a.unidad ?? 1e9) - (b.unidad ?? 1e9) || String(a.p.name).localeCompare(String(b.p.name)))
+  if (!lista.length) return ''
+  const filas = lista.map(({ fila, p, precio, unidad }, i) => `<button type="button" class="mc-prodc-fila${i >= VIENE_EN_A_LA_VISTA ? ' mc-prodc-mas' : ''}" data-prod-ficha="${p.id}" aria-label="Ver la ficha de ${escapeHtml(p.name)}">
+      ${fotoHtml(p.image)}<span class="mc-prodc-texto"><b>${escapeHtml(p.name)}</b><small>${escapeHtml(`${fila.cantidad} dentro`)}${precio ? ` · ${escapeHtml(euros(precio.valor))}` : ''}</small></span><span class="mc-prodc-eur">${unidad != null ? `${escapeHtml(euros(unidad))}<small>cada uno</small>` : '—'}</span>
+    </button>`)
+  const mas = lista.length > VIENE_EN_A_LA_VISTA ? `<button type="button" class="btn-secondary mc-prodc-ver" data-prodc-ver>Ver ${lista.length - VIENE_EN_A_LA_VISTA} más</button>` : ''
+  return `<section class="mc-prodc-bloque"><h3>Viene en</h3><div class="mc-prodc-lista">${filas.join('')}</div>${mas}<p class="mc-prodc-nota">Lo que sale cada uno cuenta solo las unidades de este producto: en un pack con más cosas es orientativo.</p></section>`
+}
+
+// Llega después de pintar la ficha y no empuja nada mientras no haya nada
+// (su hueco está escondido). Lo de una ficha vieja no se mete en la nueva
+// (la 663). Los productos de dentro y los padres se piden para poder abrir
+// su ficha desde la fila.
+async function pintarContenido(f) {
+  const caja = $('mcProdContenido')
+  if (!caja || !f) return
+  const r = await contenidoDe(f.id)
+  if (abiertoEnFicha !== f.id || !r) return
+  const faltan = [...r.dentro.filter((x) => x.contenido_tipo === 'product').map((x) => Number(x.contenido_id)), ...r.padres.map((x) => Number(x.product_id))].filter((id) => Number.isFinite(id) && !fichas.has(id))
+  if (faltan.length) {
+    try { for (const [id, p] of await productosPorIds(faltan)) fichas.set(id, p) } catch { /* sin fichas: las filas no se abren */ }
+    if (abiertoEnFicha !== f.id) return
+  }
+  const html = contenidoHtml(f, r.dentro) + vieneEnHtml(f, r.padres)
+  caja.innerHTML = html
+  caja.classList.toggle('hidden', !html)
 }
 
 function abrirFicha(id) {
@@ -535,6 +621,7 @@ function abrirFicha(id) {
   $('mcProdFichaTitulo').textContent = f.name
   $('mcProdFichaCuerpo').innerHTML = fichaDeProductoHtml(f, s)
   pintarMandoDeFicha(f)
+  void pintarContenido(f)
   const alLado = window.matchMedia(CONSULTA_AL_LADO).matches
   d.classList.toggle('mc-prodf-al-lado', alLado)
   if (!d.open) {
@@ -567,6 +654,9 @@ export async function abrir(contexto) {
       if (menos) { void cambiarCantidad(Number(menos.dataset.prodMenos), menos.dataset.idioma || '', -1); return true }
       const ficha = e.target.closest('[data-prod-ficha]')
       if (ficha) { abrirFicha(Number(ficha.dataset.prodFicha)); return true }
+      // «Ver N más» de «Viene en» (1026): se despliega y el botón se va.
+      const ver = e.target.closest('[data-prodc-ver]')
+      if (ver) { ver.closest('.mc-prodc-bloque')?.classList.add('mc-prodc-abierto'); ver.remove(); return true }
       return false
     }
     panel.addEventListener('click', (e) => {

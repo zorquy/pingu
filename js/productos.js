@@ -60,9 +60,101 @@ export function filaDeProducto(p, { ahora = new Date() } = {}) {
     cm_avg30: numero(cm['30d_average']),
     cm_avg7: numero(cm['7d_average']),
     cm_disponibles: Number.isInteger(Number(cm.available_items)) ? Number(cm.available_items) : null,
+    // El PVP de Europa, en euros (1026, `msrp.eu`). Columna de la migración
+    // 1026: la función la quita si falta. Otra moneda no es un PVP en euros.
+    pvp_eur: p.msrp?.eu?.currency === 'EUR' ? numero(p.msrp.eu.price) : null,
     release_date: sale,
     updated_at: ahora.toISOString(),
   }
+}
+
+// Las columnas de la 1026 en `tcg_products`: la función las quita si su
+// migración no está (un upsert con una columna que no existe se rechaza entero).
+export const COLUMNAS_1026 = ['pvp_eur']
+
+// QUÉ LLEVA DENTRO un producto (1026): las filas de `tcg_product_contenido`
+// que salen de su `contained_items` (TCGGO, con `include_contained_items=1`).
+// Cada una lleva lo que TCGGO dice de lo contenido —nombre, foto, el mínimo
+// de Cardmarket y el de TCGplayer— para pintarlo sin cruzar nada; `idDe`
+// convierte el id de un producto contenido al nuestro (el japonés va
+// desplazado, 808). Lo que no es producto ni carta, o no tiene id, no entra.
+export function filasDeContenido(p, { productId, ahora = new Date(), idDe = (id) => id } = {}) {
+  if (!Array.isArray(p?.contained_items) || !Number.isInteger(Number(productId))) return []
+  const vistas = new Set()
+  const filas = []
+  for (const c of p.contained_items) {
+    const tipo = c?.type === 'product' ? 'product' : c?.type === 'card' ? 'card' : null
+    const id = Number(c?.id)
+    if (!tipo || !Number.isInteger(id) || id <= 0 || !String(c.name || '').trim()) continue
+    const contenidoId = tipo === 'product' ? idDe(id) : id
+    const clave = `${tipo}:${contenidoId}`
+    if (vistas.has(clave)) continue
+    vistas.add(clave)
+    const cantidad = Math.min(10000, Math.max(1, Math.round(Number(c.quantity) || 1)))
+    const cm = c.prices?.cardmarket || {}
+    const tp = c.prices?.tcg_player || c.prices?.tcgplayer || {}
+    filas.push({
+      product_id: Number(productId),
+      contenido_tipo: tipo,
+      contenido_id: contenidoId,
+      cantidad,
+      nombre: String(c.name).trim().slice(0, 300),
+      image: typeof c.image === 'string' ? c.image : null,
+      cm_lowest: numero(cm.lowest ?? cm.lowest_near_mint),
+      tp_market: tp.currency === 'EUR' ? numero(tp.market_price) : null,
+      updated_at: ahora.toISOString(),
+    })
+  }
+  return filas
+}
+
+// LA CUENTA DEL PACK (1026, PINGU dijo adelante a «sale a cuenta»): lo que
+// costaría comprar suelto lo que lleva dentro, contra lo que vale el pack.
+// Solo se suma lo que tiene precio; lo que no, se cuenta aparte y la ficha lo
+// dice, porque una ETB lleva accesorios sin precio y «sale a cuenta» con la
+// mitad de las cosas sin contar sería afirmar de más. `null` si no hay nada
+// con precio o el pack no tiene precio (no se sabe, la 319).
+export function cuentaDelPack(precioDelPack, contenido) {
+  const filas = Array.isArray(contenido) ? contenido : []
+  if (!filas.length || numero(precioDelPack) == null) return null
+  let suelto = 0
+  let conPrecio = 0
+  let sinPrecio = 0
+  for (const f of filas) {
+    const n = Math.max(1, Number(f.cantidad) || 1)
+    const precio = numero(f.cm_lowest) ?? numero(f.tp_market)
+    if (precio == null) { sinPrecio += n; continue }
+    suelto += precio * n
+    conPrecio += n
+  }
+  if (!conPrecio) return null
+  suelto = Math.round(suelto * 100) / 100
+  const diferencia = Math.round((suelto - Number(precioDelPack)) * 100) / 100
+  // Con todo contado, el veredicto; con algo sin precio, solo la cuenta.
+  const veredicto = sinPrecio ? 'parcial' : diferencia > 0 ? 'mejor' : diferencia < 0 ? 'peor' : 'igual'
+  return { suelto, pack: Number(precioDelPack), diferencia, conPrecio, sinPrecio, veredicto }
+}
+
+// Lo que sale cada unidad dentro de un pack («Viene en», 1026): el precio
+// del pack entre las que lleva. Orientativo cuando el pack lleva más cosas.
+export function porUnidad(precioDelPack, cantidad) {
+  const precio = numero(precioDelPack)
+  const n = Number(cantidad)
+  if (precio == null || !Number.isFinite(n) || n <= 0) return null
+  return Math.round((precio / n) * 100) / 100
+}
+
+// El precio de hoy contra el PVP (1026): a cuánto está por encima o por
+// debajo. Entre −5 % y +5 % es «en el PVP». `null` sin uno de los dos.
+export function relacionConPvp(precio, pvp) {
+  const p = numero(precio)
+  const v = numero(pvp)
+  if (p == null || v == null || v <= 0) return null
+  const tanto = Math.round(((p - v) / v) * 100)
+  if (Math.abs(tanto) <= 5) return { tanto, texto: 'hoy en el PVP' }
+  if (tanto >= 95 && tanto < 150) return { tanto, texto: 'hoy al doble' }
+  if (tanto >= 150) return { tanto, texto: `hoy a ${(p / v).toLocaleString('es-ES', { maximumFractionDigits: 1 })}×` }
+  return { tanto, texto: tanto > 0 ? `hoy un ${tanto} % por encima` : `hoy un ${-tanto} % por debajo` }
 }
 
 // LOS PRECIOS DE UN PRODUCTO SON POR IDIOMA, no por país (967). TCGGO da

@@ -378,3 +378,169 @@
 .mc-prodf-otro {
   margin-top: var(--e-xs);
 }
+
+/* 1026: el PVP y «qué lleva dentro» / «viene en» en la ficha (SCHEMA 1026). */
+.mc-prod-pvp {
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.mc-prodc {
+  display: grid;
+  gap: var(--e-md);
+}
+
+.mc-prodc-bloque {
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.mc-prodc-bloque h3 {
+  margin: 0;
+  font-size: var(--t-md);
+}
+
+.mc-prodc-lista {
+  display: grid;
+  gap: var(--e-xs);
+}
+
+.mc-prodc-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: var(--e-xs) var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: inherit;
+  font: inherit;
+  text-align: left;
+}
+
+button.mc-prodc-fila {
+  cursor: pointer;
+}
+
+button.mc-prodc-fila:hover {
+  background: var(--ice);
+}
+
+.mc-prodc-foto {
+  position: relative;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+}
+
+.mc-prodc-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.mc-prodc-foto b {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  padding: 0 4px;
+  border-radius: var(--radius-sm);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-size: var(--t-2xs);
+}
+
+.mc-prodc-texto {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.mc-prodc-texto b {
+  overflow: hidden;
+  font-size: var(--t-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-prodc-texto small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-prodc-eur {
+  display: grid;
+  flex: none;
+  justify-items: end;
+  font-family: var(--font-display);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-prodc-eur small {
+  color: var(--text-mid);
+  font-family: inherit;
+  font-size: var(--t-2xs);
+  font-weight: 600;
+}
+
+.mc-prodc-cuenta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--e-xs) var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-prodc-veredicto {
+  grid-column: 1 / -1;
+  font-weight: 700;
+}
+
+.mc-prodc-veredicto.bien {
+  color: var(--success);
+}
+
+.mc-prodc-veredicto.mal {
+  color: var(--warning);
+}
+
+.mc-prodc-veredicto.parcial {
+  color: var(--text-mid);
+  font-weight: 600;
+}
+
+.mc-prodc-fila.mc-prodc-mas {
+  display: none;
+}
+
+.mc-prodc-abierto .mc-prodc-fila.mc-prodc-mas {
+  display: flex;
+}
+
+.mc-prodc-ver {
+  justify-self: start;
+}
+
+.mc-prodc-nota {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}

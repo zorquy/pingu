@@ -12,6 +12,8 @@
 //   · 'expansion'  → `/cards?episode_id=…&include_variants=1&per_page=5`.
 //   · 'lote'       → `/cards?ids=…` (hasta 20 ids separados por comas).
 //   · 'episodios'  → `/episodes?page=1`: el `symbol` de cada expansión.
+//   · 'producto'   → `/products/{id}?include_contained_items=1` (1026): lo
+//                    que lleva dentro y en qué packs viene, tal cual.
 //   · 'versiones'  → ESCRIBE (932): las versiones de una expansión entera,
 //                    ahora, sin esperar a la pasada de precios. `valor` es el
 //                    id de la expansión de TCGGO o el de un set nuestro. Es
@@ -150,6 +152,10 @@ export async function sondear({ modo, valor, mercado = 'WEST' }, { env = process
     url = urlCartasPorIds(ids, raiz)
   } else if (modo === 'episodios') {
     url = urlEpisodios(1, raiz)
+  } else if (modo === 'producto') {
+    // 1026: un producto con lo que lleva dentro y en qué viene, tal cual.
+    if (!/^\d+$/.test(v)) return { error: 'Escribe el id de TCGGO del producto (un número).' }
+    url = `${raiz}/products/${v}?include_contained_items=1`
   } else {
     return { error: `Modo desconocido: ${modo}` }
   }
