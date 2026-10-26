@@ -1,7 +1,7 @@
-// Tanda 1016 — la letra, opción B del repaso (PINGU: «adelante con lo
-// recomendado»): Inter en los títulos; Fredoka solo en la marca (el logo de
-// arriba, el de /auth, el del pie) y en las cifras grandes (el valor de la
-// colección, las cifras del perfil, el marcador de un duelo).
+// Tanda 1016 — la letra, opción B del repaso: los títulos en una letra y la
+// marca y las cifras grandes en otra (`--font-marca`). Desde la 1018 las dos
+// son Outfit (PINGU eligió la B2 de «PokeDoc como app») y el cuerpo sigue
+// en Inter; lo que la prueba vigila es que cada sitio pida SU token.
 import { readFileSync } from 'node:fs'
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
@@ -17,7 +17,8 @@ const check = (l, ok, extra = '') => {
 console.log('── 1. Los tokens ──')
 {
   const css = leer('css/style.css')
-  check('--font-display es Inter y --font-marca Fredoka', /--font-display: 'Inter', sans-serif;/.test(css) && /--font-marca: 'Fredoka', 'Inter', sans-serif;/.test(css))
+  check('--font-display y --font-marca son Outfit (1018), con Inter detrás', /--font-display: 'Outfit', 'Inter', sans-serif;/.test(css) && /--font-marca: 'Outfit', 'Fredoka', 'Inter', sans-serif;/.test(css))
+  check('Outfit se sirve desde casa, variable y solo latín', /font-family: 'Outfit';[\s\S]*?font-weight: 100 900;[\s\S]*?outfit-variable-latin\.woff2/.test(css))
   check('la marca y las cifras del perfil van en --font-marca', /\.nav-logo, \.auth-logo, \.pie-marca,\n\.perfil-cifra \.valor[^{]*\{\n  font-family: var\(--font-marca\);/.test(css))
   const hojas = ['mi-coleccion', 'torneos', 'retos', 'partidas', 'hoy', 'comunidad'].map((h) => [h, leer(`css/${h}.css`)])
   check('las cifras grandes de cada hoja piden --font-marca (cartera, marcador, retos, partidas, Hoy, Comunidad)', hojas.every(([, s]) => /var\(--font-marca\)/.test(s)), hojas.filter(([, s]) => !/var\(--font-marca\)/.test(s)).map(([h]) => h).join())
@@ -41,21 +42,21 @@ console.log('\n── 2. En pantalla ──')
 {
   const { p, ctx, errores } = await abrir('/aprender.html')
   const h1 = await fuente(p, '.ap-cab h1'), logo = await fuente(p, '.nav-logo'), boton = await fuente(p, '.btn-primary'), pie = await fuente(p, '.pie-marca')
-  check('el título de la página va en Inter, sin Fredoka', /Inter/.test(h1 || '') && !/Fredoka/.test(h1 || ''), h1)
-  check('  …el logo de arriba y el del pie, en Fredoka', /^"?Fredoka/.test(logo || '') && /^"?Fredoka/.test(pie || ''), `${logo} / ${pie}`)
-  check('  …y los botones en Inter', /Inter/.test(boton || '') && !/Fredoka/.test(boton || '') && !errores.length, boton + ' ' + errores.join(' | '))
+  check('el título de la página va en Outfit, sin Fredoka', /^"?Outfit/.test(h1 || '') && !/Fredoka/.test(h1 || ''), h1)
+  check('  …el logo de arriba y el del pie, en Outfit (la marca)', /^"?Outfit/.test(logo || '') && /^"?Outfit/.test(pie || ''), `${logo} / ${pie}`)
+  check('  …y los botones en Inter (el cuerpo)', /^"?Inter/.test(boton || '') && !/Outfit|Fredoka/.test(boton || '') && !errores.length, boton + ' ' + errores.join(' | '))
   await ctx.close()
 }
 {
   const { p, ctx } = await abrir('/mi-coleccion.html?ver=resumen')
   const cifra = await fuente(p, '.mc-cartera-cifra'), titulo = await fuente(p, '.mc-subtitulo')
-  check('en Mi colección la cifra de la cartera va en Fredoka y los subtítulos en Inter', (cifra === null || /^"?Fredoka/.test(cifra)) && /Inter/.test(titulo || '') && !/Fredoka/.test(titulo || ''), `${cifra} / ${titulo}`)
+  check('en Mi colección la cifra de la cartera y los subtítulos van en Outfit', (cifra === null || /^"?Outfit/.test(cifra)) && /^"?Outfit/.test(titulo || ''), `${cifra} / ${titulo}`)
   await ctx.close()
 }
 {
   const { p, ctx } = await abrir('/perfil.html')
   const valor = await fuente(p, '.perfil-cifra .valor')
-  check('las cifras del perfil, en Fredoka', valor === null || /^"?Fredoka/.test(valor), valor)
+  check('las cifras del perfil, en Outfit', valor === null || /^"?Outfit/.test(valor), valor)
   await ctx.close()
 }
 
