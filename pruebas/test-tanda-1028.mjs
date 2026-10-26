@@ -58,7 +58,7 @@ console.log('\n── 2. La función ──')
   const r3 = await fn.procesar({ ...a, cardId: 'swsh3-140', market: 'WEST', ahora: new Date('2026-10-27T10:00:00Z') })
   check('  …y mañana sí (una vez al día por versión)', a.llamadas.length === 2 && r3.cuerpo.pedido === true)
 
-  const b = montar({ estado: { dia: '2026-10-26', peticiones: fn.TOPE_DIARIO, hechas: [] } })
+  const b = montar({ estado: { dia: '2026-10-26', version: fn.VERSION_FRENO, peticiones: fn.TOPE_DIARIO, hechas: [] } })
   const rb = await fn.procesar({ ...b, cardId: 'swsh3-140', ahora })
   check('con el tope diario gastado, se sirve lo que hay sin pedir', b.llamadas.length === 0 && rb.cuerpo.pedido === false && /tope diario/.test(rb.cuerpo.porque) && rb.cuerpo.filas.length === 1)
 
@@ -75,6 +75,55 @@ console.log('\n── 2. La función ──')
   const re = await fn.procesar({ ...e, cardId: 'swsh3-140', ahora })
   check('sin clave de TCGGO, se sirve lo que hay', e.llamadas.length === 0 && re.cuerpo.porque === 'sin clave de TCGGO')
   check('un id de carta raro es un 400', (await fn.procesar({ ...montar(), cardId: 'x;drop' })).estado === 400)
+}
+
+console.log('\n── 2b. El lote se calla las versiones (1028c, el Lugia de verdad) ──')
+{
+  // La respuesta real que pegó PINGU: «Get card» de la Reverse 39644.
+  const LUGIA_REVERSE = JSON.parse(readFileSync(new URL('./fixtures/tcggo-carta-39644-1028.json', import.meta.url), 'utf8')).carta
+  const STANDARD = { tcggo_id: 6545, market: 'WEST', card_id: 'swsh3-140', set_id: 'swsh3', etiqueta: 'Standard', origen: null, cm_id_product: 483579, cm_low: 0.1, cm_low_es: 1.5, actualizado_at: '2026-10-20T10:40:43Z' }
+  const REVERSE = { tcggo_id: 39644, market: 'WEST', card_id: 'swsh3-140', set_id: 'swsh3', etiqueta: 'Reverse Holo', origen: null, cm_id_product: null, link_cm: null, cm_low: 0.1, cm_low_es: null, actualizado_at: '2026-10-26T00:42:05Z' }
+  const montar = ({ estado = {}, sueltaContesta = true } = {}) => {
+    const llamadas = []
+    const guardadas = []
+    let base = [STANDARD, REVERSE].map((f) => ({ ...f }))
+    let guardado = estado
+    const fetchImpl = async (url) => {
+      llamadas.push(url)
+      // El lote devuelve SOLO la Standard (como en producción); la suelta, la Reverse.
+      if (/\/cards\?ids=/.test(url)) return new Response(JSON.stringify({ data: [{ ...REAL, id: 6545, cardmarket_id: 483579 }] }), { status: 200 })
+      if (/\/cards\/39644$/.test(url)) return new Response(sueltaContesta ? JSON.stringify(LUGIA_REVERSE) : 'no', { status: sueltaContesta ? 200 : 404 })
+      return new Response('no', { status: 404 })
+    }
+    return {
+      llamadas, guardadas, fetchImpl,
+      restImpl: async (ruta) => { if (ruta.startsWith('tcg_card_versions?select=')) return base; throw new Error(`ruta ${ruta}`) },
+      guardarImpl: async (nuevas) => { guardadas.push(...nuevas); base = base.map((f) => { const n = nuevas.find((x) => x.tcggo_id === f.tcggo_id); return n ? { ...f, ...n } : f }) },
+      estadoImpl: async () => guardado, guardarEstadoImpl: async (v) => { guardado = v }, estado: () => guardado,
+      env: { SUPABASE_SERVICE_ROLE_KEY: 'x', TCGGO_API_KEY: 'k' },
+    }
+  }
+  const ahora = new Date('2026-10-26T12:00:00Z')
+  const a = montar()
+  const r = await fn.procesar({ ...a, cardId: 'swsh3-140', ahora })
+  check('el lote devuelve solo la Standard: la Reverse se repesca con «Get card» (dos peticiones)', a.llamadas.length === 2 && /ids=6545,39644/.test(a.llamadas[0]) && /\/cards\/39644$/.test(a.llamadas[1]), a.llamadas.join(' | '))
+  const rev = a.guardadas.find((x) => x.tcggo_id === 39644)
+  check('  …y la Reverse se guarda con el español a 25 € y el producto 483579 (el de la carta: en Cardmarket es el mismo producto con isReverseHolo)', rev && rev.cm_low_es === 25 && rev.cm_id_product === 483579 && rev.cm_low === 5 && a.guardadas.length === 2, JSON.stringify(rev))
+  check('  …la respuesta lo dice: dos nuevas, dos peticiones, nada sin respuesta', r.cuerpo.nuevas === 2 && r.cuerpo.peticiones === 2 && !r.cuerpo.sinRespuesta && r.cuerpo.filas.find((f) => f.tcggo_id === 39644).cm_low_es === 25, JSON.stringify(r.cuerpo).slice(0, 200))
+  check('  …y las dos quedan hechas hoy, con las peticiones contadas de verdad (2, no 3)', a.estado().hechas.includes(6545) && a.estado().hechas.includes(39644) && a.estado().peticiones === 2 && !a.estado().fallidas[39644], JSON.stringify(a.estado()))
+
+  // Lo de hoy en producción: la Reverse ya está apuntada como «hecha» por la
+  // primera 1028. Subir VERSION_FRENO vuelve a mirarla ese mismo día.
+  const b = montar({ estado: { dia: '2026-10-26', peticiones: 1, hechas: [6545, 39644] } })
+  const rb = await fn.procesar({ ...b, cardId: 'swsh3-140', ahora })
+  check('un estado de la versión anterior del freno (sin `version`) se vuelve a mirar hoy', rb.cuerpo.pedido === true && b.llamadas.length === 2 && b.guardadas.some((x) => x.tcggo_id === 39644 && x.cm_low_es === 25), JSON.stringify(rb.cuerpo).slice(0, 120))
+
+  // Una versión que ni el lote ni «Get card» dan: dos intentos al día y ya.
+  const c = montar({ sueltaContesta: false })
+  const r1 = await fn.procesar({ ...c, cardId: 'swsh3-140', ahora })
+  const r2 = await fn.procesar({ ...c, cardId: 'swsh3-140', ahora })
+  const r3 = await fn.procesar({ ...c, cardId: 'swsh3-140', ahora })
+  check('una versión que no contesta se intenta DOS veces al día (la Standard, hecha a la primera, no se repide)', r1.cuerpo.sinRespuesta?.join() === '39644' && r2.cuerpo.pedido === true && r3.cuerpo.pedido === false && c.llamadas.filter((u) => /39644$/.test(u)).length === 2 && c.llamadas.filter((u) => /ids=/.test(u)).length === 2 && c.estado().fallidas[39644] === 2, `${c.llamadas.join(' | ')} · ${JSON.stringify(c.estado())}`)
 }
 
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')

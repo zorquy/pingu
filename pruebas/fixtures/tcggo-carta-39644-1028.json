@@ -1,0 +1,14 @@
+{
+ "_de": "Respuesta real de «Get card» (/pokemon/cards/39644) que pegó PINGU el 2026-10-26: la Reverse Holo del Lugia 140 de Darkness Ablaze, con sus precios por idioma y el mismo cardmarket_id que la Standard (483579). El lote por ids (/cards?ids=) NO la devuelve: solo «Get card».",
+ "carta": {
+  "data": {
+   "id": 39644, "name": "Lugia", "name_numbered": "Lugia 140", "slug": "lugia", "type": "singles", "lang": "en", "card_number": 140, "card_code_number": "DAA 140", "hp": 130, "rarity": "Rare", "supertype": "Pokémon", "tcgid": "swsh3-140",
+   "flavor_text": "It is said to be the guardian of the seas. It is rumored to have been seen on the night of a storm.", "abilities": null, "attacks": null,
+   "prices": { "cardmarket": { "currency": "EUR", "lowest_near_mint": 5, "lowest_near_mint_EU_only": 5.99, "lowest_near_mint_DE": 0.5, "lowest_near_mint_DE_EU_only": 0.5, "lowest_near_mint_FR": 10, "lowest_near_mint_FR_EU_only": 10, "lowest_near_mint_ES": 25, "lowest_near_mint_ES_EU_only": 25, "lowest_near_mint_IT": 2, "lowest_near_mint_IT_EU_only": 2, "30d_average": 7.19, "7d_average": 7.44, "available_items": 50, "graded": [] }, "tcg_player": { "currency": "EUR", "market_price": 0.44 } },
+   "episode": { "id": 46, "name": "Darkness Ablaze", "slug": "darkness-ablaze", "lang": "en", "released_at": "2020-08-14", "logo": "https://images.tcggo.com/tcggo/storage/6466/darkness-ablaze-logo.png", "symbol": "https://images.tcggo.com/tcggo/storage/63807/darkness-ablaze.png", "code": "DAA", "cards_total": 201, "cards_printed_total": 189, "prices": { "cardmarket": { "total": 181.83, "currency": "EUR" }, "tcgplayer": { "total": 238.74, "currency": "EUR" } }, "game": { "name": "Pokémon", "slug": "pokemon" }, "series": { "id": 2, "name": "Sword & Shield", "slug": "sword-shield" } },
+   "artist": { "id": 447, "name": "Hasuno", "slug": "hasuno" }, "image": null, "tcggo_url": "https://www.tcggo.com/pokemon/darkness-ablaze/lugia-1",
+   "links": { "cardmarket": "https://www.tcggo.com/external/cm/39644", "tcgplayer": "https://www.tcggo.com/external/tcgplayer/39644" },
+   "cardmarket_id": 483579, "tcgplayer_id": 219340
+  }
+ }
+}
