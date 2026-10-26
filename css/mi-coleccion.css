@@ -8667,12 +8667,12 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 /* La hoja que llega entra por su lado. */
 .mc-archivador.mc-pasa-adelante {
   transform-origin: left center;
-  animation: mc-hoja-entra-derecha 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: mc-hoja-entra-derecha 0.35s var(--ease);
 }
 
 .mc-archivador.mc-pasa-atras {
   transform-origin: right center;
-  animation: mc-hoja-entra-izquierda 0.45s cubic-bezier(0.2, 0.7, 0.2, 1);
+  animation: mc-hoja-entra-izquierda 0.35s var(--ease);
 }
 
 /* NU12 (796): la hoja GIRA sobre el lomo, como en un binder, en vez de deslizarse. */

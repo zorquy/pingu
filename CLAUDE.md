@@ -1181,6 +1181,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   dos medidas de contraste (SCHEMA 1018) y `test-tanda-1018.mjs` lo mide.
   La burbuja flotante del móvil SE QUEDA (PINGU, 2026-10-26: «lo único que
   no me gusta es que me cambies la burbuja»): no la muevas arriba.
+- **En el móvil nada flota sobre el contenido salvo la barra y la burbuja**
+  (tanda 1023, regla 1 de «PokeDoc como app»): un botón «siempre a mano»
+  va en la cabecera o pegado bajo las pestañas, no fijo sobre las
+  tarjetas (el rosa del foro y la barra de Guardar del constructor ya se
+  fueron). Lo vigila `test-tanda-1023-pantalla.mjs`: 34 páginas con los
+  fixtures de `pruebas/fixtures-app.mjs`, como mucho dos fijos abajo y
+  nada pulsable tapado al final. Una página nueva de lista va en su
+  lista. Y una página de detalle (fuera de la lista de su sección) lleva
+  `data-detalle` del generador: cabecera de app (1019) y transición
+  deslizante (1023) solas.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

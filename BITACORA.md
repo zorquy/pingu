@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (261) — PINGU-Claude (1023 — toque, transición con dirección y la prueba de solapes)
+
+**Hecho**: en el móvil, entrar en una guía, un tema o un torneo desliza
+desde la derecha y volver atrás sale hacia la derecha (el tipo lo pone el
+guion de la cabecera en `pagereveal`); las tarjetas y las filas se hunden
+al tocarlas; las hojas de Mi colección entran al mismo tiempo que las
+demás. Y una prueba nueva recorre 34 páginas del móvil con datos de verdad
+y canta cualquier tercer flotante o cualquier botón tapado al final de la
+página. Con esto quedan hechas las siete tandas de «PokeDoc como app» menos
+la A1 (la burbuja se queda, como pediste).
+
+**Ficheros**: `css/style.css`, `css/mi-coleccion.css`,
+`generar-barra-movil.mjs` (`CLASE_MOVIL`), las 45 páginas con barra (el
+guion), `cartas.html`, `SCHEMA.md`, `CLAUDE.md`, `novedades.json`. En
+`pruebas`: `test-tanda-1023-pantalla.mjs` y `fixtures-app.mjs` (nuevos),
+981 al día.
+
+**Pruebas**: 1023 (34 páginas sin solapes), 753, 313, 981 en verde;
+`test-imports` en verde. La portada pesa 127,9 KB gzip.
+
+**Pendiente**: la migración 1017 (PINGU, SQL Editor); lo que quedó de la
+D12 (SCHEMA 1022); lo de siempre.
+
 ## 2026-10-26 (260) — PINGU-Claude (1022 — partidas en el PC, llamada al curso, medallero, comunidad y pequeños)
 
 **Hecho**: en el PC, una fila por partida en Mis partidas; la llamada al

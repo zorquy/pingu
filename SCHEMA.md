@@ -41785,6 +41785,42 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1023 — El toque, la transición con dirección y la prueba de solapes (A4 de «PokeDoc como app»)
+
+**La transición entre páginas tiene dirección.** Desde la 753 el móvil
+cruza de página con `@view-transition` (un fundido con las dos barras
+quietas). Ahora entrar en una hoja —una página de detalle, `data-detalle`—
+desliza desde la derecha, y volver atrás (`navigation.activation.navigationType
+=== 'traverse'`) sale hacia la derecha; cambiar de pestaña sigue siendo el
+fundido. El TIPO lo pone el guion de la cabecera (`CLASE_MOVIL` en
+`generar-barra-movil.mjs`, el mismo `<script>` que pone `con-barra-movil`)
+en `pagereveal`, que llega antes del primer pintado y antes que cualquier
+módulo: un listener puesto desde `js/barra-movil.js` llegaría tarde. El
+CSS, en `style.css` detrás del bloque de la 753:
+`html:active-view-transition-type(adelante|atras)::view-transition-old|new(root)`,
+0,25 s, solo en el móvil y sin «menos movimiento» (y apagado en `reduce`
+por si acaso). Un navegador sin tipos de transición (Safari < 18.2) no entra
+en el `if` y se queda con el fundido. `conClaseMovil` reconoce el guion
+viejo y lo sustituye, para que ninguna página lleve dos.
+
+**El toque.** Los botones ya se hundían (892); ahora también las tarjetas y
+las filas (`.foro-fila`, `.mc-set-tarjeta`, `.torneo-tarjeta`,
+`.guide-card`, `.mc-bolsillo`, `.partidas-fila`, `.com-persona`…), solo con
+`pointer: coarse`, 0,985 en 120 ms, y apagado con «menos movimiento». Las
+hojas de Mi colección entran en 0,35 s como `slideUpModal`, no en 0,45.
+
+**La prueba de solapes** (`test-tanda-1023-pantalla.mjs`), que es lo que
+habría cantado el botón rosa sobre las tarjetas y las tres barras del
+constructor: recorre 34 páginas del móvil con datos de verdad
+(`pruebas/fixtures-app.mjs`, los fixtures con los que se fotografió la
+propuesta: colección, foro, torneos, guías, partidas, mensajes), baja hasta
+el final y exige tres cosas: que lo fijo que toca el tercio de abajo sean
+como mucho DOS cosas (la barra y la burbuja), que al final de la página
+ningún enlace ni botón del contenido quede debajo de lo fijo, y que la
+página no se desplace de lado. Una pantalla nueva con algo flotante la pone
+en rojo; si de verdad hace falta un tercer flotante, se discute ahí, no se
+cuela.
+
 ## Tanda 1022 — Mis partidas en el PC, la llamada al curso, el medallero, la comunidad y lo pequeño (D7, D8, D9, D11 y D12 de «PokeDoc como app»)
 
 **D7, Mis partidas en el PC.** Cada partida ocupaba 80 px con tres botones

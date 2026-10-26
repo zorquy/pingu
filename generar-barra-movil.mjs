@@ -112,9 +112,17 @@ export function conHojaMovil(html) {
 // se pinta ya con el hueco y la barra del móvil, en vez de subir 64 px cuando
 // llega js/barra-movil.js. DETRÁS de la etiqueta `viewport`: antes de ella
 // `matchMedia` cree que la pantalla mide 980 px y no casa nunca.
-export const CLASE_MOVIL = "<script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil')</script>"
+// Y DESDE LA 1023, EL TIPO DE LA TRANSICIÓN ENTRE PÁGINAS (A4): en
+// `pagereveal` —que llega antes del primer pintado, antes que cualquier
+// módulo— una página de detalle entra «adelante» (desliza desde la derecha)
+// y una vuelta atrás (`navigation.activation.navigationType === 'traverse'`)
+// sale «atras»; lo demás, el fundido de siempre. Los navegadores sin tipos
+// de transición no entran en el `if` y se quedan con el fundido.
+export const CLASE_MOVIL = "<script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil');addEventListener('pagereveal',function(e){var t=e.viewTransition&&e.viewTransition.types;if(!t)return;var a=window.navigation&&navigation.activation;if(a&&a.navigationType==='traverse')t.add('atras');else if(document.documentElement.hasAttribute('data-detalle'))t.add('adelante')})</script>"
+const CLASE_MOVIL_VIEJA = /<script>if\(window\.matchMedia\('\(max-width: 900px\)'\)\.matches\)document\.documentElement\.classList\.add\('con-barra-movil'\)[^<]*<\/script>/
 export function conClaseMovil(html) {
   if (html.includes(CLASE_MOVIL)) return html
+  if (CLASE_MOVIL_VIEJA.test(html)) return html.replace(CLASE_MOVIL_VIEJA, () => CLASE_MOVIL)
   return html.replace(/(\n(\s*)<meta name="viewport"[^>]*>)/, (m, linea, sangria) => `${linea}\n${sangria}${CLASE_MOVIL}`)
 }
 

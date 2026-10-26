@@ -1873,6 +1873,10 @@ html.ola-tema::view-transition-new(root) {
 a, button, [role='button'] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 a[class]:active, button:active, [role='button']:active { transform: scale(0.97); transition: transform 0.15s var(--ease); }
 .bm a:active, .bm-burbuja a:active { background: var(--ice); transform: none; }
+/* 1023 (A4): también las tarjetas y las filas que se tocan (no solo los botones). */
+@media (pointer: coarse) {
+  :is(.foro-fila, .foro-tema-fila, .mc-set-tarjeta, .torneo-tarjeta, .guide-card, .mc-bolsillo, .partidas-fila, .com-persona, .noticia-tarjeta, .ap-baldosa, .hoy-ficha):active { transform: scale(0.985); transition: transform 0.12s var(--ease); }
+}
 .progreso-pagina { position: fixed; top: env(safe-area-inset-top, 0px); right: 0; left: 0; z-index: 300; height: 3px; pointer-events: none; }
 .progreso-pagina i { display: block; width: 0; height: 100%; border-radius: 0 2px 2px 0; background: var(--navy); }
 .progreso-pagina.andando i { animation: progreso-avanza 1.8s var(--ease) forwards; }
@@ -1881,6 +1885,7 @@ a[class]:active, button:active, [role='button']:active { transform: scale(0.97);
 html.navegando .page-content { opacity: 0.72; transition: opacity 0.3s var(--ease); }
 @media (prefers-reduced-motion: reduce) {
   a[class]:active, button:active, [role='button']:active { transform: none; transition: none; }
+  :is(.foro-fila, .foro-tema-fila, .mc-set-tarjeta, .torneo-tarjeta, .guide-card, .mc-bolsillo, .partidas-fila, .com-persona, .noticia-tarjeta, .ap-baldosa, .hoy-ficha):active { transform: none; transition: none; }
   .progreso-pagina i { width: 60%; }
   .progreso-pagina.andando i, .progreso-pagina.lista i { animation: none; transition: none; }
   html.navegando .page-content { transition: none; }
@@ -1893,6 +1898,24 @@ html.uv-actualizando .page-content h1::after { content: ''; display: inline-bloc
   @view-transition { navigation: auto; }
   .bm { view-transition-name: barra-abajo; }
   .navbar { view-transition-name: barra-arriba; }
+  /* 1023 (A4): la transición tiene DIRECCIÓN. Entrar en una hoja (una
+     página de detalle) desliza desde la derecha; volver atrás, hacia la
+     derecha; cambiar de pestaña, el fundido de siempre. El tipo lo pone el
+     guion de la cabecera (generar-barra-movil.mjs) en `pagereveal`. */
+  html:active-view-transition-type(adelante)::view-transition-old(root) { animation: 0.25s var(--ease) both vt-sale-izquierda; }
+  html:active-view-transition-type(adelante)::view-transition-new(root) { animation: 0.25s var(--ease) both vt-entra-derecha; }
+  html:active-view-transition-type(atras)::view-transition-old(root) { animation: 0.25s var(--ease) both vt-sale-derecha; }
+  html:active-view-transition-type(atras)::view-transition-new(root) { animation: 0.25s var(--ease) both vt-entra-izquierda; }
+}
+@keyframes vt-entra-derecha { from { transform: translateX(100%); } }
+@keyframes vt-sale-izquierda { to { transform: translateX(-28%); opacity: 0.5; } }
+@keyframes vt-entra-izquierda { from { transform: translateX(-28%); opacity: 0.5; } }
+@keyframes vt-sale-derecha { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) {
+  html:active-view-transition-type(adelante)::view-transition-old(root),
+  html:active-view-transition-type(adelante)::view-transition-new(root),
+  html:active-view-transition-type(atras)::view-transition-old(root),
+  html:active-view-transition-type(atras)::view-transition-new(root) { animation: none; }
 }
 /* S780.50 */
 @supports (-webkit-touch-callout: none) or (font: -apple-system-body) {
