@@ -41785,6 +41785,59 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1019 — La cabecera de detalle del móvil, el pie corto y la ficha del torneo (A2, A3 y D10 de «PokeDoc como app»)
+
+**A2, la cabecera de una página de detalle.** Una guía, un tema, un torneo,
+un perfil ajeno o un reto no son páginas de su sección: son una hoja que se
+ha abierto. En el móvil la barra de arriba pasa a ser la de una app: volver,
+de dónde vienes (la última miga, y si no la sección) y compartir; el logo y
+el buscador se esconden y la cuenta se queda a la derecha. Cuando el `<h1>`
+sale por arriba, su título entra en la barra (`bm-cab-con-titulo`, con un
+`IntersectionObserver`), como los títulos grandes de iOS. Lo monta
+`montarCabeceraDetalle` en `js/barra-movil.js`, y las migas y el `<h1>` los
+lee cuando existen: cada página los escribe al llegar su dato, DESPUÉS de
+montarse la barra, así que un `MutationObserver` sobre `body` vuelve a
+mirarlos hasta tenerlos (y se apaga a los 15 s). «Volver» hace `history.back()`
+solo si se vino de PokeDoc (`document.referrer` del mismo origen); si no —un
+enlace de fuera, una pestaña nueva— va a la miga o a la primera página de la
+sección: nunca saca de la web. Compartir reutiliza `engancharCompartir`
+(`js/compartir.js`).
+
+Qué página es de detalle lo decide el generador, no el JavaScript:
+`data-detalle` en `<html>` (`esDetalle` en `generar-barra-movil.mjs`: de una
+sección pero fuera de su lista; 19 páginas, de `buscar` a `usuario`), porque
+las migas del contenido se esconden con ese atributo y eso tiene que estar
+decidido antes del primer pintado, o la página saltaría 52 px al llegar el
+módulo (981). `js/barra-movil.js` lo lee y, si no está (una página vieja en
+caché), decide lo mismo por su cuenta. Lo que lleva `.breadcrumb`,
+`.foro-migas` o `.carta-migas` se esconde en el móvil con `data-detalle`; en
+el PC todo sigue igual. El icono de volver es `chevronLeft`, nuevo en
+`js/icons.js`.
+
+Lo que NO cambia: la burbuja flotante (PINGU la quiere), que en una página
+de detalle ya no salía; y el hilo del foro conserva su cabecera compacta al
+bajar (804), que ahora dice lo mismo que la barra cuando esta vuelve.
+
+**A3, el pie del móvil.** Las cuatro columnas de enlaces son lo que ya está
+en la barra de abajo y en la hoja «Tú»: en el móvil se esconden (`.pie-col`
+y el lema con `display: none`, en `movil.css`) y quedan la marca, las redes
+y la línea de abajo (copyright y legales): de 600 px a unos 150. Los enlaces
+siguen en el HTML de las 22 páginas, que es lo que lee Google (312). En el
+PC, las cuatro columnas.
+
+**D10, los datos del torneo.** `.torneo-formato` iba con
+`repeat(auto-fit, minmax(150px, 1fr))` y 12 px de hueco: en 310 px no caben
+dos de 150, así que los cinco datos salían apilados (220 px antes de «Tu
+plaza»). En el móvil, dos columnas fijas. Y la barra viva ya no se monta
+sobre el final de la cabecera (`margin-top: -16px` → `var(--e-sm)`): parecía
+un fallo de apilamiento.
+
+Lo vigila `test-tanda-1019-pantalla.mjs`: el generador y el repo, la cabecera
+en un tema (volver, «Competitivo», el título que entra al bajar), «volver»
+sin venir de casa, la guía y el torneo (dos columnas), Aprender sin
+cabecera de detalle, el pie corto con sus enlaces en el HTML y el PC con
+columnas.
+
 ## Tanda 1018 — La letra Outfit y el color de cada sección (propuesta «PokeDoc como app», B y C)
 
 PINGU, sobre la propuesta de la noche del 25 (artifact «PokeDoc como app»):

@@ -56,9 +56,23 @@ export function seccionDe(html, fichero) {
   const actual = seccionActual(secciones, claveDePagina(`/${fichero}`))
   return actual ? actual.toLowerCase() : null
 }
+// Y SI ES UNA PÁGINA DE DETALLE (1019): de una sección pero fuera de su
+// lista (una guía, un tema, un torneo, un perfil ajeno…), `data-detalle`:
+// en el móvil lleva la cabecera de app (volver + de dónde + compartir) y
+// no pinta sus migas, y eso tiene que estar decidido ANTES del primer
+// pintado, o las migas se esconderían con la página ya en pantalla (981).
+export function esDetalle(html, fichero) {
+  const secciones = seccionesDelHtml(html)
+  const clave = claveDePagina(`/${fichero}`)
+  const actual = seccionActual(secciones, clave)
+  if (!actual || clave === 'index') return false
+  const seccion = secciones.find((s) => s.nombre === actual)
+  return !seccion.enlaces.some((e) => claveDePagina(e.href) === clave)
+}
 export function conSeccion(html, fichero) {
   const seccion = seccionDe(html, fichero)
-  return html.replace(/<html([^>]*?)(\s+data-seccion="[^"]*")?>/, (m, attrs) => `<html${attrs}${seccion ? ` data-seccion="${seccion}"` : ''}>`)
+  const detalle = esDetalle(html, fichero)
+  return html.replace(/<html([^>]*?)(\s+data-seccion="[^"]*")?(\s+data-detalle)?>/, (m, attrs) => `<html${attrs}${seccion ? ` data-seccion="${seccion}"` : ''}${detalle ? ' data-detalle' : ''}>`)
 }
 
 // La pone justo detrás de la barra de arriba (o sustituye la que hubiera).

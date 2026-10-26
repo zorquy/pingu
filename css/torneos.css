@@ -1078,7 +1078,7 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 
 @media (max-width: 640px) {
   .torneo-cabecera-dentro { padding: 16px; }
-  .torneo-dato { font-size: var(--t-xs); padding: 8px 12px; }
+  .torneo-dato { font-size: var(--t-xs); padding: 8px 12px; min-width: 0; }
 }
 
 /* ── La barra viva (tanda 298) ──
@@ -1186,7 +1186,9 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
    pantalla, pero en pantalla manda el anillo. */
 .torneo-viva .torneo-reloj { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 @media (max-width: 640px) {
-  .torneo-viva { margin-top: -16px; padding: 12px 16px; gap: 12px; }
+  /* 1019: la barra viva ya no se monta sobre el final de la cabecera
+     (parecía un fallo de apilamiento); va debajo, con su aire. */
+  .torneo-viva { margin-top: var(--e-sm); padding: 12px 16px; gap: 12px; }
   .torneo-viva-der { margin-left: 0; width: 100%; }
   .torneo-viva-der > * { flex: 1; justify-content: center; }
   .torneo-viva-titular { font-size: var(--t-lg); }
@@ -2382,6 +2384,12 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 12px;
   margin-top: 12px;
+}
+/* 1019 (D10): en el móvil `minmax(150px)` con 12 px de hueco no cabía dos
+   veces en 310 px y los cinco datos salían apilados (220 px antes de «Tu
+   plaza»). Dos columnas fijas: caben en la mitad. */
+@media (max-width: 640px) {
+  .torneo-formato { grid-template-columns: 1fr 1fr; gap: 8px; }
 }
 .torneo-formato-dato {
   display: flex;

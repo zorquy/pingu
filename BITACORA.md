@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (257) — PINGU-Claude (1019 — cabecera de detalle del móvil, pie corto, ficha del torneo)
+
+**Hecho**: en el móvil, una guía, un tema, un torneo, un perfil ajeno o un
+reto llevan cabecera de app (volver · de dónde vienes · compartir, y el
+título cuando el `<h1>` sale por arriba) y sus migas no se pintan; lo decide
+`data-detalle` en `<html>` (generador, 19 páginas). El pie del móvil se queda
+en marca, redes y la línea legal (las columnas siguen en el HTML). Los datos
+de un torneo van en dos columnas y la barra viva ya no se monta sobre la
+cabecera.
+
+**Ficheros**: `js/barra-movil.js` (`montarCabeceraDetalle`), `js/icons.js`
+(`chevronLeft`), `generar-barra-movil.mjs` (`esDetalle`, `conSeccion`),
+`css/movil.css`, `css/torneos.css`, las 19 páginas con `data-detalle`,
+`cartas.html`, `SCHEMA.md`, `novedades.json`. En `pruebas`:
+`test-tanda-1019-pantalla.mjs` (nuevo).
+
+**Pruebas**: 1019, 753, 981 (sin saltos), 312 (pie) y 299 en verde;
+`test-imports` en verde.
+
+**Pendiente**: la migración 1017 (PINGU, SQL Editor); 1020–1023; lo de
+siempre (carrusel, Search Console, la 237).
+
 ## 2026-10-26 (256) — PINGU-Claude (1018 — la letra Outfit y el color de cada sección)
 
 **Contexto**: PINGU leyó la propuesta «PokeDoc como app» (artifact de la

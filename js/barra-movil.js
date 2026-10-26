@@ -18,6 +18,8 @@
 import { icons } from './icons.js'
 import { hojaInyectada } from './hoja.js'
 import { montarArrastreDeHojas } from './hoja-arrastre.js'
+import { engancharCompartir } from './compartir.js'
+import { escapeHtml } from './html.js'
 
 // Qué icono lleva cada sección (por el nombre del desplegable).
 export const ICONOS = { Inicio: 'home', Aprender: 'bookOpen', Cartas: 'cards', Comunidad: 'messageSquare', Jugar: 'trophy' }
@@ -294,6 +296,65 @@ function montarTu(doc, win) {
   pintarPunto()
 }
 
+// LA CABECERA DE UNA PÁGINA DE DETALLE (1019, A2 de «PokeDoc como app»):
+// en una guía, un tema, un torneo o un perfil ajeno la barra de arriba no
+// es la de la lista (logo + buscador) sino la de una hoja abierta: volver,
+// de dónde vienes (la última miga, o la sección) y compartir. El título
+// de la página sube a la barra cuando su <h1> sale por arriba, como los
+// títulos grandes de iOS. La página lo dice con `data-detalle` en <html>
+// (generar-barra-movil.mjs), que es también lo que esconde sus migas.
+export function montarCabeceraDetalle({ doc = document, win = window, seccion, conSesion = false } = {}) {
+  const inner = doc.querySelector('.nav-inner')
+  const derecha = doc.querySelector('.nav-right')
+  if (!inner || doc.querySelector('.bm-cab')) return null
+  const cab = doc.createElement('div')
+  cab.className = 'bm-cab'
+  cab.innerHTML = `<button type="button" class="bm-cab-volver" aria-label="Volver">${icons.chevronLeft?.(24) || ''}</button><b class="bm-cab-titulo"><small>${escapeHtml(seccion?.nombre || 'Volver')}</small><span></span></b><button type="button" class="bm-cab-compartir" aria-label="Compartir">${icons.share?.(20) || ''}</button>`
+  inner.insertBefore(cab, derecha)
+  doc.documentElement.classList.add('con-cabecera-detalle')
+  // Las migas y el <h1> los escribe cada página cuando le llega su dato
+  // (el tema, la guía, el torneo), DESPUÉS de montarse esta barra: se leen
+  // ahora y cada vez que el contenido cambie, hasta tenerlos.
+  const laMiga = () => doc.querySelector('.breadcrumb a:last-of-type, .foro-migas a:last-of-type, .carta-migas a:last-of-type')
+  const elH1 = () => [...doc.querySelectorAll('h1')].find((h) => h.getBoundingClientRect().height > 0 && h.textContent.trim())
+  const titulo = (h1) => { const c = h1.cloneNode(true); c.querySelectorAll('[class*="chapa"], .chip, .sr-only').forEach((x) => x.remove()); return c.textContent.replace(/\s+/g, ' ').trim() }
+  let h1Visto = null
+  const rellenar = () => {
+    const miga = laMiga()
+    if (miga?.textContent.trim()) cab.querySelector('.bm-cab-titulo small').textContent = miga.textContent.trim()
+    const h1 = elH1()
+    if (h1 && h1 !== h1Visto) {
+      h1Visto = h1
+      cab.querySelector('.bm-cab-titulo span').textContent = titulo(h1)
+      // El título entra cuando el <h1> sale por arriba; sin observador, va siempre.
+      if ('IntersectionObserver' in win) new win.IntersectionObserver(([e]) => cab.classList.toggle('bm-cab-con-titulo', !e.isIntersecting && e.boundingClientRect.top < 0), { rootMargin: '-70px 0px 0px 0px' }).observe(h1)
+      else cab.classList.add('bm-cab-con-titulo')
+    }
+    return Boolean(miga && h1)
+  }
+  if (!rellenar() && 'MutationObserver' in win) {
+    let pendiente = false
+    const ob = new win.MutationObserver(() => {
+      if (pendiente) return
+      pendiente = true
+      win.requestAnimationFrame(() => { pendiente = false; if (rellenar()) ob.disconnect() })
+    })
+    ob.observe(doc.body, { childList: true, subtree: true, characterData: true })
+    win.setTimeout(() => ob.disconnect(), 15000)
+  }
+  // Volver: atrás si se vino de aquí; si no (un enlace de fuera, una
+  // pestaña nueva), a la miga, y si no la hay, a la primera página de la
+  // sección. Así nunca saca de PokeDoc.
+  cab.querySelector('.bm-cab-volver').addEventListener('click', () => {
+    let deCasa = false
+    try { deCasa = Boolean(doc.referrer) && new URL(doc.referrer).origin === win.location.origin } catch { deCasa = false }
+    if (deCasa && win.history.length > 1) win.history.back()
+    else win.location.href = laMiga()?.getAttribute('href') || (seccion ? destinoDe(seccion, conSesion) : '/')
+  })
+  engancharCompartir(cab.querySelector('.bm-cab-compartir'), { titulo: doc.title, url: win.location.href })
+  return cab
+}
+
 export function montarBarraMovil({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin) } = {}) {
   // Montada una vez. La CLASE ya no sirve de marca (981): la pone el guion
   // de la cabecera de cada página antes del primer pintado, para que el
@@ -365,6 +426,10 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   // cuelgan al final de esa misma burbuja: dos burbujas no caben.
   const seccion = secciones.find((s) => s.nombre === actual)
   const enLista = seccion?.enlaces.some((e) => claveDePagina(e.href) === clave)
+  // La cabecera de detalle (1019): lo decide `data-detalle`, que puso el
+  // generador; sin él (una página vieja en caché), lo mismo que decide él.
+  const esDetalle = doc.documentElement.hasAttribute('data-detalle') || Boolean(seccion && !enLista && clave !== 'index')
+  if (esDetalle) montarCabeceraDetalle({ doc, win: window, seccion, conSesion })
   // Instalar en la pantalla de inicio (A1) y, ya instalada —sin barra del
   // navegador—, tirar hacia abajo para refrescar (X4). Tanda 732; desde la
   // 753 se ofrece en la portada y en las páginas de la lista de cada sección.

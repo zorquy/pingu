@@ -320,6 +320,73 @@
   html.con-barra-movil .nav-inner {
     gap: 0;
   }
+  /* LA CABECERA DE DETALLE (1019): volver · de dónde / título · compartir.
+     El logo y el buscador se van; la cuenta se queda a la derecha. */
+  html.con-cabecera-detalle .nav-logo,
+  html.con-cabecera-detalle .bm-pastilla {
+    display: none;
+  }
+  .bm-cab {
+    display: flex;
+    flex: 1 1 auto;
+    align-items: center;
+    min-width: 0;
+    min-height: 44px;
+  }
+  .bm-cab button {
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+  }
+  .bm-cab-titulo {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    line-height: 1.2;
+    text-align: center;
+  }
+  .bm-cab-titulo small,
+  .bm-cab-titulo span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .bm-cab-titulo small {
+    font-size: var(--t-2xs);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-mid);
+  }
+  .bm-cab-titulo span {
+    display: none;
+    font-family: var(--font-display);
+    font-size: var(--t-sm);
+    font-weight: 700;
+    color: var(--text);
+  }
+  .bm-cab-con-titulo .bm-cab-titulo span {
+    display: block;
+  }
+  /* Las migas del contenido sobran con la cabecera (desde el primer
+     pintado: `data-detalle` lo pone el generador). */
+  html.con-barra-movil[data-detalle] .breadcrumb,
+  html.con-barra-movil[data-detalle] .foro-migas,
+  html.con-barra-movil[data-detalle] .carta-migas {
+    display: none;
+  }
   html.con-barra-movil .nav-logo,
   html.con-barra-movil .nav-right {
     flex-shrink: 0;
@@ -725,6 +792,38 @@
 /* En la app instalada, la barra de abajo ya lleva a todo: del pie, lo legal. */
 @media (max-width: 900px) and (display-mode: standalone) {
   .pie-rejilla { display: none; }
+}
+
+/* ── 1019 (A3): el pie del móvil en dos líneas. Las cuatro columnas son lo
+   que ya está en la barra de abajo y en la hoja «Tú»; se quedan en el HTML
+   (las lee Google) y se esconden. ── */
+@media (max-width: 900px) {
+  .footer {
+    margin-top: var(--e-xl);
+  }
+  .pie-rejilla {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--e-sm) var(--e-md);
+    padding: var(--e-md) var(--e-lg) var(--e-sm);
+  }
+  .pie-rejilla .pie-col,
+  .pie-lema {
+    display: none;
+  }
+  .pie-marca,
+  .pie-redes {
+    margin: 0;
+  }
+  .pie-marca {
+    font-size: var(--t-lg);
+  }
+  .pie-abajo {
+    gap: var(--e-xs) var(--e-md);
+    padding: var(--e-sm) var(--e-lg) var(--e-md);
+    font-size: var(--t-2xs);
+  }
 }
 
 /* ── 893: cabeceras de una línea en las páginas de lista (SCHEMA 893) ──

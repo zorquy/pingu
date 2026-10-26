@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, al abrir una guía, un tema del foro o un torneo, la barra de arriba es la de una app: volver, de dónde vienes y compartir, y el título sube a la barra al bajar. El pie es más corto y los datos de un torneo van en dos columnas.", "enlace": "/foro" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "Letra nueva en los títulos, el logo y las cifras: más redonda y con más carácter, sin perder la lectura del texto. Y cada sección tiene su color: verde en Aprender, ámbar en Cartas, rosa en Comunidad y violeta en Jugar, en el menú de abajo, en la burbuja y en el botón principal.", "enlace": "/aprender" },
     { "fecha": "2026-10-25", "tipo": "mejora", "texto": "La portada con tu cuenta y el índice del foro cargan de una vez: lo de Hoy, el foro de la portada y los foros con sus mensajes nuevos llegan en una sola consulta en vez de en cincuenta encadenadas.", "enlace": "/" },
     { "fecha": "2026-10-25", "tipo": "mejora", "texto": "Los títulos de toda la web van ahora en la misma letra que el texto, más seria y más fácil de leer; la redonda de siempre se queda en el logo y en las cifras grandes.", "enlace": "/aprender" },
