@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "mejora", "texto": "El Modo evento estrena pase: tu QR en una tarjeta con tu nombre, un botón para enseñarlo en grande, y un buscador con filtros por expansión, orden y precio para encontrar rápido una carta de tus listas.", "enlace": "/evento" },
+    { "fecha": "2026-10-26", "tipo": "mejora", "texto": "Los cruces de Deseos y cambios, más claros: los perfectos arriba con una balanza que dice quién pone más y cuánto, y el resto en filas. Los filtros del Mercado dicen qué tienen elegido.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, el Modo evento de Deseos y cambios es un botón redondo abajo a la derecha, y arriba caben enteras Mercado, Quiero, Doy y Cruces. Y el filtro de idioma del Mercado ya no pisa su flecha.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, el foro, la comunidad, los torneos, tus partidas, el laboratorio, las repeticiones, el constructor y tu perfil enseñan antes lo que vienes a ver: los foros en filas, el podio en una fila, los filtros de torneos en una sola línea y la cabecera del perfil más baja.", "enlace": "/torneos" },
     { "fecha": "2026-10-26", "tipo": "arreglo", "texto": "En el móvil, cada partida de Mis partidas ya no deja un hueco vacío enorme encima de los mazos.", "enlace": "/mis-partidas" },

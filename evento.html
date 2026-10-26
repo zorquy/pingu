@@ -115,20 +115,44 @@
       <h1>Modo evento</h1>
       <p class="subtext cab-lema">Enséñale el QR a quien quiera cambiar<span class="cab-largo">: al escanearlo ve tus listas y, con cuenta, lo que os podéis cambiar</span>. Tus listas se quedan en el móvil aunque no haya cobertura.</p>
     </header>
-    <div class="evento-qr" id="eventoQr" aria-live="polite"><span class="skeleton evento-qr-esqueleto"></span></div>
-    <p class="evento-guardado subtext" id="eventoGuardado"></p>
-    <div class="evento-listas hidden" id="eventoListas">
-      <div class="seg evento-pestanas" role="group" aria-label="Qué lista">
-        <button type="button" class="seg-btn" data-lista="busco" aria-pressed="true">Busco <span class="evento-n" id="eventoNBusco">0</span></button>
-        <button type="button" class="seg-btn" data-lista="doy" aria-pressed="false">Doy <span class="evento-n" id="eventoNDoy">0</span></button>
-      </div>
-      <ul class="evento-rejilla" id="eventoLista"></ul>
-      <div class="evento-botones">
-        <button type="button" class="btn-secondary" id="eventoCopiar" aria-label="Copiar lista">Copiar<span class="evento-largo"> lista</span></button>
-        <button type="button" class="btn-secondary" id="eventoImagen">Imagen</button>
-        <button type="button" class="btn-secondary" id="eventoExportar" aria-label="Exportar CSV"><span class="evento-largo">Exportar </span>CSV</button>
-      </div>
+    <!-- 1042: a la izquierda (arriba en el móvil) el pase con el QR y
+         «Ampliar el QR»; a la derecha las listas con su barra (Copiar,
+         Imagen, CSV), el buscador y los filtros. -->
+    <div class="evento-cuerpo">
+      <aside class="evento-lado">
+        <div class="evento-pase" id="eventoQr" aria-live="polite"><span class="skeleton evento-qr-esqueleto"></span></div>
+        <button type="button" class="btn-secondary evento-ampliar hidden" id="eventoAmpliar"><span data-icono="maximize" aria-hidden="true"></span>Ampliar el QR</button>
+        <p class="evento-guardado subtext" id="eventoGuardado"></p>
+      </aside>
+      <section class="evento-listas hidden" id="eventoListas" aria-label="Tus listas">
+        <div class="evento-barra">
+          <div class="seg evento-pestanas" role="group" aria-label="Qué lista">
+            <button type="button" class="seg-btn" data-lista="busco" aria-pressed="true">Busco <span class="evento-n" id="eventoNBusco">0</span></button>
+            <button type="button" class="seg-btn" data-lista="doy" aria-pressed="false">Doy <span class="evento-n" id="eventoNDoy">0</span></button>
+          </div>
+          <span class="grupo-acciones evento-botones" role="group" aria-label="La lista">
+            <button type="button" id="eventoCopiar" aria-label="Copiar lista"><span data-icono="copy" aria-hidden="true"></span><span class="evento-largo">Copiar lista</span></button>
+            <button type="button" id="eventoImagen" aria-label="Imagen"><span data-icono="image" aria-hidden="true"></span><span class="evento-largo">Imagen</span></button>
+            <button type="button" id="eventoExportar" aria-label="Exportar CSV"><span data-icono="download" aria-hidden="true"></span><span class="evento-largo">Exportar CSV</span></button>
+          </span>
+        </div>
+        <label class="evento-busca"><span data-icono="search" aria-hidden="true"></span><span class="sr-only">Busca en la lista</span><input type="search" id="eventoBuscar" enterkeyhint="search" autocomplete="off" placeholder="Busca en tu lista…" /></label>
+        <div class="evento-filtros" id="eventoFiltros">
+          <label class="evento-op hidden" id="eventoOpCatalogo"><span class="evento-op-et">Catálogo</span><select id="eventoCatalogo"><option value="">Todos</option><option value="WEST">Pokémon</option><option value="JP">Japón</option></select></label>
+          <label class="evento-op"><span class="evento-op-et">Expansión</span><select id="eventoSet"><option value="">Todas</option></select></label>
+          <label class="evento-op"><span class="evento-op-et">Orden</span><select id="eventoOrden"><option value="set">Por expansión</option><option value="nombre">Por nombre</option><option value="caras">Más caras</option></select></label>
+          <button type="button" class="chip-filtro evento-con-precio" id="eventoConPrecio" aria-pressed="false">Con precio</button>
+        </div>
+        <p class="evento-cuantas subtext" id="eventoCuantas" role="status" aria-live="polite"></p>
+        <ul class="evento-rejilla" id="eventoLista"></ul>
+      </section>
     </div>
+    <dialog class="evento-grande" id="eventoGrande" aria-label="Tu QR en grande">
+      <button type="button" class="evento-grande-cerrar" id="eventoGrandeCerrar" aria-label="Cerrar">✕</button>
+      <div class="evento-grande-qr" id="eventoGrandeQr"></div>
+      <p class="evento-grande-nombre" id="eventoGrandeNombre"></p>
+      <p class="evento-grande-pista">Sube el brillo y enséñalo.</p>
+    </dialog>
   </main>
 
   <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres

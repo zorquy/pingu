@@ -1,28 +1,108 @@
 /* El modo evento (794 → 1029): el QR con las cuentas, las listas en cartas para mirar de pie y los tres botones. Solo la carga evento.html. */
 
-.evento-qr {
+/* El pase (1042, SCHEMA 1042): el amarillo de Colección, fijo en los dos
+   temas —es una tarjeta, como un carné— y el QR en su recuadro blanco. */
+.evento-pase {
+  --pase-tinta: #0b1219;
   display: grid;
   justify-items: center;
-  gap: var(--e-xs);
-  margin: var(--e-md) auto var(--e-sm);
-  padding: var(--e-md);
-  max-width: 320px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--blanco-fijo);
-  color: var(--navy-solid-dark);
-  font-size: var(--t-lg);
+  gap: var(--e-sm);
+  padding: var(--e-md) var(--e-md) var(--e-sm);
+  border-radius: var(--radius-xl);
+  background: radial-gradient(120% 80% at 0% 0%, #f6cf6e, #e4b44a 45%, #b9831f);
+  color: var(--pase-tinta);
+  box-shadow: 0 14px 40px rgb(185 131 31 / 25%);
 }
 
-.evento-qr svg {
+.evento-pase:has(.empty-state) {
+  background: var(--white);
+  color: var(--text);
+  box-shadow: none;
+  border: 1px solid var(--border);
+}
+
+.evento-pase-cab {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
   width: 100%;
-  max-width: 200px;
+}
+
+.evento-pase-av {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: none;
+  border-radius: 50%;
+  background-color: var(--pase-tinta);
+  background-position: center;
+  background-size: cover;
+  color: #e4b44a;
+  font-weight: 800;
+}
+
+.evento-pase-quien {
+  display: grid;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.evento-pase-quien strong,
+.evento-pase-quien small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evento-pase-quien small {
+  color: rgb(11 18 25 / 72%);
+  font-size: var(--t-xs);
+}
+
+.evento-pase-marca {
+  font-family: var(--font-marca);
+  font-size: var(--t-md);
+  font-weight: 800;
+}
+
+.evento-pase-marca span {
+  color: var(--blanco-fijo);
+}
+
+.evento-pase-qr {
+  width: min(78%, 240px);
+  padding: var(--e-sm);
+  border-radius: var(--radius-lg);
+  background: var(--blanco-fijo);
+  box-shadow: 0 4px 0 rgb(0 0 0 / 12%);
+}
+
+.evento-pase-qr svg {
+  display: block;
+  width: 100%;
   height: auto;
 }
 
-.evento-qr small {
-  color: var(--text-mid);
-  font-size: var(--t-sm);
+.evento-pase-lema {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  text-align: center;
+}
+
+.evento-pase-cifras {
+  display: flex;
+  gap: var(--e-xs);
+  margin: 0;
+}
+
+.evento-pase-cifras span {
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgb(11 18 25 / 12%);
+  font-size: var(--t-xs);
 }
 
 .evento-qr-esqueleto {
@@ -30,7 +110,22 @@
   aspect-ratio: 1;
 }
 
+.evento-lado {
+  display: grid;
+  gap: var(--e-sm);
+  align-content: start;
+}
+
+.evento-ampliar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+}
+
 .evento-guardado {
+  margin: 0;
   text-align: center;
 }
 
@@ -138,28 +233,222 @@
   color: var(--text-mid);
 }
 
-.evento-botones {
+@media (min-width: 901px) {
+  .evento-rejilla {
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  }
+}
+
+/* La barra de la lista (1042): las pestañas y el grupo de acciones en una
+   fila; debajo el buscador y los filtros en chapas «Expansión · Todas». */
+.evento-barra {
   display: flex;
-  justify-content: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
   gap: var(--e-sm);
 }
 
-/* En una fila también en el móvil (1035): «CSV» en vez de «Exportar CSV». */
+.evento-busca {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+}
+
+.evento-busca:focus-within {
+  box-shadow: var(--shadow-ring);
+}
+
+.evento-busca input {
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  outline: none;
+}
+
+.evento-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.evento-op {
+  display: inline-flex;
+  align-items: center;
+  padding-left: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+}
+
+.evento-op:focus-within {
+  box-shadow: var(--shadow-ring);
+}
+
+.evento-op-et {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.evento-op select {
+  max-width: 200px;
+  min-height: 42px;
+  padding: 0 36px 0 var(--e-xs);
+  border: 0;
+  background-color: transparent;
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.evento-op select:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.evento-op.cambiada {
+  border-color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 16%, var(--white));
+}
+
+.evento-cuantas {
+  margin: 0;
+}
+
+.evento-cuantas:empty {
+  display: none;
+}
+
+.evento-precio {
+  display: none;
+  color: var(--acento);
+  font-size: var(--t-xs);
+  font-style: normal;
+  font-weight: 700;
+}
+
+.con-precio .evento-precio {
+  display: block;
+}
+
+/* El QR en grande: blanco entero, para un pabellón con poca luz. */
+.evento-grande[open] {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: var(--e-sm);
+  width: min(100vw, 520px);
+  max-width: 100vw;
+  height: min(100dvh, 720px);
+  max-height: 100dvh;
+  padding: var(--e-xl);
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--blanco-fijo);
+  color: #0b1219;
+}
+
+.evento-grande::backdrop {
+  background: rgb(0 0 0 / 70%);
+}
+
+.evento-grande-qr {
+  width: min(86vw, 420px);
+}
+
+.evento-grande-qr svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.evento-grande-nombre {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 700;
+}
+
+.evento-grande-pista {
+  margin: 0;
+  color: #52717f;
+}
+
+.evento-grande-cerrar {
+  justify-self: end;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: #eef3f6;
+  color: #0b1219;
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+
 @media (max-width: 599px) {
-  .evento-botones > * {
-    flex: 1 1 0;
-    min-width: 0;
-    padding-inline: var(--e-sm);
-    white-space: nowrap;
+  .evento-barra {
+    flex-wrap: nowrap;
   }
 
   .evento-largo {
     display: none;
   }
+
+  .evento-botones > button {
+    padding-inline: var(--e-sm);
+  }
+
+  .evento-filtros {
+    flex-wrap: nowrap;
+    padding-block: var(--e-xs);
+    margin-block: calc(-1 * var(--e-xs));
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .evento-op,
+  .evento-filtros .chip-filtro {
+    flex: none;
+  }
+
+  .evento-op select {
+    max-width: 148px;
+    min-height: 34px;
+  }
+
+  .evento-grande[open] {
+    width: 100vw;
+    height: 100dvh;
+    border-radius: 0;
+  }
 }
 
+/* En el PC, a dos columnas: el pase fijo a la izquierda y las cartas. */
 @media (min-width: 901px) {
-  .evento-rejilla {
-    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  .evento-cuerpo {
+    display: grid;
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: var(--e-xl);
+    align-items: start;
+  }
+
+  .evento-lado {
+    position: sticky;
+    top: 88px;
+  }
+
+  .evento-listas {
+    margin-top: 0;
   }
 }

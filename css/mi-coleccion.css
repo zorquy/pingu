@@ -12546,3 +12546,222 @@ button.mc-fila:hover {
     display: none;
   }
 }
+
+/* ── 1042: las acciones de La quiero y Las que doy en un grupo unido
+   (`.grupo-acciones`, components.css), y en el Mercado cada desplegable es
+   una chapa «Idioma · Todos» que se rellena si no está en lo de siempre. ── */
+.mc-quiero-botones .grupo-acciones > button {
+  min-height: 44px;
+}
+
+.mc-quiero-botones.grupo-acciones {
+  gap: 0;
+}
+
+.mc-mercado-opcion {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding-left: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+}
+
+.mc-mercado-opcion:focus-within {
+  box-shadow: var(--shadow-ring);
+}
+
+.mc-op-et {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mc-mercado-opcion select {
+  min-height: 42px;
+  padding: 0 36px 0 var(--e-xs);
+  border: 0;
+  background-color: transparent;
+  font-weight: 700;
+}
+
+.mc-mercado-opcion select:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+.mc-mercado-opcion.cambiada {
+  border-color: var(--acento);
+  background: color-mix(in srgb, var(--acento) 16%, var(--white));
+}
+
+.mc-mercado-opcion.cambiada .mc-op-et {
+  color: var(--text);
+}
+
+@media (max-width: 599px) {
+  .mc-mercado-opcion select {
+    min-height: 34px;
+  }
+
+  .mc-quiero-botones .grupo-acciones > button {
+    padding-inline: var(--e-sm);
+  }
+}
+
+/* ── 1042: los cruces por bandas (SCHEMA 1042): los perfectos en tarjeta,
+   con la balanza entre las dos mitades; el resto en filas. ── */
+.mc-cruces-bandas {
+  display: grid;
+  gap: var(--e-xl);
+}
+
+.mc-cruces-banda {
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.mc-cruces-titulo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: 0;
+  font-size: var(--t-lg);
+}
+
+.mc-cruce.perfecto {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--success) 8%, var(--white)), var(--white) 60%);
+}
+
+.mc-cruce-balanza {
+  display: grid;
+  gap: var(--e-xs);
+  min-width: 160px;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-align: center;
+}
+
+.mc-cruce-balanza p {
+  margin: 0;
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.mc-cruce-balanza b {
+  color: var(--acento);
+}
+
+.mc-balanza-barra {
+  display: flex;
+  height: 8px;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+}
+
+.mc-balanza-barra i:first-child {
+  background: var(--navy);
+}
+
+.mc-balanza-barra i:last-child {
+  background: var(--acento);
+}
+
+.mc-cruce-lado[data-cruce-lado="busca"] {
+  justify-items: end;
+  text-align: right;
+}
+
+.mc-cruce-acciones .btn-primary {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.mc-cruce-ico {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex: none;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--navy);
+  cursor: pointer;
+}
+
+.mc-cruce-ico:hover {
+  background: var(--ice-dark);
+}
+
+.mc-cruces-filas {
+  display: grid;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.mc-cruce.mc-cruce-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border: 0;
+  border-radius: 0;
+  background: none;
+}
+
+.mc-cruce-fila + .mc-cruce-fila {
+  border-top: 1px solid var(--border);
+}
+
+.mc-cruce-fila .mini-avatar {
+  width: 36px;
+  height: 36px;
+  flex: none;
+}
+
+.mc-cruce-fila .mc-cruce-quien p.subtext b {
+  color: var(--text);
+}
+
+.mc-cruce-fila .mc-cruce-lado {
+  flex: none;
+}
+
+.mc-cruce-fila .mc-cruce-carta {
+  width: 32px;
+}
+
+.mc-cruce-fila .mc-cruce-acciones {
+  flex-wrap: nowrap;
+}
+
+.mc-cruce-fila .mc-cruce-acciones a[aria-label="Su perfil"] {
+  display: none;
+}
+
+@media (max-width: 599px) {
+  .mc-cruce-lados {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+
+  .mc-cruce-lados .mc-cruce-balanza {
+    grid-column: 1 / -1;
+    grid-row: 2;
+  }
+
+  .mc-cruce-fila .mc-cruce-lado {
+    display: none;
+  }
+
+  /* Las cuentas las dicen las bandas: los filtros, con la fila entera. */
+  .mc-bloque-cambios .mc-quiero-cabeza .mc-quiero-cifra {
+    display: none;
+  }
+
+}

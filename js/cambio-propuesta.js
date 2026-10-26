@@ -721,8 +721,16 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
   caja.hidden = false
   caja.innerHTML = `<h2 class="section-title cp-mis-titulo">Tus cambios${vivas.length ? ` · ${vivas.length} en curso` : ''}</h2>
     ${vivas.map((o) => {
+      // Cada uno en UNA línea (1042) que se abre a la tarjeta de siempre; la
+      // que espera algo de ti, abierta, para que «Aceptar» esté a la vista.
       const p = otroDe(o)
-      return `<div class="cp-con"><a class="cp-con-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}<span>${escapeHtml(nombreDePersona(p))}</span></a>${o.conversacion ? `<a class="link-btn" href="/mensajes.html?c=${escapeHtml(o.conversacion)}">Ir a la conversación</a>` : ''}</div>${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe })}`
+      const est = estadoDe(o, yo, nombreDePersona(p))
+      const das = o.items.filter((it) => it.quien === yo).length
+      const dinero = Number(o.dinero) > 0 ? ` · ${escapeHtml(textoDeDinero(dineroDeOferta(o, yo), nombreDePersona(p)))}` : ''
+      return `<details class="cp-linea"${est.tono === 'toca' ? ' open' : ''}>
+        <summary>${avatarHtml(p)}<span class="cp-linea-texto"><b>Con ${escapeHtml(nombreDePersona(p))}</b><small>Das ${das} · recibes ${o.items.length - das}${dinero}</small></span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span><span class="cp-linea-ver" aria-hidden="true">Ver</span></summary>
+        <div class="cp-con"><a class="cp-con-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}<span>${escapeHtml(nombreDePersona(p))}</span></a>${o.conversacion ? `<a class="link-btn" href="/mensajes.html?c=${escapeHtml(o.conversacion)}">Ir a la conversación</a>` : ''}</div>${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe })}
+      </details>`
     }).join('')}
     ${pasadas.length ? `<details class="cp-pasadas"><summary>Los anteriores · ${pasadas.length}</summary><ul>${pasadas.map((o) => {
       const p = otroDe(o)

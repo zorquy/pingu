@@ -404,12 +404,17 @@ function enganchar() {
       void cargar()
     }, 300)
   })
+  // La chapa se rellena cuando lo elegido no es lo de siempre (1042): así
+  // se ve de un vistazo que hay un filtro puesto.
+  const marcar = (sel) => sel.closest('.mc-mercado-opcion')?.classList.toggle('cambiada', sel.value !== sel.options[0]?.value)
   $('mcMercadoIdioma')?.addEventListener('change', (e) => {
     estado.idioma = e.target.value
+    marcar(e.target)
     void cargar()
   })
   $('mcMercadoOrden')?.addEventListener('change', (e) => {
     estado.orden = e.target.value
+    marcar(e.target)
     void cargar()
   })
   const panel = $('mcPanelMercado')

@@ -41785,6 +41785,40 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1042 — Deseos y cambios y el Modo evento, otra vuelta
+
+Propuesta con maquetas (artifact «Deseos y cambios, otra vuelta») y PINGU:
+«hazlo con lo recomendado».
+
+- **`.grupo-acciones`** (components.css, porque lo usan Mi colección y
+  /evento): acciones sobre una lista en un solo bloque `--ice` con
+  separadores; cada hijo es un botón de 44 sin fondo propio. Un grupo nuevo
+  de acciones va así, no en cajas sueltas.
+- **Chapas del Mercado**: `label.mc-mercado-opcion` es la chapa (borde,
+  píldora, anillo en `:focus-within`) con `.mc-op-et` y el `select` sin
+  borde; `mercado.js` le pone `.cambiada` cuando el valor no es la primera
+  opción. El select sigue siendo nativo (en el móvil abre la rueda).
+- **Cruces** (`tablon.js`): `balanzaDe(recibes, das, euros)` → `{ pct,
+  texto, pista }` o `null` sin precios (no se pinta una barra a medias);
+  `cruceHtml` es la tarjeta del perfecto y `cruceFilaHtml` la fila del
+  resto (siguen siendo `.mc-cruce[data-cruce]`, con `data-proponer` y
+  `data-escribir`). `bandasDeCruces` (deseos.js) reparte en tres bandas;
+  la confianza se pide sobre `.mc-cruces-bandas`.
+- **Tus cambios** (`pintarMisCambios`): cada propuesta viva es un
+  `details.cp-linea` (quién, das N · recibes M · dinero, estado, «Ver»);
+  abierta de inicio si el estado es `toca`.
+- **/evento** (`evento.js`): `fila()` guarda `set`, `setDia`, `local` y
+  `precio` (el de la ficha: `valorDeLinea` con la variante para «doy»,
+  `valorDe` con el idioma para «busco»); `filtrarLista(filas, { texto,
+  catalogo, set, orden })` es lo puro (orden por expansión, nombre o más
+  caras). El pase lleva el QR en `--blanco-fijo` y la marca FUERA del
+  código: el generador va con corrección M y un logo encima no se leería.
+  «Con precio» se recuerda en `localStorage` (`pd-evento-precio`). Lo
+  guardado antes de la 1042 no trae precio ni expansión: se ve igual, sin
+  ellos, hasta la siguiente vez con cobertura.
+
+Lo vigila `test-tanda-1042-pantalla.mjs` (rama `pruebas`).
+
 ## Tanda 1041 — El Modo evento flota en Deseos y cambios
 
 PINGU, con una captura de su iPhone: con 116 · 118 · 14 · 6, el círculo de

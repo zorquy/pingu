@@ -144,6 +144,52 @@
   outline-offset: 2px;
 }
 
+/* Acciones sobre una lista, en UN grupo (1042, SCHEMA 1042). */
+.grupo-acciones {
+  display: inline-flex;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  overflow: hidden;
+}
+
+.grupo-acciones > :is(button, a) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--navy);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.grupo-acciones > * + * {
+  box-shadow: inset 1px 0 0 var(--border);
+}
+
+.grupo-acciones > :is(button, a):hover {
+  background: var(--ice-dark);
+}
+
+.grupo-acciones > :is(button, a):focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: -2px;
+}
+
+.grupo-acciones > button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
 @media (pointer: coarse) {
   .seg-btn,
   .chip-filtro {

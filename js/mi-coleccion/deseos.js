@@ -128,7 +128,7 @@ async function pintarCambios() {
        </div>
        ${gente.length
          ? visibles.length
-           ? `<div class="mc-cruces">${visibles.map((p) => tablon.cruceHtml(p, { cartas: ctx.cartas, valor, euros })).join('')}</div>`
+           ? bandasDeCruces(visibles, { cartas: ctx.cartas, valor, euros })
            : `<p class="empty-state">${crucesFiltro === 'perfectos' ? 'Ningún cruce perfecto todavía.' : 'Nadie de la gente que sigues encaja ahora mismo.'}</p>`
          : `<p class="empty-state">${!ctx.deseos.length
            ? 'Apunta lo que buscas y aquí saldrá quién lo da.'
@@ -138,7 +138,20 @@ async function pintarCambios() {
   engancharCambios()
   void pintarMisCambiosArriba()
   // «12 cambios · todos bien» al lado de cada persona (798, NU4).
-  import('../cambios-hechos.js').then((m) => m.ponerConfianza(document.querySelector('.mc-cruces'))).catch(() => {})
+  import('../cambios-hechos.js').then((m) => m.ponerConfianza(document.querySelector('.mc-cruces-bandas'))).catch(() => {})
+}
+
+// Los cruces por BANDAS (1042): los perfectos en grande y arriba; luego,
+// en filas, quien tiene lo que buscas y quien busca lo que das.
+function bandasDeCruces(gente, op) {
+  const banda = (titulo, lista, html, clase) => lista.length
+    ? `<section class="mc-cruces-banda"><h3 class="mc-cruces-titulo">${titulo} <span class="mc-deseos-n">${lista.length}</span></h3><div class="${clase}">${lista.map((p) => html(p, op)).join('')}</div></section>`
+    : ''
+  return `<div class="mc-cruces-bandas">
+    ${banda(gente.filter((p) => p.perfecto).length === 1 ? 'Cruce perfecto' : 'Cruces perfectos', gente.filter((p) => p.perfecto), tablon.cruceHtml, 'mc-cruces')}
+    ${banda('Tienen lo que buscas', gente.filter((p) => !p.perfecto && p.teDa.length), tablon.cruceFilaHtml, 'mc-cruces-filas')}
+    ${banda('Buscan lo que das', gente.filter((p) => !p.perfecto && !p.teDa.length), tablon.cruceFilaHtml, 'mc-cruces-filas')}
+  </div>`
 }
 
 // El buscador de la lista de búsqueda, con su propio turno: dos
@@ -604,10 +617,10 @@ function pintarQuiero() {
     ${n
       ? `<div class="mc-quiero-cabeza">
           <p class="mc-quiero-cifra" id="mcQuieroCifra"><b>${n.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${n === 1 ? 'carta' : 'cartas'}${conPrecio.length ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}${conPrecio.length && sinPrecio ? ` <small>(${sinPrecio} sin precio)</small>` : ''}</p>
-          <span class="mc-quiero-botones">
-            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroTexto" aria-label="Compartir lista">${icons.share(16)}<span>Compartir<span class="mc-q-largo"> lista</span></span></button>
-            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroCompartir" aria-label="Imagen de la lista">${icons.image(16)}<span>Imagen</span></button>
-            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroAlbum" aria-label="Hacer un álbum">${icons.folder(16)}<span><span class="mc-q-largo">Hacer un álbum</span><span class="mc-q-corto">Álbum</span></span></button>
+          <span class="mc-quiero-botones grupo-acciones" role="group" aria-label="La lista">
+            <button type="button" class="mc-quiero-compartir" id="mcQuieroTexto" aria-label="Compartir lista">${icons.share(16)}<span>Compartir<span class="mc-q-largo"> lista</span></span></button>
+            <button type="button" class="mc-quiero-compartir" id="mcQuieroCompartir" aria-label="Imagen de la lista">${icons.image(16)}<span>Imagen</span></button>
+            <button type="button" class="mc-quiero-compartir" id="mcQuieroAlbum" aria-label="Hacer un álbum">${icons.folder(16)}<span><span class="mc-q-largo">Hacer un álbum</span><span class="mc-q-corto">Álbum</span></span></button>
           </span>
         </div>
         ${conAlguien === null ? '' : `<div class="mc-quiero-filtro">
@@ -772,7 +785,7 @@ async function pintarDoy() {
       <p class="mc-quiero-cifra"><b>${copias.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${copias === 1 ? 'copia' : 'copias'} que das${suma ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}</p>
       <span class="mc-quiero-botones">
         ${poner}
-        <button type="button" class="btn-secondary mc-quiero-compartir" id="mcDoyCompartir" aria-label="Compartir lista">${icons.share(16)}<span>Compartir<span class="mc-q-largo"> lista</span></span></button>
+        <span class="grupo-acciones" role="group" aria-label="La lista"><button type="button" class="mc-quiero-compartir" id="mcDoyCompartir" aria-label="Compartir lista">${icons.share(16)}<span>Compartir<span class="mc-q-largo"> lista</span></span></button></span>
       </span>
     </div>
     <p class="subtext mc-doy-nota">Lo que das sale en el Mercado, con tu nombre.</p>

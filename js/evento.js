@@ -4,11 +4,14 @@
 // que se guardó y cuándo. El QR lleva a /evento/<usuario>: la ficha de esa
 // persona abierta por Cambios, que ve cualquiera (1030).
 import { supabase } from './supabase.js'
-import { getSession, getProfile, escapeHtml } from './app.js'
+import { getSession, getProfile, escapeHtml, avatarStyle, getInitial } from './app.js'
+import { icons } from './icons.js'
+import { normalizeSearch } from './texto.js'
+import { precioDeFila, valorDe, valorDeLinea } from './cardmarket.js'
 import { showToast } from './toast.js'
 import { svgQR } from './qr.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
-import { nombreDeCarta } from './catalogo-series.js'
+import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { rutaDeCarta } from './carta-ruta.js'
 
 const $ = (id) => document.getElementById(id)
@@ -49,21 +52,55 @@ async function fichas(lineas) {
 // Cada fila lleva lo justo para pintarse sin red: nombre, número, la
 // dirección de la foto (la primera de la cadena, que es la que se guarda) y
 // la carta entera para la imagen y el CSV.
-function fila(l, carta) {
+// Desde la 1042 también la expansión (para filtrar y ordenar) y el precio,
+// calculado AQUÍ y guardado con lo demás: sin cobertura también se ve.
+function fila(l, carta, precio = null) {
   const c = carta || { id: l.card_id, market: l.market, local_id: '' }
   const cadena = c.set_id ? cadenaDeEscaneo(c) : []
-  return { id: l.card_id, market: c.market || l.market || 'WEST', n: l.cambio || l.cantidad || 1, idioma: l.idioma || null, nombre: carta ? nombreDeCarta(carta) : l.card_id, num: carta ? `${carta.tcg_sets?.tcg_online_code || carta.set_id} ${carta.local_id}` : '', foto: cadena[0] || '', cadena, carta: c, ruta: rutaDeCarta(c) }
+  return { id: l.card_id, market: c.market || l.market || 'WEST', n: l.cambio || l.cantidad || 1, idioma: l.idioma || null, nombre: carta ? nombreDeCarta(carta) : l.card_id, num: carta ? `${carta.tcg_sets?.tcg_online_code || carta.set_id} ${carta.local_id}` : '', set: carta ? nombreDeSet(carta.tcg_sets) || carta.set_id : '', setDia: carta?.tcg_sets?.release_date || '', local: carta?.local_id || '', precio, foto: cadena[0] || '', cadena, carta: c, ruta: rutaDeCarta(c) }
 }
+
+// Lo que se ve de una lista (1042): el texto busca en nombre, número y
+// expansión; el orden por defecto, por expansión (la más nueva primero).
+export function filtrarLista(filas = [], { texto = '', catalogo = '', set = '', orden = 'set' } = {}) {
+  const q = normalizeSearch(texto || '')
+  const dentro = filas.filter((f) =>
+    (!catalogo || (catalogo === 'JP' ? f.market === 'JP' : f.market !== 'JP')) &&
+    (!set || f.set === set) &&
+    (!q || normalizeSearch(`${f.nombre} ${f.num} ${f.set}`).includes(q)))
+  const porNumero = (a, b) => String(a.local).localeCompare(String(b.local), 'es', { numeric: true })
+  const cmp = {
+    nombre: (a, b) => String(a.nombre).localeCompare(String(b.nombre), 'es') || porNumero(a, b),
+    caras: (a, b) => (b.precio ?? -1) - (a.precio ?? -1) || String(a.nombre).localeCompare(String(b.nombre), 'es'),
+    set: (a, b) => String(b.setDia).localeCompare(String(a.setDia)) || String(a.set).localeCompare(String(b.set), 'es') || porNumero(a, b),
+  }[orden] || (() => 0)
+  return [...dentro].sort(cmp)
+}
+
+const euros = (n) => `${Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`
 
 async function pedir(sesion) {
   const perfil = await getProfile(sesion.user.id)
   const [{ data: doy, error: e1 }, { data: busco, error: e2 }] = await Promise.all([
-    supabase.from('user_collection').select('card_id,market,cambio,idioma').eq('user_id', sesion.user.id).gt('cambio', 0).limit(TOPE),
+    supabase.from('user_collection').select('card_id,market,cambio,idioma,variante').eq('user_id', sesion.user.id).gt('cambio', 0).limit(TOPE),
     supabase.from('user_wants').select('card_id,idioma').eq('user_id', sesion.user.id).limit(TOPE),
   ])
   if (e1 || e2) throw e1 || e2
   const cartaDe = await fichas([...(doy || []), ...(busco || [])])
-  return { cuando: new Date().toISOString(), enlace: enlaceDeEvento(perfil), nombre: perfil?.display_name || perfil?.username || '', usuario: perfil?.username || '', doy: (doy || []).map((l) => fila(l, cartaDe(l))), busco: (busco || []).map((l) => fila(l, cartaDe(l))) }
+  // El precio que se enseña es el de la ficha: el de SU idioma (900).
+  const { preciosGuardados } = await import('./mi-coleccion/datos.js')
+  const precios = await preciosGuardados([...(doy || []), ...(busco || [])].map((l) => l.card_id)).catch(() => new Map())
+  const deDoy = (l) => valorDeLinea({ idioma: l.idioma, cantidad: 1 }, precioDeFila(precios.get(l.card_id), { variante: l.variante }))
+  const deBusco = (l) => valorDe(precioDeFila(precios.get(l.card_id)), l.idioma || null)
+  return {
+    cuando: new Date().toISOString(),
+    enlace: enlaceDeEvento(perfil),
+    nombre: perfil?.display_name || perfil?.username || '',
+    usuario: perfil?.username || '',
+    perfil: { id: perfil?.id || sesion.user.id, username: perfil?.username || null, display_name: perfil?.display_name || null, avatar_url: perfil?.avatar_url || null },
+    doy: (doy || []).map((l) => fila(l, cartaDe(l), deDoy(l))),
+    busco: (busco || []).map((l) => fila(l, cartaDe(l), deBusco(l))),
+  }
 }
 
 // Las fotos, guardadas en la Cache API «a ciegas» (no-cors): la respuesta es
@@ -85,10 +122,11 @@ async function guardarFotos(d) {
 
 let datos = null
 let lista = 'busco'
+const filtro = { texto: '', catalogo: '', set: '', orden: 'set' }
 
 function cartaHtml(f) {
   const foto = f.cadena?.length ? `<img ${atributosDeEscaneo(f.cadena)} alt="" width="245" height="342" loading="lazy" />` : '<span class="evento-sinfoto"></span>'
-  return `<li><a class="evento-carta" href="${escapeHtml(f.ruta || '#')}">${foto}${f.n > 1 ? `<span class="evento-cuantas">×${f.n}</span>` : ''}<b>${escapeHtml(f.nombre)}</b>${f.num ? `<small>${escapeHtml(f.num)}</small>` : ''}</a></li>`
+  return `<li><a class="evento-carta" href="${escapeHtml(f.ruta || '#')}">${foto}${f.n > 1 ? `<span class="evento-cuantas">×${f.n}</span>` : ''}<b>${escapeHtml(f.nombre)}</b>${f.num ? `<small>${escapeHtml(f.num)}</small>` : ''}<em class="evento-precio">${f.precio ? escapeHtml(euros(f.precio)) : 'Sin precio'}</em></a></li>`
 }
 
 // Occidental y japonés, cada uno con su rótulo (1033); con uno solo, sin rótulo.
@@ -100,16 +138,54 @@ function listaHtml(filas) {
   return `${rotulo('WEST', occ.length)}${occ.map(cartaHtml).join('')}${rotulo('JP', jp.length)}${jp.map(cartaHtml).join('')}`
 }
 
+// Los desplegables se rehacen con lo que hay en la lista abierta: una
+// expansión que no tiene ninguna carta no se ofrece.
+function pintarFiltros(filas) {
+  const sets = new Map()
+  for (const f of filas) if (f.set) sets.set(f.set, (sets.get(f.set) || 0) + 1)
+  if (filtro.set && !sets.has(filtro.set)) filtro.set = ''
+  $('eventoSet').innerHTML = `<option value="">Todas</option>${[...sets].sort((a, b) => a[0].localeCompare(b[0], 'es')).map(([n, k]) => `<option value="${escapeHtml(n)}"${n === filtro.set ? ' selected' : ''}>${escapeHtml(n)} (${k})</option>`).join('')}`
+  const dos = filas.some((f) => f.market === 'JP') && filas.some((f) => f.market !== 'JP')
+  $('eventoOpCatalogo').classList.toggle('hidden', !dos)
+  if (!dos) filtro.catalogo = ''
+  for (const [id, campo] of [['eventoCatalogo', 'catalogo'], ['eventoSet', 'set'], ['eventoOrden', 'orden']]) {
+    const sel = $(id)
+    sel.value = filtro[campo]
+    sel.closest('.evento-op')?.classList.toggle('cambiada', sel.value !== sel.options[0]?.value)
+  }
+}
+
 function pintarLista() {
   const filas = datos?.[lista] || []
   for (const b of document.querySelectorAll('.evento-pestanas [data-lista]')) b.setAttribute('aria-pressed', String(b.dataset.lista === lista))
-  $('eventoLista').innerHTML = filas.length ? listaHtml(filas) : `<li class="evento-vacia">${lista === 'busco' ? 'Nada en La quiero: apunta lo que buscas desde Deseos y cambios.' : 'Nada apuntado para dar: marca «De esas, doy» en tus cartas.'}</li>`
+  pintarFiltros(filas)
+  const vistas = filtrarLista(filas, filtro)
+  const filtrando = vistas.length !== filas.length
+  $('eventoCuantas').textContent = filas.length && filtrando ? `${vistas.length} de ${filas.length}` : ''
+  $('eventoLista').innerHTML = !filas.length
+    ? `<li class="evento-vacia">${lista === 'busco' ? 'Nada en La quiero: apunta lo que buscas desde Deseos y cambios.' : 'Nada apuntado para dar: marca «De esas, doy» en tus cartas.'}</li>`
+    : vistas.length ? listaHtml(vistas) : '<li class="evento-vacia">Ninguna carta de la lista casa con lo que buscas.</li>'
   for (const b of ['eventoCopiar', 'eventoImagen', 'eventoExportar']) { const el = $(b); if (el) el.disabled = !filas.length }
+}
+
+// El pase (1042): el QR en su recuadro blanco —el blanco es lo que hace que
+// se lea—, con quién eres y la marca encima, nunca dentro del código.
+function paseHtml(d) {
+  const p = d.perfil || { username: d.usuario, display_name: d.nombre }
+  return `<div class="evento-pase-cab">
+      <span class="evento-pase-av" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(d.nombre || d.usuario || '?'))}</span>
+      <span class="evento-pase-quien"><strong>${escapeHtml(d.nombre)}</strong>${d.usuario ? `<small>@${escapeHtml(d.usuario)}</small>` : ''}</span>
+      <span class="evento-pase-marca" aria-hidden="true">Poke<span>Doc</span></span>
+    </div>
+    <div class="evento-pase-qr">${svgQR(d.enlace, { tam: 220 })}</div>
+    <p class="evento-pase-lema">Escanéame para ver mis cartas</p>
+    <p class="evento-pase-cifras"><span><b>${d.busco.length}</b> busco</span><span><b>${d.doy.length}</b> doy</span></p>`
 }
 
 function pintar(d, desdeGuardado) {
   datos = d
-  $('eventoQr').innerHTML = `${svgQR(d.enlace, { tam: 200 })}<strong>${escapeHtml(d.nombre)}</strong><small>Busca ${d.busco.length} · Da ${d.doy.length}</small>`
+  $('eventoQr').innerHTML = paseHtml(d)
+  $('eventoAmpliar').classList.remove('hidden')
   $('eventoNBusco').textContent = String(d.busco.length)
   $('eventoNDoy').textContent = String(d.doy.length)
   const cuando = new Date(d.cuando).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
@@ -163,13 +239,56 @@ async function exportar() {
   }
 }
 
+function ampliar() {
+  if (!datos) return
+  $('eventoGrandeQr').innerHTML = svgQR(datos.enlace, { tam: 320 })
+  $('eventoGrandeNombre').textContent = datos.usuario ? `@${datos.usuario}` : datos.nombre
+  $('eventoGrande').showModal()
+  // Que no se apague la pantalla mientras lo enseñas, si el navegador deja.
+  navigator.wakeLock?.request?.('screen').then((l) => $('eventoGrande').addEventListener('close', () => l.release().catch(() => {}), { once: true })).catch(() => {})
+}
+
+// «Con precio» se recuerda en este navegador: es cómo te gusta mirarla tú.
+const CLAVE_PRECIO = 'pd-evento-precio'
+function ponerConPrecio(si) {
+  $('eventoConPrecio').setAttribute('aria-pressed', String(si))
+  $('eventoLista').classList.toggle('con-precio', si)
+  try { localStorage.setItem(CLAVE_PRECIO, si ? '1' : '0') } catch {}
+}
+
+// Los iconos que solo usa esta página van aquí y no en icons.js, que baja
+// la portada (651: el de descargar no cabía).
+const trazo = (d) => `<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`
+const ICONOS_EVENTO = {
+  copy: trazo('<rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15V5a2 2 0 0 1 2-2h10"></path>'),
+  download: trazo('<path d="M12 3v12M7 10l5 5 5-5M5 21h14"></path>'),
+  maximize: trazo('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"></path>'),
+}
+
 function enganchar() {
+  for (const el of document.querySelectorAll('.evento [data-icono]')) el.innerHTML = ICONOS_EVENTO[el.dataset.icono] || icons[el.dataset.icono]?.(18) || ''
   document.querySelector('.evento-pestanas')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-lista]')
     if (!b) return
     lista = b.dataset.lista
+    filtro.set = ''
     pintarLista()
   })
+  let espera = null
+  $('eventoBuscar')?.addEventListener('input', (e) => {
+    clearTimeout(espera)
+    espera = setTimeout(() => { filtro.texto = e.target.value; pintarLista() }, 150)
+  })
+  for (const [id, campo] of [['eventoCatalogo', 'catalogo'], ['eventoSet', 'set'], ['eventoOrden', 'orden']]) {
+    $(id)?.addEventListener('change', (e) => { filtro[campo] = e.target.value; pintarLista() })
+  }
+  let conPrecio = false
+  try { conPrecio = localStorage.getItem(CLAVE_PRECIO) === '1' } catch {}
+  ponerConPrecio(conPrecio)
+  $('eventoConPrecio')?.addEventListener('click', () => ponerConPrecio($('eventoConPrecio').getAttribute('aria-pressed') !== 'true'))
+  $('eventoAmpliar')?.addEventListener('click', ampliar)
+  $('eventoGrandeCerrar')?.addEventListener('click', () => $('eventoGrande').close())
+  $('eventoGrande')?.addEventListener('click', (e) => { if (e.target === $('eventoGrande')) $('eventoGrande').close() })
   $('eventoCopiar')?.addEventListener('click', copiar)
   $('eventoImagen')?.addEventListener('click', imagen)
   $('eventoExportar')?.addEventListener('click', exportar)

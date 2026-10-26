@@ -59,17 +59,36 @@ export function cruzarPorPersona(tiene = [], busca = []) {
 }
 
 
-function tiraHtml(filas, cartas) {
-  return `<ul class="mc-cruce-tira">${filas.slice(0, 6).map((f) => {
+function tiraHtml(filas, cartas, max = 6) {
+  return `<ul class="mc-cruce-tira">${filas.slice(0, max).map((f) => {
     const c = cartas.get(f.card_id)
     const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
     const nombre = nombreDe(c)
     return `<li><a class="mc-cruce-carta" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} title="${escapeHtml(`${nombre} · ${senasDe(f)}`)}" aria-label="${escapeHtml(`${nombre} · ${senasDe(f)}`)}"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</a></li>`
-  }).join('')}${filas.length > 6 ? `<li class="mc-cruce-mas">+${filas.length - 6}</li>` : ''}</ul>`
+  }).join('')}${filas.length > max ? `<li class="mc-cruce-mas">+${filas.length - max}</li>` : ''}</ul>`
 }
 
-// `valor(f)` es lo que vale una copia (o null): la página sabe de precios,
-// este módulo no.
+// La balanza de un cruce (1042): qué parte del total pone cada lado y la
+// frase que lo dice. Sin precio en ninguno de los dos lados no hay balanza
+// (null): una barra a medias diría que valen lo mismo, y no se sabe.
+export function balanzaDe(recibes, das, euros) {
+  const total = (recibes || 0) + (das || 0)
+  if (!total) return null
+  const diferencia = (das || 0) - (recibes || 0)
+  const pct = Math.round(((recibes || 0) / total) * 100)
+  const texto = Math.abs(diferencia) < 1
+    ? 'Valen lo mismo'
+    : diferencia > 0 ? `Le das <b>${escapeHtml(euros(diferencia))}</b> más` : `Te da <b>${escapeHtml(euros(-diferencia))}</b> más`
+  return { pct, texto, pista: Math.abs(diferencia) < 1 ? '' : 'Puedes compensarlo con dinero en la propuesta' }
+}
+
+const avatarDe = (p, nombre) => `<a class="mini-avatar" href="${escapeHtml(profileUrl(p))}" style="${avatarStyle(p)}" aria-label="${escapeHtml(nombre)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</a>`
+const iconosDe = (p, nombre) => `<button type="button" class="mc-cruce-ico mc-cambio-escribir" data-escribir="${escapeHtml(p.user_id)}" data-direccion="cruce" aria-label="Escribir a ${escapeHtml(nombre)}" title="Escribir">${icons.mail(18)}</button>
+      <a class="mc-cruce-ico" href="${escapeHtml(profileUrl(p))}?ver=cambios" aria-label="Su perfil" title="Su perfil">${icons.user(18)}</a>`
+
+// El cruce PERFECTO (los dos tenéis algo del otro): la tarjeta grande, con
+// las dos mitades y la balanza en medio. `valor(f)` es lo que vale una copia
+// (o null): la página sabe de precios, este módulo no.
 export function cruceHtml(p, { cartas, valor, euros }) {
   const nombre = p.display_name || p.username || 'Alguien'
   const suma = (filas) => filas.reduce((a, f) => a + (valor(f) || 0), 0)
@@ -80,9 +99,10 @@ export function cruceHtml(p, { cartas, valor, euros }) {
       ${filas.length ? tiraHtml(filas, cartas) : `<p class="subtext">${vacio}</p>`}
       <p class="mc-cruce-total">${filas.length} ${filas.length === 1 ? 'carta' : 'cartas'}${total ? ` · <b>≈ ${escapeHtml(euros(total))}</b>` : ''}</p>
     </div>`
+  const b = balanzaDe(recibes, das, euros)
   return `<article class="mc-cruce${p.perfecto ? ' perfecto' : ''}" data-cruce="${escapeHtml(p.user_id)}">
     <header class="mc-cruce-cabeza">
-      <a class="mini-avatar" href="${escapeHtml(profileUrl(p))}" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</a>
+      ${avatarDe(p, nombre)}
       <div class="mc-cruce-quien">
         <a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>
         <p class="subtext">${p.perfecto ? 'Las dos listas encajan' : p.teDa.length ? 'Tiene lo que buscas' : 'Busca lo que das'}</p>
@@ -92,14 +112,41 @@ export function cruceHtml(p, { cartas, valor, euros }) {
     </header>
     <div class="mc-cruce-lados">
       ${lado('Te da', p.teDa, recibes, 'Nada de tu lista', 'da')}
-      <span class="mc-cruce-flecha" aria-hidden="true">${icons.refreshCw(18)}</span>
+      ${b
+        ? `<div class="mc-cruce-balanza" role="img" aria-label="${escapeHtml(b.texto.replace(/<[^>]+>/g, ''))}">
+            <span class="mc-balanza-barra"><i style="width:${b.pct}%"></i><i style="width:${100 - b.pct}%"></i></span>
+            <p>${b.texto}</p>${b.pista ? `<small>${b.pista}</small>` : ''}
+          </div>`
+        : `<span class="mc-cruce-flecha" aria-hidden="true">${icons.refreshCw(18)}</span>`}
       ${lado('Le das', p.leDas, das, 'Nada de su lista', 'busca')}
     </div>
     <div class="mc-cruce-acciones">
       <button type="button" class="btn-primary mc-cambio-proponer" data-proponer="${escapeHtml(p.user_id)}">${icons.refreshCw(15)}Proponer cambio</button>
-      <button type="button" class="btn-secondary mc-cambio-escribir" data-escribir="${escapeHtml(p.user_id)}" data-direccion="cruce">${icons.mail(15)}Escribir</button>
-      <a class="btn-secondary" href="${escapeHtml(profileUrl(p))}?ver=cambios">Su perfil</a>
-      ${p.perfecto && recibes && das ? `<span class="mc-cruce-balanza">${Math.abs(recibes - das) < 1 ? 'Valen lo mismo' : `Diferencia: unos ${escapeHtml(euros(Math.abs(recibes - das)))}`}</span>` : ''}
+      ${iconosDe(p, nombre)}
+    </div>
+  </article>`
+}
+
+// Los que NO son perfectos (1042), en una fila: quién, qué mueve y cuánto
+// vale, «Proponer» y escribir. Antes era la misma tarjeta grande con una
+// mitad que decía «Nada de su lista · 0 cartas».
+export function cruceFilaHtml(p, { cartas, valor, euros }) {
+  const nombre = p.display_name || p.username || 'Alguien'
+  const filas = p.teDa.length ? p.teDa : p.leDas
+  const total = filas.reduce((a, f) => a + (valor(f) || 0), 0)
+  const n = filas.length
+  const que = p.teDa.length ? `Te da ${n} de tu lista` : `Busca ${n} de las tuyas`
+  return `<article class="mc-cruce mc-cruce-fila" data-cruce="${escapeHtml(p.user_id)}">
+    ${avatarDe(p, nombre)}
+    <div class="mc-cruce-quien">
+      <a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>
+      <p class="subtext">${que}${total ? ` · <b>≈ ${escapeHtml(euros(total))}</b>` : ''}</p>
+      <p class="mc-confianza" data-confianza="${escapeHtml(p.user_id)}"></p>
+    </div>
+    <div class="mc-cruce-lado" data-cruce-lado="${p.teDa.length ? 'da' : 'busca'}">${tiraHtml(filas, cartas, 3)}</div>
+    <div class="mc-cruce-acciones">
+      <button type="button" class="btn-secondary mc-cambio-proponer" data-proponer="${escapeHtml(p.user_id)}">Proponer</button>
+      ${iconosDe(p, nombre)}
     </div>
   </article>`
 }

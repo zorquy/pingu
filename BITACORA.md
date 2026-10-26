@@ -4,6 +4,48 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (280) — PINGU-Claude (1042 — Deseos y cambios y el Modo evento, otra vuelta)
+
+**Hecho**: la propuesta con maquetas (artifact «Deseos y cambios, otra vuelta»)
+y PINGU: «hazlo con lo recomendado».
+- **A · Botones**: Compartir, Imagen y Álbum de La quiero (y Compartir de
+  Las que doy, y Copiar/Imagen/CSV del evento) en UN grupo unido,
+  `.grupo-acciones` (components.css): con texto en el PC, iconos en el móvil.
+- **B · Desplegables del Mercado**: chapas «Idioma · Todos» y «Orden · Más
+  recientes» (`.mc-op-et`) que se rellenan (`.cambiada`) si no están en lo
+  de siempre; órdenes «Más recientes / Más gente la da / Más caras» («Más
+  baratas» pediría tocar la función del Mercado: no entra).
+- **C · Cruces por bandas**: «Cruce perfecto» en tarjeta con la BALANZA
+  (`balanzaDe`: barra y «Le das X € más»), «Tienen lo que buscas» y
+  «Buscan lo que das» en filas (`cruceFilaHtml`); un solo botón fuerte y
+  «Escribir» / «Su perfil» en iconos de 44. «Tus cambios» en curso, una
+  línea por propuesta (`.cp-linea`, `<details>`) que abre la tarjeta de
+  siempre; la que te toca, abierta.
+- **D · Modo evento**: el pase amarillo (avatar, @, la marca encima del
+  marco, el QR en blanco, «Escanéame para ver mis cartas», busco · doy);
+  «Ampliar el QR» (diálogo blanco a pantalla completa, con wake lock si se
+  deja); Copiar/Imagen/CSV arriba; buscador, Catálogo (si hay de los dos),
+  Expansión, Orden y «Con precio» (apagado de inicio, se recuerda); en el
+  PC, dos columnas. Los precios y la expansión se guardan con la lista
+  (`fila`), así que sin cobertura también se filtra y se ve el precio.
+
+**Ficheros**: js/mi-coleccion/deseos.js, js/mi-coleccion/tablon.js,
+js/mi-coleccion/mercado.js, js/cambio-propuesta.js, js/evento.js,
+evento.html (los iconos de copiar, descargar y ampliar van en evento.js, no en icons.js: la 651), mi-coleccion.html,
+cartas.html (generado), css/components.css, css/mi-coleccion.css,
+css/cambio-propuesta.css, css/evento.css, SCHEMA.md, novedades.json,
+BITACORA.md.
+
+**Pruebas** (rama pruebas): nueva `test-tanda-1042-pantalla.mjs`; al día
+772 (balanza y fila de Íker) y 1029 (las cuentas en el pase).
+Pasadas en 5 carriles las ~80 que tocan Deseos y cambios, el Modo evento y
+el CSS compartido: las de esta tanda (376, 798, 777, 1041, 772, 1029) al día
+y en verde; quedan en rojo las de antes (311, 514, 624, 651, 720, 766, 829,
+915 y 987: escala de 311, ffprobe, logos y escaneos del doble, PostgreSQL
+local; la 720 falla igual con la web de antes).
+
+**Pendiente**: nada de esta tanda. Portada: 128,5 KB de 170.
+
 ## 2026-10-26 (279) — PINGU-Claude (1041 — el Modo evento flota en Deseos y cambios)
 
 **Hecho**: PINGU, con una captura del iPhone: «el modo evento quizá que sea
