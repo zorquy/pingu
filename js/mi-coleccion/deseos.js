@@ -598,6 +598,7 @@ function pintarQuiero() {
           <span class="mc-quiero-botones">
             <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroTexto">${icons.share(16)}<span>Compartir lista</span></button>
             <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroCompartir">${icons.image(16)}<span>Imagen</span></button>
+            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroAlbum">${icons.folder(16)}<span>Hacer un álbum</span></button>
           </span>
         </div>
         ${conAlguien === null ? '' : `<div class="mc-quiero-filtro">
@@ -658,6 +659,19 @@ function engancharQuiero() {
     if (e.target.closest('[data-ir-cambios]')) return ctx.cambiarPestania('cambios')
     if (e.target.closest('#mcQuieroCompartir')) return compartirLaQuiero()
     if (e.target.closest('#mcQuieroTexto')) return compartirMisListas()
+    // Un binder con esta lista (1031), para ordenarla a mano.
+    if (e.target.closest('#mcQuieroAlbum')) {
+      const b = e.target.closest('#mcQuieroAlbum')
+      b.disabled = true
+      try {
+        await ctx.albumDeLaQuiero()
+      } catch (err) {
+        showToast(err.message || 'No se ha podido crear el álbum.', 'error')
+      } finally {
+        b.disabled = false
+      }
+      return
+    }
 
     // El aviso de precio de la fila (K2) es el «Avísame» de la ficha, con
     // el idioma que buscas y su precio de ahora para proponer el umbral.

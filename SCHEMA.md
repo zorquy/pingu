@@ -41785,6 +41785,28 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1031 — «Hacer un álbum» desde La quiero
+
+La cuarta del feedback (2026-10-26): «un botón de exportar álbum… que te
+genere un álbum con esas cartas que quieres y luego puedas tú ordenarlas».
+
+- `crearBinderDeLaQuiero()` (albumes.js, exportada): lee `user_wants` de
+  quien mira (por `created_at`, hasta `MAX_CARTAS`), quita repetidas y crea
+  con `crearAlbum` un binder `Las que quiero` (`tipo: 'binder'`, `3x3`,
+  `paginas = ceil(n / 9)`, `tapa: tapaGuardada()`, descripción «Lo que
+  buscaba el <día>») y lo abre (`abrir`). Lista vacía: lanza «Tu lista de
+  La quiero está vacía…» y no escribe nada. Es una COPIA de hoy: la lista
+  y el binder no se tocan entre sí (a propósito: se hace para ordenarlo y
+  quitar a mano).
+- Dos puertas: el botón «Hacer un álbum» (`#mcQuieroAlbum`) en la cabecera
+  de La quiero (deseos.js → `ctx.albumDeLaQuiero()`, que en mi-coleccion.js
+  pasa a la pestaña Álbumes y llama a la función), y el tercer tipo de
+  «Empezar un álbum» (`data-tipo="quiero"`, album-nuevo.js: sin paso, cierra
+  el diálogo y manda `{ tipo: 'quiero' }` a `alCrear` → `nuevoAlbum`).
+- Prueba: `test-tanda-1031-pantalla.mjs` (desde La quiero: los tres botones,
+  el binder abierto con las cartas en orden y la fila guardada; desde el
+  diálogo: el tercer tipo y el binder; con la lista vacía, aviso y nada).
+
 ## Tanda 1032 — Álbumes: el ⋯ de cada baldosa, editar y borrar
 
 Segunda parte del feedback (2026-10-26): «un menú para editar nombre,

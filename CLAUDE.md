@@ -934,6 +934,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `tcggo_gemelos`) se quitan de UNA en una cuando la base dice que no
   existen (`quitarOpcional`, en `sets.mjs` y `sets-catalogo.js`): una
   columna nueva de la estantería que llegue antes que su migración va ahí.
+- **Un álbum hecho desde una lista (La quiero, 1031) es una COPIA de ese
+  día** (`crearBinderDeLaQuiero`, albumes.js): la lista y el binder no se
+  tocan entre sí, a propósito (se hace para ordenarlo y quitar a mano). Un
+  camino nuevo que cree un álbum con lo de otra pantalla pasa por
+  `crearAlbum` con `tipo: 'binder'` y sus páginas calculadas, y entra por
+  «Empezar un álbum» como un tipo más (`data-tipo`), no por otro diálogo.
 - **Un álbum se edita y se borra desde UN sitio: la hoja de
   `album-editar.js`** (tanda 1032), que abren el ⋯ de cada baldosa y
   «Editar álbum» dentro. Un campo nuevo de un álbum (nombre, tapa, portada,

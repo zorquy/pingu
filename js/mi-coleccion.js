@@ -5566,6 +5566,11 @@ const ctxDeseos = {
   repetidas,
   precioDeDeseo,
   iniciarMercadoSinCuenta,
+  // «Hacer un álbum» desde La quiero (1031): se pasa a Álbumes y se crea.
+  albumDeLaQuiero: async () => {
+    cambiarPestania('carpetas')
+    await albumes.crearBinderDeLaQuiero()
+  },
 }
 let deseosMod = null
 const deseosModulo = () =>

@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (271) — PINGU-Claude (1031 — «Hacer un álbum» desde La quiero)
+
+**Hecho**: la última de las cuatro del feedback («exportar álbum… que te
+genere un álbum con esas cartas que quieres y luego puedas tú
+ordenarlas»). En La quiero, el botón «Hacer un álbum» crea el binder
+«Las que quiero» (3×3, las páginas que pidan, la tapa de siempre) con las
+cartas de la lista tal como está hoy y lo abre en Álbumes para ordenarlo.
+El mismo camino desde «Empezar un álbum» → «De La quiero» (tercer tipo).
+Con la lista vacía, se dice y no se crea nada. Es una COPIA: lo que luego
+cambie en La quiero no toca el binder.
+
+**Ficheros**: `js/mi-coleccion/albumes.js` (`crearBinderDeLaQuiero`),
+`js/mi-coleccion/album-nuevo.js`, `js/mi-coleccion/deseos.js`,
+`js/mi-coleccion.js` (`albumDeLaQuiero` en el ctx), `mi-coleccion.html` +
+`cartas.html`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`. En `pruebas`:
+`test-tanda-1031-pantalla.mjs`.
+
+**Pendiente**: nada de la tanda del feedback (1029–1032 hechas). De PINGU:
+la migración 1027 y comprobar el Lugia (268). Y una pasada de limpieza de
+pruebas viejas que ya fallan en HEAD: 759-pantalla, 764-pantalla, 371,
+829-pantalla (fechas), 651 (icono), 310/309 (medidas en hojas viejas).
+```
 ## 2026-10-26 (270) — PINGU-Claude (1032 — álbumes: el ⋯ con editar y borrar)
 
 **Hecho**: el feedback de la gente, segunda parte («un menú para editar

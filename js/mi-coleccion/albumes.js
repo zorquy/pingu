@@ -310,10 +310,29 @@ async function pintarLista() {
   $('mcAlbumesRejilla').innerHTML = coleccionHtml() + albumes.map(tarjetaHtml).join('') + empezarHtml()
 }
 
+// Un binder con La quiero (1031, pedido por la gente: «exportar álbum… que
+// te genere un álbum con esas cartas que quieres y luego puedas tú
+// ordenarlas»). Es una COPIA de hoy: lo que luego quites o apuntes en La
+// quiero no toca el binder, y al revés. 3×3 y las páginas que pidan.
+export async function crearBinderDeLaQuiero() {
+  if (!ctx?.sesion) throw new Error('Entra para hacer un álbum.')
+  const { data, error } = await supabase.from('user_wants').select('card_id,created_at').eq('user_id', ctx.sesion.user.id).order('created_at', { ascending: true }).limit(MAX_CARTAS)
+  if (error) throw traducir(error)
+  const ids = [...new Set((data || []).map((d) => d.card_id).filter(Boolean))]
+  if (!ids.length) throw new Error('Tu lista de La quiero está vacía: apunta lo que buscas y vuelve.')
+  const porPagina = rejillaDe('3x3').porPagina
+  const fila = { nombre: 'Las que quiero', descripcion: `Lo que buscaba el ${new Date().toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })}.`, cartas: ids.map((id) => ({ id })), tipo: 'binder', rejilla: '3x3', paginas: Math.max(1, Math.ceil(ids.length / porPagina)), tapa: tapaGuardada() }
+  const creada = await crearAlbum(fila)
+  showToast(`Binder creado con ${ids.length} ${ids.length === 1 ? 'carta' : 'cartas'} de La quiero.`, 'success')
+  await abrir(creada.id)
+  return creada
+}
+
 // Lo que sale del diálogo de «Empezar un álbum» (album-nuevo.js).
 async function nuevoAlbum(pedido) {
   try {
     let fila
+    if (pedido.tipo === 'quiero') return void (await crearBinderDeLaQuiero())
     if (pedido.tipo === 'set') {
       const { set, modo } = pedido
       const oficial = Number(set.card_count_official) || 0
