@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (283) — PINGU-Claude (1045 — «Proponer cambio» centrado y que se desliza él)
+
+**Hecho**: PINGU: «empiezas a scrollear, pero te scrollea la página y no el
+pop-up… y el pop-up sale a la derecha. Debería salir en el centro. Los pop-ups
+me gustan que estén centrados».
+- El editor de la propuesta (`#cpDialogo`) tenía `max-height: none` y, como
+  diálogo, `height: fit-content`: con una lista larga («Otra de mi colección»)
+  crecía más que la pantalla, no se desplazaba él y la rueda movía la página.
+  Ahora tiene tope (`100dvh` menos dos `--e-xl`), el cuerpo (`.cp-cuerpo`) se
+  desliza con `overscroll-behavior: contain` y la página de detrás se queda
+  quieta mientras está abierto (`html:has(.cp-dialogo[open])`).
+- Centrado en el PC (`inset: 0; margin: auto`); en el móvil sigue la hoja
+  desde abajo.
+- Regla nueva en CLAUDE.md: un pop-up va centrado, con tope de alto y su
+  cuerpo deslizable. Los paneles «al lado» (filtros, ficha de producto) no
+  son pop-ups y se quedan a la derecha.
+
+**Ficheros**: css/cambio-propuesta.css, CLAUDE.md, SCHEMA.md, novedades.json,
+BITACORA.md.
+
+**Pruebas** (rama pruebas): nueva `test-tanda-1045-pantalla.mjs` (PC y móvil:
+centrado o desde abajo, cabe, la rueda mueve la lista y no la página, ni al
+llegar al final; con el CSS de antes da 10 rojos). Verdes 942, 1044, 299 y
+313; la 311 da lo de siempre (comunidad, partidas y torneos).
+
+**Pendiente**: nada de esta tanda.
+
 ## 2026-10-26 (282) — PINGU-Claude (1044 — los cruces se despliegan al tocarlos)
 
 **Hecho**: PINGU (con captura de Deseos y cambios › Cruces): «el primero que

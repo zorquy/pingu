@@ -2,15 +2,18 @@
    La inyecta js/cambio-propuesta.js; el porqué en SCHEMA 942. Lo de abrir y
    cerrar los diálogos va en [open] (la 473). */
 
+/* Centrado y con tope de alto (1045, PINGU: «los pop-ups me gustan que estén
+   centrados»). Sin tope crecía más que la pantalla y la rueda movía la página
+   de detrás; ahora se desliza solo el cuerpo (SCHEMA 1045). */
 .cp-dialogo {
   box-sizing: border-box;
   width: min(760px, calc(100vw - 32px));
   max-width: none;
-  max-height: none;
-  inset: 72px 16px 16px auto;
-  margin: 0 0 0 auto;
+  max-height: calc(100dvh - var(--e-xl) * 2);
+  inset: 0;
+  margin: auto;
   padding: 0;
-  overflow: auto;
+  overflow: hidden;
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   background: var(--white);
@@ -23,6 +26,7 @@
 .cp-cab {
   position: sticky;
   top: 0;
+  flex: none;
   z-index: 1;
   display: flex;
   align-items: center;
@@ -45,7 +49,8 @@
   font-size: var(--t-lg);
   cursor: pointer;
 }
-.cp-cuerpo { display: grid; gap: var(--e-md); padding: var(--e-md) var(--e-lg) var(--e-lg); }
+.cp-cuerpo { display: grid; flex: 1 1 auto; align-content: start; gap: var(--e-md); min-height: 0; padding: var(--e-md) var(--e-lg) var(--e-lg); overflow-y: auto; overscroll-behavior: contain; }
+html:has(.cp-dialogo[open]) { overflow: hidden; }
 .cp-esqueleto { height: 240px; }
 .cp-esqueleto-fila { height: 56px; list-style: none; }
 
@@ -259,7 +264,7 @@
 .cp-mueve .din i { color: var(--warning); }
 
 @media (max-width: 640px) {
-  .cp-dialogo { inset: auto 0 0; width: 100%; max-height: 92dvh; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .cp-dialogo { inset: auto 0 0; width: 100%; max-height: 92dvh; margin: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
   .cp-lados, .cp-t-lados { grid-template-columns: minmax(0, 1fr); }
 }
 

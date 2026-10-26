@@ -1304,6 +1304,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   foro»): una burbuja encima de la de Mi colección, con un hueco al final de
   la lista, y la prueba la nombra (`EXCEPCION`). Otra no se añade sin que
   PINGU la pida.
+- **Un pop-up va CENTRADO, con tope de alto, y se desliza su cuerpo**
+  (tanda 1045, PINGU: «los pop-ups me gustan que estén centrados»): en el PC
+  `inset: 0; margin: auto` y `max-height` (nunca `none`: un `dialog` es
+  `fit-content` y sin tope crece más que la pantalla, y entonces la rueda
+  mueve la página de detrás); el cuerpo con `overflow-y: auto` y
+  `overscroll-behavior: contain`, y la página quieta con
+  `html:has(.x[open]) { overflow: hidden }`. En el móvil, hoja desde abajo.
+  Un panel al lado que no tapa la rejilla (filtros, ficha de producto) no es
+  un pop-up. Mira `.cp-dialogo` o `.ficha-rapida`.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

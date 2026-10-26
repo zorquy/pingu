@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "arreglo", "texto": "La ventana de «Proponer cambio» sale centrada y, con una lista larga de cartas, se desliza ella en vez de la página de detrás.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En los cruces de Deseos y cambios, el primero sale entero y los demás plegados: tócalos para ver qué te da y qué le das, con sus cartas, cuánto vale cada lado y la balanza, sin tener que proponer el cambio.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "Al tocar una carta en cualquier parte de la web (el Modo evento, el buscador, los perfiles, el foro, las guías…) se abre su ficha en una ventana encima, con su precio y «Añadir», sin irte de donde estás. La página entera, con «Ver ficha completa».", "enlace": "/evento" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "El Modo evento estrena pase: tu QR en una tarjeta con tu nombre, un botón para enseñarlo en grande, y un buscador con filtros por expansión, orden y precio para encontrar rápido una carta de tus listas.", "enlace": "/evento" },

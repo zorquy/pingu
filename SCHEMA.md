@@ -41785,6 +41785,28 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1045 — «Proponer cambio», centrado y que se desliza él
+
+PINGU: «te scrollea la página y no el pop-up… debería salir en el centro.
+Los pop-ups me gustan que estén centrados».
+
+- **Por qué se movía la página**: un `<dialog>` modal es `height:
+  fit-content` y el navegador le pone de tope `calc(100% - 2em - 6px)`;
+  `.cp-dialogo` pisaba ese tope con `max-height: none`, así que con una lista
+  larga el diálogo medía más que la pantalla, no tenía nada que desplazar y
+  la rueda se iba a la página de detrás.
+- **Ahora**: `inset: 0; margin: auto` (centrado), `max-height: calc(100dvh -
+  var(--e-xl) * 2)`, `overflow: hidden`; la cabecera `flex: none` y el
+  cuerpo `flex: 1 1 auto; min-height: 0; overflow-y: auto;
+  overscroll-behavior: contain`. Con él abierto, `html:has(.cp-dialogo[open])
+  { overflow: hidden }`, que es lo que para la página en el iPhone. En el
+  móvil (≤ 640) sigue la hoja desde abajo (`inset: auto 0 0; margin: 0`).
+- La forma vale para cualquier pop-up nuevo (CLAUDE.md). Los paneles al lado
+  que no tapan la rejilla (`.mc-prodf-al-lado`, `.mc-panel-filtros`) no son
+  pop-ups.
+
+Lo vigila `test-tanda-1045-pantalla.mjs` (rama `pruebas`).
+
 ## Tanda 1044 — Los cruces se despliegan al tocarlos
 
 PINGU: «el primero que aparezca desplegado está bien, pero los siguientes
