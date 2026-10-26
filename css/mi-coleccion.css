@@ -12496,3 +12496,53 @@ button.mc-fila:hover {
     grid-column: 1 / -1;
   }
 }
+
+/* ── 1041: en el móvil, el Modo evento es una burbuja flotante encima de la
+   de Colección (PINGU: «como teníamos antes lo de escribir en el foro»), y
+   la fila de arriba queda entera para Mercado · Quiero · Doy · Cruces. Es la
+   única excepción a «nada flota salvo la barra y la burbuja» (SCHEMA 1041);
+   la lista deja un hueco al final para que no tape la última fila. ── */
+.mc-mercado-opcion select {
+  padding-right: 36px;
+}
+
+@media (max-width: 599px) {
+  .mc-deseos-cabeza .mc-evento-boton {
+    position: fixed;
+    z-index: 89;
+    right: var(--e-xl);
+    /* Encima de la burbuja de Mi colección (`.mc-pestanias`, en movil.css:
+       a 80 + 8 de abajo y 56 de alto), con 12 de aire. */
+    bottom: calc(80px + env(safe-area-inset-bottom) + var(--e-sm) + 56px + var(--e-md));
+    width: 56px;
+    min-width: 56px;
+    height: 56px;
+    border: 0;
+    background: var(--acento);
+    color: var(--acento-texto);
+    box-shadow: 0 8px 24px rgb(0 0 0 / 18%);
+  }
+
+  .mc-deseos-cabeza .mc-evento-boton svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .mc-bloque-mercado,
+  .mc-bloque-quiero,
+  .mc-bloque-cambios {
+    padding-bottom: 72px;
+  }
+
+  /* Las cuatro, con sus cuentas de tres cifras, en el ancho de un iPhone. */
+  .mc-deseos-cabeza .mc-deseos-seg .seg-btn {
+    padding-inline: var(--e-xs);
+  }
+}
+
+/* En un teléfono estrecho, la cuenta solo en la vista abierta. */
+@media (max-width: 374px) {
+  .mc-deseos-cabeza .mc-deseos-seg .seg-btn[aria-pressed='false'] .mc-deseos-n {
+    display: none;
+  }
+}

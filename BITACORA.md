@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (279) — PINGU-Claude (1041 — el Modo evento flota en Deseos y cambios)
+
+**Hecho**: PINGU, con una captura del iPhone: «el modo evento quizá que sea
+como una burbuja flotante, como teníamos antes lo de escribir en el foro».
+Con sus cuentas (116 · 118 · 14 · 6) el círculo de Evento tapaba «Cruces».
+- En el móvil, **Modo evento es una burbuja de 56 px** con el color de la
+  sección, abajo a la derecha y encima de la burbuja de Mi colección
+  (`.mc-pestanias`). La fila de arriba queda entera para Mercado · Quiero ·
+  Doy · Cruces, que caben con cuentas de tres cifras (y a 320 px, la cuenta
+  solo en la vista abierta). Las tres vistas dejan 72 px al final para que no
+  tape la última fila. En el PC, igual que antes.
+- Es **la única excepción** a «nada flota salvo la barra y la burbuja» (1023):
+  apuntada en CLAUDE.md y con nombre en la prueba de solapes.
+- De la misma captura: «Cualquier idioma» del Mercado pisaba su flecha (la
+  regla del desplegable le quitaba los 36 px) y ahora dice «Idioma».
+
+**Ficheros**: css/mi-coleccion.css, mi-coleccion.html, cartas.html
+(generado), CLAUDE.md, SCHEMA.md, novedades.json, BITACORA.md.
+
+**Pruebas** (rama pruebas): nueva `test-tanda-1041-pantalla.mjs`; la 1023
+cuenta el botón como su excepción (no es un tercer flotante, pero no puede
+tapar nada) y recorre también Mercado, La quiero y Cruces; al día 1033 y 1038.
+Pasadas en 4 carriles las 41 que tocan Deseos y cambios (más imports, 299,
+297 y 312): 36 verdes y 5 rojas que ya fallaban antes de esta tanda (768,
+766, 941, 943 y 915: logos que el doble no sirve, «/buscar ✓2» y el
+PostgreSQL local). La 1034, al día y en verde.
+
+**Pendiente**: nada de esta tanda.
+
 ## 2026-10-26 (278) — PINGU-Claude (1040 — Comunidad, Jugar y Perfil, contenido primero; y las reglas)
 
 **Hecho**: la tercera y última tanda de «PokeDoc, contenido primero» (PINGU:

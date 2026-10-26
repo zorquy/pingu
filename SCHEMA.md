@@ -41785,6 +41785,32 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1041 — El Modo evento flota en Deseos y cambios
+
+PINGU, con una captura de su iPhone: con 116 · 118 · 14 · 6, el círculo de
+Evento de la 1038 se comía «Cruces», y pidió que fuera «una burbuja flotante,
+como teníamos antes lo de escribir en el foro». Se le enseñaron dos maneras
+(flotante, o junto al buscador, que en Cruces se quedaba solo en una fila) y
+eligió la flotante.
+
+- `.mc-deseos-cabeza .mc-evento-boton` en el teléfono (≤ 599 px) es `fixed`,
+  56 × 56, `--acento`, a `--e-xl` de la derecha (el borde del contenido) y
+  encima de `.mc-pestanias` (que va a 80 + 8 de abajo y mide 56) con 12 de
+  aire. Es el MISMO enlace de las tres cabeceras: solo se ve el del panel
+  abierto. Va en z-index 89, por debajo de la burbuja (90) y de las hojas.
+- `.mc-bloque-mercado`, `-quiero` y `-cambios` llevan 72 px abajo para que al
+  final de la lista no tape nada.
+- Las cuatro vistas con `padding-inline: --e-xs` caben a 390 px con cuentas
+  de tres cifras; por debajo de 375, la cuenta solo en la abierta.
+- Es la ÚNICA excepción a la regla 1023 («nada flota salvo la barra y la
+  burbuja»). `test-tanda-1023-pantalla.mjs` la nombra (`EXCEPCION`): no
+  cuenta como tercer flotante, pero sí como caja que no puede tapar nada.
+- `.mc-mercado-opcion select` ponía `padding: 0 --e-md` y se comía los 36 px
+  que `style.css` reserva a la flecha de todo `select`; y la opción vacía del
+  idioma dice «Idioma».
+
+Lo vigila `test-tanda-1041-pantalla.mjs` (rama pruebas).
+
 ## Tanda 1040 — Comunidad, Jugar y Perfil, contenido primero
 
 La tercera de «PokeDoc, contenido primero» (PINGU: «haz todo lo

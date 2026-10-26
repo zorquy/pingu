@@ -1292,7 +1292,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   nada pulsable tapado al final. Una página nueva de lista va en su
   lista. Y una página de detalle (fuera de la lista de su sección) lleva
   `data-detalle` del generador: cabecera de app (1019) y transición
-  deslizante (1023) solas.
+  deslizante (1023) solas. **La única excepción es el Modo evento de Deseos
+  y cambios** (1041, PINGU: «como teníamos antes lo de escribir en el
+  foro»): una burbuja encima de la de Mi colección, con un hueco al final de
+  la lista, y la prueba la nombra (`EXCEPCION`). Otra no se añade sin que
+  PINGU la pida.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en
