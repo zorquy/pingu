@@ -1,0 +1,426 @@
+<title>PokeDoc como app</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&family=Sora:wght@600;700&family=Manrope:wght@600;700;800&display=swap">
+<style>
+/* Mismos tokens que css/style.css de PokeDoc: la propuesta se lee con la pinta de la web. */
+:root {
+  --navy: #1e5175; --navy-light: #2a6b96; --hielo: #a9d4e8;
+  --ice: #e1f0f4; --bg: #f6f8fa; --white: #ffffff; --text: #0d1b2a; --text-mid: #52717f; --text-dim: #94adb8;
+  --border: #e1eaee; --success: #0d9e6e; --success-bg: #e6f7f2; --danger: #dc2626; --danger-bg: #fee2e2; --warn: #b45309; --warn-bg: #fef3c7;
+  --blanco-fijo: #fff; --font-d: 'Inter', system-ui, sans-serif; --font-marca: 'Fredoka', 'Inter', sans-serif; --font-b: 'Inter', system-ui, sans-serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --navy: #7cbae4; --navy-light: #63a8d6; --ice: #1d2d3b; --bg: #0b1219; --white: #1a2733; --text: #e8eef2; --text-mid: #9fb3bd; --text-dim: #64808c;
+  --border: #2b3a46; --success: #34d399; --success-bg: #11312a; --danger: #f87171; --danger-bg: #3b1d1d; --warn: #fbbf24; --warn-bg: #3a2a08;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --navy: #7cbae4; --navy-light: #63a8d6; --ice: #1d2d3b; --bg: #0b1219; --white: #1a2733; --text: #e8eef2; --text-mid: #9fb3bd; --text-dim: #64808c;
+  --border: #2b3a46; --success: #34d399; --success-bg: #11312a; --danger: #f87171; --danger-bg: #3b1d1d; --warn: #fbbf24; --warn-bg: #3a2a08;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-b); font-size: 16px; line-height: 1.5; }
+.pag { max-width: 1120px; margin: 0 auto; padding-block: 28px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3, h4 { font-family: var(--font-d); font-weight: 800; line-height: 1.12; margin: 0; text-wrap: balance; letter-spacing: -.01em; }
+h1 { font-size: clamp(1.9rem, 4vw, 2.6rem); }
+h2 { font-size: 1.6rem; margin-top: 64px; padding-top: 28px; border-top: 1px solid var(--border); }
+h3 { font-size: 1.15rem; margin-top: 40px; font-weight: 700; }
+h4 { font-size: .95rem; margin-top: 20px; font-weight: 700; color: var(--text-mid); }
+p { margin: 10px 0; max-width: 72ch; } p.lead { font-size: 1.1rem; color: var(--text-mid); max-width: 62ch; }
+.eyebrow { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-mid); font-weight: 700; }
+.marca { font-family: var(--font-marca); font-weight: 700; } .marca b { color: var(--navy); }
+.chip { display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: .72rem; font-weight: 700; letter-spacing: .02em; vertical-align: middle; margin-left: 6px; }
+.c-alta { background: var(--danger-bg); color: var(--danger); } .c-media { background: var(--warn-bg); color: var(--warn); } .c-baja { background: var(--ice); color: var(--navy); } .c-ok { background: var(--success-bg); color: var(--success); }
+.cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 24px 0; }
+.cifra { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+.cifra b { display: block; font-family: var(--font-marca); font-size: 1.9rem; line-height: 1; font-variant-numeric: tabular-nums; }
+.cifra span { color: var(--text-mid); font-size: .85rem; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0 0; }
+.toc a { background: var(--white); border: 1px solid var(--border); color: var(--navy); text-decoration: none; padding: 6px 12px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+a:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+/* Principios */
+.principios { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 16px; }
+.principio { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+.principio b { display: block; font-family: var(--font-d); font-size: 1rem; margin-bottom: 4px; }
+.principio span { color: var(--text-mid); font-size: .9rem; }
+.principio i { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--ice); color: var(--navy); font-style: normal; font-family: var(--font-marca); font-weight: 700; margin-bottom: 8px; }
+/* Comparativas */
+.cmp { margin: 18px 0 8px; }
+.par { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; align-items: start; }
+.par > * { min-width: 0; }
+.par.pc { grid-template-columns: 1fr 1fr; }
+@media (max-width: 720px) { .par.pc { grid-template-columns: 1fr; } }
+figure { margin: 0; background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 8px; }
+figure a { display: block; } figure img { width: 100%; height: auto; border-radius: 8px; display: block; border: 1px solid var(--border); }
+figcaption { font-size: .8rem; color: var(--text-mid); margin-top: 8px; line-height: 1.35; }
+.antes figcaption::before { content: 'AHORA · '; font-weight: 800; color: var(--danger); }
+.despues figcaption::before { content: 'PROPUESTA · '; font-weight: 800; color: var(--success); }
+.igual figcaption::before { content: 'PC · '; font-weight: 800; color: var(--text-mid); }
+.pant { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-dim); font-weight: 700; margin: 14px 0 6px; }
+.nota { background: var(--ice); border-radius: 10px; padding: 10px 14px; font-size: .9rem; margin: 12px 0; max-width: 80ch; }
+.decision { background: var(--white); border: 1px solid var(--border); border-left: 4px solid var(--navy); border-radius: 10px; padding: 12px 16px; margin: 14px 0; max-width: 80ch; }
+.decision b { color: var(--navy); }
+ul { padding-left: 20px; max-width: 76ch; } li { margin: 5px 0; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; margin-top: 14px; }
+th, td { text-align: left; padding: 9px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-mid); }
+.tabla-wrap { overflow-x: auto; }
+code { background: var(--ice); padding: 1px 6px; border-radius: 5px; font-size: .85em; }
+/* Letras */
+.tipos { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 14px; }
+.tipo { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+.tipo .tt { font-size: 1.45rem; line-height: 1.12; font-weight: 700; margin: 6px 0 4px; }
+.tipo .num { font-size: 1.9rem; font-weight: 800; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.tipo .cuerpo { font-family: var(--font-b); font-size: .9rem; color: var(--text-mid); margin-top: 8px; }
+.tipo.reco { border-color: var(--success); box-shadow: 0 0 0 3px var(--success-bg); }
+.f-inter { font-family: 'Inter', sans-serif; } .f-fredoka { font-family: 'Fredoka', sans-serif; } .f-outfit { font-family: 'Outfit', sans-serif; } .f-sora { font-family: 'Sora', sans-serif; } .f-manrope { font-family: 'Manrope', sans-serif; }
+/* Paleta de secciones */
+.paleta { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin-top: 12px; }
+.sw { border-radius: 12px; padding: 12px 14px; color: #0b1219; font-weight: 700; min-height: 72px; display: flex; flex-direction: column; justify-content: flex-end; }
+.sw small { font-weight: 500; opacity: .8; font-size: .78rem; }
+.ok-lista { columns: 2; column-gap: 24px; max-width: 80ch; } @media (max-width: 640px) { .ok-lista { columns: 1; } }
+.resumen { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin: 16px 0; }
+</style>
+
+<div class="pag">
+  <span class="eyebrow">PokeDoc · noche del 25 de octubre de 2026 · propuesta grande</span>
+  <h1 style="margin-top:8px">PokeDoc como app: lo que cambiaría para que parezca una de verdad</h1>
+  <p class="lead">He vuelto a abrir las 55 pantallas en un iPhone y en un PC con la web tal y como está hoy, y he construido cada propuesta ENCIMA de la web real (no son dibujos: es la web con el cambio puesto y fotografiada). Cada propuesta lleva cuatro fotos: antes y después, en móvil y en PC. Toca cualquier foto para verla grande.</p>
+
+  <div class="cifras">
+    <div class="cifra"><b>110</b><span>pantallas revisadas (55 móvil + 55 PC)</span></div>
+    <div class="cifra"><b>23</b><span>prototipos fotografiados antes y después</span></div>
+    <div class="cifra"><b>9</b><span>pantallas del móvil donde algo flota encima del contenido</span></div>
+    <div class="cifra"><b>7</b><span>tandas para hacerlo todo</span></div>
+  </div>
+
+  <nav class="toc" aria-label="Secciones">
+    <a href="#producto">0 · El producto final</a><a href="#esqueleto">A · Esqueleto del móvil</a><a href="#letra">B · La letra</a><a href="#color">C · Color y personalidad</a><a href="#pantallas">D · Pantalla por pantalla</a><a href="#decisiones">Decisiones</a><a href="#tandas">Tandas</a>
+  </nav>
+
+  <h2 id="producto">0 · El producto final: cinco reglas que lo hacen «app»</h2>
+  <p>Lo que diferencia una app sólida de una web que se ve en el móvil no es un efecto: es que TODAS las pantallas obedecen las mismas reglas y uno deja de pensar dónde están las cosas. Hoy PokeDoc tiene las piezas (barra abajo, hojas desde abajo, botones de 44 px, caché) pero cada pantalla las combina a su manera: en una la burbuja flota sobre las tarjetas, en otra hay tres barras apiladas, en otra los controles ocupan media pantalla. Estas son las cinco reglas que propongo y que aplican todas las propuestas de abajo.</p>
+  <div class="principios">
+    <div class="principio"><i>1</i><b>Nada flota sobre el contenido</b><span>Lo fijo es la barra de abajo y la de arriba. Todo lo demás tiene su sitio en el flujo. Si algo tiene que estar siempre a mano, va en una de las dos barras, no encima de las tarjetas.</span></div>
+    <div class="principio"><i>2</i><b>Tres niveles, siempre en el mismo sitio</b><span>Sección abajo (barra), páginas de la sección arriba (una fila de pestañas pegada bajo la cabecera), y dentro de una página de detalle, una cabecera con «volver» + contexto + acciones.</span></div>
+    <div class="principio"><i>3</i><b>Cada pantalla tiene el mismo orden</b><span>Título y acción principal en una línea; controles (buscar, filtros, orden) en UNA fila; contenido. Nunca cuatro filas de mandos antes de la primera tarjeta.</span></div>
+    <div class="principio"><i>4</i><b>Una cosa, un tamaño</b><span>Marcas, chips, botones y cabeceras iguales en todas las pantallas. Un check de «la tienes» mide lo mismo en la expansión, en el álbum y en el buscador.</span></div>
+    <div class="principio"><i>5</i><b>Personalidad medida</b><span>Una letra con carácter en títulos y cifras, un color por sección que se nota pero no grita, y el teléfono responde al toque (estado pulsado, transición corta).</span></div>
+  </div>
+
+  <h2 id="esqueleto">A · El esqueleto del móvil</h2>
+  <p>Es la propuesta que más cambia la sensación de app y la que arregla de golpe nueve pantallas. En el móvil hoy hay tres cosas flotando: la barra de abajo, la burbuja de la sección encima de ella, y en algunas páginas una tercera (el botón rosa del foro, la barra de Guardar del constructor). La burbuja tapa el final de lo que estás leyendo en todas las páginas de lista, y en Mi colección enseña siete iconos sin palabra.</p>
+
+  <h3 id="a1">A1 · Las páginas de la sección en una fila de pestañas arriba, no en una burbuja flotante <span class="chip c-alta">la que más cambia</span></h3>
+  <p>La burbuja se va. Debajo de la barra de arriba aparece una fila de pestañas con icono y palabra (la activa rellena), que se desliza si no cabe y se queda pegada al bajar. Es exactamente lo que hacen las apps que se parecen a lo que quieres (Collectr, TCG Collector, la propia app de Pokémon): sección abajo, subsecciones arriba. Lo que gana: nada tapa el contenido, se ven las palabras de todas las páginas, y una página de detalle (una expansión, un tema del foro, un torneo) deja de arrastrar la burbuja porque tiene su propia cabecera (A2).</p>
+  <div class="cmp">
+    <div class="pant">Aprender · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:a1-aprender-antes-movil}}" target="_blank"><img src="{{img:a1-aprender-antes-movil}}" alt="Aprender hoy en el móvil: la burbuja Guías flota sobre la tarjeta de la guía"></a><figcaption>la burbuja «Guías» tapa el pie de la primera tarjeta, y las otras tres páginas son iconos sin nombre.</figcaption></figure>
+      <figure class="despues"><a href="{{img:a1-aprender-despues-movil}}" target="_blank"><img src="{{img:a1-aprender-despues-movil}}" alt="Aprender con la fila de pestañas Guías, Retos, Guardados, Glosario bajo la barra de arriba"></a><figcaption>Guías · Retos · Guardados · Glosario en una fila arriba; abajo solo la barra de secciones. Nada tapa nada.</figcaption></figure>
+    </div>
+    <div class="pant">Mis mazos · móvil (la sección Jugar tiene siete páginas)</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:a1-mazos-antes-movil}}" target="_blank"><img src="{{img:a1-mazos-antes-movil}}" alt="Mis mazos hoy: burbuja con siete iconos recortada por la izquierda"></a><figcaption>siete iconos en la burbuja, recortada por la izquierda, encima de la segunda tarjeta.</figcaption></figure>
+      <figure class="despues"><a href="{{img:a1-mazos-despues-movil}}" target="_blank"><img src="{{img:a1-mazos-despues-movil}}" alt="Mis mazos con la fila de pestañas Torneos, Meta, Constructor, Laboratorio arriba"></a><figcaption>la fila se desliza (Torneos · Meta · Constructor · Laboratorio · Mis mazos…) y las tarjetas respiran.</figcaption></figure>
+    </div>
+    <div class="pant">Aprender y Mis mazos · PC</div>
+    <div class="par pc">
+      <figure class="igual"><a href="{{img:a1-aprender-antes-pc}}" target="_blank"><img src="{{img:a1-aprender-antes-pc}}" alt="Aprender en el PC con la lateral"></a><figcaption>en el ordenador no cambia: la lateral ya es «secciones + páginas» y es lo que la fila de pestañas copia en el móvil.</figcaption></figure>
+      <figure class="igual"><a href="{{img:a1-mazos-antes-pc}}" target="_blank"><img src="{{img:a1-mazos-antes-pc}}" alt="Mis mazos en el PC"></a><figcaption>Mis mazos en el PC, igual que hoy.</figcaption></figure>
+    </div>
+  </div>
+  <div class="nota"><b>Lo que se lleva por delante:</b> la burbuja de Mi colección (452) también pasa a la fila (Panel · Expansiones · Pokédex · Álbumes · Productos · Trade · Buscar, deslizable, y las «ajenas» de Cartas al final tras una raya), y en Mi colección las pestañas tienen palabra todas, no solo la activa. La barra de abajo sigue igual (es la que se genera en el HTML). En el PC no cambia nada.</div>
+
+  <h3 id="a2">A2 · Las páginas de detalle llevan cabecera de app: volver, contexto y acciones</h3>
+  <p>Un tema del foro, una guía, un torneo o una carta no son «páginas de la sección»: son una cosa que has abierto. Hoy arrastran la barra de búsqueda de arriba, la burbuja de abajo y una fila de migas dentro del contenido («‹ Competitivo» en un botón de 44 px). Propongo que la barra de arriba, en estas páginas, sea la de una app: flecha de volver, de dónde vienes en pequeño y el título, y a la derecha compartir y «⋯». Las migas del contenido sobran y se recuperan 52 px antes del título.</p>
+  <div class="cmp">
+    <div class="pant">Un tema del foro · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:a2-tema-antes-movil}}" target="_blank"><img src="{{img:a2-tema-antes-movil}}" alt="Tema del foro hoy: buscador arriba, migas, burbuja abajo"></a><figcaption>buscador global arriba (no sirve aquí), migas «Competitivo» como un botón suelto y la burbuja del foro abajo.</figcaption></figure>
+      <figure class="despues"><a href="{{img:a2-tema-despues-movil}}" target="_blank"><img src="{{img:a2-tema-despues-movil}}" alt="Tema del foro con cabecera volver, Competitivo, compartir y más"></a><figcaption>«‹ COMPETITIVO · ¿Charizard sigue siendo top…» arriba con compartir y ⋯; el hilo empieza antes y nada flota.</figcaption></figure>
+    </div>
+    <div class="pant">Una guía · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:a2-guia-antes-movil}}" target="_blank"><img src="{{img:a2-guia-antes-movil}}" alt="Guía hoy en el móvil"></a><figcaption>migas + rótulo + título: tres veces «Competitivo» antes de leer nada.</figcaption></figure>
+      <figure class="despues"><a href="{{img:a2-guia-despues-movil}}" target="_blank"><img src="{{img:a2-guia-despues-movil}}" alt="Guía con cabecera de detalle"></a><figcaption>el contexto va en la cabecera y la guía empieza en el título.</figcaption></figure>
+    </div>
+    <div class="pant">Tema y guía · PC</div>
+    <div class="par pc">
+      <figure class="igual"><a href="{{img:a2-tema-antes-pc}}" target="_blank"><img src="{{img:a2-tema-antes-pc}}" alt="Tema del foro en el PC"></a><figcaption>en el PC las migas se quedan: con la lateral y el ancho, son la forma natural de volver.</figcaption></figure>
+      <figure class="igual"><a href="{{img:a2-guia-antes-pc}}" target="_blank"><img src="{{img:a2-guia-antes-pc}}" alt="Guía en el PC"></a><figcaption>la guía en el PC, igual que hoy.</figcaption></figure>
+    </div>
+  </div>
+  <div class="nota">Al bajar por la página, el título del contenido sube y la cabecera lo adopta (lo que hace iOS con las «large titles»). Las páginas que lo llevan son las que ya están en <code>SECCION_DE</code> (carta, tema, guía, curso, noticia, torneo, expansión, producto, perfil ajeno, mensaje). En el PC no cambia nada.</div>
+
+  <h3 id="a3">A3 · El pie del móvil en dos líneas</h3>
+  <p>El pie de 22 páginas mide 600 px en el móvil: cuatro columnas de enlaces que ya están en la barra de abajo y en la hoja «Tú». Una app no tiene pie; una web sí lo necesita para Google y para quien llega sin cuenta. Propongo que en el móvil se quede en dos líneas (marca, Sobre, Colabora, Novedades, Privacidad, Apoyar y el copyright) y que las cuatro columnas sigan en el PC.</p>
+  <div class="cmp">
+    <div class="pant">Final de una página · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:a3-pie-antes-movil}}" target="_blank"><img src="{{img:a3-pie-antes-movil}}" alt="Pie actual en el móvil, cuatro columnas"></a><figcaption>cuatro columnas de enlaces, 600 px, debajo de cada página.</figcaption></figure>
+      <figure class="despues"><a href="{{img:a3-pie-despues-movil}}" target="_blank"><img src="{{img:a3-pie-despues-movil}}" alt="Pie compacto en dos líneas"></a><figcaption>dos líneas. Los enlaces siguen en el HTML (los lee Google), solo se esconden las columnas.</figcaption></figure>
+    </div>
+    <div class="pant">Final de una página · PC</div>
+    <div class="par pc">
+      <figure class="igual"><a href="{{img:a3-pie-antes-pc}}" target="_blank"><img src="{{img:a3-pie-antes-pc}}" alt="Pie en el PC"></a><figcaption>el PC conserva las cuatro columnas.</figcaption></figure>
+      <figure class="igual"><a href="{{img:a3-pie-despues-pc}}" target="_blank"><img src="{{img:a3-pie-despues-pc}}" alt="Pie en el PC, igual"></a><figcaption>sin cambios.</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="a4">A4 · El teléfono responde al toque</h3>
+  <p>Esto no se puede fotografiar, pero es la mitad de la sensación de app. Tres cosas, todas pequeñas y todas en CSS: (1) todo lo que se pulsa se hunde un poco al tocarlo (<code>:active</code> con <code>transform: scale(.97)</code>, 80 ms) en tarjetas, chips y botones, hoy solo lo tienen los botones; (2) al entrar en una página de detalle el contenido entra deslizando desde la derecha y al volver sale hacia la derecha (ya hay <code>@view-transition</code> entre páginas; propongo darle dirección según el nivel: lateral para entrar en un detalle, fundido para cambiar de pestaña); (3) las hojas desde abajo y los diálogos salen con el mismo tiempo y la misma curva en toda la web (hoy conviven cuatro duraciones distintas). Todo respeta «menos movimiento».</p>
+
+  <h2 id="letra">B · La letra: cuatro familias, la misma portada</h2>
+  <p>Dijiste que la anterior (Fredoka en todos los títulos) quizá te gustaba más y que ahora todo parece más sobrio. Para que no sea de memoria, aquí está la MISMA portada con la misma colección en móvil y PC con cuatro letras en los títulos. El cuerpo es Inter en todas (es la que mejor se lee pequeña) y la marca PokeDoc es Fredoka en todas menos en Outfit y Sora, donde la marca va con la misma letra que los títulos para que se vea el conjunto.</p>
+  <div class="tipos">
+    <div class="tipo f-inter"><span class="eyebrow">B0 · ahora</span><div class="tt">Lo que vale tu colección</div><div class="num">531,61 €</div><div class="cuerpo">Inter en títulos, Fredoka en marca y cifras. Sobria, se lee perfecto, no tiene personalidad propia: es la letra por defecto de media internet.</div></div>
+    <div class="tipo f-fredoka"><span class="eyebrow">B1 · como antes de la 1016</span><div class="tt">Lo que vale tu colección</div><div class="num">531,61 €</div><div class="cuerpo">Fredoka en títulos. Redonda, juguetona, muy Pokémon. En títulos largos de guía se hace infantil y en el PC, grande, parece un juego de niños.</div></div>
+    <div class="tipo f-outfit reco"><span class="eyebrow">B2 · Outfit <span class="chip c-ok">la que recomiendo</span></span><div class="tt">Lo que vale tu colección</div><div class="num">531,61 €</div><div class="cuerpo">Geométrica y redonda como Fredoka pero adulta: tiene carácter sin parecer un juguete. Es la que usan apps como Collectr. Marca y cifras con ella también.</div></div>
+    <div class="tipo f-sora"><span class="eyebrow">B3 · Sora</span><div class="tt">Lo que vale tu colección</div><div class="num">531,61 €</div><div class="cuerpo">Técnica, ancha, muy «producto». Queda bien en cifras y chapas; en títulos largos ocupa mucho.</div></div>
+    <div class="tipo f-manrope"><span class="eyebrow">B4 · Manrope</span><div class="tt">Lo que vale tu colección</div><div class="num">531,61 €</div><div class="cuerpo">A medio camino entre Inter y Outfit: más cálida que Inter, menos redonda que Outfit. La opción «segura» si Outfit te parece mucho.</div></div>
+  </div>
+  <div class="cmp">
+    <div class="pant">La portada · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:b1-fredoka-antes-movil}}" target="_blank"><img src="{{img:b1-fredoka-antes-movil}}" alt="Portada con Inter"></a><figcaption>B0 · Inter, la web tal como está hoy (con la burbuja; las otras cuatro llevan ya el esqueleto de A1, mira solo la letra).</figcaption></figure>
+      <figure class="despues"><a href="{{img:b1-fredoka-despues-movil}}" target="_blank"><img src="{{img:b1-fredoka-despues-movil}}" alt="Portada con Fredoka"></a><figcaption>B1 · Fredoka en los títulos (como antes).</figcaption></figure>
+      <figure class="despues"><a href="{{img:b2-outfit-despues-movil}}" target="_blank"><img src="{{img:b2-outfit-despues-movil}}" alt="Portada con Outfit"></a><figcaption>B2 · Outfit.</figcaption></figure>
+      <figure class="despues"><a href="{{img:b3-sora-despues-movil}}" target="_blank"><img src="{{img:b3-sora-despues-movil}}" alt="Portada con Sora"></a><figcaption>B3 · Sora.</figcaption></figure>
+      <figure class="despues"><a href="{{img:b4-manrope-despues-movil}}" target="_blank"><img src="{{img:b4-manrope-despues-movil}}" alt="Portada con Manrope"></a><figcaption>B4 · Manrope.</figcaption></figure>
+    </div>
+    <div class="pant">La portada · PC</div>
+    <div class="par pc">
+      <figure class="antes"><a href="{{img:b1-fredoka-antes-pc}}" target="_blank"><img src="{{img:b1-fredoka-antes-pc}}" alt="Portada PC con Inter"></a><figcaption>B0 · Inter, hoy.</figcaption></figure>
+      <figure class="despues"><a href="{{img:b1-fredoka-despues-pc}}" target="_blank"><img src="{{img:b1-fredoka-despues-pc}}" alt="Portada PC con Fredoka"></a><figcaption>B1 · Fredoka.</figcaption></figure>
+      <figure class="despues"><a href="{{img:b2-outfit-despues-pc}}" target="_blank"><img src="{{img:b2-outfit-despues-pc}}" alt="Portada PC con Outfit"></a><figcaption>B2 · Outfit.</figcaption></figure>
+      <figure class="despues"><a href="{{img:b3-sora-despues-pc}}" target="_blank"><img src="{{img:b3-sora-despues-pc}}" alt="Portada PC con Sora"></a><figcaption>B3 · Sora.</figcaption></figure>
+      <figure class="despues"><a href="{{img:b4-manrope-despues-pc}}" target="_blank"><img src="{{img:b4-manrope-despues-pc}}" alt="Portada PC con Manrope"></a><figcaption>B4 · Manrope.</figcaption></figure>
+    </div>
+  </div>
+  <div class="decision"><b>Lo que te pido:</b> elige una. Yo iría a <b>B2 Outfit</b> en títulos, marca y cifras, con Inter en el cuerpo: tiene la redondez que echas de menos de Fredoka sin su lado infantil, y en el PC aguanta títulos largos. Si prefieres volver a Fredoka tal cual, es un cambio de una línea (y se queda como estaba antes de la 1016). Las cuatro pesan lo mismo que Fredoka (una familia, tres pesos, desde Google Fonts con <code>font-display: swap</code>).</div>
+
+  <h2 id="color">C · Color y personalidad: un color por sección</h2>
+  <p>Hoy toda la web es azul: el mismo azul para la pestaña activa de Aprender, de Cartas y de Jugar. Es limpio pero anónimo. Propongo que cada sección tenga SU acento y que aparezca en tres sitios, siempre los mismos: la pestaña activa de la barra de abajo, la pestaña activa de la fila de arriba y el botón principal de esa pantalla (Crear torneo, Escribir, Nuevo mazo). Nada más: ni fondos ni títulos de color. Así sabes en qué sección estás sin leerlo, y la app deja de ser monocroma sin volverse un arcoíris.</p>
+  <div class="paleta">
+    <div class="sw" style="background:#7cbae4">Inicio <small>azul PokeDoc, el de siempre</small></div>
+    <div class="sw" style="background:#2fb47c">Aprender <small>verde: guías, cursos, retos</small></div>
+    <div class="sw" style="background:#e4b44a">Cartas <small>ámbar: colección, valor</small></div>
+    <div class="sw" style="background:#f06c9b">Comunidad <small>rosa: foro, gente, mensajes</small></div>
+    <div class="sw" style="background:#9b7bff">Jugar <small>violeta: torneos, mazos, meta</small></div>
+  </div>
+  <div class="cmp">
+    <div class="pant">Aprender (verde) y Torneos (violeta) · móvil, con el esqueleto de A1</div>
+    <div class="par">
+      <figure class="despues"><a href="{{img:c1-aprender-despues-movil}}" target="_blank"><img src="{{img:c1-aprender-despues-movil}}" alt="Aprender con acento verde"></a><figcaption>Aprender en verde: barra, pestaña y botón de escribir.</figcaption></figure>
+      <figure class="despues"><a href="{{img:c1-torneos-despues-movil}}" target="_blank"><img src="{{img:c1-torneos-despues-movil}}" alt="Torneos con acento violeta"></a><figcaption>Jugar en violeta: la misma regla.</figcaption></figure>
+    </div>
+    <div class="pant">Lo mismo · PC</div>
+    <div class="par pc">
+      <figure class="despues"><a href="{{img:c1-aprender-despues-pc}}" target="_blank"><img src="{{img:c1-aprender-despues-pc}}" alt="Aprender en PC con acento verde"></a><figcaption>en el PC el acento va en la sección activa de la lateral y en el botón principal.</figcaption></figure>
+      <figure class="despues"><a href="{{img:c1-torneos-despues-pc}}" target="_blank"><img src="{{img:c1-torneos-despues-pc}}" alt="Torneos en PC con acento violeta"></a><figcaption>Torneos en violeta.</figcaption></figure>
+    </div>
+  </div>
+  <div class="nota">Los cinco colores están medidos en los dos temas: con texto oscuro encima (como en las fotos) todos pasan de 4,5:1 en oscuro y en claro se oscurecen un paso (<code>--acento</code> se redefine en el tema claro, igual que los demás tokens). El rojo de peligro, el verde de «bien» y el ámbar de aviso no cambian: el acento de sección es otra cosa y nunca se usa para decir «correcto» o «error».</div>
+
+  <h2 id="pantallas">D · Pantalla por pantalla</h2>
+  <p>Lo concreto que no queda bien hoy, con su arreglo encima. Todas asumen el esqueleto de A1 (por eso en las fotos «después» ya no hay burbuja). Están ordenadas por lo que más se nota.</p>
+
+  <h3 id="d1">D1 · Mi colección › Panel: el final de la página <span class="chip c-alta">tu captura</span></h3>
+  <p>Lo que me enseñaste: las cuatro acciones (Imagen, Importar, Exportar, Modo feria) se reparten en dos filas desiguales, la línea de «colección pública» ocupa tres renglones con un botón enorme debajo, y después hay un cuarto de pantalla vacío antes del pie (eran DOS huecos sumados: el de la burbuja y el de la página). Propuesta: cuatro losetas iguales con el icono encima de la palabra, una sola línea para lo público («● Colección pública · Copiar enlace · Ajustes») y un solo hueco al final.</p>
+  <div class="cmp">
+    <div class="pant">Panel, final de la página · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:d1-panel-antes-movil}}" target="_blank"><img src="{{img:d1-panel-antes-movil}}" alt="Panel hoy: acciones desiguales y hueco"></a><figcaption>acciones en dos filas desiguales, «Cambiarlo en Ajustes» como botón grande, hueco al final.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d1-panel-despues-movil}}" target="_blank"><img src="{{img:d1-panel-despues-movil}}" alt="Panel con cuatro losetas iguales y una línea de colección pública"></a><figcaption>cuatro losetas iguales, una línea para lo público, la página acaba donde acaba.</figcaption></figure>
+    </div>
+    <div class="pant">Panel · PC</div>
+    <div class="par pc">
+      <figure class="antes"><a href="{{img:d1-panel-antes-pc}}" target="_blank"><img src="{{img:d1-panel-antes-pc}}" alt="Panel en el PC hoy"></a><figcaption>en el PC las acciones caben en una fila; el cambio es el mismo (losetas iguales).</figcaption></figure>
+      <figure class="despues"><a href="{{img:d1-panel-despues-pc}}" target="_blank"><img src="{{img:d1-panel-despues-pc}}" alt="Panel en el PC con losetas"></a><figcaption>Panel en el PC con las losetas.</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="d2">D2 · Una expansión abierta: su propia cabecera, marcas pequeñas</h3>
+  <p>Al abrir una expansión en el móvil se queda arriba la cabecera del catálogo («Cartas» y el conmutador Pokémon / Pokémon Japón), que ahí no pinta nada, y la tarjeta del set se monta encima de ella (el logo asoma por arriba del marco). En la rejilla, el check de «la tienes» es un círculo blanco de 40 px sobre el dibujo de cada carta: en una expansión completa son 250 círculos. Propuesta: dentro de un set no hay cabecera de catálogo; la tira del set es una fila (volver · logo + nombre · ⋯) y el check se reduce a una marca de 16 px en la esquina, como en la Pokédex.</p>
+  <div class="cmp">
+    <div class="pant">Corona Astral · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:d2-set-antes-movil}}" target="_blank"><img src="{{img:d2-set-antes-movil}}" alt="Expansión hoy: cabecera del catálogo encima y checks grandes"></a><figcaption>cabecera del catálogo + tarjeta del set montada + checks de 40 px.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d2-set-despues-movil}}" target="_blank"><img src="{{img:d2-set-despues-movil}}" alt="Expansión con la tira del set en una fila y marcas pequeñas"></a><figcaption>tira del set en una fila, buscador y mandos debajo, marcas pequeñas en la esquina.</figcaption></figure>
+    </div>
+    <div class="pant">Corona Astral · PC</div>
+    <div class="par pc">
+      <figure class="antes"><a href="{{img:d2-set-antes-pc}}" target="_blank"><img src="{{img:d2-set-antes-pc}}" alt="Expansión en el PC hoy"></a><figcaption>en el PC la cabecera del set y la línea «14 de 30 · 47 %» se tocan; los checks también son grandes.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d2-set-despues-pc}}" target="_blank"><img src="{{img:d2-set-despues-pc}}" alt="Expansión en el PC con marcas pequeñas"></a><figcaption>mismas marcas pequeñas; la cabecera con su aire.</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="d3">D3 · El catálogo (/cartas): los mandos en dos filas, no en cuatro</h3>
+  <p>Antes de la primera colección hay cuatro filas: «Orden» solo en una, el buscador en otra, los chips en otra y «5 colecciones» en otra. Propuesta: buscador + Orden en una fila, chips en la segunda. La cuenta se va al título de cada era («Escarlata y Púrpura · 4»).</p>
+  <div class="cmp">
+    <div class="pant">/cartas · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:d3-cartas-antes-movil}}" target="_blank"><img src="{{img:d3-cartas-antes-movil}}" alt="Catálogo hoy con cuatro filas de mandos"></a><figcaption>cuatro filas antes de la primera colección.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d3-cartas-despues-movil}}" target="_blank"><img src="{{img:d3-cartas-despues-movil}}" alt="Catálogo con dos filas de mandos"></a><figcaption>dos filas; la primera colección sube 100 px.</figcaption></figure>
+    </div>
+    <div class="pant">/cartas · PC</div>
+    <div class="par pc">
+      <figure class="antes"><a href="{{img:d3-cartas-antes-pc}}" target="_blank"><img src="{{img:d3-cartas-antes-pc}}" alt="Catálogo en el PC hoy"></a><figcaption>en el PC pasa lo mismo con más sitio: Orden, buscador, chips y conmutador en cuatro filas.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d3-cartas-despues-pc}}" target="_blank"><img src="{{img:d3-cartas-despues-pc}}" alt="Catálogo en el PC"></a><figcaption>en el PC la misma fila de buscador + Orden (el resto, en la tanda).</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="d4">D4 · Foro: el botón rosa se va a la cabecera</h3>
+  <p>El botón rosa de escribir flota en la esquina, encima del texto de la última tarjeta y, en el PC, también sale aunque allí ya hay «Abrir un tema». Con la regla 1 (nada flota) pasa a la cabecera como botón principal «Escribir», al lado de «Leído» y la lupa. Es el mismo sitio donde Aprender ya tiene su lápiz.</p>
+  <div class="cmp">
+    <div class="pant">Foro · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:d4-foro-antes-movil}}" target="_blank"><img src="{{img:d4-foro-antes-movil}}" alt="Foro hoy con el botón rosa flotando"></a><figcaption>el rosa tapa «Precios, gradeos y cambios», y la burbuja la tarjeta de al lado.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d4-foro-despues-movil}}" target="_blank"><img src="{{img:d4-foro-despues-movil}}" alt="Foro con Escribir en la cabecera"></a><figcaption>«Escribir» en la cabecera; las tarjetas enteras.</figcaption></figure>
+    </div>
+    <div class="pant">Foro · PC</div>
+    <div class="par pc">
+      <figure class="antes"><a href="{{img:d4-foro-antes-pc}}" target="_blank"><img src="{{img:d4-foro-antes-pc}}" alt="Foro en el PC con el botón rosa"></a><figcaption>el rosa también flota en el PC, abajo a la derecha.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d4-foro-despues-pc}}" target="_blank"><img src="{{img:d4-foro-despues-pc}}" alt="Foro en el PC con Escribir en la cabecera"></a><figcaption>junto al buscador y «Marcar todo como leído».</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="d5">D5 · Torneos: de cuatro filas de mandos a una</h3>
+  <p>Hoy, antes del primer torneo: el conmutador Lista/Calendario solo en una fila, siete cajas de día (77 px) para un solo evento, y cuatro chips en dos filas. Propuesta en el móvil: el calendario es un icono en la cabecera junto a «Crear torneo», la semana se queda en una tira fina, y los chips van en UNA fila deslizable. En el PC: conmutador y semana en la misma fila, y el pie de cada tarjeta deja de esconder «Inscrito · Organiza Misty» detrás del botón.</p>
+  <div class="cmp">
+    <div class="pant">Torneos · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:d5-torneos-antes-movil}}" target="_blank"><img src="{{img:d5-torneos-antes-movil}}" alt="Torneos hoy con cuatro filas de mandos"></a><figcaption>cuatro filas de mandos, y la burbuja sobre «Entre jornadas».</figcaption></figure>
+      <figure class="despues"><a href="{{img:d5-torneos-despues-movil}}" target="_blank"><img src="{{img:d5-torneos-despues-movil}}" alt="Torneos con los mandos en una fila"></a><figcaption>cabecera con calendario y Crear; semana fina; chips en una fila.</figcaption></figure>
+    </div>
+    <div class="pant">Torneos · PC</div>
+    <div class="par pc">
+      <figure class="antes"><a href="{{img:d5-torneos-antes-pc}}" target="_blank"><img src="{{img:d5-torneos-antes-pc}}" alt="Torneos en el PC hoy"></a><figcaption>siete cajas de 150 px para un evento; en la tarjeta, «Ins…» cortado por el botón.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d5-torneos-despues-pc}}" target="_blank"><img src="{{img:d5-torneos-despues-pc}}" alt="Torneos en el PC con conmutador y semana en una fila"></a><figcaption>conmutador + semana en una fila; el pie de la tarjeta entero.</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="d6">D6 · Constructor: una barra, no tres</h3>
+  <p>En el móvil el constructor apila la barra de Guardar, la burbuja y la barra de secciones: tres barras, 180 px, sobre las cartas. Con A1 la burbuja desaparece y la barra de Guardar se pega a la de abajo; además sobra el título «Constructor de mazos» (el nombre del mazo ya es el título) y el breadcrumb pasa a la cabecera de detalle de A2.</p>
+  <div class="cmp">
+    <div class="pant">Constructor · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:d6-constructor-antes-movil}}" target="_blank"><img src="{{img:d6-constructor-antes-movil}}" alt="Constructor hoy con tres barras apiladas"></a><figcaption>tres barras apiladas; «Constructor de mazos» y «‹ Mis mazos» antes del mazo.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d6-constructor-despues-movil}}" target="_blank"><img src="{{img:d6-constructor-despues-movil}}" alt="Constructor con una sola barra de acciones"></a><figcaption>una barra de acciones pegada a la de secciones; el mazo empieza 70 px antes.</figcaption></figure>
+    </div>
+    <div class="pant">Constructor · PC</div>
+    <div class="par pc">
+      <figure class="antes"><a href="{{img:d6-constructor-antes-pc}}" target="_blank"><img src="{{img:d6-constructor-antes-pc}}" alt="Constructor en el PC"></a><figcaption>en el PC ya va en dos paneles y no cambia.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d6-constructor-despues-pc}}" target="_blank"><img src="{{img:d6-constructor-despues-pc}}" alt="Constructor en el PC, igual"></a><figcaption>sin cambios.</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="d7">D7 · Mis partidas en el PC: una fila por partida</h3>
+  <p>En el ordenador cada partida ocupa 80 px con tres botones de texto a la derecha y «Dragapult ex vs Gardevoir ex» partido en dos renglones según la fila. Propuesta: una fila de verdad (mazos · resultado · dónde · acciones), con los botones pequeños, y las notas debajo solo cuando las hay.</p>
+  <div class="cmp">
+    <div class="pant">Mis partidas · PC</div>
+    <div class="par pc">
+      <figure class="antes"><a href="{{img:d7-partidas-antes-pc}}" target="_blank"><img src="{{img:d7-partidas-antes-pc}}" alt="Mis partidas en el PC hoy"></a><figcaption>filas de 80 px, botones grandes, nombres partidos.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d7-partidas-despues-pc}}" target="_blank"><img src="{{img:d7-partidas-despues-pc}}" alt="Mis partidas en el PC en filas compactas"></a><figcaption>una fila por partida; caben el doble en la pantalla.</figcaption></figure>
+    </div>
+    <div class="pant">Mis partidas · móvil</div>
+    <div class="par">
+      <figure class="igual"><a href="{{img:antes-m-mis-partidas}}" target="_blank"><img src="{{img:antes-m-mis-partidas}}" alt="Mis partidas en el móvil"></a><figcaption>en el móvil las partidas ya van en tarjeta y no cambian (salvo el esqueleto de A1).</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="d8">D8 · La llamada al curso dentro de una guía: que se lea</h3>
+  <p>«Esta guía tiene curso · Preguntas, racha y medalla · 14 min» va en gris sobre el azul: casi no se ve, y el botón ocupa todo el ancho debajo. Propuesta: texto blanco, y en el PC el botón a la derecha en la misma línea.</p>
+  <div class="cmp">
+    <div class="pant">Guía · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:d8-guia-antes-movil}}" target="_blank"><img src="{{img:d8-guia-antes-movil}}" alt="Llamada al curso hoy"></a><figcaption>subtítulo gris sobre azul.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d8-guia-despues-movil}}" target="_blank"><img src="{{img:d8-guia-despues-movil}}" alt="Llamada al curso legible"></a><figcaption>texto blanco, botón a su tamaño.</figcaption></figure>
+    </div>
+    <div class="pant">Guía · PC</div>
+    <div class="par pc">
+      <figure class="antes"><a href="{{img:d8-guia-antes-pc}}" target="_blank"><img src="{{img:d8-guia-antes-pc}}" alt="Llamada al curso en el PC hoy"></a><figcaption>lo mismo en el PC.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d8-guia-despues-pc}}" target="_blank"><img src="{{img:d8-guia-despues-pc}}" alt="Llamada al curso en el PC en una línea"></a><figcaption>en una línea, botón a la derecha.</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="d9">D9 · Aprender: el medallero sin ceros</h3>
+  <p>«0 0 0 · 7 por jugar» en la cabecera de Aprender no significa nada para quien acaba de llegar (tres chips de colores con un cero cada uno). Propuesta: mientras no haya medallas, solo «7 cursos por jugar»; las chapas aparecen con la primera medalla.</p>
+  <div class="cmp">
+    <div class="pant">Aprender · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:d9-aprender-antes-movil}}" target="_blank"><img src="{{img:d9-aprender-antes-movil}}" alt="Aprender con el medallero a cero"></a><figcaption>tres ceros de colores.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d9-aprender-despues-movil}}" target="_blank"><img src="{{img:d9-aprender-despues-movil}}" alt="Aprender con 7 cursos por jugar"></a><figcaption>«7 cursos por jugar».</figcaption></figure>
+    </div>
+    <div class="pant">Aprender · PC</div>
+    <div class="par pc">
+      <figure class="antes"><a href="{{img:d9-aprender-antes-pc}}" target="_blank"><img src="{{img:d9-aprender-antes-pc}}" alt="Aprender en el PC con ceros"></a><figcaption>igual en el PC.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d9-aprender-despues-pc}}" target="_blank"><img src="{{img:d9-aprender-despues-pc}}" alt="Aprender en el PC sin ceros"></a><figcaption>sin ceros.</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="d10">D10 · La ficha de un torneo en el móvil: datos en dos columnas y cabecera de app</h3>
+  <p>Cinco datos apilados (formato, rondas, lista, inicio, plazas) uno debajo de otro ocupan 220 px antes de «Tu plaza». En dos columnas caben en la mitad, y con la cabecera de A2 el torneo empieza 60 px antes.</p>
+  <div class="cmp">
+    <div class="pant">Liga FDN · móvil</div>
+    <div class="par">
+      <figure class="antes"><a href="{{img:a2-torneo-antes-movil}}" target="_blank"><img src="{{img:a2-torneo-antes-movil}}" alt="Torneo hoy en el móvil"></a><figcaption>migas, cinco datos apilados, burbuja abajo.</figcaption></figure>
+      <figure class="despues"><a href="{{img:a2-torneo-despues-movil}}" target="_blank"><img src="{{img:a2-torneo-despues-movil}}" alt="Torneo con cabecera de app y datos en dos columnas"></a><figcaption>cabecera «‹ TORNEOS», datos en dos columnas.</figcaption></figure>
+    </div>
+    <div class="pant">Liga FDN · PC</div>
+    <div class="par pc">
+      <figure class="igual"><a href="{{img:a2-torneo-antes-pc}}" target="_blank"><img src="{{img:a2-torneo-antes-pc}}" alt="Torneo en el PC"></a><figcaption>en el PC la ficha ya va en dos columnas y no cambia.</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="d11">D11 · La comunidad en el PC: cifras que no parten palabras</h3>
+  <p>«rachas hoy / vivas» y «mensajes / en el foro» se parten en dos y tres líneas dentro de cajas de 270 px porque la etiqueta tiene un ancho fijo. Cada cifra centrada con su etiqueta en una línea.</p>
+  <div class="cmp">
+    <div class="pant">La comunidad · PC</div>
+    <div class="par pc">
+      <figure class="antes"><a href="{{img:d11-comunidad-antes-pc}}" target="_blank"><img src="{{img:d11-comunidad-antes-pc}}" alt="Comunidad en el PC hoy"></a><figcaption>etiquetas partidas.</figcaption></figure>
+      <figure class="despues"><a href="{{img:d11-comunidad-despues-pc}}" target="_blank"><img src="{{img:d11-comunidad-despues-pc}}" alt="Comunidad en el PC con las cifras en una línea"></a><figcaption>cada cifra con su etiqueta en una línea.</figcaption></figure>
+    </div>
+    <div class="pant">La comunidad · móvil</div>
+    <div class="par">
+      <figure class="igual"><a href="{{img:antes-m-usuarios}}" target="_blank"><img src="{{img:antes-m-usuarios}}" alt="Comunidad en el móvil"></a><figcaption>en el móvil las cifras van en dos por fila y no se parten.</figcaption></figure>
+    </div>
+  </div>
+
+  <h3 id="d12">D12 · Lo pequeño que también he visto (sin foto, va en la misma tanda que su pantalla)</h3>
+  <ul class="ok-lista">
+    <li><b>Perfil (móvil):</b> cinco cifras + tres pestañas + vitrina antes de nada tuyo; la vitrina de tres cartas pasa a ser la primera pestaña y las cifras bajan a cuatro.</li>
+    <li><b>Expansión (PC):</b> la lista de hermanos de la izquierda (240 px) se pega al borde de la cabecera del set; aire de 16 px.</li>
+    <li><b>Torneo abierto (móvil):</b> la tarjeta negra de «Torneo en juego» se monta sobre el final de la cabecera azul; va debajo, con margen.</li>
+    <li><b>Comunidad (PC):</b> el podio de «quién más ha aportado» mide 268 px por tres avatares; a 160.</li>
+    <li><b>Mazos y Aprender (móvil):</b> «Sigue donde lo dejaste» corta el título a una línea con «…»; dos líneas y fuera la flecha.</li>
+    <li><b>Portada (móvil):</b> el bloque «Sigue con…» queda bajo la burbuja (se arregla solo con A1).</li>
+    <li><b>Noticias (móvil):</b> las fotos de portada van a 16:9 y el texto de debajo a la mitad de ancho; la foto a 3:2 y el texto entero.</li>
+    <li><b>Ajustes (móvil):</b> los bloques tienen cuatro anchos de borde y tres radios distintos; uno.</li>
+    <li><b>Todas:</b> cuando una página es más corta que la pantalla, el pie sube hasta la mitad (Glosario, Retos sin jugar); <code>min-height</code> al contenido para que el pie se quede abajo.</li>
+    <li><b>Todas (móvil):</b> con el teclado abierto en un iPhone la barra de abajo se monta sobre el campo; esconderla mientras un campo tiene el foco.</li>
+  </ul>
+
+  <h2 id="decisiones">Lo que te pido que decidas</h2>
+  <div class="decision"><b>1 · Esqueleto (A1 + A2 + A3).</b> ¿Adelante con la fila de pestañas arriba y sin burbuja? Es lo que yo haría sin dudar: arregla nueve pantallas de golpe y es lo que te hace sentir «app». La alternativa es mantener la burbuja y reservarle hueco (que no tape), pero seguiría siendo un tercer elemento flotante con siete iconos sin nombre.</div>
+  <div class="decision"><b>2 · La letra (B).</b> B0 Inter (como está), B1 Fredoka (como antes), B2 Outfit (mi recomendación), B3 Sora o B4 Manrope. Mira sobre todo las fotos del PC, que es donde Fredoka se hacía grande.</div>
+  <div class="decision"><b>3 · Color por sección (C).</b> ¿Sí o no? Si no, todo queda azul como hoy y lo demás no cambia. Si sí, puedes cambiar cualquiera de los cinco colores sobre la marcha: son cinco tokens.</div>
+  <div class="decision"><b>4 · Orden.</b> Propongo empezar por el esqueleto (es lo que más se nota) y seguir con Mi colección (D1–D3), porque es la pantalla que más abres. Si prefieres empezar por la letra y el color para «ver la app nueva» cuanto antes, se puede: son dos tandas que no se pisan con las demás.</div>
+
+  <h2 id="tandas">Las tandas</h2>
+  <p>Siete tandas, cada una con su prueba. Las dos primeras son las grandes; las demás son CSS de una pantalla y van rápido. Todo con el mismo guardia nuevo: una prueba que recorre las 55 páginas en el móvil y comprueba que NINGÚN elemento fijo tapa nada que se pueda pulsar (es lo que habría cantado la burbuja sobre los botones de las tarjetas de torneos, y lo que no deja volver a este punto).</p>
+  <div class="tabla-wrap"><table>
+    <tr><th>Tanda</th><th>Qué</th><th>Ficheros</th><th>Riesgo</th></tr>
+    <tr><td>1018</td><td><b>A1</b> fila de pestañas en vez de burbuja (todas las secciones, Mi colección incluida) + la prueba de solapes</td><td><code>js/barra-movil.js</code>, <code>css/movil.css</code>, menú de Mi colección, pruebas 704/893/981/452</td><td>Alto: es la navegación del móvil entera. Se hace detrás de una clase en <code>html</code> para poder volver atrás en un push.</td></tr>
+    <tr><td>1019</td><td><b>A2 + A3 + D10</b> cabecera de detalle, pie corto, ficha de torneo en dos columnas</td><td><code>js/barra-movil.js</code> (SECCION_DE), <code>css/movil.css</code>, <code>torneos.css</code>, prueba 312 (pie)</td><td>Medio</td></tr>
+    <tr><td>1020</td><td><b>B + C</b> la letra elegida y el color por sección (cinco tokens)</td><td><code>css/style.css</code>, <code>index.html</code> (preload), <code>pesar-portada.mjs</code></td><td>Bajo. La portada no engorda: es cambiar una familia por otra.</td></tr>
+    <tr><td>1021</td><td><b>D1 + D2 + D3</b> Mi colección: panel, expansión, catálogo</td><td><code>css/mi-coleccion*.css</code>, <code>js/mi-coleccion/*.js</code>, pruebas de Mi colección</td><td>Medio (la expansión tiene tres vistas: las tres)</td></tr>
+    <tr><td>1022</td><td><b>D4 + D5 + D6</b> foro, torneos, constructor</td><td><code>foro.css</code>, <code>torneos.css</code>, <code>constructor.css</code> y sus JS</td><td>Bajo</td></tr>
+    <tr><td>1023</td><td><b>D7 + D8 + D9 + D11 + D12</b> lo demás</td><td>una hoja por pantalla</td><td>Bajo</td></tr>
+    <tr><td>1024</td><td><b>A4</b> estados de toque y transiciones con dirección</td><td><code>css/style.css</code>, <code>css/movil.css</code>, prueba 313 (menos movimiento)</td><td>Bajo; se mide con <code>medir-saltos.mjs</code> para que no suba el CLS.</td></tr>
+  </table></div>
+  <p style="margin-top:18px;color:var(--text-mid)">Cada tanda sale con su línea en /novedades, su entrada en la bitácora y la suite de su pantalla; la 1018 y la 1019 con la suite entera. Nada de esto toca la base de datos.</p>
+</div>
