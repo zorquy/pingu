@@ -145,7 +145,9 @@ function pintarTuyos() {
   }
   const lista = mios.filter((m) => fichas.has(m.product_id) && mercadoDe(fichas.get(m.product_id)) === catalogoActual())
   if (!lista.length) {
-    caja.innerHTML = mios.length ? '' : '<p class="mc-nota">Todavía no tienes productos. Abre una expansión de abajo y toca «+ Añadir» en los que tengas.</p>'
+    // Sin el «Todavía no tienes productos…» (1038, PINGU: «las letras y el
+    // título los quitaría»): la estantería de debajo ya lleva su «+ Añadir».
+    caja.innerHTML = ''
     return
   }
   const v = valorDeProductos(lista, fichas)

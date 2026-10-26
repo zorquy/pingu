@@ -23,6 +23,7 @@ import { porNumero, rangoDeRareza } from './orden.js'
 import { ordenarCartas } from './filtros.js'
 import { OTRA } from './gradeo.js'
 import { entenderBusqueda, partirBusqueda } from './busqueda.js'
+import { porCatalogo, conRotulos } from './rotulos-catalogo.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -416,6 +417,8 @@ export function pintarCuentasDeDeseos(n = {}) {
     const v = valores[el.dataset.deseosN]
     el.textContent = v == null ? '' : v.toLocaleString('es-ES', { useGrouping: 'always' })
     el.classList.toggle('hidden', v == null)
+    // En el móvil un «0» no cabe y no dice nada que no diga la pestaña (1038).
+    el.classList.toggle('cero', v === 0)
   }
   for (const el of document.querySelectorAll('[data-deseos-punto]')) el.classList.toggle('hidden', !(ctx.sesion && cuentasDeDeseos.perfectos))
   // Sin cuenta solo hay Mercado: las otras tres son TUS listas.
@@ -579,20 +582,9 @@ export function dantesPorCarta(tiene = []) {
   }
   return m
 }
-// Occidental y japonés, cada uno en su tramo (1033, PINGU: «separado está
-// bien y está ordenado»): el rótulo es una fila más de la rejilla, que
-// ocupa todo el ancho, para que la rejilla siga siendo UNA (y sus pruebas).
-// Con un solo catálogo no hay rótulo: no separa nada.
-export function porCatalogo(items, mercadoDe) {
-  const jp = items.filter((x) => mercadoDe(x) === 'JP')
-  const occ = items.filter((x) => mercadoDe(x) !== 'JP')
-  return [['WEST', occ], ['JP', jp]].filter(([, l]) => l.length)
-}
-function conRotulos(items, mercadoDe, pintar) {
-  const tramos = porCatalogo(items, mercadoDe)
-  if (tramos.length < 2) return items.map(pintar).join('')
-  return tramos.map(([m, l]) => `<h3 class="mc-catalogo-rotulo">${banderaHtml(m === 'JP' ? 'ja' : 'en')}<span>${m === 'JP' ? 'Pokémon Japón' : 'Pokémon'}</span><small>${l.length}</small></h3>${l.map(pintar).join('')}`).join('')
-}
+// Los tramos por catálogo (1033) viven en rotulos-catalogo.js desde la 1038,
+// que los usa también el Mercado.
+export { porCatalogo }
 const mercadoDeCarta = (id) => ctx.cartas.get(id)?.market || 'WEST'
 
 function pintarQuiero() {

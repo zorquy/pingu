@@ -41785,6 +41785,39 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1038 — Colección, contenido primero
+
+PINGU, con la propuesta «PokeDoc, contenido primero» delante: «haz todo lo
+recomendado». Es la primera de tres tandas (1038 Colección, 1039 Aprender e
+Inicio, 1040 Comunidad, Jugar y Perfil). La medida de todas: en un iPhone de
+844 px, lo que se viene a ver empieza antes del 35 % (296 px).
+
+- **36 a la vista, 44 al dedo** (`css/movil.css`, al final). En el móvil
+  (`max-width: 900px` y `pointer: coarse`) `.seg-btn`, `.chip-filtro`,
+  `.mc-chip-mando`, `.com-chip`, `.tab-btn`, `.cm-pestania`, `.cm-vista` y
+  `.pdx-region` miden 36 y llevan un `::after` absoluto con `inset: -4px 0`:
+  la caja que se toca sigue siendo de 44. La norma de los 44 (312) no cambia;
+  cambia cómo se mide: `test-tanda-312.mjs` suma la franja del `::after`. Un
+  chip dentro de una fila con `overflow` pierde la franja si la fila no tiene
+  sitio arriba y abajo: esas filas llevan su `padding-block`. Los iconos y
+  los campos siguen a 44 (no tienen franja).
+- **Deseos y cambios**: los nombres cortos van en el HTML
+  (`mc-q-largo`/`mc-q-corto`), las pestañas miden lo que su texto
+  (`flex: 1 1 auto`) y una cuenta a 0 lleva `.cero`, que el móvil esconde.
+  «Modo evento», un círculo de 44 con `aria-label`.
+- **El Mercado** ya no tiene selector: `cargar()` pide `intercambios_mercado`
+  para WEST y JP a la vez, cada uno con su página (`filasPor`) y su total
+  (`totalPor`); «Ver más» sigue a los dos. Un idioma que no es el japonés no
+  pide el japonés (allí solo hay japonés). Los rótulos salen de
+  `rotulos-catalogo.js` (`porCatalogo`, `conRotulos`, `rotuloDeCatalogo`), que
+  comparten La quiero, Las que doy y el Mercado.
+- **Expansiones**: Empezadas / Todas / Completas viven en la hoja
+  `#mcEstanteriaOrden` («Orden y filtro», grupo «Mostrar»), con los mismos ids
+  y manejadores; `ordenActivo()` marca el botón si el orden, la serie o lo que
+  se ve no están como vienen.
+- **Productos** sin la nota de «no tienes» (la estantería ya lleva su
+  «+ Añadir») y **Pokédex** sin `#mcPdxEncabezado` en el móvil.
+
 ## Tanda 1037 — «Posibles repetidas» por los tres nombres, y el Zekrom de N en una carta
 
 PINGU ejecutó la 1034 y pegó su consulta final: la MEP 031 eran DOS cartas,

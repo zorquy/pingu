@@ -34,6 +34,7 @@ import { crecerDesde } from './gestos-ficha.js'
 import { entenderBusqueda } from './busqueda.js'
 import { mercado as pedirMercado, quienDaEsta } from './cambios.js'
 import { senasDe, borradorDe } from './tablon.js'
+import { porCatalogo, rotuloDeCatalogo } from './rotulos-catalogo.js'
 
 const $ = (id) => document.getElementById(id)
 const POR_PAGINA = 60
@@ -41,7 +42,13 @@ const POR_PAGINA = 60
 export const CONSULTA_AL_LADO = '(min-width: 900px)'
 
 let ctx = null
-const estado = { market: 'WEST', idioma: '', orden: 'nuevo', soloMias: false, texto: '' }
+// Sin selector de catálogo desde la 1038 (PINGU eligió lo recomendado): se
+// piden los dos a la vez y cada uno sale en su tramo, como en La quiero. Cada
+// catálogo lleva su página y su total, porque «Ver más» sigue a los dos.
+const MERCADOS = ['WEST', 'JP']
+const estado = { idioma: '', orden: 'nuevo', soloMias: false, texto: '' }
+let filasPor = { WEST: [], JP: [] }
+let totalPor = { WEST: 0, JP: 0 }
 let filas = []
 let total = 0
 let turno = 0
@@ -108,48 +115,68 @@ function baldosaHtml(f) {
 function pintarRejilla() {
   const caja = $('mcMercadoRejilla')
   if (!caja) return
+  filas = [...filasPor.WEST, ...filasPor.JP]
+  total = totalPor.WEST + totalPor.JP
   if (!filas.length) {
     caja.innerHTML = `<div class="mc-quiero-vacio">
       <span class="mc-quiero-vacio-icono" aria-hidden="true">${icons.refreshCw(28)}</span>
-      <p><strong>${estado.texto || estado.idioma || estado.soloMias ? 'Nadie da una carta así ahora mismo' : 'Todavía nadie da nada en este catálogo'}</strong></p>
+      <p><strong>${estado.texto || estado.idioma || estado.soloMias ? 'Nadie da una carta así ahora mismo' : 'Todavía nadie da nada'}</strong></p>
       <p class="subtext">${estado.soloMias ? 'De las que buscas, ninguna está a cambio. Te avisamos cuando alguien la ponga.' : 'Cuando alguien ponga una carta para cambio, saldrá aquí.'}</p>
     </div>`
-  } else caja.innerHTML = filas.map(baldosaHtml).join('')
+  } else {
+    // Con los dos catálogos, cada uno con su rótulo y su total; con uno, sin.
+    const tramos = porCatalogo(filas, (f) => f.market)
+    caja.innerHTML = tramos.length < 2 ? filas.map(baldosaHtml).join('') : tramos.map(([m, l]) => `${rotuloDeCatalogo(m, totalPor[m])}${l.map(baldosaHtml).join('')}`).join('')
+  }
   const mas = $('mcMercadoMas')
-  mas?.classList.toggle('hidden', filas.length >= total)
+  mas?.classList.toggle('hidden', !quedanMas())
   const cuenta = $('mcMercadoCuantas')
   if (cuenta) cuenta.textContent = total ? `${total.toLocaleString('es-ES', { useGrouping: 'always' })} ${total === 1 ? 'carta' : 'cartas'} a cambio` : ''
   ctx.alContar?.({ mercado: total })
 }
 
+const quedanMas = () => MERCADOS.some((m) => filasPor[m].length < totalPor[m])
+
+// El japonés solo existe en japonés: con otro idioma elegido no se le pide nada.
+const pideCatalogo = (m) => m !== 'JP' || !estado.idioma || estado.idioma === 'ja'
+
 async function cargar({ seguir = false } = {}) {
   const mio = ++turno
   const caja = $('mcMercadoRejilla')
   if (!seguir && caja) caja.innerHTML = '<div class="skeleton" style="height:240px"></div>'
-  let lista
-  try {
-    const sets = (await ctx.todosLosSets().catch(() => [])).filter((s) => (s.market || 'WEST') === estado.market)
+  const todos = await ctx.todosLosSets().catch(() => [])
+  const unaVuelta = async (m) => {
+    if (!pideCatalogo(m)) return { m, lista: [], total: 0 }
+    if (seguir && filasPor[m].length >= totalPor[m]) return { m, lista: null }
+    const sets = todos.filter((s) => (s.market || 'WEST') === m)
     const leida = estado.texto ? entenderBusqueda(estado.texto, sets) : { texto: '', setIds: null }
-    lista = await pedirMercado({
-      market: estado.market,
-      idioma: estado.idioma || null,
+    const lista = (await pedirMercado({
+      market: m,
+      idioma: m === 'JP' ? null : estado.idioma || null,
       texto: normalizeSearch(leida.texto || ''),
       sets: leida.setIds,
       soloMias: estado.soloMias,
       orden: estado.orden,
       limite: POR_PAGINA,
-      desde: seguir ? filas.length : 0,
-    })
+      desde: seguir ? filasPor[m].length : 0,
+    })).map((f) => ({ ...f, market: f.market || m }))
+    await ctx.completarCartas(lista.map((f) => f.card_id), m)
+    return { m, lista, total: Number(lista[0]?.total ?? 0) }
+  }
+  let vueltas
+  try {
+    vueltas = await Promise.all(MERCADOS.map(unaVuelta))
   } catch (err) {
     if (mio !== turno) return
     if (caja) caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
     return
   }
   if (mio !== turno) return
-  await ctx.completarCartas(lista.map((f) => f.card_id), estado.market)
-  if (mio !== turno) return
-  filas = seguir ? [...filas, ...lista] : lista
-  total = Number(lista[0]?.total ?? (seguir ? total : 0)) || filas.length
+  for (const { m, lista, total: t } of vueltas) {
+    if (lista === null) continue
+    filasPor[m] = seguir ? [...filasPor[m], ...lista] : lista
+    totalPor[m] = t || (seguir ? totalPor[m] : 0) || filasPor[m].length
+  }
   pintarRejilla()
 }
 
@@ -164,18 +191,11 @@ async function pintarAviso() {
 }
 
 function pintarMandos() {
-  for (const b of document.querySelectorAll('[data-mercado-catalogo]')) b.setAttribute('aria-pressed', String(b.dataset.mercadoCatalogo === estado.market))
   const mias = $('mcMercadoMias')
   if (mias) {
     mias.classList.toggle('hidden', !ctx.sesion)
     mias.setAttribute('aria-pressed', String(estado.soloMias))
     mias.classList.toggle('activo', estado.soloMias)
-  }
-  // El japonés solo existe en japonés: en ese catálogo el idioma no filtra.
-  const idioma = $('mcMercadoIdioma')
-  if (idioma) {
-    idioma.disabled = estado.market === 'JP'
-    if (estado.market === 'JP') idioma.value = ''
   }
 }
 
@@ -394,12 +414,6 @@ function enganchar() {
   })
   const panel = $('mcPanelMercado')
   panel?.addEventListener('click', (e) => {
-    const cat = e.target.closest('[data-mercado-catalogo]')
-    if (cat) {
-      estado.market = cat.dataset.mercadoCatalogo
-      pintarMandos()
-      return void cargar()
-    }
     if (e.target.closest('#mcMercadoMias') || e.target.closest('#mcMercadoAviso')) {
       estado.soloMias = e.target.closest('#mcMercadoAviso') ? true : !estado.soloMias
       pintarMandos()
@@ -482,7 +496,6 @@ export async function abrirFichaDe(contexto, cardId, { modo = 'da', desde = null
 let cargado = false
 export async function abrir(contexto) {
   await preparar(contexto)
-  if (!cargado) estado.market = ctx.mercado === 'JP' ? 'JP' : 'WEST'
   pintarMandos()
   void pintarAviso()
   if (cargado) return pintarRejilla()

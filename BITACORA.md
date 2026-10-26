@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (276) — PINGU-Claude (1038 — Colección, contenido primero)
+
+**Hecho**: primera de las tres tandas de la propuesta «PokeDoc, contenido
+primero» (artifact SXrQvs5nhgHPZKMuLJzRre); PINGU: «haz todo lo recomendado».
+- **Chips, segmentos y pestañas de 36 px a la vista y 44 al dedo** en el móvil
+  (`css/movil.css`, un `::after` de 4 px arriba y abajo). La prueba 312 suma
+  esa franja al medir.
+- **Deseos y cambios**: «Mercado · Quiero · Doy · Cruces» enteras (nombres
+  cortos con `.mc-q-largo/.mc-q-corto`), las cuentas a 0 no salen en el
+  móvil (`.cero`), «Modo evento» en un círculo de 44 con su icono.
+- **Mercado sin selector de catálogo**: pide los dos (`mercado.js`, una página
+  y un total por catálogo) y los pinta con rótulo. Los rótulos viven en
+  `js/mi-coleccion/rotulos-catalogo.js` (salen de `deseos.js`).
+- **Productos** sin «Todavía no tienes productos…» ni el título
+  «Expansiones» cuando no hay tuyos; el catálogo centrado.
+- **Pokédex** sin el contador de especies en el móvil; «Tengo».
+- **Expansiones y /cartas**: Empezadas / Todas / Completas dentro de la hoja
+  «Orden y filtro» (el botón se marca si hay algo puesto); «Orden» en icono en
+  el móvil; /cartas sin el título a la vista y con el buscador y «Orden» en una fila.
+
+**Ficheros**: css/movil.css, css/mi-coleccion.css, mi-coleccion.html (+ cartas.html
+regenerada), js/mi-coleccion.js, js/mi-coleccion/{deseos,mercado,productos,rotulos-catalogo}.js,
+SCHEMA.md, novedades.json, BITACORA.md.
+
+**Pruebas** (rama pruebas): nueva `test-tanda-1038-pantalla.mjs`; al día 312
+(la franja), 770 (los dos catálogos), 372, 443, 649, 748, 1015, 762, 1033 y 1034.
+
+**Pendiente**: la 1039 (Aprender e Inicio) y la 1040 (Comunidad, Jugar, Perfil).
+
 ## 2026-10-26 (275) — PINGU-Claude (1037 — el Zekrom de N en una carta y «Posibles repetidas» por los tres nombres)
 
 **Hecho**: PINGU ejecutó la 1034 y pegó su consulta final: la MEP 031 son

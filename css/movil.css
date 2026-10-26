@@ -877,3 +877,21 @@
     white-space: nowrap;
   }
 }
+
+/* Chips, segmentos y pestañas: 36 px a la vista y 44 al dedo (1038, PINGU
+   eligió la A). La franja de 4 px arriba y abajo es el ::after; la prueba
+   312 la suma al medir. El porqué, en SCHEMA 1038. */
+@media (max-width: 900px) and (pointer: coarse) {
+  html.con-barra-movil :is(.seg-btn, .chip-filtro, .mc-chip-mando, .com-chip, .tab-btn, .cm-pestania, .cm-vista, .pdx-region) {
+    position: relative;
+    min-height: 36px;
+  }
+  html.con-barra-movil .tab-btn {
+    padding-block: 0;
+  }
+  html.con-barra-movil :is(.seg-btn, .chip-filtro, .mc-chip-mando, .com-chip, .tab-btn, .cm-pestania, .cm-vista, .pdx-region)::after {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+}

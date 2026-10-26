@@ -12355,3 +12355,158 @@ button.mc-fila:hover {
     display: none;
   }
 }
+
+/* ── 1038: Colección, contenido primero (PINGU eligió lo recomendado de la
+   propuesta; el porqué, en SCHEMA 1038). Solo el móvil. ── */
+@media (max-width: 599px) {
+  /* Deseos y cambios: Mercado · Quiero · Doy · Cruces enteras, y el Modo
+     evento en un círculo con su icono al final de la fila. */
+  .mc-deseos-cabeza .mc-deseos-seg {
+    overflow: visible;
+  }
+
+  .mc-deseos-cabeza .mc-deseos-seg .seg-btn {
+    flex: 1 1 auto;
+    justify-content: center;
+    gap: var(--e-xs);
+    padding-inline: var(--e-sm);
+  }
+
+  .mc-deseos-cabeza .mc-deseos-n.cero {
+    display: none;
+  }
+
+  .mc-deseos-cabeza .mc-evento-boton {
+    justify-content: center;
+    width: 44px;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 50%;
+  }
+
+  .mc-deseos-cabeza .mc-evento-texto {
+    display: none;
+  }
+
+  .mc-quiero-filtro .seg {
+    display: flex;
+    width: 100%;
+  }
+
+  /* El buscador a 44 (lo mínimo para el dedo) en vez de 46–50. */
+  #mcDeseoBuscar,
+  #mcMercadoBuscar {
+    min-height: 44px;
+    height: 44px;
+  }
+
+  .mc-deseos-cabeza,
+  .mc-deseo-alta,
+  .mc-quiero-cabeza,
+  .mc-quiero-filtro,
+  .mc-mercado-barra {
+    margin-bottom: var(--e-sm);
+  }
+
+  .mc-quiero-botones > * {
+    height: 44px;
+    min-height: 44px;
+  }
+
+  .mc-quiero-filtro .seg-btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+
+  /* El Mercado: idioma, orden y «Solo las que busco» en una fila de chips. */
+  .mc-mercado-mandos {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mc-mercado-opcion select {
+    min-height: 36px;
+  }
+
+  /* Las filas que se deslizan recortan lo que sobresale: con 4 px arriba y
+     abajo, la franja de 44 de sus chips no se pierde. */
+  .mc-mercado-mandos,
+  .pdx-mandos .mc-mandos,
+  .pdx-regiones {
+    padding-block: var(--e-xs);
+    margin-block: calc(-1 * var(--e-xs));
+  }
+
+  /* Productos: sin el título «Expansiones» si no hay «Tus productos» encima,
+     y el catálogo centrado debajo del buscador. */
+  #mcProdTuyos:empty + .mc-subtitulo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .mc-prod-barra .mc-prod-buscador {
+    flex-basis: 100%;
+  }
+
+  .mc-prod-barra .mc-prod-catalogo {
+    margin-inline: auto;
+  }
+
+  /* Pokédex: sin el contador de especies (cada región lleva el suyo) y las
+     regiones de una línea de alto. */
+  #mcPdxEncabezado {
+    display: none;
+  }
+
+  .pdx-region.con-cuenta {
+    min-width: 76px;
+    padding: var(--e-xs) var(--e-sm);
+  }
+
+  /* Expansiones: «Orden» en icono (su hoja es «Orden y filtro»). */
+  .mc-estanteria-orden {
+    justify-content: center;
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+  }
+
+  /* /cartas: sin el título a la vista (sigue para Google y el lector), el
+     catálogo arriba y debajo el buscador con «Orden» al lado. */
+  [data-modo='catalogo'] .mc-hero h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  [data-modo='catalogo'] .mc-hero-quien {
+    justify-content: flex-start;
+  }
+
+  [data-modo='catalogo'] .mc-estanteria-barra {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  [data-modo='catalogo'] .mc-estanteria-barra #mcEstanteriaBusca {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  [data-modo='catalogo'] .mc-estanteria-barra .mc-estanteria-cabeza {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  [data-modo='catalogo'] .mc-estanteria-barra .mc-estanteria-fila2 {
+    grid-column: 1 / -1;
+  }
+}

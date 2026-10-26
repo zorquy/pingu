@@ -6249,8 +6249,12 @@ function enganchar() {
 
   // Las tres chapas de qué se ve (748). Pulsar la que ya está puesta la
   // deja puesta: es un segmentado, no tres interruptores.
+  // «Orden» se marca si algo de su hoja no está como viene: el orden, la serie
+  // o, desde la 1038, qué se ve (Empezadas / Completas viven ahí).
+  const ordenActivo = () => ordenSets !== 'era' || !!$('mcEstanteriaSerie')?.value || queSets !== 'todas'
   const ponerQue = (que) => {
     queSets = que
+    $('mcEstanteriaOrdenAbrir')?.classList.toggle('activo', ordenActivo())
     soloEmpezadas = que === 'empezadas'
     for (const [id, v] of [['mcEstanteriaEmpezadas', 'empezadas'], ['mcEstanteriaTodas', 'todas'], ['mcEstanteriaCompletas', 'completas']]) {
       $(id)?.classList.toggle('activo', v === que)
@@ -6275,7 +6279,7 @@ function enganchar() {
   const hojaOrden = $('mcEstanteriaOrden')
   const pintarOrdenes = () => {
     for (const b of document.querySelectorAll('[data-orden-sets]')) b.setAttribute('aria-pressed', b.dataset.ordenSets === ordenSets ? 'true' : 'false')
-    $('mcEstanteriaOrdenAbrir')?.classList.toggle('activo', ordenSets !== 'era' || !!$('mcEstanteriaSerie')?.value)
+    $('mcEstanteriaOrdenAbrir')?.classList.toggle('activo', ordenActivo())
   }
   pintarOrdenes()
   $('mcEstanteriaOrdenAbrir')?.addEventListener('click', () => { pintarOrdenes(); if (!hojaOrden.open) hojaOrden.showModal() })
