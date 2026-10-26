@@ -46,7 +46,10 @@ console.log('── 1. iPhone · La quiero ──')
   check('el título «Deseos y cambios» no ocupa sitio (queda para el lector)', t.existe && t.alto <= 1, JSON.stringify(t))
   check('ni rastro del selector «Pokémon / Pokémon Japón» del buscador', (await page.locator('#mcPanelQuiero [data-deseo-mercado], #mcPanelQuiero .mc-deseo-catalogo').count()) === 0)
   const cab = await filas(page, '#mcPanelQuiero .mc-deseos-cabeza')
-  check('las vistas y «Evento» en UNA fila (Evento es un icono desde la 1038)', cab.filas === 1 && cab.n === 2, JSON.stringify(cab))
+  // Desde la 1041 Evento flota abajo (test-tanda-1041-pantalla.mjs): en la
+  // fila de arriba quedan solo las vistas.
+  const flota = await page.evaluate(() => getComputedStyle(document.querySelector('#mcPanelQuiero .mc-evento-boton')).position)
+  check('las vistas en UNA fila y «Evento» flotando aparte (1041)', cab.textos.filter(Boolean).length === 1 && flota === 'fixed', JSON.stringify({ ...cab, flota }))
   const bot = await page.evaluate(() => { const c = document.querySelector('#mcQuieroPanel .mc-quiero-cabeza'); const hs = [...c.querySelectorAll('.mc-quiero-cifra, .mc-quiero-compartir')]; return { filas: new Set(hs.map((h) => { const r = h.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 16) })).size, etiquetas: [...c.querySelectorAll('.mc-quiero-compartir')].map((x) => x.getAttribute('aria-label')), alto: [...c.querySelectorAll('.mc-quiero-compartir')].map((x) => Math.round(x.getBoundingClientRect().height)) } })
   check('la cuenta y Compartir · Imagen · Álbum (iconos con su nombre para el lector) en UNA fila', bot.filas === 1 && bot.etiquetas.join('|') === 'Compartir lista|Imagen de la lista|Hacer un álbum' && bot.alto.every((h) => h >= 44), JSON.stringify(bot))
   const y = await page.evaluate(() => Math.round(document.querySelector('#mcQuieroRejilla .mc-deseo-baldosa').getBoundingClientRect().top / innerHeight * 100))

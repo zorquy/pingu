@@ -29,7 +29,7 @@ console.log('── 1. El CSS y el guion de la cabecera (A4) ──')
 
 console.log('\n── 2. Los solapes, página a página (móvil) ──')
 const PAGINAS = ['/', '/aprender', '/retos', '/glosario', '/guardados', '/foro', '/foro/competitivo', '/tema/tema-2', '/usuarios', '/usuario/Misty', '/mensajes', '/noticias', '/lanzamientos', '/novedades',
-  '/cartas', '/cartas?ver=album&set=sv08&catalogo=WEST', '/mi-coleccion', '/mi-coleccion?ver=cartas', '/mi-coleccion?ver=album', '/mi-coleccion?ver=pokedex', '/mi-coleccion?ver=albumes', '/mi-coleccion?ver=productos',
+  '/cartas', '/cartas?ver=album&set=sv08&catalogo=WEST', '/mi-coleccion', '/mi-coleccion?ver=cartas', '/mi-coleccion?ver=album', '/mi-coleccion?ver=pokedex', '/mi-coleccion?ver=albumes', '/mi-coleccion?ver=productos', '/mi-coleccion?ver=mercado', '/mi-coleccion?ver=quiero', '/mi-coleccion?ver=cambios',
   '/torneos', '/torneo?slug=liga-fdn-otono', '/mazos', '/constructor?mazo=mazo-1', '/mis-partidas', '/meta', '/laboratorio', '/repeticiones', '/perfil', '/ajustes', '/guia/charizard-ex', '/buscar?q=charizard']
 const b = await chromium.launch()
 const ctx = await contexto(b, true)
@@ -47,13 +47,17 @@ for (const ruta of PAGINAS) {
       const vh = innerHeight, vw = innerWidth
       const visible = (el) => { const cs = getComputedStyle(el); if (cs.display === 'none' || cs.visibility === 'hidden' || Number(cs.opacity) === 0) return false; const r = el.getBoundingClientRect(); return r.width > 0 && r.height > 0 }
       // Lo fijo que toca el tercio de abajo (la barra, la burbuja… y lo que no debería).
-      const fijos = [...document.querySelectorAll('body *')].filter((el) => { const p = getComputedStyle(el).position; if (p !== 'fixed' && p !== 'sticky') return false; if (el.closest('dialog, [hidden], .hidden')) return false; if (!visible(el)) return false; const r = el.getBoundingClientRect(); return r.bottom > vh * 0.6 && r.top < vh && r.width > 80 })
-      const abajo = fijos.filter((el) => !fijos.some((o) => o !== el && o.contains(el)))
+      // LA excepción (1041, PINGU): el Modo evento flota en Deseos y cambios.
+      // No cuenta como tercer flotante, pero tampoco puede tapar nada.
+      const EXCEPCION = '.mc-deseos-cabeza .mc-evento-boton'
+      const fijos = [...document.querySelectorAll('body *')].filter((el) => { const p = getComputedStyle(el).position; if (p !== 'fixed' && p !== 'sticky') return false; if (el.closest('dialog, [hidden], .hidden')) return false; if (!visible(el)) return false; const r = el.getBoundingClientRect(); return r.bottom > vh * 0.6 && r.top < vh && (r.width > 80 || el.matches(EXCEPCION)) })
+      const todos = fijos.filter((el) => !fijos.some((o) => o !== el && o.contains(el)))
+      const abajo = todos.filter((el) => !el.matches(EXCEPCION))
       const nombres = abajo.map((el) => el.tagName.toLowerCase() + (el.id ? '#' + el.id : '') + (el.className && typeof el.className === 'string' ? '.' + el.className.trim().split(/\s+/).slice(0, 2).join('.') : ''))
       // Al final de la página: lo pulsable del contenido que queda debajo de lo fijo.
-      const cajas = abajo.map((el) => el.getBoundingClientRect())
+      const cajas = todos.map((el) => el.getBoundingClientRect())
       const dentro = (r, c) => r.left < c.right - 4 && r.right > c.left + 4 && r.top < c.bottom - 4 && r.bottom > c.top + 4
-      const pulsables = [...document.querySelectorAll('main a, main button, .page-content a, .page-content button, footer a')].filter((el) => visible(el) && !abajo.some((f) => f.contains(el)) && !el.closest('[data-sin-arrastre], dialog, .mc-pestanias'))
+      const pulsables = [...document.querySelectorAll('main a, main button, .page-content a, .page-content button, footer a')].filter((el) => visible(el) && !todos.some((f) => f === el || f.contains(el)) && !el.closest('[data-sin-arrastre], dialog, .mc-pestanias'))
       const tapados = pulsables.filter((el) => { const r = el.getBoundingClientRect(); return r.top < vh && r.bottom > 0 && cajas.some((c) => dentro(r, c)) }).map((el) => (el.textContent.trim() || el.getAttribute('aria-label') || el.className).slice(0, 30))
       return { fijos: nombres, tapados: tapados.slice(0, 5), ancho: document.documentElement.scrollWidth <= vw + 1 }
     })

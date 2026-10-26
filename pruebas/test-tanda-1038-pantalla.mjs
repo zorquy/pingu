@@ -80,7 +80,8 @@ console.log('── 2. Deseos y cambios: las cuatro enteras y Evento en icono �
   })
   check('«Mercado · Quiero 4 · Doy · Cruces»', r.textos.join('|') === 'Mercado|Quiero 4|Doy|Cruces', r.textos.join('|'))
   check('  …las cuatro dentro de su barra y sin cortarse', r.dentro && r.sinCortar, JSON.stringify(r))
-  check('Evento: un círculo de 44 con su icono, en la misma fila', r.evento.ancho === 44 && r.evento.alto === 44 && r.evento.texto === '' && r.evento.misma, JSON.stringify(r.evento))
+  // Desde la 1041 es una burbuja flotante de 56 (test-tanda-1041-pantalla.mjs).
+  check('Evento: un círculo con su icono (flotante desde la 1041)', r.evento.ancho === 56 && r.evento.alto === 56 && r.evento.texto === '', JSON.stringify(r.evento))
   check('  …y su nombre para el lector', r.evento.etiqueta === 'Modo evento')
   check('las cuentas que valen 0 no salen en el móvil', await page.evaluate(() => [...document.querySelectorAll('#mcPanelQuiero .mc-deseos-n.cero')].every((x) => getComputedStyle(x).display === 'none')))
   check('lo primero de La quiero, antes del 35 % (296 px)', (await empieza(page, 'article.mc-deseo-baldosa')) < TOPE, `${await empieza(page, 'article.mc-deseo-baldosa')} px`)
