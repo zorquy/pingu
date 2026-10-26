@@ -9680,6 +9680,115 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   display: inline-block;
 }
 
+/* Deseos y cambios sin título (1034, PINGU: «¿qué pinta eso ahí? Si ya
+   sabes que estás ahí por el menú»): el h2 se queda para quien lee con
+   lector de pantalla. «Álbum» en vez de «Hacer un álbum» en el móvil. */
+.mc-q-corto {
+  display: none;
+}
+
+.mc-deseos-cabeza .mc-subtitulo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+@media (max-width: 599px) {
+  .mc-deseos-cabeza {
+    flex-wrap: nowrap;
+    gap: var(--e-xs);
+  }
+
+  .mc-deseos-cabeza .mc-deseos-seg {
+    flex: 1 1 auto;
+    width: auto;
+    min-width: 0;
+  }
+
+  .mc-deseos-cabeza .mc-evento-boton {
+    flex: 0 0 auto;
+    padding-inline: var(--e-sm);
+  }
+
+  .mc-q-largo {
+    display: none;
+  }
+
+  .mc-q-corto {
+    display: inline;
+  }
+
+  /* La cuenta y los botones en UNA fila: en La quiero, solo los iconos
+     (llevan su aria-label); en Las que doy, «+ Poner más» con su texto. */
+  .mc-quiero-cabeza {
+    flex-wrap: nowrap;
+    gap: var(--e-sm);
+  }
+
+  .mc-quiero-cifra {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .mc-quiero-botones {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+    gap: var(--e-xs);
+  }
+
+  .mc-quiero-botones > * {
+    justify-content: center;
+    padding-inline: var(--e-sm);
+    white-space: nowrap;
+  }
+
+  .mc-quiero-compartir {
+    min-width: 44px;
+  }
+
+  .mc-quiero-compartir > span {
+    display: none;
+  }
+
+  .mc-doy-nota {
+    display: none;
+  }
+}
+
+/* Títulos que repiten la burbuja, fuera en el móvil (1035): «Expansiones»
+   (su sitio lo ocupa el catálogo), «Mis álbumes» y «Pokédex» (se queda la
+   cuenta de especies). El h2 sigue para el lector de pantalla. Y la fila
+   de la cuenta de colecciones se va con el catálogo que tenía al lado. */
+@media (max-width: 599px) {
+  body:not([data-modo='catalogo']) .mc-estanteria-h,
+  .mc-albumes-titulo,
+  .pdx-titulo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  body:not([data-modo='catalogo']) .mc-estanteria-cabeza > .seg {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  body:not([data-modo='catalogo']) .mc-estanteria-cabeza .seg-btn {
+    padding-inline: var(--e-sm);
+  }
+
+  body:not([data-modo='catalogo']) .mc-estanteria-fila2,
+  .mc-ver-album body:not([data-modo='catalogo']) .mc-estanteria-fila2 {
+    display: none;
+  }
+}
+
 /* El Modo evento, a mano en Deseos y cambios (1033). En el móvil, al lado
    del título; el selector de vista va debajo, como antes. */
 .mc-evento-boton {
@@ -9692,17 +9801,6 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 
 .mc-deseos-cabeza .mc-deseos-seg {
   order: 1;
-}
-
-@media (max-width: 599px) {
-  .mc-evento-boton {
-    order: 1;
-    margin-left: auto;
-  }
-
-  .mc-deseos-cabeza .mc-deseos-seg {
-    order: 2;
-  }
 }
 
 .mc-evento-boton svg {

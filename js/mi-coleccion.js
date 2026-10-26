@@ -169,6 +169,15 @@ if (modoCatalogo && window.matchMedia?.('(max-width: 900px)').matches) {
   // Y el de Buscar sobra (998): con el de arriba eran dos iguales a la vista.
   if (sel && quien) document.querySelector('#mcBuscarBarra .mc-mercado')?.remove()
 }
+// Y EN MI COLECCIÓN, EN EL MÓVIL, EL CATÁLOGO OCUPA EL SITIO DEL TÍTULO
+// (1035, PINGU: «el título está ocupando espacio… ya sabes que estás ahí
+// por el menú»): «Expansiones» se esconde y el selector sube a su fila, al
+// lado de la lupa y de «Orden». Se muda el elemento de verdad (893).
+if (!modoCatalogo && window.matchMedia?.('(max-width: 599px)').matches) {
+  const sel = document.querySelector('.mc-estanteria-fila2 .mc-mercado')
+  const titulo = document.querySelector('.mc-estanteria-cabeza .mc-estanteria-h')
+  if (sel && titulo) titulo.insertAdjacentElement('afterend', sel)
+}
 let albumesAbiertos = false
 
 // ── EL BOTÓN DE ATRÁS (tanda 468) ──
@@ -7375,7 +7384,7 @@ function pintarVistas() {
         sel.dispatchEvent(new Event('change', { bubbles: true }))
       })
     }
-    const html = VISTAS_VISIBLES.map((v) => `<button type="button" class="seg-btn" data-vista="${v.id}" aria-pressed="${v.id === vista}" title="${escapeHtml(v.nombre)}"><i class="pv-bandera" data-idioma="${v.mercado === 'JP' ? 'ja' : 'en'}" aria-hidden="true"></i><span>${escapeHtml(v.nombre)}</span></button>`).join('')
+    const html = VISTAS_VISIBLES.map((v) => `<button type="button" class="seg-btn" data-vista="${v.id}" aria-pressed="${v.id === vista}" title="${escapeHtml(v.nombre)}"><i class="pv-bandera" data-idioma="${v.mercado === 'JP' ? 'ja' : 'en'}" aria-hidden="true"></i><span>${v.mercado === 'JP' && v.nombre === 'Pokémon Japón' ? '<span class="mc-q-largo">Pokémon </span>Japón' : escapeHtml(v.nombre)}</span></button>`).join('')
     if (seg.innerHTML !== html) seg.innerHTML = html
     else for (const b of seg.querySelectorAll('[data-vista]')) b.setAttribute('aria-pressed', String(b.dataset.vista === vista))
   }

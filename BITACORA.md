@@ -4,6 +4,48 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (274) — PINGU-Claude (1034 · 1035 · 1036 — móvil compacto, «Colección», Zekrom de N y versiones)
+
+**Hecho**: lo que PINGU mandó con la captura de La quiero en el iPhone.
+- **1034, La quiero sin selector de catálogo**: el buscador de apuntar
+  busca en los DOS catálogos a la vez (occidental arriba, japonés debajo,
+  con rótulo si salen de los dos). Deseos y cambios sin el título
+  «Deseos y cambios» (queda para el lector de pantalla); en el móvil, las
+  vistas y «Evento» en UNA fila, y Compartir / Imagen / Álbum (y + Poner
+  más / Compartir en Las que doy) en una fila con textos cortos. Las cartas
+  empiezan en el primer tercio de la pantalla y no pasada la mitad.
+- **1035, barrido móvil** (`herramientas/aud-apilados.mjs`, rama pruebas):
+  Expansiones con el catálogo en la fila de la lupa y «Orden» (fuera
+  «Expansiones» y la fila de «N colecciones»), «Japón» en vez de «Pokémon
+  Japón» en el móvil en todos los selectores de catálogo, fuera los títulos
+  «Mis álbumes» y «Pokédex» en el móvil, /buscar con los filtros en una fila
+  que se desliza y sin el «Buscar» grande, y los botones de /evento («Copiar
+  · Imagen · CSV») y /repeticiones («Ver la repetición · Ejemplo») en fila.
+- **1036, «Cartas» es «Colección»** en la barra de abajo y en la lateral
+  del PC (dentro hay expansiones, Pokédex, álbumes, productos y deseos). El
+  color sigue colgando de `data-seccion="cartas"`.
+- **Zekrom de N, MEP 031**: `supabase-migration-1034-zekrom-de-n-mep-031.sql`
+  (probada en un PostgreSQL de usar y tirar): solo Holo (+ la de Pokémon
+  Center, que ya es versión), apuntado en `tcg_correcciones`; las copias
+  «Normal» pasan a «Holo». **PINGU tiene que ejecutarla.**
+- **Reverse por idioma para todas**: la pasada de fondo
+  (`tcggo-versiones-idioma`) iba con tope de 300 peticiones/día, que desde
+  la 1028c (cada versión, una petición) eran ~280 versiones al día. Sube a
+  1500.
+
+**Ficheros**: `js/mi-coleccion/deseos.js`, `js/mi-coleccion.js`,
+`mi-coleccion.html` + `cartas.html`, `css/mi-coleccion.css`,
+`css/buscador.css`, `css/repeticiones.css`, `repeticiones.html`,
+`css/evento.css`, `evento.html`, `js/barra-movil.js`,
+`generar-barra-movil.mjs` (+ las 44 páginas regeneradas),
+`netlify/functions/tcggo-versiones-idioma.mjs`, la migración 1034,
+`novedades.json`, `SCHEMA.md`, `CLAUDE.md`. En `pruebas`:
+`test-tanda-1034-pantalla.mjs`, `aud-apilados.mjs`; al día 768, 771, 739,
+753, 758, 892.
+
+**Pendiente**: PINGU, migraciones 1027 y 1034. Pruebas viejas en rojo de
+antes (lo de la 271).
+```
 ## 2026-10-26 (273) — PINGU-Claude (1033 — Deseos y cambios: Modo evento a mano, tres por fila, catálogos separados)
 
 **Hecho**: lo que pidió PINGU al probar. (1) «El modo evento está muy

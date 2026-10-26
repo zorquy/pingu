@@ -33,6 +33,9 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "mejora", "texto": "La sección «Cartas» se llama ahora «Colección»: dentro tienes tus cartas, las expansiones, la Pokédex, los álbumes, los productos y Deseos y cambios.", "enlace": "/mi-coleccion" },
+    { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, menos botones apilados: Deseos y cambios, Expansiones, el buscador y el Modo evento ponen sus botones en una fila y las cartas aparecen antes. Y al apuntar una carta en La quiero se busca a la vez en el catálogo occidental y en el japonés.", "enlace": "/mi-coleccion?ver=quiero" },
+    { "fecha": "2026-10-26", "tipo": "arreglo", "texto": "El Zekrom de N de las promos de Mega Evolución (MEP 031) ya no sale como «Normal»: solo existe Holo y la de Pokémon Center." },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "Deseos y cambios: el Modo evento tiene su botón arriba, en el móvil se ven tres cartas por fila, y las cartas japonesas van aparte de las occidentales (también en el Modo evento).", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-26", "tipo": "nuevo", "texto": "En La quiero, «Hacer un álbum»: un binder con las cartas que buscas, tal como están hoy, para ordenarlas a tu gusto. También desde «Empezar un álbum» → «De La quiero».", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-26", "tipo": "nuevo", "texto": "Cada álbum tiene su menú ⋯: editar el nombre, la descripción, el color de la tapa, la portada y si es público, o borrarlo. También desde dentro, con «Editar álbum».", "enlace": "/mi-coleccion?ver=carpetas" },

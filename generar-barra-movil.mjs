@@ -54,8 +54,11 @@ export function barraHtml(html, fichero) {
 export function seccionDe(html, fichero) {
   const secciones = seccionesDelHtml(html)
   const actual = seccionActual(secciones, claveDePagina(`/${fichero}`))
-  return actual ? actual.toLowerCase() : null
+  return actual ? SLUG_DE_SECCION[actual] || actual.toLowerCase() : null
 }
+// «Colección» (1036) conserva la llave de antes: los colores de style.css y
+// las pruebas de contraste cuelgan de `cartas`.
+export const SLUG_DE_SECCION = { 'Colección': 'cartas' }
 // Y SI ES UNA PÁGINA DE DETALLE (1019): de una sección pero fuera de su
 // lista (una guía, un tema, un torneo, un perfil ajeno…), `data-detalle`:
 // en el móvil lleva la cabecera de app (volver + de dónde + compartir) y

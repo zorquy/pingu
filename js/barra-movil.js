@@ -21,15 +21,18 @@ import { montarArrastreDeHojas } from './hoja-arrastre.js'
 import { engancharCompartir } from './compartir.js'
 import { escapeHtml } from './html.js'
 
-// Qué icono lleva cada sección (por el nombre del desplegable).
-export const ICONOS = { Inicio: 'home', Aprender: 'bookOpen', Cartas: 'cards', Comunidad: 'messageSquare', Jugar: 'trophy' }
-export const ORDEN = ['Inicio', 'Aprender', 'Cartas', 'Comunidad', 'Jugar']
+// Qué icono lleva cada sección (por el nombre del desplegable). «Colección»
+// se llamaba «Cartas» hasta la 1036 (PINGU: «dentro no solo hay cartas: hay
+// expansiones, la Pokédex, álbumes, productos, deseos y cambios»); el color
+// sigue colgando de `data-seccion="cartas"` (SLUG_DE_SECCION del generador).
+export const ICONOS = { Inicio: 'home', Aprender: 'bookOpen', 'Colección': 'cards', Comunidad: 'messageSquare', Jugar: 'trophy' }
+export const ORDEN = ['Inicio', 'Aprender', 'Colección', 'Comunidad', 'Jugar']
 
 // Una página que no está en ningún desplegable (la ficha de una carta, un
 // tema del foro, un torneo…) pertenece a la sección de lo que enseña.
 export const SECCION_DE = {
   Aprender: ['aprender', 'retos', 'guardados', 'guia', 'curso', 'categoria', 'carta-del-dia', 'mas-caro', 'quien-es', 'ordena-precio', 'que-expansion', 'parejas', 'nueve', 'glosario'],
-  Cartas: ['cartas', 'mi-coleccion', 'carta', 'coleccion', 'ilustrador', 'evento'],
+  'Colección': ['cartas', 'mi-coleccion', 'carta', 'coleccion', 'ilustrador', 'evento'],
   Comunidad: ['foro', 'usuarios', 'tema', 'usuario', 'mensajes', 'buscar', 'colabora'],
   Jugar: ['torneos', 'torneo', 'meta', 'mazo-meta', 'constructor', 'laboratorio', 'mazos', 'mis-partidas', 'repeticiones'],
   Inicio: ['index', 'noticias', 'lanzamientos', 'novedades'],
@@ -61,7 +64,7 @@ export function seccionesDe(grupos, sueltos) {
   const deCartas = sueltos.filter((e) => claveDePagina(e.href) === 'mi-coleccion')
   const deInicio = sueltos.filter((e) => !deCartas.includes(e))
   const inicio = { nombre: 'Inicio', enlaces: [{ href: '/', texto: 'Inicio' }, ...deInicio] }
-  const cartas = deCartas.length && !grupos.some((g) => g.nombre === 'Cartas') ? [{ nombre: 'Cartas', enlaces: deCartas }] : []
+  const cartas = deCartas.length && !grupos.some((g) => g.nombre === 'Colección') ? [{ nombre: 'Colección', enlaces: deCartas }] : []
   return [inicio, ...grupos, ...cartas].filter((s) => ORDEN.includes(s.nombre)).sort((a, b) => ORDEN.indexOf(a.nombre) - ORDEN.indexOf(b.nombre))
 }
 
@@ -75,7 +78,7 @@ export function seccionActual(secciones, clave) {
 // A dónde lleva cada hueco de la barra: la primera página de la sección,
 // salvo Cartas, que con cuenta es Mi colección y sin ella el catálogo.
 export function destinoDe(seccion, conSesion) {
-  if (seccion.nombre === 'Cartas') return conSesion ? '/mi-coleccion' : '/cartas'
+  if (seccion.nombre === 'Colección') return conSesion ? '/mi-coleccion' : '/cartas'
   return seccion.enlaces[0]?.href || '/'
 }
 

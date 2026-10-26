@@ -2196,3 +2196,17 @@
   min-height: 44px;
   font-weight: 600;
 }
+
+/* Los tres botones en una fila en el móvil (1035). */
+@media (max-width: 599px) {
+  .rep-pegar-botones {
+    flex-wrap: nowrap;
+  }
+
+  .rep-pegar-botones > * {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding-inline: var(--e-sm);
+    white-space: nowrap;
+  }
+}

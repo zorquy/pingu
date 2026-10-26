@@ -41785,6 +41785,77 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tandas 1034, 1035 y 1036 — Móvil compacto, «Colección», Zekrom de N y versiones por idioma
+
+PINGU, con la captura de La quiero en su iPhone: «has mantenido el filtro
+de inglés y japonés y no tiene sentido», «demasiados botones apilados»,
+«el título ocupa espacio; ¿qué pinta eso ahí si ya sabes que estás ahí por
+el menú?», «la categoría de cartas la pondría colección», y dos de datos.
+
+### 1034 — La quiero y Deseos y cambios
+
+- **Buscar para apuntar** (deseos.js): `buscarEnCatalogo(crudo, market)`
+  (el motor de siempre: nombre, «151/165», «MEW 151», ilustrador) corre
+  para `WEST` y `JP` a la vez; `resultadosHtml` pinta los grupos por
+  expansión de cada uno; con resultados de los dos, un
+  `h3.mc-catalogo-rotulo.mc-deseo-rotulo` por catálogo. Fuera
+  `deseoMercado`, `pintarCatalogoDeDeseo` y el `seg.mc-deseo-catalogo` del
+  HTML. Las cartas encontradas entran en `ctx.cartas` con su `market`.
+- **Sin título**: `.mc-deseos-cabeza .mc-subtitulo` visualmente escondido
+  (el h2 se queda para el lector de pantalla), en móvil y PC.
+- **Móvil (≤ 599 px)**: la cabecera no parte (`flex-wrap: nowrap`): las
+  vistas (`.mc-deseos-seg`, se desliza) y `.mc-evento-boton` («Evento»; en
+  el PC «Modo evento») en una fila. `.mc-quiero-botones` en una fila de
+  botones iguales; textos cortos con `.mc-q-largo` (se esconde) y
+  `.mc-q-corto` (solo se ve en el móvil): «Compartir», «Álbum», «Poner
+  más». `.mc-doy-nota` fuera en el móvil.
+
+### 1035 — Barrido de títulos y botones apilados
+
+- La herramienta: `herramientas/aud-apilados.mjs` (rama pruebas) abre las
+  páginas en el iPhone con los fixtures de la app y lista los grupos de 2+
+  botones que caen en más de una fila y los títulos de lo alto, con una
+  captura por página. Lo que marca y son rejillas (cartas, sets, Pokédex)
+  no cuenta.
+- **Expansiones (Mi colección, ≤ 599 px)**: mi-coleccion.js muda el
+  `select.mc-mercado` de `.mc-estanteria-fila2` a `.mc-estanteria-cabeza`
+  detrás del título (el elemento de verdad, 893; pintarVistas le pone su
+  `.seg` al lado). «Expansiones» escondido y la fila 2 («N colecciones»)
+  fuera. Queda: [catálogo] [lupa] [Orden] y debajo Empezadas/Todas/Completas.
+- **«Japón»**: en ≤ 599 px los selectores de catálogo dicen «Pokémon» /
+  «Japón» (`<span class="mc-q-largo">Pokémon </span>Japón`): el de
+  pintarVistas y los de Mercado y Productos del HTML.
+- **Títulos fuera en el móvil**: «Mis álbumes» (`.mc-albumes-titulo`) y
+  «Pokédex» (`.pdx-titulo`; la cuenta de especies se queda). Productos
+  conserva «Expansiones», que es un tramo de su lista.
+- **/buscar**: `.bs-chips` en una fila que se desliza y `.bs-titulo`
+  escondido en ≤ 599 px (buscador.css).
+- **/evento** y **/repeticiones**: sus tres botones en una fila
+  («Copiar · Imagen · CSV»; «Ver la repetición · Pegar · Ejemplo»).
+
+### 1036 — «Cartas» es «Colección»
+
+- La sección de la barra de abajo y de la lateral del PC se llama
+  «Colección» (`ICONOS`, `ORDEN`, `SECCION_DE`, `seccionesDe`, `destinoDe`
+  en js/barra-movil.js). `generar-barra-movil.mjs` escribe las 44 páginas
+  y conserva `data-seccion="cartas"` con `SLUG_DE_SECCION`, para que los
+  colores de style.css y la prueba de contraste (1018) no cambien.
+
+### Datos
+
+- **Zekrom de N, MEP 031** (`supabase-migration-1034-zekrom-de-n-mep-031.sql`):
+  TCGdex (data/Mega Evolution/MEP Black Star Promos/031.ts) da dos
+  versiones: holo y holo con sello de Pokémon Center. La «Normal» salía
+  porque una promo solo brilla por su nombre (954). Un `do` (la 631) apunta
+  `variants = {"holo": true}` en `tcg_correcciones` (885), escribe la fila,
+  pasa a `holo` las copias en `normal`/null y avisa con `raise notice`; al
+  final enseña la carta y sus versiones. Probada en un PostgreSQL de usar y
+  tirar (solo cambia la occidental 031).
+- **Versiones por idioma** (`tcggo-versiones-idioma`): `TOPE_DIARIO` de 300
+  a 1500. Desde la 1028c cada versión es una petición suelta (el lote por
+  ids se las calla), y 300 cubrían ~280 versiones al día de las que tiene
+  la gente. Las demás se piden al abrir su ficha (1028).
+
 ## Tanda 1033 — Deseos y cambios: Modo evento a mano, tres por fila, catálogos separados
 
 PINGU, al probar la 1029: «el modo evento está muy escondido», «en móvil se

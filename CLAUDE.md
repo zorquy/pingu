@@ -934,6 +934,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `tcggo_gemelos`) se quitan de UNA en una cuando la base dice que no
   existen (`quitarOpcional`, en `sets.mjs` y `sets-catalogo.js`): una
   columna nueva de la estantería que llegue antes que su migración va ahí.
+- **En el móvil, lo de arriba de una pantalla es UNA fila de mandos**
+  (tandas 1034–1035, PINGU: «demasiados botones apilados», «¿qué pinta el
+  título si ya sabes que estás ahí por el menú?»): el título de una
+  pestaña que ya dice la burbuja se esconde (visualmente; el h2 queda para
+  el lector), los botones de una acción van en una fila con textos cortos
+  (`.mc-q-largo` / `.mc-q-corto`), y un selector de catálogo dice
+  «Pokémon / Japón». Antes de añadir una fila de botones, mira con
+  `herramientas/aud-apilados.mjs` (rama pruebas) que no caiga en dos. Y la
+  sección es «Colección» (1036), no «Cartas»; su llave de color sigue
+  siendo `data-seccion="cartas"` (`SLUG_DE_SECCION`).
 - **En Deseos y cambios y el modo evento, occidental y japonés van cada
   uno en su tramo** (tanda 1033, PINGU: «separado está bien y está
   ordenado»): `porCatalogo` / `conRotulos` (deseos.js) ponen el rótulo como

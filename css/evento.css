@@ -140,9 +140,22 @@
 
 .evento-botones {
   display: flex;
-  flex-wrap: wrap;
   justify-content: center;
   gap: var(--e-sm);
+}
+
+/* En una fila también en el móvil (1035): «CSV» en vez de «Exportar CSV». */
+@media (max-width: 599px) {
+  .evento-botones > * {
+    flex: 1 1 0;
+    min-width: 0;
+    padding-inline: var(--e-sm);
+    white-space: nowrap;
+  }
+
+  .evento-largo {
+    display: none;
+  }
 }
 
 @media (min-width: 901px) {

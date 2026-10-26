@@ -30,7 +30,9 @@ import { PAUSA_MS } from './tcggo-emparejar.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_versiones_idioma'
-export const TOPE_DIARIO = 300
+// 1500 desde la 1034 (eran 300): desde la 1028c cada versión es una petición
+// suelta (el lote por ids se las calla), así que 300 cubrían ~280 versiones al día.
+export const TOPE_DIARIO = 1500
 export const POR_PASADA = 6
 const FALLOS_PARA_SALTAR = 3
 const MS_DE_MARGEN = 20_000

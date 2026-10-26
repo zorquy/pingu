@@ -107,7 +107,7 @@
     </div>
   </nav>
   <!-- barra-movil: la escribe generar-barra-movil.mjs -->
-  <nav class="bm" aria-label="Secciones"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg><span>Inicio</span></a><a href="/aprender.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span>Aprender</span></a><a href="/cartas" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="11" height="15" rx="2"></rect><path d="M8 3h9a2 2 0 0 1 2 2v11"></path></svg><span>Cartas</span></a><a href="/foro.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>Comunidad</span></a><a href="/torneos.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg><span>Jugar</span></a></nav>
+  <nav class="bm" aria-label="Secciones"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg><span>Inicio</span></a><a href="/aprender.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span>Aprender</span></a><a href="/cartas" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="11" height="15" rx="2"></rect><path d="M8 3h9a2 2 0 0 1 2 2v11"></path></svg><span>Colección</span></a><a href="/foro.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>Comunidad</span></a><a href="/torneos.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg><span>Jugar</span></a></nav>
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container mc-pagina">
@@ -1042,8 +1042,8 @@
         <div class="mc-bloque-mercado">
           <div class="mc-deseos-cabeza">
           <h2 class="mc-subtitulo">Deseos y cambios</h2>
-          <!-- 1033 (PINGU: «el modo evento está muy escondido»): a mano en las tres vistas. -->
-          <a class="btn-secondary mc-evento-boton" href="/evento" data-icono="scan">Modo evento</a>
+          <!-- 1033 (PINGU: «el modo evento está muy escondido»): a mano en las tres vistas; en el móvil, solo el icono, en la fila de las vistas (1034). -->
+          <a class="btn-secondary mc-evento-boton" href="/evento" data-icono="scan" aria-label="Modo evento"><span class="mc-evento-texto"><span class="mc-q-largo">Modo e</span><span class="mc-q-corto">E</span>vento</span></a>
           <span class="seg mc-deseos-seg" role="group" aria-label="Qué lista">
             <button type="button" class="seg-btn" data-deseos-vista="mercado" aria-pressed="true"><span>Mercado</span><span class="mc-deseos-n" data-deseos-n="mercado"></span></button>
             <button type="button" class="seg-btn" data-deseos-vista="quiero" aria-pressed="false"><span>La quiero</span><span class="mc-deseos-n" data-deseos-n="quiero"></span></button>
@@ -1065,7 +1065,7 @@
             <div class="mc-mercado-mandos">
             <span class="seg mc-mercado-catalogo" role="group" aria-label="Qué catálogo">
               <button type="button" class="seg-btn" data-mercado-catalogo="WEST" aria-pressed="true"><i class="pv-bandera" data-idioma="en" aria-hidden="true"></i><span>Pokémon</span></button>
-              <button type="button" class="seg-btn" data-mercado-catalogo="JP" aria-pressed="false"><i class="pv-bandera" data-idioma="ja" aria-hidden="true"></i><span>Pokémon Japón</span></button>
+              <button type="button" class="seg-btn" data-mercado-catalogo="JP" aria-pressed="false"><i class="pv-bandera" data-idioma="ja" aria-hidden="true"></i><span><span class="mc-q-largo">Pokémon </span>Japón</span></button>
             </span>
             <label class="mc-mercado-opcion"><span class="sr-only">Idioma</span>
               <select id="mcMercadoIdioma">
@@ -1107,8 +1107,8 @@
         <div class="mc-bloque-quiero">
           <div class="mc-deseos-cabeza">
           <h2 class="mc-subtitulo">Deseos y cambios</h2>
-          <!-- 1033 (PINGU: «el modo evento está muy escondido»): a mano en las tres vistas. -->
-          <a class="btn-secondary mc-evento-boton" href="/evento" data-icono="scan">Modo evento</a>
+          <!-- 1033 (PINGU: «el modo evento está muy escondido»): a mano en las tres vistas; en el móvil, solo el icono, en la fila de las vistas (1034). -->
+          <a class="btn-secondary mc-evento-boton" href="/evento" data-icono="scan" aria-label="Modo evento"><span class="mc-evento-texto"><span class="mc-q-largo">Modo e</span><span class="mc-q-corto">E</span>vento</span></a>
           <span class="seg mc-deseos-seg" role="group" aria-label="Qué lista">
             <button type="button" class="seg-btn" data-deseos-vista="mercado" aria-pressed="false"><span>Mercado</span><span class="mc-deseos-n" data-deseos-n="mercado"></span></button>
             <button type="button" class="seg-btn" data-deseos-vista="quiero" aria-pressed="true"><span>La quiero</span><span class="mc-deseos-n" data-deseos-n="quiero"></span></button>
@@ -1125,10 +1125,6 @@
                 <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
                 <input type="search" enterkeyhint="search" id="mcDeseoBuscar" placeholder="Apunta una carta: Charizard, 151/165, MEW 151…" autocomplete="off" aria-label="Busca una carta para apuntarla" />
               </div>
-              <span class="seg mc-deseo-catalogo" role="group" aria-label="En qué catálogo se busca">
-                <button type="button" class="seg-btn" data-deseo-mercado="WEST" aria-pressed="true"><i class="pv-bandera" data-idioma="en" aria-hidden="true"></i><span>Pokémon</span></button>
-                <button type="button" class="seg-btn" data-deseo-mercado="JP" aria-pressed="false"><i class="pv-bandera" data-idioma="ja" aria-hidden="true"></i><span>Pokémon Japón</span></button>
-              </span>
             </div>
             <p class="mc-cuantas" id="mcDeseoCuantas" role="status" aria-live="polite"></p>
             <div id="mcDeseoResultados" class="mc-resultados mc-deseo-resultados hidden"></div>
@@ -1142,8 +1138,8 @@
         <div class="mc-bloque-cambios" id="mcBloqueCambios">
           <div class="mc-deseos-cabeza">
           <h2 class="mc-subtitulo">Deseos y cambios</h2>
-          <!-- 1033 (PINGU: «el modo evento está muy escondido»): a mano en las tres vistas. -->
-          <a class="btn-secondary mc-evento-boton" href="/evento" data-icono="scan">Modo evento</a>
+          <!-- 1033 (PINGU: «el modo evento está muy escondido»): a mano en las tres vistas; en el móvil, solo el icono, en la fila de las vistas (1034). -->
+          <a class="btn-secondary mc-evento-boton" href="/evento" data-icono="scan" aria-label="Modo evento"><span class="mc-evento-texto"><span class="mc-q-largo">Modo e</span><span class="mc-q-corto">E</span>vento</span></a>
           <span class="seg mc-deseos-seg" role="group" aria-label="Qué lista">
             <button type="button" class="seg-btn" data-deseos-vista="mercado" aria-pressed="false"><span>Mercado</span><span class="mc-deseos-n" data-deseos-n="mercado"></span></button>
             <button type="button" class="seg-btn" data-deseos-vista="quiero" aria-pressed="false"><span>La quiero</span><span class="mc-deseos-n" data-deseos-n="quiero"></span></button>
@@ -1221,7 +1217,7 @@
              su tapa y sus primeras cartas) y «Empezar un álbum» al final.
              Las baldosas las pinta js/mi-coleccion/albumes.js. -->
         <div class="mc-bloque-albumes" id="mcBloqueAlbumes">
-          <h2 class="mc-subtitulo">Mis álbumes</h2>
+          <h2 class="mc-subtitulo mc-albumes-titulo">Mis álbumes</h2>
 
         <div id="mcAlbumesLista">
           <div class="mc-albts" id="mcAlbumesRejilla"></div>
@@ -1306,7 +1302,7 @@
             </div>
             <span class="seg mc-prod-catalogo" role="group" aria-label="Qué catálogo se mira">
               <button type="button" class="seg-btn" data-prod-mercado="WEST" aria-pressed="true"><i class="pv-bandera" data-idioma="en" aria-hidden="true"></i><span>Pokémon</span></button>
-              <button type="button" class="seg-btn" data-prod-mercado="JP" aria-pressed="false"><i class="pv-bandera" data-idioma="ja" aria-hidden="true"></i><span>Pokémon Japón</span></button>
+              <button type="button" class="seg-btn" data-prod-mercado="JP" aria-pressed="false"><i class="pv-bandera" data-idioma="ja" aria-hidden="true"></i><span><span class="mc-q-largo">Pokémon </span>Japón</span></button>
             </span>
           </div>
           <div id="mcProdBusqueda" class="hidden" aria-live="polite">

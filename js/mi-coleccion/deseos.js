@@ -145,18 +145,44 @@ async function pintarCambios() {
 let turnoDeseo = 0
 
 // EL BUSCADOR DE «LA QUIERO» (768). PINGU: «no funciona, solo busca unas
-// pocas cartas, y no puedes escoger si son japonesas». Pedía 24 por orden
-// alfabético en el catálogo que tuvieras puesto. Ahora es el motor de
+// pocas cartas, y no puedes escoger si son japonesas». Es el motor de
 // Buscar —nombre, número, «151/165», «MEW 151» y, si no sale nada, el
-// ilustrador— con su propio catálogo (`deseoMercado`, sin cambiar el de la
-// página) y los resultados por expansión, con su logo.
-let deseoMercado = null
+// ilustrador— con los resultados por expansión, con su logo. Desde la 1034
+// busca en LOS DOS catálogos a la vez (PINGU: el selector «Pokémon / Pokémon
+// Japón» «no tiene sentido» si la lista ya los separa): lo occidental
+// primero y lo japonés debajo, con su rótulo si salen de los dos.
 const TOPE_DESEO = 120
+async function buscarEnCatalogo(crudo, market) {
+  const sets = (await ctx.cargarSetsDeTodos().catch(() => [])).filter((x) => (x.market || 'WEST') === market)
+  const leida = entenderBusqueda(crudo, sets)
+  let lista = await ctx.buscarCartas(normalizeSearch(leida.texto), TOPE_DESEO, { setIds: leida.setIds, market, sets })
+  if (!lista.length && leida.codigo) lista = await ctx.buscarCartas(normalizeSearch(crudo), TOPE_DESEO, { market, sets })
+  if (!lista.length) lista = await ctx.buscarPorIlustrador(normalizeSearch(crudo), TOPE_DESEO, { market })
+  return { market, lista: lista.map((c) => ({ ...c, market: c.market || market })), sets }
+}
+function resultadosHtml({ market, lista, sets }, yaEstan) {
+  const filas = new Map(sets.map((x) => [x.id, x]))
+  return ctx.gruposPorExpansion(lista).map((g) => {
+    const set = filas.get(g.set.id) || g.set
+    const logos = ctx.contexto.logosDeSet({ ...set, market })
+    return `<div class="mc-bus-grupo">
+        <span class="mc-bus-grupo-logo">${logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="96" height="48" loading="lazy" />` : ''}</span>
+        <span class="mc-bus-grupo-texto"><b>${escapeHtml(nombreDeSet(set) || g.set.id)}</b><small>${g.cartas.length} ${g.cartas.length === 1 ? 'resultado' : 'resultados'}</small></span>
+      </div>${ordenarCartas(g.cartas, 'numero', 'asc', { nombre: (c) => ctx.nombreDe(c), valor: () => null, rango: rangoDeRareza, porNumero }).map((c) => {
+        const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+        const ya = yaEstan.has(c.id)
+        return `<button type="button" class="mc-resultado mc-deseo-resultado" data-desear="${escapeHtml(c.id)}"${ya ? ' disabled' : ''} aria-label="${escapeHtml(`${ya ? 'Ya buscas' : 'Apuntar'} ${ctx.nombreDe(c)} (${c.local_id})`)}">
+          <span class="mc-resultado-foto"><span class="mc-carta-sinfoto">${escapeHtml(ctx.nombreDe(c))}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}<span class="mc-deseo-corazon${ya ? ' puesto' : ''}" aria-hidden="true">${laQuiero.corazon(16)}</span></span>
+          <span class="mc-resultado-nombre">${escapeHtml(ctx.nombreDe(c))}</span>
+          <span class="mc-resultado-set">${ya ? 'Ya la buscas' : `${escapeHtml(c.local_id)}`}</span>
+        </button>`
+      }).join('')}`
+  }).join('')
+}
 async function buscarParaDesear() {
   const caja = $('mcDeseoResultados')
   const cuenta = $('mcDeseoCuantas')
   const crudo = $('mcDeseoBuscar').value
-  const market = deseoMercado || ctx.mercado
   const mio = ++turnoDeseo
   const { soloNumero } = partirBusqueda(normalizeSearch(crudo))
   if (normalizeSearch(crudo).trim().length < 2 && !soloNumero) {
@@ -167,14 +193,9 @@ async function buscarParaDesear() {
   }
   caja.classList.remove('hidden')
   caja.innerHTML = '<div class="skeleton" style="height:160px"></div>'
-  let lista
-  let sets = []
+  let tramos
   try {
-    sets = (await ctx.cargarSetsDeTodos().catch(() => [])).filter((x) => (x.market || 'WEST') === market)
-    const leida = entenderBusqueda(crudo, sets)
-    lista = await ctx.buscarCartas(normalizeSearch(leida.texto), TOPE_DESEO, { setIds: leida.setIds, market, sets })
-    if (!lista.length && leida.codigo) lista = await ctx.buscarCartas(normalizeSearch(crudo), TOPE_DESEO, { market, sets })
-    if (!lista.length) lista = await ctx.buscarPorIlustrador(normalizeSearch(crudo), TOPE_DESEO, { market })
+    tramos = (await Promise.all(['WEST', 'JP'].map((m) => buscarEnCatalogo(crudo, m)))).filter((t) => t.lista.length)
   } catch (err) {
     if (mio !== turnoDeseo) return
     caja.innerHTML = `<p class="subtext">${escapeHtml(err.message)}</p>`
@@ -184,32 +205,13 @@ async function buscarParaDesear() {
   // Las que ya están apuntadas se enseñan, pero desactivadas: quitarlas
   // de la lista haría pensar que el buscador no las encuentra.
   const yaEstan = new Set(ctx.deseos.map((d) => d.card_id))
-  if (cuenta) cuenta.textContent = lista.length ? `${lista.length} ${lista.length === 1 ? 'carta' : 'cartas'}${lista.length >= TOPE_DESEO ? ' · hay más, afina la búsqueda' : ''}` : ''
-  const filas = new Map(sets.map((x) => [x.id, x]))
-  caja.innerHTML = lista.length
-    ? ctx.gruposPorExpansion(lista).map((g) => {
-        const set = filas.get(g.set.id) || g.set
-        const logos = ctx.contexto.logosDeSet({ ...set, market })
-        return `<div class="mc-bus-grupo">
-            <span class="mc-bus-grupo-logo">${logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="96" height="48" loading="lazy" />` : ''}</span>
-            <span class="mc-bus-grupo-texto"><b>${escapeHtml(nombreDeSet(set) || g.set.id)}</b><small>${g.cartas.length} ${g.cartas.length === 1 ? 'resultado' : 'resultados'}</small></span>
-          </div>${ordenarCartas(g.cartas, 'numero', 'asc', { nombre: (c) => ctx.nombreDe(c), valor: () => null, rango: rangoDeRareza, porNumero }).map((c) => {
-            const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-            const ya = yaEstan.has(c.id)
-            return `<button type="button" class="mc-resultado mc-deseo-resultado" data-desear="${escapeHtml(c.id)}"${ya ? ' disabled' : ''} aria-label="${escapeHtml(`${ya ? 'Ya buscas' : 'Apuntar'} ${ctx.nombreDe(c)} (${c.local_id})`)}">
-              <span class="mc-resultado-foto"><span class="mc-carta-sinfoto">${escapeHtml(ctx.nombreDe(c))}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}<span class="mc-deseo-corazon${ya ? ' puesto' : ''}" aria-hidden="true">${laQuiero.corazon(16)}</span></span>
-              <span class="mc-resultado-nombre">${escapeHtml(ctx.nombreDe(c))}</span>
-              <span class="mc-resultado-set">${ya ? 'Ya la buscas' : `${escapeHtml(c.local_id)}`}</span>
-            </button>`
-          }).join('')}`
-      }).join('')
-    : '<p class="subtext">Ninguna carta así en este catálogo. Prueba con menos letras, o en el otro catálogo.</p>'
+  const total = tramos.reduce((a, t) => a + t.lista.length, 0)
+  if (cuenta) cuenta.textContent = total ? `${total} ${total === 1 ? 'carta' : 'cartas'}${tramos.some((t) => t.lista.length >= TOPE_DESEO) ? ' · hay más, afina la búsqueda' : ''}` : ''
+  caja.innerHTML = total
+    ? tramos.map((t) => `${tramos.length > 1 ? `<h3 class="mc-catalogo-rotulo mc-deseo-rotulo">${banderaHtml(t.market === 'JP' ? 'ja' : 'en')}<span>${t.market === 'JP' ? 'Pokémon Japón' : 'Pokémon'}</span><small>${t.lista.length}</small></h3>` : ''}${resultadosHtml(t, yaEstan)}`).join('')
+    : '<p class="subtext">Ninguna carta así. Prueba con menos letras, o con el número («151/165»).</p>'
   // Y al mapa, que es de donde lo saca la lista al repintarse.
-  for (const c of lista) if (!ctx.cartas.has(c.id)) ponerCarta(c.id, { ...c, market: c.market || market })
-}
-function pintarCatalogoDeDeseo() {
-  const market = deseoMercado || ctx.mercado
-  for (const b of document.querySelectorAll('[data-deseo-mercado]')) b.setAttribute('aria-pressed', String(b.dataset.deseoMercado === market))
+  for (const t of tramos) for (const c of t.lista) if (!ctx.cartas.has(c.id)) ponerCarta(c.id, c)
 }
 
 // El panel se repinta entero en cada cambio, así que los oyentes van
@@ -486,7 +488,6 @@ async function pedirAvisosDeQuiero(ids) {
 export async function abrirQuiero() {
   const caja = $('mcQuieroPanel')
   if (!caja) return
-  pintarCatalogoDeDeseo()
   if (!Array.isArray(ctx.deseos)) caja.innerHTML = '<div class="skeleton" style="height:180px"></div>'
   try {
     await cargarDeseos()
@@ -612,9 +613,9 @@ function pintarQuiero() {
       ? `<div class="mc-quiero-cabeza">
           <p class="mc-quiero-cifra" id="mcQuieroCifra"><b>${n.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${n === 1 ? 'carta' : 'cartas'}${conPrecio.length ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}${conPrecio.length && sinPrecio ? ` <small>(${sinPrecio} sin precio)</small>` : ''}</p>
           <span class="mc-quiero-botones">
-            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroTexto">${icons.share(16)}<span>Compartir lista</span></button>
-            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroCompartir">${icons.image(16)}<span>Imagen</span></button>
-            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroAlbum">${icons.folder(16)}<span>Hacer un álbum</span></button>
+            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroTexto" aria-label="Compartir lista">${icons.share(16)}<span>Compartir<span class="mc-q-largo"> lista</span></span></button>
+            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroCompartir" aria-label="Imagen de la lista">${icons.image(16)}<span>Imagen</span></button>
+            <button type="button" class="btn-secondary mc-quiero-compartir" id="mcQuieroAlbum" aria-label="Hacer un álbum">${icons.folder(16)}<span><span class="mc-q-largo">Hacer un álbum</span><span class="mc-q-corto">Álbum</span></span></button>
           </span>
         </div>
         ${conAlguien === null ? '' : `<div class="mc-quiero-filtro">
@@ -650,12 +651,6 @@ function engancharQuiero() {
     esperaDeseo = setTimeout(buscarParaDesear, 250)
   })
   $('mcDeseoAlta')?.addEventListener('click', async (e) => {
-    const m = e.target.closest('[data-deseo-mercado]')
-    if (m) {
-      deseoMercado = m.dataset.deseoMercado
-      pintarCatalogoDeDeseo()
-      return void buscarParaDesear()
-    }
     const desear = e.target.closest('[data-desear]')
     if (!desear) return
     desear.disabled = true
@@ -753,7 +748,7 @@ async function pintarDoy() {
   const caja = $('mcDoyPanel')
   if (!caja) return
   const doy = ctx.loQueDoy()
-  const poner = `<button type="button" class="btn-primary mc-doy-poner" id="mcDoyPoner"><span aria-hidden="true">+</span><span>Poner más para cambio</span></button>`
+  const poner = `<button type="button" class="btn-primary mc-doy-poner" id="mcDoyPoner" aria-label="Poner más para cambio"><span aria-hidden="true">+</span><span>Poner más<span class="mc-q-largo"> para cambio</span></span></button>`
   if (!doy.length) {
     caja.innerHTML = `<div class="mc-quiero-vacio">
         <span class="mc-quiero-vacio-icono" aria-hidden="true">${icons.package(28)}</span>
@@ -785,7 +780,7 @@ async function pintarDoy() {
       <p class="mc-quiero-cifra"><b>${copias.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${copias === 1 ? 'copia' : 'copias'} que das${suma ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}</p>
       <span class="mc-quiero-botones">
         ${poner}
-        <button type="button" class="btn-secondary mc-quiero-compartir" id="mcDoyCompartir">${icons.share(16)}<span>Compartir lista</span></button>
+        <button type="button" class="btn-secondary mc-quiero-compartir" id="mcDoyCompartir" aria-label="Compartir lista">${icons.share(16)}<span>Compartir<span class="mc-q-largo"> lista</span></span></button>
       </span>
     </div>
     <p class="subtext mc-doy-nota">Lo que das sale en el Mercado, con tu nombre.</p>

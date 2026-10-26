@@ -491,3 +491,33 @@ input.bs-input[type='search']:focus {
 [aria-pressed="true"] > .bs-chip-n {
   color: inherit;
 }
+
+/* En el móvil (1035, PINGU: «botones apilados que podrían ir en fila»):
+   los ocho filtros en UNA fila que se desliza, y sin el «Buscar» grande:
+   la caja ya dice qué es la página. */
+@media (max-width: 599px) {
+  .bs-chips {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(-1 * var(--e-md));
+    padding-inline: var(--e-md);
+  }
+
+  .bs-chips::-webkit-scrollbar {
+    display: none;
+  }
+
+  .bs-chips > * {
+    flex: 0 0 auto;
+  }
+
+  .bs-titulo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
