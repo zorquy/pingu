@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (270) — PINGU-Claude (1032 — álbumes: el ⋯ con editar y borrar)
+
+**Hecho**: el feedback de la gente, segunda parte («un menú para editar
+nombre, carátula… editar un poco todo, y también borrarlo»). Cada baldosa
+de Mis álbumes lleva su ⋯ (Abrir, Editar…, Hacer público/privado, Borrar)
+y dentro del álbum hay «Editar álbum»; los dos abren la misma hoja:
+nombre, descripción, color de la tapa (binder), portada (una de sus
+cartas, o ninguna) y público, con «Borrar álbum» abajo (confirm). Solo se
+escribe lo que cambia. El «Borrar este álbum» suelto del pie se fue.
+
+**Ficheros**: `js/mi-coleccion/album-editar.js` (nuevo, por `import()`),
+`js/mi-coleccion/albumes.js`, `mi-coleccion.html` + `cartas.html`,
+`css/mi-coleccion.css`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`. En
+`pruebas`: `test-tanda-1032-pantalla.mjs`. OJO: 759-pantalla, 764-pantalla
+y 371 ya fallaban en HEAD (fotos que se quitan y un timeout), no son de
+esta tanda; quedan para una pasada de limpieza.
+
+**Pendiente**: 1031 («Hacer un álbum» desde La quiero). Y de PINGU: la
+migración 1027 y el Lugia (268).
+```
 ## 2026-10-26 (269) — PINGU-Claude (1029 + 1030 — Modo evento y lo que ve quien escanea el QR)
 
 **Hecho**: el feedback de la gente, primera mitad. «Modo feria» es

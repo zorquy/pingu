@@ -154,7 +154,25 @@ function baldosaHtml({ atributo, clase = '', tapa = null, arriba, nombre, pie, p
   </button>`
 }
 
+// El ⋯ de una baldosa (1032): abrir, editar, público/privado y borrar. Va
+// FUERA del botón de la baldosa (un botón no puede llevar otro dentro), en
+// una caja que los coloca juntos.
+function menuDeBaldosaHtml(a) {
+  return `<details class="mc-menu-caja mc-albt-menu" data-album-menu="${escapeHtml(a.id)}">
+    <summary class="mc-icono-mando" aria-label="Más opciones de «${escapeHtml(a.nombre)}»" title="Más opciones">${icons.moreHorizontal(18)}</summary>
+    <div class="mc-menu">
+      <button type="button" class="mc-menu-opcion" data-album-accion="abrir"><span class="mc-menu-icono" aria-hidden="true">${icons.bookOpen(16)}</span>Abrir</button>
+      <button type="button" class="mc-menu-opcion" data-album-accion="editar"><span class="mc-menu-icono" aria-hidden="true">${icons.edit(16)}</span>Editar…</button>
+      <button type="button" class="mc-menu-opcion" data-album-accion="publico"><span class="mc-menu-icono" aria-hidden="true">${icons.share(16)}</span>${a.is_public ? 'Hacer privado' : 'Hacer público'}</button>
+      <hr class="mc-menu-raya" />
+      <button type="button" class="mc-menu-opcion mc-menu-peligro" data-album-accion="borrar"><span class="mc-menu-icono" aria-hidden="true">${icons.trash(16)}</span>Borrar</button>
+    </div>
+  </details>`
+}
 function tarjetaHtml(a) {
+  return `<div class="mc-albt-caja">${baldosaDeAlbumHtml(a)}${menuDeBaldosaHtml(a)}</div>`
+}
+function baldosaDeAlbumHtml(a) {
   const items = conCartas(a)
   const ids = items.map((c) => c.id)
   const mias = items.filter(tieneItem).length
@@ -363,7 +381,6 @@ export async function abrir(id, { soloVer = false, push = true } = {}) {
   $('mcAlbDescripcion').readOnly = !mio
   $('mcAlbDescripcion').classList.toggle('hidden', !mio && !actual.descripcion)
   $('mcAlbHerramientas').classList.toggle('hidden', !mio)
-  $('mcAlbBorrar').closest('p').classList.toggle('hidden', !mio)
   $('mcAlbPublico').checked = Boolean(actual.is_public)
   $('mcAlbCopiar').classList.toggle('hidden', !actual.is_public)
   const url = new URL(location.href)
@@ -729,6 +746,98 @@ function anadir(c) {
   showToast(`${nombreDe(c)} añadida al álbum.`, 'success')
 }
 
+// ── Editar y borrar (1032) ──
+// Desde el ⋯ de una baldosa o desde «Editar álbum» dentro. La hoja vive en
+// album-editar.js y entra al pulsar; aquí, la base y el repintado.
+async function borrarDelTodo(a) {
+  await borrarAlbum(a.id)
+  showToast('Álbum borrado.', 'success')
+  if (actual?.id === a.id) {
+    actual = null
+    const url = new URL(location.href)
+    url.searchParams.delete('album')
+    history.replaceState(null, '', url)
+  }
+  await pintarLista()
+}
+// Lo guardado se pone donde se ve: la fila de la lista, y el abierto con
+// sus campos de la cabecera (el nombre y la descripción se editan también
+// ahí, en línea).
+function aplicarCambios(a, cambios) {
+  Object.assign(a, cambios)
+  const enLista = albumes.find((x) => x.id === a.id)
+  if (enLista && enLista !== a) Object.assign(enLista, cambios)
+  if (actual?.id === a.id) {
+    if (actual !== a) Object.assign(actual, cambios)
+    if ('nombre' in cambios) $('mcAlbTitulo').value = actual.nombre
+    if ('descripcion' in cambios) $('mcAlbDescripcion').value = actual.descripcion || ''
+    if ('is_public' in cambios) {
+      $('mcAlbPublico').checked = Boolean(actual.is_public)
+      $('mcAlbCopiar').classList.toggle('hidden', !actual.is_public)
+    }
+    pintarDetalle()
+  }
+}
+async function editarAlbum(a) {
+  // Las fichas de sus cartas, para la tira de portadas: las que no estén.
+  const ids = conCartas(a).map((c) => c.id).filter((id) => !ctx.cartas.has(id) && !cartasDelAlbum.has(id)).slice(0, 40)
+  if (ids.length) for (const [id, c] of await datos.cartasPorIds([...new Set(ids)], ctx.mercado).catch(() => new Map())) cartasDelAlbum.set(id, c)
+  const { abrirEditorDeAlbum } = await import('./album-editar.js')
+  abrirEditorDeAlbum({
+    album: a,
+    cartaDe,
+    esBinder: !esDeSet(a),
+    alGuardar: async (cambios) => {
+      try {
+        await guardarAlbum(a.id, cambios)
+        aplicarCambios(a, cambios)
+        if (actual?.id !== a.id || $('mcAlbumesDetalle').classList.contains('hidden')) await pintarLista()
+        showToast('Álbum guardado.', 'success')
+      } catch (err) {
+        showToast(err.message, 'error')
+        throw err
+      }
+    },
+    alBorrar: async () => {
+      try {
+        await borrarDelTodo(a)
+      } catch (err) {
+        showToast(err.message, 'error')
+        throw err
+      }
+    },
+  })
+}
+async function accionDeBaldosa(id, accion) {
+  const a = albumes.find((x) => x.id === id)
+  if (!a) return
+  if (accion === 'abrir') return abrir(id)
+  if (accion === 'editar') return editarAlbum(a)
+  if (accion === 'publico') {
+    // Cambia YA y se deshace si la base dice que no (896).
+    const antes = a.is_public
+    a.is_public = !antes
+    $('mcAlbumesRejilla').innerHTML = coleccionHtml() + albumes.map(tarjetaHtml).join('') + empezarHtml()
+    try {
+      await guardarAlbum(a.id, { is_public: a.is_public })
+      showToast(a.is_public ? 'Álbum público: cualquiera con el enlace lo ve.' : 'Álbum privado.', 'success')
+    } catch (err) {
+      a.is_public = antes
+      $('mcAlbumesRejilla').innerHTML = coleccionHtml() + albumes.map(tarjetaHtml).join('') + empezarHtml()
+      showToast(err.message, 'error')
+    }
+    return
+  }
+  if (accion === 'borrar') {
+    if (!window.confirm(`¿Borrar el álbum «${a.nombre}»? Tus cartas no se tocan.`)) return
+    try {
+      await borrarDelTodo(a)
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
+  }
+}
+
 // ── Enganches ──
 // Repintar lo que haya abierto, sin volver a pedir nada. Lo usa el
 // color de la tapa (tanda 371), que es una preferencia de pantalla y no
@@ -760,9 +869,22 @@ export function iniciarAlbumes(contexto) {
   $('mcAlbumesRejilla')?.addEventListener('click', (e) => {
     if (e.target.closest('#mcAlbNuevoAbrir')) return abrirAlbumNuevo()
     if (e.target.closest('[data-alb-coleccion]')) return ctx.irA?.('cartas')
+    // El ⋯ de una baldosa (1032).
+    const accion = e.target.closest('[data-album-accion]')
+    if (accion) {
+      const caja = accion.closest('[data-album-menu]')
+      caja.removeAttribute('open')
+      return accionDeBaldosa(caja.dataset.albumMenu, accion.dataset.albumAccion)
+    }
+    if (e.target.closest('[data-album-menu]')) return
     const b = e.target.closest('[data-album]')
     if (b) abrir(b.dataset.album)
   })
+  // Un ⋯ abierto se cierra al tocar fuera.
+  document.addEventListener('click', (e) => {
+    for (const d of document.querySelectorAll('.mc-albt-menu[open]')) if (!d.contains(e.target)) d.removeAttribute('open')
+  })
+  $('mcAlbAjustes')?.addEventListener('click', () => actual && esMio() && editarAlbum(actual))
   // DELEGADO, porque la miga se pinta al abrir un álbum (tanda 474): al
   // arrancar `#mcAlbVolver` todavía no existe, y un `addEventListener` sobre
   // algo que no está no engancha nada — sin dar error, que es lo peor: el
@@ -806,20 +928,6 @@ export function iniciarAlbumes(contexto) {
       showToast(err.message || 'No se ha podido hacer la lista.', 'error')
     } finally {
       b.disabled = false
-    }
-  })
-  $('mcAlbBorrar')?.addEventListener('click', async () => {
-    // confirm() a propósito, como en /mazos: no se puede deshacer.
-    if (!window.confirm(`¿Borrar el álbum «${actual.nombre}»? Tus cartas no se tocan.`)) return
-    try {
-      await borrarAlbum(actual.id)
-      showToast('Álbum borrado.', 'success')
-      const url = new URL(location.href)
-      url.searchParams.delete('album')
-      history.replaceState(null, '', url)
-      pintarLista()
-    } catch (err) {
-      showToast(err.message, 'error')
     }
   })
   $('mcAlbEditar')?.addEventListener('click', () => {

@@ -41785,6 +41785,44 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1032 — Álbumes: el ⋯ de cada baldosa, editar y borrar
+
+Segunda parte del feedback (2026-10-26): «un menú para editar nombre,
+carátula de los álbumes… editar un poco todo. Y también borrarlo».
+
+- **El ⋯ de una baldosa** (`menuDeBaldosaHtml`, albumes.js): un `details.
+  mc-menu-caja.mc-albt-menu` con `data-album-menu=<id>` FUERA del botón de
+  la baldosa (un botón no puede llevar otro dentro), en una caja
+  `.mc-albt-caja` que lo coloca arriba a la derecha sobre la tapa. Opciones
+  `data-album-accion`: `abrir`, `editar`, `publico` (el texto dice «Hacer
+  público» o «Hacer privado» según esté) y `borrar` (en `--danger`). Lo
+  resuelve `accionDeBaldosa`; «Hacer público» cambia YA y se deshace si la
+  base dice que no (896). Un clic fuera cierra el menú abierto. La
+  colección y «Empezar un álbum» no llevan menú.
+- **La hoja** (`js/mi-coleccion/album-editar.js`, por `import()`; el
+  `<dialog class="mc-albn mc-albe" id="mcAlbEdit">` en mi-coleccion.html y
+  cartas.html): nombre, descripción, color de la tapa (`.mc-tapas`, solo un
+  binder y solo si la fila trae `tapa`), portada (`.mc-albe-portadas`: una
+  tira que se desliza con «Ninguna» y hasta 40 cartas del álbum con ficha;
+  solo si la fila trae `portada`) y «Público». Abajo, «Borrar álbum»
+  (confirm) y «Guardar». `abrirEditorDeAlbum({ album, cartaDe, esBinder,
+  alGuardar, alBorrar })`; `cambiosDelEditor(album, leído)` devuelve SOLO
+  las columnas que cambian (nombre recortado a 80 y nunca vacío,
+  descripción a 500 o null, tapa de `TAPAS`, portada o null, is_public).
+  El módulo no toca la base: albumes.js (`editarAlbum`) guarda con
+  `guardarAlbum` y aplica (`aplicarCambios`: la fila de la lista, el
+  abierto y sus campos de la cabecera —el nombre y la descripción se
+  siguen editando también en línea—, y repinta), o borra con
+  `borrarDelTodo` (vuelve a la lista y quita `album=` de la dirección).
+- **Dentro del álbum**: el botón «Editar álbum» (`#mcAlbAjustes`) en la
+  barra. El «Borrar este álbum» suelto del pie (`#mcAlbBorrar`,
+  `.mc-alb-borrar-zona`) se fue: ahora se borra desde la hoja o desde el ⋯.
+- Prueba: `test-tanda-1032-pantalla.mjs` (PC: los menús, la hoja de un
+  binder y de un set, guardar y ver la baldosa nueva, público desde el
+  menú, borrar con «no» y con «sí»; dentro: el botón, la cabecera y el
+  archivador repintados, borrar desde la hoja; iPhone: 44 px y la hoja
+  cabe; lo escrito).
+
 ## Tandas 1029 y 1030 — Modo evento y lo que ve quien escanea el QR
 
 Primera mitad del feedback de la gente (2026-10-26, PINGU: «adelante»).

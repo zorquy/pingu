@@ -934,6 +934,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `tcggo_gemelos`) se quitan de UNA en una cuando la base dice que no
   existen (`quitarOpcional`, en `sets.mjs` y `sets-catalogo.js`): una
   columna nueva de la estantería que llegue antes que su migración va ahí.
+- **Un álbum se edita y se borra desde UN sitio: la hoja de
+  `album-editar.js`** (tanda 1032), que abren el ⋯ de cada baldosa y
+  «Editar álbum» dentro. Un campo nuevo de un álbum (nombre, tapa, portada,
+  público…) va en esa hoja y en `cambiosDelEditor`, que escribe SOLO lo que
+  cambia; no pongas otro botón suelto de borrar ni otro formulario. El
+  menú va FUERA del botón de la baldosa (`.mc-albt-caja`): un botón no
+  puede llevar otro dentro.
 - **El modo evento es `/evento` y su QR lleva a `/evento/<usuario>`**
   (tandas 1029 y 1030; antes «feria», 794): la ficha de esa persona abierta
   por Cambios, que se ve SIN cuenta, con la puerta a registrarse arriba

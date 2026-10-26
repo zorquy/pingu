@@ -3366,11 +3366,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   font-weight: 700;
 }
 
-.mc-alb-borrar-zona {
-  margin-top: var(--e-xl);
-  text-align: right;
-}
-
 /* Ya lo pone la chapa (tanda 465). */
 
 /* ── Los cambios (tanda 376) ──
@@ -8375,6 +8370,100 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 }
 
 
+
+/* La baldosa con su ⋯ (1032): la caja coloca el menú encima de la tapa,
+   arriba a la derecha, fuera del botón de la baldosa. */
+.mc-albt-caja {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
+.mc-albt-caja > .mc-albt {
+  flex: 1 1 auto;
+}
+
+.mc-albt-menu {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  margin: 0;
+}
+
+.mc-albt-menu > summary {
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 85%);
+  color: var(--navy-solid-dark);
+}
+
+.mc-albt-menu > summary:hover {
+  background: var(--blanco-fijo);
+}
+
+.mc-menu-peligro {
+  color: var(--danger);
+}
+
+/* La hoja de editar (1032): la tira de portadas se desliza de lado. */
+.mc-albe textarea {
+  width: 100%;
+  min-height: 56px;
+  resize: vertical;
+}
+
+.mc-albe-portadas {
+  display: flex;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+  padding-bottom: var(--e-xs);
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+}
+
+.mc-albe-portada {
+  flex: 0 0 auto;
+  width: 64px;
+  min-height: 44px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid transparent;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  font-family: inherit;
+  scroll-snap-align: start;
+  cursor: pointer;
+}
+
+.mc-albe-portada img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 63 / 88;
+  object-fit: cover;
+}
+
+.mc-albe-ninguna {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 63 / 88;
+}
+
+.mc-albe-portada[aria-pressed='true'] {
+  border-color: var(--text);
+}
+
+.mc-albe-pie {
+  justify-content: space-between;
+}
+
+.mc-albe-borrar {
+  color: var(--danger);
+}
 
 /* El diálogo: un `display` solo en `[open]` (la 473). */
 .mc-albn {

@@ -1244,6 +1244,8 @@
               <!-- 767: abre Buscar (occidental o japonés) para este álbum. -->
               <button type="button" class="btn-primary" id="mcAlbBuscarAbrir" data-icono="search">Añadir cartas</button>
               <button type="button" class="btn-secondary" id="mcAlbEditar">Ordenar y quitar</button>
+              <!-- 1032: nombre, descripción, tapa, portada, público y borrar, en una hoja. -->
+              <button type="button" class="btn-secondary" id="mcAlbAjustes" data-icono="edit">Editar álbum</button>
               <label class="mc-interruptor"><input type="checkbox" id="mcAlbSoloFaltan" /> Solo las que me faltan</label>
               <label class="mc-interruptor"><input type="checkbox" id="mcAlbPublico" /> Público</label>
               <button type="button" class="mc-chip-mando hidden" id="mcAlbCopiar">Compartir enlace</button>
@@ -1274,7 +1276,6 @@
             <button type="button" class="btn-secondary mc-album-tapa" id="mcAlbumTapa" aria-expanded="false">Personalizar</button>
           </div>
           <div class="mc-tapas hidden" id="mcAlbumTapas" role="group" aria-label="Color del archivador"></div>
-          <p class="mc-alb-borrar-zona"><button type="button" class="mc-chip-mando mc-chip-peligro" id="mcAlbBorrar">Borrar este álbum</button></p>
         </div>
         </div>
       </section>
@@ -1775,6 +1776,38 @@
             <button type="button" class="mc-chip-mando mc-chip-peligro mc-dlg-borrar hidden" id="mcDlgBorrar">Borrar</button>
             <button type="button" class="mc-chip-mando" id="mcDlgCancelar">Cancelar</button>
             <button type="submit" class="btn-primary" id="mcDlgGuardar">Crear</button>
+          </div>
+        </form>
+      </dialog>
+    <!-- EDITAR UN ÁLBUM (1032): nombre, descripción, tapa, portada, público
+         y borrar, desde el ⋯ de una baldosa o desde dentro. Lo maneja
+         js/mi-coleccion/album-editar.js. -->
+      <dialog class="mc-albn mc-albe" id="mcAlbEdit" aria-labelledby="mcAlbEditTitulo">
+        <form id="mcAlbEditForm">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcAlbEditTitulo">Editar álbum</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcAlbEditCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-albn-cuerpo">
+            <label class="mc-dlg-nombre">Nombre
+              <input type="text" id="mcAlbEditNombre" maxlength="80" placeholder="Mi álbum" required />
+            </label>
+            <label class="mc-dlg-nombre">Descripción
+              <textarea id="mcAlbEditDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)"></textarea>
+            </label>
+            <div id="mcAlbEditTapasBloque">
+              <h3 class="mc-dlg-rotulo">Color de la tapa</h3>
+              <div class="mc-tapas" id="mcAlbEditTapas" role="group" aria-label="Color de la tapa"></div>
+            </div>
+            <div id="mcAlbEditPortadasBloque">
+              <h3 class="mc-dlg-rotulo">Portada</h3>
+              <div class="mc-albe-portadas" id="mcAlbEditPortadas" role="group" aria-label="Carta de portada"></div>
+            </div>
+            <label class="mc-interruptor"><input type="checkbox" id="mcAlbEditPublico" /> Público: cualquiera con el enlace lo ve</label>
+          </div>
+          <div class="mc-panel-pie mc-albe-pie">
+            <button type="button" class="btn-secondary mc-albe-borrar" id="mcAlbEditBorrar">Borrar álbum</button>
+            <button type="submit" class="btn-primary" id="mcAlbEditGuardar">Guardar</button>
           </div>
         </form>
       </dialog>

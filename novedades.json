@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "nuevo", "texto": "Cada álbum tiene su menú ⋯: editar el nombre, la descripción, el color de la tapa, la portada y si es público, o borrarlo. También desde dentro, con «Editar álbum».", "enlace": "/mi-coleccion?ver=carpetas" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "El Modo feria pasa a ser Modo evento: tus listas de Busco y Doy en cartas (con foto), y botones para copiar la lista, hacer una imagen o exportarla en CSV. Se guardan con sus fotos para verlas sin cobertura.", "enlace": "/evento" },
     { "fecha": "2026-10-26", "tipo": "nuevo", "texto": "Quien escanea tu QR del modo evento llega a tus listas en PokeDoc sin necesidad de cuenta, y si se la crea le decimos qué os podéis cambiar.", "enlace": "/evento" },
     {
