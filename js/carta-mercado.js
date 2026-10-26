@@ -36,7 +36,7 @@ import {
   varianteDe,
 } from './cardmarket.js'
 import { tarjetasDePrecio, chapasDeImpresiones, chipDeIdiomaHtml } from './precio-vista.js'
-import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, actualizar, borrar, tieneCifras, versionesDeCartas } from './mi-coleccion/datos.js'
+import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, actualizar, borrar, tieneCifras, versionesDeCartas, pedirVersionesAhora } from './mi-coleccion/datos.js'
 import { precioDeFila, precioParaIdioma, idiomasParaAnadirEn, versionesDeLosIdiomas, idiomasDeLaVersion, idiomaDePrecioDelSet } from './cardmarket.js'
 import { idiomasDeSet, reglasDeVersiones, sinReglas, hayReglas } from './idiomas-de-set.js'
 import { engancharAvisos } from './avisos-precio.js'
@@ -175,7 +175,9 @@ export async function pintarMercado(carta) {
     const enVivo = precioDe(vivo?.pricing, { reverse, variante: estado.variante })
     // Una versión de TCGGO (862) tiene su propia fila de precio.
     const version = versionDeVariante({ versiones }, estado.variante)
-    const guardado = version ? precioDeFila(version, { reverse: false, variante: 'normal' }) : precioDeFila(guardada, { reverse, variante: estado.variante })
+    // Sin producto de Cardmarket, el enlace de TCGGO a ESA versión (1028):
+    // a la versión, no a una búsqueda por nombre.
+    const guardado = version ? precioDeFila(!version.cm_id_product && version.link_cm ? { ...version, cm_url: version.link_cm } : version, { reverse: false, variante: 'normal' }) : precioDeFila(guardada, { reverse, variante: estado.variante })
     // El guardado manda (TCGGO, por idioma); el vivo de TCGdex solo si el
     // guardado no dice nada; y sin cifras, el que traiga el enlace (375).
     const precio = tieneCifras(guardado) ? guardado : tieneCifras(enVivo) ? enVivo : guardado || enVivo
@@ -188,6 +190,18 @@ export async function pintarMercado(carta) {
   // Los idiomas en los que salió su set (911): llegan después y repintan.
   let idiomasDelSet = null
   pintarPrecio()
+  // El precio por idioma de las versiones, a demanda (1028): si falta, se
+  // pide una vez y lo que vuelve sustituye a la fila en `versiones` (es la
+  // lista que lee `versionDeVariante`), y se repinta.
+  void pedirVersionesAhora(carta.id, carta.market || MERCADO, { filas: versiones }).then((nuevas) => {
+    if (!nuevas?.length) return
+    for (const n of nuevas) {
+      const i = versiones.findIndex((v) => v.tcggo_id === n.tcggo_id)
+      if (i >= 0) versiones[i] = n
+      else versiones.push(n)
+    }
+    pintarPrecio()
+  }).catch(() => {})
   void idiomasDeSet(carta.set_id, carta.market || MERCADO).then((lista) => {
     if (!lista?.length) return
     idiomasDelSet = lista

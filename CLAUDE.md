@@ -932,8 +932,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `PASADAS`) y repinta. Una fila por idioma lleva `cm_id_product`
   (`filaDeIdiomasDeVersion`): sin él no hay enlace exacto a Cardmarket, y
   mientras no llega, el botón va al `link_cm` de TCGGO a ESA versión, nunca a
-  una búsqueda por nombre. Si pintas el precio de una versión en otra
-  pantalla, pasa por `precioDeLinea` con la fila entera.
+  una búsqueda por nombre. Lo de pedir es `datos.pedirVersionesAhora` y lo
+  llaman el pop-up y /carta (`carta-mercado.js`, que pinta por SU camino:
+  la primera 1028 no le llegó). Si pintas el precio de una versión en otra
+  pantalla, pasa por `precioDeLinea` con la fila entera, y pide igual.
 - **El HISTÓRICO de precios se pide A DEMANDA, y lo demás lo escribe la
   pasada de precios** (tanda 643). TCGGO da la serie de una carta en una
   petición, así que pedirla para las 20.000 es imposible: `tcggo-historial`

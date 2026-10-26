@@ -481,6 +481,43 @@ export function actualizarVersiones(filas, carta = null) {
   return [...porId.values()]
 }
 
+// LOS PRECIOS POR IDIOMA DE LAS VERSIONES, A DEMANDA (1028). La pasada de
+// precios trae cada versión de TCGGO con UN precio (el mínimo de todos los
+// idiomas juntos) y sin producto de Cardmarket, y la de idiomas solo visita
+// las que alguien tiene apuntadas: la Reverse del Lugia de Darkness Ablaze
+// decía «0,10 €, cualquier idioma» con el español a 25 € en TCGGO. Si alguna
+// versión de TCGGO de la carta no tiene precio por idioma, o lo tiene de hace
+// más de una semana, se pide a `tcggo-versiones-ahora` (una petición a
+// TCGGO, con su freno) y lo que vuelve sustituye a lo que había (en
+// `versionesPorCarta` y en `carta.versiones`). Una vez por carta y visita.
+// Devuelve las filas nuevas, o null si no hacía falta o no ha contestado:
+// quien pinta decide si repinta. Lo llaman el pop-up (`mi-coleccion.js`) y
+// /carta (`carta-mercado.js`): dos pantallas, un camino.
+const versionesPedidasAhora = new Set()
+const DIAS_DE_VERSION = 7
+export const versionDeTcggo = (f) => Number(f?.tcggo_id) > 0 && !['mano', 'edicion', 'tcgdex'].includes(f?.origen || '')
+export function faltanIdiomasDeVersiones(filas, ahora = Date.now()) {
+  const suyas = (filas || []).filter(versionDeTcggo)
+  const conIdioma = (f) => ['cm_low_es', 'cm_low_en', 'cm_low_de', 'cm_low_fr', 'cm_low_it', 'cm_low_ja'].some((k) => Number(f[k]) > 0)
+  const vieja = (f) => !f.actualizado_at || (ahora - new Date(f.actualizado_at).getTime()) / 86_400_000 > DIAS_DE_VERSION
+  return suyas.some((f) => !conIdioma(f) || vieja(f))
+}
+export async function pedirVersionesAhora(cardId, market = MERCADO_POR_DEFECTO, { filas = null, carta = null, fetchImpl = fetch } = {}) {
+  if (!cardId || versionesPedidasAhora.has(cardId)) return null
+  if (!faltanIdiomasDeVersiones(filas || versionesPorCarta.get(cardId) || [])) return null
+  versionesPedidasAhora.add(cardId)
+  let nuevas
+  try {
+    const res = await fetchImpl(`/.netlify/functions/tcggo-versiones-ahora?card=${encodeURIComponent(cardId)}&market=${encodeURIComponent(market || MERCADO_POR_DEFECTO)}`)
+    if (!res.ok) return null
+    nuevas = (await res.json())?.filas
+  } catch {
+    return null
+  }
+  if (!Array.isArray(nuevas) || !nuevas.length) return null
+  return actualizarVersiones(nuevas, carta)
+}
+
 export async function versionesDeSets(setIds, mercado = MERCADO_POR_DEFECTO) {
   const ids = [...new Set((setIds || []).filter(Boolean))]
   if (!ids.length) return []

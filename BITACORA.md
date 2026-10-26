@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (266) — PINGU-Claude (1028b — lo del Lugia también en /carta)
+
+**Hecho**: PINGU mandó la captura de /carta con la Reverse igual que antes.
+/carta pinta el precio por su propio camino (`carta-mercado.js`, no el del
+pop-up) y la 1028 no le llegaba. Lo de pedir los idiomas de las versiones
+está ahora en `datos.pedirVersionesAhora` y lo usan las dos pantallas; en
+/carta además la versión sin producto enlaza al enlace de TCGGO a esa
+versión. La prueba de pantalla de la 1028 abre también /carta.
+
+**PINGU**: en cuanto despliegue, recarga /carta del Lugia 140 (DAA). La
+primera visita pide a TCGGO y repinta sola; si la ves igual, dime qué dice
+/admin → Semáforo en «Versiones al abrir la ficha».
+
+**Ficheros**: `js/mi-coleccion/datos.js`, `js/mi-coleccion.js`,
+`js/carta-mercado.js`, `SCHEMA.md` (1028b), `BITACORA.md`. En `pruebas`:
+`test-tanda-1028-pantalla.mjs`. Verdes también 916, 998, 862, 929, 922,
+945, 1002 y `test-imports`.
+
+**Pendiente**: la 1027 (PINGU: «adelante»), ahora mismo en marcha.
+
 ## 2026-10-26 (265) — PINGU-Claude (1028 — el precio por idioma de una versión al abrir la ficha, y su enlace exacto a Cardmarket)
 
 **Hecho**: lo del Lugia Reverse del foro. Una versión de TCGGO (la Reverse de

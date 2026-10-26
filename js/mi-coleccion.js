@@ -746,36 +746,15 @@ function pintarPrecioDeFicha(l, c, tuya) {
   return precio
 }
 
-// LOS PRECIOS POR IDIOMA DE LAS VERSIONES, A DEMANDA (1028). La pasada de
-// precios trae cada versión con un solo precio (el mínimo de todos los
-// idiomas) y la de idiomas solo mira las que alguien tiene apuntadas: la
-// Reverse del Lugia de Darkness Ablaze decía «0,10 €, cualquier idioma» con el
-// español a 25 € en TCGGO. Si alguna versión de TCGGO de esta carta no tiene
-// precio por idioma, o lo tiene de hace más de una semana, se pide a la
-// función (una petición a TCGGO, con su freno) y se repinta si la ficha sigue
-// en esta carta. Una vez por carta y visita.
-const versionesRefrescadas = new Set()
-const DIAS_DE_VERSION = 7
+// LOS PRECIOS POR IDIOMA DE LAS VERSIONES, A DEMANDA (1028): lo pide
+// `datos.pedirVersionesAhora` (una vez por carta y visita, solo si falta
+// alguno) y, si la ficha sigue en esta carta (la 663), se repinta el precio
+// y la lista de versiones.
 async function refrescarVersionesDeFicha(l, c, tuya) {
   const id = l?.card_id
-  if (!id || versionesRefrescadas.has(id)) return
-  const suyas = datos.versionesRegistradas(id).filter((f) => Number(f.tcggo_id) > 0 && !['mano', 'edicion', 'tcgdex'].includes(f.origen || ''))
-  if (!suyas.length) return
-  const conIdioma = (f) => ['cm_low_es', 'cm_low_en', 'cm_low_de', 'cm_low_fr', 'cm_low_it', 'cm_low_ja'].some((k) => Number(f[k]) > 0)
-  const vieja = (f) => !f.actualizado_at || (Date.now() - new Date(f.actualizado_at).getTime()) / 86_400_000 > DIAS_DE_VERSION
-  if (!suyas.some((f) => !conIdioma(f) || vieja(f))) return
-  versionesRefrescadas.add(id)
-  const market = c?.market || l.market || 'WEST'
-  let filas
-  try {
-    const res = await fetch(`/.netlify/functions/tcggo-versiones-ahora?card=${encodeURIComponent(id)}&market=${encodeURIComponent(market)}`)
-    if (!res.ok) return
-    filas = (await res.json())?.filas
-  } catch {
-    return
-  }
-  if (!Array.isArray(filas) || !filas.length) return
-  datos.actualizarVersiones(filas, c)
+  if (!id) return
+  const nuevas = await datos.pedirVersionesAhora(id, c?.market || l.market || 'WEST', { carta: c })
+  if (!nuevas?.length) return
   if (!$('mcEditor').open || cartaAbierta !== id) return
   const actual = lineaDeLaFicha() || l
   pintarPrecioDeFicha(actual, c, tuya)

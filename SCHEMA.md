@@ -41840,11 +41840,25 @@ nadie tiene, y la fila de idiomas no guardaba el producto.
    mientras no llega el producto el botón va al enlace de TCGGO a ESA
    versión, no a una búsqueda por nombre. Antes solo lo hacían las a mano.
 
+**1028b — /carta también (PINGU, con la captura: «la ficha sigue igual»)**.
+/carta NO pinta el precio por el pop-up: `carta-mercado.js` carga las
+versiones con `versionesDeCartas` y las guarda en un cierre (`versiones`),
+y `pintarPrecio` las pasa a `precioDeFila` a pelo, sin `precioDeLinea`. Así
+que la primera versión de la 1028 no le llegaba: ni pedía los idiomas ni
+tenía el enlace de TCGGO de respaldo. Lo de pedir vive ahora en `datos.js`
+(`pedirVersionesAhora(cardId, market, { filas, carta })`: decide con
+`faltanIdiomasDeVersiones`, una vez por carta y visita, llama a la función
+y devuelve las filas nuevas ya metidas en `versionesPorCarta`), y lo llaman
+los dos: el pop-up (`refrescarVersionesDeFicha`) y /carta, que sustituye
+las filas de su lista `versiones` y repinta. Y en /carta la versión sin
+producto pasa `link_cm` como `cm_url`, como en `precioDeLinea`. Dos
+pantallas pintan la misma carta (998): lo que se arregle en el precio de una
+versión tiene que pasar por las dos, y la prueba de pantalla abre las dos.
+
 **Lo que NO hace**: no toca las ediciones de Wizards ni las versiones de
-TCGdex (su precio llega por su producto, 935 y 945) ni las a mano; no pide
-nada desde /carta (ahí no se cargan versiones: la carta se abre en el
-pop-up, 998). La migración no hace falta: `cm_id_product` ya existía en
-`tcg_card_versions` (935).
+TCGdex (su precio llega por su producto, 935 y 945) ni las a mano. La
+migración no hace falta: `cm_id_product` ya existía en `tcg_card_versions`
+(935).
 
 **Pruebas**: `test-tanda-1028.mjs` (la función con sus dobles: una
 petición por ids, lo que se guarda, una vez al día, tope, plan, sin
