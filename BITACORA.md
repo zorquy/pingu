@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (263) — PINGU-Claude (1025 — la página activa de la lateral en su color y el podio en filas)
+
+**Hecho**: en la lateral del PC, la página activa dentro del cajón (Guías
+bajo Aprender, Gente bajo Comunidad…) y el menú de Mi colección van en el
+color de su sección, no en azul (PINGU: «debería ser verde todo»). Y lo
+que quedaba de D12: el podio de /usuarios en el PC pasa de 266 a 168 px
+(cada puesto es una fila, como en el móvil); lo demás de la lista
+(hermanos, Noticias, Ajustes, perfil) se repasó con capturas y ya estaba
+como pedía la propuesta o no compensa (SCHEMA 1025). La propuesta
+«PokeDoc como app» queda entera.
+
+**Ficheros**: `css/lateral.css`, `css/comunidad.css`, `SCHEMA.md` (1025),
+`novedades.json`, `CLAUDE.md`. En `pruebas`: 1018 (la página activa en
+pantalla y la regla).
+
+**Pendiente**: nada de la propuesta. `test-tanda-386` está en rojo de
+antes por `js/cambio-propuesta.js` y `js/torneos/tablon.js` (un `select`
+de perfiles sin `rango` y un enlace a perfil sin color), de las 942 y 878.
+
 ## 2026-10-26 (262) — PINGU-Claude (1024 — el azul de Inicio en oscuro y la lateral sin «Inicio» repetido)
 
 **Hecho**: lo que PINGU pidió al ver los colores de la 1018: en el tema

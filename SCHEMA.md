@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1025 — La página activa de la lateral en el color de su sección, y el podio en filas (lo que quedaba de D12)
+
+PINGU, con la 1024 ya desplegada (2026-10-26): «inicio tiene sus
+subcategorías en el mismo color, pero aprender no: en el PC ves que aprender
+tiene por debajo azul y debería ser verde todo». Era `.lat [aria-current=
+'page']` (y `.lat .mc-pestania.activa`, el menú de Mi colección dentro del
+cajón), que pintaban `--navy`: en Inicio coincidía con el acento por
+casualidad (la 1024 lo puso en `--navy`) y en las demás secciones no. Las
+dos piden `--acento`. En claro, los cuatro colores sobre `--ice` pasan de 4,5
+(la 1018 ya los mide contra la superficie y el fondo). `test-tanda-1018.mjs`
+mira la regla y, en pantalla, Aprender en el PC con «Guías» en verde.
+
+**Y lo que quedaba de D12**, repasado con capturas:
+
+- **El podio de la comunidad (PC)**: medía 266 px por tres avatares. La fila
+  del móvil (1013: cara · nombre y XP · medalla) es ahora la forma de cada
+  puesto en todas las pantallas, con 12 px de relleno y el avatar a 40; la
+  caja pasa de 24 a 16/20 px y el título pierde margen. En el PC, 168 px; en
+  el móvil no cambia (315, los tres en columna). `test-tanda-1013.mjs` (L3)
+  sigue en verde.
+- **La lista de hermanos (PC)**: medida, empieza a la misma altura que la
+  barra del set (94 px las dos); lo que parece «más abajo» es el arte de la
+  cabecera, que sube sobre el relleno de la página a propósito (1020, D2).
+  No se toca.
+- **Noticias (móvil)**: la foto a 16:9 y el texto a todo el ancho ya desde
+  la 1012; no hay nada a medio ancho. Se queda en 16:9.
+- **Ajustes (móvil)**: los bloques llevan ya un solo borde (1 px) y un solo
+  radio en el menú y en las hojas de Cuenta y Avisos (868 y 1015).
+- **Perfil (móvil)**: la vitrina ya es la primera pestaña (1015) y las cinco
+  cifras caben en una fila del iPhone sin partirse; bajarlas a cuatro era
+  quitar una («guías» o «siguiendo») por quitar. Se quedan cinco.
+
+Con esto la propuesta «PokeDoc como app» (1018–1025) está entera, salvo A1
+(la fila de pestañas en vez de la burbuja), que PINGU descartó.
+
 ## Tanda 1024 — El azul de Inicio en oscuro y la lateral sin la fila «Inicio» repetida
 
 PINGU, al ver los colores por sección de la 1018 (2026-10-26): «el del

@@ -117,7 +117,7 @@
   .lat .mc-pestania.activa,
   .lat .mc-pestania.activa:hover {
     background: var(--ice);
-    color: var(--navy);
+    color: var(--acento);
     font-weight: 700;
   }
 
@@ -185,9 +185,11 @@
     color: var(--navy);
   }
 
+  /* La página activa, en el color de su sección (1025, PINGU: «aprender
+     tiene por debajo azul y debería ser verde todo»). */
   .lat [aria-current='page'] {
     background: var(--ice);
-    color: var(--navy);
+    color: var(--acento);
     font-weight: 700;
   }
 }

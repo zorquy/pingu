@@ -200,7 +200,7 @@
   position: relative;
   overflow: hidden;
   border-radius: var(--radius-xl);
-  padding: 24px 24px 24px;
+  padding: 16px 20px;
   margin-bottom: 24px;
   color: var(--blanco-fijo);
   background: linear-gradient(120deg, var(--navy-dark), var(--navy) 55%, #3d8ab8);
@@ -235,7 +235,7 @@
 }
 
 .com-podio h2 {
-  margin: 8px 0 16px;
+  margin: 4px 0 12px;
   font-size: var(--t-xl);
 }
 
@@ -315,37 +315,40 @@
   font-size: var(--t-xs);
 }
 
+/* Cada puesto es una FILA en todas las pantallas (1025, D12 de «PokeDoc como
+   app»: en el PC el podio medía 268 px por tres avatares): cara · nombre y
+   XP · medalla. En rejilla (1013, L3) el nombre tiene su fila y no compite
+   con la XP ni con la medalla, que lo dejaban en «Br…». */
+.com-puesto {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'cara nombre medalla' 'cara xp medalla';
+  align-items: center;
+  text-align: left;
+  column-gap: 12px;
+  row-gap: 2px;
+  padding: 12px;
+}
+
+.com-puesto-nombre { grid-area: nombre; }
+.com-puesto-xp { grid-area: xp; }
+
+.com-puesto-cara {
+  grid-area: cara;
+  width: 40px;
+  height: 40px;
+  font-size: var(--t-lg);
+}
+
+.com-puesto-medalla {
+  grid-area: medalla;
+}
+
 @media (max-width: 560px) {
   /* En el móvil, los tres en columna: tres tarjetas de 100px de ancho
      dejan el nombre en «Fulan…» y la XP partida en tres líneas. */
   .com-podio-tres {
     grid-template-columns: minmax(0, 1fr);
-  }
-
-  /* En rejilla (1013, L3): el nombre tiene su fila y no compite con la XP
-     ni con la medalla, que lo dejaban en «Br…». */
-  .com-puesto {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    grid-template-areas: 'cara nombre medalla' 'cara xp medalla';
-    align-items: center;
-    text-align: left;
-    column-gap: 12px;
-    row-gap: 2px;
-  }
-
-  .com-puesto-nombre { grid-area: nombre; }
-  .com-puesto-xp { grid-area: xp; }
-
-  .com-puesto-cara {
-    grid-area: cara;
-    width: 40px;
-    height: 40px;
-    font-size: var(--t-lg);
-  }
-
-  .com-puesto-medalla {
-    grid-area: medalla;
   }
 }
 
