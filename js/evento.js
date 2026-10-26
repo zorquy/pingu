@@ -35,10 +35,15 @@ function guardar(d) {
   try { localStorage.setItem(CLAVE, JSON.stringify(d)) } catch {}
 }
 
+// `user_wants` NO tiene columna `market` (la 624: pedirla rompe la consulta
+// ENTERA, y así salió la primera 1029 en producción): lo que busca alguien
+// se resuelve primero en el occidental y lo que no aparece, en el japonés.
 async function fichas(lineas) {
   const { cartasPorClaves, claveDeCarta } = await import('./mi-coleccion/datos.js')
   const mapa = await cartasPorClaves(lineas)
-  return (l) => mapa.get(claveDeCarta(l.card_id, l.market)) || null
+  const sinFicha = lineas.filter((l) => !l.market && !mapa.has(claveDeCarta(l.card_id, null)))
+  if (sinFicha.length) for (const [k, c] of await cartasPorClaves(sinFicha.map((l) => ({ ...l, market: 'JP' })))) mapa.set(k, c)
+  return (l) => mapa.get(claveDeCarta(l.card_id, l.market)) || mapa.get(claveDeCarta(l.card_id, 'JP')) || null
 }
 
 // Cada fila lleva lo justo para pintarse sin red: nombre, número, la
@@ -54,7 +59,7 @@ async function pedir(sesion) {
   const perfil = await getProfile(sesion.user.id)
   const [{ data: doy, error: e1 }, { data: busco, error: e2 }] = await Promise.all([
     supabase.from('user_collection').select('card_id,market,cambio,idioma').eq('user_id', sesion.user.id).gt('cambio', 0).limit(TOPE),
-    supabase.from('user_wants').select('card_id,market,idioma').eq('user_id', sesion.user.id).limit(TOPE),
+    supabase.from('user_wants').select('card_id,idioma').eq('user_id', sesion.user.id).limit(TOPE),
   ])
   if (e1 || e2) throw e1 || e2
   const cartaDe = await fichas([...(doy || []), ...(busco || [])])
@@ -175,9 +180,11 @@ async function iniciar() {
     guardar(d)
     pintar(d, false)
     void guardarFotos(d)
-  } catch {
+  } catch (err) {
+    // Sin cobertura, lo guardado; y si es otra cosa, se dice cuál (la 510:
+    // un «prueba con cobertura» escondía un 42703 de la base).
     if (guardado) pintar(guardado, true)
-    else $('eventoQr').innerHTML = '<p class="empty-state">No se han podido traer tus listas. Prueba con cobertura.</p>'
+    else $('eventoQr').innerHTML = `<p class="empty-state">No se han podido traer tus listas${navigator.onLine === false ? '. Prueba con cobertura.' : `: ${escapeHtml(err?.message || 'inténtalo en un momento')}`}</p>`
   }
 }
 

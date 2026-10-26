@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (272) — PINGU-Claude (1029b — /evento en producción decía «prueba con cobertura»)
+
+**Hecho**: PINGU abrió /evento y salió «No se han podido traer tus
+listas. Prueba con cobertura» con red. Era la 624: `js/evento.js` pedía
+`card_id,market,idioma` a `user_wants`, que NO tiene `market`, y la
+consulta falló ENTERA (42703); el doble no rechaza columnas que no existen
+y la 1029 salió verde. Ahora pide `card_id,idioma`, resuelve las fichas en
+el occidental y lo que no aparece en el japonés, y el aviso dice el error
+de verdad si hay red (el «prueba con cobertura» solo sin ella). Y la
+prueba 1029 comprueba que las columnas pedidas a `user_wants` están en su
+migración.
+
+**Ficheros**: `js/evento.js`. En `pruebas`: `test-tanda-1029-pantalla.mjs`.
+
+**Pendiente**: lo de la 271.
+```
 ## 2026-10-26 (271) — PINGU-Claude (1031 — «Hacer un álbum» desde La quiero)
 
 **Hecho**: la última de las cuatro del feedback («exportar álbum… que te
