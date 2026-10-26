@@ -796,6 +796,16 @@
   .pie-rejilla { display: none; }
 }
 
+/* ── 1022 (D12): con el teclado fuera (un campo de texto con el foco), la
+   barra y la burbuja se apartan: en un iPhone la barra fija se montaba
+   sobre el campo. Vuelven al soltar el foco. ── */
+@media (max-width: 900px) {
+  html.con-barra-movil body:has(:is(input:not([type='checkbox']):not([type='radio']):not([type='range']), textarea, [contenteditable='true']):focus) :is(.bm, .bm-burbuja, .mc-pestanias) {
+    transform: translateY(150%);
+    transition: transform 0.2s var(--ease);
+  }
+}
+
 /* ── 1019 (A3): el pie del móvil en dos líneas. Las cuatro columnas son lo
    que ya está en la barra de abajo y en la hoja «Tú»; se quedan en el HTML
    (las lee Google) y se esconden. ── */

@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (260) — PINGU-Claude (1022 — partidas en el PC, llamada al curso, medallero, comunidad y pequeños)
+
+**Hecho**: en el PC, una fila por partida en Mis partidas; la llamada al
+curso de una guía se lee (y su botón es el principal); el medallero de
+Aprender no enseña tres ceros; las cifras de La comunidad en el PC no
+parten palabras; «Sigue donde lo dejaste» a dos líneas; y con el teclado
+fuera la barra y la burbuja se apartan. Lo que queda de la lista D12 va
+apuntado en SCHEMA 1022.
+
+**Ficheros**: `css/partidas.css`, `css/guia.css`, `js/aprender.js`,
+`css/comunidad.css`, `css/aprender.css`, `css/movil.css`, `SCHEMA.md`,
+`novedades.json`. En `pruebas`: 865 al día.
+
+**Pruebas**: 1013, 1014, 627, 628, 846, 863, 865, 899, 548, 549 en verde;
+`test-imports` en verde.
+
+**Pendiente**: la migración 1017 (PINGU, SQL Editor); 1023 (toque,
+transiciones, prueba de solapes); lo de siempre.
+
 ## 2026-10-26 (259) — PINGU-Claude (1021 — foro, torneos y constructor)
 
 **Hecho**: el botón rosa flotante del foro se va; «Escribir» va en la

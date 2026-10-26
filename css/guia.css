@@ -420,6 +420,16 @@ a.rater-name:hover {
 
 .guia-cta-curso .subtext {
   margin: 2px 0 0;
+  /* 1022 (D8): components.css lo pintaba con `--ice` (era para el degradado
+     índigo de antes); sobre la tarjeta blanca casi no se veía. */
+  color: var(--text-mid);
+}
+
+/* 1022 (D8): el botón es el principal de verdad (el del color de la
+   sección), no un blanco sobre blanco con el texto azul. */
+.guia-cta-curso .btn-primary {
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 /* Los botones de la cabecera de la guía: Guardar, Compartir y, si la hay,

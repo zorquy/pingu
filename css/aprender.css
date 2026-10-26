@@ -98,6 +98,11 @@
   font-size: var(--t-lg);
   line-height: 1.25;
   overflow: hidden;
+  /* 1022 (D12): el título a dos líneas, no cortado con «…» a una. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

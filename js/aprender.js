@@ -29,12 +29,18 @@ function pintarMedallero(cursosConCurso, medallas) {
   // Una píldora al lado del título (865): las cifras, y el texto entero
   // para quien no ve los colores. Lleva a tus medallas del perfil.
   hueco.setAttribute('aria-label', `Medallero: ${cuenta.oro} ${cuenta.oro === 1 ? 'oro' : 'oros'}, ${cuenta.plata} ${cuenta.plata === 1 ? 'plata' : 'platas'}, ${cuenta.bronce} ${cuenta.bronce === 1 ? 'bronce' : 'bronces'}; ${porJugar === 0 ? 'todos los cursos jugados' : `${porJugar} ${porJugar === 1 ? 'curso' : 'cursos'} por jugar`}`)
-  hueco.innerHTML = `
-    <span class="medallero-titulo">${icons.trophy(14)}</span>
+  // Sin ninguna medalla todavía, tres ceros de colores no dicen nada a
+  // quien acaba de llegar (1022, D9): solo «N cursos por jugar». Las chapas
+  // aparecen con la primera medalla.
+  const sinMedallas = !cuenta.oro && !cuenta.plata && !cuenta.bronce
+  const chapas = sinMedallas ? '' : `
     <span class="medalla-chip medalla-oro">${cuenta.oro}</span>
     <span class="medalla-chip medalla-plata">${cuenta.plata}</span>
-    <span class="medalla-chip medalla-bronce">${cuenta.bronce}</span>
-    <span class="medallero-restante">${porJugar === 0 ? 'todos jugados' : `${porJugar} por jugar`}</span>`
+    <span class="medalla-chip medalla-bronce">${cuenta.bronce}</span>`
+  const restante = porJugar === 0 ? 'todos jugados' : sinMedallas ? `${porJugar} ${porJugar === 1 ? 'curso' : 'cursos'} por jugar` : `${porJugar} por jugar`
+  hueco.innerHTML = `
+    <span class="medallero-titulo">${icons.trophy(14)}</span>${chapas}
+    <span class="medallero-restante">${restante}</span>`
   hueco.classList.remove('hidden')
 }
 

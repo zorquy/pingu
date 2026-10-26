@@ -763,3 +763,42 @@
   .partidas-mandos .partidas-filtrar { min-width: 44px; padding: 0 var(--e-sm); }
   .partidas-mandos .partidas-filtrar .cab-palabra { display: none; }
 }
+
+/* ── 1022 (D7 de «PokeDoc como app»): en el PC, UNA fila por partida ──
+   Cada partida ocupaba 80 px con tres botones de texto y «Dragapult ex vs
+   Gardevoir ex» partido en dos renglones según la fila. Rejilla: mazos ·
+   resultado · dónde · guardado · acciones, y las notas debajo solo cuando
+   las hay. Caben el doble en la pantalla. */
+@media (min-width: 901px) {
+  .partidas-fila {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+    align-items: center;
+    gap: 4px 16px;
+    padding: 8px 16px;
+    margin-bottom: 6px;
+  }
+  .partidas-fila-mazos {
+    flex-wrap: nowrap;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+  .partidas-fila-mazos strong {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .partidas-fila-notas {
+    grid-column: 1 / -1;
+  }
+  .partidas-fila-acciones {
+    margin-left: 0;
+    gap: 4px;
+  }
+  .partidas-fila-acciones .btn-outline,
+  .partidas-fila-acciones .btn-secondary {
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: var(--t-xs);
+  }
+}

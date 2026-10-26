@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "mejora", "texto": "Mis partidas en el ordenador va en filas cortas (caben el doble); la invitación al curso dentro de una guía se lee; Aprender ya no enseña tres ceros antes de tu primera medalla; y en el móvil la barra de abajo se aparta mientras escribes.", "enlace": "/mis-partidas" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "El botón de escribir del foro va en la cabecera y ya no tapa nada. En Torneos, los mandos caben en una fila (el calendario es un icono en el móvil) y en el constructor Guardar y sus botones van arriba, bajo las pestañas, en vez de apilados sobre las cartas.", "enlace": "/torneos" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "Mi colección en el móvil: las acciones del Panel en cuatro losetas iguales y sin el hueco al final; dentro de una expansión, la tira del set en una línea y el check de «la tienes» pequeño en la esquina, sin tapar el dibujo; en Cartas, el buscador y el orden en una fila.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, al abrir una guía, un tema del foro o un torneo, la barra de arriba es la de una app: volver, de dónde vienes y compartir, y el título sube a la barra al bajar. El pie es más corto y los datos de un torneo van en dos columnas.", "enlace": "/foro" },

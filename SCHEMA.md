@@ -41785,6 +41785,44 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1022 — Mis partidas en el PC, la llamada al curso, el medallero, la comunidad y lo pequeño (D7, D8, D9, D11 y D12 de «PokeDoc como app»)
+
+**D7, Mis partidas en el PC.** Cada partida ocupaba 80 px con tres botones
+de texto y «Dragapult ex vs Gardevoir ex» partido en dos renglones según la
+fila. Desde 901 px, `.partidas-fila` es una rejilla (mazos · resultado ·
+dónde · guardado · acciones), los mazos en una línea cortada con puntos, los
+botones a 36 px y las notas debajo (`grid-column: 1 / -1`) solo cuando las
+hay. Caben el doble.
+
+**D8, la llamada al curso dentro de una guía.** «Preguntas, racha y medalla
+· 14 min» iba en `--ice` sobre la tarjeta blanca (la regla de
+`components.css` era para el degradado índigo de antes de la 1014): casi no
+se veía. En `guia.css` va en `--text-mid`, y el botón «Hacer el curso» es el
+principal de verdad (el color de la sección) en vez de blanco sobre blanco.
+
+**D9, el medallero de Aprender.** «0 0 0 · 7 por jugar» no dice nada a quien
+acaba de llegar. Sin ninguna medalla, `pintarMedallero` pinta solo «7 cursos
+por jugar»; las tres chapas aparecen con la primera medalla. La etiqueta para
+quien escucha sigue diciendo las cifras.
+
+**D11, la comunidad en el PC.** `.com-cifra span { display: block }` también
+alcanzaba al `.cab-largo` de DENTRO del span, y lo partía en otra línea:
+«rachas / vivas / hoy». Ahora `> span` es bloque y `> span > span` es
+`inline`.
+
+**D12.** «Sigue donde lo dejaste» (Aprender y Mis mazos) va a dos líneas
+(`-webkit-line-clamp: 2`) en vez de cortado a una. Y con el teclado fuera en
+el móvil (un campo de texto con el foco) la barra, la burbuja y la de Mi
+colección se apartan (`transform: translateY(150%)`), que en un iPhone la
+barra fija se montaba sobre el campo. Lo que quedaba de la lista y NO se ha
+hecho: el perfil con cinco cifras y tres pestañas, la lista de hermanos del
+PC pegada a la cabecera del set, el podio de 268 px, las fotos de Noticias y
+los bordes de Ajustes; el hueco del pie en páginas cortas ya lo cubría la
+312/981.
+
+Pruebas: 1013, 1014, 627, 628, 846, 863, 899, 548, 549 en verde; 865 al día
+(sin ceros).
+
 ## Tanda 1021 — El foro, los torneos y el constructor (D4, D5 y D6 de «PokeDoc como app»)
 
 **D4, el botón de escribir del foro.** El botón rosa flotante (748, 813)

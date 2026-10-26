@@ -59,12 +59,17 @@
   line-height: 1.1;
 }
 
-.com-cifra span {
+.com-cifra > span {
   display: block;
   color: var(--text-mid);
   font-size: var(--t-xs);
   line-height: 1.35;
   text-align: center;
+}
+/* 1022 (D11): el trozo largo («en el foro», «vivas») es un span DENTRO del
+   span, y `display: block` lo partía en otra línea: «rachas / vivas / hoy». */
+.com-cifra > span > span {
+  display: inline;
 }
 
 /* ── Las pestañas, como chips ──
@@ -787,7 +792,7 @@
     border-bottom: 0;
   }
   .com-cifra b { font-size: var(--t-lg); }
-  .com-cifra span { font-size: var(--t-2xs); }
+  .com-cifra > span { font-size: var(--t-2xs); }
   /* `display: block` del span de arriba le gana al `cab-largo` común. */
   .com-cifra .cab-largo { display: none; }
 }
