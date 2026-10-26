@@ -23,11 +23,16 @@
 //
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_VERSIONES_AHORA.
-import { cabeceras, baseDe, baseJpDe, urlCartasPorIds, POR_LOTE_DE_IDS, filaDeIdiomasDeVersion, esLimiteDelPlan } from '../lib/tcggo.mjs'
+import { cabeceras, baseDe, baseJpDe, POR_LOTE_DE_IDS, filaDeIdiomasDeVersion, pedirCartasPorIds } from '../lib/tcggo.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_versiones_ahora'
 export const TOPE_DIARIO = 1500
+// Sube cuando cambia lo que se pide: el día se vuelve a mirar (la 2 trae la
+// repesca una a una de las versiones que el lote se calla).
+export const VERSION_FRENO = 2
+// Una versión que ni el lote ni «Get card» devuelven se intenta dos veces al día.
+export const INTENTOS_POR_DIA = 2
 const ID_VALIDO = /^[a-z0-9][a-z0-9._-]{0,60}$/i
 export const COLUMNAS = 'tcggo_id,market,card_id,set_id,etiqueta,origen,cm_id_product,link_cm,cm_low,cm_low_en,cm_low_de,cm_low_fr,cm_low_es,cm_low_it,cm_low_ja,cm_avg7,cm_avg30,cm_disponibles,tp_market_eur,tp_mid_eur,actualizado_at'
 
@@ -81,42 +86,39 @@ export async function procesar({
   let estado
   try { estado = await leerEstado() } catch { estado = {} }
   estado = estado && typeof estado === 'object' ? estado : {}
-  if (estado.dia !== dia) estado = { dia, peticiones: 0, hechas: [] }
+  if (estado.dia !== dia || estado.version !== VERSION_FRENO) estado = { dia, version: VERSION_FRENO, peticiones: 0, hechas: [], fallidas: {} }
   if (!Array.isArray(estado.hechas)) estado.hechas = []
+  if (!estado.fallidas || typeof estado.fallidas !== 'object') estado.fallidas = {}
   // Los frenos de TODO el día van antes que el de esta carta: el motivo que
   // se cuenta es el que de verdad impide pedir.
   if (estado.planBloqueado === dia) return { estado: 200, cuerpo: { filas, pedido: false, porque: 'el plan de TCGGO no da más por hoy' } }
   const tope = Math.max(1, Number(env.TCGGO_TOPE_VERSIONES_AHORA) || TOPE_DIARIO)
   if (estado.peticiones >= tope) return { estado: 200, cuerpo: { filas, pedido: false, porque: `tope diario (${tope}) alcanzado` } }
   const hechas = new Set(estado.hechas.map(Number))
-  const ids = suyas.map((f) => Number(f.tcggo_id)).filter((x) => !hechas.has(x)).slice(0, POR_LOTE_DE_IDS)
+  const ids = suyas.map((f) => Number(f.tcggo_id)).filter((x) => !hechas.has(x) && (Number(estado.fallidas[x]) || 0) < INTENTOS_POR_DIA).slice(0, POR_LOTE_DE_IDS)
   if (!ids.length) return { estado: 200, cuerpo: { filas, pedido: false, porque: 'pedidas hoy' } }
-  estado.peticiones++
-  // Se apuntan ANTES de pedir (la 665: lo que se dispara se apaga antes):
-  // una respuesta rara no puede volver a gastar cada vez que se abre la ficha.
-  estado.hechas.push(...ids)
-  if (estado.hechas.length > 20000) estado.hechas = estado.hechas.slice(-20000)
+  // Se apunta ANTES de pedir (la 665: lo que se dispara se apaga antes): lo
+  // peor que puede gastar esta ficha es el lote más una repesca por id, y
+  // después se ajusta a lo gastado de verdad. Lo que no conteste cuenta como
+  // intento fallido, no como hecho: el lote se calla las versiones (1028c).
+  const reservadas = 1 + ids.length
+  estado.peticiones += reservadas
+  for (const id of ids) estado.fallidas[id] = (Number(estado.fallidas[id]) || 0) + 1
   try { await guardarEstado(estado) } catch { /* el contador es un freno, no un dato */ }
 
   const { base, host } = baseDe(env)
-  const res = await fetchImpl(urlCartasPorIds(ids, mercado === 'JP' ? baseJpDe(base) : base), { headers: cabeceras(env.TCGGO_API_KEY, host) })
-  const texto = await res.text()
-  if (!res.ok) {
-    if (esLimiteDelPlan(res.status, texto)) {
-      estado.planBloqueado = dia
-      try { await guardarEstado(estado) } catch { /* igual */ }
-      return { estado: 200, cuerpo: { filas, pedido: true, porque: 'el plan de TCGGO no da más por hoy' } }
-    }
-    return { estado: 200, cuerpo: { filas, pedido: true, porque: `TCGGO ${res.status}` } }
+  const r = await pedirCartasPorIds({ ids, base: mercado === 'JP' ? baseJpDe(base) : base, headers: cabeceras(env.TCGGO_API_KEY, host), fetchImpl })
+  estado.peticiones -= reservadas - r.peticiones
+  for (const c of r.cartas) { estado.hechas.push(Number(c.id)); delete estado.fallidas[Number(c.id)] }
+  if (estado.hechas.length > 20000) estado.hechas = estado.hechas.slice(-20000)
+  if (r.limite) {
+    estado.planBloqueado = dia
+    try { await guardarEstado(estado) } catch { /* igual */ }
+    if (!r.cartas.length) return { estado: 200, cuerpo: { filas, pedido: true, porque: 'el plan de TCGGO no da más por hoy' } }
   }
-  let cartas
-  try { cartas = JSON.parse(texto)?.data } catch { cartas = null }
-  if (!Array.isArray(cartas)) return { estado: 200, cuerpo: { filas, pedido: true, porque: 'TCGGO ha contestado algo que no es JSON' } }
-  const nuevas = []
-  for (const c of cartas) {
-    if (!ids.includes(Number(c?.id))) continue
-    nuevas.push(filaDeIdiomasDeVersion(c, { cardId, market: mercado, ahora }))
-  }
+  try { await guardarEstado(estado) } catch { /* igual */ }
+  if (r.error && !r.cartas.length) return { estado: 200, cuerpo: { filas, pedido: true, porque: `TCGGO ${r.error.status}: ${r.error.texto.slice(0, 80)}` } }
+  const nuevas = r.cartas.map((c) => filaDeIdiomasDeVersion(c, { cardId, market: mercado, ahora }))
   try {
     if (nuevas.length) await guardar(nuevas)
   } catch (e) {
@@ -124,7 +126,7 @@ export async function procesar({
   }
   // Lo guardado, tal como queda (con la etiqueta y lo demás que no se tocó).
   try { filas = (await leerFilas()) || filas } catch { /* se sirve lo de antes */ }
-  return { estado: 200, cuerpo: { filas, pedido: true, nuevas: nuevas.length } }
+  return { estado: 200, cuerpo: { filas, pedido: true, nuevas: nuevas.length, peticiones: r.peticiones, ...(r.sinRespuesta.length ? { sinRespuesta: r.sinRespuesta } : {}) } }
 }
 
 export default async (req) => {

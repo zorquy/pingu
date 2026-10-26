@@ -948,6 +948,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   llaman el pop-up y /carta (`carta-mercado.js`, que pinta por SU camino:
   la primera 1028 no le llegó). Si pintas el precio de una versión en otra
   pantalla, pasa por `precioDeLinea` con la fila entera, y pide igual.
+  **Y el lote por ids (`/cards?ids=`) SE CALLA las versiones** (1028c,
+  con la respuesta real): devuelve las cartas principales y no la Reverse
+  39644, que «Get card» (`/cards/{id}`) sí da. Todo lo que pida versiones por
+  lote pasa por `pedirCartasPorIds` (repesca una a una lo que no vuelve, cada
+  una cuenta), y lo que no contesta NO se da por hecho: la 929 lo daba, y
+  ninguna versión tuvo nunca precio por idioma, sin error.
 - **El HISTÓRICO de precios se pide A DEMANDA, y lo demás lo escribe la
   pasada de precios** (tanda 643). TCGGO da la serie de una carta en una
   petición, así que pedirla para las 20.000 es imposible: `tcggo-historial`

@@ -24,7 +24,7 @@
 //
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_IDIOMAS, TCGGO_PAUSA_MS.
-import { cabeceras, baseDe, baseJpDe, urlCartasPorIds, POR_LOTE_DE_IDS, filaDeIdiomasDeVersion, esLimiteDelPlan } from '../lib/tcggo.mjs'
+import { cabeceras, baseDe, baseJpDe, POR_LOTE_DE_IDS, filaDeIdiomasDeVersion, pedirCartasPorIds } from '../lib/tcggo.mjs'
 import { varianteDeEtiqueta } from '../../js/mi-coleccion/variantes.js'
 import { PAUSA_MS } from './tcggo-emparejar.mjs'
 
@@ -148,31 +148,30 @@ export async function procesar({
     if (!quedaTiempo() || estado.gasto >= topeDiario) break
     if (pedidas) await pausa(pausaMs)
     pedidas++
-    estado.gasto++
-    let res
-    let texto = ''
+    // El lote más la repesca una a una de lo que se calle (1028c: el lote
+    // no devuelve las versiones, «Get card» sí). Se reserva lo peor antes de
+    // pedir y se ajusta después.
+    const reservadas = 1 + lote.ids.length
+    estado.gasto += reservadas
+    let r
     try {
-      res = await fetchImpl(urlCartasPorIds(lote.ids, bases[lote.mercado]), { headers: cabeceras(claveTcggo, host) })
-      texto = await res.text()
+      r = await pedirCartasPorIds({ ids: lote.ids, base: bases[lote.mercado], headers: cabeceras(claveTcggo, host), fetchImpl })
     } catch (e) {
-      res = null
-      texto = String(e?.message || e)
+      r = { cartas: [], peticiones: 1, limite: null, error: { status: 'red', texto: String(e?.message || e) }, sinRespuesta: lote.ids }
     }
-    if (res && esLimiteDelPlan(res.status, texto)) {
-      estado.planBloqueado = { dia, motivo: `TCGGO ${res.status}: ${texto.slice(0, 120)}` }
+    estado.gasto -= reservadas - r.peticiones
+    if (r.limite) {
+      estado.planBloqueado = { dia, motivo: `TCGGO ${r.limite.status}: ${r.limite.texto.slice(0, 120)}` }
       await persistir()
       return { ok: true, saltado: estado.planBloqueado.motivo }
     }
-    let cartas = null
-    if (res?.ok) {
-      try { cartas = JSON.parse(texto)?.data } catch { cartas = null }
-    }
-    if (!Array.isArray(cartas)) {
+    const cartas = r.cartas
+    if (r.error) {
       // El fallo es SUYO: el lote se reintenta y a la tercera se salta hoy.
       const k = lote.ids.join(',')
       estado.fallos[k] = (Number(estado.fallos[k]) || 0) + 1
       if (estado.fallos[k] >= FALLOS_PARA_SALTAR) estado.saltar.push(...lote.ids)
-      estado.ultimoError = { fecha: ahora.toISOString(), donde: 'TCGGO', error: `${res ? res.status : 'red'}: ${texto.slice(0, 160)}` }
+      estado.ultimoError = { fecha: ahora.toISOString(), donde: 'TCGGO', error: `${r.error.status}: ${String(r.error.texto).slice(0, 160)}` }
       continue
     }
     const porId = new Map(versiones.map((v) => [v.tcggo_id, v]))
@@ -193,8 +192,8 @@ export async function procesar({
       }
     }
     estado.escritas += filas.length
-    // Las del lote que TCGGO no ha devuelto cuentan como hechas: pedirlas
-    // otra vez hoy contestaría lo mismo.
+    // Las del lote que ni el lote ni «Get card» han devuelto cuentan como
+    // hechas: pedirlas otra vez hoy contestaría lo mismo.
     estado.hechos.push(...lote.ids)
   }
   await persistir()

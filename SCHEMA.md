@@ -41919,6 +41919,25 @@ producto pasa `link_cm` como `cm_url`, como en `precioDeLinea`. Dos
 pantallas pintan la misma carta (998): lo que se arregle en el precio de una
 versión tiene que pasar por las dos, y la prueba de pantalla abre las dos.
 
+**1028c — el lote por ids se CALLA las versiones** (PINGU pegó la
+respuesta de la función: pidió 6545 y 39644, la Standard volvió con todo y la
+Reverse no; y luego pegó «Get card» de la 39644, que SÍ la da con ES 25 €
+y `cardmarket_id` 483579, el mismo producto que la Standard). O sea:
+`/cards?ids=` devuelve las cartas principales y se calla las versiones, y
+«Get card» (`/cards/{id}`) las devuelve. Era el agujero de la 929 también:
+`tcggo-versiones-idioma` pedía las versiones por lote y las daba por hechas
+cuando no volvían («pedirlas otra vez contestaría lo mismo»), así que NINGUNA
+versión tuvo nunca precio por idioma, sin error. Desde la 1028c el lote va
+por `pedirCartasPorIds` (`netlify/lib/tcggo.mjs`): un lote y, para lo que
+no vuelve, una petición «Get card» por id (acotada por `maxSueltas`, cada una
+cuenta; un 404 se salta; el plan para la repesca). Las dos funciones lo usan.
+En `tcggo-versiones-ahora`, hechas solo las que CONTESTAN; las que no, un
+intento más ese día (`INTENTOS_POR_DIA = 2`, `fallidas`); el gasto se
+reserva por lo peor antes de pedir (`1 + ids`) y se ajusta después; y
+`VERSION_FRENO = 2` vuelve a mirar hoy las que la primera 1028 dejó
+apuntadas como hechas sin contestar. El fixture del caso es la respuesta
+real de PINGU (`fixtures/tcggo-carta-39644-1028.json`).
+
 **Lo que NO hace**: no toca las ediciones de Wizards ni las versiones de
 TCGdex (su precio llega por su producto, 935 y 945) ni las a mano. La
 migración no hace falta: `cm_id_product` ya existía en `tcg_card_versions`

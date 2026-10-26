@@ -975,6 +975,49 @@ export const urlCarta = (id, base = URL_BASE) => `${base}/cards/${id}`
 
 // La carta de una respuesta de «Get card»: `{ data: {…} }`, o la carta a
 // pelo si algún día cambia el envoltorio. Lo que no es una carta, null.
+// EL LOTE POR IDS NO DEVUELVE LAS VERSIONES (1028c, con la respuesta real
+// del Lugia 140 de Darkness Ablaze que pegó PINGU): `/cards?ids=6545,39644`
+// contesta la Standard y se calla la Reverse (39644), que SÍ contesta «Get
+// card» (`/cards/39644`), con sus idiomas y su producto. Así que el lote se
+// pide una vez y lo que no vuelve se repesca una a una (cada una cuenta como
+// petición; `maxSueltas` acota). Devuelve las cartas que han contestado, las
+// peticiones gastadas, `limite` si el plan ha dicho que no (lo que quede sin
+// pedir se queda) y `sinRespuesta` (las que ni el lote ni «Get card» dan).
+export async function pedirCartasPorIds({ ids, base = URL_BASE, headers = {}, fetchImpl = fetch, maxSueltas = POR_LOTE_DE_IDS } = {}) {
+  const pedidos = [...new Set((ids || []).map(Number).filter((n) => Number.isInteger(n) && n > 0))].slice(0, POR_LOTE_DE_IDS)
+  const cartas = []
+  let peticiones = 0
+  const leer = async (url) => {
+    const res = await fetchImpl(url, { headers })
+    peticiones++
+    const texto = await res.text()
+    return { res, texto }
+  }
+  if (!pedidos.length) return { cartas, peticiones, limite: null, error: null, sinRespuesta: [] }
+  const lote = await leer(urlCartasPorIds(pedidos, base))
+  if (!lote.res.ok) {
+    const fallo = { status: lote.res.status, texto: lote.texto.slice(0, 200) }
+    return esLimiteDelPlan(lote.res.status, lote.texto) ? { cartas, peticiones, limite: fallo, error: null, sinRespuesta: pedidos } : { cartas, peticiones, limite: null, error: fallo, sinRespuesta: pedidos }
+  }
+  let datos
+  try { datos = JSON.parse(lote.texto)?.data } catch { datos = null }
+  if (!Array.isArray(datos)) return { cartas, peticiones, limite: null, error: { status: lote.res.status, texto: 'TCGGO ha contestado algo que no es JSON' }, sinRespuesta: pedidos }
+  for (const c of datos) if (pedidos.includes(Number(c?.id)) && !cartas.some((x) => Number(x.id) === Number(c.id))) cartas.push(c)
+  let limite = null
+  const faltan = pedidos.filter((id) => !cartas.some((c) => Number(c.id) === id)).slice(0, Math.max(0, maxSueltas))
+  for (const id of faltan) {
+    const una = await leer(urlCarta(id, base))
+    if (!una.res.ok) {
+      if (esLimiteDelPlan(una.res.status, una.texto)) { limite = { status: una.res.status, texto: una.texto.slice(0, 200) }; break }
+      continue
+    }
+    let c = null
+    try { c = cartaDeRespuesta(JSON.parse(una.texto)) } catch { c = null }
+    if (c && Number(c.id) === id) cartas.push(c)
+  }
+  return { cartas, peticiones, limite, error: null, sinRespuesta: pedidos.filter((id) => !cartas.some((c) => Number(c.id) === id)) }
+}
+
 export function cartaDeRespuesta(r) {
   const c = r && typeof r === 'object' && r.data && typeof r.data === 'object' && !Array.isArray(r.data) ? r.data : r
   return c && typeof c === 'object' && Number.isInteger(c.id) && c.id > 0 ? c : null

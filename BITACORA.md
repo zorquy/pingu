@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (268) — PINGU-Claude (1028c — el lote por ids de TCGGO se calla las versiones)
+
+**Hecho**: lo del Lugia, de verdad esta vez. Con la respuesta de la
+función y el «Get card» que pegó PINGU: `/cards?ids=` devuelve la carta
+principal y SE CALLA las versiones (la Reverse 39644), que sí da
+`/cards/{id}`. Era también el agujero de la 929: la pasada de idiomas de
+las versiones nunca escribió ninguna. Ahora el lote repesca una a una lo
+que no vuelve (`pedirCartasPorIds`, en las dos funciones), lo que no
+contesta no se da por hecho (dos intentos al día) y el freno sube de
+versión para volver a mirar hoy lo que la primera 1028 apuntó mal.
+
+**PINGU**: en cuanto despliegue, abre
+`/.netlify/functions/tcggo-versiones-ahora?card=swsh3-140&market=WEST`:
+tiene que decir `pedido: true, nuevas: 2, peticiones: 2` y la Reverse con
+`cm_low_es: 25` y `cm_id_product: 483579`. Y luego /carta del Lugia.
+
+**Ficheros**: `netlify/lib/tcggo.mjs`,
+`netlify/functions/tcggo-versiones-ahora.mjs`,
+`netlify/functions/tcggo-versiones-idioma.mjs`, `SCHEMA.md` (1028c),
+`CLAUDE.md`. En `pruebas`: `test-tanda-1028.mjs` y el fixture real
+`fixtures/tcggo-carta-39644-1028.json`.
+
+**Pendiente**: la propuesta con maquetas del feedback de la gente (modo
+evento, compartir deseos en imagen, álbum desde deseos, editar álbumes).
+
 ## 2026-10-26 (267) — PINGU-Claude (1027 — la edición gemela de una expansión: japonesa ↔ occidental)
 
 **Hecho**: la propuesta aprobada. Cada expansión con gemela en el otro
