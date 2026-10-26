@@ -135,6 +135,8 @@ console.log('\n── 3. /mis-partidas: desde una repetición, con tu mazo guard
 {
   const { page, errores } = await misPartidas()
   check('la apuntada enseña su mazo guardado, con enlace al constructor', (await page.getAttribute('.partidas-fila-guardado a', 'href')) === '/constructor?mazo=mazo-2' && /Pikachu de pruebas/.test(await page.textContent('.partidas-fila-guardado')))
+  // Desde la 1040 «Desde una repetición» vive dentro de «Apuntar una partida».
+  await page.click('#btnApuntarPartida')
   await page.click('#btnDesdeRepeticion')
   const opciones = await page.$$eval('#desdeRepSel option', (xs) => xs.map((x) => x.value))
   check('ofrece tus repeticiones SIN apuntar, la más nueva primero', opciones.join(',') === 'rep0000002,rep0000001', opciones.join(','))

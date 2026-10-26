@@ -66,7 +66,7 @@ async function abrir(ruta, { movil = false, doy = true } = {}) {
   await page.waitForTimeout(2200)
   return { ctx, page, errores }
 }
-const seg = (page, panel) => page.$$eval(`#${panel} .mc-deseos-seg [data-deseos-vista]`, (bs) => bs.map((b) => `${b.querySelector('span:not(.mc-deseos-n)').textContent.trim()}${b.getAttribute('aria-pressed') === 'true' ? '*' : ''}`))
+const seg = (page, panel) => page.$$eval(`#${panel} .mc-deseos-seg [data-deseos-vista]`, (bs) => bs.map((b) => `${(b.querySelector('.mc-q-largo') || b.querySelector('span:not(.mc-deseos-n)')).textContent.trim()}${b.getAttribute('aria-pressed') === 'true' ? '*' : ''}`))
 
 console.log('── 2. Una pantalla, tres vistas ──')
 {
@@ -108,7 +108,8 @@ console.log('── 3. Sin nada que dar, y en el iPhone ──')
   await page.click('#mcPanelQuiero [data-deseos-vista="doy"]')
   await page.waitForTimeout(700)
   check('sin nada a cambio, lo dice y ofrece «Poner más para cambio» (772)', /Todavía no das ninguna/.test(await page.textContent('#mcDoyPanel')) && (await page.locator('#mcDoyPanel #mcDoyPoner').count()) === 1)
-  const s = await page.$$eval('#mcPanelQuiero .mc-deseos-seg .seg-btn', (bs) => bs.map((b) => Math.round(b.getBoundingClientRect().height)))
+  // 36 a la vista y 44 con la franja del ::after (1038).
+  const s = await page.$$eval('#mcPanelQuiero .mc-deseos-seg .seg-btn', (bs) => bs.map((b) => { const a = getComputedStyle(b, '::after'); return Math.round(b.getBoundingClientRect().height + (a.position === 'absolute' ? -parseFloat(a.top) - parseFloat(a.bottom) : 0)) }))
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
   check('el selector, a lo ancho y de 44', s.length === 4 && s.every((h) => h >= 44) && ancho <= 1, JSON.stringify({ s, ancho }))
   if (CAPS) await page.screenshot({ path: `${CAPS}/763-movil.png` })

@@ -52,25 +52,18 @@ console.log('── FO1. El índice ──')
 {
   const { page, ctx, errores } = await abrir('/foro.html', { movil: true })
   check('[móvil] sin errores', errores.length === 0, errores.join(' | '))
-  const chips = await page.$$eval('.foro-chips-secciones [data-seccion]', (bs) => bs.map((b) => [b.textContent.trim(), b.getAttribute('aria-pressed')]))
-  check('[móvil] chips: Todo y una por sección, «Todo» puesto', chips.map((c) => c[0]).join('|') === 'Todo|Comunidad|Juego' && chips[0][1] === 'true', JSON.stringify(chips))
+  // 1040: sin chips de sección; en el teléfono cada foro es una fila a lo ancho.
+  check('[móvil] sin chips de sección (1040)', (await page.locator('.foro-chips-secciones').count()) === 0)
   const rejilla = await page.$eval('.foro-seccion[data-seccion="s1"]', (s) => {
     const fs = [...s.querySelectorAll('.foro-fila')].map((f) => f.getBoundingClientRect())
-    return { cols: getComputedStyle(s).gridTemplateColumns.split(' ').length, mismaFila: Math.abs(fs[0].top - fs[1].top) < 2, ancho: fs[0].width }
+    return { cols: getComputedStyle(s).gridTemplateColumns.split(' ').length, ancho: Math.round(fs[0].width), alto: Math.round(fs[0].height) }
   })
-  check('[móvil] los foros en baldosas de dos en dos', rejilla.cols === 2 && rejilla.mismaFila, JSON.stringify(rejilla))
+  check('[móvil] los foros en filas de una columna (1040)', rejilla.cols === 1 && rejilla.alto <= 72, JSON.stringify(rejilla))
   const resumen = await page.$$eval('.foro-fila', (fs) => fs.map((f) => [f.querySelector('h3 a').textContent.trim(), f.querySelector('.foro-fila-resumen')?.textContent.trim(), getComputedStyle(f.querySelector('.foro-fila-icono')).backgroundColor]))
   const reglas = resumen.find((r) => r[0] === 'Dudas de reglas')
   const col = resumen.find((r) => r[0] === 'Tu colección')
   check('[móvil] «N temas · hace…» y «Sé el primero» en el que no tiene', /^\d+ temas? · /.test(reglas?.[1] || '') && col?.[1] === 'Sé el primero', JSON.stringify(resumen))
   check('[móvil] cada baldosa con su color', new Set(resumen.map((r) => r[2])).size === resumen.length, JSON.stringify(resumen.map((r) => r[2])))
-  await page.click('.foro-chips-secciones [data-seccion="s2"]')
-  await page.waitForTimeout(150)
-  const tras = { comunidad: await visibles(page, '.foro-seccion[data-seccion="s1"]'), juego: await visibles(page, '.foro-seccion[data-seccion="s2"]'), puesto: await page.getAttribute('.foro-chips-secciones [data-seccion="s2"]', 'aria-pressed') }
-  check('[móvil] tocar «Juego» deja solo Juego', tras.comunidad === 0 && tras.juego === 1 && tras.puesto === 'true', JSON.stringify(tras))
-  await page.click('.foro-chips-secciones [data-seccion=""]')
-  await page.waitForTimeout(150)
-  check('  …y «Todo» las vuelve a enseñar', (await visibles(page, 'section.foro-seccion[data-seccion]')) === 2)
   const r = await page.evaluate(() => ({ ancho: document.documentElement.scrollWidth, ventana: innerWidth }))
   check('[móvil] la página no se sale de ancho', r.ancho <= r.ventana, JSON.stringify(r))
   await ctx.close()

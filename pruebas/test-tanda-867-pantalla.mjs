@@ -145,7 +145,8 @@ console.log('── 4. En el iPhone ──')
   const { page, ctx, errores } = await abrir('/perfil.html', { movil: true })
   check('sin errores', errores.length === 0, errores.join(' | '))
   const m = await estado(page)
-  const toca = await page.evaluate(() => [...document.querySelectorAll('#profileTabs .tab-btn, .perfil-cifras .perfil-cifra')].map((b) => Math.round(b.getBoundingClientRect().height)))
+  // Desde la 1038 las pestañas miden 36 a la vista y llegan a 44 con su franja (::after).
+  const toca = await page.evaluate(() => [...document.querySelectorAll('#profileTabs .tab-btn, .perfil-cifras .perfil-cifra')].map((b) => { const a = getComputedStyle(b, '::after'); const f = a.position === 'absolute' ? -parseFloat(a.top) - parseFloat(a.bottom) : 0; return Math.round(b.getBoundingClientRect().height + (f || 0)) }))
   check('la fila de pestañas y las cifras, de 44 px; sin desbordar', m.unaFila && toca.every((h) => h >= 44) && (await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1)), JSON.stringify(toca))
   await ctx.close()
 }

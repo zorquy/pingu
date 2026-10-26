@@ -267,7 +267,8 @@ console.log('── 6. En el móvil ──')
   const m = await abrir({ movil: true })
   const { page } = m
   const r = await page.evaluate(() => {
-    const caja = (id) => { const b = document.getElementById(id).getBoundingClientRect(); return { t: Math.round(b.top), b: Math.round(b.bottom), l: Math.round(b.left), r: Math.round(b.right) } }
+    // La franja del ::after (1038) cuenta para el dedo: 36 a la vista, 44 al tocar.
+    const caja = (id) => { const e = document.getElementById(id); const b = e.getBoundingClientRect(); const a = getComputedStyle(e, '::after'); const f = a.position === 'absolute' ? (-parseFloat(a.top) || 0) : 0; return { t: Math.round(b.top - f), b: Math.round(b.bottom + f), l: Math.round(b.left), r: Math.round(b.right) } }
     return { buscar: caja('mcAlbumBuscar'), vista: caja('mcAlbumVista'), apilar: caja('mcVistaVariantes'), filtros: caja('mcAlbumAbrirFiltros'), ancho: innerWidth, desborda: document.documentElement.scrollWidth > innerWidth }
   })
   check('el buscador encima y los tres mandos debajo, en una fila', r.buscar.b <= r.vista.t && Math.abs(r.vista.t - r.apilar.t) < 4 && Math.abs(r.apilar.t - r.filtros.t) < 4, JSON.stringify(r))

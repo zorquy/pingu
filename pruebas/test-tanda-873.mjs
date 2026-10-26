@@ -73,7 +73,7 @@ console.log('── 5. La vitrina ──')
   check('mi vitrina, una línea por carta con su set y el enlace al perfil', textoDeVitrina({ cartas, usuario: 'ash' }) === '🖼️ Mi vitrina en PokeDoc (@ash)\n· Pikachu (Duelos Primigenios)\n· Eevee\npokedoc.es/usuario/ash')
   check('  …sin usuario, el enlace es la web', textoDeVitrina({ cartas: [] }).endsWith('\npokedoc.es'))
   const v = leer('js/vitrina.js')
-  check('vitrina.js: «Compartir» solo en la tuya con cartas, por import()', /propia && cartas\.length \? `<button type="button" class="link-btn vitrina-compartir" data-vitrina-compartir>/.test(v) && /import\('\.\/vitrina-imagen\.js'\)/.test(v))
+  check('vitrina.js: «Compartir» solo en la tuya con cartas, por import()', /propia && cartas\.length \? `<button type="button" class="link-btn vitrina-compartir" data-vitrina-compartir aria-label="Compartir la vitrina">/.test(v) && /import\('\.\/vitrina-imagen\.js'\)/.test(v))
   check('  …y /perfil le pasa el nombre de usuario', /usuario: currentProfile\?\.username \|\| ''/.test(leer('js/perfil.js')))
 }
 
