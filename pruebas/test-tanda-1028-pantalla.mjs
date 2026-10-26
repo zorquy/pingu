@@ -74,6 +74,28 @@ console.log('\n── 3. Sin cuenta, desde el catálogo: la lista de versiones s
   await ctx.close()
 }
 
+console.log('\n── 4. /carta pinta por su camino (carta-mercado.js) y pide igual (1028b) ──')
+{
+  const abrirCarta = async ({ funcion }) => {
+    const r = await abrir('/carta.html?id=swsh3-140', { funcion })
+    await r.page.waitForFunction(() => document.querySelector('#cmPrecios .pv-tarjeta'), null, { timeout: 10000 }).catch(() => {})
+    await r.page.click('#cmPrecios .pv-impresion[data-variante="reverse"]')
+    await r.page.waitForTimeout(600)
+    const t = await r.page.evaluate(() => { const a = document.querySelector('#cmPrecios .pv-tarjeta-tuya'); return a ? { texto: a.textContent.replace(/\s+/g, ' ').trim(), href: a.getAttribute('href') } : null })
+    const chip = await r.page.evaluate(() => document.querySelector('#cmPrecios .pv-impresion[data-variante="reverse"]')?.textContent.replace(/\s+/g, ' ').trim())
+    return { ...r, t, chip }
+  }
+  const a = await abrirCarta({ funcion: true })
+  check('sin errores', a.errores.length === 0, a.errores.join(' | '))
+  check('/carta pide los precios por idioma de las versiones (una vez)', a.pedidas.length === 1 && /card=swsh3-140&market=WEST/.test(a.pedidas[0]), a.pedidas.join())
+  check('  …la Reverse pasa a 25,00 € en español, con el enlace exacto a esa versión', a.t && /25,00 €/.test(a.t.texto) && /idProduct=877413/.test(a.t.href) && /isReverseHolo=Y/.test(a.t.href) && /language=4/.test(a.t.href), JSON.stringify(a.t))
+  check('  …y la chapa de la impresión también', /Reverse/i.test(a.chip || '') && /25,00\s?€/.test(a.chip || ''), a.chip)
+  await a.ctx.close()
+  const b2 = await abrirCarta({ funcion: false })
+  check('sin la función, /carta enlaza al enlace de TCGGO a esa versión, no a una búsqueda', b2.t && /0,10 €/.test(b2.t.texto) && b2.t.href === 'https://www.tcggo.com/external/cm/35162', JSON.stringify(b2.t))
+  await b2.ctx.close()
+}
+
 await b.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')
 process.exit(fails ? 1 : 0)
