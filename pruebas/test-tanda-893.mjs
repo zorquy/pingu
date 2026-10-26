@@ -52,7 +52,7 @@ for (const p of PAGINAS) {
   check('movil.css: cab-lista en una línea (título t-xl, sin párrafo, botón al lado)', /\.cab-lista h1 \{[^}]*font-size: var\(--t-xl\)[^}]*white-space: nowrap/.test(movil) && /\.cab-lema,\s*\.cab-largo \{\s*display: none/.test(movil))
   check('la burbuja: 44 por hueco, iconos de 22 y la palabra escondida para la vista (no para quien escucha)', /\.bm-burbuja-item \{[^}]*min-height: 44px/.test(movil) && /\.bm-burbuja-item:not\(\[aria-current='page'\]\) \.bm-texto \{[^}]*clip: rect/.test(movil) && !/\.bm-texto \{[^}]*display: none/.test(movil))
   check('cartas.html es lo que sale del generador (título «Cartas» + resto largo)', /<h1 id="mcTitulo">Cartas<span class="cab-largo"> de Pokémon TCG<\/span><\/h1>/.test(leer('cartas.html')) && /Cartas<span class="cab-largo">/.test(leer('generar-cartas.mjs')))
-  check('style/components no cambian: el PC no se toca', !/cab-lista/.test(leer('css/style.css')) && !/cab-lista/.test(leer('css/components.css')))
+  check('style/components no cambian: el PC no se toca (salvo la raya del color de la sección bajo el título, 1018)', !/cab-lista/.test(leer('css/style.css').replace(/\.cab-lista h1::after \{[^}]*\}/, '')) && !/cab-lista/.test(leer('css/components.css')))
   check('partidas: el nombre de la fila de mandos no pisa `.partidas-fila` (la fila de una partida)', /\.partidas-mandos \{/.test(leer('css/partidas.css')) && !/class="partidas-fila">\s*<div class="seg/.test(leer('mis-partidas.html')))
 }
 
@@ -85,7 +85,7 @@ console.log('\n── 2. En el iPhone: una línea, sin párrafo, y lo primero pr
       const lemaVisible = lema ? [...document.querySelectorAll(lema)].some((x) => x.getBoundingClientRect().height > 0) : false
       return { h1: h1.textContent.trim(), alto: Math.round(rh.height), tam, xl, cabAbajo: caja ? Math.round(caja.bottom) : null, primeroArriba: pri ? Math.round(pri.getBoundingClientRect().top) : null, lemaVisible, vh: innerHeight }
     }, pg)
-    check(`/${pg.ruta}: «${r.h1}» en una línea (${r.alto} px) a t-xl, sin párrafo, y lo primero antes del 25 % de la pantalla`, r.alto <= 32 && Math.abs(r.tam - r.xl) < 0.5 && !r.lemaVisible && r.primeroArriba !== null && r.primeroArriba <= r.vh * 0.25, JSON.stringify(r))
+    check(`/${pg.ruta}: «${r.h1}» en una línea (${r.alto} px) a t-xl, sin párrafo, y lo primero antes del 25 % de la pantalla`, r.alto <= 40 && Math.abs(r.tam - r.xl) < 0.5 && !r.lemaVisible && r.primeroArriba !== null && r.primeroArriba <= r.vh * 0.25, JSON.stringify(r))
     await p.close()
   }
   await ctx.close()

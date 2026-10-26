@@ -22,7 +22,7 @@ console.log('── 1. Lo estático ──')
 {
   check('L8: la próxima jornada lleva su clase y su aviso, y los chips J1–J3 se esconden con «Tus jornadas»', /torneo-mis-jornadas-proxima/.test(leer('js/torneos/jornadas.js')) && /Sin lista todavía\. Si no la envías antes, no juegas esta jornada\./.test(leer('js/torneos/jornadas.js')) && /con-mis-jornadas/.test(leer('js/torneos/torneo.js')) && /\.torneo-jornadas\.con-mis-jornadas \{ display: none; \}/.test(leer('css/torneos.css')))
   check('L7: el interruptor de «Colección pública» ya no está en Mi colección, sino en Ajustes › Privacidad', !/id="mcPublica"/.test(leer('mi-coleccion.html')) && /href="\/ajustes\?ver=privacidad"/.test(leer('mi-coleccion.html')) && /data-interruptor="coleccion_publica"/.test(leer('js/ajustes.js')) && /guardar\(\{ coleccion_publica: e\.target\.checked \}\)/.test(leer('js/ajustes.js')))
-  check('móvil: la cabecera de una expansión deja el nombre a dos líneas', /\.mc-album-nombre \{ flex-wrap: wrap; \}/.test(leer('css/mi-coleccion.css')) && /\.con-logo \.mc-album-titulo \{ white-space: normal; \}/.test(leer('css/mi-coleccion.css')))
+  check('móvil: la cabecera de una expansión va en una fila, con el nombre en su línea cortado con puntos (1020)', /\.mc-album-nombre \{\s*flex-wrap: nowrap;/.test(leer('css/mi-coleccion.css')) && /\.con-logo \.mc-album-titulo \{\s*white-space: nowrap;/.test(leer('css/mi-coleccion.css')))
   check('/cartas sale del generador con lo mismo', leer('cartas.html').includes('id="mcPublicaEstado"'))
 }
 
@@ -48,7 +48,7 @@ console.log('\n── 2. El Panel (L7) ──')
   })
   check('bajo «Estadísticas» va una línea con lo contado', /^2 cartas distintas · 1 copia repetida$/.test(r.linea || ''), r.linea)
   check('las acciones son chips de una fila (44 px), no losetas de 90', r.chips.length >= 3 && r.chips.every((c) => c.h <= 48) && new Set(r.chips.map((c) => c.y)).size === 1 && r.chips.map((c) => c.t).join('|') === 'Imagen|Importar CSV|Exportar CSV|Modo feria', JSON.stringify(r.chips))
-  check('«Colección pública» ya no es un check aquí: se dice cómo está y se manda a Ajustes', !r.publica && /Tu colección es (pública|privada)\./.test(r.estado || '') && r.ajustes === '/ajustes?ver=privacidad' && !errores.length, JSON.stringify(r) + errores.join(' | '))
+  check('«Colección pública» ya no es un check aquí: se dice cómo está y se manda a Ajustes', !r.publica && /^Colección (pública|privada)$/.test(r.estado || '') && r.ajustes === '/ajustes?ver=privacidad' && !errores.length, JSON.stringify(r) + errores.join(' | '))
   await ctx.close()
 }
 
@@ -80,7 +80,7 @@ console.log('\n── 4. Aprender y el catálogo en el móvil (L10, L11) ──'
     const chips = [...document.querySelectorAll('.mc-estanteria-que button')]
     return { ancho: Math.round(busca.getBoundingClientRect().width), barra: Math.round(barra.getBoundingClientRect().width), chipsVisibles: chips.every((x) => x.getBoundingClientRect().right <= innerWidth + 1 && x.getBoundingClientRect().width > 0), debajo: chips[0].getBoundingClientRect().top > busca.getBoundingClientRect().bottom - 1, desborda: barra.scrollWidth > barra.clientWidth + 1 }
   })
-  check('L11: el buscador del catálogo va a todo el ancho y los filtros en chips debajo, sin deslizar de lado', k.ancho >= k.barra - 2 && k.chipsVisibles && k.debajo && !k.desborda && !c.errores.length, JSON.stringify(k) + c.errores.join(' | '))
+  check('L11: el buscador del catálogo ocupa su fila (con «Orden» al lado desde la 1020) y los filtros en chips debajo, sin deslizar de lado', k.ancho >= k.barra * 0.6 && k.chipsVisibles && k.debajo && !k.desborda && !c.errores.length, JSON.stringify(k) + c.errores.join(' | '))
   await c.ctx.close()
 }
 

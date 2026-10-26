@@ -84,7 +84,7 @@ console.log('── 3. Mi colección: Cartas activa, sus páginas arriba, y la b
   const mc = await page.$eval('.mc-pestanias', (e) => { const r = e.getBoundingClientRect(); return { pos: getComputedStyle(e).position, bottom: Math.round(r.bottom), alto: Math.round(r.height) } })
   const barraTop = await page.$eval('.bm', (e) => Math.round(e.getBoundingClientRect().top))
   check('la burbuja de Mi colección sigue flotando, justo ENCIMA de la barra (704c)', mc.pos === 'fixed' && mc.alto > 0 && mc.bottom <= barraTop && mc.bottom >= barraTop - 24, JSON.stringify({ mc, barraTop }))
-  check('  …y la página reserva sitio para las dos', (await page.$eval('.mc-pagina', (m) => parseFloat(getComputedStyle(m).paddingBottom))) >= 160)
+  check('  …y la página reserva sitio para las dos (el body desde la 981, y la página lo suyo: 1020)', (await page.$eval('.mc-pagina', (m) => parseFloat(getComputedStyle(m).paddingBottom) + parseFloat(getComputedStyle(document.body).paddingBottom))) >= 160)
   const ajenas = await page.$$eval('.mc-pestanias .bm-ajena', (as) => as.map((a) => `${a.textContent.trim()}:${a.getAttribute('href')}`))
   // 758: Cartas es solo Mi colección (el catálogo salió del menú y
   // Lanzamientos se fue a Inicio), así que no queda ninguna ajena.

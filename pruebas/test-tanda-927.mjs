@@ -91,6 +91,7 @@ const pc = await abrir()
       rotulo: document.getElementById('mcAlbumVistaRotulo')?.textContent.trim(),
       casillas: document.querySelectorAll('#mcAlbum .mc-album-rejilla .mc-bolsillo').length,
       centrada: Math.abs(c1.x - m1.x) < 3 && Math.abs(c1.y - m1.y) < 3,
+      esquina: m1.x > c1.x && m1.y > c1.y,
       tamMarca: marca.getBoundingClientRect().width,
       ins1: ins(1), ins2: ins(2), ins5: ins(5), ins7: ins(7), ins3: ins(3),
       marca3: Boolean(de(3).querySelector('.mc-tengo-marca')),
@@ -100,7 +101,8 @@ const pc = await abrir()
     }
   })
   check('por defecto, la Cuadrícula de siempre: 18 casillas con funda', r.rotulo === 'Cuadrícula' && r.casillas === 18, JSON.stringify(r))
-  check('el ✓ va en el centro de la carta, grande', r.centrada && r.tamMarca >= 24, JSON.stringify(r))
+  // Desde la 1020 (D2 de «PokeDoc como app») el ✓ va en la esquina de abajo a la derecha y mide 24: en una expansión completa, 250 círculos de 48 en medio del dibujo eran demasiado.
+  check('el ✓ va en la esquina de abajo a la derecha, de 24 px (1020)', !r.centrada && r.esquina && r.tamMarca === 24, JSON.stringify(r))
   check('con una sola copia, ninguna insignia', r.ins1.length === 0, JSON.stringify(r.ins1))
   check('con dos, la insignia «2» (en verde, la de la cuenta)', r.n2 === '2' && r.ins2.join() === '2', JSON.stringify(r.ins2))
   check('normal + reverse: «2» y el dibujo de la reverse (930)', r.ins5.join() === '2,reverse', JSON.stringify(r.ins5))
