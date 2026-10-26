@@ -124,7 +124,7 @@ console.log('── 2. En los cruces ──')
   const quien = await page.$$eval('#mcCambiosPanel .mc-cruce', (cs) => cs.map((c) => c.dataset.cruce))
   check('Marta sale (busca tu japonesa)', quien.includes('user-3'), quien.join())
   const marta = await page.$eval('[data-cruce="user-3"]', (c) => c.innerText.replace(/\s+/g, ' ')).catch(() => '')
-  check('  …con la carta por su nombre, no por su id', /le das/i.test(marta) && /リザードン|Charizard/.test(marta) && !/SV2a-201/.test(marta), marta)
+  check('  …con la carta por su nombre, no por su id', /le das|busca 1 de las tuyas/i.test(marta) && /リザードン|Charizard/.test(marta) && !/SV2a-201/.test(marta), marta)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

@@ -58,7 +58,8 @@ console.log('── El idioma del Mercado ──')
 {
   const { ctx, page } = await abrir('/mi-coleccion?ver=mercado')
   const s = await page.evaluate(() => { const e = document.getElementById('mcMercadoIdioma'); const cs = getComputedStyle(e); return { texto: e.options[e.selectedIndex].textContent, flecha: parseFloat(cs.paddingRight), fondo: /svg/.test(cs.backgroundImage) } })
-  check('dice «Idioma»', s.texto === 'Idioma', s.texto)
+  // Desde la 1042 la chapa dice «Idioma» fuera y «Todos» dentro.
+  check('dice «Idioma · Todos»', s.texto === 'Todos' && /Idioma/.test(await page.textContent('#mcPanelMercado .mc-mercado-opcion .mc-op-et')), s.texto)
   check('  …y deja sus 36 px a la flecha', s.flecha >= 36 && s.fondo, JSON.stringify(s))
   await ctx.close()
 }

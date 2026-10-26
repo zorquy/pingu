@@ -116,7 +116,8 @@ console.log('\n── 1. La doble coincidencia va primero y va marcada ──')
 
   // Y la otra dirección: Bea busca lo que doy, en SU tarjeta («Le das»).
   check('la otra dirección también sale, en la tarjeta de Bea', (await gente.first().locator('.mc-cruce-lado').nth(1).locator('.mc-cruce-carta').count()) === 1)
-  check('  …y Carlos no busca nada mío', /Nada de su lista/.test(limpio(await gente.nth(1).textContent())))
+  // Desde la 1042 quien solo da va en una FILA de «Tienen lo que buscas».
+  check('  …y Carlos no busca nada mío', await gente.nth(1).evaluate((e) => e.classList.contains('mc-cruce-fila') && /^Te da/.test(e.querySelector('.mc-cruce-quien .subtext')?.textContent || '')))
   await page.close()
 }
 
@@ -130,9 +131,10 @@ console.log('\n── 2. Se agrupa por PERSONA, no por carta ──')
   })
   const gente = page.locator('#mcCambiosPanel .mc-cruce')
   check('una sola tarjeta', (await gente.count()) === 1, String(await gente.count()))
-  check('  …con las cuatro cartas dentro', (await gente.first().locator('.mc-cruce-carta').count()) === 4,
+  // Desde la 1042 es una fila: tres en pequeño y «+1».
+  check('  …con las cuatro cartas dentro', (await gente.first().locator('.mc-cruce-carta').count()) === 3 && /\+1/.test(await gente.first().locator('.mc-cruce-mas').textContent()),
     String(await gente.first().locator('.mc-cruce-carta').count()))
-  check('  …y lo dice', /4 cartas/.test(limpio(await gente.first().textContent())),
+  check('  …y lo dice', /Te da 4 de tu lista/.test(limpio(await gente.first().textContent())),
     limpio(await gente.first().textContent()).slice(0, 120))
   check('  …y un solo botón de escribir', (await gente.first().locator('[data-escribir]').count()) === 1)
   await page.close()

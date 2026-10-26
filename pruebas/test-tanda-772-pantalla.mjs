@@ -136,9 +136,11 @@ console.log('── 3. Los cruces, por persona ──')
   check('Lucía (perfecta) primero; luego Íker y Dani', quien[0] === 'user-1!' && quien.slice(1).sort().join() === 'user-2,user-4', quien.join())
   const lucia = await page.$eval('[data-cruce="user-1"]', (c) => c.innerText.replace(/\s+/g, ' '))
   check('Lucía: «Te da» 1 (≈ 612 €) y «Le das» 1, «Cruce perfecto»', /Cruce perfecto/.test(lucia) && /te da/i.test(lucia) && /le das/i.test(lucia) && /612,00/.test(lucia), lucia)
-  check('  …con la diferencia de valor (612 − 21,40)', /Diferencia: unos 590,60/.test(lucia), lucia)
+  // Desde la 1042 la diferencia la dice la balanza: «Te da 590,60 € más».
+  check('  …con la diferencia de valor (612 − 21,40)', /Te da 590,60\s€ más/.test(lucia), lucia)
   check('  …y las cartas de cada lado', (await page.locator('[data-cruce="user-1"] .mc-cruce-lado:first-child .mc-cruce-carta').count()) === 1 && (await page.locator('[data-cruce="user-1"] .mc-cruce-lado:last-child .mc-cruce-carta').count()) === 1)
-  check('Íker: solo «te da» («Nada de su lista»)', /Nada de su lista/.test(await page.$eval('[data-cruce="user-4"]', (c) => c.innerText)))
+  // Desde la 1042, una FILA en «Tienen lo que buscas» (no la tarjeta con media vacía).
+  check('Íker: solo «te da», en una fila de «Tienen lo que buscas»', await page.$eval('[data-cruce="user-4"]', (c) => c.classList.contains('mc-cruce-fila') && /Te da 1 de tu lista/.test(c.innerText) && /Tienen lo que buscas/.test(c.closest('.mc-cruces-banda')?.innerText || '')))
   check('la cabecera: 3 personas · 1 cruce perfecto', /3 personas encajan contigo · 1 cruce perfecto/.test((await page.textContent('#mcCambiosPanel .mc-quiero-cifra')).replace(/\s+/g, ' ')), await page.textContent('#mcCambiosPanel .mc-quiero-cifra'))
   if (CAPS) await page.screenshot({ path: `${CAPS}/773-cruces.png`, fullPage: true })
   await page.click('[data-cruces-filtro="perfectos"]')

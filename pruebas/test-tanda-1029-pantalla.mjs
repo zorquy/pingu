@@ -41,7 +41,8 @@ async function abrir(ruta, { movil = true, sesion = 'user-1', antes = null } = {
 }
 const estado = (page) => page.evaluate(() => ({
   qr: Boolean(document.querySelector('#eventoQr svg path')),
-  cuentas: document.querySelector('#eventoQr small')?.textContent,
+  // Desde la 1042 las cuentas van en el pase: «1 busco · 2 doy».
+  cuentas: document.querySelector('#eventoQr .evento-pase-cifras')?.textContent.replace(/\s+/g, ' ').trim(),
   pestanas: [...document.querySelectorAll('.evento-pestanas [data-lista]')].map((b) => `${b.dataset.lista}:${b.textContent.replace(/\s+/g, ' ').trim()}:${b.getAttribute('aria-pressed')}`),
   cartas: [...document.querySelectorAll('#eventoLista .evento-carta')].map((a) => ({ nombre: a.querySelector('b')?.textContent, num: a.querySelector('small')?.textContent, n: a.querySelector('.evento-cuantas')?.textContent || '', foto: a.querySelector('img')?.getAttribute('src') || '', href: a.getAttribute('href'), ancho: Math.round(a.getBoundingClientRect().width) })),
   vacia: document.querySelector('#eventoLista .evento-vacia')?.textContent || '',
@@ -56,7 +57,7 @@ console.log('── 1. iPhone: el QR con las cuentas y Busco en cartas ──')
   const { ctx, page, errores } = await abrir('/evento.html')
   const e = await estado(page)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('el QR y «Busca 1 · Da 2» debajo', e.qr && e.cuentas === 'Busca 1 · Da 2', JSON.stringify({ qr: e.qr, cuentas: e.cuentas }))
+  check('el QR y «1 busco · 2 doy» en el pase', e.qr && e.cuentas === '1 busco2 doy', JSON.stringify({ qr: e.qr, cuentas: e.cuentas }))
   check('dos pestañas con su número, Busco abierta', e.pestanas.join('|') === 'busco:Busco 1:true|doy:Doy 2:false', e.pestanas.join('|'))
   check('Busco: el Pikachu ex con su foto, su número y su enlace', e.cartas.length === 1 && e.cartas[0].nombre === 'Pikachu ex' && e.cartas[0].num === 'SSP 1' && /sv8\/1/.test(e.cartas[0].foto) && /sv8-1/.test(e.cartas[0].href), JSON.stringify(e.cartas))
   check('las cartas caben de a tres en el iPhone y nada se sale', e.cartas[0]?.ancho >= 100 && e.cartas[0].ancho <= 130 && e.ancho, JSON.stringify({ ancho: e.cartas[0]?.ancho, pagina: e.ancho }))
@@ -96,7 +97,7 @@ console.log('\n── 2. Sin cobertura: lo guardado, con sus cartas; y Busco vac
   await page.waitForSelector('#eventoQr svg', { timeout: 8000 }).catch(() => {})
   const e = await estado(page)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('«Sin conexión: tus listas tal como estaban…», con el QR', e.qr && /Sin conexión/.test(e.aviso) && e.cuentas === 'Busca 0 · Da 1', JSON.stringify({ aviso: e.aviso, cuentas: e.cuentas }))
+  check('«Sin conexión: tus listas tal como estaban…», con el QR', e.qr && /Sin conexión/.test(e.aviso) && e.cuentas === '0 busco1 doy', JSON.stringify({ aviso: e.aviso, cuentas: e.cuentas }))
   check('Busco vacío: lo dice y los botones se apagan', /Nada en La quiero/.test(e.vacia) && e.botones.every((x) => /\(off\)$/.test(x)), JSON.stringify({ vacia: e.vacia, botones: e.botones }))
   await page.click('[data-lista="doy"]')
   await page.waitForTimeout(200)
