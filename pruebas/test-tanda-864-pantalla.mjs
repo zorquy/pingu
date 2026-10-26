@@ -81,9 +81,12 @@ console.log('── 2. En el iPhone ──')
   const { page, ctx, errores } = await abrir('/aprender.html', { movil: true })
   check('sin errores', errores.length === 0, errores.join(' | '))
   const b = await baldosas(page)
-  check('una fila que se desliza, de menos de 80 px (865), y la lista empieza en la primera pantalla', b.hay && b.desliza && b.alto < 80 && b.listaY < 700, JSON.stringify({ desliza: b.desliza, alto: b.alto, listaY: b.listaY }))
-  const toca = await page.evaluate(() => { const r = document.querySelector('#apTemas .ap-baldosa').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] })
-  check('  …y cada baldosa se puede tocar (≥ 44 px)', toca[0] >= 44 && toca[1] >= 44, toca.join('×'))
+  // Desde la 1039 los temas son chips de texto en UNA fila (36 a la vista,
+  // 44 al dedo con su franja); con tres temas caben sin deslizar.
+  const fila = await page.evaluate(() => new Set([...document.querySelectorAll('#apTemas .ap-baldosa')].map((x) => Math.round(x.getBoundingClientRect().top))).size)
+  check('una fila (que se desliza si no caben), de menos de 80 px (865), y la lista empieza en la primera pantalla', b.hay && fila === 1 && b.alto < 80 && b.listaY < 700, JSON.stringify({ fila, desliza: b.desliza, alto: b.alto, listaY: b.listaY }))
+  const toca = await page.evaluate(() => { const x = document.querySelector('#apTemas .ap-baldosa'); const r = x.getBoundingClientRect(); const a = getComputedStyle(x, '::after'); return [Math.round(r.width), Math.round(r.height) - parseFloat(a.top) - parseFloat(a.bottom)] })
+  check('  …y cada chip se puede tocar (≥ 44 px con su franja)', toca[0] >= 44 && toca[1] >= 44, toca.join('×'))
   await ctx.close()
 }
 

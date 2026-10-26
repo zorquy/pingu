@@ -426,25 +426,21 @@ console.log('\n── 4. E · Las categorías son filtros, y filtran sin ir a la
   const antes = await page.evaluate(() => window.__CONSULTAS__?.n ?? -1)
   check('el doble deja contar sus consultas', antes >= 0, String(antes))
   // Desde la 863/865 el tema no es un chip que filtra en sitio: es una
-  // baldosa que abre su página (/aprender?tema=…). Lo que filtra en sitio
-  // son el nivel y «sin leer», y eso sigue sin volver a la base.
+  // baldosa que abre su página (/aprender?tema=…). Desde la 1039 lo único
+  // que filtra en sitio es el buscador (el nivel y «Sin leer» se fueron), y
+  // sigue sin volver a la base.
   const baldosas = await page.locator('#apTemas .ap-baldosa').count()
   check('los temas son baldosas que llevan a su página', baldosas > 0 && /\/aprender\?tema=/.test((await page.locator('#apTemas .ap-baldosa').first().getAttribute('href')) || ''), String(baldosas))
-  const nivel = page.locator('[data-nivel="beginner"]')
-  await nivel.click()
+  check('sin chips de nivel ni «Sin leer» (1039)', (await page.locator('[data-nivel], [data-sinleer]').count()) === 0)
+  await page.locator('#apBuscar').fill('número 3')
   await page.waitForTimeout(300)
-  const conNivel = await page.locator('.guia-tarjeta').count()
-  check('el nivel filtra', conNivel > 0 && conNivel < 7, String(conNivel))
+  const conBusca = await page.locator('.guia-tarjeta').allTextContents()
+  check('el buscador filtra', conBusca.length === 1 && conBusca[0].includes('Guía número 3'), String(conBusca.length))
   const despues = await page.evaluate(() => window.__CONSULTAS__?.n ?? -1)
   check('  …sin volver a la base', despues === antes, `${antes} → ${despues}`)
-  await nivel.click()
+  await page.locator('#apBuscar').fill('')
   await page.waitForTimeout(300)
-  check('  …y volver a pulsarlo lo quita', (await page.locator('.guia-tarjeta').count()) === 7, String(await page.locator('.guia-tarjeta').count()))
-  // «Sin leer» tiene que esconder la que ya está terminada.
-  await page.locator('[data-sinleer]').click()
-  await page.waitForTimeout(300)
-  const sinLeer = await page.locator('.guia-tarjeta').allTextContents()
-  check('«Sin leer» esconde la terminada', !sinLeer.some((t) => t.includes('Guía número 3')), String(sinLeer.length))
+  check('  …y vaciarlo las devuelve todas', (await page.locator('.guia-tarjeta').count()) === 7, String(await page.locator('.guia-tarjeta').count()))
   await page.close()
 }
 

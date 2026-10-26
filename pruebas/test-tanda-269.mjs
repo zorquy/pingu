@@ -126,9 +126,10 @@ console.log('\n── 4. El puente: desplegar ANTES de ejecutar el SQL ──')
   // noticia no se cuele en el temario—, solo dónde se lee: antes en la
   // etiqueta de la fila de categoría, ahora en la cuenta del chip.
   const conMigracion = await abrir('/aprender')
-  const todas = await conMigracion.page.locator('[data-cat="todas"] .aprender-chip-n').textContent()
+  // Los chips con cuenta se fueron (863 y 1039): se cuentan las tarjetas.
+  const todas = String(await conMigracion.page.locator('.guia-tarjeta').count())
   // Dos guías y tres noticias en la misma categoría: el temario cuenta 2.
-  check('«Aprender» cuenta guías, no filas', todas.trim() === '2', todas.trim())
+  check('«Aprender» cuenta guías, no filas', todas === '2', todas)
   const tarjetas = await conMigracion.page.locator('.guia-tarjeta h3, .guia-titulo').allTextContents()
   check('  …y ninguna noticia se cuela en la rejilla',
     !tarjetas.some((t) => NOTICIAS.some((n) => n.title === t)), tarjetas.join(' | '))

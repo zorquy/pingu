@@ -68,11 +68,13 @@ console.log('\n── 4. Aprender y el catálogo en el móvil (L10, L11) ──'
 {
   const { p, ctx, errores } = await abrir('/aprender.html', { viewport: { width: 390, height: 800 } })
   const r = await p.evaluate(() => {
-    const b = document.querySelector('.ap-escribir'), h = document.querySelector('.ap-cab h1')
-    const rb = b.getBoundingClientRect(), rh = h.getBoundingClientRect()
-    return { w: Math.round(rb.width), h: Math.round(rb.height), texto: b.innerText.trim(), svg: !!b.querySelector('svg'), aria: b.getAttribute('aria-label'), mismaLinea: Math.abs(rb.top + rb.height / 2 - (rh.top + rh.height / 2)) < 20 }
+    // Desde la 1039 el título no ocupa sitio y el lápiz va junto al buscador.
+    const b = document.querySelector('.ap-escribir'), h = document.querySelector('.ap-herramientas .ap-buscar')
+    // Sin guías no hay buscador: el lápiz se queda en la cabecera, a la vista.
+    const rb = b.getBoundingClientRect(), rh = h?.getBoundingClientRect()
+    return { w: Math.round(rb.width), h: Math.round(rb.height), texto: b.innerText.trim(), svg: !!b.querySelector('svg'), aria: b.getAttribute('aria-label'), mismaLinea: rh ? Math.abs(rb.top + rb.height / 2 - (rh.top + rh.height / 2)) < 20 : rb.width > 0 }
   })
-  check('L10: «Escribir una guía» es solo el lápiz (44 px, con su etiqueta) y va en la línea del título', r.w >= 44 && r.h >= 44 && r.texto === '' && r.svg && r.aria === 'Escribir una guía' && r.mismaLinea && !errores.length, JSON.stringify(r) + errores.join(' | '))
+  check('L10: «Escribir una guía» es solo el lápiz (44 px, con su etiqueta) y va en la línea del buscador (1039)', r.w >= 44 && r.h >= 44 && r.texto === '' && r.svg && r.aria === 'Escribir una guía' && r.mismaLinea && !errores.length, JSON.stringify(r) + errores.join(' | '))
   await ctx.close()
   const c = await abrir('/cartas.html', { viewport: { width: 390, height: 800 } })
   const k = await c.p.evaluate(() => {

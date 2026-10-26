@@ -26,7 +26,8 @@ console.log('── 0. Lo estático ──')
   const sinGlosario = conMenu.filter((f) => (readFileSync(`${RAIZ}/${f}`, 'utf8').match(/href="\/glosario">Glosario<\/a>/g) || []).length < 3)
   check(`«Glosario» va detrás de «Guardados» en el menú de Aprender (PC y móvil) y en el pie de las ${conMenu.length} páginas`, conMenu.length >= 40 && sinGlosario.length === 0, sinGlosario.join(', '))
   const html = readFileSync(`${RAIZ}/aprender.html`, 'utf8')
-  check('la cabecera de /aprender es el título y el medallero, sin texto de bienvenida', /<div class="page-header ap-cab cab-lista">\s*<h1>Aprender<\/h1>\s*<a class="medallero hidden" id="medallero"/.test(html) && !/Guías y cursos gratis/.test(html))
+  // Desde la 1039, sin medallero (las medallas, en Perfil › Medallas).
+  check('la cabecera de /aprender es el título y «Escribir una guía», sin medallero ni texto de bienvenida', /<div class="page-header ap-cab cab-lista">\s*<h1>Aprender<\/h1>\s*<a class="btn-primary ap-escribir"/.test(html) && !/id="medallero"/.test(html) && !/Guías y cursos gratis/.test(html))
 }
 
 const browser = await chromium.launch()
@@ -70,20 +71,17 @@ console.log('── 1. El PC: cuatro capas ──')
   const { page, ctx, errores } = await abrir('/aprender.html')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const c = await capas(page)
-  // Sin ninguna medalla, la píldora no enseña tres ceros (1022, D9): solo «N cursos por jugar»; las cifras siguen en la etiqueta para quien escucha.
-  check('la cabecera: el título con el medallero de píldora al lado (sin ceros, con su texto para quien no ve los colores) y sin párrafo', c.medalleroDentro && c.medallero?.visible && Math.abs(c.medallero.top - c.h1.top) < 24 && /^6 cursos por jugar$/.test(c.medalleroTexto || '') && /Medallero: 0 oros, 0 platas, 0 bronces; 6 cursos por jugar/.test(c.medalleroEtiqueta || '') && c.medalleroHref === '/perfil?ver=medallas' && c.texto === null, JSON.stringify({ t: c.medalleroTexto, e: c.medalleroEtiqueta, h: c.medalleroHref, top: [c.h1?.top, c.medallero?.top] }))
+  // 1039: sin medallero; el título con «Escribir una guía» y sin párrafo.
+  check('la cabecera: el título, sin medallero y sin párrafo', c.h1?.visible && !c.medallero && c.texto === null, JSON.stringify({ h1: c.h1, m: c.medallero }))
   check('lo tuyo: «sigue donde lo dejaste»', c.seguir?.visible)
   check('los temas: las seis en UNA fila (misma altura), de menos de 70 px', c.baldosas.length === 6 && new Set(c.baldosas).size === 1 && c.temas.alto < 70, JSON.stringify({ tops: c.baldosas, alto: c.temas?.alto }))
-  check('una sola fila de mandos: el buscador y los chips a la misma altura; sin chips de tema; «12 guías» de rótulo', c.buscar && c.chips && Math.abs(c.buscar.top - c.chips.top) < 30 && c.chipsTema === 0 && c.cuenta === '12 guías', JSON.stringify({ b: c.buscar, ch: c.chips, tema: c.chipsTema, cuenta: c.cuenta }))
+  // 1039: de los mandos solo queda el buscador (nivel, «Sin leer», «Con curso» y la cuenta se fueron).
+  check('una sola fila de mandos: el buscador; sin chips de tema ni de nivel', c.buscar && !c.chips && c.chipsTema === 0 && !c.cuenta, JSON.stringify({ b: c.buscar, ch: c.chips, tema: c.chipsTema, cuenta: c.cuenta }))
   check('sin títulos de sección, y la primera guía antes de los 520 px', c.secciones === 0 && c.primeraGuia && c.primeraGuia.top < 520, JSON.stringify({ secciones: c.secciones, y: c.primeraGuia?.top }))
-  // Los mandos siguen funcionando.
-  await page.click('#apChips [data-concurso]')
-  await page.waitForTimeout(300)
-  check('«Con curso» filtra', (await page.locator('#apLista .guia-tarjeta').count()) === 6 && (await page.locator('#apCuenta').textContent()) === '6 guías')
-  await page.click('#apChips [data-concurso]')
+  // El buscador sigue funcionando.
   await page.fill('#apBuscar', 'número 7')
   await page.waitForTimeout(300)
-  check('el buscador también', (await page.locator('#apLista .guia-tarjeta').count()) === 1)
+  check('el buscador filtra', (await page.locator('#apLista .guia-tarjeta').count()) === 1)
   // El menú de Aprender lleva Glosario.
   const menu = await page.evaluate(() => [...document.querySelectorAll('.nav-grupo .nav-sub a')].map((a) => a.textContent.trim()))
   check('el menú «Aprender» del PC: Guías y cursos · Retos diarios · Guardados · Glosario', menu.slice(0, 4).join('|') === 'Guías y cursos|Retos diarios|Guardados|Glosario', menu.join('|'))
@@ -96,7 +94,7 @@ console.log('── 2. El iPhone ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const c = await capas(page)
   check('la primera guía empieza antes de los 620 px (antes, fuera de la pantalla)', c.primeraGuia && c.primeraGuia.top < 620, String(c.primeraGuia?.top))
-  check('los temas en una fila que se desliza', (await page.evaluate(() => { const z = document.getElementById('apTemas'); return z.scrollWidth > z.clientWidth + 10 })))
+  check('los temas en una fila que se desliza', (await page.evaluate(() => { const z = document.getElementById('apTemas'); return z.scrollWidth > z.clientWidth + 10 && new Set([...z.querySelectorAll('.ap-baldosa')].map((x) => Math.round(x.getBoundingClientRect().top))).size === 1 })))
   const burbuja = await page.evaluate(() => [...document.querySelectorAll('.bm-burbuja a')].map((a) => a.textContent.trim()))
   check('la burbuja de Aprender: Guías · Retos · Guardados · Glosario', burbuja.join('|') === 'Guías|Retos|Guardados|Glosario', burbuja.join('|'))
   await ctx.close()

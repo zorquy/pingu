@@ -55,9 +55,12 @@ console.log('── 1. En el móvil ──')
   check('la primera guía empieza en la primera pantalla', primera && primera.y < alto * 0.95, `${primera?.y} de ${alto}`)
   const sigue = await p.locator('.aprender-seguir').boundingBox()
   check('«Sigue donde lo dejaste» es una fila (menos de 100 px)', sigue && sigue.height < 100, String(sigue?.height))
-  check('  …con el curso a medias y su bloque', /Bloque 3 de 4/.test(await p.locator('.aprender-seguir').innerText()))
-  // Desde la 865 los temas son baldosas (.ap-baldosas), no chips.
-  for (const sel of ['.ap-baldosas', '.ap-interruptores']) {
+  // Desde la 1039, en el móvil es UNA línea: el curso y el aro; el bloque
+  // («Bloque 3 de 4») queda para el PC.
+  check('  …con el curso a medias, en una línea (1039)', sigue && sigue.height <= 64 && !(await p.locator('.aprender-seguir-sub').isVisible()), String(sigue?.height))
+  // Desde la 865 los temas son baldosas (.ap-baldosas); desde la 1039,
+  // chips de texto, y la fila de mandos es el buscador con el lápiz.
+  for (const sel of ['.ap-baldosas', '#categoriesList .ap-herramientas']) {
     const filas = await p.$eval(sel, (el) => new Set([...el.children].map((c) => { const r = c.getBoundingClientRect(); return Math.round((r.top + r.bottom) / 2) })).size)
     check(`${sel}: los chips van en UNA línea`, filas === 1, String(filas))
   }
@@ -76,20 +79,13 @@ console.log('── 1. En el móvil ──')
   const esperadas = GUIAS.filter((g) => /carta/i.test(g.title + g.description)).length
   check('el buscador filtra por título y descripción', n === esperadas, `${n} vs ${esperadas}`)
   check('  …sin perder el foco', await p.evaluate(() => document.activeElement?.id === 'apBuscar'))
-  check('  …y la cuenta lo dice', (await p.locator('#apCuenta').innerText()).toLowerCase().includes(`${esperadas} guía`))
   await p.locator('#apBuscar').fill('zzzz')
   await p.waitForTimeout(200)
   check('  …sin nada, lo dice', /Ninguna guía habla de eso/.test(await p.locator('#apLista').innerText()))
   await p.locator('#apBuscar').fill('')
   await p.waitForTimeout(200)
-  await p.locator('[data-concurso]').click()
-  await p.waitForTimeout(200)
-  const cursos = GUIAS.filter((g) => g.blocks.length).length
-  check('«Con curso» deja solo las que tienen curso', (await p.locator('#apLista .guia-tarjeta, #apLista .guia-fila').count()) === cursos)
-  check('  …y su chip dice que está puesto', (await p.locator('[data-concurso]').getAttribute('aria-pressed')) === 'true')
-  await p.locator('[data-concurso]').click()
-  await p.waitForTimeout(200)
-  check('  …y se quita', (await p.locator('#apLista .guia-tarjeta, #apLista .guia-fila').count()) === GUIAS.length)
+  // «Con curso», el nivel y la cuenta se fueron en la 1039: el buscador es el único mando.
+  check('  …y vaciarlo las devuelve todas; sin chips', (await p.locator('#apLista .guia-tarjeta, #apLista .guia-fila').count()) === GUIAS.length && (await p.locator('[data-concurso], [data-nivel], [data-sinleer]').count()) === 0)
   await ctx.close()
 }
 
