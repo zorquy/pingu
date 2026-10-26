@@ -9,6 +9,15 @@
 }
 
 @font-face {
+  font-family: 'Outfit';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('/assets/fonts/outfit-variable-latin.woff2') format('woff2-variations');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
   font-family: 'Fredoka';
   font-style: normal;
   font-display: swap;
@@ -108,13 +117,27 @@
 
   --container-w: 1160px;
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
-  /* La letra de los títulos es Inter desde la 1016 (opción B del repaso):
-     Fredoka, redonda, se leía infantil en un título largo. Queda para la
-     marca y las cifras grandes (`--font-marca`), que es lo que hace
-     reconocible a PokeDoc. */
-  --font-display: 'Inter', sans-serif;
-  --font-marca: 'Fredoka', 'Inter', sans-serif;
+  /* Outfit en títulos, marca y cifras desde la 1018 (PINGU eligió la B2 de
+     la propuesta «PokeDoc como app»): la redondez de Fredoka sin su lado
+     infantil. El cuerpo sigue en Inter. Fredoka queda declarada para las
+     imágenes que se dibujan en un lienzo. */
+  --font-display: 'Outfit', 'Inter', sans-serif;
+  --font-marca: 'Outfit', 'Fredoka', 'Inter', sans-serif;
+  /* EL COLOR DE LA SECCIÓN (1018): la barra de abajo, la burbuja, la lateral
+     y el botón principal llevan el de la sección (`data-seccion` en <html>,
+     lo escribe generar-barra-movil.mjs). Cada color lleva su texto; el
+     porqué y las medidas de contraste, en SCHEMA.md. */
+  --acento: var(--navy-solid);
+  --acento-texto: var(--blanco-fijo);
 }
+html[data-seccion='aprender'] { --acento: #0f7f55; }
+html[data-seccion='cartas'] { --acento: #9a5f06; }
+html[data-seccion='comunidad'] { --acento: #c62a5c; }
+html[data-seccion='jugar'] { --acento: #5f43d9; }
+:root[data-theme='dark'][data-seccion='aprender'] { --acento: #2fb47c; --acento-texto: #0b1219; }
+:root[data-theme='dark'][data-seccion='cartas'] { --acento: #e4b44a; --acento-texto: #0b1219; }
+:root[data-theme='dark'][data-seccion='comunidad'] { --acento: #f06c9b; --acento-texto: #0b1219; }
+:root[data-theme='dark'][data-seccion='jugar'] { --acento: #9b7bff; --acento-texto: #0b1219; }
 
 /* S780.6 */
 :root[data-theme='dark'] {
@@ -206,10 +229,9 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-h1, h2, h3,
-.btn-primary, .btn-secondary, .btn-outline,
-.hero-pill, .badge, .pill, .rarity-chip,
-.eyebrow {
+/* Los títulos van en la letra de los títulos; los botones y las chapas
+   son cuerpo (Inter, heredada) desde la 1018. */
+h1, h2, h3 {
   font-family: var(--font-display);
   font-weight: 600;
 }
@@ -914,12 +936,12 @@ body:has(.nav-menu-mobile.open) {
 }
 
 .btn-primary {
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 .btn-primary:hover {
-  background: var(--navy-solid-light);
+  background: color-mix(in srgb, var(--acento) 86%, var(--acento-texto));
 }
 
 /* 917: «suave», sin borde (SCHEMA 917). El borde transparente guarda la medida. */
@@ -1839,12 +1861,14 @@ html.ola-tema::view-transition-new(root) {
     text-decoration: none;
   }
   .bm a[aria-current='page'] {
-    color: var(--navy);
+    color: var(--acento);
   }
   .bm a[aria-current='page'] svg {
     stroke-width: 2.5;
   }
 }
+/* 1018: el título de una página de lista lleva una raya del color de la sección. */
+.cab-lista h1::after { content: ''; display: block; width: 28px; height: 4px; margin-top: var(--e-xs); border-radius: 2px; background: var(--acento); }
 /* ── 892: que cada toque responda ya (SCHEMA 892) ── */
 a, button, [role='button'] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 a[class]:active, button:active, [role='button']:active { transform: scale(0.97); transition: transform 0.15s var(--ease); }

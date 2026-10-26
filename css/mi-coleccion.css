@@ -502,8 +502,11 @@
      que es justo el aire que faltaba. */
   .mc-pestania.activa {
     border-bottom-color: transparent;
-    background: var(--navy-solid);
-    color: var(--blanco-fijo);
+    background: var(--acento);
+    color: var(--acento-texto);
+  }
+  .mc-pestanias .pildora {
+    background: var(--acento);
   }
 
   .mc-pestania.activa > svg {
@@ -588,8 +591,8 @@
      decir «estás aquí». */
   .mc-pestania.activa,
   .mc-pestania.activa:hover {
-    background: var(--navy-solid);
-    color: var(--blanco-fijo);
+    background: var(--acento);
+    color: var(--acento-texto);
   }
 
   .mc-menu-texto {

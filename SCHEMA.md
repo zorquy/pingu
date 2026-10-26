@@ -41785,6 +41785,61 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1018 — La letra Outfit y el color de cada sección (propuesta «PokeDoc como app», B y C)
+
+PINGU, sobre la propuesta de la noche del 25 (artifact «PokeDoc como app»):
+«me gustan todas las propuestas, pero lo único que no me gusta es que me
+cambies la burbuja […] me ha gustado que le pongas colores al menú según el
+apartado donde estés. Todo lo demás, adelante». Así que la burbuja flotante
+se queda como está (A1 descartada) y esta tanda hace las dos primeras: la
+letra y el color.
+
+**La letra (B2).** `--font-display` y `--font-marca` pasan a Outfit, servida
+desde casa como las otras dos (`assets/fonts/outfit-variable-latin.woff2`,
+34,7 KB: la variable de google/fonts recortada a latín con `pyftsubset`, igual
+que Inter y Fredoka en la 359). Outfit tiene la redondez de Fredoka sin su
+lado infantil, y en el PC aguanta un título largo. El cuerpo sigue en Inter,
+y **los botones y las chapas vuelven a ser cuerpo**: la 1016 los había puesto
+en `--font-display` porque entonces era Inter también; ahora `h1, h2, h3` es
+lo único que pide la letra de los títulos en `style.css`. Fredoka queda
+declarada (`@font-face`) porque las imágenes que se dibujan en un lienzo
+(`js/mi-coleccion/imagen*.js`) la nombran a pelo; el navegador solo la baja
+cuando se usa. Los 49 `preload` de Fredoka pasan a Outfit.
+
+**El color de la sección (C).** Dos tokens en `:root`, `--acento` y
+`--acento-texto` (por defecto `--navy-solid` y `--blanco-fijo`), que cada
+sección redefine según `data-seccion` en `<html>`:
+
+| Sección | Claro (blanco encima) | Oscuro (texto `#0b1219` encima) |
+|---|---|---|
+| aprender | `#0f7f55` (5,0 / sobre bg 4,7) | `#2fb47c` (7,1 / sobre superficie 5,8) |
+| cartas | `#9a5f06` (5,2 / 4,9) | `#e4b44a` (9,8 / 7,9) |
+| comunidad | `#c62a5c` (5,4 / 5,1) | `#f06c9b` (6,6 / 5,3) |
+| jugar | `#5f43d9` (6,4 / 6,0) | `#9b7bff` (6,0 / 4,8) |
+
+Las dos medidas son las que hacen falta: el color lleva texto encima (la
+burbuja, el botón principal) Y es texto sobre la superficie (la barra de
+abajo, la lateral); todas pasan de 4,5. En claro son versiones oscuras con
+blanco; en oscuro, claras con el texto oscuro, por eso `--acento-texto`
+también cambia. Lo vigila `test-tanda-1018.mjs` con la fórmula de la WCAG.
+Lo que lo lleva: `.bm a[aria-current]` (la barra de abajo), la burbuja
+(`.bm-burbuja-item[aria-current]`, y en Mi colección `.mc-pestania.activa` y
+su píldora), la sección activa de la lateral del PC, `.btn-primary` (con el
+hover por `color-mix` hacia su texto) y una raya de 28×4 bajo el título de
+las páginas de lista (`.cab-lista h1::after`). Inicio y lo que no tiene
+sección (auth, onboarding) se quedan en el azul.
+
+`data-seccion` lo escribe `generar-barra-movil.mjs` (`conSeccion`, con la
+misma `seccionActual` que la barra) en las 37 páginas con barra de arriba y
+lo hereda `cartas.html` del generador de /cartas; así el color está desde el
+primer pintado, sin JavaScript. `test-tanda-753` comprueba que el repo lleva
+lo que sale del generador, también en esto. El rojo de peligro, el verde de
+«bien» y el ámbar de aviso siguen siendo lo que eran: el acento nunca dice
+«correcto» ni «error».
+
+**La portada pesa 126,6 KB gzip** (`pesar-portada.mjs`): el @font-face y los
+tokens son medio KB.
+
 ## Tanda 1017 — La portada con cuenta en tres olas: `portada_hoy()`, `portada_foro()` y `foro_resumen()`
 
 La R3 del repaso. Al abrir la portada con sesión se hacían 50 consultas a

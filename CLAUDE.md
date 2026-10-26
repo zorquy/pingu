@@ -1169,6 +1169,18 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   las tres: nada de bordes, subtítulos dentro ni enlaces subrayados sueltos.
   Y una regla global que alcanza media web va con `:where`, o les gana a las
   medidas de cada pantalla sin que nada avise.
+- **La letra de los títulos, la marca y las cifras es Outfit; el cuerpo,
+  los botones y las chapas, Inter** (tanda 1018, B2 de «PokeDoc como app»):
+  `--font-display` y `--font-marca` en `style.css`, servidas desde
+  `assets/fonts/` (variable, solo latín). Un título nuevo pide el token; un
+  botón no pide letra (hereda). Fredoka solo queda para lo que se dibuja en
+  un lienzo. **Y cada sección tiene su color** (`--acento` /
+  `--acento-texto`, por `data-seccion` en `<html>`, que escribe
+  `generar-barra-movil.mjs`): la barra de abajo, la burbuja, la lateral y
+  `.btn-primary` lo llevan solos. Un color nuevo va en los DOS temas con sus
+  dos medidas de contraste (SCHEMA 1018) y `test-tanda-1018.mjs` lo mide.
+  La burbuja flotante del móvil SE QUEDA (PINGU, 2026-10-26: «lo único que
+  no me gusta es que me cambies la burbuja»): no la muevas arriba.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

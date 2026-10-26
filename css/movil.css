@@ -93,8 +93,8 @@
     white-space: nowrap;
   }
   .bm-burbuja-item[aria-current='page'] {
-    background: var(--navy-solid);
-    color: var(--blanco-fijo);
+    background: var(--acento);
+    color: var(--acento-texto);
   }
   /* Lo que sigue por un lado se insinúa con un degradado en ese lado. */
   .desborda-derecha {

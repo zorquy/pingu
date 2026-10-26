@@ -4,6 +4,40 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (256) — PINGU-Claude (1018 — la letra Outfit y el color de cada sección)
+
+**Contexto**: PINGU leyó la propuesta «PokeDoc como app» (artifact de la
+noche del 25): «me gustan todas las propuestas, pero lo único que no me
+gusta es que me cambies la burbuja […] me ha gustado que le pongas colores
+al menú según el apartado. Todo lo demás, adelante». La burbuja flotante
+SE QUEDA (A1 descartada, apuntado en CLAUDE.md). Las tandas que vienen:
+1019 (cabecera de detalle, pie corto, ficha de torneo), 1020 (Mi colección:
+Panel, expansión, catálogo), 1021 (foro, torneos, constructor), 1022 (lo
+demás), 1023 (toque, transiciones, prueba de solapes).
+
+**Hecho**: títulos, marca y cifras en Outfit (`assets/fonts/outfit-variable-latin.woff2`,
+variable, solo latín, desde casa); los botones y las chapas vuelven a ser
+cuerpo (Inter). Y cada sección tiene su color (`--acento` /
+`--acento-texto`, por `data-seccion` en `<html>`, que escribe el generador):
+verde Aprender, ámbar Cartas, rosa Comunidad, violeta Jugar, en la barra de
+abajo, la burbuja (también la de Mi colección), la lateral del PC, el botón
+principal y una raya bajo el título de las páginas de lista. Medido en los
+dos temas (SCHEMA 1018). La portada pesa 126,6 KB gzip.
+
+**Ficheros**: `css/style.css`, `css/movil.css`, `css/mi-coleccion.css`,
+`css/lateral.css`, `generar-barra-movil.mjs` (`conSeccion`),
+`assets/fonts/outfit-variable-latin.woff2` (nuevo), las 49 páginas con
+`preload` de letra y las 37 con barra (`data-seccion`), `cartas.html`
+generado, `SCHEMA.md`, `CLAUDE.md`, `novedades.json`. En `pruebas`:
+`test-tanda-1018.mjs` (nuevo), 1016 y 753 al día.
+
+**Pruebas**: suite en carriles (164): 152 verdes y 12 rojos, todos de la
+lista «de siempre» de la 254 (310, 446, 467, 648, 851, 874, 943…) o
+nombres de prueba que no existen; ninguno de esta tanda.
+
+**Pendiente**: la migración 1017 (PINGU, SQL Editor); las tandas 1019–1023;
+las capturas del carrusel; los ejemplos de Search Console; lo de la 237.
+
 ## 2026-10-25 (255) — PINGU-Claude (1017 — la portada con cuenta en tres olas)
 
 **Hecho**: lo de «Hoy», el bloque «Ahora en el foro» y el índice del foro

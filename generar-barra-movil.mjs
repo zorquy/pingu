@@ -48,6 +48,19 @@ export function barraHtml(html, fichero) {
   return `<nav class="bm" aria-label="Secciones">${secciones.map((s) => `<a href="${destinoDe(s, false)}"${s.nombre === actual ? ' aria-current="page"' : ''}>${icons[ICONOS[s.nombre]]?.(24) || ''}<span>${s.nombre}</span></a>`).join('')}</nav>`
 }
 
+// LA SECCIÓN, EN <html> (1018): `data-seccion="aprender"`, para que el CSS
+// pinte la barra, la burbuja, la lateral y el botón principal con su color
+// (`--acento` en style.css) desde el primer pintado, sin JavaScript.
+export function seccionDe(html, fichero) {
+  const secciones = seccionesDelHtml(html)
+  const actual = seccionActual(secciones, claveDePagina(`/${fichero}`))
+  return actual ? actual.toLowerCase() : null
+}
+export function conSeccion(html, fichero) {
+  const seccion = seccionDe(html, fichero)
+  return html.replace(/<html([^>]*?)(\s+data-seccion="[^"]*")?>/, (m, attrs) => `<html${attrs}${seccion ? ` data-seccion="${seccion}"` : ''}>`)
+}
+
 // La pone justo detrás de la barra de arriba (o sustituye la que hubiera).
 export function conBarra(html, fichero) {
   const bloque = `${INICIO}\n  ${barraHtml(html, fichero)}\n  ${FIN}`
@@ -100,7 +113,7 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
     const ruta = join(RAIZ, f)
     const antes = readFileSync(ruta, 'utf8')
     if (!antes.includes('id="navbar"')) continue
-    const despues = conClaseMovil(conHojaMovil(conBarra(antes, f)))
+    const despues = conSeccion(conClaseMovil(conHojaMovil(conBarra(antes, f))), f)
     if (despues !== antes) { writeFileSync(ruta, despues); n++ }
   }
   console.log(`barra de abajo al día en ${n} páginas`)

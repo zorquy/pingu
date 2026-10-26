@@ -69,7 +69,7 @@
   }
 
   .lat-activa > .lat-seccion-enlace {
-    color: var(--text);
+    color: var(--acento);
     font-weight: 800;
   }
 
@@ -418,7 +418,7 @@
   }
 
   .lat-activa .lat-seccion-enlace {
-    color: var(--text);
+    color: var(--acento);
     font-weight: 800;
   }
 
