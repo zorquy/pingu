@@ -7,6 +7,8 @@
 // desde la 786 y la 897, desde su caché, por generaciones (982, abajo).
 const CACHE = 'pokedoc-sin-conexion-1'
 const PAGINA = '/sin-conexion.html'
+// Las fotos de las listas del modo evento (1029), que guarda la propia página.
+const FOTOS_EVENTO = 'pokedoc-evento-fotos'
 
 self.addEventListener('install', (e) => {
   // La versión nueva entra sin esperar a que se cierren las pestañas.
@@ -38,10 +40,10 @@ const esFichero = (url) => url.origin === self.location.origin && /^\/(css|js|as
 // dirección pelada (`/foro`, `/aprender.html`): con consulta o con más trozos
 // el servidor puede contestar otra cosa (meta-social reescribe /guia, /carta,
 // /coleccion, /curso y /categoria; /usuario y /tema llegan por reescritura).
-// Fuera también las que son otra cosa: la feria y las de leer tienen su
+// Fuera también las que son otra cosa: el evento y las de leer tienen su
 // caché, /sin-conexion es el respaldo, y /auth, /reset-password, /onboarding
 // y /admin no se abren «al momento» desde ninguna barra.
-const SIN_PAGINA = new Set(['feria', 'sin-conexion', 'auth', 'reset-password', 'onboarding', 'admin', 'guia', 'carta', 'coleccion', 'curso', 'categoria', 'editor-guia', '404'])
+const SIN_PAGINA = new Set(['evento', 'feria', 'sin-conexion', 'auth', 'reset-password', 'onboarding', 'admin', 'guia', 'carta', 'coleccion', 'curso', 'categoria', 'editor-guia', '404'])
 function esPaginaDeCache(url) {
   if (url.origin !== self.location.origin || url.search) return false
   const m = /^\/([a-z0-9-]*)(\.html)?$/.exec(url.pathname)
@@ -292,13 +294,14 @@ async function paginaDeLeer(req, e) {
 self.addEventListener('fetch', (e) => {
   const req = e.request
   if (req.mode === 'navigate') {
-    // El modo feria (794, NU5) es la única PÁGINA que se guarda: se abre en
-    // un pabellón sin cobertura. Red primero, y la copia de la última vez.
-    if (new URL(req.url).pathname.replace(/\.html$/, '') === '/feria') {
+    // El modo evento (794 como feria, 1029) es la única PÁGINA que se guarda:
+    // se abre en un pabellón sin cobertura. Red primero, y la copia de la
+    // última vez. Sus fotos las guarda la propia página (`pokedoc-evento-fotos`).
+    if (new URL(req.url).pathname.replace(/\.html$/, '') === '/evento') {
       e.respondWith(
         fetch(req)
-          .then(async (r) => { if (r.ok) await (await caches.open(CACHE)).put('/feria', r.clone()); return r })
-          .catch(async () => (await caches.match('/feria')) || (await caches.match(PAGINA)) || Response.error())
+          .then(async (r) => { if (r.ok) await (await caches.open(CACHE)).put('/evento', r.clone()); return r })
+          .catch(async () => (await caches.match('/evento')) || (await caches.match(PAGINA)) || Response.error())
       )
       return
     }
@@ -313,7 +316,15 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(fetch(req).catch(async () => (await caches.match(PAGINA)) || Response.error()))
     return
   }
-  if (req.method !== 'GET' || !esFichero(new URL(req.url))) return
+  if (req.method !== 'GET') return
+  // Las fotos del modo evento (1029): imágenes de otro origen, guardadas a
+  // ciegas por la página. Solo si la red no contesta se sirve la copia; lo
+  // demás de fuera (la base, las fuentes) no se toca.
+  if (req.destination === 'image' && new URL(req.url).origin !== self.location.origin) {
+    e.respondWith(fetch(req).catch(async () => (await caches.match(req.url, { cacheName: FOTOS_EVENTO })) || Response.error()))
+    return
+  }
+  if (!esFichero(new URL(req.url))) return
   e.respondWith(ficheroDeCasa(req, e).catch(() => fetch(req)))
 })
 

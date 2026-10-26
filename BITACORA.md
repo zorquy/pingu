@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (269) — PINGU-Claude (1029 + 1030 — Modo evento y lo que ve quien escanea el QR)
+
+**Hecho**: el feedback de la gente, primera mitad. «Modo feria» es
+**Modo evento** (`/evento`; `/feria` lleva allí con un 301, que hay QRs
+impresos). La página: el QR con «Busca N · Da M» debajo, dos pestañas
+Busco / Doy en CARTAS (foto, nombre, número, ×N) y tres botones: Copiar
+lista (texto con el enlace), Imagen (la de La quiero, también para «Las
+que doy») y Exportar CSV. Lo guardado para verlo sin cobertura lleva las
+fotos (Cache API, y el service worker las sirve si la red no contesta).
+Y el QR ya no lleva a `?cruce=1`: lleva a **/evento/<usuario>**, que es
+la ficha de esa persona abierta por Cambios (las dos listas se ven sin
+cuenta) con, arriba, «¿Tienes alguna de estas? · Crear cuenta / Ya
+tengo cuenta» para quien no tiene cuenta; con cuenta, el cruce de la
+pestaña y nada repetido.
+
+**Ficheros**: `feria.html → evento.html`, `css/feria.css →
+css/evento.css`, `js/feria.js → js/evento.js` (reescrito),
+`js/mi-coleccion/imagen-quiero.js` (título y texto a elegir),
+`js/mi-coleccion/panel.js`, `js/barra-movil.js`, `js/app.js`,
+`js/usuario.js`, `js/perfil-pestanias.js`, `js/cruce-persona.js`,
+`usuario.html`, `sw.js`, `netlify.toml`, `novedades.json`, `SCHEMA.md`
+(1029/1030), `CLAUDE.md`. En `pruebas`: `test-tanda-1029-pantalla.mjs`,
+`test-tanda-1030-pantalla.mjs`, la ruta `/evento/<u>` en `servir.py`, y
+al día 794, 869, 1015, 651, 829, 897, 312, 326.
+
+**Pendiente**: 1032 (menú ⋯ de los álbumes: editar y borrar) y 1031
+(«Hacer un álbum» desde La quiero). Sigue pendiente de PINGU la migración
+1027 y comprobar el Lugia (268).
+```
 ## 2026-10-26 (268) — PINGU-Claude (1028c — el lote por ids de TCGGO se calla las versiones)
 
 **Hecho**: lo del Lugia, de verdad esta vez. Con la respuesta de la

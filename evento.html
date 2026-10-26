@@ -5,7 +5,7 @@
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil');addEventListener('pagereveal',function(e){var t=e.viewTransition&&e.viewTransition.types;if(!t)return;var a=window.navigation&&navigation.activation;if(a&&a.navigationType==='traverse')t.add('atras');else if(document.documentElement.hasAttribute('data-detalle'))t.add('adelante')})</script>
-  <title>Modo feria — PokeDoc</title>
+  <title>Modo evento — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
@@ -25,7 +25,7 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
-  <link rel="stylesheet" href="/css/feria.css" />
+  <link rel="stylesheet" href="/css/evento.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
 <body>
@@ -109,17 +109,25 @@
   <nav class="bm" aria-label="Secciones"><a href="/"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11l9-8 9 8v9a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"></path></svg><span>Inicio</span></a><a href="/aprender.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg><span>Aprender</span></a><a href="/cartas" aria-current="page"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6" width="11" height="15" rx="2"></rect><path d="M8 3h9a2 2 0 0 1 2 2v11"></path></svg><span>Cartas</span></a><a href="/foro.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><span>Comunidad</span></a><a href="/torneos.html"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg><span>Jugar</span></a></nav>
   <!-- /barra-movil -->
 
-  <main id="contenido" class="page-content container feria">
-    <!-- NU5 (794): para un torneo, una tienda o un salón. El QR lleva a tu perfil con el cruce, y las listas se guardan para verlas sin cobertura. -->
-    <header class="cabecera-pagina">
-      <h1>Modo feria</h1>
-      <p class="subtext">Enséñale este QR a quien quiera cambiar: al escanearlo ve al momento lo que os podéis cambiar. Tus listas se quedan guardadas en el móvil para ir mesa por mesa aunque no haya cobertura.</p>
+  <main id="contenido" class="page-content container evento">
+    <!-- NU5 (794) → Modo evento (1029): para un torneo, una tienda o un salón. El QR lleva a tu página de evento (/evento/<usuario>): tus listas en cartas, y con cuenta el cruce. Las listas y sus fotos se guardan para verlas sin cobertura. -->
+    <header class="cabecera-pagina cab-lista">
+      <h1>Modo evento</h1>
+      <p class="subtext cab-lema">Enséñale el QR a quien quiera cambiar<span class="cab-largo">: al escanearlo ve tus listas y, con cuenta, lo que os podéis cambiar</span>. Tus listas se quedan en el móvil aunque no haya cobertura.</p>
     </header>
-    <div class="feria-qr" id="feriaQr" aria-live="polite"><span class="skeleton feria-qr-esqueleto"></span></div>
-    <p class="feria-guardado subtext" id="feriaGuardado"></p>
-    <div class="feria-listas">
-      <section aria-labelledby="feriaDoyTitulo"><h2 id="feriaDoyTitulo">Doy</h2><ul id="feriaDoy" class="feria-lista"></ul></section>
-      <section aria-labelledby="feriaBuscoTitulo"><h2 id="feriaBuscoTitulo">Busco</h2><ul id="feriaBusco" class="feria-lista"></ul></section>
+    <div class="evento-qr" id="eventoQr" aria-live="polite"><span class="skeleton evento-qr-esqueleto"></span></div>
+    <p class="evento-guardado subtext" id="eventoGuardado"></p>
+    <div class="evento-listas hidden" id="eventoListas">
+      <div class="seg evento-pestanas" role="group" aria-label="Qué lista">
+        <button type="button" class="seg-btn" data-lista="busco" aria-pressed="true">Busco <span class="evento-n" id="eventoNBusco">0</span></button>
+        <button type="button" class="seg-btn" data-lista="doy" aria-pressed="false">Doy <span class="evento-n" id="eventoNDoy">0</span></button>
+      </div>
+      <ul class="evento-rejilla" id="eventoLista"></ul>
+      <div class="evento-botones">
+        <button type="button" class="btn-secondary" id="eventoCopiar">Copiar lista</button>
+        <button type="button" class="btn-secondary" id="eventoImagen">Imagen</button>
+        <button type="button" class="btn-secondary" id="eventoExportar">Exportar CSV</button>
+      </div>
     </div>
   </main>
 
@@ -173,6 +181,6 @@
   </footer>
 
   <script type="module" src="/js/app.js"></script>
-  <script type="module" src="/js/feria.js"></script>
+  <script type="module" src="/js/evento.js"></script>
 </body>
 </html>

@@ -125,6 +125,19 @@
   to = "/usuario.html?u=:username"
   status = 200
 
+# El QR del modo evento (1029): /evento/<usuario> es la ficha de esa persona
+# abierta por Cambios, con el cruce. Y /feria, el nombre de antes (794),
+# está impreso en QRs: lleva a /evento.
+[[redirects]]
+  from = "/evento/:username"
+  to = "/usuario.html?u=:username"
+  status = 200
+
+[[redirects]]
+  from = "/feria"
+  to = "/evento"
+  status = 301
+
 # El reto de hoy (568) ya no existe (989: su sitio es «Parejas»). Su
 # dirección corta está en textos que la gente ya compartió: lleva al menú.
 [[redirects]]

@@ -17,6 +17,7 @@ import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 import { rachaVisible } from './racha-visible.js'
 
 const { username: usernameParam, id: idParam } = profileParamsFromLocation()
+const esEvento = /^\/evento\//.test(location.pathname)
 let profileId = idParam
 
 let currentSession = null
@@ -357,7 +358,11 @@ async function init() {
     const t = m.textoDeConfianza(await m.cambiosDe(profile.id))
     if (t) document.getElementById('heroInfo')?.insertAdjacentHTML('beforeend', `<p class="perfil-confianza">${escapeHtml(t)}</p>`)
   }).catch(() => {})
-  if (new URLSearchParams(location.search).has('cruce')) {
+  // Quien escanea el QR del modo evento (1029/1030) llega a /evento/<usuario>:
+  // sin cuenta, la puerta a registrarse arriba (las listas se ven igual, en
+  // Cambios); con cuenta, el cruce lo pinta la propia pestaña. `?cruce=1` es
+  // el enlace de antes y sigue pintando la caja de arriba.
+  if (new URLSearchParams(location.search).has('cruce') || (esEvento && !currentSession)) {
     import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('perfilCruce'), profile, currentSession)).catch(() => {})
   }
   // Lo que da y lo que busca (887): la pestaña Cambios y la chapa de arriba.

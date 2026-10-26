@@ -1,5 +1,5 @@
 // El cruce con UNA persona (tanda 794, NU5): lo que ve quien escanea el QR
-// del modo feria. «Te puede dar» y «le puedes dar», sin buscarla en Cruces.
+// del modo evento. «Te puede dar» y «le puedes dar», sin buscarla en Cruces.
 // Sale de los mismos datos que el tablón (quienTiene / quienBusca), filtrados
 // por ella.
 import { escapeHtml } from './html.js'
@@ -50,8 +50,12 @@ export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, es
   if (!caja || !persona) return
   hojaInyectada('css/cruce-persona.css')
   if (!soloSiHay) caja.classList.remove('hidden')
+  // Sin cuenta (1030): las listas se ven igual, debajo, en Cambios; aquí la
+  // puerta. Crear la cuenta vuelve a esta misma página, ya con el cruce.
   if (!sesion) {
-    caja.innerHTML = `<h2>Vuestro cruce</h2><p class="subtext"><a href="/auth.html?volver=${encodeURIComponent(location.pathname + location.search)}">Entra</a> y te digo qué te puede dar ${escapeHtml(persona.display_name || persona.username || 'esta persona')} y qué le puedes dar tú.</p>`
+    const volver = encodeURIComponent(location.pathname + location.search)
+    const nombre = escapeHtml(persona.display_name || persona.username || 'esta persona')
+    caja.innerHTML = `<h2>¿Tienes alguna de estas?</h2><p class="subtext">Crea tu cuenta en PokeDoc, apunta tus cartas y te decimos qué os podéis cambiar ${nombre} y tú.</p><div class="perfil-cruce-acciones"><a class="btn-primary" href="/auth.html?registro=1&volver=${volver}">Crear cuenta</a><a class="btn-secondary" href="/auth.html?volver=${volver}">Ya tengo cuenta</a></div>`
     return
   }
   if (sesion.user.id === persona.id) {

@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "mejora", "texto": "El Modo feria pasa a ser Modo evento: tus listas de Busco y Doy en cartas (con foto), y botones para copiar la lista, hacer una imagen o exportarla en CSV. Se guardan con sus fotos para verlas sin cobertura.", "enlace": "/evento" },
+    { "fecha": "2026-10-26", "tipo": "nuevo", "texto": "Quien escanea tu QR del modo evento llega a tus listas en PokeDoc sin necesidad de cuenta, y si se la crea le decimos qué os podéis cambiar.", "enlace": "/evento" },
     {
       "fecha": "2026-10-26",
       "tipo": "nuevo",
@@ -313,7 +315,7 @@
     { "fecha": "2026-10-13", "tipo": "arreglo", "texto": "Los productos que faltaban en la estantería de Productos.", "enlace": "/mi-coleccion?ver=productos" },
     { "fecha": "2026-10-10", "tipo": "arreglo", "texto": "El reto del día ya no te saca a otra página al acabarlo.", "enlace": "/retos" },
     { "fecha": "2026-10-09", "tipo": "arreglo", "texto": "Las ligas ya no se quedan paradas después de la primera jornada.", "enlace": "/torneos.html" },
-    { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "Modo feria: tu QR y tus listas de «Doy» y «Busco», también sin cobertura.", "enlace": "/feria.html" },
+    { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "Modo feria: tu QR y tus listas de «Doy» y «Busco», también sin cobertura.", "enlace": "/evento" },
     { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "«Cambio hecho» en Mensajes: después de un cambio, cada uno dice si fue bien.", "enlace": "/mensajes.html" },
     { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "Logros de coleccionista: 100 y 1.000 cartas, sets completos y más.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-10-09", "tipo": "nuevo", "texto": "Cada lista del meta te dice cuántas cartas te faltan y cuánto te costarían.", "enlace": "/meta.html" },

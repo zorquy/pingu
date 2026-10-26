@@ -241,7 +241,8 @@ export function profileUrl(p) {
 // entra directo a usuario.html (o en local, donde no hay redirects).
 export function profileParamsFromLocation() {
   const params = new URLSearchParams(window.location.search)
-  const pathMatch = window.location.pathname.match(/\/usuario\/([^/?#]+)/)
+  // /evento/<usuario> (1029) es la misma ficha, abierta por Cambios y con el cruce.
+  const pathMatch = window.location.pathname.match(/\/(?:usuario|evento)\/([^/?#]+)/)
   return {
     username: pathMatch ? decodeURIComponent(pathMatch[1]) : params.get('u'),
     id: params.get('id'),

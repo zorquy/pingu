@@ -437,7 +437,7 @@ function vistazoDeAcciones() {
         ${hay ? loseta('mcImagenCrear', icons.image(18), 'Imagen') : ''}
         ${loseta('mcImportarAbrir', icons.upload(18), 'Importar CSV')}
         ${loseta('mcExportar', ICONO_DESCARGAR(18), 'Exportar CSV', hay ? '' : ' disabled')}
-        <a class="mc-accion-loseta" id="mcModoFeria" href="/feria"><span class="mc-accion-icono" aria-hidden="true">${icons.scan(18)}</span><span>Modo feria</span></a>
+        <a class="mc-accion-loseta" id="mcModoEvento" href="/evento"><span class="mc-accion-icono" aria-hidden="true">${icons.scan(18)}</span><span>Modo evento</span></a>
       </div>
     </section>`
 }

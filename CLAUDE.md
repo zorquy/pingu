@@ -934,6 +934,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `tcggo_gemelos`) se quitan de UNA en una cuando la base dice que no
   existen (`quitarOpcional`, en `sets.mjs` y `sets-catalogo.js`): una
   columna nueva de la estantería que llegue antes que su migración va ahí.
+- **El modo evento es `/evento` y su QR lleva a `/evento/<usuario>`**
+  (tandas 1029 y 1030; antes «feria», 794): la ficha de esa persona abierta
+  por Cambios, que se ve SIN cuenta, con la puerta a registrarse arriba
+  (`pintarCruce` sin sesión) y, con cuenta, el cruce de la pestaña. `/feria`
+  es un 301 (hay QRs impresos). Las listas de la página van en CARTAS y se
+  guardan CON sus fotos (`pd-evento-v2` + Cache API `pokedoc-evento-fotos`,
+  que `sw.js` sirve solo a imágenes de otro origen cuando la red no
+  contesta). Un botón nuevo de la página pasa por `datos[lista]`; y lo que
+  importe `importar.js` desde una página sin `mi-coleccion.css` se lleva sus
+  clases (299): `exportarCsv` vive en `importar-csv.js` por eso.
 - **Una VERSIÓN de TCGGO llega con UN precio y sin producto, y su idioma se
   pide al ABRIR la ficha** (tanda 1028, el Lugia Reverse del foro). La pasada
   de precios trae cada versión «slim» (el mínimo de todos los idiomas) y la de

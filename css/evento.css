@@ -1,0 +1,132 @@
+/* El modo evento (794 → 1029): el QR con las cuentas, las listas en cartas para mirar de pie y los tres botones. Solo la carga evento.html. */
+
+.evento-qr {
+  display: grid;
+  justify-items: center;
+  gap: var(--e-xs);
+  margin: var(--e-md) auto var(--e-sm);
+  padding: var(--e-md);
+  max-width: 320px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--blanco-fijo);
+  color: var(--navy-solid-dark);
+  font-size: var(--t-lg);
+}
+
+.evento-qr svg {
+  width: 100%;
+  max-width: 200px;
+  height: auto;
+}
+
+.evento-qr small {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.evento-qr-esqueleto {
+  width: 200px;
+  aspect-ratio: 1;
+}
+
+.evento-guardado {
+  text-align: center;
+}
+
+.evento-listas {
+  display: grid;
+  gap: var(--e-md);
+  margin-top: var(--e-md);
+}
+
+.evento-pestanas {
+  justify-self: center;
+}
+
+.evento-n {
+  margin-left: var(--e-xs);
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: rgb(0 0 0 / 8%);
+  font-size: var(--t-xs);
+}
+
+.seg-btn[aria-pressed="true"] .evento-n {
+  background: rgb(255 255 255 / 25%);
+}
+
+.evento-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(104px, 1fr));
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evento-rejilla li {
+  min-width: 0;
+}
+
+.evento-carta {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.evento-carta img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 63 / 88;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+}
+
+.evento-carta b,
+.evento-carta small {
+  overflow: hidden;
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.evento-carta small {
+  color: var(--text-mid);
+}
+
+.evento-cuantas {
+  position: absolute;
+  top: var(--e-xs);
+  left: var(--e-xs);
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--text);
+  color: var(--white);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.evento-vacia {
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text-mid);
+}
+
+.evento-botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-sm);
+}
+
+@media (min-width: 901px) {
+  .evento-rejilla {
+    grid-template-columns: repeat(auto-fill, minmax(132px, 1fr));
+  }
+}

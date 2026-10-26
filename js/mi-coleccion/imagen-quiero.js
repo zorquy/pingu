@@ -22,12 +22,13 @@ export function rejillaDeLaQuiero(n) {
 }
 
 // Lo que dice la imagen, aparte del dibujo: se prueba sin lienzo.
-export function textosDeLaQuiero({ cartas = [], nombre = '' }) {
+// `titulo` y `fichero` (1029): el modo evento dibuja con esto «Las que doy».
+export function textosDeLaQuiero({ cartas = [], nombre = '', titulo = 'Las que quiero', fichero = 'la-quiero' }) {
   const validas = cartas.filter((x) => x?.carta)
   const { maximo } = rejillaDeLaQuiero(validas.length)
   const n = validas.length
   return {
-    titulo: 'Las que quiero',
+    titulo,
     sub: `${nombre ? `@${nombre} · ` : ''}${n} ${n === 1 ? 'carta' : 'cartas'}`,
     cartas: validas.slice(0, maximo).map((x) => ({
       carta: x.carta,
@@ -36,7 +37,7 @@ export function textosDeLaQuiero({ cartas = [], nombre = '' }) {
       laQueFalta: x.prioridad === 3,
     })),
     mas: Math.max(0, n - maximo),
-    fichero: `pokedoc-la-quiero${nombre ? `-${nombre}` : ''}.png`,
+    fichero: `pokedoc-${fichero}${nombre ? `-${nombre}` : ''}.png`,
   }
 }
 
@@ -47,8 +48,8 @@ function recortado(ctx, str, ancho) {
   return `${t}…`
 }
 
-export async function dibujarLaQuiero({ cartas = [], nombre = '', doc = document }) {
-  const t = textosDeLaQuiero({ cartas, nombre })
+export async function dibujarLaQuiero({ cartas = [], nombre = '', titulo, fichero, doc = document }) {
+  const t = textosDeLaQuiero({ cartas, nombre, ...(titulo ? { titulo } : {}), ...(fichero ? { fichero } : {}) })
   if (!t.cartas.length) throw new Error('Apunta alguna carta antes de compartir la lista.')
   const lienzo = doc.createElement('canvas')
   lienzo.width = ANCHO
@@ -116,11 +117,11 @@ export async function dibujarLaQuiero({ cartas = [], nombre = '', doc = document
   return { lienzo, textos: t }
 }
 
-export async function compartirLaQuiero({ cartas = [], nombre = '' }) {
-  const { lienzo, textos } = await dibujarLaQuiero({ cartas, nombre })
+export async function compartirLaQuiero({ cartas = [], nombre = '', titulo, fichero, texto } = {}) {
+  const { lienzo, textos } = await dibujarLaQuiero({ cartas, nombre, titulo, fichero })
   // El enlace es a PokeDoc y no a tu lista: «La quiero» solo la abre su
   // dueño, y un enlace que a los demás les abre otra cosa es una promesa
   // rota. Lo que buscas lo ven en Cambios, cruzado con lo suyo.
-  await compartirLienzo(lienzo, { nombreFichero: textos.fichero, texto: `Las cartas que busco. ¿Tienes alguna? Escríbeme en PokeDoc: ${location.origin}` })
+  await compartirLienzo(lienzo, { nombreFichero: textos.fichero, texto: texto || `Las cartas que busco. ¿Tienes alguna? Escríbeme en PokeDoc: ${location.origin}` })
   return lienzo
 }

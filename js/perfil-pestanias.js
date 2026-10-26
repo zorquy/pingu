@@ -32,7 +32,8 @@ let propia = false
 
 const botones = () => [...document.querySelectorAll(`#${CONTENEDOR} .tab-btn`)]
 const botonDe = (nombre) => botones().find((b) => b.dataset.ptab === nombre)
-const pedidaEnDireccion = () => new URLSearchParams(location.search).get('ver') || window.location.hash.replace('#', '') || ''
+// /evento/<usuario> (1029) pide Cambios sin decirlo en la consulta.
+const pedidaEnDireccion = () => new URLSearchParams(location.search).get('ver') || window.location.hash.replace('#', '') || (/^\/evento\//.test(location.pathname) ? 'cambios' : '')
 const nombreReal = (nombre) => (nombre in ALIAS ? ALIAS[nombre] : nombre)
 
 export function abrirPestania(nombre) {

@@ -41785,6 +41785,67 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tandas 1029 y 1030 — Modo evento y lo que ve quien escanea el QR
+
+Primera mitad del feedback de la gente (2026-10-26, PINGU: «adelante»).
+
+### 1029 — Modo evento
+
+- **Nombre y dirección**: «Modo feria» (794) pasa a «Modo evento» (para un
+  torneo, una tienda o un salón). `feria.html → evento.html`, `css/feria.css
+  → css/evento.css`, `js/feria.js → js/evento.js`. En `netlify.toml`,
+  `/feria → /evento` (301: hay QRs impresos con la dirección vieja) y
+  `/evento/:username → /usuario.html?u=:username` (200). La loseta del Panel
+  (`#mcModoEvento`), `SECCION_DE` de la barra del móvil y `SIN_PAGINA` del
+  service worker, al nuevo nombre (`feria` se queda en `SIN_PAGINA` para que
+  la dirección vieja no se cachee como página).
+- **La página**: el QR (200 px) con el nombre y «Busca N · Da M» debajo; dos
+  pestañas `.seg` Busco / Doy con su número; una rejilla de cartas
+  (`.evento-rejilla`, `minmax(104px, 1fr)`; 132 en el PC) con foto
+  (`atributosDeEscaneo` de la cadena de la carta), nombre, «SSP 1» y «×N»
+  si da más de una; y tres botones suaves: **Copiar lista** (texto de
+  `textoDeLista` + el enlace; `navigator.share` solo con `pointer: coarse`,
+  si no al portapapeles), **Imagen** (`compartirLaQuiero` con `titulo`,
+  `fichero` y `texto` nuevos, opcionales: «Las que doy» para Doy) y
+  **Exportar CSV** (`exportarCsv` de `importar-csv.js` y la descarga aquí
+  mismo: `importar.js` arrastra las clases de la pantalla de importar y la
+  299 lo canta). Los tres se apagan con la lista vacía.
+- **Lo guardado**: llave nueva `pd-evento-v2` (lo de `pd-feria-v1` eran
+  nombres sin foto; se queda huérfano). Cada fila lleva `id`, `market`, `n`,
+  `idioma`, `nombre`, `num`, `foto` (la primera de la cadena), `cadena` y la
+  `carta` entera (para la imagen y el CSV), más `ruta`. Las consultas son las
+  de antes (`user_collection` con `cambio > 0` y `user_wants`, 500 cada una)
+  y las fichas salen de `cartasPorClaves`.
+- **Las fotos sin cobertura**: la página las pide en segundo plano
+  (`guardarFotos`, de seis en seis, `mode: 'no-cors'`) y las guarda en la
+  Cache API `pokedoc-evento-fotos`, borrando las que ya no están en ninguna
+  lista. Y `sw.js` (`FOTOS_EVENTO`): una petición GET con
+  `destination === 'image'` de OTRO origen va a la red y, si la red no
+  contesta, a esa caché. Solo imágenes: la base y las fuentes no se tocan.
+  Una respuesta opaca se sirve igual a un `<img>`.
+- **El enlace del QR** (`enlaceDeEvento`, con `enlaceDeFeria` de alias):
+  `/evento/<usuario>`; sin `username`, `/usuario.html?id=…&cruce=1&ver=cambios`.
+
+### 1030 — Lo que ve quien escanea
+
+- `profileParamsFromLocation` (app.js) entiende `/evento/<usuario>` igual
+  que `/usuario/<usuario>`. `pedidaEnDireccion` (perfil-pestanias.js) dice
+  `cambios` en esa ruta, así que `pestaniaLista('cambios', true)` la abre
+  sola y `abrirLaQueTengaAlgo` no la pisa. Las listas Busca / Da ya se veían
+  sin cuenta (887, `intercambios_de_persona` y `user_wants` públicas).
+- `usuario.js`: `esEvento`. Sin cuenta en `/evento/…` pinta `#perfilCruce`
+  con `pintarCruce`, que sin sesión es ahora la **puerta**: «¿Tienes alguna
+  de estas?», «Crea tu cuenta en PokeDoc, apunta tus cartas y te decimos qué
+  os podéis cambiar X y tú», `Crear cuenta` (`/auth.html?registro=1&volver=
+  <esta página>`) y `Ya tengo cuenta`. Con cuenta en `/evento/…` no se pinta
+  la caja de arriba: el cruce lo pinta la propia pestaña (`#pcCruce`, 887).
+  `?cruce=1` (el enlace viejo) sigue pintando la caja de arriba como antes.
+- Pruebas: `test-tanda-1029-pantalla.mjs` (iPhone: QR y cuentas, Busco en
+  cartas, Doy por `cambio`, Copiar al portapapeles, Exportar con el CSV
+  leído del fichero bajado; sin cobertura con lo guardado; sin cuenta; PC;
+  y lo escrito en toml/sw) y `test-tanda-1030-pantalla.mjs` (sin cuenta,
+  con cuenta, `?cruce=1`). El doble sirve `/evento/<u>` y `/feria`.
+
 ## Tanda 1027 — La edición gemela de una expansión (japonesa ↔ occidental)
 
 **Lo que da TCGGO** (anuncio del 25 de octubre de 2026): cada expansión
