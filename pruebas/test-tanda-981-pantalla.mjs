@@ -23,7 +23,7 @@ const leer = (f) => readFileSync(join(RAIZ, f), 'utf8')
 console.log('── 1. Lo que va en el HTML ──')
 {
   const conBarra = readdirSync(RAIZ).filter((f) => f.endsWith('.html') && leer(f).includes('id="navbar"'))
-  const sinClase = conBarra.filter((f) => !/<meta name="viewport"[^>]*>\s*<script>if\(window\.matchMedia\('\(max-width: 900px\)'\)\.matches\)document\.documentElement\.classList\.add\('con-barra-movil'\)<\/script>/.test(leer(f)))
+  const sinClase = conBarra.filter((f) => !/<meta name="viewport"[^>]*>\s*<script>if\(window\.matchMedia\('\(max-width: 900px\)'\)\.matches\)document\.documentElement\.classList\.add\('con-barra-movil'\)[^<]*<\/script>/.test(leer(f)))  // desde la 1023 el guion lleva también el tipo de la transición
   check(`las ${conBarra.length} páginas con barra ponen la clase del móvil en la cabecera, DESPUÉS del viewport`, conBarra.length > 30 && !sinClase.length, sinClase.join(', '))
   const sinHoja = conBarra.filter((f) => !/<link rel="stylesheet" href="\/css\/movil\.css" media="\(max-width: 900px\)">\s*<\/head>/.test(leer(f)))
   check('  …y la hoja del móvil en la cabecera, con `media`', !sinHoja.length, sinHoja.join(', '))
