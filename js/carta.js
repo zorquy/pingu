@@ -37,6 +37,7 @@ import {
   urlDeImagen,
   rarezaEs,
   rarezaDeCarta,
+  COLUMNAS_FICHA,
 } from './carta-nucleo.js'
 import { mercadoDeRuta, elegirCartaDeRuta } from './carta-ruta.js'
 
@@ -44,14 +45,9 @@ import { mercadoDeRuta, elegirCartaDeRuta } from './carta-ruta.js'
 // «Ficha completa» de una japonesa daba «Carta no encontrada».
 let mercado = 'WEST'
 
-// Las columnas de la ficha. Se piden por su nombre y no con `*` a
-// propósito: `*` traería también `name_search` y `dex_ids`, que no pinta
-// nadie, en TODAS las visitas.
-const COLUMNAS =
-  'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,category,rarity,rarity_en,types,hp,illustrator,' +
-  'stage,evolve_from,retreat,attacks,abilities,weaknesses,resistances,variants,' +
-  'trainer_type,energy_type,suffix,description,regulation_mark,detalle_at,detalle_lang,cm_id_product_propio,tp_id_product_propio,' +
-  'tcg_sets(id,name,name_en,serie_id,serie_name_en,release_date,card_count_official,card_count_total,tcg_online_code,logo_scrydex,logo_tcggo,logo_path)'
+// Las columnas de la ficha viven en carta-nucleo.js (1043): las pide
+// también el pop-up de cualquier página (js/ficha-rapida.js).
+const COLUMNAS = COLUMNAS_FICHA
 
 const $ = (id) => document.getElementById(id)
 

@@ -7162,6 +7162,19 @@ async function abrirCartaDeDireccion() {
   if (anadirYa && sesion && esMia) abrirAnadir(id)
 }
 
+// El oyente de app.js (1043) abre aquí, con el pop-up de esta pantalla, la
+// carta de cualquier enlace que se toque. Solo si es del catálogo que se
+// mira: la ficha lee la carta del mapa de ESE catálogo (648); si no lo es,
+// contesta que no y se abre la ficha rápida de cualquier página.
+window.pokedocAbrirCarta = (carta) => {
+  if (!carta?.id || (carta.market || 'WEST') !== mercado) return false
+  void (async () => {
+    const fila = cartas.get(carta.id) || (await datos.cartasPorIds([carta.id], mercado).catch(() => new Map())).get(carta.id)
+    if (fila) abrirCarta(carta.id, fila)
+  })()
+  return true
+}
+
 // La carga, suelta desde la tanda 437 porque se hace DOS veces: al entrar
 // y cada vez que se cambia de catálogo. Copiarla habría dejado dos cargas
 // que se separan sin que nadie se entere.

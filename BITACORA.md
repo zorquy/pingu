@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (281) — PINGU-Claude (1043 — una carta se abre en su pop-up, en toda la web)
+
+**Hecho**: PINGU: «siempre que cliques una carta te abra el pop-up, para no
+irte de donde estás… y a la ficha completa solo si le das a ver ficha
+completa». En el Modo evento, el buscador, los perfiles, el foro, las guías,
+los torneos…: tocar una carta ya no te saca de la página.
+- **Un oyente en `app.js`** (`abrirCartaEnPopup`): un clic en un enlace a
+  `/carta/…` o a `/cartas?…&carta=` abre `js/ficha-rapida.js` (por
+  `import()`). Con Ctrl/Cmd/Mayús o la rueda, lo de siempre (otra pestaña).
+  En /carta no hace nada (ya es la ficha). «Ver ficha completa» lleva
+  `data-ficha-completa`.
+- **El pop-up** pinta lo MISMO que /carta: `nucleoDeCarta` y `pintarMercado`
+  (precio por idioma, «Añadir», «La quiero», avisos), dentro de un `dialog`
+  con `#cartaNucleo` y `#cartaMercado`; las columnas, `COLUMNAS_FICHA`
+  (carta-nucleo.js, que ahora usan los dos). Centrado en el PC; desde abajo
+  en el móvil, con «Añadir» bajo la carta y no fija encima.
+- **En Mi colección y /cartas** el pop-up es el suyo: la página deja
+  `window.pokedocAbrirCarta` (solo para el catálogo que se mira; si no, la
+  ficha rápida).
+- **La paleta** (Ctrl+K): una carta se abre en el pop-up; con Mayús+Intro
+  (añadir) sigue yendo a la página.
+
+**Ficheros**: js/ficha-rapida.js (nuevo), css/ficha-rapida.css (nuevo),
+js/app.js, js/paleta.js, js/mi-coleccion.js, js/carta.js, js/carta-nucleo.js,
+SCHEMA.md, novedades.json, BITACORA.md.
+
+**Pruebas** (rama pruebas): nueva `test-tanda-1043-pantalla.mjs` (evento en PC
+y móvil, Ctrl+clic, Mi colección, la paleta y /carta).
+Suite entera en seis carriles (610 de 649 antes del tope de tiempo; las 39
+que faltaban, aparte): nada nuevo en rojo por la 1043. Los rojos que no
+estaban en la lista de la 1040 son de PostgreSQL apagado en 5433 (~40), o
+salen igual sin la tanda (441, 481, 887, 988, 720), o eran del cargado de
+los carriles (300, 312, 440, 656 verdes solos). Puesta al día: 1034 (los
+botones del evento son iconos con su aria-label desde la 1042).
+
+**Pendiente**: nada de esta tanda.
+
 ## 2026-10-26 (280) — PINGU-Claude (1042 — Deseos y cambios y el Modo evento, otra vuelta)
 
 **Hecho**: la propuesta con maquetas (artifact «Deseos y cambios, otra vuelta»)

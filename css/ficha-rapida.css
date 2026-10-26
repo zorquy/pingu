@@ -1,0 +1,119 @@
+/* El pop-up de una carta en cualquier página (1043, SCHEMA 1043). Dentro va
+   lo de /carta (carta.css y cardmarket.css las inyecta js/ficha-rapida.js);
+   esta hoja solo pone el marco: centrado y ancho en el PC, desde abajo y
+   casi entero en el móvil, con «Ver ficha completa» y cerrar arriba. */
+.ficha-rapida[open] {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  width: min(1040px, calc(100vw - var(--e-xl) * 2));
+  max-width: none;
+  max-height: calc(100dvh - var(--e-xl) * 2);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.ficha-rapida::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+
+.fr-mando {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-sm) var(--e-md);
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+
+.fr-completa {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.fr-cerrar {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text);
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+
+.fr-cuerpo {
+  min-height: 0;
+  padding: var(--e-lg);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.fr-cuerpo .carta-articulo {
+  margin: 0;
+}
+
+/* La carta, pegajosa dentro del pop-up (no de la página). */
+.fr-cuerpo .carta-scan {
+  top: 0;
+}
+
+@media (max-width: 599px) {
+  .ficha-rapida[open] {
+    width: 100vw;
+    max-height: 92dvh;
+    margin: auto 0 0;
+    border: 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  .fr-cuerpo {
+    padding: var(--e-md);
+  }
+
+  .fr-cuerpo .carta-scan {
+    position: static;
+  }
+}
+
+/* En /carta, en el móvil, «Añadir» va fija encima de la barra de abajo
+   (movil.css); en el pop-up se queda bajo la carta, que es su sitio. */
+@media (max-width: 900px) {
+  html.con-barra-movil .ficha-rapida .carta-scan .carta-acciones {
+    position: static;
+    margin-top: var(--e-md);
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    transform: none;
+  }
+
+  html.con-barra-movil .ficha-rapida .carta-cuerpo {
+    padding-bottom: 0;
+  }
+
+  html.con-barra-movil .ficha-rapida .carta-scan {
+    max-width: 280px;
+  }
+
+  /* Como /carta en el móvil (carta.css): sin «Compartir» al lado, para que
+     «Añadir a mi colección» quepa en una línea. */
+  .ficha-rapida .carta-acciones #cmCompartir {
+    display: none;
+  }
+
+  .ficha-rapida .carta-acciones .mc-mas-texto {
+    white-space: nowrap;
+  }
+}

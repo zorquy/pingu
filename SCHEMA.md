@@ -41785,6 +41785,37 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1043 — Una carta se abre en su pop-up, en toda la web
+
+PINGU: «siempre que cliques una carta te abra el pop-up, para no irte de
+donde estás… y a la ficha completa solo si le das a ver ficha completa».
+
+- **`abrirCartaEnPopup`** (js/app.js, registrado antes que la barra de
+  progreso de la 892, para que esta vea `defaultPrevented`): clic izquierdo
+  sin modificadores en un `a[href]` de la casa a `/carta/<slug>-<id>` o a
+  `/cartas?…&carta=<id>` → `import('./ficha-rapida.js')` y
+  `abrirCartaDeEnlace(url)`. Si devuelve `false` (no está la carta, es de
+  TCG Pocket…) navega como antes. No actúa en /carta, con `target` ni con
+  `data-ficha-completa`.
+- **`js/ficha-rapida.js`**: `cartaDeDireccion(url)` saca los candidatos
+  (`candidatosDeRuta`, `mercadoDeRuta`); la carta se pide con
+  `COLUMNAS_FICHA`; el `dialog#fichaRapida` lleva `#cartaNucleo` y
+  `#cartaMercado` para que `nucleoDeCarta` y `pintarMercado` pinten lo de
+  /carta sin tocarlos (la 998: un solo sitio). `vaciar()` saca el precio del
+  núcleo antes de vaciarlo (en el PC `pintarMercado` lo mete dentro) al
+  cerrar y al pasar a otra carta. Hojas: carta-holo, cardmarket, carta y
+  ficha-rapida, por `hojaInyectada` con el nombre escrito (299).
+- **`window.pokedocAbrirCarta(carta)`** lo deja mi-coleccion.js: abre su
+  `#mcEditor` y devuelve `true` si la carta es del catálogo que se mira;
+  si no, `false` y se usa la ficha rápida (la ficha de Mi colección lee la
+  carta del mapa de su catálogo, 648).
+- **La paleta** (`ir()` en paleta.js) navega por código: para una carta sin
+  «añadir» llama a `abrirCartaDeEnlace` igual.
+- Una pantalla nueva que pinte cartas solo tiene que enlazar con
+  `rutaDeCarta` (o `rutaDeCartaEnBuscar`): el pop-up le llega solo.
+
+Lo vigila `test-tanda-1043-pantalla.mjs` (rama `pruebas`).
+
 ## Tanda 1042 — Deseos y cambios y el Modo evento, otra vuelta
 
 Propuesta con maquetas (artifact «Deseos y cambios, otra vuelta») y PINGU:

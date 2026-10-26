@@ -736,6 +736,9 @@ export async function initNavbar() {
     // Y la lateral del ordenador (SCHEMA 739), igual: solo quien la usa.
     import('./barra-lateral.js').then((m) => m.montarBarraLateral({ conSesion: !!session })).catch(() => {})
   }
+  // Una carta se abre en el pop-up y no en otra página (SCHEMA 1043). Va
+  // ANTES que la barra de progreso: si el clic se queda aquí, no navega.
+  document.addEventListener('click', abrirCartaEnPopup)
   // La barra de progreso al tocar un enlace (SCHEMA 892).
   import('./progreso.js').then((m) => m.montarProgreso()).catch(() => {})
   // Precarga al posar el dedo (SCHEMA 723).
@@ -872,3 +875,21 @@ function montarVolverArriba() {
 
 // Se ejecuta en cuanto se importa este módulo en cualquier página.
 initNavbar()
+
+// Un clic en un enlace a una carta (`/carta/…` o `/cartas?…&carta=`) abre
+// su pop-up (js/ficha-rapida.js) en vez de irse (1043). Con Ctrl, Cmd o la
+// rueda, lo de siempre: otra pestaña. «Ver ficha completa» lleva
+// `data-ficha-completa`, y en /carta (ya es la ficha) no se toca nada.
+function abrirCartaEnPopup(e) {
+  if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return
+  const a = e.target.closest?.('a[href]')
+  if (!a || a.hasAttribute('data-ficha-completa') || a.hasAttribute('download') || (a.target && a.target !== '_self')) return
+  const url = new URL(a.href, location.href)
+  if (url.origin !== location.origin || /^\/carta(\/|\.html|$)/.test(location.pathname)) return
+  if (!/^\/carta\//.test(url.pathname) && !(/^\/cartas(\.html)?$/.test(url.pathname) && url.searchParams.has('carta'))) return
+  e.preventDefault()
+  import('./ficha-rapida.js')
+    .then((m) => m.abrirCartaDeEnlace(url))
+    .then((ok) => { if (!ok) location.href = a.href })
+    .catch(() => { location.href = a.href })
+}

@@ -204,6 +204,16 @@ function montar() {
       it.hacer()
       return
     }
+    // Una carta se abre en su pop-up, sin irse de la página (1043); con
+    // «añadir» (Mayús+Intro) sigue yendo adonde se añade.
+    if (it.grupo === 'cartas' && !anadir && !/^\/carta(\/|\.html|$)/.test(location.pathname)) {
+      dialogo.close()
+      import('./ficha-rapida.js')
+        .then((m) => m.abrirCartaDeEnlace(new URL(it.href, location.href)))
+        .then((ok) => { if (!ok) location.href = it.href })
+        .catch(() => { location.href = it.href })
+      return
+    }
     location.href = anadir && it.grupo === 'cartas' ? `${it.href}#anadir` : it.href
   }
 

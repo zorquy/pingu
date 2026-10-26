@@ -138,6 +138,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   la carta a la izquierda, los datos en dos columnas a la derecha. Una hoja
   que se abra DENTRO de la ficha en el móvil (versión, tus copias) lleva
   `data-sin-arrastre`, o el arrastre de hojas (804) cierra la ficha entera.
+- **Una carta se abre en su pop-up, en toda la web** (tanda 1043, PINGU:
+  «a la ficha completa solo si le das a ver ficha completa»): un oyente de
+  `app.js` convierte cualquier clic en un enlace a `/carta/…` o
+  `/cartas?…&carta=` en `js/ficha-rapida.js` (lo de /carta en un `dialog`);
+  en Mi colección y /cartas, su `#mcEditor` por `window.pokedocAbrirCarta`.
+  Una pantalla nueva solo enlaza con `rutaDeCarta`; lo que deba IR a la
+  ficha lleva `data-ficha-completa`.
 - **/carta y el pop-up enseñan una carta con LO MISMO** (tanda 998, PINGU:
   «cojamos solo un sitio»): las versiones son las chapas del precio y salen de
   `versionesDeCartas` (con las de a mano), la rareza de `rarezaCrudaDeCarta`
