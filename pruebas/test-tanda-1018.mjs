@@ -41,6 +41,9 @@ const SECCIONES = ['aprender', 'cartas', 'comunidad', 'jugar']
   check('el botón principal y la barra de abajo piden --acento', /\.btn-primary \{\s*background: var\(--acento\);\s*color: var\(--acento-texto\);/.test(css) && /\.bm a\[aria-current='page'\] \{\s*color: var\(--acento\);/.test(css))
   const movil = readFileSync(`${RAIZ}/css/movil.css`, 'utf8'), mc = readFileSync(`${RAIZ}/css/mi-coleccion.css`, 'utf8'), lat = readFileSync(`${RAIZ}/css/lateral.css`, 'utf8')
   check('la burbuja, la de Mi colección y la lateral también', /\.bm-burbuja-item\[aria-current='page'\] \{\s*background: var\(--acento\);/.test(movil) && /\.mc-pestanias \.pildora \{\s*background: var\(--acento\);/.test(mc) && /\.lat-activa > \.lat-seccion-enlace \{\s*color: var\(--acento\);/.test(lat))
+  // 1025 (PINGU: «aprender tiene por debajo azul y debería ser verde todo»):
+  // la página activa dentro del cajón también va en el color de la sección.
+  check('la página activa de la lateral pide --acento, no --navy', /\.lat \[aria-current='page'\] \{\s*background: var\(--ice\);\s*color: var\(--acento\);/.test(lat))
   check('el token no se pide con respaldo en ninguna hoja (310)', !/var\(--acento,/.test(css + movil + mc + lat))
 }
 
@@ -55,7 +58,7 @@ async function colores(ruta, tema, movil) {
   await p.waitForTimeout(2500)
   const r = await p.evaluate(() => {
     const c = (sel, prop) => { const e = document.querySelector(sel); return e ? getComputedStyle(e)[prop] : null }
-    return { seccion: document.documentElement.dataset.seccion, tema: document.documentElement.dataset.theme, barra: c('.bm a[aria-current="page"]', 'color'), burbuja: c('.bm-burbuja-item[aria-current="page"], .mc-pestanias .pildora', 'backgroundColor'), boton: c('.btn-primary', 'backgroundColor'), lateral: c('.lat-activa .lat-seccion-enlace', 'color') }
+    return { seccion: document.documentElement.dataset.seccion, tema: document.documentElement.dataset.theme, barra: c('.bm a[aria-current="page"]', 'color'), burbuja: c('.bm-burbuja-item[aria-current="page"], .mc-pestanias .pildora', 'backgroundColor'), pagina: c('.lat-paginas a[aria-current="page"]', 'color'), boton: c('.btn-primary', 'backgroundColor'), lateral: c('.lat-activa .lat-seccion-enlace', 'color') }
   })
   await ctx.close()
   return r
@@ -71,6 +74,10 @@ async function colores(ruta, tema, movil) {
 {
   const r = await colores('/mi-coleccion.html?ver=cartas', 'dark', true)
   check('Mi colección en oscuro: la píldora de la burbuja en ámbar', r.seccion === 'cartas' && r.burbuja === rgb('#e4b44a'), JSON.stringify(r))
+}
+{
+  const r = await colores('/aprender.html', 'dark', false)
+  check('Aprender en el PC (oscuro): la fila «Aprender» Y la página «Guías» en verde (1025)', r.seccion === 'aprender' && r.lateral === rgb('#2fb47c') && r.pagina === rgb('#2fb47c'), JSON.stringify(r))
 }
 {
   const r = await colores('/foro.html', 'dark', false)
