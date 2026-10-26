@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (262) — PINGU-Claude (1024 — el azul de Inicio en oscuro y la lateral sin «Inicio» repetido)
+
+**Hecho**: lo que PINGU pidió al ver los colores de la 1018: en el tema
+oscuro, Inicio (y lo que no es de ninguna sección) va en el azul claro de
+`--navy` (#7cbae4) con texto oscuro, no en el marino, que «parecía
+deshabilitado»; y en la lateral del PC el cajón de Inicio ya no repite la
+fila «Inicio» (en la portada, «estás aquí» lo dice la propia fila). La
+burbuja del móvil no cambia. En claro no cambia nada.
+
+**Ficheros**: `css/style.css` (la regla de oscuro), `js/barra-lateral.js`
+(`paginasDe`), `SCHEMA.md` (1024), `novedades.json`, `CLAUDE.md`. En
+`pruebas`: 1018 (regla, contraste y pantalla en oscuro), 739 (la portada
+fuera del cajón) y `test-migraciones` (`user_progress` en la lista).
+
+**Suite entera de la noche** (tras la 1023): 182 verdes; en rojo de antes
+`test-correos` (torneo_aviso, de la 883), 446, 467, 648, 851, 874 y 943;
+255 y 653 solo porque el servidor de pruebas se cayó en esa pasada.
+
+**Pendiente**: lo que queda de la propuesta «PokeDoc como app» es lo de D12
+apuntado en SCHEMA 1022 (perfil con cinco cifras y tres pestañas, hermanos
+de una expansión en el PC, podio, fotos de Noticias, bordes de Ajustes).
+La migración 1017 ya está ejecutada (PINGU, 25 por la noche).
+
 ## 2026-10-26 (261) — PINGU-Claude (1023 — toque, transición con dirección y la prueba de solapes)
 
 **Hecho**: en el móvil, entrar en una guía, un tema o un torneo desliza

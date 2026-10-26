@@ -58,6 +58,12 @@ export const PARTES_DE_LA_COLECCION = [
 ]
 const soloLaColeccion = (s) => s.enlaces.length === 1 && claveDePagina(s.enlaces[0].href) === 'mi-coleccion'
 
+// Las páginas que cuelgan de una sección en la lateral: sin la portada (1024,
+// PINGU: «la pestaña de inicio la quitaba porque ya hay inicio»), que es la
+// propia fila «Inicio». La burbuja del móvil la conserva: ahí la fila de la
+// sección no se pulsa.
+const paginasDe = (s) => s.enlaces.filter((e) => claveDePagina(e.href) !== 'index')
+
 export function lateralHtml(secciones, actual, clave, { conSesion = false, abierta = actual } = {}) {
   return secciones
     .map((s, i) => {
@@ -73,7 +79,7 @@ export function lateralHtml(secciones, actual, clave, { conSesion = false, abier
           ? '<li class="lat-menu-sitio"></li>'
           : partes
           ? PARTES_DE_LA_COLECCION.map((p) => `<li><a href="/mi-coleccion?ver=${p.ver}">${p.icono()}<span>${p.texto}</span></a></li>`).join('')
-          : s.enlaces
+          : paginasDe(s)
             .map((e) => {
               const k = claveDePagina(e.href)
               return `<li><a href="${e.href}"${k === clave ? ' aria-current="page"' : ''}>${icons[iconoDePagina(k)]?.(18) || ''}<span>${rotuloCorto(k, e.texto)}</span></a></li>`
@@ -86,7 +92,7 @@ export function lateralHtml(secciones, actual, clave, { conSesion = false, abier
       // La sección lleva `aria-current` solo si ES la página (Inicio en la
       // portada); si no, «estás aquí» lo dice la página de debajo.
       const esLaPagina = claveDePagina(destinoDe(s, conSesion)) === clave
-      const aquiDebajo = conCajon && s.enlaces.some((e) => claveDePagina(e.href) === clave)
+      const aquiDebajo = conCajon && paginasDe(s).some((e) => claveDePagina(e.href) === clave)
       return `<li class="lat-seccion${activa ? ' lat-activa' : ''}"><div class="lat-fila"><a class="lat-seccion-enlace" href="${destinoDe(s, conSesion)}" title="${s.nombre}"${esLaPagina && !aquiDebajo ? ' aria-current="page"' : ''}>${icons[ICONOS[s.nombre]]?.(20) || ''}<span>${s.nombre}</span></a>${flecha}</div>${cajon}</li>`
     })
     .join('')

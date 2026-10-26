@@ -130,6 +130,9 @@
   --acento: var(--navy-solid);
   --acento-texto: var(--blanco-fijo);
 }
+/* 1024: en oscuro, Inicio (y lo que no es de ninguna sección) va en el azul
+   claro de --navy, no en el marino (PINGU: «parece deshabilitada»). */
+:root[data-theme='dark'] { --acento: var(--navy); --acento-texto: #0b1219; }
 html[data-seccion='aprender'] { --acento: #0f7f55; }
 html[data-seccion='cartas'] { --acento: #9a5f06; }
 html[data-seccion='comunidad'] { --acento: #c62a5c; }

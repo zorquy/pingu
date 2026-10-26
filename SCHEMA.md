@@ -41785,6 +41785,53 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1024 — El azul de Inicio en oscuro y la lateral sin la fila «Inicio» repetida
+
+PINGU, al ver los colores por sección de la 1018 (2026-10-26): «el del
+inicio no. Me parece un azul oscuro demasiado oscuro… parece que está como
+deshabilitada la opción de inicio. Yo le pondría azul como el mismo azul de
+dentro de las cosas en PC». Y de la lateral del PC: «la pestaña de inicio la
+quitaba porque ya hay inicio, es redundante».
+
+**El color.** En el tema oscuro `--acento` nacía en `--navy-solid` (#1e5175,
+el marino que no se redefine en oscuro porque lleva blanco encima), y sobre
+el fondo #0b1219 da 2,9 de contraste: la fila «Inicio» de la lateral y el
+«Inicio» de la barra de abajo salían apagados, como un control desactivado.
+El azul «de dentro de las cosas» que PINGU señala es `--navy` en oscuro
+(#7cbae4), el de la página activa dentro de un cajón y de los enlaces. Desde
+la 1024 `:root[data-theme='dark'] { --acento: var(--navy); --acento-texto:
+#0b1219; }`: Inicio y lo que no es de ninguna sección (auth, ajustes) van en
+ese azul con texto oscuro encima, igual que hacen las cuatro secciones en
+oscuro (verde, ámbar, rosa y violeta claros con #0b1219). El botón principal
+de la portada en oscuro cambia con él (azul claro con texto oscuro), que es
+lo que ya hacía en Aprender o en el foro. Las reglas por sección
+(`:root[data-theme='dark'][data-seccion='x']`) pesan más y no cambian. En
+claro no cambia nada: #1e5175 sobre blanco es el azul de siempre.
+Contrastes: #7cbae4 con #0b1219, 9,4; sobre la superficie oscura #1a2733, 7,6.
+
+**La lateral.** `lateralHtml` colgaba de Inicio las cuatro páginas de la
+sección (`seccionesDe` mete `{ href: '/', texto: 'Inicio' }` delante de
+Noticias, Lanzamientos y Novedades), así que en la portada había dos filas
+que decían «Inicio» una debajo de otra. Desde la 1024 `paginasDe(s)` deja
+fuera la portada (`claveDePagina(e.href) === 'index'`) al pintar el cajón y
+al decidir `aquiDebajo`, así que en la portada la propia fila «Inicio» lleva
+`aria-current="page"` (que es lo que el comentario de la 739 ya prometía) y
+el cajón son las tres páginas. **Solo en la lateral**: la burbuja del móvil
+conserva su «Inicio» porque ahí la fila de la sección (la barra de abajo)
+y la burbuja son dos controles y «Inicio» en la burbuja es la forma de
+volver a la portada desde Noticias (758).
+
+Pruebas: `test-tanda-1018.mjs` comprueba la regla de oscuro, su contraste y,
+en pantalla, la lateral y el botón de la portada en oscuro en #7cbae4;
+`test-tanda-739-pantalla.mjs`, que la portada no sale como página de Inicio
+y que en la portada «estás aquí» lo dice la fila. De la suite entera de la
+noche (182 verdes): `test-migraciones` cantaba `user_progress` en la 1017,
+una tabla de antes de las migraciones que faltaba en su lista a mano (PINGU
+ejecutó la 1017 el 25 por la noche sin error); se añade. Siguen en rojo de
+antes y no son de estas tandas: `test-correos` (`torneo_aviso` sin baja, de la
+883), 446, 467, 648, 851, 874, 943 y 255/653 (el servidor de pruebas estaba
+caído en esa pasada; solos, verdes).
+
 ## Tanda 1023 — El toque, la transición con dirección y la prueba de solapes (A4 de «PokeDoc como app»)
 
 **La transición entre páginas tiene dirección.** Desde la 753 el móvil

@@ -1181,6 +1181,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   dos medidas de contraste (SCHEMA 1018) y `test-tanda-1018.mjs` lo mide.
   La burbuja flotante del móvil SE QUEDA (PINGU, 2026-10-26: «lo único que
   no me gusta es que me cambies la burbuja»): no la muevas arriba.
+  En oscuro, el acento por defecto (Inicio, auth, ajustes) es `--navy`, el
+  azul claro, con texto oscuro (1024, PINGU: el marino «parece
+  deshabilitada»); y el cajón de Inicio en la lateral no repite la portada
+  (`paginasDe`): la burbuja del móvil sí la lleva.
 - **En el móvil nada flota sobre el contenido salvo la barra y la burbuja**
   (tanda 1023, regla 1 de «PokeDoc como app»): un botón «siempre a mano»
   va en la cabecera o pegado bajo las pestañas, no fijo sobre las

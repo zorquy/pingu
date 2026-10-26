@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "arreglo", "texto": "En el tema oscuro, Inicio ya no se pinta en azul marino (parecía apagado): va en el mismo azul claro que lo demás. Y en el ordenador, el menú de Inicio ya no repite «Inicio» debajo.", "enlace": "/" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, abrir una guía, un tema o un torneo desliza desde la derecha y volver atrás sale hacia la derecha, como en una app; y las tarjetas responden al tocarlas.", "enlace": "/foro" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "Mis partidas en el ordenador va en filas cortas (caben el doble); la invitación al curso dentro de una guía se lee; Aprender ya no enseña tres ceros antes de tu primera medalla; y en el móvil la barra de abajo se aparta mientras escribes.", "enlace": "/mis-partidas" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "El botón de escribir del foro va en la cabecera y ya no tapa nada. En Torneos, los mandos caben en una fila (el calendario es un icono en el móvil) y en el constructor Guardar y sus botones van arriba, bajo las pestañas, en vez de apilados sobre las cartas.", "enlace": "/torneos" },
