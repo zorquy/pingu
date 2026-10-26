@@ -86,11 +86,11 @@ const avatarDe = (p, nombre) => `<a class="mini-avatar" href="${escapeHtml(profi
 const iconosDe = (p, nombre) => `<button type="button" class="mc-cruce-ico mc-cambio-escribir" data-escribir="${escapeHtml(p.user_id)}" data-direccion="cruce" aria-label="Escribir a ${escapeHtml(nombre)}" title="Escribir">${icons.mail(18)}</button>
       <a class="mc-cruce-ico" href="${escapeHtml(profileUrl(p))}?ver=cambios" aria-label="Su perfil" title="Su perfil">${icons.user(18)}</a>`
 
-// El cruce PERFECTO (los dos tenéis algo del otro): la tarjeta grande, con
-// las dos mitades y la balanza en medio. `valor(f)` es lo que vale una copia
-// (o null): la página sabe de precios, este módulo no.
-export function cruceHtml(p, { cartas, valor, euros }) {
-  const nombre = p.display_name || p.username || 'Alguien'
+// Las dos mitades y la balanza de un cruce: lo de dentro de la tarjeta
+// grande, que es también lo que enseña una fila al desplegarla (1044).
+// `valor(f)` es lo que vale una copia (o null): la página sabe de precios,
+// este módulo no.
+function ladosHtml(p, { cartas, valor, euros }) {
   const suma = (filas) => filas.reduce((a, f) => a + (valor(f) || 0), 0)
   const recibes = suma(p.teDa)
   const das = suma(p.leDas)
@@ -100,6 +100,23 @@ export function cruceHtml(p, { cartas, valor, euros }) {
       <p class="mc-cruce-total">${filas.length} ${filas.length === 1 ? 'carta' : 'cartas'}${total ? ` · <b>≈ ${escapeHtml(euros(total))}</b>` : ''}</p>
     </div>`
   const b = balanzaDe(recibes, das, euros)
+  return `<div class="mc-cruce-lados">
+      ${lado('Te da', p.teDa, recibes, 'Nada de tu lista', 'da')}
+      ${b
+        ? `<div class="mc-cruce-balanza" role="img" aria-label="${escapeHtml(b.texto.replace(/<[^>]+>/g, ''))}">
+            <span class="mc-balanza-barra"><i style="width:${b.pct}%"></i><i style="width:${100 - b.pct}%"></i></span>
+            <p>${b.texto}</p>${b.pista ? `<small>${b.pista}</small>` : ''}
+          </div>`
+        : `<span class="mc-cruce-flecha" aria-hidden="true">${icons.refreshCw(18)}</span>`}
+      ${lado('Le das', p.leDas, das, 'Nada de su lista', 'busca')}
+    </div>`
+}
+
+// La tarjeta grande, con las dos mitades y la balanza en medio: el cruce
+// PERFECTO (los dos tenéis algo del otro) y, desde la 1044, el primero de la
+// lista sea cual sea.
+export function cruceHtml(p, op) {
+  const nombre = p.display_name || p.username || 'Alguien'
   return `<article class="mc-cruce${p.perfecto ? ' perfecto' : ''}" data-cruce="${escapeHtml(p.user_id)}">
     <header class="mc-cruce-cabeza">
       ${avatarDe(p, nombre)}
@@ -110,16 +127,7 @@ export function cruceHtml(p, { cartas, valor, euros }) {
       </div>
       ${p.perfecto ? `<span class="mc-chapa-reciproco">${icons.refreshCw(14)}Cruce perfecto</span>` : ''}
     </header>
-    <div class="mc-cruce-lados">
-      ${lado('Te da', p.teDa, recibes, 'Nada de tu lista', 'da')}
-      ${b
-        ? `<div class="mc-cruce-balanza" role="img" aria-label="${escapeHtml(b.texto.replace(/<[^>]+>/g, ''))}">
-            <span class="mc-balanza-barra"><i style="width:${b.pct}%"></i><i style="width:${100 - b.pct}%"></i></span>
-            <p>${b.texto}</p>${b.pista ? `<small>${b.pista}</small>` : ''}
-          </div>`
-        : `<span class="mc-cruce-flecha" aria-hidden="true">${icons.refreshCw(18)}</span>`}
-      ${lado('Le das', p.leDas, das, 'Nada de su lista', 'busca')}
-    </div>
+    ${ladosHtml(p, op)}
     <div class="mc-cruce-acciones">
       <button type="button" class="btn-primary mc-cambio-proponer" data-proponer="${escapeHtml(p.user_id)}">${icons.refreshCw(15)}Proponer cambio</button>
       ${iconosDe(p, nombre)}
@@ -127,16 +135,22 @@ export function cruceHtml(p, { cartas, valor, euros }) {
   </article>`
 }
 
-// Los que NO son perfectos (1042), en una fila: quién, qué mueve y cuánto
-// vale, «Proponer» y escribir. Antes era la misma tarjeta grande con una
-// mitad que decía «Nada de su lista · 0 cartas».
-export function cruceFilaHtml(p, { cartas, valor, euros }) {
+// Los demás (1042), en una fila: quién, qué mueve y cuánto vale, «Proponer»
+// y escribir. Plegada (1044, PINGU: «si no, no lo ves hasta que le propones
+// el cambio»): tocarla en cualquier sitio que no sea un botón o un enlace
+// despliega debajo lo mismo que la tarjeta grande (`ladosHtml`). El que
+// pliega y despliega es el botón de la flecha (`data-desplegar`), para el
+// teclado y el lector; el resto de la fila le pasa el toque.
+export function cruceFilaHtml(p, op) {
+  const { cartas, valor, euros } = op
   const nombre = p.display_name || p.username || 'Alguien'
-  const filas = p.teDa.length ? p.teDa : p.leDas
-  const total = filas.reduce((a, f) => a + (valor(f) || 0), 0)
-  const n = filas.length
-  const que = p.teDa.length ? `Te da ${n} de tu lista` : `Busca ${n} de las tuyas`
-  return `<article class="mc-cruce mc-cruce-fila" data-cruce="${escapeHtml(p.user_id)}">
+  const filas = p.perfecto ? [...p.teDa, ...p.leDas] : p.teDa.length ? p.teDa : p.leDas
+  const total = (p.perfecto ? p.teDa : filas).reduce((a, f) => a + (valor(f) || 0), 0)
+  const que = p.perfecto
+    ? `Te da ${p.teDa.length} · le das ${p.leDas.length}`
+    : p.teDa.length ? `Te da ${p.teDa.length} de tu lista` : `Busca ${p.leDas.length} de las tuyas`
+  const id = `mcCruceDetalle-${String(p.user_id).replace(/[^\w-]/g, '')}`
+  return `<article class="mc-cruce mc-cruce-fila${p.perfecto ? ' perfecto' : ''}" data-cruce="${escapeHtml(p.user_id)}">
     ${avatarDe(p, nombre)}
     <div class="mc-cruce-quien">
       <a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>
@@ -147,6 +161,21 @@ export function cruceFilaHtml(p, { cartas, valor, euros }) {
     <div class="mc-cruce-acciones">
       <button type="button" class="btn-secondary mc-cambio-proponer" data-proponer="${escapeHtml(p.user_id)}">Proponer</button>
       ${iconosDe(p, nombre)}
+      <button type="button" class="mc-cruce-ico mc-cruce-desplegar" data-desplegar aria-expanded="false" aria-controls="${id}" aria-label="Ver el cruce con ${escapeHtml(nombre)}" title="Ver el cruce">${icons.chevronRight(18)}</button>
     </div>
+    <div class="mc-cruce-detalle" id="${id}" hidden>${ladosHtml(p, op)}</div>
   </article>`
+}
+
+// Pliega o despliega una fila (1044). Devuelve si ha quedado abierta.
+export function desplegarCruce(fila, abrir) {
+  const boton = fila?.querySelector('[data-desplegar]')
+  const detalle = fila?.querySelector('.mc-cruce-detalle')
+  if (!boton || !detalle) return false
+  const abierta = abrir ?? boton.getAttribute('aria-expanded') !== 'true'
+  boton.setAttribute('aria-expanded', String(abierta))
+  boton.setAttribute('title', abierta ? 'Plegar' : 'Ver el cruce')
+  detalle.hidden = !abierta
+  fila.classList.toggle('abierta', abierta)
+  return abierta
 }

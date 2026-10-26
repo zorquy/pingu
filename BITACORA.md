@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (282) — PINGU-Claude (1044 — los cruces se despliegan al tocarlos)
+
+**Hecho**: PINGU (con captura de Deseos y cambios › Cruces): «el primero que
+aparezca desplegado está bien, pero los siguientes que estén plegados… si tú
+le clicas dentro del rectángulo, se despliegue el cruce entero… porque si no,
+no lo ves hasta que tú le propones el cambio».
+- Solo el PRIMER cruce de todos va en la tarjeta grande (antes, todos los
+  perfectos); el resto son filas, también un perfecto que no sea el primero
+  («Te da N · le das M» y el borde verde).
+- Tocar una fila en cualquier sitio que no sea un enlace o un botón la
+  despliega: debajo, lo mismo que la tarjeta (Te da / Le das con sus cartas,
+  totales y la balanza; `ladosHtml` en tablon.js, que usan las dos). Otra vez,
+  se pliega; lo desplegado no pliega al tocarlo. La flecha (`data-desplegar`,
+  44 px, `aria-expanded`/`aria-controls`) hace lo mismo con el teclado.
+- En el móvil la fila va en dos líneas (quién y qué + flecha; «Proponer» y
+  escribir debajo): en una sola el texto quedaba en una palabra por línea.
+- Las reglas de la fila pequeña (`.mc-cruce-fila .mc-cruce-lado`, la carta de
+  32 px) iban también a lo desplegado: ahora a sus hijos directos (`>`).
+
+**Ficheros**: js/mi-coleccion/tablon.js, js/mi-coleccion/deseos.js,
+css/mi-coleccion.css, SCHEMA.md, novedades.json, BITACORA.md.
+
+**Pruebas** (rama pruebas): nueva `test-tanda-1044-pantalla.mjs`; al día la
+376 (una sola persona es la primera: tarjeta con las cuatro cartas).
+Subconjunto de /mi-coleccion (289 pruebas en seis carriles): nada nuevo en
+rojo. Los rojos son los de siempre (311, 310 y 887 salen igual sin la tanda),
+los de PostgreSQL apagado en 5433 (1017, 945) y la 692 y la 712, que en
+carriles cargados fallan por tiempo y solas salen verdes (la 712, también sin
+la tanda). Verdes además 1042, 1033, 1034, 772, 299, 312, 313 y 1023.
+
+**Pendiente**: nada de esta tanda.
+
 ## 2026-10-26 (281) — PINGU-Claude (1043 — una carta se abre en su pop-up, en toda la web)
 
 **Hecho**: PINGU: «siempre que cliques una carta te abra el pop-up, para no

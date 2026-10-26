@@ -41785,6 +41785,34 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1044 — Los cruces se despliegan al tocarlos
+
+PINGU: «el primero que aparezca desplegado está bien, pero los siguientes
+que estén plegados… si tú le clicas dentro del rectángulo, se despliegue el
+cruce entero».
+
+- **`bandasDeCruces`** (deseos.js): el primer cruce de la primera banda que
+  tenga alguno va con `cruceHtml` (la tarjeta); todos los demás, de las tres
+  bandas, con `cruceFilaHtml`. Un perfecto que no es el primero es una fila
+  con `perfecto` y «Te da N · le das M».
+- **`ladosHtml(p, op)`** (tablon.js): las dos mitades y la balanza, sacadas
+  de `cruceHtml` para que la fila desplegada enseñe exactamente lo mismo.
+  La fila lleva `.mc-cruce-detalle` (`hidden`) y la flecha
+  `[data-desplegar]` con `aria-expanded` y `aria-controls`;
+  `desplegarCruce(fila, abrir?)` cambia los tres y la clase `abierta`.
+- **El toque** (engancharCambios): la flecha, o cualquier sitio de la fila
+  que no sea `a`, `button` ni lo desplegado, llama a `desplegarCruce`.
+  «Proponer», escribir y el nombre siguen haciendo lo suyo.
+- **CSS**: la fila hace `flex-wrap` y lo desplegado va a lo ancho (en el PC,
+  alineado con el nombre y hasta 640 px); abierta, la tira pequeña se va. En
+  el móvil, dos líneas: `.mc-cruce-acciones` en `display: contents` y
+  `order` (quién + flecha arriba; «Proponer» y escribir debajo). Las reglas
+  de la fila pequeña van a sus HIJOS directos (`.mc-cruce-fila >
+  .mc-cruce-lado`): con el descendiente a secas escondían lo desplegado en
+  el móvil y encogían sus cartas a 32 px.
+
+Lo vigila `test-tanda-1044-pantalla.mjs` (rama `pruebas`).
+
 ## Tanda 1043 — Una carta se abre en su pop-up, en toda la web
 
 PINGU: «siempre que cliques una carta te abra el pop-up, para no irte de

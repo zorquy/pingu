@@ -141,16 +141,24 @@ async function pintarCambios() {
   import('../cambios-hechos.js').then((m) => m.ponerConfianza(document.querySelector('.mc-cruces-bandas'))).catch(() => {})
 }
 
-// Los cruces por BANDAS (1042): los perfectos en grande y arriba; luego,
-// en filas, quien tiene lo que buscas y quien busca lo que das.
+// Los cruces por BANDAS (1042): los perfectos arriba; luego quien tiene lo
+// que buscas y quien busca lo que das. Desde la 1044 solo el PRIMERO de
+// todos va en la tarjeta grande (PINGU: «el primero que aparezca desplegado
+// está bien, pero los siguientes que estén plegados»); los demás son filas
+// que se despliegan al tocarlas.
 function bandasDeCruces(gente, op) {
-  const banda = (titulo, lista, html, clase) => lista.length
-    ? `<section class="mc-cruces-banda"><h3 class="mc-cruces-titulo">${titulo} <span class="mc-deseos-n">${lista.length}</span></h3><div class="${clase}">${lista.map((p) => html(p, op)).join('')}</div></section>`
-    : ''
+  let abierto = null
+  const banda = (titulo, lista) => {
+    if (!lista.length) return ''
+    const primero = abierto ? null : (abierto = lista[0])
+    const filas = primero ? lista.slice(1) : lista
+    return `<section class="mc-cruces-banda"><h3 class="mc-cruces-titulo">${titulo} <span class="mc-deseos-n">${lista.length}</span></h3>${primero ? `<div class="mc-cruces">${tablon.cruceHtml(primero, op)}</div>` : ''}${filas.length ? `<div class="mc-cruces-filas">${filas.map((p) => tablon.cruceFilaHtml(p, op)).join('')}</div>` : ''}</section>`
+  }
+  const perfectos = gente.filter((p) => p.perfecto)
   return `<div class="mc-cruces-bandas">
-    ${banda(gente.filter((p) => p.perfecto).length === 1 ? 'Cruce perfecto' : 'Cruces perfectos', gente.filter((p) => p.perfecto), tablon.cruceHtml, 'mc-cruces')}
-    ${banda('Tienen lo que buscas', gente.filter((p) => !p.perfecto && p.teDa.length), tablon.cruceFilaHtml, 'mc-cruces-filas')}
-    ${banda('Buscan lo que das', gente.filter((p) => !p.perfecto && !p.teDa.length), tablon.cruceFilaHtml, 'mc-cruces-filas')}
+    ${banda(perfectos.length === 1 ? 'Cruce perfecto' : 'Cruces perfectos', perfectos)}
+    ${banda('Tienen lo que buscas', gente.filter((p) => !p.perfecto && p.teDa.length))}
+    ${banda('Buscan lo que das', gente.filter((p) => !p.perfecto && !p.teDa.length))}
   </div>`
 }
 
@@ -244,6 +252,12 @@ function engancharCambios() {
     // «Proponer cambio» (942): la propuesta ya rellena con lo que os cruzáis.
     const proponer = e.target.closest('[data-proponer]')
     if (proponer) return void proponerA(proponer.dataset.proponer)
+    // Una fila de cruce plegada (1044): su flecha, o cualquier sitio de la
+    // fila que no sea un enlace o un botón, la despliega.
+    const desplegar = e.target.closest('[data-desplegar]')
+    if (desplegar) return void tablon.desplegarCruce(desplegar.closest('.mc-cruce-fila'))
+    const fila = e.target.closest('.mc-cruce-fila')
+    if (fila && !e.target.closest('a, button, .mc-cruce-detalle')) return void tablon.desplegarCruce(fila)
     const filtro = e.target.closest('[data-cruces-filtro]')
     if (filtro) {
       crucesFiltro = filtro.dataset.crucesFiltro

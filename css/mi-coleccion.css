@@ -12707,8 +12707,10 @@ button.mc-fila:hover {
 
 .mc-cruce.mc-cruce-fila {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--e-md);
+  cursor: pointer;
   padding: var(--e-sm) var(--e-md);
   border: 0;
   border-radius: 0;
@@ -12729,11 +12731,11 @@ button.mc-fila:hover {
   color: var(--text);
 }
 
-.mc-cruce-fila .mc-cruce-lado {
+.mc-cruce-fila > .mc-cruce-lado {
   flex: none;
 }
 
-.mc-cruce-fila .mc-cruce-carta {
+.mc-cruce-fila > .mc-cruce-lado .mc-cruce-carta {
   width: 32px;
 }
 
@@ -12743,6 +12745,41 @@ button.mc-fila:hover {
 
 .mc-cruce-fila .mc-cruce-acciones a[aria-label="Su perfil"] {
   display: none;
+}
+
+/* Plegada y desplegada (1044, SCHEMA 1044): lo de la tarjeta grande debajo,
+   a lo ancho de la fila. */
+.mc-cruce-fila .mc-cruce-detalle {
+  flex: 1 0 100%;
+  padding: var(--e-sm) 0 var(--e-xs) calc(36px + var(--e-md));
+  cursor: auto;
+}
+
+.mc-cruce-fila .mc-cruce-detalle .mc-cruce-lados {
+  max-width: 640px;
+}
+
+/* Abierta, la tira pequeña sobra: las cartas están debajo, en grande. */
+.mc-cruce-fila.abierta > .mc-cruce-lado {
+  display: none;
+}
+
+.mc-cruce-fila.abierta {
+  background: var(--bg);
+}
+
+.mc-cruce-desplegar svg {
+  transition: transform 0.15s var(--ease);
+}
+
+.mc-cruce-desplegar[aria-expanded="true"] svg {
+  transform: rotate(90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-cruce-desplegar svg {
+    transition: none;
+  }
 }
 
 @media (max-width: 599px) {
@@ -12755,8 +12792,39 @@ button.mc-fila:hover {
     grid-row: 2;
   }
 
-  .mc-cruce-fila .mc-cruce-lado {
+  .mc-cruce-fila > .mc-cruce-lado {
     display: none;
+  }
+
+  /* Plegada, en dos líneas (1044): quién y qué con la flecha arriba;
+     «Proponer» y escribir debajo, alineados con el nombre. En una sola, el
+     texto se quedaba en una palabra por línea. */
+  .mc-cruce-fila > .mc-cruce-acciones {
+    display: contents;
+  }
+
+  .mc-cruce-fila .mc-cruce-quien {
+    order: 1;
+    flex: 1 1 calc(100% - 36px - 44px - var(--e-md) * 2);
+  }
+
+  .mc-cruce-fila .mc-cruce-desplegar {
+    order: 2;
+  }
+
+  .mc-cruce-fila .mc-cambio-proponer {
+    order: 3;
+    flex: 1 1 0;
+    margin-left: calc(36px + var(--e-md));
+  }
+
+  .mc-cruce-fila [data-escribir] {
+    order: 4;
+  }
+
+  .mc-cruce-fila .mc-cruce-detalle {
+    order: 5;
+    padding-left: 0;
   }
 
   /* Las cuentas las dicen las bandas: los filtros, con la fila entera. */
