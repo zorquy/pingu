@@ -410,7 +410,9 @@ export function precioDeLinea(linea, guardados, vivos) {
   const suyas = (versionesPorCarta.get(linea.card_id) || []).filter((f) => !esFilaDeLaCarta(f) && varianteDeEtiqueta(f.etiqueta) === variante)
   const version = suyas.find((f) => tieneCifras(precioDeFila(f, { reverse: false, variante: 'normal' }))) || suyas[0]
   if (version) {
-    const p = precioDeFila(version, { reverse: false, variante: 'normal' })
+    // Sin producto de Cardmarket, el enlace de TCGGO a esa versión (1028):
+    // lleva a la versión, no a una búsqueda por nombre.
+    const p = precioDeFila(!version.cm_id_product && version.link_cm ? { ...version, cm_url: version.link_cm } : version, { reverse: false, variante: 'normal' })
     if (tieneCifras(p)) return p
     // Una versión A MANO sin cifras (934: la metálica de la UPC) no toma
     // prestado el precio de la carta: el Charizard de Base Set no vale lo
@@ -467,6 +469,17 @@ export function registrarVersiones(filas) {
   return filas || []
 }
 export const versionesRegistradas = (cardId) => versionesPorCarta.get(cardId) || []
+// Las filas que llegan DESPUÉS (1028, `tcggo-versiones-ahora`): sustituyen a
+// las de su id aquí y en `carta.versiones`, que la ficha lee de las dos.
+export function actualizarVersiones(filas, carta = null) {
+  const porId = new Map((filas || []).filter((f) => f?.card_id && f.tcggo_id != null).map((f) => [`${f.card_id}|${f.tcggo_id}`, f]))
+  if (!porId.size) return []
+  const cambia = (lista) => (lista || []).map((x) => porId.get(`${x.card_id}|${x.tcggo_id}`) || x)
+  for (const f of porId.values()) versionesPorCarta.set(f.card_id, cambia(versionesPorCarta.get(f.card_id)))
+  for (const f of porId.values()) if (!versionesPorCarta.get(f.card_id).some((x) => x.tcggo_id === f.tcggo_id)) versionesPorCarta.get(f.card_id).push(f)
+  if (carta && Array.isArray(carta.versiones)) carta.versiones = cambia(carta.versiones)
+  return [...porId.values()]
+}
 
 export async function versionesDeSets(setIds, mercado = MERCADO_POR_DEFECTO) {
   const ids = [...new Set((setIds || []).filter(Boolean))]

@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (265) — PINGU-Claude (1028 — el precio por idioma de una versión al abrir la ficha, y su enlace exacto a Cardmarket)
+
+**Hecho**: lo del Lugia Reverse del foro. Una versión de TCGGO (la Reverse de
+un set viejo) llegaba con UN precio —el mínimo de todos los idiomas— y sin
+producto de Cardmarket, porque la pasada de idiomas solo mira las versiones
+que alguien tiene apuntadas; de ahí «0,10 €, cualquier idioma» y el botón a
+una búsqueda por nombre. Ahora al abrir la ficha, si alguna versión de la
+carta no tiene precio por idioma (o es de hace más de una semana), se pide a
+TCGGO en UNA petición (`tcggo-versiones-ahora`, con su freno: una vez al día
+por versión, tope diario 1.500, parada por plan) y se repinta: «ES 25,00 €»
+y el enlace a esa versión con los filtros (`idProduct`, `language=4`,
+`isReverseHolo=Y`). La fila por idioma guarda ahora también el producto
+(también en la pasada diaria), y una versión sin producto enlaza al enlace
+de TCGGO a esa versión, nunca a una búsqueda.
+
+**PINGU**: en cuanto despliegue, abre la ficha del Lugia 140 de Darkness
+Ablaze una vez (eso dispara la petición) y vuelve a mirar la Reverse. Si no
+cambia, /admin → Semáforo tiene «Versiones al abrir la ficha» con su estado.
+
+**Ficheros**: `netlify/functions/tcggo-versiones-ahora.mjs` (nuevo),
+`netlify/lib/tcggo.mjs`, `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`,
+`admin/js/semaforo.js`, `SCHEMA.md` (1028), `novedades.json`, `CLAUDE.md`.
+En `pruebas`: `test-tanda-1028.mjs`, `test-tanda-1028-pantalla.mjs` y el
+fixture `fixtures/tcggo-carta-1028.json`. Verdes también 862, 929, 937, 945,
+900, 1002, 1004, 1006, 1007 y `test-imports`.
+
+**Pendiente**: la 1027 (el enlace entre la edición japonesa y la occidental
+de una expansión): PINGU ha pedido una maqueta de dónde iría antes de
+hacerla.
+
 ## 2026-10-26 (264) — PINGU-Claude (1026 — qué lleva dentro un producto y su PVP, de lo nuevo de TCGGO)
 
 **Hecho**: lo nuevo de la API de TCGGO aplicado a los productos: el PVP

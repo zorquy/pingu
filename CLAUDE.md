@@ -922,6 +922,18 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   chapas de impresión de un bloque de precio enseñan solo las que
   existen (`variants`); las cuatro a la vez solo las ofrecen añadir y
   editar, donde la carta la tienes en la mano.
+- **Una VERSIÓN de TCGGO llega con UN precio y sin producto, y su idioma se
+  pide al ABRIR la ficha** (tanda 1028, el Lugia Reverse del foro). La pasada
+  de precios trae cada versión «slim» (el mínimo de todos los idiomas) y la de
+  idiomas solo visita las que alguien tiene apuntadas: la Reverse de Darkness
+  Ablaze decía «0,10 €, cualquier idioma» con el español a 25 €. La ficha
+  llama a `tcggo-versiones-ahora` (una petición por carta, una vez al día por
+  versión, tope diario, parada por plan; estado `tcggo_versiones_ahora` en
+  `PASADAS`) y repinta. Una fila por idioma lleva `cm_id_product`
+  (`filaDeIdiomasDeVersion`): sin él no hay enlace exacto a Cardmarket, y
+  mientras no llega, el botón va al `link_cm` de TCGGO a ESA versión, nunca a
+  una búsqueda por nombre. Si pintas el precio de una versión en otra
+  pantalla, pasa por `precioDeLinea` con la fila entera.
 - **El HISTÓRICO de precios se pide A DEMANDA, y lo demás lo escribe la
   pasada de precios** (tanda 643). TCGGO da la serie de una carta en una
   petición, así que pedirla para las 20.000 es imposible: `tcggo-historial`

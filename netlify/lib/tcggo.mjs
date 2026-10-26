@@ -1092,6 +1092,9 @@ export function filaDeIdiomasDeVersion(suya, { cardId, market = 'WEST', ahora = 
   const p = filaDePreciosTcggo(cardId, suya, { ahora, mercado: market })
   return {
     tcggo_id: suya.id, market, card_id: cardId,
+    // Y su producto de Cardmarket (1028): con él, el enlace de la versión va
+    // a ESA versión con los filtros, y no a una búsqueda por nombre.
+    ...(p.cm_id_product ? { cm_id_product: p.cm_id_product } : {}),
     cm_low: p.cm_low, cm_low_en: p.cm_low_en, cm_low_de: p.cm_low_de, cm_low_fr: p.cm_low_fr,
     cm_low_es: p.cm_low_es, cm_low_it: p.cm_low_it, cm_low_ja: p.cm_low_ja,
     cm_avg7: p.cm_avg7, cm_avg30: p.cm_avg30, cm_disponibles: p.cm_disponibles,

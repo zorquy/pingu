@@ -41785,6 +41785,78 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1028 — El precio por idioma de una versión, al abrir la ficha, y su enlace exacto a Cardmarket
+
+**El fallo (hilo del foro, 2026-10-26)**: la Reverse del Lugia 140 de
+Darkness Ablaze decía «0,10 €, mínimo en Cardmarket, cualquier idioma» y su
+botón iba a una búsqueda por nombre; en la web de TCGGO la misma Reverse
+tenía ES 25 €, EN 5 €, DE 0,50 €, FR 10 €, IT 2 €, y su enlace de «Spanish»
+llevaba a la carta exacta con los filtros.
+
+**Por qué**: una VERSIÓN de TCGGO (la Reverse de un set viejo, la Quick
+Ball) es una fila de `tcg_card_versions` que escribe la pasada de precios con
+`include_variants=1` (929), y esa forma «slim» trae UN precio: el mínimo de
+todos los idiomas juntos, sin `cardmarket_id`. El precio por idioma de las
+versiones lo pide `tcggo-versiones-idioma`, pero SOLO de las versiones que
+alguien tiene apuntadas: nadie había apuntado esa Reverse. Y sin
+`cm_id_product`, `enlaceCardmarket` no puede montar
+`Products?idProduct=…&language=4&isReverseHolo=Y`, así que caía a la
+búsqueda por nombre. Dos huecos del mismo origen: la pasada no visita lo que
+nadie tiene, y la fila de idiomas no guardaba el producto.
+
+**Lo que hace**:
+
+1. `netlify/functions/tcggo-versiones-ahora.mjs` (GET
+   `?card=<id>&market=WEST|JP`): devuelve las filas de versiones de esa carta
+   y, si alguna de TCGGO (`versionesDeTcggo`: con `tcggo_id` > 0 y sin
+   origen `mano`/`edicion`/`tcgdex`) no se ha pedido HOY, las pide todas en
+   UNA petición (`/cards?ids=…`, hasta 20) y guarda sus precios por idioma y
+   su `cm_id_product` con `filaDeIdiomasDeVersion` (merge-duplicates: la
+   etiqueta y lo demás no se tocan). Es el patrón del histórico (643): a
+   demanda la primera vez, con freno, y la pasada diaria lo mantiene.
+2. **El freno** (`scrydex_estado` → `tcggo_versiones_ahora`, en `PASADAS`):
+   `{ dia, peticiones, hechas[], planBloqueado }`. Una vez al día por
+   versión (las ids se apuntan ANTES de pedir, la 665), tope diario de
+   peticiones (`TCGGO_TOPE_VERSIONES_AHORA`, 1.500 de serie; con 15.000 al
+   día del plan Ultra y las pasadas programadas por debajo de 3.000, sobra) y
+   un 429/403 del plan bloquea el día. Los frenos de TODO el día (plan, tope)
+   se miran antes que el de la carta, para que el motivo que se cuenta sea el
+   de verdad. Pasado cualquier freno se sirve lo que haya, sin error.
+3. `filaDeIdiomasDeVersion` (`netlify/lib/tcggo.mjs`) lleva ahora
+   `cm_id_product` cuando TCGGO da `cardmarket_id` (y no manda la columna si
+   no lo da, para que el merge no pise uno que hubiera). Vale también para
+   `tcggo-versiones-idioma`, que usa la misma función: la pasada diaria
+   también deja el producto.
+4. La ficha (`refrescarVersionesDeFicha`, `js/mi-coleccion.js`, al final de
+   `pintarPrecioDeFicha`): si alguna versión de TCGGO de la carta no tiene
+   precio por idioma o lo tiene de hace más de 7 días, pide a la función
+   (una vez por carta y visita, `versionesRefrescadas`), mete lo que vuelve
+   con `datos.actualizarVersiones(filas, carta)` (sustituye por
+   `card_id|tcggo_id` en `versionesPorCarta` y en `carta.versiones`) y, si la
+   ficha sigue en esa carta (`cartaAbierta`, la 663), repinta el bloque de
+   precio y la lista de versiones.
+5. `precioDeLinea` (`js/mi-coleccion/datos.js`): una versión de TCGGO sin
+   `cm_id_product` pero con `link_cm` pasa ese enlace como `cm_url`, así que
+   mientras no llega el producto el botón va al enlace de TCGGO a ESA
+   versión, no a una búsqueda por nombre. Antes solo lo hacían las a mano.
+
+**Lo que NO hace**: no toca las ediciones de Wizards ni las versiones de
+TCGdex (su precio llega por su producto, 935 y 945) ni las a mano; no pide
+nada desde /carta (ahí no se cargan versiones: la carta se abre en el
+pop-up, 998). La migración no hace falta: `cm_id_product` ya existía en
+`tcg_card_versions` (935).
+
+**Pruebas**: `test-tanda-1028.mjs` (la función con sus dobles: una
+petición por ids, lo que se guarda, una vez al día, tope, plan, sin
+versiones de TCGGO, sin clave, id raro; el fixture es el ejemplo «Get card»
+de la especificación v1 de TCGGO, `fixtures/tcggo-carta-1028.json`, tal
+cual) y `test-tanda-1028-pantalla.mjs` (tu copia Reverse: la tarjeta de
+español pasa a 25,00 € con el enlace exacto; sin función, 0,10 € «cualquier
+idioma» con el enlace de TCGGO; sin cuenta, la lista de versiones se
+repinta). En la prueba de pantalla, la ruta genérica de
+`/.netlify/functions/` se registra ANTES que la de la función: Playwright
+mira primero la última ruta registrada.
+
 ## Tanda 1026 — Qué lleva dentro un producto sellado, y su PVP (lo nuevo de TCGGO)
 
 TCGGO anunció el 25 de octubre de 2026 dos cosas en su API (PINGU pegó los
