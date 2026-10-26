@@ -268,7 +268,7 @@ console.log('\n── 7b. En el móvil, el nombre de la carta se lee ──')
   await movil.waitForTimeout(2800)
   // Desde la 771 es una baldosa de la rejilla, con el nombre debajo.
   const ancho = await movil.locator('#mcQuieroRejilla .mc-merc-nombre').first().evaluate((e) => Math.round(e.getBoundingClientRect().width))
-  check('el nombre de la carta no se encoge a nada', ancho > 120, `${ancho}px`)
+  check('el nombre de la carta no se encoge a nada', ancho > 96, `${ancho}px`) // 96 desde la 1033: tres por fila (PINGU), antes 120 con dos
   const caja = await movil.evaluate(() => ({ doc: document.documentElement.scrollWidth, ventana: window.innerWidth }))
   check('  …y nada se sale de la pantalla', caja.doc <= caja.ventana + 1, JSON.stringify(caja))
   await movil.close()
