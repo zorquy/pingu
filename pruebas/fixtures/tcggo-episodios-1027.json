@@ -1,0 +1,292 @@
+{
+ "_de": "Ejemplo «List episodes» (occidental) de la especificación OpenAPI v1 de TCGGO (api-1_5.json, 2026-10-26), tal cual: las seis primeras expansiones con related_episodes.",
+ "data": [
+  {
+   "id": 431,
+   "name": "30th Celebration",
+   "slug": "30th-celebration",
+   "lang": "en",
+   "released_at": "2026-09-16",
+   "logo": "https://images.tcggo.com/tcggo/storage/36628/30thcelebration.png",
+   "symbol": "https://images.tcggo.com/tcggo/storage/63830/30th-celebration.png",
+   "code": "30C",
+   "cards_total": 128,
+   "cards_printed_total": 128,
+   "prices": {
+    "cardmarket": {
+     "total": 12041.6,
+     "currency": "EUR"
+    },
+    "tcgplayer": {
+     "total": 11012.56,
+     "currency": "EUR"
+    }
+   },
+   "game": {
+    "name": "Pokémon",
+    "slug": "pokemon"
+   },
+   "series": {
+    "id": 17,
+    "name": "Mega Evolution",
+    "slug": "mega-evolution"
+   },
+   "related_episodes": [
+    {
+     "id": 448,
+     "name": "30th Celebration (Japanese)",
+     "slug": "30th-celebration-japanese",
+     "lang": "jp",
+     "released_at": "2026-09-16",
+     "logo": "https://images.tcggo.com/tcggo/storage/40782/30th-celebration-japanese.png",
+     "symbol": null,
+     "code": "M6A",
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon-jp"
+     }
+    }
+   ]
+  },
+  {
+   "id": 415,
+   "name": "Pitch Black",
+   "slug": "pitch-black",
+   "lang": "en",
+   "released_at": "2026-07-17",
+   "logo": "https://images.tcggo.com/tcggo/storage/34402/pitch_black_logo.png",
+   "symbol": "https://images.tcggo.com/tcggo/storage/63831/pitch-black.png",
+   "code": "PBL",
+   "cards_total": 120,
+   "cards_printed_total": 120,
+   "prices": {
+    "cardmarket": {
+     "total": 565.06,
+     "currency": "EUR"
+    },
+    "tcgplayer": {
+     "total": 469.67,
+     "currency": "EUR"
+    }
+   },
+   "game": {
+    "name": "Pokémon",
+    "slug": "pokemon"
+   },
+   "series": {
+    "id": 17,
+    "name": "Mega Evolution",
+    "slug": "mega-evolution"
+   },
+   "related_episodes": [
+    {
+     "id": 447,
+     "name": "Abyss Eye",
+     "slug": "abyss-eye",
+     "lang": "jp",
+     "released_at": "2026-05-22",
+     "logo": "https://images.tcggo.com/tcggo/storage/63877/abyss_eye.png",
+     "symbol": null,
+     "code": "M5",
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon-jp"
+     }
+    }
+   ]
+  },
+  {
+   "id": 413,
+   "name": "Chaos Rising",
+   "slug": "chaos-rising",
+   "lang": "en",
+   "released_at": "2026-05-22",
+   "logo": "https://images.tcggo.com/tcggo/storage/33952/Chaos-Rising.logo.431.webp",
+   "symbol": "https://images.tcggo.com/tcggo/storage/63832/chaos-rising.png",
+   "code": "CRI",
+   "cards_total": 122,
+   "cards_printed_total": 86,
+   "prices": {
+    "cardmarket": {
+     "total": 470.64,
+     "currency": "EUR"
+    },
+    "tcgplayer": {
+     "total": 373.18,
+     "currency": "EUR"
+    }
+   },
+   "game": {
+    "name": "Pokémon",
+    "slug": "pokemon"
+   },
+   "series": {
+    "id": 17,
+    "name": "Mega Evolution",
+    "slug": "mega-evolution"
+   },
+   "related_episodes": [
+    {
+     "id": 446,
+     "name": "Ninja Spinner",
+     "slug": "ninja-spinner",
+     "lang": "jp",
+     "released_at": "2026-03-13",
+     "logo": "https://images.tcggo.com/tcggo/storage/63876/ninja_spinner.png",
+     "symbol": null,
+     "code": "M4",
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon-jp"
+     }
+    }
+   ]
+  },
+  {
+   "id": 399,
+   "name": "Perfect Order",
+   "slug": "perfect-order",
+   "lang": "en",
+   "released_at": "2026-03-27",
+   "logo": "https://images.tcggo.com/tcggo/storage/32311/Pokemon_TCG_Mega_Evolution—Perfect_Order_Logo.png",
+   "symbol": "https://images.tcggo.com/tcggo/storage/63833/perfect-order.png",
+   "code": "POR",
+   "cards_total": 124,
+   "cards_printed_total": 88,
+   "prices": {
+    "cardmarket": {
+     "total": 482.77,
+     "currency": "EUR"
+    },
+    "tcgplayer": {
+     "total": 395.86,
+     "currency": "EUR"
+    }
+   },
+   "game": {
+    "name": "Pokémon",
+    "slug": "pokemon"
+   },
+   "series": {
+    "id": 17,
+    "name": "Mega Evolution",
+    "slug": "mega-evolution"
+   },
+   "related_episodes": [
+    {
+     "id": 445,
+     "name": "Nihil Zero",
+     "slug": "nihil-zero",
+     "lang": "jp",
+     "released_at": "2026-01-23",
+     "logo": "https://images.tcggo.com/tcggo/storage/63875/nihil_zero.png",
+     "symbol": null,
+     "code": "M3",
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon-jp"
+     }
+    }
+   ]
+  },
+  {
+   "id": 396,
+   "name": "Ascended Heroes",
+   "slug": "ascended-heroes",
+   "lang": "en",
+   "released_at": "2026-01-30",
+   "logo": "https://images.tcggo.com/tcggo/storage/34000/ascended_heroes.png",
+   "symbol": "https://images.tcggo.com/tcggo/storage/63834/ascended-heroes.png",
+   "code": "ASC",
+   "cards_total": 295,
+   "cards_printed_total": 217,
+   "prices": {
+    "cardmarket": {
+     "total": 3903.28,
+     "currency": "EUR"
+    },
+    "tcgplayer": {
+     "total": 3341.11,
+     "currency": "EUR"
+    }
+   },
+   "game": {
+    "name": "Pokémon",
+    "slug": "pokemon"
+   },
+   "series": {
+    "id": 17,
+    "name": "Mega Evolution",
+    "slug": "mega-evolution"
+   },
+   "related_episodes": [
+    {
+     "id": 444,
+     "name": "MEGA Dream ex",
+     "slug": "mega-dream-ex",
+     "lang": "jp",
+     "released_at": "2025-11-28",
+     "logo": "https://images.tcggo.com/tcggo/storage/63874/mega_dream.png",
+     "symbol": null,
+     "code": "M2a",
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon-jp"
+     }
+    }
+   ]
+  },
+  {
+   "id": 231,
+   "name": "Phantasmal Flames",
+   "slug": "phantasmal-flames",
+   "lang": "en",
+   "released_at": "2025-11-14",
+   "logo": "https://images.tcggo.com/tcggo/storage/23782/Pokemon_TCG_Mega_Evolution—Phantasmal_Flames_Logo.png",
+   "symbol": "https://images.tcggo.com/tcggo/storage/63835/phantasmal-flames.png",
+   "code": "PFL",
+   "cards_total": 130,
+   "cards_printed_total": 94,
+   "prices": {
+    "cardmarket": {
+     "total": 1008.26,
+     "currency": "EUR"
+    },
+    "tcgplayer": {
+     "total": 848.43,
+     "currency": "EUR"
+    }
+   },
+   "game": {
+    "name": "Pokémon",
+    "slug": "pokemon"
+   },
+   "series": {
+    "id": 17,
+    "name": "Mega Evolution",
+    "slug": "mega-evolution"
+   },
+   "related_episodes": [
+    {
+     "id": 440,
+     "name": "Inferno X",
+     "slug": "inferno-x",
+     "lang": "jp",
+     "released_at": "2025-09-26",
+     "logo": "https://images.tcggo.com/tcggo/storage/63873/inferno_x.png",
+     "symbol": null,
+     "code": "M2",
+     "game": {
+      "name": "Pokémon",
+      "slug": "pokemon-jp"
+     }
+    }
+   ]
+  }
+ ],
+ "paging": {
+  "current": 1,
+  "per_page": 20,
+  "total": 1
+ }
+}

@@ -1812,7 +1812,7 @@ export const supabase = {
       }
       const PERMITIDAS = {
         tcg_cards: ['name', 'name_en', 'name_es', 'local_id', 'set_id', 'rarity', 'rarity_en', 'category', 'hp', 'types', 'stage', 'evolve_from', 'retreat', 'attacks', 'abilities', 'weaknesses', 'resistances', 'trainer_type', 'energy_type', 'illustrator', 'description', 'dex_ids', 'regulation_mark', 'variants', 'suffix', 'image_path', 'image_tcggo', 'image_scrydex', 'cm_id_product_propio', 'tp_id_product_propio', 'origen'],
-        tcg_sets: ['name', 'name_en', 'serie_id', 'serie_name', 'serie_name_en', 'release_date', 'card_count_official', 'card_count_total', 'tcg_online_code', 'logo_tcggo', 'logo_scrydex', 'logo_path', 'symbol_scrydex', 'oculto', 'orden', 'origen'],
+        tcg_sets: ['name', 'name_en', 'serie_id', 'serie_name', 'serie_name_en', 'release_date', 'card_count_official', 'card_count_total', 'tcg_online_code', 'logo_tcggo', 'logo_scrydex', 'logo_path', 'symbol_scrydex', 'oculto', 'orden', 'origen', 'tcggo_gemelos'],
       }
       const cambios = args.p_cambios && typeof args.p_cambios === 'object' ? args.p_cambios : {}
       if (!PERMITIDAS[tabla]) return { data: null, error: { code: '22023', message: `Tabla desconocida: ${tabla}` } }
