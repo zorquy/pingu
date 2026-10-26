@@ -109,10 +109,10 @@ console.log('\n── 3. El pie enlaza el catálogo ──')
   // y /mi-coleccion (28 desde la 361 con /colabora; 27 desde la 354 con
   // /constructor y /mazos).
   // 36 desde la 583 (/mas-caro); 37 desde la 621 (/laboratorio); 38, 39 y
-  // 40 desde la 791, la 792 y la 794 (/ilustrador, /glosario, /feria); 41
+  // 40 desde la 791, la 792 y la 794 (/ilustrador, /glosario, /feria —/evento desde la 1029—); 41
   // desde la 829, con /novedades; 44 desde la 835 (/quien-es,
-  // /ordena-precio, /que-expansion).
-  check('las 44 páginas con pie enlazan a /cartas', conPie.length === 44 && sinEnlace.length === 0,
+  // /ordena-precio, /que-expansion); 45 desde la 989 (/parejas).
+  check('las 45 páginas con pie enlazan a /cartas', conPie.length === 45 && sinEnlace.length === 0,
     `${conPie.length} con pie, sin enlace: ${sinEnlace.join(', ')}`)
 }
 

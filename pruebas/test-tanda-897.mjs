@@ -25,7 +25,7 @@ console.log('── 1. Lo estático ──')
   const sw = leer('sw.js')
   check('las páginas tienen su caché y entran por la navegación', /const paginas = \(g\) => `pokedoc-paginas-\$\{g\}`/.test(sw) && /if \(esPaginaDeCache\(new URL\(req\.url\)\)\) \{\s*e\.respondWith\(paginaDeCasa\(req, e\)\)/.test(sw))
   check('  …solo la dirección pelada: sin consulta, un solo trozo', /if \(url\.origin !== self\.location\.origin \|\| url\.search\) return false/.test(sw) && /\^\\\/\(\[a-z0-9-\]\*\)\(\\\.html\)\?\$/.test(sw))
-  for (const p of ['feria', 'sin-conexion', 'auth', 'admin', 'guia', 'carta', 'coleccion', 'curso', 'categoria']) check(`  …y /${p} se queda fuera`, new RegExp(`SIN_PAGINA = new Set\\(\\[[^\\]]*'${p}'`).test(sw))
+  for (const p of ['evento', 'sin-conexion', 'auth', 'admin', 'guia', 'carta', 'coleccion', 'curso', 'categoria']) check(`  …y /${p} se queda fuera`, new RegExp(`SIN_PAGINA = new Set\\(\\[[^\\]]*'${p}'`).test(sw))
   // Desde la 982 un cambio no vacía las dos: llena las dos de la generación siguiente (test-tanda-982).
   check('un cambio en una página o en un fichero renueva LAS DOS cachés', /\[await caches\.open\(ficheros\(g\)\), await caches\.open\(ficheros\(n\)\)\],\s*\[await caches\.open\(paginas\(g\)\), await caches\.open\(paginas\(n\)\)\]/.test(sw))
   check('  …y las de cada generación sobreviven al activar', /!DE_GENERACION\.test\(k\)/.test(sw))

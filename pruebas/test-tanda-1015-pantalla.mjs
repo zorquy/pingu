@@ -47,7 +47,7 @@ console.log('\n── 2. El Panel (L7) ──')
     return { linea: document.querySelector('.mc-vistazo-linea')?.textContent.trim(), chips, publica: !!document.getElementById('mcPublica'), estado: document.getElementById('mcPublicaEstado')?.textContent.trim(), ajustes: document.getElementById('mcPublicaAjustes')?.getAttribute('href') }
   })
   check('bajo «Estadísticas» va una línea con lo contado', /^2 cartas distintas · 1 copia repetida$/.test(r.linea || ''), r.linea)
-  check('las acciones son chips de una fila (44 px), no losetas de 90', r.chips.length >= 3 && r.chips.every((c) => c.h <= 48) && new Set(r.chips.map((c) => c.y)).size === 1 && r.chips.map((c) => c.t).join('|') === 'Imagen|Importar CSV|Exportar CSV|Modo feria', JSON.stringify(r.chips))
+  check('las acciones son chips de una fila (44 px), no losetas de 90', r.chips.length >= 3 && r.chips.every((c) => c.h <= 48) && new Set(r.chips.map((c) => c.y)).size === 1 && r.chips.map((c) => c.t).join('|') === 'Imagen|Importar CSV|Exportar CSV|Modo evento', JSON.stringify(r.chips))
   check('«Colección pública» ya no es un check aquí: se dice cómo está y se manda a Ajustes', !r.publica && /^Colección (pública|privada)$/.test(r.estado || '') && r.ajustes === '/ajustes?ver=privacidad' && !errores.length, JSON.stringify(r) + errores.join(' | '))
   await ctx.close()
 }

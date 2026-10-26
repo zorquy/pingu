@@ -72,11 +72,11 @@ for (const [texto, porMascara] of Object.entries(ref)) for (const [k, filas] of 
 check(`las ${total} matrices (tres textos, ocho máscaras, versiones 3 a 16) son idénticas`, iguales === total && total === 24, `${iguales} de ${total}`)
 check('el SVG lleva su margen y el tamaño pedido', /viewBox="0 0 37 37" width="200"/.test(svgQR('https://pokedoc.es/usuario/pingu?cruce=1', { tam: 200 })))
 
-console.log('── 4. El modo feria y el cruce ──')
-const html = readFileSync(`${RAIZ}/feria.html`, 'utf8')
-check('/feria no se indexa y carga su hoja', /name="robots" content="noindex"/.test(html) && /href="\/css\/feria\.css"/.test(html))
-check('el service worker guarda /feria para abrirla sin cobertura', /pathname\.replace\(\/\\\.html\$\/, ''\) === '\/feria'/.test(readFileSync(`${RAIZ}/sw.js`, 'utf8')))
-check('«Tú» lleva al modo feria', /fila\('\/feria'/.test(readFileSync(`${RAIZ}/js/menu-tu.js`, 'utf8')))
+console.log('── 4. El modo feria (evento desde la 1029) y el cruce ──')
+const html = readFileSync(`${RAIZ}/evento.html`, 'utf8')
+check('/evento no se indexa y carga su hoja', /name="robots" content="noindex"/.test(html) && /href="\/css\/evento\.css"/.test(html))
+check('el service worker guarda /evento para abrirla sin cobertura', /pathname\.replace\(\/\\\.html\$\/, ''\) === '\/evento'/.test(readFileSync(`${RAIZ}/sw.js`, 'utf8')))
+check('el Panel lleva al modo evento (869)', /href="\/evento"/.test(readFileSync(`${RAIZ}/js/mi-coleccion/panel.js`, 'utf8')))
 check('la ficha de la persona pinta el cruce al llegar por el QR', /has\('cruce'\)/.test(readFileSync(`${RAIZ}/js/usuario.js`, 'utf8')) && /id="perfilCruce"/.test(readFileSync(`${RAIZ}/usuario.html`, 'utf8')))
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const b = await chromium.launch()
@@ -85,12 +85,12 @@ const b = await chromium.launch()
   await p.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
   const r = await p.evaluate(async () => {
     const { cruceCon } = await import('/js/cruce-persona.js')
-    const { enlaceDeFeria } = await import('/js/feria.js')
+    const { enlaceDeFeria } = await import('/js/evento.js')
     const c = cruceCon('x', [{ user_id: 'x', card_id: 'a' }, { user_id: 'y', card_id: 'b' }], [{ user_id: 'x', card_id: 'c' }])
     return { teDa: c.teDa.map((f) => f.card_id), leDas: c.leDas.map((f) => f.card_id), e1: enlaceDeFeria({ username: 'pingu' }), e2: enlaceDeFeria({ id: 'u-1' }) }
   })
   check('el cruce es lo SUYO de los dos lados', r.teDa.join() === 'a' && r.leDas.join() === 'c', JSON.stringify(r))
-  check('el enlace del QR: el perfil con ?cruce=1', r.e1 === 'https://pokedoc.es/usuario/pingu?cruce=1' && r.e2 === 'https://pokedoc.es/usuario.html?id=u-1&cruce=1', JSON.stringify(r))
+  check('el enlace del QR: /evento/<usuario> (1029)', r.e1 === 'https://pokedoc.es/evento/pingu' && r.e2 === 'https://pokedoc.es/usuario.html?id=u-1&cruce=1&ver=cambios', JSON.stringify(r))
   await p.close()
 }
 {
@@ -98,13 +98,14 @@ const b = await chromium.launch()
   await ctx.addInitScript(() => {
     // Sin red: la consulta de las listas falla (el doble la hace fallar).
     window.__FAKE_FALLA__ = { user_collection: true }
-    localStorage.setItem('pd-feria-v1', JSON.stringify({ cuando: '2026-10-11T09:00:00Z', enlace: 'https://pokedoc.es/usuario/pingu?cruce=1', nombre: 'PINGU', doy: [{ n: 2, nombre: 'Charizard ex', num: 'obf 125' }], busco: [{ n: 1, nombre: 'Pikachu', num: '' }] }))
+    localStorage.setItem('pd-evento-v2', JSON.stringify({ cuando: '2026-10-11T09:00:00Z', enlace: 'https://pokedoc.es/evento/pingu', nombre: 'PINGU', usuario: 'pingu', doy: [{ id: 'obf-125', n: 2, nombre: 'Charizard ex', num: 'OBF 125', cadena: [], carta: {} }], busco: [{ id: 'x-1', n: 1, nombre: 'Pikachu', num: '', cadena: [], carta: {} }] }))
   })
   const p = await ctx.newPage()
-  await p.goto(`${BASE}/feria`, { waitUntil: 'domcontentloaded' })
-  await p.waitForSelector('#feriaQr svg', { timeout: 6000 }).catch(() => {})
-  const v = await p.evaluate(() => ({ qr: Boolean(document.querySelector('#feriaQr svg path')), doy: document.getElementById('feriaDoy')?.textContent, aviso: document.getElementById('feriaGuardado')?.textContent }))
-  check('sin red, enseña lo guardado y lo dice', v.qr && /2× Charizard ex/.test(v.doy) && /Sin conexión/.test(v.aviso), JSON.stringify(v))
+  await p.goto(`${BASE}/evento`, { waitUntil: 'domcontentloaded' })
+  await p.waitForSelector('#eventoQr svg', { timeout: 6000 }).catch(() => {})
+  await p.click('[data-lista="doy"]')
+  const v = await p.evaluate(() => ({ qr: Boolean(document.querySelector('#eventoQr svg path')), doy: document.getElementById('eventoLista')?.textContent, aviso: document.getElementById('eventoGuardado')?.textContent }))
+  check('sin red, enseña lo guardado y lo dice', v.qr && /×2/.test(v.doy) && /Charizard ex/.test(v.doy) && /Sin conexión/.test(v.aviso), JSON.stringify(v))
   await ctx.close()
 }
 await b.close()

@@ -7,7 +7,7 @@
 // partidas) y Ajustes a /ajustes; el pie lleva el tema en UN botón (claro ↔
 // oscuro), «Apoyar» pequeño, «Novedades» con su punto y «Salir»; y que lo
 // que se fue (Modo feria, Escribir una guía) sigue teniendo su sitio: Modo
-// feria en el Panel de Mi colección.
+// feria (Modo evento desde la 1029) en el Panel de Mi colección.
 //
 // Desde la 918 la hoja va en BALDOSAS (la propuesta «PokeDoc más sencillo»):
 // el tema en un botón redondo al lado de quién eres, seis baldosas iguales
@@ -29,8 +29,8 @@ const check = (l, ok, extra = '') => {
 console.log('── 0. Lo estático ──')
 {
   const js = readFileSync(`${RAIZ}/js/menu-tu.js`, 'utf8').replace(/\/\/[^\n]*/g, '')
-  check('la hoja ya no pinta «Ver perfil», «Modo feria» ni «Escribir una guía», y «Ajustes» va a /ajustes', !/Ver perfil|\/feria|editor-guia|data-tema="/.test(js) && /<a href="\/ajustes">/.test(js))
-  check('Modo feria tiene su sitio en el Panel de Mi colección', /id="mcModoFeria" href="\/feria"/.test(readFileSync(`${RAIZ}/js/mi-coleccion/panel.js`, 'utf8')))
+  check('la hoja ya no pinta «Ver perfil», «Modo feria» ni «Escribir una guía», y «Ajustes» va a /ajustes', !/Ver perfil|\/feria|\/evento|editor-guia|data-tema="/.test(js) && /<a href="\/ajustes">/.test(js))
+  check('Modo evento tiene su sitio en el Panel de Mi colección', /id="mcModoEvento" href="\/evento"/.test(readFileSync(`${RAIZ}/js/mi-coleccion/panel.js`, 'utf8')))
 }
 
 const browser = await chromium.launch()
@@ -103,7 +103,7 @@ console.log('── 2. En el PC ──')
   await ctx.close()
 }
 
-console.log('── 3. Modo feria, en el Panel de Mi colección ──')
+console.log('── 3. Modo evento, en el Panel de Mi colección ──')
 {
   const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
   await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'user-1'; try { localStorage.setItem('pokedoc-instalar-no', String(Date.now())) } catch { /* sin memoria */ } })
@@ -111,8 +111,8 @@ console.log('── 3. Modo feria, en el Panel de Mi colección ──')
   const page = await ctx.newPage()
   await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3000)
-  const f = await page.evaluate(() => { const a = document.getElementById('mcModoFeria'); const r = a?.getBoundingClientRect(); return a && { href: a.getAttribute('href'), texto: a.textContent.trim(), alto: Math.round(r.height), visible: r.height > 0 } })
-  check('el Panel lleva la loseta «Modo feria» a /feria', f?.href === '/feria' && f.texto === 'Modo feria' && f.visible && f.alto >= 44, JSON.stringify(f))
+  const f = await page.evaluate(() => { const a = document.getElementById('mcModoEvento'); const r = a?.getBoundingClientRect(); return a && { href: a.getAttribute('href'), texto: a.textContent.trim(), alto: Math.round(r.height), visible: r.height > 0 } })
+  check('el Panel lleva la loseta «Modo evento» a /evento', f?.href === '/evento' && f.texto === 'Modo evento' && f.visible && f.alto >= 44, JSON.stringify(f))
   await ctx.close()
 }
 

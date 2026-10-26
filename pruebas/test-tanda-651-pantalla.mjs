@@ -85,7 +85,7 @@ console.log('\n── 3. El Panel: losetas en vez de párrafos, y Cambios en cif
   const { page, errores } = await abrir('/mi-coleccion.html')
   await page.waitForTimeout(800)
   const losetas = page.locator('.mc-acciones-rejilla .mc-accion-loseta')
-  check('cuatro losetas: imagen, importar, exportar y Modo feria (869)', (await losetas.count()) === 4 && (await page.locator('#mcImagenCrear').isVisible()) && (await page.locator('#mcImportarAbrir').isVisible()) && (await page.locator('#mcExportar').isVisible()))
+  check('cuatro losetas: imagen, importar, exportar y Modo evento (869, 1029)', (await losetas.count()) === 4 && (await page.locator('#mcImagenCrear').isVisible()) && (await page.locator('#mcImportarAbrir').isVisible()) && (await page.locator('#mcExportar').isVisible()))
   check('  …cada una con su icono y su texto, y sin párrafos', (await losetas.locator('.mc-accion-icono svg').count()) === 4 && (await page.locator('.mc-vistazo-importar p.subtext').count()) === 0)
   check('  …y miden 44 px o más', (await losetas.first().boundingBox()).height >= 44)
   const cambios = page.locator('.mc-vistazo').filter({ has: page.locator('h2', { hasText: 'Cambios' }) })
