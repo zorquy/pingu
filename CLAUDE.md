@@ -208,7 +208,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   prueba lleva esa regla (sin ella la 987 salió verde y falló en la base).
   Y las de TCGGO llevan SU número («SVP 205», no «205»): la lista agrupa con
   `catalogo_numero_de_repetida` (996), y lo que se junta MUDA sus versiones
-  a la principal (antes se borraban).
+  a la principal (antes se borraban). Y por CUALQUIERA de los tres nombres
+  (1037: `name`, `name_en`, `name_es`): el Zekrom de N de TCGdex se llama
+  «Zekrom de N» en `name` y el de TCGGO «N's Zekrom», y no salían. Un arreglo
+  de datos que junte cartas desde una migración llama a
+  `catalogo_repetida_resolver` (con un admin prestado), no lo rehace a mano.
 - **Los idiomas que se ofrecen para una carta son los de SU set** (tanda
   911): `idiomas_de_set` (la base) suma los anuncios de Cardmarket y la
   ficha de TCGdex, porque ninguna basta: TCGdex se queda corto en sets

@@ -41785,6 +41785,39 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1037 — «Posibles repetidas» por los tres nombres, y el Zekrom de N en una carta
+
+PINGU ejecutó la 1034 y pegó su consulta final: la MEP 031 eran DOS cartas,
+`mep-031` (TCGdex, `name` = «Zekrom de N») y `tcggo-33636` (la que creó el
+catálogo de TCGGO, «N's Zekrom», con la de Pokémon Center fundida en la 987).
+Eso es el «está repetido». La lista de /admin junta por número y por NOMBRE,
+y el nombre era el `name` tal cual: en el occidental parte de las filas de
+TCGdex lo llevan en español (la 505), así que nunca cayeron juntas.
+
+`supabase-migration-1037-repetidas-por-idioma.sql`:
+
+- **`catalogo_posibles_repetidas`**: dos cartas de la misma colección y el
+  mismo número son posibles repetidas si comparten ALGUNO de sus nombres
+  (`name`, `name_en`, `name_es`, cada uno por `catalogo_nombre_de_repetida`
+  de la 1007). Un grupo son las de ese número que comparten nombre con otra
+  (dos parejas sin nada en común en el mismo número saldrían juntas: raro, y
+  decide PINGU). El `nombre` del grupo es el inglés normalizado; «son
+  distintas» se sigue reconociendo por las ids (1007).
+- **El Zekrom de N** se junta como «es la misma carta» con
+  `catalogo_repetida_resolver`, la función del botón: queda en «Hechas» y se
+  deshace desde el panel. La función pide un admin y en el SQL Editor no hay
+  sesión, así que el `do` le presta la del primer `is_admin` con
+  `set_config('request.jwt.claims', …, true)` (solo para esa transacción; la
+  prueba comprueba que fuera no queda nada). Antes de juntar: el producto de
+  Cardmarket a `mep-031` como corrección (la pasada de precios del occidental
+  casa por producto) y la fila de precio, si no tenía; después, su
+  `tcggo_id`. Se puede ejecutar dos veces: la segunda dice «ya estaba
+  resuelto».
+
+Prueba: `test-tanda-1037.mjs` (rama pruebas) contra PostgreSQL, encima de
+la 987, la 996 y la 1007, con `auth.uid()` como el de Supabase (lee el JWT),
+la migración dos veces y deshacer al final.
+
 ## Tandas 1034, 1035 y 1036 — Móvil compacto, «Colección», Zekrom de N y versiones por idioma
 
 PINGU, con la captura de La quiero en su iPhone: «has mantenido el filtro

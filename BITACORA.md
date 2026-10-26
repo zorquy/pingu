@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (275) — PINGU-Claude (1037 — el Zekrom de N en una carta y «Posibles repetidas» por los tres nombres)
+
+**Hecho**: PINGU ejecutó la 1034 y pegó su consulta final: la MEP 031 son
+DOS cartas, `mep-031` (TCGdex, `name` «Zekrom de N») y `tcggo-33636` (TCGGO,
+«N's Zekrom», con la de Pokémon Center fundida). Eso era el «está repetido».
+- `supabase-migration-1037-repetidas-por-idioma.sql`: «Posibles repetidas»
+  (/admin) junta por número y por CUALQUIERA de `name`, `name_en` y
+  `name_es` (antes solo `name`, y el occidental de TCGdex lo lleva en
+  español en parte de las filas); y junta el Zekrom con
+  `catalogo_repetida_resolver` («misma», un admin prestado dentro del `do`),
+  con el producto de Cardmarket (como corrección), el precio y el
+  `tcggo_id` pasados a `mep-031`. Se deshace desde /admin → Hechas.
+- Prueba: `test-tanda-1037.mjs` (rama pruebas), verde.
+
+**Ficheros**: supabase-migration-1037-repetidas-por-idioma.sql, novedades.json,
+SCHEMA.md, CLAUDE.md, BITACORA.md.
+
+**Pendiente**: **PINGU tiene que ejecutar la 1037** (y la 1027 si no está).
+Al abrir «Posibles repetidas» pueden salir grupos nuevos: los que solo
+compartían nombre en otro idioma.
+
 ## 2026-10-26 (274) — PINGU-Claude (1034 · 1035 · 1036 — móvil compacto, «Colección», Zekrom de N y versiones)
 
 **Hecho**: lo que PINGU mandó con la captura de La quiero en el iPhone.
