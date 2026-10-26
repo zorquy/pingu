@@ -10,6 +10,15 @@
 // cuenta dice el número equivocado. Se ve igual de bien.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
+// 1038: Empezadas / Todas / Completas viven en la hoja «Orden y filtro»: se
+// abre, se pulsa y se cierra con «Ver expansiones», como lo haría la gente.
+const pulsarQue = async (page, sel) => {
+  if (!(await page.locator(sel).isVisible())) { await page.click('#mcEstanteriaOrdenAbrir'); await page.waitForTimeout(300) }
+  await page.click(sel)
+  if (await page.locator('#mcEstanteriaOrden').evaluate((d) => d.open)) { await page.click('#mcEstanteriaOrdenVer'); await page.waitForTimeout(300) }
+}
+
+
 // Desde la 748 (la C2 de su maqueta) el buscador de la estantería sale con
 // la lupa y la serie vive en la hoja de «Orden»: se abren antes de usarlos.
 const abrirLupa = async (p) => { if (await p.locator('#mcEstanteriaLupa').isVisible().catch(() => false) && !(await p.locator('#mcEstanteriaBuscar').isVisible())) { await p.click('#mcEstanteriaLupa'); await p.waitForTimeout(150) } }
@@ -65,7 +74,7 @@ console.log('\n── 1. Solo las empezadas ──')
   check('al entrar salen todas', (await cuantas(page)) === 8, String(await cuantas(page)))
   check('  …y el chip nace apagado',
     (await page.locator('#mcEstanteriaEmpezadas').getAttribute('aria-pressed')) === 'false')
-  await page.click('#mcEstanteriaEmpezadas')
+  await pulsarQue(page, '#mcEstanteriaEmpezadas')
   await page.waitForTimeout(700)
   check('pulsándolo quedan solo las que has empezado', (await cuantas(page)) === 2, String(await cuantas(page)))
   check('  …y el chip lo dice',
@@ -76,7 +85,7 @@ console.log('\n── 1. Solo las empezadas ──')
   check('  …y son exactamente esas dos', ids.join(',') === 's0,s5', ids.join(','))
   // Se APAGA, que es la mitad que se olvida de un interruptor. Desde la 748
   // es una de tres chapas (la C2 de su maqueta), y se apaga con «Todas».
-  await page.click('#mcEstanteriaTodas')
+  await pulsarQue(page, '#mcEstanteriaTodas')
   await page.waitForTimeout(700)
   check('y se apaga', (await cuantas(page)) === 8, String(await cuantas(page)))
   check('sin errores', !errores.length, errores[0])
@@ -92,7 +101,7 @@ console.log('\n── 1. Solo las empezadas ──')
   await cerrarOrden(page)
   await page.waitForTimeout(700)
   check('filtrando por serie quedan las cuatro de esa serie', (await cuantas(page)) === 4, String(await cuantas(page)))
-  await page.click('#mcEstanteriaEmpezadas')
+  await pulsarQue(page, '#mcEstanteriaEmpezadas')
   await page.waitForTimeout(700)
   const ids = await page.locator('#mcEstanteriaRejilla .mc-set-tarjeta').evaluateAll((ns) => ns.map((n) => n.dataset.set))
   check('  …y con el chip, solo la empezada de esa serie', ids.join(',') === 's0', ids.join(','))
@@ -104,7 +113,7 @@ console.log('\n── 2. Cuántas estás viendo ──')
 {
   const { page } = await abrir()
   check('sin filtrar dice cuántas hay', (await rotulo(page)) === '8 colecciones', await rotulo(page))
-  await page.click('#mcEstanteriaEmpezadas')
+  await pulsarQue(page, '#mcEstanteriaEmpezadas')
   await page.waitForTimeout(700)
   // El total es el del CATÁLOGO, no el de lo que queda después de
   // filtrar: si el total se calculara sobre lo filtrado diría «2 de 2».

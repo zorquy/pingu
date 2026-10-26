@@ -185,7 +185,7 @@ const tabla = (page) => page.evaluate(() => (window.__TABLAS__.user_products || 
   check('  …y filtran', (await page.locator('#mcProdRejilla .mc-prod').count()) === 10, String(await page.locator('#mcProdRejilla .mc-prod').count()))
   await page.click('#mcProdTipos [data-prod-tipo=""]')
   await page.waitForTimeout(600)
-  check('sin productos tuyos, lo dice', /Todavía no tienes productos/.test(await page.textContent('#mcProdTuyos')))
+  check('sin productos tuyos, no dice nada (1038: la estantería ya lleva su «+ Añadir»)', (await page.textContent('#mcProdTuyos')).trim() === '')
   // 969: «+ Añadir» pregunta el idioma; el «+» de después suma uno igual.
   await page.click('[data-prod-anadir="48447"]')
   await page.waitForTimeout(300)

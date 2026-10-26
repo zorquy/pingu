@@ -77,10 +77,11 @@ console.log('\n── 4. Aprender y el catálogo en el móvil (L10, L11) ──'
   const c = await abrir('/cartas.html', { viewport: { width: 390, height: 800 } })
   const k = await c.p.evaluate(() => {
     const busca = document.getElementById('mcEstanteriaBusca'), barra = document.querySelector('.mc-estanteria-barra')
-    const chips = [...document.querySelectorAll('.mc-estanteria-que button')]
-    return { ancho: Math.round(busca.getBoundingClientRect().width), barra: Math.round(barra.getBoundingClientRect().width), chipsVisibles: chips.every((x) => x.getBoundingClientRect().right <= innerWidth + 1 && x.getBoundingClientRect().width > 0), debajo: chips[0].getBoundingClientRect().top > busca.getBoundingClientRect().bottom - 1, desborda: barra.scrollWidth > barra.clientWidth + 1 }
+    const orden = document.getElementById('mcEstanteriaOrdenAbrir').getBoundingClientRect()
+    return { ancho: Math.round(busca.getBoundingClientRect().width), barra: Math.round(barra.getBoundingClientRect().width), alLado: Math.abs(orden.top - busca.getBoundingClientRect().top) < 8, desborda: barra.scrollWidth > barra.clientWidth + 1 }
   })
-  check('L11: el buscador del catálogo ocupa su fila (con «Orden» al lado desde la 1020) y los filtros en chips debajo, sin deslizar de lado', k.ancho >= k.barra * 0.6 && k.chipsVisibles && k.debajo && !k.desborda && !c.errores.length, JSON.stringify(k) + c.errores.join(' | '))
+  // Los filtros de qué se ve se fueron a la hoja de «Orden» en la 1038.
+  check('L11: el buscador del catálogo ocupa su fila con «Orden» al lado (1020), sin deslizar de lado', k.ancho >= k.barra * 0.6 && k.alLado && !k.desborda && !c.errores.length, JSON.stringify(k) + c.errores.join(' | '))
   await c.ctx.close()
 }
 

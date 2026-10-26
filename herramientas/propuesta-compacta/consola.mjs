@@ -1,0 +1,10 @@
+import { chromium, contexto, BASE } from './comun.mjs'
+const b = await chromium.launch()
+const ctx = await contexto(b, true, 'user-1')
+const page = await ctx.newPage()
+page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') console.log('consola', m.type(), m.text().slice(0, 300)) })
+page.on('pageerror', (e) => console.log('pageerror', String(e).slice(0, 300)))
+await page.goto(`${BASE}${process.argv[2]}`, { waitUntil: 'domcontentloaded' })
+await page.waitForTimeout(4000)
+console.log(await page.evaluate(() => [location.href, document.querySelector('.mc-pestania.activa')?.dataset.pestania]))
+await b.close()

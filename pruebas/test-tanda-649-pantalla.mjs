@@ -13,6 +13,15 @@ import { readFileSync } from 'node:fs'
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { generarCartas } from '/home/user/pingu/generar-cartas.mjs'
 
+// 1038: Empezadas / Todas / Completas viven en la hoja «Orden y filtro»: se
+// abre, se pulsa y se cierra con «Ver expansiones», como lo haría la gente.
+const pulsarQue = async (page, sel) => {
+  if (!(await page.locator(sel).isVisible())) { await page.click('#mcEstanteriaOrdenAbrir'); await page.waitForTimeout(300) }
+  await page.click(sel)
+  if (await page.locator('#mcEstanteriaOrden').evaluate((d) => d.open)) { await page.click('#mcEstanteriaOrdenVer'); await page.waitForTimeout(300) }
+}
+
+
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++
@@ -125,7 +134,11 @@ console.log('\n── 2. /cartas con cuenta: lo mismo, con tu progreso y tu copi
   check('las tres expansiones también (no solo la empezada)', nombres.length === 3, nombres.join(' | '))
   const treinta = page.locator('.mc-set-tarjeta').filter({ hasText: '30th Celebration' })
   check('  …y la tuya enseña tu progreso: 1 de 92', /1\/92|1 de 92/.test(limpio(await treinta.innerText())), limpio(await treinta.innerText()))
-  check('«Solo las empezadas» sí está con cuenta', await page.locator('#mcEstanteriaEmpezadas').isVisible())
+  await page.click('#mcEstanteriaOrdenAbrir')
+  await page.waitForTimeout(300)
+  check('«Solo las empezadas» sí está con cuenta (en «Orden y filtro» desde la 1038)', await page.locator('#mcEstanteriaEmpezadas').isVisible())
+  await page.click('#mcEstanteriaOrdenVer')
+  await page.waitForTimeout(300)
   check('el título sigue siendo el del catálogo, no «Mi colección»', limpio(await page.locator('main h1').innerText()) === 'Cartas de Pokémon TCG')
   await treinta.first().click()
   await page.waitForTimeout(1500)
@@ -152,7 +165,7 @@ console.log('\n── 3. Mi colección: Expansiones sigue en el menú, y «Ver t
   // enseña una.
   await page.click('[data-pestania="album"]')
   await page.waitForTimeout(600)
-  await page.click('#mcEstanteriaEmpezadas')
+  await pulsarQue(page, '#mcEstanteriaEmpezadas')
   await page.waitForTimeout(600)
   check('con «solo las empezadas» se ve una', (await page.locator('#mcEstanteriaRejilla .mc-set-tarjeta').count()) === 1)
   await page.click('[data-pestania="resumen"]')

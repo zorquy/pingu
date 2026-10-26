@@ -8,6 +8,15 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
 
+// 1038: Empezadas / Todas / Completas viven en la hoja «Orden y filtro»: se
+// abre, se pulsa y se cierra con «Ver expansiones», como lo haría la gente.
+const pulsarQue = async (page, sel) => {
+  if (!(await page.locator(sel).isVisible())) { await page.click('#mcEstanteriaOrdenAbrir'); await page.waitForTimeout(300) }
+  await page.click(sel)
+  if (await page.locator('#mcEstanteriaOrden').evaluate((d) => d.open)) { await page.click('#mcEstanteriaOrdenVer'); await page.waitForTimeout(300) }
+}
+
+
 // Desde la 748 (la C2 de su maqueta) el buscador de la estantería sale con
 // la lupa y la serie vive en la hoja de «Orden»: se abren antes de usarlos.
 const abrirLupa = async (p) => { if (await p.locator('#mcEstanteriaLupa').isVisible().catch(() => false) && !(await p.locator('#mcEstanteriaBuscar').isVisible())) { await p.click('#mcEstanteriaLupa'); await p.waitForTimeout(150) } }
@@ -109,7 +118,7 @@ console.log('\n── 2. La estantería, con su progreso ──')
   // Se ponen LOS DOS filtros que hay, no solo uno: «quitar los filtros»
   // tiene que quitarlos todos, y con uno solo puesto la comprobación se
   // aprobaba sin ejercitar la mitad del botón.
-  await page.click('#mcEstanteriaEmpezadas')
+  await pulsarQue(page, '#mcEstanteriaEmpezadas')
   await page.waitForTimeout(400)
   await abrirLupa(page)
   await page.fill('#mcEstanteriaBuscar', 'zzzzz-no-existe')

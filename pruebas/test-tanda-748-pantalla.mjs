@@ -17,6 +17,15 @@
 //   · y la hoja quita la vista previa del iPhone (`-webkit-touch-callout`).
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
+// 1038: Empezadas / Todas / Completas viven en la hoja «Orden y filtro»: se
+// abre, se pulsa y se cierra con «Ver expansiones», como lo haría la gente.
+const pulsarQue = async (page, sel) => {
+  if (!(await page.locator(sel).isVisible())) { await page.click('#mcEstanteriaOrdenAbrir'); await page.waitForTimeout(300) }
+  await page.click(sel)
+  if (await page.locator('#mcEstanteriaOrden').evaluate((d) => d.open)) { await page.click('#mcEstanteriaOrdenVer'); await page.waitForTimeout(300) }
+}
+
+
 // Desde la 757 el «+» de una que YA tienes no sale en la casilla: se suma
 // desde su ficha, como en Dex.
 const porLaFicha = async (page, id) => {
@@ -391,7 +400,7 @@ console.log('── 7. Las Expansiones son la lista de su maqueta (C2) ──')
     orden: !!document.getElementById('mcEstanteriaOrdenAbrir')?.offsetHeight,
     buscadorEscondido: !document.getElementById('mcEstanteriaBuscar')?.offsetHeight,
     chapas: [...document.querySelectorAll('.mc-estanteria-que button')].map((b) => b.textContent + (b.getAttribute('aria-pressed') === 'true' ? '*' : '')).join(' '),
-    catalogo: [...document.querySelectorAll('.mc-estanteria-fila2 .seg-btn')].some((b) => b.offsetHeight > 0),
+    catalogo: [...document.querySelectorAll('.mc-estanteria-barra .seg-btn')].some((b) => b.offsetHeight > 0),
     eras: [...document.querySelectorAll('#mcEstanteriaRejilla .mc-estanteria-titulo')].length,
     tarjetasPorEra: [...document.querySelectorAll('#mcEstanteriaRejilla .mc-estanteria-lista')].length,
   }))
@@ -404,13 +413,13 @@ console.log('── 7. Las Expansiones son la lista de su maqueta (C2) ──')
   const crz = fs.find((f) => f.set === 'swsh12pt5')
   check('cada fila: código, «3/4» y su anillo, y baja', obf?.codigo === 'OBF' && /(^| · )3\/4$/.test(obf.cuenta) && obf.anillo === '3 de 4' && fs.every((f) => f.alto <= 90), JSON.stringify(fs))
   check('  …y la completa lo dice', /(^| · )2\/2 · Completa$/.test(crz?.cuenta || ''), JSON.stringify(crz))
-  await page.click('#mcEstanteriaEmpezadas')
+  await pulsarQue(page, '#mcEstanteriaEmpezadas')
   await page.waitForTimeout(500)
   check('«Empezadas» quita las que no has empezado', (await filas()).map((f) => f.set).sort().join(',') === 'sv2,sv3,swsh12pt5', JSON.stringify(await filas()))
-  await page.click('#mcEstanteriaCompletas')
+  await pulsarQue(page, '#mcEstanteriaCompletas')
   await page.waitForTimeout(500)
   check('«Completas», solo las acabadas', (await filas()).map((f) => f.set).join(',') === 'swsh12pt5', JSON.stringify(await filas()))
-  await page.click('#mcEstanteriaTodas')
+  await pulsarQue(page, '#mcEstanteriaTodas')
   await page.click('#mcEstanteriaOrdenAbrir')
   await page.waitForTimeout(300)
   check('«Orden» abre su hoja, con la serie dentro', await page.locator('#mcEstanteriaOrden').evaluate((d) => d.open) && await page.locator('#mcEstanteriaSerie').isVisible())

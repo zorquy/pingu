@@ -307,8 +307,19 @@ console.log('\n── 6. Lo que se pulsa con un dedo mide 44 px ──')
         .filter((n) => n.offsetParent !== null)
         .map((n) => {
           const c = n.getBoundingClientRect()
+          // La franja para el dedo (1038): chips y pestañas se ven de 36 px y
+          // un ::after absoluto sobresale 4 arriba y 4 abajo. Lo que se toca
+          // es la caja MÁS esa franja, así que se suma.
+          const a = getComputedStyle(n, '::after')
+          let alto = c.height
+          if (a.content !== 'none' && a.position === 'absolute') {
+            const t = parseFloat(a.top)
+            const b = parseFloat(a.bottom)
+            if (t < 0) alto -= t
+            if (b < 0) alto -= b
+          }
           return {
-            w: Math.round(c.width), h: Math.round(c.height),
+            w: Math.round(c.width), h: Math.round(alto),
             q: n.tagName + '.' + (n.className || '').toString().split(' ')[0],
             frase: enLinea(n), hilo: !!n.closest(window.__HILO__),
             conTexto: (n.textContent || '').trim().length > 0,
