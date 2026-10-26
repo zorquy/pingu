@@ -124,6 +124,8 @@ export const icons = {
   // Los tres puntos de «aquí hay más cosas». Es el gesto que todo el
   // mundo ya conoce, y así el menú de moderación no necesita una palabra
   // que ocupe sitio en cada fila de la lista.
+  // Dos flechas cruzadas (1027): la edición gemela en el otro catálogo.
+  arrowLeftRight: (size) => icon('<path d="M16 3l4 4-4 4"></path><path d="M20 7H4"></path><path d="M8 21l-4-4 4-4"></path><path d="M4 17h16"></path>', size),
   moreHorizontal: (size) => icon('<circle cx="5" cy="12" r="1.4"></circle><circle cx="12" cy="12" r="1.4"></circle><circle cx="19" cy="12" r="1.4"></circle>', size),
   chevronLeft: (size) => icon('<polyline points="15 18 9 12 15 6"></polyline>', size),
   chevronRight: (size) => icon('<polyline points="9 18 15 12 9 6"></polyline>', size),

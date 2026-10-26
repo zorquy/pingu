@@ -508,6 +508,11 @@
                 <h3 class="mc-album-titulo" id="mcAlbumTitulo"></h3>
                 <p class="mc-album-meta hidden" id="mcAlbumMeta"></p>
               </div>
+              <!-- La edición gemela (1027): el chip va aquí, al lado del
+                   nombre, en el PC; en el móvil el MISMO elemento se muda a
+                   la línea del progreso (`colocarGemela`), que es la única
+                   fila de arriba con hueco. -->
+              <span class="mc-gemela-sitio hidden" id="mcAlbumGemela"></span>
             </div>
             <div class="mc-seg mc-seg-sueltas mc-album-que" id="mcAlbumQue" role="group" aria-label="Qué cartas ver">
               <button type="button" data-que="mcAlbumTodas" aria-pressed="true">Todas</button>
@@ -547,6 +552,9 @@
                      la 368 porque obligaba a elegir. Esto NO es eso: es un
                      modo que se enciende, se usa y se apaga, con su barra a
                      la vista. -->
+                <a class="mc-menu-opcion hidden" id="mcAlbumGemelaMenu" href="#">
+                  <span class="mc-menu-icono" data-icono="arrowLeftRight" aria-hidden="true"></span><span id="mcAlbumGemelaMenuTexto">Ver la edición japonesa</span>
+                </a>
                 <button type="button" class="mc-menu-opcion" id="mcMarcarAbrir" aria-pressed="false">
                   <span class="mc-menu-icono" data-icono="checkSquare" aria-hidden="true"></span>Marcar varias cartas
                 </button>

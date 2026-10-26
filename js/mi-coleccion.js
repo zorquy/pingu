@@ -3590,6 +3590,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
   if ($('mcAlbumPegadaNombre')) $('mcAlbumPegadaNombre').textContent = nombreDeSet(set) || ''
   if ($('mcAlbumPegadaCuenta')) $('mcAlbumPegadaCuenta').textContent = ''
   pintarLogoDeAlbum(set)
+  void pintarGemelaDeAlbum(set)
   // Sin sesión no hay «las tuyas» que separar.
   $('mcAlbumQue')?.classList.toggle('hidden', !sesion)
   if ($('mcAlbumLinea')) $('mcAlbumLinea').textContent = ''
@@ -3711,16 +3712,76 @@ function pintarPantallaMontada(setId, set) {
   const pct = Math.round((tengo / total) * 100)
   const n = (x) => x.toLocaleString('es-ES', { useGrouping: 'always' })
   if ($('mcAlbumProgreso')) {
+    colocarGemela({ aCasa: true })
     $('mcAlbumProgreso').innerHTML = `<div class="mc-avance">
       <p class="mc-avance-linea"><b>${n(tengo)} de ${n(total)}</b> <span>· ${pct} %</span></p>
       <span class="mc-avance-barra" role="progressbar" aria-label="Lo que tienes de esta expansión" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="--ancho:${pct}%"></i></span>
     </div>`
+    colocarGemela()
   }
   if ($('mcAlbumLinea')) $('mcAlbumLinea').textContent = `${n(tengo)} de ${n(total)} · ${pct} %`
   const clase = album.vista === 'lista' ? 'mc-album-lista' : 'mc-album-rejilla'
   const hueco = album.vista === 'lista' ? '<i class="mc-hueco mc-hueco-fila"></i>' : '<i class="mc-bolsillo mc-hueco"></i>'
   $('mcAlbum').innerHTML = `<p class="sr-only">Cargando la colección…</p><div class="${clase} mc-huecos" aria-hidden="true">${hueco.repeat(Math.min(total, 1200))}</div>`
 }
+
+// LA EDICIÓN GEMELA (1027). TCGGO dice de cada expansión su equivalente en
+// el otro catálogo (`tcg_sets.tcggo_gemelos`, ids de TCGGO del otro
+// catálogo, escritos por la pasada del calco japonés o a mano en /admin).
+// Se busca en la estantería del OTRO catálogo (la de la CDN, 813: una
+// petición que se guarda, y solo si este set tiene gemela) y se pinta un
+// chip «Edición japonesa · nombre ›» al lado del nombre; con varias
+// (Evoluciones en Paldea tiene tres), un desplegable con una por línea. Lo
+// mismo, como entrada del menú ⋯. Si no hay gemela, nada: ni chip ni entrada.
+const ROTULO_GEMELA = { JP: 'Edición japonesa', WEST: 'Edición occidental' }
+const ROTULO_GEMELAS = { JP: 'Ediciones japonesas', WEST: 'Ediciones occidentales' }
+async function pintarGemelaDeAlbum(set) {
+  const sitio = $('mcAlbumGemela')
+  const menu = $('mcAlbumGemelaMenu')
+  if (!sitio) return
+  sitio.classList.add('hidden')
+  sitio.innerHTML = ''
+  menu?.classList.add('hidden')
+  const ids = Array.isArray(set?.tcggo_gemelos) ? set.tcggo_gemelos.map(Number).filter((n) => Number.isInteger(n) && n > 0) : []
+  if (!ids.length) return
+  const otro = (set.market || mercado) === 'JP' ? 'WEST' : 'JP'
+  const lista = await setsDelCatalogo(otro, { cliente: supabase }).catch(() => null)
+  if (album.set !== set.id || !lista) return
+  const gemelas = lista.filter((s) => ids.includes(Number(s.tcggo_id)) && !s.oculto && esDelTCG(s))
+  if (!gemelas.length) return
+  const ruta = (g) => `${location.pathname}?ver=album&set=${encodeURIComponent(g.id)}&catalogo=${encodeURIComponent(otro)}`
+  const ico = icons.arrowLeftRight(14)
+  if (gemelas.length === 1) {
+    const g = gemelas[0]
+    sitio.innerHTML = `<a class="mc-gemela" href="${escapeHtml(ruta(g))}" data-set="${escapeHtml(g.id)}" data-market="${escapeHtml(otro)}">${ico}<span>${ROTULO_GEMELA[otro]}</span> <i>· ${escapeHtml(nombreDeSet(g) || g.id)}</i></a>`
+  } else {
+    sitio.innerHTML = `<details class="mc-menu-caja mc-gemela-varias"><summary class="mc-gemela">${ico}<span>${ROTULO_GEMELAS[otro]}</span> <i>· ${gemelas.length}</i></summary><div class="mc-menu">${gemelas.map((g) => `<a class="mc-menu-opcion" href="${escapeHtml(ruta(g))}" data-set="${escapeHtml(g.id)}" data-market="${escapeHtml(otro)}">${escapeHtml(nombreDeSet(g) || g.id)}</a>`).join('')}</div></details>`
+  }
+  sitio.classList.remove('hidden')
+  if (menu) {
+    menu.href = ruta(gemelas[0])
+    menu.dataset.set = gemelas[0].id
+    menu.dataset.market = otro
+    $('mcAlbumGemelaMenuTexto').textContent = gemelas.length === 1 ? `Ver la ${ROTULO_GEMELA[otro].toLowerCase()}` : `Ver ${ROTULO_GEMELAS[otro].toLowerCase()} (${gemelas.length})`
+    menu.classList.remove('hidden')
+  }
+  colocarGemela()
+}
+
+// EL CHIP SE MUDA, NO SE DUPLICA (893): en el PC va al lado del nombre; en
+// el móvil la cabecera es una línea y no cabe, así que el mismo elemento se
+// mueve a la línea «9 de 24 · 38 %» (que se repinta: por eso se vuelve a
+// colocar después de cada pintada del progreso y al cambiar de ancho).
+const anchoDeMovil = window.matchMedia?.('(max-width: 760px)')
+function colocarGemela({ aCasa = false } = {}) {
+  const sitio = $('mcAlbumGemela')
+  if (!sitio) return
+  const enMovil = Boolean(anchoDeMovil?.matches) && !aCasa
+  const linea = enMovil ? $('mcAlbumProgreso')?.querySelector('.mc-avance-linea') : null
+  const destino = linea || document.querySelector('#mcArchivadorZona .mc-album-nombre')
+  if (destino && sitio.parentElement !== destino) destino.append(sitio)
+}
+anchoDeMovil?.addEventListener?.('change', colocarGemela)
 
 // EL LOGO ARRIBA (749, E5). Con logo, el nombre se queda pequeño a su lado
 // con el código y la fecha: el logo ya dice el nombre, y título + logo +
@@ -4544,10 +4605,12 @@ function pintarTiraDeSet(elSet) {
   // completo, maestro y adicionales— va dentro del «⋯», que es donde se
   // busca cuando hace falta. En el PC lo dice la línea de debajo del título.
   const n = (x) => x.toLocaleString('es-ES', { useGrouping: 'always' })
+  colocarGemela({ aCasa: true })
   caja.innerHTML = `<div class="mc-avance">
       <p class="mc-avance-linea"><b>${n(completo.tengo)} de ${n(completo.total)}</b> <span>· ${pct} %</span>${mias.length && valor ? ` <span class="mc-avance-valor">${escapeHtml(euros(valor))}</span>` : ''}</p>
       <span class="mc-avance-barra" role="progressbar" aria-label="Lo que tienes de esta expansión" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}"><i style="--ancho:${pct}%"></i></span>
     </div>`
+  colocarGemela()
   const cifras = $('mcAlbumCifras')
   if (cifras) {
     cifras.innerHTML = `${barras

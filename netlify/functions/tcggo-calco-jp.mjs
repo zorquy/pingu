@@ -72,10 +72,11 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY.
 import {
   cabeceras, baseDe, baseJpDe, urlEpisodios, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, filaDeSetNuevo, serieDeEpisodio, setDeEpisodio, setDeEpisodioPorHuella,
-  nombreComparable, codigoComparable, erasDeTcggo,
+  nombreComparable, codigoComparable, erasDeTcggo, gemelasDeEpisodios,
 } from '../lib/tcggo.mjs'
 import { procesar } from './tcggo-reemplazar-set.mjs'
 import { CLAVE_ESTADO as CLAVE_PRECIOS } from './tcggo-precios.mjs'
+import { CLAVE_ESTADO as CLAVE_PARES } from './tcggo-emparejar.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_calco_jp'
@@ -454,7 +455,9 @@ export async function pasada({
   // (solo nuestra base y la lista de TCGGO que ya está en el estado).
   if (estado.cascarones.listo) {
     const eras = await pasoDeEras({ pedir, estado, episodios, dia, ahora, persistir })
-    return { ok: eras.ok !== false, ...resumen(), hecho: true, eras }
+    // Y las ediciones gemelas (1027), también una vez al día y gratis.
+    const gemelas = await pasoDeGemelas({ pedir, estado, episodios, dia, ahora, persistir, leerEstado })
+    return { ok: eras.ok !== false && gemelas.ok !== false, ...resumen(), hecho: true, eras, gemelas }
   }
   // En la vuelta entera, TODO set japonés sin `tcggo_id` se esconde, tenga
   // cartas o no (806): el catálogo japonés es el de TCGGO.
@@ -571,6 +574,56 @@ export async function pasoDeEras({ pedir, estado, episodios, dia, ahora, persist
   }
   await persistir()
   return { ok: !fallo, movidos: movidos.length, quedan, sinEra: r.sinEra.length, ...(fallo ? { error: fallo.error } : {}) }
+}
+
+// LAS EDICIONES GEMELAS (1027): `gemelasDeEpisodios` decide con las dos
+// listas (la japonesa de este estado y la occidental del emparejador) y esto
+// escribe `tcg_sets.tcggo_gemelos` en los DOS catálogos, unas pocas por
+// pasada y una vez al día. Sin la migración 1027 la columna no existe
+// (42703): se apunta y se sale, sin tocar nada.
+export const GEMELAS_POR_PASADA = 60
+export const GEMELAS_VERSION = 1
+export async function pasoDeGemelas({ pedir, estado, episodios, dia, ahora, persistir, leerEstado }) {
+  if (!estado.gemelas || typeof estado.gemelas !== 'object') estado.gemelas = {}
+  if (estado.gemelas.dia === dia && estado.gemelas.version === GEMELAS_VERSION) return { saltado: 'las gemelas ya se miraron hoy' }
+  let sets
+  try {
+    sets = (await pedir('tcg_sets?select=id,market,name,name_en,tcggo_id,tcggo_gemelos,oculto&market=in.(WEST,JP)&oculto=is.false&tcggo_id=not.is.null&limit=1000')) || []
+  } catch (e) {
+    const m = String(e?.message || e)
+    if (/tcggo_gemelos|42703/.test(m)) {
+      estado.gemelas.faltaMigracion = { fecha: ahora.toISOString(), error: m.slice(0, 160) }
+      await persistir()
+      return { saltado: 'falta la migración 1027 (tcg_sets.tcggo_gemelos)' }
+    }
+    estado.gemelas.ultimoError = { fecha: ahora.toISOString(), error: `nuestra base: ${m.slice(0, 160)}` }
+    await persistir()
+    return { ok: false, error: estado.gemelas.ultimoError.error }
+  }
+  delete estado.gemelas.faltaMigracion
+  // La lista occidental la tiene el emparejador (es quien la pide a TCGGO);
+  // sin ella, se decide solo con lo que diga la japonesa.
+  let episodiosWest = []
+  try { episodiosWest = (await leerEstado(CLAVE_PARES))?.episodios?.lista || [] } catch { /* solo la japonesa */ }
+  const r = gemelasDeEpisodios({ setsWest: sets.filter((s) => s.market === 'WEST'), setsJp: sets.filter((s) => s.market === 'JP'), episodiosWest, episodiosJp: episodios })
+  const escritos = []
+  let fallo = null
+  for (const c of r.cambios.slice(0, GEMELAS_POR_PASADA)) {
+    try {
+      await pedir(`tcg_sets?market=eq.${c.market}&id=eq.${encodeURIComponent(c.id)}`, { method: 'PATCH', body: JSON.stringify(c.a) })
+    } catch (e) {
+      fallo = { fecha: ahora.toISOString(), set: c.id, error: String(e?.message || e).slice(0, 160) }
+      break
+    }
+    escritos.push({ id: c.id, market: c.market, nombre: c.nombre, de: c.de, a: c.a.tcggo_gemelos, fecha: ahora.toISOString() })
+  }
+  const quedan = r.cambios.length - escritos.length
+  if (fallo) estado.gemelas.ultimoError = fallo
+  else if (!quedan) { estado.gemelas.dia = dia; estado.gemelas.version = GEMELAS_VERSION }
+  estado.gemelas.escritos = [...escritos, ...(estado.gemelas.escritos || [])].slice(0, 200)
+  estado.gemelas.ultima = { fecha: ahora.toISOString(), sets: sets.length, pares: r.pares, episodiosWest: episodiosWest.length, episodiosJp: (episodios || []).length, escritosAhora: escritos.length, quedan }
+  await persistir()
+  return { ok: !fallo, escritos: escritos.length, quedan, pares: r.pares, ...(fallo ? { error: fallo.error } : {}) }
 }
 
 // Lo que TCGGO dice de su expansión, para el set nuestro que la lleva.

@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-10-26",
+      "tipo": "nuevo",
+      "texto": "Cada expansión enseña su edición gemela en el otro catálogo (la japonesa de una occidental, y al revés), con un chip en la cabecera que te lleva a ella.",
+      "enlace": "/cartas?ver=album&set=sv8"
+    },
+    {
+      "fecha": "2026-10-26",
       "tipo": "arreglo",
       "texto": "El precio de cada versión de una carta (la Reverse, la Poké Ball…) sale ya en tu idioma al abrir su ficha, y el botón de Cardmarket lleva a esa versión exacta con los filtros puestos, no a una búsqueda.",
       "enlace": "/cartas?ver=buscar&q=lugia&carta=swsh3-140"

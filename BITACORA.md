@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (267) — PINGU-Claude (1027 — la edición gemela de una expansión: japonesa ↔ occidental)
+
+**Hecho**: la propuesta aprobada. Cada expansión con gemela en el otro
+catálogo lleva un chip «Edición japonesa · nombre ›» al lado del nombre en
+el PC y, en el móvil, el mismo chip (sin el nombre) a la derecha de «9 de
+24 · 38 %»; con varias (Evoluciones en Paldea tiene tres) un desplegable;
+y la entrada «Ver la edición japonesa» en el menú ⋯. Lleva al mismo
+archivador en el otro catálogo. Lo decide `related_episodes` de TCGGO.
+
+**MIGRACIÓN PENDIENTE (PINGU)**: `supabase-migration-1027-expansion-gemela.sql`
+(una columna, `tcg_sets.tcggo_gemelos`, y la lista de columnas corregibles).
+Hasta que esté, la web pide la columna con respaldo y la pasada no escribe:
+no sale el chip, nada se rompe. Después, las gemelas las escribe el calco
+japonés una vez al día (en cuanto el emparejador y el calco renueven sus
+listas de expansiones, que es donde vienen); se puede mirar en /admin →
+Semáforo (estado del calco, `gemelas`) y corregir en /admin → Colecciones
+(campo «Edición gemela»).
+
+**Ficheros**: `supabase-migration-1027-expansion-gemela.sql`,
+`netlify/lib/tcggo.mjs`, `netlify/functions/tcggo-calco-jp.mjs`,
+`netlify/functions/sets.mjs`, `js/sets-catalogo.js`, `js/icons.js`,
+`mi-coleccion.html` (+ `cartas.html` generada), `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `admin/js/colecciones.js`, `SCHEMA.md` (1027),
+`novedades.json`, `CLAUDE.md`. En `pruebas`: `test-tanda-1027.mjs`,
+`test-tanda-1027-pantalla.mjs`, `fixtures/tcggo-episodios-1027.json` y el
+doble (`tcggo_gemelos` corregible).
+
 ## 2026-10-26 (266) — PINGU-Claude (1028b — lo del Lugia también en /carta)
 
 **Hecho**: PINGU mandó la captura de /carta con la Reverse igual que antes.

@@ -41785,6 +41785,70 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1027 — La edición gemela de una expansión (japonesa ↔ occidental)
+
+**Lo que da TCGGO** (anuncio del 25 de octubre de 2026): cada expansión
+trae `related_episodes`, su equivalente en el otro catálogo: Chispas
+Fulgurantes ↔ Super Electric Breaker; Evoluciones en Paldea ↔ Triplet Beat
++ Snow Hazard + Clay Burst (una occidental puede tener VARIAS japonesas).
+Los ids van en la numeración del OTRO catálogo (la 808) y `lang` dice cuál.
+
+**Propuesta aprobada** (artifact con maquetas, PINGU: «la 1027 adelante»):
+un chip pequeño «Edición japonesa · nombre ›» al lado del nombre en el PC;
+en el móvil el MISMO chip en la línea «9 de 24 · 38 %», a la derecha, sin el
+nombre (no cabe); y, de paso, la entrada «Ver la edición japonesa» en el
+menú ⋯. Sin gemela, nada.
+
+**Datos**: `tcg_sets.tcggo_gemelos jsonb` (migración
+`supabase-migration-1027-expansion-gemela.sql`): la lista de ids de TCGGO
+(del otro catálogo) de las gemelas, NULL si no hay. Corregible desde /admin →
+Colecciones (campo «Edición gemela», ids separados por comas; la migración
+la añade a `catalogo_columnas_corregibles`, y lo corregido manda sobre la
+pasada, la 885).
+
+**Quién la escribe**: `resumirEpisodio` (`netlify/lib/tcggo.mjs`) lleva
+ahora `gemelos: [{ id, lang, nombre }]` (`gemelosDeEpisodio`), así que las
+dos listas que ya se piden —la occidental del emparejador
+(`tcggo_pares.episodios.lista`) y la japonesa del calco
+(`tcggo_calco_jp.lista.episodios`)— traen las gemelas en cuanto se
+renueven. `gemelasDeEpisodios({ setsWest, setsJp, episodiosWest,
+episodiosJp })` (puro) decide: solo pares en los que TENEMOS los dos sets
+(un enlace a un set que no existe no lleva a ninguna parte), los dos lados
+de cada par, ids ordenados, y solo lo que CAMBIA (lo igual no se toca; una
+gemela que ya no existe se quita). `pasoDeGemelas` (`tcggo-calco-jp.mjs`,
+detrás de `pasoDeEras`, una vez al día, `GEMELAS_POR_PASADA = 60`) escribe
+`tcg_sets.tcggo_gemelos` en los DOS catálogos y apunta lo escrito en
+`estado.gemelas`; sin la migración (42703) apunta `faltaMigracion` y no
+toca nada.
+
+**La web**: `tcggo_gemelos` es una columna OPCIONAL de la estantería
+(`sets.mjs` y `sets-catalogo.js`): las opcionales (`symbol_tcggo` y esta)
+se piden todas y, si la base dice que una no existe, se quita SOLO esa y
+se repite (`quitarOpcional`); antes el símbolo era la única y se tiraba
+entera. `pintarGemelaDeAlbum(set)` (`mi-coleccion.js`, desde `abrirAlbum`):
+con ids, pide la estantería del OTRO catálogo (`setsDelCatalogo`, de la
+CDN, una petición que se guarda) y pinta en `#mcAlbumGemela` un `<a
+class="mc-gemela">` (una) o un `<details class="mc-menu-caja">` con una
+por línea (varias); el enlace es `?ver=album&set=<id>&catalogo=<otro>` en
+la misma página (la dirección manda, 656). `colocarGemela()` MUEVE el
+elemento (893: el mismo, no una copia) a `.mc-avance-linea` en el móvil y
+a `.mc-album-nombre` en el PC; como el progreso se repinta con `innerHTML`,
+antes de cada repintado el chip vuelve a casa (`{ aCasa: true }`) y después
+se vuelve a colocar, o el repintado se lo llevaba (la primera prueba lo
+cazó: el chip desaparecía del documento). CSS en `mi-coleccion.css`
+(`.mc-gemela`, botón suave de 32 px, 44 con el dedo; en el móvil `i` oculto
+y la cifra en `nowrap`). Icono nuevo `arrowLeftRight` en `js/icons.js`.
+
+**Pruebas**: `test-tanda-1027.mjs` (el resumen con el ejemplo real de la
+especificación `fixtures/tcggo-episodios-1027.json`; `gemelasDeEpisodios`
+en las dos direcciones, con tres japonesas, sin cambios, sin el otro set,
+escondidos, quitar; `pasoDeGemelas` escribe los dos lados, una vez al día,
+42703, caída, sin lista; `leerSets` quita solo la columna que falta) y
+`test-tanda-1027-pantalla.mjs` (PC: chip con nombre y enlace, el menú ⋯,
+pulsarlo abre la japonesa con «Edición occidental»; tres gemelas en
+desplegable; sin gemela nada; iPhone: en la línea del progreso, 44 px, un
+solo elemento, sin el nombre, la cabecera de una línea).
+
 ## Tanda 1028 — El precio por idioma de una versión, al abrir la ficha, y su enlace exacto a Cardmarket
 
 **El fallo (hilo del foro, 2026-10-26)**: la Reverse del Lugia 140 de

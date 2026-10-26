@@ -922,6 +922,18 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   chapas de impresión de un bloque de precio enseñan solo las que
   existen (`variants`); las cuatro a la vez solo las ofrecen añadir y
   editar, donde la carta la tienes en la mano.
+- **Una expansión sabe su EDICIÓN GEMELA en el otro catálogo** (tanda 1027,
+  `related_episodes` de TCGGO): `tcg_sets.tcggo_gemelos` (ids de TCGGO del
+  OTRO catálogo), que escribe `pasoDeGemelas` del calco japonés para los dos
+  catálogos a la vez (solo pares en los que tenemos los dos sets) y se
+  corrige en /admin → Colecciones. La cabecera pinta el chip
+  (`pintarGemelaDeAlbum`) y lo MUEVE entre el nombre (PC) y la línea del
+  progreso (móvil) con `colocarGemela`: antes de repintar el progreso con
+  `innerHTML`, `colocarGemela({ aCasa: true })`, o el repintado se lo lleva.
+  Y las columnas opcionales de la estantería (`symbol_tcggo`,
+  `tcggo_gemelos`) se quitan de UNA en una cuando la base dice que no
+  existen (`quitarOpcional`, en `sets.mjs` y `sets-catalogo.js`): una
+  columna nueva de la estantería que llegue antes que su migración va ahí.
 - **Una VERSIÓN de TCGGO llega con UN precio y sin producto, y su idioma se
   pide al ABRIR la ficha** (tanda 1028, el Lugia Reverse del foro). La pasada
   de precios trae cada versión «slim» (el mínimo de todos los idiomas) y la de

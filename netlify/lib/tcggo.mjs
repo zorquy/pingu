@@ -88,7 +88,73 @@ export function resumirEpisodio(e) {
     // «Valor del set», y cambia cada día.
     valorCm: totalPositivo(e.prices?.cardmarket?.total),
     valorTp: totalPositivo(e.prices?.tcgplayer?.total),
+    // Las ediciones gemelas en el otro catálogo (1027, `related_episodes`):
+    // su id (en la numeración de ESE catálogo), de qué catálogo y el nombre.
+    gemelos: gemelosDeEpisodio(e),
   }
+}
+
+// LAS EDICIONES GEMELAS (1027). TCGGO cuelga de cada expansión sus
+// `related_episodes` (EN ↔ JP): una occidental puede tener varias japonesas
+// (Evoluciones en Paldea ↔ Triplet Beat, Snow Hazard y Clay Burst) y una
+// japonesa una occidental. El catálogo lo dice `lang` o, si falta, el juego
+// (`pokemon-jp`).
+export function gemelosDeEpisodio(e) {
+  return (Array.isArray(e?.related_episodes) ? e.related_episodes : [])
+    .map((r) => ({ id: Number(r?.id), lang: String(r?.lang || (r?.game?.slug === 'pokemon-jp' ? 'jp' : 'en')).toLowerCase() === 'jp' ? 'jp' : 'en', nombre: typeof r?.name === 'string' ? r.name : '' }))
+    .filter((r) => Number.isInteger(r.id) && r.id > 0)
+}
+
+// Qué `tcggo_gemelos` le toca a cada set nuestro, con las dos listas de
+// expansiones (la occidental, del emparejador; la japonesa, del calco). Solo
+// pares en los que TENEMOS los dos sets: un enlace a un set que no existe no
+// lleva a ninguna parte. Devuelve solo lo que cambia; lo igual no se toca,
+// y lo corregido a mano lo repone el disparador de la 885 encima.
+export function gemelasDeEpisodios({ setsWest = [], setsJp = [], episodiosWest = [], episodiosJp = [] } = {}) {
+  const porTcggo = (sets) => new Map((sets || []).filter((s) => s && !s.oculto && Number(s.tcggo_id) > 0).map((s) => [Number(s.tcggo_id), s]))
+  const west = porTcggo(setsWest)
+  const jp = porTcggo(setsJp)
+  const quiere = new Map()
+  const anotar = (set, market, id) => {
+    const k = `${market}|${set.id}`
+    if (!quiere.has(k)) quiere.set(k, { set, market, ids: new Set() })
+    quiere.get(k).ids.add(Number(id))
+  }
+  let pares = 0
+  for (const e of episodiosWest || []) {
+    const mio = west.get(Number(e?.id))
+    for (const g of e?.gemelos || []) {
+      if (g.lang !== 'jp') continue
+      const suya = jp.get(Number(g.id))
+      if (!mio || !suya) continue
+      anotar(mio, 'WEST', g.id)
+      anotar(suya, 'JP', e.id)
+      pares++
+    }
+  }
+  for (const e of episodiosJp || []) {
+    const mio = jp.get(Number(e?.id))
+    for (const g of e?.gemelos || []) {
+      if (g.lang === 'jp') continue
+      const suya = west.get(Number(g.id))
+      if (!mio || !suya) continue
+      anotar(mio, 'JP', g.id)
+      anotar(suya, 'WEST', e.id)
+      pares++
+    }
+  }
+  const ordenada = (l) => [...new Set((Array.isArray(l) ? l : []).map(Number).filter((n) => Number.isInteger(n) && n > 0))].sort((a, b) => a - b)
+  const cambios = []
+  for (const [market, sets] of [['WEST', setsWest], ['JP', setsJp]]) {
+    for (const s of sets || []) {
+      if (!s || s.oculto) continue
+      const nuevo = ordenada([...(quiere.get(`${market}|${s.id}`)?.ids || [])])
+      const actual = ordenada(s.tcggo_gemelos)
+      if (nuevo.join() === actual.join()) continue
+      cambios.push({ id: s.id, market, nombre: s.name_en || s.name || s.id, de: actual.length ? actual : null, a: { tcggo_gemelos: nuevo.length ? nuevo : null } })
+    }
+  }
+  return { cambios, pares }
 }
 
 const totalPositivo = (x) => (typeof x === 'number' && Number.isFinite(x) && x > 0 ? x : null)

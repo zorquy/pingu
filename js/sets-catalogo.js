@@ -9,7 +9,16 @@ const COLUMNAS = 'id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_
 // El símbolo de TCGGO (929), aparte y con respaldo (la 624): sin la
 // migración la columna no existe y la consulta fallaría entera.
 const COLUMNA_SIMBOLO = 'symbol_tcggo'
-let sinSimbolo = false
+// Y las gemelas (1027): opcionales que se quitan de una en una si no existen.
+const COLUMNA_GEMELAS = 'tcggo_gemelos'
+let opcionales = [COLUMNA_SIMBOLO, COLUMNA_GEMELAS]
+const columnasDeSets = () => (opcionales.length ? `${COLUMNAS},${opcionales.join(',')}` : COLUMNAS)
+function quitarOpcional(texto) {
+  const antes = opcionales.length
+  const nombradas = opcionales.filter((c) => String(texto || '').includes(c))
+  opcionales = nombradas.length ? opcionales.filter((c) => !nombradas.includes(c)) : []
+  return opcionales.length < antes
+}
 const TROZO = 1000
 const ESPERA_MS = 4000
 
@@ -27,14 +36,13 @@ async function desdeLaCdn(mercado, fetchImpl) {
 async function desdeSupabase(mercado, cliente) {
   const filas = []
   for (let desde = 0; desde < 5 * TROZO; desde += TROZO) {
-    let q = cliente.from('tcg_sets').select(sinSimbolo ? COLUMNAS : `${COLUMNAS},${COLUMNA_SIMBOLO}`)
+    let q = cliente.from('tcg_sets').select(columnasDeSets())
     if (mercado !== 'todos') q = q.eq('market', mercado)
     const { data, error } = await q
       .order('release_date', { ascending: false, nullsFirst: false })
       .order('id')
       .range(desde, desde + TROZO - 1)
-    if (error && !sinSimbolo && /symbol_tcggo|42703/.test(`${error.code} ${error.message}`)) {
-      sinSimbolo = true
+    if (error && opcionales.length && /42703|does not exist/.test(`${error.code} ${error.message}`) && quitarOpcional(`${error.message}`)) {
       desde -= TROZO
       continue
     }

@@ -48,6 +48,10 @@ const COLUMNAS =
   'id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_path,logo_scrydex,logo_tcggo,' +
   'symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code,' +
   'orden,oculto,scrydex_manda,scrydex_id,tcggo_id,origen'
+// Las ediciones gemelas (1027) van aparte y con respaldo (la 624): sin la
+// migración la columna no existe y la consulta fallaría entera.
+const COLUMNA_GEMELAS = 'tcggo_gemelos'
+let sinGemelas = false
 
 // ── LO CORREGIDO A MANO MANDA (tanda 885) ──
 //
@@ -64,7 +68,7 @@ const COLUMNAS =
 // por `update`: eso ya lo escribe solo una persona.
 const CORREGIBLES = new Set(['name', 'name_en', 'serie_id', 'serie_name', 'serie_name_en', 'release_date',
   'card_count_official', 'card_count_total', 'tcg_online_code', 'logo_tcggo', 'logo_scrydex', 'logo_path',
-  'symbol_scrydex', 'oculto', 'orden', 'origen'])
+  'symbol_scrydex', 'oculto', 'orden', 'origen', 'tcggo_gemelos'])
 const AVISO_MIGRACION = 'Guardado, pero falta ejecutar supabase-migration-885-catalogo-correcciones.sql: hasta entonces una pasada automática puede pisarlo.'
 // id del set → Map(columna → { valor, anterior })
 let correcciones = new Map()
@@ -84,11 +88,12 @@ async function leerSets() {
   for (let desde = 0; desde < 10 * TROZO; desde += TROZO) {
     const { data, error } = await supabase
       .from('tcg_sets')
-      .select(COLUMNAS)
+      .select(sinGemelas ? COLUMNAS : `${COLUMNAS},${COLUMNA_GEMELAS}`)
       .eq('market', mercado)
       .order('release_date', { ascending: false, nullsFirst: false })
       .order('id')
       .range(desde, desde + TROZO - 1)
+    if (error && !sinGemelas && /tcggo_gemelos/.test(error.message || '')) { sinGemelas = true; desde -= TROZO; continue }
     if (error) return { error }
     filas.push(...(data || []))
     if ((data || []).length < TROZO) break
@@ -818,6 +823,7 @@ function abrirEditor(id) {
       <label class="cat-campo-medio${corr.has('tcg_online_code') ? ' cat-campo-corregida' : ''}">Código (TCG Live)${quitar('tcg_online_code')}<input id="colCodigo" type="text" value="${escapeHtml(s.tcg_online_code || '')}"></label>
       <label class="cat-campo-medio${corr.has('card_count_official') ? ' cat-campo-corregida' : ''}">Cartas (oficial)${quitar('card_count_official')}<input id="colCuentaOficial" type="number" inputmode="numeric" value="${s.card_count_official ?? ''}"></label>
       <label class="cat-campo-medio${corr.has('card_count_total') ? ' cat-campo-corregida' : ''}">Cartas (total)${quitar('card_count_total')}<input id="colCuentaTotal" type="number" inputmode="numeric" value="${s.card_count_total ?? ''}"></label>
+      ${sinGemelas ? '' : `<label class="cat-campo-medio${corr.has('tcggo_gemelos') ? ' cat-campo-corregida' : ''}">Edición gemela <small>(ids de TCGGO en el otro catálogo, separados por comas; la pone la pasada)</small>${quitar('tcggo_gemelos')}<input id="colGemelas" type="text" inputmode="numeric" value="${escapeHtml((Array.isArray(s.tcggo_gemelos) ? s.tcggo_gemelos : []).join(', '))}"></label>`}
     </div>
     <label>Era <small>(para una nueva, «+ Nueva era» arriba; dentro de la era se coloca arrastrando)</small>
       <select id="colEra">${opcionesDeEra(s.serie_id || '')}</select></label>
@@ -913,6 +919,11 @@ function abrirEditor(id) {
       card_count_total: numero('colCuentaTotal'),
       scrydex_manda: $('colScrydexManda').checked,
       oculto: $('colOculto').checked,
+    }
+    // Las gemelas (1027): una lista de ids, o null si se vacía.
+    if ($('colGemelas')) {
+      const ids = [...new Set($('colGemelas').value.split(/[,\s]+/).map((x) => Number(x)).filter((n) => Number.isInteger(n) && n > 0))].sort((a, b) => a - b)
+      campos.tcggo_gemelos = ids.length ? ids : null
     }
     // El logo puesto a mano va en LAS DOS columnas (885): la biblioteca
     // mira `logo_tcggo` primero en el japonés y `logo_scrydex` en el

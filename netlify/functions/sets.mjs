@@ -24,7 +24,17 @@ export const COLUMNAS = 'id,market,name,name_en,serie_id,serie_name,serie_name_e
 // una consulta que nombra una columna que todavía no existe falla ENTERA (la
 // 624). Se pide con ella; si la base dice que no existe, se repite sin ella.
 export const COLUMNA_SIMBOLO = 'symbol_tcggo'
-let sinSimbolo = false
+// Y las ediciones gemelas (1027), igual. Las opcionales se piden todas; si la
+// base dice que una no existe, se quita ESA y se repite (sin tirar las demás).
+export const COLUMNA_GEMELAS = 'tcggo_gemelos'
+let opcionales = [COLUMNA_SIMBOLO, COLUMNA_GEMELAS]
+export const columnasDeSets = () => (opcionales.length ? `${COLUMNAS},${opcionales.join(',')}` : COLUMNAS)
+export function quitarOpcional(texto) {
+  const antes = opcionales.length
+  const nombradas = opcionales.filter((c) => String(texto || '').includes(c))
+  opcionales = nombradas.length ? opcionales.filter((c) => !nombradas.includes(c)) : []
+  return opcionales.length < antes
+}
 
 // Supabase corta a 1.000 filas sin avisar (la 808): se pide a trozos.
 const TROZO = 1000
@@ -53,15 +63,15 @@ export async function leerSets(mercado, { fetchImpl = fetch } = {}) {
   const filtro = mercado === 'todos' ? '' : `&market=eq.${mercado}`
   const filas = []
   for (let i = 0; i < MAX_TROZOS; i++) {
-    const columnas = sinSimbolo ? COLUMNAS : `${COLUMNAS},${COLUMNA_SIMBOLO}`
+    const columnas = columnasDeSets()
     const ruta = `tcg_sets?select=${columnas}${filtro}&oculto=not.is.true&order=release_date.desc.nullslast,id.asc&offset=${i * TROZO}&limit=${TROZO}`
     const res = await fetchImpl(`${SUPABASE_URL}/rest/v1/${ruta}`, {
       headers: { apikey: SUPABASE_KEY, authorization: `Bearer ${SUPABASE_KEY}`, accept: 'application/json' },
       signal: AbortSignal.timeout(8000),
     })
-    if (!res.ok && !sinSimbolo) {
+    if (!res.ok && opcionales.length) {
       const texto = await res.text().catch(() => '')
-      if (/symbol_tcggo|42703/.test(texto)) { sinSimbolo = true; i--; continue }
+      if (/42703|does not exist/.test(texto) && quitarOpcional(texto)) { i--; continue }
       throw new Error(`supabase ${res.status}`)
     }
     if (!res.ok) throw new Error(`supabase ${res.status}`)
