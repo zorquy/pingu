@@ -1296,3 +1296,50 @@ button.perfil-cifra:hover .rotulo {
   font-size: var(--t-sm);
   font-weight: 700;
 }
+
+/* ── 1040: en el teléfono, la cabecera más baja para que la vitrina se vea
+   al entrar (SCHEMA 1040): banner de 88, avatar de 72, la bio en una línea,
+   las cifras más pequeñas, y «Compartir» y «Cambiar» en icono. ── */
+@media (max-width: 599px) {
+  .profile-hero-banner,
+  .profile-hero-banner-vacio { height: 88px; }
+  .profile-hero-avatar-wrap { margin-top: -40px; }
+  .profile-hero-avatar {
+    width: 72px;
+    height: 72px;
+    font-size: var(--t-xl);
+  }
+  /* El lápiz (44 al dedo) tapaba media cara de 72: sale por la esquina. */
+  .profile-hero-avatar-edit { right: -12px; bottom: -8px; }
+  .profile-hero-info h1 { font-size: var(--t-xl); }
+  .profile-bio {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+    margin-top: var(--e-xs);
+  }
+  .perfil-cifra { padding: var(--e-xs); }
+  .perfil-cifra .valor { font-size: var(--t-lg); line-height: 1.1; }
+  .perfil-cifra .rotulo { font-size: var(--t-2xs); }
+  #perfilVitrina .vitrina-cabeza .section-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  #perfilVitrina .vitrina-cabeza { justify-content: flex-end; }
+  .vitrina-acciones { gap: var(--e-sm); }
+  .vitrina-editar,
+  .vitrina-compartir {
+    justify-content: center;
+    width: 44px;
+    min-width: 44px;
+    padding: 0;
+    border-radius: 50%;
+  }
+  .vitrina-editar span,
+  .vitrina-compartir span { display: none; }
+}

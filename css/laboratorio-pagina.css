@@ -188,3 +188,34 @@
     grid-column: 1 / -1;
   }
 }
+
+/* ── 1040: en el teléfono, lo primero son tus mazos: la cabecera no ocupa
+   sitio (sigue para el lector) y cada mazo es una fila con «Editar» y
+   «Probar» a la derecha (SCHEMA 1040). ── */
+@media (max-width: 599px) {
+  .lp-cabecera {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  /* La rejilla de una columna toma el ancho del nombre (que no se parte)
+     si la columna no puede encoger. */
+  .lp-mazos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .lp-mazo {
+    flex-wrap: nowrap;
+    gap: var(--e-sm);
+    min-width: 0;
+  }
+  .lp-mazo-texto {
+    flex-basis: auto;
+  }
+  .lp-mazo-editar,
+  .lp-mazo-probar {
+    padding-inline: var(--e-md);
+  }
+}

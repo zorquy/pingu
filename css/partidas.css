@@ -802,3 +802,40 @@
     font-size: var(--t-xs);
   }
 }
+
+/* ── 1040: en el teléfono, el resumen en dos filas (el aro y las cifras; el
+   mazo más jugado) y el título sin ocupar sitio; las últimas diez van en
+   Estadísticas. «Desde una repetición» es una línea dentro del formulario. ── */
+.partidas-desde-rep { margin: 0 0 var(--e-md); }
+/* La fila de una partida es una columna hasta 900 px: el `flex: 1 1 220px`
+   de los mazos (un ANCHO en la fila del PC) se volvía 220 px de ALTO vacío. */
+@media (max-width: 900px) {
+  .partidas-fila-mazos { flex: 0 0 auto; }
+}
+@media (max-width: 599px) {
+  .cabecera-pagina:has(> #partidasAcciones) > div:first-child {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .cabecera-pagina:has(> #partidasAcciones) {
+    justify-content: flex-end;
+    min-height: 0;
+    margin-bottom: var(--e-sm);
+  }
+  .partidas-hero {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: var(--e-sm) var(--e-md);
+    padding: var(--e-md);
+    margin-bottom: var(--e-md);
+  }
+  .partidas-hero-anillo { width: 64px; height: 64px; }
+  .partidas-hero-anillo::before { inset: 8px; }
+  .partidas-hero-anillo b { font-size: var(--t-sm); }
+  .partidas-hero-anillo small { display: none; }
+  .partidas-hero-mazo { padding: var(--e-sm) var(--e-md); }
+  .partidas-hero-mazo .partidas-sprite { width: 32px; height: 32px; }
+}

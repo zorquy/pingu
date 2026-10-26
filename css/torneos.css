@@ -3610,3 +3610,55 @@ html.torneo-jugando #torneoNombre {
 .torneo-mis-jornadas-fila:not(.torneo-mis-jornadas-proxima) .btn-primary,
 .torneo-mis-jornadas-fila:not(.torneo-mis-jornadas-proxima) .btn-secondary { font-size: var(--t-xs); padding-inline: var(--e-sm); }
 .torneo-jornadas.con-mis-jornadas { display: none; }
+
+/* ── 1040: en el teléfono, una sola fila antes de los torneos (SCHEMA 1040).
+   El título no ocupa sitio; el calendario y «+» (Crear torneo) van delante
+   de los chips, que se deslizan; sin la semana. torneos.js mueve la caja de
+   las acciones. ── */
+.torneos-crear-mas { display: none; }
+@media (max-width: 599px) {
+  .torneos-heroe .torneos-heroe-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .torneos-heroe-vacia {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .torneos-semana,
+  .torneos-mandos { display: none; }
+  /* La fila de la 1021 (≤ 900) no llegaba: la base de .torneo-pestanas-chips
+     va más abajo en la hoja y le ganaba por orden. */
+  .torneo-pestanas-chips {
+    flex-wrap: nowrap;
+    align-items: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: calc(-1 * var(--e-xs)) 0 var(--e-md);
+    padding: var(--e-xs) 0;
+  }
+  .torneo-pestanas-chips .chip-filtro { flex: 0 0 auto; }
+  .torneo-pestanas-chips .torneos-heroe-acciones {
+    flex: 0 0 auto;
+    margin: 0;
+    flex-wrap: nowrap;
+  }
+  #btnNuevoTorneo {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+  }
+  .torneos-crear-mas { display: inline; font-size: var(--t-xl); line-height: 1; }
+  .torneos-crear-texto { display: none; }
+}

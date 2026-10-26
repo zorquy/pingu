@@ -1445,3 +1445,25 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   }
   .cm-menu-mas { min-width: min(300px, calc(100vw - 32px)); }
 }
+
+/* ── 1040: en el teléfono, la cabecera del mazo en 88 px y sin las migas
+   (SCHEMA 1040); «¿Cuánto me falta?» y «Guardado», dentro de «⋯». ── */
+.cm-menu-estado:empty { display: none; }
+@media (max-width: 599px) {
+  .cm-pagina > .breadcrumb { display: none; }
+  .cm-hero {
+    min-height: 0;
+    height: 88px;
+    padding: var(--e-sm) var(--e-md);
+  }
+  .cm-total { width: 48px; height: 48px; }
+  .cm-menu-estado {
+    display: grid;
+    gap: var(--e-xs);
+    padding: var(--e-xs) var(--e-sm) var(--e-sm);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-mid);
+    font-size: var(--t-sm);
+  }
+  .cm-menu-estado .cm-guardado:empty { display: none; }
+}

@@ -948,6 +948,19 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `herramientas/aud-apilados.mjs` (rama pruebas) que no caiga en dos. Y la
   sección es «Colección» (1036), no «Cartas»; su llave de color sigue
   siendo `data-seccion="cartas"` (`SLUG_DE_SECCION`).
+- **Contenido primero en el teléfono** (tandas 1038–1040, PINGU: «haz todo
+  lo recomendado»). Cinco reglas para cualquier pantalla de lista: (1) el
+  título que ya dice la burbuja no ocupa sitio (recortado con `clip-path`,
+  sigue para el lector), y si en su cabecera hay un botón, el botón se MUEVE a
+  la fila de mandos antes de recortarla (`:has`, como `.ap-cab`); (2) lo de
+  arriba es UNA fila que se desliza, con los iconos (calendario, «+», lápiz)
+  delante de los chips; (3) chips, pestañas y segmentos miden 36 a la vista y
+  44 al dedo con la franja `::after` de `movil.css` (iconos y campos, 44 de
+  verdad); (4) nada de párrafos de explicación encima: una línea y lo largo
+  plegado (`<details>`) o al final; (5) lo que se viene a ver empieza antes de
+  los 296 px de un iPhone de 844 (35 %). La 5 la vigila
+  `test-tanda-1040-pantalla.mjs` en doce páginas: una página de lista nueva
+  entra en su lista `LISTAS`.
 - **En Deseos y cambios y el modo evento, occidental y japonés van cada
   uno en su tramo** (tanda 1033, PINGU: «separado está bien y está
   ordenado»): `porCatalogo` / `conRotulos` (deseos.js) ponen el rótulo como

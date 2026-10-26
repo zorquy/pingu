@@ -875,8 +875,6 @@ function pintarHero(jugadas) {
   }
   const pctTotal = porcentaje(c)
   const torneos = new Set(jugadas.filter((p) => p.deTorneo || p.torneoId).map((p) => p.torneoId)).size
-  const diez = ultimas(jugadas, 10).reverse()
-  const r = rachas(jugadas)
   const masJugado = porGrupo(jugadas, (p) => p.mio, (p) => p.mioNombre)[0]
   const grados = Math.round((c.ganadas / c.total) * 360)
   const gradosE = Math.round(((c.ganadas + c.empatadas) / c.total) * 360)
@@ -890,8 +888,6 @@ function pintarHero(jugadas) {
         <div><b>${c.total}</b><small>${c.total === 1 ? 'partida' : 'partidas'}</small></div>
         <div><b>${torneos}</b><small>${torneos === 1 ? 'torneo' : 'torneos'}</small></div>
       </div>
-      <span class="partidas-forma" aria-label="${escapeHtml(`Últimas ${diez.length}: ${diez.map((p) => TEXTO_RESULTADO[p.resultado]).join(', ')}`)}">${diez.map((p) => `<span class="partidas-ronda-res partidas-ronda-${p.resultado}" aria-hidden="true">${LETRA_RESULTADO[p.resultado] || '?'}</span>`).join('')}</span>
-      <small class="subtext">Tus últimas ${diez.length}${r.actual && r.actual.n > 1 ? ` · ${escapeHtml(enPalabras(r.actual.n, r.actual.resultado))} seguidas` : ''}</small>
     </div>
     ${masJugado ? `<div class="partidas-hero-mazo">${spritesDeMazoHtml(masJugado.nombre, masJugado.clave) || ''}<div><small class="subtext">Tu mazo más jugado</small><b>${escapeHtml(masJugado.nombre)}</b><small class="subtext">${masJugado.total} ${masJugado.total === 1 ? 'partida' : 'partidas'}${masJugado.pct == null ? '' : ` · ${Math.round(masJugado.pct * 100)} %`}</small></div></div>` : ''}`
   caja.classList.remove('hidden')
@@ -1211,6 +1207,7 @@ function abrirFormPartida(torneo = null, partida = null) {
       ? 'Añadir ronda'
       : 'Apuntar una partida suelta'
   $('partidaFormPista').classList.toggle('hidden', esRonda)
+  $('partidaDesdeRep')?.classList.toggle('hidden', esRonda || Boolean(partida))
   $('partidaCamposMios').classList.toggle('hidden', esRonda)
   $('partidaCampoFecha').classList.toggle('hidden', esRonda)
   $('partidaCampoDonde').classList.toggle('hidden', esRonda)

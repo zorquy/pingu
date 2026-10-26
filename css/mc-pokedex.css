@@ -414,3 +414,30 @@
   .pdx-especie:not(.tengo) .pdx-cuenta { display: none; }
   .pdx-nombre { font-size: var(--t-xs); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+
+/* ── En el móvil (1035 y 1038, mudado aquí en la 1040: la Pokédex tiene su
+   hoja). El título no ocupa sitio, sin el contador de especies (cada región
+   lleva el suyo), las regiones de una línea de alto, y las filas que se
+   deslizan con 4 px arriba y abajo para no recortar la franja de 44. ── */
+@media (max-width: 599px) {
+  .pdx-titulo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  #mcPdxEncabezado {
+    display: none;
+  }
+  .pdx-region.con-cuenta {
+    min-width: 76px;
+    padding: var(--e-xs) var(--e-sm);
+  }
+  .pdx-mandos .mc-mandos,
+  .pdx-regiones {
+    padding-block: var(--e-xs);
+    margin-block: calc(-1 * var(--e-xs));
+  }
+}

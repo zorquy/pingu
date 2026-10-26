@@ -41785,6 +41785,55 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1040 — Comunidad, Jugar y Perfil, contenido primero
+
+La tercera de «PokeDoc, contenido primero» (PINGU: «haz todo lo
+recomendado»). Las cinco reglas de las tres tandas van en CLAUDE.md («Contenido
+primero en el teléfono») y la de los 296 px la vigila `test-tanda-1040-pantalla.mjs`
+en doce páginas de lista.
+
+- **Foro** (`js/foro.js`, `css/foro.css`): fuera los chips de sección
+  (Todo / Comunidad / Juego, 813) y su manejador; en el teléfono «Foro» no
+  ocupa sitio, «Leído», la lupa y «Escribir» a la derecha y cada foro es una
+  fila (icono, nombre con sus nuevos, «N temas · hace X»), sin descripción.
+  Entre 600 y 900 siguen las baldosas de dos en dos.
+- **Comunidad** (`js/usuarios.js`, `css/comunidad.css`): el podio en una fila
+  de tres (cara, nombre, «+N XP»; «este mes» en `.com-largo`, que el teléfono
+  esconde porque ya lo dice el rótulo); sin «La comunidad» ni «Gente de
+  PokeDoc» a la vista.
+- **Torneos** (`torneos.html`, `js/torneos/torneos.js`, `css/torneos.css`):
+  en el teléfono, `colocarMandosTorneos()` MUEVE `.torneos-heroe-acciones`
+  (calendario y «+») delante de los chips; antes de repintar los grupos
+  vuelve a la cabecera (si no, el `innerHTML` se la llevaría), y en la vista
+  de calendario y en el PC se queda allí. La cabecera vacía se recorta
+  (`.torneos-heroe-vacia`). «Crear torneo» lleva `aria-label` y un «+» que
+  solo sale en el teléfono. Sin la semana. Y la fila de chips de la 1021 no
+  llegaba a aplicarse: la base de `.torneo-pestanas-chips` va más abajo en la
+  hoja y le ganaba por orden; el bloque de la 1040, al final, la pone.
+- **Mis partidas** (`mis-partidas.html`, `js/mis-partidas.js`,
+  `css/partidas.css`): el resumen sin las últimas diez ni la racha (están en
+  Estadísticas, `pintarExtra`), el aro de 64 en el teléfono y el título
+  recortado. «Desde una repetición» es una línea DENTRO del formulario de
+  apuntar (`#partidaDesdeRep`, escondida al editar o en una ronda), con el
+  mismo id y manejador. De paso: hasta 900 px la fila de una partida es una
+  columna y el `flex: 1 1 220px` de `.partidas-fila-mazos` (un ancho en el
+  PC) daba 220 px de ALTO vacío en cada partida.
+- **Laboratorio** (`css/laboratorio-pagina.css`): la cabecera recortada y cada
+  mazo en una fila con «Editar» y «Probar»; la rejilla de una columna es
+  `minmax(0, 1fr)`, o toma el ancho del nombre y la fila se sale de lado.
+- **Repeticiones** (`repeticiones.html`, `css/repeticiones.css`): en el
+  teléfono la cabecera recortada, la ayuda larga cambiada por una línea y
+  «¿Cómo se copia?» en un `<details>` con el mismo texto, y el cuadro a 140.
+- **Constructor** (`constructor.html`, `js/constructor.js`,
+  `css/constructor.css`): sin las migas en el teléfono, la cabecera del mazo
+  de 88 y `#cmCoste` y `#cmEstadoGuardado` MOVIDOS a `#cmMenuEstado`, dentro
+  de «⋯» (el menú no se cierra al tocar lo que no es una acción, así que el
+  resultado de «¿Cuánto me falta?» se lee allí).
+- **Perfil** (`js/vitrina.js`, `css/perfil.css`): banner de 88, avatar de 72
+  (el lápiz sale por la esquina), la bio en una línea, las cifras más
+  pequeñas, «Vitrina» recortado (lo dice la pestaña) y «Compartir» y
+  «Cambiar» en iconos de 44 con su `aria-label`.
+
 ## Tanda 1039 — Aprender e Inicio, contenido primero
 
 Segunda de las tres tandas de «PokeDoc, contenido primero» (PINGU: «haz todo

@@ -317,7 +317,25 @@ function pintarSemana(torneos) {
   caja.classList.remove('hidden')
 }
 
+// En el teléfono (1040), el calendario y «+» van DELANTE de los chips, en
+// la misma fila que se desliza: se mueve la caja de verdad (con sus
+// manejadores) y vuelve a la cabecera antes de repintar, en el PC y en la
+// vista de calendario (los chips son de la lista).
+const telefono = typeof matchMedia === 'function' ? matchMedia('(max-width: 599px)') : { matches: false, addEventListener() {} }
+function colocarMandosTorneos({ aCasa = false } = {}) {
+  const acciones = document.querySelector('.torneos-heroe-acciones')
+  const casa = document.querySelector('.torneos-heroe')
+  if (!acciones || !casa) return
+  const chips = $('listaTorneos')?.querySelector('.torneo-pestanas-chips')
+  const enLista = telefono.matches && !aCasa && chips && !$('listaTorneos').classList.contains('hidden')
+  if (enLista) chips.prepend(acciones)
+  else if (acciones.parentElement !== casa) casa.append(acciones)
+  casa.classList.toggle('torneos-heroe-vacia', Boolean(enLista))
+}
+telefono.addEventListener?.('change', () => colocarMandosTorneos())
+
 function pintarGrupos(grupos) {
+  colocarMandosTorneos({ aCasa: true })
   const lista = $('listaTorneos')
   const conAlgo = grupos.filter((g) => g.filas.length)
   if (!conAlgo.length) {
@@ -343,6 +361,7 @@ function pintarGrupos(grupos) {
       pintarGrupos(grupos)
     })
   )
+  colocarMandosTorneos()
   // «Ver N más» de los terminados: levanta el corte y vuelve a pedir la
   // lista (no basta con repintar: las filas de más ni se construyeron).
   document.getElementById('btnVerMasTerminados')?.addEventListener('click', () => {
@@ -695,6 +714,7 @@ function engancharVistas() {
       icono.setAttribute('aria-label', calendario ? 'Ver como lista' : 'Ver como calendario')
     }
     pintarCalendario()
+    colocarMandosTorneos()
   }
   $('torneosVistaIcono')?.addEventListener('click', () => {
     vistaTorneos = vistaTorneos === 'calendario' ? 'lista' : 'calendario'

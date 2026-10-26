@@ -344,11 +344,58 @@
   grid-area: medalla;
 }
 
-@media (max-width: 560px) {
-  /* En el móvil, los tres en columna: tres tarjetas de 100px de ancho
-     dejan el nombre en «Fulan…» y la XP partida en tres líneas. */
+/* En el móvil, los tres en una fila (1040): cara, nombre y «+N XP» uno
+   debajo de otro; «este mes» ya lo dice el rótulo. */
+@media (max-width: 599px) {
+  .com-podio {
+    padding: var(--e-md);
+  }
+  .com-podio h2 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
   .com-podio-tres {
-    grid-template-columns: minmax(0, 1fr);
+    margin-top: var(--e-sm);
+    gap: var(--e-sm);
+  }
+  .com-puesto {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--e-xs);
+    padding: var(--e-sm) var(--e-xs);
+    text-align: center;
+  }
+  .com-puesto-cara {
+    width: 32px;
+    height: 32px;
+    font-size: var(--t-md);
+  }
+  /* El nombre entero, en dos líneas si hace falta (1013, L3: «Br…» no). */
+  .com-puesto-nombre {
+    font-size: var(--t-sm);
+    white-space: normal;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+  }
+  .com-puesto-xp {
+    font-size: var(--t-2xs);
+  }
+  .com-largo {
+    display: none;
+  }
+  .page-header.cab-lista,
+  #ctab-users > .seccion-cabecera {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 }
 

@@ -9764,8 +9764,7 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
    de la cuenta de colecciones se va con el catálogo que tenía al lado. */
 @media (max-width: 599px) {
   body:not([data-modo='catalogo']) .mc-estanteria-h,
-  .mc-albumes-titulo,
-  .pdx-titulo {
+  .mc-albumes-titulo {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -12432,9 +12431,7 @@ button.mc-fila:hover {
 
   /* Las filas que se deslizan recortan lo que sobresale: con 4 px arriba y
      abajo, la franja de 44 de sus chips no se pierde. */
-  .mc-mercado-mandos,
-  .pdx-mandos .mc-mandos,
-  .pdx-regiones {
+  .mc-mercado-mandos {
     padding-block: var(--e-xs);
     margin-block: calc(-1 * var(--e-xs));
   }
@@ -12456,17 +12453,6 @@ button.mc-fila:hover {
 
   .mc-prod-barra .mc-prod-catalogo {
     margin-inline: auto;
-  }
-
-  /* Pokédex: sin el contador de especies (cada región lleva el suyo) y las
-     regiones de una línea de alto. */
-  #mcPdxEncabezado {
-    display: none;
-  }
-
-  .pdx-region.con-cuenta {
-    min-width: 76px;
-    padding: var(--e-xs) var(--e-sm);
   }
 
   /* Expansiones: «Orden» en icono (su hoja es «Orden y filtro»). */

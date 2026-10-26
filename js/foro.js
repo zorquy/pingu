@@ -366,23 +366,10 @@ async function pintarIndice() {
   // conversaciones con chips que lo encabezaba desde la 746 repetía lo que
   // dice el índice y escondía la estructura. Lo que se está hablando va en
   // la franja de arriba; la forma de conversación, dentro de cada foro.
-  // Las secciones en chips (813, FO1): en el móvil el índice entero son
-  // varias pantallas, y con ellos se ve solo la que interesa. En el
-  // ordenador no salen: ahí el índice cabe y se queda como siempre (804).
-  const conForos = secciones.filter((s) => foros.some((f) => f.section_id === s.id && !f.parent_id))
-  const chips = conForos.length > 1
-    ? `<div class="foro-chips-secciones" role="group" aria-label="Secciones del foro"><button type="button" class="chip-filtro" data-seccion="" aria-pressed="true">Todo</button>${conForos.map((s) => `<button type="button" class="chip-filtro" data-seccion="${escapeHtml(String(s.id))}" aria-pressed="false">${escapeHtml(s.name)}</button>`).join('')}</div>`
-    : ''
+  // Las secciones en chips (813) se fueron en la 1040: con los foros en
+  // filas de una línea, el índice entero cabe en una pantalla del móvil.
   principal.innerHTML = bloques
-    ? chips + bloques
-    : `<p class="empty-state">Todavía no hay ningún foro abierto. Se crean desde el panel de administración.</p>`
-  principal.querySelector('.foro-chips-secciones')?.addEventListener('click', (e) => {
-    const chip = e.target.closest('[data-seccion]')
-    if (!chip) return
-    const elegida = chip.dataset.seccion
-    for (const c of principal.querySelectorAll('.foro-chips-secciones [data-seccion]')) c.setAttribute('aria-pressed', c === chip ? 'true' : 'false')
-    for (const sec of principal.querySelectorAll('section.foro-seccion')) sec.hidden = !!elegida && sec.dataset.seccion !== elegida
-  })
+    || `<p class="empty-state">Todavía no hay ningún foro abierto. Se crean desde el panel de administración.</p>`
 
   migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/' }, { texto: 'Foro' }])
   // El botón faltaba justo donde más falta hace. Estaba sólo dentro de un

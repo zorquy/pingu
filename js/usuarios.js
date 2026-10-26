@@ -176,7 +176,7 @@ async function cargarPodio(perfiles) {
               <span class="com-puesto-medalla">${icons.medal(14)} ${MEDALLAS[i]}</span>
               <span class="com-puesto-cara" style="${avatarStyle(p)}">${p.avatar_url ? '' : getInitial(p.display_name || p.username || '?')}</span>
               <span class="com-puesto-nombre">${escapeHtml(p.display_name || p.username || 'Usuario')}</span>
-              <span class="com-puesto-xp">+${new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(ganado)} XP este mes</span>
+              <span class="com-puesto-xp">+${new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(ganado)} XP<span class="com-largo"> este mes</span></span>
             </a>`
             )
             .join('')}

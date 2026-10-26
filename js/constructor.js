@@ -1237,6 +1237,17 @@ function enganchar() {
     $('cmTexto').focus()
   })
 
+  // En el teléfono (1040), lo que no se mira a cada rato sale de la cabecera
+  // y va dentro de «⋯»: se mueven los elementos de verdad, con su manejador.
+  const telefono = matchMedia('(max-width: 599px)')
+  const colocarEstado = () => {
+    const chapas = document.querySelector('.cm-hero-chapas')
+    const menu = $('cmMenuEstado')
+    for (const id of ['cmCoste', 'cmEstadoGuardado']) (telefono.matches ? menu : chapas)?.append($(id))
+  }
+  telefono.addEventListener?.('change', colocarEstado)
+  colocarEstado()
+
   // Los dos menús desplegables.
   const menus = [
     ['cmBtnCompartir', 'cmMenuCompartir', accionCompartir],

@@ -71,8 +71,8 @@ export function vitrinaHtml(cartas, { propia = false } = {}) {
     .join('')
   const vacios = propia ? Array.from({ length: HUECOS - cartas.length }, () => '<button type="button" class="vitrina-hueco" data-vitrina-elegir aria-label="Elegir una carta para la vitrina">+</button>').join('') : ''
   // «Compartir» (873) solo en la tuya y con cartas: una vitrina vacía no se enseña.
-  const compartir = propia && cartas.length ? `<button type="button" class="link-btn vitrina-compartir" data-vitrina-compartir>${icons.share(14)}<span>Compartir</span></button>` : ''
-  return `<div class="vitrina-cabeza"><h2 class="section-title">Vitrina</h2><span class="vitrina-acciones">${compartir}${propia ? `<button type="button" class="link-btn vitrina-editar" data-vitrina-elegir>${icons.edit(14)}<span>${cartas.length ? 'Cambiar' : 'Elegir cartas'}</span></button>` : ''}</span></div>
+  const compartir = propia && cartas.length ? `<button type="button" class="link-btn vitrina-compartir" data-vitrina-compartir aria-label="Compartir la vitrina">${icons.share(14)}<span>Compartir</span></button>` : ''
+  return `<div class="vitrina-cabeza"><h2 class="section-title">Vitrina</h2><span class="vitrina-acciones">${compartir}${propia ? `<button type="button" class="link-btn vitrina-editar" data-vitrina-elegir aria-label="${cartas.length ? 'Cambiar las cartas de la vitrina' : 'Elegir cartas para la vitrina'}">${icons.edit(14)}<span>${cartas.length ? 'Cambiar' : 'Elegir cartas'}</span></button>` : ''}</span></div>
     <div class="vitrina-rejilla">${llenos}${vacios}</div>`
 }
 

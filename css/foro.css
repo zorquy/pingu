@@ -415,8 +415,7 @@
   }
 }
 
-/* Los chips de sección y el resumen de la baldosa son del móvil (813). */
-.foro-chips-secciones,
+/* El resumen de la baldosa es del móvil (813). */
 .foro-fila-resumen {
   display: none;
 }
@@ -2313,22 +2312,8 @@ html:has(#temaResponder) {
     scroll-snap-align: start;
   }
 
-  /* El índice del móvil (813, FO1): las secciones en chips y los foros en
-     baldosas de dos en dos, cada uno con su color. Ver SCHEMA, tanda 813. */
-  .foro-chips-secciones {
-    display: flex;
-    gap: var(--e-sm);
-    margin: 0 calc(-1 * var(--e-xl)) var(--e-lg);
-    padding-inline: var(--e-xl);
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .foro-chips-secciones .chip-filtro {
-    flex: 0 0 auto;
-    min-height: 44px;
-  }
-
+  /* El índice del móvil (813, FO1): los foros en baldosas de dos en dos,
+     cada uno con su color (en el teléfono, filas: 1040). SCHEMA 813. */
   .foro-en-indice .foro-seccion {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2336,10 +2321,6 @@ html:has(#temaResponder) {
     overflow: visible;
     border: 0;
     background: none;
-  }
-
-  .foro-en-indice .foro-seccion[hidden] {
-    display: none;
   }
 
   .foro-en-indice .foro-seccion-titulo {
@@ -2739,5 +2720,42 @@ span.pag-flecha {
 
   .pag-flecha {
     padding: 0;
+  }
+}
+
+/* ── 1040: el índice en el teléfono, contenido primero (SCHEMA 1040). El
+   título no ocupa sitio (lo dice la burbuja; sigue para el lector), «Leído»,
+   la lupa y «Escribir» a la derecha, y cada foro es UNA fila: su icono, el
+   nombre con sus nuevos y «N temas · hace X». ── */
+@media (max-width: 599px) {
+  .foro-en-indice #foroTitulo {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .foro-en-indice .foro-cabecera {
+    justify-content: flex-end;
+    min-height: 0;
+    margin-bottom: var(--e-sm);
+  }
+  .foro-calientes h2 {
+    font-size: var(--t-md);
+  }
+  .foro-en-indice .foro-seccion {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .foro-en-indice .foro-seccion > .foro-fila {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: center;
+    gap: 0 var(--e-md);
+    min-height: 0;
+    padding: var(--e-sm) var(--e-md);
+  }
+  .foro-en-indice .foro-fila-cuerpo .subtext {
+    display: none;
   }
 }

@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, el foro, la comunidad, los torneos, tus partidas, el laboratorio, las repeticiones, el constructor y tu perfil enseñan antes lo que vienes a ver: los foros en filas, el podio en una fila, los filtros de torneos en una sola línea y la cabecera del perfil más baja.", "enlace": "/torneos" },
+    { "fecha": "2026-10-26", "tipo": "arreglo", "texto": "En el móvil, cada partida de Mis partidas ya no deja un hueco vacío enorme encima de los mazos.", "enlace": "/mis-partidas" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, Aprender va al grano: sin títulos de más, el lápiz de escribir una guía junto al buscador y los temas en una fila. El Glosario lleva las letras en una fila, y Novedades y Lanzamientos enseñan antes lo que vienes a ver.", "enlace": "/aprender" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, Mi colección enseña antes lo que vienes a ver: botones y pestañas más bajos, Deseos y cambios con sus cuatro pestañas enteras, el Mercado con las cartas occidentales y japonesas a la vez, y en Expansiones los filtros dentro de «Orden».", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "La sección «Cartas» se llama ahora «Colección»: dentro tienes tus cartas, las expansiones, la Pokédex, los álbumes, los productos y Deseos y cambios.", "enlace": "/mi-coleccion" },

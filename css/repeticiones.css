@@ -2210,3 +2210,47 @@
     white-space: nowrap;
   }
 }
+
+/* ── 1040: en el teléfono el registro se pega sin leer dos párrafos antes
+   (SCHEMA 1040): la cabecera no ocupa sitio, la ayuda es una línea con
+   «¿Cómo se copia?» plegado y el cuadro es más bajo. ── */
+.rep-pegar-corta { display: none; }
+@media (max-width: 599px) {
+  .rep-cabecera {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .rep-pegar {
+    margin-top: 0;
+    padding: var(--e-md);
+  }
+  .rep-pegar h2 { font-size: var(--t-lg); }
+  .rep-pegar-ayuda { display: none; }
+  .rep-pegar-corta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 var(--e-sm);
+    color: var(--text-mid);
+    font-size: var(--t-sm);
+  }
+  .rep-como > summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    color: var(--navy);
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .rep-como[open] { flex-basis: 100%; }
+  .rep-como p { margin: 0 0 var(--e-sm); }
+  .rep-pegar textarea {
+    min-height: 140px;
+    height: 140px;
+    margin-top: var(--e-sm);
+  }
+}

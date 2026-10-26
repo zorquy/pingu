@@ -4,6 +4,49 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (278) — PINGU-Claude (1040 — Comunidad, Jugar y Perfil, contenido primero; y las reglas)
+
+**Hecho**: la tercera y última tanda de «PokeDoc, contenido primero» (PINGU:
+«haz todo lo recomendado»), con las cinco reglas en CLAUDE.md («Contenido
+primero en el teléfono»).
+- **Foro**: sin chips de sección; en el teléfono «Foro» no ocupa sitio y cada
+  foro es una fila. **Comunidad**: el podio en una fila de tres (el nombre a
+  dos líneas si hace falta), sin «La comunidad» ni «Gente de PokeDoc».
+- **Torneos**: el calendario y «+» (Crear torneo) delante de los chips, en una
+  fila que se desliza (`colocarMandosTorneos` mueve la caja), sin la semana.
+  La fila de chips de la 1021 nunca se aplicaba (la base iba después en la hoja).
+- **Mis partidas**: resumen en dos filas sin las últimas diez (siguen en
+  Estadísticas); «Desde una repetición» dentro de «Apuntar una partida». Y un
+  fallo de antes: cada partida llevaba 220 px vacíos en el móvil.
+- **Laboratorio** sin cabecera y cada mazo en una fila (se salía de lado);
+  **Repeticiones** con una línea y «¿Cómo se copia?» plegado; **Constructor**
+  sin migas, cabecera de 88 y «¿Cuánto me falta?» y «Guardado» dentro de «⋯»;
+  **Perfil** con banner de 88, avatar de 72, bio en una línea y «Compartir» /
+  «Cambiar» en iconos.
+- El CSS de la Pokédex que la 1035/1038 dejaron en mi-coleccion.css, a
+  mc-pokedex.css (la 1011 lo pide).
+
+**Ficheros**: CLAUDE.md, js/foro.js, css/foro.css, js/usuarios.js,
+css/comunidad.css, torneos.html, js/torneos/torneos.js, css/torneos.css,
+mis-partidas.html, js/mis-partidas.js, css/partidas.css,
+css/laboratorio-pagina.css, repeticiones.html, css/repeticiones.css,
+constructor.html, js/constructor.js, css/constructor.css, js/vitrina.js,
+css/perfil.css, css/mi-coleccion.css, css/mc-pokedex.css, SCHEMA.md,
+novedades.json, BITACORA.md.
+
+**Pruebas** (rama pruebas): nueva `test-tanda-1040-pantalla.mjs` (la regla de
+los 296 px en doce páginas de lista y lo de cada pantalla); al día 297 (sin
+salir de la lista a 320), 627, 763, 816, 860, 867, 873, 927, 940 y 1013.
+**Suite entera** en 6 carriles: 557 verdes y 89 rojos; repetidos, 75 siguen
+rojos y **71 de ellos fallan igual con la web de antes de la 1038** (copia del
+commit 1f2983f en otro servidor): son de antes —logos y escaneos que el doble
+no sirve, sprites, ffprobe/qpdf, migraciones, 704, 780, 829, 857, 311…—. Los
+cuatro que eran de estas tandas (627, 763, 816, 940) están al día y en verde.
+
+**Pendiente**: los rojos de antes siguen ahí (lista en el scratchpad,
+rojos-1040.txt); la 311 pide pasar a la escala 20 px de comunidad.css y 6/10
+de partidas.css y torneos.css.
+
 ## 2026-10-26 (277) — PINGU-Claude (1039 — Aprender e Inicio, contenido primero)
 
 **Hecho**: segunda de las tres tandas de «PokeDoc, contenido primero» (PINGU:

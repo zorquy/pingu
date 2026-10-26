@@ -225,7 +225,6 @@
       <div class="tab-panel" id="vista-sueltas">
       <div class="partidas-barra">
         <button class="btn-primary" id="btnApuntarPartida">+ Apuntar una partida</button>
-        <button class="btn-secondary" id="btnDesdeRepeticion">+ Desde una repetición</button>
         <button type="button" class="btn-secondary partidas-filtrar" id="listaFiltrar" aria-expanded="false" aria-controls="listaFiltros" aria-label="Filtrar"><span data-icono="sliders" aria-hidden="true"></span><span class="cab-palabra">Filtrar</span></button>
       </div>
 
@@ -240,6 +239,9 @@
       <div class="simple-card hidden" id="partidaForm">
         <h3 id="partidaFormTitulo">Apuntar una partida suelta</h3>
         <p class="subtext" id="partidaFormPista">Las de los torneos de PokeDoc ya están: esto es para una partida de escalera o una amistosa. Si fue un torneo, mejor «Apuntar un torneo».</p>
+        <!-- Desde una de tus repeticiones (627), como una forma más de apuntar
+             la partida (1040): antes era otro botón al lado. -->
+        <p class="partidas-desde-rep" id="partidaDesdeRep"><button type="button" class="link-btn" id="btnDesdeRepeticion">¿La tienes en una repetición? Apúntala desde ahí</button></p>
         <!-- En modo «ronda de un torneo» el mazo, la fecha y el dónde
              vienen del torneo: esos campos se esconden enteros. -->
         <div id="partidaCamposMios">
