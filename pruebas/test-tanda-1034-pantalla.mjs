@@ -78,7 +78,9 @@ console.log('\n── 2. iPhone · Expansiones, /buscar, /evento y /repeticiones
   await page.goto(`${BASE}/evento.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('#eventoListas:not(.hidden)', { timeout: 8000 }).catch(() => {})
   const ev = await filas(page, '.evento-botones')
-  check('/evento: Copiar · Imagen · CSV en UNA fila', ev?.filas === 1 && ev.textos.join('|') === 'Copiar|Imagen|CSV', JSON.stringify(ev))
+  // Desde la 1042 en el móvil son tres iconos en grupo (el nombre va en aria-label).
+  const nombres = await page.evaluate(() => [...document.querySelectorAll('.evento-botones button')].map((b) => b.getAttribute('aria-label')))
+  check('/evento: Copiar · Imagen · CSV en UNA fila', ev?.filas === 1 && nombres.join('|') === 'Copiar lista|Imagen|Exportar CSV', JSON.stringify({ ev, nombres }))
   await page.goto(`${BASE}/repeticiones.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1500)
   const rep = await filas(page, '.rep-pegar-botones')
