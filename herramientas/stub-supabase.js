@@ -56,6 +56,8 @@ const T = {
   // Los productos sellados (762): el catálogo de TCGGO y los de cada uno.
   tcg_products: [],
   user_products: [],
+  // Qué lleva dentro cada producto (1026).
+  tcg_product_contenido: [],
   tournament_decklists: [],
   // Los datos de Play! Pokémon de cada uno, privados (tanda 834).
   user_play_pokemon: [],
@@ -307,6 +309,9 @@ sembrar('__FAKE_PRODUCTOS__', 'tcg_products', (i) => ({
   market: 'WEST',
   id: 9000 + i, episode_id: null, lang: 'en', name: `Producto ${i}`, tipo: 'otro', image: null,
   cm_lowest: null, cm_lowest_eu: null, cm_lowest_es: null, cm_avg30: null, release_date: null, updated_at: new Date().toISOString(),
+}))
+sembrar('__FAKE_PRODUCTO_CONTENIDO__', 'tcg_product_contenido', (i) => ({
+  product_id: 9000, contenido_tipo: 'product', contenido_id: 9001 + i, cantidad: 1, nombre: `Contenido ${i}`, image: null, cm_lowest: null, tp_market: null, updated_at: new Date().toISOString(),
 }))
 sembrar('__FAKE_MIS_PRODUCTOS__', 'user_products', (i) => ({
   id: `up-${i + 1}`, user_id: 'admin-1', product_id: 9000, idioma: 'en', cantidad: 1, pagado: null, created_at: new Date().toISOString(),
