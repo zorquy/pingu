@@ -136,8 +136,10 @@
   .mc-pestanias {
     bottom: calc(80px + env(safe-area-inset-bottom) + var(--e-sm));
   }
+  /* 1020 (D1): el body ya reserva barra + burbuja (981); sumarlo aquí otra
+     vez dejaba un cuarto de pantalla vacío antes del pie. */
   .mc-pagina {
-    padding-bottom: calc(80px + 88px + env(safe-area-inset-bottom));
+    padding-bottom: var(--e-xl);
   }
 }
 

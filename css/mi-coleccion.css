@@ -11578,14 +11578,18 @@ button.mc-fila:hover {
 /* El ✓ en el centro, grande; las insignias arriba a la derecha. */
 .mc-tengo-marca,
 .mc-bolsillo .mc-tengo-marca {
-  inset: 50% auto auto 50%;
-  width: 36%;
+  /* 1020 (D2): el ✓ en la esquina de abajo a la derecha y de 24 px, no un
+     círculo de 48 en medio del dibujo (en una expansión completa eran 250
+     círculos blancos). El «+» va abajo a la izquierda y las insignias
+     arriba a la derecha: la esquina libre es esta. */
+  inset: auto var(--e-xs) var(--e-xs) auto;
+  width: 24px;
   min-width: 24px;
-  max-width: 48px;
+  max-width: 24px;
   height: auto;
   aspect-ratio: 1;
   padding: 0;
-  transform: translate(-50%, -50%);
+  transform: none;
   background: rgb(255 255 255 / 90%);
   box-shadow: var(--shadow-sm);
   /* Verde oscuro fijo sobre blanco fijo: no cambia con el tema. */
@@ -11906,8 +11910,93 @@ button.mc-fila:hover {
 
 /* ── 1015 · móvil: la cabecera de una expansión, con el nombre entero en su
    línea y los datos debajo («Corona A…» cortado al lado de «SSP · …»). ── */
+/* 1020 (D1, D2 y D3 de «PokeDoc como app»; el porqué, en SCHEMA.md) */
 @media (max-width: 900px) {
-  .mc-album-nombre { flex-wrap: wrap; }
-  .mc-album-nombre-texto { flex: 1 1 100%; }
-  #mcArchivadorZona .mc-album-barra.con-logo .mc-album-titulo { white-space: normal; }
+  /* D1: las cuatro acciones del Panel en losetas iguales, icono encima. */
+  .mc-acciones-rejilla {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+  .mc-accion-loseta {
+    flex-direction: column;
+    gap: var(--e-xs);
+    min-height: 68px;
+    padding: var(--e-sm) var(--e-xs);
+    border-radius: var(--radius-md);
+    font-size: var(--t-2xs);
+  }
+  .mc-accion-loseta > span:last-child {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* D1: «Colección pública · Copiar enlace · Ajustes» en una línea. */
+  .mc-compartir {
+    flex-wrap: nowrap;
+    gap: var(--e-sm);
+  }
+  .mc-compartir .subtext {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mc-compartir .mc-chip-mando,
+  .mc-compartir .btn-secondary {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 0 var(--e-sm);
+    font-size: var(--t-2xs);
+  }
+  /* D2: dentro de una expansión, la cabecera del catálogo («Cartas» y el
+     conmutador Pokémon / Pokémon Japón) no pinta nada: fuera. La clase la
+     pone un guion de la cabecera antes del primer pintado, y el JS al
+     entrar y salir. */
+  html.mc-set-abierta .mc-hero {
+    display: none;
+  }
+  /* D2: la tira del set en UNA fila (volver · logo + nombre y datos · ⋯), el
+     fondo difuminado fuera (asomaba por encima del marco). */
+  html.mc-set-abierta .mc-album-fondo {
+    display: none;
+  }
+  .mc-album-nombre {
+    flex-wrap: nowrap;
+    gap: var(--e-sm);
+  }
+  .mc-album-nombre-texto {
+    flex: 1 1 auto;
+  }
+  .mc-album-logo img {
+    max-width: 84px;
+    max-height: 36px;
+  }
+  #mcArchivadorZona .mc-album-barra.con-logo .mc-album-titulo {
+    white-space: nowrap;
+  }
+  .mc-album-meta {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* D3: el catálogo (/cartas): buscador y Orden en una fila, los chips en
+     la segunda; la cuenta de colecciones sobra. */
+  [data-modo='catalogo'] .mc-estanteria-barra {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  [data-modo='catalogo'] .mc-estanteria-barra #mcEstanteriaBusca {
+    grid-area: 1 / 1;
+    width: auto;
+  }
+  [data-modo='catalogo'] .mc-estanteria-cabeza {
+    grid-area: 1 / 2;
+  }
+  [data-modo='catalogo'] .mc-estanteria-que {
+    grid-column: 1 / -1;
+  }
+  [data-modo='catalogo'] .mc-estanteria-fila2 {
+    display: none;
+  }
 }

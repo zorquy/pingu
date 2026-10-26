@@ -3542,6 +3542,7 @@ function volverALaEstanteria({ push = true } = {}) {
   album.pagina = 0
   $('mcEstanteriaZona').classList.remove('hidden')
   $('mcArchivadorZona').classList.add('hidden')
+  document.documentElement.classList.remove('mc-set-abierta')
   pintarEstanteria()
 }
 
@@ -3561,6 +3562,7 @@ async function abrirAlbum(setId, { push = true } = {}) {
   // en la misma pestaña, como en los álbumes soñados.
   $('mcEstanteriaZona').classList.add('hidden')
   $('mcArchivadorZona').classList.remove('hidden')
+  document.documentElement.classList.add('mc-set-abierta')
   // Entrando por la dirección, la estantería puede estar llegando todavía
   // (desde la 813, de la CDN): el título, el logo y la cuenta salen de ella.
   if (!todosLosSets) {
@@ -6685,7 +6687,7 @@ function pintarCompartir() {
   pintarCabecera()
   if (!esMia) return
   $('mcCompartir').classList.remove('hidden')
-  $('mcPublicaEstado').textContent = dueno.coleccion_publica ? 'Tu colección es pública.' : 'Tu colección es privada.'
+  $('mcPublicaEstado').textContent = dueno.coleccion_publica ? 'Colección pública' : 'Colección privada'
   $('mcCopiarEnlace').classList.toggle('hidden', !dueno.coleccion_publica || !dueno.username)
 }
 

@@ -41785,6 +41785,49 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1020 — Mi colección: el Panel, la expansión abierta y el catálogo (D1, D2 y D3 de «PokeDoc como app»)
+
+**D1, el final del Panel** (la captura de PINGU). Las cuatro acciones
+(Imagen, Importar, Exportar, Modo feria) iban en chips que en el móvil se
+repartían en dos filas desiguales (1015 las había puesto en chips para que
+el Panel fuera más corto): ahora, en el móvil, cuatro losetas iguales con el
+icono encima de la palabra (`repeat(4, minmax(0, 1fr))`, 68 px, letra
+`--t-2xs` cortada con puntos); en el PC siguen los chips. La línea de lo
+público va en UNA: «Colección pública · Copiar enlace · Ajustes» (el estado
+lo escribe `mi-coleccion.js`, ya sin «Tu colección es… .», y el enlace a
+Ajustes dice «Ajustes»; el botón grande era medio Panel). Y el hueco de un
+cuarto de pantalla antes del pie eran DOS reservas sumadas para la barra y
+la burbuja: la del `body` (981, para toda página con barra) y la de
+`.mc-pagina` (704). Se queda la del body y la página pone su aire
+(`--e-xl`); `test-tanda-704` suma las dos.
+
+**D2, una expansión abierta.** En el móvil se quedaba arriba la cabecera del
+catálogo («Cartas» y el conmutador Pokémon / Pokémon Japón), que dentro de
+un set no pinta nada, y el fondo difuminado del logo asomaba por encima del
+marco. Ahora `html.mc-set-abierta` (un guion en la cabecera de
+`mi-coleccion.html` la pone ANTES del primer pintado si la dirección lleva
+`set=`, por la lección de la 981, y `abrirAlbum` / `volverALaEstanteria` la
+ponen y la quitan al navegar dentro) esconde la cabecera y el fondo. La tira
+del set va en una fila: volver · logo (84×36) + nombre y datos (cada uno en
+su línea, cortados con puntos) · ⋯. La 1015 había puesto el nombre a dos
+líneas; con el logo pequeño cabe en una y la tira mide la mitad. Y el ✓ de
+«la tienes» deja de ser un círculo de 48 px en medio del dibujo (927, «como
+Dex»): en una expansión completa son 250 círculos blancos. Va en la esquina
+de abajo a la derecha, de 24 px, en todas las pantallas; el «+» sigue abajo
+a la izquierda y las insignias arriba a la derecha, así que es la esquina
+libre. `test-tanda-927` lo mide ahí.
+
+**D3, el catálogo (/cartas).** Antes de la primera colección había cuatro
+filas: «Orden» solo, el buscador, los chips y «5 colecciones». Ahora el
+buscador y «Orden» comparten la primera fila (`grid-template-columns:
+minmax(0, 1fr) auto`), los chips van en la segunda y la cuenta no se pinta
+en el móvil: la primera colección sube 100 px. La 1015 (L11) había puesto el
+buscador a todo el ancho; `test-tanda-1015` pide ahora que ocupe su fila con
+«Orden» al lado.
+
+Pruebas al día: 927, 1015, 704, 893 (la raya del título de la 1018 suma 8 px
+al `<h1>` y vive en `style.css`: el PC también la lleva).
+
 ## Tanda 1019 — La cabecera de detalle del móvil, el pie corto y la ficha del torneo (A2, A3 y D10 de «PokeDoc como app»)
 
 **A2, la cabecera de una página de detalle.** Una guía, un tema, un torneo,

@@ -7,6 +7,8 @@
   <script>(function(){var v=(location.search.match(/[?&]ver=([a-z]+)/)||[])[1],c=/^\/cartas/.test(location.pathname),h=document.documentElement.classList;if((v&&v!=='resumen')||c)h.add('mc-sin-esq-panel');if(v==='album'||(c&&!v))h.add('mc-ver-album')})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil')</script>
+  <!-- 1020: con una expansión en la dirección, la cabecera del catálogo no se pinta en el móvil (y sin saltar al llegar el JS). -->
+  <script>if(/[?&]set=/.test(location.search))document.documentElement.classList.add('mc-set-abierta')</script>
   <title>Mi colección — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
@@ -916,7 +918,7 @@
         <div class="mc-compartir hidden" id="mcCompartir">
           <span class="subtext" id="mcPublicaEstado"></span>
           <button type="button" class="mc-chip-mando hidden" id="mcCopiarEnlace">Copiar enlace</button>
-          <a class="btn-secondary" id="mcPublicaAjustes" href="/ajustes?ver=privacidad">Cambiarlo en Ajustes</a>
+          <a class="btn-secondary" id="mcPublicaAjustes" href="/ajustes?ver=privacidad">Ajustes</a>
         </div>
 
         <!-- MI COLECCIÓN EN UNA IMAGEN (tanda 571). Lo que PTCGenius y

@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (258) — PINGU-Claude (1020 — Mi colección: Panel, expansión abierta y catálogo)
+
+**Hecho**: en el móvil, las cuatro acciones del Panel en losetas iguales,
+«Colección pública · Copiar enlace · Ajustes» en una línea y sin el hueco
+de un cuarto de pantalla antes del pie (eran dos reservas sumadas). Dentro
+de una expansión no sale la cabecera del catálogo ni el fondo difuminado,
+la tira del set va en una fila (volver · logo + nombre y datos · ⋯) y el ✓
+de «la tienes» es de 24 px en la esquina, en todas las pantallas. En
+/cartas, buscador y «Orden» en una fila y los chips en otra.
+
+**Ficheros**: `css/mi-coleccion.css`, `css/movil.css`, `js/mi-coleccion.js`
+(estado corto, clase `mc-set-abierta`), `mi-coleccion.html` (guion de la
+cabecera, «Ajustes»), `cartas.html` generado, `SCHEMA.md`, `novedades.json`.
+En `pruebas`: 927, 1015, 704 y 893 al día.
+
+**Pruebas**: 927, 1015, 704, 919, 749, 653, 1019 en verde; 893 con los dos
+rojos de siempre (/retos sin lema, /usuarios); `test-imports` en verde.
+
+**Pendiente**: la migración 1017 (PINGU, SQL Editor); 1021–1023; lo de
+siempre.
+
 ## 2026-10-26 (257) — PINGU-Claude (1019 — cabecera de detalle del móvil, pie corto, ficha del torneo)
 
 **Hecho**: en el móvil, una guía, un tema, un torneo, un perfil ajeno o un
