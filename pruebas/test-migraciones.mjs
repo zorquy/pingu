@@ -34,6 +34,7 @@ const DEL_PRINCIPIO = [
   'public.categories',
   'public.achievement_definitions',
   'public.user_notifications',
+  'public.user_progress',
   'public.content_reports',
   'public.page_views',
   'public.tcg_cards',

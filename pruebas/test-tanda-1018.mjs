@@ -33,6 +33,11 @@ const SECCIONES = ['aprender', 'cartas', 'comunidad', 'jugar']
     check(`${s} claro: blanco encima ≥ 4,5 y como texto sobre la superficie ≥ 4,5`, contraste(c, '#ffffff') >= 4.5 && contraste(c, superficieClara) >= 4.5 && contraste(c, fondoClaro) >= 4.5, `${c}: ${contraste(c, '#ffffff').toFixed(2)} / ${contraste(c, fondoClaro).toFixed(2)}`)
     check(`${s} oscuro: su texto encima ≥ 4,5 y como texto sobre la superficie ≥ 4,5`, contraste(o, ot) >= 4.5 && contraste(o, superficieOscura) >= 4.5 && contraste(o, fondoOscuro) >= 4.5, `${o}/${ot}: ${contraste(o, ot).toFixed(2)} / ${contraste(o, superficieOscura).toFixed(2)}`)
   }
+  // 1024 (PINGU: el marino «parece deshabilitada»): en oscuro, Inicio y lo que
+  // no es de ninguna sección van en el azul claro de --navy, con texto oscuro.
+  check('en oscuro, el acento por defecto es --navy (el azul claro) con texto oscuro', /:root\[data-theme='dark'\] \{ --acento: var\(--navy\); --acento-texto: #0b1219; \}/.test(css))
+  const navyOscuro = css.match(/:root\[data-theme='dark'\] \{[^}]*--navy: (#[0-9a-f]{6});/)?.[1]
+  check('  …y ese azul pasa el contraste con su texto y sobre la superficie oscura', navyOscuro && contraste(navyOscuro, '#0b1219') >= 4.5 && contraste(navyOscuro, superficieOscura) >= 4.5, navyOscuro)
   check('el botón principal y la barra de abajo piden --acento', /\.btn-primary \{\s*background: var\(--acento\);\s*color: var\(--acento-texto\);/.test(css) && /\.bm a\[aria-current='page'\] \{\s*color: var\(--acento\);/.test(css))
   const movil = readFileSync(`${RAIZ}/css/movil.css`, 'utf8'), mc = readFileSync(`${RAIZ}/css/mi-coleccion.css`, 'utf8'), lat = readFileSync(`${RAIZ}/css/lateral.css`, 'utf8')
   check('la burbuja, la de Mi colección y la lateral también', /\.bm-burbuja-item\[aria-current='page'\] \{\s*background: var\(--acento\);/.test(movil) && /\.mc-pestanias \.pildora \{\s*background: var\(--acento\);/.test(mc) && /\.lat-activa > \.lat-seccion-enlace \{\s*color: var\(--acento\);/.test(lat))
@@ -74,6 +79,10 @@ async function colores(ruta, tema, movil) {
 {
   const r = await colores('/index.html', 'light', true)
   check('La portada: el azul de siempre', r.seccion === 'inicio' && r.barra === rgb('#1e5175'), JSON.stringify(r))
+}
+{
+  const r = await colores('/index.html', 'dark', false)
+  check('La portada en oscuro (PC): la lateral en el azul claro, no en el marino (1024)', r.seccion === 'inicio' && r.lateral === rgb('#7cbae4') && r.boton === rgb('#7cbae4'), JSON.stringify(r))
 }
 await b.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')

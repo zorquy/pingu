@@ -29,9 +29,12 @@ console.log('── 1. El HTML ──')
   ]
   const html = lateralHtml(secciones, 'Comunidad', 'foro', { conSesion: true })
   check('una entrada por sección', (html.match(/<li class="lat-seccion( lat-activa)?">/g) || []).length === 3)
+  // 1024 (PINGU: «ya hay inicio, es redundante»): la portada no cuelga de Inicio
+  // como página; en la portada, «estás aquí» lo dice la propia fila.
+  check('la portada no sale como página de Inicio (1024)', !/lat-paginas"><li><a href="\/index.html"/.test(html) && /class="lat-seccion-enlace" href="\/index.html"[^>]* aria-current="page"/.test(lateralHtml(secciones, 'Inicio', 'index')))
   // Desde la 633 cada sección lleva su cajón; abierto, solo el de la activa
   // (los demás, cerrados e `inert`).
-  check('las páginas: el cajón de la activa abierto y los demás cerrados', /class="lat-cajon lat-abierto" id="lat-cajon-\d+"><ul class="lat-paginas"><li><a href="\/foro.html"/.test(html) && /class="lat-cajon" id="lat-cajon-\d+" inert><ul class="lat-paginas"><li><a href="\/index.html"/.test(html))
+  check('las páginas: el cajón de la activa abierto y los demás cerrados', /class="lat-cajon lat-abierto" id="lat-cajon-\d+"><ul class="lat-paginas"><li><a href="\/foro.html"/.test(html) && /class="lat-cajon" id="lat-cajon-\d+" inert><ul class="lat-paginas"><li><a href="\/noticias"/.test(html))
   check('«estás aquí» en la página, una vez', (html.match(/aria-current="page"/g) || []).length === 1 && /href="\/foro.html" aria-current="page"/.test(html))
   check('Cartas lleva a Mi colección con cuenta', /class="lat-seccion-enlace" href="\/mi-coleccion"/.test(html))
   check('  …y al catálogo sin ella', /class="lat-seccion-enlace" href="\/cartas"/.test(lateralHtml(secciones, 'Inicio', 'index')))
