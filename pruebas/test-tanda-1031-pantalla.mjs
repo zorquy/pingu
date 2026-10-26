@@ -44,7 +44,7 @@ console.log('── 1. Desde La quiero ──')
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=quiero')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const botones = await page.evaluate(() => [...document.querySelectorAll('.mc-quiero-botones button')].map((x) => x.textContent.trim()))
+  const botones = await page.evaluate(() => [...document.querySelectorAll('.mc-quiero-botones button')].map((x) => x.innerText.trim()))
   check('los botones de arriba: Compartir lista, Imagen y Hacer un álbum', botones.join('|') === 'Compartir lista|Imagen|Hacer un álbum', botones.join('|'))
   await page.click('#mcQuieroAlbum')
   await page.waitForSelector('#mcAlbumesDetalle:not(.hidden)', { timeout: 8000 }).catch(() => {})

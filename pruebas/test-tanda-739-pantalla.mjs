@@ -24,7 +24,7 @@ console.log('── 1. El HTML ──')
 {
   const secciones = [
     { nombre: 'Inicio', enlaces: [{ href: '/index.html', texto: 'Inicio' }, { href: '/noticias', texto: 'Noticias' }] },
-    { nombre: 'Cartas', enlaces: [{ href: '/cartas', texto: 'Catálogo' }, { href: '/mi-coleccion', texto: 'Mi colección' }] },
+    { nombre: 'Colección', enlaces: [{ href: '/cartas', texto: 'Catálogo' }, { href: '/mi-coleccion', texto: 'Mi colección' }] },
     { nombre: 'Comunidad', enlaces: [{ href: '/foro.html', texto: 'Foro' }, { href: '/usuarios.html', texto: 'Gente' }] },
   ]
   const html = lateralHtml(secciones, 'Comunidad', 'foro', { conSesion: true })
@@ -59,7 +59,7 @@ console.log('── 2. A 1.440 con ratón ──')
   const { page, ctx, errores } = await abrir('/foro.html')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const lat = await page.evaluate(() => { const l = document.querySelector('.lat'); const r = l?.getBoundingClientRect(); return l ? { pos: getComputedStyle(l).position, x: r.left, w: Math.round(r.width), h: Math.round(r.height), secciones: [...l.querySelectorAll('.lat-seccion-enlace span')].map((s) => s.textContent), paginas: [...l.querySelectorAll('.lat-paginas a span')].map((s) => s.textContent), aqui: l.querySelector('[aria-current="page"]')?.textContent.trim(), cuerpo: getComputedStyle(document.body).paddingLeft } : null })
-  check('fija a la izquierda, de arriba abajo, con las cinco secciones', lat?.pos === 'fixed' && lat.x === 0 && lat.w === 240 && lat.h === 900 && JSON.stringify(lat.secciones) === JSON.stringify(['Inicio', 'Aprender', 'Cartas', 'Comunidad', 'Jugar']), JSON.stringify(lat))
+  check('fija a la izquierda, de arriba abajo, con las cinco secciones', lat?.pos === 'fixed' && lat.x === 0 && lat.w === 240 && lat.h === 900 && JSON.stringify(lat.secciones) === JSON.stringify(['Inicio', 'Aprender', 'Colección', 'Comunidad', 'Jugar']), JSON.stringify(lat))
   check('  …con las páginas de Comunidad y el foro marcado', lat?.paginas.includes('Foro') && lat.paginas.includes('Gente') && lat.aqui === 'Foro', JSON.stringify(lat))
   check('  …y el contenido se aparta (no queda debajo)', lat?.cuerpo === '240px')
   check('arriba ya no están el logo ni los desplegables', !(await visible(page, '.navbar .nav-logo')) && !(await visible(page, '.navbar .nav-links')))

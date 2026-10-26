@@ -60,8 +60,8 @@ console.log('── 2. Las secciones del móvil, sin desplegable de Cartas ─�
     [{ href: '/noticias', texto: 'Noticias' }, { href: '/lanzamientos.html', texto: 'Lanzamientos' }, { href: '/mi-coleccion', texto: 'Mi colección' }],
   )
   const por = Object.fromEntries(s.map((x) => [x.nombre, x.enlaces.map((e) => e.texto).join()]))
-  check('lo suelto va a Inicio, y «Mi colección» ES la sección Cartas', por.Inicio === 'Inicio,Noticias,Lanzamientos' && por.Cartas === 'Mi colección', JSON.stringify(por))
-  check('/carta y /cartas siguen siendo de Cartas, y Lanzamientos de Inicio', SECCION_DE.Cartas.includes('carta') && SECCION_DE.Cartas.includes('cartas') && SECCION_DE.Inicio.includes('lanzamientos'))
+  check('lo suelto va a Inicio, y «Mi colección» ES la sección Colección (antes Cartas, 1036)', por.Inicio === 'Inicio,Noticias,Lanzamientos' && por['Colección'] === 'Mi colección', JSON.stringify(por))
+  check('/carta y /cartas siguen siendo de Colección (1036), y Lanzamientos de Inicio', SECCION_DE['Colección'].includes('carta') && SECCION_DE['Colección'].includes('cartas') && SECCION_DE.Inicio.includes('lanzamientos'))
 }
 
 const browser = await chromium.launch()
@@ -95,13 +95,13 @@ console.log('── 3. En el iPhone ──')
   await l.ctx.close()
 
   const m = await abrir('/mi-coleccion.html?ver=album')
-  check('en Mi colección: Cartas activa, sin segunda burbuja, sin escanear ni ajenas', (await barra(m.page)).some((x) => x.startsWith('Cartas*:')) && (await m.page.locator('.bm-burbuja, .bm-escanear, .bm-ajena').count()) === 0, (await barra(m.page)).join(' | '))
+  check('en Mi colección: Colección (antes Cartas) activa, sin segunda burbuja, sin escanear ni ajenas', (await barra(m.page)).some((x) => x.startsWith('Colección*:')) && (await m.page.locator('.bm-burbuja, .bm-escanear, .bm-ajena').count()) === 0, (await barra(m.page)).join(' | '))
   const pest = await m.page.$$eval('.mc-pestanias > *', (as) => as.map((a) => a.textContent.trim()).filter(Boolean))
   check('  …y su burbuja propia no lleva «Escanear» ni «Catálogo»', pest.length > 0 && !pest.some((t) => /Escanear|Catálogo/.test(t)), pest.join())
   await m.ctx.close()
 
   const c = await abrir('/cartas.html')
-  check('/cartas sigue viva: Cartas activa y sin burbuja', (await barra(c.page)).some((x) => x.startsWith('Cartas*:')) && (await c.page.locator('.bm-burbuja').count()) === 0 && c.errores.length === 0, c.errores.join(' | '))
+  check('/cartas sigue viva: Colección activa y sin burbuja', (await barra(c.page)).some((x) => x.startsWith('Colección*:')) && (await c.page.locator('.bm-burbuja').count()) === 0 && c.errores.length === 0, c.errores.join(' | '))
   await c.ctx.close()
 
   const t = await abrir('/index.html')
@@ -143,12 +143,12 @@ console.log('── 5. La lateral del ordenador: Cartas con su desplegable ─�
   // desplegable y tendría que tener». Con solo «Mi colección» dentro, la
   // lateral no le pintaba cajón, y el menú de Mi colección se quedaba fuera.
   const l = await abrir('/lanzamientos.html', { movil: false, ancho: 1440 })
-  const flecha = l.page.locator('.lat-flecha[aria-label$="Cartas"]')
-  check('fuera de Mi colección, Cartas lleva su flecha', (await flecha.count()) === 1)
+  const flecha = l.page.locator('.lat-flecha[aria-label$="Colección"]')
+  check('fuera de Mi colección, Colección (antes Cartas, 1036) lleva su flecha', (await flecha.count()) === 1)
   await flecha.click()
   await l.page.waitForTimeout(450)
   const partes = await l.page.$$eval('.lat-seccion', (ss) => {
-    const c = ss.find((x) => x.querySelector('.lat-seccion-enlace span')?.textContent === 'Cartas')
+    const c = ss.find((x) => x.querySelector('.lat-seccion-enlace span')?.textContent === 'Colección')
     return { abierto: c?.querySelector('.lat-cajon')?.classList.contains('lat-abierto'), enlaces: [...(c?.querySelectorAll('.lat-paginas a') || [])].map((a) => `${a.textContent.trim()}>${a.getAttribute('href')}`) }
   })
   check('  …y su cajón son las partes de Mi colección', partes.abierto && partes.enlaces.join() === 'Panel>/mi-coleccion?ver=resumen,Expansiones>/mi-coleccion?ver=album,Pokédex>/mi-coleccion?ver=pokedex,Álbumes>/mi-coleccion?ver=carpetas,Productos>/mi-coleccion?ver=productos,Deseos y cambios>/mi-coleccion?ver=mercado,Buscar>/mi-coleccion?ver=buscar', JSON.stringify(partes))

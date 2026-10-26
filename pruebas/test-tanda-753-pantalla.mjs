@@ -32,7 +32,7 @@ console.log('── 1. La barra en el HTML (A4) ──')
   const marcada = (f) => (readFileSync(`${RAIZ}/${f}`, 'utf8').match(/<nav class="bm"[\s\S]*?<\/nav>/)?.[0].match(/<span>([^<]+)<\/span><\/a>/g) || []).length && (readFileSync(`${RAIZ}/${f}`, 'utf8').match(/<a href="[^"]*" aria-current="page">[\s\S]*?<span>([^<]+)<\/span>/)?.[1] || null)
   const sinSeccion = conBarraArriba.filter((f) => { const h = readFileSync(`${RAIZ}/${f}`, 'utf8'); return gen.conSeccion(h, f) !== h })
   check('  …y <html> lleva su data-seccion tal como sale del generador (1018)', sinSeccion.length === 0, sinSeccion.join(', '))
-  check('  …con su sección marcada (portada → Inicio, un hilo → Comunidad, una carta → Cartas, un torneo → Jugar)', marcada('index.html') === 'Inicio' && marcada('tema.html') === 'Comunidad' && marcada('carta.html') === 'Cartas' && marcada('torneo.html') === 'Jugar', [marcada('index.html'), marcada('tema.html'), marcada('carta.html'), marcada('torneo.html')].join(','))
+  check('  …con su sección marcada (portada → Inicio, un hilo → Comunidad, una carta → Colección, un torneo → Jugar)', marcada('index.html') === 'Inicio' && marcada('tema.html') === 'Comunidad' && marcada('carta.html') === 'Colección' && marcada('torneo.html') === 'Jugar', [marcada('index.html'), marcada('tema.html'), marcada('carta.html'), marcada('torneo.html')].join(','))
   const css = readFileSync(`${RAIZ}/css/style.css`, 'utf8')
   check('la transición entre páginas solo en el móvil y sin «menos movimiento», con las dos barras quietas', /@media \(max-width: 900px\) and \(prefers-reduced-motion: no-preference\) \{\s*@view-transition \{ navigation: auto; \}\s*\.bm \{ view-transition-name: barra-abajo; \}\s*\.navbar \{ view-transition-name: barra-arriba; \}/.test(css))
 }
@@ -44,7 +44,7 @@ const browser = await chromium.launch()
   await page.goto(`${BASE}/foro.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(500)
   const m = await page.evaluate(() => { const b = document.querySelector('.bm'); const r = b?.getBoundingClientRect(); return b && { visible: getComputedStyle(b).display !== 'none', abajo: Math.round(innerHeight - r.bottom), enlaces: [...b.querySelectorAll('a')].map((a) => a.textContent.trim()), hueco: parseFloat(getComputedStyle(document.body).paddingBottom) } })
-  check('sin JavaScript la barra ya está, abajo, con sus cinco secciones y su hueco', m?.visible && Math.abs(m.abajo) <= 1 && m.enlaces.join() === 'Inicio,Aprender,Cartas,Comunidad,Jugar' && m.hueco >= 72, JSON.stringify(m))
+  check('sin JavaScript la barra ya está, abajo, con sus cinco secciones y su hueco', m?.visible && Math.abs(m.abajo) <= 1 && m.enlaces.join() === 'Inicio,Aprender,Colección,Comunidad,Jugar' && m.hueco >= 72, JSON.stringify(m))
   await ctx.close()
 }
 {

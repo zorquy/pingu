@@ -88,12 +88,12 @@ const b = await chromium.launch()
 
   // Pulsado: con el dedo abajo, la pestaña se pinta pulsada (antes de tocar
   // nada que haga bajar la página, que la barra se esconde al bajar).
-  const boton = await p.$('.bm a:has-text("Cartas")')
+  const boton = await p.$('.bm a:has-text("Colección")')
   const caja = await boton.boundingBox()
   await p.mouse.move(caja.x + caja.width / 2, caja.y + caja.height / 2)
   await p.mouse.down()
   await p.waitForTimeout(120)
-  const pulsado = await p.$eval('.bm a:has-text("Cartas")', (x) => getComputedStyle(x).backgroundColor)
+  const pulsado = await p.$eval('.bm a:has-text("Colección")', (x) => getComputedStyle(x).backgroundColor)
   // El dedo se va antes de soltar: así no hay clic y la página sigue aquí.
   await p.mouse.move(10, 10)
   await p.mouse.up()
