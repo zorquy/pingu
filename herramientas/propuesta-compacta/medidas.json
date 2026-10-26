@@ -1,0 +1,74 @@
+{
+ "quiero": {
+  "antes-movil": 39,
+  "despues-movil": 35
+ },
+ "mercado": {
+  "antes-movil": null,
+  "despues-movil": null
+ },
+ "productos": {
+  "antes-movil": 33,
+  "despues-movil": 22
+ },
+ "pokedex": {
+  "antes-movil": 41,
+  "despues-movil": 28
+ },
+ "expansiones": {
+  "antes-movil": 23,
+  "despues-movil": 16
+ },
+ "catalogo": {
+  "antes-movil": 30,
+  "despues-movil": 23
+ },
+ "aprender": {
+  "antes-movil": 50,
+  "despues-movil": 32,
+  "antes-pc": 44,
+  "despues-pc": 39
+ },
+ "glosario": {
+  "antes-movil": 36,
+  "despues-movil": 24
+ },
+ "novedades": {
+  "antes-movil": 31,
+  "despues-movil": 15
+ },
+ "lanzamientos": {
+  "antes-movil": 23,
+  "despues-movil": 16
+ },
+ "foro": {
+  "antes-movil": 43,
+  "despues-movil": 35
+ },
+ "comunidad": {
+  "antes-movil": 78,
+  "despues-movil": 49
+ },
+ "torneos": {
+  "antes-movil": 43,
+  "despues-movil": 19,
+  "antes-pc": 44,
+  "despues-pc": 44
+ },
+ "partidas": {
+  "antes-movil": 66,
+  "despues-movil": 46
+ },
+ "laboratorio": {
+  "antes-movil": 37,
+  "despues-movil": 12
+ },
+ "repeticiones": {
+  "antes-movil": 49,
+  "despues-movil": 23
+ },
+ "perfil": {
+  "antes-movil": 75,
+  "despues-movil": 63
+ }
+}

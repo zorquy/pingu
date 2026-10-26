@@ -1,0 +1,405 @@
+<title>PokeDoc, contenido primero</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@600;700;800&display=swap">
+<style>
+/* Los tokens de css/style.css de PokeDoc: la propuesta se lee con la pinta de la web.
+   Composición: una columna de lectura; cada página, una pareja «ahora / propuesta» del iPhone lado a lado. */
+:root {
+  --navy: #1e5175; --navy-solid: #1e5175; --ice: #e1f0f4; --bg: #f6f8fa; --white: #ffffff;
+  --text: #0d1b2a; --text-mid: #52717f; --text-dim: #7d98a4; --border: #e1eaee;
+  --success: #0b8a60; --success-bg: #e6f7f2; --danger: #c81e1e; --danger-bg: #fee2e2; --warn: #9a4a06; --warn-bg: #fef3c7;
+  --blanco-fijo: #fff;
+  --font-d: 'Outfit', 'Inter', system-ui, sans-serif; --font-b: 'Inter', system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --navy: #7cbae4; --ice: #1d2d3b; --bg: #0b1219; --white: #15212c; --text: #e8eef2; --text-mid: #9fb3bd; --text-dim: #7890a0;
+  --border: #2b3a46; --success: #34d399; --success-bg: #11312a; --danger: #f87171; --danger-bg: #3b1d1d; --warn: #fbbf24; --warn-bg: #3a2a08;
+  color-scheme: dark;
+} }
+:root[data-theme="dark"] {
+  --navy: #7cbae4; --ice: #1d2d3b; --bg: #0b1219; --white: #15212c; --text: #e8eef2; --text-mid: #9fb3bd; --text-dim: #7890a0;
+  --border: #2b3a46; --success: #34d399; --success-bg: #11312a; --danger: #f87171; --danger-bg: #3b1d1d; --warn: #fbbf24; --warn-bg: #3a2a08;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font-b); font-size: 16px; line-height: 1.5; }
+.pag { max-width: 1040px; margin: 0 auto; padding-block: 28px 80px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+h1, h2, h3 { font-family: var(--font-d); line-height: 1.15; margin: 0; text-wrap: balance; }
+h1 { font-size: clamp(1.9rem, 4vw, 2.5rem); font-weight: 800; }
+h2 { font-size: 1.55rem; font-weight: 800; margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+h3 { font-size: 1.15rem; font-weight: 700; margin-top: 36px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+p { margin: 10px 0; max-width: 70ch; }
+p.lead { font-size: 1.08rem; color: var(--text-mid); }
+.eyebrow { font-size: .72rem; letter-spacing: .1em; text-transform: uppercase; color: var(--text-mid); font-weight: 700; }
+.cifras { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; margin: 24px 0 8px; }
+.cifra { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; }
+.cifra b { display: block; font-family: var(--font-d); font-size: 1.9rem; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.cifra span { color: var(--text-mid); font-size: .85rem; }
+.toc { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 16px; }
+.toc a { background: var(--white); border: 1px solid var(--border); color: var(--navy); text-decoration: none; padding: 6px 12px; border-radius: 999px; font-size: .85rem; font-weight: 600; }
+a { color: var(--navy); }
+a:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.reglas { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-top: 16px; }
+.regla { background: var(--white); border: 1px solid var(--border); border-radius: 14px; padding: 14px 16px; min-width: 0; }
+.regla b { display: block; font-family: var(--font-d); font-size: 1.02rem; margin-bottom: 4px; }
+.regla span { color: var(--text-mid); font-size: .9rem; }
+.regla i { display: inline-grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--ice); color: var(--navy); font-style: normal; font-family: var(--font-d); font-weight: 800; margin-bottom: 8px; }
+.medida { font-family: var(--font-b); font-size: .78rem; font-weight: 700; padding: 3px 10px; border-radius: 999px; background: var(--success-bg); color: var(--success); font-variant-numeric: tabular-nums; }
+.par { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-top: 12px; max-width: 640px; }
+.par.ancho { max-width: none; }
+figure { margin: 0; background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 8px; min-width: 0; }
+figure img { width: 100%; height: auto; display: block; border-radius: 8px; }
+figcaption { font-size: .78rem; color: var(--text-mid); margin-top: 6px; line-height: 1.35; }
+.antes figcaption::before { content: 'AHORA'; font-weight: 800; color: var(--danger); margin-right: 6px; }
+.despues figcaption::before { content: 'PROPUESTA'; font-weight: 800; color: var(--success); margin-right: 6px; }
+.bloque { display: grid; grid-template-columns: minmax(0, 640px) minmax(0, 1fr); gap: 24px; align-items: start; }
+@media (max-width: 860px) { .bloque { grid-template-columns: 1fr; } }
+.cambios { margin: 12px 0 0; padding-left: 20px; }
+.cambios li { margin: 6px 0; font-size: .95rem; }
+.decision { background: var(--white); border: 1px solid var(--border); border-left: 4px solid var(--navy); border-radius: 10px; padding: 10px 14px; margin: 14px 0 0; font-size: .92rem; }
+.decision b { color: var(--navy); }
+.tabla-wrap { overflow-x: auto; margin-top: 14px; }
+table { border-collapse: collapse; width: 100%; font-size: .9rem; min-width: 520px; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
+th { font-size: .72rem; letter-spacing: .08em; text-transform: uppercase; color: var(--text-mid); }
+td.n { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.bien { color: var(--text-mid); }
+.dec { counter-reset: d; display: grid; gap: 12px; margin-top: 16px; }
+.dec > div { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; }
+.dec > div b { font-family: var(--font-d); }
+.dec .op { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.dec .op span { font-size: .85rem; padding: 4px 10px; border-radius: 8px; background: var(--ice); }
+.dec .op span.reco { background: var(--success-bg); color: var(--success); font-weight: 700; }
+.tanda { background: var(--white); border: 1px solid var(--border); border-radius: 12px; padding: 12px 16px; margin-top: 12px; }
+.tanda b { font-family: var(--font-d); }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+<div class="pag">
+  <p class="eyebrow">Propuesta para PINGU · 26 de octubre de 2026</p>
+  <h1>PokeDoc, contenido primero</h1>
+  <p class="lead">He recorrido las 32 pantallas del móvil buscando lo que dijiste: botones grandes, filtros que sobran, títulos que repiten el menú y textos que empujan el contenido hacia abajo. Abajo tienes cada pantalla tal como está y cómo quedaría, dibujada sobre la web de verdad (mismos datos de prueba, iPhone de 390 × 844, tema oscuro).</p>
+  <p>La medida que uso es una sola: <b>a qué altura de la pantalla empieza lo que vienes a ver</b> (las cartas, las guías, los torneos…). Cuanto más bajo el número, antes lo ves.</p>
+  <div class="cifras">
+    <div class="cifra"><b>32</b><span>pantallas revisadas</span></div>
+    <div class="cifra"><b>18</b><span>con cambios</span></div>
+    <div class="cifra"><b>44 % → 29 %</b><span>de media, donde empieza el contenido</span></div>
+    <div class="cifra"><b>9</b><span>decisiones para ti</span></div>
+  </div>
+  <nav class="toc" aria-label="Secciones">
+    <a href="#reglas">Las reglas</a><a href="#resumen">Resumen</a><a href="#coleccion">Colección</a><a href="#aprender">Aprender e Inicio</a><a href="#comunidad">Comunidad</a><a href="#jugar">Jugar</a><a href="#perfil">Perfil</a><a href="#decisiones">Decisiones</a><a href="#tandas">Tandas</a>
+  </nav>
+
+  <h2 id="reglas">Las cinco reglas</h2>
+  <p>Todo lo de abajo sale de aplicar estas cinco reglas, pantalla por pantalla. Quedarían escritas en las normas de la casa para que lo nuevo nazca ya así.</p>
+  <div class="reglas">
+    <div class="regla"><i>1</i><b>Sin título si el menú ya lo dice</b><span>En el móvil, la burbuja de abajo ya dice dónde estás. El título se queda solo para el lector de pantalla.</span></div>
+    <div class="regla"><i>2</i><b>Una fila de mandos</b><span>Arriba cabe una fila. Lo que no quepa va a un icono («Orden», «Filtros») o se va.</span></div>
+    <div class="regla"><i>3</i><b>Lo secundario, en icono</b><span>Compartir, Evento, Escribir o Calendario: un círculo de 40 px con su icono, no un botón con texto.</span></div>
+    <div class="regla"><i>4</i><b>Chips y pestañas de 36 px</b><span>Se ven más bajos (36 en vez de 44–50), pero el dedo sigue teniendo 44 de zona para tocar.</span></div>
+    <div class="regla"><i>5</i><b>Las explicaciones, fuera de lo alto</b><span>Los párrafos que explican la página van al estado vacío o a un «¿Cómo funciona?». Arriba, una línea como mucho.</span></div>
+  </div>
+
+  <h2 id="resumen">Resumen por pantalla</h2>
+  <p>El porcentaje es la altura de la pantalla del iPhone a la que empieza el contenido. Las pantallas sin cambio ya cumplen.</p>
+  <div class="tabla-wrap">
+    <table>
+      <thead><tr><th>Pantalla</th><th>Ahora</th><th>Propuesta</th><th>Qué cambia</th></tr></thead>
+      <tbody>
+        <tr><td>Comunidad (gente)</td><td class="n">78 %</td><td class="n">49 %</td><td>El top del mes en una fila de tres; sin títulos</td></tr>
+        <tr><td>Perfil</td><td class="n">75 %</td><td class="n">63 %</td><td>Banner y cifras más bajos; Compartir y Cambiar en icono</td></tr>
+        <tr><td>Mis partidas</td><td class="n">66 %</td><td class="n">46 %</td><td>Resumen en dos filas; «Desde una repetición» dentro de «Apuntar»</td></tr>
+        <tr><td>Aprender</td><td class="n">50 %</td><td class="n">32 %</td><td>Sin niveles ni trofeos; temas en chips; «Escribir» al lado de la lupa</td></tr>
+        <tr><td>Repeticiones</td><td class="n">49 %</td><td class="n">23 %</td><td>Fuera los dos párrafos de explicación</td></tr>
+        <tr><td>Foro</td><td class="n">43 %</td><td class="n">35 %</td><td>Foros en filas; fuera Todo / Comunidad / Juego</td></tr>
+        <tr><td>Torneos</td><td class="n">43 %</td><td class="n">19 %</td><td>Una fila de chips; sin la tira de la semana</td></tr>
+        <tr><td>Pokédex</td><td class="n">41 %</td><td class="n">28 %</td><td>Fuera el contador de especies; regiones más bajas</td></tr>
+        <tr><td>La quiero (y Doy, Cruces)</td><td class="n">39 %</td><td class="n">35 %</td><td>Las cuatro pestañas enteras; Evento en icono</td></tr>
+        <tr><td>Laboratorio</td><td class="n">37 %</td><td class="n">12 %</td><td>Sin título, texto ni lista; mazos en una fila</td></tr>
+        <tr><td>Glosario</td><td class="n">36 %</td><td class="n">24 %</td><td>Las letras en una fila que se desliza</td></tr>
+        <tr><td>Productos</td><td class="n">33 %</td><td class="n">22 %</td><td>Fuera el texto y el título «Expansiones»; idioma centrado</td></tr>
+        <tr><td>Novedades</td><td class="n">31 %</td><td class="n">15 %</td><td>Sin entradilla; destacadas más bajas</td></tr>
+        <tr><td>Catálogo (/cartas)</td><td class="n">30 %</td><td class="n">23 %</td><td>Sin título; Empezadas / Todas / Completas dentro de «Orden»</td></tr>
+        <tr><td>Expansiones</td><td class="n">23 %</td><td class="n">16 %</td><td>Empezadas / Todas / Completas dentro de «Orden»</td></tr>
+        <tr><td>Lanzamientos</td><td class="n">23 %</td><td class="n">16 %</td><td>Sin título; el próximo set en una tarjeta baja</td></tr>
+        <tr><td>Mercado</td><td class="n">—</td><td class="n">—</td><td>Fuera el selector Pokémon / Japón (los dos, con rótulo)</td></tr>
+        <tr><td>Constructor</td><td class="n">—</td><td class="n">—</td><td>Sin «Mis mazos» arriba; la cabecera del mazo más baja</td></tr>
+        <tr class="bien"><td colspan="4">Ya cumplen y no cambian: Portada, Panel, Álbumes, Mis mazos, Retos, Meta, Noticias, Mensajes, Ajustes, Buscar, Modo evento, Mi colección › Buscar.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h2 id="coleccion">Colección</h2>
+
+  <h3>Deseos y cambios · La quiero <span class="medida">39 % → 35 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:quiero-antes-movil}}" alt="La quiero ahora: las pestañas se cortan en «Las que» y el botón Evento ocupa el final de la fila" width="390" height="844"><figcaption>«Las que doy» y «Cruces» no caben.</figcaption></figure>
+      <figure class="despues"><img src="{{img:quiero-despues-movil}}" alt="La quiero propuesta: Mercado, Quiero, Doy y Cruces enteras y Evento como icono" width="390" height="844"><figcaption>Las cuatro enteras; Evento en icono.</figcaption></figure>
+    </div>
+    <div>
+      <ul class="cambios">
+        <li>Las pestañas se llaman <b>Mercado · Quiero · Doy · Cruces</b> en el móvil y caben enteras, con su cuenta.</li>
+        <li><b>Modo evento</b> pasa a un icono redondo al final de la fila (el del escáner). En el PC sigue con su texto.</li>
+        <li>Buscador, iconos de compartir y el filtro Todas / Las da alguien / Nadie aún, a 40 y 36 px.</li>
+      </ul>
+      <p class="decision"><b>Decisión 1.</b> ¿Te valen «Quiero» y «Doy» como nombres cortos en el móvil?</p>
+    </div>
+  </div>
+
+  <h3>Deseos y cambios · Mercado</h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:mercado-antes-movil}}" alt="Mercado ahora: buscador, selector Pokémon Japón e idioma en otra fila" width="390" height="844"><figcaption>Tres filas antes de las cartas.</figcaption></figure>
+      <figure class="despues"><img src="{{img:mercado-despues-movil}}" alt="Mercado propuesto: buscador y una fila de chips pequeños" width="390" height="844"><figcaption>Buscador y una fila de chips.</figcaption></figure>
+    </div>
+    <div>
+      <ul class="cambios">
+        <li>Fuera el selector <b>Pokémon / Japón</b>: como en La quiero desde la 1034, salen los dos catálogos, cada uno con su rótulo.</li>
+        <li>Idioma, orden y «Solo las que busco» en una fila de chips de 36 px.</li>
+      </ul>
+      <p class="decision"><b>Decisión 2.</b> ¿Quitamos también aquí el selector y enseñamos los dos catálogos separados?</p>
+    </div>
+  </div>
+
+  <h3>Productos <span class="medida">33 % → 22 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:productos-antes-movil}}" alt="Productos ahora: buscador, selector a la derecha, un párrafo y el título Expansiones" width="390" height="844"><figcaption>Texto y título «Expansiones» que no aportan.</figcaption></figure>
+      <figure class="despues"><img src="{{img:productos-despues-movil}}" alt="Productos propuesto: buscador y el selector centrado debajo" width="390" height="844"><figcaption>Buscador y el idioma centrado, como pediste.</figcaption></figure>
+    </div>
+    <ul class="cambios">
+      <li>Fuera «Todavía no tienes productos…» y el título «Expansiones».</li>
+      <li>El selector Pokémon / Japón, centrado debajo del buscador.</li>
+    </ul>
+  </div>
+
+  <h3>Pokédex <span class="medida">41 % → 28 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:pokedex-antes-movil}}" alt="Pokédex ahora: contador 12 de 1.025 especies con un anillo grande arriba" width="390" height="844"><figcaption>El contador grande ocupa una fila entera.</figcaption></figure>
+      <figure class="despues"><img src="{{img:pokedex-despues-movil}}" alt="Pokédex propuesta: buscador, una fila de chips y las regiones más bajas" width="390" height="844"><figcaption>Buscador, una fila y las regiones.</figcaption></figure>
+    </div>
+    <ul class="cambios">
+      <li>Fuera <b>«12 de 1.025 especies · 1,2 %»</b>: cada región ya lleva su cuenta y su barra.</li>
+      <li>«Solo los que tengo» pasa a <b>«Tengo»</b>; el orden se va al lado del buscador como icono.</li>
+      <li>Las regiones, de 56 a 44 px de alto.</li>
+    </ul>
+  </div>
+
+  <h3>Expansiones <span class="medida">23 % → 16 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:expansiones-antes-movil}}" alt="Expansiones ahora: fila de catálogo, lupa y Orden, y debajo Empezadas Todas Completas" width="390" height="844"><figcaption>Dos filas de mandos.</figcaption></figure>
+      <figure class="despues"><img src="{{img:expansiones-despues-movil}}" alt="Expansiones propuesta: una fila con catálogo, lupa y orden en icono" width="390" height="844"><figcaption>Una fila: catálogo, lupa y orden.</figcaption></figure>
+    </div>
+    <div>
+      <ul class="cambios">
+        <li><b>Empezadas / Todas / Completas</b> se mudan a la hoja de «Orden», que pasa a llamarse «Orden y filtro» y se abre con su icono.</li>
+        <li>La era (Escarlata y Púrpura…) queda como el primer rótulo.</li>
+      </ul>
+      <p class="decision"><b>Decisión 3.</b> ¿Empezadas / Todas / Completas dentro de «Orden» o te las dejo a la vista en chips de 36?</p>
+    </div>
+  </div>
+
+  <h3>Catálogo (/cartas) <span class="medida">30 % → 23 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:catalogo-antes-movil}}" alt="Catálogo ahora: título Cartas, catálogo, buscador y Orden, y los tres chips" width="390" height="844"><figcaption>Título, dos filas de mandos y los chips.</figcaption></figure>
+      <figure class="despues"><img src="{{img:catalogo-despues-movil}}" alt="Catálogo propuesto: buscador, y una fila con catálogo y orden" width="390" height="844"><figcaption>Lo mismo que Expansiones, con buscador.</figcaption></figure>
+    </div>
+    <ul class="cambios">
+      <li>Sin el título «Cartas» a la vista (Google lo sigue leyendo).</li>
+      <li>La misma regla que Expansiones: los tres chips, dentro de «Orden».</li>
+    </ul>
+  </div>
+
+  <h2 id="aprender">Aprender e Inicio</h2>
+
+  <h3>Aprender <span class="medida">50 % → 32 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:aprender-antes-movil}}" alt="Aprender ahora: título, trofeos, escribir, sigue donde lo dejaste, temas grandes, buscador y niveles" width="390" height="844"><figcaption>Las guías empiezan a mitad de pantalla.</figcaption></figure>
+      <figure class="despues"><img src="{{img:aprender-despues-movil}}" alt="Aprender propuesto: sigue donde lo dejaste en una línea, temas en chips y buscador con escribir" width="390" height="844"><figcaption>Seguir, temas y buscador; luego las guías.</figcaption></figure>
+    </div>
+    <div>
+      <ul class="cambios">
+        <li>Fuera el título y <b>los trofeos</b> («7 cursos por jugar»): las medallas ya están en Perfil › Medallas.</li>
+        <li>Fuera <b>Principiante / Intermedio / Avanzado</b>, «Sin leer» y «Con curso». El nivel sigue escrito en cada guía.</li>
+        <li><b>Sigue donde lo dejaste</b>, en una línea. Los temas, en chips de texto.</li>
+        <li><b>Escribir una guía</b>, en un icono al lado del buscador.</li>
+      </ul>
+      <p class="decision"><b>Decisión 4.</b> ¿Quitamos los niveles y los trofeos de arriba del todo, o dejamos uno de los dos?</p>
+    </div>
+  </div>
+  <p class="eyebrow" style="margin-top:16px">En el PC</p>
+  <div class="par ancho">
+    <figure class="antes"><img src="{{img:aprender-antes-pc}}" alt="Aprender en el PC ahora" width="1440" height="900"><figcaption>Trofeos, temas grandes y cinco chips de nivel.</figcaption></figure>
+    <figure class="despues"><img src="{{img:aprender-despues-pc}}" alt="Aprender en el PC propuesto" width="1440" height="900"><figcaption>Mismo título y botón; sin trofeos ni niveles.</figcaption></figure>
+  </div>
+
+  <h3>Glosario <span class="medida">36 % → 24 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:glosario-antes-movil}}" alt="Glosario ahora: título, buscador y letras en dos filas" width="390" height="844"><figcaption>Las letras ocupan dos filas.</figcaption></figure>
+      <figure class="despues"><img src="{{img:glosario-despues-movil}}" alt="Glosario propuesto: buscador y letras en una fila que se desliza" width="390" height="844"><figcaption>Una fila que se desliza.</figcaption></figure>
+    </div>
+    <ul class="cambios"><li>Sin título; las letras en una fila de 36 px que se desliza de lado.</li></ul>
+  </div>
+
+  <h3>Novedades <span class="medida">31 % → 15 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:novedades-antes-movil}}" alt="Novedades ahora: título grande, entradilla y destacadas muy altas" width="390" height="844"><figcaption>La lista de cambios ni se ve.</figcaption></figure>
+      <figure class="despues"><img src="{{img:novedades-despues-movil}}" alt="Novedades propuesta: destacadas bajas y la lista debajo" width="390" height="844"><figcaption>Destacadas bajas y la lista a la vista.</figcaption></figure>
+    </div>
+    <ul class="cambios">
+      <li>Fuera el título y la entradilla; «Cuéntanoslo en el foro» baja al final de la lista.</li>
+      <li>Las tres destacadas, con el dibujo a 88 px y sin el párrafo.</li>
+    </ul>
+  </div>
+
+  <h3>Lanzamientos <span class="medida">23 % → 16 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:lanzamientos-antes-movil}}" alt="Lanzamientos ahora: título y una tarjeta muy alta del próximo set" width="390" height="844"><figcaption>Tarjeta del próximo set muy alta.</figcaption></figure>
+      <figure class="despues"><img src="{{img:lanzamientos-despues-movil}}" alt="Lanzamientos propuesto: tarjeta baja con logo a la izquierda" width="390" height="844"><figcaption>Logo a la izquierda y la cuenta atrás al lado.</figcaption></figure>
+    </div>
+    <ul class="cambios"><li>Sin título; el próximo set en una tarjeta baja con el logo pequeño a la izquierda.</li></ul>
+  </div>
+
+  <h2 id="comunidad">Comunidad</h2>
+
+  <h3>Foro <span class="medida">43 % → 35 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:foro-antes-movil}}" alt="Foro ahora: título, acciones, lo que se está hablando, chips de sección y foros en baldosas de dos columnas" width="390" height="844"><figcaption>Chips de sección y baldosas altas.</figcaption></figure>
+      <figure class="despues"><img src="{{img:foro-despues-movil}}" alt="Foro propuesto: foros en filas de una línea" width="390" height="844"><figcaption>Los cuatro foros caben a la vez.</figcaption></figure>
+    </div>
+    <div>
+      <ul class="cambios">
+        <li>Fuera <b>Todo / Comunidad / Juego</b>: las secciones ya tienen su rótulo justo debajo.</li>
+        <li>Cada foro, en una fila: icono, nombre, «N nuevos» y «N temas · hace X».</li>
+        <li>La descripción del foro («Cuéntanos quién eres») se queda dentro del foro.</li>
+      </ul>
+      <p class="decision"><b>Decisión 5.</b> ¿Foros en filas, o te gustan las baldosas y solo quitamos los chips?</p>
+    </div>
+  </div>
+
+  <h3>Comunidad · Gente <span class="medida">78 % → 49 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:comunidad-antes-movil}}" alt="Comunidad ahora: título, pestañas, top del mes con tres filas grandes y otro título" width="390" height="844"><figcaption>La gente empieza casi al final.</figcaption></figure>
+      <figure class="despues"><img src="{{img:comunidad-despues-movil}}" alt="Comunidad propuesta: top del mes en tres columnas y el buscador" width="390" height="844"><figcaption>El podio en una fila de tres.</figcaption></figure>
+    </div>
+    <ul class="cambios">
+      <li>Sin «La comunidad» ni «Gente de PokeDoc».</li>
+      <li>El top del mes, en una fila de tres columnas (oro, plata, bronce).</li>
+    </ul>
+  </div>
+
+  <h2 id="jugar">Jugar</h2>
+
+  <h3>Torneos <span class="medida">43 % → 19 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:torneos-antes-movil}}" alt="Torneos ahora: título, crear, tira de la semana y cuatro chips en dos filas" width="390" height="844"><figcaption>Semana y chips en dos filas.</figcaption></figure>
+      <figure class="despues"><img src="{{img:torneos-despues-movil}}" alt="Torneos propuesto: calendario, crear y chips en una sola fila" width="390" height="844"><figcaption>Una fila, como pediste.</figcaption></figure>
+    </div>
+    <div>
+      <ul class="cambios">
+        <li><b>Tus torneos · Abiertas · Por empezar · Terminados · Borradores</b>, en una fila que se desliza.</li>
+        <li>Delante, dos iconos: el <b>calendario</b> y <b>+ Crear</b>.</li>
+        <li>La tira de la semana se va del móvil: el calendario la enseña al tocarlo.</li>
+      </ul>
+      <p class="decision"><b>Decisión 6.</b> ¿Quitamos la tira de la semana del móvil (sigue en el PC y en el icono)?</p>
+    </div>
+  </div>
+
+  <h3>Mis partidas <span class="medida">66 % → 46 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:partidas-antes-movil}}" alt="Mis partidas ahora: título, resumen alto con anillo grande y rachas, pestañas y desde una repetición" width="390" height="844"><figcaption>Resumen alto y un botón más.</figcaption></figure>
+      <figure class="despues"><img src="{{img:partidas-despues-movil}}" alt="Mis partidas propuesta: resumen bajo y pestañas" width="390" height="844"><figcaption>Resumen en dos filas.</figcaption></figure>
+    </div>
+    <div>
+      <ul class="cambios">
+        <li>El resumen, en dos filas: anillo pequeño con las cifras, y tu mazo más jugado.</li>
+        <li>Las diez bolitas de la racha se van a la pestaña Estadísticas.</li>
+        <li><b>«+ Desde una repetición»</b> pasa a ser una opción dentro de «Apuntar una partida».</li>
+      </ul>
+      <p class="decision"><b>Decisión 7.</b> ¿«Desde una repetición» como opción de «Apuntar una partida»?</p>
+    </div>
+  </div>
+
+  <h3>Laboratorio <span class="medida">37 % → 12 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:laboratorio-antes-movil}}" alt="Laboratorio ahora: título grande, párrafo y tres etiquetas" width="390" height="844"><figcaption>Título, párrafo y tres etiquetas.</figcaption></figure>
+      <figure class="despues"><img src="{{img:laboratorio-despues-movil}}" alt="Laboratorio propuesto: los mazos en filas con Editar y Probar al lado" width="390" height="844"><figcaption>Directo a tus mazos.</figcaption></figure>
+    </div>
+    <ul class="cambios">
+      <li>Fuera el título, el párrafo y las tres etiquetas (siguen en la página para quien llega de Google, más abajo).</li>
+      <li>Cada mazo en una fila, con <b>Editar</b> y <b>Probar</b> a la derecha.</li>
+    </ul>
+  </div>
+
+  <h3>Repeticiones <span class="medida">49 % → 23 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:repeticiones-antes-movil}}" alt="Repeticiones ahora: título, un párrafo largo y otro dentro de la tarjeta" width="390" height="844"><figcaption>Dos párrafos antes del cuadro.</figcaption></figure>
+      <figure class="despues"><img src="{{img:repeticiones-despues-movil}}" alt="Repeticiones propuesta: una línea y el cuadro de pegar" width="390" height="844"><figcaption>Una línea y un «¿Cómo se copia?».</figcaption></figure>
+    </div>
+    <ul class="cambios"><li>Los dos párrafos se quedan en una línea con un enlace «¿Cómo se copia?» que abre la explicación entera.</li></ul>
+  </div>
+
+  <h3>Constructor</h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:constructor-antes-movil}}" alt="Constructor ahora: botón Mis mazos, pestañas y cabecera del mazo alta" width="390" height="844"><figcaption>Las cartas empiezan al 65 %.</figcaption></figure>
+      <figure class="despues"><img src="{{img:constructor-despues-movil}}" alt="Constructor propuesto: pestañas y cabecera del mazo más baja" width="390" height="844"><figcaption>Las cartas, en la primera mitad.</figcaption></figure>
+    </div>
+    <ul class="cambios">
+      <li>Fuera el botón «Mis mazos» de arriba: la flecha de atrás ya lleva ahí.</li>
+      <li>La cabecera del mazo, a 88 px; «¿Cuánto me falta?» y «Guardado» pasan al menú ⋯.</li>
+    </ul>
+  </div>
+
+  <h2 id="perfil">Perfil</h2>
+  <h3>Tu perfil <span class="medida">75 % → 63 %</span></h3>
+  <div class="bloque">
+    <div class="par">
+      <figure class="antes"><img src="{{img:perfil-antes-movil}}" alt="Perfil ahora: banner alto, avatar grande, cinco cifras grandes y Compartir y Cambiar con texto" width="390" height="844"><figcaption>La vitrina empieza al 75 %.</figcaption></figure>
+      <figure class="despues"><img src="{{img:perfil-despues-movil}}" alt="Perfil propuesto: banner bajo, cifras pequeñas y Compartir y Cambiar en icono" width="390" height="844"><figcaption>Banner de 88 px y cifras en una línea baja.</figcaption></figure>
+    </div>
+    <div>
+      <ul class="cambios">
+        <li>Banner de 136 a 88 px y avatar de 96 a 72.</li>
+        <li>La biografía, en una línea (se abre al tocarla).</li>
+        <li>Las cinco cifras, más bajas; Compartir y Cambiar la vitrina, en icono; fuera el rótulo «Vitrina» repetido.</li>
+      </ul>
+      <p class="decision"><b>Decisión 8.</b> El perfil es tu carta de presentación: ¿lo compactamos así o lo dejamos grande?</p>
+    </div>
+  </div>
+
+  <h2 id="decisiones">Lo que te pido decidir</h2>
+  <div class="dec">
+    <div><b>0 · El tamaño de los chips y pestañas en el móvil.</b> Hoy miden 44–50 px de alto. La regla de la casa pide 44 para el dedo.
+      <div class="op"><span class="reco">A · Se ven de 36, se tocan en 44 (recomendado)</span><span>B · Se quedan en 44 y solo quitamos filas</span></div></div>
+    <div><b>1 · «Quiero» y «Doy»</b> como nombres cortos de las pestañas en el móvil. <div class="op"><span class="reco">Sí</span><span>No, otro nombre</span></div></div>
+    <div><b>2 · Mercado sin selector</b> Pokémon / Japón, con los dos catálogos separados. <div class="op"><span class="reco">Sí</span><span>Dejar el selector</span></div></div>
+    <div><b>3 · Empezadas / Todas / Completas</b> en Expansiones y /cartas. <div class="op"><span class="reco">Dentro de «Orden»</span><span>A la vista, en chips de 36</span></div></div>
+    <div><b>4 · Aprender:</b> niveles y trofeos de arriba. <div class="op"><span class="reco">Fuera los dos</span><span>Dejar los trofeos</span><span>Dejar los niveles</span></div></div>
+    <div><b>5 · Foro:</b> los foros. <div class="op"><span class="reco">En filas</span><span>Baldosas, sin chips</span></div></div>
+    <div><b>6 · Torneos:</b> la tira de la semana en el móvil. <div class="op"><span class="reco">Fuera (en el icono)</span><span>Dejarla, más baja</span></div></div>
+    <div><b>7 · Mis partidas:</b> «Desde una repetición». <div class="op"><span class="reco">Dentro de «Apuntar»</span><span>Dejarlo como botón</span></div></div>
+    <div><b>8 · Perfil</b> más compacto. <div class="op"><span class="reco">Sí</span><span>Dejarlo como está</span></div></div>
+  </div>
+
+  <h2 id="tandas">Cómo lo subiría</h2>
+  <p>En tres tandas, una por sección, para que puedas mirarlas en el móvil una a una. Cada una va con su prueba: en todas las páginas de lista, el contenido tiene que empezar antes del 35 % de la pantalla del iPhone, y la prueba lo mide en cada push.</p>
+  <div class="tanda"><b>1038 · Colección.</b> Deseos y cambios, Mercado, Productos, Pokédex, Expansiones y /cartas, y la regla de los chips de 36 px (afecta a todas las páginas).</div>
+  <div class="tanda"><b>1039 · Aprender e Inicio.</b> Aprender (también en el PC), Glosario, Novedades y Lanzamientos.</div>
+  <div class="tanda"><b>1040 · Comunidad, Jugar y Perfil.</b> Foro, Comunidad, Torneos, Mis partidas, Laboratorio, Repeticiones, Constructor y Perfil; y las cinco reglas en las normas de la casa.</div>
+  <p style="margin-top:24px;color:var(--text-mid);font-size:.9rem">Las capturas son de la web de verdad con datos de prueba; lo de «propuesta» es CSS puesto encima, así que puede haber algún detalle sin pulir (una imagen que no cargó, un texto que se recorta). El cambio de verdad se hace en el código de cada página.</p>
+</div>
