@@ -3,46 +3,16 @@ import { conVueltaAtrasDeTipo } from './articulos.js'
 import { escapeHtml, getSession, tintClassForKey, categoryIconHtml } from './app.js'
 import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 import { guideHasCourse } from './guia-contenido.js'
-import { tarjetaDeGuia, NIVELES } from './guia-tarjeta.js'
+import { tarjetaDeGuia } from './guia-tarjeta.js'
 import { icons } from './icons.js'
 // El lápiz de «Escribir una guía» (1015, L10): en el móvil el botón es solo él.
 for (const el of document.querySelectorAll('.ap-escribir [data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(16) || ''
-import { medallasPorCurso } from './medallero.js'
 import { filaDeGuia } from './guia-fila.js'
 import { normalizeSearch } from './texto.js'
 
-// El medallero: convierte los cursos en un álbum por completar. Solo
-// con sesión y solo si hay cursos publicados; el que aún no ha jugado
-// ninguno también lo ve — «13 por jugar» es la invitación.
-function pintarMedallero(cursosConCurso, medallas) {
-  const hueco = document.getElementById('medallero')
-  if (!hueco || !cursosConCurso.length) return
-  const cuenta = { oro: 0, plata: 0, bronce: 0 }
-  let jugados = 0
-  for (const g of cursosConCurso) {
-    const m = medallas[g.id]
-    if (!m) continue
-    jugados++
-    if (m in cuenta) cuenta[m]++
-  }
-  const porJugar = cursosConCurso.length - jugados
-  // Una píldora al lado del título (865): las cifras, y el texto entero
-  // para quien no ve los colores. Lleva a tus medallas del perfil.
-  hueco.setAttribute('aria-label', `Medallero: ${cuenta.oro} ${cuenta.oro === 1 ? 'oro' : 'oros'}, ${cuenta.plata} ${cuenta.plata === 1 ? 'plata' : 'platas'}, ${cuenta.bronce} ${cuenta.bronce === 1 ? 'bronce' : 'bronces'}; ${porJugar === 0 ? 'todos los cursos jugados' : `${porJugar} ${porJugar === 1 ? 'curso' : 'cursos'} por jugar`}`)
-  // Sin ninguna medalla todavía, tres ceros de colores no dicen nada a
-  // quien acaba de llegar (1022, D9): solo «N cursos por jugar». Las chapas
-  // aparecen con la primera medalla.
-  const sinMedallas = !cuenta.oro && !cuenta.plata && !cuenta.bronce
-  const chapas = sinMedallas ? '' : `
-    <span class="medalla-chip medalla-oro">${cuenta.oro}</span>
-    <span class="medalla-chip medalla-plata">${cuenta.plata}</span>
-    <span class="medalla-chip medalla-bronce">${cuenta.bronce}</span>`
-  const restante = porJugar === 0 ? 'todos jugados' : sinMedallas ? `${porJugar} ${porJugar === 1 ? 'curso' : 'cursos'} por jugar` : `${porJugar} por jugar`
-  hueco.innerHTML = `
-    <span class="medallero-titulo">${icons.trophy(14)}</span>${chapas}
-    <span class="medallero-restante">${restante}</span>`
-  hueco.classList.remove('hidden')
-}
+// El medallero y los chips de nivel se fueron de lo alto en la 1039 (PINGU:
+// «hay demasiada cosa hasta que empiezan las guías»): las medallas están en
+// Perfil › Medallas y el nivel sigue escrito en cada guía.
 
 // ── Las guías, a la vista (tanda 299) ──
 //
@@ -68,10 +38,6 @@ let temaDeLaUrl = null
 try {
   temaDeLaUrl = new URLSearchParams(location.search).get('tema') || null
 } catch {}
-let filtroNivel = null
-let soloSinLeer = false
-
-let conCurso = false
 let busqueda = ''
 
 // En el móvil la primera va en grande y las demás en FILAS (tanda 846; la
@@ -79,6 +45,20 @@ let busqueda = ''
 // PINGU, «las guías están muy muy abajo». Una tarjeta entera por guía son
 // 400 px de pantalla cada una; una fila, 88.
 const movil = typeof matchMedia === 'function' ? matchMedia('(max-width: 640px)') : { matches: false, addEventListener() {} }
+
+// «Escribir una guía» en el móvil (1039): sin título arriba, el lápiz se
+// muda al lado del buscador; en el PC vuelve a la cabecera. Se MUEVE el
+// elemento de verdad, con lo que lleva (la 893), no se copia.
+const estrecho = typeof matchMedia === 'function' ? matchMedia('(max-width: 599px)') : { matches: false, addEventListener() {} }
+function ponerEscribir() {
+  const boton = document.querySelector('.ap-escribir')
+  const herramientas = document.querySelector('#categoriesList .ap-herramientas')
+  const cabecera = document.querySelector('.ap-cab')
+  if (!boton || !cabecera) return
+  if (estrecho.matches && herramientas) herramientas.append(boton)
+  else if (boton.parentElement !== cabecera) cabecera.append(boton)
+}
+estrecho.addEventListener?.('change', ponerEscribir)
 
 // La franja de «sigue donde lo dejaste»: el curso empezado y sin
 // terminar más reciente. Es lo que hace volver — sin ella, quien dejó un
@@ -104,28 +84,6 @@ function seguirHtml(guias, progreso) {
     <span class="aprender-seguir-boton"><span class="aprender-seguir-palabra">Continuar</span> →</span>
   </a>`
 }
-
-const chip = (activo, texto, datos, cuenta) =>
-  `<button type="button" class="aprender-chip ${activo ? 'activa' : ''}" ${datos} aria-pressed="${activo}">${escapeHtml(texto)}${
-    cuenta !== undefined ? `<span class="aprender-chip-n">${cuenta}</span>` : ''
-  }</button>`
-
-// UNA fila que se desliza con el dedo (865): la cuenta y los
-// interruptores (nivel, sin leer, con curso). Los temas ya no van aquí:
-// son las baldosas de arriba, y tocar una abre su página.
-function chipsHtml(hayCursos, visibles) {
-  return `
-  <div class="aprender-filtros ap-interruptores" role="group" aria-label="Filtros">
-    <span class="ap-cuenta" id="apCuenta">${cuantasHtml(visibles)}</span>
-    ${Object.entries(NIVELES)
-      .map(([clave, texto]) => chip(filtroNivel === clave, texto, `data-nivel="${clave}"`))
-      .join('')}
-    ${chip(soloSinLeer, 'Sin leer', 'data-sinleer="1"')}
-    ${hayCursos ? chip(conCurso, 'Con curso', 'data-concurso="1"') : ''}
-  </div>`
-}
-
-const cuantasHtml = (n) => `${n} ${n === 1 ? 'guía' : 'guías'}`
 
 async function loadCategories(session) {
   const list = document.getElementById('categoriesList')
@@ -174,43 +132,30 @@ async function loadCategories(session) {
     return pintarTema({ tema, guias: guias.filter((g) => g.category_id === tema.id), progreso, session, list })
   }
 
-  if (session) {
-    const conCurso = guias.filter((g) => guideHasCourse(g))
-    medallasPorCurso(session.user.id).then((m) => pintarMedallero(conCurso, m)).catch(() => {})
-  }
-
   // Un `?tema=` que no casa con ningún tema (enlace viejo, tema borrado)
   // no filtra nada: se ven todas, que es mejor que una pantalla vacía.
   temaDeLaUrl = null
 
-  const hayCursos = guias.some((g) => guideHasCourse(g))
   // La caja se arma UNA vez: el buscador no se repinta mientras escribes
-  // (perdería el foco a cada letra). Lo que cambia son los chips y la lista.
-  // Cuatro capas (865): lo tuyo, los temas, una fila de mandos, las guías.
+  // (perdería el foco a cada letra). Lo que cambia es la lista.
+  // Cuatro capas (865): lo tuyo, los temas, el buscador, las guías.
   list.innerHTML = `
     ${seguirHtml(guias, progreso)}
     ${temasHtml(categories || [], guias, progreso, session)}
     <div class="ap-herramientas">
       <label class="ap-buscar">${icons.search(16)}<input type="search" id="apBuscar" enterkeyhint="search" placeholder="Busca una guía" aria-label="Buscar guías" autocomplete="off" /></label>
-      <div id="apChips"></div>
     </div>
     <div class="ap-lista" id="apLista"></div>`
-  const caja = { chips: list.querySelector('#apChips'), lista: list.querySelector('#apLista') }
+  const caja = { lista: list.querySelector('#apLista') }
+  ponerEscribir()
 
   // El tema de cada guía, para la chapa-enlace de la tarjeta (866).
   const temaDe = new Map((categories || []).map((c) => [c.id, { nombre: c.name, slug: c.slug, emoji: c.emoji || '' }]))
   const pintar = () => {
     const q = normalizeSearch(busqueda)
-    const visibles = guias.filter((g) => {
-      if (filtroNivel && g.level !== filtroNivel) return false
-      if (soloSinLeer && (progreso[g.id]?.read_at || progreso[g.id]?.status === 'completed')) return false
-      if (conCurso && !guideHasCourse(g)) return false
-      if (q && !normalizeSearch(`${g.title || ''} ${g.description || ''}`).includes(q)) return false
-      return true
-    })
-    caja.chips.innerHTML = chipsHtml(hayCursos, visibles.length)
+    const visibles = guias.filter((g) => !q || normalizeSearch(`${g.title || ''} ${g.description || ''}`).includes(q))
     if (!visibles.length) {
-      caja.lista.innerHTML = `<p class="empty-state">${q ? 'Ninguna guía habla de eso.' : 'No hay ninguna guía con esos filtros.'} Prueba a quitar alguno.</p>`
+      caja.lista.innerHTML = '<p class="empty-state">Ninguna guía habla de eso. Prueba con otra palabra.</p>'
       return
     }
     const [primera, ...resto] = visibles
@@ -219,22 +164,6 @@ async function loadCategories(session) {
       : `<div class="guia-rejilla ap-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>`
   }
 
-  // Delegado, una sola vez: los chips se repintan y no hay que volver a
-  // engancharlos. Son INTERRUPTORES: volver a pulsarlos los quita, o no
-  // habría forma de volver a verlas todas sin recargar.
-  caja.chips.addEventListener('click', (e) => {
-    const b = e.target.closest('button')
-    const clave = b && ['nivel', 'sinleer', 'concurso'].find((k) => b.dataset[k] !== undefined)
-    if (!clave) return
-    const valor = b.dataset[clave]
-    if (clave === 'nivel') filtroNivel = filtroNivel === valor ? null : valor
-    else if (clave === 'sinleer') soloSinLeer = !soloSinLeer
-    else conCurso = !conCurso
-    pintar()
-    // El chip pulsado es otro nodo tras repintar: el foco vuelve a él, que
-    // con el teclado no se pierda la posición.
-    caja.chips.querySelector(`[data-${clave}="${CSS.escape(valor)}"]`)?.focus()
-  })
   list.querySelector('#apBuscar').addEventListener('input', (e) => {
     busqueda = e.target.value
     pintar()
@@ -282,7 +211,7 @@ function temasHtml(categorias, guias, progreso, session) {
 // antes de la 676. Esto es el mismo contenido con las piezas de ahora: las
 // migas (en el móvil, «‹ Aprender»), una cabecera compacta con el icono,
 // el nombre, la descripción y el aro de lo leído, Guías · Cursos en un
-// segmentado, los chips de nivel y «Sin leer», la MISMA tarjeta de guía
+// segmentado (los chips de nivel se fueron en la 1039), la MISMA tarjeta de guía
 // que el resto de la web y, al bajar en el móvil, la barra pegada (858).
 // Los grupos («colecciones») del tema se conservan como títulos.
 let vistaTema = 'guias'
@@ -316,7 +245,6 @@ function pintarTema({ tema, guias, progreso, session, list }) {
     cabecera.insertAdjacentHTML('beforebegin', `<nav class="breadcrumb" aria-label="Dónde estás"><a href="/">Inicio</a> <span>›</span> <a href="/aprender">Aprender</a> <span>›</span> <span>${escapeHtml(tema.name)}</span></nav>`)
     cabecera.outerHTML = cabeceraDeTemaHtml(tema, guias, progreso, session)
   }
-  document.getElementById('medallero')?.classList.add('hidden')
   if (!guias.length) {
     list.innerHTML = '<p class="empty-state">Todavía no hay guías en este tema.</p>'
     return
@@ -338,41 +266,24 @@ function pintarTema({ tema, guias, progreso, session, list }) {
         </div>` : ''}
         <label class="ap-buscar">${icons.search(16)}<input type="search" id="apBuscar" enterkeyhint="search" placeholder="Busca en este tema" aria-label="Buscar en este tema" autocomplete="off" /></label>
       </div>
-      <div id="apChips"></div>
     </div>
     <div class="ap-lista" id="apLista"></div>`
-  const caja = { chips: list.querySelector('#apChips'), lista: list.querySelector('#apLista'), seg: list.querySelector('#apSeg') }
+  const caja = { lista: list.querySelector('#apLista'), seg: list.querySelector('#apSeg') }
   const pintar = () => {
     const q = normalizeSearch(busqueda)
     const visibles = ordenadas.filter((g) => {
       if (vistaTema === 'cursos' && !guideHasCourse(g)) return false
-      if (filtroNivel && g.level !== filtroNivel) return false
-      if (soloSinLeer && leida(g, progreso)) return false
       if (q && !normalizeSearch(`${g.title || ''} ${g.description || ''}`).includes(q)) return false
       return true
     })
-    caja.chips.innerHTML = `<div class="aprender-filtros ap-interruptores" role="group" aria-label="Filtros">
-      <span class="ap-cuenta" id="apCuenta">${cuantasHtml(visibles.length)}</span>
-      ${Object.entries(NIVELES).map(([clave, texto]) => chip(filtroNivel === clave, texto, `data-nivel="${clave}"`)).join('')}
-      ${session ? chip(soloSinLeer, 'Sin leer', 'data-sinleer="1"') : ''}
-    </div>`
     if (!visibles.length) {
-      caja.lista.innerHTML = `<p class="empty-state">${q ? 'Ninguna guía de este tema habla de eso.' : 'No hay ninguna guía con esos filtros.'} Prueba a quitar alguno.</p>`
+      caja.lista.innerHTML = `<p class="empty-state">${q ? 'Ninguna guía de este tema habla de eso.' : 'Todavía no hay cursos en este tema.'}</p>`
       return
     }
     caja.lista.innerHTML = movil.matches
       ? `<div class="ap-filas">${visibles.map((g) => filaDeGuia(g, { progreso })).join('')}</div>`
       : `<div class="guia-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso })).join('')}</div>`
   }
-  caja.chips.addEventListener('click', (e) => {
-    const b = e.target.closest('button')
-    const clave = b && ['nivel', 'sinleer'].find((k) => b.dataset[k] !== undefined)
-    if (!clave) return
-    if (clave === 'nivel') filtroNivel = filtroNivel === b.dataset.nivel ? null : b.dataset.nivel
-    else soloSinLeer = !soloSinLeer
-    pintar()
-    caja.chips.querySelector(`[data-${clave}="${CSS.escape(b.dataset[clave])}"]`)?.focus()
-  })
   caja.seg?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-vista]')
     if (!b) return
@@ -398,7 +309,7 @@ function pintarTema({ tema, guias, progreso, session, list }) {
 async function init() {
   const session = await getSession()
   // Lo de la última vez, ya (984): la lista de categorías con tu progreso.
-  vistaVigilada(claveDeVista('aprender', session?.user?.id), ['categoriesList', 'medallero'], { atributos: ['medallero'] })
+  vistaVigilada(claveDeVista('aprender', session?.user?.id), ['categoriesList'])
   await loadCategories(session)
 }
 

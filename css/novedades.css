@@ -63,3 +63,26 @@ a.nv-fila:hover { border-color: var(--border-strong); }
   .nv-ver { order: 1; margin-left: auto; }
 }
 .nv-mas-semana { background: none; border: 0; padding: var(--e-sm) 0; min-height: 44px; color: var(--navy); font: inherit; font-weight: 600; font-size: var(--t-sm); cursor: pointer; }
+
+/* ── 1039: en el móvil, lo primero son las novedades. El título y el lema
+   no ocupan sitio (lo dice la burbuja); «Cuéntanoslo en el foro» va al
+   final, y las tres del mes son más bajas y sin párrafo (SCHEMA 1039). ── */
+.nv-pie-foro { display: none; }
+@media (max-width: 599px) {
+  .cabecera-pagina > h1,
+  .cabecera-pagina > .subtext {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .cabecera-pagina { margin: 0; padding: 0; }
+  #nvDestacadasTitulo { margin: 0 0 var(--e-sm); font-size: var(--t-md); }
+  .nv-destacadas { margin-bottom: var(--e-lg); }
+  .nv-dest-dibujo { height: 88px; padding: var(--e-sm); overflow: hidden; align-items: flex-start; }
+  .nv-dest-texto { padding: var(--e-sm) var(--e-md) var(--e-md); gap: var(--e-xs); }
+  .nv-dest-texto p { display: none; }
+  .nv-pie-foro { display: block; margin-top: var(--e-lg); }
+}

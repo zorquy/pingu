@@ -125,7 +125,7 @@ async function arrancar() {
     return
   }
   $('nvCargando').classList.add('hidden')
-  if (datos.foro && enlaceSeguro(datos.foro)) $('nvForo').href = datos.foro
+  if (datos.foro && enlaceSeguro(datos.foro)) for (const id of ['nvForo', 'nvForoPie']) $(id).href = datos.foro
   pintar()
   guardarVisto(ultimaFecha(datos.entradas))
 }

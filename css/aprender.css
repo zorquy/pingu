@@ -3,40 +3,19 @@
    compacto para que las guías se vean al entrar (PINGU: «los filtros
    ocupan demasiado y las guías están muy abajo»). El porqué, en SCHEMA. */
 
-/* ── La cabecera (865): el título y el medallero de píldora al lado ── */
+/* ── La cabecera (865): el título y «Escribir una guía» ── */
 .ap-cab {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--e-sm) var(--e-md);
 }
-.medallero {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-xs);
-  margin-left: auto;
-  padding: 4px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--white);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  text-decoration: none;
-  white-space: nowrap;
-}
-.medallero:hover { border-color: var(--navy); }
-/* Escribir una guía (1010): a la derecha, detrás del medallero si sale. */
+/* Escribir una guía (1010): a la derecha. */
 .ap-escribir { margin-left: auto; gap: var(--e-xs); }
-/* En el móvil solo el lápiz, 44 px (1015, L10): con el medallero al lado el
-   texto caía a una segunda línea. */
+/* En el móvil solo el lápiz, 44 px (1015, L10); desde la 1039 va junto al
+   buscador (js/aprender.js lo mueve). */
 @media (max-width: 640px) {
   .ap-escribir { min-width: 44px; padding-inline: 0; justify-content: center; }
-}
-.medallero:not(.hidden) + .ap-escribir { margin-left: 0; }
-.medallero-titulo { display: inline-flex; color: var(--text-mid); }
-.medallero .medalla-chip { font-size: var(--t-2xs); }
-@media (max-width: 640px) {
-  .medallero { margin-left: 0; }
 }
 
 /* ── Sigue donde lo dejaste: una fila ──
@@ -124,8 +103,7 @@
 /* En el móvil el botón es solo la flecha: el sitio, para el título. */
 @media (max-width: 640px) {
   .aprender-seguir { gap: 12px; padding: 12px; }
-  .aprender-seguir-palabra,
-  .medallero-palabra { display: none; }
+  .aprender-seguir-palabra { display: none; }
   .aprender-seguir-boton { width: 44px; padding: 0; justify-content: center; font-size: var(--t-lg); }
 }
 
@@ -137,7 +115,6 @@
   gap: 8px 12px;
   margin-bottom: 12px;
 }
-#apChips { flex: 1 1 320px; }
 /* Todo hijo de la fila cede (la 320): sin esto el buscador del tema no
    se encoge por debajo de su `<input>` y a 320 px desborda. */
 .ap-herramientas > * { min-width: 0; }
@@ -358,4 +335,68 @@
     padding: 2px 16px;
   }
   .ap-baldosa { flex: 0 0 168px; }
+}
+
+/* ── 1039: lo de arriba, en una fila (PINGU eligió lo recomendado; SCHEMA
+   1039). En el móvil el título no ocupa sitio (sigue para el lector), el
+   lápiz va junto al buscador, «Sigue donde lo dejaste» es una línea y los
+   temas son chips de texto. ── */
+@media (max-width: 599px) {
+  /* Recortada solo cuando el lápiz ya se ha ido al buscador: sin guías no
+     hay buscador y el lápiz se queda aquí, a la vista. */
+  .ap-cab:not(:has(.ap-escribir)),
+  .ap-cab h1 {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .ap-herramientas {
+    flex-wrap: nowrap;
+  }
+  .ap-herramientas .ap-buscar {
+    flex: 1 1 auto;
+  }
+  .ap-herramientas .ap-escribir {
+    flex: 0 0 auto;
+    width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+  }
+  .aprender-seguir {
+    padding: var(--e-sm) var(--e-md);
+  }
+  .aprender-seguir .aprender-aro {
+    width: 36px;
+    height: 36px;
+  }
+  .aprender-seguir-sub {
+    display: none;
+  }
+  .ap-baldosas {
+    padding-block: var(--e-xs);
+    margin-bottom: var(--e-sm);
+  }
+  .ap-baldosa {
+    position: relative;
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 0 var(--e-md);
+    border-radius: var(--radius-pill);
+  }
+  .ap-baldosa::after {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+  .ap-baldosa-icono,
+  .ap-baldosa-sub,
+  .ap-baldosa-barra {
+    display: none;
+  }
 }

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, Aprender va al grano: sin títulos de más, el lápiz de escribir una guía junto al buscador y los temas en una fila. El Glosario lleva las letras en una fila, y Novedades y Lanzamientos enseñan antes lo que vienes a ver.", "enlace": "/aprender" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, Mi colección enseña antes lo que vienes a ver: botones y pestañas más bajos, Deseos y cambios con sus cuatro pestañas enteras, el Mercado con las cartas occidentales y japonesas a la vez, y en Expansiones los filtros dentro de «Orden».", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "La sección «Cartas» se llama ahora «Colección»: dentro tienes tus cartas, las expansiones, la Pokédex, los álbumes, los productos y Deseos y cambios.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En el móvil, menos botones apilados: Deseos y cambios, Expansiones, el buscador y el Modo evento ponen sus botones en una fila y las cartas aparecen antes. Y al apuntar una carta en La quiero se busca a la vez en el catálogo occidental y en el japonés.", "enlace": "/mi-coleccion?ver=quiero" },

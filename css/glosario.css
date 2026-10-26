@@ -164,3 +164,40 @@
 @media (pointer: coarse) {
   .glosario-letras a { min-width: 44px; min-height: 44px; }
 }
+
+/* ── 1039: en el móvil el título no ocupa sitio (lo dice la burbuja; sigue
+   para el lector) y las letras van en UNA fila que se desliza, de 36 px de
+   alto con su franja de toque de 44 (SCHEMA 1039). ── */
+@media (max-width: 599px) {
+  .cabecera-pagina.cab-lista {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .glosario-mandos { margin-top: 0; padding-top: 0; }
+  .glosario-letras {
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    gap: 0;
+    margin-inline: calc(-1 * var(--e-lg));
+    padding: var(--e-xs) var(--e-lg);
+    margin-block: calc(-1 * var(--e-xs));
+    scrollbar-width: none;
+  }
+  .glosario-letras::-webkit-scrollbar { display: none; }
+  .glosario-letras a {
+    position: relative;
+    flex: 0 0 auto;
+    min-width: 44px;
+    min-height: 36px;
+  }
+  .glosario-letras a::after {
+    content: '';
+    position: absolute;
+    inset: -4px 0;
+  }
+}

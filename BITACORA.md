@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (277) — PINGU-Claude (1039 — Aprender e Inicio, contenido primero)
+
+**Hecho**: segunda de las tres tandas de «PokeDoc, contenido primero» (PINGU:
+«haz todo lo recomendado»).
+- **Aprender**: fuera el medallero de la cabecera (las medallas siguen en
+  Perfil › Medallas) y los chips de nivel, «Sin leer» y «Con curso» con su
+  cuenta; filtra el buscador. En el móvil el título no ocupa sitio, el lápiz
+  va junto al buscador (`ponerEscribir`, se mueve el elemento), «Sigue donde
+  lo dejaste» es una línea y los temas son chips de 36/44. En el PC, igual
+  que antes salvo el medallero y los chips.
+- **Glosario**: sin título en el móvil y las letras en una fila que se desliza.
+- **Novedades**: sin título ni lema en el móvil; «Cuéntanoslo en el foro» al
+  final (`#nvForoPie`); las tres del mes más bajas y sin párrafo.
+- **Lanzamientos**: sin título en el móvil; el siguiente set en una tarjeta de
+  136 px (logo, nombre, cuenta atrás y «Avísame»).
+- De paso: el `999px` de `.mc-gemela` es `--radius-pill` (la 309 lo cantaba).
+
+**Ficheros**: aprender.html, js/aprender.js, css/aprender.css, css/glosario.css,
+novedades.html, js/novedades.js, css/novedades.css, css/lanzamientos.css,
+css/mi-coleccion.css, SCHEMA.md, novedades.json, BITACORA.md.
+
+**Pruebas** (rama pruebas): nueva `test-tanda-1039-pantalla.mjs`; al día 299,
+269, 846, 863, 864, 865 y 1015. En la pasada de carriles siguen rojas, y no
+son de esta tanda (páginas que no se tocan): 1010, 704, 780, 829, 857, 308,
+316, 836, 581, 893, 896, 311 y 1023 (/mazos tarda en abrir con seis carriles).
+
+**Pendiente**: la 1040 (Comunidad, Jugar y Perfil) y la suite entera.
+
 ## 2026-10-26 (276) — PINGU-Claude (1038 — Colección, contenido primero)
 
 **Hecho**: primera de las tres tandas de la propuesta «PokeDoc, contenido

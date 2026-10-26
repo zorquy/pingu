@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1039 — Aprender e Inicio, contenido primero
+
+Segunda de las tres tandas de «PokeDoc, contenido primero» (PINGU: «haz todo
+lo recomendado»). La medida es la de la 1038: en un iPhone de 844 px, lo que
+se viene a ver empieza antes de los 296 px.
+
+- **Aprender** (`js/aprender.js`, `css/aprender.css`, `aprender.html`). Se
+  fueron el medallero de la cabecera (las medallas están en Perfil ›
+  Medallas; `js/medallero.js` sigue para el perfil) y los chips de nivel,
+  «Sin leer» y «Con curso», con la cuenta «N guías»: lo único que filtra en
+  sitio es el buscador, en la portada y en la página de un tema. En el
+  teléfono (≤ 599 px) el título no ocupa sitio (`.ap-cab` recortada, sigue
+  para el lector) mientras el lápiz está fuera: `ponerEscribir()` MUEVE
+  `.ap-escribir` al lado del buscador (`.ap-herramientas`) con `matchMedia`, y
+  la cabecera solo se recorta si ya no lo lleva (`:has`), para que sin guías
+  —sin buscador— el lápiz no se quede escondido con ella. «Sigue donde lo
+  dejaste» es una línea (sin «Bloque N de M», que queda para el PC) y los
+  temas son chips de texto de 36 px con su franja de 44 (`::after`), sin
+  icono ni barra. En el PC, el título y «Escribir una guía» como estaban.
+- **Glosario** (`css/glosario.css`): en el teléfono sin título y con las
+  letras en UNA fila que se desliza (44 de ancho, 36 de alto y su franja).
+- **Novedades** (`novedades.html`, `css/novedades.css`, `js/novedades.js`):
+  en el teléfono, sin título ni lema; «Cuéntanoslo en el foro» se repite al
+  final (`.nv-pie-foro`, `#nvForoPie`, al que `novedades.js` le pone el
+  mismo enlace que a `#nvForo`). Las tres del mes, con el dibujo a 88 px y
+  sin párrafo.
+- **Lanzamientos** (`css/lanzamientos.css`): en el teléfono sin título; el
+  siguiente set es una rejilla de tres columnas (logo de 72 · nombre ·
+  «Avísame») con la cuenta atrás debajo del nombre; mide 136 px donde medía
+  ~330.
+
+Lo vigila `test-tanda-1039-pantalla.mjs` (rama `pruebas`). Al día: 299 (el
+buscador filtra sin ir a la base, en vez del nivel), 269, 846, 863, 864, 865
+y 1015 (el lápiz junto al buscador).
+
 ## Tanda 1038 — Colección, contenido primero
 
 PINGU, con la propuesta «PokeDoc, contenido primero» delante: «haz todo lo

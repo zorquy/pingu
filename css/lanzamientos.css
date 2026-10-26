@@ -330,3 +330,33 @@ a.lanzamiento-tarjeta:hover { border-color: var(--navy); }
   .lanz-mandos .seg { display: grid; grid-template-columns: 1fr 1fr; width: 100%; }
   .lanz-mandos .seg-btn { justify-content: center; }
 }
+
+/* ── 1039: en el móvil el título no ocupa sitio (lo dice la burbuja) y el
+   siguiente set es una tarjeta baja: el logo a la izquierda y la cuenta
+   atrás con «Avísame» al lado (SCHEMA 1039). ── */
+@media (max-width: 599px) {
+  .page-header.cab-lista {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .lanz-mandos .seg-btn { min-height: 36px; }
+  .lanzamiento-destacado {
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    align-items: center;
+    gap: var(--e-xs) var(--e-md);
+    padding: var(--e-md);
+    margin-bottom: var(--e-lg);
+  }
+  .lanzamiento-logo-grande { grid-row: 1 / 3; width: 72px; height: 56px; }
+  .lanzamiento-destacado > div { grid-column: 2 / 4; grid-row: 1; min-width: 0; }
+  .lanzamiento-destacado .eyebrow { font-size: var(--t-xs); }
+  .lanzamiento-destacado h2 { font-size: var(--t-lg); }
+  .lanzamiento-destacado .subtext { margin: 0; font-size: var(--t-xs); }
+  .lanzamiento-destacado .lanz-reloj { grid-column: 2; grid-row: 2; justify-self: start; margin: 0; font-size: var(--t-sm); padding: var(--e-xs) var(--e-md); }
+  .lanzamiento-destacado .lanz-avisar { grid-column: 3; grid-row: 2; }
+}
