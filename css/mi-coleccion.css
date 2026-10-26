@@ -9601,11 +9601,113 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   gap: var(--e-lg) var(--e-md);
 }
 
+/* Tres por fila en el móvil (1033, PINGU: «con dos hay que bajar
+   demasiado»): la baldosa se aprieta (letra menor, filas de una línea) y
+   el − / + de lo que das pasa debajo del «Doy N de M». */
 @media (max-width: 599px) {
   .mc-mercado-rejilla {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--e-md) var(--e-sm);
   }
+
+  .mc-mercado-rejilla .mc-merc-nombre {
+    font-size: var(--t-xs);
+  }
+
+  .mc-mercado-rejilla .mc-merc-set,
+  .mc-mercado-rejilla .mc-merc-fila {
+    font-size: var(--t-2xs);
+  }
+
+  .mc-mercado-rejilla .mc-merc-nadie,
+  .mc-mercado-rejilla .mc-deseo-idioma {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mc-mercado-rejilla .mc-merc-largo {
+    display: none;
+  }
+
+  .mc-mercado-rejilla .mc-quiero-precio {
+    white-space: nowrap;
+  }
+
+  .mc-mercado-rejilla .mc-merc-chapa {
+    bottom: var(--e-xs);
+    left: var(--e-xs);
+    padding: 0 var(--e-xs);
+  }
+
+  .mc-mercado-rejilla .mc-doy-paso {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-radius: var(--radius-md);
+  }
+
+  .mc-mercado-rejilla .mc-doy-cuantas {
+    grid-column: 1 / -1;
+    padding-top: var(--e-xs);
+    text-align: center;
+  }
+
+  .mc-mercado-rejilla .mc-doy-boton {
+    min-width: 0;
+  }
+}
+
+/* El rótulo de cada catálogo (1033): una fila entera de la rejilla. */
+.mc-catalogo-rotulo {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: var(--e-sm) 0 0;
+  font-size: var(--t-sm);
+}
+
+.mc-catalogo-rotulo:first-child {
+  margin-top: 0;
+}
+
+.mc-catalogo-rotulo small {
+  color: var(--text-mid);
+  font-weight: 600;
+}
+
+.mc-catalogo-rotulo .pv-bandera {
+  display: inline-block;
+}
+
+/* El Modo evento, a mano en Deseos y cambios (1033). En el móvil, al lado
+   del título; el selector de vista va debajo, como antes. */
+.mc-evento-boton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  order: 2;
+  min-height: 44px;
+}
+
+.mc-deseos-cabeza .mc-deseos-seg {
+  order: 1;
+}
+
+@media (max-width: 599px) {
+  .mc-evento-boton {
+    order: 1;
+    margin-left: auto;
+  }
+
+  .mc-deseos-cabeza .mc-deseos-seg {
+    order: 2;
+  }
+}
+
+.mc-evento-boton svg {
+  width: 16px;
+  height: 16px;
 }
 
 

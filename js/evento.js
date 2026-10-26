@@ -52,7 +52,7 @@ async function fichas(lineas) {
 function fila(l, carta) {
   const c = carta || { id: l.card_id, market: l.market, local_id: '' }
   const cadena = c.set_id ? cadenaDeEscaneo(c) : []
-  return { id: l.card_id, market: l.market || c.market || 'WEST', n: l.cambio || l.cantidad || 1, idioma: l.idioma || null, nombre: carta ? nombreDeCarta(carta) : l.card_id, num: carta ? `${carta.tcg_sets?.tcg_online_code || carta.set_id} ${carta.local_id}` : '', foto: cadena[0] || '', cadena, carta: c, ruta: rutaDeCarta(c) }
+  return { id: l.card_id, market: c.market || l.market || 'WEST', n: l.cambio || l.cantidad || 1, idioma: l.idioma || null, nombre: carta ? nombreDeCarta(carta) : l.card_id, num: carta ? `${carta.tcg_sets?.tcg_online_code || carta.set_id} ${carta.local_id}` : '', foto: cadena[0] || '', cadena, carta: c, ruta: rutaDeCarta(c) }
 }
 
 async function pedir(sesion) {
@@ -91,10 +91,19 @@ function cartaHtml(f) {
   return `<li><a class="evento-carta" href="${escapeHtml(f.ruta || '#')}">${foto}${f.n > 1 ? `<span class="evento-cuantas">×${f.n}</span>` : ''}<b>${escapeHtml(f.nombre)}</b>${f.num ? `<small>${escapeHtml(f.num)}</small>` : ''}</a></li>`
 }
 
+// Occidental y japonés, cada uno con su rótulo (1033); con uno solo, sin rótulo.
+function listaHtml(filas) {
+  const jp = filas.filter((f) => f.market === 'JP')
+  const occ = filas.filter((f) => f.market !== 'JP')
+  if (!jp.length || !occ.length) return filas.map(cartaHtml).join('')
+  const rotulo = (m, n) => `<li class="evento-rotulo"><span>${m === 'JP' ? 'Pokémon Japón' : 'Pokémon'}</span><small>${n}</small></li>`
+  return `${rotulo('WEST', occ.length)}${occ.map(cartaHtml).join('')}${rotulo('JP', jp.length)}${jp.map(cartaHtml).join('')}`
+}
+
 function pintarLista() {
   const filas = datos?.[lista] || []
   for (const b of document.querySelectorAll('.evento-pestanas [data-lista]')) b.setAttribute('aria-pressed', String(b.dataset.lista === lista))
-  $('eventoLista').innerHTML = filas.length ? filas.map(cartaHtml).join('') : `<li class="evento-vacia">${lista === 'busco' ? 'Nada en La quiero: apunta lo que buscas desde Deseos y cambios.' : 'Nada apuntado para dar: marca «De esas, doy» en tus cartas.'}</li>`
+  $('eventoLista').innerHTML = filas.length ? listaHtml(filas) : `<li class="evento-vacia">${lista === 'busco' ? 'Nada en La quiero: apunta lo que buscas desde Deseos y cambios.' : 'Nada apuntado para dar: marca «De esas, doy» en tus cartas.'}</li>`
   for (const b of ['eventoCopiar', 'eventoImagen', 'eventoExportar']) { const el = $(b); if (el) el.disabled = !filas.length }
 }
 

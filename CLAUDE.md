@@ -934,6 +934,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `tcggo_gemelos`) se quitan de UNA en una cuando la base dice que no
   existen (`quitarOpcional`, en `sets.mjs` y `sets-catalogo.js`): una
   columna nueva de la estantería que llegue antes que su migración va ahí.
+- **En Deseos y cambios y el modo evento, occidental y japonés van cada
+  uno en su tramo** (tanda 1033, PINGU: «separado está bien y está
+  ordenado»): `porCatalogo` / `conRotulos` (deseos.js) ponen el rótulo como
+  una fila más de la rejilla, que sigue siendo una; con un solo catálogo no
+  hay rótulo. Una lista nueva de cartas tuyas que mezcle catálogos pasa por
+  ahí. Y en el móvil esas rejillas van a TRES por fila (PINGU: «con dos hay
+  que bajar demasiado»): lo que se añada a una baldosa cabe en ~110 px.
 - **Un álbum hecho desde una lista (La quiero, 1031) es una COPIA de ese
   día** (`crearBinderDeLaQuiero`, albumes.js): la lista y el binder no se
   tocan entre sí, a propósito (se hace para ordenarlo y quitar a mano). Un

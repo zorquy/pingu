@@ -578,6 +578,22 @@ export function dantesPorCarta(tiene = []) {
   }
   return m
 }
+// Occidental y japonés, cada uno en su tramo (1033, PINGU: «separado está
+// bien y está ordenado»): el rótulo es una fila más de la rejilla, que
+// ocupa todo el ancho, para que la rejilla siga siendo UNA (y sus pruebas).
+// Con un solo catálogo no hay rótulo: no separa nada.
+export function porCatalogo(items, mercadoDe) {
+  const jp = items.filter((x) => mercadoDe(x) === 'JP')
+  const occ = items.filter((x) => mercadoDe(x) !== 'JP')
+  return [['WEST', occ], ['JP', jp]].filter(([, l]) => l.length)
+}
+function conRotulos(items, mercadoDe, pintar) {
+  const tramos = porCatalogo(items, mercadoDe)
+  if (tramos.length < 2) return items.map(pintar).join('')
+  return tramos.map(([m, l]) => `<h3 class="mc-catalogo-rotulo">${banderaHtml(m === 'JP' ? 'ja' : 'en')}<span>${m === 'JP' ? 'Pokémon Japón' : 'Pokémon'}</span><small>${l.length}</small></h3>${l.map(pintar).join('')}`).join('')
+}
+const mercadoDeCarta = (id) => ctx.cartas.get(id)?.market || 'WEST'
+
 function pintarQuiero() {
   const caja = $('mcQuieroPanel')
   if (!caja || !Array.isArray(ctx.deseos)) return
@@ -610,7 +626,7 @@ function pintarQuiero() {
         </div>`}`
       : ''}
     ${n
-      ? `<div class="mc-mercado-rejilla mc-deseos-rejilla" id="mcQuieroRejilla">${visibles.map(({ g, precio }) => deseoHtml(g, precio)).join('')}</div>
+      ? `<div class="mc-mercado-rejilla mc-deseos-rejilla" id="mcQuieroRejilla">${conRotulos(visibles, ({ g }) => mercadoDeCarta(g.card_id), ({ g, precio }) => deseoHtml(g, precio))}</div>
          ${visibles.length ? '' : `<p class="subtext">${quieroFiltro === 'dan' ? 'Nadie da todavía ninguna de tu lista.' : 'Todas las de tu lista las da alguien.'}</p>`}
          <p class="subtext">Tu lista la ve todo el mundo: es lo que hace que alguien te escriba. Quítala tocando el corazón.</p>`
       : `<div class="mc-quiero-vacio">
@@ -773,7 +789,7 @@ async function pintarDoy() {
       </span>
     </div>
     <p class="subtext mc-doy-nota">Lo que das sale en el Mercado, con tu nombre.</p>
-    <div class="mc-mercado-rejilla mc-doy-rejilla" id="mcDoyRejilla">${filas.map(({ l, c, precio }) => {
+    <div class="mc-mercado-rejilla mc-doy-rejilla" id="mcDoyRejilla">${conRotulos(filas, ({ l, c }) => l.market || c?.market || 'WEST', ({ l, c, precio }) => {
       const nombre = ctx.nombreDe(c) || l.card_id
       const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
       const gente = buscan?.get(l.card_id) || []
@@ -788,8 +804,8 @@ async function pintarDoy() {
         <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
         <span class="mc-merc-fila">${banderaHtml(l.idioma || 'es')}<span class="mc-merc-texto">${escapeHtml(estadoDe(l.estado).nombre)}</span><b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b></span>
         <span class="mc-merc-fila mc-doy-paso">
-          <button type="button" class="mc-doy-boton" data-doy-menos="${escapeHtml(l.id)}" aria-label="Dar una menos de ${escapeHtml(nombre)}">−</button>
           <span class="mc-doy-cuantas">Doy ${das} de ${tienes}</span>
+          <button type="button" class="mc-doy-boton" data-doy-menos="${escapeHtml(l.id)}" aria-label="Dar una menos de ${escapeHtml(nombre)}">−</button>
           <button type="button" class="mc-doy-boton" data-doy-mas="${escapeHtml(l.id)}"${das >= tienes ? ' disabled' : ''} aria-label="Dar una más de ${escapeHtml(nombre)}">+</button>
         </span>
         ${buscan === null
@@ -799,7 +815,7 @@ async function pintarDoy() {
             : '<span class="mc-merc-fila mc-merc-nadie">Nadie la busca aún</span>'}
         <button type="button" class="mc-quiero-aviso mc-doy-aviso" data-avisar-doy="${escapeHtml(l.card_id)}" data-idioma="${escapeHtml(l.idioma || 'es')}" aria-label="Avísame si ${escapeHtml(nombre)} cambia de precio">${icons.bell(14)}</button>
       </article>`
-    }).join('')}</div>`
+    })}</div>`
 }
 
 // − y + de una baldosa: cuántas copias de esa línea das. Al llegar a 0 la
@@ -939,7 +955,7 @@ function deseoHtml(g, precio = ctx.precioDeDeseo(g.filas[0])) {
       ? ''
       : dan.length
         ? `<button type="button" class="mc-merc-fila mc-deseo-quien" data-ver-quien="${escapeHtml(g.card_id)}">${mercadoAvatares(dan)}<span class="mc-merc-texto">Ver quién</span></button>`
-        : '<span class="mc-merc-fila mc-merc-nadie">Nadie la da aún · te avisamos</span>'}
+        : '<span class="mc-merc-fila mc-merc-nadie">Nadie la da aún<span class="mc-merc-largo"> · te avisamos</span></span>'}
     ${seguidos ? `<small class="mc-deseo-seguidos">${icons.users(12)} ${escapeHtml(seguidos)}</small>` : ''}
   </article>`
 }

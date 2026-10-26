@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-26 (273) — PINGU-Claude (1033 — Deseos y cambios: Modo evento a mano, tres por fila, catálogos separados)
+
+**Hecho**: lo que pidió PINGU al probar. (1) «El modo evento está muy
+escondido»: botón «Modo evento» en la cabecera de Deseos y cambios, en las
+tres vistas (al lado del título en el móvil, a la derecha en el PC); la
+loseta del Panel se queda. (2) «En móvil se ven dos; prefiero tres»: la
+rejilla de Mercado, La quiero y Las que doy va a tres por fila en el
+móvil, con la baldosa apretada (letra menor, filas de una línea, «Nadie la
+da aún» sin el «te avisamos», el − / + de lo que das debajo del «Doy N de
+M»). (3) «Separado está bien y ordenado»: La quiero, Las que doy y el modo
+evento separan occidental y japonés con un rótulo por catálogo
+(«Pokémon 4», «Pokémon Japón 2»); con un solo catálogo no sale rótulo. El
+Mercado (lo de los demás) no se separa.
+
+**Ficheros**: `mi-coleccion.html` + `cartas.html`, `js/mi-coleccion/deseos.js`
+(`porCatalogo`, `conRotulos`), `css/mi-coleccion.css`, `js/evento.js`,
+`css/evento.css`, `novedades.json`, `SCHEMA.md`, `CLAUDE.md`. En `pruebas`:
+`test-tanda-1033-pantalla.mjs`; 771 (tres columnas), 751 y 376 (el nombre,
+96 px en vez de 120).
+
+**Pendiente**: lo de la 271.
+```
 ## 2026-10-26 (272) — PINGU-Claude (1029b — /evento en producción decía «prueba con cobertura»)
 
 **Hecho**: PINGU abrió /evento y salió «No se han podido traer tus

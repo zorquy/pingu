@@ -41785,6 +41785,37 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1033 — Deseos y cambios: Modo evento a mano, tres por fila, catálogos separados
+
+PINGU, al probar la 1029: «el modo evento está muy escondido», «en móvil se
+ven dos; prefiero tres» y, de mezclar japonés y occidental, «separado está
+bien y está ordenado».
+
+- **El botón**: `a.btn-secondary.mc-evento-boton[href="/evento"]` en las
+  tres `.mc-deseos-cabeza` (Mercado, La quiero, Cambios) de
+  mi-coleccion.html. Con `order`: en el PC título, vistas y botón a la
+  derecha; en el móvil (≤ 599 px) el botón al lado del título y las vistas
+  debajo a todo el ancho. La loseta del Panel sigue.
+- **Tres por fila**: `.mc-mercado-rejilla` en ≤ 599 px es
+  `repeat(3, minmax(0, 1fr))` (antes 2). La baldosa se aprieta: nombre en
+  `--t-xs`, set y filas en `--t-2xs`, el idioma y «Nadie…» en una línea con
+  puntos suspensivos, «te avisamos» en `.mc-merc-largo` que se esconde, el
+  precio sin partir, y `.mc-doy-paso` pasa a rejilla: «Doy N de M» arriba a
+  todo el ancho y − / + debajo (44 px de alto; el texto va ahora delante en
+  el HTML).
+- **Catálogos separados**: `porCatalogo(items, mercadoDe)` y `conRotulos`
+  (deseos.js). El rótulo `h3.mc-catalogo-rotulo` (bandera, «Pokémon» o
+  «Pokémon Japón» y la cuenta) es UNA FILA MÁS de la rejilla
+  (`grid-column: 1 / -1`), así que `#mcQuieroRejilla` y `#mcDoyRejilla`
+  siguen siendo una rejilla con sus baldosas dentro. El mercado de un deseo
+  es el de su ficha (`ctx.cartas`, `user_wants` no tiene `market`); el de
+  lo que das, el de la línea. Con un solo catálogo, sin rótulo. En
+  /evento, `listaHtml` hace lo mismo con `li.evento-rotulo` (sin bandera:
+  esa página no carga `cardmarket.css`), y el mercado de una fila sale de
+  su ficha antes que de la línea. El Mercado no se separa.
+- Prueba: `test-tanda-1033-pantalla.mjs`. Al día: 771 (tres columnas), 751
+  y 376 (el nombre pide más de 96 px, no 120).
+
 ## Tanda 1031 — «Hacer un álbum» desde La quiero
 
 La cuarta del feedback (2026-10-26): «un botón de exportar álbum… que te
