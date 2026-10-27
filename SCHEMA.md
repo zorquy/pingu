@@ -41831,7 +41831,7 @@ de la propuesta: «Cualquiera» marcada de entrada (A1), una versión por deseo
   (`data-cambiar-deseo`, `cambiarDeseo` en cambios.js); si la combinación
   ya está apuntada, se dice sin preguntar a la base.
 - **Fuera de La quiero**: el tablón no junta dos versiones de una carta y
-  pinta `.mc-cruce-version` (`cortoDeVariante`); Proponer cambio prefiere la
+  pinta `.mc-cruce-version` (1047b: la insignia `.mc-insignia` con el dibujo de `iconoDeVersion`, no letras); Proponer cambio prefiere la
   copia de la versión del cruce; el perfil (`porCarta` guarda `variantes` y
   `cualquierVersion`) mira la versión en «La buscas»/«La das» y la escribe;
   el modo evento la pone con el número.
