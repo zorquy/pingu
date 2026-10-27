@@ -41785,27 +41785,23 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
-## Tanda 1058 — Listas que no cuentan para los cruces, Modo evento por lista, «Las que doy» y Seleccionar en el Mercado
+## Tanda 1058 — Modo evento por lista, «Las que doy» y Seleccionar en el Mercado
 
-- **`user_want_lists.cruces`** (por defecto `true`) y **`deseo_cuenta(usuario,
-  carta)`** (security definer): un deseo cuenta salvo que su carta esté en una
-  lista que no cuenta y en ninguna que sí. Va en la política `user_wants_ver`
-  (`user_id = auth.uid() or deseo_cuenta(...)`, ejecutable por anon y
-  authenticated: la 555) y en `intercambios_quien_tiene`, `_quien_busca`,
-  `_mercado` (solo mías) e `intercambios_avisar` (copiadas de la 1047 con la
-  condición). Una función nueva que lea los deseos de otros pasa por ahí.
-- **`evento_lista(lista)`** (security definer): las cartas de una lista que su
-  dueño sigue queriendo, con `nombre` y `user_id`. La usa el QR del Modo
-  evento (`/evento/<usuario>?lista=<id>`, `listaDeLaDireccion` en
-  perfil-cambios.js, que exige que la lista sea de esa persona). Con lista, lo
-  que busca sale de aquí y no de `user_wants`: una lista que no cuenta no se
-  lee en la tabla.
-- **La web**: `listas-deseo.js` pide `cruces` con respaldo (`faltaCruces`:
-  sin la 1058 se vuelve a pedir sin ella y no se ofrece el interruptor);
-  `menuDe` es el ⋯ genérico (lo usan «La quiero» y «Las que doy»). En
-  `evento.js`, `listaDeseo` (dirección `?lista=` o lo recordado en
-  `pd-evento-lista`), `filasDe` y `enlaceActual`; las listas se guardan con lo
-  demás para el pabellón sin cobertura.
+(La primera versión traía un interruptor «cuenta para los cruces» por lista,
+con `deseo_cuenta` en la política de `user_wants` y en las funciones de
+cruces. PINGU lo descartó antes de ejecutarla —«lo que quieres, lo
+quieres»— y se fue entero: lo que está en «La quiero» cuenta siempre.)
+
+- **`evento_lista(lista)`** (security definer, migración
+  `supabase-migration-1058-evento-lista.sql`): las cartas de una lista que su
+  dueño sigue queriendo, con `nombre` y `user_id`. Hace falta porque las
+  filas de una lista solo las lee su dueño (RLS de la 1057). La usa el QR del
+  Modo evento (`/evento/<usuario>?lista=<id>`, `listaDeLaDireccion` en
+  perfil-cambios.js, que exige que la lista sea de esa persona).
+- **La web**: `menuDe` (listas-deseo.js) es el ⋯ genérico (lo usan «La
+  quiero» y «Las que doy»). En `evento.js`, `listaDeseo` (dirección `?lista=`
+  o lo recordado en `pd-evento-lista`), `filasDe` y `enlaceActual`; las listas
+  se guardan con lo demás para el pabellón sin cobertura.
 - **«Las que doy»** (`pintarDoy`): la barra `#mcDoyBarra` (Seleccionar
   `#mcDoySeleccionar`, `#mcDoyCifra`, `#mcDoyPoner`, `#mcDoyMenu`, `#mcDoyQue`
   con `data-doy-filtro`), baldosa compacta (las reglas de la de «La quiero»

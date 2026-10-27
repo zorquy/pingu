@@ -43,9 +43,9 @@ async function loQueBusca(userId) {
 }
 
 // UNA LISTA DEL MODO EVENTO (1058): el QR lleva `?lista=<id>` y aquí se
-// enseña solo esa. Las cartas salen de `evento_lista` (security definer):
-// una lista que no cuenta para los cruces no se lee en `user_wants`, y quien
-// enseña el QR la está enseñando a propósito. Sin la migración, todo.
+// enseña solo esa. Las cartas de una lista solo las lee su dueño (RLS), así
+// que salen de `evento_lista` (security definer), que también dice de quién
+// es la lista. Sin la migración, todo.
 async function listaDeLaDireccion(userId) {
   const id = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('lista') : null
   if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return null

@@ -983,10 +983,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   llevan; una pantalla nueva de cartas lo lleva en su barra, con la barra de
   abajo de siempre (`.mc-sel`). Y «La quiero» tiene LISTAS
   (`js/mi-coleccion/listas-deseo.js`, migración 1057), que ve solo su dueño:
-  lo que enseñe una lista pasa por `cartasDe`. Una lista puede NO contar
-  para los cruces (1058): lo decide `deseo_cuenta` en la base, que está en la
-  política de `user_wants` y en las funciones de cruces; una función nueva
-  que lea deseos de OTROS la lleva, y el QR de una lista va por
+  lo que enseñe una lista pasa por `cartasDe`. Una lista NO esconde nada
+  (PINGU, 1058b: «si la quieres, la quieres»): lo que está en «La quiero»
+  cuenta siempre para cruces, Mercado y perfil. El QR de una lista va por
   `evento_lista`.
 - **Contenido primero en el teléfono** (tandas 1038–1040, PINGU: «haz todo
   lo recomendado»). Cinco reglas para cualquier pantalla de lista: (1) el

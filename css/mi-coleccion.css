@@ -14203,29 +14203,3 @@ body:has(#mcPanelMercado.hidden) #mcMercadoSel,
 body:has(#mcPanelQuiero.hidden) :is(#mcQuieroSel, #mcDoySel) {
   display: none;
 }
-
-/* «Cuenta para los cruces» en la hoja de una lista (1058). */
-.mc-lista-cruces {
-  display: flex;
-  gap: var(--e-sm);
-  align-items: flex-start;
-  cursor: pointer;
-}
-
-.mc-lista-cruces input {
-  flex: none;
-  width: 20px;
-  height: 20px;
-  margin: 2px 0 0;
-  accent-color: var(--acento);
-}
-
-.mc-lista-cruces span {
-  display: grid;
-  gap: 2px;
-}
-
-.mc-lista-cruces small {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}

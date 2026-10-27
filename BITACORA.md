@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (299) — PINGU-Claude (1058b — fuera el interruptor «cuenta para los cruces»)
+
+**Hecho**: PINGU, antes de ejecutar la 1058: «si agregas una carta a que la
+quieres, simplemente la quieres». El interruptor de listas ocultas fue idea
+mía y sobraba: las listas ya son privadas (solo se ve la carta, no cómo la
+organizas) y para vigilar un precio está la campana. Fuera de la web y de la
+base: la migración pasa a ser `supabase-migration-1058-evento-lista.sql`, solo
+con `evento_lista` (lo que necesita el QR con una lista). La
+`supabase-migration-1058-listas-cruces.sql` se borra SIN haberse ejecutado:
+no hay `deseo_cuenta`, ni columna `cruces`, ni cambio en la política de
+`user_wants` ni en las funciones de cruces.
+
+**Ficheros**: la migración (nueva) y la vieja (borrada),
+js/mi-coleccion/listas-deseo.js, js/perfil-cambios.js (comentario),
+css/mi-coleccion.css, novedades.json, SCHEMA.md, CLAUDE.md, BITACORA.md.
+
+**Pruebas**: `test-tanda-1058.mjs` contra PostgreSQL solo con evento_lista;
+`test-tanda-1058-pantalla.mjs` comprueba que la hoja ya no trae el
+interruptor.
+
+**Pendiente**: que PINGU ejecute `supabase-migration-1058-evento-lista.sql`.
+
 ## 2026-10-27 (298) — PINGU-Claude (1058 — lo que quedaba de las listas: cruces, Modo evento, Las que doy y el Mercado)
 
 **Hecho**: PINGU ejecutó la 1057 y pidió seguir con lo pendiente.
