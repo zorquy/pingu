@@ -8243,7 +8243,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 }
 
 .mc-albe-pie {
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: var(--e-sm);
 }
 
 .mc-albe-borrar {
@@ -12614,7 +12615,8 @@ button.mc-fila:hover {
 /* Los acabados de la tapa: lona (trama), piel (grano), mate y holo. Sin
    acabado, ninguno (antes que los `[data-acabado]`, que lo pisan por orden). */
 .mc-tapa-cerrada,
-.mc-lomo-libro {
+.mc-lomo-libro,
+.mc-albe-pastilla {
   --acabado: none;
 }
 
@@ -13650,5 +13652,131 @@ button.mc-fila:hover {
     --lomo-max: 168px;
     margin-inline: calc(var(--e-lg) * -1);
     border-radius: 0;
+  }
+}
+
+/* ── 1050: Personalizar. La hoja de editar con dos pestañas (Aspecto y
+   Datos) y la vista previa, que es el álbum de verdad en pequeño. El porqué,
+   en SCHEMA.md (tanda 1050). ── */
+.mc-albe {
+  width: min(800px, calc(100vw - 32px));
+}
+
+.mc-albe .mc-albe-pestanias {
+  padding: var(--e-sm) var(--e-md);
+}
+
+.mc-albe .mc-seg-sueltas {
+  flex-wrap: wrap;
+}
+
+.mc-albe .mc-seg-sueltas button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+}
+
+@media (pointer: coarse) {
+  .mc-albe .mc-seg-sueltas button {
+    min-height: 44px;
+  }
+}
+
+.mc-albe-aspecto {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: var(--e-xl);
+  align-items: start;
+}
+
+.mc-albe-vista {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: var(--e-lg);
+  justify-items: center;
+  padding: var(--e-lg) var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+}
+
+.mc-albe-tapa {
+  display: block;
+  width: 150px;
+}
+
+.mc-albe-dentro {
+  display: block;
+  width: 100%;
+  pointer-events: none;
+}
+
+.mc-albe-dentro .mc-hoja-cabecera {
+  display: none;
+}
+
+/* Una sola hoja: en el PC el archivador tiene sitio para las dos caras. */
+.mc-albe-dentro .mc-archivador {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mc-albe-opciones > div {
+  margin-bottom: var(--e-lg);
+}
+
+.mc-albe-opciones .mc-dlg-rotulo {
+  margin-top: 0;
+}
+
+.mc-albe-portadas {
+  margin-top: var(--e-sm);
+}
+
+.mc-albe-pastilla {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--acabado), var(--navy-solid);
+  background-blend-mode: overlay, normal;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 20%);
+}
+
+.mc-albe-nota {
+  margin: 0;
+}
+
+.mc-albe-panel[data-albe-panel='datos'] {
+  display: grid;
+  gap: var(--e-md);
+}
+
+.mc-albe-panel[hidden] {
+  display: none;
+}
+
+.mc-albe-borrar {
+  justify-self: start;
+  margin-top: var(--e-lg);
+}
+
+@media (max-width: 599px) {
+  .mc-albe-aspecto {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--e-lg);
+  }
+
+  /* En el móvil, la tapa y la hoja una al lado de la otra, arriba. */
+  .mc-albe-vista {
+    position: static;
+    grid-template-columns: 96px minmax(0, 168px);
+    justify-content: center;
+    align-items: center;
+    padding: var(--e-md);
+  }
+
+  .mc-albe-tapa {
+    width: 96px;
   }
 }

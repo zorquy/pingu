@@ -1810,31 +1810,81 @@
     <!-- EDITAR UN ÁLBUM (1032): nombre, descripción, tapa, portada, público
          y borrar, desde el ⋯ de una baldosa o desde dentro. Lo maneja
          js/mi-coleccion/album-editar.js. -->
+      <!-- EDITAR / PERSONALIZAR UN ÁLBUM (1032; 1050 con dos pestañas): el
+           único sitio donde se cambia un álbum. Aspecto (con la vista previa,
+           que es el mismo dibujo que el álbum) y Datos (nombre, descripción,
+           público y borrar). Lo maneja js/mi-coleccion/album-editar.js. -->
       <dialog class="mc-albn mc-albe" id="mcAlbEdit" aria-labelledby="mcAlbEditTitulo">
         <form id="mcAlbEditForm">
           <div class="mc-panel-cabecera">
             <h2 id="mcAlbEditTitulo">Editar álbum</h2>
             <button type="button" class="mc-panel-cerrar" id="mcAlbEditCerrar" aria-label="Cerrar">✕</button>
           </div>
+          <div class="mc-seg mc-seg-sueltas mc-albe-pestanias" id="mcAlbEditPestanias" role="group" aria-label="Qué cambiar">
+            <button type="button" data-albe-pestania="aspecto" aria-pressed="true">Aspecto</button>
+            <button type="button" data-albe-pestania="datos" aria-pressed="false">Datos</button>
+          </div>
           <div class="mc-albn-cuerpo">
-            <label class="mc-dlg-nombre">Nombre
-              <input type="text" id="mcAlbEditNombre" maxlength="80" placeholder="Mi álbum" required />
-            </label>
-            <label class="mc-dlg-nombre">Descripción
-              <textarea id="mcAlbEditDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)"></textarea>
-            </label>
-            <div id="mcAlbEditTapasBloque">
-              <h3 class="mc-dlg-rotulo">Color de la tapa</h3>
-              <div class="mc-tapas" id="mcAlbEditTapas" role="group" aria-label="Color de la tapa"></div>
+            <div class="mc-albe-panel mc-albe-aspecto" data-albe-panel="aspecto">
+              <div class="mc-albe-vista" id="mcAlbEditVista" aria-hidden="true"></div>
+              <div class="mc-albe-opciones">
+                <div id="mcAlbEditTapasBloque">
+                  <h3 class="mc-dlg-rotulo">Color de la tapa</h3>
+                  <div class="mc-tapas" id="mcAlbEditTapas" role="group" aria-label="Color de la tapa"></div>
+                </div>
+                <div class="mc-albe-estilo" id="mcAlbEditAcabadoBloque">
+                  <h3 class="mc-dlg-rotulo">Acabado</h3>
+                  <div class="mc-seg mc-seg-sueltas" id="mcAlbEditAcabado" role="group" aria-label="Acabado de la tapa">
+                    <button type="button" data-acabado-op="lona" aria-pressed="false"><i class="mc-albe-pastilla" data-acabado="lona" aria-hidden="true"></i>Lona</button>
+                    <button type="button" data-acabado-op="piel" aria-pressed="false"><i class="mc-albe-pastilla" data-acabado="piel" aria-hidden="true"></i>Piel</button>
+                    <button type="button" data-acabado-op="mate" aria-pressed="false"><i class="mc-albe-pastilla" data-acabado="mate" aria-hidden="true"></i>Mate</button>
+                    <button type="button" data-acabado-op="holo" aria-pressed="false"><i class="mc-albe-pastilla" data-acabado="holo" aria-hidden="true"></i>Holo</button>
+                  </div>
+                </div>
+                <div id="mcAlbEditVentanaBloque">
+                  <h3 class="mc-dlg-rotulo">Ventana de la tapa</h3>
+                  <div class="mc-seg mc-seg-sueltas mc-albe-estilo" id="mcAlbEditVentana" role="group" aria-label="Ventana de la tapa">
+                    <button type="button" data-ventana-op="si" aria-pressed="false">Con carta de portada</button>
+                    <button type="button" data-ventana-op="no" aria-pressed="false">Sin ventana</button>
+                  </div>
+                  <div class="mc-albe-portadas" id="mcAlbEditPortadas" role="group" aria-label="Carta de portada"></div>
+                </div>
+                <div class="mc-albe-estilo" id="mcAlbEditHojasBloque">
+                  <h3 class="mc-dlg-rotulo">Hojas</h3>
+                  <div class="mc-seg mc-seg-sueltas" id="mcAlbEditHojas" role="group" aria-label="Color de las hojas">
+                    <button type="button" data-hojas-op="grises" aria-pressed="false">Grises</button>
+                    <button type="button" data-hojas-op="negras" aria-pressed="false">Negras</button>
+                    <button type="button" data-hojas-op="blancas" aria-pressed="false">Blancas</button>
+                  </div>
+                </div>
+                <div class="mc-albe-estilo" id="mcAlbEditCierreBloque">
+                  <h3 class="mc-dlg-rotulo">Cierre</h3>
+                  <div class="mc-seg mc-seg-sueltas" id="mcAlbEditCierre" role="group" aria-label="Cierre">
+                    <button type="button" data-cierre-op="cremallera" aria-pressed="false">Cremallera</button>
+                    <button type="button" data-cierre-op="ninguno" aria-pressed="false">Sin cierre</button>
+                    <button type="button" data-cierre-op="goma" aria-pressed="false">Goma</button>
+                  </div>
+                </div>
+                <div id="mcAlbEditRejillaBloque">
+                  <h3 class="mc-dlg-rotulo">Bolsillos por página</h3>
+                  <div class="mc-seg mc-seg-sueltas" id="mcAlbEditRejilla" role="group" aria-label="Bolsillos por página"></div>
+                </div>
+                <p class="subtext mc-albe-nota">Se guarda en el álbum: lo ves igual en el móvil y en el ordenador, y quien lo abra por tu enlace también.</p>
+              </div>
             </div>
-            <div id="mcAlbEditPortadasBloque">
-              <h3 class="mc-dlg-rotulo">Portada</h3>
-              <div class="mc-albe-portadas" id="mcAlbEditPortadas" role="group" aria-label="Carta de portada"></div>
+            <div class="mc-albe-panel" data-albe-panel="datos" hidden>
+              <label class="mc-dlg-nombre">Nombre
+                <input type="text" id="mcAlbEditNombre" maxlength="80" placeholder="Mi álbum" />
+              </label>
+              <label class="mc-dlg-nombre">Descripción
+                <textarea id="mcAlbEditDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)"></textarea>
+              </label>
+              <label class="mc-interruptor"><input type="checkbox" id="mcAlbEditPublico" /> Público: cualquiera con el enlace lo ve</label>
+              <button type="button" class="btn-secondary mc-albe-borrar" id="mcAlbEditBorrar">Borrar álbum</button>
             </div>
-            <label class="mc-interruptor"><input type="checkbox" id="mcAlbEditPublico" /> Público: cualquiera con el enlace lo ve</label>
           </div>
           <div class="mc-panel-pie mc-albe-pie">
-            <button type="button" class="btn-secondary mc-albe-borrar" id="mcAlbEditBorrar">Borrar álbum</button>
+            <button type="button" class="btn-secondary" id="mcAlbEditCancelar">Cancelar</button>
             <button type="submit" class="btn-primary" id="mcAlbEditGuardar">Guardar</button>
           </div>
         </form>

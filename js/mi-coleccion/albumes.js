@@ -483,7 +483,9 @@ export function bolsillosPorVersion(cartas) {
 }
 
 // La forma del archivador de este álbum: 3×3 si no dice otra.
-const forma = () => rejillaDe(esDeSet(actual) ? '3x3' : actual?.rejilla)
+// Los bolsillos de la fila, también en un álbum de set desde la 1050 (antes,
+// 3×3 siempre): se eligen en Personalizar.
+const forma = () => rejillaDe(actual?.rejilla)
 
 // LOS HUECOS DE UN BINDER (760, AL5). PINGU, viendo Holonook: tocar un
 // bolsillo vacío abre el buscador y la carta va A ESE bolsillo. Un álbum
@@ -992,7 +994,27 @@ function aplicarCambios(a, cambios) {
     pintarDetalle()
   }
 }
-async function editarAlbum(a) {
+// LA VISTA PREVIA DE PERSONALIZAR (1050): la tapa cerrada y su primera hoja
+// por dentro, con lo puesto en la hoja. La pintan las mismas funciones que el
+// álbum de verdad, así que no puede separarse de él.
+function vistaPreviaHtml(borrador) {
+  const r = rejillaDe(borrador.rejilla)
+  const { html } = archivadorHtml({
+    lista: conCartas(borrador).slice(0, r.porPagina),
+    porPagina: r.porPagina,
+    columnas: r.columnas,
+    tapa: borrador.tapa || tapaGuardada(),
+    estilo: borrador.estilo,
+    pintarBolsillo: (item) => {
+      const escaneo = atributosDeEscaneo(cadenaDeEscaneo(cartaDe(item.id)))
+      return `<span class="mc-bolsillo tengo">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" />` : ''}</span>`
+    },
+  })
+  return `<span class="mc-albe-tapa">${tapaCerradaHtml(borrador, { ventana: esDeSet(borrador) ? ventanaDeSetHtml(borrador) : null })}</span><span class="mc-albe-dentro">${html}</span>`
+}
+// `cual`: la pestaña con la que se abre (Aspecto desde «Personalizar»,
+// Datos desde el ⋯ de una baldosa).
+async function editarAlbum(a, cual = 'datos') {
   // Las fichas de sus cartas, para la tira de portadas: las que no estén.
   const ids = conCartas(a).map((c) => c.id).filter((id) => !ctx.cartas.has(id) && !cartasDelAlbum.has(id)).slice(0, 40)
   if (ids.length) for (const [id, c] of await datos.cartasPorIds([...new Set(ids)], ctx.mercado).catch(() => new Map())) cartasDelAlbum.set(id, c)
@@ -1001,6 +1023,8 @@ async function editarAlbum(a) {
     album: a,
     cartaDe,
     esBinder: !esDeSet(a),
+    vistaPrevia: vistaPreviaHtml,
+    cual,
     alGuardar: async (cambios) => {
       try {
         await guardarAlbum(a.id, cambios)
@@ -1111,7 +1135,7 @@ export function iniciarAlbumes(contexto) {
     pintarRejilla()
   })
   $('mcAlbNuevoArriba')?.addEventListener('click', () => abrirAlbumNuevo())
-  $('mcAlbAjustes')?.addEventListener('click', () => actual && esMio() && editarAlbum(actual))
+  $('mcAlbAjustes')?.addEventListener('click', () => actual && esMio() && editarAlbum(actual, 'aspecto'))
   // DELEGADO, porque la miga se pinta al abrir un álbum (tanda 474): al
   // arrancar `#mcAlbVolver` todavía no existe, y un `addEventListener` sobre
   // algo que no está no engancha nada — sin dar error, que es lo peor: el

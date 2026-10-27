@@ -1008,7 +1008,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   público…) va en esa hoja y en `cambiosDelEditor`, que escribe SOLO lo que
   cambia; no pongas otro botón suelto de borrar ni otro formulario. El
   menú va FUERA del botón de la baldosa (`.mc-albt-caja`): un botón no
-  puede llevar otro dentro.
+  puede llevar otro dentro. Desde la 1050 la hoja tiene dos pestañas:
+  Aspecto («Personalizar»: color, acabado, ventana y portada, hojas, cierre
+  y bolsillos, con la vista previa pintada por `archivadorHtml` y
+  `tapaCerradaHtml`, nunca una maqueta aparte) y Datos (el ⋯: nombre,
+  descripción, público y borrar). El aspecto vive en `user_albums.estilo`
+  (jsonb, migración 1050) y se ofrece solo si la fila trae la columna.
 - **El modo evento es `/evento` y su QR lleva a `/evento/<usuario>`**
   (tandas 1029 y 1030; antes «feria», 794): la ficha de esa persona abierta
   por Cambios, que se ve SIN cuenta, con la puerta a registrarse arriba

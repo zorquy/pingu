@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (290) — PINGU-Claude (1050 — Personalizar un álbum) · MIGRACIÓN
+
+**⚠ PINGU: ejecuta `supabase-migration-1050-album-estilo.sql`** (una línea:
+`user_albums.estilo jsonb`). Sin ella la web funciona igual, pero Personalizar
+solo ofrece el color, la portada y los bolsillos. Sigue pendiente también
+`supabase-migration-1047-deseos-con-version.sql`.
+
+**Hecho**: la tercera tanda del rework de álbumes, «todo lo de la maqueta».
+- La hoja de editar tiene dos pestañas: **Aspecto** (color, acabado lona /
+  piel / mate / holo, ventana con la carta de portada o sin ventana, hojas
+  grises / negras / blancas, cremallera / goma / sin cierre y bolsillos por
+  página) con la **vista previa** al lado, que es el álbum de verdad en
+  pequeño y cambia a cada toque; y **Datos** (nombre, descripción, público y
+  borrar). «Personalizar» abre Aspecto; el «Editar…» del ⋯, Datos.
+- El color y los bolsillos valen también para un álbum de set.
+- Cambiar los bolsillos de un binder no mueve cartas; si no caben, crece.
+
+**Ficheros**: js/mi-coleccion/album-editar.js, js/mi-coleccion/albumes.js,
+mi-coleccion.html, cartas.html (generado), css/mi-coleccion.css,
+supabase-migration-1050-album-estilo.sql, novedades.json, CLAUDE.md,
+SCHEMA.md, BITACORA.md.
+
+**Pruebas**: nueva `test-tanda-1050-pantalla.mjs` (lo puro, la hoja en el PC
+y en el móvil, sin migración, un álbum de set); al día la 1032. Las de
+álbumes y CSS global en verde salvo las que ya fallaban antes de la 1048
+(369, 370, 478, 651, 757: fotos sin service worker bloqueado y el icono de
+descargar).
+
+**Pendiente**: nada del rework. Las dos migraciones de arriba.
+
 ## 2026-10-27 (289) — PINGU-Claude (1049 — Mis álbumes: tapas o estantería)
 
 **Hecho**: la segunda tanda del rework de álbumes. PINGU: «en la lista de mis

@@ -41785,6 +41785,45 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1050 — Personalizar un álbum
+
+La tercera del rework (1048 el álbum abierto, 1049 Mis álbumes). PINGU eligió
+«todo lo de la maqueta»: color, acabado (lona, piel, mate, holo), ventana con
+portada, hojas grises, negras o blancas, cierre (cremallera, goma o ninguno) y
+bolsillos, en la hoja de editar de la 1032 (sigue siendo UN sitio).
+
+- **Migración** `supabase-migration-1050-album-estilo.sql`: `user_albums.estilo
+  jsonb` (`acabado`, `hojas`, `cierre`, `ventana`). Sin restricción a
+  propósito: lo que no se reconozca se pinta con lo de por defecto
+  (`estiloDe`, y la ventana en `estiloCompleto` de `album-editar.js`).
+  Mientras no esté, la fila no trae la columna (`select('*')`) y la hoja solo
+  ofrece color, portada y bolsillos; `cambiosDelEditor` no escribe `estilo`
+  si `'estilo' in album` es falso — la 624: pedir una columna que no existe
+  tumba la escritura entera.
+- **La hoja** (`#mcAlbEdit`): dos pestañas, **Aspecto** y **Datos**
+  (`data-albe-pestania` / `data-albe-panel`). «Personalizar» abre Aspecto;
+  el «Editar…» del ⋯ de una baldosa, Datos (con el foco en el nombre). Borrar
+  baja a Datos; el pie es «Cancelar» y «Guardar». El nombre ya no es
+  `required`: escondido en la otra pestaña, el navegador no podría enfocarlo
+  para quejarse y el envío se quedaría mudo (`cambiosDelEditor` ya le pone
+  «Mi álbum»).
+- **La vista previa** (`#mcAlbEditVista`): `vistaPreviaHtml` de `albumes.js`,
+  que la hoja recibe como `vistaPrevia(borrador)` y repinta a cada toque. Es
+  `tapaCerradaHtml` + una hoja de `archivadorHtml` con lo puesto: el mismo
+  dibujo que el álbum, no una maqueta que se separe de él. En el PC el
+  archivador tiene dos columnas (las dos caras) y la vista previa pinta una
+  sola hoja: `.mc-albe-dentro .mc-archivador` va a una columna. Al lado de
+  las opciones en el PC (pegada arriba) y encima, en fila, en el móvil.
+- **Para todos**: el color ya no es solo de un binder (`'tapa' in album`), y
+  los bolsillos tampoco: `forma()` usa la `rejilla` de la fila también en un
+  álbum de set (antes, 3×3 fijo).
+- **Los bolsillos de un binder**: cambiar de rejilla no mueve ninguna carta de
+  su orden; si con menos por página ya no caben en las páginas que tenía, el
+  binder crece hasta que quepan (`paginas`, tope 120). Nunca se corta.
+
+**Prueba**: `test-tanda-1050-pantalla.mjs`. Al día la 1032 (dos pestañas,
+Borrar en Datos, y un álbum de set CON color).
+
 ## Tanda 1049 — Mis álbumes: tapas o estantería
 
 PINGU, sobre la propuesta: «en la lista de mis álbumes, ¿no podríamos poner
