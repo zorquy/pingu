@@ -7679,7 +7679,20 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 }
 
 .mc-avance-linea .mc-gemela-sitio {
+  flex-shrink: 1;
+  min-width: 0;
   margin-left: auto;
+}
+
+/* El nombre de la gemela se recorta antes que la cifra (1051). */
+.mc-avance-linea .mc-gemela {
+  max-width: 100%;
+}
+
+.mc-avance-linea .mc-gemela i {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .mc-avance-linea:has(.mc-gemela-sitio) {
@@ -11732,8 +11745,12 @@ button.mc-fila:hover {
 }
 
 /* La barra de una expansión: buscar, la vista, apilar y filtros. */
-.mc-chip-desplegable::after {
+/* La flecha va en el ::before (al final con `order`): el ::after es la franja
+   táctil de 44 px del móvil (movil.css, 1038), que la pisaba y la dejaba
+   suelta encima del chip (1051). */
+.mc-chip-desplegable::before {
   content: '';
+  order: 1;
   flex: none;
   width: 8px;
   height: 8px;

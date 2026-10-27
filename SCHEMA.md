@@ -41785,6 +41785,30 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1051 — La edición gemela, en la línea del progreso
+
+PINGU, con una captura de 30th Celebration: «se ha roto el tema de las
+expansiones… ahora que hemos casado cada edición con su edición japonesa».
+El chip de la gemela (1027) vivía en el PC dentro de `.mc-album-nombre`, al
+lado del texto, sin encogerse (`flex-shrink: 0` y `nowrap`). Con logo y una
+gemela de nombre largo («30th Celebration (Japanese)») dejaba el nombre del set
+y «30C · septiembre de 2026 · 191 cartas» en una columna de una palabra por
+renglón, y se montaba encima de «Todas / Tengo / Faltan». En la 1027 no se vio
+porque la prueba usaba una gemela corta y un ancho de 1280.
+
+- `colocarGemela` lo pone SIEMPRE en la línea «N de M · %» (móvil y PC), a la
+  derecha; `aCasa` lo guarda junto al nombre mientras el progreso se repinta.
+  En esa línea el chip puede encogerse y el nombre de la gemela se recorta con
+  «…» antes que la cifra. En el móvil sigue sin el nombre.
+- De paso, la flecha del selector de vista («Cuadrícula ⌄») salía suelta
+  ENCIMA del chip en el móvil: la dibujaba el `::after` y `movil.css` (1038)
+  usa el `::after` de todos los `.mc-chip-mando` como franja táctil de 44 px,
+  con `position: absolute; inset: -4px 0`. La flecha pasa al `::before` con
+  `order: 1`. Un pseudoelemento que ya tiene dueño en otra hoja no se reusa.
+
+**Prueba**: la 1027 al día (el chip en la línea del progreso y la fecha en un
+renglón).
+
 ## Tanda 1050 — Personalizar un álbum
 
 La tercera del rework (1048 el álbum abierto, 1049 Mis álbumes). PINGU eligió

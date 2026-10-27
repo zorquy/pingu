@@ -3777,20 +3777,20 @@ async function pintarGemelaDeAlbum(set) {
   colocarGemela()
 }
 
-// EL CHIP SE MUDA, NO SE DUPLICA (893): en el PC va al lado del nombre; en
-// el móvil la cabecera es una línea y no cabe, así que el mismo elemento se
-// mueve a la línea «9 de 24 · 38 %» (que se repinta: por eso se vuelve a
-// colocar después de cada pintada del progreso y al cambiar de ancho).
-const anchoDeMovil = window.matchMedia?.('(max-width: 760px)')
+// EL CHIP SE MUDA, NO SE DUPLICA (893): vive en la línea «9 de 24 · 38 %»,
+// a la derecha, en el móvil Y en el PC desde la 1051. Al lado del nombre (la
+// 1027) no se podía encoger, y con un logo y una gemela larga («30th
+// Celebration (Japanese)») aplastaba el código y la fecha en una columna de
+// una palabra y se montaba encima de «Todas / Tengo / Faltan». La línea se
+// repinta: por eso se vuelve a colocar después de cada pintada del progreso;
+// `aCasa` lo guarda junto al nombre mientras tanto, para no perderlo.
 function colocarGemela({ aCasa = false } = {}) {
   const sitio = $('mcAlbumGemela')
   if (!sitio) return
-  const enMovil = Boolean(anchoDeMovil?.matches) && !aCasa
-  const linea = enMovil ? $('mcAlbumProgreso')?.querySelector('.mc-avance-linea') : null
+  const linea = aCasa ? null : $('mcAlbumProgreso')?.querySelector('.mc-avance-linea')
   const destino = linea || document.querySelector('#mcArchivadorZona .mc-album-nombre')
   if (destino && sitio.parentElement !== destino) destino.append(sitio)
 }
-anchoDeMovil?.addEventListener?.('change', colocarGemela)
 
 // EL LOGO ARRIBA (749, E5). Con logo, el nombre se queda pequeño a su lado
 // con el código y la fecha: el logo ya dice el nombre, y título + logo +

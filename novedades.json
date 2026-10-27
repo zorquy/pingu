@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "En una expansión con edición japonesa (o occidental), el botón para ir a la otra ya no pisa el nombre ni los botones: va a la derecha de «Tienes N de M».", "enlace": "/cartas" },
     { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Personaliza tus álbumes: color, acabado (lona, piel, mate u holo), la carta de portada en la ventana de la tapa, hojas grises, negras o blancas, cremallera, goma o sin cierre, y cuántas cartas por página. Con la vista previa al lado, que cambia mientras eliges.", "enlace": "/mi-coleccion?ver=carpetas" },
     { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Mis álbumes, de dos formas: como tapas (cada álbum cerrado, con su color, su carta de portada y cuánto llevas) o como una estantería con los lomos en fila. Elige arriba con los dos botones; se queda como lo dejes.", "enlace": "/mi-coleccion?ver=carpetas" },
     { "fecha": "2026-10-27", "tipo": "mejora", "texto": "Los álbumes ya parecen álbumes de verdad: sin anillas, con las hojas cosidas al lomo, cada carta en su funda y la cremallera alrededor. Para cambiar una carta de sitio, arrástrala; para quitarla, llévala a la papelera que sale abajo o usa «Seleccionar» (con Deshacer). Y debajo, un mapa con cada página para ver dónde te faltan cartas y saltar a ella.", "enlace": "/mi-coleccion?ver=carpetas" },

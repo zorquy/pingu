@@ -948,8 +948,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   OTRO catálogo), que escribe `pasoDeGemelas` del calco japonés para los dos
   catálogos a la vez (solo pares en los que tenemos los dos sets) y se
   corrige en /admin → Colecciones. La cabecera pinta el chip
-  (`pintarGemelaDeAlbum`) y lo MUEVE entre el nombre (PC) y la línea del
-  progreso (móvil) con `colocarGemela`: antes de repintar el progreso con
+  (`pintarGemelaDeAlbum`) y lo pone en la línea del progreso (PC y móvil
+  desde la 1051: al lado del nombre aplastaba el código y la fecha y pisaba
+  los botones) con `colocarGemela`: antes de repintar el progreso con
   `innerHTML`, `colocarGemela({ aCasa: true })`, o el repintado se lo lleva.
   Y las columnas opcionales de la estantería (`symbol_tcggo`,
   `tcggo_gemelos`) se quitan de UNA en una cuando la base dice que no

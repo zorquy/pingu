@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (291) — PINGU-Claude (1051 — la edición gemela, arreglada)
+
+**Hecho**: PINGU vio rota la cabecera de 30th Celebration: el chip
+«Edición japonesa · 30th Celebration (Japanese)» aplastaba el nombre y la
+fecha y pisaba «Tengo». Ahora va en la línea del progreso también en el PC,
+con el nombre recortado si no cabe. Y la flecha de «Cuadrícula ⌄» que salía
+suelta encima del botón en el móvil (la franja táctil de 44 px usa el mismo
+`::after`).
+
+**Ficheros**: js/mi-coleccion.js, css/mi-coleccion.css, cartas.html
+(generado), novedades.json, CLAUDE.md, SCHEMA.md, BITACORA.md.
+
+**Pruebas**: la 1027 al día; la cabecera de expansión y las de CSS global en
+verde (478 falla igual que antes).
+
+**Pendiente**: añadir a un álbum desde la ficha (aprobado), y una propuesta
+nueva: la cremallera (otra forma), el ⋯ de una expansión («Seleccionar»
+fuera, quitar lo de «Al pulsar +…») y los filtros iguales en todas las
+pantallas de cartas.
+
 ## 2026-10-27 (290) — PINGU-Claude (1050 — Personalizar un álbum) · MIGRACIÓN
 
 **⚠ PINGU: ejecuta `supabase-migration-1050-album-estilo.sql`** (una línea:
