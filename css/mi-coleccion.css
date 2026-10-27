@@ -11735,30 +11735,62 @@ button.mc-fila:hover {
   gap: var(--e-sm);
 }
 
-/* En el móvil, el buscador encima y los mandos debajo, en una fila. */
+/* El buscador en su fila y debajo la barra, en el móvil Y en el PC (1053):
+   con Todas/Tengo/Faltan, Orden y Seleccionar en la barra, al lado del
+   buscador lo dejaban en una lupa. La barra es una fila que se desliza. */
+.mc-album-busca {
+  flex-wrap: wrap;
+}
+
+.mc-album-busca > .mc-buscador {
+  flex-basis: 100%;
+}
+
+.mc-album-busca > .mc-album-filtros {
+  flex: 1 1 100%;
+  min-width: 0;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mc-album-busca > .mc-album-filtros > * {
+  flex: none;
+}
+
+.mc-album-filtros .mc-album-que {
+  display: flex;
+  margin-left: 0;
+}
+
+/* Todas/Tengo/Faltan, de la altura de los chips de al lado (36 a la vista;
+   en el móvil, 44 al dedo con la franja de movil.css, 1038). Igual en la
+   barra del álbum (1048). */
+.mc-mandos .mc-seg-sueltas > button,
+.mc-alb-que > button {
+  min-height: 36px;
+}
+
+#mcMarcarAbrir[aria-pressed='true'] {
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+/* En el móvil, Vista, Apilar y Seleccionar son su icono, delante (1053). */
 @media (max-width: 700px) {
-  .mc-album-busca {
-    flex-wrap: wrap;
-  }
-
-  .mc-album-busca > .mc-buscador {
-    flex-basis: 100%;
-  }
-
-  .mc-album-busca > .mc-album-filtros {
-    flex: 1 1 100%;
-    min-width: 0;
-  }
-
-  .mc-album-busca > .mc-album-filtros > .mc-chip-mando:not(.mc-chip-solo-icono) {
-    flex: 1 1 0;
+  .mc-album-filtros > .mc-chip-icono-movil {
+    order: -1;
     justify-content: center;
-    min-width: 0;
+    min-width: 44px;
     padding: 0 var(--e-sm);
   }
 
-  .mc-album-busca > .mc-album-filtros > .mc-chip-mando > svg {
-    flex: none;
+  .mc-album-filtros > .mc-chip-icono-movil .mc-chip-texto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
   }
 }
 

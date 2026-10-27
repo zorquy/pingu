@@ -41785,6 +41785,36 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1053 — La barra y el ⋯ de una expansión
+
+Lo recomendado de la propuesta (PINGU: «adelante con lo recomendado»).
+
+- **El ⋯** (`#mcAlbumMenu`): el progreso, favorita, copiar lo que falta,
+  compartir y enseñar. Se fueron «Ver la edición japonesa» (el chip
+  `#mcAlbumGemela` ya está en la línea del progreso; `pintarGemelaDeAlbum`
+  aguanta sin la entrada), «Marcar varias cartas» (→ Seleccionar) y el
+  ajuste «Al pulsar + se suma…».
+- **La barra** (`#mcAlbumFiltros`): `#mcAlbumQue` (se mudó de la cabecera,
+  donde solo salía a ≥1400 px) · Vista · Apilar · `#mcAlbumAbrirOrden` ·
+  Filtros · `#mcMarcarAbrir` (Seleccionar). El buscador va en su fila
+  también en el PC (`.mc-album-busca` siempre envuelve); la fila no envuelve
+  y se desliza. En el móvil, `.mc-chip-icono-movil` pone Vista, Apilar y
+  Seleccionar delante y como icono (el texto, recortado para el lector).
+- **El orden**: `#mcAlbumOrden` vive en `#mcAlbumHojaOrden` (antes en el
+  panel de filtros); el chip dice el puesto sin «Por» (`pintarRotuloDeOrdenDeAlbum`)
+  y elegir uno cierra la hoja. No cuenta en «Filtros (n)» ni lo borra
+  «Borrar todo».
+- **Lo último que usaste**: `#mcTocarIdioma`/`#mcTocarEstado` siguen, escondidos
+  en `#mcTocarOpciones` (fuera del menú), como memoria: `prepararAnadir` los
+  lee y `recordarLoUsado` les escribe lo elegido al guardar (por su
+  `onchange`, que sabe la clave por catálogo de la 472). El aviso de
+  «añadida» dice el idioma y el estado.
+- Todas/Tengo/Faltan mide 36 en las barras (`.mc-mandos .mc-seg-sueltas`,
+  `.mc-alb-que`) y 44 al dedo con la franja de `movil.css` (1038).
+
+**Prueba**: `test-tanda-1053-pantalla.mjs`. Al día 426, 427, 461, 473, 475,
+748, 927 y 1027.
+
 ## Tanda 1052 — Meter una carta en un álbum desde su ficha
 
 PINGU: «desde el pop-up de una carta no puedes añadir a un álbum».

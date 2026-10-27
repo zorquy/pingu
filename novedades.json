@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-27", "tipo": "mejora", "texto": "En una expansión, todo a mano en una fila: Todas / Tengo / Faltan, cómo se ven, Apilar, el orden, Filtros y «Seleccionar» para marcar varias. El menú ⋯ queda más corto, y al añadir una carta la ventana recuerda el idioma y el estado que usaste la última vez.", "enlace": "/cartas" },
     { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Mete una carta en un álbum desde su ficha, en cualquier parte de la web: «En tus álbumes» dice en cuáles está (y te lleva a su página) y «Añadir a un álbum» te enseña dónde caería en cada uno antes de elegir. Va al primer hueco libre, con Deshacer. Y con el álbum cerrado ya no se ve la cremallera; sigue dentro, al abrirlo.", "enlace": "/mi-coleccion?ver=cartas" },
     { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "En una expansión con edición japonesa (o occidental), el botón para ir a la otra ya no pisa el nombre ni los botones: va a la derecha de «Tienes N de M».", "enlace": "/cartas" },
     { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Personaliza tus álbumes: color, acabado (lona, piel, mate u holo), la carta de portada en la ventana de la tapa, hojas grises, negras o blancas, cremallera, goma o sin cierre, y cuántas cartas por página. Con la vista previa al lado, que cambia mientras eliges.", "enlace": "/mi-coleccion?ver=carpetas" },

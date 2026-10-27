@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (293) — PINGU-Claude (1053 — la barra y el ⋯ de una expansión)
+
+**Hecho**: lo aprobado de la propuesta (A). El ⋯ de una expansión se queda
+con el progreso, la favorita, copiar lo que falta, compartir y enseñar: fuera
+«Ver la edición japonesa» (el chip ya está a la vista), «Marcar varias
+cartas» y «Al pulsar + se suma una copia en…». La barra, en el PC y en el
+móvil: el buscador en su fila y debajo Todas/Tengo/Faltan · Vista · Apilar ·
+Orden · Filtros · Seleccionar (en el móvil, Vista, Apilar y Seleccionar como
+su icono, delante, y la fila se desliza). El orden sale de Filtros a su chip
+con su hoja, como en Cartas, y ya no cuenta como filtro. La hoja de añadir
+sale con el idioma y el estado de la última vez, y el aviso los dice
+(«añadida · Inglés · Excellent · ya tienes 1»).
+
+**Ficheros**: mi-coleccion.html, cartas.html (generado), js/mi-coleccion.js,
+css/mi-coleccion.css, css/movil.css (la franja de 44 también para
+Todas/Tengo/Faltan), novedades.json, SCHEMA.md, BITACORA.md.
+
+**Pruebas**: `test-tanda-1053-pantalla.mjs` nueva. Al día: 426, 427, 461,
+473, 475, 748, 927 y 1027 (miraban el ⋯ viejo, el orden en Filtros o el
+buscador al lado de los mandos). Las 32 que tocan la expansión, con las de
+CSS global, en verde salvo las que ya fallaban antes.
+
+**Pendiente**: 1054 (la barra común en Cartas, Pokédex y Buscar) y 1055 (la
+hoja de filtros común).
+
 ## 2026-10-27 (292) — PINGU-Claude (1052 — meter una carta en un álbum desde su ficha)
 
 **Hecho**: PINGU: «desde el pop-up de una carta no puedes añadir a un

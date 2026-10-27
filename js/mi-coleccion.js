@@ -662,6 +662,7 @@ async function guardarAnadir(e) {
     const nueva = await datos.anadir(sesion.user.id, linea, mercado)
     meterLinea(nueva, c)
     $('mcAnadirDialogo').close()
+    recordarLoUsado(linea)
     avisarAnadida(c, linea, nueva)
     repintar()
     celebrarAnadida($('mcAlbum'), c.id)
@@ -674,6 +675,20 @@ async function guardarAnadir(e) {
   }
 }
 
+// LO ÚLTIMO QUE USASTE (1053): la hoja de añadir sale la próxima vez con el
+// idioma y el estado de esta. Se escribe en los desplegables escondidos de
+// `#mcTocarOpciones` y en su clave (el idioma, por catálogo: la 472), por su
+// `onchange`, que es quien sabe la clave. Un valor que el desplegable no
+// tiene no se pone: se quedaría con el primero (la 472).
+function recordarLoUsado(linea) {
+  for (const [id, valor] of [['mcTocarIdioma', linea.idioma], ['mcTocarEstado', linea.estado]]) {
+    const sel = $(id)
+    if (!sel || !valor || ![...sel.options].some((o) => o.value === valor)) continue
+    sel.value = valor
+    sel.onchange?.()
+  }
+}
+
 // El aviso de «añadida» con su Deshacer (712, C7). Lo que se deshace lo
 // decide `comoDeshacer` con lo que devolvió la base (ver el módulo).
 function avisarAnadida(c, linea, nueva) {
@@ -681,7 +696,9 @@ function avisarAnadida(c, linea, nueva) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const plan = comoDeshacer(linea, nueva)
   avisoConDeshacer({
-    html: `${escaneo ? `<img ${escaneo} alt="" width="28" height="39" loading="lazy" />` : ''}<span><b>${escapeHtml(nombreDe(c))}</b> añadida · ya tienes ${total}</span>`,
+    // Con qué se ha añadido (1053): el «+» recuerda lo último que usaste, y
+    // el aviso lo dice para que no haya sorpresas.
+    html: `${escaneo ? `<img ${escaneo} alt="" width="28" height="39" loading="lazy" />` : ''}<span><b>${escapeHtml(nombreDe(c))}</b> añadida · ${escapeHtml([IDIOMAS.find((i) => i.id === linea.idioma)?.nombre, ESTADOS.find((e) => e.id === linea.estado)?.nombre].filter(Boolean).join(' · '))}${linea.idioma || linea.estado ? ' · ' : ''}ya tienes ${total}</span>`,
     alDeshacer: async () => {
       if (await deshacerAnadida(plan, c)) showToast(`Deshecho: ${nombreDe(c)} vuelve a como estaba.`, 'success')
     },
@@ -4081,6 +4098,7 @@ function pintarFiltrosDeAlbum() {
   const orden = $('mcAlbumOrden')
   if (orden && !orden.options.length) {
     orden.innerHTML = ORDENES.map((o) => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.nombre)}</option>`).join('')
+    pintarRotuloDeOrdenDeAlbum()
   }
   // El idioma en que cuentan tus copias (tanda 577). Los del catálogo que
   // se mira, y «cualquiera» el primero. Se rellena una vez por catálogo.
@@ -4320,11 +4338,18 @@ function cuantosFiltrosDeAlbum() {
     (album.repetidas ? 1 : 0) +
     ($('mcAlbumVersion')?.value ? 1 : 0) +
     (album.idioma ? 1 : 0) +
-    (rangoDelAlbum().puesto ? 1 : 0) +
-    // El orden cuenta solo si NO es el de siempre: «por número» es como
-    // viene una expansión, y marcarlo como filtro puesto diría que has
-    // tocado algo cuando no.
-    ($('mcAlbumOrden')?.value && $('mcAlbumOrden').value !== 'numero' ? 1 : 0)
+    (rangoDelAlbum().puesto ? 1 : 0)
+  // El orden ya no cuenta (1053): salió de Filtros a su propio chip.
+}
+
+function pintarRotuloDeOrdenDeAlbum() {
+  const sel = $('mcAlbumOrden')
+  const rotulo = $('mcAlbumOrdenRotulo')
+  if (!sel || !rotulo) return
+  // «Número» y no «Por número», como «Precio» en Cartas: el icono ya dice
+  // que es un orden, y en el PC la barra no da para más.
+  const t = (sel.selectedOptions[0]?.textContent || '').replace(/^por\s+/i, '')
+  rotulo.textContent = t ? t[0].toUpperCase() + t.slice(1) : 'Ordenar'
 }
 
 function pintarCuentaDeFiltrosDeAlbum() {
@@ -4345,7 +4370,6 @@ function limpiarFiltrosDeAlbum() {
   if ($('mcAlbumRareza')) $('mcAlbumRareza').value = ''
   if ($('mcAlbumTipo')) $('mcAlbumTipo').value = ''
   if ($('mcAlbumEnergia')) $('mcAlbumEnergia').value = ''
-  if ($('mcAlbumOrden')) $('mcAlbumOrden').value = 'numero'
   if ($('mcAlbumIdioma')) $('mcAlbumIdioma').value = ''
   if ($('mcAlbumVersion')) $('mcAlbumVersion').value = ''
   album.idioma = ''
@@ -6393,6 +6417,18 @@ function enganchar() {
   })
 
   // La Pokédex (381 → 1011) la engancha su módulo al llegar.
+  // EL ORDEN, CON SU CHIP Y SU HOJA (1053), como «Ordenar» de Cartas: el
+  // chip dice el puesto y elegir uno cierra la hoja.
+  $('mcAlbumAbrirOrden')?.addEventListener('click', () => {
+    pintarRotuloDeOrdenDeAlbum()
+    $('mcAlbumHojaOrden').showModal()
+  })
+  $('mcAlbumOrdenCerrar')?.addEventListener('click', () => $('mcAlbumHojaOrden').close())
+  $('mcAlbumHojaOrden')?.addEventListener('click', (e) => { if (e.target === $('mcAlbumHojaOrden')) $('mcAlbumHojaOrden').close() })
+  $('mcAlbumOrden')?.addEventListener('change', () => {
+    pintarRotuloDeOrdenDeAlbum()
+    $('mcAlbumHojaOrden')?.close()
+  })
   for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumEnergia', 'mcAlbumOrden', 'mcAlbumIdioma', 'mcAlbumVersion']) {
     // Con `?.`: una página que no lleve uno de ellos (una copia vieja de
     // cartas.html en caché) no puede quedarse sin JavaScript por él.

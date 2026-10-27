@@ -514,11 +514,6 @@
                    fila de arriba con hueco. -->
               <span class="mc-gemela-sitio hidden" id="mcAlbumGemela"></span>
             </div>
-            <div class="mc-seg mc-seg-sueltas mc-album-que" id="mcAlbumQue" role="group" aria-label="Qué cartas ver">
-              <button type="button" data-que="mcAlbumTodas" aria-pressed="true">Todas</button>
-              <button type="button" data-que="mcAlbumSoloTengo" aria-pressed="false">Tengo</button>
-              <button type="button" data-que="mcAlbumSoloFaltan" aria-pressed="false">Faltan</button>
-            </div>
             <!-- LOS CUATRO, DETRÁS DE UN ⋮ (tanda 475). PINGU: «estás
                  ocupando mucho espacio arriba… he pensado en poner tres
                  puntos como pasa en la aplicación de Dex».
@@ -552,12 +547,6 @@
                      la 368 porque obligaba a elegir. Esto NO es eso: es un
                      modo que se enciende, se usa y se apaga, con su barra a
                      la vista. -->
-                <a class="mc-menu-opcion hidden" id="mcAlbumGemelaMenu" href="#">
-                  <span class="mc-menu-icono" data-icono="arrowLeftRight" aria-hidden="true"></span><span id="mcAlbumGemelaMenuTexto">Ver la edición japonesa</span>
-                </a>
-                <button type="button" class="mc-menu-opcion" id="mcMarcarAbrir" aria-pressed="false">
-                  <span class="mc-menu-icono" data-icono="checkSquare" aria-hidden="true"></span>Marcar varias cartas
-                </button>
                 <!-- La estrella (tanda 409). Lo que sube una expansión arriba
                      del todo es que TÚ la marques, no que tengas una carta
                      suelta: con cien empezadas, «arriba» deja de significar
@@ -582,25 +571,17 @@
                 <button type="button" class="mc-menu-opcion" id="mcAlbumEnsenar">
                   <span class="mc-menu-icono" data-icono="eye" aria-hidden="true"></span>Enseñar las que tengo
                 </button>
-                <!-- CON QUÉ SE AÑADE (tanda 461, y aquí dentro desde la 475).
-                     El + de una carta suma una copia en ESE idioma y ESE
-                     estado, y sin poder cambiarlo quien colecciona en inglés
-                     tendría que editar carta por carta. Se recuerda en el
-                     navegador y POR CATÁLOGO (tanda 472).
-
-                     Ya no cuelga de su propio `<details>`: un desplegable
-                     dentro de otro desplegable es un acertijo, y el ajuste
-                     cabe aquí con su frase delante. -->
-                <div id="mcTocarOpciones">
-                  <hr class="mc-menu-raya" />
-                  <p class="mc-ajuste-fila">
-                    <span>Al pulsar + se suma una copia en</span>
-                    <select id="mcTocarIdioma" class="mc-chapa-select" aria-label="Idioma al añadir"></select>
-                    <select id="mcTocarEstado" class="mc-chapa-select" aria-label="Estado al añadir"></select>
-                  </p>
-                </div>
               </div>
             </details>
+          </div>
+          <!-- LO ÚLTIMO QUE USASTE AL AÑADIR (1053). Era «Al pulsar + se suma una
+               copia en…» dentro del ⋯ (461/475); PINGU: «esa opción ya sobra».
+               Los dos desplegables se quedan, escondidos, como memoria: la
+               hoja de añadir sale con lo que tienen y, al guardar, escribe en
+               ellos lo que elegiste (por catálogo el idioma, como siempre). -->
+          <div id="mcTocarOpciones" hidden>
+            <select id="mcTocarIdioma" aria-hidden="true" tabindex="-1"></select>
+            <select id="mcTocarEstado" aria-hidden="true" tabindex="-1"></select>
           </div>
           <!-- LA BARRA PEGADA DEL MÓVIL (856): al bajar por la rejilla, el
                nombre y la flecha se quedan arriba. La enseña y la esconde
@@ -670,18 +651,35 @@
                salir de la hoja de filtros, donde las metió la 919: son lo
                que se toca cada dos por tres. -->
           <div class="mc-album-filtros mc-mandos" id="mcAlbumFiltros">
-            <button type="button" class="mc-chip-mando mc-chip-desplegable" id="mcAlbumVista" data-icono="image" aria-haspopup="dialog">
+            <!-- Qué cartas (1053): en la barra, como en el álbum (1048). -->
+            <div class="mc-seg mc-seg-sueltas mc-album-que" id="mcAlbumQue" role="group" aria-label="Qué cartas ver">
+              <button type="button" data-que="mcAlbumTodas" aria-pressed="true">Todas</button>
+              <button type="button" data-que="mcAlbumSoloTengo" aria-pressed="false">Tengo</button>
+              <button type="button" data-que="mcAlbumSoloFaltan" aria-pressed="false">Faltan</button>
+            </div>
+            <button type="button" class="mc-chip-mando mc-chip-desplegable mc-chip-icono-movil" id="mcAlbumVista" data-icono="image" aria-haspopup="dialog">
               <span class="mc-chip-texto" id="mcAlbumVistaRotulo">Cuadrícula</span>
             </button>
             <!-- APILAR (927): puesto, una casilla por carta con sus insignias;
                  quitado, una casilla por versión. Es «Variantes juntas» con
                  el nombre de Dex, y sigue diciendo el estado: pulsado es
                  apilado (la 473). -->
-            <button type="button" class="mc-chip-mando" id="mcVistaVariantes" aria-pressed="true" data-icono="cards">
+            <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcVistaVariantes" aria-pressed="true" data-icono="cards">
               <span class="mc-chip-texto" id="mcVistaVariantesRotulo">Apilar</span>
+            </button>
+            <!-- EL ORDEN, FUERA DE FILTROS (1053): un chip que dice el orden
+                 puesto y abre su hoja, como en Cartas (`#mcAbrirOrden`). -->
+            <button type="button" class="mc-chip-mando mc-chip-desplegable" id="mcAlbumAbrirOrden" data-icono="listOrdered" aria-haspopup="dialog">
+              <span class="mc-chip-texto" id="mcAlbumOrdenRotulo">Número</span>
             </button>
             <button type="button" class="mc-chip-mando" id="mcAlbumAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
               <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcAlbumFiltrosCuenta"></span>
+            </button>
+            <!-- SELECCIONAR (1053, PINGU: «el de marcar varias cartas lo
+                 sacaría fuera… sin que rompa la estructura»). Era «Marcar
+                 varias cartas» dentro del ⋯; en el móvil, solo el check. -->
+            <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcMarcarAbrir" data-icono="checkSquare" aria-pressed="false">
+              <span class="mc-chip-texto">Seleccionar</span>
             </button>
             <!-- UN SOLO BOTÓN, Y DICE EL ESTADO (tanda 473). Eran dos chapas
                  en un grupo, «Juntar variantes» y «Separar variantes», y una
@@ -737,6 +735,17 @@
             </div>
           </dialog>
 
+          <!-- LA HOJA DEL ORDEN (1053): lo que estaba en «Ordenar por» del panel
+               de filtros, ahora detrás de su chip, como en Cartas. -->
+          <dialog class="mc-bandeja" id="mcAlbumHojaOrden" aria-labelledby="mcAlbumHojaOrdenTitulo">
+            <div class="mc-panel-cabecera">
+              <h2 id="mcAlbumHojaOrdenTitulo">Ordenar por</h2>
+              <button type="button" class="mc-panel-cerrar" id="mcAlbumOrdenCerrar" aria-label="Cerrar">✕</button>
+            </div>
+            <div class="mc-panel-cuerpo">
+              <select id="mcAlbumOrden" aria-label="Cómo se ordenan las cartas"></select>
+            </div>
+          </dialog>
           <!-- EL PANEL. Mismo molde que los otros tres de la sección
                (Cartas, Pokédex y Buscar): sube desde abajo en el móvil y
                sale centrado en el ordenador, con «Limpiar» y «Ver
@@ -816,17 +825,6 @@
               <div class="mc-grupo-filtro" id="mcAlbumGrupoIdioma">
                 <h3>Contar solo las que tengo en</h3>
                 <select id="mcAlbumIdioma" aria-label="En qué idioma cuentan tus copias"></select>
-              </div>
-              <!-- Cómo se ordena (tanda 427). Una expansión se mira de
-                   cuatro maneras según lo que vayas a hacer: por número
-                   cuando la repasas en la mano, por nombre cuando buscas
-                   una, por rareza cuando miras lo que vale, y «lo que te
-                   falta» cuando vas a comprar o a cambiar. Las opciones las
-                   pone el JavaScript desde `orden.js`, que es quien sabe
-                   ordenar: dos listas iguales en dos sitios se separan. -->
-              <div class="mc-grupo-filtro">
-                <h3>Ordenar por</h3>
-                <select id="mcAlbumOrden" aria-label="Cómo se ordenan las cartas"></select>
               </div>
             </div>
             <div class="mc-panel-pie">
