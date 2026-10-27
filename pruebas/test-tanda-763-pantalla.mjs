@@ -79,7 +79,7 @@ console.log('── 2. Una pantalla, tres vistas ──')
   const doy = await page.$$eval('#mcDoyPanel .mc-doy-baldosa', (fs) => fs.map((f) => f.textContent.replace(/\s+/g, ' ').trim()))
   check('«Las que doy»: tus dos, cada una con lo que das', doy.length === 2 && doy.some((t) => /Charmander/.test(t) && /Doy 2 de/.test(t)) && doy.some((t) => /Pikachu/.test(t) && /Doy 1 de/.test(t)), JSON.stringify(doy))
   check('  …su precio (o «sin precio»)', doy.some((t) => /Charmander.*0,50/.test(t)) && doy.some((t) => /Pikachu.*sin precio/.test(t)), JSON.stringify(doy))
-  check('  …y cuánta gente la busca', doy.some((t) => /Charmander.*La buscan 2/.test(t)) && doy.some((t) => /Pikachu/.test(t) && !/La busca/.test(t)) /* sin «Nadie la busca aún» desde la 1058 */, JSON.stringify(doy))
+  check('  …y cuánta gente la busca', doy.some((t) => /Charmander.*Buscan 2/.test(t)) && doy.some((t) => /Pikachu/.test(t) && !/Busca/.test(t)) /* «Buscan 2» en la chapa desde la 1061 */ /* sin «Nadie la busca aún» desde la 1058 */, JSON.stringify(doy))
   // Desde la 1058 la cuenta va en la barra: «3 copias · 1,00 €».
   check('  …con la cuenta en la barra: copias que das y lo que valen', /3 copias · 1,00 €/.test((await page.textContent('#mcDoyCifra')).replace(/\s+/g, ' ')), await page.textContent('#mcDoyCifra'))
   check('  …y «La quiero» se esconde', !(await page.isVisible('#mcQuieroPanel')) && (await seg(page, 'mcPanelQuiero')).join() === 'Mercado,La quiero,Las que doy*,Cruces')

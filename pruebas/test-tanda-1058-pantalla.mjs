@@ -47,7 +47,7 @@ console.log('── 1. Las que doy ──')
   await page.waitForTimeout(1200)
   check('la barra: Seleccionar, la cuenta, «+» y ⋯', await page.isVisible('#mcDoySeleccionar') && /2\s*copias/.test(await page.textContent('#mcDoyCifra')) && await page.isVisible('#mcDoyPoner') && await page.isVisible('#mcDoyMenu'), await page.textContent('#mcDoyBarra'))
   check('dos baldosas, sin «Nadie la busca aún»', (await page.$$('#mcDoyRejilla .mc-doy-baldosa')).length === 2 && !/Nadie la busca/.test(await page.textContent('#mcDoyRejilla')))
-  const exe = await page.$eval('[data-doy-linea="m1"]', (a) => a.innerText)
+  const exe = await page.$eval('[data-doy-linea="m1"]', (a) => a.innerText + ' ' + (a.querySelector('.mc-deseo-quien')?.getAttribute('aria-label') || '')) // 1061: entero en la chapa
   check('la que alguien busca dice «La busca 1»', /La busca 1/.test(exe), exe)
   const pos = await page.evaluate(() => { const b = document.querySelector('[data-doy-linea="m1"]'); const f = b.querySelector('.mc-merc-foto').getBoundingClientRect(); const c = b.querySelector('.mc-quiero-aviso').getBoundingClientRect(); return c.left >= f.left - 1 && c.top >= f.top - 1 && c.right <= f.left + f.width / 2 })
   check('la campana encima de la foto, a la izquierda', pos)

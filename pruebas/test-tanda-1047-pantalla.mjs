@@ -152,7 +152,7 @@ console.log('── 3. «La quiero»: una baldosa por versión ──')
   const { ctx, page, errores } = await abrir({ deseos: [deseo('d1', 'mcd21-2', 'holo'), deseo('d2', 'mcd21-2', 'normal', 'es')] })
   await ir(page, '/mi-coleccion.html?ver=quiero')
   await page.waitForTimeout(900)
-  const tiles = await page.$$eval('#mcQuieroRejilla .mc-deseo-baldosa', (as) => as.map((a) => ({ carta: a.dataset.deseoCarta, clave: a.dataset.deseoClave, texto: a.innerText.replace(/\s+/g, ' '), es: Boolean(a.querySelector('.mc-deseo-cambiar .pv-bandera[data-idioma="es"]')) })))
+  const tiles = await page.$$eval('#mcQuieroRejilla .mc-deseo-baldosa', (as) => as.map((a) => ({ carta: a.dataset.deseoCarta, clave: a.dataset.deseoClave, texto: (a.innerText + ' ' + (a.querySelector('.mc-deseo-quien')?.getAttribute('aria-label') || '')).replace(/\s+/g, ' ') /* 1061: la chapa dice la cifra; entero, su aria-label */, es: Boolean(a.querySelector('.mc-deseo-cambiar .pv-bandera[data-idioma="es"]')) })))
   check('dos baldosas de la Chikorita', tiles.length === 2 && tiles.every((t) => t.carta === 'mcd21-2'), JSON.stringify(tiles))
   // Desde la 1057 la versión la dice la chapa de la foto, y el idioma, la bandera (o «Cualquiera»).
   const holoT = tiles.find((t) => t.clave === 'mcd21-2|holo')

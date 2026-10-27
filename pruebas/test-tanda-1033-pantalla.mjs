@@ -58,8 +58,9 @@ console.log('── 1. iPhone · La quiero: tres por fila y los dos catálogos s
   await page.waitForTimeout(1200)
   const d = await rejilla(page, 'mcDoyRejilla')
   check('Las que doy: tres columnas, «Pokémon 2» y «Pokémon Japón 1»', d?.columnas === 3 && d.hijos[0] === '#Pokémon 2' && d.hijos[3] === '#Pokémon Japón 1' && d.hijos.length === 5, JSON.stringify(d))
-  const paso = await page.evaluate(() => { const p = document.querySelector('#mcDoyRejilla .mc-doy-paso'); const bs = [...p.querySelectorAll('.mc-doy-boton')].map((x) => x.getBoundingClientRect()); const t = p.querySelector('.mc-doy-cuantas').getBoundingClientRect(); return { dentro: p.scrollWidth <= p.clientWidth + 1, botonesDebajo: bs.every((x) => x.top >= t.bottom - 1), alto: bs.map((x) => Math.round(x.height)) } })
-  check('  …el «Doy N de M» arriba y el − / + debajo, de 44 px y sin salirse', paso.dentro && paso.botonesDebajo && paso.alto.every((h) => h >= 44), JSON.stringify(paso))
+  // Desde la 1061, «− N de M +» en una línea: círculos de 28 con su franja de 8 (44 al dedo) y la cifra entera.
+  const paso = await page.evaluate(() => { const p = document.querySelector('#mcDoyRejilla .mc-doy-paso'); const bs = [...p.querySelectorAll('.mc-doy-boton')]; const r = bs.map((x) => x.getBoundingClientRect()); const c = p.querySelector('.mc-doy-cuantas'); const t = c.getBoundingClientRect(); return { cabe: c.scrollWidth <= c.clientWidth + 1, texto: c.innerText, enLinea: r.every((x) => Math.abs((x.top + x.height / 2) - (t.top + t.height / 2)) < 4) && r[0].right <= t.left && r[1].left >= t.right, alto: bs.map((x) => Math.round(x.getBoundingClientRect().height - 2 * parseFloat(getComputedStyle(x, '::after').top))) } })
+  check('  …«− N de M +» en una línea, la cifra entera y 44 al dedo', paso.cabe && /^\d+ de \d+$/.test(paso.texto.trim()) && paso.enLinea && paso.alto.every((h) => h >= 44), JSON.stringify(paso))
   await ctx.close()
 }
 

@@ -104,7 +104,7 @@ console.log('── 1. Las que doy, con el catálogo occidental puesto ──')
   await page.click('#mcPanelQuiero [data-deseos-vista="doy"]')
   await page.waitForTimeout(1500)
   check('salen las tres, la japonesa también', (await doy(page)).sort().join() === 'm1,m2,m4', (await doy(page)).join())
-  const jp = await page.$eval('[data-doy-linea="m4"]', (a) => a.innerText.replace(/\s+/g, ' '))
+  const jp = await page.$eval('[data-doy-linea="m4"]', (a) => (a.innerText + ' ' + (a.querySelector('.mc-deseo-quien')?.getAttribute('aria-label') || '')).replace(/\s+/g, ' ')) // 1061: quién la busca, entero en el aria-label de la chapa
   check('  …con su nombre, su set y «Doy 1 de 2»', /リザードン|Charizard/.test(jp) && /151/.test(jp) && /Doy 1 de 2/.test(jp), jp)
   check('  …con su foto', await page.$eval('[data-doy-linea="m4"] img', (i) => Boolean(i.getAttribute('src'))).catch(() => false))
   check('  …y quién la busca (Marta)', /La busca 1/.test(jp), jp)
