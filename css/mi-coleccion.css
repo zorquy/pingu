@@ -14203,3 +14203,54 @@ body:has(#mcPanelMercado.hidden) #mcMercadoSel,
 body:has(#mcPanelQuiero.hidden) :is(#mcQuieroSel, #mcDoySel) {
   display: none;
 }
+
+/* En qué listas está la carta, en su ficha (1059). */
+.mc-merf-listas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  align-items: center;
+}
+
+.mc-merf-listas:empty {
+  display: none;
+}
+
+.mc-merf-lista {
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: center;
+  min-height: 32px;
+  padding: 0 0 0 var(--e-md);
+  border-radius: 999px;
+  background: var(--ice);
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.mc-merf-lista-quitar {
+  display: grid;
+  place-items: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .mc-merf-lista-quitar {
+    min-width: 44px;
+    min-height: 44px;
+  }
+}
+
+.mc-merf-a-lista {
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: center;
+}

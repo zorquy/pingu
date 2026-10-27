@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (300) — PINGU-Claude (1059 — «También tienes» en el móvil y «Añadir a una lista» en la ficha)
+
+**Hecho**: PINGU ejecutó la 1058 (evento_lista) y trajo dos cosas.
+- **Arreglo**: en el móvil, con «Tus copias» desplegado (Editar), tocar la
+  otra copia de «También tienes» (el Goldeen de un usuario: 1 en español y 3
+  en inglés) dejaba la hoja SIN campos y el botón en «Listo», que la cerraba:
+  «se queda ahí como muerto». `abrirEditor` ya respetaba `seguirAbierto` para
+  el bloque, pero más abajo plegaba los campos siempre. Ahora no los pliega
+  si se sigue abierto. Y la otra copia se busca también en `lineasTodo`.
+- **Nuevo**: la ficha de una carta de «La quiero» (la del Mercado) trae una
+  fila con las listas en las que está (✕ para sacarla) y «Añadir a una
+  lista» (abre «Tus listas», con «+ Nueva lista»). «La quiero» se repinta
+  sola (evento `pd-listas-cambian`).
+
+**Ficheros**: js/mi-coleccion.js, js/mi-coleccion/mercado.js,
+js/mi-coleccion/deseos.js, css/mi-coleccion.css, novedades.json, SCHEMA.md,
+BITACORA.md.
+
+**Pruebas**: `test-tanda-1059-pantalla.mjs` (en HEAD el primer caso sale rojo
+tal cual lo vio el usuario: campos escondidos y «Listo»). Las 16 que tocan la
+ficha y el Mercado, en verde.
+
+**Pendiente**: nada.
+
 ## 2026-10-27 (299) — PINGU-Claude (1058b — fuera el interruptor «cuenta para los cruces»)
 
 **Hecho**: PINGU, antes de ejecutar la 1058: «si agregas una carta a que la

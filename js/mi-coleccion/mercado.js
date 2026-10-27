@@ -36,6 +36,7 @@ import { mercado as pedirMercado, quienDaEsta } from './cambios.js'
 import { senasDe, borradorDe } from './tablon.js'
 import { porCatalogo, rotuloDeCatalogo } from './rotulos-catalogo.js'
 import { showToast } from '../toast.js'
+import * as listasDeseo from './listas-deseo.js'
 
 const $ = (id) => document.getElementById(id)
 const POR_PAGINA = 60
@@ -323,6 +324,56 @@ function botonQuieroHtml(c) {
   return `<button type="button" class="btn-secondary mc-merf-quiero puesto" data-merc-quiero="${escapeHtml(c.id)}" aria-pressed="true">${ICONOS_COLECCION.corazon(16)}<span>La quieres · ${escapeHtml(idiomas)}</span></button>`
 }
 
+// EN QUÉ LISTAS ESTÁ (1059, PINGU: «cuando abres una carta desde tu lista de
+// la quiero, que te diga añadir a lista»): las suyas, con ✕ para sacarla, y
+// «Añadir a una lista», que abre «Tus listas» (con «+ Nueva lista»). Solo con
+// la carta en «La quiero»: una lista es una forma de ordenar lo que quieres.
+let listasPedidas = false
+function listasHtml(c) {
+  if (!ctx.sesion || !deseosDe(c.id).length) return ''
+  if (!listasDeseo.hayListas()) {
+    if (!listasPedidas) {
+      listasPedidas = true
+      void listasDeseo.cargarListas(ctx.sesion.user.id).then(() => pintarListasDeFicha(c)).catch(() => {})
+    }
+    return ''
+  }
+  const k = listasDeseo.claveDeCarta(c.id, c.market || 'WEST')
+  const en = listasDeseo.lasListas().filter((l) => listasDeseo.cartasDe(l.id).has(k))
+  return `${en.map((l) => `<span class="mc-merf-lista"><i class="mc-lista-punto" style="--c:${escapeHtml(l.color || 'transparent')}" aria-hidden="true"></i>${escapeHtml(l.nombre)}<button type="button" class="mc-merf-lista-quitar" data-merf-sacar-lista="${escapeHtml(l.id)}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(`Sacar de «${l.nombre}»`)}">✕</button></span>`).join('')}
+    <button type="button" class="btn-secondary mc-merf-a-lista" data-merf-a-lista="${escapeHtml(c.id)}">${icons.folder(15)}<span>${en.length ? 'A otra lista' : 'Añadir a una lista'}</span></button>`
+}
+function pintarListasDeFicha(c) {
+  const caja = $('mcMercadoFichaListas')
+  if (caja && abierta === c.id) caja.innerHTML = listasHtml(c)
+}
+async function aUnaLista(cardId) {
+  const c = ctx.cartas.get(cardId)
+  if (!c) return
+  const id = await listasDeseo.elegirLista({ para: 1, cuenta: (l) => listasDeseo.cartasDe(l).size })
+  if (!id) return
+  try {
+    const n = await listasDeseo.meterEnLista(id, [{ card_id: c.id, market: c.market || 'WEST' }])
+    const l = listasDeseo.lasListas().find((x) => x.id === id)
+    showToast(n ? `En «${l?.nombre}».` : `Ya estaba en «${l?.nombre}».`, 'success')
+  } catch (err) {
+    showToast(err.message, 'error')
+  }
+  pintarListasDeFicha(c)
+  document.dispatchEvent(new CustomEvent('pd-listas-cambian'))
+}
+async function sacarDeUnaLista(listaId, cardId) {
+  const c = ctx.cartas.get(cardId)
+  if (!c) return
+  try {
+    await listasDeseo.sacarDeLista(listaId, [{ card_id: c.id, market: c.market || 'WEST' }])
+  } catch (err) {
+    showToast(err.message, 'error')
+  }
+  pintarListasDeFicha(c)
+  document.dispatchEvent(new CustomEvent('pd-listas-cambian'))
+}
+
 // Lo que das de ESA carta, en la ficha en modo 'busca'.
 function doyHtml(c) {
   const mias = (ctx.loQueDoy?.() || []).filter((l) => l.card_id === c.id)
@@ -350,7 +401,7 @@ async function pintarFicha(cardId) {
         <a class="link-btn" href="${escapeHtml(rutaDeCarta(c))}">Ver la carta</a>
       </div>
     </div>
-    ${modoAbierto === 'busca' ? doyHtml(c) : `<div id="mcMercadoFichaQuiero">${botonQuieroHtml(c)}</div>`}
+    ${modoAbierto === 'busca' ? doyHtml(c) : `<div id="mcMercadoFichaQuiero">${botonQuieroHtml(c)}</div><div class="mc-merf-listas" id="mcMercadoFichaListas">${listasHtml(c)}</div>`}
     ${gente === undefined
       ? '<div class="skeleton" style="height:120px"></div>'
       : gente === null
@@ -541,6 +592,10 @@ function enganchar() {
     if (e.target === d || e.target.closest('#mcMercadoFichaCerrar')) return d.close()
     const q = e.target.closest('[data-merc-quiero]')
     if (q) return void alternarQuiero(q.dataset.mercQuiero, q)
+    const al = e.target.closest('[data-merf-a-lista]')
+    if (al) return void aUnaLista(al.dataset.merfALista)
+    const sl = e.target.closest('[data-merf-sacar-lista]')
+    if (sl) return void sacarDeUnaLista(sl.dataset.merfSacarLista, sl.dataset.carta)
     const w = e.target.closest('[data-merf-escribir]')
     if (w) return escribir(w.dataset.merfEscribir, w.dataset.carta, w.dataset.modo)
     const pr = e.target.closest('[data-merf-proponer]')

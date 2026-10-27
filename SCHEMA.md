@@ -41785,6 +41785,22 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1059 — «También tienes» con Editar desplegado, y las listas en la ficha
+
+- `abrirEditor` calcula `seguirAbierto` (la ficha ya abierta en esa carta con
+  «Tus copias» desplegado) y con él no plegaba el bloque… pero más abajo
+  plegaba SIEMPRE los campos (`mcEdCopiaCampos`) y ponía `aria-expanded` a
+  false: en el móvil quedaba la hoja con el resumen solo y «Listo», que la
+  cerraba. Las dos cosas van ahora detrás de `!seguirAbierto`. La otra copia
+  se busca en `lineas` y, si no está (otro catálogo), en `lineasTodo`.
+- La ficha del Mercado (la que abren «La quiero», «Las que doy» y Cruces)
+  pinta `#mcMercadoFichaListas` con la carta en «La quiero»: chapas de sus
+  listas (`data-merf-sacar-lista`) y «Añadir a una lista»
+  (`data-merf-a-lista` → `elegirLista({ para: 1 })` → `meterEnLista`). Si
+  las listas no estaban cargadas (entrando por el Mercado), las pide una vez.
+  Cambiar listas desde fuera lanza `pd-listas-cambian`, que repinta «La
+  quiero».
+
 ## Tanda 1058 — Modo evento por lista, «Las que doy» y Seleccionar en el Mercado
 
 (La primera versión traía un interruptor «cuenta para los cruces» por lista,

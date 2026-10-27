@@ -2464,8 +2464,13 @@ function abrirEditor(l) {
   if (!datos.tieneCifras(precio)) void completarPrecioDeFicha(l, c, tuya)
   pintarOtrasCopias(l)
   pintarVersionDeFicha(l, c)
-  $('mcEdCopiaCampos')?.classList.add('hidden')
-  $('mcEdEditar')?.setAttribute('aria-expanded', 'false')
+  // Pasar a otra copia tuya con Editar desplegado («También tienes») deja
+  // los campos a la vista (1059): plegarlos aquí dejaba la hoja de «Tus
+  // copias» sin campos y el botón diciendo «Listo», que la cerraba.
+  if (!seguirAbierto) {
+    $('mcEdCopiaCampos')?.classList.add('hidden')
+    $('mcEdEditar')?.setAttribute('aria-expanded', 'false')
+  }
   // Y el histórico (643): se pide al abrir y se calla si no hay filas.
   // La carta cambia con las flechas, así que cada ficha pide el suyo.
   const historial = $('mcEdHistorial')
@@ -5811,7 +5816,7 @@ function enganchar() {
   })
   $('mcEdOtrasCopias')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-linea-otra]')
-    const otra = b && lineas.find((x) => x.id === b.dataset.lineaOtra)
+    const otra = b && (lineas.find((x) => x.id === b.dataset.lineaOtra) || lineasTodo.find((x) => x.id === b.dataset.lineaOtra))
     if (otra) abrirEditor(otra)
   })
   $('mcAdCerrar')?.addEventListener('click', () => $('mcAnadirDialogo').close())

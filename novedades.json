@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Al abrir una carta de «La quiero», su ficha dice en qué listas está y tiene «Añadir a una lista» (o crear una nueva ahí mismo).", "enlace": "/mi-coleccion?ver=quiero" },
+    { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "En el móvil, al editar tus copias de una carta, tocar «También tienes» para pasar a la otra copia (por ejemplo, la inglesa) ya no deja la hoja vacía: se abre con los datos de esa copia.", "enlace": "/mi-coleccion?ver=cartas" },
     { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Modo evento con una lista: elige «Feria de Madrid» (o la que sea) y tu QR enseña solo esas cartas a quien lo escanee.", "enlace": "/evento" },
     { "fecha": "2026-10-27", "tipo": "mejora", "texto": "«Las que doy» tiene la misma barra que «La quiero», con «Seleccionar» para dar todas las copias o dejar de dar varias de golpe. Y en el Mercado puedes marcar varias cartas y apuntarlas todas en «La quiero».", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Listas en «La quiero»: sepáralas en un master set, las que vigilas o lo que buscas en una feria. Toca «Todas» arriba para crear una o cambiar de lista, y con «Seleccionar» marcas varias y las metes en una lista de golpe. Las listas solo las ves tú. Y las cartas ocupan menos: la campana del aviso va encima de la foto y «La da N» sale solo si alguien la da.", "enlace": "/mi-coleccion?ver=quiero" },

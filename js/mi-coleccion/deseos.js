@@ -866,6 +866,9 @@ async function clicEnBarra(e) {
 }
 
 let quieroEnganchado = false
+// Lo que cambia las listas desde fuera (la ficha, 1059) repinta «La quiero»:
+// con una lista abierta, la carta que entra o sale se ve.
+if (typeof document !== 'undefined') document.addEventListener('pd-listas-cambian', () => { if (ctx && Array.isArray(ctx.deseos)) pintarQuiero() })
 function engancharQuiero() {
   const caja = $('mcQuieroPanel')
   if (quieroEnganchado) return
