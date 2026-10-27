@@ -46,7 +46,7 @@ const CARTAS = [
   ...Array.from({ length: 4 }, (_, i) => ({ id: `sv7-${i + 1}`, market: 'WEST', set_id: 'sv7', local_id: String(i + 1), name: `Corona ${i + 1}`, name_es: `Corona ${i + 1}`, image_path: `sv/sv7/${i + 1}`, rarity: 'Rare', category: 'Pokemon', variants: { normal: true } })),
 ]
 async function abrir({ movil = false, albumes = [], carpetas = [], carpetaCartas = [], ruta = '/mi-coleccion.html?ver=carpetas', tema = 'light' } = {}) {
-  const ctx = await browser.newContext(movil ? { ...devices['iPhone 13'], locale: 'es-ES', colorScheme: tema } : { viewport: { width: 1280, height: 900 }, locale: 'es-ES', colorScheme: tema })
+  const ctx = await browser.newContext(movil ? { ...devices['iPhone 13'], locale: 'es-ES', colorScheme: tema, serviceWorkers: 'block' } : { viewport: { width: 1280, height: 900 }, locale: 'es-ES', colorScheme: tema, serviceWorkers: 'block' })
   await ctx.addInitScript(({ SETS, CARTAS, albumes, carpetas, carpetaCartas }) => {
     window.__FAKE_SESSION__ = 'admin-1'
     window.__FAKE_SETS__ = SETS
@@ -70,7 +70,7 @@ async function abrir({ movil = false, albumes = [], carpetas = [], carpetaCartas
   await page.waitForTimeout(900)
   return { ctx, page, errores }
 }
-const baldosas = (page) => page.$$eval('#mcAlbumesRejilla .mc-albt', (bs) => bs.map((b) => ({ clase: [...b.classList].find((c) => c.startsWith('mc-albt-')) || '', nombre: b.querySelector('.mc-albt-nombre')?.textContent.trim(), pie: b.querySelector('.mc-albt-pie')?.textContent.trim(), barra: b.querySelector('.mc-barra i')?.getAttribute('style') || null, logo: !!b.querySelector('.mc-albt-logo img'), cartas: b.querySelectorAll('.mc-albt-hojita img, .mc-albt-abanico img').length, tapa: b.querySelector('.mc-albt-tapa')?.dataset.tapa || null, fondo: getComputedStyle(b.querySelector('.mc-albt-tapa')).backgroundColor, alto: Math.round(b.getBoundingClientRect().height) })))
+const baldosas = (page) => page.$$eval('#mcAlbumesRejilla .mc-albt', (bs) => bs.map((b) => ({ clase: [...b.classList].find((c) => c.startsWith('mc-albt-')) || '', nombre: b.querySelector('.mc-albt-nombre')?.textContent.trim(), pie: b.querySelector('.mc-albt-pie')?.textContent.trim(), barra: b.querySelector('.mc-barra i')?.getAttribute('style') || null, logo: !!b.querySelector('.mc-tapa-logo img'), cartas: b.querySelectorAll('.mc-tapa-ventana img, .mc-albt-abanico img').length, tapa: b.querySelector('.mc-tapa-cerrada')?.dataset.tapa || null, fondo: b.querySelector('.mc-tapa-cerrada') ? getComputedStyle(b.querySelector('.mc-tapa-cerrada')).backgroundImage : 'none', alto: Math.round(b.getBoundingClientRect().height) })))
 const tabla = (page, t) => page.evaluate((t) => window.__TABLAS__?.[t] || [], t)
 
 console.log('── 2. La rejilla, con un álbum de set y un binder ──')
@@ -84,7 +84,8 @@ console.log('── 2. La rejilla, con un álbum de set y un binder ──')
   check('en orden: Mi colección, los álbumes y «Empezar un álbum» al final', b.map((x) => x.clase).join() === 'mc-albt-coleccion,mc-albt-set,mc-albt-binder,mc-albt-nuevo', JSON.stringify(b.map((x) => x.clase)))
   check('Mi colección: tus cartas distintas, con las últimas en abanico', b[0].pie === '3 cartas' && b[0].cartas === 3, JSON.stringify(b[0]))
   check('el de un set: su logo, «Tienes 2 de 8» y la barra', b[1].logo && b[1].pie === 'Tienes 2 de 8' && /--ancho:25%/.test(b[1].barra), JSON.stringify(b[1]))
-  check('el binder: su tapa roja, sus primeras cartas y su forma', b[2].tapa === 'rojo' && b[2].cartas === 2 && /4×4, 20 págs/.test(b[2].pie) && /tienes 1/.test(b[2].pie) && b[2].fondo !== 'rgba(0, 0, 0, 0)', JSON.stringify(b[2]))
+  // Desde la 1049 es la tapa cerrada: la primera carta en la ventana y «1 de 2».
+  check('el binder: su tapa roja, su primera carta en la ventana y su forma', b[2].tapa === 'rojo' && b[2].cartas === 1 && /4×4, 20 págs/.test(b[2].pie) && /^1 de 2/.test(b[2].pie) && /gradient/.test(b[2].fondo), JSON.stringify(b[2]))
   check('no queda la sección de carpetas ni su botón', (await page.locator('#mcCarpetaNueva, #mcCarpetasMandos').count()) === 0 && (await page.textContent('#mcCarpetasPanel')).trim() === '')
   check('el título es «Mis álbumes»', /Mis álbumes/.test(await page.textContent('#mcBloqueAlbumes .mc-subtitulo')))
   if (CAPS) await page.screenshot({ path: `${CAPS}/759-rejilla.png`, fullPage: false })
@@ -99,7 +100,7 @@ console.log('── 3. Empezar un álbum de un set ──')
   const { ctx, page, errores } = await abrir()
   await page.click('#mcAlbNuevoAbrir')
   await page.waitForTimeout(300)
-  check('el diálogo pregunta primero el tipo', (await page.isVisible('#mcAlbNuevo')) && (await page.locator('#mcAlbNuevo [data-tipo]').count()) === 2 && !(await page.isVisible('#mcAlbNuevoPie')))
+  check('el diálogo pregunta primero el tipo', (await page.isVisible('#mcAlbNuevo')) && (await page.locator('#mcAlbNuevo [data-tipo]').count()) === 3 /* set, binder y, desde la 1031, La quiero */ && !(await page.isVisible('#mcAlbNuevoPie')))
   if (CAPS) await page.screenshot({ path: `${CAPS}/759-tipo.png` })
   await page.click('[data-tipo="set"]')
   await page.waitForTimeout(400)

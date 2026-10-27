@@ -104,7 +104,8 @@ console.log('── 3. Z4: la portada de un binder ──')
   check('«Seleccionar» → una → «De portada», y se guarda', (await page.evaluate(() => window.__TABLAS__.user_albums[0].portada)) === 'sv8-3' && (await page.locator('#mcAlbArchivador .mc-bolsillo[data-indice="1"] .mc-alb-cinta').count()) === 1)
   await page.click('#mcAlbVolver')
   await page.waitForTimeout(900)
-  check('en la rejilla, el binder enseña SU portada en grande', (await page.locator('[data-album="alb-b"] .mc-albt-portada img').count()) === 1 && (await page.locator('[data-album="alb-b"] .mc-albt-hojita').count()) === 0)
+  // 1049: en la ventana de su tapa
+  check('en la rejilla, el binder enseña SU portada en la ventana de la tapa', (await page.locator('[data-album="alb-b"] .mc-tapa-ventana img').count()) === 1 && (await page.locator('[data-album="alb-b"] .mc-albt-hojita').count()) === 0)
   if (CAPS) await page.screenshot({ path: `${CAPS}/764-portada.png` })
 
   console.log('── 4. Z5: la lista para imprimir ──')

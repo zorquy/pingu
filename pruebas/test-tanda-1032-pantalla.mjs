@@ -45,8 +45,9 @@ const baldosas = (page) => page.evaluate(() => [...document.querySelectorAll('#m
   id: c.querySelector('[data-album]')?.dataset.album,
   nombre: c.querySelector('.mc-albt-nombre')?.textContent,
   pie: c.querySelector('.mc-albt-pie')?.textContent,
-  tapa: c.querySelector('.mc-albt-tapa')?.dataset.tapa || null,
-  portada: Boolean(c.querySelector('.mc-albt-portada')),
+  // 1049: la tapa cerrada, con la portada en su ventana
+  tapa: c.querySelector('.mc-tapa-cerrada')?.dataset.tapa || null,
+  portada: Boolean(c.querySelector('.mc-tapa-ventana img')),
   menu: c.querySelector('.mc-albt-menu') ? [...c.querySelectorAll('[data-album-accion]')].map((o) => o.textContent.trim()) : null,
   menuAlto: Math.round(c.querySelector('.mc-albt-menu > summary')?.getBoundingClientRect().height || 0),
 })))
