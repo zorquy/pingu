@@ -106,6 +106,9 @@ for (const movil of [true, false]) {
     check('sin errores', errores.length === 0, errores.join(' | '))
     const h = await corazon(page, '#mcMercadoRejilla .mc-merc-corazon.puesto')
     check('A: el corazón puesto se ve de 28, no un círculo rosa de 44', h.visto === 28 && (!movil || transparente(h.fondoBoton)), JSON.stringify(h))
+    // 1061b (PINGU: «vamos a ser consistentes»): «La da N» también aquí, en la chapa sobre la foto.
+    const m = await page.$$eval('#mcMercadoRejilla .mc-merc', (ts) => ts.map((t) => { const f = t.querySelector('.mc-merc-foto').getBoundingClientRect(); const q = t.querySelector('.mc-merc-foto .mc-chapa-gente'); const r = q?.getBoundingClientRect(); return { q: Boolean(q), sobre: q ? r.bottom <= f.bottom && r.top >= f.top + f.height / 2 && r.left < f.left + f.width / 2 : false, fila: Boolean(t.querySelector('.mc-merc-dan')), alto: Math.round(t.getBoundingClientRect().height) } }))
+    check('B: el Mercado, con «La da» en la chapa sobre la foto y sin la fila de abajo', m.length > 0 && m.every((x) => x.q && x.sobre && !x.fila) && new Set(m.map((x) => x.alto)).size === 1, JSON.stringify(m))
     const h2 = await corazon(page, '#mcMercadoRejilla .mc-merc-corazon:not(.puesto)').catch(() => null)
     if (h2) check('  …y el que no está puesto, igual', h2.visto === 28 && h2.encima, JSON.stringify(h2))
     await ctx.close()
