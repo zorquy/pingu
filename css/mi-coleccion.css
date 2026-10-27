@@ -10353,19 +10353,16 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   border-radius: 4px;
 }
 
-/* La versión de una carta del cruce (1047): una chapa en la esquina. */
-.mc-cruce-version {
+/* La versión de una carta del cruce (1047): la insignia de las cartas de
+   una expansión (.mc-insignia), en pequeño, en la esquina de la miniatura. */
+.mc-insignia.mc-cruce-version {
   position: absolute;
   right: 2px;
   bottom: 2px;
   z-index: 1;
-  padding: 0 var(--e-xs);
-  border-radius: 4px;
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  line-height: 1.4;
+  min-width: 18px;
+  height: 18px;
+  padding: 0;
 }
 
 .mc-cruce-carta img {

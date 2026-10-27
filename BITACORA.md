@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (286) — PINGU-Claude (1047b — la versión en los cruces, con su dibujo)
+
+**Hecho**: PINGU, con la captura de Cruces: la chapa «H» en las miniaturas
+«me parece muy feo; para eso tenemos los logos de las variantes». Ahora es
+la misma insignia que las cartas de una expansión (`.mc-insignia` con
+`iconoDeVersion`, 927/930), en pequeño (18 px) en la esquina de la
+miniatura. Ojo: `.mc-insignia` va más abajo en la hoja y ganaba por orden a
+las medidas nuevas (la trampa de la 306): la regla es
+`.mc-insignia.mc-cruce-version`.
+
+**Ficheros**: js/mi-coleccion/tablon.js, css/mi-coleccion.css, SCHEMA.md,
+BITACORA.md.
+
+**Pruebas**: al día `test-tanda-1047-pantalla.mjs` (la insignia lleva el
+dibujo, sin letras, a 18 px); verdes 1047-pantalla, 1044, 1042, 299 y 312.
+
+**Pendiente**: que PINGU ejecute la migración 1047.
+
 ## 2026-10-27 (285) — PINGU-Claude (1047 — «La quiero» con versión: Holo, Normal, Reverse…)
 
 **Hecho** (PINGU aprobó la propuesta con lo recomendado: A1 «Cualquiera» de

@@ -12,7 +12,7 @@
 import { escapeHtml, getInitial, avatarStyle, profileUrl } from '../app.js'
 import { icons } from '../icons.js'
 import { idiomaDe, estadoDe, varianteDe } from '../cardmarket.js'
-import { cortoDeVariante } from './variantes.js'
+import { iconoDeVersion } from './iconos-version.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { atributosDeRango } from '../rangos.js'
@@ -67,8 +67,9 @@ function tiraHtml(filas, cartas, max = 6) {
     const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
     const nombre = nombreDe(c)
     // La versión, a la vista si no es la normal (1047): la Holo de alguien no
-    // es la Normal que buscas.
-    const version = f.variante && f.variante !== 'normal' ? `<span class="mc-cruce-version" aria-hidden="true">${escapeHtml(cortoDeVariante(f.variante))}</span>` : ''
+    // es la Normal que buscas. Con su DIBUJO, la misma insignia que las cartas
+    // de una expansión (927/930), no con letras.
+    const version = f.variante && f.variante !== 'normal' ? `<i class="mc-insignia mc-cruce-version" data-var="${escapeHtml(f.variante)}" aria-hidden="true">${iconoDeVersion(f.variante, 12)}</i>` : ''
     return `<li><a class="mc-cruce-carta" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} title="${escapeHtml(`${nombre} · ${senasDe(f)}`)}" aria-label="${escapeHtml(`${nombre} · ${senasDe(f)}`)}"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${version}</a></li>`
   }).join('')}${filas.length > max ? `<li class="mc-cruce-mas">+${filas.length - max}</li>` : ''}</ul>`
 }
