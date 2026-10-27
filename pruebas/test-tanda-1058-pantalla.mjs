@@ -3,7 +3,7 @@
 //     ⋯ · Todas / La buscan / Nadie), baldosa compacta y Seleccionar
 //     («Darlas todas», «Ya no las doy»);
 //   · Seleccionar en el Mercado («Las quiero»);
-//   · el interruptor «Cuenta para los cruces» de una lista;
+//   · la hoja de una lista sin interruptor de cruces (PINGU lo descartó);
 //   · el Modo evento con una lista: «Busco» solo con esa y el QR la lleva.
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
@@ -95,24 +95,17 @@ console.log('── 2. Seleccionar en el Mercado ──')
   await ctx.close()
 }
 
-console.log('── 3. Una lista que no cuenta para los cruces ──')
+console.log('── 3. La hoja de una lista, sin interruptor de cruces ──')
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=quiero', { extra: { __FAKE_DESEOS__: [{ id: 'd9', user_id: 'admin-1', card_id: 'sv8-3', idioma: null, prioridad: 1, created_at: '2026-10-20T10:00:00Z' }] } })
   await page.click('#mcQuieroLista')
   await page.click('#mcListasHoja [data-lista-nueva]')
   await page.waitForTimeout(300)
-  check('la hoja trae «Cuenta para los cruces», puesto', await page.isVisible('#mcListaCruces') && await page.isChecked('#mcListaCruces'))
-  await page.fill('#mcListaNombre', 'A vigilar')
-  await page.uncheck('#mcListaCruces')
-  if (CAPS) await page.screenshot({ path: `${CAPS}/1058-cruces.png` })
+  // PINGU (1058b): «lo que quieres, lo quieres»; nada de listas ocultas.
+  check('la hoja no trae «Cuenta para los cruces»', !(await page.$('#mcListaCruces')) && !/Cuenta para los cruces/.test(await page.textContent('#mcListasHoja')))
+  await page.fill('#mcListaNombre', 'Feria')
   await page.click('#mcListaForm [type="submit"]')
   await page.waitForTimeout(600)
-  const fila = await page.evaluate(() => window.__TABLAS__.user_want_lists.find((l) => l.nombre === 'A vigilar'))
-  check('se guarda con cruces = false', fila && fila.cruces === false, JSON.stringify(fila))
-  await page.click('#mcQuieroLista')
-  await page.waitForTimeout(300)
-  check('en «Tus listas» dice que es solo para ti', /solo para ti/.test(await page.textContent('#mcListasHoja')))
-  await page.keyboard.press('Escape')
   await page.click('#mcQuieroMenu')
   await page.waitForTimeout(300)
   check('el ⋯ de una lista: «Modo evento con esta lista»', /con esta lista/.test(await page.textContent('#mcListasHoja [data-accion="evento"]')))
