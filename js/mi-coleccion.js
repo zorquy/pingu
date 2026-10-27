@@ -62,6 +62,7 @@ import { gruposDeEstanteria } from './mi-coleccion/estanteria.js'
 import { migasHtml } from './mi-coleccion/migas.js'
 import { ORDENES, ordenar, porNumero, rangoDeRareza } from './mi-coleccion/orden.js'
 import { ORDENES_COLECCION, GRUPOS_FILTRO, ordenarLineas, pasaLosFiltros, filtrosVacios, sentidoNatural, FILTROS_CATALOGO, ORDENES_CATALOGO, filtrosCatalogoVacios, cuantosFiltrosCatalogo, ordenarCartas, valoresDeCartas, pasaFiltrosDeCarta, pasaFiltrosCrudos } from './mi-coleccion/filtros.js'
+import { meterEnLaHoja, claveEnLaHoja, tituloEnLaHoja } from './mi-coleccion/hoja-filtros.js'
 import { balanceDeCompra } from './mi-coleccion/balance.js'
 import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
@@ -1904,24 +1905,13 @@ function pintarHojaOrden() {
   if (flecha) flecha.textContent = sentidoElegido === 'desc' ? '↓' : '↑'
 }
 
-// EN QUÉ BLOQUE CAE CADA GRUPO DE CHIPS (898): lo que describe la CARTA
-// (rareza, energía, tipo, entrenador, versión) va con la rareza; lo que
-// describe TU COPIA (estado, gradeo, notas) y el ilustrador, con el idioma.
-// Un grupo nuevo que no esté aquí cae con la rareza.
-const BLOQUE_DE_GRUPO = { estado: 'estado', notas: 'estado', ilustrador: 'estado', gradeo: 'estado' }
-const NOMBRE_DE_BLOQUE = { expansion: 'Expansión', rareza: 'Rareza y tipo', estado: 'Idioma y estado', precio: 'Precio' }
-
+// LOS CHIPS, EN LA HOJA COMÚN (1055): cada grupo va a su sitio de
+// `ORDEN_DE_LA_HOJA` (lo de la carta delante, lo de tu copia detrás de la
+// raya), con el nombre de `TITULO_DE_LA_HOJA`.
 function pintarGruposDeChips() {
-  const huecos = { rareza: $('mcGruposChips'), estado: $('mcGruposChipsEstado') }
-  if (!huecos.rareza) return
-  // Las energías y la rareza, PRIMERO (748, la C6 de su maqueta): son lo
-  // que más se filtra, y las energías van como su símbolo en redondo.
-  const primero = ['energia', 'rareza']
-  const enOrden = [...GRUPOS].sort((a, b) => (primero.indexOf(a.id) + 1 || 9) - (primero.indexOf(b.id) + 1 || 9))
-  const html = { rareza: [], estado: [] }
-  for (const g of enOrden) html[BLOQUE_DE_GRUPO[g.id] || 'rareza'].push(grupoDeChipsHtml(g))
-  for (const [bloque, hueco] of Object.entries(huecos)) if (hueco) hueco.innerHTML = html[bloque].join('')
-  pintarResumenesDeBloques()
+  const cuerpo = $('mcFiltrosCuerpo')
+  if (!cuerpo) return
+  meterEnLaHoja(cuerpo, GRUPOS.map(grupoDeChipsHtml).join(''))
 }
 
 function grupoDeChipsHtml(g) {
@@ -1929,14 +1919,14 @@ function grupoDeChipsHtml(g) {
     const valores = valoresDeGrupo(g)
     if (valores.length < 2) return ''
     if (g.id === 'energia') {
-      return `<div class="mc-grupo-filtro"><h3>Tipo</h3><div class="mc-chips-filtro mc-chips-energia">${valores
+      return `<div class="mc-grupo-filtro" data-hoja="energia"><h3>${tituloEnLaHoja('energia')}</h3><div class="mc-chips-filtro mc-chips-energia">${valores
         .map((v) => {
           const puesto = filtros[g.id].has(v)
           return `<button type="button" class="chip-filtro chip-energia${puesto ? ' activa' : ''}" data-grupo="${g.id}" data-valor="${escapeHtml(v)}" aria-pressed="${puesto ? 'true' : 'false'}" aria-label="${escapeHtml(v)}" title="${escapeHtml(v)}">${simboloDeTipoHtml(v, { tam: 28 }) || escapeHtml(v)}</button>`
         })
         .join('')}</div></div>`
     }
-    return `<div class="mc-grupo-filtro"><h3>${escapeHtml(g.nombre)}</h3><div class="mc-chips-filtro">${valores
+    return `<div class="mc-grupo-filtro" data-hoja="${claveEnLaHoja(g.id)}"><h3>${escapeHtml(tituloEnLaHoja(g.id, g.nombre))}</h3><div class="mc-chips-filtro">${valores
       .map((v) => {
         const puesto = filtros[g.id].has(v)
         // La MARCA de la rareza delante del nombre (tanda 463): una rareza
@@ -1949,53 +1939,6 @@ function grupoDeChipsHtml(g) {
         return `<button type="button" class="chip-filtro${puesto ? ' activa' : ''}" data-grupo="${g.id}" data-valor="${escapeHtml(v)}" aria-pressed="${puesto ? 'true' : 'false'}">${marca}${escapeHtml(v)}</button>`
       })
       .join('')}</div></div>`
-  }
-}
-
-// LO ELEGIDO, EN LA CABECERA DE CADA BLOQUE (898). Es lo que hace que una
-// hoja plegada no esconda nada: «Rareza y tipo · Doble rara · Fuego» dice
-// qué filtra sin abrirlo, y la cuenta de al lado cuántas cosas son.
-function elegidoPorBloque() {
-  const por = { expansion: [], rareza: [], estado: [], precio: [] }
-  const set = $('mcFiltroSet')
-  if (set?.value) por.expansion.push(set.selectedOptions[0]?.textContent || set.value)
-  const idioma = $('mcFiltroIdioma')
-  if (idioma?.value) por.estado.push(idioma.selectedOptions[0]?.textContent || idioma.value)
-  for (const g of GRUPOS) for (const v of filtros[g.id]) por[BLOQUE_DE_GRUPO[g.id] || 'rareza'].push(v)
-  const { desde, hasta, puesto } = rangoDePrecio()
-  if (puesto) por.precio.push(desde !== null && hasta !== null ? `De ${eurosConMiles(desde)} a ${eurosConMiles(hasta)}` : desde !== null ? `Desde ${eurosConMiles(desde)}` : `Hasta ${eurosConMiles(hasta)}`)
-  return por
-}
-
-function pintarResumenesDeBloques() {
-  const por = elegidoPorBloque()
-  for (const bloque of document.querySelectorAll('#mcPanelFiltros .mc-bloque-filtro')) {
-    const lista = por[bloque.dataset.bloque] || []
-    const resumen = bloque.querySelector('[data-resumen]')
-    const cuenta = bloque.querySelector('[data-cuenta]')
-    if (resumen) {
-      resumen.textContent = lista.length ? lista.join(' · ') : 'Cualquiera'
-      resumen.classList.toggle('con', lista.length > 0)
-    }
-    if (cuenta) {
-      cuenta.textContent = lista.length ? String(lista.length) : ''
-      cuenta.classList.toggle('hidden', !lista.length)
-    }
-    bloque.querySelector('summary')?.setAttribute('aria-label', `${NOMBRE_DE_BLOQUE[bloque.dataset.bloque] || ''}: ${lista.length ? lista.join(', ') : 'cualquiera'}`)
-  }
-}
-
-// AL ABRIR LA HOJA, qué bloques salen abiertos (898): en el móvil solo los
-// que tienen algo puesto —llegas a lo que te importa sin bajar— y, sin
-// nada, todos plegados. En la columna del ordenador, todos abiertos: hay
-// sitio, y el resumen de cada cabecera sigue ahí igual. Solo al ABRIR: lo
-// que pliegues o despliegues con la hoja abierta se respeta.
-// `todos` lo pasa la columna al montarse: en ese instante `columnaFiltros`
-// todavía no está asignada (se monta dentro de la llamada que la crea).
-function abrirBloquesDeFiltros(todos = Boolean(columnaFiltros?.enColumna())) {
-  const por = elegidoPorBloque()
-  for (const bloque of document.querySelectorAll('#mcPanelFiltros .mc-bloque-filtro')) {
-    bloque.open = todos || (por[bloque.dataset.bloque] || []).length > 0
   }
 }
 
@@ -2040,6 +1983,10 @@ function pintarTiradores() {
   const caja = $('mcRangoDoble')
   caja?.style.setProperty('--desde', `${(Number(min.value) / tope) * 100}%`)
   caja?.style.setProperty('--hasta', `${(Number(max.value) / tope) * 100}%`)
+  for (const b of document.querySelectorAll('#mcPrecioAtajos [data-precio-atajo]')) {
+    const [d, h] = b.dataset.precioAtajo.split('-').map((x) => (x === '' ? null : Number(x)))
+    b.setAttribute('aria-pressed', d === desde && h === hasta ? 'true' : 'false')
+  }
 }
 function moverTirador(cual) {
   const min = $('mcPrecioTiradorMin'), max = $('mcPrecioTiradorMax')
@@ -2084,7 +2031,6 @@ function limpiarFiltros() {
 }
 
 function pintarCuentaDeFiltros() {
-  pintarResumenesDeBloques()
   const chapa = $('mcFiltrosCuenta')
   if (!chapa) return
   const n = cuantosFiltros()
@@ -4306,10 +4252,12 @@ function pintarVistaDeAlbum() {
 function pintarVistaVariantes() {
   // El de Buscar (779) va con la misma memoria: se separa en un sitio y se
   // ve separado en todos.
+  // Desde la 1055 es «Apilar», como el de la expansión.
   const bb = $('mcBuscarVariantes')
   if (bb) {
-    bb.setAttribute('aria-pressed', album.split ? 'true' : 'false')
-    bb.textContent = album.split ? 'Variantes separadas' : 'Variantes juntas'
+    bb.classList.toggle('activo', !album.split)
+    bb.setAttribute('aria-pressed', album.split ? 'false' : 'true')
+    if ($('mcBuscarVariantesRotulo')) $('mcBuscarVariantesRotulo').textContent = album.split ? 'Separar' : 'Apilar'
   }
   // En la expansión, desde la 927, «Apilar» como en Dex: pulsado es
   // apilado, o sea juntas. El rótulo no cambia; lo dice el botón encendido.
@@ -4758,19 +4706,31 @@ let sentidoCatalogo = sentidoNatural('nombre')
 const MAPAS = { CATEGORIAS_ES, TIPOS_ES, ENTRENADORES_ES, RAREZAS_ES }
 
 function pintarGruposDelCatalogo() {
-  const hueco = $('mcBuscarGrupos')
-  if (!hueco) return
-  hueco.innerHTML = FILTROS_CATALOGO.map((g) => {
+  const cuerpo = $('mcBuscarGrupos')
+  if (!cuerpo) return
+  // En la hoja común (1055): con su nombre y en su sitio, y el tipo como
+  // símbolo, igual que en tu colección.
+  meterEnLaHoja(cuerpo, FILTROS_CATALOGO.map((g) => {
     const mapa = MAPAS[g.mapa] || {}
-    return `<div class="mc-grupo-filtro"><h3>${escapeHtml(g.nombre)}</h3><div class="mc-chips-filtro">${Object.entries(mapa)
+    const energia = claveEnLaHoja(g.id) === 'energia'
+    return `<div class="mc-grupo-filtro" data-hoja="${claveEnLaHoja(g.id)}"><h3>${escapeHtml(tituloEnLaHoja(g.id, g.nombre))}</h3><div class="mc-chips-filtro${energia ? ' mc-chips-energia' : ''}">${Object.entries(mapa)
       .map(([clave, rotulo]) => {
         const puesto = filtrosCatalogo[g.id].has(clave)
+        const pulsado = `data-cgrupo="${g.id}" data-cvalor="${escapeHtml(clave)}" aria-pressed="${puesto ? 'true' : 'false'}"`
+        const simbolo = energia ? simboloDeTipoHtml(clave, { tam: 28 }) : ''
+        if (simbolo) return `<button type="button" class="chip-filtro chip-energia${puesto ? ' activa' : ''}" ${pulsado} aria-label="${escapeHtml(rotulo)}" title="${escapeHtml(rotulo)}">${simbolo}</button>`
         const marca = g.id === 'rarity' ? marcaDeRarezaHtml(clave) : ''
-        return `<button type="button" class="chip-filtro${puesto ? ' activa' : ''}" data-cgrupo="${g.id}" data-cvalor="${escapeHtml(clave)}" aria-pressed="${puesto ? 'true' : 'false'}">${marca}${escapeHtml(rotulo)}</button>`
+        return `<button type="button" class="chip-filtro${puesto ? ' activa' : ''}" ${pulsado}>${marca}${escapeHtml(rotulo)}</button>`
       })
       .join('')}</div></div>`
-  }).join('')
-  const n = cuantosFiltrosCatalogo(filtrosCatalogo)
+  }).join(''))
+  pintarCuentaDeBuscar()
+}
+
+// La chapa de «Filtros» de Buscar cuenta también la serie y la expansión,
+// que desde la 1055 viven en la hoja.
+function pintarCuentaDeBuscar() {
+  const n = cuantosFiltrosCatalogo(filtrosCatalogo) + (afinar.serie ? 1 : 0) + (afinar.set ? 1 : 0)
   const chapa = $('mcBuscarFiltrosCuenta')
   if (chapa) {
     chapa.textContent = n ? String(n) : ''
@@ -4931,6 +4891,8 @@ function pintarResultadosBuscar() {
   if (afinar.set) lista = lista.filter((c) => c.set_id === afinar.set)
   if (afinar.que === 'tengo') lista = lista.filter((c) => mias.has(c.id))
   if (afinar.que === 'faltan') lista = lista.filter((c) => !mias.has(c.id))
+  if (ultimaBusqueda.length) rotularVer('mcBuscarFiltrosVer', lista.length)
+  pintarCuentaDeBuscar()
   if (!ultimaBusqueda.length) {
     caja.innerHTML = '<p class="empty-state">No encuentro ninguna carta así. Prueba con menos letras.</p>'
     return
@@ -4967,9 +4929,7 @@ function pintarQueDeBuscar() {
 // Los desplegables de afinar salen de lo que HA VUELTO: una serie que no
 // está en los resultados no se ofrece (la 447: lo que se ofrece, funciona).
 function pintarAfinar(lista) {
-  const barra = $('mcBuscarAfinar')
-  if (!barra) return
-  barra.classList.toggle('hidden', !lista.length)
+  $('mcBuscarVariantes')?.classList.toggle('hidden', !lista.length)
   // El nombre de la serie, de la fila del set (la era, en español si la
   // hay: `eraDeSet`); el embebido de la búsqueda no trae `serie_name`.
   const filas = new Map((todosLosSets || []).map((x) => [x.id, x]))
@@ -4983,6 +4943,9 @@ function pintarAfinar(lista) {
   for (const c of enOrden) if (!afinar.serie || c.tcg_sets?.serie_id === afinar.serie) sets.set(c.set_id, nombreDeSet(c.tcg_sets) || c.set_id)
   if (afinar.set && !sets.has(afinar.set)) afinar.set = ''
   $('mcBuscarSet').innerHTML = `<option value="">Todas las expansiones</option>${[...sets].map(([id, nombre]) => `<option value="${escapeHtml(id)}"${id === afinar.set ? ' selected' : ''}>${escapeHtml(nombre)}</option>`).join('')}`
+  // Un grupo con una sola opción no filtra nada: no se ofrece.
+  $('mcBuscarGrupoSerie')?.classList.toggle('hidden', series.size < 2 && !afinar.serie)
+  $('mcBuscarGrupoSet')?.classList.toggle('hidden', sets.size < 2 && !afinar.set)
   pintarQueDeBuscar()
 }
 
@@ -5944,7 +5907,6 @@ function enganchar() {
   // ── El panel de filtros (tanda 399) ──
   $('mcAbrirFiltros').addEventListener('click', () => {
     pintarGruposDeChips()
-    abrirBloquesDeFiltros()
     $('mcPanelFiltros').showModal()
     pintarTiradores()
   })
@@ -5963,8 +5925,20 @@ function enganchar() {
   }
   $('mcPrecioTiradorMin')?.addEventListener('input', () => moverTirador('min'))
   $('mcPrecioTiradorMax')?.addEventListener('input', () => moverTirador('max'))
-  // Desde la 898 los chips viven en dos bloques, así que se escucha el
-  // panel entero.
+  // Los atajos del precio (1055, los de la expansión): pulsar el puesto lo
+  // quita, como cualquier chip.
+  $('mcPrecioAtajos')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-precio-atajo]')
+    if (!b) return
+    const puesto = b.getAttribute('aria-pressed') === 'true'
+    const [d, h] = b.dataset.precioAtajo.split('-')
+    $('mcFiltroPrecioDesde').value = puesto ? '' : d
+    $('mcFiltroPrecioHasta').value = puesto ? '' : h
+    pintarCartas()
+    pintarCuentaDeFiltros()
+    pintarTiradores()
+  })
+  // Los chips los pinta la hoja entera, así que se escucha el panel.
   $('mcPanelFiltros').addEventListener('click', (e) => {
     const chip = e.target.closest('.chip-filtro[data-grupo]')
     if (!chip) return
@@ -6020,7 +5994,7 @@ function enganchar() {
   })
   $('mcFiltroSet').addEventListener('change', pintarColumnaSets)
   // En el ordenador, el panel es una columna fija junto a la rejilla (738).
-  columnaFiltros = montarColumnaFiltros({ seccion: $('mcPanelCartas'), panel: $('mcPanelFiltros'), boton: $('mcAbrirFiltros'), cerrar: $('mcFiltrosCerrar'), alAbrir: () => { pintarGruposDeChips(); pintarTiradores(); abrirBloquesDeFiltros(true) } })
+  columnaFiltros = montarColumnaFiltros({ seccion: $('mcPanelCartas'), panel: $('mcPanelFiltros'), boton: $('mcAbrirFiltros'), cerrar: $('mcFiltrosCerrar'), alAbrir: () => { pintarGruposDeChips(); pintarTiradores() } })
   // El ✕ de la barra limpia ADEMÁS el texto, porque es lo que se ve a su
   // lado: dejarlo puesto haría que la lista siguiera recortada después de
   // pulsar «quitar» y parecería que no ha hecho nada.
@@ -6285,6 +6259,8 @@ function enganchar() {
   $('mcBuscarFiltrosVer')?.addEventListener('click', () => $('mcBuscarPanelFiltros').close())
   $('mcBuscarFiltrosLimpiar')?.addEventListener('click', () => {
     for (const g of FILTROS_CATALOGO) filtrosCatalogo[g.id].clear()
+    afinar.serie = ''
+    afinar.set = ''
     pintarGruposDelCatalogo()
     void buscarEnTodo()
   })
@@ -6492,8 +6468,9 @@ function enganchar() {
   })
   // Rareza, categoría e idioma de un toque (714), con el mismo componente
   // que la hoja de añadir: el select sigue mandando.
+  segmentar($('mcFiltroIdioma'), { etiqueta: 'Idioma de tus copias', chips: true })
   segmentar($('mcAlbumRareza'), { etiqueta: 'Rareza', chips: true })
-  segmentar($('mcAlbumTipo'), { etiqueta: 'Categoría', chips: true })
+  segmentar($('mcAlbumTipo'), { etiqueta: 'Tipo de carta', chips: true })
   segmentar($('mcAlbumIdioma'), { etiqueta: 'Idioma en que cuentan tus copias', chips: true })
   segmentar($('mcAlbumEnergia'), { etiqueta: 'Tipo de energía', chips: true, dibujo: (o) => (o.value ? simboloDeTipoHtml(o.value, { tam: 28 }) : ''), soloDibujo: true })
   segmentar($('mcAlbumOrden'), { etiqueta: 'Cómo se ordenan', chips: true })

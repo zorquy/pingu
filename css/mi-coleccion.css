@@ -647,8 +647,7 @@
 
 /* Un hijo de flex CEDE antes de desbordar (la lección de la 320): sin
    esto, los mandos se encogen hasta ser ilegibles en vez de deslizarse. */
-.mc-mandos > *,
-.mc-mandos .mc-bus-afinar > * {
+.mc-mandos > * {
   flex: 0 0 auto;
   scroll-snap-align: start;
 }
@@ -3800,18 +3799,14 @@ html.mc-seleccionando .mc-pagina {
   }
 
   /* «Tus expansiones» en lugar del desplegable (740). */
-  .mc-con-columna .mc-columna-sets {
-    display: block;
-  }
-
-  .mc-con-columna .mc-grupo-set {
+  .mc-con-columna #mcFiltroSet {
     display: none;
   }
 }
 
 
 
-.mc-columna-sets {
+#mcPanelCartas:not(.mc-con-columna) .mc-columna-sets-lista {
   display: none;
 }
 
@@ -3886,103 +3881,25 @@ html.mc-seleccionando .mc-pagina {
 
 /* Los chips de filtro son el chip compartido (`.chip-filtro`, 678). */
 
-/* Los cuatro bloques plegables de la hoja (898; el porqué, en SCHEMA). */
-.mc-bloque-filtro {
-  margin-bottom: var(--e-sm);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-}
-
-.mc-bloque-cab {
-  display: flex;
-  align-items: center;
-  gap: var(--e-sm);
-  min-height: 44px;
-  padding: 0 var(--e-md);
-  list-style: none;
-  cursor: pointer;
-  user-select: none;
-}
-
-.mc-bloque-cab::-webkit-details-marker {
+/* La hoja común (1055; SCHEMA): la raya separa lo de todas las pantallas
+   de lo de esta, y solo se ve con algo a cada lado. */
+.mc-hoja-raya {
   display: none;
+  margin: 0 0 var(--e-lg);
+  border: 0;
+  border-top: 1px dashed var(--border);
 }
 
-.mc-bloque-cab:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-ring);
+.mc-grupo-filtro:not(.hidden) ~ .mc-hoja-raya:has(~ .mc-grupo-filtro:not(.hidden)) {
+  display: block;
 }
 
-.mc-bloque-cab b {
-  flex-shrink: 0;
-  font-size: var(--t-sm);
-  font-weight: 700;
-}
-
-.mc-bloque-resumen {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
+.mc-hoja-nota {
   color: var(--text-mid);
-  font-size: var(--t-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
 }
-
-.mc-bloque-resumen.con {
-  color: var(--navy);
-  font-weight: 600;
-}
-
-.mc-bloque-cuenta {
-  display: grid;
-  flex-shrink: 0;
-  min-width: 20px;
-  height: 20px;
-  padding: 0 var(--e-xs);
-  border-radius: var(--radius-pill);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  place-items: center;
-}
-
-.mc-bloque-flecha {
-  flex-shrink: 0;
-  width: 8px;
-  height: 8px;
-  margin-right: 2px;
-  border-right: 2px solid var(--text-mid);
-  border-bottom: 2px solid var(--text-mid);
-  transform: rotate(45deg);
-  transition: transform 0.15s;
-}
-
-.mc-bloque-filtro[open] > .mc-bloque-cab .mc-bloque-flecha {
-  transform: rotate(-135deg);
-}
-
-.mc-bloque-cuerpo {
-  padding: var(--e-md) var(--e-md) 0;
-  border-top: 1px solid var(--border);
-  background: var(--bg);
-}
-
-.mc-bloque-cuerpo > .mc-grupo-filtro:last-child,
-.mc-grupos-chips > .mc-grupo-filtro:last-child {
-  margin-bottom: var(--e-md);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .mc-bloque-flecha {
-    transition: none;
-  }
-}
-
-
 
 .mc-panel-pie {
   display: flex;
@@ -6686,23 +6603,16 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   gap: var(--e-sm);
 }
 
-.mc-panel-borrar {
-  min-height: 44px;
-  margin-left: auto;
-  padding: 0 var(--e-sm);
-  border: 0;
-  background: transparent;
-  color: var(--navy);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 700;
-  cursor: pointer;
-}
-
 .mc-panel-filtros .mc-panel-pie .btn-primary {
   flex: 1;
   min-height: 52px;
   font-size: var(--t-lg);
+}
+
+/* «Limpiar» abajo, al lado de «Ver N cartas» (1055, su maqueta). */
+.mc-panel-filtros .mc-panel-pie .mc-panel-limpiar {
+  flex: none;
+  min-height: 52px;
 }
 
 /* En el móvil, el aspa es el tirador de la hoja. */
@@ -8643,11 +8553,6 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 .mc-bus-grupo-texto small {
   color: var(--text-mid);
   font-size: var(--t-sm);
-}
-
-/* Afinar va en la fila de los mandos (998): sus cuatro son mandos más. */
-.mc-mandos .mc-bus-afinar {
-  display: contents;
 }
 
 @media (max-width: 599px) {

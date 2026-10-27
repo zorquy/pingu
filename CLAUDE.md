@@ -973,6 +973,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   en ese orden. «Seleccionar» lleva `data-seleccionar` (un oyente en el
   documento, visible solo con `html.mc-puede-marcar`) y marca por
   `seleccion.js`; una rejilla nueva en la que se marque va en sus `ZONAS`.
+  Y su hoja de Filtros es LA COMÚN (1055): los grupos con `data-hoja` en el
+  orden y con el nombre de `js/mi-coleccion/hoja-filtros.js` (lo que pinta
+  la pantalla entra con `meterEnLaHoja`), lo propio detrás de la raya, y
+  abajo «Limpiar» y «Ver N cartas».
 - **Contenido primero en el teléfono** (tandas 1038–1040, PINGU: «haz todo
   lo recomendado»). Cinco reglas para cualquier pantalla de lista: (1) el
   título que ya dice la burbuja no ocupa sitio (recortado con `clip-path`,

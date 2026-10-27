@@ -41785,6 +41785,39 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1055 — La misma hoja de filtros en todas las pantallas de cartas
+
+- **El orden y el nombre viven en `js/mi-coleccion/hoja-filtros.js`**
+  (`ORDEN_DE_LA_HOJA`, `TITULO_DE_LA_HOJA`, `claveEnLaHoja` para pasar los
+  ids de `GRUPOS_FILTRO` y `FILTROS_CATALOGO` a la clave común). Cada grupo
+  lleva `data-hoja="<clave>"`; lo escrito en el HTML se queda y lo que pinta
+  una pantalla entra con `meterEnLaHoja(cuerpo, html)`, que lo coloca en su
+  sitio SIN mover lo demás (mover el campo del precio mientras se escribe le
+  quitaba el foco) y cambia entero lo que lleva `data-hoja-pintado`.
+- **La raya** (`<hr class="mc-hoja-raya" data-hoja="raya">`) separa lo común
+  de lo de la pantalla y solo se ve con un grupo visible a cada lado (CSS con
+  `~` y `:has`).
+- **Cartas**: fuera los bloques de la 898 (`BLOQUE_DE_GRUPO`,
+  `pintarResumenesDeBloques`, `abrirBloquesDeFiltros` y su CSS). La
+  expansión es UN grupo con el desplegable y la lista de la columna del PC
+  (en columna, la lista; si no, el desplegable). El idioma, en chips
+  (`segmentar`), y el precio con los atajos de la expansión (`#mcPrecioAtajos`,
+  pulsado = lo escrito coincide).
+- **Expansión**: los mismos grupos en el orden común; «Qué cartas» (con
+  Repetidas) detrás de la raya — sus botones siguen siendo los que pulsa la
+  barra (`#mcAlbumQue [data-que]`).
+- **Pokédex**: el idioma de tus copias sale de la barra a la hoja, en chips
+  `data-pdx-idioma` (solo con tu colección y cuenta); cuenta en la chapa de
+  Filtros y Limpiar lo quita.
+- **Buscar**: `#mcBuscarSerie` y `#mcBuscarSet` en la hoja (grupos que se
+  esconden con una sola opción); cuentan en la chapa (`pintarCuentaDeBuscar`)
+  y Limpiar los quita. `#mcBuscarAfinar` ya no existe; `#mcBuscarVariantes` es
+  el «Apilar» de la barra (pulsado = juntas, rótulo «Apilar»/«Separar»).
+- **Pie**: `.mc-panel-limpiar` (suave) + «Ver N cartas»; `.mc-panel-borrar`
+  ya no existe.
+
+**Pruebas**: `test-tanda-1055-pantalla.mjs`; la 898 queda como guarda.
+
 ## Tanda 1054 — La misma barra en todas las pantallas de cartas
 
 - **Cartas** (`#mcMandos`): Orden · Filtros · `#mcCartasSeleccionar` · ✕ ·

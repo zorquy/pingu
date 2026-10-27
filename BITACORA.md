@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (295) — PINGU-Claude (1055 — la misma hoja de filtros en todas las pantallas de cartas)
+
+**Hecho**: la última de la propuesta aprobada. Cartas, una expansión, la
+Pokédex y Buscar abren la MISMA hoja de filtros: «Filtros» y el ✕ arriba,
+«Limpiar» y «Ver N cartas» abajo, y los grupos en un solo orden y con un solo
+nombre (Tipo · Rareza · Tipo de carta · Tipo de entrenador · Versión · Precio
+· Idioma de tus copias), y detrás de una raya lo propio de cada pantalla
+(Cartas: Expansión, Estado, Ilustrador, Gradeo, Notas; expansión: Qué cartas;
+Buscar: Serie y Expansión). Cartas pierde los bloques plegables de la 898 y
+gana los atajos de precio de la expansión; el idioma de la Pokédex sale de la
+barra a la hoja; la serie y la expansión de Buscar, también; y el «Variantes
+juntas» de Buscar es «Apilar», como en las demás. El Tipo va como símbolo en
+las cuatro.
+
+**Ficheros**: js/mi-coleccion/hoja-filtros.js (nuevo: orden, nombres y
+`meterEnLaHoja`), mi-coleccion.html, cartas.html (generado),
+js/mi-coleccion.js, js/mi-coleccion/pokedex.js, js/mi-coleccion/pokedex-ui.js,
+css/mi-coleccion.css, CLAUDE.md, novedades.json, SCHEMA.md, BITACORA.md.
+
+**Pruebas**: `test-tanda-1055-pantalla.mjs` nueva. El subconjunto de Mi colección (297) contra HEAD: ningún rojo nuevo (369, 749 y 1027, sueltos, en verde; 769 roja también en HEAD). La 898 queda como guarda de
+que los bloques no vuelven. Al día 399, 449, 450, 453, 577, 714, 738, 748,
+779, 998 y 1054.
+
+**Pendiente**: nada de la propuesta 1052–1055.
+
 ## 2026-10-27 (294) — PINGU-Claude (1054 — la misma barra en todas las pantallas de cartas)
 
 **Hecho**: lo aprobado de la propuesta (PINGU: «que sea todo consistente

@@ -13,6 +13,7 @@ import { FILTROS_CATALOGO, filtrosCatalogoVacios, valoresDeCartas, pasaFiltrosDe
 import { variantesDeCarta, pegarVersiones } from './variantes.js'
 import { porNumero } from './orden.js'
 import { hojaInyectada } from '../hoja.js'
+import { meterEnLaHoja } from './hoja-filtros.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -146,7 +147,7 @@ function pintarEspecieFiltrada() {
   // si se pintaran dentro, abrir el panel después de filtrar enseñaría los
   // de antes.
   const hueco = $('mcPdxGrupos')
-  if (hueco) hueco.innerHTML = ctx.pokedex.gruposDeEspecieHtml(grupos, filtrosEspecie)
+  meterEnLaHoja(hueco, ctx.pokedex.gruposDeEspecieHtml(grupos, filtrosEspecie, { idioma: ctx.pdxIdioma, idiomas: ctx.esMia && ctx.sesion ? ctx.idiomasDeLaVista() : [] }))
   ctx.rotularVer('mcPdxFiltrosVer', lista.length)
   caja.innerHTML = ctx.pokedex.especieHtml({
     dex: ctx.especieAbierta,
@@ -160,7 +161,7 @@ function pintarEspecieFiltrada() {
     que: ctx.pdxSoloFaltan ? 'faltan' : soloTengo ? 'tengo' : 'todas',
     puedeMarcar: Boolean(ctx.esMia && ctx.sesion),
     idioma: ctx.pdxIdioma,
-    idiomas: ctx.idiomasDeLaVista(),
+    idiomas: ctx.esMia && ctx.sesion ? ctx.idiomasDeLaVista() : [],
     separadas: ctx.album.split,
     versionesDe,
     tengoVersion,
@@ -294,13 +295,6 @@ function enganchar() {
       pintarEspecieFiltrada()
     }
   })
-  // El idioma de la especie, en delegación por lo mismo que el buscador:
-  // la cabecera se repinta entera.
-  $('mcPokedexPanel')?.addEventListener('change', (e) => {
-    if (e.target.id !== 'pdxIdioma') return
-    ctx.pdxIdioma = e.target.value
-    pintarEspecieFiltrada()
-  })
   // En DELEGACIÓN, no en el campo: la cabecera de la especie se vuelve a
   // pintar entera con cada tecla, así que un oyente puesto sobre el
   // `<input>` se perdería con el primer repintado. Y el foco y el cursor
@@ -317,6 +311,12 @@ function enganchar() {
     }
   })
   $('mcPdxGrupos')?.addEventListener('click', (e) => {
+    // El idioma de tus copias (577), en la hoja desde la 1055.
+    const idioma = e.target.closest('[data-pdx-idioma]')
+    if (idioma) {
+      ctx.pdxIdioma = idioma.dataset.pdxIdioma
+      return pintarEspecieFiltrada()
+    }
     const chip = e.target.closest('[data-egrupo]')
     if (!chip) return
     const conjunto = filtrosEspecie[chip.dataset.egrupo]
@@ -328,6 +328,7 @@ function enganchar() {
   $('mcPdxFiltrosVer')?.addEventListener('click', () => $('mcPdxPanelFiltros').close())
   $('mcPdxFiltrosLimpiar')?.addEventListener('click', () => {
     for (const g of FILTROS_CATALOGO) filtrosEspecie[g.id].clear()
+    ctx.pdxIdioma = ''
     pintarEspecieFiltrada()
   })
   $('mcPdxPanelFiltros')?.addEventListener('click', (e) => {

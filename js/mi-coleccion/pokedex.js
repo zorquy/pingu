@@ -30,7 +30,8 @@ import { especiesPorNombres, especiePorDex, POKEMON_POR_DEX } from '../pokedex-e
 import { urlDeSprite, atributosDeRespaldo } from '../torneos/sprites-pokemon.js'
 import { nombreDeSet, nombreDeCarta } from '../catalogo-series.js'
 // Un reexport no es un import (624): se importa para usarlo aquí.
-import { LETRA_DE_TIPO, NOMBRE_DE_LETRA } from './energias.js'
+import { LETRA_DE_TIPO, NOMBRE_DE_LETRA, simboloDeTipoHtml } from './energias.js'
+import { claveEnLaHoja, tituloEnLaHoja } from './hoja-filtros.js'
 import { tipoDeEspecie } from '../tipos-de-especie.js'
 
 const nombreDe = (c) => nombreDeCarta(c) || 'Carta'
@@ -349,8 +350,9 @@ export function rejillaHtml(filas, orden = 'dex') {
 // no veintiún mil: «un Bulbasaur de Pokémon GO» se encuentra antes
 // escribiendo que mirando treinta dibujos, y PINGU lo dijo — «quizá aquí
 // puedes quitarla, pero yo igualmente la mantendría».
-// LA BARRA COMÚN (1054): Todas/Tengo/Faltan, Apilar, Filtros, Seleccionar,
-// y el idioma y el catálogo al final, como en una expansión.
+// LA BARRA COMÚN (1054): Todas/Tengo/Faltan, Apilar, Filtros, Seleccionar
+// y el catálogo, como en una expansión. El idioma de tus copias vive en la
+// hoja de filtros desde la 1055 (`gruposDeEspecieHtml`).
 function barraDeEspecie(grupos, cuantos, texto, { que = 'todas', idioma = '', idiomas = [], separadas = false, puedeMarcar = false } = {}) {
   return `<div class="mc-filtros">
     <div class="mc-buscador">
@@ -362,30 +364,38 @@ function barraDeEspecie(grupos, cuantos, texto, { que = 'todas', idioma = '', id
       <!-- Apilar (692 → 1054): juntas o separadas, con la misma memoria que
            en una expansión, y el mismo botón (pulsado = apiladas). -->
       <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="pdxVariantes" data-icono="cards" aria-pressed="${separadas ? 'false' : 'true'}"><span class="mc-chip-texto">${separadas ? 'Separar' : 'Apilar'}</span></button>
-      ${grupos.length ? `<button type="button" class="mc-chip-mando" id="pdxAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+      ${grupos.length || idiomas.length ? `<button type="button" class="mc-chip-mando" id="pdxAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
         <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta${cuantos ? '' : ' hidden'}">${cuantos || ''}</span>
       </button>` : ''}
       ${puedeMarcar ? '<button type="button" class="mc-chip-mando mc-chip-icono-movil" id="pdxSeleccionar" data-seleccionar data-icono="checkSquare" aria-pressed="false"><span class="mc-chip-texto">Seleccionar</span></button>' : ''}
-      <select class="mc-chapa-select" id="pdxIdioma" aria-label="En qué idioma cuentan tus copias">
-        <option value=""${idioma ? '' : ' selected'}>Cualquier idioma</option>
-        ${idiomas.map((i) => `<option value="${escapeHtml(i.id)}"${i.id === idioma ? ' selected' : ''}>Tengo en ${escapeHtml(i.nombre.toLowerCase())}</option>`).join('')}
-      </select>
       <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
     </div>
   </div>`
 }
 
-export function gruposDeEspecieHtml(grupos, puestos) {
-  return grupos
-    .map(
-      (g) => `<div class="mc-grupo-filtro"><h3>${escapeHtml(g.nombre)}</h3><div class="mc-chips-filtro">${g.valores
-        .map(({ rotulo }) => {
+// En la hoja común (1055): cada grupo con su nombre y en su sitio, el tipo
+// como símbolo, y el idioma de tus copias (lo que cuenta como «Tengo»)
+// como un grupo más.
+export function gruposDeEspecieHtml(grupos, puestos, { idioma = '', idiomas = [] } = {}) {
+  const chips = grupos
+    .map((g) => {
+      const energia = claveEnLaHoja(g.id) === 'energia'
+      return `<div class="mc-grupo-filtro" data-hoja="${claveEnLaHoja(g.id)}"><h3>${escapeHtml(tituloEnLaHoja(g.id, g.nombre))}</h3><div class="mc-chips-filtro${energia ? ' mc-chips-energia' : ''}">${g.valores
+        .map(({ rotulo, crudos }) => {
           const puesto = !!puestos?.[g.id]?.has(rotulo)
-          return `<button type="button" class="chip-filtro${puesto ? ' activa' : ''}" data-egrupo="${escapeHtml(g.id)}" data-evalor="${escapeHtml(rotulo)}" aria-pressed="${puesto ? 'true' : 'false'}">${escapeHtml(rotulo)}</button>`
+          const datos = `data-egrupo="${escapeHtml(g.id)}" data-evalor="${escapeHtml(rotulo)}" aria-pressed="${puesto ? 'true' : 'false'}"`
+          const simbolo = energia ? simboloDeTipoHtml(crudos?.[0] || rotulo, { tam: 28 }) || simboloDeTipoHtml(rotulo, { tam: 28 }) : ''
+          if (simbolo) return `<button type="button" class="chip-filtro chip-energia${puesto ? ' activa' : ''}" ${datos} aria-label="${escapeHtml(rotulo)}" title="${escapeHtml(rotulo)}">${simbolo}</button>`
+          return `<button type="button" class="chip-filtro${puesto ? ' activa' : ''}" ${datos}>${escapeHtml(rotulo)}</button>`
         })
         .join('')}</div></div>`
-    )
+    })
     .join('')
+  if (!idiomas.length) return chips
+  const opciones = [{ id: '', nombre: 'Cualquiera' }, ...idiomas]
+  return `${chips}<div class="mc-grupo-filtro" data-hoja="idioma"><h3>${tituloEnLaHoja('idioma')} <small class="mc-hoja-nota">lo que cuenta como «Tengo»</small></h3><div class="mc-chips-filtro" role="radiogroup" aria-label="${tituloEnLaHoja('idioma')}">${opciones
+    .map((i) => `<button type="button" class="chip-filtro${i.id === idioma ? ' activa' : ''}" role="radio" data-pdx-idioma="${escapeHtml(i.id)}" aria-checked="${i.id === idioma}">${escapeHtml(i.nombre)}</button>`)
+    .join('')}</div></div>`
 }
 
 // Una casilla de la especie (692): la carta entera o UNA de sus versiones,
@@ -467,7 +477,7 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = 
         }</p>
       </div>
     </div>
-    ${barraDeEspecie(grupos, puestos ? Object.values(puestos).reduce((n, s) => n + s.size, 0) : 0, texto, { que, idioma, idiomas, separadas, puedeMarcar })}
+    ${barraDeEspecie(grupos, (puestos ? Object.values(puestos).reduce((n, s) => n + s.size, 0) : 0) + (idioma ? 1 : 0), texto, { que, idioma, idiomas, separadas, puedeMarcar })}
     ${cuerpo}`
 }
 
