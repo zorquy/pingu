@@ -30,9 +30,13 @@ const check = (l, ok, extra = '') => {
 // ── LOS MANDOS DE LA CABECERA VIVEN DETRÁS DEL ⋮ (tanda 475) ──
 // Encontrar un elemento no es poder pulsarlo, así que hay que abrir el menú
 // primero. Y se cierra solo al elegir, así que cada pulsación abre otra vez.
+// Desde la 1053 «Seleccionar» (#mcMarcarAbrir) está en la barra, a la vista:
+// se pulsa sin abrir el ⋯.
 const porElMenu = async (page, sel) => {
-  await page.click('#mcAlbumMenu > summary')
-  await page.waitForTimeout(250)
+  if (sel !== '#mcMarcarAbrir') {
+    await page.click('#mcAlbumMenu > summary')
+    await page.waitForTimeout(250)
+  }
   await page.click(sel)
   await page.waitForTimeout(350)
 }

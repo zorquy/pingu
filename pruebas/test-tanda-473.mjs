@@ -63,7 +63,9 @@ const enLaBarra = await page.evaluate(() =>
 // controles sueltos, no un número concreto.
 // Desde la 919 solo «Filtros», y desde la 927 (Dex) otra vez la vista y
 // «Apilar»: tres, y en ese orden. Lo demás sigue dentro del panel.
-check('la vista, «Apilar» y «Filtros» al lado del buscador (927)', enLaBarra.join(',') === 'mcAlbumVista,mcVistaVariantes,mcAlbumAbrirFiltros', enLaBarra.join(','))
+// Desde la 1053 la barra es la común: Todas/Tengo/Faltan, vista, Apilar,
+// orden, Filtros y Seleccionar (y el buscador en su fila, encima).
+check('la barra común (1053): qué cartas, vista, Apilar, orden, Filtros y Seleccionar', enLaBarra.join(',') === 'mcAlbumQue,mcAlbumVista,mcVistaVariantes,mcAlbumAbrirOrden,mcAlbumAbrirFiltros,mcMarcarAbrir', enLaBarra.join(','))
 check('y ninguno de los dos dentro de la hoja',
   await page.evaluate(() => ['mcVistaVariantes', 'mcAlbumVista'].every((id) => !document.getElementById(id)?.closest('dialog'))),
   enLaBarra.join(','))
@@ -74,8 +76,9 @@ const dondeViven = await page.evaluate(() =>
     (id) => `${id}:${document.getElementById(id)?.closest('dialog')?.id || 'FUERA'}`
   )
 )
-check('los cuatro filtros viven dentro del panel',
-  dondeViven.every((x) => x.endsWith(':mcAlbumPanelFiltros')), dondeViven.join(' | '))
+// El orden, desde la 1053, en su propia hoja; los otros tres, en el panel.
+check('los filtros viven dentro del panel, y el orden en su hoja',
+  dondeViven.join(' | ') === 'mcAlbumOrden:mcAlbumHojaOrden | mcAlbumRareza:mcAlbumPanelFiltros | mcAlbumTipo:mcAlbumPanelFiltros | mcAlbumSoloFaltan:mcAlbumPanelFiltros', dondeViven.join(' | '))
 // Y no queda ni rastro del grupo de dos chapas.
 check('el grupo de dos chapas ya no existe',
   (await page.locator('.mc-vista-variantes, #mcVistaStack, #mcVistaSplit').count()) === 0)
@@ -193,7 +196,7 @@ console.log('\n── 8. Sin rarezas guardadas, se esconde el GRUPO entero ─�
   await p2.waitForTimeout(500)
   check('el grupo de rareza no se ve', await p2.locator('#mcAlbumGrupoRareza').isHidden())
   check('ni el de categoría', await p2.locator('#mcAlbumGrupoTipo').isHidden())
-  check('pero «Ordenar por» sigue', await p2.locator('#mcAlbumOrden').isVisible())
+  check('pero el orden sigue (en su chip, desde la 1053)', await p2.locator('#mcAlbumAbrirOrden').isVisible())
   check('sin errores', e2.length === 0, e2.join(' | '))
   await p2.close()
 }

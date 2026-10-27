@@ -176,16 +176,18 @@ console.log('\n── 4. La cabecera, con sus iconos ──')
     alto: Math.round(n.getBoundingClientRect().height),
   })))
   // Desde la 725, un cuarto al final: «Enseñar las que tengo».
-  check('están los cinco (con «Compartir la expansión») mandos dentro', iconos.length === 5, JSON.stringify(iconos.map((i) => i.id)))
-  check('  …en el orden de Dex: marcar, favorita y compartir, y enseñar al final',
-    iconos.map((i) => i.id).join(',') === 'mcMarcarAbrir,mcAlbumFavorito,mcFaltanCopiar,mcAlbumCompartir,mcAlbumEnsenar', JSON.stringify(iconos.map((i) => i.id)))
+  // Desde la 1053, cuatro: «Marcar varias» es «Seleccionar» en la barra.
+  check('están los cuatro mandos dentro (sin «Marcar varias», 1053)', iconos.length === 4, JSON.stringify(iconos.map((i) => i.id)))
+  check('  …en el orden de Dex: favorita y compartir, y enseñar al final',
+    iconos.map((i) => i.id).join(',') === 'mcAlbumFavorito,mcFaltanCopiar,mcAlbumCompartir,mcAlbumEnsenar', JSON.stringify(iconos.map((i) => i.id)))
   check('  …cada uno con su dibujo', iconos.every((i) => i.svg), JSON.stringify(iconos))
   // Y aquí dentro SÍ llevan palabra, que es la gracia del menú: cuatro
   // iconos seguidos sin un rótulo al lado son un acertijo.
   check('  …y con su nombre escrito', iconos.every((i) => i.texto.length > 4), JSON.stringify(iconos.map((i) => i.texto)))
   check('  …y miden 44 de alto', iconos.every((i) => i.alto >= 44), JSON.stringify(iconos))
-  // Y el ajuste de «al añadir», el cuarto, también está dentro.
-  check('  …y el ajuste de añadir, con ellos', await page.locator('#mcAlbumMenu #mcTocarOpciones').isVisible())
+  // El ajuste de «al añadir» se fue en la 1053 (PINGU: «esa opción ya
+  // sobra»): la hoja de añadir recuerda lo último que usaste.
+  check('  …y el ajuste de añadir ya no está', !(await page.locator('#mcAlbumMenu #mcTocarOpciones').count()) && await page.locator('#mcTocarOpciones').isHidden())
   await page.click('#mcAlbumMenu > summary')
   await page.waitForTimeout(250)
   // Y las chapas con texto que los sustituyeron ya no están en la fila.
@@ -196,28 +198,18 @@ console.log('\n── 4. La cabecera, con sus iconos ──')
   await page.close()
 }
 
-console.log('\n── 5. El ajuste de «al añadir» sigue existiendo, en los ajustes ──')
+console.log('\n── 5. Lo de «al añadir» se recuerda solo ──')
 {
-  // Quitar una chapa no puede ser quitar la función: el + de una carta
-  // suma una copia EN ESE idioma y ESE estado, y sin poder cambiarlo quien
-  // colecciona en inglés tendría que editar carta por carta.
+  // Desde la 1053 no hay ajuste: los desplegables quedan escondidos como
+  // memoria de lo último que usaste (lo prueba test-tanda-1053-pantalla.mjs),
+  // y lo que se guarda sigue recordándose al recargar.
   const { page } = await abrir()
   await abrirSet(page)
-  await page.click('#mcAlbumMenu > summary')
-  await page.waitForTimeout(400)
-  const panel = await page.locator('#mcTocarOpciones').evaluate((n) => {
-    const r = n.getBoundingClientRect()
-    return { visible: r.width > 0, izq: Math.round(r.left), der: Math.round(r.right), ventana: innerWidth }
-  })
-  check('se abre y se ve entero', panel.visible && panel.izq >= 0 && panel.der <= panel.ventana, JSON.stringify(panel))
-  check('  …con el idioma y el estado dentro',
-    (await page.locator('#mcTocarIdioma').count()) === 1 && (await page.locator('#mcTocarEstado').count()) === 1)
-  // Y SE RECUERDA: un ajuste que se olvida al recargar no es un ajuste.
-  await page.selectOption('#mcTocarIdioma', 'en')
+  await page.evaluate(() => { const s = document.getElementById('mcTocarIdioma'); s.value = 'en'; s.onchange?.() })
   await page.waitForTimeout(300)
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2800)
-  check('  …y lo elegido se recuerda al recargar', (await page.locator('#mcTocarIdioma').inputValue()) === 'en',
+  check('lo último que usaste se recuerda al recargar', (await page.locator('#mcTocarIdioma').inputValue()) === 'en',
     await page.locator('#mcTocarIdioma').inputValue())
   await page.close()
 }

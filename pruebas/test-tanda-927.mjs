@@ -119,8 +119,10 @@ console.log('── 2. Una fila: buscar, vista, apilar y filtros ──')
     return { buscar: caja('mcAlbumBuscar'), vista: caja('mcAlbumVista'), apilar: caja('mcVistaVariantes'), filtros: caja('mcAlbumAbrirFiltros') }
   })
   const misma = (a, b) => Math.abs((a.t + a.b) / 2 - (b.t + b.b) / 2) < 6
-  check('los cuatro en la misma fila', misma(r.buscar, r.vista) && misma(r.vista, r.apilar) && misma(r.apilar, r.filtros), JSON.stringify(r))
-  check('  …en ese orden, de izquierda a derecha', r.buscar.r <= r.vista.l && r.vista.r <= r.apilar.l && r.apilar.r <= r.filtros.l, JSON.stringify(r))
+  // Desde la 1053 el buscador va en su fila y los mandos debajo, también en
+  // el PC (con Todas/Tengo/Faltan, el orden y Seleccionar no cabían al lado).
+  check('el buscador encima y los mandos debajo, en una fila', r.buscar.b <= r.vista.t && misma(r.vista, r.apilar) && misma(r.apilar, r.filtros), JSON.stringify(r))
+  check('  …en ese orden, de izquierda a derecha', r.vista.r <= r.apilar.l && r.apilar.r <= r.filtros.l, JSON.stringify(r))
   // Con el ratón son controles densos (la 312): los 44 van con el dedo, abajo.
   check('  …y los tres botones, de la misma altura', r.vista.h === r.apilar.h && r.apilar.h === r.filtros.h && r.vista.h >= 32, JSON.stringify(r))
   const ap = await page.evaluate(() => ({ p: document.getElementById('mcVistaVariantes').getAttribute('aria-pressed'), t: document.getElementById('mcVistaVariantesRotulo').textContent.trim() }))
@@ -272,7 +274,8 @@ console.log('── 6. En el móvil ──')
     return { buscar: caja('mcAlbumBuscar'), vista: caja('mcAlbumVista'), apilar: caja('mcVistaVariantes'), filtros: caja('mcAlbumAbrirFiltros'), ancho: innerWidth, desborda: document.documentElement.scrollWidth > innerWidth }
   })
   check('el buscador encima y los tres mandos debajo, en una fila', r.buscar.b <= r.vista.t && Math.abs(r.vista.t - r.apilar.t) < 4 && Math.abs(r.apilar.t - r.filtros.t) < 4, JSON.stringify(r))
-  check('  …sin salirse de la pantalla', !r.desborda && r.filtros.r <= r.ancho, JSON.stringify(r))
+  // Una fila que se desliza (1038): lo que no cabe se ve deslizando, sin que la PÁGINA desborde.
+  check('  …sin salirse de la pantalla', !r.desborda, JSON.stringify(r))
   check('  …y con el dedo miden 44 de alto', [r.vista, r.apilar, r.filtros].every((x) => x.b - x.t >= 44), JSON.stringify(r))
   await page.click('#mcAlbumVista')
   await page.waitForTimeout(300)

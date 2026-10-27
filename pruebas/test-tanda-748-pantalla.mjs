@@ -780,7 +780,8 @@ for (const ancho of [1440, 1280]) {
   const m = await lee()
   check(`${ancho}: sin errores`, errores.length === 0, errores.join(' | '))
   if (ancho === 1280) {
-    check('1280: una columna, como siempre (sin la lista de al lado ni la línea)', m.hermanos === null && m.linea === null && !m.chips, JSON.stringify(m))
+    // Todas/Tengo/Faltan va en la barra a cualquier ancho desde la 1053.
+    check('1280: una columna, como siempre (sin la lista de al lado ni la línea)', m.hermanos === null && m.linea === null && m.chips, JSON.stringify(m))
     await page.locator('#mcAlbum [data-carta]').first().click()
     await page.waitForTimeout(900)
     check('  …y la carta se abre en su ventana de siempre', (await lee()).ficha.modal)

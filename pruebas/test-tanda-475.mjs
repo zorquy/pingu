@@ -70,7 +70,9 @@ check('ni el engranaje suelto de «al añadir»', (await page.locator('#mcTocarC
 console.log('\n── 2. Cerrado, no se ve nada de dentro ──')
 // Encontrar un elemento no es verlo (la lápida de la 447): los cuatro
 // EXISTEN en el DOM desde el primer momento, escondidos.
-for (const id of ['#mcMarcarAbrir', '#mcFaltanCopiar', '#mcTocarOpciones']) {
+// Desde la 1053 «Seleccionar» va en la barra y «al añadir» no está en el
+// menú: quedan los de dentro.
+for (const id of ['#mcFaltanCopiar', '#mcTocarOpciones']) {
   check(`${id} existe pero no se ve`, (await page.locator(id).count()) === 1 && (await page.locator(id).isHidden()), id)
 }
 check('el menú empieza cerrado', (await page.locator(menu).evaluate((n) => n.open)) === false)
@@ -81,45 +83,35 @@ await page.waitForTimeout(400)
 const opciones = await page.locator('#mcAlbumMenu .mc-menu-opcion').evaluateAll((ns) =>
   ns.filter((n) => n.getBoundingClientRect().height > 0).map((n) => ({ id: n.id, texto: n.textContent.trim() })))
 // Y desde la 725, el cuarto: «Enseñar las que tengo», al final.
-check('salen los cinco (con «Compartir la expansión»)', opciones.length === 5, JSON.stringify(opciones.map((o) => o.id)))
-check('  …en el orden de Dex, y enseñar al final', opciones.map((o) => o.id).join(',') === 'mcMarcarAbrir,mcAlbumFavorito,mcFaltanCopiar,mcAlbumCompartir,mcAlbumEnsenar',
+check('salen los cuatro (sin «Marcar varias», que es «Seleccionar» en la barra desde la 1053)', opciones.length === 4, JSON.stringify(opciones.map((o) => o.id)))
+check('  …en el orden de Dex, y enseñar al final', opciones.map((o) => o.id).join(',') === 'mcAlbumFavorito,mcFaltanCopiar,mcAlbumCompartir,mcAlbumEnsenar',
   JSON.stringify(opciones.map((o) => o.id)))
 // LO QUE ARREGLA EL MENÚ: cuatro iconos seguidos no dicen qué hacen. Aquí
 // cada uno lleva su frase, y la de compartir dice CUÁNTAS son — que era lo
 // que PINGU echaba de menos («es un botón que no hace nada»).
 check('  …cada uno con su frase', opciones.every((o) => o.texto.length > 4), JSON.stringify(opciones.map((o) => o.texto)))
-check('  …y la de compartir dice cuántas faltan', /Copiar las 7 que me faltan/.test(opciones[2].texto), opciones[2].texto)
-check('y el ajuste de «al añadir» también está', await page.locator('#mcTocarOpciones').isVisible())
+check('  …y la de compartir dice cuántas faltan', /Copiar las 7 que me faltan/.test(opciones[1].texto), opciones[1].texto)
+check('y el ajuste de «al añadir» ya no está (1053: recuerda lo último que usaste)', await page.locator('#mcTocarOpciones').isHidden())
 
 console.log('\n── 4. Se cierra solo al elegir ──')
 // Un <details> se queda abierto hasta que alguien lo cierra, y un menú
 // abierto encima de lo que acabas de cambiar tapa justo lo que has venido
 // a mirar.
-await page.click('#mcMarcarAbrir')
+await page.click('#mcFaltanCopiar')
 await page.waitForTimeout(500)
 check('al elegir, se cierra', (await page.locator(menu).evaluate((n) => n.open)) === false)
-// Desde la 748 la barra es la de su maqueta y va por piezas FIJAS: lo que
-// se ve es su tira de arriba (la caja que las lleva no mide nada).
-check('  …y la acción ha ocurrido', await page.locator('#mcMarcarBarra .mc-sel-arriba').isVisible())
-// Se apaga otra vez para lo que sigue.
-await page.click(boton)
-await page.waitForTimeout(300)
+// «Seleccionar» (1053) ya no está en el menú: va en la barra, a la vista.
+await page.click('#mcMarcarAbrir')
+await page.waitForTimeout(500)
+check('«Seleccionar», en la barra, enciende la selección', await page.locator('#mcMarcarBarra .mc-sel-arriba').isVisible())
 await page.click('#mcMarcarAbrir')
 await page.waitForTimeout(500)
 check('  …y se puede volver a apagar', (await page.locator('#mcMarcarBarra').isHidden()))
 
-console.log('\n── 5. Pero NO al tocar los desplegables de «al añadir» ──')
-// Son un ajuste y no una acción: ahí se suelen cambiar los dos seguidos, y
-// cerrar el menú en el primero obligaría a abrirlo otra vez.
+// La 5 (los desplegables de «al añadir» no cerraban el menú) se fue con
+// ellos en la 1053.
 await page.click(boton)
 await page.waitForTimeout(300)
-await page.selectOption('#mcTocarIdioma', 'en')
-await page.waitForTimeout(300)
-check('el menú sigue abierto', (await page.locator(menu).evaluate((n) => n.open)) === true)
-await page.selectOption('#mcTocarEstado', 'LP')
-await page.waitForTimeout(300)
-check('  …y al segundo también', (await page.locator(menu).evaluate((n) => n.open)) === true)
-check('  …y lo elegido se queda', (await page.inputValue('#mcTocarIdioma')) === 'en')
 
 console.log('\n── 6. Y se cierra al tocar fuera ──')
 await page.mouse.click(30, 700)
