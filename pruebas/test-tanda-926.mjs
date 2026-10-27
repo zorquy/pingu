@@ -71,7 +71,7 @@ for (const [ancho, alto] of [[1366, 768], [1920, 1080]]) {
   check('  …la carta sobre sus colores (--arte) y arriba, no centrada en la columna', /url\(/.test(m.arte) && m.cartaArriba !== null && m.cartaArriba < 80, JSON.stringify({ arte: m.arte.slice(0, 40), arriba: m.cartaArriba }))
   check('los seis precios en una fila', m.tarjetas === 6 && m.filasDePrecio === 1, JSON.stringify(m))
   check('«Avísame», «Comparar» y «Todas las cartas de…» en una fila, fuera de un párrafo', m.botonesEnFila && m.pie === 'DIV', JSON.stringify(m))
-  check('la gráfica, dibujada más baja', m.viewBox === '0 0 600 120', m.viewBox)
+  check('la gráfica, dibujada más baja', m.viewBox === '0 0 600 104', m.viewBox)
   check('los datos en tres columnas', m.ficha === 3, String(m.ficha))
   check('la legalidad, una chapa con su porqué en el title', m.legal && m.legal.radio > 100 && /marcas/.test(m.legal.title) && !m.legal.porqueVisible, JSON.stringify(m.legal))
   check('sin la caja de debilidad y resistencia vacías', m.combate === 0, String(m.combate))

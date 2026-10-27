@@ -94,7 +94,7 @@ for (const [ancho, alto] of [[1152, 711], [1366, 768], [1920, 1080]]) {
     check('  …ningún botón se sale de su caja', !m.desbordan.length, m.desbordan.join(' | '))
     check('  …y nada se sale del pop-up', !m.fuera.length, m.fuera.join(' | '))
     check('  …los seis precios en una fila', m.tarjetas === 6 && m.filasDePrecio === 1, JSON.stringify(m))
-    check('  …la gráfica dibujada más baja', m.viewBox === '0 0 600 120', m.viewBox)
+    check('  …la gráfica dibujada más baja', m.viewBox === '0 0 600 104' /* 104 desde la 1062: los botones de las series ocupan una fila */, m.viewBox)
     check('  …«Ficha completa» abajo en la columna de la carta', m.fichaEnLaCarta && /carta/.test(m.fichaHref || ''), m.fichaHref)
     if (!caso.tiene) {
       check('  …sin chapas de una copia que no existe', m.chapas === '', m.chapas)

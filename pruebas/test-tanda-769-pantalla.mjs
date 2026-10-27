@@ -184,7 +184,7 @@ const baldosas = (page) => page.$$eval('#mcProdSets [data-prod-set]', (bs) => bs
       filas: [...d.querySelectorAll('.pv-tabla tbody tr')].map((tr) => [...tr.cells].map((c) => c.textContent.trim()).join(' ')),
       cm: d.querySelector('.btn-cardmarket')?.href, tp: d.querySelector('.btn-tcgplayer')?.href,
       grafica: !!d.querySelector('#mcProdHistorial svg') && !document.getElementById('mcProdHistorial').classList.contains('hidden'),
-      leyenda: [...d.querySelectorAll('.carta-historial-leyenda-item')].map((i) => i.textContent.trim()),
+      leyenda: [...d.querySelectorAll('.carta-historial-serie')].map((i) => i.textContent.trim()), // 1062: los botones de las series
       tienes: d.querySelector('.mc-prodf-tienes')?.textContent,
     }
   })
@@ -192,7 +192,7 @@ const baldosas = (page) => page.$$eval('#mcProdSets [data-prod-set]', (bs) => bs
   check('  …con el precio de España arriba', /5,50 € mínimo en español/.test(ficha.precio), ficha.precio)
   check('  …lo que vale en cada sitio y las medias', ficha.filas.join('|') === 'Español 5,50 €|Inglés 5,00 €|Alemán 4,90 €|Media de 7 días 5,10 €|Media de 30 días 4,80 €|A la venta ahora 812', JSON.stringify(ficha.filas))
   check('  …los dos botones, directos al producto', ficha.cm === 'https://www.cardmarket.com/es/Pokemon/Products?idProduct=700001' && ficha.tp === 'https://www.tcgplayer.com/product/500001', `${ficha.cm} ${ficha.tp}`)
-  check('  …su gráfica, la de las cartas, con Cardmarket y TCGplayer', ficha.grafica && ficha.leyenda.join() === 'Cardmarket,TCGplayer' && pedidas.some((u) => /product=9001/.test(u)), JSON.stringify(ficha.leyenda))
+  check('  …su gráfica, la de las cartas, con Cardmarket y TCGplayer', ficha.grafica && ficha.leyenda.join() === 'Cardmarket,TCGplayer (EE. UU.)' && pedidas.some((u) => /product=9001/.test(u)), JSON.stringify(ficha.leyenda))
   check('  …y dice que lo tienes', ficha.tienes === 'Lo tienes', ficha.tienes)
   if (CAPS) await page.screenshot({ path: `${CAPS}/769-ficha.png` })
   await page.click('#mcProdFicha [data-prod-mas="9001"]')

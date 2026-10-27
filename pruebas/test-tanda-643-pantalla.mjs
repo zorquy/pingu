@@ -44,18 +44,24 @@ console.log('── 1. La gráfica, con las filas de la función ──')
   const caja = page.locator('#cmHistorial')
   check('se pide el histórico de ESTA carta, una vez', pedidas === 1)
   check('la gráfica se ve, con su título', await caja.isVisible() && /Histórico de precios/i.test(await caja.innerText()))
-  // Desde la 661 se dibujan TODOS los idiomas con cifra (el elegido,
-  // gordo) y el eje abarca todas las líneas: español, inglés y TCGplayer.
-  check('  …un SVG con las tres líneas (español, inglés y TCGplayer)', (await caja.locator('svg polyline.carta-historial-linea').count()) === 3 && (await caja.locator('svg .carta-historial-linea-tp').count()) === 1 && (await caja.locator('svg polyline[data-idioma="en"].carta-historial-linea-otra').count()) === 1)
-  check('  …el eje con el mínimo y el máximo de todas (140 del español, 199 del inglés)', /140,00 €/.test(limpio(await caja.innerText())) && /199,00 €/.test(limpio(await caja.innerText())), limpio(await caja.innerText()))
-  check('  …con los chips de 7 y 30 días, la leyenda y los rangos', (await caja.locator('.carta-historial-chip').count()) === 2 && (await caja.locator('.carta-historial-leyenda-item').count()) === 3 && (await caja.locator('.carta-historial-rango').count()) === 6)
-  check('  …y la leyenda llama «Cardmarket» a la línea elegida (667: sin pie)', /Cardmarket/.test(await caja.locator('.carta-historial-leyenda').innerText()))
+  // Desde la 1062 se ven tu idioma y «Cualquier idioma»; TCGplayer y los
+  // demás, con su botón. El inglés no va aparte: es el general.
+  check('  …un SVG con tu idioma y el general; TCGplayer apagado', (await caja.locator('svg polyline.carta-historial-linea').count()) === 2 && (await caja.locator('svg polyline[data-serie="es"].principal').count()) === 1 && (await caja.locator('svg polyline[data-serie="todos"]').count()) === 1 && (await caja.locator('svg .carta-historial-linea-tp').count()) === 0)
+  check('  …el eje con los extremos de las dos (160 del español, 39 del general)', /160 €/.test(limpio(await caja.innerText())) && /39,00 €/.test(limpio(await caja.innerText())), limpio(await caja.innerText()))
+  check('  …con los chips de 7 y 30 días, los botones de las series y los rangos', (await caja.locator('.carta-historial-chip').count()) === 2 && (await caja.locator('.carta-historial-serie').allInnerTexts()).map((t) => t.replace(/\s+/g, ' ').trim()).join('|') === 'Español (la tuya)|Cualquier idioma|TCGplayer (EE. UU.)' && (await caja.locator('.carta-historial-rango').count()) === 6, (await caja.locator('.carta-historial-serie').allInnerTexts()).join('|'))
+  await caja.locator('.carta-historial-serie[data-serie="tp"]').click()
+  await page.waitForTimeout(200)
+  check('  …y TCGplayer se enciende con su botón, a trazos', (await caja.locator('svg .carta-historial-linea-tp').count()) === 1 && (await caja.locator('.carta-historial-serie[data-serie="tp"]').getAttribute('aria-pressed')) === 'true')
+  await caja.locator('.carta-historial-serie[data-serie="tp"]').click()
+  await page.waitForTimeout(200)
+  check('  …y abajo dice de dónde sale (1062)', /Mínimo Near Mint de Cardmarket/.test(await caja.locator('.carta-historial-origen').innerText()))
   const ancho = await caja.locator('svg').evaluate((el) => el.getBoundingClientRect().width)
   check('el SVG ocupa el ancho de su caja', ancho > 400, String(ancho))
   // El idioma: en inglés el eje cambia.
   await page.selectOption('#cmIdioma', 'en')
   await page.waitForTimeout(300)
-  check('al cambiar a inglés la gráfica cambia (el inglés pasa a ser la línea gorda) sin volver a pedir', (await caja.locator('svg polyline.carta-historial-linea[data-idioma="en"]:not(.carta-historial-linea-otra)').count()) === 1 && /elegido" data-idioma="en"/.test(await caja.locator('.carta-historial-leyenda').innerHTML()) /* la leyenda marca el inglés (667: sin pie) */ && pedidas === 1, limpio(await caja.innerText()))
+  // 1062: el inglés de TCGGO ES el general, así que pasa a ser la gorda y «la tuya».
+  check('al cambiar a inglés la gráfica cambia (el general pasa a ser la gorda y «la tuya») sin volver a pedir', (await caja.locator('svg polyline.principal[data-serie="todos"]').count()) === 1 && /la tuya/.test(await caja.locator('.carta-historial-serie[data-serie="todos"]').innerText()) && pedidas === 1, limpio(await caja.innerText()))
 }
 
 console.log('── 2. Sin filas, no se ve ──')

@@ -39,12 +39,14 @@ console.log('\n── 2. La gráfica en puro (661) ──')
   const c30 = m.cambioEnDias(filas, 'es', 30)
   check('el cambio de 7 y 30 días del idioma elegido', c7 && Math.abs(c7.cambio - 3.5) < 0.01 && c30 && Math.abs(c30.cambio - 15) < 0.01 && c7.pct > 0, JSON.stringify([c7, c30]))
   check('  …y no se afirma lo que el histórico no cubre', m.cambioEnDias(filas.slice(-4), 'es', 7) === null && m.cambioEnDias(filas.slice(-4), 'es', 30) === null)
-  const svg = m.svgDeHistorial(filas, { idioma: 'es', todas: true, marcas: [{ dia: d(40), codigo: 'MEG', nombre: 'Mega Evolution' }, { dia: d(500), codigo: 'OLD', nombre: 'Fuera' }] })
-  check('con `todas`, una línea por idioma: la elegida gorda y las demás finas con su idioma', (svg.match(/<polyline/g) || []).length === 3 && /class="carta-historial-linea carta-historial-linea-otra" data-idioma="en"/.test(svg) && /class="carta-historial-linea" data-idioma="es"/.test(svg))
+  // Desde la 1062 se eligen las series (`visibles`); la primera, gorda.
+  const svg = m.svgDeHistorial(filas, { idioma: 'es', visibles: ['es', 'todos', 'tp'], marcas: [{ dia: d(40), codigo: 'MEG', nombre: 'Mega Evolution' }, { dia: d(500), codigo: 'OLD', nombre: 'Fuera' }] })
+  check('una raya por serie elegida: la primera gorda, cada una con su `data-serie`', (svg.match(/<polyline/g) || []).length === 3 && /class="carta-historial-linea principal" data-serie="es"/.test(svg) && /data-serie="todos"/.test(svg) && /carta-historial-linea-tp" data-serie="tp"/.test(svg))
   check('las marcas: la del tramo se dibuja con su código; la de fuera, no', (svg.match(/carta-historial-marca"/g) || []).length === 1 && />MEG</.test(svg) && !/OLD/.test(svg))
   check('los puntos de lectura van en el SVG', JSON.parse(svg.match(/data-puntos="([^"]+)"/)[1].replace(/&quot;/g, '"')).length === 120)
-  check('sin `todas`, como antes: una línea y TCGplayer', (m.svgDeHistorial(filas, { idioma: 'es' }).match(/<polyline/g) || []).length === 2)
-  check('la leyenda nombra los idiomas dibujados y TCGplayer, con el elegido marcado', /elegido" data-idioma="es"/.test(m.leyendaHtml(filas, 'es', { todas: true })) && /data-idioma="en"/.test(m.leyendaHtml(filas, 'es', { todas: true })) && /TCGplayer/.test(m.leyendaHtml(filas, 'es', { todas: true })))
+  check('sin `visibles`, tu idioma y el general (TCGplayer apagado)', (m.svgDeHistorial(filas, { idioma: 'es' }).match(/<polyline/g) || []).length === 2 && !/linea-tp/.test(m.svgDeHistorial(filas, { idioma: 'es' })))
+  const mandos = m.mandosHtml(filas, 'es', ['es', 'todos'])
+  check('los botones de las series: la tuya marcada, el general y TCGplayer apagado', /data-serie="es" aria-pressed="true"/.test(mandos) && /la tuya/.test(mandos) && /data-serie="todos" aria-pressed="true"/.test(mandos) && /data-serie="tp" aria-pressed="false"/.test(mandos) && /TCGplayer \(EE\. UU\.\)/.test(mandos) && !/data-serie="en"/.test(mandos))
   check('los chips', /7 d <b>\+/.test(m.chipsHtml(filas, 'es')) && /30 d <b>\+/.test(m.chipsHtml(filas, 'es')) && m.chipsHtml(filas.slice(-3), 'es') === '')
   const marcas = m.cargadorDeMarcas({ from: () => ({ select: () => ({ eq: () => ({ gte: () => ({ lte: () => ({ order: () => ({ limit: async () => ({ data: [{ id: 'me01', name_en: 'Mega Evolution', tcg_online_code: 'MEG', release_date: d(40), card_count_official: 130 }, { id: 'promo', name: 'Promos', tcg_online_code: 'PR', release_date: d(20), card_count_official: 20 }] }) }) }) }) }) }) }) })
   const lista = await marcas(d(100), d(0))
@@ -100,7 +102,8 @@ console.log('\n── 3. En /carta ──')
 console.log('\n── 4. Lo estático ──')
 {
   const css = readFileSync(`${RAIZ}/css/cardmarket.css`, 'utf8')
-  check('cada idioma con su color, por tokens', /\.carta-historial-linea\[data-idioma='en'\] \{ stroke: var\(--indigo\)/.test(css) && /data-idioma='ja'\] \{ stroke: var\(--rarity-bronze\)/.test(css))
+  // Desde la 1062 el color va por serie (`data-serie`) y lo comparten la raya, los puntos y el botón.
+  check('cada serie con su color, por tokens, en la raya y en su botón', /\[data-serie='es'\] \{ --serie: var\(--navy\)/.test(css) && /\[data-serie='ja'\] \{ --serie: var\(--rarity-bronze\)/.test(css) && /\.carta-historial-linea\[data-serie\] \{ stroke: var\(--serie\)/.test(css) && /\.carta-historial-serie i \{[^}]*background: var\(--serie\)/.test(css))
   check('la ficha de /mi-coleccion también pasa las marcas', /cargadorDeMarcas\(supabase, c\?\.market/.test(readFileSync(`${RAIZ}/js/mi-coleccion.js`, 'utf8')))
 }
 

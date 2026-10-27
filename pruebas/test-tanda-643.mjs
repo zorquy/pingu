@@ -7,7 +7,7 @@ import { urlHistorial, filasDeHistorial } from '/home/user/pingu/netlify/lib/tcg
 import { procesar as historial, CLAVE_ESTADO, TOPE_DIARIO } from '/home/user/pingu/netlify/functions/tcggo-historial.mjs'
 import { procesar as precios } from '/home/user/pingu/netlify/functions/tcggo-precios.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES } from '/home/user/pingu/netlify/functions/tcggo-emparejar.mjs'
-import { svgDeHistorial, serieDe, valorDeFila, pieDeHistorial, ANCHO, ALTO } from '/home/user/pingu/js/carta-historial.js'
+import { svgDeHistorial, serieDe, valorDeFila, seriesDisponibles, origenHtml, ANCHO, ALTO } from '/home/user/pingu/js/carta-historial.js'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -114,20 +114,22 @@ console.log('── 4. La gráfica ──')
     { dia: '2026-09-15', cm_low: 40, cm_low_es: 150, cm_low_en: 190, tp_market_eur: 160 },
     { dia: '2026-10-01', cm_low: 41, cm_low_es: 160, cm_low_en: 199, tp_market_eur: null },
   ]
-  check('el valor de una fila: el del idioma, y si no el general', valorDeFila(filas[0], 'es') === 140 && valorDeFila(filas[0], 'de') === 39 && valorDeFila({ dia: 'x' }, 'es') === null)
+  // Desde la 1062 una serie es SOLO suya: caer al general cuando faltaba el
+  // idioma hacía saltar la raya y la chapa decía «+586 %» sin que nada subiera.
+  check('el valor de una fila: el del idioma, sin caer al general; «todos» es el general', valorDeFila(filas[0], 'es') === 140 && valorDeFila(filas[0], 'de') === null && valorDeFila(filas[0], 'todos') === 39 && valorDeFila({ dia: 'x' }, 'es') === null)
   check('una serie solo lleva los días con cifra', serieDe(filas, (f) => f.tp_market_eur).length === 2)
+  check('las series: la tuya, «Cualquier idioma» y TCGplayer; el inglés no va aparte (es el general)', seriesDisponibles(filas, 'es').join() === 'es,todos,tp', seriesDisponibles(filas, 'es').join())
   const svg = svgDeHistorial(filas, { idioma: 'es' })
-  check('un SVG con la línea del español (3 puntos) y la de TCGplayer a trazos (2)', /<svg viewBox="0 0 600 200"/.test(svg) && (svg.match(/<polyline class="carta-historial-linea"[ >]/g) || []).length === 1 && /carta-historial-linea-tp/.test(svg) && ANCHO === 600 && ALTO === 200, svg.slice(0, 200))
-  check('  …con el mínimo y el máximo de las dos líneas en el eje (140 del español, 171 de TCGplayer) y las dos fechas abajo', /140,00 €/.test(limpio(svg)) && /199,00 €/.test(limpio(svg)) === false && /171,00 €/.test(limpio(svg)) && /1 sept/.test(svg) && /1 oct/.test(svg), limpio(svg).match(/<text[^>]*>[^<]*/g)?.join(' | '))
-  check('  …y un rótulo accesible', /aria-label="Histórico: de 140,00 € a 171,00 €/.test(limpio(svg)))
-  // Los puntos: el español sube de 140 a 160, así que el primero está más
-  // abajo (y mayor) que el último en pantalla.
-  // Desde la 661 la línea lleva `data-idioma` entre la clase y los puntos.
-  const puntos = svg.match(/<polyline class="carta-historial-linea"[^>]*? points="([^"]*)"/)[1].split(' ').map((p) => p.split(',').map(Number))
+  check('un SVG con tu idioma (gorda) y el general; TCGplayer apagado de serie', /<svg viewBox="0 0 600 200"/.test(svg) && (svg.match(/<polyline/g) || []).length === 2 && /class="carta-historial-linea principal" data-serie="es"/.test(svg) && /data-serie="todos"/.test(svg) && !/carta-historial-linea-tp/.test(svg) && ANCHO === 600 && ALTO === 200, svg.slice(0, 200))
+  check('  …con los extremos de las dos en el eje (160 del español, 39 del general) y las fechas abajo', /160 €/.test(limpio(svg)) && /39,00 €/.test(limpio(svg)) && !/171/.test(limpio(svg)) && /1 sept/.test(svg) && /1 oct/.test(svg), limpio(svg).match(/<text[^>]*>[^<]*/g)?.join(' | '))
+  check('  …y un rótulo accesible', /aria-label="Histórico: de 39,00 € a 160,00 €/.test(limpio(svg)))
+  const puntos = svg.match(/data-serie="es" points="([^"]*)"/)[1].split(' ').map((p) => p.split(',').map(Number))
   check('  …y la línea sube: el primer punto está más abajo que el último', puntos.length === 3 && puntos[0][1] > puntos[2][1] && puntos[0][0] < puntos[2][0], JSON.stringify(puntos))
-  check('en inglés, otra línea: el máximo pasa a ser el 199 del inglés', /199,00 €/.test(limpio(svgDeHistorial(filas, { idioma: 'en' }))) && /140,00 €/.test(limpio(svgDeHistorial(filas, { idioma: 'en' }))) === false)
+  check('  …con un punto en cada muestra', (svg.match(/<circle class="carta-historial-punto" data-serie="es"/g) || []).length === 3)
+  const conTp = svgDeHistorial(filas, { idioma: 'es', visibles: ['es', 'tp'] })
+  check('TCGplayer, si se enciende, a trazos y con su máximo', /carta-historial-linea-tp/.test(conTp) && /171 €/.test(limpio(conTp)))
   check('con menos de dos puntos no hay gráfica', svgDeHistorial(filas.slice(0, 1), { idioma: 'es' }) === '' && svgDeHistorial([], {}) === '')
-  check('el pie dice qué líneas hay y de qué idioma', /mínimo en Cardmarket en español/.test(pieDeHistorial(filas, 'es')) && /a trazos, TCGplayer/.test(pieDeHistorial(filas, 'es')) && /3 días/.test(pieDeHistorial(filas, 'es')) && /cualquier idioma/.test(pieDeHistorial(filas, 'de')), pieDeHistorial(filas, 'de'))
+  check('abajo dice de dónde sale', /Mínimo Near Mint de Cardmarket/.test(origenHtml(filas)) && origenHtml([]) === '')
   const sql = readFileSync('/home/user/pingu/supabase-migration-tcggo-historial.sql', 'utf8')
   check('la migración: la tabla con su clave, lectura pública, historial_at y la foto solo para service_role', /create table if not exists public\.tcg_card_history/.test(sql) && /primary key \(card_id, dia\)/.test(sql) && /for select using \(true\)/.test(sql) && /add column if not exists historial_at/.test(sql) && /grant execute on function public\.historial_foto_diaria\(date\) to service_role/.test(sql))
   check('  …y la foto solo de las cartas que alguien tiene', /exists \(select 1 from public\.user_collection c where c\.card_id = p\.card_id\)/.test(sql))
