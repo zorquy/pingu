@@ -162,13 +162,14 @@ console.log('\n── 3. /mis-partidas: desde una repetición, con tu mazo guard
   check('  …y recuerda quién eres, como /repeticiones', (await page.evaluate(() => localStorage.getItem('pokedoc-repeticion-yo'))) === 'PinguTCG')
   check('  …y sale en la lista con su mazo', /Dragapult de la liga/.test(await page.textContent('#partidasLista')))
 
-  // El formulario de siempre, con el mazo guardado.
+  // El formulario de siempre, con el mazo guardado. Desde la 1070 se elige
+  // de las baldosas de «Tu mazo» y el arquetipo se deduce (sin escribirlo).
   await page.click('#btnApuntarPartida')
-  check('el formulario lleva «Con tu mazo guardado»', await page.isVisible('#partidaMazoGuardado'))
-  await page.selectOption('#partidaMazoGuardado', 'mazo-1')
+  check('el formulario ofrece tus mazos guardados', await page.isVisible('#partidaTuMazo [data-mazo="mazo-1"]'))
+  await page.click('#partidaTuMazo [data-mazo="mazo-1"]')
   await page.waitForTimeout(600)
-  const mio = await page.locator('#selMio1 .selector-mazo-texto').inputValue()
-  check('  …y elegirlo con «Tu mazo» vacío lo rellena con su arquetipo', /Dragapult/.test(mio), mio)
+  const mio = await page.textContent('#partidaTuMazo [data-cuenta-como]')
+  check('  …y elegir uno dice el arquetipo con el que cuenta', /Cuenta como\s*Dragapult/.test(mio), mio)
   await page.locator('#selRival1 .selector-mazo-texto').fill('Gardevoir')
   await page.waitForTimeout(400)
   await page.locator('#selRival1 .selector-mazo-opcion').first().click()
@@ -176,9 +177,12 @@ console.log('\n── 3. /mis-partidas: desde una repetición, con tu mazo guard
   await page.waitForTimeout(700)
   const amano = (await filasLog(page)).find((f) => !f.replay_id && f.id !== 'mlog-ya')
   check('  …y se guarda con él', amano?.user_deck_id === 'mazo-1' && amano.mi_mazo === 'a:arq-dragapult', JSON.stringify(amano))
-  // Editar la ya apuntada: el desplegable trae el suyo.
+  // Editar la ya apuntada: sale elegido el suyo, con el arquetipo que la fila
+  // ya tiene (no se deduce otra vez: la partida no cambia de casilla).
   await page.click('[data-editar="mlog-ya"]')
-  check('al editar, el desplegable trae el mazo que la partida ya tiene', (await page.inputValue('#partidaMazoGuardado')) === 'mazo-2')
+  await page.waitForTimeout(300)
+  check('al editar, sale elegido el mazo que la partida ya tiene', (await page.getAttribute('#partidaTuMazo [data-mazo="mazo-2"]', 'aria-checked')) === 'true')
+  check('  …con el arquetipo de la fila, no el deducido', /Cuenta como\s*A\b/.test(await page.textContent('#partidaTuMazo [data-cuenta-como]')), await page.textContent('#partidaTuMazo [data-cuenta-como]'))
   check('sin errores', !errores.length, errores.join(' | '))
   await page.close()
 }
@@ -189,7 +193,7 @@ console.log('\n── 3. /mis-partidas: desde una repetición, con tu mazo guard
   await page.click('#partidasTabs [data-vista="torneos"]')
   await page.click('[data-abrir-torneo="tl-1"]')
   await page.click('[data-anadir-ronda="tl-1"]')
-  check('en una ronda de torneo no se ofrece', !(await page.isVisible('#partidaMazoGuardado')))
+  check('en una ronda de torneo no se ofrece', !(await page.isVisible('#partidaTuMazo')))
   await page.close()
 }
 
@@ -197,7 +201,7 @@ console.log('\n── 4. Antes de la migración ──')
 {
   const { page, errores } = await misPartidas({ __SIN_COLUMNAS__: { match_log: ['user_deck_id'] } })
   await page.click('#btnApuntarPartida')
-  check('el formulario NO ofrece el mazo guardado (no habría dónde guardarlo)', !(await page.isVisible('#partidaMazoGuardado')))
+  check('el formulario NO ofrece el mazo guardado (no habría dónde guardarlo)', !(await page.isVisible('#partidaTuMazo [data-origenes]')) && !(await page.isVisible('#partidaTuMazo [data-guardados]')) && (await page.isVisible('#selMio1')))
   await page.click('#btnDesdeRepeticion')
   await page.selectOption('#desdeRepSel', 'rep0000001')
   await page.click('#desdeRepForm input[name="desdeRepYo"][value="PinguTCG"]')

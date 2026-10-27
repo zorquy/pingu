@@ -18,7 +18,7 @@ import { normalizeSearch } from './texto.js'
 
 // ── Las tablas ──
 // Las tablas cuyo `user_id` tiene `default auth.uid()` en la base.
-const TABLAS_CON_DUENO = ['user_collection', 'user_albums', 'user_wants', 'user_want_lists', 'user_want_list_items', 'user_collection_value', 'user_folders', 'match_log']
+const TABLAS_CON_DUENO = ['user_collection', 'user_albums', 'user_wants', 'user_want_lists', 'user_want_list_items', 'user_collection_value', 'user_folders', 'match_log', 'match_log_ajustes']
 
 const T = {
   user_profiles: [],
@@ -136,6 +136,8 @@ const T = {
   replay_puzzle_answers: [],
   match_log: [],
   match_log_torneos: [],
+  // Tu mazo predeterminado (tanda 1070): una fila por persona, privada.
+  match_log_ajustes: [],
   guides: [],
   categories: [],
   guide_suggestions: [],
@@ -817,6 +819,19 @@ sembrar('__FAKE_LOG_TORNEOS__', 'match_log_torneos', (i) => ({
   jugado_el: '2026-08-30',
   cerrado_el: null,
   notas: null,
+  // Las de la 1070, con su valor por defecto de la base (tanda 437).
+  user_deck_id: null,
+  puesto: null,
+  jugadores: null,
+}))
+
+// Tu mazo predeterminado (tanda 1070).
+sembrar('__FAKE_AJUSTES_PARTIDAS__', 'match_log_ajustes', () => ({
+  user_id: 'user-1',
+  user_deck_id: null,
+  mi_mazo: null,
+  mi_mazo_nombre: null,
+  updated_at: '2026-10-27T00:00:00Z',
 }))
 
 sembrar('__FAKE_ARQUETIPOS__', 'tcg_archetypes', (i) => ({
@@ -1192,9 +1207,18 @@ function consulta(tabla, estado = {}) {
       if (falta) return { data: null, error: { code: 'PGRST204', message: `Could not find the '${falta}' column of '${tabla}' in the schema cache` } }
       // El disparador de supabase-migration-partidas-mazo-guardado.sql: una
       // partida solo se enlaza con un mazo TUYO (ni con uno público de otro).
-      if (tabla === 'match_log') {
+      // Desde la 1070 el mismo disparador cuelga también del torneo apuntado
+      // y del predeterminado.
+      if (['match_log', 'match_log_torneos', 'match_log_ajustes'].includes(tabla)) {
         const ajeno = cuerpos.find((f) => f?.user_deck_id && !T.user_decks.some((d) => d.id === f.user_deck_id && d.user_id === (f.user_id || sesion?.user?.id)))
         if (ajeno) return { data: null, error: { code: '42501', message: 'Ese mazo no es tuyo.' } }
+      }
+      // Los CHECK de la 1070: el puesto cabe y el arquetipo va entero.
+      if (tabla === 'match_log_torneos' && cuerpos.some((f) => f && ((f.puesto != null && (f.puesto < 1 || f.puesto > 9999)) || (f.jugadores != null && (f.jugadores < 2 || f.jugadores > 99999)) || (f.puesto != null && f.jugadores != null && f.puesto > f.jugadores)))) {
+        return { data: null, error: { code: '23514', message: 'new row for relation "match_log_torneos" violates check constraint "match_log_torneos_puesto_cabe"' } }
+      }
+      if (tabla === 'match_log_ajustes' && cuerpos.some((f) => f && (f.mi_mazo == null) !== (f.mi_mazo_nombre == null))) {
+        return { data: null, error: { code: '23514', message: 'new row for relation "match_log_ajustes" violates check constraint "match_log_ajustes_mazo_entero"' } }
       }
     }
     if (st.op === 'insert' || st.op === 'upsert') {
@@ -1259,7 +1283,19 @@ function consulta(tabla, estado = {}) {
         const n = { ...f, ...st.cuerpo }
         return T.user_wants.some((x) => x !== f && !afectadas.includes(x) && x.user_id === n.user_id && x.card_id === n.card_id && (x.idioma || '*') === (n.idioma || '*') && (x.variante || '*') === (n.variante || '*'))
       })) return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint "user_wants_unico"' } }
+      // El disparador de la 251 (con el mazo guardado desde la 1070): cambiar
+      // el mazo, el nombre o la fecha de un torneo apuntado lo arrastra a sus
+      // rondas. Antes el doble no lo hacía y una prueba no podía verlo.
+      const antes = tabla === 'match_log_torneos' ? afectadas.map((f) => ({ ...f })) : []
       afectadas.forEach((f) => Object.assign(f, st.cuerpo))
+      if (tabla === 'match_log_torneos') {
+        afectadas.forEach((t, i) => {
+          const v = antes[i]
+          if (['mi_mazo', 'mi_mazo_nombre', 'user_deck_id', 'nombre', 'jugado_el'].some((c) => (t[c] ?? null) !== (v[c] ?? null))) {
+            for (const r of T.match_log) if (r.torneo_id === t.id) Object.assign(r, { mi_mazo: t.mi_mazo, mi_mazo_nombre: t.mi_mazo_nombre, user_deck_id: t.user_deck_id ?? null, donde: t.nombre, jugada_el: t.jugado_el })
+          }
+        })
+      }
       anotarEscritura(tabla, afectadas.map((f) => ({ ...f })), 'update')
       return { data: st.unico ? afectadas[0] || null : afectadas, error: null }
     }
@@ -1271,7 +1307,7 @@ function consulta(tabla, estado = {}) {
       T[tabla] = (T[tabla] || []).filter((f) => !afectadas.includes(f))
       // `match_log.user_deck_id … on delete set null` (tanda 627): borrar
       // un mazo deja sus partidas, sin el enlace.
-      if (tabla === 'user_decks') for (const p of T.match_log) if (afectadas.some((d) => d.id === p.user_deck_id)) p.user_deck_id = null
+      if (tabla === 'user_decks') for (const p of [...T.match_log, ...T.match_log_torneos, ...T.match_log_ajustes]) if (afectadas.some((d) => d.id === p.user_deck_id)) p.user_deck_id = null
       // Como PostgREST: un DELETE devuelve cuerpo SOLO si se pidió
       // (supabase-js manda `Prefer: return=representation` al encadenar
       // .select()). Sin eso, `data` es null aunque se haya borrado —
