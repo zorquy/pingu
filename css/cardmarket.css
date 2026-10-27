@@ -1374,6 +1374,10 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   box-sizing: border-box;
   width: min(440px, calc(100vw - 32px));
   max-width: none;
+  /* Con la fila de versión (1047) crece: tope de alto y se desliza ella (1045). */
+  max-height: calc(100dvh - var(--e-xl) * 2);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   margin: auto;
   padding: 0;
   border: 1px solid var(--border);
@@ -1408,6 +1412,19 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   margin: 0;
   color: var(--text-mid);
   font-size: var(--t-xs);
+}
+
+/* La versión del deseo (1047, SCHEMA 1047): una fila más, con su rótulo. */
+.mc-idd-rot {
+  margin: 0 0 var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.mc-idd-version img,
+.mc-idd-version svg {
+  flex: none;
 }
 
 .mc-idd-pie {

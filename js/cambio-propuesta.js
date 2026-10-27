@@ -127,8 +127,8 @@ function itemDeLinea(l, mia, { libres = null } = {}) {
   const max = Math.max(1, Number(libres ?? l.cantidad) || 1)
   return { key: nuevaClave(), mia, linea: l.id, card_id: l.card_id, market: l.market || 'WEST', idioma: l.idioma, estado: l.estado, variante: l.variante, gradeo: l.gradeo || null, cantidad: 1, max, pedida: false }
 }
-function itemPedido(card_id, market = 'WEST', idioma = 'es') {
-  return { key: nuevaClave(), mia: false, linea: null, card_id, market, idioma, estado: 'NM', variante: 'normal', gradeo: null, cantidad: 1, max: 9, pedida: true }
+function itemPedido(card_id, market = 'WEST', idioma = 'es', variante = 'normal') {
+  return { key: nuevaClave(), mia: false, linea: null, card_id, market, idioma, estado: 'NM', variante: variante || 'normal', gradeo: null, cantidad: 1, max: 9, pedida: true }
 }
 
 // Abre el editor. `otro`: el perfil de la otra persona. `prefill`: lo que
@@ -174,15 +174,21 @@ export async function abrirPropuesta({ sesion, otro, prefill = {}, anterior = nu
 function itemsDePrefill(prefill) {
   const items = []
   const usadas = new Set()
+  // La copia de la versión que toca primero (1047): en el cruce la Holo es la
+  // Holo, y coger su Normal sería proponer otra carta.
+  const version = (p, x) => !p.variante || (x.variante || 'normal') === p.variante
   for (const p of prefill.suyas || []) {
-    const l = ed.suyas.find((x) => x.card_id === p.card_id && !usadas.has(x.id) && Number(x.libres) > 0 && (!p.idioma || x.idioma === p.idioma)) ||
-      ed.suyas.find((x) => x.card_id === p.card_id && !usadas.has(x.id) && Number(x.libres) > 0)
+    const libre = (x) => x.card_id === p.card_id && !usadas.has(x.id) && Number(x.libres) > 0
+    const l = ed.suyas.find((x) => libre(x) && version(p, x) && (!p.idioma || x.idioma === p.idioma)) ||
+      ed.suyas.find((x) => libre(x) && version(p, x)) ||
+      ed.suyas.find((x) => libre(x) && (!p.idioma || x.idioma === p.idioma)) ||
+      ed.suyas.find(libre)
     if (l) { usadas.add(l.id); items.push(itemDeLinea(l, false, { libres: l.libres })) }
-    else if (!items.some((it) => !it.mia && it.card_id === p.card_id)) items.push(itemPedido(p.card_id, p.market, p.idioma || 'es'))
+    else if (!items.some((it) => !it.mia && it.card_id === p.card_id)) items.push(itemPedido(p.card_id, p.market, p.idioma || 'es', p.variante))
   }
   for (const p of prefill.mias || []) {
     const deEsa = ed.mias.filter((x) => x.card_id === p.card_id && !usadas.has(x.id) && Number(x.libres) > 0)
-    const l = deEsa.find((x) => Number(x.cambio) > 0 && (!p.idioma || x.idioma === p.idioma)) || deEsa.find((x) => !p.idioma || x.idioma === p.idioma) || deEsa[0]
+    const l = deEsa.find((x) => Number(x.cambio) > 0 && version(p, x) && (!p.idioma || x.idioma === p.idioma)) || deEsa.find((x) => Number(x.cambio) > 0 && (!p.idioma || x.idioma === p.idioma)) || deEsa.find((x) => !p.idioma || x.idioma === p.idioma) || deEsa[0]
     if (l) { usadas.add(l.id); items.push(itemDeLinea(l, true, { libres: l.libres })) }
   }
   return items

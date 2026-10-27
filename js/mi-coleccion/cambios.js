@@ -6,6 +6,7 @@
 // import dinámico también arrastra el CSS del módulo, y la prueba los
 // sigue desde la tanda 307. Por eso aquí no se pinta: solo se consulta.
 import { supabase } from '../supabase.js'
+import { conVariante, hayVariante } from '../deseo-version.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-intercambios.sql'
 
@@ -18,19 +19,20 @@ function traducir(error) {
   return e
 }
 
+// Sin `variante`: esa la añade `conVariante` cuando la base la tiene (1047).
 export const COLUMNAS_DESEO = 'id,user_id,card_id,idioma,prioridad,notas,created_at'
 
 // ── Lo que busco ──
 
 export async function deseosDe(userId) {
-  const { data, error } = await supabase
+  const { data, error } = await conVariante(COLUMNAS_DESEO, (cols) => supabase
     .from('user_wants')
-    .select(COLUMNAS_DESEO)
+    .select(cols)
     .eq('user_id', userId)
     // Lo último primero, y nada más (771): la prioridad ya no se enseña, y
     // ordenar por ella dejaría lo de antes delante de lo que acabas de poner.
     .order('created_at', { ascending: false })
-    .limit(2000)
+    .limit(2000))
   if (error) throw traducir(error)
   return data || []
 }
@@ -38,24 +40,42 @@ export async function deseosDe(userId) {
 // Los de UNA carta (751): el corazón de /carta pregunta por la carta que
 // enseña, no por la lista entera.
 export async function deseosDeCarta(userId, cardId) {
-  const { data, error } = await supabase.from('user_wants').select(COLUMNAS_DESEO).eq('user_id', userId).eq('card_id', cardId)
+  const { data, error } = await conVariante(COLUMNAS_DESEO, (cols) => supabase.from('user_wants').select(cols).eq('user_id', userId).eq('card_id', cardId))
   if (error) throw traducir(error)
   return data || []
 }
 
+// 23505 es el índice único: la misma carta, en el mismo idioma y la misma
+// versión, ya está apuntada. No es un fallo que haya que enseñar en rojo.
+function yaEstaba(error) {
+  if (error?.code !== '23505') return null
+  const e = new Error('Esa carta ya está en tu lista de búsqueda.')
+  e.yaEstaba = true
+  return e
+}
+
+// Sin la columna, el deseo se apunta sin versión: es lo que hacía antes.
+const sinVersionSiNoHay = (deseo) => {
+  if (hayVariante() !== false || !('variante' in deseo)) return deseo
+  const { variante, ...resto } = deseo
+  return resto
+}
+
 export async function anadirDeseo(deseo) {
-  const { data, error } = await supabase.from('user_wants').insert(deseo).select(COLUMNAS_DESEO).single()
-  if (error) {
-    // 23505 es el índice único: la misma carta, en el mismo idioma, ya
-    // está apuntada. No es un fallo que haya que enseñar en rojo.
-    if (error.code === '23505') {
-      const e = new Error('Esa carta ya está en tu lista de búsqueda.')
-      e.yaEstaba = true
-      throw e
-    }
-    throw traducir(error)
-  }
+  const { data, error } = await conVariante(COLUMNAS_DESEO, (cols) =>
+    supabase.from('user_wants').insert(sinVersionSiNoHay(deseo)).select(cols).single())
+  if (error) throw yaEstaba(error) || traducir(error)
   return data
+}
+
+// Cambiar lo que pediste (1047, la C1 de la propuesta): el idioma, la
+// versión o las dos. Con `select`: un update que la política rechaza vuelve
+// vacío y sin error.
+export async function cambiarDeseo(id, cambios) {
+  const { data, error } = await conVariante(COLUMNAS_DESEO, (cols) => supabase.from('user_wants').update(sinVersionSiNoHay(cambios)).eq('id', id).select(cols))
+  if (error) throw yaEstaba(error) || traducir(error)
+  if (!data?.length) throw new Error('No se ha podido cambiar: ese deseo no es tuyo o ya no existe.')
+  return data[0]
 }
 
 export async function borrarDeseo(id) {

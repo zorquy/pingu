@@ -10160,6 +10160,24 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   display: inline-block;
 }
 
+/* La línea de idioma y versión se toca para cambiarlos (1047, SCHEMA 1047):
+   un botón con la pinta de la línea de siempre. */
+.mc-deseo-cambiar {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: var(--t-xs);
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-deseo-version {
+  color: var(--text);
+  font-weight: 700;
+}
+
 .mc-deseo-baldosa .mc-quiero-aviso {
   margin-left: auto;
 }
@@ -10333,6 +10351,21 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   aspect-ratio: 245 / 342;
   overflow: hidden;
   border-radius: 4px;
+}
+
+/* La versión de una carta del cruce (1047): una chapa en la esquina. */
+.mc-cruce-version {
+  position: absolute;
+  right: 2px;
+  bottom: 2px;
+  z-index: 1;
+  padding: 0 var(--e-xs);
+  border-radius: 4px;
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .mc-cruce-carta img {

@@ -76,6 +76,9 @@ export const REQUISITOS = [
   // tabla NUEVA; la columna `user_collection.cambio` la cubre el puente
   // de `js/mi-coleccion/datos.js`, que deja de pedirla si no está.
   { tabla: 'user_wants', columna: 'prioridad', fichero: 'supabase-migration-intercambios.sql', rompe: 'La pestaña «Cambios» de Mi colección no funciona: nadie puede apuntar lo que busca ni ver quién le encaja.' },
+  // La versión de un deseo (tanda 1047). Sin ella la web hace lo de antes:
+  // el corazón no pregunta la versión y los cruces casan por idioma.
+  { tabla: 'user_wants', columna: 'variante', fichero: 'supabase-migration-1047-deseos-con-version.sql', rompe: 'Al poner el corazón no se puede elegir Holo o Normal, y los cruces no miran la versión (lo demás funciona).' },
   // El valor en el tiempo (tanda 377). Sin esto la gráfica dice «la
   // primera foto se toma esta noche» para siempre, y la función
   // programada se salta cada pasada sin dar guerra.

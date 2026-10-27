@@ -87,7 +87,7 @@ export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, es
       </div>`
     // «Proponer cambio» (942), ya relleno con lo que os cruzáis.
     caja.querySelector('[data-cruce-proponer]')?.addEventListener('click', async () => {
-      const fila = (f) => ({ card_id: f.card_id, market: f.market || cartas.get(f.card_id)?.market || 'WEST', idioma: f.idioma || null })
+      const fila = (f) => ({ card_id: f.card_id, market: f.market || cartas.get(f.card_id)?.market || 'WEST', idioma: f.idioma || null, variante: f.variante || null })
       const m = await import('./cambio-propuesta.js')
       await m.abrirPropuesta({ sesion, otro: persona, prefill: { suyas: teDa.map(fila), mias: leDas.map(fila) } })
     })

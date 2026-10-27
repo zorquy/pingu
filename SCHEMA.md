@@ -41785,6 +41785,60 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1047 — «La quiero» con versión
+
+Del foro: «cuando doy al corazón para tenerlo en la lista de deseos, no puedo
+seleccionar si quiero la variante holo o normal». PINGU eligió lo recomendado
+de la propuesta: «Cualquiera» marcada de entrada (A1), una versión por deseo
+(B1: para dos, dos deseos) y cambiar un deseo tocando su línea (C1).
+
+- **La base** (`supabase-migration-1047-deseos-con-version.sql`):
+  `user_wants.variante` (null = cualquiera; los ids de `user_collection.
+  variante`), y `user_wants_unico` con `coalesce(variante, '*')`. La regla de
+  casar es la del idioma: «cualquiera» con todo, una versión solo con esa, y
+  una copia sin versión es la «normal» (`coalesce(c.variante, 'normal')`). La
+  llevan los cruces (`intercambios_quien_tiene`/`_busca`, también el
+  recíproco), «Solo las que busco» del Mercado, el aviso de
+  `intercambios_avisar` y `cambio_mover`, que al cerrar un cambio tacha solo el
+  deseo de esa versión. Las funciones son las de antes con esa condición al
+  lado del idioma (mismas columnas: se quedan los permisos).
+- **Juntar repetidas** (987/996): el deseo de la repetida pasa a la principal
+  en la versión de la decisión (`coalesce(w.variante, v_var)`), y solo se
+  borra si la principal ya tiene ese idioma Y esa versión. `deseos` de
+  `tcg_repetidas_hechas` guarda ahora `{id, variante}` para deshacer; lo
+  apuntado antes (una lista de ids) se sigue deshaciendo. Por eso el caso de
+  la 987 «el deseo repetido…» cuenta tres con la columna: el de la Staff ya no
+  repite el «cualquiera» de la principal.
+- **Antes de la migración**: `js/deseo-version.js` (`conVariante`) pide la
+  columna y, si la base contesta que no existe (42703 al leer, PGRST204 al
+  escribir), vuelve a pedir sin ella y lo recuerda (`hayVariante() ===
+  false`); entonces la ventana no pregunta la versión y el deseo se apunta
+  como antes. No es `sinMigracion` porque lo que falta es una COLUMNA de una
+  tabla que existe (la 624).
+- **La ventana** (`preguntarDeseo`, `js/idioma-deseo.js`): la de la 771 con
+  una fila más y el título «¿Cómo la quieres?». Las versiones son las que
+  «¿Cuál tienes?» ofrecería si se saben (`versionesParaDesear`: con una o sin
+  saberlo, ninguna; inventar las cuatro sería afirmar que existen), y los
+  idiomas que no tienen la marcada salen apagados (`idiomasDeLaVersion`,
+  956). Para cambiar un deseo (`puesto`) abre con lo puesto y «Guardar»; con
+  varios idiomas en la baldosa, solo la versión (`soloVersion`). Con tope de
+  alto y deslizándose ella (1045).
+- **La quiero**: `deseosPorCartaYVersion` (una baldosa por carta y versión;
+  los idiomas de una versión, juntos como en la 771). «La da N» filtra las
+  filas de `intercambios_quien_tiene` por `casaVersion`; el precio es el de
+  la versión pedida (`precioDeDeseo`). El corazón quita solo esa versión
+  (`data-quitar-deseo-version`) y la línea es un botón
+  (`data-cambiar-deseo`, `cambiarDeseo` en cambios.js); si la combinación
+  ya está apuntada, se dice sin preguntar a la base.
+- **Fuera de La quiero**: el tablón no junta dos versiones de una carta y
+  pinta `.mc-cruce-version` (`cortoDeVariante`); Proponer cambio prefiere la
+  copia de la versión del cruce; el perfil (`porCarta` guarda `variantes` y
+  `cualquierVersion`) mira la versión en «La buscas»/«La das» y la escribe;
+  el modo evento la pone con el número.
+
+Lo vigilan `test-tanda-1047.mjs` (PostgreSQL) y
+`test-tanda-1047-pantalla.mjs` (rama `pruebas`).
+
 ## Tanda 1046 — «¿Qué carta es?»: ni foto arrastrada ni acierto por el nombre
 
 - **La foto borrosa no se puede sacar.** El desenfoque es un `filter` de

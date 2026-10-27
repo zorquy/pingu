@@ -12,6 +12,7 @@
 import { escapeHtml, getInitial, avatarStyle, profileUrl } from '../app.js'
 import { icons } from '../icons.js'
 import { idiomaDe, estadoDe, varianteDe } from '../cardmarket.js'
+import { cortoDeVariante } from './variantes.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { atributosDeRango } from '../rangos.js'
@@ -47,7 +48,8 @@ export function cruzarPorPersona(tiene = [], busca = []) {
     return gente.get(f.user_id)
   }
   const una = (lista, f) => {
-    if (!lista.some((x) => x.card_id === f.card_id && x.idioma === f.idioma)) lista.push(f)
+    // La misma carta en otra versión es otra cosa que te da (1047).
+    if (!lista.some((x) => x.card_id === f.card_id && x.idioma === f.idioma && (x.variante || 'normal') === (f.variante || 'normal'))) lista.push(f)
   }
   for (const f of tiene) una(de(f).teDa, f)
   for (const f of busca) una(de(f).leDas, f)
@@ -64,7 +66,10 @@ function tiraHtml(filas, cartas, max = 6) {
     const c = cartas.get(f.card_id)
     const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
     const nombre = nombreDe(c)
-    return `<li><a class="mc-cruce-carta" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} title="${escapeHtml(`${nombre} · ${senasDe(f)}`)}" aria-label="${escapeHtml(`${nombre} · ${senasDe(f)}`)}"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</a></li>`
+    // La versión, a la vista si no es la normal (1047): la Holo de alguien no
+    // es la Normal que buscas.
+    const version = f.variante && f.variante !== 'normal' ? `<span class="mc-cruce-version" aria-hidden="true">${escapeHtml(cortoDeVariante(f.variante))}</span>` : ''
+    return `<li><a class="mc-cruce-carta" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} title="${escapeHtml(`${nombre} · ${senasDe(f)}`)}" aria-label="${escapeHtml(`${nombre} · ${senasDe(f)}`)}"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${version}</a></li>`
   }).join('')}${filas.length > max ? `<li class="mc-cruce-mas">+${filas.length - max}</li>` : ''}</ul>`
 }
 

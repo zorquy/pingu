@@ -29,10 +29,14 @@ export function porCarta(filas, { sumar = 'cambio' } = {}) {
     if (!f?.card_id) continue
     const clave = `${f.card_id}|${f.market || 'WEST'}`
     const v = mapa.get(clave)
-    if (!v) mapa.set(clave, { card_id: f.card_id, market: f.market || 'WEST', idiomas: f.idioma ? [f.idioma] : [], estados: f.estado ? [f.estado] : [], total: Number(f[sumar]) || 0 })
+    // Las versiones (1047): las de sus copias, o las que pide un deseo; un
+    // deseo sin versión es «cualquiera» (`cualquierVersion`).
+    if (!v) mapa.set(clave, { card_id: f.card_id, market: f.market || 'WEST', idiomas: f.idioma ? [f.idioma] : [], estados: f.estado ? [f.estado] : [], variantes: f.variante ? [f.variante] : [], cualquierVersion: !f.variante, total: Number(f[sumar]) || 0 })
     else {
       if (f.idioma && !v.idiomas.includes(f.idioma)) v.idiomas.push(f.idioma)
       if (f.estado && !v.estados.includes(f.estado)) v.estados.push(f.estado)
+      if (f.variante && !v.variantes.includes(f.variante)) v.variantes.push(f.variante)
+      if (!f.variante) v.cualquierVersion = true
       v.total += Number(f[sumar]) || 0
     }
   }
@@ -49,11 +53,14 @@ export function textoDeChapa({ da = 0, busca = 0 } = {}) {
 }
 
 // Qué sello lleva una baldosa de lo que DA respecto a ti: «La buscas» si
-// está en tu lista (en cualquier idioma, o en uno que dé).
+// está en tu lista (en cualquier idioma, o en uno que dé; y en cualquier
+// versión, o en una que dé: 1047).
 export function selloDeLoQueDa(fila, misDeseos) {
   const mios = (misDeseos || []).filter((w) => w.card_id === fila.card_id)
   if (!mios.length) return null
-  return mios.some((w) => !w.idioma || !fila.idiomas.length || fila.idiomas.includes(w.idioma)) ? 'La buscas' : null
+  const variantes = fila.variantes || []
+  return mios.some((w) => (!w.idioma || !fila.idiomas.length || fila.idiomas.includes(w.idioma)) &&
+    (!w.variante || !variantes.length || variantes.includes(w.variante))) ? 'La buscas' : null
 }
 
 // Y de lo que BUSCA: «La das» si tú la das (y el idioma cuadra), «La
@@ -62,6 +69,8 @@ export function selloDeLoQueBusca(fila, misLineas) {
   const mias = (misLineas || []).filter((l) => l.card_id === fila.card_id)
   if (!mias.length) return null
   const idiomaVale = (l) => !fila.idiomas.length || fila.idiomas.includes(l.idioma)
-  if (mias.some((l) => Number(l.cambio) > 0 && idiomaVale(l))) return 'La das'
+  // Si pide una versión, la tuya tiene que ser esa (1047).
+  const versionVale = (l) => fila.cualquierVersion !== false || !fila.variantes?.length || fila.variantes.includes(l.variante || 'normal')
+  if (mias.some((l) => Number(l.cambio) > 0 && idiomaVale(l) && versionVale(l))) return 'La das'
   return 'La tienes'
 }

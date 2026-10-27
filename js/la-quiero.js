@@ -7,11 +7,13 @@
 // sigue. Por eso el corazón apunta «en cualquier idioma» (idioma null), que
 // era lo que apuntaba el buscador, y al quitarlo se van TODAS las filas de
 // esa carta: si quitas el corazón, ya no la quieres en ningún idioma.
-// Desde la 771 se pregunta el idioma al ponerlo (js/idioma-deseo.js).
+// Desde la 771 se pregunta el idioma al ponerlo (js/idioma-deseo.js), y
+// desde la 1047 la versión, si la carta tiene varias.
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { anadirDeseo, borrarDeseo } from './mi-coleccion/cambios.js'
 import { showToast } from './toast.js'
-import { preguntarIdioma } from './idioma-deseo.js'
+import { preguntarDeseo } from './idioma-deseo.js'
+import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { nombreDeCarta } from './catalogo-series.js'
 
 // En los iconos de la colección y no en js/icons.js, que lo baja la
@@ -52,10 +54,12 @@ export async function alternar({ userId, cardId, deseos, carta = null, alCambiar
     showToast('Quitada de «La quiero».', 'success')
     return sin
   }
-  const idioma = await preguntarIdioma({ nombre: carta ? nombreDeCarta(carta) : '', market: carta?.market || 'WEST', setId: carta?.set_id || null })
-  if (idioma === undefined) return deseos
-  alCambiar([{ id: `provisional-${Date.now()}`, user_id: userId, card_id: cardId, idioma, provisional: true }, ...deseos])
-  const d = await anadirDeseo({ user_id: userId, card_id: cardId, idioma })
-  showToast('En «La quiero». Si alguien la da, te saldrá en Cruces.', 'success')
+  // El idioma y, si la carta tiene varias, la versión (1047).
+  const r = await preguntarDeseo({ nombre: carta ? nombreDeCarta(carta) : '', market: carta?.market || 'WEST', setId: carta?.set_id || null, carta })
+  if (r === undefined) return deseos
+  const { idioma, variante } = r
+  alCambiar([{ id: `provisional-${Date.now()}`, user_id: userId, card_id: cardId, idioma, variante, provisional: true }, ...deseos])
+  const d = await anadirDeseo({ user_id: userId, card_id: cardId, idioma, ...(variante ? { variante } : {}) })
+  showToast(`En «La quiero»${variante ? ` (${nombreDeVariante(variante)})` : ''}. Si alguien la da, te saldrá en Cruces.`, 'success')
   return [d, ...deseos]
 }

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Al darle al corazón puedes elegir la versión que quieres (Normal, Holo, Reverse…) además del idioma, y los cruces solo te juntan con quien tiene esa. En «La quiero» cada versión es su propia carta, y tocando la línea del idioma cambias lo que pediste.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "En «¿Qué carta es?» hay que dar con la carta exacta: el mismo Pokémon de otra colección ya no cuenta como acierto y te dice «Otra impresión». Y la carta borrosa ya no se puede arrastrar ni abrir para verla nítida (tampoco la silueta de «¿Quién es?»).", "enlace": "/carta-del-dia" },
     { "fecha": "2026-10-26", "tipo": "arreglo", "texto": "La ventana de «Proponer cambio» sale centrada y, con una lista larga de cartas, se desliza ella en vez de la página de detrás.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En los cruces de Deseos y cambios, el primero sale entero y los demás plegados: tócalos para ver qué te da y qué le das, con sus cartas, cuánto vale cada lado y la balanza, sin tener que proponer el cambio.", "enlace": "/mi-coleccion?ver=cambios" },

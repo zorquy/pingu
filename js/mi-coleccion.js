@@ -5444,8 +5444,9 @@ function iniciarMercadoSinCuenta() {
   if ($('mcMercadoEntrarEnlace')) $('mcMercadoEntrarEnlace').href = contexto.urlDeRegistro()
   cambiarPestania('mercado', { push: false })
 }
+// El de la versión que pides (1047): la Holo no cuesta lo que la Normal.
 function precioDeDeseo(d) {
-  const l = { card_id: d.card_id, cantidad: 1, variante: 'normal', idioma: d.idioma || 'es' }
+  const l = { card_id: d.card_id, cantidad: 1, variante: d.variante || 'normal', idioma: d.idioma || 'es' }
   return valorDeLinea(l, precioDe(l)) ?? null
 }
 // ── LOS DESEOS Y LOS CAMBIOS (895): vive en ./mi-coleccion/deseos.js y entra por import() ──
@@ -5852,8 +5853,12 @@ function enganchar() {
     if (!id || !Array.isArray(deseos)) return
     // La loseta cambia ya (899); si la base dice que no, vuelve.
     const antes = deseos
+    // La ventana pregunta la versión (1047) con las de TCGGO pegadas: si la
+    // ficha aún no las tenía, se esperan (la Master Ball es una versión).
+    const carta = cartas.get(id) || cartasDeFuera.get(id) || null
+    if (carta && carta.versiones === undefined && !deseos.some((d) => d.card_id === id)) await completarVersionesDe(carta).catch(() => {})
     try {
-      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: id, deseos, carta: cartas.get(id) || cartasDeFuera.get(id) || null, alCambiar: (d) => { deseos = d; pintarLoseta(id); refrescarCorazones() } })
+      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: id, deseos, carta, alCambiar: (d) => { deseos = d; pintarLoseta(id); refrescarCorazones() } })
     } catch (err) {
       deseos = antes
       showToast(err.message, err.yaEstaba ? 'info' : 'error')

@@ -13,6 +13,8 @@ import { svgQR } from './qr.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { rutaDeCarta } from './carta-ruta.js'
+import { conVariante } from './deseo-version.js'
+import { nombreDeVariante } from './mi-coleccion/variantes.js'
 
 const $ = (id) => document.getElementById(id)
 // Clave nueva (1029): lo guardado por la feria eran nombres sin foto.
@@ -54,10 +56,14 @@ async function fichas(lineas) {
 // la carta entera para la imagen y el CSV.
 // Desde la 1042 también la expansión (para filtrar y ordenar) y el precio,
 // calculado AQUÍ y guardado con lo demás: sin cobertura también se ve.
-function fila(l, carta, precio = null) {
+// La versión va con el número (1047): «SVP 205 · Holo». De lo que das, si no
+// es la normal; de lo que buscas, la que pides (`deseo`).
+function fila(l, carta, precio = null, { deseo = false } = {}) {
   const c = carta || { id: l.card_id, market: l.market, local_id: '' }
   const cadena = c.set_id ? cadenaDeEscaneo(c) : []
-  return { id: l.card_id, market: c.market || l.market || 'WEST', n: l.cambio || l.cantidad || 1, idioma: l.idioma || null, nombre: carta ? nombreDeCarta(carta) : l.card_id, num: carta ? `${carta.tcg_sets?.tcg_online_code || carta.set_id} ${carta.local_id}` : '', set: carta ? nombreDeSet(carta.tcg_sets) || carta.set_id : '', setDia: carta?.tcg_sets?.release_date || '', local: carta?.local_id || '', precio, foto: cadena[0] || '', cadena, carta: c, ruta: rutaDeCarta(c) }
+  const version = l.variante && (deseo || l.variante !== 'normal') ? nombreDeVariante(l.variante) : ''
+  const num = [carta ? `${carta.tcg_sets?.tcg_online_code || carta.set_id} ${carta.local_id}` : '', version].filter(Boolean).join(' · ')
+  return { id: l.card_id, market: c.market || l.market || 'WEST', n: l.cambio || l.cantidad || 1, idioma: l.idioma || null, nombre: carta ? nombreDeCarta(carta) : l.card_id, num, set: carta ? nombreDeSet(carta.tcg_sets) || carta.set_id : '', setDia: carta?.tcg_sets?.release_date || '', local: carta?.local_id || '', precio, foto: cadena[0] || '', cadena, carta: c, ruta: rutaDeCarta(c) }
 }
 
 // Lo que se ve de una lista (1042): el texto busca en nombre, número y
@@ -83,7 +89,7 @@ async function pedir(sesion) {
   const perfil = await getProfile(sesion.user.id)
   const [{ data: doy, error: e1 }, { data: busco, error: e2 }] = await Promise.all([
     supabase.from('user_collection').select('card_id,market,cambio,idioma,variante').eq('user_id', sesion.user.id).gt('cambio', 0).limit(TOPE),
-    supabase.from('user_wants').select('card_id,idioma').eq('user_id', sesion.user.id).limit(TOPE),
+    conVariante('card_id,idioma', (cols) => supabase.from('user_wants').select(cols).eq('user_id', sesion.user.id).limit(TOPE)),
   ])
   if (e1 || e2) throw e1 || e2
   const cartaDe = await fichas([...(doy || []), ...(busco || [])])
@@ -99,7 +105,7 @@ async function pedir(sesion) {
     usuario: perfil?.username || '',
     perfil: { id: perfil?.id || sesion.user.id, username: perfil?.username || null, display_name: perfil?.display_name || null, avatar_url: perfil?.avatar_url || null },
     doy: (doy || []).map((l) => fila(l, cartaDe(l), deDoy(l))),
-    busco: (busco || []).map((l) => fila(l, cartaDe(l), deBusco(l))),
+    busco: (busco || []).map((l) => fila(l, cartaDe(l), deBusco(l), { deseo: true })),
   }
 }
 

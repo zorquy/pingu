@@ -4,6 +4,55 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (285) — PINGU-Claude (1047 — «La quiero» con versión: Holo, Normal, Reverse…)
+
+**Hecho** (PINGU aprobó la propuesta con lo recomendado: A1 «Cualquiera» de
+entrada, B1 una versión por deseo, C1 se cambia tocando la línea):
+- **MIGRACIÓN `supabase-migration-1047-deseos-con-version.sql`, PENDIENTE DE
+  EJECUTAR.** `user_wants.variante` (null = cualquiera, misma forma que
+  `user_collection.variante`), el índice único con la versión, y la condición
+  de versión al lado de la del idioma en `intercambios_quien_tiene`,
+  `intercambios_quien_busca`, `intercambios_mercado` («Solo las que busco»),
+  `intercambios_avisar`, `cambio_mover` (tacha solo el deseo de esa versión) y
+  `catalogo_repetida_resolver`/`_deshacer` (los deseos de una repetida pasan
+  con su versión y vuelven como estaban; lo apuntado antes sigue
+  deshaciéndose). Se puede ejecutar dos veces.
+- **Mientras no se ejecute, la web hace lo de antes**: `js/deseo-version.js`
+  pide la columna y, si la base dice que no existe (42703/PGRST204), vuelve a
+  pedir sin ella y no pregunta la versión. /admin la marca en el chequeo.
+- **La ventana del corazón** (`preguntarDeseo` en `js/idioma-deseo.js`):
+  «¿Cómo la quieres?» con la fila de versión cuando la carta tiene más de una
+  que se SABE (`versionesParaDesear`), con los idiomas que no tienen esa
+  versión apagados (956). Ficha de Mi colección, /carta, buscador de La quiero
+  y Mercado.
+- **La quiero**: una baldosa por carta y versión (`deseosPorCartaYVersion`),
+  con la versión delante del idioma, su foto si la tiene, «La da N» de ESA
+  versión, el corazón quita solo esa, y la línea se toca para cambiar idioma y
+  versión (`cambiarDeseo`; si ya tienes esa combinación, lo dice y no toca).
+- **Cruces**: la chapa de la versión en cada carta (H, RH…) y dos versiones de
+  una carta no se juntan. Proponer cambio coge la copia de esa versión.
+- **Perfil › Cambios** («La buscas» / «La das» miran la versión y la baldosa
+  la dice) y **modo evento** (la versión con el número).
+
+**Ficheros**: supabase-migration-1047-deseos-con-version.sql (nuevo),
+js/deseo-version.js (nuevo), js/idioma-deseo.js, js/la-quiero.js,
+js/mi-coleccion/cambios.js, js/mi-coleccion/deseos.js, js/mi-coleccion.js,
+js/mi-coleccion/tablon.js, js/carta-mercado.js, js/cambio-propuesta.js,
+js/cruce-persona.js, js/perfil-cambios.js, js/perfil-cambios-puro.js,
+js/evento.js, js/schema-check.js, css/cardmarket.css, css/mi-coleccion.css,
+CLAUDE.md, SCHEMA.md, novedades.json, BITACORA.md.
+
+**Pruebas** (rama pruebas): `test-tanda-1047.mjs` contra PostgreSQL (cruces,
+aviso, Mercado, cambio, índice; y juntar/deshacer con los 38 casos de la 987
+pasando con las funciones nuevas; una mutación de quién tiene sale roja) y
+`test-tanda-1047-pantalla.mjs` (ventana, baldosas, cambiar, quitar, cruces,
+sin la migración, /carta, iPhone, y lo puro). El doble sabe de la versión
+(índice único al insertar y al cambiar, cruces y Mercado). Al día la 987
+(el deseo de la repetida, ahora con versión, ya no se borra: tres en vez de
+dos con la columna).
+
+**Pendiente**: que PINGU ejecute la migración 1047.
+
 ## 2026-10-27 (284) — PINGU-Claude (1046 — «¿Qué carta es?»: ni foto arrastrada ni acierto por el nombre)
 
 **Hecho**: dos trampas que le contaron a PINGU (foro y privado):

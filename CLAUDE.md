@@ -660,6 +660,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   recargar. Fuera, `data-marca-carta` en la caja de la foto y
   `marcarCartas(raíz)` de `js/marcas-carta.js` (por `import()`), que solo
   pregunta por las cartas que hay en pantalla.
+- **Un deseo lleva su VERSIÓN** (tanda 1047): `user_wants.variante` (null =
+  cualquiera) casa como el idioma, con la copia sin versión como «normal»
+  (`casaVersion`). Un camino nuevo que apunte un deseo pregunta con
+  `preguntarDeseo` (`js/idioma-deseo.js`) y pasa por `anadirDeseo`; lo que
+  lea deseos pide la columna con `conVariante` (`js/deseo-version.js`), que
+  aguanta la base sin la migración; y lo que case deseos con copias (una
+  función nueva de la base o del navegador) lleva la versión al lado del
+  idioma.
 - **Un botón que escribe en la base cambia YA, confirma después y deshace
   si falla** (tanda 896, R6): el patrón de «Seguir» un hilo, aplicado a
   marcar leído, guardar una guía, «La quiero», el check-in y meter en un

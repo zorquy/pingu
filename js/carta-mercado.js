@@ -251,7 +251,9 @@ export async function pintarMercado(carta) {
 
   // ── Las acciones bajo la carta ──
   const sesion = await getSession().catch(() => null)
-  montarAcciones(carta, sesion, { idiomas, variantes: variantesParaAnadir, seSabe, estado, precioActual: () => precioParaIdioma(ultimoPrecio, estado.idioma)?.valor ?? null })
+  // El corazón pregunta la versión (1047) con lo que sabemos de ella: las de
+  // TCGdex en vivo y las de TCGGO.
+  montarAcciones(carta, sesion, { idiomas, variantes: variantesParaAnadir, seSabe, estado, precioActual: () => precioParaIdioma(ultimoPrecio, estado.idioma)?.valor ?? null, paraDesear: { ...carta, variants: vivo?.variants ?? carta.variants, versiones } })
 }
 
 // LAS ACCIONES, COMO EN EL POP-UP (916, la ficha de Dex de la 915): bajo la
@@ -260,7 +262,7 @@ export async function pintarMercado(carta) {
 // compartir, en redondo. Van DENTRO del `figure` para que en escritorio
 // acompañen a la carta, que es pegajosa; en el móvil son la barra de abajo.
 // «Avísame si baja» va con el precio, que es de lo que avisa.
-function montarAcciones(carta, sesion, { idiomas, variantes, seSabe = true, estado, precioActual }) {
+function montarAcciones(carta, sesion, { idiomas, variantes, seSabe = true, estado, precioActual, paraDesear = carta }) {
   const figura = document.querySelector('#cartaNucleo .carta-scan')
   if (!figura || $('cartaAcciones')) return
   const volver = `/auth.html?volver=${encodeURIComponent(location.pathname)}`
@@ -313,7 +315,7 @@ function montarAcciones(carta, sesion, { idiomas, variantes, seSabe = true, esta
     if (!Array.isArray(deseos)) return
     // El corazón cambia ya (899); si la base dice que no, vuelve.
     try {
-      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: carta.id, deseos, carta, alCambiar: (d) => laQuiero.pintarLoseta(b, carta.id, d) })
+      deseos = await laQuiero.alternar({ userId: sesion.user.id, cardId: carta.id, deseos, carta: paraDesear, alCambiar: (d) => laQuiero.pintarLoseta(b, carta.id, d) })
     } catch (err) {
       showToast(err.message, err.yaEstaba ? 'info' : 'error')
     }

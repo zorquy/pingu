@@ -18,12 +18,14 @@ import { icons } from '../icons.js'
 import * as datos from './datos.js'
 import { abrirAviso } from '../avisos-precio.js'
 import * as laQuiero from '../la-quiero.js'
-import { preguntarIdioma } from '../idioma-deseo.js'
+import { preguntarDeseo } from '../idioma-deseo.js'
 import { porNumero, rangoDeRareza } from './orden.js'
 import { ordenarCartas } from './filtros.js'
 import { OTRA } from './gradeo.js'
 import { entenderBusqueda, partirBusqueda } from './busqueda.js'
 import { porCatalogo, conRotulos } from './rotulos-catalogo.js'
+import { casaVersion, deseosPorCartaYVersion } from '../deseo-version.js'
+import { nombreDeVariante, versionDeVariante } from './variantes.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -284,7 +286,7 @@ function engancharCambios() {
 async function proponerA(userId) {
   const p = tablon.cruzarPorPersona(tablonTiene.filter((f) => f.user_id === userId), tablonBusca.filter((f) => f.user_id === userId))[0]
   const otro = { id: userId, username: p?.username, display_name: p?.display_name, avatar_url: p?.avatar_url }
-  const fila = (f) => ({ card_id: f.card_id, market: f.market || ctx.cartas.get(f.card_id)?.market || 'WEST', idioma: f.idioma || null })
+  const fila = (f) => ({ card_id: f.card_id, market: f.market || ctx.cartas.get(f.card_id)?.market || 'WEST', idioma: f.idioma || null, variante: f.variante || null })
   try {
     const m = await import('../cambio-propuesta.js')
     await m.abrirPropuesta({ sesion: ctx.sesion, otro, prefill: { suyas: (p?.teDa || []).map(fila), mias: (p?.leDas || []).map(fila) }, alEnviar: () => void pintarMisCambiosArriba() })
@@ -371,23 +373,26 @@ export async function pedirQuienBusca() {
   return pidiendoBusca
 }
 
-// Apuntar una carta: SIEMPRE preguntando el idioma (771). Vale para el
-// buscador de «La quiero», el Mercado y su ficha.
+// Apuntar una carta: SIEMPRE preguntando el idioma (771) y, si tiene
+// varias, la versión (1047). Vale para el buscador de «La quiero», el
+// Mercado y su ficha.
 export async function quererCarta(c) {
   if (!ctx.sesion) return false
   await cargarDeseos()
-  const idioma = await preguntarIdioma({ nombre: ctx.nombreDe(c), market: c.market || ctx.mercado, setId: c.set_id })
-  if (idioma === undefined) return false
+  const r = await preguntarDeseo({ nombre: ctx.nombreDe(c), market: c.market || ctx.mercado, setId: c.set_id, carta: c })
+  if (r === undefined) return false
+  const { idioma, variante } = r
   // CAMBIA YA, CONFIRMA DESPUÉS, DESHAZ SI FALLA (896, R6): la carta entra
   // en la lista como fila provisional y se repinta todo; la de verdad la
   // sustituye cuando llega, y si la base dice que no, se quita.
-  const provisional = { id: `provisional-${Date.now()}`, user_id: ctx.sesion.user.id, card_id: c.id, idioma, created_at: new Date().toISOString(), provisional: true }
+  const provisional = { id: `provisional-${Date.now()}`, user_id: ctx.sesion.user.id, card_id: c.id, idioma, variante, created_at: new Date().toISOString(), provisional: true }
   ctx.deseos = [provisional, ...ctx.deseos]
   alCambiarDeseos()
   try {
-    const d = await ctx.cambios.anadirDeseo({ user_id: ctx.sesion.user.id, card_id: c.id, idioma })
+    const d = await ctx.cambios.anadirDeseo({ user_id: ctx.sesion.user.id, card_id: c.id, idioma, ...(variante ? { variante } : {}) })
     ctx.deseos = [d, ...ctx.deseos.filter((x) => x !== provisional)]
-    showToast(`${ctx.nombreDe(c) || 'Apuntada'}, en «La quiero»${idioma ? ` (en ${idiomaDe(idioma).nombre.toLowerCase()})` : ''}. Si alguien la da, saldrá en Cruces.`, 'success')
+    const como = [variante ? nombreDeVariante(variante) : '', idioma ? `en ${idiomaDe(idioma).nombre.toLowerCase()}` : ''].filter(Boolean).join(', ')
+    showToast(`${ctx.nombreDe(c) || 'Apuntada'}, en «La quiero»${como ? ` (${como})` : ''}. Si alguien la da, saldrá en Cruces.`, 'success')
   } catch (err) {
     ctx.deseos = ctx.deseos.filter((x) => x !== provisional)
     alCambiarDeseos()
@@ -398,12 +403,15 @@ export async function quererCarta(c) {
   return true
 }
 // Quitar el corazón quita la carta en TODOS sus idiomas, como en la ficha
-// (la 751): si ya no la quieres, no la quieres en ninguno.
-export async function quitarDeseosDe(cardId) {
+// (la 751): si ya no la quieres, no la quieres en ninguno. Con `variante`
+// (1047, el corazón de una baldosa de «La quiero»), solo esa versión: la
+// Holo y la Normal son dos baldosas. `null` es la de «cualquier versión».
+export async function quitarDeseosDe(cardId, variante) {
   await cargarDeseos()
+  const es = (x) => x.card_id === cardId && (variante === undefined || (x.variante || null) === variante)
   // Primero sale de la lista (896); si la base no la borra, vuelve.
-  const quitadas = ctx.deseos.filter((x) => x.card_id === cardId)
-  ctx.deseos = ctx.deseos.filter((x) => x.card_id !== cardId)
+  const quitadas = ctx.deseos.filter(es)
+  ctx.deseos = ctx.deseos.filter((x) => !es(x))
   alCambiarDeseos()
   try {
     for (const d of quitadas.filter((x) => !x.provisional)) await ctx.cambios.borrarDeseo(d.id)
@@ -564,6 +572,7 @@ export function textoDeSeguidos(gente) {
 async function completarQuiero() {
   const ids = [...new Set(ctx.deseos.map((d) => d.card_id))]
   void pedirQuienTiene().then((tiene) => {
+    tieneDeQuiero = tiene || []
     dantesDeQuiero = dantesPorCarta(tiene)
     if (ctx.pestania === 'quiero') pintarQuiero()
   }).catch(() => null)
@@ -594,6 +603,14 @@ async function completarQuiero() {
 // esté en favoritos ya está» —la columna sigue en la base, sin enseñarse—.
 let quieroFiltro = 'todas'
 let dantesDeQuiero = null // card_id → [personas] · null = no se sabe
+let tieneDeQuiero = [] // las filas de `intercambios_quien_tiene`, tal cual
+// Quién da lo de una baldosa: de esa carta y, si pediste una versión, de esa
+// (1047). Una persona, una vez.
+function dantesDe(g) {
+  if (!dantesDeQuiero) return []
+  if (!g.variante) return dantesDeQuiero.get(g.card_id) || []
+  return dantesPorCarta(tieneDeQuiero.filter((f) => f.card_id === g.card_id && casaVersion(g, f))).get(g.card_id) || []
+}
 export function deseosPorCarta(lista = []) {
   const m = new Map()
   for (const d of lista) m.set(d.card_id, [...(m.get(d.card_id) || []), d])
@@ -617,13 +634,14 @@ const mercadoDeCarta = (id) => ctx.cartas.get(id)?.market || 'WEST'
 function pintarQuiero() {
   const caja = $('mcQuieroPanel')
   if (!caja || !Array.isArray(ctx.deseos)) return
-  const grupos = deseosPorCarta(ctx.deseos)
+  // Una baldosa por carta y versión (1047): la Holo y la Normal son dos.
+  const grupos = deseosPorCartaYVersion(ctx.deseos)
   const precios = grupos.map((g) => ctx.precioDeDeseo(g.filas[0]))
   const conPrecio = precios.filter((v) => v != null)
   const suma = conPrecio.reduce((a, v) => a + v, 0)
   const n = grupos.length
   const sinPrecio = n - conPrecio.length
-  const dan = (g) => dantesDeQuiero?.get(g.card_id)?.length || 0
+  const dan = (g) => dantesDe(g).length
   const conAlguien = dantesDeQuiero ? grupos.filter((g) => dan(g) > 0).length : null
   const visibles = grupos.map((g, i) => ({ g, precio: precios[i] })).filter(({ g }) =>
     quieroFiltro === 'todas' || !dantesDeQuiero || (quieroFiltro === 'dan' ? dan(g) > 0 : dan(g) === 0))
@@ -723,8 +741,12 @@ function engancharQuiero() {
     const quitar = e.target.closest('[data-quitar-deseo-carta]')
     if (quitar) {
       quitar.disabled = true
-      await quitarDeseosDe(quitar.dataset.quitarDeseoCarta)
+      await quitarDeseosDe(quitar.dataset.quitarDeseoCarta, quitar.dataset.quitarDeseoVersion || null)
+      return
     }
+    // La línea de idioma y versión cambia lo que pediste (1047, C1).
+    const cambiar = e.target.closest('[data-cambiar-deseo]')
+    if (cambiar) return void cambiarDeseoDeBaldosa(cambiar.dataset.cambiarDeseo, cambiar.dataset.cambiarVersion || null)
   })
   // Al cerrar el diálogo de aviso, la fila dice el aviso que acabas de
   // poner (o quitar). El diálogo lo crea avisos-precio.js al abrirlo por
@@ -940,27 +962,32 @@ export function pintarLoseta(id = $('mcEdQuiero')?.dataset.quiero || null) {
 function deseoHtml(g, precio = ctx.precioDeDeseo(g.filas[0])) {
   const c = ctx.cartas.get(g.card_id)
   const nombre = ctx.nombreDe(c) || g.card_id
-  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+  // La foto de la versión pedida, si la tiene (934), y detrás la de la carta.
+  const propia = g.variante && c ? versionDeVariante(c, g.variante)?.imagen : null
+  const cadena = cadenaDeEscaneo(c)
+  const escaneo = atributosDeEscaneo(propia ? [propia, ...cadena.filter((u) => u !== propia)] : cadena)
   const d = g.filas[0]
   const baja = (avisosDeQuiero?.get(g.card_id) || []).find((a) => a.tipo === 'baja')
   // Si ya está por debajo de lo que pusiste, se dice (la maqueta K1): el
   // aviso llegará en la pasada siguiente, pero lo estás mirando ahora.
   const cumple = baja && precio != null && precio <= Number(baja.umbral)
   const idiomas = g.filas.map((x) => x.idioma).filter(Boolean)
+  // La versión delante (1047): «Holo · Cualquier idioma».
+  const version = g.variante ? `<b class="mc-deseo-version">${escapeHtml(nombreDeVariante(g.variante))}</b> · ` : ''
   const idioma = g.filas.some((x) => !x.idioma)
-    ? '<span class="mc-merc-texto">Cualquier idioma</span>'
-    : `${idiomas.slice(0, 3).map((i) => banderaHtml(i)).join('')}<span class="mc-merc-texto">${escapeHtml(idiomas.map((i) => idiomaDe(i).nombre).join(', '))}</span>`
-  const dan = dantesDeQuiero?.get(g.card_id) || []
+    ? `${version}<span class="mc-merc-texto">Cualquier idioma</span>`
+    : `${version}${idiomas.slice(0, 3).map((i) => banderaHtml(i)).join('')}<span class="mc-merc-texto">${escapeHtml(idiomas.map((i) => idiomaDe(i).nombre).join(', '))}</span>`
+  const dan = dantesDe(g)
   const seguidos = textoDeSeguidos(seguidosDeQuiero?.get(g.card_id))
   return `<article class="mc-merc mc-deseo-baldosa" data-deseo-carta="${escapeHtml(g.card_id)}">
     <a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
       <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
       ${dan.length ? `<span class="mc-merc-chapa cruce">${dan.length === 1 ? 'La da 1' : `La dan ${dan.length}`}</span>` : ''}
     </a>
-    <button type="button" class="mc-merc-corazon puesto" data-quitar-deseo-carta="${escapeHtml(g.card_id)}" aria-pressed="true" aria-label="Quitar ${escapeHtml(nombre)} de tu lista">${laQuiero.corazon(16)}</button>
+    <button type="button" class="mc-merc-corazon puesto" data-quitar-deseo-carta="${escapeHtml(g.card_id)}" data-quitar-deseo-version="${escapeHtml(g.variante || '')}" aria-pressed="true" aria-label="Quitar ${escapeHtml(nombre)}${g.variante ? ` (${escapeHtml(nombreDeVariante(g.variante))})` : ''} de tu lista">${laQuiero.corazon(16)}</button>
     <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
     <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
-    <span class="mc-merc-fila mc-deseo-idioma">${idioma}</span>
+    <button type="button" class="mc-merc-fila mc-deseo-idioma mc-deseo-cambiar" data-cambiar-deseo="${escapeHtml(g.card_id)}" data-cambiar-version="${escapeHtml(g.variante || '')}" aria-label="${escapeHtml(`Cambiar cómo quieres ${nombre}`)}">${idioma}</button>
     <span class="mc-merc-fila">
       <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
       <button type="button" class="mc-quiero-aviso${baja ? ' puesto' : ''}${cumple ? ' cumple' : ''}" data-avisar-deseo="${escapeHtml(d.id)}" aria-label="${baja ? `Te aviso si ${escapeHtml(nombre)} baja de ${escapeHtml(euros(Number(baja.umbral)))}` : `Avísame si ${escapeHtml(nombre)} baja de precio`}">${icons.bell(14)}${baja ? `<span>${cumple ? '¡Ya! ' : '&lt; '}${escapeHtml(euros(Number(baja.umbral)))}</span>` : ''}</button>
@@ -978,6 +1005,43 @@ function deseoHtml(g, precio = ctx.precioDeDeseo(g.filas[0])) {
 // del Mercado entra por `import()`, así que esto no puede pedírselo).
 function mercadoAvatares(gente = [], max = 4) {
   return `<span class="mc-gente" aria-hidden="true">${gente.slice(0, max).map((p) => `<span class="mc-gente-av" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(p.display_name || p.username || '?'))}</span>`).join('')}</span>`
+}
+
+// CAMBIAR LO QUE PEDISTE (1047, la C1 de la propuesta): la misma ventana
+// del corazón con lo puesto. Con un solo idioma se cambian idioma y versión;
+// apuntada en varios, solo la versión (de todas sus filas). Cambia ya y, si
+// la base dice que no, vuelve (896).
+async function cambiarDeseoDeBaldosa(cardId, variante) {
+  await cargarDeseos()
+  const filas = ctx.deseos.filter((x) => x.card_id === cardId && (x.variante || null) === variante && !x.provisional)
+  if (!filas.length) return
+  const c = ctx.cartas.get(cardId)
+  const varios = filas.length > 1
+  const r = await preguntarDeseo({ nombre: ctx.nombreDe(c) || '', market: c?.market || ctx.mercado, setId: c?.set_id || null, carta: c, puesto: { idioma: varios ? null : filas[0].idioma || null, variante }, soloVersion: varios })
+  if (r === undefined) return
+  const cambios = varios ? { variante: r.variante } : { idioma: r.idioma, variante: r.variante }
+  if (filas.every((f) => (f.variante || null) === cambios.variante && (varios || (f.idioma || null) === cambios.idioma))) return
+  // Lo que ya tienes apuntado no se repite (el índice único de la 1047): se
+  // dice aquí, sin preguntar a la base.
+  const otras = ctx.deseos.filter((x) => x.card_id === cardId && !filas.includes(x))
+  const queda = (f) => ({ idioma: varios ? f.idioma || null : cambios.idioma, variante: cambios.variante })
+  if (filas.some((f) => otras.some((x) => (x.idioma || null) === queda(f).idioma && (x.variante || null) === queda(f).variante))) {
+    showToast('Esa carta ya está en tu lista de búsqueda.', 'info')
+    return
+  }
+  const antes = ctx.deseos
+  ctx.deseos = ctx.deseos.map((x) => (filas.includes(x) ? { ...x, ...cambios } : x))
+  alCambiarDeseos()
+  try {
+    const nuevas = []
+    for (const f of filas) nuevas.push(await ctx.cambios.cambiarDeseo(f.id, cambios))
+    ctx.deseos = antes.map((x) => nuevas.find((n) => n.id === x.id) || x)
+    showToast('Cambiado.', 'success')
+  } catch (err) {
+    ctx.deseos = antes
+    showToast(err.message, err.yaEstaba ? 'info' : 'error')
+  }
+  alCambiarDeseos()
 }
 
 // «Ver quién»: la ficha del Mercado de esa carta, desde cualquier vista.

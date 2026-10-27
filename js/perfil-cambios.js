@@ -22,6 +22,8 @@ import { rutaDeCarta } from './carta-ruta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { idiomaDe, estadoDe, precioDeFila, valorDe } from './cardmarket.js'
+import { conVariante } from './deseo-version.js'
+import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { contarPestania, pestaniaLista, abrirPestania, abrirLaQueTengaAlgo } from './perfil-pestanias.js'
 
 // Lo puro (qué es una baldosa, la chapa, los sellos) vive aparte y sin
@@ -35,7 +37,7 @@ const esRpcQueFalta = (e) => e && (e.code === 'PGRST202' || e.code === '42883' |
 // ── Los datos ──
 
 async function loQueBusca(userId) {
-  const { data, error } = await supabase.from('user_wants').select('card_id,idioma,created_at').eq('user_id', userId).order('created_at', { ascending: false }).limit(1000)
+  const { data, error } = await conVariante('card_id,idioma,created_at', (cols) => supabase.from('user_wants').select(cols).eq('user_id', userId).order('created_at', { ascending: false }).limit(1000))
   if (error) throw error
   return data || []
 }
@@ -53,9 +55,9 @@ async function loQueDa(userId) {
 // busca (solo esas: mi colección entera no cabe en una consulta).
 async function loMio(miId, idsQueBusca) {
   const [deseos, lineas] = await Promise.all([
-    supabase.from('user_wants').select('card_id,idioma').eq('user_id', miId).limit(2000).then((r) => r.data || []),
+    conVariante('card_id,idioma', (cols) => supabase.from('user_wants').select(cols).eq('user_id', miId).limit(2000)).then((r) => r.data || []),
     idsQueBusca.length
-      ? supabase.from('user_collection').select('card_id,idioma,cambio').eq('user_id', miId).in('card_id', idsQueBusca.slice(0, 300)).then((r) => r.data || [])
+      ? supabase.from('user_collection').select('card_id,idioma,cambio,variante').eq('user_id', miId).in('card_id', idsQueBusca.slice(0, 300)).then((r) => r.data || [])
       : Promise.resolve([]),
   ])
   return { deseos, lineas }
@@ -96,12 +98,16 @@ const precioDeFilaDeCambio = (precios, f) => valorDe(precios.get(f.card_id) || n
 
 const euros = (n) => (Number.isFinite(Number(n)) && n !== null ? `${Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €` : '')
 
-function baldosaHtml(fila, carta, { sello = null, precio = null, cuanto = '' } = {}) {
+function baldosaHtml(fila, carta, { sello = null, precio = null, cuanto = '', deseo = false } = {}) {
   const nombre = carta ? nombreDeCarta(carta) : fila.card_id
   const escaneo = carta ? atributosDeEscaneo(cadenaDeEscaneo(carta)) : null
   const set = carta ? `${nombreDeSet(carta.tcg_sets) || carta.set_id || ''}${carta.local_id ? ` · ${carta.local_id}` : ''}` : ''
   const idiomas = fila.idiomas.length ? fila.idiomas.map((i) => idiomaDe(i).nombre).join(', ') : 'cualquier idioma'
   const estados = fila.estados.length ? ` · ${fila.estados.map((e) => estadoDe(e).nombre).join(', ')}` : ''
+  // La versión (1047): de lo que da, si no es la normal (como `senasDe`);
+  // de lo que busca, la que pide, también la normal.
+  const versiones = (fila.variantes || []).filter((v) => deseo || v !== 'normal')
+  const version = versiones.length ? `${versiones.map((v) => nombreDeVariante(v)).join(', ')} · ` : ''
   return `<li class="pc-carta">
     <a class="pc-carta-foto" href="${carta ? escapeHtml(rutaDeCarta(carta)) : '#'}" aria-label="${escapeHtml(nombre)}">
       ${sello ? `<span class="pc-sello${sello === 'La das' ? ' pc-sello-das' : sello === 'La tienes' ? ' pc-sello-tienes' : ''}">${escapeHtml(sello)}</span>` : ''}
@@ -110,7 +116,7 @@ function baldosaHtml(fila, carta, { sello = null, precio = null, cuanto = '' } =
     </a>
     <span class="pc-carta-nombre">${escapeHtml(nombre)}</span>
     ${set ? `<span class="pc-carta-set">${escapeHtml(set)}</span>` : ''}
-    <span class="pc-carta-senas">${escapeHtml(`${cuanto}${idiomas}${estados}`)}</span>
+    <span class="pc-carta-senas">${escapeHtml(`${cuanto}${version}${idiomas}${estados}`)}</span>
     ${precio ? `<span class="pc-carta-precio">${escapeHtml(precio)}</span>` : ''}
   </li>`
 }
@@ -267,7 +273,7 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
     }
   }
   const itemsDa = enOrdenDa.map((f) => item(f, selloDa(f), { cuanto: `${f.total === 1 ? 'Da 1' : `Da ${f.total}`} · ` }))
-  const itemsBusca = enOrdenBusca.map((f) => item(f, selloBusca(f)))
+  const itemsBusca = enOrdenBusca.map((f) => item(f, selloBusca(f), { deseo: true }))
   const baldosasDa = itemsDa.map((x) => x.html)
   const baldosasBusca = itemsBusca.map((x) => x.html)
   const hayDeLoMio = (items) => miId && !propia && items.some((x) => x.sello)
