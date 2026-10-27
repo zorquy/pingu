@@ -7,6 +7,7 @@
 import { readFileSync } from 'node:fs'
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
+// Desde la 1057 el buscador de «La quiero» sale con el «+» en el móvil.
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const RAIZ = process.env.PD_RAIZ || '/home/user/pingu'
 let fails = 0
@@ -50,10 +51,12 @@ console.log('── 1. iPhone · La quiero ──')
   // fila de arriba quedan solo las vistas.
   const flota = await page.evaluate(() => getComputedStyle(document.querySelector('#mcPanelQuiero .mc-evento-boton')).position)
   check('las vistas en UNA fila y «Evento» flotando aparte (1041)', cab.textos.filter(Boolean).length === 1 && flota === 'fixed', JSON.stringify({ ...cab, flota }))
-  const bot = await page.evaluate(() => { const c = document.querySelector('#mcQuieroPanel .mc-quiero-cabeza'); const hs = [...c.querySelectorAll('.mc-quiero-cifra, .mc-quiero-compartir')]; return { filas: new Set(hs.map((h) => { const r = h.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 16) })).size, etiquetas: [...c.querySelectorAll('.mc-quiero-compartir')].map((x) => x.getAttribute('aria-label')), alto: [...c.querySelectorAll('.mc-quiero-compartir')].map((x) => Math.round(x.getBoundingClientRect().height)) } })
-  check('la cuenta y Compartir · Imagen · Álbum (iconos con su nombre para el lector) en UNA fila', bot.filas === 1 && bot.etiquetas.join('|') === 'Compartir lista|Imagen de la lista|Hacer un álbum' && bot.alto.every((h) => h >= 44), JSON.stringify(bot))
+  // Desde la 1057 la cabecera es UNA barra: lista, «+», Seleccionar y ⋯.
+  const bot = await page.evaluate(() => { const c = document.getElementById('mcQuieroBarra'); const hs = [...c.querySelectorAll('#mcQuieroLista, #mcQuieroMas, #mcQuieroSeleccionar, #mcQuieroMenu')]; return { filas: new Set(hs.map((h) => { const r = h.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 16) })).size, n: hs.length } })
+  check('la barra (lista · + · Seleccionar · ⋯) en UNA fila', bot.filas === 1 && bot.n === 4, JSON.stringify(bot))
   const y = await page.evaluate(() => Math.round(document.querySelector('#mcQuieroRejilla .mc-deseo-baldosa').getBoundingClientRect().top / innerHeight * 100))
   check('la primera carta empieza antes de media pantalla', y < 50, `${y} %`)
+  if (!(await page.isVisible('#mcDeseoBuscar'))) await page.click('#mcQuieroMas')
   await page.fill('#mcDeseoBuscar', 'pikachu')
   await page.waitForTimeout(1500)
   const r = await page.evaluate(() => ({ ids: [...document.querySelectorAll('#mcDeseoResultados [data-desear]')].map((x) => x.dataset.desear), rotulos: [...document.querySelectorAll('#mcDeseoResultados .mc-deseo-rotulo')].map((x) => [...x.children].map((c) => c.textContent.trim()).filter(Boolean).join(' ')) }))
@@ -93,7 +96,7 @@ console.log('\n── 3. PC: lo largo se queda; la sección es «Colección» �
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=quiero', { movil: false })
   const pc = await page.evaluate(() => ({ botones: [...document.querySelectorAll('.mc-quiero-botones button')].map((x) => x.innerText.trim()), evento: document.querySelector('#mcPanelQuiero .mc-evento-boton').innerText.trim(), titulo: document.querySelector('.mc-estanteria-h')?.textContent }))
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('en el PC los textos enteros: «Compartir lista», «Hacer un álbum», «Modo evento»', pc.botones.join('|') === 'Compartir lista|Imagen|Hacer un álbum' && pc.evento === 'Modo evento', JSON.stringify(pc))
+  check('en el PC el texto entero: «Modo evento» (Compartir y Álbum van en el ⋯ desde la 1057)', pc.evento === 'Modo evento', JSON.stringify(pc))
   await ctx.close()
   const html = readFileSync(`${RAIZ}/index.html`, 'utf8')
   check('la barra de abajo dice «Colección» y no «Cartas»', /<span>Colección<\/span>/.test(html) && !/<nav class="bm"[\s\S]*?<span>Cartas<\/span>[\s\S]*?<\/nav>/.test(html))

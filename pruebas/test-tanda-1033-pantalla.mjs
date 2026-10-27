@@ -50,8 +50,9 @@ console.log('── 1. iPhone · La quiero: tres por fila y los dos catálogos s
   check('«Pokémon 4» con las cuatro occidentales y luego «Pokémon Japón 2» con las dos japonesas', occ === 0 && jp === 5 && r.hijos.slice(1, 5).every((x) => x.startsWith('sv8-')) && r.hijos.slice(6).every((x) => x.startsWith('SV8-')), r.hijos.join(' '))
   const boton = await page.evaluate(() => { const a = document.querySelector('#mcPanelQuiero .mc-evento-boton'); const t = document.querySelector('#mcPanelQuiero .mc-deseos-cabeza .mc-subtitulo').getBoundingClientRect(); const r = a?.getBoundingClientRect(); return a && { href: a.getAttribute('href'), texto: a.innerText.trim(), alto: Math.round(r.height), alLado: Math.abs((r.top + r.height / 2) - (t.top + t.height / 2)) < 16 } })
   check('«Modo evento» a /evento, de 44 px o más', boton?.href === '/evento' && boton.texto === '' /* un icono en el móvil desde la 1038, flotante desde la 1041 */ && boton.alto >= 44, JSON.stringify(boton))
-  const nadie = await page.evaluate(() => { const n = document.querySelector('#mcQuieroRejilla .mc-merc-nadie'); return n && { texto: n.innerText.trim(), cabe: n.scrollWidth <= n.clientWidth + 1 } })
-  check('«Nadie la da aún» entero, sin el «te avisamos» que no cabe', nadie?.texto === 'Nadie la da aún' && nadie.cabe, JSON.stringify(nadie))
+  // Desde la 1057 (PINGU) la que nadie da no lleva fila: ni «Nadie la da aún».
+  const nadie = await page.evaluate(() => [...document.querySelectorAll('#mcQuieroRejilla .mc-deseo-baldosa')].some((b) => /Nadie la da/.test(b.innerText)))
+  check('sin «Nadie la da aún» en las baldosas', !nadie)
   // Las que doy, en la misma pantalla.
   await page.click('#mcPanelQuiero [data-deseos-vista="doy"]')
   await page.waitForTimeout(1200)

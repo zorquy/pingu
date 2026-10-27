@@ -56,8 +56,8 @@ console.log('── 1. Los chips: 36 a la vista, 44 al dedo ──')
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=quiero')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const m = await page.evaluate(() => [...document.querySelectorAll('#mcPanelQuiero .mc-deseos-seg .seg-btn, .mc-quiero-filtro .seg-btn')].filter((x) => x.getBoundingClientRect().width > 0).map((x) => { const a = getComputedStyle(x, '::after'); return { alto: Math.round(x.getBoundingClientRect().height), franja: -parseFloat(a.top) - parseFloat(a.bottom), pos: a.position } }))
-  check('las pestañas y los filtros miden 36', m.length >= 7 && m.every((x) => x.alto === 36), JSON.stringify(m.map((x) => x.alto)))
+  const m = await page.evaluate(() => [...document.querySelectorAll('#mcPanelQuiero .mc-deseos-seg .seg-btn, #mcQuieroQue .seg-btn')].filter((x) => x.getBoundingClientRect().width > 0).map((x) => { const a = getComputedStyle(x, '::after'); return { alto: Math.round(x.getBoundingClientRect().height), franja: -parseFloat(a.top) - parseFloat(a.bottom), pos: a.position } }))
+  check('las pestañas y los filtros miden 36', m.length >= 4 /* «La dan / Nadie» solo con alguien que dé (1057) */ && m.every((x) => x.alto === 36), JSON.stringify(m.map((x) => x.alto)))
   check('  …y con su franja invisible llegan a 44 para el dedo', m.every((x) => x.pos === 'absolute' && x.alto + x.franja >= 44), JSON.stringify(m.map((x) => x.alto + x.franja)))
   await ctx.close()
 }

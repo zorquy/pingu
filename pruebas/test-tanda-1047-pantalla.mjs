@@ -152,17 +152,20 @@ console.log('── 3. «La quiero»: una baldosa por versión ──')
   const { ctx, page, errores } = await abrir({ deseos: [deseo('d1', 'mcd21-2', 'holo'), deseo('d2', 'mcd21-2', 'normal', 'es')] })
   await ir(page, '/mi-coleccion.html?ver=quiero')
   await page.waitForTimeout(900)
-  const tiles = await page.$$eval('#mcQuieroRejilla .mc-deseo-baldosa', (as) => as.map((a) => ({ carta: a.dataset.deseoCarta, texto: a.innerText.replace(/\s+/g, ' ') })))
+  const tiles = await page.$$eval('#mcQuieroRejilla .mc-deseo-baldosa', (as) => as.map((a) => ({ carta: a.dataset.deseoCarta, clave: a.dataset.deseoClave, texto: a.innerText.replace(/\s+/g, ' '), es: Boolean(a.querySelector('.mc-deseo-cambiar .pv-bandera[data-idioma="es"]')) })))
   check('dos baldosas de la Chikorita', tiles.length === 2 && tiles.every((t) => t.carta === 'mcd21-2'), JSON.stringify(tiles))
-  const holo = tiles.find((t) => /Holo/.test(t.texto))?.texto || ''
-  const normal = tiles.find((t) => /Normal/.test(t.texto))?.texto || ''
-  check('la Holo: «Holo · Cualquier idioma» y la da 1 (Lucía)', /Holo · Cualquier idioma/.test(holo) && /La da 1/.test(holo), holo)
-  check('la Normal: «Normal · Español» y la da 1 (Dani)', /Normal ·\s*Español/.test(normal) && /La da 1/.test(normal), normal)
+  // Desde la 1057 la versión la dice la chapa de la foto, y el idioma, la bandera (o «Cualquiera»).
+  const holoT = tiles.find((t) => t.clave === 'mcd21-2|holo')
+  const normalT = tiles.find((t) => t.clave === 'mcd21-2|normal')
+  const holo = holoT?.texto || ''
+  const normal = normalT?.texto || ''
+  check('la Holo: «Cualquiera» y la da 1 (Lucía)', /Cualquiera/.test(holo) && /La da 1/.test(holo), holo)
+  check('la Normal: en español y la da 1 (Dani)', normalT?.es === true && /La da 1/.test(normal), normal)
   const chapas = await page.$$eval('#mcQuieroRejilla .mc-merc-foto .mc-chapa-variante', (cs) => cs.map((c) => c.dataset.var).sort())
   check('cada baldosa lleva la chapa de su versión en la foto, como en una expansión', chapas.join() === 'holo,normal', chapas.join())
   check('la cuenta: 2 cartas', /^2 cartas/.test((await page.textContent('#mcQuieroCifra')).trim()), await page.textContent('#mcQuieroCifra'))
-  const quien = await page.$$eval('#mcQuieroRejilla .mc-deseo-baldosa', (as) => as.map((a) => [a.querySelector('.mc-deseo-version')?.textContent, [...a.querySelectorAll('.mc-gente-av')].map((x) => x.getAttribute('aria-label') || x.title || '').join('+')]))
-  check('  …y cada una con su persona', JSON.stringify(quien).includes('Holo') && quien.every(([, g]) => g.split('+').length === 1), JSON.stringify(quien))
+  const quien = await page.$$eval('#mcQuieroRejilla .mc-deseo-baldosa', (as) => as.map((a) => [a.dataset.deseoClave, [...a.querySelectorAll('.mc-gente-av')].map((x) => x.getAttribute('aria-label') || x.title || '').join('+')]))
+  check('  …y cada una con su persona', JSON.stringify(quien).includes('holo') && quien.every(([, g]) => g.split('+').length === 1), JSON.stringify(quien))
   if (CAPS) await page.screenshot({ path: `${CAPS}/1047-quiero.png`, fullPage: true })
 
   console.log('── 4. Tocar la línea cambia lo pedido (C1) ──')

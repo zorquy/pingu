@@ -77,7 +77,8 @@ console.log('── 2. La pantalla «La quiero», con precios y lo que suman ─
     cifra: document.getElementById('mcQuieroCifra')?.textContent.replace(/\s+/g, ' ').trim(),
     filas: [...document.querySelectorAll('#mcQuieroRejilla .mc-deseo-baldosa')].map((f) => ({
       precio: f.querySelector('.mc-quiero-precio')?.textContent.replace(/\s/g, ' '),
-      aviso: f.querySelector('.mc-quiero-aviso')?.textContent.replace(/\s/g, ' ').trim(),
+      // Desde la 1057 la campana va sola encima de la foto: el aviso se lee en su nombre.
+      aviso: (f.querySelector('.mc-quiero-aviso.puesto')?.getAttribute('aria-label') || '').replace(/^.* baja de /, '< ').replace(/\s/g, ' ').trim(),
       nombre: Math.round(f.querySelector('.mc-merc-nombre').getBoundingClientRect().width),
     })),
     ancho: document.documentElement.scrollWidth <= innerWidth,
@@ -100,11 +101,11 @@ console.log('── 2. La pantalla «La quiero», con precios y lo que suman ─
   await page.waitForTimeout(700)
   await page.click('#pvAvisoCancelar')
   await page.waitForTimeout(900)
-  const aviso2 = limpio(await page.locator('#mcQuieroRejilla .mc-deseo-baldosa').nth(1).locator('.mc-quiero-aviso').textContent())
+  const aviso2 = limpio((await page.locator('#mcQuieroRejilla .mc-deseo-baldosa').nth(1).locator('.mc-quiero-aviso').getAttribute('aria-label')).replace(/^.* baja de /, '< '))
   check('  …y al cerrarlo, la fila dice el aviso nuevo', aviso2 === '< 1.328,31 €', aviso2)
 
   const descarga = page.waitForEvent('download', { timeout: 8000 }).catch(() => null)
-  await page.click('#mcQuieroCompartir')
+  await page.click('#mcQuieroMenu'); await page.click('#mcListasHoja [data-accion="imagen"]')
   const dl = await descarga
   check('«Compartir» saca la lista en una imagen (Y3)', dl && /^pokedoc-la-quiero.*\.png$/.test(dl.suggestedFilename()), dl?.suggestedFilename())
   const t = await page.evaluate(async () => {

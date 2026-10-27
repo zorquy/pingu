@@ -87,22 +87,13 @@ console.log('── A. Las acciones de La quiero, en un grupo ──')
 for (const movil of [true, false]) {
   const { ctx, page, errores } = await abrir({ movil, extra })
   await ir(page, '/mi-coleccion.html?ver=quiero')
-  const g = await page.evaluate(() => {
-    const grupo = document.querySelector('#mcPanelQuiero .mc-quiero-botones.grupo-acciones')
-    const bs = grupo ? [...grupo.children] : []
-    const rs = bs.map((b) => b.getBoundingClientRect())
-    return {
-      n: bs.length,
-      pegados: rs.every((r, i) => i === 0 || Math.abs(r.left - rs[i - 1].right) < 1),
-      unaFila: new Set(rs.map((r) => Math.round(r.top))).size === 1,
-      alto: Math.min(...rs.map((r) => Math.round(r.height))),
-      textos: bs.map((b) => b.innerText.trim()),
-      etiquetas: bs.map((b) => b.getAttribute('aria-label')),
-    }
-  })
-  check(`${movil ? 'móvil' : 'PC'}: Compartir, Imagen y Álbum en UN grupo, pegados y en una fila`, g.n === 3 && g.pegados && g.unaFila, JSON.stringify(g))
-  check('  …de 44 de alto y con su nombre para el lector', g.alto >= 44 && g.etiquetas.every(Boolean), JSON.stringify(g))
-  check(movil ? '  …en el móvil, solo los iconos' : '  …en el PC, con su texto', movil ? g.textos.every((t) => t === '') : g.textos.join('|') === 'Compartir lista|Imagen|Hacer un álbum', g.textos.join('|'))
+  // Desde la 1057 Compartir, Imagen y Álbum van juntos en el ⋯ de la barra.
+  await page.click('#mcQuieroMenu')
+  await page.waitForTimeout(300)
+  const g = await page.$$eval('#mcListasHoja [data-accion]', (bs) => bs.map((b) => ({ accion: b.dataset.accion, alto: Math.round(b.getBoundingClientRect().height), texto: b.innerText.trim() })))
+  check(`${movil ? 'móvil' : 'PC'}: Compartir, Imagen y Álbum juntos en el ⋯`, ['compartir', 'imagen', 'album'].every((a) => g.some((x) => x.accion === a)), JSON.stringify(g))
+  check('  …de 44 de alto y con su texto', g.every((x) => x.alto >= 44 && x.texto), JSON.stringify(g))
+  await page.keyboard.press('Escape')
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

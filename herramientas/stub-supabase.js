@@ -18,7 +18,7 @@ import { normalizeSearch } from './texto.js'
 
 // ── Las tablas ──
 // Las tablas cuyo `user_id` tiene `default auth.uid()` en la base.
-const TABLAS_CON_DUENO = ['user_collection', 'user_albums', 'user_wants', 'user_collection_value', 'user_folders', 'match_log']
+const TABLAS_CON_DUENO = ['user_collection', 'user_albums', 'user_wants', 'user_want_lists', 'user_want_list_items', 'user_collection_value', 'user_folders', 'match_log']
 
 const T = {
   user_profiles: [],
@@ -30,6 +30,9 @@ const T = {
   // Lo que cada uno busca (tanda 376). Lo que DA no es tabla: es la
   // columna `cambio` de su linea de `user_collection`.
   user_wants: [],
+  // Las listas de «La quiero» (1057); sin la migración, `__SIN_TABLAS__`.
+  user_want_lists: [],
+  user_want_list_items: [],
   // A quién sigue cada uno (tanda 773: el filtro «Gente que sigo» de los
   // cruces). En la base, `user_follows(follower_id, following_id)`.
   user_follows: [],
@@ -217,6 +220,8 @@ const sesion = quienSoy === 'none' ? null : { user: { id: quienSoy, email: `${qu
 // escribir lo que le importa.
 // Los `default` de las columnas que el cliente no manda al insertar.
 const DEFECTOS_AL_INSERTAR = {
+  user_want_lists: { color: null, created_at: '2026-10-27T00:00:00Z' },
+  user_want_list_items: { market: 'WEST', created_at: '2026-10-27T00:00:00Z' },
   user_price_alerts: { activo: true, disparado_at: null, precio_disparo: null, created_at: '2026-10-07T00:00:00Z' },
   user_wants: { idioma: null, variante: null, prioridad: 1, notas: null, created_at: '2026-10-07T00:00:00Z' },
   user_release_alerts: { semana: true, dia: true, preventa: false, enviados: [], created_at: '2026-10-07T00:00:00Z' },
@@ -387,6 +392,8 @@ sembrar('__FAKE_AVISOS_LANZAMIENTO__', 'user_release_alerts', (i) => ({
   id: `al-${i + 1}`, user_id: 'admin-1', clave: `set-${i}`, market: 'WEST', nombre: `Set ${i}`, semana: true, dia: true, preventa: false, enviados: [], created_at: '2026-10-06T00:00:00Z',
 }))
 sembrar('__FAKE_SEGUIDOS__', 'user_follows', (i) => ({ follower_id: 'admin-1', following_id: `user-${i + 1}`, created_at: '2026-10-01T00:00:00Z' }))
+sembrar('__FAKE_LISTAS__', 'user_want_lists', (i) => ({ id: `lista-${i + 1}`, user_id: 'admin-1', nombre: `Lista ${i + 1}`, color: '#6d4aa8', created_at: `2026-10-2${i}T00:00:00Z` }))
+sembrar('__FAKE_LISTA_ITEMS__', 'user_want_list_items', () => ({ user_id: 'admin-1', market: 'WEST' }))
 sembrar('__FAKE_DESEOS__', 'user_wants', (i) => ({
   id: `des-${i + 1}`,
   user_id: 'admin-1',
