@@ -41812,6 +41812,12 @@ Propuesta con antes/después (artifact «Deseos y cambios, más limpio»); PINGU
   (`js/mi-coleccion/linea-set.js`): el nombre del set se recorta y «· 152» no,
   en las tres baldosas. **F** · el rótulo del catálogo con aire y su raya.
 
+**1061b** (PINGU: «vamos a ser consistentes»): las chapas de gente van en
+`.mc-merc-chapas` en las TRES pestañas — el Mercado («La da N», sin la fila de
+abajo) y «La quiero» también con la de los que sigues (`.mc-chapa-sigues`, el
+texto de `textoDeSeguidos` en `title` y `sr-only`). Una chapa nueva de una
+baldosa va ahí, no en una fila debajo.
+
 Pruebas: `test-tanda-1061-pantalla.mjs` (móvil y PC: medidas, chapa, línea,
 precio, número); al día la 763, 772, 777, 1033, 1047, 1057 y 1058 (leen
 «La da 1» del `aria-label` y el 44 del − / + con su franja).

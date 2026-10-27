@@ -1047,7 +1047,7 @@ async function pintarDoy() {
       return `<article class="mc-merc mc-doy-baldosa${marcadasDoy.has(l.id) ? ' marcada' : ''}" data-doy-linea="${escapeHtml(l.id)}">
         <span class="mc-merc-cabeza"><a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
           <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${l.variante && l.variante !== 'normal' ? chapaDeVersionHtml(l.variante) : ''}</span>
-        </a>${gente.length ? `<button type="button" class="mc-deseo-quien" data-deseos-vista="cruces" aria-label="${gente.length === 1 ? 'La busca 1 persona' : `La buscan ${gente.length} personas`}">${mercadoAvatares(gente, 3)}<span class="mc-merc-texto"><span class="mc-merc-largo">${gente.length === 1 ? 'Busca ' : 'Buscan '}</span>${gente.length}</span></button>` : ''}</span>
+        </a>${chapasHtml([gente.length ? `<button type="button" class="mc-chapa-gente mc-deseo-quien" data-deseos-vista="cruces" aria-label="${gente.length === 1 ? 'La busca 1 persona' : `La buscan ${gente.length} personas`}">${mercadoAvatares(gente, 3)}<span class="mc-merc-texto"><span class="mc-merc-largo">${gente.length === 1 ? 'Busca ' : 'Buscan '}</span>${gente.length}</span></button>` : ''])}</span>
         <button type="button" class="mc-quiero-aviso mc-doy-aviso" data-avisar-doy="${escapeHtml(l.card_id)}" data-idioma="${escapeHtml(l.idioma || 'es')}" aria-label="Avísame si ${escapeHtml(nombre)} cambia de precio" title="Avísame si cambia de precio">${icons.bell(16)}</button>
         <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
         ${lineaDeSetHtml(c)}
@@ -1285,12 +1285,13 @@ function deseoHtml(g, precio = ctx.precioDeDeseo(g.filas[0])) {
     ? '<span class="mc-deseo-cualquiera">Cualquiera</span>'
     : idiomas.slice(0, 2).map((i) => banderaHtml(i)).join('') + (idiomas.length > 2 ? `<small>+${idiomas.length - 2}</small>` : '')
   const dan = dantesDe(g)
-  // La línea de los que sigues (763) solo sale cuando alguno la tiene.
-  const seguidos = textoDeSeguidos(seguidosDeQuiero?.get(g.card_id))
   return `<article class="mc-merc mc-deseo-baldosa" data-deseo-carta="${escapeHtml(g.card_id)}" data-deseo-clave="${escapeHtml(`${g.card_id}|${g.variante || ''}`)}">
     <span class="mc-merc-cabeza"><a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
       <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${g.variante ? chapaDeVersionHtml(g.variante) : ''}</span>
-    </a>${dan.length ? `<button type="button" class="mc-deseo-quien" data-ver-quien="${escapeHtml(g.card_id)}" aria-label="${dan.length === 1 ? 'La da 1 persona' : `La dan ${dan.length} personas`}">${mercadoAvatares(dan, 3)}<span class="mc-merc-texto"><span class="mc-merc-largo">${dan.length === 1 ? 'La da ' : 'La dan '}</span>${dan.length}</span></button>` : ''}</span>
+    </a>${chapasHtml([
+      dan.length ? `<button type="button" class="mc-chapa-gente mc-deseo-quien" data-ver-quien="${escapeHtml(g.card_id)}" aria-label="${dan.length === 1 ? 'La da 1 persona' : `La dan ${dan.length} personas`}">${mercadoAvatares(dan, 3)}<span class="mc-merc-texto"><span class="mc-merc-largo">${dan.length === 1 ? 'La da ' : 'La dan '}</span>${dan.length}</span></button>` : '',
+      seguidosChapaHtml(seguidosDeQuiero?.get(g.card_id)),
+    ])}</span>
     <button type="button" class="mc-quiero-aviso${baja ? ' puesto' : ''}${cumple ? ' cumple' : ''}" data-avisar-deseo="${escapeHtml(d.id)}" aria-label="${baja ? `Te aviso si ${escapeHtml(nombre)} baja de ${escapeHtml(euros(Number(baja.umbral)))}` : `Avísame si ${escapeHtml(nombre)} baja de precio`}" title="${baja ? `${cumple ? '¡Ya está por debajo de ' : 'Te aviso por debajo de '}${escapeHtml(euros(Number(baja.umbral)))}` : 'Avísame si baja'}">${icons.bell(16)}</button>
     <button type="button" class="mc-merc-corazon puesto" data-quitar-deseo-carta="${escapeHtml(g.card_id)}" data-quitar-deseo-version="${escapeHtml(g.variante || '')}" aria-pressed="true" aria-label="Quitar ${escapeHtml(nombre)}${g.variante ? ` (${escapeHtml(nombreDeVariante(g.variante))})` : ''} de tu lista">${laQuiero.corazon(16)}</button>
     <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
@@ -1299,12 +1300,25 @@ function deseoHtml(g, precio = ctx.precioDeDeseo(g.filas[0])) {
       <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
       <button type="button" class="mc-deseo-cambiar" data-cambiar-deseo="${escapeHtml(g.card_id)}" data-cambiar-version="${escapeHtml(g.variante || '')}" aria-label="${escapeHtml(`Cambiar cómo quieres ${nombre}`)}">${idioma}</button>
     </span>
-    ${seguidos ? `<small class="mc-deseo-seguidos">${icons.users(12)} ${escapeHtml(seguidos)}</small>` : ''}
   </article>`
 }
 
 // Los avatares de la gente, con el mismo dibujo que el Mercado (el módulo
 // del Mercado entra por `import()`, así que esto no puede pedírselo).
+// Las chapas de gente sobre la foto (1061b, PINGU: «vamos a ser consistentes»):
+// abajo a la izquierda, en las tres pestañas; la de «los que sigues» (763)
+// también, con el texto entero para quien lee y al pasar el ratón.
+function chapasHtml(chapas) {
+  const hay = chapas.filter(Boolean)
+  return hay.length ? `<span class="mc-merc-chapas">${hay.join('')}</span>` : ''
+}
+
+function seguidosChapaHtml(gente) {
+  const texto = textoDeSeguidos(gente)
+  if (!texto) return ''
+  return `<span class="mc-chapa-gente mc-chapa-sigues" title="${escapeHtml(texto)}">${mercadoAvatares(gente, 2)}<span class="mc-merc-texto" aria-hidden="true"><span class="mc-merc-largo">Sigues · </span>${gente.length}</span><span class="sr-only">${escapeHtml(texto)}</span></span>`
+}
+
 function mercadoAvatares(gente = [], max = 4) {
   return `<span class="mc-gente" aria-hidden="true">${gente.slice(0, max).map((p) => `<span class="mc-gente-av" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(p.display_name || p.username || '?'))}</span>`).join('')}</span>`
 }

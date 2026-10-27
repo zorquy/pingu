@@ -102,16 +102,18 @@ function baldosaHtml(f) {
   // Si ya la tienes, su ✓ como en la expansión (943): «la tienes» se ve en
   // todas partes donde sale una carta.
   const tengo = ctx.tengo?.(f.card_id) || 0
+  // Quién la da, en la chapa sobre la foto como en «La quiero» y «Las que
+  // doy» (1061b); la de «La buscas» sube arriba a la izquierda.
+  const personas = Number(f.personas) || 0
   return `<article class="mc-merc${busco ? ' buscada' : ''}${abierta === f.card_id ? ' abierta' : ''}${marcadas.has(f.card_id) ? ' marcada' : ''}" data-merc="${escapeHtml(f.card_id)}">
-    <button type="button" class="mc-merc-abrir" data-merc-ficha="${escapeHtml(f.card_id)}" aria-label="${escapeHtml(`Ver quién da ${nombre}${tengo ? ` (tienes ${tengo})` : ''}`)}">
-      <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${tengo ? ctx.marcaDeTengo?.(tengo) || '' : ''}</span>
+    <button type="button" class="mc-merc-abrir" data-merc-ficha="${escapeHtml(f.card_id)}" aria-label="${escapeHtml(`Ver quién da ${nombre}: ${textoDeGente(personas).toLowerCase()}${tengo ? ` (tienes ${tengo})` : ''}`)}">
+      <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${tengo ? ctx.marcaDeTengo?.(tengo) || '' : ''}${personas ? `<span class="mc-merc-chapas"><span class="mc-chapa-gente">${avataresHtml(f.gente || [], 3, buscanLoMio)}<span class="mc-merc-texto"><span class="mc-merc-largo">${textoDeGente(personas).replace(/\d+$/, '')}</span>${personas}</span></span></span>` : ''}</span>
       ${chapa ? `<span class="mc-merc-chapa ${chapa.clase}">${chapa.texto}</span>` : ''}
     </button>
     <button type="button" class="mc-merc-corazon${busco ? ' puesto' : ''}" data-merc-quiero="${escapeHtml(f.card_id)}" aria-pressed="${busco}" aria-label="${escapeHtml(`${busco ? 'Ya buscas' : 'La quiero:'} ${nombre}`)}">${ICONOS_COLECCION.corazon(16)}</button>
     <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
     ${lineaDeSetHtml(c)}
     <span class="mc-merc-fila"><b class="mc-merc-precio">${precio == null ? '' : escapeHtml(euros(precio))}</b><span class="mc-merc-idiomas">${(f.idiomas || []).slice(0, 4).map((i) => banderaHtml(i)).join('')}</span></span>
-    <span class="mc-merc-fila">${avataresHtml(f.gente || [], 4, buscanLoMio)}<span class="mc-merc-dan">${textoDeGente(Number(f.personas) || 0)}</span></span>
   </article>`
 }
 

@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (304) — PINGU-Claude (1061b — la chapa de gente en las tres pestañas)
+
+**Hecho**: PINGU, con capturas: la chapa sobre la foto solo estaba en «Las que
+doy»; en el Mercado «La da 1» seguía en una fila debajo y en «La quiero» la
+línea «La tienen @… de los que sigues» era texto. Ahora las tres usan
+`.mc-merc-chapas` (abajo a la izquierda de la foto) con `.mc-chapa-gente`:
+«La da N» en el Mercado (span dentro del botón de la foto, la cifra también en
+su aria-label), «La da N» y la de los que sigues (azul, `.mc-chapa-sigues`,
+texto entero en `title` y `sr-only`) en La quiero, «Busca N» en Las que doy.
+«La buscas» del Mercado sube arriba a la izquierda. En el móvil, dos avatares
+como mucho; si no caben dos chapas, la segunda sube (`wrap-reverse`).
+
+**Ficheros**: `js/mi-coleccion/deseos.js` (`chapasHtml`, `seguidosChapaHtml`),
+`js/mi-coleccion/mercado.js`, `css/mi-coleccion.css`. Pruebas: 1061 (Mercado)
+y 766 (lee la chapa). 766 sigue con sus dos rojos de logos de antes.
+
 ## 2026-10-27 (303) — PINGU-Claude (1061 — Deseos y cambios más limpio)
 
 **Hecho**: la propuesta (artifact con antes/después) con lo recomendado. A:

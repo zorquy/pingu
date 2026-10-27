@@ -14308,43 +14308,76 @@ body:has(#mcPanelQuiero.hidden) :is(#mcQuieroSel, #mcDoySel) {
   }
 }
 
-/* B: quién la da o la busca, en una chapa sobre la foto: todas las baldosas
-   miden lo mismo. En el móvil, los avatares y la cifra. */
+/* B: quién la da, la busca o la tiene de los que sigues, en chapas sobre la
+   foto, abajo a la izquierda, en las tres pestañas (1061b): todas las
+   baldosas miden lo mismo. En el móvil, los avatares y la cifra; si no
+   caben, la segunda sube encima de la primera. */
 .mc-merc-cabeza {
   display: block;
   position: relative;
 }
 
-.mc-merc-cabeza .mc-deseo-quien {
-  display: inline-flex;
+.mc-merc-chapas {
+  display: flex;
   position: absolute;
   bottom: var(--e-xs);
   left: var(--e-xs);
   z-index: 2;
-  max-width: calc(100% - var(--e-sm));
+  flex-wrap: wrap-reverse;
+  gap: var(--e-xs);
+  max-width: calc(100% - 36px);
+  pointer-events: none;
+}
+
+.mc-chapa-gente,
+.mc-merc-cabeza .mc-chapa-gente {
+  display: inline-flex;
+  position: relative;
+  min-width: 0;
   min-height: 0;
   align-items: center;
   gap: var(--e-xs);
   padding: 2px var(--e-sm) 2px 2px;
+  border: 0;
   border-radius: var(--radius-pill);
   background: rgb(11 18 25 / 82%);
   color: #4ade80;
+  font: inherit;
   font-size: var(--t-2xs);
+  font-weight: 700;
   white-space: nowrap;
+  pointer-events: auto;
 }
 
-.mc-merc-cabeza .mc-deseo-quien .mc-gente-av {
+.mc-chapa-sigues {
+  color: #bfdbfe;
+}
+
+.mc-chapa-gente .mc-gente-av {
   width: 18px;
   height: 18px;
+  border-color: rgb(11 18 25);
   font-size: var(--t-2xs);
 }
 
 @media (pointer: coarse) {
-  .mc-merc-cabeza .mc-deseo-quien::after {
+  button.mc-chapa-gente::after {
     content: '';
     position: absolute;
     inset: -12px -4px;
   }
+}
+
+@media (max-width: 599px) {
+  .mc-chapa-gente .mc-gente-av:nth-child(n + 3) {
+    display: none;
+  }
+}
+
+/* «La buscas» del Mercado sube arriba a la izquierda: abajo van las chapas. */
+.mc-mercado-rejilla .mc-merc-chapa {
+  top: var(--e-xs);
+  bottom: auto;
 }
 
 /* C: el contador en una línea, «− Doy 2 de 2 +». */
@@ -14427,6 +14460,6 @@ body:has(#mcPanelQuiero.hidden) :is(#mcQuieroSel, #mcDoySel) {
 }
 
 /* Con la chapa de la versión al lado no caben las dos palabras. */
-.mc-merc-cabeza:has(.mc-chapa-variante) .mc-deseo-quien .mc-merc-largo {
+:is(.mc-merc-cabeza, .mc-merc-foto):has(.mc-chapa-variante) .mc-chapa-gente .mc-merc-largo {
   display: none;
 }
