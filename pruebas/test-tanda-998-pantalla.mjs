@@ -122,9 +122,10 @@ console.log('── 4. Los filtros de Buscar ──')
   const con = await abrir('/cartas?ver=buscar&q=aerodactyl', { sesion: true })
   const c = await con.page.evaluate(() => {
     const hijos = [...document.querySelectorAll('#mcBuscarBarra .mc-mandos button, #mcBuscarBarra .mc-mandos select')].filter((e) => e.getBoundingClientRect().height > 0)
-    return { ids: hijos.map((h) => h.id), alturas: [...new Set(hijos.map((h) => Math.round(h.getBoundingClientRect().top)))], alto: Math.max(...hijos.map((h) => Math.round(h.getBoundingClientRect().height))) }
+    return { que: !!document.querySelector('#mcBuscarQue:not(.hidden) [data-bus-que="tengo"]'), ids: hijos.map((h) => h.id), alturas: [...new Set(hijos.map((h) => Math.round(h.getBoundingClientRect().top)))], alto: Math.max(...hijos.map((h) => Math.round(h.getBoundingClientRect().height))) }
   })
-  check('con cuenta, «Solo las que tengo» también en la misma línea y sin partirse', c.ids.includes('mcBuscarSoloMias') && c.alturas.length === 1 && c.alto <= 46, JSON.stringify(c))
+  // 1054: «Solo las que tengo» es Todas/Tengo/Faltan (`#mcBuscarQue`).
+  check('con cuenta, Todas/Tengo/Faltan también en la misma línea y sin partirse', c.que && c.alturas.length === 1 && c.alto <= 46, JSON.stringify(c))
   await con.ctx.close()
   const pc = await abrir('/cartas?ver=buscar&q=aerodactyl', { movil: false })
   const n = await pc.page.evaluate(() => [...document.querySelectorAll('.mc-mercado')].filter((e) => e.getBoundingClientRect().height > 0).length)
