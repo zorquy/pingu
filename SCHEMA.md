@@ -41785,6 +41785,57 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1062 — El histórico de precios, claro
+
+PINGU, con una captura: «faltan idiomas en los gráficos… los colores no
+coinciden… pone que hay una raya en inglés, otra en alemán, italiano, pero no
+hay nada… otra vez este TCGplayer». Propuesta con antes/después (artifact
+«Histórico de precios claro»); eligió lo recomendado.
+
+**De dónde sale** (no cambia): `tcg_card_history`, por dos caminos. A demanda,
+`tcggo-historial` pide a TCGGO hasta 30 fechas sueltas la primera vez que
+alguien abre la ficha (luego como mucho una vez a la semana): pueden cubrir un
+año y a menudo no traen el español. Y `historial_foto_diaria` copia cada día
+el precio de hoy de las cartas que alguien tiene. El `cm_low` es el mínimo
+general (cualquier idioma) y `cm_low_en` es ese MISMO valor: TCGGO no da el
+inglés aparte.
+
+**Lo que estaba mal**: (1) `valorDeFila` caía al general cuando faltaba el
+idioma, así que la raya «Cardmarket» y las chapas mezclaban dos precios (el
+«+586 %»); (2) la leyenda de TCGplayer estaba dos veces en la hoja y ganaba la
+gris mientras la raya era amarilla; alemán e italiano, dos grises al 75 %;
+«Cardmarket» en `--navy-solid` sobre fondo marino; (3) «inglés» era el
+general; (4) TCGplayer (EE. UU., 2.300 €) aplastaba las de Cardmarket (400 €);
+(5) las fechas sin año en un tramo de un año; (6) rectas largas sin puntos.
+
+**Cómo queda** (`js/carta-historial.js`):
+- `seriesDisponibles(filas, idioma)`: tu idioma, `todos` (el general), los
+  demás con cifra y `tp`; sin `en` (en inglés, `todos` es «la tuya»).
+- `valorDeFila(f, id)` solo da lo suyo (`todos` → `cm_low`).
+- `svgDeHistorial(filas, { idioma, visibles })`: una raya por serie visible
+  (la primera, `principal`, gorda), un punto por muestra (hasta 60), el año en
+  las fechas si el tramo pasa de 200 días, y el eje sin céntimos desde 100 €.
+- `mandosHtml`: un botón por serie (`data-serie`, `aria-pressed`, bandera,
+  «(la tuya)»). De serie, las dos primeras que no son `tp`. Al cambiar de
+  idioma en la ficha, vuelven las de serie.
+- `origenHtml`: «Mínimo Near Mint de Cardmarket en cada idioma: una muestra
+  al día; antes, las fechas sueltas que da TCGGO. Desde el …». En la ficha
+  ancha (PC) va en el `title` del título, para que quepa (923).
+- El rango inicial: 3 meses, o el más corto que cubra entera la serie de tu
+  idioma si tiene menos.
+- Productos: el general se llama «Cardmarket» (`url` puesto).
+
+**CSS** (`css/cardmarket.css`): `[data-serie='x'] { --serie: … }` y la raya,
+el punto y el botón leen `--serie`: es `--navy`, todos `--text-mid`, de
+`--pink`, fr `--warning`, it `--indigo`, ja `--rarity-bronze`, tp
+`--text-dim` (a trazos). Fuera la leyenda vieja y el pie. Los botones, 44 al
+dedo de verdad: su fila se desliza en el móvil y recortaría una franja
+`::after`. En la ficha ancha, botones de 24 y el dibujo a 104 de alto.
+
+Pruebas: `test-tanda-1062.mjs` (la mezcla de la captura, las series, el año,
+el color compartido); al día la 643, 643-pantalla, 661, 769-pantalla, 923 y
+926.
+
 ## Tanda 1061 — Deseos y cambios más limpio
 
 Propuesta con antes/después (artifact «Deseos y cambios, más limpio»); PINGU:

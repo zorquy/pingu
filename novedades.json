@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-27", "tipo": "mejora", "texto": "El histórico de precios de una carta, más claro: cada línea es un precio con su color, eliges cuáles ver (tu idioma, cualquier idioma, otros idiomas o TCGplayer), las fechas llevan el año y abajo dice de dónde sale.", "enlace": "/cartas" },
     { "fecha": "2026-10-27", "tipo": "mejora", "texto": "Deseos y cambios más limpio: el corazón y la campana más pequeños en el móvil, quién la da o la busca en una chapa sobre la carta, el contador de las que das en una línea y el número de la carta siempre a la vista.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "Si algo falla al crear la cuenta con email, ahora te lo decimos claro en vez de enseñar unos corchetes.", "enlace": "/auth.html?registro=1" },
     { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "Con el tema oscuro, los desplegables (como el idioma del Mercado) ya no salen en blanco con la letra que no se lee.", "enlace": "/mi-coleccion?ver=mercado" },

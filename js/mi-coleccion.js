@@ -2480,7 +2480,7 @@ function abrirEditor(l) {
     const esta = l.card_id
     repintarHistorialDeFicha = null
     import('./carta-historial.js')
-      .then(({ montarHistorial, cargadorDeMarcas }) => (d.dataset.linea === String(l.id) || cartaAbierta === esta ? montarHistorial(historial, esta, () => idiomaDePrecioDeFicha(l, c, tuya), { marcas: cargadorDeMarcas(supabase, c?.market || l.market || 'WEST'), ...(fichaAncha() ? { alto: 120 } : {}) }) : null))
+      .then(({ montarHistorial, cargadorDeMarcas }) => (d.dataset.linea === String(l.id) || cartaAbierta === esta ? montarHistorial(historial, esta, () => idiomaDePrecioDeFicha(l, c, tuya), { marcas: cargadorDeMarcas(supabase, c?.market || l.market || 'WEST'), ...(fichaAncha() ? { alto: 104 } : {}) }) : null))
       .then((r) => { if (cartaAbierta === esta && typeof r === 'function') repintarHistorialDeFicha = r })
       .catch(() => {})
     cartaAbierta = esta

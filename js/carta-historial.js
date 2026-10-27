@@ -9,8 +9,13 @@
 //
 //   · EL RANGO: 7 días, 1, 3 y 6 meses, 1 año y todo; un botón sin datos
 //     se apaga (la 464). Por defecto 3 meses, si los hay.
-//   · UNA LÍNEA POR IDIOMA (`todas`): el elegido gorda, los demás finos y
-//     con su color (`data-idioma`, lo pinta el CSS); TCGplayer a trazos.
+//   · UNA LÍNEA POR SERIE, y se eligen (1062, PINGU: «faltan idiomas, los
+//     colores no coinciden, no lo entiendo»): botones con su color y su
+//     bandera encienden y apagan cada una. De serie, tu idioma y «Cualquier
+//     idioma» (el mínimo general); TCGplayer (EE. UU.) apagado y a trazos,
+//     que a otra escala aplastaba las de Cardmarket. Cada serie SOLO con sus
+//     datos: caer al general cuando faltaba tu idioma hacía saltar la raya y
+//     decía «+586 %» sin que nada subiera.
 //   · LAS MARCAS: las expansiones grandes que salieron dentro del tramo,
 //     como rayas verticales con su código. Las trae quien monta (`marcas`),
 //     porque este módulo no toca la base.
@@ -41,27 +46,38 @@ export const RANGO_POR_DEFECTO = '3M'
 
 const num = (v) => (typeof v === 'number' && Number.isFinite(v) && v > 0 ? v : typeof v === 'string' && Number(v) > 0 ? Number(v) : null)
 const ms = (dia) => new Date(`${String(dia).slice(0, 10)}T00:00:00Z`).getTime()
+// En el eje, de 100 € para arriba sin céntimos: «2.322,50 €» no cabe en el móvil.
+const ejeEuros = (v) => (v >= 100 ? `${Math.round(v).toLocaleString('es-ES')} €` : euros(v))
 const pct1 = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
 
 // El valor de una fila para un idioma: el suyo si lo tiene, si no el general.
 export function valorDeFila(fila, idioma) {
-  const propio = IDIOMAS_CON_PRECIO.includes(idioma) ? num(fila?.[`cm_low_${idioma}`]) : null
-  return propio ?? num(fila?.cm_low) ?? null
+  if (idioma === 'todos') return num(fila?.cm_low)
+  return IDIOMAS_CON_PRECIO.includes(idioma) ? num(fila?.[`cm_low_${idioma}`]) : null
 }
 
-const fecha = (dia) => {
+// Las series que se pueden enseñar, en orden: el idioma de la carta, «cualquier
+// idioma» (el mínimo general de Cardmarket) y los demás idiomas con cifra.
+// El inglés de TCGGO ES el general (no lo da aparte): no se ofrece dos veces.
+export function seriesDisponibles(filas, idioma) {
+  if (idioma === 'en') idioma = 'todos'
+  const ids = IDIOMAS_CON_PRECIO.filter((id) => id !== 'en' && serieDe(filas, (f) => valorDeFila(f, id)).length >= 2)
+  const general = serieDe(filas, (f) => num(f?.cm_low)).length >= 2 ? ['todos'] : []
+  const orden = idioma === 'todos' ? [...general, ...ids] : [...(ids.includes(idioma) ? [idioma] : []), ...general, ...ids.filter((id) => id !== idioma)]
+  if (serieDe(filas, (f) => num(f?.tp_market_eur)).length >= 2) orden.push('tp')
+  return orden
+}
+const nombreSerie = (id, general = 'Cualquier idioma') => (id === 'todos' ? general : id === 'tp' ? 'TCGplayer (EE. UU.)' : idiomaDe(id).nombre)
+const valorSerie = (f, id) => (id === 'tp' ? num(f?.tp_market_eur) : valorDeFila(f, id))
+
+const fecha = (dia, conAnio = false) => {
   const d = new Date(`${dia}T00:00:00Z`)
-  return Number.isNaN(d.getTime()) ? String(dia) : d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', timeZone: 'UTC' })
+  return Number.isNaN(d.getTime()) ? String(dia) : d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short', ...(conAnio ? { year: 'numeric' } : {}), timeZone: 'UTC' })
 }
 
 // Los puntos de una serie: [{ dia, valor }] solo con los días que tienen cifra.
 export function serieDe(filas, tomar) {
   return (filas || []).map((f) => ({ dia: String(f.dia), valor: tomar(f) })).filter((p) => p.valor !== null && /^\d{4}-\d{2}-\d{2}/.test(p.dia))
-}
-
-// Los idiomas con cifra PROPIA en las filas (dos puntos o más).
-export function idiomasConSerie(filas) {
-  return IDIOMAS_CON_PRECIO.filter((id) => (filas || []).filter((f) => num(f?.[`cm_low_${id}`])).length >= 2)
 }
 
 // Las filas de un rango: desde `dias` antes del último día. MAX, todas.
@@ -89,7 +105,7 @@ export function rangoElegido(filas, rango = RANGO_POR_DEFECTO) {
 // CUBRE esos días: con tres fotos, «30 d: +20 %» afirmaría un mes que no
 // existe. Devuelve { cambio, pct } o null.
 export function cambioEnDias(filas, idioma, dias) {
-  const serie = serieDe([...(filas || [])].sort((a, b) => String(a.dia).localeCompare(String(b.dia))), (f) => valorDeFila(f, idioma))
+  const serie = serieDe([...(filas || [])].sort((a, b) => String(a.dia).localeCompare(String(b.dia))), (f) => valorSerie(f, idioma))
   if (serie.length < 2) return null
   const ultimo = serie[serie.length - 1]
   const corte = ms(ultimo.dia) - dias * 86_400_000
@@ -117,29 +133,28 @@ export function chipsHtml(filas, idioma) {
 
 // El SVG. Devuelve '' si no hay con qué dibujar.
 //
-// `todas`: una línea por idioma con cifra propia (el elegido, gorda).
+// `visibles`: las series a dibujar, la primera gorda (sin ella, tu idioma y
+// el general, como al abrir).
 // `marcas`: [{ dia, codigo, nombre }] de expansiones a marcar; solo las
 // que caen dentro del tramo. `alto`: el dibujo más bajo para la ficha del
 // ordenador (923), que tiene que caber sin desplazarse; el texto no se
 // deforma porque el SVG no se estira, se dibuja con otra proporción.
-export function svgDeHistorial(filas, { idioma = 'es', todas = false, marcas = [], alto = ALTO } = {}) {
-  const cm = serieDe(filas, (f) => valorDeFila(f, idioma))
-  const tp = serieDe(filas, (f) => num(f?.tp_market_eur))
-  const otras = todas ? idiomasConSerie(filas).filter((id) => id !== idioma).map((id) => ({ id, serie: serieDe(filas, (f) => num(f?.[`cm_low_${id}`])) })) : []
-  const puntos = [...cm, ...tp, ...otras.flatMap((o) => o.serie)]
-  if (cm.length < 2 && tp.length < 2) return ''
+export function svgDeHistorial(filas, { idioma = 'es', visibles = null, marcas = [], alto = ALTO } = {}) {
+  const ids = visibles || seriesDisponibles(filas, idioma).filter((id) => id !== 'tp').slice(0, 2)
+  const series = ids.map((id) => ({ id, serie: serieDe(filas, (f) => valorSerie(f, id)) })).filter((x) => x.serie.length >= 2)
+  if (!series.length) return ''
+  const puntos = series.flatMap((x) => x.serie)
   const dias = [...new Set(puntos.map((p) => p.dia))].sort()
-  const t0 = ms(dias[0])
-  const t1 = ms(dias[dias.length - 1])
+  const t0 = ms(dias[0]); const t1 = ms(dias[dias.length - 1])
+  const conAnio = t1 - t0 > 200 * 86_400_000
   const valores = puntos.map((p) => p.valor)
-  const min = Math.min(...valores)
-  const max = Math.max(...valores)
+  let min = Math.min(...valores); let max = Math.max(...valores)
+  if (max === min) { min *= 0.9; max *= 1.1 }
   const anchoUtil = ANCHO - MARGEN.izquierda - MARGEN.derecha
   const altoUtil = alto - MARGEN.arriba - MARGEN.abajo
   const x = (dia) => (t1 === t0 ? MARGEN.izquierda + anchoUtil / 2 : MARGEN.izquierda + ((ms(dia) - t0) / (t1 - t0)) * anchoUtil)
-  const y = (v) => (max === min ? MARGEN.arriba + altoUtil / 2 : MARGEN.arriba + (1 - (v - min) / (max - min)) * altoUtil)
-  const linea = (serie, clase, extra = '') => (serie.length < 2 ? '' : `<polyline class="${clase}"${extra} points="${serie.map((p) => `${x(p.dia).toFixed(1)},${y(p.valor).toFixed(1)}`).join(' ')}"/>`)
-  const rejaY = [MARGEN.arriba, MARGEN.arriba + altoUtil / 2, MARGEN.arriba + altoUtil]
+  const y = (v) => MARGEN.arriba + (1 - (v - min) / (max - min)) * altoUtil
+  const rejaY = [0, 0.5, 1].map((k) => MARGEN.arriba + k * altoUtil)
   // Las marcas de lanzamiento, dentro del tramo y sin pisarse: si dos caen
   // a menos de un 4 % del ancho, la segunda se queda sin rótulo.
   const dentro = (marcas || [])
@@ -151,47 +166,40 @@ export function svgDeHistorial(filas, { idioma = 'es', todas = false, marcas = [
     const conRotulo = xx - ultimaX > ANCHO * 0.04
     if (conRotulo) ultimaX = xx
     const rotulo = m.codigo || m.nombre || ''
-    return `<line class="carta-historial-marca" x1="${xx.toFixed(1)}" x2="${xx.toFixed(1)}" y1="${MARGEN.arriba}" y2="${(MARGEN.arriba + altoUtil).toFixed(1)}"><title>${escapeHtml(`${m.nombre || rotulo} · ${fecha(String(m.dia).slice(0, 10))}`)}</title></line>` +
+    return `<line class="carta-historial-marca" x1="${xx.toFixed(1)}" x2="${xx.toFixed(1)}" y1="${MARGEN.arriba}" y2="${(MARGEN.arriba + altoUtil).toFixed(1)}"><title>${escapeHtml(`${m.nombre || rotulo} · ${fecha(String(m.dia).slice(0, 10), true)}`)}</title></line>` +
       (conRotulo && rotulo ? `<text class="carta-historial-marca-texto" x="${(xx + 3).toFixed(1)}" y="${MARGEN.arriba - 4}">${escapeHtml(String(rotulo).slice(0, 6))}</text>` : '')
   }).join('')
-  // Los puntos de lectura del idioma elegido (o de TCGplayer si no hay
-  // Cardmarket): [dia, valor, x %, y %], para `engancharLectura`.
-  const lectura = (cm.length >= 2 ? cm : tp).map((p) => [p.dia, Number(p.valor.toFixed(2)), Number(((x(p.dia) / ANCHO) * 100).toFixed(2)), Number(((y(p.valor) / alto) * 100).toFixed(2))])
+  // Cada serie: su línea y un punto en cada muestra (un tramo sin muestras
+  // se ve como lo que es: una recta entre dos puntos, no un precio quieto).
+  const dibujo = series.map(({ id, serie }, k) => {
+    const clase = `carta-historial-linea${k === 0 ? ' principal' : ''}${id === 'tp' ? ' carta-historial-linea-tp' : ''}`
+    const pts = serie.map((p) => `${x(p.dia).toFixed(1)},${y(p.valor).toFixed(1)}`)
+    return `<polyline class="${clase}" data-serie="${id}" points="${pts.join(' ')}"/>` + (serie.length <= 60 ? serie.map((p) => `<circle class="carta-historial-punto" data-serie="${id}" cx="${x(p.dia).toFixed(1)}" cy="${y(p.valor).toFixed(1)}" r="${k === 0 ? 2.5 : 2}"/>`).join('') : '')
+  }).reverse().join('')
+  const principal = series[0].serie
+  const lectura = principal.map((p) => [p.dia, Number(p.valor.toFixed(2)), Number(((x(p.dia) / ANCHO) * 100).toFixed(2)), Number(((y(p.valor) / alto) * 100).toFixed(2))])
   return (
-    `<svg viewBox="0 0 ${ANCHO} ${alto}" role="img" data-puntos="${escapeHtml(JSON.stringify(lectura))}" aria-label="${escapeHtml(`Histórico: de ${euros(min)} a ${euros(max)} entre el ${fecha(dias[0])} y el ${fecha(dias[dias.length - 1])}`)}">` +
+    `<svg viewBox="0 0 ${ANCHO} ${alto}" role="img" data-puntos="${escapeHtml(JSON.stringify(lectura))}" aria-label="${escapeHtml(`Histórico: de ${euros(min)} a ${euros(max)} entre el ${fecha(dias[0], true)} y el ${fecha(dias[dias.length - 1], true)}`)}">` +
     rejaY.map((yy) => `<line class="carta-historial-reja" x1="${MARGEN.izquierda}" x2="${ANCHO - MARGEN.derecha}" y1="${yy.toFixed(1)}" y2="${yy.toFixed(1)}"/>`).join('') +
     marcasSvg +
-    `<text class="carta-historial-eje" x="${MARGEN.izquierda - 6}" y="${(MARGEN.arriba + 4).toFixed(1)}" text-anchor="end">${escapeHtml(euros(max))}</text>` +
-    `<text class="carta-historial-eje" x="${MARGEN.izquierda - 6}" y="${(MARGEN.arriba + altoUtil + 4).toFixed(1)}" text-anchor="end">${escapeHtml(euros(min))}</text>` +
-    `<text class="carta-historial-eje" x="${MARGEN.izquierda}" y="${alto - 6}">${escapeHtml(fecha(dias[0]))}</text>` +
-    `<text class="carta-historial-eje" x="${ANCHO - MARGEN.derecha}" y="${alto - 6}" text-anchor="end">${escapeHtml(fecha(dias[dias.length - 1]))}</text>` +
-    linea(tp, 'carta-historial-linea carta-historial-linea-tp') +
-    otras.map((o) => linea(o.serie, 'carta-historial-linea carta-historial-linea-otra', ` data-idioma="${o.id}"`)).join('') +
-    linea(cm, 'carta-historial-linea', IDIOMAS_CON_PRECIO.includes(idioma) && cm.some((p, i) => num(filas?.[i]?.[`cm_low_${idioma}`])) ? ` data-idioma="${idioma}"` : '') +
-    '</svg>'
+    [max, (max + min) / 2, min].map((v, k) => `<text class="carta-historial-eje" x="${MARGEN.izquierda - 6}" y="${(rejaY[k] + 4).toFixed(1)}" text-anchor="end">${escapeHtml(ejeEuros(v))}</text>`).join('') +
+    `<text class="carta-historial-eje" x="${MARGEN.izquierda}" y="${alto - 6}">${escapeHtml(fecha(dias[0], conAnio))}</text>` +
+    `<text class="carta-historial-eje" x="${ANCHO - MARGEN.derecha}" y="${alto - 6}" text-anchor="end">${escapeHtml(fecha(dias[dias.length - 1], conAnio))}</text>` +
+    dibujo + '</svg>'
   )
 }
 
-// La leyenda: un chip por idioma dibujado, con su color (lo pone el CSS
-// por `data-idioma`), el elegido marcado; y TCGplayer si está.
-export function leyendaHtml(filas, idioma, { todas = false } = {}) {
-  const ids = todas ? idiomasConSerie(filas) : idiomasConSerie(filas).filter((id) => id === idioma)
-  // La línea elegida se llama «Cardmarket» (667, PINGU: «en vez de inglés
-  // pon Cardmarket en azul»); las otras, por su idioma.
-  const partes = ids.map((id) => `<span class="carta-historial-leyenda-item${id === idioma ? ' elegido' : ''}" data-idioma="${id}"><i></i>${id === idioma ? 'Cardmarket' : escapeHtml(idiomaDe(id).nombre)}</span>`)
-  if (serieDe(filas, (f) => num(f?.tp_market_eur)).length >= 2) partes.push('<span class="carta-historial-leyenda-item" data-idioma="tp"><i></i>TCGplayer</span>')
-  return partes.length ? `<div class="carta-historial-leyenda">${partes.join('')}</div>` : ''
+// Los mandos de las series: un botón por serie que se enciende y se apaga,
+// con su color (el mismo que su línea, por `data-serie`) y su bandera.
+export function mandosHtml(filas, idioma, visibles, { general } = {}) {
+  return `<div class="carta-historial-series" role="group" aria-label="Qué líneas ver">${seriesDisponibles(filas, idioma).map((id) => `<button type="button" class="carta-historial-serie" data-serie="${id}" aria-pressed="${visibles.includes(id)}"><i></i>${IDIOMAS_CON_PRECIO.includes(id) ? `<span class="pv-bandera" data-idioma="${id}"></span>` : ''}${escapeHtml(nombreSerie(id, general))}${id === idioma || (idioma === 'en' && id === 'todos') ? ' <small>(la tuya)</small>' : ''}</button>`).join('')}</div>`
 }
 
-// El pie: qué líneas hay y de qué idioma.
-export function pieDeHistorial(filas, idioma) {
-  const cm = serieDe(filas, (f) => valorDeFila(f, idioma))
-  const tp = serieDe(filas, (f) => num(f?.tp_market_eur))
-  const conPropio = (filas || []).some((f) => IDIOMAS_CON_PRECIO.includes(idioma) && num(f?.[`cm_low_${idioma}`]))
-  const partes = []
-  if (cm.length >= 2) partes.push(`Línea: mínimo en Cardmarket${conPropio ? ` en ${idiomaDe(idioma).nombre.toLowerCase()}` : ', cualquier idioma'}`)
-  if (tp.length >= 2) partes.push('a trazos, TCGplayer en euros')
-  return partes.join(' · ') + (partes.length ? `. ${filas.length} ${filas.length === 1 ? 'día' : 'días'}.` : '')
+// De dónde sale, en una línea: la gente pregunta.
+export function origenHtml(filas) {
+  const fotos = (filas || []).filter((f) => f.origen === 'foto').length
+  const primero = (filas || [])[0]?.dia
+  return primero ? `<p class="carta-historial-origen">Mínimo Near Mint de Cardmarket en cada idioma${fotos ? ': una muestra al día' : ''}${(filas || []).length > fotos ? '; antes, las fechas sueltas que da TCGGO' : ''}. Desde el ${escapeHtml(fecha(String(primero), true))}.</p>` : ''
 }
 
 export function botonesDeRango(filas, elegido) {
@@ -276,25 +284,52 @@ export async function montarHistorial(caja, cardId, idiomaActual = () => 'es', {
   } catch {
     filas = []
   }
+  // Sin rango pedido, el de siempre (3 meses) o, si tu idioma tiene menos, el
+  // más corto que lo cubre entero: con 14 días de español, uno largo lo deja
+  // en una esquina.
   let rangoPuesto = rango
+  if (!rango || rango === RANGO_POR_DEFECTO) {
+    const hay = seriesDisponibles(filas, idiomaActual())
+    const serie = hay.length ? serieDe(filas, (f) => valorSerie(f, hay[0])) : []
+    if (serie.length >= 2) {
+      const desde = ms(serie[0].dia)
+      const cubre = RANGOS.find((r) => { const fs = filasDelRango(filas, r.id); return fs.length >= 2 && ms(fs[0].dia) <= desde })
+      const deSiempre = RANGOS.find((r) => r.id === RANGO_POR_DEFECTO)
+      if (cubre && cubre.dias !== null && cubre.dias < deSiempre.dias) rangoPuesto = cubre.id
+    }
+  }
   let marcasTodas = null
+  let visibles = null
+  let idiomaPintado = null
   const pintar = () => {
     const idioma = idiomaActual()
+    // Otro idioma en la ficha: vuelven las series de serie del nuevo.
+    if (idioma !== idiomaPintado) { visibles = null; idiomaPintado = idioma }
     const elegido = rangoElegido(filas, rangoPuesto)
     const tramo = elegido ? elegido.filas : filas
-    const svg = svgDeHistorial(tramo, { idioma, todas: true, marcas: marcasTodas || [], alto })
+    const hay = seriesDisponibles(tramo, idioma)
+    visibles = (visibles || hay.filter((id) => id !== 'tp').slice(0, 2)).filter((id) => hay.includes(id))
+    if (!visibles.length && hay.length) visibles = [hay[0]]
+    const svg = svgDeHistorial(tramo, { idioma, visibles, marcas: marcasTodas || [], alto })
     if (!svg) {
       caja.classList.add('hidden')
       caja.innerHTML = ''
       return
     }
-    caja.innerHTML = `<p class="carta-historial-titulo">Histórico de precios</p>${chipsHtml(filas, idioma)}<div class="carta-historial-lienzo">${svg}<div class="carta-historial-lectura" hidden aria-hidden="true"><span class="carta-historial-globo"></span></div></div>${leyendaHtml(tramo, idioma, { todas: true })}${botonesDeRango(filas, elegido)}`
+    caja.innerHTML = `<p class="carta-historial-titulo" title="${escapeHtml(origenHtml(filas).replace(/<[^>]+>/g, ''))}">Histórico de precios</p>${chipsHtml(filas, visibles[0])}${mandosHtml(tramo, idioma, visibles, { general: url ? 'Cardmarket' : undefined })}<div class="carta-historial-lienzo">${svg}<div class="carta-historial-lectura" hidden aria-hidden="true"><span class="carta-historial-globo"></span></div></div>${botonesDeRango(filas, elegido)}${origenHtml(filas)}`
     caja.classList.remove('hidden')
     engancharLectura(caja.querySelector('.carta-historial-lienzo'))
   }
   if (!caja.dataset.rangos) {
     caja.dataset.rangos = '1'
     caja.addEventListener('click', (e) => {
+      const sb = e.target.closest('.carta-historial-serie')
+      if (sb) {
+        const id = sb.dataset.serie
+        visibles = visibles.includes(id) ? (visibles.length > 1 ? visibles.filter((v) => v !== id) : visibles) : [...visibles, id]
+        pintar()
+        return
+      }
       const b = e.target.closest('[data-rango]')
       if (!b || b.disabled) return
       rangoPuesto = b.dataset.rango

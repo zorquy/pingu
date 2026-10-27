@@ -230,7 +230,7 @@ export async function pintarMercado(carta) {
 
   let repintarHistorial = null
   import('./carta-historial.js')
-    .then(({ montarHistorial, cargadorDeMarcas }) => montarHistorial($('cmHistorial'), carta.id, () => estado.idioma, { marcas: cargadorDeMarcas(supabase, carta.market || MERCADO), ...(window.matchMedia?.('(min-width: 1100px)').matches ? { alto: 120 } : {}) }))
+    .then(({ montarHistorial, cargadorDeMarcas }) => montarHistorial($('cmHistorial'), carta.id, () => estado.idioma, { marcas: cargadorDeMarcas(supabase, carta.market || MERCADO), ...(window.matchMedia?.('(min-width: 1100px)').matches ? { alto: 104 } : {}) }))
     .then((r) => { repintarHistorial = r })
     .catch(() => {})
 

@@ -1259,7 +1259,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   línea por idioma, marcas de lanzamiento (quien monta le pasa
   `cargadorDeMarcas(supabase, mercado)`: el módulo no toca la base), chips
   y lectura. Si añades una línea, su color va por token en
-  `css/cardmarket.css` y nunca verde ni rojo.
+  `css/cardmarket.css` y nunca verde ni rojo. Desde la 1062 cada raya es
+  UNA serie con SUS datos (`valorDeFila` no cae al general: mezclar decía
+  «+586 %» sin que nada subiera) y se enciende con su botón (`data-serie`:
+  el mismo `--serie` en la raya, los puntos y el botón); de serie, tu
+  idioma y «Cualquier idioma», y TCGplayer apagado. El inglés de TCGGO ES
+  el general: no se ofrece aparte.
 - **El calendario de lanzamientos sale del catálogo** (tanda 656):
   /lanzamientos y la miniatura de la portada leen `tcg_sets` (fecha,
   logo, código), por catálogo; la lista a mano de /admin es solo para un

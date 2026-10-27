@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (305) — PINGU-Claude (1062 — el histórico de precios, claro)
+
+**Hecho**: la propuesta (artifact «Histórico de precios claro»), con lo
+recomendado: TCGplayer apagado con su botón, y de serie tu idioma y
+«Cualquier idioma». Cada raya, un precio (sin caer al general: eso daba el
+«+586 %»), botones por serie con su color y bandera, puntos en cada muestra,
+el año en las fechas largas, sin «inglés» (es el general), una línea de dónde
+sale. Detalle en SCHEMA 1062 y regla en CLAUDE.md (la de la 661). De paso, el
+`999px` de la 1059 en mi-coleccion.css pasa a `--radius-pill` (309).
+
+**Ficheros**: `js/carta-historial.js`, `css/cardmarket.css`, `css/carta.css`,
+`css/mi-coleccion.css`, `js/mi-coleccion.js` y `js/carta-mercado.js` (alto
+104 en la ficha ancha), `CLAUDE.md`. Pruebas en `pruebas`: 1062 nueva y 643,
+643-pantalla, 661, 769-pantalla, 923, 926 al día. Rojos de antes (no de
+aquí): 310 (duraciones, carga diferida), 769 (logo de la estantería), 915
+(sin PostgreSQL en el contenedor).
+
 ## 2026-10-27 (304) — PINGU-Claude (1061b — la chapa de gente en las tres pestañas)
 
 **Hecho**: PINGU, con capturas: la chapa sobre la foto solo estaba en «Las que

@@ -11264,9 +11264,19 @@ button.mc-fila:hover {
     padding: 0 var(--e-sm);
   }
 
-  .mc-editor .carta-historial-leyenda {
-    margin-top: 2px;
+  /* Los botones de las series, bajos; de dónde sale, al pasar el ratón por el
+     título (1062): la ficha cabe sin desplazarse (923). */
+  .mc-editor .carta-historial-series {
+    margin: 2px 0;
+  }
+
+  .mc-editor .carta-historial-serie {
+    min-height: 24px;
     font-size: var(--t-2xs);
+  }
+
+  .mc-editor .carta-historial-origen {
+    display: none;
   }
 
   /* Los atributos en tres columnas, el nombre encima del dato. */
@@ -14222,7 +14232,7 @@ body:has(#mcPanelQuiero.hidden) :is(#mcQuieroSel, #mcDoySel) {
   align-items: center;
   min-height: 32px;
   padding: 0 0 0 var(--e-md);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--ice);
   color: var(--text);
   font-size: var(--t-sm);

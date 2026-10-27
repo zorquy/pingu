@@ -1715,9 +1715,19 @@
     padding: 0 var(--e-sm);
   }
 
-  #cmHistorial .carta-historial-leyenda {
-    margin-top: 2px;
+  /* Los botones de las series, bajos; de dónde sale, al pasar el ratón por el
+     título (1062): la ficha cabe sin desplazarse (923). */
+  #cmHistorial .carta-historial-series {
+    margin: 2px 0;
+  }
+
+  #cmHistorial .carta-historial-serie {
+    min-height: 24px;
     font-size: var(--t-2xs);
+  }
+
+  #cmHistorial .carta-historial-origen {
+    display: none;
   }
 
   /* Los datos en tres columnas, el nombre encima del dato (923). */
