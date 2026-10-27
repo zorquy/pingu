@@ -44,12 +44,16 @@ const chip = (page) => page.evaluate(() => {
   return { oculto: !sitio || sitio.classList.contains('hidden'), texto: a?.textContent.replace(/\s+/g, ' ').trim() || '', href: a?.getAttribute('href') || null, padre: sitio?.parentElement?.className || '', alto: r ? Math.round(r.height) : 0, enPantalla: r ? r.width > 0 && r.top >= 0 && r.left >= 0 && r.right <= innerWidth : false, menu: document.getElementById('mcAlbumGemelaMenu')?.classList.contains('hidden') === false ? document.getElementById('mcAlbumGemelaMenuTexto')?.textContent : null }
 })
 
-console.log('── 1. PC: una gemela, al lado del nombre ──')
+console.log('── 1. PC: una gemela, en la línea del progreso (1051) ──')
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=album&set=sv8')
   const c = await chip(page)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('el chip dice «Edición japonesa · Super Electric Breaker» y vive en la fila del nombre', !c.oculto && /Edición japonesa · Super Electric Breaker/.test(c.texto) && /mc-album-nombre/.test(c.padre) && c.enPantalla, JSON.stringify(c))
+  // Desde la 1051 también en el PC va en la línea «N de M · %»: al lado del
+  // nombre aplastaba el código y la fecha y pisaba «Todas / Tengo / Faltan».
+  check('el chip dice «Edición japonesa · Super Electric Breaker» y vive en la línea del progreso', !c.oculto && /Edición japonesa · Super Electric Breaker/.test(c.texto) && /mc-avance-linea/.test(c.padre) && c.enPantalla, JSON.stringify(c))
+  const meta = await page.evaluate(() => { const m = document.getElementById('mcAlbumMeta'); return m && !m.classList.contains('hidden') ? Math.round(m.getBoundingClientRect().height) : null })
+  check('  …y el código y la fecha del set siguen en un renglón', meta === null || meta < 24, String(meta))
   check('  …y lleva a esa expansión en el catálogo japonés', /ver=album&set=SV8&catalogo=JP/.test(c.href || ''), c.href)
   check('  …y el menú ⋯ tiene su entrada', c.menu === 'Ver la edición japonesa', c.menu)
   await page.click('#mcAlbumGemela a.mc-gemela')
