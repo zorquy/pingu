@@ -66,11 +66,13 @@ console.log('\n── 2. La cabecera dice el rango DE ESA HOJA ──')
     pintarBolsillo: () => '',
   })
   check('la página impar cae en su pliego', pares.pagina === 2, String(pares.pagina))
-  check('  …y salen las dos hojas', (pares.html.match(/class="mc-hoja"/g) || []).length === 2)
-  check('  …con sus anillas', pares.html.includes('mc-anillas'))
-  // En el móvil se pasa hoja a hoja: ahí no hay lomo que pintar.
+  check('  …y salen las dos hojas, la de la izquierda y la de la derecha', (pares.html.match(/class="mc-hoja mc-hoja-(izq|der)"/g) || []).length === 2 && pares.html.includes('mc-hoja-izq'))
+  // 1048: sin anillas (PINGU: «un álbum moderno no usa anillas»); las hojas
+  // van cosidas a un lomo de tela, en medio con las dos abiertas.
+  check('  …cosidas a su lomo, sin anillas', pares.html.includes('class="mc-lomo"') && pares.html.includes('class="mc-archivador mc-dos"') && !pares.html.includes('mc-anillas'))
+  // En el móvil se pasa hoja a hoja: el lomo, a la izquierda de la hoja.
   const movil = archivadorHtml({ lista: [{ id: 'a', local_id: '1' }], deUnaVez: 1, pintarBolsillo: () => '' })
-  check('con una hoja a la vez no hay anillas', !movil.html.includes('mc-anillas'))
+  check('con una hoja a la vez, el lomo a su lado y sin anillas', movil.html.includes('class="mc-lomo"') && movil.html.includes('class="mc-archivador"') && !movil.html.includes('mc-anillas'))
 }
 
 console.log('\n── 3. El color de la tapa ──')
@@ -101,7 +103,8 @@ const browser = await chromium.launch()
 const CARTA = (n) => `<svg xmlns="http://www.w3.org/2000/svg" width="245" height="342"><rect width="245" height="342" rx="12" fill="#f7d354"/><text x="122" y="180" font-size="44" text-anchor="middle" fill="#8a6a20">${n}</text></svg>`
 
 async function abrir(opciones = {}) {
-  const page = await browser.newPage({ viewport: opciones.viewport || { width: 1280, height: 1100 } })
+  // Sin service worker: lo que él pide no pasa por `route` (897).
+  const page = await browser.newPage({ viewport: opciones.viewport || { width: 1280, height: 1100 }, serviceWorkers: 'block' })
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
   await page.route('**/assets.tcgdex.net/**', (r) => {
@@ -140,7 +143,7 @@ async function abrir(opciones = {}) {
 // La expansión, que desde la 417 es una REJILLA: lo de apagar las que te
 // faltan es suyo y sigue ahí.
 async function abrirExpansion() {
-  const page = await browser.newPage({ viewport: { width: 1280, height: 1100 } })
+  const page = await browser.newPage({ viewport: { width: 1280, height: 1100 }, serviceWorkers: 'block' })
   await page.route('**/assets.tcgdex.net/**', (r) => {
     const m = String(r.request().url()).match(/(\d+)\/low/)
     r.fulfill({ contentType: 'image/svg+xml', body: CARTA(m ? m[1] : '1') })
@@ -166,47 +169,31 @@ console.log('\n── 4. En pantalla, y cambiando de color ──')
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('el archivador tiene tapa', (await page.locator('.mc-binder').count()) === 1)
-  check('  …con lomo de tres anillas', (await page.locator('.mc-anillas i').count()) === 3,
-    String(await page.locator('.mc-anillas i').count()))
+  check('  …con su lomo y sin anillas (1048)', (await page.locator('.mc-lomo').count()) === 1 && (await page.locator('.mc-anillas').count()) === 0)
   check('  …y cada hoja su cabecera', (await page.locator('.mc-hoja-cabecera').count()) === 2)
   check('  …que dice la página y el rango',
     /PÁGINA 1|Página 1/i.test((await page.locator('.mc-hoja-cabecera').first().textContent()) || '') &&
       /001/.test((await page.locator('.mc-hoja-cabecera').first().textContent()) || ''),
     await page.locator('.mc-hoja-cabecera').first().textContent())
 
-  // La tapa se ve DE VERDAD: no vale que el atributo cambie si el color
-  // pintado es el mismo. Es la lección de la 313 (comprobar el efecto,
-  // no la llamada).
-  const color = () => page.locator('.mc-binder').evaluate((e) => getComputedStyle(e).backgroundColor)
-  const antes = await color()
-  await page.locator('#mcAlbumTapa').click()
-  await page.waitForTimeout(400)
-  check('el selector de color sale', (await page.locator('.mc-tapa').count()) === 8,
-    String(await page.locator('.mc-tapa').count()))
-  await page.locator('.mc-tapa[data-tapa="rojo"]').click()
-  await page.waitForTimeout(700)
-  check('  …y el archivador cambia de color', (await color()) !== antes, `${antes} → ${await color()}`)
-  check('  …y queda marcado cuál es', (await page.locator('.mc-tapa[data-tapa="rojo"]').getAttribute('aria-pressed')) === 'true')
-
-  // Y se recuerda al volver. (Se comprueba leyendo lo guardado y
-  // volviendo a montar un álbum: recargar y rehacer el álbum entero son
-  // veinte segundos de prueba para comprobar un `localStorage`.)
-  const guardado = await page.evaluate(() => localStorage.getItem('pokedoc-tapa-album'))
-  check('el color se recuerda', guardado === 'rojo', String(guardado))
+  // La tapa se ve DE VERDAD (la lección de la 313: el efecto, no el
+  // atributo). Desde la 1048 el color se elige en la hoja de editar, que
+  // prueba la 1032; aquí, que la tapa pinta el suyo.
+  const fondo = await page.locator('.mc-binder').evaluate((e) => getComputedStyle(e).backgroundImage)
+  check('  …y la tapa pinta su color', /linear-gradient/.test(fondo) && /rgb/.test(fondo), fondo.slice(0, 120))
   await page.close()
 }
 
-console.log('\n── 5. El «Ir a…» ──')
+console.log('\n── 5. El mapa del álbum (antes, el «Ir a…») ──')
 {
-  // Se mudó con el archivador al álbum soñado (tanda 418), y allí vive
-  // debajo de los pliegos y no encima de los filtros.
+  // Desde la 1048 el «Ir a…» es el mapa: un botón por pliego, con lo que
+  // tienes de cada página.
   const { page } = await abrir()
-  const salto = page.locator('#mcAlbSalto')
-  check('sale con varios pliegos', await salto.isVisible())
+  const mapa = page.locator('#mcAlbMapa .mc-alb-pliego')
+  check('sale con varios pliegos', await mapa.first().isVisible())
   // 40 cartas = 5 hojas = 3 pliegos (1-2, 3-4, 5).
-  check('  …una opción por pliego', (await salto.locator('option').count()) === 3,
-    String(await salto.locator('option').count()))
-  await salto.selectOption('2')
+  check('  …un botón por pliego', (await mapa.count()) === 3, String(await mapa.count()))
+  await page.click('#mcAlbMapa [data-pliego="2"]')
   await page.waitForTimeout(700)
   check('  …y salta de verdad', /3/.test((await page.locator('#mcAlbPaginas').textContent()) || ''),
     await page.locator('#mcAlbPaginas').textContent())

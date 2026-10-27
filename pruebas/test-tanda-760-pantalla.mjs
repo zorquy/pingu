@@ -31,7 +31,9 @@ const ALBUMES = [
   { id: 'alb-bin', user_id: 'admin-1', nombre: 'Mis favoritas', tipo: 'binder', rejilla: '2x2', paginas: 10, tapa: 'verde', cartas: [{ id: 'sv8-2' }, {}, { id: 'sv8-5' }], updated_at: '2026-10-04T10:00:00Z' },
 ]
 async function abrir(album, { movil = false, ancho = 1280 } = {}) {
-  const ctx = await browser.newContext(movil ? { ...devices['iPhone 13'], locale: 'es-ES' } : { viewport: { width: ancho, height: 900 }, locale: 'es-ES' })
+  // Sin service worker: lo que él pide no pasa por `route` (897) y el logo de
+  // mentira se quedaría por el camino.
+  const ctx = await browser.newContext(movil ? { ...devices['iPhone 13'], locale: 'es-ES', serviceWorkers: 'block' } : { viewport: { width: ancho, height: 900 }, locale: 'es-ES', serviceWorkers: 'block' })
   await ctx.addInitScript(({ SETS, CARTAS, ALBUMES }) => {
     window.__FAKE_SESSION__ = 'admin-1'
     window.__FAKE_SETS__ = SETS
@@ -63,8 +65,8 @@ console.log('── 2. Un álbum de set, abierto en el ordenador ──')
   check('la cabecera lleva el logo del set y cuántas tienes', cab.logo && /mc-alb-cabecera-set/.test(cab.clase) && /2 de 30/.test(cab.progreso), JSON.stringify(cab))
   await page.waitForTimeout(800)
   check('  …y lo que te falta y lo que costaría', /Te faltan 28/.test(await page.textContent('#mcAlbFalta')), await page.textContent('#mcAlbFalta'))
-  const hojas = await page.evaluate(() => ({ hojas: document.querySelectorAll('#mcAlbArchivador .mc-hoja:not(.mc-hoja-fantasma)').length, anillas: document.querySelectorAll('#mcAlbArchivador .mc-anillas i').length, tengo: document.querySelectorAll('#mcAlbArchivador .mc-bolsillo.tengo .mc-tengo-marca').length, gris: [...document.querySelectorAll('#mcAlbArchivador .mc-bolsillo:not(.tengo) img')].every((i) => /grayscale/.test(getComputedStyle(i).filter)) }))
-  check('dos hojas frente a frente con sus anillas; lo tuyo con ✓ y lo demás en gris', hojas.hojas === 2 && hojas.anillas === 3 && hojas.tengo === 2 && hojas.gris, JSON.stringify(hojas))
+  const hojas = await page.evaluate(() => ({ hojas: document.querySelectorAll('#mcAlbArchivador .mc-hoja:not(.mc-hoja-fantasma)').length, lomo: document.querySelectorAll('#mcAlbArchivador .mc-lomo').length, anillas: document.querySelectorAll('#mcAlbArchivador .mc-anillas').length, tengo: document.querySelectorAll('#mcAlbArchivador .mc-bolsillo.tengo .mc-tengo-marca').length, gris: [...document.querySelectorAll('#mcAlbArchivador .mc-bolsillo:not(.tengo) img')].every((i) => /grayscale/.test(getComputedStyle(i).filter)) }))
+  check('dos hojas frente a frente cosidas a su lomo, sin anillas (1048); lo tuyo con ✓ y lo demás en gris', hojas.hojas === 2 && hojas.lomo === 1 && hojas.anillas === 0 && hojas.tengo === 2 && hojas.gris, JSON.stringify(hojas))
   check('una esquina para pasar, y no la de volver en la primera', (await page.locator('[data-esquina="despues"]').count()) === 1 && (await page.locator('[data-esquina="antes"]').count()) === 0)
   if (CAPS) await page.screenshot({ path: `${CAPS}/760-set.png` })
   await page.click('[data-esquina="despues"]')
@@ -77,10 +79,6 @@ console.log('── 2. Un álbum de set, abierto en el ordenador ──')
   await page.keyboard.press('ArrowRight')
   await page.waitForTimeout(300)
   check('→ pasa', /^Página 3-4 de 4/.test(await paginas(page)), await paginas(page))
-  await page.focus('#mcAlbTitulo')
-  await page.keyboard.press('ArrowLeft')
-  await page.waitForTimeout(300)
-  check('  …pero no mientras escribes', /^Página 3-4 de 4/.test(await paginas(page)), await paginas(page))
   check('los bolsillos de un set no son huecos para elegir', (await page.locator('#mcAlbArchivador [data-hueco]').count()) === 0)
   await ctx.close()
 }
@@ -88,8 +86,9 @@ console.log('── 2. Un álbum de set, abierto en el ordenador ──')
 console.log('── 3. En el iPhone: una hoja, deslizar y puntos ──')
 {
   const { ctx, page, errores } = await abrir('alb-set', { movil: true })
-  const puntos = await page.$$eval('#mcAlbPuntos i', (is) => is.map((i) => i.classList.contains('activo')))
-  check('una hoja a la vez, con un punto por hoja y el primero encendido', (await page.locator('#mcAlbArchivador .mc-hoja:not(.mc-hoja-fantasma)').count()) === 1 && puntos.length === 4 && puntos[0] && puntos.filter(Boolean).length === 1, JSON.stringify(puntos))
+  // Desde la 1048 los puntos son el mapa del álbum: un botón por página.
+  const puntos = await page.$$eval('#mcAlbMapa .mc-alb-pliego', (is) => is.map((i) => i.classList.contains('aqui')))
+  check('una hoja a la vez, con el mapa (un botón por hoja) y el primero encendido', (await page.locator('#mcAlbArchivador .mc-hoja:not(.mc-hoja-fantasma)').count()) === 1 && puntos.length === 4 && puntos[0] && puntos.filter(Boolean).length === 1, JSON.stringify(puntos))
   const caja = await page.$eval('#mcAlbArchivador', (e) => { const r = e.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + 120 } })
   const deslizar = (dx) => page.evaluate(({ x, y, dx }) => {
     const el = document.getElementById('mcAlbArchivador')
@@ -100,7 +99,7 @@ console.log('── 3. En el iPhone: una hoja, deslizar y puntos ──')
   await deslizar(-120)
   await page.waitForTimeout(400)
   check('deslizar hacia la izquierda pasa la hoja', /^Página 2 de 4/.test(await paginas(page)), await paginas(page))
-  check('  …y el punto se mueve', (await page.$$eval('#mcAlbPuntos i', (is) => is.findIndex((i) => i.classList.contains('activo')))) === 1)
+  check('  …y el mapa se mueve', (await page.$$eval('#mcAlbMapa .mc-alb-pliego', (is) => is.findIndex((i) => i.classList.contains('aqui')))) === 1)
   await deslizar(120)
   await page.waitForTimeout(400)
   check('y a la derecha, vuelve', /^Página 1 de 4/.test(await paginas(page)), await paginas(page))
@@ -112,8 +111,8 @@ console.log('── 3. En el iPhone: una hoja, deslizar y puntos ──')
 console.log('── 4. Un binder: tocar un bolsillo vacío y elegir la carta ──')
 {
   const { ctx, page, errores } = await abrir('alb-bin')
-  const vista = await page.evaluate(() => ({ cab: document.getElementById('mcAlbCabecera').className, tapa: document.getElementById('mcAlbCabecera').dataset.tapa, huecos: [...document.querySelectorAll('#mcAlbArchivador [data-hueco]')].map((b) => b.dataset.hueco), cols: getComputedStyle(document.querySelector('#mcAlbArchivador .mc-hoja')).gridTemplateColumns.split(' ').length }))
-  check('la cabecera del binder lleva su tapa, sin logo', /mc-alb-cabecera-binder/.test(vista.cab) && vista.tapa === 'verde' && (await page.locator('#mcAlbCabeceraLogo img').count()) === 0, JSON.stringify(vista))
+  const vista = await page.evaluate(() => ({ cab: document.getElementById('mcAlbCabecera').className, tapa: document.querySelector('#mcAlbCabeceraLogo .mc-tapa-cerrada')?.dataset.tapa, huecos: [...document.querySelectorAll('#mcAlbArchivador [data-hueco]')].map((b) => b.dataset.hueco), cols: getComputedStyle(document.querySelector('#mcAlbArchivador .mc-hoja')).gridTemplateColumns.split(' ').length }))
+  check('la cabecera del binder lleva su tapa en pequeño (1048), sin logo', /mc-alb-cabecera-binder/.test(vista.cab) && vista.tapa === 'verde' && (await page.locator('#mcAlbCabeceraLogo > img').count()) === 0, JSON.stringify(vista))
   check('los bolsillos vacíos —el del medio y los del final— se tocan', vista.huecos.join() === '1,3,4,5,6,7' && vista.cols === 2, JSON.stringify(vista))
   const medida = await page.$eval('#mcAlbArchivador [data-hueco="1"]', (b) => Math.round(Math.min(b.getBoundingClientRect().width, b.getBoundingClientRect().height)))
   check('  …y miden 44 o más', medida >= 44, String(medida))

@@ -219,35 +219,23 @@ console.log('── 6. En «Ordenar y quitar», el dedo arrastra; fuera, desplaz
   const tocable = await page.evaluate(() => getComputedStyle(document.querySelector('#mcAlbArchivador .mc-bolsillo[data-indice="0"]')).touchAction)
   check('  …porque el bolsillo deja desplazar (`touch-action` no es `none`)', tocable !== 'none', tocable)
 
-  await page.click('#mcAlbEditar')
-  await page.waitForTimeout(400)
-  const ayuda = page.locator('#mcAlbAyuda')
-  check('al ordenar se explica cómo (arrastra, flechas, pasar de página)', (await ayuda.isVisible()) && /[Aa]rrastra/.test(await ayuda.innerText()))
-  const ta = await page.evaluate(() => getComputedStyle(document.querySelector('#mcAlbArchivador .mc-bolsillo[data-indice="0"]')).touchAction)
-  check('ordenando, el bolsillo se queda el gesto (`touch-action: none`)', ta === 'none', ta)
-  // Por el CENTRO del bolsillo: en una esquina está el botón de quitar,
-  // y un botón se pulsa, no se coge.
+  // Desde la 1048 no hay «Ordenar y quitar»: el dedo coge la carta
+  // manteniéndola pulsada (760), y en las cartas ya no hay flechas ni ✕
+  // (PINGU: «las flechas, feo: se pueden arrastrar»).
+  check('sin modo de ordenar, y sin flechas ni ✕ en las cartas', (await page.locator('#mcAlbEditar').count()) === 0 && (await page.locator('#mcAlbArchivador [data-mover], #mcAlbArchivador .mc-bolsillo-quitar').count()) === 0)
   const d0 = await page.locator('#mcAlbArchivador .mc-bolsillo[data-indice="0"]').boundingBox()
   const d1 = await page.locator('#mcAlbArchivador .mc-bolsillo[data-indice="1"]').boundingBox()
   await dedo('pointerdown', d0.x + d0.width / 2, d0.y + d0.height / 2)
+  await page.waitForTimeout(650)
   await dedo('pointermove', d0.x + d0.width / 2 + 30, d0.y + d0.height / 2)
   await dedo('pointermove', d1.x + d1.width / 2, d1.y + d1.height / 2)
-  const enVuelo = await page.evaluate(() => ({ fantasma: !!document.querySelector('.mc-arrastre'), destino: document.querySelector('.mc-destino')?.dataset.indice }))
-  check('ordenando, el dedo SÍ coge la carta', enVuelo.fantasma === true && enVuelo.destino === '1', JSON.stringify(enVuelo))
+  const enVuelo = await page.evaluate(() => ({ fantasma: !!document.querySelector('.mc-arrastre'), destino: document.querySelector('.mc-destino')?.dataset.indice, papelera: !document.getElementById('mcAlbPapelera').classList.contains('hidden') }))
+  check('manteniéndola pulsada, el dedo SÍ coge la carta (y sale la papelera)', enVuelo.fantasma === true && enVuelo.destino === '1' && enVuelo.papelera, JSON.stringify(enVuelo))
   if (CAPS) await page.screenshot({ path: `${CAPS}/movil-arrastre.png` })
   await dedo('pointerup', d1.x + d1.width / 2, d1.y + d1.height / 2)
   await page.waitForTimeout(900)
   const despues = await numeros(page)
   check('  …y las intercambia', despues[0] === antes[1] && despues[1] === antes[0], `${antes.slice(0, 3)} → ${despues.slice(0, 3)}`)
-  // Los mandos de teclado siguen ahí y a 44 px con el dedo.
-  const quitar = await page.locator('#mcAlbArchivador .mc-bolsillo-quitar').first().boundingBox()
-  const flecha = await page.locator('#mcAlbArchivador [data-mover="1"]').first().boundingBox()
-  check('«quitar» y las flechas se quedan, y miden 44 px con el dedo', quitar.width >= 44 && quitar.height >= 44 && flecha.height >= 44, JSON.stringify([quitar.width, quitar.height, flecha.height]))
-  // Pulsar un mando no es coger la carta.
-  await page.locator('#mcAlbArchivador .mc-bolsillo[data-indice="0"] [data-mover="1"]').click()
-  await page.waitForTimeout(700)
-  const trasFlecha = await numeros(page)
-  check('la flecha → sigue intercambiando con el de al lado', trasFlecha[1] === despues[0] && trasFlecha[0] === despues[1], `${despues.slice(0, 3)} → ${trasFlecha.slice(0, 3)}`)
   check('  …sin fantasma suelto', await page.evaluate(() => !document.querySelector('.mc-arrastre')))
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
   await page.close()

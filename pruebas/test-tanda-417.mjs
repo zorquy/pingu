@@ -100,8 +100,10 @@ console.log('\n── 4. El archivador sigue vivo donde SÍ tiene sentido ──
   await page.waitForTimeout(1300)
   check('el álbum soñado se abre', await page.locator('#mcAlbumesDetalle').evaluate((e) => !e.classList.contains('hidden')))
   check('  …con su archivador', (await page.locator('#mcAlbArchivador').count()) === 1)
-  check('  …y con el «Personalizar» de la tapa, que se mudó aquí',
-    (await page.locator('#mcAlbumTapa').count()) === 1)
+  // 1048: «Personalizar» va en la fila de mandos de arriba (y abre la hoja
+  // de editar); el del pie se fue.
+  check('  …y con su «Personalizar» en la fila de arriba',
+    (await page.locator('#mcAlbHerramientas #mcAlbAjustes').count()) === 1 && (await page.locator('#mcAlbumTapa').count()) === 0)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }

@@ -46,7 +46,7 @@ const CARTAS = [
   { id: 'sv8-3', market: 'WEST', set_id: 'sv8', local_id: '3', name: 'Tres', name_es: 'Tres', image_path: 'x/3', rarity: 'Common', category: 'Pokemon', variants: { normal: true, reverse: true } },
 ]
 async function abrir(ruta, { sesion = 'admin-1', albumes = [] } = {}) {
-  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'es-ES', permissions: ['clipboard-read', 'clipboard-write'] })
+  const ctx = await browser.newContext({ viewport: { width: 1280, height: 900 }, locale: 'es-ES', permissions: ['clipboard-read', 'clipboard-write'], serviceWorkers: 'block' })
   await ctx.addInitScript(({ CARTAS, sesion, albumes }) => {
     window.__FAKE_SESSION__ = sesion
     window.__FAKE_SETS__ = [{ id: 'sv8', name: 'Chispas Fulgurantes', serie_id: 'sv', market: 'WEST', release_date: '2024-11-08', card_count_official: 3, card_count_total: 3 }]
@@ -94,13 +94,14 @@ console.log('── 3. Z4: la portada de un binder ──')
 {
   const alb = { id: 'alb-b', user_id: 'admin-1', nombre: 'Mis favoritas', tipo: 'binder', rejilla: '3x3', paginas: 10, tapa: 'azul', portada: null, cartas: [{ id: 'sv8-1' }, { id: 'sv8-3' }], updated_at: '2026-10-05T10:00:00Z' }
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=carpetas&album=alb-b', { albumes: [alb] })
-  await page.click('#mcAlbEditar')
+  // Desde la 1048 la portada se elige con «Seleccionar» (una carta → «De
+  // portada»), y se ve con una cinta abajo, no con una ★ encima del corazón.
+  await page.click('#mcAlbSeleccionar')
   await page.waitForTimeout(300)
-  check('en «Ordenar y quitar» cada carta lleva su ★ de portada (44 px)', (await page.locator('#mcAlbArchivador [data-portada]').count()) === 2 && (await page.$eval('#mcAlbArchivador [data-portada]', (b) => b.getBoundingClientRect().height)) >= 44)
-  await page.locator('#mcAlbArchivador .mc-bolsillo[data-indice="1"] [data-portada]').click()
+  await page.click('#mcAlbArchivador .mc-bolsillo[data-indice="1"]')
+  await page.click('#mcAlbSelPortada')
   await page.waitForTimeout(900)
-  check('pulsarla la pone de portada, y se guarda', (await page.evaluate(() => window.__TABLAS__.user_albums[0].portada)) === 'sv8-3' && (await page.getAttribute('#mcAlbArchivador .mc-bolsillo[data-indice="1"] [data-portada]', 'aria-pressed')) === 'true')
-  await page.click('#mcAlbEditar')
+  check('«Seleccionar» → una → «De portada», y se guarda', (await page.evaluate(() => window.__TABLAS__.user_albums[0].portada)) === 'sv8-3' && (await page.locator('#mcAlbArchivador .mc-bolsillo[data-indice="1"] .mc-alb-cinta').count()) === 1)
   await page.click('#mcAlbVolver')
   await page.waitForTimeout(900)
   check('en la rejilla, el binder enseña SU portada en grande', (await page.locator('[data-album="alb-b"] .mc-albt-portada img').count()) === 1 && (await page.locator('[data-album="alb-b"] .mc-albt-hojita').count()) === 0)
@@ -110,13 +111,17 @@ console.log('── 3. Z4: la portada de un binder ──')
   await page.click('[data-album="alb-b"]')
   await page.waitForTimeout(900)
   const descarga = page.waitForEvent('download', { timeout: 8000 }).catch(() => null)
+  await page.click('#mcAlbMenu summary')
   await page.click('#mcAlbChecklist')
   const d = await descarga
   check('«Lista para imprimir» da la imagen', d && /^pokedoc-checklist-mis-favoritas\.png$/.test(d.suggestedFilename()), d?.suggestedFilename())
 
   console.log('── 5. Z2: el enlace público ──')
-  await page.check('#mcAlbPublico')
+  // Desde la 1048, en el «⋯».
+  await page.click('#mcAlbMenu summary')
+  await page.click('#mcAlbPublico')
   await page.waitForTimeout(700)
+  await page.click('#mcAlbMenu summary')
   await page.click('#mcAlbCopiar')
   await page.waitForTimeout(300)
   check('«Compartir enlace» deja el enlace del álbum', (await page.evaluate(() => navigator.clipboard.readText())).endsWith('/mi-coleccion?album=alb-b'))

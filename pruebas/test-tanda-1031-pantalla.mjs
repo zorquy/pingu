@@ -33,8 +33,8 @@ async function abrir(ruta, { deseos = DESEOS } = {}) {
 const album = (page) => page.evaluate(() => ({
   pestania: document.querySelector('.mc-pestania.activa, [role="tab"][aria-selected="true"]')?.textContent.trim() || location.search,
   detalle: !document.getElementById('mcAlbumesDetalle')?.classList.contains('hidden'),
-  titulo: document.getElementById('mcAlbTitulo')?.value,
-  descripcion: document.getElementById('mcAlbDescripcion')?.value,
+  titulo: document.getElementById('mcAlbTitulo')?.textContent,
+  descripcion: document.getElementById('mcAlbDescripcion')?.textContent,
   bolsillos: [...document.querySelectorAll('#mcAlbArchivador .mc-bolsillo[data-carta]')].map((x) => x.dataset.carta),
   url: location.search,
   fila: (window.__TABLAS__?.user_albums || []).map((a) => ({ nombre: a.nombre, tipo: a.tipo, rejilla: a.rejilla, paginas: a.paginas, cartas: (a.cartas || []).map((c) => c.id) })),
