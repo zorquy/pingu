@@ -168,7 +168,8 @@ console.log('── 4. La ficha: quién la da, al lado ──')
   await page.click('[data-merc-ficha="swsh7-215"]')
   await page.waitForTimeout(1200)
   const d = page.locator('#mcMercadoFicha')
-  check('se abre al lado (1440 y ratón)', (await d.evaluate((x) => x.open)) && (await d.evaluate((x) => x.classList.contains('mc-prodf-al-lado'))))
+  // 1056: centrada y modal (era al lado, la 939).
+  check('se abre centrada y modal (1440 y ratón)', (await d.evaluate((x) => x.open && x.matches(':modal'))) && !(await d.evaluate((x) => x.classList.contains('mc-prodf-al-lado'))))
   // Encima, sin mover la rejilla (939): antes le quitaba 456 px.
   check('  …encima de la rejilla, sin moverla', !(await page.$eval('#mcPanelMercado', (p) => p.classList.contains('con-ficha-al-lado'))) && (await page.$eval('#mcPanelMercado', (p) => getComputedStyle(p).paddingRight)) === '0px')
   const gente = await page.$$eval('#mcMercadoFichaCuerpo .mc-merf-persona', (ps) => ps.map((p) => p.innerText.replace(/\s+/g, ' ')))
