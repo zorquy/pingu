@@ -57,24 +57,16 @@ const estado = (page) => page.evaluate(() => {
 // pestañas y lo prueba test-tanda-867-pantalla.mjs. Aquí queda la Y5.
 
 console.log('── 4. En qué álbum la tienes (Y5) ──')
+// Desde la 1052 las carpetas ya no salen en la ficha (no hay desde la 759):
+// la ficha lleva «En tus álbumes» con los álbumes de verdad, y lo prueba
+// test-tanda-1052-pantalla.mjs. Aquí queda que la ficha se abre sin errores
+// y que la línea vieja de arriba ya no existe.
 {
   const { page, ctx, errores } = await abrir('/mi-coleccion.html?ver=cartas', { sesion: 'admin-1', opciones: { ...devices['iPhone 13'] } })
   await page.locator('#mcCartas [data-carta="xy5-1"], #mcCartas .mc-carta-foto').first().click()
   await page.waitForTimeout(1200)
-  const linea = page.locator('#mcEdCopiaAlbum')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('la ficha de una copia que está en un álbum lo dice arriba', await linea.isVisible() && /En tu álbum\s*Mis Charizard/.test((await linea.textContent()).replace(/\s+/g, ' ')), await linea.textContent())
-  check('  …y el bloque de abajo se llama «En tus álbumes»', (await page.locator('#mcEdCarpetasBloque h3').textContent()) === 'En tus álbumes')
-  await linea.locator('[data-abrir-carpeta]').click()
-  await page.waitForTimeout(1200)
-  check('  …y tocar el nombre abre ese álbum', new URL(page.url()).searchParams.get('ver') === 'carpetas' && /Mis Charizard/.test(await page.locator('#mcPanelCarpetas').textContent()), page.url())
-  await ctx.close()
-}
-{
-  const { page, ctx } = await abrir('/mi-coleccion.html?ver=cartas', { sesion: 'admin-1', opciones: { ...devices['iPhone 13'] } })
-  await page.locator('#mcCartas .mc-carta-foto').nth(1).click()
-  await page.waitForTimeout(1200)
-  check('una copia que no está en ningún álbum no dice nada', !(await page.locator('#mcEdCopiaAlbum').isVisible()))
+  check('la línea vieja de carpetas ya no está; el bloque es «En tus álbumes»', (await page.locator('#mcEdCopiaAlbum').count()) === 0 && (await page.locator('#mcEdAlbumes').count()) === 1)
   await ctx.close()
 }
 

@@ -91,6 +91,7 @@ const leerTapas = (page) => page.evaluate(() => {
       pub: !!t?.querySelector('.mc-tapa-pub'),
       pie: caja.querySelector('.mc-albt-pie')?.textContent,
       fondo: t ? getComputedStyle(t).backgroundImage.slice(0, 40) : null,
+      dientes: t ? getComputedStyle(t, '::after').backgroundImage.slice(0, 30) : null,
       tapaAbajo: r(t)?.bottom, menuArriba: r(caja.querySelector('.mc-albt-menu > summary'))?.top,
       alto: r(t)?.height, ancho: r(t)?.width,
     }
@@ -120,7 +121,7 @@ console.log('── 1. Tapas, en el ordenador ──')
   check('cada álbum es su tapa cerrada (cuatro), con su costura', t.length === 4 && t.every((x) => x.tapa && x.costura), JSON.stringify(t.map((x) => [x.id, x.tapa, x.costura])))
   check('  …de 5 × 6, como un álbum de pie', t.every((x) => Math.abs(x.alto / x.ancho - 1.2) < 0.03), JSON.stringify(t.map((x) => [x.ancho, x.alto])))
   const bin = de('alb-bin')
-  check('el binder: azul, lona, cremallera con tirador, la portada en la ventana y su nombre en la placa', bin.tapa === 'azul' && bin.acabado === 'lona' && bin.cierre === 'cremallera' && bin.tirador === 'absolute' && bin.foto && bin.placa === 'BW/XY' && /repeating-linear-gradient/.test(bin.fondo), JSON.stringify(bin))
+  check('el binder: azul, lona, cremallera SIN asomar por fuera (1052), la portada en la ventana y su nombre en la placa', bin.tapa === 'azul' && bin.acabado === 'lona' && bin.cierre === 'cremallera' && bin.tirador === null && bin.dientes === 'none' && bin.foto && bin.placa === 'BW/XY' && /repeating-linear-gradient/.test(bin.fondo), JSON.stringify(bin))
   check('  …con el % que llevas (4 de 6) y el ojo de público', bin.pct === '67 %' && bin.pub && bin.pie === '4 de 6 · 3×3, 6 págs. · público', JSON.stringify(bin))
   check('  …y el ⋯ debajo de la tapa, al lado del nombre', bin.menuArriba >= bin.tapaAbajo, JSON.stringify(bin))
   const set = de('alb-set')
