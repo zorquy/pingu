@@ -9635,6 +9635,33 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   text-transform: uppercase;
 }
 
+/* La ficha del Mercado, centrada y modal (1056): la página no se mueve
+   debajo y lo que no cabe se desliza dentro. */
+.mc-merf {
+  width: min(520px, calc(100vw - 32px));
+  overscroll-behavior: contain;
+}
+
+html:has(.mc-merf[open]) {
+  overflow: hidden;
+}
+
+/* Las copias de una persona, una por línea (1056). */
+.mc-merf-copias {
+  display: grid;
+  gap: 2px;
+  margin: 2px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-merf-copias li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
 .mc-merf-gente {
   display: grid;
   gap: var(--e-sm);

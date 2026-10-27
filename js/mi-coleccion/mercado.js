@@ -10,9 +10,9 @@
 // buscas llevan el corazón lleno y «La buscas», y si alguien que la da busca
 // algo tuyo, su avatar lleva un aro (939: el cruce es con una PERSONA, no
 // con la carta; antes la baldosa decía «Cruce» de una carta que no buscas).
-// Tocarla abre su ficha con la lista de personas: en el PC, ENCIMA de la
-// rejilla por la derecha y sin moverla (939: al lado le quitaba sitio y las
-// cartas cambiaban de columna); en el móvil, desde abajo. La misma ficha
+// Tocarla abre su ficha con la lista de personas, una tarjeta por persona
+// (1056): en el PC, centrada encima (1056; en la 939 iba al lado); en el
+// móvil, desde abajo. La misma ficha
 // abren La quiero, Las que doy y Cruces (`abrirFichaDe`), con `modo`:
 // 'da' (quién la da) o 'busca' (quién la busca, para lo que das tú).
 //
@@ -201,25 +201,51 @@ function pintarMandos() {
 
 // ── La ficha ──
 
+// UNA TARJETA POR PERSONA (1056). La consulta da una fila por copia (idioma,
+// estado, versión): quien da tres en inglés y una en español eran «dos
+// personas» con dos tarjetas iguales. Se juntan por `user_id`, en el orden
+// en que llegan (los cruces primero), y cada copia es una línea.
+export function porPersona(gente) {
+  const m = new Map()
+  for (const f of gente || []) {
+    if (!m.has(f.user_id)) m.set(f.user_id, { ...f, copias: [] })
+    m.get(f.user_id).copias.push(f)
+  }
+  return [...m.values()]
+}
+
+// Cuántas copias da una persona (o la ficha entera): `cambio` es cuántas da
+// de esa línea; sin él, una.
+export const copiasDe = (filas) => filas.reduce((n, f) => n + (Number(f.cambio) || 1), 0)
+
+export function rotuloDeGente(grupos, modo = 'da') {
+  const n = grupos.length
+  if (modo === 'busca') return n === 1 ? 'La busca 1 persona' : `La buscan ${n} personas`
+  const copias = copiasDe(grupos.flatMap((g) => g.copias))
+  return `${n === 1 ? 'La da 1 persona' : `La dan ${n} personas`}${copias > n ? ` · ${copias} copias` : ''}`
+}
+
 function personaHtml(p, carta, modo = 'da') {
   const nombre = nombreDePersona(p)
   // El cruce, al revés según lo que se mira: quien DA esta carta tiene cruce
   // si además busca algo tuyo; quien la BUSCA, si además da algo que buscas.
   const suyas = (modo === 'busca' ? tienenLoQueBusco : buscanLoMio)?.get(p.user_id) || 0
-  const senas = modo === 'busca'
-    ? `Busca ${p.idioma ? `en ${idiomaDe(p.idioma).nombre.toLowerCase()}` : 'en cualquier idioma'}`
-    : `${senasDe(p)}${Number(p.cambio) > 1 ? ` · da ${Number(p.cambio)}` : ''}`
+  // Reservada toda si lo están todas sus copias; una a una, en su línea.
+  const reservada = p.copias.every((f) => f.reservada)
+  const lineas = p.copias.map((f) => modo === 'busca'
+    ? `<li>Busca ${f.idioma ? `en ${escapeHtml(idiomaDe(f.idioma).nombre.toLowerCase())}` : 'en cualquier idioma'}</li>`
+    : `<li>${banderaHtml(f.idioma || 'es')} ${escapeHtml(senasDe(f))}${Number(f.cambio) > 1 ? ` · ${Number(f.cambio)}` : ''}${f.reservada && !reservada ? ' <span class="mc-merf-reservada">Reservada</span>' : ''}</li>`).join('')
   return `<li class="mc-merf-persona${suyas ? ' con-cruce' : ''}">
     <a class="mini-avatar${suyas ? ' cruce' : ''}" href="${escapeHtml(profileUrl(p))}" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</a>
     <div class="mc-merf-quien">
-      <p class="mc-merf-nombre"><a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>${suyas ? '<span class="mc-merf-cruce">Cruce contigo</span>' : ''}${p.reservada ? '<span class="mc-merf-reservada">Reservada</span>' : ''}</p>
-      <p class="subtext">${modo === 'busca' ? '' : `${banderaHtml(p.idioma || 'es')} `}${escapeHtml(senas)}</p>
+      <p class="mc-merf-nombre"><a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>${suyas ? '<span class="mc-merf-cruce">Cruce contigo</span>' : ''}${reservada ? '<span class="mc-merf-reservada">Reservada</span>' : ''}</p>
+      <ul class="mc-merf-copias subtext">${lineas}</ul>
       ${suyas ? `<p class="mc-merf-busca">${modo === 'busca' ? `Da ${suyas === 1 ? '1 de las que buscas' : `${suyas} de las que buscas`}` : `Busca ${suyas === 1 ? '1 de las tuyas' : `${suyas} de las tuyas`}`}</p>` : ''}
       <p class="mc-confianza" data-confianza="${escapeHtml(p.user_id)}"></p>
     </div>
     <div class="mc-merf-acciones">
-      ${ctx.sesion && !p.reservada ? `<button type="button" class="btn-primary" data-merf-proponer="${escapeHtml(p.user_id)}" data-carta="${escapeHtml(carta.id)}" data-modo="${modo}">${icons.refreshCw(15)}<span>Proponer cambio</span></button>` : ''}
-      <button type="button" class="${ctx.sesion && !p.reservada ? 'btn-secondary' : 'btn-primary'}" data-merf-escribir="${escapeHtml(p.user_id)}" data-carta="${escapeHtml(carta.id)}" data-modo="${modo}">${icons.mail(15)}<span>Escribir</span></button>
+      ${ctx.sesion && !reservada ? `<button type="button" class="btn-primary" data-merf-proponer="${escapeHtml(p.user_id)}" data-carta="${escapeHtml(carta.id)}" data-modo="${modo}">${icons.refreshCw(15)}<span>Proponer cambio</span></button>` : ''}
+      <button type="button" class="${ctx.sesion && !reservada ? 'btn-secondary' : 'btn-primary'}" data-merf-escribir="${escapeHtml(p.user_id)}" data-carta="${escapeHtml(carta.id)}" data-modo="${modo}">${icons.mail(15)}<span>Escribir</span></button>
       <a class="btn-secondary" href="${escapeHtml(profileUrl(p))}?ver=cambios">Su perfil</a>
     </div>
   </li>`
@@ -264,14 +290,11 @@ async function pintarFicha(cardId) {
       ? '<div class="skeleton" style="height:120px"></div>'
       : gente === null
         ? `<p class="subtext">No se ha podido preguntar quién la ${modoAbierto === 'busca' ? 'busca' : 'da'}.</p>`
-        : modoAbierto === 'busca'
-          ? gente.length
-            ? `<h3 class="mc-merf-sub">${gente.length === 1 ? 'La busca 1 persona' : `La buscan ${gente.length} personas`}</h3>
-               <ul class="mc-merf-gente">${gente.map((p) => personaHtml(p, c, 'busca')).join('')}</ul>`
-            : '<p class="subtext">Nadie la busca todavía. En cuanto alguien la apunte, saldrá aquí.</p>'
-          : gente.length
-            ? `<h3 class="mc-merf-sub">${gente.length === 1 ? 'La da 1 persona' : `La dan ${gente.length} personas`}</h3>
-               <ul class="mc-merf-gente">${gente.map((p) => personaHtml(p, c)).join('')}</ul>`
+        : gente.length
+          ? `<h3 class="mc-merf-sub">${rotuloDeGente(porPersona(gente), modoAbierto)}</h3>
+             <ul class="mc-merf-gente">${porPersona(gente).map((p) => personaHtml(p, c, modoAbierto)).join('')}</ul>`
+          : modoAbierto === 'busca'
+            ? '<p class="subtext">Nadie la busca todavía. En cuanto alguien la apunte, saldrá aquí.</p>'
             : '<p class="subtext">Ahora mismo nadie la da. Con el corazón te avisamos cuando alguien la ponga.</p>'}`
   import('../cambios-hechos.js').then((m) => m.ponerConfianza(cuerpo)).catch(() => {})
 }
@@ -294,14 +317,10 @@ async function abrirFicha(cardId, { modo = 'da', desde = null } = {}) {
   gentePorCarta.delete(cardId)
   void pintarFicha(cardId)
   marcarAbierta()
-  // Encima y a un lado (939): no es modal y la rejilla no se toca, así que
-  // nada cambia de sitio. En el móvil, la hoja de siempre.
-  const alLado = window.matchMedia(CONSULTA_AL_LADO).matches
-  d.classList.toggle('mc-prodf-al-lado', alLado)
-  if (!d.open) {
-    if (alLado) d.show()
-    else d.showModal()
-  }
+  // Centrada y modal en el PC (1056, PINGU: «los pop-ups mejoran en el
+  // centro»; antes, al lado y sin modal, la 939); en el móvil, la hoja de
+  // siempre.
+  if (!d.open) d.showModal()
   // Arriba del todo: al abrirse, el navegador baja hasta lo primero que se
   // puede pulsar y la foto se quedaba cortada bajo la cabecera.
   d.scrollTop = 0
@@ -447,20 +466,12 @@ function enganchar() {
     abierta = null
     marcarAbierta()
   })
-  // Al lado no es modal: Esc y tocar fuera los pone la página. Tocar otra
-  // carta no cuenta como «fuera» (cambia la ficha), ni lo que abre otra
-  // hoja encima (el aviso de precio, el idioma del corazón).
+  // Las flechas pasan de carta (Esc y el fondo los pone el `<dialog>` modal).
   document.addEventListener('keydown', (e) => {
-    if (!d?.open || !d.classList.contains('mc-prodf-al-lado')) return
+    if (!d?.open) return
     if (e.target.closest?.('input, textarea, select, [contenteditable]')) return
-    if (e.key === 'Escape') { e.preventDefault(); cerrarFicha() }
     if (e.key === 'ArrowRight') { e.preventDefault(); pasarDeCarta(1) }
     if (e.key === 'ArrowLeft') { e.preventDefault(); pasarDeCarta(-1) }
-  })
-  document.addEventListener('click', (e) => {
-    if (!d?.open || !d.classList.contains('mc-prodf-al-lado')) return
-    if (d.contains(e.target) || e.target.closest(`${BALDOSAS}, dialog[open]`)) return
-    cerrarFicha()
   })
 }
 

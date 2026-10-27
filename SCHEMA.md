@@ -41785,6 +41785,22 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1056 — La ficha del Mercado centrada y una tarjeta por persona
+
+- **Modal siempre** (`abrirFicha` en `js/mi-coleccion/mercado.js`): en el PC,
+  centrada (`.mc-merf`, 520 px, con `html:has(.mc-merf[open])` para que la
+  página no se mueva); en el móvil, la hoja desde abajo. La de la 939 iba al
+  lado y sin modal; se fue la clase `mc-prodf-al-lado` de esta ficha y el
+  «clic fuera» hecho a mano (lo pone el `<dialog>`). Las flechas siguen
+  pasando de carta. La ficha de PRODUCTO sigue al lado (es un panel, la 1045).
+- **Por persona**: la consulta da una fila por copia; `porPersona(gente)` las
+  junta por `user_id` en el orden en que llegan (los cruces primero) y
+  `personaHtml` pinta una tarjeta con `.mc-merf-copias` (una línea por copia;
+  «Reservada» en la copia o, si lo están todas, en el nombre).
+  `rotuloDeGente` cuenta personas y, si hay más copias que personas, copias.
+
+**Prueba**: `test-tanda-1056-pantalla.mjs`.
+
 ## Tanda 1055 — La misma hoja de filtros en todas las pantallas de cartas
 
 - **El orden y el nombre viven en `js/mi-coleccion/hoja-filtros.js`**

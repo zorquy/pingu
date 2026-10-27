@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (296) — PINGU-Claude (1056 — la ficha del Mercado centrada y una tarjeta por persona)
+
+**Hecho**: PINGU, con la captura de un Goldeen: la ficha del Mercado salía a
+un lado («los pop-ups mejoran en el centro») y decía «La dan 2 personas» de
+UNA persona que daba la carta en inglés y en español. Ahora la ficha es modal
+y centrada en el PC (en el móvil, la hoja de siempre) y la gente va por
+persona: una tarjeta con sus copias una por línea (bandera · estado · cuántas)
+y los botones una vez; el título cuenta personas y, si son más, copias («La
+da 1 persona · 4 copias»). Vale igual para la ficha que abren La quiero, Las
+que doy y Cruces (`abrirFichaDe`).
+
+**Ficheros**: js/mi-coleccion/mercado.js (`porPersona`, `copiasDe`,
+`rotuloDeGente`, modal siempre), css/mi-coleccion.css, novedades.json,
+SCHEMA.md, BITACORA.md.
+
+**Pruebas**: `test-tanda-1056-pantalla.mjs` nueva; al día 770 y 940 (decían «al lado»). Las 34 que tocan el Mercado, contra HEAD: ningún rojo nuevo.
+
+**Pendiente**: 1057 (la barra común en La quiero y Las que doy, baldosas como
+las del Mercado, Seleccionar), 1058 (listas de deseos, con migración), 1059
+(Modo evento por lista). PINGU aprobó la propuesta con lo recomendado.
+
 ## 2026-10-27 (295) — PINGU-Claude (1055 — la misma hoja de filtros en todas las pantallas de cartas)
 
 **Hecho**: la última de la propuesta aprobada. Cartas, una expansión, la
