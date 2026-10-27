@@ -80,8 +80,8 @@ export const ORDEN_CASILLAS = ['nombre', 'era', 'tipo', 'rareza']
 
 // La fila de cuadrados que se comparte. Vale con las casillas de antes
 // (verdadero/falso) y con las de la 835 ('si'/'casi'/'no'); y una fila que
-// ACIERTA el nombre es verde entera (835): era la carta, aunque la que
-// dijiste fuera otra impresión con otra rareza.
+// ACIERTA es verde entera. Desde la 1046 acertar es la carta exacta
+// (`esLaMismaCarta`), no solo el nombre.
 export function filaEmoji(comparacion) {
   const estado = (v) => (v === true || v === 'si' || v?.estado === 'si' ? 'si' : v === 'casi' || v?.estado === 'casi' ? 'casi' : 'no')
   if (estado(comparacion?.nombre) === 'si') return '🟩🟩🟩🟩'
@@ -118,13 +118,28 @@ export function rangoDeRareza(texto) {
 const fechaDe = (c) => String(c?.tcg_sets?.release_date || c?.release_date || '').slice(0, 10)
 const diasEntre = (a, b) => Math.abs((Date.parse(a) - Date.parse(b)) / 86400000)
 
+// La MISMA carta (1046): el mismo id o, si el catálogo la tiene dos veces
+// (una de TCGdex y una de TCGGO), la misma colección y el mismo número.
+const numeroLimpio = (n) => String(n ?? '').trim().toLowerCase().replace(/^0+(?=\d)/, '')
+export function esLaMismaCarta(a, b) {
+  if (!a || !b) return false
+  if (a.id && a.id === b.id) return true
+  return Boolean(a.set_id) && a.set_id === b.set_id && numeroLimpio(a.local_id) === numeroLimpio(b.local_id) && claveDeNombre(a.name) === claveDeNombre(b.name)
+}
+
 // Las cuatro casillas con su estado, su flecha y lo que se pinta. `familia`
 // = (dexA, dexB) → bool (js/familias-pokemon.js; se inyecta para que esto
 // siga sin depender de una tabla de 4 KB).
+//
+// Acertar es dar con LA carta, no con el nombre (1046, PINGU: el reto era el
+// Chinchou de Power Keepers y el de Neo Revelation daba «¡Es esta!»; desde la
+// 835 bastaba el nombre). El mismo nombre en otra impresión es «casi» con
+// `motivo: 'impresion'` («Otra impresión»); la misma familia, «casi» a secas.
 export function compararDetallado(intento, respuesta, { familia = () => false } = {}) {
-  const nombre = claveDeNombre(intento?.name) === claveDeNombre(respuesta?.name)
+  const mismoNombre = claveDeNombre(intento?.name) === claveDeNombre(respuesta?.name)
+  const nombre = esLaMismaCarta(intento, respuesta)
     ? 'si'
-    : familia(intento?.dex_ids, respuesta?.dex_ids) ? 'casi' : 'no'
+    : mismoNombre || familia(intento?.dex_ids, respuesta?.dex_ids) ? 'casi' : 'no'
   const fi = fechaDe(intento)
   const fr = fechaDe(respuesta)
   const mismaEra = Boolean(eraDe(intento)) && eraDe(intento) === eraDe(respuesta)
@@ -140,7 +155,7 @@ export function compararDetallado(intento, respuesta, { familia = () => false } 
     estado: mismaRareza ? 'si' : ri != null && rr != null && Math.abs(ri - rr) === 1 ? 'casi' : 'no',
     flecha: !mismaRareza && ri != null && rr != null && ri !== rr ? (rr > ri ? 'rara' : 'comun') : null,
   }
-  return { nombre: { estado: nombre, flecha: null }, era, tipo, rareza }
+  return { nombre: { estado: nombre, flecha: null, ...(nombre === 'casi' && mismoNombre ? { motivo: 'impresion' } : {}) }, era, tipo, rareza }
 }
 
 // De las casillas detalladas a las de antes (para lo que aún las espera).

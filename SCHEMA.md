@@ -41785,6 +41785,29 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1046 — «¿Qué carta es?»: ni foto arrastrada ni acierto por el nombre
+
+- **La foto borrosa no se puede sacar.** El desenfoque es un `filter` de
+  CSS sobre un `<img>` normal: arrastrarlo en el PC, «Abrir imagen» con el
+  botón derecho o mantener pulsado en el móvil daban la carta NÍTIDA.
+  Mientras se juega (`.cd-recorte:not(.abrible)`), la imagen lleva
+  `draggable="false"` en el HTML y `pointer-events: none`, `user-select:
+  none`, `-webkit-user-drag: none` y `-webkit-touch-callout: none`: el
+  puntero cae en la caja. Igual `.qe-escena:not(.revelado) .qe-dibujo` en
+  «¿Quién es?». Quien abra las herramientas del navegador sigue pudiendo
+  verla: eso no lo para nada que viva en el cliente.
+- **Acertar es la carta exacta.** `compararDetallado` (carta-del-dia.js)
+  daba `nombre: 'si'` con el mismo nombre (835: «dos impresiones de la misma
+  carta son la carta»); PINGU, con el Chinchou de Power Keepers acertado con
+  el de Neo Revelation, lo dio por fallo. Ahora `'si'` solo con
+  `esLaMismaCarta(a, b)`: el mismo id, o la misma colección, número (sin
+  ceros delante) y nombre, que es la misma carta que el catálogo tiene dos
+  veces. El mismo nombre en otra impresión es `'casi'` con `motivo:
+  'impresion'` («Otra impresión» en la casilla); la misma familia sigue
+  siendo `'casi'` a secas («Misma familia»).
+
+Lo vigila `test-tanda-1046-pantalla.mjs` (rama `pruebas`).
+
 ## Tanda 1045 — «Proponer cambio», centrado y que se desliza él
 
 PINGU: «te scrollea la página y no el pop-up… debería salir en el centro.

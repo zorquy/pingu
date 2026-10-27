@@ -40,6 +40,16 @@
   box-shadow: 0 20px 50px rgb(0 0 0 / 35%);
 }
 
+/* Mientras se juega, la foto no se arrastra, no se abre con el botón derecho
+   ni se guarda con el dedo (1046): el desenfoque es CSS y la imagen
+   arrastrada o abierta sale nítida (SCHEMA 1046). */
+.cd-recorte:not(.abrible) img {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
 .cd-recorte img {
   display: block;
   width: 100%;

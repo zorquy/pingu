@@ -160,7 +160,7 @@ function casillaHtml(it, k) {
   const f = it.det?.[k]?.flecha
   let texto = ''
   let extra = ''
-  if (k === 'nombre') texto = e === 'casi' ? 'Misma familia' : 'No'
+  if (k === 'nombre') texto = e === 'casi' ? (it.det?.nombre?.motivo === 'impresion' ? 'Otra impresión' : 'Misma familia') : 'No'
   if (k === 'era') {
     texto = it.valores?.era || (e === 'si' ? 'Sí' : 'No')
     if (f === 'nueva') extra = flechaArriba('más nueva')

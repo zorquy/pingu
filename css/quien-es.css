@@ -24,6 +24,14 @@
   box-shadow: 0 20px 50px rgb(0 0 0 / 30%);
 }
 
+/* Mientras se juega, la silueta no se arrastra ni se abre (1046). */
+.qe-escena:not(.revelado) .qe-dibujo {
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  -webkit-touch-callout: none;
+}
+
 .qe-dibujo {
   width: 72%;
   height: 86%;

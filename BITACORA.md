@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (284) — PINGU-Claude (1046 — «¿Qué carta es?»: ni foto arrastrada ni acierto por el nombre)
+
+**Hecho**: dos trampas que le contaron a PINGU (foro y privado):
+- **Arrastrar la carta borrosa se llevaba la foto nítida** (el desenfoque es
+  un `filter` de CSS). Mientras se juega, `#cdFoto` lleva `draggable="false"`
+  y `pointer-events: none` (con `user-select`, `-webkit-user-drag` y
+  `-webkit-touch-callout`): ni arrastrar, ni «Abrir imagen» con el botón
+  derecho, ni guardarla con el dedo; lo que se toca es la caja. Resuelta,
+  vuelve a ser el enlace a su ficha. Lo mismo la silueta de «¿Quién es?»
+  (`#qeDibujo` hasta `.revelado`).
+- **Acertar era decir el NOMBRE** (desde la 835): el reto era el Chinchou
+  de Power Keepers y el de Neo Revelation daba «¡Es esta!». Ahora acertar es
+  la carta exacta (`esLaMismaCarta`: el mismo id o, si el catálogo la tiene
+  dos veces, la misma colección, número y nombre). El mismo nombre en otra
+  impresión es «casi» con `motivo: 'impresion'` y sale «Otra impresión».
+
+**No hecho, para PINGU**:
+- McDonald's Collection 2021 con Chikorita, Rowlet, Cyndaquil, Squirtle y
+  Sobble repetidas después del Pikachu: desde aquí no se llega a la base.
+  Casi seguro son las Holo que TCGGO trae como otra carta; se juntan como
+  versión «Holo» en /admin → Colecciones → «Posibles repetidas» (987/1037).
+- Elegir Holo o Normal al poner el corazón (La quiero): `user_wants` no
+  guarda versión. Es una tanda propia (migración + cruces), a proponer.
+
+**Ficheros**: js/carta-del-dia.js, js/carta-del-dia-juego.js,
+carta-del-dia.html, css/carta-del-dia.css, quien-es.html, css/quien-es.css,
+SCHEMA.md, novedades.json, BITACORA.md.
+
+**Pruebas** (rama pruebas): nueva `test-tanda-1046-pantalla.mjs` (foto sin
+puntero ni arrastre, el Chinchou de otra colección es «Otra impresión», el
+bueno acierta en 2, la silueta igual); al día la 835 (acertar es la carta).
+Verdes 299, 312, 313, 939, 988 y las demás de los retos; las rojas de los
+retos son las de siempre o de PostgreSQL apagado.
+
+**Pendiente**: lo de arriba para PINGU.
+
 ## 2026-10-26 (283) — PINGU-Claude (1045 — «Proponer cambio» centrado y que se desliza él)
 
 **Hecho**: PINGU: «empiezas a scrollear, pero te scrollea la página y no el

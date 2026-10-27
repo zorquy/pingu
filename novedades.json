@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "En «¿Qué carta es?» hay que dar con la carta exacta: el mismo Pokémon de otra colección ya no cuenta como acierto y te dice «Otra impresión». Y la carta borrosa ya no se puede arrastrar ni abrir para verla nítida (tampoco la silueta de «¿Quién es?»).", "enlace": "/carta-del-dia" },
     { "fecha": "2026-10-26", "tipo": "arreglo", "texto": "La ventana de «Proponer cambio» sale centrada y, con una lista larga de cartas, se desliza ella en vez de la página de detrás.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "En los cruces de Deseos y cambios, el primero sale entero y los demás plegados: tócalos para ver qué te da y qué le das, con sus cartas, cuánto vale cada lado y la balanza, sin tener que proponer el cambio.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-26", "tipo": "mejora", "texto": "Al tocar una carta en cualquier parte de la web (el Modo evento, el buscador, los perfiles, el foro, las guías…) se abre su ficha en una ventana encima, con su precio y «Añadir», sin irte de donde estás. La página entera, con «Ver ficha completa».", "enlace": "/evento" },
