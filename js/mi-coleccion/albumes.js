@@ -21,7 +21,10 @@ import { euros, valorDe, precioDe, precioDeFila } from '../cardmarket.js'
 import * as datos from './datos.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-albumes.sql'
-const MAX_CARTAS = 1080
+// El tope y qué es un álbum de set viven en album-sitio.js desde la 1052:
+// los usa también «En tus álbumes» de la ficha, fuera de esta pantalla.
+import { MAX_CARTAS, esDeSet } from './album-sitio.js'
+export { esDeSet }
 // Nueve por hoja: vive en el módulo del archivador desde la 371, que
 // es quien lo usa.
 import { archivadorHtml, textoDePaginas, tapaGuardada, rejillaDe, TAPAS, estiloDe } from './archivador.js'
@@ -136,7 +139,6 @@ const esMio = () => Boolean(actual && ctx.sesion && actual.user_id === ctx.sesio
 // tapa y sus primeras cartas— y al final «Empezar un álbum». Las carpetas
 // se fueron (PINGU: «quita la sección de carpetas, es mejor dejar solo
 // álbumes») y las que había se pasan a binders solas (`pasarCarpetas`).
-export const esDeSet = (a) => a?.tipo === 'set' && Boolean(a.set_id)
 const conCartas = (a) => (Array.isArray(a?.cartas) ? a.cartas : []).filter((c) => c?.id)
 let setsDeTodos = new Map()
 const claveDeSet = (id, market) => `${market || 'WEST'}|${id}`
@@ -409,7 +411,23 @@ async function nuevoAlbum(pedido) {
 }
 
 // ── Un álbum ──
-export async function abrir(id, { soloVer = false, push = true } = {}) {
+// `?pag=N&hueco=M` (1052): adonde llega un enlace de «En tus álbumes». Se
+// lee al cargar el módulo: a la primera carga el álbum lo abren dos caminos,
+// el primero limpia la dirección y el segundo repinta; los dos tienen que
+// saber adónde se iba. Caduca a los pocos segundos.
+const llegadaDeUrl = (() => {
+  try {
+    const p = new URLSearchParams(location.search)
+    return p.get('album') && Number(p.get('pag')) > 0 ? { id: p.get('album'), pagina: Number(p.get('pag')), hueco: Number(p.get('hueco')) || 0 } : null
+  } catch {
+    return null
+  }
+})()
+let llegada = llegadaDeUrl
+let senal = null
+if (llegada) setTimeout(() => { llegada = null }, 8000)
+export async function abrir(id, { soloVer = false, push = true, llegar = null } = {}) {
+  if (!llegar && llegada?.id === id) llegar = llegada
   let fila
   try {
     fila = await cargarAlbum(id)
@@ -456,10 +474,23 @@ export async function abrir(id, { soloVer = false, push = true } = {}) {
   // llega (se redirige), pero no se SIGUE escribiendo.
   url.searchParams.set('ver', 'carpetas')
   url.searchParams.set('album', actual.id)
+  // `pag` solo sirve para llegar (1052): pasar de página no la reescribe, y
+  // al recargar te dejaría en una que ya no es la que miras.
+  url.searchParams.delete('pag')
+  url.searchParams.delete('hueco')
   // Abrir un álbum es bajar un NIVEL (856): deja su entrada, para que atrás
   // vuelva a la lista. Desde la dirección (`entrar`) no se empuja nada.
   if (push && url.href !== location.href) history.pushState(null, '', url)
   else history.replaceState(null, '', url)
+  // Desde «En tus álbumes» de una ficha (1052): a la página de la carta, y
+  // su bolsillo se señala un momento. Se quita por temporizador (313).
+  const bolsillo = llegar?.pagina > 0 ? (llegar.pagina - 1) * forma().porPagina + Math.max(0, (llegar.hueco || 1) - 1) : null
+  if (bolsillo != null) pagina = Math.floor(bolsillo / forma().porPagina)
+  // La señal se quita por temporizador, no al acabar una animación (313).
+  if (bolsillo != null && llegar.hueco) {
+    senal = { indice: bolsillo, hasta: Date.now() + 4000 }
+    setTimeout(() => { $('mcAlbArchivador')?.querySelector('.mc-bolsillo-aqui')?.classList.remove('mc-bolsillo-aqui') }, 4050)
+  }
   pintarDetalle()
   calcularLoQueFalta()
   return true
@@ -612,6 +643,9 @@ function pintarDetalle() {
     pagina = armado.pagina
     $('mcAlbArchivador').innerHTML = armado.html
     animarPaso()
+    // El bolsillo al que se ha llegado (1052), mientras dure la señal: la
+    // pantalla se repinta sola al cargar (cartas, precios) y se la llevaría.
+    if (senal && Date.now() < senal.hasta) $('mcAlbArchivador').querySelector(`[data-indice="${senal.indice}"]`)?.classList.add('mc-bolsillo-aqui')
     pintarMapa(armado.paginas, deUnaVez, filtrando)
     $('mcAlbPaginas').textContent = textoDePaginas(pagina, armado.paginas, deUnaVez)
     // Las flechas se APAGAN en los extremos, como las de la tira: una
@@ -664,8 +698,9 @@ function tapaCerradaHtml(a, { placa = true, dentro = '', ventana: propia = null 
   const ids = conCartas(a).map((c) => c.id)
   const portada = cartaDe(a.portada) || cartaDe(ids[0])
   const ventana = a.estilo?.ventana === 'no' ? '' : propia || (portada ? `<span class="mc-tapa-ventana">${cartaMiniHtml(portada)}</span>` : `<span class="mc-tapa-ventana mc-tapa-vacia">${placa ? 'Aún sin cartas' : ''}</span>`)
-  // La costura va siempre; el tirador, con cremallera o goma (1049).
-  const cierre = e.cierre === 'ninguno' ? '' : '<span class="mc-tapa-tirador"></span>'
+  // La costura va siempre; la goma, por fuera. La cremallera NO se ve con
+  // el álbum cerrado (1052, PINGU): solo dentro, en el archivador abierto.
+  const cierre = e.cierre === 'goma' ? '<span class="mc-tapa-tirador"></span>' : ''
   return `<span class="mc-tapa-cerrada" data-tapa="${escapeHtml(a.tapa || tapaGuardada())}" data-acabado="${e.acabado}" data-cierre="${e.cierre}"${ventana ? '' : ' data-ventana="no"'} aria-hidden="true"><span class="mc-tapa-costura"></span>${ventana}${placa ? `<span class="mc-tapa-placa">${escapeHtml(a.nombre || 'Mi álbum')}</span>` : ''}${cierre}${dentro}</span>`
 }
 
@@ -1096,6 +1131,15 @@ export const tapaDelAbierto = () => (actual && !$('mcAlbumesDetalle')?.classList
 
 export function iniciarAlbumes(contexto) {
   ctx = contexto
+  // Una carta metida desde «En tus álbumes» de la ficha (1052): si se está
+  // viendo la lista, se repinta; y el álbum abierto se relee de la base,
+  // o lo siguiente que se guardara en él escribiría su lista vieja encima.
+  window.addEventListener('pokedoc:albumes', async () => {
+    if (!ctx.sesion) return
+    // `abrir` también trae las cartas que no conoce, y se queda en su página.
+    if (actual && abiertoId()) void abrir(actual.id, { push: false, llegar: { pagina: pagina + 1 } })
+    else if (albumes.length && !$('mcAlbumesLista')?.classList.contains('hidden')) void pintarLista()
+  })
   iniciarAlbumNuevo({
     sets: () => ctx.sets(),
     logosDeSet: (set) => ctx.logosDeSet(set),

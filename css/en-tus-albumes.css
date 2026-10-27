@@ -1,0 +1,171 @@
+/* «En tus álbumes» en la ficha de una carta (1052): js/en-tus-albumes.js.
+   La bajan Mi colección, /cartas, /carta y el pop-up de toda la web al abrir
+   una carta con sesión. El porqué largo, en SCHEMA 1052. */
+
+:where(.eta-caja) > h3 {
+  margin: 0 0 var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.eta-fila { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+
+.eta-chip,
+.eta-anadir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 36px;
+  max-width: 100%;
+  padding: 0 var(--e-md) 0 var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.eta-chip small { color: var(--text-mid); font-weight: 500; white-space: nowrap; }
+.eta-chip-nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eta-anadir { padding-left: var(--e-md); border-style: dashed; border-color: var(--acento); color: var(--text); }
+.eta-anadir span { color: var(--acento); font-size: var(--t-lg); line-height: 1; }
+.eta-chip:hover, .eta-anadir:hover { border-color: var(--acento); }
+@media (pointer: coarse) {
+  .eta-chip, .eta-anadir { min-height: 44px; }
+}
+
+/* La tapa en pequeño: su color, como en Mis álbumes. Los ocho son los de
+   `[data-tapa]` de css/mi-coleccion.css (esta hoja no baja con aquella);
+   test-tanda-1052 comprueba que dicen lo mismo. */
+.eta-tapa {
+  flex: none;
+  width: 20px;
+  height: 24px;
+  border-radius: 2px 4px 4px 2px;
+  background: var(--tapa);
+  box-shadow: inset 3px 0 0 rgb(0 0 0 / 30%);
+}
+.eta-tapa[data-tapa='azul'] { --tapa: var(--navy-solid); }
+.eta-tapa[data-tapa='rojo'] { --tapa: var(--danger-solid); }
+.eta-tapa[data-tapa='verde'] { --tapa: #0d7a56; }
+.eta-tapa[data-tapa='amarillo'] { --tapa: #d9a521; }
+.eta-tapa[data-tapa='morado'] { --tapa: #6d4aa8; }
+.eta-tapa[data-tapa='rosa'] { --tapa: #c04a7e; }
+.eta-tapa[data-tapa='negro'] { --tapa: #22303d; }
+.eta-tapa[data-tapa='crema'] { --tapa: #b9a888; }
+
+/* La ventana: centrada y con tope de alto en el PC, hoja desde abajo en el
+   móvil (1045). */
+.eta-dialogo {
+  box-sizing: border-box;
+  width: min(480px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - var(--e-xl) * 2);
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+.eta-dialogo[open] { position: fixed; display: flex; flex-direction: column; }
+.eta-dialogo::backdrop { background: rgb(0 0 0 / 35%); }
+html:has(.eta-dialogo[open]) { overflow: hidden; }
+
+.eta-cab {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-md) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+}
+.eta-cab-texto { flex: 1 1 auto; min-width: 0; }
+.eta-cab h2 { margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
+.eta-cab p { margin: 0; overflow: hidden; color: var(--text-mid); font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
+.eta-cerrar {
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.eta-cuerpo {
+  display: grid;
+  gap: var(--e-sm);
+  padding: var(--e-md) var(--e-lg) var(--e-lg);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.eta-rotulo {
+  margin: var(--e-sm) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+.eta-rotulo:first-child { margin-top: 0; }
+.eta-nota { margin: 0; color: var(--text-mid); }
+.eta-lista { display: grid; gap: var(--e-xs); margin: 0; padding: 0; list-style: none; }
+
+.eta-opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  width: 100%;
+  min-height: 56px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.eta-opcion:hover:not(:disabled) { border-color: var(--acento); }
+.eta-opcion:disabled { cursor: default; opacity: 0.6; }
+.eta-opcion .eta-tapa { width: 28px; height: 34px; }
+.eta-opcion-texto { display: grid; flex: 1 1 auto; min-width: 0; }
+.eta-opcion-texto b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.eta-opcion-texto small { color: var(--text-mid); }
+.eta-ya { background: var(--ice); }
+.eta-hecho { flex: none; color: var(--success); font-weight: 800; }
+
+.eta-nuevo { display: grid; gap: var(--e-xs); margin-top: var(--e-sm); padding-top: var(--e-md); border-top: 1px solid var(--border); }
+.eta-nuevo label { font-weight: 700; }
+.eta-nuevo-fila { display: flex; gap: var(--e-sm); }
+.eta-nuevo-fila input {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+.eta-nuevo-fila input:focus { outline: none; box-shadow: var(--shadow-ring); }
+
+.eta-ver { color: inherit; font-weight: 700; }
+
+@media (max-width: 640px) {
+  .eta-dialogo { inset: auto 0 0; width: 100%; max-height: 88dvh; margin: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+}
+.carta-albumes { margin-top: var(--e-md); }

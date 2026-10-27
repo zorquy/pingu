@@ -992,6 +992,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   camino nuevo que cree un álbum con lo de otra pantalla pasa por
   `crearAlbum` con `tipo: 'binder'` y sus páginas calculadas, y entra por
   «Empezar un álbum» como un tipo más (`data-tipo`), no por otro diálogo.
+- **Una carta se mete en un álbum desde su ficha con `js/en-tus-albumes.js`**
+  (tanda 1052): «En tus álbumes» en la ficha de Mi colección, /cartas, /carta
+  y el pop-up; la cuenta de dónde cae es `album-sitio.js` (primer hueco libre,
+  lo que cabe, página y hueco) y se llega a un bolsillo con
+  `enlaceAAlbum(id, pág, hueco)`. Un camino nuevo que meta cartas en un álbum
+  desde fuera pasa por ahí, y lo que necesite la forma de un álbum fuera de Mi
+  colección importa `album-forma.js`, nunca `archivador.js` (arrastra sus
+  clases). Con el álbum CERRADO la cremallera no se ve (PINGU); dentro, sí.
 - **Un álbum es un álbum moderno, sin anillas** (tanda 1048, PINGU con dos
   fotos: «un álbum moderno se ve así, y no usa anillas»): hojas cosidas a un
   lomo de tela, fundas de carga lateral con pespunte y la cremallera

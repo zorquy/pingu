@@ -7861,24 +7861,6 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 
 .mc-quiero-vacio-icono { color: var(--danger); }
 
-/* En qué álbum la tienes (752, Y5). */
-.mc-copia-album {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--e-xs);
-  margin: 0;
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
-
-.mc-copia-album .link-btn { font-weight: 700; }
-
-#mcEdCopiaAlbum {
-  justify-content: center;
-  margin-top: var(--e-sm);
-}
-
 .mc-quiero-aviso.cumple {
   border-color: var(--success);
   background: var(--success-bg);
@@ -11106,7 +11088,7 @@ button.mc-fila:hover {
     order: 1;
   }
 
-  .mc-editor .mc-ficha-datos > #mcEdCarpetasBloque {
+  .mc-editor .mc-ficha-datos > #mcEdAlbumes {
     grid-column: 1;
     order: 2;
   }
@@ -11116,8 +11098,8 @@ button.mc-fila:hover {
     order: 2;
   }
 
-  .mc-editor .mc-ficha-datos:has(> #mcEdCarpetasBloque.hidden) > #mcEdQuienBloque,
-  .mc-editor .mc-ficha-datos:has(> #mcEdQuienBloque.hidden) > #mcEdCarpetasBloque {
+  .mc-editor .mc-ficha-datos:has(> #mcEdAlbumes.hidden) > #mcEdQuienBloque,
+  .mc-editor .mc-ficha-datos:has(> #mcEdQuienBloque.hidden) > #mcEdAlbumes {
     grid-column: 1 / -1;
   }
 
@@ -11415,17 +11397,6 @@ button.mc-fila:hover {
     display: none;
   }
 
-  .mc-editor #mcEdCarpetasBloque .mc-ficha-caja {
-    padding: var(--e-sm);
-  }
-
-  .mc-editor #mcEdCarpetas .mc-chip-filtro,
-  .mc-editor #mcEdCarpetas a,
-  .mc-editor #mcEdCarpetas button {
-    min-height: 32px;
-    font-size: var(--t-sm);
-  }
-
   .mc-editor .mc-quien-nombre {
     font-size: var(--t-sm);
   }
@@ -11467,11 +11438,6 @@ button.mc-fila:hover {
 
   .mc-editor .mc-version-check.si {
     display: inline;
-  }
-
-  /* El álbum ya sale en «En tus álbumes». */
-  .mc-editor .mc-ficha-datos:has(> #mcEdCarpetasBloque:not(.hidden)) > #mcEdCopiaAlbum {
-    display: none;
   }
 
   /* Quién la tiene: una fila por persona. */
@@ -13194,18 +13160,6 @@ button.mc-fila:hover {
   background: linear-gradient(90deg, rgb(0 0 0 / 42%), rgb(0 0 0 / 12%) 70%, rgb(255 255 255 / 10%));
 }
 
-.mc-tapa-cerrada[data-cierre='cremallera']::after {
-  content: '';
-  position: absolute;
-  inset: 3%;
-  padding: 3%;
-  border-radius: 4px var(--radius-sm) var(--radius-sm) 4px;
-  background: repeating-linear-gradient(45deg, #0d1013 0 2px, #4b5259 2px 4px);
-  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
-  -webkit-mask-composite: xor;
-  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
-}
-
 .mc-tapa-ventana {
   position: absolute;
   z-index: 1;
@@ -13385,18 +13339,7 @@ button.mc-fila:hover {
   pointer-events: none;
 }
 
-.mc-tapa-cerrada[data-cierre='cremallera'] .mc-tapa-tirador {
-  position: absolute;
-  z-index: 3;
-  top: 42%;
-  right: 1%;
-  width: 8px;
-  height: 20px;
-  border-radius: 4px;
-  background: var(--acento);
-  box-shadow: 0 2px 4px rgb(0 0 0 / 50%);
-}
-
+/* Cerrado, la cremallera no se ve (1052, PINGU: «quítala de la portada y mantenla en el álbum abierto»). */
 .mc-tapa-cerrada[data-cierre='goma'] .mc-tapa-tirador {
   position: absolute;
   z-index: 3;
@@ -13797,3 +13740,7 @@ button.mc-fila:hover {
     width: 96px;
   }
 }
+
+/* 1052: el bolsillo al que lleva un enlace de «En tus álbumes», señalado un
+   momento (lo quita un temporizador; SCHEMA 1052). */
+.mc-bolsillo-aqui { outline: 2px solid var(--acento); outline-offset: 2px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--acento) 30%, transparent); }

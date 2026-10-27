@@ -41785,6 +41785,50 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1052 — Meter una carta en un álbum desde su ficha
+
+PINGU: «desde el pop-up de una carta no puedes añadir a un álbum».
+
+- **`js/en-tus-albumes.js`** (+ `css/en-tus-albumes.css`, por
+  `hojaInyectada`): el bloque «En tus álbumes» y la ventana para elegir.
+  Lo llaman la ficha de Mi colección y /cartas (`#mcEdAlbumes`, que
+  sustituye a las chips de carpetas: desde la 759 no hay carpetas) y
+  `carta-mercado.js` (`#cmAlbumes`: /carta y el pop-up de toda la web; en
+  el móvil de /carta, pestaña «Precio»). Sin cuenta, no sale. La lista de
+  álbumes se pide una vez por visita y se olvida al escribir.
+- **Lo puro, `js/mi-coleccion/album-sitio.js`**: `sitioLibre` (el primer
+  bolsillo `{}` o detrás de la última, como dentro del álbum),
+  `capacidadDe` (páginas × bolsillos; sin páginas, `MAX_CARTAS`),
+  `lugarDe` (página y hueco desde 1), `bolsilloDe` (`v` si se sabe la
+  versión —la de tu copia en Mi colección—, `m` si no es occidental),
+  `resumenParaCarta` (con ella / opciones ya·va·lleno / el de su
+  expansión aparte: un álbum de set no se ofrece) y `enlaceAAlbum`.
+- **`js/mi-coleccion/album-forma.js`**: las rejillas y el color de la tapa,
+  mudados de `archivador.js` (que los importa y reexporta). Importar el
+  archivador desde el pop-up arrastraba sus clases a 52 páginas sin
+  `mi-coleccion.css` y la 299 lo cantó.
+- **Llegar a un bolsillo**: `/mi-coleccion?ver=carpetas&album=<id>&pag=N&hueco=M`.
+  `albumes.js` lee `pag`/`hueco` AL CARGAR el módulo (`llegadaDeUrl`): a la
+  primera carga el álbum lo abren dos caminos y el primero limpia la
+  dirección. El bolsillo se señala (`mc-bolsillo-aqui`) durante 4 s y
+  `pintarDetalle` la repone mientras dure (`senal`): la pantalla se repinta
+  sola al llegar cartas y precios.
+- **Meter**: escribe `user_albums.cartas` con la carta en el primer hueco y
+  avisa con `avisoConDeshacer` (Ver + Deshacer). Deshacer RELEE el álbum y
+  vacía ese bolsillo solo si sigue la carta ahí. «Nuevo álbum con esta
+  carta»: binder 3×3, 20 páginas, la tapa de la última vez; Deshacer lo
+  borra. Tras escribir, `pokedoc:albumes`: Mis álbumes se repinta y el
+  álbum abierto se relee (o lo siguiente que se guardara en él escribiría
+  su lista vieja encima).
+- «Lleno» es `sitioLibre >= capacidadDe`: un binder de 20 páginas de 3×3
+  admite 180, como el de verdad. Dentro del álbum se puede seguir añadiendo
+  hasta `MAX_CARTAS` (crece de páginas); la ventana no lo ofrece.
+- **La cremallera, fuera de la tapa cerrada** (PINGU: «quítala de la
+  portada y mantenla en el álbum abierto, sin más»): sin el anillo de
+  dientes (`::after`) ni el tirador; la goma sí se ve por fuera.
+
+**Prueba**: `test-tanda-1052-pantalla.mjs`. Al día la 1049.
+
 ## Tanda 1051 — La edición gemela, en la línea del progreso
 
 PINGU, con una captura de 30th Celebration: «se ha roto el tema de las

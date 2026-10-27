@@ -1580,7 +1580,6 @@
               <button type="button" class="mc-paso-centro hidden" id="mcEdEditar" aria-expanded="false" aria-controls="mcEdCopiaBloque"><b id="mcEdTienes"></b><span>Editar</span></button>
               <button type="button" class="mc-paso mc-ficha-mas" id="mcEdMas"><i aria-hidden="true">+</i><span class="mc-mas-texto">Añadir a mi colección</span></button>
             </div>
-            <p class="mc-copia-album hidden" id="mcEdCopiaAlbum"></p>
             <section class="mc-ficha-bloque mc-ficha-tuyas" id="mcEdCopiaBloque" data-sin-arrastre>
               <h3>Tus copias</h3>
               <div class="mc-ficha-caja">
@@ -1658,10 +1657,9 @@
                 <button type="button" class="mc-anadir-otra" id="mcEdAnadirOtra">＋ Añadir otra copia</button>
               </div>
             </section>
-            <section class="mc-ficha-bloque" id="mcEdCarpetasBloque">
-              <h3>En tus álbumes</h3>
-              <div class="mc-ficha-caja"><div class="mc-chips-filtro" id="mcEdCarpetas"></div></div>
-            </section>
+            <!-- En tus álbumes (1052): dónde está y «Añadir a un álbum». Lo
+                 rellena js/en-tus-albumes.js, el mismo de /carta y el pop-up. -->
+            <section class="mc-ficha-bloque eta-caja hidden" id="mcEdAlbumes" aria-label="En tus álbumes"></section>
             <section class="mc-ficha-bloque mc-ficha-precio" id="mcEdPrecioSeccion">
               <h3>Precio <small>Cardmarket · mínimo Near Mint</small></h3>
               <div id="mcEdPrecioBloque"></div>

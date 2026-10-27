@@ -160,6 +160,8 @@ export async function pintarMercado(carta) {
       <p class="carta-mercado-aviso" id="cmAvisoSitio"></p>
       <!-- Comparar con otra (735): un diálogo, js/carta-comparar.js. -->
       <button type="button" class="link-btn carta-comparar-abrir" id="cmComparar">${icons.layers(16)}<span>Comparar con otra carta</span></button>
+      <!-- En tus álbumes (1052): js/en-tus-albumes.js, con sesión. -->
+      <section class="carta-albumes eta-caja hidden" id="cmAlbumes" aria-label="En tus álbumes"></section>
       <!-- El histórico (643): lo pinta js/carta-historial.js por import()
            al tener el precio; sin filas no se ve. -->
       <div class="carta-historial hidden" id="cmHistorial"></div>
@@ -300,6 +302,9 @@ function montarAcciones(carta, sesion, { idiomas, variantes, seSabe = true, esta
     }
   })
   if (!sesion) return
+
+  // En tus álbumes (1052), la misma pieza que la ficha de Mi colección.
+  import('./en-tus-albumes.js').then((m) => m.pintarEnTusAlbumes($('cmAlbumes'), { carta, userId: sesion.user.id })).catch(() => {})
 
   engancharAvisos($('cmAvisoSitio'), () => ({ market: carta.market || MERCADO, idioma: estado.idioma, precio: precioActual() }))
 

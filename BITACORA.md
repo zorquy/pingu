@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (292) — PINGU-Claude (1052 — meter una carta en un álbum desde su ficha)
+
+**Hecho**: PINGU: «desde el pop-up de una carta no puedes añadir a un
+álbum» y, viendo la propuesta, «lo de añadir a los álbumes sí me gusta».
+La ficha de una carta (Mi colección, /cartas, /carta y el pop-up de toda la
+web) lleva «En tus álbumes»: un chip por álbum donde está, con su página
+(lleva al álbum abierto ahí, con el bolsillo señalado), y «Añadir a un
+álbum», que abre una ventana con tus binders y lo que pasaría en cada uno
+(«Va en la pág. 3, hueco 5», «Ya está», «Lleno»), el de su expansión aparte
+y «Nuevo álbum con esta carta». Va al primer hueco libre, con aviso de Ver y
+Deshacer. El bloque viejo de carpetas de la ficha se fue (desde la 759 no
+hay carpetas). Y la cremallera ya no se ve con el álbum cerrado (PINGU:
+«quítala de la portada y mantenla en el álbum abierto, sin más»).
+
+Además, PINGU aprobó lo recomendado de la propuesta
+https://claude.ai/artifact/FPEdQavDBtAcPCeTgyvJwf: 1053 (menú ⋯ de la
+expansión limpio, Seleccionar en la barra, el «+» con lo último que usaste),
+1054 (barra común en Cartas, Pokédex y Buscar) y 1055 (hoja de filtros
+común). Van en las siguientes.
+
+**Ficheros**: js/en-tus-albumes.js y css/en-tus-albumes.css (nuevos),
+js/mi-coleccion/album-sitio.js (nuevo, lo puro), js/mi-coleccion/album-forma.js
+(nuevo: rejillas y tapas, mudadas de archivador.js, que las reexporta),
+js/mi-coleccion/albumes.js (llegar a una página y señalar el bolsillo,
+repintar al meter desde la ficha, la tapa sin cremallera),
+js/mi-coleccion/carpetas-ui.js (fuera las chips de la ficha),
+js/mi-coleccion.js, js/carta-mercado.js, mi-coleccion.html, cartas.html
+(generado), css/mi-coleccion.css, css/carta.css, novedades.json, SCHEMA.md,
+BITACORA.md.
+
+**Pruebas**: `test-tanda-1052-pantalla.mjs` nueva (lo puro, los colores de
+la tapa iguales en las dos hojas, la ficha, la ventana, Deshacer, álbum
+nuevo, el enlace con el bolsillo señalado, /carta en el móvil). La 1049 al
+día (sin dientes ni tirador en la tapa con cremallera). Subconjunto de Mi
+colección + /carta: los rojos que quedan salen igual con el código de antes
+(ver la entrada).
+
+**Pendiente**: 1053, 1054 y 1055 (aprobadas). Las dos migraciones de antes
+siguen pendientes de ejecutar (1047 y 1050).
+
 ## 2026-10-27 (291) — PINGU-Claude (1051 — la edición gemela, arreglada)
 
 **Hecho**: PINGU vio rota la cabecera de 30th Celebration: el chip

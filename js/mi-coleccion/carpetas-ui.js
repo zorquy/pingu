@@ -1,14 +1,13 @@
 // LAS CARPETAS DE MI COLECCIÓN, aparte (tanda 1011): la pestaña (lo que
-// queda de las carpetas viejas, 759), las chips de la ficha y el diálogo de
+// queda de las carpetas viejas, 759) y el diálogo de
 // cambiarlas (`dialogo-adorno`, que arrastra la Pokédex de especies y los
 // sprites: 28 KB que el catálogo público no necesita). Entra por import() al
-// abrir la pestaña o al pintar la ficha de una copia tuya; el estado de las
+// abrir la pestaña; el estado de las
 // carpetas (el módulo de consultas, la lista, el resumen, la abierta) sigue
 // en mi-coleccion.js, que lo comparten la lateral y el Panel, y llega en
 // `ctx` con getters y setters (895).
 import { escapeHtml } from '../app.js'
 import { showToast } from '../toast.js'
-import { icons } from '../icons.js'
 import { normalizeSearch } from '../texto.js'
 import { nombreDeSet, nombresDeCartaParaBuscar } from '../catalogo-series.js'
 import { migasHtml } from './migas.js'
@@ -28,48 +27,6 @@ export function montar(c) {
 // Se cargan la primera vez que se abre la pestaña, como los álbumes
 // soñados: quien nunca entra no se baja el módulo ni hace las dos
 // consultas.
-
-// Las carpetas de la carta abierta (tanda 402). El bloque entero se
-// esconde si no hay ninguna carpeta: un rótulo «Carpetas» encima de un
-// hueco vacío no dice qué hacer, y lo que hay que hacer está en otra
-// pestaña.
-export async function pintarCarpetasDeLaFicha(lineId) {
-  const bloque = $('mcEdCarpetasBloque')
-  const hueco = $('mcEdCarpetas')
-  if (!bloque || !hueco) return
-  if (!ctx.carpetas) {
-    try {
-      ctx.carpetas = await import('./carpetas.js')
-    } catch {
-      bloque.classList.add('hidden')
-      return
-    }
-  }
-  if (!ctx.carpetasLista.length) {
-    const lista = await ctx.carpetas.listarCarpetas().catch(() => null)
-    ctx.carpetasLista = lista || []
-  }
-  const linea = $('mcEdCopiaAlbum')
-  linea?.classList.add('hidden')
-  if (!ctx.carpetasLista.length) {
-    bloque.classList.add('hidden')
-    return
-  }
-  bloque.classList.remove('hidden')
-  const dentro = new Set(await ctx.carpetas.carpetasDeLinea(lineId).catch(() => []))
-  // La línea de arriba (752, Y5), si la ficha sigue en esta copia.
-  const suyas = ctx.carpetasLista.filter((c) => dentro.has(c.id))
-  if (linea && suyas.length && $('mcEditor').dataset.linea === lineId) {
-    linea.innerHTML = `${icons.folder ? icons.folder(14) : ''}<span>${suyas.length === 1 ? 'En tu álbum' : 'En tus álbumes'}</span> ${suyas.map((c) => `<button type="button" class="link-btn" data-abrir-carpeta="${escapeHtml(c.id)}">${escapeHtml(c.emoji ? `${c.emoji} ` : '')}${escapeHtml(c.nombre)}</button>`).join(', ')}`
-    linea.classList.remove('hidden')
-  }
-  hueco.innerHTML = ctx.carpetasLista
-    .map((c) => {
-      const puesta = dentro.has(c.id)
-      return `<button type="button" class="chip-filtro${puesta ? ' activa' : ''}" data-carpeta-chip="${escapeHtml(c.id)}" aria-pressed="${puesta ? 'true' : 'false'}">${escapeHtml(c.emoji ? `${c.emoji} ` : '')}${escapeHtml(c.nombre)}</button>`
-    })
-    .join('')
-}
 
 export async function abrirCarpetas() {
   const caja = $('mcCarpetasPanel')
@@ -261,33 +218,6 @@ function enganchar() {
     ctx.carpetaAbierta = c?.parent_id || null
     pintarCarpetas()
   })
-
-  // Meter y sacar la carta abierta de una carpeta, desde su ficha.
-  // «En tu álbum X» (752): abre ese álbum.
-  $('mcEdCopiaAlbum')?.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-abrir-carpeta]')
-    if (!b) return
-    ctx.carpetaAbierta = b.dataset.abrirCarpeta
-    $('mcEditor').close()
-    if (ctx.pestania === 'carpetas') void recargarCarpetas()
-    else ctx.cambiarPestania('carpetas')
-  })
-  $('mcEdCarpetas').addEventListener('click', async (e) => {
-    const chip = e.target.closest('[data-carpeta-chip]')
-    if (!chip) return
-    const id = $('mcEditor').dataset.linea
-    if (!id) return
-    const folder = chip.dataset.carpetaChip
-    const dentro = chip.getAttribute('aria-pressed') === 'true'
-    try {
-      if (dentro) await ctx.carpetas.sacarDeCarpeta(folder, id)
-      else await ctx.carpetas.meterEnCarpeta(folder, id)
-      // Se repinta desde la base y no a ojo: si la escritura falló, el
-      // chip se quedaría diciendo que está dentro cuando no lo está.
-      await pintarCarpetasDeLaFicha(id)
-      ctx.carpetasResumen = await ctx.carpetas.resumenDeCarpetas().catch(() => ctx.carpetasResumen)
-    } catch (err) {
-      showToast(err.message, 'error')
-    }
-  })
+  // Las chips de la ficha se fueron en la 1052: «En tus álbumes» es
+  // js/en-tus-albumes.js.
 }

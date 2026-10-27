@@ -2442,10 +2442,9 @@ function abrirEditor(l) {
   // «Ilustrador: —» ocupa lo mismo que el dato y no dice nada.
   $('mcEdTabla').innerHTML = tablaDeCarta(c, l.variante)
   void completarDatosDeFicha(c, l)
-  // Las carpetas cuelgan de una LÍNEA, así que sin ella no hay nada que
-  // enseñar; el «quién la tiene» es de la carta y sí vale siempre.
-  if (l.id) pintarCarpetasDeLaFicha(l.id)
-  else $('mcEdCarpetasBloque')?.classList.add('hidden')
+  // En tus álbumes (1052): de la CARTA, la tengas o no. Con tu copia, su
+  // versión es la que va al bolsillo.
+  pintarAlbumesDeLaFicha(c, l)
   pintarQuienLaTiene(l.card_id)
   // La lista lleva además el idioma que ESTA línea tiene, aunque el
   // catálogo de ahora no lo ofrezca: un `<select>` cuyo valor no está
@@ -5367,15 +5366,15 @@ let carpetasMod = null
 const carpetasModulo = () => carpetasMod ? Promise.resolve(carpetasMod) : import('./mi-coleccion/carpetas-ui.js').then((m) => { m.montar(ctxCarpetas); carpetasMod = m; return m })
 function abrirCarpetas() { return carpetasModulo().then((m) => m.abrirCarpetas()).catch((err) => { const caja = $('mcCarpetasPanel'); if (caja) caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` }) }
 function recargarCarpetas() { return carpetasModulo().then((m) => m.recargarCarpetas()) }
-function pintarCarpetasDeLaFicha(lineId) {
-  // Si la lateral ya preguntó y no hay carpetas (lo normal desde la 759),
-  // el bloque se esconde sin bajar el módulo.
-  if (carpetas && !carpetasLista.length && !carpetasMod) {
-    $('mcEdCarpetasBloque')?.classList.add('hidden')
-    $('mcEdCopiaAlbum')?.classList.add('hidden')
-    return Promise.resolve()
-  }
-  return carpetasModulo().then((m) => m.pintarCarpetasDeLaFicha(lineId)).catch(() => $('mcEdCarpetasBloque')?.classList.add('hidden'))
+// «En tus álbumes» de la ficha (1052): js/en-tus-albumes.js, por import()
+// (lo comparten /carta y el pop-up de toda la web). Sin cuenta no sale.
+function pintarAlbumesDeLaFicha(c, l) {
+  const caja = $('mcEdAlbumes')
+  if (!caja) return
+  if (!sesion || !c?.id) return void caja.classList.add('hidden')
+  import('./en-tus-albumes.js')
+    .then((m) => m.pintarEnTusAlbumes(caja, { carta: c, userId: sesion.user.id, variante: l?.id ? l.variante || null : null }))
+    .catch(() => caja.classList.add('hidden'))
 }
 
 // ── LA POKÉDEX (381 → 1011): vive en ./mi-coleccion/pokedex-ui.js y entra por

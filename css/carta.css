@@ -1261,6 +1261,7 @@
   main[data-pestana='historial'] #cmPrecios,
   main[data-pestana='historial'] #cmCambios,
   main[data-pestana='historial'] #cmComparar,
+  main[data-pestana='historial'] #cmAlbumes,
   main[data-pestana='historial'] .carta-mercado-pie {
     display: none;
   }
