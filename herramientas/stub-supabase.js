@@ -220,7 +220,7 @@ const sesion = quienSoy === 'none' ? null : { user: { id: quienSoy, email: `${qu
 // escribir lo que le importa.
 // Los `default` de las columnas que el cliente no manda al insertar.
 const DEFECTOS_AL_INSERTAR = {
-  user_want_lists: { color: null, created_at: '2026-10-27T00:00:00Z' },
+  user_want_lists: { color: null, cruces: true, created_at: '2026-10-27T00:00:00Z' },
   user_want_list_items: { market: 'WEST', created_at: '2026-10-27T00:00:00Z' },
   user_price_alerts: { activo: true, disparado_at: null, precio_disparo: null, created_at: '2026-10-07T00:00:00Z' },
   user_wants: { idioma: null, variante: null, prioridad: 1, notas: null, created_at: '2026-10-07T00:00:00Z' },
