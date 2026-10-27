@@ -41785,6 +41785,37 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1061 — Deseos y cambios más limpio
+
+Propuesta con antes/después (artifact «Deseos y cambios, más limpio»); PINGU:
+«adelante con las propuestas», con las dos recomendadas.
+
+- **A · corazón y campana de 28.** A la vista 28 px (icono de 14); al dedo,
+  44. El corazón del Mercado y de «La quiero» pinta su círculo en un
+  `::before` con `inset: 8px`, y eso tenía dos fallos que se tapaban uno a
+  otro: `.mc-merc-corazon.puesto { background }` (0,2,0) le ganaba al
+  `background: none` del dedo (0,1,0), así que el puesto era un círculo rosa
+  de 44; y el `::before` con `z-index: -1` dentro de un botón sin contexto de
+  apilado se iba DETRÁS de la foto, así que el de sin poner no se veía. El
+  botón lleva `z-index: 2` (el `::before` se queda dentro) y el dedo quita el
+  fondo también al `.puesto`.
+- **B · «La da / La busca» en una chapa sobre la foto.** `.mc-merc-cabeza`
+  envuelve el enlace de la foto y la chapa (un botón no puede ir dentro del
+  enlace); la chapa va abajo a la izquierda. En el móvil, `.mc-merc-largo` se
+  esconde y quedan los avatares y la cifra; con la chapa de versión al lado,
+  también en el PC (`:has(.mc-chapa-variante)`). El texto entero va en el
+  `aria-label` («La da 1 persona»). Todas las baldosas miden lo mismo.
+- **C · «− N de M +» en una línea.** Rejilla `28px 1fr 28px`; los círculos
+  son de 28 con un `::after` de `inset: -8px` (44 al dedo). En el móvil, sin
+  «Doy».
+- **D** · el precio de «Las que doy» a la izquierda. **E** · `lineaDeSetHtml`
+  (`js/mi-coleccion/linea-set.js`): el nombre del set se recorta y «· 152» no,
+  en las tres baldosas. **F** · el rótulo del catálogo con aire y su raya.
+
+Pruebas: `test-tanda-1061-pantalla.mjs` (móvil y PC: medidas, chapa, línea,
+precio, número); al día la 763, 772, 777, 1033, 1047, 1057 y 1058 (leen
+«La da 1» del `aria-label` y el 44 del − / + con su franja).
+
 ## Tanda 1060 — `color-scheme: dark` en el tema oscuro
 
 El tema se elige con `data-theme` en `<html>` (lo pone el guion de cada

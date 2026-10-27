@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (303) — PINGU-Claude (1061 — Deseos y cambios más limpio)
+
+**Hecho**: la propuesta (artifact con antes/después) con lo recomendado. A:
+corazón y campana de 28 (44 al dedo) — el corazón puesto era un círculo rosa
+de 44 por un `.puesto` que le ganaba a la regla del dedo, y el de sin poner se
+iba detrás de la foto; B: «La da / La busca» en una chapa sobre la foto
+(avatares y cifra en el móvil); C: «− N de M +» en una línea; D: precio a la
+izquierda en Las que doy; E: el número siempre a la vista
+(`lineaDeSetHtml`); F: rótulo del catálogo con raya. Detalle en SCHEMA 1061.
+
+**Ficheros**: `css/mi-coleccion.css` (bloque 1061 al final),
+`js/mi-coleccion/deseos.js`, `js/mi-coleccion/mercado.js`,
+`js/mi-coleccion/linea-set.js` (nuevo). Pruebas en `pruebas`: 1061 nueva y
+763, 772, 777, 1033, 1047, 1057, 1058 al día. 311 sigue roja como en HEAD
+(espaciado de comunidad/partidas/torneos, no es de aquí).
+
 ## 2026-10-27 (302) — PINGU-Claude (1061a — el «{}» del registro por email)
 
 **Hecho**: PINGU, con captura: crear cuenta con email pintaba «{}» bajo el

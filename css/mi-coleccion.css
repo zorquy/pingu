@@ -14254,3 +14254,179 @@ body:has(#mcPanelQuiero.hidden) :is(#mcQuieroSel, #mcDoySel) {
   gap: var(--e-xs);
   align-items: center;
 }
+
+/* Deseos y cambios más limpio (1061, SCHEMA 1061). A: corazón y campana de
+   28 a la vista y 44 al dedo; el círculo va en un ::before dentro del botón
+   (z-index 2), que si no se iba detrás de la foto y `.puesto` pintaba el
+   botón entero de rosa. */
+.mc-merc-corazon {
+  z-index: 2;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  width: 28px;
+  height: 28px;
+}
+
+.mc-merc-corazon svg {
+  width: 14px;
+  height: 14px;
+}
+
+:is(.mc-deseo-baldosa, .mc-doy-baldosa) .mc-quiero-aviso {
+  width: 28px;
+  height: 28px;
+}
+
+:is(.mc-deseo-baldosa, .mc-doy-baldosa) .mc-quiero-aviso svg {
+  width: 14px;
+  height: 14px;
+}
+
+@media (pointer: coarse) {
+  .mc-merc-corazon,
+  .mc-merc-corazon.puesto {
+    top: 0;
+    right: 0;
+    width: 44px;
+    height: 44px;
+    background: none;
+    box-shadow: none;
+  }
+
+  .mc-merc-corazon::before {
+    inset: var(--e-sm);
+  }
+
+  :is(.mc-deseo-baldosa, .mc-doy-baldosa) .mc-quiero-aviso {
+    width: 44px;
+    height: 44px;
+  }
+
+  :is(.mc-deseo-baldosa, .mc-doy-baldosa) .mc-quiero-aviso svg {
+    width: 12px;
+    height: 12px;
+  }
+}
+
+/* B: quién la da o la busca, en una chapa sobre la foto: todas las baldosas
+   miden lo mismo. En el móvil, los avatares y la cifra. */
+.mc-merc-cabeza {
+  display: block;
+  position: relative;
+}
+
+.mc-merc-cabeza .mc-deseo-quien {
+  display: inline-flex;
+  position: absolute;
+  bottom: var(--e-xs);
+  left: var(--e-xs);
+  z-index: 2;
+  max-width: calc(100% - var(--e-sm));
+  min-height: 0;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: 2px var(--e-sm) 2px 2px;
+  border-radius: var(--radius-pill);
+  background: rgb(11 18 25 / 82%);
+  color: #4ade80;
+  font-size: var(--t-2xs);
+  white-space: nowrap;
+}
+
+.mc-merc-cabeza .mc-deseo-quien .mc-gente-av {
+  width: 18px;
+  height: 18px;
+  font-size: var(--t-2xs);
+}
+
+@media (pointer: coarse) {
+  .mc-merc-cabeza .mc-deseo-quien::after {
+    content: '';
+    position: absolute;
+    inset: -12px -4px;
+  }
+}
+
+/* C: el contador en una línea, «− Doy 2 de 2 +». */
+.mc-doy-paso {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) 28px;
+  align-items: center;
+  gap: var(--e-xs);
+  border: 0;
+  border-radius: 0;
+}
+
+.mc-doy-paso .mc-doy-boton {
+  display: grid;
+  position: relative;
+  width: 28px;
+  min-width: 0;
+  height: 28px;
+  min-height: 0;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--ice);
+  font-size: var(--t-md);
+  line-height: 1;
+}
+
+.mc-doy-paso .mc-doy-boton::after {
+  content: '';
+  position: absolute;
+  inset: -8px;
+}
+
+.mc-doy-paso .mc-doy-cuantas {
+  overflow: hidden;
+  font-size: var(--t-xs);
+  text-align: center;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 599px) {
+  .mc-mercado-rejilla .mc-doy-paso {
+    display: grid;
+    grid-template-columns: 28px minmax(0, 1fr) 28px;
+    border-radius: 0;
+  }
+
+  .mc-mercado-rejilla .mc-doy-cuantas {
+    grid-column: auto;
+    padding-top: 0;
+  }
+}
+
+/* D: el precio a la izquierda, como en «La quiero». */
+.mc-doy-baldosa .mc-quiero-precio {
+  margin-left: 0;
+}
+
+/* E: el número de la carta siempre a la vista. */
+.mc-merc-set {
+  display: flex;
+  min-width: 0;
+}
+
+.mc-merc-set-n {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+.mc-merc-set-num {
+  flex: none;
+  white-space: pre;
+}
+
+/* F: el rótulo de cada catálogo con aire y su raya. */
+.mc-catalogo-rotulo {
+  margin-top: var(--e-md);
+  padding-bottom: var(--e-xs);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Con la chapa de la versión al lado no caben las dos palabras. */
+.mc-merc-cabeza:has(.mc-chapa-variante) .mc-deseo-quien .mc-merc-largo {
+  display: none;
+}

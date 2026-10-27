@@ -37,6 +37,7 @@ import { senasDe, borradorDe } from './tablon.js'
 import { porCatalogo, rotuloDeCatalogo } from './rotulos-catalogo.js'
 import { showToast } from '../toast.js'
 import * as listasDeseo from './listas-deseo.js'
+import { lineaDeSetHtml } from './linea-set.js'
 
 const $ = (id) => document.getElementById(id)
 const POR_PAGINA = 60
@@ -108,7 +109,7 @@ function baldosaHtml(f) {
     </button>
     <button type="button" class="mc-merc-corazon${busco ? ' puesto' : ''}" data-merc-quiero="${escapeHtml(f.card_id)}" aria-pressed="${busco}" aria-label="${escapeHtml(`${busco ? 'Ya buscas' : 'La quiero:'} ${nombre}`)}">${ICONOS_COLECCION.corazon(16)}</button>
     <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
-    <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
+    ${lineaDeSetHtml(c)}
     <span class="mc-merc-fila"><b class="mc-merc-precio">${precio == null ? '' : escapeHtml(euros(precio))}</b><span class="mc-merc-idiomas">${(f.idiomas || []).slice(0, 4).map((i) => banderaHtml(i)).join('')}</span></span>
     <span class="mc-merc-fila">${avataresHtml(f.gente || [], 4, buscanLoMio)}<span class="mc-merc-dan">${textoDeGente(Number(f.personas) || 0)}</span></span>
   </article>`

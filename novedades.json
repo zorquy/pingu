@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-27", "tipo": "mejora", "texto": "Deseos y cambios más limpio: el corazón y la campana más pequeños en el móvil, quién la da o la busca en una chapa sobre la carta, el contador de las que das en una línea y el número de la carta siempre a la vista.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "Si algo falla al crear la cuenta con email, ahora te lo decimos claro en vez de enseñar unos corchetes.", "enlace": "/auth.html?registro=1" },
     { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "Con el tema oscuro, los desplegables (como el idioma del Mercado) ya no salen en blanco con la letra que no se lee.", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Al abrir una carta de «La quiero», su ficha dice en qué listas está y tiene «Añadir a una lista» (o crear una nueva ahí mismo).", "enlace": "/mi-coleccion?ver=quiero" },

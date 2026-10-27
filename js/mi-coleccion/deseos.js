@@ -27,6 +27,7 @@ import { porCatalogo, conRotulos } from './rotulos-catalogo.js'
 import { casaVersion, deseosPorCartaYVersion } from '../deseo-version.js'
 import { nombreDeVariante, versionDeVariante } from './variantes.js'
 import { chapaDeVersionHtml } from './iconos-version.js'
+import { lineaDeSetHtml } from './linea-set.js'
 import * as listasDeseo from './listas-deseo.js'
 
 const $ = (id) => document.getElementById(id)
@@ -1040,22 +1041,22 @@ async function pintarDoy() {
       const gente = buscan?.get(l.card_id) || []
       const das = Number(l.cambio)
       const tienes = Number(l.cantidad)
-      // Compacta como «La quiero» (1057b): la campana encima de la foto,
-      // «La busca N» solo si alguien la busca.
+      // Compacta como «La quiero» (1057b): la campana encima de la foto, y
+      // quién la busca en una chapa sobre ella (1061), para que todas midan
+      // lo mismo; el contador, «− N de M +» en una línea.
       return `<article class="mc-merc mc-doy-baldosa${marcadasDoy.has(l.id) ? ' marcada' : ''}" data-doy-linea="${escapeHtml(l.id)}">
-        <a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
+        <span class="mc-merc-cabeza"><a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
           <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${l.variante && l.variante !== 'normal' ? chapaDeVersionHtml(l.variante) : ''}</span>
-        </a>
+        </a>${gente.length ? `<button type="button" class="mc-deseo-quien" data-deseos-vista="cruces" aria-label="${gente.length === 1 ? 'La busca 1 persona' : `La buscan ${gente.length} personas`}">${mercadoAvatares(gente, 3)}<span class="mc-merc-texto"><span class="mc-merc-largo">${gente.length === 1 ? 'Busca ' : 'Buscan '}</span>${gente.length}</span></button>` : ''}</span>
         <button type="button" class="mc-quiero-aviso mc-doy-aviso" data-avisar-doy="${escapeHtml(l.card_id)}" data-idioma="${escapeHtml(l.idioma || 'es')}" aria-label="Avísame si ${escapeHtml(nombre)} cambia de precio" title="Avísame si cambia de precio">${icons.bell(16)}</button>
         <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
-        <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
+        ${lineaDeSetHtml(c)}
         <span class="mc-merc-fila mc-deseo-precio-fila"><b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>${banderaHtml(l.idioma || 'es')}<span class="mc-merc-texto" title="${escapeHtml(estadoDe(l.estado).nombre)}">${escapeHtml(estadoDe(l.estado).id)}</span></span>
         <span class="mc-merc-fila mc-doy-paso">
-          <span class="mc-doy-cuantas">Doy ${das} de ${tienes}</span>
           <button type="button" class="mc-doy-boton" data-doy-menos="${escapeHtml(l.id)}" aria-label="Dar una menos de ${escapeHtml(nombre)}">−</button>
+          <span class="mc-doy-cuantas"><span class="mc-merc-largo">Doy </span>${das} de ${tienes}</span>
           <button type="button" class="mc-doy-boton" data-doy-mas="${escapeHtml(l.id)}"${das >= tienes ? ' disabled' : ''} aria-label="Dar una más de ${escapeHtml(nombre)}">+</button>
         </span>
-        ${gente.length ? `<button type="button" class="mc-merc-fila mc-deseo-quien" data-deseos-vista="cruces">${mercadoAvatares(gente, 3)}<span class="mc-merc-texto">${gente.length === 1 ? 'La busca 1' : `La buscan ${gente.length}`}</span></button>` : ''}
       </article>`
     })}</div>
     ${filas.length ? '' : `<p class="subtext">${doyFiltro === 'buscan' ? 'Nadie busca todavía ninguna de estas.' : 'Todas estas las busca alguien.'}</p>`}
@@ -1278,7 +1279,7 @@ function deseoHtml(g, precio = ctx.precioDeDeseo(g.filas[0])) {
   const cumple = baja && precio != null && precio <= Number(baja.umbral)
   // Compacta como el Mercado (1057, PINGU): la campana encima de la foto,
   // arriba a la izquierda; abajo el precio y el idioma, y «La da N» solo si
-  // alguien la da (sin «Nadie la da aún»).
+  // alguien la da, en una chapa sobre la foto (1061: todas miden lo mismo).
   const idiomas = g.filas.map((x) => x.idioma).filter(Boolean)
   const idioma = g.filas.some((x) => !x.idioma)
     ? '<span class="mc-deseo-cualquiera">Cualquiera</span>'
@@ -1287,18 +1288,17 @@ function deseoHtml(g, precio = ctx.precioDeDeseo(g.filas[0])) {
   // La línea de los que sigues (763) solo sale cuando alguno la tiene.
   const seguidos = textoDeSeguidos(seguidosDeQuiero?.get(g.card_id))
   return `<article class="mc-merc mc-deseo-baldosa" data-deseo-carta="${escapeHtml(g.card_id)}" data-deseo-clave="${escapeHtml(`${g.card_id}|${g.variante || ''}`)}">
-    <a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
+    <span class="mc-merc-cabeza"><a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
       <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${g.variante ? chapaDeVersionHtml(g.variante) : ''}</span>
-    </a>
+    </a>${dan.length ? `<button type="button" class="mc-deseo-quien" data-ver-quien="${escapeHtml(g.card_id)}" aria-label="${dan.length === 1 ? 'La da 1 persona' : `La dan ${dan.length} personas`}">${mercadoAvatares(dan, 3)}<span class="mc-merc-texto"><span class="mc-merc-largo">${dan.length === 1 ? 'La da ' : 'La dan '}</span>${dan.length}</span></button>` : ''}</span>
     <button type="button" class="mc-quiero-aviso${baja ? ' puesto' : ''}${cumple ? ' cumple' : ''}" data-avisar-deseo="${escapeHtml(d.id)}" aria-label="${baja ? `Te aviso si ${escapeHtml(nombre)} baja de ${escapeHtml(euros(Number(baja.umbral)))}` : `Avísame si ${escapeHtml(nombre)} baja de precio`}" title="${baja ? `${cumple ? '¡Ya está por debajo de ' : 'Te aviso por debajo de '}${escapeHtml(euros(Number(baja.umbral)))}` : 'Avísame si baja'}">${icons.bell(16)}</button>
     <button type="button" class="mc-merc-corazon puesto" data-quitar-deseo-carta="${escapeHtml(g.card_id)}" data-quitar-deseo-version="${escapeHtml(g.variante || '')}" aria-pressed="true" aria-label="Quitar ${escapeHtml(nombre)}${g.variante ? ` (${escapeHtml(nombreDeVariante(g.variante))})` : ''} de tu lista">${laQuiero.corazon(16)}</button>
     <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
-    <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
+    ${lineaDeSetHtml(c)}
     <span class="mc-merc-fila mc-deseo-precio-fila">
       <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
       <button type="button" class="mc-deseo-cambiar" data-cambiar-deseo="${escapeHtml(g.card_id)}" data-cambiar-version="${escapeHtml(g.variante || '')}" aria-label="${escapeHtml(`Cambiar cómo quieres ${nombre}`)}">${idioma}</button>
     </span>
-    ${dan.length ? `<button type="button" class="mc-merc-fila mc-deseo-quien" data-ver-quien="${escapeHtml(g.card_id)}">${mercadoAvatares(dan, 3)}<span class="mc-merc-texto">${dan.length === 1 ? 'La da 1' : `La dan ${dan.length}`}</span></button>` : ''}
     ${seguidos ? `<small class="mc-deseo-seguidos">${icons.users(12)} ${escapeHtml(seguidos)}</small>` : ''}
   </article>`
 }
