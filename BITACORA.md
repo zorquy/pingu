@@ -4,6 +4,50 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (288) — PINGU-Claude (1048 — el álbum abierto, sin anillas)
+
+**Hecho**: el rework de álbumes que pidió PINGU («el álbum se ve súper
+pocho», «no veo el botón de quitar», «la estrella de portada se sobrepone al
+corazón», «las flechas, feo»), con la propuesta aprobada (opción A en todo:
+https://claude.ai/artifact/1EbDwycFfzNMNJ7bhCFzfd) y, encima, sus dos fotos:
+«un álbum moderno se ve así, y no usa anillas», «o así, sin cremallera».
+Primera de tres tandas (1049: Mis álbumes con interruptor Tapas /
+Estantería; 1050: Personalizar con migración).
+- **El dibujo**: hojas grises cosidas a un lomo de tela, fundas de carga
+  lateral con su pespunte, la tapa asomando con su acabado (lona por defecto)
+  y la cremallera opcional (por defecto sí, con el tirador del color de la
+  sección). Sin anillas. Es `archivadorHtml`, así que también la vista
+  «Archivador» de una expansión.
+- **Sin «Ordenar y quitar» ni flechas**: se arrastra siempre; al coger una
+  carta sale la papelera abajo y soltarla ahí la quita (Deshacer).
+  **Seleccionar** (la barra de siempre): quitar del álbum, de portada, las
+  quiero. La portada es una cinta abajo a la izquierda.
+- **Cabecera** con la tapa en pequeño y un anillo de lo que llevas; **una
+  fila** de mandos (Añadir, Todas / Tengo / Faltan, Seleccionar,
+  Personalizar, «⋯» con público, compartir y lista); el **mapa del álbum**
+  debajo (una barrita por página, se toca para ir).
+- **Fuera**: el «Personalizar» del pie y su fila de colores, la casilla «Solo
+  las que me faltan», el «Ir a…», los puntos, el título y la descripción como
+  campos (se cambian en la hoja de editar). «Borrar álbum» NO va en el «⋯»:
+  un álbum se borra desde la hoja de editar (norma de la 1032).
+- Los colores de la tapa ya no cambian con el tema (el azul salía celeste en
+  oscuro).
+
+**Ficheros**: js/mi-coleccion/archivador.js, js/mi-coleccion/albumes.js,
+js/mi-coleccion/arrastre.js, js/mi-coleccion.js, mi-coleccion.html,
+cartas.html (generado), css/mi-coleccion.css, novedades.json, CLAUDE.md,
+SCHEMA.md, BITACORA.md.
+
+**Pruebas**: nueva `test-tanda-1048-pantalla.mjs` (dibujo, cabecera, fila,
+filtro, mapa, seleccionar con Deshacer, portada, las quiero, papelera,
+«⋯», móvil y la expansión en Archivador). Al día 371, 417, 578, 760, 764,
+1031 y 1032 (lo que probaban se ha quitado; y 371, 760 y 764 bloquean el
+service worker, porque lo que él pide no pasa por `route` y las imágenes de
+mentira se perdían). 310 y 311 fallan igual sin esta tanda (duraciones,
+carga diferida y espaciados de otras hojas).
+
+**Pendiente**: 1049 y 1050.
+
 ## 2026-10-27 (287) — PINGU-Claude (1047c — la versión con la chapa de toda la web)
 
 **Hecho**: PINGU, sobre la 1047b: «debería llevar los mismos iconos; el holo

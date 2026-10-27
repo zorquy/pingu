@@ -991,6 +991,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   camino nuevo que cree un álbum con lo de otra pantalla pasa por
   `crearAlbum` con `tipo: 'binder'` y sus páginas calculadas, y entra por
   «Empezar un álbum» como un tipo más (`data-tipo`), no por otro diálogo.
+- **Un álbum es un álbum moderno, sin anillas** (tanda 1048, PINGU con dos
+  fotos: «un álbum moderno se ve así, y no usa anillas»): hojas cosidas a un
+  lomo de tela, fundas de carga lateral con pespunte y la cremallera
+  opcional, en `archivadorHtml` (álbumes Y vista «Archivador» de una
+  expansión). Lo de dentro no cambia con el tema. En un álbum no hay modo de
+  ordenar: se arrastra siempre, se quita soltando en la papelera o con
+  «Seleccionar» (siempre con Deshacer), y nada se pinta encima del corazón.
 - **Un álbum se edita y se borra desde UN sitio: la hoja de
   `album-editar.js`** (tanda 1032), que abren el ⋯ de cada baldosa y
   «Editar álbum» dentro. Un campo nuevo de un álbum (nombre, tapa, portada,

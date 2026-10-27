@@ -1226,54 +1226,74 @@
                cuatro veces. La pinta la rellena `albumes.js` con el molde
                común; el identificador `mcAlbVolver` se queda igual. -->
           <div id="mcAlbMigas"></div>
-          <!-- LA CABECERA (760, AL4): el logo del set o la tapa del binder, el
-               nombre, cuántas tienes y lo que costaría completarlo. -->
+          <!-- LA CABECERA (760; 1048): la tapa en pequeño (o el logo del set),
+               el nombre y cuánto llevas en un anillo. El nombre y la
+               descripción se cambian en Personalizar → Datos. -->
           <div class="mc-alb-cabecera" id="mcAlbCabecera">
             <span class="mc-alb-cabecera-logo hidden" id="mcAlbCabeceraLogo" aria-hidden="true"></span>
             <div class="mc-alb-cabecera-texto">
-              <input type="text" class="mc-alb-titulo" id="mcAlbTitulo" maxlength="80" aria-label="Nombre del álbum" />
-              <textarea class="mc-alb-descripcion" id="mcAlbDescripcion" maxlength="500" rows="2" placeholder="De qué va este álbum (opcional)" aria-label="Descripción del álbum"></textarea>
-              <p class="mc-progreso" id="mcAlbProgreso"></p>
-              <p class="mc-nota" id="mcAlbFalta"></p>
+              <h3 class="mc-alb-titulo" id="mcAlbTitulo"></h3>
+              <p class="mc-alb-descripcion hidden" id="mcAlbDescripcion"></p>
             </div>
+            <div class="mc-alb-progreso" id="mcAlbProgreso"></div>
           </div>
-          <div id="mcAlbHerramientas">
-            <div class="mc-alb-barra">
-              <!-- 767: abre Buscar (occidental o japonés) para este álbum. -->
-              <button type="button" class="btn-primary" id="mcAlbBuscarAbrir" data-icono="search">Añadir cartas</button>
-              <button type="button" class="btn-secondary" id="mcAlbEditar">Ordenar y quitar</button>
-              <!-- 1032: nombre, descripción, tapa, portada, público y borrar, en una hoja. -->
-              <button type="button" class="btn-secondary" id="mcAlbAjustes" data-icono="edit">Editar álbum</button>
-              <label class="mc-interruptor"><input type="checkbox" id="mcAlbSoloFaltan" /> Solo las que me faltan</label>
-              <label class="mc-interruptor"><input type="checkbox" id="mcAlbPublico" /> Público</label>
-              <button type="button" class="mc-chip-mando hidden" id="mcAlbCopiar">Compartir enlace</button>
-              <!-- 764, Z5: la lista del álbum, para imprimirla o mandarla. -->
-              <button type="button" class="mc-chip-mando" id="mcAlbChecklist" data-icono="checkSquare"><span class="mc-chip-texto">Lista para imprimir</span></button>
-              <span class="mc-alb-estado" id="mcAlbEstado" role="status"></span>
+          <p class="mc-nota mc-alb-falta" id="mcAlbFalta"></p>
+          <!-- UNA FILA (1048): añadir, qué ver, seleccionar, personalizar y el
+               «⋯». Fuera «Ordenar y quitar» y sus flechas: se arrastra
+               siempre, y para quitar o elegir la portada, «Seleccionar». -->
+          <div id="mcAlbHerramientas" class="mc-alb-barra">
+            <!-- Lo que se desliza en el móvil va aparte del «⋯»: dentro de algo
+                 que se desliza, su menú saldría recortado. -->
+            <div class="mc-alb-fila mc-mandos">
+            <button type="button" class="btn-primary mc-alb-mando" id="mcAlbBuscarAbrir" data-icono="search" aria-label="Añadir cartas"><span class="mc-q-largo">Añadir cartas</span></button>
+            <div class="mc-seg mc-seg-sueltas mc-alb-que" id="mcAlbQue" role="group" aria-label="Qué cartas ver">
+              <button type="button" data-filtro="todas" aria-pressed="true">Todas</button>
+              <button type="button" data-filtro="tengo" aria-pressed="false">Tengo</button>
+              <button type="button" data-filtro="faltan" aria-pressed="false">Faltan</button>
             </div>
-            <p class="mc-nota hidden" id="mcAlbAyuda">Arrastra una carta hasta otro hueco para cambiarlas de sitio, o usa las flechas. Si la llevas a una flecha de pliego, pasa de página.</p>
+            <span class="mc-alb-estado" id="mcAlbEstado" role="status"></span>
+            <button type="button" class="btn-secondary mc-alb-mando" id="mcAlbSeleccionar" data-icono="checkSquare" aria-label="Seleccionar cartas"><span class="mc-q-largo">Seleccionar</span></button>
+            <button type="button" class="btn-secondary mc-alb-mando" id="mcAlbAjustes" data-icono="palette" aria-label="Personalizar el álbum"><span class="mc-q-largo">Personalizar</span></button>
+            </div>
+            <details class="mc-menu-caja" id="mcAlbMenu">
+              <summary class="mc-icono-mando" aria-label="Más opciones del álbum" title="Más opciones"><span data-icono="moreHorizontal" aria-hidden="true"></span></summary>
+              <div class="mc-menu">
+                <button type="button" class="mc-menu-opcion" id="mcAlbPublico" aria-pressed="false"><span class="mc-menu-icono" data-icono="eye" aria-hidden="true"></span><span id="mcAlbPublicoTexto">Hacer público</span></button>
+                <button type="button" class="mc-menu-opcion hidden" id="mcAlbCopiar"><span class="mc-menu-icono" data-icono="share" aria-hidden="true"></span>Compartir enlace</button>
+                <!-- 764, Z5: la lista del álbum, para imprimirla o mandarla. -->
+                <button type="button" class="mc-menu-opcion" id="mcAlbChecklist"><span class="mc-menu-icono" data-icono="checkSquare" aria-hidden="true"></span>Lista para imprimir</button>
+                <!-- Borrar no va aquí: un álbum se borra desde la hoja de editar (1032). -->
+              </div>
+            </details>
           </div>
           <div class="mc-archivador-caja">
             <div id="mcAlbArchivador"></div>
             <button type="button" class="mc-tira-flecha mc-tira-izq" id="mcAlbAnterior" aria-label="Pliego anterior">‹</button>
             <button type="button" class="mc-tira-flecha mc-tira-der" id="mcAlbSiguiente" aria-label="Pliego siguiente">›</button>
           </div>
-          <div class="mc-alb-puntos" id="mcAlbPuntos" aria-hidden="true"></div>
-          <!-- Las flechas A LOS LADOS del archivador y las páginas DEBAJO
-               (tanda 418). PINGU: «los botones de anterior y siguiente
-               deberían ir a la izquierda y a la derecha, y las páginas
-               quizá abajo, para no recargar demasiado la parte de arriba
-               con botones y filtros». Es verdad: arriba había dos filas
-               de mandos antes de ver una sola carta. -->
+          <!-- Debajo, dónde estás y EL MAPA DEL ÁLBUM (1048): una barrita por
+               página con lo que tienes de ella; se toca para ir. -->
           <div class="mc-album-paginas">
             <span id="mcAlbPaginas"></span>
-            <select id="mcAlbSalto" class="mc-chapa-select hidden" aria-label="Ir a una página"></select>
-            <!-- La tapa se muda aquí desde la expansión (tanda 417): el
-                 archivador ya solo existe en los álbumes soñados, así que
-                 el color del archivador se elige donde se ve. -->
-            <button type="button" class="btn-secondary mc-album-tapa" id="mcAlbumTapa" aria-expanded="false">Personalizar</button>
           </div>
-          <div class="mc-tapas hidden" id="mcAlbumTapas" role="group" aria-label="Color del archivador"></div>
+          <div class="mc-alb-mapa" id="mcAlbMapa" role="group" aria-label="Las páginas del álbum"></div>
+          <!-- Al arrastrar una carta sale esto abajo (1048): soltarla aquí la
+               saca del álbum, con Deshacer. -->
+          <div class="mc-alb-papelera hidden" id="mcAlbPapelera" aria-hidden="true"><span data-icono="trash" aria-hidden="true"></span>Suelta aquí para quitarla del álbum</div>
+          <!-- SELECCIONAR EN UN ÁLBUM (1048): la barra de siempre (747), con
+               lo que se hace con las cartas de un álbum. -->
+          <div class="mc-sel hidden" id="mcAlbSel">
+            <div class="mc-sel-arriba">
+              <button type="button" class="mc-sel-cerrar" id="mcAlbSelCerrar" aria-label="Salir de la selección">✕</button>
+              <p class="mc-sel-cuenta" id="mcAlbSelCuenta" role="status" aria-live="polite">Toca las cartas</p>
+              <button type="button" class="mc-sel-todas" id="mcAlbSelTodas">Seleccionar todas</button>
+            </div>
+            <div class="mc-sel-abajo mc-sel-abajo-tres">
+              <button type="button" class="mc-sel-accion mc-sel-quitar" id="mcAlbSelQuitar" disabled><span data-icono="trash" aria-hidden="true"></span><span id="mcAlbSelQuitarTexto">Quitar del álbum</span></button>
+              <button type="button" class="mc-sel-accion" id="mcAlbSelPortada" disabled><span data-icono="image" aria-hidden="true"></span>De portada</button>
+              <button type="button" class="mc-sel-accion" id="mcAlbSelQuiero" disabled><span data-icono-quiero aria-hidden="true"></span>Las quiero</button>
+            </div>
+          </div>
         </div>
         </div>
       </section>

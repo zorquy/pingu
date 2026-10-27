@@ -38,6 +38,13 @@
 // desplazamiento, y el navegador no manda `pointercancel`. Si el dedo se
 // mueve antes de tiempo, era desplazar y no se coge nada.
 //
+// ── LA PAPELERA (1048) ──
+//
+// Sin «Ordenar y quitar», quitar una carta de un álbum es llevarla abajo: al
+// coger una sale la papelera (`papelera()`, fuera de la zona) y soltarla
+// encima llama a `alPapelera(de)`. Se mira con `elementFromPoint`, como las
+// flechas, porque la papelera tampoco vive dentro de la zona.
+//
 // Sin Supabase y sin saber qué es un álbum: recibe índices y los devuelve.
 
 // Cuántos píxeles tiene que moverse el puntero para que sea un arrastre
@@ -54,7 +61,7 @@ const ESPERA_EN_BORDE = 600
 // las flechas de pliego. `alSoltar(de, a)` recibe los dos índices, o `a =
 // null` si se soltó sobre un hueco vacío; `alBorde(elemento)` cuando se
 // lleva un rato sobre una flecha.
-export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSoltar, alBorde, pulsacionLarga = 0, puedeLargo = () => true }) {
+export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSoltar, alBorde, pulsacionLarga = 0, puedeLargo = () => true, papelera = null, alPapelera = null }) {
   let inicio = null // { x, y, indice, el, pointerId }
   let pendiente = null // la pulsación larga que todavía no ha cogido nada
   const sinDesplazar = (ev) => { if (ev.cancelable) ev.preventDefault() }
@@ -68,6 +75,7 @@ export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSolta
   let enBorde = null
   let temporizadorBorde = 0
   let tragarClic = false
+  let sobrePapelera = false
 
   // Lo que hay bajo el puntero. No se limita a la zona porque las flechas
   // de pliego viven FUERA de ella, al lado del archivador.
@@ -110,6 +118,7 @@ export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSolta
     inicio.dy = e.clientY - r.top
     caja.classList.add('mc-arrastrando')
     document.body.classList.add('mc-arrastrando-carta')
+    papelera?.()?.classList.remove('hidden')
     try { zona.setPointerCapture(e.pointerId) } catch { /* un puntero que ya no está */ }
     mover(e)
   }
@@ -119,7 +128,10 @@ export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSolta
     if (!zona.querySelector('.mc-arrastrando')) zona.querySelector(`${elemento}[data-indice="${inicio?.indice}"]`)?.classList.add('mc-arrastrando')
     fantasma.style.transform = `translate(${e.clientX - inicio.dx}px, ${e.clientY - inicio.dy}px)`
     const bajo = elementoBajo(e.clientX, e.clientY)
-    const caja = bajo?.closest(`${elemento}, ${huecos}`)
+    const cubo = papelera?.()
+    sobrePapelera = Boolean(cubo && bajo && cubo.contains(bajo))
+    cubo?.classList.toggle('activa', sobrePapelera)
+    const caja = sobrePapelera ? null : bajo?.closest(`${elemento}, ${huecos}`)
     marcarDestino(caja && zona.contains(caja) && !caja.classList.contains('mc-arrastrando') ? caja : null)
     vigilarBorde(bordes ? bajo?.closest(bordes) || null : null)
   }
@@ -132,6 +144,10 @@ export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSolta
     fantasma = null
     zona.querySelector('.mc-arrastrando')?.classList.remove('mc-arrastrando')
     document.body.classList.remove('mc-arrastrando-carta')
+    const cubo = papelera?.()
+    cubo?.classList.add('hidden')
+    cubo?.classList.remove('activa')
+    sobrePapelera = false
     document.removeEventListener('touchmove', sinDesplazar)
     inicio = null
   }
@@ -181,12 +197,14 @@ export function activarArrastre(zona, { elemento, huecos, bordes, puede, alSolta
     if (!fantasma) return limpiar()
     const de = inicio.indice
     const hueco = destino
+    const aLaPapelera = sobrePapelera
     // El clic viene en esta misma vuelta del bucle de eventos; si no
     // viniera (un puntero cancelado), la marca no puede quedarse puesta
     // para tragarse el clic siguiente de verdad.
     tragarClic = true
     setTimeout(() => { tragarClic = false }, 0)
     limpiar()
+    if (aLaPapelera) return alPapelera?.(de)
     if (!hueco) return
     // Un hueco con su número (los de un binder, 760) es un sitio: la carta
     // va AHÍ. Sin número, al final, como siempre.

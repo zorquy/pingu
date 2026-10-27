@@ -59,6 +59,27 @@ export const TAPAS = [
 ]
 
 export const TAPA_POR_DEFECTO = 'azul'
+
+// ── Cómo es el álbum por dentro y por fuera (1048, sin anillas) ──
+//
+// PINGU, con dos fotos de álbumes de ahora: «un álbum moderno se ve así, y
+// no usa anillas». Las hojas van cosidas a un lomo de tela, cada carta entra
+// de lado en su funda y la cremallera es opcional. Lo que se elige de cada
+// álbum (1050, columna `estilo`) son estos tres; sin él, lo de por defecto.
+export const ACABADOS = ['lona', 'piel', 'mate', 'holo']
+export const HOJAS = ['grises', 'negras', 'blancas']
+export const CIERRES = ['cremallera', 'ninguno', 'goma']
+export const ESTILO_POR_DEFECTO = { acabado: 'lona', hojas: 'grises', cierre: 'cremallera' }
+// Lo que no se reconoce cae en lo de por defecto: un valor raro en la base no
+// puede dejar un álbum sin dibujo.
+export function estiloDe(estilo) {
+  const e = estilo && typeof estilo === 'object' ? estilo : {}
+  return {
+    acabado: ACABADOS.includes(e.acabado) ? e.acabado : ESTILO_POR_DEFECTO.acabado,
+    hojas: HOJAS.includes(e.hojas) ? e.hojas : ESTILO_POR_DEFECTO.hojas,
+    cierre: CIERRES.includes(e.cierre) ? e.cierre : ESTILO_POR_DEFECTO.cierre,
+  }
+}
 const CLAVE_TAPA = 'pokedoc-tapa-album'
 
 export function tapaGuardada() {
@@ -146,23 +167,30 @@ export function archivadorHtml({
   // de dentro de la tapa y lleva esto (el logo del set); las cartas
   // empiezan en la de la derecha, que es como se llena un binder de verdad.
   portada = null,
+  // 1048: acabado de la tapa, color de las hojas y cierre (ver `estiloDe`).
+  estilo = null,
 }) {
+  const e = estiloDe(estilo)
   const POR_PAGINA = porPagina
   const antes = portada ? 1 : 0
   const paginas = Math.max(1, paginasMin, antes + Math.ceil(lista.length / POR_PAGINA))
   let p0 = Math.min(Math.max(0, pagina), paginas - 1)
   p0 -= p0 % deUnaVez
   const hojas = []
+  // El lado de la hoja dice hacia dónde cae la sombra del lomo y por dónde
+  // se abre la funda: con dos abiertas, la de la izquierda y la de la
+  // derecha; con una (el móvil), el lomo a su izquierda.
+  const ladoDe = (p) => (deUnaVez > 1 && p === p0 ? 'mc-hoja-izq' : 'mc-hoja-der')
   for (let p = p0; p < Math.min(paginas, p0 + deUnaVez); p++) {
     if (antes && p === 0) {
-      hojas.push(`<div class="mc-hoja mc-hoja-portada" aria-label="Dentro de la tapa">${portada}${esquinaHtml(conEsquinas, deUnaVez > 1 ? 'antes' : 'despues', p0, deUnaVez, paginas)}</div>`)
+      hojas.push(`<div class="mc-hoja mc-hoja-portada ${ladoDe(p)}" aria-label="Dentro de la tapa">${portada}${esquinaHtml(conEsquinas, deUnaVez > 1 ? 'antes' : 'despues', p0, deUnaVez, paginas)}</div>`)
       continue
     }
     const desde = (p - antes) * POR_PAGINA
     const trozo = lista.slice(desde, desde + POR_PAGINA)
     hojas.push(
       // Con la tapa delante, la primera hoja de cartas sigue siendo la 1.
-      `<div class="mc-hoja" aria-label="Página ${p + 1 - antes}">` +
+      `<div class="mc-hoja ${ladoDe(p)}" aria-label="Página ${p + 1 - antes}">` +
         cabeceraHtml(p + 1 - antes, trozo, numeroDe) +
         trozo.map((item, i) => pintarBolsillo(item, desde + i)).join('') +
         (pintarHueco
@@ -176,19 +204,17 @@ export function archivadorHtml({
   // vacía. Un archivador abierto tiene dos caras, y sin ella la página
   // parecía cortada por la mitad (tanda 369).
   if (hojas.length === 1 && deUnaVez > 1) {
-    hojas.push('<div class="mc-hoja mc-hoja-fantasma" aria-hidden="true"></div>')
+    hojas.push('<div class="mc-hoja mc-hoja-fantasma mc-hoja-der" aria-hidden="true"></div>')
   }
-  // Las anillas van en su propia capa y no entre las hojas: son un
-  // adorno, y metidas en la rejilla contarían como una columna más — el
-  // mismo fallo que la tanda 316 (lo que cruza una rejilla ocupa pista).
-  // Tres anillas, como un archivador de tres. Van como hijos y no como
-  // `::before`/`::after` porque con dos pseudoelementos solo salen dos, y
-  // dos anillas no son un archivador: son dos agujeros.
-  const anillas = deUnaVez > 1 ? '<span class="mc-anillas" aria-hidden="true"><i></i><i></i><i></i></span>' : ''
+  // EL LOMO (1048): la tela donde van cosidas las hojas. Sin anillas
+  // (PINGU: «un álbum moderno no usa anillas»). Va en su propia capa y no
+  // entre las hojas, por lo de la 316: metido en la rejilla contaría como una
+  // columna más.
+  const lomo = '<span class="mc-lomo" aria-hidden="true"></span>'
   return {
     html:
-      `<div class="mc-binder" data-tapa="${escapeHtml(tapa)}"${columnas !== 3 ? ` style="--cols:${Number(columnas)}"` : ''}>` +
-      `<div class="mc-archivador">${hojas.join('')}${anillas}</div>` +
+      `<div class="mc-binder" data-tapa="${escapeHtml(tapa)}" data-acabado="${e.acabado}" data-hojas="${e.hojas}" data-cierre="${e.cierre}"${columnas !== 3 ? ` style="--cols:${Number(columnas)}"` : ''}>` +
+      `<div class="mc-archivador${deUnaVez > 1 ? ' mc-dos' : ''}">${hojas.join('')}${lomo}</div>` +
       '</div>',
     paginas,
     pagina: p0,

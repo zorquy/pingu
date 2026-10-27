@@ -24,7 +24,7 @@ export const FICHERO_MIGRACION = 'supabase-migration-albumes.sql'
 const MAX_CARTAS = 1080
 // Nueve por hoja: vive en el módulo del archivador desde la 371, que
 // es quien lo usa.
-import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, rejillaDe, TAPAS } from './archivador.js'
+import { archivadorHtml, textoDePaginas, tapaGuardada, rejillaDe, TAPAS, estiloDe } from './archivador.js'
 import { activarArrastre } from './arrastre.js'
 import { iniciarAlbumNuevo, abrirAlbumNuevo, esDeLaNumeracion } from './album-nuevo.js'
 import { variantesDeCarta, VARIANTE_POR_DEFECTO } from './variantes.js'
@@ -103,8 +103,11 @@ let ctx = null // lo que pasa /mi-coleccion: sesión, colección, precios…
 let albumes = []
 let actual = null // { ...fila, cartas: [{ id }] }
 let cartasDelAlbum = new Map()
-let editando = false
-let soloFaltan = false
+// Qué cartas se ven (1048): todas, las que tienes o las que te faltan.
+let filtro = 'todas'
+// Los bolsillos marcados con «Seleccionar» (1048): un Set de índices, o null
+// si no se está seleccionando.
+let marcadas = null
 let pagina = 0
 let temporizador = null
 
@@ -288,6 +291,7 @@ async function pasarCarpetasYa() {
 }
 
 async function pintarLista() {
+  apagarSeleccion()
   $('mcAlbumesDetalle').classList.add('hidden')
   $('mcAlbumesLista').classList.remove('hidden')
   $('mcPanelCarpetas')?.classList.remove('mc-album-abierto')
@@ -366,8 +370,8 @@ export async function abrir(id, { soloVer = false, push = true } = {}) {
   }
   if (!fila) return false
   actual = { ...fila, cartas: Array.isArray(fila.cartas) ? fila.cartas : [] }
-  editando = false
-  soloFaltan = false
+  filtro = 'todas'
+  apagarSeleccion()
   pagina = 0
   // Las que faltan, cada una a SU catálogo (767): un binder puede mezclar
   // occidentales y japonesas.
@@ -394,14 +398,9 @@ export async function abrir(id, { soloVer = false, push = true } = {}) {
   // 474), y solo si el álbum es TUYO: a quien llega de fuera a ver un
   // álbum compartido, «Tus álbumes» no le lleva a ninguna parte suya.
   $('mcAlbMigas').innerHTML = mio ? migasHtml([{ texto: 'Tus álbumes', id: 'mcAlbVolver' }]) : ''
-  $('mcAlbTitulo').value = actual.nombre
-  $('mcAlbTitulo').readOnly = !mio
-  $('mcAlbDescripcion').value = actual.descripcion || ''
-  $('mcAlbDescripcion').readOnly = !mio
-  $('mcAlbDescripcion').classList.toggle('hidden', !mio && !actual.descripcion)
+  pintarNombre()
   $('mcAlbHerramientas').classList.toggle('hidden', !mio)
-  $('mcAlbPublico').checked = Boolean(actual.is_public)
-  $('mcAlbCopiar').classList.toggle('hidden', !actual.is_public)
+  pintarPublico()
   const url = new URL(location.href)
   // Los álbumes soñados viven dentro de «Carpetas» desde la 408, así que
   // el enlace que se copia tiene que apuntar ahí: `ver=albumes` todavía
@@ -478,59 +477,63 @@ function cartaDe(id) {
 }
 
 function bolsilloHtml(item, indice) {
-  if (esHueco(item)) return esMio() && !editando ? huecoHtml(indice) : `<span class="mc-bolsillo mc-bolsillo-vacio" data-indice="${indice}" aria-hidden="true"></span>`
+  if (esHueco(item)) return esMio() && !marcadas ? huecoHtml(indice) : `<span class="mc-bolsillo mc-bolsillo-vacio" data-indice="${indice}" aria-hidden="true"></span>`
   const c = cartaDe(item.id)
   const mia = ctx.sesion && actual.user_id === ctx.sesion.user.id && tieneItem(item)
   const marcar = esMio()
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
-  const clase = `mc-bolsillo${!marcar || mia ? ' tengo' : ''}`
+  const marcada = Boolean(marcadas?.has(indice))
+  const clase = `mc-bolsillo${!marcar || mia ? ' tengo' : ''}${marcada ? ' marcada' : ''}`
+  // La portada lleva una cinta ABAJO a la izquierda (1048): la estrella de
+  // antes caía encima del corazón de «La quiero».
   const dentro = `
     ${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" draggable="false" />` : ''}
     <span class="mc-bolsillo-num">${escapeHtml(c?.local_id || '?')}</span>
     ${marcar && mia ? ctx.marcaDeTengo?.(copiasDelBolsillo(item, ctx.lineas())) || '<span class="mc-tengo-marca" title="La tienes">✓</span>' : ''}
     ${marcar && !mia && c ? ctx.quiero?.(c.id) || '' : ''}
-    ${marcar && !editando && c ? ctx.masDe?.(c, item.v || null) || '' : ''}
+    ${marcar && !marcadas && c ? ctx.masDe?.(c, item.v || null) || '' : ''}
     ${item.v ? `<span class="mc-tengo-version">${escapeHtml(nombreCortoDeVersion(item.v))}</span>` : ''}
-    ${actual.portada && actual.portada === item.id && !esDeSet(actual) ? '<span class="mc-alb-es-portada" title="La portada">★</span>' : ''}`
-  // `draggable="false"` en la foto y en el enlace, y `data-indice` en los
-  // dos modos: la carta se arrastra con el ratón también sin entrar en
-  // «Ordenar y quitar» (tanda 578, js/mi-coleccion/arrastre.js).
-  if (editando) {
-    return `<div class="${clase} mc-bolsillo-editar" data-indice="${indice}" aria-label="${escapeHtml(nombreDe(c))}">${dentro}
-      <button type="button" class="mc-bolsillo-quitar" data-quitar aria-label="Quitar del álbum">✕</button>
-      ${esBinder() && 'portada' in actual ? `<button type="button" class="mc-bolsillo-portada" data-portada aria-pressed="${actual.portada === item.id}" aria-label="${actual.portada === item.id ? 'Es la portada' : 'Poner de portada'}" title="Portada">★</button>` : ''}
-      <span class="mc-bolsillo-controles">
-        <button type="button" data-mover="-1" aria-label="Mover antes" ${indice === 0 ? 'disabled' : ''}>←</button>
-        <button type="button" data-mover="1" aria-label="Mover después" ${indice === actual.cartas.length - 1 ? 'disabled' : ''}>→</button>
-      </span></div>`
-  }
-  // Como en Expansiones (767, PINGU: «todo igual»): tocar la carta abre su
-  // ficha aquí mismo, y el «+» abre la hoja de añadir.
-  return `<a class="${clase}" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} data-indice="${indice}" draggable="false" aria-label="${escapeHtml(`${nombreDe(c)}${item.v ? ` (${nombreCortoDeVersion(item.v)})` : ''}${marcar ? (mia ? ', la tienes' : ctx.quiero?.(c?.id) ? ', te falta y la quieres' : ', te falta') : ''}`)}">${dentro}</a>`
+    ${actual.portada && actual.portada === item.id && !esDeSet(actual) ? `<span class="mc-alb-cinta" title="La portada del álbum">${icons.image(12)}Portada</span>` : ''}`
+  // Tocar la carta abre su ficha aquí mismo (767, como en Expansiones); al
+  // seleccionar, la marca. `draggable="false"` y `data-indice` siempre: se
+  // arrastra con el ratón directamente y con el dedo manteniendo pulsado
+  // (578, 760). Sin «Ordenar y quitar» ni flechas desde la 1048.
+  const etiqueta = `${nombreDe(c)}${item.v ? ` (${nombreCortoDeVersion(item.v)})` : ''}${marcar ? (mia ? ', la tienes' : ctx.quiero?.(c?.id) ? ', te falta y la quieres' : ', te falta') : ''}`
+  return `<a class="${clase}" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} data-indice="${indice}" draggable="false"${marcadas ? ` aria-pressed="${marcada}"` : ''} aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
+}
+
+// Lo que se ve con el filtro puesto, con su índice en el álbum.
+function listaVisible() {
+  const todos = actual.cartas.map((item, i) => ({ item, i }))
+  if (filtro === 'todas' || !esMio()) return todos
+  return todos.filter(({ item }) => !esHueco(item) && (filtro === 'tengo' ? tieneItem(item) : !tieneItem(item)))
 }
 
 function pintarDetalle() {
-  const todos = actual.cartas.map((item, i) => ({ item, i }))
-  const lista = soloFaltan && esMio() ? todos.filter(({ item }) => !esHueco(item) && !tieneItem(item)) : todos
+  const filtrando = filtro !== 'todas' && esMio()
+  const lista = listaVisible()
   const ids = actual.cartas.map((c) => c?.id).filter(Boolean)
   const mias = actual.cartas.filter(tieneItem).length
+  const pct = ids.length ? Math.round((mias / ids.length) * 100) : 0
+  // Cuánto llevas, en un anillo (1048), como la cabecera de una expansión.
   $('mcAlbProgreso').innerHTML =
     esMio() && ids.length
-      ? `<span><strong>${mias}</strong> de ${ids.length} las tienes · ${Math.round((mias / ids.length) * 100)} %</span><span class="mc-barra" aria-hidden="true"><i style="--ancho:${Math.round((mias / ids.length) * 100)}%"></i></span>`
-      : `<span>${ids.length} ${ids.length === 1 ? 'carta' : 'cartas'}</span>`
+      ? `<span class="mc-alb-anillo" style="--p:${pct}" aria-hidden="true"><b>${pct}%</b></span><span class="mc-alb-cuenta"><strong>${mias} de ${ids.length}</strong><span>las tienes · ${pct} %</span></span>`
+      : `<span class="mc-alb-cuenta"><strong>${ids.length}</strong><span>${ids.length === 1 ? 'carta' : 'cartas'}</span></span>`
   const deUnaVez = window.matchMedia('(min-width: 900px)').matches ? 2 : 1
   // Un binder con sus páginas se abre con sus bolsillos aunque esté vacío
   // (759): es donde se meten las cartas. El aviso es para lo demás.
-  const conHojas = !soloFaltan && Number(actual.paginas) > 0
+  const conHojas = !filtrando && Number(actual.paginas) > 0
   if (!lista.length && !conHojas) {
     $('mcAlbArchivador').innerHTML = `<p class="subtext">${
-      ids.length ? '¡Ya las tienes todas!' : 'Este álbum está vacío. Busca cartas arriba para añadirlas.'
+      filtro === 'faltan' && ids.length ? '¡Ya las tienes todas!'
+        : filtro === 'tengo' && ids.length ? 'Todavía no tienes ninguna de este álbum.'
+          : 'Este álbum está vacío. Toca «Añadir cartas» para empezar.'
     }</p>`
     $('mcAlbPaginas').textContent = ''
     $('mcAlbAnterior').hidden = true
     $('mcAlbSiguiente').hidden = true
-    $('mcAlbSalto')?.classList.add('hidden')
-    $('mcAlbPuntos').innerHTML = ''
+    $('mcAlbMapa').innerHTML = ''
   } else {
     // El mismo archivador que el álbum de una colección (tanda 371): era
     // el mismo dibujo escrito dos veces y ya había empezado a separarse,
@@ -545,43 +548,35 @@ function pintarDetalle() {
       tapa: actual.tapa || tapaGuardada(),
       porPagina: forma().porPagina,
       columnas: forma().columnas,
-      paginasMin: soloFaltan ? 1 : Number(actual.paginas) || 1,
+      paginasMin: filtrando ? 1 : Number(actual.paginas) || 1,
       pintarBolsillo: ({ item, i }) => bolsilloHtml(item, i),
       numeroDe: ({ item }) => (esHueco(item) ? '' : cartaDe(item.id)?.local_id ?? ''),
       // Los bolsillos vacíos del final se tocan para meter una carta AHÍ
       // (760), en un binder tuyo y con todo a la vista.
-      pintarHueco: esMio() && esBinder() && !soloFaltan && !editando ? huecoHtml : null,
+      pintarHueco: esMio() && esBinder() && !filtrando && !marcadas ? huecoHtml : null,
       conEsquinas: true,
+      // Cómo es este álbum (1050); sin la columna, lo de por defecto.
+      estilo: actual.estilo,
     })
     pagina = armado.pagina
     $('mcAlbArchivador').innerHTML = armado.html
     animarPaso()
-    pintarPuntos(armado.paginas, deUnaVez)
+    pintarMapa(armado.paginas, deUnaVez, filtrando)
     $('mcAlbPaginas').textContent = textoDePaginas(pagina, armado.paginas, deUnaVez)
     // Las flechas se APAGAN en los extremos, como las de la tira: una
     // flecha que no lleva a ninguna parte miente (tanda 418).
     $('mcAlbAnterior').hidden = pagina === 0
     $('mcAlbSiguiente').hidden = pagina + deUnaVez >= armado.paginas
-    // Y el «Ir a…», que se mudó aquí desde la expansión: en un álbum de
-    // 200 cartas son 22 pliegos y pasarlos de dos en dos es media docena
-    // de clics para nada. Se esconde si todo cabe en un pliego.
-    const salto = $('mcAlbSalto')
-    if (salto) {
-      salto.innerHTML = opcionesDeSalto(armado.paginas, deUnaVez, pagina)
-      salto.classList.toggle('hidden', armado.paginas <= deUnaVez)
-    }
   }
   $('mcAlbAnterior').dataset.paso = String(deUnaVez)
-  $('mcAlbEditar').textContent = editando ? 'Hecho' : 'Ordenar y quitar'
-  $('mcAlbEditar').setAttribute('aria-pressed', String(editando))
-  $('mcAlbAyuda')?.classList.toggle('hidden', !editando)
-  $('mcAlbArchivador').classList.toggle('mc-ordenando', editando)
+  for (const b of $('mcAlbQue')?.querySelectorAll('[data-filtro]') || []) b.setAttribute('aria-pressed', String(b.dataset.filtro === filtro))
+  $('mcAlbArchivador').classList.toggle('mc-album-marcando', Boolean(marcadas))
   pintarCabecera()
 }
 
-// LA CABECERA (760, AL4): el logo del set (o la tapa del binder), cuántas
-// te faltan y lo que costaría completarlo, que ya calculaba
-// `calcularLoQueFalta` en su línea.
+// LA CABECERA (760, AL4; 1048): el logo del set o la tapa del binder en
+// pequeño, el nombre, cuánto llevas y lo que costaría completarlo, que
+// calcula `calcularLoQueFalta` en su línea.
 function pintarCabecera() {
   const caja = $('mcAlbCabecera')
   if (!caja) return
@@ -589,10 +584,36 @@ function pintarCabecera() {
   const logos = set ? ctx.logosDeSet(set) : []
   caja.classList.toggle('mc-alb-cabecera-set', Boolean(set))
   caja.classList.toggle('mc-alb-cabecera-binder', esBinder())
-  if (esBinder()) caja.dataset.tapa = actual.tapa || tapaGuardada()
-  else delete caja.dataset.tapa
-  $('mcAlbCabeceraLogo').innerHTML = logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="160" height="80" />` : ''
-  $('mcAlbCabeceraLogo').classList.toggle('hidden', !logos.length)
+  const sitio = $('mcAlbCabeceraLogo')
+  if (esBinder()) sitio.innerHTML = tapaCerradaHtml(actual, { placa: false })
+  else sitio.innerHTML = logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="160" height="80" />` : ''
+  sitio.classList.toggle('hidden', !esBinder() && !logos.length)
+}
+
+// El nombre y la descripción, que se cambian en Personalizar → Datos (1048).
+function pintarNombre() {
+  $('mcAlbTitulo').textContent = actual.nombre || 'Mi álbum'
+  $('mcAlbDescripcion').textContent = actual.descripcion || ''
+  $('mcAlbDescripcion').classList.toggle('hidden', !actual.descripcion)
+}
+// Público o privado, en el «⋯» (1048): el texto dice lo que HARÁ el botón.
+function pintarPublico() {
+  const publico = Boolean(actual?.is_public)
+  $('mcAlbPublico')?.setAttribute('aria-pressed', String(publico))
+  if ($('mcAlbPublicoTexto')) $('mcAlbPublicoTexto').textContent = publico ? 'Hacer privado' : 'Hacer público'
+  $('mcAlbCopiar')?.classList.toggle('hidden', !publico)
+}
+
+// LA TAPA CERRADA (1048): el álbum visto de frente, con su color y su
+// acabado, el lomo, la cremallera si la lleva, una ventana con la carta de
+// portada (o la primera) y la placa con el nombre. La pintan la cabecera de
+// un álbum abierto y, desde la 1049, Mis álbumes.
+function tapaCerradaHtml(a, { placa = true, dentro = '' } = {}) {
+  const e = estiloDe(a.estilo)
+  const ids = conCartas(a).map((c) => c.id)
+  const portada = cartaDe(a.portada) || cartaDe(ids[0])
+  const ventana = a.estilo?.ventana === 'no' ? '' : `<span class="mc-tapa-ventana">${portada ? cartaMiniHtml(portada) : ''}</span>`
+  return `<span class="mc-tapa-cerrada" data-tapa="${escapeHtml(a.tapa || tapaGuardada())}" data-acabado="${e.acabado}" data-cierre="${e.cierre}" aria-hidden="true">${ventana}${placa ? `<span class="mc-tapa-placa">${escapeHtml(a.nombre || 'Mi álbum')}</span>` : ''}${dentro}</span>`
 }
 
 // Pasar de página, desde las flechas, las esquinas, el teclado, el dedo y
@@ -614,15 +635,142 @@ function animarPaso() {
   hojas?.classList.add(ultimoPaso > 0 ? 'mc-pasa-adelante' : 'mc-pasa-atras')
   ultimoPaso = 0
 }
-// Los puntos de debajo, uno por pliego: dónde estás de un vistazo (en el
-// móvil, que pasa hoja a hoja). Son un indicador, no botones: se pasa
-// deslizando o con las flechas.
-function pintarPuntos(paginas, deUnaVez) {
+// EL MAPA DEL ÁLBUM (1048): una barrita por página con lo puesto (claro) y
+// lo que tienes (verde), agrupadas por pliego; un pliego se toca para ir. De
+// un vistazo se ve dónde están los huecos. Con un filtro puesto no hay mapa
+// (las páginas no son las del álbum), y con muchísimas tampoco.
+function pintarMapa(paginas, deUnaVez, filtrando) {
+  const caja = $('mcAlbMapa')
+  if (!caja) return
   const pliegos = Math.ceil(paginas / deUnaVez)
-  const actualP = Math.floor(pagina / deUnaVez)
-  $('mcAlbPuntos').innerHTML = pliegos > 1 && pliegos <= 40
-    ? Array.from({ length: pliegos }, (_, i) => `<i${i === actualP ? ' class="activo"' : ''}></i>`).join('')
-    : ''
+  if (filtrando || pliegos < 2 || pliegos > 120) {
+    caja.innerHTML = ''
+    return
+  }
+  const { porPagina } = forma()
+  const aqui = Math.floor(pagina / deUnaVez)
+  let html = ''
+  for (let q = 0; q < pliegos; q++) {
+    const barras = []
+    for (let p = q * deUnaVez; p < Math.min(paginas, (q + 1) * deUnaVez); p++) {
+      const trozo = actual.cartas.slice(p * porPagina, (p + 1) * porPagina)
+      const puestas = trozo.filter((c) => !esHueco(c)).length
+      const mias = trozo.filter(tieneItem).length
+      barras.push(`<i style="--puestas:${(puestas / porPagina).toFixed(3)};--tengo:${(mias / porPagina).toFixed(3)}"></i>`)
+    }
+    html += `<button type="button" class="mc-alb-pliego${q === aqui ? ' aqui' : ''}" data-pliego="${q * deUnaVez}" aria-label="${escapeHtml(textoDePaginas(q * deUnaVez, paginas, deUnaVez))}"${q === aqui ? ' aria-current="page"' : ''}>${barras.join('')}</button>`
+  }
+  caja.innerHTML = html
+  // El de ahora, a la vista (en el móvil el mapa es una fila que se desliza).
+  caja.querySelector('.aqui')?.scrollIntoView?.({ block: 'nearest', inline: 'center' })
+}
+
+// ── Seleccionar (1048) ──
+// La barra de siempre (747): se marcan bolsillos y se quitan del álbum, se
+// pone uno de portada o se apuntan en «La quiero». Sustituye a «Ordenar y
+// quitar», cuyo ✕ no se veía y cuya estrella caía encima del corazón.
+function apagarSeleccion() {
+  marcadas = null
+  $('mcAlbSel')?.classList.add('hidden')
+  $('mcAlbSeleccionar')?.setAttribute('aria-pressed', 'false')
+  if (!document.getElementById('mcMarcarBarra') || $('mcMarcarBarra').classList.contains('hidden')) document.documentElement.classList.remove('mc-seleccionando')
+}
+function seleccionar(encender) {
+  if (!encender) apagarSeleccion()
+  else {
+    marcadas = new Set()
+    $('mcAlbSel')?.classList.remove('hidden')
+    $('mcAlbSeleccionar')?.setAttribute('aria-pressed', 'true')
+    document.documentElement.classList.add('mc-seleccionando')
+  }
+  pintarSeleccion()
+  pintarDetalle()
+}
+function alternarMarca(caja) {
+  const i = Number(caja.dataset.indice)
+  if (marcadas.has(i)) marcadas.delete(i)
+  else marcadas.add(i)
+  const puesta = marcadas.has(i)
+  // Sin repintar el archivador: a cada toque se notaría.
+  caja.classList.toggle('marcada', puesta)
+  caja.setAttribute('aria-pressed', String(puesta))
+  pintarSeleccion()
+}
+function pintarSeleccion() {
+  const n = marcadas?.size || 0
+  if ($('mcAlbSelCuenta')) $('mcAlbSelCuenta').textContent = n ? `${n} ${n === 1 ? 'seleccionada' : 'seleccionadas'}` : 'Toca las cartas'
+  if (!$('mcAlbSelQuitar')) return
+  $('mcAlbSelQuitar').disabled = !n
+  $('mcAlbSelQuitarTexto').textContent = n > 1 ? `Quitar ${n} del álbum` : 'Quitar del álbum'
+  // De portada, con una sola y en un binder (un álbum de set lleva su logo).
+  $('mcAlbSelPortada').disabled = !(n === 1 && esBinder() && 'portada' in actual)
+  $('mcAlbSelQuiero').disabled = !n
+}
+// «Seleccionar todas»: las que se ven con el filtro puesto.
+function marcarTodas() {
+  if (!marcadas) return
+  for (const { item, i } of listaVisible()) if (!esHueco(item)) marcadas.add(i)
+  pintarSeleccion()
+  pintarDetalle()
+}
+
+// Sacar cartas del álbum (1048), desde la selección o soltándolas en la
+// papelera. En un binder el bolsillo se queda vacío y las demás en su sitio
+// (760); en un álbum de set la lista se cierra. Con Deshacer en el aviso: es
+// lo que deja no preguntar «¿seguro?».
+function quitarBolsillos(indices) {
+  const id = actual.id
+  const antes = { cartas: actual.cartas }
+  if ('portada' in actual) antes.portada = actual.portada
+  const fuera = new Set(indices)
+  const cartas = esBinder() ? sinHuecosAlFinal(actual.cartas.map((c, i) => (fuera.has(i) ? {} : c))) : actual.cartas.filter((_, i) => !fuera.has(i))
+  const cambios = { cartas }
+  // La portada que se va deja de ser la portada.
+  if ('portada' in actual && actual.portada && !cartas.some((c) => c?.id === actual.portada)) cambios.portada = null
+  guardarLuego(cambios)
+  pintarDetalle()
+  calcularLoQueFalta()
+  const n = fuera.size
+  showToast(n === 1 ? 'Carta quitada del álbum.' : `${n} cartas quitadas del álbum.`, 'success', {
+    accion: {
+      texto: 'Deshacer',
+      alPulsar: () => {
+        // Si mientras tanto se ha abierto otro álbum, se le devuelve al suyo.
+        if (actual?.id !== id) return void guardarAlbum(id, { ...antes, cartas: sinHuecosAlFinal(antes.cartas) }).catch((err) => showToast(err.message, 'error'))
+        guardarLuego(antes)
+        pintarDetalle()
+        calcularLoQueFalta()
+      },
+    },
+  })
+}
+function quitarMarcadas() {
+  if (!marcadas?.size) return
+  const indices = [...marcadas]
+  seleccionar(false)
+  quitarBolsillos(indices)
+}
+function portadaMarcada() {
+  if (marcadas?.size !== 1) return
+  const id = actual.cartas[[...marcadas][0]]?.id
+  if (!id) return
+  guardarLuego({ portada: id })
+  seleccionar(false)
+  showToast(`${nombreDe(cartaDe(id))}, de portada.`, 'success')
+}
+async function quererMarcadas() {
+  if (!marcadas?.size) return
+  const ids = [...new Set([...marcadas].map((i) => actual.cartas[i]?.id).filter(Boolean))]
+  const b = $('mcAlbSelQuiero')
+  b.disabled = true
+  try {
+    const nuevas = await ctx.quererVarias(ids)
+    showToast(nuevas ? `${nuevas} ${nuevas === 1 ? 'carta apuntada' : 'cartas apuntadas'} en «La quiero».` : 'Ya estaban todas en «La quiero».', 'success')
+    seleccionar(false)
+  } catch (err) {
+    showToast(err.message, 'error')
+    b.disabled = false
+  }
 }
 
 // Elegir la carta de un bolsillo vacío (760, AL5): desde la 767 es la
@@ -788,12 +936,8 @@ function aplicarCambios(a, cambios) {
   if (enLista && enLista !== a) Object.assign(enLista, cambios)
   if (actual?.id === a.id) {
     if (actual !== a) Object.assign(actual, cambios)
-    if ('nombre' in cambios) $('mcAlbTitulo').value = actual.nombre
-    if ('descripcion' in cambios) $('mcAlbDescripcion').value = actual.descripcion || ''
-    if ('is_public' in cambios) {
-      $('mcAlbPublico').checked = Boolean(actual.is_public)
-      $('mcAlbCopiar').classList.toggle('hidden', !actual.is_public)
-    }
+    if ('nombre' in cambios || 'descripcion' in cambios) pintarNombre()
+    if ('is_public' in cambios) pintarPublico()
     pintarDetalle()
   }
 }
@@ -911,15 +1055,23 @@ export function iniciarAlbumes(contexto) {
   $('mcAlbumesDetalle')?.addEventListener('click', (e) => {
     if (e.target.closest('#mcAlbVolver')) salir()
   })
-  $('mcAlbTitulo')?.addEventListener('input', (e) => esMio() && guardarLuego({ nombre: e.target.value.trim().slice(0, 80) || 'Mi álbum' }))
-  $('mcAlbDescripcion')?.addEventListener('input', (e) => esMio() && guardarLuego({ descripcion: e.target.value.slice(0, 500) }))
-  $('mcAlbPublico')?.addEventListener('change', (e) => {
-    guardarLuego({ is_public: e.target.checked })
-    $('mcAlbCopiar').classList.toggle('hidden', !e.target.checked)
+  // El «⋯» del álbum (1048): se cierra al elegir y al tocar fuera.
+  const cerrarMenu = () => $('mcAlbMenu')?.removeAttribute('open')
+  document.addEventListener('click', (e) => {
+    if ($('mcAlbMenu')?.open && !$('mcAlbMenu').contains(e.target)) cerrarMenu()
   })
+  $('mcAlbPublico')?.addEventListener('click', () => {
+    if (!actual || !esMio()) return
+    cerrarMenu()
+    guardarLuego({ is_public: !actual.is_public })
+    pintarPublico()
+    showToast(actual.is_public ? 'Álbum público: cualquiera con el enlace lo ve.' : 'Álbum privado.', 'success')
+  })
+
   // El enlace PÚBLICO (764, Z2): al menú de compartir del sistema, que en
   // el móvil es como se manda algo; sin él, al portapapeles.
   $('mcAlbCopiar')?.addEventListener('click', async () => {
+    cerrarMenu()
     const url = `${location.origin}/mi-coleccion?album=${actual.id}`
     try {
       if (navigator.share) await navigator.share({ title: actual.nombre, text: `Mi álbum «${actual.nombre}» en PokeDoc`, url })
@@ -934,6 +1086,7 @@ export function iniciarAlbumes(contexto) {
   // La lista para imprimir (764, Z5): número, nombre y casilla, con lo
   // tuyo marcado. El módulo del lienzo entra al pulsar.
   $('mcAlbChecklist')?.addEventListener('click', async () => {
+    cerrarMenu()
     const b = $('mcAlbChecklist')
     b.disabled = true
     try {
@@ -949,17 +1102,27 @@ export function iniciarAlbumes(contexto) {
       b.disabled = false
     }
   })
-  $('mcAlbEditar')?.addEventListener('click', () => {
-    editando = !editando
-    pintarDetalle()
-  })
-  $('mcAlbSoloFaltan')?.addEventListener('change', (e) => {
-    soloFaltan = e.target.checked
+  // Qué cartas ver (1048): todas, las que tengo o las que faltan.
+  $('mcAlbQue')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-filtro]')
+    if (!b || !actual || b.dataset.filtro === filtro) return
+    filtro = b.dataset.filtro
     pagina = 0
     pintarDetalle()
   })
-  $('mcAlbSalto')?.addEventListener('change', (e) => {
-    pagina = Number(e.target.value) || 0
+  $('mcAlbSeleccionar')?.addEventListener('click', () => actual && esMio() && seleccionar(!marcadas))
+  $('mcAlbSelCerrar')?.addEventListener('click', () => seleccionar(false))
+  $('mcAlbSelTodas')?.addEventListener('click', marcarTodas)
+  $('mcAlbSelQuitar')?.addEventListener('click', quitarMarcadas)
+  $('mcAlbSelPortada')?.addEventListener('click', portadaMarcada)
+  $('mcAlbSelQuiero')?.addEventListener('click', () => void quererMarcadas())
+  // El mapa del álbum: un pliego se toca para ir a él.
+  $('mcAlbMapa')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-pliego]')
+    if (!b) return
+    const antes = pagina
+    pagina = Number(b.dataset.pliego) || 0
+    ultimoPaso = Math.sign(pagina - antes)
     pintarDetalle()
   })
   $('mcAlbAnterior')?.addEventListener('click', () => pasarPagina(-1))
@@ -986,7 +1149,7 @@ export function iniciarAlbumes(contexto) {
   $('mcAlbArchivador')?.addEventListener('touchend', (e) => {
     const t = toque
     toque = null
-    if (!t || editando || document.body.classList.contains('mc-arrastrando-carta')) return
+    if (!t || marcadas || document.body.classList.contains('mc-arrastrando-carta')) return
     const dx = e.changedTouches[0].clientX - t.x
     const dy = e.changedTouches[0].clientY - t.y
     if (Math.abs(dx) >= 48 && Math.abs(dy) < Math.abs(dx) / 2) pasarPagina(dx < 0 ? 1 : -1)
@@ -994,60 +1157,47 @@ export function iniciarAlbumes(contexto) {
   $('mcAlbArchivador')?.addEventListener('click', (e) => {
     const esquina = e.target.closest('[data-esquina]')
     if (esquina) return pasarPagina(esquina.dataset.esquina === 'antes' ? -1 : 1)
+    // Seleccionando, tocar una carta la marca (1048).
+    if (marcadas) {
+      const caja = e.target.closest('.mc-bolsillo[data-indice]:not(.mc-bolsillo-vacio)')
+      if (caja) {
+        e.preventDefault()
+        alternarMarca(caja)
+      }
+      return
+    }
     const hueco = e.target.closest('[data-hueco]')
     if (hueco && esMio()) return abrirElegir(Number(hueco.dataset.hueco))
-    // El «+» y la ficha (767), fuera de «Ordenar y quitar».
-    if (!editando) {
-      const mas = e.target.closest('[data-anadir]')
-      const carta = e.target.closest('a.mc-bolsillo[data-carta]')
-      const c = carta ? cartaDe(carta.dataset.carta) : null
-      if (mas && c) {
-        e.preventDefault()
-        return ctx.anadirCarta?.(c, mas.dataset.variante || null)
-      }
-      if (carta && c && ctx.abrirFicha && !(e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1)) {
-        e.preventDefault()
-        return ctx.abrirFicha(c)
-      }
+    // El «+» y la ficha (767).
+    const mas = e.target.closest('[data-anadir]')
+    const carta = e.target.closest('a.mc-bolsillo[data-carta]')
+    const c = carta ? cartaDe(carta.dataset.carta) : null
+    if (mas && c) {
+      e.preventDefault()
+      return ctx.anadirCarta?.(c, mas.dataset.variante || null)
     }
-    const caja = e.target.closest('[data-indice]')
-    if (!caja || !editando) return
-    const i = Number(caja.dataset.indice)
-    if (e.target.closest('[data-quitar]')) {
-      let cartas = [...actual.cartas]
-      // En un binder, quitar deja el bolsillo vacío y las demás en su
-      // sitio (760); en un álbum de set, la lista se cierra.
-      if (esBinder()) {
-        cartas[i] = {}
-        cartas = sinHuecosAlFinal(cartas)
-      } else cartas.splice(i, 1)
-      guardarLuego({ cartas })
-      pintarDetalle()
-      calcularLoQueFalta()
-    } else if (e.target.closest('[data-portada]')) {
-      // La portada (764): la carta de este bolsillo, o ninguna si ya lo era.
-      const id = actual.cartas[i]?.id
-      guardarLuego({ portada: actual.portada === id ? null : id })
-      pintarDetalle()
-    } else if (e.target.closest('[data-mover]')) {
-      moverCarta(i, i + Number(e.target.closest('[data-mover]').dataset.mover))
+    if (carta && c && ctx.abrirFicha && !(e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1)) {
+      e.preventDefault()
+      return ctx.abrirFicha(c)
     }
   })
   // Con el ratón se arrastra siempre que el álbum sea tuyo; con el dedo,
-  // solo en «Ordenar y quitar», que es donde los bolsillos llevan
-  // `touch-action: none` — fuera de ahí el dedo tiene que poder
-  // desplazar la página (el porqué entero, en arrastre.js).
+  // manteniendo pulsado, porque el dedo tiene que poder desplazar la página
+  // (el porqué entero, en arrastre.js). Desde la 1048 no hay «Ordenar y
+  // quitar»: soltar la carta en la papelera de abajo la saca del álbum.
   if ($('mcAlbArchivador')) {
     activarArrastre($('mcAlbArchivador'), {
       // Un hueco con número no se coge: se suelta encima (760).
       elemento: '.mc-bolsillo[data-indice]:not(.mc-bolsillo-vacio)',
       huecos: '.mc-bolsillo-vacio',
       bordes: '#mcAlbAnterior, #mcAlbSiguiente',
-      puede: (e) => esMio() && (editando || e.pointerType === 'mouse'),
+      puede: (e) => esMio() && !marcadas && e.pointerType === 'mouse',
       // Con el dedo, manteniendo pulsado (760, AL5).
       pulsacionLarga: 450,
-      puedeLargo: () => esMio(),
+      puedeLargo: () => esMio() && !marcadas,
       alSoltar: moverCarta,
+      papelera: () => $('mcAlbPapelera'),
+      alPapelera: (de) => quitarBolsillos([de]),
       alBorde: (flecha) => !flecha.hidden && flecha.click(),
     })
   }

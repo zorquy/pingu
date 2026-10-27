@@ -65,7 +65,7 @@ import { ORDENES_COLECCION, GRUPOS_FILTRO, ordenarLineas, pasaLosFiltros, filtro
 import { balanceDeCompra } from './mi-coleccion/balance.js'
 import { textoDeLoQueFalta } from './mi-coleccion/lo-que-falta.js'
 import { copiarEnlace } from './compartir.js'
-import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
+import { archivadorHtml, textoDePaginas } from './mi-coleccion/archivador.js'
 import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, pegarVersiones, varianteDeEtiqueta, seSabenVariantes, corregirVersionesImposibles, cuentaParaMaestro, versionDeVariante, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { montarEleccion } from './mi-coleccion/elegir-version.js'
 import { iconoDeVersion, chapaDeVersionHtml } from './mi-coleccion/iconos-version.js'
@@ -5601,6 +5601,24 @@ function pedirQuienBusca(...a) {
 function quererCarta(...a) {
   return deseosMod ? deseosMod.quererCarta(...a) : deseosModulo().then((m) => m.quererCarta(...a))
 }
+// Apuntar VARIAS en «La quiero» de un golpe (1048, la selección de un
+// álbum): cualquier idioma y cualquier versión, como la barra de una
+// expansión (713). Las que ya estaban no cuentan como fallo.
+async function quererVarias(ids) {
+  const cambios = await import('./mi-coleccion/cambios.js')
+  let nuevas = 0
+  for (const id of ids) {
+    try {
+      const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: id })
+      if (Array.isArray(deseos)) deseos = [d, ...deseos]
+      nuevas++
+    } catch (err) {
+      if (!err.yaEstaba) throw err
+    }
+  }
+  refrescarCorazones()
+  return nuevas
+}
 function quitarDeseosDe(...a) {
   return deseosMod ? deseosMod.quitarDeseosDe(...a) : deseosModulo().then((m) => m.quitarDeseosDe(...a))
 }
@@ -6461,39 +6479,8 @@ function enganchar() {
     if ($('mcAlbumBuscar')) $('mcAlbumBuscar').value = ''
     limpiarFiltrosDeAlbum()
   })
-  // ── El color de la tapa (tanda 371) ──
-  //
-  // Es lo que convierte «una rejilla de cartas» en «mi archivador». Se
-  // guarda en el navegador y no en la base: es gusto de quien mira, no
-  // un dato de la colección, y así no hace falta migración para esto.
-  $('mcAlbumTapa').addEventListener('click', () => {
-    const caja = $('mcAlbumTapas')
-    const abierto = caja.classList.toggle('hidden')
-    $('mcAlbumTapa').setAttribute('aria-expanded', String(!abierto))
-    // Se pinta cada vez (759): cada binder tiene su tapa y la marcada es la suya.
-    if (!abierto) {
-      const puesta = albumes.tapaDelAbierto?.() || tapaGuardada()
-      caja.innerHTML = TAPAS.map(
-        (t) =>
-          `<button type="button" class="mc-tapa" data-tapa="${t.id}" aria-pressed="${t.id === puesta}" title="${escapeHtml(t.nombre)}">` +
-          `<span class="sr-only">${escapeHtml(t.nombre)}</span></button>`
-      ).join('')
-    }
-  })
-  $('mcAlbumTapas').addEventListener('click', (e) => {
-    const b = e.target.closest('[data-tapa]')
-    if (!b) return
-    // El binder abierto guarda la suya (759); si no hay uno abierto, o la
-    // migración no está, sigue siendo la del navegador.
-    if (!albumes.ponerTapa?.(b.dataset.tapa)) guardarTapa(b.dataset.tapa)
-    for (const otro of $('mcAlbumTapas').querySelectorAll('[data-tapa]')) {
-      otro.setAttribute('aria-pressed', String(otro === b))
-    }
-    // Se repintan los dos: el álbum de la colección y el soñado que haya
-    // abierto. La tapa es una sola para toda la pantalla.
-    if (album.set) pintarAlbum()
-    albumes.repintar?.()
-  })
+  // ── El color de la tapa (371): desde la 1048 se elige en Personalizar
+  // (la hoja de album-editar.js), que guarda la de cada álbum. ──
   // El buscador de dentro de una colección (tanda 417): en un set de 200
   // cartas, llegar a una por los filtros es imposible.
   $('mcAlbumBuscar').addEventListener('input', () => pintarAlbum())
@@ -6884,6 +6871,7 @@ const contexto = {
   precioDeCarta: (id) => precioDeDeseo({ card_id: id, idioma: null }),
   deseos: () => deseos,
   quererCarta: (c) => quererCarta(c),
+  quererVarias: (ids) => quererVarias(ids),
   quitarDeseos: (id) => quitarDeseosDe(id),
   quienBusca: () => pedirQuienBusca(),
   quienTiene: () => pedirQuienTiene(),

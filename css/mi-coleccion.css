@@ -1871,17 +1871,10 @@
  * cambia entre uno y otro; todo lo demás se deriva de él, así que añadir
  * el noveno es una línea.
  */
+/* El color por defecto va aquí, ANTES de los `[data-tapa]`, que lo pisan
+   por orden. El dibujo del álbum, en el bloque de la 1048 (al final). */
 .mc-binder {
-  --tapa: var(--navy);
-  padding: var(--e-md);
-  border-radius: var(--radius-lg);
-  background: var(--tapa);
-  /* El canto de la carpeta: un borde interior más claro arriba y más
-     oscuro abajo es lo que da el volumen sin una imagen. */
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 25%),
-    inset 0 -2px 0 rgb(0 0 0 / 25%),
-    var(--shadow-md);
+  --tapa: var(--navy-solid);
 }
 
 /* Los botones del color, redondos y del color que ponen. */
@@ -1893,7 +1886,7 @@
 }
 
 .mc-tapa {
-  --tapa: var(--navy);
+  --tapa: var(--navy-solid);
   min-width: 44px;
   min-height: 44px;
   padding: 0;
@@ -1905,9 +1898,9 @@
 
 /* Los ocho colores, para todo lo que lleve `data-tapa` (759): el archivador,
    el botón del color, la baldosa de un binder y la vista del diálogo. */
-[data-tapa='azul'] { --tapa: var(--navy); }
+[data-tapa='azul'] { --tapa: var(--navy-solid); }
 [data-tapa='rojo'] { --tapa: var(--danger-solid); }
-[data-tapa='verde'] { --tapa: var(--success); }
+[data-tapa='verde'] { --tapa: #0d7a56; }
 [data-tapa='amarillo'] { --tapa: #d9a521; }
 [data-tapa='morado'] { --tapa: #6d4aa8; }
 [data-tapa='rosa'] { --tapa: #c04a7e; }
@@ -1919,37 +1912,6 @@
 .mc-tapa[aria-pressed='true'] {
   border-color: var(--white);
   box-shadow: 0 0 0 2px var(--text);
-}
-
-/* Las anillas, en el lomo. Van en una capa encima del archivador y no
-   entre las hojas: metidas en la rejilla contarían como una columna (la
-   lección de la 316). Solo con las dos hojas abiertas. */
-.mc-anillas {
-  position: absolute;
-  top: 14%;
-  bottom: 14%;
-  left: 50%;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  width: 32px;
-  transform: translateX(-50%);
-  pointer-events: none;
-}
-
-/* Cada anilla: un óvalo abierto, con el metal claro arriba y la sombra
-   abajo. Sin imagen — dos bordes y un degradado. */
-/* Cada anilla es un aro ABIERTO: por dentro se ve la tapa, que es lo que
-   la hace parecer metal y no un botón. Con relleno salían tres discos
-   oscuros. */
-.mc-anillas i {
-  height: 34px;
-  border: 3px solid rgb(255 255 255 / 75%);
-  border-radius: 50%;
-  background: transparent;
-  box-shadow:
-    0 1px 2px rgb(0 0 0 / 45%),
-    inset 0 -1px 2px rgb(0 0 0 / 35%);
 }
 
 .mc-hoja {
@@ -3202,42 +3164,6 @@ html.mc-seleccionando .mc-pagina {
 
 .mc-albumes-cab .btn-primary {
   min-height: 44px;
-}
-
-input.mc-alb-titulo {
-  width: 100%;
-  padding: var(--e-xs) 0;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text);
-  font-family: var(--font-display);
-  font-size: var(--t-xl);
-  font-weight: 700;
-}
-
-input.mc-alb-titulo:not([readonly]):hover,
-input.mc-alb-titulo:not([readonly]):focus {
-  border-color: var(--border-strong);
-  background: var(--white);
-}
-
-.mc-alb-descripcion {
-  width: 100%;
-  margin: 0 0 var(--e-md);
-  padding: var(--e-xs) 0;
-  border: 1px solid transparent;
-  border-radius: var(--radius-sm);
-  background: transparent;
-  resize: none;
-  field-sizing: content;
-  min-height: 0;
-}
-
-.mc-alb-descripcion:not([readonly]):hover,
-.mc-alb-descripcion:not([readonly]):focus {
-  border-color: var(--border-strong);
-  background: var(--white);
 }
 
 .mc-alb-barra {
@@ -6011,61 +5937,7 @@ input.mc-alb-titulo:not([readonly]):focus {
    los caza (clases pintadas sin regla) y la 565 los borró un día entero.
    Desde la 578 la carta se ARRASTRA (js/mi-coleccion/arrastre.js); las
    flechas se quedan para el teclado. */
-.mc-album-marcando .mc-bolsillo-controles,
-.mc-album-marcando .mc-mas,
-.mc-album-marcando .mc-bolsillo-quitar {
-  display: none;
-}
-
-.mc-bolsillo-editar {
-  cursor: grab;
-  touch-action: none;
-}
-
-.mc-arrastrando-carta,
-.mc-arrastrando-carta .mc-bolsillo-editar {
-  cursor: grabbing;
-}
-
-.mc-bolsillo-controles {
-  position: absolute;
-  right: var(--e-xs);
-  bottom: var(--e-xs);
-  left: var(--e-xs);
-  display: flex;
-  justify-content: space-between;
-  gap: var(--e-xs);
-}
-
-.mc-bolsillo-controles button,
-.mc-bolsillo-quitar {
-  min-width: 32px;
-  min-height: 32px;
-  padding: 0;
-  border: 1px solid var(--border-strong);
-  border-radius: var(--radius-pill);
-  background: var(--white);
-  color: var(--text);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 700;
-  box-shadow: var(--shadow-xs);
-  cursor: pointer;
-}
-
-.mc-bolsillo-controles button:disabled {
-  opacity: 0.4;
-  cursor: default;
-}
-
-.mc-bolsillo-quitar {
-  position: absolute;
-  top: var(--e-xs);
-  left: var(--e-xs);
-  color: var(--danger);
-}
-
-.mc-bolsillo-editar .mc-bolsillo-num {
+.mc-album-marcando .mc-mas {
   display: none;
 }
 
@@ -6100,13 +5972,6 @@ input.mc-alb-titulo:not([readonly]):focus {
   outline-offset: 2px;
 }
 
-@media (pointer: coarse) {
-  .mc-bolsillo-controles button,
-  .mc-bolsillo-quitar {
-    min-width: 44px;
-    min-height: 44px;
-  }
-}
 
 
 
@@ -8605,13 +8470,6 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   margin-bottom: var(--e-md);
 }
 
-.mc-alb-cabecera-binder {
-  padding: var(--e-md);
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--tapa) 14%, var(--white));
-  box-shadow: inset 4px 0 0 var(--tapa);
-}
-
 .mc-alb-cabecera-logo {
   position: relative;
   flex: none;
@@ -8708,33 +8566,6 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   left: 0;
   border-bottom-left-radius: var(--radius-md);
   background: linear-gradient(to top right, var(--border-strong) 0 50%, transparent 50%);
-}
-
-/* Los puntos de debajo: en el móvil, dónde estás; en el ordenador está el
-   «Ir a…». */
-.mc-alb-puntos {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--e-xs);
-  margin-top: var(--e-sm);
-}
-
-.mc-alb-puntos i {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--border-strong);
-}
-
-.mc-alb-puntos i.activo {
-  background: var(--navy);
-}
-
-@media (min-width: 900px) {
-  .mc-alb-puntos {
-    display: none;
-  }
 }
 
 
@@ -8934,33 +8765,6 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   object-fit: cover;
 }
 
-.mc-bolsillo-portada {
-  position: absolute;
-  top: var(--e-xs);
-  left: var(--e-xs);
-  min-width: 44px;
-  min-height: 44px;
-  border: 0;
-  border-radius: 50%;
-  background: rgb(0 0 0 / 55%);
-  color: var(--blanco-fijo);
-  font-size: var(--t-md);
-  cursor: pointer;
-}
-
-.mc-bolsillo-portada[aria-pressed='true'] {
-  background: var(--warning);
-}
-
-.mc-alb-es-portada {
-  position: absolute;
-  bottom: var(--e-xs);
-  left: var(--e-xs);
-  color: var(--warning);
-  font-size: var(--t-md);
-  text-shadow: 0 1px 2px rgb(0 0 0 / 60%);
-}
-
 .mc-albn-versiones {
   margin-top: var(--e-xs);
 }
@@ -9034,25 +8838,6 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 @keyframes mc-destello {
   0%, 100% { transform: scale(0.85); opacity: 0.35; }
   50% { transform: scale(1.1); opacity: 0.9; }
-}
-
-/* La funda: un brillo de plástico arriba y el canto hundido. */
-#mcAlbArchivador .mc-bolsillo {
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%), inset 0 -2px 4px rgb(13 27 42 / 10%), 0 1px 2px rgb(13 27 42 / 8%);
-}
-
-#mcAlbArchivador .mc-bolsillo::before {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  border-radius: inherit;
-  background: linear-gradient(160deg, rgb(255 255 255 / 30%) 0%, rgb(255 255 255 / 0%) 38%, rgb(255 255 255 / 0%) 78%, rgb(255 255 255 / 12%) 100%);
-  content: '';
-  pointer-events: none;
-}
-
-:root[data-theme='dark'] #mcAlbArchivador .mc-bolsillo::before {
-  background: linear-gradient(160deg, rgb(255 255 255 / 14%) 0%, rgb(255 255 255 / 0%) 38%, rgb(255 255 255 / 0%) 78%, rgb(255 255 255 / 6%) 100%);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -12047,10 +11832,6 @@ button.mc-fila:hover {
   padding-bottom: 48px;
 }
 
-.mc-exp-archivador .mc-bolsillo {
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 55%), inset 0 -2px 4px rgb(13 27 42 / 10%), 0 1px 2px rgb(13 27 42 / 8%);
-}
-
 /* La tapa por dentro, con el logo: «saltarse la primera página». */
 .mc-hoja-portada {
   min-height: 240px;
@@ -12789,4 +12570,646 @@ button.mc-fila:hover {
     display: none;
   }
 
+}
+
+
+
+/* ── 1048: el álbum sin anillas. Las hojas cosidas a un lomo de tela, las
+   fundas de carga lateral con su pespunte y la cremallera opcional (PINGU,
+   con dos fotos: «un álbum moderno se ve así, y no usa anillas»). Vale para
+   un álbum y para la vista «Archivador» de una expansión: es el mismo
+   dibujo (371). El porqué, en SCHEMA.md (tanda 1048). ── */
+
+/* Lo de dentro es un objeto, no la página: sus colores no cambian con el
+   tema, como la tapa. */
+.mc-binder {
+  --hoja: #2b3035;
+  --funda: #353a40;
+  --pespunte: rgb(255 255 255 / 16%);
+  --canto: rgb(0 0 0 / 45%);
+  --en-hoja: rgb(255 255 255 / 50%);
+  --acabado: none;
+  position: relative;
+  padding: var(--e-sm);
+  border-radius: var(--radius-lg);
+  background: var(--acabado), linear-gradient(160deg, color-mix(in srgb, var(--tapa), var(--blanco-fijo) 8%), color-mix(in srgb, var(--tapa), #000 30%));
+  background-blend-mode: overlay, overlay, normal;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%), 0 24px 48px -24px rgb(0 0 0 / 70%);
+}
+
+.mc-binder[data-hojas='negras'] {
+  --hoja: #15181b;
+  --funda: #1e2226;
+  --pespunte: rgb(255 255 255 / 12%);
+}
+
+.mc-binder[data-hojas='blancas'] {
+  --hoja: #dfe3e6;
+  --funda: #eceff1;
+  --pespunte: rgb(13 27 42 / 24%);
+  --canto: rgb(13 27 42 / 20%);
+  --en-hoja: rgb(13 27 42 / 60%);
+}
+
+/* Los acabados de la tapa: lona (trama), piel (grano), mate y holo. Sin
+   acabado, ninguno (antes que los `[data-acabado]`, que lo pisan por orden). */
+.mc-tapa-cerrada {
+  --acabado: none;
+}
+
+[data-acabado='lona'] {
+  --acabado: repeating-linear-gradient(45deg, rgb(255 255 255 / 12%) 0 1px, transparent 1px 3px), repeating-linear-gradient(-45deg, rgb(0 0 0 / 22%) 0 1px, transparent 1px 3px);
+}
+
+[data-acabado='piel'] {
+  --acabado: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+[data-acabado='holo'] {
+  --acabado: linear-gradient(115deg, rgb(255 60 160 / 55%), rgb(255 210 60 / 50%) 25%, rgb(60 255 190 / 50%) 50%, rgb(70 140 255 / 55%) 75%, rgb(255 60 160 / 55%));
+  background-size: 220% 220%, 100% 100%;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .mc-tapa-cerrada[data-acabado='holo']:hover,
+  .mc-albt:hover [data-acabado='holo'] {
+    animation: mc-holo-tapa 3s linear infinite;
+  }
+}
+
+@keyframes mc-holo-tapa {
+  to { background-position: 220% 0, 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-tapa-cerrada[data-acabado='holo']:hover,
+  .mc-albt:hover [data-acabado='holo'] {
+    animation: none;
+  }
+}
+
+/* La cremallera: un anillo de dientes alrededor, con su tirador del color de
+   la sección donde se juntan. */
+.mc-binder[data-cierre='cremallera'] {
+  padding: var(--e-lg);
+  border-radius: var(--radius-xl);
+}
+
+.mc-binder[data-cierre='cremallera']::before {
+  content: '';
+  position: absolute;
+  inset: var(--e-xs);
+  padding: var(--e-sm);
+  border-radius: var(--radius-lg);
+  background: repeating-linear-gradient(45deg, #0d1013 0 2px, #4b5259 2px 4px);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+  pointer-events: none;
+}
+
+.mc-binder[data-cierre='cremallera']::after {
+  content: '';
+  position: absolute;
+  z-index: 5;
+  bottom: calc(-1 * var(--e-xs));
+  left: calc(50% + var(--e-lg));
+  width: 12px;
+  height: 24px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--acento), #000 25%), var(--acento), color-mix(in srgb, var(--acento), #000 25%));
+  box-shadow: 0 2px 6px rgb(0 0 0 / 50%);
+  pointer-events: none;
+}
+
+.mc-binder[data-cierre='cremallera']:has(.mc-archivador:not(.mc-dos))::after {
+  right: var(--e-xl);
+  left: auto;
+}
+
+/* El lomo de tela: en medio con las dos hojas abiertas, a la izquierda con una. */
+.mc-binder .mc-archivador {
+  gap: var(--e-xl);
+}
+
+.mc-binder .mc-archivador:not(.mc-dos) {
+  padding-left: var(--e-lg);
+}
+
+.mc-lomo {
+  position: absolute;
+  z-index: 1;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: var(--e-xl);
+  transform: translateX(-50%);
+  background: repeating-linear-gradient(45deg, rgb(255 255 255 / 7%) 0 1px, transparent 1px 3px), repeating-linear-gradient(-45deg, rgb(0 0 0 / 35%) 0 1px, transparent 1px 3px), #121619;
+  box-shadow: inset 6px 0 6px -4px rgb(0 0 0 / 80%), inset -6px 0 6px -4px rgb(0 0 0 / 80%);
+  pointer-events: none;
+}
+
+.mc-archivador:not(.mc-dos) > .mc-lomo {
+  left: 0;
+  width: var(--e-lg);
+  border-radius: 4px 0 0 4px;
+  transform: none;
+}
+
+/* La hoja: gris (o negra, o blanca), cosida, con la sombra hacia el lomo. */
+.mc-binder .mc-hoja {
+  isolation: isolate;
+  gap: var(--e-lg);
+  padding: var(--e-lg) var(--e-lg) var(--e-xl);
+  border: 0;
+  border-radius: 4px;
+  background: var(--hoja);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 4%);
+}
+
+.mc-binder .mc-hoja::after {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.mc-binder .mc-hoja-izq::after {
+  background: linear-gradient(to left, rgb(0 0 0 / 40%), rgb(0 0 0 / 0%) 10%);
+}
+
+.mc-binder .mc-hoja-der::after {
+  background: linear-gradient(to right, rgb(0 0 0 / 40%), rgb(0 0 0 / 0%) 10%);
+}
+
+.mc-binder .mc-hoja-fantasma {
+  border: 0;
+  background: var(--hoja);
+  opacity: 0.6;
+}
+
+.mc-binder .mc-hoja-cabecera {
+  top: auto;
+  right: 48px;
+  bottom: var(--e-sm);
+  left: 48px;
+  justify-content: center;
+  gap: var(--e-sm);
+  color: var(--en-hoja);
+}
+
+.mc-binder .mc-hoja-tapa {
+  color: var(--en-hoja);
+}
+
+.mc-binder .mc-hoja-esquina {
+  z-index: 4;
+  background: linear-gradient(to top left, rgb(255 255 255 / 16%) 0 50%, transparent 50%);
+}
+
+.mc-binder .mc-hoja-esquina-antes {
+  background: linear-gradient(to top right, rgb(255 255 255 / 16%) 0 50%, transparent 50%);
+}
+
+/* La funda: el plástico asoma por fuera de la carta (en el hueco entre
+   bolsillos, así la foto no se recorta), el pespunte alrededor y el canto
+   oscuro por donde entra la carta, hacia fuera del lomo. */
+.mc-binder .mc-bolsillo {
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  box-shadow: none;
+  outline: 1px dashed var(--pespunte);
+  outline-offset: var(--e-xs);
+}
+
+.mc-binder .mc-bolsillo::before {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  inset: calc(-1 * var(--e-sm));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--funda), var(--blanco-fijo) 5%), var(--funda));
+  pointer-events: none;
+}
+
+.mc-binder .mc-hoja-izq .mc-bolsillo::before {
+  box-shadow: inset 2px 0 0 var(--canto);
+}
+
+.mc-binder .mc-hoja-der .mc-bolsillo::before {
+  box-shadow: inset -2px 0 0 var(--canto);
+}
+
+.mc-binder .mc-bolsillo img {
+  border-radius: 4px;
+}
+
+.mc-binder .mc-bolsillo-vacio,
+.mc-binder .mc-bolsillo-hueco {
+  border: 0;
+  background: transparent;
+  color: var(--en-hoja);
+}
+
+.mc-binder .mc-hueco-num,
+.mc-binder .mc-hueco-destello {
+  color: var(--en-hoja);
+}
+
+.mc-binder .mc-bolsillo-hueco:hover .mc-hueco-num,
+.mc-binder .mc-bolsillo-hueco:hover .mc-hueco-destello {
+  color: var(--acento);
+}
+
+.mc-binder .mc-bolsillo.marcada,
+.mc-binder .mc-bolsillo.mc-destino {
+  outline: 2px solid var(--acento);
+  outline-offset: var(--e-xs);
+}
+
+.mc-binder .mc-bolsillo:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: var(--e-xs);
+}
+
+/* Con el ratón se levanta la CARTA, no la funda. */
+@media (hover: hover) and (pointer: fine) {
+  .mc-binder .mc-bolsillo:not(.mc-arrastrando):hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .mc-binder .mc-bolsillo img {
+    transition: transform 0.15s var(--ease);
+  }
+
+  .mc-binder .mc-bolsillo:not(.mc-arrastrando):hover img {
+    transform: translateY(-2px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-binder .mc-bolsillo:hover img {
+    transform: none;
+  }
+}
+
+/* La cinta de la portada: abajo a la izquierda, nunca encima del corazón. */
+.mc-alb-cinta {
+  position: absolute;
+  z-index: 2;
+  bottom: var(--e-xs);
+  left: var(--e-xs);
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: center;
+  min-height: 20px;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgb(12 20 30 / 82%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+/* Seleccionando no estorban el ✓, el corazón ni la cinta: manda el círculo. */
+#mcAlbArchivador.mc-album-marcando .mc-tengo-marca,
+#mcAlbArchivador.mc-album-marcando .mc-insignias,
+#mcAlbArchivador.mc-album-marcando .mc-quiero-marca,
+#mcAlbArchivador.mc-album-marcando .mc-alb-cinta {
+  visibility: hidden;
+}
+
+#mcAlbArchivador.mc-album-marcando .mc-bolsillo {
+  cursor: pointer;
+}
+
+.mc-sel-abajo-tres {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* La papelera de abajo, mientras se lleva una carta. */
+.mc-alb-papelera {
+  display: flex;
+  position: fixed;
+  z-index: 160;
+  right: var(--e-lg);
+  bottom: calc(var(--e-lg) + env(safe-area-inset-bottom));
+  left: var(--e-lg);
+  gap: var(--e-sm);
+  align-items: center;
+  justify-content: center;
+  max-width: 480px;
+  min-height: 64px;
+  margin: 0 auto;
+  border: 2px dashed var(--danger);
+  border-radius: var(--radius-xl);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+}
+
+.mc-alb-papelera.activa {
+  border-style: solid;
+  background: var(--danger-solid);
+  color: var(--blanco-fijo);
+}
+
+/* La cabecera: la tapa en pequeño, el nombre y el anillo de lo que llevas. */
+.mc-alb-cabecera {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--e-lg);
+  align-items: center;
+  margin-bottom: var(--e-sm);
+}
+
+.mc-alb-cabecera-binder .mc-alb-cabecera-logo {
+  width: 64px;
+  height: auto;
+}
+
+.mc-alb-titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  line-height: 1.15;
+  overflow-wrap: anywhere;
+}
+
+.mc-alb-descripcion {
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-alb-progreso {
+  display: flex;
+  gap: var(--e-md);
+  align-items: center;
+}
+
+.mc-alb-anillo {
+  --p: 0;
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: conic-gradient(var(--success) calc(var(--p) * 1%), var(--border) 0);
+}
+
+.mc-alb-anillo b {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--bg);
+  font-family: var(--font-display);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-alb-cuenta {
+  display: grid;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.mc-alb-cuenta strong {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-alb-falta {
+  margin: 0 0 var(--e-md);
+}
+
+@media (max-width: 599px) {
+  .mc-alb-cabecera {
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--e-sm) var(--e-md);
+    align-items: center;
+  }
+
+  .mc-alb-cabecera-binder .mc-alb-cabecera-logo {
+    width: 48px;
+  }
+
+  .mc-alb-titulo {
+    font-size: var(--t-xl);
+  }
+
+  .mc-alb-progreso {
+    grid-column: 1 / -1;
+  }
+}
+
+/* Los mandos, en UNA fila (1040): lo que se desliza a un lado y el «⋯»
+   aparte, que dentro de algo que se desliza su menú saldría recortado. En el
+   móvil, los iconos delante de los chips. */
+#mcAlbHerramientas {
+  flex-wrap: nowrap;
+  gap: var(--e-sm);
+}
+
+.mc-alb-fila {
+  display: flex;
+  flex: 1 1 auto;
+  gap: var(--e-sm);
+  align-items: center;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.mc-alb-fila > *,
+#mcAlbMenu {
+  flex: none;
+}
+
+.mc-alb-estado {
+  margin-left: auto;
+}
+
+.mc-alb-mando {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+#mcAlbMenu .mc-menu {
+  right: 0;
+  left: auto;
+}
+
+@media (max-width: 599px) {
+  .mc-alb-mando {
+    justify-content: center;
+    padding-inline: 0;
+  }
+
+  .mc-alb-fila .mc-alb-mando {
+    order: -1;
+  }
+
+  .mc-alb-estado {
+    display: none;
+  }
+}
+
+/* Seleccionando, un bolsillo vacío no se marca: sin círculo. */
+#mcAlbArchivador.mc-album-marcando .mc-bolsillo-vacio::after {
+  content: none;
+}
+
+/* EL MAPA DEL ÁLBUM: una barrita por página, agrupadas por pliego. */
+.mc-alb-mapa {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  justify-content: center;
+  margin-top: var(--e-sm);
+}
+
+.mc-alb-pliego {
+  display: flex;
+  gap: var(--e-xs);
+  align-items: flex-end;
+  min-height: 32px;
+  padding: var(--e-xs);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.mc-alb-pliego:hover {
+  background: var(--ice);
+}
+
+.mc-alb-pliego.aqui {
+  background: color-mix(in srgb, var(--acento) 18%, transparent);
+  box-shadow: inset 0 0 0 2px var(--acento);
+}
+
+.mc-alb-pliego i {
+  position: relative;
+  width: 8px;
+  height: 24px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.mc-alb-pliego i::before,
+.mc-alb-pliego i::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
+.mc-alb-pliego i::before {
+  height: calc(var(--puestas, 0) * 100%);
+  background: var(--text-dim);
+  opacity: 0.5;
+}
+
+.mc-alb-pliego i::after {
+  height: calc(var(--tengo, 0) * 100%);
+  background: var(--success);
+}
+
+@media (pointer: coarse) {
+  .mc-alb-pliego {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 899px) {
+  .mc-alb-mapa {
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .mc-alb-pliego {
+    flex: none;
+  }
+}
+
+/* LA TAPA CERRADA: el álbum de frente (la cabecera y, desde la 1049, Mis
+   álbumes). El lomo a la izquierda, la ventana con la portada. */
+.mc-tapa-cerrada {
+  display: block;
+  position: relative;
+  aspect-ratio: 5 / 6;
+  overflow: hidden;
+  border-radius: 4px var(--radius-md) var(--radius-md) 4px;
+  background: var(--acabado), linear-gradient(155deg, color-mix(in srgb, var(--tapa), var(--blanco-fijo) 12%), color-mix(in srgb, var(--tapa), #000 32%));
+  background-blend-mode: overlay, overlay, normal;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%), 0 12px 24px -12px rgb(0 0 0 / 70%);
+}
+
+.mc-tapa-cerrada::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 13%;
+  background: linear-gradient(90deg, rgb(0 0 0 / 42%), rgb(0 0 0 / 12%) 70%, rgb(255 255 255 / 10%));
+}
+
+.mc-tapa-cerrada[data-cierre='cremallera']::after {
+  content: '';
+  position: absolute;
+  inset: 3%;
+  padding: 3%;
+  border-radius: 4px var(--radius-sm) var(--radius-sm) 4px;
+  background: repeating-linear-gradient(45deg, #0d1013 0 2px, #4b5259 2px 4px);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+
+.mc-tapa-ventana {
+  position: absolute;
+  z-index: 1;
+  top: 12%;
+  left: 30%;
+  width: 50%;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: 4px;
+  background: rgb(0 0 0 / 30%);
+  box-shadow: inset 0 0 0 2px rgb(255 255 255 / 22%), inset 0 3px 8px rgb(0 0 0 / 45%);
+}
+
+.mc-tapa-ventana > img,
+.mc-tapa-ventana > i {
+  position: absolute;
+  inset: 6%;
+  width: 88%;
+  height: 88%;
+  border-radius: 4px;
+  object-fit: cover;
+}
+
+.mc-tapa-ventana::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent 35%, rgb(255 255 255 / 18%) 47%, transparent 58%);
 }

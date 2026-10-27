@@ -41785,6 +41785,68 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1048 — El álbum abierto, sin anillas
+
+PINGU: «el álbum se ve súper pocho… más currado, más bonito, menos plano»,
+«no se pueden eliminar las cartas de los álbumes, o al menos no veo el
+botón», «si le doy a ordenar y quitar, la estrella de hacerlo portada se
+sobrepone al corazón», «las flechas de moverlo, feo: se pueden arrastrar».
+Propuesta con maquetas (opción A en todo) y, encima, dos fotos suyas: «un
+álbum moderno se ve así, y no usa anillas», «o así, sin cremallera».
+
+- **El dibujo** (`archivador.js` + bloque 1048 al final de
+  `mi-coleccion.css`): las hojas van cosidas a un **lomo de tela**
+  (`.mc-lomo`, en medio con dos hojas y a la izquierda con una; `.mc-dos` en
+  `.mc-archivador`), cada hoja sabe su lado (`mc-hoja-izq` / `mc-hoja-der`)
+  para la sombra del lomo y el canto de la funda, y cada carta va en una
+  **funda de carga lateral**: el plástico es un `::before` que asoma 8 px por
+  fuera de la carta (en el hueco de 16 px entre bolsillos; así la foto no se
+  recorta) y el pespunte es el `outline` discontinuo. La tapa asoma por el
+  borde con su color y su **acabado** (`data-acabado`: lona, piel, mate, holo)
+  y, si la lleva, la **cremallera** (`data-cierre`), un anillo de dientes con
+  `mask` y el tirador del color de la sección. Las **hojas** (`data-hojas`):
+  grises por defecto, negras o blancas. Los tres salen de `estiloDe` (lo que
+  no se reconoce cae en lo de por defecto: lona, grises, cremallera); la
+  columna para elegirlos llega en la 1050. **Es el mismo dibujo en la vista
+  «Archivador» de una expansión** (la 371: un archivador, no dos).
+- **Lo de dentro es un objeto, no la página**: los colores de las hojas, las
+  fundas y la tapa no cambian con el tema. Por eso `[data-tapa='azul']` pasa a
+  `--navy-solid` y el verde a un hex fijo (`--navy` y `--success` se aclaran
+  en oscuro y la tapa salía celeste).
+- **Sin «Ordenar y quitar» ni flechas**: se arrastra siempre (ratón directo,
+  dedo manteniendo pulsado, como desde la 760). Al coger una carta sale
+  abajo **la papelera** (`#mcAlbPapelera`; `papelera` y `alPapelera` en
+  `activarArrastre`, que mira con `elementFromPoint` como las flechas) y
+  soltarla encima la quita, con **Deshacer** en el aviso (`quitarBolsillos`,
+  que devuelve al SUYO si mientras tanto se ha abierto otro álbum).
+- **Seleccionar** (`#mcAlbSel`, las clases de la barra de la 747 y su lógica
+  en `albumes.js`, porque las acciones son otras): marcar bolsillos (un Set de
+  índices), «Quitar del álbum» (con Deshacer), «De portada» (solo con una y en
+  un binder) y «Las quiero» (`ctx.quererVarias`, cualquier idioma y versión,
+  como la barra de una expansión). Seleccionando se esconden el ✓, el
+  corazón y la cinta, y un bolsillo vacío no lleva círculo.
+- **La portada es una cinta abajo a la izquierda** (`.mc-alb-cinta`), donde
+  no hay nada: arriba a la izquierda va el corazón, abajo a la derecha el ✓
+  o el «+».
+- **La cabecera**: la tapa cerrada en pequeño (`tapaCerradaHtml`, que la
+  1049 usa en Mis álbumes) o el logo del set, el nombre (`h3`, ya no un
+  campo: se cambia en la hoja de editar) y un **anillo** con lo que llevas.
+- **Una fila de mandos** (`#mcAlbHerramientas`): Añadir, «Todas / Tengo /
+  Faltan» (sustituye a la casilla «Solo las que me faltan»), Seleccionar,
+  Personalizar (abre la hoja de editar de la 1032) y un «⋯» con
+  público/privado, Compartir enlace y Lista para imprimir. Lo que se desliza
+  va en `.mc-alb-fila` y el «⋯» fuera: dentro de algo con `overflow` su menú
+  sale recortado. En el móvil, los iconos delante de los chips (1040).
+- **El mapa del álbum** (`#mcAlbMapa`, sustituye a los puntos y al «Ir a…»):
+  un botón por pliego con una barrita por página (`--puestas` claro,
+  `--tengo` verde); se toca para ir. Con un filtro puesto no sale (las
+  páginas no son las del álbum). En el móvil, una fila que se desliza.
+- **Fuera**: el «Personalizar» suelto del pie y su fila de colores (el color
+  se elige en la hoja de editar), las anillas, los mandos ← → y ✕ de cada
+  bolsillo, la estrella de portada, los puntos y el «Ir a…».
+
+Lo vigila `test-tanda-1048-pantalla.mjs` (rama `pruebas`).
+
 ## Tanda 1047 — «La quiero» con versión
 
 Del foro: «cuando doy al corazón para tenerlo en la lista de deseos, no puedo
