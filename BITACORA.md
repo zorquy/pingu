@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (301) — PINGU-Claude (1060 — los desplegables en el tema oscuro)
+
+**Hecho**: PINGU, con una captura del Mercado: la lista de «Idioma» salía
+blanca con la letra clara, ilegible. El tema oscuro se pone con
+`data-theme='dark'` y nunca se le decía al navegador, que pinta la lista de
+un `<select>` con lo suyo (fondo claro) mientras el texto hereda el claro del
+tema. `color-scheme: dark` en el bloque oscuro de `style.css` lo arregla para
+TODOS los select de la web (hay en 15 páginas) y de paso las barras de
+desplazamiento. Una línea en la portada.
+
+**Ficheros**: css/style.css, novedades.json, SCHEMA.md, BITACORA.md.
+
+**Pruebas**: `test-tanda-1060-pantalla.mjs` (oscuro: el select va en dark;
+claro: normal). 299, 1018, 1023, 737 e imports en verde; 311 rojo también en
+HEAD (comunidad/partidas/torneos).
+
+**Pendiente**: la propuesta de mejoras visuales de Deseos y cambios (con
+capturas) está con PINGU.
+
 ## 2026-10-27 (300) — PINGU-Claude (1059 — «También tienes» en el móvil y «Añadir a una lista» en la ficha)
 
 **Hecho**: PINGU ejecutó la 1058 (evento_lista) y trajo dos cosas.

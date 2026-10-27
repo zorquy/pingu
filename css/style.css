@@ -144,6 +144,8 @@ html[data-seccion='jugar'] { --acento: #5f43d9; }
 
 /* S780.6 */
 :root[data-theme='dark'] {
+  /* Las listas de un select y las barras, en oscuro (1060). */
+  color-scheme: dark;
   /* Aclarado en la 311 y otra vez en la 727 (V2). (el porqué, en SCHEMA.md) */
   --navy: #7cbae4;
   /* Los rangos, aclarados para el fondo oscuro (tanda 386). */

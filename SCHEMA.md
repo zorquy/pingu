@@ -41785,6 +41785,17 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1060 — `color-scheme: dark` en el tema oscuro
+
+El tema se elige con `data-theme` en `<html>` (lo pone el guion de cada
+cabecera desde `pokedoc-theme` o la preferencia del sistema), y el navegador
+no lo sabía: lo que pinta él —la lista abierta de un `<select>`, las barras
+de desplazamiento, los controles sin fondo propio— seguía en claro, con el
+texto heredado del tema en claro también. El bloque `:root[data-theme='dark']`
+de `style.css` declara `color-scheme: dark`. Un control nuevo que dependa de
+lo que pinta el navegador ya sale bien en los dos temas; no hace falta dar
+color a cada `<option>`.
+
 ## Tanda 1059 — «También tienes» con Editar desplegado, y las listas en la ficha
 
 - `abrirEditor` calcula `seguirAbierto` (la ficha ya abierta en esa carta con
