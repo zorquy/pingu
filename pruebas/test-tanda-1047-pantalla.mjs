@@ -193,7 +193,14 @@ console.log('── 6. Los cruces casan por versión ──')
   await page.waitForTimeout(1200)
   const quienes = await page.$$eval('[data-cruce]', (cs) => cs.map((c) => c.dataset.cruce))
   check('sale Lucía (da la Holo) y no Dani (da la Normal)', quienes.includes(U(1)) && !quienes.includes(U(2)), quienes.join())
-  check('  …y su carta lleva la chapa de la versión', (await page.locator(`[data-cruce="${U(1)}"] .mc-cruce-version`).first().textContent().catch(() => '')) === 'H')
+  // Con el DIBUJO de la versión, la insignia de las cartas de una expansión, y
+  // no con una letra («H»: PINGU, «me parece muy feo»).
+  const insignia = await page.locator(`[data-cruce="${U(1)}"] .mc-cruce-version`).first().evaluate((i) => {
+    const r = i.getBoundingClientRect()
+    return { clase: i.className, var: i.dataset.var, dibujo: !!i.querySelector('svg, img'), texto: i.textContent.trim(), w: Math.round(r.width), h: Math.round(r.height) }
+  }).catch(() => null)
+  check('  …y su carta lleva la insignia de la versión, con su dibujo y sin letras', insignia?.var === 'holo' && /mc-insignia/.test(insignia.clase) && insignia.dibujo && insignia.texto === '' && insignia.w === 18 && insignia.h === 18, JSON.stringify(insignia))
+  if (CAPS) await page.locator(`[data-cruce="${U(1)}"]`).first().screenshot({ path: `${CAPS}/1047-cruce.png` })
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
