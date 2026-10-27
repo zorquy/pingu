@@ -884,7 +884,22 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`urlsDeSpritesDeMazo`), por `/sprite` y la cadena de respaldos, que un
   lienzo con una imagen sin permiso no se exporta. La historia la dibuja
   ella entera (`historiaPropia`, 997b) y abajo va la marca, sin «Apunta las
-  tuyas» (PINGU: «muy cargante»).
+  tuyas» (PINGU: «muy cargante»). Desde la 1070 (Ibai: «varias opciones
+  para todos los gustos») un torneo tiene cuatro DISEÑOS y los dos, tres
+  FONDOS, más «Mi puesto»: los ofrece la hoja con `opciones` y recuerda lo
+  elegido. Un diseño nuevo es una función más en `DIBUJO` que pinta en las
+  tres formas (`larga`, `historia`, `apaisada`) y pide los colores a la
+  paleta `P`, nunca un `#fff` suelto: en «Claro» el texto es oscuro, y en
+  «Color» lo que iría del color del fondo va en blanco.
+- **«Tu mazo» en /mis-partidas sale de tus mazos guardados o a mano, y es
+  UNO: `js/partidas-elegir-mazo.js`** (tanda 1070), en el torneo y en la
+  partida suelta. El arquetipo de un mazo guardado se DEDUCE de su lista y se
+  enseña («Cuenta como…»); al EDITAR se respeta el que la fila ya tiene (que
+  una partida cambie de casilla en la matriz por abrirla es lo que no puede
+  pasar). Las rondas de un torneo copian su mazo guardado como copian el
+  arquetipo, y lo arrastra el disparador. El mazo predeterminado vive en
+  `match_log_ajustes`, privada: nada de lo que dice a qué juegas va en
+  `user_profiles`.
 - **Una página tiene UNA dirección para Google** (tanda 906). La canónica
   la arma `urlCanonica` (meta-social.js): sin `.html`, en pokedoc.es y solo
   con los parámetros que eligen el contenido (`PARAMETROS_CANONICOS`); la de

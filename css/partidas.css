@@ -839,3 +839,90 @@
   .partidas-hero-mazo { padding: var(--e-sm) var(--e-md); }
   .partidas-hero-mazo .partidas-sprite { width: 32px; height: 32px; }
 }
+
+/* ── 1070: «Tu mazo» de tus mazos guardados, el predeterminado y el puesto
+   (el porqué, en SCHEMA 1070). ── */
+.partidas-tu-mazo { display: grid; gap: var(--e-sm); margin-bottom: var(--e-md); }
+.partidas-tu-mazo-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-sm); }
+.partidas-tu-mazo-cab .subtext { margin: 0; }
+.partidas-tu-mazo .partidas-formato button { min-width: 0; white-space: nowrap; }
+.partidas-tu-mazo .partidas-mazo-fila { margin: 0; }
+/* Las baldosas: dos o tres por fila, y si tienes muchos mazos, se deslizan. */
+.partidas-guardados {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(208px, 1fr));
+  gap: var(--e-sm);
+  max-height: 248px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 2px;
+}
+.partidas-guardado {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 56px;
+  padding: var(--e-sm) var(--e-md);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.partidas-guardado:hover { border-color: var(--border-strong); }
+.partidas-guardado[aria-checked='true'] { border-color: var(--navy); background: var(--ice); }
+.partidas-guardado-sprites { display: flex; align-items: center; flex: none; min-width: 34px; }
+/* Sin sprites (la lista no dice a qué juega, o aún se está mirando): un hueco
+   con su borde, para que el nombre no baile al llegar. */
+.partidas-guardado .partidas-sprite-hueco { border: 2px dashed var(--border); border-radius: var(--radius-pill); }
+.partidas-guardado-texto { display: grid; min-width: 0; }
+.partidas-guardado-texto b,
+.partidas-guardado-texto small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.partidas-guardado-texto small { color: var(--text-mid); font-size: var(--t-xs); }
+.partidas-guardado-predet { display: inline-flex; flex: none; margin-left: auto; color: var(--warning); }
+.partidas-guardado-predet svg { fill: currentColor; }
+.partidas-cuenta-como { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-sm); margin: 0; }
+.partidas-cuenta-como .subtext { margin: 0; }
+.partidas-cuenta-como .partidas-sprite { width: 28px; height: 28px; }
+.partidas-pista-constructor { margin: 0; font-size: var(--t-xs); }
+.partidas-predeterminado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  font-size: var(--t-sm);
+  cursor: pointer;
+}
+.partidas-predeterminado input { width: 20px; height: 20px; margin: 0; accent-color: var(--navy-solid); }
+.partidas-puesto-fila input { width: 100%; max-width: 160px; }
+.partidas-puesto-fila .subtext { display: inline; margin: 0; }
+/* El puesto en la tarjeta: «3.º», con el color de su medalla en el podio
+   (los de `.medalla-*` del perfil). */
+.partidas-puesto {
+  flex: none;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-family: var(--font-marca);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  line-height: 28px;
+}
+.partidas-puesto.oro { background: rgba(245, 158, 11, 0.16); color: #92400e; }
+.partidas-puesto.plata { background: rgba(148, 163, 184, 0.2); color: #475569; }
+.partidas-puesto.bronce { background: rgba(205, 127, 50, 0.16); color: #92400e; }
+:root[data-theme='dark'] .partidas-puesto.oro { color: #fbbf24; }
+:root[data-theme='dark'] .partidas-puesto.plata { color: #cbd5e1; }
+:root[data-theme='dark'] .partidas-puesto.bronce { color: #e8a869; }
+/* Cerrar un torneo pregunta el puesto ahí mismo, en la tarjeta. */
+.partidas-cerrar-puesto { display: grid; gap: var(--e-sm); width: 100%; }
+.partidas-cerrar-puesto .subtext { margin: 0; }
+@media (max-width: 560px) {
+  .partidas-guardados { grid-template-columns: 1fr; max-height: 232px; }
+  .partidas-puesto-fila label { flex: 1 1 calc(50% - 8px); min-width: 0; }
+  .partidas-puesto-fila input { max-width: none; }
+}

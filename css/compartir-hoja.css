@@ -60,6 +60,64 @@
   display: none;
 }
 
+/* Lo que se elige del dibujo (1070): el diseño, el fondo y el puesto. El
+   diseño se desliza de lado si no cabe (cuatro en un teléfono estrecho). */
+.ch-disenos {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.ch-disenos::-webkit-scrollbar {
+  display: none;
+}
+
+.ch-disenos .seg-btn {
+  flex: 1 0 auto;
+  justify-content: center;
+  min-height: 44px;
+}
+
+.ch-ajustes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.ch-fondos {
+  flex: 1 1 auto;
+}
+
+.ch-fondos .seg-btn {
+  flex: 1 1 0;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+}
+
+.ch-muestra {
+  width: 16px;
+  height: 16px;
+  flex: none;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-pill);
+  background: var(--muestra);
+}
+
+.ch-puesto {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+}
+
+/* Encendido, como un segmento elegido. */
+.ch-puesto[aria-pressed='true'] {
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
 .ch-previa {
   display: grid;
   place-items: center;
@@ -104,6 +162,18 @@
 .ch-imagen.ch-historia,
 .ch-imagen.ch-publicacion {
   max-height: 40vh;
+}
+
+/* Con las filas del dibujo (1070) la vista previa cede un poco, y si aun así
+   no cabe, se desliza la hoja y no la página de detrás (1045). */
+.ch-hoja:has(.ch-ajustes, .ch-disenos) {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.ch-caja:has(.ch-disenos) .ch-imagen.ch-historia,
+.ch-caja:has(.ch-disenos) .ch-imagen.ch-publicacion {
+  max-height: 34vh;
 }
 
 .ch-cargando {

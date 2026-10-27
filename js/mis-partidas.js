@@ -24,6 +24,7 @@ import { montarSelectorMazo } from './torneos/selector-mazo.js'
 import {
   arquetipoDeMazoGuardado,
   mazoDeJugador,
+  leerPuesto,
   opcionesDeMazosGuardados,
   partidaDesdeRepeticion,
   repeticionesSinApuntar,
@@ -46,6 +47,7 @@ import { graficoBarras, graficoEvolucion } from './graficos-partidas.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { resultadoDeJuegos, filasVisibles, recortar, aColumnas, deColumnas, textoMarcador, decidida, cifrasDeJuegos } from './partidas-juegos.js'
 import { vistaVigilada, claveDeVista } from './ultima-vista.js'
+import { montarElegirMazo, filaDePredeterminado } from './partidas-elegir-mazo.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -75,6 +77,16 @@ let rondaPara = null
 let mazosGuardados = []
 let repeticionesMias = []
 let vinculoMazo = false
+// Lo de la 1070: si los torneos apuntados ya tienen mazo guardado y puesto
+// (`match_log_torneos.user_deck_id`, `puesto`, `jugadores`), si existe la
+// tabla del mazo predeterminado, y tu predeterminado (null = no tienes).
+// Mientras la base no los tenga, los formularios son los de antes.
+let torneoAlDia = false
+let ajustesEnBase = false
+let predeterminado = null
+// «Tu mazo» de los dos formularios (partidas-elegir-mazo.js).
+let elegirSuelta = null
+let elegirTorneo = null
 
 // ── Las partidas de los torneos de PokeDoc ──
 //
@@ -110,7 +122,8 @@ async function partidasDeTorneos() {
   if (!torneoIds.length) return []
 
   const [{ data: torneos }, { data: listas }] = await Promise.all([
-    supabase.from('tournaments').select('id, name, slug, start_at').in('id', torneoIds),
+    // `podium` (los primeros, en orden) da tu puesto si quedaste ahí (1070).
+    supabase.from('tournaments').select('id, name, slug, start_at, podium').in('id', torneoIds),
     // Las que la base nos deje: en un torneo de lista cerrada aún en
     // juego, esto vuelve solo con la mía, y esas partidas se quedan
     // fuera de la matriz hasta que termine.
@@ -135,6 +148,7 @@ async function partidasDeTorneos() {
     // «desconocido» que ensuciaría los porcentajes.
     if (!mio || !rival) continue
     const t = torneoPorId.get(torneoId)
+    const enPodio = Array.isArray(t?.podium) ? t.podium.indexOf(yo) : -1
     salida.push({
       id: `t-${m.id}`,
       // La clave CANÓNICA (por especies, contra el catálogo entero):
@@ -151,6 +165,8 @@ async function partidasDeTorneos() {
       deTorneo: true,
       // Para agruparlas en su tarjeta de «Tus torneos».
       torneoId: `pd-${torneoId}`,
+      // Tu puesto, si quedaste en el podio que guarda el torneo; si no, no se sabe.
+      torneoPuesto: enPodio >= 0 ? enPodio + 1 : null,
     })
   }
   return salida
@@ -510,6 +526,16 @@ function fechaDeTarjetaHtml(fecha) {
   return `<span class="partidas-torneo-fecha" aria-hidden="true"><b>${Number(m[3])}</b><small>${MESES_CORTOS[Number(m[2]) - 1]}</small></span>`
 }
 
+// Tu puesto en un torneo (1070): «3.º», con el color de su medalla en el
+// podio. El texto entero («3.º de 24») va en la etiqueta.
+function puestoHtml(t) {
+  const p = Number(t.puesto)
+  if (!Number.isInteger(p) || p < 1) return ''
+  const medalla = p === 1 ? ' oro' : p === 2 ? ' plata' : p === 3 ? ' bronce' : ''
+  const largo = `${p}.º${t.jugadores ? ` de ${t.jugadores}` : ''}`
+  return `<span class="partidas-puesto${medalla}" title="Quedaste ${escapeHtml(largo)}" aria-label="Quedaste ${escapeHtml(largo)}">${p}.º</span>`
+}
+
 function tarjetaTorneoHtml(t) {
   const rondas = t.rondas
     .slice()
@@ -542,10 +568,11 @@ function tarjetaTorneoHtml(t) {
           <span class="partidas-torneo-sub"><span class="partidas-origen${t.aMano ? '' : ' pokedoc'}">${t.aMano ? 'Apuntado por ti' : 'PokeDoc'}</span>${t.aMano && t.donde ? `<span class="subtext">${escapeHtml(t.donde)}</span>` : ''}</span>
         </span>
         ${t.cerrado ? '<span class="partidas-chapa-cerrado">Cerrado</span>' : ''}
+        ${puestoHtml(t)}
         <span class="partidas-torneo-record${claseDeRecord(t.rondas)}">${recordDe(t.rondas)}</span>
       </button>
       <div class="partidas-torneo-detalle ${abierto ? '' : 'hidden'}">
-        ${t.mazo ? `<p class="subtext">Jugaste <strong>${escapeHtml(t.mazo)}</strong></p>` : ''}
+        ${t.mazo ? `<p class="subtext">Jugaste <strong>${escapeHtml(t.mazo)}</strong>${t.mazoGuardado ? ` con tu mazo <a href="/constructor?mazo=${encodeURIComponent(t.mazoGuardado)}">${escapeHtml(mazosGuardados.find((m) => m.id === t.mazoGuardado)?.name || 'guardado')}</a>` : ''}${t.puesto ? ` · quedaste <strong>${escapeHtml(`${t.puesto}.º${t.jugadores ? ` de ${t.jugadores}` : ''}`)}</strong>` : ''}</p>` : ''}
         ${rondas.length ? `<ol class="partidas-torneo-rondas">${filas}</ol>` : '<p class="subtext">Sin rondas todavía.</p>'}
         ${editable ? `<div data-hueco-form="${escapeHtml(t.id)}"></div>` : ''}
         <div class="partidas-torneo-acciones">
@@ -566,11 +593,29 @@ function accionesDeTorneoHtml(t) {
       <button class="btn-secondary" data-reabrir-torneo="${id}">Reabrir</button>
       <button class="btn-outline" data-borrar-torneo="${id}">Borrar</button>`
   }
+  // Al cerrar se pregunta el puesto (1070), que es cuando se sabe: el torneo
+  // se suele apuntar antes de jugarlo.
+  if (cerrandoTorneo === t.id) {
+    return `<div class="partidas-cerrar-puesto" role="group" aria-label="Cerrar el torneo">
+        <p class="subtext">¿En qué puesto quedaste? Es opcional.</p>
+        <div class="partidas-form-fila partidas-puesto-fila">
+          <label>Tu puesto <input type="number" inputmode="numeric" min="1" max="9999" step="1" data-cierre-puesto value="${escapeHtml(t.puesto ?? '')}" placeholder="3" /></label>
+          <label>De cuántos jugadores <input type="number" inputmode="numeric" min="2" max="99999" step="1" data-cierre-jugadores value="${escapeHtml(t.jugadores ?? '')}" placeholder="24" /></label>
+        </div>
+        <div class="partidas-form-fila">
+          <button class="btn-primary" data-confirmar-cierre="${id}">Cerrar torneo</button>
+          <button class="btn-secondary" data-cancelar-cierre>Cancelar</button>
+        </div>
+      </div>`
+  }
   return `${compartir}<button class="btn-secondary" data-anadir-ronda="${id}">+ Añadir ronda</button>
       <button class="btn-secondary" data-editar-torneo="${id}">Editar torneo</button>
       <button class="btn-secondary" data-cerrar-torneo="${id}">Cerrar torneo</button>
       <button class="btn-outline" data-borrar-torneo="${id}">Borrar</button>`
 }
+
+// El torneo al que se le está preguntando el puesto antes de cerrarlo, o null.
+let cerrandoTorneo = null
 
 // ── Compartir una partida o un torneo en una imagen (tanda 997) ──
 //
@@ -601,7 +646,7 @@ function compartirElTorneo(t) {
     .sort((a, b) => String(a.creada || '').localeCompare(String(b.creada || '')))
     .map((p, i) => ({ ...rondaParaCompartir(p), ronda: i + 1 }))
   import('./partida-imagen.js')
-    .then((m) => m.compartirTorneo({ nombre: t.nombre, donde: t.aMano ? t.donde : 'Torneo de PokeDoc', fecha: t.fecha, mazo: mazoParaCompartir(t.mazo, t.mazoClave), rondas }))
+    .then((m) => m.compartirTorneo({ nombre: t.nombre, donde: t.aMano ? t.donde : 'Torneo de PokeDoc', fecha: t.fecha, mazo: mazoParaCompartir(t.mazo, t.mazoClave), puesto: t.puesto ?? null, jugadores: t.jugadores ?? null, rondas }))
     .catch(() => showToast('No se ha podido abrir la imagen para compartir', 'error'))
 }
 
@@ -628,6 +673,7 @@ function pintarTorneos() {
         donde: 'Torneo de PokeDoc',
         mazo: p.mioNombre,
         mazoClave: p.mio,
+        puesto: p.torneoPuesto ?? null,
         rondas: [],
         aMano: false,
       })
@@ -645,6 +691,10 @@ function pintarTorneos() {
       donde: t.donde,
       mazo: t.mi_mazo_nombre,
       mazoClave: t.mi_mazo,
+      // Lo de la 1070 (sin la migración, `undefined`: no se pinta).
+      mazoGuardado: t.user_deck_id || null,
+      puesto: t.puesto ?? null,
+      jugadores: t.jugadores ?? null,
       rondas: todas.filter((p) => p.torneoId === t.id),
       aMano: true,
       cerrado: Boolean(t.cerrado_el),
@@ -729,7 +779,27 @@ function pintarTorneos() {
     })
   )
   caja.querySelectorAll('[data-cerrar-torneo]').forEach((b) =>
-    b.addEventListener('click', () => cambiarCierre(b.dataset.cerrarTorneo, true))
+    b.addEventListener('click', () => {
+      // Con la base al día, primero el puesto; sin ella, se cierra como antes.
+      if (!torneoAlDia) return cambiarCierre(b.dataset.cerrarTorneo, true)
+      cerrandoTorneo = b.dataset.cerrarTorneo
+      pintarTorneos()
+      caja.querySelector('[data-cierre-puesto]')?.focus()
+    })
+  )
+  caja.querySelectorAll('[data-confirmar-cierre]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const zona = b.closest('.partidas-cerrar-puesto')
+      const puesto = leerPuesto(zona.querySelector('[data-cierre-puesto]').value, zona.querySelector('[data-cierre-jugadores]').value)
+      if (puesto.error) return showToast(puesto.error, 'error')
+      cambiarCierre(b.dataset.confirmarCierre, true, puesto)
+    })
+  )
+  caja.querySelectorAll('[data-cancelar-cierre]').forEach((b) =>
+    b.addEventListener('click', () => {
+      cerrandoTorneo = null
+      pintarTorneos()
+    })
   )
   caja.querySelectorAll('[data-reabrir-torneo]').forEach((b) =>
     b.addEventListener('click', () => cambiarCierre(b.dataset.reabrirTorneo, false))
@@ -1090,9 +1160,16 @@ async function guardarPartida() {
   // En modo ronda el mazo, la fecha y el dónde vienen del TORNEO: se
   // eligieron una vez al crearlo y repetirlos en cada ronda solo daba
   // ocasión de contradecirse.
+  // Tu mazo, fuera de una ronda: el guardado que elegiste (con su arquetipo
+  // deducido) o el escrito a mano (1070).
+  const elegidoMio = rondaPara ? null : await elegirSuelta.valor()
+  if (elegidoMio?.error) {
+    showToast(elegidoMio.error, 'error')
+    return
+  }
   const mio = rondaPara
     ? { clave: rondaPara.mi_mazo, nombre: rondaPara.mi_mazo_nombre }
-    : mazoDe('mio1', 'mio2')
+    : elegidoMio
   const rival = mazoDe('rival1', 'rival2')
 
   // Un bye no tiene rival: exigirlo sería no dejar apuntarlo nunca.
@@ -1128,9 +1205,13 @@ async function guardarPartida() {
     donde: rondaPara ? rondaPara.nombre : dondeElegido(),
     notas: $('partidaNotas').value.trim() || null,
   }
-  // El mazo guardado (tanda 627): solo en una suelta, y solo si la base ya
-  // tiene la columna — antes de la migración, mandarla haría fallar todo.
-  if (vinculoMazo && !rondaPara) fila.user_deck_id = $('partidaMazoGuardado').value || null
+  // El mazo guardado (tanda 627): solo si la base ya tiene la columna —
+  // antes de la migración, mandarla haría fallar todo—. En una suelta, el
+  // elegido; en una ronda, el del torneo (1070), que sus rondas copian como
+  // copian el arquetipo.
+  if (vinculoMazo && !rondaPara) fila.user_deck_id = mio.guardado || null
+  if (vinculoMazo && rondaPara && torneoAlDia) fila.user_deck_id = rondaPara.user_deck_id || null
+  const cambioPredet = rondaPara ? null : elegirSuelta.cambioDePredeterminado()
   if (rondaPara) {
     fila.torneo_id = rondaPara.id
     fila.jugada_el = rondaPara.jugado_el
@@ -1168,6 +1249,8 @@ async function guardarPartida() {
     showToast('No se ha podido guardar: ' + error.message, 'error')
     return
   }
+
+  await aplicarPredeterminado(cambioPredet, mio)
 
   if (editando) {
     // Al editar, el formulario se CIERRA: se vino a arreglar una cosa
@@ -1212,10 +1295,6 @@ function abrirFormPartida(torneo = null, partida = null) {
   $('partidaCampoFecha').classList.toggle('hidden', esRonda)
   $('partidaCampoDonde').classList.toggle('hidden', esRonda)
   $('partidaDondeOtroCampo').classList.toggle('hidden', esRonda || $('partidaDonde').value !== '__otro')
-  // En una ronda ya lo esconde su bloque (#partidaCamposMios, el de «Tu
-  // mazo»): el mazo de una ronda es el del torneo.
-  $('partidaCampoMazoGuardado').classList.toggle('hidden', !vinculoMazo)
-  pintarSelectMazoGuardado($('partidaMazoGuardado'), partida?.mazoGuardado || null)
   $('torneoLogForm').classList.add('hidden')
   $('partidaForm').classList.remove('hidden')
   if (esRonda) {
@@ -1229,7 +1308,8 @@ function abrirFormPartida(torneo = null, partida = null) {
   else limpiarFormPartida(esRonda)
 
   $('partidaForm').scrollIntoView({ behavior: 'smooth', block: 'nearest' })
-  ;$(esRonda ? 'selRival1' : 'selMio1').querySelector('input')?.focus()
+  // Con tu mazo ya elegido (un guardado, el predeterminado), al rival.
+  ;$(esRonda || elegirSuelta.origen() === 'guardado' || selectores.mio1?.valor() ? 'selRival1' : 'selMio1').querySelector('input')?.focus()
 }
 
 // ── El mazo guardado (tanda 627) ──
@@ -1260,14 +1340,31 @@ async function arquetipoDeGuardado(id) {
   return arquetipoDeMazoGuardado(m.cards, (x) => filasDeCartas.get(x), catalogo)
 }
 
-// Al elegir un mazo guardado con «Tu mazo» vacío, se rellena con el
-// arquetipo de ese mazo: es lo que se jugó. Si ya habías puesto uno, se
-// respeta — puede que lo nombres de otra manera a propósito.
-async function alElegirMazoGuardado() {
-  const id = $('partidaMazoGuardado').value
-  if (!id || selectores.mio1?.valor() || selectores.mio2?.valor()) return
-  const arq = await arquetipoDeGuardado(id)
-  if (arq && !selectores.mio1?.valor()) ponerMazoEnSelector('mio1', 'mio2', claveDeArquetipo(arq), arq.nombre)
+// Las cartas de TODOS tus mazos guardados de una vez (1070), para que las
+// baldosas de «Tu mazo» salgan con sus sprites sin una consulta por mazo. En
+// tandas de 150: una lista de ids muy larga no cabe en la dirección.
+async function cargarCartasDeMazos(mazos) {
+  const faltan = [...new Set((mazos || []).flatMap((m) => (m.cards || []).map((c) => c?.id)).filter((x) => x && !filasDeCartas.has(x)))]
+  for (let i = 0; i < faltan.length; i += 150) {
+    const { data, error } = await supabase.from('tcg_cards').select('id,name,category').in('id', faltan.slice(i, i + 150))
+    if (error) return
+    for (const f of data || []) filasDeCartas.set(f.id, f)
+  }
+}
+
+// El arquetipo de un mazo guardado en la forma en que se apunta: su clave
+// (la de la matriz) y su nombre. Una vez por mazo y visita.
+const arquetiposGuardados = new Map()
+function deducirGuardado(id) {
+  if (!arquetiposGuardados.has(id)) {
+    arquetiposGuardados.set(
+      id,
+      arquetipoDeGuardado(id)
+        .then((arq) => (arq ? { clave: claveDeArquetipo(arq), nombre: arq.nombre } : null))
+        .catch(() => null)
+    )
+  }
+  return arquetiposGuardados.get(id)
 }
 
 // Un mazo guardado vuelve al selector ENTERO en el primero de los dos
@@ -1297,7 +1394,7 @@ function ponerMazoEnSelector(sel1, sel2, clave, nombre) {
 
 function rellenarFormConPartida(p, esRonda) {
   if (!esRonda) {
-    ponerMazoEnSelector('mio1', 'mio2', p.mio, p.mioNombre)
+    elegirSuelta.abrir({ guardado: vinculoMazo ? p.mazoGuardado : null, clave: p.mio, nombre: p.mioNombre })
     $('partidaFecha').value = p.fecha || ''
     // El «dónde» guardado puede no estar en la lista (se escribió a
     // mano): se cae a «Otro…» con el texto puesto, que es donde estaba.
@@ -1434,10 +1531,8 @@ function marcarTipo(tipo) {
 function limpiarFormPartida(esRonda) {
   selectores.rival1?.limpiar()
   selectores.rival2?.limpiar()
-  if (!esRonda) {
-    selectores.mio1?.limpiar()
-    selectores.mio2?.limpiar()
-  }
+  // Una suelta nueva se abre con tu mazo predeterminado, si lo tienes (1070).
+  if (!esRonda) elegirSuelta.abrir({ nuevo: true })
   $('partidaNotas').value = ''
   marcarTipo('normal')
   // El formato se queda el que se usa en ese sitio: las rondas de un
@@ -1520,7 +1615,9 @@ function pintarDesdeRepeticion(elegida = null) {
       <button type="button" class="btn-primary" id="btnGuardarDesdeRep">Apuntar</button>
       ${cerrar}
     </div>`
-  pintarSelectMazoGuardado(caja.querySelector('#desdeRepMazo'))
+  // Con tu mazo predeterminado ya puesto, si es uno guardado (1070).
+  const predet = predeterminado?.user_deck_id
+  pintarSelectMazoGuardado(caja.querySelector('#desdeRepMazo'), predet && mazosGuardados.some((m) => m.id === predet) ? predet : null)
 }
 
 function abrirDesdeRepeticion() {
@@ -1603,7 +1700,12 @@ function abrirFormTorneo(torneo = null) {
   sel.value = torneo ? (hay ? torneo.donde : '__otro') : sel.options[0].value
   $('torneoLogDondeOtro').value = torneo && !hay ? torneo.donde || '' : ''
   $('torneoLogDondeOtroCampo').classList.toggle('hidden', sel.value !== '__otro')
-  ponerMazoEnSelector('tmio1', 'tmio2', torneo?.mi_mazo, torneo?.mi_mazo_nombre)
+  // Tu mazo (1070): el que el torneo ya tiene o, si es nuevo, tu predeterminado.
+  elegirTorneo.abrir(torneo ? { guardado: torneoAlDia ? torneo.user_deck_id : null, clave: torneo.mi_mazo, nombre: torneo.mi_mazo_nombre } : { nuevo: true })
+  // Y tu puesto, opcional, si la base tiene dónde guardarlo.
+  $('torneoLogPuestoCampo').classList.toggle('hidden', !torneoAlDia)
+  $('torneoLogPuesto').value = torneo?.puesto ?? ''
+  $('torneoLogJugadores').value = torneo?.jugadores ?? ''
 
   caja.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
   $('torneoLogNombre').focus()
@@ -1611,17 +1713,22 @@ function abrirFormTorneo(torneo = null) {
 
 async function guardarTorneoLog() {
   const nombre = $('torneoLogNombre').value.trim()
-  const mazo = mazoDe('tmio1', 'tmio2')
-  if (!nombre || !mazo) {
-    showToast(nombre ? 'Elige el mazo que jugaste.' : 'Ponle nombre al torneo.', 'error')
-    return
-  }
+  if (!nombre) return showToast('Ponle nombre al torneo.', 'error')
+  const mazo = await elegirTorneo.valor()
+  if (mazo.error) return showToast(mazo.error, 'error')
+  if (!mazo.clave) return showToast('Elige el mazo que jugaste.', 'error')
+  const puesto = torneoAlDia ? leerPuesto($('torneoLogPuesto').value, $('torneoLogJugadores').value) : null
+  if (puesto?.error) return showToast(puesto.error, 'error')
   const campos = {
     nombre,
     donde: dondeTorneoElegido(),
     mi_mazo: mazo.clave,
     mi_mazo_nombre: mazo.nombre,
   }
+  // Lo de la 1070, solo con la base al día: el mazo guardado (que sus rondas
+  // copian, y al cambiarlo lo arrastra el disparador) y el puesto.
+  if (torneoAlDia) Object.assign(campos, { user_deck_id: mazo.guardado || null, puesto: puesto.puesto, jugadores: puesto.jugadores })
+  const cambioPredet = elegirTorneo.cambioDePredeterminado()
   const fecha = $('torneoLogFecha').value
   if (fecha) campos.jugado_el = fecha
 
@@ -1636,6 +1743,7 @@ async function guardarTorneoLog() {
       showToast('No se ha podido guardar: ' + error.message, 'error')
       return
     }
+    await aplicarPredeterminado(cambioPredet, mazo)
     showToast('Torneo actualizado. Sus rondas se han puesto al día solas.', 'success')
     cerrarFormTorneo()
     await cargar()
@@ -1653,6 +1761,7 @@ async function guardarTorneoLog() {
     showToast('No se ha podido crear: ' + error.message, 'error')
     return
   }
+  await aplicarPredeterminado(cambioPredet, mazo)
   showToast('Torneo creado: ahora sus rondas.', 'success')
   cerrarFormTorneo()
   await cargar()
@@ -1663,23 +1772,45 @@ function cerrarFormTorneo() {
   editandoTorneo = null
   $('torneoLogForm').classList.add('hidden')
   $('torneoLogNombre').value = ''
+  $('torneoLogPuesto').value = ''
+  $('torneoLogJugadores').value = ''
   selectores.tmio1?.limpiar()
   selectores.tmio2?.limpiar()
+}
+
+// Poner o quitar tu mazo predeterminado (1070), después de guardar lo que
+// se apuntaba: si esto falla, lo apuntado ya está y solo se dice.
+async function aplicarPredeterminado(cambio, valor) {
+  if (!cambio || !ajustesEnBase) return
+  if (cambio === 'quitar') {
+    const { error } = await supabase.from('match_log_ajustes').delete().eq('user_id', session.user.id)
+    if (error) return showToast('No se ha podido quitar tu mazo predeterminado: ' + error.message, 'error')
+    predeterminado = null
+    return
+  }
+  const fila = { user_id: session.user.id, ...filaDePredeterminado(valor), updated_at: new Date().toISOString() }
+  const { data, error } = await supabase.from('match_log_ajustes').upsert(fila, { onConflict: 'user_id' }).select().maybeSingle()
+  if (error) return showToast('No se ha podido guardar tu mazo predeterminado: ' + error.message, 'error')
+  predeterminado = data || fila
 }
 
 // Cerrar o reabrir un torneo apuntado. Cerrar no toca ningún dato: solo
 // deja de ofrecer «añadir ronda» y «editar». Por eso reabrir es gratis y
 // no hay que confirmar nada — no se pierde nada en ninguna de las dos
 // direcciones.
-async function cambiarCierre(id, cerrar) {
+async function cambiarCierre(id, cerrar, puesto = null) {
+  // El puesto va en la MISMA escritura que el cierre (1070): o las dos o ninguna.
+  const cambios = { cerrado_el: cerrar ? new Date().toISOString() : null }
+  if (puesto && torneoAlDia) Object.assign(cambios, { puesto: puesto.puesto, jugadores: puesto.jugadores })
   const { error } = await supabase
     .from('match_log_torneos')
-    .update({ cerrado_el: cerrar ? new Date().toISOString() : null })
+    .update(cambios)
     .eq('id', id)
   if (error) {
     showToast('No se ha podido: ' + error.message, 'error')
     return
   }
+  cerrandoTorneo = null
   // Si se estaba apuntando o editando una ronda de ESE torneo, el
   // formulario se va con él: al cerrarlo ya no tiene dónde vivir.
   if (cerrar && (rondaPara?.id === id || editando?.torneoId === id)) cerrarFormPartida()
@@ -1707,7 +1838,7 @@ async function borrarPartida(id) {
 // repeticiones, la página sigue siendo la de siempre.
 async function cargarMazosYRepeticiones() {
   const yo = session.user.id
-  const [mazos, reps, sonda, sondaJuegos] = await Promise.all([
+  const [mazos, reps, sonda, sondaJuegos, sondaTorneo, ajustes] = await Promise.all([
     supabase.from('user_decks').select('id,name,cards,updated_at').eq('user_id', yo).order('updated_at', { ascending: false }),
     supabase.from('replays').select('id,titulo,jugador_a,jugador_b,ganador,mazo_a,mazo_b,turnos,created_at').eq('user_id', yo).order('created_at', { ascending: false }).limit(500),
     // Pedirla por su nombre falla entera si la columna no existe (42703):
@@ -1715,11 +1846,20 @@ async function cargarMazosYRepeticiones() {
     supabase.from('match_log').select('user_deck_id').limit(1),
     // Y lo mismo para los juegos (tanda 632).
     supabase.from('match_log').select('formato').limit(1),
+    // Y para lo de la 1070: el mazo guardado y el puesto de un torneo, y tu
+    // mazo predeterminado (su lectura ya dice si la tabla existe).
+    supabase.from('match_log_torneos').select('user_deck_id,puesto,jugadores').limit(1),
+    supabase.from('match_log_ajustes').select('user_deck_id,mi_mazo,mi_mazo_nombre').eq('user_id', yo).maybeSingle(),
   ])
   mazosGuardados = mazos.error ? [] : mazos.data || []
   repeticionesMias = reps.error ? [] : reps.data || []
   vinculoMazo = !sonda.error
   juegosEnBase = !sondaJuegos.error
+  // Las rondas de un torneo copian su mazo guardado en la columna de la 627:
+  // sin ella no hay dónde, y tampoco se ofrece en el torneo.
+  torneoAlDia = !sondaTorneo.error && vinculoMazo
+  ajustesEnBase = !ajustes.error
+  predeterminado = ajustes.error ? null : ajustes.data || null
 }
 
 async function cargar() {
@@ -1776,8 +1916,35 @@ async function init() {
     ['tmio1', 'selTorneoMio1', 'Tu Pokémon principal…'],
     ['tmio2', 'selTorneoMio2', 'Y el segundo (opcional)…'],
   ]) {
-    selectores[clave] = montarSelectorMazo($(caja), { catalogo, marcador })
+    // Los de «Tu mazo» avisan a su bloque al cambiar (la casilla del
+    // predeterminado sigue a lo elegido, 1070).
+    const alElegir = clave.startsWith('mio') ? () => elegirSuelta?.alCambiarMano() : clave.startsWith('tmio') ? () => elegirTorneo?.alCambiarMano() : undefined
+    selectores[clave] = montarSelectorMazo($(caja), { catalogo, marcador, alElegir })
   }
+
+  // «Tu mazo» de los dos formularios (1070): de tus mazos guardados o a mano.
+  const comun = {
+    mazos: () => mazosGuardados,
+    deducir: deducirGuardado,
+    preparar: () => cargarCartasDeMazos(mazosGuardados),
+    spritesHtml: spritesDeMazoHtml,
+    predet: () => predeterminado,
+    conPredet: () => ajustesEnBase,
+  }
+  elegirSuelta = montarElegirMazo($('partidaTuMazo'), {
+    ...comun,
+    nombre: 'suelta',
+    enlazar: () => vinculoMazo,
+    mano: () => mazoDe('mio1', 'mio2'),
+    ponerMano: (clave, nombre) => ponerMazoEnSelector('mio1', 'mio2', clave, nombre),
+  })
+  elegirTorneo = montarElegirMazo($('torneoTuMazo'), {
+    ...comun,
+    nombre: 'torneo',
+    enlazar: () => torneoAlDia,
+    mano: () => mazoDe('tmio1', 'tmio2'),
+    ponerMano: (clave, nombre) => ponerMazoEnSelector('tmio1', 'tmio2', clave, nombre),
+  })
 
   // «Otro…» abre su campo de texto; el resto lo esconde.
   $('partidaDonde').addEventListener('change', () => {
@@ -1854,7 +2021,6 @@ async function init() {
     else abrirFormPartida(null)
   })
   $('btnCancelarPartida').addEventListener('click', cerrarFormPartida)
-  $('partidaMazoGuardado').addEventListener('change', () => alElegirMazoGuardado().catch(() => {}))
   $('btnDesdeRepeticion').addEventListener('click', () => {
     if (!$('desdeRepForm').classList.contains('hidden')) cerrarDesdeRepeticion()
     else abrirDesdeRepeticion()

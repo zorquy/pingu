@@ -4,6 +4,70 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 — IBAI-Claude (1070 — tu mazo del constructor, tu puesto, tu predeterminado y la imagen del torneo a tu gusto)
+
+**Nota de integración**: hecha el 27 en otra sesión como «tanda 1060» y
+entregada en bundle; al integrarla hoy el 1060 ya era de PINGU (los
+desplegables del tema oscuro), así que se renumera a **1070** (migración,
+pruebas y SCHEMA incluidos) y va rebasada encima de la 1069.
+
+**Hecho** (Ibai: «al guardar tus partidas/torneos jugados, que puedas
+seleccionar algún mazo de tu constructor en vez de añadir a mano tu mazo
+(esto podría sumar para las estadísticas)», «al añadir tus torneos jugados,
+un input (opcional) que sea la posición en el torneo; que salga al exportar
+la imagen o que puedas elegir varios formatos… para todos los gustos» y «que
+puedas ponerte un mazo predeterminado para tus torneos»):
+- **MIGRACIÓN `supabase-migration-1070-torneos-mazo-y-puesto.sql`, PENDIENTE
+  DE EJECUTAR.** `match_log_torneos.user_deck_id` (sus rondas lo copian y el
+  disparador de la 251 lo arrastra), `puesto` y `jugadores` (opcionales), y
+  la tabla PRIVADA `match_log_ajustes` con tu mazo predeterminado. Sin ella
+  la web hace lo de antes (sondas en `mis-partidas.js`; /admin la vigila).
+- **«Tu mazo»** en el torneo y en la partida suelta: «Mis mazos / A mano».
+  Con un mazo guardado el arquetipo se deduce de la lista («Cuenta como…»,
+  con «Cambiar»); si la lista no lo dice, se pide. Al editar se respeta el
+  arquetipo de la fila. Módulo nuevo `js/partidas-elegir-mazo.js`; sustituye
+  al desplegable «Con tu mazo guardado» de la 627. Las rondas de un torneo
+  cuentan ya en «Con cada mazo guardado» y en el récord de /mazos.
+- **Mazo predeterminado**: casilla en los dos formularios (uno nuevo sale con
+  él) y en /mazos la chapa y el «⋯» para ponerlo o quitarlo.
+- **Puesto**: al crear/editar el torneo y al CERRARLO (en la tarjeta, misma
+  escritura que el cierre). La tarjeta lo enseña («3.º», con medalla en el
+  podio); los torneos de PokeDoc lo sacan de su `podium`.
+- **Imagen**: cuatro diseños para el torneo (Clásico, Podio, Récord,
+  Mosaico), tres fondos (Noche, Claro, Color; también la partida suelta) y
+  «Mi puesto»; la hoja recuerda lo elegido. Detalle en SCHEMA (1070).
+
+**Ficheros**: supabase-migration-1070-torneos-mazo-y-puesto.sql (nuevo),
+js/partidas-elegir-mazo.js (nuevo), js/mis-partidas.js, mis-partidas.html,
+css/partidas.css, js/partidas-mazos.js, js/partida-imagen.js,
+js/compartir-hoja.js, css/compartir-hoja.css, js/mazos.js, css/mazos.css,
+js/schema-check.js, CLAUDE.md, SCHEMA.md, novedades.json, BITACORA.md.
+
+**Pruebas** (rama pruebas): nuevas `test-tanda-1070.mjs` (lo puro;
+`sql-tanda-1070.sql`, 43 comprobaciones contra PostgreSQL; la migración
+sentencia a sentencia) y `test-tanda-1070-pantalla.mjs` (los dos
+formularios, el predeterminado, cerrar con puesto, el podio de PokeDoc, sin
+la migración, la hoja con sus 39 imágenes, /mazos y el móvil), con sus
+rigores. El doble aprende `match_log_ajustes`, los CHECK, el mazo propio en
+las tres tablas y el arrastre de la 251. Al día 251 (cerrar pregunta el
+puesto) y 627 (baldosas en vez del desplegable).
+Verdes además: partidas, partidas-pagina, 494, 553, 381, 628, 632, 899, 997,
+1013, 748, 790, 859, 869, imports, 299, 305, 309, 312, 313, 315, 326, 497,
+515, 519, 583, 621, 798, 835, 871, 873, 989, 1018, 1023, 1040 y 981. Rojas
+que lo son IGUAL sin esta tanda (pasadas sobre la rama sin tocar): 310, 311,
+316, 321, 413, 570, 782, 829, 836, 880 y 893. Rigores: los 15 de
+`rigor-tanda-1070.py` detectados, y los 13 de
+`rigor-tanda-1070-pantalla.py` (uno, «una lista sin Pokémon se apunta sin
+arquetipo», salía sin detectar: la guarda de «Elige el mazo» lo tapaba;
+ahora la prueba mira también QUÉ se dice, y lo ve).
+
+**Para PINGU**: he tocado `js/compartir-hoja.js` (acepta `opciones` y
+`texto` como función; sin ellas, igual que antes) y `js/partida-imagen.js`
+(tu 997: el Clásico es el tuyo con el puesto encima).
+
+**Pendiente**: ejecutar la migración 1070 (es independiente de las tuyas
+1067–1069); una pasada de suite entera.
+
 ## 2026-10-28 (311) — PINGU-Claude (1069 — lo que ve la gente de una tienda)
 
 **Hecho**: la tanda 3 y última del portal de tiendas. El perfil de una

@@ -22,6 +22,13 @@
 //             difuminada (997, PINGU: «se ve que es la publicación y por
 //             detrás otra más grande»)
 //     x:      { texto, url } (880): lo que se escribe en X; sin él, `texto`
+//     opciones: (1070) lo que se puede elegir del DIBUJO, además de la red y
+//             la forma: { disenos: [{ id, nombre }], fondos: [{ id, nombre,
+//             muestra }], puesto: true si hay un puesto que enseñar o no,
+//             recordar: clave de localStorage para lo último elegido }. La
+//             pantalla recibe lo elegido como segundo argumento de `imagen`
+//             (`{ diseno, fondo, puesto }`), y `texto` puede ser una función
+//             de eso mismo (el puesto sale también en el texto).
 //
 // Es un <dialog>: desde abajo en el móvil, centrado en el PC. Entra por
 // `import()` y mete su hoja: la portada no paga nada.
@@ -130,17 +137,55 @@ async function compartirImagen(lienzo, nombreFichero, texto) {
   showToast('Descargada. Súbela desde tu galería.', 'success')
 }
 
-export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', imagen = null, nombre = 'pokedoc', x = null, historiaPropia = false } = {}) {
+// Lo elegido del dibujo (1070): lo recordado si sigue existiendo entre lo que
+// se ofrece, y si no, lo primero. Puro, para probarlo en Node.
+export function eleccionInicial(opciones = {}, recordada = null) {
+  const ids = (lista) => (lista || []).map((o) => o.id)
+  const de = (lista, valor) => (ids(lista).includes(valor) ? valor : ids(lista)[0] || null)
+  return {
+    diseno: de(opciones.disenos, recordada?.diseno),
+    fondo: de(opciones.fondos, recordada?.fondo),
+    puesto: Boolean(opciones.puesto) && recordada?.puesto !== false,
+  }
+}
+
+function leerEleccion(clave) {
+  if (!clave) return null
+  try {
+    return JSON.parse(localStorage.getItem(clave) || 'null')
+  } catch {
+    return null
+  }
+}
+
+function guardarEleccion(clave, eleccion) {
+  if (!clave) return
+  try {
+    // El puesto se recuerda solo si se ofrecía: un torneo sin puesto no dice
+    // nada de si lo quieres enseñar en el siguiente.
+    const antes = leerEleccion(clave) || {}
+    localStorage.setItem(clave, JSON.stringify({ ...antes, ...eleccion }))
+  } catch {
+    /* sin almacenamiento, la próxima vez se vuelve a elegir */
+  }
+}
+
+export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', imagen = null, nombre = 'pokedoc', x = null, historiaPropia = false, opciones = null } = {}) {
   await hojaInyectada('css/compartir-hoja.css')
   const d = asegurarDialogo()
   const conImagen = typeof imagen === 'function'
   let forma = 'historia'
   const lienzos = {}
   const { direccionDeX } = await import('./compartir-x.js')
-  const direccionX = direccionDeX(x?.texto ? x : { texto })
+  const op = conImagen && opciones ? opciones : {}
+  const eleccion = eleccionInicial(op, leerEleccion(op.recordar))
+  const disenos = op.disenos?.length > 1 ? op.disenos : null
+  const fondos = op.fondos?.length > 1 ? op.fondos : null
+  const textoAhora = () => (typeof texto === 'function' ? texto(eleccion) : texto)
   // Lo que se escribe en X, tal cual sale en su cuadro: se enseña debajo de
   // la imagen en esa pestaña (la de texto ya no existe: 988).
-  const textoX = x?.texto ? `${x.texto}${x.url ? `\n\n${x.url}` : ''}` : texto
+  const textoX = () => (x?.texto ? `${x.texto}${x.url ? `\n\n${x.url}` : ''}` : textoAhora())
+  const direccionX = () => direccionDeX(x?.texto ? x : { texto: textoAhora() })
   const red = () => FORMAS[forma].red
 
   d.innerHTML = `
@@ -159,14 +204,25 @@ export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', ima
         <button type="button" class="seg-btn" data-ch-forma="historia">Historia</button>
         <button type="button" class="seg-btn" data-ch-forma="publicacion">Publicación</button>
       </div>` : ''}
+      ${disenos ? `
+      <div class="seg ch-disenos" role="group" aria-label="Diseño">
+        ${disenos.map((o) => `<button type="button" class="seg-btn" data-ch-diseno="${escapeHtml(o.id)}">${escapeHtml(o.nombre)}</button>`).join('')}
+      </div>` : ''}
+      ${fondos || op.puesto ? `
+      <div class="ch-ajustes">
+        ${fondos ? `<div class="seg ch-fondos" role="group" aria-label="Fondo">
+          ${fondos.map((o) => `<button type="button" class="seg-btn" data-ch-fondo="${escapeHtml(o.id)}"><span class="ch-muestra" style="--muestra:${escapeHtml(o.muestra || 'transparent')}" aria-hidden="true"></span>${escapeHtml(o.nombre)}</button>`).join('')}
+        </div>` : ''}
+        ${op.puesto ? `<button type="button" class="btn-secondary ch-puesto" data-ch-puesto>${icons.medal(16)} Mi puesto</button>` : ''}
+      </div>` : ''}
       <div class="ch-previa" id="chPrevia"></div>
       <p class="ch-nota" id="chNota"></p>
-      ${conImagen ? `<pre class="ch-texto ch-texto-x" id="chTextoX" hidden>${escapeHtml(textoX)}</pre>` : ''}
+      ${conImagen ? `<pre class="ch-texto ch-texto-x" id="chTextoX" hidden>${escapeHtml(textoX())}</pre>` : ''}
       <div class="ch-acciones">
         <button type="button" class="btn-primary ch-compartir" data-ch-compartir>${icons.share(16)} Compartir…</button>
         ${conImagen
           ? `<button type="button" class="btn-secondary ch-descargar" data-ch-descargar>${iconoDescargar(16)} Descargar</button>
-             <a class="btn-secondary ch-x" data-ch-x href="${escapeHtml(direccionX)}" target="_blank" rel="noopener" hidden>${icons.xLogo(16)} Publicar en X</a>`
+             <a class="btn-secondary ch-x" data-ch-x href="${escapeHtml(direccionX())}" target="_blank" rel="noopener" hidden>${icons.xLogo(16)} Publicar en X</a>`
           : `<button type="button" class="btn-secondary ch-copiar" data-ch-copiar>${icons.link(16)} Copiar</button>`}
       </div>
     </div>`
@@ -174,28 +230,37 @@ export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', ima
   const previa = d.querySelector('#chPrevia')
   const nota = d.querySelector('#chNota')
 
+  // Un lienzo por forma Y por lo elegido: volver a un diseño ya visto no lo
+  // dibuja otra vez.
   async function lienzoDe(f) {
-    if (lienzos[f]) return lienzos[f]
-    if (f === 'historia' && historiaPropia) return (lienzos[f] = await imagen('larga'))
-    const dibujo = await imagen(FORMAS[f].pide)
-    lienzos[f] = f === 'historia' ? historiaDe(dibujo) : dibujo
-    return lienzos[f]
+    const clave = `${f}|${eleccion.diseno}|${eleccion.fondo}|${eleccion.puesto}`
+    if (lienzos[clave]) return lienzos[clave]
+    const pedido = { ...eleccion }
+    if (f === 'historia' && historiaPropia) return (lienzos[clave] = await imagen('larga', pedido))
+    const dibujo = await imagen(FORMAS[f].pide, pedido)
+    lienzos[clave] = f === 'historia' ? historiaDe(dibujo) : dibujo
+    return lienzos[clave]
   }
   const fichero = () => `${nombre}${FORMAS[forma].sufijo}.png`
 
   let turno = 0
   async function pintar() {
     if (!conImagen) {
-      previa.innerHTML = `<pre class="ch-texto">${escapeHtml(texto)}</pre>`
+      previa.innerHTML = `<pre class="ch-texto">${escapeHtml(textoAhora())}</pre>`
       nota.textContent = 'El texto, tal cual se pega en WhatsApp o en X.'
       return
     }
     const mio = ++turno
     for (const b of d.querySelectorAll('[data-ch-red]')) b.setAttribute('aria-pressed', String(b.dataset.chRed === red()))
     for (const b of d.querySelectorAll('[data-ch-forma]')) b.setAttribute('aria-pressed', String(b.dataset.chForma === forma))
+    for (const b of d.querySelectorAll('[data-ch-diseno]')) b.setAttribute('aria-pressed', String(b.dataset.chDiseno === eleccion.diseno))
+    for (const b of d.querySelectorAll('[data-ch-fondo]')) b.setAttribute('aria-pressed', String(b.dataset.chFondo === eleccion.fondo))
+    d.querySelector('[data-ch-puesto]')?.setAttribute('aria-pressed', String(eleccion.puesto))
     d.querySelector('#chFormas').hidden = red() !== 'instagram'
     d.querySelector('[data-ch-x]').hidden = red() !== 'x'
+    d.querySelector('[data-ch-x]').href = direccionX()
     d.querySelector('#chTextoX').hidden = red() !== 'x'
+    d.querySelector('#chTextoX').textContent = textoX()
     nota.textContent = FORMAS[forma].medida
     previa.innerHTML = `<p class="ch-cargando">Dibujando la imagen…</p>`
     try {
@@ -223,20 +288,31 @@ export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', ima
       forma = f.dataset.chForma
       return pintar()
     }
+    // Lo del dibujo (1070): se cambia, se recuerda y se vuelve a pintar.
+    const di = e.target.closest('[data-ch-diseno]')
+    const fo = e.target.closest('[data-ch-fondo]')
+    const pu = e.target.closest('[data-ch-puesto]')
+    if (di || fo || pu) {
+      if (di) eleccion.diseno = di.dataset.chDiseno
+      if (fo) eleccion.fondo = fo.dataset.chFondo
+      if (pu) eleccion.puesto = !eleccion.puesto
+      guardarEleccion(op.recordar, op.puesto ? eleccion : { diseno: eleccion.diseno, fondo: eleccion.fondo })
+      return pintar()
+    }
     if (e.target.closest('[data-ch-cerrar]')) return d.close()
-    if (e.target.closest('[data-ch-copiar]')) return copiar(texto)
+    if (e.target.closest('[data-ch-copiar]')) return copiar(textoAhora())
     if (e.target.closest('[data-ch-descargar]')) {
       const { descargarLienzo } = await import('./imagen-compartir.js')
       return descargarLienzo(await lienzoDe(forma), fichero())
     }
     if (e.target.closest('[data-ch-compartir]')) {
-      if (conImagen) return compartirImagen(await lienzoDe(forma), fichero(), texto)
+      if (conImagen) return compartirImagen(await lienzoDe(forma), fichero(), textoAhora())
       try {
-        if (navigator.share) return await navigator.share({ text: texto })
+        if (navigator.share) return await navigator.share({ text: textoAhora() })
       } catch (err) {
         if (err?.name === 'AbortError') return
       }
-      return copiar(texto)
+      return copiar(textoAhora())
     }
   }
 

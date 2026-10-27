@@ -41785,6 +41785,105 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1070 — Tu mazo del constructor, tu puesto, tu predeterminado y la imagen del torneo a tu gusto
+
+(Hecha como «tanda 1060» en otra sesión y renumerada al integrarla: el 1060
+ya era de los desplegables del tema oscuro.)
+
+Ibai: «al guardar tus partidas/torneos jugados, que puedas seleccionar algún
+mazo de tu constructor en vez de añadir a mano tu mazo (esto podría sumar
+para las estadísticas)», «al añadir tus torneos jugados, un input (opcional)
+que sea la posición en el torneo; que la posición salga al exportar la
+imagen o que puedas elegir varios formatos… que haya varias opciones para
+todos los gustos» y «que puedas ponerte un mazo predeterminado para tus
+torneos».
+
+**MIGRACIÓN `supabase-migration-1070-torneos-mazo-y-puesto.sql`, PENDIENTE DE
+EJECUTAR** (re-ejecutable, cada sentencia por su lado):
+
+- `match_log_torneos.user_deck_id` (→ `user_decks`, `on delete set null`, con
+  el disparador `match_log_mazo_propio` de la 627: solo un mazo TUYO). Como el
+  arquetipo, se copia a cada ronda (`match_log.user_deck_id`) y
+  `match_log_torneo_arrastra` (251) lo arrastra al cambiarlo. Así las rondas
+  de un torneo cuentan en «Con cada mazo guardado» y en el récord de /mazos,
+  que ya leían esa columna.
+- `match_log_torneos.puesto` (1–9999) y `jugadores` (2–99999), opcionales, y
+  `puesto <= jugadores`. Solo se guardan; cambiar el puesto no reescribe las
+  rondas (el disparador mira solo lo que copia).
+- **`match_log_ajustes`**: tu mazo predeterminado (`user_deck_id`, y el
+  arquetipo `mi_mazo` + `mi_mazo_nombre`, enteros o ninguno). Tabla aparte y
+  PRIVADA (RLS a la fila propia en las cuatro operaciones, `revoke` a `anon`),
+  como `user_play_pokemon` (834): a qué juegas no lo ve nadie, y
+  `user_profiles` lo lee cualquiera. Borrar el mazo deja el arquetipo.
+- Vuelve a crear `match_log.user_deck_id` y su disparador si la 627 no
+  estuviera puesta (misma columna, misma función).
+
+**Mientras no se ejecute, la web hace lo de antes**: `mis-partidas.js`
+sondea `match_log_torneos(user_deck_id,puesto,jugadores)` (`torneoAlDia`) y
+lee `match_log_ajustes` (`ajustesEnBase`); sin ellas el torneo se escribe a
+mano, sin puesto, y no hay casilla de predeterminado. /admin las vigila
+(`schema-check.js`).
+
+**«Tu mazo»** (`js/partidas-elegir-mazo.js`, `montarElegirMazo`; el HTML en
+`mis-partidas.html` para que no salte): en el torneo y en la partida suelta,
+«Mis mazos / A mano». Con un mazo guardado no se escribe nada: el arquetipo
+se DEDUCE de la lista (`deducirGuardado` → `arquetipoDeMazoGuardado` de la
+627, con las cartas de todos tus mazos pedidas de una vez en tandas de 150,
+`cargarCartasDeMazos`) y se dice («Cuenta como Dragapult»), con «Cambiar» por
+si no es el que tú dirías; si la lista no tiene Pokémon de los que deducirlo,
+se pide a mano. **Al editar se respeta el arquetipo que la fila ya tiene**
+(no se deduce otra vez: la partida no cambia de casilla por abrirla, 251), y
+un mazo que ya no está en tu lista sale como tal (472). El origen se recuerda
+por formulario (`pokedoc-partidas-origen-mazo-suelta/-torneo`). Sustituye al
+desplegable «Con tu mazo guardado» de la 627 (que seguía obligando a
+escribir el arquetipo); el de «Apuntar desde una repetición» se queda, ya
+con tu predeterminado puesto.
+
+**El predeterminado**: casilla «Mi mazo predeterminado» en los dos
+formularios. Un formulario NUEVO sale con él (`origenInicial`: manda sobre lo
+recordado); la casilla sigue a lo elegido salvo que la toques; al guardar,
+`cambioDePredeterminado` dice si se pone (`upsert` por `user_id`) o se quita
+(`delete`), DESPUÉS de guardar lo apuntado. En /mazos, la chapa
+«Predeterminado» y el «⋯» para ponerlo o quitarlo (cambia ya y se deshace si
+falla, 896); desde ahí se guarda solo el mazo, sin arquetipo.
+
+**El puesto**: «Tu puesto» y «De cuántos jugadores» al crear o editar el
+torneo, y **al cerrarlo** (es cuando se sabe: el torneo se apunta antes de
+jugarlo), en la tarjeta, en la MISMA escritura que el cierre
+(`cambiarCierre(id, true, puesto)`). `leerPuesto` (partidas-mazos.js) dice lo
+imposible en palabras. La tarjeta lleva «3.º» (oro, plata o bronce en el
+podio) y dentro «con tu mazo X · quedaste 3.º de 24». Los torneos de PokeDoc
+sacan tu puesto de `tournaments.podium` (solo si quedaste ahí).
+
+**La imagen** (`partida-imagen.js`): un torneo se dibuja con uno de cuatro
+DISEÑOS (`DISENOS`: Clásico, el de la 997 con el puesto en una píldora
+arriba; Podio, la medalla con el número —sin puesto, con el récord—; Récord,
+sin rivales; Mosaico, una baldosa por ronda con el mazo del rival,
+`rejillaDeMosaico`, hasta 16) sobre uno de tres FONDOS (`FONDOS`: Noche, Claro
+y Color —el tono de la medalla OSCURO si estás en el podio, si no el del
+récord—, también para la partida suelta). El dibujo pide sus colores a la
+paleta del fondo (`P`, que fija `prepararLienzo`); en «Color» lo que iría del
+mismo color que el fondo (el récord verde, la etiqueta de bronce) va en
+blanco y la píldora del puesto, blanca con la tinta de su medalla. El texto
+que acompaña lleva el puesto si se enseña (`textoDeTorneo(t, eleccion)`).
+
+**La hoja de compartir** (`compartir-hoja.js`) acepta `opciones: { disenos,
+fondos, puesto, recordar }`: filas de diseño y fondo y el botón «Mi puesto»,
+lo elegido va a `imagen(formato, eleccion)` (un lienzo por forma Y elección)
+y `texto` puede ser una función de la elección (X lo vuelve a escribir). Lo
+último elegido se recuerda en `localStorage` (`pokedoc-imagen-partidas`). Las
+demás pantallas que la usan no pasan `opciones` y no cambian.
+
+**Pruebas** (rama `pruebas`): `test-tanda-1070.mjs` (lo puro;
+`sql-tanda-1070.sql` contra PostgreSQL: 43 comprobaciones de permisos,
+arrastre, puesto y privacidad; la migración sentencia a sentencia, sin la
+627 delante; /admin) y `test-tanda-1070-pantalla.mjs` (los dos formularios,
+el predeterminado de ida y vuelta, el mazo sin arquetipo, cerrar con puesto,
+el podio de PokeDoc, sin la migración, la hoja con sus 39 imágenes a disco,
+/mazos y el móvil). El doble aprende `match_log_ajustes`, los CHECK, el mazo
+propio en las tres tablas y el arrastre de la 251. Al día 251 (cerrar
+pregunta el puesto) y 627 (las baldosas en vez del desplegable).
+
 ## Tanda 1069 — Lo que ve la gente de una tienda
 
 La tanda 3 de «Portal de tiendas» (PINGU: «que sea un perfil más… que no

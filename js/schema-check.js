@@ -128,6 +128,10 @@ export const REQUISITOS = [
   { tabla: 'user_play_pokemon', columna: 'player_id', fichero: 'supabase-migration-play-pokemon.sql', rompe: 'El Player ID no se guarda en el perfil y la decklist oficial del constructor no se rellena sola con tus datos.' },
   { tabla: 'page_views', columna: 'origen', fichero: 'supabase-migration-analitica.sql', rompe: 'Las visitas no dicen de dónde llegan y el panel nuevo de Analítica no sale.' },
   { tabla: 'tournaments', columna: 'rounds_per_matchday', fichero: 'supabase-migration-torneos-rondas-jornada.sql', rompe: 'En una liga no se pueden jugar varias rondas por jornada.' },
+  // Tanda 1070. Sin ella Mis partidas hace lo de antes: el torneo apuntado se
+  // escribe a mano y sin puesto, y no hay mazo predeterminado.
+  { tabla: 'match_log_torneos', columna: 'puesto', fichero: 'supabase-migration-1070-torneos-mazo-y-puesto.sql', rompe: 'Un torneo apuntado no se puede hacer con un mazo guardado ni guardar tu puesto (la imagen sale sin él).' },
+  { tabla: 'match_log_ajustes', columna: 'user_deck_id', fichero: 'supabase-migration-1070-torneos-mazo-y-puesto.sql', rompe: 'No se puede elegir un mazo predeterminado en Mis partidas ni en Mis mazos.' },
 ]
 
 // Distingue "no existe" de "existe pero no puedo leerlo". Una tabla que

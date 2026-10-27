@@ -151,6 +151,9 @@
 .mz-chip-ok { background: var(--success-bg); color: var(--success); }
 .mz-chip-aviso { background: var(--warning-bg); color: var(--warning); }
 .mz-chip-mal { background: var(--danger-bg); color: var(--danger); }
+/* Tu mazo predeterminado de Mis partidas (1070), con su estrella rellena. */
+.mz-chip-predet { background: var(--warning-bg); color: var(--warning); }
+.mz-chip-predet svg { fill: currentColor; }
 .mz-record b { color: var(--text); }
 
 /* Pokémon, Entrenadores y Energías, en una barra. */

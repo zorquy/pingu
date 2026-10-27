@@ -42,6 +42,12 @@ let reimpresion = new Set()
 // (`match_log.user_deck_id`) y lo que te falta de tu colección.
 let records = new Map() // id de mazo → { win, loss, draw }
 let costes = new Map() // id de mazo → resumen de coste-mazo.js, o null si no se pudo
+// Tu mazo predeterminado de Mis partidas (1070): el que sale ya puesto al
+// apuntar un torneo o una partida. `ajustesEnBase` dice si la base tiene
+// dónde guardarlo (supabase-migration-1070-torneos-mazo-y-puesto.sql).
+let predeterminado = null
+let ajustesEnBase = false
+let usuario = null
 
 // La imagen de una carta con su cadena de respaldos: el espejo, y si no
 // tiene (las promos de Mega Evolución, las energías), la CDN de Limitless.
@@ -97,6 +103,7 @@ function tarjetaHtml(m) {
           <span class="mz-chip mz-chip-${estado.clase}">${icono(estado.clase === 'ok' ? 'checkCircle' : 'triangleAlert', 12)} ${escapeHtml(estado.texto)}</span>
           <span class="mz-chip">${m.is_public ? 'Público' : 'Privado'}</span>
           ${rec ? `<span class="mz-record"><b>${textoDeRecord(rec)}</b> en tus partidas</span>` : ''}
+          ${predeterminado?.user_deck_id === m.id ? `<span class="mz-chip mz-chip-predet" title="Sale ya puesto al apuntar un torneo o una partida">${icono('star', 12)} Predeterminado</span>` : ''}
         </p>
         ${total ? `<div class="mz-barra" aria-hidden="true"><i class="mz-p" style="width:${ancho(rep.P)}%"></i><i class="mz-t" style="width:${ancho(rep.T)}%"></i><i class="mz-e" style="width:${ancho(rep.E)}%"></i></div>
         <p class="mz-leyenda"><span class="mz-p">${rep.P} Pokémon</span><span class="mz-t">${rep.T} Entrenadores</span><span class="mz-e">${rep.E} Energías</span></p>` : '<p class="mz-leyenda">Todavía sin cartas</p>'}
@@ -111,6 +118,7 @@ function tarjetaHtml(m) {
             <a href="${enlace}">${icono('edit')} Abrir</a>
             <button type="button" data-portada>${icono('image')} Portada</button>
             <button type="button" data-duplicar>${icono('layers')} Duplicar</button>
+            ${ajustesEnBase ? `<button type="button" data-predeterminado>${icono('star')} ${predeterminado?.user_deck_id === m.id ? 'Quitar de predeterminado' : 'Mi mazo predeterminado'}</button>` : ''}
             <button type="button" class="cm-mazo-borrar" data-borrar>${icono('trash')} Borrar</button>
           </div>
         </details>
@@ -139,6 +147,33 @@ async function cargarRecords(userId) {
     r.set(f.user_deck_id, x)
   }
   return r
+}
+
+// Tu predeterminado. Si la tabla no existe todavía, no se ofrece.
+async function cargarPredeterminado(userId) {
+  const { data, error } = await supabase.from('match_log_ajustes').select('user_deck_id,mi_mazo,mi_mazo_nombre').eq('user_id', userId).maybeSingle()
+  ajustesEnBase = !error
+  predeterminado = error ? null : data || null
+}
+
+// Ponerlo o quitarlo desde el «⋯» de un mazo. Cambia YA y se deshace si la
+// base dice que no (896). Desde aquí se guarda solo el mazo: su arquetipo lo
+// deduce Mis partidas al abrir el formulario, de la lista que tenga entonces.
+async function cambiarPredeterminado(mazo) {
+  const antes = predeterminado
+  const quitar = antes?.user_deck_id === mazo.id
+  predeterminado = quitar ? null : { user_deck_id: mazo.id, mi_mazo: null, mi_mazo_nombre: null }
+  pintar()
+  const { error } = quitar
+    ? await supabase.from('match_log_ajustes').delete().eq('user_id', usuario)
+    : await supabase.from('match_log_ajustes').upsert({ user_id: usuario, ...predeterminado, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+  if (error) {
+    predeterminado = antes
+    pintar()
+    showToast('No se ha podido cambiar tu mazo predeterminado: ' + error.message, 'error')
+    return
+  }
+  showToast(quitar ? 'Ya no tienes mazo predeterminado.' : `«${mazo.name}» saldrá ya puesto al apuntar un torneo o una partida.`, 'success')
 }
 
 async function cargarCostes(userId) {
@@ -262,7 +297,8 @@ async function iniciar() {
   const sesion = await requireAuth()
   if (!sesion) return
   try {
-    const [lista, sets, marcas, recs] = await Promise.all([misMazos(sesion.user.id), cargarSets().catch(() => null), marcasLegales().catch(() => null), cargarRecords(sesion.user.id).catch(() => new Map())])
+    usuario = sesion.user.id
+    const [lista, sets, marcas, recs] = await Promise.all([misMazos(sesion.user.id), cargarSets().catch(() => null), marcasLegales().catch(() => null), cargarRecords(sesion.user.id).catch(() => new Map()), cargarPredeterminado(sesion.user.id).catch(() => {})])
     mazos = lista
     codigos = sets?.codigoDeId || new Map()
     if (Array.isArray(marcas) && marcas.length) legales = marcas
@@ -301,6 +337,8 @@ async function iniciar() {
       } catch (err) {
         showToast(err.message, 'error')
       }
+    } else if (e.target.closest('[data-predeterminado]')) {
+      cambiarPredeterminado(mazo)
     } else if (e.target.closest('[data-duplicar]')) {
       try {
         const copia = await guardarMazo({ name: `${mazo.name} (copia)`.slice(0, 80), format: mazo.format, cards: mazo.cards, cover_card: mazo.cover_card, is_public: false })

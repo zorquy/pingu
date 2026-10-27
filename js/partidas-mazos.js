@@ -115,3 +115,19 @@ export function opcionesDeMazosGuardados(mazos, actual = null) {
   if (actual && !ops.some((o) => o.id === actual)) ops.push({ id: actual, nombre: 'Un mazo que ya no está en tu lista' })
   return ops
 }
+
+// El puesto y cuántos erais, de dos campos que pueden ir vacíos (1070). Lo
+// imposible se dice aquí, en palabras, y no con el error de la base.
+export function leerPuesto(textoPuesto, textoJugadores) {
+  const num = (t) => {
+    const x = String(t ?? '').trim()
+    if (!x) return null
+    return /^\d+$/.test(x) ? Number(x) : NaN
+  }
+  const puesto = num(textoPuesto)
+  const jugadores = num(textoJugadores)
+  if (Number.isNaN(puesto) || (puesto !== null && (puesto < 1 || puesto > 9999))) return { error: 'El puesto es un número: 1 si ganaste, 2 si quedaste segundo…' }
+  if (Number.isNaN(jugadores) || (jugadores !== null && (jugadores < 2 || jugadores > 99999))) return { error: 'Los jugadores son un número, de 2 en adelante.' }
+  if (puesto !== null && jugadores !== null && puesto > jugadores) return { error: `No puedes quedar ${puesto}.º de ${jugadores}.` }
+  return { puesto, jugadores }
+}

@@ -206,10 +206,33 @@
             <input type="text" id="torneoLogDondeOtro" placeholder="Dónde se jugó" />
           </label>
         </div>
-        <p class="subtext">Tu mazo (el mismo todo el torneo)</p>
-        <div class="partidas-form-fila partidas-mazo-fila">
-          <div id="selTorneoMio1"></div>
-          <div id="selTorneoMio2"></div>
+        <!-- Tu mazo (1070): uno de tus mazos guardados del constructor o a
+             mano; y si lo quieres por defecto. Lo monta partidas-elegir-mazo.js. -->
+        <div class="partidas-tu-mazo" id="torneoTuMazo" data-elegir-mazo>
+          <div class="partidas-tu-mazo-cab">
+            <p class="subtext" id="torneoTuMazoTitulo">Tu mazo (el mismo todo el torneo)</p>
+            <div class="partidas-formato hidden" role="radiogroup" aria-labelledby="torneoTuMazoTitulo" data-origenes>
+              <button type="button" role="radio" data-origen="guardado" aria-checked="true">Mis mazos</button>
+              <button type="button" role="radio" data-origen="mano" aria-checked="false">A mano</button>
+            </div>
+          </div>
+          <div class="partidas-guardados hidden" role="radiogroup" aria-label="Tus mazos guardados" data-guardados></div>
+          <p class="partidas-cuenta-como hidden" aria-live="polite" data-cuenta-como></p>
+          <div class="partidas-form-fila partidas-mazo-fila" data-mano>
+            <div id="selTorneoMio1"></div>
+            <div id="selTorneoMio2"></div>
+          </div>
+          <p class="subtext partidas-pista-constructor hidden" data-pista>Si guardas tus listas en el <a href="/constructor">constructor</a>, aquí las eliges sin escribir.</p>
+          <label class="partidas-predeterminado hidden" data-predet><input type="checkbox" id="torneoPredeterminado" /> Mi mazo predeterminado</label>
+        </div>
+        <!-- Tu puesto (1070), opcional: se puede poner al crearlo o al cerrarlo. -->
+        <div class="partidas-form-fila partidas-puesto-fila hidden" id="torneoLogPuestoCampo">
+          <label>Tu puesto <span class="subtext">(opcional)</span>
+            <input type="number" inputmode="numeric" min="1" max="9999" step="1" id="torneoLogPuesto" placeholder="3" />
+          </label>
+          <label>De cuántos jugadores <span class="subtext">(opcional)</span>
+            <input type="number" inputmode="numeric" min="2" max="99999" step="1" id="torneoLogJugadores" placeholder="24" />
+          </label>
         </div>
         <div class="partidas-form-fila">
           <button class="btn-primary" id="btnGuardarTorneoLog">Crear torneo</button>
@@ -245,18 +268,25 @@
         <!-- En modo «ronda de un torneo» el mazo, la fecha y el dónde
              vienen del torneo: esos campos se esconden enteros. -->
         <div id="partidaCamposMios">
-        <p class="subtext">Tu mazo</p>
-        <div class="partidas-form-fila partidas-mazo-fila">
-          <div id="selMio1"></div>
-          <div id="selMio2"></div>
-        </div>
-        <!-- Con qué mazo guardado del constructor (tanda 627). Se esconde
-             mientras la base no tenga dónde guardarlo. -->
-        <div class="partidas-form-fila hidden" id="partidaCampoMazoGuardado">
-          <label>Con tu mazo guardado
-            <select id="partidaMazoGuardado"><option value="">Ninguno</option></select>
-            <span class="subtext partidas-sin-mazos hidden">Aún no tienes ninguno: se guardan en el <a href="/constructor">constructor</a>.</span>
-          </label>
+        <!-- Tu mazo: uno de tus mazos guardados del constructor (627; desde
+             la 1070 en vez de escribirlo) o a mano. Lo monta
+             partidas-elegir-mazo.js; sin la columna de la 627, solo a mano. -->
+        <div class="partidas-tu-mazo" id="partidaTuMazo" data-elegir-mazo>
+          <div class="partidas-tu-mazo-cab">
+            <p class="subtext" id="partidaTuMazoTitulo">Tu mazo</p>
+            <div class="partidas-formato hidden" role="radiogroup" aria-labelledby="partidaTuMazoTitulo" data-origenes>
+              <button type="button" role="radio" data-origen="guardado" aria-checked="true">Mis mazos</button>
+              <button type="button" role="radio" data-origen="mano" aria-checked="false">A mano</button>
+            </div>
+          </div>
+          <div class="partidas-guardados hidden" role="radiogroup" aria-label="Tus mazos guardados" data-guardados></div>
+          <p class="partidas-cuenta-como hidden" aria-live="polite" data-cuenta-como></p>
+          <div class="partidas-form-fila partidas-mazo-fila" data-mano>
+            <div id="selMio1"></div>
+            <div id="selMio2"></div>
+          </div>
+          <p class="subtext partidas-pista-constructor hidden" data-pista>Si guardas tus listas en el <a href="/constructor">constructor</a>, aquí las eliges sin escribir.</p>
+          <label class="partidas-predeterminado hidden" data-predet><input type="checkbox" id="partidaPredeterminado" /> Mi mazo predeterminado</label>
         </div>
         </div>
 

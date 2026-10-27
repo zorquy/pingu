@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-28", "tipo": "nuevo", "texto": "En Mis partidas, tu mazo se elige de los que tienes guardados en el constructor, sin escribirlo, y cuenta en las estadísticas de ese mazo. Puedes ponerte uno por defecto para que salga ya puesto, y apuntar en qué puesto quedaste en cada torneo.", "enlace": "/mis-partidas" },
+    { "fecha": "2026-10-28", "tipo": "nuevo", "texto": "La imagen para compartir un torneo tiene cuatro diseños (Clásico, Podio, Récord y Mosaico), tres fondos y tu puesto si lo quieres enseñar. Se acuerda del que elegiste.", "enlace": "/mis-partidas" },
     { "fecha": "2026-10-28", "tipo": "nuevo", "texto": "¿Tienes una tienda de cartas? Desde «Para tiendas», en el pie de la web, puedes pedir una cuenta de tienda para llevar tu stock en PokeDoc. Por ahora entra solo por invitación.", "enlace": "/tiendas" },
     { "fecha": "2026-10-28", "tipo": "mejora", "texto": "Al marcar varias cartas y darle a «Las quiero» (en una expansión, un álbum o el Mercado) te preguntamos el idioma una vez para todas, y la próxima vez sale el último que elegiste. En la ficha de una carta que quieres puedes cambiar el idioma, y en «La quiero» puedes seleccionar varias y cambiárselo de golpe.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-28", "tipo": "mejora", "texto": "Cuando añades a tu colección una carta que tenías en «La quiero», sale sola de la lista (si es el idioma y la versión que buscabas). El aviso te lo dice y «Deshacer» la vuelve a poner.", "enlace": "/mi-coleccion?ver=quiero" },
