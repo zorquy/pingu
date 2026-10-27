@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (289) — PINGU-Claude (1049 — Mis álbumes: tapas o estantería)
+
+**Hecho**: la segunda tanda del rework de álbumes. PINGU: «en la lista de mis
+álbumes, ¿no podríamos poner un botón para verlo o tapas o estantería de
+lomos? Las dos me parecen buena idea».
+- Arriba, «Mis álbumes 4», **Tapas / Estantería** y **Nuevo álbum**, en una
+  fila (en el móvil, los dos como iconos). Se recuerda en el navegador.
+- **Tapas**: cada álbum es su tapa cerrada (la misma de la cabecera del
+  álbum): color y acabado, costura, cremallera o goma, la portada en la
+  ventana (o el logo si es de un set; «Aún sin cartas» si está vacío), la
+  placa con el nombre, el % y el ojo si es público. El ⋯ al lado del nombre.
+  «Mi colección» es una caja con las tres últimas asomando.
+- **Estantería**: los lomos en una balda de madera, con el nombre en
+  vertical, la barra de lo que llevas y más gruesos cuantas más cartas.
+
+**Ficheros**: js/mi-coleccion/albumes.js, mi-coleccion.html, cartas.html
+(generado), css/mi-coleccion.css, novedades.json, CLAUDE.md, SCHEMA.md,
+BITACORA.md.
+
+**Pruebas**: nueva `test-tanda-1049-pantalla.mjs`; al día 759 (bloquea el
+service worker y cuenta los tres tipos de la 1031), 764 y 1032. 369 sigue
+fallando igual que antes de la tanda (la foto de un bolsillo, sin service
+worker bloqueado).
+
+**Pendiente**: 1050 (Personalizar, con la migración `estilo`).
+
 ## 2026-10-27 (288) — PINGU-Claude (1048 — el álbum abierto, sin anillas)
 
 **Hecho**: el rework de álbumes que pidió PINGU («el álbum se ve súper

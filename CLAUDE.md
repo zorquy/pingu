@@ -998,6 +998,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   expansión). Lo de dentro no cambia con el tema. En un álbum no hay modo de
   ordenar: se arrastra siempre, se quita soltando en la papelera o con
   «Seleccionar» (siempre con Deshacer), y nada se pinta encima del corazón.
+  Fuera, en Mis álbumes (1049), un álbum es su TAPA CERRADA
+  (`tapaCerradaHtml`: la misma de la cabecera) o su LOMO en una estantería;
+  quien mira elige (`mc-albumes-vista`, en su navegador). Lo que se le añada
+  a un álbum (color, acabado, cierre) se pinta en los dos.
 - **Un álbum se edita y se borra desde UN sitio: la hoja de
   `album-editar.js`** (tanda 1032), que abren el ⋯ de cada baldosa y
   «Editar álbum» dentro. Un campo nuevo de un álbum (nombre, tapa, portada,

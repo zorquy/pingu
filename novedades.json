@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Mis álbumes, de dos formas: como tapas (cada álbum cerrado, con su color, su carta de portada y cuánto llevas) o como una estantería con los lomos en fila. Elige arriba con los dos botones; se queda como lo dejes.", "enlace": "/mi-coleccion?ver=carpetas" },
     { "fecha": "2026-10-27", "tipo": "mejora", "texto": "Los álbumes ya parecen álbumes de verdad: sin anillas, con las hojas cosidas al lomo, cada carta en su funda y la cremallera alrededor. Para cambiar una carta de sitio, arrástrala; para quitarla, llévala a la papelera que sale abajo o usa «Seleccionar» (con Deshacer). Y debajo, un mapa con cada página para ver dónde te faltan cartas y saltar a ella.", "enlace": "/mi-coleccion?ver=carpetas" },
     { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Al darle al corazón puedes elegir la versión que quieres (Normal, Holo, Reverse…) además del idioma, y los cruces solo te juntan con quien tiene esa. En «La quiero» cada versión es su propia carta, y tocando la línea del idioma cambias lo que pediste.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "En «¿Qué carta es?» hay que dar con la carta exacta: el mismo Pokémon de otra colección ya no cuenta como acierto y te dice «Otra impresión». Y la carta borrosa ya no se puede arrastrar ni abrir para verla nítida (tampoco la silueta de «¿Quién es?»).", "enlace": "/carta-del-dia" },

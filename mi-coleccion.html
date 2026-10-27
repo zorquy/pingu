@@ -1215,7 +1215,17 @@
              su tapa y sus primeras cartas) y «Empezar un álbum» al final.
              Las baldosas las pinta js/mi-coleccion/albumes.js. -->
         <div class="mc-bloque-albumes" id="mcBloqueAlbumes">
-          <h2 class="mc-subtitulo mc-albumes-titulo">Mis álbumes</h2>
+          <!-- La cabecera de la lista (1049): el título con la cuenta, cómo
+               verla (Tapas o Estantería, PINGU: «las dos me parecen buena
+               idea») y «Nuevo álbum» a mano. Los iconos los pone albumes.js. -->
+          <div class="mc-albumes-cab mc-mandos" id="mcAlbumesCab">
+            <h2 class="mc-subtitulo mc-albumes-titulo">Mis álbumes <span class="mc-albumes-cuenta" id="mcAlbumesCuenta"></span></h2>
+            <div class="mc-seg mc-seg-sueltas mc-albumes-vista" id="mcAlbumesVista" role="group" aria-label="Cómo ver tus álbumes">
+              <button type="button" data-alb-vista="tapas" aria-pressed="true" title="Tapas" aria-label="Tapas"><span class="mc-vista-icono" aria-hidden="true"></span><span class="mc-q-largo">Tapas</span></button>
+              <button type="button" data-alb-vista="lomos" aria-pressed="false" title="Estantería" aria-label="Estantería"><span class="mc-vista-icono" aria-hidden="true"></span><span class="mc-q-largo">Estantería</span></button>
+            </div>
+            <button type="button" class="btn-primary mc-albumes-nuevo" id="mcAlbNuevoArriba"><span class="mc-vista-icono" aria-hidden="true">+</span>Nuevo álbum</button>
+          </div>
 
         <div id="mcAlbumesLista">
           <div class="mc-albts" id="mcAlbumesRejilla"></div>

@@ -41785,6 +41785,54 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1049 — Mis álbumes: tapas o estantería
+
+PINGU, sobre la propuesta: «en la lista de mis álbumes, ¿no podríamos poner
+un botón para verlo o tapas o estantería de lomos? Las dos me parecen buena
+idea». Segunda de las tres tandas del rework (1048 el álbum abierto, 1050
+Personalizar).
+
+- **La cabecera de la lista** (`#mcAlbumesCab`, una `.mc-mandos`): «Mis
+  álbumes» con la cuenta, el segmento Tapas / Estantería y «Nuevo álbum»
+  (`#mcAlbNuevoArriba`, que abre lo mismo que la baldosa del final). En el
+  móvil el título se esconde (la regla de la 1035) y los dos botones son
+  iconos de 44 con su `aria-label`. Los dos iconos viven en `albumes.js` y no
+  en `js/icons.js`, que baja la portada. Con un álbum abierto, la cabecera no
+  se ve (`.mc-album-abierto .mc-albumes-cab`).
+- **Cómo se ve** es de quien mira: `localStorage['mc-albumes-vista']`
+  (`tapas` por defecto), leído con `try` y pintado por `pintarRejilla()`, que
+  es la única que escribe `#mcAlbumesRejilla` (antes había tres copias de la
+  misma línea). La caja lleva `data-vista` y el CSS cuelga de ahí.
+- **Tapas**: la baldosa es `tapaCerradaHtml` (la de la cabecera de la 1048)
+  con la costura (`.mc-tapa-costura`), el tirador de la cremallera o la goma
+  (`.mc-tapa-tirador`, según `data-cierre`), la placa con el nombre y, encima,
+  el % (`.mc-tapa-pct`, si hay cartas) y el ojo de público (`.mc-tapa-pub`).
+  En la ventana, la portada o la primera carta; un álbum de set lleva su logo
+  (`.mc-tapa-logo`), y uno vacío lo dice («Aún sin cartas»). El ⋯ baja al
+  lado del nombre (la info deja 44 px a la derecha). En crema y amarillo la
+  letra va oscura (`--en-tapa`). «Mi colección» es una caja con las tres
+  últimas asomando (`.mc-caja-col`) y «Empezar un álbum» un hueco de rayas
+  con la forma de una tapa.
+  · Lo que va dentro de `.mc-albt-tapa` lleva `width: 100%` y su
+    `aspect-ratio`: la caja conserva `place-items: center` de la 759, y
+    Chrome ya alinea también en bloque, así que una tapa cuyos hijos son
+    todos absolutos se encogía a 0×0. Antes lo tapaba un `height: 100%` que
+    le daba el ancho por la proporción — y ese `height` no se resolvía en el
+    hueco de rayas, que no tiene proporción propia.
+- **Estantería**: un lomo por álbum (`lomoHtml`, botón con `data-album`),
+  con su `data-tapa` y su `data-acabado` (el `--acabado: none` de los lomos va
+  junto al de la tapa, ANTES de los `[data-acabado]`, que lo pisan por orden),
+  el nombre en vertical, la barra de lo que llevas y un grosor que crece con la
+  raíz de las cartas (`--grosor`, 40–64 px). Todas las filas miden lo mismo
+  (`--lomo-max` + su hueco + la balda), así que las baldas son un
+  `repeating-linear-gradient` de la caja y llegan de lado a lado; un lomo más
+  bajo (la caja de Mi colección) baja con `margin-top`. La balda y la pared
+  son un objeto: no cambian con el tema.
+
+**Prueba**: `test-tanda-1049-pantalla.mjs`. Al día 759 (la tapa cerrada; y
+bloquea el service worker, sin lo que no llegaba ni una foto; y cuenta tres
+tipos en «Empezar un álbum» desde la 1031), 764 y 1032.
+
 ## Tanda 1048 — El álbum abierto, sin anillas
 
 PINGU: «el álbum se ve súper pocho… más currado, más bonito, menos plano»,

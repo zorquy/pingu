@@ -146,9 +146,9 @@ function cartaMiniHtml(c) {
   return escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : '<i></i>'
 }
 
-function baldosaHtml({ atributo, clase = '', tapa = null, arriba, nombre, pie, pct = null }) {
+function baldosaHtml({ atributo, clase = '', arriba, nombre, pie, pct = null }) {
   return `<button type="button" class="mc-albt ${clase}" ${atributo}>
-    <span class="mc-albt-tapa"${tapa ? ` data-tapa="${escapeHtml(tapa)}"` : ''} aria-hidden="true">${arriba}</span>
+    <span class="mc-albt-tapa" aria-hidden="true">${arriba}</span>
     <span class="mc-albt-info">
       <span class="mc-albt-nombre">${escapeHtml(nombre)}</span>
       <span class="mc-albt-pie">${escapeHtml(pie)}</span>
@@ -175,43 +175,45 @@ function menuDeBaldosaHtml(a) {
 function tarjetaHtml(a) {
   return `<div class="mc-albt-caja">${baldosaDeAlbumHtml(a)}${menuDeBaldosaHtml(a)}</div>`
 }
-function baldosaDeAlbumHtml(a) {
+// Las cuentas de un álbum, para la tapa, el lomo y el pie (1049).
+function cuentasDe(a) {
   const items = conCartas(a)
   const ids = items.map((c) => c.id)
   const mias = items.filter(tieneItem).length
-  const pct = ids.length ? Math.round((mias / ids.length) * 100) : 0
-  if (esDeSet(a)) {
-    const set = setsDeTodos.get(claveDeSet(a.set_id, a.set_market))
-    const logos = set ? ctx.logosDeSet(set) : []
-    const portada = cartaDe(ids[0])
-    const arriba = logos.length
-      ? `<span class="mc-albt-logo"><img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="160" height="80" loading="lazy" /></span>`
-      : `<span class="mc-albt-logo">${portada ? cartaMiniHtml(portada) : ''}</span>`
-    return baldosaHtml({ atributo: `data-album="${escapeHtml(a.id)}"`, clase: 'mc-albt-set', arriba, nombre: a.nombre, pie: `Tienes ${mias} de ${ids.length}${a.is_public ? ' · público' : ''}`, pct })
-  }
+  return { ids, mias, pct: ids.length ? Math.round((mias / ids.length) * 100) : 0 }
+}
+function pieDe(a) {
+  const { ids, mias } = cuentasDe(a)
+  if (esDeSet(a)) return `Tienes ${mias} de ${ids.length}`
   const r = rejillaDe(a.rejilla)
-  const primeras = ids.slice(0, 4).map((id) => cartaDe(id))
-  // La PORTADA (764, Z4): la carta que elegiste, grande, sobre la tapa; sin
-  // portada, la hojita con las cuatro primeras.
-  const portada = a.portada ? cartaDe(a.portada) : null
-  const arriba = portada
-    ? `<span class="mc-albt-portada">${cartaMiniHtml(portada)}</span>`
-    : `<span class="mc-albt-hojita">${[0, 1, 2, 3].map((i) => (primeras[i] ? cartaMiniHtml(primeras[i]) : '<i></i>')).join('')}</span>`
   const forma = a.paginas ? ` · ${r.columnas}×${r.filas}, ${a.paginas} págs.` : ''
+  return `${ids.length ? `${mias} de ${ids.length}` : 'Vacío'}${forma}`
+}
+// En la ventana de un álbum de set va su logo (la propuesta de la 1048);
+// sin logo, la carta como en un binder.
+function ventanaDeSetHtml(a) {
+  const set = setsDeTodos.get(claveDeSet(a.set_id, a.set_market))
+  const logos = set ? ctx.logosDeSet(set) : []
+  return logos.length ? `<span class="mc-tapa-logo"><img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="160" height="80" loading="lazy" /></span>` : null
+}
+// LA BALDOSA ES LA TAPA CERRADA (1049): su color y su acabado, el lomo, la
+// ventana con la portada y la placa; encima, el % y si es público.
+function baldosaDeAlbumHtml(a) {
+  const { ids, pct } = cuentasDe(a)
+  const chapas = `${ids.length ? `<span class="mc-tapa-pct">${pct} %</span>` : ''}${a.is_public ? `<span class="mc-tapa-pub" title="Público">${icons.eye(12)}</span>` : ''}`
   return baldosaHtml({
     atributo: `data-album="${escapeHtml(a.id)}"`,
-    clase: 'mc-albt-binder',
-    tapa: a.tapa || tapaGuardada(),
-    arriba,
+    clase: esDeSet(a) ? 'mc-albt-set' : 'mc-albt-binder',
+    arriba: tapaCerradaHtml(a, { dentro: chapas, ventana: esDeSet(a) ? ventanaDeSetHtml(a) : null }),
     nombre: a.nombre,
-    pie: `${ids.length} ${ids.length === 1 ? 'carta' : 'cartas'}${ids.length ? ` · tienes ${mias}` : ''}${forma}${a.is_public ? ' · público' : ''}`,
+    pie: `${pieDe(a)}${a.is_public ? ' · público' : ''}`,
     pct: ids.length ? pct : null,
   })
 }
 
-// «Mi colección» como un álbum más: lo que tienes, con las tres últimas
-// que has metido en abanico.
-function coleccionHtml() {
+// Las tres últimas cartas distintas que has metido y cuántas distintas
+// tienes, para «Mi colección» (de frente y de canto).
+function ultimasDeLaColeccion() {
   const vistas = new Set()
   const ultimas = []
   for (const l of [...ctx.lineas()].sort((x, y) => String(y.created_at || '').localeCompare(String(x.created_at || '')))) {
@@ -220,11 +222,17 @@ function coleccionHtml() {
     const c = ctx.cartas.get(l.card_id)
     if (c && ultimas.length < 3) ultimas.push(c)
   }
-  const distintas = new Set(ctx.lineas().map((l) => l.card_id)).size
+  return { ultimas, distintas: vistas.size }
+}
+
+// «Mi colección» como un álbum más (1049): una caja con las tres últimas
+// que has metido asomando por arriba.
+function coleccionHtml() {
+  const { ultimas, distintas } = ultimasDeLaColeccion()
   return baldosaHtml({
     atributo: 'data-alb-coleccion',
     clase: 'mc-albt-coleccion',
-    arriba: `<span class="mc-albt-abanico">${ultimas.map(cartaMiniHtml).join('')}</span>`,
+    arriba: `<span class="mc-caja-col"><span class="mc-albt-abanico">${ultimas.map(cartaMiniHtml).join('')}</span><span class="mc-caja-frente">Mi colección</span></span>`,
     nombre: 'Mi colección',
     pie: `${distintas} ${distintas === 1 ? 'carta' : 'cartas'}`,
   })
@@ -232,9 +240,50 @@ function coleccionHtml() {
 
 function empezarHtml() {
   return `<button type="button" class="mc-albt mc-albt-nuevo" id="mcAlbNuevoAbrir">
-    <span class="mc-albt-tapa" aria-hidden="true"><span class="mc-albt-mas">+</span></span>
+    <span class="mc-albt-tapa" aria-hidden="true"><span class="mc-albt-hueco"><span class="mc-albt-mas">+</span></span></span>
     <span class="mc-albt-info"><span class="mc-albt-nombre">Empezar un álbum</span><span class="mc-albt-pie">De un set o a tu gusto</span></span>
   </button>`
+}
+
+// LA ESTANTERÍA (1049, la otra forma de ver la lista): cada álbum de canto,
+// con su color, su acabado, el nombre en vertical y lo que llevas abajo. El
+// grosor crece con las cartas, como un álbum de verdad.
+function lomoHtml(a) {
+  const { ids, pct } = cuentasDe(a)
+  const grosor = Math.round(40 + Math.min(24, Math.sqrt(ids.length) * 1.5))
+  const rotulo = `${a.nombre || 'Mi álbum'} · ${pieDe(a)}`
+  return `<button type="button" class="mc-lomo-libro" data-album="${escapeHtml(a.id)}" data-tapa="${escapeHtml(a.tapa || tapaGuardada())}" data-acabado="${estiloDe(a.estilo).acabado}" style="--grosor:${grosor}px" title="${escapeHtml(rotulo)}" aria-label="${escapeHtml(rotulo)}">
+    <span class="mc-lomo-nombre">${escapeHtml(a.nombre || 'Mi álbum')}</span>
+    ${ids.length ? `<span class="mc-lomo-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}
+  </button>`
+}
+function lomosHtml() {
+  const { distintas } = ultimasDeLaColeccion()
+  const cuenta = `${distintas} ${distintas === 1 ? 'carta' : 'cartas'}`
+  return `<button type="button" class="mc-lomo-libro mc-lomo-coleccion" data-alb-coleccion title="Mi colección · ${cuenta}" aria-label="Mi colección · ${cuenta}"><span class="mc-lomo-nombre">Mi colección</span></button>${albumes.map(lomoHtml).join('')}<button type="button" class="mc-lomo-libro mc-lomo-nuevo" id="mcAlbNuevoAbrir" title="Empezar un álbum" aria-label="Empezar un álbum"><span class="mc-albt-mas" aria-hidden="true">+</span></button>`
+}
+
+// Cómo se ve la lista (1049, PINGU: «un botón para verlo o tapas o
+// estantería de lomos… las dos me parecen buena idea»). Es una preferencia de
+// quien mira, así que va en su navegador.
+const VISTA_DE_LISTA = 'mc-albumes-vista'
+// Los dos dibujos solo los usa esta pantalla: aquí y no en js/icons.js, que
+// baja la portada.
+const ICONO_TAPAS = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="9" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/></svg>'
+const ICONO_LOMOS = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="4" height="16" rx="1"/><rect x="9" y="6" width="4" height="14" rx="1"/><path d="m15.5 6.5 3.9-1 3.6 13.6-3.9 1z"/><path d="M2 21h20"/></svg>'
+function vistaDeLista() {
+  try {
+    return localStorage.getItem(VISTA_DE_LISTA) === 'lomos' ? 'lomos' : 'tapas'
+  } catch {
+    return 'tapas'
+  }
+}
+function pintarRejilla() {
+  const caja = $('mcAlbumesRejilla')
+  caja.dataset.vista = vistaDeLista()
+  caja.innerHTML = caja.dataset.vista === 'lomos' ? lomosHtml() : coleccionHtml() + albumes.map(tarjetaHtml).join('') + empezarHtml()
+  for (const b of document.querySelectorAll('[data-alb-vista]')) b.setAttribute('aria-pressed', String(b.dataset.albVista === caja.dataset.vista))
+  if ($('mcAlbumesCuenta')) $('mcAlbumesCuenta').textContent = albumes.length ? String(albumes.length) : ''
 }
 
 // LAS CARPETAS PASAN A BINDERS (759), solas y una vez. Cada carpeta —y cada
@@ -311,7 +360,7 @@ async function pintarLista() {
     const todos = await ctx.todosLosSets().catch(() => [])
     setsDeTodos = new Map(todos.map((s) => [claveDeSet(s.id, s.market), s]))
   }
-  $('mcAlbumesRejilla').innerHTML = coleccionHtml() + albumes.map(tarjetaHtml).join('') + empezarHtml()
+  pintarRejilla()
 }
 
 // Un binder con La quiero (1031, pedido por la gente: «exportar álbum… que
@@ -608,12 +657,14 @@ function pintarPublico() {
 // acabado, el lomo, la cremallera si la lleva, una ventana con la carta de
 // portada (o la primera) y la placa con el nombre. La pintan la cabecera de
 // un álbum abierto y, desde la 1049, Mis álbumes.
-function tapaCerradaHtml(a, { placa = true, dentro = '' } = {}) {
+function tapaCerradaHtml(a, { placa = true, dentro = '', ventana: propia = null } = {}) {
   const e = estiloDe(a.estilo)
   const ids = conCartas(a).map((c) => c.id)
   const portada = cartaDe(a.portada) || cartaDe(ids[0])
-  const ventana = a.estilo?.ventana === 'no' ? '' : `<span class="mc-tapa-ventana">${portada ? cartaMiniHtml(portada) : ''}</span>`
-  return `<span class="mc-tapa-cerrada" data-tapa="${escapeHtml(a.tapa || tapaGuardada())}" data-acabado="${e.acabado}" data-cierre="${e.cierre}" aria-hidden="true">${ventana}${placa ? `<span class="mc-tapa-placa">${escapeHtml(a.nombre || 'Mi álbum')}</span>` : ''}${dentro}</span>`
+  const ventana = a.estilo?.ventana === 'no' ? '' : propia || (portada ? `<span class="mc-tapa-ventana">${cartaMiniHtml(portada)}</span>` : `<span class="mc-tapa-ventana mc-tapa-vacia">${placa ? 'Aún sin cartas' : ''}</span>`)
+  // La costura va siempre; el tirador, con cremallera o goma (1049).
+  const cierre = e.cierre === 'ninguno' ? '' : '<span class="mc-tapa-tirador"></span>'
+  return `<span class="mc-tapa-cerrada" data-tapa="${escapeHtml(a.tapa || tapaGuardada())}" data-acabado="${e.acabado}" data-cierre="${e.cierre}"${ventana ? '' : ' data-ventana="no"'} aria-hidden="true"><span class="mc-tapa-costura"></span>${ventana}${placa ? `<span class="mc-tapa-placa">${escapeHtml(a.nombre || 'Mi álbum')}</span>` : ''}${cierre}${dentro}</span>`
 }
 
 // Pasar de página, desde las flechas, las esquinas, el teclado, el dedo y
@@ -980,13 +1031,13 @@ async function accionDeBaldosa(id, accion) {
     // Cambia YA y se deshace si la base dice que no (896).
     const antes = a.is_public
     a.is_public = !antes
-    $('mcAlbumesRejilla').innerHTML = coleccionHtml() + albumes.map(tarjetaHtml).join('') + empezarHtml()
+    pintarRejilla()
     try {
       await guardarAlbum(a.id, { is_public: a.is_public })
       showToast(a.is_public ? 'Álbum público: cualquiera con el enlace lo ve.' : 'Álbum privado.', 'success')
     } catch (err) {
       a.is_public = antes
-      $('mcAlbumesRejilla').innerHTML = coleccionHtml() + albumes.map(tarjetaHtml).join('') + empezarHtml()
+      pintarRejilla()
       showToast(err.message, 'error')
     }
     return
@@ -1047,6 +1098,19 @@ export function iniciarAlbumes(contexto) {
   document.addEventListener('click', (e) => {
     for (const d of document.querySelectorAll('.mc-albt-menu[open]')) if (!d.contains(e.target)) d.removeAttribute('open')
   })
+  // La cabecera de la lista (1049): Tapas o Estantería, y «Nuevo álbum».
+  const [tapas, lomos] = document.querySelectorAll('[data-alb-vista] .mc-vista-icono')
+  if (tapas) tapas.innerHTML = ICONO_TAPAS
+  if (lomos) lomos.innerHTML = ICONO_LOMOS
+  $('mcAlbumesVista')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-alb-vista]')
+    if (!b) return
+    try {
+      localStorage.setItem(VISTA_DE_LISTA, b.dataset.albVista)
+    } catch {}
+    pintarRejilla()
+  })
+  $('mcAlbNuevoArriba')?.addEventListener('click', () => abrirAlbumNuevo())
   $('mcAlbAjustes')?.addEventListener('click', () => actual && esMio() && editarAlbum(actual))
   // DELEGADO, porque la miga se pinta al abrir un álbum (tanda 474): al
   // arrancar `#mcAlbVolver` todavía no existe, y un `addEventListener` sobre

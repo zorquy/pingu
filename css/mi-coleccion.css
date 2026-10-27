@@ -12613,7 +12613,8 @@ button.mc-fila:hover {
 
 /* Los acabados de la tapa: lona (trama), piel (grano), mate y holo. Sin
    acabado, ninguno (antes que los `[data-acabado]`, que lo pisan por orden). */
-.mc-tapa-cerrada {
+.mc-tapa-cerrada,
+.mc-lomo-libro {
   --acabado: none;
 }
 
@@ -12632,6 +12633,7 @@ button.mc-fila:hover {
 
 @media (prefers-reduced-motion: no-preference) {
   .mc-tapa-cerrada[data-acabado='holo']:hover,
+  .mc-lomo-libro[data-acabado='holo']:hover,
   .mc-albt:hover [data-acabado='holo'] {
     animation: mc-holo-tapa 3s linear infinite;
   }
@@ -12643,6 +12645,7 @@ button.mc-fila:hover {
 
 @media (prefers-reduced-motion: reduce) {
   .mc-tapa-cerrada[data-acabado='holo']:hover,
+  .mc-lomo-libro[data-acabado='holo']:hover,
   .mc-albt:hover [data-acabado='holo'] {
     animation: none;
   }
@@ -13212,4 +13215,440 @@ button.mc-fila:hover {
   position: absolute;
   inset: 0;
   background: linear-gradient(120deg, transparent 35%, rgb(255 255 255 / 18%) 47%, transparent 58%);
+}
+
+/* ── 1049: Mis álbumes como tapas cerradas o como una estantería de lomos
+   (PINGU: «las dos me parecen buena idea»). El porqué, en SCHEMA.md
+   (tanda 1049). ── */
+.mc-albumes-cab {
+  align-items: center;
+  margin-bottom: var(--e-lg);
+}
+
+.mc-albumes-cab .mc-albumes-titulo {
+  margin: 0;
+}
+
+.mc-albumes-cuenta {
+  color: var(--text-mid);
+  font-size: var(--t-md);
+  font-weight: 600;
+}
+
+.mc-albumes-vista {
+  margin-left: auto;
+}
+
+.mc-albumes-vista button,
+.mc-albumes-nuevo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+}
+
+.mc-vista-icono {
+  display: inline-flex;
+}
+
+.mc-album-abierto .mc-albumes-cab {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .mc-albumes-vista button,
+  .mc-albumes-nuevo {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 599px) {
+  .mc-albumes-vista {
+    margin-left: 0;
+  }
+
+  .mc-albumes-vista button {
+    min-width: 44px;
+    justify-content: center;
+  }
+
+  .mc-albumes-nuevo {
+    margin-left: auto;
+  }
+}
+
+/* LAS TAPAS: la baldosa ya no es una tarjeta, es el álbum cerrado. */
+.mc-albts[data-vista='tapas'] {
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--e-xl) var(--e-lg);
+}
+
+.mc-albts .mc-albt {
+  gap: var(--e-sm);
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.mc-albts .mc-albt-tapa {
+  display: block;
+  aspect-ratio: 5 / 6;
+  overflow: visible;
+  background: none;
+}
+
+.mc-albts .mc-albt-tapa > * {
+  width: 100%;
+  aspect-ratio: 5 / 6;
+  transition: transform 160ms ease;
+}
+
+.mc-albts .mc-albt:hover .mc-albt-tapa > *,
+.mc-albts .mc-albt:focus-visible .mc-albt-tapa > * {
+  transform: translateY(-4px);
+}
+
+.mc-albts .mc-albt:focus-visible {
+  outline: none;
+}
+
+.mc-albts .mc-albt:focus-visible .mc-albt-tapa > * {
+  box-shadow: var(--shadow-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-albts .mc-albt-tapa > * {
+    transition: none;
+  }
+}
+
+/* El ⋯ al lado del nombre, no encima de la tapa. */
+.mc-albts .mc-albt-info {
+  padding: 0 44px 0 0;
+}
+
+.mc-albts .mc-albt-menu {
+  top: auto;
+  bottom: -6px;
+  right: -8px;
+}
+
+.mc-albts .mc-albt-menu > summary {
+  background: transparent;
+  color: var(--text-mid);
+}
+
+.mc-albts .mc-albt-menu > summary:hover {
+  background: var(--ice);
+}
+
+/* La tapa: su costura, el tirador, la placa, el % y si es pública. */
+.mc-tapa-cerrada {
+  --en-tapa: rgb(255 255 255 / 88%);
+}
+
+.mc-tapa-cerrada[data-tapa='crema'],
+.mc-tapa-cerrada[data-tapa='amarillo'],
+.mc-lomo-libro[data-tapa='crema'],
+.mc-lomo-libro[data-tapa='amarillo'] {
+  --en-tapa: rgb(13 27 42 / 80%);
+}
+
+.mc-tapa-costura {
+  position: absolute;
+  top: 7%;
+  bottom: 7%;
+  left: 17%;
+  right: 6%;
+  border: 1px dashed rgb(255 255 255 / 26%);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+}
+
+.mc-tapa-cerrada[data-cierre='cremallera'] .mc-tapa-tirador {
+  position: absolute;
+  z-index: 3;
+  top: 42%;
+  right: 1%;
+  width: 8px;
+  height: 20px;
+  border-radius: 4px;
+  background: var(--acento);
+  box-shadow: 0 2px 4px rgb(0 0 0 / 50%);
+}
+
+.mc-tapa-cerrada[data-cierre='goma'] .mc-tapa-tirador {
+  position: absolute;
+  z-index: 3;
+  top: 0;
+  bottom: 0;
+  right: 9%;
+  width: 7%;
+  background: linear-gradient(90deg, #0a0d10, #2a3138 45%, #0a0d10);
+  box-shadow: -2px 0 4px rgb(0 0 0 / 40%);
+}
+
+.mc-tapa-placa {
+  position: absolute;
+  z-index: 1;
+  left: 20%;
+  right: 8%;
+  bottom: 8%;
+  overflow: hidden;
+  color: var(--en-tapa);
+  font-family: var(--font-display);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-align: center;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-shadow: 0 1px 0 rgb(0 0 0 / 45%);
+}
+
+.mc-tapa-cerrada[data-ventana='no'] .mc-tapa-placa {
+  bottom: 44%;
+  font-size: var(--t-md);
+}
+
+.mc-tapa-vacia {
+  display: grid;
+  place-items: center;
+  padding: var(--e-sm);
+  color: rgb(255 255 255 / 60%);
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  text-align: center;
+}
+
+.mc-tapa-logo {
+  position: absolute;
+  z-index: 1;
+  top: 14%;
+  left: 22%;
+  right: 8%;
+  height: 46%;
+  display: grid;
+  place-items: center;
+}
+
+.mc-tapa-logo > img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgb(0 0 0 / 50%));
+}
+
+.mc-tapa-pct,
+.mc-tapa-pub {
+  position: absolute;
+  z-index: 3;
+  top: 6%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+  border-radius: var(--radius-pill);
+  background: rgb(8 12 16 / 72%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-tapa-pct {
+  right: 7%;
+  padding: 0 var(--e-sm);
+}
+
+.mc-tapa-pub {
+  left: 18%;
+  width: 24px;
+}
+
+/* «Mi colección»: una caja con las tres últimas asomando por arriba. */
+.mc-caja-col {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(170deg, #1f2e3a, #121b23);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 6%), 0 12px 24px -12px rgb(0 0 0 / 70%);
+}
+
+.mc-caja-col .mc-albt-abanico {
+  position: absolute;
+  top: 12%;
+  bottom: 30%;
+  left: 18%;
+  width: auto;
+  height: auto;
+  right: 18%;
+}
+
+.mc-caja-col .mc-albt-abanico > * {
+  width: 62%;
+}
+
+.mc-caja-frente {
+  position: absolute;
+  z-index: 2;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 40%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(180deg, #2a3c4a, #1a2732);
+  box-shadow: 0 -8px 16px rgb(0 0 0 / 45%);
+  color: rgb(255 255 255 / 75%);
+  font-family: var(--font-display);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+/* «Empezar un álbum»: el hueco de un álbum que aún no está. */
+.mc-albts .mc-albt-nuevo {
+  border: 0;
+}
+
+.mc-albt-hueco {
+  display: grid;
+  place-items: center;
+  border: 2px dashed var(--border-strong);
+  border-radius: 4px var(--radius-md) var(--radius-md) 4px;
+}
+
+.mc-albt-nuevo:hover .mc-albt-hueco {
+  border-color: var(--acento);
+}
+
+.mc-albts .mc-albt-mas {
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+
+/* LA ESTANTERÍA: los álbumes de canto sobre baldas de madera. Cada fila
+   mide lo mismo (el lomo más alto, su hueco y la balda), así que las baldas
+   se dibujan con un degradado que se repite y llegan de lado a lado. */
+.mc-albts[data-vista='lomos'] {
+  --lomo-max: 200px;
+  --balda: calc(var(--lomo-max) + var(--e-lg));
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0;
+  padding: 0 var(--e-lg);
+  border-radius: var(--radius-lg);
+  background: repeating-linear-gradient(180deg, transparent 0 var(--balda), #8d6642 var(--balda) calc(var(--balda) + 2px), #6b4a2f calc(var(--balda) + 2px) calc(var(--balda) + var(--e-md))), #1a242d;
+}
+
+.mc-lomo-libro {
+  --alto: var(--lomo-max);
+  --en-tapa: rgb(255 255 255 / 88%);
+  position: relative;
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: var(--grosor);
+  height: var(--alto);
+  margin: calc(var(--e-lg) + var(--lomo-max) - var(--alto)) 2px var(--e-md) 0;
+  padding: 0;
+  border: 0;
+  border-radius: 4px 4px 0 0;
+  background: var(--acabado), linear-gradient(90deg, color-mix(in srgb, var(--tapa), #000 35%), color-mix(in srgb, var(--tapa), var(--blanco-fijo) 8%) 45%, color-mix(in srgb, var(--tapa), #000 35%));
+  background-blend-mode: overlay, overlay, normal;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 8%);
+  color: var(--en-tapa);
+  cursor: pointer;
+  transition: transform 160ms ease;
+}
+
+.mc-lomo-libro:hover,
+.mc-lomo-libro:focus-visible {
+  transform: translateY(-8px);
+}
+
+.mc-lomo-libro:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-lomo-libro {
+    transition: none;
+  }
+}
+
+.mc-lomo-nombre {
+  max-height: calc(var(--alto) - 48px);
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+.mc-lomo-barra {
+  position: absolute;
+  left: var(--e-sm);
+  right: var(--e-sm);
+  bottom: var(--e-md);
+  height: 4px;
+  overflow: hidden;
+  border-radius: 2px;
+  background: rgb(0 0 0 / 35%);
+}
+
+.mc-lomo-barra > i {
+  display: block;
+  width: var(--ancho);
+  height: 100%;
+  background: var(--success);
+}
+
+/* La caja de «Mi colección», más ancha y más baja; el hueco del nuevo, de
+   rayas. */
+.mc-lomo-libro.mc-lomo-coleccion {
+  --alto: calc(var(--lomo-max) * 0.8);
+  width: 88px;
+  margin-right: var(--e-sm);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  background: linear-gradient(180deg, #2a3c4a, #1a2732);
+  color: rgb(255 255 255 / 75%);
+}
+
+.mc-lomo-coleccion .mc-lomo-nombre {
+  max-height: calc(var(--alto) - var(--e-xl));
+}
+
+.mc-lomo-libro.mc-lomo-nuevo {
+  width: 48px;
+  margin-left: var(--e-sm);
+  border: 2px dashed rgb(255 255 255 / 30%);
+  border-bottom: 0;
+  background: transparent;
+}
+
+.mc-lomo-nuevo .mc-albt-mas {
+  width: 32px;
+  height: 32px;
+  font-size: var(--t-lg);
+}
+
+@media (max-width: 599px) {
+  .mc-albts[data-vista='lomos'] {
+    --lomo-max: 168px;
+    margin-inline: calc(var(--e-lg) * -1);
+    border-radius: 0;
+  }
 }
