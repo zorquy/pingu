@@ -63,6 +63,7 @@ const hoja = (page) => page.evaluate(() => {
     portadas: [...document.querySelectorAll('#mcAlbEditPortadas [data-portada]')].map((p) => `${p.dataset.portada || 'ninguna'}${p.getAttribute('aria-pressed') === 'true' ? '*' : ''}`),
     publico: document.getElementById('mcAlbEditPublico')?.checked,
     botones: [...(d?.querySelectorAll('.mc-albe-pie button') || [])].map((x) => x.textContent.trim()),
+    borrar: d?.querySelector('[data-albe-panel="datos"] #mcAlbEditBorrar')?.textContent.trim() === 'Borrar álbum',
   }
 })
 
@@ -81,13 +82,15 @@ console.log('── 1. PC: el ⋯ de cada baldosa y la hoja de editar ──')
   await page.waitForSelector('#mcAlbEdit[open]', { timeout: 5000 }).catch(() => {})
   await page.waitForTimeout(400)
   const h = await hoja(page)
-  check('la hoja «Editar binder» con el nombre, la tapa azul, las tres portadas (y «Ninguna» puesta) y privado', h.abierta && h.titulo === 'Editar binder' && h.nombre === 'Mis favoritas' && h.tapasVisible && h.tapa === 'azul' && h.portadas.join('|') === 'ninguna*|sv8-1|sv8-2|sv8-3' && h.publico === false && h.botones.join('|') === 'Borrar álbum|Guardar', JSON.stringify(h))
+  check('la hoja «Editar binder» con el nombre, la tapa azul, las tres portadas (y «Ninguna» puesta) y privado', h.abierta && h.titulo === 'Editar binder' && h.nombre === 'Mis favoritas' && h.tapasVisible && h.tapa === 'azul' && h.portadas.join('|') === 'ninguna*|sv8-1|sv8-2|sv8-3' && h.publico === false && h.botones.join('|') === 'Cancelar|Guardar' /* 1050: Borrar va en la pestaña Datos */ && h.borrar, JSON.stringify(h))
   check('el menú se ha cerrado al elegir', await page.evaluate(() => !document.querySelector('[data-album-menu="alb-1"]').hasAttribute('open')))
+  // Desde la 1050 son dos pestañas: el ⋯ abre Datos; el color y la portada, en Aspecto.
   await page.fill('#mcAlbEditNombre', 'Las mejores')
   await page.fill('#mcAlbEditDescripcion', 'Lo que más me gusta')
+  await page.check('#mcAlbEditPublico')
+  await page.click('[data-albe-pestania="aspecto"]')
   await page.click('#mcAlbEditTapas [data-tapa="rojo"]')
   await page.click('#mcAlbEditPortadas [data-portada="sv8-2"]')
-  await page.check('#mcAlbEditPublico')
   await page.click('#mcAlbEditGuardar')
   await page.waitForTimeout(800)
   const despues = await baldosas(page)
@@ -105,7 +108,7 @@ console.log('── 1. PC: el ⋯ de cada baldosa y la hoja de editar ──')
   await page.click('[data-album-menu="alb-2"] [data-album-accion="editar"]')
   await page.waitForTimeout(500)
   const hs = await hoja(page)
-  check('un álbum de set: «Editar álbum», sin color de tapa, con su portada y público marcado', hs.abierta && hs.titulo === 'Editar álbum' && !hs.tapasVisible && hs.portadas.length === 2 && hs.publico === true, JSON.stringify(hs))
+  check('un álbum de set: «Editar álbum», con color de tapa (desde la 1050), con su portada y público marcado', hs.abierta && hs.titulo === 'Editar álbum' && hs.tapasVisible && hs.portadas.length === 2 && hs.publico === true, JSON.stringify(hs))
   await page.click('#mcAlbEditCerrar')
   await page.waitForTimeout(200)
   // Borrar, con confirm: primero se dice que no.
@@ -135,8 +138,10 @@ console.log('\n── 2. Dentro del álbum: «Editar álbum» y borrar desde la 
   await page.waitForTimeout(500)
   const h = await hoja(page)
   check('la misma hoja, con lo del álbum abierto', h.abierta && h.nombre === 'Mis favoritas' && h.tapa === 'azul', JSON.stringify(h))
-  await page.fill('#mcAlbEditNombre', 'Renombrado')
+  // «Personalizar» abre Aspecto (1050); el nombre, en Datos.
   await page.click('#mcAlbEditTapas [data-tapa="verde"]')
+  await page.click('[data-albe-pestania="datos"]')
+  await page.fill('#mcAlbEditNombre', 'Renombrado')
   await page.click('#mcAlbEditGuardar')
   await page.waitForTimeout(700)
   const cab = await page.evaluate(() => ({ titulo: document.getElementById('mcAlbTitulo')?.textContent, tapa: document.querySelector('#mcAlbCabeceraLogo .mc-tapa-cerrada')?.dataset.tapa, archivador: document.querySelector('#mcAlbArchivador [data-tapa]')?.dataset.tapa }))
@@ -144,6 +149,7 @@ console.log('\n── 2. Dentro del álbum: «Editar álbum» y borrar desde la 
   await page.click('#mcAlbAjustes')
   await page.waitForTimeout(400)
   page.once('dialog', (d) => d.accept())
+  await page.click('[data-albe-pestania="datos"]')
   await page.click('#mcAlbEditBorrar')
   await page.waitForTimeout(900)
   const tras = await page.evaluate(() => ({ lista: !document.getElementById('mcAlbumesLista').classList.contains('hidden'), detalle: document.getElementById('mcAlbumesDetalle').classList.contains('hidden'), url: location.search, baldosas: document.querySelectorAll('#mcAlbumesRejilla .mc-albt-caja').length }))
