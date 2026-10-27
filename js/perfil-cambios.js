@@ -42,6 +42,21 @@ async function loQueBusca(userId) {
   return data || []
 }
 
+// UNA LISTA DEL MODO EVENTO (1058): el QR lleva `?lista=<id>` y aquí se
+// enseña solo esa. Las cartas salen de `evento_lista` (security definer):
+// una lista que no cuenta para los cruces no se lee en `user_wants`, y quien
+// enseña el QR la está enseñando a propósito. Sin la migración, todo.
+async function listaDeLaDireccion(userId) {
+  const id = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('lista') : null
+  if (!id || !/^[0-9a-f-]{36}$/i.test(id)) return null
+  const { data, error } = await supabase.rpc('evento_lista', { p_lista: id })
+  if (error || !Array.isArray(data)) return null
+  // Solo una lista de ESTA persona: un id pegado a otro perfil no cuela.
+  const suyas = data.filter((f) => f.user_id === userId)
+  if (data.length && !suyas.length) return null
+  return { nombre: suyas[0]?.nombre || '', filas: suyas }
+}
+
 async function loQueDa(userId) {
   const { data, error } = await supabase.rpc('intercambios_de_persona', { p_user: userId, p_limite: 500 })
   if (error) {
@@ -220,14 +235,22 @@ function ponerChapa(texto, { propia }) {
 // `persona`: la fila de user_profiles de la ficha; `sesion`: la de quien
 // mira (o null); `propia`: si es tu perfil (la pestaña sale siempre, vacía
 // con sus dos caminos).
+let listaVista = null
 export async function pintarCambiosDe(caja, persona, sesion, { propia = false } = {}) {
   if (!caja || !persona?.id) return null
+  listaVista = null
   hojaInyectada('css/perfil-cambios.css')
   const miId = sesion?.user?.id || null
   let busca = []
   let da = { filas: [], sinMigracion: false }
   try {
-    ;[busca, da] = await Promise.all([loQueBusca(persona.id), loQueDa(persona.id)])
+    let lista = null
+    ;[busca, da, lista] = await Promise.all([loQueBusca(persona.id), loQueDa(persona.id), listaDeLaDireccion(persona.id).catch(() => null)])
+    if (lista) {
+      const suyas = new Map(busca.map((b) => [b.card_id, b]))
+      busca = lista.filas.map((f) => suyas.get(f.card_id) || { card_id: f.card_id, idioma: null, created_at: null })
+      listaVista = lista
+    }
   } catch (e) {
     caja.innerHTML = `<p class="empty-state">No se ha podido mirar ahora. Prueba otra vez en un momento.</p>`
     pestaniaLista('cambios', propia)
@@ -279,6 +302,7 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
   const hayDeLoMio = (items) => miId && !propia && items.some((x) => x.sello)
 
   caja.innerHTML = `
+    ${listaVista ? `<p class="pc-lista subtext">${listaVista.nombre ? `La lista «${escapeHtml(listaVista.nombre)}»` : 'Una lista'} de lo que ${propia ? 'buscas' : 'busca'} · <a href="${escapeHtml(location.pathname)}">Ver todo</a></p>` : ''}
     ${miId && !propia ? '<section class="perfil-cruce pc-cruce" id="pcCruce" aria-label="Vuestro cruce"></section>' : ''}
     ${!miId && !propia ? `<p class="pc-entra subtext"><a href="/auth.html?volver=${encodeURIComponent(location.pathname + location.search)}">Entra</a> y te digo qué te puede dar ${escapeHtml(nombre)} y qué le puedes dar tú.</p>` : ''}
     <section class="pc-bloque" aria-label="${escapeHtml(`${quien} ${cuentas.da} cartas`)}">

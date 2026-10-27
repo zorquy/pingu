@@ -18,6 +18,12 @@ const $ = (id) => document.getElementById(id)
 export const claveDeCarta = (cardId, market) => `${cardId}|${market || 'WEST'}`
 
 let listas = null // null = sin la migración (o sin cargar)
+// `cruces` (1058) se pide si existe: una columna que no está tumba la
+// consulta entera (la 624), así que sin la 1058 se vuelve a pedir sin ella y
+// la hoja no ofrece el interruptor.
+let hayCruces = true
+const COLUMNAS = () => `id, nombre, color, created_at${hayCruces ? ', cruces' : ''}`
+const faltaCruces = (e) => e && (e.code === '42703' || e.code === 'PGRST204') && /cruces/.test(String(e.message || ''))
 let items = new Map() // list_id → Set(claveDeCarta)
 
 export const hayListas = () => Array.isArray(listas)
@@ -26,10 +32,15 @@ export const cartasDe = (id) => items.get(id) || new Set()
 
 export async function cargarListas(userId) {
   if (!userId) return (listas = null)
-  const [l, i] = await Promise.all([
-    supabase.from('user_want_lists').select('id, nombre, color, created_at').eq('user_id', userId).order('created_at'),
+  const pedir = () => supabase.from('user_want_lists').select(COLUMNAS()).eq('user_id', userId).order('created_at')
+  let [l, i] = await Promise.all([
+    pedir(),
     supabase.from('user_want_list_items').select('list_id, card_id, market').eq('user_id', userId),
   ])
+  if (faltaCruces(l.error)) {
+    hayCruces = false
+    l = await pedir()
+  }
   if (l.error || i.error) return (listas = null)
   listas = l.data || []
   items = new Map(listas.map((x) => [x.id, new Set()]))
@@ -37,8 +48,9 @@ export async function cargarListas(userId) {
   return listas
 }
 
-export async function crearLista({ nombre, color }) {
-  const { data, error } = await supabase.from('user_want_lists').insert({ nombre: nombre.trim(), color }).select('id, nombre, color, created_at').single()
+export async function crearLista({ nombre, color, cruces = true }) {
+  const fila = { nombre: nombre.trim(), color, ...(hayCruces ? { cruces } : {}) }
+  const { data, error } = await supabase.from('user_want_lists').insert(fila).select(COLUMNAS()).single()
   if (error) throw new Error('No se ha podido crear la lista.')
   listas = [...(listas || []), data]
   items.set(data.id, new Set())
@@ -110,7 +122,7 @@ export function elegirLista({ abierta = null, cuenta, para = 0 } = {}) {
       d.innerHTML = `<div class="mc-listas-cab"><h2 id="mcListasTitulo">${para ? `Meter ${para === 1 ? '1 carta' : `${para} cartas`} en…` : 'Tus listas'}</h2><button type="button" class="mc-listas-cerrar" data-listas-cerrar aria-label="Cerrar">✕</button></div>
         <div class="mc-listas-cuerpo">
           ${para ? '' : `<button type="button" class="mc-lista-opcion${abierta == null ? ' puesta' : ''}" data-lista="">${punto(null)}<span>Todas<small>todo lo que quieres</small></span><b>${cuenta(null)}</b></button>`}
-          ${lasListas().map((l) => `<button type="button" class="mc-lista-opcion${abierta === l.id ? ' puesta' : ''}" data-lista="${escapeHtml(l.id)}">${punto(l.color)}<span>${escapeHtml(l.nombre)}</span><b>${cuenta(l.id)}</b></button>`).join('')}
+          ${lasListas().map((l) => `<button type="button" class="mc-lista-opcion${abierta === l.id ? ' puesta' : ''}" data-lista="${escapeHtml(l.id)}">${punto(l.color)}<span>${escapeHtml(l.nombre)}${l.cruces === false ? '<small>solo para ti: no sale en cruces</small>' : ''}</span><b>${cuenta(l.id)}</b></button>`).join('')}
           <button type="button" class="mc-lista-opcion mc-lista-nueva" data-lista-nueva><span aria-hidden="true">+</span><span>Nueva lista</span></button>
         </div>`
     }
@@ -145,6 +157,7 @@ export function editarHoja({ lista = null } = {}) {
       <form class="mc-listas-cuerpo mc-lista-form" id="mcListaForm">
         <label class="mc-lista-campo"><span>Nombre</span><input type="text" id="mcListaNombre" maxlength="60" required placeholder="Master set, Feria de Madrid…" value="${escapeHtml(lista?.nombre || '')}" /></label>
         <div class="mc-lista-colores" role="radiogroup" aria-label="Color">${COLORES_LISTA.map((c) => `<button type="button" role="radio" class="mc-lista-color" style="--c:${c}" data-color="${c}" aria-checked="${c === color}" aria-label="Color ${c}"></button>`).join('')}</div>
+        ${hayCruces ? `<label class="mc-lista-cruces"><input type="checkbox" id="mcListaCruces"${lista?.cruces === false ? '' : ' checked'} /><span><b>Cuenta para los cruces</b><small>Si la quitas, sus cartas solo las ves tú: no salen en tu perfil, en el Mercado ni en Cruces, y nadie te avisa de ellas. Para las que solo vigilas.</small></span></label>` : ''}
         <p class="subtext">La lista la ves solo tú. Las cartas siguen en «La quiero».</p>
         <div class="mc-lista-pie">
           ${lista ? '<button type="button" class="btn-secondary mc-lista-borrar" data-lista-borrar>Borrar la lista</button>' : '<button type="button" class="btn-secondary" data-listas-cerrar>Cancelar</button>'}
@@ -178,14 +191,17 @@ export function editarHoja({ lista = null } = {}) {
       e.preventDefault()
       const nombre = d.querySelector('#mcListaNombre').value.trim()
       if (!nombre) return
+      const caja = d.querySelector('#mcListaCruces')
+      const cruces = caja ? caja.checked : undefined
       const boton = d.querySelector('[type="submit"]')
       boton.disabled = true
       try {
         if (lista) {
-          await editarLista(lista.id, { nombre, color })
-          fin({ ...lista, nombre, color })
+          const cambios = { nombre, color, ...(cruces === undefined ? {} : { cruces }) }
+          await editarLista(lista.id, cambios)
+          fin({ ...lista, ...cambios })
         } else {
-          fin(await crearLista({ nombre, color }))
+          fin(await crearLista({ nombre, color, ...(cruces === undefined ? {} : { cruces }) }))
         }
         d.close()
       } catch (err) {
@@ -199,22 +215,15 @@ export function editarHoja({ lista = null } = {}) {
   })
 }
 
-// El menú ⋯ de «La quiero»: lo que antes eran botones sueltos. Devuelve la
-// acción elegida o undefined.
-export function menuDeLaQuiero({ lista = null } = {}) {
+// Un menú ⋯ en la misma ventana: `opciones` = [[id, texto, nota]]. Devuelve
+// la elegida o undefined. Lo usan «La quiero» y «Las que doy».
+export function menuDe({ titulo, opciones }) {
   const d = hoja()
   return new Promise((resuelve) => {
     let hecho = false
     const fin = (v) => { if (!hecho) { hecho = true; resuelve(v) } }
-    const op = (id, texto, nota = '') => `<button type="button" class="mc-lista-opcion mc-lista-menu" data-accion="${id}"><span>${texto}${nota ? `<small>${nota}</small>` : ''}</span></button>`
-    d.innerHTML = `<div class="mc-listas-cab"><h2 id="mcListasTitulo">${lista ? escapeHtml(lista.nombre) : 'Todas las que quieres'}</h2><button type="button" class="mc-listas-cerrar" data-listas-cerrar aria-label="Cerrar">✕</button></div>
-      <div class="mc-listas-cuerpo">
-        ${op('compartir', 'Compartir la lista', 'en texto, para pegarla en un grupo')}
-        ${op('imagen', 'Hacer una imagen')}
-        ${op('album', 'Hacer un álbum con ellas')}
-        ${op('evento', 'Modo evento', 'tu QR para una feria')}
-        ${lista ? op('editar', 'Editar la lista', 'nombre, color o borrarla') : ''}
-      </div>`
+    d.innerHTML = `<div class="mc-listas-cab"><h2 id="mcListasTitulo">${escapeHtml(titulo)}</h2><button type="button" class="mc-listas-cerrar" data-listas-cerrar aria-label="Cerrar">✕</button></div>
+      <div class="mc-listas-cuerpo">${opciones.map(([id, texto, nota]) => `<button type="button" class="mc-lista-opcion mc-lista-menu" data-accion="${id}"><span>${texto}${nota ? `<small>${nota}</small>` : ''}</span></button>`).join('')}</div>`
     d.onclick = (e) => {
       if (e.target === d || e.target.closest('[data-listas-cerrar]')) return d.close()
       const b = e.target.closest('[data-accion]')
@@ -225,5 +234,19 @@ export function menuDeLaQuiero({ lista = null } = {}) {
     }
     d.onclose = () => fin(undefined)
     if (!d.open) d.showModal()
+  })
+}
+
+// El ⋯ de «La quiero»: lo que antes eran botones sueltos.
+export function menuDeLaQuiero({ lista = null } = {}) {
+  return menuDe({
+    titulo: lista ? lista.nombre : 'Todas las que quieres',
+    opciones: [
+      ['compartir', 'Compartir la lista', 'en texto, para pegarla en un grupo'],
+      ['imagen', 'Hacer una imagen'],
+      ['album', 'Hacer un álbum con ellas'],
+      ['evento', 'Modo evento', lista ? 'con esta lista' : 'tu QR para una feria'],
+      ...(lista ? [['editar', 'Editar la lista', 'nombre, color o borrarla']] : []),
+    ],
   })
 }

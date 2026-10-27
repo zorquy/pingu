@@ -35,6 +35,7 @@ import { entenderBusqueda } from './busqueda.js'
 import { mercado as pedirMercado, quienDaEsta } from './cambios.js'
 import { senasDe, borradorDe } from './tablon.js'
 import { porCatalogo, rotuloDeCatalogo } from './rotulos-catalogo.js'
+import { showToast } from '../toast.js'
 
 const $ = (id) => document.getElementById(id)
 const POR_PAGINA = 60
@@ -99,7 +100,7 @@ function baldosaHtml(f) {
   // Si ya la tienes, su ✓ como en la expansión (943): «la tienes» se ve en
   // todas partes donde sale una carta.
   const tengo = ctx.tengo?.(f.card_id) || 0
-  return `<article class="mc-merc${busco ? ' buscada' : ''}${abierta === f.card_id ? ' abierta' : ''}" data-merc="${escapeHtml(f.card_id)}">
+  return `<article class="mc-merc${busco ? ' buscada' : ''}${abierta === f.card_id ? ' abierta' : ''}${marcadas.has(f.card_id) ? ' marcada' : ''}" data-merc="${escapeHtml(f.card_id)}">
     <button type="button" class="mc-merc-abrir" data-merc-ficha="${escapeHtml(f.card_id)}" aria-label="${escapeHtml(`Ver quién da ${nombre}${tengo ? ` (tienes ${tengo})` : ''}`)}">
       <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${tengo ? ctx.marcaDeTengo?.(tengo) || '' : ''}</span>
       ${chapa ? `<span class="mc-merc-chapa ${chapa.clase}">${chapa.texto}</span>` : ''}
@@ -196,6 +197,70 @@ function pintarMandos() {
     mias.classList.toggle('hidden', !ctx.sesion)
     mias.setAttribute('aria-pressed', String(estado.soloMias))
     mias.classList.toggle('activo', estado.soloMias)
+  }
+  const sel = $('mcMercadoSeleccionar')
+  if (sel) {
+    sel.classList.toggle('hidden', !ctx.sesion)
+    sel.setAttribute('aria-pressed', String(marcando))
+    sel.classList.toggle('activo', marcando)
+    sel.setAttribute('aria-label', 'Seleccionar varias')
+  }
+}
+
+// SELECCIONAR EN EL MERCADO (1057b): marcar varias y, abajo, «Las quiero»
+// (en cualquier idioma y versión, como el corazón sin preguntar). La regla
+// de la casa: toda lista de cartas lleva Seleccionar.
+let marcando = false
+const marcadas = new Set()
+function pintarSel() {
+  let b = $('mcMercadoSel')
+  if (!b) {
+    b = document.createElement('div')
+    b.id = 'mcMercadoSel'
+    b.className = 'mc-sel mc-quiero-sel hidden'
+    document.body.append(b)
+    b.addEventListener('click', (e) => void accionDeSel(e))
+  }
+  b.classList.toggle('hidden', !marcando || !$('mcPanelMercado') || $('mcPanelMercado').classList.contains('hidden') || $('mcPanelMercado').hidden)
+  $('mcMercadoRejilla')?.classList.toggle('mc-merc-marcando', marcando)
+  if (!marcando) return
+  const k = marcadas.size
+  b.style.setProperty('--acciones', '1')
+  b.innerHTML = `<div class="mc-sel-arriba">
+      <button type="button" class="mc-sel-cerrar" data-sel-merc="salir" aria-label="Salir de la selección">✕</button>
+      <p class="mc-sel-cuenta" role="status" aria-live="polite">${k ? `${k} ${k === 1 ? 'marcada' : 'marcadas'}` : 'Toca las cartas'}</p>
+      <button type="button" class="mc-sel-todas" data-sel-merc="todas">Seleccionar todas</button>
+    </div>
+    <div class="mc-sel-abajo"><button type="button" class="mc-sel-accion" data-sel-merc="quiero"${k ? '' : ' disabled'}>${ICONOS_COLECCION.corazon(22)}Las quiero</button></div>`
+}
+function salirDeSel() {
+  marcando = false
+  marcadas.clear()
+  pintarMandos()
+  pintarRejilla()
+  pintarSel()
+}
+async function accionDeSel(e) {
+  const b = e.target.closest('[data-sel-merc]')
+  if (!b) return
+  const que = b.dataset.selMerc
+  if (que === 'salir') return salirDeSel()
+  if (que === 'todas') {
+    for (const f of filas) marcadas.add(f.card_id)
+    pintarRejilla()
+    return pintarSel()
+  }
+  if (que === 'quiero') {
+    const ids = [...marcadas].filter((id) => !deseosDe(id).length)
+    b.disabled = true
+    try {
+      const n = ids.length ? await ctx.quererVarias(ids) : 0
+      showToast(n ? `${n === 1 ? 'Apuntada' : `${n} apuntadas`} en «La quiero», en cualquier idioma.` : 'Ya las tenías todas en «La quiero».', 'success')
+      salirDeSel()
+    } catch (err) {
+      b.disabled = false
+      showToast(err.message || 'No se han podido apuntar.', 'error')
+    }
   }
 }
 
@@ -436,8 +501,27 @@ function enganchar() {
     marcar(e.target)
     void cargar()
   })
+  // Con Seleccionar puesto, tocar una baldosa la marca y no abre nada.
+  $('mcMercadoRejilla')?.addEventListener('click', (e) => {
+    if (!marcando) return
+    const el = e.target.closest('.mc-merc[data-merc]')
+    if (!el) return
+    e.preventDefault()
+    e.stopPropagation()
+    const k = el.dataset.merc
+    marcadas.has(k) ? marcadas.delete(k) : marcadas.add(k)
+    el.classList.toggle('marcada', marcadas.has(k))
+    pintarSel()
+  }, true)
   const panel = $('mcPanelMercado')
   panel?.addEventListener('click', (e) => {
+    if (e.target.closest('#mcMercadoSeleccionar')) {
+      marcando = !marcando
+      marcadas.clear()
+      pintarMandos()
+      pintarRejilla()
+      return pintarSel()
+    }
     if (e.target.closest('#mcMercadoMias') || e.target.closest('#mcMercadoAviso')) {
       estado.soloMias = e.target.closest('#mcMercadoAviso') ? true : !estado.soloMias
       pintarMandos()

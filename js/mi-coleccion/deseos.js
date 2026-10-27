@@ -846,7 +846,8 @@ async function clicEnBarra(e) {
     const accion = await listasDeseo.menuDeLaQuiero({ lista })
     if (accion === 'compartir') compartirMisListas()
     if (accion === 'imagen') compartirLaQuiero()
-    if (accion === 'evento') location.href = '/evento'
+    // Con una lista abierta, el evento enseña esa (1058).
+    if (accion === 'evento') location.href = lista ? `/evento?lista=${encodeURIComponent(lista.id)}` : '/evento'
     if (accion === 'album') {
       try {
         await ctx.albumDeLaQuiero()
@@ -975,6 +976,8 @@ export function ponerVistaDeseos(v) {
   $('mcQuieroPanel')?.classList.toggle('hidden', v !== 'quiero')
   $('mcDeseoAlta')?.classList.toggle('hidden', v !== 'quiero')
   $('mcDoyPanel')?.classList.toggle('hidden', v !== 'doy')
+  $('mcQuieroSel')?.classList.toggle('hidden', v !== 'quiero' || !marcando)
+  $('mcDoySel')?.classList.toggle('hidden', v !== 'doy' || !marcandoDoy)
   if (v === 'doy') void pintarDoy()
 }
 
@@ -1012,44 +1015,145 @@ async function pintarDoy() {
     buscan = null
   }
   if (vistaDeseos !== 'doy') return
-  const filas = doy.map((l) => ({ l, c: ctx.cartaDeDoy(l), precio: valorDeLinea({ ...l, cantidad: 1 }, ctx.precioDe(l)) ?? null }))
-  const suma = filas.reduce((a, f) => a + (f.precio || 0) * Number(f.l.cambio), 0)
-  const copias = filas.reduce((a, f) => a + Number(f.l.cambio), 0)
-  caja.innerHTML = `<div class="mc-quiero-cabeza">
-      <p class="mc-quiero-cifra"><b>${copias.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${copias === 1 ? 'copia' : 'copias'} que das${suma ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}</p>
-      <span class="mc-quiero-botones">
-        ${poner}
-        <span class="grupo-acciones" role="group" aria-label="La lista"><button type="button" class="mc-quiero-compartir" id="mcDoyCompartir" aria-label="Compartir lista">${icons.share(16)}<span>Compartir<span class="mc-q-largo"> lista</span></span></button></span>
-      </span>
+  const todas = doy.map((l) => ({ l, c: ctx.cartaDeDoy(l), precio: valorDeLinea({ ...l, cantidad: 1 }, ctx.precioDe(l)) ?? null }))
+  const suma = todas.reduce((a, f) => a + (f.precio || 0) * Number(f.l.cambio), 0)
+  const copias = todas.reduce((a, f) => a + Number(f.l.cambio), 0)
+  const laBuscan = (f) => (buscan?.get(f.l.card_id) || []).length > 0
+  const nBuscan = buscan ? todas.filter(laBuscan).length : null
+  const filas = todas.filter((f) => doyFiltro === 'todas' || !buscan || (doyFiltro === 'buscan' ? laBuscan(f) : !laBuscan(f)))
+  const seg = (v, texto, n) => `<button type="button" data-doy-filtro="${v}" aria-pressed="${doyFiltro === v}">${texto}${n == null ? '' : ` <small>${n}</small>`}</button>`
+  // La barra (1057b): la misma de «La quiero», sin listas: Seleccionar,
+  // la cuenta, «+» Poner más, ⋯ y Todas / La buscan / Nadie.
+  caja.innerHTML = `<div class="mc-mandos mc-quiero-barra mc-doy-barra" id="mcDoyBarra">
+      <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcDoySeleccionar" aria-pressed="${marcandoDoy}">${icons.checkSquare(18)}<span class="mc-chip-texto">Seleccionar</span></button>
+      <span class="mc-doy-cifra" id="mcDoyCifra"><b>${copias.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${copias === 1 ? 'copia' : 'copias'}${suma ? ` · <b>${escapeHtml(euros(suma))}</b>` : ''}</span>
+      <button type="button" class="mc-chip-mando mc-doy-mas" id="mcDoyPoner" aria-label="Poner más para cambio"><span aria-hidden="true">+</span><span class="mc-q-largo">Poner más</span></button>
+      <button type="button" class="mc-chip-mando mc-quiero-menu" id="mcDoyMenu" aria-label="Más: compartir, modo evento" aria-haspopup="dialog"><span aria-hidden="true">⋯</span></button>
+      ${buscan ? `<span class="mc-seg mc-seg-sueltas mc-quiero-que" id="mcDoyQue" role="group" aria-label="Cuáles">${seg('todas', 'Todas')}${seg('buscan', 'La buscan', nBuscan)}${seg('nadie', 'Nadie', todas.length - nBuscan)}</span>` : ''}
     </div>
-    <p class="subtext mc-doy-nota">Lo que das sale en el Mercado, con tu nombre.</p>
-    <div class="mc-mercado-rejilla mc-doy-rejilla" id="mcDoyRejilla">${conRotulos(filas, ({ l, c }) => l.market || c?.market || 'WEST', ({ l, c, precio }) => {
+    <div class="mc-mercado-rejilla mc-doy-rejilla${marcandoDoy ? ' mc-doy-marcando' : ''}" id="mcDoyRejilla">${conRotulos(filas, ({ l, c }) => l.market || c?.market || 'WEST', ({ l, c, precio }) => {
       const nombre = ctx.nombreDe(c) || l.card_id
       const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
       const gente = buscan?.get(l.card_id) || []
       const das = Number(l.cambio)
       const tienes = Number(l.cantidad)
-      return `<article class="mc-merc mc-doy-baldosa" data-doy-linea="${escapeHtml(l.id)}">
+      // Compacta como «La quiero» (1057b): la campana encima de la foto,
+      // «La busca N» solo si alguien la busca.
+      return `<article class="mc-merc mc-doy-baldosa${marcadasDoy.has(l.id) ? ' marcada' : ''}" data-doy-linea="${escapeHtml(l.id)}">
         <a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
-          <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
-          ${gente.length ? `<span class="mc-merc-chapa busca">${gente.length === 1 ? 'La busca 1' : `La buscan ${gente.length}`}</span>` : ''}
+          <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${l.variante && l.variante !== 'normal' ? chapaDeVersionHtml(l.variante) : ''}</span>
         </a>
+        <button type="button" class="mc-quiero-aviso mc-doy-aviso" data-avisar-doy="${escapeHtml(l.card_id)}" data-idioma="${escapeHtml(l.idioma || 'es')}" aria-label="Avísame si ${escapeHtml(nombre)} cambia de precio" title="Avísame si cambia de precio">${icons.bell(16)}</button>
         <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
         <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
-        <span class="mc-merc-fila">${banderaHtml(l.idioma || 'es')}<span class="mc-merc-texto">${escapeHtml(estadoDe(l.estado).nombre)}</span><b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b></span>
+        <span class="mc-merc-fila mc-deseo-precio-fila"><b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>${banderaHtml(l.idioma || 'es')}<span class="mc-merc-texto" title="${escapeHtml(estadoDe(l.estado).nombre)}">${escapeHtml(estadoDe(l.estado).id)}</span></span>
         <span class="mc-merc-fila mc-doy-paso">
           <span class="mc-doy-cuantas">Doy ${das} de ${tienes}</span>
           <button type="button" class="mc-doy-boton" data-doy-menos="${escapeHtml(l.id)}" aria-label="Dar una menos de ${escapeHtml(nombre)}">−</button>
           <button type="button" class="mc-doy-boton" data-doy-mas="${escapeHtml(l.id)}"${das >= tienes ? ' disabled' : ''} aria-label="Dar una más de ${escapeHtml(nombre)}">+</button>
         </span>
-        ${buscan === null
-          ? ''
-          : gente.length
-            ? `<button type="button" class="mc-merc-fila mc-deseo-quien" data-deseos-vista="cruces">${mercadoAvatares(gente)}<span class="mc-merc-texto">Ver en Cruces</span></button>`
-            : '<span class="mc-merc-fila mc-merc-nadie">Nadie la busca aún</span>'}
-        <button type="button" class="mc-quiero-aviso mc-doy-aviso" data-avisar-doy="${escapeHtml(l.card_id)}" data-idioma="${escapeHtml(l.idioma || 'es')}" aria-label="Avísame si ${escapeHtml(nombre)} cambia de precio">${icons.bell(14)}</button>
+        ${gente.length ? `<button type="button" class="mc-merc-fila mc-deseo-quien" data-deseos-vista="cruces">${mercadoAvatares(gente, 3)}<span class="mc-merc-texto">${gente.length === 1 ? 'La busca 1' : `La buscan ${gente.length}`}</span></button>` : ''}
       </article>`
-    })}</div>`
+    })}</div>
+    ${filas.length ? '' : `<p class="subtext">${doyFiltro === 'buscan' ? 'Nadie busca todavía ninguna de estas.' : 'Todas estas las busca alguien.'}</p>`}
+    <p class="subtext mc-doy-nota">Lo que das sale en el Mercado, con tu nombre.</p>`
+  engancharDoy()
+  pintarSelDoy()
+}
+
+// SELECCIONAR EN «LAS QUE DOY» (1057b): marcar copias y, abajo, dejar de
+// darlas o darlas todas. La clave es la línea.
+let doyFiltro = 'todas'
+let marcandoDoy = false
+const marcadasDoy = new Set()
+let doyEnganchado = false
+function engancharDoy() {
+  if (doyEnganchado) return
+  const caja = $('mcDoyPanel')
+  if (!caja) return
+  doyEnganchado = true
+  caja.addEventListener('click', (e) => {
+    if (!marcandoDoy) return
+    const el = e.target.closest('.mc-doy-baldosa')
+    if (!el) return
+    e.preventDefault()
+    e.stopPropagation()
+    const k = el.dataset.doyLinea
+    marcadasDoy.has(k) ? marcadasDoy.delete(k) : marcadasDoy.add(k)
+    el.classList.toggle('marcada', marcadasDoy.has(k))
+    pintarSelDoy()
+  }, true)
+  caja.addEventListener('click', async (e) => {
+    const filtro = e.target.closest('[data-doy-filtro]')
+    if (filtro) {
+      doyFiltro = filtro.dataset.doyFiltro
+      return void pintarDoy()
+    }
+    if (e.target.closest('#mcDoySeleccionar')) {
+      marcandoDoy = !marcandoDoy
+      marcadasDoy.clear()
+      return void pintarDoy()
+    }
+    if (e.target.closest('#mcDoyMenu')) {
+      const accion = await listasDeseo.menuDe({ titulo: 'Las que doy', opciones: [['compartir', 'Compartir la lista', 'en texto, para pegarla en un grupo'], ['evento', 'Modo evento', 'tu QR para una feria']] })
+      if (accion === 'compartir') compartirMisListas()
+      if (accion === 'evento') location.href = '/evento'
+    }
+  })
+}
+function pintarSelDoy() {
+  let b = $('mcDoySel')
+  if (!b) {
+    b = document.createElement('div')
+    b.id = 'mcDoySel'
+    b.className = 'mc-sel mc-quiero-sel hidden'
+    document.body.append(b)
+    b.addEventListener('click', (e) => void accionDeSelDoy(e))
+  }
+  b.classList.toggle('hidden', !marcandoDoy || ctx.pestania !== 'quiero' || vistaDeseos !== 'doy')
+  if (!marcandoDoy) return
+  const k = marcadasDoy.size
+  b.style.setProperty('--acciones', '2')
+  b.innerHTML = `<div class="mc-sel-arriba">
+      <button type="button" class="mc-sel-cerrar" data-sel-doy="salir" aria-label="Salir de la selección">✕</button>
+      <p class="mc-sel-cuenta" role="status" aria-live="polite">${k ? `${k} ${k === 1 ? 'marcada' : 'marcadas'}` : 'Toca las cartas'}</p>
+      <button type="button" class="mc-sel-todas" data-sel-doy="todas">Seleccionar todas</button>
+    </div>
+    <div class="mc-sel-abajo">
+      <button type="button" class="mc-sel-accion" data-sel-doy="todo"${k ? '' : ' disabled'}>${icons.package(22)}Darlas todas</button>
+      <button type="button" class="mc-sel-accion mc-sel-quitar" data-sel-doy="nada"${k ? '' : ' disabled'}>${icons.trash(22)}Ya no las doy</button>
+    </div>`
+}
+async function accionDeSelDoy(e) {
+  const b = e.target.closest('[data-sel-doy]')
+  if (!b) return
+  const que = b.dataset.selDoy
+  if (que === 'salir') {
+    marcandoDoy = false
+    marcadasDoy.clear()
+    return void pintarDoy()
+  }
+  if (que === 'todas') {
+    for (const el of document.querySelectorAll('#mcDoyRejilla .mc-doy-baldosa')) marcadasDoy.add(el.dataset.doyLinea)
+    return void pintarDoy()
+  }
+  const lineas = [...marcadasDoy].map((id) => ctx.lineasDeTodas().find((x) => x.id === id)).filter(Boolean)
+  marcandoDoy = false
+  marcadasDoy.clear()
+  let fallos = 0
+  for (const l of lineas) {
+    const cambio = que === 'todo' ? Number(l.cantidad) || 0 : 0
+    if (cambio === Number(l.cambio)) continue
+    try {
+      ctx.cambiarLinea(l.id, await datos.actualizar(l.id, { cambio }))
+    } catch {
+      fallos++
+    }
+  }
+  if (fallos) showToast(`No se han podido cambiar ${fallos}.`, 'error')
+  else showToast(que === 'todo' ? 'Das todas las copias que tienes de esas.' : 'Ya no las das. Siguen en tu colección.', 'success')
+  alCambiarLoQueDoy()
+  void pintarDoy()
 }
 
 // − y + de una baldosa: cuántas copias de esa línea das. Al llegar a 0 la

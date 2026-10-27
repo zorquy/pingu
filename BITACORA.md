@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (298) — PINGU-Claude (1058 — lo que quedaba de las listas: cruces, Modo evento, Las que doy y el Mercado)
+
+**Hecho**: PINGU ejecutó la 1057 y pidió seguir con lo pendiente.
+- **Una lista puede NO contar para los cruces** (interruptor «Cuenta para los
+  cruces» en la hoja de la lista, puesto de entrada): sus cartas solo las ve
+  su dueño (no salen en el perfil, el Mercado ni Cruces, y no avisan). Lo
+  decide la base: `deseo_cuenta(usuario, carta)` en la política de lectura de
+  `user_wants` y en las cuatro funciones de cruces (las de la 1047, enteras).
+- **Modo evento con una lista**: en /evento, «Lista» al lado de los filtros
+  (o desde el ⋯ de una lista abierta en «La quiero»): «Busco» enseña solo esa,
+  el pase la nombra y el QR lleva `?lista=<id>`; quien lo escanea ve esa lista
+  (`evento_lista`, solo si es de esa persona), también si es de las que no
+  cuentan.
+- **«Las que doy» con la barra de «La quiero»**: Seleccionar · «2 copias ·
+  X €» · «+ Poner más» · ⋯ (compartir, modo evento) · Todas / La buscan /
+  Nadie. Baldosa compacta (campana sobre la foto, estado en dos letras, «La
+  busca N» solo si alguien la busca). Seleccionar: «Darlas todas» y «Ya no las
+  doy».
+- **Seleccionar en el Mercado**: marcar varias y «Las quiero» (en cualquier
+  idioma, con `quererVarias`).
+
+**Migración**: `supabase-migration-1058-listas-cruces.sql`. **PINGU tiene que
+ejecutarla.** Sin ella la web va como con la 1057: el interruptor no sale
+(la columna se pide con respaldo) y el QR con lista enseña todo.
+
+**Ficheros**: la migración, js/mi-coleccion/deseos.js (`pintarDoy` y su
+selección), js/mi-coleccion/listas-deseo.js (`menuDe`, `cruces`),
+js/mi-coleccion/mercado.js (Seleccionar), js/evento.js y evento.html (la
+lista), js/perfil-cambios.js (`?lista=`), mi-coleccion.html (botón del
+Mercado), cartas.html (generado), css/mi-coleccion.css, novedades.json,
+SCHEMA.md, CLAUDE.md, BITACORA.md.
+
+**Pruebas**: `test-tanda-1058.mjs` (PostgreSQL de verdad, sobre la base de la
+1047: la regla, la política para anon y para otro, quién tiene, quién busca,
+el Mercado, el aviso, evento_lista y que nadie mete cartas en tu lista) y
+`test-tanda-1058-pantalla.mjs` (Las que doy, Mercado, interruptor, evento). Al
+día 763 y 772. 887 rojo también en HEAD (busca «Su perfil» en tablon.js).
+
+**Pendiente**: nada de la propuesta de las listas.
+
 ## 2026-10-27 (297) — PINGU-Claude (1057 — «La quiero» en dos filas, baldosas compactas, listas y Seleccionar)
 
 **Hecho**: lo de la propuesta aprobada, de una vez porque PINGU va a grabar un

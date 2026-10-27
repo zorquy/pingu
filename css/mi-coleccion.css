@@ -9869,9 +9869,6 @@ html:has(.mc-merf[open]) {
 }
 
 .mc-doy-aviso {
-  position: absolute;
-  top: var(--e-xs);
-  right: var(--e-xs);
   background: rgb(255 255 255 / 92%);
   color: #52717f;
 }
@@ -13828,11 +13825,11 @@ html:not(.mc-puede-marcar) [data-seleccionar] {
 
 /* La baldosa de «La quiero» como la del Mercado (1057): la campana del aviso,
    encima de la foto a la izquierda (a la derecha va el corazón). */
-.mc-deseo-baldosa {
+:is(.mc-deseo-baldosa, .mc-doy-baldosa) {
   position: relative;
 }
 
-.mc-deseo-baldosa .mc-quiero-aviso {
+:is(.mc-deseo-baldosa, .mc-doy-baldosa) .mc-quiero-aviso {
   display: grid;
   position: absolute;
   top: var(--e-xs);
@@ -13852,12 +13849,12 @@ html:not(.mc-puede-marcar) [data-seleccionar] {
   color: #52717f;
 }
 
-.mc-deseo-baldosa .mc-quiero-aviso.puesto {
+:is(.mc-deseo-baldosa, .mc-doy-baldosa) .mc-quiero-aviso.puesto {
   background: var(--navy-solid);
   color: var(--blanco-fijo);
 }
 
-.mc-deseo-baldosa .mc-quiero-aviso.cumple {
+:is(.mc-deseo-baldosa, .mc-doy-baldosa) .mc-quiero-aviso.cumple {
   background: #0a7a55;
   color: var(--blanco-fijo);
 }
@@ -13910,7 +13907,7 @@ html:not(.mc-puede-marcar) [data-seleccionar] {
 }
 
 @media (pointer: coarse) {
-  .mc-deseo-baldosa .mc-quiero-aviso {
+  :is(.mc-deseo-baldosa, .mc-doy-baldosa) .mc-quiero-aviso {
     top: 0;
     left: 0;
     width: 44px;
@@ -13919,7 +13916,7 @@ html:not(.mc-puede-marcar) [data-seleccionar] {
     box-shadow: none;
   }
 
-  .mc-deseo-baldosa .mc-quiero-aviso svg {
+  :is(.mc-deseo-baldosa, .mc-doy-baldosa) .mc-quiero-aviso svg {
     box-sizing: content-box;
     padding: var(--e-sm);
     border-radius: 50%;
@@ -13927,7 +13924,7 @@ html:not(.mc-puede-marcar) [data-seleccionar] {
     box-shadow: 0 1px 4px rgb(0 0 0 / 25%);
   }
 
-  .mc-deseo-baldosa .mc-quiero-aviso.puesto svg {
+  :is(.mc-deseo-baldosa, .mc-doy-baldosa) .mc-quiero-aviso.puesto svg {
     background: var(--navy-solid);
   }
 }
@@ -13948,8 +13945,49 @@ html:not(.mc-puede-marcar) [data-seleccionar] {
 }
 
 .mc-quiero-marcando .mc-deseo-baldosa .mc-merc-corazon,
-.mc-quiero-marcando .mc-deseo-baldosa .mc-quiero-aviso {
+.mc-quiero-marcando :is(.mc-deseo-baldosa, .mc-doy-baldosa) .mc-quiero-aviso {
   visibility: hidden;
+}
+
+.mc-doy-marcando .mc-doy-baldosa {
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.mc-doy-marcando .mc-doy-baldosa.marcada {
+  opacity: 1;
+}
+
+.mc-doy-marcando .mc-doy-baldosa.marcada .mc-merc-foto {
+  outline: 3px solid var(--acento);
+  outline-offset: 2px;
+}
+
+.mc-doy-marcando .mc-doy-baldosa :is(.mc-quiero-aviso, .mc-doy-paso) {
+  visibility: hidden;
+}
+
+/* «Las que doy» con la misma barra (1057b): la cuenta como texto y «+
+   Poner más» siempre a la vista. */
+.mc-doy-cifra {
+  align-self: center;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  white-space: nowrap;
+}
+
+.mc-doy-cifra b {
+  color: var(--text);
+}
+
+.mc-doy-mas {
+  justify-content: center;
+  gap: var(--e-xs);
+  min-width: 44px;
+  border-color: var(--acento);
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-weight: 700;
 }
 
 .mc-quiero-sel .mc-sel-abajo {
@@ -14139,4 +14177,55 @@ html:has(.mc-listas-hoja[open]) {
     margin: 0;
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
+}
+
+/* Seleccionar en el Mercado (1057b), como en «La quiero». Y las barras de
+   abajo de las tres se van al cambiar de pestaña. */
+.mc-merc-marcando .mc-merc {
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.mc-merc-marcando .mc-merc.marcada {
+  opacity: 1;
+}
+
+.mc-merc-marcando .mc-merc.marcada .mc-merc-foto {
+  outline: 3px solid var(--acento);
+  outline-offset: 2px;
+}
+
+.mc-merc-marcando .mc-merc .mc-merc-corazon {
+  visibility: hidden;
+}
+
+body:has(#mcPanelMercado.hidden) #mcMercadoSel,
+body:has(#mcPanelQuiero.hidden) :is(#mcQuieroSel, #mcDoySel) {
+  display: none;
+}
+
+/* «Cuenta para los cruces» en la hoja de una lista (1058). */
+.mc-lista-cruces {
+  display: flex;
+  gap: var(--e-sm);
+  align-items: flex-start;
+  cursor: pointer;
+}
+
+.mc-lista-cruces input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 2px 0 0;
+  accent-color: var(--acento);
+}
+
+.mc-lista-cruces span {
+  display: grid;
+  gap: 2px;
+}
+
+.mc-lista-cruces small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
 }

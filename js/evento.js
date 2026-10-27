@@ -92,6 +92,7 @@ async function pedir(sesion) {
     conVariante('card_id,idioma', (cols) => supabase.from('user_wants').select(cols).eq('user_id', sesion.user.id).limit(TOPE)),
   ])
   if (e1 || e2) throw e1 || e2
+  const listas = await listasDeseo(sesion.user.id)
   const cartaDe = await fichas([...(doy || []), ...(busco || [])])
   // El precio que se enseña es el de la ficha: el de SU idioma (900).
   const { preciosGuardados } = await import('./mi-coleccion/datos.js')
@@ -106,7 +107,40 @@ async function pedir(sesion) {
     perfil: { id: perfil?.id || sesion.user.id, username: perfil?.username || null, display_name: perfil?.display_name || null, avatar_url: perfil?.avatar_url || null },
     doy: (doy || []).map((l) => fila(l, cartaDe(l), deDoy(l))),
     busco: (busco || []).map((l) => fila(l, cartaDe(l), deBusco(l), { deseo: true })),
+    listas,
   }
+}
+
+// Tus listas de «La quiero» (1057), para enseñar UNA en el evento (1058).
+// Se guardan con lo demás, para el pabellón sin cobertura. Sin la migración,
+// ninguna.
+async function listasDeseo(userId) {
+  const [l, i] = await Promise.all([
+    supabase.from('user_want_lists').select('id,nombre,color').eq('user_id', userId).order('created_at'),
+    supabase.from('user_want_list_items').select('list_id,card_id').eq('user_id', userId).limit(5000),
+  ]).catch(() => [{ error: true }, { error: true }])
+  if (l.error || i.error) return []
+  return (l.data || []).map((x) => ({ ...x, cartas: (i.data || []).filter((f) => f.list_id === x.id).map((f) => f.card_id) }))
+}
+
+// LA LISTA DEL EVENTO (1058): «Busco» enseña solo esa lista y el QR la
+// lleva (/evento/<usuario>?lista=<id>), que es lo que ve quien lo escanea.
+const CLAVE_LISTA = 'pd-evento-lista'
+let listaDeseo = (() => {
+  const deLaDireccion = typeof location !== 'undefined' ? new URLSearchParams(location.search).get('lista') : null
+  if (deLaDireccion) return deLaDireccion
+  try { return localStorage.getItem(CLAVE_LISTA) || '' } catch { return '' }
+})()
+const listaPuesta = (d) => (listaDeseo && d?.listas?.find((l) => l.id === listaDeseo)) || null
+const enlaceActual = (d) => {
+  const l = listaPuesta(d)
+  return l ? `${d.enlace}?lista=${encodeURIComponent(l.id)}` : d.enlace
+}
+const filasDe = (d, cual) => {
+  const l = cual === 'busco' ? listaPuesta(d) : null
+  if (!l) return d?.[cual] || []
+  const ids = new Set(l.cartas)
+  return (d.busco || []).filter((f) => ids.has(f.id))
 }
 
 // Las fotos, guardadas en la Cache API «a ciegas» (no-cors): la respuesta es
@@ -162,7 +196,14 @@ function pintarFiltros(filas) {
 }
 
 function pintarLista() {
-  const filas = datos?.[lista] || []
+  const filas = datos ? filasDe(datos, lista) : []
+  const opLista = $('eventoOpListaDeseo')
+  if (opLista) {
+    const hay = (datos?.listas || []).length > 0
+    opLista.classList.toggle('hidden', !hay || lista !== 'busco')
+    if (hay) $('eventoListaDeseo').innerHTML = `<option value="">Todas</option>${datos.listas.map((l) => `<option value="${escapeHtml(l.id)}"${l.id === listaPuesta(datos)?.id ? ' selected' : ''}>${escapeHtml(l.nombre)} (${l.cartas.length})</option>`).join('')}`
+    opLista.classList.toggle('cambiada', Boolean(listaPuesta(datos)))
+  }
   for (const b of document.querySelectorAll('.evento-pestanas [data-lista]')) b.setAttribute('aria-pressed', String(b.dataset.lista === lista))
   pintarFiltros(filas)
   const vistas = filtrarLista(filas, filtro)
@@ -183,16 +224,16 @@ function paseHtml(d) {
       <span class="evento-pase-quien"><strong>${escapeHtml(d.nombre)}</strong>${d.usuario ? `<small>@${escapeHtml(d.usuario)}</small>` : ''}</span>
       <span class="evento-pase-marca" aria-hidden="true">Poke<span>Doc</span></span>
     </div>
-    <div class="evento-pase-qr">${svgQR(d.enlace, { tam: 220 })}</div>
-    <p class="evento-pase-lema">Escanéame para ver mis cartas</p>
-    <p class="evento-pase-cifras"><span><b>${d.busco.length}</b> busco</span><span><b>${d.doy.length}</b> doy</span></p>`
+    <div class="evento-pase-qr">${svgQR(enlaceActual(d), { tam: 220 })}</div>
+    <p class="evento-pase-lema">${listaPuesta(d) ? `Escanéame: «${escapeHtml(listaPuesta(d).nombre)}»` : 'Escanéame para ver mis cartas'}</p>
+    <p class="evento-pase-cifras"><span><b>${filasDe(d, 'busco').length}</b> busco</span><span><b>${d.doy.length}</b> doy</span></p>`
 }
 
 function pintar(d, desdeGuardado) {
   datos = d
   $('eventoQr').innerHTML = paseHtml(d)
   $('eventoAmpliar').classList.remove('hidden')
-  $('eventoNBusco').textContent = String(d.busco.length)
+  $('eventoNBusco').textContent = String(filasDe(d, 'busco').length)
   $('eventoNDoy').textContent = String(d.doy.length)
   const cuando = new Date(d.cuando).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
   $('eventoGuardado').textContent = desdeGuardado ? `Sin conexión: tus listas tal como estaban el ${cuando}.` : `Guardado en este móvil (${cuando}).`
@@ -203,7 +244,8 @@ function pintar(d, desdeGuardado) {
 const titulo = () => (lista === 'busco' ? 'Las que busco' : 'Las que doy')
 
 async function copiar() {
-  const texto = textoDeLista(`${titulo()} · ${datos.nombre}`, datos[lista]) + `\n${datos.enlace}`
+  const l = lista === 'busco' ? listaPuesta(datos) : null
+  const texto = textoDeLista(`${l ? l.nombre : titulo()} · ${datos.nombre}`, filasDe(datos, lista)) + `\n${enlaceActual(datos)}`
   try {
     if (navigator.share && matchMedia('(pointer: coarse)').matches) await navigator.share({ title: titulo(), text: texto })
     else { await navigator.clipboard.writeText(texto); showToast('Lista copiada: pégala donde quieras.', 'success') }
@@ -218,7 +260,7 @@ async function imagen() {
   try {
     const { compartirLaQuiero } = await import('./mi-coleccion/imagen-quiero.js')
     const busco = lista === 'busco'
-    await compartirLaQuiero({ cartas: datos[lista].map((f) => ({ carta: f.carta, idioma: f.idioma })), nombre: datos.usuario, titulo: busco ? 'Las que quiero' : 'Las que doy', fichero: busco ? 'la-quiero' : 'las-doy', texto: `${busco ? 'Las cartas que busco. ¿Tienes alguna?' : 'Las cartas que doy. ¿Te interesa alguna?'} Mis listas: ${datos.enlace}` })
+    await compartirLaQuiero({ cartas: filasDe(datos, lista).map((f) => ({ carta: f.carta, idioma: f.idioma })), nombre: datos.usuario, titulo: busco ? 'Las que quiero' : 'Las que doy', fichero: busco ? 'la-quiero' : 'las-doy', texto: `${busco ? 'Las cartas que busco. ¿Tienes alguna?' : 'Las cartas que doy. ¿Te interesa alguna?'} Mis listas: ${datos.enlace}` })
   } catch (err) {
     showToast(err.message || 'No se ha podido hacer la imagen.', 'error')
   } finally { b.disabled = false }
@@ -229,7 +271,7 @@ async function exportar() {
     // El mismo CSV que exporta Mi colección (580); el fichero se baja aquí
     // porque `importar.js` arrastra la pantalla de importar entera (299).
     const { exportarCsv } = await import('./mi-coleccion/importar-csv.js')
-    const filas = datos[lista]
+    const filas = filasDe(datos, lista)
     const csv = exportarCsv(filas.map((f) => ({ card_id: f.id, market: f.market, idioma: f.idioma || '', cantidad: f.n })), (l) => filas.find((f) => f.id === l.card_id)?.carta || {})
     // El BOM es para Excel: sin él abre las tildes como basura.
     const url = URL.createObjectURL(new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' }))
@@ -247,7 +289,7 @@ async function exportar() {
 
 function ampliar() {
   if (!datos) return
-  $('eventoGrandeQr').innerHTML = svgQR(datos.enlace, { tam: 320 })
+  $('eventoGrandeQr').innerHTML = svgQR(enlaceActual(datos), { tam: 320 })
   $('eventoGrandeNombre').textContent = datos.usuario ? `@${datos.usuario}` : datos.nombre
   $('eventoGrande').showModal()
   // Que no se apague la pantalla mientras lo enseñas, si el navegador deja.
@@ -284,6 +326,12 @@ function enganchar() {
   $('eventoBuscar')?.addEventListener('input', (e) => {
     clearTimeout(espera)
     espera = setTimeout(() => { filtro.texto = e.target.value; pintarLista() }, 150)
+  })
+  $('eventoListaDeseo')?.addEventListener('change', (e) => {
+    listaDeseo = e.target.value
+    try { listaDeseo ? localStorage.setItem(CLAVE_LISTA, listaDeseo) : localStorage.removeItem(CLAVE_LISTA) } catch {}
+    filtro.set = ''
+    if (datos) pintar(datos, false)
   })
   for (const [id, campo] of [['eventoCatalogo', 'catalogo'], ['eventoSet', 'set'], ['eventoOrden', 'orden']]) {
     $(id)?.addEventListener('change', (e) => { filtro[campo] = e.target.value; pintarLista() })
