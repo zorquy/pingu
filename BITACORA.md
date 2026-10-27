@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (302) — PINGU-Claude (1061a — el «{}» del registro por email)
+
+**Hecho**: PINGU, con captura: crear cuenta con email pintaba «{}» bajo el
+botón (con Google, bien). Es un 5xx de Supabase Auth: supabase-js lo convierte
+en `AuthRetryableFetchError` con el mensaje `JSON.stringify(Response)` = «{}» y
+el motivo del servidor se pierde. Comprobado en Node con el supabase-js de
+`js/vendor` y un 500/504 falsos. `friendlyAuthError` ahora lo dice en español
+(fallo del servidor, o sin conexión si el status es 0) y el registro deja el
+nombre, el status y el mensaje en la consola.
+
+**Lo que NO arregla**: la causa. Un 500 en `/auth/v1/signup` es casi siempre
+el correo de confirmación que no sale (SMTP) o un error de la base al crear el
+usuario; se ve en Supabase → Logs → Auth. Pendiente de PINGU mirarlo.
+
+**Ficheros**: `js/auth.js`.
+
 ## 2026-10-27 (301) — PINGU-Claude (1060 — los desplegables en el tema oscuro)
 
 **Hecho**: PINGU, con una captura del Mercado: la lista de «Idioma» salía

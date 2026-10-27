@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "Si algo falla al crear la cuenta con email, ahora te lo decimos claro en vez de enseñar unos corchetes.", "enlace": "/auth.html?registro=1" },
     { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "Con el tema oscuro, los desplegables (como el idioma del Mercado) ya no salen en blanco con la letra que no se lee.", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-10-27", "tipo": "nuevo", "texto": "Al abrir una carta de «La quiero», su ficha dice en qué listas está y tiene «Añadir a una lista» (o crear una nueva ahí mismo).", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-27", "tipo": "arreglo", "texto": "En el móvil, al editar tus copias de una carta, tocar «También tienes» para pasar a la otra copia (por ejemplo, la inglesa) ya no deja la hoja vacía: se abre con los datos de esa copia.", "enlace": "/mi-coleccion?ver=cartas" },
