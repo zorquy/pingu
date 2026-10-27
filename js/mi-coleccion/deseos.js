@@ -27,6 +27,7 @@ import { porCatalogo, conRotulos } from './rotulos-catalogo.js'
 import { casaVersion, deseosPorCartaYVersion } from '../deseo-version.js'
 import { nombreDeVariante, versionDeVariante } from './variantes.js'
 import { chapaDeVersionHtml } from './iconos-version.js'
+import * as listasDeseo from './listas-deseo.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -535,6 +536,9 @@ export async function abrirQuiero() {
     return
   }
   pintarQuiero()
+  // Las listas (1057): sin la migración, null y la barra se queda en «Todas».
+  if (!listasDeseo.hayListas()) await listasDeseo.cargarListas(ctx.sesion?.user?.id).catch(() => null)
+  if (listaAbierta && !listasDeseo.lasListas().some((l) => l.id === listaAbierta)) listaAbierta = null
   // La carta, su precio y tus avisos llegan después y repintan: lo que
   // quieres casi nunca lo tienes, así que no está en memoria.
   await completarQuiero()
@@ -632,11 +636,55 @@ export function dantesPorCarta(tiene = []) {
 export { porCatalogo }
 const mercadoDeCarta = (id) => ctx.cartas.get(id)?.market || 'WEST'
 
+// La lista que se mira (1057): null = Todas. Se recuerda en el navegador.
+let listaAbierta = (() => { try { return localStorage.getItem('mc-quiero-lista') || null } catch { return null } })()
+function ponerListaAbierta(id) {
+  listaAbierta = id || null
+  try { listaAbierta ? localStorage.setItem('mc-quiero-lista', listaAbierta) : localStorage.removeItem('mc-quiero-lista') } catch {}
+}
+const enLista = (id, g) => listasDeseo.cartasDe(id).has(listasDeseo.claveDeCarta(g.card_id, mercadoDeCarta(g.card_id)))
+// Cuántas cartas QUE SIGUES QUERIENDO hay en una lista (null = Todas).
+function cuantasEn(id) {
+  const grupos = deseosPorCartaYVersion(ctx.deseos || [])
+  return id == null ? grupos.length : grupos.filter((g) => enLista(id, g)).length
+}
+
+// SELECCIONAR (1057): marcar baldosas y, abajo, meterlas en una lista,
+// sacarlas de la abierta o quitarlas de «La quiero». La clave es carta y
+// versión, como una baldosa.
+let marcando = false
+const marcadas = new Set()
+const claveDeGrupo = (g) => `${g.card_id}|${g.variante || ''}`
+
+function pintarBarraQuiero({ n, conAlguien }) {
+  const lista = listasDeseo.lasListas().find((l) => l.id === listaAbierta) || null
+  const punto = $('mcQuieroListaPunto')
+  if (punto) {
+    punto.hidden = !lista
+    if ($('mcQuieroListaIcono')) $('mcQuieroListaIcono').hidden = !!lista
+    punto.style.setProperty('--c', lista?.color || 'transparent')
+  }
+  if ($('mcQuieroListaRotulo')) $('mcQuieroListaRotulo').textContent = lista ? lista.nombre : 'Todas'
+  if ($('mcQuieroListaN')) $('mcQuieroListaN').textContent = String(n)
+  const que = $('mcQuieroQue')
+  if (que) {
+    que.classList.toggle('hidden', conAlguien === null || !n)
+    for (const b of que.querySelectorAll('[data-quiero-filtro]')) b.setAttribute('aria-pressed', String(b.dataset.quieroFiltro === quieroFiltro))
+    const dan = que.querySelector('[data-quiero-n="dan"]')
+    const nadie = que.querySelector('[data-quiero-n="nadie"]')
+    if (dan) dan.textContent = conAlguien == null ? '' : String(conAlguien)
+    if (nadie) nadie.textContent = conAlguien == null ? '' : String(n - conAlguien)
+  }
+  $('mcQuieroSeleccionar')?.setAttribute('aria-pressed', String(marcando))
+}
+
 function pintarQuiero() {
   const caja = $('mcQuieroPanel')
   if (!caja || !Array.isArray(ctx.deseos)) return
   // Una baldosa por carta y versión (1047): la Holo y la Normal son dos.
-  const grupos = deseosPorCartaYVersion(ctx.deseos)
+  const todos = deseosPorCartaYVersion(ctx.deseos)
+  const lista = listasDeseo.lasListas().find((l) => l.id === listaAbierta) || null
+  const grupos = lista ? todos.filter((g) => enLista(lista.id, g)) : todos
   const precios = grupos.map((g) => ctx.precioDeDeseo(g.filas[0]))
   const conPrecio = precios.filter((v) => v != null)
   const suma = conPrecio.reduce((a, v) => a + v, 0)
@@ -646,34 +694,174 @@ function pintarQuiero() {
   const conAlguien = dantesDeQuiero ? grupos.filter((g) => dan(g) > 0).length : null
   const visibles = grupos.map((g, i) => ({ g, precio: precios[i] })).filter(({ g }) =>
     quieroFiltro === 'todas' || !dantesDeQuiero || (quieroFiltro === 'dan' ? dan(g) > 0 : dan(g) === 0))
-  caja.innerHTML = `
-    ${n
-      ? `<div class="mc-quiero-cabeza">
-          <p class="mc-quiero-cifra" id="mcQuieroCifra"><b>${n.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${n === 1 ? 'carta' : 'cartas'}${conPrecio.length ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}${conPrecio.length && sinPrecio ? ` <small>(${sinPrecio} sin precio)</small>` : ''}</p>
-          <span class="mc-quiero-botones grupo-acciones" role="group" aria-label="La lista">
-            <button type="button" class="mc-quiero-compartir" id="mcQuieroTexto" aria-label="Compartir lista">${icons.share(16)}<span>Compartir<span class="mc-q-largo"> lista</span></span></button>
-            <button type="button" class="mc-quiero-compartir" id="mcQuieroCompartir" aria-label="Imagen de la lista">${icons.image(16)}<span>Imagen</span></button>
-            <button type="button" class="mc-quiero-compartir" id="mcQuieroAlbum" aria-label="Hacer un álbum">${icons.folder(16)}<span><span class="mc-q-largo">Hacer un álbum</span><span class="mc-q-corto">Álbum</span></span></button>
-          </span>
-        </div>
-        ${conAlguien === null ? '' : `<div class="mc-quiero-filtro">
-          <span class="seg" role="group" aria-label="Cuáles">
-            <button type="button" class="seg-btn" data-quiero-filtro="todas" aria-pressed="${quieroFiltro === 'todas'}">Todas</button>
-            <button type="button" class="seg-btn" data-quiero-filtro="dan" aria-pressed="${quieroFiltro === 'dan'}">Las da alguien <span class="mc-deseos-n">${conAlguien}</span></button>
-            <button type="button" class="seg-btn" data-quiero-filtro="nadie" aria-pressed="${quieroFiltro === 'nadie'}">Nadie aún <span class="mc-deseos-n">${n - conAlguien}</span></button>
-          </span>
-        </div>`}`
-      : ''}
-    ${n
-      ? `<div class="mc-mercado-rejilla mc-deseos-rejilla" id="mcQuieroRejilla">${conRotulos(visibles, ({ g }) => mercadoDeCarta(g.card_id), ({ g, precio }) => deseoHtml(g, precio))}</div>
-         ${visibles.length ? '' : `<p class="subtext">${quieroFiltro === 'dan' ? 'Nadie da todavía ninguna de tu lista.' : 'Todas las de tu lista las da alguien.'}</p>`}
-         <p class="subtext">Tu lista la ve todo el mundo: es lo que hace que alguien te escriba. Quítala tocando el corazón.</p>`
+  pintarBarraQuiero({ n, conAlguien })
+  // Sin nada apuntado, el buscador sale abierto: es lo único que hacer (la propuesta).
+  if (!todos.length && !$('mcDeseoAlta')?.classList.contains('buscando')) {
+    $('mcDeseoAlta')?.classList.add('buscando')
+    $('mcQuieroMas')?.setAttribute('aria-expanded', 'true')
+    if ($('mcQuieroMas')?.firstElementChild) $('mcQuieroMas').firstElementChild.textContent = '✕'
+  }
+  caja.classList.toggle('mc-quiero-marcando', marcando)
+  caja.innerHTML = n
+    ? `<div class="mc-mercado-rejilla mc-deseos-rejilla" id="mcQuieroRejilla">${conRotulos(visibles, ({ g }) => mercadoDeCarta(g.card_id), ({ g, precio }) => deseoHtml(g, precio))}</div>
+       <p class="mc-quiero-cifra" id="mcQuieroCifra"><b>${n.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${n === 1 ? 'carta' : 'cartas'}${conPrecio.length ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}${conPrecio.length && sinPrecio ? ` <small>(${sinPrecio} sin precio)</small>` : ''}</p>
+       ${visibles.length ? '' : `<p class="subtext">${quieroFiltro === 'dan' ? 'Nadie da todavía ninguna de estas.' : 'Todas estas las da alguien.'}</p>`}
+       <p class="subtext">${lista ? 'Esta lista la ves solo tú; las cartas siguen en «La quiero», que la ve todo el mundo.' : 'Tu lista la ve todo el mundo: es lo que hace que alguien te escriba. Quítala tocando el corazón.'}</p>`
+    : lista && todos.length
+      ? `<div class="mc-quiero-vacio">
+           <span class="mc-quiero-vacio-icono" aria-hidden="true">${laQuiero.corazon(28)}</span>
+           <p><strong>«${escapeHtml(lista.nombre)}» está vacía</strong></p>
+           <p class="subtext">Apunta una carta con el «+» y entrará aquí, o vuelve a «Todas», toca «Seleccionar» y mete las que quieras.</p>
+         </div>`
       : `<div class="mc-quiero-vacio">
            <span class="mc-quiero-vacio-icono" aria-hidden="true">${laQuiero.corazon(28)}</span>
            <p><strong>Apunta las cartas que te faltan</strong></p>
-           <p class="subtext">Con el buscador de arriba, con el corazón de cada carta o en el <button type="button" class="link-btn" data-deseos-vista="mercado">Mercado</button>. Te diremos lo que cuestan, te avisamos si bajan y quién las da.</p>
-         </div>`}`
+           <p class="subtext">Con el «+» de arriba, con el corazón de cada carta o en el <button type="button" class="link-btn" data-deseos-vista="mercado">Mercado</button>. Te diremos lo que cuestan, te avisamos si bajan y quién las da.</p>
+         </div>`
+  if (marcando) for (const el of caja.querySelectorAll('.mc-deseo-baldosa')) el.classList.toggle('marcada', marcadas.has(el.dataset.deseoClave))
+  pintarSelQuiero()
   engancharQuiero()
+}
+
+// La barra de abajo de Seleccionar: la de siempre (`.mc-sel`), con sus
+// acciones. Se crea una vez y se esconde fuera del modo.
+function selQuiero() {
+  let b = $('mcQuieroSel')
+  if (b) return b
+  b = document.createElement('div')
+  b.id = 'mcQuieroSel'
+  b.className = 'mc-sel mc-quiero-sel hidden'
+  document.body.append(b)
+  b.addEventListener('click', (e) => void accionDeSel(e))
+  return b
+}
+function pintarSelQuiero() {
+  const b = selQuiero()
+  b.classList.toggle('hidden', !marcando || ctx.pestania !== 'quiero')
+  if (!marcando) return
+  const k = marcadas.size
+  const lista = listasDeseo.lasListas().find((l) => l.id === listaAbierta) || null
+  const acciones = [
+    listasDeseo.hayListas() ? `<button type="button" class="mc-sel-accion" data-sel-quiero="lista"${k ? '' : ' disabled'}>${icons.folder(22)}A una lista</button>` : '',
+    lista ? `<button type="button" class="mc-sel-accion" data-sel-quiero="sacar"${k ? '' : ' disabled'}>${icons.folder(22)}Sacar de la lista</button>` : '',
+    `<button type="button" class="mc-sel-accion mc-sel-quitar" data-sel-quiero="quitar"${k ? '' : ' disabled'}>${icons.trash(22)}Ya no la quiero</button>`,
+  ].filter(Boolean)
+  b.style.setProperty('--acciones', String(acciones.length))
+  b.innerHTML = `<div class="mc-sel-arriba">
+      <button type="button" class="mc-sel-cerrar" data-sel-quiero="salir" aria-label="Salir de la selección">✕</button>
+      <p class="mc-sel-cuenta" role="status" aria-live="polite">${k ? `${k} ${k === 1 ? 'marcada' : 'marcadas'}` : 'Toca las cartas'}</p>
+      <button type="button" class="mc-sel-todas" data-sel-quiero="todas">Seleccionar todas</button>
+    </div>
+    <div class="mc-sel-abajo">${acciones.join('')}</div>`
+}
+function salirDeSel() {
+  marcando = false
+  marcadas.clear()
+  pintarQuiero()
+}
+async function accionDeSel(e) {
+  const b = e.target.closest('[data-sel-quiero]')
+  if (!b) return
+  const que = b.dataset.selQuiero
+  if (que === 'salir') return salirDeSel()
+  if (que === 'todas') {
+    for (const el of document.querySelectorAll('#mcQuieroRejilla .mc-deseo-baldosa')) marcadas.add(el.dataset.deseoClave)
+    return pintarQuiero()
+  }
+  const elegidas = [...marcadas].map((k) => { const [card_id, v] = k.split('|'); return { card_id, variante: v || null, market: mercadoDeCarta(card_id) } })
+  if (!elegidas.length) return
+  if (que === 'lista') {
+    const id = await listasDeseo.elegirLista({ para: new Set(elegidas.map((x) => x.card_id)).size, cuenta: cuantasEn })
+    if (!id) return
+    try {
+      const n = await listasDeseo.meterEnLista(id, elegidas)
+      const l = listasDeseo.lasListas().find((x) => x.id === id)
+      showToast(n ? `${n === 1 ? 'Metida' : `${n} metidas`} en «${l?.nombre}».` : `Ya estaban en «${l?.nombre}».`, 'success')
+      salirDeSel()
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
+    return
+  }
+  if (que === 'sacar' && listaAbierta) {
+    try {
+      await listasDeseo.sacarDeLista(listaAbierta, elegidas)
+      showToast('Sacadas de la lista (siguen en «La quiero»).', 'success')
+      salirDeSel()
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
+    return
+  }
+  if (que === 'quitar') {
+    // Dos toques, como en tu colección: borrar varias de golpe no se hace sin querer.
+    if (!b.classList.contains('confirmando')) {
+      b.classList.add('confirmando')
+      b.lastChild.textContent = '¿Seguro?'
+      return
+    }
+    marcando = false
+    marcadas.clear()
+    for (const x of elegidas) await quitarDeseosDe(x.card_id, x.variante)
+  }
+}
+
+// La barra (1057): la lista, «+», Seleccionar, ⋯ y Todas/La dan/Nadie.
+// Devuelve true si el clic era suyo.
+async function clicEnBarra(e) {
+  const filtro = e.target.closest('[data-quiero-filtro]')
+  if (filtro) {
+    quieroFiltro = filtro.dataset.quieroFiltro
+    pintarQuiero()
+    return true
+  }
+  if (e.target.closest('#mcQuieroMas')) {
+    const alta = $('mcDeseoAlta')
+    const abierto = alta.classList.toggle('buscando')
+    $('mcQuieroMas').setAttribute('aria-expanded', String(abierto))
+    $('mcQuieroMas').firstElementChild.textContent = abierto ? '✕' : '+'
+    if (abierto) $('mcDeseoBuscar')?.focus()
+    return true
+  }
+  if (e.target.closest('#mcQuieroSeleccionar')) {
+    marcando = !marcando
+    marcadas.clear()
+    pintarQuiero()
+    return true
+  }
+  if (e.target.closest('#mcQuieroLista')) {
+    if (!listasDeseo.hayListas()) {
+      showToast('Las listas llegan en cuanto se active la base (falta la migración 1057).', 'info')
+      return true
+    }
+    const id = await listasDeseo.elegirLista({ abierta: listaAbierta, cuenta: cuantasEn })
+    if (id === undefined) return true
+    ponerListaAbierta(id)
+    marcadas.clear()
+    pintarQuiero()
+    return true
+  }
+  if (e.target.closest('#mcQuieroMenu')) {
+    const lista = listasDeseo.lasListas().find((l) => l.id === listaAbierta) || null
+    const accion = await listasDeseo.menuDeLaQuiero({ lista })
+    if (accion === 'compartir') compartirMisListas()
+    if (accion === 'imagen') compartirLaQuiero()
+    if (accion === 'evento') location.href = '/evento'
+    if (accion === 'album') {
+      try {
+        await ctx.albumDeLaQuiero()
+      } catch (err) {
+        showToast(err.message || 'No se ha podido crear el álbum.', 'error')
+      }
+    }
+    if (accion === 'editar' && lista) {
+      const r = await listasDeseo.editarHoja({ lista })
+      if (r === 'borrada') ponerListaAbierta(null)
+      if (r) pintarQuiero()
+    }
+    return true
+  }
+  return false
 }
 
 let quieroEnganchado = false
@@ -689,6 +877,7 @@ function engancharQuiero() {
     esperaDeseo = setTimeout(buscarParaDesear, 250)
   })
   $('mcDeseoAlta')?.addEventListener('click', async (e) => {
+    if (await clicEnBarra(e)) return
     const desear = e.target.closest('[data-desear]')
     if (!desear) return
     desear.disabled = true
@@ -699,11 +888,24 @@ function engancharQuiero() {
       desear.disabled = false
       return
     }
+    // Con una lista abierta, entra también en ella (1057).
+    if (listaAbierta && c) await listasDeseo.meterEnLista(listaAbierta, [{ card_id: c.id, market: c.market || 'WEST' }]).catch((err) => showToast(err.message, 'error'))
     // Se queda la búsqueda: lo normal es apuntar varias seguidas.
     void buscarParaDesear()
     await completarQuiero()
     pintarQuiero()
   })
+  caja.addEventListener('click', (e) => {
+    if (!marcando) return
+    const el = e.target.closest('.mc-deseo-baldosa')
+    if (!el) return
+    e.preventDefault()
+    e.stopPropagation()
+    const k = el.dataset.deseoClave
+    marcadas.has(k) ? marcadas.delete(k) : marcadas.add(k)
+    el.classList.toggle('marcada', marcadas.has(k))
+    pintarSelQuiero()
+  }, true)
   caja.addEventListener('click', async (e) => {
     if (e.target.closest('[data-ir-cambios]')) return ctx.cambiarPestania('cambios')
     if (e.target.closest('#mcQuieroCompartir')) return compartirLaQuiero()
@@ -731,11 +933,6 @@ function engancharQuiero() {
       return abrirAviso({ cardId: d.card_id, market: ctx.cartas.get(d.card_id)?.market || ctx.mercado, idioma: d.idioma || 'es', precio: ctx.precioDeDeseo(d) })
     }
 
-    const filtro = e.target.closest('[data-quiero-filtro]')
-    if (filtro) {
-      quieroFiltro = filtro.dataset.quieroFiltro
-      return pintarQuiero()
-    }
     const quien = e.target.closest('[data-ver-quien]')
     if (quien) return void verQuienDa(quien.dataset.verQuien)
     // El corazón quita la carta (en todos sus idiomas), como en la ficha.
@@ -972,32 +1169,29 @@ function deseoHtml(g, precio = ctx.precioDeDeseo(g.filas[0])) {
   // Si ya está por debajo de lo que pusiste, se dice (la maqueta K1): el
   // aviso llegará en la pasada siguiente, pero lo estás mirando ahora.
   const cumple = baja && precio != null && precio <= Number(baja.umbral)
+  // Compacta como el Mercado (1057, PINGU): la campana encima de la foto,
+  // arriba a la izquierda; abajo el precio y el idioma, y «La da N» solo si
+  // alguien la da (sin «Nadie la da aún»).
   const idiomas = g.filas.map((x) => x.idioma).filter(Boolean)
-  // La versión delante (1047): «Holo · Cualquier idioma».
-  const version = g.variante ? `<b class="mc-deseo-version">${escapeHtml(nombreDeVariante(g.variante))}</b> · ` : ''
   const idioma = g.filas.some((x) => !x.idioma)
-    ? `${version}<span class="mc-merc-texto">Cualquier idioma</span>`
-    : `${version}${idiomas.slice(0, 3).map((i) => banderaHtml(i)).join('')}<span class="mc-merc-texto">${escapeHtml(idiomas.map((i) => idiomaDe(i).nombre).join(', '))}</span>`
+    ? '<span class="mc-deseo-cualquiera">Cualquiera</span>'
+    : idiomas.slice(0, 2).map((i) => banderaHtml(i)).join('') + (idiomas.length > 2 ? `<small>+${idiomas.length - 2}</small>` : '')
   const dan = dantesDe(g)
+  // La línea de los que sigues (763) solo sale cuando alguno la tiene.
   const seguidos = textoDeSeguidos(seguidosDeQuiero?.get(g.card_id))
-  return `<article class="mc-merc mc-deseo-baldosa" data-deseo-carta="${escapeHtml(g.card_id)}">
+  return `<article class="mc-merc mc-deseo-baldosa" data-deseo-carta="${escapeHtml(g.card_id)}" data-deseo-clave="${escapeHtml(`${g.card_id}|${g.variante || ''}`)}">
     <a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
       <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${g.variante ? chapaDeVersionHtml(g.variante) : ''}</span>
-      ${dan.length ? `<span class="mc-merc-chapa cruce">${dan.length === 1 ? 'La da 1' : `La dan ${dan.length}`}</span>` : ''}
     </a>
+    <button type="button" class="mc-quiero-aviso${baja ? ' puesto' : ''}${cumple ? ' cumple' : ''}" data-avisar-deseo="${escapeHtml(d.id)}" aria-label="${baja ? `Te aviso si ${escapeHtml(nombre)} baja de ${escapeHtml(euros(Number(baja.umbral)))}` : `Avísame si ${escapeHtml(nombre)} baja de precio`}" title="${baja ? `${cumple ? '¡Ya está por debajo de ' : 'Te aviso por debajo de '}${escapeHtml(euros(Number(baja.umbral)))}` : 'Avísame si baja'}">${icons.bell(16)}</button>
     <button type="button" class="mc-merc-corazon puesto" data-quitar-deseo-carta="${escapeHtml(g.card_id)}" data-quitar-deseo-version="${escapeHtml(g.variante || '')}" aria-pressed="true" aria-label="Quitar ${escapeHtml(nombre)}${g.variante ? ` (${escapeHtml(nombreDeVariante(g.variante))})` : ''} de tu lista">${laQuiero.corazon(16)}</button>
     <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
     <span class="mc-merc-set">${escapeHtml([nombreDeSet(c?.tcg_sets), c?.local_id].filter(Boolean).join(' · '))}</span>
-    <button type="button" class="mc-merc-fila mc-deseo-idioma mc-deseo-cambiar" data-cambiar-deseo="${escapeHtml(g.card_id)}" data-cambiar-version="${escapeHtml(g.variante || '')}" aria-label="${escapeHtml(`Cambiar cómo quieres ${nombre}`)}">${idioma}</button>
-    <span class="mc-merc-fila">
+    <span class="mc-merc-fila mc-deseo-precio-fila">
       <b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>
-      <button type="button" class="mc-quiero-aviso${baja ? ' puesto' : ''}${cumple ? ' cumple' : ''}" data-avisar-deseo="${escapeHtml(d.id)}" aria-label="${baja ? `Te aviso si ${escapeHtml(nombre)} baja de ${escapeHtml(euros(Number(baja.umbral)))}` : `Avísame si ${escapeHtml(nombre)} baja de precio`}">${icons.bell(14)}${baja ? `<span>${cumple ? '¡Ya! ' : '&lt; '}${escapeHtml(euros(Number(baja.umbral)))}</span>` : ''}</button>
+      <button type="button" class="mc-deseo-cambiar" data-cambiar-deseo="${escapeHtml(g.card_id)}" data-cambiar-version="${escapeHtml(g.variante || '')}" aria-label="${escapeHtml(`Cambiar cómo quieres ${nombre}`)}">${idioma}</button>
     </span>
-    ${dantesDeQuiero === null
-      ? ''
-      : dan.length
-        ? `<button type="button" class="mc-merc-fila mc-deseo-quien" data-ver-quien="${escapeHtml(g.card_id)}">${mercadoAvatares(dan)}<span class="mc-merc-texto">Ver quién</span></button>`
-        : '<span class="mc-merc-fila mc-merc-nadie">Nadie la da aún<span class="mc-merc-largo"> · te avisamos</span></span>'}
+    ${dan.length ? `<button type="button" class="mc-merc-fila mc-deseo-quien" data-ver-quien="${escapeHtml(g.card_id)}">${mercadoAvatares(dan, 3)}<span class="mc-merc-texto">${dan.length === 1 ? 'La da 1' : `La dan ${dan.length}`}</span></button>` : ''}
     ${seguidos ? `<small class="mc-deseo-seguidos">${icons.users(12)} ${escapeHtml(seguidos)}</small>` : ''}
   </article>`
 }

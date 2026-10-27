@@ -977,6 +977,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   orden y con el nombre de `js/mi-coleccion/hoja-filtros.js` (lo que pinta
   la pantalla entra con `meterEnLaHoja`), lo propio detrás de la raya, y
   abajo «Limpiar» y «Ver N cartas».
+- **Toda lista de cartas lleva «Seleccionar»** (tanda 1057, PINGU: «siempre
+  que haya una lista de cartas, un botón para seleccionar cartas todas de
+  golpe»): Cartas, expansiones, Pokédex, Buscar, álbumes y «La quiero» ya lo
+  llevan; una pantalla nueva de cartas lo lleva en su barra, con la barra de
+  abajo de siempre (`.mc-sel`). Y «La quiero» tiene LISTAS
+  (`js/mi-coleccion/listas-deseo.js`, migración 1057), que ve solo su dueño:
+  lo que lea los deseos para otros (cruces, Mercado, perfil) sigue leyendo
+  `user_wants` entera, y lo que enseñe una lista pasa por `cartasDe`.
 - **Contenido primero en el teléfono** (tandas 1038–1040, PINGU: «haz todo
   lo recomendado»). Cinco reglas para cualquier pantalla de lista: (1) el
   título que ya dice la burbuja no ocupa sitio (recortado con `clip-path`,

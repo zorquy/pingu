@@ -41785,6 +41785,43 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1057 — «La quiero» en dos filas: barra, baldosas compactas, listas y Seleccionar
+
+PINGU aprobó la propuesta «La quiero en dos filas» y pidió las baldosas como
+las del Mercado (la campana encima de la foto, sin «Nadie la da aún»).
+
+- **La barra** (`#mcQuieroBarra`, en `#mcDeseoAlta`): `#mcQuieroLista` (la
+  lista abierta y su cuenta), `#mcQuieroMas` (solo en el móvil: abre el
+  buscador con `.buscando` en `#mcDeseoAlta`; sin nada apuntado sale
+  abierto), el buscador de siempre (`#mcDeseoBuscar`), `#mcQuieroSeleccionar`,
+  `#mcQuieroMenu` (⋯) y `#mcQuieroQue` (Todas / La dan / Nadie, que solo sale
+  cuando se sabe quién da). Los clics los coge `clicEnBarra` en deseos.js. El
+  ⋯ es `menuDeLaQuiero` (compartir, imagen, álbum, evento y editar la lista):
+  lo que antes eran `#mcQuieroCompartir`, `#mcQuieroTexto` y `#mcQuieroAlbum`.
+- **La baldosa** (`deseoHtml`): la campana `.mc-quiero-aviso` es hija del
+  `article`, encima de la foto; el aviso puesto se dice en su `aria-label` y
+  su `title`. Debajo, precio y `.mc-deseo-cambiar` (banderas o
+  «Cualquiera») en una línea que recorta la palabra y no el precio; «La da N»
+  con avatares solo si alguien la da; la línea de los que sigues (763) solo
+  si alguno la tiene. `data-deseo-clave` = `card_id|variante`. La suma va en
+  `#mcQuieroCifra`, debajo de la rejilla.
+- **Las listas** (`js/mi-coleccion/listas-deseo.js`, migración
+  `supabase-migration-1057-listas-deseo.sql`): `user_want_lists` (nombre,
+  color) y `user_want_list_items` (lista, carta y catálogo; la versión y el
+  idioma siguen en `user_wants`). Quitar una carta de «La quiero» no borra sus
+  filas de lista: la web solo enseña las que sigues queriendo, y si vuelves a
+  quererla vuelve a su lista. `cargarListas` devuelve null sin la migración y
+  la web no ofrece listas. La lista abierta se recuerda en el navegador
+  (`mc-quiero-lista`). Una sola ventana (`#mcListasHoja`) para elegir, crear,
+  editar y el ⋯, centrada en el PC y desde abajo en el móvil (1045).
+- **Seleccionar**: un oyente en captura sobre `#mcQuieroPanel` marca la
+  baldosa sin abrir la carta; la barra de abajo es la de siempre (`.mc-sel`,
+  747) en `#mcQuieroSel`: «A una lista», «Sacar de la lista» (con una
+  abierta) y «Ya no la quiero» (dos toques).
+- Lo que queda: «cuenta para los cruces» por lista (las funciones de los
+  cruces leen `user_wants` entera), el Modo evento por lista y la misma barra
+  en «Las que doy».
+
 ## Tanda 1056 — La ficha del Mercado centrada y una tarjeta por persona
 
 - **Modal siempre** (`abrirFicha` en `js/mi-coleccion/mercado.js`): en el PC,

@@ -1070,11 +1070,24 @@
                (occidental o japonés) y los resultados por expansión. Fuera
                de lo que se repinta, para no borrar lo que escribes. -->
           <div class="mc-deseo-alta" id="mcDeseoAlta">
-            <div class="mc-deseo-alta-barra">
-              <div class="mc-buscador">
+            <!-- LA BARRA DE «LA QUIERO» (1057, la propuesta de las listas): la
+                 lista que miras («Todas ▾»), «+» para apuntar (en el PC, el
+                 buscador a la vista), Seleccionar, ⋯ y Todas/La dan/Nadie.
+                 Las cifras las escribe deseos.js (`pintarBarraQuiero`). -->
+            <div class="mc-mandos mc-deseo-alta-barra mc-quiero-barra" id="mcQuieroBarra">
+              <button type="button" class="mc-chip-mando mc-quiero-lista" id="mcQuieroLista" aria-haspopup="dialog"><span class="mc-quiero-lista-icono" id="mcQuieroListaIcono" data-icono="folder" aria-hidden="true"></span><i class="mc-lista-punto" id="mcQuieroListaPunto" aria-hidden="true" hidden></i><span class="mc-chip-texto" id="mcQuieroListaRotulo">Todas</span><small class="mc-quiero-lista-n" id="mcQuieroListaN"></small><span class="mc-quiero-lista-flecha" aria-hidden="true"></span></button>
+              <button type="button" class="mc-chip-mando mc-quiero-mas" id="mcQuieroMas" aria-label="Apuntar una carta" aria-expanded="false"><span aria-hidden="true">+</span></button>
+              <div class="mc-buscador mc-quiero-busca">
                 <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-                <input type="search" enterkeyhint="search" id="mcDeseoBuscar" placeholder="Apunta una carta: Charizard, 151/165, MEW 151…" autocomplete="off" aria-label="Busca una carta para apuntarla" />
+                <input type="search" enterkeyhint="search" id="mcDeseoBuscar" placeholder="Apunta una carta: Charizard, 151/165…" autocomplete="off" aria-label="Busca una carta para apuntarla" />
               </div>
+              <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcQuieroSeleccionar" data-icono="checkSquare" aria-pressed="false"><span class="mc-chip-texto">Seleccionar</span></button>
+              <button type="button" class="mc-chip-mando mc-quiero-menu" id="mcQuieroMenu" aria-label="Más: compartir, imagen, álbum, modo evento" aria-haspopup="dialog"><span aria-hidden="true">⋯</span></button>
+              <span class="mc-seg mc-seg-sueltas mc-quiero-que hidden" id="mcQuieroQue" role="group" aria-label="Cuáles">
+                <button type="button" data-quiero-filtro="todas" aria-pressed="true">Todas</button>
+                <button type="button" data-quiero-filtro="dan" aria-pressed="false">La dan <small data-quiero-n="dan"></small></button>
+                <button type="button" data-quiero-filtro="nadie" aria-pressed="false">Nadie <small data-quiero-n="nadie"></small></button>
+              </span>
             </div>
             <p class="mc-cuantas" id="mcDeseoCuantas" role="status" aria-live="polite"></p>
             <div id="mcDeseoResultados" class="mc-resultados mc-deseo-resultados hidden"></div>

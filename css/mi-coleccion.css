@@ -13740,3 +13740,403 @@ html:not(.mc-puede-marcar) [data-seleccionar] {
 /* 1052: el bolsillo al que lleva un enlace de «En tus álbumes», señalado un
    momento (lo quita un temporizador; SCHEMA 1052). */
 .mc-bolsillo-aqui { outline: 2px solid var(--acento); outline-offset: 2px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--acento) 30%, transparent); }
+
+/* ── 1057: la barra de «La quiero» y sus listas (SCHEMA 1057) ── */
+.mc-quiero-barra {
+  flex-wrap: nowrap;
+}
+
+.mc-quiero-barra > * {
+  flex: none;
+}
+
+.mc-quiero-barra .mc-quiero-busca {
+  flex: 1 1 220px;
+  min-width: 200px;
+  max-width: 420px;
+}
+
+.mc-quiero-lista {
+  gap: var(--e-xs);
+}
+
+.mc-quiero-lista-n,
+.mc-quiero-que small {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.mc-quiero-lista-flecha {
+  width: 8px;
+  height: 8px;
+  margin: 0 2px 4px var(--e-xs);
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.mc-lista-punto {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--c, transparent);
+}
+
+.mc-quiero-lista .mc-lista-punto[hidden] {
+  display: none;
+}
+
+.mc-quiero-mas {
+  display: none;
+  justify-content: center;
+  min-width: 44px;
+  border-color: var(--acento);
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: var(--t-xl);
+  line-height: 1;
+}
+
+.mc-quiero-menu {
+  justify-content: center;
+  min-width: 44px;
+  font-size: var(--t-lg);
+}
+
+@media (max-width: 700px) {
+  .mc-quiero-mas {
+    display: inline-flex;
+  }
+
+  .mc-quiero-barra .mc-quiero-busca {
+    display: none;
+  }
+
+  /* Al tocar «+», el buscador ocupa la barra; el «+» (ya un ✕) la devuelve. */
+  .mc-deseo-alta.buscando .mc-quiero-barra .mc-quiero-busca {
+    display: flex;
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .mc-deseo-alta.buscando .mc-quiero-barra > :not(.mc-quiero-mas, .mc-quiero-busca) {
+    display: none;
+  }
+}
+
+/* La baldosa de «La quiero» como la del Mercado (1057): la campana del aviso,
+   encima de la foto a la izquierda (a la derecha va el corazón). */
+.mc-deseo-baldosa {
+  position: relative;
+}
+
+.mc-deseo-baldosa .mc-quiero-aviso {
+  display: grid;
+  position: absolute;
+  top: var(--e-xs);
+  left: var(--e-xs);
+  z-index: 2;
+  width: 32px;
+  min-width: 0;
+  height: 32px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 92%);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 25%);
+  color: #52717f;
+}
+
+.mc-deseo-baldosa .mc-quiero-aviso.puesto {
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+
+.mc-deseo-baldosa .mc-quiero-aviso.cumple {
+  background: #0a7a55;
+  color: var(--blanco-fijo);
+}
+
+.mc-deseo-cambiar {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 24px;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
+
+.mc-deseo-cualquiera {
+  overflow: hidden;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Precio e idioma en una línea que no se sale de la baldosa (la palabra
+   se recorta, el precio no). */
+.mc-deseo-precio-fila {
+  min-width: 0;
+  flex-wrap: nowrap;
+  gap: var(--e-xs);
+  overflow: hidden;
+}
+
+.mc-deseo-precio-fila .mc-quiero-precio {
+  flex-shrink: 0;
+}
+
+.mc-deseo-precio-fila .mc-deseo-cambiar {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.mc-quiero-lista-icono {
+  display: inline-flex;
+}
+
+.mc-quiero-lista-icono[hidden],
+.mc-quiero-barra .mc-lista-punto[hidden] {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .mc-deseo-baldosa .mc-quiero-aviso {
+    top: 0;
+    left: 0;
+    width: 44px;
+    height: 44px;
+    background: none;
+    box-shadow: none;
+  }
+
+  .mc-deseo-baldosa .mc-quiero-aviso svg {
+    box-sizing: content-box;
+    padding: var(--e-sm);
+    border-radius: 50%;
+    background: rgb(255 255 255 / 92%);
+    box-shadow: 0 1px 4px rgb(0 0 0 / 25%);
+  }
+
+  .mc-deseo-baldosa .mc-quiero-aviso.puesto svg {
+    background: var(--navy-solid);
+  }
+}
+
+/* Seleccionar en «La quiero»: la marca, y las demás apagadas. */
+.mc-quiero-marcando .mc-deseo-baldosa {
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.mc-quiero-marcando .mc-deseo-baldosa.marcada {
+  opacity: 1;
+}
+
+.mc-quiero-marcando .mc-deseo-baldosa.marcada .mc-merc-foto {
+  outline: 3px solid var(--acento);
+  outline-offset: 2px;
+}
+
+.mc-quiero-marcando .mc-deseo-baldosa .mc-merc-corazon,
+.mc-quiero-marcando .mc-deseo-baldosa .mc-quiero-aviso {
+  visibility: hidden;
+}
+
+.mc-quiero-sel .mc-sel-abajo {
+  grid-template-columns: repeat(var(--acciones, 3), minmax(0, 1fr));
+}
+
+/* La hoja de las listas: centrada en el PC, desde abajo en el móvil (1045). */
+.mc-listas-hoja {
+  box-sizing: border-box;
+  width: min(440px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - var(--e-xl) * 2);
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+
+.mc-listas-hoja[open] {
+  display: flex;
+  position: fixed;
+  flex-direction: column;
+}
+
+.mc-listas-hoja::backdrop {
+  background: rgb(0 0 0 / 45%);
+}
+
+html:has(.mc-listas-hoja[open]) {
+  overflow: hidden;
+}
+
+.mc-listas-cab {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  padding: var(--e-md) var(--e-lg);
+  border-bottom: 1px solid var(--border);
+}
+
+.mc-listas-cab h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.mc-listas-cerrar {
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.mc-listas-cuerpo {
+  display: grid;
+  gap: var(--e-sm);
+  padding: var(--e-md) var(--e-lg) var(--e-lg);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.mc-lista-opcion {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  width: 100%;
+  min-height: 52px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mc-lista-opcion span {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+}
+
+.mc-lista-opcion small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 500;
+}
+
+.mc-lista-opcion b {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-lista-opcion.puesta {
+  border-color: var(--navy);
+  background: var(--ice);
+}
+
+.mc-lista-opcion:hover {
+  border-color: var(--acento);
+}
+
+.mc-lista-nueva {
+  border-style: dashed;
+  border-color: var(--acento);
+}
+
+.mc-lista-nueva > span:first-child {
+  flex: none;
+  color: var(--acento);
+  font-size: var(--t-xl);
+  line-height: 1;
+}
+
+.mc-lista-campo {
+  display: grid;
+  gap: var(--e-xs);
+  font-weight: 700;
+}
+
+.mc-lista-campo input {
+  min-height: 48px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-weight: 500;
+}
+
+.mc-lista-campo input:focus {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.mc-lista-colores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.mc-lista-color {
+  width: 44px;
+  height: 44px;
+  border: 4px solid var(--white);
+  border-radius: 50%;
+  background: var(--c);
+  cursor: pointer;
+}
+
+.mc-lista-color[aria-checked='true'] {
+  box-shadow: 0 0 0 2px var(--text);
+}
+
+.mc-lista-pie {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--e-sm);
+}
+
+.mc-lista-pie .btn-primary {
+  flex: 1;
+}
+
+.mc-lista-borrar {
+  color: var(--danger);
+}
+
+@media (max-width: 640px) {
+  .mc-listas-hoja {
+    inset: auto 0 0;
+    width: 100%;
+    max-height: 88dvh;
+    margin: 0;
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+}

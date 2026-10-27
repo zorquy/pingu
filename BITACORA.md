@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (297) — PINGU-Claude (1057 — «La quiero» en dos filas, baldosas compactas, listas y Seleccionar)
+
+**Hecho**: lo de la propuesta aprobada, de una vez porque PINGU va a grabar un
+vídeo. «La quiero» deja de tener cinco filas antes de las cartas: una barra
+(la lista que miras «Todas · N ▾» · «+» en el móvil / el buscador en el PC ·
+Seleccionar · ⋯ · Todas / La dan / Nadie). Compartir, Imagen, Hacer un álbum y
+Modo evento van en el ⋯. Las baldosas, como las del Mercado (PINGU): la
+campana encima de la foto arriba a la izquierda, debajo precio e idioma en
+una línea, «La da N» solo si alguien la da (fuera «Nadie la da aún»). La
+suma («N cartas · unos X €») pasa debajo de la rejilla. **Listas** (petición
+de un usuario: master set, a vigilar, una feria): «Todas ▾» abre «Tus
+listas», con «+ Nueva lista» (nombre y color); con una lista abierta solo
+salen sus cartas, y lo que apuntas entra también en ella. **Seleccionar**:
+marcas baldosas y abajo «A una lista», «Sacar de la lista» y «Ya no la
+quiero» (dos toques). Las listas solo las ve su dueño.
+
+**Migración**: `supabase-migration-1057-listas-deseo.sql` (tablas
+`user_want_lists` y `user_want_list_items`, RLS de dueño). **PINGU tiene que
+ejecutarla**; sin ella todo sale como antes y «Todas ▾» avisa de que falta.
+
+**Ficheros**: js/mi-coleccion/listas-deseo.js (nuevo: datos y las tres
+hojas), js/mi-coleccion/deseos.js (`pintarQuiero`, `pintarBarraQuiero`,
+`clicEnBarra`, Seleccionar, `deseoHtml` compacto), mi-coleccion.html (la
+barra) y cartas.html (generado), css/mi-coleccion.css, la migración,
+novedades.json, SCHEMA.md, CLAUDE.md, BITACORA.md.
+
+**Pruebas**: `test-tanda-1057-pantalla.mjs` nueva (barra, baldosa, crear lista,
+meter con Seleccionar, sacar, ⋯, iPhone, sin migración); el doble conoce las
+dos tablas. Al día 751, 763, 766, 771, 1031, 1033, 1034, 1038, 1042 y 1047
+(buscaban los botones sueltos, «Nadie la da aún» o el buscador siempre a la
+vista en el móvil). 766 (logos) y 768 (logos) rojos también en HEAD; 311 rojo
+en HEAD por comunidad/partidas/torneos.
+
+**Pendiente**: el interruptor «cuenta para los cruces» por lista (toca las
+funciones de la base), el Modo evento con la lista elegida (1059), la misma
+barra en «Las que doy» y Seleccionar en el Mercado.
+
 ## 2026-10-27 (296) — PINGU-Claude (1056 — la ficha del Mercado centrada y una tarjeta por persona)
 
 **Hecho**: PINGU, con la captura de un Goldeen: la ficha del Mercado salía a
