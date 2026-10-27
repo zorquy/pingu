@@ -133,7 +133,10 @@ console.log('\n── 4. Lo que queda escrito ──')
   const sql = readFileSync(`${RAIZ}/supabase-migration-intercambios.sql`, 'utf8')
   const tabla = sql.slice(sql.indexOf('create table if not exists public.user_wants'), sql.indexOf(');', sql.indexOf('create table if not exists public.user_wants')))
   const columnas = new Set([...tabla.matchAll(/^\s+([a-z_]+)\s+(?:uuid|text|int|timestamptz|boolean)/gm)].map((m) => m[1]))
-  const pedidas = (readFileSync(`${RAIZ}/js/evento.js`, 'utf8').match(/from\('user_wants'\)\.select\('([^']+)'\)/) || [])[1]?.split(',') || []
+  // Desde la 1047 se pide por `conVariante('…', …)`: esas son las columnas de
+  // siempre, y `variante` la añade ella con su respaldo si la base no la tiene.
+  const evento = readFileSync(`${RAIZ}/js/evento.js`, 'utf8')
+  const pedidas = (evento.match(/from\('user_wants'\)\.select\('([^']+)'\)/) || evento.match(/conVariante\('([^']+)',\s*\(cols\)\s*=>\s*supabase\.from\('user_wants'\)/) || [])[1]?.split(',') || []
   check('las columnas que pide a user_wants existen en su migración', pedidas.length > 0 && pedidas.every((c) => columnas.has(c)), `pide ${pedidas.join(',')}; hay ${[...columnas].join(',')}`)
 }
 

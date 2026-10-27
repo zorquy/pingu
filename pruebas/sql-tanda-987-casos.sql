@@ -60,8 +60,12 @@ insert into resultado (caso, ok) select '  …la copia de la Staff pasa a la pri
   and (select count(*) from user_collection where card_id = 'svp-181' and market = 'WEST' and variante = 'normal' and cantidad = 2) = 1;
 insert into resultado (caso, ok) select '  …y la del japonés con el mismo id sigue en el japonés',
   (select count(*) from user_collection where card_id = 'svp-181' and market = 'JP' and variante = 'normal') = 1;
+-- Desde la 1047 el deseo de la repetida pasa EN SU VERSIÓN («staff»), así que
+-- ya no repite el «cualquiera» de la principal y se queda: tres en vez de dos.
 insert into resultado (caso, ok) select '  …el deseo repetido se queda el de allí y el otro pasa',
-  (select count(*) from user_wants where card_id = 'svp-181') = 2 and (select count(*) from user_wants where card_id = 'tcggo-48211') = 0;
+  (select count(*) from user_wants where card_id = 'svp-181') = case when exists (
+     select 1 from information_schema.columns where table_name = 'user_wants' and column_name = 'variante') then 3 else 2 end
+  and (select count(*) from user_wants where card_id = 'tcggo-48211') = 0;
 insert into resultado (caso, ok) select '  …el álbum, el aviso y la vitrina apuntan a la principal',
   (select cartas from user_albums where user_id = '00000000-0000-0000-0000-0000000000c1' and cartas @> '[{"pos": 4}]') = '[{"id": "svp-181"}, {"id": "svp-181", "pos": 4}]'::jsonb
   and exists (select 1 from user_price_alerts where card_id = 'svp-181') and exists (select 1 from user_showcase where card_id = 'svp-181');

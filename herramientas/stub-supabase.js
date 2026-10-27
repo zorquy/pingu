@@ -218,7 +218,7 @@ const sesion = quienSoy === 'none' ? null : { user: { id: quienSoy, email: `${qu
 // Los `default` de las columnas que el cliente no manda al insertar.
 const DEFECTOS_AL_INSERTAR = {
   user_price_alerts: { activo: true, disparado_at: null, precio_disparo: null, created_at: '2026-10-07T00:00:00Z' },
-  user_wants: { idioma: null, prioridad: 1, notas: null, created_at: '2026-10-07T00:00:00Z' },
+  user_wants: { idioma: null, variante: null, prioridad: 1, notas: null, created_at: '2026-10-07T00:00:00Z' },
   user_release_alerts: { semana: true, dia: true, preventa: false, enviados: [], created_at: '2026-10-07T00:00:00Z' },
   // 891: un mensaje nace con su hora, sin fotos y sin eliminar.
   private_messages: { adjuntos: [], deleted_at: null },
@@ -1208,6 +1208,11 @@ function consulta(tabla, estado = {}) {
       if (tabla === 'match_log' && filas.some((f) => f.replay_id && T.match_log.some((x) => x.user_id === f.user_id && x.replay_id === f.replay_id))) {
         return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint "match_log_repeticion"' } }
       }
+      // El índice único de los deseos (376, con la versión desde la 1047):
+      // persona + carta + idioma + versión, con NULL contando como uno.
+      if (tabla === 'user_wants' && filas.some((f) => T.user_wants.some((x) => x.user_id === f.user_id && x.card_id === f.card_id && (x.idioma || '*') === (f.idioma || '*') && (x.variante || '*') === (f.variante || '*')))) {
+        return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint "user_wants_unico"' } }
+      }
       // La fila única de la 969: persona + producto + idioma.
       if (tabla === 'user_products' && filas.some((f) => T.user_products.some((x) => x.user_id === f.user_id && x.product_id === f.product_id && x.idioma === f.idioma))) {
         return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint "user_products_uno_por_idioma"' } }
@@ -1236,6 +1241,11 @@ function consulta(tabla, estado = {}) {
     }
     if (st.op === 'update') {
       const afectadas = aplicar()
+      // El índice único de los deseos vale también al cambiar uno (1047).
+      if (tabla === 'user_wants' && afectadas.some((f) => {
+        const n = { ...f, ...st.cuerpo }
+        return T.user_wants.some((x) => x !== f && !afectadas.includes(x) && x.user_id === n.user_id && x.card_id === n.card_id && (x.idioma || '*') === (n.idioma || '*') && (x.variante || '*') === (n.variante || '*'))
+      })) return { data: null, error: { code: '23505', message: 'duplicate key value violates unique constraint "user_wants_unico"' } }
       afectadas.forEach((f) => Object.assign(f, st.cuerpo))
       anotarEscritura(tabla, afectadas.map((f) => ({ ...f })), 'update')
       return { data: st.unico ? afectadas[0] || null : afectadas, error: null }
@@ -1867,6 +1877,9 @@ export const supabase = {
       const yo = sesion?.user?.id || null
       const perfil = (id) => T.user_profiles.find((p) => p.id === id) || {}
       const casa = (ida, vuelta) => !ida || ida === vuelta
+      // La versión (1047): un deseo sin ella casa con todas; con ella, solo con
+      // esa, y una copia sin versión es la «normal».
+      const casaV = (w, c) => !w.variante || w.variante === (c.variante || 'normal')
       const doy = T.user_collection.filter((c) => c.user_id === yo && Number(c.cambio) > 0)
       const busco = T.user_wants.filter((w) => w.user_id === yo)
       const fila = (c, w, quien) => {
@@ -1897,12 +1910,12 @@ export const supabase = {
         for (const w of busco) {
           for (const c of T.user_collection) {
             if (c.user_id === yo || Number(c.cambio) <= 0) continue
-            if (c.card_id !== w.card_id || !casa(w.idioma, c.idioma)) continue
+            if (c.card_id !== w.card_id || !casa(w.idioma, c.idioma) || !casaV(w, c)) continue
             if (perfil(c.user_id).is_banned) continue
             const f = fila(c, w, c.user_id)
             // Reciproco: esa persona busca algo que yo doy.
             f.reciproco = T.user_wants.some(
-              (w2) => w2.user_id === c.user_id && doy.some((m) => m.card_id === w2.card_id && casa(w2.idioma, m.idioma))
+              (w2) => w2.user_id === c.user_id && doy.some((m) => m.card_id === w2.card_id && casa(w2.idioma, m.idioma) && casaV(w2, m))
             )
             filas.push(f)
           }
@@ -1911,12 +1924,12 @@ export const supabase = {
         for (const c of doy) {
           for (const w of T.user_wants) {
             if (w.user_id === yo) continue
-            if (w.card_id !== c.card_id || !casa(w.idioma, c.idioma)) continue
+            if (w.card_id !== c.card_id || !casa(w.idioma, c.idioma) || !casaV(w, c)) continue
             if (perfil(w.user_id).is_banned) continue
             const f = fila(c, w, w.user_id)
             // Reciproco: esa persona da algo que yo busco.
             f.reciproco = T.user_collection.some(
-              (c2) => c2.user_id === w.user_id && Number(c2.cambio) > 0 && busco.some((b) => b.card_id === c2.card_id && casa(b.idioma, c2.idioma))
+              (c2) => c2.user_id === w.user_id && Number(c2.cambio) > 0 && busco.some((b) => b.card_id === c2.card_id && casa(b.idioma, c2.idioma) && casaV(b, c2))
             )
             filas.push(f)
           }
@@ -2149,7 +2162,7 @@ export const supabase = {
         if (args.p_idioma && c.idioma !== args.p_idioma) return false
         if (args.p_texto && !String(carta(c)?.name_search || '').includes(args.p_texto)) return false
         if (args.p_sets && !args.p_sets.includes(carta(c)?.set_id)) return false
-        if (args.p_solo_mias && !T.user_wants.some((w) => w.user_id === yo && w.card_id === c.card_id && (!w.idioma || w.idioma === c.idioma))) return false
+        if (args.p_solo_mias && !T.user_wants.some((w) => w.user_id === yo && w.card_id === c.card_id && (!w.idioma || w.idioma === c.idioma) && (!w.variante || w.variante === (c.variante || 'normal')))) return false
         return true
       })
       const cuando = (c) => Date.parse(c.updated_at || c.created_at || 0) || 0
