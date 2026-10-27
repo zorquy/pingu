@@ -15,7 +15,8 @@
 // TCGGO («Poké Ball» → `poke-ball`). Una Ball nueva es un fichero más y una
 // línea en `BOLAS`.
 import { icon } from '../icons.js'
-import { dibujoElegido } from './variantes.js'
+import { dibujoElegido, nombreDeVariante } from './variantes.js'
+import { escapeHtml } from '../html.js'
 
 // Un destello de cuatro puntas, relleno: a 16 px una estrella de trazo se
 // empasta.
@@ -101,4 +102,14 @@ export function iconoDeVersion(id, size = 16) {
     return `<img class="icono-version icono-bola" src="/assets/versiones/${d.clave}.png" width="${px}" height="${px}" style="width:${px}px;height:${px}px" alt="" loading="lazy" aria-hidden="true" />`
   }
   return icon(DIBUJOS[d.clave], size).replace('<svg ', `<svg class="icono-version" data-dibujo="${d.clave}" `)
+}
+
+// LA CHAPA DE UNA VERSIÓN, la misma en toda la web (1047c, PINGU: «tiene que
+// ser consistente todo lo que hacemos»): el dibujo en su redondel de color
+// (la Holo naranja, la Reverse tornasol…) y, si cabe, el nombre. La Normal
+// también lleva la suya. Su CSS va en cardmarket.css. `nombre: false` deja
+// solo el redondel; `enLinea`, para ponerla en una fila de texto.
+export function chapaDeVersionHtml(id, { nombre = true, enLinea = false } = {}) {
+  const v = id || 'normal'
+  return `<span class="mc-chapa-variante${enLinea ? ' en-linea' : ''}" data-var="${escapeHtml(v)}" aria-hidden="true"><b>${iconoDeVersion(v, 12)}</b>${nombre ? `<span>${escapeHtml(nombreDeVariante(v))}</span>` : ''}</span>`
 }

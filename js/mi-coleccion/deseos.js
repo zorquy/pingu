@@ -26,6 +26,7 @@ import { entenderBusqueda, partirBusqueda } from './busqueda.js'
 import { porCatalogo, conRotulos } from './rotulos-catalogo.js'
 import { casaVersion, deseosPorCartaYVersion } from '../deseo-version.js'
 import { nombreDeVariante, versionDeVariante } from './variantes.js'
+import { chapaDeVersionHtml } from './iconos-version.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -981,7 +982,7 @@ function deseoHtml(g, precio = ctx.precioDeDeseo(g.filas[0])) {
   const seguidos = textoDeSeguidos(seguidosDeQuiero?.get(g.card_id))
   return `<article class="mc-merc mc-deseo-baldosa" data-deseo-carta="${escapeHtml(g.card_id)}">
     <a class="mc-merc-abrir" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`Ver ${nombre}`)}">
-      <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
+      <span class="mc-merc-foto"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${g.variante ? chapaDeVersionHtml(g.variante) : ''}</span>
       ${dan.length ? `<span class="mc-merc-chapa cruce">${dan.length === 1 ? 'La da 1' : `La dan ${dan.length}`}</span>` : ''}
     </a>
     <button type="button" class="mc-merc-corazon puesto" data-quitar-deseo-carta="${escapeHtml(g.card_id)}" data-quitar-deseo-version="${escapeHtml(g.variante || '')}" aria-pressed="true" aria-label="Quitar ${escapeHtml(nombre)}${g.variante ? ` (${escapeHtml(nombreDeVariante(g.variante))})` : ''} de tu lista">${laQuiero.corazon(16)}</button>

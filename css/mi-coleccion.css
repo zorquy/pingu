@@ -1002,50 +1002,8 @@
 /* La variante, debajo y callada: solo sale cuando NO es la normal, que
    es cuando la ilustración no basta para distinguirla (un reverso holo
    y un normal son el mismo dibujo). */
-/* ── LA CHAPA DE LA VERSIÓN (tanda 461) ──
- *
- * AQUÍ ESTABA `.mc-carta-variante`, un renglón de texto DEBAJO de la foto
- * que además solo salía cuando la versión no era la normal. PINGU, con Dex
- * delante: «en Dex tienen todos una chapita». Y la diferencia no es el
- * gusto: debajo, el dato se lee después de la carta y solo a veces;
- * encima, se lee CON la carta y siempre, que es lo que hace que dos
- * casillas iguales dejen de ser dos casillas iguales.
- *
- * Va centrada abajo, sobre la ilustración y por encima del mando de
- * copias. `pointer-events: none` porque flota sobre el enlace que ocupa el
- * bolsillo entero: sin eso se come el clic y no da ningún error. */
-.mc-chapa-variante {
-  display: flex;
-  position: absolute;
-  z-index: 2;
-  bottom: var(--e-xs);
-  left: 50%;
-  align-items: center;
-  gap: 4px;
-  max-width: calc(100% - 16px);
-  padding: 2px var(--e-sm);
-  transform: translateX(-50%);
-  border-radius: var(--radius-pill);
-  background: rgb(20 24 32 / 82%);
-  color: var(--blanco-fijo);
-  overflow: hidden;
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  line-height: 1.6;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  pointer-events: none;
-}
-
-/* El nombre CEDE y el redondel no: al revés, «Reverse holo» empuja a su
-   código fuera de la chapa en una casilla estrecha. Y lo que se recorta no
-   se pierde — la casilla entera lleva la versión en su rótulo accesible. */
-.mc-chapa-variante > span {
-  overflow: hidden;
-  min-width: 0;
-  text-overflow: ellipsis;
-}
-
+/* La chapa de la versión (461, 930) vive en cardmarket.css desde la 1047c:
+   la pintan también /carta y la ventana del corazón. Aquí, solo dónde va. */
 /* Y en una casilla ESTRECHA el nombre no se recorta: se quita (tanda 565).
    «RH Rever…» no es un nombre, es un trozo; la marca sola —RH, H, N— es lo
    que se reconoce de lejos. Se mide la casilla y no la ventana (la regla
@@ -1054,7 +1012,8 @@
 .mc-bolsillo,
 .mc-carta-foto,
 .mc-rejilla-celda,
-.mc-resultado-foto {
+.mc-resultado-foto,
+.mc-merc-foto {
   container-type: inline-size;
 }
 
@@ -1065,45 +1024,6 @@
 }
 
 
-
-/* El código corto, en su redondel: es lo que se reconoce de lejos cuando
-   el nombre no cabe. */
-.mc-chapa-variante b {
-  display: grid;
-  flex: 0 0 auto;
-  place-items: center;
-  min-width: 16px;
-  height: 16px;
-  padding: 0 4px;
-  border-radius: var(--radius-pill);
-  background: rgb(255 255 255 / 22%);
-  /* El escalón más bajo de la escala y no un 9 px a ojo: si no cabe en el
-     redondel, lo que se cambia es el redondel (la regla de la 305). */
-  font-size: var(--t-2xs);
-  line-height: 1;
-}
-
-/* Y cada versión con su color, que es la pista que se lee sin leer. */
-.mc-chapa-variante[data-var='reverse'] b {
-  background: linear-gradient(120deg, #ff4fa3, #46c8ff 50%, #b7ff6b);
-  color: #10141c;
-}
-
-.mc-chapa-variante[data-var='holo'] b {
-  background: linear-gradient(120deg, #ffd34d, #ff8a3d);
-  color: #10141c;
-}
-
-.mc-chapa-variante[data-var='primera'] b {
-  background: var(--blanco-fijo);
-  color: #10141c;
-}
-
-/* Las versiones de TCGGO (862: Energy Symbol Pattern, Quick Ball…). */
-.mc-chapa-variante:not([data-var='normal']):not([data-var='reverse']):not([data-var='holo']):not([data-var='primera']) b {
-  background: linear-gradient(120deg, #c084fc, #60a5fa 50%, #34d399);
-  color: #10141c;
-}
 
 /* En la cuadrícula el «+» va en la esquina de abajo: la chapa, a la otra
    (778; y desde la 927 la cuadrícula son los bolsillos). */
@@ -10353,16 +10273,23 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   border-radius: 4px;
 }
 
-/* La versión de una carta del cruce (1047): la insignia de las cartas de
-   una expansión (.mc-insignia), en pequeño, en la esquina de la miniatura. */
-.mc-insignia.mc-cruce-version {
-  position: absolute;
+/* La versión pedida en una baldosa de La quiero (1047c): la chapa de toda la
+   web, abajo a la DERECHA (a la izquierda va «La da N»). */
+.mc-merc-foto .mc-chapa-variante {
+  right: var(--e-xs);
+  left: auto;
+  max-width: calc(100% - 56px);
+  transform: none;
+}
+
+/* La versión de una carta del cruce (1047c): la chapa de toda la web, solo
+   con su redondel, en la esquina de la miniatura. */
+.mc-cruce-carta .mc-chapa-variante {
   right: 2px;
   bottom: 2px;
-  z-index: 1;
-  min-width: 18px;
-  height: 18px;
-  padding: 0;
+  left: auto;
+  padding: 2px;
+  transform: none;
 }
 
 .mc-cruce-carta img {

@@ -41831,10 +41831,20 @@ de la propuesta: «Cualquiera» marcada de entrada (A1), una versión por deseo
   (`data-cambiar-deseo`, `cambiarDeseo` en cambios.js); si la combinación
   ya está apuntada, se dice sin preguntar a la base.
 - **Fuera de La quiero**: el tablón no junta dos versiones de una carta y
-  pinta `.mc-cruce-version` (1047b: la insignia `.mc-insignia` con el dibujo de `iconoDeVersion`, no letras); Proponer cambio prefiere la
+  pinta la chapa de la versión (1047c, ver abajo); Proponer cambio prefiere la
   copia de la versión del cruce; el perfil (`porCarta` guarda `variantes` y
   `cualquierVersion`) mira la versión en «La buscas»/«La das» y la escribe;
   el modo evento la pone con el número.
+
+- **La versión se pinta con UNA chapa en toda la web** (1047c, PINGU: «tiene
+  que ser consistente todo lo que hacemos»): `chapaDeVersionHtml` en
+  `js/mi-coleccion/iconos-version.js`, la de una expansión (461/930: el
+  dibujo de `iconoDeVersion` en su redondel de color, la Holo naranja, la
+  Reverse tornasol, y también la Normal). Su CSS base vive en
+  `cardmarket.css` (la bajan Mi colección, /cartas, /carta y el pop-up);
+  dónde va en cada pantalla, en `mi-coleccion.css`. `.en-linea` la pone en
+  una fila de texto (la ventana del corazón). La 1047 se había inventado una
+  «H» y la 1047b una insignia blanca: no se dibuja una versión de otra manera.
 
 Lo vigilan `test-tanda-1047.mjs` (PostgreSQL) y
 `test-tanda-1047-pantalla.mjs` (rama `pruebas`).

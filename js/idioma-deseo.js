@@ -18,7 +18,7 @@ import { chipDeIdiomaHtml } from './precio-vista.js'
 import { idiomasDeSetSinEsperar, reglasDeVersiones, sinReglas } from './idiomas-de-set.js'
 import { escapeHtml } from './html.js'
 import { variantesDeCarta, seSabenVariantes } from './mi-coleccion/variantes.js'
-import { iconoDeVersion } from './mi-coleccion/iconos-version.js'
+import { chapaDeVersionHtml } from './mi-coleccion/iconos-version.js'
 import { hayVariante } from './deseo-version.js'
 
 // Los del catálogo occidental. Del japonés, `idiomasParaAnadirEn` (911): la
@@ -122,7 +122,9 @@ function marcarVersion(id) {
   pintarIdiomas(idiomaMarcado())
 }
 
-const chipDeVersionHtml = (v, activo) => `<button type="button" class="mc-idioma-chip mc-idd-version${activo ? ' activo' : ''}" role="radio" aria-checked="${activo}" data-variante="${escapeHtml(v.id)}">${v.id ? iconoDeVersion(v.id, 16) : ''}<span>${escapeHtml(v.nombre)}</span></button>`
+// Con el redondel de la chapa de toda la web (1047c): la Holo naranja aquí
+// también.
+const chipDeVersionHtml = (v, activo) => `<button type="button" class="mc-idioma-chip mc-idd-version${activo ? ' activo' : ''}" role="radio" aria-checked="${activo}" data-variante="${escapeHtml(v.id)}">${v.id ? chapaDeVersionHtml(v.id, { nombre: false, enLinea: true }) : ''}<span>${escapeHtml(v.nombre)}</span></button>`
 
 // Devuelve `{ idioma, variante }` (los dos `null` = «cualquiera») o
 // `undefined` si se cancela. `carta` dice las versiones; `puesto`, lo que ya

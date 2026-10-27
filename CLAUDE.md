@@ -667,7 +667,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   lea deseos pide la columna con `conVariante` (`js/deseo-version.js`), que
   aguanta la base sin la migración; y lo que case deseos con copias (una
   función nueva de la base o del navegador) lleva la versión al lado del
-  idioma.
+  idioma. Y una versión se PINTA siempre con la chapa de la web
+  (`chapaDeVersionHtml`, 1047c, PINGU: «tiene que ser consistente todo lo
+  que hacemos»), también la Normal: nada de letras ni de otro dibujo.
 - **Un botón que escribe en la base cambia YA, confirma después y deshace
   si falla** (tanda 896, R6): el patrón de «Seguir» un hilo, aplicado a
   marcar leído, guardar una guía, «La quiero», el check-in y meter en un

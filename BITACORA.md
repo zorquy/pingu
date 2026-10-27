@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (287) — PINGU-Claude (1047c — la versión con la chapa de toda la web)
+
+**Hecho**: PINGU, sobre la 1047b: «debería llevar los mismos iconos; el holo
+es naranja; la normal también debería llevar icono… tiene que ser
+consistente todo lo que hacemos». La 1047 se había inventado dos dibujos
+(la «H» y luego una insignia blanca) cuando la web ya tiene LA chapa de
+versión (`.mc-chapa-variante`, 461/930: el dibujo en su redondel de color).
+- **Una función para toda la web**: `chapaDeVersionHtml(id, { nombre,
+  enLinea })` en `js/mi-coleccion/iconos-version.js`. La usan la expansión
+  (`chapaDeVarianteHtml` de mi-coleccion.js es ahora un alias), la Pokédex,
+  los cruces, La quiero y la ventana del corazón.
+- **Su CSS se muda de mi-coleccion.css a cardmarket.css** (la base, el
+  redondel y los colores): la ventana del corazón sale también en /carta y en
+  el pop-up de carta, que no bajan mi-coleccion.css. Dónde va en cada pantalla
+  (expansión, cruces, La quiero) se queda en mi-coleccion.css, que carga
+  después. `.en-linea` la pone en una fila de texto; ahí la Normal lleva el
+  redondel oscuro de la chapa (el translúcido no se ve sobre claro).
+- **Cruces**: la chapa (solo el redondel) en la esquina de cada miniatura,
+  también la Normal. **La quiero**: la chapa de la versión pedida en la foto,
+  abajo a la derecha (a la izquierda va «La da N»); sin nombre en baldosas
+  estrechas, como en una expansión. **La ventana**: cada versión con su
+  redondel de color.
+
+**Ficheros**: js/mi-coleccion/iconos-version.js, js/mi-coleccion.js,
+js/mi-coleccion/pokedex.js, js/mi-coleccion/tablon.js,
+js/mi-coleccion/deseos.js, js/idioma-deseo.js, css/cardmarket.css,
+css/mi-coleccion.css, CLAUDE.md, SCHEMA.md, BITACORA.md.
+
+**Pruebas**: al día `test-tanda-1047-pantalla.mjs` (la chapa de la Holo,
+naranja y con dibujo, en cruces, La quiero y la ventana) y las de la chapa
+(392, 398, 461, 692, 778, 779, 862, 927, 930, 934, 1004), más 1042, 1044,
+771, 299, 312, 313, 915 y 921, todas en verde. La 461 da tres rojos que no son
+de aquí: el «Ver la edición japonesa» de la 1027 entró en el menú de una
+expansión y la prueba sigue esperando cinco mandos.
+
+**Pendiente**: que PINGU ejecute la migración 1047; poner al día la 461 con
+el mando de la 1027.
+
 ## 2026-10-27 (286) — PINGU-Claude (1047b — la versión en los cruces, con su dibujo)
 
 **Hecho**: PINGU, con la captura de Cruces: la chapa «H» en las miniaturas

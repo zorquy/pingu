@@ -68,7 +68,7 @@ import { copiarEnlace } from './compartir.js'
 import { archivadorHtml, textoDePaginas, opcionesDeSalto, tapaGuardada, guardarTapa, TAPAS } from './mi-coleccion/archivador.js'
 import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, pegarVersiones, varianteDeEtiqueta, seSabenVariantes, corregirVersionesImposibles, cuentaParaMaestro, versionDeVariante, TODAS as TODAS_LAS_VARIANTES } from './mi-coleccion/variantes.js'
 import { montarEleccion } from './mi-coleccion/elegir-version.js'
-import { iconoDeVersion } from './mi-coleccion/iconos-version.js'
+import { iconoDeVersion, chapaDeVersionHtml } from './mi-coleccion/iconos-version.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
 import { simboloDeTipoHtml } from './mi-coleccion/energias.js'
@@ -3866,13 +3866,11 @@ const claseMarcada = (cardId, variante = 'normal') =>
 //
 // El código corto va dentro y el nombre al lado, que es lo que hace que se
 // entienda sin tener que aprenderse las siglas.
-function chapaDeVarianteHtml(id) {
-  const v = { id: id || 'normal', nombre: nombreDeVariante(id || 'normal') }
-  // El nombre va en su propia caja para que pueda recortarse sin empujar al
-  // icono: un hijo de flex sin `min-width: 0` no cede, desborda (la 320).
-  // Desde la 930 el redondel lleva el DIBUJO de la versión y no su código.
-  return `<span class="mc-chapa-variante" data-var="${escapeHtml(v.id)}" aria-hidden="true"><b>${iconoDeVersion(v.id, 12)}</b><span>${escapeHtml(v.nombre)}</span></span>`
-}
+// El nombre va en su propia caja para que pueda recortarse sin empujar al
+// icono: un hijo de flex sin `min-width: 0` no cede, desborda (la 320).
+// Desde la 930 el redondel lleva el DIBUJO de la versión y no su código, y
+// desde la 1047c es la de toda la web (`chapaDeVersionHtml`).
+const chapaDeVarianteHtml = (id) => chapaDeVersionHtml(id)
 
 // LO TUYO SE DICE CON UNA MARCA, NO SOLO CON EL COLOR (757). PINGU, con
 // Dex delante, eligió la propuesta «en gris»: lo que falta en gris, lo tuyo

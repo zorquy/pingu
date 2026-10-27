@@ -21,7 +21,7 @@
 // Este módulo entra por `import()` y no se carga hasta que abres la
 // pestaña: se trae `sprites-pokemon.js`, que son los 1.025 nombres.
 import { escapeHtml } from '../html.js'
-import { iconoDeVersion } from './iconos-version.js'
+import { chapaDeVersionHtml } from './iconos-version.js'
 import { migasHtml } from './migas.js'
 import { diapoHtml, tiraHtml } from './diapos.js'
 import { rutaDeCarta } from '../carta-ruta.js'
@@ -406,7 +406,7 @@ function casillaDeEspecie(c, { version = null, mia, copias = 0, mas = '', marcas
       }
       ${version?.id === 'reverse' ? '<span class="mc-velo-reverse" aria-hidden="true"></span>' : ''}
       ${marcas != null ? marcas : copias > 1 ? `<span class="mc-cantidad" aria-hidden="true">×${copias}</span>` : ''}
-      ${version ? `<span class="mc-chapa-variante" data-var="${escapeHtml(version.id)}" aria-hidden="true"><b>${iconoDeVersion(version.id, 12)}</b><span>${escapeHtml(version.nombre)}</span></span>` : ''}
+      ${version ? chapaDeVersionHtml(version.id) : ''}
       ${mas}
     </span>
     <span class="pdx-carta-set">${escapeHtml(set)}</span>

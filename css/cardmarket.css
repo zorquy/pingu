@@ -1839,3 +1839,93 @@ img.icono-bola.icono-version {
     bottom: calc(80px + 76px + env(safe-area-inset-bottom) + var(--e-sm));
   }
 }
+
+/* ── LA CHAPA DE LA VERSIÓN (461, 930; aquí desde la 1047c, SCHEMA 1047) ──
+   La MISMA en toda la web: una expansión, la Pokédex, los cruces, La quiero
+   y la ventana del corazón (`chapaDeVersionHtml`, iconos-version.js). */
+.mc-chapa-variante {
+  display: flex;
+  position: absolute;
+  z-index: 2;
+  bottom: var(--e-xs);
+  left: 50%;
+  align-items: center;
+  gap: 4px;
+  max-width: calc(100% - 16px);
+  padding: 2px var(--e-sm);
+  transform: translateX(-50%);
+  border-radius: var(--radius-pill);
+  background: rgb(20 24 32 / 82%);
+  color: var(--blanco-fijo);
+  overflow: hidden;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  line-height: 1.6;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
+
+/* El nombre CEDE y el redondel no: al revés, «Reverse holo» empuja a su
+   código fuera de la chapa en una casilla estrecha. Y lo que se recorta no
+   se pierde — la casilla entera lleva la versión en su rótulo accesible. */
+.mc-chapa-variante > span {
+  overflow: hidden;
+  min-width: 0;
+  text-overflow: ellipsis;
+}
+
+/* El código corto, en su redondel: es lo que se reconoce de lejos cuando
+   el nombre no cabe. */
+.mc-chapa-variante b {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 22%);
+  /* El escalón más bajo de la escala y no un 9 px a ojo: si no cabe en el
+     redondel, lo que se cambia es el redondel (la regla de la 305). */
+  font-size: var(--t-2xs);
+  line-height: 1;
+}
+
+/* Y cada versión con su color, que es la pista que se lee sin leer. */
+.mc-chapa-variante[data-var='reverse'] b {
+  background: linear-gradient(120deg, #ff4fa3, #46c8ff 50%, #b7ff6b);
+  color: #10141c;
+}
+
+.mc-chapa-variante[data-var='holo'] b {
+  background: linear-gradient(120deg, #ffd34d, #ff8a3d);
+  color: #10141c;
+}
+
+.mc-chapa-variante[data-var='primera'] b {
+  background: var(--blanco-fijo);
+  color: #10141c;
+}
+
+/* Las versiones de TCGGO (862: Energy Symbol Pattern, Quick Ball…). */
+.mc-chapa-variante:not([data-var='normal']):not([data-var='reverse']):not([data-var='holo']):not([data-var='primera']) b {
+  background: linear-gradient(120deg, #c084fc, #60a5fa 50%, #34d399);
+  color: #10141c;
+}
+
+/* En una fila de texto (la ventana del corazón): solo el redondel, sin
+   flotar. */
+.mc-chapa-variante.en-linea {
+  position: static;
+  max-width: none;
+  padding: 0;
+  transform: none;
+  background: none;
+}
+
+/* Fuera de la foto, el redondel de la Normal lleva el oscuro de la chapa: el
+   blanco translúcido de encima no se vería sobre un fondo claro. */
+.mc-chapa-variante.en-linea[data-var='normal'] b {
+  background: rgb(20 24 32 / 82%);
+}
