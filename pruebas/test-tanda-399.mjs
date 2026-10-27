@@ -65,7 +65,7 @@ console.log('\n── 1. Los grupos salen de lo que hay ──')
   // solo se pulsa si no lo está, o lo escondería.
   if (!(await page.evaluate(() => document.getElementById('mcPanelFiltros').open))) await page.locator('#mcAbrirFiltros').click()
   await page.waitForTimeout(500)
-  const grupos = await page.locator('#mcGruposChips h3').allTextContents()
+  const grupos = await page.locator('#mcFiltrosCuerpo h3').allTextContents()
   check('hay grupo de tipo, energía y rareza',
     // La energía se rotula «Tipo» y va la PRIMERA desde la 748 (su maqueta).
     ['Tipo de carta', 'Tipo', 'Rareza'].every((g) => grupos.includes(g)) && grupos[0] === 'Tipo', grupos.join(', '))

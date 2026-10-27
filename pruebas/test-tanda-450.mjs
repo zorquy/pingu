@@ -149,8 +149,10 @@ console.log('\n── 5. Los filtros y el orden de Buscar ──')
   await p.waitForTimeout(900)
   await p.click('#mcBuscarAbrirFiltros')
   await p.waitForTimeout(500)
-  const grupos = await p.locator('#mcBuscarGrupos h3').allTextContents()
-  ok(grupos.join(' | ') === 'Tipo de carta | Tipo de energía | Tipo de entrenador | Rareza',
+  // 1055: en el orden y con los nombres de la hoja común (la serie y la
+  // expansión, detrás de la raya, salen con resultados).
+  const grupos = await p.locator('#mcBuscarGrupos [data-hoja-pintado] h3').allTextContents()
+  ok(grupos.join(' | ') === 'Tipo | Rareza | Tipo de carta | Tipo de entrenador',
     'los cuatro grupos, en pantalla', grupos.join(' | '))
   // Los chips salen del MAPA de traducción, no de una copia: añadir un
   // tipo de entrenador allí lo añade aquí.

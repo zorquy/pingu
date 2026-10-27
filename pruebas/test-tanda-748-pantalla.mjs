@@ -234,27 +234,28 @@ console.log('── 4. Los filtros, los de su maqueta (C6) ──')
     const r = (e) => e.getBoundingClientRect()
     const borrar = document.getElementById('mcFiltrosLimpiar')
     const energias = [...d.querySelectorAll('.chip-energia')]
-    const primero = d.querySelector('#mcGruposChips h3')?.textContent
+    const primero = d.querySelector('#mcFiltrosCuerpo h3')?.textContent
     const ver = document.getElementById('mcFiltrosVer')
     return {
-      borrarArriba: !!borrar.closest('.mc-panel-cabecera') && borrar.textContent.trim() === 'Borrar todo',
+      // 1055: «Limpiar» abajo, al lado de «Ver N cartas» (la hoja común).
+      limpiarAbajo: !!borrar.closest('.mc-panel-pie') && borrar.textContent.trim() === 'Limpiar' && r(borrar).right <= r(ver).left,
       primero, energias: energias.map((e) => ({ l: e.getAttribute('aria-label'), w: Math.round(r(e).width), h: Math.round(r(e).height), img: !!e.querySelector('img.mc-energia'), txt: e.textContent.trim() })),
       tiradores: d.querySelectorAll('#mcRangoDoble input[type="range"]').length, tope: document.getElementById('mcPrecioTiradorMax').max,
       ver: { w: Math.round(r(ver).width), hoja: Math.round(r(d).width), bajo: Math.round(r(d).bottom - r(ver).bottom) },
       tirador: getComputedStyle(document.getElementById('mcFiltrosCerrar'), '::before').width,
     }
   })
-  check('[Cartas] «Borrar todo» arriba, en la cabecera, y el aspa es el tirador', c.borrarArriba && c.tirador === '36px', JSON.stringify(c))
+  check('[Cartas] «Limpiar» abajo (1055) y el aspa es el tirador', c.limpiarAbajo && c.tirador === '36px', JSON.stringify(c))
   check('[Cartas]   …el tipo, PRIMERO y en redondo: el símbolo solo, con su nombre para quien no lo ve (las de TU colección: Agua, Fuego, Planta)', c.primero === 'Tipo' && c.energias.length === 3 && c.energias.every((e) => e.img && e.txt === '' && e.w === 44 && e.h === 44 && e.l), JSON.stringify(c.energias))
   check('[Cartas]   …el precio con dos tiradores, hasta lo que vale tu copia más cara', c.tiradores === 2 && c.tope === '40', JSON.stringify(c))
-  check('[Cartas]   …y abajo un solo botón ancho, pegado al fondo', c.ver.w >= c.ver.hoja - 48 && c.ver.bajo <= 40, JSON.stringify(c.ver))
+  check('[Cartas]   …y abajo «Ver» ancho, pegado al fondo', c.ver.w >= c.ver.hoja / 2 && c.ver.bajo <= 40, JSON.stringify(c.ver))
   await page.locator('#mcPrecioTiradorMin').evaluate((t) => { t.value = '25'; t.dispatchEvent(new Event('input', { bubbles: true })) })
   await page.waitForTimeout(300)
   check('[Cartas] mover el tirador de abajo filtra: 2 cartas de 25 € o más, y el campo lo dice', (await page.textContent('#mcFiltrosVer')).trim() === 'Ver 2 cartas' && (await page.inputValue('#mcFiltroPrecioDesde')) === '25', await page.textContent('#mcFiltrosVer'))
   await page.click('#mcFiltrosLimpiar')
   await page.waitForTimeout(300)
-  check('[Cartas]   …y «Borrar todo» lo devuelve', (await page.textContent('#mcFiltrosVer')).trim() === 'Ver 4 cartas' && (await page.inputValue('#mcPrecioTiradorMin')) === '0')
-  await page.locator('.chip-energia[aria-label="Fuego"]').click()
+  check('[Cartas]   …y «Limpiar» lo devuelve', (await page.textContent('#mcFiltrosVer')).trim() === 'Ver 4 cartas' && (await page.inputValue('#mcPrecioTiradorMin')) === '0')
+  await page.locator('#mcPanelFiltros .chip-energia[aria-label="Fuego"]').click()
   await page.waitForTimeout(300)
   check('[Cartas] tocar Fuego deja las dos de fuego', (await page.textContent('#mcFiltrosVer')).trim() === 'Ver 2 cartas')
   await page.goto(`${BASE}/mi-coleccion.html?ver=album&set=xy5`, { waitUntil: 'domcontentloaded' })
@@ -266,11 +267,12 @@ console.log('── 4. Los filtros, los de su maqueta (C6) ──')
     // Desde la 919 va antes «Cómo se ven» (la vista y las variantes).
     primero: document.querySelector('#mcAlbumPanelFiltros .mc-grupo-filtro:not(.hidden):not(#mcAlbumGrupoVer) h3')?.textContent,
     energias: [...document.querySelectorAll('#mcAlbumPanelFiltros .mc-seg-energias .mc-seg-dibujo')].map((b) => b.getAttribute('aria-label')),
-    borrar: !!document.getElementById('mcAlbumFiltrosLimpiar').closest('.mc-panel-cabecera'),
+    borrar: !!document.getElementById('mcAlbumFiltrosLimpiar').closest('.mc-panel-pie'),
   }))
-  check('[Expansión] arriba «Qué cartas»: Todas (puesta), Las tengo, Me faltan (y Repetidas, 927)', a.primero === 'Qué cartas' && a.que === 'Todas*|Las tengo|Me faltan|Repetidas', JSON.stringify(a))
+  // 1055: en la hoja común el Tipo va primero y «Qué cartas» detrás de la raya.
+  check('[Expansión] el Tipo primero, y «Qué cartas»: Todas (puesta), Las tengo, Me faltan (y Repetidas, 927)', a.primero === 'Tipo' && a.que === 'Todas*|Las tengo|Me faltan|Repetidas', JSON.stringify(a))
   check('[Expansión]   …el tipo, con los símbolos de las que hay en la expansión', a.energias.sort().join() === 'Agua,Dragón,Fuego,Planta', JSON.stringify(a.energias))
-  check('[Expansión]   …y «Borrar todo» arriba', a.borrar)
+  check('[Expansión]   …y «Limpiar» abajo', a.borrar)
   await page.click('#mcAlbumSoloFaltan')
   await page.waitForTimeout(300)
   check('[Expansión] «Me faltan» deja las 2 que no tienes y «Todas» se apaga', (await page.textContent('#mcAlbumFiltrosVer')).trim() === 'Ver 2 cartas' && (await page.getAttribute('#mcAlbumTodas', 'aria-pressed')) === 'false')

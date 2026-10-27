@@ -49,7 +49,7 @@ const estado = (page) => page.evaluate(() => {
   const p = document.getElementById('mcPanelFiltros')
   const r = p.getBoundingClientRect()
   const g = document.getElementById('mcCartas').getBoundingClientRect()
-  return { open: p.open, modal: p.matches(':modal'), visto: getComputedStyle(p).display !== 'none', izq: Math.round(r.right) <= Math.round(g.left), top: Math.round(r.top), cartas: document.querySelectorAll('#mcCartas > *').length, chips: document.querySelectorAll('#mcGruposChips [data-grupo]').length, ver: getComputedStyle(document.getElementById('mcFiltrosVer')).display }
+  return { open: p.open, modal: p.matches(':modal'), visto: getComputedStyle(p).display !== 'none', izq: Math.round(r.right) <= Math.round(g.left), top: Math.round(r.top), cartas: document.querySelectorAll('#mcCartas > *').length, chips: document.querySelectorAll('#mcFiltrosCuerpo [data-grupo]').length, ver: getComputedStyle(document.getElementById('mcFiltrosVer')).display }
 })
 
 console.log('── 2. En el ordenador ──')
@@ -66,13 +66,13 @@ console.log('── 2. En el ordenador ──')
   const abajo = await estado(page)
   check('  …y pegado al bajar', abajo.visto && abajo.top >= 60 && abajo.top <= 100, JSON.stringify(abajo))
   await page.evaluate(() => scrollTo(0, 0))
-  const chip = page.locator('#mcGruposChips [data-grupo]').filter({ hasText: /Rara Holo|Rare Holo|Holo/ }).first()
+  const chip = page.locator('#mcFiltrosCuerpo [data-grupo]').filter({ hasText: /Rara Holo|Rare Holo|Holo/ }).first()
   if (await chip.count()) {
     await chip.click()
     await page.waitForTimeout(400)
     const f = await estado(page)
     check('tocar un chip filtra al momento, con la rejilla y el panel a la vista', f.cartas === 1 && f.open, JSON.stringify(f))
-  } else check('hay un chip de «holo» que tocar', false, await page.textContent('#mcGruposChips'))
+  } else check('hay un chip de «holo» que tocar', false, await page.textContent('#mcFiltrosCuerpo'))
   await page.click('#mcAbrirFiltros')
   await page.waitForTimeout(300)
   const fuera = await estado(page)

@@ -84,14 +84,16 @@ console.log('── 2. En la Pokédex de un Pokémon ──')
   const tuyas = () => page.locator('.pdx-carta.tengo').count()
   check('las tres cartas, dos tuyas', (await page.locator('.pdx-carta').count()) === 3 && (await tuyas()) === 2, `${await page.locator('.pdx-carta').count()} / ${await tuyas()}`)
   // 1054: «Solo las que me faltan» es «Faltan» de Todas/Tengo/Faltan.
-  check('hay «Faltan» y desplegable de idioma', (await page.locator('[data-pdx-que="faltan"]').count()) === 1 && (await page.locator('#pdxIdioma').count()) === 1)
-  // Desde dentro: los dos mandos viven en una barra que se desliza en
-  // horizontal, y Playwright no quiere tocar lo que queda fuera del
-  // deslizamiento aunque esté pintado. Lo que importa es el `change`.
-  await page.evaluate(() => { const s = document.getElementById('pdxIdioma'); s.value = 'es'; s.dispatchEvent(new Event('change', { bubbles: true })) })
+  // 1055: el idioma de tus copias vive en la hoja de filtros, en chips.
+  check('hay «Faltan», y el idioma en la hoja de filtros (no en la barra)', (await page.locator('[data-pdx-que="faltan"]').count()) === 1 && (await page.locator('#mcPdxGrupos [data-pdx-idioma="es"]').count()) === 1 && (await page.locator('#pdxIdioma').count()) === 0)
+  await page.locator('#pdxAbrirFiltros').click({ force: true })
+  await page.waitForTimeout(400)
+  await page.locator('#mcPdxGrupos [data-pdx-idioma="es"]').click()
   await page.waitForTimeout(800)
   check('en español, una tuya', (await tuyas()) === 1, String(await tuyas()))
-  check('  …y el desplegable conserva lo elegido tras repintar', (await page.inputValue('#pdxIdioma')) === 'es')
+  check('  …y el chip conserva lo elegido tras repintar', (await page.getAttribute('#mcPdxGrupos [data-pdx-idioma="es"]', 'aria-checked')) === 'true')
+  await page.locator('#mcPdxFiltrosVer').click()
+  await page.waitForTimeout(300)
   await page.locator('[data-pdx-que="faltan"]').click({ force: true })
   await page.waitForTimeout(800)
   const quedan = await page.$$eval('.pdx-carta', (es) => es.map((e) => e.dataset.carta))

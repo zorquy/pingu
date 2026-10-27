@@ -214,7 +214,7 @@ const navegador = await chromium.launch()
   // Desde la 898 los grupos van en dos bloques plegables («Rareza y tipo» e
   // «Idioma y estado»), y en el móvil salen plegados: se abren para tocar.
   await p.evaluate(() => { for (const d of document.querySelectorAll('#mcPanelFiltros .mc-bloque-filtro')) d.open = true })
-  const grupos = await p.locator('#mcPanelFiltros .mc-grupos-chips h3').allTextContents()
+  const grupos = await p.locator('#mcPanelFiltros .mc-grupo-filtro h3').allTextContents()
   ok(grupos.includes('Notas'), 'el grupo de notas está', grupos.join(' | '))
   ok(!grupos.includes('Tipo de entrenador'), '  …y el de entrenador no, porque solo hay un valor', grupos.join(' | '))
   await p.click('.chip-filtro[data-grupo="notas"][data-valor="Con nota"]')

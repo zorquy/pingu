@@ -129,8 +129,9 @@ const navegador = await chromium.launch()
 
   await p.locator('#pdxAbrirFiltros').click()
   await p.waitForTimeout(500)
-  const grupos = await p.locator('#mcPdxGrupos h3').allTextContents()
-  ok(grupos.join(' | ') === 'Tipo de energía | Rareza', 'con los grupos que esta especie tiene', grupos.join(' | '))
+  // 1055: con los nombres de la hoja común, y el idioma de tus copias aparte.
+  const grupos = await p.locator('#mcPdxGrupos .mc-grupo-filtro:not([data-hoja="idioma"]) h3').allTextContents()
+  ok(grupos.join(' | ') === 'Tipo | Rareza', 'con los grupos que esta especie tiene', grupos.join(' | '))
   await p.locator('[data-egrupo="rarity"][data-evalor="Común"]').click()
   await p.waitForTimeout(600)
   ok((await p.locator('.pdx-carta').count()) === 2, 'un chip filtra', String(await p.locator('.pdx-carta').count()))
@@ -158,7 +159,7 @@ const navegador = await chromium.launch()
   // encendida. Sin acotar, esta comprobación habla de otra pantalla. Es la
   // misma trampa de las tarjetas de colección (447) y de las dos bandejas
   // (452), tres tandas seguidas.
-  ok((await p.locator('#mcPdxGrupos .chip-filtro.activa').count()) === 0, '  …y ningún chip encendido')
+  ok((await p.locator('#mcPdxGrupos .chip-filtro[data-egrupo].activa').count()) === 0, '  …y ningún chip encendido')
   await p.close()
 }
 

@@ -115,7 +115,9 @@ console.log('── 4. Los filtros de Buscar ──')
   })
   check('en el móvil el catálogo sale UNA vez (el de arriba)', r.catalogos === 1, r.catalogos)
   // «Solo las que tengo» no sale sin cuenta: no tienes ninguna.
-  check('serie, expansión y «Variantes juntas» en la fila de Filtros y orden', r.afinarDentro && ['mcBuscarAbrirFiltros', 'mcBuscarAbrirOrden', 'mcBuscarSerie', 'mcBuscarSet', 'mcBuscarVariantes'].every((id) => r.ids.includes(id)), r.ids.join())
+  // 1055: la serie y la expansión van en la hoja de filtros; en la fila,
+  // Apilar, Orden y Filtros.
+  check('Apilar, Orden y Filtros en la fila (la serie y la expansión, en la hoja)', ['mcBuscarVariantes', 'mcBuscarAbrirOrden', 'mcBuscarAbrirFiltros'].every((id) => r.ids.includes(id)) && !r.ids.includes('mcBuscarSerie') && !r.ids.includes('mcBuscarSet'), r.ids.join())
   check('  …en UNA línea de 44 px (nada se parte en dos renglones)', r.alturas.length === 1 && r.alto <= 46, JSON.stringify(r))
   check('  …y las cartas empiezan antes de un tercio de la pantalla', r.resultados < 300, r.resultados)
   await ctx.close()

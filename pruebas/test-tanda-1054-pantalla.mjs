@@ -77,7 +77,7 @@ const tarjetas = (page, zona) => page.$$eval(`${zona} a[data-carta]`, (as) => as
   await page.waitForSelector('#pdxQue', { timeout: 6000 }).catch(() => {})
   const fila = await page.evaluate(() => document.getElementById('pdxQue')?.parentElement?.id || document.getElementById('pdxQue')?.parentElement?.className)
   const p = await page.evaluate(() => [...document.getElementById('pdxQue').parentElement.children].filter((e) => e.getBoundingClientRect().width > 0).map((e) => e.id || (e.matches('.mc-mercado') ? 'catalogo' : e.tagName)).join(',').replace('catalogo,SPAN', 'catalogo'))
-  check('Pokédex: Todas/Tengo/Faltan · Apilar · Filtros · Seleccionar, y el idioma y el catálogo detrás', /^pdxQue,pdxVariantes,(pdxAbrirFiltros,)?pdxSeleccionar,pdxIdioma,catalogo$/.test(p), `${fila}: ${p}`)
+  check('Pokédex: Todas/Tengo/Faltan · Apilar · Filtros · Seleccionar y el catálogo (el idioma, en la hoja desde la 1055)', /^pdxQue,pdxVariantes,(pdxAbrirFiltros,)?pdxSeleccionar,catalogo$/.test(p), `${fila}: ${p}`)
   check('  …ya sin «Solo las que me faltan» ni «Variantes juntas»', !(await page.locator('#pdxSoloFaltan').count()) && !/Variantes (juntas|separadas)/.test(await page.textContent('#mcPokedexPanel')))
   const todas = (await tarjetas(page, '#mcPokedexPanel')).length
   await page.click('[data-pdx-que="tengo"]')
@@ -116,7 +116,7 @@ const tarjetas = (page, zona) => page.$$eval(`${zona} a[data-carta]`, (as) => as
   await page.fill('#mcBuscarTodo', 'pikachu')
   await page.waitForTimeout(1500)
   const p = await page.evaluate(() => [...document.querySelector('#mcBuscarBarra .mc-mandos').children].filter((e) => e.getBoundingClientRect().width > 0).map((e) => e.id || (e.matches('.mc-mercado') ? 'catalogo' : e.tagName)).join(',').replace('catalogo,SPAN', 'catalogo'))
-  check('Buscar: Todas/Tengo/Faltan · Orden · Filtros · Seleccionar · catálogo (y lo de afinar)', /^mcBuscarQue,mcBuscarAbrirOrden,mcBuscarAbrirFiltros,mcBuscarSeleccionar,catalogo(,mcBuscarAfinar)?$/.test(p), p)
+  check('Buscar: Todas/Tengo/Faltan · Apilar · Orden · Filtros · Seleccionar · catálogo (serie y expansión, en la hoja desde la 1055)', /^mcBuscarQue,mcBuscarVariantes,mcBuscarAbrirOrden,mcBuscarAbrirFiltros,mcBuscarSeleccionar,catalogo$/.test(p), p)
   check('  …y «Solo las que tengo» ya no está', !(await page.locator('#mcBuscarSoloMias').count()))
   const todas = (await tarjetas(page, '#mcBuscarResultados')).length
   await page.click('[data-bus-que="tengo"]')
