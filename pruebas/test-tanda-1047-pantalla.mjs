@@ -117,6 +117,8 @@ console.log('── 1. El corazón de la ficha pregunta la versión ──')
   await page.waitForTimeout(700)
   check('sale la ventana, «¿Cómo la quieres?»', (await abierto(page)) && (await page.textContent('#iddTitulo')) === '¿Cómo la quieres?', await page.textContent('#iddTitulo'))
   check('  …con la fila de versión: Cualquiera, Normal y Holo', (await versiones(page)).join() === '*,normal,holo', (await versiones(page)).join())
+  const redondeles = await page.$$eval('#iddVersiones .mc-chapa-variante.en-linea', (cs) => cs.map((c) => c.dataset.var))
+  check('  …cada versión con la chapa de toda la web (su redondel de color)', redondeles.join() === 'normal,holo', redondeles.join())
   check('  …«Cualquiera» marcada de entrada (A1)', (await page.$eval('#iddVersiones .activo', (b) => b.dataset.variante)) === '')
   check('  …y el rótulo «Idioma» encima de los idiomas', await page.isVisible('#iddIdiomaRot'))
   await page.click('#iddVersiones [data-variante="holo"]')
@@ -156,6 +158,8 @@ console.log('── 3. «La quiero»: una baldosa por versión ──')
   const normal = tiles.find((t) => /Normal/.test(t.texto))?.texto || ''
   check('la Holo: «Holo · Cualquier idioma» y la da 1 (Lucía)', /Holo · Cualquier idioma/.test(holo) && /La da 1/.test(holo), holo)
   check('la Normal: «Normal · Español» y la da 1 (Dani)', /Normal ·\s*Español/.test(normal) && /La da 1/.test(normal), normal)
+  const chapas = await page.$$eval('#mcQuieroRejilla .mc-merc-foto .mc-chapa-variante', (cs) => cs.map((c) => c.dataset.var).sort())
+  check('cada baldosa lleva la chapa de su versión en la foto, como en una expansión', chapas.join() === 'holo,normal', chapas.join())
   check('la cuenta: 2 cartas', /^2 cartas/.test((await page.textContent('#mcQuieroCifra')).trim()), await page.textContent('#mcQuieroCifra'))
   const quien = await page.$$eval('#mcQuieroRejilla .mc-deseo-baldosa', (as) => as.map((a) => [a.querySelector('.mc-deseo-version')?.textContent, [...a.querySelectorAll('.mc-gente-av')].map((x) => x.getAttribute('aria-label') || x.title || '').join('+')]))
   check('  …y cada una con su persona', JSON.stringify(quien).includes('Holo') && quien.every(([, g]) => g.split('+').length === 1), JSON.stringify(quien))
@@ -193,13 +197,13 @@ console.log('── 6. Los cruces casan por versión ──')
   await page.waitForTimeout(1200)
   const quienes = await page.$$eval('[data-cruce]', (cs) => cs.map((c) => c.dataset.cruce))
   check('sale Lucía (da la Holo) y no Dani (da la Normal)', quienes.includes(U(1)) && !quienes.includes(U(2)), quienes.join())
-  // Con el DIBUJO de la versión, la insignia de las cartas de una expansión, y
-  // no con una letra («H»: PINGU, «me parece muy feo»).
-  const insignia = await page.locator(`[data-cruce="${U(1)}"] .mc-cruce-version`).first().evaluate((i) => {
-    const r = i.getBoundingClientRect()
-    return { clase: i.className, var: i.dataset.var, dibujo: !!i.querySelector('svg, img'), texto: i.textContent.trim(), w: Math.round(r.width), h: Math.round(r.height) }
+  // La chapa de TODA la web (1047c, PINGU: «tiene que ser consistente todo lo
+  // que hacemos»): la de una expansión, con su redondel de color y su dibujo.
+  const chapa = await page.locator(`[data-cruce="${U(1)}"] .mc-cruce-carta .mc-chapa-variante`).first().evaluate((c) => {
+    const b = c.querySelector('b')
+    return { var: c.dataset.var, dibujo: !!b?.querySelector('svg, img'), fondo: getComputedStyle(b).backgroundImage, texto: c.textContent.trim() }
   }).catch(() => null)
-  check('  …y su carta lleva la insignia de la versión, con su dibujo y sin letras', insignia?.var === 'holo' && /mc-insignia/.test(insignia.clase) && insignia.dibujo && insignia.texto === '' && insignia.w === 18 && insignia.h === 18, JSON.stringify(insignia))
+  check('  …y su carta lleva la chapa de la versión (la Holo, naranja), como en una expansión', chapa?.var === 'holo' && chapa.dibujo && /gradient/.test(chapa.fondo) && chapa.texto === '', JSON.stringify(chapa))
   if (CAPS) await page.locator(`[data-cruce="${U(1)}"]`).first().screenshot({ path: `${CAPS}/1047-cruce.png` })
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
