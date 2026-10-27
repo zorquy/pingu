@@ -966,6 +966,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `herramientas/aud-apilados.mjs` (rama pruebas) que no caiga en dos. Y la
   sección es «Colección» (1036), no «Cartas»; su llave de color sigue
   siendo `data-seccion="cartas"` (`SLUG_DE_SECCION`).
+- **Una pantalla de cartas lleva LA barra de la expansión** (tandas 1053 y
+  1054, PINGU: «que sea todo consistente durante todos los sitios donde
+  salgan cartas»): Todas/Tengo/Faltan · vista · Apilar · Orden · Filtros ·
+  Seleccionar, y el catálogo al final, con las piezas que tengan sentido y
+  en ese orden. «Seleccionar» lleva `data-seleccionar` (un oyente en el
+  documento, visible solo con `html.mc-puede-marcar`) y marca por
+  `seleccion.js`; una rejilla nueva en la que se marque va en sus `ZONAS`.
 - **Contenido primero en el teléfono** (tandas 1038–1040, PINGU: «haz todo
   lo recomendado»). Cinco reglas para cualquier pantalla de lista: (1) el
   título que ya dice la burbuja no ocupa sitio (recortado con `clip-path`,

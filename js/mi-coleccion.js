@@ -4720,6 +4720,8 @@ const ctxSeleccion = {
   get deseos() { return deseos },
   set deseos(x) { deseos = x },
   pintarCartas, pintarAlbum, misLineasDe, cambiarLinea, quitarLinea, repintar, refrescarCorazones, meterLinea, pintarResumen, claveMarca,
+  // Para la Pokédex y Buscar (1054): la carta de un id y su versión de serie.
+  cartaPorId, varianteDe: (id) => varianteDeCarta(cartaPorId(id)) || 'normal',
 }
 let selMod = null
 const seleccionModulo = () => selMod ? Promise.resolve(selMod) : import('./mi-coleccion/seleccion.js').then((m) => { m.montar(ctxSeleccion); selMod = m; return m })
@@ -4861,7 +4863,7 @@ async function buscarEnTodo({ variantes = null } = {}) {
   const versiones = versionesDeLaLista(lista)
   // Lo de afinar vuelve a «todo» con cada búsqueda nueva: una serie que
   // se queda puesta de la búsqueda anterior deja esta vacía sin decir por qué.
-  afinar = { serie: '', set: '', soloMias: afinar.soloMias }
+  afinar = { serie: '', set: '', que: afinar.que }
   if (!todosLosSets) await cargarSets().catch(() => null)
   // Con las versiones separadas (1004), la lista ES de versiones: se pinta con
   // ellas, o la Expansion Stamp del Reshiram ex no salía en su casilla.
@@ -4884,7 +4886,9 @@ async function buscarEnTodo({ variantes = null } = {}) {
 //
 // Y para afinar lo que ha vuelto, sin volver a preguntar: la serie, la
 // expansión y «Solo las que tengo».
-let afinar = { serie: '', set: '', soloMias: false }
+// `que` (1054): todas, las que tengo o las que me faltan, como en una
+// expansión. Era «Solo las que tengo» (761).
+let afinar = { serie: '', set: '', que: 'todas' }
 // Con `v` (779), el resultado es de UNA versión: su chapa, su velo y su ✓,
 // como la casilla de una expansión en «separar variantes».
 function resultadoHtml(c, v = null) {
@@ -4925,14 +4929,15 @@ function pintarResultadosBuscar() {
   pintarAfinar(lista)
   if (afinar.serie) lista = lista.filter((c) => serieDe(c) === afinar.serie)
   if (afinar.set) lista = lista.filter((c) => c.set_id === afinar.set)
-  if (afinar.soloMias) lista = lista.filter((c) => mias.has(c.id))
+  if (afinar.que === 'tengo') lista = lista.filter((c) => mias.has(c.id))
+  if (afinar.que === 'faltan') lista = lista.filter((c) => !mias.has(c.id))
   if (!ultimaBusqueda.length) {
     caja.innerHTML = '<p class="empty-state">No encuentro ninguna carta así. Prueba con menos letras.</p>'
     return
   }
   if (!lista.length) {
     // El vacío dice CUÁL es (la 510): ha vuelto algo, y lo esconde lo de afinar.
-    caja.innerHTML = `<p class="empty-state">${afinar.soloMias ? 'No tienes ninguna de estas.' : 'Ninguna de estas es de esa serie o expansión.'}</p>`
+    caja.innerHTML = `<p class="empty-state">${afinar.que === 'tengo' ? 'No tienes ninguna de estas.' : afinar.que === 'faltan' ? 'Ya las tienes todas.' : 'Ninguna de estas es de esa serie o expansión.'}</p>`
     return
   }
   const sets = new Map((todosLosSets || []).map((x) => [x.id, x]))
@@ -4950,6 +4955,14 @@ function pintarResultadosBuscar() {
         <span class="mc-bus-grupo-texto"><b>${escapeHtml(nombreDeSet(set) || g.set.id)}</b><small>${escapeHtml(partes.join(' · '))}</small></span>
       </div>${g.cartas.map((c) => (album.split ? variantesConLasTuyas(c).map((v) => resultadoHtml(c, v)).join('') : resultadoHtml(c))).join('')}`
   }).join('')
+}
+// Todas / Tengo / Faltan de Buscar (1054): solo con tu colección y cuenta,
+// y solo con resultados (sin ellos no hay qué separar).
+function pintarQueDeBuscar() {
+  const seg = $('mcBuscarQue')
+  if (!seg) return
+  seg.classList.toggle('hidden', !(esMia && sesion && ultimaBusqueda.length))
+  for (const b of seg.querySelectorAll('[data-bus-que]')) b.setAttribute('aria-pressed', String(b.dataset.busQue === afinar.que))
 }
 // Los desplegables de afinar salen de lo que HA VUELTO: una serie que no
 // está en los resultados no se ofrece (la 447: lo que se ofrece, funciona).
@@ -4970,10 +4983,7 @@ function pintarAfinar(lista) {
   for (const c of enOrden) if (!afinar.serie || c.tcg_sets?.serie_id === afinar.serie) sets.set(c.set_id, nombreDeSet(c.tcg_sets) || c.set_id)
   if (afinar.set && !sets.has(afinar.set)) afinar.set = ''
   $('mcBuscarSet').innerHTML = `<option value="">Todas las expansiones</option>${[...sets].map(([id, nombre]) => `<option value="${escapeHtml(id)}"${id === afinar.set ? ' selected' : ''}>${escapeHtml(nombre)}</option>`).join('')}`
-  const solo = $('mcBuscarSoloMias')
-  solo.setAttribute('aria-pressed', String(afinar.soloMias))
-  solo.classList.toggle('activa', afinar.soloMias)
-  solo.classList.toggle('hidden', !(esMia && sesion))
+  pintarQueDeBuscar()
 }
 
 // ── EL ESCÁNER (1011): vive en ./mi-coleccion/escaner-ui.js y entra por import() ──
@@ -5422,6 +5432,9 @@ const ctxPokedex = {
   get lineas() { return lineas },
   get cartas() { return cartas },
   get album() { return album },
+  // Para «Seleccionar» en la barra de una especie (1054).
+  get esMia() { return esMia },
+  get sesion() { return sesion },
   params, AYUDAS,
   rotularVer, idiomasDeLaVista, masHtml, nombreDe, tengoDe, versionesQueTienes, marcaDeTengoHtml, quieroHtml, laQuieres, pintarVistas, pintarIconos, irA, corregirConVersiones, subirNivel, pintarVistaVariantes,
 }
@@ -6076,7 +6089,12 @@ function enganchar() {
   })
 
   // ── Marcar varias (426 → 1011): lo demás lo engancha su módulo al llegar ──
-  $('mcMarcarAbrir')?.addEventListener('click', () => void seleccionModulo().then((m) => m.modoMarcar(!m.marcadasAhora())).catch(() => showToast('No se ha podido cargar la selección.', 'error')))
+  // «Seleccionar» (1053/1054): uno por barra, todos con `data-seleccionar`.
+  // La Pokédex pinta el suyo al entrar en una especie: por delegación.
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest?.('[data-seleccionar]')) return
+    void seleccionModulo().then((m) => m.modoMarcar(!m.marcadasAhora())).catch(() => showToast('No se ha podido cargar la selección.', 'error'))
+  })
 
   // Las flechas y el cerrar de la ficha (tanda 422).
   $('mcEdAnterior')?.addEventListener('click', () => void abrirVecino(-1))
@@ -6226,8 +6244,10 @@ function enganchar() {
     pintarVistaVariantes()
     pintarResultadosBuscar()
   })
-  $('mcBuscarSoloMias')?.addEventListener('click', () => {
-    afinar.soloMias = !afinar.soloMias
+  $('mcBuscarQue')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-bus-que]')
+    if (!b) return
+    afinar.que = b.dataset.busQue
     pintarResultadosBuscar()
   })
   // ── Los mandos de Buscar (tanda 450) ──
@@ -7077,6 +7097,10 @@ async function iniciar() {
     // ya la marca y eso lo engancha el módulo.
     if (sesion) (window.requestIdleCallback || ((f) => setTimeout(f, 600)))(() => void seleccionModulo().catch(() => {}))
   }
+  // «Seleccionar» (1054) solo en TU colección y con cuenta: en /cartas sin
+  // sesión no hay a dónde añadir lo que se marque. Lo dice una clase en
+  // <html>, que vale también para el de la Pokédex, que se pinta después.
+  document.documentElement.classList.toggle('mc-puede-marcar', Boolean(esMia && sesion))
   // El Panel de la última vez, ya (894), mientras llegan las líneas: es
   // tuyo, así que la clave te lleva, y solo si es lo que se abre.
   if (esMia && pestania === 'resumen' && pintarUltimaVista(claveDeVista('panel', dueno.id))) {

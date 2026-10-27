@@ -45,16 +45,55 @@ let marcadas = null // Set de `cardId|variante` (expansión) o de ids de línea 
 // copias de la misma carta en dos idiomas son dos casillas distintas.
 let marcarEn = 'album'
 
-export function modoMarcar(encender, donde = ctx.pestania === 'cartas' ? 'cartas' : 'album', { repintar = true } = {}) {
+// LA POKÉDEX Y BUSCAR (1054, PINGU: «un selector para elegir varias cartas…
+// que sea consistente en todos los sitios donde salgan cartas»). Se marca
+// como en una expansión —la carta y su versión, `id|versión`—, pero sus
+// rejillas no saben de marcas: se marcan aquí, sobre los enlaces
+// `a[data-carta]` que pintan, y se vuelven a poner si la rejilla se repinta
+// (filtrar, apilar) mientras se selecciona.
+const ZONAS = { pokedex: 'mcPokedexPanel', buscar: 'mcBuscarResultados' }
+const DONDE_DE_PESTANA = { cartas: 'cartas', pokedex: 'pokedex', buscar: 'buscar' }
+const claveDeEnlace = (a) => `${a.dataset.carta}|${a.dataset.version || a.dataset.variante || ctx.varianteDe(a.dataset.carta)}`
+let vigia = null
+function pintarMarcasDeZona() {
+  const zona = $(ZONAS[marcarEn])
+  if (!zona) return
+  for (const a of zona.querySelectorAll('a[data-carta]')) {
+    const puesta = Boolean(marcadas?.has(claveDeEnlace(a)))
+    if (a.classList.contains('marcada') !== puesta) a.classList.toggle('marcada', puesta)
+    if (marcadas) { if (a.getAttribute('aria-pressed') !== String(puesta)) a.setAttribute('aria-pressed', String(puesta)) } else if (a.hasAttribute('aria-pressed')) a.removeAttribute('aria-pressed')
+  }
+}
+
+export function modoMarcar(encender, donde = DONDE_DE_PESTANA[ctx.pestania] || 'album', { repintar = true } = {}) {
   const antes = marcarEn
   marcadas = encender ? new Set() : null
   if (encender) marcarEn = donde
-  $('mcMarcarAbrir')?.setAttribute('aria-pressed', encender ? 'true' : 'false')
+  // Un «Seleccionar» por barra (1053 en la expansión, 1054 en las demás):
+  // todos dicen lo mismo.
+  for (const b of document.querySelectorAll('[data-seleccionar]')) b.setAttribute('aria-pressed', encender ? 'true' : 'false')
   $('mcMarcarBarra')?.classList.toggle('hidden', !encender)
   document.documentElement.classList.toggle('mc-seleccionando', Boolean(encender))
   $('mcAlbum')?.classList.toggle('mc-album-marcando', Boolean(encender) && marcarEn === 'album')
   $('mcCartas')?.classList.toggle('mc-cartas-marcando', Boolean(encender) && marcarEn === 'cartas')
+  for (const [d, id] of Object.entries(ZONAS)) $(id)?.classList.toggle('mc-cat-marcando', Boolean(encender) && marcarEn === d)
   pintarMarcadas()
+  // En la Pokédex y Buscar no se repinta la rejilla: se marcan sus enlaces,
+  // y un vigía los vuelve a marcar si ella se repinta sola.
+  vigia?.disconnect()
+  vigia = null
+  const zona = (encender ? marcarEn : antes) in ZONAS ? (encender ? marcarEn : antes) : null
+  if (zona) {
+    const previo = marcarEn
+    marcarEn = zona
+    pintarMarcasDeZona()
+    marcarEn = previo
+    if (encender && $(ZONAS[zona])) {
+      vigia = new MutationObserver(() => pintarMarcasDeZona())
+      vigia.observe($(ZONAS[zona]), { childList: true, subtree: true })
+    }
+    return
+  }
   if (!repintar) return
   if ((encender ? marcarEn : antes) === 'cartas') ctx.pintarCartas()
   else ctx.pintarAlbum()
@@ -108,6 +147,9 @@ function marcarTodas() {
   if (!marcadas) return
   if (marcarEn === 'cartas') {
     for (const t of $('mcCartas').querySelectorAll('.mc-carta[data-linea]')) { marcadas.add(t.dataset.linea); t.classList.add('marcada'); t.querySelector('[data-ficha]')?.setAttribute('aria-pressed', 'true') }
+  } else if (marcarEn in ZONAS) {
+    for (const a of $(ZONAS[marcarEn])?.querySelectorAll('a[data-carta]') || []) marcadas.add(claveDeEnlace(a))
+    pintarMarcasDeZona()
   } else {
     for (const a of $('mcAlbum').querySelectorAll('.mc-bolsillo-enlace[data-marca]')) { marcadas.add(a.dataset.marca); a.setAttribute('aria-pressed', 'true'); a.closest('.mc-bolsillo')?.classList.add('marcada') }
   }
@@ -289,7 +331,10 @@ async function guardarMarcadas() {
     const elSet = (ctx.todosLosSets || []).find((x) => x.id === ctx.album.set)
     for (const l of puestas) {
       const c = (ctx.album.cartas || []).find((x) => x.id === l.card_id)
-      ctx.meterLinea(l, c ? { ...c, tcg_sets: elSet ? { id: elSet.id, name: elSet.name, release_date: elSet.release_date } : null } : ctx.cartas.get(l.card_id) || null)
+      // Desde la Pokédex o Buscar (1054) la carta no es de la expansión
+      // abierta: se busca donde esté, que sin ella el Panel la pinta sin
+      // nombre (la 487).
+      ctx.meterLinea(l, c ? { ...c, tcg_sets: elSet ? { id: elSet.id, name: elSet.name, release_date: elSet.release_date } : null } : ctx.cartas.get(l.card_id) || ctx.cartaPorId(l.card_id) || null)
     }
     const cuantas = puestas.length
     modoMarcar(false)
@@ -306,6 +351,22 @@ async function guardarMarcadas() {
 // la 650: añadir pasa siempre por el diálogo, que pregunta el idioma.
 
 function enganchar() {
+  // Tocar una carta de la Pokédex o de Buscar mientras se selecciona (1054):
+  // la marca. En CAPTURA en el documento, antes que el que abre la ficha y
+  // que el «+» (que en este modo además se esconde).
+  document.addEventListener('click', (e) => {
+    if (!marcadas || !(marcarEn in ZONAS)) return
+    const zona = $(ZONAS[marcarEn])
+    const a = e.target.closest?.('a[data-carta]')
+    if (!zona || !a || !zona.contains(a)) return
+    e.preventDefault()
+    e.stopImmediatePropagation()
+    const clave = claveDeEnlace(a)
+    if (marcadas.has(clave)) marcadas.delete(clave)
+    else marcadas.add(clave)
+    pintarMarcasDeZona()
+    pintarMarcadas()
+  }, true)
   // ── Marcar varias (tanda 426) ──
   $('mcMarcarCancelar')?.addEventListener('click', () => modoMarcar(false))
   $('mcMarcarTodas')?.addEventListener('click', () => marcarTodas())

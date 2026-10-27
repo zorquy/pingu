@@ -11771,21 +11771,53 @@ button.mc-fila:hover {
   min-height: 36px;
 }
 
-#mcMarcarAbrir[aria-pressed='true'] {
+[data-seleccionar][aria-pressed='true'],
+#pdxVariantes[aria-pressed='true'] {
   background: var(--navy-solid);
   color: var(--blanco-fijo);
 }
 
-/* En el móvil, Vista, Apilar y Seleccionar son su icono, delante (1053). */
+/* «Seleccionar» solo en TU colección y con cuenta (1054: lo dice la clase
+   que pone mi-coleccion.js en <html>). */
+html:not(.mc-puede-marcar) [data-seleccionar] {
+  display: none;
+}
+
+/* Seleccionando en la Pokédex o en Buscar (1054): la marcada con el anillo
+   del acento, las demás apagadas, y sin el «+» (tocar marca). */
+.mc-cat-marcando a[data-carta] {
+  border-radius: var(--radius-sm);
+  transition: opacity 0.15s;
+}
+
+.mc-cat-marcando a[data-carta]:not(.marcada) {
+  opacity: 0.55;
+}
+
+.mc-cat-marcando a[data-carta].marcada {
+  outline: 2px solid var(--acento);
+  outline-offset: 2px;
+}
+
+.mc-cat-marcando .mc-mas {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-cat-marcando a[data-carta] { transition: none; }
+}
+
+/* En el móvil, Vista, Apilar y Seleccionar son su icono, delante (1053; en
+   todas las barras de cartas desde la 1054). */
 @media (max-width: 700px) {
-  .mc-album-filtros > .mc-chip-icono-movil {
+  .mc-mandos > .mc-chip-icono-movil {
     order: -1;
     justify-content: center;
     min-width: 44px;
     padding: 0 var(--e-sm);
   }
 
-  .mc-album-filtros > .mc-chip-icono-movil .mc-chip-texto {
+  .mc-mandos > .mc-chip-icono-movil .mc-chip-texto {
     position: absolute;
     width: 1px;
     height: 1px;

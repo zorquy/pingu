@@ -41785,6 +41785,32 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1054 — La misma barra en todas las pantallas de cartas
+
+- **Cartas** (`#mcMandos`): Orden · Filtros · `#mcCartasSeleccionar` · ✕ ·
+  catálogo. Sin Vista ni Apilar: Cartas no tiene esas vistas.
+- **Una especie de la Pokédex** (`barraDeEspecie`): `#pdxQue` (Todas/Tengo/
+  Faltan; «Tengo» es `soloTengo` en pokedex-ui, «Faltan» sigue en
+  `ctx.pdxSoloFaltan`) · `#pdxVariantes` (Apilar, pulsado = apiladas, la
+  misma memoria `mc-split`) · Filtros · `#pdxSeleccionar` · idioma · catálogo.
+- **Buscar**: `#mcBuscarQue` (`afinar.que`: todas/tengo/faltan; era
+  `afinar.soloMias`) · Orden · Filtros · `#mcBuscarSeleccionar` · catálogo ·
+  lo de afinar (serie, expansión, variantes). El segmento sale solo con tu
+  colección, cuenta y resultados.
+- **Seleccionar**, uno por barra con `data-seleccionar` (un oyente en el
+  documento; la Pokédex pinta el suyo al abrir una especie). Solo se ve con
+  `html.mc-puede-marcar` (tu colección y cuenta).
+- **Marcar en la Pokédex y Buscar** (`seleccion.js`, `ZONAS`): se marca
+  como en una expansión (`id|versión`; la versión del enlace o
+  `ctx.varianteDe`, la de serie de la carta, nunca «normal» a ciegas), sobre
+  los `a[data-carta]` que pintan esas rejillas, con un clic en captura en el
+  documento (antes que la ficha y que el «+», que se esconde). Un
+  `MutationObserver` vuelve a poner las marcas si la rejilla se repinta
+  (filtrar, apilar). Al añadir, la carta se busca con `ctx.cartaPorId` (sin
+  ella el Panel la pinta sin nombre, la 487).
+
+**Prueba**: `test-tanda-1054-pantalla.mjs`.
+
 ## Tanda 1053 — La barra y el ⋯ de una expansión
 
 Lo recomendado de la propuesta (PINGU: «adelante con lo recomendado»).

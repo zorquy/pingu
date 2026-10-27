@@ -111,6 +111,8 @@ let textoEspecie = ''
 // vuelven a pedir: están todas en memoria desde que se abrió, así que
 // aquí se filtra en memoria —al revés que en Buscar, donde la consulta
 // trae 120 de 21.000 y filtrar lo que vuelve sería filtrar la muestra.
+// «Tengo» de la barra de una especie (1054); «Faltan» sigue en ctx.pdxSoloFaltan.
+let soloTengo = false
 function pintarEspecieFiltrada() {
   const caja = $('mcPokedexPanel')
   if (!caja || ctx.especieAbierta == null) return
@@ -128,8 +130,11 @@ function pintarEspecieFiltrada() {
   // catálogo se ha importado en varios idiomas (tanda 455).
   const texto = normalizeSearch(textoEspecie).trim()
   const lista = cartasDeLaEspecie.filter((c) => {
-    // Con las versiones separadas, «me falta» es que falte ALGUNA versión.
+    // Con las versiones separadas, «me falta» es que falte ALGUNA versión;
+    // y «la tengo» (1054), que tengas alguna.
+    const laTengo = ctx.album.split ? versionesDe(c).some((v) => tengoVersion(c, v.id) > 0) : tuyas.has(c.id)
     if (ctx.pdxSoloFaltan && (ctx.album.split ? versionesDe(c).every((v) => tengoVersion(c, v.id) > 0) : tuyas.has(c.id))) return false
+    if (soloTengo && !laTengo) return false
     if (!pasaFiltrosDeCarta(c, filtrosEspecie, ctx.AYUDAS)) return false
     // Por nombre, número o ilustrador, igual que el buscador de Buscar
     // (tanda 458). Aquí se hace en memoria porque las cartas de la especie
@@ -152,7 +157,8 @@ function pintarEspecieFiltrada() {
     puestos: filtrosEspecie,
     deCuantas: cartasDeLaEspecie.length,
     texto: textoEspecie,
-    soloFaltan: ctx.pdxSoloFaltan,
+    que: ctx.pdxSoloFaltan ? 'faltan' : soloTengo ? 'tengo' : 'todas',
+    puedeMarcar: Boolean(ctx.esMia && ctx.sesion),
     idioma: ctx.pdxIdioma,
     idiomas: ctx.idiomasDeLaVista(),
     separadas: ctx.album.split,
@@ -220,6 +226,7 @@ export async function pintarEspecie(dex, { push = true } = {}) {
   textoEspecie = ''
   // Y los de la 577, por lo mismo: una especie no hereda lo de otra.
   ctx.pdxSoloFaltan = false
+  soloTengo = false
   ctx.pdxIdioma = ''
   pintarEspecieFiltrada()
 }
@@ -270,8 +277,12 @@ function enganchar() {
   })
   $('mcPokedexPanel')?.addEventListener('click', (e) => {
     if (e.target.closest('#pdxAbrirFiltros')) $('mcPdxPanelFiltros').showModal()
-    if (e.target.closest('#pdxSoloFaltan')) {
-      ctx.pdxSoloFaltan = !ctx.pdxSoloFaltan
+    // Todas / Tengo / Faltan (1054), como en una expansión. Era «Solo las
+    // que me faltan» (577).
+    const que = e.target.closest('[data-pdx-que]')
+    if (que) {
+      ctx.pdxSoloFaltan = que.dataset.pdxQue === 'faltan'
+      soloTengo = que.dataset.pdxQue === 'tengo'
       pintarEspecieFiltrada()
     }
     // Juntas / separadas, la MISMA memoria que en una expansión (692):

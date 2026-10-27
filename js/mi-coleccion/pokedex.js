@@ -349,21 +349,23 @@ export function rejillaHtml(filas, orden = 'dex') {
 // no veintiún mil: «un Bulbasaur de Pokémon GO» se encuentra antes
 // escribiendo que mirando treinta dibujos, y PINGU lo dijo — «quizá aquí
 // puedes quitarla, pero yo igualmente la mantendría».
-function barraDeEspecie(grupos, cuantos, texto, { soloFaltan = false, idioma = '', idiomas = [], separadas = false } = {}) {
+// LA BARRA COMÚN (1054): Todas/Tengo/Faltan, Apilar, Filtros, Seleccionar,
+// y el idioma y el catálogo al final, como en una expansión.
+function barraDeEspecie(grupos, cuantos, texto, { que = 'todas', idioma = '', idiomas = [], separadas = false, puedeMarcar = false } = {}) {
   return `<div class="mc-filtros">
     <div class="mc-buscador">
       <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
       <input type="search" enterkeyhint="search" id="pdxEspecieBuscar" placeholder="Nombre, número o ilustrador…" autocomplete="off" aria-label="Buscar entre las cartas de este Pokémon" value="${escapeHtml(texto || '')}" />
     </div>
     <div class="mc-mandos">
+      <div class="mc-seg mc-seg-sueltas" id="pdxQue" role="group" aria-label="Qué cartas ver">${[['todas', 'Todas'], ['tengo', 'Tengo'], ['faltan', 'Faltan']].map(([id, t]) => `<button type="button" data-pdx-que="${id}" aria-pressed="${que === id}">${t}</button>`).join('')}</div>
+      <!-- Apilar (692 → 1054): juntas o separadas, con la misma memoria que
+           en una expansión, y el mismo botón (pulsado = apiladas). -->
+      <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="pdxVariantes" data-icono="cards" aria-pressed="${separadas ? 'false' : 'true'}"><span class="mc-chip-texto">${separadas ? 'Separar' : 'Apilar'}</span></button>
       ${grupos.length ? `<button type="button" class="mc-chip-mando" id="pdxAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
         <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta${cuantos ? '' : ' hidden'}">${cuantos || ''}</span>
       </button>` : ''}
-      <!-- Solo las que me faltan, y en qué idioma cuentan mis copias
-           (tanda 577): lo mismo que en una expansión. -->
-      <button type="button" class="chip-filtro mc-chip-mando${soloFaltan ? ' activa' : ''}" id="pdxSoloFaltan" aria-pressed="${soloFaltan ? 'true' : 'false'}">Solo las que me faltan</button>
-      <!-- Juntas / separadas (692), como en una expansión y con la misma memoria. -->
-      <button type="button" class="chip-filtro mc-chip-mando${separadas ? ' activa' : ''}" id="pdxVariantes" aria-pressed="${separadas ? 'true' : 'false'}">${separadas ? 'Variantes separadas' : 'Variantes juntas'}</button>
+      ${puedeMarcar ? '<button type="button" class="mc-chip-mando mc-chip-icono-movil" id="pdxSeleccionar" data-seleccionar data-icono="checkSquare" aria-pressed="false"><span class="mc-chip-texto">Seleccionar</span></button>' : ''}
       <select class="mc-chapa-select" id="pdxIdioma" aria-label="En qué idioma cuentan tus copias">
         <option value=""${idioma ? '' : ' selected'}>Cualquier idioma</option>
         ${idiomas.map((i) => `<option value="${escapeHtml(i.id)}"${i.id === idioma ? ' selected' : ''}>Tengo en ${escapeHtml(i.nombre.toLowerCase())}</option>`).join('')}
@@ -413,7 +415,7 @@ function casillaDeEspecie(c, { version = null, mia, copias = 0, mas = '', marcas
   </a>`
 }
 
-export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null, texto = '', soloFaltan = false, idioma = '', idiomas = [], separadas = false, versionesDe = null, tengoVersion = null, masDe = null, marcasDe = null, quiereDe = null }) {
+export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = [], puestos = null, deCuantas = null, texto = '', que = 'todas', puedeMarcar = false, idioma = '', idiomas = [], separadas = false, versionesDe = null, tengoVersion = null, masDe = null, marcasDe = null, quiereDe = null }) {
   const nombre = especiePorDex(dex) || `N.º ${dex}`
   const sprite = urlDeSprite(dex)
   const tengo = cartas.filter((c) => tuyas.has(c.id)).length
@@ -423,7 +425,7 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = 
         .map((c) => {
           if (conVersiones) {
             return versionesDe(c)
-              .filter((v) => !soloFaltan || tengoVersion(c, v.id) === 0)
+              .filter((v) => (que !== 'faltan' || tengoVersion(c, v.id) === 0) && (que !== 'tengo' || tengoVersion(c, v.id) > 0))
               .map((v) => casillaDeEspecie(c, { version: v, mia: tengoVersion(c, v.id) > 0, copias: tengoVersion(c, v.id), mas: masDe ? masDe(c, v.id) : '', marcas: marcasDe ? marcasDe(c, v.id) : null, quiere: !!quiereDe?.(c) }))
               .join('')
           }
@@ -465,7 +467,7 @@ export function especieHtml({ dex, cartas, tuyas, sinCatalogo = false, grupos = 
         }</p>
       </div>
     </div>
-    ${barraDeEspecie(grupos, puestos ? Object.values(puestos).reduce((n, s) => n + s.size, 0) : 0, texto, { soloFaltan, idioma, idiomas, separadas })}
+    ${barraDeEspecie(grupos, puestos ? Object.values(puestos).reduce((n, s) => n + s.size, 0) : 0, texto, { que, idioma, idiomas, separadas, puedeMarcar })}
     ${cuerpo}`
 }
 

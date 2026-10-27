@@ -224,14 +224,9 @@
             <input type="search" enterkeyhint="search" id="mcBuscar" placeholder="Buscar en tu colección" aria-label="Buscar en tu colección" />
           </div>
           <div class="mc-mandos" id="mcMandos">
-          <button type="button" class="mc-chip-mando" id="mcAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
-            <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcFiltrosCuenta"></span>
-          </button>
-          <!-- Qué catálogo se mira (tanda 437). Va en los TRES sitios donde
-               se mira el catálogo —aquí, la estantería y la Pokédex— porque
-               el que cambia es el mismo y quien está en una pantalla no
-               tiene por qué irse a otra para cambiarlo. -->
-          <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+          <!-- LA BARRA COMÚN (1054): el orden, Filtros, Seleccionar y el
+               catálogo al final, en el mismo orden que en una expansión,
+               la Pokédex y Buscar. -->
           <!-- ORDENAR, en su propia hoja (tanda 449). Era un <select> con
                cuatro opciones; PINGU pidió diez criterios y el sentido
                aparte, y un desplegable de diez renglones en un móvil es
@@ -245,7 +240,18 @@
             <span class="mc-chip-texto" id="mcOrdenRotulo">Precio</span>
             <span class="mc-orden-flecha" id="mcOrdenFlecha" aria-hidden="true">↓</span>
           </button>
+          <button type="button" class="mc-chip-mando" id="mcAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+            <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcFiltrosCuenta"></span>
+          </button>
+          <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcCartasSeleccionar" data-seleccionar data-icono="checkSquare" aria-pressed="false">
+            <span class="mc-chip-texto">Seleccionar</span>
+          </button>
           <button type="button" class="mc-chip-mando mc-chip-solo-icono hidden" id="mcFiltrosQuitar" aria-label="Quitar la búsqueda y los filtros">✕</button>
+          <!-- Qué catálogo se mira (tanda 437). Va en los TRES sitios donde
+               se mira el catálogo —aquí, la estantería y la Pokédex— porque
+               el que cambia es el mismo y quien está en una pantalla no
+               tiene por qué irse a otra para cambiarlo. -->
+          <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
           <!-- CUÁNTAS ESTÁS VIENDO (tanda 441). Con un filtro puesto la
                rejilla se acorta y nada decía por qué: no había ningún
                sitio donde leer «9 de 12». La cuenta de la cabecera es la
@@ -678,7 +684,7 @@
             <!-- SELECCIONAR (1053, PINGU: «el de marcar varias cartas lo
                  sacaría fuera… sin que rompa la estructura»). Era «Marcar
                  varias cartas» dentro del ⋯; en el móvil, solo el check. -->
-            <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcMarcarAbrir" data-icono="checkSquare" aria-pressed="false">
+            <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcMarcarAbrir" data-seleccionar data-icono="checkSquare" aria-pressed="false">
               <span class="mc-chip-texto">Seleccionar</span>
             </button>
             <!-- UN SOLO BOTÓN, Y DICE EL ESTADO (tanda 473). Eran dos chapas
@@ -1371,25 +1377,32 @@
             <input type="search" enterkeyhint="search" id="mcBuscarTodo" placeholder="Charizard, 151/165, MEW 151…" autocomplete="off" aria-label="Buscar en todo el catálogo" />
           </div>
           <div class="mc-mandos">
-            <!-- LOS MISMOS MANDOS QUE EN CARTAS Y EN EL MISMO ORDEN (tanda
-                 450): filtros, catálogo y orden. Dos pantallas que hacen
-                 lo mismo con los botones en distinto sitio parecen dos
-                 webs. Lo que cambia es QUÉ ofrecen, no dónde están. -->
-            <button type="button" class="mc-chip-mando" id="mcBuscarAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
-              <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcBuscarFiltrosCuenta"></span>
-            </button>
-            <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+            <!-- LOS MISMOS MANDOS QUE EN CARTAS Y EN EL MISMO ORDEN (450, y
+                 la barra común de la 1054): qué cartas, orden, Filtros,
+                 Seleccionar y el catálogo. Lo que cambia es QUÉ ofrecen. -->
+            <div class="mc-seg mc-seg-sueltas mc-bus-que hidden" id="mcBuscarQue" role="group" aria-label="Qué cartas ver">
+              <button type="button" data-bus-que="todas" aria-pressed="true">Todas</button>
+              <button type="button" data-bus-que="tengo" aria-pressed="false">Tengo</button>
+              <button type="button" data-bus-que="faltan" aria-pressed="false">Faltan</button>
+            </div>
             <button type="button" class="mc-chip-mando" id="mcBuscarAbrirOrden" data-icono="listOrdered" aria-haspopup="dialog">
               <span class="mc-chip-texto" id="mcBuscarOrdenRotulo">Nombre</span>
               <span class="mc-orden-flecha" id="mcBuscarOrdenFlecha" aria-hidden="true">↑</span>
             </button>
+            <button type="button" class="mc-chip-mando" id="mcBuscarAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+              <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcBuscarFiltrosCuenta"></span>
+            </button>
+            <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcBuscarSeleccionar" data-seleccionar data-icono="checkSquare" aria-pressed="false">
+              <span class="mc-chip-texto">Seleccionar</span>
+            </button>
+            <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
             <!-- AFINAR LO QUE HA VUELTO (761, B1) en la MISMA fila (998,
-                 PINGU: «ocupa demasiada pantalla»): serie, expansión, «Solo
-                 las que tengo» y «Variantes juntas», sin volver a preguntar. -->
+                 PINGU: «ocupa demasiada pantalla»): serie, expansión y
+                 «Variantes juntas», sin volver a preguntar. «Solo las que
+                 tengo» es «Tengo» de la barra desde la 1054. -->
             <div class="mc-bus-afinar hidden" id="mcBuscarAfinar">
               <select class="mc-chapa-select" id="mcBuscarSerie" aria-label="Serie"></select>
               <select class="mc-chapa-select" id="mcBuscarSet" aria-label="Expansión"></select>
-              <button type="button" class="chip-filtro" id="mcBuscarSoloMias" aria-pressed="false">Solo las que tengo</button>
               <button type="button" class="chip-filtro" id="mcBuscarVariantes" aria-pressed="false">Variantes juntas</button>
             </div>
           </div>

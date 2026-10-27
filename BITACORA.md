@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-27 (294) — PINGU-Claude (1054 — la misma barra en todas las pantallas de cartas)
+
+**Hecho**: lo aprobado de la propuesta (PINGU: «que sea todo consistente
+durante todos los sitios donde salgan cartas… meter un selector también para
+elegir varias cartas»). Cartas, la Pokédex y Buscar llevan la barra de la
+expansión (1053), con las piezas que tienen sentido en cada una y en el mismo
+orden: Todas/Tengo/Faltan · Apilar · Orden · Filtros · Seleccionar, y el
+catálogo al final. En la Pokédex, «Solo las que me faltan» y «Variantes
+juntas» pasan a Todas/Tengo/Faltan y Apilar; en Buscar, «Solo las que tengo»
+pasa a Todas/Tengo/Faltan. **Seleccionar** sale en las cuatro (solo en tu
+colección y con cuenta) y en la Pokédex y Buscar marca cartas como en una
+expansión: la misma barra de abajo (Añadir, A un álbum, Las quiero, Quitar)
+y «Seleccionar todas». En el móvil, los iconos delante.
+
+**Ficheros**: mi-coleccion.html, cartas.html (generado), js/mi-coleccion.js,
+js/mi-coleccion/seleccion.js (marcar en la Pokédex y Buscar),
+js/mi-coleccion/pokedex.js y pokedex-ui.js (la barra de una especie),
+css/mi-coleccion.css, novedades.json, SCHEMA.md, BITACORA.md.
+
+**Pruebas**: `test-tanda-1054-pantalla.mjs` nueva. Al día 577, 692, 761 y 998 (los mandos viejos de la Pokédex y Buscar) y 459 (la barra de la 1053). Rojas también en HEAD: 422, 441, 761 (el logo) y 311 (espaciados de comunidad, partidas y torneos).
+
+**Pendiente**: 1055 (la hoja de filtros común).
+
 ## 2026-10-27 (293) — PINGU-Claude (1053 — la barra y el ⋯ de una expansión)
 
 **Hecho**: lo aprobado de la propuesta (A). El ⋯ de una expansión se queda
