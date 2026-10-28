@@ -68,6 +68,22 @@ ahora la prueba mira también QUÉ se dice, y lo ve).
 **Pendiente**: ejecutar la migración 1070 (es independiente de las tuyas
 1067–1069); una pasada de suite entera.
 
+## 2026-10-28 (312) — PINGU-Claude (1069b — el alta de tienda pintaba «{}»)
+
+**Hecho**: al crear la cuenta de la tienda, un fallo del servidor de
+Supabase Auth salía como «{}» bajo el botón (supabase-js lo da así; la 1061
+ya lo traducía en /auth, pero el alta pintaba el error a pelo).
+`friendlyAuthError` sale de `js/auth.js` (una página, no se puede importar)
+a `js/auth-errores.js`, y la usan las dos pantallas.
+
+**Para PINGU**: ese 5xx al registrarse casi siempre es el correo de
+confirmación que Supabase no consigue mandar: revisar Supabase →
+Authentication → SMTP (usuario y contraseña del buzón; si cambió en Netlify,
+cambia aquí también). Mientras, «Continuar con Google» no manda correo.
+
+**Ficheros**: `js/auth-errores.js` (nuevo), `js/auth.js`,
+`js/alta-tienda.js`. Prueba: 1067-pantalla (el caso «{}»).
+
 ## 2026-10-28 (311) — PINGU-Claude (1069 — lo que ve la gente de una tienda)
 
 **Hecho**: la tanda 3 y última del portal de tiendas. El perfil de una

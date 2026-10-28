@@ -41884,6 +41884,13 @@ el podio de PokeDoc, sin la migración, la hoja con sus 39 imágenes a disco,
 propio en las tres tablas y el arrastre de la 251. Al día 251 (cerrar
 pregunta el puesto) y 627 (las baldosas en vez del desplegable).
 
+## Tanda 1069b — Los errores de Supabase Auth, en un solo sitio
+
+`friendlyAuthError` vive en `js/auth-errores.js` (sin dependencias): la
+importan /auth y /alta-tienda. Una pantalla nueva que llame a
+`supabase.auth.*` pinta el error por ahí, nunca `error.message` a pelo: un
+5xx de Auth llega como `AuthRetryableFetchError` con el mensaje «{}» (1061).
+
 ## Tanda 1069 — Lo que ve la gente de una tienda
 
 La tanda 3 de «Portal de tiendas» (PINGU: «que sea un perfil más… que no

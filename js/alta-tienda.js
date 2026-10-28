@@ -10,6 +10,7 @@
 import { supabase } from './supabase.js'
 import { passwordStrengthError, slugify, uniqueUsername } from './app.js'
 import { icons } from './icons.js'
+import { friendlyAuthError } from './auth-errores.js'
 import { FORMA_DE_USUARIO, MOTIVOS_DE_INVITACION as MOTIVOS, tokenDeAlta } from './tiendas-puro.js'
 
 const $ = (id) => document.getElementById(id)
@@ -101,7 +102,7 @@ $('altaGoogle')?.addEventListener('click', async (e) => {
   e.currentTarget.disabled = true
   const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: volverAqui() } })
   e.currentTarget.disabled = false
-  if (error) $('altaCuentaError').textContent = error.message
+  if (error) $('altaCuentaError').textContent = friendlyAuthError(error)
 })
 
 $('altaCrear')?.addEventListener('click', async () => {
@@ -126,7 +127,7 @@ $('altaCrear')?.addEventListener('click', async () => {
   if (fallo) {
     error.textContent = /already|registered|exists/i.test(fallo.message || '')
       ? 'Ya hay una cuenta con este email. Si la creaste tú para la tienda, entra; si es tu cuenta personal, pide la tienda con otro email.'
-      : fallo.message || 'No se ha podido crear la cuenta.'
+      : friendlyAuthError(fallo)
     return
   }
   if (!data.session) return ver('altaRevisa')
@@ -138,7 +139,7 @@ $('altaEntrarBtn')?.addEventListener('click', async () => {
   error.textContent = ''
   const { data, error: fallo } = await supabase.auth.signInWithPassword({ email: invitacion.email, password: $('altaEntrarPassword').value })
   if (fallo) {
-    error.textContent = /invalid/i.test(fallo.message || '') ? 'Contraseña incorrecta.' : fallo.message
+    error.textContent = /invalid/i.test(fallo.message || '') ? 'Contraseña incorrecta.' : friendlyAuthError(fallo)
     return
   }
   await pintarFormTienda(data.session)
