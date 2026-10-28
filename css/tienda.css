@@ -1709,3 +1709,168 @@ html:has(.tds-dialogo[open]) {
 .tds-form [hidden] {
   display: none;
 }
+
+/* El stock en rejilla (1081): la carta grande y, debajo, las unidades y tu
+   precio para cambiarlos ahí mismo. */
+.tds-vistas-seg .seg-btn {
+  min-width: 40px;
+  justify-content: center;
+}
+
+.tds-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: var(--e-lg);
+}
+
+.tds-baldosa {
+  display: grid;
+  align-content: start;
+  gap: var(--e-xs);
+  min-width: 0;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  cursor: pointer;
+}
+
+.tds-baldosa.tds-marcada {
+  border-color: var(--acento);
+  box-shadow: 0 0 0 2px var(--acento);
+}
+
+.tds-baldosa-oculta .tds-baldosa-foto {
+  opacity: 0.55;
+}
+
+.tds-baldosa-foto {
+  position: relative;
+}
+
+.tds-baldosa .tds-foto-caja {
+  width: 100%;
+  border-radius: var(--radius-md);
+}
+
+.tds-baldosa .tds-foto-caja-producto {
+  aspect-ratio: 1;
+}
+
+.tds-baldosa .tds-estrella {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+.tds-baldosa-check {
+  position: absolute;
+  top: var(--e-sm);
+  left: var(--e-sm);
+  width: 24px;
+  height: 24px;
+}
+
+.tds-baldosa-chapas {
+  position: absolute;
+  bottom: var(--e-xs);
+  left: var(--e-xs);
+  display: flex;
+  gap: var(--e-xs);
+}
+
+.tds-baldosa-chapa {
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  color: var(--blanco-fijo);
+  background: var(--navy-solid);
+}
+
+.tds-baldosa-oferta {
+  background: var(--danger-solid);
+}
+
+.tds-baldosa-nombre,
+.tds-baldosa-detalle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tds-baldosa-nombre {
+  font-size: var(--t-sm);
+}
+
+.tds-baldosa-detalle,
+.tds-baldosa-cm {
+  display: flex;
+  gap: var(--e-xs);
+  align-items: center;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.tds-baldosa-edita {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: var(--e-sm);
+}
+
+.tds-baldosa-edita label {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--text-mid);
+}
+
+.tds-baldosa-of {
+  font-style: normal;
+  color: var(--danger);
+}
+
+.tds-baldosa-edita input {
+  width: 100%;
+  min-width: 0;
+  min-height: 36px;
+  padding: var(--e-xs) var(--e-sm);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.tds-baldosa-edita input:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.tds-baldosa-edita input.tds-guardando {
+  border-color: var(--warning);
+}
+
+.tds-baldosa-edita input.tds-guardado {
+  border-color: var(--success);
+}
+
+@media (pointer: coarse) {
+  .tds-baldosa-edita input {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 600px) {
+  .tds-rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--e-sm);
+  }
+}

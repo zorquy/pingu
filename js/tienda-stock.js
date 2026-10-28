@@ -67,6 +67,16 @@ const est = {
   sets: new Map(),
   pedido: 0,
   masAbierto: false,
+  vista: leerVista(),
+}
+
+// Tabla o rejilla (1081): la elige cada tienda y se recuerda en su navegador.
+function leerVista() {
+  try {
+    return localStorage.getItem('pd-tienda-stock-vista') === 'rejilla' ? 'rejilla' : 'tabla'
+  } catch {
+    return 'tabla'
+  }
 }
 let caja = null
 let perfil = null
@@ -241,11 +251,97 @@ function pintarTabla() {
     tabla.innerHTML = '<p class="tds-vacio">Nada de tu stock cumple estos filtros. <button type="button" class="link-btn" data-tds="limpiar">Quitar los filtros</button></p>'
     return
   }
+  if (est.vista === 'rejilla') {
+    tabla.innerHTML = `<div class="tds-rejilla">${est.filas.map(baldosaHtml).join('')}</div>
+    ${est.filas.length < est.total ? `<button type="button" class="btn-secondary tds-mas" data-tds="mas">Ver ${Math.min(POR_PAGINA, est.total - est.filas.length)} más</button>` : ''}`
+    return
+  }
   tabla.innerHTML = `<table class="tds-tabla">
     <thead><tr>${est.seleccionando ? '<th class="tds-check"><input type="checkbox" aria-label="Marcar todas las de esta lista" data-tds="todas" /></th>' : ''}<th>Carta</th><th>Idioma</th><th>Estado</th><th class="tds-num">Uds.</th><th class="tds-num">Coste</th><th class="tds-num">Tu precio</th><th class="tds-num">Cardmarket</th><th class="tds-num">Margen</th><th class="tds-num">En stock</th><th>Escaparate</th></tr></thead>
     <tbody>${est.filas.map(filaHtml).join('')}</tbody>
   </table>
   ${est.filas.length < est.total ? `<button type="button" class="btn-secondary tds-mas" data-tds="mas">Ver ${Math.min(POR_PAGINA, est.total - est.filas.length)} más</button>` : ''}`
+}
+
+// Una línea en la rejilla (1081): la carta grande y lo que más se toca —las
+// unidades y tu precio— para cambiarlo ahí mismo. Lo demás, en su ficha.
+function lineaCmHtml(f) {
+  const m = margenDe(f.precio, f.coste)
+  const o = ofertaDe(f)
+  return `${o ? `<span class="tds-baldosa-of">Oferta ${euros(o.precio)}</span> · ` : ''}${f.cm > 0 ? `CM ${euros(f.cm)}` : 'Sin CM'}${m ? ` · <span class="${m.euros < 0 ? 'tds-rojo' : 'tds-verde'}">${m.euros > 0 ? '+' : ''}${m.pct} %</span>` : ''}`
+}
+
+function baldosaHtml(f) {
+  const marcada = est.marcadas.has(f.id)
+  const o = ofertaDe(f)
+  const id = escapeHtml(f.id)
+  const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.estado, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null, f.gradeo].filter(Boolean).join(' · ')
+  return `<article class="tds-baldosa${marcada ? ' tds-marcada' : ''}${f.visible ? '' : ' tds-baldosa-oculta'}" data-fila="${id}">
+    <div class="tds-baldosa-foto">${fotoHtml(f)}
+      ${est.seleccionando ? `<input type="checkbox" class="tds-baldosa-check" aria-label="Marcar" data-marcar="${id}" ${marcada ? 'checked' : ''} />` : ''}
+      ${estrellaHtml(f)}
+      <span class="tds-baldosa-chapas">${o ? `<span class="tds-baldosa-chapa tds-baldosa-oferta">${o.pct ? `−${o.pct} %` : 'Oferta'}</span>` : ''}${f.visible ? '' : '<span class="tds-baldosa-chapa">Oculta</span>'}</span>
+    </div>
+    <strong class="tds-baldosa-nombre">${escapeHtml(nombreFila(f))}</strong>
+    <small class="tds-baldosa-detalle">${f.idioma && !f.product_id ? banderaHtml(f.idioma) : ''}${escapeHtml(detalle)}</small>
+    <div class="tds-baldosa-edita">
+      <label><span>Uds.</span><input type="number" inputmode="numeric" min="0" max="99999" step="1" value="${f.unidades}" data-en-linea="unidades" data-id="${id}" aria-label="Unidades de ${escapeHtml(nombreFila(f))}" /></label>
+      <label><span>Precio</span><input type="number" inputmode="decimal" min="0" step="0.01" value="${f.precio ?? ''}" placeholder="—" data-en-linea="precio" data-id="${id}" aria-label="Tu precio de ${escapeHtml(nombreFila(f))}" /></label>
+    </div>
+    <small class="tds-baldosa-cm" data-cm-de="${id}">${lineaCmHtml(f)}</small>
+  </article>`
+}
+
+// Cambiar unidades o precio desde la rejilla: cambia ya, confirma después y
+// vuelve si la base dice que no (la 896). Las sumas de abajo se ajustan sin
+// volver a pedir la lista (repintar quitaría el cursor del siguiente campo).
+async function guardarEnLinea(input) {
+  const f = est.filas.find((x) => x.id === input.dataset.id)
+  if (!f) return
+  const campo = input.dataset.enLinea
+  const escrito = input.value.trim() === '' ? null : num(input.value)
+  const valido = campo === 'unidades' ? Number.isInteger(escrito) && escrito >= 0 && escrito <= 99999 : escrito == null || (Number.isFinite(escrito) && escrito >= 0)
+  const antes = f[campo] == null ? null : Number(f[campo])
+  if (!valido) {
+    input.value = antes ?? ''
+    return showToast(campo === 'unidades' ? 'Las unidades van de 0 a 99.999.' : 'Revisa el precio.', 'error')
+  }
+  const nuevo = campo === 'precio' && escrito != null ? Math.round(escrito * 100) / 100 : escrito
+  if (nuevo === antes) return
+  const poner = (v) => {
+    const s = est.sumas
+    if (s) {
+      const u0 = Number(f.unidades) || 0
+      const p0 = Number(f.precio) || 0
+      f[campo] = v
+      s.unidades = Number(s.unidades || 0) + (Number(f.unidades) || 0) - u0
+      s.precio = Number(s.precio || 0) + (Number(f.precio) || 0) * (Number(f.unidades) || 0) - p0 * u0
+      s.coste = Number(s.coste || 0) + (Number(f.coste) || 0) * ((Number(f.unidades) || 0) - u0)
+      s.cm = Number(s.cm || 0) + (Number(f.cm) || 0) * ((Number(f.unidades) || 0) - u0)
+    } else f[campo] = v
+    input.value = v ?? ''
+    const cm = caja.querySelector(`[data-cm-de="${CSS.escape(f.id)}"]`)
+    if (cm) cm.innerHTML = lineaCmHtml(f)
+    pintarPie()
+  }
+  poner(nuevo)
+  input.classList.add('tds-guardando')
+  const { data, error } = await supabase.from('tienda_stock').update({ [campo]: nuevo, updated_at: new Date().toISOString() }).eq('id', f.id).select('id')
+  input.classList.remove('tds-guardando')
+  if (error || !data?.length) {
+    poner(antes)
+    return showToast('No se ha podido guardar.', 'error')
+  }
+  input.classList.add('tds-guardado')
+  setTimeout(() => input.classList.remove('tds-guardado'), 1200)
+}
+
+function pintarVistaBotones() {
+  for (const b of caja.querySelectorAll('[data-tds-vista]')) {
+    const si = b.dataset.tdsVista === est.vista
+    b.classList.toggle('activa', si)
+    b.setAttribute('aria-pressed', String(si))
+  }
 }
 
 function pintarPie() {
@@ -873,6 +969,10 @@ export function montarStock(destino, { perfil: p }) {
         <div class="tds-arriba">
           <input type="search" class="tds-busca" data-tds-q placeholder="Buscar por nombre o número…" aria-label="Buscar en tu stock" />
           <div class="tds-barra">
+          <div class="seg tds-vistas-seg" role="group" aria-label="Cómo verlo">
+            <button type="button" class="seg-btn" data-tds-vista="tabla" aria-pressed="false" aria-label="Tabla" title="Tabla">${icons.alignLeft(18)}</button>
+            <button type="button" class="seg-btn" data-tds-vista="rejilla" aria-pressed="false" aria-label="Rejilla" title="Rejilla: cambia unidades y precio ahí mismo">${icons.image(18)}</button>
+          </div>
           <select class="tds-orden" data-tds-orden aria-label="Orden">${ORDENES.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
           <button type="button" class="btn-secondary tds-boton tds-ver-filtros" data-tds="abrir-filtros">${ICONOS_COLECCION.sliders(18)}<span>Filtros</span></button>
           <button type="button" class="btn-secondary tds-boton" data-tds="seleccionar" aria-pressed="false">${icons.checkSquare(18)}<span>Seleccionar</span></button>
@@ -909,6 +1009,13 @@ export function montarStock(destino, { perfil: p }) {
     if (accion === 'abrir-filtros') return $('.tds-filtros').classList.add('abierta')
     if (accion === 'cerrar-filtros') return $('.tds-filtros').classList.remove('abierta')
     if (accion === 'guardar-vista') return guardarVista()
+    const vistaBoton = e.target.closest('[data-tds-vista]')
+    if (vistaBoton) {
+      est.vista = vistaBoton.dataset.tdsVista
+      try { localStorage.setItem('pd-tienda-stock-vista', est.vista) } catch {}
+      pintarVistaBotones()
+      return pintarTabla()
+    }
     if (accion === 'seleccionar') {
       est.seleccionando = !est.seleccionando
       if (!est.seleccionando) est.marcadas.clear()
@@ -943,11 +1050,11 @@ export function montarStock(destino, { perfil: p }) {
     const marcar = e.target.closest('[data-marcar]')
     if (marcar) {
       marcar.checked ? est.marcadas.add(marcar.dataset.marcar) : est.marcadas.delete(marcar.dataset.marcar)
-      marcar.closest('tr').classList.toggle('tds-marcada', marcar.checked)
+      marcar.closest('[data-fila]').classList.toggle('tds-marcada', marcar.checked)
       return pintarSeleccion()
     }
     const fila = e.target.closest('[data-fila]')
-    if (fila && !e.target.closest('a, button, input')) {
+    if (fila && !e.target.closest('a, button, input, label')) {
       if (est.seleccionando) {
         const id = fila.dataset.fila
         est.marcadas.has(id) ? est.marcadas.delete(id) : est.marcadas.add(id)
@@ -979,7 +1086,12 @@ export function montarStock(destino, { perfil: p }) {
     }
     if (e.target.matches('[data-rango]')) return rango(e.target.dataset.rango, e.target.value)
   })
+  // Intro en un campo de la rejilla lo guarda (el `change` llega al salir).
+  caja.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.matches('[data-en-linea]')) e.target.blur()
+  })
   caja.addEventListener('change', (e) => {
+    if (e.target.matches('[data-en-linea]')) return guardarEnLinea(e.target)
     if (e.target.matches('[data-tds-orden]')) {
       est.orden = e.target.value
       pedir()
@@ -988,6 +1100,7 @@ export function montarStock(destino, { perfil: p }) {
 
   // Lo vendido (1072) cambia las unidades: la tabla se vuelve a pedir.
   document.addEventListener('pokedoc:tienda-vendida', () => pedir())
+  pintarVistaBotones()
   pedir()
   cargarVistas()
 }

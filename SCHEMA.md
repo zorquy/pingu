@@ -41785,6 +41785,19 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1081 — El stock de una tienda en rejilla
+
+«Tabla / Rejilla» en la barra del Stock (`data-tds-vista`; se recuerda en el
+navegador, `pd-tienda-stock-vista`). En la rejilla cada línea es una baldosa
+(`baldosaHtml` en `js/tienda-stock.js`): la carta grande con la estrella, la
+chapa de la oferta y «Oculta», el nombre con su bandera, y las UNIDADES y TU
+PRECIO en dos campos que se cambian ahí mismo (`guardarEnLinea`): se guarda
+al salir del campo o con Intro, cambia ya y vuelve si la base dice que no o si
+lo escrito no vale (unidades enteras de 0 a 99.999; un precio vacío es «sin
+precio», no un cero). Las sumas de abajo se ajustan sin volver a pedir la
+lista: repintar le quitaría el cursor al campo siguiente. Lo demás, en su
+ficha (tocar la carta); con «Seleccionar», tocarla la marca.
+
 ## Tanda 1082 — Las ofertas de una tienda
 
 Un precio rebajado con fecha de fin opcional (`tienda_stock.oferta_precio` y

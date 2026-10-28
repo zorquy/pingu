@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (318) — PINGU-Claude (1081 — el stock en rejilla)
+
+**Hecho**: «Tabla / Rejilla» en el Stock. En la rejilla, la carta grande y
+las unidades y el precio se cambian ahí mismo (se guarda al salir del campo o
+con Intro, y vuelve si falla).
+
+**Para PINGU**: nada nuevo que ejecutar.
+
+**Ficheros**: `js/tienda-stock.js`, `css/tienda.css`. Prueba en `pruebas`:
+1081-pantalla.
+
+**Pendiente**: 1080 («Me interesa»), 1083 (cifras) y 1084 (recibo).
+
 ## 2026-10-28 (317) — PINGU-Claude (1082 — las ofertas de una tienda)
 
 **Hecho**: en el Stock, el precio rebajado con el de siempre tachado y hasta
