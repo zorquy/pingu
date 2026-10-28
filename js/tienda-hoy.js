@@ -3,7 +3,8 @@
 // la gráfica de sus ventas, el valor del stock, los avisos, lo que busca la
 // gente y tiene (solo cuántos: PINGU no quiso nombres) y las visitas a su
 // escaparate. Todo sale de UNA llamada (`tienda_hoy`) más las tres últimas
-// ventas. Entra por `import()`: quien no es tienda no lo baja.
+// ventas; y debajo, las cifras de la 1083 (`tienda_cifras`). Entra por
+// `import()`: quien no es tienda no lo baja.
 import { supabase } from './supabase.js'
 import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
@@ -13,7 +14,7 @@ import { PERIODOS_HOY, periodoDeHoy, comparacion, DONDE_VENTA } from './tiendas-
 import { detalleDeLinea } from './tienda-vender.js'
 
 const CLAVE = 'pd-tienda-periodo'
-const est = { periodo: 'hoy', pedido: 0 }
+const est = { periodo: 'hoy', pedido: 0, top: 'cartas', cifras: null }
 const sets = new Map()
 const nombreSet = (id) => sets.get(id) || id
 let caja = null
@@ -111,6 +112,61 @@ function pintar(d, ultimas) {
   if (st) st.textContent = `${(s.lineas || 0).toLocaleString('es-ES')} ${s.lineas === 1 ? 'línea' : 'líneas'} · ${(s.unidades || 0).toLocaleString('es-ES')} uds.`
 }
 
+// Las cifras de la 1083: lo más vendido (por carta o por expansión), lo que
+// no rota y el valor del stock en el tiempo. Sin la migración 1079 el bloque
+// no sale (no es «no hay nada»: es que no se puede preguntar).
+function cifrasHtml(c) {
+  const lista = est.top === 'sets' ? c.sets || [] : c.cartas || []
+  const top = lista.length
+    ? `<ol class="tdh-top">${lista.map((x, i) => `<li><span class="tdh-top-n">${i + 1}</span><span><strong>${escapeHtml(est.top === 'sets' ? nombreSet(x.set_id) || x.nombre || x.set_id : x.nombre || x.card_id || 'Producto')}</strong><small>${est.top === 'sets' ? `${x.cartas} ${x.cartas === 1 ? 'carta distinta' : 'cartas distintas'}` : escapeHtml([x.set_id ? nombreSet(x.set_id) : x.product_id ? 'Sellado' : '', x.numero].filter(Boolean).join(' · '))}</small></span><b>${x.unidades} ${x.unidades === 1 ? 'ud.' : 'uds.'}<small>${euros(x.importe || 0)}</small></b></li>`).join('')}</ol>`
+    : '<p class="tdh-sin">Sin ventas en este periodo.</p>'
+  const q = c.quietas || {}
+  const quietas = q.lineas
+    ? `<p class="tdh-quietas-total"><b>${euros(q.valor || 0)}</b> parados en ${q.lineas} ${q.lineas === 1 ? 'línea' : 'líneas'} (${q.unidades} uds.)</p>
+      <ul class="tdh-quietas">${(q.filas || []).slice(0, 5).map((x) => `<li><span><strong>${escapeHtml(x.nombre || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(x, nombreSet))} · ${Math.floor((Date.now() - new Date(x.entro_el)) / 864e5)} días</small></span><b>${x.precio == null ? '—' : euros(Number(x.precio) * x.unidades)}</b></li>`).join('')}</ul>
+      <a class="tdh-ir" href="/tienda?ver=stock&filtro=viejas" data-ver="stock" data-filtro="viejas">Verlas en el stock ${icons.chevronRight(14)}</a>`
+    : `<p class="tdh-bien">${icons.checkCircle(18)}<span>Todo rota: nada lleva más de 90 días sin venderse.</span></p>`
+  return `
+    <section class="tdh-tarjeta">
+      <h3>${icons.trophy(18)} Lo más vendido</h3>
+      <div class="tdvt-chips" role="group" aria-label="Por"><button type="button" class="tdvt-chip" data-top="cartas" aria-pressed="${est.top !== 'sets'}">Cartas</button><button type="button" class="tdvt-chip" data-top="sets" aria-pressed="${est.top === 'sets'}">Expansiones</button></div>
+      ${top}
+    </section>
+    <section class="tdh-tarjeta">
+      <h3>${icons.snowflake(18)} Lo que no rota</h3>
+      <p class="tdh-nota">Más de 90 días en tu stock sin vender una sola unidad; lo que más dinero tiene parado, primero.</p>
+      ${quietas}
+    </section>
+    <section class="tdh-tarjeta">
+      <h3>${icons.trendingUp(18)} Valor del stock</h3>
+      ${valorHtml(c.valor || [])}
+    </section>`
+}
+
+// La curva del valor (a tu precio), un punto por día que se abrió el Panel.
+// Los textos van en HTML y no en el SVG estirado (la 653).
+function valorHtml(serie) {
+  const puntos = serie.map((x) => ({ dia: x.dia, v: Number(x.valor) || 0, cm: Number(x.cm) || 0 }))
+  const ultimo = puntos.at(-1)
+  if (puntos.length < 2) {
+    return `${ultimo ? `<p class="tdh-valor-hoy"><b>${euros(ultimo.v)}</b> hoy</p>` : ''}<p class="tdh-nota">Se apunta un punto cada día que abres el Panel: en unos días verás aquí cómo cambia.</p>`
+  }
+  const max = Math.max(...puntos.map((x) => x.v))
+  const min = Math.min(...puntos.map((x) => x.v))
+  const alto = (v) => (max === min ? 50 : 92 - ((v - min) / (max - min)) * 84)
+  const xs = (i) => (i / (puntos.length - 1)) * 100
+  const linea = puntos.map((x, i) => `${xs(i).toFixed(2)},${alto(x.v).toFixed(2)}`).join(' ')
+  const primero = puntos[0]
+  const cambio = comparacion(ultimo.v, primero.v, `desde el ${new Date(primero.dia).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}`)
+  const fecha = (d) => new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+  return `<p class="tdh-valor-hoy"><b>${euros(ultimo.v)}</b>${cambio ? ` <small class="${cambio.sube === false ? 'tdh-baja' : cambio.sube ? 'tdh-sube' : ''}">${escapeHtml(cambio.texto)}</small>` : ''}</p>
+    <div class="tdh-valor" role="img" aria-label="Valor del stock: de ${euros(primero.v)} el ${fecha(primero.dia)} a ${euros(ultimo.v)} el ${fecha(ultimo.dia)}">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"><polygon points="0,100 ${linea} 100,100" class="tdh-valor-area" /><polyline points="${linea}" class="tdh-valor-linea" /></svg>
+    </div>
+    <div class="tdh-eje"><span>${fecha(primero.dia)}</span><span>${fecha(ultimo.dia)}</span></div>
+    ${ultimo.cm ? `<p class="tdh-nota">En Cardmarket, hoy: ${euros(ultimo.cm)}</p>` : ''}`
+}
+
 async function completarSets(ids) {
   const faltan = [...new Set(ids.filter((id) => id && !sets.has(id)))]
   if (!faltan.length) return
@@ -121,19 +177,30 @@ async function completarSets(ids) {
 async function pedir() {
   const yo = ++est.pedido
   const p = periodoDeHoy(est.periodo)
-  const [r, u] = await Promise.all([
-    supabase.rpc('tienda_hoy', { p_desde: p.desde, p_hasta: p.hasta, p_antes_desde: p.antesDesde, p_antes_hasta: p.antesHasta, p_paso: p.paso, p_zona: Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid' }),
+  const zona = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Europe/Madrid'
+  const [r, u, c] = await Promise.all([
+    supabase.rpc('tienda_hoy', { p_desde: p.desde, p_hasta: p.hasta, p_antes_desde: p.antesDesde, p_antes_hasta: p.antesHasta, p_paso: p.paso, p_zona: zona }),
     supabase.rpc('tienda_ventas_lista', { p_filtros: { desde: p.desde, hasta: p.hasta }, p_desde: 0, p_cuantas: 3 }),
+    // La foto del día va antes que las cifras, para que la curva llegue a hoy.
+    supabase.rpc('tienda_apuntar_valor', { p_zona: zona }).then(() => supabase.rpc('tienda_cifras', { p_desde: p.desde, p_hasta: p.hasta }), () => ({ data: null })),
   ])
   if (yo !== est.pedido) return
+  est.cifras = c?.error ? null : c?.data || null
   if (r.error || !r.data) {
     const sin = ['PGRST202', '42883'].includes(r.error?.code) || /Could not find/i.test(r.error?.message || '')
     caja.querySelector('.tdh-cuerpo').innerHTML = `<p class="tdh-sin">${sin ? 'Falta un paso en la base para ver tus cifras (las migraciones 1072 y 1073).' : 'No se han podido traer tus cifras. Recarga la página.'}</p>`
     return
   }
-  await completarSets([...(r.data.demanda || []).map((x) => x.set_id), ...((u.data?.filas) || []).map((f) => f.set_id)])
+  await completarSets([...(r.data.demanda || []).map((x) => x.set_id), ...((u.data?.filas) || []).map((f) => f.set_id), ...['cartas', 'sets'].flatMap((k) => (est.cifras?.[k] || []).map((x) => x.set_id)), ...(est.cifras?.quietas?.filas || []).map((x) => x.set_id)])
   if (yo !== est.pedido) return
   pintar(r.data, u.data?.filas || [])
+  pintarCifras()
+}
+
+function pintarCifras() {
+  const tres = $('.tdh-tres')
+  tres.hidden = !est.cifras
+  tres.innerHTML = est.cifras ? cifrasHtml(est.cifras) : ''
 }
 
 export function montarHoy(destino) {
@@ -166,9 +233,15 @@ export function montarHoy(destino) {
             <section class="tdh-tarjeta"><h3>${icons.eye(18)} Visitas a tu escaparate</h3><p class="tdh-visitas"></p></section>
           </div>
         </div>
+        <div class="tdh-tres" hidden></div>
       </div>
     </div>`
   caja.addEventListener('click', (e) => {
+    const top = e.target.closest('[data-top]')
+    if (top) {
+      est.top = top.dataset.top
+      return pintarCifras()
+    }
     const b = e.target.closest('[data-periodo]')
     if (!b) return
     est.periodo = b.dataset.periodo

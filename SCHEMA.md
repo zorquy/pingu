@@ -41785,6 +41785,28 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1083 — Las cifras del Panel de una tienda
+
+Debajo de «Cómo va», tres tarjetas (`cifrasHtml` en `js/tienda-hoy.js`) que
+salen de `tienda_cifras(desde, hasta)` (migración 1079) con el periodo del
+Panel:
+
+- **Lo más vendido**: por carta o producto (`cartas`, ocho) o por expansión
+  (`sets`, seis, con cuántas cartas distintas), con unidades e importe.
+- **Lo que no rota**: lo que lleva 90 días o más en el stock SIN vender una
+  sola unidad en esos 90 días (`quietas`: lo que más dinero tiene parado
+  primero, al precio que cuenta). No es lo mismo que el aviso «más de 90 días»
+  (que solo mira cuándo entró), pero el enlace lleva a ese filtro del stock,
+  que es el que existe en `tienda_cumple`.
+- **Valor del stock**: la curva de `tienda_valor_diario` (180 días). No hay
+  pasada programada: la foto del día la apunta el Panel al abrirse
+  (`tienda_apuntar_valor`, un upsert por día), ANTES de pedir las cifras para
+  que la curva llegue a hoy. Un día sin abrir el Panel es un hueco, no un
+  cero. Con un punto solo, se explica en vez de pintar una raya.
+
+Sin la migración el bloque no sale (`.tdh-tres[hidden]`; una clase con
+`display` le gana al `hidden`).
+
 ## Tanda 1080 — «Me interesa»: una carta del escaparate en una conversación
 
 Cada carta del escaparate de una tienda lleva «Me interesa»

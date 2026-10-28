@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (320) — PINGU-Claude (1083 — las cifras del Panel de una tienda)
+
+**Hecho**: en el Panel, debajo de «Cómo va»: lo más vendido (cartas o
+expansiones), lo que no rota (90 días sin vender, con lo parado en euros) y
+el valor del stock en el tiempo (un punto cada día que se abre el Panel).
+
+**Para PINGU**: la migración 1079 (ya pedida en la 316) lleva lo de la base.
+
+**Ficheros**: `js/tienda-hoy.js`, `css/tienda.css`. Prueba en `pruebas`:
+1083-pantalla (lo de la base está en la 1079 de PostgreSQL).
+
+**Pendiente**: 1084 (recibo de una venta).
+
 ## 2026-10-28 (319) — PINGU-Claude (1080 — «Me interesa»)
 
 **Hecho**: cada carta del escaparate de una tienda lleva «Me interesa», que

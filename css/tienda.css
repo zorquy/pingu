@@ -1528,6 +1528,33 @@ html:has(.tds-dialogo[open]) {
 .tdh-visitas { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e-xs) var(--e-sm); margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
 .tdh-visitas b { color: var(--text); font-family: var(--font-display); font-size: var(--t-2xl); }
 .tdh-visitas small { width: 100%; font-size: var(--t-xs); }
+
+/* Las cifras de la 1083: lo más vendido, lo que no rota y el valor. */
+.tdh-tres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-md); align-items: start; margin-top: var(--e-md); }
+.tdh-tres[hidden] { display: none; }
+.tdh-nota { margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
+.tdh-top,
+.tdh-quietas { display: grid; margin: 0; padding: 0; list-style: none; }
+.tdh-top li,
+.tdh-quietas li { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-sm) 0; border-top: 1px solid var(--border); }
+.tdh-top li:first-child,
+.tdh-quietas li:first-child { border-top: 0; }
+.tdh-top li > span:not(.tdh-top-n),
+.tdh-quietas li > span { display: grid; flex: 1; min-width: 0; }
+.tdh-top small,
+.tdh-quietas small { overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.tdh-top b,
+.tdh-quietas b { display: grid; flex: none; text-align: right; font-variant-numeric: tabular-nums; }
+.tdh-top-n { display: grid; flex: none; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--ice); color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
+.tdh-top li:first-child .tdh-top-n { background: var(--acento); color: var(--acento-texto); }
+.tdh-quietas-total { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.tdh-quietas-total b,
+.tdh-valor-hoy b { color: var(--text); font-family: var(--font-display); font-size: var(--t-xl); }
+.tdh-valor-hoy { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e-xs) var(--e-sm); margin: 0; font-size: var(--t-xs); }
+.tdh-valor { height: 120px; }
+.tdh-valor svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.tdh-valor-linea { fill: none; stroke: var(--acento); stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
+.tdh-valor-area { fill: color-mix(in srgb, var(--acento) 14%, transparent); stroke: none; }
 .tdh-visitas small.tdh-sube { color: var(--success); }
 .tdh-visitas small.tdh-baja { color: var(--danger); }
 .tdh-sin { margin: 0; padding: var(--e-md) 0; color: var(--text-mid); font-size: var(--t-sm); }
@@ -1535,10 +1562,12 @@ html:has(.tds-dialogo[open]) {
 @media (max-width: 1100px) {
   .tdh-rapido,
   .tdh-cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tdh-tres { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 760px) {
-  .tdh-dos { grid-template-columns: minmax(0, 1fr); }
+  .tdh-dos,
+  .tdh-tres { grid-template-columns: minmax(0, 1fr); }
   .tdh-cab .tdvt-chips { margin-left: 0; }
   .tdh-barras { height: 140px; }
 }
