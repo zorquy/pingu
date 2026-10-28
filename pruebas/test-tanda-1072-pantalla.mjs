@@ -12,6 +12,9 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
+
+// Desde la 1086, «Seleccionar» está en «⋯» y la barra de abajo lo apaga con «Hecho».
+const seleccionar = async (p) => ((await p.isVisible('.tds-sel')) ? p.click('.tds-sel-fin') : (await p.click('[data-tds-menu="mas"]'), p.click('.tds-menu [data-tds="seleccionar"]')))
 const ahora = Date.now()
 const STOCK = { total: 3, en_stock: 3, sumas: { unidades: 4, coste: 0, precio: 0, cm: 0, sin_coste: 0, sin_precio: 1 }, facetas: {}, filas: [
   { id: 's1', card_id: 'carta-1', market: 'WEST', nombre: 'Charizard ex', set_id: 'set-0', numero: '199', idioma: 'es', estado: 'NM', variante: 'normal', unidades: 2, coste: 125, precio: 179, cm: 170, visible: true, entro_el: new Date().toISOString() },
@@ -101,12 +104,12 @@ console.log('── 1. Vender, desde el botón de arriba ──')
 console.log('── 2. Desde el stock ──')
 {
   const { p, ctx } = await abrir('/tienda.html?ver=stock')
-  await p.click('[data-tds="seleccionar"]'); await p.waitForTimeout(300)
+  await seleccionar(p); await p.waitForTimeout(300)
   await p.click('[data-marcar="s1"]'); await p.click('[data-marcar="s2"]')
   await p.click('[data-bloque="vender"]'); await p.waitForTimeout(800)
   check('«Seleccionar» → Vender: la hoja con las marcadas', (await p.isVisible('.tdv')) && (await p.locator('.tdv-linea').count()) === 2, await p.locator('.tdv-linea').count())
   await p.keyboard.press('Escape'); await p.waitForTimeout(300)
-  await p.click('[data-tds="seleccionar"]'); await p.waitForTimeout(300)
+  await seleccionar(p); await p.waitForTimeout(300)
   await p.click('[data-fila="s2"]'); await p.waitForTimeout(800)
   await p.click('[data-vender-esta]'); await p.waitForTimeout(800)
   check('la ficha de una línea → Vender: la hoja con esa', (await p.isVisible('.tdv')) && (await p.locator('.tdv-linea').count()) === 1 && /Umbreon VMAX/.test(await p.textContent('.tdv-linea')))

@@ -13,6 +13,9 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
+
+// Desde la 1086, «Seleccionar» está en «⋯» y la barra de abajo lo apaga con «Hecho».
+const seleccionar = async (p) => ((await p.isVisible('.tds-sel')) ? p.click('.tds-sel-fin') : (await p.click('[data-tds-menu="mas"]'), p.click('.tds-menu [data-tds="seleccionar"]')))
 const hace = (d) => new Date(Date.now() - d * 864e5).toISOString()
 const LISTA = {
   total: 4, en_stock: 5,
@@ -154,7 +157,7 @@ console.log('── 3. Las vistas guardadas ──')
 console.log('── 4. Seleccionar y en bloque ──')
 {
   const { p, ctx } = await abrir()
-  await p.click('[data-tds="seleccionar"]')
+  await seleccionar(p)
   check('Seleccionar: casillas y la barra de abajo', (await p.locator('[data-marcar]').count()) === 4 && (await p.isVisible('.tds-sel')))
   check('  …sin marcar, los botones apagados', await p.isDisabled('[data-bloque="precio"]'))
   await p.click('[data-marcar="st-1"]')
@@ -174,13 +177,13 @@ console.log('── 4. Seleccionar y en bloque ──')
 {
   const { p, ctx } = await abrir()
   await p.evaluate(() => { window.__TABLAS__.tienda_stock.push({ id: 'st-1', tienda_id: 'user-2', visible: true }, { id: 'st-3', tienda_id: 'user-2', visible: true }) })
-  await p.click('[data-tds="seleccionar"]')
+  await seleccionar(p)
   await p.click('[data-marcar="st-1"]')
   await p.click('[data-marcar="st-3"]')
   await p.click('[data-bloque="ocultar"]')
   await p.waitForTimeout(500)
   check('«Ocultar» las saca del escaparate', (await p.evaluate(() => window.__TABLAS__.tienda_stock.filter((f) => f.visible === false).map((f) => f.id).join())) === 'st-1,st-3')
-  await p.click('[data-tds="seleccionar"]'); await p.click('[data-tds="seleccionar"]')
+  await seleccionar(p); await seleccionar(p)
   await p.click('[data-marcar="st-3"]')
   await p.click('[data-bloque="borrar"]')
   check('«Borrar» pregunta antes', /¿Borrar 1\?/.test(await p.textContent('[data-bloque="borrar"]')) && (await p.evaluate(() => window.__TABLAS__.tienda_stock.length)) === 2)
@@ -192,7 +195,7 @@ console.log('── 4. Seleccionar y en bloque ──')
 console.log('── 5. Añadir y editar ──')
 {
   const { p, ctx, errs } = await abrir({ precios: [{ card_id: 'carta-4', cm_low: 290, cm_low_es: 301.5, cm_low_en: 290 }] })
-  await p.click('.tds-barra [data-tds="anadir"]')
+  await p.click('[data-tds-menu="anadir"]'); await p.click('.tds-menu [data-tds="anadir"]')
   check('«+ Añadir» abre la ventana con el buscador', await p.isVisible('#tdsAnadir #tdsAnadirQ'))
   await p.fill('#tdsAnadirQ', 'pikachu')
   await p.waitForTimeout(900)
@@ -222,7 +225,7 @@ console.log('── 5. Añadir y editar ──')
 }
 {
   const { p, ctx } = await abrir()
-  await p.click('.tds-barra [data-tds="anadir"]')
+  await p.click('[data-tds-menu="anadir"]'); await p.click('.tds-menu [data-tds="anadir"]')
   await p.click('#tdsAnadir [data-que="sellado"]')
   await p.fill('#tdsAnadirQ', 'etb')
   await p.waitForTimeout(900)
@@ -271,7 +274,7 @@ console.log('── 6. Vacío, importar y exportar ──')
 }
 {
   const { p, ctx } = await abrir()
-  const [descarga] = await Promise.all([p.waitForEvent('download', { timeout: 8000 }).catch(() => null), p.click('[data-tds="exportar"]')])
+  const [descarga] = await Promise.all([p.waitForEvent('download', { timeout: 8000 }).catch(() => null), (async () => { await p.click('[data-tds-menu="mas"]'); await p.click('.tds-menu [data-tds="exportar"]') })()])
   check('Exportar baja un CSV con el nombre de la tienda', !!descarga && /^stock-rincon-\d{4}-\d{2}-\d{2}\.csv$/.test(descarga.suggestedFilename()), descarga?.suggestedFilename())
   if (descarga) {
     const ruta = await descarga.path()

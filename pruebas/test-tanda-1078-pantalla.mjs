@@ -57,7 +57,8 @@ console.log('── 1. La cabecera, solo en el Panel ──')
 console.log('── 2. El stock: botones con icono, sin «Filtros» repetido en el PC ──')
 {
   const { p, ctx } = await abrir('/tienda.html?ver=stock')
-  check('Seleccionar, importar, exportar, Colección y Añadir, con su icono', (await p.locator('.tds-barra .tds-boton svg').count()) >= 5 && (await p.getAttribute('.tds-barra a.tds-boton', 'href')) === '/cartas' && (await p.getAttribute('[data-tds="importar"]', 'aria-label')) === 'Importar un CSV')
+  // Desde la 1086, en dos menús: «+ Añadir» (buscar, la Colección, importar) y «⋯».
+  check('los mandos con su icono: Añadir con su menú y «⋯»', (await p.locator('.tds-menu [role^="menuitem"] svg').count()) >= 6 && (await p.getAttribute('.tds-menu[data-menu="anadir"] a', 'href')) === '/cartas' && (await p.locator('.tds-menu[data-menu="anadir"] [data-tds="importar"]').count()) === 1)
   check('  …el botón «Filtros» no sale con el panel a la vista', await p.isHidden('.tds-ver-filtros'))
   check('  …y no se sale de ancho (con la lateral y los filtros)', (await ancho(p)) <= 1500, await ancho(p))
   check('la tabla, con la bandera del idioma', (await p.locator('.tds-c-idioma .pv-bandera').count()) === 2)

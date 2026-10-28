@@ -11,6 +11,9 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
+
+// Desde la 1086, «Seleccionar» está en «⋯» y la barra de abajo lo apaga con «Hecho».
+const seleccionar = async (p) => ((await p.isVisible('.tds-sel')) ? p.click('.tds-sel-fin') : (await p.click('[data-tds-menu="mas"]'), p.click('.tds-menu [data-tds="seleccionar"]')))
 const hace = (d) => new Date(Date.now() - d * 864e5).toISOString()
 const FILAS = [
   { id: 'st-0', card_id: 'carta-0', market: 'WEST', nombre: 'Pikachu ex', set_id: 'set-0', numero: '0', idioma: 'es', estado: 'NM', variante: 'normal', unidades: 2, coste: 50, precio: 95, cm: 90, visible: true, entro_el: hace(3), destacada: false, oferta_precio: 80, oferta_hasta: null },
@@ -47,7 +50,7 @@ const pie = (p) => p.textContent('.tds-pie')
 {
   const { p, ctx, errs } = await abrir()
   check('de serie, la tabla (con «Tabla» marcado)', !errs.length && (await p.locator('.tds-tabla').count()) === 1 && (await p.getAttribute('[data-tds-vista="tabla"]', 'aria-pressed')) === 'true', errs.join(' | '))
-  await p.click('[data-tds-vista="rejilla"]'); await p.waitForTimeout(300)
+  await p.click('[data-tds-menu="mas"]'); await p.click('[data-tds-vista="rejilla"]'); await p.waitForTimeout(300)
   check('«Rejilla»: una baldosa por línea, con la foto, la estrella y los dos campos', (await p.locator('.tds-baldosa').count()) === 2 && (await p.locator('.tds-baldosa .tds-foto-caja').count()) === 2 && (await p.locator('.tds-baldosa .tds-estrella').count()) === 2 && (await p.locator('[data-en-linea]').count()) === 4)
   check('  …la de oferta con su chapa y su precio rebajado; la oculta, dicho', /−16 %/.test(await p.textContent('[data-fila="st-0"] .tds-baldosa-chapas')) && /Oferta 80,00/.test(await p.textContent('[data-cm-de="st-0"]')) && /Oculta/.test(await p.textContent('[data-fila="st-1"]')))
   await p.reload({ waitUntil: 'domcontentloaded' }); await p.waitForTimeout(2500)
@@ -70,7 +73,7 @@ const pie = (p) => p.textContent('.tds-pie')
   await p.click('[data-fila="st-1"] .tds-baldosa-nombre'); await p.waitForTimeout(1000)
   check('tocar la carta abre su ficha', (await p.locator('#tdsEditar[open]').count()) === 1)
   await p.keyboard.press('Escape')
-  await p.click('[data-tds="seleccionar"]')
+  await seleccionar(p)
   await p.click('[data-fila="st-0"] .tds-baldosa-nombre'); await p.waitForTimeout(300)
   check('con «Seleccionar», tocarla la marca (casilla y borde)', (await p.locator('[data-fila="st-0"].tds-marcada').count()) === 1 && (await p.isChecked('[data-fila="st-0"] .tds-baldosa-check')) && /1 marcada/.test(await p.textContent('.tds-sel-n')))
   await ctx.close()

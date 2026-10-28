@@ -13,6 +13,9 @@ const check = (l, ok, extra = '') => {
   if (!ok) fails++
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
+
+// Desde la 1086, «Seleccionar» está en «⋯» y la barra de abajo lo apaga con «Hecho».
+const seleccionar = async (p) => ((await p.isVisible('.tds-sel')) ? p.click('.tds-sel-fin') : (await p.click('[data-tds-menu="mas"]'), p.click('.tds-menu [data-tds="seleccionar"]')))
 const hace = (d) => new Date(Date.now() - d * 864e5).toISOString()
 const FILAS = Array.from({ length: 6 }, (_, i) => ({ id: `st-${i}`, card_id: `carta-${i % 2}`, market: 'WEST', nombre: `Carta ${i}`, set_id: 'set-0', numero: String(i), idioma: 'es', estado: 'NM', variante: 'normal', unidades: 1, precio: 10 + i, precio_antes: i === 1 ? 20 : null, oferta_hasta: null, destacada: i < 2, nueva: i === 4, entro_el: hace(i) }))
 const TIENDA = { user_id: 'user-2', ciudad: 'Bilbao', precio_visible: true }
@@ -100,7 +103,7 @@ console.log('── 3. La estrella del Stock ──')
   check('cada línea lleva su estrella; la destacada, encendida', !errs.length && (await p.locator('.tds-estrella').count()) === 6 && (await p.getAttribute('[data-estrella="st-0"]', 'aria-pressed')) === 'true' && (await p.getAttribute('[data-estrella="st-1"]', 'aria-pressed')) === 'false', errs.join(' | '))
   await p.click('[data-estrella="st-1"]'); await p.waitForTimeout(600)
   check('pulsarla la enciende y lo guarda', (await p.getAttribute('[data-estrella="st-1"]', 'aria-pressed')) === 'true' && (await p.evaluate(() => window.__TABLAS__.tienda_stock.find((f) => f.id === 'st-1')?.destacada)) === true)
-  await p.click('[data-tds="seleccionar"]'); await p.waitForTimeout(300)
+  await seleccionar(p); await p.waitForTimeout(300)
   check('  …y en la barra de seleccionar está «Destacar»', await p.isVisible('[data-bloque="destacar"]'))
   await ctx.close()
 }
@@ -108,7 +111,7 @@ console.log('── 3. La estrella del Stock ──')
   const { p, ctx } = await abrir('/tienda.html?ver=stock', { destacadas: 6, errorAlGuardar: true })
   // Seis destacadas de seis líneas: la cuenta de la base manda (8 en total).
   await p.evaluate(() => { window.__RPC_RESPUESTAS__.tienda_stock_lista.destacadas = 8 })
-  await p.click('[data-tds="seleccionar"]'); await p.click('[data-tds="seleccionar"]')
+  await seleccionar(p); await seleccionar(p)
   await p.evaluate(() => document.querySelector('[data-tds-orden]').dispatchEvent(new Event('change', { bubbles: true }))); await p.waitForTimeout(700)
   await p.click('[data-estrella="st-0"]'); await p.waitForTimeout(600)
   check('quitar una que la base no deja guardar vuelve a encenderla, con su aviso', (await p.getAttribute('[data-estrella="st-0"]', 'aria-pressed')) === 'true' && /No se ha podido/.test(await p.textContent('body')))
