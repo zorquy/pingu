@@ -65,9 +65,10 @@ console.log('── 1. Hoy, con cifras ──')
   check('pide hoy por horas, contra ayer a esta hora', pide?.p_paso === 'hour' && new Date(pide.p_desde).getHours() === 0 && new Date(pide.p_antes_hasta).getTime() < Date.now() - 23 * 36e5, JSON.stringify(pide))
   check('  …con las tres últimas ventas de hoy', (await llamadas(p, 'tienda_ventas_lista'))[0]?.p_cuantas === 3)
   check('el Panel se llama Panel (1074) y no hay primeros pasos', (await p.textContent('[data-td="hoy"]')) === 'Panel' && (await p.locator('#tdPasosCaja').count()) === 0)
-  // 1078: el Panel rehecho — el saludo arriba, cuatro atajos y las cifras con su icono.
-  check('arriba, el saludo con la tienda y los cuatro atajos (Vender el primero)', /Buen|Hola/.test(await p.textContent('#tdSaludo')) && (await p.isVisible('.td-cab')) && (await p.$$eval('.tdh-atajo b', (bs) => bs.map((b) => b.textContent).join())) === 'Vender,Añadir cartas,Tu stock,Tu escaparate')
-  check('  …«Tu stock» dice sus líneas y unidades', /812 líneas · 1212 uds\./.test((await p.textContent('[data-tdh-stock]')).replace(/\u00a0/g, ' ').replace('1.212', '1212')))
+  // 1078: el Panel rehecho — el saludo arriba y las cifras con su icono; desde
+  // la 1085, sin los cuatro atajos (la barra y la lateral ya los tienen).
+  check('arriba, el saludo con la tienda, sin atajos', /Buen|Hola/.test(await p.textContent('#tdSaludo')) && (await p.isVisible('.td-cab')) && (await p.locator('.tdh-atajo, .tdh-rapido').count()) === 0)
+  check('  …la cabecera dice sus líneas y unidades', /812 líneas · 1212 uds\./.test((await p.textContent('[data-tdh-stock]')).replace(/\u00a0/g, ' ').replace('1.212', '1212')))
   check('  …cada cifra con su icono, y la que sube con su flecha', (await p.locator('.tdh-cifra-icono svg').count()) === 4 && /▲/.test(await p.textContent('.tdh-cifra .tdh-sube')))
   const cifras = (await p.innerText('.tdh-cifras')).replace(/\s+/g, ' ')
   check('vendido, con «+18 % que ayer a esta hora»', /411,50 €/.test(cifras) && /\+18 % que ayer a esta hora/.test(cifras), cifras)

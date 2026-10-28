@@ -47,7 +47,8 @@ const ancho = (p) => p.evaluate(() => document.documentElement.scrollWidth)
 console.log('── 1. La cabecera, solo en el Panel ──')
 {
   const { p, ctx, errs } = await abrir('/tienda.html')
-  check('en el Panel: el saludo, el nombre y «Ver mi escaparate»', !errs.length && (await p.isVisible('.td-cab')) && /Buen|Hola/.test(await p.textContent('#tdSaludo')) && (await p.textContent('#tdVerPerfil')) === 'Ver mi escaparate', errs.join(' | '))
+  // Desde la 1085, «Tu escaparate» lleva a su pestaña (el QR y lo que ve la gente).
+  check('en el Panel: el saludo, el nombre y «Tu escaparate»', !errs.length && (await p.isVisible('.td-cab')) && /Buen|Hola/.test(await p.textContent('#tdSaludo')) && (await p.textContent('#tdVerEscaparate')).trim() === 'Tu escaparate' && (await p.getAttribute('#tdVerEscaparate', 'data-ver')) === 'escaparate', errs.join(' | '))
   await p.click('.lat-seccion-enlace[data-ver="stock"]'); await p.waitForTimeout(800)
   check('  …en el Stock no se repite', await p.isHidden('.td-cab'))
   await ctx.close()
