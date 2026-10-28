@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (324) — PINGU-Claude (1086 — la barra del Stock en una fila)
+
+**Hecho**: en el Stock, una fila: «+ Añadir» (con menú: buscar una carta,
+desde la Colección o importar), Filtros, el orden y «⋯» (Seleccionar, tabla o
+rejilla, exportar). En el móvil cabe sin salirse y la lupa de arriba no se
+repite. «Todo» solo sale si hay vistas guardadas.
+
+**Para PINGU**: nada.
+
+**Ficheros**: `js/tienda-stock.js`, `js/tienda.js`, `css/tienda.css`. Pruebas
+en `pruebas`: 1086-pantalla, y al día la 1068, 1072, 1078, 1079, 1081 y 1082
+(Seleccionar está en «⋯»).
+
+**Pendiente**: 1087, 1088 y 1089.
+
 ## 2026-10-28 (323) — PINGU-Claude (1085 — el Panel de una tienda sin atajos)
 
 **Hecho**: lo primero de «Tiendas, listas para el piloto» (PINGU: todo menos

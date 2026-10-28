@@ -482,12 +482,6 @@
   align-items: center;
 }
 
-.tds-barra .tds-orden {
-  flex: 0 1 220px;
-  width: auto;
-  min-height: 44px;
-}
-
 @media (min-width: 1001px) {
   /* El buscador y, a su lado o debajo, los mandos a la derecha (1077):
      con la lateral y los filtros no caben en una fila sin salirse. */
@@ -500,10 +494,6 @@
     flex: 0 1 auto;
     justify-content: flex-end;
     margin-left: auto;
-  }
-
-  .tds-barra .tds-orden {
-    flex: 0 0 190px;
   }
 
   .tds-boton.tds-ver-filtros {
@@ -1078,33 +1068,28 @@ html:has(.tds-dialogo[open]) {
     display: inline-flex;
   }
 
-  /* Una fila de mandos que se desliza (1035), con el buscador encima. */
+  /* Una fila de mandos (1086: cuatro, caben sin deslizar; un menú no puede
+     ir dentro de algo que se desliza, que lo recorta), con el buscador encima. */
   .tds-arriba {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .tds-barra {
     flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
+    min-width: 0;
   }
 
   .tds-barra > * {
     flex: 0 0 auto;
   }
 
-  .tds-barra .tds-orden {
-    flex: 0 0 auto;
-    max-width: 210px;
+  /* Lo que sobre de la fila, para Filtros. */
+  .tds-barra .tds-ver-filtros {
+    flex: 1 1 auto;
+    justify-content: center;
   }
 
-  .tds-anadir {
-    order: -2;
-  }
-
-  .tds-ver-filtros {
-    order: -1;
-  }
 
   .tds-filtros {
     display: none;
@@ -1723,10 +1708,6 @@ html:has(.tds-dialogo[open]) {
 
 /* El stock en rejilla (1081): la carta grande y, debajo, las unidades y tu
    precio para cambiarlos ahí mismo. */
-.tds-vistas-seg .seg-btn {
-  min-width: 40px;
-  justify-content: center;
-}
 
 .tds-rejilla {
   display: grid;
@@ -1883,5 +1864,133 @@ html:has(.tds-dialogo[open]) {
   .tds-rejilla {
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: var(--e-sm);
+  }
+}
+
+/* Los menús de la barra del Stock (1086): «+ Añadir» y «⋯». */
+.tds-menu-caja {
+  position: relative;
+  display: inline-flex;
+}
+
+.tds-menu {
+  position: absolute;
+  top: calc(100% + var(--e-xs));
+  left: 0;
+  z-index: 30;
+  display: grid;
+  gap: 2px;
+  width: max-content;
+  min-width: 260px;
+  max-width: min(320px, calc(100vw - 32px));
+  padding: var(--e-xs);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+}
+
+.tds-menu[hidden] {
+  display: none;
+}
+
+.tds-menu-derecha {
+  right: 0;
+  left: auto;
+}
+
+.tds-menu [role^='menuitem'] {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--e-sm);
+  align-items: center;
+  min-height: 44px;
+  padding: var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tds-menu [role^='menuitem']:hover,
+.tds-menu [role^='menuitem']:focus-visible {
+  background: var(--ice);
+  outline: none;
+}
+
+.tds-menu [role^='menuitem'] svg {
+  color: var(--text-mid);
+}
+
+.tds-menu [role^='menuitem'] > span {
+  display: grid;
+}
+
+.tds-menu b {
+  font-size: var(--t-sm);
+}
+
+.tds-menu small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.tds-menu [aria-pressed='true'] {
+  background: color-mix(in srgb, var(--acento) 14%, var(--white));
+}
+
+.tds-menu [aria-pressed='true'] svg {
+  color: var(--acento);
+}
+
+/* Una sola lupa (1086): en el Stock busca el buscador de la página; la de
+   arriba, que solo llevaba a él, no se repite. */
+html[data-td-ver='stock'] .bm-pastilla {
+  display: none;
+}
+
+/* El orden (1086): en el PC, su desplegable; en el móvil, un icono que abre
+   el mismo desplegable del sistema (el <select> va encima, transparente). */
+.tds-orden-caja {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 190px;
+}
+
+.tds-orden-caja .tds-orden {
+  width: 100%;
+  min-height: 44px;
+}
+
+.tds-orden-icono {
+  display: none;
+}
+
+@media (max-width: 1000px) {
+  .tds-orden-caja {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+  }
+
+  .tds-orden-icono {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    background: var(--ice);
+    color: var(--navy);
+  }
+
+  .tds-orden-caja .tds-orden {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
   }
 }

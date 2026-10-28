@@ -41785,6 +41785,29 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1086 — La barra del Stock en una fila
+
+PINGU («demasiados botones»): en el móvil no cabían y Seleccionar, importar y
+exportar se salían por la derecha; y había dos buscadores.
+
+- La barra (`js/tienda-stock.js`): **«+ Añadir»** con su menú (`data-tds-menu`:
+  buscar una carta, «Desde la Colección» → /cartas, importar un CSV),
+  **Filtros** (solo en el móvil, con cuántos hay puestos:
+  `[data-tds-n-filtros]`), **el orden** (en el PC su desplegable; en el móvil
+  un icono de 44 con el `<select>` encima, transparente, que abre el del
+  sistema) y **«⋯»** (Seleccionar, «Ver en tabla / en rejilla», exportar). Los
+  menús (`.tds-menu`, `role="menu"`) se cierran al elegir, al tocar fuera o con
+  Escape, y uno abierto cierra el otro. La barra de abajo de Seleccionar lleva
+  «Hecho» (`.tds-sel-fin`).
+- La fila del móvil ya no se desliza: un menú dentro de algo que se desliza
+  sale recortado. `.tds-arriba` con `minmax(0, 1fr)`: si no, el `<select>`
+  ensanchaba la página (su ancho intrínseco cuenta aunque lleve `min-width: 0`).
+- Una sola lupa: en el Stock del móvil la pastilla de arriba (`.bm-pastilla`,
+  que solo llevaba a este buscador) no sale (`html[data-td-ver]`, que pone
+  `pestana()`).
+- Las vistas guardadas solo salen si hay alguna o un filtro que guardar: un
+  «Todo» solo no hacía nada.
+
 ## Tanda 1085 — El Panel de una tienda, sin atajos
 
 PINGU, de «Tiendas, listas para el piloto»: fuera los cuatro atajos del Panel

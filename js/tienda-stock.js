@@ -436,10 +436,19 @@ function pintarAplicados() {
     ? `${chapas.map((c, i) => `<button type="button" class="tds-aplicado" data-quitar="${i}" aria-label="Quitar ${escapeHtml(c.texto)}">${escapeHtml(c.texto)} <span aria-hidden="true">×</span></button>`).join('')}<button type="button" class="link-btn" data-tds="limpiar">Limpiar todo</button>`
     : ''
   est.chapas = chapas
+  // Cuántos filtros hay puestos, en el botón del móvil.
+  const n = $('[data-tds-n-filtros]')
+  if (n) n.textContent = chapas.length ? ` · ${chapas.length}` : ''
 }
 
+// Las vistas guardadas (1068): «Todo» y las suyas, solo si tiene alguna o hay
+// un filtro que guardar (1086: un «Todo» solo era un botón que no hacía nada).
 function pintarVistas() {
   const actual = JSON.stringify(est.filtros)
+  if (!est.vistas.length && actual === '{}') {
+    $('.tds-vistas').innerHTML = ''
+    return
+  }
   $('.tds-vistas').innerHTML = `<button type="button" class="tds-vista${actual === '{}' ? ' activa' : ''}" data-vista="">Todo</button>
     ${est.vistas.map((v) => `<span class="tds-vista-caja"><button type="button" class="tds-vista${JSON.stringify(v.filtros) === actual ? ' activa' : ''}" data-vista="${escapeHtml(v.id)}">${escapeHtml(v.nombre)}</button><button type="button" class="tds-vista-quitar" data-quitar-vista="${escapeHtml(v.id)}" aria-label="Borrar la vista ${escapeHtml(v.nombre)}">×</button></span>`).join('')}
     ${actual !== '{}' && !est.vistas.some((v) => JSON.stringify(v.filtros) === actual) ? '<button type="button" class="tds-vista tds-vista-nueva" data-tds="guardar-vista">+ Guardar esta vista</button>' : ''}`
@@ -448,8 +457,9 @@ function pintarVistas() {
 function pintarSeleccion() {
   const barra = $('.tds-sel')
   barra.hidden = !est.seleccionando
-  $('[data-tds="seleccionar"]').setAttribute('aria-pressed', String(est.seleccionando))
-  $('[data-tds="seleccionar"]').classList.toggle('activa', est.seleccionando)
+  const sel = $('.tds-menu [data-tds="seleccionar"]')
+  sel.setAttribute('aria-pressed', String(est.seleccionando))
+  sel.querySelector('b').textContent = est.seleccionando ? 'Dejar de seleccionar' : 'Seleccionar'
   const n = est.marcadas.size
   barra.querySelector('.tds-sel-n').textContent = n ? `${n} ${n === 1 ? 'marcada' : 'marcadas'}` : 'Marca las que quieras'
   for (const b of barra.querySelectorAll('button[data-bloque]')) b.disabled = !n
@@ -969,17 +979,27 @@ export function montarStock(destino, { perfil: p }) {
         <div class="tds-arriba">
           <input type="search" class="tds-busca" data-tds-q placeholder="Buscar por nombre o número…" aria-label="Buscar en tu stock" />
           <div class="tds-barra">
-          <div class="seg tds-vistas-seg" role="group" aria-label="Cómo verlo">
-            <button type="button" class="seg-btn" data-tds-vista="tabla" aria-pressed="false" aria-label="Tabla" title="Tabla">${icons.alignLeft(18)}</button>
-            <button type="button" class="seg-btn" data-tds-vista="rejilla" aria-pressed="false" aria-label="Rejilla" title="Rejilla: cambia unidades y precio ahí mismo">${icons.image(18)}</button>
-          </div>
-          <select class="tds-orden" data-tds-orden aria-label="Orden">${ORDENES.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
-          <button type="button" class="btn-secondary tds-boton tds-ver-filtros" data-tds="abrir-filtros">${ICONOS_COLECCION.sliders(18)}<span>Filtros</span></button>
-          <button type="button" class="btn-secondary tds-boton" data-tds="seleccionar" aria-pressed="false">${icons.checkSquare(18)}<span>Seleccionar</span></button>
-          <button type="button" class="btn-secondary tds-boton tds-boton-icono" data-tds="importar" aria-label="Importar un CSV" title="Importar un CSV">${icons.upload(18)}</button>
-          <button type="button" class="btn-secondary tds-boton tds-boton-icono" data-tds="exportar" aria-label="Exportar a CSV" title="Exportar a CSV">${icons.arrowDown(18)}</button>
-          <a class="btn-secondary tds-boton" href="/cartas" title="Busca cartas por expansión, Pokédex o nombre y añádelas a tu stock">${icons.layers(18)}<span>Colección</span></a>
-          <button type="button" class="btn-primary tds-boton tds-anadir" data-tds="anadir"><span aria-hidden="true">+</span><span>Añadir</span></button>
+          <!-- Una fila (1086, PINGU: «demasiados botones»): Añadir con su menú,
+               Filtros (en el móvil), el orden y «⋯» con lo demás. -->
+          <span class="tds-menu-caja">
+            <button type="button" class="btn-primary tds-boton tds-anadir" data-tds-menu="anadir" aria-haspopup="menu" aria-expanded="false"><span aria-hidden="true">+</span><span>Añadir</span></button>
+            <span class="tds-menu" role="menu" data-menu="anadir" hidden>
+              <button type="button" role="menuitem" data-tds="anadir">${icons.search(18)}<span><b>Buscar una carta</b><small>Por nombre o número</small></span></button>
+              <a role="menuitem" href="/cartas">${icons.layers(18)}<span><b>Desde la Colección</b><small>Por expansión, Pokédex o producto, de golpe</small></span></a>
+              <button type="button" role="menuitem" data-tds="importar">${icons.upload(18)}<span><b>Importar un CSV</b><small>De tu Excel</small></span></button>
+            </span>
+          </span>
+          <button type="button" class="btn-secondary tds-boton tds-ver-filtros" data-tds="abrir-filtros">${ICONOS_COLECCION.sliders(18)}<span>Filtros</span><span class="tds-n-filtros" data-tds-n-filtros></span></button>
+          <label class="tds-orden-caja" title="Ordenar"><span class="tds-orden-icono" aria-hidden="true">${icons.listOrdered(18)}</span><select class="tds-orden" data-tds-orden aria-label="Orden">${ORDENES.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select></label>
+          <span class="tds-menu-caja">
+            <button type="button" class="btn-secondary tds-boton tds-boton-icono" data-tds-menu="mas" aria-haspopup="menu" aria-expanded="false" aria-label="Más" title="Seleccionar, vista y exportar">${icons.moreHorizontal(18)}</button>
+            <span class="tds-menu tds-menu-derecha" role="menu" data-menu="mas" hidden>
+              <button type="button" role="menuitem" data-tds="seleccionar" aria-pressed="false">${icons.checkSquare(18)}<span><b>Seleccionar</b><small>Marcar varias para vender, poner precio…</small></span></button>
+              <button type="button" role="menuitemradio" data-tds-vista="tabla" aria-pressed="false">${icons.alignLeft(18)}<span><b>Ver en tabla</b></span></button>
+              <button type="button" role="menuitemradio" data-tds-vista="rejilla" aria-pressed="false">${icons.image(18)}<span><b>Ver en rejilla</b><small>Cambia unidades y precio ahí mismo</small></span></button>
+              <button type="button" role="menuitem" data-tds="exportar">${icons.arrowDown(18)}<span><b>Exportar a CSV</b><small>Lo que se ve, con los filtros puestos</small></span></button>
+            </span>
+          </span>
           </div>
         </div>
         <div class="tds-vistas"></div>
@@ -988,6 +1008,7 @@ export function montarStock(destino, { perfil: p }) {
         <div class="tds-pie"></div>
         <div class="tds-sel" hidden>
           <span class="tds-sel-n"></span>
+          <button type="button" class="btn-secondary tds-sel-fin" data-tds="seleccionar">Hecho</button>
           <button type="button" class="btn-primary" data-bloque="vender">Vender</button>
           <button type="button" class="btn-secondary" data-bloque="precio">Poner precio</button>
           <button type="button" class="btn-secondary" data-bloque="oferta" hidden>Oferta</button>
@@ -999,7 +1020,28 @@ export function montarStock(destino, { perfil: p }) {
       </div>
     </div>`
 
+  // Los menús de la barra (1086): uno abierto a la vez; se cierran al elegir,
+  // al tocar fuera o con Escape.
+  const cerrarMenus = (salvo = null) => {
+    for (const m of caja.querySelectorAll('.tds-menu')) {
+      if (m === salvo) continue
+      m.hidden = true
+      caja.querySelector(`[data-tds-menu="${m.dataset.menu}"]`)?.setAttribute('aria-expanded', 'false')
+    }
+  }
+  document.addEventListener('click', (e) => { if (!e.target.closest?.('.tds-menu-caja')) cerrarMenus() })
+  caja.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarMenus() })
   caja.addEventListener('click', (e) => {
+    const abre = e.target.closest('[data-tds-menu]')
+    if (abre) {
+      const menu = caja.querySelector(`.tds-menu[data-menu="${abre.dataset.tdsMenu}"]`)
+      cerrarMenus(menu)
+      menu.hidden = !menu.hidden
+      abre.setAttribute('aria-expanded', String(!menu.hidden))
+      if (!menu.hidden) menu.querySelector('[role^="menuitem"]')?.focus()
+      return
+    }
+    if (e.target.closest('.tds-menu [role^="menuitem"]')) cerrarMenus()
     const accion = e.target.closest('[data-tds]')?.dataset.tds
     if (accion === 'anadir') return abrirAnadir()
     if (accion === 'importar') return abrirImportar()

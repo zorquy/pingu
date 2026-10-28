@@ -106,6 +106,8 @@ function pestana(cual) {
   for (const h of document.querySelectorAll('[data-td-hoja]')) h.classList.toggle('hidden', h.dataset.tdHoja !== v)
   // La cabecera solo en el Panel (1078): la pinta el CSS con esto.
   $('tdPanel').dataset.tab = v
+  // Y en <html>, para lo de fuera del panel (la lupa de arriba, 1086).
+  document.documentElement.dataset.tdVer = v
   const url = new URL(location.href)
   if (v === 'hoy') url.searchParams.delete('ver')
   else url.searchParams.set('ver', v)
