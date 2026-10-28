@@ -761,6 +761,43 @@
 .tds-ambar { color: var(--warning); font-weight: 700; }
 .tds-falta { color: var(--text-dim); font-weight: 400; }
 
+/* Una oferta (1082): el rebajado en rojo, el de siempre tachado y la chapa. */
+.tds-c-precio small {
+  display: block;
+  font-size: var(--t-2xs);
+}
+
+.tds-oferta {
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: baseline;
+  color: var(--danger);
+}
+
+.tds-oferta s {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.tds-oferta-chapa {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.tds-oferta-form {
+  display: grid;
+  gap: var(--e-sm);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.tds-oferta-form summary {
+  min-height: 32px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
 .tds-mas {
   display: block;
   margin: var(--e-md) auto;
@@ -1665,4 +1702,10 @@ html:has(.tds-dialogo[open]) {
   #tdPanel[data-tab='hoy'] .td-cab { padding: var(--e-md); margin-bottom: var(--e-md); }
   #tdPanel[data-tab='hoy'] .td-perfil,
   #tdPanel[data-tab='hoy'] .td-saludo .td-chapa { display: none; }
+}
+
+/* Un campo escondido de un formulario de la tienda (la oferta en bloque, 1082):
+   el `display` de la etiqueta le gana al `[hidden]` del navegador. */
+.tds-form [hidden] {
+  display: none;
 }

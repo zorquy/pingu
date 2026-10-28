@@ -61,6 +61,33 @@ export function margenDe(precio, coste) {
   return { euros: Math.round((p - c) * 100) / 100, pct: Math.round(((p - c) / c) * 100) }
 }
 
+// Una oferta (1082) de una línea del stock: el precio rebajado mientras dure
+// (sin fecha, hasta que se quite), el de siempre y cuánto baja. La regla de
+// `tienda_precio_de` en la base. `null` si no hay oferta o ya acabó.
+export function ofertaDe(linea, ahora = Date.now()) {
+  if (!linea || linea.oferta_precio == null || linea.oferta_precio === '') return null
+  const hasta = linea.oferta_hasta ? new Date(linea.oferta_hasta).getTime() : null
+  if (hasta != null && !(hasta > ahora)) return null
+  const precio = Number(linea.oferta_precio)
+  const antes = linea.precio == null ? null : Number(linea.precio)
+  const pct = antes > 0 && precio < antes ? Math.round((1 - precio / antes) * 100) : null
+  return { precio, antes, pct, hasta: linea.oferta_hasta || null }
+}
+
+// El precio que cuenta para vender o enseñar: el de la oferta si la hay.
+export function precioQueCuenta(linea, ahora = Date.now()) {
+  const o = ofertaDe(linea, ahora)
+  if (o) return o.precio
+  return linea?.precio == null ? null : Number(linea.precio)
+}
+
+// La rebaja de una oferta en bloque: un tanto por ciento sobre SU precio, a
+// céntimos. Sin precio no hay de qué rebajar.
+export function precioRebajado(precio, pct) {
+  if (precio == null || !Number.isFinite(Number(precio)) || !Number.isFinite(Number(pct))) return null
+  return Math.max(0, Math.round(Number(precio) * (1 - Number(pct) / 100) * 100) / 100)
+}
+
 // El redondeo del precio en bloque, el mismo que `tienda_redondear` en la
 // base: «95» es el ,95 de arriba (12,40 → 12,95; 12,97 → 13,95), «99» igual,
 // «entero» el euro de arriba y «centimo» tal cual.

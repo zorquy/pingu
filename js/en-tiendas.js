@@ -27,7 +27,7 @@ export function enTiendasHtml(tiendas, cardId) {
     return `<a class="ent-fila" href="${escapeHtml(enlaceDeTienda(t, cardId))}">
       <span class="ent-logo" aria-hidden="true">${escapeHtml(nombre.slice(0, 1).toUpperCase())}</span>
       <span class="ent-quien"><strong>${escapeHtml(nombre)}</strong><small>${escapeHtml([t.ciudad, detalle].filter(Boolean).join(' · '))}</small></span>
-      <span class="ent-precio">${t.precio == null ? '<small>Pregunta el precio</small>' : escapeHtml(euros(t.precio))}${t.de_tu_lista ? '<small class="ent-tuya">de tu lista</small>' : ''}</span>
+      <span class="ent-precio">${t.precio == null ? '<small>Pregunta el precio</small>' : `${t.precio_antes != null ? `<s class="ent-antes">${escapeHtml(euros(t.precio_antes))}</s> ` : ''}${escapeHtml(euros(t.precio))}`}${t.de_tu_lista ? '<small class="ent-tuya">de tu lista</small>' : ''}</span>
     </a>`
   }
   return `<h3 class="ent-titulo">En tiendas</h3><div class="ent-lista">${tiendas.map(fila).join('')}</div>`

@@ -1,8 +1,8 @@
 // VENDER (tanda 1072): apuntar una venta en tres toques. Se busca en el
 // stock (solo lo que tiene unidades), el precio sale puesto con el de la
-// línea, se elige dónde (Mostrador, Cardmarket, Evento u Otro) y «Vendida»
-// resta las unidades y apunta la venta con lo que costó (`tienda_vender`,
-// todo o nada). Después, Deshacer.
+// línea (el de su oferta mientras dure, 1082), se elige dónde (Mostrador,
+// Cardmarket, Evento u Otro) y «Vendida» resta las unidades y apunta la
+// venta con lo que costó (`tienda_vender`, todo o nada). Después, Deshacer.
 //
 // Entra por `import()` desde /tienda (el botón Vender de arriba, el de la
 // barra del móvil, la ficha de una línea y «Seleccionar» del stock).
@@ -13,7 +13,7 @@ import { hojaInyectada } from './hoja.js'
 import { euros } from './cardmarket.js'
 import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { nombreDeSet } from './catalogo-series.js'
-import { DONDE_VENTA, cuentaDeVenta } from './tiendas-puro.js'
+import { DONDE_VENTA, cuentaDeVenta, precioQueCuenta, ofertaDe } from './tiendas-puro.js'
 
 const CLAVE_DONDE = 'pd-tienda-donde'
 const $ = (sel) => dialogo?.querySelector(sel)
@@ -86,7 +86,7 @@ function montar() {
       await completarSets(data.filas || [])
       if (yo !== pedido) return
       caja.innerHTML = (data.filas || []).length
-        ? data.filas.map((f) => `<li><button type="button" class="tdv-resultado" data-fila='${escapeHtml(JSON.stringify(f))}'><span><strong>${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(f, nombreSet))}</small></span><span class="tdv-res-der">${f.precio != null ? `<b>${euros(f.precio)}</b>` : ''}<small>${f.unidades} ${f.unidades === 1 ? 'ud.' : 'uds.'}</small></span></button></li>`).join('')
+        ? data.filas.map((f) => `<li><button type="button" class="tdv-resultado" data-fila='${escapeHtml(JSON.stringify(f))}'><span><strong>${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(f, nombreSet))}</small></span><span class="tdv-res-der">${precioQueCuenta(f) != null ? `<b>${ofertaDe(f) ? 'Oferta · ' : ''}${euros(precioQueCuenta(f))}</b>` : ''}<small>${f.unidades} ${f.unidades === 1 ? 'ud.' : 'uds.'}</small></span></button></li>`).join('')
         : `<li class="tdv-nada">Nada con unidades que case con «${escapeHtml(q)}».</li>`
     }, 220)
   })
@@ -132,7 +132,7 @@ function montar() {
 function anadir(f) {
   const ya = lineas.find((x) => x.id === f.id)
   if (ya) ya.vender = Math.min(ya.unidades, ya.vender + 1)
-  else lineas.push({ ...f, vender: 1, cobrar: f.precio != null ? Number(f.precio) : null })
+  else lineas.push({ ...f, vender: 1, cobrar: precioQueCuenta(f) })
   pintarLineas()
 }
 
@@ -206,7 +206,7 @@ export function abrirVender({ filas = [], alTerminar = null } = {}) {
   alVender = alTerminar
   donde = dondeRecordado()
   lineas = []
-  for (const f of filas) if (f.unidades > 0) lineas.push({ ...f, vender: 1, cobrar: f.precio != null ? Number(f.precio) : null })
+  for (const f of filas) if (f.unidades > 0) lineas.push({ ...f, vender: 1, cobrar: precioQueCuenta(f) })
   completarSets(lineas).then(() => pintarLineas())
   pintarDonde()
   pintarLineas()

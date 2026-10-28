@@ -18,7 +18,7 @@ import { rarezaDeCarta } from './rarezas-nombres.js'
 import { buscarComoEnCartas } from './buscar-cartas.js'
 import { buscarProductos } from './productos-valor.js'
 import { COLUMNAS_CARTA_DE_SET } from './mi-coleccion/columnas-set.js'
-import { margenDe, precioSugerido, alternarFiltro, chapasDeFiltros, quitarChapa, csvDeStock } from './tiendas-puro.js'
+import { margenDe, precioSugerido, alternarFiltro, chapasDeFiltros, quitarChapa, csvDeStock, ofertaDe, precioRebajado } from './tiendas-puro.js'
 import { hojaInyectada } from './hoja.js'
 import { icons } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
@@ -197,6 +197,18 @@ async function alternarEstrella(id) {
   showToast(antes ? 'Ya no sale destacada.' : `Destacada en tu escaparate (${est.destacadas} de 8).`, 'success')
 }
 
+// Una oferta (1082): el precio rebajado en rojo, el de siempre tachado y
+// hasta cuándo. Una que ya acabó no se ve en el escaparate: se dice.
+const fechaCorta = (iso) => new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+function precioCeldaHtml(f) {
+  const o = ofertaDe(f)
+  if (o) {
+    return `<span class="tds-oferta">${o.antes != null ? `<s>${euros(o.antes)}</s>` : ''}<strong>${euros(o.precio)}</strong></span><small class="tds-oferta-chapa">${o.pct ? `−${o.pct} %` : 'Oferta'}${o.hasta ? ` · hasta el ${fechaCorta(o.hasta)}` : ''}</small>`
+  }
+  const acabada = f.oferta_precio != null ? '<small class="tds-falta">Oferta acabada</small>' : ''
+  return `<strong>${f.precio != null ? euros(f.precio) : '<span class="tds-falta">Sin precio</span>'}</strong>${acabada}`
+}
+
 function filaHtml(f) {
   const m = margenDe(f.precio, f.coste)
   const debajo = f.precio != null && f.cm > 0 && f.precio < f.cm * 0.95
@@ -210,7 +222,7 @@ function filaHtml(f) {
     <td class="tds-c-estado"><span class="tds-chapa">${dibujoDe('estado', f.estado)}${escapeHtml(f.estado === 'sellado' ? 'Sellado' : f.estado)}</span></td>
     <td class="tds-num tds-c-uds">${f.unidades}</td>
     <td class="tds-num tds-c-coste">${f.coste != null ? euros(f.coste) : '<span class="tds-falta">—</span>'}</td>
-    <td class="tds-num tds-c-precio"><strong>${f.precio != null ? euros(f.precio) : '<span class="tds-falta">Sin precio</span>'}</strong></td>
+    <td class="tds-num tds-c-precio">${precioCeldaHtml(f)}</td>
     <td class="tds-num tds-c-cm${debajo ? ' tds-ambar' : ''}">${f.cm > 0 ? euros(f.cm) : '<span class="tds-falta">—</span>'}</td>
     <td class="tds-num tds-c-margen">${m ? `<span class="${m.euros < 0 ? 'tds-rojo' : 'tds-verde'}">${m.euros > 0 ? '+' : ''}${euros(m.euros)}</span> <small>${m.pct} %</small>` : '<span class="tds-falta">—</span>'}</td>
     <td class="tds-num tds-c-dias${dias > 90 ? ' tds-rojo' : ''}">${dias} d</td>
@@ -346,6 +358,7 @@ function pintarSeleccion() {
   barra.querySelector('.tds-sel-n').textContent = n ? `${n} ${n === 1 ? 'marcada' : 'marcadas'}` : 'Marca las que quieras'
   for (const b of barra.querySelectorAll('button[data-bloque]')) b.disabled = !n
   barra.querySelector('[data-bloque="destacar"]').hidden = est.destacadas == null
+  barra.querySelector('[data-bloque="oferta"]').hidden = est.destacadas == null
 }
 
 function pintarTodo() {
@@ -496,6 +509,15 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
       <label>Tu precio (€/u)<input name="precio" type="number" inputmode="decimal" min="0" step="0.01" value="${v.precio ?? ''}" /></label>
     </div>
     <p class="tds-cm" data-cm></p>
+    ${est.destacadas != null ? `<details class="tds-oferta-form"${ofertaDe(v) ? ' open' : ''}>
+      <summary>Oferta${ofertaDe(v) ? ` · ${euros(ofertaDe(v).precio)}` : ''}</summary>
+      <div class="tds-form-fila">
+        <label>Precio de oferta (€/u)<input name="oferta_precio" type="number" inputmode="decimal" min="0" step="0.01" value="${v.oferta_precio ?? ''}" /></label>
+        <label>Hasta (opcional)<input name="oferta_hasta" type="date" value="${v.oferta_hasta ? new Date(v.oferta_hasta).toLocaleDateString('sv') : ''}" /></label>
+      </div>
+      <p class="tds-nota">En el escaparate sale este precio, con el tuyo tachado. Sin fecha, dura hasta que la quites (deja el precio vacío).</p>
+    </details>
+    <label class="tds-check-label"><input type="checkbox" name="destacada" ${v.destacada ? 'checked' : ''} /> Destacada en tu escaparate (${est.destacadas} de 8)</label>` : ''}
     <div class="tds-form-fila">
       <label>Dónde está (opcional)<input name="ubicacion" maxlength="60" list="tdsUbicaciones" placeholder="Vitrina, carpeta 3…" value="${escapeHtml(v.ubicacion || '')}" /></label>
       <label class="tds-check-label"><input type="checkbox" name="visible" ${v.visible === false ? '' : 'checked'} /> Se ve en el escaparate</label>
@@ -588,6 +610,17 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
       updated_at: new Date().toISOString(),
     }
     if (!esProducto) Object.assign(linea, { idioma: datos.idioma, estado: datos.estado, variante: sel?.value || 'normal', gradeo: (datos.gradeo || '').trim() || null })
+    // La oferta y la estrella (1079, 1082): solo con la migración.
+    if (est.destacadas != null) {
+      const oferta = num(datos.oferta_precio)
+      if (oferta != null && !(oferta >= 0)) return (error.textContent = 'Revisa el precio de oferta.')
+      linea.oferta_precio = oferta
+      // El día que se pone es el último de la oferta: hasta el final de ese día.
+      linea.oferta_hasta = oferta != null && datos.oferta_hasta ? new Date(`${datos.oferta_hasta}T23:59:59`).toISOString() : null
+      const destacada = form.querySelector('[name="destacada"]').checked
+      if (destacada && !v.destacada && est.destacadas >= 8) return (error.textContent = 'Como mucho 8 destacadas: quita la estrella a otra antes.')
+      linea.destacada = destacada
+    }
     const boton = e.submitter
     if (boton) boton.disabled = true
     const r = fila
@@ -655,10 +688,92 @@ function abrirPrecioBloque() {
   d.showModal()
 }
 
+// La oferta en bloque (1082): un tanto por ciento sobre el precio de cada
+// una (o un precio fijo para todas), con fecha de fin opcional; o quitarla.
+function abrirOfertaBloque() {
+  const marcadas = est.filas.filter((f) => est.marcadas.has(f.id))
+  const d = dialogo('tdsOferta', 'tds-precio', `
+    <form class="tds-dialogo-cuerpo tds-form" novalidate>
+      <div class="tds-dialogo-cab"><h2>Oferta en ${marcadas.length}</h2><button type="button" class="tds-cerrar" data-cerrar aria-label="Cerrar">×</button></div>
+      <div class="seg" role="radiogroup" aria-label="Cómo">
+        <label class="seg-btn activa"><input type="radio" name="modo" value="pct" checked class="sr-only" /> Rebaja en %</label>
+        <label class="seg-btn"><input type="radio" name="modo" value="fijo" class="sr-only" /> Un precio</label>
+      </div>
+      <div class="tds-form-fila">
+        <label data-modo="pct">Rebaja<span class="tds-pct"><input name="pct" type="number" inputmode="decimal" step="1" min="1" max="90" value="10" /> %</span></label>
+        <label data-modo="fijo" hidden>Precio de oferta (€/u)<input name="fijo" type="number" inputmode="decimal" min="0" step="0.01" /></label>
+        <label>Hasta (opcional)<input name="hasta" type="date" min="${new Date().toLocaleDateString('sv')}" /></label>
+      </div>
+      <p class="tds-nota" data-ejemplo></p>
+      <p class="tds-error" role="alert"></p>
+      <div class="tds-form-pie"><button type="button" class="btn-secondary" data-quitar-oferta>Quitar la oferta</button><button type="submit" class="btn-primary">Poner la oferta</button></div>
+    </form>`)
+  const form = d.querySelector('form')
+  const modo = () => form.querySelector('[name="modo"]:checked').value
+  const sinPrecio = marcadas.filter((f) => f.precio == null).length
+  const ejemplo = () => {
+    for (const l of form.querySelectorAll('[data-modo]')) l.hidden = l.dataset.modo !== modo()
+    for (const r of form.querySelectorAll('[name="modo"]')) r.closest('.seg-btn').classList.toggle('activa', r.checked)
+    const una = marcadas.find((f) => f.precio != null)
+    form.querySelector('[data-ejemplo]').textContent = modo() === 'pct'
+      ? `${una ? `Por ejemplo, ${nombreFila(una)} pasa de ${euros(una.precio)} a ${euros(precioRebajado(una.precio, num(form.pct.value) || 0))}.` : ''}${sinPrecio ? ` ${sinPrecio === 1 ? 'Una no tiene precio: se queda' : `${sinPrecio} no tienen precio: se quedan`} sin oferta.` : ''}`
+      : 'Todas a ese precio, sea cual sea el suyo.'
+  }
+  form.addEventListener('input', ejemplo)
+  form.addEventListener('change', ejemplo)
+  ejemplo()
+  const escribir = async (cambios) => {
+    const resultados = await Promise.all(cambios.map(([ids, valores]) => supabase.from('tienda_stock').update({ ...valores, updated_at: new Date().toISOString() }).in('id', ids).select('id')))
+    const hechas = resultados.reduce((n, r) => n + (r.data?.length || 0), 0)
+    if (resultados.some((r) => r.error) || !hechas) return (form.querySelector('.tds-error').textContent = 'No se ha podido.'), null
+    return hechas
+  }
+  d.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-cerrar]')) return d.close()
+    if (!e.target.closest('[data-quitar-oferta]')) return
+    const hechas = await escribir([[marcadas.map((f) => f.id), { oferta_precio: null, oferta_hasta: null }]])
+    if (hechas == null) return
+    d.close()
+    showToast(`Sin oferta: ${hechas}.`, 'success')
+    est.marcadas.clear()
+    pedir()
+  })
+  form.onsubmit = async (e) => {
+    e.preventDefault()
+    const hasta = form.hasta.value ? new Date(`${form.hasta.value}T23:59:59`).toISOString() : null
+    let cambios
+    if (modo() === 'fijo') {
+      const fijo = num(form.fijo.value)
+      if (fijo == null || !(fijo >= 0)) return (form.querySelector('.tds-error').textContent = 'Pon el precio de oferta.')
+      cambios = [[marcadas.map((f) => f.id), { oferta_precio: fijo, oferta_hasta: hasta }]]
+    } else {
+      const pct = num(form.pct.value)
+      if (!(pct > 0 && pct < 100)) return (form.querySelector('.tds-error').textContent = 'La rebaja va del 1 al 90 %.')
+      // Cada una con SU precio: una escritura por precio distinto.
+      const porPrecio = new Map()
+      for (const f of marcadas) {
+        const o = precioRebajado(f.precio, pct)
+        if (o == null) continue
+        porPrecio.set(o, [...(porPrecio.get(o) || []), f.id])
+      }
+      cambios = [...porPrecio].map(([o, ids]) => [ids, { oferta_precio: o, oferta_hasta: hasta }])
+      if (!cambios.length) return (form.querySelector('.tds-error').textContent = 'Ninguna de las marcadas tiene precio.')
+    }
+    const hechas = await escribir(cambios)
+    if (hechas == null) return
+    d.close()
+    showToast(`Oferta puesta en ${hechas}${hechas < marcadas.length ? ` (${marcadas.length - hechas} sin precio, sin oferta)` : ''}.`, 'success')
+    est.marcadas.clear()
+    pedir()
+  }
+  d.showModal()
+}
+
 async function enBloque(accion) {
   const ids = [...est.marcadas]
   if (!ids.length) return
   if (accion === 'precio') return abrirPrecioBloque()
+  if (accion === 'oferta') return abrirOfertaBloque()
   if (accion === 'destacar') {
     const nuevas = est.filas.filter((f) => est.marcadas.has(f.id) && !f.destacada).length
     if (est.destacadas + nuevas > 8) return showToast(`Como mucho 8 destacadas: te quedan ${Math.max(0, 8 - est.destacadas)}.`, 'error')
@@ -775,6 +890,7 @@ export function montarStock(destino, { perfil: p }) {
           <span class="tds-sel-n"></span>
           <button type="button" class="btn-primary" data-bloque="vender">Vender</button>
           <button type="button" class="btn-secondary" data-bloque="precio">Poner precio</button>
+          <button type="button" class="btn-secondary" data-bloque="oferta" hidden>Oferta</button>
           <button type="button" class="btn-secondary" data-bloque="destacar" hidden>${icons.star(16)}<span>Destacar</span></button>
           <button type="button" class="btn-secondary" data-bloque="ocultar">Ocultar</button>
           <button type="button" class="btn-secondary" data-bloque="ensenar">Enseñar</button>

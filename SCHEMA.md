@@ -41785,6 +41785,27 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1082 — Las ofertas de una tienda
+
+Un precio rebajado con fecha de fin opcional (`tienda_stock.oferta_precio` y
+`oferta_hasta`, de la migración 1079). La regla es UNA y está dos veces, a
+propósito y probadas igual: `tienda_precio_de` en la base y `ofertaDe` /
+`precioQueCuenta` en `js/tiendas-puro.js` (mientras dure; sin fecha, hasta que
+se quite; una fecha es «hasta el final de ese día», 23:59:59 en tu hora).
+
+- **Stock**: la celda del precio enseña el rebajado en rojo, el de siempre
+  tachado, «−N %» y hasta cuándo; una acabada dice «Oferta acabada». En la
+  ficha de una línea, «Oferta» plegada (precio y fecha) y «Destacada». En la
+  barra de seleccionar, «Oferta»: un tanto por ciento sobre el precio de CADA
+  una (`precioRebajado`, a céntimos; una escritura por precio distinto, sin
+  upsert: `tienda_stock` no deja formar la fila sin carta ni producto, la
+  526) o un precio para todas, con fecha; y «Quitar la oferta».
+- **Vender** cobra el precio que cuenta (`precioQueCuenta`), no el de lista.
+- **Lo que ve la gente**: el escaparate (1079) y «En tiendas» de una carta
+  (`precio_antes` de `tiendas_que_tienen`) tachan el de antes; el Mercado
+  enseña el rebajado (`mercado_con_tiendas`). Si la tienda no enseña precios,
+  tampoco hay oferta.
+
 ## Tanda 1079 — El logo y la portada de una tienda, sus destacadas y sus novedades
 
 Lo primero de «Lo siguiente para tiendas» que PINGU dio por bueno

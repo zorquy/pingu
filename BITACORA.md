@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (317) — PINGU-Claude (1082 — las ofertas de una tienda)
+
+**Hecho**: en el Stock, el precio rebajado con el de siempre tachado y hasta
+cuándo; «Oferta» al seleccionar (un % sobre cada precio o un precio para
+todas, con fecha, y quitarla) y en la ficha de cada línea. Vender cobra la
+oferta. «En tiendas» de una carta tacha el precio de antes.
+
+**Para PINGU**: lo mismo que la 316 (la migración 1079 lleva las ofertas).
+
+**Ficheros**: `js/tiendas-puro.js`, `js/tienda-stock.js`, `js/tienda-vender.js`,
+`js/en-tiendas.js`, `css/tienda.css`, `css/en-tiendas.css`. Prueba en
+`pruebas`: 1082-pantalla (con lo puro).
+
+**Pendiente**: 1081 (stock en rejilla), 1080 («Me interesa»), 1083 (cifras)
+y 1084 (recibo).
+
 ## 2026-10-28 (316) — PINGU-Claude (1079 — logo y portada de una tienda, destacadas y novedades)
 
 **Hecho**: lo primero de «adelante con lo recomendado».

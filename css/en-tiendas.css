@@ -69,6 +69,12 @@
   font-variant-numeric: tabular-nums;
 }
 
+.ent-precio .ent-antes {
+  font-size: var(--t-xs);
+  font-weight: 500;
+  color: var(--text-mid);
+}
+
 .ent-precio .ent-tuya {
   color: var(--pink);
 }
