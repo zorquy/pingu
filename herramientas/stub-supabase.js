@@ -2551,6 +2551,11 @@ export const supabase = {
       return d ? { data: { periodo: p, ...(d[p] || d) }, error: null } : { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.portada_clasificacion' } }
     }
     // El panel de analítica (848): lo que diga la prueba, o «no existe».
+    // El Resumen de la 1066: lo que diga la prueba, o «no existe» (sin la migración 1065).
+    if (nombre === 'admin_analitica_resumen') {
+      const d = typeof window !== 'undefined' ? window.__FAKE_RESUMEN__ : null
+      return d ? { data: { ...d, dias: args.p_dias }, error: null } : { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.admin_analitica_resumen' } }
+    }
     if (nombre === 'admin_analitica') {
       const d = typeof window !== 'undefined' ? window.__FAKE_ANALITICA__ : null
       return d ? { data: { ...d, dias: args.p_dias }, error: null } : { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.admin_analitica' } }
