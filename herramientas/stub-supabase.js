@@ -2751,6 +2751,10 @@ export const supabase = {
     }
     const respuesta = (typeof window !== 'undefined' && window.__RPC_RESPUESTAS__) || {}
     if (nombre in respuesta) return { data: respuesta[nombre], error: null }
+    // El Mercado con tiendas (1069) solo existe si la prueba lo da: si no, la
+    // base no tiene la migración y el cliente vuelve a `intercambios_mercado`,
+    // que el doble sí calcula. Un vacío sin error sería un Mercado vacío.
+    if (nombre === 'mercado_con_tiendas') return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
     return { data: null, error: null }
   },
   auth: {
