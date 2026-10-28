@@ -645,6 +645,12 @@
   width: 36px;
 }
 
+/* La carta no se aplasta: las cifras no se parten y se quedaban su sitio
+   (con la estrella de la 1079, «Pik…»). */
+.tds-tabla .tds-c-nombre {
+  min-width: 240px;
+}
+
 .tds-nombre {
   display: flex;
   gap: var(--e-sm);

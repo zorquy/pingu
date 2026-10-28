@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (322) — PINGU-Claude (arreglo: el nombre de la carta en la tabla del Stock)
+
+**Hecho**: en el PC, la columna «Carta» del Stock se aplastaba («Pik…»)
+desde que lleva la estrella (1079): las cifras no se parten y se quedaban el
+sitio. Ahora mide al menos 240 px y la tabla se desliza de lado si no cabe.
+La mitad A de la suite: los 45 rojos fallan igual en la versión de antes de
+la 1079 (pasados contra ella uno a uno): no son de esta vuelta.
+
+**Para PINGU**: nada.
+
+**Ficheros**: `css/tienda.css`.
+
+**Pendiente**: la propuesta de pulido para el piloto con tiendas.
+
 ## 2026-10-28 (321) — PINGU-Claude (1084 — el recibo de una venta)
 
 **Hecho**: «Recibo» en el aviso de cada venta y en cada venta de Ventas: una
