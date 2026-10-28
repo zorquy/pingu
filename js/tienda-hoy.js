@@ -12,6 +12,7 @@ import { euros } from './cardmarket.js'
 import { nombreDeSet } from './catalogo-series.js'
 import { PERIODOS_HOY, periodoDeHoy, comparacion, DONDE_VENTA } from './tiendas-puro.js'
 import { detalleDeLinea } from './tienda-vender.js'
+import { showToast } from './toast.js'
 
 const CLAVE = 'pd-tienda-periodo'
 const est = { periodo: 'hoy', pedido: 0, top: 'cartas', cifras: null }
@@ -102,8 +103,9 @@ function pintar(d, ultimas) {
 
   const dem = d.demanda || []
   $('.tdh-demanda').innerHTML = dem.length
-    ? dem.map((x) => `<li><span><strong>${escapeHtml(x.nombre || x.card_id)}</strong><small>${escapeHtml([x.set_id ? nombreSet(x.set_id) : '', x.numero].filter(Boolean).join(' · '))}</small></span><span class="tdh-quieren" title="${x.quieren} ${x.quieren === 1 ? 'persona la tiene' : 'personas la tienen'} en «La quiero»">${icons.heart(14)} ${x.quieren}</span><small class="tdh-tienes">tienes ${x.tienes}</small></li>`).join('')
+    ? dem.map((x) => `<li><span><strong>${escapeHtml(x.nombre || x.card_id)}</strong><small>${escapeHtml([x.set_id ? nombreSet(x.set_id) : '', x.numero].filter(Boolean).join(' · '))}</small></span><span class="tdh-quieren" title="${x.quieren} ${x.quieren === 1 ? 'persona la tiene' : 'personas la tienen'} en «La quiero»">${icons.heart(14)} ${x.quieren}</span><small class="tdh-tienes">tienes ${x.tienes}</small><span class="tdh-avisar" data-tdh-avisar="${escapeHtml(x.card_id)}" data-market="${escapeHtml(x.market || 'WEST')}"></span></li>`).join('')
     : '<li class="tdh-sin">Nadie tiene en su lista nada de lo que enseñas ahora.</li>'
+  if (dem.length) pintarAvisar(dem)
 
   const v = d.visitas || {}
   const cv = comparacion(v.actual, v.anterior, p.frente.replace('a esta hora', 'en todo el día'))
@@ -111,6 +113,42 @@ function pintar(d, ultimas) {
   // Cuánto stock tiene, en la cabecera de /tienda (fuera de esta caja).
   const st = document.querySelector('[data-tdh-stock]')
   if (st) st.textContent = `${(s.lineas || 0).toLocaleString('es-ES')} ${s.lineas === 1 ? 'línea' : 'líneas'} · ${(s.unidades || 0).toLocaleString('es-ES')} uds.`
+}
+
+// «Avisar a los que la buscan» (1089): por cada carta, cuántos quedan por
+// avisar y cuántos se avisaron, siempre en cifras (quién, nunca: lo dice la
+// base). Sin la migración no sale nada: no es «no hay a quién», es que no se
+// puede preguntar.
+async function pintarAvisar(dem) {
+  const yo = est.pedido
+  const { data, error } = await supabase.rpc('tienda_avisos_de', { p_cartas: dem.map((x) => ({ card_id: x.card_id, market: x.market || 'WEST' })) })
+  if (error || !Array.isArray(data) || yo !== est.pedido) return
+  for (const a of data) {
+    const hueco = [...caja.querySelectorAll('[data-tdh-avisar]')].find((h) => h.dataset.tdhAvisar === a.card_id && h.dataset.market === a.market)
+    if (hueco) hueco.innerHTML = avisarHtml(a)
+  }
+}
+
+const fechaCorta = (iso) => new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+
+function avisarHtml(a) {
+  if (a.pendientes > 0) return `<button type="button" class="btn-secondary tdh-avisar-btn" data-avisar title="Les llega un aviso a la campanita con tu tienda y la carta. No verás quiénes son.">${icons.bell(16)}<span>Avisar${a.avisadas > 0 ? ` a ${a.pendientes} más` : ''}</span></button>`
+  if (a.avisadas > 0) return `<small class="tdh-avisadas" title="${a.avisadas} ${a.avisadas === 1 ? 'persona avisada' : 'personas avisadas'}">${icons.checkCircle(14)} Avisadas${a.ultimo ? `<span class="tdh-avisadas-dia"> · ${escapeHtml(fechaCorta(a.ultimo))}</span>` : ''}</small>`
+  return ''
+}
+
+// Cambia ya y confirma después (896): si la base dice que no, vuelve.
+async function avisar(boton) {
+  const hueco = boton.closest('[data-tdh-avisar]')
+  const antes = hueco.innerHTML
+  hueco.innerHTML = avisarHtml({ pendientes: 0, avisadas: 1, ultimo: new Date().toISOString() })
+  const { data, error } = await supabase.rpc('tienda_avisar', { p_card: hueco.dataset.tdhAvisar, p_market: hueco.dataset.market })
+  if (error) {
+    hueco.innerHTML = antes
+    return showToast(/no está a la vista/.test(error.message || '') ? 'Esa carta ya no está a la vista en tu escaparate.' : 'No se ha podido avisar. Prueba otra vez.', 'error')
+  }
+  const n = data?.avisadas || 0
+  showToast(n ? `Avisamos a ${n} ${n === 1 ? 'persona' : 'personas'} que la ${n === 1 ? 'busca' : 'buscan'}.` : 'Ya estaban todas avisadas.', 'success')
 }
 
 // Las cifras de la 1083: lo más vendido (por carta o por expansión), lo que
@@ -232,6 +270,8 @@ export function montarHoy(destino) {
       </div>
     </div>`
   caja.addEventListener('click', (e) => {
+    const av = e.target.closest('[data-avisar]')
+    if (av) return avisar(av)
     const top = e.target.closest('[data-top]')
     if (top) {
       est.top = top.dataset.top

@@ -20,6 +20,7 @@ export const GRUPOS_CAMPANITA = [
   { id: 'torneo-apertura', titulo: 'Torneos nuevos con inscripciones abiertas', tipos: ['torneo_apertura'] },
   { id: 'torneo-juez', titulo: 'Cuando llaman a un juez en un torneo tuyo', tipos: ['torneo_juez'] },
   { id: 'cambios', titulo: 'Cuando alguien da una carta que buscas', tipos: ['trade_match', 'trade_match_seguido'] },
+  { id: 'tiendas', titulo: 'Cuando una tienda tiene una carta que buscas', tipos: ['tienda_la_tiene'] },
   { id: 'lunes', titulo: 'El resumen de tu semana, los lunes', tipos: ['resumen_lunes'] },
 ]
 

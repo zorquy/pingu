@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (327) — PINGU-Claude (1089 — avisar a los que la buscan)
+
+**Hecho**: en el Panel de una tienda, «Lo que busca la gente y tienes» lleva
+«Avisar» en cada carta con alguien por avisar. A cada persona que la tiene en
+«La quiero» (con su idioma y versión) le llega a la campanita «<tienda> tiene
+<carta>», con el precio si la tienda los enseña, y abre su escaparate con esa
+carta. Nadie recibe dos veces el mismo aviso de la misma tienda; si luego la
+pide alguien más, sale «Avisar a N más». La tienda solo ve cuántos. En
+/ajustes → Avisos, «Cuando una tienda tiene una carta que buscas» lo apaga.
+
+**Para PINGU**: ejecutar `supabase-migration-1089-tienda-avisar.sql`. Sin
+ella el Panel sale igual, sin el botón.
+
+**Ficheros**: `supabase-migration-1089-tienda-avisar.sql`, `js/tienda-hoy.js`,
+`js/notifications.js`, `js/avisos-prefs.js`, `css/tienda.css`, `CLAUDE.md`.
+Pruebas en `pruebas`: 1089 (contra PostgreSQL) y 1089-pantalla.
+
+**Pendiente**: nada de la propuesta: queda hecha entera (menos «Cuéntanos» y
+Cardmarket, que PINGU descartó).
+
 ## 2026-10-28 (326) — PINGU-Claude (1088 — Ventas y Escaparate sin pisos de botones)
 
 **Hecho**: en Ventas, una fila de mandos (periodo y dónde en dos desplegables,

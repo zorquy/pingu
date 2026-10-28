@@ -43,6 +43,8 @@ export const NOTIFICATION_TYPES = {
   // el que hace que la gente apague TODOS.
   trade_match: 'Cuando alguien da una carta que buscas',
   trade_match_seguido: 'Cuando alguien a quien sigues da una carta que buscas',
+  // Lo manda una tienda desde su Panel (1089), uno por carta y tienda.
+  tienda_la_tiene: 'Cuando una tienda tiene una carta que buscas',
   // El lunes de PokeDoc (794): lo manda netlify/functions/lunes.mjs.
   resumen_lunes: 'El resumen de tu semana, los lunes',
 }

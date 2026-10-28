@@ -1564,6 +1564,11 @@ html:has(.tdvt-hoja[open]) { overflow: hidden; }
 .tdh-ultimas b { display: grid; text-align: right; font-variant-numeric: tabular-nums; }
 .tdh-quieren { display: inline-flex; align-items: center; gap: var(--e-xs); padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--pink-bg); color: var(--pink); font-weight: 700; font-variant-numeric: tabular-nums; }
 .tdh-tienes { flex: none; }
+.tdh-avisar { display: contents; }
+.tdh-avisar-btn { flex: none; min-height: 36px; padding: 0 var(--e-sm); font-size: var(--t-xs); }
+@media (pointer: coarse) { .tdh-avisar-btn { min-height: 44px; } }
+@media (max-width: 600px) { .tdh-avisadas-dia { display: none; } }
+.tdh-avisadas { display: inline-flex; flex: none; align-items: center; gap: var(--e-xs); color: var(--text-mid); }
 
 .tdh-avisos { display: grid; gap: var(--e-xs); }
 .tdh-aviso {

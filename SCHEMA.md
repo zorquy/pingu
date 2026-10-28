@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1089 — Avisar a los que la buscan
+
+De «Tiendas, listas para el piloto» (punto 6, con las opciones recomendadas:
+lo manda la tienda con su botón, uno por carta y tienda, se apaga en
+/ajustes y la tienda nunca ve quién). Migración
+`supabase-migration-1089-tienda-avisar.sql`:
+
+- `tienda_avisos (tienda_id, card_id, market, user_id, avisado_el)`: a quién
+  se avisó. RLS sin políticas y sin permisos: lo que hay dentro es QUIÉN busca
+  qué, y solo lo tocan las funciones.
+- `tienda_por_avisar(tienda, carta, catálogo)` (interna): la regla de
+  `demanda` de `tienda_hoy` (lo que se ve con unidades y un deseo que casa en
+  idioma y versión), sin otras tiendas, sin quien apagó `tienda_la_tiene` y
+  sin quien ya fue avisado por esa tienda de esa carta.
+- `tienda_avisos_de(cartas jsonb)`: por carta, `pendientes`, `avisadas` y
+  `ultimo`. Cifras, nunca ids.
+- `tienda_avisar(carta, catálogo)`: apunta y escribe en `user_notifications`
+  en la misma transacción (tipo `tienda_la_tiene`, «<tienda> tiene <carta>»,
+  «Desde X €» con el precio que cuenta si `precio_visible`, enlace
+  `/usuario/<usuario>?carta=<id>`). Devuelve `{ avisadas, antes }`. Una carta
+  agotada, oculta o que no tiene: error con su motivo. Los push salen solos
+  por `enviar-push`.
+
+En la web: `pintarAvisar` (tienda-hoy.js) pide `tienda_avisos_de` con la
+`demanda` y rellena el hueco `[data-tdh-avisar]` de cada fila: «Avisar»
+(o «Avisar a N más» si ya se avisó a otros), «Avisadas · fecha» (en el móvil
+sin la fecha) o nada. Sin la migración, nada (no se puede preguntar). El
+botón cambia ya y vuelve si la base dice que no (896). En /ajustes, el grupo
+`tiendas` de `GRUPOS_CAMPANITA` y el tipo en `NOTIFICATION_TYPES`.
+
+Pruebas: `test-tanda-1089.mjs` (contra PostgreSQL: a quién, una vez, los que
+llegan después, dos tiendas, el texto y el enlace, lo que no se puede, y que
+nadie lee la tabla) y `test-tanda-1089-pantalla.mjs` (el Panel en PC y móvil,
+el fallo, sin migración y /ajustes).
+
 ## Tanda 1088 — Ventas y Escaparate sin pisos de botones
 
 De «Tiendas, listas para el piloto» (punto 5). **Ventas**: los mandos son una
