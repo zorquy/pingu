@@ -216,7 +216,8 @@ const TIENDA_FILAS = { tiendas: [{ user_id: 'user-2', ciudad: 'Bilbao', direccio
   // Cinco desde la 1072 (Ventas).
   check('  …cinco pestañas, el Panel elegido (1074)', (await p.locator('[data-td]').count()) === 5 && (await p.getAttribute('[data-td="hoy"]', 'aria-selected')) === 'true' && (await p.textContent('[data-td="hoy"]')) === 'Panel')
   check('  …sin primeros pasos (1074, PINGU: «los quitaría»)', (await p.locator('#tdPasos, #tdPasosCaja').count()) === 0)
-  await p.click('[data-td="datos"]')
+  // Desde la 1087, a 1.280 px las secciones son los enlaces de arriba (las pestañas se esconden).
+  await p.click('.nav-links a[data-ver="datos"]')
   check('  …Datos se abre y la dirección lo recuerda', (await p.isVisible('#tdDatos')) && p.url().includes('ver=datos'))
   check('  …con lo que ya hay', (await p.inputValue('#tdDatoCiudad')) === 'Bilbao' && (await p.inputValue('#tdDatoWeb')) === '@turincon' && (await p.isChecked('#tdDatoPrecio')))
   await p.fill('#tdDatoDireccion', 'Calle de ejemplo, 12')
@@ -226,7 +227,7 @@ const TIENDA_FILAS = { tiendas: [{ user_id: 'user-2', ciudad: 'Bilbao', direccio
   const fila = await p.evaluate(() => window.__TABLAS__.tiendas.find((t) => t.user_id === 'user-2'))
   check('  …guardar escribe SU fila', fila.direccion === 'Calle de ejemplo, 12' && fila.horario === 'L–S · 10:30–20:30' && fila.precio_visible === false, JSON.stringify(fila))
   check('  …y la cabecera se pone al día', (await p.textContent('#tdDonde')) === 'Bilbao · Calle de ejemplo, 12')
-  await p.click('[data-td="stock"]')
+  await p.click('.nav-links a[data-ver="stock"]')
   await p.waitForTimeout(800)
   check('Stock: monta el stock (1068), y sin respuesta de la base dice que falta un paso', (await p.isVisible('[data-td-hoja="stock"] .tds')) && /falta un paso/.test(await p.textContent('[data-td-hoja="stock"]')))
   await ctx.close()
