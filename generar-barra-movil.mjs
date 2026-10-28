@@ -121,7 +121,9 @@ export function conHojaMovil(html) {
 // y una vuelta atrás (`navigation.activation.navigationType === 'traverse'`)
 // sale «atras»; lo demás, el fundido de siempre. Los navegadores sin tipos
 // de transición no entran en el `if` y se quedan con el fundido.
-export const CLASE_MOVIL = "<script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil');addEventListener('pagereveal',function(e){var t=e.viewTransition&&e.viewTransition.types;if(!t)return;var a=window.navigation&&navigation.activation;if(a&&a.navigationType==='traverse')t.add('atras');else if(document.documentElement.hasAttribute('data-detalle'))t.add('adelante')})</script>"
+// Y LA MARCA DE TIENDA (1089b): con `pd-tienda` (js/tienda-puertas.js), las
+// barras de una persona no se enseñan mientras llegan las de la tienda.
+export const CLASE_MOVIL = "<script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil');try{localStorage.getItem('pd-tienda')&&document.documentElement.classList.add('pd-tienda')}catch(e){}addEventListener('pagereveal',function(e){var t=e.viewTransition&&e.viewTransition.types;if(!t)return;var a=window.navigation&&navigation.activation;if(a&&a.navigationType==='traverse')t.add('atras');else if(document.documentElement.hasAttribute('data-detalle'))t.add('adelante')})</script>"
 const CLASE_MOVIL_VIEJA = /<script>if\(window\.matchMedia\('\(max-width: 900px\)'\)\.matches\)document\.documentElement\.classList\.add\('con-barra-movil'\)[^<]*<\/script>/
 export function conClaseMovil(html) {
   if (html.includes(CLASE_MOVIL)) return html

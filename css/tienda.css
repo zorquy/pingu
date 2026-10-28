@@ -1414,10 +1414,10 @@ html:has(.tds-dialogo[open]) {
   color: var(--text);
   box-shadow: var(--shadow-lg);
 }
-.tdvt-hoja[open] { position: fixed; display: flex; flex-direction: column; }
+.tdvt-hoja[open] { position: fixed; display: block; }
 .tdvt-hoja::backdrop { background: rgb(0 0 0 / 35%); }
 html:has(.tdvt-hoja[open]) { overflow: hidden; }
-.tdvt-hoja-caja { display: grid; gap: var(--e-md); padding: var(--e-lg); overflow-y: auto; overscroll-behavior: contain; }
+.tdvt-hoja-caja { box-sizing: border-box; display: grid; gap: var(--e-md); max-height: inherit; padding: var(--e-lg); overflow-y: auto; overscroll-behavior: contain; }
 .tdvt-hoja-cab { display: flex; gap: var(--e-sm); align-items: flex-start; justify-content: space-between; }
 .tdvt-hoja-cab h2 { margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
 .tdvt-hoja-cuando { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }

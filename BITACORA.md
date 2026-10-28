@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (328) — PINGU-Claude (1089b — Vender en el iPhone y la barra de una tienda)
+
+**Hecho**: dos fallos que vio PINGU en su iPhone con la tienda de prueba.
+(1) Vender, desde el centro de la barra, dejaba la pantalla gris y sin hoja:
+en Safari, el hijo `flex: 1` de un diálogo en columna sin alto se queda a
+cero. Ahora el diálogo es un bloque y la columna es su caja, con el tope de
+alto heredado (Vender, el recibo y la hoja de una venta). (2) Al moverse por
+la barra de abajo se veía un momento la barra de una persona: la cabecera de
+cada página lee la marca `pd-tienda` y esconde las barras de persona hasta
+que llegan las de la tienda (`html.pd-tienda`, regla en `style.css`).
+
+**Para PINGU**: nada. Probar Vender en el iPhone.
+
+**Ficheros**: `css/tienda-vender.css`, `css/tienda.css`, `css/style.css`,
+`js/app.js`, `generar-barra-movil.mjs` y las 46 páginas con barra (más
+`cartas.html`), regeneradas. Prueba en `pruebas`: 1089b-pantalla.
+
+**Pendiente**: el pulido de mañana.
+
 ## 2026-10-28 (327) — PINGU-Claude (1089 — avisar a los que la buscan)
 
 **Hecho**: en el Panel de una tienda, «Lo que busca la gente y tienes» lleva

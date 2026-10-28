@@ -696,6 +696,8 @@ export async function initNavbar() {
   const session = await getSession()
   let deTienda = false
   if (!session && marca) recordarTienda(null)
+  // La marca de la cabecera esconde las barras de una persona hasta saberlo (1089b).
+  if (!session) document.documentElement.classList.remove('pd-tienda')
   if (session) {
     montarFeedbackEnElPie()
     const profile = await getProfile(session.user.id)
@@ -728,6 +730,7 @@ export async function initNavbar() {
 
     deTienda = profile?.tipo === 'tienda'
     recordarTienda(deTienda ? profile : null)
+    document.documentElement.classList.toggle('pd-tienda', deTienda)
     if (deTienda && conBarra && !puedeAbrirTienda(location.pathname, location.search, { u: profile.username, id: profile.id })) {
       location.replace('/tienda')
       return session

@@ -1839,6 +1839,9 @@ html.ola-tema::view-transition-new(root) {
 
 /* S780.49 */
 .bm { display: none; }
+/* Una tienda no ve las barras de una persona mientras llegan las suyas (SCHEMA 1089b). */
+html.pd-tienda:not(.es-tienda) .nav-links,
+html.pd-tienda:not([data-bm-montada]) .bm > a { visibility: hidden; }
 @media (max-width: 900px) {
   body:has(> .bm) { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
   .bm {

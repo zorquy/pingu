@@ -15,13 +15,16 @@
   color: var(--text);
   box-shadow: var(--shadow-lg);
 }
-.tdv[open] { position: fixed; display: flex; flex-direction: column; }
+/* El diálogo es un bloque y la columna es la caja, con el tope de alto heredado:
+   en Safari, un hijo `flex: 1` de un diálogo flex sin alto se queda a CERO y la
+   hoja salía vacía (solo el fondo gris). SCHEMA 1089b. */
+.tdv[open] { position: fixed; display: block; }
 .tdv::backdrop { background: rgb(0 0 0 / 35%); }
 html:has(.tdv[open]) { overflow: hidden; }
 /* Una clase con `display` le gana al `[hidden]` del navegador (la 1069). */
 .tdv [hidden] { display: none; }
 
-.tdv-caja { display: flex; flex-direction: column; min-height: 0; flex: 1; }
+.tdv-caja { display: flex; flex-direction: column; max-height: inherit; }
 
 .tdv-cab {
   display: flex;
@@ -50,6 +53,8 @@ html:has(.tdv[open]) { overflow: hidden; }
   gap: var(--e-md);
   align-content: start;
   padding: var(--e-lg);
+  flex: 1 1 auto;
+  min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -206,13 +211,13 @@ html:has(.tdv[open]) { overflow: hidden; }
   color: var(--text);
   box-shadow: var(--shadow-lg);
 }
-.tdr[open] { position: fixed; display: flex; flex-direction: column; }
+.tdr[open] { position: fixed; display: block; }
 .tdr::backdrop { background: rgb(0 0 0 / 35%); }
 html:has(.tdr[open]) { overflow: hidden; }
-.tdr-caja { display: flex; flex-direction: column; min-height: 0; }
+.tdr-caja { display: flex; flex-direction: column; max-height: inherit; }
 .tdr-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); padding: var(--e-md) var(--e-lg); border-bottom: 1px solid var(--border); }
 .tdr-cab h2 { margin: 0; font-size: var(--t-lg); }
-.tdr-vista { flex: 1; min-height: 0; padding: var(--e-md); overflow-y: auto; overscroll-behavior: contain; background: var(--ice); }
+.tdr-vista { flex: 1 1 auto; min-height: 0; padding: var(--e-md); overflow-y: auto; overscroll-behavior: contain; background: var(--ice); }
 .tdr-vista img { display: block; width: 100%; height: auto; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); }
 .tdr-nota { margin: 0; padding: var(--e-sm) var(--e-lg) 0; color: var(--text-mid); font-size: var(--t-xs); }
 .tdr-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); padding: var(--e-md) var(--e-lg) var(--e-lg); }

@@ -41785,6 +41785,28 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1089b — Vender en el iPhone y la barra de una tienda
+
+**Las hojas de la tienda son un bloque.** `.tdv`, `.tdr` y `.tdvt-hoja` eran
+`display: flex; flex-direction: column` con un hijo `flex: 1; min-height: 0`
+y sin alto: en Safari ese hijo se queda a CERO (la base `0%` contra un alto
+indefinido) y, con `overflow: hidden`, la hoja era su borde: la pantalla gris
+del fondo y nada encima. En Chromium no pasa, por eso la 1072 salía verde.
+Ahora `[open]` es `display: block` y la columna es la caja de dentro
+(`.tdv-caja`, `.tdr-caja`) con `max-height: inherit`; lo que se desliza lleva
+`flex: 1 1 auto; min-height: 0`. Una hoja nueva va así, no con el diálogo en
+columna.
+
+**Una tienda no ve las barras de una persona.** El guion de la cabecera
+(`CLASE_MOVIL` de `generar-barra-movil.mjs`) pone `html.pd-tienda` si está la
+marca de `js/tienda-puertas.js`; `style.css` esconde `.nav-links` hasta
+`.es-tienda` y los botones de `.bm` hasta `[data-bm-montada]`. app.js quita
+la clase cuando sabe que no es una tienda (o no hay sesión).
+
+Prueba: `test-tanda-1089b-pantalla.mjs` (que las tres hojas son un bloque con
+alto, y la barra con `app.js` retrasado: nada de persona a la vista, luego la
+de la tienda; una persona, su barra entera).
+
 ## Tanda 1089 — Avisar a los que la buscan
 
 De «Tiendas, listas para el piloto» (punto 6, con las opciones recomendadas:
