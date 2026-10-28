@@ -41785,6 +41785,24 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1089c — El desfase de la 776, solo después del teclado
+
+PINGU, en la app instalada (cuenta normal, Mi colección y un perfil): al bajar
+y volver a subir, la barra de arriba se quedaba a media pantalla con la línea
+de progreso encima, y la de abajo no estaba. Las tres cosas se movían a la vez
+y la misma distancia, que es lo que hace `vigilarVisor` (776): `--ios-arriba`
+baja lo de arriba y `--ios-abajo` baja lo de abajo. O sea, la corrección se
+disparaba sin teclado: al hacer scroll deprisa iOS da un `visualViewport.offsetTop`
+de cientos de píxeles sin que lo fijo se haya movido.
+
+Ahora el desfase se ARMA al soltar un campo (`focusout` de un input, textarea,
+select o editable; se vuelve a medir a los 400 y 900 ms) y se desarma cuando el
+visor vuelve a su sitio (pasados 600 ms). Sin armar, `--ios-arriba` y
+`--ios-abajo` valen 0. `desfaseDelVisor` (pura) no cambia.
+
+Prueba: la 776, con `teclado` (soltar un campo antes de medir), `vuelve` (el
+visor en su sitio) y el caso nuevo: visor movido sin teclado, nada se mueve.
+
 ## Tanda 1089b — Vender en el iPhone y la barra de una tienda
 
 **Las hojas de la tienda son un bloque.** `.tdv`, `.tdr` y `.tdvt-hoja` eran

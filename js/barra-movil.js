@@ -207,6 +207,12 @@ function vigilarVisor(doc, win) {
   const instalada = win.navigator.standalone === true || win.matchMedia('(display-mode: standalone)').matches
   const escribiendo = () => doc.activeElement?.matches?.('input:not([type=checkbox]):not([type=radio]):not([type=button]), textarea, select, [contenteditable="true"]')
   let pendiente = false
+  // SOLO DESPUÉS DEL TECLADO (1089c). Al bajar y subir deprisa, iOS da un
+  // `offsetTop` de cientos de píxeles sin que lo fijo se haya movido, y esto
+  // bajaba la barra de arriba a media pantalla (y la de abajo fuera). El
+  // desfase de la 776 lo deja el teclado al irse: se arma al soltar un campo
+  // y se desarma cuando el visor vuelve a su sitio.
+  let armadoDesde = 0
   const medir = () => {
     pendiente = false
     const clave = CLAVE_ALTO + win.innerWidth
@@ -216,7 +222,9 @@ function vigilarVisor(doc, win) {
       maximo = win.innerHeight
       try { win.sessionStorage.setItem(clave, String(maximo)) } catch {}
     }
-    const { arriba, abajo } = desfaseDelVisor({ alto: win.innerHeight, visor, maximo, escribiendo: escribiendo(), instalada })
+    let { arriba, abajo } = desfaseDelVisor({ alto: win.innerHeight, visor, maximo, escribiendo: escribiendo(), instalada })
+    if (!armadoDesde) arriba = abajo = 0
+    else if (!arriba && !abajo && Date.now() - armadoDesde > 600) armadoDesde = 0
     html.classList.toggle('ios-desfase', arriba > 0 || abajo > 0)
     html.style.setProperty('--ios-arriba', `${arriba}px`)
     html.style.setProperty('--ios-abajo', `${abajo}px`)
@@ -228,7 +236,12 @@ function vigilarVisor(doc, win) {
   win.addEventListener('scroll', pedir, { passive: true })
   win.addEventListener('pageshow', pedir)
   // El teclado tarda en irse: se vuelve a mirar cuando ya se ha ido.
-  doc.addEventListener('focusout', () => { pedir(); win.setTimeout(pedir, 400) })
+  doc.addEventListener('focusout', (e) => {
+    if (e.target?.matches?.('input, textarea, select, [contenteditable="true"]')) armadoDesde = Date.now()
+    pedir()
+    win.setTimeout(pedir, 400)
+    win.setTimeout(pedir, 900)
+  })
   medir()
 }
 

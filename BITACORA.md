@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (329) — PINGU-Claude (1089c — la barra de arriba a media pantalla en el iPhone)
+
+**Hecho**: PINGU, en la app instalada, con una cuenta normal: al bajar y subir,
+la barra de arriba se quedaba flotando a media pantalla y la de abajo
+desaparecía. No lo trajo la 1089b: era la corrección de la 776 (el visor que
+deja el teclado al irse) disparándose SIN teclado. iOS da un `offsetTop` de
+cientos de píxeles al hacer scroll deprisa, y la 776 bajaba la barra de arriba
+y la línea de progreso esa cantidad (y la de abajo, fuera de la pantalla).
+Ahora el desfase solo se aplica después de soltar un campo, y se quita al
+volver el visor a su sitio.
+
+**Para PINGU**: nada. Si con el teclado vuelve a pasar lo de la 776, decírmelo.
+
+**Ficheros**: `js/barra-movil.js`. Pruebas en `pruebas`: la 776, al día (el
+desfase después del teclado, que se quita, y que sin teclado no mueve nada).
+
+**Pendiente**: el pulido de mañana.
+
 ## 2026-10-29 (328) — PINGU-Claude (1089b — Vender en el iPhone y la barra de una tienda)
 
 **Hecho**: dos fallos que vio PINGU en su iPhone con la tienda de prueba.
