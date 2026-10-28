@@ -69,11 +69,14 @@ export function lateralHtml(secciones, actual, clave, { conSesion = false, abier
     .map((s, i) => {
       const activa = s.nombre === actual
       const partes = soloLaColeccion(s) && clave !== 'mi-coleccion'
-      const conCajon = s.enlaces.length > 1 || soloLaColeccion(s)
-      const abierto = conCajon && s.nombre === abierta
+      // Una sección de fuera que pide el menú de la página (la Colección de una
+      // tienda, 1075: /cartas con sus pestañas) lo lleva colgado, como Mi colección.
+      const menuAqui = Boolean(s.menu) && activa
+      const conCajon = s.enlaces.length > 1 || soloLaColeccion(s) || menuAqui
+      const abierto = conCajon && (s.nombre === abierta || menuAqui)
       const id = `lat-cajon-${i}`
       const cajon = conCajon
-        ? `<div class="lat-cajon${abierto ? ' lat-abierto' : ''}" id="${id}"${abierto ? '' : ' inert'}><ul class="lat-paginas">${soloLaColeccion(s) && clave === 'mi-coleccion'
+        ? `<div class="lat-cajon${abierto ? ' lat-abierto' : ''}" id="${id}"${abierto ? '' : ' inert'}><ul class="lat-paginas">${(soloLaColeccion(s) && clave === 'mi-coleccion') || menuAqui
           // Dentro de Mi colección, sin la fila «Mi colección» (767, PINGU:
           // «no hace falta ese submenú»): su menú va directamente aquí.
           ? '<li class="lat-menu-sitio"></li>'

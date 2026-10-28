@@ -20,7 +20,7 @@ import { rutaDeProducto } from './productos.js'
 import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { COLUMNAS_CARTA_DE_SET } from './mi-coleccion/columnas-set.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
-import { enlaceAMapa } from './tiendas-puro.js'
+import { enlaceAMapa, enlacesDeTienda } from './tiendas-puro.js'
 
 const POR_PAGINA = 60
 const COLUMNAS = COLUMNAS_CARTA_DE_SET.replace('tcg_sets(tcg_online_code,serie_id,release_date)', 'tcg_sets(name,name_en,tcg_online_code,serie_id,release_date,oculto)')
@@ -68,7 +68,7 @@ function baldosaHtml(f) {
   const foto = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : p?.image ? `src="${escapeHtml(p.image)}" onerror="this.remove()"` : null
   const href = c ? rutaDeCarta(c) : f.product_id ? rutaDeProducto({ id: f.product_id }) : null
   const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.estado, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null, f.gradeo].filter(Boolean).join(' · ')
-  const precio = est.datos?.precios === false ? '<span class="pt-pregunta">Pregunta en la tienda</span>' : f.precio == null ? '<span class="pt-pregunta">Sin precio</span>' : escapeHtml(euros(f.precio))
+  const precio = est.datos?.precios === false ? '<span class="pt-pregunta">Pregunta el precio</span>' : f.precio == null ? '<span class="pt-pregunta">Sin precio</span>' : escapeHtml(euros(f.precio))
   return `<article class="pt-carta${f.de_tu_lista ? ' tuya' : ''}">
     <a class="pt-foto${f.product_id ? ' pt-foto-producto' : ''}" href="${escapeHtml(href || '#')}"${c ? ` data-marca-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">${foto ? `<img ${foto} alt="" width="245" height="342" loading="lazy" />` : ''}${f.de_tu_lista ? `<span class="pt-tuya" title="De tu lista">${ICONOS_COLECCION.corazon(14)}</span>` : ''}</a>
     <span class="pt-precio">${precio}</span>
@@ -127,7 +127,7 @@ function cabeceraHtml() {
       <dl class="pt-datos">
         ${t.direccion ? `<div><dt>Dirección</dt><dd>${escapeHtml(t.direccion)}${t.ciudad ? `, ${escapeHtml(t.ciudad)}` : ''}</dd></div>` : ''}
         ${t.horario ? `<div><dt>Horario</dt><dd>${escapeHtml(t.horario)}</dd></div>` : ''}
-        ${t.web ? `<div><dt>Web</dt><dd>${escapeHtml(t.web)}</dd></div>` : ''}
+        ${enlacesDeTienda(t).map((e) => `<div><dt>${e.tipo === 'web' ? 'Web' : 'Instagram'}</dt><dd><a href="${escapeHtml(e.href)}" target="_blank" rel="noopener nofollow">${escapeHtml(e.texto)}</a></dd></div>`).join('')}
         <div><dt>Le siguen</dt><dd data-pt-seguidores>—</dd></div>
       </dl>
     </aside>
@@ -208,8 +208,12 @@ export async function montarPerfilTienda(destino, perfil, sesion) {
   caja = destino
   est.perfil = perfil
   est.sesion = sesion
-  const { data } = await supabase.from('tiendas').select('ciudad,direccion,horario,web,precio_visible').eq('user_id', perfil.id).maybeSingle()
-  est.tienda = data || {}
+  // `instagram` llega con la 1074; sin ella, pedirla tumba la consulta entera
+  // (42703, la 624), así que se vuelve a pedir sin.
+  const columnas = 'ciudad,direccion,horario,web,precio_visible'
+  let r = await supabase.from('tiendas').select(`${columnas},instagram`).eq('user_id', perfil.id).maybeSingle()
+  if (r.error?.code === '42703') r = await supabase.from('tiendas').select(columnas).eq('user_id', perfil.id).maybeSingle()
+  est.tienda = r.data || {}
   // Desde el Mercado o «En tiendas» (`?lista=1`): ya con lo de tu lista.
   const params = new URLSearchParams(location.search)
   if (sesion && params.get('lista') === '1') est.filtros.de_tu_lista = true

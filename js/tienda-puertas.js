@@ -9,7 +9,9 @@
 // leer lo que lee cualquiera (SCHEMA 1071).
 export const MARCA_TIENDA = 'pd-tienda'
 
-const SUYAS = ['tienda', 'mensajes', 'privacidad', 'terminos', 'sobre', '404', 'sin-conexion', 'auth', 'alta-tienda', 'reset-password', 'onboarding']
+// `cartas` (1075): su Colección, el catálogo entero con su stock (la misma
+// pantalla en modo tienda, js/mi-coleccion.js). La ficha completa, /carta, no.
+const SUYAS = ['tienda', 'cartas', 'mensajes', 'privacidad', 'terminos', 'sobre', '404', 'sin-conexion', 'auth', 'alta-tienda', 'reset-password', 'onboarding']
 
 export function puedeAbrirTienda(ruta, buscar, tienda) {
   const tramos = String(ruta || '/').replace(/\.html$/, '').split('/').filter(Boolean)

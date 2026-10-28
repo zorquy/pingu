@@ -133,7 +133,7 @@ export function montarHoy(destino) {
   caja.innerHTML = `
     <div class="tdh">
       <div class="tdh-cab">
-        <h2>Hoy</h2>
+        <h2>Panel</h2>
         <div class="tdvt-chips" role="group" aria-label="Periodo">${PERIODOS_HOY.map(([v, t]) => `<button type="button" class="tdvt-chip" data-periodo="${v}" aria-pressed="${v === est.periodo}">${t}</button>`).join('')}</div>
       </div>
       <div class="tdh-cuerpo">

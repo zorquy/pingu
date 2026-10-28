@@ -1,8 +1,8 @@
 // LA WEB DE UNA TIENDA (tanda 1071). PINGU: «que tenga este panel y ya está;
 // que no pueda acceder a todo lo demás». Una cuenta de tienda no ve el
 // PokeDoc de una persona: la barra de arriba, la lateral del ordenador y la
-// de abajo del móvil son las de SU panel (Hoy, Stock, Escaparate, Mensajes y
-// Datos), la lupa busca en su stock y el color de la sección es el suyo.
+// de abajo del móvil son las de SU panel (Panel, Colección, Stock, Ventas,
+// Escaparate, Mensajes y Datos), la lupa busca en su stock y el color de la sección es el suyo.
 //
 // Entra por `import()` desde app.js solo cuando el perfil es de tienda: una
 // persona no baja ni un byte. Las barras son las de siempre (barra-movil.js
@@ -14,7 +14,13 @@ import { hojaInyectada } from './hoja.js'
 // `ver` es la pestaña de /tienda: con ella, cambiar de sección no recarga
 // (tienda.js) y las barras saben cuál marcar.
 export const SECCIONES_DE_TIENDA = [
-  { nombre: 'Hoy', ver: 'hoy', icono: 'barChart', href: '/tienda' },
+  // «Panel» y no «Hoy» (1074, PINGU): las cifras van por hoy, la semana, el
+  // mes o el año. Su `ver` sigue siendo `hoy`, que es lo que llevan los enlaces.
+  { nombre: 'Panel', ver: 'hoy', icono: 'barChart', href: '/tienda' },
+  // Colección (1075): el catálogo entero con su stock, para buscar cartas por
+  // expansión, Pokédex o nombre y meterlas en el stock. Es /cartas en modo
+  // tienda (js/mi-coleccion.js), así que no tiene `ver`: se navega.
+  { nombre: 'Colección', icono: 'layers', href: '/cartas', menu: true },
   { nombre: 'Stock', ver: 'stock', icono: 'package', href: '/tienda?ver=stock' },
   { nombre: 'Ventas', ver: 'ventas', icono: 'receipt', href: '/tienda?ver=ventas' },
   { nombre: 'Escaparate', ver: 'escaparate', icono: 'eye', href: '/tienda?ver=escaparate' },
@@ -23,25 +29,29 @@ export const SECCIONES_DE_TIENDA = [
 ]
 
 // En la forma de las secciones de la barra (las de seccionesDeLaBarra).
-const comoSeccion = (s) => ({ nombre: s.nombre, ver: s.ver, icono: s.icono, clase: s.clase, enlaces: [{ href: s.href, texto: s.nombre }] })
+// `fija`: su enlace es el que es (la «Colección» de una persona lleva a Mi
+// colección con cuenta; la de una tienda, a /cartas). `menu`: en la lateral
+// lleva colgadas las pestañas de su página.
+const comoSeccion = (s) => ({ nombre: s.nombre, ver: s.ver, icono: s.icono, clase: s.clase, menu: s.menu, fija: true, enlaces: [{ href: s.href, texto: s.nombre }] })
 export const seccionesDeTienda = () => SECCIONES_DE_TIENDA.map(comoSeccion)
 
 // VENDER (1072) no es una página: es la hoja de js/tienda-vender.js. En el
-// móvil va en el centro de la barra (cinco huecos: Ventas y Datos, desde la
-// hoja «Tú»); en el PC, como botón arriba.
+// móvil va en el centro de la barra (cinco huecos: Ventas, Escaparate y Datos,
+// desde la hoja «Tú»); en el PC, como botón arriba.
 export const VENDER = { nombre: 'Vender', ver: 'vender', icono: 'coins', href: '/tienda?vender=1', clase: 'bm-vender' }
-export const seccionesDelMovil = () => ['Hoy', 'Stock', 'Vender', 'Escaparate', 'Mensajes'].map((n) => comoSeccion(n === 'Vender' ? VENDER : SECCIONES_DE_TIENDA.find((s) => s.nombre === n)))
+export const seccionesDelMovil = () => ['Panel', 'Colección', 'Vender', 'Stock', 'Mensajes'].map((n) => comoSeccion(n === 'Vender' ? VENDER : SECCIONES_DE_TIENDA.find((s) => s.nombre === n)))
 
 export const BUSCAR_EN_STOCK = { href: '/tienda?ver=stock&buscar=1', texto: 'Busca en tu stock…' }
 
 // Qué sección es esta página: Mensajes por su ruta, las de /tienda por su
-// pestaña (sin `ver`, Hoy). Su escaparate no es ninguna.
+// pestaña (sin `ver`, el Panel). Su escaparate no es ninguna.
 export function seccionDeTienda(ruta, buscar) {
   const k = (String(ruta || '/').replace(/\.html$/, '').split('/').filter(Boolean)[0] || '').toLowerCase()
   if (k === 'mensajes') return 'Mensajes'
+  if (k === 'cartas') return 'Colección'
   if (k !== 'tienda') return null
   const ver = new URLSearchParams(buscar || '').get('ver') || 'hoy'
-  return SECCIONES_DE_TIENDA.find((s) => s.ver === ver)?.nombre || 'Hoy'
+  return SECCIONES_DE_TIENDA.find((s) => s.ver === ver)?.nombre || 'Panel'
 }
 
 export function enlacesHtml(actual) {

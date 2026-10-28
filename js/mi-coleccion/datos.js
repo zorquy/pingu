@@ -67,6 +67,111 @@ function faltaLaColumnaCambio(error) {
   return true
 }
 
+// ── LA COLECCIÓN DE UNA TIENDA ES SU STOCK (tanda 1075) ──
+//
+// PINGU: «replicar el panel de colección de los usuarios… pero en vez de
+// añadir a colección, para la tienda, añadir a stock». /cartas, abierta por
+// una cuenta de tienda, es la misma pantalla con sus líneas sacadas de
+// `tienda_stock` y no de `user_collection`: las mismas funciones devuelven
+// la misma forma de línea y la pantalla no se entera. Lo que no se llama
+// igual va así:
+//   unidades ↔ cantidad · coste ↔ precio_compra · precio ↔ valor_manual
+// («Tu valor» de una copia es, en una tienda, a cuánto la vende: el valor de
+// su stock a su precio, como en el Panel). Lo enciende mi-coleccion.js al
+// ver que la cuenta es de tienda, y solo en esa página.
+let deTienda = false
+export const esStockDeTienda = () => deTienda
+export function usarStockDeTienda() {
+  deTienda = true
+}
+const COLUMNAS_STOCK = 'id,tienda_id,card_id,market,idioma,estado,variante,gradeo,unidades,coste,precio,ubicacion,visible,notas,created_at,updated_at'
+const MAX_UNIDADES = 99999
+export const lineaDeStock = (f) =>
+  f && {
+    id: f.id,
+    user_id: f.tienda_id,
+    card_id: f.card_id,
+    market: f.market,
+    idioma: f.idioma,
+    estado: f.estado,
+    variante: f.variante,
+    cantidad: f.unidades,
+    gradeo: f.gradeo,
+    valor_manual: f.precio == null ? null : Number(f.precio),
+    precio_compra: f.coste == null ? null : Number(f.coste),
+    notas: f.notas,
+    created_at: f.created_at,
+    updated_at: f.updated_at,
+    cambio: 0,
+    ubicacion: f.ubicacion,
+    visible: f.visible,
+  }
+// Lo que una línea de persona cambia, en columnas del stock. `cambio` (para
+// cambiar) y `user_id` no son de una tienda, y no se mandan.
+const DE_LINEA = { cantidad: 'unidades', valor_manual: 'precio', precio_compra: 'coste' }
+const PROPIAS = ['card_id', 'market', 'idioma', 'estado', 'variante', 'gradeo', 'notas', 'ubicacion', 'visible', 'updated_at']
+export function cambiosDeStock(cambios) {
+  const o = {}
+  for (const [k, v] of Object.entries(cambios || {})) {
+    if (v === undefined) continue
+    if (DE_LINEA[k]) o[DE_LINEA[k]] = v
+    else if (PROPIAS.includes(k)) o[k] = k === 'notas' && v != null ? String(v).slice(0, 300) : v
+  }
+  if ('unidades' in o) o.unidades = Math.max(0, Math.min(MAX_UNIDADES, Math.round(Number(o.unidades) || 0)))
+  return o
+}
+
+// Sumar unidades a una línea que ya está: el coste queda en la MEDIA de lo
+// que costó cada una (sin coste en una de las dos, el que se sepa), y un
+// precio nuevo, si se ha escrito, manda.
+export function sumaDeStock(ya, nueva) {
+  const a = Number(ya?.unidades) || 0
+  const b = Math.max(1, Number(nueva?.unidades) || 1)
+  const o = { unidades: Math.min(MAX_UNIDADES, a + b) }
+  const c1 = ya?.coste == null ? null : Number(ya.coste)
+  const c2 = nueva?.coste == null ? null : Number(nueva.coste)
+  if (c2 != null) o.coste = c1 == null || a === 0 ? c2 : Math.round(((c1 * a + c2 * b) / (a + b)) * 100) / 100
+  if (nueva?.precio != null) o.precio = nueva.precio
+  return o
+}
+
+async function stockDe(tiendaId, { mercado = null, cardId = null, cardIds = null, conAgotadas = false } = {}) {
+  const filas = []
+  for (let desde = 0; ; desde += 1000) {
+    let q = supabase.from('tienda_stock').select(COLUMNAS_STOCK).eq('tienda_id', tiendaId).not('card_id', 'is', null)
+    if (mercado) q = q.eq('market', mercado)
+    if (cardId) q = q.eq('card_id', cardId)
+    if (cardIds) q = q.in('card_id', cardIds)
+    // Lo agotado no se tiene (la ficha no dice «tienes 0»); pero al añadir
+    // se busca también, para sumarle en vez de abrir otra línea igual.
+    if (!conAgotadas) q = q.gt('unidades', 0)
+    const { data, error } = await q.order('created_at', { ascending: false }).range(desde, desde + 999)
+    if (error) throw traducir(error)
+    filas.push(...(data || []))
+    if (!data || data.length < 1000) break
+  }
+  return filas
+}
+
+// Con `select`: una escritura que la política rechaza no da error, vuelve
+// vacía (la 510).
+async function escribirStock(id, columnas) {
+  const { data, error } = await supabase.from('tienda_stock').update(columnas).eq('id', id).select(COLUMNAS_STOCK)
+  if (error) throw traducir(error)
+  if (!data?.length) throw new Error('No se ha podido guardar: esa línea no es de tu stock o ya no existe.')
+  return lineaDeStock(data[0])
+}
+
+async function anadirAlStock(tiendaId, linea, mercado) {
+  const nueva = cambiosDeStock({ market: mercado, ...linea })
+  const igual = (await stockDe(tiendaId, { cardId: linea.card_id, conAgotadas: true })).find((f) => claveDeLinea(lineaDeStock(f)) === claveDeLinea(linea))
+  if (igual) return escribirStock(igual.id, sumaDeStock(igual, nueva))
+  const { data, error } = await supabase.from('tienda_stock').insert(nueva).select(COLUMNAS_STOCK).single()
+  if (error) throw traducir(error)
+  if (!data) throw new Error('No se ha podido guardar en tu stock.')
+  return lineaDeStock(data)
+}
+
 // EL MERCADO ES DEL TODO, no solo del catálogo (tanda 437). Quien elige
 // el japonés quiere ver SU colección japonesa, no sus cartas inglesas
 // sobre un catálogo japonés. Y además hace falta que sea así: la clave de
@@ -75,6 +180,7 @@ function faltaLaColumnaCambio(error) {
 // memoria con la id a secas mezclaría dos cartas DISTINTAS sin dar ningún
 // error. Mientras cada pantalla mira un solo mercado, el choque no existe.
 export async function lineasDe(userId, mercado = 'WEST') {
+  if (deTienda) return (await stockDe(userId, { mercado })).map(lineaDeStock)
   const filas = []
   // Con paginación: una colección grande pasa de las 1.000 filas que
   // PostgREST devuelve de una vez, y cortar ahí sin avisar diría un valor
@@ -125,6 +231,7 @@ export const claveDeCarta = (id, market) => `${id}|${market || MERCADO_POR_DEFEC
 export const claveDeLineaEnMercado = (l) => claveDeCarta(l?.card_id, l?.market)
 
 export async function lineasDeTodo(userId) {
+  if (deTienda) return (await stockDe(userId)).map(lineaDeStock)
   const filas = []
   for (let desde = 0; ; desde += 1000) {
     const { data, error } = await supabase
@@ -178,6 +285,7 @@ export async function cartasPorClaves(lineas) {
 }
 
 export async function lineasDeCarta(userId, cardId) {
+  if (deTienda) return (await stockDe(userId, { cardId })).map(lineaDeStock)
   const { data, error } = await supabase.from('user_collection').select(COLUMNAS_LINEA).eq('user_id', userId).eq('card_id', cardId)
   if (error) throw traducir(error)
   return data || []
@@ -187,6 +295,8 @@ export async function lineasDeCarta(userId, cardId) {
 // versión y gradeo) se le suman copias en vez de crear otra. Dos filas
 // iguales separadas solo harían la lista más larga.
 export async function anadir(userId, linea, mercado = 'WEST') {
+  // Al stock no se tacha nada: lo que una tienda tiene no cumple un deseo suyo.
+  if (deTienda) return anadirAlStock(userId, linea, mercado)
   const existentes = await lineasDeCarta(userId, linea.card_id)
   const igual = existentes.find((l) => claveDeLinea(l) === claveDeLinea(linea))
   let puesta
@@ -247,6 +357,13 @@ export async function anadirVarias(userId, nuevasLineas, mercado = 'WEST') {
   const porMeter = (nuevasLineas || []).map((l) => ({ cantidad: 1, ...l }))
   const ids = [...new Set(porMeter.map((l) => l.card_id))]
   if (!ids.length) return []
+  // En una tienda, una a una: las que ya están (también agotadas) suman, y
+  // las nuevas entran. Se marca un sobre, no miles.
+  if (deTienda) {
+    const puestas = []
+    for (const l of porMeter) puestas.push(await anadirAlStock(userId, l, mercado))
+    return puestas
+  }
   const { data, error } = await supabase
     .from('user_collection')
     .select(COLUMNAS_LINEA)
@@ -286,6 +403,7 @@ export async function anadirVarias(userId, nuevasLineas, mercado = 'WEST') {
 }
 
 export async function actualizar(id, cambios) {
+  if (deTienda) return escribirStock(id, cambiosDeStock(cambios))
   // El puente otra vez, y aquí en el CUERPO y no en el `select`: sin la
   // migración, mandar `cambio` en el update devuelve 42703 y el
   // «Guardar» de la ficha de una línea dejaría de funcionar entero por
@@ -300,7 +418,7 @@ export async function actualizar(id, cambios) {
 }
 
 export async function borrar(id) {
-  const { data, error } = await supabase.from('user_collection').delete().eq('id', id).select('id')
+  const { data, error } = await supabase.from(deTienda ? 'tienda_stock' : 'user_collection').delete().eq('id', id).select('id')
   if (error) throw traducir(error)
   if (!data?.length) throw new Error('No se ha podido borrar: esa línea no es tuya o ya no existe.')
 }

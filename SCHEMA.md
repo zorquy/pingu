@@ -41785,6 +41785,74 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1075 — La Colección de una tienda: /cartas con su stock
+
+PINGU: «quitando el panel de los usuarios, podemos replicar cómo está el
+panel de colección… que la tienda busque las cartas por expansión y desde ahí
+añadirlas a stock». No es una pantalla nueva: es **/cartas abierta por una
+cuenta de tienda** (`modoTienda` en `js/mi-coleccion.js`, que ya era el modo
+catálogo de mi-coleccion.html).
+
+- **Se sabe al arrancar** por la marca de la tienda (`pd-tienda`, la 1071) y
+  se confirma con el perfil en `iniciarCatalogo` (que ahora pide `tipo`): sin
+  marca, se prepara al llegar el perfil; con una marca vieja de otra cuenta,
+  se borra y se recarga. `prepararModoTienda` pone `body[data-tienda]`, la
+  pestaña Pokédex (en /cartas no la hay), el título «Colección», y los rótulos
+  de la ficha («Unidades», «Tu precio de venta», «Coste por unidad») y de la
+  hoja de añadir (con un campo más, «Tu precio»).
+- **Las líneas salen de `tienda_stock`** (`js/mi-coleccion/datos.js`,
+  `usarStockDeTienda`): `lineasDe`, `lineasDeTodo`, `lineasDeCarta`,
+  `anadir`, `anadirVarias`, `actualizar` y `borrar` devuelven la misma forma
+  de línea (`lineaDeStock`) y escriben con `cambiosDeStock`:
+  `unidades ↔ cantidad`, `coste ↔ precio_compra`, `precio ↔ valor_manual`
+  («tu valor» de una copia es, en una tienda, a cuánto la vende; por eso el
+  valor de una expansión es «a tu precio»). Lo agotado (0 unidades) no se
+  «tiene», pero añadir una igual le suma a ESA línea; sumar deja el coste en
+  la media (`sumaDeStock`). A una tienda no se le tacha ningún deseo.
+- **Productos** (`js/mi-coleccion/productos.js`): con el stock encendido,
+  «Tus productos» y el «+» van a `tienda_stock` con `estado = 'sellado'`.
+- **Fuera lo de una persona** (CSS en `mi-coleccion.css`, bajo
+  `body[data-tienda]`): «La quiero», deseos, álbumes, «Para cambio», quién la
+  tiene, «En tiendas», compartir, «Avísame» y la ficha completa (/carta sigue
+  cerrada para una tienda). No se cargan el Panel ni los deseos.
+- **Las barras**: `Colección` es una sección de la tienda (`/cartas`,
+  `tienda-puertas.js` la deja abrir) con `menu: true`, y la lateral le cuelga
+  el `#mcMenu` como a Mi colección (`.lat-menu-sitio`); las secciones de una
+  tienda llevan `fija: true` para que `destinoDe` no cambie su «Colección» por
+  /mi-coleccion. En el móvil: Panel, Colección, Vender, Stock y Mensajes
+  (Ventas, Escaparate y Datos, en la hoja «Tú»).
+- Pruebas: `test-tanda-1075-pantalla.mjs` (la capa de datos en el navegador,
+  la pantalla, añadir con coste y precio, la agotada, productos, el móvil y
+  una persona que no nota nada).
+
+## Tanda 1074 — El Panel, y una tienda sin local
+
+PINGU: «los primeros pasos yo los quitaría… el Hoy le cambiaría el nombre y
+le pondría Panel». Y: «no hace falta que sea una tienda física… yo soy un
+particular, pero tengo un montón de cartas y me dedico a compra-venta».
+
+- **Panel**: la sección y la pestaña «Hoy» se llaman Panel (su `ver` sigue
+  siendo `hoy`, que es lo que llevan los enlaces). Los primeros pasos se van
+  enteros (`primerosPasos`, la caja y su CSS).
+- **Solo el nombre es obligatorio**: ciudad, dirección y horario son
+  opcionales en /tiendas, el alta y Datos. Sin ciudad ni dirección, la
+  cabecera del panel dice su @; el escaparate no ofrece «Cómo llegar» (ya era
+  así sin dirección) y dice «Pregunta el precio» en vez de «en la tienda».
+- **La web y el Instagram, aparte** (migración 1074): `tiendas.instagram` y
+  `tienda_solicitudes.instagram` guardan el USUARIO, sin @ ni enlace
+  (`tienda_instagram()` en la base, `instagramDe` en `tiendas-puro.js`: la
+  misma regla). `tienda_pedir` gana `p_instagram` (la de seis argumentos se
+  quita) y acepta la ciudad vacía; `tienda_invitacion` lo devuelve y
+  `tienda_alta` lo copia de la solicitud (lo que la tienda cambie en el alta
+  lo escribe la web en su fila). Lo que antes era «Web o Instagram» y era un
+  Instagram pasa a su columna en la migración, y la web lo lee igual
+  mientras tanto (`enlacesDeTienda`).
+- **Sin la migración**: /tiendas cae a la función de antes con el @ en la
+  web (PGRST202); Datos no ofrece el campo si la fila no trae `instagram`; el
+  escaparate pide la columna y, si no existe (42703), vuelve sin ella.
+- Pruebas: `test-tanda-1074.mjs` (lo puro y la migración contra PostgreSQL,
+  dos veces) y `test-tanda-1074-pantalla.mjs`.
+
 ## Tanda 1073 — «Hoy» de una tienda, con cifras
 
 La tanda 3 de «La web de una tienda» (PINGU: «resumen diario, semanal,

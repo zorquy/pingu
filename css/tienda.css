@@ -108,55 +108,6 @@
   font-size: var(--t-xl);
 }
 
-.td-pasos {
-  display: grid;
-  gap: var(--e-sm);
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  max-width: 640px;
-}
-
-.td-pasos li {
-  display: grid;
-  grid-template-columns: 24px minmax(0, 1fr) auto;
-  gap: var(--e-md);
-  align-items: center;
-  padding: var(--e-md) var(--e-lg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-}
-
-.td-pasos li > span:nth-child(2) {
-  display: grid;
-  gap: 2px;
-}
-
-.td-pasos small {
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-}
-
-.td-paso-marca {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  border: 2px solid var(--border-strong);
-}
-
-.td-pasos li.hecho .td-paso-marca {
-  border-color: var(--success);
-  background: var(--success);
-  color: var(--blanco-fijo);
-}
-
-.td-pasos li.hecho strong {
-  color: var(--text-mid);
-}
-
 .td-form {
   display: grid;
   gap: var(--e-lg);
@@ -169,6 +120,11 @@
   gap: var(--e-sm);
   font-size: var(--t-md);
   font-weight: 600;
+}
+
+.td-campo small {
+  font-weight: 400;
+  color: var(--text-mid);
 }
 
 .td-campo input {
@@ -1382,7 +1338,6 @@ html:has(.tds-dialogo[open]) {
 .tdh-visitas small.tdh-baja { color: var(--danger); }
 .tdh-sin { margin: 0; padding: var(--e-md) 0; color: var(--text-mid); font-size: var(--t-sm); }
 
-.td-pasos-caja { margin-top: var(--e-lg); }
 
 @media (max-width: 760px) {
   .tdh-cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }

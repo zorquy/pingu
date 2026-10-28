@@ -113,12 +113,14 @@
         <label class="alta-etiqueta" for="altaUsuario">Tu @ en PokeDoc</label>
         <div class="alta-arroba"><span>pokedoc.es/usuario/</span><input type="text" id="altaUsuario" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false" /></div>
         <p class="alta-libre" id="altaUsuarioEstado" aria-live="polite"></p>
-        <label class="alta-etiqueta" for="altaCiudad">Ciudad</label>
+        <label class="alta-etiqueta" for="altaCiudad">Ciudad (opcional)</label>
         <input type="text" id="altaCiudad" class="auth-input" maxlength="80" autocomplete="address-level2" />
-        <label class="alta-etiqueta" for="altaDireccion">Dirección (para que te encuentren; opcional)</label>
+        <label class="alta-etiqueta" for="altaDireccion">Dirección (opcional, si tienes local)</label>
         <input type="text" id="altaDireccion" class="auth-input" maxlength="160" autocomplete="street-address" />
-        <label class="alta-etiqueta" for="altaWeb">Web o Instagram (opcional)</label>
-        <input type="text" id="altaWeb" class="auth-input" maxlength="160" placeholder="@tutienda" />
+        <label class="alta-etiqueta" for="altaWeb">Web (opcional)</label>
+        <input type="text" id="altaWeb" class="auth-input" maxlength="160" placeholder="tutienda.es" inputmode="url" autocomplete="url" />
+        <label class="alta-etiqueta" for="altaInstagram">Instagram (opcional)</label>
+        <input type="text" id="altaInstagram" class="auth-input" maxlength="60" placeholder="@tutienda" autocapitalize="none" spellcheck="false" />
         <p class="auth-error" id="altaTiendaError"></p>
         <button type="submit" id="altaGuardar" class="btn-primary btn-block" style="margin-top: 8px;">Siguiente →</button>
       </form>

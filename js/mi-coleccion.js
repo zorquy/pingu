@@ -52,6 +52,7 @@ import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 // La marca de Cardmarket, dibujada (su CSS va en css/cardmarket.css, que
 // cargan esta página y la ficha de una carta).
 import * as datos from './mi-coleccion/datos.js'
+import { tiendaRecordada, recordarTienda } from './tienda-puertas.js'
 // «Avísame» (665), en el bloque de precio de la ficha.
 import { engancharAvisos, abrirAviso } from './avisos-precio.js'
 // «La quiero» (751): el corazón de la ficha.
@@ -159,6 +160,20 @@ const PESTANAS_CATALOGO = ['album', 'productos', 'buscar']
 // /mi-coleccion o /cartas a secas tiene que abrir lo mismo que ve quien
 // lo comparte.
 const PESTANA_POR_DEFECTO = modoCatalogo ? 'album' : 'resumen'
+// ── LA COLECCIÓN DE UNA TIENDA (1075) ES ESTA PÁGINA, /cartas, CON SU STOCK ──
+//
+// PINGU: «quitando el panel de los usuarios, podemos replicar cómo está el
+// panel de colección… que la tienda busque las cartas por expansión y desde
+// ahí añadirlas a stock». Una cuenta de tienda abre /cartas y ve el catálogo
+// entero con SU stock como «lo que tiene» (las líneas salen de
+// `tienda_stock`, js/mi-coleccion/datos.js), la Pokédex de más, y el «+»
+// mete en el stock. Se sabe ya al arrancar por la marca de la tienda (la
+// 1071) y se confirma con el perfil (`iniciarCatalogo`).
+let modoTienda = modoCatalogo && Boolean(tiendaRecordada())
+// «Tienes 3» de una persona; «3 en stock» de una tienda.
+const tienesTexto = (n) => (modoTienda ? `${n} en stock` : `Tienes ${n}`)
+const A_MI_COLECCION = () => (modoTienda ? 'Añadir al stock' : 'Añadir a mi colección')
+if (modoTienda) prepararModoTienda()
 if (modoCatalogo && !PESTANAS_CATALOGO.includes(pestania)) pestania = PESTANA_POR_DEFECTO
 // EN /cartas Y EN EL MÓVIL, EL CATÁLOGO VA JUNTO AL TÍTULO (893): se muda
 // el selector de verdad (con sus manejadores), así que los `querySelectorAll
@@ -489,7 +504,7 @@ const DIBUJO_MAS = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" 
 function masHtml(c, nombre, variante = null) {
   if (!esMia || !sesion || !c?.id) return ''
   const v = variante ? varianteDe(variante) : null
-  return `<span class="mc-mas" role="button" tabindex="0" data-anadir="${escapeHtml(c.id)}"${v ? ` data-variante="${escapeHtml(v.id)}"` : ''} aria-label="Añadir ${escapeHtml(nombre)}${v ? ` (${escapeHtml(v.nombre)})` : ''} a mi colección" title="Añadir a mi colección">${DIBUJO_MAS}</span>`
+  return `<span class="mc-mas" role="button" tabindex="0" data-anadir="${escapeHtml(c.id)}"${v ? ` data-variante="${escapeHtml(v.id)}"` : ''} aria-label="Añadir ${escapeHtml(nombre)}${v ? ` (${escapeHtml(v.nombre)})` : ''} ${modoTienda ? 'a tu stock' : 'a mi colección'}" title="${A_MI_COLECCION()}">${DIBUJO_MAS}</span>`
 }
 
 function abrirAnadir(cardId, variante = null) {
@@ -509,7 +524,7 @@ function abrirAnadir(cardId, variante = null) {
   $('mcAdNombre').textContent = nombreDe(c)
   $('mcAdSet').textContent = [nombreDeSet(set) || c.set_id, c.local_id].filter(Boolean).join(' · ')
   const copias = misLineasDe(cardId).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
-  $('mcAdTienes').textContent = copias ? `Ya tienes ${copias}` : ''
+  $('mcAdTienes').textContent = copias ? (modoTienda ? `Ya hay ${copias} en tu stock` : `Ya tienes ${copias}`) : ''
   $('mcAdTienes').classList.toggle('hidden', !copias)
   prepararAnadir()
   if (!d.open) d.showModal()
@@ -600,6 +615,7 @@ function prepararAnadir() {
   pintarIdiomasDeAnadir(idiomas, idiomas.some((i) => i.id === recordado) ? recordado : idiomas[0]?.id)
   $('mcAdCantidad').value = '1'
   $('mcAdCompra').value = ''
+  if ($('mcAdPrecio')) $('mcAdPrecio').value = ''
   $('mcAdGuardar').disabled = false
   rotularGuardar()
 }
@@ -607,7 +623,7 @@ function prepararAnadir() {
 // El botón dice lo que va a hacer (712): «Añadir 3 copias», no «Guardar».
 function rotularGuardar() {
   const n = Math.max(1, Math.min(999, Math.round(Number($('mcAdCantidad')?.value) || 1)))
-  $('mcAdGuardar').textContent = `Añadir ${n} ${n === 1 ? 'copia' : 'copias'}`
+  $('mcAdGuardar').textContent = modoTienda ? `Añadir ${n} al stock` : `Añadir ${n} ${n === 1 ? 'copia' : 'copias'}`
 }
 
 // Los idiomas, con su bandera y de un toque: un `<select>` no admite la
@@ -649,6 +665,9 @@ async function guardarAnadir(e) {
   // Lo que pagaste, solo si lo has escrito: un cero no es «no lo sé».
   const pagado = Number(String($('mcAdCompra').value || '').replace(',', '.'))
   if (Number.isFinite(pagado) && pagado > 0) linea.precio_compra = pagado
+  // Y en una tienda, a cuánto la vende (1075): va a `precio` del stock.
+  const precio = Number(String($('mcAdPrecio')?.value || '').replace(',', '.'))
+  if (modoTienda && Number.isFinite(precio) && precio > 0) linea.valor_manual = precio
   // SIN RED (745): a la cola, y se guarda sola cuando vuelva. Antes de
   // intentarlo: con la red caída, `datos.anadir` tardaría en fallar y el
   // botón se quedaría pensando.
@@ -700,7 +719,7 @@ function avisarAnadida(c, linea, nueva) {
   avisoConDeshacer({
     // Con qué se ha añadido (1053): el «+» recuerda lo último que usaste, y
     // el aviso lo dice para que no haya sorpresas.
-    html: `${escaneo ? `<img ${escaneo} alt="" width="28" height="39" loading="lazy" />` : ''}<span><b>${escapeHtml(nombreDe(c))}</b> añadida · ${escapeHtml([IDIOMAS.find((i) => i.id === linea.idioma)?.nombre, ESTADOS.find((e) => e.id === linea.estado)?.nombre].filter(Boolean).join(' · '))}${linea.idioma || linea.estado ? ' · ' : ''}ya tienes ${total}${textoTachados(tachados)}</span>`,
+    html: `${escaneo ? `<img ${escaneo} alt="" width="28" height="39" loading="lazy" />` : ''}<span><b>${escapeHtml(nombreDe(c))}</b> añadida · ${escapeHtml([IDIOMAS.find((i) => i.id === linea.idioma)?.nombre, ESTADOS.find((e) => e.id === linea.estado)?.nombre].filter(Boolean).join(' · '))}${linea.idioma || linea.estado ? ' · ' : ''}${modoTienda ? `${total} en stock` : `ya tienes ${total}`}${textoTachados(tachados)}</span>`,
     alDeshacer: async () => {
       if (await deshacerAnadida(plan, c, tachados)) showToast(`Deshecho: ${nombreDe(c)} vuelve a como estaba.`, 'success')
     },
@@ -832,7 +851,7 @@ function pintarAccionesDeFicha(l) {
   // como en Dex); al lado, cuántas son de la que miras si no son todas.
   const deEsta = Number(l.cantidad) || 0
   tienes.classList.toggle('hidden', n === 0)
-  tienes.textContent = n ? `Tienes ${n}` : ''
+  tienes.textContent = n ? tienesTexto(n) : ''
   // Editar sale si la línea es TUYA (l.id), aunque la cuenta de este
   // catálogo dé cero: desde el Panel se abre una carta de OTRO catálogo
   // (648) y sus líneas no están en `lineas`.
@@ -844,8 +863,8 @@ function pintarAccionesDeFicha(l) {
   $('mcEdMenos')?.classList.toggle('hidden', !conCopia)
   const mas = $('mcEdMas')
   if (mas) {
-    mas.setAttribute('aria-label', conCopia ? `Una copia más (${deEsta} de esta)` : 'Añadir a mi colección')
-    mas.title = conCopia ? 'Una copia más, igual que esta' : 'Añadir a mi colección'
+    mas.setAttribute('aria-label', conCopia ? `Una copia más (${deEsta} de esta)` : A_MI_COLECCION())
+    mas.title = conCopia ? 'Una copia más, igual que esta' : A_MI_COLECCION()
   }
   const aviso = $('mcEdAviso')
   if (aviso) aviso.dataset.aviso = l.card_id || ''
@@ -868,7 +887,7 @@ async function sumarCopia(l, paso) {
   const c = cartaPorId(l.card_id)
   const total = misLineasDe(l.card_id).reduce((n, x) => n + (Number(x.cantidad) || 0), 0)
   avisoConDeshacer({
-    html: `<span><b>${escapeHtml(nombreDe(c) || l.card_id)}</b>: una más · ya tienes ${total}</span>`,
+    html: `<span><b>${escapeHtml(nombreDe(c) || l.card_id)}</b>: una más · ${modoTienda ? `${total} en stock` : `ya tienes ${total}`}</span>`,
     alDeshacer: async () => {
       if (await deshacerAnadida({ tipo: 'cantidad', id: l.id, cantidad: antes }, c)) showToast(`Deshecho: ${nombreDe(c)} vuelve a como estaba.`, 'success')
     },
@@ -925,7 +944,7 @@ function pintarVersionDeFicha(l, c) {
       const precio = precioDeVersionEnFicha(l, v.id)
       return `<button type="button" class="mc-version${v.id === actual ? ' activa' : ''}" data-version="${escapeHtml(v.id)}" aria-pressed="${v.id === actual}">
         <span class="mc-version-icono">${iconoDeVersion(v.id, 20)}</span>
-        <span class="mc-version-texto"><b>${escapeHtml(v.nombre)}</b><small>${tengo ? `Tienes ${tengo}` : 'No la tienes'}</small></span>
+        <span class="mc-version-texto"><b>${escapeHtml(v.nombre)}</b><small>${tengo ? tienesTexto(tengo) : modoTienda ? 'Sin stock' : 'No la tienes'}</small></span>
         <span class="mc-version-precio">${precio != null ? euros(precio) : ''}</span>
         <span class="mc-version-check${tengo ? ' si' : ''}" aria-label="${tengo ? 'La tienes' : 'No la tienes'}">${tengo ? '✓' : ''}</span>
       </button>`
@@ -2464,7 +2483,7 @@ function abrirEditor(l) {
     if (cartaAbierta === l.card_id) {
       pintarVersionDeFicha(l, c)
       const texto = $('mcEdMas')?.querySelector('.mc-mas-texto')
-      if (texto) texto.textContent = versionDeLaFicha && tieneVarias(c) ? `Añadir ${nombreDeVariante(versionDeLaFicha)}` : 'Añadir a mi colección'
+      if (texto) texto.textContent = versionDeLaFicha && tieneVarias(c) ? `Añadir ${nombreDeVariante(versionDeLaFicha)}` : A_MI_COLECCION()
     }
     // Una versión a mano trae su foto y sus datos (934), y una que era una
     // carta repetida (987), su foto.
@@ -2531,7 +2550,7 @@ function abrirEditor(l) {
   // en «Variantes»; «Añadir» añade esa y lo dice.
   versionDeLaFicha = l.id ? null : l.versionPuesta || null
   const masTexto = $('mcEdMas')?.querySelector('.mc-mas-texto')
-  if (masTexto) masTexto.textContent = versionDeLaFicha && tieneVarias(c) ? `Añadir ${nombreDeVariante(versionDeLaFicha)}` : 'Añadir a mi colección'
+  if (masTexto) masTexto.textContent = versionDeLaFicha && tieneVarias(c) ? `Añadir ${nombreDeVariante(versionDeLaFicha)}` : A_MI_COLECCION()
   pintarPasosDeLaFicha()
   // `showModal()` sobre un diálogo YA abierto revienta (InvalidStateError):
   // con las flechas de la 422 se repinta la misma ficha una y otra vez sin
@@ -4607,7 +4626,7 @@ function pintarTiraDeSet(elSet) {
     linea.textContent = [
       `${completo.tengo.toLocaleString('es-ES', { useGrouping: 'always' })} de ${completo.total.toLocaleString('es-ES', { useGrouping: 'always' })}`,
       `${pct} %`,
-      ...(mias.length && valor ? [`${euros(valor)} las tuyas`] : []),
+      ...(mias.length && valor ? [`${euros(valor)} ${modoTienda ? 'a tu precio' : 'las tuyas'}`] : []),
     ].join(' · ')
   }
 
@@ -7198,12 +7217,68 @@ function guardarPanel() {
 // es lo que hace que la estantería enseñe tu progreso y la ficha, tu
 // copia. Sin cuenta, la colección es la vacía y se pinta la estantería
 // directamente, que es lo que `cargarColeccion` haría al acabar.
+// Lo que cambia en la pantalla para una tienda. Sin más dependencias que el
+// documento y `datos`: se llama en lo alto del módulo, antes que casi todo.
+function prepararModoTienda() {
+  datos.usarStockDeTienda()
+  document.body.dataset.tienda = ''
+  if (!PESTANAS_CATALOGO.includes('pokedex')) PESTANAS_CATALOGO.splice(1, 0, 'pokedex')
+  const expansiones = document.querySelector('#mcMenu [data-pestania="album"]')
+  if (expansiones && !document.querySelector('#mcMenu [data-pestania="pokedex"]')) {
+    expansiones.insertAdjacentHTML('afterend', '<button type="button" role="tab" class="mc-pestania" data-pestania="pokedex" data-icono="pokedex" aria-selected="false" aria-controls="mcPanelPokedex"><span class="mc-menu-texto">Pokédex</span></button>')
+  }
+  document.getElementById('mcMenu')?.setAttribute('aria-label', 'Vistas de la colección')
+  const titulo = document.getElementById('mcTitulo')
+  if (titulo) titulo.textContent = 'Colección'
+  const lema = document.querySelector('.mc-catalogo-lema')
+  if (lema) lema.textContent = 'Todas las cartas, con tu stock. Toca una para añadirla a tu stock.'
+  document.title = 'Colección — tu tienda — PokeDoc'
+  // Lo de una copia que en una tienda se llama de otra forma: «tu valor» es
+  // su precio de venta, lo pagado es el coste de cada unidad.
+  const rotular = (id, texto) => {
+    const nodo = [...(document.getElementById(id)?.closest('label')?.childNodes || [])].find((n) => n.nodeType === 3 && n.textContent.trim())
+    if (nodo) nodo.textContent = `${texto} `
+  }
+  rotular('mcEdValor', 'Tu precio de venta (€)')
+  rotular('mcEdCompra', 'Coste por unidad (€)')
+  rotular('mcEdCantidad', 'Unidades')
+  document.getElementById('mcEdValor')?.setAttribute('placeholder', 'A cuánto la vendes')
+  const compra = document.getElementById('mcAdCompra')
+  if (compra) {
+    compra.placeholder = 'Coste (€)'
+    compra.setAttribute('aria-label', 'Lo que te costó cada unidad (€), opcional')
+    if (!document.getElementById('mcAdPrecio')) compra.insertAdjacentHTML('afterend', '<input type="text" id="mcAdPrecio" inputmode="decimal" placeholder="Tu precio (€)" aria-label="A cuánto la vendes (€), opcional" />')
+  }
+  document.getElementById('mcAdCantidad')?.setAttribute('aria-label', 'Unidades')
+}
+
 async function iniciarCatalogo() {
   if (sesion) {
     // sin rango: la colección es la de quien mira (tanda 386).
-    const { data } = await supabase.from('user_profiles').select('id,username,display_name,avatar_url,coleccion_publica').eq('id', sesion.user.id).maybeSingle()
+    const { data } = await supabase.from('user_profiles').select('id,username,display_name,avatar_url,coleccion_publica,tipo').eq('id', sesion.user.id).maybeSingle()
     dueno = data || { id: sesion.user.id }
     esMia = true
+    // La marca y la cuenta no casan: una tienda sin marca todavía (su primera
+    // vez aquí) se prepara ahora; una marca vieja de otra cuenta se borra y
+    // se vuelve a empezar, que sus líneas serían las de otra tabla.
+    const esTienda = data?.tipo === 'tienda'
+    if (esTienda && !modoTienda) {
+      modoTienda = true
+      recordarTienda(data)
+      prepararModoTienda()
+      pintarIconos()
+      if (!PESTANAS_CATALOGO.includes(params.get('ver') || '')) pestania = PESTANA_POR_DEFECTO
+      else pestania = params.get('ver')
+    } else if (!esTienda && modoTienda) {
+      recordarTienda(null)
+      location.reload()
+      return
+    }
+  } else if (modoTienda) {
+    // Una tienda que ha salido: su marca ya no vale.
+    recordarTienda(null)
+    location.reload()
+    return
   } else {
     dueno = null
     esMia = false
@@ -7315,7 +7390,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
     if (esMia) favoritos = await datos.favoritosDeSets(duenoId).catch(() => null)
     // «La quiero» (751), sin parar nada: el Panel la cuenta y la ficha
     // pinta su corazón. Si falla, las dos se callan (null = no se sabe).
-    if (esMia && sesion && primeraVez) {
+    if (esMia && sesion && primeraVez && !modoTienda) {
       void cargarDeseos().then(() => {
         if (pestania === 'resumen') void pintarVistazos()
         pintarLoseta()
@@ -7333,7 +7408,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   // también `cambiarPestania` por su cuenta, y si llega con el esqueleto
   // aún puesto, aparece debajo y luego salta hacia arriba (la 748 lo mide).
   coleccionCargada()
-  if (esMia) await Promise.all([panel(), sesion ? deseosModulo() : null]).catch(() => {})
+  if (esMia && !modoTienda) await Promise.all([panel(), sesion ? deseosModulo() : null]).catch(() => {})
   panelFiable = true
   repintar()
   if (pestania === 'album') pintarEstanteria()
@@ -7365,7 +7440,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   await completarPrecios()
   repintar()
   // Y la copia para mirarla sin red (745), solo de la tuya.
-  if (esMia) guardarCopia(copiaDeColeccion(lineasTodo, (l) => nombreDe(cartaDeLineaTodo(l)), (l) => nombreDeSet(cartaDeLineaTodo(l)?.tcg_sets) || ''))
+  if (esMia && !modoTienda) guardarCopia(copiaDeColeccion(lineasTodo, (l) => nombreDe(cartaDeLineaTodo(l)), (l) => nombreDeSet(cartaDeLineaTodo(l)?.tcg_sets) || ''))
 }
 
 // La cola de lo añadido sin red (745), en orden; si se guardó algo, la

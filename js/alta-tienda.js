@@ -11,7 +11,7 @@ import { supabase } from './supabase.js'
 import { passwordStrengthError, slugify, uniqueUsername } from './app.js'
 import { icons } from './icons.js'
 import { friendlyAuthError } from './auth-errores.js'
-import { FORMA_DE_USUARIO, MOTIVOS_DE_INVITACION as MOTIVOS, tokenDeAlta } from './tiendas-puro.js'
+import { FORMA_DE_USUARIO, MOTIVOS_DE_INVITACION as MOTIVOS, tokenDeAlta, instagramDe } from './tiendas-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const CLAVE = 'pd-alta-tienda'
@@ -63,7 +63,11 @@ async function arrancar() {
 async function pintarFormTienda(session) {
   $('altaNombre').value = invitacion.nombre || ''
   $('altaCiudad').value = invitacion.ciudad || ''
-  $('altaWeb').value = invitacion.web || ''
+  // Lo que era Instagram en «Web o Instagram» (antes de la 1074), a su campo.
+  const igViejo = instagramDe(invitacion.web)
+  $('altaWeb').value = igViejo ? '' : invitacion.web || ''
+  const ig = invitacion.instagram || igViejo
+  $('altaInstagram').value = ig ? `@${ig}` : ''
   $('altaUsuario').value = await uniqueUsername(invitacion.nombre || 'tienda', session.user.id).catch(() => slugify(invitacion.nombre || ''))
   comprobarUsuario()
   ver('altaTienda')
@@ -171,6 +175,12 @@ $('altaTienda')?.addEventListener('submit', async (e) => {
     error.textContent = 'Tu @ solo puede llevar letras, números y guiones (de 3 a 40).'
     return
   }
+  const escritoIg = $('altaInstagram').value.trim()
+  const ig = escritoIg ? instagramDe(/^@|instagram\.com/i.test(escritoIg) ? escritoIg : `@${escritoIg}`) : null
+  if (escritoIg && !ig) {
+    error.textContent = 'Ese Instagram no parece un usuario: escribe solo tu @.'
+    return
+  }
   const boton = $('altaGuardar')
   boton.disabled = true
   const { data, error: fallo } = await supabase.rpc('tienda_alta', {
@@ -185,6 +195,13 @@ $('altaTienda')?.addEventListener('submit', async (e) => {
   if (fallo) {
     error.textContent = fallo.message || 'No se ha podido guardar.'
     return
+  }
+  // El alta copia el Instagram de la solicitud (1074); si aquí se cambió, se
+  // escribe en su fila. Sin la migración 1074 no hay columna: lo pondrá en
+  // Datos cuando la haya, y el alta no se para por eso.
+  if (ig !== (invitacion.instagram || null)) {
+    const { data: { session } } = await supabase.auth.getSession()
+    if (session) await supabase.from('tiendas').update({ instagram: ig }).eq('user_id', session.user.id).then(() => {}, () => {})
   }
   apuntar(null)
   $('altaPerfil').href = `/usuario/${encodeURIComponent(data?.username || usuario)}`

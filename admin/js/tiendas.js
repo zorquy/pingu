@@ -18,7 +18,7 @@ let iniciado = false
 const fecha = (iso) => (iso ? new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : '—')
 
 function tarjeta(f) {
-  const datos = [f.ciudad, f.email, f.web, TAMANOS[f.tamano]].filter(Boolean).map(escapeHtml).join(' · ')
+  const datos = [f.ciudad || 'sin local', f.email, f.web, f.instagram && `@${f.instagram}`, TAMANOS[f.tamano]].filter(Boolean).map(escapeHtml).join(' · ')
   const estado = {
     pendiente: `Pidió acceso el ${fecha(f.created_at)}`,
     aceptada: caducada(f) ? `Aceptada el ${fecha(f.decidida_el)} · la invitación caducó el ${fecha(f.caduca)}` : `Aceptada el ${fecha(f.decidida_el)} · la invitación vale hasta el ${fecha(f.caduca)}`,

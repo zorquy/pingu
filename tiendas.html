@@ -134,7 +134,7 @@
   <main id="contenido" class="page-content container-narrow">
     <div class="page-header" style="padding-top: 8px;">
       <h1>PokeDoc para tiendas</h1>
-      <p>Lleva el stock de tu tienda en PokeDoc y enséñaselo a tus clientes. Ahora mismo estamos empezando con unas pocas tiendas, así que entra solo por invitación: pídela aquí y te escribimos.</p>
+      <p>Lleva tu stock en PokeDoc y enséñaselo a quien busca cartas. Para tiendas con local y también para quien se dedica a la compraventa desde casa. Ahora mismo estamos empezando con unas pocas tiendas, así que entra solo por invitación: pídela aquí y te escribimos.</p>
     </div>
 
     <!-- Lo que va a tener, sin prometer lo que aún no está: el panel se
@@ -155,7 +155,7 @@
         <li class="tiendas-punto">
           <span class="tiendas-icono" data-icono="users" aria-hidden="true"></span>
           <h3>Tu escaparate en PokeDoc</h3>
-          <p>Un perfil de tienda con tu stock y tus precios, y un QR para el mostrador. Quien busca una carta en PokeDoc ve que la tienes.</p>
+          <p>Un perfil de tienda con tu stock y tus precios, y un QR para el mostrador, tu mesa de un evento o tus redes. Quien busca una carta en PokeDoc ve que la tienes.</p>
         </li>
       </ul>
     </section>
@@ -168,8 +168,9 @@
         <label class="tiendas-campo">Nombre de la tienda
           <input type="text" id="tiendasNombre" maxlength="80" autocomplete="organization" required />
         </label>
-        <label class="tiendas-campo">Ciudad
-          <input type="text" id="tiendasCiudad" maxlength="80" autocomplete="address-level2" required />
+        <label class="tiendas-campo">Ciudad (opcional)
+          <input type="text" id="tiendasCiudad" maxlength="80" autocomplete="address-level2" />
+          <small>No hace falta tener local: si vendes desde casa, vale igual.</small>
         </label>
         <label class="tiendas-campo">Email de la tienda
           <input type="email" id="tiendasEmail" maxlength="160" autocomplete="email" required />
@@ -178,8 +179,11 @@
         <label class="tiendas-campo">Tu nombre (opcional)
           <input type="text" id="tiendasContacto" maxlength="80" autocomplete="name" />
         </label>
-        <label class="tiendas-campo">Web o Instagram (opcional)
-          <input type="text" id="tiendasWeb" maxlength="160" placeholder="@tutienda" />
+        <label class="tiendas-campo">Web (opcional)
+          <input type="text" id="tiendasWeb" maxlength="160" placeholder="tutienda.es" inputmode="url" autocomplete="url" />
+        </label>
+        <label class="tiendas-campo">Instagram (opcional)
+          <input type="text" id="tiendasInstagram" maxlength="60" placeholder="@tutienda" autocapitalize="none" spellcheck="false" />
         </label>
         <label class="tiendas-campo">¿Cuántas cartas tienes, más o menos?
           <select id="tiendasTamano">

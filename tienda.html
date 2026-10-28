@@ -173,7 +173,7 @@
       </header>
 
       <nav class="seg td-pestanas" id="tdPestanas" role="tablist" aria-label="Panel de la tienda">
-        <button type="button" class="seg-btn" role="tab" data-td="hoy" aria-selected="true">Hoy</button>
+        <button type="button" class="seg-btn" role="tab" data-td="hoy" aria-selected="true">Panel</button>
         <button type="button" class="seg-btn" role="tab" data-td="stock" aria-selected="false">Stock</button>
         <button type="button" class="seg-btn" role="tab" data-td="ventas" aria-selected="false">Ventas</button>
         <button type="button" class="seg-btn" role="tab" data-td="escaparate" aria-selected="false">Escaparate</button>
@@ -181,10 +181,6 @@
       </nav>
 
       <section class="td-hoja" data-td-hoja="hoy">
-        <div class="td-pasos-caja" id="tdPasosCaja">
-          <h2>Primeros pasos</h2>
-          <ol class="td-pasos" id="tdPasos"></ol>
-        </div>
         <div id="tdHoy"></div>
       </section>
 
@@ -200,7 +196,7 @@
 
       <section class="td-hoja hidden" data-td-hoja="escaparate">
         <h2>Tu escaparate</h2>
-        <p class="subtext">Es tu perfil de PokeDoc: tu stock visible, con tus precios. El QR lleva ahí; ponlo en el mostrador.</p>
+        <p class="subtext">Es tu perfil de PokeDoc: tu stock visible, con tus precios. El QR lleva ahí: ponlo en el mostrador, en tu mesa de un evento o en tus redes.</p>
         <div class="td-escaparate">
           <div class="td-cartel" id="tdCartel">
             <span class="td-cartel-marca">Poke<b>Doc</b></span>
@@ -220,20 +216,21 @@
 
       <section class="td-hoja hidden" data-td-hoja="datos">
         <h2>Datos de la tienda</h2>
-        <p class="subtext">Lo que verá la gente en tu perfil.</p>
+        <p class="subtext">Lo que verá la gente en tu perfil. Solo el nombre es obligatorio: si vendes desde casa, deja vacío lo del local.</p>
         <form id="tdDatos" class="td-form" novalidate>
           <label class="td-campo">Nombre<input type="text" id="tdDatoNombre" maxlength="80" /></label>
-          <label class="td-campo">Ciudad<input type="text" id="tdDatoCiudad" maxlength="80" /></label>
-          <label class="td-campo">Dirección<input type="text" id="tdDatoDireccion" maxlength="160" placeholder="Calle y número" /></label>
-          <label class="td-campo">Horario<input type="text" id="tdDatoHorario" maxlength="120" placeholder="L–S · 10:30–20:30" /></label>
-          <label class="td-campo">Web o Instagram<input type="text" id="tdDatoWeb" maxlength="160" placeholder="@tutienda" /></label>
-          <label class="td-check"><input type="checkbox" id="tdDatoPrecio" /> <span>Enseñar los precios en el escaparate (si no, dirá que se pregunte en la tienda)</span></label>
+          <label class="td-campo"><span>Ciudad <small>(opcional)</small></span><input type="text" id="tdDatoCiudad" maxlength="80" autocomplete="address-level2" /></label>
+          <label class="td-campo"><span>Dirección <small>(opcional, si tienes local)</small></span><input type="text" id="tdDatoDireccion" maxlength="160" placeholder="Calle y número" autocomplete="street-address" /></label>
+          <label class="td-campo"><span>Horario <small>(opcional)</small></span><input type="text" id="tdDatoHorario" maxlength="120" placeholder="L–S · 10:30–20:30" /></label>
+          <label class="td-campo"><span>Web <small>(opcional)</small></span><input type="text" id="tdDatoWeb" maxlength="160" placeholder="tutienda.es" inputmode="url" autocomplete="url" /></label>
+          <label class="td-campo"><span>Instagram <small>(opcional)</small></span><input type="text" id="tdDatoInstagram" maxlength="60" placeholder="@tutienda" autocapitalize="none" spellcheck="false" /></label>
+          <label class="td-check"><input type="checkbox" id="tdDatoPrecio" /> <span>Enseñar los precios en el escaparate (si no, dirá que te pregunten)</span></label>
           <p class="td-error" id="tdDatosError" role="alert"></p>
           <button type="submit" class="btn-primary" id="tdDatosGuardar">Guardar</button>
         </form>
         <div class="td-cuenta">
           <h2>Tu cuenta</h2>
-          <p class="subtext">Entras con <strong id="tdCuentaEmail"></strong>. Es una cuenta de tienda: para lo demás de PokeDoc (tu colección, el foro, los retos), hazte una cuenta personal con otro correo.</p>
+          <p class="subtext">Entras con <strong id="tdCuentaEmail"></strong>. Es una cuenta de tienda: para lo demás de PokeDoc (el foro, los retos, una colección personal), hazte una cuenta personal con otro correo.</p>
           <div class="td-cuenta-botones">
             <button type="button" class="btn-secondary" id="tdCuentaClave">Cambiar la contraseña</button>
             <button type="button" class="btn-secondary" id="tdCuentaSalir">Salir</button>

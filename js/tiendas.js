@@ -6,7 +6,7 @@
 // equipo; aquí solo se ayuda a rellenar bien a la primera.
 import { supabase } from './supabase.js'
 import { icons } from './icons.js'
-import { validarSolicitud } from './tiendas-puro.js'
+import { validarSolicitud, instagramDe } from './tiendas-puro.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -23,11 +23,13 @@ form?.addEventListener('submit', async (e) => {
     email: $('tiendasEmail').value.trim(),
     contacto: $('tiendasContacto').value.trim(),
     web: $('tiendasWeb').value.trim(),
+    instagram: $('tiendasInstagram').value.trim(),
     tamano: $('tiendasTamano').value,
   }
   const error = $('tiendasError')
   error.textContent = ''
-  const mal = validarSolicitud(datos)
+  const ig = datos.instagram ? instagramDe(/^@|instagram\.com/i.test(datos.instagram) ? datos.instagram : `@${datos.instagram}`) : null
+  const mal = validarSolicitud(datos) || (datos.instagram && !ig ? 'Ese Instagram no parece un usuario: escribe solo tu @.' : null)
   if (mal) {
     error.textContent = mal
     return
@@ -43,14 +45,20 @@ form?.addEventListener('submit', async (e) => {
   const boton = $('tiendasEnviar')
   boton.disabled = true
   boton.textContent = 'Enviando…'
-  const { error: fallo } = await supabase.rpc('tienda_pedir', {
+  const base = {
     p_nombre: datos.nombre,
-    p_ciudad: datos.ciudad,
+    p_ciudad: datos.ciudad || null,
     p_email: datos.email,
     p_contacto: datos.contacto || null,
     p_web: datos.web || null,
     p_tamano: datos.tamano,
-  })
+  }
+  // `p_instagram` llega con la 1074. Sin ella, la función de antes no lo
+  // conoce (PGRST202): se manda sin él y el @ va en la web, como antes.
+  let { error: fallo } = await supabase.rpc('tienda_pedir', ig ? { ...base, p_instagram: ig } : base)
+  if (fallo?.code === 'PGRST202' && ig) {
+    ({ error: fallo } = await supabase.rpc('tienda_pedir', { ...base, p_web: base.p_web || `@${ig}` }))
+  }
   boton.disabled = false
   boton.textContent = 'Pedir acceso'
   if (fallo) {

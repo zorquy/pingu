@@ -3,9 +3,12 @@
 
 // La solicitud de /tiendas: lo mínimo para no mandar una que la base
 // rechazaría (la base lo vuelve a mirar: esto solo ayuda a rellenar).
+// La ciudad es opcional desde la 1074 (PINGU: «no hace falta que sea una
+// tienda física»: un particular que se dedica a la compraventa también).
 export function validarSolicitud({ nombre, ciudad, email }) {
   if (String(nombre || '').trim().length < 2) return 'Escribe el nombre de la tienda.'
-  if (String(ciudad || '').trim().length < 2) return 'Escribe la ciudad de la tienda.'
+  const c = String(ciudad || '').trim()
+  if (c && c.length < 2) return 'Escribe la ciudad entera, o déjala vacía.'
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email || '').trim())) return 'Revisa que el email sea correcto.'
   return null
 }
@@ -33,19 +36,6 @@ export function caraDelPanel({ sesion, perfil }) {
   if (perfil?.tipo === 'tienda') return 'tdPanel'
   if (perfil?.is_admin) return 'tdEquipo'
   return 'tdCerrado'
-}
-
-// Los primeros pasos del panel: lo hecho y lo que llega.
-// El QR (1073) cuenta como hecho al imprimirlo o descargarlo (`qr`).
-export function primerosPasos(tienda, { lineas = 0, qr = false } = {}) {
-  const datos = !!(tienda?.ciudad && tienda?.direccion)
-  const stock = lineas > 0
-  return [
-    { hecho: true, texto: 'Crear la cuenta de la tienda' },
-    { hecho: datos, texto: 'Rellenar los datos de la tienda', ir: 'datos', nota: datos ? null : 'Dirección y horario, para que te encuentren.' },
-    { hecho: stock, texto: 'Meter tu stock', ir: 'stock', nota: stock ? `${lineas} ${lineas === 1 ? 'línea' : 'líneas'} en el stock.` : 'Una a una o importando tu Excel.' },
-    { hecho: Boolean(qr), texto: 'Imprimir el QR del mostrador', ir: 'escaparate', nota: qr ? null : 'Un cartel A4 con tu QR: lleva a tu escaparate.' },
-  ]
 }
 
 // /admin → Tiendas: cuántas hay de cada estado.
@@ -149,6 +139,46 @@ export function csvDeStock(filas, nombreDeSet = (id) => id || '') {
     ].map(celda).join(';'))
   }
   return lineas.join('\n')
+}
+
+// ── Web e Instagram (1074) ──
+//
+// Dos campos desde la 1074 (PINGU: «la web por un lado y el Instagram, por si
+// tienen»). Antes era uno, «Web o Instagram», así que una `web` que es un @ o
+// un enlace de Instagram se lee como Instagram.
+
+// El usuario de Instagram de lo que alguien escribe (`@tienda`,
+// `instagram.com/tienda`, con o sin https), o null si no lo es. Sus usuarios:
+// letras, números, punto y guion bajo, hasta 30.
+export function instagramDe(texto) {
+  const t = String(texto || '').trim()
+  const m = t.match(/^@([A-Za-z0-9._]{1,30})$/) || t.match(/^(?:https?:\/\/)?(?:www\.)?instagram\.com\/([A-Za-z0-9._]{1,30})\/?(?:\?.*)?$/i)
+  return m ? m[1] : null
+}
+
+// La web como enlace: solo http(s); sin esquema, https. Lo demás, nada.
+export function webDe(texto) {
+  const t = String(texto || '').trim()
+  if (!t || instagramDe(t) || /\s/.test(t)) return null
+  const con = /^https?:\/\//i.test(t) ? t : /^[a-z][a-z0-9+.-]*:/i.test(t) ? null : `https://${t}`
+  if (!con) return null
+  try {
+    const u = new URL(con)
+    if (!/^https?:$/.test(u.protocol) || !u.hostname.includes('.')) return null
+    return { href: u.href, texto: (u.hostname + u.pathname).replace(/^www\./, '').replace(/\/$/, '') }
+  } catch {
+    return null
+  }
+}
+
+// Los enlaces que enseña su escaparate, en orden: la web y su Instagram.
+export function enlacesDeTienda(t) {
+  const fuera = []
+  const web = webDe(t?.web)
+  if (web) fuera.push({ tipo: 'web', ...web })
+  const ig = instagramDe(t?.instagram ? (/^@|instagram\.com/i.test(t.instagram) ? t.instagram : `@${t.instagram}`) : null) || instagramDe(t?.web)
+  if (ig) fuera.push({ tipo: 'instagram', href: `https://www.instagram.com/${ig}/`, texto: `@${ig}` })
+  return fuera
 }
 
 // «Cómo llegar» (1069): el mapa con la dirección de la tienda. Sin dirección

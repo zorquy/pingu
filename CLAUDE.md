@@ -98,8 +98,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`js/tienda-marco.js`). Una página nueva que deba abrir una tienda va en
   `SUYAS`, y una sección nueva de su panel, en `SECCIONES_DE_TIENDA`. Las
   ventas (1072) pasan por `tienda_vender` (todo o nada, con el coste de ese
-  momento) y Hoy (1073) sale de `tienda_hoy`, con los avisos contados con
-  los umbrales de `tienda_cumple`. Cardmarket y los pagos, aparcados.
+  momento) y el Panel (1073, «Hoy» hasta la 1074) sale de `tienda_hoy`, con
+  los avisos contados con los umbrales de `tienda_cumple`. Su Colección
+  (1075) es /cartas en modo tienda: las líneas salen de `tienda_stock` por la
+  capa de `js/mi-coleccion/datos.js` (`usarStockDeTienda`, con la forma de
+  una copia), así que lo que añada cartas desde esa pantalla va al stock sin
+  saberlo; lo de una persona se esconde bajo `body[data-tienda]`. Una tienda
+  no necesita local (1074, PINGU: «un particular que se dedica a la
+  compraventa»): solo el nombre es obligatorio, y el Instagram va en su
+  columna como USUARIO (`instagramDe` / `tienda_instagram`), aparte de la
+  web. Cardmarket y los pagos, aparcados.
 - **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
   1065 y 1066): cada visita lleva `modo` (app instalada o web),
   `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que

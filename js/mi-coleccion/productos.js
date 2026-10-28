@@ -33,6 +33,7 @@ import { banderaHtml } from '../precio-vista.js'
 import { TIPOS, OTRO, nombreDeTipo, tipoDeProducto, precioDeProducto, esPreventa, valorDeProductos, preciosPorIdioma, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto, idiomasDeProducto, nombreDeIdioma, precioDeProductoEnIdioma, cuentaDelPack, porUnidad, relacionConPvp } from '../productos.js'
 import { nombreDeSet } from '../catalogo-series.js'
 import { misProductos, productosPorIds, buscarProductos } from '../productos-valor.js'
+import { esStockDeTienda } from './datos.js'
 
 const $ = (id) => document.getElementById(id)
 // Con `*` (769): las columnas por país son de una migración que puede no
@@ -341,6 +342,32 @@ async function cargarSets() {
   return true
 }
 
+// EN UNA TIENDA, LO SELLADO ES SU STOCK (1075): la misma pestaña apunta en
+// `tienda_stock` (estado «sellado»), con la forma de una línea de
+// `user_products` para que lo demás no cambie.
+const productoDeStock = (f) => ({ id: f.id, product_id: Number(f.product_id), idioma: f.idioma, cantidad: f.unidades })
+async function misProductosDeTienda(tiendaId) {
+  const { data, error } = await supabase.from('tienda_stock').select('id,product_id,idioma,unidades').eq('tienda_id', tiendaId).not('product_id', 'is', null).gt('unidades', 0)
+  if (error) return null
+  return (data || []).map(productoDeStock)
+}
+async function cambiarEnStock(id, idioma, linea, nueva) {
+  const tabla = () => supabase.from('tienda_stock')
+  if (linea && nueva <= 0) {
+    const { error } = await tabla().delete().eq('id', linea.id)
+    if (error) throw error
+    mios = mios.filter((m) => m !== linea)
+    return
+  }
+  const f = fichas.get(id)
+  const r = linea
+    ? await tabla().update({ unidades: nueva }).eq('id', linea.id).select('id,product_id,idioma,unidades').single()
+    : await tabla().insert({ product_id: id, estado: 'sellado', variante: 'normal', idioma: idioma || f?.lang || 'en', market: f?.market === 'JP' ? 'JP' : 'WEST', unidades: nueva }).select('id,product_id,idioma,unidades').single()
+  if (r.error) throw r.error
+  if (!r.data) throw new Error('No se ha podido guardar en tu stock.')
+  mios = linea ? mios.map((m) => (m === linea ? productoDeStock(r.data) : m)) : [...mios, productoDeStock(r.data)]
+}
+
 // Uno más o uno menos de UNA línea: producto + idioma (969). La línea que
 // ya existe se toca por su id (vale con y sin la migración); una nueva se
 // inserta con su idioma, y sin la columna todavía, sin él.
@@ -350,7 +377,8 @@ async function cambiarCantidad(id, idioma, paso) {
   const nueva = (Number(linea?.cantidad) || 0) + paso
   const tabla = () => supabase.from('user_products')
   try {
-    if (linea && nueva <= 0) {
+    if (esStockDeTienda()) await cambiarEnStock(id, idioma, linea, nueva)
+    else if (linea && nueva <= 0) {
       const { error } = await tabla().delete().eq('id', linea.id).eq('user_id', ctx.sesion.user.id)
       if (error) throw error
       mios = mios.filter((m) => m !== linea)
@@ -710,7 +738,7 @@ export async function abrir(contexto) {
       if (e.key === 'Escape' && d?.open && d.classList.contains('mc-prodf-al-lado')) d.close()
     })
   }
-  const lista = ctx.sesion ? await misProductos(ctx.sesion.user.id) : []
+  const lista = ctx.sesion ? await (esStockDeTienda() ? misProductosDeTienda : misProductos)(ctx.sesion.user.id) : []
   mios = lista ? [...lista] : null
   if (mios?.length) {
     try {

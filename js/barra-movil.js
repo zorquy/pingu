@@ -78,7 +78,8 @@ export function seccionActual(secciones, clave) {
 // A dónde lleva cada hueco de la barra: la primera página de la sección,
 // salvo Cartas, que con cuenta es Mi colección y sin ella el catálogo.
 export function destinoDe(seccion, conSesion) {
-  if (seccion.nombre === 'Colección') return conSesion ? '/mi-coleccion' : '/cartas'
+  // Las secciones que llegan de fuera (las de una tienda, 1071) llevan el suyo.
+  if (seccion.nombre === 'Colección' && !seccion.fija) return conSesion ? '/mi-coleccion' : '/cartas'
   return seccion.enlaces[0]?.href || '/'
 }
 

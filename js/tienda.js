@@ -10,7 +10,7 @@ import { supabase } from './supabase.js'
 import { getSession, getProfile, profileUrl, getInitial, avatarStyle, signOut } from './app.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
-import { caraDelPanel, primerosPasos } from './tiendas-puro.js'
+import { caraDelPanel, instagramDe } from './tiendas-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const CARAS = ['tdCargando', 'tdCerrado', 'tdEntrar', 'tdEquipo', 'tdPanel']
@@ -32,7 +32,7 @@ function montarStockSiToca(v) {
   return stockMontado
 }
 
-// Hoy (1073), igual: sus cifras.
+// El Panel (1073; «Hoy» hasta la 1074), igual: sus cifras.
 let hoyMontado = false
 function montarHoySiToca(v) {
   if (v !== 'hoy' || hoyMontado) return
@@ -42,7 +42,7 @@ function montarHoySiToca(v) {
     .catch(() => { hoyMontado = false; $('tdHoy').innerHTML = '<p class="subtext">No se han podido traer tus cifras. Recarga la página.</p>' })
 }
 
-// Un aviso de Hoy lleva al Stock con su filtro puesto.
+// Un aviso del Panel lleva al Stock con su filtro puesto.
 function stockFiltrado(clave) {
   pestana('stock')
   Promise.all([stockMontado, import('./tienda-hoy.js')]).then(([m, h]) => m?.filtrarStock(h.FILTROS_DE_AVISO[clave] || {}))
@@ -81,7 +81,7 @@ async function montarEscaparateSiToca(v) {
   qrMontado = true
   const url = `https://pokedoc.es/usuario/${encodeURIComponent(perfil.username)}`
   const { svgQR } = await import('./qr.js')
-  // El QR lleva `utm_source=qr`: Hoy cuenta aparte las visitas que llegan de él (1073).
+  // El QR lleva `utm_source=qr`: el Panel cuenta aparte las visitas que llegan de él (1073).
   $('tdQr').innerHTML = svgQR(`${url}?utm_source=qr`, { tam: 220 })
   $('tdEnlace').textContent = url.replace('https://', '')
   $('tdCartelNombre').textContent = perfil.display_name || perfil.username
@@ -112,30 +112,11 @@ function pestana(cual) {
 let tienda = null
 let perfil = null
 
-let lineas = 0
-// El QR impreso o descargado, en este navegador (1073).
-const claveQr = () => `pd-tienda-qr-${perfil?.id}`
-const qrHecho = () => { try { return localStorage.getItem(claveQr()) === '1' } catch { return false } }
-function apuntarQr() {
-  try { localStorage.setItem(claveQr(), '1') } catch {}
-  pintarPasos()
-}
-function pintarPasos() {
-  const pasos = primerosPasos(tienda, { lineas, qr: qrHecho() })
-  // Hechos todos, sobran (1073): Hoy ya tiene sus cifras.
-  $('tdPasosCaja').classList.toggle('hidden', pasos.every((p) => p.hecho))
-  $('tdPasos').innerHTML = pasos
-    .map((p) => `<li class="${p.hecho ? 'hecho' : ''}">
-      <span class="td-paso-marca" aria-hidden="true">${p.hecho ? '&#10003;' : ''}</span>
-      <span><strong>${p.texto}</strong>${p.nota ? `<small>${p.nota}</small>` : ''}</span>
-      ${p.ir && !p.hecho ? `<button type="button" class="btn-secondary" data-td-ir="${p.ir}">Hacerlo</button>` : ''}
-    </li>`)
-    .join('')
-}
-
 function pintarCabecera() {
   $('tdNombre').textContent = perfil.display_name || perfil.username || 'Tu tienda'
-  $('tdDonde').textContent = [tienda?.ciudad, tienda?.direccion].filter(Boolean).join(' · ') || 'Sin dirección todavía'
+  // Sin local no hay dirección, y no falta nada (1074, PINGU: «no hace falta
+  // que sea una tienda física»): entonces, su @.
+  $('tdDonde').textContent = [tienda?.ciudad, tienda?.direccion].filter(Boolean).join(' · ') || (perfil.username ? `@${perfil.username}` : '')
   const logo = $('tdLogo')
   logo.textContent = getInitial(perfil.display_name || perfil.username || 'T')
   if (perfil.avatar_url) logo.setAttribute('style', avatarStyle(perfil))
@@ -147,7 +128,15 @@ function pintarDatos() {
   $('tdDatoCiudad').value = tienda?.ciudad || ''
   $('tdDatoDireccion').value = tienda?.direccion || ''
   $('tdDatoHorario').value = tienda?.horario || ''
-  $('tdDatoWeb').value = tienda?.web || ''
+  // Lo que se escribió antes de la 1074 en «Web o Instagram» se reparte: un
+  // @ o un enlace de Instagram es su Instagram.
+  // Sin la migración 1074 la fila no trae `instagram`: el campo no se ofrece
+  // (guardarlo fallaría entero, 42703) y la web se queda como estaba.
+  const conIg = Boolean(tienda) && 'instagram' in tienda
+  const ig = conIg ? tienda.instagram || instagramDe(tienda.web) : null
+  $('tdDatoWeb').value = conIg && instagramDe(tienda.web) ? '' : tienda?.web || ''
+  $('tdDatoInstagram').value = ig ? `@${ig}` : ''
+  $('tdDatoInstagram').closest('label').classList.toggle('hidden', Boolean(tienda) && !conIg)
   $('tdDatoPrecio').checked = tienda?.precio_visible !== false
   $('tdCuentaEmail').textContent = correo || ''
 }
@@ -163,12 +152,7 @@ async function arrancar() {
 
   const { data } = await supabase.from('tiendas').select('*').eq('user_id', sesion.user.id).maybeSingle()
   tienda = data || null
-  // Cuántas líneas tiene el stock, para el paso de «Meter tu stock». Sin la
-  // migración 1068 la tabla no existe: se queda en cero, que es la verdad.
-  const { count } = await supabase.from('tienda_stock').select('id', { count: 'exact', head: true }).then((r) => r, () => ({}))
-  lineas = count || 0
   pintarCabecera()
-  pintarPasos()
   pintarDatos()
   cara('tdPanel')
   const params = new URLSearchParams(location.search)
@@ -198,10 +182,6 @@ $('tdPestanas')?.addEventListener('click', (e) => {
   const b = e.target.closest('[data-td]')
   if (b) pestana(b.dataset.td)
 })
-$('tdPasos')?.addEventListener('click', (e) => {
-  const b = e.target.closest('[data-td-ir]')
-  if (b) pestana(b.dataset.tdIr)
-})
 
 $('tdCopiar')?.addEventListener('click', () => {
   const url = `https://${$('tdEnlace').textContent}`
@@ -210,14 +190,12 @@ $('tdCopiar')?.addEventListener('click', () => {
 // Imprimir solo el cartel: la clase la lee la hoja de impresión de tienda.css.
 $('tdImprimir')?.addEventListener('click', () => {
   document.documentElement.classList.add('td-imprimiendo')
-  apuntarQr()
   window.print()
   setTimeout(() => document.documentElement.classList.remove('td-imprimiendo'), 500)
 })
 $('tdBajarQr')?.addEventListener('click', () => {
   const svg = $('tdQr').innerHTML
   if (!svg) return
-  apuntarQr()
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }))
   a.download = `qr-${perfil.username}.svg`
@@ -244,10 +222,20 @@ $('tdDatos')?.addEventListener('submit', async (e) => {
     precio_visible: $('tdDatoPrecio').checked,
     updated_at: new Date().toISOString(),
   }
+  if (tienda && 'instagram' in tienda) {
+    const escrito = $('tdDatoInstagram').value.trim()
+    const ig = instagramDe(/^@|instagram\.com/i.test(escrito) ? escrito : `@${escrito}`)
+    if (escrito && !ig) {
+      error.textContent = 'Ese Instagram no parece un usuario: escribe solo tu @.'
+      return
+    }
+    nuevos.instagram = ig
+    // Lo que era Instagram en «Web» (antes de la 1074) ya no va ahí.
+    if (instagramDe(nuevos.web)) nuevos.web = null
+  }
   tienda = { ...tienda, ...nuevos }
   perfil.display_name = nombre
   pintarCabecera()
-  pintarPasos()
   const boton = $('tdDatosGuardar')
   boton.disabled = true
   const [r1, r2] = await Promise.all([
@@ -261,7 +249,6 @@ $('tdDatos')?.addEventListener('submit', async (e) => {
     tienda = antes.tienda
     perfil.display_name = antes.nombre
     pintarCabecera()
-    pintarPasos()
     pintarDatos()
     error.textContent = 'No se ha podido guardar. Inténtalo de nuevo.'
     return

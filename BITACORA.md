@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (314) — PINGU-Claude (1074 y 1075 — el Panel, una tienda sin local y la Colección de la tienda)
+
+**Hecho**: lo que PINGU pidió al mirar la tienda de prueba.
+- **1074**: «Hoy» se llama Panel y los primeros pasos se van. Una tienda no
+  necesita local («un particular que se dedica a la compraventa»): ciudad,
+  dirección y horario son opcionales en /tiendas, el alta y Datos; la web y
+  el Instagram van cada uno en su campo (el Instagram se guarda como usuario
+  y el escaparate enlaza los dos). Lo que estaba escrito en «Web o Instagram»
+  y era un Instagram pasa a su sitio.
+- **1075**: la sección Colección de la tienda es /cartas en modo tienda: el
+  catálogo entero (Expansiones, Pokédex, Productos y Buscar) con SU stock
+  como lo que tiene, y el «+» mete en el stock con coste y precio (lo sellado
+  también). Lo de una persona (deseos, álbumes, cambios, quién la tiene) no
+  sale. En la lateral cuelga su menú como Mi colección; en el móvil la barra
+  es Panel, Colección, Vender, Stock y Mensajes.
+
+**Para PINGU**: ejecutar `supabase-migration-1074-tienda-sin-local.sql` (si
+no están, antes la 1072 y la 1073). Sin ella todo funciona como antes: el
+campo de Instagram de Datos no sale y en /tiendas el @ se guarda en la web.
+La 1075 no tiene migración.
+
+**Ficheros**: `tienda.html`, `js/tienda.js`, `js/tienda-hoy.js`,
+`js/tienda-marco.js`, `js/tienda-puertas.js`, `js/tiendas-puro.js`,
+`css/tienda.css`, `tiendas.html`, `js/tiendas.js`, `alta-tienda.html`,
+`js/alta-tienda.js`, `js/perfil-tienda.js`, `js/en-tiendas.js`,
+`admin/js/tiendas.js`, `js/mi-coleccion.js`, `js/mi-coleccion/datos.js`,
+`js/mi-coleccion/productos.js`, `css/mi-coleccion.css`, `js/barra-lateral.js`
+(una sección de fuera puede llevar el menú de su página) y
+`js/barra-movil.js` (`fija`: su «Colección» no se cambia por Mi colección), y
+la migración 1074. Pruebas en `pruebas`: 1074 (+pantalla, la migración contra
+PostgreSQL dos veces), 1075-pantalla, y al día la 1067, 1069, 1071 y 1073.
+
+**Pendiente**: lo aparcado (la cámara, lotes, empleados, Cardmarket, pagos) y
+la propuesta «Lo siguiente para tiendas» (Apártamela, avisos, etiquetas,
+precio automático…), sin decidir.
+
 ## 2026-10-28 (313) — PINGU-Claude (1071, 1072 y 1073 — la web de una tienda, vender y Hoy con cifras)
 
 **Hecho**: la propuesta «La web de una tienda», con lo que PINGU eligió (lo

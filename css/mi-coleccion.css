@@ -14602,3 +14602,23 @@ body:has(#mcPanelQuiero.hidden) :is(#mcQuieroSel, #mcDoySel) {
   font-weight: 700;
   color: var(--pink);
 }
+
+/* LA COLECCIÓN DE UNA TIENDA (1075): /cartas con su stock (SCHEMA 1075).
+   Fuera lo que es de una persona: deseos, álbumes, cambios, quién la tiene,
+   las tiendas que la tienen, compartir y la ficha completa (es otra página). */
+body[data-tienda] #mcEdQuiero,
+body[data-tienda] #mcEdDeseos,
+body[data-tienda] #mcEdAlbumes,
+body[data-tienda] #mcEdQuienBloque,
+body[data-tienda] #mcEdTiendas,
+body[data-tienda] #mcEdFicha,
+body[data-tienda] #mcEdCompartir,
+body[data-tienda] #mcEdAviso,
+body[data-tienda] .mc-contador:has(#mcEdCambio),
+body[data-tienda] #mcMarcarAlbum,
+body[data-tienda] #mcMarcarQuiero,
+body[data-tienda] #mcBloqueAlbumes,
+body[data-tienda] #mcBloqueCambios,
+body[data-tienda] .mc-hero-quien .mc-compartir {
+  display: none !important;
+}
