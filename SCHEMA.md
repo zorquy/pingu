@@ -41785,6 +41785,24 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1087 — La tabla del Stock a siete columnas, y «Más filtros»
+
+- **La tabla en el PC**: Carta, Uds., Coste, Tu precio, Cardmarket, Margen y
+  una última de marcas (`.tds-c-marcas`: los días en pequeño, en rojo y con un
+  reloj pasados los 90; «Oculta» si no se ve; dónde está). El idioma y el
+  estado van debajo del nombre (`.tds-meta`, solo desde 601 px). En un
+  portátil de 1.280 cabe sin deslizarse. En el móvil cada línea sigue siendo su
+  tarjeta, con las celdas `.tds-c-idioma` y `.tds-c-estado` de siempre (que el
+  PC esconde) y sin `.tds-meta` ni las marcas.
+- **Los filtros**: abiertos, Catálogo, Expansión, Idioma y Estado; lo demás
+  (tu precio, margen, contra Cardmarket, versión, rareza, Cardmarket, lo pagado,
+  días, unidades, gradeadas, dónde está, escaparate) en «Más filtros», que se
+  abre solo si hay alguno suyo puesto y dice cuántos (`masPuestos`; un rango
+  cuenta una vez).
+- **Las pestañas de /tienda** (`#tdPestanas`) no salen desde 1.240 px, donde
+  los enlaces de arriba (`.nav-links`) ya son las secciones
+  (`css/tienda-marco.css`). Solo con el menú plegado se quedan.
+
 ## Tanda 1086 — La barra del Stock en una fila
 
 PINGU («demasiados botones»): en el móvil no cabían y Seleccionar, importar y

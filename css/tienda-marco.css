@@ -10,10 +10,17 @@ html.es-tienda .nav-racha {
 }
 
 /* Con la lateral o la barra de abajo, las pestañas de /tienda ya están en
-   ellas; en un PC estrecho (el menú plegado arriba) se quedan. */
+   ellas; con los enlaces arriba (desde 1.240 px, el corte de .nav-links),
+   también (1087). Solo en un PC estrecho, con el menú plegado, se quedan. */
 html.es-tienda.con-lateral .td-pestanas,
 html.es-tienda.con-barra-movil .td-pestanas {
   display: none;
+}
+
+@media (min-width: 1240px) {
+  html.es-tienda .td-pestanas {
+    display: none;
+  }
 }
 
 /* Vender (1072): en el PC, botón arriba; en el móvil, el hueco del centro de

@@ -1665,7 +1665,7 @@ html:has(.tds-dialogo[open]) {
   .tds-c-cm { grid-column: 4; grid-row: 2; font-size: var(--t-xs); color: var(--text-mid); }
   .tds-c-cm::before { content: 'CM '; }
   .tds-c-margen { grid-column: 5; grid-row: 2; font-size: var(--t-xs); }
-  .tds-c-coste, .tds-c-dias, .tds-c-vis { display: none; }
+  .tds-c-coste, .tds-c-marcas, .tds-meta { display: none; }
 }
 
 /* ── La cabecera, solo en el Panel (1078) ──
@@ -1992,5 +1992,58 @@ html[data-td-ver='stock'] .bm-pastilla {
     inset: 0;
     opacity: 0;
     cursor: pointer;
+  }
+}
+
+/* La tabla del Stock en el PC, a siete columnas (1087): el idioma y el estado
+   debajo del nombre, y los días y si se ve, al final y en pequeño. En el
+   móvil cada línea es una tarjeta y lleva sus celdas de siempre. */
+.tds-meta {
+  display: none;
+  gap: var(--e-xs);
+  align-items: center;
+  margin-top: 2px;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.tds-meta .pv-bandera {
+  display: inline-block;
+}
+
+.tds-c-marcas {
+  white-space: nowrap;
+}
+
+.tds-c-marcas > * {
+  display: flex;
+  gap: var(--e-xs);
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.tds-dias {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  font-variant-numeric: tabular-nums;
+}
+
+.tds-dias.tds-rojo {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+@media (min-width: 601px) {
+  .tds-tabla .tds-c-idioma,
+  .tds-tabla .tds-c-estado {
+    display: none;
+  }
+
+  .tds-tabla .tds-meta {
+    display: inline-flex;
+  }
+
+  .tds-tabla {
+    min-width: 720px;
   }
 }

@@ -227,7 +227,7 @@ function filaHtml(f) {
   const marcada = est.marcadas.has(f.id)
   return `<tr class="${pierde || dias > 90 ? 'tds-mal' : debajo ? 'tds-alerta' : ''}${marcada ? ' tds-marcada' : ''}" data-fila="${escapeHtml(f.id)}">
     ${est.seleccionando ? `<td class="tds-check"><input type="checkbox" aria-label="Marcar" data-marcar="${escapeHtml(f.id)}" ${marcada ? 'checked' : ''} /></td>` : ''}
-    <td class="tds-c-nombre"><div class="tds-nombre">${fotoHtml(f)}<span><strong>${escapeHtml(nombreFila(f))}</strong><small>${escapeHtml(detalleFila(f))}${f.variante && f.variante !== 'normal' && !f.product_id ? ` · ${escapeHtml(nombreDeVariante(f.variante))}` : ''}${f.gradeo ? ` · ${escapeHtml(f.gradeo)}` : ''}</small></span>${estrellaHtml(f)}</div></td>
+    <td class="tds-c-nombre"><div class="tds-nombre">${fotoHtml(f)}<span><strong>${escapeHtml(nombreFila(f))}</strong><small>${escapeHtml(detalleFila(f))}${f.variante && f.variante !== 'normal' && !f.product_id ? ` · ${escapeHtml(nombreDeVariante(f.variante))}` : ''}${f.gradeo ? ` · ${escapeHtml(f.gradeo)}` : ''}</small><span class="tds-meta">${f.idioma ? banderaHtml(f.idioma) : ''}${escapeHtml(String(f.idioma || '').toUpperCase())}<span class="tds-chapa">${dibujoDe('estado', f.estado)}${escapeHtml(f.estado === 'sellado' ? 'Sellado' : f.estado)}</span></span></span>${estrellaHtml(f)}</div></td>
     <td class="tds-c-idioma">${f.idioma ? banderaHtml(f.idioma) : ''}<span>${escapeHtml(String(f.idioma || '').toUpperCase())}</span></td>
     <td class="tds-c-estado"><span class="tds-chapa">${dibujoDe('estado', f.estado)}${escapeHtml(f.estado === 'sellado' ? 'Sellado' : f.estado)}</span></td>
     <td class="tds-num tds-c-uds">${f.unidades}</td>
@@ -235,8 +235,7 @@ function filaHtml(f) {
     <td class="tds-num tds-c-precio">${precioCeldaHtml(f)}</td>
     <td class="tds-num tds-c-cm${debajo ? ' tds-ambar' : ''}">${f.cm > 0 ? euros(f.cm) : '<span class="tds-falta">—</span>'}</td>
     <td class="tds-num tds-c-margen">${m ? `<span class="${m.euros < 0 ? 'tds-rojo' : 'tds-verde'}">${m.euros > 0 ? '+' : ''}${euros(m.euros)}</span> <small>${m.pct} %</small>` : '<span class="tds-falta">—</span>'}</td>
-    <td class="tds-num tds-c-dias${dias > 90 ? ' tds-rojo' : ''}">${dias} d</td>
-    <td class="tds-c-vis">${f.visible ? '<span class="tds-chapa tds-chapa-si">Se ve</span>' : '<span class="tds-chapa">Oculta</span>'}${f.ubicacion ? `<small class="tds-ubi">${escapeHtml(f.ubicacion)}</small>` : ''}</td>
+    <td class="tds-c-marcas"><span class="tds-dias${dias > 90 ? ' tds-rojo' : ''}" title="Lleva ${dias} ${dias === 1 ? 'día' : 'días'} en tu stock">${dias > 90 ? icons.clock(14) : ''}${dias} d</span>${f.visible ? '' : '<span class="tds-chapa">Oculta</span>'}${f.ubicacion ? `<small class="tds-ubi">${escapeHtml(f.ubicacion)}</small>` : ''}</td>
   </tr>`
 }
 
@@ -257,7 +256,7 @@ function pintarTabla() {
     return
   }
   tabla.innerHTML = `<table class="tds-tabla">
-    <thead><tr>${est.seleccionando ? '<th class="tds-check"><input type="checkbox" aria-label="Marcar todas las de esta lista" data-tds="todas" /></th>' : ''}<th>Carta</th><th>Idioma</th><th>Estado</th><th class="tds-num">Uds.</th><th class="tds-num">Coste</th><th class="tds-num">Tu precio</th><th class="tds-num">Cardmarket</th><th class="tds-num">Margen</th><th class="tds-num">En stock</th><th>Escaparate</th></tr></thead>
+    <thead><tr>${est.seleccionando ? '<th class="tds-check"><input type="checkbox" aria-label="Marcar todas las de esta lista" data-tds="todas" /></th>' : ''}<th>Carta</th><th class="tds-c-idioma">Idioma</th><th class="tds-c-estado">Estado</th><th class="tds-num">Uds.</th><th class="tds-num">Coste</th><th class="tds-num">Tu precio</th><th class="tds-num">Cardmarket</th><th class="tds-num">Margen</th><th class="tds-c-marcas"><span class="sr-only">En stock y escaparate</span></th></tr></thead>
     <tbody>${est.filas.map(filaHtml).join('')}</tbody>
   </table>
   ${est.filas.length < est.total ? `<button type="button" class="btn-secondary tds-mas" data-tds="mas">Ver ${Math.min(POR_PAGINA, est.total - est.filas.length)} más</button>` : ''}`
@@ -406,19 +405,22 @@ function pintarFiltros() {
   const puestos = Object.keys(est.filtros).length
   const ordenIdiomas = IDIOMAS.map((i) => i.id)
   const ordenEstados = [...ESTADOS.map((e) => e.id), 'sellado']
+  // Abiertos, los cuatro de siempre (1087); lo demás en «Más filtros», que se
+  // abre solo si alguno de los suyos está puesto (y dice cuántos).
+  const masPuestos = Object.keys(est.filtros).filter((k) => !['q', 'catalogo', 'sets', 'idioma', 'estado'].includes(k)).map((k) => k.replace(/_(min|max)$/, '')).filter((k, i, a) => a.indexOf(k) === i).length
   const grupo = (titulo, cuerpo, n = 0) => `<div class="tds-grupo"><h3>${titulo}${n ? ` <em>${n}</em>` : ''}</h3>${cuerpo}</div>`
   $('.tds-filtros').innerHTML = `
     <div class="tds-filtros-cab"><h2>Filtros</h2>${puestos ? `<button type="button" class="link-btn" data-tds="limpiar">Limpiar (${puestos})</button>` : ''}<button type="button" class="tds-cerrar" data-tds="cerrar-filtros" aria-label="Cerrar los filtros">×</button></div>
     ${grupo('Catálogo', opcionesHtml('catalogo', ['WEST', 'JP', 'sellado'].filter((v) => valoresDe('catalogo').includes(v))))}
     ${sets.length ? grupo('Expansión', desplegableDeSets(sets, buscaSet), (est.filtros.sets || []).length) : ''}
-    ${grupo('Tu precio (€)', rangoHtml('precio_min', 'precio_max', 'Tu precio'))}
-    ${grupo('Margen sobre lo pagado', opcionesHtml('margen', ['pierdes', '0-20', '20-50', '50+', 'sin_coste'], { contar: false }))}
-    ${grupo('Contra Cardmarket', opcionesHtml('contra', ['debajo', 'igual', 'encima'], { contar: false }))}
     ${grupo('Idioma', opcionesHtml('idioma', valoresDe('idioma').sort((a, b) => ordenIdiomas.indexOf(a) - ordenIdiomas.indexOf(b))))}
     ${grupo('Estado', opcionesHtml('estado', valoresDe('estado').sort((a, b) => ordenEstados.indexOf(a) - ordenEstados.indexOf(b))))}
-    ${valoresDe('variante').length > 1 ? grupo('Versión', opcionesHtml('variante', valoresDe('variante'))) : ''}
-    ${valoresDe('rareza').length ? grupo('Rareza', opcionesHtml('rareza', valoresDe('rareza').sort((a, b) => (est.facetas.rareza?.[b] || 0) - (est.facetas.rareza?.[a] || 0)))) : ''}
-    <details class="tds-grupo tds-mas-filtros" ${est.masAbierto ? 'open' : ''}><summary>Más filtros</summary>
+    <details class="tds-grupo tds-mas-filtros" ${est.masAbierto || masPuestos ? 'open' : ''}><summary>Más filtros${masPuestos ? ` <em>${masPuestos}</em>` : ''}</summary>
+      ${grupo('Tu precio (€)', rangoHtml('precio_min', 'precio_max', 'Tu precio'))}
+      ${grupo('Margen sobre lo pagado', opcionesHtml('margen', ['pierdes', '0-20', '20-50', '50+', 'sin_coste'], { contar: false }))}
+      ${grupo('Contra Cardmarket', opcionesHtml('contra', ['debajo', 'igual', 'encima'], { contar: false }))}
+      ${valoresDe('variante').length > 1 ? grupo('Versión', opcionesHtml('variante', valoresDe('variante'))) : ''}
+      ${valoresDe('rareza').length ? grupo('Rareza', opcionesHtml('rareza', valoresDe('rareza').sort((a, b) => (est.facetas.rareza?.[b] || 0) - (est.facetas.rareza?.[a] || 0)))) : ''}
       ${grupo('Cardmarket (€)', rangoHtml('cm_min', 'cm_max', 'Cardmarket'))}
       ${grupo('Lo que pagaste (€)', rangoHtml('coste_min', 'coste_max', 'Coste'))}
       ${grupo('Días en stock', opcionesHtml('dias', ['30', '30-90', '90+'], { contar: false }))}
