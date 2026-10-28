@@ -2786,7 +2786,11 @@ export const supabase = {
       }, error: null }
     }
     const respuesta = (typeof window !== 'undefined' && window.__RPC_RESPUESTAS__) || {}
-    if (nombre in respuesta) return { data: respuesta[nombre], error: null }
+    // Una respuesta puede ser una función de los argumentos (1079: el
+    // escaparate por secciones contesta distinto a cada filtro).
+    if (nombre in respuesta) {
+      return { data: typeof respuesta[nombre] === 'function' ? respuesta[nombre](args) : respuesta[nombre], error: null }
+    }
     // El Mercado con tiendas (1069) solo existe si la prueba lo da: si no, la
     // base no tiene la migración y el cliente vuelve a `intercambios_mercado`,
     // que el doble sí calcula. Un vacío sin error sería un Mercado vacío.
