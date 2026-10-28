@@ -76,6 +76,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mismo: lo que solo usa una pantalla, a su hoja. `components.css` y `js/app.js` los
   baja TODO el mundo — el CSS o JS de una sola página va en su propio
   fichero (mira css/lanzamientos.css o css/curso.css como ejemplo).
+- **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
+  1065 y 1066): cada visita lleva `modo` (app instalada o web),
+  `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que
+  salen de `pd-visto` en el navegador (solo fecha, hora y si ya fue app). Una
+  cifra nueva del panel va en `admin_analitica_resumen` (o en
+  `admin_analitica`), con su prueba contra PostgreSQL, y en la pestaña que le
+  toque (`data-an-tab`). La frase del Resumen es `js/analitica-frase.js`, la
+  misma que llega el lunes a la campanita del equipo. Y una cosa que la gente
+  HACE (una tabla nueva de acciones) entra en `hechos` de esa función.
 - **Lo de HOY de la portada, el bloque del foro y el índice del foro salen
   de UNA función cada uno** (tanda 1017, migración
   `supabase-migration-1017-portada-consultas.sql`): `portada_hoy()`

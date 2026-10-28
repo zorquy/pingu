@@ -289,6 +289,16 @@
              sin decirlo no hay forma de distinguirlos. -->
         <div id="analyticsErrores"></div>
 
+        <!-- Cuatro pestañas (1066, SCHEMA 1066): cada bloque dice la suya con
+             data-an-tab y la sección enseña solo la elegida (data-an-ver). -->
+        <nav class="an-pestanas" id="anPestanas" role="tablist" aria-label="Partes de la analítica" hidden>
+          <button type="button" role="tab" data-an-pestana="resumen" aria-selected="true">Resumen</button>
+          <button type="button" role="tab" data-an-pestana="trafico" aria-selected="false">Tráfico</button>
+          <button type="button" role="tab" data-an-pestana="hacen" aria-selected="false">Qué hacen</button>
+          <button type="button" role="tab" data-an-pestana="tecnico" aria-selected="false">Técnico</button>
+        </nav>
+        <div class="an-panel an-resumen" id="anResumen" data-an-tab="resumen" hidden></div>
+
         <!-- El panel en visual (848), contado en la base por admin_analitica.
              Sin la migración sale lo de abajo, que es lo de antes. -->
         <div class="an-panel" id="anPanel" hidden></div>
@@ -304,25 +314,25 @@
         </div>
 
         <div class="an-rejilla-cards an-extra">
-          <section class="an-card an-ancha">
+          <section class="an-card an-ancha" data-an-tab="tecnico">
             <h2 class="admin-subtitle">Lo que tarda de verdad</h2>
             <p class="admin-note">El percentil 75 en los navegadores de la gente (una visita de cada cuatro): LCP es cuándo se ve lo principal, INP lo que tarda en responder a un toque y CLS cuánto salta. Verde, ámbar y rojo son los umbrales de Google.</p>
             <div id="analyticsVitales"></div>
           </section>
 
-          <section class="an-card">
+          <section class="an-card" data-an-tab="hacen">
             <h2 class="admin-subtitle">Guías más vistas</h2>
             <p class="admin-note">Contador acumulado de <code>guides.view_count</code>, desde siempre — no se filtra por periodo.</p>
             <div id="analyticsGuides"></div>
           </section>
 
-          <section class="an-card">
+          <section class="an-card" data-an-tab="hacen">
             <h2 class="admin-subtitle">Cursos: empezados y completados</h2>
             <p class="admin-note" id="analyticsCoursesNote"></p>
             <div id="analyticsCourses"></div>
           </section>
 
-          <section class="an-card an-ancha">
+          <section class="an-card an-ancha" data-an-tab="hacen">
             <h2 class="admin-subtitle">Actividad de la comunidad</h2>
             <div id="analyticsCommunity"></div>
           </section>

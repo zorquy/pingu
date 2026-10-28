@@ -182,6 +182,54 @@ export function aparatoDe(ancho = 0, tactil = false) {
   return 'pc'
 }
 
+// APP O WEB, Y PERSONAS SIN IDENTIFICARLAS (tanda 1065). Abierta desde el
+// icono de la pantalla de inicio, la web va «en modo app» y el navegador lo
+// dice (display-mode standalone; en iPhone, navigator.standalone).
+export function modoDe(win = window) {
+  try {
+    return win.matchMedia?.('(display-mode: standalone)').matches || win.navigator?.standalone === true ? 'app' : 'web'
+  } catch {
+    return 'web'
+  }
+}
+// Para contar las instalaciones por sistema: tres grupos, nada más.
+export function plataformaDe(ua = navigator.userAgent, maxTouch = navigator.maxTouchPoints) {
+  const u = String(ua || '')
+  if (/iphone|ipad|ipod/i.test(u) || (/macintosh/i.test(u) && Number(maxTouch) > 1)) return 'ios'
+  if (/android/i.test(u)) return 'android'
+  return 'otro'
+}
+// Lo que el navegador recuerda de sí mismo: la fecha de su última visita, el
+// momento de la última página y si ya se abrió alguna vez como app. Nunca
+// sale de aquí: a la base solo van tres sí/no. `guardado` es lo de la vez
+// anterior (o null), `hoy` la fecha local (AAAA-MM-DD) y `ms` el reloj.
+export const MEDIA_HORA = 30 * 60 * 1000
+export function marcasDeVisita(guardado, { hoy, ms, modo }) {
+  const g = guardado && typeof guardado === 'object' ? guardado : {}
+  const marcas = {
+    primera_del_dia: g.dia !== hoy,
+    nueva_visita: !(Number(g.ultima) > 0 && ms - Number(g.ultima) < MEDIA_HORA),
+    primera_en_app: modo === 'app' && !g.app,
+  }
+  return { marcas, guardar: { dia: hoy, ultima: ms, app: Boolean(g.app || modo === 'app') } }
+}
+const CLAVE_VISTO = 'pd-visto'
+function marcasDeEsteNavegador(modo) {
+  try {
+    const guardado = JSON.parse(localStorage.getItem(CLAVE_VISTO) || 'null')
+    const d = new Date()
+    const hoy = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+    const { marcas, guardar } = marcasDeVisita(guardado, { hoy, ms: d.getTime(), modo })
+    localStorage.setItem(CLAVE_VISTO, JSON.stringify(guardar))
+    return marcas
+  } catch {
+    // Sin almacenamiento (ventana privada, bloqueado) no se sabe: no se
+    // cuenta como persona antes que contarla en cada página.
+    return { primera_del_dia: null, nueva_visita: null, primera_en_app: null }
+  }
+}
+const COLUMNAS_1065 = ['modo', 'primera_del_dia', 'primera_en_app', 'nueva_visita', 'plataforma']
+
 export async function logPageView(session) {
   try {
     // supabase-js NO lanza excepciones: los fallos vienen en `error`, y
@@ -197,7 +245,17 @@ export async function logPageView(session) {
       campana: campanaDe(location.search),
       aparato: aparatoDe(window.innerWidth, matchMedia?.('(pointer: coarse)').matches),
     }
+    // Lo de la 1065: app o web, y las tres marcas del navegador.
+    const modo = modoDe()
+    Object.assign(fila, { modo, plataforma: plataformaDe(), ...marcasDeEsteNavegador(modo) })
+    // Abrir la app no viene de ninguna web: era «directo». Va aparte.
+    if (modo === 'app' && fila.origen === 'directo') fila.origen = 'app'
     let { error } = await supabase.from('page_views').insert(fila)
+    // Sin la migración 1065 sus columnas no existen: se manda sin ellas.
+    if (error && new RegExp(COLUMNAS_1065.join('|')).test(error.message || '')) {
+      for (const c of COLUMNAS_1065) delete fila[c]
+      ;({ error } = await supabase.from('page_views').insert(fila))
+    }
     // Sin la migración de la 848 las tres columnas no existen: se vuelve a
     // mandar sin ellas, que la visita no se pierda (como con is_bot).
     if (error && /origen|campana|aparato/.test(error.message || '')) {

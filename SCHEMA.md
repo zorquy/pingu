@@ -41785,6 +41785,71 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tandas 1065 y 1066 — La analítica que se entiende
+
+PINGU: «a ver cuánta gente entra desde la app instalada… quiero mejorar la
+analítica del panel: que sea más sencillo de ver y que saque datos más
+importantes, para ver si la web está mejorando o no». Propuesta con el panel
+de antes y maquetas (artifact «Analítica que se entiende»); lo recomendado.
+
+**Saber si es la app** (1065, `js/page-views.js`): abierta desde el icono, la
+web va «en modo app» y el navegador lo dice: `matchMedia('(display-mode:
+standalone)')` en Android y el ordenador, `navigator.standalone` en iPhone
+(`modoDe`). La plataforma (`plataformaDe`: ios, android, otro; un iPad que
+dice «Macintosh» con dedo es ios). Abrir la app sin página de origen era
+«directo»: ahora es el origen `app` («App instalada» en el panel).
+
+**Personas sin identificador**: el navegador guarda en `localStorage`
+(`pd-visto`) la fecha de su última visita, la hora de la última página y si
+ya se abrió como app; nunca sale de ahí. Con eso `marcasDeVisita` dice tres
+sí/no: `primera_del_dia` (contarlas = personas distintas al día),
+`nueva_visita` (tras media hora sin entrar) y `primera_en_app` (= una
+instalación, en iPhone y Android por igual: el evento `appinstalled` solo lo
+da Android). Sin almacenamiento, las marcas van a `null`: no cuenta antes que
+contar en cada página. Las columnas (`modo`, `primera_del_dia`,
+`primera_en_app`, `nueva_visita`, `plataforma`, con sus `check`) las pone la
+migración 1065; sin ella el insert falla por la columna y se repite sin ellas
+(`COLUMNAS_1065`).
+
+**El Resumen** (`admin_analitica_resumen(p_dias)`, misma migración): periodo
+contra el anterior. Personas (primeras del día, no robots) y de ellas desde la
+app; instalaciones y por plataforma; cuentas activas; acciones de las tablas
+que ya hay (líneas nuevas de `user_collection`, `user_wants`,
+`retos_resultados`, `forum_posts`, `user_progress.completed_at`, `match_log`);
+altas del periodo con cuántas hicieron algo en 7 días, cuántas añadieron una
+carta y cuántas volvieron tras la primera semana; salud (`client_errors`, rotas
+con `desde` nuestro, p75 del LCP de `page_vitals`); personas por día web/app;
+y `medido_desde` (la primera fila con la marca: antes no hay personas que
+contar y el panel lo dice). La lee el equipo (`is_admin`) y la clave de
+servicio (`auth.role() = 'service_role'`, del JWT: vale dentro de `security
+definer`, donde `current_user` es el dueño).
+
+**El panel** (1066): cuatro pestañas (`#anPestanas`); cada bloque lleva
+`data-an-tab` (resumen, trafico, hacen, tecnico) y la sección `data-an-ver`
+enseña la elegida (admin.css), recordada en `pd-admin-analitica`. Sin el
+Resumen (falta la migración) se abre en Tráfico. El Resumen (`pintarResumen`,
+`admin/js/analitica.js`): la frase (`trozosDeResumen` de
+`js/analitica-frase.js`, con el tono de cada trozo para el color: verde sube,
+rojo baja), seis cifras (los porcentajes se comparan en PUNTOS,
+`deltaPuntos`: de 24 % a 34 % es +10 puntos, no +42 %), las personas por día
+en columnas HTML (app abajo y web encima, sin medir la caja), lo
+que hace la gente, las altas paso a paso (el texto encima de la barra: dentro
+se cortaba) y la salud (`notaDeSalud`; el LCP con los umbrales de Google, los
+errores y las rotas a ojo), que lleva a Técnico o a Errores. Tráfico gana
+«App instalada o web» (`appOWebHtml`).
+
+**El lunes del equipo** (`resumenDelEquipo` en `netlify/functions/lunes.mjs`):
+la frase de los últimos 7 días en la campanita de cada admin
+(`user_notifications` tipo `resumen_admin`, uno por lunes), con enlace a
+`/admin/?ver=analytics`, que ahora abre esa sección (`initSidebar`). La frase
+es la misma función pura que el panel.
+
+**Pruebas**: `test-tanda-1065.mjs` (lo puro, la frase, el lunes del equipo con
+un `rest` de mentira y la migración contra PostgreSQL: dos veces, las marcas,
+los `check`, quién la lee, y cada cifra con filas a propósito) y
+`test-tanda-1066-pantalla.mjs` (pestañas, Resumen, Tráfico con la app, la
+pestaña recordada, la salud, el enlace, sin la migración y el móvil).
+
 ## Tanda 1064 — El idioma de lo que quieres, en todos los sitios
 
 PINGU: «no te pide el idioma, entonces se queda en cualquiera. Y después… si

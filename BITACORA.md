@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (308) — PINGU-Claude (1065 + 1066 — la analítica que se entiende)
+
+**Hecho**: PINGU preguntó si se puede saber quién entra desde la app
+instalada y pidió una analítica «más sencilla y con los datos que dicen si la
+web mejora». Propuesta («Analítica que se entiende», con el panel de antes y
+maquetas); eligió lo recomendado. **1065 (medir)**: `page_views` gana `modo`
+(app/web, por display-mode standalone o navigator.standalone),
+`primera_del_dia`, `primera_en_app` (= instalación), `nueva_visita` y
+`plataforma`; el navegador guarda solo `pd-visto` (fecha, hora y si ya fue
+app) y manda tres sí/no — personas distintas sin identificador. Abrir la app
+va como origen «app», no «directo». Respaldo sin la migración (se manda sin
+las columnas). /privacidad lo cuenta. **1066 (el panel)**: cuatro pestañas
+(Resumen, Tráfico, Qué hacen, Técnico; `data-an-tab` por bloque y
+`data-an-ver` en la sección, recordada en el navegador). El Resumen: la frase
+(`js/analitica-frase.js`, pura), seis cifras (personas, % desde la app en
+PUNTOS con las instalaciones, activas, vuelven, altas que empiezan, cosas
+hechas), personas por día web/app, lo que hace la gente (seis acciones), las
+altas paso a paso y la salud (errores/día, rotas nuestras, LCP p75; cada una
+lleva a Técnico o a Errores). Lo cuenta `admin_analitica_resumen(p_dias)`
+(migración 1065, que lee también la clave de servicio). Sin la migración, el
+Resumen dice cuál falta y se abre en Tráfico. El lunes, `lunes.mjs` deja la
+frase de la semana en la campanita de cada admin (`resumen_admin`, enlace
+`/admin/?ver=analytics`, que ahora abre la sección).
+
+**Para PINGU**: ejecutar `supabase-migration-1065-analitica-app.sql`. Hasta
+entonces la web sigue como hoy y el panel sale en Tráfico. «Personas» y
+«desde la app» cuentan desde ese día; lo demás se ve hacia atrás.
+
+**Ficheros**: `supabase-migration-1065-analitica-app.sql`, `js/page-views.js`,
+`js/analitica-frase.js` (nuevo), `admin/index.html`, `admin/js/admin.js`,
+`admin/js/analitica.js`, `admin/css/admin.css`, `netlify/functions/lunes.mjs`,
+`privacidad.html`, `CLAUDE.md`. Pruebas en `pruebas`: 1065 (puro + PostgreSQL)
+y 1066-pantalla nuevas; 848-pantalla («Directo»); el doble sabe
+`admin_analitica_resumen` (`__FAKE_RESUMEN__`). Rojo de antes (no de aquí):
+386 (`cambio-propuesta.js`, `tablon.js`).
+
 ## 2026-10-28 (307) — PINGU-Claude (1064 — el idioma de lo que quieres, en todos los sitios)
 
 **Hecho**: PINGU: las cartas de un álbum que marcas con «Las quiero» se

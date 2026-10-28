@@ -1122,3 +1122,57 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
   .rep-fig img, .rep-sinfoto { width: 88px; height: 124px; }
 }
 @media (pointer: coarse) { .rep-cuenta { min-height: 44px; } }
+
+/* ── La analítica que se entiende (1066, SCHEMA 1066) ──
+   Cuatro pestañas: la sección enseña solo los bloques de la elegida. */
+.an-pestanas { display: flex; gap: 4px; padding: 4px; margin: 0 0 var(--e-lg); width: fit-content; max-width: 100%; overflow-x: auto; background: var(--ice); border-radius: var(--radius-md); }
+.an-pestanas button { min-height: 36px; padding: 0 var(--e-lg); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 600; white-space: nowrap; cursor: pointer; }
+.an-pestanas button[aria-selected='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+@media (pointer: coarse) { .an-pestanas button { min-height: 44px; } }
+#section-analytics[data-an-ver='resumen'] [data-an-tab]:not([data-an-tab='resumen']),
+#section-analytics[data-an-ver='trafico'] [data-an-tab]:not([data-an-tab='trafico']),
+#section-analytics[data-an-ver='hacen'] [data-an-tab]:not([data-an-tab='hacen']),
+#section-analytics[data-an-ver='tecnico'] [data-an-tab]:not([data-an-tab='tecnico']) { display: none; }
+
+.an-frase { margin: 0; padding: var(--e-md) var(--e-lg); background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); font-size: var(--t-lg); line-height: 1.5; max-width: none; }
+.an-frase-sube { color: var(--success); font-weight: 700; }
+.an-frase-baja { color: var(--danger); font-weight: 700; }
+.an-tiles-resumen { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.an-tiles-resumen .an-chispa { height: 28px; }
+
+.an-dias { display: flex; align-items: flex-end; gap: 2px; height: 140px; padding-top: var(--e-sm); border-bottom: 1px solid var(--an-rejilla); }
+.an-dia { flex: 1 1 0; display: flex; flex-direction: column-reverse; justify-content: flex-start; height: 100%; min-width: 2px; }
+.an-dia i { display: block; width: 100%; }
+.an-dia i.an-s1 { background: var(--an-s1); border-radius: 2px 2px 0 0; }
+.an-dia i.an-s3 { background: var(--an-s3); }
+.an-dia:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.an-dias-eje { display: flex; justify-content: space-between; margin: 4px 0 var(--e-sm); font-size: var(--t-2xs); color: var(--text-mid); }
+
+.an-acciones { display: grid; gap: var(--e-sm); list-style: none; margin: 0; padding: 0; }
+.an-acciones li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto 72px; gap: var(--e-sm); align-items: center; font-size: var(--t-sm); }
+.an-acc-ic { display: grid; place-items: center; width: 24px; height: 24px; border-radius: var(--radius-sm); background: var(--c); color: #0b1219; font-size: var(--t-2xs); font-weight: 800; }
+.an-acc-nombre { color: var(--text-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.an-acciones strong { font-size: var(--t-lg); font-variant-numeric: tabular-nums; }
+.an-acciones .an-delta { text-align: right; }
+
+.an-embudo { display: grid; gap: var(--e-sm); list-style: none; margin: 0 0 var(--e-sm); padding: 0; }
+.an-embudo li { display: grid; grid-template-columns: minmax(0, 1fr) 48px; gap: 4px var(--e-sm); align-items: center; }
+.an-embudo-texto { font-size: var(--t-sm); color: var(--text-mid); }
+.an-embudo-texto strong { color: var(--text); }
+.an-embudo b { text-align: right; font-size: var(--t-sm); }
+.an-embudo-pista { grid-column: 1 / -1; height: 8px; border-radius: 4px; background: var(--ice); overflow: hidden; }
+.an-embudo-pista i { display: block; height: 100%; border-radius: 4px; background: var(--an-s1); }
+
+.an-salud { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-sm); }
+.an-salud-celda { display: grid; gap: 2px; padding: var(--e-sm) var(--e-md); min-height: 44px; text-align: left; background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-md); color: var(--text); font: inherit; cursor: pointer; }
+.an-salud-celda small { color: var(--text-mid); font-size: var(--t-xs); }
+.an-salud-celda b { display: flex; align-items: center; gap: var(--e-sm); font-size: var(--t-md); }
+.an-salud-celda b i { width: 8px; height: 8px; border-radius: 50%; background: var(--text-dim); }
+.an-salud-bien b i { background: var(--success); }
+.an-salud-regular b i { background: var(--warning); }
+.an-salud-mal b i { background: var(--danger); }
+@media (max-width: 720px) {
+  .an-tiles-resumen { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .an-frase { font-size: var(--t-md); }
+  .an-salud { grid-template-columns: 1fr; }
+}

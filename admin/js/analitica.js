@@ -11,6 +11,7 @@
 // Se dibujan con el ancho de su caja, así que se repintan cuando la caja
 // mide algo (la 628: la sección puede estar escondida al cargar).
 import { escapeHtml } from '../../js/app.js'
+import { trozosDeResumen, variacion, pct, ORDEN_ACCIONES } from '../../js/analitica-frase.js'
 
 // ── Ayudantes puros (los prueba test-tanda-848) ──
 
@@ -63,7 +64,9 @@ export function retencionPct(fila) {
 }
 
 const NOMBRES_ORIGEN = {
-  directo: 'Directo o app',
+  directo: 'Directo',
+  // Desde la 1065 la app instalada va aparte (antes caía en «directo»).
+  app: 'App instalada',
   google: 'Google',
   bing: 'Bing',
   duckduckgo: 'DuckDuckGo',
@@ -105,8 +108,8 @@ function chispaSvg(valores) {
   return `<svg class="an-chispa" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts.join(' ')}" /></svg>`
 }
 
-function tarjeta(titulo, cuerpo, { sub = '', clase = '', id = '' } = {}) {
-  return `<section class="an-card ${clase}"${id ? ` id="${id}"` : ''}>
+function tarjeta(titulo, cuerpo, { sub = '', clase = '', id = '', tab = '' } = {}) {
+  return `<section class="an-card ${clase}"${id ? ` id="${id}"` : ''}${tab ? ` data-an-tab="${tab}"` : ''}>
     <header class="an-card-cab"><h2>${titulo}</h2>${sub ? `<p>${sub}</p>` : ''}</header>
     ${cuerpo}
   </section>`
@@ -304,9 +307,139 @@ function engancharTips(raiz) {
   })
 }
 
+// ── El Resumen (1066) ──
+//
+// Lo que dice si la web mejora, en una pantalla: la frase, seis cifras con
+// su flecha contra el periodo anterior, las personas por día (web y app), lo
+// que hace la gente, las altas paso a paso y la salud. Lo cuenta
+// `admin_analitica_resumen`; «vuelven» sale de la retención de siempre.
+
+// La flecha de un porcentaje se dice en PUNTOS: de 29 % a 34 % es «+5
+// puntos», no «+17 %».
+export function deltaPuntos(ahora, antes) {
+  if (ahora == null || antes == null) return null
+  const d = Math.round(ahora - antes)
+  if (!d) return { tipo: 'igual', texto: '= que antes' }
+  return { tipo: d > 0 ? 'sube' : 'baja', texto: `${d > 0 ? '+' : ''}${d} ${Math.abs(d) === 1 ? 'punto' : 'puntos'}` }
+}
+
+const ACCIONES = {
+  cartas: { nombre: 'Cartas añadidas', letra: 'C', color: '#e4b44a' },
+  deseos: { nombre: 'Apuntadas en «La quiero»', letra: '♥', color: '#f472b6' },
+  retos: { nombre: 'Retos jugados', letra: 'R', color: '#9b7bff' },
+  foro: { nombre: 'Mensajes del foro', letra: 'F', color: '#f06c9b' },
+  guias: { nombre: 'Guías y cursos terminados', letra: 'G', color: '#2fb47c' },
+  partidas: { nombre: 'Partidas apuntadas', letra: 'P', color: '#7cbae4' },
+}
+
+// La parte de la app, en una barra y dos cifras. La comparten el Resumen y
+// la pestaña de Tráfico.
+export function appOWebHtml(r) {
+  if (!r?.medido_desde) return '<p class="an-vacio">Se empieza a contar con esta tanda: vuelve mañana.</p>'
+  const total = Number(r.personas || 0)
+  const app = Number(r.personas_app || 0)
+  if (!total) return '<p class="an-vacio">Nadie en este periodo.</p>'
+  const p = pct(app, total)
+  const por = r.instalaciones_por || {}
+  const plataformas = [['ios', 'iPhone'], ['android', 'Android'], ['otro', 'ordenador u otro']].filter(([k]) => por[k]).map(([k, n]) => `${n} ${fmt(por[k])}`)
+  return `<div class="an-pila" role="img" aria-label="Web ${100 - p} %, app ${p} %"><i class="an-s1" style="flex:${total - app}"></i><i class="an-s3" style="flex:${app}"></i></div>
+    <ul class="an-leyenda"><li><i class="an-clave-caja an-s1"></i>Web <strong>${fmt(total - app)}</strong> <small>${100 - p} %</small></li><li><i class="an-clave-caja an-s3"></i>App instalada <strong>${fmt(app)}</strong> <small>${p} %</small></li></ul>
+    <p class="an-titular">Instalaciones nuevas: <strong>${fmt(r.instalaciones)}</strong>${plataformas.length ? ` (${plataformas.join(' · ')})` : ''}</p>`
+}
+
+// Personas por día, web y app una encima de otra: columnas en HTML (se
+// estiran con su caja, sin medirla).
+function columnasDiasHtml(dias) {
+  const max = Math.max(1, ...dias.map((d) => d.web + d.app))
+  return `<div class="an-dias" role="img" aria-label="Personas por día, web y app">${dias
+    .map((d) => {
+      const tip = `${new Date(`${d.dia}T12:00:00`).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })}: ${fmt(d.web + d.app)} personas (${fmt(d.app)} desde la app)`
+      return `<span class="an-dia" tabindex="0" data-tip="${escapeHtml(tip)}" aria-label="${escapeHtml(tip)}"><i class="an-s3" style="height:${((d.app / max) * 100).toFixed(1)}%"></i><i class="an-s1" style="height:${((d.web / max) * 100).toFixed(1)}%"></i></span>`
+    })
+    .join('')}</div>
+    <div class="an-dias-eje"><span>${escapeHtml(dias[0]?.dia.slice(8, 10) + '/' + dias[0]?.dia.slice(5, 7))}</span><span>${escapeHtml((dias.at(-1)?.dia || '').slice(8, 10) + '/' + (dias.at(-1)?.dia || '').slice(5, 7))}</span></div>
+    <ul class="an-leyenda"><li><i class="an-clave-caja an-s1"></i>Web</li><li><i class="an-clave-caja an-s3"></i>App instalada</li></ul>
+    <div class="an-tip an-tip-celda" role="status" hidden></div>`
+}
+
+function accionesHtml(acc = {}) {
+  return `<ul class="an-acciones">${ORDEN_ACCIONES.map((k) => {
+    const a = acc[k] || { n: 0, antes: 0 }
+    const d = deltaDe(a.n, a.antes)
+    const info = ACCIONES[k]
+    return `<li><span class="an-acc-ic" style="--c:${info.color}" aria-hidden="true">${info.letra}</span><span class="an-acc-nombre">${escapeHtml(info.nombre)}</span><strong>${fmt(a.n)}</strong><span class="an-delta an-delta-${d?.tipo || 'igual'}">${d ? escapeHtml(d.texto) : ''}</span></li>`
+  }).join('')}</ul>`
+}
+
+function embudoHtml(al = {}) {
+  const n = Number(al.n || 0)
+  if (!n) return '<p class="an-vacio">Nadie se ha registrado en este periodo.</p>'
+  // El texto encima de la barra: dentro se cortaba en las cortas.
+  const paso = (texto, v) => `<li><span class="an-embudo-texto">${escapeHtml(texto)} · <strong>${fmt(v)}</strong></span><b>${pct(v, n)} %</b><span class="an-embudo-pista"><i style="width:${Math.max(2, (v / n) * 100).toFixed(1)}%"></i></span></li>`
+  return `<ol class="an-embudo">${paso('Se registran', n)}${paso('Hacen algo en 7 días', al.hacen)}${paso('Añaden su primera carta', al.carta)}${paso('Vuelven otra semana', al.vuelven)}</ol>
+    <p class="an-titular">«Hacen algo»: añadir una carta, apuntar un deseo, escribir en el foro, jugar un reto, apuntar una partida o terminar una guía. Las altas de los últimos días aún pueden.</p>`
+}
+
+// El semáforo: verde, ámbar o rojo con los umbrales de siempre (el LCP, los de
+// Google; los errores y las rotas, a ojo para una web de este tamaño).
+export function notaDeSalud(tipo, v) {
+  if (v == null) return 'nada'
+  if (tipo === 'errores') return v <= 5 ? 'bien' : v <= 20 ? 'regular' : 'mal'
+  if (tipo === 'rotos') return v === 0 ? 'bien' : v <= 3 ? 'regular' : 'mal'
+  if (tipo === 'lcp') return v <= 2500 ? 'bien' : v <= 4000 ? 'regular' : 'mal'
+  return 'nada'
+}
+function saludHtml(sa = {}, dias = 7) {
+  const porDia = sa.errores == null ? null : Math.round((sa.errores / dias) * 10) / 10
+  const celda = (etiqueta, tipo, v, texto, ir) => `<button type="button" class="an-salud-celda an-salud-${notaDeSalud(tipo, v)}" data-an-ir="${ir}"><small>${etiqueta}</small><b><i aria-hidden="true"></i>${texto}</b></button>`
+  return `<div class="an-salud">
+    ${celda('Errores', 'errores', porDia, porDia == null ? '—' : `${String(porDia).replace('.', ',')} al día`, 'errores')}
+    ${celda('Páginas rotas', 'rotos', sa.rotos, sa.rotos == null ? '—' : fmt(sa.rotos), 'tecnico')}
+    ${celda('Velocidad (LCP)', 'lcp', sa.lcp_p75, sa.lcp_p75 == null ? '—' : `${(sa.lcp_p75 / 1000).toFixed(1).replace('.', ',')} s`, 'tecnico')}
+  </div>`
+}
+
+export function pintarResumen(caja, r, datos = {}) {
+  const dias = Number(r?.dias) || 7
+  const ret = datos.retencion || []
+  const completas = ret.filter((s) => s.vuelven != null && s.activos)
+  const ultima = completas.at(-1)
+  const penultima = completas.at(-2)
+  const vuelven = ultima ? retencionPct(ultima) : null
+  const trozos = trozosDeResumen(r, { vuelven })
+  const medido = Boolean(r.medido_desde)
+  const pApp = pct(r.personas_app, r.personas)
+  const pAppAntes = pct(r.personas_app_antes, r.personas_antes)
+  const al = r.altas || {}
+  const pAltas = pct(al.hacen, al.n)
+  const pAltasAntes = pct(al.hacen_antes, al.n_antes)
+  const acc = r.acciones || {}
+  const hechas = ORDEN_ACCIONES.reduce((s, k) => s + Number(acc[k]?.n || 0), 0)
+  const hechasAntes = ORDEN_ACCIONES.reduce((s, k) => s + Number(acc[k]?.antes || 0), 0)
+  const sin = 'se empieza a contar con esta tanda'
+  const tiles = [
+    tileHtml({ etiqueta: 'Personas distintas', valor: medido ? compacto(r.personas) : '—', delta: medido ? deltaDe(r.personas, r.personas_antes) : null, nota: medido ? `${fmt(Math.round(r.personas / dias))} al día, de media` : sin, chispa: medido ? chispaSvg((r.por_dia || []).map((d) => d.web + d.app)) : '' }),
+    tileHtml({ etiqueta: 'Desde la app instalada', valor: medido && pApp != null ? `${pApp} %` : '—', delta: medido ? deltaPuntos(pApp, pAppAntes) : null, nota: medido ? `${fmt(r.personas_app)} personas · ${fmt(r.instalaciones)} ${r.instalaciones === 1 ? 'instalación nueva' : 'instalaciones nuevas'}` : sin }),
+    tileHtml({ etiqueta: 'Con cuenta, activas', valor: compacto(r.activos), delta: deltaDe(r.activos, r.activos_antes), nota: `de ${fmt(r.registrados)} registradas` }),
+    tileHtml({ etiqueta: 'Vuelven a la semana', valor: vuelven == null ? '—' : `${vuelven} %`, delta: vuelven == null || !penultima ? null : deltaPuntos(vuelven, retencionPct(penultima)), nota: ultima ? `${fmt(ultima.vuelven)} de ${fmt(ultima.activos)} con cuenta` : 'hace falta una semana entera' }),
+    tileHtml({ etiqueta: 'Altas que empiezan', valor: pAltas == null ? '—' : `${pAltas} %`, delta: deltaPuntos(pAltas, pAltasAntes), nota: al.n ? `${fmt(al.hacen)} de ${fmt(al.n)} hicieron algo en 7 días` : 'ninguna alta en el periodo' }),
+    tileHtml({ etiqueta: 'Cosas hechas', valor: compacto(hechas), delta: deltaDe(hechas, hechasAntes), nota: 'cartas, deseos, retos, foro, guías y partidas' }),
+  ].join('')
+  caja.innerHTML = `
+    <p class="an-frase">${trozos.map((t) => (t.tono ? `<span class="an-frase-${t.tono}">${escapeHtml(t.texto)}</span>` : escapeHtml(t.texto))).join('')}</p>
+    <div class="an-tiles an-tiles-resumen">${tiles}</div>
+    <div class="an-rejilla-cards">
+      ${tarjeta('Personas al día', medido ? columnasDiasHtml(r.por_dia || []) : `<p class="an-vacio">Se empieza a contar con esta tanda: vuelve mañana.</p>`, { sub: 'Web y app instalada, una encima de otra' })}
+      ${tarjeta('Lo que hace la gente', accionesHtml(acc), { sub: 'Contra el periodo anterior' })}
+      ${tarjeta('Las altas, paso a paso', embudoHtml(al), { sub: 'Quien se registró en el periodo' })}
+      ${tarjeta('Salud', saludHtml(r.salud, dias), { sub: 'Si algo se rompe, aquí se ve primero' })}
+    </div>`
+  engancharTips(caja)
+}
+
 // ── Todo junto ──
 
-export function pintarAnalitica(raiz, datos, { pageLabel = (r) => r } = {}) {
+export function pintarAnalitica(raiz, datos, { pageLabel = (r) => r, resumen = null } = {}) {
   const r = datos.resumen || {}
   const dias = datos.por_dia || []
   const ret = datos.retencion || []
@@ -331,26 +464,28 @@ export function pintarAnalitica(raiz, datos, { pageLabel = (r) => r } = {}) {
   const sinNada = (bus.sin_resultado || []).map((b) => ({ nombre: b.q, n: b.n, extra: ' <small></small>' }))
   const rotos = datos.rotos || []
 
+  // Cada tarjeta, en su pestaña (1066): Tráfico, Qué hacen o Técnico.
   raiz.innerHTML = `
-    <div class="an-tiles">${tiles}</div>
+    <div class="an-tiles" data-an-tab="trafico">${tiles}</div>
     <div class="an-rejilla-cards">
+      ${resumen ? tarjeta('App instalada o web', appOWebHtml(resumen), { tab: 'trafico', sub: 'Personas distintas en el periodo, por cómo abren PokeDoc' }) : ''}
       ${tarjeta(
         'Visitas por día',
         `<ul class="an-leyenda"><li><i class="an-clave an-s1"></i>Personas</li><li><i class="an-clave an-s2"></i>Con sesión</li></ul><div class="an-lienzo" id="anLineas"></div>
         ${tablaDatos(['Día', 'Personas', 'Con sesión'], dias.map((d) => [escapeHtml(d.dia), fmt(d.personas), fmt(d.con_sesion)]))}`,
-        { clase: 'an-ancha', sub: `${fmt(r.robots)} visitas de robots aparte, que no cuentan` }
+        { clase: 'an-ancha', tab: 'trafico', sub: `${fmt(r.robots)} visitas de robots aparte, que no cuentan` }
       )}
-      ${tarjeta('De dónde llegan', barrasHtml(origenes, { vacio: 'Se empieza a apuntar con esta tanda: vuelve en unas horas.' }), { sub: 'Las entradas desde fuera, por la web de la que vienen' })}
-      ${tarjeta('Con qué lo miran', aparatosHtml(datos.aparatos || []), { sub: 'Por el ancho de la pantalla' })}
+      ${tarjeta('De dónde llegan', barrasHtml(origenes, { vacio: 'Se empieza a apuntar con esta tanda: vuelve en unas horas.' }), { tab: 'trafico', sub: 'Las entradas desde fuera, por la web de la que vienen' })}
+      ${tarjeta('Con qué lo miran', aparatosHtml(datos.aparatos || []), { tab: 'trafico', sub: 'Por el ancho de la pantalla' })}
       ${tarjeta(
         'Cuándo entra la gente',
         punta ? `<p class="an-titular">La hora punta: <strong>${escapeHtml(punta.texto)}</strong></p>${calorHtml(datos.horas)}` : '<p class="an-vacio">Todavía no hay visitas en este periodo.</p>',
-        { clase: 'an-ancha', sub: 'Visitas de personas por día de la semana y hora (hora de Madrid). Buen sitio para elegir cuándo publicar.' }
+        { clase: 'an-ancha', tab: 'trafico', sub: 'Visitas de personas por día de la semana y hora (hora de Madrid). Buen sitio para elegir cuándo publicar.' }
       )}
-      ${tarjeta('Quién vuelve', retencionHtml(ret), { clase: 'an-ancha', sub: 'Las últimas ocho semanas, entre quien tiene cuenta' })}
-      ${tarjeta('Lo más buscado', barrasHtml(buscado, { vacio: 'Nadie ha buscado nada todavía (o falta la migración).' }), { sub: `${fmt(bus.total)} búsquedas en el periodo` })}
-      ${tarjeta('Buscado sin resultado', barrasHtml(sinNada, { vacio: 'Todo lo que se ha buscado ha encontrado algo.' }), { sub: 'Ideas de guías, o nombres que no casan' })}
-      ${campanas.length ? tarjeta('Campañas', barrasHtml(campanas), { sub: 'Los enlaces con <code>?utm_source=</code> que has compartido' }) : ''}
+      ${tarjeta('Quién vuelve', retencionHtml(ret), { clase: 'an-ancha', tab: 'hacen', sub: 'Las últimas ocho semanas, entre quien tiene cuenta' })}
+      ${tarjeta('Lo más buscado', barrasHtml(buscado, { vacio: 'Nadie ha buscado nada todavía (o falta la migración).' }), { tab: 'hacen', sub: `${fmt(bus.total)} búsquedas en el periodo` })}
+      ${tarjeta('Buscado sin resultado', barrasHtml(sinNada, { vacio: 'Todo lo que se ha buscado ha encontrado algo.' }), { tab: 'hacen', sub: 'Ideas de guías, o nombres que no casan' })}
+      ${campanas.length ? tarjeta('Campañas', barrasHtml(campanas), { tab: 'trafico', sub: 'Los enlaces con <code>?utm_source=</code> que has compartido' }) : ''}
       ${tarjeta(
         'Páginas rotas',
         rotos.length
@@ -360,9 +495,9 @@ export function pintarAnalitica(raiz, datos, { pageLabel = (r) => r } = {}) {
               )
               .join('')}</tbody></table>`
           : '<p class="an-vacio">Ninguna dirección rota en este periodo.</p>',
-        { clase: campanas.length ? '' : 'an-ancha', sub: 'Las que dieron «no existe». Si llegan desde una página nuestra, el enlace roto es nuestro.' }
+        { clase: 'an-ancha', tab: 'tecnico', sub: 'Las que dieron «no existe». Si llegan desde una página nuestra, el enlace roto es nuestro.' }
       )}
-      ${tarjeta('Páginas más visitadas', barrasHtml(paginas), { clase: 'an-ancha' })}
+      ${tarjeta('Páginas más visitadas', barrasHtml(paginas), { clase: 'an-ancha', tab: 'hacen' })}
     </div>`
 
   engancharTips(raiz)

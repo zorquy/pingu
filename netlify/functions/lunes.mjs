@@ -12,8 +12,12 @@
 //
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY.
 
+import { fraseDeResumen } from '../../js/analitica-frase.js'
+
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const TIPO_NOTIFICACION = 'resumen_lunes'
+// El del equipo (1066): la frase del Resumen de la analítica, solo a admins.
+export const TIPO_EQUIPO = 'resumen_admin'
 const TOPE = 20000
 const TROZO = 150
 
@@ -125,7 +129,28 @@ export async function procesar({ env = process.env, rest = restReal, ahora = new
     if (t) filas.push({ recipient_id: u, type: TIPO_NOTIFICACION, title: t.title, body: t.body, link: '/mi-coleccion' })
   }
   for (let i = 0; i < filas.length; i += 500) await rest('user_notifications', clave, { method: 'POST', body: JSON.stringify(filas.slice(i, i + 500)) })
-  return { ok: true, candidatos: usuarios.length, avisos: filas.length, apagados: apagado.size, salen }
+  const equipo = await resumenDelEquipo({ leer, rest, clave, hace6 }).catch((e) => ({ error: String(e?.message || e).slice(0, 200) }))
+  return { ok: true, candidatos: usuarios.length, avisos: filas.length, apagados: apagado.size, salen, equipo }
+}
+
+// EL LUNES DEL EQUIPO (1066, PINGU eligió la A de «Analítica que se
+// entiende»): la frase del Resumen de los últimos 7 días en la campanita de
+// cada admin, con el enlace al panel. Una vez por lunes (como el de todos), y
+// sin la migración 1065 no hay función que preguntar: se calla.
+export async function resumenDelEquipo({ leer, rest, clave, hace6 }) {
+  const [admins, ya] = await Promise.all([
+    leer('user_profiles?select=id&is_admin=eq.true&limit=50'),
+    leer(`user_notifications?select=recipient_id&type=eq.${TIPO_EQUIPO}&created_at=gte.${encodeURIComponent(hace6)}&limit=100`),
+  ])
+  const avisados = new Set((ya || []).map((n) => n.recipient_id))
+  const para = (admins || []).map((a) => a.id).filter((id) => !avisados.has(id))
+  if (!para.length) return { avisos: 0 }
+  const r = await rest('rpc/admin_analitica_resumen', clave, { method: 'POST', body: JSON.stringify({ p_dias: 7 }), headers: { prefer: 'return=representation' } })
+  const frase = fraseDeResumen(r)
+  if (!frase) return { avisos: 0 }
+  const filas = para.map((id) => ({ recipient_id: id, type: TIPO_EQUIPO, title: 'PokeDoc esta semana', body: frase, link: '/admin/?ver=analytics' }))
+  await rest('user_notifications', clave, { method: 'POST', body: JSON.stringify(filas) })
+  return { avisos: filas.length, frase }
 }
 
 export default async () => {
