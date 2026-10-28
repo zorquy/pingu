@@ -4706,6 +4706,8 @@ const ctxSeleccion = {
   pintarCartas, pintarAlbum, misLineasDe, cambiarLinea, quitarLinea, repintar, refrescarCorazones, meterLinea, pintarResumen, claveMarca,
   // Para la Pokédex y Buscar (1054): la carta de un id y su versión de serie.
   cartaPorId, varianteDe: (id) => varianteDeCarta(cartaPorId(id)) || 'normal',
+  // «Las quiero» de la selección (1064): el mismo camino que álbumes y Mercado.
+  quererVarias: (ids) => quererVarias(ids),
 }
 let selMod = null
 const seleccionModulo = () => selMod ? Promise.resolve(selMod) : import('./mi-coleccion/seleccion.js').then((m) => { m.montar(ctxSeleccion); selMod = m; return m })
@@ -5637,14 +5639,30 @@ function quererCarta(...a) {
   return deseosMod ? deseosMod.quererCarta(...a) : deseosModulo().then((m) => m.quererCarta(...a))
 }
 // Apuntar VARIAS en «La quiero» de un golpe (1048, la selección de un
-// álbum): cualquier idioma y cualquier versión, como la barra de una
-// expansión (713). Las que ya estaban no cuentan como fallo.
+// álbum, de una expansión o del Mercado). Desde la 1064 pregunta el idioma UNA
+// vez para todas (PINGU: «se queda en cualquiera… y yo las quiero en
+// español»), con lo último que elegiste marcado; la versión, cualquiera. Las
+// que ya querías (en el idioma que sea) no se repiten: se cambian desde su
+// ficha o con «Idioma» en «La quiero». Devuelve cuántas entraron, o null si
+// se cancela la pregunta.
 async function quererVarias(ids) {
   const cambios = await import('./mi-coleccion/cambios.js')
+  const { preguntarDeseo } = await import('./idioma-deseo.js')
+  if (!Array.isArray(deseos)) await cargarDeseos().catch(() => {})
+  const ya = new Set((Array.isArray(deseos) ? deseos : []).map((d) => d.card_id))
+  const nuevasIds = [...new Set(ids)].filter((id) => !ya.has(id))
+  if (!nuevasIds.length) return 0
+  const markets = nuevasIds.map((id) => cartaPorId(id)?.market || mercado)
+  const soloJapon = markets.every((m) => m === 'JP')
+  const r = await preguntarDeseo({ nombre: nuevasIds.length === 1 ? nombreDe(cartaPorId(nuevasIds[0])) || '' : `${nuevasIds.length} cartas`, market: soloJapon ? 'JP' : 'WEST', varias: nuevasIds.length > 1 ? nuevasIds.length : 0 })
+  if (r === undefined) return null
   let nuevas = 0
-  for (const id of ids) {
+  for (const [i, id] of nuevasIds.entries()) {
+    // Una japonesa no existe en español: si se eligió un idioma occidental,
+    // la japonesa va en «cualquiera» (que en su catálogo es japonés o asiático).
+    const idioma = markets[i] === 'JP' && r.idioma && !['ja', 'ko', 'zh', 'zh-tw', 'zh-cn'].includes(r.idioma) ? null : r.idioma
     try {
-      const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: id })
+      const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: id, idioma })
       if (Array.isArray(deseos)) deseos = [d, ...deseos]
       nuevas++
     } catch (err) {
@@ -5680,6 +5698,9 @@ function ponerMasParaCambio(...a) {
 }
 function pintarLoseta(...a) {
   return deseosMod ? deseosMod.pintarLoseta(...a) : deseosModulo().then((m) => m.pintarLoseta(...a))
+}
+function cambiarDeseoDeBaldosa(...a) {
+  return deseosMod ? deseosMod.cambiarDeseoDeBaldosa(...a) : deseosModulo().then((m) => m.cambiarDeseoDeBaldosa(...a))
 }
 function compartirLoQueDoy(...a) {
   return deseosMod ? deseosMod.compartirLoQueDoy(...a) : deseosModulo().then((m) => m.compartirLoQueDoy(...a))
@@ -5917,6 +5938,12 @@ function enganchar() {
     pintarLoseta(id)
     refrescarCorazones()
     if (pestania === 'quiero') void abrirQuiero()
+  })
+
+  // Cómo la quieres (1064): la fila de la ficha abre la ventana del corazón.
+  $('mcEdDeseos')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-cambiar-deseo-ficha]')
+    if (b) void cambiarDeseoDeBaldosa(b.dataset.cambiarDeseoFicha, b.dataset.cambiarVersion || null)
   })
 
   $('mcEdNotaAbrir').addEventListener('click', () => {
@@ -6941,6 +6968,7 @@ const contexto = {
   quererCarta: (c) => quererCarta(c),
   quererVarias: (ids) => quererVarias(ids),
   quitarDeseos: (id) => quitarDeseosDe(id),
+  cambiarDeseo: (id, variante) => cambiarDeseoDeBaldosa(id, variante),
   quienBusca: () => pedirQuienBusca(),
   quienTiene: () => pedirQuienTiene(),
   loQueDoy: () => loQueDoy(),

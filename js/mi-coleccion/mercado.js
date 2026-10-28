@@ -23,6 +23,7 @@
 import { escapeHtml, avatarStyle, getInitial, profileUrl } from '../app.js'
 import { atributosDeRango } from '../rangos.js'
 import { icons } from '../icons.js'
+import { nombreDeVariante } from './variantes.js'
 import { ICONOS_COLECCION } from './iconos.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
@@ -258,8 +259,13 @@ async function accionDeSel(e) {
     const ids = [...marcadas].filter((id) => !deseosDe(id).length)
     b.disabled = true
     try {
+      // El idioma se pregunta una vez para todas (1064); cancelar no apunta nada.
       const n = ids.length ? await ctx.quererVarias(ids) : 0
-      showToast(n ? `${n === 1 ? 'Apuntada' : `${n} apuntadas`} en «La quiero», en cualquier idioma.` : 'Ya las tenías todas en «La quiero».', 'success')
+      if (n === null) {
+        b.disabled = false
+        return
+      }
+      showToast(n ? `${n === 1 ? 'Apuntada' : `${n} apuntadas`} en «La quiero».` : 'Ya las tenías todas en «La quiero».', 'success')
       salirDeSel()
     } catch (err) {
       b.disabled = false
@@ -324,7 +330,10 @@ function botonQuieroHtml(c) {
   const mios = deseosDe(c.id)
   if (!mios.length) return `<button type="button" class="btn-primary mc-merf-quiero" data-merc-quiero="${escapeHtml(c.id)}" aria-pressed="false">${ICONOS_COLECCION.corazon(16)}<span>La quiero</span></button>`
   const idiomas = mios.map((d) => (d.idioma ? idiomaDe(d.idioma).nombre.toLowerCase() : 'cualquier idioma')).join(', ')
-  return `<button type="button" class="btn-secondary mc-merf-quiero puesto" data-merc-quiero="${escapeHtml(c.id)}" aria-pressed="true">${ICONOS_COLECCION.corazon(16)}<span>La quieres · ${escapeHtml(idiomas)}</span></button>`
+  // «Cambiar» (1064): el idioma o la versión de lo que pediste, con la misma
+  // ventana que la baldosa de «La quiero». Una por versión pedida.
+  const versiones = [...new Set(mios.map((d) => d.variante || ''))]
+  return `<button type="button" class="btn-secondary mc-merf-quiero puesto" data-merc-quiero="${escapeHtml(c.id)}" aria-pressed="true">${ICONOS_COLECCION.corazon(16)}<span>La quieres · ${escapeHtml(idiomas)}</span></button>${versiones.map((v) => `<button type="button" class="btn-secondary mc-merf-cambiar" data-merf-cambiar="${escapeHtml(c.id)}" data-variante="${escapeHtml(v)}">${icons.edit(15)}<span>Cambiar${versiones.length > 1 && v ? ` (${escapeHtml(nombreDeVariante(v))})` : ''}</span></button>`).join('')}`
 }
 
 // EN QUÉ LISTAS ESTÁ (1059, PINGU: «cuando abres una carta desde tu lista de
@@ -595,6 +604,8 @@ function enganchar() {
     if (e.target === d || e.target.closest('#mcMercadoFichaCerrar')) return d.close()
     const q = e.target.closest('[data-merc-quiero]')
     if (q) return void alternarQuiero(q.dataset.mercQuiero, q)
+    const cb = e.target.closest('[data-merf-cambiar]')
+    if (cb) return void Promise.resolve(ctx.cambiarDeseo(cb.dataset.merfCambiar, cb.dataset.variante || null)).then(() => repintar())
     const al = e.target.closest('[data-merf-a-lista]')
     if (al) return void aUnaLista(al.dataset.merfALista)
     const sl = e.target.closest('[data-merf-sacar-lista]')

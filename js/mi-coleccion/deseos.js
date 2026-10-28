@@ -745,6 +745,8 @@ function pintarSelQuiero() {
   const acciones = [
     listasDeseo.hayListas() ? `<button type="button" class="mc-sel-accion" data-sel-quiero="lista"${k ? '' : ' disabled'}>${icons.folder(22)}A una lista</button>` : '',
     lista ? `<button type="button" class="mc-sel-accion" data-sel-quiero="sacar"${k ? '' : ' disabled'}>${icons.folder(22)}Sacar de la lista</button>` : '',
+    // El idioma de todas las marcadas de una vez (1064).
+    `<button type="button" class="mc-sel-accion" data-sel-quiero="idioma"${k ? '' : ' disabled'}>${icons.edit(22)}Idioma</button>`,
     `<button type="button" class="mc-sel-accion mc-sel-quitar" data-sel-quiero="quitar"${k ? '' : ' disabled'}>${icons.trash(22)}Ya no la quiero</button>`,
   ].filter(Boolean)
   b.style.setProperty('--acciones', String(acciones.length))
@@ -792,6 +794,24 @@ async function accionDeSel(e) {
     } catch (err) {
       showToast(err.message, 'error')
     }
+    return
+  }
+  if (que === 'idioma') {
+    const claves = new Set(marcadas)
+    const grupos = deseosPorCartaYVersion(ctx.deseos.filter((d) => !d.provisional)).filter((g) => claves.has(`${g.card_id}|${g.variante || ''}`))
+    if (!grupos.length) return
+    const r = await preguntarDeseo({ nombre: `${grupos.length} ${grupos.length === 1 ? 'carta' : 'cartas'}`, market: elegidas.every((x) => x.market === 'JP') ? 'JP' : 'WEST', varias: grupos.length })
+    if (r === undefined) return
+    b.disabled = true
+    try {
+      const n = await cambiarIdiomaDeVarias(grupos, r.idioma)
+      showToast(n ? `Cambiado el idioma de ${n === 1 ? 'una' : n}.` : 'Ya estaban en ese idioma.', 'success')
+      salirDeSel()
+    } catch (err) {
+      showToast(err.message, 'error')
+      b.disabled = false
+    }
+    alCambiarDeseos()
     return
   }
   if (que === 'quitar') {
@@ -1260,6 +1280,23 @@ export function pintarLoseta(id = $('mcEdQuiero')?.dataset.quiero || null) {
   const b = $('mcEdQuiero')
   if (!b) return
   laQuiero.pintarLoseta(b, id, ctx.esMia && ctx.sesion ? ctx.deseos : null)
+  pintarDeseoDeFicha(id)
+}
+
+// CÓMO LA QUIERES, EN LA FICHA (1064, PINGU: «si yo abro una carta de las que
+// quiero… que me deje editar el idioma»). Una fila por versión pedida, como
+// la de «Versión»: «La quieres · Español · Holo», y tocarla abre la misma
+// ventana que la línea de la baldosa de «La quiero».
+export function pintarDeseoDeFicha(id = $('mcEdQuiero')?.dataset.quiero || null) {
+  const caja = $('mcEdDeseos')
+  if (!caja) return
+  const mios = id && ctx.esMia && ctx.sesion && Array.isArray(ctx.deseos) ? ctx.deseos.filter((d) => d.card_id === id && !d.provisional) : []
+  caja.classList.toggle('hidden', !mios.length)
+  caja.innerHTML = deseosPorCartaYVersion(mios).map((g) => {
+    const idiomas = g.filas.some((x) => !x.idioma) ? 'cualquier idioma' : g.filas.map((x) => idiomaDe(x.idioma).nombre).join(', ')
+    const texto = `${idiomas}${g.variante ? ` · ${nombreDeVariante(g.variante)}` : ''}`
+    return `<button type="button" class="mc-fila mc-fila-deseo" data-cambiar-deseo-ficha="${escapeHtml(g.card_id)}" data-cambiar-version="${escapeHtml(g.variante || '')}" aria-label="${escapeHtml(`La quieres en ${texto}. Cambiar`)}"><i class="mc-fila-ico" aria-hidden="true">${laQuiero.corazon(18)}</i><span class="mc-fila-texto"><small>La quieres</small><b>${escapeHtml(texto.charAt(0).toUpperCase() + texto.slice(1))}</b></span><i class="mc-fila-flecha" aria-hidden="true">${icons.edit(16)}</i></button>`
+  }).join('')
 }
 
 // La baldosa de lo que quieres (771): la del Mercado, con tu idioma, el
@@ -1327,11 +1364,13 @@ function mercadoAvatares(gente = [], max = 4) {
 // del corazón con lo puesto. Con un solo idioma se cambian idioma y versión;
 // apuntada en varios, solo la versión (de todas sus filas). Cambia ya y, si
 // la base dice que no, vuelve (896).
-async function cambiarDeseoDeBaldosa(cardId, variante) {
+export async function cambiarDeseoDeBaldosa(cardId, variante) {
   await cargarDeseos()
   const filas = ctx.deseos.filter((x) => x.card_id === cardId && (x.variante || null) === variante && !x.provisional)
   if (!filas.length) return
-  const c = ctx.cartas.get(cardId)
+  // Desde la ficha de un álbum o de otra expansión (1064) la carta puede no
+  // estar en las de la vista: se busca también en las de fuera.
+  const c = ctx.cartas.get(cardId) || ctx.cartasDeFuera?.get(cardId)
   const varios = filas.length > 1
   const r = await preguntarDeseo({ nombre: ctx.nombreDe(c) || '', market: c?.market || ctx.mercado, setId: c?.set_id || null, carta: c, puesto: { idioma: varios ? null : filas[0].idioma || null, variante }, soloVersion: varios })
   if (r === undefined) return
@@ -1358,6 +1397,28 @@ async function cambiarDeseoDeBaldosa(cardId, variante) {
     showToast(err.message, err.yaEstaba ? 'info' : 'error')
   }
   alCambiarDeseos()
+}
+
+// EL IDIOMA DE VARIAS (1064): cada carta y versión marcada pasa a UN deseo en
+// ese idioma. Apuntada en varios idiomas, se queda con uno (se borran los
+// demás ANTES de cambiar, o el índice único de la 1047 diría que ya está).
+// Una japonesa no existe en español: con un idioma occidental va en
+// «cualquiera». Devuelve cuántas cambiaron.
+const ASIATICOS = ['ja', 'ko', 'zh', 'zh-tw', 'zh-cn']
+async function cambiarIdiomaDeVarias(grupos, idioma) {
+  ctx.cambios = ctx.cambios || (await import('./cambios.js'))
+  let n = 0
+  for (const g of grupos) {
+    const suyo = mercadoDeCarta(g.card_id) === 'JP' && idioma && !ASIATICOS.includes(idioma) ? null : idioma
+    const [primera, ...resto] = g.filas
+    if (!resto.length && (primera.idioma || null) === suyo) continue
+    for (const f of resto) await ctx.cambios.borrarDeseo(f.id)
+    const nueva = (primera.idioma || null) === suyo ? primera : await ctx.cambios.cambiarDeseo(primera.id, { idioma: suyo })
+    const fuera = new Set(resto.map((f) => f.id))
+    ctx.deseos = ctx.deseos.filter((d) => !fuera.has(d.id)).map((d) => (d.id === nueva.id ? nueva : d))
+    n++
+  }
+  return n
 }
 
 // «Ver quién»: la ficha del Mercado de esa carta, desde cualquier vista.

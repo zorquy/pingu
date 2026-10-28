@@ -36,9 +36,22 @@ export function opcionesDeDeseo(market = 'WEST', delSet = null) {
   return market === 'JP' ? lista : [{ id: '', nombre: 'Cualquiera' }, ...lista]
 }
 
-// Lo que se marca de entrada: «cualquiera», que es lo que más cruces da, o
-// el japonés donde no hay otro.
-export const idiomaDeEntrada = (market = 'WEST') => (market === 'JP' ? 'ja' : '')
+// Lo que se marca de entrada: lo último que elegiste en ese catálogo (1064,
+// PINGU: «yo en este caso las quiero en español»); si nunca elegiste,
+// «cualquiera», que es lo que más cruces da, o el japonés donde no hay otro.
+const CLAVE_ULTIMO = (market) => `pd-deseo-idioma-${market === 'JP' ? 'JP' : 'WEST'}`
+export function idiomaDeEntrada(market = 'WEST') {
+  try {
+    const v = localStorage.getItem(CLAVE_ULTIMO(market))
+    if (v !== null) return v
+  } catch {}
+  return market === 'JP' ? 'ja' : ''
+}
+function recordarIdioma(market, idioma) {
+  try {
+    localStorage.setItem(CLAVE_ULTIMO(market), idioma || '')
+  } catch {}
+}
 
 // Las versiones que se ofrecen al desear: las que existen y se saben, como
 // en «¿Cuál tienes?» (922). Con una o sin saberlo, ninguna: no hay nada que
@@ -130,7 +143,9 @@ const chipDeVersionHtml = (v, activo) => `<button type="button" class="mc-idioma
 // `undefined` si se cancela. `carta` dice las versiones; `puesto`, lo que ya
 // tiene un deseo que se cambia (C1); `soloVersion`, que el idioma no se toca
 // (un deseo apuntado en varios idiomas cambia de versión, no de idioma).
-export async function preguntarDeseo({ nombre = '', market = 'WEST', setId = null, carta = null, puesto = null, soloVersion = false } = {}) {
+// `varias` (1064): son N cartas a la vez (Seleccionar → «Las quiero», o
+// cambiar el idioma de varias): solo el idioma, una vez para todas.
+export async function preguntarDeseo({ nombre = '', market = 'WEST', setId = null, carta = null, puesto = null, soloVersion = false, varias = 0 } = {}) {
   const d = crear()
   const versiones = hayVariante() === true ? versionesParaDesear(carta) : []
   const [delSet, reglas] = await Promise.all([
@@ -143,7 +158,7 @@ export async function preguntarDeseo({ nombre = '', market = 'WEST', setId = nul
   abierta = { versiones, reglas, cardId: carta?.id || null, idiomas: opciones }
   const entrada = puesto ? puesto.idioma || '' : idiomaDeEntrada(market)
   const conVersion = versiones.length > 0
-  d.querySelector('#iddTitulo').textContent = conVersion || puesto ? '¿Cómo la quieres?' : '¿En qué idioma la quieres?'
+  d.querySelector('#iddTitulo').textContent = varias ? '¿En qué idioma las quieres?' : conVersion || puesto ? '¿Cómo la quieres?' : '¿En qué idioma la quieres?'
   d.querySelector('#iddCarta').textContent = nombre
   d.querySelector('#iddIdiomaRot').hidden = !conVersion
   d.querySelector('#iddIdiomaBloque').hidden = soloVersion
@@ -154,7 +169,9 @@ export async function preguntarDeseo({ nombre = '', market = 'WEST', setId = nul
     ? [{ id: '', nombre: 'Cualquiera' }, ...vPuesta].map((v) => chipDeVersionHtml(v, v.id === (puesto?.variante || ''))).join('')
     : ''
   pintarIdiomas(entrada)
-  d.querySelector('#iddNota').textContent = soloVersion
+  d.querySelector('#iddNota').textContent = varias
+    ? `Para las ${varias}. «Cualquiera» te cruza con más gente.`
+    : soloVersion
     ? 'La quieres en varios idiomas: aquí cambias la versión.'
     : conVersion
       ? '«Cualquiera» te cruza con más gente. Si quieres dos versiones, apúntala dos veces: son dos deseos.'
@@ -167,6 +184,7 @@ export async function preguntarDeseo({ nombre = '', market = 'WEST', setId = nul
     d.addEventListener('close', () => {
       if (d.returnValue !== 'si') return resolver(undefined)
       const idioma = soloVersion ? puesto?.idioma ?? null : (idiomaMarcado() ?? entrada) || null
+      if (!soloVersion) recordarIdioma(market, idioma)
       resolver({ idioma, variante: conVersion ? versionMarcada() || null : puesto?.variante ?? null })
     }, { once: true })
     d.showModal()

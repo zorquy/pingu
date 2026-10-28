@@ -228,18 +228,9 @@ async function quererMarcadas() {
   const b = $('mcMarcarQuiero')
   b.disabled = true
   try {
-    ctx.cambios = ctx.cambios || (await import('./cambios.js'))
-    let nuevas = 0
-    for (const id of ids) {
-      try {
-        const d = await ctx.cambios.anadirDeseo({ user_id: ctx.sesion.user.id, card_id: id })
-        if (Array.isArray(ctx.deseos)) ctx.deseos = [d, ...ctx.deseos]
-        nuevas++
-      } catch (err) {
-        if (!err.yaEstaba) throw err
-      }
-    }
-    ctx.refrescarCorazones()
+    // Pregunta el idioma una vez para todas (1064).
+    const nuevas = await ctx.quererVarias(ids)
+    if (nuevas === null) return
     showToast(nuevas ? `${nuevas} ${nuevas === 1 ? 'carta apuntada' : 'cartas apuntadas'} en «La quiero».` : 'Ya estaban todas en «La quiero».', 'success')
     modoMarcar(false)
   } catch (err) {

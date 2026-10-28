@@ -14473,3 +14473,36 @@ body:has(#mcPanelQuiero.hidden) :is(#mcQuieroSel, #mcDoySel) {
 :is(.mc-merc-cabeza, .mc-merc-foto):has(.mc-chapa-variante) .mc-chapa-gente .mc-merc-largo {
   display: none;
 }
+
+/* Cómo la quieres (1064, SCHEMA 1064): la fila de la ficha, como la de
+   «Versión», y «Cambiar» al lado de «La quieres» en la ficha del Mercado. */
+.mc-ficha-deseos {
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.mc-fila-deseo .mc-fila-ico {
+  color: var(--pink);
+}
+
+.mc-fila-deseo .mc-fila-ico svg path {
+  fill: currentColor;
+}
+
+#mcMercadoFichaQuiero {
+  display: flex;
+  gap: var(--e-sm);
+}
+
+#mcMercadoFichaQuiero .mc-merf-quiero {
+  flex: 1 1 auto;
+  width: auto;
+}
+
+.mc-merf-cambiar {
+  display: inline-flex;
+  flex: none;
+  gap: var(--e-xs);
+  align-items: center;
+  min-height: 44px;
+}

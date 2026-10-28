@@ -853,6 +853,10 @@ async function quererMarcadas() {
   b.disabled = true
   try {
     const nuevas = await ctx.quererVarias(ids)
+    if (nuevas === null) {
+      b.disabled = false
+      return
+    }
     showToast(nuevas ? `${nuevas} ${nuevas === 1 ? 'carta apuntada' : 'cartas apuntadas'} en «La quiero».` : 'Ya estaban todas en «La quiero».', 'success')
     seleccionar(false)
   } catch (err) {
