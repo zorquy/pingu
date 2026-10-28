@@ -68,8 +68,9 @@ async function abrir(ruta) {
 console.log('── Desde Ventas ──')
 {
   const { p, ctx, errs } = await abrir('/tienda.html?ver=ventas')
-  check('cada venta lleva «Recibo» junto a Deshacer', !errs.length && (await p.locator('[data-recibo="tk1"]').count()) === 2, errs.join(' | '))
-  await p.click('[data-recibo="tk1"] >> nth=0'); await p.waitForTimeout(2000)
+  await p.click('[data-venta] >> nth=0'); await p.waitForTimeout(400)
+  check('al tocar una venta, su hoja lleva «Recibo» junto a Deshacer (1088)', !errs.length && (await p.locator('#tdvtHoja[open] [data-recibo="tk1"]').count()) === 1 && (await p.locator('#tdvtHoja[open] [data-deshacer="tk1"]').count()) === 1, errs.join(' | '))
+  await p.click('#tdvtHoja [data-recibo="tk1"]'); await p.waitForTimeout(2000)
   check('el recibo se abre con su imagen y el total en el título', (await p.isVisible('dialog.tdr[open]')) && /^blob:/.test(await p.getAttribute('.tdr-vista img', 'src')) && /308,90/.test(await p.textContent('#tdrTitulo')))
   const textos = await p.evaluate(() => window.__TEXTOS__.join(' | '))
   check('dice la tienda, dónde, lo vendido y el total', /El Rincón/.test(textos) && /Calle Mayor 12, Bilbao/.test(textos) && /Charizard ex/.test(textos) && /Obsidian Flames · 199 · ES · NM/.test(textos) && /2 × 64,95/.test(textos) && /308,90/.test(textos) && /pokedoc\.es\/usuario\/rincon/.test(textos), textos)
