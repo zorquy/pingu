@@ -7,7 +7,8 @@
 //   · el equipo           → qué es esto y dónde se aceptan tiendas
 //   · cualquier otra      → «Esto aún no está abierto»
 import { supabase } from './supabase.js'
-import { getSession, getProfile, profileUrl, getInitial, avatarStyle, signOut } from './app.js'
+import { getSession, getProfile, profileUrl, getInitial, avatarStyle, signOut, uploadProfileImage } from './app.js'
+import { urlParaCss } from './html.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { caraDelPanel, instagramDe } from './tiendas-puro.js'
@@ -126,10 +127,23 @@ function pintarCabecera() {
   // Sin local no hay dirección, y no falta nada (1074, PINGU: «no hace falta
   // que sea una tienda física»): entonces, su @.
   $('tdDonde').textContent = [tienda?.ciudad, tienda?.direccion].filter(Boolean).join(' · ') || (perfil.username ? `@${perfil.username}` : '')
-  const logo = $('tdLogo')
-  logo.textContent = getInitial(perfil.display_name || perfil.username || 'T')
-  if (perfil.avatar_url) logo.setAttribute('style', avatarStyle(perfil))
+  for (const logo of [$('tdLogo'), $('tdLogoDatos')]) {
+    if (!logo) continue
+    logo.textContent = perfil.avatar_url ? '' : getInitial(perfil.display_name || perfil.username || 'T')
+    logo.setAttribute('style', avatarStyle(perfil))
+  }
+  pintarPortada()
   for (const a of [$('tdVerPerfil'), $('tdVerPerfil2')]) if (a) a.href = profileUrl(perfil)
+}
+
+function pintarPortada() {
+  const caja = $('tdPortada')
+  if (!caja) return
+  const url = urlParaCss(perfil.banner_url)
+  caja.style.backgroundImage = url ? `url('${url}')` : ''
+  caja.classList.toggle('td-portada-vacia', !url)
+  $('tdCambiarPortada').textContent = url ? 'Cambiar la portada' : 'Poner una portada'
+  $('tdQuitarPortada').classList.toggle('hidden', !url)
 }
 
 function pintarDatos() {
@@ -264,6 +278,52 @@ $('tdDatos')?.addEventListener('submit', async (e) => {
   }
   getProfile(perfil.id, { fresco: true }).catch(() => {})
   showToast('Guardado.', 'success')
+})
+
+// El logo y la portada (1079): se comprimen en el navegador (la 891: una foto
+// de móvil son megas), suben como las de una persona y se pintan ya; si la
+// base no lo guarda, vuelve lo de antes.
+async function subirImagen(fichero, tipo) {
+  if (!fichero) return
+  const campo = tipo === 'avatar' ? 'avatar_url' : 'banner_url'
+  const antes = perfil[campo]
+  const local = URL.createObjectURL(fichero)
+  perfil[campo] = local
+  pintarCabecera()
+  try {
+    const { comprimirImagen, extensionDe } = await import('./imagen-comprimir.js')
+    const { blob, tipo: mime } = await comprimirImagen(fichero, { ladoMax: tipo === 'avatar' ? 512 : 1600 })
+    const archivo = new File([blob], `${tipo}.${extensionDe(mime)}`, { type: mime })
+    const url = await uploadProfileImage(perfil.id, archivo, tipo)
+    const { data, error } = await supabase.from('user_profiles').update({ [campo]: url }).eq('id', perfil.id).select(campo)
+    if (error || !data?.length) throw error || new Error('sin fila')
+    perfil[campo] = data[0][campo]
+    pintarCabecera()
+    getProfile(perfil.id, { fresco: true }).catch(() => {})
+    showToast(tipo === 'avatar' ? 'Logo cambiado.' : 'Portada puesta.', 'success')
+  } catch (e) {
+    perfil[campo] = antes
+    pintarCabecera()
+    showToast(e?.message?.includes('imagen') ? e.message : 'No se ha podido subir. Prueba con otra imagen.', 'error')
+  } finally {
+    URL.revokeObjectURL(local)
+  }
+}
+$('tdCambiarLogo')?.addEventListener('click', () => $('tdLogoFichero').click())
+$('tdCambiarPortada')?.addEventListener('click', () => $('tdPortadaFichero').click())
+$('tdLogoFichero')?.addEventListener('change', (e) => { subirImagen(e.target.files?.[0], 'avatar'); e.target.value = '' })
+$('tdPortadaFichero')?.addEventListener('change', (e) => { subirImagen(e.target.files?.[0], 'banner'); e.target.value = '' })
+$('tdQuitarPortada')?.addEventListener('click', async () => {
+  const antes = perfil.banner_url
+  perfil.banner_url = null
+  pintarCabecera()
+  const { data, error } = await supabase.from('user_profiles').update({ banner_url: null }).eq('id', perfil.id).select('id')
+  if (error || !data?.length) {
+    perfil.banner_url = antes
+    pintarCabecera()
+    return showToast('No se ha podido quitar.', 'error')
+  }
+  getProfile(perfil.id, { fresco: true }).catch(() => {})
 })
 
 // La cuenta (1071): una tienda no tiene /ajustes, así que la contraseña se

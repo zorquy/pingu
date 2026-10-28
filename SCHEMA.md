@@ -41785,6 +41785,38 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1079 — El logo y la portada de una tienda, sus destacadas y sus novedades
+
+Lo primero de «Lo siguiente para tiendas» que PINGU dio por bueno
+(«adelante con lo recomendado»). La migración
+`supabase-migration-1079-tiendas-vuelta-2.sql` lleva de una vez lo de base de
+las tandas 1079 a 1083 (destacadas, ofertas, cifras); la web funciona sin
+ella y enseña cada cosa cuando la respuesta trae su campo.
+
+- **Logo y portada**: en /tienda → Datos, arriba. Son `avatar_url` y
+  `banner_url` de `user_profiles`, los de una persona: se comprimen en el
+  navegador (`comprimirImagen`, 512 px el logo y 1600 la portada), suben con
+  `uploadProfileImage` y se pintan ya; si la base no los guarda, vuelve lo de
+  antes (la 896). La portada se puede quitar.
+- **Destacadas**: `tienda_stock.destacada`, ocho como mucho
+  (`trg_tienda_stock_tope_destacadas`, con el motivo en el error). En el Stock,
+  una estrella por línea (cambia ya y vuelve si falla; con ocho no se pide la
+  novena) y «Destacar» en la barra de seleccionar. `tienda_stock_lista` dice
+  cuántas lleva (`destacadas`); sin ese campo no hay estrella.
+- **El escaparate** (`js/perfil-tienda.js`): la portada pegada encima de la
+  cabecera, y en «Todo» SIN filtros, tres tiras de lado (`TIRAS`: Destacadas,
+  En oferta, Novedades = entró hace menos de 7 días), cada una con su
+  `tienda_escaparate({ seccion })` y su «Ver las N». La barra lleva un botón
+  por sección cuando hay algo. Con un filtro o una búsqueda, sin tiras. Una
+  carta en oferta lleva «−N %» y lo nuevo «Nueva» en la foto. En el móvil la
+  barra de chips es una fila que se desliza (y `.pt-stock` con
+  `minmax(0, 1fr)`: si no, la fila sin partir ensanchaba la página).
+- `tienda_escaparate` acepta `seccion` e `id` (una línea suelta, para la 1080)
+  y devuelve `destacadas`, `nuevas`, `ofertas`, y por fila `destacada`,
+  `nueva`, `precio_antes` y `oferta_hasta`.
+- El doble de Supabase (rama `pruebas`): una respuesta de
+  `__RPC_RESPUESTAS__` puede ser una función de los argumentos.
+
 ## Tanda 1078 — El Panel rehecho, el Escaparate y el perfil de una tienda a lo ancho
 
 PINGU, mirando la tienda de prueba: «el perfil, ¿por qué se ve tan

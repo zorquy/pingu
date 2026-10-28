@@ -177,6 +177,7 @@
 
 .pt-stock {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--e-md);
   min-width: 0;
 }
@@ -338,6 +339,107 @@
   color: var(--text-mid);
 }
 
+/* La portada (1079), pegada encima de la cabecera. */
+.pt-portada {
+  aspect-ratio: 5 / 1;
+  max-width: 100%;
+  margin-bottom: calc(-1 * var(--e-xl));
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  background: var(--ice) center / cover no-repeat;
+}
+
+.pt-cab-portada {
+  border-top: 0;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+/* Las tiras de arriba (1079): destacadas, ofertas y novedades, de lado. */
+.pt-tiras {
+  display: grid;
+  gap: var(--e-xl);
+  min-width: 0;
+}
+
+.pt-tiras:empty {
+  display: none;
+}
+
+.pt-tira {
+  display: grid;
+  gap: var(--e-sm);
+  min-width: 0;
+}
+
+.pt-tira-cab,
+.pt-tira-cab h2 {
+  display: flex;
+  gap: var(--e-sm);
+  align-items: center;
+}
+
+.pt-tira-cab {
+  justify-content: space-between;
+}
+
+.pt-tira-cab h2,
+.pt-todo-titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.pt-tira-cab h2 svg {
+  color: var(--warning);
+}
+
+.pt-tira-fila {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 168px;
+  gap: var(--e-lg);
+  padding-bottom: var(--e-sm);
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
+}
+
+.pt-tira-fila .pt-carta {
+  scroll-snap-align: start;
+}
+
+/* Las chapas de la foto: la rebaja y lo nuevo. */
+.pt-chapas-foto {
+  position: absolute;
+  top: var(--e-xs);
+  left: var(--e-xs);
+  display: grid;
+  gap: var(--e-xs);
+  justify-items: start;
+}
+
+.pt-chapa-foto {
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  color: var(--blanco-fijo);
+  background: var(--navy-solid);
+}
+
+.pt-chapa-oferta {
+  background: var(--danger-solid);
+}
+
+.pt-antes {
+  font-size: var(--t-sm);
+  font-weight: 500;
+  color: var(--text-mid);
+}
+
+.pt-oferta .pt-precio {
+  color: var(--danger);
+}
+
 /* En una pantalla mediana, los botones bajan debajo del nombre. */
 @media (max-width: 1100px) {
   .pt-cab {
@@ -429,8 +531,33 @@
     gap: var(--e-md) var(--e-sm);
   }
 
+  .pt-portada {
+    aspect-ratio: 3 / 1;
+    margin-bottom: calc(-1 * var(--e-lg));
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .pt-cab-portada {
+    border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  }
+
+  .pt-tira-fila {
+    grid-auto-columns: 112px;
+    gap: var(--e-sm);
+  }
+
+  /* Una fila que se desliza (1040), no dos de chips. */
   .pt-barra .seg {
     order: -1;
+    flex: 1 1 100%;
+    flex-wrap: nowrap;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .pt-barra .seg-btn {
+    flex: 0 0 auto;
   }
 }
 

@@ -104,6 +104,8 @@ async function pedir({ mas = false } = {}) {
   est.enStock = data.en_stock || 0
   est.sumas = data.sumas || null
   est.facetas = data.facetas || {}
+  // Sin la migración 1079 no hay estrella (ni la cuenta de las ocho).
+  est.destacadas = data.destacadas ?? null
   await Promise.all([completarCartas(est.filas), completarProductos(est.filas), completarSets(Object.keys(est.facetas.sets || {}))])
   if (n !== est.pedido) return
   pintarTodo()
@@ -167,6 +169,34 @@ function detalleFila(f) {
   return [set, f.numero].filter(Boolean).join(' · ')
 }
 
+// La estrella (1079): lo que sale arriba en tu escaparate, ocho como mucho.
+function estrellaHtml(f) {
+  if (est.destacadas == null) return ''
+  return `<button type="button" class="tds-estrella${f.destacada ? ' activa' : ''}" data-estrella="${escapeHtml(f.id)}" aria-pressed="${f.destacada ? 'true' : 'false'}" aria-label="${f.destacada ? 'Quitar de destacadas' : 'Destacar en tu escaparate'}" title="${f.destacada ? 'Destacada en tu escaparate' : 'Destacar en tu escaparate'}">${icons.star(18)}</button>`
+}
+
+const MAS_DE_OCHO = 'Como mucho 8 destacadas: quita la estrella a otra antes.'
+
+// Cambia ya, confirma después y deshace si falla (la 896).
+async function alternarEstrella(id) {
+  const f = est.filas.find((x) => x.id === id)
+  if (!f) return
+  const antes = Boolean(f.destacada)
+  if (!antes && est.destacadas >= 8) return showToast(MAS_DE_OCHO, 'error')
+  const poner = (v) => {
+    f.destacada = v
+    est.destacadas += v ? 1 : -1
+    pintarTabla()
+  }
+  poner(!antes)
+  const { data, error } = await supabase.from('tienda_stock').update({ destacada: !antes }).eq('id', id).select('id')
+  if (error || !data?.length) {
+    poner(antes)
+    return showToast(/Como mucho/.test(error?.message || '') ? MAS_DE_OCHO : 'No se ha podido guardar.', 'error')
+  }
+  showToast(antes ? 'Ya no sale destacada.' : `Destacada en tu escaparate (${est.destacadas} de 8).`, 'success')
+}
+
 function filaHtml(f) {
   const m = margenDe(f.precio, f.coste)
   const debajo = f.precio != null && f.cm > 0 && f.precio < f.cm * 0.95
@@ -175,7 +205,7 @@ function filaHtml(f) {
   const marcada = est.marcadas.has(f.id)
   return `<tr class="${pierde || dias > 90 ? 'tds-mal' : debajo ? 'tds-alerta' : ''}${marcada ? ' tds-marcada' : ''}" data-fila="${escapeHtml(f.id)}">
     ${est.seleccionando ? `<td class="tds-check"><input type="checkbox" aria-label="Marcar" data-marcar="${escapeHtml(f.id)}" ${marcada ? 'checked' : ''} /></td>` : ''}
-    <td class="tds-c-nombre"><div class="tds-nombre">${fotoHtml(f)}<span><strong>${escapeHtml(nombreFila(f))}</strong><small>${escapeHtml(detalleFila(f))}${f.variante && f.variante !== 'normal' && !f.product_id ? ` · ${escapeHtml(nombreDeVariante(f.variante))}` : ''}${f.gradeo ? ` · ${escapeHtml(f.gradeo)}` : ''}</small></span></div></td>
+    <td class="tds-c-nombre"><div class="tds-nombre">${fotoHtml(f)}<span><strong>${escapeHtml(nombreFila(f))}</strong><small>${escapeHtml(detalleFila(f))}${f.variante && f.variante !== 'normal' && !f.product_id ? ` · ${escapeHtml(nombreDeVariante(f.variante))}` : ''}${f.gradeo ? ` · ${escapeHtml(f.gradeo)}` : ''}</small></span>${estrellaHtml(f)}</div></td>
     <td class="tds-c-idioma">${f.idioma ? banderaHtml(f.idioma) : ''}<span>${escapeHtml(String(f.idioma || '').toUpperCase())}</span></td>
     <td class="tds-c-estado"><span class="tds-chapa">${dibujoDe('estado', f.estado)}${escapeHtml(f.estado === 'sellado' ? 'Sellado' : f.estado)}</span></td>
     <td class="tds-num tds-c-uds">${f.unidades}</td>
@@ -315,6 +345,7 @@ function pintarSeleccion() {
   const n = est.marcadas.size
   barra.querySelector('.tds-sel-n').textContent = n ? `${n} ${n === 1 ? 'marcada' : 'marcadas'}` : 'Marca las que quieras'
   for (const b of barra.querySelectorAll('button[data-bloque]')) b.disabled = !n
+  barra.querySelector('[data-bloque="destacar"]').hidden = est.destacadas == null
 }
 
 function pintarTodo() {
@@ -628,6 +659,15 @@ async function enBloque(accion) {
   const ids = [...est.marcadas]
   if (!ids.length) return
   if (accion === 'precio') return abrirPrecioBloque()
+  if (accion === 'destacar') {
+    const nuevas = est.filas.filter((f) => est.marcadas.has(f.id) && !f.destacada).length
+    if (est.destacadas + nuevas > 8) return showToast(`Como mucho 8 destacadas: te quedan ${Math.max(0, 8 - est.destacadas)}.`, 'error')
+    const { data, error } = await supabase.from('tienda_stock').update({ destacada: true }).in('id', ids).select('id')
+    if (error || !data?.length) return showToast(/Como mucho/.test(error?.message || '') ? MAS_DE_OCHO : 'No se ha podido.', 'error')
+    showToast(`Destacadas en tu escaparate: ${est.destacadas + nuevas} de 8.`, 'success')
+    est.marcadas.clear()
+    return pedir()
+  }
   if (accion === 'vender') return document.dispatchEvent(new CustomEvent('pokedoc:tienda-vender', { detail: est.filas.filter((f) => est.marcadas.has(f.id) && f.unidades > 0) }))
   if (accion === 'borrar') {
     const b = $('[data-bloque="borrar"]')
@@ -735,6 +775,7 @@ export function montarStock(destino, { perfil: p }) {
           <span class="tds-sel-n"></span>
           <button type="button" class="btn-primary" data-bloque="vender">Vender</button>
           <button type="button" class="btn-secondary" data-bloque="precio">Poner precio</button>
+          <button type="button" class="btn-secondary" data-bloque="destacar" hidden>${icons.star(16)}<span>Destacar</span></button>
           <button type="button" class="btn-secondary" data-bloque="ocultar">Ocultar</button>
           <button type="button" class="btn-secondary" data-bloque="ensenar">Enseñar</button>
           <button type="button" class="btn-secondary tds-borrar" data-bloque="borrar">Borrar</button>
@@ -779,6 +820,8 @@ export function montarStock(destino, { perfil: p }) {
       supabase.from('tienda_vistas').delete().eq('id', quitarVista.dataset.quitarVista).then(() => cargarVistas())
       return
     }
+    const estrella = e.target.closest('[data-estrella]')
+    if (estrella) return alternarEstrella(estrella.dataset.estrella)
     const bloque = e.target.closest('[data-bloque]')
     if (bloque) return enBloque(bloque.dataset.bloque)
     const marcar = e.target.closest('[data-marcar]')

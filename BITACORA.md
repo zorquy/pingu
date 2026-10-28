@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (316) — PINGU-Claude (1079 — logo y portada de una tienda, destacadas y novedades)
+
+**Hecho**: lo primero de «adelante con lo recomendado».
+- En /tienda → Datos se sube el logo y la portada (comprimidos, en el perfil).
+- El escaparate enseña la portada y, en «Todo», tres tiras: Destacadas, En
+  oferta y Novedades (lo de los últimos 7 días), con su botón en la barra.
+- En el Stock, una estrella por línea (ocho como mucho) y «Destacar» al
+  seleccionar.
+- La migración de toda la vuelta (1079–1083) va de una vez.
+
+**Para PINGU**: ejecutar `supabase-migration-1079-tiendas-vuelta-2.sql`
+(destacadas, ofertas y cifras; sin ella la web sigue como estaba).
+
+**Ficheros**: `supabase-migration-1079-tiendas-vuelta-2.sql`, `tienda.html`,
+`js/tienda.js`, `js/tienda-stock.js`, `css/tienda.css`, `js/perfil-tienda.js`,
+`css/perfil-tienda.css`. Pruebas en `pruebas`: 1079 (PostgreSQL) y
+1079-pantalla; el doble acepta respuestas de RPC que son funciones.
+
+**Pendiente**: 1080 («Me interesa»), 1081 (stock en rejilla), 1082 (ofertas
+en el stock), 1083 (cifras) y 1084 (recibo).
+
 ## 2026-10-28 (315) — PINGU-Claude (1076, 1077 y 1078 — seleccionar, el stock más claro, el Panel, el Escaparate y el perfil de una tienda)
 
 **Hecho**: lo que PINGU pidió al mirar la tienda de prueba.

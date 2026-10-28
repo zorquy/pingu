@@ -228,6 +228,22 @@
       <section class="td-hoja hidden" data-td-hoja="datos">
         <h2>Datos de la tienda</h2>
         <p class="subtext">Lo que verá la gente en tu perfil. Solo el nombre es obligatorio: si vendes desde casa, deja vacío lo del local.</p>
+        <!-- El logo y la portada (1079): la foto de la cuenta y su banner,
+             los mismos campos que el perfil de una persona. -->
+        <div class="td-imagenes">
+          <div class="td-portada" id="tdPortada"><span>Sin portada</span></div>
+          <div class="td-imagenes-fila">
+            <span class="td-logo td-logo-datos" id="tdLogoDatos" aria-hidden="true"></span>
+            <div class="td-imagenes-botones">
+              <button type="button" class="btn-secondary" id="tdCambiarLogo">Cambiar el logo</button>
+              <button type="button" class="btn-secondary" id="tdCambiarPortada">Poner una portada</button>
+              <button type="button" class="btn-secondary hidden" id="tdQuitarPortada">Quitar la portada</button>
+            </div>
+          </div>
+          <p class="subtext">El logo sale cuadrado; la portada, ancha (con 1600 × 400 queda bien).</p>
+          <input type="file" accept="image/*" id="tdLogoFichero" class="hidden" />
+          <input type="file" accept="image/*" id="tdPortadaFichero" class="hidden" />
+        </div>
         <form id="tdDatos" class="td-form" novalidate>
           <label class="td-campo">Nombre<input type="text" id="tdDatoNombre" maxlength="80" /></label>
           <label class="td-campo"><span>Ciudad <small>(opcional)</small></span><input type="text" id="tdDatoCiudad" maxlength="80" autocomplete="address-level2" /></label>

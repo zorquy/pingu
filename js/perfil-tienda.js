@@ -9,6 +9,7 @@
 // siempre (un enlace a /carta, la 1043) y lleva sus marcas (la 943).
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, avatarStyle, getProfile, profileUrl } from './app.js'
+import { urlParaCss } from './html.js'
 import { hojaInyectada } from './hoja.js'
 import { showToast } from './toast.js'
 import { createNotification } from './notifications.js'
@@ -27,7 +28,17 @@ const POR_PAGINA = 60
 const COLUMNAS = COLUMNAS_CARTA_DE_SET.replace('tcg_sets(tcg_online_code,serie_id,release_date)', 'tcg_sets(name,name_en,tcg_online_code,serie_id,release_date,oculto)')
 const NOMBRE_IDIOMA = Object.fromEntries(IDIOMAS.map((i) => [i.id, i.nombre]))
 
-const est = { tienda: null, datos: null, perfil: null, sesion: null, filtros: {}, orden: 'recientes', filas: [], total: 0, cartas: new Map(), productos: new Map(), pedido: 0 }
+const est = { tienda: null, datos: null, perfil: null, sesion: null, filtros: {}, orden: 'recientes', filas: [], total: 0, tiras: [], cartas: new Map(), productos: new Map(), pedido: 0 }
+
+// Las tiras de arriba (1079, y las ofertas de la 1082): lo que la tienda
+// destaca, lo rebajado y lo que acaba de entrar. Solo en «Todo» sin buscar
+// nada: con un filtro puesto, lo que se busca es la lista.
+const TIRAS = [
+  ['destacadas', 'Destacadas'],
+  ['ofertas', 'En oferta'],
+  ['nuevas', 'Novedades'],
+]
+const sinFiltros = () => !Object.keys(est.filtros).length
 let caja = null
 const $ = (sel) => caja.querySelector(sel)
 
@@ -42,7 +53,16 @@ async function pedir({ mas = false } = {}) {
   est.datos = data
   est.filas = mas ? est.filas.concat(data.filas || []) : data.filas || []
   est.total = data.total || 0
-  await completar(est.filas)
+  if (!mas) {
+    // Sin la migración 1079 la respuesta no trae las cuentas: sin tiras.
+    const tocan = sinFiltros() ? TIRAS.filter(([clave]) => Number(data[clave]) > 0) : []
+    const tiras = await Promise.all(tocan.map(([clave, titulo]) =>
+      supabase.rpc('tienda_escaparate', { p_tienda: est.perfil.id, p_filtros: { seccion: clave }, p_orden: 'recientes', p_desde: 0, p_cuantas: 12 })
+        .then(({ data: t }) => ({ clave, titulo, total: Number(data[clave]) || 0, filas: t?.filas || [] }), () => null)))
+    if (n !== est.pedido) return
+    est.tiras = tiras.filter((t) => t?.filas.length)
+  }
+  await completar(est.filas.concat(...est.tiras.map((t) => t.filas)))
   if (n !== est.pedido) return
   pintar()
 }
@@ -69,9 +89,16 @@ function baldosaHtml(f) {
   const foto = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : p?.image ? `src="${escapeHtml(p.image)}" onerror="this.remove()"` : null
   const href = c ? rutaDeCarta(c) : f.product_id ? rutaDeProducto({ id: f.product_id }) : null
   const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.estado, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null, f.gradeo].filter(Boolean).join(' · ')
-  const precio = est.datos?.precios === false ? '<span class="pt-pregunta">Pregunta el precio</span>' : f.precio == null ? '<span class="pt-pregunta">Sin precio</span>' : escapeHtml(euros(f.precio))
-  return `<article class="pt-carta${f.de_tu_lista ? ' tuya' : ''}">
-    <a class="pt-foto${f.product_id ? ' pt-foto-producto' : ''}" href="${escapeHtml(href || '#')}"${c ? ` data-marca-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">${foto ? `<img ${foto} alt="" width="245" height="342" loading="lazy" />` : ''}${f.de_tu_lista ? `<span class="pt-tuya" title="De tu lista">${ICONOS_COLECCION.corazon(14)}</span>` : ''}</a>
+  // Una oferta (1082): el precio rebajado, el de siempre tachado y cuánto baja.
+  const antes = f.precio_antes != null && f.precio != null && Number(f.precio_antes) > Number(f.precio) ? Number(f.precio_antes) : null
+  const baja = antes ? Math.round((1 - Number(f.precio) / antes) * 100) : 0
+  const precio = est.datos?.precios === false ? '<span class="pt-pregunta">Pregunta el precio</span>' : f.precio == null ? '<span class="pt-pregunta">Sin precio</span>' : `${antes ? `<s class="pt-antes">${escapeHtml(euros(antes))}</s> ` : ''}${escapeHtml(euros(f.precio))}`
+  const chapas = [
+    antes && baja > 0 ? `<span class="pt-chapa-foto pt-chapa-oferta">−${baja} %</span>` : f.precio_antes != null ? '<span class="pt-chapa-foto pt-chapa-oferta">Oferta</span>' : '',
+    f.nueva ? '<span class="pt-chapa-foto pt-chapa-nueva">Nueva</span>' : '',
+  ].join('')
+  return `<article class="pt-carta${f.de_tu_lista ? ' tuya' : ''}${antes ? ' pt-oferta' : ''}">
+    <a class="pt-foto${f.product_id ? ' pt-foto-producto' : ''}" href="${escapeHtml(href || '#')}"${c ? ` data-marca-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">${foto ? `<img ${foto} alt="" width="245" height="342" loading="lazy" />` : ''}${chapas ? `<span class="pt-chapas-foto">${chapas}</span>` : ''}${f.de_tu_lista ? `<span class="pt-tuya" title="De tu lista">${ICONOS_COLECCION.corazon(14)}</span>` : ''}</a>
     <span class="pt-precio">${precio}</span>
     <span class="pt-nombre">${escapeHtml(nombre)}</span>
     <span class="pt-detalle">${escapeHtml(detalle)}${f.unidades > 1 ? ` · ${f.unidades} uds.` : ''}</span>
@@ -85,17 +112,28 @@ function pintar() {
     ? `<span class="pt-tuyas-icono" aria-hidden="true">${ICONOS_COLECCION.corazon(16)}</span><span><strong>Tiene ${tuyas === 1 ? '1 carta' : `${tuyas} cartas`} de tu lista</strong> «La quiero», en tu idioma.</span>${est.filtros.de_tu_lista ? '' : '<button type="button" class="link-btn" data-pt-ver="tuyas">Verlas</button>'}`
     : ''
   $('.pt-tuyas').hidden = !(est.sesion && tuyas)
+  const f = est.filtros
   for (const b of caja.querySelectorAll('[data-pt-ver]')) {
-    const si = (b.dataset.ptVer === 'tuyas' && est.filtros.de_tu_lista) || (b.dataset.ptVer === 'sellado' && est.filtros.catalogo?.[0] === 'sellado') || (b.dataset.ptVer === 'todo' && !est.filtros.de_tu_lista && !est.filtros.catalogo)
+    const v = b.dataset.ptVer
+    const si = (v === 'tuyas' && f.de_tu_lista) || (v === 'sellado' && f.catalogo?.[0] === 'sellado') || (v === f.seccion) || (v === 'todo' && !f.de_tu_lista && !f.catalogo && !f.seccion)
     if (b.classList.contains('seg-btn')) {
-      b.classList.toggle('activa', si)
-      b.setAttribute('aria-pressed', String(si))
+      b.classList.toggle('activa', Boolean(si))
+      b.setAttribute('aria-pressed', String(Boolean(si)))
     }
   }
   const segTuyas = $('.seg [data-pt-ver="tuyas"]')
   if (segTuyas) segTuyas.hidden = !est.sesion
   const segSellado = $('.seg [data-pt-ver="sellado"]')
   if (segSellado) segSellado.hidden = !(d.facetas?.catalogo?.sellado > 0)
+  for (const [clave] of TIRAS) {
+    const b = $(`.seg [data-pt-ver="${clave}"]`)
+    if (b) b.hidden = !(Number(d[clave]) > 0) && f.seccion !== clave
+  }
+  $('.pt-tiras').innerHTML = sinFiltros() ? est.tiras.map((t) => `<section class="pt-tira" aria-label="${escapeHtml(t.titulo)}">
+      <div class="pt-tira-cab"><h2>${t.clave === 'destacadas' ? icons.star(18) : ''}${escapeHtml(t.titulo)}</h2>${t.total > t.filas.length || t.clave !== 'destacadas' ? `<button type="button" class="link-btn" data-pt-ver="${t.clave}">Ver ${t.total === 1 ? 'la' : `las ${t.total}`}</button>` : ''}</div>
+      <div class="pt-tira-fila">${t.filas.map(baldosaHtml).join('')}</div>
+    </section>`).join('') : ''
+  $('.pt-todo-titulo').hidden = !(sinFiltros() && est.tiras.length)
   const idiomas = Object.keys(d.facetas?.idioma || {})
   const sel = $('[data-pt-idioma]')
   if (sel && sel.options.length <= 1) sel.innerHTML = `<option value="">Todos los idiomas</option>${idiomas.map((i) => `<option value="${i}">${escapeHtml(NOMBRE_IDIOMA[i] || i)}</option>`).join('')}`
@@ -104,10 +142,11 @@ function pintar() {
   const enEsc = $('[data-pt-en-escaparate]')
   if (enEsc) enEsc.textContent = Number(d.en_escaparate || 0).toLocaleString('es-ES')
   $('.pt-cuenta').textContent = `${est.total.toLocaleString('es-ES')} ${est.total === 1 ? 'cosa' : 'cosas'}${est.total !== d.en_escaparate ? ` de ${Number(d.en_escaparate || 0).toLocaleString('es-ES')}` : ''}`
-  $('.pt-rejilla').innerHTML = est.filas.length
+  const rejilla = $('.pt-rejilla')
+  rejilla.innerHTML = est.filas.length
     ? est.filas.map(baldosaHtml).join('') + (est.filas.length < est.total ? `<button type="button" class="btn-secondary pt-mas" data-pt-mas>Ver más</button>` : '')
     : `<p class="pt-vacio">${Object.keys(est.filtros).length ? 'Nada con estos filtros.' : 'Esta tienda todavía no enseña nada.'}</p>`
-  import('./marcas-carta.js').then((m) => m.marcarCartas($('.pt-rejilla'))).catch(() => {})
+  import('./marcas-carta.js').then((m) => m.marcarCartas($('.pt-stock'))).catch(() => {})
 }
 
 // La cabecera (1069; ancha y más visual desde la 1078, PINGU: «¿por qué se
@@ -134,8 +173,10 @@ function cabeceraHtml() {
         ${propia ? '' : '<button type="button" class="btn-secondary" data-pt-seguir hidden>Seguir</button>'}
         ${mapa ? `<a class="btn-secondary pt-llegar" href="${escapeHtml(mapa)}" target="_blank" rel="noopener" aria-label="Cómo llegar">${icons.pin(18)}<span>Cómo llegar</span></a>` : ''}
       </div>`
+  const portada = urlParaCss(p.banner_url)
   return `
-    <header class="pt-cab">
+    ${portada ? `<div class="pt-portada" style="background-image:url('${portada}')" role="img" aria-label="Portada de ${escapeHtml(nombre)}"></div>` : ''}
+    <header class="pt-cab${portada ? ' pt-cab-portada' : ''}">
       <div class="pt-quien">
         <span class="pt-logo" style="${p.avatar_url ? avatarStyle(p) : ''}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
         <span class="pt-quien-texto"><span class="pt-chapa">Tienda</span><h1>${escapeHtml(nombre)}</h1><small>@${escapeHtml(p.username || '')}${t.ciudad ? ` · ${escapeHtml(t.ciudad)}` : ''}</small></span>
@@ -154,6 +195,9 @@ function cabeceraHtml() {
         <div class="seg" role="group" aria-label="Qué ver">
           <button type="button" class="seg-btn activa" aria-pressed="true" data-pt-ver="todo">Todo</button>
           <button type="button" class="seg-btn" aria-pressed="false" data-pt-ver="tuyas" hidden>De tu lista</button>
+          <button type="button" class="seg-btn" aria-pressed="false" data-pt-ver="destacadas" hidden>Destacadas</button>
+          <button type="button" class="seg-btn" aria-pressed="false" data-pt-ver="ofertas" hidden>Ofertas</button>
+          <button type="button" class="seg-btn" aria-pressed="false" data-pt-ver="nuevas" hidden>Novedades</button>
           <button type="button" class="seg-btn" aria-pressed="false" data-pt-ver="sellado" hidden>Sellado</button>
         </div>
         <input type="search" class="pt-busca" data-pt-q placeholder="Buscar en la tienda…" aria-label="Buscar en la tienda" />
@@ -166,6 +210,8 @@ function cabeceraHtml() {
         </select>
         <span class="pt-cuenta"></span>
       </div>
+      <div class="pt-tiras"></div>
+      <h2 class="pt-todo-titulo" hidden>Todo el stock</h2>
       <div class="pt-rejilla"><div class="skeleton" style="height:240px"></div></div>
     </section>`
 }
@@ -249,8 +295,10 @@ export async function montarPerfilTienda(destino, perfil, sesion, { previa = fal
       delete f.de_tu_lista
       delete f.catalogo
       delete f.carta
+      delete f.seccion
       if (ver.dataset.ptVer === 'tuyas') f.de_tu_lista = true
       if (ver.dataset.ptVer === 'sellado') f.catalogo = ['sellado']
+      if (TIRAS.some(([clave]) => clave === ver.dataset.ptVer)) f.seccion = ver.dataset.ptVer
       est.filtros = f
       return pedir()
     }

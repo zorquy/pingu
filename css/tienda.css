@@ -162,6 +162,52 @@
   justify-self: start;
 }
 
+/* El logo y la portada (1079). */
+.td-imagenes {
+  display: grid;
+  gap: var(--e-sm);
+  max-width: 640px;
+  margin-top: var(--e-lg);
+}
+
+.td-portada {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 1;
+  border-radius: var(--radius-lg);
+  background: var(--ice) center / cover no-repeat;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.td-portada:not(.td-portada-vacia) span {
+  visibility: hidden;
+}
+
+.td-imagenes-fila {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-md);
+  align-items: center;
+}
+
+/* El logo, montado sobre la portada como en el escaparate. */
+.td-logo-datos {
+  flex: 0 0 auto;
+  margin: -40px 0 0 var(--e-md);
+  border: 2px solid var(--white);
+}
+
+.td-imagenes-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.td-imagenes .subtext {
+  margin: 0;
+}
+
 /* Tu cuenta (1071): sin /ajustes, la contraseña y salir van aquí. */
 .td-cuenta {
   display: grid;
@@ -622,6 +668,46 @@
 .tds-nombre small {
   font-size: var(--t-xs);
   color: var(--text-mid);
+}
+
+/* La estrella de destacadas (1079): apagada se ve poco; puesta, en ámbar. */
+.tds-estrella {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  margin-left: auto;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.tds-estrella:hover {
+  background: var(--ice);
+  color: var(--warning);
+}
+
+.tds-estrella.activa {
+  color: var(--warning);
+}
+
+.tds-estrella.activa svg {
+  fill: currentColor;
+}
+
+@media (pointer: coarse) {
+  .tds-estrella {
+    width: 44px;
+    height: 44px;
+  }
+}
+
+.tds-sel [hidden] {
+  display: none;
 }
 
 .tds-foto-caja {
