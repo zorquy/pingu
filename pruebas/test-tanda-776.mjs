@@ -59,18 +59,29 @@ const fingir = ({ offsetTop, height, ios }) => {
     Object.defineProperty(navigator, 'standalone', { value: true })
   }
   const t = new EventTarget()
-  Object.defineProperty(t, 'offsetTop', { get: () => offsetTop })
+  window.__OT = offsetTop
+  Object.defineProperty(t, 'offsetTop', { get: () => window.__OT })
   Object.defineProperty(t, 'height', { get: () => (height === 'alto' ? innerHeight : height) })
   Object.defineProperty(t, 'scale', { get: () => 1 })
   Object.defineProperty(window, 'visualViewport', { value: t })
 }
-async function mirar({ ios, offsetTop }) {
+// Desde la 1089c el desfase solo cuenta después del teclado: `teclado` suelta
+// un campo (como al cerrarlo) y `vuelve` pone el visor en su sitio después.
+async function mirar({ ios, offsetTop, teclado = true, vuelve = false }) {
   const ctx = await b.newContext({ ...devices['iPhone 13'], serviceWorkers: 'block' })
   await ctx.addInitScript(fingir, { offsetTop, height: 'alto', ios })
   const p = await ctx.newPage()
   await p.goto(`${BASE}/torneos.html`, { waitUntil: 'domcontentloaded' })
   await p.waitForSelector('.bm-burbuja', { timeout: 8000 })
   await p.waitForTimeout(600)
+  if (teclado) {
+    await p.evaluate(() => { const i = document.createElement('input'); document.body.appendChild(i); i.focus(); i.blur(); i.remove() })
+    await p.waitForTimeout(1000)
+  }
+  if (vuelve) {
+    await p.evaluate(() => { window.__OT = 0; window.visualViewport.dispatchEvent(new Event('scroll')) })
+    await p.waitForTimeout(300)
+  }
   const out = await p.evaluate(() => ({
     clase: document.documentElement.classList.contains('ios-desfase'),
     abajo: getComputedStyle(document.documentElement).getPropertyValue('--ios-abajo'),
@@ -84,6 +95,10 @@ r = await mirar({ ios: true, offsetTop: 340 })
 check('iOS con el visor movido 340: se marca el desfase', r.clase && r.abajo.trim() === '340px', JSON.stringify(r))
 check('  …y la burbuja baja 340', /340px/.test(r.translate), r.translate)
 check('  …y la barra de abajo también', /340px/.test(r.bm), r.bm)
+r = await mirar({ ios: true, offsetTop: 340, vuelve: true })
+check('  …y cuando el visor vuelve a su sitio, se quita (1089c)', !r.clase && !/340/.test(r.bm), JSON.stringify(r))
+r = await mirar({ ios: true, offsetTop: 340, teclado: false })
+check('sin teclado, un visor movido al hacer scroll no mueve nada: la barra de arriba no baja a media pantalla (1089c)', !r.clase && !/340/.test(r.bm), JSON.stringify(r))
 r = await mirar({ ios: true, offsetTop: 0 })
 check('iOS con el visor bien: no se toca nada', !r.clase && !/340/.test(r.translate), JSON.stringify(r))
 r = await mirar({ ios: false, offsetTop: 340 })
