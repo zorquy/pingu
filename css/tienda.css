@@ -915,7 +915,8 @@ html:has(.tds-dialogo[open]) {
   font-size: var(--t-xl);
 }
 
-.tds-dialogo .tds-cerrar {
+.tds-dialogo .tds-cerrar,
+.tdvt-hoja .tds-cerrar {
   display: grid;
   place-items: center;
   min-width: 44px;
@@ -1161,19 +1162,47 @@ html:has(.tds-dialogo[open]) {
 .td-esc-cab .td-cartel { width: 220px; padding: var(--e-lg) var(--e-md); gap: var(--e-sm); box-shadow: var(--shadow-md); }
 .td-esc-cab .td-cartel-qr svg { width: 130px; height: 130px; }
 .td-esc-cab .td-cartel-titulo { font-size: var(--t-md); }
-.td-esc-cab .td-escaparate-mandos h2 { margin: 0; font-family: var(--font-display); font-size: var(--t-2xl); }
 .td-esc-cab .td-escaparate-mandos .subtext { margin: 0; max-width: 60ch; }
+.td-esc-cab .td-enlace { font-family: var(--font-display); font-size: var(--t-xl); }
+/* Cuatro iconos con su palabra debajo (1088). */
 .td-esc-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.td-esc-icono {
+  display: grid;
+  justify-items: center;
+  gap: var(--e-xs);
+  min-width: 72px;
+  min-height: 64px;
+  padding: var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--navy);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+.td-esc-icono:hover { background: color-mix(in srgb, var(--acento) 16%, var(--white)); }
+.td-esc-icono:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
 .td-esc-titulo { margin: var(--e-2xl) 0 0; font-family: var(--font-display); }
 #tdEscaparatePrevia .pt-cab { background: var(--white); }
 
-@media (max-width: 700px) {
-  .td-esc-cab { grid-template-columns: minmax(0, 1fr); padding: var(--e-md); justify-items: center; }
-  .td-esc-cab .td-escaparate-mandos { justify-items: stretch; order: -1; }
-  .td-esc-cab .td-escaparate-mandos h2 { font-size: var(--t-xl); }
-  .td-esc-cab .td-cartel { width: 190px; }
-  .td-esc-cab .td-cartel-qr svg { width: 110px; height: 110px; }
-  .td-esc-botones > * { flex: 1 1 auto; }
+/* En el móvil, una tarjeta (1088): el QR pequeño al lado del enlace y los
+   iconos debajo. El cartel entero sigue en la página para imprimirlo. */
+@media screen and (max-width: 700px) {
+  .td-esc-cab { grid-template-columns: auto minmax(0, 1fr); grid-template-areas: 'qr enlace' 'qr texto' 'botones botones' 'ver ver'; gap: var(--e-sm) var(--e-md); padding: var(--e-md); align-items: start; }
+  .td-esc-cab .td-cartel { grid-area: qr; }
+  .td-esc-cab .td-enlace { grid-area: enlace; }
+  .td-esc-cab .td-escaparate-mandos .subtext { grid-area: texto; font-size: var(--t-xs); }
+  .td-esc-botones { grid-area: botones; }
+  .td-esc-ver { grid-area: ver; justify-self: start; }
+  .td-esc-cab .td-cartel { width: auto; padding: var(--e-xs); aspect-ratio: auto; box-shadow: none; }
+  .td-esc-cab .td-cartel > :not(.td-cartel-qr) { display: none; }
+  .td-esc-cab .td-cartel-qr svg { width: 88px; height: 88px; }
+  .td-esc-cab .td-enlace { font-size: var(--t-md); }
+  .td-esc-botones { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .td-esc-icono { min-width: 0; }
+  .td-esc-cab .td-escaparate-mandos { display: contents; }
 }
 
 .td-cartel {
@@ -1323,15 +1352,27 @@ html:has(.tds-dialogo[open]) {
 .tdvt-dia h3 { margin: var(--e-sm) 0; color: var(--text-mid); font-size: var(--t-sm); font-weight: 700; }
 .tdvt-dia ul { display: grid; margin: 0; padding: 0; list-style: none; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
 
+/* Una venta es un botón (1088): se toca para abrir su hoja. */
 .tdvt-fila {
   display: grid;
   grid-template-columns: 48px minmax(0, 1fr) auto auto auto;
   gap: var(--e-md);
   align-items: center;
+  width: 100%;
+  min-height: 56px;
   padding: var(--e-sm) var(--e-md);
+  border: 0;
   border-top: 1px solid var(--border);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
 }
-.tdvt-fila:first-child { border-top: 0; }
+.tdvt-dia li:first-child .tdvt-fila { border-top: 0; }
+.tdvt-fila:hover { background: var(--ice); }
+.tdvt-fila:focus-visible { outline: none; box-shadow: inset var(--shadow-ring); }
+.tdvt-ir { display: flex; color: var(--text-mid); }
 .tdvt-hora { color: var(--text-mid); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
 .tdvt-que { display: grid; min-width: 0; }
 .tdvt-que small { overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
@@ -1341,10 +1382,53 @@ html:has(.tds-dialogo[open]) {
 .tdvt-verde { color: var(--success); }
 .tdvt-rojo { color: var(--danger); }
 .tdvt-sin { color: var(--text-mid); }
-.tdvt-acciones { display: flex; gap: var(--e-sm); }
-.tdvt-acciones .link-btn,
-.tdvt-deshacer { font-size: var(--t-xs); }
 .tdvt-deshacer.armado { color: var(--danger); }
+
+/* Los mandos de arriba (1088): el periodo y dónde, la búsqueda y exportar. */
+.tdvt-select {
+  min-height: 44px;
+  padding: var(--e-xs) var(--e-sm);
+  font: inherit;
+  font-size: var(--t-sm);
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+.tdvt-icono { justify-content: center; min-width: 44px; min-height: 44px; padding: 0; }
+.tdvt-arriba [data-tdvt='lupa'] { display: none; }
+
+/* La hoja de una venta: centrada en el PC, desde abajo en el móvil (1045). */
+.tdvt-hoja {
+  box-sizing: border-box;
+  width: min(460px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - var(--e-xl) * 2);
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+.tdvt-hoja[open] { position: fixed; display: flex; flex-direction: column; }
+.tdvt-hoja::backdrop { background: rgb(0 0 0 / 35%); }
+html:has(.tdvt-hoja[open]) { overflow: hidden; }
+.tdvt-hoja-caja { display: grid; gap: var(--e-md); padding: var(--e-lg); overflow-y: auto; overscroll-behavior: contain; }
+.tdvt-hoja-cab { display: flex; gap: var(--e-sm); align-items: flex-start; justify-content: space-between; }
+.tdvt-hoja-cab h2 { margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
+.tdvt-hoja-cuando { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.tdvt-hoja-lineas { display: grid; margin: 0; padding: 0; list-style: none; }
+.tdvt-hoja-lineas li { display: flex; gap: var(--e-sm); align-items: center; justify-content: space-between; padding: var(--e-sm) 0; border-top: 1px solid var(--border); }
+.tdvt-hoja-lineas li:first-child { border-top: 0; }
+.tdvt-hoja-lineas span { display: grid; min-width: 0; }
+.tdvt-hoja-lineas small { overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.tdvt-hoja-lineas b { flex: none; font-variant-numeric: tabular-nums; }
+.tdvt-hoja-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.tdvt-hoja-botones > * { flex: 1 1 0; justify-content: center; }
 
 .tdvt-vacio { padding: var(--e-xl) var(--e-lg); text-align: center; color: var(--text-mid); }
 .tdvt-vacio p { margin: 0 0 var(--e-md); }
@@ -1352,15 +1436,22 @@ html:has(.tds-dialogo[open]) {
 
 @media (max-width: 760px) {
   .tdvt-cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .tdvt-arriba .tdvt-chips,
-  .tdvt > .tdvt-chips { flex: 1 1 100%; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
-  .tdvt-arriba .btn-primary { display: none; }
-  .tdvt-fila { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'que importe' 'hora deshacer'; gap: 2px var(--e-md); }
+  /* Una fila: los dos desplegables, la lupa y exportar; la búsqueda, debajo
+     y solo si se abre. */
+  .tdvt-arriba { flex-wrap: nowrap; }
+  .tdvt-select { flex: 1 1 0; min-width: 0; }
+  .tdvt-arriba [data-tdvt='lupa'] { display: inline-flex; flex: none; }
+  .tdvt-arriba .tdvt-icono { flex: none; }
+  .tdvt-busca { display: none; }
+  .con-busca .tdvt-arriba { flex-wrap: wrap; }
+  .con-busca .tdvt-busca { display: block; flex: 1 1 100%; order: 9; }
+  .tdvt-fila { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: 'que importe' 'hora importe'; gap: 2px var(--e-md); }
   .tdvt-que { grid-area: que; }
   .tdvt-importe { grid-area: importe; }
   .tdvt-hora { grid-area: hora; }
-  .tdvt-uds { display: none; }
-  .tdvt-acciones { grid-area: deshacer; justify-self: end; }
+  .tdvt-uds, .tdvt-ir { display: none; }
+  .tdvt-hoja { inset: auto 0 0; width: 100%; max-height: 92dvh; margin: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .tdvt-hoja-caja { padding-bottom: max(var(--e-lg), env(safe-area-inset-bottom)); }
 }
 
 @media (pointer: coarse) {

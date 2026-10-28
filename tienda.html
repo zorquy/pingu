@@ -213,15 +213,19 @@
             <span class="td-cartel-nombre" id="tdCartelNombre"></span>
             <small class="td-cartel-pie">Escanéalo y verás qué tenemos ahora mismo, y lo que tenemos de tu lista.</small>
           </div>
+          <!-- Sin título ni párrafo (1088: la pestaña ya dice dónde estás): tu
+               enlace y cuatro iconos con su palabra. -->
           <div class="td-escaparate-mandos">
-            <h2>Tu escaparate</h2>
-            <p class="subtext">Es tu perfil de PokeDoc: lo que tienes visible en el stock, con tus precios. Comparte el enlace o pon el QR en el mostrador, en tu mesa de un evento o en tus redes.</p>
-            <p class="td-enlace"><span id="tdEnlace"></span> <button type="button" class="btn-secondary" id="tdCopiar">Copiar el enlace</button></p>
+            <h2 class="sr-only">Tu escaparate</h2>
+            <p class="td-enlace" id="tdEnlace"></p>
+            <p class="subtext">Ponlo en el mostrador, en tu mesa de un evento o en tus redes.</p>
             <div class="td-esc-botones">
-              <button type="button" class="btn-primary" id="tdImprimir">Imprimir el cartel</button>
-              <button type="button" class="btn-secondary" id="tdBajarQr">Descargar el QR</button>
-              <a class="btn-secondary" id="tdVerPerfil2" href="/perfil.html">Abrirlo como lo ve la gente</a>
+              <button type="button" class="td-esc-icono" id="tdCopiar" data-icono-esc="link"><span>Copiar</span></button>
+              <button type="button" class="td-esc-icono" id="tdCompartir" data-icono-esc="share"><span>Compartir</span></button>
+              <button type="button" class="td-esc-icono" id="tdBajarQr" data-icono-esc="arrowDown"><span>El QR</span></button>
+              <button type="button" class="td-esc-icono" id="tdImprimir" data-icono-esc="newspaper"><span>El cartel</span></button>
             </div>
+            <a class="link-btn td-esc-ver" id="tdVerPerfil2" href="/perfil.html">Abrirlo como lo ve la gente</a>
           </div>
         </div>
         <h2 class="td-esc-titulo">Así te ve la gente</h2>

@@ -3,9 +3,14 @@
 // sumas de arriba son las de TODO lo filtrado (las hace la base,
 // `tienda_ventas_lista`), no solo de lo que se ve. Cada venta se deshace
 // (vuelve al stock) y la lista se exporta en CSV.
+//
+// Desde la 1088 (PINGU: «sin pisos de botones»), arriba una fila: el
+// periodo y dónde en dos desplegables, la búsqueda y exportar; y una venta se
+// toca para abrir su hoja, con el recibo y deshacer.
 import { supabase } from './supabase.js'
 import { escapeHtml } from './html.js'
 import { showToast } from './toast.js'
+import { icons } from './icons.js'
 import { euros } from './cardmarket.js'
 import { nombreDeSet } from './catalogo-series.js'
 import { DONDE_VENTA, PERIODOS, rangoDePeriodo, csvDeVentas } from './tiendas-puro.js'
@@ -67,13 +72,50 @@ export function rotuloDeDia(fecha, ahora = new Date()) {
 function filaHtml(f) {
   const beneficio = f.coste == null ? null : Math.round((Number(f.precio) - Number(f.coste)) * f.unidades * 100) / 100
   const hora = new Date(f.vendida_el).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-  return `<li class="tdvt-fila">
+  return `<li><button type="button" class="tdvt-fila" data-venta="${escapeHtml(f.id)}" aria-label="${escapeHtml(f.nombre || 'Producto')}: la venta, el recibo y deshacer">
     <span class="tdvt-hora">${hora}</span>
     <span class="tdvt-que"><strong>${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(f, nombreSet))} · ${escapeHtml(NOMBRE_DONDE[f.donde] || f.donde)}</small></span>
     <span class="tdvt-uds">${f.unidades > 1 ? `${f.unidades} × ${euros(f.precio)}` : ''}</span>
     <span class="tdvt-importe"><b>${euros(Number(f.precio) * f.unidades)}</b>${beneficio == null ? '<small class="tdvt-sin">sin coste</small>' : `<small class="${beneficio < 0 ? 'tdvt-rojo' : 'tdvt-verde'}">${beneficio > 0 ? '+' : ''}${euros(beneficio)}</small>`}</span>
-    <span class="tdvt-acciones"><button type="button" class="link-btn" data-recibo="${escapeHtml(f.ticket)}">Recibo</button><button type="button" class="link-btn tdvt-deshacer" data-deshacer="${escapeHtml(f.ticket)}">Deshacer</button></span>
-  </li>`
+    <span class="tdvt-ir" aria-hidden="true">${icons.chevronRight(16)}</span>
+  </button></li>`
+}
+
+// La hoja de una venta (1088): todo su ticket (las líneas que se vendieron
+// juntas), con el recibo y deshacer, que es de todo el ticket.
+function abrirVenta(id) {
+  const f = est.filas.find((x) => x.id === id)
+  if (!f) return
+  const lineas = est.filas.filter((x) => x.ticket === f.ticket)
+  const total = lineas.reduce((n, l) => n + Number(l.precio) * l.unidades, 0)
+  const conCoste = lineas.filter((l) => l.coste != null)
+  const beneficio = conCoste.length ? conCoste.reduce((n, l) => n + (Number(l.precio) - Number(l.coste)) * l.unidades, 0) : null
+  const fecha = new Date(f.vendida_el)
+  let d = document.getElementById('tdvtHoja')
+  if (!d) {
+    d = document.createElement('dialog')
+    d.id = 'tdvtHoja'
+    d.className = 'tdvt-hoja'
+    document.body.appendChild(d)
+    d.addEventListener('click', (e) => { if (e.target === d || e.target.closest('[data-tdvt-cerrar]')) d.close() })
+  }
+  d.innerHTML = `
+    <div class="tdvt-hoja-caja">
+      <header class="tdvt-hoja-cab"><h2>${escapeHtml(lineas.length > 1 ? `${lineas.length} cartas` : f.nombre || 'Producto')} · ${euros(total)}</h2><button type="button" class="tds-cerrar" data-tdvt-cerrar aria-label="Cerrar">×</button></header>
+      <p class="tdvt-hoja-cuando">${escapeHtml(rotuloDeDia(f.vendida_el))}, ${fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} · ${escapeHtml(NOMBRE_DONDE[f.donde] || f.donde)}${beneficio == null ? '' : ` · <span class="${beneficio < 0 ? 'tdvt-rojo' : 'tdvt-verde'}">${beneficio > 0 ? '+' : ''}${euros(beneficio)}</span>`}</p>
+      <ul class="tdvt-hoja-lineas">${lineas.map((l) => `<li><span><strong>${escapeHtml(l.nombre || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(l, nombreSet))}</small></span><b>${l.unidades > 1 ? `${l.unidades} × ` : ''}${euros(l.precio)}</b></li>`).join('')}</ul>
+      <div class="tdvt-hoja-botones">
+        <button type="button" class="btn-primary" data-recibo="${escapeHtml(f.ticket)}">${icons.receipt(18)}<span>Recibo</span></button>
+        <button type="button" class="btn-secondary tdvt-deshacer" data-deshacer="${escapeHtml(f.ticket)}">Deshacer la venta</button>
+      </div>
+    </div>`
+  d.onclick = (e) => {
+    const r = e.target.closest('[data-recibo]')
+    if (r) import('./tienda-recibo.js').then((m) => m.abrirRecibo(r.dataset.recibo)).catch(() => showToast('No se ha podido hacer el recibo.', 'error'))
+    const x = e.target.closest('[data-deshacer]')
+    if (x) deshacer(x).then((hecho) => { if (hecho) d.close() })
+  }
+  d.showModal()
 }
 
 function pintar() {
@@ -102,8 +144,8 @@ function pintar() {
 }
 
 function pintarMandos() {
-  for (const b of caja.querySelectorAll('[data-periodo]')) b.setAttribute('aria-pressed', String(b.dataset.periodo === est.periodo))
-  for (const b of caja.querySelectorAll('[data-donde]')) b.setAttribute('aria-pressed', String(b.dataset.donde ? est.donde.includes(b.dataset.donde) : !est.donde.length))
+  $('[data-tdvt-periodo]').value = est.periodo
+  $('[data-tdvt-donde]').value = est.donde[0] || ''
 }
 
 async function exportar() {
@@ -118,17 +160,16 @@ async function exportar() {
   setTimeout(() => URL.revokeObjectURL(a.href), 4000)
 }
 
-// Deshacer pide un segundo toque: devuelve unidades al stock.
+// Deshacer pide un segundo toque: devuelve unidades al stock. Dice si se hizo.
 let armado = null
 async function deshacer(boton) {
+  const texto = 'Deshacer la venta'
   if (armado !== boton) {
-    armado?.classList.remove('armado')
-    if (armado) armado.textContent = 'Deshacer'
     armado = boton
     boton.classList.add('armado')
-    boton.textContent = '¿Deshacer? Vuelve al stock'
-    setTimeout(() => { if (armado === boton) { boton.classList.remove('armado'); boton.textContent = 'Deshacer'; armado = null } }, 4000)
-    return
+    boton.textContent = '¿Seguro? Vuelve al stock'
+    setTimeout(() => { if (armado === boton) { boton.classList.remove('armado'); boton.textContent = texto; armado = null } }, 4000)
+    return false
   }
   armado = null
   boton.disabled = true
@@ -136,8 +177,10 @@ async function deshacer(boton) {
   try {
     await deshacerVenta(boton.dataset.deshacer)
     document.dispatchEvent(new CustomEvent('pokedoc:tienda-vendida'))
+    return true
   } catch {
     boton.disabled = false
+    return false
   }
 }
 
@@ -147,34 +190,33 @@ export function montarVentas(destino, { perfil: p }) {
   caja.innerHTML = `
     <div class="tdvt">
       <div class="tdvt-arriba">
-        <div class="tdvt-chips" role="group" aria-label="Periodo">${PERIODOS.map(([v, t]) => `<button type="button" class="tdvt-chip" data-periodo="${v}" aria-pressed="false">${t}</button>`).join('')}</div>
+        <select class="tdvt-select" data-tdvt-periodo aria-label="Periodo">${PERIODOS.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
+        <select class="tdvt-select" data-tdvt-donde aria-label="Dónde se vendió">${[['', 'Dónde: todo'], ...DONDE_VENTA].map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
         <input type="search" class="tdvt-busca" data-tdvt-q placeholder="Buscar en tus ventas…" aria-label="Buscar en tus ventas" />
-        <button type="button" class="btn-secondary" data-tdvt="exportar">Exportar</button>
-        <button type="button" class="btn-primary" data-tdvt="vender">Vender</button>
+        <button type="button" class="btn-secondary tdvt-icono" data-tdvt="lupa" aria-label="Buscar en tus ventas" aria-expanded="false">${icons.search(18)}</button>
+        <button type="button" class="btn-secondary tdvt-icono" data-tdvt="exportar" aria-label="Exportar a CSV" title="Exportar a CSV">${icons.arrowDown(18)}</button>
       </div>
-      <div class="tdvt-chips" role="group" aria-label="Dónde">${[['', 'Todo'], ...DONDE_VENTA].map(([v, t]) => `<button type="button" class="tdvt-chip" data-donde="${v}" aria-pressed="false">${t}</button>`).join('')}</div>
       <div class="tdvt-cifras"></div>
       <div class="tdvt-lista"><p class="tdvt-vacio">Cargando tus ventas…</p></div>
     </div>`
+  caja.addEventListener('change', (e) => {
+    if (e.target.matches('[data-tdvt-periodo]')) { est.periodo = e.target.value; return pedir() }
+    if (e.target.matches('[data-tdvt-donde]')) { est.donde = e.target.value ? [e.target.value] : []; return pedir() }
+  })
   caja.addEventListener('click', (e) => {
-    const periodo = e.target.closest('[data-periodo]')
-    if (periodo) { est.periodo = periodo.dataset.periodo; pintarMandos(); return pedir() }
-    const donde = e.target.closest('[data-donde]')
-    if (donde) {
-      const v = donde.dataset.donde
-      est.donde = !v ? [] : est.donde.includes(v) ? est.donde.filter((x) => x !== v) : [...est.donde, v]
-      pintarMandos()
-      return pedir()
-    }
     const accion = e.target.closest('[data-tdvt]')?.dataset.tdvt
     if (accion === 'mas') return pedir({ mas: true })
     if (accion === 'exportar') return exportar()
     if (accion === 'vender') return document.dispatchEvent(new CustomEvent('pokedoc:tienda-vender'))
-    const d = e.target.closest('[data-deshacer]')
-    if (d) deshacer(d)
-    // El recibo de esa venta (1084), para mandarlo o imprimirlo.
-    const r = e.target.closest('[data-recibo]')
-    if (r) import('./tienda-recibo.js').then((m) => m.abrirRecibo(r.dataset.recibo)).catch(() => showToast('No se ha podido hacer el recibo.', 'error'))
+    // En el móvil la búsqueda va plegada tras su lupa.
+    if (accion === 'lupa') {
+      const abierta = caja.querySelector('.tdvt').classList.toggle('con-busca')
+      e.target.closest('[data-tdvt]').setAttribute('aria-expanded', String(abierta))
+      if (abierta) $('[data-tdvt-q]').focus()
+      return
+    }
+    const venta = e.target.closest('[data-venta]')
+    if (venta) abrirVenta(venta.dataset.venta)
   })
   let espera = null
   caja.addEventListener('input', (e) => {

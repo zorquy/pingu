@@ -41785,6 +41785,32 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1088 — Ventas y Escaparate sin pisos de botones
+
+De «Tiendas, listas para el piloto» (punto 5). **Ventas**: los mandos son una
+fila (`.tdvt-arriba`): periodo y dónde son dos `<select>` (`data-tdvt-periodo`,
+`data-tdvt-donde`, «Dónde: todo» o un sitio; antes eran chips de varias
+filas), la búsqueda y Exportar. En el móvil la búsqueda se esconde tras la
+lupa (`data-tdvt="lupa"`, que pone `.con-busca` y le da el foco). Cada venta
+es un botón (`.tdvt-fila[data-venta]`) que abre `#tdvtHoja` (`abrirVenta`):
+las líneas del ticket, lo que dejó, «Recibo» (`data-recibo`) y «Deshacer la
+venta» (`data-deshacer`, con su segundo toque; al deshacer se cierra). Es un
+pop-up centrado en el PC y una hoja desde abajo en el móvil (1045). Su «×» es
+`.tds-cerrar`, que de base va escondida: la hoja la enseña igual que
+`.tds-dialogo` (la prueba lo cazó).
+
+**Escaparate**: la tarjeta de arriba es QR + enlace + cuatro `.td-esc-icono`
+(`data-icono-esc`, el icono lo pone `montarEscaparateSiToca`): Copiar,
+Compartir (`navigator.share`, y si no, copia), el QR y el cartel. En el móvil
+(`max-width: 700px`) es una rejilla con áreas y `.td-escaparate-mandos` en
+`display: contents`; la regla va con `.td-esc-cab` delante porque la de base
+viene después en la hoja y le ganaba. El cartel impreso (`td-imprimiendo`) no
+cambia.
+
+Pruebas: `test-tanda-1088-pantalla.mjs` (una fila en móvil y PC, la lupa, la
+hoja de una venta, el Escaparate en los dos anchos, Compartir y la
+impresión); al día la 1072 y la 1084.
+
 ## Tanda 1087 — La tabla del Stock a siete columnas, y «Más filtros»
 
 - **La tabla en el PC**: Carta, Uds., Coste, Tu precio, Cardmarket, Margen y

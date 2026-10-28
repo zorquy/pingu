@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (326) — PINGU-Claude (1088 — Ventas y Escaparate sin pisos de botones)
+
+**Hecho**: en Ventas, una fila de mandos (periodo y dónde en dos desplegables,
+la lupa que abre la búsqueda en el móvil, exportar) y cada venta es una fila
+que abre su hoja: el ticket entero, lo que dejó, «Recibo» y «Deshacer la
+venta» (dos toques). En el Escaparate, el QR al lado del enlace y cuatro
+botones con icono (Copiar, Compartir —nuevo—, el QR, el cartel); el cartel
+impreso no cambia.
+
+**Para PINGU**: nada.
+
+**Ficheros**: `js/tienda-ventas.js`, `js/tienda.js`, `tienda.html`,
+`css/tienda.css`. Pruebas en `pruebas`: 1088-pantalla, y al día la 1072 y la
+1084 (Recibo y Deshacer van en la hoja de la venta).
+
+**Pendiente**: 1089 (avisar a quien la busca), con migración.
+
 ## 2026-10-28 (325) — PINGU-Claude (1087 — la tabla del Stock y los filtros)
 
 **Hecho**: la tabla del Stock en el PC a siete columnas (idioma y estado bajo

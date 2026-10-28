@@ -85,6 +85,7 @@ async function montarEscaparateSiToca(v) {
   // El QR lleva `utm_source=qr`: el Panel cuenta aparte las visitas que llegan de él (1073).
   $('tdQr').innerHTML = svgQR(`${url}?utm_source=qr`, { tam: 220 })
   $('tdEnlace').textContent = url.replace('https://', '')
+  for (const b of document.querySelectorAll('[data-icono-esc]')) if (!b.querySelector('svg')) b.insertAdjacentHTML('afterbegin', icons[b.dataset.iconoEsc]?.(20) || '')
   $('tdCartelNombre').textContent = perfil.display_name || perfil.username
   // Y debajo, el escaparate de verdad (1078): lo mismo que ve la gente.
   const sesion = await getSession()
@@ -210,6 +211,15 @@ $('tdPestanas')?.addEventListener('click', (e) => {
   if (b) pestana(b.dataset.td)
 })
 
+// Compartir el enlace (1088): la hoja del sistema; sin ella, se copia.
+$('tdCompartir')?.addEventListener('click', async () => {
+  const url = `https://${$('tdEnlace').textContent}`
+  if (navigator.share) {
+    try { await navigator.share({ title: perfil?.display_name || 'Mi tienda en PokeDoc', url }) } catch {}
+    return
+  }
+  navigator.clipboard?.writeText(url).then(() => showToast('Enlace copiado.', 'success'), () => showToast(url))
+})
 $('tdCopiar')?.addEventListener('click', () => {
   const url = `https://${$('tdEnlace').textContent}`
   navigator.clipboard?.writeText(url).then(() => showToast('Enlace copiado.', 'success'), () => showToast(url))
