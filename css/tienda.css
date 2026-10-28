@@ -1346,6 +1346,8 @@ html:has(.tds-dialogo[open]) {
 .tdvt-verde { color: var(--success); }
 .tdvt-rojo { color: var(--danger); }
 .tdvt-sin { color: var(--text-mid); }
+.tdvt-acciones { display: flex; gap: var(--e-sm); }
+.tdvt-acciones .link-btn,
 .tdvt-deshacer { font-size: var(--t-xs); }
 .tdvt-deshacer.armado { color: var(--danger); }
 
@@ -1363,7 +1365,7 @@ html:has(.tds-dialogo[open]) {
   .tdvt-importe { grid-area: importe; }
   .tdvt-hora { grid-area: hora; }
   .tdvt-uds { display: none; }
-  .tdvt-deshacer { grid-area: deshacer; justify-self: end; }
+  .tdvt-acciones { grid-area: deshacer; justify-self: end; }
 }
 
 @media (pointer: coarse) {

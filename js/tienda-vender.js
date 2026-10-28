@@ -185,7 +185,11 @@ async function vender() {
   alVender?.(data)
   const unidades = vendidas.reduce((n, l) => n + l.vender, 0)
   showToast(`Vendida${unidades > 1 ? `s ${unidades}` : ''} · ${euros(data.total)}${data.beneficio && data.lineas > data.sin_coste ? ` · ${data.beneficio > 0 ? '+' : ''}${euros(data.beneficio)}` : ''}`, 'success', {
-    accion: { texto: 'Deshacer', alPulsar: () => deshacerVenta(data.ticket).then(() => alVender?.(null), () => {}) },
+    acciones: [
+      { texto: 'Deshacer', alPulsar: () => deshacerVenta(data.ticket).then(() => alVender?.(null), () => {}) },
+      // El recibo para quien compra (1084).
+      { texto: 'Recibo', alPulsar: () => import('./tienda-recibo.js').then((m) => m.abrirRecibo(data.ticket)).catch(() => showToast('No se ha podido hacer el recibo.', 'error')) },
+    ],
   })
 }
 

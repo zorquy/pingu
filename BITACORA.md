@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (321) — PINGU-Claude (1084 — el recibo de una venta)
+
+**Hecho**: «Recibo» en el aviso de cada venta y en cada venta de Ventas: una
+imagen con la tienda, lo vendido y el total (sin coste ni beneficio) para
+compartir o descargar, y en PDF para imprimir. El aviso de un toast admite
+ahora varios botones (`acciones`).
+
+**Para PINGU**: nada que ejecutar. Con esto queda hecha la vuelta entera
+(1079–1084); lo único de la base es la migración 1079.
+
+**Ficheros**: `js/tienda-recibo.js` (nuevo), `js/tiendas-puro.js`,
+`js/tienda-vender.js`, `js/tienda-ventas.js`, `js/toast.js`,
+`css/tienda-vender.css`, `css/tienda.css`. Pruebas en `pruebas`:
+1084-pantalla, y al día la 1072-pantalla y la 873 (el toast).
+
+**Pendiente**: nada de la vuelta. La mitad B de la suite, por pasar.
+
 ## 2026-10-28 (320) — PINGU-Claude (1083 — las cifras del Panel de una tienda)
 
 **Hecho**: en el Panel, debajo de «Cómo va»: lo más vendido (cartas o

@@ -41785,6 +41785,27 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1084 — El recibo de una venta
+
+`js/tienda-recibo.js` (por `import()`): `abrirRecibo(ticket)` lee las líneas
+del ticket en `tienda_ventas` (solo las ve su tienda), les pone nombre y
+expansión del catálogo y dibuja en un lienzo de 1080 de ancho la tienda (logo
+o inicial, dirección o su @), «Recibo» con la fecha y el número (los ocho
+primeros del ticket), cada línea con su importe (y «2 × 64,95 €»), el total,
+«Venta: mostrador» y abajo su enlace y la marca. NUNCA el coste ni el
+beneficio: es para quien compra (la prueba lee lo que se escribe en el lienzo).
+Colores fijos: es un papel, igual en los dos temas.
+
+- Se abre desde el aviso de una venta (`showToast` admite ahora `acciones`, una
+  lista: «Deshacer» y «Recibo») y con «Recibo» en cada venta de Ventas.
+- «Compartir…» (la hoja del sistema; sin ella, se descarga), «Descargar
+  imagen» (PNG) y «PDF para imprimir»: `pdfDeJpeg` en `js/tiendas-puro.js`
+  escribe a mano un PDF de una página (80 mm de ancho, un ticket) con el JPEG
+  dentro tal cual (DCTDecode): cinco objetos y su tabla de posiciones, sin
+  librerías.
+- Su hoja vive en `css/tienda-vender.css` (`.tdr`), que ya inyecta Vender: el
+  recibo también se abre desde /mensajes (1080).
+
 ## Tanda 1083 — Las cifras del Panel de una tienda
 
 Debajo de «Cómo va», tres tarjetas (`cifrasHtml` en `js/tienda-hoy.js`) que

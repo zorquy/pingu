@@ -72,7 +72,7 @@ function filaHtml(f) {
     <span class="tdvt-que"><strong>${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(f, nombreSet))} · ${escapeHtml(NOMBRE_DONDE[f.donde] || f.donde)}</small></span>
     <span class="tdvt-uds">${f.unidades > 1 ? `${f.unidades} × ${euros(f.precio)}` : ''}</span>
     <span class="tdvt-importe"><b>${euros(Number(f.precio) * f.unidades)}</b>${beneficio == null ? '<small class="tdvt-sin">sin coste</small>' : `<small class="${beneficio < 0 ? 'tdvt-rojo' : 'tdvt-verde'}">${beneficio > 0 ? '+' : ''}${euros(beneficio)}</small>`}</span>
-    <button type="button" class="link-btn tdvt-deshacer" data-deshacer="${escapeHtml(f.ticket)}">Deshacer</button>
+    <span class="tdvt-acciones"><button type="button" class="link-btn" data-recibo="${escapeHtml(f.ticket)}">Recibo</button><button type="button" class="link-btn tdvt-deshacer" data-deshacer="${escapeHtml(f.ticket)}">Deshacer</button></span>
   </li>`
 }
 
@@ -172,6 +172,9 @@ export function montarVentas(destino, { perfil: p }) {
     if (accion === 'vender') return document.dispatchEvent(new CustomEvent('pokedoc:tienda-vender'))
     const d = e.target.closest('[data-deshacer]')
     if (d) deshacer(d)
+    // El recibo de esa venta (1084), para mandarlo o imprimirlo.
+    const r = e.target.closest('[data-recibo]')
+    if (r) import('./tienda-recibo.js').then((m) => m.abrirRecibo(r.dataset.recibo)).catch(() => showToast('No se ha podido hacer el recibo.', 'error'))
   })
   let espera = null
   caja.addEventListener('input', (e) => {

@@ -324,3 +324,55 @@ export function comparacion(ahora, antes, frente) {
   if (!pct) return { texto: `Igual ${frente.replace(/^que /, 'que ')}`, sube: null }
   return { texto: `${pct > 0 ? '+' : '−'}${Math.abs(pct)} % ${frente}`, sube: pct > 0 }
 }
+
+// El recibo de una venta (1084): un PDF de una página con la imagen del
+// recibo dentro, sin librerías. Un JPEG va tal cual en un PDF (DCTDecode),
+// así que basta con escribir los cinco objetos y la tabla de dónde empieza
+// cada uno. La página mide lo que la imagen, a 80 mm de ancho (un ticket).
+export function pdfDeJpeg(jpeg, ancho, alto) {
+  const enc = new TextEncoder()
+  const W = 226.77 // 80 mm en puntos
+  const H = Math.round((W * alto) / ancho * 100) / 100
+  const contenido = `q ${W} 0 0 ${H} 0 0 cm /Im0 Do Q`
+  const trozos = []
+  const posiciones = []
+  let largo = 0
+  const poner = (x) => {
+    const b = typeof x === 'string' ? enc.encode(x) : x
+    trozos.push(b)
+    largo += b.length
+  }
+  const objeto = (n, cuerpo) => {
+    posiciones[n] = largo
+    poner(`${n} 0 obj\n${cuerpo}\nendobj\n`)
+  }
+  poner('%PDF-1.4\n')
+  objeto(1, '<< /Type /Catalog /Pages 2 0 R >>')
+  objeto(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>')
+  objeto(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`)
+  posiciones[4] = largo
+  poner(`4 0 obj\n<< /Type /XObject /Subtype /Image /Width ${ancho} /Height ${alto} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`)
+  poner(jpeg)
+  poner('\nendstream\nendobj\n')
+  objeto(5, `<< /Length ${contenido.length} >>\nstream\n${contenido}\nendstream`)
+  const xref = largo
+  poner(`xref\n0 6\n0000000000 65535 f \n${posiciones.slice(1).map((p) => `${String(p).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`)
+  const pdf = new Uint8Array(largo)
+  let i = 0
+  for (const b of trozos) {
+    pdf.set(b, i)
+    i += b.length
+  }
+  return pdf
+}
+
+// Las cuentas de un recibo: cada línea con su importe y el total. Del coste
+// y el beneficio, nada: el recibo es para quien compra.
+export function cuentaDeRecibo(lineas) {
+  const filas = (lineas || []).map((l) => {
+    const unidades = Number(l.unidades) || 0
+    const precio = Number(l.precio) || 0
+    return { ...l, unidades, precio, importe: Math.round(unidades * precio * 100) / 100 }
+  })
+  return { filas, unidades: filas.reduce((n, l) => n + l.unidades, 0), total: Math.round(filas.reduce((n, l) => n + l.importe, 0) * 100) / 100 }
+}
