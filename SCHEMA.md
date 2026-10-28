@@ -41785,6 +41785,68 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1078 — El Panel rehecho, el Escaparate y el perfil de una tienda a lo ancho
+
+PINGU, mirando la tienda de prueba: «el perfil, ¿por qué se ve tan
+vertical?… puedes ancharlo (en móvil no)», «el panel, que sea de otra
+manera», «el escaparate debería ser el QR y todas las cartas que tengo».
+
+- **La cabecera de /tienda solo en el Panel** (`#tdPanel[data-tab]`, que pone
+  `pestana()` en tienda.js): un saludo según la hora («Buenas tardes») con el
+  logo, sobre un degradado de `--acento`. En las demás pestañas no se repite.
+- **El Panel** (`js/tienda-hoy.js`): cuatro atajos arriba (Vender, Añadir
+  cartas → /cartas, Tu stock con sus líneas, Tu escaparate), «Cómo va» con el
+  periodo, las cuatro cifras con su icono y la comparación en una chapa con
+  flecha, la gráfica más alta con «Últimas ventas» debajo, y a la derecha
+  «Necesita atención» (con icono y flecha), lo que busca la gente y las
+  visitas. Los datos son los de siempre (`tienda_hoy`).
+- **El Escaparate**: arriba el cartel con su QR y cómo compartirlo; debajo,
+  «Así te ve la gente»: `montarPerfilTienda(destino, perfil, sesion,
+  { previa: true })`, el mismo escaparate que la gente, sin botones y sin
+  contar la visita.
+- **El perfil público de una tienda** (`js/perfil-tienda.js`,
+  `css/perfil-tienda.css`): la página deja `.perfil-pagina` (la rejilla de dos
+  columnas de una persona, que lo metía en la estrecha) y lleva `.pt-pagina`
+  (1360 px). Cabecera en una banda: logo de 96, nombre, sus cifras («En el
+  escaparate», «Le siguen»), los botones con icono, y sus datos (dirección,
+  horario, web, Instagram) como chapas con su icono. La rejilla a lo ancho.
+  En el móvil, una columna en poco alto y «Cómo llegar» como icono.
+
+## Tanda 1077 — El stock, más claro
+
+PINGU: «los filtros deberían tener algún icono: los idiomas con las banderas,
+las rarezas con su icono de rareza; las expansiones, un desplegable, pero que
+se mantenga la búsqueda… los botones y toda la interfaz, mejor».
+
+- **Cada opción con su dibujo** (`dibujoDe` en `tienda-stock.js`): la bandera
+  de `precio-vista.js` (idioma y catálogo), la marca de `rarezas.js`, el icono
+  de versión de `iconos-version.js`, un punto de color por estado y el paquete
+  para lo sellado. Sus hojas (`cardmarket.css`, `carta-holo.css`) las inyecta
+  el stock al montarse.
+- **Las expansiones, en un desplegable** (`desplegableDeSets`): cerrado dice
+  «Todas (N)» o las puestas; abierto, el buscador y todas. Se queda abierto al
+  marcar (`est.setsAbierto`).
+- **Los botones con icono**: Filtros (solo donde el panel no se ve),
+  Seleccionar, importar y exportar como iconos, «Colección» (→ /cartas) y
+  «Añadir». En el PC, el buscador y debajo o al lado los mandos, sin salirse
+  con la lateral.
+- **En el móvil cada línea es una tarjeta** (CSS, clases `tds-c-*` en cada
+  celda): nombre y tu precio arriba; idioma, estado, unidades, Cardmarket y
+  margen debajo. El coste, los días y el escaparate, en su ficha.
+
+## Tanda 1076 — Seleccionar en la Colección de una tienda
+
+- **/cartas con cuenta lleva «Seleccionar»** (`mc-puede-marcar` también en
+  `iniciarCatalogo`): en una tienda lo marcado va a su stock («2 al stock»,
+  `ctx.modoTienda` en `seleccion.js`); una persona lo añade a su colección.
+  La Pokédex, igual.
+- **Productos** (`js/mi-coleccion/productos.js`): «Seleccionar» en la fila de
+  tipos y en la búsqueda, tocar marca, y la barra `.mc-sel` de siempre añade
+  uno de cada preguntando el idioma UNA vez (`preguntarIdioma(id, { varios,
+  alElegir })`). En una tienda, «Tus productos» no sale arriba: una franja
+  cuenta lo sellado y lleva al Stock (`?ver=stock&filtro=sellado`, que es una
+  clave más de `FILTROS_DE_AVISO`), y cada expansión dice «N en stock».
+
 ## Tanda 1075 — La Colección de una tienda: /cartas con su stock
 
 PINGU: «quitando el panel de los usuarios, podemos replicar cómo está el

@@ -1,11 +1,16 @@
 /* El perfil de una tienda (tanda 1069): su escaparate. La inyecta
    js/perfil-tienda.js; los perfiles de personas no la bajan. */
 
+/* Ancha en el PC (1078): la página deja la rejilla del perfil de una
+   persona (usuario.js le pone esta clase). */
+.pt-pagina {
+  max-width: 1360px;
+}
+
 .pt {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--e-xl);
-  align-items: start;
   padding-top: var(--e-lg);
 }
 
@@ -14,40 +19,61 @@
   display: none;
 }
 
-.pt-lado {
-  position: sticky;
-  top: var(--e-lg);
+/* La cabecera: una banda con el logo y el nombre, sus cifras, los botones y
+   debajo sus datos como chapas. */
+.pt-cab {
   display: grid;
-  gap: var(--e-lg);
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    'quien cifras botones'
+    'datos datos datos';
+  gap: var(--e-lg) var(--e-xl);
+  align-items: center;
+  padding: var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(circle at 0% 0%, color-mix(in srgb, var(--navy) 22%, transparent), transparent 55%),
+    var(--white);
 }
 
 .pt-quien {
+  grid-area: quien;
   display: grid;
-  grid-template-columns: 64px minmax(0, 1fr);
-  gap: var(--e-md);
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: var(--e-lg);
   align-items: center;
+  min-width: 0;
+}
+
+.pt-quien-texto {
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  min-width: 0;
 }
 
 .pt-logo {
   display: grid;
   place-items: center;
-  width: 64px;
-  height: 64px;
-  border-radius: var(--radius-lg);
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-xl);
   background: var(--navy-solid);
   background-size: cover;
   background-position: center;
   color: var(--blanco-fijo);
   font-family: var(--font-display);
-  font-size: var(--t-2xl);
+  font-size: var(--t-3xl);
   font-weight: 800;
+  box-shadow: var(--shadow-md);
 }
 
 .pt-quien h1 {
   margin: 2px 0;
   font-family: var(--font-display);
-  font-size: var(--t-xl);
-  line-height: 1.2;
+  font-size: var(--t-3xl);
+  line-height: 1.1;
   overflow-wrap: anywhere;
 }
 
@@ -68,44 +94,85 @@
   text-transform: uppercase;
 }
 
+.pt-cifras {
+  grid-area: cifras;
+  display: flex;
+  gap: var(--e-xl);
+  margin: 0;
+}
+
+.pt-cifras div {
+  display: grid;
+  justify-items: center;
+}
+
+.pt-cifras dt {
+  order: 2;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.pt-cifras dd {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .pt-botones {
+  grid-area: botones;
   display: flex;
   flex-wrap: wrap;
   gap: var(--e-sm);
 }
 
 .pt-botones > * {
-  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
   justify-content: center;
-  text-align: center;
+  gap: var(--e-xs);
 }
 
 .pt-datos {
-  display: grid;
+  grid-area: datos;
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--e-sm);
   margin: 0;
-  padding: var(--e-md) var(--e-lg);
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  padding-top: var(--e-md);
+  border-top: 1px solid var(--border);
   font-size: var(--t-sm);
 }
 
 .pt-datos div {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--e-md);
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+  padding: 0 var(--e-md);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
 }
 
 .pt-datos dt {
-  color: var(--text-mid);
+  display: inline-flex;
+  color: var(--navy);
 }
 
 .pt-datos dd {
   margin: 0;
-  text-align: right;
   font-weight: 600;
   overflow-wrap: anywhere;
+}
+
+.pt-datos a {
+  color: inherit;
+}
+
+/* Dentro de /tienda → Escaparate (1078): lo mismo, sin aire de más. */
+.pt-previa {
+  padding-top: 0;
 }
 
 .pt-stock {
@@ -161,6 +228,10 @@
   flex: 1 1 200px;
 }
 
+.pt-select {
+  padding-right: var(--e-2xl);
+}
+
 .pt-busca:focus-visible,
 .pt-select:focus-visible {
   outline: none;
@@ -174,8 +245,8 @@
 
 .pt-rejilla {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: var(--e-lg);
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  gap: var(--e-xl) var(--e-lg);
 }
 
 .pt-carta {
@@ -190,9 +261,15 @@
   display: block;
   aspect-ratio: 63 / 88;
   max-width: 100%;
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--ice);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s;
+}
+
+.pt-foto:hover {
+  transform: translateY(-2px);
 }
 
 .pt-foto img {
@@ -261,42 +338,108 @@
   color: var(--text-mid);
 }
 
-/* En el móvil (1040): primero quién es en poco alto y luego el stock, a tres
-   por fila (1033). */
-@media (max-width: 900px) {
+/* En una pantalla mediana, los botones bajan debajo del nombre. */
+@media (max-width: 1100px) {
+  .pt-cab {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      'quien cifras'
+      'botones botones'
+      'datos datos';
+  }
+}
+
+/* En el móvil (1040): quién es en poco alto y luego el stock, a tres por
+   fila (1033). */
+@media (max-width: 700px) {
   .pt {
-    grid-template-columns: minmax(0, 1fr);
     gap: var(--e-lg);
     padding-top: var(--e-sm);
   }
 
-  .pt-lado {
-    position: static;
+  .pt-cab {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'quien' 'cifras' 'botones' 'datos';
     gap: var(--e-md);
+    padding: var(--e-md);
+    border-radius: var(--radius-lg);
   }
 
   .pt-quien {
-    grid-template-columns: 48px minmax(0, 1fr);
+    grid-template-columns: 56px minmax(0, 1fr);
+    gap: var(--e-md);
   }
 
   .pt-logo {
-    width: 48px;
-    height: 48px;
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-lg);
     font-size: var(--t-xl);
+  }
+
+  .pt-quien h1 {
+    font-size: var(--t-xl);
+  }
+
+  .pt-cifras {
+    gap: var(--e-lg);
+  }
+
+  .pt-cifras div {
+    display: flex;
+    align-items: baseline;
+    gap: var(--e-xs);
+  }
+
+  .pt-cifras dd {
+    font-size: var(--t-lg);
+  }
+
+  /* Una fila de botones: contenido primero. */
+  .pt-botones {
+    flex-wrap: nowrap;
+  }
+
+  .pt-botones > * {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .pt-botones .pt-llegar {
+    flex: 0 0 44px;
+    padding: 0;
+  }
+
+  .pt-llegar span {
+    display: none;
   }
 
   .pt-datos {
     gap: var(--e-xs);
-    padding: var(--e-sm) var(--e-md);
+    padding-top: var(--e-sm);
     font-size: var(--t-xs);
+  }
+
+  .pt-datos div {
+    min-height: 32px;
   }
 
   .pt-rejilla {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--e-sm);
+    gap: var(--e-md) var(--e-sm);
   }
 
   .pt-barra .seg {
     order: -1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pt-foto {
+    transition: none;
+  }
+
+  .pt-foto:hover {
+    transform: none;
   }
 }

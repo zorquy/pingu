@@ -544,3 +544,37 @@ button.mc-prodc-fila:hover {
   color: var(--text-mid);
   font-size: var(--t-xs);
 }
+
+/* En una tienda (1076), lo suyo vive en el Stock: una franja que lo cuenta. */
+.mc-prod-enstock {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  margin: var(--e-md) 0 var(--e-lg);
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  text-decoration: none;
+}
+.mc-prod-enstock svg { color: var(--acento); flex: none; }
+.mc-prod-enstock-ir {
+  margin-left: auto;
+  color: var(--navy);
+  font-weight: 600;
+  font-size: var(--t-sm);
+}
+.mc-prod-enstock:hover { border-color: var(--acento); }
+
+/* Seleccionar varios (1076). */
+#mcProdTipos { align-items: center; }
+.mc-prod-seleccionar { margin-left: auto; }
+#mcProdBusquedaCuenta { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
+.mc-prod.marcando { cursor: pointer; }
+.mc-prod.marcando .mc-prod-mando { pointer-events: none; opacity: 0.4; }
+.mc-prod.marcada {
+  border-color: var(--acento);
+  box-shadow: 0 0 0 2px var(--acento);
+}

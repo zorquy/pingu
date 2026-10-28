@@ -126,7 +126,8 @@ function pintarMarcadas() {
     guardar.disabled = !cuantas
     // El botón dice CUÁNTAS va a añadir: «Añadir» a secas, con doce
     // marcadas, no deja claro si añade una o las doce.
-    $('mcMarcarGuardarTexto').textContent = cuantas ? `Añadir ${cuantas}` : 'Añadir'
+    // En una tienda (1076) lo marcado va a su stock, y lo dice.
+    $('mcMarcarGuardarTexto').textContent = ctx.modoTienda ? (cuantas ? `${cuantas} al stock` : 'Al stock') : cuantas ? `Añadir ${cuantas}` : 'Añadir'
   }
   // 713: lo demás que se hace con varias. «Quitar» cuenta solo las tuyas.
   for (const id of ['mcMarcarAlbum', 'mcMarcarQuiero']) if ($(id)) $(id).disabled = !cuantas

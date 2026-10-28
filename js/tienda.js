@@ -85,6 +85,11 @@ async function montarEscaparateSiToca(v) {
   $('tdQr').innerHTML = svgQR(`${url}?utm_source=qr`, { tam: 220 })
   $('tdEnlace').textContent = url.replace('https://', '')
   $('tdCartelNombre').textContent = perfil.display_name || perfil.username
+  // Y debajo, el escaparate de verdad (1078): lo mismo que ve la gente.
+  const sesion = await getSession()
+  import('./perfil-tienda.js')
+    .then((m) => m.montarPerfilTienda($('tdEscaparatePrevia'), perfil, sesion, { previa: true }))
+    .catch(() => { $('tdEscaparatePrevia').innerHTML = '<p class="subtext">No se ha podido enseñar tu escaparate. Ábrelo con «Abrirlo como lo ve la gente».</p>' })
 }
 
 function pestana(cual) {
@@ -98,6 +103,8 @@ function pestana(cual) {
     b.classList.toggle('activa', b.dataset.td === v)
   }
   for (const h of document.querySelectorAll('[data-td-hoja]')) h.classList.toggle('hidden', h.dataset.tdHoja !== v)
+  // La cabecera solo en el Panel (1078): la pinta el CSS con esto.
+  $('tdPanel').dataset.tab = v
   const url = new URL(location.href)
   if (v === 'hoy') url.searchParams.delete('ver')
   else url.searchParams.set('ver', v)
@@ -114,6 +121,8 @@ let perfil = null
 
 function pintarCabecera() {
   $('tdNombre').textContent = perfil.display_name || perfil.username || 'Tu tienda'
+  const hora = new Date().getHours()
+  $('tdSaludo').textContent = hora < 6 ? 'Buenas noches' : hora < 13 ? 'Buenos días' : hora < 21 ? 'Buenas tardes' : 'Buenas noches'
   // Sin local no hay dirección, y no falta nada (1074, PINGU: «no hace falta
   // que sea una tienda física»): entonces, su @.
   $('tdDonde').textContent = [tienda?.ciudad, tienda?.direccion].filter(Boolean).join(' · ') || (perfil.username ? `@${perfil.username}` : '')

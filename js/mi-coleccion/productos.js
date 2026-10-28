@@ -51,6 +51,7 @@ let mios = null
 const copiasDe = (id) => (mios || []).filter((m) => m.product_id === id)
 const cuantosDe = (id) => copiasDe(id).reduce((n, m) => n + (Number(m.cantidad) || 0), 0)
 const CLAVE_IDIOMA = 'pokedoc-prod-idioma'
+const tienesN = (n) => (esStockDeTienda() ? `${n} en stock` : `Tienes ${n}`)
 let fichas = new Map() // product_id → fila de tcg_products
 let cuentaPorEpisodio = null // episode_id → cuántos productos; null = sin migración
 const cuentasPorCatalogo = new Map() // 'WEST' | 'JP' → su cuentaPorEpisodio (808)
@@ -140,6 +141,16 @@ export function tarjetaDeProductoHtml(f, cantidad = cuantosDe(f.id), { conMando 
 function pintarTuyos() {
   const caja = $('mcProdTuyos')
   if (!caja) return
+  // En una tienda (1076, PINGU: «que no aparezcan arriba, no tiene mucho
+  // sentido»): lo suyo vive en el Stock. Aquí, una franja que lo cuenta y
+  // lleva allí; la estantería de debajo dice «N en stock» en cada expansión.
+  if (esStockDeTienda()) {
+    const n = (mios || []).reduce((t, m) => t + (Number(m.cantidad) || 0), 0)
+    caja.innerHTML = n
+      ? `<a class="mc-prod-enstock" href="/tienda?ver=stock&filtro=sellado">${icons.package(20)}<span><b>${n} ${n === 1 ? 'producto sellado' : 'productos sellados'}</b> en tu stock</span><span class="mc-prod-enstock-ir">Ver en el stock</span></a>`
+      : ''
+    return
+  }
   if (mios === null) {
     caja.innerHTML = '<p class="mc-nota">Los productos todavía no están activados en la base. En cuanto lo estén, aquí verás los tuyos y lo que valen.</p>'
     return
@@ -192,7 +203,7 @@ function baldosaHtml(ep, s) {
     <span class="mc-prod-baldosa-logo">${logoHtml(s, 160, 64) || `<b>${escapeHtml(nombreDeSet(s) || s.id)}</b>`}</span>
     <span class="mc-prod-baldosa-texto"><b>${escapeHtml(nombreDeSet(s) || s.id)}</b><small>${escapeHtml([preventa ? `Sale el ${fechaLarga(s.release_date)}` : fechaLarga(s.release_date), `${n} ${n === 1 ? 'producto' : 'productos'}`].filter(Boolean).join(' · '))}</small></span>
     ${preventa ? '<span class="mc-prod-preventa">Preventa</span>' : ''}
-    ${tengo ? `<span class="mc-prod-baldosa-tuyos">Tienes ${tengo}</span>` : ''}
+    ${tengo ? `<span class="mc-prod-baldosa-tuyos">${tienesN(tengo)}</span>` : ''}
   </button>`
 }
 
@@ -206,7 +217,7 @@ function baldosaEspecialesHtml() {
   return `<button type="button" class="mc-prod-baldosa mc-prod-baldosa-especial" data-prod-set="${ESPECIALES}" aria-label="${escapeHtml(`Productos especiales: ${n} productos`)}">
     <span class="mc-prod-baldosa-logo" aria-hidden="true">${icons.package(40)}</span>
     <span class="mc-prod-baldosa-texto"><b>Productos especiales</b><small>${escapeHtml(`De ninguna expansión: latas, colecciones… · ${n} ${n === 1 ? 'producto' : 'productos'}`)}</small></span>
-    ${tengo ? `<span class="mc-prod-baldosa-tuyos">Tienes ${tengo}</span>` : ''}
+    ${tengo ? `<span class="mc-prod-baldosa-tuyos">${tienesN(tengo)}</span>` : ''}
   </button>`
 }
 
@@ -254,7 +265,7 @@ async function pintarCatalogo() {
   const hay = new Set((data || []).map((f) => f.tipo || OTRO.id))
   const chips = [{ id: '', nombre: 'Todo' }, ...TIPOS, OTRO].filter((t) => t.id === '' || hay.has(t.id))
   if (tipo && !hay.has(tipo)) tipo = ''
-  $('mcProdTipos').innerHTML = chips.map((t) => `<button type="button" class="chip-filtro${t.id === tipo ? ' activa' : ''}" data-prod-tipo="${t.id}" aria-pressed="${t.id === tipo}">${escapeHtml(t.nombre)}</button>`).join('')
+  $('mcProdTipos').innerHTML = chips.map((t) => `<button type="button" class="chip-filtro${t.id === tipo ? ' activa' : ''}" data-prod-tipo="${t.id}" aria-pressed="${t.id === tipo}">${escapeHtml(t.nombre)}</button>`).join('') + botonSeleccionarHtml()
   const lista = (data || []).filter((f) => !tipo || (f.tipo || OTRO.id) === tipo)
   const cabeza = $('mcProdSetCabeza')
   const s = setsPorEpisodio.get(Number(episodio))
@@ -270,6 +281,72 @@ async function pintarCatalogo() {
   caja.innerHTML = lista.length
     ? lista.map((f) => tarjetaDeProductoHtml(f, cuantosDe(f.id), { conMando: mios !== null })).join('')
     : '<p class="empty-state">Todavía no hay productos de esta expansión.</p>'
+  pintarMarcados()
+}
+
+// ── Seleccionar varios (1076) ──
+//
+// PINGU: «en los productos también debería tener» lo de seleccionar en bulk
+// y darle a añadir. Como en las cartas (la 1057): «Seleccionar» en la fila de
+// arriba, tocar marca, y abajo la barra de siempre (`.mc-sel`) con «Añadir»,
+// que pregunta el idioma UNA vez para todos y suma uno de cada.
+let marcados = null // Set de product_id, o null sin seleccionar
+const botonSeleccionarHtml = () => (ctx?.sesion && mios !== null ? `<button type="button" class="mc-chip-mando mc-prod-seleccionar" data-prodsel-abrir aria-pressed="${Boolean(marcados)}">${icons.checkSquare?.(16) || ''}<span>Seleccionar</span></button>` : '')
+function zonaVisible() {
+  return episodio == null ? $('mcProdResultados') : $('mcProdRejilla')
+}
+function barraDeSeleccion() {
+  let barra = $('mcProdSel')
+  if (!barra) {
+    barra = document.createElement('div')
+    barra.id = 'mcProdSel'
+    barra.className = 'mc-sel hidden'
+    barra.innerHTML = `<div class="mc-sel-arriba">
+        <button type="button" class="mc-sel-cerrar" data-prodsel-cerrar aria-label="Salir de la selección">✕</button>
+        <p class="mc-sel-cuenta" role="status" aria-live="polite" data-prodsel-cuenta>Toca los productos</p>
+        <button type="button" class="mc-sel-todas" data-prodsel-todas>Seleccionar todos</button>
+      </div>
+      <div class="mc-sel-abajo">
+        <button type="button" class="mc-sel-accion" data-prodsel-anadir disabled><span class="mc-sel-mas" aria-hidden="true">+</span><span data-prodsel-texto>Añadir</span></button>
+      </div>`
+    $('mcPanelProductos').appendChild(barra)
+  }
+  return barra
+}
+function seleccionar(encender) {
+  marcados = encender ? new Set() : null
+  document.documentElement.classList.toggle('mc-seleccionando', Boolean(encender))
+  for (const b of document.querySelectorAll('[data-prodsel-abrir]')) b.setAttribute('aria-pressed', String(Boolean(encender)))
+  pintarMarcados()
+}
+function pintarMarcados() {
+  const barra = marcados || $('mcProdSel') ? barraDeSeleccion() : null
+  for (const t of document.querySelectorAll('#mcPanelProductos .mc-prod[data-prod]')) {
+    const si = Boolean(marcados?.has(Number(t.dataset.prod)))
+    t.classList.toggle('marcada', si)
+    t.classList.toggle('marcando', Boolean(marcados))
+  }
+  if (!barra) return
+  barra.classList.toggle('hidden', !marcados)
+  const n = marcados?.size || 0
+  barra.querySelector('[data-prodsel-cuenta]').textContent = n ? `${n} ${n === 1 ? 'seleccionado' : 'seleccionados'}` : 'Toca los productos'
+  barra.querySelector('[data-prodsel-texto]').textContent = esStockDeTienda() ? (n ? `${n} al stock` : 'Al stock') : n ? `Añadir ${n}` : 'Añadir'
+  barra.querySelector('[data-prodsel-anadir]').disabled = !n
+}
+async function anadirMarcados() {
+  const ids = [...(marcados || [])].filter((id) => fichas.has(id))
+  if (!ids.length) return
+  const idiomas = idiomasDeProducto(fichas.get(ids[0]))
+  const sumar = async (idioma) => {
+    for (const id of ids) {
+      const valen = idiomasDeProducto(fichas.get(id))
+      await cambiarCantidad(id, valen.includes(idioma) ? idioma : valen[0], 1)
+    }
+    seleccionar(false)
+    showToast(`${ids.length === 1 ? 'Añadido 1 producto' : `Añadidos ${ids.length} productos`}${esStockDeTienda() ? ' a tu stock' : ''}.`, 'success')
+  }
+  if (idiomas.length === 1) return sumar(idiomas[0])
+  preguntarIdioma(ids[0], { varios: ids.length, alElegir: sumar })
 }
 
 // Cuántos productos tiene cada expansión del catálogo (808). La cuenta la
@@ -408,6 +485,7 @@ async function cambiarCantidad(id, idioma, paso) {
   // catálogo y, si está abierta, su ficha.
   const f = fichas.get(id)
   if (f) for (const t of document.querySelectorAll(`#mcProdRejilla [data-prod="${id}"], #mcProdResultados [data-prod="${id}"]`)) t.outerHTML = tarjetaDeProductoHtml(f)
+  if (marcados) pintarMarcados()
   if (abiertoEnFicha === id) pintarMandoDeFicha(f)
 }
 
@@ -417,7 +495,7 @@ async function cambiarCantidad(id, idioma, paso) {
 function idiomaRecordado() {
   try { return localStorage.getItem(CLAVE_IDIOMA) || 'es' } catch { return 'es' }
 }
-function preguntarIdioma(id) {
+function preguntarIdioma(id, { varios = 0, alElegir = null } = {}) {
   const f = fichas.get(id)
   if (!f) return
   if (!ctx.sesion) return showToast('Entra con tu cuenta para apuntar tus productos.', 'error')
@@ -435,17 +513,19 @@ function preguntarIdioma(id) {
       if (b) {
         try { localStorage.setItem(CLAVE_IDIOMA, b.dataset.prodiIdioma) } catch {}
         d.close()
+        if (d.alElegir) return void d.alElegir(b.dataset.prodiIdioma)
         return void cambiarCantidad(Number(d.dataset.producto), b.dataset.prodiIdioma, 1)
       }
       if (e.target.closest('[data-prodi-cerrar]') || e.target === d) d.close()
     })
   }
   d.dataset.producto = String(id)
+  d.alElegir = alElegir
   const ya = new Map(copiasDe(id).map((m) => [m.idioma || '', Number(m.cantidad) || 0]))
   const recordado = idiomaRecordado()
   d.innerHTML = `<div class="mc-prodi-caja">
-      <h3 id="mcProdIdiomaTitulo">¿En qué idioma lo tienes?</h3>
-      <p class="mc-prodi-nombre">${escapeHtml(f.name)}</p>
+      <h3 id="mcProdIdiomaTitulo">${varios > 1 ? '¿En qué idioma son?' : '¿En qué idioma lo tienes?'}</h3>
+      <p class="mc-prodi-nombre">${varios > 1 ? `${varios} productos, uno de cada` : escapeHtml(f.name)}</p>
       <div class="mc-prodi-lista">${idiomas.map((idioma) => {
         const p = preciosPorIdioma(f).find((x) => x.id === idioma)
         const tienes = ya.get(idioma)
@@ -480,10 +560,11 @@ async function pintarBusqueda() {
   }
   for (const f of data || []) fichas.set(f.id, f)
   const n = (data || []).length
-  cuenta.textContent = n ? `${n >= 60 ? 'Los 60 primeros' : `${n} ${n === 1 ? 'producto' : 'productos'}`} con «${busqueda}»` : ''
+  cuenta.innerHTML = n ? `<span>${escapeHtml(`${n >= 60 ? 'Los 60 primeros' : `${n} ${n === 1 ? 'producto' : 'productos'}`} con «${busqueda}»`)}</span>${botonSeleccionarHtml()}` : ''
   caja.innerHTML = n
     ? data.map((f) => tarjetaDeProductoHtml(f, cuantosDe(f.id), { conMando: mios !== null })).join('')
     : `<p class="empty-state">Ningún producto con «${escapeHtml(busqueda)}». Prueba con menos palabras o en inglés («tin», «box»).</p>`
+  pintarMarcados()
 }
 
 // Lo que viene en la dirección, la primera vez (968): `producto` abre su
@@ -676,6 +757,22 @@ export async function abrir(contexto) {
     // El «+», el «−» y abrir la ficha: en la pestaña y en la propia ficha.
     // Devuelve si el clic era suyo.
     const clicEnProductos = (e) => {
+      // Seleccionando, tocar un producto lo marca (y no abre ni suma).
+      if (marcados && e.target.closest('#mcPanelProductos .mc-prod[data-prod]')) {
+        const id = Number(e.target.closest('.mc-prod').dataset.prod)
+        if (marcados.has(id)) marcados.delete(id)
+        else marcados.add(id)
+        pintarMarcados()
+        return true
+      }
+      if (e.target.closest('[data-prodsel-abrir]')) { seleccionar(!marcados); return true }
+      if (e.target.closest('[data-prodsel-cerrar]')) { seleccionar(false); return true }
+      if (e.target.closest('[data-prodsel-todas]')) {
+        for (const t of zonaVisible()?.querySelectorAll('.mc-prod[data-prod]') || []) marcados?.add(Number(t.dataset.prod))
+        pintarMarcados()
+        return true
+      }
+      if (e.target.closest('[data-prodsel-anadir]')) { void anadirMarcados(); return true }
       const anadir = e.target.closest('[data-prod-anadir]')
       if (anadir) { preguntarIdioma(Number(anadir.dataset.prodAnadir)); return true }
       const mas = e.target.closest('[data-prod-mas]')
@@ -705,6 +802,7 @@ export async function abrir(contexto) {
       }
       if (e.target.closest('#mcProdVolver')) {
         episodio = null
+        if (marcados) seleccionar(false)
         return pintarEstante()
       }
       const m = e.target.closest('[data-prod-mercado]')

@@ -162,14 +162,17 @@
     </div>
 
     <div id="tdPanel" class="hidden">
+      <!-- La cabecera es la del Panel (1078): un saludo con tu tienda. En las
+           demás pestañas no se repite (la lateral y la barra ya dicen dónde
+           estás). -->
       <header class="td-cab">
         <span class="td-logo" id="tdLogo" aria-hidden="true"></span>
         <div class="td-quien">
-          <span class="td-chapa">Tienda · en pruebas</span>
+          <span class="td-saludo"><span id="tdSaludo">Hola</span> <span class="td-chapa">Tienda · en pruebas</span></span>
           <h2 id="tdNombre"></h2>
           <p id="tdDonde" class="subtext"></p>
         </div>
-        <a class="btn-secondary td-perfil" id="tdVerPerfil" href="/perfil.html">Ver mi perfil</a>
+        <a class="btn-secondary td-perfil" id="tdVerPerfil" href="/perfil.html">Ver mi escaparate</a>
       </header>
 
       <nav class="seg td-pestanas" id="tdPestanas" role="tablist" aria-label="Panel de la tienda">
@@ -195,9 +198,11 @@
       </section>
 
       <section class="td-hoja hidden" data-td-hoja="escaparate">
-        <h2>Tu escaparate</h2>
-        <p class="subtext">Es tu perfil de PokeDoc: tu stock visible, con tus precios. El QR lleva ahí: ponlo en el mostrador, en tu mesa de un evento o en tus redes.</p>
-        <div class="td-escaparate">
+        <!-- El escaparate (1069; rehecho en la 1078, PINGU: «el escaparate
+             debería ser el QR y todas las cartas que tengo»): arriba, el
+             cartel con su QR y cómo compartirlo; debajo, el escaparate de
+             verdad, el mismo que ve la gente (perfil-tienda.js, en previa). -->
+        <div class="td-esc-cab">
           <div class="td-cartel" id="tdCartel">
             <span class="td-cartel-marca">Poke<b>Doc</b></span>
             <strong class="td-cartel-titulo">Mira nuestro stock en el móvil</strong>
@@ -206,12 +211,18 @@
             <small class="td-cartel-pie">Escanéalo y verás qué tenemos ahora mismo, y lo que tenemos de tu lista.</small>
           </div>
           <div class="td-escaparate-mandos">
+            <h2>Tu escaparate</h2>
+            <p class="subtext">Es tu perfil de PokeDoc: lo que tienes visible en el stock, con tus precios. Comparte el enlace o pon el QR en el mostrador, en tu mesa de un evento o en tus redes.</p>
             <p class="td-enlace"><span id="tdEnlace"></span> <button type="button" class="btn-secondary" id="tdCopiar">Copiar el enlace</button></p>
-            <button type="button" class="btn-primary" id="tdImprimir">Imprimir el cartel</button>
-            <button type="button" class="btn-secondary" id="tdBajarQr">Descargar el QR</button>
-            <a class="btn-secondary" id="tdVerPerfil2" href="/perfil.html">Ver mi perfil</a>
+            <div class="td-esc-botones">
+              <button type="button" class="btn-primary" id="tdImprimir">Imprimir el cartel</button>
+              <button type="button" class="btn-secondary" id="tdBajarQr">Descargar el QR</button>
+              <a class="btn-secondary" id="tdVerPerfil2" href="/perfil.html">Abrirlo como lo ve la gente</a>
+            </div>
           </div>
         </div>
+        <h2 class="td-esc-titulo">Así te ve la gente</h2>
+        <div id="tdEscaparatePrevia"><p class="subtext">Cargando tu escaparate…</p></div>
       </section>
 
       <section class="td-hoja hidden" data-td-hoja="datos">

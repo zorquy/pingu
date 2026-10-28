@@ -1662,6 +1662,9 @@ const ctxPanel = {
   get modoCatalogo() {
     return modoCatalogo
   },
+  get modoTienda() {
+    return modoTienda
+  },
   set modoCatalogo(x) {
     modoCatalogo = x
   },
@@ -4710,6 +4713,7 @@ function masValiosasDe(filas, cuantas = 3) {
 // atributos (`marcaDeBolsillo`) antes de que el módulo exista.
 const claveMarca = (cardId, variante = 'normal') => `${cardId}|${variante || 'normal'}`
 const ctxSeleccion = {
+  get modoTienda() { return modoTienda },
   get pestania() { return pestania },
   get lineas() { return lineas },
   get cartas() { return cartas },
@@ -7301,6 +7305,11 @@ async function iniciarCatalogo() {
     $('mcBuscarTodo').value = params.get('q')
     void buscarEnTodo()
   }
+  // «Seleccionar» también aquí con cuenta (1076, PINGU: «para seleccionar
+  // cartas en bulk y darle a añadir»): lo marcado se añade a tu colección, o
+  // al stock en una tienda. Toda lista de cartas lo lleva (la 1057).
+  document.documentElement.classList.toggle('mc-puede-marcar', Boolean(esMia && sesion))
+  if (sesion) (window.requestIdleCallback || ((f) => setTimeout(f, 600)))(() => void seleccionModulo().catch(() => {}))
   if (sesion) {
     await cargarColeccion(dueno.id, { primeraVez: true })
   } else {

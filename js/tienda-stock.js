@@ -19,6 +19,12 @@ import { buscarComoEnCartas } from './buscar-cartas.js'
 import { buscarProductos } from './productos-valor.js'
 import { COLUMNAS_CARTA_DE_SET } from './mi-coleccion/columnas-set.js'
 import { margenDe, precioSugerido, alternarFiltro, chapasDeFiltros, quitarChapa, csvDeStock } from './tiendas-puro.js'
+import { hojaInyectada } from './hoja.js'
+import { icons } from './icons.js'
+import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
+import { banderaHtml } from './precio-vista.js'
+import { marcaDeRarezaHtml } from './rarezas.js'
+import { iconoDeVersion } from './mi-coleccion/iconos-version.js'
 
 const POR_PAGINA = 50
 const COLUMNAS = COLUMNAS_CARTA_DE_SET.replace('tcg_sets(tcg_online_code,serie_id,release_date)', 'tcg_sets(name,name_en,tcg_online_code,serie_id,release_date,oculto)')
@@ -169,16 +175,16 @@ function filaHtml(f) {
   const marcada = est.marcadas.has(f.id)
   return `<tr class="${pierde || dias > 90 ? 'tds-mal' : debajo ? 'tds-alerta' : ''}${marcada ? ' tds-marcada' : ''}" data-fila="${escapeHtml(f.id)}">
     ${est.seleccionando ? `<td class="tds-check"><input type="checkbox" aria-label="Marcar" data-marcar="${escapeHtml(f.id)}" ${marcada ? 'checked' : ''} /></td>` : ''}
-    <td><div class="tds-nombre">${fotoHtml(f)}<span><strong>${escapeHtml(nombreFila(f))}</strong><small>${escapeHtml(detalleFila(f))}${f.variante && f.variante !== 'normal' && !f.product_id ? ` · ${escapeHtml(nombreDeVariante(f.variante))}` : ''}${f.gradeo ? ` · ${escapeHtml(f.gradeo)}` : ''}</small></span></div></td>
-    <td>${escapeHtml(String(f.idioma || '').toUpperCase())}</td>
-    <td><span class="tds-chapa">${escapeHtml(f.estado === 'sellado' ? 'Sellado' : f.estado)}</span></td>
-    <td class="tds-num">${f.unidades}</td>
-    <td class="tds-num">${f.coste != null ? euros(f.coste) : '<span class="tds-falta">—</span>'}</td>
-    <td class="tds-num"><strong>${f.precio != null ? euros(f.precio) : '<span class="tds-falta">Sin precio</span>'}</strong></td>
-    <td class="tds-num${debajo ? ' tds-ambar' : ''}">${f.cm > 0 ? euros(f.cm) : '<span class="tds-falta">—</span>'}</td>
-    <td class="tds-num">${m ? `<span class="${m.euros < 0 ? 'tds-rojo' : 'tds-verde'}">${m.euros > 0 ? '+' : ''}${euros(m.euros)}</span> <small>${m.pct} %</small>` : '<span class="tds-falta">—</span>'}</td>
-    <td class="tds-num${dias > 90 ? ' tds-rojo' : ''}">${dias} d</td>
-    <td>${f.visible ? '<span class="tds-chapa tds-chapa-si">Se ve</span>' : '<span class="tds-chapa">Oculta</span>'}${f.ubicacion ? `<small class="tds-ubi">${escapeHtml(f.ubicacion)}</small>` : ''}</td>
+    <td class="tds-c-nombre"><div class="tds-nombre">${fotoHtml(f)}<span><strong>${escapeHtml(nombreFila(f))}</strong><small>${escapeHtml(detalleFila(f))}${f.variante && f.variante !== 'normal' && !f.product_id ? ` · ${escapeHtml(nombreDeVariante(f.variante))}` : ''}${f.gradeo ? ` · ${escapeHtml(f.gradeo)}` : ''}</small></span></div></td>
+    <td class="tds-c-idioma">${f.idioma ? banderaHtml(f.idioma) : ''}<span>${escapeHtml(String(f.idioma || '').toUpperCase())}</span></td>
+    <td class="tds-c-estado"><span class="tds-chapa">${dibujoDe('estado', f.estado)}${escapeHtml(f.estado === 'sellado' ? 'Sellado' : f.estado)}</span></td>
+    <td class="tds-num tds-c-uds">${f.unidades}</td>
+    <td class="tds-num tds-c-coste">${f.coste != null ? euros(f.coste) : '<span class="tds-falta">—</span>'}</td>
+    <td class="tds-num tds-c-precio"><strong>${f.precio != null ? euros(f.precio) : '<span class="tds-falta">Sin precio</span>'}</strong></td>
+    <td class="tds-num tds-c-cm${debajo ? ' tds-ambar' : ''}">${f.cm > 0 ? euros(f.cm) : '<span class="tds-falta">—</span>'}</td>
+    <td class="tds-num tds-c-margen">${m ? `<span class="${m.euros < 0 ? 'tds-rojo' : 'tds-verde'}">${m.euros > 0 ? '+' : ''}${euros(m.euros)}</span> <small>${m.pct} %</small>` : '<span class="tds-falta">—</span>'}</td>
+    <td class="tds-num tds-c-dias${dias > 90 ? ' tds-rojo' : ''}">${dias} d</td>
+    <td class="tds-c-vis">${f.visible ? '<span class="tds-chapa tds-chapa-si">Se ve</span>' : '<span class="tds-chapa">Oculta</span>'}${f.ubicacion ? `<small class="tds-ubi">${escapeHtml(f.ubicacion)}</small>` : ''}</td>
   </tr>`
 }
 
@@ -209,13 +215,41 @@ function pintarPie() {
     <span>En Cardmarket <strong>${euros(s.cm || 0)}</strong></span>`
 }
 
+// El dibujo de cada opción (1077, PINGU: «los idiomas con las banderas, las
+// rarezas con su icono de rareza»): los de toda la web — la bandera de
+// precio-vista, la marca de rareza de rarezas.js y el icono de versión.
+function dibujoDe(grupo, v) {
+  if (grupo === 'idioma') return banderaHtml(v)
+  if (grupo === 'catalogo') return v === 'sellado' ? icons.package(14) : banderaHtml(v === 'JP' ? 'ja' : 'en')
+  if (grupo === 'rareza') return marcaDeRarezaHtml(v)
+  if (grupo === 'variante') return `<span class="tds-pill-icono">${iconoDeVersion(v, 14)}</span>`
+  if (grupo === 'estado') return `<i class="tds-estado" data-estado="${escapeHtml(v)}" aria-hidden="true"></i>`
+  return ''
+}
+
 function opcionesHtml(grupo, valores, { contar = true } = {}) {
   const puestas = new Set(est.filtros[grupo] || [])
   const cuentas = est.facetas[grupo] || {}
   return `<div class="tds-pills">${valores.map((v) => {
     const n = cuentas[v]
-    return `<button type="button" class="tds-pill${puestas.has(v) ? ' activa' : ''}" aria-pressed="${puestas.has(v)}" data-filtro="${grupo}" data-valor="${escapeHtml(v)}">${escapeHtml(nombreDe(grupo, v))}${contar ? `<small>${n || 0}</small>` : ''}</button>`
+    return `<button type="button" class="tds-pill${puestas.has(v) ? ' activa' : ''}" aria-pressed="${puestas.has(v)}" data-filtro="${grupo}" data-valor="${escapeHtml(v)}">${dibujoDe(grupo, v)}<span>${escapeHtml(nombreDe(grupo, v))}</span>${contar ? `<small>${n || 0}</small>` : ''}</button>`
   }).join('')}</div>`
+}
+
+// Las expansiones, en un DESPLEGABLE con su buscador (1077, PINGU: «cuantas
+// más haya irás poniéndolas hacia abajo, que sea un desplegable, pero que se
+// mantenga la búsqueda»): cerrado dice cuáles hay puestas; abierto, todas.
+function desplegableDeSets(sets, buscaSet) {
+  const puestas = est.filtros.sets || []
+  const vistos = buscaSet ? sets.filter((s) => nombreDe('sets', s).toLowerCase().includes(buscaSet)) : sets
+  const resumen = !puestas.length ? `Todas (${sets.length})` : puestas.length === 1 ? nombreDe('sets', puestas[0]) : `${puestas.length} expansiones`
+  return `<details class="tds-desplegable" data-tds-sets ${est.setsAbierto ? 'open' : ''}>
+    <summary><span>${escapeHtml(resumen)}</span>${icons.chevronRight?.(16) || ''}</summary>
+    <div class="tds-desplegable-caja">
+      <input type="search" class="tds-busca" data-tds-buscaset placeholder="Buscar expansión…" value="${escapeHtml(buscaSet)}" aria-label="Buscar expansión" />
+      <div class="tds-checks">${vistos.map((s) => `<label><input type="checkbox" data-filtro="sets" data-valor="${escapeHtml(s)}" ${puestas.includes(s) ? 'checked' : ''} /><span>${escapeHtml(nombreDe('sets', s))}</span><small>${est.facetas.sets?.[s] || 0}</small></label>`).join('') || '<p class="tds-nada">Ninguna con ese nombre.</p>'}</div>
+    </div>
+  </details>`
 }
 
 function rangoHtml(min, max, texto) {
@@ -231,7 +265,6 @@ function valoresDe(grupo) {
 function pintarFiltros() {
   const sets = valoresDe('sets').sort((a, b) => (est.facetas.sets?.[b] || 0) - (est.facetas.sets?.[a] || 0))
   const buscaSet = ($('[data-tds-buscaset]')?.value || '').toLowerCase()
-  const setsVistos = buscaSet ? sets.filter((s) => nombreDe('sets', s).toLowerCase().includes(buscaSet)) : sets.slice(0, est.todosLosSets ? sets.length : 8)
   const puestos = Object.keys(est.filtros).length
   const ordenIdiomas = IDIOMAS.map((i) => i.id)
   const ordenEstados = [...ESTADOS.map((e) => e.id), 'sellado']
@@ -239,9 +272,7 @@ function pintarFiltros() {
   $('.tds-filtros').innerHTML = `
     <div class="tds-filtros-cab"><h2>Filtros</h2>${puestos ? `<button type="button" class="link-btn" data-tds="limpiar">Limpiar (${puestos})</button>` : ''}<button type="button" class="tds-cerrar" data-tds="cerrar-filtros" aria-label="Cerrar los filtros">×</button></div>
     ${grupo('Catálogo', opcionesHtml('catalogo', ['WEST', 'JP', 'sellado'].filter((v) => valoresDe('catalogo').includes(v))))}
-    ${sets.length ? grupo('Expansión', `<input type="search" class="tds-busca" data-tds-buscaset placeholder="Buscar expansión…" value="${escapeHtml(buscaSet)}" />
-      <div class="tds-checks">${setsVistos.map((s) => `<label><input type="checkbox" data-filtro="sets" data-valor="${escapeHtml(s)}" ${(est.filtros.sets || []).includes(s) ? 'checked' : ''} /><span>${escapeHtml(nombreDe('sets', s))}</span><small>${est.facetas.sets?.[s] || 0}</small></label>`).join('')}</div>
-      ${!buscaSet && sets.length > 8 ? `<button type="button" class="link-btn" data-tds="todos-sets">${est.todosLosSets ? 'Ver menos' : `Ver las ${sets.length}`}</button>` : ''}`, (est.filtros.sets || []).length) : ''}
+    ${sets.length ? grupo('Expansión', desplegableDeSets(sets, buscaSet), (est.filtros.sets || []).length) : ''}
     ${grupo('Tu precio (€)', rangoHtml('precio_min', 'precio_max', 'Tu precio'))}
     ${grupo('Margen sobre lo pagado', opcionesHtml('margen', ['pierdes', '0-20', '20-50', '50+', 'sin_coste'], { contar: false }))}
     ${grupo('Contra Cardmarket', opcionesHtml('contra', ['debajo', 'igual', 'encima'], { contar: false }))}
@@ -676,6 +707,10 @@ export function filtrarStock(filtros) {
 export function montarStock(destino, { perfil: p }) {
   caja = destino
   perfil = p
+  // Las banderas y las marcas de rareza de los filtros (1077) viven en las
+  // hojas de toda la web: se piden aquí, que solo lo abre una tienda.
+  hojaInyectada('css/cardmarket.css')
+  hojaInyectada('css/carta-holo.css')
   caja.innerHTML = `
     <div class="tds">
       <aside class="tds-filtros" aria-label="Filtros del stock"></aside>
@@ -684,11 +719,12 @@ export function montarStock(destino, { perfil: p }) {
           <input type="search" class="tds-busca" data-tds-q placeholder="Buscar por nombre o número…" aria-label="Buscar en tu stock" />
           <div class="tds-barra">
           <select class="tds-orden" data-tds-orden aria-label="Orden">${ORDENES.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
-          <button type="button" class="btn-secondary tds-ver-filtros" data-tds="abrir-filtros">Filtros</button>
-          <button type="button" class="btn-secondary" data-tds="seleccionar" aria-pressed="false">Seleccionar</button>
-          <button type="button" class="btn-secondary" data-tds="importar">Importar</button>
-          <button type="button" class="btn-secondary" data-tds="exportar">Exportar</button>
-          <button type="button" class="btn-primary tds-anadir" data-tds="anadir">+ Añadir</button>
+          <button type="button" class="btn-secondary tds-boton tds-ver-filtros" data-tds="abrir-filtros">${ICONOS_COLECCION.sliders(18)}<span>Filtros</span></button>
+          <button type="button" class="btn-secondary tds-boton" data-tds="seleccionar" aria-pressed="false">${icons.checkSquare(18)}<span>Seleccionar</span></button>
+          <button type="button" class="btn-secondary tds-boton tds-boton-icono" data-tds="importar" aria-label="Importar un CSV" title="Importar un CSV">${icons.upload(18)}</button>
+          <button type="button" class="btn-secondary tds-boton tds-boton-icono" data-tds="exportar" aria-label="Exportar a CSV" title="Exportar a CSV">${icons.arrowDown(18)}</button>
+          <a class="btn-secondary tds-boton" href="/cartas" title="Busca cartas por expansión, Pokédex o nombre y añádelas a tu stock">${icons.layers(18)}<span>Colección</span></a>
+          <button type="button" class="btn-primary tds-boton tds-anadir" data-tds="anadir"><span aria-hidden="true">+</span><span>Añadir</span></button>
           </div>
         </div>
         <div class="tds-vistas"></div>
@@ -713,7 +749,6 @@ export function montarStock(destino, { perfil: p }) {
     if (accion === 'exportar') return exportar()
     if (accion === 'limpiar') { $('[data-tds-q]').value = ''; return cambiar({}) }
     if (accion === 'mas') return pedir({ mas: true })
-    if (accion === 'todos-sets') { est.todosLosSets = !est.todosLosSets; return pintarFiltros() }
     if (accion === 'abrir-filtros') return $('.tds-filtros').classList.add('abierta')
     if (accion === 'cerrar-filtros') return $('.tds-filtros').classList.remove('abierta')
     if (accion === 'guardar-vista') return guardarVista()
@@ -763,7 +798,10 @@ export function montarStock(destino, { perfil: p }) {
       return abrirEditar(fila.dataset.fila)
     }
   })
-  caja.addEventListener('toggle', (e) => { if (e.target.classList?.contains('tds-mas-filtros')) est.masAbierto = e.target.open }, true)
+  caja.addEventListener('toggle', (e) => {
+    if (e.target.classList?.contains('tds-mas-filtros')) est.masAbierto = e.target.open
+    if (e.target.matches?.('[data-tds-sets]')) est.setsAbierto = e.target.open
+  }, true)
   caja.addEventListener('input', (e) => {
     if (e.target.matches('[data-tds-q]')) {
       const f = { ...est.filtros }

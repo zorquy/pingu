@@ -21,6 +21,7 @@ import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { COLUMNAS_CARTA_DE_SET } from './mi-coleccion/columnas-set.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { enlaceAMapa, enlacesDeTienda } from './tiendas-puro.js'
+import { icons } from './icons.js'
 
 const POR_PAGINA = 60
 const COLUMNAS = COLUMNAS_CARTA_DE_SET.replace('tcg_sets(tcg_online_code,serie_id,release_date)', 'tcg_sets(name,name_en,tcg_online_code,serie_id,release_date,oculto)')
@@ -100,6 +101,8 @@ function pintar() {
   if (sel && sel.options.length <= 1) sel.innerHTML = `<option value="">Todos los idiomas</option>${idiomas.map((i) => `<option value="${i}">${escapeHtml(NOMBRE_IDIOMA[i] || i)}</option>`).join('')}`
   if (sel) sel.hidden = idiomas.length < 2
   $('.pt-solo').hidden = !est.filtros.carta
+  const enEsc = $('[data-pt-en-escaparate]')
+  if (enEsc) enEsc.textContent = Number(d.en_escaparate || 0).toLocaleString('es-ES')
   $('.pt-cuenta').textContent = `${est.total.toLocaleString('es-ES')} ${est.total === 1 ? 'cosa' : 'cosas'}${est.total !== d.en_escaparate ? ` de ${Number(d.en_escaparate || 0).toLocaleString('es-ES')}` : ''}`
   $('.pt-rejilla').innerHTML = est.filas.length
     ? est.filas.map(baldosaHtml).join('') + (est.filas.length < est.total ? `<button type="button" class="btn-secondary pt-mas" data-pt-mas>Ver más</button>` : '')
@@ -107,30 +110,43 @@ function pintar() {
   import('./marcas-carta.js').then((m) => m.marcarCartas($('.pt-rejilla'))).catch(() => {})
 }
 
+// La cabecera (1069; ancha y más visual desde la 1078, PINGU: «¿por qué se
+// ve tan vertical?… que sea más visual, puedes ancharlo»): una banda con el
+// logo, el nombre, lo que tiene en el escaparate y quién le sigue, y los
+// botones; debajo, sus datos como chapas con su icono. En el móvil, en poco
+// alto (1040).
 function cabeceraHtml() {
   const p = est.perfil
   const t = est.tienda || {}
   const nombre = p.display_name || p.username || 'Tienda'
   const mapa = enlaceAMapa(t.direccion, t.ciudad)
   const propia = est.sesion?.user?.id === p.id
+  const ICONO = { web: icons.link(16), instagram: icons.camera(16) }
+  const datos = [
+    t.direccion ? `<div><dt>${icons.pin(16)}<span class="sr-only">Dirección</span></dt><dd>${escapeHtml(t.direccion)}${t.ciudad ? `, ${escapeHtml(t.ciudad)}` : ''}</dd></div>` : '',
+    t.horario ? `<div><dt>${icons.clock(16)}<span class="sr-only">Horario</span></dt><dd>${escapeHtml(t.horario)}</dd></div>` : '',
+    ...enlacesDeTienda(t).map((e) => `<div><dt>${ICONO[e.tipo]}<span class="sr-only">${e.tipo === 'web' ? 'Web' : 'Instagram'}</span></dt><dd><a href="${escapeHtml(e.href)}" target="_blank" rel="noopener nofollow">${escapeHtml(e.texto)}</a></dd></div>`),
+  ].filter(Boolean).join('')
+  const botones = est.previa
+    ? ''
+    : `<div class="pt-botones">
+        ${propia ? '<a class="btn-primary" href="/tienda">Mi panel</a>' : est.sesion ? `<a class="btn-primary" href="/mensajes.html?with=${escapeHtml(p.id)}">${icons.mail(18)}<span>Escribir</span></a>` : `<a class="btn-primary" href="/auth.html?registro=1&volver=${encodeURIComponent(location.pathname + location.search)}">${icons.mail(18)}<span>Escribir</span></a>`}
+        ${propia ? '' : '<button type="button" class="btn-secondary" data-pt-seguir hidden>Seguir</button>'}
+        ${mapa ? `<a class="btn-secondary pt-llegar" href="${escapeHtml(mapa)}" target="_blank" rel="noopener" aria-label="Cómo llegar">${icons.pin(18)}<span>Cómo llegar</span></a>` : ''}
+      </div>`
   return `
-    <aside class="pt-lado">
+    <header class="pt-cab">
       <div class="pt-quien">
         <span class="pt-logo" style="${p.avatar_url ? avatarStyle(p) : ''}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
-        <span><span class="pt-chapa">Tienda</span><h1>${escapeHtml(nombre)}</h1><small>@${escapeHtml(p.username || '')}${t.ciudad ? ` · ${escapeHtml(t.ciudad)}` : ''}</small></span>
+        <span class="pt-quien-texto"><span class="pt-chapa">Tienda</span><h1>${escapeHtml(nombre)}</h1><small>@${escapeHtml(p.username || '')}${t.ciudad ? ` · ${escapeHtml(t.ciudad)}` : ''}</small></span>
       </div>
-      <div class="pt-botones">
-        ${propia ? '<a class="btn-primary" href="/tienda">Mi panel</a>' : est.sesion ? `<a class="btn-primary" href="/mensajes.html?with=${escapeHtml(p.id)}">Escribir</a>` : `<a class="btn-primary" href="/auth.html?registro=1&volver=${encodeURIComponent(location.pathname + location.search)}">Escribir</a>`}
-        ${mapa ? `<a class="btn-secondary" href="${escapeHtml(mapa)}" target="_blank" rel="noopener">Cómo llegar</a>` : ''}
-        ${propia ? '' : '<button type="button" class="btn-secondary" data-pt-seguir hidden>Seguir</button>'}
-      </div>
-      <dl class="pt-datos">
-        ${t.direccion ? `<div><dt>Dirección</dt><dd>${escapeHtml(t.direccion)}${t.ciudad ? `, ${escapeHtml(t.ciudad)}` : ''}</dd></div>` : ''}
-        ${t.horario ? `<div><dt>Horario</dt><dd>${escapeHtml(t.horario)}</dd></div>` : ''}
-        ${enlacesDeTienda(t).map((e) => `<div><dt>${e.tipo === 'web' ? 'Web' : 'Instagram'}</dt><dd><a href="${escapeHtml(e.href)}" target="_blank" rel="noopener nofollow">${escapeHtml(e.texto)}</a></dd></div>`).join('')}
+      <dl class="pt-cifras">
+        <div><dt>En el escaparate</dt><dd data-pt-en-escaparate>—</dd></div>
         <div><dt>Le siguen</dt><dd data-pt-seguidores>—</dd></div>
       </dl>
-    </aside>
+      ${botones}
+      ${datos ? `<dl class="pt-datos">${datos}</dl>` : ''}
+    </header>
     <section class="pt-stock" aria-label="El stock de la tienda">
       <div class="pt-tuyas" role="status" hidden></div>
       <p class="pt-solo" hidden>Solo la carta que buscabas. <button type="button" class="link-btn" data-pt-ver="todo">Ver todo el stock</button></p>
@@ -203,11 +219,14 @@ function contarVisita(perfil, sesion, qr) {
   supabase.rpc('tienda_contar_visita', { p_tienda: perfil.id, p_qr: qr }).then(() => {}, () => {})
 }
 
-export async function montarPerfilTienda(destino, perfil, sesion) {
+// `previa` (1078): el mismo escaparate dentro de /tienda → Escaparate, para
+// que la tienda vea lo que ve la gente; sin botones y sin contar su visita.
+export async function montarPerfilTienda(destino, perfil, sesion, { previa = false } = {}) {
   await hojaInyectada('css/perfil-tienda.css')
   caja = destino
   est.perfil = perfil
   est.sesion = sesion
+  est.previa = previa
   // `instagram` llega con la 1074; sin ella, pedirla tumba la consulta entera
   // (42703, la 624), así que se vuelve a pedir sin.
   const columnas = 'ciudad,direccion,horario,web,precio_visible'
@@ -219,8 +238,9 @@ export async function montarPerfilTienda(destino, perfil, sesion) {
   if (sesion && params.get('lista') === '1') est.filtros.de_tu_lista = true
   // Y desde «En tiendas» de una carta (`?carta=`): solo esa, con la salida a todo.
   if (params.get('carta')) est.filtros.carta = params.get('carta')
-  contarVisita(perfil, sesion, params.get('utm_source') === 'qr')
+  if (!previa) contarVisita(perfil, sesion, params.get('utm_source') === 'qr')
   caja.classList.add('pt')
+  caja.classList.toggle('pt-previa', previa)
   caja.innerHTML = cabeceraHtml()
   caja.addEventListener('click', (e) => {
     const ver = e.target.closest('[data-pt-ver]')

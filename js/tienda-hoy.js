@@ -25,6 +25,8 @@ export const FILTROS_DE_AVISO = {
   pierden: { margen: ['pierdes'] },
   viejas: { dias: ['90+'] },
   agotadas: { unidades: ['agotadas'] },
+  // Desde la Colección → Productos (1076): lo sellado del stock.
+  sellado: { catalogo: ['sellado'] },
 }
 const AVISOS = [
   ['debajo', 'tdh-ambar', (n) => `${n} por debajo de Cardmarket`],
@@ -61,8 +63,12 @@ function graficaHtml(serie, paso) {
   <div class="tdh-eje"><span>${escapeHtml(rotuloDePaso(serie[0].t, paso))}</span><span>${escapeHtml(rotuloDePaso(serie.at(-1).t, paso))}</span></div>`
 }
 
-function cifraHtml(titulo, valor, sub, clase = '') {
-  return `<div class="tdh-cifra"><small>${titulo}</small><b class="${clase}">${valor}</b>${sub ? `<span class="${sub.clase || ''}">${escapeHtml(sub.texto)}</span>` : ''}</div>`
+// Una cifra (1078): su icono en un círculo del color de la sección, el
+// número grande y debajo cómo va contra el periodo anterior (con su flecha)
+// o lo que la explica.
+function cifraHtml(titulo, valor, sub, clase = '', icono = '') {
+  const flecha = sub?.clase === 'tdh-sube' ? '▲ ' : sub?.clase === 'tdh-baja' ? '▼ ' : ''
+  return `<div class="tdh-cifra"><span class="tdh-cifra-icono" aria-hidden="true">${icono}</span><small>${titulo}</small><b class="${clase}">${valor}</b>${sub ? `<span class="${sub.clase || ''}">${flecha}${escapeHtml(sub.texto)}</span>` : ''}</div>`
 }
 
 function pintar(d, ultimas) {
@@ -73,15 +79,16 @@ function pintar(d, ultimas) {
   const cmp = comparacion(a.importe, b?.importe, p.frente)
   const s = d.stock || {}
   $('.tdh-cifras').innerHTML = [
-    cifraHtml('Vendido', euros(a.importe || 0), cmp ? { texto: cmp.texto, clase: cmp.sube === false ? 'tdh-baja' : cmp.sube ? 'tdh-sube' : '' } : { texto: `${a.ventas || 0} ${a.ventas === 1 ? 'venta' : 'ventas'}` }),
-    cifraHtml('Beneficio', a.beneficio == null ? '—' : `${a.beneficio > 0 ? '+' : ''}${euros(a.beneficio)}`, { texto: a.sin_coste ? `${a.sin_coste} sin coste, fuera de la cuenta` : 'sobre lo que pagaste' }, a.beneficio < 0 ? 'tdh-rojo-texto' : ''),
-    cifraHtml('Margen medio', margen == null ? '—' : `${margen} %`, { texto: 'sobre lo pagado' }),
-    cifraHtml('Valor del stock', euros(s.valor || 0), { texto: `a tu precio · ${s.unidades || 0} uds.${s.cm ? ` · Cardmarket ${euros(s.cm)}` : ''}` }),
+    cifraHtml('Vendido', euros(a.importe || 0), cmp ? { texto: cmp.texto, clase: cmp.sube === false ? 'tdh-baja' : cmp.sube ? 'tdh-sube' : '' } : { texto: `${a.ventas || 0} ${a.ventas === 1 ? 'venta' : 'ventas'}` }, '', icons.coins(20)),
+    cifraHtml('Beneficio', a.beneficio == null ? '—' : `${a.beneficio > 0 ? '+' : ''}${euros(a.beneficio)}`, { texto: a.sin_coste ? `${a.sin_coste} sin coste, fuera de la cuenta` : 'sobre lo que pagaste' }, a.beneficio < 0 ? 'tdh-rojo-texto' : '', icons.trendingUp(20)),
+    cifraHtml('Margen medio', margen == null ? '—' : `${margen} %`, { texto: 'sobre lo pagado' }, '', icons.target(20)),
+    cifraHtml('Valor del stock', euros(s.valor || 0), { texto: `a tu precio · ${s.unidades || 0} uds.${s.cm ? ` · Cardmarket ${euros(s.cm)}` : ''}` }, '', icons.package(20)),
   ].join('')
 
   $('.tdh-grafica-titulo').textContent = { hoy: 'Ventas de hoy', semana: 'Ventas de la semana', mes: 'Ventas del mes', anio: 'Ventas del año' }[est.periodo]
   $('.tdh-grafica').innerHTML = graficaHtml(d.serie || [], p.paso)
   const NOMBRE_DONDE = Object.fromEntries(DONDE_VENTA)
+  $('.tdh-sub').hidden = !(ultimas || []).length
   $('.tdh-ultimas').innerHTML = (ultimas || []).map((f) => {
     const ben = f.coste == null ? null : Math.round((Number(f.precio) - Number(f.coste)) * f.unidades * 100) / 100
     return `<li><span><strong>${escapeHtml(f.nombre || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(f, nombreSet))} · ${escapeHtml(NOMBRE_DONDE[f.donde] || f.donde)}</small></span><b>${euros(Number(f.precio) * f.unidades)}${ben == null ? '' : `<small class="${ben < 0 ? 'tdh-rojo-texto' : 'tdh-verde'}">${ben > 0 ? '+' : ''}${euros(ben)}</small>`}</b></li>`
@@ -89,7 +96,7 @@ function pintar(d, ultimas) {
 
   const avisos = AVISOS.filter(([k]) => d.avisos?.[k] > 0)
   $('.tdh-avisos').innerHTML = avisos.length
-    ? avisos.map(([k, clase, texto]) => `<a class="tdh-aviso ${clase}" href="/tienda?ver=stock&filtro=${k}" data-ver="stock" data-filtro="${k}"><span>${escapeHtml(texto(d.avisos[k]))}</span><small>Ver</small></a>`).join('')
+    ? avisos.map(([k, clase, texto]) => `<a class="tdh-aviso ${clase}" href="/tienda?ver=stock&filtro=${k}" data-ver="stock" data-filtro="${k}">${icons.triangleAlert(16)}<span>${escapeHtml(texto(d.avisos[k]))}</span>${icons.chevronRight(16)}</a>`).join('')
     : `<p class="tdh-bien">${icons.checkCircle(18)}<span>Todo en orden: nada por debajo de Cardmarket, nada con pérdida.</span></p>`
 
   const dem = d.demanda || []
@@ -100,6 +107,8 @@ function pintar(d, ultimas) {
   const v = d.visitas || {}
   const cv = comparacion(v.actual, v.anterior, p.frente.replace('a esta hora', 'en todo el día'))
   $('.tdh-visitas').innerHTML = `<b>${v.actual || 0}</b> ${v.actual === 1 ? 'visita' : 'visitas'}${v.qr ? ` · ${v.qr} desde el QR` : ''}${cv ? `<small class="${cv.sube === false ? 'tdh-baja' : cv.sube ? 'tdh-sube' : ''}">${escapeHtml(cv.texto)}</small>` : ''}`
+  const st = $('[data-tdh-stock]')
+  if (st) st.textContent = `${(s.lineas || 0).toLocaleString('es-ES')} ${s.lineas === 1 ? 'línea' : 'líneas'} · ${(s.unidades || 0).toLocaleString('es-ES')} uds.`
 }
 
 async function completarSets(ids) {
@@ -132,22 +141,29 @@ export function montarHoy(destino) {
   est.periodo = leerPeriodo()
   caja.innerHTML = `
     <div class="tdh">
+      <nav class="tdh-rapido" aria-label="Atajos">
+        <a href="/tienda?vender=1" data-ver="vender" class="tdh-atajo tdh-atajo-principal">${icons.coins(22)}<span><b>Vender</b><small>Apunta una venta</small></span></a>
+        <a href="/cartas" class="tdh-atajo">${icons.layers(22)}<span><b>Añadir cartas</b><small>Desde la Colección</small></span></a>
+        <a href="/tienda?ver=stock" data-ver="stock" class="tdh-atajo">${icons.package(22)}<span><b>Tu stock</b><small data-tdh-stock>…</small></span></a>
+        <a href="/tienda?ver=escaparate" data-ver="escaparate" class="tdh-atajo">${icons.eye(22)}<span><b>Tu escaparate</b><small>El QR y lo que ve la gente</small></span></a>
+      </nav>
       <div class="tdh-cab">
-        <h2>Panel</h2>
+        <h2>Cómo va</h2>
         <div class="tdvt-chips" role="group" aria-label="Periodo">${PERIODOS_HOY.map(([v, t]) => `<button type="button" class="tdvt-chip" data-periodo="${v}" aria-pressed="${v === est.periodo}">${t}</button>`).join('')}</div>
       </div>
       <div class="tdh-cuerpo">
         <div class="tdh-cifras"></div>
         <div class="tdh-dos">
-          <section class="tdh-tarjeta">
-            <h3><span class="tdh-grafica-titulo">Ventas</span> <a class="tdh-ir" href="/tienda?ver=ventas" data-ver="ventas">Ver ventas</a></h3>
+          <section class="tdh-tarjeta tdh-tarjeta-grafica">
+            <h3><span class="tdh-grafica-titulo">Ventas</span> <a class="tdh-ir" href="/tienda?ver=ventas" data-ver="ventas">Ver ventas ${icons.chevronRight(14)}</a></h3>
             <div class="tdh-grafica"></div>
+            <h4 class="tdh-sub">Últimas ventas</h4>
             <ul class="tdh-ultimas"></ul>
           </section>
           <div class="tdh-col">
-            <section class="tdh-tarjeta"><h3>Avisos de tu stock</h3><div class="tdh-avisos"></div></section>
-            <section class="tdh-tarjeta"><h3>Lo que busca la gente y tienes</h3><ul class="tdh-demanda"></ul></section>
-            <section class="tdh-tarjeta"><h3>Tu escaparate</h3><p class="tdh-visitas"></p></section>
+            <section class="tdh-tarjeta"><h3>${icons.triangleAlert(18)} Necesita atención</h3><div class="tdh-avisos"></div></section>
+            <section class="tdh-tarjeta"><h3>${icons.heart(18)} Lo que busca la gente y tienes</h3><ul class="tdh-demanda"></ul></section>
+            <section class="tdh-tarjeta"><h3>${icons.eye(18)} Visitas a tu escaparate</h3><p class="tdh-visitas"></p></section>
           </div>
         </div>
       </div>

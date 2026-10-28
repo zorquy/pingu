@@ -439,22 +439,25 @@
 }
 
 @media (min-width: 1001px) {
-  .tds-arriba {
-    flex-wrap: nowrap;
-  }
-
+  /* El buscador y, a su lado o debajo, los mandos a la derecha (1077):
+     con la lateral y los filtros no caben en una fila sin salirse. */
   .tds-arriba .tds-busca {
-    flex: 1 1 200px;
-    min-width: 160px;
+    flex: 1 1 280px;
+    min-width: 200px;
   }
 
   .tds-barra {
-    flex: 0 0 auto;
-    flex-wrap: nowrap;
+    flex: 0 1 auto;
+    justify-content: flex-end;
+    margin-left: auto;
   }
 
   .tds-barra .tds-orden {
     flex: 0 0 190px;
+  }
+
+  .tds-boton.tds-ver-filtros {
+    display: none;
   }
 }
 
@@ -1026,13 +1029,33 @@ html:has(.tds-dialogo[open]) {
   }
 }
 
-/* ── El escaparate y el cartel del QR (tanda 1069) ── */
-.td-escaparate {
-  display: flex;
-  flex-wrap: wrap;
+/* ── El escaparate y el cartel del QR (tanda 1069; 1078) ── */
+.td-esc-cab {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
   gap: var(--e-xl);
-  align-items: flex-start;
-  margin-top: var(--e-lg);
+  align-items: center;
+  padding: var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--acento) 18%, var(--white)), var(--white) 60%);
+}
+.td-esc-cab .td-cartel { width: 220px; padding: var(--e-lg) var(--e-md); gap: var(--e-sm); box-shadow: var(--shadow-md); }
+.td-esc-cab .td-cartel-qr svg { width: 130px; height: 130px; }
+.td-esc-cab .td-cartel-titulo { font-size: var(--t-md); }
+.td-esc-cab .td-escaparate-mandos h2 { margin: 0; font-family: var(--font-display); font-size: var(--t-2xl); }
+.td-esc-cab .td-escaparate-mandos .subtext { margin: 0; max-width: 60ch; }
+.td-esc-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.td-esc-titulo { margin: var(--e-2xl) 0 0; font-family: var(--font-display); }
+#tdEscaparatePrevia .pt-cab { background: var(--white); }
+
+@media (max-width: 700px) {
+  .td-esc-cab { grid-template-columns: minmax(0, 1fr); padding: var(--e-md); justify-items: center; }
+  .td-esc-cab .td-escaparate-mandos { justify-items: stretch; order: -1; }
+  .td-esc-cab .td-escaparate-mandos h2 { font-size: var(--t-xl); }
+  .td-esc-cab .td-cartel { width: 190px; }
+  .td-esc-cab .td-cartel-qr svg { width: 110px; height: 110px; }
+  .td-esc-botones > * { flex: 1 1 auto; }
 }
 
 .td-cartel {
@@ -1225,37 +1248,52 @@ html:has(.tds-dialogo[open]) {
   .tdvt-chip::after { content: ''; position: absolute; inset: -4px 0; }
 }
 
-/* ── Hoy (1073) ── */
-.tdh { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--e-md); }
+/* ── El Panel (1073, rehecho en la 1078) ──
+   PINGU: «el panel también, que sea de otra manera». Arriba los atajos de
+   lo que más se hace; luego las cuatro cifras con su icono y su flecha; la
+   gráfica con las últimas ventas, y a la derecha lo que pide atención, lo
+   que busca la gente y las visitas. */
+.tdh { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--e-lg); }
+.tdh-rapido { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-sm); }
+.tdh-atajo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 64px;
+  min-width: 0;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  text-decoration: none;
+}
+.tdh-atajo:hover { border-color: var(--acento); }
+.tdh-atajo > svg {
+  flex: none;
+  box-sizing: content-box;
+  padding: var(--e-sm);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--acento) 16%, transparent);
+  color: var(--acento);
+}
+.tdh-atajo span { display: grid; min-width: 0; }
+.tdh-atajo b { font-size: var(--t-md); }
+.tdh-atajo small { overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.tdh-atajo-principal { border-color: transparent; background: var(--acento); color: var(--acento-texto); }
+.tdh-atajo-principal small { color: inherit; opacity: 0.85; }
+.tdh-atajo-principal > svg { background: color-mix(in srgb, var(--acento-texto) 18%, transparent); color: inherit; }
+
 .tdh-cab { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-md); }
-.tdh-cab h2 { margin: 0; font-family: var(--font-display); }
+.tdh-cab h2 { margin: 0; font-family: var(--font-display); font-size: var(--t-xl); }
 .tdh-cab .tdvt-chips { margin-left: auto; }
 .tdh-cuerpo { display: grid; gap: var(--e-md); }
 
 .tdh-cifras { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-sm); }
 .tdh-cifra {
   display: grid;
-  gap: 2px;
-  align-content: start;
-  min-width: 0;
-  padding: var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-}
-.tdh-cifra small { color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
-.tdh-cifra b { font-family: var(--font-display); font-size: var(--t-2xl); font-variant-numeric: tabular-nums; }
-.tdh-cifra span { color: var(--text-mid); font-size: var(--t-xs); }
-.tdh-cifra span.tdh-sube { color: var(--success); font-weight: 600; }
-.tdh-cifra span.tdh-baja { color: var(--danger); font-weight: 600; }
-.tdh-rojo-texto { color: var(--danger); }
-.tdh-verde { color: var(--success); }
-
-.tdh-dos { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: var(--e-md); align-items: start; }
-.tdh-col { display: grid; gap: var(--e-md); }
-.tdh-tarjeta {
-  display: grid;
-  gap: var(--e-sm);
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px var(--e-md);
   align-content: start;
   min-width: 0;
   padding: var(--e-md) var(--e-lg);
@@ -1263,21 +1301,53 @@ html:has(.tds-dialogo[open]) {
   border-radius: var(--radius-lg);
   background: var(--white);
 }
-.tdh-tarjeta h3 { display: flex; justify-content: space-between; gap: var(--e-sm); margin: 0; font-family: var(--font-display); font-size: var(--t-md); }
-.tdh-ir { font-size: var(--t-xs); font-weight: 600; color: var(--navy); }
+.tdh-cifra-icono {
+  display: grid;
+  grid-row: 1 / 4;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--acento) 16%, transparent);
+  color: var(--acento);
+}
+.tdh-cifra small { color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.tdh-cifra b { font-family: var(--font-display); font-size: var(--t-2xl); font-variant-numeric: tabular-nums; }
+.tdh-cifra span:not(.tdh-cifra-icono) { color: var(--text-mid); font-size: var(--t-xs); }
+.tdh-cifra span.tdh-sube { justify-self: start; padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--success-bg); color: var(--success); font-weight: 600; }
+.tdh-cifra span.tdh-baja { justify-self: start; padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--danger-bg); color: var(--danger); font-weight: 600; }
+.tdh-rojo-texto { color: var(--danger); }
+.tdh-verde { color: var(--success); }
 
-/* La gráfica: barras finas del color de la sección, la mayor con su cifra
-   y la fecha al pasar por encima (dataviz: una serie, sin leyenda). */
+.tdh-dos { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: var(--e-md); align-items: start; }
+.tdh-col { display: grid; gap: var(--e-md); }
+.tdh-tarjeta {
+  display: grid;
+  gap: var(--e-sm);
+  align-content: start;
+  min-width: 0;
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.tdh-tarjeta h3 { display: flex; align-items: center; gap: var(--e-sm); margin: 0; font-family: var(--font-display); font-size: var(--t-md); }
+.tdh-tarjeta h3 > svg { flex: none; color: var(--acento); }
+.tdh-ir { display: inline-flex; align-items: center; gap: 2px; margin-left: auto; font-size: var(--t-xs); font-weight: 600; color: var(--navy); }
+.tdh-sub { margin: var(--e-sm) 0 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+
+/* La gráfica: barras del color de la sección, la mayor con su cifra y la
+   fecha al pasar por encima (dataviz: una serie, sin leyenda). */
 .tdh-barras {
   display: flex;
   align-items: flex-end;
   gap: 2px;
-  height: 120px;
-  padding-top: var(--e-lg);
+  height: 180px;
+  padding-top: var(--e-xl);
   border-bottom: 1px solid var(--border);
 }
 .tdh-barra { position: relative; display: flex; flex: 1; align-items: flex-end; height: 100%; min-width: 0; }
-.tdh-barra i { display: block; width: 100%; border-radius: 4px 4px 0 0; background: var(--acento); opacity: 0.55; }
+.tdh-barra i { display: block; width: 100%; border-radius: 4px 4px 0 0; background: var(--acento); opacity: 0.5; }
 .tdh-barra-max i,
 .tdh-barra:hover i { opacity: 1; }
 .tdh-barra-cifra {
@@ -1286,7 +1356,8 @@ html:has(.tds-dialogo[open]) {
   left: 50%;
   transform: translateX(-50%);
   color: var(--text);
-  font-size: var(--t-2xs);
+  font-size: var(--t-xs);
+  font-weight: 700;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
@@ -1299,7 +1370,7 @@ html:has(.tds-dialogo[open]) {
   display: flex;
   align-items: center;
   gap: var(--e-sm);
-  padding: var(--e-xs) 0;
+  padding: var(--e-sm) 0;
   border-top: 1px solid var(--border);
 }
 .tdh-ultimas li:first-child,
@@ -1309,38 +1380,203 @@ html:has(.tds-dialogo[open]) {
 .tdh-ultimas small,
 .tdh-demanda small { overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
 .tdh-ultimas b { display: grid; text-align: right; font-variant-numeric: tabular-nums; }
-.tdh-quieren { display: inline-flex; align-items: center; gap: var(--e-xs); color: var(--pink); font-weight: 700; font-variant-numeric: tabular-nums; }
+.tdh-quieren { display: inline-flex; align-items: center; gap: var(--e-xs); padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--pink-bg); color: var(--pink); font-weight: 700; font-variant-numeric: tabular-nums; }
 .tdh-tienes { flex: none; }
 
 .tdh-avisos { display: grid; gap: var(--e-xs); }
 .tdh-aviso {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   gap: var(--e-sm);
-  min-height: 40px;
+  min-height: 44px;
   padding: var(--e-xs) var(--e-md);
   border-radius: var(--radius-md);
   font-size: var(--t-sm);
   font-weight: 600;
   text-decoration: none;
 }
-.tdh-aviso small { font-weight: 500; }
+.tdh-aviso span { flex: 1; }
+.tdh-aviso svg { flex: none; }
 .tdh-ambar { background: var(--warning-bg); color: var(--warning); }
 .tdh-rojo { background: var(--danger-bg); color: var(--danger); }
 .tdh-gris { background: var(--ice); color: var(--text-mid); }
 .tdh-bien { display: flex; gap: var(--e-sm); align-items: center; margin: 0; color: var(--success); font-size: var(--t-sm); }
 
 .tdh-visitas { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e-xs) var(--e-sm); margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
-.tdh-visitas b { color: var(--text); font-family: var(--font-display); font-size: var(--t-xl); }
+.tdh-visitas b { color: var(--text); font-family: var(--font-display); font-size: var(--t-2xl); }
 .tdh-visitas small { width: 100%; font-size: var(--t-xs); }
 .tdh-visitas small.tdh-sube { color: var(--success); }
 .tdh-visitas small.tdh-baja { color: var(--danger); }
 .tdh-sin { margin: 0; padding: var(--e-md) 0; color: var(--text-mid); font-size: var(--t-sm); }
 
+@media (max-width: 1100px) {
+  .tdh-rapido,
+  .tdh-cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 
 @media (max-width: 760px) {
-  .tdh-cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .tdh-dos { grid-template-columns: minmax(0, 1fr); }
   .tdh-cab .tdvt-chips { margin-left: 0; }
+  .tdh-barras { height: 140px; }
+}
+
+@media (max-width: 600px) {
+  .tdh-rapido { gap: var(--e-xs); }
+  .tdh-atajo { flex-direction: column; align-items: flex-start; gap: var(--e-xs); min-height: 0; padding: var(--e-sm) var(--e-md); }
+  .tdh-atajo small { white-space: normal; }
+  .tdh-cifra { grid-template-columns: minmax(0, 1fr); padding: var(--e-md); }
+  .tdh-cifra-icono { display: none; }
+  .tdh-cifra b { font-size: var(--t-xl); }
+}
+
+/* ── El stock, más claro (1077) ── */
+.tds-boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  white-space: nowrap;
+}
+.tds-boton svg { flex: none; }
+.tds-boton-icono {
+  width: 44px;
+  padding: 0;
+}
+.tds-anadir span:first-child { font-size: var(--t-lg); line-height: 1; }
+
+/* Las opciones de los filtros llevan su dibujo: bandera, marca de rareza,
+   icono de versión o el punto del estado. */
+.tds-pill > .pv-bandera,
+.tds-pill > .rareza-marca,
+.tds-pill > svg,
+.tds-pill-icono {
+  flex: none;
+}
+.tds-pill-icono { display: inline-grid; place-items: center; }
+.tds-pill-icono svg { width: 14px; height: 14px; }
+.tds-estado {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--text-dim);
+}
+.tds-estado[data-estado='MT'],
+.tds-estado[data-estado='NM'] { background: var(--success); }
+.tds-estado[data-estado='EX'] { background: #7cb342; }
+.tds-estado[data-estado='GD'] { background: var(--warning); }
+.tds-estado[data-estado='LP'] { background: #e8833a; }
+.tds-estado[data-estado='PL'],
+.tds-estado[data-estado='PO'] { background: var(--danger); }
+.tds-estado[data-estado='sellado'] { background: var(--acento); }
+
+/* Las expansiones, en un desplegable con su buscador. */
+.tds-desplegable {
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+.tds-desplegable summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+  min-height: 40px;
+  padding: 0 var(--e-md);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.tds-desplegable summary::-webkit-details-marker { display: none; }
+.tds-desplegable summary span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.tds-desplegable summary svg {
+  flex: none;
+  transform: rotate(90deg);
+  transition: transform 0.15s;
+  color: var(--text-mid);
+}
+.tds-desplegable[open] summary svg { transform: rotate(-90deg); }
+.tds-desplegable-caja {
+  display: grid;
+  gap: var(--e-sm);
+  padding: var(--e-sm) var(--e-md) var(--e-md);
+  border-top: 1px solid var(--border);
+}
+.tds-nada { margin: 0; font-size: var(--t-sm); color: var(--text-mid); }
+
+@media (prefers-reduced-motion: reduce) {
+  .tds-desplegable summary svg { transition: none; }
+}
+
+.tds-c-idioma { white-space: nowrap; }
+.tds-c-idioma .pv-bandera { display: inline-block; margin-right: var(--e-xs); vertical-align: -1px; }
+.tds-chapa .tds-estado { display: inline-block; margin-right: var(--e-xs); }
+
+/* En el móvil, cada línea es una tarjeta (1077): el nombre y tu precio
+   arriba; idioma, estado, unidades, Cardmarket y el margen debajo. Lo que
+   no cabe (coste, días, escaparate) está en su ficha al tocarla. */
+@media (max-width: 600px) {
+  .tds-tabla { min-width: 0; }
+  .tds-tabla thead { display: none; }
+  .tds-tabla tbody tr {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto auto auto minmax(0, 1fr) auto;
+    gap: var(--e-xs) var(--e-sm);
+    align-items: center;
+    padding: var(--e-sm) var(--e-md);
+    border-bottom: 1px solid var(--border);
+  }
+  .tds-tabla tbody tr:has(.tds-check) { padding-left: 48px; }
+  .tds-tabla td { padding: 0; border: 0; background: none !important; }
+  .tds-tabla tr.tds-alerta { background: var(--warning-bg); }
+  .tds-tabla tr.tds-mal { background: var(--danger-bg); }
+  .tds-tabla tr.tds-marcada { background: var(--ice); }
+  .tds-tabla .tds-check { position: absolute; top: 50%; left: var(--e-md); transform: translateY(-50%); }
+  .tds-c-nombre { grid-column: 1 / 5; grid-row: 1; min-width: 0; }
+  .tds-c-nombre .tds-nombre span { min-width: 0; }
+  .tds-c-nombre strong, .tds-c-nombre small { overflow: hidden; text-overflow: ellipsis; }
+  .tds-c-precio { grid-column: 5; grid-row: 1; }
+  .tds-c-idioma { grid-column: 1; grid-row: 2; font-size: var(--t-xs); }
+  .tds-c-estado { grid-column: 2; grid-row: 2; }
+  .tds-c-uds { grid-column: 3; grid-row: 2; font-size: var(--t-xs); color: var(--text-mid); }
+  .tds-c-uds::before { content: '×'; }
+  .tds-c-cm { grid-column: 4; grid-row: 2; font-size: var(--t-xs); color: var(--text-mid); }
+  .tds-c-cm::before { content: 'CM '; }
+  .tds-c-margen { grid-column: 5; grid-row: 2; font-size: var(--t-xs); }
+  .tds-c-coste, .tds-c-dias, .tds-c-vis { display: none; }
+}
+
+/* ── La cabecera, solo en el Panel (1078) ──
+   Un saludo con la tienda, sobre un degradado de su color. En las demás
+   pestañas no se repite: la lateral y la barra ya dicen dónde estás. */
+#tdPanel:not([data-tab='hoy']) .td-cab { display: none; }
+#tdPanel[data-tab='hoy'] .td-cab {
+  margin-top: var(--e-lg);
+  margin-bottom: var(--e-lg);
+  padding: var(--e-lg) var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--acento) 26%, var(--white)), var(--white) 70%);
+}
+.td-saludo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+#tdPanel:not([data-tab='hoy']) .td-hoja { padding-top: var(--e-md); }
+
+@media (max-width: 600px) {
+  #tdPanel[data-tab='hoy'] .td-cab { padding: var(--e-md); margin-bottom: var(--e-md); }
+  #tdPanel[data-tab='hoy'] .td-perfil,
+  #tdPanel[data-tab='hoy'] .td-saludo .td-chapa { display: none; }
 }

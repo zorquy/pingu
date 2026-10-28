@@ -356,6 +356,10 @@ async function init() {
   // escaparate, sin vitrina, guías, foro, torneos ni medallas.
   if (profile?.tipo === 'tienda') {
     const main = document.querySelector('main')
+    // Ancha en el PC (1078): fuera la rejilla de dos columnas del perfil de
+    // una persona, que la dejaba en la columna estrecha.
+    main.classList.remove('perfil-pagina')
+    main.classList.add('pt-pagina')
     main.innerHTML = '<div id="perfilTienda"></div>'
     await import('./perfil-tienda.js').then((m) => m.montarPerfilTienda(document.getElementById('perfilTienda'), profile, currentSession))
     return

@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (315) — PINGU-Claude (1076, 1077 y 1078 — seleccionar, el stock más claro, el Panel, el Escaparate y el perfil de una tienda)
+
+**Hecho**: lo que PINGU pidió al mirar la tienda de prueba.
+- **1076**: «Seleccionar» en la Colección de la tienda (expansiones, Pokédex
+  y productos) para meter cartas en bulk al stock; en Productos, lo suyo ya
+  no sale arriba (una franja lleva al Stock).
+- **1077**: el stock con banderas en los idiomas, la marca en las rarezas, el
+  icono en las versiones y un punto por estado; las expansiones en un
+  desplegable con buscador; botones con icono; en el móvil, cada línea es una
+  tarjeta.
+- **1078**: el Panel rehecho (saludo, atajos, cifras con icono, gráfica más
+  grande); la cabecera solo en el Panel; el Escaparate con el QR y debajo lo
+  que ve la gente; el perfil público de una tienda a lo ancho en el PC.
+
+**Para PINGU**: nada que ejecutar.
+
+**Ficheros**: `tienda.html`, `js/tienda.js`, `js/tienda-hoy.js`,
+`js/tienda-stock.js`, `css/tienda.css`, `js/perfil-tienda.js`,
+`css/perfil-tienda.css`, `js/usuario.js`, `js/mi-coleccion.js`,
+`js/mi-coleccion/seleccion.js`, `js/mi-coleccion/productos.js`,
+`css/mi-coleccion-productos.css`. Pruebas en `pruebas`: 1076-pantalla,
+1078-pantalla, y al día la 1068 y la 1073.
+
+**Pendiente**: la propuesta «Lo siguiente para tiendas» con lo visual y lo
+que falta (en un artifact).
+
 ## 2026-10-28 (314) — PINGU-Claude (1074 y 1075 — el Panel, una tienda sin local y la Colección de la tienda)
 
 **Hecho**: lo que PINGU pidió al mirar la tienda de prueba.
