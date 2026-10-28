@@ -211,7 +211,8 @@ const TIENDA_FILAS = { tiendas: [{ user_id: 'user-2', ciudad: 'Bilbao', direccio
   const { p, ctx, errs } = await abrir('/tienda.html', { sesion: 'user-2', perfil: { tipo: 'tienda', display_name: 'El Rincón del Entrenador', username: 'rincon' }, filas: TIENDA_FILAS })
   check('una tienda: su panel, con su nombre y su ciudad', !errs.length && (await p.isVisible('#tdPanel')) && (await p.textContent('#tdNombre')) === 'El Rincón del Entrenador' && (await p.textContent('#tdDonde')) === 'Bilbao', errs.join(' | '))
   check('  …«Ver mi perfil» lleva a su perfil', (await p.getAttribute('#tdVerPerfil', 'href')) === '/usuario/rincon')
-  check('  …cuatro pestañas, Hoy elegida', (await p.locator('[data-td]').count()) === 4 && (await p.getAttribute('[data-td="hoy"]', 'aria-selected')) === 'true')
+  // Cinco desde la 1072 (Ventas).
+  check('  …cinco pestañas, Hoy elegida', (await p.locator('[data-td]').count()) === 5 && (await p.getAttribute('[data-td="hoy"]', 'aria-selected')) === 'true')
   const pasos = await p.$$eval('#tdPasos li', (ls) => ls.map((l) => (l.classList.contains('hecho') ? '✓ ' : '· ') + l.querySelector('strong').textContent))
   check('  …los primeros pasos: cuenta hecha, datos por hacer', pasos.length === 4 && pasos[0].startsWith('✓') && pasos[1].startsWith('·'), pasos.join(' | '))
   await p.click('[data-td-ir="datos"]')

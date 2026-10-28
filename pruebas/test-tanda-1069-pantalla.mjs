@@ -124,7 +124,8 @@ console.log('── 2. /tienda → Escaparate: el QR y el cartel ──')
   const [descarga] = await Promise.all([p.waitForEvent('download', { timeout: 5000 }).catch(() => null), p.click('#tdBajarQr')])
   check('«Descargar el QR» baja un SVG', descarga?.suggestedFilename() === 'qr-rincon.svg')
   await p.click('[data-td="hoy"]')
-  check('el paso del QR lleva al Escaparate', (await p.locator('[data-td-ir="escaparate"]').count()) === 1)
+  // Desde la 1073, imprimir o descargar el cartel da el paso por hecho.
+  check('imprimir el cartel da por hecho el paso del QR', (await p.locator('[data-td-ir="escaparate"]').count()) === 0 && /Imprimir el QR/.test(await p.textContent('.td-pasos li.hecho:last-child')))
   await ctx.close()
 }
 

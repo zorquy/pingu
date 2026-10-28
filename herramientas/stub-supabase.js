@@ -2797,6 +2797,7 @@ export const supabase = {
     getSession: async () => ({ data: { session: sesion } }),
     getUser: async () => ({ data: { user: sesion?.user || null } }),
     signOut: async () => { AUTH.push({ que: 'signOut' }); return { error: null } },
+    resetPasswordForEmail: async (email, opciones) => { AUTH.push({ que: 'resetPasswordForEmail', email, ...opciones }); return { data: {}, error: null } },
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
     // Crear cuenta, entrar y Google (1067, el alta de una tienda): se apuntan
     // en `window.__AUTH__` y contestan lo que diga `__FAKE_AUTH__` (por
