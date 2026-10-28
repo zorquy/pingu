@@ -216,7 +216,8 @@ const TIENDA_FILAS = { tiendas: [{ user_id: 'user-2', ciudad: 'Bilbao', direccio
   await p.click('[data-td="hoy"]')
   check('  …el paso de los datos ya está hecho', (await p.getAttribute('#tdPasos li:nth-child(2)', 'class')) === 'hecho')
   await p.click('[data-td="stock"]')
-  check('Stock: dice que llega en la siguiente parte', (await p.isVisible('[data-td-hoja="stock"]')) && /siguiente parte/.test(await p.textContent('[data-td-hoja="stock"]')))
+  await p.waitForTimeout(800)
+  check('Stock: monta el stock (1068), y sin respuesta de la base dice que falta un paso', (await p.isVisible('[data-td-hoja="stock"] .tds')) && /falta un paso/.test(await p.textContent('[data-td-hoja="stock"]')))
   await ctx.close()
 }
 {

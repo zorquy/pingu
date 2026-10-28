@@ -25,6 +25,8 @@ const T = {
   // Las tiendas (1067).
   tiendas: [],
   tienda_solicitudes: [],
+  tienda_stock: [],
+  tienda_vistas: [],
   tournaments: [],
   tournament_registrations: [],
   tournament_join_codes: [],
