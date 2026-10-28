@@ -6,6 +6,7 @@ import { contentIconHtml } from './content-icon.js'
 // para que los ficheros que ya lo importaban de aquí sigan igual.
 export { escapeHtml } from './html.js'
 import { escapeHtml, urlParaCss } from './html.js'
+import { puedeAbrirTienda, tiendaRecordada, recordarTienda } from './tienda-puertas.js'
 
 export function getInitial(name) {
   if (!name) return '?'
@@ -480,6 +481,7 @@ export async function requireAuth() {
 
 export async function signOut() {
   await supabase.auth.signOut()
+  recordarTienda(null)
   // Lo pintado la última vez (894) es de quien se va.
   await import('./ultima-vista.js').then((m) => m.olvidarVistas()).catch(() => {})
   window.location.href = '/'
@@ -520,9 +522,11 @@ async function renderNavUser(session) {
   // la portada no puede pagar ese peso por algo que la mayoría de las
   // visitas no necesita (presupuesto de 170 KB). Solo con sesión: sin
   // cuenta no hay torneo tuyo del que avisar.
-  import('./torneos/aviso-torneo.js')
-    .then((m) => m.montarAvisoTorneo(session))
-    .catch(() => {})
+  if (profile?.tipo !== 'tienda') {
+    import('./torneos/aviso-torneo.js')
+      .then((m) => m.montarAvisoTorneo(session))
+      .catch(() => {})
+  }
 
   el.innerHTML = `
     <div class="nav-user-wrap" id="navUserWrap">
@@ -676,12 +680,22 @@ export async function initNavbar() {
   // carga dispara los DOS manejadores globales (error y
   // unhandledrejection), así que cada fallo se registraba por duplicado.
   import('./error-log.js').then(({ initErrorLogging }) => initErrorLogging()).catch(() => {})
+  // Una cuenta de tienda solo tiene su panel (1071): con la marca de la
+  // última vez se va a /tienda antes de esperar a la sesión.
+  const conBarra = !!document.getElementById('navbar')
+  const marca = tiendaRecordada()
+  if (marca && conBarra && !puedeAbrirTienda(location.pathname, location.search, marca)) {
+    location.replace('/tienda')
+    return null
+  }
   initScrollShadow()
   initMobileMenu()
   markActiveLink()
   // La píldora que se desliza en los controles de pastillas (784, MV5).
   import('./pildora.js').then(({ vigilarPildoras }) => vigilarPildoras()).catch(() => {})
   const session = await getSession()
+  let deTienda = false
+  if (!session && marca) recordarTienda(null)
   if (session) {
     montarFeedbackEnElPie()
     const profile = await getProfile(session.user.id)
@@ -712,13 +726,23 @@ export async function initNavbar() {
       return session
     }
 
+    deTienda = profile?.tipo === 'tienda'
+    recordarTienda(deTienda ? profile : null)
+    if (deTienda && conBarra && !puedeAbrirTienda(location.pathname, location.search, { u: profile.username, id: profile.id })) {
+      location.replace('/tienda')
+      return session
+    }
+
     // No se espera a que termine — en el 99% de las cargas de página no
     // hace nada (ya se contó hoy), así que no debería frenar el resto de
     // la navbar. Cuando conteste, la racha del día se cuelga en la barra.
-    import('./gamification.js')
-      .then(({ checkDailyStreak }) => checkDailyStreak(session.user.id))
-      .then((racha) => pintarRachaEnNavbar(racha))
-      .catch(() => {})
+    // Una tienda no juega los retos: sin racha.
+    if (!deTienda) {
+      import('./gamification.js')
+        .then(({ checkDailyStreak }) => checkDailyStreak(session.user.id))
+        .then((racha) => pintarRachaEnNavbar(racha))
+        .catch(() => {})
+    }
   }
   import('./page-views.js').then(({ logPageView }) => logPageView(session)).catch(() => {})
   // La velocidad de verdad (SCHEMA 821): una visita de cada cuatro.
@@ -730,7 +754,10 @@ export async function initNavbar() {
   // La barra inferior del móvil (704): solo en pantallas de móvil, con
   // `import()` para que el escritorio no la descargue (presupuesto de
   // la portada). Si el ancho cambia después, el CSS la esconde solo.
-  if (document.getElementById('navbar') && window.matchMedia?.('(max-width: 900px)').matches) {
+  // Una tienda lleva las suyas, con su lupa (1071).
+  if (deTienda && conBarra) {
+    import('./tienda-marco.js').then((m) => m.montarMarcoDeTienda()).catch(() => {})
+  } else if (document.getElementById('navbar') && window.matchMedia?.('(max-width: 900px)').matches) {
     import('./barra-movil.js').then((m) => m.montarBarraMovil({ conSesion: !!session })).catch(() => {})
   } else if (document.getElementById('navbar') && window.matchMedia?.('(min-width: 1400px) and (pointer: fine)').matches) {
     // Y la lateral del ordenador (SCHEMA 739), igual: solo quien la usa.
@@ -759,7 +786,7 @@ export async function initNavbar() {
   // que acaben de bajar — distinto en cada carga. Por eso se espera a
   // tenerlos todos y se pinta en el orden de siempre.
   const modulos = await Promise.all([
-    import('./nav-search.js').catch(() => null),
+    deTienda ? null : import('./nav-search.js').catch(() => null),
     import('./theme.js').catch(() => null),
     session ? import('./nav-messages.js').catch(() => null) : null,
     session ? import('./notifications.js').catch(() => null) : null,

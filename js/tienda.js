@@ -7,14 +7,14 @@
 //   · el equipo           → qué es esto y dónde se aceptan tiendas
 //   · cualquier otra      → «Esto aún no está abierto»
 import { supabase } from './supabase.js'
-import { getSession, getProfile, profileUrl, getInitial, avatarStyle } from './app.js'
+import { getSession, getProfile, profileUrl, getInitial, avatarStyle, signOut } from './app.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { caraDelPanel, primerosPasos } from './tiendas-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const CARAS = ['tdCargando', 'tdCerrado', 'tdEntrar', 'tdEquipo', 'tdPanel']
-const PESTANAS = ['hoy', 'stock', 'escaparate', 'datos']
+const PESTANAS = ['hoy', 'stock', 'ventas', 'escaparate', 'datos']
 
 for (const el of document.querySelectorAll('[data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(28) || ''
 
@@ -23,13 +23,54 @@ function cara(id) {
 }
 
 // El stock (1068) entra por `import()` la primera vez que se abre.
-let stockMontado = false
+let stockMontado = null
 function montarStockSiToca(v) {
-  if (v !== 'stock' || stockMontado) return
-  stockMontado = true
-  import('./tienda-stock.js')
-    .then(({ montarStock }) => montarStock($('tdStock'), { perfil }))
-    .catch(() => { stockMontado = false; $('tdStock').innerHTML = '<p class="subtext">No se ha podido abrir el stock. Recarga la página.</p>' })
+  if (v !== 'stock' || stockMontado) return stockMontado
+  stockMontado = import('./tienda-stock.js')
+    .then((m) => { m.montarStock($('tdStock'), { perfil }); return m })
+    .catch(() => { stockMontado = null; $('tdStock').innerHTML = '<p class="subtext">No se ha podido abrir el stock. Recarga la página.</p>' })
+  return stockMontado
+}
+
+// Hoy (1073), igual: sus cifras.
+let hoyMontado = false
+function montarHoySiToca(v) {
+  if (v !== 'hoy' || hoyMontado) return
+  hoyMontado = true
+  import('./tienda-hoy.js')
+    .then(({ montarHoy }) => montarHoy($('tdHoy')))
+    .catch(() => { hoyMontado = false; $('tdHoy').innerHTML = '<p class="subtext">No se han podido traer tus cifras. Recarga la página.</p>' })
+}
+
+// Un aviso de Hoy lleva al Stock con su filtro puesto.
+function stockFiltrado(clave) {
+  pestana('stock')
+  Promise.all([stockMontado, import('./tienda-hoy.js')]).then(([m, h]) => m?.filtrarStock(h.FILTROS_DE_AVISO[clave] || {}))
+}
+
+// Las ventas (1072), igual: por `import()` la primera vez.
+let ventasMontadas = false
+function montarVentasSiToca(v) {
+  if (v !== 'ventas' || ventasMontadas) return
+  ventasMontadas = true
+  import('./tienda-ventas.js')
+    .then(({ montarVentas }) => montarVentas($('tdVentas'), { perfil }))
+    .catch(() => { ventasMontadas = false; $('tdVentas').innerHTML = '<p class="subtext">No se han podido abrir tus ventas. Recarga la página.</p>' })
+}
+
+// VENDER (1072): la hoja, desde el botón de arriba, la barra del móvil,
+// Ventas o el stock. Al vender, quien pinta stock o ventas se repinta.
+function abrirVender(filas = []) {
+  import('./tienda-vender.js')
+    .then(({ abrirVender }) => abrirVender({ filas, alTerminar: () => document.dispatchEvent(new CustomEvent('pokedoc:tienda-vendida')) }))
+    .catch(() => showToast('No se ha podido abrir Vender. Recarga la página.', 'error'))
+}
+document.addEventListener('pokedoc:tienda-vender', (e) => abrirVender(e.detail || []))
+
+// La lupa de arriba (1071): al Stock, con el cursor en su buscador.
+function buscarEnStock() {
+  pestana('stock')
+  Promise.resolve(stockMontado).then(() => document.querySelector('[data-tds-q]')?.focus())
 }
 
 // El escaparate (1069): el QR de su perfil, para el mostrador. Con la
@@ -40,7 +81,8 @@ async function montarEscaparateSiToca(v) {
   qrMontado = true
   const url = `https://pokedoc.es/usuario/${encodeURIComponent(perfil.username)}`
   const { svgQR } = await import('./qr.js')
-  $('tdQr').innerHTML = svgQR(url, { tam: 220 })
+  // El QR lleva `utm_source=qr`: Hoy cuenta aparte las visitas que llegan de él (1073).
+  $('tdQr').innerHTML = svgQR(`${url}?utm_source=qr`, { tam: 220 })
   $('tdEnlace').textContent = url.replace('https://', '')
   $('tdCartelNombre').textContent = perfil.display_name || perfil.username
 }
@@ -48,6 +90,8 @@ async function montarEscaparateSiToca(v) {
 function pestana(cual) {
   const v = PESTANAS.includes(cual) ? cual : 'hoy'
   montarStockSiToca(v)
+  montarVentasSiToca(v)
+  montarHoySiToca(v)
   montarEscaparateSiToca(v).catch(() => {})
   for (const b of document.querySelectorAll('[data-td]')) {
     b.setAttribute('aria-selected', String(b.dataset.td === v))
@@ -57,15 +101,30 @@ function pestana(cual) {
   const url = new URL(location.href)
   if (v === 'hoy') url.searchParams.delete('ver')
   else url.searchParams.set('ver', v)
+  url.searchParams.delete('buscar')
+  url.searchParams.delete('vender')
+  url.searchParams.delete('filtro')
   history.replaceState(null, '', url)
+  // Las barras de la tienda (js/tienda-marco.js) marcan la misma.
+  document.dispatchEvent(new CustomEvent('pokedoc:tienda-ver', { detail: v }))
 }
 
 let tienda = null
 let perfil = null
 
 let lineas = 0
+// El QR impreso o descargado, en este navegador (1073).
+const claveQr = () => `pd-tienda-qr-${perfil?.id}`
+const qrHecho = () => { try { return localStorage.getItem(claveQr()) === '1' } catch { return false } }
+function apuntarQr() {
+  try { localStorage.setItem(claveQr(), '1') } catch {}
+  pintarPasos()
+}
 function pintarPasos() {
-  $('tdPasos').innerHTML = primerosPasos(tienda, { lineas })
+  const pasos = primerosPasos(tienda, { lineas, qr: qrHecho() })
+  // Hechos todos, sobran (1073): Hoy ya tiene sus cifras.
+  $('tdPasosCaja').classList.toggle('hidden', pasos.every((p) => p.hecho))
+  $('tdPasos').innerHTML = pasos
     .map((p) => `<li class="${p.hecho ? 'hecho' : ''}">
       <span class="td-paso-marca" aria-hidden="true">${p.hecho ? '&#10003;' : ''}</span>
       <span><strong>${p.texto}</strong>${p.nota ? `<small>${p.nota}</small>` : ''}</span>
@@ -90,11 +149,15 @@ function pintarDatos() {
   $('tdDatoHorario').value = tienda?.horario || ''
   $('tdDatoWeb').value = tienda?.web || ''
   $('tdDatoPrecio').checked = tienda?.precio_visible !== false
+  $('tdCuentaEmail').textContent = correo || ''
 }
+
+let correo = ''
 
 async function arrancar() {
   const sesion = await getSession()
   perfil = sesion ? await getProfile(sesion.user.id) : null
+  correo = sesion?.user?.email || ''
   const toca = caraDelPanel({ sesion, perfil })
   if (toca !== 'tdPanel') return cara(toca)
 
@@ -108,8 +171,28 @@ async function arrancar() {
   pintarPasos()
   pintarDatos()
   cara('tdPanel')
-  pestana(new URLSearchParams(location.search).get('ver'))
+  const params = new URLSearchParams(location.search)
+  if (params.has('buscar')) buscarEnStock()
+  else if (params.get('ver') === 'stock' && params.get('filtro')) stockFiltrado(params.get('filtro'))
+  else pestana(params.get('ver'))
+  if (params.has('vender')) abrirVender()
 }
+
+// Las secciones de las barras y de la hoja «Tú» llevan `data-ver`: dentro del
+// panel cambian de pestaña sin recargar (1071).
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('a[data-ver]')
+  if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return
+  if ($('tdPanel')?.classList.contains('hidden')) return
+  if (new URL(a.href, location.href).pathname.replace(/\.html$/, '') !== '/tienda') return
+  e.preventDefault()
+  $('navUserDropdown')?.classList.add('hidden')
+  if (a.dataset.ver === 'vender') return abrirVender()
+  if (a.dataset.filtro) stockFiltrado(a.dataset.filtro)
+  else if (a.hasAttribute('data-buscar')) buscarEnStock()
+  else pestana(a.dataset.ver)
+  window.scrollTo({ top: 0 })
+})
 
 $('tdPestanas')?.addEventListener('click', (e) => {
   const b = e.target.closest('[data-td]')
@@ -127,12 +210,14 @@ $('tdCopiar')?.addEventListener('click', () => {
 // Imprimir solo el cartel: la clase la lee la hoja de impresión de tienda.css.
 $('tdImprimir')?.addEventListener('click', () => {
   document.documentElement.classList.add('td-imprimiendo')
+  apuntarQr()
   window.print()
   setTimeout(() => document.documentElement.classList.remove('td-imprimiendo'), 500)
 })
 $('tdBajarQr')?.addEventListener('click', () => {
   const svg = $('tdQr').innerHTML
   if (!svg) return
+  apuntarQr()
   const a = document.createElement('a')
   a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }))
   a.download = `qr-${perfil.username}.svg`
@@ -184,5 +269,16 @@ $('tdDatos')?.addEventListener('submit', async (e) => {
   getProfile(perfil.id, { fresco: true }).catch(() => {})
   showToast('Guardado.', 'success')
 })
+
+// La cuenta (1071): una tienda no tiene /ajustes, así que la contraseña se
+// cambia desde aquí, con el enlace por correo de siempre.
+$('tdCuentaClave')?.addEventListener('click', async (e) => {
+  const boton = e.currentTarget
+  boton.disabled = true
+  const { error } = await supabase.auth.resetPasswordForEmail(correo, { redirectTo: `${location.origin}/reset-password.html` })
+  boton.disabled = false
+  showToast(error ? 'No se ha podido mandar el correo. Inténtalo en unos minutos.' : `Te hemos mandado un enlace a ${correo} para cambiarla.`, error ? 'error' : 'success')
+})
+$('tdCuentaSalir')?.addEventListener('click', () => signOut())
 
 arrancar().catch(() => cara('tdCerrado'))

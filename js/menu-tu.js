@@ -83,7 +83,12 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
   // hoja se pinta un instante como una lista suelta a lo ancho.
   dropdown.style.visibility = 'hidden'
   hojaInyectada('css/menu-tu.css').then(() => dropdown.style.removeProperty('visibility'))
-  const quien = lineaDeQuien({ usuario: profile?.username, nivel, racha: Number(profile?.current_streak) || 0 })
+  // Una cuenta de tienda (1071) no tiene colección, mazos ni retos: su hoja
+  // lleva a su panel, y sin Ajustes ni Ko-fi (la web de una persona).
+  const tienda = profile?.tipo === 'tienda'
+  // Su escaparate, con texto fijo (sin nombre que pintar con su rango, 386).
+  const miEscaparate = `/usuario/${encodeURIComponent(profile?.username || '')}`
+  const quien = tienda ? lineaDeQuien({ usuario: profile?.username, nivel: 'Tienda' }) : lineaDeQuien({ usuario: profile?.username, nivel, racha: Number(profile?.current_streak) || 0 })
   const oscuro = doc.documentElement.dataset.theme === 'dark'
   // Las seis baldosas (918): avisos y mensajes con lo que tienes sin leer
   // (`data-cuenta`, la chapa de la barra), y lo tuyo con su cuenta (`data-n`).
@@ -91,7 +96,7 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
   dropdown.innerHTML = `
     <span class="tu-tirador" aria-hidden="true"></span>
     <div class="tu-arriba">
-      <a class="tu-cabeza" href="/perfil.html" aria-label="Ver tu perfil">
+      <a class="tu-cabeza" href="${tienda ? '/tienda' : '/perfil.html'}" aria-label="${tienda ? 'Ir a tu panel' : 'Ver tu perfil'}">
         <span class="nav-user-avatar-lg tu-avatar" style="${estiloAvatar}">${escapeHtml(inicial || '')}</span>
         <span class="tu-quien">
           <strong>${escapeHtml(name || '')}</strong>
@@ -103,16 +108,18 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
     <nav class="tu-baldosas" aria-label="Lo tuyo">
       <button type="button" data-tu="avisos">${icons.bell(20)}<span>Avisos</span><b class="tu-cuenta" data-cuenta="navBellBadge"></b></button>
       <a href="/mensajes.html" data-tu="mensajes">${icons.mail(20)}<span>Mensajes</span><b class="tu-cuenta" data-cuenta="navMsgBadge"></b></a>
-      ${baldosa('/guardados.html', icons.bookmark(20), 'Guardados', 'guardados')}
+      ${tienda ? `<a href="/tienda?ver=stock" data-ver="stock">${icons.package(20)}<span>Stock</span></a>
+      <a href="/tienda?ver=ventas" data-ver="ventas">${icons.receipt(20)}<span>Ventas</span></a>
+      <a href="/tienda?ver=escaparate" data-ver="escaparate">${icons.eye(20)}<span>Escaparate</span></a>
+      <a href="/tienda?ver=datos" data-ver="datos">${icons.settings(20)}<span>Datos</span></a>` : `${baldosa('/guardados.html', icons.bookmark(20), 'Guardados', 'guardados')}
       ${baldosa('/mi-coleccion?ver=quiero', ICONOS_COLECCION.corazon(20), 'La quiero', 'quiero')}
       ${baldosa('/mazos', icons.layers(20), 'Mis mazos', 'mazos')}
-      ${baldosa('/mis-partidas', icons.gamepad(20), 'Partidas', 'partidas')}
+      ${baldosa('/mis-partidas', icons.gamepad(20), 'Partidas', 'partidas')}`}
     </nav>
     <div class="tu-avisos-sitio"></div>
     <nav class="tu-lista" aria-label="Más">
-      ${profile?.tipo === 'tienda' ? `<a href="/tienda">${icons.package(20)}<span>Tu tienda</span></a>` : ''}
-      <a href="/ajustes">${icons.settings(20)}<span>Ajustes</span></a>
-      <a class="tu-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Un café en Ko-fi">${taza(20)}<span>Apoyar PokeDoc</span></a>
+      ${tienda ? `<a href="${miEscaparate}">${icons.users(20)}<span>Tu perfil público</span></a>` : `<a href="/ajustes">${icons.settings(20)}<span>Ajustes</span></a>
+      <a class="tu-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Un café en Ko-fi">${taza(20)}<span>Apoyar PokeDoc</span></a>`}
       <button type="button" class="tu-salir" id="navUserSignOut">${icons.logOut(20)}<span>Salir</span></button>
     </nav>`
 
@@ -124,7 +131,7 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
     }
   }
   pintarCuentas()
-  contarLoTuyo(profile).then((cuentas) => {
+  if (!tienda) contarLoTuyo(profile).then((cuentas) => {
     for (const b of dropdown.querySelectorAll('[data-n]')) {
       const n = cuentas[b.dataset.n]
       b.hidden = !(typeof n === 'number' && n > 0)

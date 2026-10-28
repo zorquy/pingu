@@ -41785,6 +41785,105 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1073 — «Hoy» de una tienda, con cifras
+
+La tanda 3 de «La web de una tienda» (PINGU: «resumen diario, semanal,
+mensual, anual»). `/tienda` → Hoy (`js/tienda-hoy.js`, por `import()`):
+
+- **Una llamada**: `tienda_hoy(desde, hasta, antes_desde, antes_hasta, paso,
+  zona)` (migración 1073) devuelve lo vendido y lo ganado en el periodo y en
+  el anterior, la serie de la gráfica, el valor del stock (a tu precio y en
+  Cardmarket, con `valor_de_copia`), los avisos, lo que busca la gente y las
+  visitas. Más las tres últimas ventas (`tienda_ventas_lista`).
+- **El anterior se corta A LA MISMA ALTURA** (`periodoDeHoy` en
+  `tiendas-puro.js`): hoy contra ayer hasta esta hora, el mes contra el mes
+  pasado hasta este día. Un mes a medias contra uno entero diría siempre
+  «vendes menos». Sin nada antes no hay porcentaje (`comparacion`: «Nada
+  ayer a esta hora», no «+∞ %»).
+- **Los avisos cuentan con los umbrales de `tienda_cumple`** (por debajo de
+  Cardmarket, con pérdida, +90 días, agotadas) y cada uno lleva al Stock con
+  ESE filtro (`FILTROS_DE_AVISO`, `filtrarStock`). La prueba compara cada
+  cuenta con `tienda_stock_lista` y el filtro que pone la pantalla: si
+  cambias un umbral, en los dos sitios.
+- **Lo que busca la gente**: la regla de un deseo de siempre (1047), solo lo
+  visible con unidades, sin la propia tienda y **sin nombres** (PINGU eligió
+  solo cuántos).
+- **Las visitas**: `tienda_visitas` (una fila por tienda y día, sin quién
+  mira; `page_views` junta los perfiles en «/usuario» a propósito, para no
+  apuntar quién mira a quién). Las suma `tienda_contar_visita`, que llama
+  `perfil-tienda.js` al abrir un escaparate: una vez por navegador y día
+  (`pd-visto-tienda-<id>`), la propia tienda no cuenta, y el QR del cartel
+  lleva `?utm_source=qr` para contarlas aparte. Por días: un límite a media
+  tarde cuenta su día entero.
+- **La gráfica** sigue la guía de gráficas: una serie, sin leyenda, barras
+  finas de `--acento` con la punta redondeada, la mayor con su cifra y cada
+  una con su fecha al pasar (`title`), y una frase para el lector de
+  pantalla en el `aria-label`.
+- **Los primeros pasos** se van cuando están todos hechos; el del QR cuenta
+  como hecho al imprimir o descargar el cartel (en ese navegador,
+  `pd-tienda-qr-<id>`).
+
+## Tanda 1072 — Vender y las ventas de una tienda
+
+- `tienda_ventas` (migración 1072): una fila por línea vendida; las de una
+  venta comparten `ticket`. Lleva lo que era la línea COPIADO, con el coste
+  de ese momento: cambiar el coste después no cambia lo vendido. Solo la ve
+  su tienda y no se escribe a mano.
+- `tienda_vender(lineas, donde)`: todo o nada, con la línea del stock
+  bloqueada (`for update`: dos ventas a la vez de la última copia no la
+  venden dos veces); `donde` es Mostrador, Cardmarket, Evento u Otro
+  (`DONDE_VENTA`; PINGU eligió apuntarlo). `tienda_deshacer_venta(ticket)`
+  devuelve las unidades a su línea (si se borró, solo borra la venta).
+  `tienda_ventas_lista(filtros, desde, cuántas)` filtra y suma en la base.
+- **La hoja de Vender** (`js/tienda-vender.js` + `css/tienda-vender.css`,
+  centrada en el PC y desde abajo en el móvil): busca en el stock solo lo
+  que tiene unidades, el precio sale puesto, las unidades no pasan de las
+  que hay, la cuenta es `cuentaDeVenta` (la misma que la base: el beneficio
+  solo de lo que tiene coste) y al final un aviso con Deshacer. Se abre con
+  el botón de arriba en el PC (`.tdm-vender`), el hueco del centro de la
+  barra del móvil (`VENDER`, `/tienda?vender=1`), «Seleccionar» del stock y
+  la ficha de una línea; todo pasa por el evento `pokedoc:tienda-vender`, y
+  al vender se emite `pokedoc:tienda-vendida` (Stock, Ventas y Hoy se
+  repintan).
+- **Ventas** (`js/tienda-ventas.js`): periodos (`rangoDePeriodo`), dónde,
+  buscar, las sumas de TODO lo filtrado, la lista por días, deshacer con dos
+  toques y el CSV (`csvDeVentas`).
+- **Trampa de la tanda**: otra vez una clase con `display` que le gana al
+  `[hidden]` (la lista de resultados de Vender no se escondía; la 1069 ya lo
+  vio en el perfil). Las hojas de tienda llevan `[hidden] { display: none }`
+  en su caja.
+
+## Tanda 1071 — La web de una tienda: solo su panel
+
+PINGU: «a una cuenta de tienda le limitaría el acceso a PokeDoc. Que tenga
+este panel y ya está… si quiere lo demás, que se haga una cuenta aparte».
+
+- **La puerta** (`js/tienda-puertas.js`, sin dependencias, lo importa
+  app.js): una tienda abre `/tienda`, `/mensajes`, SU perfil público (su
+  escaparate) y las páginas de entrar y legales; lo demás vuelve a
+  `/tienda` con `location.replace`. Para no pintar media página de PokeDoc,
+  `initNavbar` echa ANTES de esperar a la sesión con la marca de la última
+  vez (`pd-tienda`, que se borra al salir y al ver que no hay sesión) y
+  vuelve a mirar con el perfil. Es una puerta de la web, no de la base: la
+  cuenta sigue pudiendo leer lo que lee cualquiera por la API.
+- **Su web** (`js/tienda-marco.js` + `css/tienda-marco.css`, por `import()`
+  solo para tiendas): las secciones Hoy, Stock, Ventas, Escaparate,
+  Mensajes y Datos van en la barra de arriba, en la lateral y en la barra de
+  abajo, que son LAS DE SIEMPRE: `montarBarraLateral` y `montarBarraMovil`
+  aceptan ahora `secciones`, `actual` y lo de la lupa (y la del móvil,
+  `detalle`). Una sección con `ver` es una pestaña de `/tienda`: cambia sin
+  recargar (`data-ver`, lo coge `tienda.js`) y `pokedoc:tienda-ver` la
+  marca en todas las barras. Sin racha, sin el Ko-fi, sin el pie; la lupa y
+  Ctrl+K van al buscador del stock (`?buscar=1`). La hoja «Tú» de una
+  tienda (rama en `menu-tu.js`) lleva a su panel y no tiene Ajustes: la
+  contraseña se cambia en Datos («Tu cuenta», con el enlace por correo).
+- **El color de «Tienda»**: `#0b7285` en claro (5,59 con blanco encima;
+  5,25 como texto sobre la página) y `#3cc9d6` en oscuro con texto oscuro
+  (9,43; 7,61 sobre la lateral). Va en `tienda-marco.css`, no en
+  `style.css`: solo lo baja una tienda.
+- Con la lateral o la barra de abajo, las pestañas de `/tienda` se
+  esconden; en un PC estrecho (el menú plegado arriba) se quedan.
+
 ## Tanda 1070 — Tu mazo del constructor, tu puesto, tu predeterminado y la imagen del torneo a tu gusto
 
 (Hecha como «tanda 1060» en otra sesión y renumerada al integrarla: el 1060

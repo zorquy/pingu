@@ -91,8 +91,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   con `precio_visible`): el perfil de una tienda es su escaparate
   (`js/perfil-tienda.js`, sin las pestañas de una persona), y una tienda en
   otra pantalla pasa por `js/en-tiendas.js` o por `mercado_con_tiendas`. La
-  `user_collection` de una tienda no entra en el Mercado. Cardmarket y los
-  pagos, aparcados.
+  `user_collection` de una tienda no entra en el Mercado. Una cuenta de
+  tienda SOLO tiene su panel (1071, PINGU: «que no pueda acceder a todo lo
+  demás»): `js/tienda-puertas.js` dice qué abre y lo demás vuelve a
+  `/tienda`; sus barras son las de siempre con sus secciones
+  (`js/tienda-marco.js`). Una página nueva que deba abrir una tienda va en
+  `SUYAS`, y una sección nueva de su panel, en `SECCIONES_DE_TIENDA`. Las
+  ventas (1072) pasan por `tienda_vender` (todo o nada, con el coste de ese
+  momento) y Hoy (1073) sale de `tienda_hoy`, con los avisos contados con
+  los umbrales de `tienda_cumple`. Cardmarket y los pagos, aparcados.
 - **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
   1065 y 1066): cada visita lleva `modo` (app instalada o web),
   `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que

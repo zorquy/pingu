@@ -223,7 +223,7 @@ async function pintarFranja() {
   caja.innerHTML = `<h3 class="mc-mercado-tiendas-titulo">Tiendas con cartas de tu lista</h3>
     <div class="mc-mercado-tiendas-fila">${tiendas.map((t) => {
       const nombre = t.display_name || t.username || 'Tienda'
-      return `<a class="mc-tienda-tarjeta" href="/usuario/${encodeURIComponent(t.username || '')}?lista=1">
+      return `<a class="mc-tienda-tarjeta" href="/usuario/${encodeURIComponent(t.username || '')}?lista=1"${atributosDeRango(t)}>
         <span class="mc-tienda-logo" style="${t.avatar_url ? avatarStyle(t) : ''}">${t.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
         <span class="mc-tienda-datos"><strong>${escapeHtml(nombre)}</strong>${t.ciudad ? `<small>${escapeHtml(t.ciudad)}</small>` : ''}<em>${t.cartas === 1 ? '1 de tu lista' : `${t.cartas} de tu lista`}</em></span>
       </a>`

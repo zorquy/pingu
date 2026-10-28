@@ -175,18 +175,27 @@
       <nav class="seg td-pestanas" id="tdPestanas" role="tablist" aria-label="Panel de la tienda">
         <button type="button" class="seg-btn" role="tab" data-td="hoy" aria-selected="true">Hoy</button>
         <button type="button" class="seg-btn" role="tab" data-td="stock" aria-selected="false">Stock</button>
+        <button type="button" class="seg-btn" role="tab" data-td="ventas" aria-selected="false">Ventas</button>
         <button type="button" class="seg-btn" role="tab" data-td="escaparate" aria-selected="false">Escaparate</button>
         <button type="button" class="seg-btn" role="tab" data-td="datos" aria-selected="false">Datos</button>
       </nav>
 
       <section class="td-hoja" data-td-hoja="hoy">
-        <h2>Primeros pasos</h2>
-        <ol class="td-pasos" id="tdPasos"></ol>
+        <div class="td-pasos-caja" id="tdPasosCaja">
+          <h2>Primeros pasos</h2>
+          <ol class="td-pasos" id="tdPasos"></ol>
+        </div>
+        <div id="tdHoy"></div>
       </section>
 
       <section class="td-hoja hidden" data-td-hoja="stock">
         <h2 class="sr-only">Stock</h2>
         <div id="tdStock"><p class="subtext">Cargando tu stock…</p></div>
+      </section>
+
+      <section class="td-hoja hidden" data-td-hoja="ventas">
+        <h2 class="sr-only">Ventas</h2>
+        <div id="tdVentas"><p class="subtext">Cargando tus ventas…</p></div>
       </section>
 
       <section class="td-hoja hidden" data-td-hoja="escaparate">
@@ -222,6 +231,14 @@
           <p class="td-error" id="tdDatosError" role="alert"></p>
           <button type="submit" class="btn-primary" id="tdDatosGuardar">Guardar</button>
         </form>
+        <div class="td-cuenta">
+          <h2>Tu cuenta</h2>
+          <p class="subtext">Entras con <strong id="tdCuentaEmail"></strong>. Es una cuenta de tienda: para lo demás de PokeDoc (tu colección, el foro, los retos), hazte una cuenta personal con otro correo.</p>
+          <div class="td-cuenta-botones">
+            <button type="button" class="btn-secondary" id="tdCuentaClave">Cambiar la contraseña</button>
+            <button type="button" class="btn-secondary" id="tdCuentaSalir">Salir</button>
+          </div>
+        </div>
       </section>
     </div>
   </main>

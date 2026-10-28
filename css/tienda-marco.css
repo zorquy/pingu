@@ -1,0 +1,41 @@
+/* La web de una tienda (tanda 1071): su color y fuera lo que no es suyo. La
+   inyecta js/tienda-marco.js; una persona no la baja. Contrastes en SCHEMA 1071. */
+html[data-seccion='tienda'] { --acento: #0b7285; --acento-texto: var(--blanco-fijo); }
+:root[data-theme='dark'][data-seccion='tienda'] { --acento: #3cc9d6; --acento-texto: #0b1219; }
+
+/* El pie es el de PokeDoc entero y la racha es de los retos. */
+html.es-tienda .footer,
+html.es-tienda .nav-racha {
+  display: none;
+}
+
+/* Con la lateral o la barra de abajo, las pestañas de /tienda ya están en
+   ellas; en un PC estrecho (el menú plegado arriba) se quedan. */
+html.es-tienda.con-lateral .td-pestanas,
+html.es-tienda.con-barra-movil .td-pestanas {
+  display: none;
+}
+
+/* Vender (1072): en el PC, botón arriba; en el móvil, el hueco del centro de
+   la barra, en un círculo del color de la sección. */
+.tdm-vender {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 40px;
+  margin-right: var(--e-sm);
+  padding: 0 var(--e-lg);
+  border-radius: var(--radius-pill);
+}
+html.con-barra-movil .tdm-vender { display: none; }
+
+.bm a.bm-vender svg {
+  box-sizing: content-box;
+  /* El círculo crece 16 px: sube lo mismo para que la palabra quede en fila. */
+  margin-top: calc(-2 * var(--e-sm));
+  padding: var(--e-sm);
+  border-radius: 50%;
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+.bm a.bm-vender { color: var(--text); }

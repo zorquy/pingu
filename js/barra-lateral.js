@@ -91,9 +91,11 @@ export function lateralHtml(secciones, actual, clave, { conSesion = false, abier
         : ''
       // La sección lleva `aria-current` solo si ES la página (Inicio en la
       // portada); si no, «estás aquí» lo dice la página de debajo.
-      const esLaPagina = claveDePagina(destinoDe(s, conSesion)) === clave
+      // Las pestañas de una misma página (las de /tienda, 1071) comparten la
+      // clave: la que está aquí es la activa.
+      const esLaPagina = s.ver ? activa : claveDePagina(destinoDe(s, conSesion)) === clave
       const aquiDebajo = conCajon && paginasDe(s).some((e) => claveDePagina(e.href) === clave)
-      return `<li class="lat-seccion${activa ? ' lat-activa' : ''}"><div class="lat-fila"><a class="lat-seccion-enlace" href="${destinoDe(s, conSesion)}" title="${s.nombre}"${esLaPagina && !aquiDebajo ? ' aria-current="page"' : ''}>${icons[ICONOS[s.nombre]]?.(20) || ''}<span>${s.nombre}</span></a>${flecha}</div>${cajon}</li>`
+      return `<li class="lat-seccion${activa ? ' lat-activa' : ''}"><div class="lat-fila"><a class="lat-seccion-enlace" href="${destinoDe(s, conSesion)}" title="${s.nombre}"${s.ver ? ` data-ver="${s.ver}"` : ''}${esLaPagina && !aquiDebajo ? ' aria-current="page"' : ''}>${icons[s.icono || ICONOS[s.nombre]]?.(20) || ''}<span>${s.nombre}</span></a>${flecha}</div>${cajon}</li>`
     })
     .join('')
 }
@@ -122,13 +124,16 @@ export function ajustarAlto(barra) {
   if (barra.scrollHeight > barra.clientHeight + 1) barra.classList.add('lat-prieta')
 }
 
-export function montarBarraLateral({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin) } = {}) {
+// Como la del móvil, las secciones, la activa y los textos de la lupa y de
+// tu cuenta se pueden dar desde fuera (1071, la web de una tienda); `apoyar`
+// a false quita el Ko-fi.
+export function montarBarraLateral({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin), secciones: dadas = null, actual: dada, buscarTexto = 'Busca cartas, guías, gente…', yoTexto = 'Ver perfil', apoyar = true } = {}) {
   const navbar = doc.getElementById('navbar')
   if (!navbar || doc.querySelector('.lat')) return null
-  const secciones = seccionesDeLaBarra(doc)
+  const secciones = dadas || seccionesDeLaBarra(doc)
   if (!secciones.length) return null
   const hoja = hojaInyectada('css/lateral.css')
-  const actual = seccionActual(secciones, clave)
+  const actual = dada !== undefined ? dada : seccionActual(secciones, clave)
   const logo = navbar.querySelector('.nav-logo')
   const barra = doc.createElement('nav')
   barra.className = 'lat'
@@ -141,7 +146,7 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
   // para abrir un submenú, y se plegaba sola al entrar en una expansión
   // (788). Lo que quedara apuntado de antes se olvida.
   try { localStorage.removeItem('pokedoc-lateral-plegada') } catch {}
-  barra.innerHTML = `<div class="lat-cabeza">${logo ? `<a class="nav-logo lat-logo" href="/">${logo.innerHTML}</a>` : ''}</div><ul class="lat-lista">${lateralHtml(secciones, actual, clave, { conSesion })}</ul><a class="lat-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Apoyar PokeDoc: un café en Ko-fi">${DIBUJOS.taza(20)}<span class="lat-apoyar-texto"><b>Apoyar PokeDoc</b><small>Un café en Ko-fi</small></span></a>`
+  barra.innerHTML = `<div class="lat-cabeza">${logo ? `<a class="nav-logo lat-logo" href="/">${logo.innerHTML}</a>` : ''}</div><ul class="lat-lista">${lateralHtml(secciones, actual, clave, { conSesion })}</ul>${apoyar ? `<a class="lat-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Apoyar PokeDoc: un café en Ko-fi">${DIBUJOS.taza(20)}<span class="lat-apoyar-texto"><b>Apoyar PokeDoc</b><small>Un café en Ko-fi</small></span></a>` : ''}`
   barra.addEventListener('click', (e) => {
     const flecha = e.target.closest('.lat-flecha')
     if (flecha) {
@@ -183,7 +188,7 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
     if (!buscar) return false
     if (!buscar.querySelector('.nav-busca-texto')) {
       const mac = /Mac|iPhone|iPad/.test(globalThis.navigator?.platform || '')
-      buscar.insertAdjacentHTML('beforeend', `<span class="nav-busca-texto">Busca cartas, guías, gente…</span><kbd class="nav-busca-kbd">${mac ? '⌘ K' : 'Ctrl K'}</kbd>`)
+      buscar.insertAdjacentHTML('beforeend', `<span class="nav-busca-texto">${buscarTexto}</span><kbd class="nav-busca-kbd">${mac ? '⌘ K' : 'Ctrl K'}</kbd>`)
     }
     return true
   }
@@ -193,7 +198,7 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
     const yo = doc.createElement('button')
     yo.type = 'button'
     yo.className = 'lat-yo'
-    yo.innerHTML = `<span class="lat-yo-avatar" style="${avatar.getAttribute('style') || ''}" aria-hidden="true">${avatar.childNodes[0]?.nodeType === 3 ? avatar.childNodes[0].textContent : ''}</span><span class="lat-yo-texto"><b></b><small>Ver perfil</small></span>${icons.settings(18)}`
+    yo.innerHTML = `<span class="lat-yo-avatar" style="${avatar.getAttribute('style') || ''}" aria-hidden="true">${avatar.childNodes[0]?.nodeType === 3 ? avatar.childNodes[0].textContent : ''}</span><span class="lat-yo-texto"><b></b><small>${yoTexto}</small></span>${icons.settings(18)}`
     yo.querySelector('b').textContent = avatar.getAttribute('title') || 'Tu cuenta'
     yo.setAttribute('aria-label', `Tu cuenta: ${avatar.getAttribute('title') || ''}`)
     // El clic no sube al documento: si subiera, el «cerrar al pulsar fuera»

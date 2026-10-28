@@ -189,6 +189,20 @@ async function seguir() {
   }
 }
 
+// Las visitas al escaparate (1073), para el Hoy de la tienda: una por
+// navegador y día (recargar no suma), sin la propia tienda y sin quién mira
+// (la base solo guarda cuántas por día).
+function contarVisita(perfil, sesion, qr) {
+  if (sesion?.user?.id === perfil.id) return
+  const clave = `pd-visto-tienda-${perfil.id}`
+  const hoy = new Date().toLocaleDateString('sv')
+  try {
+    if (localStorage.getItem(clave) === hoy) return
+    localStorage.setItem(clave, hoy)
+  } catch {}
+  supabase.rpc('tienda_contar_visita', { p_tienda: perfil.id, p_qr: qr }).then(() => {}, () => {})
+}
+
 export async function montarPerfilTienda(destino, perfil, sesion) {
   await hojaInyectada('css/perfil-tienda.css')
   caja = destino
@@ -201,6 +215,7 @@ export async function montarPerfilTienda(destino, perfil, sesion) {
   if (sesion && params.get('lista') === '1') est.filtros.de_tu_lista = true
   // Y desde «En tiendas» de una carta (`?carta=`): solo esa, con la salida a todo.
   if (params.get('carta')) est.filtros.carta = params.get('carta')
+  contarVisita(perfil, sesion, params.get('utm_source') === 'qr')
   caja.classList.add('pt')
   caja.innerHTML = cabeceraHtml()
   caja.addEventListener('click', (e) => {

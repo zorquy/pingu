@@ -4,6 +4,52 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (313) — PINGU-Claude (1071, 1072 y 1073 — la web de una tienda, vender y Hoy con cifras)
+
+**Hecho**: la propuesta «La web de una tienda», con lo que PINGU eligió (lo
+recomendado, y la cuenta de tienda SIN acceso al resto de PokeDoc).
+- **1071**: una cuenta de tienda solo abre su panel, sus mensajes y su
+  escaparate; lo demás vuelve a /tienda (`js/tienda-puertas.js`, desde
+  app.js, antes de esperar a la sesión con la marca `pd-tienda`). Su menú
+  (Hoy, Stock, Ventas, Escaparate, Mensajes, Datos) va en la barra de
+  arriba, la lateral y la de abajo, que son las de siempre con sus
+  secciones (`js/tienda-marco.js`); color propio «Tienda» (verde azulado),
+  sin racha, sin Ko-fi, sin pie; la lupa busca en el stock; la hoja «Tú» es
+  la de la tienda; la contraseña se cambia en Datos.
+- **1072**: Vender (botón arriba en el PC, en el centro de la barra en el
+  móvil, desde «Seleccionar» y desde la ficha de una línea), con dónde se
+  vendió y Deshacer; la pestaña Ventas con periodos, dónde, buscar, sumas,
+  deshacer y CSV.
+- **1073**: Hoy con cifras: vendido, beneficio, margen y valor del stock por
+  hoy, semana, mes y año contra el anterior a la misma altura; la gráfica;
+  avisos que llevan al stock filtrado; lo que busca la gente (solo
+  cuántos); las visitas al escaparate (las del QR aparte). Los primeros
+  pasos se van al hacerlos.
+
+**Para PINGU**: ejecutar `supabase-migration-1072-tienda-ventas.sql` y luego
+`supabase-migration-1073-tienda-hoy.sql`. Sin ellas, Ventas y Hoy dicen qué
+migración falta; la 1071 no tiene migración. El QR del cartel cambia (lleva
+`?utm_source=qr`): si ya imprimiste uno de prueba, vuelve a imprimirlo.
+
+**Ficheros**: `js/tienda-puertas.js`, `js/tienda-marco.js`,
+`css/tienda-marco.css`, `js/tienda-vender.js`, `css/tienda-vender.css`,
+`js/tienda-ventas.js`, `js/tienda-hoy.js` (nuevos); `js/app.js`,
+`js/barra-movil.js`, `js/barra-lateral.js` (secciones desde fuera),
+`js/menu-tu.js`, `js/tienda.js`, `tienda.html`, `css/tienda.css`,
+`js/tienda-stock.js`, `js/perfil-tienda.js`, `js/tiendas-puro.js`, y las
+migraciones 1072 y 1073. De paso, la 386 (el color del rango de un nombre)
+cazó tres cosas de la 1069: la franja del Mercado lleva `atributosDeRango` y
+las dos funciones llevan su `-- sin rango:` (una tienda nunca es admin ni
+moderadora; solo cambia un comentario, no hay que volver a ejecutarla).
+La suite entera: los rojos que quedan fallan igual con el código de antes
+(no son de estas tandas). Pruebas en `pruebas`: 1071 (+pantalla), 1072
+(PostgreSQL, +pantalla), 1073 (PostgreSQL, +pantalla); el doble sabe
+`resetPasswordForEmail`.
+
+**Pendiente**: lo aparcado (la cámara, lotes, empleados, Cardmarket, pagos).
+La puerta de la 1071 es de la web: por la API, la cuenta lee lo que lee
+cualquiera.
+
 ## 2026-10-28 (312) — PINGU-Claude (1069b — el alta de tienda pintaba «{}»)
 
 **Hecho**: al crear la cuenta de la tienda, un fallo del servidor de

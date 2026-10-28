@@ -111,6 +111,7 @@ $$;
 -- ── 2. Las tiendas que tienen una carta ──
 -- La más barata primero. Sin coste, sin lo oculto ni lo agotado; sin precio
 -- si la tienda no lo enseña.
+-- sin rango: una cuenta de tienda nunca es admin ni moderadora (386).
 create or replace function public.tiendas_que_tienen(p_card_id text, p_limite int default 12)
 returns table (
   tienda_id uuid, username text, display_name text, avatar_url text, ciudad text,
@@ -139,6 +140,7 @@ as $$
 $$;
 
 -- ── 3. La franja del Mercado: las tiendas con algo de tu lista ──
+-- sin rango: una cuenta de tienda nunca es admin ni moderadora (386).
 create or replace function public.tiendas_con_mis_deseos(p_limite int default 12)
 returns table (tienda_id uuid, username text, display_name text, avatar_url text, ciudad text, cartas int)
 language sql

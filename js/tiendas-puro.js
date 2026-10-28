@@ -36,14 +36,15 @@ export function caraDelPanel({ sesion, perfil }) {
 }
 
 // Los primeros pasos del panel: lo hecho y lo que llega.
-export function primerosPasos(tienda, { lineas = 0 } = {}) {
+// El QR (1073) cuenta como hecho al imprimirlo o descargarlo (`qr`).
+export function primerosPasos(tienda, { lineas = 0, qr = false } = {}) {
   const datos = !!(tienda?.ciudad && tienda?.direccion)
   const stock = lineas > 0
   return [
     { hecho: true, texto: 'Crear la cuenta de la tienda' },
     { hecho: datos, texto: 'Rellenar los datos de la tienda', ir: 'datos', nota: datos ? null : 'Dirección y horario, para que te encuentren.' },
     { hecho: stock, texto: 'Meter tu stock', ir: 'stock', nota: stock ? `${lineas} ${lineas === 1 ? 'línea' : 'líneas'} en el stock.` : 'Una a una o importando tu Excel.' },
-    { hecho: false, texto: 'Imprimir el QR del mostrador', ir: 'escaparate', nota: 'Un cartel A4 con tu QR: lleva a tu escaparate.' },
+    { hecho: Boolean(qr), texto: 'Imprimir el QR del mostrador', ir: 'escaparate', nota: qr ? null : 'Un cartel A4 con tu QR: lleva a tu escaparate.' },
   ]
 }
 
@@ -156,4 +157,113 @@ export function enlaceAMapa(direccion, ciudad) {
   const d = String(direccion || '').trim()
   if (!d) return null
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([d, String(ciudad || '').trim()].filter(Boolean).join(', '))}`
+}
+
+// ── Las ventas (1072) ──
+
+// Dónde se vendió (PINGU eligió apuntarlo): los mismos que acepta la base.
+export const DONDE_VENTA = [['mostrador', 'Mostrador'], ['cardmarket', 'Cardmarket'], ['evento', 'Evento'], ['otro', 'Otro']]
+
+// Lo que suma una venta antes de apuntarla, con la cuenta de `tienda_vender`:
+// el beneficio solo de lo que tiene coste, y sin ninguna con coste no hay
+// beneficio (null, no un cero). El margen, sobre lo pagado.
+export function cuentaDeVenta(lineas) {
+  let unidades = 0
+  let importe = 0
+  let coste = 0
+  let beneficio = 0
+  let conCoste = 0
+  let sinCoste = 0
+  for (const l of lineas || []) {
+    const n = Number(l.unidades)
+    const p = Number(l.precio)
+    if (!(n > 0) || l.precio == null || l.precio === '' || !Number.isFinite(p)) continue
+    unidades += n
+    importe += p * n
+    if (l.coste == null || !Number.isFinite(Number(l.coste))) {
+      sinCoste++
+      continue
+    }
+    conCoste++
+    coste += Number(l.coste) * n
+    beneficio += (p - Number(l.coste)) * n
+  }
+  const r = (x) => Math.round(x * 100) / 100
+  return { unidades, importe: r(importe), beneficio: conCoste ? r(beneficio) : null, margen: coste > 0 ? Math.round((beneficio / coste) * 100) : null, sinCoste }
+}
+
+// Los periodos de Ventas (y de Hoy, 1073), en la hora de quien mira:
+// `desde` incluido y `hasta` sin incluir, como los pide la base.
+export const PERIODOS = [['hoy', 'Hoy'], ['semana', '7 días'], ['mes', 'Este mes'], ['anio', 'Este año'], ['todo', 'Todo']]
+export function rangoDePeriodo(periodo, ahora = new Date()) {
+  const dia = (a, m, d) => new Date(a, m, d)
+  const a = ahora.getFullYear()
+  const m = ahora.getMonth()
+  const d = ahora.getDate()
+  const r = {
+    hoy: [dia(a, m, d), dia(a, m, d + 1)],
+    semana: [dia(a, m, d - 6), dia(a, m, d + 1)],
+    mes: [dia(a, m, 1), dia(a, m + 1, 1)],
+    anio: [dia(a, 0, 1), dia(a + 1, 0, 1)],
+  }[periodo]
+  return r ? { desde: r[0].toISOString(), hasta: r[1].toISOString() } : { desde: null, hasta: null }
+}
+
+// El CSV de las ventas, con punto y coma y la coma decimal, como el del stock.
+export const CABECERA_VENTAS = ['fecha', 'venta', 'id', 'producto', 'nombre', 'expansion', 'numero', 'idioma', 'estado', 'variante', 'gradeo', 'unidades', 'precio', 'coste', 'beneficio', 'donde']
+export function csvDeVentas(filas, nombreDeSet = (id) => id || '') {
+  const celda = (v) => {
+    if (v == null) return ''
+    const t = typeof v === 'number' ? String(v).replace('.', ',') : String(v)
+    return /[;"\n\r]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t
+  }
+  const lineas = [CABECERA_VENTAS.join(';')]
+  for (const f of filas || []) {
+    const beneficio = f.coste == null ? null : Math.round((Number(f.precio) - Number(f.coste)) * Number(f.unidades) * 100) / 100
+    lineas.push([
+      f.vendida_el, f.ticket, f.card_id, f.product_id, f.nombre, f.set_id ? nombreDeSet(f.set_id) : '', f.numero, f.idioma,
+      f.product_id ? '' : f.estado, f.product_id ? '' : f.variante, f.gradeo, f.unidades, Number(f.precio), f.coste == null ? null : Number(f.coste), beneficio,
+      (DONDE_VENTA.find(([v]) => v === f.donde) || [])[1] || f.donde,
+    ].map(celda).join(';'))
+  }
+  return lineas.join('\n')
+}
+
+// ── Hoy (1073) ──
+
+// El periodo de Hoy y el anterior, cortado A LA MISMA ALTURA: hoy contra
+// ayer hasta esta hora, el mes contra el mes pasado hasta este día. Comparar
+// un mes a medias con uno entero diría siempre «vendes menos».
+export const PERIODOS_HOY = [['hoy', 'Hoy'], ['semana', 'Semana'], ['mes', 'Mes'], ['anio', 'Año']]
+export function periodoDeHoy(periodo, ahora = new Date()) {
+  const a = ahora.getFullYear()
+  const m = ahora.getMonth()
+  const d = ahora.getDate()
+  const dia = (x, y, z) => new Date(x, y, z)
+  const corre = ahora.getTime() - dia(a, m, d).getTime()
+  const iso = (x) => x.toISOString()
+  if (periodo === 'semana') {
+    const desde = dia(a, m, d - 6)
+    return { desde: iso(desde), hasta: iso(dia(a, m, d + 1)), antesDesde: iso(dia(a, m, d - 13)), antesHasta: iso(new Date(dia(a, m, d - 7).getTime() + corre)), paso: 'day', frente: 'que los 7 días de antes' }
+  }
+  if (periodo === 'mes') {
+    const dias = new Date(a, m, 0).getDate()
+    return { desde: iso(dia(a, m, 1)), hasta: iso(dia(a, m + 1, 1)), antesDesde: iso(dia(a, m - 1, 1)), antesHasta: iso(new Date(dia(a, m - 1, Math.min(d, dias)).getTime() + corre)), paso: 'day', frente: 'que el mes pasado a estas alturas' }
+  }
+  if (periodo === 'anio') {
+    return { desde: iso(dia(a, 0, 1)), hasta: iso(dia(a + 1, 0, 1)), antesDesde: iso(dia(a - 1, 0, 1)), antesHasta: iso(new Date(dia(a - 1, m, Math.min(d, new Date(a - 1, m + 1, 0).getDate())).getTime() + corre)), paso: 'month', frente: 'que el año pasado a estas alturas' }
+  }
+  return { desde: iso(dia(a, m, d)), hasta: iso(dia(a, m, d + 1)), antesDesde: iso(dia(a, m, d - 1)), antesHasta: iso(new Date(dia(a, m, d - 1).getTime() + corre)), paso: 'hour', frente: 'que ayer a esta hora' }
+}
+
+// «+18 % que ayer a esta hora». Sin nada antes no hay porcentaje (de cero a
+// algo no es «+∞ %»): «Nada ayer a esta hora».
+export function comparacion(ahora, antes, frente) {
+  const x = Number(ahora) || 0
+  const y = Number(antes) || 0
+  if (antes == null) return null
+  if (!y) return x ? { texto: `Nada ${frente.replace(/^que /, '')}`, sube: true } : null
+  const pct = Math.round(((x - y) / y) * 100)
+  if (!pct) return { texto: `Igual ${frente.replace(/^que /, 'que ')}`, sube: null }
+  return { texto: `${pct > 0 ? '+' : '−'}${Math.abs(pct)} % ${frente}`, sube: pct > 0 }
 }

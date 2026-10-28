@@ -443,6 +443,7 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
     <p class="tds-error" role="alert"></p>
     <div class="tds-form-pie">
       ${fila ? `<button type="button" class="btn-secondary tds-borrar" data-borrar="${escapeHtml(fila.id)}">Borrar</button>` : '<button type="button" class="btn-secondary" data-volver>← Otra</button>'}
+      ${fila && fila.unidades > 0 ? '<button type="button" class="btn-secondary" data-vender-esta>Vender</button>' : ''}
       ${fila ? '' : '<button type="submit" class="btn-secondary" data-seguir>Añadir y seguir</button>'}
       <button type="submit" class="btn-primary">${fila ? 'Guardar' : 'Añadir'}</button>
     </div>`
@@ -485,6 +486,11 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
     if (e.target.closest('[data-volver]')) {
       form.classList.add('hidden')
       lista?.classList.remove('hidden')
+    }
+    // Vender esta línea (1072): la hoja de Vender, con ella ya puesta.
+    if (e.target.closest('[data-vender-esta]')) {
+      d.close()
+      return document.dispatchEvent(new CustomEvent('pokedoc:tienda-vender', { detail: [fila] }))
     }
     const borrar = e.target.closest('[data-borrar]')
     if (borrar) {
@@ -591,6 +597,7 @@ async function enBloque(accion) {
   const ids = [...est.marcadas]
   if (!ids.length) return
   if (accion === 'precio') return abrirPrecioBloque()
+  if (accion === 'vender') return document.dispatchEvent(new CustomEvent('pokedoc:tienda-vender', { detail: est.filas.filter((f) => est.marcadas.has(f.id) && f.unidades > 0) }))
   if (accion === 'borrar') {
     const b = $('[data-bloque="borrar"]')
     if (b.dataset.seguro !== 'si') {
@@ -656,6 +663,14 @@ async function abrirImportar() {
   abrirImportarStock({ perfil, alTerminar: () => pedir() })
 }
 
+// Poner unos filtros desde fuera (los avisos de Hoy, 1073).
+export function filtrarStock(filtros) {
+  if (!caja) return
+  const q = $('[data-tds-q]')
+  if (q) q.value = filtros?.q || ''
+  cambiar({ ...(filtros || {}) })
+}
+
 // ── Montar ──
 
 export function montarStock(destino, { perfil: p }) {
@@ -682,6 +697,7 @@ export function montarStock(destino, { perfil: p }) {
         <div class="tds-pie"></div>
         <div class="tds-sel" hidden>
           <span class="tds-sel-n"></span>
+          <button type="button" class="btn-primary" data-bloque="vender">Vender</button>
           <button type="button" class="btn-secondary" data-bloque="precio">Poner precio</button>
           <button type="button" class="btn-secondary" data-bloque="ocultar">Ocultar</button>
           <button type="button" class="btn-secondary" data-bloque="ensenar">Enseñar</button>
@@ -773,6 +789,8 @@ export function montarStock(destino, { perfil: p }) {
     }
   })
 
+  // Lo vendido (1072) cambia las unidades: la tabla se vuelve a pedir.
+  document.addEventListener('pokedoc:tienda-vendida', () => pedir())
   pedir()
   cargarVistas()
 }

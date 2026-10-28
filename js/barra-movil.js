@@ -252,14 +252,14 @@ export function sumaDeAvisos(textos) {
   return n > 9 ? '9+' : n ? String(n) : ''
 }
 
-function montarTu(doc, win) {
+function montarTu(doc, win, buscar = { href: '/buscar.html', texto: 'Busca cartas, guías, gente…' }) {
   const inner = doc.querySelector('.nav-inner')
   const derecha = doc.querySelector('.nav-right')
   if (inner && derecha && !doc.querySelector('.bm-pastilla')) {
     const a = doc.createElement('a')
     a.className = 'bm-pastilla'
-    a.href = '/buscar.html'
-    a.innerHTML = `${icons.search?.(17) || ''}<span>Busca cartas, guías, gente…</span>`
+    a.href = buscar.href
+    a.innerHTML = `${icons.search?.(17) || ''}<span>${escapeHtml(buscar.texto)}</span>`
     inner.insertBefore(a, derecha)
   }
   // El número del avatar: lo que digan las chapas de mensajes y avisos,
@@ -358,7 +358,10 @@ export function montarCabeceraDetalle({ doc = document, win = window, seccion, c
   return cab
 }
 
-export function montarBarraMovil({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin) } = {}) {
+// Las secciones, la activa, la lupa y si es una página de detalle se pueden
+// dar desde fuera (1071): la web de una tienda tiene las suyas, que no están
+// en la barra de arriba (js/tienda-marco.js).
+export function montarBarraMovil({ conSesion = false, doc = document, clave = claveDePagina(location.pathname, location.origin), secciones: dadas = null, actual: dada, detalle = null, buscar } = {}) {
   // Montada una vez. La CLASE ya no sirve de marca (981): la pone el guion
   // de la cabecera de cada página antes del primer pintado, para que el
   // hueco y la barra del móvil estén desde el principio y no salte todo
@@ -366,15 +369,15 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   if (!doc.getElementById('navbar') || doc.documentElement.dataset.bmMontada) return null
   doc.documentElement.dataset.bmMontada = '1'
   hojaInyectada('css/movil.css')
-  const secciones = seccionesDeLaBarra(doc)
-  const actual = seccionActual(secciones, clave)
+  const secciones = dadas || seccionesDeLaBarra(doc)
+  const actual = dada !== undefined ? dada : seccionActual(secciones, clave)
   doc.documentElement.classList.add('con-barra-movil')
 
   // DESDE LA 753 LA BARRA VIENE EN EL HTML (generar-barra-movil.mjs), para
   // que esté en el primer pintado y en la transición entre páginas. Aquí se
   // vuelve a escribir con la cuenta (Cartas lleva a Mi colección) solo si
   // cambia algo; una página sin ella (una vieja en caché) la recibe entera.
-  const html = secciones.map((s) => `<a href="${destinoDe(s, conSesion)}"${s.nombre === actual ? ' aria-current="page"' : ''}>${icons[ICONOS[s.nombre]]?.(24) || ''}<span>${s.nombre}</span></a>`).join('')
+  const html = secciones.map((s) => `<a href="${destinoDe(s, conSesion)}"${s.clase ? ` class="${s.clase}"` : ''}${s.ver ? ` data-ver="${s.ver}"` : ''}${s.nombre === actual ? ' aria-current="page"' : ''}>${icons[s.icono || ICONOS[s.nombre]]?.(24) || ''}<span>${s.nombre}</span></a>`).join('')
   let barra = doc.querySelector('nav.bm')
   if (!barra) {
     barra = doc.createElement('nav')
@@ -393,7 +396,8 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   // y sube un nivel o quita sus filtros ella.
   barra.addEventListener('click', (ev) => {
     const a = ev.target.closest('a')
-    if (!a) return
+    // Una pestaña de la misma página (las de /tienda, 1071) la cambia la página.
+    if (!a || a.dataset.ver) return
     // EL ICONO SE MARCA YA (892): al tocar otra sección, la pestaña nueva
     // se pinta activa en el mismo instante, antes de que llegue la página.
     // Si el clic no acaba navegando, la página sigue aquí y no pasa nada.
@@ -412,7 +416,7 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   vigilarBajada(doc, window)
   recordarPosicion(doc, window)
   vigilarVisor(doc, window)
-  montarTu(doc, window)
+  montarTu(doc, window, buscar)
   // Las hojas de abajo se cierran arrastrándolas (804).
   montarArrastreDeHojas({ doc, win: window })
   // Instalar en la pantalla de inicio (A1) y, ya instalada —sin barra del
@@ -431,7 +435,7 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   const enLista = seccion?.enlaces.some((e) => claveDePagina(e.href) === clave)
   // La cabecera de detalle (1019): lo decide `data-detalle`, que puso el
   // generador; sin él (una página vieja en caché), lo mismo que decide él.
-  const esDetalle = doc.documentElement.hasAttribute('data-detalle') || Boolean(seccion && !enLista && clave !== 'index')
+  const esDetalle = detalle ?? (doc.documentElement.hasAttribute('data-detalle') || Boolean(seccion && !enLista && clave !== 'index'))
   if (esDetalle) montarCabeceraDetalle({ doc, win: window, seccion, conSesion })
   // Instalar en la pantalla de inicio (A1) y, ya instalada —sin barra del
   // navegador—, tirar hacia abajo para refrescar (X4). Tanda 732; desde la
