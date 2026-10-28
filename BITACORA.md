@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (311) — PINGU-Claude (1069 — lo que ve la gente de una tienda)
+
+**Hecho**: la tanda 3 y última del portal de tiendas. El perfil de una
+tienda (`/usuario/<tienda>`) es su escaparate y nada más: logo, «Tienda»,
+ciudad, Escribir, Cómo llegar (al mapa), Seguir, dirección, horario y web, y
+su stock visible en baldosas, con «Tiene N de tu lista» arriba, Todo / De tu
+lista / Sellado, buscar, idioma y orden. Nunca enseña lo que costó ni dónde
+está; el precio, solo si la tienda lo deja a la vista. En /tienda →
+Escaparate, el cartel con el QR del perfil para el mostrador (imprimir,
+descargar el SVG, copiar el enlace). En el Mercado, las tiendas entran como
+uno más: avatar cuadrado, «En tienda: X €», chips Todos / Personas / Tiendas
+y la franja «Tiendas con cartas de tu lista»; en la ficha del Mercado y en
+la de Mi colección y /cartas, el bloque «En tiendas». Sin la migración, el
+Mercado es el de siempre; con ella y sin ninguna tienda dada de alta, no
+salen los chips.
+
+**Para PINGU**: ejecutar `supabase-migration-1069-tiendas-escaparate.sql`
+(después de la 1067 y la 1068). Sin novedad en /novedades todavía: hasta
+que acepte la primera tienda no se ve nada.
+
+**Ficheros**: `supabase-migration-1069-tiendas-escaparate.sql`,
+`js/perfil-tienda.js`, `css/perfil-tienda.css`, `js/en-tiendas.js`,
+`css/en-tiendas.css`, `js/usuario.js`, `js/tiendas-puro.js` (`enlaceAMapa`),
+`js/tienda.js`, `tienda.html`, `css/tienda.css`,
+`js/mi-coleccion/cambios.js` (`mercadoConTiendas`),
+`js/mi-coleccion/mercado.js`, `css/mi-coleccion.css`, `js/mi-coleccion.js`,
+`mi-coleccion.html` y `cartas.html` (regenerado). Pruebas en `pruebas`: 1069
+(contra PostgreSQL) y 1069-pantalla.
+
+**Pendiente**: lo aparcado del portal (añadir con la cámara, vender y el
+beneficio de «Hoy», lotes, empleados; Cardmarket y pagos).
+
 ## 2026-10-28 (310) — PINGU-Claude (1068 — el stock de una tienda)
 
 **Hecho**: la tanda 2 del portal de tiendas. `/tienda` → Stock (entra por

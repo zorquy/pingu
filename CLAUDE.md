@@ -86,8 +86,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   stock NO va en `user_collection`: es `tienda_stock` (1068), y lo que lo
   liste, filtre o sume pasa por `tienda_stock_lista` (en la base, con
   `valor_de_copia` para Cardmarket). Un filtro nuevo del stock va en
-  `tienda_cumple` y en el panel lateral a la vez. Cardmarket y los pagos,
-  aparcados.
+  `tienda_cumple` y en el panel lateral a la vez. Lo que ve la gente (1069)
+  sale de `tienda_escaparate` (nunca el coste ni dónde está; el precio solo
+  con `precio_visible`): el perfil de una tienda es su escaparate
+  (`js/perfil-tienda.js`, sin las pestañas de una persona), y una tienda en
+  otra pantalla pasa por `js/en-tiendas.js` o por `mercado_con_tiendas`. La
+  `user_collection` de una tienda no entra en el Mercado. Cardmarket y los
+  pagos, aparcados.
 - **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
   1065 y 1066): cada visita lleva `modo` (app instalada o web),
   `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que

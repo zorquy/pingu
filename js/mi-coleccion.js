@@ -5346,6 +5346,8 @@ async function pintarQuienLaTiene(cardId) {
   const bloque = $('mcEdQuienBloque')
   const hueco = $('mcEdQuien')
   if (!bloque || !hueco || !cardId) return
+  // Y las tiendas que la tienen (1069), aparte: no es «de los que sigues».
+  import('./en-tiendas.js').then((m) => m.pintarEnTiendas($('mcEdTiendas'), cardId, { sigue: () => $('mcEditor').open && cartaAbierta === cardId })).catch(() => {})
   bloque.classList.add('hidden')
   let gente = []
   try {

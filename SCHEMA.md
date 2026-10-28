@@ -41785,6 +41785,73 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1069 — Lo que ve la gente de una tienda
+
+La tanda 3 de «Portal de tiendas» (PINGU: «que sea un perfil más… que no
+muestre el perfil clásico… solo su inventario… no tendrían que tener cartas
+que buscan»).
+
+**El perfil de una tienda es su escaparate** (`js/perfil-tienda.js` +
+`css/perfil-tienda.css`, por `import()` desde `js/usuario.js` cuando
+`profile.tipo === 'tienda'`): sustituye el `main` entero, así que no hay
+pestañas, vitrina, deseos ni foro. A la izquierda (arriba en el móvil):
+logo, la chapa «Tienda», ciudad, Escribir (sin cuenta, a crear una con
+`volver`), Cómo llegar (`enlaceAMapa`: una búsqueda de Google Maps con la
+dirección y la ciudad; sin dirección no sale), Seguir (el patrón de la 896)
+y dirección, horario y web de `tiendas`. A la derecha, el stock visible en
+baldosas (a tres por fila en el móvil, 1033) con la foto de siempre,
+`data-marca-carta` y `marcarCartas`, enlazando a `rutaDeCarta` (el pop-up,
+1043) o a `rutaDeProducto`. Arriba, «Tiene N de tu lista»; el segmento
+Todo / De tu lista / Sellado, buscar, idioma (si hay más de uno) y orden.
+`?carta=<id>` enseña solo esa carta con «Ver todo el stock»; `?lista=1`
+abre con «De tu lista».
+
+**`tienda_escaparate(p_tienda, p_filtros, p_orden, p_desde, p_cuantas)`**
+(migración 1069): solo líneas `visible` con unidades; NUNCA el coste ni
+dónde está; el precio solo si `tiendas.precio_visible` (si no, «Pregunta en
+la tienda»). «De tu lista» casa con la regla de la 1047 (idioma pedido o
+cualquiera, `casaVersion`) y se calcula con `auth.uid()`: sin sesión, cero.
+Devuelve total, cuántas en escaparate, cuántas de tu lista, facetas
+(catálogo, idioma, sets) y la página.
+
+**`tiendas_que_tienen(p_card_id, p_limite)`** y el bloque «En tiendas»
+(`js/en-tiendas.js`, hoja inyectada `css/en-tiendas.css`): en la ficha del
+Mercado (`#mcMercadoFichaTiendas`) y en la de Mi colección y /cartas
+(`#mcEdTiendas`, debajo de «Quién la tiene»). Cada fila va a
+`/usuario/<tienda>?carta=<id>`. Sin tiendas, el bloque no sale.
+
+**El Mercado con tiendas**: `mercado_con_tiendas` es una función NUEVA con
+los parámetros de `intercambios_mercado` más `p_quien` (`todos`, `personas`,
+`tiendas`); la de siempre no se toca. Cada fila trae `personas`, `tiendas`,
+`gente` (las tiendas con `tienda: true`, su precio y su ciudad) y `desde`
+(el precio más bajo de tienda). La `user_collection` de una cuenta tienda no
+entra (lo suyo es el stock). En el cliente, `mercado()` (cambios.js) prueba
+la nueva y, si la base dice que no existe, vuelve a la de siempre y deja
+`mercadoConTiendas = false`: los chips «Todos / Personas / Tiendas» y la
+franja no salen. Los chips tampoco salen sin ninguna tienda dada de alta
+(un recuento `head` de `tiendas`, una vez). La franja «Tiendas con cartas de
+tu lista» (`tiendas_con_mis_deseos`, solo con sesión) lleva a
+`/usuario/<tienda>?lista=1`. El avatar de una tienda es cuadrado
+(`.mc-gente-av.tienda`) y la baldosa dice «En tienda: X €».
+
+**/tienda → Escaparate**: el cartel para el mostrador con el QR de
+`https://pokedoc.es/usuario/<usuario>` (`svgQR`, el de siempre), copiar el
+enlace, imprimir (`html.td-imprimiendo` + `@media print` que deja solo
+`.td-cartel`) y descargar el SVG. El paso «Pon el QR» de los primeros pasos
+lleva ahí.
+
+**Trampa de la tanda**: `.pt-tuyas { display: flex }` le ganaba al `hidden`
+del navegador, y sin cuenta salía «Tiene 0 cartas de tu lista». En la hoja,
+`.pt [hidden] { display: none }`.
+
+**Pruebas** (rama `pruebas`): 1069 (las cuatro funciones contra PostgreSQL:
+nada de coste, lo oculto no sale, «de tu lista» con idioma y versión, una
+tienda sin precios visibles, el Mercado con y sin tiendas y sin la colección
+de la tienda) y 1069-pantalla (perfil de tienda y de persona, `?carta=` y
+`?lista=1`, sin cuenta, el móvil, el cartel, el Mercado con chips, franja y
+ficha, sin la migración, sin tiendas, y «En tiendas» en la ficha de Mi
+colección).
+
 ## Tanda 1068 — El stock de una tienda
 
 La tanda 2 de «Portal de tiendas» (PINGU: «necesitamos más filtros en el

@@ -1,0 +1,302 @@
+/* El perfil de una tienda (tanda 1069): su escaparate. La inyecta
+   js/perfil-tienda.js; los perfiles de personas no la bajan. */
+
+.pt {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: var(--e-xl);
+  align-items: start;
+  padding-top: var(--e-lg);
+}
+
+/* Una clase con `display` le gana al `[hidden]` del navegador. */
+.pt [hidden] {
+  display: none;
+}
+
+.pt-lado {
+  position: sticky;
+  top: var(--e-lg);
+  display: grid;
+  gap: var(--e-lg);
+}
+
+.pt-quien {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  gap: var(--e-md);
+  align-items: center;
+}
+
+.pt-logo {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  background: var(--navy-solid);
+  background-size: cover;
+  background-position: center;
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  font-weight: 800;
+}
+
+.pt-quien h1 {
+  margin: 2px 0;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.pt-quien small {
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.pt-chapa {
+  display: inline-block;
+  padding: 1px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.pt-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.pt-botones > * {
+  flex: 1 1 auto;
+  justify-content: center;
+  text-align: center;
+}
+
+.pt-datos {
+  display: grid;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: var(--e-md) var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: var(--t-sm);
+}
+
+.pt-datos div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--e-md);
+}
+
+.pt-datos dt {
+  color: var(--text-mid);
+}
+
+.pt-datos dd {
+  margin: 0;
+  text-align: right;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.pt-stock {
+  display: grid;
+  gap: var(--e-md);
+  min-width: 0;
+}
+
+.pt-tuyas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  align-items: center;
+  padding: var(--e-md) var(--e-lg);
+  border-radius: var(--radius-lg);
+  background: var(--pink-bg);
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+.pt-tuyas-icono {
+  display: grid;
+  place-items: center;
+  color: var(--pink);
+}
+
+.pt-solo {
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.pt-barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  align-items: center;
+}
+
+.pt-busca,
+.pt-select {
+  min-height: 44px;
+  padding: var(--e-xs) var(--e-md);
+  font: inherit;
+  font-size: var(--t-sm);
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.pt-busca {
+  flex: 1 1 200px;
+}
+
+.pt-busca:focus-visible,
+.pt-select:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.pt-cuenta {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.pt-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--e-lg);
+}
+
+.pt-carta {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  min-width: 0;
+}
+
+.pt-foto {
+  position: relative;
+  display: block;
+  aspect-ratio: 63 / 88;
+  max-width: 100%;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  overflow: hidden;
+}
+
+.pt-foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pt-foto-producto img {
+  object-fit: contain;
+}
+
+.pt-tuya {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--pink);
+  color: var(--blanco-fijo);
+}
+
+.pt-precio {
+  margin-top: var(--e-xs);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.pt-pregunta {
+  font-size: var(--t-xs);
+  font-weight: 600;
+  color: var(--text-mid);
+}
+
+.pt-nombre {
+  font-size: var(--t-sm);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-detalle {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pt-mas {
+  grid-column: 1 / -1;
+  justify-self: center;
+}
+
+.pt-vacio {
+  grid-column: 1 / -1;
+  padding: var(--e-2xl) var(--e-lg);
+  text-align: center;
+  color: var(--text-mid);
+}
+
+/* En el móvil (1040): primero quién es en poco alto y luego el stock, a tres
+   por fila (1033). */
+@media (max-width: 900px) {
+  .pt {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--e-lg);
+    padding-top: var(--e-sm);
+  }
+
+  .pt-lado {
+    position: static;
+    gap: var(--e-md);
+  }
+
+  .pt-quien {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .pt-logo {
+    width: 48px;
+    height: 48px;
+    font-size: var(--t-xl);
+  }
+
+  .pt-datos {
+    gap: var(--e-xs);
+    padding: var(--e-sm) var(--e-md);
+    font-size: var(--t-xs);
+  }
+
+  .pt-rejilla {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--e-sm);
+  }
+
+  .pt-barra .seg {
+    order: -1;
+  }
+}

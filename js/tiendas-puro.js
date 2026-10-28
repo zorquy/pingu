@@ -43,7 +43,7 @@ export function primerosPasos(tienda, { lineas = 0 } = {}) {
     { hecho: true, texto: 'Crear la cuenta de la tienda' },
     { hecho: datos, texto: 'Rellenar los datos de la tienda', ir: 'datos', nota: datos ? null : 'Dirección y horario, para que te encuentren.' },
     { hecho: stock, texto: 'Meter tu stock', ir: 'stock', nota: stock ? `${lineas} ${lineas === 1 ? 'línea' : 'líneas'} en el stock.` : 'Una a una o importando tu Excel.' },
-    { hecho: false, texto: 'Imprimir el QR del mostrador', nota: 'Llega con el escaparate.' },
+    { hecho: false, texto: 'Imprimir el QR del mostrador', ir: 'escaparate', nota: 'Un cartel A4 con tu QR: lleva a tu escaparate.' },
   ]
 }
 

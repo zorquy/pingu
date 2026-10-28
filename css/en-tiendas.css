@@ -1,0 +1,74 @@
+/* «En tiendas» (tanda 1069): las tiendas que tienen una carta, en su ficha.
+   La inyecta js/en-tiendas.js. */
+
+.ent-titulo {
+  margin: var(--e-md) 0 var(--e-sm);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.ent-lista {
+  display: grid;
+  gap: var(--e-xs);
+}
+
+.ent-fila {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: var(--e-md);
+  align-items: center;
+  min-height: 44px;
+  padding: var(--e-xs) var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.ent-fila:hover {
+  border-color: var(--border-strong);
+}
+
+.ent-logo {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.ent-quien {
+  display: grid;
+  min-width: 0;
+}
+
+.ent-quien strong,
+.ent-quien small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ent-quien small,
+.ent-precio small {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  font-weight: 500;
+}
+
+.ent-precio {
+  display: grid;
+  justify-items: end;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.ent-precio .ent-tuya {
+  color: var(--pink);
+}

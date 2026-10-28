@@ -32,9 +32,23 @@ function montarStockSiToca(v) {
     .catch(() => { stockMontado = false; $('tdStock').innerHTML = '<p class="subtext">No se ha podido abrir el stock. Recarga la página.</p>' })
 }
 
+// El escaparate (1069): el QR de su perfil, para el mostrador. Con la
+// dirección de pokedoc.es aunque se abra desde otra: el cartel se imprime.
+let qrMontado = false
+async function montarEscaparateSiToca(v) {
+  if (v !== 'escaparate' || qrMontado || !perfil?.username) return
+  qrMontado = true
+  const url = `https://pokedoc.es/usuario/${encodeURIComponent(perfil.username)}`
+  const { svgQR } = await import('./qr.js')
+  $('tdQr').innerHTML = svgQR(url, { tam: 220 })
+  $('tdEnlace').textContent = url.replace('https://', '')
+  $('tdCartelNombre').textContent = perfil.display_name || perfil.username
+}
+
 function pestana(cual) {
   const v = PESTANAS.includes(cual) ? cual : 'hoy'
   montarStockSiToca(v)
+  montarEscaparateSiToca(v).catch(() => {})
   for (const b of document.querySelectorAll('[data-td]')) {
     b.setAttribute('aria-selected', String(b.dataset.td === v))
     b.classList.toggle('activa', b.dataset.td === v)
@@ -104,6 +118,26 @@ $('tdPestanas')?.addEventListener('click', (e) => {
 $('tdPasos')?.addEventListener('click', (e) => {
   const b = e.target.closest('[data-td-ir]')
   if (b) pestana(b.dataset.tdIr)
+})
+
+$('tdCopiar')?.addEventListener('click', () => {
+  const url = `https://${$('tdEnlace').textContent}`
+  navigator.clipboard?.writeText(url).then(() => showToast('Enlace copiado.', 'success'), () => showToast(url))
+})
+// Imprimir solo el cartel: la clase la lee la hoja de impresión de tienda.css.
+$('tdImprimir')?.addEventListener('click', () => {
+  document.documentElement.classList.add('td-imprimiendo')
+  window.print()
+  setTimeout(() => document.documentElement.classList.remove('td-imprimiendo'), 500)
+})
+$('tdBajarQr')?.addEventListener('click', () => {
+  const svg = $('tdQr').innerHTML
+  if (!svg) return
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(new Blob([svg], { type: 'image/svg+xml' }))
+  a.download = `qr-${perfil.username}.svg`
+  a.click()
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000)
 })
 
 // Guardar los datos: cambia ya, confirma después y deshace si falla (896).

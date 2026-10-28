@@ -14506,3 +14506,99 @@ body:has(#mcPanelQuiero.hidden) :is(#mcQuieroSel, #mcDoySel) {
   align-items: center;
   min-height: 44px;
 }
+
+/* ── Las tiendas en el Mercado (tanda 1069) ── */
+.mc-gente-av.tienda {
+  border-radius: var(--radius-sm);
+  background-color: var(--navy-solid);
+}
+
+.mc-merc-desde {
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--text-mid);
+}
+
+.mc-mercado-quien.hidden {
+  display: none;
+}
+
+.mc-mercado-tiendas {
+  display: grid;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+
+.mc-mercado-tiendas.hidden {
+  display: none;
+}
+
+.mc-mercado-tiendas-titulo {
+  margin: 0;
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.mc-mercado-tiendas-fila {
+  display: flex;
+  gap: var(--e-sm);
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.mc-tienda-tarjeta {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  gap: var(--e-sm);
+  align-items: center;
+  flex: 0 0 auto;
+  min-width: 180px;
+  max-width: 240px;
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.mc-tienda-logo {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-sm);
+  background: var(--navy-solid);
+  background-size: cover;
+  background-position: center;
+  color: var(--blanco-fijo);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+
+.mc-tienda-datos {
+  display: grid;
+  min-width: 0;
+  font-size: var(--t-sm);
+}
+
+.mc-tienda-datos strong,
+.mc-tienda-datos small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-tienda-datos small {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.mc-tienda-datos em {
+  font-style: normal;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--pink);
+}

@@ -352,6 +352,15 @@ async function init() {
     return
   }
 
+  // Una TIENDA (1069) no tiene el perfil de una persona: su perfil es su
+  // escaparate, sin vitrina, guías, foro, torneos ni medallas.
+  if (profile?.tipo === 'tienda') {
+    const main = document.querySelector('main')
+    main.innerHTML = '<div id="perfilTienda"></div>'
+    await import('./perfil-tienda.js').then((m) => m.montarPerfilTienda(document.getElementById('perfilTienda'), profile, currentSession))
+    return
+  }
+
   loadMessageButton()
   // «12 cambios · todos bien» (795, NU4): sin cambios o sin la migración, nada.
   import('./cambios-hechos.js').then(async (m) => {

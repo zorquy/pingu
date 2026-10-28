@@ -190,11 +190,22 @@
       </section>
 
       <section class="td-hoja hidden" data-td-hoja="escaparate">
-        <div class="td-vacio td-vacio-dentro">
-          <span class="td-candado" data-icono="users" aria-hidden="true"></span>
-          <h2>Tu escaparate</h2>
-          <p>Tu perfil de tienda, con tu stock y tus precios, y el QR para el mostrador. Llegan cuando esté el stock.</p>
-          <a class="btn-secondary" id="tdVerPerfil2" href="/perfil.html">Ver mi perfil</a>
+        <h2>Tu escaparate</h2>
+        <p class="subtext">Es tu perfil de PokeDoc: tu stock visible, con tus precios. El QR lleva ahí; ponlo en el mostrador.</p>
+        <div class="td-escaparate">
+          <div class="td-cartel" id="tdCartel">
+            <span class="td-cartel-marca">Poke<b>Doc</b></span>
+            <strong class="td-cartel-titulo">Mira nuestro stock en el móvil</strong>
+            <span class="td-cartel-qr" id="tdQr"></span>
+            <span class="td-cartel-nombre" id="tdCartelNombre"></span>
+            <small class="td-cartel-pie">Escanéalo y verás qué tenemos ahora mismo, y lo que tenemos de tu lista.</small>
+          </div>
+          <div class="td-escaparate-mandos">
+            <p class="td-enlace"><span id="tdEnlace"></span> <button type="button" class="btn-secondary" id="tdCopiar">Copiar el enlace</button></p>
+            <button type="button" class="btn-primary" id="tdImprimir">Imprimir el cartel</button>
+            <button type="button" class="btn-secondary" id="tdBajarQr">Descargar el QR</button>
+            <a class="btn-secondary" id="tdVerPerfil2" href="/perfil.html">Ver mi perfil</a>
+          </div>
         </div>
       </section>
 

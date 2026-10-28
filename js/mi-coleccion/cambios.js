@@ -152,8 +152,13 @@ export async function quienDaEsta(cardId, limite = 20) {
 // escaparate. Su migración es otra (`supabase-migration-mercado.sql`), y si
 // falta se dice ESA, no la de los intercambios.
 export const FICHERO_MERCADO = 'supabase-migration-mercado.sql'
-export async function mercado({ market = 'WEST', idioma = null, texto = '', sets = null, soloMias = false, orden = 'nuevo', limite = 60, desde = 0 } = {}) {
-  const { data, error } = await supabase.rpc('intercambios_mercado', {
+// Con las TIENDAS (1069): `mercado_con_tiendas` mezcla su stock con lo que
+// da la gente, y `quien` elige «todos», «personas» o «tiendas». Sin esa
+// migración se usa la de siempre y `mercadoConTiendas` se queda en false: la
+// pantalla esconde el «Personas / Tiendas».
+export let mercadoConTiendas = null
+export async function mercado({ market = 'WEST', idioma = null, texto = '', sets = null, soloMias = false, orden = 'nuevo', limite = 60, desde = 0, quien = 'todos' } = {}) {
+  const args = {
     p_market: market,
     p_idioma: idioma || null,
     p_texto: texto || null,
@@ -162,7 +167,17 @@ export async function mercado({ market = 'WEST', idioma = null, texto = '', sets
     p_orden: orden,
     p_limite: limite,
     p_desde: desde,
-  })
+  }
+  if (mercadoConTiendas !== false) {
+    const r = await supabase.rpc('mercado_con_tiendas', { ...args, p_quien: quien })
+    if (!r.error) {
+      mercadoConTiendas = true
+      return r.data || []
+    }
+    if (!traducir(r.error).sinMigracion) throw traducir(r.error)
+    mercadoConTiendas = false
+  }
+  const { data, error } = await supabase.rpc('intercambios_mercado', args)
   if (error) {
     const e = traducir(error)
     if (e.sinMigracion) e.message = `Falta ejecutar ${FICHERO_MERCADO} en Supabase.`
