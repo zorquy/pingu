@@ -41,7 +41,8 @@ console.log('── 2. Logro y nivel ──')
   check('la tarjeta del logro lleva «Compartir» y abre logro-compartir.js por import()', /id="achievementShareBtn"/.test(g) && /import\('\.\/logro-compartir\.js'\)\.then\(\(m\) => m\.compartirLogro/.test(g))
   check('  …y la subida de nivel, un aviso con acción «Compartir»', /accion: \{ texto: 'Compartir', alPulsar: \(\) => import\('\.\/logro-compartir\.js'\)\.then\(\(m\) => m\.compartirNivel\(nivel\)\)/.test(g))
   const toast = leer('js/toast.js')
-  check('showToast admite { accion } y entonces dura más', /accion = null/.test(toast) && /toast-accion/.test(toast) && /accion \? 9000 : 4200/.test(toast))
+  // Desde la 1084 admite también varias (`acciones`); con una o con varias, dura más.
+  check('showToast admite { accion } y entonces dura más', /accion = null/.test(toast) && /acciones = accion \? \[accion\] : \[\]/.test(toast) && /toast-accion/.test(toast) && /acciones\.length \? 9000 : 4200/.test(toast))
   check('  …con su estilo en components.css', /\.toast-accion \{/.test(leer('css/components.css')))
 }
 

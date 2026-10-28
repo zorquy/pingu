@@ -84,7 +84,8 @@ console.log('── 1. Vender, desde el botón de arriba ──')
   check('«Vendida» pide la venta: la línea, dos unidades a 170, en Cardmarket', JSON.stringify(v?.p_lineas) === '[{"stock_id":"s1","unidades":2,"precio":170}]' && v?.p_donde === 'cardmarket', JSON.stringify(v))
   check('  …cierra la hoja y lo dice, con Deshacer', !(await p.isVisible('.tdv')) && /Vendidas 2 · 340,00\s€ · \+90,00\s€/.test(await p.textContent('.toast')) && (await p.isVisible('.toast-accion')))
   check('  …y recuerda dónde para la próxima', (await p.evaluate(() => localStorage.getItem('pd-tienda-donde'))) === 'cardmarket')
-  await p.click('.toast-accion'); await p.waitForTimeout(600)
+  // Desde la 1084 el aviso lleva también «Recibo»: se pulsa Deshacer por su nombre.
+  await p.click('.toast-accion:has-text("Deshacer")'); await p.waitForTimeout(600)
   check('Deshacer deshace esa venta', (await ultima(p, 'tienda_deshacer_venta'))?.p_ticket === 'tk9')
   await ctx.close()
 }
