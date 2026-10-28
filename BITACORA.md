@@ -16,8 +16,10 @@ ahora varios botones (`acciones`).
 
 **Ficheros**: `js/tienda-recibo.js` (nuevo), `js/tiendas-puro.js`,
 `js/tienda-vender.js`, `js/tienda-ventas.js`, `js/toast.js`,
-`css/tienda-vender.css`, `css/tienda.css`. Pruebas en `pruebas`:
-1084-pantalla, y al día la 1072-pantalla y la 873 (el toast).
+`css/tienda-vender.css`, `css/tienda.css`; y en `CLAUDE.md`, las normas de
+la vuelta (el precio que cuenta, las ocho destacadas, «Me interesa» y el
+recibo). Pruebas en `pruebas`: 1084-pantalla, y al día la 1072-pantalla y la
+873 (el toast).
 
 **Pendiente**: nada de la vuelta. La mitad B de la suite, por pasar.
 

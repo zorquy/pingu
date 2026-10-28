@@ -107,7 +107,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   no necesita local (1074, PINGU: «un particular que se dedica a la
   compraventa»): solo el nombre es obligatorio, y el Instagram va en su
   columna como USUARIO (`instagramDe` / `tienda_instagram`), aparte de la
-  web. Cardmarket y los pagos, aparcados.
+  web. Cardmarket y los pagos, aparcados. El precio que CUENTA es el de la
+  oferta mientras dure (1082): `tienda_precio_de` en la base y
+  `precioQueCuenta` en la web, la misma regla; lo que enseñe o cobre un precio
+  de tienda pasa por ahí. Las destacadas son ocho como mucho (lo pone la base,
+  1079). «Me interesa» (1080) es un adjunto `tipo: 'carta'` de un mensaje: lo
+  escribe quien lo manda, así que la foto sale del catálogo y Vender busca la
+  línea en el stock de la tienda, nunca se fía del adjunto. Y el recibo (1084)
+  no lleva NUNCA el coste ni el beneficio: es para quien compra.
 - **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
   1065 y 1066): cada visita lleva `modo` (app instalada o web),
   `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que
