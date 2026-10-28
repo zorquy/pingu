@@ -206,13 +206,846 @@
   justify-self: start;
 }
 
+/* En el móvil, contenido primero (1040): la cabecera en poco alto y
+   «Ver mi perfil» como un enlace en la línea de la dirección. */
 @media (max-width: 600px) {
   .td-cab {
     grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--e-md);
+    padding: var(--e-sm) 0;
+  }
+
+  .td-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    font-size: var(--t-xl);
+  }
+
+  .td-quien h2 {
+    font-size: var(--t-xl);
   }
 
   .td-perfil {
-    grid-column: 1 / -1;
+    grid-column: 2;
     justify-self: start;
+    min-height: 32px;
+    padding: 0;
+    background: none;
+    color: var(--navy);
+    font-size: var(--t-sm);
+    text-decoration: underline;
+  }
+}
+
+/* ── El stock (tanda 1068) ── */
+
+/* El panel es una herramienta de trabajo: más ancho que una página de
+   lectura, para que la tabla quepa con el panel de filtros al lado. */
+.page-content.td-pagina {
+  max-width: 1440px;
+}
+
+.tds {
+  display: grid;
+  grid-template-columns: 248px minmax(0, 1fr);
+  gap: var(--e-xl);
+  align-items: start;
+}
+
+.tds-filtros {
+  position: sticky;
+  top: var(--e-lg);
+  display: grid;
+  gap: var(--e-lg);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.tds-filtros-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+}
+
+.tds-filtros-cab h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.tds-cerrar,
+.tds-filtros-pie,
+.tds-ver-filtros {
+  display: none;
+}
+
+.tds-grupo {
+  display: grid;
+  gap: var(--e-sm);
+  padding-top: var(--e-md);
+  border-top: 1px solid var(--border);
+}
+
+.tds-grupo h3 {
+  display: flex;
+  justify-content: space-between;
+  margin: 0;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+
+.tds-grupo h3 em {
+  font-style: normal;
+  color: var(--acento);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.tds-mas-filtros summary {
+  cursor: pointer;
+  min-height: 32px;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--text-mid);
+}
+
+.tds-mas-filtros[open] {
+  gap: var(--e-md);
+}
+
+.tds-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+}
+
+.tds-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 32px;
+  padding: 2px var(--e-sm);
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tds-pill small {
+  font-size: var(--t-2xs);
+  color: var(--text-mid);
+  font-weight: 500;
+}
+
+.tds-pill.activa {
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+
+.tds-pill.activa small {
+  color: inherit;
+}
+
+.tds-checks {
+  display: grid;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.tds-checks label {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: var(--e-sm);
+  align-items: center;
+  min-height: 32px;
+  font-size: var(--t-sm);
+  cursor: pointer;
+}
+
+.tds-checks span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tds-checks small {
+  font-size: var(--t-2xs);
+  color: var(--text-dim);
+}
+
+.tds-rango {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--e-sm);
+}
+
+.tds-rango label {
+  display: grid;
+  gap: 2px;
+  font-size: var(--t-2xs);
+  color: var(--text-mid);
+}
+
+.tds-rango input,
+.tds-busca,
+.tds-orden,
+.tds-form input:not([type='checkbox']),
+.tds-form select,
+.tds-importar textarea,
+.tds-vista-form input {
+  min-height: 36px;
+  width: 100%;
+  padding: var(--e-xs) var(--e-sm);
+  font: inherit;
+  font-size: var(--t-sm);
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+}
+
+.tds-rango input:focus-visible,
+.tds-busca:focus-visible,
+.tds-orden:focus-visible,
+.tds-form input:focus-visible,
+.tds-form select:focus-visible,
+.tds-importar textarea:focus-visible,
+.tds-vista-form input:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.tds-cuerpo {
+  display: grid;
+  gap: var(--e-md);
+  min-width: 0;
+}
+
+.tds-arriba {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  align-items: center;
+}
+
+.tds-arriba .tds-busca {
+  flex: 1 1 220px;
+  width: auto;
+  min-height: 44px;
+}
+
+.tds-barra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  align-items: center;
+}
+
+.tds-barra .tds-orden {
+  flex: 0 1 220px;
+  width: auto;
+  min-height: 44px;
+}
+
+@media (min-width: 1001px) {
+  .tds-arriba {
+    flex-wrap: nowrap;
+  }
+
+  .tds-arriba .tds-busca {
+    flex: 1 1 200px;
+    min-width: 160px;
+  }
+
+  .tds-barra {
+    flex: 0 0 auto;
+    flex-wrap: nowrap;
+  }
+
+  .tds-barra .tds-orden {
+    flex: 0 0 190px;
+  }
+}
+
+.tds-barra [aria-pressed='true'] {
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+
+.tds-vistas,
+.tds-aplicados {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  align-items: center;
+}
+
+.tds-vistas:empty,
+.tds-aplicados:empty {
+  display: none;
+}
+
+.tds-vista {
+  min-height: 32px;
+  padding: 2px var(--e-md);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tds-vista.activa {
+  border-style: solid;
+  border-color: var(--acento);
+  color: var(--text);
+}
+
+.tds-vista-caja {
+  display: inline-flex;
+  align-items: center;
+}
+
+.tds-vista-quitar {
+  min-width: 28px;
+  min-height: 32px;
+  border: 0;
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  cursor: pointer;
+}
+
+.tds-vista-form {
+  display: inline-flex;
+  gap: var(--e-xs);
+}
+
+.tds-aplicado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 28px;
+  padding: 2px var(--e-sm) 2px var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.tds-tabla-caja {
+  overflow-x: auto;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.tds-tabla-caja.cargando {
+  opacity: 0.6;
+}
+
+.tds-tabla {
+  width: 100%;
+  min-width: 880px;
+  border-collapse: collapse;
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.tds-tabla th {
+  padding: var(--e-sm) var(--e-md);
+  text-align: left;
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--text-mid);
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.tds-tabla td {
+  padding: var(--e-sm) var(--e-md);
+  border-bottom: 1px solid var(--border);
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.tds-tabla tbody tr {
+  cursor: pointer;
+}
+
+.tds-tabla tbody tr:hover td {
+  background: var(--bg);
+}
+
+.tds-tabla .tds-num {
+  text-align: right;
+}
+
+.tds-tabla tr.tds-alerta td {
+  background: var(--warning-bg);
+}
+
+.tds-tabla tr.tds-mal td {
+  background: var(--danger-bg);
+}
+
+.tds-tabla tr.tds-marcada td {
+  background: var(--ice);
+}
+
+.tds-check {
+  width: 36px;
+}
+
+.tds-nombre {
+  display: flex;
+  gap: var(--e-sm);
+  align-items: center;
+  min-width: 0;
+  max-width: 320px;
+}
+
+.tds-nombre > span {
+  display: grid;
+  min-width: 0;
+}
+
+.tds-nombre strong,
+.tds-nombre small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tds-nombre small {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.tds-foto-caja {
+  display: block;
+  flex: 0 0 32px;
+  width: 32px;
+  aspect-ratio: 63 / 88;
+  border-radius: 2px;
+  background: var(--ice);
+  overflow: hidden;
+}
+
+.tds-foto {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tds-foto-caja-producto {
+  aspect-ratio: 1;
+}
+
+.tds-foto-caja-producto .tds-foto {
+  object-fit: contain;
+}
+
+.tds-chapa {
+  display: inline-block;
+  padding: 1px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.tds-chapa-si {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.tds-ubi {
+  display: block;
+  font-size: var(--t-2xs);
+  color: var(--text-dim);
+}
+
+.tds-verde { color: var(--success); font-weight: 700; }
+.tds-rojo { color: var(--danger); font-weight: 700; }
+.tds-ambar { color: var(--warning); font-weight: 700; }
+.tds-falta { color: var(--text-dim); font-weight: 400; }
+
+.tds-mas {
+  display: block;
+  margin: var(--e-md) auto;
+}
+
+.tds-vacio {
+  display: grid;
+  gap: var(--e-sm);
+  justify-items: center;
+  padding: var(--e-2xl) var(--e-lg);
+  margin: 0;
+  text-align: center;
+  color: var(--text-mid);
+}
+
+.tds-vacio h3 {
+  margin: 0;
+  font-size: var(--t-xl);
+  color: var(--text);
+}
+
+.tds-vacio p {
+  margin: 0;
+}
+
+.tds-vacio-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  justify-content: center;
+}
+
+.tds-pie {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-lg);
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.tds-pie strong {
+  color: var(--text);
+}
+
+.tds-sel {
+  position: sticky;
+  bottom: var(--e-md);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  align-items: center;
+  padding: var(--e-sm) var(--e-md);
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+}
+
+.tds-sel[hidden] {
+  display: none;
+}
+
+.tds-sel-n {
+  flex: 1 1 auto;
+  font-weight: 600;
+}
+
+.tds-borrar {
+  color: var(--danger);
+}
+
+/* Las ventanas: centradas, con tope de alto, y se desliza su cuerpo (la 1045). */
+.tds-dialogo {
+  width: min(640px, calc(100% - 32px));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.tds-dialogo[open] {
+  inset: 0;
+  margin: auto;
+  max-height: min(88vh, 760px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.tds-dialogo::backdrop {
+  background: rgba(13, 27, 42, 0.45);
+}
+
+html:has(.tds-dialogo[open]) {
+  overflow: hidden;
+}
+
+.tds-dialogo-cuerpo {
+  display: grid;
+  gap: var(--e-md);
+  padding: var(--e-lg) var(--e-xl) var(--e-xl);
+}
+
+.tds-dialogo-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+}
+
+.tds-dialogo-cab h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.tds-dialogo .tds-cerrar {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-xl);
+  cursor: pointer;
+}
+
+.tds-busca-grande {
+  min-height: 44px;
+}
+
+.tds-resultados {
+  display: grid;
+  gap: var(--e-xs);
+}
+
+.tds-resultado {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: var(--e-md);
+  align-items: center;
+  min-height: 44px;
+  padding: var(--e-xs) var(--e-sm);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.tds-resultado:hover {
+  border-color: var(--border-strong);
+}
+
+.tds-resultado .tds-foto-caja {
+  width: 40px;
+  flex-basis: 40px;
+}
+
+.tds-resultado > span {
+  display: grid;
+  min-width: 0;
+}
+
+.tds-resultado small {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.tds-nota {
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.tds-form {
+  display: grid;
+  gap: var(--e-md);
+}
+
+.tds-form label {
+  display: grid;
+  gap: var(--e-xs);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.tds-form-fila {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--e-md);
+  align-items: end;
+}
+
+.tds-form-titulo {
+  display: grid;
+  margin: 0;
+}
+
+.tds-form-titulo small {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.tds-cm {
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+
+.tds-pct {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.tds-form .tds-check-label {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  font-weight: 500;
+}
+
+.tds-error {
+  margin: 0;
+  min-height: 1em;
+  font-size: var(--t-sm);
+  color: var(--danger);
+}
+
+.tds-form-pie {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  justify-content: flex-end;
+}
+
+.tds-perdidas {
+  margin: var(--e-sm) 0 0;
+  padding-left: var(--e-lg);
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+@media (pointer: coarse) {
+  .tds-pill,
+  .tds-checks label,
+  .tds-vista,
+  .tds-aplicado {
+    min-height: 44px;
+  }
+}
+
+/* En el móvil, los filtros son una hoja desde abajo, con «Limpiar» y «Ver». */
+@media (max-width: 1000px) {
+  .tds {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .tds-ver-filtros {
+    display: inline-flex;
+  }
+
+  /* Una fila de mandos que se desliza (1035), con el buscador encima. */
+  .tds-arriba {
+    display: grid;
+  }
+
+  .tds-barra {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .tds-barra > * {
+    flex: 0 0 auto;
+  }
+
+  .tds-barra .tds-orden {
+    flex: 0 0 auto;
+    max-width: 210px;
+  }
+
+  .tds-anadir {
+    order: -2;
+  }
+
+  .tds-ver-filtros {
+    order: -1;
+  }
+
+  .tds-filtros {
+    display: none;
+  }
+
+  .tds-filtros.abierta {
+    position: fixed;
+    inset: auto 0 0;
+    /* Encima de la barra de abajo y de la burbuja (movil.css llega a 101). */
+    z-index: 110;
+    display: grid;
+    max-height: 85vh;
+    padding-bottom: calc(var(--e-lg) + env(safe-area-inset-bottom, 0px));
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .tds-filtros.abierta .tds-cerrar {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    margin-left: auto;
+    border: 0;
+    border-radius: 50%;
+    background: var(--ice);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--t-xl);
+  }
+
+  .tds-filtros.abierta .tds-filtros-pie {
+    position: sticky;
+    bottom: calc(-1 * (var(--e-lg) + env(safe-area-inset-bottom, 0px)));
+    display: grid;
+    grid-template-columns: 1fr 1.6fr;
+    gap: var(--e-sm);
+    margin: 0 calc(-1 * var(--e-lg)) calc(-1 * (var(--e-lg) + env(safe-area-inset-bottom, 0px)));
+    padding: var(--e-sm) var(--e-lg) calc(var(--e-lg) + env(safe-area-inset-bottom, 0px));
+    background: var(--white);
+    border-top: 1px solid var(--border);
+  }
+
+  .tds-dialogo[open] {
+    inset: auto 0 0;
+    width: 100%;
+    max-width: none;
+    max-height: 90vh;
+    margin: 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  .tds-dialogo-cuerpo {
+    padding: var(--e-lg) var(--e-lg) calc(var(--e-xl) + env(safe-area-inset-bottom, 0px));
   }
 }

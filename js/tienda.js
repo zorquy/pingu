@@ -22,8 +22,19 @@ function cara(id) {
   for (const c of CARAS) $(c)?.classList.toggle('hidden', c !== id)
 }
 
+// El stock (1068) entra por `import()` la primera vez que se abre.
+let stockMontado = false
+function montarStockSiToca(v) {
+  if (v !== 'stock' || stockMontado) return
+  stockMontado = true
+  import('./tienda-stock.js')
+    .then(({ montarStock }) => montarStock($('tdStock'), { perfil }))
+    .catch(() => { stockMontado = false; $('tdStock').innerHTML = '<p class="subtext">No se ha podido abrir el stock. Recarga la página.</p>' })
+}
+
 function pestana(cual) {
   const v = PESTANAS.includes(cual) ? cual : 'hoy'
+  montarStockSiToca(v)
   for (const b of document.querySelectorAll('[data-td]')) {
     b.setAttribute('aria-selected', String(b.dataset.td === v))
     b.classList.toggle('activa', b.dataset.td === v)
@@ -38,8 +49,9 @@ function pestana(cual) {
 let tienda = null
 let perfil = null
 
+let lineas = 0
 function pintarPasos() {
-  $('tdPasos').innerHTML = primerosPasos(tienda)
+  $('tdPasos').innerHTML = primerosPasos(tienda, { lineas })
     .map((p) => `<li class="${p.hecho ? 'hecho' : ''}">
       <span class="td-paso-marca" aria-hidden="true">${p.hecho ? '&#10003;' : ''}</span>
       <span><strong>${p.texto}</strong>${p.nota ? `<small>${p.nota}</small>` : ''}</span>
@@ -74,6 +86,10 @@ async function arrancar() {
 
   const { data } = await supabase.from('tiendas').select('*').eq('user_id', sesion.user.id).maybeSingle()
   tienda = data || null
+  // Cuántas líneas tiene el stock, para el paso de «Meter tu stock». Sin la
+  // migración 1068 la tabla no existe: se queda en cero, que es la verdad.
+  const { count } = await supabase.from('tienda_stock').select('id', { count: 'exact', head: true }).then((r) => r, () => ({}))
+  lineas = count || 0
   pintarCabecera()
   pintarPasos()
   pintarDatos()

@@ -41785,6 +41785,65 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1068 — El stock de una tienda
+
+La tanda 2 de «Portal de tiendas» (PINGU: «necesitamos más filtros en el
+stock… en un panel lateral… vertical»).
+
+**Por qué no va en `user_collection`**: una línea de stock tiene unidades,
+coste y precio de venta, y lo que lee la colección (el Panel, los álbumes,
+el valor diario, el Mercado, los cruces) no tiene que ver el stock de una
+tienda. `tienda_stock` (carta con su catálogo, o `product_id` de
+`tcg_products` para lo sellado, con `estado = 'sellado'`) y `tienda_vistas`;
+las dos solo para su tienda (`soy_tienda()` en la política).
+
+**Todo en la base** (`tienda_stock_lista(filtros, orden, desde, cuántas)`):
+una tienda puede tener 20.000 líneas y Supabase corta a 1.000 (la 808). La
+función une la carta, su precio y el producto, calcula Cardmarket con
+`valor_de_copia` (una `user_collection` de mentira con `cantidad 1` y la
+versión, el idioma y el gradeo de la línea: la MISMA cuenta que el valor de
+una colección; lo sellado, `cm_lowest_es` → `_eu` → el general), filtra con
+`tienda_cumple`, ordena, pagina y devuelve las sumas (unidades, coste,
+precio y Cardmarket por unidades, y cuántas sin coste o sin precio) y las
+cuentas de cada grupo. Las cuentas de un grupo se hacen con los DEMÁS
+filtros puestos (`p_sin`): marcar «Español» no deja a cero los demás
+idiomas. El margen es sobre lo pagado ((precio − coste) / coste); «contra
+Cardmarket» tiene ±5 % de «igual».
+
+**Precio en bloque** (`tienda_stock_precio_bloque`): Cardmarket + N %, con
+`tienda_redondear` («95» el ,95 de arriba, «99», «entero», «centimo»), el
+mismo redondeo que `redondearPrecio` en el navegador (la prueba los compara
+caso a caso). Lo que no tiene Cardmarket se deja y se cuenta.
+
+**La pantalla** (`js/tienda-stock.js`, por `import()` al abrir Stock): la
+tabla pinta una página (50, «Ver más») y pide las cartas de esa página con
+las columnas de una expansión (`COLUMNAS_CARTA_DE_SET` con el nombre del
+set) para la cadena de escaneos de siempre, dentro de una caja con su forma
+(si ninguna foto contesta, queda el hueco). Filtros a la izquierda (sticky,
+con su propio scroll); en el móvil (≤ 1000 px), la misma lista en una hoja
+desde abajo con «Limpiar» y «Ver N», encima de la barra de abajo. Añadir y
+editar comparten formulario (`montarForm`): idiomas del set
+(`idiomasParaAnadirEn` + `idiomasDeSet`, 911), versiones de la carta en ese
+idioma (`variantesDeCarta` + `versionesDelIdioma`, 922 y 956), el valor de
+la fila siempre entre las opciones (la 472) y el Cardmarket de su idioma y
+versión (`valorDe(precioDeFila(...))`, la 900). Una escritura vacía es un no
+(la 510).
+
+**El CSV**: exportar usa cabeceras que el importador reconoce (`id`,
+`expansion`, `numero`, `unidades`, `coste`, `pvp`, `ubicacion`, `visible`…),
+así que lo exportado se vuelve a meter; importar es el de Mi colección
+(`emparejar`) más `extrasDeFila` y `filasDeStock` (`js/tienda-csv.js`).
+`SINONIMOS` gana `precioVenta`, `ubicacion` y `visible`, y «unidades»,
+«stock» y «coste»; Mi colección no los usa. Lo sellado no se importa (no
+tiene expansión y número con los que encontrarlo) y se dice.
+
+**Pruebas**: `test-tanda-1068.mjs` (lo puro; el CSV de ida y vuelta por el
+importador de verdad; la migración contra PostgreSQL con `eur_por_usd`,
+`tp_de_version`, `emparejamiento_dudoso`, `valor_gradeado`, `valor_de_linea`
+y `valor_de_copia` sacadas de sus migraciones: quién ve y cambia, la lista
+con cada filtro, las sumas, las cuentas, el orden, las páginas, el precio
+en bloque y las vistas) y `test-tanda-1068-pantalla.mjs`.
+
 ## Tanda 1067 — La cuenta de tienda, solo por invitación
 
 PINGU: «un registro especial… ¿eres tienda?… un panel distinto… un QR para

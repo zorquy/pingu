@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (310) — PINGU-Claude (1068 — el stock de una tienda)
+
+**Hecho**: la tanda 2 del portal de tiendas. `/tienda` → Stock (entra por
+`import()`, `js/tienda-stock.js`): una tabla con cada línea —foto, nombre,
+set y número, versión y gradeo, idioma, estado, unidades, lo que costó, tu
+precio, Cardmarket (el de su idioma: `valor_de_copia`, la misma cuenta que
+el valor de una colección), margen sobre lo pagado y días en stock—, en
+ámbar lo que vendes por debajo de Cardmarket y en rojo lo que pierde dinero
+o lleva más de 90 días. Los filtros, en un panel lateral (catálogo,
+expansión con buscador, tu precio, margen, contra Cardmarket, idioma,
+estado, versión, rareza y, plegados, Cardmarket, coste, días, unidades,
+gradeadas, dónde está y escaparate), cada opción con cuántas deja; en el
+móvil, la misma lista en una hoja desde abajo. Chapas de lo puesto, orden,
+vistas guardadas (`tienda_vistas`), Seleccionar con precio en bloque
+(«Cardmarket + N %, a ,95/,99/al euro»), ocultar, enseñar y borrar. Añadir:
+cartas (el buscador de siempre, occidental o japonés) o sellado, con los
+idiomas del SET y las versiones que existen en ese idioma, y el Cardmarket
+de su idioma con «Poner ese» y «+10 %». Editar tocando la fila. Importar un
+CSV (el importador de Mi colección con PVP, dónde está y si se ve) y
+exportarlo (lo exportado se vuelve a importar). Todo se filtra, ordena,
+suma y cuenta en la base (`tienda_stock_lista`): una tienda pasa del tope de
+1.000 filas.
+
+**Para PINGU**: ejecutar `supabase-migration-1068-tienda-stock.sql` (después
+de la 1067). Sin ella, el Stock dice que falta un paso.
+
+**Ficheros**: `supabase-migration-1068-tienda-stock.sql`, `js/tienda-stock.js`,
+`js/tienda-importar.js`, `js/tienda-csv.js`, `js/tiendas-puro.js`,
+`js/tienda.js`, `tienda.html`, `css/tienda.css`,
+`js/mi-coleccion/importar-csv.js` (tres columnas más que Mi colección no
+usa: PVP, dónde está y escaparate; y «unidades», «stock» y «coste»).
+Pruebas en `pruebas`: 1068 (puro, el CSV de ida y vuelta, y la migración
+contra PostgreSQL con `valor_de_copia` y sus funciones de verdad sacadas de
+sus migraciones) y 1068-pantalla; el doble sabe `tienda_stock` y
+`tienda_vistas`.
+
+**Pendiente**: 1069 (perfil de tienda, QR, Mercado y «Quién la tiene»). La
+cámara para añadir no entra aún (el escáner es de Mi colección y va atado a
+su hoja); el panel Hoy con el beneficio y Vender van después.
+
 ## 2026-10-28 (309) — PINGU-Claude (1067 — la cuenta de tienda, solo por invitación)
 
 **Hecho**: PINGU quiere un portal de tiendas (inventario con coste, precio y

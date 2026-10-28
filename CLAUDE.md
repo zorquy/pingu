@@ -83,7 +83,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   tipo lo pone la base (`tienda_alta`) y no se lo cambia nadie a sí mismo
   (`trg_tienda_guarda_tipo`). Lo que sea de tiendas va en su página y su
   hoja (`/tienda`, `css/tienda.css`) y lo puro en `js/tiendas-puro.js`; el
-  stock NO va en `user_collection` (1068). Cardmarket y los pagos, aparcados.
+  stock NO va en `user_collection`: es `tienda_stock` (1068), y lo que lo
+  liste, filtre o sume pasa por `tienda_stock_lista` (en la base, con
+  `valor_de_copia` para Cardmarket). Un filtro nuevo del stock va en
+  `tienda_cumple` y en el panel lateral a la vez. Cardmarket y los pagos,
+  aparcados.
 - **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
   1065 y 1066): cada visita lleva `modo` (app instalada o web),
   `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que

@@ -97,15 +97,20 @@ const SINONIMOS = {
   set: ['set', 'set name', 'set_name', 'expansion', 'expansión', 'expansion name', 'coleccion', 'colección', 'edition'],
   codigo: ['set code', 'set_code', 'set id', 'set_id', 'code', 'codigo', 'código', 'ptcgo code', 'ptcgl code', 'abbreviation', 'abbr', 'set abbreviation', 'expansion code'],
   numero: ['number', 'card number', 'card_number', 'collector number', 'collector_number', 'no', 'no.', '#', 'num', 'numero', 'número', 'card no', 'card no.'],
-  cantidad: ['quantity', 'qty', 'count', 'amount', 'cantidad', 'copias', 'copies', 'owned'],
+  cantidad: ['quantity', 'qty', 'count', 'amount', 'cantidad', 'copias', 'copies', 'owned', 'unidades', 'stock'],
   estado: ['condition', 'cond', 'estado', 'state'],
   idioma: ['language', 'lang', 'idioma'],
   variante: ['variant', 'variante', 'finish', 'version', 'versión', 'printing', 'foil', 'type of print', 'edition type'],
   casa: ['grading company', 'grade company', 'grade_company', 'grading_company', 'company', 'casa', 'grader'],
   gradeo: ['grade', 'grade_value', 'grade value', 'grading', 'gradeo', 'graded', 'nota'],
-  precioCompra: ['purchase price', 'purchase_price', 'price paid', 'paid', 'precio de compra', 'precio compra', 'precio_compra', 'lo que pagaste', 'lo que pagaste (€)', 'buy price', 'cost'],
+  precioCompra: ['purchase price', 'purchase_price', 'price paid', 'paid', 'precio de compra', 'precio compra', 'precio_compra', 'lo que pagaste', 'lo que pagaste (€)', 'buy price', 'cost', 'coste'],
   valor: ['tu valor', 'tu valor (€)', 'valor_manual', 'valor manual', 'my value', 'custom price', 'custom value'],
   notas: ['notes', 'note', 'notas', 'comment', 'comments', 'comentario'],
+  // Las de una tienda (1068): a cuánto lo vende, dónde está y si se enseña.
+  // Mi colección no las usa; el importador del stock, sí.
+  precioVenta: ['pvp', 'precio venta', 'precio de venta', 'precio_venta', 'sell price', 'selling price', 'sale price', 'tu precio', 'tu precio (€)'],
+  ubicacion: ['ubicacion', 'ubicación', 'location', 'donde esta', 'dónde está', 'storage'],
+  visible: ['visible', 'escaparate', 'en escaparate'],
 }
 
 const plegar = (t) => normalizeSearch(t).replace(/\s+/g, ' ').trim()

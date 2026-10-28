@@ -36,12 +36,13 @@ export function caraDelPanel({ sesion, perfil }) {
 }
 
 // Los primeros pasos del panel: lo hecho y lo que llega.
-export function primerosPasos(tienda) {
+export function primerosPasos(tienda, { lineas = 0 } = {}) {
   const datos = !!(tienda?.ciudad && tienda?.direccion)
+  const stock = lineas > 0
   return [
     { hecho: true, texto: 'Crear la cuenta de la tienda' },
     { hecho: datos, texto: 'Rellenar los datos de la tienda', ir: 'datos', nota: datos ? null : 'Dirección y horario, para que te encuentren.' },
-    { hecho: false, texto: 'Meter tu stock', nota: 'Llega en la siguiente parte del panel.' },
+    { hecho: stock, texto: 'Meter tu stock', ir: 'stock', nota: stock ? `${lineas} ${lineas === 1 ? 'línea' : 'líneas'} en el stock.` : 'Una a una o importando tu Excel.' },
     { hecho: false, texto: 'Imprimir el QR del mostrador', nota: 'Llega con el escaparate.' },
   ]
 }
@@ -147,4 +148,12 @@ export function csvDeStock(filas, nombreDeSet = (id) => id || '') {
     ].map(celda).join(';'))
   }
   return lineas.join('\n')
+}
+
+// «Cómo llegar» (1069): el mapa con la dirección de la tienda. Sin dirección
+// no hay botón (una ciudad sola lleva al centro, que no es la tienda).
+export function enlaceAMapa(direccion, ciudad) {
+  const d = String(direccion || '').trim()
+  if (!d) return null
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent([d, String(ciudad || '').trim()].filter(Boolean).join(', '))}`
 }
