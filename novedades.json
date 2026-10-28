@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-28", "tipo": "nuevo", "texto": "¿Tienes una tienda de cartas? Desde «Para tiendas», en el pie de la web, puedes pedir una cuenta de tienda para llevar tu stock en PokeDoc. Por ahora entra solo por invitación.", "enlace": "/tiendas" },
     { "fecha": "2026-10-28", "tipo": "mejora", "texto": "Al marcar varias cartas y darle a «Las quiero» (en una expansión, un álbum o el Mercado) te preguntamos el idioma una vez para todas, y la próxima vez sale el último que elegiste. En la ficha de una carta que quieres puedes cambiar el idioma, y en «La quiero» puedes seleccionar varias y cambiárselo de golpe.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-28", "tipo": "mejora", "texto": "Cuando añades a tu colección una carta que tenías en «La quiero», sale sola de la lista (si es el idioma y la versión que buscabas). El aviso te lo dice y «Deshacer» la vuelve a poner.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-27", "tipo": "mejora", "texto": "El histórico de precios de una carta, más claro: cada línea es un precio con su color, eliges cuáles ver (tu idioma, cualquier idioma, otros idiomas o TCGplayer), las fechas llevan el año y abajo dice de dónde sale.", "enlace": "/cartas" },

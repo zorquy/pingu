@@ -105,7 +105,17 @@ async function afterAuth(userId) {
     window.location.href = 'onboarding.html'
     return
   }
-  window.location.href = destinoTrasEntrar(new URLSearchParams(window.location.search).get('volver'))
+  const volver = new URLSearchParams(window.location.search).get('volver')
+  // Una cuenta de tienda (1067) entra a su panel. Se pregunta aparte y sin
+  // fiarse del error: sin la migración, pedir `tipo` tumbaría el login.
+  if (!volver) {
+    const { data: tipo } = await supabase.from('user_profiles').select('tipo').eq('id', userId).maybeSingle().then((r) => r, () => ({}))
+    if (tipo?.tipo === 'tienda') {
+      window.location.href = '/tienda'
+      return
+    }
+  }
+  window.location.href = destinoTrasEntrar(volver)
 }
 
 async function signInWithGoogle(e) {

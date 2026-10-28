@@ -41785,6 +41785,63 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1067 — La cuenta de tienda, solo por invitación
+
+PINGU: «un registro especial… ¿eres tienda?… un panel distinto… un QR para
+la tienda»; y luego: «que la cuenta de tienda sea solamente pidiéndola por
+invitación… no quiero que cambie el login de ahora». Dos propuestas
+(«PokeDoc para tiendas», «Portal de tiendas»), lo recomendado.
+
+**El modelo**: una tienda es una cuenta de PokeDoc con `user_profiles.tipo =
+'tienda'` (su @, su perfil, sus mensajes: todo lo que ya funciona con
+personas le vale) y una fila en `tiendas` (ciudad, dirección, horario, web,
+`precio_visible`; pública, la cambia la propia tienda). El tipo no se lo
+pone nadie a sí mismo: `trg_tienda_guarda_tipo` (aparte de
+`perfil_guarda_columnas`, para no reescribirla) lo fija en `persona` al
+crear y lo conserva al cambiar, salvo el equipo y las funciones de la casa.
+
+**El camino** (todo por funciones de la base):
+1. `/tiendas` (enlace «Para tiendas» en el pie): `tienda_pedir`, sin cuenta.
+   Una solicitud viva por email (contesta igual a la repetida: decir «ese
+   email ya está aceptado» sería contar algo ajeno), tope de 30 por hora
+   para todo el formulario, y aviso `tienda_solicitud` a cada admin.
+2. /admin → Tiendas (`admin/js/tiendas.js`): Aceptar / Rechazar / Reenviar
+   llaman a la función de Netlify `tienda-decidir`, que decide en la base
+   (`tienda_decidir`, con el token del admin: solo el equipo) y manda el
+   correo directo (`netlify/lib/correo-suelto.mjs`: la cola escribe a
+   CUENTAS y esto va a un email sin cuenta). Si el correo no sale, la
+   solicitud queda decidida igual y el aviso enseña el motivo y el enlace.
+   Aceptar otra vez una aceptada renueva el token (otros 14 días).
+3. `/alta-tienda?i=<token>` (sin barra, como /auth): `tienda_invitacion` dice
+   si vale; se crea la cuenta con el email de la invitación (contraseña o
+   Google, que vuelven aquí) y `tienda_alta` la convierte: solo si
+   `auth.email()` es el de la invitación, el @ está libre y la cuenta no era
+   ya una personal hecha. El token se apunta en `pd-alta-tienda`: la
+   confirmación del correo o Google pueden volver sin `?i=` (o a la portada,
+   si la lista de vueltas de Supabase es cerrada), y `onboarding.js` manda
+   al alta en vez de dar la bienvenida de una persona. «No es para mí» lo
+   olvida.
+4. `/tienda`: cuatro caras (`caraDelPanel`): sin sesión, entrar; una tienda,
+   su panel; el equipo, la explicación; cualquiera, «Esto aún no está
+   abierto». El panel: Hoy (`primerosPasos`), Stock y Escaparate (llegan en
+   la 1068 y la 1069), Datos (guardar con el patrón de la 896: cambia ya,
+   deshace si la base no deja; un update vacío es un no, la 510). El login
+   lleva a una tienda a `/tienda` (salvo un `volver`), preguntando `tipo`
+   aparte para que sin la migración no se rompa el login de nadie; la hoja
+   «Tú» tiene «Tu tienda».
+
+**Lo puro** vive en `js/tiendas-puro.js` (validar la solicitud, el token, la
+forma del @ —la misma regla que la base—, las caras, los pasos, las cuentas
+del admin). Los correos son `tienda_aceptada` y `tienda_rechazada`, con la
+familia «Tiendas» y su ejemplo en /admin → Correos.
+
+**Pruebas**: `test-tanda-1067.mjs` (lo puro, el correo, `tienda-decidir` con
+un fetch de mentira, `correo-suelto` por HTTP y SMTP, y la migración contra
+PostgreSQL: pedir, decidir, la invitación, el alta con cada no, la guarda
+del tipo, los datos y el tope) y `test-tanda-1067-pantalla.mjs` (el pie,
+/tiendas, el alta entera, el onboarding, las caras de /tienda y sus datos,
+/admin → Tiendas con el correo que no sale, y el login).
+
 ## Tandas 1065 y 1066 — La analítica que se entiende
 
 PINGU: «a ver cuánta gente entra desde la app instalada… quiero mejorar la

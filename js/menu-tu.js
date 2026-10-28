@@ -110,6 +110,7 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
     </nav>
     <div class="tu-avisos-sitio"></div>
     <nav class="tu-lista" aria-label="Más">
+      ${profile?.tipo === 'tienda' ? `<a href="/tienda">${icons.package(20)}<span>Tu tienda</span></a>` : ''}
       <a href="/ajustes">${icons.settings(20)}<span>Ajustes</span></a>
       <a class="tu-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Un café en Ko-fi">${taza(20)}<span>Apoyar PokeDoc</span></a>
       <button type="button" class="tu-salir" id="navUserSignOut">${icons.logOut(20)}<span>Salir</span></button>

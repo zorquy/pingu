@@ -1,0 +1,122 @@
+/* /tiendas: la solicitud de una tienda (tanda 1067). Hoja propia. */
+
+.tiendas-que,
+.tiendas-form {
+  margin-bottom: var(--e-2xl);
+}
+
+.tiendas-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--e-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.tiendas-punto {
+  display: grid;
+  gap: var(--e-xs);
+  align-content: start;
+  padding: var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+
+.tiendas-icono {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  margin-bottom: var(--e-xs);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--navy);
+}
+
+.tiendas-punto h3 {
+  margin: 0;
+  font-size: var(--t-lg);
+  color: var(--text);
+}
+
+.tiendas-punto p {
+  margin: 0;
+  font-size: var(--t-sm);
+  line-height: 1.55;
+  color: var(--text-mid);
+}
+
+.tiendas-form form {
+  display: grid;
+  gap: var(--e-lg);
+  max-width: 520px;
+}
+
+.tiendas-campo {
+  display: grid;
+  gap: var(--e-sm);
+  font-size: var(--t-md);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.tiendas-campo small {
+  font-weight: 400;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.tiendas-campo input,
+.tiendas-campo select {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  font: inherit;
+  font-weight: 400;
+  font-size: var(--t-md);
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.tiendas-campo input:focus-visible,
+.tiendas-campo select:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.tiendas-trampa {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.tiendas-error {
+  margin: 0;
+  min-height: 1em;
+  font-size: var(--t-sm);
+  color: var(--danger);
+}
+
+.tiendas-form .btn-primary {
+  justify-self: start;
+}
+
+.tiendas-aviso {
+  padding: var(--e-lg);
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  font-size: var(--t-md);
+  line-height: 1.6;
+  color: var(--text-mid);
+}
+
+.tiendas-aviso strong {
+  color: var(--text);
+}

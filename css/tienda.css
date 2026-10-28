@@ -1,0 +1,218 @@
+/* /tienda: el panel de una tienda (tanda 1067). Hoja propia. */
+
+.td-vacio {
+  display: grid;
+  gap: var(--e-md);
+  justify-items: center;
+  max-width: 520px;
+  margin: var(--e-2xl) auto;
+  padding: var(--e-xl) var(--e-lg);
+  text-align: center;
+}
+
+.td-vacio h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+}
+
+.td-vacio p {
+  margin: 0;
+  color: var(--text-mid);
+  line-height: 1.6;
+}
+
+.td-vacio-dentro {
+  margin: var(--e-lg) auto;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+}
+
+.td-vacio-dentro h2 {
+  font-size: var(--t-xl);
+}
+
+.td-candado {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+  color: var(--navy);
+}
+
+.td-chapa {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--warning-bg);
+  color: var(--warning);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.td-cab {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--e-lg);
+  align-items: center;
+  padding: var(--e-lg) 0;
+}
+
+.td-logo {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: var(--radius-lg);
+  background: var(--acento);
+  background-size: cover;
+  background-position: center;
+  color: var(--acento-texto);
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  font-weight: 800;
+}
+
+.td-quien {
+  display: grid;
+  gap: var(--e-xs);
+  justify-items: start;
+  min-width: 0;
+}
+
+.td-quien h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  overflow-wrap: anywhere;
+}
+
+.td-quien p {
+  margin: 0;
+}
+
+.td-pestanas {
+  margin-bottom: var(--e-lg);
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.td-hoja h2 {
+  margin: 0 0 var(--e-sm);
+  font-size: var(--t-xl);
+}
+
+.td-pasos {
+  display: grid;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-width: 640px;
+}
+
+.td-pasos li {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  gap: var(--e-md);
+  align-items: center;
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.td-pasos li > span:nth-child(2) {
+  display: grid;
+  gap: 2px;
+}
+
+.td-pasos small {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.td-paso-marca {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+}
+
+.td-pasos li.hecho .td-paso-marca {
+  border-color: var(--success);
+  background: var(--success);
+  color: var(--blanco-fijo);
+}
+
+.td-pasos li.hecho strong {
+  color: var(--text-mid);
+}
+
+.td-form {
+  display: grid;
+  gap: var(--e-lg);
+  max-width: 520px;
+  margin-top: var(--e-lg);
+}
+
+.td-campo {
+  display: grid;
+  gap: var(--e-sm);
+  font-size: var(--t-md);
+  font-weight: 600;
+}
+
+.td-campo input {
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  font: inherit;
+  font-weight: 400;
+  color: var(--text);
+  background: var(--white);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+
+.td-campo input:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.td-check {
+  display: flex;
+  gap: var(--e-sm);
+  align-items: center;
+  min-height: 44px;
+  font-size: var(--t-md);
+}
+
+.td-error {
+  margin: 0;
+  min-height: 1em;
+  font-size: var(--t-sm);
+  color: var(--danger);
+}
+
+.td-form .btn-primary {
+  justify-self: start;
+}
+
+@media (max-width: 600px) {
+  .td-cab {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .td-perfil {
+    grid-column: 1 / -1;
+    justify-self: start;
+  }
+}

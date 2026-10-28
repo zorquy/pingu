@@ -19,6 +19,7 @@ import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, 
 import { EJEMPLOS_DE_CORREO, renderFilaDeCola, textosDeTipo, familiaDeTipo } from '../../js/email-plantilla.js'
 import { checkSchema } from '../../js/schema-check.js'
 import { iniciarColecciones } from './colecciones.js'
+import { iniciarTiendas } from './tiendas.js'
 
 let categories = []
 let guidesCache = []
@@ -51,6 +52,7 @@ function initSidebar() {
       // Las colecciones se piden al abrir su sección y no al arrancar: son
       // ~231 filas por catálogo y casi siempre se entra a otra cosa.
       if (btn.dataset.section === 'colecciones') iniciarColecciones()
+      if (btn.dataset.section === 'tiendas') iniciarTiendas()
     })
   })
   // Un enlace que abre una sección (1066: el resumen del lunes lleva a

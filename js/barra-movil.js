@@ -33,7 +33,7 @@ export const ORDEN = ['Inicio', 'Aprender', 'Colección', 'Comunidad', 'Jugar']
 export const SECCION_DE = {
   Aprender: ['aprender', 'retos', 'guardados', 'guia', 'curso', 'categoria', 'carta-del-dia', 'mas-caro', 'quien-es', 'ordena-precio', 'que-expansion', 'parejas', 'nueve', 'glosario'],
   'Colección': ['cartas', 'mi-coleccion', 'carta', 'coleccion', 'ilustrador', 'evento'],
-  Comunidad: ['foro', 'usuarios', 'tema', 'usuario', 'mensajes', 'buscar', 'colabora'],
+  Comunidad: ['foro', 'usuarios', 'tema', 'usuario', 'mensajes', 'buscar', 'colabora', 'tiendas', 'tienda'],
   Jugar: ['torneos', 'torneo', 'meta', 'mazo-meta', 'constructor', 'laboratorio', 'mazos', 'mis-partidas', 'repeticiones'],
   Inicio: ['index', 'noticias', 'lanzamientos', 'novedades'],
 }

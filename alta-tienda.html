@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil')</script>
+  <title>Alta de tienda — PokeDoc</title>
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1e5175" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="PokeDoc" />
+  <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+  <meta name="description" content="Crea la cuenta de tu tienda en PokeDoc con tu invitación." />
+  <!-- meta-social:inicio -->
+  <meta name="robots" content="noindex,follow" />
+  <meta property="og:url" content="https://pokedoc.es/alta-tienda" />
+  <meta property="og:site_name" content="PokeDoc" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="es_ES" />
+  <meta property="og:title" content="Alta de tienda — PokeDoc" />
+  <meta property="og:description" content="Crea la cuenta de tu tienda en PokeDoc con tu invitación." />
+  <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@pokedoc_es" />
+  <meta name="twitter:title" content="Alta de tienda — PokeDoc" />
+  <meta name="twitter:description" content="Crea la cuenta de tu tienda en PokeDoc con tu invitación." />
+  <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <!-- meta-social:fin -->
+  <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <link rel="preload" href="/assets/fonts/outfit-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
+  <!-- Estos seis módulos los carga TODA página. Sin esto el navegador
+       los descubre en cascada —la página pide su .js, ese pide app.js,
+       app.js pide supabase.js y ese el bundle de 152 KB—, y cada salto
+       es un viaje de ida y vuelta más antes de poder pintar. Con
+       modulepreload se piden los seis a la vez, desde el primer momento.
+       Van estos y no todo el grafo a propósito: son los que no cambian
+       de página a página, así que no se quedan obsoletos solos. -->
+  <link rel="modulepreload" href="/js/vendor/supabase-js.js" />
+  <link rel="modulepreload" href="/js/supabase.js" />
+  <link rel="modulepreload" href="/js/app.js" />
+  <link rel="modulepreload" href="/js/icons.js" />
+  <link rel="modulepreload" href="/js/content-icon.js" />
+  <link rel="modulepreload" href="/js/html.js" />
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/auth.css" />
+  <link rel="stylesheet" href="/css/alta-tienda.css" />
+</head>
+<body>
+  <!-- El alta de una tienda (tanda 1067). Solo sirve con la invitación del
+       correo (?i=…): el login y el registro de siempre no cambian. Sin
+       barra a propósito, como /auth: aquí se viene a una cosa. -->
+  <div class="auth-page">
+    <div class="auth-box alta-caja">
+      <div class="auth-logo"><span class="auth-logo-nombre">Poke<b>Doc</b></span></div>
+      <h1 class="sr-only">Alta de una tienda en PokeDoc</h1>
+
+      <div id="altaCargando" class="alta-paso"><p class="subtext">Comprobando tu invitación…</p></div>
+
+      <div id="altaInvalida" class="alta-paso hidden">
+        <h2>Esta invitación no vale</h2>
+        <p class="subtext" id="altaInvalidaMotivo"></p>
+        <a class="btn-primary btn-block" href="/tiendas" style="margin-top: 16px;">Pedir acceso otra vez</a>
+      </div>
+
+      <div id="altaCuenta" class="alta-paso hidden">
+        <h2>Crea la cuenta de <span data-alta-nombre></span></h2>
+        <p class="subtext">Es la cuenta de la tienda: con ella entrarás a su panel. Tu cuenta personal, si tienes, sigue aparte.</p>
+        <button type="button" id="altaGoogle" class="btn-outline btn-block auth-google-btn" style="margin-top: 16px;">Continuar con Google</button>
+        <p class="auth-o"><span>o con contraseña</span></p>
+        <label class="alta-etiqueta" for="altaEmail">Email (el de la invitación)</label>
+        <input type="email" id="altaEmail" class="auth-input" readonly />
+        <div class="form-group" style="margin-top: 10px;">
+          <input type="password" id="altaPassword" class="auth-input" placeholder="Elige una contraseña" autocomplete="new-password" />
+        </div>
+        <p class="auth-error" id="altaCuentaError"></p>
+        <button type="button" id="altaCrear" class="btn-primary btn-block" style="margin-top: 8px;">Crear la cuenta →</button>
+        <p class="auth-switch">¿Ya la creaste? <button type="button" id="altaVerEntrar">Entra</button></p>
+      </div>
+
+      <div id="altaEntrar" class="alta-paso hidden">
+        <h2>Entra con la cuenta de la tienda</h2>
+        <input type="email" id="altaEntrarEmail" class="auth-input" readonly />
+        <div class="form-group" style="margin-top: 10px;">
+          <input type="password" id="altaEntrarPassword" class="auth-input" placeholder="Contraseña" autocomplete="current-password" />
+        </div>
+        <p class="auth-error" id="altaEntrarError"></p>
+        <button type="button" id="altaEntrarBtn" class="btn-primary btn-block" style="margin-top: 8px;">Entrar</button>
+        <p class="auth-switch"><button type="button" id="altaVerCuenta">← Crear la cuenta</button></p>
+      </div>
+
+      <div id="altaRevisa" class="alta-paso hidden">
+        <h2>Revisa tu email</h2>
+        <p class="subtext">Te hemos enviado un enlace para confirmar la cuenta. Ábrelo y volverás aquí para terminar.</p>
+      </div>
+
+      <div id="altaOtro" class="alta-paso hidden">
+        <h2>Has entrado con otra cuenta</h2>
+        <p class="subtext">Ahora mismo estás como <strong id="altaOtroEmail"></strong>, y la invitación es para <strong id="altaOtroInvitado"></strong>.</p>
+        <button type="button" id="altaSalir" class="btn-primary btn-block" style="margin-top: 16px;">Salir y seguir con la tienda</button>
+        <p class="auth-switch"><button type="button" id="altaOlvidar">No es para mí: seguir con mi cuenta</button></p>
+      </div>
+
+      <form id="altaTienda" class="alta-paso hidden" novalidate>
+        <ol class="alta-pasos" aria-label="Pasos"><li class="hecho">Cuenta</li><li class="activo">Tu tienda</li><li>Tu stock</li></ol>
+        <h2>Tu tienda</h2>
+        <label class="alta-etiqueta" for="altaNombre">Nombre</label>
+        <input type="text" id="altaNombre" class="auth-input" maxlength="80" autocomplete="organization" />
+        <label class="alta-etiqueta" for="altaUsuario">Tu @ en PokeDoc</label>
+        <div class="alta-arroba"><span>pokedoc.es/usuario/</span><input type="text" id="altaUsuario" maxlength="40" autocomplete="off" autocapitalize="none" spellcheck="false" /></div>
+        <p class="alta-libre" id="altaUsuarioEstado" aria-live="polite"></p>
+        <label class="alta-etiqueta" for="altaCiudad">Ciudad</label>
+        <input type="text" id="altaCiudad" class="auth-input" maxlength="80" autocomplete="address-level2" />
+        <label class="alta-etiqueta" for="altaDireccion">Dirección (para que te encuentren; opcional)</label>
+        <input type="text" id="altaDireccion" class="auth-input" maxlength="160" autocomplete="street-address" />
+        <label class="alta-etiqueta" for="altaWeb">Web o Instagram (opcional)</label>
+        <input type="text" id="altaWeb" class="auth-input" maxlength="160" placeholder="@tutienda" />
+        <p class="auth-error" id="altaTiendaError"></p>
+        <button type="submit" id="altaGuardar" class="btn-primary btn-block" style="margin-top: 8px;">Siguiente →</button>
+      </form>
+
+      <div id="altaStock" class="alta-paso hidden">
+        <ol class="alta-pasos" aria-label="Pasos"><li class="hecho">Cuenta</li><li class="hecho">Tu tienda</li><li class="activo">Tu stock</li></ol>
+        <h2>Lista. Ahora, tu stock</h2>
+        <p class="subtext">El panel se abre por partes: lo primero que llega es el stock. Mientras, ya puedes ver tu panel y tu perfil.</p>
+        <div class="alta-acciones">
+          <a class="alta-accion" href="/tienda"><span data-icono="barChart" aria-hidden="true"></span><span><strong>Ir a mi panel</strong><small>Hoy, stock, escaparate y los datos de la tienda</small></span></a>
+          <a class="alta-accion" id="altaPerfil" href="/tienda"><span data-icono="users" aria-hidden="true"></span><span><strong>Ver mi perfil</strong><small>Lo que verá la gente cuando se abra</small></span></a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/alta-tienda.js"></script>
+</body>
+</html>

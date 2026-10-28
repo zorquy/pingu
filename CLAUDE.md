@@ -76,6 +76,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mismo: lo que solo usa una pantalla, a su hoja. `components.css` y `js/app.js` los
   baja TODO el mundo — el CSS o JS de una sola página va en su propio
   fichero (mira css/lanzamientos.css o css/curso.css como ejemplo).
+- **Una tienda es una CUENTA de tipo «tienda», y solo entra por invitación**
+  (tanda 1067, PINGU: «no quiero que cambie el login de ahora»): pide en
+  `/tiendas`, el equipo acepta en /admin → Tiendas (`tienda-decidir` manda el
+  correo) y el alta es `/alta-tienda?i=` con el email de la invitación. El
+  tipo lo pone la base (`tienda_alta`) y no se lo cambia nadie a sí mismo
+  (`trg_tienda_guarda_tipo`). Lo que sea de tiendas va en su página y su
+  hoja (`/tienda`, `css/tienda.css`) y lo puro en `js/tiendas-puro.js`; el
+  stock NO va en `user_collection` (1068). Cardmarket y los pagos, aparcados.
 - **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
   1065 y 1066): cada visita lleva `modo` (app instalada o web),
   `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que

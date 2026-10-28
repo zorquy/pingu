@@ -4,6 +4,54 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (309) — PINGU-Claude (1067 — la cuenta de tienda, solo por invitación)
+
+**Hecho**: PINGU quiere un portal de tiendas (inventario con coste, precio y
+margen, escaparate con QR). Dos propuestas («PokeDoc para tiendas» y «Portal
+de tiendas»); eligió lo recomendado: la tienda es una CUENTA más de tipo
+«tienda», el login de siempre NO cambia y la cuenta de tienda es solo por
+invitación. Cardmarket y los pagos, aparcados. Esta es la tanda 1 de 3:
+**pedir** en `/tiendas` (sin cuenta; enlace «Para tiendas» en el pie de las
+47 páginas con pie; `tienda_pedir`, que avisa a la campanita del equipo con
+`tienda_solicitud`), **decidir** en /admin → Tiendas (`tienda-decidir`:
+decide `tienda_decidir` con el token del admin y manda el correo
+`tienda_aceptada` / `tienda_rechazada` directo, por `netlify/lib/correo-
+suelto.mjs`, porque va a un email sin cuenta; si no sale, el aviso enseña el
+motivo y el enlace para mandarlo a mano), **alta** en `/alta-tienda?i=`
+(`tienda_invitacion` + `tienda_alta`: solo con el email de la invitación, un
+uso, 14 días; una cuenta personal hecha no se convierte), y **`/tienda`**,
+el panel: cuatro caras (entrar / cerrado / equipo / tienda) y, para la
+tienda, Hoy (primeros pasos), Stock y Escaparate (vacíos: llegan en la 1068
+y la 1069) y Datos (ciudad, dirección, horario, web, precios visibles). Una
+tienda que entra por el login va a `/tienda` (salvo `volver`), y tiene «Tu
+tienda» en la hoja «Tú». La invitación se apunta en `pd-alta-tienda`: si la
+confirmación o Google vuelven sin `?i=`, el onboarding de siempre manda al
+alta.
+
+**Para PINGU**: ejecutar `supabase-migration-1067-tiendas.sql`. Sin ella,
+/tiendas dice que ahora no se puede y /tienda sale cerrado; nada más cambia.
+El correo usa la configuración de siempre (EMAIL_PROVIDER…). Si en Supabase
+→ Auth → URL Configuration las direcciones de vuelta son una lista cerrada,
+añadir `https://pokedoc.es/alta-tienda` (sin ella vuelve a la portada y el
+onboarding la redirige igual, pero es un salto de más).
+
+**Ficheros**: `supabase-migration-1067-tiendas.sql`, `tiendas.html`,
+`alta-tienda.html`, `tienda.html`, `js/tiendas.js`, `js/alta-tienda.js`,
+`js/tienda.js`, `js/tiendas-puro.js`, `css/tiendas.css`,
+`css/alta-tienda.css`, `css/tienda.css`, `admin/js/tiendas.js`,
+`admin/index.html`, `admin/js/admin.js`, `netlify/functions/tienda-decidir.mjs`,
+`netlify/lib/correo-suelto.mjs`, `netlify/functions/sitemap.mjs`,
+`js/email-plantilla.js`, `js/auth.js`, `js/onboarding.js`, `js/menu-tu.js`,
+`js/barra-movil.js`, el pie de las 47 páginas y `cartas.html` (generado).
+Pruebas en `pruebas`: 1067 (puro, el correo, `tienda-decidir` y la migración
+contra PostgreSQL) y 1067-pantalla; el doble sabe `tiendas`,
+`tienda_solicitudes` y `signUp`/`signInWithPassword`/`signInWithOAuth`
+(`window.__AUTH__`, `__FAKE_AUTH__`).
+
+**Pendiente**: 1068 (el stock: tabla, añadir, filtros en panel lateral,
+vistas guardadas, precio en bloque, CSV) y 1069 (perfil de tienda, QR,
+Mercado y «Quién la tiene»).
+
 ## 2026-10-28 (308) — PINGU-Claude (1065 + 1066 — la analítica que se entiende)
 
 **Hecho**: PINGU preguntó si se puede saber quién entra desde la app

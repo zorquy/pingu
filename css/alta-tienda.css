@@ -1,0 +1,144 @@
+/* /alta-tienda (tanda 1067): lo que no trae auth.css. */
+
+.alta-paso {
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.alta-paso.hidden {
+  display: none;
+}
+
+.alta-etiqueta {
+  margin-top: var(--e-sm);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  color: var(--text-mid);
+}
+
+.auth-input[readonly] {
+  background: var(--ice);
+  color: var(--text-mid);
+}
+
+.alta-arroba {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  overflow: hidden;
+}
+
+.alta-arroba:focus-within {
+  box-shadow: var(--shadow-ring);
+}
+
+.alta-arroba span {
+  padding-left: var(--e-md);
+  font-size: var(--t-sm);
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.alta-arroba input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--e-md) 0 2px;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: inherit;
+  font-size: var(--t-md);
+  font-weight: 600;
+  color: var(--text);
+}
+
+.alta-libre {
+  margin: 0;
+  min-height: 1em;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.alta-libre.bien { color: var(--success); }
+.alta-libre.mal { color: var(--danger); }
+
+.alta-pasos {
+  display: flex;
+  gap: var(--e-xs);
+  margin: 0 0 var(--e-sm);
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-xs);
+  color: var(--text-dim);
+}
+
+.alta-pasos li {
+  flex: 1;
+  display: grid;
+  gap: var(--e-xs);
+}
+
+.alta-pasos li::before {
+  content: '';
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+}
+
+.alta-pasos li.hecho::before,
+.alta-pasos li.activo::before {
+  background: var(--acento);
+}
+
+.alta-pasos li.activo {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.alta-acciones {
+  display: grid;
+  gap: var(--e-sm);
+  margin-top: var(--e-sm);
+}
+
+.alta-accion {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 44px;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.alta-accion:hover {
+  border-color: var(--border-strong);
+}
+
+.alta-accion > span:first-child {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex: 0 0 36px;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  color: var(--navy);
+}
+
+.alta-accion > span:last-child {
+  display: grid;
+  gap: 2px;
+}
+
+.alta-accion small {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}

@@ -11,6 +11,14 @@ import { icons } from './icons.js'
 const $ = (id) => document.getElementById(id)
 const elegido = new Set()
 
+// Quien viene de una invitación de tienda (1067) no hace la bienvenida de
+// una persona: la confirmación del correo o Google pueden dejarle aquí sin
+// la `?i=`, y su alta sigue en /alta-tienda.
+try {
+  const tienda = localStorage.getItem('pd-alta-tienda')
+  if (tienda && /^[0-9a-f-]{36}$/i.test(tienda)) location.replace(`/alta-tienda?i=${tienda}`)
+} catch {}
+
 // Qué acción va primero según lo que te trae: la primera que hayas
 // marcado manda. Si marcas las tres, coleccionar: es lo que esta web
 // hace que ninguna otra en español.
