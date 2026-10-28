@@ -108,7 +108,8 @@ function pintar(d, ultimas) {
   const v = d.visitas || {}
   const cv = comparacion(v.actual, v.anterior, p.frente.replace('a esta hora', 'en todo el día'))
   $('.tdh-visitas').innerHTML = `<b>${v.actual || 0}</b> ${v.actual === 1 ? 'visita' : 'visitas'}${v.qr ? ` · ${v.qr} desde el QR` : ''}${cv ? `<small class="${cv.sube === false ? 'tdh-baja' : cv.sube ? 'tdh-sube' : ''}">${escapeHtml(cv.texto)}</small>` : ''}`
-  const st = $('[data-tdh-stock]')
+  // Cuánto stock tiene, en la cabecera de /tienda (fuera de esta caja).
+  const st = document.querySelector('[data-tdh-stock]')
   if (st) st.textContent = `${(s.lineas || 0).toLocaleString('es-ES')} ${s.lineas === 1 ? 'línea' : 'líneas'} · ${(s.unidades || 0).toLocaleString('es-ES')} uds.`
 }
 
@@ -208,12 +209,6 @@ export function montarHoy(destino) {
   est.periodo = leerPeriodo()
   caja.innerHTML = `
     <div class="tdh">
-      <nav class="tdh-rapido" aria-label="Atajos">
-        <a href="/tienda?vender=1" data-ver="vender" class="tdh-atajo tdh-atajo-principal">${icons.coins(22)}<span><b>Vender</b><small>Apunta una venta</small></span></a>
-        <a href="/cartas" class="tdh-atajo">${icons.layers(22)}<span><b>Añadir cartas</b><small>Desde la Colección</small></span></a>
-        <a href="/tienda?ver=stock" data-ver="stock" class="tdh-atajo">${icons.package(22)}<span><b>Tu stock</b><small data-tdh-stock>…</small></span></a>
-        <a href="/tienda?ver=escaparate" data-ver="escaparate" class="tdh-atajo">${icons.eye(22)}<span><b>Tu escaparate</b><small>El QR y lo que ve la gente</small></span></a>
-      </nav>
       <div class="tdh-cab">
         <h2>Cómo va</h2>
         <div class="tdvt-chips" role="group" aria-label="Periodo">${PERIODOS_HOY.map(([v, t]) => `<button type="button" class="tdvt-chip" data-periodo="${v}" aria-pressed="${v === est.periodo}">${t}</button>`).join('')}</div>

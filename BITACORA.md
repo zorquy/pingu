@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (323) — PINGU-Claude (1085 — el Panel de una tienda sin atajos)
+
+**Hecho**: lo primero de «Tiendas, listas para el piloto» (PINGU: todo menos
+«Cuéntanos» y Cardmarket). El Panel sin los cuatro atajos, con la cabecera en
+poco alto (dónde, cuánto stock y «Tu escaparate»): en el móvil, «Cómo va» y
+las cifras ya se ven al abrirlo.
+
+**Para PINGU**: nada que ejecutar.
+
+**Ficheros**: `tienda.html`, `js/tienda.js`, `js/tienda-hoy.js`,
+`css/tienda.css`. Pruebas en `pruebas`: al día la 1067, 1073 y 1078.
+
+**Pendiente**: 1086 (barra del Stock), 1087 (tabla y filtros), 1088 (Ventas y
+Escaparate), 1089 (avisar a quien busca una carta).
+
 ## 2026-10-28 (322) — PINGU-Claude (arreglo: el nombre de la carta en la tabla del Stock)
 
 **Hecho**: en el PC, la columna «Carta» del Stock se aplastaba («Pik…»)

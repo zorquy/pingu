@@ -133,7 +133,9 @@ function pintarCabecera() {
     logo.setAttribute('style', avatarStyle(perfil))
   }
   pintarPortada()
-  for (const a of [$('tdVerPerfil'), $('tdVerPerfil2')]) if (a) a.href = profileUrl(perfil)
+  const ojo = document.querySelector('[data-icono-eye]')
+  if (ojo && !ojo.innerHTML) ojo.innerHTML = icons.eye(18)
+  if ($('tdVerPerfil2')) $('tdVerPerfil2').href = profileUrl(perfil)
 }
 
 function pintarPortada() {

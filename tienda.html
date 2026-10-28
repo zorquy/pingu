@@ -165,14 +165,17 @@
       <!-- La cabecera es la del Panel (1078): un saludo con tu tienda. En las
            demás pestañas no se repite (la lateral y la barra ya dicen dónde
            estás). -->
+      <!-- En poco alto desde la 1085 (PINGU eligió quitar los atajos: Vender,
+           Colección y Stock ya están en la barra y en la lateral): el nombre,
+           dónde está y cuánto stock tiene, y el escaparate a un toque. -->
       <header class="td-cab">
         <span class="td-logo" id="tdLogo" aria-hidden="true"></span>
         <div class="td-quien">
           <span class="td-saludo"><span id="tdSaludo">Hola</span> <span class="td-chapa">Tienda · en pruebas</span></span>
           <h2 id="tdNombre"></h2>
-          <p id="tdDonde" class="subtext"></p>
+          <p class="subtext td-donde"><span id="tdDonde"></span><span class="td-stock-n" data-tdh-stock></span></p>
         </div>
-        <a class="btn-secondary td-perfil" id="tdVerPerfil" href="/perfil.html">Ver mi escaparate</a>
+        <a class="btn-secondary td-perfil" id="tdVerEscaparate" href="/tienda?ver=escaparate" data-ver="escaparate" aria-label="Tu escaparate y su QR"><span class="td-perfil-icono" data-icono-eye></span><span class="td-perfil-texto">Tu escaparate</span></a>
       </header>
 
       <nav class="seg td-pestanas" id="tdPestanas" role="tablist" aria-label="Panel de la tienda">

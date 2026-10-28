@@ -41785,6 +41785,21 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1085 — El Panel de una tienda, sin atajos
+
+PINGU, de «Tiendas, listas para el piloto»: fuera los cuatro atajos del Panel
+(Vender, Añadir cartas, Tu stock, Tu escaparate) en el móvil y en el PC: la
+barra de abajo, la lateral y el «Vender» de arriba ya los tienen, y en un
+iPhone empujaban «Cómo va» por debajo del pliegue.
+
+- La cabecera (`tienda.html`, `.td-cab`) dice dónde está y cuánto stock tiene
+  (`[data-tdh-stock]`, que pinta `tienda-hoy.js` desde fuera de su caja) y
+  lleva «Tu escaparate» (`#tdVerEscaparate`, `data-ver="escaparate"`: la
+  pestaña con el QR). Su perfil público se abre desde esa pestaña
+  (`#tdVerPerfil2`, «Abrirlo como lo ve la gente»).
+- En el móvil, sin la línea del saludo y con «Tu escaparate» como un icono
+  redondo de 44 px a la derecha.
+
 ## Tanda 1084 — El recibo de una venta
 
 `js/tienda-recibo.js` (por `import()`): `abrirRecibo(ticket)` lee las líneas
