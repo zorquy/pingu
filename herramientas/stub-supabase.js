@@ -22,6 +22,9 @@ const TABLAS_CON_DUENO = ['user_collection', 'user_albums', 'user_wants', 'user_
 
 const T = {
   user_profiles: [],
+  // Las tiendas (1067).
+  tiendas: [],
+  tienda_solicitudes: [],
   tournaments: [],
   tournament_registrations: [],
   tournament_join_codes: [],
@@ -939,6 +942,7 @@ const SIN_TOCAR = (typeof window !== 'undefined' && window.__RLS_SIN_TOCAR__) ||
 
 // Las llamadas a RPC, para que una prueba pueda comprobarlas.
 const RPCS = []
+const AUTH = []
 const SUBIDAS = []
 const BORRADAS = []
 
@@ -2750,8 +2754,14 @@ export const supabase = {
   auth: {
     getSession: async () => ({ data: { session: sesion } }),
     getUser: async () => ({ data: { user: sesion?.user || null } }),
-    signOut: async () => ({ error: null }),
+    signOut: async () => { AUTH.push({ que: 'signOut' }); return { error: null } },
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
+    // Crear cuenta, entrar y Google (1067, el alta de una tienda): se apuntan
+    // en `window.__AUTH__` y contestan lo que diga `__FAKE_AUTH__` (por
+    // defecto, cuenta creada sin sesión: hay que confirmar el correo).
+    signUp: async (datos) => { AUTH.push({ que: 'signUp', ...datos }); const r = (typeof window !== 'undefined' && window.__FAKE_AUTH__?.signUp) || { data: { user: { id: 'nueva-1' }, session: null }, error: null }; return r },
+    signInWithPassword: async (datos) => { AUTH.push({ que: 'signInWithPassword', email: datos.email }); const r = (typeof window !== 'undefined' && window.__FAKE_AUTH__?.signInWithPassword) || { data: null, error: { message: 'Invalid login credentials' } }; return r },
+    signInWithOAuth: async (datos) => { AUTH.push({ que: 'signInWithOAuth', ...datos }); return { data: null, error: null } },
   },
   // El cubo público: lo subido contesta con una dirección de la forma de
   // Supabase (885), que es lo que se guarda en `image_path` o en el logo.
@@ -2813,5 +2823,6 @@ if (typeof window !== 'undefined') {
   window.__SUBIDAS__ = SUBIDAS
   window.__BORRADAS__ = BORRADAS
   window.__RPCS__ = RPCS
+  window.__AUTH__ = AUTH
   window.__CONSULTAS__ = CONSULTAS
 }
