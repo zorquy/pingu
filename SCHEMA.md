@@ -41785,6 +41785,33 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1080 — «Me interesa»: una carta del escaparate en una conversación
+
+Cada carta del escaparate de una tienda lleva «Me interesa»
+(`interesaHtml` en `js/perfil-tienda.js`): `/mensajes.html?with=<tienda>&
+carta=<id de la línea>` (sin cuenta, a registrarse y de vuelta ahí; ni en la
+previa ni para la propia tienda).
+
+- **El adjunto**: una entrada más de `private_messages.adjuntos` (la lista de
+  las fotos de la 891, sin migración nueva) con `tipo: 'carta'`, `stock_id`,
+  la tienda y lo que era (nombre, idioma, estado, versión, precio), que arma
+  `adjuntoDeCarta` (nada del coste ni de las unidades). Sin `ruta`, así que
+  las fotos no lo ven; `cartasDe` lo saca. Cuenta para el tope de cuatro de un
+  mensaje, así que con una carta caben tres fotos. La bandeja dice
+  «Carta: Mew ex · …».
+- **Quien pregunta**: `?carta=` pide esa línea a `tienda_escaparate({ id })`
+  (y comprueba que es ESA: sin la migración 1079 el filtro no existe y
+  vendría otra) y la deja puesta encima del cuadro de escribir con su «×», y
+  un saludo escrito si el cuadro está vacío. Se manda con el mensaje (también
+  sin texto).
+- **La burbuja** (`js/mensajes-carta.js`, por `import()` solo si hay alguna
+  carta): la foto y el nombre salen del CATÁLOGO por `card_id`; lo demás del
+  adjunto se pinta escapado. Lo escribe quien manda el mensaje, así que no se
+  le cree nada que importe.
+- **La tienda** ve «Vender esta carta» en las suyas (`adjunto.tienda` es ella):
+  busca la línea de verdad en SU stock (`tienda_stock` por id; la política solo
+  le deja la suya), avisa si ya no está o no quedan, y abre Vender con ella.
+
 ## Tanda 1081 — El stock de una tienda en rejilla
 
 «Tabla / Rejilla» en la barra del Stock (`data-tds-vista`; se recuerda en el

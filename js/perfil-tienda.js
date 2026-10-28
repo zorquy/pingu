@@ -82,6 +82,15 @@ async function completar(filas) {
   }
 }
 
+// «Me interesa» (1080): una conversación con la tienda con esa carta dentro.
+// Sin cuenta, a registrarse y de vuelta ahí; ni en la previa ni a sí misma.
+function interesaHtml(f) {
+  if (est.previa || est.sesion?.user?.id === est.perfil.id) return ''
+  const destino = `/mensajes.html?with=${encodeURIComponent(est.perfil.id)}&carta=${encodeURIComponent(f.id)}`
+  const href = est.sesion ? destino : `/auth.html?registro=1&volver=${encodeURIComponent(destino)}`
+  return `<a class="pt-interesa" href="${escapeHtml(href)}">${icons.mail(14)}<span>Me interesa</span></a>`
+}
+
 function baldosaHtml(f) {
   const c = f.card_id ? est.cartas.get(f.card_id) : null
   const p = f.product_id ? est.productos.get(String(f.product_id)) : null
@@ -102,6 +111,7 @@ function baldosaHtml(f) {
     <span class="pt-precio">${precio}</span>
     <span class="pt-nombre">${escapeHtml(nombre)}</span>
     <span class="pt-detalle">${escapeHtml(detalle)}${f.unidades > 1 ? ` · ${f.unidades} uds.` : ''}</span>
+    ${interesaHtml(f)}
   </article>`
 }
 

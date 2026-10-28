@@ -20,7 +20,7 @@ import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
-import { agruparPorDia, horaDe, ultimoVisto, resumenDeUltimo, adjuntosDe, cabenAdjuntos, enterEnvia, MAX_FOTOS } from './mensajes-puro.js'
+import { agruparPorDia, horaDe, ultimoVisto, resumenDeUltimo, adjuntosDe, cartasDe, cabenAdjuntos, enterEnvia, MAX_FOTOS } from './mensajes-puro.js'
 
 const root = document.getElementById('messagesRoot')
 const params = new URLSearchParams(window.location.search)
@@ -185,14 +185,17 @@ function fotosHtml(adjuntos, urls) {
     .join('')}</span>`
 }
 
-function burbujaHtml(m, { mia, mencionados, urls, visto }) {
+function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta }) {
   if (m.deleted_at) {
     return `<div class="msg-burbuja msg-eliminado${mia ? ' mia' : ''}" data-id="${m.id}">Mensaje eliminado</div>`
   }
   const texto = String(m.body || '').trim()
   const fotos = fotosHtml(adjuntosDe(m), urls)
+  // Las cartas de «Me interesa» (1080), con su módulo ya cargado.
+  const cartas = carta ? cartasDe(m).map((a) => carta.cartaHtml(a, { miId, mia })).join('') : ''
   return `
-    <div class="msg-burbuja${mia ? ' mia' : ''}${m.seguido ? ' seguida' : ''}${fotos && !texto ? ' solo-fotos' : ''}" data-id="${m.id}">
+    <div class="msg-burbuja${mia ? ' mia' : ''}${m.seguido ? ' seguida' : ''}${fotos && !texto ? ' solo-fotos' : ''}${cartas ? ' con-carta' : ''}" data-id="${m.id}">
+      ${cartas}
       ${fotos}
       ${texto ? `<p>${enlazarMenciones(escapeHtml(texto), mencionados)}</p>` : ''}
       <span class="msg-meta">
@@ -232,6 +235,7 @@ async function renderThread(session, conversationId) {
       </div>
       <button type="button" class="msg-nuevos hidden" id="msgNuevos">${icons.arrowDown(14)} <span>1 nuevo</span></button>
       <form class="msg-compositor" id="msgCompositor">
+        <div id="msgCartaPendiente" hidden></div>
         <div class="msg-adjuntos" id="msgAdjuntos" hidden></div>
         <div class="msg-linea">
           <button type="button" class="msg-clip" id="msgClip" aria-label="Adjuntar foto" title="Adjuntar foto">${icons.paperclip(18)}</button>
@@ -273,6 +277,10 @@ async function renderThread(session, conversationId) {
   // privado); el módulo se baja al pintar el primer hilo, no antes.
   let adjuntosMod = null
   const adjuntos = async () => (adjuntosMod ||= await import('./mensajes-adjuntos.js'))
+  // Y las cartas de «Me interesa» (1080), igual: solo si hay alguna.
+  let cartaMod = null
+  const cartaM = async () => (cartaMod ||= await import('./mensajes-carta.js'))
+  let ultimos = []
 
   // ── El hilo ocupa la pantalla y los mensajes hacen scroll DENTRO (891b) ──
   // PINGU: «se abre así, queda raro»: la página bajaba hasta el pie y el
@@ -332,7 +340,12 @@ async function renderThread(session, conversationId) {
           if (!todas.length) return new Map()
           return (await adjuntos()).urlsDeAdjuntos(todas).catch(() => new Map())
         })(),
+        (async () => {
+          const cartas = messages.flatMap(cartasDe)
+          if (cartas.length) await (await cartaM()).completar(cartas).catch(() => {})
+        })(),
       ])
+      ultimos = messages
       const vistoId = ultimoVisto(messages, miId, otroLeyoHasta)
       const estabaAbajo = primeraPintada || cercaDelFinal()
       const nuevoAjeno = messages.length && messages[messages.length - 1].id !== ultimoIdPintado && messages[messages.length - 1].sender_id !== miId && ultimoIdPintado !== null
@@ -342,7 +355,7 @@ async function renderThread(session, conversationId) {
           : agruparPorDia(messages)
               .map(
                 (dia) => `<div class="msg-dia"><span>${escapeHtml(dia.etiqueta)}</span></div>${dia.mensajes
-                  .map((m) => burbujaHtml(m, { mia: m.sender_id === miId, mencionados, urls, visto: m.id === vistoId ? horaDe(otroLeyoHasta) : null }))
+                  .map((m) => burbujaHtml(m, { mia: m.sender_id === miId, mencionados, urls, visto: m.id === vistoId ? horaDe(otroLeyoHasta) : null, miId, carta: cartaMod }))
                   .join('')}`
               )
               .join('')
@@ -389,6 +402,43 @@ async function renderThread(session, conversationId) {
   }
 
   await refreshMessages()
+
+  // «Vender esta carta» (1080): la tienda vende desde la conversación.
+  el.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-vender-carta]')
+    if (!b) return
+    const adjunto = ultimos.flatMap(cartasDe).find((a) => a.stock_id === b.dataset.venderCarta)
+    ;(await cartaM()).venderDesdeMensaje(b.dataset.venderCarta, adjunto).catch(() => showToast('No se ha podido abrir Vender.', 'error'))
+  })
+
+  // «Me interesa» (1080): `?carta=` deja puesta en el cuadro la carta del
+  // escaparate por la que se pregunta; se manda con el mensaje.
+  const cajaCarta = document.getElementById('msgCartaPendiente')
+  let cartaPendiente = null
+  const pintarCartaPendiente = () => {
+    cajaCarta.hidden = !cartaPendiente
+    cajaCarta.innerHTML = cartaPendiente && cartaMod ? cartaMod.cartaHtml(cartaPendiente, { pendiente: true }) : ''
+  }
+  cajaCarta.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-quitar-carta]')) return
+    cartaPendiente = null
+    pintarCartaPendiente()
+  })
+  if (params.get('carta')) {
+    cartaM()
+      .then((m) => m.prepararCarta(otherProfile.id, params.get('carta')))
+      .then((a) => {
+        if (!a) return showToast('Esa carta ya no está en su escaparate.')
+        cartaPendiente = a
+        pintarCartaPendiente()
+        if (!caja.value.trim()) {
+          caja.value = '¡Hola! Me interesa esta carta. ¿La tienes todavía?'
+          ajustarAlto()
+        }
+        bajarAlFinal()
+      })
+      .catch(() => {})
+  }
 
   import('./mencion-autocompletar.js')
     .then((m) => m.engancharAutocompletarMenciones(caja))
@@ -438,7 +488,8 @@ async function renderThread(session, conversationId) {
     )
   }
   function anadirFicheros(lista) {
-    const { aceptados, rechazados } = cabenAdjuntos(pendientes, [...(lista || [])])
+    // Una carta de «Me interesa» ocupa un hueco de los cuatro de un mensaje.
+    const { aceptados, rechazados } = cabenAdjuntos(pendientes, [...(lista || [])], { max: MAX_FOTOS - (cartaPendiente ? 1 : 0) })
     for (const f of aceptados) pendientes.push({ fichero: f, url: URL.createObjectURL(f) })
     if (rechazados.length) showToast(`${rechazados.length === 1 ? 'Una foto se queda fuera' : `${rechazados.length} fotos se quedan fuera`}: ${rechazados[0].motivo}.`)
     pintarPendientes()
@@ -503,7 +554,7 @@ async function renderThread(session, conversationId) {
   async function enviar() {
     if (sending) return
     const body = caja.value.trim()
-    if (!body && !pendientes.length) return
+    if (!body && !pendientes.length && !cartaPendiente) return
     sending = true
     btn.disabled = true
     form.classList.add('enviando')
@@ -516,7 +567,9 @@ async function renderThread(session, conversationId) {
           { alProgresar: (n, de) => (btn.title = `Subiendo ${n} de ${de}…`) }
         )
       }
-      await sendMessage(conversationId, miId, body, subidas)
+      await sendMessage(conversationId, miId, body, cartaPendiente ? [cartaPendiente, ...subidas] : subidas)
+      cartaPendiente = null
+      pintarCartaPendiente()
       caja.value = ''
       ajustarAlto()
       for (const p of pendientes) URL.revokeObjectURL(p.url)

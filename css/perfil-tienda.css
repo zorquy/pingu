@@ -407,6 +407,34 @@
   scroll-snap-align: start;
 }
 
+/* «Me interesa» (1080): pequeño, debajo de cada carta. */
+.pt-interesa {
+  display: inline-flex;
+  gap: var(--e-xs);
+  align-items: center;
+  justify-self: start;
+  min-height: 32px;
+  margin-top: var(--e-xs);
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pt-interesa:hover {
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+
+@media (pointer: coarse) {
+  .pt-interesa {
+    min-height: 44px;
+  }
+}
+
 /* Las chapas de la foto: la rebaja y lo nuevo. */
 .pt-chapas-foto {
   position: absolute;

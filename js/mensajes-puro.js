@@ -78,6 +78,28 @@ export function adjuntosDe(mensaje) {
   return a.filter((x) => x && typeof x.ruta === 'string' && x.ruta.length)
 }
 
+// Las cartas de un mensaje (1080, «Me interesa»): lo que alguien preguntó
+// del escaparate de una tienda, con lo que era cuando escribió. Van en la
+// misma lista que las fotos, pero sin `ruta`: las fotos no las ven.
+export function cartasDe(mensaje) {
+  const a = mensaje?.adjuntos
+  if (!Array.isArray(a)) return []
+  return a.filter((x) => x && x.tipo === 'carta' && typeof x.stock_id === 'string' && (x.card_id || x.product_id))
+}
+
+// El adjunto de una línea del escaparate: solo lo que hace falta para
+// pintarla y para que la tienda la encuentre (`stock_id`), nada del coste.
+export function adjuntoDeCarta(linea, tiendaId) {
+  if (!linea?.id) return null
+  const precio = linea.precio == null ? null : Number(linea.precio)
+  return {
+    tipo: 'carta', stock_id: String(linea.id), tienda: tiendaId,
+    card_id: linea.card_id || null, market: linea.market || 'WEST', product_id: linea.product_id ?? null,
+    nombre: String(linea.nombre || '').slice(0, 120), idioma: linea.idioma || null, estado: linea.estado || null,
+    variante: linea.variante || null, precio: Number.isFinite(precio) ? precio : null,
+  }
+}
+
 // La línea de la bandeja: «Tú: …», «Foto», «2 fotos · texto», «Mensaje
 // eliminado». `foto` dice si lleva icono delante.
 export function resumenDeUltimo(mensaje, mio) {
@@ -86,7 +108,8 @@ export function resumenDeUltimo(mensaje, mio) {
   const n = adjuntosDe(mensaje).length
   const texto = String(mensaje.body || '').trim()
   const fotos = n === 0 ? '' : n === 1 ? 'Foto' : `${n} fotos`
-  const cuerpo = [fotos, texto].filter(Boolean).join(' · ')
+  const carta = cartasDe(mensaje)[0]
+  const cuerpo = [carta ? `Carta: ${carta.nombre || 'una carta'}` : '', fotos, texto].filter(Boolean).join(' · ')
   return { texto: `${mio ? 'Tú: ' : ''}${cuerpo}`, foto: n > 0 }
 }
 

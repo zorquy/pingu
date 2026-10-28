@@ -360,6 +360,117 @@
   font-size: var(--t-2xs);
 }
 
+/* «Me interesa» (1080): la carta del escaparate, como una tarjeta dentro de
+   la burbuja (también en la tuya, que es azul) y encima del cuadro de
+   escribir mientras no se manda. */
+.msg-carta {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) auto;
+  gap: var(--e-sm);
+  align-items: start;
+  min-width: 0;
+  margin: 0 calc(-1 * var(--e-xs)) var(--e-xs);
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+}
+
+.msg-burbuja.con-carta {
+  min-width: min(280px, 100%);
+}
+
+.msg-carta-pendiente {
+  margin: 0;
+}
+
+.msg-carta-foto {
+  display: block;
+  aspect-ratio: 63 / 88;
+  border-radius: 4px;
+  background: var(--ice);
+  overflow: hidden;
+}
+
+.msg-carta-producto {
+  aspect-ratio: 1;
+}
+
+.msg-carta-foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.msg-carta-producto img {
+  object-fit: contain;
+}
+
+.msg-carta-texto {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.msg-carta-texto strong {
+  overflow: hidden;
+  font-size: var(--t-sm);
+  color: var(--text);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msg-carta-que {
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+
+.msg-carta-precio {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.msg-carta-precio small {
+  font-size: var(--t-2xs);
+  font-weight: 500;
+  color: var(--text-mid);
+}
+
+.msg-carta-vender {
+  justify-self: start;
+  margin-top: var(--e-xs);
+}
+
+.msg-carta-quitar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+
+@media (pointer: coarse) {
+  .msg-carta-quitar {
+    width: 44px;
+    height: 44px;
+  }
+}
+
 /* Las fotos de una burbuja: una sola a su proporción; dos o más en rejilla. */
 .msg-fotos {
   display: grid;

@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (319) — PINGU-Claude (1080 — «Me interesa»)
+
+**Hecho**: cada carta del escaparate de una tienda lleva «Me interesa», que
+abre una conversación con la tienda con esa carta puesta en el mensaje. La
+tienda la ve con su foto y el precio de cuando se escribió, y «Vender esta
+carta» abre Vender con esa línea de su stock.
+
+**Para PINGU**: nada nuevo que ejecutar (va en los adjuntos de los mensajes,
+de la 891; filtrar el escaparate por la carta es de la migración 1079).
+
+**Ficheros**: `js/mensajes-carta.js` (nuevo), `js/mensajes.js`,
+`js/mensajes-puro.js`, `css/mensajes.css`, `js/perfil-tienda.js`,
+`css/perfil-tienda.css`. Prueba en `pruebas`: 1080-pantalla (con lo puro).
+
+**Pendiente**: 1083 (cifras) y 1084 (recibo).
+
 ## 2026-10-28 (318) — PINGU-Claude (1081 — el stock en rejilla)
 
 **Hecho**: «Tabla / Rejilla» en el Stock. En la rejilla, la carta grande y
