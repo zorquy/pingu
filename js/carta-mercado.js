@@ -36,7 +36,7 @@ import {
   varianteDe,
 } from './cardmarket.js'
 import { tarjetasDePrecio, chapasDeImpresiones, chipDeIdiomaHtml } from './precio-vista.js'
-import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, actualizar, borrar, tieneCifras, versionesDeCartas, pedirVersionesAhora } from './mi-coleccion/datos.js'
+import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, actualizar, borrar, tieneCifras, versionesDeCartas, pedirVersionesAhora, alTacharDeseos, deseosTachadosPor } from './mi-coleccion/datos.js'
 import { precioDeFila, precioParaIdioma, idiomasParaAnadirEn, versionesDeLosIdiomas, idiomasDeLaVersion, idiomaDePrecioDelSet } from './cardmarket.js'
 import { idiomasDeSet, reglasDeVersiones, sinReglas, hayReglas } from './idiomas-de-set.js'
 import { engancharAvisos } from './avisos-precio.js'
@@ -49,6 +49,9 @@ import { especiesPorNombres, especiePorDex } from './pokedex-especies.js'
 import { atributosDeRango } from './rangos.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
+
+// El oyente de «La quiero» de la ficha pintada (1063).
+let quitarOyenteDeTachar = null
 
 const $ = (id) => document.getElementById(id)
 const MERCADO = 'WEST'
@@ -326,6 +329,16 @@ function montarAcciones(carta, sesion, { idiomas, variantes, seSabe = true, esta
     }
     laQuiero.pintarLoseta(b, carta.id, deseos)
   })
+  // Añadirla desde aquí cuando la tenías en «La quiero» la saca de la lista
+  // (1063, lo tacha `anadir`): el corazón lo dice sin recargar. Un oyente por
+  // ficha pintada: el de la anterior se va.
+  quitarOyenteDeTachar?.()
+  quitarOyenteDeTachar = alTacharDeseos((filas) => {
+    if (!Array.isArray(deseos)) return
+    const fuera = new Set(filas.map((f) => f.id))
+    deseos = deseos.filter((d) => !fuera.has(d.id))
+    laQuiero.pintarLoseta($('cmQuiero'), carta.id, deseos)
+  })
 
   // Lo que tienes de ella: «Tienes N», la copia que suma el «+» y el idioma
   // de la primera tarjeta de precio. Se vuelve a pedir al guardar.
@@ -583,7 +596,7 @@ function abrirAnadir(carta, sesion, { idiomas, variantes, seSabe = true, mias, a
       const nueva = await anadir(sesion.user.id, linea, carta.market || MERCADO)
       recordarIdioma(idioma)
       d.close()
-      showToast(`${nombreDeCarta(carta)} añadida en ${idiomaDe(nueva.idioma).nombre.toLowerCase()}.`, 'success')
+      showToast(`${nombreDeCarta(carta)} añadida en ${idiomaDe(nueva.idioma).nombre.toLowerCase()}${deseosTachadosPor(nueva).length ? ' · sale de «La quiero»' : ''}.`, 'success')
       await alGuardar()
     } catch (err) {
       showToast(err.message, 'error')

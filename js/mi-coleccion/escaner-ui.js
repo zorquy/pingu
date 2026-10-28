@@ -204,7 +204,7 @@ async function anadirDesdeEscaner(id, boton) {
     hecho.setAttribute('aria-label', `Deshacer: quitar la copia de ${ctx.nombreDe(c)} que acabas de añadir`)
     hecho.addEventListener('click', async () => {
       hecho.disabled = true
-      if (await ctx.deshacerAnadida(plan, c)) {
+      if (await ctx.deshacerAnadida(plan, c, datos.deseosTachadosPor(nueva))) {
         enRafaga.hechas = Math.max(0, enRafaga.hechas - 1)
         hecho.replaceWith(boton)
         boton.disabled = false

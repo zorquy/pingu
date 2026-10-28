@@ -696,19 +696,21 @@ function avisarAnadida(c, linea, nueva) {
   const total = misLineasDe(c.id).reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const plan = comoDeshacer(linea, nueva)
+  const tachados = datos.deseosTachadosPor(nueva)
   avisoConDeshacer({
     // Con qué se ha añadido (1053): el «+» recuerda lo último que usaste, y
     // el aviso lo dice para que no haya sorpresas.
-    html: `${escaneo ? `<img ${escaneo} alt="" width="28" height="39" loading="lazy" />` : ''}<span><b>${escapeHtml(nombreDe(c))}</b> añadida · ${escapeHtml([IDIOMAS.find((i) => i.id === linea.idioma)?.nombre, ESTADOS.find((e) => e.id === linea.estado)?.nombre].filter(Boolean).join(' · '))}${linea.idioma || linea.estado ? ' · ' : ''}ya tienes ${total}</span>`,
+    html: `${escaneo ? `<img ${escaneo} alt="" width="28" height="39" loading="lazy" />` : ''}<span><b>${escapeHtml(nombreDe(c))}</b> añadida · ${escapeHtml([IDIOMAS.find((i) => i.id === linea.idioma)?.nombre, ESTADOS.find((e) => e.id === linea.estado)?.nombre].filter(Boolean).join(' · '))}${linea.idioma || linea.estado ? ' · ' : ''}ya tienes ${total}${textoTachados(tachados)}</span>`,
     alDeshacer: async () => {
-      if (await deshacerAnadida(plan, c)) showToast(`Deshecho: ${nombreDe(c)} vuelve a como estaba.`, 'success')
+      if (await deshacerAnadida(plan, c, tachados)) showToast(`Deshecho: ${nombreDe(c)} vuelve a como estaba.`, 'success')
     },
   })
 }
 
 // Lo que deshace un «añadida» (712): la decisión la tomó `comoDeshacer`
-// con lo que devolvió la base. Devuelve si se pudo.
-async function deshacerAnadida(plan, c) {
+// con lo que devolvió la base. Devuelve si se pudo. Lo que ese añadir
+// tachó de «La quiero» (`tachados`, 1063) vuelve a la lista.
+async function deshacerAnadida(plan, c, tachados = []) {
   if (!plan) return false
   try {
     if (plan.tipo === 'borrar') {
@@ -718,6 +720,7 @@ async function deshacerAnadida(plan, c) {
       const vuelta = await datos.actualizar(plan.id, { cantidad: plan.cantidad })
       cambiarLinea(plan.id, vuelta)
     }
+    await devolverTachados(tachados).catch((err) => showToast(`La carta se ha quitado, pero no ha vuelto a «La quiero»: ${err.message}`, 'error'))
     repintar()
     // Deshecho desde la ficha abierta (757: es donde se suma una copia de
     // la que ya tienes), la ficha vuelve a decir lo que queda.
@@ -1075,6 +1078,34 @@ let cambios = null // el módulo de consultas, cuando llegue
 // Lo que busco = «La quiero» (751). null = todavía no se sabe: el Panel
 // decía «0 cartas que buscas» hasta abrir Cambios, con la lista llena.
 let deseos = null
+// Lo que añades y estaba en «La quiero» sale de la lista (1063): `datos`
+// lo tacha al añadir, por el camino que sea, y aquí se quita de la memoria
+// para que el corazón y la pestaña lo digan sin recargar.
+datos.alTacharDeseos((filas) => {
+  const fuera = new Set(filas.map((f) => f.id))
+  if (Array.isArray(deseos)) deseos = deseos.filter((d) => !fuera.has(d.id))
+  repintarDeseos(filas)
+})
+function repintarDeseos(filas) {
+  refrescarCorazones()
+  for (const id of new Set(filas.map((f) => f.card_id))) {
+    if (deseosMod || ($('mcEditor')?.open && cartaAbierta === id)) pintarLoseta(id)
+  }
+  if (pestania === 'quiero') void abrirQuiero()
+}
+// Deshacer un «añadida» que tachó deseos los devuelve (1063).
+async function devolverTachados(filas) {
+  if (!filas?.length) return
+  const { devolverDeseos } = await import('./mi-coleccion/cambios.js')
+  await devolverDeseos(filas)
+  if (Array.isArray(deseos)) {
+    const ya = new Set(deseos.map((d) => d.id))
+    deseos = [...filas.filter((f) => !ya.has(f.id)), ...deseos].sort((a, b) => String(b.created_at).localeCompare(String(a.created_at)))
+  }
+  repintarDeseos(filas)
+}
+// «· sale de La quiero» en el aviso de lo que se acaba de añadir.
+const textoTachados = (filas) => (filas?.length ? ' · sale de «La quiero»' : '')
 // Lo último que devolvieron las dos RPC. Se guarda porque el botón de
 // escribir necesita las cartas de ESA persona para redactar el mensaje,
 // y volver a pedirlas sería una consulta por clic.
@@ -5148,7 +5179,7 @@ async function anadirSeleccion(e) {
     }, mercado)
     meterLinea(nueva, seleccion)
     cartas.set(seleccion.id, seleccion)
-    showToast(`${nombreDe(seleccion)} añadida.`, 'success')
+    showToast(`${nombreDe(seleccion)} añadida${textoTachados(datos.deseosTachadosPor(nueva))}.`, 'success')
     $('mcAnadirCantidad').value = 1
     repintar()
   } catch (err) {

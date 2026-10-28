@@ -6,7 +6,7 @@
 // import dinámico también arrastra el CSS del módulo, y la prueba los
 // sigue desde la tanda 307. Por eso aquí no se pinta: solo se consulta.
 import { supabase } from '../supabase.js'
-import { conVariante, hayVariante } from '../deseo-version.js'
+import { conVariante, hayVariante, casaVersion } from '../deseo-version.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-intercambios.sql'
 
@@ -84,6 +84,44 @@ export async function borrarDeseo(id) {
   const { data, error } = await supabase.from('user_wants').delete().eq('id', id).select('id')
   if (error) throw traducir(error)
   if (!data?.length) throw new Error('No se ha podido quitar: ese deseo no es tuyo o ya no existe.')
+}
+
+// ── El deseo que se cumple al añadir (1063) ──
+//
+// PINGU: «cuando consigues una carta que ya querías… debería quitársele el
+// corazón». La regla es la de `cambio_mover` (1047), que ya tachaba el deseo
+// al cerrar un cambio: lo cumple una copia de esa carta en el idioma pedido
+// (o cualquiera, si no se pidió) y en la versión pedida (o cualquiera). Una
+// española no tacha la japonesa que buscas, ni la Normal la Holo.
+export const cumpleDeseo = (deseo, copia) =>
+  !!deseo && !!copia && deseo.card_id === copia.card_id && (!deseo.idioma || deseo.idioma === copia.idioma) && casaVersion(deseo, copia)
+
+// Borra los deseos de `userId` que cumplen estas copias y devuelve las filas
+// borradas (para Deshacer). Se lee primero y se borra por id: la columna
+// `variante` puede no estar (1047), y la regla vive en un solo sitio.
+export async function tacharCumplidos(userId, copias) {
+  const ids = [...new Set((copias || []).map((c) => c?.card_id).filter(Boolean))]
+  if (!userId || !ids.length) return []
+  const { data, error } = await conVariante(COLUMNAS_DESEO, (cols) => supabase.from('user_wants').select(cols).eq('user_id', userId).in('card_id', ids))
+  if (error) throw traducir(error)
+  const cumplidos = (data || []).filter((d) => copias.some((c) => cumpleDeseo(d, c)))
+  if (!cumplidos.length) return []
+  // Con `select`: lo que la política no deje borrar vuelve sin fila, y no se
+  // anuncia como quitado.
+  const { data: fuera, error: fallo } = await supabase.from('user_wants').delete().in('id', cumplidos.map((d) => d.id)).select('id')
+  if (fallo) throw traducir(fallo)
+  const borrados = new Set((fuera || []).map((f) => f.id))
+  return cumplidos.filter((d) => borrados.has(d.id))
+}
+
+// Deshacer: los deseos vuelven con su id y su fecha, así que vuelven a su
+// sitio en «La quiero» y en sus listas (1057: las listas cuelgan de la carta,
+// no del deseo). Uno que ya se hubiera vuelto a apuntar no es un fallo.
+export async function devolverDeseos(filas) {
+  for (const f of filas || []) {
+    const { error } = await supabase.from('user_wants').insert(sinVersionSiNoHay({ ...f }))
+    if (error && !yaEstaba(error)) throw traducir(error)
+  }
 }
 
 // ── El tablón ──

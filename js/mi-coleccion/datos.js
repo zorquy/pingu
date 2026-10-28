@@ -189,12 +189,44 @@ export async function lineasDeCarta(userId, cardId) {
 export async function anadir(userId, linea, mercado = 'WEST') {
   const existentes = await lineasDeCarta(userId, linea.card_id)
   const igual = existentes.find((l) => claveDeLinea(l) === claveDeLinea(linea))
+  let puesta
   if (igual) {
-    return actualizar(igual.id, { cantidad: Math.min(999, igual.cantidad + (linea.cantidad || 1)) })
+    puesta = await actualizar(igual.id, { cantidad: Math.min(999, igual.cantidad + (linea.cantidad || 1)) })
+  } else {
+    const { data, error } = await supabase.from('user_collection').insert({ market: mercado, ...linea }).select(COLUMNAS_LINEA).single()
+    if (error) throw traducir(error)
+    puesta = data
   }
-  const { data, error } = await supabase.from('user_collection').insert({ market: mercado, ...linea }).select(COLUMNAS_LINEA).single()
-  if (error) throw traducir(error)
-  return data
+  await tacharDeseos(userId, [puesta], puesta)
+  return puesta
+}
+
+// LA QUE QUERÍAS, CONSEGUIDA (1063): añadir una carta que tenías en «La
+// quiero» la tacha, con la regla de `cambio_mover` (`cumpleDeseo`). Va aquí
+// porque todo lo que mete cartas pasa por `anadir`/`anadirVarias` (la 650):
+// la hoja, el «+», /carta, el escáner, la selección, la cola sin red y el
+// CSV. Lo tachado se apunta contra lo que se devuelve
+// (`deseosTachadosPor`) para que el aviso lo diga y Deshacer lo devuelva, y
+// se anuncia a quien pinta corazones (`alTacharDeseos`). Si tachar falla, la
+// carta ya está añadida: no se convierte en un error de añadir.
+const tachadosPor = new WeakMap()
+const oyentesDeTachar = new Set()
+export const deseosTachadosPor = (devuelto) => (devuelto && tachadosPor.get(devuelto)) || []
+export function alTacharDeseos(fn) {
+  oyentesDeTachar.add(fn)
+  return () => oyentesDeTachar.delete(fn)
+}
+async function tacharDeseos(userId, copias, devuelto) {
+  if (!copias?.length) return
+  try {
+    const { tacharCumplidos } = await import('./cambios.js')
+    const filas = await tacharCumplidos(userId, copias)
+    if (!filas.length) return
+    if (devuelto) tachadosPor.set(devuelto, filas)
+    for (const fn of oyentesDeTachar) fn(filas)
+  } catch (err) {
+    console.warn('No se ha podido quitar de «La quiero»:', err?.message || err)
+  }
 }
 
 // Marcar VARIAS de golpe (tanda 426).
@@ -249,6 +281,7 @@ export async function anadirVarias(userId, nuevasLineas, mercado = 'WEST') {
   for (const l of suben) {
     puestas.push(await actualizar(l.id, { cantidad: Math.min(999, (Number(l.cantidad) || 0) + 1) }))
   }
+  await tacharDeseos(userId, puestas, puestas)
   return puestas
 }
 

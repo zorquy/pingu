@@ -103,12 +103,16 @@ async function confirmar({ sesion, mercado, alTerminar }) {
     // enorme y, si una falla, fallan todas.
     const lineas = emparejado.listas.map((l) => l.linea)
     let puestas = 0
+    let tachados = 0
     for (let i = 0; i < lineas.length; i += 200) {
       const trozo = lineas.slice(i, i + 200)
-      puestas += (await datos.anadirVarias(sesion.user.id, trozo, mercado)).length
+      const hechas = await datos.anadirVarias(sesion.user.id, trozo, mercado)
+      puestas += hechas.length
+      tachados += new Set(datos.deseosTachadosPor(hechas).map((f) => f.card_id)).size
       boton.textContent = `Guardando… ${Math.min(i + 200, lineas.length)} de ${lineas.length}`
     }
-    showToast(`${puestas} ${puestas === 1 ? 'carta importada' : 'cartas importadas'}.`, 'success')
+    // Lo importado que tenías en «La quiero» sale de la lista (1063).
+    showToast(`${puestas} ${puestas === 1 ? 'carta importada' : 'cartas importadas'}${tachados ? ` · ${tachados === 1 ? 'una sale' : `${tachados} salen`} de «La quiero»` : ''}.`, 'success')
     $('mcImportarDialogo').close()
     await alTerminar?.()
   } catch (err) {

@@ -340,7 +340,8 @@ async function guardarMarcadas() {
     modoMarcar(false)
     ctx.pintarResumen()
     ctx.pintarCartas()
-    showToast(`${cuantas} ${cuantas === 1 ? 'carta añadida' : 'cartas añadidas'} a tu colección.`, 'success')
+    const tachados = new Set(datos.deseosTachadosPor(puestas).map((f) => f.card_id)).size
+    showToast(`${cuantas} ${cuantas === 1 ? 'carta añadida' : 'cartas añadidas'} a tu colección${tachados ? ` · ${tachados === 1 ? 'una sale' : `${tachados} salen`} de «La quiero»` : ''}.`, 'success')
   } catch (err) {
     showToast(err.message || 'No se han podido añadir.', 'error')
     boton.disabled = false
