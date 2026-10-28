@@ -16,7 +16,6 @@ console.log('── Lo puro ──')
   const P = await import(`${REPO}/js/tiendas-puro.js`)
   check('enlaceAMapa: la dirección con la ciudad', P.enlaceAMapa('Calle de ejemplo, 12', 'Bilbao') === 'https://www.google.com/maps/search/?api=1&query=Calle%20de%20ejemplo%2C%2012%2C%20Bilbao')
   check('  …sin dirección, no hay botón (la ciudad sola no es la tienda)', P.enlaceAMapa('', 'Bilbao') === null && P.enlaceAMapa(null, null) === null)
-  check('primerosPasos: el QR lleva al Escaparate', P.primerosPasos({})[3].ir === 'escaparate')
   // textoDeQuien vive en mercado.js, que importa media colección: el trozo puro.
   const fuente = readFileSync(`${REPO}/js/mi-coleccion/mercado.js`, 'utf8')
   const trozo = fuente.slice(fuente.indexOf('export const textoDeGente'), fuente.indexOf('// `cruces`: los user_id'))

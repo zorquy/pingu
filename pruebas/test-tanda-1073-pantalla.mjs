@@ -2,8 +2,8 @@
 // la comparación, la gráfica (una serie: barras del color de la sección, la
 // mayor con su cifra y cada una con su fecha), las últimas ventas, los
 // avisos que llevan al stock con su filtro, lo que busca la gente (sin
-// nombres), las visitas, los periodos y los primeros pasos que se van al
-// hacerlos. Y el escaparate cuenta sus visitas (las del QR aparte).
+// nombres), las visitas y los periodos (desde la 1074 se llama «Panel» y
+// los primeros pasos ya no están). Y el escaparate cuenta sus visitas (las del QR aparte).
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
@@ -64,7 +64,7 @@ console.log('── 1. Hoy, con cifras ──')
   const pide = (await llamadas(p, 'tienda_hoy'))[0]
   check('pide hoy por horas, contra ayer a esta hora', pide?.p_paso === 'hour' && new Date(pide.p_desde).getHours() === 0 && new Date(pide.p_antes_hasta).getTime() < Date.now() - 23 * 36e5, JSON.stringify(pide))
   check('  …con las tres últimas ventas de hoy', (await llamadas(p, 'tienda_ventas_lista'))[0]?.p_cuantas === 3)
-  check('hechos todos los primeros pasos, no salen', await p.isHidden('#tdPasosCaja'))
+  check('el Panel se llama Panel (1074) y no hay primeros pasos', (await p.textContent('.tdh-cab h2')) === 'Panel' && (await p.locator('#tdPasosCaja').count()) === 0)
   const cifras = (await p.innerText('.tdh-cifras')).replace(/\s+/g, ' ')
   check('vendido, con «+18 % que ayer a esta hora»', /411,50 €/.test(cifras) && /\+18 % que ayer a esta hora/.test(cifras), cifras)
   check('beneficio y margen sobre lo pagado (136,20 € / 49 %), con lo que no tenía coste dicho', /\+136,20 €/.test(cifras) && /49 %/.test(cifras) && /1 sin coste/.test(cifras))
@@ -104,21 +104,12 @@ console.log('── 1. Hoy, con cifras ──')
   await ctx.close()
 }
 
-console.log('── 2. Los primeros pasos ──')
+console.log('── 2. El QR del escaparate ──')
 {
-  const { p, ctx } = await abrir('/tienda.html', { qr: false })
-  check('sin el QR impreso, los pasos se ven', await p.isVisible('#tdPasosCaja'))
-  await p.click('[data-td-ir="escaparate"]'); await p.waitForTimeout(800)
-  await p.evaluate(() => { window.print = () => {} })
-  await p.click('#tdImprimir'); await p.waitForTimeout(300)
-  check('imprimir el cartel lo da por hecho, y los pasos se van', (await p.evaluate(() => localStorage.getItem('pd-tienda-qr-user-2'))) === '1' && (await p.evaluate(() => document.getElementById('tdPasosCaja').classList.contains('hidden'))))
+  const { p, ctx } = await abrir('/tienda.html?ver=escaparate', { qr: false })
+  await p.waitForTimeout(800)
   const qr = await p.evaluate(async () => { const { svgQR } = await import('/js/qr.js'); const t = document.createElement('div'); t.innerHTML = svgQR('https://pokedoc.es/usuario/prueba?utm_source=qr', { tam: 220 }); return document.getElementById('tdQr').innerHTML === t.innerHTML })
   check('el QR lleva la marca del QR (para contar sus visitas aparte)', qr && (await p.textContent('#tdEnlace')) === 'pokedoc.es/usuario/prueba')
-  await ctx.close()
-}
-{
-  const { p, ctx } = await abrir('/tienda.html', { tienda: { user_id: 'user-2', ciudad: 'Bilbao' } })
-  check('sin la dirección, los pasos siguen ahí', await p.isVisible('#tdPasosCaja'))
   await ctx.close()
 }
 

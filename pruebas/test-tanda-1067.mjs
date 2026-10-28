@@ -13,7 +13,9 @@ console.log('── Lo puro ──')
 {
   const P = await import(`${REPO}/js/tiendas-puro.js`)
   check('validarSolicitud: sin nombre', P.validarSolicitud({ nombre: 'x', ciudad: 'Bilbao', email: 'a@b.es' }) === 'Escribe el nombre de la tienda.')
-  check('  …sin ciudad', /ciudad/.test(P.validarSolicitud({ nombre: 'Rincón', ciudad: '', email: 'a@b.es' })))
+  // Desde la 1074 la ciudad es opcional (no hace falta local); a medias, no.
+  check('  …sin ciudad vale (1074)', P.validarSolicitud({ nombre: 'Rincón', ciudad: '', email: 'a@b.es' }) === null)
+  check('  …una ciudad de una letra, no', /ciudad/.test(P.validarSolicitud({ nombre: 'Rincón', ciudad: 'B', email: 'a@b.es' })))
   check('  …email malo', /email/.test(P.validarSolicitud({ nombre: 'Rincón', ciudad: 'Bilbao', email: 'a@b' })))
   check('  …y bien', P.validarSolicitud({ nombre: 'Rincón', ciudad: 'Bilbao', email: ' tienda@ejemplo.es ' }) === null)
   const T = '6f1d2c0a-1111-2222-3333-444455556666'
@@ -27,10 +29,8 @@ console.log('── Lo puro ──')
   check('  …una tienda, su panel', P.caraDelPanel({ sesion: {}, perfil: { tipo: 'tienda', is_admin: true } }) === 'tdPanel')
   check('  …el equipo, la explicación', P.caraDelPanel({ sesion: {}, perfil: { tipo: 'persona', is_admin: true } }) === 'tdEquipo')
   check('  …una persona (o sin la migración: sin `tipo`), cerrado', P.caraDelPanel({ sesion: {}, perfil: { tipo: 'persona' } }) === 'tdCerrado' && P.caraDelPanel({ sesion: {}, perfil: {} }) === 'tdCerrado')
-  const pasos = P.primerosPasos({ ciudad: 'Bilbao' })
-  check('primerosPasos: la cuenta hecha, los datos por hacer sin dirección', pasos[0].hecho && !pasos[1].hecho && pasos[1].ir === 'datos')
-  check('  …con dirección, hechos', P.primerosPasos({ ciudad: 'Bilbao', direccion: 'Calle 1' })[1].hecho)
-  check('  …sin fila de tienda no revienta', P.primerosPasos(null).length === 4)
+  // Los primeros pasos se fueron en la 1074 (PINGU: «los quitaría»).
+  check('primerosPasos ya no existe (1074)', !('primerosPasos' in P))
   check('cuentaDeSolicitudes', JSON.stringify(P.cuentaDeSolicitudes([{ estado: 'pendiente' }, { estado: 'pendiente' }, { estado: 'usada' }, { estado: 'raro' }])) === '{"pendiente":2,"aceptada":0,"usada":1,"rechazada":0}')
   check('invitacionCaducada', P.invitacionCaducada({ estado: 'aceptada', caduca: '2026-01-01' }, Date.parse('2026-02-01')) && !P.invitacionCaducada({ estado: 'aceptada', caduca: '2026-03-01' }, Date.parse('2026-02-01')) && !P.invitacionCaducada({ estado: 'usada', caduca: '2026-01-01' }, Date.parse('2026-02-01')))
 }

@@ -98,7 +98,7 @@ console.log('── 1. El perfil de una tienda es su escaparate ──')
 {
   const { p, ctx } = await abrir('/usuario.html?u=rincon', { sesion: 'none', rpc: { tienda_escaparate: { ...ESCAPARATE, de_tu_lista: 0, precios: false, filas: ESCAPARATE.filas.map((f) => ({ ...f, precio: null, de_tu_lista: false })) } } })
   check('sin cuenta: sin «de tu lista», Escribir lleva a crear cuenta', !(await p.isVisible('.pt-tuyas')) && /^\/auth\.html\?registro=1/.test(await p.getAttribute('.pt-botones a.btn-primary', 'href')) && (await p.locator('.seg [data-pt-ver="tuyas"]').isHidden()))
-  check('  …y una tienda sin precios a la vista dice «Pregunta en la tienda»', (await p.locator('.pt-pregunta').count()) === 3 && /Pregunta en la tienda/.test(await p.textContent('.pt-pregunta')))
+  check('  …y una tienda sin precios a la vista dice «Pregunta el precio» (1074: puede no tener local)', (await p.locator('.pt-pregunta').count()) === 3 && /Pregunta el precio/.test(await p.textContent('.pt-pregunta')))
   await ctx.close()
 }
 {
@@ -123,9 +123,6 @@ console.log('── 2. /tienda → Escaparate: el QR y el cartel ──')
   check('«Imprimir el cartel» imprime con la clase que deja solo el cartel', (await p.evaluate(() => window.__IMPRESO__)) === true)
   const [descarga] = await Promise.all([p.waitForEvent('download', { timeout: 5000 }).catch(() => null), p.click('#tdBajarQr')])
   check('«Descargar el QR» baja un SVG', descarga?.suggestedFilename() === 'qr-rincon.svg')
-  await p.click('[data-td="hoy"]')
-  // Desde la 1073, imprimir o descargar el cartel da el paso por hecho.
-  check('imprimir el cartel da por hecho el paso del QR', (await p.locator('[data-td-ir="escaparate"]').count()) === 0 && /Imprimir el QR/.test(await p.textContent('.td-pasos li.hecho:last-child')))
   await ctx.close()
 }
 

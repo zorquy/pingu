@@ -17,8 +17,8 @@ const { seccionDeTienda, SECCIONES_DE_TIENDA, seccionesDeTienda, seccionesDelMov
 
 console.log('── Las puertas ──')
 const T = { u: 'prueba', id: 'user-2' }
-const si = [['/tienda', ''], ['/tienda.html', '?ver=stock'], ['/mensajes', ''], ['/mensajes.html', '?with=x'], ['/usuario/prueba', ''], ['/usuario/Prueba', ''], ['/usuario.html', '?u=prueba'], ['/usuario.html', '?id=user-2'], ['/auth.html', ''], ['/alta-tienda', '?i=1'], ['/reset-password.html', ''], ['/privacidad', ''], ['/terminos.html', '']]
-const no = [['/', ''], ['/index.html', ''], ['/mi-coleccion', ''], ['/cartas', ''], ['/foro.html', ''], ['/retos', ''], ['/ajustes', ''], ['/perfil.html', ''], ['/usuario/misty', ''], ['/usuario.html', '?u=misty'], ['/usuario.html', '?id=user-1'], ['/usuario.html', ''], ['/torneos.html', ''], ['/tiendas', '']]
+const si = [['/tienda', ''], ['/tienda.html', '?ver=stock'], ['/mensajes', ''], ['/mensajes.html', '?with=x'], ['/usuario/prueba', ''], ['/usuario/Prueba', ''], ['/usuario.html', '?u=prueba'], ['/usuario.html', '?id=user-2'], ['/auth.html', ''], ['/cartas', ''], ['/cartas', '?ver=pokedex'], ['/alta-tienda', '?i=1'], ['/reset-password.html', ''], ['/privacidad', ''], ['/terminos.html', '']]
+const no = [['/', ''], ['/index.html', ''], ['/mi-coleccion', ''], ['/carta/sv8-1', ''], ['/carta.html', '?id=sv8-1'], ['/foro.html', ''], ['/retos', ''], ['/ajustes', ''], ['/perfil.html', ''], ['/usuario/misty', ''], ['/usuario.html', '?u=misty'], ['/usuario.html', '?id=user-1'], ['/usuario.html', ''], ['/torneos.html', ''], ['/tiendas', '']]
 const malSi = si.filter(([r, q]) => !puedeAbrirTienda(r, q, T))
 const malNo = no.filter(([r, q]) => puedeAbrirTienda(r, q, T))
 check('abre su panel, sus mensajes, SU perfil (por nombre, sin mayúsculas, o por id) y las de entrar y legales', !malSi.length, JSON.stringify(malSi))
@@ -27,11 +27,13 @@ check('sin saber quién es la tienda, ningún perfil', !puedeAbrirTienda('/usuar
 check('la marca del navegador es una', MARCA_TIENDA === 'pd-tienda')
 
 console.log('── Las secciones ──')
-check('Hoy, Stock, Ventas, Escaparate, Mensajes y Datos, en ese orden', SECCIONES_DE_TIENDA.map((s) => s.nombre).join(',') === 'Hoy,Stock,Ventas,Escaparate,Mensajes,Datos')
+check('Panel, Colección, Stock, Ventas, Escaparate, Mensajes y Datos, en ese orden (1074 y 1075)', SECCIONES_DE_TIENDA.map((s) => s.nombre).join(',') === 'Panel,Colección,Stock,Ventas,Escaparate,Mensajes,Datos')
+check('la Colección es /cartas (su modo tienda), con su menú colgado en la lateral', SECCIONES_DE_TIENDA[1].href === '/cartas' && seccionesDeTienda()[1].menu === true && seccionDeTienda('/cartas', '?ver=pokedex') === 'Colección')
+check('  …y su enlace no se cambia por Mi colección (fija)', seccionesDeTienda().every((s) => s.fija === true))
 check('en la forma de la barra: un enlace cada una y su icono', seccionesDeTienda().every((s) => s.enlaces.length === 1 && s.icono))
-check('/tienda sin pestaña es Hoy', seccionDeTienda('/tienda', '') === 'Hoy' && seccionDeTienda('/tienda.html', '?ver=raro') === 'Hoy')
+check('/tienda sin pestaña es el Panel', seccionDeTienda('/tienda', '') === 'Panel' && seccionDeTienda('/tienda.html', '?ver=raro') === 'Panel')
 check('/tienda?ver=stock es Stock y ?ver=datos, Datos', seccionDeTienda('/tienda', '?ver=stock') === 'Stock' && seccionDeTienda('/tienda.html', '?ver=datos') === 'Datos')
-check('el móvil: cinco huecos, Vender en el centro (1072)', seccionesDelMovil().map((s) => s.nombre).join(',') === 'Hoy,Stock,Vender,Escaparate,Mensajes' && seccionesDelMovil()[2].clase === 'bm-vender' && seccionesDelMovil()[2].enlaces[0].href === '/tienda?vender=1')
+check('el móvil: cinco huecos, Vender en el centro (1072)', seccionesDelMovil().map((s) => s.nombre).join(',') === 'Panel,Colección,Vender,Stock,Mensajes' && seccionesDelMovil()[2].clase === 'bm-vender' && seccionesDelMovil()[2].enlaces[0].href === '/tienda?vender=1')
 check('/tienda?ver=ventas es Ventas', seccionDeTienda('/tienda', '?ver=ventas') === 'Ventas')
 check('/mensajes es Mensajes; su perfil, ninguna', seccionDeTienda('/mensajes.html', '?with=x') === 'Mensajes' && seccionDeTienda('/usuario/prueba', '') === null)
 const html = enlacesHtml('Stock')
