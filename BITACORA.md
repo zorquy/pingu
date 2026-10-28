@@ -4,6 +4,57 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-28 (307) — PINGU-Claude (1064 — el idioma de lo que quieres, en todos los sitios)
+
+**Hecho**: PINGU: las cartas de un álbum que marcas con «Las quiero» se
+apuntaban en «cualquier idioma» sin preguntar, «y yo las quiero en español»;
+que se pueda cambiar desde la ficha y desde «La quiero», también varias a la
+vez. Ahora: (1) «Las quiero» de Seleccionar (expansión, Cartas, Pokédex,
+Buscar, álbumes y Mercado, todas por `quererVarias`) pregunta el idioma UNA
+vez para todas («¿En qué idioma las quieres?», la ventana de siempre con
+`varias`), y las que ya querías no se repiten; cancelar no apunta nada. (2) La
+ventana del corazón sale con lo último que elegiste (por catálogo,
+`pd-deseo-idioma-WEST/JP` en el navegador). (3) La ficha de una carta que
+quieres tiene la fila «La quieres · Español» (`#mcEdDeseos`, una por versión)
+que abre la ventana para cambiarla. (4) La ficha del Mercado (la que abre «La
+quiero») tiene «Cambiar» al lado de «La quieres». (5) En «La quiero»,
+Seleccionar → «Idioma» cambia el de las marcadas; una apuntada en dos idiomas
+se queda en uno. Una japonesa con un idioma occidental va en «cualquiera».
+
+**Ficheros**: `js/idioma-deseo.js`, `js/mi-coleccion.js` (`quererVarias`,
+puente `cambiarDeseoDeBaldosa`), `js/mi-coleccion/deseos.js`
+(`pintarDeseoDeFicha`, `cambiarIdiomaDeVarias`), `seleccion.js`, `albumes.js`,
+`mercado.js`, `mi-coleccion.html` + `cartas.html` (generado),
+`css/mi-coleccion.css`, `CLAUDE.md`. Pruebas: 1064 nueva; 713-pantalla,
+1048-pantalla y 1058-pantalla contestan la pregunta nueva.
+
+## 2026-10-28 (306) — PINGU-Claude (1063 — la carta que querías, conseguida, sale de «La quiero»)
+
+**Hecho**: PINGU: «cuando consigues una carta que ya querías… si yo la añado
+a la colección, debería quitársele el corazón». Añadir una carta tacha el
+deseo que esa copia CUMPLE, con la regla que `cambio_mover` (1047) ya usaba
+al cerrar un cambio (`cumpleDeseo`: el idioma pedido o cualquiera, la
+versión pedida o cualquiera; la copia sin versión es la Normal). Va dentro de
+`datos.anadir` y `datos.anadirVarias`, así que vale para todos los caminos
+(hoja de añadir, «+», /carta y el pop-up, escáner, Seleccionar, la cola sin
+red y el CSV). El aviso dice «· sale de «La quiero»» (y cuántas, en la
+selección y al importar); Deshacer de Mi colección y del escáner devuelve el
+deseo con su id y su fecha (vuelve a sus listas, que cuelgan de la carta). Si
+tachar falla, la carta se queda añadida. Sin migración. Las que ya tenías con
+corazón de antes no se tocan (se lo pregunto a PINGU).
+
+**Ficheros**: `js/mi-coleccion/cambios.js` (`cumpleDeseo`, `tacharCumplidos`,
+`devolverDeseos`), `js/mi-coleccion/datos.js` (`deseosTachadosPor`,
+`alTacharDeseos`), `js/mi-coleccion.js`, `js/mi-coleccion/escaner-ui.js`,
+`seleccion.js`, `importar.js`, `js/carta-mercado.js`, `CLAUDE.md` (regla de la
+1047). Prueba nueva en `pruebas`: test-tanda-1063.mjs. Suite de Mi colección
+y /carta (322 pruebas, en carriles): 66 rojos, TODOS de antes —se repasaron
+uno a uno y contra una copia de la 1062, y fallan igual (o pasan solos: la
+carga de cuatro carriles en cuatro núcleos)—. Este contenedor es nuevo: le
+faltan fixtures del scratchpad viejo (470: `visual/carta-real.png`). Las propuestas
+visuales de anoche (Relieve, Tinta, Como app) siguen sin elegir: cuando PINGU
+elija, esas tandas van con números nuevos.
+
 ## 2026-10-27 (305) — PINGU-Claude (1062 — el histórico de precios, claro)
 
 **Hecho**: la propuesta (artifact «Histórico de precios claro»), con lo

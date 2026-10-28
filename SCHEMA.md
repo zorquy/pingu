@@ -41785,6 +41785,99 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1064 — El idioma de lo que quieres, en todos los sitios
+
+PINGU: «no te pide el idioma, entonces se queda en cualquiera. Y después… si
+las marco para llevarlas a la lista de deseos, me pone qué idioma cualquiera.
+Y no, yo en este caso las quiero en español… si abro una carta de las que
+quiero del álbum, que me deje editar el idioma, lo mismo desde deseos y
+cambios… y que te deje editar también en masa».
+
+**Apuntar varias** (`quererVarias`, `js/mi-coleccion.js`): el único camino de
+«Las quiero» con varias marcadas — la barra de Seleccionar (expansión, Cartas,
+Pokédex, Buscar: `seleccion.js` llamaba a `anadirDeseo` por su cuenta y ahora
+pasa por aquí), la de un álbum y la del Mercado. Pregunta el idioma una vez
+con `preguntarDeseo({ varias: n })` («¿En qué idioma las quieres?», sin fila
+de versión: la versión de varias cartas no se puede elegir de una vez) y
+devuelve cuántas entraron o `null` si se cancela (quien llama no avisa ni sale
+de la selección). Lo que ya está en «La quiero», en el idioma que sea, no se
+repite. Una japonesa con un idioma occidental elegido va en «cualquiera»
+(`null`): una española de un set japonés no existe.
+
+**Lo último que elegiste** (`idiomaDeEntrada`, `js/idioma-deseo.js`): la
+ventana sale con el idioma de la última vez, por catálogo
+(`localStorage` `pd-deseo-idioma-WEST` / `-JP`, en `try`); sin nada guardado,
+«cualquiera» (o japonés). Se recuerda al apuntar y al cambiar (no con
+`soloVersion`). Es una comodidad del navegador: no va a la base.
+
+**En la ficha** (`#mcEdDeseos` en `mi-coleccion.html`, debajo de la versión;
+`pintarDeseoDeFicha` en `deseos.js`, que pinta `pintarLoseta`): una fila
+`.mc-fila` por versión pedida, «La quieres · Español · Holo» con el corazón y
+un lápiz; tocarla llama a `cambiarDeseoDeBaldosa` (la de la línea de la
+baldosa, 1047 C1, ahora exportada y con la carta buscada también en
+`cartasDeFuera`: desde un álbum la carta puede ser de otra expansión).
+
+**En la ficha del Mercado** (`botonQuieroHtml`, `mercado.js`): «Cambiar» al
+lado de «La quieres · …» (uno por versión pedida), por `ctx.cambiarDeseo`, y
+repinta.
+
+**Varias en «La quiero»**: la barra de Seleccionar trae «Idioma»
+(`data-sel-quiero="idioma"`). `cambiarIdiomaDeVarias` deja cada carta y
+versión marcada en UN deseo con ese idioma: si estaba en varios idiomas, borra
+los demás ANTES de cambiar el primero (el índice único de la 1047 diría «ya
+está» si se cambiara antes).
+
+**Prueba**: `test-tanda-1064.mjs` (la pregunta de Seleccionar, lo último
+recordado, cancelar; la fila de la ficha; «Cambiar» del Mercado; «Idioma» de
+varias con una apuntada en dos idiomas). 713, 1048 y 1058 (pantalla) contestan
+ahora la pregunta.
+
+## Tanda 1063 — La carta que querías, conseguida, sale de «La quiero»
+
+PINGU: «cuando consigues una carta que ya querías, es decir, una carta que
+tienes con el corazoncito… si yo le añado a la colección, debería quitársele
+el corazón». Ya pasaba al cerrar un cambio (`cambio_mover`, 942 y 1047); no
+al añadirla uno mismo.
+
+**La regla** es la de `cambio_mover`, escrita una vez en el navegador:
+`cumpleDeseo(deseo, copia)` (`js/mi-coleccion/cambios.js`): misma carta, el
+idioma pedido o cualquiera (`idioma` null), y `casaVersion` (la versión
+pedida o cualquiera; la copia sin versión es la Normal). Una española no tacha
+la japonesa que buscas; la Normal no tacha la Holo.
+
+**Dónde**: dentro de `datos.anadir` y `datos.anadirVarias`, que es por donde
+entra toda carta (la 650): la hoja, el «+», /carta y el pop-up, el escáner,
+Seleccionar, la cola sin red y el CSV. `tacharCumplidos` lee los deseos de
+esas cartas (con `conVariante`: la columna puede no estar), filtra con la
+regla y borra por id con `select` (lo que la RLS no deja borrar vuelve sin
+fila y no se anuncia). Lo tachado se guarda en un `WeakMap` contra lo que
+devuelve `anadir` (`deseosTachadosPor(devuelto)`), para que el aviso lo diga y
+Deshacer lo devuelva, y se avisa a quien pinta corazones (`alTacharDeseos`:
+Mi colección quita el deseo de su memoria y repinta corazones, loseta y «La
+quiero»; /carta apaga su corazón, un oyente por ficha pintada). El módulo de
+cambios entra por `import()` dentro de `datos`, como antes.
+
+**Si falla** tachar, la carta ya está añadida: se apunta en la consola y no se
+convierte en un error de añadir.
+
+**Deshacer** (`deshacerAnadida(plan, c, tachados)` en Mi colección, y el del
+escáner) quita la copia y llama a `devolverDeseos`, que los vuelve a insertar
+con su id y su `created_at`: vuelven a su sitio en «La quiero» y en sus
+listas (1057), que cuelgan de la carta y no del deseo. Un 23505 (ya se volvió
+a apuntar) no es fallo. En /carta el aviso de la hoja no tiene Deshacer (no lo
+tenía); el corazón se vuelve a poner a mano.
+
+**No hace**: el «+» de la ficha (suma una IGUAL a una línea que ya tenías,
+por `actualizar`) no tacha: esa copia ya la tenías. Y lo que ya tenías con
+corazón de antes de esta tanda sigue en la lista.
+
+**Prueba**: `test-tanda-1063.mjs` (rama `pruebas`): la regla; la hoja de una
+expansión (tacha el de cualquier idioma y deja el japonés, el aviso, Deshacer
+con id y fecha, el Raichu en español que no toca el japonés, el deseo de otra
+persona); varias de golpe (la Normal no tacha la Holo; la Holo sí; los
+corazones al día); la RLS que no deja borrar (la carta entra y no se anuncia);
+/carta (el corazón se apaga y el aviso lo dice).
+
 ## Tanda 1062 — El histórico de precios, claro
 
 PINGU, con una captura: «faltan idiomas en los gráficos… los colores no

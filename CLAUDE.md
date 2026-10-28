@@ -670,6 +670,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   idioma. Y una versión se PINTA siempre con la chapa de la web
   (`chapaDeVersionHtml`, 1047c, PINGU: «tiene que ser consistente todo lo
   que hacemos»), también la Normal: nada de letras ni de otro dibujo.
+  Y la que CONSIGUES sale de la lista (1063): `datos.anadir` y
+  `anadirVarias` tachan el deseo que la copia cumple (`cumpleDeseo`, la regla
+  de `cambio_mover`), con el aviso y Deshacer (`deseosTachadosPor`); un camino
+  nuevo que meta cartas sin pasar por ahí se lo salta. El idioma se pregunta
+  SIEMPRE (1064): apuntar varias va por `quererVarias` (una pregunta para
+  todas, con lo último elegido), y lo apuntado se cambia desde la ficha
+  (`#mcEdDeseos`), el Mercado («Cambiar») o «Idioma» en «La quiero».
 - **Un botón que escribe en la base cambia YA, confirma después y deshace
   si falla** (tanda 896, R6): el patrón de «Seguir» un hilo, aplicado a
   marcar leído, guardar una guía, «La quiero», el check-in y meter en un
