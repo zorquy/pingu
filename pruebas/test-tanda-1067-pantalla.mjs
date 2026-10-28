@@ -123,6 +123,17 @@ console.log('── 3. /alta-tienda ──')
   await ctx.close()
 }
 {
+  // 1069b: un 5xx de Supabase Auth (el correo de confirmación que no sale)
+  // llega con el mensaje «{}», y el alta lo pintaba tal cual.
+  const { p, ctx } = await abrir(`/alta-tienda.html?i=${TOKEN}`, { sesion: 'none', rpc: { tienda_invitacion: INVITACION } })
+  await p.evaluate(() => { window.__FAKE_AUTH__ = { signUp: { data: { user: null, session: null }, error: { name: 'AuthRetryableFetchError', status: 500, message: '{}' } } } })
+  await p.fill('#altaPassword', 'Rinc0n!Bilbao')
+  await p.click('#altaCrear'); await p.waitForTimeout(400)
+  const txt = await p.textContent('#altaCuentaError')
+  check('un fallo del servidor al crear la cuenta se explica, no sale «{}»', !txt.includes('{}') && /servidor/.test(txt) && /Google/.test(txt), txt)
+  await ctx.close()
+}
+{
   const { p, ctx } = await abrir(`/alta-tienda.html?i=${TOKEN}`, { sesion: 'none', rpc: { tienda_invitacion: INVITACION } })
   await p.click('#altaGoogle'); await p.waitForTimeout(300)
   const g = await p.evaluate(() => window.__AUTH__.find((a) => a.que === 'signInWithOAuth'))
