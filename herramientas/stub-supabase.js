@@ -2011,8 +2011,11 @@ export const supabase = {
           T.conversation_participants.push({ conversation_id: conv, user_id: de }, { conversation_id: conv, user_id: para })
         }
         if (!o.conversacion) o.conversacion = conv
-        T.private_messages.push({ id: nuevoId(), conversation_id: conv, sender_id: de, body: texto, adjuntos: [], deleted_at: null, created_at: ahora() })
-        T.user_notifications.push({ id: nuevoId(), recipient_id: para, type: tipo, title: titulo, body: texto, link: `/mensajes.html?c=${conv}`, read_at: null, created_at: ahora() })
+        // 1101: el mensaje lleva su propuesta como adjunto, y el aviso lleva a «En curso».
+        const sin1101 = typeof window !== 'undefined' && window.__SIN_1101__
+        const cuerpo = sin1101 ? texto : texto.replace(' La tienes arriba de la conversación.', '')
+        T.private_messages.push({ id: nuevoId(), conversation_id: conv, sender_id: de, body: cuerpo, adjuntos: sin1101 ? [] : [{ tipo: 'propuesta', oferta: o.id, evento: tipo }], deleted_at: null, created_at: ahora() })
+        T.user_notifications.push({ id: nuevoId(), recipient_id: para, type: tipo, title: titulo, body: cuerpo, link: sin1101 ? `/mensajes.html?c=${conv}` : `/mi-coleccion?ver=cambios#oferta-${o.id}`, read_at: null, created_at: ahora() })
       }
       const oferta = (id) => T.trade_offers.find((o) => o.id === id)
       if (nombre === 'cambios_reservadas') {
