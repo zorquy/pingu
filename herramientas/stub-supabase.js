@@ -2069,6 +2069,8 @@ export const supabase = {
         }
         for (const o of T.trade_offers) if (o.estado === 'enviada' && ((o.de === yo && o.para === para) || (o.de === para && o.para === yo))) o.estado = 'cambiada'
         const o = { id: nuevoId(), de: yo, para, estado: 'enviada', version, anterior: args.p_anterior || null, dinero, dinero_paga: dinero > 0 ? args.p_paga : null, dinero_como: dinero > 0 ? args.p_como || null : null, nota: args.p_nota || null, conversacion: null, aceptada_at: null, recibido_de_at: null, recibido_para_at: null, hecha_at: null, deshacer_hasta: null, movimientos: null, confirmacion: null, created_at: ahora(), updated_at: ahora() }
+        // 1103: lo enviado (sin la migración, las columnas no vienen).
+        if (!(typeof window !== 'undefined' && window.__SIN_1103__)) Object.assign(o, { enviado_de_at: null, enviado_para_at: null, seguimiento_de: null, seguimiento_para: null })
         T.trade_offers.push(o)
         for (const f of filas) T.trade_offer_items.push({ id: nuevoId(), oferta: o.id, ...f })
         const euros = (x) => `${Number(x).toFixed(2).replace('.', ',')} €`
@@ -2115,6 +2117,19 @@ export const supabase = {
         T.trade_offer_direcciones.push({ oferta: o.id, quien: yo, nombre: v('nombre'), calle: v('calle'), cp: v('cp'), ciudad: v('ciudad'), provincia: v('provincia') || null, telefono: v('telefono') || null })
         if (o.estado === 'aceptada') avisar(o, yo, otro, 'cambio_direccion', 'Ya tienes su dirección', 'Ya tienes mi dirección para el envío.')
         return { data: null, error: null }
+      }
+      if (nombre === 'cambio_enviado') {
+        if (typeof window !== 'undefined' && window.__SIN_1103__) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.cambio_enviado' } }
+        if (o.estado !== 'aceptada') return mal('Ese trato no está aceptado.')
+        if (o.envio !== 'correo' || o.envio_tipo === 'mano') return mal('Ese trato no va por correo.')
+        if (!T.trade_offer_items.some((i) => i.oferta === o.id && i.quien === yo)) return mal('En ese trato no mandas cartas.')
+        if (!T.trade_offer_direcciones.some((d) => d.oferta === o.id && d.quien === otro)) return mal('Todavía no tienes su dirección.')
+        const seg = String(args.p_seguimiento ?? '').trim() || null
+        if (seg && seg.length > 60) return mal('Ese número de seguimiento es demasiado largo.')
+        if (yo === o.de) Object.assign(o, { enviado_de_at: o.enviado_de_at || ahora(), seguimiento_de: seg })
+        else Object.assign(o, { enviado_para_at: o.enviado_para_at || ahora(), seguimiento_para: seg })
+        avisar(o, yo, otro, 'cambio_enviado', 'Te lo ha enviado', `Te lo he mandado ${o.envio_tipo === 'certificado' ? 'por certificado' : 'por correo'}.${seg ? ` Seguimiento: ${seg}.` : ''}`)
+        return { data: { ...o }, error: null }
       }
       if (nombre === 'cambio_aceptar') {
         if (o.para !== yo) return mal('Esa propuesta no es tuya.')

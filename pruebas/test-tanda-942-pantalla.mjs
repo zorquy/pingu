@@ -209,7 +209,8 @@ console.log('\n── 3. Lucía, en Mensajes ──')
   await caja.locator('[data-cp-accion="lo-tengo"]').click()
   await page.waitForTimeout(1500)
   tablas = await foto(page)
-  check('su «Lo tengo» se apunta, sin mover nada todavía', tablas.trade_offers[0].recibido_para_at && tablas.trade_offers[0].estado === 'aceptada' && /Esperando a que Admin lo confirme/.test(await caja.innerText()) && /Tú · 1 carta y 600,00 €\s*Recibido ✓/.test((await caja.textContent()).replace(/\s+/g, ' ')))
+  // Desde la 1103, si va por correo y no ha dicho que mandó lo suyo, le toca mandarlo.
+  check('su «Lo tengo» se apunta, sin mover nada todavía', tablas.trade_offers[0].recibido_para_at && tablas.trade_offers[0].estado === 'aceptada' && /Esperando a que Admin lo confirme|mándaselo a Admin/.test(await caja.innerText()) && /Tú · 1 carta y 600,00 €\s*Recibido ✓/.test((await caja.textContent()).replace(/\s+/g, ' ')))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
