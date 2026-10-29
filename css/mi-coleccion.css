@@ -2461,9 +2461,9 @@
   right: var(--e-lg);
   bottom: calc(var(--e-lg) + env(safe-area-inset-bottom));
   left: var(--e-lg);
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--e-xs);
-  max-width: 560px;
+  max-width: 640px;
   margin: 0 auto;
   padding: var(--e-xs);
   border: 1px solid var(--border);
@@ -14617,8 +14617,15 @@ body[data-tienda] #mcEdAviso,
 body[data-tienda] .mc-contador:has(#mcEdCambio),
 body[data-tienda] #mcMarcarAlbum,
 body[data-tienda] #mcMarcarQuiero,
+body[data-tienda] #mcMarcarCambio,
 body[data-tienda] #mcBloqueAlbumes,
 body[data-tienda] #mcBloqueCambios,
 body[data-tienda] .mc-hero-quien .mc-compartir {
   display: none !important;
+}
+
+/* Sin álbum, «Las quiero» ni «Para cambio», la barra de seleccionar es de dos. */
+body[data-tienda] .mc-sel-abajo {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  max-width: 320px;
 }

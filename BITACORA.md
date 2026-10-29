@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (337) — PINGU-Claude (1097 — «Para cambio» con varias)
+
+**Hecho**: PINGU: «puedes seleccionar cartas en cualquier sitio y añadirlas
+en bulk, pero lo que no puedes es darlas para cambio». La barra de
+Seleccionar (expansiones, Cartas, Pokédex, Buscar) lleva «Para cambio». Abre
+una hoja: de las que tienes, cuántas das de cada una («Una de cada», «Todas
+menos una», «Todas»; nunca baja lo que ya dabas), y las que no tienes se
+añaden con el idioma y el estado que elijas, ya con una para cambio. En una
+tienda no sale.
+
+**Para PINGU**: nada (sin migración).
+
+**Ficheros**: `js/mi-coleccion/cambio-varias.js` (nuevo: la hoja y
+`cambioDeLineas`, lo puro), `js/mi-coleccion/seleccion.js` (`cambiarMarcadas`;
+`meterPuestas` compartido con «Añadir»), `mi-coleccion.html` y `cartas.html`
+(regenerado), `css/mi-coleccion.css` (la barra de cinco; la de la tienda, de
+dos). Prueba en `pruebas`: 1097-pantalla; en verde 426, 475, 649, 713, 748,
+753, 1054, 1057, 1058, 1064, 1076, 299 y 312. La 1011 no arranca en este
+contenedor (a `libres.mjs` le falta acorn): no es del código.
+
+**Pendiente**: nada.
+
 ## 2026-10-29 (336) — PINGU-Claude (1096 — «Lo último» en el lateral del foro)
 
 **Hecho**: PINGU, con el foro de WAH de ejemplo («nuevas entradas» en el

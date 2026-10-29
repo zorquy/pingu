@@ -130,7 +130,7 @@ function pintarMarcadas() {
     $('mcMarcarGuardarTexto').textContent = ctx.modoTienda ? (cuantas ? `${cuantas} al stock` : 'Al stock') : cuantas ? `Añadir ${cuantas}` : 'Añadir'
   }
   // 713: lo demás que se hace con varias. «Quitar» cuenta solo las tuyas.
-  for (const id of ['mcMarcarAlbum', 'mcMarcarQuiero']) if ($(id)) $(id).disabled = !cuantas
+  for (const id of ['mcMarcarAlbum', 'mcMarcarQuiero', 'mcMarcarCambio']) if ($(id)) $(id).disabled = !cuantas
   confirmarQuitar = false
   const tuyas = lineasDeLasMarcadas().length
   const quitar = $('mcMarcarQuitar')
@@ -292,6 +292,68 @@ export function alternarMarca(enlace) {
   pintarMarcadas()
 }
 
+function meterPuestas(puestas) {
+  const elSet = (ctx.todosLosSets || []).find((x) => x.id === ctx.album.set)
+  for (const l of puestas) {
+    const c = (ctx.album.cartas || []).find((x) => x.id === l.card_id)
+    // Desde la Pokédex o Buscar (1054) la carta no es de la expansión
+    // abierta: se busca donde esté, que sin ella el Panel la pinta sin
+    // nombre (la 487).
+    ctx.meterLinea(l, c ? { ...c, tcg_sets: elSet ? { id: elSet.id, name: elSet.name, release_date: elSet.release_date } : null } : ctx.cartas.get(l.card_id) || ctx.cartaPorId(l.card_id) || null)
+  }
+}
+
+// «Para cambio» con varias (1097): las tuyas pasan a darse (cuántas lo dice
+// la hoja de `cambio-varias.js`) y las que no tienes se añaden ya dándose.
+async function cambiarMarcadas() {
+  const entradas = entradasMarcadas()
+  if (!entradas.length) return
+  const tuyas = []
+  const nuevas = []
+  for (const e of entradas) {
+    const ls = e.linea ? [e.linea] : ctx.misLineasDe(e.cardId).filter((l) => (l.variante || 'normal') === e.variante)
+    if (ls.length) tuyas.push(ls)
+    else nuevas.push(e)
+  }
+  const { preguntarCambio, cambioDeLineas } = await import('./cambio-varias.js')
+  const idiomas = [...($('mcTocarIdioma')?.options || [])].map((o) => o.value)
+  const r = await preguntarCambio({ tuyas: tuyas.length, nuevas: nuevas.length, idiomas, idioma: $('mcTocarIdioma')?.value || 'es', estado: $('mcTocarEstado')?.value || 'NM' })
+  if (!r) return
+  const b = $('mcMarcarCambio')
+  b.disabled = true
+  let dadas = 0
+  let anadidas = 0
+  try {
+    for (const ls of tuyas) {
+      const cambios = cambioDeLineas(ls, r.cuantas)
+      for (const c of cambios) ctx.cambiarLinea(c.id, await datos.actualizar(c.id, { cambio: c.cambio }))
+      if (cambios.length) dadas++
+    }
+    if (nuevas.length) {
+      const puestas = await datos.anadirVarias(ctx.sesion.user.id, nuevas.map((e) => ({ card_id: e.cardId, variante: e.variante, idioma: r.idioma, estado: r.estado, cambio: 1 })), ctx.mercado)
+      // Una que ya estaba en la base (entró desde otro sitio) sube una copia
+      // y no trae el cambio: se le pone aquí.
+      for (const [i, l] of puestas.entries()) {
+        if ((Number(l.cambio) || 0) < 1) puestas[i] = await datos.actualizar(l.id, { cambio: 1 })
+      }
+      meterPuestas(puestas)
+      anadidas = puestas.length
+    }
+    modoMarcar(false)
+    ctx.pintarResumen()
+    ctx.repintar()
+    const partes = []
+    if (dadas) partes.push(`${dadas} ${dadas === 1 ? 'carta' : 'cartas'} para cambio`)
+    if (anadidas) partes.push(`${anadidas} ${anadidas === 1 ? 'añadida' : 'añadidas'} y para cambio`)
+    showToast(partes.length ? `${partes.join(' · ')}.` : 'Ya estaban todas para cambio.', 'success')
+  } catch (err) {
+    showToast(`${dadas || anadidas ? 'Se ha quedado a medias: ' : ''}${err.message || 'No se ha podido poner para cambio.'}`, 'error')
+    ctx.repintar()
+  } finally {
+    b.disabled = false
+  }
+}
+
 async function guardarMarcadas() {
   if (!marcadas?.size) return
   const boton = $('mcMarcarGuardar')
@@ -320,14 +382,7 @@ async function guardarMarcadas() {
     // La lección es la de siempre con dos memorias: un solo camino. Si la
     // carta va en el mismo sitio que la línea, no hay un segundo bucle que
     // se pueda quedar corto.
-    const elSet = (ctx.todosLosSets || []).find((x) => x.id === ctx.album.set)
-    for (const l of puestas) {
-      const c = (ctx.album.cartas || []).find((x) => x.id === l.card_id)
-      // Desde la Pokédex o Buscar (1054) la carta no es de la expansión
-      // abierta: se busca donde esté, que sin ella el Panel la pinta sin
-      // nombre (la 487).
-      ctx.meterLinea(l, c ? { ...c, tcg_sets: elSet ? { id: elSet.id, name: elSet.name, release_date: elSet.release_date } : null } : ctx.cartas.get(l.card_id) || ctx.cartaPorId(l.card_id) || null)
-    }
+    meterPuestas(puestas)
     const cuantas = puestas.length
     modoMarcar(false)
     ctx.pintarResumen()
@@ -366,6 +421,7 @@ function enganchar() {
   $('mcMarcarGuardar')?.addEventListener('click', () => void guardarMarcadas())
   $('mcMarcarQuitar')?.addEventListener('click', () => void quitarMarcadas())
   $('mcMarcarQuiero')?.addEventListener('click', () => void quererMarcadas())
+  $('mcMarcarCambio')?.addEventListener('click', () => void cambiarMarcadas())
   $('mcMarcarAlbum')?.addEventListener('click', () => void elegirAlbumParaMarcadas())
   $('mcEaCerrar')?.addEventListener('click', () => $('mcElegirAlbum').close())
   $('mcEaLista')?.addEventListener('click', (e) => {

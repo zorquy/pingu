@@ -41785,6 +41785,31 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1097 — «Para cambio» con varias
+
+PINGU: «puedes seleccionar cartas en cualquier sitio y añadirlas en bulk,
+pero lo que no puedes es darlas para cambio… si no la tienes, tienes que
+añadirla». La barra de Seleccionar (`#mcMarcarAcciones`) pasa de cuatro a
+cinco: Añadir, **Para cambio**, A un álbum, Las quiero y Quitar.
+
+- `cambiarMarcadas` (seleccion.js) separa lo marcado: en «Cartas» lo marcado
+  es una línea; en una expansión, la Pokédex o Buscar, tus líneas de esa
+  carta y versión (`misLineasDe`), y si no hay ninguna, es una «nueva».
+- La hoja (`js/mi-coleccion/cambio-varias.js`, por `import()`, con la forma
+  de `.mc-idd`): «Una de cada» / «Todas menos una» / «Todas» para las tuyas,
+  e idioma y estado (de entrada, los de «Añadir»: `mcTocarIdioma` y
+  `mcTocarEstado`) para las nuevas.
+- `cambioDeLineas(lineas, cuántas)` es la regla, pura y probada: «una» da
+  una de la línea con más copias si no das ninguna ya; «todas menos una» te
+  deja una de la mayor; «todas», todo. Nunca BAJA el `cambio` que ya había:
+  marcar en bloque no deshace lo que pusiste a mano carta a carta.
+- Las nuevas entran por `datos.anadirVarias` con `cambio: 1` (así tachan
+  deseos como cualquier copia, la 1063); si una ya estaba en la base y solo
+  sube de copias, se le pone el cambio después. Se meten en memoria con
+  `meterPuestas`, el mismo camino que «Añadir» (la 487).
+- En una tienda no sale (`body[data-tienda] #mcMarcarCambio`): el stock no
+  se cambia. Su barra, de dos.
+
 ## Tanda 1096 — «Lo último» en el lateral del foro
 
 PINGU, con una captura del foro de WAH («Nuevas entradas» en el lateral):
