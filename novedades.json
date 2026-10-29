@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-29", "tipo": "nuevo", "texto": "Las propuestas de cambio pueden ser también una venta o una compra: cada carta sale con su precio de Cardmarket y lo puedes cambiar, con 100 %, 90 % u 80 % a un toque. Y el envío: por correo (lo elige quien la recibe al aceptar, normal 2 € o certificado 7 €) o en mano.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-29", "tipo": "mejora", "texto": "En los cambios, cada uno confirma lo que le llega: «Carta recibida», «Cartas recibidas», «Dinero recibido» o «Recibido», y se ve quién lo ha confirmado ya. Si regalas una carta, no tienes que confirmar nada.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-29", "tipo": "arreglo", "texto": "En una propuesta en la que das cartas y te pagan, el dinero ya sale en lo que recibes (antes ponía «Recibes · 0 € — Nada» aunque te fueran a pagar).", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-29", "tipo": "nuevo", "texto": "Al seleccionar varias cartas ya puedes ponerlas para cambio de golpe: eliges si das una de cada, todas menos una o todas. Y las que aún no tienes se añaden a tu colección ya para cambio, con el idioma y el estado que digas.", "enlace": "/mi-coleccion?ver=cartas" },

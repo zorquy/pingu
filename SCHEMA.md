@@ -41785,6 +41785,34 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1099 — Cambio, venta o compra; precios que se tocan y el envío
+
+De «Cambios más claros», 2.ª vuelta (PINGU: «adelante»).
+
+- EL MODO (`ed.modo`: 'cambio' | 'vendo' | 'compro'). Al abrir, `tipoDe(items)`
+  (o `prefill.modo`). «Le vendo» deja solo lo tuyo y «Le compro» solo lo suyo
+  (lo de la otra mano se quita al cambiar). En los dos, el dinero ES la suma de
+  los precios de las cartas (`dineroDelModo`, a cada pintada): se toca desde
+  cada carta o con 100/90/80 % sobre Cardmarket (`data-cp-pct`).
+- PRECIO POR CARTA: `it.precioCm` es el de Cardmarket de hoy (`valorDeCopia`,
+  en el idioma de la copia) y `it.precio` el que se propone (campo
+  `data-cp-precio`, se repinta al salir del campo para no robar el foco). En
+  una contraoferta `itemsDeAnterior` trae el precio que se acordó. El que se
+  guarda en `trade_offer_items.precio` es el propuesto.
+- EL ENVÍO. Migración 1099: `trade_offers.envio` ('mano' | 'correo'),
+  `envio_tipo` y `envio_precio`; `cambio_envio_poner(oferta, envio)` (quien
+  la manda, enviada; se llama justo después de `cambio_proponer`, que no se
+  toca) y `cambio_aceptar(oferta, envio)` (quien la recibe; por correo exige
+  normal, certificado o mano; por dentro llama a `cambio_contestar`). Los
+  precios, en `cambio_envio_precio` y en `ENVIOS` (puro): los dos a la vez.
+  `pagaElEnvio(oferta)`: en una venta, quien compra (el lado sin cartas); en
+  un cambio, nadie (cada uno el suyo). `queRecibe` suma el envío a quien
+  vende. Las propuestas sin `envio` (las de antes) se aceptan como siempre.
+- LA TARJETA: `tituloDe` («Venta a Lucía», «Admin te vende», «Cambio con
+  Dani»), «Contraoferta» (era «Cambiar algo»), los chips de envío
+  (`data-cp-envio-elegir`, el botón de aceptar suma si pagas tú: `data-base`)
+  y `estadoDe(...).frase`, la frase de en qué está (la usará «En curso»).
+
 ## Tanda 1098 — «Recibido» según lo que te llega, y el dinero donde toca
 
 De la propuesta «Cambios más claros» (la 1; PINGU: «dale»).

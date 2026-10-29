@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (339) — PINGU-Claude (1099 — cambio, venta o compra; precios que se tocan y el envío)
+
+**Hecho**: de «Cambios más claros», 2.ª vuelta (PINGU: «adelante» con lo
+recomendado):
+- La propuesta tiene arriba **Cambio · Le vendo · Le compro**, elegido solo
+  según lo que haya (si solo das, «Le vendo»; si solo te dan, «Le compro»).
+  En venta o compra hay un solo lado y una caja de **Precio**: el de
+  Cardmarket como orientativo, 100 / 90 / 80 % a un toque y cómo se paga; el
+  botón dice el importe («Ofrecer por 30,00 € + envío»).
+- **Cada carta lleva su precio en un campo**: sale el de Cardmarket (en su
+  idioma) y se puede redondear, subir o bajar; si cambia, el de Cardmarket
+  sale tachado al lado.
+- **Envío**: «Por correo» o «En mano». Por correo, quien recibe la propuesta
+  elige al aceptar normal (2 €), certificado (7 €) o en mano; en una venta lo
+  paga quien compra y el botón suma («Aceptar · 37,00 €»); en un cambio cada
+  uno paga lo que manda. Lo elegido sale en la tarjeta («Envío: Certificado ·
+  7,00 €, lo paga Lucía») y suma en lo que recibe quien vende.
+- «Cambiar algo» es **Contraoferta**: abre el editor con los precios que se
+  propusieron. La tarjeta se titula «Venta a Lucía», «Admin te vende», «Cambio
+  con Dani»… y dice en qué está («Te toca: elige el envío y acepta, o haz una
+  contraoferta»).
+
+**Para PINGU**: ejecutar `supabase-migration-1099-cambio-envio.sql` (después
+de la 1098). Sin ella, la propuesta sale igual pero sin envío (y se avisa).
+
+**Ficheros**: la migración (`envio`, `envio_tipo`, `envio_precio`;
+`cambio_envio_poner`, `cambio_aceptar`, `cambio_envio_precio`),
+`js/cambio-propuesta-puro.js` (`ENVIOS`, `tipoDe`, `tituloDe`,
+`pagaElEnvio`; `queRecibe` con el envío; `frase` en `estadoDe`),
+`js/cambio-propuesta.js`, `css/cambio-propuesta.css`, `CLAUDE.md`. Pruebas en
+`pruebas`: sql-tanda-1099, 1099-pantalla (venta, contraoferta y aceptar con
+envío), y 942 y 1098 al día; el doble sabe `cambio_envio_poner`,
+`cambio_aceptar` y lo de la 1098.
+
+**Pendiente**: 1100 (En curso en Cruces, la tira en Mensajes y los cruces con
+nombres).
+
 ## 2026-10-29 (338) — PINGU-Claude (1098 — «Recibido» según lo que te llega, y el dinero donde toca)
 
 **Hecho**: de «Cambios más claros» (PINGU: «dale», con lo recomendado), la 1:

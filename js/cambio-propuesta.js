@@ -26,6 +26,7 @@ import { senasDe } from './mi-coleccion/borrador-cruce.js'
 import {
   FICHERO_MIGRACION, COMOS, nombreDeComo, euros, balanceDe, dineroQueCuadra, dineroDeOferta, textoDeDinero, pagaParaRpc,
   estadoDe, pasoDe, estaViva, loQueSeMueve, itemsParaRpc, queRecibe, textoDeRecibido, loQueEs,
+  ENVIOS, envioDe, tipoDe, tituloDe, pagaElEnvio,
 } from './cambio-propuesta-puro.js'
 
 export { FICHERO_MIGRACION, estaViva }
@@ -143,7 +144,7 @@ export async function abrirPropuesta({ sesion, otro, prefill = {}, anterior = nu
   hojaInyectada('css/cambio-propuesta.css')
   const d = dialogo()
   const yo = sesion.user.id
-  ed = { yo, otro, anterior, alEnviar, items: [], dinero: { cantidad: 0, pagaYo: false, como: null }, nota: '', vista: 'principal', cargando: true, error: null }
+  ed = { yo, otro, anterior, alEnviar, items: [], dinero: { cantidad: 0, pagaYo: false, como: null }, nota: '', vista: 'principal', cargando: true, error: null, modo: 'cambio', envio: anterior?.envio || 'correo', pct: null, modoPedido: prefill.modo || null }
   pintarCabecera()
   $('cpCuerpo').innerHTML = '<div class="skeleton cp-esqueleto"></div>'
   if (!d.open) d.showModal()
@@ -162,7 +163,15 @@ export async function abrirPropuesta({ sesion, otro, prefill = {}, anterior = nu
     ed.items = anterior ? itemsDeAnterior(anterior) : itemsDePrefill(prefill)
     if (anterior) ed.dinero = { ...dineroDeOferta(anterior, yo) }
     if (anterior?.nota) ed.nota = anterior.nota
-    for (const it of ed.items) it.precio = valorDeCopia(precios, it)
+    // El de Cardmarket de hoy, y el que se propone (1099, PINGU: «que te
+    // meta los precios de Cardmarket de cada carta, pero que sean
+    // editables»): en una contraoferta, el que se acordó.
+    for (const it of ed.items) {
+      it.precioCm = valorDeCopia(precios, it)
+      if (it.precio == null) it.precio = it.precioCm
+    }
+    // Cambio, venta o compra: lo que dice el cruce (o quien lo pide).
+    ed.modo = ed.modoPedido || tipoDe(ed.items)
   } catch (err) {
     if (ed) ed.error = mensajeDe(err)
   }
@@ -211,6 +220,7 @@ function itemsDeAnterior(o) {
     items.push({
       key: nuevaClave(), mia, linea: it.linea, card_id: it.card_id, market: it.market, idioma: it.idioma, estado: it.estado, variante: it.variante,
       gradeo: it.gradeo, cantidad: it.cantidad, max: Math.max(it.cantidad, Number(linea?.libres ?? linea?.cantidad) || it.cantidad), pedida: !it.linea,
+      precio: it.precio == null ? null : Number(it.precio),
     })
   }
   if (quitadas.length) showToast(`No tienes ${quitadas.length === 1 ? 'una de las que te pedía' : `${quitadas.length} de las que te pedía`}: la he quitado.`, 'info')
@@ -240,7 +250,7 @@ function itemHtml(it) {
       <small>${it.pedida ? `Se la pides · ${idiomas}` : escapeHtml(senasDe(it))}</small>
     </span>
     <span class="cp-item-der">
-      <b class="cp-precio">${it.precio == null ? 'sin precio' : escapeHtml(euros(it.precio * (it.cantidad || 1)))}</b>
+      <span class="cp-precio-caja">${it.precioCm != null && it.precio != null && Math.abs(it.precio - it.precioCm) >= 0.005 ? `<s title="Cardmarket hoy">${escapeHtml(euros(it.precioCm))}</s>` : ''}<label class="cp-precio-campo"><input type="number" min="0" max="100000" step="0.01" inputmode="decimal" data-cp-precio="${it.key}" value="${it.precio == null ? '' : it.precio}" placeholder="—" aria-label="Precio de ${escapeHtml(nombre)}${it.cantidad > 1 ? ' (cada una)' : ''}" /> €</label></span>
       ${it.max > 1 ? `<span class="cp-paso"><button type="button" data-cp-menos="${it.key}" aria-label="Una menos"${it.cantidad <= 1 ? ' disabled' : ''}>−</button><span>${it.cantidad}</span><button type="button" data-cp-mas="${it.key}" aria-label="Una más"${it.cantidad >= it.max ? ' disabled' : ''}>+</button></span>` : ''}
       <button type="button" class="cp-quitar" data-cp-quitar="${it.key}" aria-label="Quitar ${escapeHtml(nombre)}">✕</button>
     </span>
@@ -259,6 +269,46 @@ function balanceActual() {
   return balanceDe(ed.items, ed.dinero)
 }
 
+const sumaDePrecios = (items) => Math.round(items.reduce((n, it) => n + (it.precio == null ? 0 : Number(it.precio) * (it.cantidad || 1)), 0) * 100) / 100
+const MODOS = [['cambio', 'Cambio'], ['vendo', 'Le vendo'], ['compro', 'Le compro']]
+
+// En una venta o una compra el dinero ES el precio de las cartas (1099): se
+// sigue de lo que diga cada una.
+function dineroDelModo() {
+  if (ed.modo === 'vendo') ed.dinero = { ...ed.dinero, cantidad: sumaDePrecios(ed.items.filter((it) => it.mia)), pagaYo: false }
+  if (ed.modo === 'compro') ed.dinero = { ...ed.dinero, cantidad: sumaDePrecios(ed.items.filter((it) => !it.mia)), pagaYo: true }
+}
+
+function ladoEditorHtml(mia, titulo, total, b) {
+  const items = ed.items.filter((it) => it.mia === mia)
+  const botones = mia
+    ? '<button type="button" class="btn-secondary" data-cp-elegir="doy">+ De las que doy</button><button type="button" class="link-btn" data-cp-elegir="mias">+ Otra de mi colección</button>'
+    : '<button type="button" class="btn-secondary" data-cp-elegir="suyas">+ De las que da</button><button type="button" class="link-btn" data-cp-elegir="pedir">+ Pedirle otra</button>'
+  return `<section class="cp-lado" aria-label="${escapeHtml(titulo)}">
+    <div class="cp-lado-cab"><h3>${escapeHtml(titulo)}</h3><b>${escapeHtml(euros(total))}</b></div>
+    <ul class="cp-items">${items.map(itemHtml).join('') + (ed.modo === 'cambio' ? dineroItem(mia) : '') || '<li class="cp-vacio">Todavía nada.</li>'}</ul>
+    <div class="cp-anadir">${botones}</div>
+  </section>`
+}
+
+function envioHtml(nombre) {
+  const ayuda = ed.envio === 'mano'
+    ? 'Os lo dais en mano: sin envío.'
+    : ed.modo === 'vendo'
+      ? `${nombre} elige al aceptar: normal 2 € o certificado 7 €, y lo paga ${nombre}.`
+      : ed.modo === 'compro'
+        ? `${nombre} elige al aceptar: normal 2 € o certificado 7 €, y lo pagas tú.`
+        : `Cada uno manda lo suyo y paga su envío; ${nombre} elige al aceptar si normal o certificado.`
+  return `<section class="cp-envio" aria-label="Envío">
+    <h3>Envío</h3>
+    <div class="cp-chips" role="group" aria-label="Cómo os lo dais">
+      <button type="button" class="cp-chip" data-cp-envio="correo" aria-pressed="${ed.envio === 'correo'}">Por correo</button>
+      <button type="button" class="cp-chip" data-cp-envio="mano" aria-pressed="${ed.envio === 'mano'}">En mano</button>
+    </div>
+    <p class="subtext">${escapeHtml(ayuda)}</p>
+  </section>`
+}
+
 function pintarEditor() {
   if (!ed) return
   if (ed.error) {
@@ -266,25 +316,44 @@ function pintarEditor() {
     return
   }
   if (ed.vista !== 'principal') return pintarSelector()
+  dineroDelModo()
   const b = balanceActual()
   const nombre = nombreDePersona(ed.otro)
   const mias = ed.items.filter((it) => it.mia)
   const suyas = ed.items.filter((it) => !it.mia)
+  const pestanias = `<div class="cp-modo" role="group" aria-label="Qué es">${MODOS.map(([id, texto]) => `<button type="button" class="cp-modo-btn" data-cp-modo="${id}" aria-pressed="${ed.modo === id}">${texto}</button>`).join('')}</div>`
+  const nota = `<label class="cp-nota-campo"><span>Mensaje (opcional)</span><textarea id="cpNota" maxlength="500" rows="2" placeholder="Te la mando certificada el lunes…">${escapeHtml(ed.nota || '')}</textarea></label>`
+  const conEnvio = ed.envio === 'correo' ? ' + envío' : ''
+  if (ed.modo !== 'cambio') {
+    // VENTA O COMPRA: un lado, la caja de precio y el envío.
+    const vendo = ed.modo === 'vendo'
+    const lado = vendo ? mias : suyas
+    const cm = sumaDePrecios(lado.map((it) => ({ ...it, precio: it.precioCm })))
+    const sinPrecio = lado.filter((it) => it.precio == null).length
+    const texto = ed.anterior ? `Mandar la contraoferta · ${euros(ed.dinero.cantidad)}${conEnvio}` : vendo ? `Ofrecer por ${euros(ed.dinero.cantidad)}${conEnvio}` : `Proponer la compra por ${euros(ed.dinero.cantidad)}${conEnvio}`
+    $('cpCuerpo').innerHTML = `${pestanias}
+      ${!suyas.length && vendo && !ed.anterior ? `<p class="cp-aviso-modo"><b>${escapeHtml(nombre)} no da nada de tu lista.</b> Le ofreces las cartas que busca a cambio de dinero.</p>` : ''}
+      <div class="cp-lados cp-lados-uno">${ladoEditorHtml(vendo, vendo ? 'Le vendes' : 'Le compras', ed.dinero.cantidad, b)}</div>
+      <section class="cp-dinero cp-precio-total" aria-label="Precio">
+        <h3>Precio</h3>
+        <div class="cp-chips" role="group" aria-label="Sobre Cardmarket">${[100, 90, 80].map((n) => `<button type="button" class="cp-chip" data-cp-pct="${n}" aria-pressed="${ed.pct === n}">${n} %</button>`).join('')}</div>
+        <p class="cp-importe"><b>${escapeHtml(euros(ed.dinero.cantidad))}</b>${cm && Math.abs(cm - ed.dinero.cantidad) >= 0.005 ? `<s>${escapeHtml(euros(cm))} en Cardmarket</s>` : '<small>lo de Cardmarket hoy</small>'}</p>
+        ${sinPrecio ? `<p class="subtext">${sinPrecio === 1 ? 'Una carta no tiene precio' : `${sinPrecio} cartas no tienen precio`}: ponle el tuyo.</p>` : ''}
+        <div class="cp-chips" role="group" aria-label="Cómo ${vendo ? 'te paga' : 'le pagas'}">${COMOS.map((c) => `<button type="button" class="cp-chip" data-cp-como="${c.id}" aria-pressed="${ed.dinero.como === c.id}">${c.nombre}</button>`).join('')}</div>
+        <p class="subtext cp-aviso-dinero">Cardmarket es orientativo: el precio es el que pongáis. El pago lo hacéis vosotros, fuera de PokeDoc.</p>
+      </section>
+      ${envioHtml(nombre)}
+      ${nota}
+      <div class="cp-pie"><p class="cp-error" id="cpError" role="alert"></p><button type="button" class="btn-primary" id="cpEnviar" data-cp="enviar">${escapeHtml(texto)}</button></div>`
+    return
+  }
   const sugerido = dineroQueCuadra(ed.items)
   const paga = ed.dinero.cantidad > 0 ? (ed.dinero.pagaYo ? 'yo' : 'otro') : 'nadie'
   const total = Math.max(b.das, b.recibes) || 1
-  $('cpCuerpo').innerHTML = `
+  $('cpCuerpo').innerHTML = `${pestanias}
     <div class="cp-lados">
-      <section class="cp-lado" aria-label="Lo que das">
-        <div class="cp-lado-cab"><h3>Tú das</h3><b>${escapeHtml(euros(b.das))}</b></div>
-        <ul class="cp-items">${mias.map(itemHtml).join('') + dineroItem(true) || '<li class="cp-vacio">Todavía nada.</li>'}</ul>
-        <div class="cp-anadir"><button type="button" class="btn-secondary" data-cp-elegir="doy">+ De las que doy</button><button type="button" class="link-btn" data-cp-elegir="mias">+ Otra de mi colección</button></div>
-      </section>
-      <section class="cp-lado" aria-label="Lo que te da">
-        <div class="cp-lado-cab"><h3>Te da</h3><b>${escapeHtml(euros(b.recibes))}</b></div>
-        <ul class="cp-items">${suyas.map(itemHtml).join('') + dineroItem(false) || '<li class="cp-vacio">Todavía nada.</li>'}</ul>
-        <div class="cp-anadir"><button type="button" class="btn-secondary" data-cp-elegir="suyas">+ De las que da</button><button type="button" class="link-btn" data-cp-elegir="pedir">+ Pedirle otra</button></div>
-      </section>
+      ${ladoEditorHtml(true, 'Tú das', b.das, b)}
+      ${ladoEditorHtml(false, 'Te da', b.recibes, b)}
     </div>
     <section class="cp-dinero" aria-label="Diferencia en dinero">
       <h3>Diferencia en dinero</h3>
@@ -307,8 +376,9 @@ function pintarEditor() {
       <p class="cp-balanza-texto"><span>Das ${escapeHtml(euros(b.das))} · recibes ${escapeHtml(euros(b.recibes))}</span><b class="${b.cuadra ? 'ok' : 'no'}">${mias.length || suyas.length ? (b.cuadra ? 'Cuadra' : b.diferencia > 0 ? `Recibes ${euros(b.diferencia)} más` : `Das ${euros(-b.diferencia)} más`) : ''}</b></p>
       ${b.sinPrecio ? `<p class="subtext">${b.sinPrecio === 1 ? 'Una carta no tiene precio' : `${b.sinPrecio} cartas no tienen precio`}: no cuentan en la cuenta.</p>` : ''}
     </div>
-    <label class="cp-nota-campo"><span>Mensaje (opcional)</span><textarea id="cpNota" maxlength="500" rows="2" placeholder="Te la mando certificada el lunes…">${escapeHtml(ed.nota || '')}</textarea></label>
-    <div class="cp-pie"><p class="cp-error" id="cpError" role="alert"></p><button type="button" class="btn-primary" id="cpEnviar" data-cp="enviar">${ed.anterior ? 'Mandar la propuesta cambiada' : 'Enviar propuesta'}</button></div>`
+    ${envioHtml(nombre)}
+    ${nota}
+    <div class="cp-pie"><p class="cp-error" id="cpError" role="alert"></p><button type="button" class="btn-primary" id="cpEnviar" data-cp="enviar">${ed.anterior ? 'Mandar la contraoferta' : 'Enviar propuesta'}</button></div>`
 }
 
 // ── Elegir cartas: una vista dentro de la misma hoja ──
@@ -401,7 +471,7 @@ function anadirMarcadas() {
     const l = lista.find((x) => x.id === id)
     if (!l) continue
     const it = itemDeLinea(l, mia, { libres: l.libres })
-    it.precio = valorDeCopia(ed.precios, it)
+    it.precio = it.precioCm = valorDeCopia(ed.precios, it)
     ed.items.push(it)
   }
   ed.vista = 'principal'
@@ -417,7 +487,7 @@ async function anadirPedida(cardId) {
   ed.cartaDe = (f) => (f.card_id === c.id && (f.market || 'WEST') === (c.market || 'WEST') ? c : antes(f))
   const precios = await preciosDe([c.id]).catch(() => new Map())
   for (const [k, v] of precios) ed.precios.set(k, v)
-  it.precio = valorDeCopia(ed.precios, it)
+  it.precio = it.precioCm = valorDeCopia(ed.precios, it)
   ed.items.push(it)
   ed.vista = 'principal'
   pintarEditor()
@@ -427,7 +497,9 @@ async function enviar() {
   const err = $('cpError')
   if (!ed.items.length) { err.textContent = 'Añade al menos una carta.'; return }
   if (ed.dinero.cantidad > 0 && !(ed.dinero.cantidad <= 100000)) { err.textContent = 'Esa cantidad no puede ser.'; return }
+  if (ed.modo !== 'cambio' && !(ed.dinero.cantidad > 0)) { err.textContent = 'Pon un precio.'; return }
   const boton = $('cpEnviar')
+  const textoAntes = boton.textContent
   boton.disabled = true
   boton.textContent = 'Enviando…'
   const { data, error } = await supabase.rpc('cambio_proponer', {
@@ -441,9 +513,16 @@ async function enviar() {
   })
   if (error) {
     boton.disabled = false
-    boton.textContent = ed.anterior ? 'Mandar la propuesta cambiada' : 'Enviar propuesta'
+    boton.textContent = textoAntes
     err.textContent = mensajeDe(error)
     return
+  }
+  // El envío va aparte (1099): sin la migración, la propuesta sale igual
+  // (en mano a efectos de la base) y se dice.
+  const env = await supabase.rpc('cambio_envio_poner', { p_oferta: data, p_envio: ed.envio })
+  if (env.error) {
+    console.warn('cambio_envio_poner', env.error.message || env.error)
+    if (ed.envio === 'correo') showToast(sinMigracion(env.error) ? 'El envío no se ha podido apuntar todavía (falta la migración 1099): decidlo por mensaje.' : `El envío no se ha apuntado: ${env.error.message || ''}`, 'info')
   }
   const otro = ed.otro
   const alEnviar = ed.alEnviar
@@ -458,7 +537,7 @@ function alPulsarEnEditor(e) {
   const d = $('cpDialogo')
   if (e.target === d) return d.close()
   if (!ed) return
-  const t = e.target.closest('[data-cp], [data-cp-elegir], [data-cp-quitar], [data-cp-menos], [data-cp-mas], [data-cp-paga], [data-cp-como], [data-cp-opcion], [data-cp-pedir]')
+  const t = e.target.closest('[data-cp], [data-cp-elegir], [data-cp-quitar], [data-cp-menos], [data-cp-mas], [data-cp-paga], [data-cp-como], [data-cp-opcion], [data-cp-pedir], [data-cp-modo], [data-cp-pct], [data-cp-envio]')
   if (!t) return
   const ds = t.dataset
   if (ds.cp === 'cerrar') return d.close()
@@ -488,6 +567,20 @@ function alPulsarEnEditor(e) {
     return pintarEditor()
   }
   if (ds.cpComo) { ed.dinero.como = ed.dinero.como === ds.cpComo ? null : ds.cpComo; return pintarEditor() }
+  if (ds.cpModo) {
+    // Venta: solo lo tuyo; compra: solo lo suyo. Lo de la otra mano se va.
+    ed.modo = ds.cpModo
+    if (ed.modo === 'vendo') ed.items = ed.items.filter((it) => it.mia)
+    if (ed.modo === 'compro') ed.items = ed.items.filter((it) => !it.mia)
+    if (ed.modo === 'cambio') ed.dinero = { cantidad: 0, pagaYo: false, como: ed.dinero.como }
+    return pintarEditor()
+  }
+  if (ds.cpPct) {
+    ed.pct = Number(ds.cpPct)
+    for (const it of ed.items) if (it.mia === (ed.modo === 'vendo') && it.precioCm != null) it.precio = Math.round(it.precioCm * ed.pct) / 100
+    return pintarEditor()
+  }
+  if (ds.cpEnvio) { ed.envio = ds.cpEnvio; return pintarEditor() }
   if (ds.cpOpcion) {
     if (!ed.marcadas) ed.marcadas = new Set()
     if (ed.marcadas.has(ds.cpOpcion)) ed.marcadas.delete(ds.cpOpcion)
@@ -513,9 +606,20 @@ function alEscribirEnEditor(e) {
     esperaBuscar = setTimeout(() => void pintarOpciones(), ed.vista === 'pedir' ? 300 : 120)
     return
   }
+  if (t.dataset.cpPrecio) {
+    const it = ed.items.find((x) => x.key === t.dataset.cpPrecio)
+    if (it) {
+      const v = String(t.value).replace(',', '.').trim()
+      it.precio = v === '' ? null : Math.max(0, Math.round(Number(v) * 100) / 100)
+      ed.pct = null
+    }
+    // Al salir del campo, y no a cada tecla: repintar le quitaría el foco.
+    if (e.type === 'change') pintarEditor()
+    return
+  }
   if (t.dataset.cpIdioma) {
     const it = ed.items.find((x) => x.key === t.dataset.cpIdioma)
-    if (it) { it.idioma = t.value; it.precio = valorDeCopia(ed.precios, it) }
+    if (it) { it.idioma = t.value; it.precio = it.precioCm = valorDeCopia(ed.precios, it) }
     if (e.type === 'change') pintarEditor()
   }
 }
@@ -541,7 +645,7 @@ export async function cargarOfertas(yo, { con = null, limite = 60 } = {}) {
 
 // El dinero va DENTRO del lado de quien lo recibe (1098): con una franja
 // aparte, una venta decía «Recibes · 0,00 € — Nada» encima de «te paga 20 €».
-const dineroEnLado = ({ cantidad, como }) => `<p class="cp-t-dinero">${icons.zap ? icons.zap(14) : ''}<span>${escapeHtml(euros(cantidad))}${como ? ` · ${escapeHtml(nombreDeComo(como))}` : ''}</span></p>`
+const dineroEnLado = ({ cantidad, como, envio = 0 }) => `<p class="cp-t-dinero">${icons.zap ? icons.zap(14) : ''}<span>${escapeHtml(euros(cantidad))}${envio ? ` + ${escapeHtml(euros(envio))} de envío` : ''}${como ? ` · ${escapeHtml(nombreDeComo(como))}` : ''}</span></p>`
 
 function ladoHtml(titulo, items, cartaDe, vacio, dinero = null) {
   return `<div class="cp-t-lado"><h4>${escapeHtml(titulo)}</h4>
@@ -565,7 +669,6 @@ export function tarjetaHtml(o, { yo, otro, cartaDe }) {
   const dinero = dineroDeOferta(o, yo)
   const est = estadoDe(o, yo, nombre)
   const paso = pasoDe(o)
-  const de = o.de === yo ? 'tuya' : `de ${nombre}`
   const boton = (accion, texto, primario = false) => `<button type="button" class="${primario ? 'btn-primary' : 'btn-secondary'}" data-cp-accion="${accion}" data-oferta="${escapeHtml(o.id)}">${texto}</button>`
   // Cada uno confirma lo que LE llega, con sus palabras (1098). Sin nada que
   // te llegue (regalas), la base te da por confirmado; sin la migración, el
@@ -573,9 +676,16 @@ export function tarjetaHtml(o, { yo, otro, cartaDe }) {
   const otroId = o.de === yo ? o.para : o.de
   const recibo = queRecibe(o, yo)
   const recibeEl = queRecibe(o, otroId)
+  // EL ENVÍO (1099): por correo, quien la recibe lo elige al aceptar; en una
+  // venta lo paga quien compra y va con lo que paga.
+  const envioP = Number(o.envio_precio) || 0
+  const pagaEnvio = pagaElEnvio(o)
+  const eligeEnvio = o.estado === 'enviada' && o.para === yo && o.envio === 'correo'
+  const pagoYo = pagaEnvio === yo
+  const aceptarTexto = (envio) => (pagoYo && dinero.pagaYo ? `Aceptar · ${euros(dinero.cantidad + (envioDe(envio)?.precio || 0))}` : 'Aceptar')
   const acciones = est.acciones.map((a) => ({
-    aceptar: boton('aceptar', 'Aceptar', true),
-    editar: boton('editar', 'Cambiar algo'),
+    aceptar: `<button type="button" class="btn-primary" data-cp-accion="aceptar" data-oferta="${escapeHtml(o.id)}"${pagoYo && dinero.pagaYo ? ` data-base="${dinero.cantidad}"` : ''}>${escapeHtml(aceptarTexto(eligeEnvio ? 'normal' : null))}</button>`,
+    editar: boton('editar', 'Contraoferta'),
     rechazar: boton('rechazar', 'Rechazar'),
     anular: boton('anular', 'Anular'),
     'lo-tengo': boton('lo-tengo', escapeHtml(textoDeRecibido(recibo) || 'Ya lo he mandado'), true),
@@ -585,11 +695,16 @@ export function tarjetaHtml(o, { yo, otro, cartaDe }) {
   const yaEl = o.de === yo ? o.recibido_para_at : o.recibido_de_at
   const filaQuien = (quien, que, ya) => `<li><span>${quien} · ${escapeHtml(loQueEs(que))}</span><span class="${ya ? 'cp-ya' : ''}">${que.cartas || que.dinero ? (ya ? `${escapeHtml(textoDeRecibido(que))} ✓` : 'Pendiente') : 'Nada que confirmar'}</span></li>`
   return `<article class="cp-tarjeta tono-${est.tono}" data-oferta="${escapeHtml(o.id)}">
-    <header class="cp-t-cab"><b>Propuesta ${de}${o.version > 1 ? ` · ${o.version}.ª versión` : ''}</b><span class="cp-estado">${escapeHtml(est.texto)}</span></header>
+    <header class="cp-t-cab"><b>${escapeHtml(tituloDe(o, yo, nombre))}${o.version > 1 ? ` · ${o.version}.ª versión` : ''}</b><span class="cp-estado">${escapeHtml(est.texto)}</span></header>
     <div class="cp-t-lados">
-      ${ladoHtml(`Das · ${euros(sumaDe(das) + (dinero.pagaYo ? dinero.cantidad : 0))}`, das, cartaDe, 'Nada', dinero.cantidad && dinero.pagaYo ? dinero : null)}
-      ${ladoHtml(`Recibes · ${euros(sumaDe(recibes) + (dinero.cantidad && !dinero.pagaYo ? dinero.cantidad : 0))}`, recibes, cartaDe, 'Nada', dinero.cantidad && !dinero.pagaYo ? dinero : null)}
+      ${ladoHtml(`Das · ${euros(sumaDe(das) + (dinero.pagaYo ? dinero.cantidad : 0) + (pagoYo ? envioP : 0))}`, das, cartaDe, 'Nada', dinero.cantidad && dinero.pagaYo ? { ...dinero, envio: pagoYo ? envioP : 0 } : null)}
+      ${ladoHtml(`Recibes · ${euros(sumaDe(recibes) + (dinero.cantidad && !dinero.pagaYo ? dinero.cantidad : 0) + (pagaEnvio && !pagoYo ? envioP : 0))}`, recibes, cartaDe, 'Nada', dinero.cantidad && !dinero.pagaYo ? { ...dinero, envio: pagaEnvio && !pagoYo ? envioP : 0 } : null)}
     </div>
+    ${eligeEnvio ? `<div class="cp-t-envio"><p>¿Cómo ${o.items.some((it) => it.quien !== yo) ? 'te lo manda' : 'se lo mandas'}?${pagaEnvio ? ` Lo ${pagoYo ? 'pagas tú' : `paga ${escapeHtml(nombre)}`}.` : ' Cada uno paga lo que manda.'}</p><div class="cp-chips" role="radiogroup" aria-label="Envío">${ENVIOS.map((e) => `<button type="button" class="cp-chip" role="radio" data-cp-envio-elegir="${e.id}" data-oferta="${escapeHtml(o.id)}" aria-checked="${e.id === 'normal'}">${e.nombre}${e.precio ? ` · ${e.precio} €` : ''}</button>`).join('')}</div></div>`
+      : o.envio_tipo ? `<p class="cp-t-envio-info">Envío: ${escapeHtml(envioDe(o.envio_tipo)?.nombre || o.envio_tipo)}${envioP ? ` · ${escapeHtml(euros(envioP))}${pagaEnvio ? `, lo paga ${pagoYo ? 'quien compra (tú)' : escapeHtml(nombre)}` : ', cada uno el suyo'}` : ''}</p>`
+        : o.envio === 'correo' ? `<p class="cp-t-envio-info">Por correo: normal (2 €) o certificado (7 €), lo elige ${o.para === yo ? 'quien la recibe' : escapeHtml(nombre)} al aceptar.</p>`
+          : o.envio === 'mano' ? '<p class="cp-t-envio-info">En mano.</p>' : ''}
+    ${o.estado === 'enviada' && est.frase ? `<p class="subtext cp-t-ayuda">${escapeHtml(est.frase)}</p>` : ''}
     ${o.nota ? `<p class="cp-t-nota">«${escapeHtml(o.nota)}»</p>` : ''}
     ${o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de 4">${['Propuesta', 'Aceptada', 'Recibido', 'Hecho'].map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
     ${o.estado === 'aceptada' ? `<ul class="cp-quien" aria-label="Quién ha confirmado">${filaQuien(escapeHtml(nombre), recibeEl, yaEl)}${filaQuien('Tú', recibo, yaYo)}</ul>
@@ -641,6 +756,14 @@ function engancharAcciones(caja, contexto, recargar) {
   if (caja.dataset.cpEnganchado) return
   caja.dataset.cpEnganchado = '1'
   caja.addEventListener('click', async (e) => {
+    const chip = e.target.closest('[data-cp-envio-elegir]')
+    if (chip && caja.contains(chip)) {
+      const t = chip.closest('.cp-tarjeta')
+      for (const x of t.querySelectorAll('[data-cp-envio-elegir]')) x.setAttribute('aria-checked', String(x === chip))
+      const ac = t.querySelector('[data-cp-accion="aceptar"][data-base]')
+      if (ac) ac.textContent = `Aceptar · ${euros(Number(ac.dataset.base) + (envioDe(chip.dataset.cpEnvioElegir)?.precio || 0))}`
+      return
+    }
     const b = e.target.closest('[data-cp-accion]')
     if (b && caja.contains(b)) {
       const { contexto, recargar } = contextosDeCaja.get(caja)
@@ -661,9 +784,12 @@ function engancharAcciones(caja, contexto, recargar) {
         if (otroYa && !(await confirmarCierre(o, { yo: ctx.yo, otro, cartaDe: ctx.cartaDe }))) return
       }
       b.disabled = true
+      // Aceptar con el envío elegido (1099); las de antes, como siempre.
+      const envioElegido = b.closest('.cp-tarjeta')?.querySelector('[data-cp-envio-elegir][aria-checked="true"]')?.dataset.cpEnvioElegir || null
       const rpc = accion === 'lo-tengo' ? ['cambio_lo_tengo', { p_oferta: o.id }]
         : accion === 'deshacer' ? ['cambio_deshacer', { p_oferta: o.id }]
-          : ['cambio_contestar', { p_oferta: o.id, p_accion: accion }]
+          : accion === 'aceptar' && o.envio ? ['cambio_aceptar', { p_oferta: o.id, p_envio: envioElegido }]
+            : ['cambio_contestar', { p_oferta: o.id, p_accion: accion }]
       const { data, error } = await supabase.rpc(rpc[0], rpc[1])
       if (error) {
         b.disabled = false

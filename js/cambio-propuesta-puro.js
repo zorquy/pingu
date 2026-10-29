@@ -74,13 +74,57 @@ export function textoDeDinero({ cantidad, pagaYo, como } = {}, nombreOtro = 'Te'
 // Para la RPC: el dinero va como «quién paga», 'de' (quien propone) o 'para'.
 export const pagaParaRpc = ({ cantidad, pagaYo }) => (Number(cantidad) > 0 ? (pagaYo ? 'de' : 'para') : null)
 
+// EL ENVÍO (1099, PINGU: «normal son 2 € y el certificado son 7 €»). Los
+// precios están también en `cambio_envio_precio` de la migración 1099: si
+// cambian, en los dos.
+export const ENVIOS = [
+  { id: 'normal', nombre: 'Normal', precio: 2 },
+  { id: 'certificado', nombre: 'Certificado', precio: 7 },
+  { id: 'mano', nombre: 'En mano', precio: 0 },
+]
+export const envioDe = (id) => ENVIOS.find((e) => e.id === id) || null
+
+// Qué es un trato desde quien mira (1099): si solo das cartas, «vendo»; si
+// solo te las dan, «compro»; si las dos cosas, «cambio».
+export function tipoDe(items = [], yo = null) {
+  const mias = items.filter((it) => (yo == null ? it.mia : it.quien === yo)).length
+  const suyas = items.length - mias
+  if (mias && !suyas) return 'vendo'
+  if (suyas && !mias) return 'compro'
+  return 'cambio'
+}
+
+// El título de una propuesta guardada, desde quien mira.
+export function tituloDe(oferta, yo, nombreOtro) {
+  const tipo = tipoDe(oferta?.items || [], yo)
+  if (tipo === 'vendo') return oferta?.de === yo ? `Venta a ${nombreOtro}` : `Le vendes a ${nombreOtro}`
+  if (tipo === 'compro') return oferta?.de === yo ? `Compra a ${nombreOtro}` : `${nombreOtro} te vende`
+  return `Cambio con ${nombreOtro}`
+}
+
+// Quién paga el envío (1099, lo recomendado): en una venta, quien compra (el
+// lado que no da cartas), y se le suma a lo que paga; en un cambio cada uno
+// paga lo que manda, así que nadie le paga el envío al otro.
+export function pagaElEnvio(oferta) {
+  const items = oferta?.items || []
+  const daDe = items.some((it) => it.quien === oferta?.de)
+  const daPara = items.some((it) => it.quien === oferta?.para)
+  if (daDe && !daPara) return oferta?.para || null
+  if (daPara && !daDe) return oferta?.de || null
+  return null
+}
+
 // Lo que le llega a una persona en un cambio (1098): las copias del otro y
-// el dinero que paga el otro. `quien` es su id.
+// el dinero que paga el otro, con el envío si se lo paga a ella (1099).
+// `quien` es su id.
 export function queRecibe(oferta, quien) {
   const cartas = (oferta?.items || []).filter((it) => it.quien !== quien).reduce((n, it) => n + (Number(it.cantidad) || 1), 0)
   const cantidad = Number(oferta?.dinero) || 0
   const paga = oferta?.dinero_paga === 'de' ? oferta?.de : oferta?.dinero_paga === 'para' ? oferta?.para : null
-  return { cartas, dinero: cantidad > 0 && paga && paga !== quien ? cantidad : 0 }
+  const envio = Number(oferta?.envio_precio) || 0
+  const pagaEnvio = envio > 0 ? pagaElEnvio(oferta) : null
+  const dinero = (cantidad > 0 && paga && paga !== quien ? cantidad : 0) + (pagaEnvio && pagaEnvio !== quien ? envio : 0)
+  return { cartas, dinero: Math.round(dinero * 100) / 100 }
 }
 
 // El botón de confirmar dice lo que te llega (1098, PINGU: «si son cartas,
@@ -110,13 +154,13 @@ export function estadoDe(oferta, yo, nombreOtro = 'la otra persona') {
   switch (oferta?.estado) {
     case 'enviada':
       return mia
-        ? { texto: `Esperando a ${nombreOtro}`, tono: 'espera', acciones: ['editar', 'anular'] }
-        : { texto: 'Te toca', tono: 'toca', acciones: ['aceptar', 'editar', 'rechazar'] }
+        ? { texto: `Esperando a ${nombreOtro}`, tono: 'espera', acciones: ['editar', 'anular'], frase: oferta?.envio === 'correo' ? `Esperando a que ${nombreOtro} elija el envío y acepte.` : `Esperando a que ${nombreOtro} acepte.` }
+        : { texto: 'Te toca', tono: 'toca', acciones: ['aceptar', 'editar', 'rechazar'], frase: oferta?.envio === 'correo' ? 'Te toca: elige el envío y acepta, o haz una contraoferta.' : 'Te toca: acepta o haz una contraoferta.' }
     case 'aceptada':
-      if (!yaLoTengo) return { texto: loTieneEl ? `${nombreOtro} ya tiene lo tuyo` : 'Aceptado', tono: 'toca', acciones: ['lo-tengo', 'anular'] }
-      return { texto: `Esperando a que ${nombreOtro} lo confirme`, tono: 'espera', acciones: ['anular'] }
+      if (!yaLoTengo) return { texto: loTieneEl ? `${nombreOtro} ya tiene lo tuyo` : 'Aceptado', tono: 'toca', acciones: ['lo-tengo', 'anular'], frase: loTieneEl ? `${nombreOtro} ya tiene lo tuyo. Cuando te llegue lo suyo, confírmalo.` : 'Aceptado: mandaos lo vuestro y confírmalo cuando te llegue.' }
+      return { texto: `Esperando a que ${nombreOtro} lo confirme`, tono: 'espera', acciones: ['anular'], frase: `Esperando a que a ${nombreOtro} le llegue lo tuyo y lo confirme.` }
     case 'hecha':
-      return { texto: 'Cambio hecho', tono: 'hecho', acciones: oferta?.deshacer_hasta && new Date(oferta.deshacer_hasta) > new Date() ? ['deshacer'] : [] }
+      return { texto: 'Cambio hecho', tono: 'hecho', acciones: oferta?.deshacer_hasta && new Date(oferta.deshacer_hasta) > new Date() ? ['deshacer'] : [], frase: 'Hecho: las cartas ya están en la colección de cada uno.' }
     case 'rechazada':
       return { texto: 'Rechazada', tono: 'fin', acciones: [] }
     case 'anulada':
