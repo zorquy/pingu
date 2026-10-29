@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (338) — PINGU-Claude (1098 — «Recibido» según lo que te llega, y el dinero donde toca)
+
+**Hecho**: de «Cambios más claros» (PINGU: «dale», con lo recomendado), la 1:
+- El botón de confirmar dice lo que te llega: «Carta recibida», «Cartas
+  recibidas», «Dinero recibido» o «Recibido» (cartas y dinero). Encima, quién
+  ha confirmado ya («Lucía · 1 carta · Carta recibida ✓» / «Tú · 20,00 € ·
+  Pendiente»). Los pasos dicen «Recibido» en vez de «Lo tengo».
+- Quien no recibe nada (regala una carta) no tiene que confirmar: la base lo
+  da por confirmado al aceptar (y al deshacer).
+- **El fallo que contó PINGU**: en una venta (das cartas, te pagan 20 €) la
+  tarjeta decía «Recibes · 0,00 € — Nada» y el dinero iba en una franja
+  aparte. El dinero ya va DENTRO del lado de quien lo recibe y suma en su
+  total, en la tarjeta, en «Tus cambios» («Das 1 carta · recibes 20,00 €») y
+  en el editor («Te da 20,00 €» con «Te paga 20,00 €»).
+
+**Para PINGU**: ejecutar `supabase-migration-1098-cambio-recibido.sql`. Sin
+ella, los textos nuevos salen igual; lo único que no pasa es lo del regalo
+(quien no recibe nada ve «Ya lo he mandado»).
+
+**Ficheros**: la migración (`cambio_recibe_algo`, `cambio_sin_esperar`;
+`cambio_contestar`, `cambio_lo_tengo` y `cambio_deshacer` de la 942 con eso y
+sin «Lo tengo» en los mensajes), `js/cambio-propuesta-puro.js` (`queRecibe`,
+`textoDeRecibido`, `loQueEs`), `js/cambio-propuesta.js`,
+`css/cambio-propuesta.css`, `CLAUDE.md`. Pruebas en `pruebas`: sql-tanda-1098
+contra PostgreSQL, 1098-pantalla (la venta de punta a punta) y la 942 al día;
+631, 940 y 1042 en verde. La 943 (/buscar) y la 887 («el de Cruces») tienen un
+rojo cada una que sale igual sin este cambio.
+
+**Pendiente**: 1099 (cambio, venta o compra) y 1100 (cruces y tarjetas).
+
 ## 2026-10-29 (337) — PINGU-Claude (1097 — «Para cambio» con varias)
 
 **Hecho**: PINGU: «puedes seleccionar cartas en cualquier sitio y añadirlas

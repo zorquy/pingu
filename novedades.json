@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-29", "tipo": "mejora", "texto": "En los cambios, cada uno confirma lo que le llega: «Carta recibida», «Cartas recibidas», «Dinero recibido» o «Recibido», y se ve quién lo ha confirmado ya. Si regalas una carta, no tienes que confirmar nada.", "enlace": "/mi-coleccion?ver=cambios" },
+    { "fecha": "2026-10-29", "tipo": "arreglo", "texto": "En una propuesta en la que das cartas y te pagan, el dinero ya sale en lo que recibes (antes ponía «Recibes · 0 € — Nada» aunque te fueran a pagar).", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-29", "tipo": "nuevo", "texto": "Al seleccionar varias cartas ya puedes ponerlas para cambio de golpe: eliges si das una de cada, todas menos una o todas. Y las que aún no tienes se añaden a tu colección ya para cambio, con el idioma y el estado que digas.", "enlace": "/mi-coleccion?ver=cartas" },
     { "fecha": "2026-10-29", "tipo": "mejora", "texto": "En el ordenador, el índice del foro tiene «Lo último» en el lateral: los seis temas con movimiento más reciente, quién escribió, cuándo y en qué foro, con un punto en lo que no has leído. Las tarjetas de arriba se van y el índice empieza antes.", "enlace": "/foro" },
     { "fecha": "2026-10-29", "tipo": "mejora", "texto": "En el ordenador, los temas del foro vuelven a ser un foro de los de siempre: a la izquierda de cada mensaje, quién lo escribe en grande, con su título y sus mensajes y gracias, y tus mensajes marcados con «Tú». La caja de responder va al final. En el móvil sigue siendo una conversación.", "enlace": "/foro" },

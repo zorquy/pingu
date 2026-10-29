@@ -41785,6 +41785,32 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1098 — «Recibido» según lo que te llega, y el dinero donde toca
+
+De la propuesta «Cambios más claros» (la 1; PINGU: «dale»).
+
+- `queRecibe(oferta, quien)` (cambio-propuesta-puro.js): las copias del otro
+  y el dinero que paga el otro. `textoDeRecibido`: «Recibido» (cartas y
+  dinero), «Carta recibida», «Cartas recibidas», «Dinero recibido» o null
+  (nada). Es el texto del botón `lo-tengo` (la acción y la RPC no cambian:
+  `cambio_lo_tengo`). `loQueEs`: «2 cartas y 30,00 €».
+- La tarjeta, aceptada, lleva `.cp-quien`: una fila por persona con lo que
+  recibe y si ya lo confirmó. Los pasos: Propuesta · Aceptada · Recibido ·
+  Hecho.
+- Migración 1098: `cambio_recibe_algo(oferta, quien)` y
+  `cambio_sin_esperar(oferta)` (pone `recibido_*_at` a quien no recibe nada;
+  las dos con `revoke`), llamada al aceptar y al deshacer. Redefine
+  `cambio_contestar`, `cambio_lo_tengo` y `cambio_deshacer` de la 942 con eso
+  y los mensajes sin «Lo tengo». Al final la pasa por las aceptadas que hay.
+- EL DINERO, DENTRO DEL LADO DE QUIEN LO RECIBE. PINGU: en una venta «no pone
+  que él me debe nada». Se guardaba bien (`dinero_paga`), pero la tarjeta
+  pintaba «Recibes · 0,00 € — Nada» y debajo una franja con el dinero: lo
+  primero que se lee decía lo contrario. Ahora `ladoHtml` lleva el dinero
+  (`dineroEnLado`) y su total lo suma; el editor pinta «Te paga» / «Le pagas»
+  como una línea más de su lado (`dineroItem`) con los totales de
+  `balanceDe` (`das`, `recibes`, que ya contaban el dinero); y «Tus cambios»
+  resume con `resumenDe` («Das 1 carta · recibes 20,00 €»).
+
 ## Tanda 1097 — «Para cambio» con varias
 
 PINGU: «puedes seleccionar cartas en cualquier sitio y añadirlas en bulk,

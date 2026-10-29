@@ -74,6 +74,34 @@ export function textoDeDinero({ cantidad, pagaYo, como } = {}, nombreOtro = 'Te'
 // Para la RPC: el dinero va como «quién paga», 'de' (quien propone) o 'para'.
 export const pagaParaRpc = ({ cantidad, pagaYo }) => (Number(cantidad) > 0 ? (pagaYo ? 'de' : 'para') : null)
 
+// Lo que le llega a una persona en un cambio (1098): las copias del otro y
+// el dinero que paga el otro. `quien` es su id.
+export function queRecibe(oferta, quien) {
+  const cartas = (oferta?.items || []).filter((it) => it.quien !== quien).reduce((n, it) => n + (Number(it.cantidad) || 1), 0)
+  const cantidad = Number(oferta?.dinero) || 0
+  const paga = oferta?.dinero_paga === 'de' ? oferta?.de : oferta?.dinero_paga === 'para' ? oferta?.para : null
+  return { cartas, dinero: cantidad > 0 && paga && paga !== quien ? cantidad : 0 }
+}
+
+// El botón de confirmar dice lo que te llega (1098, PINGU: «si son cartas,
+// cartas recibidas; en el caso de ser una, recibido; si tengo que recibir
+// dinero, dinero recibido»). Null si no te llega nada: no hay nada que
+// confirmar (la 1098 te da por confirmado al aceptar).
+export function textoDeRecibido({ cartas, dinero } = {}) {
+  if (cartas && dinero) return 'Recibido'
+  if (cartas === 1) return 'Carta recibida'
+  if (cartas > 1) return 'Cartas recibidas'
+  if (dinero) return 'Dinero recibido'
+  return null
+}
+
+// «2 cartas y 30,00 €», para decir qué confirma cada uno.
+export function loQueEs({ cartas, dinero } = {}) {
+  const c = cartas ? `${cartas} ${cartas === 1 ? 'carta' : 'cartas'}` : ''
+  const d = dinero ? euros(dinero) : ''
+  return [c, d].filter(Boolean).join(' y ') || 'nada'
+}
+
 // Lo que dice una propuesta de su estado, a quien mira, y qué puede hacer.
 export function estadoDe(oferta, yo, nombreOtro = 'la otra persona') {
   const mia = oferta?.de === yo
@@ -86,7 +114,7 @@ export function estadoDe(oferta, yo, nombreOtro = 'la otra persona') {
         : { texto: 'Te toca', tono: 'toca', acciones: ['aceptar', 'editar', 'rechazar'] }
     case 'aceptada':
       if (!yaLoTengo) return { texto: loTieneEl ? `${nombreOtro} ya tiene lo tuyo` : 'Aceptado', tono: 'toca', acciones: ['lo-tengo', 'anular'] }
-      return { texto: `Esperando su «Lo tengo»`, tono: 'espera', acciones: ['anular'] }
+      return { texto: `Esperando a que ${nombreOtro} lo confirme`, tono: 'espera', acciones: ['anular'] }
     case 'hecha':
       return { texto: 'Cambio hecho', tono: 'hecho', acciones: oferta?.deshacer_hasta && new Date(oferta.deshacer_hasta) > new Date() ? ['deshacer'] : [] }
     case 'rechazada':

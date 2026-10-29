@@ -709,7 +709,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   cerrarse, `cambio_mover` mueve las líneas y lo apunta para deshacerlo un
   día. Un camino nuevo para proponer llama a `abrirPropuesta`
   (`js/cambio-propuesta.js`); lo que mueva o reserve cartas de un cambio
-  respeta `cambio_reservadas_linea`.
+  respeta `cambio_reservadas_linea`. Cada uno confirma lo que LE llega (1098):
+  el botón lo dice `textoDeRecibido(queRecibe(…))` y quien no recibe nada no
+  confirma (`cambio_sin_esperar`); y el dinero se pinta DENTRO del lado de
+  quien lo recibe, sumado a su total, nunca en una franja aparte (una venta
+  decía «Recibes · 0,00 € — Nada»).
 - **Una carta pintada en cualquier pantalla lleva sus marcas** (tanda 943,
   PINGU: «debería estar en todos los lados de la web»): el ✓ de «la tienes»
   y el corazón de «La quiero». Dentro de /mi-coleccion, con

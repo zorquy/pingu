@@ -24,8 +24,8 @@ import { IDIOMAS, idiomaDe, precioDeFila, valorDe } from './cardmarket.js'
 import { normalizeSearch } from './texto.js'
 import { senasDe } from './mi-coleccion/borrador-cruce.js'
 import {
-  FICHERO_MIGRACION, COMOS, euros, balanceDe, dineroQueCuadra, dineroDeOferta, textoDeDinero, pagaParaRpc,
-  estadoDe, pasoDe, estaViva, loQueSeMueve, itemsParaRpc,
+  FICHERO_MIGRACION, COMOS, nombreDeComo, euros, balanceDe, dineroQueCuadra, dineroDeOferta, textoDeDinero, pagaParaRpc,
+  estadoDe, pasoDe, estaViva, loQueSeMueve, itemsParaRpc, queRecibe, textoDeRecibido, loQueEs,
 } from './cambio-propuesta-puro.js'
 
 export { FICHERO_MIGRACION, estaViva }
@@ -247,6 +247,14 @@ function itemHtml(it) {
   </li>`
 }
 
+// El dinero, como una línea más del lado que lo da (1098): «Te da» con solo
+// dinero decía «Todavía nada».
+function dineroItem(loPagoYo) {
+  const { cantidad, pagaYo, como } = ed.dinero
+  if (!(cantidad > 0) || pagaYo !== loPagoYo) return ''
+  return `<li class="cp-item cp-item-din"><span class="cp-item-txt"><b>${loPagoYo ? 'Le pagas' : 'Te paga'} ${escapeHtml(euros(cantidad))}</b><small>${como ? escapeHtml(nombreDeComo(como)) : 'Cómo, abajo'}</small></span></li>`
+}
+
 function balanceActual() {
   return balanceDe(ed.items, ed.dinero)
 }
@@ -268,13 +276,13 @@ function pintarEditor() {
   $('cpCuerpo').innerHTML = `
     <div class="cp-lados">
       <section class="cp-lado" aria-label="Lo que das">
-        <div class="cp-lado-cab"><h3>Tú das</h3><b>${escapeHtml(euros(b.doy))}</b></div>
-        <ul class="cp-items">${mias.map(itemHtml).join('') || '<li class="cp-vacio">Todavía nada.</li>'}</ul>
+        <div class="cp-lado-cab"><h3>Tú das</h3><b>${escapeHtml(euros(b.das))}</b></div>
+        <ul class="cp-items">${mias.map(itemHtml).join('') + dineroItem(true) || '<li class="cp-vacio">Todavía nada.</li>'}</ul>
         <div class="cp-anadir"><button type="button" class="btn-secondary" data-cp-elegir="doy">+ De las que doy</button><button type="button" class="link-btn" data-cp-elegir="mias">+ Otra de mi colección</button></div>
       </section>
       <section class="cp-lado" aria-label="Lo que te da">
-        <div class="cp-lado-cab"><h3>Te da</h3><b>${escapeHtml(euros(b.recibo))}</b></div>
-        <ul class="cp-items">${suyas.map(itemHtml).join('') || '<li class="cp-vacio">Todavía nada.</li>'}</ul>
+        <div class="cp-lado-cab"><h3>Te da</h3><b>${escapeHtml(euros(b.recibes))}</b></div>
+        <ul class="cp-items">${suyas.map(itemHtml).join('') + dineroItem(false) || '<li class="cp-vacio">Todavía nada.</li>'}</ul>
         <div class="cp-anadir"><button type="button" class="btn-secondary" data-cp-elegir="suyas">+ De las que da</button><button type="button" class="link-btn" data-cp-elegir="pedir">+ Pedirle otra</button></div>
       </section>
     </div>
@@ -531,15 +539,20 @@ export async function cargarOfertas(yo, { con = null, limite = 60 } = {}) {
   return ofertas.map((o) => ({ ...o, items: porOferta.get(o.id) || [] }))
 }
 
-function ladoHtml(titulo, items, cartaDe, vacio) {
+// El dinero va DENTRO del lado de quien lo recibe (1098): con una franja
+// aparte, una venta decía «Recibes · 0,00 € — Nada» encima de «te paga 20 €».
+const dineroEnLado = ({ cantidad, como }) => `<p class="cp-t-dinero">${icons.zap ? icons.zap(14) : ''}<span>${escapeHtml(euros(cantidad))}${como ? ` · ${escapeHtml(nombreDeComo(como))}` : ''}</span></p>`
+
+function ladoHtml(titulo, items, cartaDe, vacio, dinero = null) {
   return `<div class="cp-t-lado"><h4>${escapeHtml(titulo)}</h4>
-    ${items.length
+    ${dinero && !items.length ? '' : items.length
       ? `<ul class="cp-minis">${items.map((it) => {
           const c = cartaDe(it)
           const nombre = c ? nombreDeCarta(c) : it.card_id
           return `<li>${miniHtml(c, it, `${nombre} · ${senasDe(it)}${it.cantidad > 1 ? ` · ×${it.cantidad}` : ''}${it.pedida && !it.linea ? ' · se la pides' : ''}`)}${it.cantidad > 1 ? `<span class="cp-mini-n">×${it.cantidad}</span>` : ''}</li>`
         }).join('')}</ul>`
       : `<p class="subtext">${vacio}</p>`}
+    ${dinero ? dineroEnLado(dinero) : ''}
   </div>`
 }
 
@@ -554,24 +567,33 @@ export function tarjetaHtml(o, { yo, otro, cartaDe }) {
   const paso = pasoDe(o)
   const de = o.de === yo ? 'tuya' : `de ${nombre}`
   const boton = (accion, texto, primario = false) => `<button type="button" class="${primario ? 'btn-primary' : 'btn-secondary'}" data-cp-accion="${accion}" data-oferta="${escapeHtml(o.id)}">${texto}</button>`
+  // Cada uno confirma lo que LE llega, con sus palabras (1098). Sin nada que
+  // te llegue (regalas), la base te da por confirmado; sin la migración, el
+  // botón dice que ya lo mandaste.
+  const otroId = o.de === yo ? o.para : o.de
+  const recibo = queRecibe(o, yo)
+  const recibeEl = queRecibe(o, otroId)
   const acciones = est.acciones.map((a) => ({
     aceptar: boton('aceptar', 'Aceptar', true),
     editar: boton('editar', 'Cambiar algo'),
     rechazar: boton('rechazar', 'Rechazar'),
     anular: boton('anular', 'Anular'),
-    'lo-tengo': boton('lo-tengo', 'Lo tengo', true),
+    'lo-tengo': boton('lo-tengo', escapeHtml(textoDeRecibido(recibo) || 'Ya lo he mandado'), true),
     deshacer: boton('deshacer', 'Deshacer'),
   })[a]).join('')
+  const yaYo = o.de === yo ? o.recibido_de_at : o.recibido_para_at
+  const yaEl = o.de === yo ? o.recibido_para_at : o.recibido_de_at
+  const filaQuien = (quien, que, ya) => `<li><span>${quien} · ${escapeHtml(loQueEs(que))}</span><span class="${ya ? 'cp-ya' : ''}">${que.cartas || que.dinero ? (ya ? `${escapeHtml(textoDeRecibido(que))} ✓` : 'Pendiente') : 'Nada que confirmar'}</span></li>`
   return `<article class="cp-tarjeta tono-${est.tono}" data-oferta="${escapeHtml(o.id)}">
     <header class="cp-t-cab"><b>Propuesta ${de}${o.version > 1 ? ` · ${o.version}.ª versión` : ''}</b><span class="cp-estado">${escapeHtml(est.texto)}</span></header>
     <div class="cp-t-lados">
-      ${ladoHtml(`Das · ${euros(sumaDe(das))}`, das, cartaDe, 'Nada')}
-      ${ladoHtml(`Recibes · ${euros(sumaDe(recibes))}`, recibes, cartaDe, 'Nada')}
+      ${ladoHtml(`Das · ${euros(sumaDe(das) + (dinero.pagaYo ? dinero.cantidad : 0))}`, das, cartaDe, 'Nada', dinero.cantidad && dinero.pagaYo ? dinero : null)}
+      ${ladoHtml(`Recibes · ${euros(sumaDe(recibes) + (dinero.cantidad && !dinero.pagaYo ? dinero.cantidad : 0))}`, recibes, cartaDe, 'Nada', dinero.cantidad && !dinero.pagaYo ? dinero : null)}
     </div>
-    ${dinero.cantidad ? `<p class="cp-t-dinero">${icons.zap ? icons.zap(14) : ''}<span>${escapeHtml(textoDeDinero(dinero, nombre))}</span></p>` : ''}
     ${o.nota ? `<p class="cp-t-nota">«${escapeHtml(o.nota)}»</p>` : ''}
-    ${o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de 4">${['Propuesta', 'Aceptada', 'Lo tengo', 'Hecho'].map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
-    ${o.estado === 'aceptada' ? `<p class="subtext cp-t-ayuda">${(o.de === yo ? o.recibido_de_at : o.recibido_para_at) ? `Cuando ${escapeHtml(nombre)} diga «Lo tengo», las cartas se mueven solas.` : `Cuando te llegue lo de ${escapeHtml(nombre)}, dale a «Lo tengo». Al decirlo los dos, las cartas cambian de colección solas.`}</p>` : ''}
+    ${o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de 4">${['Propuesta', 'Aceptada', 'Recibido', 'Hecho'].map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
+    ${o.estado === 'aceptada' ? `<ul class="cp-quien" aria-label="Quién ha confirmado">${filaQuien(escapeHtml(nombre), recibeEl, yaEl)}${filaQuien('Tú', recibo, yaYo)}</ul>
+    <p class="subtext cp-t-ayuda">${yaYo ? `Cuando ${escapeHtml(nombre)} lo confirme, las cartas se mueven solas.` : `Cuando te llegue${recibo.cartas && !recibo.dinero ? (recibo.cartas === 1 ? ' la carta' : 'n las cartas') : recibo.dinero && !recibo.cartas ? ' el dinero' : ' todo'}, pulsa «${escapeHtml(textoDeRecibido(recibo) || 'Ya lo he mandado')}». Al confirmarlo los dos, las cartas cambian de colección solas.`}</p>` : ''}
     ${acciones ? `<div class="cp-t-acciones">${acciones}</div>` : ''}
   </article>`
 }
@@ -660,7 +682,7 @@ function engancharAcciones(caja, contexto, recargar) {
           } },
         })
       } else {
-        showToast({ aceptar: 'Aceptada. Ahora os mandáis las cartas.', rechazar: 'Rechazada.', anular: 'Anulada.', 'lo-tengo': 'Apuntado. Cuando lo diga la otra persona, se mueven las cartas.', deshacer: 'Deshecho: las cartas vuelven a donde estaban.' }[accion] || 'Hecho.', 'success')
+        showToast({ aceptar: 'Aceptada. Ahora os mandáis las cartas.', rechazar: 'Rechazada.', anular: 'Anulada.', 'lo-tengo': 'Apuntado. Cuando lo confirme la otra persona, se mueven las cartas.', deshacer: 'Deshecho: las cartas vuelven a donde estaban.' }[accion] || 'Hecho.', 'success')
       }
       recargar()
     }
@@ -700,6 +722,9 @@ export async function pintarPropuestasCon(caja, { sesion, otro, cruce = null } =
   caja.querySelector('[data-cp-nueva]')?.addEventListener('click', () => void abrirPropuesta({ sesion, otro, prefill: cruce || {}, alEnviar: recargar }))
 }
 
+// «Das 2 cartas · recibes 20,00 €»: lo que sale y lo que entra, con el dinero.
+const resumenDe = (o, yo) => `Das ${loQueEs(queRecibe(o, o.de === yo ? o.para : o.de))} · recibes ${loQueEs(queRecibe(o, yo))}`
+
 // «Tus cambios», para Deseos y cambios: los vivos en tarjeta y los demás
 // en una lista corta.
 export async function pintarMisCambios(caja, { sesion } = {}) {
@@ -731,18 +756,15 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
       // que espera algo de ti, abierta, para que «Aceptar» esté a la vista.
       const p = otroDe(o)
       const est = estadoDe(o, yo, nombreDePersona(p))
-      const das = o.items.filter((it) => it.quien === yo).length
-      const dinero = Number(o.dinero) > 0 ? ` · ${escapeHtml(textoDeDinero(dineroDeOferta(o, yo), nombreDePersona(p)))}` : ''
       return `<details class="cp-linea"${est.tono === 'toca' ? ' open' : ''}>
-        <summary>${avatarHtml(p)}<span class="cp-linea-texto"><b>Con ${escapeHtml(nombreDePersona(p))}</b><small>Das ${das} · recibes ${o.items.length - das}${dinero}</small></span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span><span class="cp-linea-ver" aria-hidden="true">Ver</span></summary>
+        <summary>${avatarHtml(p)}<span class="cp-linea-texto"><b>Con ${escapeHtml(nombreDePersona(p))}</b><small>${escapeHtml(resumenDe(o, yo))}</small></span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span><span class="cp-linea-ver" aria-hidden="true">Ver</span></summary>
         <div class="cp-con"><a class="cp-con-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}<span>${escapeHtml(nombreDePersona(p))}</span></a>${o.conversacion ? `<a class="link-btn" href="/mensajes.html?c=${escapeHtml(o.conversacion)}">Ir a la conversación</a>` : ''}</div>${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe })}
       </details>`
     }).join('')}
     ${pasadas.length ? `<details class="cp-pasadas"><summary>Los anteriores · ${pasadas.length}</summary><ul>${pasadas.map((o) => {
       const p = otroDe(o)
       const est = estadoDe(o, yo, nombreDePersona(p))
-      const das = o.items.filter((it) => it.quien === yo).length
-      return `<li class="cp-pasada"><span>${avatarHtml(p)} <b>${escapeHtml(nombreDePersona(p))}</b> · das ${das}, recibes ${o.items.length - das}${Number(o.dinero) > 0 ? ` · ${escapeHtml(textoDeDinero(dineroDeOferta(o, yo), nombreDePersona(p)))}` : ''}</span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span></li>`
+      return `<li class="cp-pasada"><span>${avatarHtml(p)} <b>${escapeHtml(nombreDePersona(p))}</b> · ${escapeHtml(resumenDe(o, yo).toLowerCase())}</span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span></li>`
     }).join('')}</ul></details>` : ''}`
   engancharAcciones(caja, () => estado, recargar)
 }
