@@ -41785,6 +41785,26 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1093 — Etiquetas para imprimir
+
+De «Tiendas, la tercera vuelta» (punto 3), con las dos (lo recomendado).
+`js/tienda-etiquetas.js` (por `import()` desde el Stock): cada página es un
+lienzo a 8 px/mm (203 ppp) que va al PDF como JPEG con `pdfDeImagenes`
+(`tiendas-puro.js`, varias páginas; `pdfDeJpeg` del recibo pasa por ahí y
+escribe los mismos cinco objetos). Formatos en `FORMATOS_ETIQUETA`: la hoja A4
+de 24 (3 × 8, 70 × 37,125 mm, sin margen, con una raya muy suave en el corte)
+y el rollo de 62 × 29 mm (una por página). `colocarEtiquetas(n, formato,
+saltar)` dice página y esquina; `etiquetasDeLineas` repite por unidad. Cada
+etiqueta: nombre en uno o dos renglones, `detalleDeEtiqueta` (el código de la
+colección, `tcg_online_code`, si lo hay), el precio que cuenta (con la oferta,
+el de siempre tachado) y el QR (`matrizQR`) a
+`https://pokedoc.es/usuario/<usuario>?carta=<id>` (un producto, a su
+escaparate). Lo elegido se recuerda en `pd-tienda-etiquetas`. Entradas:
+`[data-bloque="etiquetas"]` en la barra de Seleccionar y «⋯» → «Etiquetas para
+imprimir» (sin nada marcado, entra en Seleccionar y lo dice).
+
+Prueba: `test-tanda-1093-pantalla.mjs`.
+
 ## Tanda 1092 — Apártamela
 
 De «Tiendas, la tercera vuelta» (punto 2), con lo recomendado: aparta solo la

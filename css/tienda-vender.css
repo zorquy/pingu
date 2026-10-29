@@ -279,3 +279,8 @@ html:has(.tdr[open]) { overflow: hidden; }
   .tdc-total-caja input,
   .tdc-campo > input { min-height: 44px; }
 }
+
+/* Etiquetas (1093): la vista previa de la primera página, en su papel. */
+.tde-vista { display: grid; place-items: center; padding: var(--e-sm); border-radius: var(--radius-md); background: var(--ice); }
+.tde-vista img { display: block; max-width: 100%; max-height: 46vh; height: auto; background: #ffffff; box-shadow: var(--shadow-sm); }
+.tde-saltar[hidden] { display: none; }

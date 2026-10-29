@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (333) — PINGU-Claude (1093 — etiquetas para imprimir)
+
+**Hecho**: en el Stock, «Seleccionar» → «Etiquetas» (o «⋯» → «Etiquetas para
+imprimir»): un PDF con una etiqueta por carta (o por cada unidad, para las
+fundas) con el nombre, la colección y el número, el idioma y el estado, el
+precio en grande (con la oferta, el de antes tachado) y un QR que abre esa
+carta en el escaparate. En la hoja A4 de 24 (70 × 37 mm), empezando en la
+casilla que digas si la hoja está empezada, o una por página de 62 × 29 mm
+para impresora de etiquetas. Con vista previa. Nunca lleva el coste.
+
+**Para PINGU**: nada (sin migración).
+
+**Ficheros**: `js/tienda-etiquetas.js` (nuevo), `js/tienda-stock.js`,
+`js/tiendas-puro.js` (`pdfDeImagenes`, el PDF de varias páginas; el del
+recibo sale de ahí igual que antes), `css/tienda-vender.css`. Prueba en
+`pruebas`: 1093-pantalla (con lo puro).
+
+**Pendiente**: 1094 Cierre del mes.
+
 ## 2026-10-29 (332) — PINGU-Claude (1092 — Apártamela)
 
 **Hecho**: la tienda aparta unidades para alguien hasta un día: desde la

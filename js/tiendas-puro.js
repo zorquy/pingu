@@ -407,12 +407,21 @@ export function comparacion(ahora, antes, frente) {
 
 // El recibo de una venta (1084): un PDF de una página con la imagen del
 // recibo dentro, sin librerías. Un JPEG va tal cual en un PDF (DCTDecode),
-// así que basta con escribir los cinco objetos y la tabla de dónde empieza
-// cada uno. La página mide lo que la imagen, a 80 mm de ancho (un ticket).
+// así que basta con escribir los objetos y la tabla de dónde empieza cada
+// uno. La página mide lo que la imagen, a 80 mm de ancho (un ticket).
 export function pdfDeJpeg(jpeg, ancho, alto) {
-  const enc = new TextEncoder()
   const W = 226.77 // 80 mm en puntos
-  const H = Math.round((W * alto) / ancho * 100) / 100
+  return pdfDeImagenes([{ jpeg, ancho, alto }], { anchoPt: W, altoPt: Math.round((W * alto) / ancho * 100) / 100 })
+}
+
+// Varias páginas (las etiquetas, 1093), cada una una imagen a página entera
+// del tamaño que se diga en puntos. Con una sola, los mismos cinco objetos y
+// en el mismo orden que el recibo de siempre.
+export const PUNTOS_POR_MM = 72 / 25.4
+export function pdfDeImagenes(paginas, { anchoPt, altoPt }) {
+  const enc = new TextEncoder()
+  const W = anchoPt
+  const H = altoPt
   const contenido = `q ${W} 0 0 ${H} 0 0 cm /Im0 Do Q`
   const trozos = []
   const posiciones = []
@@ -426,17 +435,21 @@ export function pdfDeJpeg(jpeg, ancho, alto) {
     posiciones[n] = largo
     poner(`${n} 0 obj\n${cuerpo}\nendobj\n`)
   }
+  const total = 2 + paginas.length * 3
   poner('%PDF-1.4\n')
   objeto(1, '<< /Type /Catalog /Pages 2 0 R >>')
-  objeto(2, '<< /Type /Pages /Kids [3 0 R] /Count 1 >>')
-  objeto(3, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 4 0 R >> >> /Contents 5 0 R >>`)
-  posiciones[4] = largo
-  poner(`4 0 obj\n<< /Type /XObject /Subtype /Image /Width ${ancho} /Height ${alto} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`)
-  poner(jpeg)
-  poner('\nendstream\nendobj\n')
-  objeto(5, `<< /Length ${contenido.length} >>\nstream\n${contenido}\nendstream`)
+  objeto(2, `<< /Type /Pages /Kids [${paginas.map((_, i) => `${3 + i * 3} 0 R`).join(' ')}] /Count ${paginas.length} >>`)
+  paginas.forEach(({ jpeg, ancho, alto }, i) => {
+    const n = 3 + i * 3
+    objeto(n, `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im0 ${n + 1} 0 R >> >> /Contents ${n + 2} 0 R >>`)
+    posiciones[n + 1] = largo
+    poner(`${n + 1} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${ancho} /Height ${alto} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpeg.length} >>\nstream\n`)
+    poner(jpeg)
+    poner('\nendstream\nendobj\n')
+    objeto(n + 2, `<< /Length ${contenido.length} >>\nstream\n${contenido}\nendstream`)
+  })
   const xref = largo
-  poner(`xref\n0 6\n0000000000 65535 f \n${posiciones.slice(1).map((p) => `${String(p).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`)
+  poner(`xref\n0 ${total + 1}\n0000000000 65535 f \n${posiciones.slice(1).map((p) => `${String(p).padStart(10, '0')} 00000 n \n`).join('')}trailer\n<< /Size ${total + 1} /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF\n`)
   const pdf = new Uint8Array(largo)
   let i = 0
   for (const b of trozos) {
@@ -444,6 +457,41 @@ export function pdfDeJpeg(jpeg, ancho, alto) {
     i += b.length
   }
   return pdf
+}
+
+// ── Etiquetas (1093) ──
+
+// Los dos formatos: la hoja A4 de 24 (3 × 8, 70 × 37 mm, las de papelería) y
+// una por página para impresora de etiquetas (rollo de 62 × 29 mm).
+export const FORMATOS_ETIQUETA = {
+  a4: { nombre: 'Hoja A4 de 24 (70 × 37 mm)', paginaMm: [210, 297], cols: 3, filas: 8, anchoMm: 70, altoMm: 37.125 },
+  rollo: { nombre: 'Una por carta (62 × 29 mm)', paginaMm: [62, 29], cols: 1, filas: 1, anchoMm: 62, altoMm: 29 },
+}
+
+// Una etiqueta por línea, o una por cada unidad (para las fundas).
+export function etiquetasDeLineas(filas, { porUnidad = false } = {}) {
+  const r = []
+  for (const f of filas || []) {
+    const n = porUnidad ? Math.max(1, Math.min(200, Number(f.unidades) || 1)) : 1
+    for (let i = 0; i < n; i++) r.push(f)
+  }
+  return r
+}
+
+// Dónde cae cada etiqueta: página y esquina en mm. `saltar` deja libres las
+// primeras de una hoja empezada (solo en la hoja de 24).
+export function colocarEtiquetas(n, formato, saltar = 0) {
+  const f = FORMATOS_ETIQUETA[formato] || FORMATOS_ETIQUETA.a4
+  const porHoja = f.cols * f.filas
+  const desde = formato === 'a4' ? Math.max(0, Math.min(porHoja - 1, Math.round(Number(saltar) || 0))) : 0
+  const sitios = []
+  for (let i = 0; i < n; i++) {
+    const k = i + desde
+    const pagina = Math.floor(k / porHoja)
+    const enHoja = k % porHoja
+    sitios.push({ pagina, x: (enHoja % f.cols) * f.anchoMm, y: Math.floor(enHoja / f.cols) * f.altoMm })
+  }
+  return { sitios, paginas: n ? sitios[sitios.length - 1].pagina + 1 : 0 }
 }
 
 // Las cuentas de un recibo: cada línea con su importe y el total. Del coste

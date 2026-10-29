@@ -944,6 +944,7 @@ async function enBloque(accion) {
   const ids = [...est.marcadas]
   if (!ids.length) return
   if (accion === 'precio') return abrirPrecioBloque()
+  if (accion === 'etiquetas') return abrirEtiquetas()
   if (accion === 'oferta') return abrirOfertaBloque()
   if (accion === 'destacar') {
     const nuevas = est.filas.filter((f) => est.marcadas.has(f.id) && !f.destacada).length
@@ -973,6 +974,22 @@ async function enBloque(accion) {
   showToast(accion === 'borrar' ? `Borradas ${data.length}.` : accion === 'ensenar' ? `Ahora se ven ${data.length}.` : `Ocultas ${data.length}.`, 'success')
   est.marcadas.clear()
   pedir()
+}
+
+// Las etiquetas de lo marcado (1093): el nombre, el detalle con el código
+// de la colección y el QR a esa carta en el escaparate (pokedoc.es, que es lo
+// que se imprime y se escanea fuera).
+async function abrirEtiquetas() {
+  const filas = est.filas.filter((f) => est.marcadas.has(f.id)).map((f) => {
+    const c = f.card_id ? est.cartas.get(f.card_id) : null
+    const numero = c?.local_id || f.numero
+    return { ...f, nombre: nombreFila(f), numero, detalle: '', _codigo: c?.tcg_sets?.tcg_online_code || '', _set: c?.tcg_sets ? nombreDeSet(c.tcg_sets) : est.sets.get(f.set_id) || '' }
+  })
+  if (!filas.length) return
+  const m = await import('./tienda-etiquetas.js')
+  for (const f of filas) f.detalle = m.detalleDeEtiqueta(f, { codigo: f._codigo, nombreSet: f._set })
+  const base = `https://pokedoc.es/usuario/${encodeURIComponent(perfil?.username || '')}`
+  m.abrirEtiquetas({ filas, enlaceDe: (f) => (f.card_id ? `${base}?carta=${encodeURIComponent(f.card_id)}` : base), nombreFichero: `etiquetas-${perfil?.username || 'tienda'}-${new Date().toISOString().slice(0, 10)}` })
 }
 
 // ── Vistas ──
@@ -1063,6 +1080,7 @@ export function montarStock(destino, { perfil: p }) {
               <button type="button" role="menuitem" data-tds="seleccionar" aria-pressed="false">${icons.checkSquare(18)}<span><b>Seleccionar</b><small>Marcar varias para vender, poner precio…</small></span></button>
               <button type="button" role="menuitemradio" data-tds-vista="tabla" aria-pressed="false">${icons.alignLeft(18)}<span><b>Ver en tabla</b></span></button>
               <button type="button" role="menuitemradio" data-tds-vista="rejilla" aria-pressed="false">${icons.image(18)}<span><b>Ver en rejilla</b><small>Cambia unidades y precio ahí mismo</small></span></button>
+              <button type="button" role="menuitem" data-tds="etiquetas">${icons.receipt(18)}<span><b>Etiquetas para imprimir</b><small>Con precio y QR, de las que marques</small></span></button>
               <button type="button" role="menuitem" data-tds="exportar">${icons.arrowDown(18)}<span><b>Exportar a CSV</b><small>Lo que se ve, con los filtros puestos</small></span></button>
             </span>
           </span>
@@ -1077,6 +1095,7 @@ export function montarStock(destino, { perfil: p }) {
           <button type="button" class="btn-secondary tds-sel-fin" data-tds="seleccionar">Hecho</button>
           <button type="button" class="btn-primary" data-bloque="vender">Vender</button>
           <button type="button" class="btn-secondary" data-bloque="precio">Poner precio</button>
+          <button type="button" class="btn-secondary" data-bloque="etiquetas">${icons.receipt(16)}<span>Etiquetas</span></button>
           <button type="button" class="btn-secondary" data-bloque="oferta" hidden>Oferta</button>
           <button type="button" class="btn-secondary" data-bloque="destacar" hidden>${icons.star(16)}<span>Destacar</span></button>
           <button type="button" class="btn-secondary" data-bloque="ocultar">Ocultar</button>
@@ -1124,6 +1143,14 @@ export function montarStock(destino, { perfil: p }) {
       try { localStorage.setItem('pd-tienda-stock-vista', est.vista) } catch {}
       pintarVistaBotones()
       return pintarTabla()
+    }
+    // Etiquetas (1093): de lo marcado; sin nada marcado, a marcar.
+    if (accion === 'etiquetas') {
+      if (est.marcadas.size) return abrirEtiquetas()
+      est.seleccionando = true
+      pintarTabla()
+      pintarSeleccion()
+      return showToast('Marca las cartas y toca «Etiquetas» abajo.', 'info')
     }
     if (accion === 'seleccionar') {
       est.seleccionando = !est.seleccionando
