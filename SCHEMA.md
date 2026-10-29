@@ -41785,6 +41785,22 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1106 — El total de una venta o compra se escribe
+
+PINGU: «que sea editable… si estoy vendiendo un lote, abaratarlo un poco, o
+redondear: sale 4,99 y digo 5 euros».
+
+- `repartirTotal(items, total)` (`js/cambio-propuesta-puro.js`): el precio
+  por copia de cada carta para que sumen `total` al céntimo, en proporción a
+  su `precio` (o `precioCm`, o a partes iguales); el resto del redondeo va
+  primero a una línea de una copia. `totalRedondo(t)`: al euro, nunca 0 si
+  había algo.
+- En «Le vendo» / «Le compro» la cifra grande es `#cpTotal`; al cambiarlo
+  (`change`, no a cada tecla, que repintar quitaría el foco) `ponerTotal`
+  reparte entre las cartas de ese lado y repinta; `dineroDelModo` vuelve a
+  sumar, así que total y cartas no se separan. `data-cp-redondear` sale
+  cuando el total tiene céntimos.
+
 ## Tanda 1105 — Los cambios hechos en el perfil y «¿Qué tal fue?» en el trato
 
 PINGU: «cuando haces un cambio, ¿se ve reflejado en algún sitio?… ¿metemos en

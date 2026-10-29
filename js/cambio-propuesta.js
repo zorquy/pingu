@@ -26,7 +26,7 @@ import { senasDe } from './mi-coleccion/borrador-cruce.js'
 import {
   FICHERO_MIGRACION, COMOS, nombreDeComo, euros, balanceDe, dineroQueCuadra, dineroDeOferta, textoDeDinero, pagaParaRpc,
   estadoDe, estaViva, loQueSeMueve, itemsParaRpc, queRecibe, textoDeRecibido, loQueEs,
-  ENVIOS, envioDe, tipoDe, tituloDe, pagaElEnvio, pasosDe, necesitaDireccion, faltaDireccion, vaPorCorreo, direccionCorta, lineasDeDireccion,
+  ENVIOS, envioDe, tipoDe, tituloDe, pagaElEnvio, repartirTotal, totalRedondo, pasosDe, necesitaDireccion, faltaDireccion, vaPorCorreo, direccionCorta, lineasDeDireccion,
   sabeEnvios, enviadoDe, seguimientoDe,
 } from './cambio-propuesta-puro.js'
 import { confirmacionesPorId, miValoracion, valorarHtml, engancharValorar } from './cambios-hechos.js'
@@ -351,8 +351,9 @@ function pintarEditor() {
       <div class="cp-lados cp-lados-uno">${ladoEditorHtml(vendo, vendo ? 'Le vendes' : 'Le compras', ed.dinero.cantidad, b)}</div>
       <section class="cp-dinero cp-precio-total" aria-label="Precio">
         <h3>Precio</h3>
-        <div class="cp-chips" role="group" aria-label="Sobre Cardmarket">${[100, 90, 80].map((n) => `<button type="button" class="cp-chip" data-cp-pct="${n}" aria-pressed="${ed.pct === n}">${n} %</button>`).join('')}</div>
-        <p class="cp-importe"><b>${escapeHtml(euros(ed.dinero.cantidad))}</b>${cm && Math.abs(cm - ed.dinero.cantidad) >= 0.005 ? `<s>${escapeHtml(euros(cm))} en Cardmarket</s>` : '<small>lo de Cardmarket hoy</small>'}</p>
+        <div class="cp-chips" role="group" aria-label="Sobre Cardmarket">${[100, 90, 80].map((n) => `<button type="button" class="cp-chip" data-cp-pct="${n}" aria-pressed="${ed.pct === n}">${n} %</button>`).join('')}${lado.length && Math.abs(totalRedondo(ed.dinero.cantidad) - ed.dinero.cantidad) >= 0.005 ? `<button type="button" class="cp-chip" data-cp-redondear>Redondear a ${escapeHtml(euros(totalRedondo(ed.dinero.cantidad)))}</button>` : ''}</div>
+        <p class="cp-importe"><label class="cp-total-campo"><span class="sr-only">Precio total</span><input type="number" id="cpTotal" min="0" max="100000" step="0.01" inputmode="decimal" value="${ed.dinero.cantidad ? ed.dinero.cantidad : ''}" placeholder="0"${lado.length ? '' : ' disabled'} /> €</label>${cm && Math.abs(cm - ed.dinero.cantidad) >= 0.005 ? `<s>${escapeHtml(euros(cm))} en Cardmarket</s>` : '<small>lo de Cardmarket hoy</small>'}</p>
+        ${lado.length > 1 ? '<p class="subtext cp-total-ayuda">Cambia el total y se reparte entre las cartas; o toca el precio de una.</p>' : ''}
         ${sinPrecio ? `<p class="subtext">${sinPrecio === 1 ? 'Una carta no tiene precio' : `${sinPrecio} cartas no tienen precio`}: ponle el tuyo.</p>` : ''}
         <div class="cp-chips" role="group" aria-label="Cómo ${vendo ? 'te paga' : 'le pagas'}">${COMOS.map((c) => `<button type="button" class="cp-chip" data-cp-como="${c.id}" aria-pressed="${ed.dinero.como === c.id}">${c.nombre}</button>`).join('')}</div>
         <p class="subtext cp-aviso-dinero">Cardmarket es orientativo: el precio es el que pongáis. El pago lo hacéis vosotros, fuera de PokeDoc.</p>
@@ -555,7 +556,7 @@ function alPulsarEnEditor(e) {
   const d = $('cpDialogo')
   if (e.target === d) return d.close()
   if (!ed) return
-  const t = e.target.closest('[data-cp], [data-cp-elegir], [data-cp-quitar], [data-cp-menos], [data-cp-mas], [data-cp-paga], [data-cp-como], [data-cp-opcion], [data-cp-pedir], [data-cp-modo], [data-cp-pct], [data-cp-envio], [data-cp-adjuntar]')
+  const t = e.target.closest('[data-cp], [data-cp-elegir], [data-cp-quitar], [data-cp-menos], [data-cp-mas], [data-cp-paga], [data-cp-como], [data-cp-opcion], [data-cp-pedir], [data-cp-modo], [data-cp-pct], [data-cp-envio], [data-cp-adjuntar], [data-cp-redondear]')
   if (!t) return
   const ds = t.dataset
   if (ds.cp === 'cerrar') return d.close()
@@ -599,6 +600,7 @@ function alPulsarEnEditor(e) {
     return pintarEditor()
   }
   if (ds.cpEnvio) { ed.envio = ds.cpEnvio; return pintarEditor() }
+  if ('cpRedondear' in ds) return ponerTotal(totalRedondo(ed.dinero.cantidad))
   if ('cpAdjuntar' in ds) { ed.adjuntar = t.checked; return }
   if (ds.cpOpcion) {
     if (!ed.marcadas) ed.marcadas = new Set()
@@ -607,6 +609,14 @@ function alPulsarEnEditor(e) {
     return void pintarOpciones()
   }
   if (ds.cpPedir) return void anadirPedida(ds.cpPedir)
+}
+
+// Repartir un total entre las cartas del lado que se vende o se compra.
+function ponerTotal(total) {
+  const lado = ed.items.filter((it) => it.mia === (ed.modo === 'vendo'))
+  repartirTotal(lado, total).forEach((p, i) => { lado[i].precio = p })
+  ed.pct = null
+  pintarEditor()
 }
 
 let esperaBuscar = null
@@ -623,6 +633,11 @@ function alEscribirEnEditor(e) {
     ed.buscar = t.value
     clearTimeout(esperaBuscar)
     esperaBuscar = setTimeout(() => void pintarOpciones(), ed.vista === 'pedir' ? 300 : 120)
+    return
+  }
+  // El total de una venta o compra (1106): se reparte entre sus cartas.
+  if (t.id === 'cpTotal') {
+    if (e.type === 'change') ponerTotal(Number(String(t.value).replace(',', '.')) || 0)
     return
   }
   if (t.dataset.cpPrecio) {

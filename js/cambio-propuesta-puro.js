@@ -74,6 +74,37 @@ export function textoDeDinero({ cantidad, pagaYo, como } = {}, nombreOtro = 'Te'
 // Para la RPC: el dinero va como «quién paga», 'de' (quien propone) o 'para'.
 export const pagaParaRpc = ({ cantidad, pagaYo }) => (Number(cantidad) > 0 ? (pagaYo ? 'de' : 'para') : null)
 
+// EL TOTAL A MANO (1106, PINGU: «que sea editable… si estoy vendiendo un lote,
+// abaratarlo un poco, o redondear: sale 4,99 y digo 5 euros»). Se escribe el
+// total y se reparte entre las cartas en proporción a lo que valía cada una
+// (su precio, o el de Cardmarket, o a partes iguales si no hay ninguno), para
+// que la tarjeta siga sumando lo mismo. Devuelve el precio por copia de cada
+// una, en céntimos exactos: lo que sobra del redondeo va a la línea de una
+// copia que más pesa.
+export function repartirTotal(items = [], total = 0) {
+  const objetivo = Math.max(0, Math.round((Number(total) || 0) * 100))
+  if (!items.length) return []
+  const n = (it) => Math.max(1, Number(it.cantidad) || 1)
+  const valor = (it) => Number(it.precio ?? it.precioCm) || 0
+  let pesos = items.map((it) => valor(it) * n(it))
+  if (!pesos.some((x) => x > 0)) pesos = items.map(n)
+  const suma = pesos.reduce((a, b) => a + b, 0)
+  const precios = items.map((it, i) => Math.floor(((objetivo * pesos[i]) / suma) / n(it)))
+  let resto = objetivo - precios.reduce((a, c, i) => a + c * n(items[i]), 0)
+  // El resto, primero a las líneas de una copia (cuadra al céntimo); si no
+  // hay, a la que más pesa, de copia en copia mientras quepa.
+  const orden = items.map((_, i) => i).sort((a, b) => (n(items[a]) === 1) - (n(items[b]) === 1) || pesos[a] - pesos[b]).reverse()
+  for (const i of orden) {
+    if (resto <= 0) break
+    const m = Math.floor(resto / n(items[i]))
+    if (m > 0) { precios[i] += m; resto -= m * n(items[i]) }
+  }
+  return precios.map((c) => c / 100)
+}
+
+// «Redondear»: el total al euro más cercano (y nunca a cero si había algo).
+export const totalRedondo = (total) => (Number(total) > 0 ? Math.max(1, Math.round(Number(total))) : 0)
+
 // EL ENVÍO (1099, PINGU: «normal son 2 € y el certificado son 7 €»). Los
 // precios están también en `cambio_envio_precio` de la migración 1099: si
 // cambian, en los dos.

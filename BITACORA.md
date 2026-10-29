@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (346) — PINGU-Claude (1106 — el total de una venta o compra se escribe)
+
+**Hecho**: PINGU: «el precio que sea editable… para hacer una oferta manual o
+encarecer un poquito, o si vendo un lote abaratarlo, o redondear: sale 4,99 y
+digo 5 euros». El precio de cada carta ya se podía tocar (1099); lo que no
+era el TOTAL de una venta o compra («Precio · 34,00 € · lo de Cardmarket
+hoy»). Ahora el total es un campo: lo que pongas se reparte entre las cartas
+en proporción a lo que valía cada una, al céntimo, y cada carta enseña su
+Cardmarket tachado. Con céntimos sale «Redondear a 150,00 €». Tocar una carta
+sigue moviendo el total.
+
+**Para PINGU**: nada que ejecutar.
+
+**Ficheros**: `js/cambio-propuesta-puro.js` (`repartirTotal`, `totalRedondo`),
+`js/cambio-propuesta.js` (`#cpTotal`, `ponerTotal`, `data-cp-redondear`),
+`css/cambio-propuesta.css`. Pruebas en `pruebas`: 1106-pantalla nueva.
+
+**Pendiente**: la 1107 (el Bizum o el PayPal de quien cobra, en el trato).
+
 ## 2026-10-29 (345) — PINGU-Claude (1105 — los cambios hechos en el perfil y «¿Qué tal fue?» en el trato)
 
 **Hecho**: PINGU preguntó si un cambio se ve reflejado en el perfil y cómo;

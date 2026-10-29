@@ -405,3 +405,9 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
   .cp-pasos:has(li:nth-child(6)) li.ahora { white-space: nowrap; }
 }
 .cp-pasada .cv-valorar { flex: 1 1 100%; }
+
+/* El total de una venta o compra se escribe (1106): el número grande es un campo. */
+.cp-total-campo { display: inline-flex; align-items: baseline; gap: var(--e-xs); font-family: var(--font-display); font-size: var(--t-2xl); font-weight: 700; }
+.cp-total-campo input { width: 6.5em; min-height: 44px; padding: 0 var(--e-sm); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--text); font: inherit; text-align: right; font-variant-numeric: tabular-nums; }
+.cp-total-campo input:focus { border-color: var(--navy); outline: none; box-shadow: var(--shadow-ring); }
+.cp-total-ayuda { margin: 0; }
