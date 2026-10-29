@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (335) — PINGU-Claude (1095 — el foro en el PC, como un foro)
+
+**Hecho**: PINGU: «en móvil está muy bien que sea como una conversación, pero
+en el PC no… quien está escribiendo el mensaje no se ve». Eligió la A de la
+propuesta (con lo recomendado): desde 901 px el tema vuelve a ser un foro con
+la columna del autor a la izquierda (avatar de 64, nombre, título, Mensajes,
+Gracias y Oros), todos los mensajes del mismo lado, lo tuyo con la columna en
+el rosa de Comunidad y la chapa «Tú», la hora en la cabecera del mensaje y la
+caja de responder al final del tema (sin pegar). En el móvil, todo igual.
+
+**Para PINGU**: nada (sin migración).
+
+**Ficheros**: `css/foro.css` (lo de la burbuja de la 746 y el azul de la 748,
+dentro de `@media (max-width: 900px)`; el PC en su `@media (min-width: 901px)`),
+`js/tema.js` (la chapa «Tú»). Pruebas en `pruebas`: la 746 y la 816 al día
+(el PC es un foro, con el autor también en los seguidos; las burbujas se miran
+en el móvil). De paso, dos rojos de la 299 que dejó la 1092: las clases de
+«Apartadas» (`.tda-*`) pasan de `css/tienda.css` a `css/tienda-vender.css`
+(`apartadasHtml` la inyecta), porque `mensajes.html` llega a ellas por
+`tienda-apartar.js`; y un `--font-body` que no existe. La 964 y la 995 dan
+«ViewTransition… aborted» también sin este cambio: no es de aquí.
+
+**Pendiente**: nada.
+
 ## 2026-10-29 (334) — PINGU-Claude (1094 — el cierre del mes)
 
 **Hecho**: en Ventas, el botón de exportar es un menú: «CSV de lo que se ve»

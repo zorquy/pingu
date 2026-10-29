@@ -739,6 +739,7 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { seguido = fals
     <div class="foro-mensaje-autor">
       ${avatarHtml(perfil, 56)}
       <div class="foro-autor-nombre">${enlacePerfil(perfil)}</div>
+      ${esMio ? '<span class="foro-chapa foro-chapa-tu">Tú</span>' : ''}
       <time class="foro-autor-hora" datetime="${escapeHtml(m.created_at || '')}" title="${escapeHtml(fechaLarga(m.created_at))}">${escapeHtml(haceCuanto(m.created_at))}${m.edited_at ? ' · editado' : ''}</time>
       ${tituloDe(perfil, cuentas[m.author_id] || 0)}
       ${

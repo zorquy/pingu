@@ -41785,6 +41785,30 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1095 — El foro en el PC, como un foro
+
+PINGU: «en móvil está muy bien que sea como una conversación, pero en el PC
+no… quien está escribiendo el mensaje no se ve porque está ahí arriba
+pequeñito». Con tres propuestas en imágenes eligió la A: el foro clásico de
+antes de la 746, con lo de ahora dentro.
+
+- Las reglas de la burbuja (746: ancho del 88 %, lo tuyo a la derecha, la
+  columna del autor convertida en una línea, los contadores escondidos, los
+  seguidos sin nombre) y el azul de lo tuyo (748, también en las cartas del
+  mensaje) van dentro de `@media (max-width: 900px)`. Por encima manda la
+  base de siempre de `.foro-mensaje` (columna de 146 px), que nunca se fue:
+  el HTML de cada mensaje lleva la columna entera desde antes de la 746.
+- En `@media (min-width: 901px)`: avatar de 64, la hora de la columna
+  escondida (la de la cabecera del mensaje es la que vale; en el móvil es al
+  revés), lo tuyo con el borde y la columna en `--acento` (el rosa de
+  Comunidad) y `#temaResponder` estático al final del tema, sin el
+  `scroll-padding-bottom` que hacía falta con la caja pegada.
+- `.foro-chapa-tu` («Tú», en la columna de lo tuyo, la pone `mensajeHtml`):
+  solo en el PC; en el móvil ya lo dice el lado.
+
+Prueba: la 746 al día (sección 4: el PC como foro; la 5 mira las burbujas en
+el móvil).
+
 ## Tanda 1094 — El cierre del mes
 
 De «Tiendas, la tercera vuelta» (punto 5). En Ventas el icono de exportar abre

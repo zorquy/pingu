@@ -159,6 +159,7 @@ export async function apartadas() {
 
 // La tarjeta del Panel: lo apartado, lo que antes acaba primero.
 export function apartadasHtml(filas, nombreSet = (id) => id) {
+  hojaInyectada('css/tienda-vender.css')
   const ahora = Date.now()
   return filas.map((r) => {
     const pronto = new Date(r.hasta).getTime() - ahora < 864e5

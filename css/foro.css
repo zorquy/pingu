@@ -1956,100 +1956,105 @@ a.foro-cita-quien:hover {
   background: var(--danger-solid);
 }
 
-/* El tema: cada mensaje es una burbuja, y los tuyos van a la derecha. */
-.foro-mensaje {
-  grid-template-columns: minmax(0, 1fr);
-  max-width: 88%;
-  margin: 0 0 var(--e-md);
-  border: 0;
-  background: transparent;
-  overflow: visible;
-}
-
 /* La respuesta recién enviada, hasta que la base la confirma (899). */
 .foro-mensaje-enviando {
   opacity: 0.55;
 }
 
-.foro-mensaje-mio {
-  margin-left: auto;
-}
+/* El tema en el MÓVIL es una conversación: cada mensaje es una burbuja y
+   los tuyos van a la derecha (746). En el PC es el foro clásico de la base
+   de arriba, con la columna del autor (1095, PINGU: «en el PC que sea como
+   un foro más»). */
+@media (max-width: 900px) {
+  .foro-mensaje {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 88%;
+    margin: 0 0 var(--e-md);
+    border: 0;
+    background: transparent;
+    overflow: visible;
+  }
 
-.foro-mensaje-autor {
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-start;
-  gap: var(--e-sm);
-  padding: 0 var(--e-xs) var(--e-xs);
-  border: 0;
-  background: transparent;
-  text-align: left;
-}
+  .foro-mensaje-mio {
+    margin-left: auto;
+  }
 
-.foro-mensaje-mio .foro-mensaje-autor {
-  justify-content: flex-end;
-}
+  .foro-mensaje-autor {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+    gap: var(--e-sm);
+    padding: 0 var(--e-xs) var(--e-xs);
+    border: 0;
+    background: transparent;
+    text-align: left;
+  }
 
-.foro-mensaje-autor .mini-avatar {
-  width: 28px !important;
-  height: 28px !important;
-  font-size: var(--t-sm) !important;
-}
+  .foro-mensaje-mio .foro-mensaje-autor {
+    justify-content: flex-end;
+  }
 
-/* Los contadores de siempre («Mensajes», «Gracias», «Oros») siguen en el
-   perfil; en una burbuja eran ruido. */
-.foro-mensaje-autor .foro-autor-mensajes {
-  display: none;
-}
+  .foro-mensaje-autor .mini-avatar {
+    width: 28px !important;
+    height: 28px !important;
+    font-size: var(--t-sm) !important;
+  }
 
-.foro-mensaje-cuerpo {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  border-top-left-radius: var(--radius-sm);
-  background: var(--white);
-}
+  /* Los contadores de siempre («Mensajes», «Gracias», «Oros») siguen en el
+     perfil; en una burbuja eran ruido. */
+  .foro-mensaje-autor .foro-autor-mensajes {
+    display: none;
+  }
 
-.foro-mensaje-mio .foro-mensaje-cuerpo {
-  border-top-left-radius: var(--radius-xl);
-  border-top-right-radius: var(--radius-sm);
-  background: var(--ice);
-}
+  .foro-mensaje-cuerpo {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    border-top-left-radius: var(--radius-sm);
+    background: var(--white);
+  }
 
-.foro-mensaje-solucion .foro-mensaje-cuerpo {
-  border-radius: var(--radius-xl);
-}
+  .foro-mensaje-mio .foro-mensaje-cuerpo {
+    border-top-left-radius: var(--radius-xl);
+    border-top-right-radius: var(--radius-sm);
+    background: var(--ice);
+  }
 
-.foro-mensaje-cabecera {
-  padding-bottom: var(--e-xs);
-  border-bottom: 0;
-}
+  .foro-mensaje-solucion .foro-mensaje-cuerpo {
+    border-radius: var(--radius-xl);
+  }
 
-/* La hora va junto al nombre y los seguidos van juntos (813, FO3): ver
-   SCHEMA, tanda 813. En la burbuja queda la hora solo del que va seguido. */
-.foro-autor-hora {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
+  .foro-mensaje-cabecera {
+    padding-bottom: var(--e-xs);
+    border-bottom: 0;
+  }
 
-.foro-mensaje:not(.foro-mensaje-seguido) .foro-mensaje-hora {
-  display: none;
-}
+  /* La hora va junto al nombre y los seguidos van juntos (813, FO3): ver
+     SCHEMA, tanda 813. En la burbuja queda la hora solo del que va seguido. */
+  .foro-autor-hora {
+    color: var(--text-mid);
+    font-size: var(--t-xs);
+  }
 
-.foro-mensaje-seguido {
-  margin-top: calc(-1 * var(--e-sm));
-}
+  .foro-mensaje:not(.foro-mensaje-seguido) .foro-mensaje-hora {
+    display: none;
+  }
 
-.foro-mensaje-seguido .foro-mensaje-autor {
-  display: none;
-}
+  .foro-mensaje-seguido {
+    margin-top: calc(-1 * var(--e-sm));
+  }
 
-.foro-mensaje-seguido .foro-mensaje-cuerpo {
-  border-top-left-radius: var(--radius-xl);
-}
+  .foro-mensaje-seguido .foro-mensaje-autor {
+    display: none;
+  }
 
-.foro-mensaje-mio.foro-mensaje-seguido .foro-mensaje-cuerpo {
-  border-top-right-radius: var(--radius-xl);
+  .foro-mensaje-seguido .foro-mensaje-cuerpo {
+    border-top-left-radius: var(--radius-xl);
+  }
+
+  .foro-mensaje-mio.foro-mensaje-seguido .foro-mensaje-cuerpo {
+    border-top-right-radius: var(--radius-xl);
+  }
 }
 
 /* «Reaccionar» en el pie es del móvil (813): allí la cabecera de la
@@ -2129,6 +2134,49 @@ a.foro-cita-quien:hover {
 /* Lo que se enfoca o se salta no se queda debajo de la caja. */
 html:has(#temaResponder) {
   scroll-padding-bottom: 240px;
+}
+
+/* En el PC el tema es un foro (1095): la caja va al final, como antes, sin
+   tapar el último mensaje; la hora va en la cabecera del mensaje (la de la
+   columna es la del móvil); y lo tuyo se queda en su sitio, con la columna
+   en el color de Comunidad y la chapa «Tú». */
+@media (min-width: 901px) {
+  #temaResponder {
+    position: static;
+  }
+
+  html:has(#temaResponder) {
+    scroll-padding-bottom: 0;
+  }
+
+  .foro-mensaje-autor .foro-autor-hora {
+    display: none;
+  }
+
+  .foro-mensaje-autor .mini-avatar {
+    width: 64px !important;
+    height: 64px !important;
+    font-size: var(--t-2xl) !important;
+  }
+
+  .foro-mensaje-mio {
+    border-color: color-mix(in srgb, var(--acento) 40%, var(--border));
+  }
+
+  .foro-mensaje-mio .foro-mensaje-autor {
+    background: color-mix(in srgb, var(--acento) 8%, var(--bg));
+  }
+}
+
+.foro-chapa-tu {
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+
+@media (max-width: 900px) {
+  .foro-chapa-tu {
+    display: none;
+  }
 }
 
 @media (max-width: 900px) {
@@ -2488,26 +2536,28 @@ html:has(#temaResponder) {
 }
 
 /* Lo tuyo, en el azul de su maqueta (748): blanco fijo encima (la 315). */
-.foro-mensaje-mio .foro-mensaje-cuerpo {
-  border-color: var(--navy-solid);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-}
+@media (max-width: 900px) {
+  .foro-mensaje-mio .foro-mensaje-cuerpo {
+    border-color: var(--navy-solid);
+    background: var(--navy-solid);
+    color: var(--blanco-fijo);
+  }
 
-.foro-mensaje-mio .foro-mensaje-cuerpo .subtext,
-.foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-texto,
-.foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-texto a,
-.foro-mensaje-mio .foro-mensaje-cuerpo .foro-accion,
-.foro-mensaje-mio .foro-mensaje-cuerpo .link-btn,
-.foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-mas,
-.foro-mensaje-mio .foro-mensaje-cuerpo .foro-copiar-enlace,
-.foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-num {
-  color: var(--blanco-fijo);
-}
+  .foro-mensaje-mio .foro-mensaje-cuerpo .subtext,
+  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-texto,
+  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-texto a,
+  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-accion,
+  .foro-mensaje-mio .foro-mensaje-cuerpo .link-btn,
+  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-mas,
+  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-copiar-enlace,
+  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-num {
+    color: var(--blanco-fijo);
+  }
 
-.foro-mensaje-mio .foro-mensaje-cuerpo .foro-accion {
-  border-color: rgb(255 255 255 / 40%);
-  background: transparent;
+  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-accion {
+    border-color: rgb(255 255 255 / 40%);
+    background: transparent;
+  }
 }
 
 /* El «⋯» de cada mensaje (789, PA10): Editar, Borrar, la solución y Reportar. */
@@ -2611,14 +2661,16 @@ html:has(#temaResponder) {
   font-weight: 700;
 }
 
-.foro-mensaje-mio .foro-carta-lista {
-  border-color: rgb(255 255 255 / 40%);
-  background: transparent;
-}
+@media (max-width: 900px) {
+  .foro-mensaje-mio .foro-carta-lista {
+    border-color: rgb(255 255 255 / 40%);
+    background: transparent;
+  }
 
-.foro-mensaje-mio .foro-carta-lista,
-.foro-mensaje-mio .foro-carta-precio {
-  color: var(--blanco-fijo);
+  .foro-mensaje-mio .foro-carta-lista,
+  .foro-mensaje-mio .foro-carta-precio {
+    color: var(--blanco-fijo);
+  }
 }
 
 /* El paginador (tanda 990, js/paginacion.js): flechas con texto en el PC,

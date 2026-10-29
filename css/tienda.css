@@ -2169,17 +2169,8 @@ html[data-td-ver='stock'] .bm-pastilla {
 
 /* Apartadas (1092): en el Panel, lo que la tienda guarda para alguien. */
 .tdh-tarjeta[hidden] { display: none; }
-.tdh-apartadas h3 small { margin-left: auto; color: var(--text-mid); font-family: var(--font-body); font-size: var(--t-sm); font-weight: 600; }
+.tdh-apartadas h3 small { margin-left: auto; color: var(--text-mid); font-family: 'Inter', sans-serif; font-size: var(--t-sm); font-weight: 600; }
 .tda-lista { display: grid; margin: 0; padding: 0; list-style: none; }
-.tda-fila { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: var(--e-xs) var(--e-sm); align-items: center; padding: var(--e-sm) 0; border-top: 1px solid var(--border); }
-.tda-fila:first-child { border-top: 0; }
-.tda-que { display: grid; min-width: 0; }
-.tda-que small { overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
-.tda-reloj { justify-self: end; padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--success-bg); color: var(--success); font-size: var(--t-xs); font-weight: 700; white-space: nowrap; }
-.tda-reloj.tda-pronto { background: var(--warning-bg); color: var(--text); }
-.tda-botones { grid-column: 1 / -1; display: flex; gap: var(--e-sm); }
-.tda-btn { min-height: 36px; padding: 0 var(--e-md); font-size: var(--t-sm); }
-@media (pointer: coarse) { .tda-btn { min-height: 44px; } }
 .tds-apartada { display: inline-flex; align-items: center; gap: var(--e-xs); padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); color: var(--text); font-size: var(--t-2xs); font-weight: 700; white-space: nowrap; }
 .tds-apartadas { display: grid; gap: var(--e-xs); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--ice); font-size: var(--t-sm); }
 .tds-apartadas b { display: inline-flex; align-items: center; gap: var(--e-xs); }
