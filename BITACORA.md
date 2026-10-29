@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (342) — PINGU-Claude (1102 — la dirección en los cambios por correo)
+
+**Hecho**: PINGU: «que alguien cuando acepta el envío también pueda meter su
+dirección… en el caso de cambio, que los dos», y «dale» a lo recomendado de
+la propuesta (guardada en Ajustes, teléfono opcional).
+- Pone su dirección quien **recibe cartas** en un trato por correo (venta:
+  quien compra; cambio: los dos; en mano, nadie).
+- **Al aceptar**: debajo del envío, «¿A dónde te lo manda?» con la guardada
+  ya puesta (y «Cambiar»), o el formulario con «Guardarla para los próximos
+  cambios». Sin ella no se acepta; en mano se esconde.
+- **Al proponer**: «Adjuntar mi dirección» (marcado si tienes guardada); el
+  otro la ve solo si acepta.
+- **En curso**: «Envía a Lucía · certificado» con la dirección y Copiar;
+  «Te lo manda a: …» con la tuya; si te falta, «Te toca: pon tu dirección»
+  con el formulario, y al ponerla al otro le llega «Dirección lista» en
+  Mensajes. Los pasos llevan «Dirección».
+- **Ajustes → Dirección de envío**: guardarla, cambiarla y borrarla.
+
+**Para PINGU**: ejecutar `supabase-migration-1102-cambio-direccion.sql`
+(después de la 1099 y la 1101). Sin ella todo va como antes.
+
+**Ficheros**: `supabase-migration-1102-cambio-direccion.sql`,
+`js/cambio-direccion.js` (nuevo), `js/cambio-propuesta-puro.js`
+(`validarDireccion`, `necesitaDireccion`, `faltaDireccion`, `pasosDe`,
+`estadoDe`), `js/cambio-propuesta.js`, `js/ajustes.js`,
+`js/mensajes-puro.js`, `js/mensajes.js`, `css/cambio-propuesta.css`,
+`css/ajustes.css`, `css/mensajes.css`, `CLAUDE.md`. Pruebas en `pruebas`:
+1102-pantalla y sql-tanda-1102 nuevas; el doble sabe de direcciones
+(`__SIN_1102__`).
+
+**Pendiente**: la 1103 («Ya lo he enviado» con el número de seguimiento, que
+PINGU ha vuelto a pedir, y el borrado de las direcciones a los 30 días).
+
 ## 2026-10-29 (341) — PINGU-Claude (1101 — el mensaje de un cambio, una tarjeta con «Ver propuesta»)
 
 **Hecho**: PINGU: «en vez de que sea un texto plano, ¿puede ser algo más

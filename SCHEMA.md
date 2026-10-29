@@ -41785,6 +41785,46 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1102 — La dirección en los cambios por correo
+
+PINGU: «que alguien cuando acepta el envío también pueda meter su dirección…
+en el caso de cambio, que los dos»; «dale» a lo recomendado.
+
+- Migración `supabase-migration-1102-cambio-direccion.sql`:
+  · `user_direcciones` (una por persona, RLS: solo la tuya, las cuatro
+    operaciones). Columnas: `nombre`, `calle`, `cp`, `ciudad` (obligatorias,
+    con largo mínimo), `provincia` y `telefono` (opcionales).
+  · `trade_offer_direcciones` (oferta, quien, mismas columnas), SIN políticas:
+    se escribe con `cambio_direccion_poner(oferta, dir jsonb)` y se lee con
+    `cambio_direcciones(ofertas uuid[])`, que da la tuya siempre y la del otro
+    solo con el trato `aceptada` o `hecha`.
+  · `cambio_direccion_poner`: parte del trato, `enviada` o `aceptada`, por
+    correo (`envio = 'correo'` y `envio_tipo` no `mano`) y solo si te mandan
+    cartas. Con el trato aceptado avisa al otro (`cambio_direccion`, «Ya
+    tienes mi dirección para el envío.»).
+- Lo puro (`js/cambio-propuesta-puro.js`): `CAMPOS_DIRECCION`,
+  `validarDireccion`, `lineasDeDireccion`, `direccionCorta`, `vaPorCorreo`,
+  `necesitaDireccion(o, quien)` (te mandan cartas por correo),
+  `faltaDireccion(o, quien)` (con `o.direcciones` sabido: null = sin la
+  migración, no falta nada), `estadoDe` con «Te toca: pon tu dirección» y
+  «Falta su dirección», y `pasosDe(o)` con el paso «Dirección».
+- `js/cambio-direccion.js`: `miDireccion` (undefined = no se sabe),
+  `guardarMiDireccion`, `borrarMiDireccion`, `ponerEnTrato`, `direccionesDe`,
+  y el formulario (`camposHtml`, sin ids: puede haber varios; `elegirHtml` /
+  `leerElegida` / `abrirFormulario`).
+- `js/cambio-propuesta.js`: `cargarOfertas` trae `o.direcciones`;
+  `direccionEnTarjetaHtml` pinta «¿A dónde te lo manda?» (enviada, quien la
+  recibe), «Envía a …» con Copiar y «Te lo manda a» (aceptada) y el bloque
+  «Pon tu dirección» con `data-cp-accion="direccion"`. Aceptar pone primero
+  la dirección (sin la migración, sigue); en mano se esconde
+  (`[data-cp-dir-aceptar]`). El editor adjunta la guardada
+  (`ed.adjuntar`, `adjuntarHtml`).
+- Ajustes: apartado `direccion` (`montarDireccion`, mete
+  `css/cambio-propuesta.css` para los campos).
+- Mensajes: `cambio_direccion` → «Dirección lista», con el icono del paquete.
+- Ojo: `.cp-t-dir`, `.cp-dir-form` y `.cp-dir-guardada` llevan `display` y
+  por eso su `[hidden]` va escrito aparte (sin él no se escondían).
+
 ## Tanda 1101 — El mensaje de un cambio, una tarjeta
 
 PINGU: «en vez de que sea un texto plano, algo más interactivo, con un botón

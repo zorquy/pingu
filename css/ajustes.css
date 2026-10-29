@@ -292,3 +292,8 @@
   justify-items: start;
   margin-top: var(--e-sm);
 }
+
+/* Dirección de envío (1102): los campos son los de css/cambio-propuesta.css. */
+.aj-direccion { max-width: 520px; }
+.aj-dir-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.aj-dir-botones button { min-height: 44px; }

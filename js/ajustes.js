@@ -12,12 +12,14 @@ import { supabase } from './supabase.js'
 import { escapeHtml, requireAuth, passwordStrengthError } from './app.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
+import { hojaInyectada } from './hoja.js'
 import { NOTIFICATION_TYPES, EMAIL_TYPES, EMAIL_TYPES_EQUIPO } from './notifications.js'
 import { GRUPOS_CAMPANITA, GRUPOS_CORREO, gruposDe, estaActivo, conGrupo } from './avisos-prefs.js'
 
 const APARTADOS = [
   { id: 'avisos', nombre: 'Avisos', sub: 'Campanita, correo y push', icono: 'bell' },
   { id: 'cuenta', nombre: 'Cuenta', sub: 'Correo, contraseña, cumpleaños, Play! Pokémon', icono: 'user' },
+  { id: 'direccion', nombre: 'Dirección de envío', sub: 'Para los cambios por correo', icono: 'package' },
   { id: 'privacidad', nombre: 'Privacidad', sub: 'Tu actividad en Comunidad', icono: 'eye' },
   { id: 'apariencia', nombre: 'Apariencia', sub: 'Tema claro, oscuro o el del sistema', icono: 'palette' },
   { id: 'datos', nombre: 'Tus datos', sub: 'Exportar e importar la colección', icono: 'upload' },
@@ -211,6 +213,56 @@ function montarCuenta(panel) {
   })()
 }
 
+// ── Dirección de envío (1102) ──
+// La de los cambios por correo: solo la ves tú, y la otra persona de un
+// trato por correo que hayáis aceptado (una copia en ese trato).
+const direccionHtml = () => `
+    <h2>Dirección de envío</h2>
+    <p class="aj-nota">Para los cambios y las ventas por correo: sale ya puesta al aceptar un trato. No sale en tu perfil ni en los mensajes; solo la ve quien te manda cartas en un trato por correo aceptado, y solo para ese trato.</p>
+    <div id="ajDireccion"><p class="aj-nota">Cargando…</p></div>`
+
+async function montarDireccion(panel) {
+  hojaInyectada('css/cambio-propuesta.css')
+  const { miDireccion, guardarMiDireccion, borrarMiDireccion, camposHtml, MIGRACION_DIRECCION } = await import('./cambio-direccion.js')
+  const { validarDireccion } = await import('./cambio-propuesta-puro.js')
+  const caja = panel.querySelector('#ajDireccion')
+  const pintarla = (fila) => {
+    caja.innerHTML = `<form class="aj-form aj-direccion" id="ajDirForm" novalidate>${camposHtml(fila || {})}
+      <p class="cp-dir-error" id="ajDirError" role="alert" hidden></p>
+      <div class="aj-dir-botones"><button type="submit" class="btn-primary">Guardar</button>${fila ? '<button type="button" class="btn-secondary" id="ajDirBorrar">Borrarla</button>' : ''}</div></form>`
+    caja.querySelector('#ajDirForm').addEventListener('submit', async (e) => {
+      e.preventDefault()
+      const crudo = {}
+      for (const i of caja.querySelectorAll('[data-dir]')) crudo[i.dataset.dir] = i.value
+      const { dir, error } = validarDireccion(crudo)
+      const aviso = caja.querySelector('#ajDirError')
+      aviso.textContent = error || ''
+      aviso.hidden = !error
+      if (error) return
+      const err = await guardarMiDireccion(session.user.id, dir)
+      showToast(err ? 'No se ha podido guardar: ' + err.message : 'Dirección guardada.', err ? 'error' : 'success')
+      if (!err) pintarla(dir)
+    })
+    caja.querySelector('#ajDirBorrar')?.addEventListener('click', async (e) => {
+      // Dos toques: no hay vuelta atrás.
+      if (!e.currentTarget.dataset.seguro) {
+        e.currentTarget.dataset.seguro = '1'
+        e.currentTarget.textContent = 'Pulsa otra vez para borrarla'
+        return
+      }
+      const err = await borrarMiDireccion(session.user.id)
+      showToast(err ? 'No se ha podido borrar: ' + err.message : 'Dirección borrada.', err ? 'error' : 'success')
+      if (!err) pintarla(null)
+    })
+  }
+  const fila = await miDireccion(session.user.id)
+  if (fila === undefined) {
+    caja.innerHTML = `<p class="aj-nota">Todavía no se puede guardar: falta ejecutar ${escapeHtml(MIGRACION_DIRECCION)}.</p>`
+    return
+  }
+  pintarla(fila)
+}
+
 // ── Privacidad ──
 const privacidadHtml = () => `
     <h2>Privacidad</h2>
@@ -321,6 +373,7 @@ async function montarBorrar(panel) {
 const SECCIONES = {
   avisos: [avisosHtml, montarAvisos],
   cuenta: [cuentaHtml, montarCuenta],
+  direccion: [direccionHtml, montarDireccion],
   privacidad: [privacidadHtml, montarPrivacidad],
   apariencia: [aparienciaHtml, montarApariencia],
   datos: [datosHtml, () => {}],

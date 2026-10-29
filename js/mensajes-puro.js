@@ -101,6 +101,7 @@ const EVENTOS_POR_TEXTO = [
   [/^Ya me ha llegado lo tuyo/, 'cambio_recibido'],
   [/^Cambio hecho/, 'cambio_hecho'],
   [/^He deshecho el cambio/, 'cambio_deshecho'],
+  [/^Ya tienes mi dirección/, 'cambio_direccion'],
 ]
 export const TITULO_DE_EVENTO = {
   cambio_propuesta: 'Propuesta de cambio',
@@ -111,6 +112,7 @@ export const TITULO_DE_EVENTO = {
   cambio_recibido: 'Le ha llegado lo tuyo',
   cambio_hecho: 'Cambio hecho',
   cambio_deshecho: 'Cambio deshecho',
+  cambio_direccion: 'Dirección lista',
 }
 export function propuestaDe(mensaje) {
   const texto = String(mensaje?.body || '').trim()

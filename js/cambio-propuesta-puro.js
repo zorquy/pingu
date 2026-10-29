@@ -146,17 +146,59 @@ export function loQueEs({ cartas, dinero } = {}) {
   return [c, d].filter(Boolean).join(' y ') || 'nada'
 }
 
+// LA DIRECCIÓN (1102, PINGU: «que alguien cuando acepta el envío también
+// pueda meter su dirección… en el caso de cambio, que los dos»). La pone
+// quien RECIBE cartas en un trato por correo; el dinero no la necesita. Los
+// tamaños son los de `trade_offer_direcciones` (migración 1102).
+export const CAMPOS_DIRECCION = [
+  { id: 'nombre', nombre: 'Nombre y apellidos', min: 2, max: 120, auto: 'name' },
+  { id: 'calle', nombre: 'Calle, número, piso', min: 3, max: 200, auto: 'street-address' },
+  { id: 'cp', nombre: 'Código postal', min: 3, max: 12, auto: 'postal-code' },
+  { id: 'ciudad', nombre: 'Ciudad', min: 2, max: 80, auto: 'address-level2' },
+  { id: 'provincia', nombre: 'Provincia', min: 0, max: 80, auto: 'address-level1', opcional: true },
+  { id: 'telefono', nombre: 'Teléfono', min: 0, max: 30, auto: 'tel', opcional: true },
+]
+
+// Lo escrito, limpio, y lo que falta. `error` null si vale.
+export function validarDireccion(d = {}) {
+  const dir = {}
+  const faltan = []
+  for (const c of CAMPOS_DIRECCION) {
+    const v = String(d?.[c.id] ?? '').trim().slice(0, c.max)
+    dir[c.id] = v || (c.opcional ? null : '')
+    if (!c.opcional && v.length < c.min) faltan.push(c.nombre.toLowerCase())
+  }
+  return { dir, error: faltan.length ? `Falta ${faltan.join(', ')}.` : null }
+}
+
+// Las líneas de una dirección, como en un sobre.
+export const lineasDeDireccion = (d) => (d ? [d.nombre, d.calle, [d.cp, d.ciudad].filter(Boolean).join(' ') + (d.provincia ? ` (${d.provincia})` : ''), d.telefono ? `Tel. ${d.telefono}` : ''].filter(Boolean) : [])
+// «C/ Mayor 12, 3.º B · 28013 Madrid»: para una línea.
+export const direccionCorta = (d) => (d ? [d.calle, [d.cp, d.ciudad].filter(Boolean).join(' ')].filter(Boolean).join(' · ') : '')
+
+// Si va por correo (y no se cambió a en mano al aceptar).
+export const vaPorCorreo = (o) => o?.envio === 'correo' && o?.envio_tipo !== 'mano'
+// Si a esa persona le mandan cartas por correo: entonces pone su dirección.
+export const necesitaDireccion = (o, quien) => vaPorCorreo(o) && (o?.items || []).some((it) => it.quien !== quien)
+// `o.direcciones`: { [quien]: dirección } o null si no se sabe (sin la
+// migración). Lo que no se sabe no falta.
+export const faltaDireccion = (o, quien) => Boolean(o?.direcciones) && necesitaDireccion(o, quien) && !o.direcciones[quien]
+
 // Lo que dice una propuesta de su estado, a quien mira, y qué puede hacer.
 export function estadoDe(oferta, yo, nombreOtro = 'la otra persona') {
   const mia = oferta?.de === yo
+  const otro = mia ? oferta?.para : oferta?.de
   const yaLoTengo = mia ? oferta?.recibido_de_at : oferta?.recibido_para_at
   const loTieneEl = mia ? oferta?.recibido_para_at : oferta?.recibido_de_at
   switch (oferta?.estado) {
     case 'enviada':
       return mia
         ? { texto: `Esperando a ${nombreOtro}`, tono: 'espera', acciones: ['editar', 'anular'], frase: oferta?.envio === 'correo' ? `Esperando a que ${nombreOtro} elija el envío y acepte.` : `Esperando a que ${nombreOtro} acepte.` }
-        : { texto: 'Te toca', tono: 'toca', acciones: ['aceptar', 'editar', 'rechazar'], frase: oferta?.envio === 'correo' ? 'Te toca: elige el envío y acepta, o haz una contraoferta.' : 'Te toca: acepta o haz una contraoferta.' }
+        : { texto: 'Te toca', tono: 'toca', acciones: ['aceptar', 'editar', 'rechazar'], frase: oferta?.envio === 'correo' ? (oferta?.direcciones && necesitaDireccion(oferta, yo) ? 'Te toca: elige el envío, pon tu dirección y acepta, o haz una contraoferta.' : 'Te toca: elige el envío y acepta, o haz una contraoferta.') : 'Te toca: acepta o haz una contraoferta.' }
     case 'aceptada':
+      // Por correo, sin tu dirección no te lo pueden mandar (1102).
+      if (!yaLoTengo && faltaDireccion(oferta, yo)) return { texto: 'Te toca', tono: 'toca', acciones: ['anular'], frase: `Te toca: pon tu dirección para que ${nombreOtro} te lo envíe.` }
+      if (!loTieneEl && faltaDireccion(oferta, otro)) return { texto: 'Falta su dirección', tono: 'espera', acciones: yaLoTengo ? ['anular'] : ['lo-tengo', 'anular'], frase: `Esperando a que ${nombreOtro} ponga su dirección para mandárselo.` }
       if (!yaLoTengo) return { texto: loTieneEl ? `${nombreOtro} ya tiene lo tuyo` : 'Aceptado', tono: 'toca', acciones: ['lo-tengo', 'anular'], frase: loTieneEl ? `${nombreOtro} ya tiene lo tuyo. Cuando te llegue lo suyo, confírmalo.` : 'Aceptado: mandaos lo vuestro y confírmalo cuando te llegue.' }
       return { texto: `Esperando a que ${nombreOtro} lo confirme`, tono: 'espera', acciones: ['anular'], frase: `Esperando a que a ${nombreOtro} le llegue lo tuyo y lo confirme.` }
     case 'hecha':
@@ -177,6 +219,18 @@ export function pasoDe(oferta) {
   if (oferta?.estado === 'hecha') return 4
   if (oferta?.estado === 'aceptada') return oferta.recibido_de_at || oferta.recibido_para_at ? 3 : 2
   return 1
+}
+
+// Los pasos que se pintan y el que está ahora (desde 1, como `pasoDe`). Por
+// correo, con las direcciones sabidas, uno más: «Dirección» (1102).
+export function pasosDe(o) {
+  const conDireccion = Boolean(o?.direcciones) && vaPorCorreo(o)
+  if (!conDireccion) return { nombres: ['Propuesta', 'Aceptada', 'Recibido', 'Hecho'], paso: pasoDe(o) }
+  const nombres = ['Propuesta', 'Aceptada', 'Dirección', 'Recibido', 'Hecho']
+  if (o.estado === 'hecha') return { nombres, paso: 5 }
+  if (o.estado !== 'aceptada') return { nombres, paso: 1 }
+  if (o.recibido_de_at || o.recibido_para_at) return { nombres, paso: 4 }
+  return { nombres, paso: faltaDireccion(o, o.de) || faltaDireccion(o, o.para) ? 2 : 3 }
 }
 
 // Viva = lo que todavía pide algo a alguien (o se puede deshacer).

@@ -358,3 +358,33 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
 .cp-t-precio { font-size: var(--t-xs); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .cp-linea { scroll-margin-top: 96px; }
 .cp-caja.cp-caja-tira { position: sticky; top: 0; z-index: 2; display: grid; gap: var(--e-xs); padding-bottom: var(--e-sm); background: var(--bg); }
+
+/* La dirección (1102): al aceptar, la que falta y «Envía a». SCHEMA 1102. */
+.cp-t-dir[hidden], .cp-dir-form[hidden], .cp-dir-guardada[hidden] { display: none; }
+.cp-t-dir { display: grid; gap: var(--e-sm); padding: var(--e-sm) var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.cp-t-dir h4 { margin: 0; font-size: var(--t-sm); }
+.cp-t-dir-falta { border-color: var(--acento); }
+.cp-t-dir-falta .btn-primary { justify-self: start; min-height: 44px; }
+.cp-t-envia { border-style: dashed; border-color: var(--border-strong); }
+.cp-t-envia-fila { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--e-sm); }
+.cp-copiar { flex: none; min-height: 36px; }
+.cp-dir { display: grid; gap: var(--e-sm); }
+.cp-dir-texto { min-width: 0; font-size: var(--t-sm); font-style: normal; line-height: 1.45; overflow-wrap: anywhere; }
+.cp-dir-guardada { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--e-sm); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--bg); }
+.cp-dir-guardada .link-btn { flex: none; }
+.cp-dir-form { display: grid; gap: var(--e-sm); }
+.cp-campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
+.cp-campo { display: grid; gap: var(--e-xs); min-width: 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }
+.cp-campo small { font-weight: 400; }
+.cp-campo-nombre, .cp-campo-calle { grid-column: 1 / -1; }
+.cp-campo input { min-width: 0; min-height: 44px; padding: 0 var(--e-sm); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--text); font: inherit; font-size: var(--t-sm); font-weight: 400; }
+.cp-campo input:focus { outline: none; border-color: var(--navy); box-shadow: var(--shadow-ring); }
+.cp-dir-guardar, .cp-adjuntar { display: flex; align-items: flex-start; gap: var(--e-sm); color: var(--text-mid); font-size: var(--t-xs); }
+.cp-dir-guardar input, .cp-adjuntar input { flex: none; width: 16px; height: 16px; margin: 2px 0 0; accent-color: var(--navy-solid); }
+.cp-adjuntar span { display: grid; color: var(--text); font-weight: 600; }
+.cp-adjuntar small { color: var(--text-mid); font-weight: 400; }
+.cp-adjuntar-no { margin: 0; }
+.cp-dir-error { margin: 0; color: var(--danger); font-size: var(--t-xs); }
+.cp-t-privado { display: flex; align-items: flex-start; gap: var(--e-xs); margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
+.cp-t-privado svg { flex: none; margin-top: 2px; color: var(--success); }
+@media (max-width: 400px) { .cp-campos { grid-template-columns: minmax(0, 1fr); } }

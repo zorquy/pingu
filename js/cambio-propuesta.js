@@ -25,9 +25,12 @@ import { normalizeSearch } from './texto.js'
 import { senasDe } from './mi-coleccion/borrador-cruce.js'
 import {
   FICHERO_MIGRACION, COMOS, nombreDeComo, euros, balanceDe, dineroQueCuadra, dineroDeOferta, textoDeDinero, pagaParaRpc,
-  estadoDe, pasoDe, estaViva, loQueSeMueve, itemsParaRpc, queRecibe, textoDeRecibido, loQueEs,
-  ENVIOS, envioDe, tipoDe, tituloDe, pagaElEnvio,
+  estadoDe, estaViva, loQueSeMueve, itemsParaRpc, queRecibe, textoDeRecibido, loQueEs,
+  ENVIOS, envioDe, tipoDe, tituloDe, pagaElEnvio, pasosDe, necesitaDireccion, faltaDireccion, vaPorCorreo, direccionCorta, lineasDeDireccion,
 } from './cambio-propuesta-puro.js'
+import {
+  miDireccion, guardarMiDireccion, ponerEnTrato, direccionesDe, direccionHtml, elegirHtml, leerElegida, abrirFormulario, faltaLaMigracion,
+} from './cambio-direccion.js'
 
 export { FICHERO_MIGRACION, estaViva }
 
@@ -144,12 +147,13 @@ export async function abrirPropuesta({ sesion, otro, prefill = {}, anterior = nu
   hojaInyectada('css/cambio-propuesta.css')
   const d = dialogo()
   const yo = sesion.user.id
-  ed = { yo, otro, anterior, alEnviar, items: [], dinero: { cantidad: 0, pagaYo: false, como: null }, nota: '', vista: 'principal', cargando: true, error: null, modo: 'cambio', envio: anterior?.envio || 'correo', pct: null, modoPedido: prefill.modo || null }
+  ed = { yo, otro, anterior, alEnviar, items: [], dinero: { cantidad: 0, pagaYo: false, como: null }, nota: '', vista: 'principal', cargando: true, error: null, modo: 'cambio', envio: anterior?.envio || 'correo', pct: null, modoPedido: prefill.modo || null, adjuntar: true }
   pintarCabecera()
   $('cpCuerpo').innerHTML = '<div class="skeleton cp-esqueleto"></div>'
   if (!d.open) d.showModal()
   try {
-    const [mias, suyas, misDoy] = await Promise.all([misLineas(yo), loQueDa(otro.id), loQueDa(yo)])
+    const [mias, suyas, misDoy, miDir] = await Promise.all([misLineas(yo), loQueDa(otro.id), loQueDa(yo), miDireccion(yo)])
+    ed.miDir = miDir
     if (!ed || ed.otro !== otro) return
     const libresMias = new Map(misDoy.map((l) => [l.id, l.libres]))
     ed.mias = mias.map((l) => ({ ...l, libres: libresMias.has(l.id) ? libresMias.get(l.id) : l.cantidad }))
@@ -306,7 +310,16 @@ function envioHtml(nombre) {
       <button type="button" class="cp-chip" data-cp-envio="mano" aria-pressed="${ed.envio === 'mano'}">En mano</button>
     </div>
     <p class="subtext">${escapeHtml(ayuda)}</p>
+    ${adjuntarHtml(nombre)}
   </section>`
+}
+
+// Tu dirección con la propuesta (1102): si te mandan cartas por correo, la
+// guardada va adjunta (la ve solo si acepta); sin guardada, se pide después.
+function adjuntarHtml(nombre) {
+  if (ed.envio !== 'correo' || !ed.items.some((it) => !it.mia) || ed.miDir === undefined) return ''
+  if (!ed.miDir) return `<p class="subtext cp-adjuntar-no">Cuando ${escapeHtml(nombre)} acepte, te pediremos tu dirección para que te lo mande.</p>`
+  return `<label class="cp-adjuntar"><input type="checkbox" data-cp-adjuntar${ed.adjuntar ? ' checked' : ''}><span>Adjuntar mi dirección <small>${escapeHtml(direccionCorta(ed.miDir))}. ${escapeHtml(nombre)} la verá solo si acepta.</small></span></label>`
 }
 
 function pintarEditor() {
@@ -523,6 +536,9 @@ async function enviar() {
   if (env.error) {
     console.warn('cambio_envio_poner', env.error.message || env.error)
     if (ed.envio === 'correo') showToast(sinMigracion(env.error) ? 'El envío no se ha podido apuntar todavía (falta la migración 1099): decidlo por mensaje.' : `El envío no se ha apuntado: ${env.error.message || ''}`, 'info')
+  } else if (ed.envio === 'correo' && ed.adjuntar && ed.miDir && ed.items.some((it) => !it.mia)) {
+    const errDir = await ponerEnTrato(data, ed.miDir)
+    if (errDir && !faltaLaMigracion(errDir)) console.warn('cambio_direccion_poner', errDir.message || errDir)
   }
   const otro = ed.otro
   const alEnviar = ed.alEnviar
@@ -537,7 +553,7 @@ function alPulsarEnEditor(e) {
   const d = $('cpDialogo')
   if (e.target === d) return d.close()
   if (!ed) return
-  const t = e.target.closest('[data-cp], [data-cp-elegir], [data-cp-quitar], [data-cp-menos], [data-cp-mas], [data-cp-paga], [data-cp-como], [data-cp-opcion], [data-cp-pedir], [data-cp-modo], [data-cp-pct], [data-cp-envio]')
+  const t = e.target.closest('[data-cp], [data-cp-elegir], [data-cp-quitar], [data-cp-menos], [data-cp-mas], [data-cp-paga], [data-cp-como], [data-cp-opcion], [data-cp-pedir], [data-cp-modo], [data-cp-pct], [data-cp-envio], [data-cp-adjuntar]')
   if (!t) return
   const ds = t.dataset
   if (ds.cp === 'cerrar') return d.close()
@@ -581,6 +597,7 @@ function alPulsarEnEditor(e) {
     return pintarEditor()
   }
   if (ds.cpEnvio) { ed.envio = ds.cpEnvio; return pintarEditor() }
+  if ('cpAdjuntar' in ds) { ed.adjuntar = t.checked; return }
   if (ds.cpOpcion) {
     if (!ed.marcadas) ed.marcadas = new Set()
     if (ed.marcadas.has(ds.cpOpcion)) ed.marcadas.delete(ds.cpOpcion)
@@ -640,7 +657,9 @@ export async function cargarOfertas(yo, { con = null, limite = 60 } = {}) {
     if (!porOferta.has(it.oferta)) porOferta.set(it.oferta, [])
     porOferta.get(it.oferta).push(it)
   }
-  return ofertas.map((o) => ({ ...o, items: porOferta.get(o.id) || [] }))
+  // Las direcciones de los que van por correo (1102); null si no se sabe.
+  const dirs = await direccionesDe(ofertas.filter((o) => o.envio === 'correo').map((o) => o.id))
+  return ofertas.map((o) => ({ ...o, items: porOferta.get(o.id) || [], direcciones: dirs ? dirs[o.id] || {} : null }))
 }
 
 // El dinero va DENTRO del lado de quien lo recibe (1098): con una franja
@@ -663,13 +682,45 @@ function ladoHtml(titulo, items, cartaDe, vacio, dinero = null) {
 
 const sumaDe = (items) => items.reduce((n, it) => n + (it.precio == null ? 0 : Number(it.precio) * (it.cantidad || 1)), 0)
 
-export function tarjetaHtml(o, { yo, otro, cartaDe }) {
+// LA DIRECCIÓN EN LA TARJETA (1102). Antes de aceptar, quien recibe cartas
+// la elige; ya aceptado, quien la manda la ve para copiarla y quien no la
+// puso la pone. Sin la migración (`o.direcciones` null), nada.
+function direccionEnTarjetaHtml(o, { yo, nombre, miDir }) {
+  if (!o.direcciones || !vaPorCorreo(o)) return ''
+  const id = escapeHtml(o.id)
+  const otroId = o.de === yo ? o.para : o.de
+  const recibo = necesitaDireccion(o, yo)
+  const mando = o.items.some((it) => it.quien === yo)
+  const mia = o.direcciones[yo]
+  const suya = o.direcciones[otroId]
+  const candado = `<p class="cp-t-privado">${icons.lock(13)}<span>Solo la ve ${escapeHtml(nombre)}, y solo para este ${o.items.some((it) => it.quien === otroId) && mando ? 'cambio' : 'trato'}.</span></p>`
+  if (o.estado === 'enviada') {
+    if (o.para === yo && recibo) return `<section class="cp-t-dir" data-cp-dir-aceptar><h4>¿A dónde te lo manda?</h4>${elegirHtml(mia || miDir)}${candado}</section>`
+    if (o.de === yo && mia) return `<p class="cp-t-envio-info">Tu dirección va con la propuesta (${escapeHtml(direccionCorta(mia))}). ${escapeHtml(nombre)} la verá si acepta.</p>`
+    return ''
+  }
+  if (o.estado !== 'aceptada') return ''
+  const partes = []
+  if (recibo && !mia && !(o.de === yo ? o.recibido_de_at : o.recibido_para_at)) {
+    partes.push(`<section class="cp-t-dir cp-t-dir-falta" data-cp-dir-poner><h4>Pon tu dirección para que ${escapeHtml(nombre)} te lo mande</h4>${elegirHtml(miDir)}${candado}
+      <button type="button" class="btn-primary" data-cp-accion="direccion" data-oferta="${id}">Poner mi dirección</button></section>`)
+  }
+  if (mando) {
+    partes.push(suya
+      ? `<section class="cp-t-dir cp-t-envia"><h4>Envía a ${escapeHtml(nombre)}${o.envio_tipo ? ` · ${escapeHtml((envioDe(o.envio_tipo)?.nombre || '').toLowerCase())}` : ''}</h4><div class="cp-t-envia-fila">${direccionHtml(suya)}<button type="button" class="btn-secondary cp-copiar" data-cp-copiar="${escapeHtml(lineasDeDireccion(suya).join('\n'))}">Copiar</button></div></section>`
+      : necesitaDireccion(o, otroId) ? `<p class="cp-t-envio-info">${escapeHtml(nombre)} todavía no ha puesto su dirección: en cuanto la ponga, te sale aquí.</p>` : '')
+  }
+  if (recibo && mia) partes.push(`<p class="cp-t-envio-info">Te lo manda a: ${escapeHtml(direccionCorta(mia))}.</p>`)
+  return partes.join('')
+}
+
+export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null }) {
   const nombre = nombreDePersona(otro)
   const das = o.items.filter((it) => it.quien === yo)
   const recibes = o.items.filter((it) => it.quien !== yo)
   const dinero = dineroDeOferta(o, yo)
   const est = estadoDe(o, yo, nombre)
-  const paso = pasoDe(o)
+  const { nombres: pasos, paso } = pasosDe(o)
   const boton = (accion, texto, primario = false) => `<button type="button" class="${primario ? 'btn-primary' : 'btn-secondary'}" data-cp-accion="${accion}" data-oferta="${escapeHtml(o.id)}">${texto}</button>`
   // Cada uno confirma lo que LE llega, con sus palabras (1098). Sin nada que
   // te llegue (regalas), la base te da por confirmado; sin la migración, el
@@ -706,9 +757,10 @@ export function tarjetaHtml(o, { yo, otro, cartaDe }) {
       : o.envio_tipo ? `<p class="cp-t-envio-info">Envío: ${escapeHtml(envioDe(o.envio_tipo)?.nombre || o.envio_tipo)}${envioP ? ` · ${escapeHtml(euros(envioP))}${pagaEnvio ? `, lo paga ${pagoYo ? 'quien compra (tú)' : escapeHtml(nombre)}` : ', cada uno el suyo'}` : ''}</p>`
         : o.envio === 'correo' ? `<p class="cp-t-envio-info">Por correo: normal (2 €) o certificado (7 €), lo elige ${o.para === yo ? 'quien la recibe' : escapeHtml(nombre)} al aceptar.</p>`
           : o.envio === 'mano' ? '<p class="cp-t-envio-info">En mano.</p>' : ''}
+    ${direccionEnTarjetaHtml(o, { yo, nombre, miDir })}
     ${o.estado === 'enviada' && est.frase ? `<p class="subtext cp-t-ayuda">${escapeHtml(est.frase)}</p>` : ''}
     ${o.nota ? `<p class="cp-t-nota">«${escapeHtml(o.nota)}»</p>` : ''}
-    ${o.estado === 'enviada' || o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de 4">${['Propuesta', 'Aceptada', 'Recibido', 'Hecho'].map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
+    ${o.estado === 'enviada' || o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de ${pasos.length}">${pasos.map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
     ${o.estado === 'aceptada' ? `<ul class="cp-quien" aria-label="Quién ha confirmado">${filaQuien(escapeHtml(nombre), recibeEl, yaEl)}${filaQuien('Tú', recibo, yaYo)}</ul>
     <p class="subtext cp-t-ayuda">${yaYo ? `Cuando ${escapeHtml(nombre)} lo confirme, las cartas se mueven solas.` : `Cuando te llegue${recibo.cartas && !recibo.dinero ? (recibo.cartas === 1 ? ' la carta' : 'n las cartas') : recibo.dinero && !recibo.cartas ? ' el dinero' : ' todo'}, pulsa «${escapeHtml(textoDeRecibido(recibo) || 'Ya lo he mandado')}». Al confirmarlo los dos, las cartas cambian de colección solas.`}</p>` : ''}
     ${acciones ? `<div class="cp-t-acciones">${acciones}</div>` : ''}
@@ -764,6 +816,22 @@ function engancharAcciones(caja, contexto, recargar) {
       for (const x of t.querySelectorAll('[data-cp-envio-elegir]')) x.setAttribute('aria-checked', String(x === chip))
       const ac = t.querySelector('[data-cp-accion="aceptar"][data-base]')
       if (ac) ac.textContent = `Aceptar · ${euros(Number(ac.dataset.base) + (envioDe(chip.dataset.cpEnvioElegir)?.precio || 0))}`
+      // En mano no hace falta la dirección.
+      t.querySelector('[data-cp-dir-aceptar]')?.toggleAttribute('hidden', chip.dataset.cpEnvioElegir === 'mano')
+      return
+    }
+    const cambiar = e.target.closest('[data-cp-dir-cambiar]')
+    if (cambiar && caja.contains(cambiar)) return abrirFormulario(cambiar)
+    const copiar = e.target.closest('[data-cp-copiar]')
+    if (copiar && caja.contains(copiar)) {
+      try {
+        await navigator.clipboard.writeText(copiar.dataset.cpCopiar)
+        showToast('Dirección copiada.', 'success')
+      } catch {
+        // Sin portapapeles: se selecciona para copiarla a mano.
+        const sel = getSelection()
+        sel.selectAllChildren(copiar.closest('.cp-t-envia-fila').querySelector('address'))
+      }
       return
     }
     const b = e.target.closest('[data-cp-accion]')
@@ -784,6 +852,25 @@ function engancharAcciones(caja, contexto, recargar) {
       if (accion === 'lo-tengo') {
         const otroYa = o.de === ctx.yo ? o.recibido_para_at : o.recibido_de_at
         if (otroYa && !(await confirmarCierre(o, { yo: ctx.yo, otro, cartaDe: ctx.cartaDe }))) return
+      }
+      // La dirección (1102): al aceptar por correo, o después si falta.
+      const cajaDir = accion === 'aceptar' ? b.closest('.cp-tarjeta')?.querySelector('[data-cp-dir-aceptar]:not([hidden])')
+        : accion === 'direccion' ? b.closest('.cp-tarjeta')?.querySelector('[data-cp-dir-poner]') : null
+      if (cajaDir) {
+        const elegida = leerElegida(cajaDir)
+        if (elegida.error) return
+        b.disabled = true
+        const errDir = await ponerEnTrato(o.id, elegida.dir)
+        if (errDir && !(accion === 'aceptar' && faltaLaMigracion(errDir))) {
+          b.disabled = false
+          showToast(faltaLaMigracion(errDir) ? 'La dirección todavía no se puede guardar (falta la migración 1102).' : `No se ha guardado la dirección: ${errDir.message || ''}`, 'error')
+          return
+        }
+        if (elegida.guardar) await guardarMiDireccion(ctx.yo, elegida.dir)
+        if (accion === 'direccion') {
+          showToast(`Dirección puesta: ${nombreDePersona(otro)} ya puede mandártelo.`, 'success')
+          return recargar()
+        }
       }
       b.disabled = true
       // Aceptar con el envío elegido (1099); las de antes, como siempre.
@@ -888,7 +975,7 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
   estado.perfiles = await perfilesDe(ofertas.map((o) => (o.de === yo ? o.para : o.de)))
   const vivas = ofertas.filter(estaViva)
   const pasadas = ofertas.filter((o) => !estaViva(o))
-  estado.cartaDe = await fichasDe(vivas.flatMap((o) => o.items))
+  ;[estado.cartaDe, estado.miDir] = await Promise.all([fichasDe(vivas.flatMap((o) => o.items)), vivas.some((o) => o.direcciones && vaPorCorreo(o)) ? miDireccion(yo) : null])
   const otroDe = (o) => estado.perfiles.get(o.de === yo ? o.para : o.de) || { id: o.de === yo ? o.para : o.de }
   caja.hidden = false
   // «EN CURSO» (1100): lo que espera algo de ti, primero; cada trato con lo
@@ -902,7 +989,7 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
       const est = estadoDe(o, yo, nombreDePersona(p))
       return `<details class="cp-linea${est.tono === 'toca' ? ' cp-toca' : ''}" id="oferta-${escapeHtml(o.id)}"${est.tono === 'toca' ? ' open' : ''}>
         <summary>${avatarHtml(p)}<span class="cp-linea-texto"><b>${escapeHtml(tituloDe(o, yo, nombreDePersona(p)))}</b><small>${escapeHtml(resumenDe(o, yo))}</small>${est.frase ? `<small class="cp-linea-frase">${escapeHtml(est.frase)}</small>` : ''}</span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span><span class="cp-linea-ver" aria-hidden="true">Ver</span></summary>
-        <div class="cp-con"><a class="cp-con-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}<span>${escapeHtml(nombreDePersona(p))}</span></a>${o.conversacion ? `<a class="link-btn" href="/mensajes.html?c=${escapeHtml(o.conversacion)}">Escribirle</a>` : ''}</div>${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe })}
+        <div class="cp-con"><a class="cp-con-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}<span>${escapeHtml(nombreDePersona(p))}</span></a>${o.conversacion ? `<a class="link-btn" href="/mensajes.html?c=${escapeHtml(o.conversacion)}">Escribirle</a>` : ''}</div>${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe, miDir: estado.miDir })}
       </details>`
     }).join('')}
     ${pasadas.length ? `<details class="cp-pasadas"><summary>Los anteriores · ${pasadas.length}</summary><ul>${pasadas.map((o) => {

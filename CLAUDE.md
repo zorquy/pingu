@@ -723,7 +723,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   meter la tarjeta entera en la conversación. Lo que pasa en un trato
   llega a la conversación como una tarjeta con «Ver propuesta» (1101,
   `propuestaDe`): un paso nuevo avisa por `cambio_avisar`, que le pone el
-  adjunto `propuesta`.
+  adjunto `propuesta`. La dirección de un trato por correo (1102) la pone
+  quien recibe cartas y va en `trade_offer_direcciones`, que solo se lee
+  por `cambio_direcciones` (la del otro, con el trato aceptado): nunca en
+  un mensaje, un perfil ni una consulta directa.
 - **Una carta pintada en cualquier pantalla lleva sus marcas** (tanda 943,
   PINGU: «debería estar en todos los lados de la web»): el ✓ de «la tienes»
   y el corazón de «La quiero». Dentro de /mi-coleccion, con

@@ -185,6 +185,9 @@ function fotosHtml(adjuntos, urls) {
     .join('')}</span>`
 }
 
+// El icono de la tarjeta de un cambio: el envío lleva su paquete (1102).
+const ICONO_DE_EVENTO = { cambio_direccion: icons.package }
+
 function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta }) {
   if (m.deleted_at) {
     return `<div class="msg-burbuja msg-eliminado${mia ? ' mia' : ''}" data-id="${m.id}">Mensaje eliminado</div>`
@@ -197,7 +200,7 @@ function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta }) {
   const prop = propuestaDe(m)
   const propuesta = prop
     ? `<div class="msg-propuesta" data-evento="${escapeHtml(prop.evento)}">
-        <span class="msg-propuesta-icono" aria-hidden="true">${icons.refreshCw(16)}</span>
+        <span class="msg-propuesta-icono" aria-hidden="true">${(ICONO_DE_EVENTO[prop.evento] || icons.refreshCw)(16)}</span>
         <span class="msg-propuesta-texto"><b>${escapeHtml(prop.titulo)}</b><small>${escapeHtml(prop.texto)}</small></span>
         <a class="btn-secondary msg-propuesta-ver" href="${escapeHtml(prop.enlace)}">Ver propuesta</a>
       </div>`
