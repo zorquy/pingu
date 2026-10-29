@@ -41785,6 +41785,26 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1109 — Lo que está en una propuesta en marcha sale del Mercado
+
+PINGU: «si una carta está en un cambio, si se ha propuesto algo… esa carta
+debería salir del mercado».
+
+- `cambio_libres_de(linea, cambio, cantidad)`: las copias que da esa línea
+  menos las que están en una propuesta `enviada` o `aceptada`
+  (`trade_offer_items.linea`). Sin permiso para nadie: la llaman funciones
+  `security definer`.
+- `mercado_con_tiendas` (1079), `intercambios_mercado` (1047),
+  `intercambios_de_carta` (rangos-intercambios), `intercambios_quien_tiene`
+  (1047) e `intercambios_de_persona` (887) son las de su última migración
+  con una sola diferencia: `c.cambio` pasa a ser `cambio_libres_de(...)` y
+  la línea entra solo si da algo. Si cambias una de ellas, parte de esta.
+- `cambios_reservadas` cuenta también las enviadas.
+- `cambio_reservadas_linea` (proponer y aceptar) NO cambia, a propósito: si
+  contara las enviadas, aceptar una propuesta chocaría con sus propias copias.
+- El doble lo simula dándoles a esas cinco una colección con lo libre en
+  `cambio` (`FUERA_DEL_MERCADO`).
+
 ## Tanda 1108 — El envío, automático con la tabla de Cardmarket
 
 PINGU: «lo normal es ordinario, con un valor máximo de 25; más de 25,

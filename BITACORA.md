@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (349) — PINGU-Claude (1109 — lo que está en una propuesta en marcha sale del Mercado)
+
+**Hecho**: PINGU: «si una carta está en un cambio, si se ha propuesto algo,
+una venta, un cambio, lo que sea, esa carta debería salir del mercado».
+Hasta ahora una copia solo contaba como reservada con el trato ACEPTADO, y
+solo en la ficha («Reservada»). Ahora, desde que se propone:
+- El **Mercado** (con y sin tiendas), **quién la da** en la ficha de una
+  carta, tus **cruces** y la pestaña **Cambios** del perfil cuentan solo las
+  copias libres: las de una propuesta enviada o aceptada no salen.
+- Al cerrarse el trato se mueven solas; si se rechaza, se anula o se cambia
+  por otra, vuelven al Mercado.
+
+**Para PINGU**: ejecutar `supabase-migration-1109-cambio-fuera-del-mercado.sql`
+(después de la 1079). Sin ella todo va como antes.
+
+**Ficheros**: `supabase-migration-1109-cambio-fuera-del-mercado.sql`
+(`cambio_libres_de` y las cinco funciones que listan lo que da la gente,
+copiadas de su última migración con ese cambio). Sin cambios en la web. Pruebas
+en `pruebas`: 1109-pantalla y sql-tanda-1109 nuevas; el doble resta lo que
+está en juego (`__SIN_1109__`).
+
+**Pendiente**: la 1110 (la etiqueta de envío para imprimir).
+
 ## 2026-10-29 (348) — PINGU-Claude (1108 — el envío, automático con la tabla de Cardmarket)
 
 **Hecho**: PINGU, con las tablas de gastos de envío de Cardmarket: «lo normal

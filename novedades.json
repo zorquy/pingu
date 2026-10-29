@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-29", "tipo": "mejora", "texto": "Las cartas que están en una propuesta de cambio o de venta ya no salen en el Mercado ni en los cruces de los demás mientras dure. Si la propuesta se rechaza o se anula, vuelven solas.", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-10-29", "tipo": "mejora", "texto": "El envío de un cambio o una venta por correo se calcula solo, con los precios de Cardmarket en España: hasta 25 €, carta ordinaria; si vale más, certificado. Te dice cuánto cuesta y por qué, y se suma a lo que paga quien compra.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-29", "tipo": "nuevo", "texto": "Si un trato se paga por Bizum o PayPal, quien cobra pone su número o su PayPal (al proponer o al aceptar) y quien paga lo ve en el trato con lo que tiene que pagar y un botón para copiarlo. Los puedes guardar en Ajustes → Envío y pagos.", "enlace": "/ajustes?ver=direccion" },
     { "fecha": "2026-10-29", "tipo": "mejora", "texto": "Al vender o comprar cartas en una propuesta, el precio total se puede escribir: lo que pongas se reparte entre las cartas (para hacer precio de lote o una oferta) y, si tiene céntimos, un toque lo redondea al euro.", "enlace": "/mi-coleccion?ver=cambios" },
