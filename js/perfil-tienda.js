@@ -295,6 +295,9 @@ export async function montarPerfilTienda(destino, perfil, sesion, { previa = fal
   // Y desde «En tiendas» de una carta (`?carta=`): solo esa, con la salida a todo.
   if (params.get('carta')) est.filtros.carta = params.get('carta')
   if (!previa) contarVisita(perfil, sesion, params.get('utm_source') === 'qr')
+  // Lo apartado que caducó vuelve al escaparate (1092): caduca cuando alguien
+  // mira, que es cuando importa. Sin la migración, no hace nada.
+  if (!previa) supabase.rpc('tienda_reservas_al_dia', { p_tienda: perfil.id }).then(() => {}, () => {})
   caja.classList.add('pt')
   caja.classList.toggle('pt-previa', previa)
   caja.innerHTML = cabeceraHtml()

@@ -120,7 +120,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `tienda_avisos_de`), y cada uno lo apaga con el tipo `tienda_la_tiene`. Las
   compras a un cliente (1091) pasan por `tienda_comprar`: cada línea entra al
   stock como línea NUEVA con lo que se pagó de coste (y queda en
-  `tienda_compras`); Cardmarket ahí es solo orientativo (PINGU), nunca el precio.
+  `tienda_compras`); Cardmarket ahí es solo orientativo (PINGU), nunca el precio. Apartar
+  (1092) SACA las unidades del stock mientras dure (`tienda_apartar`), así que
+  escaparate, Mercado y Vender no las ofrecen sin tocarlos; recoger es una venta
+  (`tienda_reserva_recoger`) y lo caducado vuelve con `tienda_reservas_al_dia`,
+  que llaman el panel y el escaparate al abrirse.
 - **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
   1065 y 1066): cada visita lleva `modo` (app instalada o web),
   `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que

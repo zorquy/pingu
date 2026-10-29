@@ -405,6 +405,12 @@ async function renderThread(session, conversationId) {
 
   // «Vender esta carta» (1080): la tienda vende desde la conversación.
   el.addEventListener('click', async (e) => {
+    // «Apartar» (1092): para quien escribe, con su cuenta.
+    const ap = e.target.closest('[data-apartar-carta]')
+    if (ap) {
+      const adjunto = ultimos.flatMap(cartasDe).find((a) => a.stock_id === ap.dataset.apartarCarta)
+      return (await cartaM()).apartarDesdeMensaje(ap.dataset.apartarCarta, adjunto, otherProfile).catch(() => showToast('No se ha podido abrir Apartar.', 'error'))
+    }
     const b = e.target.closest('[data-vender-carta]')
     if (!b) return
     const adjunto = ultimos.flatMap(cartasDe).find((a) => a.stock_id === b.dataset.venderCarta)

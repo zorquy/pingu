@@ -41785,6 +41785,44 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1092 — Apártamela
+
+De «Tiendas, la tercera vuelta» (punto 2), con lo recomendado: aparta solo la
+tienda. Migración `supabase-migration-1092-tienda-reservas.sql`:
+
+- `tienda_reservas` (línea, unidades, precio que quedó, `para` en texto y
+  `para_usuario` si es de PokeDoc, nota, `hasta`). Solo la ve su tienda; se
+  borra con su línea.
+- Apartar SACA las unidades de `tienda_stock` mientras dure. Es lo que hace
+  que el escaparate, «En tiendas», el Mercado, Vender y las cuentas del Panel
+  no las ofrezcan sin redefinir ninguna de esas funciones.
+- `tienda_apartar(stock, unidades, para, hasta, precio, nota, para_usuario)`:
+  bloquea la línea, no más de las que hay, `hasta` entre ahora y dos meses;
+  sin precio, el que cuenta (`tienda_precio_de`, con la oferta).
+- `tienda_reserva_quitar(id)`: vuelven a su línea.
+- `tienda_reserva_recoger(id, precio, dónde)`: una fila de `tienda_ventas`
+  con el coste de la línea (las unidades ya salieron al apartar); se deshace
+  como cualquier venta y vuelven al stock.
+- `tienda_reservas_al_dia(tienda)`: lo caducado vuelve. Sin pasada
+  programada: la llaman el Stock y el Panel de la tienda y su escaparate al
+  abrirse (también sin cuenta: solo toca lo caducado).
+- `tienda_reservas_lista()`: lo de la tienda con el nombre de la carta y el
+  usuario de quien la quiere.
+
+En la web, `js/tienda-apartar.js` (por `import()`, en la hoja de Vender:
+`dialog.tdv.tda`): `abrirApartar({ fila, para, paraUsuario })` (plazos
+`hastaDePlazo`, el rótulo `rotuloDeHasta`), `quitar`, `recoger` (en el sitio de
+`pd-tienda-donde`) y `apartadas`/`apartadasHtml` para el Panel. En el Stock,
+`completarApartadas` lee `tienda_reservas` de las líneas en pantalla y pinta
+la chapa (`.tds-apartada`); la ficha de una línea lleva «Apartar» y lo
+apartado con «Quitar». En el chat, «Apartar» junto a «Vender esta carta»
+(`apartarDesdeMensaje`, con `@usuario` de quien escribe). El Panel: la
+tarjeta `.tdh-apartadas` (con `[hidden]` explícito: `.tdh-tarjeta` lleva
+`display`).
+
+Pruebas: `test-tanda-1092.mjs` (contra PostgreSQL), `test-tanda-1092-pantalla.mjs`
+y la 1080 («Apartar» en el chat).
+
 ## Tanda 1091 — Comprar a un cliente
 
 De «Tiendas, la tercera vuelta» (punto 1). Migración

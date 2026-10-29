@@ -66,6 +66,7 @@ const est = {
   cartas: new Map(),
   productos: new Map(),
   sets: new Map(),
+  apartadas: new Map(),
   pedido: 0,
   masAbierto: false,
   vista: leerVista(),
@@ -117,9 +118,30 @@ async function pedir({ mas = false } = {}) {
   est.facetas = data.facetas || {}
   // Sin la migración 1079 no hay estrella (ni la cuenta de las ocho).
   est.destacadas = data.destacadas ?? null
-  await Promise.all([completarCartas(est.filas), completarProductos(est.filas), completarSets(Object.keys(est.facetas.sets || {}))])
+  await Promise.all([completarCartas(est.filas), completarProductos(est.filas), completarSets(Object.keys(est.facetas.sets || {})), completarApartadas(est.filas)])
   if (n !== est.pedido) return
   pintarTodo()
+}
+
+// Lo apartado de las líneas que hay en pantalla (1092), para su chapa. Sin
+// la migración no hay tabla y no se pinta nada (no es «nada apartado»).
+async function completarApartadas(filas) {
+  const ids = filas.map((f) => f.id)
+  if (!ids.length) return
+  const { data, error } = await supabase.from('tienda_reservas').select('id,stock_id,unidades,para,hasta').in('stock_id', ids.slice(0, 300))
+  if (error) return
+  for (const id of ids) est.apartadas.delete(id)
+  for (const r of data || []) {
+    if (!est.apartadas.has(r.stock_id)) est.apartadas.set(r.stock_id, [])
+    est.apartadas.get(r.stock_id).push(r)
+  }
+}
+
+function apartadaHtml(f) {
+  const rs = est.apartadas.get(f.id)
+  if (!rs?.length) return ''
+  const n = rs.reduce((s, r) => s + r.unidades, 0)
+  return `<span class="tds-apartada" title="${escapeHtml(rs.map((r) => `${r.unidades} para ${r.para}`).join(' · '))}">${icons.clock(12)}${n} ${n === 1 ? 'apartada' : 'apartadas'}</span>`
 }
 
 async function completarCartas(filas) {
@@ -236,7 +258,7 @@ function filaHtml(f) {
     <td class="tds-num tds-c-precio">${precioCeldaHtml(f)}</td>
     <td class="tds-num tds-c-cm${debajo ? ' tds-ambar' : ''}">${f.cm > 0 ? euros(f.cm) : '<span class="tds-falta">—</span>'}</td>
     <td class="tds-num tds-c-margen">${m ? `<span class="${m.euros < 0 ? 'tds-rojo' : 'tds-verde'}">${m.euros > 0 ? '+' : ''}${euros(m.euros)}</span> <small>${m.pct} %</small>` : '<span class="tds-falta">—</span>'}</td>
-    <td class="tds-c-marcas"><span class="tds-dias${dias > 90 ? ' tds-rojo' : ''}" title="Lleva ${dias} ${dias === 1 ? 'día' : 'días'} en tu stock">${dias > 90 ? icons.clock(14) : ''}${dias} d</span>${f.visible ? '' : '<span class="tds-chapa">Oculta</span>'}${f.ubicacion ? `<small class="tds-ubi">${escapeHtml(f.ubicacion)}</small>` : ''}</td>
+    <td class="tds-c-marcas"><span class="tds-dias${dias > 90 ? ' tds-rojo' : ''}" title="Lleva ${dias} ${dias === 1 ? 'día' : 'días'} en tu stock">${dias > 90 ? icons.clock(14) : ''}${dias} d</span>${f.visible ? '' : '<span class="tds-chapa">Oculta</span>'}${apartadaHtml(f)}${f.ubicacion ? `<small class="tds-ubi">${escapeHtml(f.ubicacion)}</small>` : ''}</td>
   </tr>`
 }
 
@@ -280,7 +302,7 @@ function baldosaHtml(f) {
     <div class="tds-baldosa-foto">${fotoHtml(f)}
       ${est.seleccionando ? `<input type="checkbox" class="tds-baldosa-check" aria-label="Marcar" data-marcar="${id}" ${marcada ? 'checked' : ''} />` : ''}
       ${estrellaHtml(f)}
-      <span class="tds-baldosa-chapas">${o ? `<span class="tds-baldosa-chapa tds-baldosa-oferta">${o.pct ? `−${o.pct} %` : 'Oferta'}</span>` : ''}${f.visible ? '' : '<span class="tds-baldosa-chapa">Oculta</span>'}</span>
+      <span class="tds-baldosa-chapas">${o ? `<span class="tds-baldosa-chapa tds-baldosa-oferta">${o.pct ? `−${o.pct} %` : 'Oferta'}</span>` : ''}${f.visible ? '' : '<span class="tds-baldosa-chapa">Oculta</span>'}${apartadaHtml(f)}</span>
     </div>
     <strong class="tds-baldosa-nombre">${escapeHtml(nombreFila(f))}</strong>
     <small class="tds-baldosa-detalle">${f.idioma && !f.product_id ? banderaHtml(f.idioma) : ''}${escapeHtml(detalle)}</small>
@@ -643,10 +665,11 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
     </div>
     <datalist id="tdsUbicaciones">${Object.keys(est.facetas.ubicacion || {}).map((u) => `<option value="${escapeHtml(u)}"></option>`).join('')}</datalist>
     <label>Notas (opcional)<input name="notas" maxlength="300" value="${escapeHtml(v.notas || '')}" /></label>
+    ${fila && est.apartadas.get(fila.id)?.length ? `<div class="tds-apartadas"><b>${icons.clock(16)} Apartadas</b>${est.apartadas.get(fila.id).map((r) => `<span>${r.unidades} para ${escapeHtml(r.para)} · hasta ${escapeHtml(new Date(r.hasta).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }))} <button type="button" class="link-btn" data-quitar-apartada="${escapeHtml(r.id)}">Quitar</button></span>`).join('')}<small>Están fuera de las unidades de arriba hasta que se recojan o caduquen.</small></div>` : ''}
     <p class="tds-error" role="alert"></p>
     <div class="tds-form-pie">
       ${fila ? `<button type="button" class="btn-secondary tds-borrar" data-borrar="${escapeHtml(fila.id)}">Borrar</button>` : '<button type="button" class="btn-secondary" data-volver>← Otra</button>'}
-      ${fila && fila.unidades > 0 ? '<button type="button" class="btn-secondary" data-vender-esta>Vender</button>' : ''}
+      ${fila && fila.unidades > 0 ? '<button type="button" class="btn-secondary" data-apartar-esta>Apartar</button><button type="button" class="btn-secondary" data-vender-esta>Vender</button>' : ''}
       ${fila ? '' : '<button type="submit" class="btn-secondary" data-seguir>Añadir y seguir</button>'}
       <button type="submit" class="btn-primary">${fila ? 'Guardar' : 'Añadir'}</button>
     </div>`
@@ -699,6 +722,25 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
     if (e.target.closest('[data-volver]')) {
       form.classList.add('hidden')
       lista?.classList.remove('hidden')
+    }
+    // Apartarla para alguien (1092): saca las unidades mientras dure.
+    if (e.target.closest('[data-apartar-esta]')) {
+      d.close()
+      const m = await import('./tienda-apartar.js')
+      return m.abrirApartar({ fila: { ...fila, nombre: titulo, set_id: carta?.set_id || fila.set_id, numero: carta?.local_id || fila.numero }, nombreSet: (id) => est.sets.get(id) || id, alTerminar: () => pedir() })
+    }
+    const quitarAp = e.target.closest('[data-quitar-apartada]')
+    if (quitarAp) {
+      quitarAp.disabled = true
+      const m = await import('./tienda-apartar.js')
+      try {
+        await m.quitar(quitarAp.dataset.quitarApartada)
+        d.close()
+        pedir()
+      } catch {
+        quitarAp.disabled = false
+      }
+      return
     }
     // Vender esta línea (1072): la hoja de Vender, con ella ya puesta.
     if (e.target.closest('[data-vender-esta]')) {
@@ -1170,4 +1212,6 @@ export function montarStock(destino, { perfil: p }) {
   pintarVistaBotones()
   pedir()
   cargarVistas()
+  // Lo apartado que caducó vuelve a su línea (1092): si vuelve algo, se repinta.
+  supabase.rpc('tienda_reservas_al_dia', {}).then(({ data }) => { if (data > 0) pedir() }, () => {})
 }

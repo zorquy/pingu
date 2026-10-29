@@ -234,6 +234,51 @@ async function pedir() {
   if (yo !== est.pedido) return
   pintar(r.data, u.data?.filas || [])
   pintarCifras()
+  pintarApartadas()
+}
+
+// Apartadas (1092): lo que la tienda guarda para alguien, lo que antes acaba
+// primero. Sin la migración, la tarjeta no sale. Las caducadas vuelven al
+// stock al pedirlas, y se dice.
+async function pintarApartadas() {
+  const m = await import('./tienda-apartar.js').catch(() => null)
+  const r = m ? await m.apartadas().catch(() => null) : null
+  const tarjeta = $('.tdh-apartadas')
+  if (!r || !tarjeta) return
+  await completarSets(r.filas.map((f) => f.set_id))
+  tarjeta.hidden = !r.filas.length
+  $('.tdh-apartadas-n').textContent = r.filas.length ? String(r.filas.length) : ''
+  $('.tda-lista').innerHTML = m.apartadasHtml(r.filas, nombreSet)
+  if (r.caducadas) showToast(`${r.caducadas === 1 ? 'Una apartada caducó y vuelve' : `${r.caducadas} apartadas caducaron y vuelven`} a tu stock.`, 'info')
+}
+
+async function recogerApartada(boton) {
+  boton.disabled = true
+  const m = await import('./tienda-apartar.js')
+  try {
+    await m.recoger(boton.dataset.recoger)
+    document.dispatchEvent(new CustomEvent('pokedoc:tienda-vendida'))
+  } catch {
+    boton.disabled = false
+  }
+}
+
+// Quitar pide un segundo toque: vuelven al stock.
+async function quitarApartada(boton) {
+  if (boton.dataset.seguro !== 'si') {
+    boton.dataset.seguro = 'si'
+    boton.textContent = '¿Seguro?'
+    setTimeout(() => { if (boton.isConnected) { boton.dataset.seguro = ''; boton.textContent = 'Quitar' } }, 4000)
+    return
+  }
+  boton.disabled = true
+  const m = await import('./tienda-apartar.js')
+  try {
+    await m.quitar(boton.dataset.quitarReserva)
+    document.dispatchEvent(new CustomEvent('pokedoc:tienda-vendida'))
+  } catch {
+    boton.disabled = false
+  }
 }
 
 function pintarCifras() {
@@ -261,6 +306,7 @@ export function montarHoy(destino) {
             <ul class="tdh-ultimas"></ul>
           </section>
           <div class="tdh-col">
+            <section class="tdh-tarjeta tdh-apartadas" hidden><h3>${icons.clock(18)} Apartadas <small class="tdh-apartadas-n"></small></h3><ul class="tda-lista"></ul></section>
             <section class="tdh-tarjeta"><h3>${icons.triangleAlert(18)} Necesita atención</h3><div class="tdh-avisos"></div></section>
             <section class="tdh-tarjeta"><h3>${icons.heart(18)} Lo que busca la gente y tienes</h3><ul class="tdh-demanda"></ul></section>
             <section class="tdh-tarjeta"><h3>${icons.eye(18)} Visitas a tu escaparate</h3><p class="tdh-visitas"></p></section>
@@ -272,6 +318,10 @@ export function montarHoy(destino) {
   caja.addEventListener('click', (e) => {
     const av = e.target.closest('[data-avisar]')
     if (av) return avisar(av)
+    const rc = e.target.closest('[data-recoger]')
+    if (rc) return recogerApartada(rc)
+    const qr = e.target.closest('[data-quitar-reserva]')
+    if (qr) return quitarApartada(qr)
     const top = e.target.closest('[data-top]')
     if (top) {
       est.top = top.dataset.top

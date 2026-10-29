@@ -60,7 +60,7 @@ export function cartaHtml(a, { miId = null, mia = false, pendiente = false } = {
       <strong>${escapeHtml(nombre)}</strong>
       <span>${escapeHtml(detalleDe(a))}</span>
       ${Number.isFinite(precio) && a.precio != null ? `<span class="msg-carta-precio">${escapeHtml(euros(precio))}${cuando}</span>` : ''}
-      ${!pendiente && miId && a.tienda === miId ? `<button type="button" class="btn-primary msg-carta-vender" data-vender-carta="${escapeHtml(a.stock_id)}">Vender esta carta</button>` : ''}
+      ${!pendiente && miId && a.tienda === miId ? `<span class="msg-carta-botones"><button type="button" class="btn-primary msg-carta-vender" data-vender-carta="${escapeHtml(a.stock_id)}">Vender esta carta</button><button type="button" class="btn-secondary msg-carta-vender" data-apartar-carta="${escapeHtml(a.stock_id)}">Apartar</button></span>` : ''}
     </span>
     ${pendiente ? '<button type="button" class="msg-carta-quitar" data-quitar-carta aria-label="No mandar la carta">×</button>' : ''}
   </div>`
@@ -78,13 +78,28 @@ export async function prepararCarta(tiendaId, stockId) {
   return a
 }
 
-// «Vender esta carta»: la línea de verdad, del stock de la tienda.
-export async function venderDesdeMensaje(stockId, adjunto) {
+// La línea de verdad, del stock de la tienda (nunca la del adjunto, que lo
+// escribe quien manda el mensaje).
+async function lineaDelStock(stockId, adjunto) {
   const { data, error } = await supabase.from('tienda_stock').select('*').eq('id', stockId).maybeSingle()
   if (error || !data) return showToast('Esa carta ya no está en tu stock.', 'error')
   if (!(data.unidades > 0)) return showToast('No te quedan unidades de esa carta.', 'error')
   const c = data.card_id ? cartas.get(data.card_id) : null
-  const fila = { ...data, nombre: (c && nombreDeCarta(c)) || adjunto?.nombre || '', set_id: c?.set_id || null, numero: c?.local_id || null }
+  return { ...data, nombre: (c && nombreDeCarta(c)) || adjunto?.nombre || '', set_id: c?.set_id || null, numero: c?.local_id || null }
+}
+
+// «Apartar» (1092): para quien pregunta, con su cuenta.
+export async function apartarDesdeMensaje(stockId, adjunto, otro) {
+  const fila = await lineaDelStock(stockId, adjunto)
+  if (!fila) return
+  const { abrirApartar } = await import('./tienda-apartar.js')
+  abrirApartar({ fila, para: otro?.username ? `@${otro.username}` : otro?.display_name || '', paraUsuario: otro?.id || null })
+}
+
+// «Vender esta carta».
+export async function venderDesdeMensaje(stockId, adjunto) {
+  const fila = await lineaDelStock(stockId, adjunto)
+  if (!fila) return
   const { abrirVender } = await import('./tienda-vender.js')
   abrirVender({ filas: [fila] })
 }

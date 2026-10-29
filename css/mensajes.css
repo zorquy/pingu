@@ -838,3 +838,6 @@
 .msg-nueva-cabecera {
   padding-top: var(--e-xs);
 }
+
+/* «Vender esta carta» y «Apartar» (1092), uno al lado del otro. */
+.msg-carta-botones { display: flex; flex-wrap: wrap; gap: var(--e-xs); }

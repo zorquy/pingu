@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (332) — PINGU-Claude (1092 — Apártamela)
+
+**Hecho**: la tienda aparta unidades para alguien hasta un día: desde la
+ficha de una línea del stock («Apartar», al lado de Vender) o desde un «Me
+interesa» del chat (ya va puesta la persona). Para quién, hasta cuándo (24 h,
+48 h, una semana u otro día), el precio que queda y una nota. Mientras dure,
+esas unidades salen del stock: no se ofrecen en el escaparate ni en Vender. El
+Panel tiene «Apartadas» (lo que antes acaba primero) con «Recogida» (apunta la
+venta, con Deshacer y Recibo) y «Quitar». Lo caducado vuelve solo cuando se
+abre el panel o el escaparate. La línea del stock lleva su chapa.
+
+**Para PINGU**: ejecutar `supabase-migration-1092-tienda-reservas.sql`. Sin
+ella, «Apartar» dice qué migración falta y el Panel no enseña la tarjeta.
+
+**Ficheros**: `supabase-migration-1092-tienda-reservas.sql`,
+`js/tienda-apartar.js` (nuevo), `js/tienda-stock.js`, `js/tienda-hoy.js`,
+`js/mensajes-carta.js`, `js/mensajes.js`, `js/perfil-tienda.js`,
+`css/tienda.css`, `css/mensajes.css`, `CLAUDE.md`. Pruebas en `pruebas`: 1092
+(PostgreSQL), 1092-pantalla y la 1080 al día («Apartar» en el chat).
+
+**Pendiente**: 1093 Etiquetas, 1094 Cierre del mes.
+
 ## 2026-10-29 (331) — PINGU-Claude (1091 — comprar a un cliente)
 
 **Hecho**: «Comprar» (desde Vender, «+ Añadir» del Stock y Ventas →
