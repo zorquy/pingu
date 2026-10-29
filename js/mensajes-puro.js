@@ -103,6 +103,7 @@ const EVENTOS_POR_TEXTO = [
   [/^He deshecho el cambio/, 'cambio_deshecho'],
   [/^Ya tienes mi dirección/, 'cambio_direccion'],
   [/^Te lo he mandado/, 'cambio_enviado'],
+  [/^Ya tienes mi (Bizum|PayPal)/, 'cambio_cobro'],
 ]
 export const TITULO_DE_EVENTO = {
   cambio_propuesta: 'Propuesta de cambio',
@@ -115,6 +116,7 @@ export const TITULO_DE_EVENTO = {
   cambio_deshecho: 'Cambio deshecho',
   cambio_direccion: 'Dirección lista',
   cambio_enviado: 'Enviado',
+  cambio_cobro: 'Datos de pago',
 }
 export function propuestaDe(mensaje) {
   const texto = String(mensaje?.body || '').trim()

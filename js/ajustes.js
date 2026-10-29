@@ -19,7 +19,7 @@ import { GRUPOS_CAMPANITA, GRUPOS_CORREO, gruposDe, estaActivo, conGrupo } from 
 const APARTADOS = [
   { id: 'avisos', nombre: 'Avisos', sub: 'Campanita, correo y push', icono: 'bell' },
   { id: 'cuenta', nombre: 'Cuenta', sub: 'Correo, contraseña, cumpleaños, Play! Pokémon', icono: 'user' },
-  { id: 'direccion', nombre: 'Dirección de envío', sub: 'Para los cambios por correo', icono: 'package' },
+  { id: 'direccion', nombre: 'Envío y pagos', sub: 'Tu dirección, tu Bizum y tu PayPal', icono: 'package' },
   { id: 'privacidad', nombre: 'Privacidad', sub: 'Tu actividad en Comunidad', icono: 'eye' },
   { id: 'apariencia', nombre: 'Apariencia', sub: 'Tema claro, oscuro o el del sistema', icono: 'palette' },
   { id: 'datos', nombre: 'Tus datos', sub: 'Exportar e importar la colección', icono: 'upload' },
@@ -217,9 +217,13 @@ function montarCuenta(panel) {
 // La de los cambios por correo: solo la ves tú, y la otra persona de un
 // trato por correo que hayáis aceptado (una copia en ese trato).
 const direccionHtml = () => `
-    <h2>Dirección de envío</h2>
+    <h2>Envío y pagos</h2>
+    <h3>Dirección de envío</h3>
     <p class="aj-nota">Para los cambios y las ventas por correo: sale ya puesta al aceptar un trato. No sale en tu perfil ni en los mensajes; solo la ve quien te manda cartas en un trato por correo aceptado, y solo para ese trato.</p>
-    <div id="ajDireccion"><p class="aj-nota">Cargando…</p></div>`
+    <div id="ajDireccion"><p class="aj-nota">Cargando…</p></div>
+    <h3>Para cobrar</h3>
+    <p class="aj-nota">Cuando te paguen un trato por Bizum o PayPal, sale ya puesto. Solo lo ve quien te paga, en ese trato.</p>
+    <div id="ajCobro"><p class="aj-nota">Cargando…</p></div>`
 
 async function montarDireccion(panel) {
   hojaInyectada('css/cambio-propuesta.css')
@@ -255,12 +259,46 @@ async function montarDireccion(panel) {
       if (!err) pintarla(null)
     })
   }
+  void montarCobro(panel)
   const fila = await miDireccion(session.user.id)
   if (fila === undefined) {
     caja.innerHTML = `<p class="aj-nota">Todavía no se puede guardar: falta ejecutar ${escapeHtml(MIGRACION_DIRECCION)}.</p>`
     return
   }
   pintarla(fila)
+}
+
+// Tu Bizum y tu PayPal (1107): los dos opcionales; vacío es quitarlo.
+async function montarCobro(panel) {
+  const { miCobro, guardarMiCobro, MIGRACION_COBRO } = await import('./cambio-direccion.js')
+  const { validarCobro, COMOS_CON_DATO, datoBonito } = await import('./cambio-propuesta-puro.js')
+  const caja = panel.querySelector('#ajCobro')
+  const fila = await miCobro(session.user.id)
+  if (fila === undefined) {
+    caja.innerHTML = `<p class="aj-nota">Todavía no se puede guardar: falta ejecutar ${escapeHtml(MIGRACION_COBRO)}.</p>`
+    return
+  }
+  caja.innerHTML = `<form class="aj-form aj-direccion" id="ajCobroForm" novalidate><div class="cp-campos">${Object.entries(COMOS_CON_DATO).map(([id, c]) => `<label class="cp-campo cp-campo-nombre"><span>${escapeHtml(c.campo)} <small>(opcional)</small></span><input type="${c.tipo}" data-cobro-ajuste="${id}" maxlength="120" autocomplete="${c.auto}" placeholder="${escapeHtml(c.ejemplo)}" value="${escapeHtml(id === 'bizum' ? datoBonito('bizum', fila?.bizum) : fila?.[id] || '')}"></label>`).join('')}</div>
+    <p class="cp-dir-error" id="ajCobroError" role="alert" hidden></p>
+    <div class="aj-dir-botones"><button type="submit" class="btn-primary">Guardar</button></div></form>`
+  caja.querySelector('#ajCobroForm').addEventListener('submit', async (e) => {
+    e.preventDefault()
+    const campos = {}
+    const errores = []
+    for (const i of caja.querySelectorAll('[data-cobro-ajuste]')) {
+      const como = i.dataset.cobroAjuste
+      if (!i.value.trim()) { campos[como] = null; continue }
+      const { dato, error } = validarCobro(como, i.value)
+      if (error) errores.push(error)
+      campos[como] = dato
+    }
+    const aviso = caja.querySelector('#ajCobroError')
+    aviso.textContent = errores.join(' ')
+    aviso.hidden = !errores.length
+    if (errores.length) return
+    const err = await guardarMiCobro(session.user.id, campos)
+    showToast(err ? 'No se ha podido guardar: ' + err.message : 'Guardado.', err ? 'error' : 'success')
+  })
 }
 
 // ── Privacidad ──

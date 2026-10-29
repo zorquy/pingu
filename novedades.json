@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-29", "tipo": "nuevo", "texto": "Si un trato se paga por Bizum o PayPal, quien cobra pone su número o su PayPal (al proponer o al aceptar) y quien paga lo ve en el trato con lo que tiene que pagar y un botón para copiarlo. Los puedes guardar en Ajustes → Envío y pagos.", "enlace": "/ajustes?ver=direccion" },
     { "fecha": "2026-10-29", "tipo": "mejora", "texto": "Al vender o comprar cartas en una propuesta, el precio total se puede escribir: lo que pongas se reparte entre las cartas (para hacer precio de lote o una oferta) y, si tiene céntimos, un toque lo redondea al euro.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-29", "tipo": "mejora", "texto": "Tus cambios hechos salen en tu perfil en un sello verde («12 cambios · todos bien») que lleva a la pestaña Cambios, con tus últimos cambios. Y al cerrar un trato, en «En curso» te preguntamos qué tal fue.", "enlace": "/perfil?ver=cambios" },
     { "fecha": "2026-10-29", "tipo": "arreglo", "texto": "Las fotos de perfil vuelven a ser redondas (en tu perfil, arriba a la derecha y en el foro): las que ya eran redondas quedaban con las esquinas a la vista.", "enlace": "/perfil" },

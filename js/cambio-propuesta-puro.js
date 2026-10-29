@@ -215,6 +215,37 @@ export const necesitaDireccion = (o, quien) => vaPorCorreo(o) && (o?.items || []
 // migración). Lo que no se sabe no falta.
 export const faltaDireccion = (o, quien) => Boolean(o?.direcciones) && necesitaDireccion(o, quien) && !o.direcciones[quien]
 
+// EL COBRO (1107, PINGU: «si elijo Bizum, que yo también tenga el número
+// metido, y si es PayPal, el email o el arroba de PayPal»). Lo pone quien
+// cobra el dinero del trato; las mismas reglas que `cambio_cobro_poner`.
+export const COMOS_CON_DATO = {
+  bizum: { nombre: 'Bizum', campo: 'Número de Bizum', ejemplo: '600 11 22 33', tipo: 'tel', auto: 'tel' },
+  paypal: { nombre: 'PayPal', campo: 'Email o usuario de PayPal', ejemplo: 'tu@email.com o @usuario', tipo: 'text', auto: 'email' },
+}
+export function validarCobro(como, texto) {
+  const crudo = String(texto ?? '').trim()
+  if (como === 'bizum') {
+    const dato = crudo.replace(/[^0-9+]/g, '')
+    return /^\+?[0-9]{9,15}$/.test(dato) ? { dato, error: null } : { dato, error: 'Ese no parece un número de teléfono para Bizum.' }
+  }
+  if (como === 'paypal') {
+    const ok = crudo.length >= 3 && crudo.length <= 120 && /^(@?[A-Za-z0-9._-]+|[^@ ]+@[^@ ]+\.[^@ ]+|(https?:\/\/)?(www\.)?paypal\.me\/[A-Za-z0-9._-]+)$/.test(crudo)
+    return { dato: crudo, error: ok ? null : 'Pon el email o el usuario de PayPal.' }
+  }
+  return { dato: crudo, error: 'Ese pago no lleva datos.' }
+}
+// «600 11 22 33» para leerlo; el PayPal, tal cual.
+export function datoBonito(como, dato) {
+  if (como !== 'bizum' || !dato) return dato || ''
+  const m = /^(\+34)?(\d{3})(\d{2})(\d{2})(\d{2})$/.exec(dato)
+  return m ? `${m[1] ? '+34 ' : ''}${m[2]} ${m[3]} ${m[4]} ${m[5]}` : dato
+}
+// Quién cobra: el lado que no paga el dinero apuntado.
+export const quienCobra = (o) => (Number(o?.dinero) > 0 ? (o.dinero_paga === 'de' ? o.para : o.dinero_paga === 'para' ? o.de : null) : null)
+export const necesitaCobro = (o, quien) => Boolean(COMOS_CON_DATO[o?.dinero_como]) && quienCobra(o) === quien
+// `o.cobros`: { [quien]: { como, dato } } o null si no se sabe (sin la migración).
+export const faltaCobro = (o, quien) => Boolean(o?.cobros) && necesitaCobro(o, quien) && !o.cobros[quien]
+
 // LO ENVIADO (1103, PINGU: «si es un envío certificado, deberíamos poder poner
 // el número de seguimiento»). Solo si la fila trae las columnas (sin la
 // migración no se sabe y no se pide).
@@ -242,6 +273,9 @@ export function estadoDe(oferta, yo, nombreOtro = 'la otra persona') {
     case 'aceptada':
       // Por correo, sin tu dirección no te lo pueden mandar (1102).
       if (!yaLoTengo && faltaDireccion(oferta, yo)) return { texto: 'Te toca', tono: 'toca', acciones: ['anular'], frase: `Te toca: pon tu dirección para que ${nombreOtro} te lo envíe.` }
+      // Por Bizum o PayPal, sin tu dato no te pueden pagar (1107).
+      if (faltaCobro(oferta, yo)) return { texto: 'Te toca', tono: 'toca', acciones: yaLoTengo ? ['anular'] : ['lo-tengo', 'anular'], frase: `Te toca: pon tu ${COMOS_CON_DATO[oferta.dinero_como].nombre} para que ${nombreOtro} te pague.` }
+      if (!loTieneEl && faltaCobro(oferta, otro)) return { texto: `Falta su ${COMOS_CON_DATO[oferta.dinero_como].nombre}`, tono: 'espera', acciones: yaLoTengo ? ['anular'] : ['lo-tengo', 'anular'], frase: `Esperando a que ${nombreOtro} ponga su ${COMOS_CON_DATO[oferta.dinero_como].nombre} para pagarle.` }
       if (!loTieneEl && faltaDireccion(oferta, otro)) return { texto: 'Falta su dirección', tono: 'espera', acciones: yaLoTengo ? ['anular'] : ['lo-tengo', 'anular'], frase: `Esperando a que ${nombreOtro} ponga su dirección para mandárselo.` }
       // Con su dirección, te toca mandarlo y decirlo (1103).
       if (faltaMandar(oferta, yo)) return { texto: 'Te toca', tono: 'toca', acciones: yaLoTengo ? ['anular'] : ['lo-tengo', 'anular'], frase: `Te toca: mándaselo a ${nombreOtro} y pulsa «Ya lo he enviado».` }

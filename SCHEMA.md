@@ -41785,6 +41785,35 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1107 — El Bizum o el PayPal de quien cobra, en el trato
+
+PINGU: «si elijo Bizum, que yo también tenga el número metido, y si es PayPal,
+el email o el arroba de PayPal».
+
+- Migración `supabase-migration-1107-cambio-cobro.sql`, con la forma de la
+  1102: `user_cobros` (tuyo, RLS; `bizum` y `paypal`), `trade_offer_cobros`
+  (oferta, quien, como, dato; sin políticas), `cambio_quien_cobra(oferta)`
+  (el lado que no paga `dinero_paga`), `cambio_cobro_poner(oferta, dato)`
+  (solo quien cobra, `dinero_como` bizum o paypal, enviada o aceptada; el
+  Bizum se guarda en cifras y el PayPal como email, @usuario o paypal.me;
+  ya aceptado avisa con `cambio_cobro`) y `cambio_cobros(ofertas)` (el tuyo
+  siempre, el del otro aceptado o hecho y no de hace más de 30 días).
+  `cambio_direcciones_purgar` (1103) borra también los cobros.
+- Lo puro: `COMOS_CON_DATO` (los dos que llevan dato, con su rótulo),
+  `validarCobro`, `datoBonito`, `quienCobra`, `necesitaCobro`, `faltaCobro`
+  (`o.cobros` null = sin la migración) y `estadoDe` («pon tu Bizum» / «Falta
+  su Bizum», detrás de la dirección propia).
+- `js/cambio-direccion.js` lleva también el cobro (`miCobro`,
+  `guardarMiCobro` —solo las columnas que se le pasan—, `ponerCobroEnTrato`,
+  `cobrosDe`, `cobroElegirHtml`, `leerCobro`).
+- La tarjeta (`cobroEnTarjetaHtml`): `[data-cp-cobro-aceptar]` al aceptar,
+  `[data-cp-cobro-poner]` + `data-cp-accion="cobro"` después, y `.cp-t-paga`
+  «Págale N € por …» (el dinero más el envío si lo paga quien mira) con
+  Copiar. El editor adjunta el guardado (`ed.adjuntarCobro`).
+- Ajustes: el apartado `direccion` es «Envío y pagos» y lleva `#ajCobroForm`.
+- Arreglo: `ed.pagaElegido` hace que «X te paga» enseñe el campo aunque la
+  cantidad sea 0 (antes `paga` salía solo de la cantidad).
+
 ## Tanda 1106 — El total de una venta o compra se escribe
 
 PINGU: «que sea editable… si estoy vendiendo un lote, abaratarlo un poco, o

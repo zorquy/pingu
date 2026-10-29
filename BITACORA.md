@@ -4,6 +4,41 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (347) — PINGU-Claude (1107 — el Bizum o el PayPal de quien cobra, en el trato)
+
+**Hecho**: PINGU: «si elijo Bizum, que me pague por Bizum… que yo también
+tenga el número metido, y si es PayPal, el email o el arroba de PayPal».
+Como la dirección (1102), pero con el dinero:
+- Pone su dato quien **cobra** un trato que se paga por Bizum o PayPal.
+- **Al proponer**: «Adjuntar mi Bizum (600 11 22 33)» si lo tienes guardado;
+  si no, «cuando acepte, te pediremos tu Bizum».
+- **Al aceptar**, si cobras tú: «¿A qué número te hace el Bizum?» / «¿A qué
+  PayPal te paga?», con «Guardarlo para los próximos». Sin él no se acepta.
+- **En curso**: quien paga ve «Págale 38,00 € por Bizum» (con el envío si lo
+  paga él) con el número y Copiar; quien cobra, «te paga por Bizum: …»; si
+  falta, «Te toca: pon tu Bizum» y al ponerlo llega «Datos de pago» a Mensajes.
+- **Ajustes**: el apartado es «Envío y pagos»: la dirección y, debajo, «Para
+  cobrar» con el Bizum y el PayPal.
+- Se borran con la dirección, a los 30 días de cerrarse el trato.
+- Arreglo: en un cambio, «Lucía te paga» con la diferencia a su favor no
+  enseñaba el campo de la cantidad y parecía no hacer nada.
+
+**Para PINGU**: ejecutar `supabase-migration-1107-cambio-cobro.sql` (después
+de la 1103). Sin ella todo va como antes.
+
+**Ficheros**: `supabase-migration-1107-cambio-cobro.sql`,
+`js/cambio-propuesta-puro.js` (`COMOS_CON_DATO`, `validarCobro`, `datoBonito`,
+`quienCobra`, `necesitaCobro`, `faltaCobro`, `estadoDe`),
+`js/cambio-direccion.js` (`miCobro`, `guardarMiCobro`, `ponerCobroEnTrato`,
+`cobrosDe`, `cobroElegirHtml`, `leerCobro`), `js/cambio-propuesta.js`,
+`js/ajustes.js`, `js/mensajes-puro.js`, `js/mensajes.js`, `css/mensajes.css`.
+Pruebas en `pruebas`: 1107-pantalla y sql-tanda-1107 nuevas; el doble sabe
+de cobros (`__SIN_1107__`).
+
+**Pendiente**: la 1108 (el envío automático con la tabla de Cardmarket:
+ordinario hasta 25 €, certificado por encima) y la 1109 (las cartas de una
+propuesta en marcha, fuera del Mercado).
+
 ## 2026-10-29 (346) — PINGU-Claude (1106 — el total de una venta o compra se escribe)
 
 **Hecho**: PINGU: «el precio que sea editable… para hacer una oferta manual o

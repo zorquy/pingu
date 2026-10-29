@@ -186,8 +186,8 @@ function fotosHtml(adjuntos, urls) {
 }
 
 // El icono de la tarjeta de un cambio: la dirección lleva su paquete (1102)
-// y lo enviado, el avión de papel (1103).
-const ICONO_DE_EVENTO = { cambio_direccion: icons.package, cambio_enviado: icons.send }
+// y lo enviado, el avión de papel (1103); los datos de pago, las monedas (1107).
+const ICONO_DE_EVENTO = { cambio_direccion: icons.package, cambio_enviado: icons.send, cambio_cobro: icons.coins }
 
 function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta }) {
   if (m.deleted_at) {

@@ -27,11 +27,12 @@ import {
   FICHERO_MIGRACION, COMOS, nombreDeComo, euros, balanceDe, dineroQueCuadra, dineroDeOferta, textoDeDinero, pagaParaRpc,
   estadoDe, estaViva, loQueSeMueve, itemsParaRpc, queRecibe, textoDeRecibido, loQueEs,
   ENVIOS, envioDe, tipoDe, tituloDe, pagaElEnvio, repartirTotal, totalRedondo, pasosDe, necesitaDireccion, faltaDireccion, vaPorCorreo, direccionCorta, lineasDeDireccion,
-  sabeEnvios, enviadoDe, seguimientoDe,
+  sabeEnvios, enviadoDe, seguimientoDe, COMOS_CON_DATO, quienCobra, datoBonito,
 } from './cambio-propuesta-puro.js'
 import { confirmacionesPorId, miValoracion, valorarHtml, engancharValorar } from './cambios-hechos.js'
 import {
   miDireccion, guardarMiDireccion, ponerEnTrato, direccionesDe, direccionHtml, elegirHtml, leerElegida, abrirFormulario, faltaLaMigracion,
+  miCobro, guardarMiCobro, ponerCobroEnTrato, cobrosDe, cobroElegirHtml, leerCobro,
 } from './cambio-direccion.js'
 
 export { FICHERO_MIGRACION, estaViva }
@@ -149,13 +150,14 @@ export async function abrirPropuesta({ sesion, otro, prefill = {}, anterior = nu
   hojaInyectada('css/cambio-propuesta.css')
   const d = dialogo()
   const yo = sesion.user.id
-  ed = { yo, otro, anterior, alEnviar, items: [], dinero: { cantidad: 0, pagaYo: false, como: null }, nota: '', vista: 'principal', cargando: true, error: null, modo: 'cambio', envio: anterior?.envio || 'correo', pct: null, modoPedido: prefill.modo || null, adjuntar: true }
+  ed = { yo, otro, anterior, alEnviar, items: [], dinero: { cantidad: 0, pagaYo: false, como: null }, nota: '', vista: 'principal', cargando: true, error: null, modo: 'cambio', envio: anterior?.envio || 'correo', pct: null, modoPedido: prefill.modo || null, adjuntar: true, adjuntarCobro: true }
   pintarCabecera()
   $('cpCuerpo').innerHTML = '<div class="skeleton cp-esqueleto"></div>'
   if (!d.open) d.showModal()
   try {
-    const [mias, suyas, misDoy, miDir] = await Promise.all([misLineas(yo), loQueDa(otro.id), loQueDa(yo), miDireccion(yo)])
+    const [mias, suyas, misDoy, miDir, misCobros] = await Promise.all([misLineas(yo), loQueDa(otro.id), loQueDa(yo), miDireccion(yo), miCobro(yo)])
     ed.miDir = miDir
+    ed.misCobros = misCobros
     if (!ed || ed.otro !== otro) return
     const libresMias = new Map(misDoy.map((l) => [l.id, l.libres]))
     ed.mias = mias.map((l) => ({ ...l, libres: libresMias.has(l.id) ? libresMias.get(l.id) : l.cantidad }))
@@ -324,6 +326,16 @@ function adjuntarHtml(nombre) {
   return `<label class="cp-adjuntar"><input type="checkbox" data-cp-adjuntar${ed.adjuntar ? ' checked' : ''}><span>Adjuntar mi dirección <small>${escapeHtml(direccionCorta(ed.miDir))}. ${escapeHtml(nombre)} la verá solo si acepta.</small></span></label>`
 }
 
+// Tu Bizum o PayPal con la propuesta (1107): si cobras tú por ahí, el
+// guardado va adjunto (lo ve solo si acepta); sin guardado, se pide después.
+function adjuntarCobroHtml(nombre) {
+  const c = COMOS_CON_DATO[ed.dinero.como]
+  if (!c || !(ed.dinero.cantidad > 0) || ed.dinero.pagaYo || ed.misCobros === undefined) return ''
+  const dato = ed.misCobros?.[ed.dinero.como]
+  if (!dato) return `<p class="subtext cp-adjuntar-no">Cuando ${escapeHtml(nombre)} acepte, te pediremos tu ${escapeHtml(c.nombre)} para que te pague.</p>`
+  return `<label class="cp-adjuntar"><input type="checkbox" data-cp-adjuntar-cobro${ed.adjuntarCobro ? ' checked' : ''}><span>Adjuntar mi ${escapeHtml(c.nombre)} <small>${escapeHtml(datoBonito(ed.dinero.como, dato))}. ${escapeHtml(nombre)} lo verá solo si acepta.</small></span></label>`
+}
+
 function pintarEditor() {
   if (!ed) return
   if (ed.error) {
@@ -356,6 +368,7 @@ function pintarEditor() {
         ${lado.length > 1 ? '<p class="subtext cp-total-ayuda">Cambia el total y se reparte entre las cartas; o toca el precio de una.</p>' : ''}
         ${sinPrecio ? `<p class="subtext">${sinPrecio === 1 ? 'Una carta no tiene precio' : `${sinPrecio} cartas no tienen precio`}: ponle el tuyo.</p>` : ''}
         <div class="cp-chips" role="group" aria-label="Cómo ${vendo ? 'te paga' : 'le pagas'}">${COMOS.map((c) => `<button type="button" class="cp-chip" data-cp-como="${c.id}" aria-pressed="${ed.dinero.como === c.id}">${c.nombre}</button>`).join('')}</div>
+        ${adjuntarCobroHtml(nombre)}
         <p class="subtext cp-aviso-dinero">Cardmarket es orientativo: el precio es el que pongáis. El pago lo hacéis vosotros, fuera de PokeDoc.</p>
       </section>
       ${envioHtml(nombre)}
@@ -364,7 +377,9 @@ function pintarEditor() {
     return
   }
   const sugerido = dineroQueCuadra(ed.items)
-  const paga = ed.dinero.cantidad > 0 ? (ed.dinero.pagaYo ? 'yo' : 'otro') : 'nadie'
+  // Lo pulsado manda aunque la cantidad sea 0 todavía: «Lucía te paga» con la
+  // diferencia a su favor no enseñaba el campo y parecía no hacer nada (1107).
+  const paga = ed.dinero.cantidad > 0 ? (ed.dinero.pagaYo ? 'yo' : 'otro') : (ed.pagaElegido || 'nadie')
   const total = Math.max(b.das, b.recibes) || 1
   $('cpCuerpo').innerHTML = `${pestanias}
     <div class="cp-lados">
@@ -381,7 +396,7 @@ function pintarEditor() {
       ${paga === 'nadie' ? '' : `<div class="cp-dinero-fila">
         <label class="cp-cantidad"><span class="sr-only">Cuánto</span><input type="number" id="cpDinero" min="0" max="100000" step="0.01" inputmode="decimal" value="${ed.dinero.cantidad || ''}" /> €</label>
         <div class="cp-chips" role="group" aria-label="Cómo">${COMOS.map((c) => `<button type="button" class="cp-chip" data-cp-como="${c.id}" aria-pressed="${ed.dinero.como === c.id}">${c.nombre}</button>`).join('')}</div>
-      </div>`}
+      </div>${adjuntarCobroHtml(nombre)}`}
       ${sugerido.cantidad > 0 && !(ed.dinero.cantidad === sugerido.cantidad && ed.dinero.pagaYo === sugerido.pagaYo)
         ? `<button type="button" class="link-btn cp-sugerir" data-cp="sugerir">${escapeHtml(sugerido.pagaYo ? `Proponer que le pagues la diferencia: ${euros(sugerido.cantidad)}` : `Proponer que te pague la diferencia: ${euros(sugerido.cantidad)}`)}</button>`
         : ''}
@@ -543,6 +558,12 @@ async function enviar() {
     const errDir = await ponerEnTrato(data, ed.miDir)
     if (errDir && !faltaLaMigracion(errDir)) console.warn('cambio_direccion_poner', errDir.message || errDir)
   }
+  // Tu Bizum o PayPal, si cobras tú (1107).
+  const como = ed.dinero.como
+  if (COMOS_CON_DATO[como] && ed.dinero.cantidad > 0 && !ed.dinero.pagaYo && ed.adjuntarCobro && ed.misCobros?.[como]) {
+    const errCobro = await ponerCobroEnTrato(data, ed.misCobros[como])
+    if (errCobro && !faltaLaMigracion(errCobro)) console.warn('cambio_cobro_poner', errCobro.message || errCobro)
+  }
   const otro = ed.otro
   const alEnviar = ed.alEnviar
   $('cpDialogo').close()
@@ -556,7 +577,7 @@ function alPulsarEnEditor(e) {
   const d = $('cpDialogo')
   if (e.target === d) return d.close()
   if (!ed) return
-  const t = e.target.closest('[data-cp], [data-cp-elegir], [data-cp-quitar], [data-cp-menos], [data-cp-mas], [data-cp-paga], [data-cp-como], [data-cp-opcion], [data-cp-pedir], [data-cp-modo], [data-cp-pct], [data-cp-envio], [data-cp-adjuntar], [data-cp-redondear]')
+  const t = e.target.closest('[data-cp], [data-cp-elegir], [data-cp-quitar], [data-cp-menos], [data-cp-mas], [data-cp-paga], [data-cp-como], [data-cp-opcion], [data-cp-pedir], [data-cp-modo], [data-cp-pct], [data-cp-envio], [data-cp-adjuntar], [data-cp-adjuntar-cobro], [data-cp-redondear]')
   if (!t) return
   const ds = t.dataset
   if (ds.cp === 'cerrar') return d.close()
@@ -577,6 +598,7 @@ function alPulsarEnEditor(e) {
     return pintarEditor()
   }
   if (ds.cpPaga) {
+    ed.pagaElegido = ds.cpPaga
     if (ds.cpPaga === 'nadie') ed.dinero = { cantidad: 0, pagaYo: false, como: null }
     else {
       const s = dineroQueCuadra(ed.items)
@@ -602,6 +624,7 @@ function alPulsarEnEditor(e) {
   if (ds.cpEnvio) { ed.envio = ds.cpEnvio; return pintarEditor() }
   if ('cpRedondear' in ds) return ponerTotal(totalRedondo(ed.dinero.cantidad))
   if ('cpAdjuntar' in ds) { ed.adjuntar = t.checked; return }
+  if ('cpAdjuntarCobro' in ds) { ed.adjuntarCobro = t.checked; return }
   if (ds.cpOpcion) {
     if (!ed.marcadas) ed.marcadas = new Set()
     if (ed.marcadas.has(ds.cpOpcion)) ed.marcadas.delete(ds.cpOpcion)
@@ -675,8 +698,12 @@ export async function cargarOfertas(yo, { con = null, limite = 60 } = {}) {
     porOferta.get(it.oferta).push(it)
   }
   // Las direcciones de los que van por correo (1102); null si no se sabe.
-  const dirs = await direccionesDe(ofertas.filter((o) => o.envio === 'correo').map((o) => o.id))
-  return ofertas.map((o) => ({ ...o, items: porOferta.get(o.id) || [], direcciones: dirs ? dirs[o.id] || {} : null }))
+  // Y el Bizum o PayPal de los que se pagan así (1107); null si no se sabe.
+  const [dirs, cobros] = await Promise.all([
+    direccionesDe(ofertas.filter((o) => o.envio === 'correo').map((o) => o.id)),
+    cobrosDe(ofertas.filter((o) => Number(o.dinero) > 0 && COMOS_CON_DATO[o.dinero_como]).map((o) => o.id)),
+  ])
+  return ofertas.map((o) => ({ ...o, items: porOferta.get(o.id) || [], direcciones: dirs ? dirs[o.id] || {} : null, cobros: cobros ? cobros[o.id] || {} : null }))
 }
 
 // El dinero va DENTRO del lado de quien lo recibe (1098): con una franja
@@ -750,7 +777,36 @@ function enviadoHtml(o, { yo }) {
     <button type="button" class="btn-primary" data-cp-accion="enviado" data-oferta="${escapeHtml(o.id)}">Ya lo he enviado</button></div>`
 }
 
-export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null }) {
+// EL COBRO EN LA TARJETA (1107): antes de aceptar, quien cobra pone su Bizum
+// o PayPal; ya aceptado, quien paga lo ve para copiarlo, con lo que paga.
+function cobroEnTarjetaHtml(o, { yo, nombre, misCobros }) {
+  const c = COMOS_CON_DATO[o.dinero_como]
+  if (!o.cobros || !c || !(Number(o.dinero) > 0)) return ''
+  const id = escapeHtml(o.id)
+  const otroId = o.de === yo ? o.para : o.de
+  const cobra = quienCobra(o)
+  const mio = o.cobros[yo]
+  const suyo = o.cobros[otroId]
+  if (o.estado === 'enviada') {
+    if (o.para === yo && cobra === yo) return `<section class="cp-t-dir" data-cp-cobro-aceptar><h4>¿A qué ${o.dinero_como === 'bizum' ? 'número te hace el Bizum' : 'PayPal te paga'}?</h4>${cobroElegirHtml(o.dinero_como, mio?.dato || misCobros?.[o.dinero_como])}</section>`
+    if (o.de === yo && cobra === yo && mio) return `<p class="cp-t-envio-info">Tu ${escapeHtml(c.nombre)} va con la propuesta (${escapeHtml(datoBonito(mio.como, mio.dato))}). ${escapeHtml(nombre)} lo verá si acepta.</p>`
+    return ''
+  }
+  if (o.estado !== 'aceptada') return ''
+  if (cobra === yo) {
+    return mio
+      ? `<p class="cp-t-envio-info">${escapeHtml(nombre)} te paga por ${escapeHtml(c.nombre)}: ${escapeHtml(datoBonito(mio.como, mio.dato))}.</p>`
+      : `<section class="cp-t-dir cp-t-dir-falta" data-cp-cobro-poner><h4>Pon tu ${escapeHtml(c.nombre)} para que ${escapeHtml(nombre)} te pague</h4>${cobroElegirHtml(o.dinero_como, misCobros?.[o.dinero_como])}
+        <button type="button" class="btn-primary" data-cp-accion="cobro" data-oferta="${id}">Poner mi ${escapeHtml(c.nombre)}</button></section>`
+  }
+  if (cobra !== otroId) return ''
+  if (!suyo) return `<p class="cp-t-envio-info">${escapeHtml(nombre)} todavía no ha puesto su ${escapeHtml(c.nombre)}: en cuanto lo ponga, te sale aquí.</p>`
+  // Lo que pagas: el dinero y, en una venta, el envío.
+  const total = Number(o.dinero) + (pagaElEnvio(o) === yo ? Number(o.envio_precio) || 0 : 0)
+  return `<section class="cp-t-dir cp-t-envia cp-t-paga"><h4>Págale ${escapeHtml(euros(total))} por ${escapeHtml(c.nombre)}</h4><div class="cp-t-envia-fila"><span class="cp-dir-texto"><b>${escapeHtml(datoBonito(suyo.como, suyo.dato))}</b></span><button type="button" class="btn-secondary cp-copiar" data-cp-copiar="${escapeHtml(suyo.dato)}" data-cp-copiado="${o.dinero_como === 'bizum' ? 'Número copiado.' : 'PayPal copiado.'}">Copiar</button></div></section>`
+}
+
+export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null, misCobros = null }) {
   const nombre = nombreDePersona(otro)
   const das = o.items.filter((it) => it.quien === yo)
   const recibes = o.items.filter((it) => it.quien !== yo)
@@ -794,6 +850,7 @@ export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null }) {
         : o.envio === 'correo' ? `<p class="cp-t-envio-info">Por correo: normal (2 €) o certificado (7 €), lo elige ${o.para === yo ? 'quien la recibe' : escapeHtml(nombre)} al aceptar.</p>`
           : o.envio === 'mano' ? '<p class="cp-t-envio-info">En mano.</p>' : ''}
     ${direccionEnTarjetaHtml(o, { yo, nombre, miDir })}
+    ${cobroEnTarjetaHtml(o, { yo, nombre, misCobros })}
     ${o.estado === 'enviada' && est.frase ? `<p class="subtext cp-t-ayuda">${escapeHtml(est.frase)}</p>` : ''}
     ${o.nota ? `<p class="cp-t-nota">«${escapeHtml(o.nota)}»</p>` : ''}
     ${o.estado === 'enviada' || o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de ${pasos.length}">${pasos.map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
@@ -866,7 +923,7 @@ function engancharAcciones(caja, contexto, recargar) {
         showToast(copiar.dataset.cpCopiado || 'Copiado.', 'success')
       } catch {
         // Sin portapapeles: se selecciona para copiarlo a mano.
-        const aMano = copiar.closest('.cp-t-envia-fila')?.querySelector('address') || copiar.previousElementSibling
+        const aMano = copiar.closest('.cp-t-envia-fila')?.querySelector('address, .cp-dir-texto') || copiar.previousElementSibling
         if (aMano) getSelection().selectAllChildren(aMano)
       }
       return
@@ -906,6 +963,25 @@ function engancharAcciones(caja, contexto, recargar) {
         if (elegida.guardar) await guardarMiDireccion(ctx.yo, elegida.dir)
         if (accion === 'direccion') {
           showToast(`Dirección puesta: ${nombreDePersona(otro)} ya puede mandártelo.`, 'success')
+          return recargar()
+        }
+      }
+      // El Bizum o PayPal (1107): al aceptar si cobras tú, o después.
+      const cajaCobro = accion === 'aceptar' ? b.closest('.cp-tarjeta')?.querySelector('[data-cp-cobro-aceptar]')
+        : accion === 'cobro' ? b.closest('.cp-tarjeta')?.querySelector('[data-cp-cobro-poner]') : null
+      if (cajaCobro) {
+        const elegido = leerCobro(cajaCobro)
+        if (elegido.error) { b.disabled = false; return }
+        b.disabled = true
+        const errCobro = await ponerCobroEnTrato(o.id, elegido.dato)
+        if (errCobro && !(accion === 'aceptar' && faltaLaMigracion(errCobro))) {
+          b.disabled = false
+          showToast(faltaLaMigracion(errCobro) ? 'El Bizum y el PayPal todavía no se pueden guardar (falta la migración 1107).' : `No se ha guardado: ${errCobro.message || ''}`, 'error')
+          return
+        }
+        if (elegido.guardar) await guardarMiCobro(ctx.yo, { [elegido.como]: elegido.dato })
+        if (accion === 'cobro') {
+          showToast(`Listo: ${nombreDePersona(otro)} ya puede pagarte.`, 'success')
           return recargar()
         }
       }
@@ -1020,7 +1096,11 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
   estado.perfiles = await perfilesDe(ofertas.map((o) => (o.de === yo ? o.para : o.de)))
   const vivas = ofertas.filter(estaViva)
   const pasadas = ofertas.filter((o) => !estaViva(o))
-  ;[estado.cartaDe, estado.miDir] = await Promise.all([fichasDe(vivas.flatMap((o) => o.items)), vivas.some((o) => o.direcciones && vaPorCorreo(o)) ? miDireccion(yo) : null])
+  ;[estado.cartaDe, estado.miDir, estado.misCobros] = await Promise.all([
+    fichasDe(vivas.flatMap((o) => o.items)),
+    vivas.some((o) => o.direcciones && vaPorCorreo(o)) ? miDireccion(yo) : null,
+    vivas.some((o) => o.cobros && quienCobra(o) === yo) ? miCobro(yo) : null,
+  ])
   const otroDe = (o) => estado.perfiles.get(o.de === yo ? o.para : o.de) || { id: o.de === yo ? o.para : o.de }
   caja.hidden = false
   // «EN CURSO» (1100): lo que espera algo de ti, primero; cada trato con lo
@@ -1035,7 +1115,7 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
       const est = estadoDe(o, yo, nombreDePersona(p))
       return `<details class="cp-linea${toca(o) ? ' cp-toca' : ''}" id="oferta-${escapeHtml(o.id)}"${toca(o) ? ' open' : ''}>
         <summary>${avatarHtml(p)}<span class="cp-linea-texto"><b>${escapeHtml(tituloDe(o, yo, nombreDePersona(p)))}</b><small>${escapeHtml(resumenDe(o, yo))}</small>${est.frase ? `<small class="cp-linea-frase">${escapeHtml(est.frase)}</small>` : ''}</span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span><span class="cp-linea-ver" aria-hidden="true">Ver</span></summary>
-        <div class="cp-con"><a class="cp-con-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}<span>${escapeHtml(nombreDePersona(p))}</span></a>${o.conversacion ? `<a class="link-btn" href="/mensajes.html?c=${escapeHtml(o.conversacion)}">Escribirle</a>` : ''}</div>${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe, miDir: estado.miDir })}
+        <div class="cp-con"><a class="cp-con-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}<span>${escapeHtml(nombreDePersona(p))}</span></a>${o.conversacion ? `<a class="link-btn" href="/mensajes.html?c=${escapeHtml(o.conversacion)}">Escribirle</a>` : ''}</div>${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe, miDir: estado.miDir, misCobros: estado.misCobros })}
       </details>`
     }).join('')}
     ${pasadas.length ? `<details class="cp-pasadas"${pasadas.some((o) => o.porValorar) ? ' open' : ''}><summary>Los anteriores · ${pasadas.length}</summary><ul>${pasadas.map((o) => {

@@ -1,11 +1,12 @@
-// LA DIRECCIÓN DE ENVÍO (tanda 1102; propuesta «La dirección en los cambios
-// por correo»). Tu dirección guardada (`user_direcciones`, solo tuya) y la de
+// LOS DATOS DE UN TRATO: la dirección de envío (tanda 1102; propuesta «La
+// dirección en los cambios por correo») y el Bizum o PayPal de quien cobra
+// (1107, al final). Tu dirección guardada (`user_direcciones`, solo tuya) y la de
 // cada trato (`cambio_direccion_poner` / `cambio_direcciones`, migración
 // supabase-migration-1102-cambio-direccion.sql). Lo usan la propuesta
 // (js/cambio-propuesta.js) y Ajustes → Dirección de envío.
 import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
-import { CAMPOS_DIRECCION, validarDireccion, lineasDeDireccion } from './cambio-propuesta-puro.js'
+import { CAMPOS_DIRECCION, validarDireccion, lineasDeDireccion, COMOS_CON_DATO, validarCobro } from './cambio-propuesta-puro.js'
 
 export const MIGRACION_DIRECCION = 'supabase-migration-1102-cambio-direccion.sql'
 export const faltaLaMigracion = (e) => ['PGRST202', 'PGRST205', '42P01', '42883'].includes(e?.code) || /Could not find|does not exist/i.test(e?.message || '')
@@ -98,4 +99,66 @@ export function abrirFormulario(boton) {
   caja.querySelector('.cp-dir-guardada')?.setAttribute('hidden', '')
   caja.querySelector('.cp-dir-form')?.removeAttribute('hidden')
   caja.querySelector('[data-dir]')?.focus()
+}
+
+// ── EL COBRO (1107): el Bizum o el PayPal de quien cobra ──
+// Migración supabase-migration-1107-cambio-cobro.sql. Las mismas formas que la
+// dirección: lo tuyo guardado (`user_cobros`), lo de cada trato por sus dos
+// funciones.
+export const MIGRACION_COBRO = 'supabase-migration-1107-cambio-cobro.sql'
+let cobroGuardado = { yo: null, fila: undefined }
+
+// Tu Bizum y tu PayPal guardados: { bizum, paypal }, null si no tienes,
+// undefined si no se sabe.
+export async function miCobro(yo) {
+  if (!yo) return undefined
+  if (cobroGuardado.yo === yo && cobroGuardado.fila !== undefined) return cobroGuardado.fila
+  const { data, error } = await supabase.from('user_cobros').select('bizum,paypal').eq('user_id', yo).maybeSingle()
+  if (error) return undefined
+  cobroGuardado = { yo, fila: data || null }
+  return cobroGuardado.fila
+}
+
+// Guardar uno o los dos (lo que no va en `campos` no se toca).
+export async function guardarMiCobro(yo, campos) {
+  const { error } = await supabase.from('user_cobros').upsert({ user_id: yo, ...campos, updated_at: new Date().toISOString() }, { onConflict: 'user_id' })
+  if (!error) cobroGuardado = { yo, fila: { ...(cobroGuardado.yo === yo ? cobroGuardado.fila || {} : {}), ...campos } }
+  return error || null
+}
+
+export async function ponerCobroEnTrato(oferta, dato) {
+  const { error } = await supabase.rpc('cambio_cobro_poner', { p_oferta: oferta, p_dato: dato })
+  return error || null
+}
+
+// { oferta: { quien: { como, dato } } }, o null si no se sabe.
+export async function cobrosDe(ofertas) {
+  if (!ofertas.length) return {}
+  const { data, error } = await supabase.rpc('cambio_cobros', { p_ofertas: ofertas })
+  if (error) return null
+  const por = {}
+  for (const c of data || []) (por[c.oferta] ||= {})[c.quien] = c
+  return por
+}
+
+// El campo para el Bizum o el PayPal, con «Guardarlo para los próximos».
+export function cobroElegirHtml(como, dato = '') {
+  const c = COMOS_CON_DATO[como]
+  if (!c) return ''
+  return `<div class="cp-dir" data-cp-cobro="${como}">
+    <label class="cp-campo"><span>${escapeHtml(c.campo)}</span><input type="${c.tipo}" data-cobro maxlength="120" autocomplete="${c.auto}"${como === 'bizum' ? ' inputmode="tel"' : ''} placeholder="${escapeHtml(c.ejemplo)}" value="${escapeHtml(dato || '')}"></label>
+    <label class="cp-dir-guardar"><input type="checkbox" data-cobro-guardar checked> Guardarlo para los próximos</label>
+    <p class="cp-dir-error" role="alert" hidden></p>
+  </div>`
+}
+
+// Lo escrito: { como, dato, guardar, error }; el error se pinta en la caja.
+export function leerCobro(raiz) {
+  const caja = raiz?.matches?.('[data-cp-cobro]') ? raiz : raiz?.querySelector('[data-cp-cobro]')
+  if (!caja) return { error: 'Falta el dato.' }
+  const como = caja.dataset.cpCobro
+  const { dato, error } = validarCobro(como, caja.querySelector('[data-cobro]')?.value)
+  const aviso = caja.querySelector('.cp-dir-error')
+  if (aviso) { aviso.textContent = error || ''; aviso.hidden = !error }
+  return { como, dato, guardar: Boolean(caja.querySelector('[data-cobro-guardar]')?.checked), error }
 }
