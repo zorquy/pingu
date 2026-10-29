@@ -963,7 +963,8 @@ button.perfil-cifra:hover .rotulo {
 .profile-hero-avatar {
   width: 96px;
   height: 96px;
-  border-radius: var(--radius-xl);
+  /* Redondo (1104, PINGU: «es una imagen redonda y obliga a ser cuadrada»). */
+  border-radius: 50%;
   box-shadow: 0 0 0 4px var(--bg);
   color: var(--blanco-fijo);
   font-size: var(--t-3xl);

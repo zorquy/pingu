@@ -1911,7 +1911,7 @@ a.foro-cita-quien:hover {
 .foro-tema-conv .mini-avatar {
   flex-shrink: 0;
   align-self: flex-start;
-  border-radius: var(--radius-md);
+  border-radius: 50%;
 }
 
 /* Toda la fila lleva al tema; lo que tiene destino propio, por encima. */

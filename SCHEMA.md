@@ -41785,6 +41785,16 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1104 — Los avatares, redondos
+
+PINGU: «es una imagen redonda y obliga a ser cuadrada y queda mal». La 748
+puso el avatar del perfil como un cuadrado redondeado (`--radius-xl`), por la
+maqueta; una foto redonda dejaba sus esquinas a la vista. Ahora es
+`border-radius: 50%` en `.profile-hero-avatar` (el aro `box-shadow` sigue), y
+también en `.nav-user-avatar` (style.css), `.nav-user-avatar-lg`
+(components.css), `.tu-avatar` (menu-tu.css) y `.foro-tema-conv .mini-avatar`
+(foro.css), que eran los otros cuadrados. Un avatar nuevo va redondo.
+
 ## Tanda 1103 — «Ya lo he enviado», con el número de seguimiento
 
 PINGU: «si es un envío certificado, deberíamos poder poner el número de

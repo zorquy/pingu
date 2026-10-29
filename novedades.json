@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-29", "tipo": "arreglo", "texto": "Las fotos de perfil vuelven a ser redondas (en tu perfil, arriba a la derecha y en el foro): las que ya eran redondas quedaban con las esquinas a la vista.", "enlace": "/perfil" },
     { "fecha": "2026-10-29", "tipo": "nuevo", "texto": "Cuando mandes las cartas de un cambio o una venta por correo, pulsa «Ya lo he enviado» en el trato y, si es certificado, pon el número de seguimiento: a la otra persona le llega el aviso con el número para seguirlo.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-29", "tipo": "nuevo", "texto": "En los cambios y las ventas por correo, quien recibe cartas pone su dirección al aceptar (o al proponer), y quien las manda la ve en el trato con un botón para copiarla. Puedes guardarla en Ajustes → Dirección de envío para que salga ya puesta. Solo la ve la otra persona de ese trato.", "enlace": "/ajustes?ver=direccion" },
     { "fecha": "2026-10-29", "tipo": "mejora", "texto": "Los mensajes que se mandan solos en un cambio (la propuesta, cuando la aceptan, cuando llega, cuando se cierra…) ya no son texto suelto: son una tarjeta con lo que ha pasado y un botón «Ver propuesta» que te lleva a ese trato.", "enlace": "/mensajes" },

@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (344) — PINGU-Claude (1104 — los avatares, redondos)
+
+**Hecho**: PINGU, con una captura de su perfil: «es una imagen redonda y
+obliga a ser cuadrada y queda mal». El avatar del perfil (/perfil y
+/usuario) era un cuadrado redondeado desde la 748; ahora es un círculo, con el
+mismo aro del color del fondo. Y los otros cuatro sitios donde un avatar era
+cuadrado, igual: el de la barra de arriba, el grande del menú, el de la hoja
+«Tú» y el de la lista de temas del foro.
+
+**Para PINGU**: nada que ejecutar.
+
+**Ficheros**: `css/perfil.css`, `css/style.css`, `css/components.css`,
+`css/foro.css`, `css/menu-tu.css`. Pruebas en `pruebas`: la 748 pide el
+avatar redondo. La 311 tiene tres rojos de espaciado en `comunidad.css`,
+`partidas.css` y `torneos.css`, de antes (no los toca esta tanda).
+
+**Pendiente**: la 1105 (los cambios hechos en el perfil, PINGU: «dale» a lo
+recomendado).
+
 ## 2026-10-29 (343) — PINGU-Claude (1103 — «Ya lo he enviado» con el número de seguimiento)
 
 **Hecho**: PINGU: «si es un envío certificado, deberíamos poder poner el

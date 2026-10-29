@@ -666,7 +666,7 @@ body:has(> .footer) .page-content {
 .nav-user-avatar {
   width: 34px;
   height: 34px;
-  border-radius: 9px;
+  border-radius: 50%;
   background: var(--navy);
   color: var(--white);
   display: flex;
