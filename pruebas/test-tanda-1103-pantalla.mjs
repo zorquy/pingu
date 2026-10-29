@@ -100,13 +100,21 @@ async function abrirCon(tablas, sesion, opciones = {}) {
 
 const OUT = process.env.PD_CAPS || ''
 const texto = (loc) => loc.textContent().then((t) => t.replace(/\s+/g, ' ')).catch(() => '')
-async function proponerYAceptar(envio, extra = {}) {
+// Desde la 1108 el envío se calcula: «correo» pulsa el de correo (sea cual
+// sea) y `venta20` lo hace una venta de 20 € (ordinaria).
+async function proponerYAceptar(envio, extra = {}, venta20 = false) {
   let t
   {
     const { ctx, page } = await abrir({ ancho: 1280, extra })
     await ir(page, '/mi-coleccion.html?ver=cambios')
     await page.locator('#mcCambiosPanel [data-cruce="user-1"] [data-proponer]').click()
     await page.waitForTimeout(1800)
+    if (venta20) {
+      await page.click('#cpDialogo [data-cp-modo="vendo"]')
+      await page.locator('#cpTotal').fill('20')
+      await page.locator('#cpTotal').dispatchEvent('change')
+      await page.waitForTimeout(300)
+    }
     await page.click('#cpEnviar')
     await page.waitForTimeout(1500)
     t = await foto(page)
@@ -115,7 +123,7 @@ async function proponerYAceptar(envio, extra = {}) {
   const { ctx, page } = await abrirCon(t, 'user-1', { ancho: 1280, extra })
   await ir(page, '/mi-coleccion.html?ver=cambios')
   const tj = page.locator('#mcMisCambios .cp-tarjeta').first()
-  await tj.locator(`[data-cp-envio-elegir="${envio}"]`).click()
+  await tj.locator(envio === 'mano' ? '[data-cp-envio-elegir="mano"]' : '[data-cp-envio-elegir]:not([data-cp-envio-elegir="mano"])').click()
   await tj.locator('[data-cp-accion="aceptar"]').click()
   await page.waitForTimeout(1800)
   t = await foto(page)
@@ -136,7 +144,7 @@ console.log('── 1. Lo puro ──')
 }
 
 console.log('── 2. Por certificado, con el número ──')
-let tablas = await proponerYAceptar('certificado')
+let tablas = await proponerYAceptar('correo')
 check('aceptado por certificado, con las dos direcciones', tablas.trade_offers[0].estado === 'aceptada' && tablas.trade_offers[0].envio_tipo === 'certificado' && tablas.trade_offer_direcciones.length === 2, JSON.stringify(tablas.trade_offer_direcciones.map((d) => d.quien)))
 {
   const { ctx, page, errores } = await abrirCon(tablas, 'user-1', { movil: true })
@@ -187,10 +195,11 @@ check('aceptado por certificado, con las dos direcciones', tablas.trade_offers[0
   await ctx.close()
 }
 
-console.log('── 3. Por correo normal, sin número ──')
+console.log('── 3. Por correo ordinario, sin número ──')
 {
-  const t = await proponerYAceptar('normal')
-  const { ctx, page } = await abrirCon(t, 'user-1', { ancho: 1280 })
+  // Una venta de 20 €: Admin la manda ordinaria (1108).
+  const t = await proponerYAceptar('correo', {}, true)
+  const { ctx, page } = await abrirCon(t, 'admin-1', { ancho: 1280 })
   await ir(page, '/mi-coleccion.html?ver=cambios')
   const envia = page.locator('#mcMisCambios .cp-t-envia').first()
   check('«Ya lo he enviado» sin campo de número', (await envia.locator('[data-cp-accion="enviado"]').count()) === 1 && (await envia.locator('[data-cp-seguimiento]').count()) === 0)
@@ -199,7 +208,7 @@ console.log('── 3. Por correo normal, sin número ──')
 
 console.log('── 4. Sin la migración ──')
 {
-  const t = await proponerYAceptar('certificado', { __SIN_1103__: true })
+  const t = await proponerYAceptar('correo', { __SIN_1103__: true })
   const { ctx, page, errores } = await abrirCon(t, 'user-1', { ancho: 1280, extra: { __SIN_1103__: true } })
   await ir(page, '/mi-coleccion.html?ver=cambios')
   const tj = page.locator('#mcMisCambios .cp-tarjeta').first()

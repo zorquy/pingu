@@ -15,6 +15,8 @@
 // que usa la web: una copia a mano del cálculo de una columna generada se
 // separa de la base sin dar error (tanda 447).
 import { normalizeSearch } from './texto.js'
+// La tabla del envío automático (1108): la misma que la web y que `cambio_envio_tarifa`.
+import { enviosDe as enviosDeLaOferta } from './cambio-propuesta-puro.js'
 
 // ── Las tablas ──
 // Las tablas cuyo `user_id` tiene `default auth.uid()` en la base.
@@ -2177,8 +2179,16 @@ export const supabase = {
         if (o.para !== yo) return mal('Esa propuesta no es tuya.')
         if (o.estado !== 'enviada') return mal('Esa propuesta ya no se puede aceptar.')
         if (o.envio === 'correo') {
-          if (!['mano', 'normal', 'certificado'].includes(args.p_envio)) return mal('Elige cómo te lo manda: normal, certificado o en mano.')
-          Object.assign(o, { envio_tipo: args.p_envio, envio_precio: { normal: 2, certificado: 7 }[args.p_envio] || 0 })
+          if (typeof window !== 'undefined' && window.__SIN_1108__) {
+            if (!['mano', 'normal', 'certificado'].includes(args.p_envio)) return mal('Elige cómo te lo manda: normal, certificado o en mano.')
+            Object.assign(o, { envio_tipo: args.p_envio, envio_precio: { normal: 2, certificado: 7 }[args.p_envio] || 0 })
+          } else if (args.p_envio === 'mano') Object.assign(o, { envio_tipo: 'mano', envio_precio: 0 })
+          else {
+            // 1108: lo calcula con lo que manda cada uno.
+            const envs = enviosDeLaOferta(T.trade_offer_items.filter((i) => i.oferta === o.id), { dinero: o.dinero })
+            if (envs.length === 1) Object.assign(o, { envio_tipo: envs[0].tipo, envio_precio: envs[0].precio })
+            else Object.assign(o, { envio_tipo: envs.some((e) => e.tipo === 'certificado') ? 'certificado' : 'normal', envio_precio: 0 })
+          }
         } else if (o.envio === 'mano') Object.assign(o, { envio_tipo: 'mano', envio_precio: 0 })
         nombre = 'cambio_contestar'
         args = { ...args, p_accion: 'aceptar' }

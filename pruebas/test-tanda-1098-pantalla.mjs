@@ -161,9 +161,10 @@ console.log('── 3. Yo confirmo el dinero ──')
   const caja = page.locator('#mcMisCambios')
   const boton = (await caja.locator('[data-cp-accion="lo-tengo"]').innerText()).trim()
   const quien = (await caja.locator('.cp-quien').innerText()).replace(/\s+/g, ' ')
-  // Desde la 1099 va por correo y ella aceptó con el normal (2 €), que paga
-  // quien compra: a mí me llegan 22 €.
-  check('mi botón dice «Dinero recibido» (20 € y 2 € de envío), y ella ya confirmó su carta', boton === 'Dinero recibido' && /Lucía · 1 carta Carta recibida ✓/.test(quien) && /Tú · 22,00 € Pendiente/.test(quien), `${boton} | ${quien}`)
+  // Desde la 1099 va por correo, que paga quien compra; desde la 1108 el envío
+  // sale de lo que vale la carta que viaja (38 €: certificado, 7,06 €), así
+  // que a mí me llegan 27,06 €.
+  check('mi botón dice «Dinero recibido» (20 € y 7,06 € de envío), y ella ya confirmó su carta', boton === 'Dinero recibido' && /Lucía · 1 carta Carta recibida ✓/.test(quien) && /Tú · 27,06 € Pendiente/.test(quien), `${boton} | ${quien}`)
   await caja.locator('[data-cp-accion="lo-tengo"]').click()
   await page.waitForTimeout(600)
   await page.locator('#cpCerrar [data-r="si"]').click()
