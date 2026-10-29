@@ -74,6 +74,28 @@ function tiraHtml(filas, cartas, max = 6) {
   }).join('')}${filas.length > max ? `<li class="mc-cruce-mas">+${filas.length - max}</li>` : ''}</ul>`
 }
 
+// Las cartas de un lado con su NOMBRE, su número y lo que vale (1100, de
+// «Cambios más claros»: «ver qué cartas son sin abrir nada»). Tres como
+// mucho; las demás, «+N más».
+function nombresHtml(filas, { cartas, valor, euros }, max = 3) {
+  return `<ul class="mc-cruce-nombres">${filas.slice(0, max).map((f) => {
+    const c = cartas.get(f.card_id)
+    const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+    const nombre = nombreDe(c)
+    const v = valor(f)
+    return `<li><a class="mc-cruce-carta" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`${nombre} · ${senasDe(f)}`)}"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${chapaDeVersionHtml(f.variante || 'normal', { nombre: false })}</a>
+      <span class="mc-cruce-nombre"><b>${escapeHtml(nombre)}</b><small>${escapeHtml([c?.local_id ? `#${c.local_id}` : '', senasDe(f)].filter(Boolean).join(' · '))}</small></span>
+      ${v ? `<span class="mc-cruce-precio">${escapeHtml(euros(v))}</span>` : ''}</li>`
+  }).join('')}${filas.length > max ? `<li class="mc-cruce-mas-n">+${filas.length - max} más</li>` : ''}</ul>`
+}
+
+// Lo que se hace con cada grupo de cruces (1100): un cruce perfecto es un
+// cambio; quien tiene lo que buscas, una compra; quien busca lo que das, una
+// venta. La propuesta se abre en ese modo sola (`tipoDe`, 1099).
+export const verboDe = (p, corto = false) => (p.perfecto
+  ? (corto ? 'Proponer' : 'Proponer cambio')
+  : p.teDa.length ? (corto ? 'Comprar' : 'Proponer compra') : (corto ? 'Vender' : 'Ofrecer en venta'))
+
 // La balanza de un cruce (1042): qué parte del total pone cada lado y la
 // frase que lo dice. Sin precio en ninguno de los dos lados no hay balanza
 // (null): una barra a medias diría que valen lo mismo, y no se sabe.
@@ -102,7 +124,7 @@ function ladosHtml(p, { cartas, valor, euros }) {
   const das = suma(p.leDas)
   const lado = (titulo, filas, total, vacio, modo) => `<div class="mc-cruce-lado" data-cruce-lado="${modo}">
       <p class="mc-cruce-titulo">${titulo}</p>
-      ${filas.length ? tiraHtml(filas, cartas) : `<p class="subtext">${vacio}</p>`}
+      ${filas.length ? nombresHtml(filas, { cartas, valor, euros }) : `<p class="subtext">${vacio}</p>`}
       <p class="mc-cruce-total">${filas.length} ${filas.length === 1 ? 'carta' : 'cartas'}${total ? ` · <b>≈ ${escapeHtml(euros(total))}</b>` : ''}</p>
     </div>`
   const b = balanzaDe(recibes, das, euros)
@@ -135,7 +157,7 @@ export function cruceHtml(p, op) {
     </header>
     ${ladosHtml(p, op)}
     <div class="mc-cruce-acciones">
-      <button type="button" class="btn-primary mc-cambio-proponer" data-proponer="${escapeHtml(p.user_id)}">${icons.refreshCw(15)}Proponer cambio</button>
+      <button type="button" class="btn-primary mc-cambio-proponer" data-proponer="${escapeHtml(p.user_id)}">${icons.refreshCw(15)}${verboDe(p)}</button>
       ${iconosDe(p, nombre)}
     </div>
   </article>`
@@ -165,7 +187,7 @@ export function cruceFilaHtml(p, op) {
     </div>
     <div class="mc-cruce-lado" data-cruce-lado="${p.teDa.length ? 'da' : 'busca'}">${tiraHtml(filas, cartas, 3)}</div>
     <div class="mc-cruce-acciones">
-      <button type="button" class="btn-secondary mc-cambio-proponer" data-proponer="${escapeHtml(p.user_id)}">Proponer</button>
+      <button type="button" class="btn-secondary mc-cambio-proponer" data-proponer="${escapeHtml(p.user_id)}">${verboDe(p, true)}</button>
       ${iconosDe(p, nombre)}
       <button type="button" class="mc-cruce-ico mc-cruce-desplegar" data-desplegar aria-expanded="false" aria-controls="${id}" aria-label="Ver el cruce con ${escapeHtml(nombre)}" title="Ver el cruce">${icons.chevronRight(18)}</button>
     </div>

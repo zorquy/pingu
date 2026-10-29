@@ -718,7 +718,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   el de Cardmarket, y el envío (en mano o por correo: normal 2 €, certificado
   7 €, en `ENVIOS` y en `cambio_envio_precio` a la vez) lo elige quien la
   recibe al aceptar (`cambio_aceptar`) y en una venta lo paga quien compra
-  (`pagaElEnvio`).
+  (`pagaElEnvio`). Un trato se SIGUE en Cruces → «En curso» (1100,
+  `#oferta-<id>`); en Mensajes solo hay una tira que lleva allí: no vuelvas a
+  meter la tarjeta entera en la conversación.
 - **Una carta pintada en cualquier pantalla lleva sus marcas** (tanda 943,
   PINGU: «debería estar en todos los lados de la web»): el ✓ de «la tienes»
   y el corazón de «La quiero». Dentro de /mi-coleccion, con

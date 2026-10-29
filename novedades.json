@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-29", "tipo": "mejora", "texto": "Tus cambios se siguen en Deseos y cambios → Cruces, en «En curso»: qué es cada trato, en qué está y qué te toca, con sus botones ahí mismo. En los mensajes queda una tira arriba que te lleva allí. Y en los cruces y las propuestas, las cartas salen con su nombre y su precio.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-29", "tipo": "nuevo", "texto": "Las propuestas de cambio pueden ser también una venta o una compra: cada carta sale con su precio de Cardmarket y lo puedes cambiar, con 100 %, 90 % u 80 % a un toque. Y el envío: por correo (lo elige quien la recibe al aceptar, normal 2 € o certificado 7 €) o en mano.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-29", "tipo": "mejora", "texto": "En los cambios, cada uno confirma lo que le llega: «Carta recibida», «Cartas recibidas», «Dinero recibido» o «Recibido», y se ve quién lo ha confirmado ya. Si regalas una carta, no tienes que confirmar nada.", "enlace": "/mi-coleccion?ver=cambios" },
     { "fecha": "2026-10-29", "tipo": "arreglo", "texto": "En una propuesta en la que das cartas y te pagan, el dinero ya sale en lo que recibes (antes ponía «Recibes · 0 € — Nada» aunque te fueran a pagar).", "enlace": "/mi-coleccion?ver=cambios" },

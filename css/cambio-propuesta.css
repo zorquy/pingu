@@ -324,3 +324,37 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
 .cp-t-envio p { margin: 0; font-size: var(--t-sm); font-weight: 600; }
 .cp-t-envio .cp-chip[aria-checked='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
 .cp-t-envio-info { margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
+
+/* ── 1100: «En curso» en Cruces y la tira de Mensajes ── */
+.cp-linea.cp-toca { border-color: var(--acento); }
+.cp-linea-frase { color: var(--text); font-weight: 600; }
+.cp-tira {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: var(--e-sm);
+  align-items: center;
+  min-height: 56px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: inherit;
+  text-decoration: none;
+}
+.cp-tira.tono-toca { border-color: var(--acento); }
+.cp-tira:hover { border-color: var(--border-strong); }
+.cp-tira-texto { display: grid; min-width: 0; line-height: 1.3; }
+.cp-tira-texto b { font-size: var(--t-sm); }
+.cp-tira-texto small { overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.cp-tira-ver { padding: var(--e-xs) var(--e-md); border-radius: var(--radius-pill); background: var(--ice); color: var(--navy); font-size: var(--t-sm); font-weight: 700; }
+.cp-linea-texto .cp-linea-frase { white-space: normal; }
+.cp-t-cartas { display: grid; gap: var(--e-xs); }
+.cp-t-cartas li { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: var(--e-sm); align-items: center; }
+.cp-t-cartas .cp-mini { width: 32px; }
+.cp-t-carta { display: grid; min-width: 0; line-height: 1.25; }
+.cp-t-carta b, .cp-t-carta small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-t-carta b { font-size: var(--t-sm); }
+.cp-t-carta small { color: var(--text-mid); font-size: var(--t-2xs); }
+.cp-t-precio { font-size: var(--t-xs); font-weight: 700; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cp-linea { scroll-margin-top: 96px; }
+.cp-caja.cp-caja-tira { position: sticky; top: 0; z-index: 2; display: grid; gap: var(--e-xs); padding-bottom: var(--e-sm); background: var(--bg); }

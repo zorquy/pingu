@@ -41785,6 +41785,29 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1100 — «En curso» en Cruces, la tira en Mensajes y los cruces con nombres
+
+De «Cambios más claros», 2.ª vuelta (PINGU: «adelante»; decisión 3, el
+seguimiento en Cruces).
+
+- `pintarMisCambios` (en `#mcMisCambios`, arriba de Cruces): título «En curso
+  · N»; los vivos ordenados con lo que te toca primero (`estadoDe(...).tono
+  === 'toca'`), cada uno un `<details class="cp-linea" id="oferta-<id>">` con
+  `tituloDe`, `resumenDe` y `est.frase` en el resumen, abierto si te toca.
+  `#oferta-<id>` en la dirección lo abre al pintar y en `hashchange`.
+- `pintarPropuestasCon` (Mensajes) ya no pinta la tarjeta: una `.cp-tira` por
+  trato vivo, enlace a `/mi-coleccion?ver=cambios#oferta-<id>`; la caja
+  (`.cp-caja-tira`) es `sticky` arriba de `#msgScroll` (la conversación abre
+  bajada). «Proponer un cambio» solo sin un trato vivo (una viva por pareja).
+- La tarjeta (`ladoHtml`) pinta cada carta en fila con nombre, señas y precio
+  (`.cp-t-cartas`), y los pasos también en «enviada». «Editar» es «Cambiarla»
+  en la tuya y «Contraoferta» en la suya.
+- Cruces (`tablon.js`): el lado de la tarjeta grande con `nombresHtml` (tres y
+  «+N más»); la fila plegada sigue con miniaturas. `verboDe(p, corto)`:
+  «Proponer cambio» / «Proponer compra» / «Ofrecer en venta» (cortos:
+  «Proponer», «Comprar», «Vender»). El modo de la propuesta lo pone
+  `tipoDe` (1099) con lo que lleva el cruce.
+
 ## Tanda 1099 — Cambio, venta o compra; precios que se tocan y el envío
 
 De «Cambios más claros», 2.ª vuelta (PINGU: «adelante»).

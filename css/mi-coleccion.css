@@ -9974,6 +9974,62 @@ html:has(.mc-merf[open]) {
   list-style: none;
 }
 
+/* Las cartas de un lado del cruce con su nombre (1100). */
+.mc-cruce-nombres {
+  display: grid;
+  gap: var(--e-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-cruce-nombres li {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  gap: var(--e-sm);
+  align-items: center;
+}
+
+.mc-cruce-nombres .mc-cruce-carta {
+  width: 32px;
+}
+
+.mc-cruce-nombre {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.mc-cruce-nombre b,
+.mc-cruce-nombre small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mc-cruce-nombre b {
+  font-size: var(--t-sm);
+}
+
+.mc-cruce-nombre small {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+}
+
+.mc-cruce-precio {
+  font-size: var(--t-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mc-cruce-nombres .mc-cruce-mas-n {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
 .mc-cruce-carta {
   display: block;
   position: relative;

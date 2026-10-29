@@ -650,10 +650,11 @@ const dineroEnLado = ({ cantidad, como, envio = 0 }) => `<p class="cp-t-dinero">
 function ladoHtml(titulo, items, cartaDe, vacio, dinero = null) {
   return `<div class="cp-t-lado"><h4>${escapeHtml(titulo)}</h4>
     ${dinero && !items.length ? '' : items.length
-      ? `<ul class="cp-minis">${items.map((it) => {
+      // Con su nombre y su precio (1100): «ver qué cartas son sin abrir nada».
+      ? `<ul class="cp-minis cp-t-cartas">${items.map((it) => {
           const c = cartaDe(it)
           const nombre = c ? nombreDeCarta(c) : it.card_id
-          return `<li>${miniHtml(c, it, `${nombre} · ${senasDe(it)}${it.cantidad > 1 ? ` · ×${it.cantidad}` : ''}${it.pedida && !it.linea ? ' · se la pides' : ''}`)}${it.cantidad > 1 ? `<span class="cp-mini-n">×${it.cantidad}</span>` : ''}</li>`
+          return `<li>${miniHtml(c, it, `${nombre} · ${senasDe(it)}${it.cantidad > 1 ? ` · ×${it.cantidad}` : ''}${it.pedida && !it.linea ? ' · se la pides' : ''}`)}<span class="cp-t-carta"><b>${escapeHtml(nombre)}${it.cantidad > 1 ? ` ×${it.cantidad}` : ''}</b><small>${escapeHtml(senasDe(it))}${it.pedida && !it.linea ? ' · se la pides' : ''}</small></span>${it.precio != null ? `<span class="cp-t-precio">${escapeHtml(euros(Number(it.precio) * (it.cantidad || 1)))}</span>` : ''}</li>`
         }).join('')}</ul>`
       : `<p class="subtext">${vacio}</p>`}
     ${dinero ? dineroEnLado(dinero) : ''}
@@ -685,7 +686,8 @@ export function tarjetaHtml(o, { yo, otro, cartaDe }) {
   const aceptarTexto = (envio) => (pagoYo && dinero.pagaYo ? `Aceptar · ${euros(dinero.cantidad + (envioDe(envio)?.precio || 0))}` : 'Aceptar')
   const acciones = est.acciones.map((a) => ({
     aceptar: `<button type="button" class="btn-primary" data-cp-accion="aceptar" data-oferta="${escapeHtml(o.id)}"${pagoYo && dinero.pagaYo ? ` data-base="${dinero.cantidad}"` : ''}>${escapeHtml(aceptarTexto(eligeEnvio ? 'normal' : null))}</button>`,
-    editar: boton('editar', 'Contraoferta'),
+    // A la tuya le cambias algo; a la suya le haces una contraoferta.
+    editar: boton('editar', o.de === yo ? 'Cambiarla' : 'Contraoferta'),
     rechazar: boton('rechazar', 'Rechazar'),
     anular: boton('anular', 'Anular'),
     'lo-tengo': boton('lo-tengo', escapeHtml(textoDeRecibido(recibo) || 'Ya lo he mandado'), true),
@@ -706,7 +708,7 @@ export function tarjetaHtml(o, { yo, otro, cartaDe }) {
           : o.envio === 'mano' ? '<p class="cp-t-envio-info">En mano.</p>' : ''}
     ${o.estado === 'enviada' && est.frase ? `<p class="subtext cp-t-ayuda">${escapeHtml(est.frase)}</p>` : ''}
     ${o.nota ? `<p class="cp-t-nota">«${escapeHtml(o.nota)}»</p>` : ''}
-    ${o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de 4">${['Propuesta', 'Aceptada', 'Recibido', 'Hecho'].map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
+    ${o.estado === 'enviada' || o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de 4">${['Propuesta', 'Aceptada', 'Recibido', 'Hecho'].map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
     ${o.estado === 'aceptada' ? `<ul class="cp-quien" aria-label="Quién ha confirmado">${filaQuien(escapeHtml(nombre), recibeEl, yaEl)}${filaQuien('Tú', recibo, yaYo)}</ul>
     <p class="subtext cp-t-ayuda">${yaYo ? `Cuando ${escapeHtml(nombre)} lo confirme, las cartas se mueven solas.` : `Cuando te llegue${recibo.cartas && !recibo.dinero ? (recibo.cartas === 1 ? ' la carta' : 'n las cartas') : recibo.dinero && !recibo.cartas ? ' el dinero' : ' todo'}, pulsa «${escapeHtml(textoDeRecibido(recibo) || 'Ya lo he mandado')}». Al confirmarlo los dos, las cartas cambian de colección solas.`}</p>` : ''}
     ${acciones ? `<div class="cp-t-acciones">${acciones}</div>` : ''}
@@ -835,13 +837,26 @@ export async function pintarPropuestasCon(caja, { sesion, otro, cruce = null } =
   }
   const vivas = ofertas.filter(estaViva)
   estado.ofertas = vivas
-  estado.cartaDe = await fichasDe(vivas.flatMap((o) => o.items))
   caja.hidden = false
-  caja.innerHTML = `${vivas.map((o) => tarjetaHtml(o, { yo, otro, cartaDe: estado.cartaDe })).join('')}
-    <div class="cp-proponer-fila">
-      <button type="button" class="btn-secondary" data-cp-nueva>${icons.refreshCw(15)}<span>${vivas.length ? 'Otra propuesta' : 'Proponer un cambio'}</span></button>
-      ${ofertas.length > vivas.length ? '<a class="link-btn" href="/mi-coleccion?ver=cambios">Tus cambios</a>' : ''}
-    </div>`
+  // EN MENSAJES, UNA TIRA (1100, PINGU: «que en cruces aparezca el proceso de
+  // cómo va… y si quieres mandarle un mensaje, que lo discutas por mensaje
+  // privado»): el trato se sigue en Cruces → «En curso»; aquí, en qué está y
+  // un enlace. La conversación vuelve a ser para hablar.
+  caja.innerHTML = `${vivas.map((o) => {
+    const est = estadoDe(o, yo, nombreDePersona(otro))
+    return `<a class="cp-tira tono-${est.tono}" href="/mi-coleccion?ver=cambios#oferta-${escapeHtml(o.id)}" data-oferta="${escapeHtml(o.id)}">
+      <span class="cp-tira-texto"><b>${escapeHtml(tituloDe(o, yo, nombreDePersona(otro)))}</b><small>${escapeHtml(est.frase || est.texto)}</small></span>
+      <span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span><span class="cp-tira-ver" aria-hidden="true">Ver</span>
+    </a>`
+  }).join('')}
+    ${vivas.length ? '' : `<div class="cp-proponer-fila">
+      <button type="button" class="btn-secondary" data-cp-nueva>${icons.refreshCw(15)}<span>Proponer un cambio</span></button>
+      ${ofertas.length ? '<a class="link-btn" href="/mi-coleccion?ver=cambios">Tus cambios</a>' : ''}
+    </div>`}`
+  // Con un trato en marcha, la tira se queda arriba de la conversación al
+  // bajar (la conversación abre ya bajada). Otra propuesta, desde «En
+  // curso» (una viva por pareja: una nueva sustituye a la de antes).
+  caja.classList.toggle('cp-caja-tira', vivas.length > 0)
   engancharAcciones(caja, () => estado, recargar)
   // En el propio botón y no en la caja: la caja se repinta al contestar, y
   // un oyente en ella recogía el clic de «Aceptar» como si fuera este.
@@ -876,15 +891,18 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
   estado.cartaDe = await fichasDe(vivas.flatMap((o) => o.items))
   const otroDe = (o) => estado.perfiles.get(o.de === yo ? o.para : o.de) || { id: o.de === yo ? o.para : o.de }
   caja.hidden = false
-  caja.innerHTML = `<h2 class="section-title cp-mis-titulo">Tus cambios${vivas.length ? ` · ${vivas.length} en curso` : ''}</h2>
+  // «EN CURSO» (1100): lo que espera algo de ti, primero; cada trato con lo
+  // que es, en qué está y sus botones. Se llega desde la tira de Mensajes
+  // y desde los avisos con `#oferta-<id>`, que lo abre.
+  const pide = (o) => (estadoDe(o, yo).tono === 'toca' ? 0 : 1)
+  vivas.sort((a, b) => pide(a) - pide(b))
+  caja.innerHTML = `<h2 class="section-title cp-mis-titulo">${vivas.length ? `En curso · ${vivas.length}` : 'Tus cambios'}</h2>
     ${vivas.map((o) => {
-      // Cada uno en UNA línea (1042) que se abre a la tarjeta de siempre; la
-      // que espera algo de ti, abierta, para que «Aceptar» esté a la vista.
       const p = otroDe(o)
       const est = estadoDe(o, yo, nombreDePersona(p))
-      return `<details class="cp-linea"${est.tono === 'toca' ? ' open' : ''}>
-        <summary>${avatarHtml(p)}<span class="cp-linea-texto"><b>Con ${escapeHtml(nombreDePersona(p))}</b><small>${escapeHtml(resumenDe(o, yo))}</small></span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span><span class="cp-linea-ver" aria-hidden="true">Ver</span></summary>
-        <div class="cp-con"><a class="cp-con-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}<span>${escapeHtml(nombreDePersona(p))}</span></a>${o.conversacion ? `<a class="link-btn" href="/mensajes.html?c=${escapeHtml(o.conversacion)}">Ir a la conversación</a>` : ''}</div>${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe })}
+      return `<details class="cp-linea${est.tono === 'toca' ? ' cp-toca' : ''}" id="oferta-${escapeHtml(o.id)}"${est.tono === 'toca' ? ' open' : ''}>
+        <summary>${avatarHtml(p)}<span class="cp-linea-texto"><b>${escapeHtml(tituloDe(o, yo, nombreDePersona(p)))}</b><small>${escapeHtml(resumenDe(o, yo))}</small>${est.frase ? `<small class="cp-linea-frase">${escapeHtml(est.frase)}</small>` : ''}</span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span><span class="cp-linea-ver" aria-hidden="true">Ver</span></summary>
+        <div class="cp-con"><a class="cp-con-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}<span>${escapeHtml(nombreDePersona(p))}</span></a>${o.conversacion ? `<a class="link-btn" href="/mensajes.html?c=${escapeHtml(o.conversacion)}">Escribirle</a>` : ''}</div>${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe })}
       </details>`
     }).join('')}
     ${pasadas.length ? `<details class="cp-pasadas"><summary>Los anteriores · ${pasadas.length}</summary><ul>${pasadas.map((o) => {
@@ -893,6 +911,19 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
       return `<li class="cp-pasada"><span>${avatarHtml(p)} <b>${escapeHtml(nombreDePersona(p))}</b> · ${escapeHtml(resumenDe(o, yo).toLowerCase())}</span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span></li>`
     }).join('')}</ul></details>` : ''}`
   engancharAcciones(caja, () => estado, recargar)
+  // Llegar con `#oferta-<id>` (la tira de Mensajes, un aviso) lo abre; y
+  // también si cambia con la página ya abierta (no se recarga).
+  const abrirPedida = () => {
+    const pedida = location.hash.startsWith('#oferta-') ? caja.querySelector(`[id="${CSS.escape(location.hash.slice(1))}"]`) : null
+    if (!pedida) return
+    pedida.open = true
+    pedida.scrollIntoView({ block: 'start' })
+  }
+  if (!caja.dataset.cpSaltado) {
+    caja.dataset.cpSaltado = '1'
+    abrirPedida()
+    window.addEventListener('hashchange', abrirPedida)
+  }
 }
 
 // Cuántas copias de cada carta tiene reservadas cada persona (en un cambio

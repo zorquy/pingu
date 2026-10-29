@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (340) — PINGU-Claude (1100 — «En curso» en Cruces, la tira en Mensajes y los cruces con nombres)
+
+**Hecho**: lo último de «Cambios más claros» (PINGU: «adelante»):
+- **«En curso»**, arriba de Cruces (era «Tus cambios»): cada trato con lo que
+  es («Venta a Lucía», «Le vendes a Íker», «Cambio con Dani»), lo que sale y
+  lo que entra, y una frase de en qué está («Te toca: elige el envío y
+  acepta…», «Esperando a que Lucía…»). Lo que espera algo de ti va primero y
+  abierto, con sus botones ahí mismo. Llegar con `#oferta-<id>` abre ese.
+- **En Mensajes, una tira** que se queda arriba de la conversación al bajar:
+  qué es, en qué está y «Ver», que lleva a ese trato en «En curso». La
+  conversación vuelve a ser para hablar.
+- **Cruces y tarjetas con nombres**: las cartas de un cruce y de una propuesta
+  salen con su nombre, número, idioma y estado, y su precio. Y el botón de
+  cada grupo dice qué es: «Proponer cambio», «Comprar» (tienen lo que
+  buscas) o «Vender» (buscan lo que das); la propuesta se abre en ese modo.
+- A tu propia propuesta, «Cambiarla» (la del otro, «Contraoferta»). Los pasos
+  salen también antes de aceptar.
+
+**Para PINGU**: nada nuevo (las migraciones 1098 y 1099, si no están).
+
+**Ficheros**: `js/cambio-propuesta.js` (`pintarMisCambios` con «En curso»,
+`pintarPropuestasCon` con la tira, `ladoHtml` con nombres),
+`js/mi-coleccion/tablon.js` (`nombresHtml`, `verboDe`),
+`css/cambio-propuesta.css`, `css/mi-coleccion.css`, `CLAUDE.md`. Pruebas en
+`pruebas`: 1100-pantalla nueva; 942, 1098 y 1099 siguen el trato en Cruces;
+1042 al día («Comprar»). La 887 y la 943 tienen el rojo de antes.
+
+**Pendiente**: nada de «Cambios más claros».
+
 ## 2026-10-29 (339) — PINGU-Claude (1099 — cambio, venta o compra; precios que se tocan y el envío)
 
 **Hecho**: de «Cambios más claros», 2.ª vuelta (PINGU: «adelante» con lo
