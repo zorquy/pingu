@@ -2097,6 +2097,17 @@ export const supabase = {
       const sin1102 = typeof window !== 'undefined' && window.__SIN_1102__
       if ((nombre === 'cambio_direcciones' || nombre === 'cambio_direccion_poner') && sin1102) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
       T.trade_offer_direcciones ||= []
+      // 1107: el Bizum o PayPal de quien cobra (`__SIN_1107__`: sin la migración).
+      const sin1107 = typeof window !== 'undefined' && window.__SIN_1107__
+      if ((nombre === 'cambio_cobros' || nombre === 'cambio_cobro_poner') && sin1107) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
+      T.trade_offer_cobros ||= []
+      if (nombre === 'cambio_cobros') {
+        const filas = T.trade_offer_cobros.filter((c) => {
+          const of = oferta(c.oferta)
+          return of && (args.p_ofertas || []).includes(c.oferta) && [of.de, of.para].includes(yo) && (c.quien === yo || ['aceptada', 'hecha'].includes(of.estado))
+        })
+        return { data: filas.map((c) => ({ ...c })), error: null }
+      }
       if (nombre === 'cambio_direcciones') {
         const filas = T.trade_offer_direcciones.filter((d) => {
           const of = oferta(d.oferta)
@@ -2121,6 +2132,21 @@ export const supabase = {
         if (o.estado !== 'enviada') return mal('Esa propuesta ya no se puede cambiar.')
         o.envio = args.p_envio
         return { data: { ...o }, error: null }
+      }
+      if (nombre === 'cambio_cobro_poner') {
+        if (!['enviada', 'aceptada'].includes(o.estado)) return mal('Ese trato ya no está en marcha.')
+        if (!['bizum', 'paypal'].includes(o.dinero_como)) return mal('Ese trato no se paga por Bizum ni por PayPal.')
+        const cobra = Number(o.dinero) > 0 ? (o.dinero_paga === 'de' ? o.para : o.dinero_paga === 'para' ? o.de : null) : null
+        if (cobra !== yo) return mal('En ese trato no cobras tú.')
+        let dato = String(args.p_dato ?? '').trim()
+        if (o.dinero_como === 'bizum') {
+          dato = dato.replace(/[^0-9+]/g, '')
+          if (!/^\+?[0-9]{9,15}$/.test(dato)) return mal('Ese no parece un número de teléfono para Bizum.')
+        } else if (dato.length < 3) return mal('Pon el email o el usuario de PayPal.')
+        T.trade_offer_cobros = T.trade_offer_cobros.filter((x) => !(x.oferta === o.id && x.quien === yo))
+        T.trade_offer_cobros.push({ oferta: o.id, quien: yo, como: o.dinero_como, dato })
+        if (o.estado === 'aceptada') avisar(o, yo, otro, 'cambio_cobro', 'Ya tienes cómo pagarle', o.dinero_como === 'bizum' ? 'Ya tienes mi Bizum para pagarme.' : 'Ya tienes mi PayPal para pagarme.')
+        return { data: null, error: null }
       }
       if (nombre === 'cambio_direccion_poner') {
         const d = args.p_dir || {}
