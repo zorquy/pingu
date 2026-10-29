@@ -41785,6 +41785,36 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1103 — «Ya lo he enviado», con el número de seguimiento
+
+PINGU: «si es un envío certificado, deberíamos poder poner el número de
+seguimiento».
+
+- Migración `supabase-migration-1103-cambio-enviado.sql`: `trade_offers`
+  gana `enviado_de_at`, `enviado_para_at`, `seguimiento_de` y
+  `seguimiento_para` (≤ 60). `cambio_enviado(oferta, seguimiento)`: parte
+  del trato, `aceptada`, por correo, que da cartas y con la dirección del
+  otro puesta; se puede repetir para corregir el número; avisa con
+  `cambio_enviado` («Te lo he mandado por certificado. Seguimiento: X.»).
+- El borrado a 30 días: `cambio_direcciones_purgar()` (tratos `hecha`,
+  `rechazada`, `anulada` o `cambiada` con `coalesce(hecha_at, updated_at)`
+  de hace más de 30 días). La llama `cambio_avisar` (redefinida desde la
+  1101, igual más el borrado), así que no hay función programada; y
+  `cambio_direcciones` (redefinida) ya no los enseña aunque no se hayan
+  borrado todavía.
+- Lo puro: `sabeEnvios(o)` (la fila trae `enviado_de_at`: sin la migración
+  no se pide nada), `mandaPorCorreo`, `enviadoDe`, `seguimientoDe`,
+  `faltaMandar` (no lo ha dicho ni el otro ha confirmado que le llegó);
+  `estadoDe` con «Te toca: mándaselo…» y «En camino»; `pasosDe` con
+  «Enviado» (seis pasos).
+- La tarjeta: `enviadoHtml` dentro de «Envía a …» (campo
+  `[data-cp-seguimiento]` solo con certificado y `data-cp-accion="enviado"`,
+  o «Enviado · seguimiento X»); quien recibe ve «Te lo ha enviado a …» con
+  Copiar (`data-cp-copiar` + `data-cp-copiado`, el texto del aviso).
+- En el móvil, con seis pasos, solo se lee el de ahora (`font-size: 0` en los
+  demás: el lector de pantalla los sigue leyendo).
+- Mensajes: `cambio_enviado` → «Enviado», con el avión de papel.
+
 ## Tanda 1102 — La dirección en los cambios por correo
 
 PINGU: «que alguien cuando acepta el envío también pueda meter su dirección…

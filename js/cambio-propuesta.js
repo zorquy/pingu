@@ -27,6 +27,7 @@ import {
   FICHERO_MIGRACION, COMOS, nombreDeComo, euros, balanceDe, dineroQueCuadra, dineroDeOferta, textoDeDinero, pagaParaRpc,
   estadoDe, estaViva, loQueSeMueve, itemsParaRpc, queRecibe, textoDeRecibido, loQueEs,
   ENVIOS, envioDe, tipoDe, tituloDe, pagaElEnvio, pasosDe, necesitaDireccion, faltaDireccion, vaPorCorreo, direccionCorta, lineasDeDireccion,
+  sabeEnvios, enviadoDe, seguimientoDe,
 } from './cambio-propuesta-puro.js'
 import {
   miDireccion, guardarMiDireccion, ponerEnTrato, direccionesDe, direccionHtml, elegirHtml, leerElegida, abrirFormulario, faltaLaMigracion,
@@ -707,11 +708,30 @@ function direccionEnTarjetaHtml(o, { yo, nombre, miDir }) {
   }
   if (mando) {
     partes.push(suya
-      ? `<section class="cp-t-dir cp-t-envia"><h4>Envía a ${escapeHtml(nombre)}${o.envio_tipo ? ` · ${escapeHtml((envioDe(o.envio_tipo)?.nombre || '').toLowerCase())}` : ''}</h4><div class="cp-t-envia-fila">${direccionHtml(suya)}<button type="button" class="btn-secondary cp-copiar" data-cp-copiar="${escapeHtml(lineasDeDireccion(suya).join('\n'))}">Copiar</button></div></section>`
+      ? `<section class="cp-t-dir cp-t-envia"><h4>Envía a ${escapeHtml(nombre)}${o.envio_tipo ? ` · ${escapeHtml((envioDe(o.envio_tipo)?.nombre || '').toLowerCase())}` : ''}</h4><div class="cp-t-envia-fila">${direccionHtml(suya)}<button type="button" class="btn-secondary cp-copiar" data-cp-copiar="${escapeHtml(lineasDeDireccion(suya).join('\n'))}" data-cp-copiado="Dirección copiada.">Copiar</button></div>${enviadoHtml(o, { yo })}</section>`
       : necesitaDireccion(o, otroId) ? `<p class="cp-t-envio-info">${escapeHtml(nombre)} todavía no ha puesto su dirección: en cuanto la ponga, te sale aquí.</p>` : '')
   }
-  if (recibo && mia) partes.push(`<p class="cp-t-envio-info">Te lo manda a: ${escapeHtml(direccionCorta(mia))}.</p>`)
+  if (recibo && mia) {
+    // Lo que te ha dicho que mandó, con su número para seguirlo (1103).
+    const seg = seguimientoDe(o, otroId)
+    partes.push(enviadoDe(o, otroId)
+      ? `<p class="cp-t-envio-info cp-t-enviado">${icons.send(13)}<span>${escapeHtml(nombre)} te lo ha enviado a ${escapeHtml(direccionCorta(mia))}.${seg ? ` Seguimiento: <b>${escapeHtml(seg)}</b>` : ''}</span>${seg ? `<button type="button" class="link-btn" data-cp-copiar="${escapeHtml(seg)}" data-cp-copiado="Número copiado.">Copiar</button>` : ''}</p>`
+      : `<p class="cp-t-envio-info">Te lo manda a: ${escapeHtml(direccionCorta(mia))}.</p>`)
+  }
   return partes.join('')
+}
+
+// «Ya lo he enviado» con el número de seguimiento si es certificado (1103);
+// dicho, lo que dijiste. Sin la migración, nada.
+function enviadoHtml(o, { yo }) {
+  if (!sabeEnvios(o) || o.estado !== 'aceptada') return ''
+  if (enviadoDe(o, yo)) {
+    const seg = seguimientoDe(o, yo)
+    return `<p class="cp-t-envio-info cp-t-enviado">${icons.checkCircle(13)}<span>Enviado${seg ? ` · seguimiento <b>${escapeHtml(seg)}</b>` : ''}</span></p>`
+  }
+  if ((o.de === yo ? o.recibido_para_at : o.recibido_de_at)) return ''
+  return `<div class="cp-t-enviar">${o.envio_tipo === 'certificado' ? `<label class="cp-campo cp-campo-seg"><span>Número de seguimiento <small>(opcional)</small></span><input type="text" data-cp-seguimiento maxlength="60" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Por ejemplo, PK123456789ES"></label>` : ''}
+    <button type="button" class="btn-primary" data-cp-accion="enviado" data-oferta="${escapeHtml(o.id)}">Ya lo he enviado</button></div>`
 }
 
 export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null }) {
@@ -826,11 +846,11 @@ function engancharAcciones(caja, contexto, recargar) {
     if (copiar && caja.contains(copiar)) {
       try {
         await navigator.clipboard.writeText(copiar.dataset.cpCopiar)
-        showToast('Dirección copiada.', 'success')
+        showToast(copiar.dataset.cpCopiado || 'Copiado.', 'success')
       } catch {
-        // Sin portapapeles: se selecciona para copiarla a mano.
-        const sel = getSelection()
-        sel.selectAllChildren(copiar.closest('.cp-t-envia-fila').querySelector('address'))
+        // Sin portapapeles: se selecciona para copiarlo a mano.
+        const aMano = copiar.closest('.cp-t-envia-fila')?.querySelector('address') || copiar.previousElementSibling
+        if (aMano) getSelection().selectAllChildren(aMano)
       }
       return
     }
@@ -876,6 +896,7 @@ function engancharAcciones(caja, contexto, recargar) {
       // Aceptar con el envío elegido (1099); las de antes, como siempre.
       const envioElegido = b.closest('.cp-tarjeta')?.querySelector('[data-cp-envio-elegir][aria-checked="true"]')?.dataset.cpEnvioElegir || null
       const rpc = accion === 'lo-tengo' ? ['cambio_lo_tengo', { p_oferta: o.id }]
+        : accion === 'enviado' ? ['cambio_enviado', { p_oferta: o.id, p_seguimiento: b.closest('.cp-tarjeta')?.querySelector('[data-cp-seguimiento]')?.value.trim() || null }]
         : accion === 'deshacer' ? ['cambio_deshacer', { p_oferta: o.id }]
           : accion === 'aceptar' && o.envio ? ['cambio_aceptar', { p_oferta: o.id, p_envio: envioElegido }]
             : ['cambio_contestar', { p_oferta: o.id, p_accion: accion }]
@@ -897,7 +918,7 @@ function engancharAcciones(caja, contexto, recargar) {
           } },
         })
       } else {
-        showToast({ aceptar: 'Aceptada. Ahora os mandáis las cartas.', rechazar: 'Rechazada.', anular: 'Anulada.', 'lo-tengo': 'Apuntado. Cuando lo confirme la otra persona, se mueven las cartas.', deshacer: 'Deshecho: las cartas vuelven a donde estaban.' }[accion] || 'Hecho.', 'success')
+        showToast({ aceptar: 'Aceptada. Ahora os mandáis las cartas.', rechazar: 'Rechazada.', anular: 'Anulada.', 'lo-tengo': 'Apuntado. Cuando lo confirme la otra persona, se mueven las cartas.', enviado: `Apuntado: a ${nombreDePersona(otro)} le llega el aviso de que va en camino.`, deshacer: 'Deshecho: las cartas vuelven a donde estaban.' }[accion] || 'Hecho.', 'success')
       }
       recargar()
     }

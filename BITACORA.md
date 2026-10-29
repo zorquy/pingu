@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (343) — PINGU-Claude (1103 — «Ya lo he enviado» con el número de seguimiento)
+
+**Hecho**: PINGU: «si es un envío certificado, deberíamos poder poner el
+número de seguimiento», y lo recomendado de la propuesta.
+- Con la dirección del otro puesta, quien manda cartas por correo ve debajo
+  de «Envía a …» **«Ya lo he enviado»** y, si es certificado, el campo del
+  **número de seguimiento** (opcional). Su trato dice «Te toca: mándaselo y
+  pulsa «Ya lo he enviado»».
+- Al otro le llega la tarjeta **«Enviado»** en Mensajes («Te lo he mandado
+  por certificado. Seguimiento: …») y en su trato «Te lo ha enviado a …
+  Seguimiento: PK…» con Copiar; su estado pasa a «En camino».
+- Los pasos de un trato por correo: Propuesta · Aceptada · Dirección ·
+  Enviado · Recibido · Hecho (en el móvil solo se lee el de ahora).
+- Las direcciones de los tratos cerrados hace más de 30 días ya no se enseñan
+  y se borran con el siguiente aviso de cualquier trato.
+
+**Para PINGU**: ejecutar `supabase-migration-1103-cambio-enviado.sql`
+(después de la 1102). Sin ella, lo de la 1102 funciona igual.
+
+**Ficheros**: `supabase-migration-1103-cambio-enviado.sql`,
+`js/cambio-propuesta-puro.js` (`faltaMandar`, `enviadoDe`, `seguimientoDe`,
+`estadoDe`, `pasosDe`), `js/cambio-propuesta.js` (`enviadoHtml`),
+`js/mensajes-puro.js`, `js/mensajes.js`, `css/cambio-propuesta.css`,
+`css/mensajes.css`. Pruebas en `pruebas`: 1103-pantalla y sql-tanda-1103
+nuevas; el doble sabe de lo enviado (`__SIN_1103__`).
+
+**Pendiente**: nada de las direcciones. Migraciones por ejecutar, en orden:
+1098, 1099, 1101, 1102 y 1103.
+
 ## 2026-10-29 (342) — PINGU-Claude (1102 — la dirección en los cambios por correo)
 
 **Hecho**: PINGU: «que alguien cuando acepta el envío también pueda meter su

@@ -184,6 +184,19 @@ export const necesitaDireccion = (o, quien) => vaPorCorreo(o) && (o?.items || []
 // migración). Lo que no se sabe no falta.
 export const faltaDireccion = (o, quien) => Boolean(o?.direcciones) && necesitaDireccion(o, quien) && !o.direcciones[quien]
 
+// LO ENVIADO (1103, PINGU: «si es un envío certificado, deberíamos poder poner
+// el número de seguimiento»). Solo si la fila trae las columnas (sin la
+// migración no se sabe y no se pide).
+export const sabeEnvios = (o) => Boolean(o) && 'enviado_de_at' in o
+export const mandaPorCorreo = (o, quien) => vaPorCorreo(o) && (o?.items || []).some((it) => it.quien === quien)
+export const enviadoDe = (o, quien) => (quien === o?.de ? o?.enviado_de_at : o?.enviado_para_at) || null
+export const seguimientoDe = (o, quien) => (quien === o?.de ? o?.seguimiento_de : o?.seguimiento_para) || null
+// Le falta mandar lo suyo: ni lo ha dicho ni el otro ha confirmado que le llegó.
+export function faltaMandar(o, quien) {
+  if (!sabeEnvios(o) || !mandaPorCorreo(o, quien) || enviadoDe(o, quien)) return false
+  return !(quien === o.de ? o.recibido_para_at : o.recibido_de_at)
+}
+
 // Lo que dice una propuesta de su estado, a quien mira, y qué puede hacer.
 export function estadoDe(oferta, yo, nombreOtro = 'la otra persona') {
   const mia = oferta?.de === yo
@@ -199,6 +212,12 @@ export function estadoDe(oferta, yo, nombreOtro = 'la otra persona') {
       // Por correo, sin tu dirección no te lo pueden mandar (1102).
       if (!yaLoTengo && faltaDireccion(oferta, yo)) return { texto: 'Te toca', tono: 'toca', acciones: ['anular'], frase: `Te toca: pon tu dirección para que ${nombreOtro} te lo envíe.` }
       if (!loTieneEl && faltaDireccion(oferta, otro)) return { texto: 'Falta su dirección', tono: 'espera', acciones: yaLoTengo ? ['anular'] : ['lo-tengo', 'anular'], frase: `Esperando a que ${nombreOtro} ponga su dirección para mandárselo.` }
+      // Con su dirección, te toca mandarlo y decirlo (1103).
+      if (faltaMandar(oferta, yo)) return { texto: 'Te toca', tono: 'toca', acciones: yaLoTengo ? ['anular'] : ['lo-tengo', 'anular'], frase: `Te toca: mándaselo a ${nombreOtro} y pulsa «Ya lo he enviado».` }
+      if (!yaLoTengo && enviadoDe(oferta, otro)) {
+        const seg = seguimientoDe(oferta, otro)
+        return { texto: 'En camino', tono: 'toca', acciones: ['lo-tengo', 'anular'], frase: `${nombreOtro} ya te lo ha enviado${seg ? ` (seguimiento ${seg})` : ''}. Cuando te llegue, confírmalo.` }
+      }
       if (!yaLoTengo) return { texto: loTieneEl ? `${nombreOtro} ya tiene lo tuyo` : 'Aceptado', tono: 'toca', acciones: ['lo-tengo', 'anular'], frase: loTieneEl ? `${nombreOtro} ya tiene lo tuyo. Cuando te llegue lo suyo, confírmalo.` : 'Aceptado: mandaos lo vuestro y confírmalo cuando te llegue.' }
       return { texto: `Esperando a que ${nombreOtro} lo confirme`, tono: 'espera', acciones: ['anular'], frase: `Esperando a que a ${nombreOtro} le llegue lo tuyo y lo confirme.` }
     case 'hecha':
@@ -226,11 +245,15 @@ export function pasoDe(oferta) {
 export function pasosDe(o) {
   const conDireccion = Boolean(o?.direcciones) && vaPorCorreo(o)
   if (!conDireccion) return { nombres: ['Propuesta', 'Aceptada', 'Recibido', 'Hecho'], paso: pasoDe(o) }
-  const nombres = ['Propuesta', 'Aceptada', 'Dirección', 'Recibido', 'Hecho']
-  if (o.estado === 'hecha') return { nombres, paso: 5 }
+  // Y con lo enviado sabido, «Enviado» (1103).
+  const conEnvio = sabeEnvios(o)
+  const nombres = conEnvio ? ['Propuesta', 'Aceptada', 'Dirección', 'Enviado', 'Recibido', 'Hecho'] : ['Propuesta', 'Aceptada', 'Dirección', 'Recibido', 'Hecho']
+  if (o.estado === 'hecha') return { nombres, paso: nombres.length }
   if (o.estado !== 'aceptada') return { nombres, paso: 1 }
-  if (o.recibido_de_at || o.recibido_para_at) return { nombres, paso: 4 }
-  return { nombres, paso: faltaDireccion(o, o.de) || faltaDireccion(o, o.para) ? 2 : 3 }
+  if (o.recibido_de_at || o.recibido_para_at) return { nombres, paso: nombres.length - 1 }
+  if (faltaDireccion(o, o.de) || faltaDireccion(o, o.para)) return { nombres, paso: 2 }
+  if (conEnvio && !faltaMandar(o, o.de) && !faltaMandar(o, o.para)) return { nombres, paso: 4 }
+  return { nombres, paso: 3 }
 }
 
 // Viva = lo que todavía pide algo a alguien (o se puede deshacer).

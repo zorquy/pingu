@@ -388,3 +388,19 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
 .cp-t-privado { display: flex; align-items: flex-start; gap: var(--e-xs); margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
 .cp-t-privado svg { flex: none; margin-top: 2px; color: var(--success); }
 @media (max-width: 400px) { .cp-campos { grid-template-columns: minmax(0, 1fr); } }
+
+/* Lo enviado (1103): el número de seguimiento y «Ya lo he enviado». */
+.cp-t-enviar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--e-sm); }
+.cp-t-enviar .cp-campo-seg { flex: 1 1 200px; }
+.cp-t-enviar .btn-primary { min-height: 44px; }
+.cp-t-enviado { gap: var(--e-xs); }
+.cp-t-enviado svg { flex: none; color: var(--success); }
+.cp-t-enviado b { color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: 0.02em; }
+.cp-t-enviado { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; }
+.cp-t-enviado svg { margin-top: 2px; }
+/* Con seis pasos no caben las seis palabras en un móvil: solo la del paso en
+   que está (las demás siguen ahí para el lector de pantalla). */
+@media (max-width: 560px) {
+  .cp-pasos:has(li:nth-child(6)) li:not(.ahora) { font-size: 0; }
+  .cp-pasos:has(li:nth-child(6)) li.ahora { white-space: nowrap; }
+}

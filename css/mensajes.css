@@ -874,6 +874,7 @@
 
 .msg-propuesta[data-evento='cambio_aceptado'] .msg-propuesta-icono,
 .msg-propuesta[data-evento='cambio_direccion'] .msg-propuesta-icono,
+.msg-propuesta[data-evento='cambio_enviado'] .msg-propuesta-icono,
 .msg-propuesta[data-evento='cambio_hecho'] .msg-propuesta-icono {
   background: var(--success-bg);
   color: var(--success);

@@ -726,7 +726,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   adjunto `propuesta`. La dirección de un trato por correo (1102) la pone
   quien recibe cartas y va en `trade_offer_direcciones`, que solo se lee
   por `cambio_direcciones` (la del otro, con el trato aceptado): nunca en
-  un mensaje, un perfil ni una consulta directa.
+  un mensaje, un perfil ni una consulta directa. Lo enviado y su número de
+  seguimiento (1103) pasan por `cambio_enviado`, y las direcciones de un
+  trato cerrado se borran a los 30 días (`cambio_direcciones_purgar`, desde
+  `cambio_avisar`): lo que lea direcciones respeta ese plazo.
 - **Una carta pintada en cualquier pantalla lleva sus marcas** (tanda 943,
   PINGU: «debería estar en todos los lados de la web»): el ✓ de «la tienes»
   y el corazón de «La quiero». Dentro de /mi-coleccion, con
