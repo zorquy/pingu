@@ -111,6 +111,11 @@ console.log('── 1. Lo puro ──')
   const o = { de: 'a', para: 'b', estado: 'enviada', dinero: 64, dinero_paga: 'para', dinero_como: 'bizum' }
   check('el dinero de una guardada, desde cada lado', m.textoDeDinero(m.dineroDeOferta(o, 'a'), 'Lucía') === 'Lucía te paga 64,00 € · Bizum' && m.textoDeDinero(m.dineroDeOferta(o, 'b'), 'Ana') === 'Le pagas 64,00 € · Bizum')
   check('enviada: quien la manda espera; quien la recibe, «Te toca» con aceptar, cambiar y rechazar', m.estadoDe(o, 'a', 'Lucía').texto === 'Esperando a Lucía' && m.estadoDe(o, 'b').acciones.join() === 'aceptar,editar,rechazar')
+  // 1098: el texto del botón según lo que te llega.
+  const oc = { de: 'a', para: 'b', dinero: 20, dinero_paga: 'para', items: [{ quien: 'a', cantidad: 2 }] }
+  check('venta: quien da recibe dinero («Dinero recibido»); quien paga, cartas («Cartas recibidas»)', m.textoDeRecibido(m.queRecibe(oc, 'a')) === 'Dinero recibido' && m.textoDeRecibido(m.queRecibe(oc, 'b')) === 'Cartas recibidas')
+  check('  …una sola carta: «Carta recibida»; carta y dinero: «Recibido»; nada: null', m.textoDeRecibido({ cartas: 1 }) === 'Carta recibida' && m.textoDeRecibido({ cartas: 1, dinero: 5 }) === 'Recibido' && m.textoDeRecibido({}) === null)
+  check('  …y lo que es, en palabras', m.loQueEs({ cartas: 2, dinero: 30 }) === '2 cartas y 30,00 €' && m.loQueEs({}) === 'nada')
   check('aceptada: «Lo tengo»; con el tuyo dado, a esperar', m.estadoDe({ ...o, estado: 'aceptada' }, 'a').acciones.join() === 'lo-tengo,anular' && m.estadoDe({ ...o, estado: 'aceptada', recibido_de_at: 'x' }, 'a').acciones.join() === 'anular')
   check('hecha: deshacer solo dentro del día', m.estadoDe({ ...o, estado: 'hecha', deshacer_hasta: new Date(Date.now() + 1e6).toISOString() }, 'a').acciones.join() === 'deshacer' && !m.estadoDe({ ...o, estado: 'hecha', deshacer_hasta: '2020-01-01' }, 'a').acciones.length)
   const rpc = m.itemsParaRpc([{ mia: true, linea: 'l1', cantidad: 1, precio: 70 }, { mia: false, card_id: 'c9', idioma: 'en', cantidad: 1, precio: null }])
@@ -175,7 +180,9 @@ console.log('\n── 3. Lucía, en Mensajes ──')
   const caja = page.locator('#msgPropuestas')
   const t3 = (await caja.innerText().catch(() => '')).replace(/\s+/g, ' ')
   check('la tarjeta encima de la conversación: «Te toca»', /Te toca/.test(t3), t3)
-  check('  …desde su lado: da 696,90 € (Umbreon y Pikachu), recibe 38,00 € (el Mew) y le pagan 600 € por Bizum', /Das · 696,90 €/.test(t3) && /Recibes · 38,00 €/.test(t3) && /te paga 600,00 € · Bizum/.test(t3) && /«Te la mando certificada»/.test(t3), t3)
+  // Desde la 1098 el dinero va DENTRO del lado de quien lo recibe y suma en
+  // su total: 38 € del Mew y 600 € por Bizum.
+  check('  …desde su lado: da 696,90 € (Umbreon y Pikachu) y recibe 638,00 € (el Mew y 600 € por Bizum)', /Das · 696,90 €/.test(t3) && /Recibes · 638,00 €/.test(t3) && /600,00 € · Bizum/.test(t3) && /«Te la mando certificada»/.test(t3), t3)
   check('  …con Aceptar, Cambiar algo y Rechazar', (await caja.locator('[data-cp-accion]').allInnerTexts()).join() === 'Aceptar,Cambiar algo,Rechazar', (await caja.locator('[data-cp-accion]').allInnerTexts()).join())
   await caja.locator('[data-cp-accion="aceptar"]').click()
   await page.waitForTimeout(1500)
@@ -184,11 +191,15 @@ console.log('\n── 3. Lucía, en Mensajes ──')
   // Lucía no tiene ningún Pikachu ex apuntado: la pedida se queda sin línea
   // (al cerrar le entra a quien la pide igual, y a ella no le sale nada).
   check('  …la pedida, que no tiene apuntada, se queda sin línea', tablas.trade_offer_items.find((i) => i.pedida)?.linea === null, JSON.stringify(tablas.trade_offer_items.find((i) => i.pedida)))
-  check('  …y la tarjeta pide «Lo tengo»', (await caja.locator('[data-cp-accion="lo-tengo"]').count()) === 1, await caja.innerText())
+  // 1098: el botón dice lo que le llega (la carta y el dinero: «Recibido»)
+  // y la tarjeta, quién ha confirmado ya.
+  check('  …y la tarjeta pide «Recibido» (le llegan una carta y dinero)', (await caja.locator('[data-cp-accion="lo-tengo"]').innerText()).trim() === 'Recibido', await caja.innerText())
+  const quien = (await caja.locator('.cp-quien').innerText().catch(() => '')).replace(/\s+/g, ' ')
+  check('  …y quién confirma qué: Admin dos cartas, ella una carta y 600 €, los dos pendientes', /Admin · 2 cartas Pendiente/.test(quien) && /Tú · 1 carta y 600,00 € Pendiente/.test(quien), quien)
   await caja.locator('[data-cp-accion="lo-tengo"]').click()
   await page.waitForTimeout(1500)
   tablas = await foto(page)
-  check('su «Lo tengo» se apunta, sin mover nada todavía', tablas.trade_offers[0].recibido_para_at && tablas.trade_offers[0].estado === 'aceptada' && /Esperando su «Lo tengo»/.test(await caja.innerText()))
+  check('su «Lo tengo» se apunta, sin mover nada todavía', tablas.trade_offers[0].recibido_para_at && tablas.trade_offers[0].estado === 'aceptada' && /Esperando a que Admin lo confirme/.test(await caja.innerText()) && /Tú · 1 carta y 600,00 € Recibido ✓/.test((await caja.innerText()).replace(/\s+/g, ' ')))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
@@ -201,6 +212,7 @@ console.log('\n── 4. Yo cierro el cambio, y lo deshago ──')
   await ir(page, `/mensajes.html?c=${conv}`)
   const caja = page.locator('#msgPropuestas')
   check('«Lucía ya tiene lo tuyo»', /Lucía ya tiene lo tuyo/.test(await caja.innerText()), await caja.innerText())
+  check('  …y el botón dice «Cartas recibidas» (te llegan dos)', (await caja.locator('[data-cp-accion="lo-tengo"]').innerText()).trim() === 'Cartas recibidas')
   await caja.locator('[data-cp-accion="lo-tengo"]').click()
   await page.waitForTimeout(600)
   const conf = page.locator('#cpCerrar')
