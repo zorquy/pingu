@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (341) — PINGU-Claude (1101 — el mensaje de un cambio, una tarjeta con «Ver propuesta»)
+
+**Hecho**: PINGU: «en vez de que sea un texto plano, ¿puede ser algo más
+interactivo, con un botón de propuesta?». Los mensajes que escribe solo un
+cambio (propuesta, contraoferta, aceptada, rechazada, anulada, «ya tiene lo
+tuyo», hecho, deshecho) salen en la conversación como una **tarjeta**: un
+icono (verde si va bien, rojo si se cae), el título («Propuesta de cambio»,
+«Contraoferta», «Propuesta aceptada»…), lo que dice y **«Ver propuesta»**, que
+lleva a ese trato en Cruces → «En curso». El aviso de la campanita lleva
+también allí (antes, a la conversación). El texto ya no dice «La tienes arriba
+de la conversación».
+
+**Para PINGU**: ejecutar `supabase-migration-1101-cambio-mensaje.sql` (después
+de la 1098 y la 1099). Sin ella, los mensajes salen igual de tarjeta
+(reconocidos por su texto), pero el botón lleva a «En curso» y no al trato.
+
+**Ficheros**: `supabase-migration-1101-cambio-mensaje.sql` (`cambio_avisar`
+con el adjunto `{ tipo: 'propuesta', oferta, evento }`), `js/mensajes-puro.js`
+(`propuestaDe`), `js/mensajes.js` (`burbujaHtml`), `css/mensajes.css`. Pruebas
+en `pruebas`: 1101-pantalla y sql-tanda-1101 nuevas; el doble pone el adjunto
+(`__SIN_1101__` para hacer como si no estuviera la migración).
+
+**Pendiente**: nada.
+
 ## 2026-10-29 (340) — PINGU-Claude (1100 — «En curso» en Cruces, la tira en Mensajes y los cruces con nombres)
 
 **Hecho**: lo último de «Cambios más claros» (PINGU: «adelante»):

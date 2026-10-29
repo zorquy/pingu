@@ -841,3 +841,75 @@
 
 /* «Vender esta carta» y «Apartar» (1092), uno al lado del otro. */
 .msg-carta-botones { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+
+/* El mensaje de un cambio (1101): una tarjeta con su título y «Ver
+   propuesta», del mismo blanco a los dos lados. */
+.msg-burbuja.con-propuesta {
+  min-width: min(280px, 100%);
+  padding: 0;
+  background: transparent;
+}
+
+.msg-propuesta {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  gap: var(--e-xs) var(--e-sm);
+  align-items: start;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+}
+
+.msg-propuesta-icono {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--navy);
+  place-items: center;
+}
+
+.msg-propuesta[data-evento='cambio_aceptado'] .msg-propuesta-icono,
+.msg-propuesta[data-evento='cambio_hecho'] .msg-propuesta-icono {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.msg-propuesta[data-evento='cambio_rechazado'] .msg-propuesta-icono,
+.msg-propuesta[data-evento='cambio_anulado'] .msg-propuesta-icono {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.msg-propuesta-texto {
+  display: grid;
+  min-width: 0;
+}
+
+.msg-propuesta-texto b {
+  font-size: var(--t-sm);
+}
+
+.msg-propuesta-texto small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  line-height: 1.4;
+}
+
+.msg-propuesta-ver {
+  grid-column: 2;
+  justify-self: start;
+}
+
+/* En lo tuyo, `.msg-burbuja.mia a` le pondría el blanco de la burbuja. */
+.msg-burbuja .msg-propuesta a.msg-propuesta-ver {
+  color: var(--navy);
+}
+
+.msg-burbuja.con-propuesta .msg-meta {
+  padding: 0 var(--e-xs);
+  color: var(--text-dim);
+}

@@ -20,7 +20,7 @@ import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
-import { agruparPorDia, horaDe, ultimoVisto, resumenDeUltimo, adjuntosDe, cartasDe, cabenAdjuntos, enterEnvia, MAX_FOTOS } from './mensajes-puro.js'
+import { agruparPorDia, horaDe, ultimoVisto, resumenDeUltimo, adjuntosDe, cartasDe, propuestaDe, cabenAdjuntos, enterEnvia, MAX_FOTOS } from './mensajes-puro.js'
 
 const root = document.getElementById('messagesRoot')
 const params = new URLSearchParams(window.location.search)
@@ -193,11 +193,21 @@ function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta }) {
   const fotos = fotosHtml(adjuntosDe(m), urls)
   // Las cartas de «Me interesa» (1080), con su módulo ya cargado.
   const cartas = carta ? cartasDe(m).map((a) => carta.cartaHtml(a, { miId, mia })).join('') : ''
+  // El mensaje de un cambio (1101): una tarjeta con su título y el botón.
+  const prop = propuestaDe(m)
+  const propuesta = prop
+    ? `<div class="msg-propuesta" data-evento="${escapeHtml(prop.evento)}">
+        <span class="msg-propuesta-icono" aria-hidden="true">${icons.refreshCw(16)}</span>
+        <span class="msg-propuesta-texto"><b>${escapeHtml(prop.titulo)}</b><small>${escapeHtml(prop.texto)}</small></span>
+        <a class="btn-secondary msg-propuesta-ver" href="${escapeHtml(prop.enlace)}">Ver propuesta</a>
+      </div>`
+    : ''
   return `
-    <div class="msg-burbuja${mia ? ' mia' : ''}${m.seguido ? ' seguida' : ''}${fotos && !texto ? ' solo-fotos' : ''}${cartas ? ' con-carta' : ''}" data-id="${m.id}">
+    <div class="msg-burbuja${mia ? ' mia' : ''}${m.seguido ? ' seguida' : ''}${fotos && !texto ? ' solo-fotos' : ''}${cartas ? ' con-carta' : ''}${propuesta ? ' con-propuesta' : ''}" data-id="${m.id}">
       ${cartas}
+      ${propuesta}
       ${fotos}
-      ${texto ? `<p>${enlazarMenciones(escapeHtml(texto), mencionados)}</p>` : ''}
+      ${texto && !propuesta ? `<p>${enlazarMenciones(escapeHtml(texto), mencionados)}</p>` : ''}
       <span class="msg-meta">
         <time datetime="${escapeHtml(m.created_at)}" title="${new Date(m.created_at).toLocaleString('es-ES')}">${horaDe(m.created_at)}</time>
         ${mia ? `<button type="button" class="msg-borrar" data-delete-msg="${m.id}" aria-label="Eliminar mensaje" title="Eliminar">${icons.trash(13)}</button>` : reportButtonHtml('private_message', m.id)}

@@ -720,7 +720,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   recibe al aceptar (`cambio_aceptar`) y en una venta lo paga quien compra
   (`pagaElEnvio`). Un trato se SIGUE en Cruces → «En curso» (1100,
   `#oferta-<id>`); en Mensajes solo hay una tira que lleva allí: no vuelvas a
-  meter la tarjeta entera en la conversación.
+  meter la tarjeta entera en la conversación. Lo que pasa en un trato
+  llega a la conversación como una tarjeta con «Ver propuesta» (1101,
+  `propuestaDe`): un paso nuevo avisa por `cambio_avisar`, que le pone el
+  adjunto `propuesta`.
 - **Una carta pintada en cualquier pantalla lleva sus marcas** (tanda 943,
   PINGU: «debería estar en todos los lados de la web»): el ✓ de «la tienes»
   y el corazón de «La quiero». Dentro de /mi-coleccion, con

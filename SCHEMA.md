@@ -41785,6 +41785,32 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1101 — El mensaje de un cambio, una tarjeta
+
+PINGU: «en vez de que sea un texto plano, algo más interactivo, con un botón
+de propuesta».
+
+- Migración `supabase-migration-1101-cambio-mensaje.sql`: `cambio_avisar`
+  (942) mete el mensaje con `adjuntos = [{ tipo: 'propuesta', oferta, evento }]`
+  (`evento` es el `p_tipo` del aviso: `cambio_propuesta`, `cambio_aceptado`…),
+  quita del texto « La tienes arriba de la conversación.» (desde la 1100 se
+  sigue en Cruces) y el `link` del aviso pasa a
+  `/mi-coleccion?ver=cambios#oferta-<id>`. El texto se queda: lo leen el aviso,
+  la bandeja (`resumenDeUltimo`) y lo que no sepa de la tarjeta.
+- `propuestaDe(mensaje)` (`js/mensajes-puro.js`): con el adjunto, `{ oferta,
+  evento, titulo, texto, enlace }`; sin él, reconoce los mensajes de antes por
+  su texto (`EVENTOS_POR_TEXTO`, los escribe siempre `cambio_avisar`) y el
+  enlace va a «En curso» sin trato. La contraoferta es un `cambio_propuesta`
+  con «He cambiado la propuesta…». Null para cualquier otro mensaje.
+- `burbujaHtml` (`js/mensajes.js`): con propuesta, la burbuja lleva
+  `con-propuesta` (sin fondo ni relleno) y dentro `.msg-propuesta[data-evento]`
+  (icono, `<b>` título, `<small>` texto, `a.btn-secondary.msg-propuesta-ver`);
+  el `<p>` del texto no se pinta. `adjuntosDe` solo cuenta lo que tiene `ruta`,
+  así que la propuesta no sale como foto ni se intenta borrar del cubo.
+- Pruebas: `test-tanda-1101-pantalla.mjs` (lo puro, la tarjeta en la
+  conversación con y sin `__SIN_1101__`, «Propuesta aceptada» al aceptar) y
+  `sql-tanda-1101.sql` (adjunto, evento, texto, enlace del aviso, permisos).
+
 ## Tanda 1100 — «En curso» en Cruces, la tira en Mensajes y los cruces con nombres
 
 De «Cambios más claros», 2.ª vuelta (PINGU: «adelante»; decisión 3, el

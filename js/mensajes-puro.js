@@ -87,6 +87,48 @@ export function cartasDe(mensaje) {
   return a.filter((x) => x && x.tipo === 'carta' && typeof x.stock_id === 'string' && (x.card_id || x.product_id))
 }
 
+// EL MENSAJE DE UN CAMBIO (1101, PINGU: «en vez de texto plano, algo más
+// interactivo, con un botón de propuesta»). Desde la migración 1101 lleva un
+// adjunto `{ tipo: 'propuesta', oferta, evento }`; los de antes se
+// reconocen por su texto (los escribe `cambio_avisar`, siempre igual) y van
+// sin oferta: el botón lleva a «En curso» a secas.
+const EVENTOS_POR_TEXTO = [
+  [/^Te he mandado una propuesta de cambio/, 'cambio_propuesta'],
+  [/^He cambiado la propuesta de cambio/, 'cambio_contraoferta'],
+  [/^He aceptado tu propuesta/, 'cambio_aceptado'],
+  [/^No me cuadra esta propuesta/, 'cambio_rechazado'],
+  [/^He anulado la propuesta/, 'cambio_anulado'],
+  [/^Ya me ha llegado lo tuyo/, 'cambio_recibido'],
+  [/^Cambio hecho/, 'cambio_hecho'],
+  [/^He deshecho el cambio/, 'cambio_deshecho'],
+]
+export const TITULO_DE_EVENTO = {
+  cambio_propuesta: 'Propuesta de cambio',
+  cambio_contraoferta: 'Contraoferta',
+  cambio_aceptado: 'Propuesta aceptada',
+  cambio_rechazado: 'Propuesta rechazada',
+  cambio_anulado: 'Propuesta anulada',
+  cambio_recibido: 'Le ha llegado lo tuyo',
+  cambio_hecho: 'Cambio hecho',
+  cambio_deshecho: 'Cambio deshecho',
+}
+export function propuestaDe(mensaje) {
+  const texto = String(mensaje?.body || '').trim()
+  const a = Array.isArray(mensaje?.adjuntos) ? mensaje.adjuntos.find((x) => x && x.tipo === 'propuesta' && x.oferta) : null
+  const porTexto = EVENTOS_POR_TEXTO.find(([re]) => re.test(texto))?.[1] || null
+  if (!a && !porTexto) return null
+  // Una contraoferta se escribe con el mismo tipo que una propuesta: la
+  // distingue el texto.
+  const evento = porTexto === 'cambio_contraoferta' ? porTexto : (a?.evento || porTexto)
+  return {
+    oferta: a?.oferta || null,
+    evento,
+    titulo: TITULO_DE_EVENTO[evento] || 'Propuesta de cambio',
+    texto: texto.replace(/\s*La tienes arriba de la conversación\.$/, ''),
+    enlace: `/mi-coleccion?ver=cambios${a?.oferta ? `#oferta-${a.oferta}` : ''}`,
+  }
+}
+
 // El adjunto de una línea del escaparate: solo lo que hace falta para
 // pintarla y para que la tienda la encuentre (`stock_id`), nada del coste.
 export function adjuntoDeCarta(linea, tiendaId) {
