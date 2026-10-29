@@ -259,8 +259,10 @@ console.log('\n── 5. El Mercado ──')
   await ir(page)
   await page.click('[data-merc-ficha="swsh7-215"]')
   await page.waitForTimeout(1400)
+  // Desde la 1109 lo que está en un cambio en marcha sale del Mercado: Lucía
+  // ni aparece (antes salía «Reservada»).
   const lucia = page.locator('#mcMercadoFichaCuerpo .mc-merf-persona', { hasText: 'Lucía' })
-  check('el Umbreon de Lucía, en un cambio aceptado: «Reservada» y sin proponer', /Reservada/.test(await lucia.innerText()) && (await lucia.locator('[data-merf-proponer]').count()) === 0, await lucia.innerText())
+  check('el Umbreon de Lucía, en un cambio aceptado: fuera del Mercado', (await lucia.count()) === 0)
   const iker = page.locator('#mcMercadoFichaCuerpo .mc-merf-persona', { hasText: 'Íker' })
   check('el de Íker sí: «Proponer cambio»', (await iker.locator('[data-merf-proponer]').count()) === 1)
   await iker.locator('[data-merf-proponer]').click()

@@ -1570,6 +1570,7 @@ function consulta(tabla, estado = {}) {
 // rol anon no tiene permiso sobre todas y la consulta fallaría entera).
 export const CONSULTAS = { n: 0, porTabla: {}, columnas: {}, igualdades: {} }
 
+const FUERA_DEL_MERCADO = new Set(['mercado_con_tiendas', 'intercambios_mercado', 'intercambios_de_carta', 'intercambios_quien_tiene', 'intercambios_de_persona'])
 export const supabase = {
   from: (tabla) => {
     // Fingir que una tabla NO existe (window.__SIN_TABLAS__): es el
@@ -1612,6 +1613,22 @@ export const supabase = {
   // `forum_ver_tema` suma la visita ahí mismo, que es barato y hace que
   // el contador de la ficha se comporte como en la web de verdad.
   rpc: async (nombre, args = {}) => {
+    // 1109: lo que está en una propuesta enviada o aceptada no se ofrece en el
+    // Mercado, los cruces ni el perfil (`cambio_libres_de` en la base). Se
+    // simula dándoles una colección con lo libre en `cambio`, y se devuelve
+    // la de verdad al acabar. `__SIN_1109__`: como antes.
+    if (FUERA_DEL_MERCADO.has(nombre) && !args.__vista1109 && !(typeof window !== 'undefined' && window.__SIN_1109__)) {
+      const original = T.user_collection
+      const ofertas = T.trade_offers || []
+      const enJuego = (id) => (T.trade_offer_items || []).filter((i) => i.linea === id && ['enviada', 'aceptada'].includes(ofertas.find((o) => o.id === i.oferta)?.estado)).reduce((n, i) => n + (Number(i.cantidad) || 0), 0)
+      T.user_collection = original.map((c) => (Number(c.cambio) > 0 ? { ...c, cambio: Math.max(0, Math.min(Number(c.cambio), (Number(c.cantidad) || 0) - enJuego(c.id))) } : c))
+      try {
+        return await supabase.rpc(nombre, { ...args, __vista1109: true })
+      } finally {
+        T.user_collection = original
+      }
+    }
+    if (args.__vista1109) { args = { ...args }; delete args.__vista1109 }
     RPCS.push({ nombre, args })
     // Hacer fallar una función a propósito (tanda 512): lo que pasa cuando
     // la base dice que no es justo lo que una prueba de «éxito» nunca ve.
