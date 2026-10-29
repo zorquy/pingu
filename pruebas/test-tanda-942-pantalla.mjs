@@ -183,7 +183,8 @@ console.log('\n── 3. Lucía, en Mensajes ──')
   // Desde la 1098 el dinero va DENTRO del lado de quien lo recibe y suma en
   // su total: 38 € del Mew y 600 € por Bizum.
   check('  …desde su lado: da 696,90 € (Umbreon y Pikachu) y recibe 638,00 € (el Mew y 600 € por Bizum)', /Das · 696,90 €/.test(t3) && /Recibes · 638,00 €/.test(t3) && /600,00 € · Bizum/.test(t3) && /«Te la mando certificada»/.test(t3), t3)
-  check('  …con Aceptar, Cambiar algo y Rechazar', (await caja.locator('[data-cp-accion]').allInnerTexts()).join() === 'Aceptar,Cambiar algo,Rechazar', (await caja.locator('[data-cp-accion]').allInnerTexts()).join())
+  // «Cambiar algo» es «Contraoferta» desde la 1099.
+  check('  …con Aceptar, Contraoferta y Rechazar', (await caja.locator('[data-cp-accion]').allInnerTexts()).join() === 'Aceptar,Contraoferta,Rechazar', (await caja.locator('[data-cp-accion]').allInnerTexts()).join())
   await caja.locator('[data-cp-accion="aceptar"]').click()
   await page.waitForTimeout(1500)
   tablas = await foto(page)
@@ -252,7 +253,10 @@ console.log('\n── 5. El Mercado ──')
   check('el de Íker sí: «Proponer cambio»', (await iker.locator('[data-merf-proponer]').count()) === 1)
   await iker.locator('[data-merf-proponer]').click()
   await page.waitForTimeout(1800)
-  check('  …y abre el editor con su Umbreon (en inglés) ya puesto', (await page.$eval('#cpDialogo', (x) => x.open)) && /Umbreon VMAX/.test(await page.locator('#cpDialogo .cp-lado').nth(1).innerText()) && /Inglés/.test(await page.locator('#cpDialogo .cp-lado').nth(1).innerText()), await page.locator('#cpDialogo .cp-lado').nth(1).innerText().catch(() => ''))
+  // Íker da y tú no le das nada: desde la 1099 se abre en «Le compro», con
+  // un lado (el suyo).
+  const ladoIker = await page.locator('#cpDialogo .cp-lado').last().innerText().catch(() => '')
+  check('  …y abre el editor en «Le compro» con su Umbreon (en inglés) ya puesto', (await page.$eval('#cpDialogo', (x) => x.open)) && (await page.locator('#cpDialogo [data-cp-modo="compro"][aria-pressed="true"]').count()) === 1 && /Umbreon VMAX/.test(ladoIker) && /Inglés/.test(ladoIker), ladoIker)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

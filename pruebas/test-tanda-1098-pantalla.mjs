@@ -155,7 +155,9 @@ console.log('── 3. Yo confirmo el dinero ──')
   const caja = page.locator('#msgPropuestas')
   const boton = (await caja.locator('[data-cp-accion="lo-tengo"]').innerText()).trim()
   const quien = (await caja.locator('.cp-quien').innerText()).replace(/\s+/g, ' ')
-  check('mi botón dice «Dinero recibido», y ella ya confirmó su carta', boton === 'Dinero recibido' && /Lucía · 1 carta Carta recibida ✓/.test(quien) && /Tú · 20,00 € Pendiente/.test(quien), `${boton} | ${quien}`)
+  // Desde la 1099 va por correo y ella aceptó con el normal (2 €), que paga
+  // quien compra: a mí me llegan 22 €.
+  check('mi botón dice «Dinero recibido» (20 € y 2 € de envío), y ella ya confirmó su carta', boton === 'Dinero recibido' && /Lucía · 1 carta Carta recibida ✓/.test(quien) && /Tú · 22,00 € Pendiente/.test(quien), `${boton} | ${quien}`)
   await caja.locator('[data-cp-accion="lo-tengo"]').click()
   await page.waitForTimeout(600)
   await page.locator('#cpCerrar [data-r="si"]').click()

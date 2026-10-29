@@ -2075,6 +2075,31 @@ export const supabase = {
       const o = oferta(args.p_oferta)
       if (!o || ![o.de, o.para].includes(yo)) return mal('Esa propuesta no es tuya.')
       const otro = yo === o.de ? o.para : o.de
+      // 1098: quien no recibe nada (regala) queda confirmado al aceptar y al deshacer.
+      const recibeAlgo = (q) => T.trade_offer_items.some((i) => i.oferta === o.id && i.quien !== q) || (Number(o.dinero) > 0 && ((o.dinero_paga === 'de' && q === o.para) || (o.dinero_paga === 'para' && q === o.de)))
+      const sinEsperar = () => {
+        if (o.estado !== 'aceptada') return
+        if (!o.recibido_de_at && !recibeAlgo(o.de)) o.recibido_de_at = ahora()
+        if (!o.recibido_para_at && !recibeAlgo(o.para)) o.recibido_para_at = ahora()
+      }
+      // 1099: el envío.
+      if (nombre === 'cambio_envio_poner') {
+        if (!['mano', 'correo'].includes(args.p_envio)) return mal('El envío es en mano o por correo.')
+        if (o.de !== yo) return mal('Esa propuesta no es tuya.')
+        if (o.estado !== 'enviada') return mal('Esa propuesta ya no se puede cambiar.')
+        o.envio = args.p_envio
+        return { data: { ...o }, error: null }
+      }
+      if (nombre === 'cambio_aceptar') {
+        if (o.para !== yo) return mal('Esa propuesta no es tuya.')
+        if (o.estado !== 'enviada') return mal('Esa propuesta ya no se puede aceptar.')
+        if (o.envio === 'correo') {
+          if (!['mano', 'normal', 'certificado'].includes(args.p_envio)) return mal('Elige cómo te lo manda: normal, certificado o en mano.')
+          Object.assign(o, { envio_tipo: args.p_envio, envio_precio: { normal: 2, certificado: 7 }[args.p_envio] || 0 })
+        } else if (o.envio === 'mano') Object.assign(o, { envio_tipo: 'mano', envio_precio: 0 })
+        nombre = 'cambio_contestar'
+        args = { ...args, p_accion: 'aceptar' }
+      }
       if (nombre === 'cambio_contestar') {
         if (args.p_accion === 'aceptar') {
           if (o.estado !== 'enviada' || yo !== o.para) return mal('Esa propuesta ya no se puede aceptar.')
@@ -2088,7 +2113,8 @@ export const supabase = {
             }
           }
           Object.assign(o, { estado: 'aceptada', aceptada_at: ahora(), updated_at: ahora() })
-          avisar(o, yo, otro, 'cambio_aceptado', 'Han aceptado tu cambio', 'He aceptado tu propuesta de cambio. Cuando te llegue lo mío, dale a «Lo tengo».')
+          sinEsperar()
+          avisar(o, yo, otro, 'cambio_aceptado', 'Han aceptado tu cambio', 'He aceptado tu propuesta. Cuando te llegue lo mío, confírmalo en la propuesta y las cartas se mueven solas.')
         } else if (args.p_accion === 'rechazar') {
           if (o.estado !== 'enviada' || yo !== o.para) return mal('Esa propuesta ya no se puede rechazar.')
           o.estado = 'rechazada'
@@ -2155,6 +2181,7 @@ export const supabase = {
         }
         T.trade_confirmations = T.trade_confirmations.filter((c) => c.id !== o.confirmacion)
         Object.assign(o, { estado: 'aceptada', recibido_de_at: null, recibido_para_at: null, hecha_at: null, deshacer_hasta: null, movimientos: null, confirmacion: null })
+        sinEsperar()
         avisar(o, yo, otro, 'cambio_deshecho', 'Un cambio se ha deshecho', 'He deshecho el cambio.')
         return { data: { ...o }, error: null }
       }
