@@ -366,11 +366,14 @@ async function init() {
   }
 
   loadMessageButton()
-  // «12 cambios · todos bien» (795, NU4): sin cambios o sin la migración, nada.
-  import('./cambios-hechos.js').then(async (m) => {
-    const t = m.textoDeConfianza(await m.cambiosDe(profile.id))
-    if (t) document.getElementById('heroInfo')?.insertAdjacentHTML('beforeend', `<p class="perfil-confianza">${escapeHtml(t)}</p>`)
-  }).catch(() => {})
+  // «12 cambios · todos bien» (795, NU4), en un sello que abre Cambios (1105):
+  // sin cambios o sin la migración, nada.
+  import('./cambios-hechos.js').then((m) => m.ponerSello(document.getElementById('heroInfo'), profile.id, {
+    alPulsar: () => {
+      abrirPestania('cambios')
+      document.getElementById('ptab-cambios')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    },
+  })).catch(() => {})
   // Quien escanea el QR del modo evento (1029/1030) llega a /evento/<usuario>:
   // sin cuenta, la puerta a registrarse arriba (las listas se ven igual, en
   // Cambios); con cuenta, el cruce lo pinta la propia pestaña. `?cruce=1` es

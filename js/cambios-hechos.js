@@ -4,6 +4,8 @@
 // los ve la moderación. Todo pasa por las funciones de
 // supabase-migration-cambios-hechos.sql: sin ella, nada se pinta.
 import { supabase } from './supabase.js'
+import { escapeHtml } from './html.js'
+import { hojaInyectada } from './hoja.js'
 
 export const FICHERO_MIGRACION = 'supabase-migration-cambios-hechos.sql'
 const sinMigracion = (e) => ['PGRST202', 'PGRST205', '42P01', '42883'].includes(e?.code) || /Could not find|does not exist/i.test(e?.message || '')
@@ -16,7 +18,7 @@ export function textoDeConfianza(c) {
   const cuantos = hechos === 1 ? '1 cambio' : `${hechos.toLocaleString('es-ES')} cambios`
   if (bien >= hechos) return `${cuantos} · todos bien`
   if (!bien) return cuantos
-  return `${cuantos} · ${bien} dijeron que fue bien`
+  return `${cuantos} · ${bien} ${bien === 1 ? 'dijo' : 'dijeron'} que fue bien`
 }
 
 export async function cambiosDe(userId) {
@@ -70,4 +72,73 @@ export async function ponerConfianza(raiz) {
     const t = textoDeConfianza(await yaPedidos.get(id))
     if (t && h.isConnected) h.textContent = t
   }))
+}
+
+// ── En el perfil y en el trato (tanda 1105, PINGU: «dale» a lo recomendado) ──
+
+// El sello de confianza debajo del nombre, en los dos perfiles: «12 cambios ·
+// todos bien», que abre la pestaña Cambios. Sin cambios, nada.
+export async function ponerSello(sitio, userId, { alPulsar = null } = {}) {
+  if (!sitio || !userId) return
+  hojaInyectada('css/cambios-hechos.css')
+  const t = textoDeConfianza(await cambiosDe(userId))
+  sitio.querySelector('.perfil-confianza')?.remove()
+  if (!t || !sitio.isConnected) return
+  const b = document.createElement('button')
+  b.type = 'button'
+  b.className = 'perfil-confianza'
+  b.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>${escapeHtml(t)}`
+  b.title = 'Cambios hechos en PokeDoc'
+  if (alPulsar) b.addEventListener('click', alPulsar)
+  sitio.appendChild(b)
+}
+
+// Tus últimos cambios hechos (los dos lo confirmaron), o null si no se sabe.
+export async function ultimosHechos(yo, limite = 5) {
+  const { data, error } = await supabase.from('trade_confirmations').select('*')
+    .or(`user_a.eq.${yo},user_b.eq.${yo}`).not('hecho_a_at', 'is', null).not('hecho_b_at', 'is', null)
+    .order('created_at', { ascending: false }).limit(limite)
+  if (error) return null
+  return data || []
+}
+
+// Unas filas por id (las de los tratos hechos), o un mapa vacío.
+export async function confirmacionesPorId(ids) {
+  if (!ids.length) return new Map()
+  const { data, error } = await supabase.from('trade_confirmations').select('*').in('id', ids)
+  return new Map(error ? [] : (data || []).map((f) => [f.id, f]))
+}
+
+// Puro: lo que dijo `yo` de ese cambio, y quién era el otro.
+export const miValoracion = (fila, yo) => (fila?.user_a === yo ? fila?.valoracion_a : fila?.valoracion_b) || null
+export const elOtroDe = (fila, yo) => (fila?.user_a === yo ? fila?.user_b : fila?.user_a)
+
+// «¿Qué tal fue?» con sus dos botones. Lo engancha `engancharValorar`.
+export const valorarHtml = (id, nombre = '') => `<div class="cv-valorar" data-cv-conf="${escapeHtml(id)}">
+    <span class="cv-pregunta">¿Qué tal fue${nombre ? ` con ${escapeHtml(nombre)}` : ''}?</span>
+    <span class="cv-botones"><button type="button" class="btn-secondary" data-cv="bien">Todo bien</button><button type="button" class="btn-secondary" data-cv="problema">Hubo un problema</button></span>
+  </div>`
+
+// Un oyente por caja. Cambia ya y, si la base dice que no, vuelve (896).
+export function engancharValorar(caja, alAcabar = null) {
+  if (!caja) return
+  hojaInyectada('css/cambios-hechos.css')
+  if (caja.dataset.cvEnganchado) return
+  caja.dataset.cvEnganchado = '1'
+  caja.addEventListener('click', async (ev) => {
+    const b = ev.target.closest('[data-cv]')
+    const bloque = b?.closest('[data-cv-conf]')
+    if (!bloque) return
+    const valor = b.dataset.cv
+    const nota = valor === 'problema' ? window.prompt('Cuéntale a la moderación qué pasó (no lo verá nadie más):', '') : null
+    if (valor === 'problema' && nota === null) return
+    const antes = bloque.innerHTML
+    bloque.innerHTML = `<span class="cv-pregunta">${valor === 'bien' ? 'Dijiste que fue bien. ¡Gracias!' : 'Lo verá la moderación.'}</span>`
+    try {
+      await valorarCambio(bloque.dataset.cvConf, valor, nota)
+      alAcabar?.()
+    } catch (err) {
+      bloque.innerHTML = `${antes}<span class="cv-error" role="alert">${escapeHtml(err.message)}</span>`
+    }
+  })
 }

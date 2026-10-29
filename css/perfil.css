@@ -1290,13 +1290,6 @@ button.perfil-cifra:hover .rotulo {
   }
 }
 
-/* La confianza en los cambios (795, NU4). */
-.perfil-confianza {
-  margin-top: var(--e-xs);
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-  font-weight: 700;
-}
 
 /* ── 1040: en el teléfono, la cabecera más baja para que la vitrina se vea
    al entrar (SCHEMA 1040): banner de 88, avatar de 72, la bio en una línea,

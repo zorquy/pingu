@@ -41785,6 +41785,29 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1105 — Los cambios hechos en el perfil y «¿Qué tal fue?» en el trato
+
+PINGU: «cuando haces un cambio, ¿se ve reflejado en algún sitio?… ¿metemos en
+algún sitio el perfil?»; propuesta B («dale»). Sin migración: sale de
+`trade_confirmations` (795), donde un trato hecho apunta su cambio (942/1098).
+
+- `ponerSello(sitio, userId, { alPulsar })` (`js/cambios-hechos.js`): un
+  `button.perfil-confianza` con `textoDeConfianza` dentro de `#heroInfo`, en
+  /perfil (después de `loadProfile`) y /usuario; abre la pestaña Cambios.
+  Sin cambios, nada (la regla de la 795).
+- «Tus últimos cambios» (`hechosHtml` en `js/perfil-cambios.js`, solo con
+  `propia`): las cinco últimas filas completas de `trade_confirmations`
+  (`ultimosHechos`, la RLS deja leer las tuyas), con el nombre del otro y la
+  fecha; «Fue bien» / «Lo mira la moderación», o `valorarHtml`. En el perfil
+  de otra persona no sale (con quién cambias no es público).
+- En «En curso»: `pintarMisCambios` lee las confirmaciones de los hechos
+  (`confirmacionesPorId`) y marca `o.porValorar`; la tarjeta pinta
+  `valorarHtml` y ese trato cuenta como «te toca» (se abre). «Los anteriores»
+  se abre si alguno está por valorar.
+- `valorarHtml` / `engancharValorar`: un oyente por caja, cambia ya (896) y
+  vuelve si la base dice que no; «Hubo un problema» pide la nota como el botón
+  de Mensajes. Su hoja, `css/cambios-hechos.css` (con la del sello, que salió de perfil.css), la meten `engancharValorar` y `ponerSello`.
+
 ## Tanda 1104 — Los avatares, redondos
 
 PINGU: «es una imagen redonda y obliga a ser cuadrada y queda mal». La 748

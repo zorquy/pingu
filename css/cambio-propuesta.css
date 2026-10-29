@@ -404,3 +404,4 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
   .cp-pasos:has(li:nth-child(6)) li:not(.ahora) { font-size: 0; }
   .cp-pasos:has(li:nth-child(6)) li.ahora { white-space: nowrap; }
 }
+.cp-pasada .cv-valorar { flex: 1 1 100%; }

@@ -29,6 +29,7 @@ import {
   ENVIOS, envioDe, tipoDe, tituloDe, pagaElEnvio, pasosDe, necesitaDireccion, faltaDireccion, vaPorCorreo, direccionCorta, lineasDeDireccion,
   sabeEnvios, enviadoDe, seguimientoDe,
 } from './cambio-propuesta-puro.js'
+import { confirmacionesPorId, miValoracion, valorarHtml, engancharValorar } from './cambios-hechos.js'
 import {
   miDireccion, guardarMiDireccion, ponerEnTrato, direccionesDe, direccionHtml, elegirHtml, leerElegida, abrirFormulario, faltaLaMigracion,
 } from './cambio-direccion.js'
@@ -783,6 +784,7 @@ export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null }) {
     ${o.estado === 'enviada' || o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de ${pasos.length}">${pasos.map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
     ${o.estado === 'aceptada' ? `<ul class="cp-quien" aria-label="Quién ha confirmado">${filaQuien(escapeHtml(nombre), recibeEl, yaEl)}${filaQuien('Tú', recibo, yaYo)}</ul>
     <p class="subtext cp-t-ayuda">${yaYo ? `Cuando ${escapeHtml(nombre)} lo confirme, las cartas se mueven solas.` : `Cuando te llegue${recibo.cartas && !recibo.dinero ? (recibo.cartas === 1 ? ' la carta' : 'n las cartas') : recibo.dinero && !recibo.cartas ? ' el dinero' : ' todo'}, pulsa «${escapeHtml(textoDeRecibido(recibo) || 'Ya lo he mandado')}». Al confirmarlo los dos, las cartas cambian de colección solas.`}</p>` : ''}
+    ${o.estado === 'hecha' && o.porValorar ? valorarHtml(o.confirmacion, nombre) : ''}
     ${acciones ? `<div class="cp-t-acciones">${acciones}</div>` : ''}
   </article>`
 }
@@ -992,6 +994,13 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
     return
   }
   if (!ofertas.length) { caja.innerHTML = ''; caja.hidden = true; return }
+  // «¿Qué tal fue?» en los hechos que no has valorado (1105): la valoración
+  // vive en su cambio hecho (`trade_confirmations`, 795).
+  const confs = await confirmacionesPorId(ofertas.filter((o) => o.estado === 'hecha' && o.confirmacion).map((o) => o.confirmacion))
+  for (const o of ofertas) {
+    const c = confs.get(o.confirmacion)
+    o.porValorar = Boolean(c && c.hecho_a_at && c.hecho_b_at && !miValoracion(c, yo))
+  }
   estado.ofertas = ofertas
   estado.perfiles = await perfilesDe(ofertas.map((o) => (o.de === yo ? o.para : o.de)))
   const vivas = ofertas.filter(estaViva)
@@ -1002,23 +1011,25 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
   // «EN CURSO» (1100): lo que espera algo de ti, primero; cada trato con lo
   // que es, en qué está y sus botones. Se llega desde la tira de Mensajes
   // y desde los avisos con `#oferta-<id>`, que lo abre.
-  const pide = (o) => (estadoDe(o, yo).tono === 'toca' ? 0 : 1)
+  const toca = (o) => estadoDe(o, yo).tono === 'toca' || o.porValorar
+  const pide = (o) => (toca(o) ? 0 : 1)
   vivas.sort((a, b) => pide(a) - pide(b))
   caja.innerHTML = `<h2 class="section-title cp-mis-titulo">${vivas.length ? `En curso · ${vivas.length}` : 'Tus cambios'}</h2>
     ${vivas.map((o) => {
       const p = otroDe(o)
       const est = estadoDe(o, yo, nombreDePersona(p))
-      return `<details class="cp-linea${est.tono === 'toca' ? ' cp-toca' : ''}" id="oferta-${escapeHtml(o.id)}"${est.tono === 'toca' ? ' open' : ''}>
+      return `<details class="cp-linea${toca(o) ? ' cp-toca' : ''}" id="oferta-${escapeHtml(o.id)}"${toca(o) ? ' open' : ''}>
         <summary>${avatarHtml(p)}<span class="cp-linea-texto"><b>${escapeHtml(tituloDe(o, yo, nombreDePersona(p)))}</b><small>${escapeHtml(resumenDe(o, yo))}</small>${est.frase ? `<small class="cp-linea-frase">${escapeHtml(est.frase)}</small>` : ''}</span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span><span class="cp-linea-ver" aria-hidden="true">Ver</span></summary>
         <div class="cp-con"><a class="cp-con-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}<span>${escapeHtml(nombreDePersona(p))}</span></a>${o.conversacion ? `<a class="link-btn" href="/mensajes.html?c=${escapeHtml(o.conversacion)}">Escribirle</a>` : ''}</div>${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe, miDir: estado.miDir })}
       </details>`
     }).join('')}
-    ${pasadas.length ? `<details class="cp-pasadas"><summary>Los anteriores · ${pasadas.length}</summary><ul>${pasadas.map((o) => {
+    ${pasadas.length ? `<details class="cp-pasadas"${pasadas.some((o) => o.porValorar) ? ' open' : ''}><summary>Los anteriores · ${pasadas.length}</summary><ul>${pasadas.map((o) => {
       const p = otroDe(o)
       const est = estadoDe(o, yo, nombreDePersona(p))
-      return `<li class="cp-pasada"><span>${avatarHtml(p)} <b>${escapeHtml(nombreDePersona(p))}</b> · ${escapeHtml(resumenDe(o, yo).toLowerCase())}</span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span></li>`
+      return `<li class="cp-pasada"><span>${avatarHtml(p)} <b>${escapeHtml(nombreDePersona(p))}</b> · ${escapeHtml(resumenDe(o, yo).toLowerCase())}</span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span>${o.porValorar ? valorarHtml(o.confirmacion, nombreDePersona(p)) : ''}</li>`
     }).join('')}</ul></details>` : ''}`
   engancharAcciones(caja, () => estado, recargar)
+  engancharValorar(caja)
   // Llegar con `#oferta-<id>` (la tira de Mensajes, un aviso) lo abre; y
   // también si cambia con la página ya abierta (no se recarga).
   const abrirPedida = () => {

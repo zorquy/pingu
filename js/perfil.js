@@ -69,6 +69,12 @@ async function loadProfile(session, { fresco = false } = {}) {
   return profile
 }
 
+// Abrir la pestaña Cambios y bajar a ella (el sello de la 1105).
+function abrirCambios() {
+  abrirPestania('cambios')
+  document.getElementById('ptab-cambios')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+}
+
 async function loadStats(session, profile) {
   // A cuántos les han servido SUS GUÍAS (974), no una nota puesta a la
   // persona; a la vez que lo demás (983).
@@ -720,6 +726,8 @@ async function init() {
   vistaVigilada(claveDeVista('perfil', session.user.id), ['heroInfo', 'heroAvatar', 'profileStats', 'followersCount', 'followingCount', 'achievementsCount', 'achievementsGrid', 'myGuidesList'], { atributos: ['heroBanner', 'heroAvatar'] })
 
   const profile = await loadProfile(session)
+  // Tus cambios hechos, en un sello debajo del nombre que abre Cambios (1105).
+  import('./cambios-hechos.js').then((m) => m.ponerSello(document.getElementById('heroInfo'), session.user.id, { alPulsar: abrirCambios })).catch(() => {})
   // Lo de abajo solo necesita el perfil, no lo uno de lo otro: todo a la vez
   // (983). Antes los logros esperaban a las cifras, y la vitrina, a los logros.
   // Lo que das y lo que buscas (887): tu pestaña Cambios, siempre.

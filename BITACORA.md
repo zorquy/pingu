@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (345) — PINGU-Claude (1105 — los cambios hechos en el perfil y «¿Qué tal fue?» en el trato)
+
+**Hecho**: PINGU preguntó si un cambio se ve reflejado en el perfil y cómo;
+propuesta con maquetas y «dale» a lo recomendado (B):
+- **Sello** verde con su check debajo del nombre, en tu perfil y en el de los
+  demás: «12 cambios · todos bien». Al tocarlo abre la pestaña Cambios. Sin
+  cambios, nada. (Antes salía como texto gris solo en el perfil de los demás.)
+- **Tus últimos cambios**, arriba de tu pestaña Cambios (solo en el tuyo):
+  con quién y cuándo, y «Fue bien» o «¿Qué tal fue?» si no lo has valorado.
+- **En «En curso»**, un trato hecho pregunta «¿Qué tal fue con Lucía?» (Todo
+  bien / Hubo un problema) y se abre solo; y en «Los anteriores», los que
+  falten por valorar.
+- La errata «1 dijeron que fue bien» → «1 dijo».
+
+**Para PINGU**: nada que ejecutar (sale de los cambios hechos de la 795).
+
+**Ficheros**: `js/cambios-hechos.js` (`ponerSello`, `ultimosHechos`,
+`confirmacionesPorId`, `miValoracion`, `elOtroDe`, `valorarHtml`,
+`engancharValorar`), `css/cambios-hechos.css` (nueva), `js/perfil.js`,
+`js/usuario.js`, `js/perfil-cambios.js`, `js/cambio-propuesta.js`,
+`css/perfil.css`, `css/perfil-cambios.css`, `css/cambio-propuesta.css`.
+Pruebas en `pruebas`: 1105-pantalla nueva; el doble sabe `cambios_de` y
+`cambio_valorar`.
+
+**Pendiente**: nada.
+
 ## 2026-10-29 (344) — PINGU-Claude (1104 — los avatares, redondos)
 
 **Hecho**: PINGU, con una captura de su perfil: «es una imagen redonda y

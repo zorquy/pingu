@@ -729,7 +729,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   un mensaje, un perfil ni una consulta directa. Lo enviado y su número de
   seguimiento (1103) pasan por `cambio_enviado`, y las direcciones de un
   trato cerrado se borran a los 30 días (`cambio_direcciones_purgar`, desde
-  `cambio_avisar`): lo que lea direcciones respeta ese plazo.
+  `cambio_avisar`): lo que lea direcciones respeta ese plazo. Un trato hecho cuenta como cambio
+  hecho (`trade_confirmations`): el sello del perfil (`ponerSello`) y
+  «¿Qué tal fue?» (`valorarHtml`) salen de ahí (1105); con quién cambias
+  solo lo ves tú.
 - **Una carta pintada en cualquier pantalla lleva sus marcas** (tanda 943,
   PINGU: «debería estar en todos los lados de la web»): el ✓ de «la tienes»
   y el corazón de «La quiero». Dentro de /mi-coleccion, con

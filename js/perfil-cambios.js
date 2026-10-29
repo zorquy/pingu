@@ -232,6 +232,28 @@ function ponerChapa(texto, { propia }) {
   sitio.appendChild(b)
 }
 
+// TUS ÚLTIMOS CAMBIOS (1105), solo en tu perfil: con quién y cuándo (nada de
+// cartas ni dinero), y «¿Qué tal fue?» en los que no has valorado. En el de
+// los demás solo sale la cifra (el sello de arriba).
+async function hechosHtml(yo) {
+  const m = await import('./cambios-hechos.js')
+  const filas = await m.ultimosHechos(yo, 5)
+  if (!filas?.length) return ''
+  const ids = [...new Set(filas.map((f) => m.elOtroDe(f, yo)))]
+  const { data } = await supabase.from('user_profiles').select('id,username,display_name').in('id', ids)
+  const gente = new Map((data || []).map((p) => [p.id, p]))
+  const fecha = (f) => new Date(f.hecho_b_at > f.hecho_a_at ? f.hecho_b_at : f.hecho_a_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+  return `<section class="pc-bloque pc-hechos" aria-label="Tus últimos cambios">
+    <h2 class="section-title">Tus últimos cambios</h2>
+    <ul class="pc-hechos-lista">${filas.map((f) => {
+      const p = gente.get(m.elOtroDe(f, yo))
+      const nombre = p?.display_name || p?.username || 'Alguien'
+      const dicho = m.miValoracion(f, yo)
+      return `<li><span>Con <b>${escapeHtml(nombre)}</b> · ${escapeHtml(fecha(f))}</span>${dicho ? `<span class="pc-hechos-dicho">${dicho === 'bien' ? 'Fue bien' : 'Lo mira la moderación'}</span>` : m.valorarHtml(f.id, nombre)}</li>`
+    }).join('')}</ul>
+  </section>`
+}
+
 // `persona`: la fila de user_profiles de la ficha; `sesion`: la de quien
 // mira (o null); `propia`: si es tu perfil (la pestaña sale siempre, vacía
 // con sus dos caminos).
@@ -266,8 +288,17 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
   ponerChapa(textoDeChapa(cuentas), { propia })
   if (total > 0) abrirLaQueTengaAlgo()
 
+  const hechos = propia && miId ? hechosHtml(miId).catch(() => '') : Promise.resolve('')
+  const ponerHechos = async () => {
+    const html = await hechos
+    if (!html || !caja.isConnected) return
+    caja.querySelector('.pc-hechos')?.remove()
+    caja.insertAdjacentHTML('afterbegin', html)
+    ;(await import('./cambios-hechos.js')).engancharValorar(caja)
+  }
   if (!total) {
     caja.innerHTML = vaciaHtml(propia, { daVacio: true, buscaVacio: true })
+    void ponerHechos()
     return cuentas
   }
 
@@ -318,6 +349,7 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
         : `<h2 class="section-title">${quienBusca} 0 cartas</h2>${vaciaHtml(propia, { daVacio: false, buscaVacio: true })}`}
     </section>`
 
+  void ponerHechos()
   // Las flechas pasan una «pantalla» de la fila; «Ver todas», la hoja.
   const listas = {
     pcRejillaDa: { titulo: `Lo que ${propia ? 'das' : `da ${nombre}`}`, items: itemsDa, textoSolo: hayDeLoMio(itemsDa) ? 'Las que buscas' : '' },
