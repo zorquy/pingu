@@ -858,7 +858,8 @@ console.log('── 16. El perfil de su maqueta (J4) ──')
     const lote = [...document.querySelectorAll('#profileStats .perfil-cifra')]
     return {
       banner: { izq: Math.round(b.left), ancho: Math.round(b.width), ventana: innerWidth, fondo: getComputedStyle(document.getElementById('heroBanner')).backgroundImage.slice(0, 15) },
-      avatarCuadrado: getComputedStyle(document.getElementById('heroAvatar')).borderRadius !== '50%' && a.top < b.bottom,
+      // Redondo desde la 1104 (PINGU: una foto redonda en un cuadrado quedaba mal).
+      avatarCuadrado: getComputedStyle(document.getElementById('heroAvatar')).borderRadius === '50%' && a.top < b.bottom,
       botonAlLado: Math.abs(e.top - a.top) < a.height && e.left > a.right,
       nombreDebajo: n.top > a.top && n.width > 200,
       arroba: document.querySelector('.perfil-arroba')?.textContent || null,
@@ -869,7 +870,7 @@ console.log('── 16. El perfil de su maqueta (J4) ──')
   })
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('el banner va a sangre y, sin foto, con su degradado', m.banner.izq === 0 && m.banner.ancho === m.banner.ventana && /gradient/.test(m.banner.fondo), JSON.stringify(m.banner))
-  check('el avatar, cuadrado redondeado y montado en el banner; «Editar perfil» a su lado', m.avatarCuadrado && m.botonAlLado, JSON.stringify(m))
+  check('el avatar, redondo (1104) y montado en el banner; «Editar perfil» a su lado', m.avatarCuadrado && m.botonAlLado, JSON.stringify(m))
   check('el nombre debajo, a lo ancho, con su @', m.nombreDebajo && /^@/.test(m.arroba || ''), JSON.stringify(m))
   check('las cinco cifras en una fila (867), en minúscula, y «0 seguidores»', m.cuatro && m.rotulos.every((x) => /lowercase$/.test(x)) && /^0 seguidores$/i.test(m.gente), JSON.stringify(m))
   await ctx.close()
