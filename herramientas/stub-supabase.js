@@ -2075,6 +2075,17 @@ export const supabase = {
         avisar(o, yo, para, 'cambio_propuesta', 'Propuesta de cambio', `${args.p_anterior ? 'He cambiado la propuesta de cambio: ' : 'Te he mandado una propuesta de cambio: '}doy ${doy} ${doy === 1 ? 'carta' : 'cartas'} y recibo ${recibo} ${recibo === 1 ? 'carta' : 'cartas'}${dinero > 0 ? (args.p_paga === 'de' ? ` y te pago ${euros(dinero)}` : ` y me pagas ${euros(dinero)}`) : ''}. La tienes arriba de la conversación.`)
         return { data: o.id, error: null }
       }
+      // 1102: las direcciones de los tratos por correo (`__SIN_1102__`: sin la migración).
+      const sin1102 = typeof window !== 'undefined' && window.__SIN_1102__
+      if ((nombre === 'cambio_direcciones' || nombre === 'cambio_direccion_poner') && sin1102) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
+      T.trade_offer_direcciones ||= []
+      if (nombre === 'cambio_direcciones') {
+        const filas = T.trade_offer_direcciones.filter((d) => {
+          const of = oferta(d.oferta)
+          return of && (args.p_ofertas || []).includes(d.oferta) && [of.de, of.para].includes(yo) && (d.quien === yo || ['aceptada', 'hecha'].includes(of.estado))
+        })
+        return { data: filas.map((d) => ({ ...d })), error: null }
+      }
       const o = oferta(args.p_oferta)
       if (!o || ![o.de, o.para].includes(yo)) return mal('Esa propuesta no es tuya.')
       const otro = yo === o.de ? o.para : o.de
@@ -2092,6 +2103,18 @@ export const supabase = {
         if (o.estado !== 'enviada') return mal('Esa propuesta ya no se puede cambiar.')
         o.envio = args.p_envio
         return { data: { ...o }, error: null }
+      }
+      if (nombre === 'cambio_direccion_poner') {
+        const d = args.p_dir || {}
+        const v = (k) => String(d[k] ?? '').trim()
+        if (!['enviada', 'aceptada'].includes(o.estado)) return mal('Ese trato ya no está en marcha.')
+        if (o.envio !== 'correo' || o.envio_tipo === 'mano') return mal('Ese trato no va por correo.')
+        if (!T.trade_offer_items.some((i) => i.oferta === o.id && i.quien !== yo)) return mal('En ese trato no te mandan cartas: no hace falta tu dirección.')
+        if (v('nombre').length < 2 || v('calle').length < 3 || v('cp').length < 3 || v('ciudad').length < 2) return mal('Falta algo de la dirección: nombre, calle, código postal y ciudad.')
+        T.trade_offer_direcciones = T.trade_offer_direcciones.filter((x) => !(x.oferta === o.id && x.quien === yo))
+        T.trade_offer_direcciones.push({ oferta: o.id, quien: yo, nombre: v('nombre'), calle: v('calle'), cp: v('cp'), ciudad: v('ciudad'), provincia: v('provincia') || null, telefono: v('telefono') || null })
+        if (o.estado === 'aceptada') avisar(o, yo, otro, 'cambio_direccion', 'Ya tienes su dirección', 'Ya tienes mi dirección para el envío.')
+        return { data: null, error: null }
       }
       if (nombre === 'cambio_aceptar') {
         if (o.para !== yo) return mal('Esa propuesta no es tuya.')

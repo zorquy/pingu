@@ -64,6 +64,8 @@ async function abrir({ movil = false, sesion = true, ancho = 1440, extra = {} } 
     window.__FAKE_PERFILES__ = d.PERFILES
     window.__FAKE_PRECIOS__ = d.PRECIOS
     Object.assign(window, d.extra)
+    // Desde la 1102, por correo hace falta la dirección: cada uno tiene la suya guardada.
+    window.__FAKE_FILAS__ = { user_direcciones: ['admin-1', 'user-1', 'user-2', 'user-3', 'user-4'].map((u) => ({ user_id: u, nombre: `Persona ${u}`, calle: 'C/ Mayor 1', cp: '28013', ciudad: 'Madrid' })), ...(window.__FAKE_FILAS__ || {}) }
   }, { SETS, CARTAS, COLECCION, DESEOS, PERFILES, PRECIOS, sesion, extra })
   await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com|limitlesstcg|jsdelivr|githubusercontent|scrydex/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="245" height="342"><rect width="245" height="342" fill="#5b8fd1"/></svg>' }))
   await ctx.route(/api\.tcgdex\.net|\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
@@ -83,7 +85,7 @@ const textoDe = (page, id) => page.$eval(`#mcMercadoRejilla [data-merc="${id}"]`
 const visible = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); return !!e && !e.closest('.hidden') && e.getBoundingClientRect().height > 0 }, sel)
 
 
-const TABLAS_DEL_CAMBIO = ['trade_offers', 'trade_offer_items', 'conversations', 'conversation_participants', 'private_messages', 'user_collection', 'user_wants', 'user_notifications', 'trade_confirmations']
+const TABLAS_DEL_CAMBIO = ['trade_offers', 'trade_offer_items', 'conversations', 'conversation_participants', 'private_messages', 'user_collection', 'user_wants', 'user_notifications', 'trade_confirmations', 'trade_offer_direcciones']
 const foto = (page) => page.evaluate((ts) => Object.fromEntries(ts.map((t) => [t, window.__TABLAS__[t] || []])), TABLAS_DEL_CAMBIO)
 // Abrir como otra persona con lo que dejó la anterior: el doble vive en la página.
 async function abrirCon(tablas, sesion, opciones = {}) {
