@@ -1995,6 +1995,22 @@ export const supabase = {
     // (probada contra PostgreSQL en sql-tanda-942.sql): validar, mover las
     // cartas, apuntar lo movido y deshacerlo. `window.__SIN_942__` hace como
     // si la migración no estuviera.
+    // Los cambios hechos (795) que lee el perfil y se valoran (1105).
+    if (nombre === 'cambios_de' || nombre === 'cambio_valorar') {
+      const filas = (T.trade_confirmations ||= [])
+      if (nombre === 'cambios_de') {
+        const u = args.p_user
+        const suyas = filas.filter((f) => [f.user_a, f.user_b].includes(u))
+        return { data: [{ hechos: suyas.filter((f) => f.hecho_a_at && f.hecho_b_at).length, bien: suyas.filter((f) => (f.user_a === u && f.valoracion_b === 'bien') || (f.user_b === u && f.valoracion_a === 'bien')).length }], error: null }
+      }
+      const yo = sesion?.user?.id || null
+      const f = filas.find((x) => x.id === args.p_id)
+      if (!['bien', 'problema'].includes(args.p_valor)) return { data: null, error: { code: 'P0001', message: 'La valoración es «bien» o «problema».' } }
+      if (!f || ![f.user_a, f.user_b].includes(yo)) return { data: null, error: { code: 'P0001', message: 'Ese cambio no es tuyo.' } }
+      if (yo === f.user_a) Object.assign(f, { valoracion_a: args.p_valor, nota_a: args.p_nota || null })
+      else Object.assign(f, { valoracion_b: args.p_valor, nota_b: args.p_nota || null })
+      return { data: null, error: null }
+    }
     if (/^cambio_|^cambios_reservadas$/.test(nombre) && nombre !== 'cambio_marcar' && nombre !== 'cambio_valorar') {
       if (typeof window !== 'undefined' && window.__SIN_942__) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
       for (const t of ['trade_offers', 'trade_offer_items', 'conversations', 'conversation_participants', 'private_messages', 'trade_confirmations']) T[t] ||= []
@@ -2204,7 +2220,7 @@ export const supabase = {
             T.user_wants.splice(T.user_wants.indexOf(w), 1)
           }
         }
-        const conf = { id: nuevoId(), user_a: [o.de, o.para].sort()[0], user_b: [o.de, o.para].sort()[1], hecho_a_at: ahora(), hecho_b_at: ahora() }
+        const conf = { id: nuevoId(), user_a: [o.de, o.para].sort()[0], user_b: [o.de, o.para].sort()[1], hecho_a_at: ahora(), hecho_b_at: ahora(), valoracion_a: null, valoracion_b: null, created_at: ahora() }
         T.trade_confirmations.push(conf)
         Object.assign(o, { movimientos: hecho, estado: 'hecha', hecha_at: ahora(), deshacer_hasta: new Date(Date.now() + 864e5).toISOString(), confirmacion: conf.id })
         avisar(o, yo, otro, 'cambio_hecho', 'Cambio hecho', 'Cambio hecho: las cartas ya están en la colección de cada uno.')

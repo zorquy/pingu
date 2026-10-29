@@ -21,7 +21,7 @@ check('solo entre dos que han hablado por Mensajes', /conversation_participants 
 check('lo público no cuenta los problemas', /returns table \(hechos bigint, bien bigint\)/.test(sql) && !/returns table[^)]*problema/.test(sql))
 check('  …y lo lee cualquiera; marcar y valorar, solo con cuenta', /cambios_de\(uuid\) to anon, authenticated/.test(sql) && /cambio_marcar\(uuid\) to authenticated;/.test(sql))
 check('sin tablas temporales (la 631)', !/temp(orary)? table/i.test(sql))
-check('la conversación lleva el botón y el perfil la confianza', /cambio-boton\.js/.test(leer('js/mensajes.js')) && /textoDeConfianza/.test(leer('js/usuario.js')))
+check('la conversación lleva el botón y el perfil la confianza', /cambio-boton\.js/.test(leer('js/mensajes.js')) && /textoDeConfianza|ponerSello/.test(leer('js/usuario.js')))
 
 console.log('── 2. Lo puro ──')
 const b = await chromium.launch()
