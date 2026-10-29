@@ -112,6 +112,10 @@ const MENSAJE = { id: 'm1', conversation_id: 'c1', sender_id: 'user-1', body: 'h
   await p.waitForTimeout(800)
   check('«Le interesa», con el precio de cuando escribió y «Vender esta carta»', !errs.length && /Le interesa/.test(await p.textContent('.msg-carta')) && /30,00\s€\s*cuando escribió/.test(await p.textContent('.msg-carta')) && (await p.isVisible('[data-vender-carta="st-1"]')), errs.join(' | '))
   check('  …la foto es la del catálogo y lo escrito no se ejecuta', !(await p.evaluate(() => window.__XSS__)) && !(await p.locator('.msg-carta img[src*="malo.example"]').count()) && (await p.locator('.msg-carta img').count()) === 1)
+  // 1092: y «Apartar», para quien escribe.
+  await p.click('[data-apartar-carta="st-1"]'); await p.waitForTimeout(1200)
+  check('«Apartar» se abre para quien escribe, con su @', (await p.locator('dialog.tda[open]').count()) === 1 && /^@/.test(await p.inputValue('.tda [data-para]')) && (await p.inputValue('.tda [data-precio]')) === '30', await p.inputValue('.tda [data-para]').catch(() => ''))
+  await p.click('.tda [data-tda="cerrar"]'); await p.waitForTimeout(300)
   await p.click('[data-vender-carta="st-1"]'); await p.waitForTimeout(1500)
   check('Vender se abre con esa línea y su precio', (await p.locator('dialog.tdv[open]').count()) === 1 && (await p.inputValue('dialog.tdv [data-precio]')) === '30', await p.textContent('body').then((t) => t.slice(0, 0)))
   await ctx.close()
