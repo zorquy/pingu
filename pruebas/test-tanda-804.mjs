@@ -58,7 +58,10 @@ for (const movil of [false, true]) {
     (await page.locator('.foro-seccion-titulo:visible').allTextContents()).join('|') === 'Comunidad|Juego'
     && (await page.locator('.foro-fila:visible').count()) === 2)
   const calientes = page.locator('.foro-calientes')
-  check(`[${nombre}] «Lo que se está hablando» arriba, también en el móvil`, (await calientes.count()) === 1 && (await calientes.isVisible()))
+  // Desde la 1096 en el PC lo último va en el lateral («Lo último») y la
+  // franja es solo del móvil.
+  if (movil) check('[móvil] «Lo que se está hablando» arriba', (await calientes.count()) === 1 && (await calientes.isVisible()))
+  else check('[ordenador] la franja no se ve y «Lo último» va en el lateral', !(await calientes.isVisible()) && (await page.locator('#foroLateral .foro-lou:visible').count()) === 1)
   if (movil) {
     // La franja se desliza de lado y no saca la página de ancho.
     const r = await page.evaluate(() => ({ ancho: document.documentElement.scrollWidth, ventana: innerWidth, fila: getComputedStyle(document.querySelector('.foro-calientes-rejilla')).overflowX }))

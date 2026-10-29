@@ -110,7 +110,9 @@ console.log('\n── 1. D · El foro dice de qué se está hablando ──')
   const { page, errores } = await abrir('/foro.html')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
   const franja = page.locator('#foroDestacado')
-  check('hay franja de lo caliente', await franja.isVisible())
+  // Desde la 1096 la franja se pinta igual pero en el PC no se ve: lo
+  // último va en el lateral. Lo de la franja se sigue mirando en el DOM.
+  check('hay franja de lo caliente (en el PC escondida) y «Lo último» en el lateral', (await franja.locator('.foro-calientes').count()) === 1 && (await page.locator('#foroLateral .foro-lou').isVisible()))
   const tarjetas = franja.locator('.foro-caliente')
   const n = await tarjetas.count()
   check('  …con 3 temas, ni más ni menos', n === 3, `${n} de ${5} temas que hay`)
