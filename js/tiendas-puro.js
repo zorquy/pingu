@@ -266,6 +266,76 @@ export function rangoDePeriodo(periodo, ahora = new Date()) {
   return r ? { desde: r[0].toISOString(), hasta: r[1].toISOString() } : { desde: null, hasta: null }
 }
 
+// ── El cierre del mes (1094) ──
+
+// Los meses que se ofrecen: este y los once de antes, del más nuevo al más
+// viejo. `clave` es «2026-10».
+export function mesesDeCierre(ahora = new Date(), cuantos = 12) {
+  const r = []
+  for (let i = 0; i < cuantos; i++) {
+    const d = new Date(ahora.getFullYear(), ahora.getMonth() - i, 1)
+    r.push({ clave: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`, nombre: d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' }) })
+  }
+  return r
+}
+
+// El mes entero en la hora de quien mira: del día 1 a las 0:00 al día 1 del
+// siguiente.
+export function rangoDeMes(clave) {
+  const [a, m] = String(clave).split('-').map(Number)
+  return { desde: new Date(a, m - 1, 1).toISOString(), hasta: new Date(a, m, 1).toISOString(), dias: new Date(a, m, 0).getDate() }
+}
+
+// Las cuentas del cierre, de las filas de las ventas y las compras del mes:
+// lo vendido, lo que costó (solo lo que tiene coste) y lo que dejó, cada día,
+// por dónde (ventas = tickets) y lo más vendido. El beneficio, como en Ventas:
+// sin coste, la venta queda fuera de la cuenta (no es un cero).
+export function cierreDelMes(ventas, compras, clave) {
+  const r2 = (v) => Math.round(v * 100) / 100
+  const { dias } = rangoDeMes(clave)
+  const porDia = Array.from({ length: dias }, (_, i) => ({ dia: i + 1, importe: 0 }))
+  const porDonde = {}
+  const top = new Map()
+  const tickets = new Set()
+  let importe = 0
+  let coste = 0
+  let conCoste = 0
+  let sinCoste = 0
+  let unidades = 0
+  for (const v of ventas || []) {
+    const n = Number(v.unidades) || 0
+    const total = Number(v.precio) * n
+    importe += total
+    unidades += n
+    tickets.add(v.ticket)
+    if (v.coste == null) sinCoste++
+    else {
+      coste += Number(v.coste) * n
+      conCoste += total
+    }
+    const d = new Date(v.vendida_el).getDate()
+    if (porDia[d - 1]) porDia[d - 1].importe += total
+    const dd = (porDonde[v.donde] ||= { tickets: new Set(), importe: 0 })
+    dd.tickets.add(v.ticket)
+    dd.importe += total
+    const k = `${v.card_id || ''}|${v.product_id || ''}`
+    const t = top.get(k) || { nombre: v.nombre || 'Producto', set_id: v.set_id || null, numero: v.numero || null, unidades: 0, importe: 0 }
+    t.unidades += n
+    t.importe += total
+    top.set(k, t)
+  }
+  const comprado = (compras || []).reduce((s, c) => s + Number(c.coste) * (Number(c.unidades) || 0), 0)
+  const beneficio = conCoste - coste
+  return {
+    importe: r2(importe), coste: r2(coste), beneficio: r2(beneficio), margen: coste > 0 ? Math.round((beneficio / coste) * 100) : null,
+    sinCoste, unidades, ventas: tickets.size,
+    comprado: r2(comprado), compras: new Set((compras || []).map((c) => c.ticket)).size, unidadesCompradas: (compras || []).reduce((s, c) => s + (Number(c.unidades) || 0), 0),
+    porDia: porDia.map((d) => ({ ...d, importe: r2(d.importe) })),
+    porDonde: Object.fromEntries(Object.entries(porDonde).map(([k, v]) => [k, { ventas: v.tickets.size, importe: r2(v.importe) }])),
+    top: [...top.values()].sort((a, b) => b.importe - a.importe || b.unidades - a.unidades).slice(0, 10).map((t) => ({ ...t, importe: r2(t.importe) })),
+  }
+}
+
 // El CSV de las ventas, con punto y coma y la coma decimal, como el del stock.
 export const CABECERA_VENTAS = ['fecha', 'venta', 'id', 'producto', 'nombre', 'expansion', 'numero', 'idioma', 'estado', 'variante', 'gradeo', 'unidades', 'precio', 'coste', 'beneficio', 'donde']
 export function csvDeVentas(filas, nombreDeSet = (id) => id || '') {

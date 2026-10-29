@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (334) — PINGU-Claude (1094 — el cierre del mes)
+
+**Hecho**: en Ventas, el botón de exportar es un menú: «CSV de lo que se ve»
+y «Cierre del mes». El cierre: eliges el mes (este o los once de antes), ves
+lo vendido, lo que costó, lo que dejó y lo comprado, y bajas un PDF A4 para la
+gestoría (las cuatro cifras, lo vendido cada día, por dónde y lo más vendido)
+y los CSV de ventas y de compras de ese mes. Este sí lleva coste y beneficio
+(es para la tienda); el recibo de un cliente sigue sin ellos.
+
+**Para PINGU**: nada (sin migración; las compras salen si está la 1091).
+
+**Ficheros**: `js/tienda-cierre.js` (nuevo), `js/tienda-ventas.js`,
+`js/tiendas-puro.js` (`mesesDeCierre`, `rangoDeMes`, `cierreDelMes`),
+`css/tienda-vender.css`. Pruebas en `pruebas`: 1094-pantalla (con lo puro) y la
+1072 al día (exportar está en el menú).
+
+**Pendiente**: nada de «Tiendas, la tercera vuelta». Aparcado: Tiendas cerca y
+Torneos de la tienda (PINGU: «por ahora no»); la regla de precios, descartada.
+
 ## 2026-10-29 (333) — PINGU-Claude (1093 — etiquetas para imprimir)
 
 **Hecho**: en el Stock, «Seleccionar» → «Etiquetas» (o «⋯» → «Etiquetas para

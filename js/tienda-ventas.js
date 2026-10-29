@@ -264,7 +264,13 @@ export function montarVentas(destino, { perfil: p }) {
         <select class="tdvt-select" data-tdvt-donde aria-label="Dónde se vendió">${[['', 'Dónde: todo'], ...DONDE_VENTA].map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
         <input type="search" class="tdvt-busca" data-tdvt-q placeholder="Buscar en tus ventas…" aria-label="Buscar en tus ventas" />
         <button type="button" class="btn-secondary tdvt-icono" data-tdvt="lupa" aria-label="Buscar en tus ventas" aria-expanded="false">${icons.search(18)}</button>
-        <button type="button" class="btn-secondary tdvt-icono" data-tdvt="exportar" aria-label="Exportar a CSV" title="Exportar a CSV">${icons.arrowDown(18)}</button>
+        <span class="tds-menu-caja">
+          <button type="button" class="btn-secondary tdvt-icono" data-tdvt="menu" aria-label="Exportar" title="Exportar" aria-haspopup="menu" aria-expanded="false">${icons.arrowDown(18)}</button>
+          <span class="tds-menu tds-menu-derecha" role="menu" data-tdvt-menu hidden>
+            <button type="button" role="menuitem" data-tdvt="exportar">${icons.arrowDown(18)}<span><b>CSV de lo que se ve</b><small>Con el periodo y los filtros puestos</small></span></button>
+            <button type="button" role="menuitem" data-tdvt="cierre">${icons.receipt(18)}<span><b>Cierre del mes</b><small>Un PDF para la gestoría, y sus CSV</small></span></button>
+          </span>
+        </span>
       </div>
       <div class="tdvt-cifras"></div>
       <div class="tdvt-lista"><p class="tdvt-vacio">Cargando tus ventas…</p></div>
@@ -275,8 +281,21 @@ export function montarVentas(destino, { perfil: p }) {
   })
   caja.addEventListener('click', (e) => {
     const accion = e.target.closest('[data-tdvt]')?.dataset.tdvt
+    const menu = $('[data-tdvt-menu]')
+    if (accion === 'menu') {
+      menu.hidden = !menu.hidden
+      e.target.closest('[data-tdvt]').setAttribute('aria-expanded', String(!menu.hidden))
+      if (!menu.hidden) menu.querySelector('[role="menuitem"]')?.focus()
+      return
+    }
+    if (!menu.hidden && !e.target.closest('[data-tdvt-menu]')) cerrarMenu()
     if (accion === 'mas') return pedir({ mas: true })
-    if (accion === 'exportar') return exportar()
+    if (accion === 'exportar') { cerrarMenu(); return exportar() }
+    // El cierre del mes (1094): un PDF para la gestoría y sus CSV.
+    if (accion === 'cierre') {
+      cerrarMenu()
+      return import('./tienda-cierre.js').then((m) => m.abrirCierre({ perfil })).catch(() => showToast('No se ha podido abrir el cierre.', 'error'))
+    }
     if (accion === 'vender') return document.dispatchEvent(new CustomEvent('pokedoc:tienda-vender'))
     if (accion === 'comprar') return document.dispatchEvent(new CustomEvent('pokedoc:tienda-comprar'))
     const modo = e.target.closest('[data-tdvt-modo]')
@@ -304,6 +323,15 @@ export function montarVentas(destino, { perfil: p }) {
     espera = setTimeout(() => { est.q = e.target.value.trim(); pedir() }, 250)
   })
   document.addEventListener('pokedoc:tienda-vendida', () => pedir())
+  document.addEventListener('click', (e) => { if (!caja.contains(e.target)) cerrarMenu() })
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarMenu() })
   pintarMandos()
   pedir()
+}
+
+function cerrarMenu() {
+  const menu = caja?.querySelector('[data-tdvt-menu]')
+  if (!menu || menu.hidden) return
+  menu.hidden = true
+  caja.querySelector('[data-tdvt="menu"]')?.setAttribute('aria-expanded', 'false')
 }

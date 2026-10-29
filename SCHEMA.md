@@ -41785,6 +41785,23 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1094 — El cierre del mes
+
+De «Tiendas, la tercera vuelta» (punto 5). En Ventas el icono de exportar abre
+un menú (`[data-tdvt="menu"]`, `.tds-menu`): «CSV de lo que se ve» (lo de
+siempre) y «Cierre del mes» (`js/tienda-cierre.js`, por `import()`). El cierre
+pide el mes entero con `tienda_ventas_lista` y `tienda_compras_lista` (5.000
+líneas; si hay más, el PDF lo dice), y cuenta con `cierreDelMes` (pura, en
+`tiendas-puro.js`: vendido, coste solo de lo que lo tiene, beneficio y margen
+como en Ventas, cada día, por dónde contando tickets, lo más vendido juntando
+la misma carta, y lo comprado). Los meses los da `mesesDeCierre` y el rango,
+`rangoDeMes`, en la hora de quien mira. El PDF es una página A4 dibujada en un
+lienzo (8 px/mm) que va por `pdfDeImagenes`. Sin la migración 1091, el cierre
+sale igual con «sin compras apuntadas». Lleva coste y beneficio a propósito:
+es para la tienda.
+
+Prueba: `test-tanda-1094-pantalla.mjs`.
+
 ## Tanda 1093 — Etiquetas para imprimir
 
 De «Tiendas, la tercera vuelta» (punto 3), con las dos (lo recomendado).

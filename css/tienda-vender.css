@@ -284,3 +284,14 @@ html:has(.tdr[open]) { overflow: hidden; }
 .tde-vista { display: grid; place-items: center; padding: var(--e-sm); border-radius: var(--radius-md); background: var(--ice); }
 .tde-vista img { display: block; max-width: 100%; max-height: 46vh; height: auto; background: #ffffff; box-shadow: var(--shadow-sm); }
 .tde-saltar[hidden] { display: none; }
+
+/* El cierre del mes (1094). */
+.tdcm-mes { width: 100%; min-height: 44px; }
+.tdcm-cifras { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
+.tdcm-cifras span { display: grid; padding: var(--e-sm) var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-md); }
+.tdcm-cifras small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.tdcm-cifras b { font-family: var(--font-display); font-size: var(--t-xl); font-variant-numeric: tabular-nums; }
+.tdcm-cifras em { color: var(--text-mid); font-size: var(--t-xs); font-style: normal; }
+.tdcm-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.tdcm-botones > * { flex: 1 1 auto; justify-content: center; }
+.tdcm-botones [hidden] { display: none; }
