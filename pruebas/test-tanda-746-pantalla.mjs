@@ -8,9 +8,11 @@
 //     la 746 era una lista aparte encima del índice, con chips): el punto
 //     en lo que no has leído (y el enlace a lo nuevo), quién escribió lo
 //     último y un trozo;
-//   · el tema: cada mensaje es una burbuja, los tuyos a la derecha con otro
-//     fondo; la caja de responder se queda abajo al bajar y, en el móvil,
-//     encima de la barra sin que asome nada entre las dos.
+//   · el tema: en el móvil cada mensaje es una burbuja, los tuyos a la
+//     derecha con otro fondo, y la caja de responder se queda encima de la
+//     barra sin que asome nada entre las dos; en el PC (1095), un foro: la
+//     columna del autor, todos del mismo lado, «Tú» en lo tuyo y la caja al
+//     final.
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
 let fails = 0
@@ -103,32 +105,38 @@ console.log('── 3. Sin cuenta ──')
   await ctx.close()
 }
 
-console.log('── 4. El tema, como un chat ──')
+console.log('── 4. El tema en el PC: un foro (1095) ──')
 {
+  // Desde la 1095 la conversación es solo del móvil: en el PC vuelve la
+  // columna del autor, todos del mismo lado, y lo tuyo se marca con «Tú».
   const { page, ctx, errores } = await abrir('/tema?t=tema-1')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const m = await page.evaluate(() => {
-    const ms = [...document.querySelectorAll('.foro-mensaje')]
-    const caja = document.querySelector('main')?.getBoundingClientRect() || { left: 0, right: innerWidth }
-    return ms.map((a) => {
-      const r = a.getBoundingClientRect()
-      const c = a.querySelector('.foro-mensaje-cuerpo')
-      return { mio: a.classList.contains('foro-mensaje-mio'), autor: a.dataset.autor, izq: r.left, der: r.right, ancho: r.width, fondo: getComputedStyle(c).backgroundColor, radio: getComputedStyle(c).borderTopRightRadius }
-    })
-  })
+  const m = await page.evaluate(() => [...document.querySelectorAll('.foro-mensaje')].map((a) => {
+    const r = a.getBoundingClientRect()
+    const col = a.querySelector('.foro-mensaje-autor')
+    const av = col.querySelector('.mini-avatar')?.getBoundingClientRect()
+    const tu = col.querySelector('.foro-chapa-tu')
+    return {
+      mio: a.classList.contains('foro-mensaje-mio'), autor: a.dataset.autor, izq: Math.round(r.left), der: Math.round(r.right),
+      columna: Math.round(col.getBoundingClientRect().width), alColado: col.getBoundingClientRect().right <= a.querySelector('.foro-mensaje-cuerpo').getBoundingClientRect().left + 1,
+      avatar: Math.round(av?.width || 0), fondoCol: getComputedStyle(col).backgroundColor, tu: !!tu && getComputedStyle(tu).display !== 'none',
+      cifras: [...col.querySelectorAll('.foro-autor-mensajes')].some((s) => getComputedStyle(s).display !== 'none'),
+    }
+  }))
   const mio = m.find((x) => x.autor === 'admin-1')
   const otro = m.find((x) => x.autor === 'user-2')
-  check('tres burbujas; solo la tuya lleva la marca', m.length === 3 && m.filter((x) => x.mio).length === 1 && mio?.mio, JSON.stringify(m))
-  check('  …la tuya a la derecha y la de los demás a la izquierda', mio && otro && mio.izq > otro.izq + 40 && Math.abs(mio.der - otro.der) > 40, JSON.stringify({ mio, otro }))
-  check('  …con otro fondo y el pico al otro lado', mio && otro && mio.fondo !== otro.fondo && mio.radio !== otro.radio, JSON.stringify({ mio, otro }))
+  check('tres mensajes; solo el tuyo lleva la marca', m.length === 3 && m.filter((x) => x.mio).length === 1 && mio?.mio, JSON.stringify(m))
+  check('  …todos del mismo lado y del mismo ancho', mio && otro && mio.izq === otro.izq && mio.der === otro.der, JSON.stringify({ mio, otro }))
+  check('  …con la columna del autor a la izquierda, avatar grande y sus cifras', m.every((x) => x.columna >= 120 && x.alColado && x.avatar >= 56 && x.cifras), JSON.stringify(m))
+  check('  …lo tuyo con la columna en otro color y la chapa «Tú»; lo de los demás, sin ella', mio.tu && !otro.tu && mio.fondoCol !== otro.fondoCol, JSON.stringify({ mio, otro }))
   await page.evaluate(() => scrollTo(0, 0))
   await page.waitForTimeout(200)
   const r = await page.evaluate(() => {
     const c = document.getElementById('temaResponder')
-    const b = c.getBoundingClientRect()
-    return { pos: getComputedStyle(c).position, abajo: Math.round(innerHeight - b.bottom), barra: getComputedStyle(c.querySelector('.rte-toolbar') || c).display }
+    const ms = [...document.querySelectorAll('.foro-mensaje')]
+    return { pos: getComputedStyle(c).position, debajo: c.getBoundingClientRect().top >= ms.at(-1).getBoundingClientRect().bottom, barra: getComputedStyle(c.querySelector('.rte-toolbar') || c).display }
   })
-  check('la caja de responder es pegajosa abajo y recogida (sin barra) hasta que escribes', r.pos === 'sticky' && r.barra === 'none', JSON.stringify(r))
+  check('la caja de responder va al final del tema (no pegada) y recogida hasta que escribes', r.pos === 'static' && r.debajo && r.barra === 'none', JSON.stringify(r))
   await page.click('#temaResponder [contenteditable="true"]')
   check('  …al escribir, sale su barra', (await page.evaluate(() => getComputedStyle(document.querySelector('#temaResponder .rte-toolbar')).display)) !== 'none')
   await ctx.close()
@@ -170,6 +178,16 @@ console.log('── 5. El tema, en el móvil ──')
   const s = await medir()
   check('con la barra a la vista, la caja se queda pegada justo encima', !s.escondidas && s.barraArriba !== null && s.cajaAbajo <= s.barraArriba && s.barraArriba - s.cajaAbajo <= 24, JSON.stringify(s))
   check('  …y una banda tapa el hueco hasta la barra (no asoma el mensaje de debajo)', s.tapa !== 'none' && s.tapa !== 'normal' && parseFloat(s.tapaAlto) >= s.barraArriba - s.cajaAbajo, JSON.stringify(s))
+  // En el móvil sigue siendo una conversación: lo tuyo a la derecha, con
+  // otro fondo, y sin la chapa «Tú» (ya lo dice el lado).
+  const lados = await page.evaluate(() => [...document.querySelectorAll('.foro-mensaje:not(.foro-mensaje-seguido)')].map((a) => ({
+    mio: a.classList.contains('foro-mensaje-mio'), izq: a.getBoundingClientRect().left,
+    fondo: getComputedStyle(a.querySelector('.foro-mensaje-cuerpo')).backgroundColor,
+    tu: [...a.querySelectorAll('.foro-chapa-tu')].some((s) => getComputedStyle(s).display !== 'none'),
+  })))
+  const mioM = lados.find((x) => x.mio)
+  const otroM = lados.find((x) => !x.mio)
+  check('en el móvil, burbujas: la tuya a la derecha, con otro fondo y sin «Tú»', mioM && otroM && mioM.izq > otroM.izq + 10 && mioM.fondo !== otroM.fondo && !lados.some((x) => x.tu), JSON.stringify(lados))
   check('las burbujas no se salen de la pantalla', await page.$$eval('.foro-mensaje', (as) => as.every((a) => a.getBoundingClientRect().right <= innerWidth + 1 && a.getBoundingClientRect().left >= -1)))
   await ctx.close()
 }

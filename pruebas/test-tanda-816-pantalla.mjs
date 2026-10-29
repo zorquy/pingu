@@ -128,7 +128,15 @@ for (const movil of [true, false]) {
   check(`[${nombre}] sin errores`, errores.length === 0, errores.join(' | '))
   const m = await page.$$eval('.foro-mensaje', (ms) => ms.map((x) => ({ id: x.dataset.mensaje, seguido: x.classList.contains('foro-mensaje-seguido'), hora: !!x.querySelector('.foro-mensaje-autor .foro-autor-hora'), autorVisible: x.querySelector('.foro-mensaje-autor').getBoundingClientRect().height > 0 })))
   check(`[${nombre}] la hora va en la línea del nombre`, m.every((x) => x.hora) && m.filter((x) => !x.seguido).every((x) => x.autorVisible), JSON.stringify(m))
-  check(`[${nombre}] el segundo seguido de jesus va junto, sin repetir el nombre`, m.find((x) => x.id === 'm3')?.seguido && !m.find((x) => x.id === 'm3').autorVisible && !m.find((x) => x.id === 'm2').seguido && !m.find((x) => x.id === 'm4').seguido, JSON.stringify(m))
+  check(`[${nombre}] el segundo de jesus se marca como seguido (y los otros no)`, m.find((x) => x.id === 'm3')?.seguido && !m.find((x) => x.id === 'm2').seguido && !m.find((x) => x.id === 'm4').seguido, JSON.stringify(m))
+  if (movil) {
+    check('[móvil] el seguido va junto, sin repetir el nombre', !m.find((x) => x.id === 'm3').autorVisible, JSON.stringify(m))
+  } else {
+    // Desde la 1095 el PC es un foro: cada mensaje lleva su columna de autor,
+    // también el seguido, y la hora va en la cabecera del mensaje.
+    const pc = await page.$$eval('.foro-mensaje', (ms) => ms.map((x) => ({ col: x.querySelector('.foro-mensaje-autor').getBoundingClientRect().width, hora: getComputedStyle(x.querySelector('.foro-mensaje-cabecera .foro-mensaje-hora')).display !== 'none' })))
+    check('[ordenador] todos llevan su columna de autor (también el seguido) y la hora en la cabecera', pc.every((x) => x.col >= 120 && x.hora), JSON.stringify(pc))
+  }
   if (movil) {
     // Tras el repintado del arranque (el tema se pinta dos veces al abrir).
     await page.waitForTimeout(800)
