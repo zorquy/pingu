@@ -768,7 +768,7 @@ function direccionEnTarjetaHtml(o, { yo, nombre, miDir }) {
   }
   if (mando) {
     partes.push(suya
-      ? `<section class="cp-t-dir cp-t-envia"><h4>Envía a ${escapeHtml(nombre)}${miEnvio(o, yo) ? ` · ${escapeHtml(envioCorto(miEnvio(o, yo)).toLowerCase())}` : ''}</h4><div class="cp-t-envia-fila">${direccionHtml(suya)}<button type="button" class="btn-secondary cp-copiar" data-cp-copiar="${escapeHtml(lineasDeDireccion(suya).join('\n'))}" data-cp-copiado="Dirección copiada.">Copiar</button></div>${enviadoHtml(o, { yo })}</section>`
+      ? `<section class="cp-t-dir cp-t-envia"><h4>Envía a ${escapeHtml(nombre)}${miEnvio(o, yo) ? ` · ${escapeHtml(envioCorto(miEnvio(o, yo)).toLowerCase())}` : ''}</h4><div class="cp-t-envia-fila">${direccionHtml(suya)}<span class="cp-t-envia-botones"><button type="button" class="btn-secondary cp-copiar" data-cp-copiar="${escapeHtml(lineasDeDireccion(suya).join('\n'))}" data-cp-copiado="Dirección copiada.">Copiar</button><button type="button" class="btn-secondary cp-copiar" data-cp-etiqueta="${id}">${icons.package(14)}Etiqueta</button></span></div>${enviadoHtml(o, { yo })}</section>`
       : necesitaDireccion(o, otroId) ? `<p class="cp-t-envio-info">${escapeHtml(nombre)} todavía no ha puesto su dirección: en cuanto la ponga, te sale aquí.</p>` : '')
   }
   if (recibo && mia) {
@@ -957,6 +957,30 @@ function engancharAcciones(caja, contexto, recargar) {
         // Sin portapapeles: se selecciona para copiarlo a mano.
         const aMano = copiar.closest('.cp-t-envia-fila')?.querySelector('address, .cp-dir-texto') || copiar.previousElementSibling
         if (aMano) getSelection().selectAllChildren(aMano)
+      }
+      return
+    }
+    // La etiqueta del envío (1110): su dirección, la tuya de remitente (la del
+    // trato o la guardada; sin ninguna, hueco para escribirla) y cómo va.
+    const etiqueta = e.target.closest('[data-cp-etiqueta]')
+    if (etiqueta && caja.contains(etiqueta)) {
+      const ctx = contextosDeCaja.get(caja).contexto()
+      const o = ctx.ofertas.find((x) => x.id === etiqueta.dataset.cpEtiqueta)
+      const otroId = o && (o.de === ctx.yo ? o.para : o.de)
+      const para = o?.direcciones?.[otroId]
+      if (!para || etiqueta.disabled) return
+      etiqueta.disabled = true
+      try {
+        const de = o.direcciones[ctx.yo] || (await miDireccion(ctx.yo)) || null
+        const cartas = o.items.filter((it) => it.quien === ctx.yo).reduce((n, it) => n + (it.cantidad || 1), 0)
+        const { descargarEtiqueta } = await import('./cambio-etiqueta.js')
+        const nombre = (para.nombre || 'envio').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^A-Za-z0-9]+/g, '-').replace(/^-|-$/g, '').toLowerCase()
+        await descargarEtiqueta({ para, de, envio: miEnvio(o, ctx.yo), cartas, seguimiento: seguimientoDe(o, ctx.yo) }, `etiqueta-envio-${nombre || 'envio'}`)
+        showToast(de ? 'Etiqueta descargada: imprímela y recórtala.' : 'Etiqueta descargada. Tu dirección no está guardada: escríbela a mano en «Remitente».', 'success')
+      } catch {
+        showToast('No se ha podido hacer la etiqueta. Prueba otra vez.', 'error')
+      } finally {
+        etiqueta.disabled = false
       }
       return
     }

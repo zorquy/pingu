@@ -368,6 +368,8 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
 .cp-t-envia { border-style: dashed; border-color: var(--border-strong); }
 .cp-t-envia-fila { display: flex; justify-content: space-between; align-items: flex-end; gap: var(--e-sm); }
 .cp-copiar { flex: none; min-height: 36px; }
+.cp-t-envia-botones { display: flex; flex-direction: column; gap: var(--e-xs); flex: none; }
+.cp-t-envia-botones .cp-copiar { display: inline-flex; align-items: center; justify-content: center; gap: var(--e-xs); }
 .cp-dir { display: grid; gap: var(--e-sm); }
 .cp-dir-texto { min-width: 0; font-size: var(--t-sm); font-style: normal; line-height: 1.45; overflow-wrap: anywhere; }
 .cp-dir-guardada { display: flex; justify-content: space-between; align-items: flex-start; gap: var(--e-sm); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--bg); }

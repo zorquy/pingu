@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (350) — PINGU-Claude (1110 — la etiqueta del envío para imprimir)
+
+**Hecho**: PINGU: «podría generar una etiqueta de envío, con los datos que da
+y con los datos que yo tengo». En un trato por correo, en «Envía a …» hay un
+botón **Etiqueta** debajo de Copiar: baja un PDF A4 con la etiqueta en la
+esquina (105 × 148 mm, con raya de corte):
+- **Destinatario** en grande (la dirección que puso el otro en el trato).
+- **Remitente**: la tuya del trato o la guardada en Ajustes; si no tienes,
+  queda hueco para escribirla y el aviso lo dice.
+- **Ordinario** o **certificado** (la regla de la 1108), cuántas cartas van,
+  «No doblar» y el número de seguimiento si ya está puesto.
+
+**Para PINGU**: sin migración.
+
+**Ficheros**: `js/cambio-etiqueta.js` (nuevo), `js/cambio-propuesta.js` (el
+botón y su manejador), `css/cambio-propuesta.css` (`.cp-t-envia-botones`).
+Prueba en `pruebas`: 1110-pantalla nueva (lo puro, el PDF descargado de
+verdad, lo dibujado en el lienzo, el móvil y el caso sin dirección guardada).
+
+**Pendiente**: nada de esta serie.
+
 ## 2026-10-29 (349) — PINGU-Claude (1109 — lo que está en una propuesta en marcha sale del Mercado)
 
 **Hecho**: PINGU: «si una carta está en un cambio, si se ha propuesto algo,

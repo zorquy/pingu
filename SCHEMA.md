@@ -41785,6 +41785,27 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1110 — La etiqueta del envío
+
+PINGU: «podría generar una etiqueta de envío, con los datos que da y con los
+datos que yo tengo».
+
+- `js/cambio-etiqueta.js` (entra por `import()` al pulsar «Etiqueta»): un A4
+  con la etiqueta en la esquina (105 × 148 mm, raya de corte), dibujada en un
+  lienzo a 8 px/mm y metida en el PDF como JPEG con `pdfDeImagenes` (el de las
+  etiquetas de la tienda, 1093). `textosDeEtiqueta` es lo puro.
+- Lo que lleva: DESTINATARIO (la dirección que el otro puso en el trato, en
+  grande), REMITENTE (la tuya del trato o la guardada en Ajustes; sin ninguna,
+  tres rayas para escribirla y el aviso lo dice), ORDINARIO o CERTIFICADO
+  (`miEnvio`, la regla de la 1108), cuántas cartas mandas tú, «No doblar» y el
+  seguimiento si ya lo pusiste.
+- El botón va en «Envía a …» (`.cp-t-envia-botones`, debajo de Copiar), así
+  que solo sale cuando la dirección del otro ya se ve: con el trato aceptado y
+  dentro de los 30 días. No hay migración: todo sale de lo que el trato ya trae.
+- El nombre del fichero lleva el del destinatario sin acentos
+  (`etiqueta-envio-lucia-perez-gil.pdf`): `normalize('NFD')` deja los acentos
+  como letras aparte y hay que quitarlos antes de cambiar lo demás por guiones.
+
 ## Tanda 1109 — Lo que está en una propuesta en marcha sale del Mercado
 
 PINGU: «si una carta está en un cambio, si se ha propuesto algo… esa carta

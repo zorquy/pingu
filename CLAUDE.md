@@ -739,7 +739,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   dirección: `trade_offer_cobros` por `cambio_cobro_poner` / `cambio_cobros`,
   y se borra con ella. Lo que está en una propuesta enviada o aceptada no se
   ofrece (1109): lo que liste lo que da la gente cuenta con
-  `cambio_libres_de`, nunca con `cambio` a secas.
+  `cambio_libres_de`, nunca con `cambio` a secas. La etiqueta del sobre (1110) es
+  `js/cambio-etiqueta.js` (por `import()`), con lo que ya trae el trato: nada
+  de la dirección sale de ahí a otro sitio.
 - **Una carta pintada en cualquier pantalla lleva sus marcas** (tanda 943,
   PINGU: «debería estar en todos los lados de la web»): el ✓ de «la tienes»
   y el corazón de «La quiero». Dentro de /mi-coleccion, con
