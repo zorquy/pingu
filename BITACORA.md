@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (336) — PINGU-Claude (1096 — «Lo último» en el lateral del foro)
+
+**Hecho**: PINGU, con el foro de WAH de ejemplo («nuevas entradas» en el
+lateral). Eligió la A con lo recomendado: en el índice del foro en el PC, la
+franja de tres tarjetas de «Lo que se está hablando» se va y arriba del
+lateral sale «Lo último»: los seis temas con movimiento más reciente, con el
+avatar de quien escribió, el título en dos líneas, quién · cuándo · en qué
+foro, y el punto y el salto a lo nuevo en lo que no has leído. Solo temas
+del foro (sin comentarios de noticias). En el móvil, la franja de siempre.
+
+**Para PINGU**: nada (sin migración).
+
+**Ficheros**: `js/foro.js` (`loQueSeHabla`: una consulta para la franja y el
+lateral; `marcasDeTemas`, lo leído de esos seis), `css/foro.css`
+(`.foro-lou-*`; la franja, escondida desde 901 px). Pruebas en `pruebas`: la
+1096-pantalla nueva y la 299, 804 y 894 al día; 746, 816, 876 y 1040 en verde.
+La 893 da cuatro rojos (/retos, /torneos, /usuarios y el menú de /meta) que
+salen igual sin este cambio: no son de aquí.
+
+**Pendiente**: nada.
+
 ## 2026-10-29 (335) — PINGU-Claude (1095 — el foro en el PC, como un foro)
 
 **Hecho**: PINGU: «en móvil está muy bien que sea como una conversación, pero

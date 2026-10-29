@@ -41785,6 +41785,28 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1096 — «Lo último» en el lateral del foro
+
+PINGU, con una captura del foro de WAH («Nuevas entradas» en el lateral):
+«Lo que se está hablando» ocupaba una franja entera encima del índice y
+enseñaba tres temas. Eligió la A de la propuesta, con lo recomendado.
+
+- `loQueSeHabla(ids, foros)` (antes `calientesHtml`) hace la consulta UNA vez
+  (los 40 últimos mensajes, sus temas y los comentarios de noticias) y
+  devuelve dos cosas: la `franja` de siempre (tres, con noticias) y `ultimo`,
+  la tarjeta del lateral: seis temas del foro, uno por tema, con el avatar de
+  quien escribió lo último, el título en dos líneas y «quién · cuándo · foro».
+- Lo no leído: con `foro_resumen()` (1017) el índice no trae las marcas tema
+  a tema, así que `marcasDeTemas` pide las de esos seis (y el «todo leído»)
+  y pasa por `estaSinLeer`; sin la tabla, no se marca nada.
+- El lateral del índice se pinta DE UNA VEZ (`lo último + números`): antes
+  `pintarLateral` lo escribía por su cuenta, y meter la tarjeta encima
+  después lo habría hecho saltar (981). Dentro de un foro sigue como estaba.
+- La franja se esconde desde 901 px; en el móvil (sin lateral) se queda.
+- Las clases son `.foro-lou-*`: `.foro-ultimo-titulo` ya existía (la columna
+  «último mensaje» de cada foro, con `nowrap`) y la primera versión la pisó
+  sin un error, con el título cortado en una línea. Grepa antes de nombrar.
+
 ## Tanda 1095 — El foro en el PC, como un foro
 
 PINGU: «en móvil está muy bien que sea como una conversación, pero en el PC

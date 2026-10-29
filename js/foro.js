@@ -184,14 +184,38 @@ async function comentariosDeNoticias() {
   return (comentarios || []).filter((c) => porId[c.guide_id]).map((c) => ({ clave: `noticia:${c.guide_id}`, noticia: porId[c.guide_id], author_id: c.author_id, created_at: c.created_at }))
 }
 
-async function calientesHtml(idsForosVisibles = null) {
+// «Lo último» del lateral (1096, PINGU, con WAH de ejemplo): en el PC la
+// franja de arriba empujaba el índice y enseñaba tres; al lado caben seis
+// sin quitarle sitio a nadie. Solo temas del foro (las noticias tienen su
+// sitio), con quién escribió lo último, cuándo y en qué foro. La franja se
+// queda para el móvil, que no tiene lateral: salen de la MISMA consulta.
+const ULTIMOS = 6
+
+// Lo leído de esos temas, y nada más: con `foro_resumen()` (1017) el índice
+// no trae las marcas tema a tema, y sin ellas todo saldría como nuevo.
+async function marcasDeTemas(ids) {
+  const vacio = { porTema: {}, todoHasta: null, hayDatos: false, mio: sesion?.user?.id || null }
+  if (!sesion || !ids.length) return vacio
+  try {
+    const [lecturas, perfil] = await Promise.all([
+      supabase.from('forum_thread_reads').select('thread_id, last_read_at').eq('user_id', sesion.user.id).in('thread_id', ids),
+      supabase.from('user_profiles').select('forum_read_all_at').eq('id', sesion.user.id).maybeSingle(),
+    ])
+    if (lecturas.error) return vacio
+    return { porTema: Object.fromEntries((lecturas.data || []).map((f) => [f.thread_id, f.last_read_at])), todoHasta: perfil.data?.forum_read_all_at || null, hayDatos: true, mio: sesion.user.id }
+  } catch {
+    return vacio
+  }
+}
+
+async function loQueSeHabla(idsForosVisibles = null, foros = []) {
   const [{ data: mensajes, error }, deNoticias] = await Promise.all([
-    supabase.from('forum_posts').select('id, thread_id, author_id, created_at').order('created_at', { ascending: false }).limit(12),
+    supabase.from('forum_posts').select('id, thread_id, author_id, created_at').order('created_at', { ascending: false }).limit(40),
     comentariosDeNoticias().catch(() => []),
   ])
-  if (error) return ''
+  if (error) return { franja: '', ultimo: '' }
   const { data: temas } = mensajes?.length
-    ? await supabase.from('forum_threads').select('id, title, prefix, post_count, board_id').in('id', [...new Set(mensajes.map((m) => m.thread_id))])
+    ? await supabase.from('forum_threads').select('id, title, prefix, post_count, board_id, last_post_at, last_post_author_id').in('id', [...new Set(mensajes.map((m) => m.thread_id))])
     : { data: [] }
   // Solo temas de foros VISIBLES: la lectura de forum_threads es abierta,
   // así que sin esto un tema de un foro escondido (el de Noticias desde la
@@ -201,16 +225,19 @@ async function calientesHtml(idsForosVisibles = null) {
 
   // Un tema (o una noticia) por fila: si alguien contesta cinco veces
   // seguidas, no llena él solo la franja entera. Mezclados por fecha.
-  const vistos = new Set()
-  const elegidos = [...delForo, ...deNoticias]
-    .sort((x, y) => new Date(y.created_at) - new Date(x.created_at))
-    .filter((m) => !vistos.has(m.clave) && vistos.add(m.clave))
-    .slice(0, CALIENTES)
-  if (!elegidos.length) return ''
+  const unoPorTema = (lista) => {
+    const vistos = new Set()
+    return lista.sort((x, y) => new Date(y.created_at) - new Date(x.created_at)).filter((m) => !vistos.has(m.clave) && vistos.add(m.clave))
+  }
+  const elegidos = unoPorTema([...delForo, ...deNoticias]).slice(0, CALIENTES)
+  const ultimos = unoPorTema([...delForo]).slice(0, ULTIMOS)
+  if (!elegidos.length && !ultimos.length) return { franja: '', ultimo: '' }
   // Cuántos comentarios lleva cada noticia elegida (tres como mucho).
-  const cuentas = await Promise.all(elegidos.map((m) => (m.noticia ? supabase.from('guide_comments').select('id', { count: 'exact', head: true }).eq('guide_id', m.noticia.id).then((r) => r.count || 1) : null)))
-  const perfiles = await perfilesPorId(elegidos.map((m) => m.author_id))
-
+  const [cuentas, perfiles, leido] = await Promise.all([
+    Promise.all(elegidos.map((m) => (m.noticia ? supabase.from('guide_comments').select('id', { count: 'exact', head: true }).eq('guide_id', m.noticia.id).then((r) => r.count || 1) : null))),
+    perfilesPorId([...elegidos, ...ultimos].map((m) => m.author_id)),
+    marcasDeTemas(ultimos.map((m) => m.thread_id)),
+  ])
   const filas = elegidos
     .map((m, i) => {
       // Dos enlaces HERMANOS, nunca uno dentro de otro: `avatarHtml` ya
@@ -237,7 +264,31 @@ async function calientesHtml(idsForosVisibles = null) {
       </div>`
     })
     .join('')
-  return filas ? `<section class="foro-calientes"><h2>Lo que se está hablando</h2><div class="foro-calientes-rejilla">${filas}</div></section>` : ''
+  const franja = filas ? `<section class="foro-calientes"><h2>Lo que se está hablando</h2><div class="foro-calientes-rejilla">${filas}</div></section>` : ''
+
+  // El lateral: el avatar y el título son dos enlaces hermanos (lo de
+  // arriba), y lo no leído lleva el punto y va a lo nuevo, como en la lista
+  // de temas de un foro.
+  const nombreForo = Object.fromEntries(foros.map((f) => [f.id, f.name]))
+  const ultimo = ultimos.length
+    ? `<section class="foro-panel foro-lou" aria-labelledby="foroLouTitulo">
+        <h3 id="foroLouTitulo">Lo último</h3>
+        <ol class="foro-lou-lista">${ultimos
+          .map((m) => {
+            const nuevo = estaSinLeer(m.tema, leido)
+            const quien = perfiles[m.author_id]
+            return `<li class="foro-lou-fila${nuevo ? ' foro-lou-nuevo' : ''}">
+              ${avatarHtml(quien, 24)}
+              <span class="foro-lou-texto">
+                <a class="foro-lou-titulo" href="${urlTema(m.thread_id)}${nuevo ? '?nuevo=1' : ''}">${nuevo ? '<span class="foro-conv-punto" aria-hidden="true"></span><span class="sr-only">Sin leer: </span>' : ''}${escapeHtml(m.tema.title)}</a>
+                <small>${escapeHtml(nombreDe(quien))} · ${escapeHtml(haceCuanto(m.created_at))}${nombreForo[m.tema.board_id] ? ` · <span class="foro-lou-foro">${escapeHtml(nombreForo[m.tema.board_id])}</span>` : ''}</small>
+              </span>
+            </li>`
+          })
+          .join('')}</ol>
+      </section>`
+    : ''
+  return { franja, ultimo }
 }
 
 // El índice de UNA vez (1017): `foro_resumen()` trae las secciones, los foros
@@ -256,7 +307,7 @@ async function resumenDelForo() {
 async function pintarIndice() {
   // Los números de la lateral no dependen de nada de esto: salen ya y se
   // esperan al final (894, R3).
-  const lateralLista = pintarLateral().catch(() => {})
+  const lateralLista = panelDeNumerosHtml().catch(() => '')
   let secciones, foros, perfiles, calientes
   const resumen = await resumenDelForo()
   if (resumen) {
@@ -270,7 +321,7 @@ async function pintarIndice() {
       soyStaff = Boolean(resumen.rol?.staff)
       soyAdmin = Boolean(resumen.rol?.admin)
     }
-    calientes = await calientesHtml(foros.map((f) => f.id))
+    calientes = await loQueSeHabla(foros.map((f) => f.id), foros)
   } else {
     if (sesion) lecturas = cargarLecturas()
     const [seccionesRes, forosRes] = await Promise.all([
@@ -287,7 +338,7 @@ async function pintarIndice() {
     foros = (forosRes.data || []).filter((f) => !f.is_hidden)
     // Los perfiles del último que escribió y la franja de lo que se está
     // hablando, a la vez: las dos salen de la lista de foros (894, R3).
-    ;[perfiles, calientes] = await Promise.all([perfilesPorId(foros.map((f) => f.last_post_author_id)), calientesHtml(foros.map((f) => f.id)), lecturas])
+    ;[perfiles, calientes] = await Promise.all([perfilesPorId(foros.map((f) => f.last_post_author_id)), loQueSeHabla(foros.map((f) => f.id), foros), lecturas])
   }
 
   const hijosDe = (id) => foros.filter((f) => f.parent_id === id).sort((a, b) => a.position - b.position)
@@ -360,7 +411,7 @@ async function pintarIndice() {
   // columna principal los títulos se volvían a cortar, que es el fallo
   // del que venimos.
   const destacado = document.getElementById('foroDestacado')
-  if (destacado) destacado.innerHTML = calientes
+  if (destacado) destacado.innerHTML = calientes.franja
 
   // El índice es el de siempre, por secciones (804): la lista de
   // conversaciones con chips que lo encabezaba desde la 746 repetía lo que
@@ -387,7 +438,8 @@ async function pintarIndice() {
     if (abierto) document.getElementById('foroBuscadorTexto')?.focus()
   })
   montarEscribir(foros)
-  await lateralLista
+  // «Lo último» y los números, de una vez: el lateral no salta (981).
+  lateral.innerHTML = calientes.ultimo + (await lateralLista)
   // Lo de ahora, guardado para la próxima vez (894).
   vistaAlDia()
   guardarVista(claveDeVista('foro', sesion?.user?.id), tomarPartes(['foroDestacado', 'foroPrincipal', 'foroLateral']))
@@ -438,10 +490,8 @@ function montarEscribir(foros) {
 // hay tal cosa. Lo que sí hay es "por aquí hoy", que con poca gente
 // sigue siendo un número honesto y agradable de ver.
 async function pintarLateral() {
-  // «Lo último» se fue arriba, a la franja de «lo que se está hablando»
-  // (tanda 299): en 280 px los títulos se cortaban a media palabra, que
-  // es justo lo que no se puede cortar de un tema. Aquí se queda lo que
-  // SÍ cabe en una columna estrecha, que son cifras y nombres.
+  // Dentro de un foro, el lateral son cifras y nombres. En el índice va
+  // además «Lo último» (1096), que lo pinta `pintarIndice` encima de esto.
   const numeros = await panelDeNumerosHtml()
   lateral.innerHTML = numeros
 }

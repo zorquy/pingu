@@ -1410,6 +1410,76 @@ a.foro-cita-quien:hover {
 .foro-calientes {
   margin-bottom: 24px;
 }
+/* En el PC lo último va en el lateral (1096): la franja es del móvil. */
+@media (min-width: 901px) {
+  .foro-calientes {
+    display: none;
+  }
+}
+
+/* «Lo último», arriba del lateral del índice (1096): quién escribió lo
+   último, el título en dos líneas, cuándo y en qué foro. */
+.foro-lou-lista {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.foro-lou-fila {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--e-sm);
+  align-items: start;
+  padding: var(--e-sm) 0;
+  border-top: 1px solid var(--border);
+}
+.foro-lou-fila:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.foro-lou-fila:last-child {
+  padding-bottom: 0;
+}
+.foro-lou-texto {
+  display: grid;
+  gap: 0;
+  min-width: 0;
+}
+.foro-lou-titulo {
+  display: -webkit-box;
+  overflow: hidden;
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  line-height: 1.35;
+  text-decoration: none;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.foro-lou-titulo:hover {
+  color: var(--navy);
+  text-decoration: underline;
+}
+.foro-lou-nuevo .foro-lou-titulo {
+  font-weight: 800;
+}
+.foro-lou-titulo .foro-conv-punto {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: var(--e-xs);
+  vertical-align: 1px;
+}
+.foro-lou-texto small {
+  overflow: hidden;
+  color: var(--text-dim);
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.foro-lou-foro {
+  color: var(--text-mid);
+}
 .foro-calientes > h2 {
   font-size: var(--t-xl);
   margin: 0 0 12px;
