@@ -26,7 +26,7 @@ import { senasDe } from './mi-coleccion/borrador-cruce.js'
 import {
   FICHERO_MIGRACION, COMOS, nombreDeComo, euros, balanceDe, dineroQueCuadra, dineroDeOferta, textoDeDinero, pagaParaRpc,
   estadoDe, estaViva, loQueSeMueve, itemsParaRpc, queRecibe, textoDeRecibido, loQueEs,
-  ENVIOS, envioDe, tipoDe, tituloDe, pagaElEnvio, repartirTotal, totalRedondo, pasosDe, necesitaDireccion, faltaDireccion, vaPorCorreo, direccionCorta, lineasDeDireccion,
+  ENVIOS, envioDe, tipoDe, tituloDe, pagaElEnvio, repartirTotal, totalRedondo, enviosDe, ORDINARIO_HASTA, pasosDe, necesitaDireccion, faltaDireccion, vaPorCorreo, direccionCorta, lineasDeDireccion,
   sabeEnvios, enviadoDe, seguimientoDe, COMOS_CON_DATO, quienCobra, datoBonito,
 } from './cambio-propuesta-puro.js'
 import { confirmacionesPorId, miValoracion, valorarHtml, engancharValorar } from './cambios-hechos.js'
@@ -299,14 +299,29 @@ function ladoEditorHtml(mia, titulo, total, b) {
   </section>`
 }
 
+// «Certificado · 7,06 €»: un envío en una línea.
+const TIPO_DE_ENVIO = { normal: 'Ordinario', certificado: 'Certificado' }
+const envioCorto = (e) => `${TIPO_DE_ENVIO[e.tipo]} · ${euros(e.precio)}`
+// Por qué ese (1108): hasta 25 € y 500 g, carta ordinaria; si no, certificado.
+const porQue = (e) => (e.tipo === 'normal' ? `vale ${euros(e.valor)}: carta ordinaria` : e.valor > ORDINARIO_HASTA ? `vale ${euros(e.valor)}, más de ${ORDINARIO_HASTA} €: ${e.nombre}` : `pesa más de 500 g: ${e.nombre}`)
+// El envío del editor, calculado con lo que lleva (1108).
+function enviosDelEditor() {
+  return enviosDe(ed.items, { yo: ed.yo, otro: ed.otro.id, dinero: ed.dinero.cantidad })
+}
+
 function envioHtml(nombre) {
+  const envios = enviosDelEditor()
+  const mio = envios.find((e) => e.quien === ed.yo)
+  const suyo = envios.find((e) => e.quien !== ed.yo)
   const ayuda = ed.envio === 'mano'
     ? 'Os lo dais en mano: sin envío.'
-    : ed.modo === 'vendo'
-      ? `${nombre} elige al aceptar: normal 2 € o certificado 7 €, y lo paga ${nombre}.`
-      : ed.modo === 'compro'
-        ? `${nombre} elige al aceptar: normal 2 € o certificado 7 €, y lo pagas tú.`
-        : `Cada uno manda lo suyo y paga su envío; ${nombre} elige al aceptar si normal o certificado.`
+    : !envios.length
+      ? 'El envío se calcula con lo que mandéis: hasta 25 €, carta ordinaria; si no, certificado.'
+      : ed.modo === 'vendo' && mio
+        ? `${envioCorto(mio)} (${porQue(mio)}). Lo paga ${nombre}.`
+        : ed.modo === 'compro' && suyo
+          ? `${envioCorto(suyo)} (${porQue(suyo)}). Lo pagas tú.`
+          : `${mio ? `Tú mandas ${envioCorto(mio).toLowerCase()}` : ''}${mio && suyo ? ' · ' : ''}${suyo ? `${nombre} te manda ${envioCorto(suyo).toLowerCase()}` : ''}. Cada uno paga lo que manda.`
   return `<section class="cp-envio" aria-label="Envío">
     <h3>Envío</h3>
     <div class="cp-chips" role="group" aria-label="Cómo os lo dais">
@@ -350,7 +365,9 @@ function pintarEditor() {
   const suyas = ed.items.filter((it) => !it.mia)
   const pestanias = `<div class="cp-modo" role="group" aria-label="Qué es">${MODOS.map(([id, texto]) => `<button type="button" class="cp-modo-btn" data-cp-modo="${id}" aria-pressed="${ed.modo === id}">${texto}</button>`).join('')}</div>`
   const nota = `<label class="cp-nota-campo"><span>Mensaje (opcional)</span><textarea id="cpNota" maxlength="500" rows="2" placeholder="Te la mando certificada el lunes…">${escapeHtml(ed.nota || '')}</textarea></label>`
-  const conEnvio = ed.envio === 'correo' ? ' + envío' : ''
+  // Lo que cuesta el envío de una venta o compra, ya calculado (1108).
+  const envioLote = ed.envio === 'correo' && ed.modo !== 'cambio' ? enviosDelEditor()[0] : null
+  const conEnvio = envioLote ? ` + ${euros(envioLote.precio)} de envío` : ed.envio === 'correo' ? ' + envío' : ''
   if (ed.modo !== 'cambio') {
     // VENTA O COMPRA: un lado, la caja de precio y el envío.
     const vendo = ed.modo === 'vendo'
@@ -751,7 +768,7 @@ function direccionEnTarjetaHtml(o, { yo, nombre, miDir }) {
   }
   if (mando) {
     partes.push(suya
-      ? `<section class="cp-t-dir cp-t-envia"><h4>Envía a ${escapeHtml(nombre)}${o.envio_tipo ? ` · ${escapeHtml((envioDe(o.envio_tipo)?.nombre || '').toLowerCase())}` : ''}</h4><div class="cp-t-envia-fila">${direccionHtml(suya)}<button type="button" class="btn-secondary cp-copiar" data-cp-copiar="${escapeHtml(lineasDeDireccion(suya).join('\n'))}" data-cp-copiado="Dirección copiada.">Copiar</button></div>${enviadoHtml(o, { yo })}</section>`
+      ? `<section class="cp-t-dir cp-t-envia"><h4>Envía a ${escapeHtml(nombre)}${miEnvio(o, yo) ? ` · ${escapeHtml(envioCorto(miEnvio(o, yo)).toLowerCase())}` : ''}</h4><div class="cp-t-envia-fila">${direccionHtml(suya)}<button type="button" class="btn-secondary cp-copiar" data-cp-copiar="${escapeHtml(lineasDeDireccion(suya).join('\n'))}" data-cp-copiado="Dirección copiada.">Copiar</button></div>${enviadoHtml(o, { yo })}</section>`
       : necesitaDireccion(o, otroId) ? `<p class="cp-t-envio-info">${escapeHtml(nombre)} todavía no ha puesto su dirección: en cuanto la ponga, te sale aquí.</p>` : '')
   }
   if (recibo && mia) {
@@ -764,6 +781,16 @@ function direccionEnTarjetaHtml(o, { yo, nombre, miDir }) {
   return partes.join('')
 }
 
+// Lo que mandas tú en ese trato (1108): en un cambio cada uno manda lo suyo y
+// puede ir de forma distinta. Sin la 1108 en la base, lo que guardó.
+function miEnvio(o, yo) {
+  const e = enviosDe(o.items, { dinero: o.dinero }).find((x) => x.quien === yo)
+  if (!e) return null
+  return enviosDe(o.items, { dinero: o.dinero }).length === 1 && o.envio_tipo && o.envio_tipo !== 'mano' && Number(o.envio_precio) > 0
+    ? { ...e, tipo: o.envio_tipo, precio: Number(o.envio_precio) }
+    : e
+}
+
 // «Ya lo he enviado» con el número de seguimiento si es certificado (1103);
 // dicho, lo que dijiste. Sin la migración, nada.
 function enviadoHtml(o, { yo }) {
@@ -773,7 +800,7 @@ function enviadoHtml(o, { yo }) {
     return `<p class="cp-t-envio-info cp-t-enviado">${icons.checkCircle(13)}<span>Enviado${seg ? ` · seguimiento <b>${escapeHtml(seg)}</b>` : ''}</span></p>`
   }
   if ((o.de === yo ? o.recibido_para_at : o.recibido_de_at)) return ''
-  return `<div class="cp-t-enviar">${o.envio_tipo === 'certificado' ? `<label class="cp-campo cp-campo-seg"><span>Número de seguimiento <small>(opcional)</small></span><input type="text" data-cp-seguimiento maxlength="60" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Por ejemplo, PK123456789ES"></label>` : ''}
+  return `<div class="cp-t-enviar">${miEnvio(o, yo)?.tipo === 'certificado' ? `<label class="cp-campo cp-campo-seg"><span>Número de seguimiento <small>(opcional)</small></span><input type="text" data-cp-seguimiento maxlength="60" autocomplete="off" autocapitalize="characters" spellcheck="false" placeholder="Por ejemplo, PK123456789ES"></label>` : ''}
     <button type="button" class="btn-primary" data-cp-accion="enviado" data-oferta="${escapeHtml(o.id)}">Ya lo he enviado</button></div>`
 }
 
@@ -820,15 +847,19 @@ export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null, misCobros = nu
   const otroId = o.de === yo ? o.para : o.de
   const recibo = queRecibe(o, yo)
   const recibeEl = queRecibe(o, otroId)
-  // EL ENVÍO (1099): por correo, quien la recibe lo elige al aceptar; en una
+  // EL ENVÍO (1099; automático desde la 1108): por correo, lo dice lo que se
+  // manda (`enviosDe`); quien la recibe elige entre eso y en mano. En una
   // venta lo paga quien compra y va con lo que paga.
   const envioP = Number(o.envio_precio) || 0
   const pagaEnvio = pagaElEnvio(o)
   const eligeEnvio = o.estado === 'enviada' && o.para === yo && o.envio === 'correo'
   const pagoYo = pagaEnvio === yo
-  const aceptarTexto = (envio) => (pagoYo && dinero.pagaYo ? `Aceptar · ${euros(dinero.cantidad + (envioDe(envio)?.precio || 0))}` : 'Aceptar')
+  const envios = enviosDe(o.items, { dinero: o.dinero })
+  const envioVenta = envios.length === 1 ? envios[0] : null
+  const aceptarTexto = (conEnvio) => (pagoYo && dinero.pagaYo ? `Aceptar · ${euros(dinero.cantidad + (conEnvio && envioVenta ? envioVenta.precio : 0))}` : 'Aceptar')
+  const cadaUno = () => envios.map((e) => `${e.quien === yo ? 'Tú mandas' : `${nombre} te manda`} ${envioCorto(e).toLowerCase()}`).join(' · ')
   const acciones = est.acciones.map((a) => ({
-    aceptar: `<button type="button" class="btn-primary" data-cp-accion="aceptar" data-oferta="${escapeHtml(o.id)}"${pagoYo && dinero.pagaYo ? ` data-base="${dinero.cantidad}"` : ''}>${escapeHtml(aceptarTexto(eligeEnvio ? 'normal' : null))}</button>`,
+    aceptar: `<button type="button" class="btn-primary" data-cp-accion="aceptar" data-oferta="${escapeHtml(o.id)}"${pagoYo && dinero.pagaYo ? ` data-base="${dinero.cantidad}"` : ''}>${escapeHtml(aceptarTexto(eligeEnvio))}</button>`,
     // A la tuya le cambias algo; a la suya le haces una contraoferta.
     editar: boton('editar', o.de === yo ? 'Cambiarla' : 'Contraoferta'),
     rechazar: boton('rechazar', 'Rechazar'),
@@ -845,10 +876,11 @@ export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null, misCobros = nu
       ${ladoHtml(`Das · ${euros(sumaDe(das) + (dinero.pagaYo ? dinero.cantidad : 0) + (pagoYo ? envioP : 0))}`, das, cartaDe, 'Nada', dinero.cantidad && dinero.pagaYo ? { ...dinero, envio: pagoYo ? envioP : 0 } : null)}
       ${ladoHtml(`Recibes · ${euros(sumaDe(recibes) + (dinero.cantidad && !dinero.pagaYo ? dinero.cantidad : 0) + (pagaEnvio && !pagoYo ? envioP : 0))}`, recibes, cartaDe, 'Nada', dinero.cantidad && !dinero.pagaYo ? { ...dinero, envio: pagaEnvio && !pagoYo ? envioP : 0 } : null)}
     </div>
-    ${eligeEnvio ? `<div class="cp-t-envio"><p>¿Cómo ${o.items.some((it) => it.quien !== yo) ? 'te lo manda' : 'se lo mandas'}?${pagaEnvio ? ` Lo ${pagoYo ? 'pagas tú' : `paga ${escapeHtml(nombre)}`}.` : ' Cada uno paga lo que manda.'}</p><div class="cp-chips" role="radiogroup" aria-label="Envío">${ENVIOS.map((e) => `<button type="button" class="cp-chip" role="radio" data-cp-envio-elegir="${e.id}" data-oferta="${escapeHtml(o.id)}" aria-checked="${e.id === 'normal'}">${e.nombre}${e.precio ? ` · ${e.precio} €` : ''}</button>`).join('')}</div></div>`
-      : o.envio_tipo ? `<p class="cp-t-envio-info">Envío: ${escapeHtml(envioDe(o.envio_tipo)?.nombre || o.envio_tipo)}${envioP ? ` · ${escapeHtml(euros(envioP))}${pagaEnvio ? `, lo paga ${pagoYo ? 'quien compra (tú)' : escapeHtml(nombre)}` : ', cada uno el suyo'}` : ''}</p>`
-        : o.envio === 'correo' ? `<p class="cp-t-envio-info">Por correo: normal (2 €) o certificado (7 €), lo elige ${o.para === yo ? 'quien la recibe' : escapeHtml(nombre)} al aceptar.</p>`
-          : o.envio === 'mano' ? '<p class="cp-t-envio-info">En mano.</p>' : ''}
+    ${eligeEnvio ? `<div class="cp-t-envio"><p>${envioVenta ? `${o.items.some((it) => it.quien !== yo) ? 'Te lo manda' : 'Se lo mandas'} ${escapeHtml(envioCorto(envioVenta).toLowerCase())} (${escapeHtml(porQue(envioVenta))}).${pagaEnvio ? ` Lo ${pagoYo ? 'pagas tú' : `paga ${escapeHtml(nombre)}`}.` : ''}` : `${escapeHtml(cadaUno())}. Cada uno paga lo que manda.`}</p><div class="cp-chips" role="radiogroup" aria-label="Envío"><button type="button" class="cp-chip" role="radio" data-cp-envio-elegir="${envioVenta ? envioVenta.tipo : envios.some((e) => e.tipo === 'certificado') ? 'certificado' : 'normal'}" data-precio="${envioVenta ? envioVenta.precio : 0}" data-oferta="${escapeHtml(o.id)}" aria-checked="true">${envioVenta ? escapeHtml(`Por correo · ${envioCorto(envioVenta)}`) : 'Por correo'}</button><button type="button" class="cp-chip" role="radio" data-cp-envio-elegir="mano" data-precio="0" data-oferta="${escapeHtml(o.id)}" aria-checked="false">En mano</button></div></div>`
+      : o.envio_tipo === 'mano' ? '<p class="cp-t-envio-info">En mano.</p>'
+        : o.envio_tipo ? `<p class="cp-t-envio-info">${envioVenta ? `Envío: ${escapeHtml(TIPO_DE_ENVIO[o.envio_tipo] || o.envio_tipo)}${envioP ? ` · ${escapeHtml(euros(envioP))}` : ''}${pagaEnvio ? `, lo paga ${pagoYo ? 'quien compra (tú)' : escapeHtml(nombre)}` : ''}` : `${escapeHtml(cadaUno())}. Cada uno paga lo que manda.`}</p>`
+          : o.envio === 'correo' ? `<p class="cp-t-envio-info">Por correo: ${envioVenta ? escapeHtml(envioCorto(envioVenta).toLowerCase()) : escapeHtml(cadaUno())}, según lo que vale (hasta 25 €, ordinario; si no, certificado).</p>`
+            : o.envio === 'mano' ? '<p class="cp-t-envio-info">En mano.</p>' : ''}
     ${direccionEnTarjetaHtml(o, { yo, nombre, miDir })}
     ${cobroEnTarjetaHtml(o, { yo, nombre, misCobros })}
     ${o.estado === 'enviada' && est.frase ? `<p class="subtext cp-t-ayuda">${escapeHtml(est.frase)}</p>` : ''}
@@ -909,7 +941,7 @@ function engancharAcciones(caja, contexto, recargar) {
       const t = chip.closest('.cp-tarjeta')
       for (const x of t.querySelectorAll('[data-cp-envio-elegir]')) x.setAttribute('aria-checked', String(x === chip))
       const ac = t.querySelector('[data-cp-accion="aceptar"][data-base]')
-      if (ac) ac.textContent = `Aceptar · ${euros(Number(ac.dataset.base) + (envioDe(chip.dataset.cpEnvioElegir)?.precio || 0))}`
+      if (ac) ac.textContent = `Aceptar · ${euros(Number(ac.dataset.base) + (Number(chip.dataset.precio) || 0))}`
       // En mano no hace falta la dirección.
       t.querySelector('[data-cp-dir-aceptar]')?.toggleAttribute('hidden', chip.dataset.cpEnvioElegir === 'mano')
       return

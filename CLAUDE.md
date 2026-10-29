@@ -715,10 +715,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   quien lo recibe, sumado a su total, nunca en una franja aparte (una venta
   decía «Recibes · 0,00 € — Nada»). Desde la 1099 una propuesta es Cambio,
   Le vendo o Le compro (`tipoDe`), cada carta lleva un precio editable sobre
-  el de Cardmarket, y el envío (en mano o por correo: normal 2 €, certificado
-  7 €, en `ENVIOS` y en `cambio_envio_precio` a la vez) lo elige quien la
-  recibe al aceptar (`cambio_aceptar`) y en una venta lo paga quien compra
-  (`pagaElEnvio`). Un trato se SIGUE en Cruces → «En curso» (1100,
+  el de Cardmarket, y el envío (en mano o por correo) es AUTOMÁTICO desde la
+  1108 con la tabla de Cardmarket España → España (PINGU: «hasta 25 €,
+  ordinario; más de 25, certificado»): `envioAutomatico` / `enviosDe` en la
+  web y `cambio_envio_tarifa` en la base, la MISMA tabla en los dos; quien la
+  recibe solo elige eso o en mano al aceptar (`cambio_aceptar` lo calcula) y
+  en una venta lo paga quien compra (`pagaElEnvio`). El total de una venta se
+  escribe y se reparte entre las cartas (`repartirTotal`, 1106). Un trato se SIGUE en Cruces → «En curso» (1100,
   `#oferta-<id>`); en Mensajes solo hay una tira que lleva allí: no vuelvas a
   meter la tarjeta entera en la conversación. Lo que pasa en un trato
   llega a la conversación como una tarjeta con «Ver propuesta» (1101,

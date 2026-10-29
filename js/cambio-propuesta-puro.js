@@ -109,10 +109,57 @@ export const totalRedondo = (total) => (Number(total) > 0 ? Math.max(1, Math.rou
 // precios están también en `cambio_envio_precio` de la migración 1099: si
 // cambian, en los dos.
 export const ENVIOS = [
-  { id: 'normal', nombre: 'Normal', precio: 2 },
+  { id: 'normal', nombre: 'Ordinario', precio: 2 },
   { id: 'certificado', nombre: 'Certificado', precio: 7 },
   { id: 'mano', nombre: 'En mano', precio: 0 },
 ]
+
+// EL ENVÍO AUTOMÁTICO (1108, PINGU con la tabla de Cardmarket: «lo normal es
+// ordinario, con un valor máximo de 25; más de 25, certificado y ya está…
+// que te diga automáticamente qué tipo de envío escoger»). Los precios son la
+// columna «Price» de su tabla para España → España (sello y sobre), y el peso
+// sale de su «¿cuántas cartas caben?»: 4 en 20 g, 17 en 50 g, 40 en 100 g y,
+// de ahí, 40 más cada 100 g. La misma tabla está en `cambio_envio_tarifa`
+// (migración 1108): si cambia, en los dos.
+export const ORDINARIO_HASTA = 25
+const SOBRES = [[4, 20], [17, 50], [40, 100]]
+export function pesoDeCartas(cartas) {
+  const n = Math.max(1, Math.floor(Number(cartas) || 1))
+  for (const [caben, gramos] of SOBRES) if (n <= caben) return gramos
+  return 100 + Math.ceil((n - 40) / 40) * 100
+}
+const ORDINARIA = [[50, 1.45], [100, 2.25], [500, 4.2]]
+const CERTIFICADO = [
+  { hasta: 150, nombre: 'Paq Ligero', pesos: [[250, 7.06], [500, 8.56], [1000, 11.61], [2000, 13.64]] },
+  { hasta: 200, nombre: 'paquete con valor declarado de 200 €', pesos: [[1000, 26.65], [2000, 30.1], [5000, 35.95]] },
+  { hasta: 500, nombre: 'paquete con valor declarado de 500 €', pesos: [[1000, 60.1], [2000, 65.95], [5000, 70.81]] },
+  { hasta: 1000, nombre: 'paquete con valor declarado de 1.000 €', pesos: [[1000, 125.95], [2000, 130.81], [5000, 136.65]] },
+  { hasta: Infinity, nombre: 'mensajería con seguro', pesos: [[20000, 150]] },
+]
+const porPeso = (tramos, g) => (tramos.find(([max]) => g <= max) || tramos[tramos.length - 1])[1]
+// Cómo va un envío de `cartas` cartas que valen `valor` €: { tipo ('normal' es
+// ordinario, como en la base), nombre, precio, gramos }.
+export function envioAutomatico(valor, cartas) {
+  const v = Math.max(0, Number(valor) || 0)
+  const gramos = pesoDeCartas(cartas)
+  if (v <= ORDINARIO_HASTA && gramos <= 500) return { tipo: 'normal', nombre: 'Carta ordinaria', precio: porPeso(ORDINARIA, gramos), gramos }
+  const t = CERTIFICADO.find((x) => v <= x.hasta)
+  return { tipo: 'certificado', nombre: t.nombre, precio: porPeso(t.pesos, gramos), gramos }
+}
+// Los envíos de un trato, uno por quien manda cartas: lo que vale lo suyo (sus
+// precios; en una venta sin precios, el dinero) y cuántas son. `items` con
+// `quien` (guardados) o `mia` (el editor, con `yo` y `otro`).
+export function enviosDe(items = [], { yo = null, otro = null, dinero = 0 } = {}) {
+  const de = (it) => it.quien ?? (it.mia ? yo : otro)
+  const quienes = [...new Set(items.map(de))]
+  return quienes.map((quien) => {
+    const suyas = items.filter((it) => de(it) === quien)
+    const cartas = suyas.reduce((n, it) => n + (Number(it.cantidad) || 1), 0)
+    let valor = suyas.reduce((n, it) => n + (Number(it.precio) || 0) * (Number(it.cantidad) || 1), 0)
+    if (!valor && quienes.length === 1) valor = Number(dinero) || 0
+    return { quien, cartas, valor: Math.round(valor * 100) / 100, ...envioAutomatico(valor, cartas) }
+  })
+}
 export const envioDe = (id) => ENVIOS.find((e) => e.id === id) || null
 
 // Qué es un trato desde quien mira (1099): si solo das cartas, «vendo»; si

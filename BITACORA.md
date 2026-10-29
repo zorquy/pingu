@@ -4,6 +4,40 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (348) — PINGU-Claude (1108 — el envío, automático con la tabla de Cardmarket)
+
+**Hecho**: PINGU, con las tablas de gastos de envío de Cardmarket: «lo normal
+es ordinario, con un valor máximo de 25; más de 25, certificado y ya está…
+que te diga automáticamente qué tipo de envío escoger». Fuera el «normal 2 € /
+certificado 7 €» que elegía quien aceptaba:
+- El envío sale de **lo que se manda**: hasta 25 € y 500 g, **carta
+  ordinaria** (1,45 € hasta 50 g, 2,25 € hasta 100 g, 4,20 € hasta 500 g);
+  si no, **certificado** (Paq Ligero 7,06 € hasta 250 g… hasta 150 €; por
+  encima, paquete con valor declarado de 200/500/1.000 € o mensajería con
+  seguro). Precios de la columna «Price» de Cardmarket España → España; el
+  peso, de su tabla de sobres (4 cartas 20 g, 17 en 50 g, 40 en 100 g).
+- En el editor lo dice con su porqué («Certificado · 7,06 € (vale 38,00 €,
+  más de 25 €: Paq Ligero). Lo paga Lucía.») y va en el botón («Ofrecer por
+  38,00 € + 7,06 € de envío»). Si bajas el total a 20 €, pasa a ordinario.
+- Quien acepta elige «Por correo · Ordinario · 1,45 €» o «En mano», y el
+  total del botón se mueve. En un cambio, cada uno el suyo: «Tú mandas
+  certificado · 7,06 € · Lucía te manda ordinario · 1,45 €».
+- El número de seguimiento sale solo a quien manda certificado.
+
+**Para PINGU**: ejecutar `supabase-migration-1108-cambio-envio-automatico.sql`
+(después de la 1099). Sin ella la base guarda el 2/7 de antes, pero la web ya
+enseña el automático.
+
+**Ficheros**: `supabase-migration-1108-cambio-envio-automatico.sql`
+(`cambio_envio_tarifa`, `cambio_aceptar`), `js/cambio-propuesta-puro.js`
+(`pesoDeCartas`, `envioAutomatico`, `enviosDe`, `ORDINARIO_HASTA`; «Normal» es
+«Ordinario»), `js/cambio-propuesta.js`, `CLAUDE.md`. Pruebas en `pruebas`:
+1108-pantalla y sql-tanda-1108 nuevas; el doble calcula el envío con la misma
+tabla (`__SIN_1108__` para el de antes).
+
+**Pendiente**: la 1109 (las cartas de una propuesta en marcha, fuera del
+Mercado) y la 1110 (la etiqueta de envío para imprimir).
+
 ## 2026-10-29 (347) — PINGU-Claude (1107 — el Bizum o el PayPal de quien cobra, en el trato)
 
 **Hecho**: PINGU: «si elijo Bizum, que me pague por Bizum… que yo también

@@ -41785,6 +41785,32 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1108 — El envío, automático con la tabla de Cardmarket
+
+PINGU: «lo normal es ordinario, con un valor máximo de 25; más de 25,
+certificado y ya está… que te diga automáticamente qué tipo de envío».
+
+- La tabla (Cardmarket, España → España, columna «Price»): carta ordinaria
+  (sin seguimiento, hasta 25 €) 1,45 / 2,25 / 4,20 € hasta 50 / 100 / 500 g;
+  certificado: Paq Ligero (hasta 150 €) 7,06 / 8,56 / 11,61 / 13,64 € hasta
+  250 / 500 / 1.000 / 2.000 g; paquete con valor declarado de 200 € (26,65 /
+  30,10 / 35,95), de 500 € (60,10 / 65,95 / 70,81) y de 1.000 € (125,95 /
+  130,81 / 136,65) hasta 1 / 2 / 5 kg; por encima, mensajería con seguro
+  (150 €). El peso: `pesoDeCartas` (4 cartas 20 g, 17 en 50, 40 en 100 y 40
+  más cada 100 g).
+- `envioAutomatico(valor, cartas)` → { tipo ('normal' = ordinario, como en la
+  base), nombre, precio, gramos } y `enviosDe(items, { yo, otro, dinero })`:
+  un envío por quien manda cartas (en una venta sin precios, el dinero).
+  `cambio_envio_tarifa(valor, cartas)` es la misma tabla en la base.
+- `cambio_aceptar` (redefinida): con `p_envio = 'mano'`, en mano; con
+  cualquier otro valor lo calcula (lo que mande el navegador no cuenta). Venta:
+  `envio_tipo` y `envio_precio` del que manda; cambio: certificado si alguno lo
+  es, a 0 (cada uno paga lo suyo; `pagaElEnvio` es null).
+- La tarjeta: chips «Por correo · Ordinario · 1,45 €» (con `data-precio`, que
+  mueve «Aceptar · N €») y «En mano»; en un cambio, `cadaUno()`. `miEnvio(o,
+  yo)` da lo que mandas tú (para «Envía a …» y el campo del seguimiento, que
+  solo sale con certificado).
+
 ## Tanda 1107 — El Bizum o el PayPal de quien cobra, en el trato
 
 PINGU: «si elijo Bizum, que yo también tenga el número metido, y si es PayPal,
