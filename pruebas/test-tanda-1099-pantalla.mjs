@@ -148,8 +148,10 @@ console.log('── 3. Lucía hace una contraoferta ──')
   const conv = tablas.trade_offers[0].conversacion
   const { ctx, page, errores } = await abrirCon(tablas, 'user-1', { movil: true })
   await page.route(/\/mensajes\.html/, (r) => r.continue())
-  await ir(page, `/mensajes.html?c=${conv}`)
-  const caja = page.locator('#msgPropuestas')
+  // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
+  // queda una tira que lleva allí.
+  await ir(page, '/mi-coleccion.html?ver=cambios')
+  const caja = page.locator('#mcMisCambios')
   const t = (await caja.innerText()).replace(/\s+/g, ' ')
   check('«Admin te vende», con el envío por elegir y el total en el botón', /Admin te vende/.test(t) && (await caja.locator('[data-cp-envio-elegir]').count()) === 3 && (await caja.locator('[data-cp-accion="aceptar"]').innerText()).trim() === 'Aceptar · 32,00 €', t)
   await caja.locator('[data-cp-envio-elegir="certificado"]').click()
@@ -175,8 +177,10 @@ console.log('── 4. Yo la acepto: el envío lo elijo yo y lo paga ella ──
   const conv = tablas.trade_offers[0].conversacion
   const { ctx, page, errores } = await abrirCon(tablas, 'admin-1', { movil: true })
   await page.route(/\/mensajes\.html/, (r) => r.continue())
-  await ir(page, `/mensajes.html?c=${conv}`)
-  const caja = page.locator('#msgPropuestas')
+  // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
+  // queda una tira que lleva allí.
+  await ir(page, '/mi-coleccion.html?ver=cambios')
+  const caja = page.locator('#mcMisCambios')
   const t = (await caja.innerText()).replace(/\s+/g, ' ')
   check('«Le vendes a Lucía · 2.ª versión», con «Lo paga Lucía» y el botón sin sumar', /Le vendes a Lucía · 2\.ª versión/.test(t) && /Lo paga Lucía/.test(t) && (await caja.locator('[data-cp-accion="aceptar"]').innerText()).trim() === 'Aceptar', t)
   await caja.locator('[data-cp-envio-elegir="certificado"]').click()

@@ -166,7 +166,8 @@ console.log('\n── 2. Desde Cruces ──')
   check('  …y el aviso a Lucía', tablas.user_notifications.some((n) => n.recipient_id === 'user-1' && n.type === 'cambio_propuesta'))
   check('el editor se cierra', !(await d.evaluate((x) => x.open)))
   await page.waitForTimeout(800)
-  check('«Tus cambios» arriba de los cruces: «Esperando a Lucía»', /Tus cambios · 1 en curso/.test(await page.locator('#mcMisCambios').innerText()) && /Esperando a Lucía/.test(await page.locator('#mcMisCambios').innerText()), await page.locator('#mcMisCambios').innerText().catch(() => ''))
+  // «En curso» desde la 1100 (era «Tus cambios · 1 en curso»).
+  check('«En curso» arriba de los cruces: «Esperando a Lucía»', /En curso · 1/.test(await page.locator('#mcMisCambios').innerText()) && /Esperando a Lucía/.test(await page.locator('#mcMisCambios').innerText()), await page.locator('#mcMisCambios').innerText().catch(() => ''))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
@@ -177,7 +178,13 @@ console.log('\n── 3. Lucía, en Mensajes ──')
   const { ctx, page, errores } = await abrirCon(tablas, 'user-1')
   await page.route(/\/mensajes\.html/, (r) => r.continue())
   await ir(page, `/mensajes.html?c=${conv}`)
-  const caja = page.locator('#msgPropuestas')
+  const tira = page.locator('#msgPropuestas .cp-tira')
+  check('en Mensajes, una tira: qué es, «Te toca» y a «En curso»', (await tira.count()) === 1 && /Cambio con Admin/.test(await tira.innerText()) && /Te toca/.test(await tira.innerText()) && /ver=cambios#oferta-/.test(await tira.getAttribute('href')), await tira.innerText().catch(() => ''))
+  check('  …y se queda arriba de la conversación al bajar', (await page.$eval('#msgPropuestas', (e) => getComputedStyle(e).position)) === 'sticky')
+  // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
+  // queda una tira que lleva allí.
+  await ir(page, '/mi-coleccion.html?ver=cambios')
+  const caja = page.locator('#mcMisCambios')
   const t3 = (await caja.innerText().catch(() => '')).replace(/\s+/g, ' ')
   check('la tarjeta encima de la conversación: «Te toca»', /Te toca/.test(t3), t3)
   // Desde la 1098 el dinero va DENTRO del lado de quien lo recibe y suma en
@@ -200,7 +207,7 @@ console.log('\n── 3. Lucía, en Mensajes ──')
   await caja.locator('[data-cp-accion="lo-tengo"]').click()
   await page.waitForTimeout(1500)
   tablas = await foto(page)
-  check('su «Lo tengo» se apunta, sin mover nada todavía', tablas.trade_offers[0].recibido_para_at && tablas.trade_offers[0].estado === 'aceptada' && /Esperando a que Admin lo confirme/.test(await caja.innerText()) && /Tú · 1 carta y 600,00 € Recibido ✓/.test((await caja.innerText()).replace(/\s+/g, ' ')))
+  check('su «Lo tengo» se apunta, sin mover nada todavía', tablas.trade_offers[0].recibido_para_at && tablas.trade_offers[0].estado === 'aceptada' && /Esperando a que Admin lo confirme/.test(await caja.innerText()) && /Tú · 1 carta y 600,00 €\s*Recibido ✓/.test((await caja.textContent()).replace(/\s+/g, ' ')))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
@@ -210,8 +217,10 @@ console.log('\n── 4. Yo cierro el cambio, y lo deshago ──')
   const conv = tablas.trade_offers[0].conversacion
   const { ctx, page, errores } = await abrirCon(tablas, 'admin-1')
   await page.route(/\/mensajes\.html/, (r) => r.continue())
-  await ir(page, `/mensajes.html?c=${conv}`)
-  const caja = page.locator('#msgPropuestas')
+  // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
+  // queda una tira que lleva allí.
+  await ir(page, '/mi-coleccion.html?ver=cambios')
+  const caja = page.locator('#mcMisCambios')
   check('«Lucía ya tiene lo tuyo»', /Lucía ya tiene lo tuyo/.test(await caja.innerText()), await caja.innerText())
   check('  …y el botón dice «Cartas recibidas» (te llegan dos)', (await caja.locator('[data-cp-accion="lo-tengo"]').innerText()).trim() === 'Cartas recibidas')
   await caja.locator('[data-cp-accion="lo-tengo"]').click()

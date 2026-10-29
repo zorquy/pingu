@@ -130,8 +130,10 @@ console.log('── 2. Lucía la acepta y confirma la carta ──')
   const conv = tablas.trade_offers[0].conversacion
   const { ctx, page, errores } = await abrirCon(tablas, 'user-1', { movil: true })
   await page.route(/\/mensajes\.html/, (r) => r.continue())
-  await ir(page, `/mensajes.html?c=${conv}`)
-  const caja = page.locator('#msgPropuestas')
+  // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
+  // queda una tira que lleva allí.
+  await ir(page, '/mi-coleccion.html?ver=cambios')
+  const caja = page.locator('#mcMisCambios')
   const das = (await caja.locator('.cp-t-lado').first().innerText()).replace(/\s+/g, ' ')
   check('desde su lado: «Das · 20,00 €» con el dinero dentro', /Das · 20,00 €/.test(das) && /20,00 € · Bizum/.test(das) && !/Nada/.test(das), das)
   await caja.locator('[data-cp-accion="aceptar"]').click()
@@ -151,8 +153,10 @@ console.log('── 3. Yo confirmo el dinero ──')
   const conv = tablas.trade_offers[0].conversacion
   const { ctx, page, errores } = await abrirCon(tablas, 'admin-1', { movil: true })
   await page.route(/\/mensajes\.html/, (r) => r.continue())
-  await ir(page, `/mensajes.html?c=${conv}`)
-  const caja = page.locator('#msgPropuestas')
+  // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
+  // queda una tira que lleva allí.
+  await ir(page, '/mi-coleccion.html?ver=cambios')
+  const caja = page.locator('#mcMisCambios')
   const boton = (await caja.locator('[data-cp-accion="lo-tengo"]').innerText()).trim()
   const quien = (await caja.locator('.cp-quien').innerText()).replace(/\s+/g, ' ')
   // Desde la 1099 va por correo y ella aceptó con el normal (2 €), que paga
