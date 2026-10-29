@@ -52,7 +52,7 @@ function montar() {
   dialogo.setAttribute('aria-labelledby', 'tdvTitulo')
   dialogo.innerHTML = `
     <div class="tdv-caja">
-      <header class="tdv-cab"><h2 id="tdvTitulo">Vender</h2><button type="button" class="tdv-cerrar" data-tdv="cerrar" aria-label="Cerrar">&times;</button></header>
+      <header class="tdv-cab"><h2 id="tdvTitulo">Vender</h2><span class="tdc-cab-der"><button type="button" class="link-btn" data-tdv="comprar">Comprar a un cliente</button><button type="button" class="tdv-cerrar" data-tdv="cerrar" aria-label="Cerrar">&times;</button></span></header>
       <div class="tdv-cuerpo">
         <input type="search" class="tdv-busca" id="tdvBusca" placeholder="Busca en tu stock…" aria-label="Busca en tu stock" autocomplete="off" />
         <ul class="tdv-resultados" id="tdvResultados" hidden></ul>
@@ -93,6 +93,11 @@ function montar() {
 
   dialogo.addEventListener('click', (e) => {
     if (e.target === dialogo || e.target.closest('[data-tdv="cerrar"]')) return dialogo.close()
+    // Comprar (1091) es la otra mitad del mostrador.
+    if (e.target.closest('[data-tdv="comprar"]')) {
+      dialogo.close()
+      return document.dispatchEvent(new CustomEvent('pokedoc:tienda-comprar'))
+    }
     const res = e.target.closest('.tdv-resultado')
     if (res) {
       anadir(JSON.parse(res.dataset.fila))

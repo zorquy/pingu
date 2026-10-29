@@ -228,3 +228,54 @@ html:has(.tdr[open]) { overflow: hidden; }
   .tdr { inset: auto 0 0; width: 100%; max-height: 92dvh; margin: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
   .tdr-botones { padding-bottom: max(var(--e-lg), env(safe-area-inset-bottom)); }
 }
+
+/* Comprar a un cliente (1091): la hoja de Vender, con la foto, el idioma, el
+   estado y la versión de cada línea, el tanto por ciento y el total. */
+.tdv-cab .tdc-cab-der { display: inline-flex; align-items: center; gap: var(--e-sm); }
+.tdc-busca-fila { display: grid; gap: var(--e-sm); }
+.tdc-linea-cab { display: flex; align-items: center; gap: var(--e-sm); }
+.tdc-linea-cab .tdv-linea-que { flex: 1; }
+.tdc-foto { flex: none; width: 34px; aspect-ratio: 245 / 342; border-radius: 4px; overflow: hidden; background: var(--ice); }
+.tdc-foto-producto { aspect-ratio: 1; }
+.tdc-foto img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.tdc-foto-producto img { object-fit: contain; }
+.tdc-elige { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.tdc-elige select {
+  min-height: 36px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+}
+.tdc-cm { color: var(--text-mid); font-size: var(--t-xs); }
+.tdc-pct { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); font-size: var(--t-sm); color: var(--text-mid); }
+.tdc-otro { display: inline-flex; align-items: center; gap: var(--e-xs); }
+.tdc-otro input,
+.tdc-total-caja input,
+.tdc-campo > input {
+  min-height: 40px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+}
+.tdc-otro input { width: 72px; }
+.tdc-campo { display: grid; gap: var(--e-xs); font-size: var(--t-sm); color: var(--text-mid); }
+.tdc-total-caja { display: inline-flex; align-items: center; gap: var(--e-xs); color: var(--text); }
+.tdc-total-caja input { width: 120px; text-align: right; font-variant-numeric: tabular-nums; }
+.tdc-otro input:focus-visible,
+.tdc-total-caja input:focus-visible,
+.tdc-campo > input:focus-visible,
+.tdc-elige select:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+.tdc-cm-total { color: var(--text-mid); }
+@media (pointer: coarse) {
+  .tdc-elige select,
+  .tdc-otro input,
+  .tdc-total-caja input,
+  .tdc-campo > input { min-height: 44px; }
+}

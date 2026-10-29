@@ -1322,6 +1322,8 @@ html:has(.tds-dialogo[open]) {
 
 /* ── Ventas (1072) ── */
 .tdvt { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--e-md); }
+.tdvt-modo { justify-self: start; }
+.tdvt-select[hidden] { display: none; }
 
 .tdvt-arriba { display: flex; flex-wrap: wrap; gap: var(--e-sm); align-items: center; }
 

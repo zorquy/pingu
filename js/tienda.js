@@ -68,6 +68,15 @@ function abrirVender(filas = []) {
 }
 document.addEventListener('pokedoc:tienda-vender', (e) => abrirVender(e.detail || []))
 
+// COMPRAR A UN CLIENTE (1091): la hoja, desde Vender, «+ Añadir» del Stock y
+// Ventas → Compras. Lo comprado entra al stock: se repinta como al vender.
+function abrirComprar() {
+  import('./tienda-comprar.js')
+    .then(({ abrirComprar }) => abrirComprar({ alTerminar: () => document.dispatchEvent(new CustomEvent('pokedoc:tienda-vendida')) }))
+    .catch(() => showToast('No se ha podido abrir Comprar. Recarga la página.', 'error'))
+}
+document.addEventListener('pokedoc:tienda-comprar', () => abrirComprar())
+
 // La lupa de arriba (1071): al Stock, con el cursor en su buscador.
 function buscarEnStock() {
   pestana('stock')
@@ -188,6 +197,7 @@ async function arrancar() {
   else if (params.get('ver') === 'stock' && params.get('filtro')) stockFiltrado(params.get('filtro'))
   else pestana(params.get('ver'))
   if (params.has('vender')) abrirVender()
+  if (params.has('comprar')) abrirComprar()
 }
 
 // Las secciones de las barras y de la hoja «Tú» llevan `data-ver`: dentro del

@@ -286,6 +286,86 @@ export function csvDeVentas(filas, nombreDeSet = (id) => id || '') {
   return lineas.join('\n')
 }
 
+// ── Comprar a un cliente (1091) ──
+
+// Lo que paga la tienda por unidad: un tanto por ciento de lo que vale en
+// Cardmarket (orientativo), al céntimo. Sin precio de Cardmarket, `null`: lo
+// pone ella a mano.
+export function pagoDeCompra(cm, pct) {
+  const v = Number(cm)
+  const p = Number(pct)
+  if (cm == null || cm === '' || !(v > 0) || !Number.isFinite(p) || p < 0) return null
+  return Math.round(v * p) / 100
+}
+
+// Un total redondo («te doy 40 € por todo»), repartido por unidad según lo
+// que vale cada una; lo que no tiene precio de Cardmarket cuenta como la media
+// de las que sí (y si ninguna tiene, a partes iguales). Los céntimos que sobran
+// del redondeo van a una línea de UNA unidad, para que la suma sea el total
+// exacto; si no hay ninguna, se reparten por unidades y puede quedar un
+// céntimo arriba o abajo (la cuenta de abajo dice el de verdad).
+export function repartirTotal(lineas, total) {
+  const t = Math.round(Number(total) * 100)
+  const ls = (lineas || []).map((l) => ({ n: Math.max(0, Math.round(Number(l.unidades) || 0)), cm: Number(l.cm) > 0 ? Number(l.cm) : null }))
+  if (!(t >= 0) || !ls.length || !ls.some((l) => l.n > 0)) return ls.map(() => null)
+  const conCm = ls.filter((l) => l.cm != null && l.n > 0)
+  const media = conCm.length ? conCm.reduce((s, l) => s + l.cm, 0) / conCm.length : 1
+  const pesos = ls.map((l) => (l.n > 0 ? (l.cm ?? media) * l.n : 0))
+  const suma = pesos.reduce((s, p) => s + p, 0)
+  const porUnidad = ls.map((l, i) => (l.n > 0 ? Math.floor((t * pesos[i]) / suma / l.n) : 0))
+  let resto = t - porUnidad.reduce((s, c, i) => s + c * ls[i].n, 0)
+  const una = ls.findIndex((l) => l.n === 1)
+  if (una >= 0) porUnidad[una] += resto
+  else {
+    for (let i = 0; i < ls.length && resto >= ls[i].n; i++) {
+      if (!ls[i].n) continue
+      const k = Math.floor(resto / ls[i].n)
+      porUnidad[i] += k
+      resto -= k * ls[i].n
+    }
+  }
+  return porUnidad.map((c, i) => (ls[i].n > 0 ? c / 100 : null))
+}
+
+// Lo que suma una compra antes de cerrarla: lo que pagas, lo que valía en
+// Cardmarket lo que tiene precio, y el tanto por ciento que es (de eso).
+export function cuentaDeCompra(lineas) {
+  let unidades = 0
+  let total = 0
+  let cm = 0
+  let pagadoConCm = 0
+  for (const l of lineas || []) {
+    const n = Number(l.unidades)
+    const p = Number(l.pagas)
+    if (!(n > 0) || l.pagas == null || l.pagas === '' || !Number.isFinite(p)) continue
+    unidades += n
+    total += p * n
+    if (Number(l.cm) > 0) {
+      cm += Number(l.cm) * n
+      pagadoConCm += p * n
+    }
+  }
+  const r = (v) => Math.round(v * 100) / 100
+  return { unidades, total: r(total), cm: r(cm), pct: cm > 0 ? Math.round((pagadoConCm / cm) * 100) : null }
+}
+
+export const CABECERA_COMPRAS = ['fecha', 'compra', 'id', 'producto', 'nombre', 'expansion', 'numero', 'idioma', 'estado', 'variante', 'gradeo', 'unidades', 'pagado', 'cardmarket', 'cliente']
+export function csvDeCompras(filas, nombreDeSet = (id) => id || '') {
+  const celda = (v) => {
+    if (v == null) return ''
+    const t = typeof v === 'number' ? String(v).replace('.', ',') : String(v)
+    return /[;"\n\r]/.test(t) ? `"${t.replace(/"/g, '""')}"` : t
+  }
+  const lineas = [CABECERA_COMPRAS.join(';')]
+  for (const f of filas || []) {
+    lineas.push([
+      f.comprada_el, f.ticket, f.card_id, f.product_id, f.nombre, f.set_id ? nombreDeSet(f.set_id) : '', f.numero, f.idioma,
+      f.product_id ? '' : f.estado, f.product_id ? '' : f.variante, f.gradeo, f.unidades, Number(f.coste), f.cm == null ? null : Number(f.cm), f.cliente,
+    ].map(celda).join(';'))
+  }
+  return lineas.join('\n')
+}
+
 // ── Hoy (1073) ──
 
 // El periodo de Hoy y el anterior, cortado A LA MISMA ALTURA: hoy contra

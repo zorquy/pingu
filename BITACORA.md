@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (331) — PINGU-Claude (1091 — comprar a un cliente)
+
+**Hecho**: «Comprar» (desde Vender, «+ Añadir» del Stock y Ventas →
+Compras): se buscan las cartas que te traen en todo el catálogo; cada una con
+su idioma, estado y versión, lo que vale en Cardmarket (orientativo) y lo que
+pagas, que es un tanto por ciento (se recuerda) o un total redondo que se
+reparte. «Comprada» mete cada línea en el stock con su coste, con Deshacer
+(no si ya vendiste alguna) y un recibo para quien te las vende («Te
+compramos»). En Ventas, arriba «Ventas · Compras».
+
+**Para PINGU**: ejecutar `supabase-migration-1091-tienda-compras.sql`. Sin
+ella, «Comprada» dice qué migración falta.
+
+**Ficheros**: `supabase-migration-1091-tienda-compras.sql`,
+`js/tienda-comprar.js` (nuevo), `js/tienda.js`, `js/tienda-vender.js`,
+`js/tienda-stock.js`, `js/tienda-ventas.js`, `js/tienda-recibo.js`,
+`js/tiendas-puro.js`, `css/tienda-vender.css`, `css/tienda.css`, `CLAUDE.md`.
+Pruebas en `pruebas`: 1091 (PostgreSQL) y 1091-pantalla.
+
+**Pendiente**: 1092 Apártamela, 1093 Etiquetas, 1094 Cierre del mes.
+
 ## 2026-10-29 (330) — PINGU-Claude (1090 — la ficha de una línea del stock, con foto y Cardmarket)
 
 **Hecho**: PINGU eligió de «Tiendas, la tercera vuelta» Comprar, Apártamela,

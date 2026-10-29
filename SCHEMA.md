@@ -41785,6 +41785,44 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1091 — Comprar a un cliente
+
+De «Tiendas, la tercera vuelta» (punto 1). Migración
+`supabase-migration-1091-tienda-compras.sql`:
+
+- `tienda_compras` (una fila por línea comprada, `ticket` por compra; lo que
+  era copiado; `coste` lo pagado por unidad, `cm` lo que valía en Cardmarket,
+  `cliente` opcional). Solo la ve su tienda; escribe la función.
+- `tienda_comprar(lineas, cliente)`: cada línea es una línea NUEVA de
+  `tienda_stock` (su coste exacto y `entro_el` de hoy: «días en tu stock» dice
+  la verdad), visible y con el precio de venta solo si se manda. Comprueba que
+  la carta o el producto existe; todo o nada.
+- `tienda_deshacer_compra(ticket)`: quita esas unidades (borra la línea si se
+  queda en cero). Si de una ya no quedan las que entraron (se vendió alguna),
+  no toca nada y lo dice.
+- `tienda_compras_lista(filtros, desde, cuántas)`: la forma de
+  `tienda_ventas_lista` (`desde`, `hasta`, `q`, que busca también por
+  cliente), con `sumas.importe`, `unidades`, `cm` e `importe_con_cm`.
+
+En la web, `js/tienda-comprar.js` (por `import()`, en la hoja de Vender:
+`dialog.tdv.tdc`): busca en el catálogo con `buscarComoEnCartas` y
+`buscarProductos` (Cartas, Japón, Sellado); idiomas del set (911), versiones
+del idioma (`versionesDelIdioma`, 956) y Cardmarket de SU idioma y versión
+(`valorDe(precioDeFila(…))`, la 900). Lo que pagas: `pagoDeCompra(cm, pct)`
+(`pd-tienda-compra-pct`, 50 si no hay) o un total con `repartirTotal` (por lo
+que vale cada una; los céntimos del redondeo a una línea de una unidad), y la
+cuenta con `cuentaDeCompra` (todo en `tiendas-puro.js`). Entradas: «Comprar
+a un cliente» en la cabecera de Vender (y «Vender» en la de Comprar), «+
+Añadir» del Stock, Ventas → Compras y `/tienda?comprar=1`; el evento es
+`pokedoc:tienda-comprar` y al terminar se repinta con
+`pokedoc:tienda-vendida`. Ventas tiene arriba «Ventas · Compras» (`.seg`,
+`data-tdvt-modo`): en Compras, sin «Dónde», con su hoja (Recibo y «Deshacer la
+compra») y su CSV (`csvDeCompras`). El recibo es el mismo con `{ compra: true
+}`: «Te compramos», «Te pagamos», sin Cardmarket.
+
+Pruebas: `test-tanda-1091.mjs` (contra PostgreSQL) y
+`test-tanda-1091-pantalla.mjs`.
+
 ## Tanda 1090 — La ficha de una línea del stock: foto y «Ver en Cardmarket»
 
 PINGU: «falta que desde el stock puedas ir al enlace de Cardmarket de esa

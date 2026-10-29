@@ -22,11 +22,14 @@ const C = { papel: '#ffffff', tinta: '#0d1b2a', suave: '#52717f', raya: '#e1eaee
 const LETRA = 'Inter, system-ui, sans-serif'
 const TITULO = 'Outfit, Inter, system-ui, sans-serif'
 
-async function datosDelTicket(ticket) {
-  const { data: lineas, error } = await supabase.from('tienda_ventas')
-    .select('id,ticket,card_id,market,product_id,idioma,estado,variante,gradeo,unidades,precio,donde,vendida_el')
-    .eq('ticket', ticket).order('created_at')
-  if (error || !lineas?.length) return null
+// Una compra (1091) es el mismo recibo, para quien las vende: lo que se le
+// paga sale de `coste`, y la fecha de `comprada_el`.
+async function datosDelTicket(ticket, compra = false) {
+  const { data: crudas, error } = compra
+    ? await supabase.from('tienda_compras').select('id,ticket,card_id,market,product_id,idioma,estado,variante,gradeo,unidades,coste,comprada_el').eq('ticket', ticket).order('created_at')
+    : await supabase.from('tienda_ventas').select('id,ticket,card_id,market,product_id,idioma,estado,variante,gradeo,unidades,precio,donde,vendida_el').eq('ticket', ticket).order('created_at')
+  if (error || !crudas?.length) return null
+  const lineas = compra ? crudas.map(({ coste, comprada_el, ...l }) => ({ ...l, precio: coste, vendida_el: comprada_el })) : crudas
   const ids = [...new Set(lineas.filter((l) => l.card_id).map((l) => l.card_id))]
   const prods = [...new Set(lineas.filter((l) => l.product_id).map((l) => l.product_id))]
   const [cartas, productos] = await Promise.all([
@@ -56,7 +59,7 @@ function cortar(ctx, texto, ancho) {
   return `${t}…`
 }
 
-export async function dibujarRecibo({ lineas, perfil, tienda }) {
+export async function dibujarRecibo({ lineas, perfil, tienda, compra = false }) {
   const { filas, total, unidades } = cuentaDeRecibo(lineas)
   const alto = 520 + filas.length * 112 + 300
   const lienzo = document.createElement('canvas')
@@ -101,7 +104,7 @@ export async function dibujarRecibo({ lineas, perfil, tienda }) {
   const fecha = new Date(primera.vendida_el)
   ctx.fillStyle = C.tinta
   ctx.font = `700 40px ${TITULO}`
-  ctx.fillText('Recibo', 72, 340)
+  ctx.fillText(compra ? 'Te compramos' : 'Recibo', 72, 340)
   ctx.textAlign = 'right'
   ctx.fillStyle = C.suave
   ctx.font = `500 28px ${LETRA}`
@@ -138,14 +141,14 @@ export async function dibujarRecibo({ lineas, perfil, tienda }) {
   ctx.fillRect(72, y - 40, ANCHO - 144, 2)
   ctx.fillStyle = C.suave
   ctx.font = `600 30px ${LETRA}`
-  ctx.fillText(`Total · ${unidades} ${unidades === 1 ? 'artículo' : 'artículos'}`, 72, y + 30)
+  ctx.fillText(`${compra ? 'Te pagamos' : 'Total'} · ${unidades} ${unidades === 1 ? 'artículo' : 'artículos'}`, 72, y + 30)
   ctx.textAlign = 'right'
   ctx.fillStyle = C.tinta
   ctx.font = `800 64px ${TITULO}`
   ctx.fillText(euros(total), ANCHO - 72, y + 40)
   ctx.textAlign = 'left'
   const NOMBRE_DONDE = Object.fromEntries(DONDE_VENTA)
-  if (primera.donde && primera.donde !== 'otro') {
+  if (!compra && primera.donde && primera.donde !== 'otro') {
     ctx.fillStyle = C.suave
     ctx.font = `500 26px ${LETRA}`
     ctx.fillText(`Venta: ${String(NOMBRE_DONDE[primera.donde] || primera.donde).toLowerCase()}`, 72, y + 74)
@@ -156,7 +159,7 @@ export async function dibujarRecibo({ lineas, perfil, tienda }) {
   ctx.fillRect(0, alto - 150, ANCHO, 150)
   ctx.fillStyle = C.tinta
   ctx.font = `600 30px ${LETRA}`
-  ctx.fillText('¡Gracias por tu compra!', 72, alto - 86)
+  ctx.fillText(compra ? '¡Gracias por confiar en nosotros!' : '¡Gracias por tu compra!', 72, alto - 86)
   ctx.fillStyle = C.marca
   ctx.font = `500 26px ${LETRA}`
   ctx.fillText(`pokedoc.es/usuario/${perfil.username || ''}`, 72, alto - 46)
@@ -182,18 +185,18 @@ function comoJpeg(lienzo) {
 
 let dialogo = null
 
-export async function abrirRecibo(ticket) {
+export async function abrirRecibo(ticket, { compra = false } = {}) {
   hojaInyectada('css/tienda-vender.css')
   const sesion = await getSession()
   if (!sesion) return
   const [lineas, perfil, tienda] = await Promise.all([
-    datosDelTicket(ticket),
+    datosDelTicket(ticket, compra),
     getProfile(sesion.user.id),
     supabase.from('tiendas').select('ciudad,direccion').eq('user_id', sesion.user.id).maybeSingle().then((r) => r.data || null),
   ])
-  if (!lineas || !perfil) return showToast('No se ha encontrado esa venta.', 'error')
-  const lienzo = await dibujarRecibo({ lineas, perfil, tienda })
-  const nombreFichero = `recibo-${String(ticket).slice(0, 8)}`
+  if (!lineas || !perfil) return showToast(compra ? 'No se ha encontrado esa compra.' : 'No se ha encontrado esa venta.', 'error')
+  const lienzo = await dibujarRecibo({ lineas, perfil, tienda, compra })
+  const nombreFichero = `${compra ? 'compra' : 'recibo'}-${String(ticket).slice(0, 8)}`
   if (!dialogo) {
     dialogo = document.createElement('dialog')
     dialogo.className = 'tdr'
@@ -205,8 +208,8 @@ export async function abrirRecibo(ticket) {
   dialogo.innerHTML = `
     <div class="tdr-caja">
       <header class="tdr-cab"><h2 id="tdrTitulo">Recibo · ${escapeHtml(euros(total))}</h2><button type="button" class="tdv-cerrar" data-tdr="cerrar" aria-label="Cerrar">&times;</button></header>
-      <div class="tdr-vista"><img alt="El recibo de la venta" width="${lienzo.width}" height="${lienzo.height}" /></div>
-      <p class="tdr-nota">Sin lo que te costó ni lo que ganas: es para quien compra.</p>
+      <div class="tdr-vista"><img alt="${compra ? 'El recibo de la compra' : 'El recibo de la venta'}" width="${lienzo.width}" height="${lienzo.height}" /></div>
+      <p class="tdr-nota">${compra ? 'Lo que le pagas, sin lo que valen en Cardmarket: es para quien te las vende.' : 'Sin lo que te costó ni lo que ganas: es para quien compra.'}</p>
       <footer class="tdr-botones">
         <button type="button" class="btn-primary" data-tdr="compartir">Compartir…</button>
         <button type="button" class="btn-secondary" data-tdr="imagen">Descargar imagen</button>

@@ -117,7 +117,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   no lleva NUNCA el coste ni el beneficio: es para quien compra. «Avisar a los
   que la buscan» (1089) pasa por `tienda_avisar`: uno por persona, carta y
   tienda (`tienda_avisos`, sin políticas: la tienda solo ve CUÁNTOS, por
-  `tienda_avisos_de`), y cada uno lo apaga con el tipo `tienda_la_tiene`.
+  `tienda_avisos_de`), y cada uno lo apaga con el tipo `tienda_la_tiene`. Las
+  compras a un cliente (1091) pasan por `tienda_comprar`: cada línea entra al
+  stock como línea NUEVA con lo que se pagó de coste (y queda en
+  `tienda_compras`); Cardmarket ahí es solo orientativo (PINGU), nunca el precio.
 - **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
   1065 y 1066): cada visita lleva `modo` (app instalada o web),
   `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que

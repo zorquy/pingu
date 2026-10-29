@@ -1010,6 +1010,7 @@ export function montarStock(destino, { perfil: p }) {
               <button type="button" role="menuitem" data-tds="anadir">${icons.search(18)}<span><b>Buscar una carta</b><small>Por nombre o número</small></span></button>
               <a role="menuitem" href="/cartas">${icons.layers(18)}<span><b>Desde la Colección</b><small>Por expansión, Pokédex o producto, de golpe</small></span></a>
               <button type="button" role="menuitem" data-tds="importar">${icons.upload(18)}<span><b>Importar un CSV</b><small>De tu Excel</small></span></button>
+              <button type="button" role="menuitem" data-tds="comprar">${icons.coins(18)}<span><b>Comprar a un cliente</b><small>Tasa sus cartas y entran con su coste</small></span></button>
             </span>
           </span>
           <button type="button" class="btn-secondary tds-boton tds-ver-filtros" data-tds="abrir-filtros">${ICONOS_COLECCION.sliders(18)}<span>Filtros</span><span class="tds-n-filtros" data-tds-n-filtros></span></button>
@@ -1068,6 +1069,7 @@ export function montarStock(destino, { perfil: p }) {
     const accion = e.target.closest('[data-tds]')?.dataset.tds
     if (accion === 'anadir') return abrirAnadir()
     if (accion === 'importar') return abrirImportar()
+    if (accion === 'comprar') return document.dispatchEvent(new CustomEvent('pokedoc:tienda-comprar'))
     if (accion === 'exportar') return exportar()
     if (accion === 'limpiar') { $('[data-tds-q]').value = ''; return cambiar({}) }
     if (accion === 'mas') return pedir({ mas: true })
