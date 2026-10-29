@@ -145,7 +145,7 @@ console.log('── 3. Ventas ──')
   await p.click('#tdvtHoja [data-deshacer="tk1"]'); await p.waitForTimeout(700)
   check('  …y la hoja se cierra', !(await p.locator('#tdvtHoja[open]').count()))
   check('  …y con él, deshace esa venta y vuelve a pedir la lista', (await ultima(p, 'tienda_deshacer_venta'))?.p_ticket === 'tk1' && (await llamadas(p, 'tienda_ventas_lista')).length >= 6)
-  const [d] = await Promise.all([p.waitForEvent('download', { timeout: 5000 }).catch(() => null), p.click('[data-tdvt="exportar"]')])
+  const [d] = await Promise.all([p.waitForEvent('download', { timeout: 5000 }).catch(() => null), (async () => { await p.click('[data-tdvt="menu"]'); await p.click('[data-tdvt="exportar"]') })()])
   const nombre = d?.suggestedFilename() || ''
   const texto = d ? await (await import('node:fs/promises')).readFile(await d.path(), 'utf8') : ''
   check('Exportar: un CSV con su cabecera', /^ventas-prueba-\d{4}-\d{2}-\d{2}\.csv$/.test(nombre) && texto.startsWith('﻿fecha;venta;id;') && texto.split('\n').length === 4, nombre)
