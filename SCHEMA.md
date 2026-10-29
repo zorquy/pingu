@@ -41785,6 +41785,24 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1090 — La ficha de una línea del stock: foto y «Ver en Cardmarket»
+
+PINGU: «falta que desde el stock puedas ir al enlace de Cardmarket de esa
+carta para chequear el precio» y «debería salir la imagen de la carta o del
+producto debajo del nombre». En `montarForm` (tienda-stock.js, la hoja de
+añadir y la de editar): `fotoDeFichaHtml(carta, producto)` debajo de
+`.tds-form-titulo` (la cadena de escaneos de siempre; el producto, su
+`image`), y en `[data-cm]` el enlace `.tds-cm-ver`: `enlaceCardmarket` con el
+`idProduct` de `precioDeFila(fila de precios, { variante })` y el idioma, el
+estado y la versión del formulario (se repinta al cambiar cualquiera); sin
+`idProduct`, la búsqueda por nombre de siempre. Un producto va por
+`enlaceCardmarketDeProducto` (`completarProductos` pide `cardmarket_id`). El
+precio se rotula «Cardmarket (orientativo)»: PINGU no quiere que mande (no a
+la regla de precios automática), y en español a veces falla.
+
+Prueba: `test-tanda-1090-pantalla.mjs` (PC y móvil; las fotos de fuera se
+sirven con `route` y el service worker bloqueado, o la cadena las quita).
+
 ## Tanda 1089c — El desfase de la 776, solo después del teclado
 
 PINGU, en la app instalada (cuenta normal, Mi colección y un perfil): al bajar

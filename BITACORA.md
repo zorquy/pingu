@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-29 (330) — PINGU-Claude (1090 — la ficha de una línea del stock, con foto y Cardmarket)
+
+**Hecho**: PINGU eligió de «Tiendas, la tercera vuelta» Comprar, Apártamela,
+Etiquetas y el Cierre del mes (no la regla de precios: «el precio de
+Cardmarket es orientativo»; ni Tiendas cerca ni Torneos por ahora), y pidió
+dos cosas más, que son esta tanda. Al abrir una línea del stock (o al añadir),
+la foto de la carta o del producto sale debajo de su nombre, y junto a
+Cardmarket, rotulado «orientativo», va «Ver en Cardmarket»: a esa carta con
+el idioma, el estado y la versión del formulario (cambia al cambiarlos); un
+producto, a su producto.
+
+**Para PINGU**: nada.
+
+**Ficheros**: `js/tienda-stock.js`, `css/tienda.css`. Pruebas en `pruebas`:
+1090-pantalla y la 1068 al día («orientativo»).
+
+**Pendiente**: 1091 Comprar, 1092 Apártamela, 1093 Etiquetas, 1094 Cierre del
+mes.
+
 ## 2026-10-29 (329) — PINGU-Claude (1089c — la barra de arriba a media pantalla en el iPhone)
 
 **Hecho**: PINGU, en la app instalada, con una cuenta normal: al bajar y subir,

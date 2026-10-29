@@ -11,7 +11,8 @@ import { escapeHtml } from './html.js'
 import { showToast } from './toast.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
-import { IDIOMAS, ESTADOS, euros, valorDe, precioDeFila, idiomasParaAnadirEn, versionesDelIdioma } from './cardmarket.js'
+import { IDIOMAS, ESTADOS, euros, valorDe, precioDeFila, idiomasParaAnadirEn, versionesDelIdioma, enlaceCardmarket } from './cardmarket.js'
+import { enlaceCardmarketDeProducto } from './productos.js'
 import { idiomasDeSetSinEsperar, reglasDeVersiones, sinReglas } from './idiomas-de-set.js'
 import { variantesDeCarta, nombreDeVariante } from './mi-coleccion/variantes.js'
 import { rarezaDeCarta } from './rarezas-nombres.js'
@@ -135,7 +136,7 @@ async function completarCartas(filas) {
 async function completarProductos(filas) {
   const ids = [...new Set(filas.filter((f) => f.product_id && !est.productos.has(String(f.product_id))).map((f) => f.product_id))]
   if (!ids.length) return
-  const { data } = await supabase.from('tcg_products').select('id,name,image,tipo,lang').in('id', ids)
+  const { data } = await supabase.from('tcg_products').select('id,name,image,tipo,lang,cardmarket_id').in('id', ids)
   for (const p of data || []) est.productos.set(String(p.id), p)
 }
 
@@ -582,6 +583,14 @@ async function abrirAnadir() {
 // El formulario de una línea: para añadir (carta o producto) o para editar
 // (`fila`). Los idiomas son los del SET (911) y las versiones, las que
 // existen en ese idioma (922, 956): lo mismo que la hoja de Mi colección.
+// La carta o el producto debajo de su nombre (1090): al abrir una línea se
+// ve QUÉ es, no solo cómo se llama.
+function fotoDeFichaHtml(carta, producto) {
+  if (producto) return producto.image ? `<span class="tds-form-foto tds-form-foto-producto"><img src="${escapeHtml(producto.image)}" alt="" width="160" height="160" onerror="this.remove()" /></span>` : ''
+  const attrs = carta ? atributosDeEscaneo(cadenaDeEscaneo(carta)) : null
+  return attrs ? `<span class="tds-form-foto"><img ${attrs} alt="" width="245" height="342" /></span>` : ''
+}
+
 async function montarForm(d, { carta = null, producto = null, fila = null }) {
   const form = d.querySelector('form')
   const lista = d.querySelector('.tds-resultados')
@@ -603,8 +612,10 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
   if (fila && !idiomas.some((i) => i.id === fila.idioma)) idiomas = [...idiomas, IDIOMAS.find((i) => i.id === fila.idioma) || { id: fila.idioma, nombre: fila.idioma }]
   const versionesDe = (id) => (versiones.length ? versionesDelIdioma(versiones, reglas, id, carta?.id).versiones : [])
   const titulo = esProducto ? producto?.name || nombreFila(fila) : carta ? nombreDeCarta(carta) : nombreFila(fila)
+  const elProducto = esProducto ? producto || est.productos.get(String(fila?.product_id)) || null : null
   form.innerHTML = `
     <p class="tds-form-titulo"><strong>${escapeHtml(titulo)}</strong>${carta ? `<small>${escapeHtml(nombreDeSet(carta.tcg_sets) || carta.set_id)} · ${escapeHtml(carta.local_id || '')}</small>` : ''}</p>
+    ${fotoDeFichaHtml(carta, elProducto)}
     ${esProducto ? '' : `<div class="tds-form-fila">
       <label>Idioma<select name="idioma">${idiomas.map((i) => `<option value="${i.id}" ${i.id === idioma ? 'selected' : ''}>${escapeHtml(i.nombre)}</option>`).join('')}</select></label>
       <label>Estado<select name="estado">${ESTADOS.map((e) => `<option value="${e.id}" ${(v.estado || 'NM') === e.id ? 'selected' : ''}>${e.id} · ${escapeHtml(e.nombre)}</option>`).join('')}</select></label>
@@ -665,12 +676,22 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
     } else if (filaPrecio) {
       cm = valorDe(precioDeFila(filaPrecio, { variante: sel?.value || 'normal' }), form.querySelector('[name="idioma"]').value)
     } else if (fila) cm = fila.cm
+    // Para mirarlo allí (1090): el precio es orientativo y a veces falla en
+    // un idioma, así que la tienda lo comprueba con los filtros de la ficha.
+    let enlace = null
+    if (esProducto) enlace = enlaceCardmarketDeProducto(elProducto)
+    else {
+      const pr = filaPrecio ? precioDeFila(filaPrecio, { variante: sel?.value || 'normal' }) : null
+      enlace = enlaceCardmarket({ idProduct: pr?.idProduct, url: pr?.url, dudoso: pr?.dudoso, idioma: form.querySelector('[name="idioma"]').value, estado: form.querySelector('[name="estado"]').value, variante: sel?.value || 'normal', nombre: carta?.name || titulo })
+    }
+    const ver = enlace ? ` · <a class="link-btn tds-cm-ver" href="${escapeHtml(enlace)}" target="_blank" rel="noopener">Ver en Cardmarket</a>` : ''
     caja.innerHTML = cm > 0
-      ? `Cardmarket: <strong>${euros(cm)}</strong> · <button type="button" class="link-btn" data-poner="${cm}">Poner ese</button> · <button type="button" class="link-btn" data-poner="${precioSugerido(cm, 10, '95')}">+10 % (${euros(precioSugerido(cm, 10, '95'))})</button>`
-      : 'Sin precio de Cardmarket para este idioma.'
+      ? `Cardmarket (orientativo): <strong>${euros(cm)}</strong> · <button type="button" class="link-btn" data-poner="${cm}">Poner ese</button> · <button type="button" class="link-btn" data-poner="${precioSugerido(cm, 10, '95')}">+10 % (${euros(precioSugerido(cm, 10, '95'))})</button>${ver}`
+      : `Sin precio de Cardmarket para este idioma.${ver}`
   }
   pintarCm()
   form.querySelector('[name="idioma"]')?.addEventListener('change', () => { ponerVersiones(); pintarCm() })
+  form.querySelector('[name="estado"]')?.addEventListener('change', pintarCm)
   sel?.addEventListener('change', pintarCm)
   form.onclick = async (e) => {
     const poner = e.target.closest('[data-poner]')
