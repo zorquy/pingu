@@ -181,7 +181,10 @@ console.log('── 3. «La quiero»: una baldosa por versión ──')
   // Cambiarla a Holo en cualquier idioma chocaría con la otra: lo dice y no cambia nada.
   await page.click('[data-cambiar-deseo="mcd21-2"][data-cambiar-version="normal"]')
   await page.waitForTimeout(700)
+  // Desde la 1129 las versiones también son casillas: pasar a Holo es marcarla
+  // y quitar la Normal.
   await page.click('#iddVersiones [data-variante="holo"]')
+  await page.click('#iddVersiones [data-variante="normal"]')
   await page.click('#iddChips [data-idioma=""]')
   await page.click('#iddApuntar')
   await page.waitForTimeout(1200)

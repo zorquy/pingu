@@ -1,4 +1,4 @@
-// Tanda 1128 — querer una carta en VARIOS idiomas (Sergio.M en el foro: «si
+// Tandas 1128 y 1129 — querer una carta en VARIOS idiomas Y VERSIONES (Sergio.M en el foro: «si
 // digo que me falta en portugués, no puedo añadir que me falta también en
 // francés»). PINGU eligió la A de la propuesta: los idiomas de la ventana son
 // casillas.
@@ -45,7 +45,8 @@ const SETS = [
 ]
 const setDe = (id) => SETS.find((s) => s.id === id)
 const carta = (id, set, n, nombre, extra = {}) => ({ id, market: setDe(set).market, set_id: set, local_id: String(n), name: nombre, name_es: nombre, image_path: `x/${id}`, rarity: 'Rare', category: 'Pokemon', variants: { normal: true }, tcg_sets: { id: set, name: setDe(set).name, serie_id: setDe(set).serie_id, release_date: setDe(set).release_date }, ...extra })
-const CARTAS = [carta('swsh7-215', 'swsh7', 215, 'Umbreon VMAX'), carta('sv3pt5-199', 'sv3pt5', 199, 'Charizard ex'), carta('sv8-238', 'sv8', 238, 'Pikachu ex'), carta('sv2-269', 'sv2', 269, 'Iono'), carta('sv3pt5-151', 'sv3pt5', 151, 'Mew ex'), carta('swsh7-1', 'swsh7', 1, 'Mew'), carta('SV2a-201', 'SV2a', 201, 'リザードン', { name_en: 'Charizard' })]
+// Una con dos versiones que se saben (1129): Normal y Reverse.
+const CARTAS = [carta('sv2-50', 'sv2', 50, 'Pawmi', { rarity: 'Common', variants: { normal: true, reverse: true } }), carta('swsh7-215', 'swsh7', 215, 'Umbreon VMAX'), carta('sv3pt5-199', 'sv3pt5', 199, 'Charizard ex'), carta('sv8-238', 'sv8', 238, 'Pikachu ex'), carta('sv2-269', 'sv2', 269, 'Iono'), carta('sv3pt5-151', 'sv3pt5', 151, 'Mew ex'), carta('swsh7-1', 'swsh7', 1, 'Mew'), carta('SV2a-201', 'SV2a', 201, 'リザードン', { name_en: 'Charizard' })]
 const U = (n) => `user-${n}`
 const PERFILES = [{ id: 'admin-1', username: 'pingu' }, { id: U(1), username: 'lucia_tcg', display_name: 'Lucía' }, { id: U(2), username: 'danipoke', display_name: 'Dani' }, { id: U(3), username: 'marta.jp', display_name: 'Marta' }, { id: U(4), username: 'iker_ex', display_name: 'Íker' }, { id: U(5), username: 'malo', is_banned: true }]
 const hace = (h) => new Date(Date.now() - h * 3600e3).toISOString()
@@ -55,7 +56,7 @@ const COLECCION = [
   linea('m1', 'admin-1', 'sv3pt5-151', 'es', 1, 1),
   linea('o1', U(1), 'swsh7-215', 'es', 1, 2), linea('o2', U(4), 'swsh7-215', 'en', 1, 3), linea('o3', U(2), 'sv3pt5-199', 'es', 1, 5),
   linea('o4', U(2), 'sv2-269', 'es', 1, 6), linea('o5', U(3), 'sv2-269', 'fr', 2, 7), linea('o6', U(1), 'sv2-269', 'es', 1, 8),
-  linea('o7', U(4), 'sv8-238', 'es', 1, 9), linea('o8', U(3), 'SV2a-201', 'ja', 1, 1),
+  linea('o7', U(4), 'sv8-238', 'es', 1, 9), linea('o11', U(2), 'sv2-50', 'es', 1, 1), linea('o8', U(3), 'SV2a-201', 'ja', 1, 1),
   // La da un baneado y otra con cambio 0: ninguna de las dos sale.
   linea('o9', U(5), 'swsh7-1', 'es', 1, 1), linea('o10', U(4), 'swsh7-1', 'es', 0, 1),
 ]
@@ -138,6 +139,33 @@ for (const movil of [false, true]) {
   await page.click('#iddApuntar')
   await page.waitForTimeout(900)
   check('  …y «Cualquiera» deja uno solo', (await deseosDe(page, 'sv2-269')) === '*', await deseosDe(page, 'sv2-269'))
+
+  // Varias versiones (1129): Pawmi en portugués y francés, Normal y Reverse.
+  await page.click('[data-deseos-vista="mercado"]:visible')
+  await page.waitForTimeout(1200)
+  await page.click('[data-merc-quiero="sv2-50"]')
+  await page.waitForSelector('#iddDialogo[open]', { timeout: 5000 }).catch(() => {})
+  check('con versiones, también son casillas', (await page.$$eval('#iddVersiones [data-variante]', (els) => els.length && els.every((e) => e.getAttribute('role') === 'checkbox'))))
+  await chip(page, 'pt')
+  await chip(page, 'fr')
+  await page.click('#iddVersiones [data-variante="normal"]')
+  await page.click('#iddVersiones [data-variante="reverse"]')
+  check('  …dos idiomas × dos versiones: «Apuntar 4 deseos»', (await page.textContent('#iddApuntar')).trim() === 'Apuntar 4 deseos', await page.textContent('#iddApuntar'))
+  await page.click('#iddApuntar')
+  await page.waitForTimeout(1200)
+  const pareja = () => page.evaluate(() => (window.__TABLAS__.user_wants || []).filter((w) => w.user_id === 'admin-1' && w.card_id === 'sv2-50').map((w) => `${w.idioma || '*'}:${w.variante || '*'}`).sort().join(','))
+  check('  …cuatro deseos, uno por pareja', (await pareja()) === 'fr:normal,fr:reverse,pt:normal,pt:reverse', await pareja())
+  await page.click('[data-deseos-vista="quiero"]:visible')
+  await page.waitForTimeout(1500)
+  const pawmi = await page.$$eval('[data-deseo-carta="sv2-50"]', (els) => els.map((e) => `${e.dataset.deseoClave}:${e.querySelectorAll('.mc-deseo-cambiar .pv-bandera').length}`).sort().join(','))
+  check('  …en «La quiero», una baldosa por versión con sus dos banderas', pawmi === 'sv2-50|normal:2,sv2-50|reverse:2', pawmi)
+  await page.click('[data-cambiar-deseo="sv2-50"][data-cambiar-version="reverse"]')
+  await page.waitForSelector('#iddDialogo[open]', { timeout: 5000 }).catch(() => {})
+  await page.click('#iddVersiones [data-variante="reverse"]')
+  await page.click('#iddVersiones [data-variante="normal"]')
+  await page.click('#iddApuntar')
+  await page.waitForTimeout(1200)
+  check('  …y pasar la Reverse a Normal, que ya estaba: aviso y nada cambia', (await pareja()) === 'fr:normal,fr:reverse,pt:normal,pt:reverse' && /ya está en tu lista/.test(await page.textContent('body')), await pareja())
   check('sin errores', !errores.length, errores.join(' | '))
   if (!movil) await page.screenshot({ path: '/tmp/1128-pc.png' })
   await ctx.close()
