@@ -64,28 +64,16 @@ console.log('\n── 3. Y el lector de decklists los conoce ──')
 
 console.log('\n── 4. Y /admin es donde se apuntan ──')
 {
-  const js = leer('admin/js/admin.js')
+  // Desde la 1123 (la limpieza de Cartas, PINGU dijo «adelante»), el código
+  // de un set se apunta en Colecciones, en la ficha del set, como corrección
+  // (`tcg_online_code`, que también es la etiqueta de /cartas). La tarjeta de
+  // «Códigos de set de TCG Live» se fue; el mapa viejo de site_settings se
+  // sigue leyendo, así que lo apuntado antes no se pierde.
   const html = leer('admin/index.html')
-  const css = leer('admin/css/admin.css').replace(/\/\*[\s\S]*?\*\//g, '')
-  // Lo que había: el mapa de mano iba solo a `site_settings`, así que
-  // arreglaba las decklists y dejaba la etiqueta de /cartas en «ME05».
-  check('guardar escribe también la columna del set', /volcarCodigosEnLosSets\(\)/.test(js))
-  const volcar = js.slice(js.indexOf('async function volcarCodigosEnLosSets'))
-    .slice(0, js.slice(js.indexOf('async function volcarCodigosEnLosSets')).indexOf('\n}\n'))
-  check('…y la escribe en tcg_sets', /from\('tcg_sets'\)/.test(volcar) &&
-    /update\(\{ tcg_online_code: codigo \}\)/.test(volcar))
-  check('…solo en el catálogo occidental', /\.eq\('market', 'WEST'\)/.test(volcar))
-  check('…y no reescribe lo que ya está', /fila\.tcg_online_code === codigo/.test(volcar))
-  // Y que la pantalla no siga diciendo la mentira que me la coló a mí:
-  // «lo trae TCGdex solo» y «los sets antiguos no tienen».
-  check('la tarjeta ya no promete que se rellene solo',
-    !/guarda su código solo/.test(html) && !/anteriores a TCG Live no tienen código/.test(html))
-  check('…y dice por qué', /cerró en 2023/.test(html))
-  check('el mensaje de «ningún código» no culpa a la edad del set',
-    !/Los sets antiguos no tienen: TCG Live no existía/.test(js))
-  // Apuntar a mano dejó de ser «avanzado»: es el único camino.
-  check('el bloque de mano no está plegado', /class="admin-bloque-mano"/.test(html))
-  check('…y su clase tiene estilo', /\.admin-bloque-mano\s*\{/.test(css))
+  const col = leer('admin/js/colecciones.js')
+  check('la tarjeta de los códigos a mano se fue de Cartas', !/admin-bloque-mano|setLiveCodigo|btnTraerCodigos/.test(html))
+  check('el código se corrige en la ficha del set (Colecciones)', /Código \(TCG Live\)/.test(col) && /'tcg_online_code'/.test(col))
+  check('lo apuntado antes se sigue leyendo', /'torneos_sets_live'/.test(leer('js/lista-canonica.js')))
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

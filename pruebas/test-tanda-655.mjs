@@ -103,7 +103,7 @@ console.log('\n── 3. /admin lo enseña ──')
   const js = readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')
   check('hay un botón de solo lectura con el estado', /id="btnTcggoEstado"/.test(html) && /btnTcggoEstado'\)\?\.addEventListener\('click', tcggoEstado\)/.test(js))
   check('  …que lee los cuatro estados y pinta el último error, los fallidos y los vacíos', /from\('scrydex_estado'\)[^]*?\.in\('clave', PASADAS\.map/.test(js) && /'tcggo_catalogo'[^]*'tcggo_pares'[^]*'tcggo_precios'[^]*'tcggo_reemplazos'/.test(readFileSync('/home/user/pingu/admin/js/semaforo.js', 'utf8')) /* las claves, desde la 817, en el semáforo */ && /ultimoError/.test(js) && /fallidos/.test(js) && /vacios/.test(js))
-  check('  …y no escribe nada', !/async function tcggoEstado\(\)[^]*?\.(insert|update|delete|upsert)\(/.test(js.slice(js.indexOf('async function tcggoEstado'), js.indexOf('async function tcggoEmparejar'))))
+  check('  …y no escribe nada', !/async function tcggoEstado\(\)[^]*?\.(insert|update|delete|upsert)\(/.test(js.slice(js.indexOf('async function tcggoEstado'), js.indexOf('async function sondaOrigenes'))))
 }
 
 console.log(fails ? `\n${fails} FALLOS` : '\nTODO OK')

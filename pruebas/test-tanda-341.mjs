@@ -55,7 +55,7 @@ async function admin(sets = SETS) {
   }, { sets, cartas: CARTAS })
   await page.goto(`${BASE}/admin/`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2000)
-  await page.locator('[data-section="cards"]').click()
+  await page.locator('[data-section="colecciones"]').click()
   await page.waitForTimeout(400)
   return { page, errores }
 }
