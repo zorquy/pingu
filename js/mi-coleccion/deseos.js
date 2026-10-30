@@ -23,12 +23,13 @@ import { porNumero, rangoDeRareza } from './orden.js'
 import { ordenarCartas } from './filtros.js'
 import { OTRA } from './gradeo.js'
 import { entenderBusqueda, partirBusqueda } from './busqueda.js'
-import { porCatalogo, conRotulos } from './rotulos-catalogo.js'
 import { casaVersion, deseosPorCartaYVersion } from '../deseo-version.js'
 import { nombreDeVariante, versionDeVariante } from './variantes.js'
 import { chapaDeVersionHtml } from './iconos-version.js'
 import { lineaDeSetHtml } from './linea-set.js'
+import { porCatalogo } from './rotulos-catalogo.js'
 import * as listasDeseo from './listas-deseo.js'
+import { tramosHtml, tramoDeDireccion, irATramo, tramoDelClic, subirA, enEscaparate } from './tramos.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -36,6 +37,52 @@ const $ = (id) => document.getElementById(id)
 let ctx = null
 export function montar(c) {
   ctx = c
+  engancharTramos()
+}
+
+// POR PÁGINAS (1114): «La quiero» y «Las que doy», como el Mercado. Su lista
+// ya está entera en el navegador, así que las páginas se cortan aquí
+// (`tramosHtml`). Un oyente para las dos, una vez.
+const PANEL_DE = { quiero: 'mcQuieroPanel', doy: 'mcDoyPanel' }
+const pintado = { quiero: undefined, doy: undefined }
+let cabenPintado = 0
+let tramosEnganchados = false
+const aLaVista = (vista) => { const p = $(PANEL_DE[vista]); return Boolean(p && !p.hidden && !p.classList.contains('hidden') && p.offsetParent) }
+const repintarVista = (vista) => (vista === 'quiero' ? pintarQuiero() : void pintarDoy())
+function engancharTramos() {
+  if (tramosEnganchados) return
+  tramosEnganchados = true
+  document.addEventListener('click', (e) => {
+    const vista = e.target.closest?.('#mcQuieroPanel') ? 'quiero' : e.target.closest?.('#mcDoyPanel') ? 'doy' : null
+    if (!vista) return
+    const t = tramoDelClic(e, tramoDeDireccion(vista))
+    if (t === undefined) return
+    e.preventDefault()
+    irATramo(vista, t)
+    repintarVista(vista)
+    subirA($(PANEL_DE[vista]))
+  })
+  window.addEventListener('popstate', () => {
+    for (const v of ['quiero', 'doy']) if (aLaVista(v) && JSON.stringify(tramoDeDireccion(v)) !== JSON.stringify(pintado[v])) repintarVista(v)
+  })
+  let espera = null
+  window.addEventListener('resize', () => {
+    clearTimeout(espera)
+    espera = setTimeout(() => {
+      for (const v of ['quiero', 'doy']) if (aLaVista(v) && !pintado[v] && enEscaparate($(PANEL_DE[v])) !== cabenPintado) repintarVista(v)
+    }, 250)
+  })
+}
+// La rejilla de una de las dos, por páginas; apunta lo pintado.
+function rejillaPorTramos(vista, items, mercadoDe, pintar) {
+  const caja = $(PANEL_DE[vista])
+  const r = tramosHtml({ vista, items, mercadoDe, pintar, caja })
+  // Una página que ya no existe (has quitado cartas): la última, sin entrada nueva.
+  const pedido = tramoDeDireccion(vista)
+  if (pedido && r.tramo && pedido.pagina !== r.tramo.pagina) irATramo(vista, r.tramo, { push: false })
+  pintado[vista] = r.tramo
+  cabenPintado = enEscaparate(caja)
+  return r.html
 }
 // Una carta o un precio traído de fuera de tu colección va también a su
 // sitio aparte (939), que la carga de la colección no borra.
@@ -704,7 +751,7 @@ function pintarQuiero() {
   }
   caja.classList.toggle('mc-quiero-marcando', marcando)
   caja.innerHTML = n
-    ? `<div class="mc-mercado-rejilla mc-deseos-rejilla" id="mcQuieroRejilla">${conRotulos(visibles, ({ g }) => mercadoDeCarta(g.card_id), ({ g, precio }) => deseoHtml(g, precio))}</div>
+    ? `<div class="mc-mercado-rejilla mc-deseos-rejilla" id="mcQuieroRejilla">${rejillaPorTramos('quiero', visibles, ({ g }) => mercadoDeCarta(g.card_id), ({ g, precio }) => deseoHtml(g, precio))}</div>
        <p class="mc-quiero-cifra" id="mcQuieroCifra"><b>${n.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${n === 1 ? 'carta' : 'cartas'}${conPrecio.length ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}${conPrecio.length && sinPrecio ? ` <small>(${sinPrecio} sin precio)</small>` : ''}</p>
        ${visibles.length ? '' : `<p class="subtext">${quieroFiltro === 'dan' ? 'Nadie da todavía ninguna de estas.' : 'Todas estas las da alguien.'}</p>`}
        <p class="subtext">${lista ? 'Esta lista la ves solo tú; las cartas siguen en «La quiero», que la ve todo el mundo.' : 'Tu lista la ve todo el mundo: es lo que hace que alguien te escriba. Quítala tocando el corazón.'}</p>`
@@ -1055,7 +1102,7 @@ async function pintarDoy() {
       <button type="button" class="mc-chip-mando mc-quiero-menu" id="mcDoyMenu" aria-label="Más: compartir, modo evento" aria-haspopup="dialog"><span aria-hidden="true">⋯</span></button>
       ${buscan ? `<span class="mc-seg mc-seg-sueltas mc-quiero-que" id="mcDoyQue" role="group" aria-label="Cuáles">${seg('todas', 'Todas')}${seg('buscan', 'La buscan', nBuscan)}${seg('nadie', 'Nadie', todas.length - nBuscan)}</span>` : ''}
     </div>
-    <div class="mc-mercado-rejilla mc-doy-rejilla${marcandoDoy ? ' mc-doy-marcando' : ''}" id="mcDoyRejilla">${conRotulos(filas, ({ l, c }) => l.market || c?.market || 'WEST', ({ l, c, precio }) => {
+    <div class="mc-mercado-rejilla mc-doy-rejilla${marcandoDoy ? ' mc-doy-marcando' : ''}" id="mcDoyRejilla">${rejillaPorTramos('doy', filas, ({ l, c }) => l.market || c?.market || 'WEST', ({ l, c, precio }) => {
       const nombre = ctx.nombreDe(c) || l.card_id
       const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
       const gente = buscan?.get(l.card_id) || []

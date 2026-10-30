@@ -2197,8 +2197,28 @@ a.foro-cita-quien:hover {
   max-height: 96px;
 }
 
-#temaResponder .rte-surface {
-  max-height: 40vh;
+/* La caja crece con lo que escribes y no tiene scroll dentro NUNCA (1115,
+   PINGU con seis citas: «que no haya scroll en ningún momento, solo que se
+   amplíe»); con algo dentro no se recoge (tema.js). En el móvil, con algo
+   dentro deja de ir fija abajo y se queda al final del tema: fija y más alta
+   que la pantalla, lo de arriba no se podría ver nunca. */
+@media (max-width: 900px) {
+  #temaResponder:has(.rte-surface:not(.rte-vacia)) {
+    position: static;
+  }
+}
+
+#temaResponder .foro-form.abierta .rte-surface,
+#temaResponder .foro-form:focus-within .rte-surface {
+  max-height: none;
+  overflow-y: visible;
+}
+
+@media (min-width: 901px) {
+  :is(.foro-form, [data-texto]) .rte-compacta .rte-surface {
+    max-height: none;
+    overflow-y: visible;
+  }
 }
 
 /* Lo que se enfoca o se salta no se queda debajo de la caja. */
@@ -2572,6 +2592,7 @@ html:has(#temaResponder) {
   #temaResponder .foro-form:not(.abierta):not(:focus-within) {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: var(--e-sm);
     padding: var(--e-sm);
   }
@@ -2579,6 +2600,11 @@ html:has(#temaResponder) {
   #temaResponder .foro-form:not(.abierta):not(:focus-within) .rte-wrap {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  /* Citar sin enfocar (964) deja la caja recogida: el aviso va en su fila. */
+  #temaResponder .foro-form:not(.abierta):not(:focus-within) .foro-respondiendo {
+    flex: 0 0 100%;
   }
 
   #temaResponder .foro-form:not(.abierta):not(:focus-within) .foro-form-acciones {
@@ -2743,106 +2769,10 @@ html:has(#temaResponder) {
   }
 }
 
-/* El paginador (tanda 990, js/paginacion.js): flechas con texto en el PC,
-   solo flecha en el móvil, y la página tuya en azul. */
+/* Al saltar de página, el tema queda debajo de la barra (990). El paginador
+   vive en css/paginacion.css desde la 1114. */
 #temaMensajes {
   scroll-margin-top: 96px;
-}
-
-.paginacion {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--e-sm);
-  margin: var(--e-lg) 0;
-}
-
-.paginacion-arriba {
-  margin: 0 0 var(--e-md);
-}
-
-.pag-numeros {
-  display: flex;
-  align-items: center;
-  gap: var(--e-xs);
-}
-
-.pag-num,
-.pag-flecha {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--e-xs);
-  min-width: 44px;
-  min-height: 44px;
-  padding: 0 var(--e-sm);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--ice);
-  color: var(--text-mid);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  cursor: pointer;
-}
-
-button.pag-num:hover,
-button.pag-flecha:hover {
-  color: var(--navy);
-}
-
-.pag-num:focus-visible,
-.pag-flecha:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-ring);
-}
-
-.pag-actual {
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-  cursor: default;
-}
-
-/* Sin anterior o sin siguiente, el hueco se queda para que los números no bailen. */
-span.pag-flecha {
-  visibility: hidden;
-}
-
-.pag-flecha {
-  padding: 0 var(--e-md);
-}
-
-.pag-ant svg {
-  transform: scaleX(-1);
-}
-
-.pag-hueco {
-  min-width: 16px;
-  color: var(--text-mid);
-  text-align: center;
-}
-
-.pag-estrecho {
-  display: none;
-}
-
-@media (max-width: 560px) {
-  .pag-ancho {
-    display: none;
-  }
-
-  .pag-estrecho {
-    display: flex;
-  }
-
-  .pag-texto {
-    display: none;
-  }
-
-  .pag-flecha {
-    padding: 0;
-  }
 }
 
 /* ── 1040: el índice en el teléfono, contenido primero (SCHEMA 1040). El

@@ -41785,6 +41785,71 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1115 — La caja de responder crece y la primera cita se ve
+
+PINGU, con seis citas: «tengo que scrollear para ver lo que estoy
+escribiendo… que no haya scroll en ningún momento, solo que se amplíe». Y
+«la primera nunca está citada».
+
+- La caja tenía tres topes: 40vh con el foco, 96 px recogida y 55vh la
+  compacta. Ahora, abierta o con el foco, no tiene ninguno
+  (`max-height: none; overflow-y: visible`), y tampoco la de abrir tema ni la
+  de editar un mensaje en el PC.
+- Con algo dentro (`.rte-surface:not(.rte-vacia)`) la caja va `.abierta` y
+  tocar fuera no la recoge (`conAlgo` en tema.js): al recogerse volvía a los
+  96 px con barra de scroll. Lo que se recupera del borrador también entra
+  abierto.
+- En el móvil, con algo dentro deja de ir fija abajo
+  (`#temaResponder:has(.rte-surface:not(.rte-vacia))` → `static`): fija y
+  más alta que la pantalla, lo de arriba no se podría ver nunca. Vacía sigue
+  siendo la barra de chat. Si se recoge sin foco (citar en el móvil, la 964),
+  el aviso «Citando a…» va en su fila: antes aplastaba el cuadro.
+- La primera cita solo apuntaba `citandoA` (sale enlazada arriba del mensaje
+  publicado, con `reply_to_id`), así que en la caja no se veía y parecía que
+  no había entrado. Ahora entra como `blockquote[data-ancla]` (`ponerAncla`,
+  con `textoDeMensaje`) y al enviar se quita (`sinAncla`, sobre el DOM: el
+  `cuerpoHtml` del editor ya viene saneado y sin el atributo), así no sale dos
+  veces. «Quitar la cita» la quita también, y citar un trozo seleccionado le
+  quita la marca a la de antes (pasa a ser una cita más).
+- Pruebas: `test-tanda-1115-pantalla.mjs` (nueva), y la 964 cuenta tres
+  citas en la caja en vez de dos.
+
+## Tanda 1114 — Deseos y cambios por páginas
+
+PINGU, con una captura del Mercado: «se muestran varias y no se ven todas…
+ese ver más es del catálogo de japonés». El Mercado pedía 60 de CADA
+catálogo y el «Ver más», debajo del japonés, traía 60 más de los dos: las
+occidentales nuevas caían arriba, fuera de la vista. Propuesta con dibujos
+(«El Mercado por páginas»); eligió la A, la recomendada, y «sí, haz lo
+mismo» en La quiero y Las que doy.
+
+- **Escaparate**: de cada catálogo, lo que cabe en DOS filas
+  (`FILAS_ESCAPARATE`; tres columnas en el móvil, en el PC las del
+  `auto-fill` de 140 + 12 al ancho de la caja, `columnasPara`), y en su
+  rótulo «Ver las N ›» (`rotuloConVerHtml`). Un solo catálogo que cabe
+  entero va sin rótulo, como antes.
+- **Tramo**: ese catálogo entero por páginas, 48 en el PC y 24 en el móvil
+  (`porPagina`), con «‹ Todas», su rótulo y el paginador del foro ARRIBA y
+  abajo (`paginacionHtml`, la regla de la 995).
+- El tramo va en la dirección: `tramo=<vista>:<WEST|JP>&pag=N`
+  (`tramoDeDireccion`, `irATramo`). «Atrás» vuelve donde estabas y se puede
+  mandar la página 3. No es `?catalogo=`, que ya era otra cosa (la 656), y
+  cada vista solo lee el suyo. Una página que no existe se queda en la última
+  (con `replaceState`).
+- El Mercado pide a la base solo lo que enseña: en el escaparate, lo que cabe
+  de cada catálogo; en un tramo, `porPagina()` desde `desde`, y del otro
+  catálogo una fila (`limite: 1`) para su total, que la cuenta de la pestaña
+  sigue siendo de los dos. Un filtro nuevo vuelve a la página 1 (`deNuevo`).
+- La quiero y Las que doy ya están enteras en el navegador: se cortan con
+  `tramosHtml` (`rejillaPorTramos` en deseos.js, en lugar de `conRotulos`).
+- Todo lo de los tramos es `js/mi-coleccion/tramos.js`. El CSS del paginador
+  sale de `foro.css` a `css/paginacion.css` (lo cargan foro, tema y Mi
+  colección / /cartas); el de «Ver las N» y «Todas», en `mi-coleccion.css`.
+- Se fue `#mcMercadoMas` («Ver más»).
+- Prueba: `test-tanda-1114-pantalla.mjs` (lo puro, el Mercado en PC y móvil
+  con 70 + 20 cartas, atrás, filtro, «Todas», un enlace a un tramo, La quiero
+  y Las que doy).
+
 ## Tanda 1113 — El buscador trae todas las que casan
 
 PINGU buscó «pikachu» para ver las versiones del de Temporal Forces y no

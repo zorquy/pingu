@@ -9419,10 +9419,76 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   grid-column: 1 / -1;
 }
 
-.mc-mercado-mas {
-  display: block;
+/* Por páginas (1114, SCHEMA 1114): «Ver las N» en el rótulo de cada
+   catálogo, y dentro de uno, «← Todas» y el paginador del foro. */
+.mc-tramo-ver {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+  margin-left: auto;
+  padding: 0 var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.mc-tramo-ver:hover {
+  background: var(--ice);
+}
+
+.mc-tramo-cab {
+  display: flex;
+  grid-column: 1 / -1;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.mc-tramo-cab .mc-catalogo-rotulo {
+  margin: 0;
+}
+
+.mc-tramo-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
   min-height: 44px;
-  margin: var(--e-lg) auto 0;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.mc-tramo-volver svg {
+  transform: scaleX(-1);
+}
+
+.mc-tramo-ver:focus-visible,
+.mc-tramo-volver:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.mc-mercado-rejilla > .paginacion {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+@media (pointer: coarse) {
+  .mc-tramo-ver {
+    min-height: 44px;
+  }
 }
 
 /* La baldosa: la carta, su corazón, y debajo nombre, set, precio, idiomas y

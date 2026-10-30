@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En el foro, la caja de responder crece con lo que escribes y ya no tiene barra de scroll dentro, aunque cites seis mensajes o toques fuera. Y al citar varios mensajes, el primero también se ve en la caja (antes solo salía al publicar).", "enlace": "/foro" },
+    { "fecha": "2026-10-30", "tipo": "mejora", "texto": "En el Mercado, «La quiero» y «Las que doy» ves dos filas de cada catálogo y, al lado del nombre, «Ver las N»: abre ese catálogo entero por páginas (1, 2, 3…, arriba y abajo). Antes el «Ver más» parecía solo del japonés y las cartas nuevas caían arriba, fuera de la vista.", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "El buscador de Cartas ya trae todas las cartas que casan con lo que escribes: antes se quedaba en 120 y, buscando «pikachu», faltaban muchos (el de Temporal Forces, por ejemplo).", "enlace": "/cartas?ver=buscar&q=pikachu" },
     { "fecha": "2026-10-30", "tipo": "mejora", "texto": "En Parejas, las cartas boca abajo llevan el dorso de las cartas Pokémon de verdad.", "enlace": "/parejas" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "Los retos ya no salen con una carta sin foto: si a una le falta, se cambia por otra en el momento para todo el mundo. Si no se puede, el reto espera a estar arreglado en vez de enseñarte el dorso.", "enlace": "/retos" },

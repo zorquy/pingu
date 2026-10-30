@@ -704,6 +704,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   Y la caja de un tema se queda ABIERTA (`.abierta`) hasta un clic fuera
   (964): con `:focus-within` a secas, en el iPhone tocar «Imagen» le quitaba
   el foco, la barra se escondía bajo el dedo y la galería no se abría.
+  Abierta no tiene tope de alto ni scroll dentro (1115, PINGU: «que no haya
+  scroll en ningún momento»), con algo dentro no se recoge y en el móvil deja
+  de ir fija abajo. La primera cita va en la caja como `blockquote[data-ancla]`
+  y se quita al enviar (`sinAncla`): sale enlazada por `reply_to_id`.
 - **Un cambio entre dos personas es una PROPUESTA** (tanda 942): las cartas
   de cada lado (la copia concreta, con su línea), el dinero APUNTADO (quién,
   cuánto y cómo; PokeDoc no cobra ni comprueba) y su estado. Todo pasa por
@@ -939,7 +943,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y en el móvil cinco casillas sin texto. Antes eran `.page-btn` sin una
   sola regla de CSS. Una lista nueva con páginas pasa por ahí, y va ARRIBA Y
   ABAJO (995, PINGU: «en otros foros siempre está arriba y abajo»): el de
-  arriba con `{ arriba: true }`. Y el foro ya
+  arriba con `{ arriba: true }`. Su CSS es `css/paginacion.css` (1114): una página que lo
+  pinte carga esa hoja. Y el foro ya
   no anuncia «[[Arven]]» en ninguna parte (PINGU: «yo lo obviaría»): el
   código de la 819 sigue, pero no se promete.
 - **Los retos son seis y el sexto es «Parejas»** (tanda 989): «El reto de
@@ -1127,7 +1132,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   ordenado»): `porCatalogo` / `conRotulos` (deseos.js) ponen el rótulo como
   una fila más de la rejilla, que sigue siendo una; con un solo catálogo no
   hay rótulo. Una lista nueva de cartas tuyas que mezcle catálogos pasa por
-  ahí. Y en el móvil esas rejillas van a TRES por fila (PINGU: «con dos hay
+  ahí. Y cada tramo enseña DOS filas y «Ver las N» (1114, PINGU eligió
+  la A): dentro, ese catálogo por páginas (48 PC, 24 móvil) con el
+  paginador arriba y abajo, y el tramo en la dirección
+  (`tramo=<vista>:<WEST|JP>&pag=N`); todo en `js/mi-coleccion/tramos.js`.
+  El Mercado pide a la base solo lo que enseña; no vuelvas a poner un «Ver
+  más» que traiga de los dos catálogos. Y en el móvil esas rejillas van a TRES por fila (PINGU: «con dos hay
   que bajar demasiado»): lo que se añada a una baldosa cabe en ~110 px.
 - **Un álbum hecho desde una lista (La quiero, 1031) es una COPIA de ese
   día** (`crearBinderDeLaQuiero`, albumes.js): la lista y el binder no se

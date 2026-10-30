@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (356) — PINGU-Claude (1115 — la caja de responder crece; la primera cita se ve)
+
+**Hecho**: PINGU: con seis citas había que hacer scroll dentro de la caja de
+responder («que no haya scroll en ningún momento, solo que se amplíe»), al
+tocar fuera se quedaba en 96 px, y «la primera nunca está citada». La caja
+abierta ya no tiene tope (ni la de abrir tema ni la de editar en el PC), con
+algo dentro no se recoge y, en el móvil, deja de ir fija abajo para poder
+verse entera. La primera cita entra en la caja como las demás y al publicar
+se quita, porque sale enlazada arriba del mensaje.
+
+**Ficheros**: `js/tema.js` (`ponerAncla`, `sinAncla`, `textoDeMensaje`,
+`cursorAlFinal`, `conAlgo`), `css/foro.css`, CLAUDE.md, SCHEMA, novedades.
+Pruebas en `pruebas`: 1115-pantalla nueva; 964 actualizada (tres citas en la
+caja). Rojos viejos vistos también sin el cambio: 376, 943, 995 y el «sin
+errores» de la 964 (ViewTransition).
+
+**Pendiente**: nada.
+
+## 2026-10-30 (355) — PINGU-Claude (1114 — Deseos y cambios por páginas)
+
+**Hecho**: PINGU eligió la A de la propuesta «El Mercado por páginas» y «sí,
+haz lo mismo» en La quiero y Las que doy. Cada catálogo enseña dos filas y
+«Ver las N» en su rótulo; dentro, ese catálogo entero por páginas (48 en el
+PC, 24 en el móvil) con el paginador del foro arriba y abajo y «‹ Todas». El
+tramo va en la dirección (`tramo=mercado:WEST&pag=2`), así que «atrás»
+funciona. Se fue el «Ver más» del Mercado, que traía 60 más de los dos
+catálogos y parecía solo del japonés.
+
+**Ficheros**: `js/mi-coleccion/tramos.js` (nuevo), `js/mi-coleccion/mercado.js`,
+`js/mi-coleccion/deseos.js`, `css/paginacion.css` (nuevo: el paginador sale de
+`foro.css`), `css/foro.css`, `css/mi-coleccion.css`, `foro.html`, `tema.html`,
+`mi-coleccion.html` y `cartas.html` (regenerada), CLAUDE.md, SCHEMA, novedades.
+Pruebas en `pruebas`: 1114-pantalla nueva.
+
+**Pendiente**: nada.
+
 ## 2026-10-30 (354) — PINGU-Claude (1113 — el buscador trae todas las que casan)
 
 **Hecho**: PINGU: buscando «pikachu» no salía el de Temporal Forces, y

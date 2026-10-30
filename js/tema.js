@@ -878,13 +878,11 @@ function enganchar(perfiles) {
         // Un mensaje que solo es una imagen (o una carta) no tiene texto,
         // y antes eso lo convertía en la cita principal: la primera se
         // perdía (964). Se cita igual, diciendo qué era.
-        const caja = elMensajes.querySelector(`[data-mensaje="${id}"] .foro-mensaje-texto`)
-        const texto = caja?.innerText.replace(/\s+/g, ' ').trim().slice(0, 400) || (caja?.querySelector('img') ? '[imagen]' : '[mensaje]')
         citadosExtra.add(id)
         // Sin enfocar ni mover la página: la caja está pegada abajo, y
         // llevarte hasta ella obligaba a volver a subir para citar el
         // siguiente (en el móvil, además, abría el teclado).
-        citarTexto(`${nombreDe(perfiles[autorId])}: ${texto}`, null, null, { anclar: false, enfocar: false })
+        citarTexto(`${nombreDe(perfiles[autorId])}: ${textoDeMensaje(id)}`, null, null, { anclar: false, enfocar: false })
         pintarAvisoDeCita(perfiles[elMensajes.querySelector(`[data-mensaje="${citandoA}"]`)?.dataset.autor])
         showToast(`Cita añadida (${citadosExtra.size + 1} mensajes citados).`, 'success')
         return
@@ -892,13 +890,19 @@ function enganchar(perfiles) {
       if (citadosExtra.has(id)) return
       citandoA = id
       pintarAvisoDeCita(perfiles[autorId])
+      // La primera también se ve en la caja (1115, PINGU: «la primera nunca
+      // está citada»): se publica como la cita enlazada de arriba del
+      // mensaje (reply_to_id), así que al enviar se quita (`sinAncla`).
+      ponerAncla(`${nombreDe(perfiles[autorId])}: ${textoDeMensaje(id)}`)
       // En el móvil no se enfoca la caja: abriría el teclado encima del
       // hilo y no se podría tocar «Citar» en otro mensaje (964).
       if (window.matchMedia?.('(pointer: coarse)').matches) {
         showToast('Citado. Toca «Citar» en otro mensaje para citarlo también, o escribe tu respuesta.')
         return
       }
-      document.getElementById('respuestaCuerpo')?.focus({ preventScroll: true })
+      const cuadro = document.getElementById('respuestaCuerpo')
+      cuadro?.focus({ preventScroll: true })
+      if (cuadro) cursorAlFinal(cuadro)
     })
   )
   elMensajes.querySelectorAll('[data-borrar]').forEach((b) =>
@@ -1172,6 +1176,8 @@ async function montarRespuesta() {
   })
 
   document.getElementById('btnQuitarCita').addEventListener('click', () => {
+    superficie.querySelectorAll('blockquote[data-ancla]').forEach((q) => q.remove())
+    superficie.dispatchEvent(new Event('input', { bubbles: true }))
     citandoA = null
     pintarAvisoDeCita()
   })
@@ -1185,8 +1191,16 @@ async function montarRespuesta() {
   // botón pulsado movía lo de encima y el clic caía en otra cosa (la 899).
   const formulario = document.getElementById('respuestaForm')
   formulario.addEventListener('focusin', () => formulario.classList.add('abierta'))
+  // Con algo dentro (escrito, citado o recuperado) va abierta y no se
+  // recoge al tocar fuera: recogida mide 96 px con su barra de scroll y lo
+  // escrito queda a medias a la vista (1115).
+  const conAlgo = () => !superficie.classList.contains('rte-vacia')
+  const abrirSiHayAlgo = () => { if (conAlgo()) formulario.classList.add('abierta') }
+  superficie.addEventListener('input', abrirSiHayAlgo)
+  abrirSiHayAlgo()
   document.addEventListener('click', (e) => {
     if (!formulario.isConnected || formulario.contains(e.target) || e.target.closest?.('dialog')) return
+    if (conAlgo()) return
     formulario.classList.remove('abierta')
   })
 
@@ -1194,7 +1208,8 @@ async function montarRespuesta() {
   document.getElementById('respuestaForm').addEventListener('submit', async (e) => {
     e.preventDefault()
     if (enviando) return
-    const cuerpo = sanitizeRichText(cuerpoHtml || document.getElementById('respuestaCuerpo').innerHTML)
+    const cuadroDe = document.getElementById('respuestaCuerpo')
+    const cuerpo = sanitizeRichText(cuadroDe.querySelector('blockquote[data-ancla]') ? sinAncla(cuadroDe) : cuerpoHtml || cuadroDe.innerHTML)
     if (cuerpo.replace(/<[^>]*>/g, '').trim().length < 2) {
       showToast('Escribe algo antes de enviar.')
       return
@@ -1380,6 +1395,54 @@ function engancharCitarSeleccion() {
   })
 }
 
+// El texto de un mensaje para citarlo en la caja. Un mensaje que solo es
+// una imagen (o una carta) no tiene texto: se dice qué era (964).
+function textoDeMensaje(id) {
+  const caja = elMensajes.querySelector(`[data-mensaje="${id}"] .foro-mensaje-texto`)
+  return caja?.innerText.replace(/\s+/g, ' ').trim().slice(0, 400) || (caja?.querySelector('img') ? '[imagen]' : '[mensaje]')
+}
+
+// La primera cita en la caja, marcada: va la primera, y una nueva sustituye
+// a la de antes.
+function ponerAncla(texto) {
+  const superficie = document.getElementById('respuestaCuerpo')
+  if (!superficie) return
+  superficie.querySelectorAll('blockquote[data-ancla]').forEach((q) => q.remove())
+  const cita = document.createElement('blockquote')
+  cita.dataset.ancla = ''
+  cita.textContent = texto
+  // Con la caja vacía ya hay un renglón en blanco: no se pone otro.
+  const primero = superficie.firstElementChild
+  const vacio = primero?.tagName === 'P' && !primero.textContent.trim() && !primero.querySelector('img')
+  const hueco = document.createElement('p')
+  hueco.innerHTML = '<br>'
+  if (vacio) superficie.prepend(cita)
+  else superficie.prepend(cita, hueco)
+  superficie.dispatchEvent(new Event('input', { bubbles: true }))
+}
+
+// Lo que se publica: la caja sin la primera cita (y sin su renglón si sigue
+// vacío), que ya sale enlazada arriba del mensaje.
+function sinAncla(superficie) {
+  const copia = superficie.cloneNode(true)
+  copia.querySelectorAll('blockquote[data-ancla]').forEach((q) => {
+    const sig = q.nextElementSibling
+    if (sig?.tagName === 'P' && !sig.textContent.trim() && !sig.querySelector('img')) sig.remove()
+    q.remove()
+  })
+  return copia.innerHTML
+}
+
+function cursorAlFinal(el) {
+  const sel = window.getSelection()
+  if (!sel) return
+  const r = document.createRange()
+  r.selectNodeContents(el)
+  r.collapse(false)
+  sel.removeAllRanges()
+  sel.addRange(r)
+}
+
 function citarTexto(texto, postId, quien, { anclar = true, enfocar = true } = {}) {
   const superficie = document.getElementById('respuestaCuerpo')
   if (!superficie) {
@@ -1387,6 +1450,9 @@ function citarTexto(texto, postId, quien, { anclar = true, enfocar = true } = {}
     return
   }
   if (anclar) {
+    // Citar un trozo cambia el ancla: la primera cita de antes se queda en
+    // la caja y se publica como una cita más.
+    superficie.querySelectorAll('blockquote[data-ancla]').forEach((q) => delete q.dataset.ancla)
     citandoA = postId || null
     pintarAvisoDeCita(null, quien)
   }
