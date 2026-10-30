@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (357) — PINGU-Claude (1116 — las citas del foro, todas como la primera)
+
+**Hecho**: PINGU: en una respuesta con seis citas, solo la primera salía con
+«Devy escribió: ↩», el enlace a su mensaje y la foto; las otras eran «Nombre:
+texto» cortado. Ahora cada cita se guarda con su enlace y el contenido del
+mensaje (con fotos, recortado por letras) y al pintar se viste igual que la
+primera. Las viejas se arreglan solas si su mensaje está en la misma página.
+
+**Ficheros**: `js/foro-citas.js` (nuevo), `js/tema.js` (`citaDe`,
+`meterCita`; fuera `textoDeMensaje` y `ponerAncla`), `css/foro.css`, SCHEMA,
+novedades, CLAUDE.md. Pruebas en `pruebas`: 1116-pantalla nueva; 964 espera
+la foto citada en vez de «[imagen]».
+
+**Pendiente**: nada.
+
 ## 2026-10-30 (356) — PINGU-Claude (1115 — la caja de responder crece; la primera cita se ve)
 
 **Hecho**: PINGU: con seis citas había que hacer scroll dentro de la caja de

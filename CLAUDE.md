@@ -707,7 +707,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   Abierta no tiene tope de alto ni scroll dentro (1115, PINGU: «que no haya
   scroll en ningún momento»), con algo dentro no se recoge y en el móvil deja
   de ir fija abajo. La primera cita va en la caja como `blockquote[data-ancla]`
-  y se quita al enviar (`sinAncla`): sale enlazada por `reply_to_id`.
+  y se quita al enviar (`sinAncla`): sale enlazada por `reply_to_id`. Las demás
+  se guardan con `citaDeMensaje` (`js/foro-citas.js`: un renglón con
+  `#mensaje-<id>` y el contenido) y se visten como la primera al pintar
+  (`enriquecerCitas`, 1116): una cita nueva pasa por ahí, nunca «Nombre: texto».
 - **Un cambio entre dos personas es una PROPUESTA** (tanda 942): las cartas
   de cada lado (la copia concreta, con su línea), el dinero APUNTADO (quién,
   cuánto y cómo; PokeDoc no cobra ni comprueba) y su estado. Todo pasa por

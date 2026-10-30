@@ -41785,6 +41785,33 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1116 — Las citas del foro, todas como la primera
+
+PINGU, con una captura de su respuesta a seis: «la primera funciona porque
+puedo ir al mensaje clicando arriba… pero los otros, mira cómo se muestran».
+La primera se pinta al leer desde `reply_to_id` («Devy escribió: ↩», enlace,
+foto y texto); las demás se guardaban como «Nombre: texto» en un
+`<blockquote>`, cortadas a 400 letras, sin foto ni enlace.
+
+- `js/foro-citas.js`: `citaDeMensaje({ id, nombre, cuerpo })` arma la cita
+  que se guarda con lo que el saneador deja pasar: un `<p>` con
+  `<a href="#mensaje-<id>">Nombre escribió:</a>` y el contenido del mensaje
+  pintado, sin las citas que llevara dentro y recortado por LETRAS
+  (`recortarNodo`, 400): cortar el HTML crudo partía una etiqueta y, con una
+  foto delante, se comía el texto.
+- `enriquecerCitas(elMensajes)`, al pintar: una cita con ese renglón se viste
+  como la de arriba (`.foro-cita`, `a.foro-cita-quien` con «↩», cuerpo en
+  `.article-body`). El enlace salta al mensaje aunque esté en otra página (el
+  `hashchange` de tema.js ya lo resolvía). Las viejas, «Nombre: texto», se
+  visten igual si su mensaje está en la página (mismo autor y empieza igual);
+  si no, se quedan como estaban.
+- La caja usa la misma pieza para la primera (`data-ancla`, que se quita al
+  enviar) y las demás (`meterCita`). Un mensaje de solo foto se cita con la
+  foto (antes «[imagen]»).
+- CSS: `.foro-mensaje-texto blockquote.foro-cita` con el hueco de la de arriba
+  y su cabecera en `--text-mid` sin subrayar.
+- Pruebas: `test-tanda-1116-pantalla.mjs` (nueva); la 964 espera la foto.
+
 ## Tanda 1115 — La caja de responder crece y la primera cita se ve
 
 PINGU, con seis citas: «tengo que scrollear para ver lo que estoy

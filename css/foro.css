@@ -870,6 +870,17 @@
   margin-bottom: 0;
 }
 
+/* Una cita guardada con su enlace (1116) se pinta como la de arriba. */
+.foro-mensaje-texto blockquote.foro-cita {
+  margin-bottom: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+}
+
+.foro-mensaje-texto a.foro-cita-quien {
+  color: var(--text-mid);
+  text-decoration: none;
+}
+
 .foro-mensaje-pie {
   display: flex;
   align-items: center;

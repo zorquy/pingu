@@ -31,6 +31,7 @@ import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js
 import { engancharCompartir } from './compartir.js'
 import { cargarEncuesta, encuestaHtml, engancharEncuesta } from './encuesta.js'
 import { engancharAutocompletarMenciones } from './mencion-autocompletar.js'
+import { citaDeMensaje, enriquecerCitas } from './foro-citas.js'
 
 // Un tema del foro.
 //
@@ -554,6 +555,8 @@ async function pintarMensajes() {
       })
     )
     .join('')
+  // Las citas guardadas, con la misma cabecera y enlace que la primera (1116).
+  enriquecerCitas(elMensajes)
 
   // Los vídeos de YouTube que haya en los mensajes. Pinta la portada; el
   // iframe no se carga hasta que alguien lo pulsa (js/video-youtube.js).
@@ -882,7 +885,7 @@ function enganchar(perfiles) {
         // Sin enfocar ni mover la página: la caja está pegada abajo, y
         // llevarte hasta ella obligaba a volver a subir para citar el
         // siguiente (en el móvil, además, abría el teclado).
-        citarTexto(`${nombreDe(perfiles[autorId])}: ${textoDeMensaje(id)}`, null, null, { anclar: false, enfocar: false })
+        meterCita(citaDe(id, perfiles[autorId]))
         pintarAvisoDeCita(perfiles[elMensajes.querySelector(`[data-mensaje="${citandoA}"]`)?.dataset.autor])
         showToast(`Cita añadida (${citadosExtra.size + 1} mensajes citados).`, 'success')
         return
@@ -893,7 +896,9 @@ function enganchar(perfiles) {
       // La primera también se ve en la caja (1115, PINGU: «la primera nunca
       // está citada»): se publica como la cita enlazada de arriba del
       // mensaje (reply_to_id), así que al enviar se quita (`sinAncla`).
-      ponerAncla(`${nombreDe(perfiles[autorId])}: ${textoDeMensaje(id)}`)
+      const ancla = citaDe(id, perfiles[autorId])
+      ancla.dataset.ancla = ''
+      meterCita(ancla, { arriba: true })
       // En el móvil no se enfoca la caja: abriría el teclado encima del
       // hilo y no se podría tocar «Citar» en otro mensaje (964).
       if (window.matchMedia?.('(pointer: coarse)').matches) {
@@ -1395,29 +1400,28 @@ function engancharCitarSeleccion() {
   })
 }
 
-// El texto de un mensaje para citarlo en la caja. Un mensaje que solo es
-// una imagen (o una carta) no tiene texto: se dice qué era (964).
-function textoDeMensaje(id) {
-  const caja = elMensajes.querySelector(`[data-mensaje="${id}"] .foro-mensaje-texto`)
-  return caja?.innerText.replace(/\s+/g, ' ').trim().slice(0, 400) || (caja?.querySelector('img') ? '[imagen]' : '[mensaje]')
+// La cita de un mensaje de la página, como se guarda: su cabecera con el
+// enlace y su contenido (1116; antes «Nombre: texto» cortado a 400).
+function citaDe(id, perfil) {
+  return citaDeMensaje({ id, nombre: nombreDe(perfil), cuerpo: elMensajes.querySelector(`[data-texto="${id}"]`) })
 }
 
-// La primera cita en la caja, marcada: va la primera, y una nueva sustituye
-// a la de antes.
-function ponerAncla(texto) {
+// Mete una cita en la caja: la primera (la que va enlazada arriba al
+// publicar, marcada con `data-ancla`) delante y sustituyendo a la de antes;
+// las demás, detrás, en el orden en que se pulsan.
+function meterCita(cita, { arriba = false } = {}) {
   const superficie = document.getElementById('respuestaCuerpo')
   if (!superficie) return
-  superficie.querySelectorAll('blockquote[data-ancla]').forEach((q) => q.remove())
-  const cita = document.createElement('blockquote')
-  cita.dataset.ancla = ''
-  cita.textContent = texto
-  // Con la caja vacía ya hay un renglón en blanco: no se pone otro.
-  const primero = superficie.firstElementChild
-  const vacio = primero?.tagName === 'P' && !primero.textContent.trim() && !primero.querySelector('img')
   const hueco = document.createElement('p')
   hueco.innerHTML = '<br>'
-  if (vacio) superficie.prepend(cita)
-  else superficie.prepend(cita, hueco)
+  if (arriba) {
+    superficie.querySelectorAll('blockquote[data-ancla]').forEach((q) => q.remove())
+    // Con la caja vacía ya hay un renglón en blanco: no se pone otro.
+    const primero = superficie.firstElementChild
+    const vacio = primero?.tagName === 'P' && !primero.textContent.trim() && !primero.querySelector('img')
+    if (vacio) superficie.prepend(cita)
+    else superficie.prepend(cita, hueco)
+  } else superficie.append(cita, hueco)
   superficie.dispatchEvent(new Event('input', { bubbles: true }))
 }
 

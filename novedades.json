@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "Al citar varios mensajes en el foro, todas las citas salen como la primera: «Fulano escribió», con el enlace para ir a su mensaje, sus fotos y más texto. Las que ya estaban publicadas también se ven así si el mensaje citado está en la misma página.", "enlace": "/foro" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En el foro, la caja de responder crece con lo que escribes y ya no tiene barra de scroll dentro, aunque cites seis mensajes o toques fuera. Y al citar varios mensajes, el primero también se ve en la caja (antes solo salía al publicar).", "enlace": "/foro" },
     { "fecha": "2026-10-30", "tipo": "mejora", "texto": "En el Mercado, «La quiero» y «Las que doy» ves dos filas de cada catálogo y, al lado del nombre, «Ver las N»: abre ese catálogo entero por páginas (1, 2, 3…, arriba y abajo). Antes el «Ver más» parecía solo del japonés y las cartas nuevas caían arriba, fuera de la vista.", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "El buscador de Cartas ya trae todas las cartas que casan con lo que escribes: antes se quedaba en 120 y, buscando «pikachu», faltaban muchos (el de Temporal Forces, por ejemplo).", "enlace": "/cartas?ver=buscar&q=pikachu" },
