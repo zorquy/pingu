@@ -1603,6 +1603,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   siendo `is_muted` / `is_banned`: una política o pantalla nueva mira esas
   columnas, no la tabla. Un rol nuevo de una persona va en `ROLES` de
   `admin/js/usuarios-admin.js` (y su filtro en `FILTROS`), no en otro botón.
+- **Los niveles de XP y los rangos de colaborador viven en `js/niveles.js`**
+  (tanda 1124: diez niveles, de Novato a Maestro con 25.000; rangos Miembro,
+  Colaborador, Destacado y Leyenda). Es puro: lo importan la web y la
+  insignia de las firmas, sin copias. Un cambio de umbrales va ahí Y en
+  `nivel_de_xp` (una migración que además recalcule `level`), y
+  `test-tanda-387` compara los dos. Las cifras de XP se pintan con `milesXp`.
 - **Lo que se gana en el perfil son «Logros»** (tanda 1117, PINGU: «vamos a
   escoger un nombre para todo»): ni medallas ni trofeos (la medalla de un
   curso es otra cosa). La pestaña es `logros` (`medallas` y `about`, alias), y

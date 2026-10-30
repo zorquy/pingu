@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (365) — PINGU-Claude (1124 — diez niveles de XP)
+
+**Hecho**: PINGU aceptó la propuesta de niveles con lo recomendado. Diez
+niveles (Novato, Aprendiz, Entrenador, Rival, Veterano, Experto, As, Alto
+Mando, Campeón, Maestro, de 0 a 25.000 XP) con su color y su icono, Maestro en
+degradado; la ventana «Niveles» a dos columnas en el PC. Rangos de
+colaborador cortos: Miembro, Colaborador, Destacado, Leyenda.
+
+**Ficheros**: `js/niveles.js` y `supabase-migration-1124-niveles.sql`
+(nuevos); `js/gamification.js`, `js/rango-barra.js`, `css/components.css`,
+`netlify/functions/insignia.mjs`, `sobre.html`, SCHEMA, CLAUDE.md, novedades.
+Pruebas en `pruebas`: 1124 nueva; 387 al día.
+
+**Pendiente**: PINGU ejecuta `supabase-migration-1124-niveles.sql` (recalcula
+el nivel guardado de todos; la web ya lo pinta bien sin ella).
+
 ## 2026-10-30 (364) — PINGU-Claude (1123 — «Cartas» se queda en «Marcas legales»)
 
 **Hecho**: última tanda del admin. La sección Cartas es «Marcas legales»: las

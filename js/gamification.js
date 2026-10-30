@@ -3,6 +3,7 @@ import { burstConfetti, achievementIconHtml, escapeHtml, getProfile } from './ap
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { logClientError } from './error-log.js'
+import { NIVELES, RANGOS_COLABORADOR, milesXp } from './niveles.js'
 
 // Los logros se gestionan desde /admin en la tabla `achievement_definitions`.
 // `condition` es jsonb: { type: 'completed_guides_count' | 'total_xp' | 'quiz_correct_count', count: number }
@@ -29,19 +30,9 @@ export function invalidateAchievementsCache() {
   achievementsCache = null
 }
 
-// Los umbrales de antes se alcanzaban demasiado rápido: con ~55 XP por
-// curso (5 por bloque de práctica más la recompensa) y +5 al día por la
-// racha, alguien recién registrado llegaba a "Experto" habiendo hecho el
-// contenido una vez. Ahora subir cuesta de verdad: hacerse todas las
-// guías publicadas hoy deja a alguien alrededor de Entrenador, y los
-// niveles altos piden constancia durante mucho tiempo.
-export const LEVEL_THRESHOLDS = [
-  { level: 'Novato', min: 0, next: 250 },
-  { level: 'Entrenador', min: 250, next: 1000 },
-  { level: 'Coleccionista', min: 1000, next: 3000 },
-  { level: 'Experto', min: 3000, next: 8000 },
-  { level: 'Maestro', min: 8000, next: null },
-]
+// Los niveles viven en js/niveles.js (1124: diez, de Novato a Maestro),
+// que también lee la insignia de las firmas. `next` es el umbral siguiente.
+export const LEVEL_THRESHOLDS = NIVELES
 
 // Deriva de LEVEL_THRESHOLDS a propósito: antes esta función repetía los
 // mismos números escritos a mano, así que tocar la tabla de niveles sin
@@ -57,13 +48,7 @@ export function calculateLevel(xp) {
 // no decía nada de un vistazo; con su chapa de color se distingue al
 // veterano del recién llegado en el foro, los perfiles y la comunidad,
 // igual que ya pasa con las etiquetas de los temas.
-export const NIVEL_ESTILOS = {
-  Novato: { color: '#8a93a5', icono: 'sprout' },
-  Entrenador: { color: '#22a06b', icono: 'gamepad' },
-  Coleccionista: { color: '#38bdf8', icono: 'layers' },
-  Experto: { color: '#a78bfa', icono: 'star' },
-  Maestro: { color: '#f59e0b', icono: 'crown' },
-}
+export const NIVEL_ESTILOS = Object.fromEntries(NIVELES.map((n) => [n.level, { color: n.color, icono: n.icono, especial: !!n.especial }]))
 
 // La chapa de un nivel. Los colores salen de la tabla de arriba (una
 // lista cerrada nuestra, no de la base), así que pueden ir al style con
@@ -76,7 +61,7 @@ export function levelBadgeHtml(nivel, tamanoIcono = 12) {
   const estilo = NIVEL_ESTILOS[nivel]
   if (!estilo) return `<span class="nivel-chapa">${escapeHtml(nivel || '')}</span>`
   const dibujo = icons[estilo.icono]
-  return `<span class="nivel-chapa" style="--chapa:${estilo.color}">${
+  return `<span class="nivel-chapa${estilo.especial ? ' nivel-chapa-especial' : ''}" style="--chapa:${estilo.color}">${
     dibujo ? dibujo(tamanoIcono) : ''
   }${escapeHtml(nivel)}</span>`
 }
@@ -105,12 +90,7 @@ export function celebrarSiSubeDeNivel(antes, despues) {
 
 // Reputación de colaborador, basada en cuántas guías/cursos ha aprobado
 // la moderación (no en XP, que ya mide el progreso como estudiante).
-export const CONTRIBUTOR_TIERS = [
-  { min: 0, title: 'Miembro', icon: icons.user },
-  { min: 1, title: 'Colaborador', icon: icons.sprout },
-  { min: 5, title: 'Colaborador destacado', icon: icons.star },
-  { min: 10, title: 'Leyenda de la comunidad', icon: icons.crown },
-]
+export const CONTRIBUTOR_TIERS = RANGOS_COLABORADOR.map((r) => ({ min: r.min, title: r.title, icon: icons[r.icono] }))
 
 export function contributorTier(approvedGuidesCount) {
   const tier = [...CONTRIBUTOR_TIERS].reverse().find((t) => approvedGuidesCount >= t.min) || CONTRIBUTOR_TIERS[0]
@@ -129,9 +109,10 @@ export function levelLadderHtml(xp, { ajeno = false } = {}) {
     <p class="subtext" style="margin-bottom:14px;">${
       ajeno ? 'El nivel sube automáticamente según el XP total.' : 'Subes de nivel automáticamente según tu XP total.'
     }</p>
-    <div class="ladder-list">
+    <div class="ladder-list ladder-niveles">
       ${LEVEL_THRESHOLDS.map((l, i) => {
         const isCurrent = xp >= l.min && (l.next === null || xp < l.next)
+        const pasado = l.next !== null && xp >= l.next
         const siguiente = LEVEL_THRESHOLDS[i + 1]?.level
         // En tu escalón, además de la chapa: cuánto llevas y cuánto te
         // falta, con su barra. Antes el modal solo decía los umbrales y
@@ -141,16 +122,16 @@ export function levelLadderHtml(xp, { ajeno = false } = {}) {
                <div class="progress-track"><div class="fill" style="width:${progreso.pct}%"></div></div>
                <span class="subtext">${
                  l.next === null
-                   ? `${xp} XP — nivel máximo`
-                   : `${xp} / ${l.next} XP — ${ajeno ? 'le faltan' : 'te faltan'} ${l.next - xp} para ${siguiente}`
+                   ? `${milesXp(xp)} XP — nivel máximo`
+                   : `${milesXp(xp)} / ${milesXp(l.next)} XP — ${ajeno ? 'le faltan' : 'te faltan'} ${milesXp(l.next - xp)} para ${siguiente}`
                }</span>
              </div>`
           : ''
         return `
-        <div class="ladder-item ${isCurrent ? 'ladder-item-current' : ''}">
+        <div class="ladder-item ${isCurrent ? 'ladder-item-current' : pasado ? 'ladder-item-pasado' : ''}">
           <div class="ladder-item-main">
             <strong>${levelBadgeHtml(l.level)}</strong>
-            <span class="subtext">${l.min}+ XP</span>
+            <span class="subtext">${milesXp(l.min)}+ XP</span>
             ${barra}
           </div>
           ${isCurrent ? `<span class="badge badge-completed">${ajeno ? 'Su nivel' : 'Tu nivel'}</span>` : ''}

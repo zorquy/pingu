@@ -41785,6 +41785,40 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1124 — Diez niveles de XP y los rangos de colaborador cortos
+
+PINGU, con la propuesta «Niveles de PokeDoc»: «adelante con lo recomendado»
+(diez niveles, los nombres de la propuesta, recalcular a todo el mundo y
+Maestro con degradado). Antes: cinco niveles hasta 8.000, y con los retos se
+ganan ~210 XP al día, así que el tercero («Coleccionista», que no le cuadraba)
+llegaba en días.
+
+- `js/niveles.js` (nuevo, puro): `NIVELES` (nombre, mínimo, `next`, color,
+  icono y `especial` para Maestro), `nivelDeXp`, `RANGOS_COLABORADOR`,
+  `rangoDeColaborador` y `milesXp` («8.029»: el es-ES de `toLocaleString` no
+  agrupa las de cuatro cifras). Novato 0 · Aprendiz 150 · Entrenador 400 ·
+  Rival 900 · Veterano 1.800 · Experto 3.500 · As 6.000 · Alto Mando 10.000 ·
+  Campeón 16.000 · Maestro 25.000; cada uno cuesta más o menos el doble.
+- `js/gamification.js`: `LEVEL_THRESHOLDS`, `NIVEL_ESTILOS` y
+  `CONTRIBUTOR_TIERS` salen de ahí; la chapa de Maestro lleva
+  `nivel-chapa-especial` (degradado violeta, rosa y oro). La ventana
+  «Niveles» (`levelLadderHtml`) va a dos columnas en el PC
+  (`.ladder-niveles`, con el tuyo a lo ancho), lo pasado apagado
+  (`.ladder-item-pasado`) y las cifras con su punto; también la barra del
+  perfil (`rango-barra.js`).
+- Rangos de colaborador: Miembro, Colaborador, Destacado y Leyenda (antes
+  «Colaborador destacado» y «Leyenda de la comunidad»); los umbrales, igual.
+- `netlify/functions/insignia.mjs` ya no lleva su copia: importa
+  `js/niveles.js`, que no depende de nada.
+- Migración `supabase-migration-1124-niveles.sql`: `nivel_de_xp` con la
+  tabla nueva y el recálculo de `user_profiles.level` de todo el mundo (nadie
+  pierde XP; quien era Maestro con 8.000 pasa a As o Alto Mando). La web
+  calcula el nivel desde `total_xp`, así que se ve bien antes de ejecutarla.
+- `sobre.html` cuenta los nombres nuevos.
+- Pruebas: `test-tanda-1124.mjs` (lo puro, la insignia, la migración contra
+  PostgreSQL umbral a umbral contra la web y la ventana en PC y móvil); 387
+  compara `js/niveles.js` con la 1124 y sus diez colores.
+
 ## Tanda 1123 — «Cartas» se queda en «Marcas legales»
 
 Sexta y última tanda de la propuesta del admin (PINGU: «en cartas, no sé si

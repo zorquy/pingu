@@ -1,3 +1,5 @@
+import { nivelDeXp, rangoDeColaborador } from '../../js/niveles.js'
+
 // La insignia para firmas de otros foros: /insignia/<usuario> devuelve
 // un SVG con el nombre, el nivel y el rango de esa persona, listo para
 // pegar como imagen en una firma de otro foro o un Discord — cada firma
@@ -11,29 +13,16 @@ const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 // La misma clave PÚBLICA que usa la web en js/supabase.js.
 const CLAVE_ANONIMA = 'sb_publishable_ohfCPNNVCoqcVBainTbDlg_04mJliQZ'
 
-// Los mismos umbrales y colores que js/gamification.js. Duplicados a
-// propósito: ese módulo importa el cliente de Supabase del navegador y
-// no puede cargarse aquí. Si cambian los niveles, cambian en los dos.
-const NIVELES = [
-  { min: 0, nombre: 'Novato', color: '#8a93a5' },
-  { min: 250, nombre: 'Entrenador', color: '#22a06b' },
-  { min: 1000, nombre: 'Coleccionista', color: '#38bdf8' },
-  { min: 3000, nombre: 'Experto', color: '#a78bfa' },
-  { min: 8000, nombre: 'Maestro', color: '#f59e0b' },
-]
-
-const RANGOS = [
-  { min: 1, nombre: 'Colaborador' },
-  { min: 5, nombre: 'Colaborador destacado' },
-  { min: 10, nombre: 'Leyenda de la comunidad' },
-]
-
+// Los niveles y los rangos, de js/niveles.js (1124): el mismo fichero que
+// usa la web, sin dependencias, así que ya no hay copia que se quede vieja.
 function nivelDe(xp) {
-  return [...NIVELES].reverse().find((n) => xp >= n.min) || NIVELES[0]
+  const n = nivelDeXp(xp)
+  return { min: n.min, nombre: n.level, color: n.color }
 }
 
 function rangoDe(aprobadas) {
-  return [...RANGOS].reverse().find((r) => aprobadas >= r.min)?.nombre || null
+  const r = rangoDeColaborador(aprobadas)
+  return r.min > 0 ? r.title : null
 }
 
 // En un atributo o texto de XML no puede entrar nada sin escapar: el

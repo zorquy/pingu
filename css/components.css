@@ -1001,6 +1001,26 @@ tcg-deck {
   flex: none;
 }
 
+/* 1124: Maestro, el último, en degradado; la escalera, a dos columnas. */
+.nivel-chapa-especial {
+  background: linear-gradient(90deg, color-mix(in srgb, #8b5cf6 22%, transparent), color-mix(in srgb, #ec4899 22%, transparent), color-mix(in srgb, #eab308 28%, transparent));
+}
+
+.ladder-item-pasado {
+  opacity: 0.62;
+}
+
+@media (min-width: 640px) {
+  .ladder-niveles {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .ladder-niveles .ladder-item-current {
+    grid-column: 1 / -1;
+  }
+}
+
 .completed-course-row {
   display: flex;
   justify-content: space-between;
