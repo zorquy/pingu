@@ -25,6 +25,13 @@
   html:not(.bm-escondidas) .barra-pegada:not(.hidden) {
     transform: translateY(56px);
   }
+  /* En una ficha (`data-detalle`, 1019) la barra del sitio YA es la cabecera
+     con la flecha y el título: debajo salía otra igual (1130). Mientras se
+     vea, esta se va arriba; cuando se aparta al bajar, entra. */
+  html[data-detalle]:not(.bm-escondidas) .barra-pegada:not(.hidden) {
+    visibility: hidden;
+    transform: translateY(-100%);
+  }
   .barra-pegada-volver {
     display: inline-grid;
     flex: none;

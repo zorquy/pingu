@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En el foro, desde el móvil: al citar un mensaje, la caja de responder ya no se queda pegada tapando el hilo cuando subes, y la cabecera del tema ya no sale repetida.", "enlace": "/foro" },
     { "fecha": "2026-10-30", "tipo": "mejora", "texto": "Y también en varias versiones: si una carta tiene Normal y Reverse, puedes marcar las dos (y los idiomas que quieras) al apuntarla en «La quiero». Cada versión sale como una carta en tu lista, con sus banderas.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-30", "tipo": "mejora", "texto": "En «La quiero» ya puedes apuntar una carta en varios idiomas a la vez: al tocar el corazón marca todos los que te valgan (por ejemplo, portugués y francés). Y para cambiarlos, toca las banderas de la carta.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En la app del iPhone, la barra de abajo ya no se queda a media pantalla después de escribir en un chat (por ejemplo, el de tu partida en un torneo).", "enlace": "/torneos" },

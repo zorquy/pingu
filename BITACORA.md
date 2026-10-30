@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (371) — PINGU-Claude (1130 — el tema del foro en el móvil)
+
+**Hecho**: PINGU, con captura del iPhone: «el mensaje de respuesta se queda
+pillado aunque subas hacia arriba y la cabecera se ve duplicada». (1) Con
+«Citando a…» y el cuadro vacío la caja de responder seguía fija abajo (la
+1115 solo la soltaba con algo escrito): ahora una cita también la deja al
+final del tema. (2) La barra pegada (858) salía DEBAJO de la cabecera de la
+app en las fichas (`data-detalle`, 1019), que ya lleva flecha y título: ahí
+solo sale cuando esa cabecera se aparta al bajar.
+
+**Ficheros**: `css/foro.css`, `css/barra-pegada.css`, SCHEMA, novedades.
+Prueba en `pruebas`: 1130 (dos rojos sin el arreglo).
+
+**Pendiente**: la 964 sigue en rojo, también sin este cambio («Transition was
+aborted… ViewTransition opt-in disabled», un error del navegador de prueba).
+
 ## 2026-10-30 (370) — PINGU-Claude (1129 — y en varias versiones)
 
 **Hecho**: PINGU: «¿se pueden apuntar varios idiomas en varias versiones?».

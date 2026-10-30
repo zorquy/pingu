@@ -41785,6 +41785,29 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1130 — El tema del foro en el móvil: la caja y la cabecera
+
+PINGU, con captura del iPhone en el hilo de errores.
+
+- **«El mensaje de respuesta se queda pillado aunque subas».** La caja de
+  responder va `sticky` abajo (964) y la 1115 la deja `static` con algo
+  escrito (`:has(.rte-surface:not(.rte-vacia))`). Pero con «Citando a…» y el
+  cuadro vacío (una cita recuperada de un borrador, o el bloque de la cita
+  quitado a mano) seguía fija, alta y tapando el hilo al subir. Ahora la
+  regla del móvil también mira `#respondiendoA:not(.hidden)`. Sin nada, sigue
+  fija como antes (el «abierta sin foco» NO la suelta: al tocar «Imagen»
+  saltaría al final del tema).
+- **«La cabecera se ve duplicada».** La barra pegada (858) se pone debajo de
+  la barra del sitio mientras esta se ve (`translateY(56px)`). En una ficha
+  (`data-detalle`, 1019) la barra del sitio YA es una cabecera con flecha y
+  título, y salían dos. En `css/barra-pegada.css`, con `data-detalle` y sin
+  `bm-escondidas`, la pegada se va arriba (`visibility: hidden`); cuando la
+  cabecera se aparta al bajar, entra arriba del todo.
+
+Prueba: `test-tanda-1130-pantalla.mjs` (la caja fija sin nada, suelta con
+cita y con cita y el cuadro vacío, fija otra vez al quitarla; la barra pegada
+escondida con la cabecera a la vista y arriba del todo sin ella).
+
 ## Tanda 1129 — «La quiero» en varias versiones
 
 PINGU, después de la 1128: «¿se pueden apuntar varios idiomas en varias

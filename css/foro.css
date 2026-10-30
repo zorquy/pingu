@@ -2212,9 +2212,11 @@ a.foro-cita-quien:hover {
    PINGU con seis citas: «que no haya scroll en ningún momento, solo que se
    amplíe»); con algo dentro no se recoge (tema.js). En el móvil, con algo
    dentro deja de ir fija abajo y se queda al final del tema: fija y más alta
-   que la pantalla, lo de arriba no se podría ver nunca. */
+   que la pantalla, lo de arriba no se podría ver nunca. Una cita cuenta como
+   «algo» (1130: con «Citando a…» se quedaba pegada al subir). */
 @media (max-width: 900px) {
-  #temaResponder:has(.rte-surface:not(.rte-vacia)) {
+  #temaResponder:has(.rte-surface:not(.rte-vacia)),
+  #temaResponder:has(#respondiendoA:not(.hidden)) {
     position: static;
   }
 }
