@@ -41785,6 +41785,31 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1131 — Pegar en el editor, sin la letra de fuera
+
+PINGU, al pegar en el foro un texto copiado de una app de chat: «se pega con
+una letra y tamaño distintos». El `paste` del editor solo intervenía con
+imágenes; el resto lo pegaba el navegador tal cual, con los estilos sueltos
+del origen (`font-family`, `font-size`, `color`, `line-height`). El saneador
+(`sanitizeRichText`) los quita al guardar —por eso lo publicado salía bien—,
+pero la caja enseñaba otra letra mientras se escribía.
+
+Ahora, si el portapapeles trae `text/html`, el editor lo pega YA saneado con
+`insertHTML` (y, si el navegador no lo admite, como texto). `limpiarPegado`
+(exportada de `js/richtext-editor.js`):
+
+- deshace un `<div>` que solo envuelve bloques (las apps lo ponen alrededor
+  de todo): el saneador convierte un `<div>` en `<p>`, y quedaban párrafos
+  dentro de un párrafo;
+- pasa por `sanitizeRichText`, que traduce lo que sí vale (negrita escrita
+  como estilo, los colores y la alineación de la paleta) y tira lo demás;
+- junta las etiquetas repetidas dentro de sí mismas (`<strong><strong>`),
+  que salían de una `<strong>` con `font-weight` en su estilo.
+
+Prueba: `test-tanda-1131-pantalla.mjs` (PC y móvil, con un portapapeles como
+el de una app de chat: sin estilos, la letra y el tamaño del foro, la
+negrita, la lista y el enlace, y sin párrafos anidados).
+
 ## Tanda 1130 — El tema del foro en el móvil: la caja y la cabecera
 
 PINGU, con captura del iPhone en el hilo de errores.

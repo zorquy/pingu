@@ -19,6 +19,22 @@ import {
 // módulos lo importaban de este fichero.
 export { sanitizeRichText }
 
+// Lo pegado, como se guardaría (1131). Dos cosas antes y una después del
+// saneador: un <div> que solo ENVUELVE párrafos (las apps de chat lo ponen
+// alrededor de todo) se deshace, porque el saneador lo convierte en <p> y
+// quedaban párrafos dentro de un párrafo; y la negrita escrita como estilo
+// dentro de una <strong> salía doble.
+export function limpiarPegado(html) {
+  if (typeof DOMParser === 'undefined') return sanitizeRichText(html)
+  const doc = new DOMParser().parseFromString(String(html || ''), 'text/html')
+  for (const d of [...doc.body.querySelectorAll('div')]) {
+    if (d.querySelector('p, ul, ol, h1, h2, h3, h4, blockquote, div, table, figure')) d.replaceWith(...d.childNodes)
+  }
+  const limpio = new DOMParser().parseFromString(sanitizeRichText(doc.body.innerHTML), 'text/html')
+  for (const x of [...limpio.body.querySelectorAll('strong strong, b b, em em, i i, u u, s s')]) x.replaceWith(...x.childNodes)
+  return limpio.body.innerHTML
+}
+
 // ── Barra principal ──
 //
 // `cmd` es una orden de document.execCommand. Está obsoleto y lo sabemos,
@@ -1146,6 +1162,17 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
       e.preventDefault()
       subirYColocar(ficheros)
       return
+    }
+    // Lo pegado de otra página o de una app trae SU letra, su tamaño y sus
+    // colores en estilos sueltos (1131, PINGU: «se pega con una letra y
+    // tamaño distintos en el foro»). El saneador los quitaba al guardar, pero
+    // mientras escribías se veía otro texto. Se pega ya saneado: lo mismo que
+    // se guardaría (negritas, listas, enlaces y los colores de la paleta).
+    const html = e.clipboardData?.getData('text/html')
+    if (html) {
+      e.preventDefault()
+      const limpio = limpiarPegado(html)
+      if (!ordenSilenciosa('insertHTML', limpio)) ordenSilenciosa('insertText', e.clipboardData.getData('text/plain'))
     }
     // Si lo pegado trae <img> de otra página, se repasan en cuanto el
     // navegador haya acabado de pegar. Y si trae spoilers (pegar un

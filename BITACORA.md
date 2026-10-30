@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (372) — PINGU-Claude (1131 — pegar en el editor, sin la letra de fuera)
+
+**Hecho**: PINGU: «¿por qué se pega con una letra y tamaño distintos en el
+foro?». El editor dejaba que el navegador pegara el HTML del portapapeles con
+sus estilos (letra, tamaño, colores de la app de origen); el saneador los
+quitaba al GUARDAR, pero mientras escribías se veía otro texto. Ahora el
+`paste` del editor pega ya saneado (`limpiarPegado`: deshace el `<div>` que
+envuelve párrafos, pasa por `sanitizeRichText` y junta las negritas dobles).
+Se quedan negritas, listas, enlaces y los colores de la paleta. Vale para el
+foro, las guías y todo lo que usa el editor.
+
+**Ficheros**: `js/richtext-editor.js`, SCHEMA, novedades. Prueba en
+`pruebas`: 1131 (en rojo sin el arreglo); 267, 891, 1115 y 1116 en verde.
+
+**Pendiente**: nada.
+
 ## 2026-10-30 (371) — PINGU-Claude (1130 — el tema del foro en el móvil)
 
 **Hecho**: PINGU, con captura del iPhone: «el mensaje de respuesta se queda
