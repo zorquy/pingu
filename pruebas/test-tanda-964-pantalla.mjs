@@ -78,12 +78,15 @@ for (const movil of process.env.SOLO_IMAGEN ? [] : [false, true]) {
   await citar(page, 'post-2', movil)
   await citar(page, 'post-3', movil)
   const e3 = await estado(page)
-  check('las tres entran: la segunda y la tercera, en la caja', e3.citas.length === 2 && /Segundo mensaje/.test(e3.citas[0]) && /\[imagen\]/.test(e3.citas[1]), JSON.stringify(e3.citas))
+  // Desde la 1115 la primera también va en la caja («la primera nunca está
+  // citada»); al publicar se quita, porque sale enlazada arriba.
+  check('las tres entran en la caja, en el orden en que se pulsan', e3.citas.length === 3 && /Primer mensaje/.test(e3.citas[0]) && /Segundo mensaje/.test(e3.citas[1]) && /\[imagen\]/.test(e3.citas[2]), JSON.stringify(e3.citas))
   check('  …la que solo era una imagen no sustituye a la primera', e3.aviso.startsWith(`Citando a ${nombres[0]}`), e3.aviso)
   check('  …y el aviso nombra a todos', e3.aviso.includes(nombres[1]) && (e3.aviso.match(new RegExp(nombres[0], 'g')) || []).length === 2, e3.aviso)
   if (movil) check('  …sin abrir el teclado en ningún momento', e3.foco !== 'respuestaCuerpo', e3.foco)
   await citar(page, 'post-2', movil)
-  check('citar otra vez una ya citada no la repite', (await estado(page)).citas.length === 2)
+  await citar(page, 'post-1', movil)
+  check('citar otra vez una ya citada (también la primera) no la repite', (await estado(page)).citas.length === 3)
   await page.locator('#respuestaCuerpo').click()
   await page.evaluate(() => { const c = document.getElementById('respuestaCuerpo'); c.insertAdjacentHTML('beforeend', '<p>Os contesto a los tres.</p>'); c.dispatchEvent(new Event('input', { bubbles: true })) })
   await page.waitForTimeout(200)
