@@ -76,7 +76,7 @@ const estado = (page) => page.evaluate(() => {
     vitrinaCartas: document.querySelectorAll('#perfilVitrina .vitrina-carta').length,
     compartir: (() => { const b = document.getElementById('btnCompartirPerfil'); if (!b) return null; const r = b.getBoundingClientRect(); const s = b.querySelector('svg'); return { ancho: Math.round(r.width), alto: Math.round(r.height), icono: s ? getComputedStyle(s).display !== 'none' : false } })(),
     logroDestacado: document.getElementById('logroDestacado')?.textContent.replace(/\s+/g, ' ').trim(),
-    trofeosTitulo: document.querySelector('#ptab-medallas .section-title')?.textContent.replace(/\s+/g, ' ').trim(),
+    trofeosTitulo: document.querySelector('#ptab-logros .section-title')?.textContent.replace(/\s+/g, ' ').trim(),
     ver: new URLSearchParams(location.search).get('ver'),
     sinCuenta: !document.getElementById('btnLogout') && !document.getElementById('btnRequestAccountDeletion') && !document.getElementById('panelInvitar'),
     muro: Boolean(document.getElementById('commentForm')),
@@ -90,7 +90,7 @@ console.log('── 1. Tu perfil: tres capas ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('la cabecera: nivel y racha en una línea, sin «Miembro» (cero guías) ni barra de XP', /Novato/.test(m.linea) && m.racha && !m.rango && !m.xpBar && !/Miembro/.test(m.linea), JSON.stringify({ linea: m.linea, racha: m.racha, rango: m.rango }))
   check('cinco cifras iguales: Cartas (enlace a Mi colección), Guías y Torneos (a su pestaña), Seguidores, Siguiendo', m.cifras.map((c) => c.rotulo).join('|') === 'Cartas|Guías|Torneos|Seguidores|Siguiendo' && m.cifras[0].tag === 'A' && m.cifras[0].href === '/mi-coleccion' && m.cifras[1].ver === 'guides' && m.cifras[2].ver === 'torneos' && new Set(m.cifras.map((c) => c.tam)).size === 1, JSON.stringify(m.cifras))
-  check('UNA fila de pestañas: Vitrina · Cambios · Guías · Foro · Torneos · Medallas', m.pestanias.join('|') === 'vitrina|cambios|guides|foro|torneos|medallas' && m.unaFila, JSON.stringify(m.pestanias))
+  check('UNA fila de pestañas: Vitrina · Cambios · Guías · Foro · Torneos · Logros (1117)', m.pestanias.join('|') === 'vitrina|cambios|guides|foro|torneos|logros' && m.unaFila, JSON.stringify(m.pestanias))
   check('la tuya abre por la Vitrina aunque esté vacía (seis huecos para elegir), y solo ese panel se ve', m.activa === 'vitrina' && m.huecos === 6 && m.panelVisible.join() === 'ptab-vitrina', JSON.stringify({ activa: m.activa, huecos: m.huecos, paneles: m.panelVisible }))
   check('sin muro, sin invitación, sin Cerrar sesión ni borrado en la ficha', !m.muro && m.sinCuenta)
   check('Compartir: un botón de icono de 44 px con el icono a la vista', m.compartir && m.compartir.ancho >= 44 && m.compartir.alto >= 44 && m.compartir.icono, JSON.stringify(m.compartir))
@@ -99,10 +99,10 @@ console.log('── 1. Tu perfil: tres capas ──')
   await page.waitForTimeout(300)
   m = await estado(page)
   check('tocar la cifra de Guías abre la pestaña Guías', m.activa === 'guides' && m.panelVisible.join() === 'ptab-guides')
-  await page.click('#profileTabs [data-ptab="medallas"]')
+  await page.click('#profileTabs [data-ptab="logros"]')
   await page.waitForTimeout(400)
   m = await estado(page)
-  check('Medallas: el logro destacado en una línea (con «Elegir uno»), los trofeos sin acordeón, y `?ver=medallas` en la dirección', m.activa === 'medallas' && /Sin logro destacado/.test(m.logroDestacado || '') && /Elegir uno/.test(m.logroDestacado || '') && /^Trofeos/.test(m.trofeosTitulo || '') && m.ver === 'medallas', JSON.stringify({ l: m.logroDestacado, t: m.trofeosTitulo, ver: m.ver }))
+  check('Logros: el logro destacado en una línea (con «Elegir uno»), los logros sin acordeón, y `?ver=logros` en la dirección', m.activa === 'logros' && /Sin logro destacado/.test(m.logroDestacado || '') && /Elegir uno/.test(m.logroDestacado || '') && /^Logros/.test(m.trofeosTitulo || '') && m.ver === 'logros', JSON.stringify({ l: m.logroDestacado, t: m.trofeosTitulo, ver: m.ver }))
   // «Editar perfil»: solo lo que ven los demás.
   await page.click('#btnEditProfile')
   await page.waitForTimeout(600)
@@ -116,7 +116,7 @@ console.log('── 1. Tu perfil: tres capas ──')
 }
 
 console.log('── 2. Los enlaces viejos y los nuevos llegan ──')
-for (const [ruta, pestania] of [['/perfil.html#about', 'medallas'], ['/perfil.html#foro', 'foro'], ['/perfil.html?ver=torneos', 'torneos'], ['/perfil.html?ver=medallas', 'medallas'], ['/perfil.html#vitrina', 'vitrina'], ['/perfil.html#wall', 'vitrina']]) {
+for (const [ruta, pestania] of [['/perfil.html#about', 'logros'], ['/perfil.html#foro', 'foro'], ['/perfil.html?ver=torneos', 'torneos'], ['/perfil.html?ver=medallas', 'logros'], ['/perfil.html#vitrina', 'vitrina'], ['/perfil.html#wall', 'vitrina']]) {
   const { page, ctx } = await abrir(ruta)
   const m = await estado(page)
   check(`${ruta} → ${pestania}`, m.activa === pestania && m.panelVisible.join() === `ptab-${pestania}`, JSON.stringify({ activa: m.activa, paneles: m.panelVisible }))
@@ -128,7 +128,7 @@ console.log('── 3. La ficha de otra persona ──')
   const { page, ctx, errores } = await abrir('/usuario.html?id=user-2', { vitrina: [{ user_id: 'user-2', posicion: 1, card_id: 'xy5-1', market: 'WEST' }] })
   let m = await estado(page)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('con cartas en la vitrina, se abre por ella; la misma fila de pestañas; Seguir y Mensaje; sin muro', m.activa === 'vitrina' && m.vitrinaCartas === 1 && m.huecos === 0 && m.pestanias.join('|') === 'vitrina|guides|foro|torneos|medallas' && !m.muro && (await page.locator('#btnFollowToggle').isVisible()), JSON.stringify(m))
+  check('con cartas en la vitrina, se abre por ella; la misma fila de pestañas; Seguir y Mensaje; sin muro', m.activa === 'vitrina' && m.vitrinaCartas === 1 && m.huecos === 0 && m.pestanias.join('|') === 'vitrina|guides|foro|torneos|logros' && !m.muro && (await page.locator('#btnFollowToggle').isVisible()), JSON.stringify(m))
   check('las cinco cifras, sin enlace en Cartas (la colección de otro no se abre)', m.cifras.length === 5 && m.cifras[0].tag === 'DIV' && m.cifras[1].ver === 'guides', JSON.stringify(m.cifras))
   await page.click('#profileTabs [data-ptab="torneos"]')
   await page.waitForTimeout(800)
@@ -136,7 +136,7 @@ console.log('── 3. La ficha de otra persona ──')
   await ctx.close()
   const b = await abrir('/usuario.html?id=user-2', { vitrina: [] })
   const n = await estado(b.page)
-  check('sin cartas, la Vitrina ni sale y se abre por Guías (lo primero)', n.pestanias.join('|') === 'guides|foro|torneos|medallas' && n.activa === 'guides', JSON.stringify({ p: n.pestanias, a: n.activa }))
+  check('sin cartas, la Vitrina ni sale y se abre por Guías (lo primero)', n.pestanias.join('|') === 'guides|foro|torneos|logros' && n.activa === 'guides', JSON.stringify({ p: n.pestanias, a: n.activa }))
   await b.ctx.close()
 }
 

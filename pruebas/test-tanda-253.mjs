@@ -58,7 +58,7 @@ console.log('\n── 1. Sin hash, el perfil abre por donde siempre ──')
 console.log('\n── 2. El hash abre SU pestaña, no solo la de torneos ──')
 {
   // Esto es lo que estaba roto: solo `#torneos` funcionaba.
-  for (const [hash, esperada] of [['#guides', 'guides'], ['#foro', 'foro'], ['#torneos', 'torneos'], ['#about', 'medallas']]) {
+  for (const [hash, esperada] of [['#guides', 'guides'], ['#foro', 'foro'], ['#torneos', 'torneos'], ['#about', 'logros']]) {
     const { page } = await abrir(`/perfil${hash}`)
     check(`${hash} abre «${esperada}»`, (await pestanaActiva(page)) === esperada, String(await pestanaActiva(page)))
     await page.close()

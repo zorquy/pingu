@@ -38,18 +38,18 @@ const largo = (page) => page.evaluate(() => history.length)
 
 console.log('── 1. El perfil ──')
 {
-  const { page, ctx, errores } = await abrir('/perfil.html?ver=medallas')
+  const { page, ctx, errores } = await abrir('/perfil.html?ver=logros')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const activa = () => page.evaluate(() => document.querySelector('#profileTabs .tab-btn.active')?.dataset.ptab)
-  check('con ?ver=medallas se abre en Medallas', (await activa()) === 'medallas', await activa())
+  check('con ?ver=logros se abre en Logros', (await activa()) === 'logros', await activa())
   const n0 = await largo(page)
   await page.click('#profileTabs [data-ptab="guides"]')
   await page.waitForTimeout(500)
   // Desde la 867 es UNA fila de pestañas: tocar cualquiera la escribe.
   check('tocar Guías la escribe en la dirección', (await donde(page)) === '?ver=guides' && (await activa()) === 'guides', await donde(page))
-  await page.click('#profileTabs [data-ptab="medallas"]')
+  await page.click('#profileTabs [data-ptab="logros"]')
   await page.waitForTimeout(500)
-  check('tocar Medallas la escribe, sin alargar el historial', (await donde(page)) === '?ver=medallas' && (await largo(page)) === n0, `${await donde(page)} · ${n0} → ${await largo(page)}`)
+  check('tocar Medallas la escribe, sin alargar el historial', (await donde(page)) === '?ver=logros' && (await largo(page)) === n0, `${await donde(page)} · ${n0} → ${await largo(page)}`)
   await ctx.close()
 }
 
