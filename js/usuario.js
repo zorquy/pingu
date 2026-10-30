@@ -98,7 +98,8 @@ async function loadHeader() {
     ${profile.username ? `<p class="perfil-arroba">@${escapeHtml(profile.username)}</p>` : ''}
     ${lineaDeQuienHtml({ xp, racha: rachaVisible(profile) })}
     ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
-    ${showcase ? `<div class="achievement-tile perfil-logro-chapa"><span class="icon rarity-${showcase.rarity || 'bronze'}">${achievementIconHtml(showcase, 16)}</span><span class="name">${escapeHtml(showcase.title)}</span></div>` : ''}`
+    ${showcase ? `<button type="button" class="achievement-tile perfil-logro-chapa" data-logro="${escapeHtml(showcase.id)}"><span class="icon rarity-${showcase.rarity || 'bronze'}">${achievementIconHtml(showcase, 16)}</span><span class="name">${escapeHtml(showcase.title)}</span></button>` : ''}`
+  document.querySelector('#heroInfo .perfil-logro-chapa')?.addEventListener('click', () => abrirFichaDeLogro(showcase))
 
   document.getElementById('btnLevelInfo').addEventListener('click', () => openModal(levelLadderHtml(xp)))
 
@@ -301,22 +302,31 @@ async function loadFollowSummary() {
   followerCache = followerIds.map((id) => profilesById[id] || { id })
 }
 
-// ── Trofeos ──
+// ── Logros ──
 function achievementTileHtml(a, unlocked) {
   const isUnlocked = unlocked.includes(a.id)
   return `
-      <div class="achievement-tile ${isUnlocked ? '' : 'locked'}" data-logro="${escapeHtml(a.id)}">
+      <button type="button" class="achievement-tile ${isUnlocked ? '' : 'locked'}" data-logro="${escapeHtml(a.id)}">
         <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? achievementIconHtml(a, 22) : icons.lock(22)}</span>
         <span class="name">${escapeHtml(a.title)}</span>
-      </div>`
+      </button>`
+}
+
+function abrirFichaDeLogro(logro) {
+  if (!logro) return
+  const nombre = profile?.display_name || profile?.username || ''
+  import('./logro-ficha.js').then((m) => m.abrirLogro(logro, { tiene: (profile?.achievements || []).includes(logro.id), nombre }))
 }
 
 async function loadAchievementsGrid() {
   const unlocked = profile?.achievements || []
   achievementsCache = await getAllAchievements()
   document.getElementById('achievementsCount').textContent = `${unlocked.length} de ${achievementsCache.length}`
-  contarPestania('medallas', unlocked.length)
-  document.getElementById('achievementsGrid').innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
+  contarPestania('logros', unlocked.length)
+  const grid = document.getElementById('achievementsGrid')
+  grid.innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
+  // Tocar un logro abre su ficha (1117): lo que hizo o cómo se consigue.
+  grid.onclick = (e) => abrirFichaDeLogro(achievementsCache.find((a) => a.id === e.target.closest('[data-logro]')?.dataset.logro))
   import('./logros-reparto.js').then((m) => m.ponerReparto(document.getElementById('achievementsGrid'))).catch(() => {})
 }
 

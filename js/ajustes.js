@@ -362,7 +362,7 @@ function invitarHtml() {
   const enlace = `${window.location.origin}/r/${encodeURIComponent(perfil.username)}`
   return `
     <h2>Invitar a un amigo</h2>
-    <p>Comparte tu enlace: quien se una con él y tú os lleváis trofeos y XP.<span id="ajTraidos"></span></p>
+    <p>Comparte tu enlace: quien se una con él y tú os lleváis logros y XP.<span id="ajTraidos"></span></p>
     <div class="aj-dato"><span><code id="ajEnlaceInvitar">${escapeHtml(enlace)}</code></span><button type="button" class="btn-secondary" id="ajCopiarInvitar">Copiar</button></div>`
 }
 

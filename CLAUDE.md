@@ -1577,6 +1577,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
 - **Las páginas `noindex` no necesitan `meta description`** y las
   indexables sí. Son cosas distintas: contar «páginas sin descripción»
   sin mirar el `robots` da un número que no significa nada.
+- **Lo que se gana en el perfil son «Logros»** (tanda 1117, PINGU: «vamos a
+  escoger un nombre para todo»): ni medallas ni trofeos (la medalla de un
+  curso es otra cosa). La pestaña es `logros` (`medallas` y `about`, alias), y
+  un logro se abre con `abrirLogro` (`js/logro-ficha.js`): lo que hiciste o el
+  objetivo (`objetivoDeLogro`, por su condición). Un tipo de condición nuevo
+  lleva su frase en `FRASES` de `js/logro-objetivo.js`.
 - **Una guía tiene UNA señal: «Me ha servido»** (tanda 974, PINGU eligió
   la A): la caja «¿Te ha servido? Sí / No tanto» se fue porque preguntaba
   lo mismo justo debajo. Es `guide_helpful` (`js/guide-helpful.js`, con su

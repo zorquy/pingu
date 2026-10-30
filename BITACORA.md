@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (358) — PINGU-Claude (1117 — «Logros», un nombre, y la ficha de cada logro)
+
+**Hecho**: PINGU: «medallas», «trofeos» y «logro destacado» en el mismo perfil;
+«vamos a ponerle logros». La pestaña y la rejilla se llaman «Logros» en /perfil
+y /usuario (los enlaces viejos `?ver=medallas` siguen abriéndola). Tocar un
+logro abre su ficha: lo que hiciste o cómo se consigue, cuánta gente lo tiene,
+y en el tuyo «Destacar en mi perfil» y «Compartir».
+
+**Ficheros**: `js/logro-objetivo.js` y `js/logro-ficha.js` (nuevos),
+`js/perfil.js`, `js/usuario.js`, `js/perfil-pestanias.js`, `perfil.html`,
+`usuario.html`, `css/perfil.css`, `js/ajustes.js`, `js/primeros-pasos.js`,
+`sobre.html`, SCHEMA, novedades, CLAUDE.md. Pruebas en `pruebas`: 1117-pantalla
+nueva; 253, 859 y 867 con la pestaña «logros».
+
+**Pendiente**: PINGU empezó a pedir «desde el admin yo haría un panel…» y el
+mensaje se cortó; /admin ya tiene «Logros» (crear, editar, borrar). Preguntado.
+
 ## 2026-10-30 (357) — PINGU-Claude (1116 — las citas del foro, todas como la primera)
 
 **Hecho**: PINGU: en una respuesta con seis citas, solo la primera salía con

@@ -109,10 +109,10 @@ async function loadStats(session, profile) {
 function achievementTileHtml(a, unlocked) {
   const isUnlocked = unlocked.includes(a.id)
   return `
-      <div class="achievement-tile ${isUnlocked ? '' : 'locked'}" data-logro="${escapeHtml(a.id)}">
+      <button type="button" class="achievement-tile ${isUnlocked ? '' : 'locked'}" data-logro="${escapeHtml(a.id)}">
         <span class="icon rarity-${a.rarity || 'bronze'}">${isUnlocked ? achievementIconHtml(a, 22) : icons.lock(22)}</span>
         <span class="name">${escapeHtml(a.title)}</span>
-      </div>`
+      </button>`
 }
 
 async function loadAchievements(profile) {
@@ -122,7 +122,24 @@ async function loadAchievements(profile) {
   document.getElementById('achievementsCount').textContent = `${unlocked.length} de ${achievementsCache.length}`
   grid.innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
   import('./logros-reparto.js').then((m) => m.ponerReparto(grid)).catch(() => {})
-  contarPestania('medallas', unlocked.length)
+  contarPestania('logros', unlocked.length)
+  // Tocar un logro abre su ficha (1117): lo que hiciste o cómo se consigue,
+  // y desde ahí se destaca o se comparte.
+  grid.onclick = (e) => {
+    const logro = achievementsCache.find((a) => a.id === e.target.closest('[data-logro]')?.dataset.logro)
+    if (!logro) return
+    import('./logro-ficha.js').then((m) =>
+      m.abrirLogro(logro, {
+        tiene: unlocked.includes(logro.id),
+        propia: true,
+        destacado: currentProfile?.showcase_achievement === logro.id,
+        alDestacar: (l) => {
+          currentProfile = { ...currentProfile, showcase_achievement: l.id }
+          loadAchievements(currentProfile)
+        },
+      })
+    )
+  }
   // Tu logro destacado (867): el que sale junto a tu nombre en el foro. Se
   // elige en «Editar perfil», y desde aquí se llega.
   const destacado = achievementsCache.find((a) => a.id === profile?.showcase_achievement)

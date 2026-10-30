@@ -41785,6 +41785,37 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1117 — «Logros», un solo nombre, y la ficha de cada logro
+
+PINGU: «en un perfil público está medallas, después pone trofeos y también
+logro destacado… vamos a ponerle logros»; y «cuando cliques en uno te salga un
+pop-up con ese logro y qué has hecho para conseguirlo o cuál es el objetivo».
+
+- La pestaña de /perfil y /usuario es «Logros» (`data-ptab="logros"`,
+  `#ptab-logros`) y su rejilla se titula «Logros». `medallas` (la pestaña
+  hasta ahora) y `about` quedan como ALIAS en `perfil-pestanias.js`: los
+  enlaces viejos (`?ver=medallas`) abren la nueva. «Trofeos» se cambia en
+  Ajustes (invitar), los primeros pasos y /sobre. El medallero de los cursos
+  (oro, plata, bronce) sigue dentro de la pestaña: es la medalla de un curso,
+  otra cosa.
+- `js/logro-objetivo.js` (puro): `objetivoDeLogro(def)` dice en una frase lo
+  que hay que hacer, por la condición (`type` y `count`, lo que comprueba la
+  base) o, los de torneo (`manual`), por su id. La descripción guardada está
+  en pasado («Completaste…»): sirve para el que ya lo tiene, no como objetivo.
+  Un tipo de condición nuevo lleva su frase en `FRASES`.
+- `js/logro-ficha.js` (por `import()`): `abrirLogro(def, { tiene, propia,
+  nombre, destacado, alDestacar })`. Icono con su rareza, rareza y XP, «Lo
+  tienes» / «Lo tiene X» / «Aún no…», «Lo que hiciste» (la descripción) o
+  «Cómo se consigue» (el objetivo), cuánta gente lo tiene (`logros_reparto`,
+  una llamada por visita) y, en tu perfil y si lo tienes, «Destacar en mi
+  perfil» (escribe `showcase_achievement`, cambia ya y deshace si falla, la
+  896) y «Compartir» (`compartirLogro`). Centrado en el PC y hoja desde abajo
+  en el móvil (la 1045); CSS en `perfil.css`.
+- Las baldosas son `<button>` (antes `div`) y la chapa del destacado en
+  /usuario también abre la ficha.
+- Pruebas: `test-tanda-1117-pantalla.mjs` (nueva); 253, 859 y 867 con la
+  pestaña nueva.
+
 ## Tanda 1116 — Las citas del foro, todas como la primera
 
 PINGU, con una captura de su respuesta a seis: «la primera funciona porque

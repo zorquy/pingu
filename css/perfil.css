@@ -317,6 +317,23 @@
   opacity: 0.5;
 }
 
+/* Un logro se toca para ver su ficha (1117). */
+button.achievement-tile {
+  width: 100%;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+button.achievement-tile:hover {
+  border-color: var(--border-strong);
+}
+
+button.achievement-tile:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
 .achievement-tile .icon {
   font-size: var(--t-2xl);
   width: 46px;
@@ -1222,7 +1239,8 @@ button.perfil-cifra:hover .rotulo {
 #completedCourses:not([hidden]) { margin-top: var(--e-xl); }
 
 /* El logro destacado en la ficha de otro (en la cabecera). */
-.perfil-logro-chapa {
+.perfil-logro-chapa,
+button.perfil-logro-chapa {
   display: inline-flex;
   flex-direction: row;
   align-items: center;
@@ -1336,4 +1354,174 @@ button.perfil-cifra:hover .rotulo {
   }
   .vitrina-editar span,
   .vitrina-compartir span { display: none; }
+}
+
+/* ── La ficha de un logro (1117, js/logro-ficha.js): centrada en el PC,
+   desde abajo en el móvil (la regla de la 1045). ── */
+.logro-ficha[open] {
+  position: fixed;
+  inset: 0;
+  width: min(440px, calc(100vw - var(--e-xl) * 2));
+  max-height: calc(100dvh - var(--e-xl) * 2);
+  margin: auto;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  color: var(--text);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.logro-ficha::backdrop {
+  background: rgb(0 0 0 / 55%);
+}
+
+html:has(.logro-ficha[open]) {
+  overflow: hidden;
+}
+
+.logro-ficha-cerrar {
+  position: absolute;
+  top: var(--e-sm);
+  right: var(--e-sm);
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text);
+  font-size: var(--t-md);
+  cursor: pointer;
+}
+
+.logro-ficha-cuerpo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-xl) var(--e-lg) var(--e-lg);
+  text-align: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.logro-ficha-icono {
+  display: grid;
+  place-items: center;
+  width: 88px;
+  height: 88px;
+  border-radius: 50%;
+  background: var(--ice);
+  font-size: var(--t-3xl);
+}
+
+.logro-ficha-icono.rarity-bronze { box-shadow: 0 4px 0 0 var(--rarity-bronze); }
+.logro-ficha-icono.rarity-silver { box-shadow: 0 4px 0 0 var(--rarity-silver); }
+.logro-ficha-icono.rarity-gold { box-shadow: 0 4px 0 0 var(--rarity-gold); }
+.logro-ficha-icono.rarity-platinum { box-shadow: 0 4px 0 0 var(--rarity-platinum); }
+
+.logro-ficha-icono.bloqueado {
+  background: var(--bg);
+  color: var(--text-mid);
+  filter: grayscale(1);
+}
+
+.logro-ficha h2 {
+  margin: var(--e-xs) 0 0;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  text-wrap: balance;
+}
+
+.logro-ficha-chapas {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: 0;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--text-mid);
+}
+
+.logro-ficha-estado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  margin: 0;
+  padding: var(--e-xs) var(--e-md);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.logro-ficha-estado.tiene {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.logro-ficha-texto {
+  width: 100%;
+  margin-top: var(--e-sm);
+  padding: var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  text-align: left;
+}
+
+.logro-ficha-texto h3 {
+  margin: 0 0 var(--e-xs);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--text-mid);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.logro-ficha-texto p {
+  margin: 0;
+  font-size: var(--t-md);
+  line-height: 1.5;
+}
+
+.logro-ficha-reparto {
+  margin: 0;
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+}
+
+.logro-ficha-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-sm);
+  width: 100%;
+  margin-top: var(--e-sm);
+}
+
+.logro-ficha-acciones button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+}
+
+@media (max-width: 599px) {
+  .logro-ficha[open] {
+    width: 100vw;
+    max-width: none;
+    max-height: 92dvh;
+    margin: auto 0 0;
+    border: 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  .logro-ficha-cuerpo {
+    padding-bottom: calc(var(--e-lg) + env(safe-area-inset-bottom, 0px));
+  }
 }

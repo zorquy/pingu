@@ -10,20 +10,20 @@
 //  · Abrirse por la que TIENE algo (`abrirLaQueTengaAlgo`): en la ficha de
 //    otra persona, su vitrina si tiene cartas y, si no, lo primero con
 //    algo; en la tuya, siempre la vitrina (vacía, invita a elegir).
-//  · Llegar con la pestaña puesta: `?ver=medallas` (859) o `#foro`.
+//  · Llegar con la pestaña puesta: `?ver=logros` (859) o `#foro`.
 
 const CONTENEDOR = 'profileTabs'
 
 // Nombres viejos que siguen llegando por enlaces guardados: «about» eran
-// los trofeos; «actividad», «wall» y «muro» ya no son nada y abren lo que
-// toque.
-const ALIAS = { about: 'medallas', actividad: null, wall: null, muro: null }
+// los trofeos y «medallas» la pestaña de los logros hasta la 1117;
+// «actividad», «wall» y «muro» ya no son nada y abren lo que toque.
+const ALIAS = { about: 'logros', medallas: 'logros', actividad: null, wall: null, muro: null }
 
 // El orden para «la que tenga algo» NO es el de la fila: lo que más dice de
 // alguien es lo que escribe, luego lo que habla, luego lo que juega.
 // «Cambios» (887) va delante: en la ficha de otra persona, lo que da y busca
 // es lo que más sirve a quien entra (soyfedeegb lo pidió para eso).
-const ORDEN = ['cambios', 'guides', 'foro', 'torneos', 'medallas']
+const ORDEN = ['cambios', 'guides', 'foro', 'torneos', 'logros']
 
 const cuentas = {}
 let laHaTocado = false
@@ -121,7 +121,7 @@ export function montarPestanias({ alAbrir: cb, propia: esMia = false } = {}) {
       // cuenta como «la ha tocado».
       if (e.isTrusted) laHaTocado = true
       abrirPestania(btn.dataset.ptab)
-      // La pestaña en la dirección (859, `?ver=medallas`), SUSTITUYENDO la
+      // La pestaña en la dirección (859, `?ver=logros`), SUSTITUYENDO la
       // entrada: recargar o compartir enseña la misma, y atrás no pasa por
       // ella (la regla de la 856). Solo cuando la tocas tú.
       if (e.isTrusted) {
@@ -135,7 +135,7 @@ export function montarPestanias({ alAbrir: cb, propia: esMia = false } = {}) {
   abrirLaDelHash()
 }
 
-// Llegar con la pestaña puesta: /perfil?ver=medallas, /usuario/x#foro…
+// Llegar con la pestaña puesta: /perfil?ver=logros, /usuario/x#foro…
 // Genérico y no una lista de casos (tanda 253): cualquier pestaña que
 // exista se abre por su nombre; una inventada no deja la página sin
 // ninguna activa. La vitrina se abre cuando exista (`vitrinaLista`).

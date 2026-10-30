@@ -99,7 +99,7 @@ export function panelPrimerosPasosHtml(estado) {
     </div>
     <span class="primeros-pasos-barra" aria-hidden="true"><i style="width:${Math.round((estado.hechos / PASOS.length) * 100)}%"></i></span>
     <ul class="primeros-pasos-lista">${filas}</ul>
-    <p class="subtext primeros-pasos-pie">Al completar los tres te llevas tu primer trofeo.</p>
+    <p class="subtext primeros-pasos-pie">Al completar los tres te llevas tu primer logro.</p>
   </div>`
 }
 
