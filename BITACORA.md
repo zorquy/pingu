@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (374) — PINGU-Claude (1133 — las rondas de una liga, en orden y con su jornada)
+
+**Hecho**: PINGU: «no se guardan en orden las partidas automáticas jugadas en
+torneo… quizá porque hay ronda 1, 2 y 3 en cada jornada». En /mis-partidas la
+tarjeta de un torneo de PokeDoc ordenaba sus rondas por `creada`, que las de
+PokeDoc no traen: salían en el orden en que contestaba la base y se rotulaban
+R1…Rn por su sitio en la lista (la derrota de la jornada 4, ronda 1, salía de
+«R2»). Ahora se piden `round_number` y `phase` de `rounds` y `format` y
+`rounds_per_matchday` del torneo: ordenan por número (suizas y luego el cut) y
+se rotulan como en la ficha del torneo («J4·R1», «R3», «Cut R1»), con
+`rotuloDeRonda` y `ordenDeRondas` (`js/matriz-partidas.js`, puras). El bye sale
+en la tarjeta (`soloTarjeta`, nunca en la matriz ni en las cifras de arriba) y
+la imagen de compartir lleva los mismos rótulos.
+
+**Ficheros**: `js/matriz-partidas.js`, `js/mis-partidas.js`,
+`js/partida-imagen.js`, `css/partidas.css`, CLAUDE.md, SCHEMA, novedades.
+Pruebas en `pruebas`: 1133 nueva (8 rojos en la base); verdes partidas,
+partidas-pagina, 1013, 1070-pantalla, 997-pantalla y test-imports.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-10-30 (373) — PINGU-Claude (1132 — sin zoom y la caja del foro abajo)
 
 **Hecho**: PINGU: «la web a veces zoomea, sobre todo al escribir en el foro» y

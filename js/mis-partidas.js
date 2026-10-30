@@ -19,7 +19,7 @@ import { escapeHtml, getSession } from './app.js'
 import { showToast } from './toast.js'
 import { arquetipoDeMazo, claveDeArquetipo, claveCanonicaDeMazo, dexesDeNombre } from './torneos/arquetipos.js'
 import { urlDeSprite, spriteDeCarta, spriteDeObjeto, atributosDeRespaldo } from './torneos/sprites-pokemon.js'
-import { construirMatriz, resumen, porcentaje, miResultado, filtrarTorneos, enfrentamientosDe, pestaniaConAlgo } from './matriz-partidas.js'
+import { construirMatriz, resumen, porcentaje, miResultado, filtrarTorneos, enfrentamientosDe, pestaniaConAlgo, rotuloDeRonda, ordenDeRondas } from './matriz-partidas.js'
 import { montarSelectorMazo } from './torneos/selector-mazo.js'
 import {
   arquetipoDeMazoGuardado,
@@ -53,6 +53,7 @@ const $ = (id) => document.getElementById(id)
 
 let session = null
 let todas = [] // el registro entero, ya normalizado
+let byesDePokedoc = [] // los byes de los torneos de PokeDoc: solo para su tarjeta (1133)
 let catalogo = []
 // Los torneos apuntados a mano (tanda 236): cada uno agrupa sus rondas.
 let torneosLog = []
@@ -110,20 +111,27 @@ async function partidasDeTorneos() {
   // El bye no es un enfrentamiento: no hubo rival ni mazo contra el que
   // medirse. Fuera antes de pedir nada más.
   const jugadas = mesas.filter((m) => m.status !== 'bye' && m.player_a_id && m.player_b_id)
+  // Pero en la tarjeta del torneo SÍ sale (1133): sin él, la jornada 4 de una
+  // liga se leía «R1, R3» sin saber qué pasó en la 2. Va solo a la tarjeta
+  // (`soloTarjeta`), nunca a la matriz ni a las cifras.
+  const byes = mesas.filter((m) => !jugadas.includes(m))
   if (!jugadas.length) return []
 
   const [{ data: resultados }, { data: rondas }] = await Promise.all([
     supabase.from('match_results').select('match_id, result').in('match_id', jugadas.map((m) => m.id)),
-    supabase.from('rounds').select('id, tournament_id').in('id', [...new Set(jugadas.map((m) => m.round_id))]),
+    // El número y la fase ordenan y nombran la ronda en su tarjeta (1133).
+    supabase.from('rounds').select('id, tournament_id, round_number, phase').in('id', [...new Set(mesas.map((m) => m.round_id))]),
   ])
   const resultadoDe = new Map((resultados || []).map((r) => [r.match_id, r.result]))
   const torneoDeRonda = new Map((rondas || []).map((r) => [r.id, r.tournament_id]))
+  const rondaPorId = new Map((rondas || []).map((r) => [r.id, r]))
   const torneoIds = [...new Set([...torneoDeRonda.values()].filter(Boolean))]
   if (!torneoIds.length) return []
 
   const [{ data: torneos }, { data: listas }] = await Promise.all([
     // `podium` (los primeros, en orden) da tu puesto si quedaste ahí (1070).
-    supabase.from('tournaments').select('id, name, slug, start_at, podium').in('id', torneoIds),
+    // `format` y `rounds_per_matchday`: una liga nombra sus rondas por jornada.
+    supabase.from('tournaments').select('id, name, slug, start_at, podium, format, rounds_per_matchday').in('id', torneoIds),
     // Las que la base nos deje: en un torneo de lista cerrada aún en
     // juego, esto vuelve solo con la mía, y esas partidas se quedan
     // fuera de la matriz hasta que termine.
@@ -136,6 +144,25 @@ async function partidasDeTorneos() {
   }
 
   const salida = []
+  const deRonda = (m, t) => {
+    const r = rondaPorId.get(m.round_id)
+    const ronda = Number(r?.round_number) || null
+    return { ronda, fase: r?.phase || null, rotuloRonda: rotuloDeRonda(t, ronda, r?.phase) }
+  }
+  for (const m of byes) {
+    const torneoId = torneoDeRonda.get(m.round_id)
+    if (!torneoId) continue
+    salida.push({
+      id: `t-${m.id}`,
+      tipo: 'bye',
+      resultado: 'win',
+      rivalNombre: 'Bye',
+      deTorneo: true,
+      soloTarjeta: true,
+      torneoId: `pd-${torneoId}`,
+      ...deRonda(m, torneoPorId.get(torneoId)),
+    })
+  }
   for (const m of jugadas) {
     const resultado = miResultado(resultadoDe.get(m.id) ?? m.status, m.player_a_id === yo)
     if (!resultado) continue // mesa aún sin resolver
@@ -167,6 +194,7 @@ async function partidasDeTorneos() {
       torneoId: `pd-${torneoId}`,
       // Tu puesto, si quedaste en el podio que guarda el torneo; si no, no se sabe.
       torneoPuesto: enPodio >= 0 ? enPodio + 1 : null,
+      ...deRonda(m, t),
     })
   }
   return salida
@@ -537,9 +565,7 @@ function puestoHtml(t) {
 }
 
 function tarjetaTorneoHtml(t) {
-  const rondas = t.rondas
-    .slice()
-    .sort((a, b) => String(a.creada || '').localeCompare(String(b.creada || '')))
+  const rondas = t.rondas.slice().sort(ordenDeRondas)
   const editable = t.aMano && !t.cerrado
   const filas = rondas
     .map((p, i) => {
@@ -554,7 +580,7 @@ function tarjetaTorneoHtml(t) {
              <button type="button" class="link-btn" data-borrar-ronda="${escapeHtml(p.id)}" title="Borrar esta ronda">Borrar</button>
            </span>`
         : ''
-      return `<li><span class="partidas-ronda-num">R${i + 1}</span>${rival}${res}${juegosMiniHtml(p)}${acciones}</li>`
+      return `<li><span class="partidas-ronda-num">${escapeHtml(p.rotuloRonda || `R${i + 1}`)}</span>${rival}${res}${juegosMiniHtml(p)}${acciones}</li>`
     })
     .join('')
   const abierto = torneosAbiertos.has(t.id)
@@ -643,8 +669,8 @@ function compartirUna(p) {
 function compartirElTorneo(t) {
   const rondas = t.rondas
     .slice()
-    .sort((a, b) => String(a.creada || '').localeCompare(String(b.creada || '')))
-    .map((p, i) => ({ ...rondaParaCompartir(p), ronda: i + 1 }))
+    .sort(ordenDeRondas)
+    .map((p, i) => ({ ...rondaParaCompartir(p), ronda: i + 1, rotulo: p.rotuloRonda || null }))
   import('./partida-imagen.js')
     .then((m) => m.compartirTorneo({ nombre: t.nombre, donde: t.aMano ? t.donde : 'Torneo de PokeDoc', fecha: t.fecha, mazo: mazoParaCompartir(t.mazo, t.mazoClave), puesto: t.puesto ?? null, jugadores: t.jugadores ?? null, rondas }))
     .catch(() => showToast('No se ha podido abrir la imagen para compartir', 'error'))
@@ -680,6 +706,9 @@ function pintarTorneos() {
     }
     dePokedoc.get(p.torneoId).rondas.push(p)
   }
+  // Los byes, en la tarjeta de su torneo (si el torneo tiene alguna partida
+  // que se pueda enseñar).
+  for (const b of byesDePokedoc) dePokedoc.get(b.torneoId)?.rondas.push(b)
   tarjetas.push(...dePokedoc.values())
 
   for (const t of torneosLog) {
@@ -1868,13 +1897,14 @@ async function cargar() {
     partidasApuntadas(),
     torneosApuntados(),
   ])
-  todas = [...deTorneos, ...apuntadas]
+  todas = [...deTorneos.filter((p) => !p.soloTarjeta), ...apuntadas]
+  byesDePokedoc = deTorneos.filter((p) => p.soloTarjeta)
   torneosLog = torneos
   rellenarFiltroYSugerencias()
   repintar()
   if (pestaniaInicialPendiente) {
     pestaniaInicialPendiente = false
-    const inicial = pestaniaConAlgo({ torneos: (torneosLog || []).length + deTorneos.length, sueltas: apuntadas.length })
+    const inicial = pestaniaConAlgo({ torneos: (torneosLog || []).length + todas.filter((p) => p.deTorneo).length, sueltas: apuntadas.length })
     if (inicial !== 'torneos') document.querySelector(`#partidasTabs .seg-btn[data-vista="${inicial}"]`)?.click()
   }
 }

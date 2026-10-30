@@ -993,6 +993,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   arquetipo, y lo arrastra el disparador. El mazo predeterminado vive en
   `match_log_ajustes`, privada: nada de lo que dice a qué juegas va en
   `user_profiles`.
+  Las rondas de un torneo de PokeDoc se ordenan y se nombran por su
+  `round_number` (1133: `ordenDeRondas`, `rotuloDeRonda`, «J4·R1» en una
+  liga), nunca por su sitio en la lista; el bye va solo a la tarjeta.
 - **Una página tiene UNA dirección para Google** (tanda 906). La canónica
   la arma `urlCanonica` (meta-social.js): sin `.html`, en pokedoc.es y solo
   con los parámetros que eligen el contenido (`PARAMETROS_CANONICOS`); la de

@@ -41785,6 +41785,40 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1133 — Las rondas de un torneo de PokeDoc, en su orden y con su jornada
+
+PINGU, con la tarjeta de la «Liga FDN» en /mis-partidas: «no se guardan en
+orden las partidas automáticas jugadas en torneo… quizá porque hay ronda 1, 2 y
+3 en cada jornada y esto se lía».
+
+**La causa.** La tarjeta ordena sus rondas por `creada` (la hora en que se
+apuntó una ronda a mano). Las de PokeDoc salen de `tournament_matches` y no la
+traen, así que todas comparaban `''` y se quedaban en el orden en que contestaba
+la base; el rótulo era `R${i + 1}`, el sitio en la lista. En una liga con tres
+rondas por jornada la primera de la jornada 4 salía de «R2». No era la jornada
+lo que se liaba (`round_number` es de la liga entera: con tres por jornada, la
+jornada 4 son la 10, la 11 y la 12), era que nadie miraba el número.
+
+**El arreglo.** `partidasDeTorneos` pide `round_number` y `phase` de `rounds` y
+`format` y `rounds_per_matchday` de `tournaments`, y cada fila lleva `ronda`,
+`fase` y `rotuloRonda`. Dos funciones puras en `js/matriz-partidas.js`:
+`rotuloDeRonda(torneo, n, fase)` («J4·R1» en una liga por
+`nombreDeRondaDeLiga`, «R3» en un suizo, «Cut R1» en el top cut) y
+`ordenDeRondas` (las suizas por número y el cut detrás; lo apuntado a mano,
+sin número, por `creada` como antes). La imagen de compartir lleva el mismo
+rótulo (`rotulo`).
+
+**El bye.** Seguía fuera (no es un enfrentamiento), y en la tarjeta dejaba un
+hueco que no se explicaba. Ahora vuelve de `partidasDeTorneos` con
+`soloTarjeta: true` y `cargar` lo aparta a `byesDePokedoc`: entra en la tarjeta
+de su torneo (si tiene alguna partida que se enseña) y cuenta en su récord, como
+el bye apuntado a mano, pero nunca en `todas`, la matriz ni las cifras.
+
+**Prueba.** `test-tanda-1133.mjs`: lo puro y una liga de tres por jornada con
+las rondas y las mesas DESORDENADAS en la base y un bye en la 11; la tarjeta
+dice «J3·R1 … J4·R1 D | J4·R2 bye | J4·R3» y arriba siguen 5 partidas. En la
+base, 8 rojos («R1 D | R2 V…»).
+
 ## Tanda 1132 — Sin zoom al escribir, y la caja del foro recogida abajo
 
 PINGU: «la web a veces zoomea, sobre todo al escribir en el foro u otros

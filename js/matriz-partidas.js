@@ -17,6 +17,7 @@
 //
 // Las dos llegan aquí con la misma forma, que es lo que permite
 // sumarlas sin distinguirlas.
+import { nombreDeRondaDeLiga } from './torneos/rondas-jornada.js'
 
 // El resultado desde MI lado. Una partida de torneo se guarda como
 // «gana A» o «gana B», que no dice nada por sí solo: hay que saber de
@@ -202,4 +203,29 @@ export function pestaniaConAlgo({ torneos = 0, sueltas = 0 }) {
   if (torneos > 0) return 'torneos'
   if (sueltas > 0) return 'sueltas'
   return 'torneos'
+}
+
+// LAS RONDAS DE UN TORNEO DE POKEDOC, EN SU ORDEN Y CON SU NOMBRE (tanda
+// 1133, PINGU: «no se guarda en orden… quizá porque hay ronda 1, 2 y 3 en
+// cada jornada»). La tarjeta las ordenaba por la hora de creación, que las
+// de PokeDoc no traen, así que salían en el orden en que contestaba la base y
+// se rotulaban R1…Rn por su sitio en la lista: en una liga, la primera de la
+// jornada 4 podía salir de «R2». `round_number` es de la liga entera (con
+// tres por jornada, la jornada 4 son la 10, 11 y 12), así que ordena bien; y
+// el nombre es el de la ficha del torneo: «J4·R1» en una liga, «Cut R1» en
+// el top cut.
+export function rotuloDeRonda(torneo, numero, fase) {
+  const n = Number(numero)
+  if (!Number.isFinite(n) || n < 1) return null
+  if (fase === 'top_cut') return `Cut R${n}`
+  return torneo?.format === 'league' ? nombreDeRondaDeLiga(torneo, n, { corto: true }) : `R${n}`
+}
+
+// Las suizas antes que el top cut, y por número; lo apuntado a mano (sin
+// número), por la hora en que se apuntó.
+export function ordenDeRondas(a, b) {
+  const fa = a.fase === 'top_cut' ? 1 : 0
+  const fb = b.fase === 'top_cut' ? 1 : 0
+  if (a.ronda != null && b.ronda != null) return fa - fb || a.ronda - b.ronda
+  return String(a.creada || '').localeCompare(String(b.creada || ''))
 }

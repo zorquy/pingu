@@ -525,7 +525,7 @@ function baldosa(ctx, p, i, { x, y, w, h }) {
   ctx.fillStyle = P.tenue
   ctx.font = `700 ${pequeno}px ${TITULAR}`
   ctx.textAlign = 'left'
-  ctx.fillText(`R${p.ronda ?? i + 1}`, x + pequeno * 0.8, y + pequeno * 1.5)
+  ctx.fillText(p.rotulo || `R${p.ronda ?? i + 1}`, x + pequeno * 0.8, y + pequeno * 1.5)
   const l = Math.round(Math.min(w, h) * 0.22)
   cuadro(ctx, p.resultado, { x: x + w - l - pequeno * 0.6, y: y + pequeno * 0.6, lado: l })
   const nombre = p.tipo === 'bye' ? 'Bye' : `${p.rival?.nombre || '—'}${p.tipo === 'id' ? ' · ID' : p.tipo === 'no_show' ? ' · no vino' : ''}`
@@ -623,7 +623,7 @@ function filasDeRondas(ctx, rondas, caja, apaisada) {
     ctx.fillStyle = P.tenue
     ctx.font = `700 ${Math.round(fila * 0.34)}px ${TITULAR}`
     ctx.textAlign = 'left'
-    ctx.fillText(`R${p.ronda ?? i + 1}`, caja.x + 18, medio + fila * 0.12)
+    ctx.fillText(p.rotulo || `R${p.ronda ?? i + 1}`, caja.x + 18, medio + fila * 0.12)
     const xSprite = caja.x + fila * 1.25
     if (p.tipo !== 'bye') sprites(ctx, p.rival?.sprites, { cx: xSprite + fila * 0.45, cy: medio, lado: fila * 0.95 })
     ctx.fillStyle = P.texto
