@@ -55,6 +55,8 @@ console.log('── 2. La función: elige una vez y la deja en la base ──')
   const pedir = async (ruta, o = {}) => {
     llamadas.push(ruta.split('?')[0] + (o.cabeceras?.prefer ? ' (count)' : ''))
     if (ruta.startsWith('carta_del_dia')) return { datos: base.carta, total: null }
+    // ¿Comparte foto con otra carta? (1111b) No.
+    if (ruta.includes('=neq.')) return { datos: [], total: null }
     if (o.cabeceras?.prefer === 'count=exact') return { datos: [{ id: 'x' }], total: 12000 }
     if (/offset=/.test(ruta)) return { datos: [CARTA], total: null }
     return { datos: [CARTA], total: null }

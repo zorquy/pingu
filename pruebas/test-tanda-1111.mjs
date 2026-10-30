@@ -37,6 +37,15 @@ const F = await import(`${RAIZ}/netlify/lib/fotos-reto.mjs`)
   check('sin ninguna dirección, no la hay', (await F.fotoContesta({ id: 'c', market: 'JP' }, { probar })) === false)
   check('conFoto quita las que no y deja el orden', (await F.conFoto([rota, buena, null], { probar })).map((c) => c.id).join() === 'a')
   check('sinFoto da los ids de las que no', (await F.sinFoto([rota, buena], { probar })).join() === 'b')
+  // 1111b: el dorso de mentira. La dirección contesta (es una imagen), pero
+  // la llevan dos cartas: no es la foto de ninguna.
+  const DORSO = 'https://cdn.example/dorso.png'
+  const conDorso = { id: 'd', market: 'WEST', image_tcggo: DORSO }
+  const compartida = async (ruta) => ({ datos: ruta.includes(`image_tcggo=eq.${encodeURIComponent(DORSO)}`) && ruta.includes('id=neq.d') ? [{ id: 'otra' }] : [] })
+  const siempre = async () => true
+  check('una foto que contesta pero comparten dos cartas no cuenta (el dorso)', (await F.fotoContesta(conDorso, { probar: siempre, pedir: compartida })) === false && (await F.fotoContesta(conDorso, { probar: siempre })) === true)
+  check('  …y una suya sí', (await F.fotoContesta({ ...conDorso, image_tcggo: 'https://cdn.example/suya.png' }, { probar: siempre, pedir: compartida })) === true)
+  check('  …y si no se puede preguntar a la base, no se tira', (await F.fotoContesta(conDorso, { probar: siempre, pedir: async () => { throw new Error('caída') } })) === true)
   check('?revisar=1 se lee de la petición', F.revisarDePeticion(new Request('https://x/f?revisar=1')) && !F.revisarDePeticion(new Request('https://x/f')))
 }
 
@@ -86,6 +95,49 @@ console.log('── 2. ¿De qué expansión es? ──')
   const nada = await elegirExpansion({ dia: hoy, pedir: d2.pedir, guardar: d2.guardar, actualizar: d2.actualizar, probar: todasRotas, revisar: true })
   check('sin cartas con foto para cambiarla: «sinFoto» con las que quedan', nada.sinFoto?.length === 5 && d2.cambios.length === 0, JSON.stringify(nada.sinFoto))
   rotas.clear()
+  // 1111b: un día guardado ANTES (sin `fotos_revisadas`) con el dorso de
+  // mentira en la ronda 2 se arregla al LEERLO, sin que nadie pida revisar,
+  // y se vacía la CDN.
+  const DORSO = 'https://cdn.example/dorso.png'
+  const conDorso = CARTAS.map((c, i) => (i === 5 ? { ...c, image_path: null, image_tcggo: DORSO } : c))
+  const viejo = [{ datos: { rondas: [1, 5, 2, 4, 7].map((i) => ({ card_id: `k${i}`, set_ids: [`s${i}`, `s${(i + 1) % 12}`, `s${(i + 2) % 12}`, `s${(i + 3) % 12}`] })) } }]
+  const cambiosV = []
+  let purgas = 0
+  const pedirV = async (ruta, o = {}) => {
+    if (ruta.includes('=neq.')) return { datos: ruta.includes(encodeURIComponent(DORSO)) ? [{ id: 'k39' }] : [] }
+    if (ruta.startsWith('tcg_sets')) return { datos: SETS }
+    if (ruta.startsWith('retos_reto_del_dia')) return { datos: [{ datos: viejo[0].datos }] }
+    if (o.cabeceras?.prefer === 'count=exact') return { datos: [], total: conDorso.length }
+    const off = /offset=(\d+)/.exec(ruta)
+    if (off) return { datos: [conDorso[Number(off[1])]] }
+    return { datos: conDorso.filter((c) => idsDe(ruta).includes(c.id)) }
+  }
+  const siempre = async (u) => !/rota\//.test(u)
+  const v = await elegirExpansion({ dia: hoy, pedir: pedirV, guardar: async () => {}, actualizar: async (t, f, c) => { cambiosV.push(c); viejo[0] = { datos: c.datos } }, alCambiar: async () => { purgas++ }, probar: siempre })
+  check('día de antes con un dorso: al leerlo (sin revisar) cambia esa ronda', v.rondas[1].carta.id !== 'k5' && v.rondas.map((x) => x.carta.id).filter((id, i) => i !== 1).join() === 'k1,k2,k4,k7' && cambiosV.length === 1 && cambiosV[0].datos.fotos_revisadas === true, v.rondas.map((x) => x.carta.id).join())
+  check('  …y vacía la copia de la CDN', purgas === 1)
+  const v2 = await elegirExpansion({ dia: hoy, pedir: pedirV, guardar: async () => {}, actualizar: async (t, f, c) => { cambiosV.push(c); viejo[0] = { datos: c.datos } }, alCambiar: async () => { purgas++ }, probar: siempre })
+  check('  …y la lectura siguiente ya no revisa nada', v2.rondas.map((x) => x.carta.id).join() === v.rondas.map((x) => x.carta.id).join() && cambiosV.length === 1 && purgas === 1)
+  // Un día de antes sin nada roto: se apunta como revisado y no se cambia.
+  const limpio = [{ datos: { rondas: viejo[0].datos.rondas } }]
+  delete limpio[0].datos.fotos_revisadas
+  const cambiosL = []
+  const pedirL = async (ruta, o = {}) => (ruta.startsWith('retos_reto_del_dia') ? { datos: [{ datos: limpio[0].datos }] } : pedirV(ruta, o))
+  await elegirExpansion({ dia: hoy, pedir: pedirL, guardar: async () => {}, actualizar: async (t, f, c) => { cambiosL.push(c); limpio[0] = { datos: c.datos } }, probar: siempre })
+  check('  …un día de antes sin nada roto solo se apunta como revisado', cambiosL.length === 1 && cambiosL[0].datos.fotos_revisadas === true && cambiosL[0].datos.rondas.map((r) => r.card_id).join() === limpio[0].datos.rondas.map((r) => r.card_id).join())
+  // «Cambiar esta carta» de un admin: la ronda que diga, aunque tenga foto.
+  const cambiosF = []
+  const f = await elegirExpansion({ dia: hoy, pedir: pedirL, guardar: async () => {}, actualizar: async (t, fl, c) => { cambiosF.push(c); limpio[0] = { datos: c.datos } }, probar: siempre, revisar: true, forzar: [3] })
+  check('un admin cambia la ronda 4 (forzar 3): solo esa', f.rondas[3].carta.id !== v.rondas[3].carta.id && [0, 1, 2, 4].every((i) => f.rondas[i].carta.id === v.rondas[i].carta.id) && cambiosF.length === 1, f.rondas.map((x) => x.carta.id).join())
+  const QX = await import(`${RAIZ}/netlify/functions/que-expansion.mjs`)
+  const cab = QX.cabecerasDelDia(3600)
+  check('el día: la CDN lo guarda hasta medianoche con su etiqueta; el navegador, un minuto', cab['cache-control'] === 'public, max-age=60' && /max-age=3600/.test(cab['netlify-cdn-cache-control']) && cab['netlify-cache-tag'] === QX.ETIQUETA_CACHE)
+  const antesClave = process.env.SUPABASE_SERVICE_ROLE_KEY
+  process.env.SUPABASE_SERVICE_ROLE_KEY = 'prueba'
+  const sinAdmin = await QX.default(new Request('https://x/.netlify/functions/que-expansion', { method: 'POST', body: '{"ronda":1}' }))
+  if (antesClave === undefined) delete process.env.SUPABASE_SERVICE_ROLE_KEY
+  else process.env.SUPABASE_SERVICE_ROLE_KEY = antesClave
+  check('«Cambiar esta carta» sin ser admin: 401', sinAdmin.status === 401, String(sinAdmin.status))
 }
 
 console.log('── 3. Los otros cuatro ──')
