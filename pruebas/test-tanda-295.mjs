@@ -57,7 +57,7 @@ console.log('\n── 3. Las dos puertas que NO se abren ──')
 
   // (b) El panel de administración. PINGU fue explícito: nada de eso.
   const puerta = ADMIN.match(/async function checkAccess\(\)[\s\S]*?\n\}/)?.[0] || ''
-  check('el panel sigue pidiendo is_admin', /select\('is_admin'\)/.test(puerta) && /!profile\?\.is_admin/.test(puerta), puerta.slice(0, 200))
+  check('el panel sigue pidiendo is_admin', /select\('is_admin[,']/.test(puerta) && /!profile\?\.is_admin/.test(puerta), puerta.slice(0, 200))
   check('  …y NO deja pasar al organizador', !/is_tournament_admin/.test(puerta), puerta.slice(0, 200))
 }
 
@@ -77,45 +77,21 @@ console.log('\n── 4. Que nadie se dé el rol a sí mismo ──')
 
 console.log('\n── 5. El interruptor, en el panel ──')
 {
-  check('hay botón por persona', /data-toggle-torneos="\$\{u\.id\}"/.test(ADMIN))
-  check('y su columna en la tabla', /<th>Admin<\/th>\$\{conTorneos \? '<th>Torneos<\/th>' : ''\}/.test(ADMIN))
-  check('escribe la columna del rol', /\.update\(\{ is_tournament_admin: dar \}\)/.test(ADMIN))
-  // Si la migración no está, la columna no existe: hay que decirlo, no
-  // dejar el botón mudo.
-  check('y avisa si falta la migración', /supabase-migration-torneos-organizadores\.sql/.test(ADMIN))
-  // Y que se explique qué da y qué no, que es lo que evita dárselo a
-  // quien no toca. Las DOS mitades: sin la primera, quien reparte el rol
-  // no sabe que está entregando la sección entera.
-  check('el panel dice qué da el rol', /<strong>Torneos<\/strong> da el mando de la sección «Jugar»/.test(ADMIN))
-  check('  …hasta dónde llega', /y de nada más: ni este panel/.test(ADMIN))
-  check('  …y lo único que se le queda fuera', /Lo único que no puede es marcar/.test(ADMIN))
-
-  // En Postgres, pedir una columna que no existe tumba la consulta
-  // ENTERA. Si el rol viaja en el MISMO escalón que forum_title_color,
-  // faltando la migración de torneos la tabla se cae al escalón de «sin
-  // color» y el panel acusa a la migración equivocada — y encima se
-  // pierden los colores, que sí están puestos. Tiene que haber un
-  // escalón CON color y SIN torneos.
-  const escalones = ADMIN.match(/const ESCALONES = \[[\s\S]*?\n  \]/)?.[0] || ''
-  check('la escalera contempla que falte el rol',
-    /color: true, torneos: false/.test(escalones), escalones.slice(0, 200))
-  check('  …y que falte el color pero no el rol',
-    /color: false, torneos: true/.test(escalones))
-  // Y que cada escalón PIDA exactamente lo que dice que trae. Mirar solo
-  // las banderas no vale: un escalón puede decir `torneos: false` y
-  // seguir pidiendo la columna, que es justo el fallo que se arregla.
-  const filas = escalones.split('\n').filter((l) => l.includes('campos:'))
-  const descuadrada = filas.find(
-    (l) =>
-      l.includes('is_tournament_admin') !== /torneos: true/.test(l) ||
-      l.includes('forum_title_color') !== /color: true/.test(l) ||
-      l.includes('FORO') !== /foro: true/.test(l)
-  )
-  check('  …y cada escalón pide lo que dice que trae', !descuadrada, descuadrada || '')
-  check('  …y se apunta en qué escalón se entró', /const conTorneos = escalon\.torneos/.test(ADMIN))
-  // Y sin la columna no se pinta ni el botón ni la casilla: pulsarlo
-  // solo daría un error.
-  check('sin la columna, no hay interruptor', /conTorneos\s*\n?\s*\? `<button data-toggle-torneos=/.test(ADMIN))
+  // Desde la 1121 los roles son interruptores en la ficha de cada persona
+  // (admin/js/usuarios-admin.js), no un botón por fila.
+  const US = readFileSync(`/home/user/pingu/admin/js/usuarios-admin.js`, 'utf8')
+  const rol = US.match(/\{ col: 'is_tournament_admin'[^\n]*\}/)?.[0] || ''
+  check('el rol de torneos es un interruptor de la ficha', Boolean(rol) && /data-us-rol="\$\{r\.col\}"/.test(US), rol.slice(0, 120))
+  check('escribe la columna del rol', /\.update\(\{ \[col\]: valor \}\)/.test(US))
+  check('y avisa si falta la migración', /migracion: 'supabase-migration-torneos-organizadores\.sql'/.test(rol))
+  check('el panel dice qué da el rol', /Crea y lleva cualquier torneo/.test(rol))
+  check('  …hasta dónde llega', /y de nada más: ni este panel/.test(rol))
+  check('  …y lo único que se le queda fuera', /Lo único que no puede es marcar/.test(rol))
+  // En Postgres, pedir una columna que no existe tumba la consulta ENTERA.
+  // La escalera de escalones se cambió por quitar las opcionales de UNA en
+  // una según lo que diga la base: el rol y el color, cada uno por su lado.
+  check('faltar el rol o el color no tumba la lista (opcionales, de una en una)', /const OPCIONALES = new Set\([^)]*'forum_title_color'[^)]*'is_tournament_admin'/.test(US) && /cols\.splice\(cols\.indexOf\(falta\), 1\)/.test(US))
+  check('sin la columna, el interruptor sale apagado y dice qué migración falta', /const hay = estado\.cols\.has\(r\.col\)/.test(US) && /\$\{hay \? '' : 'disabled'\}/.test(US))
 }
 
 console.log('\n── 6. En pantalla ──')

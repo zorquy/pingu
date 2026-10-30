@@ -150,6 +150,8 @@ const T = {
   logros_a_mano: [],
   // 1120: lo que el equipo manda a la campanita de todos.
   avisos_enviados: [],
+  // 1121: silencios y baneos con motivo y fecha de fin.
+  moderaciones: [],
   user_achievements: [],
   daily_challenge_results: [],
   user_progress: [],
@@ -1702,6 +1704,36 @@ export const supabase = {
       for (const p of para) T.user_notifications.push({ id: `n-aviso-${T.user_notifications.length + 1}`, recipient_id: p.id, type: 'aviso_equipo', title: titulo, body: args.p_cuerpo || null, link: enlace, read_at: null, created_at: ahora })
       T.avisos_enviados.push({ id: `av-${T.avisos_enviados.length + 1}`, titulo, cuerpo: args.p_cuerpo || null, enlace, personas: para.length, por: yo, created_at: ahora })
       return { data: { ok: true, personas: para.length }, error: null }
+    }
+    // 1121: moderar con motivo y duración; lo vencido se levanta.
+    if (nombre === 'admin_moderar' || nombre === 'admin_moderar_quitar' || nombre === 'moderacion_al_dia') {
+      if (typeof window !== 'undefined' && window.__SIN_1121__) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
+      const ahora = new Date()
+      const col = (que) => (que === 'baneo' ? 'is_banned' : 'is_muted')
+      if (nombre === 'moderacion_al_dia') {
+        const vencidas = T.moderaciones.filter((m) => !m.quitada_at && m.hasta && new Date(m.hasta) <= ahora)
+        for (const m of vencidas) m.quitada_at = ahora.toISOString()
+        for (const m of vencidas) {
+          const sigue = T.moderaciones.some((x) => x.user_id === m.user_id && x.que === m.que && !x.quitada_at)
+          const p = T.user_profiles.find((x) => x.id === m.user_id)
+          if (p && !sigue) p[col(m.que)] = false
+        }
+        return { data: vencidas.length, error: null }
+      }
+      const yo = typeof window !== 'undefined' ? window.__FAKE_SESSION__ || 'admin-1' : null
+      if (!T.user_profiles.find((p) => p.id === yo)?.is_admin) return { data: null, error: { code: 'P0001', message: 'solo el equipo puede moderar' } }
+      if (args.p_usuario === yo) return { data: null, error: { code: 'P0001', message: 'a ti no' } }
+      const p = T.user_profiles.find((x) => x.id === args.p_usuario)
+      if (!p) return { data: null, error: { code: 'P0001', message: 'esa persona no existe' } }
+      for (const m of T.moderaciones) if (m.user_id === p.id && m.que === args.p_que && !m.quitada_at) { m.quitada_at = ahora.toISOString(); m.quitada_por = yo }
+      if (nombre === 'admin_moderar_quitar') {
+        p[col(args.p_que)] = false
+        return { data: { ok: true }, error: null }
+      }
+      const hasta = args.p_dias > 0 ? new Date(+ahora + args.p_dias * 86400000).toISOString() : null
+      T.moderaciones.push({ id: `mod-${T.moderaciones.length + 1}`, user_id: p.id, que: args.p_que, motivo: args.p_motivo || null, hasta, por: yo, created_at: ahora.toISOString(), quitada_at: null })
+      p[col(args.p_que)] = true
+      return { data: { ok: true, hasta }, error: null }
     }
     if (nombre === 'idiomas_de_set' || nombre === 'idiomas_de_set_calculados') {
       const mapa = (typeof window !== 'undefined' && window.__FAKE_IDIOMAS_SET__) || null
