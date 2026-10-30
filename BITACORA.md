@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (353) — PINGU-Claude (1112 — Parejas con el dorso de verdad)
+
+**Hecho**: PINGU: «que el dorso de las cartas sea el dorso de las cartas
+Pokémon de verdad». Las doce cartas boca abajo de Parejas llevan ahora el
+dorso oficial (`assets/dorso-pokemon.webp`, recortado de su captura del reto
+#91: era justo el dorso que servía esa fuente sin foto), precargado.
+
+**Ficheros**: `assets/dorso-pokemon.webp` (nuevo), `css/parejas.css`,
+`parejas.html`. Pruebas: 989 (no confunde la pregunta de la foto
+compartida de la 1111b con la cuenta de cartas), 990, 299 y 313 en verde.
+
+**Pendiente**: si PINGU quiere el dorso en más sitios (el laboratorio de la
+mesa lleva uno propio a propósito), decirlo.
+
 ## 2026-10-30 (352) — PINGU-Claude (1111b — el dorso de mentira)
 
 **Hecho**: PINGU: «sigue igual y he recargado». La foto de la carta 2 no

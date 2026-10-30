@@ -41785,6 +41785,26 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1112 — Parejas con el dorso de verdad
+
+PINGU: «que el dorso de las cartas sea el dorso de las cartas Pokémon de
+verdad… lo puedes sacar de algún placeholder». Era el azul de la casa a
+rayas con una Poké Ball dibujada en CSS.
+
+- `assets/dorso-pokemon.webp` (320 × 447, la proporción de una carta, con
+  las esquinas redondeadas transparentes; 34 KB): recortado de la captura de
+  PINGU del reto #91, donde una fuente servía justo ese dorso como «sin
+  foto». Desde el contenedor no se llega a ninguna CDN de imágenes, así que
+  la captura era la única copia a mano; se recortó en un lienzo de Chromium
+  (el PIL del contenedor está roto).
+- `.pa-dorso` es esa imagen de fondo (`cover`), con `--navy-solid` debajo
+  mientras llega; fuera el borde blanco y la Poké Ball del `::after`.
+  parejas.html la precarga (`rel=preload`), para que las doce cartas no
+  salgan azules un momento.
+- Solo Parejas. El laboratorio de la mesa sigue con el dorso propio de
+  PokeDoc (S24311), que se decidió a propósito «sin nada que recuerde al
+  dorso oficial».
+
 ## Tanda 1111b — El dorso de mentira
 
 PINGU, con la misma carta 2 del reto #91 después de la 1111: «sigue igual y

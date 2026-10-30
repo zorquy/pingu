@@ -70,22 +70,10 @@
   transition: transform 0.3s ease;
 }
 
-/* El dorso: el azul de la casa con una Poké Ball en medio. */
+/* El dorso: el de las cartas de verdad (1112, PINGU). Mientras llega, su azul. */
 .pa-dorso {
-  display: grid;
-  place-items: center;
-  border: 2px solid var(--blanco-fijo);
-  background: repeating-linear-gradient(45deg, var(--navy-solid) 0 8px, var(--navy-solid-light) 8px 16px);
+  background: var(--navy-solid) url('../assets/dorso-pokemon.webp') center / cover no-repeat;
   box-shadow: var(--shadow-sm);
-}
-
-.pa-dorso::after {
-  content: '';
-  width: 44%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: radial-gradient(circle, var(--blanco-fijo) 0 18%, var(--navy-solid) 19% 26%, transparent 27%), linear-gradient(var(--danger-solid) 0 46%, var(--navy-solid) 46% 54%, var(--blanco-fijo) 54%);
-  box-shadow: 0 0 0 2px var(--navy-solid);
 }
 
 .pa-cara {
