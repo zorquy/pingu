@@ -1,5 +1,5 @@
 import { supabase } from '../../js/supabase.js'
-import { escapeHtml, getSession, validateImageFile, uploadGuideImage, profileUrl, slugify } from '../../js/app.js'
+import { escapeHtml, getSession, validateImageFile, profileUrl, slugify } from '../../js/app.js'
 import { showToast } from '../../js/toast.js'
 // Del módulo de LECTURA, que existe para esto desde la 316 (ver su
 // cabecera): `block-editor.js` solo lo reexporta, y pedírselo a él
@@ -12,6 +12,7 @@ import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { normalizePath, pageLabel } from '../../js/page-views.js'
 import { revisarBloques } from '../../js/curso-lint.js'
 import { PASADAS, semaforoDe } from './semaforo.js'
+import { ponerContadorNav } from './hoy.js'
 import { notaDeVital } from '../../js/vitales.js'
 import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet, porImagen } from '../../js/tcgdex.js'
@@ -21,6 +22,7 @@ import { iniciarColecciones } from './colecciones.js'
 import { iniciarTiendas } from './tiendas.js'
 
 let categories = []
+let perfilAdmin = null
 let guidesCache = []
 
 // ── Access gate ──
@@ -30,7 +32,8 @@ async function checkAccess() {
     window.location.href = '/auth.html'
     return null
   }
-  const { data: profile } = await supabase.from('user_profiles').select('is_admin').eq('id', session.user.id).single()
+  const { data: profile } = await supabase.from('user_profiles').select('is_admin, display_name, username').eq('id', session.user.id).single()
+  perfilAdmin = profile
   if (!profile?.is_admin) {
     window.location.href = '/'
     return null
@@ -82,38 +85,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && !modal.classList.contains('hidden')) closeModal()
 })
 
-// ── Dashboard ──
-// ── Guía destacada de la portada ──
-//
-// Se guarda en `home_config`, la fila única que ya existía y que no usaba
-// nadie: leerla es público y escribirla solo puede un admin, que es
-// exactamente lo que hace falta. Se guarda dentro de `blocks` para no
-// añadir columnas a una tabla que quizá algún día sirva para más cosas.
-async function loadDestacada() {
-  const panel = document.getElementById('destacadaPanel')
-  if (!panel) return
-  const select = document.getElementById('destacadaSelect')
-  const nota = document.getElementById('destacadaNota')
-
-  const [{ data: guias }, { data: config }] = await Promise.all([
-    supabase.from('guides').select('id, title').not('published_at', 'is', null).order('title'),
-    supabase.from('home_config').select('blocks').eq('id', 1).maybeSingle(),
-  ])
-
-  const actual = config?.blocks?.destacada || {}
-  select.innerHTML =
-    '<option value="">— Ninguna —</option>' +
-    (guias || []).map((g) => `<option value="${g.id}" ${g.id === actual.guide_id ? 'selected' : ''}>${escapeHtml(g.title)}</option>`).join('')
-  nota.value = actual.nota || ''
-
-  document.getElementById('btnGuardarDestacada').addEventListener('click', async () => {
-    const destacada = select.value ? { guide_id: select.value, nota: nota.value.trim() || null } : null
-    const { error } = await supabase
-      .from('home_config')
-      .upsert({ id: 1, blocks: { ...(config?.blocks || {}), destacada }, updated_at: new Date().toISOString() })
-    showToast(error ? 'No se ha podido guardar: ' + error.message : 'Guardado. Ya sale en la portada.', error ? 'error' : 'success')
-  })
-}
+// ── Hoy (1119): ver admin/js/hoy.js ──
 
 // ── El aviso global (la franja de arriba de toda la web) ──
 //
@@ -212,29 +184,10 @@ async function loadClavesPush() {
 }
 
 async function loadDashboard() {
-  loadDestacada().catch(() => {})
   loadAvisoGlobal().catch(() => {})
   loadClavesPush().catch(() => {})
-  const [{ count: userCount }, completedRes, { count: guideCount }] = await Promise.all([
-    supabase.from('user_profiles').select('*', { count: 'exact', head: true }),
-    supabase.from('user_progress').select('*', { count: 'exact', head: true }).eq('status', 'completed'),
-    supabase.from('guides').select('*', { count: 'exact', head: true }).not('published_at', 'is', null),
-  ])
-
-  // Hasta la migración supabase-migration-admin-analytics.sql, la única
-  // política de lectura de user_progress era auth.uid() = user_id, así
-  // que esta cifra contaba solo los cursos del propio admin. Si la
-  // consulta falla, se dice en vez de enseñar un cero engañoso.
-  const completedLabel = completedRes.error ? '—' : completedRes.count || 0
-  const completedNote = completedRes.error
-    ? `<p style="grid-column: 1/-1; font-size: 12px; color: var(--text-mid);">No se ha podido leer <code>user_progress</code> (${escapeHtml(completedRes.error.message)}). Aplica <code>supabase-migration-admin-analytics.sql</code> para que el equipo pueda ver el progreso de todos los usuarios.</p>`
-    : ''
-
-  document.getElementById('dashboardStats').innerHTML = `
-    <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${userCount || 0}</div><div>Usuarios</div></div>
-    <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${completedLabel}</div><div>Cursos completados</div></div>
-    <div class="admin-card"><div class="value" style="font-size:28px;font-weight:800;color:var(--navy);">${guideCount || 0}</div><div>Guías publicadas</div></div>
-    ${completedNote}`
+  const { montarHoy } = await import('./hoy.js')
+  await montarHoy({ nombre: perfilAdmin?.display_name || perfilAdmin?.username || '' })
 }
 
 // ── Categories ──
@@ -333,15 +286,6 @@ document.getElementById('btnNewCategory').addEventListener('click', () => openCa
 // ── Guías pendientes de revisión ──
 let pendingCache = []
 
-
-// El contador del nav: cuántas cosas esperan trabajo en una sección,
-// visibles sin entrar («Pendientes 3»). Con cero, ni se enseña.
-function ponerContadorNav(seccion, n) {
-  const boton = document.querySelector(`.admin-nav-item[data-section="${seccion}"]`)
-  if (!boton) return
-  boton.querySelector('.admin-nav-contador')?.remove()
-  if (n > 0) boton.insertAdjacentHTML('beforeend', `<span class="admin-nav-contador">${n}</span>`)
-}
 
 async function loadPending() {
   const { data } = await supabase
@@ -670,114 +614,6 @@ async function mandarNoticiaATelegram(id, btn, forzar = false) {
 document.getElementById('btnNuevaNoticia')?.addEventListener('click', () => {
   window.location.href = 'editor-guia.html?tipo=noticia'
 })
-
-// ── Los lanzamientos ──
-// La lista de sets con fecha, en site_settings (clave `lanzamientos`),
-// editada por FILAS: fecha, nombre, logo (URL o subida) y notas. Antes
-// era una caja de texto con líneas «fecha | nombre | …»; el formato por
-// filas lo pidió el admin para meter la era actual a mano sin pelearse
-// con las barras.
-async function loadLanzamientos() {
-  const cont = document.getElementById('lanzamientosFilas')
-  if (!cont) return
-
-  const filaHtml = (s = {}) => `
-    <div class="lanz-fila">
-      <input type="date" class="lanz-fecha" aria-label="Fecha de salida" value="${escapeHtml(s.fecha || '')}" />
-      <input type="text" class="lanz-nombre" placeholder="Nombre del set" value="${escapeHtml(s.nombre || '')}" />
-      <div class="lanz-imagen-campo">
-        <input type="url" class="lanz-imagen" placeholder="URL del logo (opcional)" value="${escapeHtml(s.imagen || '')}" />
-        <button type="button" class="btn-secondary lanz-subir" title="Subir una imagen">${icons.upload(15)}</button>
-      </div>
-      <input type="text" class="lanz-notas" placeholder="Notas (opcional)" value="${escapeHtml(s.notas || '')}" />
-      <label class="lanz-preventa-campo"><span>Preventa</span><input type="date" class="lanz-preventa" aria-label="Fecha de la preventa (opcional)" value="${escapeHtml(s.preventa || '')}" /></label>
-      <button type="button" class="btn-secondary lanz-quitar" title="Quitar este set">${icons.trash(15)}</button>
-    </div>`
-
-  // Siempre queda al menos una fila vacía donde empezar a escribir.
-  const pintarFilas = (sets) => {
-    cont.innerHTML = (sets.length ? sets : [{}]).map(filaHtml).join('')
-  }
-
-  const leerFilas = () => {
-    const sets = []
-    const malas = []
-    for (const fila of cont.querySelectorAll('.lanz-fila')) {
-      const v = (sel) => fila.querySelector(sel).value.trim()
-      const [fecha, nombre, imagen, notas, preventa] = [v('.lanz-fecha'), v('.lanz-nombre'), v('.lanz-imagen'), v('.lanz-notas'), v('.lanz-preventa')]
-      if (!fecha && !nombre && !imagen && !notas) continue
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha) || !nombre) {
-        malas.push(nombre || imagen || notas || fecha)
-        continue
-      }
-      // La preventa (753) es opcional, y también vale para un set que el
-      // catálogo ya tiene: se casa por nombre y activa su aviso.
-      sets.push({ fecha, nombre, ...(imagen ? { imagen } : {}), ...(notas ? { notas } : {}), ...(/^\d{4}-\d{2}-\d{2}$/.test(preventa) ? { preventa } : {}) })
-    }
-    return { sets, malas }
-  }
-
-  const { data } = await supabase.from('site_settings').select('value').eq('key', 'lanzamientos').maybeSingle()
-  pintarFilas(data?.value?.sets || [])
-
-  document.getElementById('btnAnadirLanzamiento').addEventListener('click', () => {
-    cont.insertAdjacentHTML('beforeend', filaHtml())
-    cont.lastElementChild.querySelector('.lanz-fecha').focus()
-  })
-
-  cont.addEventListener('click', async (e) => {
-    const quitar = e.target.closest('.lanz-quitar')
-    if (quitar) {
-      quitar.closest('.lanz-fila').remove()
-      if (!cont.querySelector('.lanz-fila')) pintarFilas([])
-      return
-    }
-    // Subir el logo: al mismo bucket que las imágenes de guías, que ya
-    // existe y ya tiene la política de subida para usuarios con sesión.
-    const subir = e.target.closest('.lanz-subir')
-    if (subir) {
-      const selector = document.createElement('input')
-      selector.type = 'file'
-      selector.accept = 'image/*'
-      selector.addEventListener('change', async () => {
-        const file = selector.files?.[0]
-        if (!file) return
-        try {
-          const session = await getSession()
-          const url = await uploadGuideImage(session.user.id, file)
-          subir.closest('.lanz-imagen-campo').querySelector('.lanz-imagen').value = url
-          showToast('Imagen subida. Recuerda pulsar Guardar.', 'success')
-        } catch (err) {
-          showToast('No se ha podido subir la imagen: ' + (err.message || err), 'error')
-        }
-      })
-      selector.click()
-    }
-  })
-
-  document.getElementById('btnGuardarLanzamientos').addEventListener('click', async () => {
-    const { sets, malas } = leerFilas()
-    if (malas.length) {
-      showToast(`Hay ${malas.length} ${malas.length === 1 ? 'fila a la que le falta' : 'filas a las que les falta'} la fecha o el nombre («${String(malas[0]).slice(0, 40)}…» sin completar)`, 'error')
-      return
-    }
-    sets.sort((a, b) => (a.fecha < b.fecha ? -1 : 1))
-    const { error } = await supabase.from('site_settings').upsert(
-      { key: 'lanzamientos', value: { sets }, updated_at: new Date().toISOString() },
-      { onConflict: 'key' }
-    )
-    showToast(
-      error
-        ? /site_settings/.test(error.message || '')
-          ? 'Falta ejecutar supabase-migration-ajustes.sql en el SQL Editor de Supabase.'
-          : 'No se ha podido guardar: ' + error.message
-        : `Guardados ${sets.length} sets. Salen en /lanzamientos y en la portada si el catálogo no los tiene todavía.`,
-      error ? 'error' : 'success'
-    )
-  })
-
-}
-loadLanzamientos().catch(() => {})
 
 // ── Las preguntas más falladas ──
 // Cruza question_stats (el contador público de aciertos por pregunta)
@@ -2182,7 +2018,7 @@ async function loadSchemaCheck() {
     })
   }
 
-  // Y un aviso en el Dashboard, que es lo primero que se abre. Si solo
+  // Y un aviso en «Hoy», que es lo primero que se abre. Si solo
   // estuviera en su propia pestaña habría que sospechar antes de mirar,
   // y el problema es justo que no se sospecha.
   const banner = document.getElementById('schemaBanner')

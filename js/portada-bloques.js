@@ -201,16 +201,16 @@ async function datosDelForoAntiguo(session) {
 // Las categorías eran una fila suelta al final («Busca por tema»): ahora son
 // el filtro del bloque. «Novedades» es lo último; un tema trae lo suyo. La
 // grande es la tarjeta de guía de siempre (una sola tarjeta, la 316) y las
-// otras, la misma en fila. Si alguien del equipo ha elegido una guía
-// destacada (/admin), esa va la grande en «Novedades».
-export function aprendeHtml({ guias, temas = [], activo = '', progreso = null, destacada = null }) {
+// otras, la misma en fila. (La «guía destacada» de /admin se fue en la 1119:
+// PINGU, «eso no lo vamos a hacer».)
+export function aprendeHtml({ guias, temas = [], activo = '', progreso = null }) {
   const chips = [`<button type="button" class="pb-tema${activo ? '' : ' activo'}" data-tema="" aria-pressed="${activo ? 'false' : 'true'}">Novedades</button>`]
     .concat(temas.map((c) => `<button type="button" class="pb-tema${activo === c.id ? ' activo' : ''}" data-tema="${escapeHtml(c.id)}" aria-pressed="${activo === c.id ? 'true' : 'false'}">${escapeHtml(c.name)} <small>${c.guide_count ?? 0}</small></button>`))
     .join('')
   const [grande, ...resto] = guias || []
   const cuerpo = grande
     ? `<div class="pb-aprende-rejilla">
-        <div class="pb-aprende-grande">${destacada && destacada.id === grande.id ? `<span class="pb-sello">${ic('star', 12)} Destacada${destacada.nota ? ` · ${escapeHtml(destacada.nota)}` : ''}</span>` : ''}${tarjetaDeGuia(grande, { progreso, categoria: grande.categories?.name || '', pie: true })}</div>
+        <div class="pb-aprende-grande">${tarjetaDeGuia(grande, { progreso, categoria: grande.categories?.name || '', pie: true })}</div>
         <div class="pb-aprende-lista">${resto.slice(0, 3).map((g) => filaDeGuia(g, { progreso })).join('')}</div>
       </div>`
     : '<p class="pb-vacio">De este tema todavía no hay guías.</p>'
@@ -241,30 +241,18 @@ async function progresoDe(session, guias) {
 async function montarAprende(session) {
   const caja = document.getElementById('aprende')
   if (!caja) return
-  const [guias, { data: cats }, { data: config }] = await Promise.all([
+  const [guias, { data: cats }] = await Promise.all([
     guiasDe(''),
     supabase.from('categories').select('id, slug, name, guide_count, order_pos').order('order_pos'),
-    supabase.from('home_config').select('blocks').eq('id', 1).maybeSingle(),
   ])
   if (!guias.length) return recoger('recientesSeccion')
-  // La destacada del equipo, delante en «Novedades».
-  let destacada = null
-  const elegida = config?.blocks?.destacada
-  if (elegida?.guide_id) {
-    const ya = guias.find((g) => g.id === elegida.guide_id)
-    const g = ya || (await supabase.from('guides').select(COLUMNAS_GUIA).eq('id', elegida.guide_id).not('published_at', 'is', null).maybeSingle()).data
-    if (g) {
-      destacada = { id: g.id, nota: elegida.nota || '' }
-      guias.splice(0, guias.length, g, ...guias.filter((x) => x.id !== g.id))
-    }
-  }
   // Los temas con guías, de más a menos (la 300), como mucho cinco.
   const temas = (cats || []).filter((c) => (c.guide_count ?? 0) > 0).sort((a, b) => (b.guide_count ?? 0) - (a.guide_count ?? 0)).slice(0, 5)
   const porTema = { '': guias }
   let progreso = await progresoDe(session, guias).catch(() => null)
   let version = 0
   const pintar = (activo) => {
-    caja.innerHTML = aprendeHtml({ guias: porTema[activo] || [], temas, activo, progreso, destacada: activo ? null : destacada })
+    caja.innerHTML = aprendeHtml({ guias: porTema[activo] || [], temas, activo, progreso })
     // El autor y el guardar de la tarjeta grande, como en /aprender (la 316).
     import('./guide-card.js').then(({ decorateGuideCards }) => decorateGuideCards(caja, session)).catch(() => {})
   }

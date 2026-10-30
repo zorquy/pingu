@@ -41785,6 +41785,42 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1119 — «Hoy», la entrada de /admin, y el menú agrupado
+
+PINGU: «el dashboard es una mierda», «guías destacadas, eso no lo vamos a
+hacer», «lanzamientos, ahora va automático, así que lo quitaría». Segunda
+tanda de la propuesta del admin (la recomendada).
+
+- `admin/js/hoy.js` (entra por `import()` desde `loadDashboard`): la
+  sección `dashboard` se llama «Hoy» y saluda a quien entra con el día. Arriba,
+  una tarjeta por cosa que espera a alguien (`ESPERAS`: guías por revisar,
+  reportes, tiendas, Colabora, sugerencias y bajas), con la más vieja («hace 2
+  días») y en rojo si lleva más de un día; las que tienen algo van delante y
+  las de cero, apagadas; tocar una abre su sección (`data-ir`). Una cuenta que
+  no se puede leer dice «—», no cero (la 510).
+- El número de cada sección en el menú lo pone `ponerContadorNav`, que vive
+  ahora en hoy.js (admin.js lo importa): sale nada más entrar, también para
+  Tiendas y Colabora, que no lo tenían.
+- «Las pasadas automáticas»: `semaforoHtml` cuenta las que van bien, enseña
+  solo las rojas y ámbar, y las demás quedan plegadas en «Ver las N». La regla
+  sigue siendo `semaforoDe` (admin/js/semaforo.js).
+- «Esta semana»: la frase del lunes (`trozosDeResumen` de
+  `js/analitica-frase.js`, con su color), de `admin_analitica_resumen` a 7
+  días. «Errores en 24 h»: cuántos, en qué página fue el último y cuántos
+  quedan sin mirar.
+- El menú, en cuatro grupos (Contenido, Comunidad, Catálogo, Sistema) con
+  «Hoy» delante; las secciones son las mismas.
+- Se van: la guía destacada (panel y `loadDestacada`; en la portada,
+  `home_config` ya no se pide y el sello `.pb-sello` desaparece de
+  «Aprende»), los lanzamientos a mano (panel, `loadLanzamientos` y su CSS
+  `.lanz-*`; lo que hubiera guardado en `site_settings.lanzamientos` se
+  sigue fundiendo en /lanzamientos), y las cifras de adorno (usuarios, cursos,
+  guías: están en Analítica). Las claves push pasan a «Base de datos». El
+  aviso global se queda en «Hoy» hasta la 1120.
+- Pruebas: `test-tanda-1119-pantalla.mjs` (PC y móvil). 1013 (el icono de un
+  logro se elige de la rejilla de la 1118), 656 (sin lista a mano) y 817
+  (dieciséis pasadas desde la 1028, que la dejó roja) puestas al día.
+
 ## Tanda 1118 — El panel de Logros de /admin
 
 PINGU, a la propuesta «Panel de admin nuevo»: «adelante» (con las

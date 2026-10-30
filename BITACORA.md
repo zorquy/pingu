@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (360) — PINGU-Claude (1119 — «Hoy» en /admin y el menú agrupado)
+
+**Hecho**: el Dashboard es ahora «Hoy»: lo que espera a alguien en tarjetas
+(con la más vieja y en rojo si pasa de un día), el número en el menú (también
+Tiendas y Colabora), las pasadas automáticas (solo lo que va mal a la vista),
+la frase de la semana y los errores de 24 h. Menú en cuatro grupos. Fuera la
+guía destacada (también de la portada), los lanzamientos a mano y las cifras
+de adorno; las claves push, a «Base de datos».
+
+**Ficheros**: `admin/js/hoy.js` (nuevo), `admin/js/admin.js`,
+`admin/index.html`, `admin/css/admin.css`, `js/portada-bloques.js`,
+`css/portada-bloques.css`, SCHEMA, CLAUDE.md. Pruebas en `pruebas`:
+1119-pantalla nueva; 1013, 656 y 817 al día.
+
+**Pendiente**: sin migración. Siguiente: 1120, los avisos.
+
 ## 2026-10-30 (359) — PINGU-Claude (1118 — el panel de Logros de /admin)
 
 **Hecho**: PINGU dijo «adelante» a la propuesta del admin (las recomendadas).

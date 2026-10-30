@@ -489,70 +489,6 @@ body {
   border-radius: 3px;
 }
 
-/* ── El editor de lanzamientos por filas ──
-   Va aquí y no en components.css a propósito: esta hoja solo la baja
-   el /admin, y components.css también la descarga la portada, que anda
-   al límite del presupuesto de peso (test-carga). */
-.lanz-filas {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-/* Fecha | nombre | logo | notas | quitar. En pantallas estrechas la
-   rejilla se parte en dos líneas por fila: fecha+nombre arriba,
-   logo+notas debajo. */
-.lanz-fila {
-  display: grid;
-  grid-template-columns: 150px minmax(140px, 1fr) minmax(180px, 1.4fr) minmax(120px, 1fr) auto auto;
-  gap: 8px;
-  align-items: center;
-}
-
-@media (max-width: 900px) {
-  .lanz-fila {
-    grid-template-columns: 150px minmax(0, 1fr) auto;
-  }
-  .lanz-fila .lanz-imagen-campo { grid-column: 1 / 3; }
-  .lanz-fila .lanz-notas { grid-column: 1 / 4; }
-  .lanz-fila .lanz-preventa-campo { grid-column: 1 / 3; }
-}
-
-/* La fecha de preventa (753), con su rótulo: dos fechas seguidas sin decir
-   cuál es cuál no se entienden. */
-.lanz-preventa-campo {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: var(--t-xs);
-  color: var(--text-mid);
-}
-
-.lanz-imagen-campo {
-  display: flex;
-  gap: 6px;
-  min-width: 0;
-}
-
-.lanz-imagen-campo .lanz-imagen {
-  flex: 1;
-  min-width: 0;
-}
-
-.lanz-subir,
-.lanz-quitar {
-  padding: 8px 10px;
-  flex-shrink: 0;
-}
-
-.lanz-botones {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-
 /* ── El nav agrupado y sus contadores (tanda 202) ── */
 .admin-nav-grupo {
   display: block;
@@ -1257,4 +1193,37 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
 @media (max-width: 1100px) {
   .lg-cuerpo.con-cajon { grid-template-columns: minmax(0, 1fr); }
   .lg-cajon { position: static; max-height: none; order: -1; }
+}
+
+/* ── «Hoy» (1119): lo que espera, las pasadas, la semana y los errores ── */
+.hoy-cab { display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--e-sm) var(--e-md); margin-bottom: var(--e-md); }
+.hoy-cab h1 { margin: 0; }
+.hoy-fecha { color: var(--text-mid); font-size: var(--t-sm); }
+.hoy-fecha::first-letter { text-transform: uppercase; }
+.hoy-tarjetas { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: var(--e-sm); margin-bottom: var(--e-lg); }
+.hoy-tar { display: grid; gap: 2px; justify-items: start; text-align: left; padding: var(--e-md); min-height: 44px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); color: var(--text); font: inherit; cursor: pointer; }
+.hoy-tar:hover { border-color: var(--border-strong); }
+.hoy-tar:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+.hoy-tar b { font-family: var(--font-display); font-size: var(--t-2xl); line-height: 1.1; color: var(--navy); }
+.hoy-tar span { font-size: var(--t-sm); font-weight: 600; }
+.hoy-tar small { color: var(--text-mid); font-size: var(--t-xs); }
+.hoy-tar.urge { border-color: var(--danger); }
+.hoy-tar.urge b { color: var(--danger); }
+.hoy-tar.cero { background: transparent; }
+.hoy-tar.cero b { color: var(--text-mid); }
+.hoy-tar.sin-dato b { color: var(--text-mid); }
+.hoy-caja { padding: var(--e-md) var(--e-lg); margin-bottom: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); min-width: 0; }
+.hoy-caja h2 { margin: 0 0 var(--e-sm); font-size: var(--t-md); }
+.hoy-caja > .btn-secondary { margin-top: var(--e-sm); }
+.hoy-fila { display: grid; grid-template-columns: 2fr 1fr; gap: var(--e-md); }
+.hoy-fila > .hoy-caja { margin-bottom: var(--e-md); }
+.hoy-frase { margin: 0; line-height: 1.5; max-width: none; }
+.hoy-sem-resumen { display: flex; align-items: center; gap: var(--e-sm); margin: 0; font-weight: 600; }
+.hoy-sem-resumen[data-luz='verde'] .semaforo-luz { background: var(--success); }
+.hoy-sem-resumen[data-luz='ambar'] .semaforo-luz { background: var(--warning); }
+.hoy-sem-resumen[data-luz='rojo'] .semaforo-luz { background: var(--danger-solid); }
+.hoy-sem-todas { margin-top: var(--e-sm); }
+.hoy-sem-todas > summary { cursor: pointer; color: var(--text-mid); font-size: var(--t-sm); }
+@media (max-width: 760px) {
+  .hoy-fila { grid-template-columns: 1fr; }
 }

@@ -1402,8 +1402,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   el general: no se ofrece aparte.
 - **El calendario de lanzamientos sale del catálogo** (tanda 656):
   /lanzamientos y la miniatura de la portada leen `tcg_sets` (fecha,
-  logo, código), por catálogo; la lista a mano de /admin es solo para un
-  set anunciado que TCGGO aún no tiene (se funde por nombre). Y
+  logo, código), por catálogo; la lista a mano (`site_settings.lanzamientos`)
+  ya no se edita en /admin (1119): lo guardado se sigue fundiendo por nombre. Y
   `?catalogo=JP` en /cartas o /mi-coleccion manda sobre la vista
   recordada al arrancar (`vistaDeDireccion`): un enlace a un set japonés
   tiene que abrir el catálogo japonés.
@@ -1577,6 +1577,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
 - **Las páginas `noindex` no necesitan `meta description`** y las
   indexables sí. Son cosas distintas: contar «páginas sin descripción»
   sin mirar el `robots` da un número que no significa nada.
+- **La entrada de /admin es «Hoy»** (tanda 1119, `admin/js/hoy.js`): lo que
+  espera a alguien va en `ESPERAS` (tabla, filtro y fecha) y sale en tarjeta y
+  con su número en el menú (`ponerContadorNav`); una cola nueva que espere al
+  equipo es una entrada más ahí, no otra cifra suelta. Nada de cifras de
+  adorno en «Hoy»: eso es Analítica.
 - **Lo que se gana en el perfil son «Logros»** (tanda 1117, PINGU: «vamos a
   escoger un nombre para todo»): ni medallas ni trofeos (la medalla de un
   curso es otra cosa). La pestaña es `logros` (`medallas` y `about`, alias), y
