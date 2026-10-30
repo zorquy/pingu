@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "El buscador de Cartas ya trae todas las cartas que casan con lo que escribes: antes se quedaba en 120 y, buscando «pikachu», faltaban muchos (el de Temporal Forces, por ejemplo).", "enlace": "/cartas?ver=buscar&q=pikachu" },
     { "fecha": "2026-10-30", "tipo": "mejora", "texto": "En Parejas, las cartas boca abajo llevan el dorso de las cartas Pokémon de verdad.", "enlace": "/parejas" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "Los retos ya no salen con una carta sin foto: si a una le falta, se cambia por otra en el momento para todo el mundo. Si no se puede, el reto espera a estar arreglado en vez de enseñarte el dorso.", "enlace": "/retos" },
     { "fecha": "2026-10-29", "tipo": "nuevo", "texto": "En un trato por correo, al lado de la dirección a la que mandas las cartas tienes «Etiqueta»: baja un PDF para imprimir con su dirección, la tuya de remitente, si va ordinario o certificado y cuántas cartas lleva. Recórtala y pégala en el sobre.", "enlace": "/mi-coleccion?ver=cambios" },

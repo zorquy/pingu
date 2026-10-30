@@ -41785,6 +41785,24 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1113 — El buscador trae todas las que casan
+
+PINGU buscó «pikachu» para ver las versiones del de Temporal Forces y no
+salía; «hay un montón de cartas de Pikachu que no salen».
+
+- El tope de /cartas → Buscar era 120, ordenado por `name_search`: con más
+  de 120 Pikachu, los que caían detrás en el alfabeto (y en el `id`, que no
+  se pedía) no salían nunca. La cuenta decía «· hay más, afina la búsqueda»,
+  pero en pequeño al lado del número.
+- `pedirHasta` (js/buscar-cartas.js): un tope de más de 1.000 se pide por
+  páginas de 1.000 con `.range()` (la base corta cada respuesta a 1.000, la
+  808), y el orden desempata por `id` para que una página no repita ni se
+  salte cartas. Lo usan la búsqueda por nombre y la de ilustrador.
+- /cartas pide hasta 2.000 (`TOPE`). La barra de arriba (/buscar, la
+  paleta) sigue con 120: enseña las primeras y lleva a /cartas para el resto.
+- El doble corta a 1.000 como la base si la prueba pone `__MAX_FILAS__`
+  (solo la 1113; las viejas siembran más y no van de eso).
+
 ## Tanda 1112 — Parejas con el dorso de verdad
 
 PINGU: «que el dorso de las cartas sea el dorso de las cartas Pokémon de

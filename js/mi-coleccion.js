@@ -4846,7 +4846,9 @@ async function buscarEnTodo({ variantes = null } = {}) {
   }
   vacio?.classList.add('hidden')
   caja.innerHTML = '<div class="skeleton" style="height:180px"></div>'
-  const TOPE = 120
+  // Todas las que casan, hasta 2.000 (1113): con 120 por orden alfabético,
+  // «pikachu» se quedaba sin la mitad de los Pikachu y sin decirlo claro.
+  const TOPE = 2000
   let lista
   let porIlustrador = false
   try {

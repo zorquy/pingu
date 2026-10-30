@@ -17,7 +17,35 @@ import { entenderBusqueda, partirBusqueda, filtroDeNumero, conPrefijoPegado, pre
 // Ni TCG Pocket (694) ni las cartas de un set escondido (826).
 const delTCG = (c) => esDelTCG({ id: c.set_id, serie_id: c.tcg_sets?.serie_id }) && deSetVisible(c)
 
-export async function buscarCartasUnaVez(texto, limite = 60, { columnas, market = 'WEST', setIds = null, variantes = null, filtroLocal = null, filtrar = null } = {}) {
+// Lo que la base da como mucho por respuesta (808: corta a 1.000 sin avisar).
+const POR_PAGINA = 1000
+
+// Un tope de más de 1.000 se pide por páginas (1113). PINGU buscó «pikachu»
+// y no salía el de Temporal Forces: el tope era 120 por orden alfabético y
+// hay muchos más Pikachu, así que los que caían detrás no salían nunca. El
+// `id` desempata el orden, o una página podría repetir o saltarse cartas.
+async function pedirHasta(montar, limite) {
+  if (limite <= POR_PAGINA) {
+    const { data, error } = await montar().order('name_search').order('id').limit(limite)
+    if (error) throw error
+    return data || []
+  }
+  const todas = []
+  for (let desde = 0; desde < limite; desde += POR_PAGINA) {
+    const hasta = Math.min(limite, desde + POR_PAGINA) - 1
+    const { data, error } = await montar().order('name_search').order('id').range(desde, hasta)
+    if (error) throw error
+    todas.push(...(data || []))
+    if ((data || []).length < hasta - desde + 1) break
+  }
+  return todas
+}
+
+export async function buscarCartasUnaVez(texto, limite = 60, opciones = {}) {
+  return (await pedirHasta(() => consultaDeBusqueda(texto, opciones), limite)).filter(delTCG)
+}
+
+function consultaDeBusqueda(texto, { columnas, market = 'WEST', setIds = null, variantes = null, filtroLocal = null, filtrar = null } = {}) {
   const { nombre, numero, prefijo } = partirBusqueda(texto)
   let q = supabase.from('tcg_cards').select(columnas).eq('market', market)
   // «151/165» y «MEW 151» (765): la expansión ya la ha dicho quien escribe.
@@ -36,9 +64,7 @@ export async function buscarCartasUnaVez(texto, limite = 60, { columnas, market 
   // Los filtros van EN LA CONSULTA, no después: filtrar lo que vuelve
   // sería filtrar la muestra y no el catálogo.
   if (filtrar) q = filtrar(q)
-  const { data, error } = await q.order('name_search').limit(limite)
-  if (error) throw error
-  return (data || []).filter(delTCG)
+  return q
 }
 
 export async function buscarCartas(texto, limite = 60, opciones = {}) {
@@ -74,11 +100,12 @@ export async function buscarCartas(texto, limite = 60, opciones = {}) {
 export async function buscarPorIlustrador(texto, limite = 60, { columnas, market = 'WEST' } = {}) {
   const { nombre } = partirBusqueda(texto)
   if (!nombre.length) return []
-  let q = supabase.from('tcg_cards').select(columnas).eq('market', market)
-  for (const p of nombre) q = q.ilike('illustrator', `%${p.replace(/[%_]/g, '')}%`)
-  const { data, error } = await q.order('name_search').limit(limite)
-  if (error) throw error
-  return (data || []).filter(delTCG)
+  const montar = () => {
+    let q = supabase.from('tcg_cards').select(columnas).eq('market', market)
+    for (const p of nombre) q = q.ilike('illustrator', `%${p.replace(/[%_]/g, '')}%`)
+    return q
+  }
+  return (await pedirHasta(montar, limite)).filter(delTCG)
 }
 
 // Lo que pasa al escribir en el buscador, entero: leer el código o el total

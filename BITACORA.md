@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (354) — PINGU-Claude (1113 — el buscador trae todas las que casan)
+
+**Hecho**: PINGU: buscando «pikachu» no salía el de Temporal Forces, y
+faltaban muchos más. El buscador de /cartas traía como mucho 120, por orden
+alfabético; ahora trae todas las que casan (hasta 2.000), pidiéndolas por
+páginas de 1.000, que es lo que da la base por respuesta.
+
+**Ficheros**: `js/buscar-cartas.js` (`pedirHasta`), `js/mi-coleccion.js`
+(`TOPE = 2000`; /cartas es la misma pantalla), CLAUDE.md.
+Pruebas en `pruebas`: 1113-pantalla nueva y el doble con `__MAX_FILAS__`.
+
+**Visto de paso**: en «TCG Classic: Charizard y Ho-Oh ex» hay una carta
+llamada «Pikachu» que enseña un Lapras (otra carta con la foto cambiada, de
+datos; se corrige en /admin → Colecciones). No tocado.
+
+**Pendiente**: lo de arriba.
+
 ## 2026-10-30 (353) — PINGU-Claude (1112 — Parejas con el dorso de verdad)
 
 **Hecho**: PINGU: «que el dorso de las cartas sea el dorso de las cartas
