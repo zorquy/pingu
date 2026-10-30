@@ -827,15 +827,15 @@ body:has(.nav-menu-mobile.open) {
   .nav-grupo-btn { gap: 4px; }
 }
 
-/* S780.29 */
+/* S780.29 (con la lateral, no: 1126) */
 @media (min-width: 1240px) {
-  body:has(.nav-torneo-vivo) .nav-links {
+  html:not(.con-lateral) body:has(.nav-torneo-vivo) .nav-links {
     display: none;
   }
-  body:has(.nav-torneo-vivo) .nav-toggle {
+  html:not(.con-lateral) body:has(.nav-torneo-vivo) .nav-toggle {
     display: flex;
   }
-  body:has(.nav-torneo-vivo) .nav-menu-mobile.open {
+  html:not(.con-lateral) body:has(.nav-torneo-vivo) .nav-menu-mobile.open {
     display: flex !important;
   }
 }

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En el ordenador, cuando juegas un torneo ya no aparece arriba a la derecha el menú antiguo de las tres rayas: se queda el menú de la izquierda y el botón del torneo.", "enlace": "/torneos" },
     { "fecha": "2026-10-30", "tipo": "mejora", "texto": "En Deseos y cambios ya no hay que buscar «Ver las N»: el Mercado, La quiero y Las que doy enseñan todas las cartas hacia abajo y se van cargando solas al bajar. Arriba eliges «Los dos», «Pokémon» o «Japón».", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-10-30", "tipo": "mejora", "texto": "Ahora hay diez niveles de experiencia en vez de cinco, cada uno con su color: Novato, Aprendiz, Entrenador, Rival, Veterano, Experto, As, Alto Mando, Campeón y Maestro. Nadie pierde experiencia; solo cambia el nombre que te toca. Y los rangos de colaborador se acortan: Miembro, Colaborador, Destacado y Leyenda.", "enlace": "/perfil" },
     { "fecha": "2026-10-30", "tipo": "mejora", "texto": "Los avisos del equipo (la franja de arriba) ahora dicen si son una novedad, un aviso o un mantenimiento, pueden llevar un enlace y se apagan solos cuando dejan de valer. Si alguno llega también a la campanita, en Ajustes → Avisos puedes apagar «Novedades y avisos del equipo».", "enlace": "/ajustes?ver=avisos" },

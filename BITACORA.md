@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (367) — PINGU-Claude (1126 — sin hamburguesa con un torneo en juego)
+
+**Hecho**: PINGU, con captura: con un torneo en juego salía la hamburguesa
+vieja arriba a la derecha aunque esté el menú lateral. Era la S780.29 (de
+antes de la lateral): con el chip del torneo, desde 1240 px escondía los
+enlaces y sacaba la hamburguesa para hacer sitio. Ahora solo sin lateral
+(`html:not(.con-lateral)`); con la lateral (desde 1400 con ratón) la barra
+queda como siempre, con el chip.
+
+**Ficheros**: `css/style.css`, SCHEMA, novedades. Prueba en `pruebas`: 1126.
+
+**Pendiente**: de 1240 a 1399 (sin lateral) la hamburguesa sigue saliendo con
+un torneo en juego, porque ahí los enlaces y el chip no caben juntos.
+
 ## 2026-10-30 (366) — PINGU-Claude (1125 — Deseos y cambios, todo hacia abajo)
 
 **Hecho**: PINGU encontraba pequeño el «Ver las 190 ›» de la 1114 y preguntó

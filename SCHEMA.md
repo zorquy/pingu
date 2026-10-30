@@ -41785,6 +41785,16 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1126 — Con un torneo en juego, sin hamburguesa si está la lateral
+
+PINGU: «cuando hay un torneo el menú lateral sale y no debería, el menú
+antiguo de las líneas arriba derecha». La S780.29 de `style.css` (tanda 320)
+escondía `.nav-links` y sacaba `.nav-toggle` desde 1240 px en cuanto había un
+`.nav-torneo-vivo`, porque el chip y los enlaces no cabían juntos. Con la
+lateral (739, desde 1400 px y `pointer: fine`) los enlaces ya no están arriba
+y el chip cabe: la regla va ahora con `html:not(.con-lateral)`. De 1240 a 1399
+no cambia. Prueba: `test-tanda-1126-pantalla.mjs`.
+
 ## Tanda 1125 — Deseos y cambios, todo hacia abajo
 
 PINGU, con la captura del Mercado: «el botoncito de ver las 190 o ver las 19
