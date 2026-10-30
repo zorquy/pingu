@@ -1,4 +1,5 @@
-// Tanda 776 — el visor que iOS no devuelve al cerrar el teclado.
+// Tanda 776 — el visor que iOS no devuelve al cerrar el teclado (y la 1127:
+// tres señales de que hubo teclado, no solo soltar un campo).
 //
 // PINGU, en la app instalada del iPhone y ya con la 775 puesta: la burbuja
 // de abajo y la flecha de «volver arriba» a media pantalla, en Torneos y en
@@ -61,13 +62,13 @@ const fingir = ({ offsetTop, height, ios }) => {
   const t = new EventTarget()
   window.__OT = offsetTop
   Object.defineProperty(t, 'offsetTop', { get: () => window.__OT })
-  Object.defineProperty(t, 'height', { get: () => (height === 'alto' ? innerHeight : height) })
+  Object.defineProperty(t, 'height', { get: () => window.__H ?? (height === 'alto' ? innerHeight : height) })
   Object.defineProperty(t, 'scale', { get: () => 1 })
   Object.defineProperty(window, 'visualViewport', { value: t })
 }
 // Desde la 1089c el desfase solo cuenta después del teclado: `teclado` suelta
 // un campo (como al cerrarlo) y `vuelve` pone el visor en su sitio después.
-async function mirar({ ios, offsetTop, teclado = true, vuelve = false }) {
+async function mirar({ ios, offsetTop, teclado = true, vuelve = false, como = 'soltar' }) {
   const ctx = await b.newContext({ ...devices['iPhone 13'], serviceWorkers: 'block' })
   await ctx.addInitScript(fingir, { offsetTop, height: 'alto', ios })
   const p = await ctx.newPage()
@@ -75,8 +76,23 @@ async function mirar({ ios, offsetTop, teclado = true, vuelve = false }) {
   await p.waitForSelector('.bm-burbuja', { timeout: 8000 })
   await p.waitForTimeout(600)
   if (teclado) {
-    await p.evaluate(() => { const i = document.createElement('input'); document.body.appendChild(i); i.focus(); i.blur(); i.remove() })
+    // `soltar`: entra y sale de un campo. `borrar` (1127): el campo se borra
+    // con el foco dentro, como el chat de una partida al repintarse, y en
+    // Safari no hay `focusout`. `encoger` (1127): solo el visor encogiendo lo
+    // que un teclado y volviendo, sin ningún evento de foco.
+    await p.evaluate((como) => {
+      if (como === 'encoger') {
+        window.__H = innerHeight - 300; window.visualViewport.dispatchEvent(new Event('resize'))
+        return new Promise((ok) => setTimeout(() => { window.__H = undefined; window.visualViewport.dispatchEvent(new Event('resize')); ok() }, 100))
+      }
+      const i = document.createElement('input'); document.body.appendChild(i); i.focus()
+      if (como === 'soltar') i.blur()
+      else { const quieto = (e) => e.stopImmediatePropagation(); document.addEventListener('focusout', quieto, true); i.remove(); setTimeout(() => document.removeEventListener('focusout', quieto, true), 0) }
+      if (como === 'soltar') i.remove()
+    }, como)
     await p.waitForTimeout(1000)
+    await p.evaluate(() => window.visualViewport.dispatchEvent(new Event('scroll')))
+    await p.waitForTimeout(200)
   }
   if (vuelve) {
     await p.evaluate(() => { window.__OT = 0; window.visualViewport.dispatchEvent(new Event('scroll')) })
@@ -95,6 +111,10 @@ r = await mirar({ ios: true, offsetTop: 340 })
 check('iOS con el visor movido 340: se marca el desfase', r.clase && r.abajo.trim() === '340px', JSON.stringify(r))
 check('  …y la burbuja baja 340', /340px/.test(r.translate), r.translate)
 check('  …y la barra de abajo también', /340px/.test(r.bm), r.bm)
+r = await mirar({ ios: true, offsetTop: 340, como: 'borrar' })
+check('el campo se borra con el foco dentro (sin focusout): también baja (1127)', r.clase && /340px/.test(r.bm), JSON.stringify(r))
+r = await mirar({ ios: true, offsetTop: 340, como: 'encoger' })
+check('el visor encoge lo que un teclado, sin eventos de foco: también baja (1127)', r.clase && /340px/.test(r.bm), JSON.stringify(r))
 r = await mirar({ ios: true, offsetTop: 340, vuelve: true })
 check('  …y cuando el visor vuelve a su sitio, se quita (1089c)', !r.clase && !/340/.test(r.bm), JSON.stringify(r))
 r = await mirar({ ios: true, offsetTop: 340, teclado: false })
