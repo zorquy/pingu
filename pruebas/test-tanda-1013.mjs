@@ -32,7 +32,9 @@ console.log('── 1. Lo puro ──')
   check('  …un emoji de verdad se respeta y un icono que existe se dibuja', /🦑/.test(contentIconHtml('🦑', 20)) && /<svg/.test(contentIconHtml('trophy', 20)))
   const fa = leer('js/foro-actividad.js')
   check('L2: la chapa cuenta mensajes y comentarios (el que abre un tema ya es un mensaje), y la lista no aparta ninguno', /return \(nMensajes \|\| 0\) \+ \(nComentarios \|\| 0\)\n/.test(fa) && !/\(nTemas \|\| 0\) \+ \(nMensajes/.test(fa) && /const respuestas = listaMensajes\n/.test(fa) && !/aperturas/.test(fa))
-  check('L12: /admin no guarda un nombre de icono que icons.js no conoce', /No hay ningún icono que se llame/.test(leer('admin/js/admin.js')))
+  // Desde la 1118 el icono de un logro se ELIGE de una rejilla de icons.js
+// (logros-admin.js), así que un nombre desconocido no se puede ni escribir.
+  check('L12: /admin no guarda un nombre de icono que icons.js no conoce', /data-lg-icono="\$\{nombre\}">\$\{icons\[nombre\]\(16\)\}/.test(leer('admin/js/logros-admin.js')) && !/<input[^>]*emoji/.test(leer('admin/js/logros-admin.js')))
   check('L9: el nombre del logo de /auth va en un envoltorio', /<div class="auth-logo"><span class="auth-logo-nombre">Poke<b>Doc<\/b><\/span><\/div>/.test(leer('auth.html')) && /\.auth-logo-nombre b \{/.test(leer('css/auth.css')))
 }
 

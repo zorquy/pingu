@@ -142,7 +142,9 @@ console.log('\n── 6. Lo estático ──')
   const html = readFileSync(`${RAIZ}/lanzamientos.html`, 'utf8')
   check('la página ya no dice que se mantiene a mano', !/mantenemos a mano/.test(html) && /id="lanzCatalogo"/.test(html))
   const admin = readFileSync(`${RAIZ}/admin/index.html`, 'utf8')
-  check('/admin dice que la lista es para lo que TCGGO no tiene', /todavía no tiene/.test(admin))
+  // El panel de lanzamientos a mano se fue de /admin en la 1119 (PINGU: «ahora
+  // va automático»); lo que quedara guardado se sigue fundiendo por nombre.
+  check('/admin ya no tiene la lista a mano de lanzamientos (1119)', !/lanzamientosFilas|btnGuardarLanzamientos/.test(admin))
 }
 
 await browser.close()
