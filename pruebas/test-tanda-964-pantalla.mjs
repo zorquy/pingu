@@ -63,7 +63,8 @@ const citar = async (page, id, movil) => {
 const estado = (page) => page.evaluate(() => ({
   aviso: document.getElementById('respondiendoA')?.innerText.replace(/\s+/g, ' ').trim(),
   avisoVisible: !document.getElementById('respondiendoA')?.classList.contains('hidden'),
-  citas: [...document.querySelectorAll('#respuestaCuerpo blockquote')].map((q) => q.textContent),
+  // Una cita de solo foto lleva la foto (1116; antes «[imagen]»).
+  citas: [...document.querySelectorAll('#respuestaCuerpo blockquote')].map((q) => q.textContent + (q.querySelector('img') ? '[imagen]' : '')),
   foco: document.activeElement?.id || document.activeElement?.tagName,
 }))
 
@@ -93,7 +94,7 @@ for (const movil of process.env.SOLO_IMAGEN ? [] : [false, true]) {
   await page.click('#btnResponder', { noWaitAfter: true })
   await page.waitForTimeout(3500)
   const guardado = await page.evaluate(() => window.__TABLAS__.forum_posts.find((m) => m.author_id === 'user-1'))
-  check('al publicar: responde al primero y lleva las otras dos citas', guardado?.reply_to_id === 'post-1' && /Segundo mensaje/.test(guardado?.body_html) && /\[imagen\]/.test(guardado?.body_html), JSON.stringify(guardado).slice(0, 200))
+  check('al publicar: responde al primero y lleva las otras dos citas', guardado?.reply_to_id === 'post-1' && /Segundo mensaje/.test(guardado?.body_html) && /<img[^>]+fotos\.test\/a\.png/.test(guardado?.body_html), JSON.stringify(guardado).slice(0, 200))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
