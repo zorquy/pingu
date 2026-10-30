@@ -25,6 +25,7 @@ import { premiosHtml, repartoHtml, cuentaAtras, genteHtml, salidasHtml, avisoLib
 import { hechoHoy } from './retos-siguiente.js'
 import { libreDeDireccion, claveLibre } from './retos-libre.js'
 import { hoyISO } from './reto-diario.js'
+import { traerRetoConFotos, TEXTO_SIN_FOTO } from './reto-fotos.js'
 
 const $ = (id) => document.getElementById(id)
 // Una partida libre (988, `?libre=N`): otra carta, en su propia llave, sin
@@ -100,7 +101,9 @@ const nombreDeEra = (c) => eras.get(String(c?.tcg_sets?.serie_id || '').toLowerC
 function pintarFoto() {
   const img = $('cdFoto')
   const cadena = cadenaDeEscaneo(respuesta, respuesta?.tcg_sets?.tcg_online_code || null, 'high')
-  if (!img.dataset.puesta) {
+  // Sin `img` es que su cadena se agotó y se quitó (1111): lo demás sigue,
+  // o el intento siguiente se rompía con la partida a medias.
+  if (img && !img.dataset.puesta) {
     img.dataset.puesta = '1'
     let i = 0
     img.onerror = () => {
@@ -439,12 +442,12 @@ async function init() {
   $('cdLupa').innerHTML = icons.search(18)
   let r
   try {
-    const res = await fetch(`/.netlify/functions/carta-del-dia${libre ? `?libre=${libre}` : ''}`, { headers: { accept: 'application/json' } })
-    r = await res.json()
+    // Con su foto comprobada (1111): sin foto no hay nada que adivinar.
+    r = await traerRetoConFotos('carta-del-dia', { libre, cartasDe: (x) => (x.carta ? [x.carta] : []), calidad: 'high' })
     // Sin día o sin carta tampoco hay reto: el mismo aviso (780, LO9).
-    if (!res.ok || r.error || !r.dia || !r.carta) throw new Error(r?.error || `HTTP ${res.status}`)
+    if (!r.dia || !r.carta) throw new Error('sin carta')
   } catch (err) {
-    $('cdSub').textContent = 'Hoy no se ha podido traer la carta. Vuelve en un rato.'
+    $('cdSub').textContent = err.sinFoto ? TEXTO_SIN_FOTO : 'Hoy no se ha podido traer la carta. Vuelve en un rato.'
     $('cdAcciones').classList.add('hidden')
     return
   }

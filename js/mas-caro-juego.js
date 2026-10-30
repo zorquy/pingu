@@ -17,6 +17,7 @@ import { premiosHtml, cuentaAtras, salidasHtml, avisoLibreHtml } from './retos-u
 import { hechoHoy } from './retos-siguiente.js'
 import { libreDeDireccion, claveLibre } from './retos-libre.js'
 import { hoyISO } from './reto-diario.js'
+import { traerRetoConFotos, TEXTO_SIN_FOTO } from './reto-fotos.js'
 
 const $ = (id) => document.getElementById(id)
 // Una partida libre (988, `?libre=N`): otras seis, en su propia llave, sin
@@ -272,11 +273,9 @@ async function init() {
   $('mcrIconoMenos').innerHTML = `<span style="display:inline-flex;transform:scaleY(-1)">${icons.trendingUp(24)}</span>`
   let r
   try {
-    const res = await fetch(`/.netlify/functions/mas-caro${libre ? `?libre=${libre}` : ''}`, { headers: { accept: 'application/json' } })
-    r = await res.json()
-    if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
+    r = await traerRetoConFotos('mas-caro', { libre, cartasDe: (x) => x.cartas || [] })
   } catch (err) {
-    sinTablero('Hoy no se han podido traer las cartas. Vuelve en un rato.')
+    sinTablero(err.sinFoto ? TEXTO_SIN_FOTO : 'Hoy no se han podido traer las cartas. Vuelve en un rato.')
     return
   }
   dia = r.dia

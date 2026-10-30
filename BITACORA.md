@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (351) — PINGU-Claude (1111 — un reto no sale con una carta sin foto)
+
+**Hecho**: PINGU, con el reto #91 de «¿De qué expansión es?» enseñando el
+dorso en la carta 2: «si hay alguna carta sin imagen, que no se pueda entrar
+al juego… debería ser en todos los juegos» y «¿se puede arreglar para el reto
+de hoy?».
+- Los cinco retos con cartas **preguntan a la CDN** si la foto existe antes
+  de elegir una carta (antes bastaba con que la columna estuviera llena).
+- Si el navegador no puede cargar una foto, pide al servidor que **revise el
+  día**: cambia esa carta por otra con foto y lo guarda para todos. En «¿De
+  qué expansión es?» solo cambia esa ronda; lo contestado antes se respeta.
+- Si aun así queda una sin foto, el reto **no se abre** y lo dice.
+- **El reto de hoy** se arregla solo: el primero que lo abra tras el
+  despliegue dispara la revisión y la carta 2 pasa a ser otra.
+
+**Para PINGU**: sin migración. Si al abrir «¿De qué expansión es?» todavía
+sale el dorso, recarga una vez (puede venir de la caché del navegador).
+
+**Ficheros**: `netlify/lib/fotos-reto.mjs` (nuevo), `js/reto-fotos.js`
+(nuevo), las cinco funciones (`carta-del-dia`, `mas-caro`, `ordena-precio`,
+`que-expansion`, `parejas`) y sus cinco `js/*-juego.js`. Pruebas en
+`pruebas`: 1111 nueva; 570 y 988, con foto en sus fixtures (una carta sin
+foto ya no se elige), y 570 sin service worker. De paso, «¿Qué carta es?» se
+rompía al siguiente intento si su foto se agotaba (`img.dataset` de null):
+arreglado. Pasadas las 35 pruebas de los retos: 28 verdes y 7 rojas, y las
+7 fallan igual con el código de antes (421 por el PIL del contenedor, 570 «acertar el
+nombre acaba la partida», 780, 782, 896, 988 la «ViewTransition»).
+
+**Pendiente**: esos rojos viejos, que no son de esta tanda.
+
 ## 2026-10-29 (350) — PINGU-Claude (1110 — la etiqueta del envío para imprimir)
 
 **Hecho**: PINGU: «podría generar una etiqueta de envío, con los datos que da

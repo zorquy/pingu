@@ -900,6 +900,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   le pasa su `numero` y su `lema`, no un «Reto #N» en el detalle. Lo que
   sale de las preguntas del día (la portada, la chapa) dice el TEMA y no
   el enunciado: el reto es el mismo para todos y no se destripa.
+- **Un reto con cartas no sale con una carta sin foto** (tanda 1111, PINGU:
+  «que no se pueda entrar al juego»): una COLUMNA de foto llena no es una
+  foto que exista. Quien elige pasa por `conFoto` (`netlify/lib/fotos-reto.mjs`,
+  que pregunta a la cadena de verdad), la función acepta `?revisar=1` (cambia
+  lo que no tenga foto en el día guardado y lo reescribe) y la página entra
+  por `traerRetoConFotos` (`js/reto-fotos.js`). Cierra el reto el SERVIDOR
+  (`sinFoto`), nunca el navegador solo: lo que no carga aquí puede ser la red
+  de quien juega. Un reto nuevo con cartas pasa por las tres cosas.
 - **Un reto acaba con tres salidas y se puede jugar otra vez** (tanda 988):
   `salidasHtml` (retos-ui.js) pinta el siguiente, Compartir y «Jugar otra
   vez»; la partida libre es `?libre=N` (`js/retos-libre.js`), se juega como

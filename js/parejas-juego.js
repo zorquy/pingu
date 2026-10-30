@@ -16,6 +16,7 @@ import { premiosHtml, cuentaAtras, salidasHtml, avisoLibreHtml } from './retos-u
 import { hechoHoy } from './retos-siguiente.js'
 import { rachaDeDias } from './reto-compartir.js'
 import { libreDeDireccion, claveLibre } from './retos-libre.js'
+import { traerRetoConFotos, TEXTO_SIN_FOTO } from './reto-fotos.js'
 
 const $ = (id) => document.getElementById(id)
 // Una partida libre (988, `?libre=N`): otra mesa, en su propia llave, sin XP,
@@ -173,7 +174,10 @@ function sinMesa(texto) {
   $('paSub').classList.add('hidden')
 }
 
-const pedirCartas = (n) => fetch(`/.netlify/functions/parejas${n ? `?libre=${n}` : ''}`, { headers: { accept: 'application/json' } })
+
+// Para pedir por detrás la partida de «Jugar otra vez» (sus fotos se
+// comprueban al abrirla).
+const pedirCartas = (n) => fetch(`/.netlify/functions/parejas?libre=${n}`, { headers: { accept: 'application/json' } })
 
 async function init() {
   // La mesa ya sale tapada desde el HTML (990). Las tres cosas que hacen
@@ -184,11 +188,9 @@ async function init() {
   const partida = libre ? Promise.resolve(false) : traerPartidaDeHoy('parejas', diaUTC).catch(() => false)
   let r
   try {
-    const res = await pedirCartas(libre)
-    r = await res.json()
-    if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
-  } catch {
-    sinMesa('Hoy no se han podido traer las cartas. Vuelve en un rato.')
+    r = await traerRetoConFotos('parejas', { libre, cartasDe: (x) => x.cartas || [] })
+  } catch (e) {
+    sinMesa(e.sinFoto ? TEXTO_SIN_FOTO : 'Hoy no se han podido traer las cartas. Vuelve en un rato.')
     return
   }
   dia = r.dia

@@ -41785,6 +41785,46 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1111 — Un reto no sale con una carta sin foto
+
+PINGU, con el reto #91 de «¿De qué expansión es?» enseñando el DORSO en la
+carta 2 (un XY Trainer Kit): «si hay alguna carta sin imagen, que no se pueda
+entrar al juego… y debería ser en todos los juegos».
+
+- El fallo: «con foto» era «con una COLUMNA de foto llena» (`image_path`,
+  `image_tcggo`…). La de esa carta apuntaba a ficheros que no están en
+  ninguna CDN: la cadena de respaldos se agotaba y quedaba el dorso.
+- `netlify/lib/fotos-reto.mjs`: `fotoContesta(carta)` PREGUNTA a la cadena de
+  verdad (`cadenaDeEscaneo`, la misma que pinta la web), con HEAD y, si la
+  CDN no lo acepta (403/405/501), un GET del primer byte; 3 s por dirección y
+  todas a la vez. Tres respuestas: `true`, `false` (todas dicen que no) y
+  `null` (no contestan). Solo un `false` deja una carta fuera: una CDN lenta
+  no puede vaciar un reto.
+- Los cinco retos con cartas (¿Qué carta es?, Más caro, Ordena, ¿De qué
+  expansión es?, Parejas) eligen con `conFoto`. Las candidatas se piden a la
+  vez (en «¿De qué expansión es?» iban una a una). `mas-caro` pide ahora
+  `image_tcggo`: sin ella la foto de TCGGO no entraba en la cadena.
+- `?revisar=1`: el día guardado se mira otra vez y lo que no tenga foto se
+  cambia y se REESCRIBE (`actualizar`, un PATCH con la clave de servicio).
+  En «¿De qué expansión es?» se cambia SOLO esa ronda (otra sal,
+  `SAL_REPARO`, y una expansión que no esté ya), y se apunta en
+  `datos.cambiadas`; en los otros cuatro, el día entero. La respuesta lleva
+  `sinFoto`: las que siguen sin foto porque no había con qué cambiarlas. Con
+  `revisar`, `no-store`.
+- `js/reto-fotos.js` (`traerRetoConFotos`): antes de pintar, el navegador
+  carga las fotos por su cadena. Si alguna se agota, pide `?revisar=1` y
+  juega con lo que vuelva; el reto se cierra (`TEXTO_SIN_FOTO`) solo si el
+  SERVIDOR dice `sinFoto`. El navegador avisa y el servidor decide, porque
+  una foto que no carga aquí puede ser la red de quien juega (un bloqueador,
+  una operadora). Y en las pruebas, el service worker pide las fotos él y
+  `route` no le llega: la prueba de la 1111 abre con `serviceWorkers: 'block'`.
+- En «¿De qué expansión es?» lo contestado lleva su carta (`estado.cartas`):
+  si una ronda cambió de carta, desde ahí se vuelve a jugar (lo guardado de
+  antes, sin cartas: la primera respuesta que no está entre sus opciones). En
+  los otros cuatro el día entero cambia, y solo cuando tenía una carta rota.
+- Con esto se arregla el día de hoy sin tocar la base: el primero que abre el
+  reto y no ve la foto pide la revisión, y queda arreglado para todos.
+
 ## Tanda 1110 — La etiqueta del envío
 
 PINGU: «podría generar una etiqueta de envío, con los datos que da y con los

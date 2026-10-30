@@ -17,6 +17,7 @@ import { hechoHoy } from './retos-siguiente.js'
 import { rachaDeDias } from './reto-compartir.js'
 import { libreDeDireccion, claveLibre } from './retos-libre.js'
 import { hoyISO } from './reto-diario.js'
+import { traerRetoConFotos, TEXTO_SIN_FOTO } from './reto-fotos.js'
 
 const $ = (id) => document.getElementById(id)
 // Una partida libre (988, `?libre=N`): otras cuatro, en su propia llave, sin
@@ -194,11 +195,9 @@ function sinTablero(texto) {
 async function init() {
   let r
   try {
-    const res = await fetch(`/.netlify/functions/ordena-precio${libre ? `?libre=${libre}` : ''}`, { headers: { accept: 'application/json' } })
-    r = await res.json()
-    if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
-  } catch {
-    sinTablero('Hoy no se han podido traer las cartas. Vuelve en un rato.')
+    r = await traerRetoConFotos('ordena-precio', { libre, cartasDe: (x) => x.cartas || [] })
+  } catch (e) {
+    sinTablero(e.sinFoto ? TEXTO_SIN_FOTO : 'Hoy no se han podido traer las cartas. Vuelve en un rato.')
     return
   }
   dia = r.dia

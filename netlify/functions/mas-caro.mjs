@@ -13,13 +13,16 @@ import { ID_DE_POCKET } from '../../js/catalogo-series.js'
 import { diaLibre } from '../../js/retos-libre.js'
 export { libreDePeticion, CABECERAS_LIBRE } from './carta-del-dia.mjs'
 import { libreDePeticion, CABECERAS_LIBRE } from './carta-del-dia.mjs'
+import { conFoto, sinFoto, revisarDePeticion, CABECERAS_REVISADO } from '../lib/fotos-reto.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 
 export const FILTRO_PRECIOS = `cm_trend=gte.${PRECIO_MINIMO}`
-export const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,rarity,rarity_en,tcg_sets(name,name_en,tcg_online_code,serie_id)'
+export const COLUMNAS_CARTA = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,rarity,rarity_en,tcg_sets(name,name_en,tcg_online_code,serie_id)'
 // Cuántas candidatas se miran para quedarse con seis.
 export const CANDIDATAS = 16
+// Si una del día no tiene foto (1111), las seis se eligen de nuevo con otra sal.
+export const SAL_REPARO = 56000
 
 export const hoyUTC = () => new Date().toISOString().slice(0, 10)
 
@@ -56,29 +59,47 @@ export async function cartasConPrecio(ids, pedir) {
 }
 
 // Con `libre` (988), una partida libre: el día suyo, sin la tabla del día.
-export async function elegirMasCaro({ dia, pedir, guardar, libre = null }) {
+export async function elegirMasCaro({ dia, pedir, guardar, actualizar = null, libre = null, revisar = false, probar }) {
   if (libre) dia = diaLibre(libre)
+  // Seis con foto de verdad (1111); null si no hay precios, [] si no salen.
+  const elegirIds = async (sal, fuera = []) => {
+    const { total } = await pedir(`tcg_card_prices?select=card_id&${FILTRO_PRECIOS}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
+    if (!total || total < CARTAS_POR_DIA) return null
+    const candidatas = []
+    for (const i of indicesDelDia(dia, total, Math.min(CANDIDATAS, total), sal)) {
+      const fila = (await pedir(`tcg_card_prices?select=card_id&${FILTRO_PRECIOS}&order=card_id.asc&limit=1&offset=${i}`)).datos?.[0]
+      if (fila?.card_id && !fuera.includes(fila.card_id)) candidatas.push(fila.card_id)
+    }
+    const elegidas = cartasQueSirven(await conFoto(await cartasConPrecio(candidatas, pedir), { probar }))
+    return elegidas.length < CARTAS_POR_DIA ? [] : elegidas.map((c) => c.id)
+  }
   const guardado = libre ? null : (await pedir(`mas_caro_del_dia?select=card_ids&day=eq.${dia}&limit=1`)).datos
   let ids = Array.isArray(guardado?.[0]?.card_ids) ? guardado[0].card_ids : null
-  if (!ids?.length) {
-    const { total } = await pedir(`tcg_card_prices?select=card_id&${FILTRO_PRECIOS}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
-    if (!total || total < CARTAS_POR_DIA) return { error: 'Todavía no hay cartas con precio suficientes.' }
-    const indices = indicesDelDia(dia, total, Math.min(CANDIDATAS, total))
-    const candidatas = []
-    for (const i of indices) {
-      const fila = (await pedir(`tcg_card_prices?select=card_id&${FILTRO_PRECIOS}&order=card_id.asc&limit=1&offset=${i}`)).datos?.[0]
-      if (fila?.card_id) candidatas.push(fila.card_id)
+  let quedanSinFoto = []
+  if (ids?.length && revisar && actualizar) {
+    // Revisado (1111): si alguna no tiene foto, las seis son otras.
+    const actuales = await cartasConPrecio(ids, pedir)
+    const malas = await sinFoto(actuales, { probar })
+    if (actuales.length < CARTAS_POR_DIA || malas.length) {
+      const otras = await elegirIds(SAL_REPARO, ids)
+      if (!otras?.length) quedanSinFoto = malas
+      if (otras?.length) {
+        ids = otras
+        await actualizar('mas_caro_del_dia', `day=eq.${dia}`, { card_ids: ids })
+      }
     }
-    const elegidas = cartasQueSirven(await cartasConPrecio(candidatas, pedir))
-    if (elegidas.length < CARTAS_POR_DIA) return { error: 'No se han podido elegir seis cartas.' }
-    ids = elegidas.map((c) => c.id)
+  }
+  if (!ids?.length) {
+    ids = await elegirIds(0)
+    if (!ids) return { error: 'Todavía no hay cartas con precio suficientes.' }
+    if (!ids.length) return { error: 'No se han podido elegir seis cartas.' }
     if (!libre) await guardar('mas_caro_del_dia', { day: dia, card_ids: ids })
     const otra = libre ? null : (await pedir(`mas_caro_del_dia?select=card_ids&day=eq.${dia}&limit=1`)).datos
     if (Array.isArray(otra?.[0]?.card_ids) && otra[0].card_ids.length) ids = otra[0].card_ids
   }
   const cartas = await cartasConPrecio(ids, pedir)
   if (cartas.length < CARTAS_POR_DIA) return { error: 'Las cartas del día ya no están en el catálogo.' }
-  return libre ? { dia, libre, cartas } : { dia, numero: numeroDelDia(dia), cartas }
+  return libre ? { dia, libre, cartas } : { dia, numero: numeroDelDia(dia), cartas, ...(revisar ? { sinFoto: quedanSinFoto } : {}) }
 }
 
 export default async (req) => {
@@ -86,15 +107,18 @@ export default async (req) => {
   if (!clave) return Response.json({ error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' }, { status: 500 })
   const dia = hoyUTC()
   const libre = libreDePeticion(req)
+  const revisar = !libre && revisarDePeticion(req)
   try {
     const r = await elegirMasCaro({
       dia,
       libre,
       pedir: (ruta, o = {}) => rest(ruta, clave, o),
       guardar: (tabla, fila) => rest(tabla, clave, { metodo: 'POST', cuerpo: [fila], cabeceras: { prefer: 'resolution=ignore-duplicates,return=minimal' } }),
+      actualizar: (tabla, filtro, cambios) => rest(`${tabla}?${filtro}`, clave, { metodo: 'PATCH', cuerpo: cambios, cabeceras: { prefer: 'return=minimal' } }),
+      revisar,
     })
     if (r.error) return Response.json(r, { status: 503, headers: { 'cache-control': 'no-store' } })
-    return Response.json(r, { headers: libre ? CABECERAS_LIBRE : { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
+    return Response.json(r, { headers: libre ? CABECERAS_LIBRE : revisar ? CABECERAS_REVISADO : { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
   } catch (err) {
     return Response.json({ error: String(err?.message || err).slice(0, 200) }, { status: 502, headers: { 'cache-control': 'no-store' } })
   }

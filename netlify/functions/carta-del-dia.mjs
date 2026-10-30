@@ -13,6 +13,7 @@
 import { indiceDelDia, numeroDelDia } from '../../js/carta-del-dia.js'
 import { ID_DE_POCKET } from '../../js/catalogo-series.js'
 import { numeroLibre, diaLibre } from '../../js/retos-libre.js'
+import { fotoContesta, revisarDePeticion, CABECERAS_REVISADO } from '../lib/fotos-reto.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 
@@ -70,23 +71,46 @@ async function rest(ruta, clave, { metodo = 'GET', cuerpo = null, cabeceras = {}
 //   guardar(ruta, fila)        → inserta ignorando duplicados
 // Con `libre` (988, «Jugar otra vez»), la carta de una partida libre: la
 // misma cuenta con el día de esa partida, sin leer ni escribir la del día.
-export async function elegirCartaDelDia({ dia, pedir, guardar, libre = null }) {
+export async function elegirCartaDelDia({ dia, pedir, guardar, actualizar = null, libre = null, revisar = false, probar }) {
   if (libre) dia = diaLibre(libre)
+  // La de su sitio en la lista o, si no tiene foto de verdad (1111), la
+  // siguiente que la tenga (hasta ocho más allá). `lejos` empieza en la otra
+  // punta de la lista: para cambiar la de un día que ya se ha jugado.
+  const elegirId = async ({ lejos = false, fuera = null } = {}) => {
+    const { total } = await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
+    if (!total) return { error: 'No hay cartas elegibles.' }
+    const i = (indiceDelDia(dia, total) + (lejos ? Math.floor(total / 2) : 0)) % total
+    for (let k = 0; k < Math.min(9, total); k++) {
+      const c = (await pedir(`tcg_cards?select=${COLUMNAS_CARTA}&${FILTRO_ELEGIBLES}&order=id.asc&limit=1&offset=${(i + k) % total}`)).datos?.[0]
+      if (!c?.id || c.id === fuera) continue
+      if ((await fotoContesta(c, { probar })) !== false) return { id: c.id }
+    }
+    return { error: 'No se ha podido elegir la carta.' }
+  }
   const guardada = libre ? null : (await pedir(`carta_del_dia?select=card_id&day=eq.${dia}&limit=1`)).datos
   let cardId = guardada?.[0]?.card_id || null
+  let quedanSinFoto = []
+  if (cardId && revisar && actualizar) {
+    // Revisada (1111): si la del día no tiene foto, es otra.
+    const c = (await pedir(`tcg_cards?select=${COLUMNAS_CARTA}&id=eq.${encodeURIComponent(cardId)}&market=eq.WEST&limit=1`)).datos?.[0]
+    if (!c || (await fotoContesta(c, { probar })) === false) {
+      const otra = await elegirId({ lejos: true, fuera: cardId })
+      if (!otra.id) quedanSinFoto = [cardId]
+      if (otra.id) {
+        cardId = otra.id
+        await actualizar('carta_del_dia', `day=eq.${dia}`, { card_id: cardId })
+      }
+    }
+  }
   if (!cardId && libre) {
-    const { total } = await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
-    if (!total) return { error: 'No hay cartas elegibles.' }
-    cardId = (await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&order=id.asc&limit=1&offset=${indiceDelDia(dia, total)}`)).datos?.[0]?.id || null
-    if (!cardId) return { error: 'No se ha podido elegir la carta.' }
+    const e = await elegirId()
+    if (e.error) return e
+    cardId = e.id
   }
   if (!cardId) {
-    const { total } = await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
-    if (!total) return { error: 'No hay cartas elegibles.' }
-    const i = indiceDelDia(dia, total)
-    const elegida = (await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&order=id.asc&limit=1&offset=${i}`)).datos
-    cardId = elegida?.[0]?.id || null
-    if (!cardId) return { error: 'No se ha podido elegir la carta.' }
+    const e = await elegirId()
+    if (e.error) return e
+    cardId = e.id
     await guardar('carta_del_dia', { day: dia, card_id: cardId })
     // Si otro llegó primero, manda la suya (que con la misma semilla es
     // la misma, salvo que el catálogo cambiara entre las dos cuentas).
@@ -110,7 +134,7 @@ export async function elegirCartaDelDia({ dia, pedir, guardar, libre = null }) {
   } catch {
     // sin ayer
   }
-  return { dia, numero: numeroDelDia(dia), carta, ayer }
+  return { dia, numero: numeroDelDia(dia), carta, ayer, ...(revisar ? { sinFoto: quedanSinFoto } : {}) }
 }
 
 export default async (req) => {
@@ -118,15 +142,18 @@ export default async (req) => {
   if (!clave) return Response.json({ error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' }, { status: 500 })
   const dia = hoyUTC()
   const libre = libreDePeticion(req)
+  const revisar = !libre && revisarDePeticion(req)
   try {
     const r = await elegirCartaDelDia({
       dia,
       libre,
       pedir: (ruta, o = {}) => rest(ruta, clave, o),
       guardar: (tabla, fila) => rest(tabla, clave, { metodo: 'POST', cuerpo: [fila], cabeceras: { prefer: 'resolution=ignore-duplicates,return=minimal' } }),
+      actualizar: (tabla, filtro, cambios) => rest(`${tabla}?${filtro}`, clave, { metodo: 'PATCH', cuerpo: cambios, cabeceras: { prefer: 'return=minimal' } }),
+      revisar,
     })
     if (r.error) return Response.json(r, { status: 503, headers: { 'cache-control': 'no-store' } })
-    return Response.json(r, { headers: libre ? CABECERAS_LIBRE : { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
+    return Response.json(r, { headers: libre ? CABECERAS_LIBRE : revisar ? CABECERAS_REVISADO : { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
   } catch (err) {
     return Response.json({ error: String(err?.message || err).slice(0, 200) }, { status: 502, headers: { 'cache-control': 'no-store' } })
   }

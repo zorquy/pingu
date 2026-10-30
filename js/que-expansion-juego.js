@@ -14,6 +14,7 @@ import { hechoHoy } from './retos-siguiente.js'
 import { rachaDeDias } from './reto-compartir.js'
 import { libreDeDireccion, claveLibre } from './retos-libre.js'
 import { hoyISO } from './reto-diario.js'
+import { traerRetoConFotos, TEXTO_SIN_FOTO } from './reto-fotos.js'
 
 const $ = (id) => document.getElementById(id)
 // Una partida libre (988, `?libre=N`): otras cinco, en su propia llave, sin
@@ -131,6 +132,9 @@ function elegir(setId) {
   if (terminado() || pasando) return
   const i = ronda()
   estado.elegidas.push(setId)
+  // La carta de cada ronda contestada (1111): si el día se revisa y una
+  // ronda cambia de carta, lo contestado desde ahí ya no vale.
+  estado.cartas = rondas.slice(0, estado.elegidas.length).map((r) => r.carta.id)
   // Los aciertos, también en lo guardado: el menú de /retos los lee sin
   // tener las rondas.
   estado.tira = tira()
@@ -186,11 +190,9 @@ function sinTablero(texto) {
 async function init() {
   let r
   try {
-    const res = await fetch(`/.netlify/functions/que-expansion${libre ? `?libre=${libre}` : ''}`, { headers: { accept: 'application/json' } })
-    r = await res.json()
-    if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
-  } catch {
-    sinTablero('Hoy no se han podido traer las cartas. Vuelve en un rato.')
+    r = await traerRetoConFotos('que-expansion', { libre, cartasDe: (x) => (x.rondas || []).map((ronda) => ronda.carta), calidad: 'high' })
+  } catch (e) {
+    sinTablero(e.sinFoto ? TEXTO_SIN_FOTO : 'Hoy no se han podido traer las cartas. Vuelve en un rato.')
     return
   }
   dia = r.dia
@@ -201,6 +203,16 @@ async function init() {
   if (libre) $('qxSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('expansion'), '/que-expansion'))
   const g = leer(CLAVE, null)
   estado = g && g.dia === dia && Array.isArray(g.elegidas) ? g : { dia, elegidas: [] }
+  // Una ronda que ha cambiado de carta (se cambió por no tener foto) vuelve
+  // a jugarse, si el reto no estaba ya acabado y guardado.
+  // Lo guardado antes de la 1111 no lleva las cartas: ahí, la primera ronda
+  // cuya respuesta no está entre sus opciones.
+  if (!estado.guardado && estado.elegidas.length) {
+    const desde = Array.isArray(estado.cartas)
+      ? estado.cartas.findIndex((id, i) => rondas[i]?.carta?.id !== id)
+      : estado.elegidas.findIndex((id, i) => !rondas[i]?.opciones?.some((s) => s.id === id))
+    if (desde >= 0) { estado.elegidas = estado.elegidas.slice(0, desde); estado.cartas = rondas.slice(0, desde).map((x) => x.carta.id); estado.tira = tira(); escribir(CLAVE, estado) }
+  }
   sesion = await getSession().catch(() => null)
   pintarTodo()
   $('qxOpciones').addEventListener('click', (e) => {
