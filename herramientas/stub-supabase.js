@@ -1162,6 +1162,11 @@ function consulta(tabla, estado = {}) {
     }
     if (st.limite != null) filas = filas.slice(0, st.limite)
     if (st.rango) filas = filas.slice(st.rango[0], st.rango[1] + 1)
+    // Supabase corta TODA respuesta a 1.000 filas sin avisar (808). Una
+    // prueba que lo necesite lo enciende con `__MAX_FILAS__` (1113): por
+    // defecto no, que pruebas viejas siembran más y no van de eso.
+    const tope = typeof window !== 'undefined' ? window.__MAX_FILAS__ : null
+    if (tope) filas = filas.slice(0, tope)
     return filas
   }
 
