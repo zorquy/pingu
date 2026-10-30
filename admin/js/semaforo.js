@@ -27,6 +27,8 @@ export const PASADAS = [
   // Las redes (902): lo que falla al publicar en X se apunta aquí.
   ['x_noticias', 'X (noticias)'],
   ['enviar_push', 'Avisos push'],
+  // Los silencios y baneos con fecha de fin (1121).
+  ['moderacion_al_dia', 'Moderación caducada'],
 ]
 
 const DIA_MS = 24 * 60 * 60 * 1000

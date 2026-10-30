@@ -41785,6 +41785,44 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1121 — Usuarios: la lista y la ficha de cada persona
+
+Cuarta tanda de la propuesta del admin. PINGU: «usuarios, hay un montón de
+funciones que sobran».
+
+- `admin/js/usuarios-admin.js` (por `import()` al abrir la sección, ya no al
+  arrancar el panel): la lista con buscador (nombre o @usuario, sin acentos),
+  orden (las más nuevas, más XP, por nombre) y chips con su cuenta (`FILTROS`:
+  Todos, Equipo, Moderación, Torneos, Noticias, Silenciados, Baneados,
+  Tiendas; solo los de las columnas que existen). Cada fila: avatar, nombre,
+  @usuario, chapas de rol y de estado, nivel y XP; de 60 en 60 con «Ver más».
+  `user_profiles` se pide por páginas de 1.000 (la 808) y las columnas
+  opcionales se quitan de UNA en una si la base dice que no existen (adiós a
+  la escalera de seis escalones).
+- La ficha, en un cajón a la derecha (encima de la lista por debajo de 1.100
+  px): los cuatro roles como interruptores (`ROLES`: equipo, moderación,
+  torneos, noticias) que cambian ya y deshacen si la base dice que no (la
+  896); dar el de equipo pregunta. Moderación: motivo y duración (un día, una
+  semana, un mes o hasta que se quite), «Silenciar», «Banear» (pregunta), lo
+  que está en vigor con su «Quitar» y el historial plegado. Logros: los suyos
+  con ✕ y «Dar» con motivo (`admin_logro_dar` / `admin_logro_quitar`, la
+  1118). Título del foro con su color (la paleta cerrada se mudó aquí). A uno
+  mismo no se le quita el equipo ni se le modera.
+- Se fue «Pro» (MOSTRAR_PLANES está apagado).
+- Migración `supabase-migration-1121-moderacion.sql`: `moderaciones` (qué,
+  motivo, hasta, quién, `quitada_at`; la lee el equipo), `admin_moderar`,
+  `admin_moderar_quitar` y `moderacion_al_dia()`. Lo que se CUMPLE sigue
+  siendo `is_muted` / `is_banned`; la función levanta lo vencido en dos pasos
+  (las sentencias de un `with` ven la base de antes) y solo la clase que
+  venció, y no toca a quien no tiene fila (lo puesto a pelo antes). La llama
+  cada hora `netlify/functions/moderacion-al-dia.mjs` (estado
+  `moderacion_al_dia`, en `PASADAS`) y el panel al abrir Usuarios. Sin la
+  migración se silencia y se banea como antes, a pelo, y la ficha lo dice.
+- Pruebas: `test-tanda-1121.mjs` (lo puro, la función con dobles y la
+  migración contra PostgreSQL) y `test-tanda-1121-pantalla.mjs`; 295 (los
+  roles en la ficha; y la puerta del panel, que la 1119 cambió) y 817
+  (diecisiete pasadas) al día.
+
 ## Tanda 1120 — Los avisos del equipo
 
 Tercera tanda de la propuesta del admin. PINGU: «el aviso global podemos

@@ -1587,6 +1587,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   vista previa de /admin → Avisos, así que un campo nuevo del aviso va ahí y en
   `franjaHtml`, no en otra copia. A la campanita de todos solo se manda por
   `admin_aviso_campanita` (tipo `aviso_equipo`, que se puede apagar).
+- **Silenciar y banear llevan motivo y duración** (tanda 1121): se hace por
+  `admin_moderar` / `admin_moderar_quitar` (registro en `moderaciones`) y lo
+  vencido lo levanta `moderacion_al_dia()` cada hora. Lo que se CUMPLE sigue
+  siendo `is_muted` / `is_banned`: una política o pantalla nueva mira esas
+  columnas, no la tabla. Un rol nuevo de una persona va en `ROLES` de
+  `admin/js/usuarios-admin.js` (y su filtro en `FILTROS`), no en otro botón.
 - **Lo que se gana en el perfil son «Logros»** (tanda 1117, PINGU: «vamos a
   escoger un nombre para todo»): ni medallas ni trofeos (la medalla de un
   curso es otra cosa). La pestaña es `logros` (`medallas` y `about`, alias), y

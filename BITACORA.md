@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (362) — PINGU-Claude (1121 — Usuarios: lista y ficha)
+
+**Hecho**: /admin → Usuarios es una lista con buscador, orden y chips
+(Equipo, Moderación, Torneos, Noticias, Silenciados, Baneados, Tiendas). Al
+tocar a alguien, su ficha: roles como interruptores, silenciar o banear con
+motivo y duración (se levanta solo al vencer), sus logros (dar y quitar) y su
+título del foro. Fuera «Pro» y los ocho botones por fila.
+
+**Ficheros**: `admin/js/usuarios-admin.js`,
+`netlify/functions/moderacion-al-dia.mjs` y
+`supabase-migration-1121-moderacion.sql` (nuevos); `admin/js/admin.js`,
+`admin/js/semaforo.js`, `admin/css/admin.css`, SCHEMA, CLAUDE.md. Pruebas en
+`pruebas`: 1121 y 1121-pantalla; 295 y 817 al día; el doble con
+`moderaciones` y sus tres funciones.
+
+**Pendiente**: PINGU ejecuta `supabase-migration-1121-moderacion.sql` (sin
+ella se modera como antes, sin motivo ni fecha). Siguiente: 1122, Correos y
+la limpieza de Cartas.
+
 ## 2026-10-30 (361) — PINGU-Claude (1120 — los avisos del equipo)
 
 **Hecho**: el aviso global tiene su sección en /admin (Avisos): tipo
