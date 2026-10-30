@@ -50,12 +50,13 @@ console.log('── 2. La función: elige una vez y la deja en la base ──')
   const guardadas = []
   const llamadas = []
   const base = { carta: [] }
-  const CARTA = { id: 'sv8-25', name: 'Pikachu ex', market: 'WEST' }
+  // Con su foto: desde la 1111 una carta sin foto no se elige.
+  const CARTA = { id: 'sv8-25', name: 'Pikachu ex', market: 'WEST', image_path: 'sv/sv8/25' }
   const pedir = async (ruta, o = {}) => {
     llamadas.push(ruta.split('?')[0] + (o.cabeceras?.prefer ? ' (count)' : ''))
     if (ruta.startsWith('carta_del_dia')) return { datos: base.carta, total: null }
     if (o.cabeceras?.prefer === 'count=exact') return { datos: [{ id: 'x' }], total: 12000 }
-    if (/offset=/.test(ruta)) return { datos: [{ id: 'sv8-25' }], total: null }
+    if (/offset=/.test(ruta)) return { datos: [CARTA], total: null }
     return { datos: [CARTA], total: null }
   }
   const guardar = async (tabla, fila) => {
@@ -87,7 +88,9 @@ console.log('── 3. En el navegador ──')
     // puede salir en el buscador (tanda 573).
     { ...base('A1-25', 25, { name: 'Pikachu ex', types: ['Lightning'] }), set_id: 'A1', tcg_sets: { name: 'Genetic Apex', serie_id: 'tcgp' } }]
   const browser = await chromium.launch()
-  const page = await browser.newPage({ viewport: { width: 1000, height: 1100 } })
+  // Sin service worker (1111): pide las fotos él y `route` no le llega, así
+  // que la foto «fallaba» y, ahora que el reto espera a sus fotos, se quitaba.
+  const page = await browser.newPage({ viewport: { width: 1000, height: 1100 }, serviceWorkers: 'block' })
   const errores = []
   const pedidas = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))

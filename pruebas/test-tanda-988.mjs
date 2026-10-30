@@ -58,7 +58,7 @@ console.log('\n── 2. Las funciones ──')
         if (/^carta_del_dia/.test(ruta)) return { datos: [{ card_id: 'c-del-dia' }] }
         if (/^tcg_cards\?select=id&.*limit=1$/.test(ruta) && !/offset/.test(ruta)) return { datos: [], total: 50 }
         const off = ruta.match(/offset=(\d+)/)
-        if (off) return { datos: [{ id: `c-${off[1]}` }] }
+        if (off) return { datos: [{ id: `c-${off[1]}`, image_path: `x/c-${off[1]}` }] }
         const id = ruta.match(/id=eq\.([^&]+)/)
         if (id) return { datos: [{ id: decodeURIComponent(id[1]), name: 'X', tcg_sets: {} }] }
         return { datos: [] }
