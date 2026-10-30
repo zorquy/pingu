@@ -779,8 +779,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   marcan VARIOS (1128, Sergio.M del foro): la ventana devuelve `idiomas` y se
   apunta un deseo por idioma con `idiomasPara` (`js/deseo-idiomas.js`,
   «cualquiera» va solo); cambiar pasa por `planDeDeseos` (se quedan, se
-  borran, se añaden). Un camino nuevo que apunte lee `r.idiomas`, no
-  `r.idioma`.
+  borran, se añaden). Y las VERSIONES igual (1129): cada pareja idioma ×
+  versión es un deseo; la ventana devuelve `combos` (`combosDe`, sin las
+  parejas que no existen) y cambiar pasa por `planDeCombos`. Un camino nuevo
+  que apunte lee `r.combos`, no `r.idioma` ni `r.variante`.
 - **Un botón que escribe en la base cambia YA, confirma después y deshace
   si falla** (tanda 896, R6): el patrón de «Seguir» un hilo, aplicado a
   marcar leído, guardar una guía, «La quiero», el check-in y meter en un

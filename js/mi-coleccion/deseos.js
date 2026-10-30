@@ -19,7 +19,7 @@ import * as datos from './datos.js'
 import { abrirAviso } from '../avisos-precio.js'
 import * as laQuiero from '../la-quiero.js'
 import { preguntarDeseo } from '../idioma-deseo.js'
-import { idiomasPara, planDeDeseos, textoDeIdiomas } from '../deseo-idiomas.js'
+import { idiomasPara, planDeDeseos, planDeCombos, combosDe, textoDeIdiomas } from '../deseo-idiomas.js'
 import { porNumero, rangoDeRareza } from './orden.js'
 import { ordenarCartas } from './filtros.js'
 import { OTRA } from './gradeo.js'
@@ -422,25 +422,28 @@ export async function quererCarta(c) {
   await cargarDeseos()
   const r = await preguntarDeseo({ nombre: ctx.nombreDe(c), market: c.market || ctx.mercado, setId: c.set_id, carta: c })
   if (r === undefined) return false
-  const { variante } = r
-  // Un deseo por idioma marcado (1128); los que ya tenías no se repiten.
-  const ya = ctx.deseos.filter((x) => x.card_id === c.id && (x.variante || null) === (variante || null)).map((x) => x.idioma || null)
-  const idiomas = idiomasPara(r.idiomas, c.market || ctx.mercado).filter((i) => !ya.includes(i))
-  if (!idiomas.length) {
+  // Un deseo por idioma y versión marcados (1128, 1129); los que ya tenías no
+  // se repiten.
+  const clave = (x) => `${x.idioma || ''}|${x.variante || ''}`
+  const ya = new Set(ctx.deseos.filter((x) => x.card_id === c.id).map(clave))
+  const combos = (r.combos || combosDe(r, c.market || ctx.mercado)).filter((x) => !ya.has(clave(x)))
+  if (!combos.length) {
     showToast('Esa carta ya está en tu lista de búsqueda.', 'info')
     return false
   }
   // CAMBIA YA, CONFIRMA DESPUÉS, DESHAZ SI FALLA (896, R6): la carta entra
   // en la lista como filas provisionales y se repinta todo; las de verdad las
   // sustituyen cuando llegan, y si la base dice que no, se quitan.
-  const provisionales = idiomas.map((idioma, i) => ({ id: `provisional-${Date.now()}-${i}`, user_id: ctx.sesion.user.id, card_id: c.id, idioma, variante, created_at: new Date().toISOString(), provisional: true }))
+  const provisionales = combos.map((x, i) => ({ id: `provisional-${Date.now()}-${i}`, user_id: ctx.sesion.user.id, card_id: c.id, idioma: x.idioma, variante: x.variante, created_at: new Date().toISOString(), provisional: true }))
   ctx.deseos = [...provisionales, ...ctx.deseos]
   alCambiarDeseos()
   const hechas = []
   try {
-    for (const idioma of idiomas) hechas.push(await ctx.cambios.anadirDeseo({ user_id: ctx.sesion.user.id, card_id: c.id, idioma, ...(variante ? { variante } : {}) }))
+    for (const x of combos) hechas.push(await ctx.cambios.anadirDeseo({ user_id: ctx.sesion.user.id, card_id: c.id, idioma: x.idioma, ...(x.variante ? { variante: x.variante } : {}) }))
     ctx.deseos = [...hechas, ...ctx.deseos.filter((x) => !provisionales.includes(x))]
-    const como = [variante ? nombreDeVariante(variante) : '', textoDeIdiomas(idiomas, (i) => idiomaDe(i).nombre)].filter(Boolean).join(', ')
+    const versiones = [...new Set(combos.map((x) => x.variante).filter(Boolean))].map(nombreDeVariante)
+    const idiomas = [...new Set(combos.map((x) => x.idioma))]
+    const como = [versiones.join(' y '), textoDeIdiomas(idiomas, (i) => idiomaDe(i).nombre)].filter(Boolean).join(', ')
     showToast(`${ctx.nombreDe(c) || 'Apuntada'}, en «La quiero»${como ? ` (${como})` : ''}. Si alguien la da, saldrá en Cruces.`, 'success')
   } catch (err) {
     // Lo que sí entró se queda; lo que no, fuera.
@@ -1408,9 +1411,10 @@ function mercadoAvatares(gente = [], max = 4) {
 }
 
 // CAMBIAR LO QUE PEDISTE (1047, la C1 de la propuesta): la misma ventana
-// del corazón con lo puesto. Desde la 1128, con TODOS sus idiomas marcados:
-// se quedan los que sigan marcados (con la versión nueva), se borran los
-// desmarcados y se apuntan los nuevos (`planDeDeseos`). Cambia ya y, si la
+// del corazón con lo puesto. Desde la 1128, con TODOS sus idiomas marcados, y
+// desde la 1129 se pueden marcar más versiones: se quedan las parejas que
+// sigan marcadas, la que solo cambia de versión se cambia, se borran las
+// desmarcadas y se apuntan las nuevas (`planDeCombos`). Cambia ya y, si la
 // base dice que no, vuelve a lo que diga la base (896).
 export async function cambiarDeseoDeBaldosa(cardId, variante) {
   await cargarDeseos()
@@ -1419,23 +1423,25 @@ export async function cambiarDeseoDeBaldosa(cardId, variante) {
   // Desde la ficha de un álbum o de otra expansión (1064) la carta puede no
   // estar en las de la vista: se busca también en las de fuera.
   const c = ctx.cartas.get(cardId) || ctx.cartasDeFuera?.get(cardId)
-  const r = await preguntarDeseo({ nombre: ctx.nombreDe(c) || '', market: c?.market || ctx.mercado, setId: c?.set_id || null, carta: c, puesto: { idiomas: filas.map((f) => f.idioma || null), variante } })
+  const r = await preguntarDeseo({ nombre: ctx.nombreDe(c) || '', market: c?.market || ctx.mercado, setId: c?.set_id || null, carta: c, puesto: { idiomas: filas.map((f) => f.idioma || null), variantes: [variante] } })
   if (r === undefined) return
-  const nuevaVersion = r.variante || null
-  const ocupados = ctx.deseos.filter((x) => x.card_id === cardId && !filas.includes(x) && (x.variante || null) === nuevaVersion).map((x) => x.idioma || null)
-  const quiero = idiomasPara(r.idiomas, c?.market || ctx.mercado)
-  // Lo que ya tienes apuntado en otra fila no se repite (el índice único de la
-  // 1047): se dice aquí, sin preguntar a la base, y no se toca nada.
-  const yaFilas = new Set(filas.map((f) => ((f.variante || null) === nuevaVersion ? f.idioma || null : undefined)))
-  if (quiero.some((i) => ocupados.includes(i) && !yaFilas.has(i))) {
+  const clave = (x) => `${x.idioma || ''}|${x.variante || ''}`
+  const combos = r.combos || combosDe(r, c?.market || ctx.mercado)
+  // Lo que esa carta ya tiene en OTRAS filas (otra versión) no se repite (el
+  // índice único de la 1047). Si TODO lo que pides ya estaba en otra fila, se
+  // dice aquí, sin preguntar a la base, y no se toca nada.
+  const ocupados = ctx.deseos.filter((x) => x.card_id === cardId && !filas.includes(x) && !x.provisional).map((x) => ({ idioma: x.idioma || null, variante: x.variante || null }))
+  const deFilas = new Set(filas.map(clave))
+  const deOtras = new Set(ocupados.map(clave))
+  if (!combos.some((x) => deFilas.has(clave(x))) && combos.every((x) => deOtras.has(clave(x)))) {
     showToast('Esa carta ya está en tu lista de búsqueda.', 'info')
     return
   }
-  const plan = planDeDeseos(filas, quiero, nuevaVersion, ocupados)
+  const plan = planDeCombos(filas, combos, ocupados)
   if (!plan.cambiar.length && !plan.borrar.length && !plan.anadir.length) return
   const antes = ctx.deseos
   const fuera = new Set(plan.borrar)
-  const provisionales = plan.anadir.map((idioma, i) => ({ id: `provisional-${Date.now()}-${i}`, user_id: ctx.sesion.user.id, card_id: cardId, idioma, variante: nuevaVersion, created_at: new Date().toISOString(), provisional: true }))
+  const provisionales = plan.anadir.map((x, i) => ({ id: `provisional-${Date.now()}-${i}`, user_id: ctx.sesion.user.id, card_id: cardId, idioma: x.idioma, variante: x.variante, created_at: new Date().toISOString(), provisional: true }))
   ctx.deseos = [...provisionales, ...ctx.deseos.filter((x) => !fuera.has(x.id)).map((x) => {
     const cb = plan.cambiar.find((p) => p.id === x.id)
     return cb ? { ...x, ...cb.cambios } : x
@@ -1445,7 +1451,7 @@ export async function cambiarDeseoDeBaldosa(cardId, variante) {
     const nuevas = []
     for (const p of plan.cambiar) nuevas.push(await ctx.cambios.cambiarDeseo(p.id, p.cambios))
     for (const id of plan.borrar) await ctx.cambios.borrarDeseo(id)
-    for (const idioma of plan.anadir) nuevas.push(await ctx.cambios.anadirDeseo({ user_id: ctx.sesion.user.id, card_id: cardId, idioma, ...(nuevaVersion ? { variante: nuevaVersion } : {}) }))
+    for (const x of plan.anadir) nuevas.push(await ctx.cambios.anadirDeseo({ user_id: ctx.sesion.user.id, card_id: cardId, idioma: x.idioma, ...(x.variante ? { variante: x.variante } : {}) }))
     ctx.deseos = [...nuevas.filter((n) => !antes.some((x) => x.id === n.id)), ...antes.filter((x) => !fuera.has(x.id)).map((x) => nuevas.find((n) => n.id === x.id) || x)]
     showToast('Cambiado.', 'success')
   } catch (err) {

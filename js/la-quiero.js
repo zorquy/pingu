@@ -13,7 +13,7 @@ import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { anadirDeseo, borrarDeseo } from './mi-coleccion/cambios.js'
 import { showToast } from './toast.js'
 import { preguntarDeseo } from './idioma-deseo.js'
-import { idiomasPara } from './deseo-idiomas.js'
+import { combosDe } from './deseo-idiomas.js'
 import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { nombreDeCarta } from './catalogo-series.js'
 
@@ -58,12 +58,12 @@ export async function alternar({ userId, cardId, deseos, carta = null, alCambiar
   // El idioma y, si la carta tiene varias, la versión (1047).
   const r = await preguntarDeseo({ nombre: carta ? nombreDeCarta(carta) : '', market: carta?.market || 'WEST', setId: carta?.set_id || null, carta })
   if (r === undefined) return deseos
-  const { variante } = r
-  // Un deseo por idioma marcado (1128).
-  const idiomas = idiomasPara(r.idiomas, carta?.market || 'WEST')
-  alCambiar([...idiomas.map((idioma, i) => ({ id: `provisional-${Date.now()}-${i}`, user_id: userId, card_id: cardId, idioma, variante, provisional: true })), ...deseos])
+  // Un deseo por idioma y versión marcados (1128, 1129).
+  const combos = r.combos || combosDe(r, carta?.market || 'WEST')
+  alCambiar([...combos.map((x, i) => ({ id: `provisional-${Date.now()}-${i}`, user_id: userId, card_id: cardId, idioma: x.idioma, variante: x.variante, provisional: true })), ...deseos])
   const hechas = []
-  for (const idioma of idiomas) hechas.push(await anadirDeseo({ user_id: userId, card_id: cardId, idioma, ...(variante ? { variante } : {}) }))
-  showToast(`En «La quiero»${variante ? ` (${nombreDeVariante(variante)})` : ''}. Si alguien la da, te saldrá en Cruces.`, 'success')
+  for (const x of combos) hechas.push(await anadirDeseo({ user_id: userId, card_id: cardId, idioma: x.idioma, ...(x.variante ? { variante: x.variante } : {}) }))
+  const versiones = [...new Set(combos.map((x) => x.variante).filter(Boolean))].map(nombreDeVariante)
+  showToast(`En «La quiero»${versiones.length ? ` (${versiones.join(' y ')})` : ''}. Si alguien la da, te saldrá en Cruces.`, 'success')
   return [...hechas, ...deseos]
 }

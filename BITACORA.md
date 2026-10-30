@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (370) — PINGU-Claude (1129 — y en varias versiones)
+
+**Hecho**: PINGU: «¿se pueden apuntar varios idiomas en varias versiones?».
+No: la versión seguía siendo una y, con la carta apuntada, no había camino
+para otra (el corazón la quita, el buscador dice «Ya la buscas»). «Directamente»:
+las versiones de «¿Cómo la quieres?» también son casillas («Cualquiera»
+solo), y cada pareja idioma × versión es un deseo (portugués y francés en
+Normal y Reverse = «Apuntar 4 deseos»); las parejas que no existen (956) no
+se apuntan. Cambiar desde una baldosa añade, cambia o quita parejas; si todo
+lo pedido ya está en otra versión, avisa y no toca nada.
+
+**Ficheros**: `js/deseo-idiomas.js` (`combosDe`, `planDeCombos`),
+`js/idioma-deseo.js`, `js/mi-coleccion/deseos.js`, `js/la-quiero.js`, SCHEMA,
+CLAUDE.md, novedades. Pruebas en `pruebas`: 1128 con las versiones; 1047 al día.
+
+**Pendiente**: contestar a Sergio.M en el hilo (el mensaje se lo doy a PINGU).
+
 ## 2026-10-30 (369) — PINGU-Claude (1128 — «La quiero» en varios idiomas)
 
 **Hecho**: Sergio.M en el foro: al apuntar una carta solo dejaba un idioma, y

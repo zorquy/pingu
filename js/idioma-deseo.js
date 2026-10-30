@@ -9,10 +9,11 @@
 // ficha) y /carta (su corazón), y por eso crea su propio <dialog>: /carta no
 // lo lleva en su HTML. Su CSS va en css/cardmarket.css, que cargan las dos.
 //
-// VARIOS IDIOMAS (1128, Sergio.M en el foro): los idiomas son casillas y se
-// marcan todos los que valgan; «Cualquiera» va solo. Devuelve `idiomas` (un
-// deseo por cada uno) y, para quien aún pregunte por uno, `idioma` (el
-// primero). Lo puro, en js/deseo-idiomas.js.
+// VARIOS IDIOMAS (1128, Sergio.M en el foro) Y VARIAS VERSIONES (1129): los
+// dos son casillas y se marcan todos los que valgan; «Cualquiera» va solo en
+// cada fila. Cada pareja idioma × versión es un deseo (`combos`, sin las que
+// no existen). Para quien aún pregunte por uno, `idioma` y `variante` (los
+// primeros). Lo puro, en js/deseo-idiomas.js.
 //
 // Y LA VERSIÓN (1047, PINGU del foro: «no puedo seleccionar si quiero la
 // variante holo o normal»): la misma ventana, una fila más. Solo sale si la
@@ -25,6 +26,7 @@ import { escapeHtml } from './html.js'
 import { variantesDeCarta, seSabenVariantes } from './mi-coleccion/variantes.js'
 import { chapaDeVersionHtml } from './mi-coleccion/iconos-version.js'
 import { hayVariante } from './deseo-version.js'
+import { combosDe } from './deseo-idiomas.js'
 
 // Los del catálogo occidental. Del japonés, `idiomasParaAnadirEn` (911): la
 // japonesa y —si su set los tiene— la coreana y la china. El coreano lo
@@ -89,8 +91,8 @@ function crear() {
         <div class="mc-idioma-chips" id="iddChips" role="group" aria-label="Idiomas"></div>
       </div>
       <div class="mc-idd-bloque" id="iddVersionBloque" hidden>
-        <p class="mc-idd-rot">Versión</p>
-        <div class="mc-idioma-chips" id="iddVersiones" role="radiogroup" aria-label="Versión"></div>
+        <p class="mc-idd-rot">Versiones · marca todas las que te valgan</p>
+        <div class="mc-idioma-chips" id="iddVersiones" role="group" aria-label="Versiones"></div>
       </div>
       <p class="mc-idd-nota" id="iddNota"></p>
       <div class="mc-idd-pie">
@@ -101,7 +103,7 @@ function crear() {
   document.body.append(dialogo)
   dialogo.addEventListener('click', (e) => {
     const version = e.target.closest('[data-variante]')
-    if (version) return marcarVersion(version.dataset.variante)
+    if (version) return alternarVersion(version.dataset.variante)
     const chip = e.target.closest('.mc-idioma-chip')
     if (chip && !chip.disabled) alternar(chip.dataset.idioma)
     // Tocar fuera de la caja es cancelar, como en el resto de hojas.
@@ -134,25 +136,41 @@ function alternar(id) {
   marcarIdiomas(nuevos)
 }
 
-const versionMarcada = () => dialogo.querySelector('#iddVersiones .activo')?.dataset.variante || ''
+const versionesMarcadas = () => [...dialogo.querySelectorAll('#iddVersiones [data-variante].activo')].map((x) => x.dataset.variante)
 const idiomasMarcados = () => [...dialogo.querySelectorAll('#iddChips .mc-idioma-chip.activo')].map((x) => x.dataset.idioma)
 
-// «Apuntar en 2 idiomas»: que se vea que son dos deseos.
+// «Apuntar en 2 idiomas», «Apuntar 4 deseos»: que se vea cuántos son.
 let textoBoton = 'Apuntar'
 function pintarBoton() {
   const n = idiomasMarcados().filter(Boolean).length
-  dialogo.querySelector('#iddApuntar').textContent = n > 1 ? `${textoBoton} en ${n} idiomas` : textoBoton
+  const nv = versionesMarcadas().filter(Boolean).length
+  const total = combosMarcados().length
+  dialogo.querySelector('#iddApuntar').textContent = nv > 1 ? `${textoBoton} ${total} deseos` : n > 1 ? `${textoBoton} en ${n} idiomas` : textoBoton
+}
+
+// Si un idioma vale para una versión (956): «cualquier idioma», siempre.
+function valeEn(idioma, variante) {
+  const { idiomas, versiones, reglas, cardId } = abierta
+  return idiomasDeLaVersion(idiomas, versiones, reglas, variante || null, cardId).includes(idioma)
+}
+function combosMarcados() {
+  const versiones = abierta.versiones.length ? versionesMarcadas() : [null]
+  return combosDe({ idiomas: idiomasMarcados(), variantes: versiones }, abierta.market, valeEn)
 }
 
 // Los idiomas, con los que no tienen la versión marcada apagados (956, como
 // al añadir). «Cualquiera» vale siempre; si el marcado deja de valer, se
 // vuelve a «cualquiera» o al primero que sí.
+// Con varias versiones marcadas, un idioma vale si sale en ALGUNA (las
+// parejas que no existen las quita `combosDe`).
 function pintarIdiomas(puestos) {
   const { idiomas, versiones, reglas, cardId } = abierta
-  const variante = versionMarcada()
-  const valen = new Set(idiomasDeLaVersion(idiomas, versiones, reglas, variante || null, cardId))
+  const marcadas = versionesMarcadas()
+  const lista = marcadas.length ? marcadas : ['']
+  const valen = new Set(lista.flatMap((v) => [...idiomasDeLaVersion(idiomas, versiones, reglas, v || null, cardId)]))
   let elegidos = (Array.isArray(puestos) ? puestos : [puestos]).filter((id) => id != null && valen.has(id))
   if (!elegidos.length) elegidos = [idiomas.find((i) => valen.has(i.id))?.id ?? '']
+  const variante = lista[0]
   const nombre = variante ? versiones.find((v) => v.id === variante)?.nombre || variante : ''
   dialogo.querySelector('#iddChips').innerHTML = idiomas
     .map((i) => chipDeIdiomaHtml(i, elegidos.includes(i.id), { noSalio: valen.has(i.id) ? '' : nombre }).replace('role="radio"', 'role="checkbox"'))
@@ -160,23 +178,33 @@ function pintarIdiomas(puestos) {
   pintarBoton()
 }
 
-function marcarVersion(id) {
+function marcarVersiones(ids) {
   for (const x of dialogo.querySelectorAll('#iddVersiones [data-variante]')) {
-    const puesto = x.dataset.variante === id
+    const puesto = ids.includes(x.dataset.variante)
     x.classList.toggle('activo', puesto)
     x.setAttribute('aria-checked', String(puesto))
   }
   pintarIdiomas(idiomasMarcados())
 }
+// Como los idiomas: «Cualquiera» ('') va solo y sin ninguna vuelve él.
+function alternarVersion(id) {
+  const ahora = versionesMarcadas()
+  let nuevas
+  if (!id) nuevas = ['']
+  else if (ahora.includes(id)) nuevas = ahora.filter((x) => x !== id)
+  else nuevas = [...ahora.filter(Boolean), id]
+  marcarVersiones(nuevas.length ? nuevas : [''])
+}
 
 // Con el redondel de la chapa de toda la web (1047c): la Holo naranja aquí
 // también.
-const chipDeVersionHtml = (v, activo) => `<button type="button" class="mc-idioma-chip mc-idd-version${activo ? ' activo' : ''}" role="radio" aria-checked="${activo}" data-variante="${escapeHtml(v.id)}">${v.id ? chapaDeVersionHtml(v.id, { nombre: false, enLinea: true }) : ''}<span>${escapeHtml(v.nombre)}</span></button>`
+const chipDeVersionHtml = (v, activo) => `<button type="button" class="mc-idioma-chip mc-idd-version${activo ? ' activo' : ''}" role="checkbox" aria-checked="${activo}" data-variante="${escapeHtml(v.id)}">${v.id ? chapaDeVersionHtml(v.id, { nombre: false, enLinea: true }) : ''}<span>${escapeHtml(v.nombre)}</span></button>`
 
-// Devuelve `{ idiomas, idioma, variante }` (`[null]` / `null` =
-// «cualquiera») o `undefined` si se cancela. `carta` dice las versiones;
-// `puesto`, lo que ya tiene un deseo que se cambia (C1: `idiomas` o
-// `idioma`); `soloVersion`, que el idioma no se toca.
+// Devuelve `{ combos, idiomas, variantes, idioma, variante }` (`null` =
+// «cualquiera»; `combos`, las parejas idioma × versión que existen: un deseo
+// cada una) o `undefined` si se cancela. `carta` dice las versiones; `puesto`,
+// lo que ya tiene un deseo que se cambia (C1: `idiomas`/`variantes` o
+// `idioma`/`variante`); `soloVersion`, que el idioma no se toca.
 // `varias` (1064): son N cartas a la vez (Seleccionar → «Las quiero», o
 // cambiar el idioma de varias): solo el idioma, una vez para todas.
 export async function preguntarDeseo({ nombre = '', market = 'WEST', setId = null, carta = null, puesto = null, soloVersion = false, varias = 0 } = {}) {
@@ -190,17 +218,19 @@ export async function preguntarDeseo({ nombre = '', market = 'WEST', setId = nul
   // La que ya tiene un deseo, aunque el set ya no la ofrezca (la 472).
   const puestos = puesto ? (puesto.idiomas || [puesto.idioma]).map((i) => i || '') : null
   for (const id of puestos || []) if (id && !opciones.some((i) => i.id === id)) opciones.push(IDIOMAS.find((i) => i.id === id) || { id, nombre: id })
-  abierta = { versiones, reglas, cardId: carta?.id || null, idiomas: opciones }
+  abierta = { versiones, reglas, cardId: carta?.id || null, idiomas: opciones, market }
   const entrada = puestos || idiomasDeEntrada(market)
   const conVersion = versiones.length > 0
   d.querySelector('#iddTitulo').textContent = varias ? '¿En qué idioma las quieres?' : conVersion || puesto ? '¿Cómo la quieres?' : '¿En qué idioma la quieres?'
   d.querySelector('#iddCarta').textContent = nombre
   d.querySelector('#iddIdiomaBloque').hidden = soloVersion
   d.querySelector('#iddVersionBloque').hidden = !conVersion
-  const vPuesta = puesto?.variante && !versiones.some((v) => v.id === puesto.variante) ? [...versiones, { id: puesto.variante, nombre: puesto.variante }] : versiones
-  abierta.versiones = vPuesta
+  // Las que ya tiene un deseo, aunque la carta ya no las ofrezca.
+  const vPuestas = puesto ? (puesto.variantes || [puesto.variante]).map((v) => v || '') : ['']
+  const vPuesta = [...versiones, ...vPuestas.filter((v) => v && !versiones.some((x) => x.id === v)).map((v) => ({ id: v, nombre: v }))]
+  abierta.versiones = conVersion ? vPuesta : []
   d.querySelector('#iddVersiones').innerHTML = conVersion
-    ? [{ id: '', nombre: 'Cualquiera' }, ...vPuesta].map((v) => chipDeVersionHtml(v, v.id === (puesto?.variante || ''))).join('')
+    ? [{ id: '', nombre: 'Cualquiera' }, ...vPuesta].map((v) => chipDeVersionHtml(v, vPuestas.includes(v.id))).join('')
     : ''
   textoBoton = puesto ? 'Guardar' : 'Apuntar'
   pintarIdiomas(entrada)
@@ -210,7 +240,9 @@ export async function preguntarDeseo({ nombre = '', market = 'WEST', setId = nul
     ? 'La quieres en varios idiomas: aquí cambias la versión.'
     : market === 'JP'
       ? (opciones.length > 1 ? 'Del catálogo japonés, en los idiomas en los que salió. Puedes marcar varios.' : 'Del catálogo japonés solo existe en japonés.')
-      : 'Marca todos los idiomas que te valgan: es un deseo por idioma. «Cualquiera» te cruza con más gente.'
+      : conVersion
+        ? 'Marca todos los idiomas y versiones que te valgan: es un deseo por cada pareja. «Cualquiera» te cruza con más gente.'
+        : 'Marca todos los idiomas que te valgan: es un deseo por idioma. «Cualquiera» te cruza con más gente.'
   d.returnValue = ''
   return new Promise((resolver) => {
     d.addEventListener('close', () => {
@@ -219,7 +251,10 @@ export async function preguntarDeseo({ nombre = '', market = 'WEST', setId = nul
       const idiomas = soloVersion ? (puesto?.idiomas || [puesto?.idioma ?? null]) : (marcados.length ? marcados : entrada).map((i) => i || null)
       if (!soloVersion) recordarIdiomas(market, idiomas)
       const limpios = idiomas.includes(null) ? [null] : idiomas
-      resolver({ idiomas: limpios, idioma: limpios[0], variante: conVersion ? versionMarcada() || null : puesto?.variante ?? null })
+      const fuera = puesto ? (puesto.variantes || [puesto.variante ?? null]) : [null]
+      const variantes = conVersion ? (versionesMarcadas().length ? versionesMarcadas() : ['']).map((v) => v || null) : fuera
+      const combos = soloVersion ? combosDe({ idiomas: limpios, variantes }, market) : conVersion ? combosMarcados() : combosDe({ idiomas: limpios, variantes }, market)
+      resolver({ idiomas: limpios, idioma: limpios[0], variantes, variante: variantes[0] ?? null, combos })
     }, { once: true })
     d.showModal()
     d.querySelector('.mc-idioma-chip.activo')?.focus()

@@ -41785,6 +41785,34 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1129 — «La quiero» en varias versiones
+
+PINGU, después de la 1128: «¿se pueden apuntar varios idiomas en varias
+versiones?». La base sí (un deseo por carta, idioma y versión); la pantalla
+no: la fila de versiones era de una, y con la carta ya apuntada el corazón la
+quita y el buscador la da por buscada.
+
+- **La ventana**: las versiones son casillas como los idiomas («Cualquiera»
+  solo). Un idioma se ofrece si sale en ALGUNA de las versiones marcadas, y
+  `combosDe` quita las parejas que no existen (Stormfront sin Reverse en
+  español, 956). Devuelve `combos` (una pareja por deseo), `idiomas`,
+  `variantes` y, por compatibilidad, `idioma` y `variante`. El botón: «Apuntar
+  4 deseos» con varias versiones, «Apuntar en 2 idiomas» con una.
+- **`planDeCombos(filas, combos, ocupados)`**: las parejas que siguen se
+  quedan; una fila cuya pareja ya no está pero cuyo idioma sí se CAMBIA de
+  versión (conserva su id); las demás se borran y lo nuevo se añade, menos lo
+  que otra fila de la carta ya tiene. `planDeDeseos` (1128) es ahora este
+  plan con una versión.
+- **Cambiar desde una baldosa** (una por versión): abre con sus idiomas y su
+  versión; marcar otra versión la añade. Si TODO lo pedido ya está en otra
+  fila, avisa («Esa carta ya está en tu lista de búsqueda») y no toca nada,
+  como la 1047.
+
+Prueba: la 1128 con Pawmi (Normal y Reverse): las casillas, «Apuntar 4
+deseos», las cuatro filas, dos baldosas con dos banderas cada una, y pasar la
+Reverse a Normal (que ya estaba) avisa sin cambiar nada. La 1047 pasa de
+versión marcando la nueva y quitando la vieja.
+
 ## Tanda 1128 — «La quiero» en varios idiomas
 
 Sergio.M en el hilo de errores: «si digo que me falta en portugués, no puedo
