@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-30", "tipo": "mejora", "texto": "En «La quiero» ya puedes apuntar una carta en varios idiomas a la vez: al tocar el corazón marca todos los que te valgan (por ejemplo, portugués y francés). Y para cambiarlos, toca las banderas de la carta.", "enlace": "/mi-coleccion?ver=quiero" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En la app del iPhone, la barra de abajo ya no se queda a media pantalla después de escribir en un chat (por ejemplo, el de tu partida en un torneo).", "enlace": "/torneos" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En el ordenador, cuando juegas un torneo ya no aparece arriba a la derecha el menú antiguo de las tres rayas: se queda el menú de la izquierda y el botón del torneo.", "enlace": "/torneos" },
     { "fecha": "2026-10-30", "tipo": "mejora", "texto": "En Deseos y cambios ya no hay que buscar «Ver las N»: el Mercado, La quiero y Las que doy enseñan todas las cartas hacia abajo y se van cargando solas al bajar. Arriba eliges «Los dos», «Pokémon» o «Japón».", "enlace": "/mi-coleccion?ver=mercado" },

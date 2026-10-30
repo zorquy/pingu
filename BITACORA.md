@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (369) — PINGU-Claude (1128 — «La quiero» en varios idiomas)
+
+**Hecho**: Sergio.M en el foro: al apuntar una carta solo dejaba un idioma, y
+la nota de la ventana prometía «puedes apuntarla en dos idiomas» sin camino.
+Propuesta con maquetas y PINGU: «dale como quieras» (la A). Los idiomas de
+«¿Cómo la quieres?» son casillas («Cualquiera» va solo, el botón dice
+«Apuntar en 2 idiomas»); apuntar escribe un deseo por idioma (Mercado,
+buscador, /carta, Seleccionar → «Las quiero»), y cambiar desde la ficha o la
+baldosa abre con los suyos marcados y añade o quita. Sin migración.
+
+**Ficheros**: `js/deseo-idiomas.js` (nuevo, puro), `js/idioma-deseo.js`,
+`js/mi-coleccion/deseos.js`, `js/mi-coleccion.js`, `js/la-quiero.js`, SCHEMA,
+CLAUDE.md, novedades. Pruebas en `pruebas`: 1128 nueva; 1047 al día (cambiar
+de idioma es quitar uno y poner otro).
+
+**Pendiente**: contestar a Sergio.M en el hilo. La 768 sigue en rojo, también
+sin este cambio (el buscador de «La quiero» va tras el «+» desde la 1057).
+
 ## 2026-10-30 (368) — PINGU-Claude (1127 — la barra del móvil a media pantalla)
 
 **Hecho**: PINGU, con captura del iPhone (app instalada): la barra de abajo y

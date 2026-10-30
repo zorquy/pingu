@@ -5683,18 +5683,22 @@ async function quererVarias(ids) {
   const soloJapon = markets.every((m) => m === 'JP')
   const r = await preguntarDeseo({ nombre: nuevasIds.length === 1 ? nombreDe(cartaPorId(nuevasIds[0])) || '' : `${nuevasIds.length} cartas`, market: soloJapon ? 'JP' : 'WEST', varias: nuevasIds.length > 1 ? nuevasIds.length : 0 })
   if (r === undefined) return null
+  const { idiomasPara } = await import('./deseo-idiomas.js')
   let nuevas = 0
   for (const [i, id] of nuevasIds.entries()) {
-    // Una japonesa no existe en español: si se eligió un idioma occidental,
-    // la japonesa va en «cualquiera» (que en su catálogo es japonés o asiático).
-    const idioma = markets[i] === 'JP' && r.idioma && !['ja', 'ko', 'zh', 'zh-tw', 'zh-cn'].includes(r.idioma) ? null : r.idioma
-    try {
-      const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: id, idioma })
-      if (Array.isArray(deseos)) deseos = [d, ...deseos]
-      nuevas++
-    } catch (err) {
-      if (!err.yaEstaba) throw err
+    // Un deseo por idioma marcado (1128). Una japonesa no existe en español:
+    // con un idioma occidental, la japonesa va en «cualquiera» (`idiomasPara`).
+    let entro = false
+    for (const idioma of idiomasPara(r.idiomas, markets[i])) {
+      try {
+        const d = await cambios.anadirDeseo({ user_id: sesion.user.id, card_id: id, idioma })
+        if (Array.isArray(deseos)) deseos = [d, ...deseos]
+        entro = true
+      } catch (err) {
+        if (!err.yaEstaba) throw err
+      }
     }
+    if (entro) nuevas++
   }
   refrescarCorazones()
   return nuevas

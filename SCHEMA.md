@@ -41785,6 +41785,39 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1128 — «La quiero» en varios idiomas
+
+Sergio.M en el hilo de errores: «si digo que me falta en portugués, no puedo
+añadir que me falta también en francés». La base ya lo admitía (un deseo por
+carta, idioma y versión, índice `user_wants_unico` de la 1047) y la baldosa ya
+pintaba varias banderas; la ventana «¿Cómo la quieres?» dejaba marcar UNO, y
+su nota prometía «puedes apuntarla en dos idiomas» sin camino: con la carta
+apuntada el corazón la quita y la fila de la ficha CAMBIA el idioma.
+
+- **La ventana** (`js/idioma-deseo.js`): los idiomas son casillas
+  (`role="checkbox"`); «Cualquiera» va solo (marcarlo quita los demás, quitar
+  todos lo vuelve a marcar; en el japonés, sin «cualquiera», queda el último).
+  El botón dice «Apuntar en N idiomas» / «Guardar en N idiomas». Devuelve
+  `idiomas` (`[null]` = cualquiera) y `idioma` (el primero, por si alguien
+  pregunta por uno). Lo último elegido se recuerda entero («pt,fr»).
+- **Lo puro** (`js/deseo-idiomas.js`): `idiomasPara(idiomas, market)` (sin
+  repetir, `null` solo, una japonesa con un idioma occidental es «cualquiera»
+  como en la 1064), `planDeDeseos(filas, idiomas, variante, ocupados)` (qué
+  filas se quedan —y si cambian de versión—, cuáles se borran y qué idiomas se
+  añaden; lo que otra fila ya tiene no se repite) y `textoDeIdiomas`.
+- **Apuntar** (`quererCarta`, `quererVarias`, `alternar` de la-quiero.js): un
+  `anadirDeseo` por idioma, con filas provisionales (896).
+- **Cambiar** (`cambiarDeseoDeBaldosa`): abre con TODOS los idiomas de esa
+  carta y versión marcados y aplica el plan; si choca con otra fila ya
+  apuntada, avisa y no toca nada (como antes). Si algo falla a medias, la
+  lista se vuelve a leer de la base. `cambiarIdiomaDeVarias` (Seleccionar →
+  «Idioma») usa el mismo plan.
+
+Prueba: `test-tanda-1128-pantalla.mjs` (lo puro; en PC y móvil: casillas,
+«Cualquiera» excluyente, el botón, apuntar en dos, la baldosa con dos
+banderas, cambiar a otros y volver a «Cualquiera»). La 1047 cambia de idioma
+quitando el viejo y poniendo el nuevo.
+
 ## Tanda 1127 — El visor de iOS, armado por tres señales
 
 PINGU, en la app instalada del iPhone: la barra de abajo y la burbuja a media

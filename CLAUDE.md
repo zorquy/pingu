@@ -775,7 +775,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   nuevo que meta cartas sin pasar por ahí se lo salta. El idioma se pregunta
   SIEMPRE (1064): apuntar varias va por `quererVarias` (una pregunta para
   todas, con lo último elegido), y lo apuntado se cambia desde la ficha
-  (`#mcEdDeseos`), el Mercado («Cambiar») o «Idioma» en «La quiero».
+  (`#mcEdDeseos`), el Mercado («Cambiar») o «Idioma» en «La quiero». Y se
+  marcan VARIOS (1128, Sergio.M del foro): la ventana devuelve `idiomas` y se
+  apunta un deseo por idioma con `idiomasPara` (`js/deseo-idiomas.js`,
+  «cualquiera» va solo); cambiar pasa por `planDeDeseos` (se quedan, se
+  borran, se añaden). Un camino nuevo que apunte lee `r.idiomas`, no
+  `r.idioma`.
 - **Un botón que escribe en la base cambia YA, confirma después y deshace
   si falla** (tanda 896, R6): el patrón de «Seguir» un hilo, aplicado a
   marcar leído, guardar una guía, «La quiero», el check-in y meter en un
