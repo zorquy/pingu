@@ -30,16 +30,14 @@ const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
 
 console.log('\n── 1. Los umbrales de nivel, en dos idiomas ──')
 {
-  // `js/gamification.js` importa `./supabase.js`, que arrastra el
-  // navegador entero: no se puede importar desde Node. Así que se lee
-  // como TEXTO, igual que la 322 hace con IDIOMA_POR_MERCADO.
-  const js = leer('js/gamification.js')
-  const bloque = js.slice(js.indexOf('export const LEVEL_THRESHOLDS'))
-  const enJs = [...bloque.slice(0, bloque.indexOf(']')).matchAll(/level: '([^']+)', min: (\d+)/g)]
-    .map(([, nombre, min]) => [nombre, Number(min)])
-  check('se leen los cinco niveles del JS', enJs.length === 5, JSON.stringify(enJs))
+  // Desde la 1124 los niveles viven en `js/niveles.js`, puro: se importa.
+  // Y la función de la base vale lo que diga la ÚLTIMA migración que la
+  // define (la 1124, diez niveles).
+  const { NIVELES } = await import(`${RAIZ}/js/niveles.js`)
+  const enJs = NIVELES.map((n) => [n.level, n.min])
+  check('se leen los diez niveles del JS', enJs.length === 10, JSON.stringify(enJs))
 
-  const sql = leer('supabase-migration-torneos-xp.sql')
+  const sql = leer('supabase-migration-1124-niveles.sql')
   const fn = sql.slice(sql.indexOf('function public.nivel_de_xp'))
   const enSql = [...fn.slice(0, fn.indexOf('$$;')).matchAll(/>= (\d+)\s+then '([^']+)'/g)]
     .map(([, min, nombre]) => [nombre, Number(min)])
@@ -47,7 +45,7 @@ console.log('\n── 1. Los umbrales de nivel, en dos idiomas ──')
   // El `else 'Novato'` no lleva número: es el suelo, y su mínimo es 0.
   const suelo = /else '([^']+)'/.exec(fn)?.[1]
   const sqlEntero = [[suelo, 0], ...enSql]
-  check('y los cinco de la migración', sqlEntero.length === 5, JSON.stringify(sqlEntero))
+  check('y los diez de la migración', sqlEntero.length === 10, JSON.stringify(sqlEntero))
   check('los dos dicen LO MISMO',
     JSON.stringify(enJs) === JSON.stringify(sqlEntero),
     `js=${JSON.stringify(enJs)} sql=${JSON.stringify(sqlEntero)}`)
@@ -190,9 +188,10 @@ console.log('\n── 5. El nombre NO se tiñe por nivel ──')
   // pintando letra. Están elegidos para el fondo oscuro y para una
   // chapa, cuya CSS los oscurece un 45% — como texto sobre blanco dan
   // entre 2,1 y 3,3, y la WCAG pide 4,5.
-  const g = leer('js/gamification.js')
+  // Desde la 1124 están en js/niveles.js: diez (Maestro repite el oro).
+  const g = leer('js/niveles.js')
   const colores = [...g.matchAll(/color: '(#[0-9a-f]{6})'/gi)].map((m) => m[1].toLowerCase())
-  check('se leen los cinco colores de nivel', colores.length === 5, colores.join(','))
+  check('se leen los diez colores de nivel', colores.length === 10, colores.join(','))
 
   const L = (h) => {
     const [r, v, a] = h.slice(1).match(/../g).map((x) => parseInt(x, 16) / 255)
@@ -207,8 +206,8 @@ console.log('\n── 5. El nombre NO se tiñe por nivel ──')
   // chapa y no en el nombre. Si algún día alguien los aclara para poder
   // teñir, esta comprobación se cae y hay que venir a decidirlo a mano.
   const flojos = colores.filter((c) => contra(c, '#ffffff') < 4.5)
-  check('los cinco siguen sin valer como letra sobre blanco',
-    flojos.length === 5, `valen como letra: ${colores.filter((c) => !flojos.includes(c)).join(',')}`)
+  check('ninguno vale como letra sobre blanco',
+    flojos.length === colores.length, `valen como letra: ${colores.filter((c) => !flojos.includes(c)).join(',')}`)
 
   // Un hex suelto en una hoja no prueba nada: dos de estos cinco están
   // en el CSS por otras cosas (un verde de «hecho», un azul de aviso).
