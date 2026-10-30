@@ -36,7 +36,9 @@ async function abrir(ruta, { movil = true, deseos = MEZCLA } = {}) {
 const rejilla = (page, id) => page.evaluate((id) => {
   const r = document.getElementById(id)
   if (!r) return null
-  const hijos = [...r.children].map((h) => h.matches('.mc-catalogo-rotulo') ? `#${[...h.children].map((x) => x.textContent.trim()).filter(Boolean).join(' ')}` : (h.dataset.deseoCarta || h.dataset.doyLinea || '?'))
+  // Desde la 1125 el selector «Los dos · Pokémon · Japón» y el final de la
+  // lista que crece van en la rejilla: no son cartas ni rótulos.
+  const hijos = [...r.children].filter((h) => !h.matches('.mc-lista-cats, [data-lista-mas]')).map((h) => h.matches('.mc-catalogo-rotulo') ? `#${[...h.children].map((x) => x.textContent.trim()).filter(Boolean).join(' ')}` : (h.dataset.deseoCarta || h.dataset.doyLinea || '?'))
   return { columnas: getComputedStyle(r).gridTemplateColumns.split(' ').length, hijos, ancho: document.documentElement.scrollWidth <= innerWidth }
 }, id)
 
