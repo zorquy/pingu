@@ -83,7 +83,8 @@ check('errores en 24 h: uno, el último en /cartas, y dos sin mirar', /1 nuevo �
 console.log('── Lo que se fue ──')
 check('ni guía destacada ni lanzamientos en /admin', !(await page.$('#destacadaPanel')) && !(await page.$('#lanzamientosPanel')))
 check('las claves push están en «Base de datos», no en «Hoy»', (await page.$('#section-database #pushClavesPanel')) !== null && !(await page.$('#section-dashboard #pushClavesPanel')))
-check('el aviso global sigue (hasta la 1120)', (await page.$('#section-dashboard #avisoGlobalTexto')) !== null)
+// El aviso global se fue a su sección en la 1120; desde «Hoy», un botón.
+check('el aviso, en su sección con el botón desde «Hoy» (1120)', (await page.$('#section-avisos')) !== null && (await page.$('#section-dashboard [data-ir="avisos"]')) !== null)
 check('sin errores en la página', !errores.length, errores.join(' | '))
 
 console.log('── En el móvil ──')

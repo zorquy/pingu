@@ -148,6 +148,8 @@ const T = {
   achievement_definitions: [],
   // Quién dio o quitó un logro a mano (1118).
   logros_a_mano: [],
+  // 1120: lo que el equipo manda a la campanita de todos.
+  avisos_enviados: [],
   user_achievements: [],
   daily_challenge_results: [],
   user_progress: [],
@@ -1683,6 +1685,23 @@ export const supabase = {
       T.logros_a_mano.push({ id: T.logros_a_mano.length + 1, user_id: p.id, logro_id: args.p_logro, accion: dar ? 'dar' : 'quitar', motivo: args.p_motivo || null, por: yo, created_at: new Date().toISOString() })
       if (dar) T.user_notifications.push({ id: `n-logro-${T.user_notifications.length + 1}`, recipient_id: p.id, type: 'logro', title: `Tienes un logro nuevo: ${def.title}`, body: args.p_motivo || null, link: '/perfil?ver=logros', created_at: new Date().toISOString() })
       return { data: { ok: true, xp }, error: null }
+    }
+    // 1120: un aviso en la campanita de todas las cuentas (menos a quien lo apagó).
+    if (nombre === 'admin_aviso_campanita') {
+      if (typeof window !== 'undefined' && window.__SIN_1120__) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.admin_aviso_campanita' } }
+      const yo = typeof window !== 'undefined' ? window.__FAKE_SESSION__ : null
+      if (!T.user_profiles.find((p) => p.id === yo)?.is_admin) return { data: null, error: { code: 'P0001', message: 'solo el equipo puede avisar a todo el mundo' } }
+      const titulo = String(args.p_titulo || '').trim().slice(0, 200)
+      const enlace = String(args.p_enlace || '').trim() || null
+      if (!titulo) return { data: null, error: { code: 'P0001', message: 'el aviso necesita un texto' } }
+      if (enlace && !/^(\/[^/]|\/$|https:\/\/)/.test(enlace)) return { data: null, error: { code: 'P0001', message: 'el enlace tiene que empezar por / o por https://' } }
+      const hora = Date.now() - 3600000
+      if (T.avisos_enviados.some((a) => a.titulo === titulo && (a.enlace || '') === (enlace || '') && +new Date(a.created_at) > hora)) return { data: { ok: true, ya: true, personas: 0 }, error: null }
+      const para = T.user_profiles.filter((p) => !(p.notification_prefs_disabled || []).includes('aviso_equipo'))
+      const ahora = new Date().toISOString()
+      for (const p of para) T.user_notifications.push({ id: `n-aviso-${T.user_notifications.length + 1}`, recipient_id: p.id, type: 'aviso_equipo', title: titulo, body: args.p_cuerpo || null, link: enlace, read_at: null, created_at: ahora })
+      T.avisos_enviados.push({ id: `av-${T.avisos_enviados.length + 1}`, titulo, cuerpo: args.p_cuerpo || null, enlace, personas: para.length, por: yo, created_at: ahora })
+      return { data: { ok: true, personas: para.length }, error: null }
     }
     if (nombre === 'idiomas_de_set' || nombre === 'idiomas_de_set_calculados') {
       const mapa = (typeof window !== 'undefined' && window.__FAKE_IDIOMAS_SET__) || null
