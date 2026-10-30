@@ -162,7 +162,8 @@ console.log('\n── 4. El botón que no funciona ──')
 
 console.log('\n── 5. /admin los pinta con la MISMA plantilla ──')
 {
-  const admin = leer('admin/js/admin.js')
+  // Desde la 1122 la sección vive en su módulo (admin/js/correos-admin.js).
+  const admin = leer('admin/js/correos-admin.js')
   check('importa el módulo del envío', /from '\.\.\/\.\.\/js\/email-plantilla\.js'/.test(admin))
   check('…y no se copia la plantilla', !/<!doctype html>/i.test(admin))
   check('la sección existe', /id="section-correos"/.test(leer('admin/index.html')))

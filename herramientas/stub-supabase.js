@@ -152,6 +152,9 @@ const T = {
   avisos_enviados: [],
   // 1121: silencios y baneos con motivo y fecha de fin.
   moderaciones: [],
+  // 1122: los textos de los correos que cambia el equipo, y la cola para la prueba.
+  correo_textos: [],
+  email_outbox: [],
   user_achievements: [],
   daily_challenge_results: [],
   user_progress: [],
@@ -1704,6 +1707,14 @@ export const supabase = {
       for (const p of para) T.user_notifications.push({ id: `n-aviso-${T.user_notifications.length + 1}`, recipient_id: p.id, type: 'aviso_equipo', title: titulo, body: args.p_cuerpo || null, link: enlace, read_at: null, created_at: ahora })
       T.avisos_enviados.push({ id: `av-${T.avisos_enviados.length + 1}`, titulo, cuerpo: args.p_cuerpo || null, enlace, personas: para.length, por: yo, created_at: ahora })
       return { data: { ok: true, personas: para.length }, error: null }
+    }
+    // 1122: una prueba de un correo a la cola, para quien la pide.
+    if (nombre === 'admin_correo_prueba') {
+      if (typeof window !== 'undefined' && window.__SIN_1122__) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.admin_correo_prueba' } }
+      const yo = typeof window !== 'undefined' ? window.__FAKE_SESSION__ || 'admin-1' : null
+      if (!T.user_profiles.find((p) => p.id === yo)?.is_admin) return { data: null, error: { code: 'P0001', message: 'solo el equipo puede mandarse pruebas' } }
+      T.email_outbox.push({ id: `eo-${T.email_outbox.length + 1}`, recipient_id: yo, type: args.p_tipo, subject: args.p_asunto, preview: args.p_cita || null, link: args.p_enlace || null, thread_key: `prueba:${T.email_outbox.length + 1}`, status: 'pending', created_at: new Date().toISOString() })
+      return { data: { ok: true }, error: null }
     }
     // 1121: moderar con motivo y duración; lo vencido se levanta.
     if (nombre === 'admin_moderar' || nombre === 'admin_moderar_quitar' || nombre === 'moderacion_al_dia') {
