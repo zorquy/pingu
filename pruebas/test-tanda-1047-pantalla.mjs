@@ -172,6 +172,8 @@ console.log('── 3. «La quiero»: una baldosa por versión ──')
   await page.click('[data-cambiar-deseo="mcd21-2"][data-cambiar-version="normal"]')
   await page.waitForTimeout(700)
   check('se abre con lo puesto (Normal, español) y «Guardar»', (await abierto(page)) && (await page.$eval('#iddVersiones .activo', (b) => b.dataset.variante)) === 'normal' && (await page.$eval('#iddChips .activo', (b) => b.dataset.idioma)) === 'es' && (await page.textContent('#iddApuntar')) === 'Guardar')
+  // Desde la 1128 los idiomas son casillas: cambiar es quitar uno y poner otro.
+  await page.click('#iddChips [data-idioma="es"]')
   await page.click('#iddChips [data-idioma="en"]')
   await page.click('#iddApuntar')
   await page.waitForTimeout(1200)
