@@ -133,6 +133,8 @@ console.log('\n── 3. La función ──')
   const d3 = doble(['c-1', 'c-2', 'c-3', 'c-4', 'c-5', 'c-6'])
   const r3 = await F.elegirParejas({ dia: hoy, libre: 7, ...d3 })
   check('una libre no lee ni escribe la tabla del día', r3.libre === 7 && r3.dia === L.diaLibre(7) && !d3.pedidas.some((p) => p.startsWith('retos_reto_del_dia')) && !d3.guardadas.length && r3.cartas.length === 6)
+  // (Desde la 1111b también se pregunta si una foto la comparte otra carta,
+  // `id=neq.`: eso no es la cuenta.)
   // 990: las candidatas se piden A LA VEZ (eran 24 viajes seguidos) y la
   // cuenta de cartas se reusa en una función ya caliente.
   F.olvidarCuenta()
@@ -144,7 +146,7 @@ console.log('\n── 3. La función ──')
   check('las candidatas se piden a la vez, no una detrás de otra (990)', maxEnVuelo >= 10, `a la vez como mucho: ${maxEnVuelo}`)
   const otra = doble()
   await F.elegirParejas({ dia: hoy, libre: 10, ...otra })
-  check('  …y la cuenta de cartas no se vuelve a pedir en la misma función', !otra.pedidas.some((p) => /^tcg_cards\?select=id&.*limit=1$/.test(p)), otra.pedidas.slice(0, 3).join(' | '))
+  check('  …y la cuenta de cartas no se vuelve a pedir en la misma función', !otra.pedidas.some((p) => /^tcg_cards\?select=id&.*limit=1$/.test(p) && !/=neq\./.test(p)), otra.pedidas.slice(0, 3).join(' | '))
   F.olvidarCuenta()
   check('las del día van con cabecera de CDN hasta medianoche; las libres, con las suyas (990)', /'netlify-cdn-cache-control': `public, durable, max-age=\$\{hasta\}`/.test(leer('netlify/functions/parejas.mjs')))
   check('el sitemap y las tarjetas sociales la conocen', /\['\/parejas'/.test(leer('netlify/functions/sitemap.mjs')) && /'\/parejas': 'parejas'/.test(leer('netlify/edge-functions/meta-social.js')))
