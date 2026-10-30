@@ -41785,6 +41785,49 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1118 — El panel de Logros de /admin
+
+PINGU, a la propuesta «Panel de admin nuevo»: «adelante» (con las
+recomendadas: dar y quitar a mano con motivo; «cómo se consigue» automático y
+editable; Logros primero).
+
+- `admin/js/logros-admin.js` (entra por `import()` al abrir la sección): la
+  rejilla de logros como los ve la gente (icono con su rareza, «cómo se
+  consigue», barra con el % y cuántas personas lo tienen de `logros_reparto`),
+  chips por familia (`FAMILIAS`, solo las que tienen algo) más «Nadie lo
+  tiene» y «Apagados», y un buscador. El editor va en un cajón a la derecha
+  (encima de la rejilla por debajo de 1.100 px): nombre, clave (solo al
+  crear), icono de una rejilla de `icons.js`, rareza, el tipo de condición
+  agrupado por familia con su número y la frase EN VIVO
+  (`objetivoAutomatico`), «Decirlo con tus palabras» (`objetivo`), «Lo que
+  hiciste» (`description`), XP, activo, icono propio plegado y la vista
+  previa. «Duplicar» busca la primera clave libre (`_2`, `_3`…) y la deja
+  apagada; crear con una clave que ya existe no se guarda (un upsert la
+  pisaría). «Quién lo tiene» lista a quien lo tiene (`contains`, 500 como
+  mucho), con el motivo de lo dado a mano, y deja dar (por @usuario) y quitar.
+- El desplegable viejo no tenía los tipos de los retos, de invitar ni de los
+  primeros pasos: abrir uno de esos y guardar le cambiaba la regla a «Cursos
+  completados» (la 472). Ahora la lista es `TIPOS` (js/logro-objetivo.js), la
+  misma que `FRASES`, y un tipo que no conoce se ofrece igual.
+- `js/logro-objetivo.js`: `objetivoDeLogro` prefiere `objetivo` si está
+  escrito; `objetivoAutomatico` es la frase de la regla; `TIPOS`, `FAMILIAS`,
+  `familiaDeLogro`, `TIPOS_CON_FRASE`.
+- Migración `supabase-migration-1118-logros-admin.sql`:
+  `achievement_definitions.objetivo`, `logros_a_mano` (quién, a quién, qué,
+  dar/quitar, motivo; solo la lee el equipo) y `admin_logro_dar` /
+  `admin_logro_quitar` (solo admin): dar suma la XP del logro y su nivel y
+  avisa (`user_notifications` tipo `logro`, con el motivo); quitar la resta
+  sin bajar de cero y, si era el destacado, deja de serlo. Sin la migración el
+  panel funciona: no ofrece «con tus palabras» y dar/quitar dicen que falta.
+- Fuera de admin.js: `openAchievementModal`, `CONDITION_LABELS` y el botón
+  de la cabecera.
+- Pruebas: `test-tanda-1118.mjs` (lo puro y la migración contra PostgreSQL) y
+  `test-tanda-1118-pantalla.mjs`; el doble calcula `logros_reparto`,
+  `admin_logro_dar` y `admin_logro_quitar` de sus tablas.
+- Visto de paso: en /admin, cualquier sección da ~40 «Failed to read the
+  'serviceWorker' property» de los iframes con `sandbox` de las vistas previas
+  de Correos. Es de antes; se mira en la tanda de Correos.
+
 ## Tanda 1117 — «Logros», un solo nombre, y la ficha de cada logro
 
 PINGU: «en un perfil público está medallas, después pone trofeos y también

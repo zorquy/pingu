@@ -1582,7 +1582,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   curso es otra cosa). La pestaña es `logros` (`medallas` y `about`, alias), y
   un logro se abre con `abrirLogro` (`js/logro-ficha.js`): lo que hiciste o el
   objetivo (`objetivoDeLogro`, por su condición). Un tipo de condición nuevo
-  lleva su frase en `FRASES` de `js/logro-objetivo.js`.
+  lleva su frase en `FRASES` y su fila en `TIPOS` de `js/logro-objetivo.js`
+  (de ahí sale el desplegable de /admin). Los logros se editan en /admin →
+  Logros (`admin/js/logros-admin.js`, 1118), y se dan o quitan a mano solo
+  por `admin_logro_dar` / `admin_logro_quitar`, que mueven su XP y lo apuntan
+  en `logros_a_mano`: no escribas `achievements` de otra persona a pelo.
 - **Una guía tiene UNA señal: «Me ha servido»** (tanda 974, PINGU eligió
   la A): la caja «¿Te ha servido? Sí / No tanto» se fue porque preguntaba
   lo mismo justo debajo. Es `guide_helpful` (`js/guide-helpful.js`, con su

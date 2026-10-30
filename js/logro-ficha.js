@@ -7,8 +7,7 @@ import { supabase } from './supabase.js'
 import { escapeHtml, achievementIconHtml } from './app.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
-import { objetivoDeLogro, RAREZAS } from './logro-objetivo.js'
-import { textoDeReparto } from './logros-reparto.js'
+import { objetivoDeLogro, RAREZAS, textoDeReparto } from './logro-objetivo.js'
 
 let dialogo = null
 let reparto = null

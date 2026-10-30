@@ -43,8 +43,17 @@ const POR_ID = {
 }
 
 // La frase del objetivo, o null si no se sabe decir (entonces se enseña la
-// descripción tal cual).
+// descripción tal cual). Si en /admin se ha escrito una a mano (`objetivo`,
+// 1118), manda esa.
 export function objetivoDeLogro(logro) {
+  if (!logro) return null
+  const propia = String(logro.objetivo ?? '').trim()
+  if (propia) return propia
+  return objetivoAutomatico(logro)
+}
+
+// La que sale sola de la regla: la que /admin enseña mientras editas.
+export function objetivoAutomatico(logro) {
   if (!logro) return null
   if (POR_ID[logro.id]) return POR_ID[logro.id]
   const tipo = logro.condition?.type
@@ -53,4 +62,59 @@ export function objetivoDeLogro(logro) {
   return frase(logro.condition?.count ?? 1)
 }
 
+// «Lo tiene el 3 %» (793): cuánta gente tiene un logro, en palabras.
+export function textoDeReparto(personas, total) {
+  if (!total) return ''
+  const p = (personas / total) * 100
+  if (p === 0) return 'Nadie la tiene aún'
+  if (p < 1) return 'La tiene menos del 1 %'
+  return `La tiene el ${Math.round(p).toLocaleString('es-ES')} %`
+}
+
 export const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Platino' }
+
+// Las familias del panel de /admin (1118) y los tipos de condición que
+// comprueba la web, con su nombre. La lista de tipos es la de `FRASES`: un
+// tipo nuevo va en los dos sitios (la prueba 1118 lo vigila).
+export const FAMILIAS = {
+  cursos: 'Cursos',
+  foro: 'Foro',
+  guias: 'Guías',
+  coleccion: 'Colección',
+  retos: 'Retos',
+  torneos: 'Torneos',
+  comunidad: 'Comunidad',
+}
+
+export const TIPOS = [
+  { tipo: 'completed_guides_count', etiqueta: 'Cursos completados', familia: 'cursos' },
+  { tipo: 'quiz_correct_count', etiqueta: 'Preguntas acertadas en los cursos', familia: 'cursos' },
+  { tipo: 'total_xp', etiqueta: 'XP total', familia: 'cursos' },
+  { tipo: 'forum_posts_count', etiqueta: 'Mensajes en el foro', familia: 'foro' },
+  { tipo: 'forum_threads_count', etiqueta: 'Temas abiertos en el foro', familia: 'foro' },
+  { tipo: 'forum_reactions_received', etiqueta: 'Reacciones recibidas en el foro', familia: 'foro' },
+  { tipo: 'approved_guides_count', etiqueta: 'Guías aprobadas (autor)', familia: 'guias' },
+  { tipo: 'collection_cards_count', etiqueta: 'Cartas distintas en la colección', familia: 'coleccion' },
+  { tipo: 'collection_sets_complete', etiqueta: 'Expansiones completas', familia: 'coleccion' },
+  { tipo: 'collection_top_card_eur', etiqueta: 'Una carta que vale más de (€)', familia: 'coleccion' },
+  { tipo: 'collection_illustrator_cards', etiqueta: 'Cartas de un mismo ilustrador', familia: 'coleccion' },
+  { tipo: 'collection_pokedex_regions', etiqueta: 'Regiones de la Pokédex completas', familia: 'coleccion' },
+  { tipo: 'trades_done_count', etiqueta: 'Cambios hechos', familia: 'coleccion' },
+  { tipo: 'retos_racha', etiqueta: 'Días seguidos jugando retos', familia: 'retos' },
+  { tipo: 'retos_perfectos', etiqueta: 'Días con todos los retos hechos', familia: 'retos' },
+  { tipo: 'retos_jugados', etiqueta: 'Retos jugados', familia: 'retos' },
+  { tipo: 'carta_primera', etiqueta: '«¿Qué carta es?» a la primera', familia: 'retos' },
+  { tipo: 'carta_aciertos', etiqueta: 'Aciertos en «¿Qué carta es?»', familia: 'retos' },
+  { tipo: 'caro_perfectos', etiqueta: 'Cinco de cinco en «¿Más caro o más barato?»', familia: 'retos' },
+  { tipo: 'primeros_pasos', etiqueta: 'Primeros pasos de la portada', familia: 'comunidad' },
+  { tipo: 'referrals_count', etiqueta: 'Personas invitadas', familia: 'comunidad' },
+  { tipo: 'was_referred', etiqueta: 'Entró con una invitación', familia: 'comunidad' },
+  { tipo: 'manual', etiqueta: 'A mano o por un torneo', familia: 'torneos' },
+]
+
+export function familiaDeLogro(logro) {
+  if (String(logro?.id || '').startsWith('torneo_')) return 'torneos'
+  return TIPOS.find((t) => t.tipo === logro?.condition?.type)?.familia || 'comunidad'
+}
+
+export const TIPOS_CON_FRASE = Object.keys(FRASES)

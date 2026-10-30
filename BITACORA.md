@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (359) — PINGU-Claude (1118 — el panel de Logros de /admin)
+
+**Hecho**: PINGU dijo «adelante» a la propuesta del admin (las recomendadas).
+Primera tanda: Logros. Rejilla con familias, cuánta gente tiene cada uno,
+«Nadie lo tiene» y «Apagados»; editor en un cajón con icono de la web,
+rareza, tipo de condición con la frase en vivo, «decirlo con tus palabras»,
+vista previa y Duplicar; «Quién lo tiene» con dar y quitar a mano y su motivo.
+Arreglado de paso: el formulario viejo cambiaba la regla de los logros de
+retos e invitar a «Cursos completados» al guardarlos.
+
+**Ficheros**: `admin/js/logros-admin.js` (nuevo), `admin/js/admin.js`,
+`admin/index.html`, `admin/css/admin.css`, `js/logro-objetivo.js`,
+`supabase-migration-1118-logros-admin.sql` (nueva), SCHEMA, CLAUDE.md.
+Pruebas en `pruebas`: 1118 (PostgreSQL) y 1118-pantalla; el doble con
+`logros_reparto`, `admin_logro_dar` y `admin_logro_quitar`.
+
+**Pendiente**: PINGU ejecuta `supabase-migration-1118-logros-admin.sql`
+(sin ella no se puede dar/quitar ni escribir «con tus palabras»). Siguiente
+tanda del admin: el marco con «Hoy».
+
 ## 2026-10-30 (358) — PINGU-Claude (1117 — «Logros», un nombre, y la ficha de cada logro)
 
 **Hecho**: PINGU: «medallas», «trofeos» y «logro destacado» en el mismo perfil;

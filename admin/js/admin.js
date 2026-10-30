@@ -1,6 +1,5 @@
 import { supabase } from '../../js/supabase.js'
 import { escapeHtml, getSession, validateImageFile, uploadGuideImage, profileUrl, slugify } from '../../js/app.js'
-import { invalidateAchievementsCache } from '../../js/gamification.js'
 import { showToast } from '../../js/toast.js'
 // Del módulo de LECTURA, que existe para esto desde la 316 (ver su
 // cabecera): `block-editor.js` solo lo reexporta, y pedírselo a él
@@ -930,150 +929,11 @@ document.getElementById('btnMigrateOldGuides').addEventListener('click', async (
 
 
 // ── Achievements ──
-const CONDITION_LABELS = {
-  completed_guides_count: 'Cursos completados',
-  total_xp: 'XP total',
-  quiz_correct_count: 'Preguntas acertadas',
-  approved_guides_count: 'Guías aprobadas (autor)',
-  forum_posts_count: 'Mensajes en el foro',
-  forum_threads_count: 'Temas abiertos en el foro',
-  forum_reactions_received: 'Reacciones recibidas en el foro',
-  collection_cards_count: 'Cartas distintas en la colección',
-  collection_sets_complete: 'Expansiones completas',
-  collection_top_card_eur: 'Una carta que vale al menos (€)',
-  collection_illustrator_cards: 'Cartas de un mismo ilustrador',
-  collection_pokedex_regions: 'Regiones de la Pokédex completas',
-  trades_done_count: 'Cambios hechos',
-}
-
+// Los logros (1118): su panel vive en logros-admin.js, que entra al abrirlo.
 async function loadAchievements() {
-  const { data } = await supabase.from('achievement_definitions').select('*').order('xp_reward')
-  const achievements = data || []
-
-  document.getElementById('achievementsTable').innerHTML = `
-    <table class="admin-table">
-      <thead><tr><th>Icono</th><th>Título</th><th>Rareza</th><th>Condición</th><th>XP</th><th>Activo</th><th></th></tr></thead>
-      <tbody>
-        ${achievements
-          .map(
-            (a) => `
-          <tr>
-            <td>${contentIconHtml(a.emoji, 20, 'trophy')}</td>
-            <td>${escapeHtml(a.title)}</td>
-            <td><span class="rarity-chip rarity-${a.rarity || 'bronze'}">${escapeHtml(a.rarity || 'bronze')}</span></td>
-            <td>${CONDITION_LABELS[a.condition?.type] || a.condition?.type || '—'} ≥ ${a.condition?.count ?? '—'}</td>
-            <td>${a.xp_reward || 0}</td>
-            <td>${a.is_active ? '✓' : ''}</td>
-            <td class="admin-row-actions">
-              <button data-edit="${a.id}">Editar</button>
-              <button class="danger" data-delete="${a.id}">Eliminar</button>
-            </td>
-          </tr>`
-          )
-          .join('')}
-      </tbody>
-    </table>`
-
-  document.querySelectorAll('#achievementsTable [data-edit]').forEach((btn) =>
-    btn.addEventListener('click', () => openAchievementModal(achievements.find((a) => a.id === btn.dataset.edit)))
-  )
-  document.querySelectorAll('#achievementsTable [data-delete]').forEach((btn) =>
-    btn.addEventListener('click', async () => {
-      if (!confirm('¿Eliminar este logro?')) return
-      await supabase.from('achievement_definitions').delete().eq('id', btn.dataset.delete)
-      invalidateAchievementsCache()
-      loadAchievements()
-    })
-  )
+  const { montarLogros } = await import('./logros-admin.js')
+  await montarLogros(document.getElementById('achievementsTable'))
 }
-
-function openAchievementModal(achievement) {
-  const a = achievement || {
-    id: '',
-    title: '',
-    description: '',
-    emoji: 'trophy',
-    icon_url: '',
-    cover_image: '',
-    rarity: 'bronze',
-    xp_reward: 50,
-    is_active: true,
-    condition: { type: 'completed_guides_count', count: 1 },
-  }
-  openModal(`
-    <h3>${achievement ? 'Editar' : 'Nuevo'} logro</h3>
-    <div class="form-group"><label>Clave única (id)</label><input id="aId" value="${escapeHtml(a.id)}" placeholder="first_course" ${achievement ? 'disabled' : ''} /></div>
-    <div class="form-group"><label>Título</label><input id="aTitle" value="${escapeHtml(a.title)}" /></div>
-    <div class="form-group"><label>Descripción</label><textarea id="aDescription">${escapeHtml(a.description || '')}</textarea></div>
-    <div class="form-group"><label>Icono</label><input id="aEmoji" value="${escapeHtml(a.emoji || '')}" /></div>
-    <div class="form-group"><label>Icono (URL, opcional)</label><input id="aIconUrl" value="${escapeHtml(a.icon_url || '')}" /></div>
-    <div class="form-group"><label>Imagen de portada (URL, opcional)</label><input id="aCoverImage" value="${escapeHtml(a.cover_image || '')}" /></div>
-    <div class="form-group"><label>Rareza</label>
-      <select id="aRarity">
-        ${['bronze', 'silver', 'gold', 'platinum'].map((r) => `<option value="${r}" ${a.rarity === r ? 'selected' : ''}>${r}</option>`).join('')}
-      </select>
-    </div>
-    <div class="form-group"><label>Tipo de condición</label>
-      <select id="aConditionType">
-        <option value="completed_guides_count" ${a.condition?.type === 'completed_guides_count' ? 'selected' : ''}>Cursos completados</option>
-        <option value="total_xp" ${a.condition?.type === 'total_xp' ? 'selected' : ''}>XP total</option>
-        <option value="quiz_correct_count" ${a.condition?.type === 'quiz_correct_count' ? 'selected' : ''}>Preguntas acertadas</option>
-        <option value="approved_guides_count" ${a.condition?.type === 'approved_guides_count' ? 'selected' : ''}>Guías aprobadas (autor)</option>
-        <option value="forum_posts_count" ${a.condition?.type === 'forum_posts_count' ? 'selected' : ''}>Mensajes en el foro</option>
-        <option value="forum_threads_count" ${a.condition?.type === 'forum_threads_count' ? 'selected' : ''}>Temas abiertos en el foro</option>
-        <option value="forum_reactions_received" ${a.condition?.type === 'forum_reactions_received' ? 'selected' : ''}>Reacciones recibidas en el foro</option>
-        ${['collection_cards_count', 'collection_sets_complete', 'collection_top_card_eur', 'collection_illustrator_cards', 'collection_pokedex_regions', 'trades_done_count'].map((t) => `<option value="${t}" ${a.condition?.type === t ? 'selected' : ''}>${CONDITION_LABELS[t]}</option>`).join('')}
-      </select>
-    </div>
-    <div class="form-group"><label>Valor de la condición</label><input id="aConditionCount" type="number" inputmode="numeric" value="${a.condition?.count ?? 1}" /></div>
-    <div class="form-group"><label>XP de recompensa</label><input id="aXpReward" type="number" inputmode="numeric" value="${a.xp_reward ?? 50}" /></div>
-    <div class="form-group"><label><input type="checkbox" id="aIsActive" ${a.is_active ? 'checked' : ''} /> Activo</label></div>
-    <button class="btn-primary btn-block" id="btnSaveAchievement">Guardar</button>`)
-
-  attachEmojiPicker(document.getElementById('aEmoji'))
-
-  document.getElementById('btnSaveAchievement').addEventListener('click', async () => {
-    // Un nombre de icono que icons.js no conoce no se guarda (1013, L12):
-    // en el trofeo saldría la medalla de por defecto, sin que nadie se
-    // entere de que se escribió mal. Un emoji de verdad sí vale.
-    const iconoEscrito = document.getElementById('aEmoji').value.trim()
-    if (/^[a-z][a-zA-Z0-9]*$/.test(iconoEscrito) && !icons[iconoEscrito]) {
-      showToast(`No hay ningún icono que se llame «${iconoEscrito}»: elige uno de la lista.`)
-      return
-    }
-    const payload = {
-      title: document.getElementById('aTitle').value.trim(),
-      description: document.getElementById('aDescription').value.trim(),
-      emoji: iconoEscrito,
-      icon_url: document.getElementById('aIconUrl').value.trim() || null,
-      cover_image: document.getElementById('aCoverImage').value.trim() || null,
-      rarity: document.getElementById('aRarity').value,
-      condition: {
-        type: document.getElementById('aConditionType').value,
-        count: Number(document.getElementById('aConditionCount').value) || 0,
-      },
-      xp_reward: Number(document.getElementById('aXpReward').value) || 0,
-      is_active: document.getElementById('aIsActive').checked,
-    }
-    if (achievement) {
-      payload.id = a.id
-    } else {
-      const newId = document.getElementById('aId').value.trim()
-      if (!newId) return
-      payload.id = newId
-    }
-    const { error } = await supabase.from('achievement_definitions').upsert(payload)
-    if (error) {
-      showToast('No se pudo guardar el logro: ' + error.message)
-      return
-    }
-    invalidateAchievementsCache()
-    closeModal()
-    loadAchievements()
-  })
-}
-
-document.getElementById('btnNewAchievement').addEventListener('click', () => openAchievementModal(null))
 
 // ── Users ──
 
