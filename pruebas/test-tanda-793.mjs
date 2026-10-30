@@ -17,7 +17,8 @@ console.log('── 1. En el código ──')
 const gam = leer('js/gamification.js')
 const tipos = ['collection_cards_count', 'collection_sets_complete', 'collection_top_card_eur', 'collection_illustrator_cards']
 check('gamification entiende los cuatro tipos nuevos', tipos.every((t) => gam.includes(`case '${t}'`)))
-check('/admin los ofrece al crear un trofeo', tipos.every((t) => new RegExp(`${t}: '`).test(leer('admin/js/admin.js'))))
+// Desde la 1118 el desplegable de /admin sale de `TIPOS` (js/logro-objetivo.js).
+check('/admin los ofrece al crear un logro', tipos.every((t) => new RegExp(`tipo: '${t}'`).test(leer('js/logro-objetivo.js'))))
 const mig = leer('supabase-migration-logros-coleccion.sql')
 check('la migración los siembra y cada uno usa un tipo que se entiende', [...mig.matchAll(/"type": "([a-z_]+)"/g)].every(([, t]) => tipos.includes(t)) && /on conflict \(id\) do update/.test(mig))
 check('  …y el reparto es una función que cualquiera puede leer', /create or replace function public\.logros_reparto\(\)/.test(mig) && /grant execute on function public\.logros_reparto\(\) to anon, authenticated/.test(mig))

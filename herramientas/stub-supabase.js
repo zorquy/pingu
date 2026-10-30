@@ -146,6 +146,8 @@ const T = {
   site_settings: [],
   push_subscriptions: [],
   achievement_definitions: [],
+  // Quién dio o quitó un logro a mano (1118).
+  logros_a_mano: [],
   user_achievements: [],
   daily_challenge_results: [],
   user_progress: [],
@@ -1657,6 +1659,31 @@ export const supabase = {
     // (precios + ficha de TCGdex) se prueba contra PostgreSQL de verdad.
     // Desde la 956, lo calculado (la prueba) más lo de a mano, quitado lo
     // quitado: la misma cuenta que la base.
+    // Los logros (793 y 1118), CALCULADOS de las tablas como en Postgres:
+    // cuánta gente tiene cada uno, y dar y quitar a mano (solo un admin, con
+    // la XP del logro y el aviso al darlo).
+    if (nombre === 'logros_reparto') {
+      const total = T.user_profiles.length
+      return { data: T.achievement_definitions.map((d) => ({ id: d.id, personas: T.user_profiles.filter((p) => (p.achievements || []).includes(d.id)).length, total })), error: null }
+    }
+    if (nombre === 'admin_logro_dar' || nombre === 'admin_logro_quitar') {
+      const yo = typeof window !== 'undefined' ? window.__FAKE_SESSION__ : null
+      if (!T.user_profiles.find((p) => p.id === yo)?.is_admin) return { data: null, error: { code: 'P0001', message: 'solo el equipo puede dar logros' } }
+      const p = T.user_profiles.find((x) => x.id === args.p_usuario)
+      if (!p) return { data: null, error: { code: 'P0001', message: 'esa persona no existe' } }
+      const def = T.achievement_definitions.find((d) => d.id === args.p_logro)
+      const xp = Math.max(0, Number(def?.xp_reward) || 0)
+      const tiene = (p.achievements || []).includes(args.p_logro)
+      const dar = nombre === 'admin_logro_dar'
+      if (dar ? tiene : !tiene) return { data: { ok: true, ya: true }, error: null }
+      if (dar && !def) return { data: null, error: { code: 'P0001', message: 'ese logro no existe' } }
+      p.achievements = dar ? [...(p.achievements || []), args.p_logro] : p.achievements.filter((x) => x !== args.p_logro)
+      p.total_xp = Math.max(0, (Number(p.total_xp) || 0) + (dar ? xp : -xp))
+      if (!dar && p.showcase_achievement === args.p_logro) p.showcase_achievement = null
+      T.logros_a_mano.push({ id: T.logros_a_mano.length + 1, user_id: p.id, logro_id: args.p_logro, accion: dar ? 'dar' : 'quitar', motivo: args.p_motivo || null, por: yo, created_at: new Date().toISOString() })
+      if (dar) T.user_notifications.push({ id: `n-logro-${T.user_notifications.length + 1}`, recipient_id: p.id, type: 'logro', title: `Tienes un logro nuevo: ${def.title}`, body: args.p_motivo || null, link: '/perfil?ver=logros', created_at: new Date().toISOString() })
+      return { data: { ok: true, xp }, error: null }
+    }
     if (nombre === 'idiomas_de_set' || nombre === 'idiomas_de_set_calculados') {
       const mapa = (typeof window !== 'undefined' && window.__FAKE_IDIOMAS_SET__) || null
       if (!mapa) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
