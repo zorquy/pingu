@@ -1,9 +1,8 @@
 // Tanda 1130 — el tema del foro en el móvil (PINGU con captura del iPhone: «el
 // mensaje de respuesta se queda pillado aunque subas hacia arriba y la
 // cabecera se ve duplicada»).
-//   · Con una cita puesta, la caja de responder deja de ir fija abajo: se
-//     queda al final del tema y al subir no tapa los mensajes. Sin nada, sigue
-//     fija (como antes).
+//   · Con una cita puesta, la caja de responder no tapa el hilo al subir:
+//     desde la 1132 se queda recogida y fija abajo (antes, al final del tema).
 //   · En una ficha (`data-detalle`) la barra pegada no sale DEBAJO de la
 //     cabecera de la app: solo cuando esa cabecera se aparta al bajar.
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
@@ -44,17 +43,11 @@ await b.tap()
 await page.waitForTimeout(400)
 check('al citar, sale «Citando a…»', await page.isVisible('#respondiendoA'))
 c = await caja()
-check('  …y la caja deja de ir fija', c.pos === 'static', JSON.stringify(c))
+check('  …y la caja se queda RECOGIDA y fija abajo (1132)', c.pos === 'sticky' && c.abajo <= c.visor + 1 && c.abajo - c.arriba <= 220, JSON.stringify(c))
 await page.evaluate(() => scrollTo(0, 200))
 await page.waitForTimeout(300)
 c = await caja()
-check('  …al subir no tapa los mensajes: se queda al final del tema', c.arriba >= c.visor, JSON.stringify(c))
-// Lo de la captura: «Citando a…» arriba y la caja vacía (la cita recuperada de
-// un borrador, o quitada del cuadro a mano). También deja de ir fija.
-await page.evaluate(() => { const c = document.getElementById('respuestaCuerpo'); c.innerHTML = ''; c.dispatchEvent(new Event('input', { bubbles: true })) })
-await page.waitForTimeout(300)
-c = await caja()
-check('con «Citando a…» y el cuadro vacío, tampoco va fija', (await page.$eval('#respuestaCuerpo', (e) => e.classList.contains('rte-vacia'))) && (await page.isVisible('#respondiendoA')) && c.pos === 'static', JSON.stringify(c))
+check('  …al subir sigue abajo y pequeña, sin tapar el hilo', c.pos === 'sticky' && c.abajo <= c.visor + 1 && c.abajo - c.arriba <= 220, JSON.stringify(c))
 await page.click('#btnQuitarCita').catch(() => {})
 await page.waitForTimeout(300)
 const vacia = await page.$eval('#respuestaCuerpo', (e) => e.classList.contains('rte-vacia'))

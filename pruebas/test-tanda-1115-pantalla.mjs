@@ -80,8 +80,13 @@ console.log('── Móvil ──')
 {
   const { ctx, page, errores } = await abrir(true)
   const m = await medir(page)
-  check('citar sin enfocar: las seis en la caja y a la vista enteras', (await page.locator('#respuestaCuerpo blockquote').count()) === 6 && m.contenido <= m.alto + 1, JSON.stringify(m))
+  // Desde la 1132, citar sin enfocar la deja RECOGIDA abajo (una tira con el
+  // principio); tocarla la abre con las seis enteras.
+  check('citar sin enfocar: las seis en la caja, recogida abajo', (await page.locator('#respuestaCuerpo blockquote').count()) === 6 && !m.abierta && m.alto <= 64, JSON.stringify(m))
   await page.locator('#respuestaCuerpo').tap()
+  await page.waitForTimeout(300)
+  const a = await medir(page)
+  check('  …y al tocarla, a la vista enteras', a.contenido <= a.alto + 1 && a.alto > 200, JSON.stringify(a))
   await page.keyboard.press('Control+End')
   await page.keyboard.type(' Y la mía. '.repeat(4))
   const f = await medir(page)
