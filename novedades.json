@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En el móvil la web ya no hace zoom al escribir en el foro ni al tocar dos veces. Y si dejas una respuesta a medias y subes por el hilo, la caja se hace pequeña y se queda abajo con lo que llevas escrito; tócala para seguir.", "enlace": "/foro" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "Al pegar un texto en el foro (o en una guía) ya no se queda con la letra y el tamaño de donde lo copiaste: se ve como el resto. Se mantienen las negritas, las listas y los enlaces.", "enlace": "/foro" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En el foro, desde el móvil: al citar un mensaje, la caja de responder ya no se queda pegada tapando el hilo cuando subes, y la cabecera del tema ya no sale repetida.", "enlace": "/foro" },
     { "fecha": "2026-10-30", "tipo": "mejora", "texto": "Y también en varias versiones: si una carta tiene Normal y Reverse, puedes marcar las dos (y los idiomas que quieras) al apuntarla en «La quiero». Cada versión sale como una carta en tu lista, con sus banderas.", "enlace": "/mi-coleccion?ver=quiero" },

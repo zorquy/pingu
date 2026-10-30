@@ -705,8 +705,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (964): con `:focus-within` a secas, en el iPhone tocar «Imagen» le quitaba
   el foco, la barra se escondía bajo el dedo y la galería no se abría.
   Abierta no tiene tope de alto ni scroll dentro (1115, PINGU: «que no haya
-  scroll en ningún momento»), con algo dentro no se recoge y en el móvil deja
-  de ir fija abajo. La primera cita va en la caja como `blockquote[data-ancla]`
+  scroll en ningún momento») y en el móvil deja de ir fija abajo. En el PC,
+  con algo dentro no se recoge; en el MÓVIL se recoge siempre al salir (tocar
+  fuera o subir por el hilo, 1132, PINGU: «se debería empequeñecer y
+  mantenerse abajo»): una tira fija abajo con el principio de lo escrito, sin
+  scroll, que al tocarla se abre con todo. Y lo que se escribe en el móvil
+  mide 16 px (también `[contenteditable]`), o el iPhone hace zoom (1132). La primera cita va en la caja como `blockquote[data-ancla]`
   y se quita al enviar (`sinAncla`): sale enlazada por `reply_to_id`. Las demás
   se guardan con `citaDeMensaje` (`js/foro-citas.js`: un renglón con
   `#mensaje-<id>` y el contenido) y se visten como la primera al pintar

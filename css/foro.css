@@ -2213,11 +2213,18 @@ a.foro-cita-quien:hover {
    amplíe»); con algo dentro no se recoge (tema.js). En el móvil, con algo
    dentro deja de ir fija abajo y se queda al final del tema: fija y más alta
    que la pantalla, lo de arriba no se podría ver nunca. Una cita cuenta como
-   «algo» (1130: con «Citando a…» se quedaba pegada al subir). */
+   «algo» (1130). Y al salir se recoge y vuelve abajo (1132, tema.js). */
 @media (max-width: 900px) {
-  #temaResponder:has(.rte-surface:not(.rte-vacia)),
-  #temaResponder:has(#respondiendoA:not(.hidden)) {
+  #temaResponder:has(.foro-form:is(.abierta, :focus-within) .rte-surface:not(.rte-vacia)),
+  #temaResponder:has(.foro-form:is(.abierta, :focus-within) #respondiendoA:not(.hidden)) {
     position: static;
+  }
+
+  /* Recogida (1132): fija abajo con el principio de lo escrito, sin scroll. */
+  #temaResponder .foro-form:not(.abierta):not(:focus-within) .rte-surface {
+    max-height: 64px;
+    overflow: hidden;
+    mask-image: linear-gradient(#000 55%, transparent);
   }
 }
 
@@ -2610,8 +2617,10 @@ html:has(#temaResponder) {
     padding: var(--e-sm);
   }
 
+  /* Base 0, no `auto`: con algo escrito (1132) su ancho es el del texto y
+     el botón de enviar bajaba a otra fila. */
   #temaResponder .foro-form:not(.abierta):not(:focus-within) .rte-wrap {
-    flex: 1 1 auto;
+    flex: 1 1 0;
     min-width: 0;
   }
 

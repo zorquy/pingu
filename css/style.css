@@ -1773,11 +1773,15 @@ button.btn-block {
   margin-top: 1px;
 }
 
-/* El zoom de iOS al enfocar un campo (el porqué, en SCHEMA.md: tanda 359) */
+/* El zoom de iOS al enfocar un campo y al tocar dos veces (SCHEMA: tandas 359 y 1132) */
 @media (max-width: 900px), (pointer: coarse) {
+  html {
+    touch-action: manipulation;
+  }
   input:not([type='checkbox']):not([type='radio']):not([type='range']),
   textarea,
-  select {
+  select,
+  [contenteditable='true'] {
     font-size: max(16px, 1em) !important;
   }
 }

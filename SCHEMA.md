@@ -41785,6 +41785,43 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1132 — Sin zoom al escribir, y la caja del foro recogida abajo
+
+PINGU: «la web a veces zoomea, sobre todo al escribir en el foro u otros
+sitios; rompe la atmósfera de app» y «si escribes algo de respuesta y después
+sales y vas arriba, la caja sube con el scroll; está mal, se debería
+empequeñecer y mantenerse abajo».
+
+**El zoom.** iOS amplía al enfocar un campo con la letra por debajo de 16 px.
+La 359 ya lo evitaba para `input`, `textarea` y `select` (`max(16px, 1em)` en
+`style.css`), pero el cuadro del foro y el de las guías son un
+`contenteditable` (`.rte-compacta .rte-surface` va a `--t-md`, 14 px): ahora
+`[contenteditable='true']` entra en la misma regla. Y `html { touch-action:
+manipulation }` en el móvil quita el zoom del DOBLE TOQUE sin quitar el de
+pellizcar (accesibilidad).
+
+**La caja de responder (móvil).** Hasta ahora, con algo dentro no se recogía
+(1115) y quedaba `static` al final del tema, así que al subir se iba con el
+scroll. Ahora:
+
+- se recoge al SALIR, con o sin algo dentro: un clic fuera o subir más de
+  32 px por el hilo (que además quita el foco y el teclado). En el PC sigue
+  sin recogerse con algo dentro;
+- recogida es una tira FIJA abajo: el aviso de cita (si lo hay), dos líneas de
+  lo escrito (`max-height: 64px`, `overflow: hidden`, con degradado) y el
+  botón de enviar redondo al lado (la caja con algo escrito lo mandaba a otra
+  fila: su base pasa a `flex: 1 1 0`);
+- `static` solo abierta o con el foco y con algo dentro o citando;
+- tocarla la abre: pasa a su sitio al final del tema y la vista va con ella
+  (`scrollIntoView` en el siguiente fotograma). Dos trampas del mismo toque:
+  el clic que llega tras abrirla cae en lo que quedó debajo (se ignora 700 ms)
+  y el ajuste de scroll del navegador también «sube» (1,2 s de gracia);
+- citar en el móvil la deja recogida, con «Citando a…» a la vista.
+
+Prueba: `test-tanda-1132-pantalla.mjs` (16 px y `manipulation`; escribir,
+tocar fuera, subir, abrir y subir otra vez; el PC no cambia). La 1115 y la
+1130 esperan ahora la caja recogida abajo tras citar.
+
 ## Tanda 1131 — Pegar en el editor, sin la letra de fuera
 
 PINGU, al pegar en el foro un texto copiado de una app de chat: «se pega con

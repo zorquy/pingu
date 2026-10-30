@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (373) — PINGU-Claude (1132 — sin zoom y la caja del foro abajo)
+
+**Hecho**: PINGU: «la web a veces zoomea, sobre todo al escribir en el foro» y
+«si escribes algo y después sales y vas arriba, la caja sube con el scroll; se
+debería empequeñecer y mantenerse abajo». (1) La regla antizoom de la 359
+ponía a 16 px los `input`, `textarea` y `select`, pero el cuadro del foro (y
+el de las guías) es un `contenteditable` a 14 px: ahora entra en la regla, y
+`touch-action: manipulation` quita el zoom del doble toque (el de pellizcar se
+queda). (2) En el móvil la caja de responder se recoge al salir con algo
+dentro (tocar fuera o subir por el hilo, que además quita el teclado): una
+tira fija abajo con dos líneas de lo escrito, sin scroll, y el botón de
+enviar al lado; tocarla la abre con todo y lleva la vista a ella. Citar desde
+el móvil la deja recogida. El PC no cambia (1115).
+
+**Ficheros**: `css/style.css`, `css/foro.css`, `js/tema.js`, CLAUDE.md,
+SCHEMA, novedades. Pruebas en `pruebas`: 1132 nueva; 1115 y 1130 al día.
+
+**Pendiente**: la 964 sigue en rojo, también antes («Transition was aborted»).
+
 ## 2026-10-30 (372) — PINGU-Claude (1131 — pegar en el editor, sin la letra de fuera)
 
 **Hecho**: PINGU: «¿por qué se pega con una letra y tamaño distintos en el

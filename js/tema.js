@@ -887,6 +887,7 @@ function enganchar(perfiles) {
         // siguiente (en el móvil, además, abría el teclado).
         meterCita(citaDe(id, perfiles[autorId]))
         pintarAvisoDeCita(perfiles[elMensajes.querySelector(`[data-mensaje="${citandoA}"]`)?.dataset.autor])
+        if (window.matchMedia?.('(pointer: coarse)').matches) document.getElementById('respuestaForm')?.classList.remove('abierta')
         showToast(`Cita añadida (${citadosExtra.size + 1} mensajes citados).`, 'success')
         return
       }
@@ -902,6 +903,8 @@ function enganchar(perfiles) {
       // En el móvil no se enfoca la caja: abriría el teclado encima del
       // hilo y no se podría tocar «Citar» en otro mensaje (964).
       if (window.matchMedia?.('(pointer: coarse)').matches) {
+        // Y se queda recogida abajo, con «Citando a…» a la vista (1132).
+        document.getElementById('respuestaForm')?.classList.remove('abierta')
         showToast('Citado. Toca «Citar» en otro mensaje para citarlo también, o escribe tu respuesta.')
         return
       }
@@ -1203,11 +1206,48 @@ async function montarRespuesta() {
   const abrirSiHayAlgo = () => { if (conAlgo()) formulario.classList.add('abierta') }
   superficie.addEventListener('input', abrirSiHayAlgo)
   abrirSiHayAlgo()
+  // En el móvil se recoge SIEMPRE al salir, con algo dentro también (1132,
+  // PINGU: «si escribes algo y después sales y vas arriba, la caja sube con
+  // el scroll; se debería empequeñecer y mantenerse abajo»): recogida es una
+  // tira abajo con el principio de lo escrito, sin scroll dentro, y tocarla
+  // la vuelve a abrir con todo. En el PC sigue abierta (1115).
+  const enMovil = () => window.matchMedia?.('(max-width: 900px)').matches
+  const recoger = () => {
+    if (formulario.contains(document.activeElement)) document.activeElement.blur()
+    formulario.classList.remove('abierta')
+  }
+  let abiertaDesde = 0
+  formulario.addEventListener('focusin', () => {
+    abiertaDesde = Date.now()
+    // Abierta deja de ir fija y se va a su sitio, al final del tema: la vista
+    // va con ella (sin esto se quedaba escribiendo fuera de la pantalla).
+    if (enMovil()) requestAnimationFrame(() => {
+      const r = formulario.getBoundingClientRect()
+      if (r.top > window.innerHeight || r.bottom < 0) formulario.scrollIntoView({ block: 'end' })
+    })
+  })
   document.addEventListener('click', (e) => {
     if (!formulario.isConnected || formulario.contains(e.target) || e.target.closest?.('dialog')) return
-    if (conAlgo()) return
+    // En el móvil, abrirla la cambia de sitio (de fija abajo a su sitio al
+    // final del tema) ANTES de que llegue el clic del mismo toque, que cae
+    // en lo que haya quedado debajo: ese clic no es «tocar fuera».
+    if (enMovil() && Date.now() - abiertaDesde < 700) return
+    if (conAlgo() && !enMovil()) return
     formulario.classList.remove('abierta')
   })
+  // Subir por el hilo es salir de la caja: se recoge (y se va el teclado).
+  // Menos justo después de abrirla: al enfocar, el navegador la coloca él
+  // solo (y la caja pasa de fija a su sitio), y ese ajuste también sube.
+  let ultimaY = window.scrollY
+  window.addEventListener('scroll', () => {
+    const y = window.scrollY
+    if (Math.abs(y - ultimaY) < 32) return
+    const sube = y < ultimaY
+    ultimaY = y
+    if (!sube || !enMovil() || !formulario.isConnected || !formulario.classList.contains('abierta')) return
+    if (Date.now() - abiertaDesde < 1200) return
+    recoger()
+  }, { passive: true })
 
   let enviando = false
   document.getElementById('respuestaForm').addEventListener('submit', async (e) => {
