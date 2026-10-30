@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (368) — PINGU-Claude (1127 — la barra del móvil a media pantalla)
+
+**Hecho**: PINGU, con captura del iPhone (app instalada): la barra de abajo y
+la burbuja a media pantalla en la portada, «creo que ha sido por el torneo».
+Es el visor que iOS deja movido al irse el teclado (776); la corrección solo
+se armaba con un `focusout`, y un campo que se BORRA con el foco dentro (el
+chat de una partida al repintarse) no lo da en Safari. Ahora se arma también
+al entrar en un campo (`focusin`) y al ver el visor encoger lo que un teclado
+(150 px, `TECLADO`); se desarma solo con el visor en su sitio, sin escribir y
+sin teclado. Sin teclado sigue sin mover nada (lo de la 1089c).
+
+**Ficheros**: `js/barra-movil.js`, SCHEMA, novedades. Prueba en `pruebas`:
+776 con los dos casos nuevos (en rojo sin el arreglo).
+
+**Pendiente**: no se puede ver en un iPhone desde aquí; si vuelve a pasar, la
+pregunta es si hubo teclado antes y qué campo era.
+
 ## 2026-10-30 (367) — PINGU-Claude (1126 — sin hamburguesa con un torneo en juego)
 
 **Hecho**: PINGU, con captura: con un torneo en juego salía la hamburguesa

@@ -41785,6 +41785,28 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1127 — El visor de iOS, armado por tres señales
+
+PINGU, en la app instalada del iPhone: la barra de abajo y la burbuja a media
+pantalla en la portada (unos 250 px arriba, lo de un teclado), «creo que ha
+sido por el torneo». Es el fallo de la 776; la 1089c armaba la corrección SOLO
+al soltar un campo (`focusout`), para no mover nada por el `offsetTop` falso
+de un scroll deprisa. Pero un campo que se borra con el foco dentro (el chat
+de una partida se repinta al enviar) no da `focusout` en Safari: el teclado se
+iba, el visor quedaba movido y nada lo corregía.
+
+`vigilarVisor` arma ahora con cualquiera de tres señales: `focusin` de un
+editable, `focusout` de un editable, o el visor más bajo que el mayor alto
+visto en más de `TECLADO` (150 px; ni las barras de Safari ni un scroll le
+quitan eso). Se desarma con el visor en su sitio, SIN escribir, sin teclado y
+pasados 600 ms (antes podía desarmarse mientras se escribía, porque con el
+teclado fuera el desfase vale 0 a propósito). Sin teclado, igual que en la
+1089c: nada se mueve.
+
+Prueba: la 776 con `como: 'borrar'` (el campo se quita con el foco dentro y se
+calla el `focusout`) y `como: 'encoger'` (solo el visor encoge y vuelve). Las
+dos en rojo sin el arreglo.
+
 ## Tanda 1126 — Con un torneo en juego, sin hamburguesa si está la lateral
 
 PINGU: «cuando hay un torneo el menú lateral sale y no debería, el menú

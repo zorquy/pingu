@@ -198,6 +198,8 @@ export function desfaseDelVisor({ alto, visor, maximo = 0, escribiendo = false, 
 }
 
 const CLAVE_ALTO = 'bm-alto-max:'
+// Lo que encoge el visor un teclado (el más bajo de iOS pasa de 250).
+const TECLADO = 150
 function vigilarVisor(doc, win) {
   const visor = win.visualViewport
   // Solo en iOS (el mismo filtro que la 775): en los demás, el visor lo
@@ -210,9 +212,18 @@ function vigilarVisor(doc, win) {
   // SOLO DESPUÉS DEL TECLADO (1089c). Al bajar y subir deprisa, iOS da un
   // `offsetTop` de cientos de píxeles sin que lo fijo se haya movido, y esto
   // bajaba la barra de arriba a media pantalla (y la de abajo fuera). El
-  // desfase de la 776 lo deja el teclado al irse: se arma al soltar un campo
-  // y se desarma cuando el visor vuelve a su sitio.
+  // desfase de la 776 lo deja el teclado al irse: se arma cuando HA HABIDO
+  // teclado y se desarma cuando el visor vuelve a su sitio.
+  //
+  // «Ha habido teclado» son tres señales, no una (1127, PINGU: la barra de
+  // abajo a media pantalla en la portada después del torneo). Soltar un campo
+  // (`focusout`) no basta: un campo que se BORRA al enviar (el chat de una
+  // partida se repinta) se lleva el foco sin `focusout` en Safari, y la
+  // corrección no se armaba. Ahora arma también entrar en un campo
+  // (`focusin`) y ver el visor encoger lo que mide un teclado (`TECLADO`):
+  // ni las barras de Safari ni un scroll deprisa le quitan 150 px.
   let armadoDesde = 0
+  const armar = () => { armadoDesde = Date.now() }
   const medir = () => {
     pendiente = false
     const clave = CLAVE_ALTO + win.innerWidth
@@ -222,9 +233,13 @@ function vigilarVisor(doc, win) {
       maximo = win.innerHeight
       try { win.sessionStorage.setItem(clave, String(maximo)) } catch {}
     }
+    const conTeclado = maximo - visor.height > TECLADO
+    if (conTeclado) armar()
     let { arriba, abajo } = desfaseDelVisor({ alto: win.innerHeight, visor, maximo, escribiendo: escribiendo(), instalada })
     if (!armadoDesde) arriba = abajo = 0
-    else if (!arriba && !abajo && Date.now() - armadoDesde > 600) armadoDesde = 0
+    // Se desarma solo con el visor en su sitio, sin escribir y sin teclado:
+    // mientras se escribe el desfase vale 0 a propósito y no es «ya pasó».
+    else if (!arriba && !abajo && !escribiendo() && !conTeclado && Date.now() - armadoDesde > 600) armadoDesde = 0
     html.classList.toggle('ios-desfase', arriba > 0 || abajo > 0)
     html.style.setProperty('--ios-arriba', `${arriba}px`)
     html.style.setProperty('--ios-abajo', `${abajo}px`)
@@ -236,8 +251,10 @@ function vigilarVisor(doc, win) {
   win.addEventListener('scroll', pedir, { passive: true })
   win.addEventListener('pageshow', pedir)
   // El teclado tarda en irse: se vuelve a mirar cuando ya se ha ido.
+  const editable = (el) => el?.matches?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')
+  doc.addEventListener('focusin', (e) => { if (editable(e.target)) armar() })
   doc.addEventListener('focusout', (e) => {
-    if (e.target?.matches?.('input, textarea, select, [contenteditable="true"]')) armadoDesde = Date.now()
+    if (editable(e.target)) armar()
     pedir()
     win.setTimeout(pedir, 400)
     win.setTimeout(pedir, 900)
