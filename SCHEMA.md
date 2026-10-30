@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1122 — Los correos, editables desde /admin
+
+Quinta tanda de la propuesta del admin. PINGU: «que se pueda editar desde
+aquí los correos».
+
+- `admin/js/correos-admin.js` (por `import()` al abrir la sección; antes se
+  pintaban veinte vistas previas al arrancar el panel): a la izquierda los
+  veinte correos de `EJEMPLOS_DE_CORREO` por familia, con «cambiado» en los
+  que ya no dicen lo de siempre; a la derecha el elegido con su asunto, un
+  texto de arriba, el botón y el motivo del pie (el de siempre de pista en el
+  campo), la vista previa con la plantilla de verdad mientras escribes (una
+  sola, con `sandbox=""`), «Guardar», «Enviarme una prueba» y «Volver al de
+  siempre».
+- `js/email-plantilla.js`: `renderEmail`, `renderResumenSemanal` y
+  `renderFilaDeCola` aceptan los textos del equipo (`propio` / `textos` por
+  tipo). El asunto propio es una PLANTILLA: `{asunto}` (`HUECO_ASUNTO`) es el
+  de cada aviso, que escribe quien lo encola; sin él, se sustituye entero (y
+  el panel lo avisa). Lo vacío es lo de siempre (`limpiarPropio`).
+  `textosDeTipo(tipo, propio)`.
+- `send-emails` lee `correo_textos` UNA vez por pasada (solo si hay algo que
+  mandar) y, si falla o no existe, sigue con los de siempre. `tienda-decidir`
+  lee el de su tipo con el token del admin.
+- Migración `supabase-migration-1122-correos.sql`: `correo_textos` (tipo,
+  asunto, intro, cta, pie; la lee y escribe el equipo) y
+  `admin_correo_prueba` (a la cola de quien la pide, cinco por hora; sale en
+  la siguiente pasada con lo GUARDADO, y el panel lo dice si hay cambios sin
+  guardar). Sin la migración, los correos se ven y los campos salen apagados.
+- Los ~40 «Failed to read the 'serviceWorker' property» de /admin (la 1118):
+  son de Playwright, no de la web. Con `serviceWorkers: 'block'` toca el
+  navegador dentro de cada iframe con `sandbox`; sin esa opción, cero. Las
+  pruebas lo siguen filtrando.
+- Pruebas: `test-tanda-1122.mjs` (lo puro, el envío y las tiendas, y la
+  migración contra PostgreSQL) y `test-tanda-1122-pantalla.mjs`; 350 mira el
+  módulo nuevo. `test-correos` estaba roja antes (`torneo_aviso` en la baja).
+
 ## Tanda 1121 — Usuarios: la lista y la ficha de cada persona
 
 Cuarta tanda de la propuesta del admin. PINGU: «usuarios, hay un montón de

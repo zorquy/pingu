@@ -1319,3 +1319,32 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
   .us-fila { grid-template-columns: 36px minmax(0, 1fr) auto; }
   .us-chapas { grid-column: 2 / -1; grid-row: 2; }
 }
+
+/* ── Correos (1122): la lista a la izquierda, el correo elegido a la derecha ── */
+.co-cuerpo { display: grid; grid-template-columns: 260px minmax(0, 1fr); gap: var(--e-lg); align-items: start; }
+.co-lista { display: grid; gap: 2px; position: sticky; top: var(--e-md); max-height: calc(100dvh - var(--e-xl)); overflow-y: auto; overscroll-behavior: contain; }
+.co-grupo { margin: var(--e-sm) 0 2px; font-size: var(--t-2xs); font-weight: 700; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.6px; }
+.co-grupo:first-child { margin-top: 0; }
+.co-item { display: flex; align-items: center; gap: var(--e-xs); min-height: 40px; padding: var(--e-xs) var(--e-sm); border: 0; border-radius: var(--radius-md); background: transparent; color: var(--text); font: inherit; font-size: var(--t-sm); text-align: left; cursor: pointer; }
+.co-item span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.co-item:hover { background: var(--ice); }
+.co-item.on { background: var(--navy-solid); color: var(--blanco-fijo); }
+.co-cambiado { padding: 0 var(--e-xs); border-radius: var(--radius-pill); background: var(--warning-bg); color: var(--warning); font-size: var(--t-2xs); font-weight: 700; }
+.co-editor { display: grid; gap: var(--e-md); min-width: 0; }
+.co-cab { display: grid; gap: 2px; }
+.co-cab b { font-family: var(--font-display); font-size: var(--t-lg); }
+.co-cab small { color: var(--text-mid); font-size: var(--t-xs); }
+.co-dos { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--e-lg); align-items: start; }
+.co-form { display: grid; gap: var(--e-md); min-width: 0; }
+.co-form textarea { width: 100%; resize: vertical; font: inherit; }
+.co-previa { display: grid; gap: var(--e-xs); min-width: 0; }
+.co-asunto { margin: 0; font-size: var(--t-sm); color: var(--text-mid); }
+.co-asunto b { color: var(--text); }
+.co-previa iframe { width: 100%; height: 560px; border: 1px solid var(--border); border-radius: var(--radius-md); background: #f4f6f8; }
+@media (max-width: 1200px) {
+  .co-dos { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .co-cuerpo { grid-template-columns: minmax(0, 1fr); }
+  .co-lista { position: static; max-height: 240px; }
+}

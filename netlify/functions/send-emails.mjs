@@ -178,6 +178,15 @@ export default async () => {
   let enviados = 0
   let fallidos = 0
 
+  // Los textos que el equipo ha cambiado en /admin → Correos (1122), una vez
+  // por pasada. Sin la tabla (migración sin ejecutar) o si falla, los de
+  // siempre: un texto propio no puede parar la cola.
+  const textos = (pendientes || []).length
+    ? await rest('correo_textos?select=tipo,asunto,intro,cta,pie', clave)
+        .then((filas) => Object.fromEntries((filas || []).map((f) => [f.tipo, f])))
+        .catch(() => null)
+    : null
+
   // Una sola conexión SMTP para toda la tanda (ver crearTransporteSmtp).
   const transporte = provider === 'smtp' && (pendientes || []).length ? await crearTransporteSmtp(smtp) : null
 
@@ -215,7 +224,7 @@ export default async () => {
       // Cada tipo con su pintura (el resumen semanal es una lista con
       // enlaces, no un aviso de una línea): la elección vive en
       // email.mjs para poder probarse sin red.
-      const { subject, html, text } = renderFilaDeCola(fila, { siteUrl, unsubscribeUrl })
+      const { subject, html, text } = renderFilaDeCola(fila, { siteUrl, unsubscribeUrl, textos })
 
       const mensaje = { apiKey, from, to, subject, html, text, unsubscribeUrl, mailgunDomain: process.env.EMAIL_MAILGUN_DOMAIN }
       if (provider === 'smtp') {

@@ -16,7 +16,6 @@ import { ponerContadorNav } from './hoy.js'
 import { notaDeVital } from '../../js/vitales.js'
 import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
 import { fetchSets, fetchSet, setToRow, cardToRow, fechaDeSet, normalizeSearch, MERCADOS_A_IMPORTAR, sinDuplicados, codigoLiveDeSet, porImagen } from '../../js/tcgdex.js'
-import { EJEMPLOS_DE_CORREO, renderFilaDeCola, textosDeTipo, familiaDeTipo } from '../../js/email-plantilla.js'
 import { checkSchema } from '../../js/schema-check.js'
 import { iniciarColecciones } from './colecciones.js'
 import { iniciarTiendas } from './tiendas.js'
@@ -57,6 +56,7 @@ function initSidebar() {
       if (btn.dataset.section === 'colecciones') iniciarColecciones()
       if (btn.dataset.section === 'tiendas') iniciarTiendas()
       if (btn.dataset.section === 'users') loadUsers()
+      if (btn.dataset.section === 'correos') pintarCorreos()
       if (btn.dataset.section === 'avisos' && !avisosMontados) {
         avisosMontados = true
         import('./avisos-admin.js').then((m) => m.montarAvisos(document.getElementById('avisosPanel')))
@@ -3251,9 +3251,7 @@ async function init() {
 
   document.getElementById('analyticsDays')?.addEventListener('change', loadAnalytics)
 
-  // Las vistas previas no piden nada a la red: se pintan siempre. La
-  // cola sí, y si la migración no está puesta lo dice y ya.
-  pintarCorreos()
+  // La cola, al arrancar: si la migración no está puesta lo dice y ya.
   loadCorreosCola().catch(() => {})
   loadColabora().catch(() => {})
 }
@@ -3270,41 +3268,13 @@ async function init() {
 // módulo que usa la función de envío — no una copia parecida. Una copia
 // se separa, y la del correo no la ve nadie hasta que sale mal en la
 // bandeja de alguien.
-const SITIO_CORREO = 'https://pokedoc.es'
-
+// La lista y el editor de textos: admin/js/correos-admin.js (1122), por
+// import() al abrir la sección (antes eran veinte vistas previas al arrancar).
+let correosMontados = false
 function pintarCorreos() {
-  const caja = document.getElementById('correosLista')
-  if (!caja) return
-  caja.innerHTML = EJEMPLOS_DE_CORREO.map((ej, i) => {
-    const { cta, pie } = textosDeTipo(ej.type)
-    const familia = familiaDeTipo(ej.type)
-    return `<div class="admin-card" style="margin-bottom: 16px;">
-      <h3 style="margin-top: 0;">${escapeHtml(ej.subject)}</h3>
-      <p class="admin-note">
-        <code>${escapeHtml(ej.type)}</code>${familia ? ` · ${escapeHtml(familia.etiqueta)}` : ''} ·
-        botón «${escapeHtml(cta)}» · lo encola: ${escapeHtml(ej.donde)}
-      </p>
-      <p class="admin-note">Enlace: <a href="${escapeHtml(ej.link || '')}" target="_blank" rel="noopener">${escapeHtml(ej.link || '(sin enlace)')}</a></p>
-      <p class="admin-note">Pie: ${escapeHtml(pie)}</p>
-      <details class="admin-detalle-avanzado" ${i === 0 ? 'open' : ''}>
-        <summary>Ver el correo</summary>
-        <iframe title="Vista previa de ${escapeHtml(ej.type)}" style="width:100%;height:520px;border:1px solid var(--border);border-radius:8px;margin-top:8px;background:#f4f6f8;" sandbox=""></iframe>
-      </details>
-    </div>`
-  }).join('')
-
-  // El HTML del correo se mete con `srcdoc` y NO como cadena en el
-  // atributo: el correo lleva comillas por todas partes y escaparlo a
-  // mano es una fuga esperando. Con `sandbox=""` el iframe no ejecuta
-  // nada ni navega a ningún sitio.
-  caja.querySelectorAll('iframe').forEach((marco, i) => {
-    const ej = EJEMPLOS_DE_CORREO[i]
-    const { html } = renderFilaDeCola(ej, {
-      siteUrl: SITIO_CORREO,
-      unsubscribeUrl: `${SITIO_CORREO}/baja-correo?t=EJEMPLO&tipo=${encodeURIComponent(ej.type)}`,
-    })
-    marco.srcdoc = html
-  })
+  if (correosMontados) return
+  correosMontados = true
+  import('./correos-admin.js').then((m) => m.montarCorreos(document.getElementById('correosLista')))
 }
 
 // ── Cómo va la cola ──

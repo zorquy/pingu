@@ -18,7 +18,9 @@ export function enlaceDeAlta(siteUrl, token) {
 }
 
 // El correo de cada decisión, con la plantilla de siempre.
-export function correoDeDecision({ estado, nombre, contacto, token }, siteUrl = 'https://pokedoc.es') {
+// `propio`: lo que el equipo haya cambiado de este correo en /admin →
+// Correos (1122), o nada.
+export function correoDeDecision({ estado, nombre, contacto, token }, siteUrl = 'https://pokedoc.es', propio = null) {
   const hola = contacto ? `Hola, ${contacto}: ` : 'Hola: '
   if (estado === 'aceptada') {
     return renderEmail({
@@ -27,6 +29,7 @@ export function correoDeDecision({ estado, nombre, contacto, token }, siteUrl = 
       link: `/alta-tienda?i=${encodeURIComponent(token)}`,
       siteUrl,
       tipo: 'tienda_aceptada',
+      propio,
     })
   }
   return renderEmail({
@@ -35,6 +38,7 @@ export function correoDeDecision({ estado, nombre, contacto, token }, siteUrl = 
     link: '/',
     siteUrl,
     tipo: 'tienda_rechazada',
+    propio,
   })
 }
 
@@ -53,7 +57,16 @@ export async function decidir({ token, id, aceptar, env = process.env, fetchImpl
   }
   const fila = await r.json()
   const siteUrl = env.SITE_URL || 'https://pokedoc.es'
-  const correo = correoDeDecision(fila, siteUrl)
+  // Los textos propios de este correo, con el token del admin (la tabla la
+  // lee el equipo). Sin ellos, o si falla, los de siempre.
+  const tipo = fila.estado === 'aceptada' ? 'tienda_aceptada' : 'tienda_rechazada'
+  const propio = await fetchImpl(`${SUPABASE_URL}/rest/v1/correo_textos?tipo=eq.${tipo}&select=asunto,intro,cta,pie`, {
+    headers: { apikey: SUPABASE_ANON_KEY, authorization: `Bearer ${token}` },
+  })
+    .then((res) => (res.ok ? res.json() : null))
+    .then((f) => (Array.isArray(f) ? f[0] || null : null))
+    .catch(() => null)
+  const correo = correoDeDecision(fila, siteUrl, propio)
   const envio = await enviar({ to: fila.email, ...correo }, env)
   return {
     ok: true,

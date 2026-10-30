@@ -185,9 +185,29 @@ export function familiaDeTipo(tipo) {
 const CTA_GENERICO = 'Verlo en PokeDoc'
 const PIE_GENERICO = 'Recibes este correo porque alguien se ha dirigido a ti en PokeDoc.'
 
-export function textosDeTipo(tipo) {
+export function textosDeTipo(tipo, propio = null) {
   const t = TEXTOS_POR_TIPO[tipo] || {}
-  return { cta: t.cta || CTA_GENERICO, pie: t.pie || PIE_GENERICO }
+  const p = limpiarPropio(propio)
+  return { cta: p.cta || t.cta || CTA_GENERICO, pie: p.pie || t.pie || PIE_GENERICO }
+}
+
+// ── Los textos que cambia el equipo (tanda 1122) ──
+//
+// Desde /admin → Correos se puede cambiar, por tipo, el asunto, un texto
+// encima de la cita, el botón y el motivo del pie (tabla `correo_textos`).
+// Lo que se deja vacío es lo de siempre. El asunto de cada aviso lo escribe
+// quien lo encola («Ibai te ha enviado un mensaje»), así que el propio es una
+// PLANTILLA: `{asunto}` es ese, y sin `{asunto}` se sustituye entero.
+export const HUECO_ASUNTO = '{asunto}'
+
+export function limpiarPropio(propio) {
+  const t = (x, n) => String(x ?? '').replace(/\s+/g, ' ').trim().slice(0, n)
+  return { asunto: t(propio?.asunto, 200), intro: t(propio?.intro, 600), cta: t(propio?.cta, 60), pie: t(propio?.pie, 300) }
+}
+
+export function asuntoConPropio(asunto, propio) {
+  const plantilla = limpiarPropio(propio).asunto
+  return plantilla ? plantilla.split(HUECO_ASUNTO).join(asunto) : asunto
 }
 
 // ────────────────────────────────────────────────────────────
@@ -309,16 +329,19 @@ ${contenido}
 //
 // `tipo` es lo que elige el verbo del botón y el motivo del pie. `cta`
 // permite forzar el verbo desde fuera (lo usa el resumen semanal).
-export function renderEmail({ subject, preview, link, siteUrl, unsubscribeUrl, tipo = null, cta = null }) {
-  const asunto = sanitizeHeader(subject)
+export function renderEmail({ subject, preview, link, siteUrl, unsubscribeUrl, tipo = null, cta = null, propio = null }) {
+  const asunto = sanitizeHeader(asuntoConPropio(sanitizeHeader(subject), propio))
   const url = absoluteUrl(siteUrl, link)
-  const { cta: verbo, pie } = textosDeTipo(tipo)
-  const boton = cta || verbo
+  const { cta: verbo, pie } = textosDeTipo(tipo, propio)
+  // El botón del equipo manda sobre el que fuerza quien llama.
+  const boton = limpiarPropio(propio).cta || cta || verbo
+  const intro = limpiarPropio(propio).intro
   const cita = preview ? String(preview).replace(/\s+/g, ' ').trim() : ''
 
   const bajaTexto = unsubscribeUrl ? `\n\nPara dejar de recibir estos correos: ${unsubscribeUrl}` : ''
   const text =
     `${asunto}\n\n` +
+    (intro ? `${intro}\n\n` : '') +
     (cita ? `«${cita}»\n\n` : '') +
     (url ? `${boton}: ${url}\n\n` : '') +
     pie +
@@ -329,6 +352,7 @@ export function renderEmail({ subject, preview, link, siteUrl, unsubscribeUrl, t
       <tr>
         <td style="padding:${familiaDeTipo(tipo) ? '12px' : '26px'} 28px 0;">
           <h1 style="margin:0 0 14px;font-family:${FUENTE};font-size:21px;line-height:1.35;font-weight:700;color:#111827;">${escapeHtml(asunto)}</h1>
+          ${intro ? `<p style="margin:0 0 16px;font-family:${FUENTE};font-size:15px;line-height:1.55;color:#374151;">${escapeHtml(intro)}</p>` : ''}
         </td>
       </tr>
       ${
@@ -375,9 +399,9 @@ export function lineasDeTuSemana(tu) {
   return lineas
 }
 
-export function renderResumenSemanal({ temas = [], guia = null, noticias = [], lanzamientos = [], tu = null, siteUrl, unsubscribeUrl }) {
-  const asunto = sanitizeHeader('Lo mejor de PokeDoc esta semana')
-  const { cta: verbo, pie } = textosDeTipo('weekly_digest')
+export function renderResumenSemanal({ temas = [], guia = null, noticias = [], lanzamientos = [], tu = null, siteUrl, unsubscribeUrl, propio = null }) {
+  const asunto = sanitizeHeader(asuntoConPropio('Lo mejor de PokeDoc esta semana', propio))
+  const { cta: verbo, pie } = textosDeTipo('weekly_digest', propio)
   const urlForo = absoluteUrl(siteUrl, '/foro')
 
   const filas = temas.map((t) => ({
@@ -456,16 +480,18 @@ export function renderResumenSemanal({ temas = [], guia = null, noticias = [], l
 // resumen-semanal.mjs); si no parsea — filas antiguas de antes de este
 // cambio — cae a la plantilla genérica de siempre y el correo sale
 // igual que salía.
-export function renderFilaDeCola(fila, { siteUrl, unsubscribeUrl }) {
+// `textos`: los propios del equipo por tipo (`correo_textos`, 1122), o nada.
+export function renderFilaDeCola(fila, { siteUrl, unsubscribeUrl, textos = null }) {
+  const propio = textos?.[fila?.type] || null
   if (fila?.type === 'weekly_digest') {
     try {
       const carga = JSON.parse(fila.preview)
       if (carga && Array.isArray(carga.temas)) {
-        return renderResumenSemanal({ temas: carga.temas, guia: carga.guia || null, noticias: carga.noticias || [], lanzamientos: carga.lanzamientos || [], tu: carga.tu || null, siteUrl, unsubscribeUrl })
+        return renderResumenSemanal({ temas: carga.temas, guia: carga.guia || null, noticias: carga.noticias || [], lanzamientos: carga.lanzamientos || [], tu: carga.tu || null, siteUrl, unsubscribeUrl, propio })
       }
     } catch {}
   }
-  return renderEmail({ subject: fila.subject, preview: fila.preview, link: fila.link, siteUrl, unsubscribeUrl, tipo: fila.type })
+  return renderEmail({ subject: fila.subject, preview: fila.preview, link: fila.link, siteUrl, unsubscribeUrl, tipo: fila.type, propio })
 }
 
 // ────────────────────────────────────────────────────────────

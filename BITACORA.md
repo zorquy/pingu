@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (363) — PINGU-Claude (1122 — los correos, editables)
+
+**Hecho**: /admin → Correos es una lista de los veinte correos y, al elegir
+uno, su asunto (con {asunto}), un texto de arriba, el botón y el motivo del
+pie editables, con la vista previa mientras escribes, «Enviarme una prueba» y
+«Volver al de siempre». La función de envío y la de tiendas leen lo guardado.
+
+**Ficheros**: `admin/js/correos-admin.js` y
+`supabase-migration-1122-correos.sql` (nuevos); `js/email-plantilla.js`,
+`netlify/functions/send-emails.mjs`, `netlify/functions/tienda-decidir.mjs`,
+`admin/js/admin.js`, `admin/index.html`, `admin/css/admin.css`, SCHEMA,
+CLAUDE.md. Pruebas en `pruebas`: 1122 y 1122-pantalla; 350 al día.
+
+**Pendiente**: PINGU ejecuta `supabase-migration-1122-correos.sql`.
+Siguiente: 1123, la limpieza de Cartas.
+
 ## 2026-10-30 (362) — PINGU-Claude (1121 — Usuarios: lista y ficha)
 
 **Hecho**: /admin → Usuarios es una lista con buscador, orden y chips

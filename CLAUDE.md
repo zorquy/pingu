@@ -1587,6 +1587,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   vista previa de /admin → Avisos, así que un campo nuevo del aviso va ahí y en
   `franjaHtml`, no en otra copia. A la campanita de todos solo se manda por
   `admin_aviso_campanita` (tipo `aviso_equipo`, que se puede apagar).
+- **Los textos de los correos los cambia el equipo** (tanda 1122,
+  `correo_textos`): asunto como plantilla con `{asunto}`, texto de arriba,
+  botón y pie, por tipo. Lo que pinte un correo pasa por `renderFilaDeCola` /
+  `renderEmail` con sus `textos` (send-emails los lee una vez por pasada); un
+  tipo nuevo de correo va en `EJEMPLOS_DE_CORREO` para salir en el panel.
 - **Silenciar y banear llevan motivo y duración** (tanda 1121): se hace por
   `admin_moderar` / `admin_moderar_quitar` (registro en `moderaciones`) y lo
   vencido lo levanta `moderacion_al_dia()` cada hora. Lo que se CUMPLE sigue
