@@ -33,7 +33,7 @@ export async function elegirOrdena({ dia, pedir, guardar, actualizar = null, lib
       const fila = (await pedir(`tcg_card_prices?select=card_id&${FILTRO_PRECIOS}&order=card_id.asc&limit=1&offset=${i}`)).datos?.[0]
       if (fila?.card_id && !fuera.includes(fila.card_id)) candidatas.push(fila.card_id)
     }
-    const elegidas = cartasQueSirven(await conFoto(await cartasConPrecio(candidatas, pedir), { probar }))
+    const elegidas = cartasQueSirven(await conFoto(await cartasConPrecio(candidatas, pedir), { probar, pedir }))
     return elegidas.length < CARTAS ? [] : elegidas.map((c) => c.id)
   }
   let ids = null
@@ -49,7 +49,7 @@ export async function elegirOrdena({ dia, pedir, guardar, actualizar = null, lib
   if (ids?.length && revisar && actualizar) {
     // Revisado (1111): si alguna no tiene foto, las cuatro son otras.
     const actuales = await cartasConPrecio(ids, pedir)
-    const malas = await sinFoto(actuales, { probar })
+    const malas = await sinFoto(actuales, { probar, pedir })
     if (actuales.length < CARTAS || malas.length) {
       const otras = await elegirIds(SAL_REPARO, ids)
       if (!otras?.length) quedanSinFoto = malas

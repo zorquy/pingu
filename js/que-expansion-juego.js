@@ -1,7 +1,8 @@
 // «¿De qué expansión es?» en pantalla (tanda 835). Lo puro vive en
 // js/que-expansion.js; las cinco rondas, en netlify/functions/que-expansion.mjs.
 import { escapeHtml } from './html.js'
-import { getSession } from './app.js'
+import { getSession, getProfile } from './app.js'
+import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { nombreDeCarta, nombreDeSet, logosDePago } from './catalogo-series.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
@@ -187,6 +188,52 @@ function sinTablero(texto) {
   $('qxSub').classList.add('hidden')
 }
 
+// Una ronda que ha cambiado de carta (se cambió por no tener foto) vuelve a
+// jugarse, si el reto no estaba ya acabado y guardado. Lo guardado antes de
+// la 1111 no lleva las cartas: ahí, la primera ronda cuya respuesta no está
+// entre sus opciones.
+function ajustarEstado() {
+  if (estado.guardado || !estado.elegidas.length) return
+  const desde = Array.isArray(estado.cartas)
+    ? estado.cartas.findIndex((id, i) => rondas[i]?.carta?.id !== id)
+    : estado.elegidas.findIndex((id, i) => !rondas[i]?.opciones?.some((s) => s.id === id))
+  if (desde < 0) return
+  estado.elegidas = estado.elegidas.slice(0, desde)
+  estado.cartas = rondas.slice(0, desde).map((x) => x.carta.id)
+  estado.tira = tira()
+  escribir(CLAVE, estado)
+}
+
+// «Cambiar esta carta», solo para admins (1111b): por si una foto mala (un
+// dorso que la fuente sirve como foto) se escapa a lo automático. Cambia la
+// ronda para todo el mundo; pide una segunda pulsación.
+async function ponerCambiarCarta() {
+  const perfil = await getProfile(sesion.user.id).catch(() => null)
+  if (!perfil?.is_admin) return
+  $('qxVeredicto').insertAdjacentHTML('afterend', '<p class="subtext"><button type="button" class="link-btn" id="qxCambiar">Cambiar esta carta para todos (admin)</button></p>')
+  const b = $('qxCambiar')
+  b.addEventListener('click', async () => {
+    if (terminado()) return
+    if (!b.dataset.seguro) { b.dataset.seguro = '1'; b.textContent = 'Pulsa otra vez para cambiarla'; return }
+    b.disabled = true
+    try {
+      const res = await fetch('/.netlify/functions/que-expansion', { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${sesion.access_token}` }, body: JSON.stringify({ ronda: ronda() }) })
+      const r = await res.json()
+      if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
+      rondas = (r.rondas || []).slice(0, RONDAS)
+      ajustarEstado()
+      pintarTodo()
+      showToast(r.sinFoto?.length ? 'No había otra carta con foto para cambiarla.' : 'Carta cambiada para todos.', r.sinFoto?.length ? 'error' : 'success')
+    } catch (e) {
+      showToast(`No se ha podido cambiar: ${e.message}`, 'error')
+    } finally {
+      delete b.dataset.seguro
+      b.textContent = 'Cambiar esta carta para todos (admin)'
+      b.disabled = false
+    }
+  })
+}
+
 async function init() {
   let r
   try {
@@ -203,18 +250,10 @@ async function init() {
   if (libre) $('qxSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('expansion'), '/que-expansion'))
   const g = leer(CLAVE, null)
   estado = g && g.dia === dia && Array.isArray(g.elegidas) ? g : { dia, elegidas: [] }
-  // Una ronda que ha cambiado de carta (se cambió por no tener foto) vuelve
-  // a jugarse, si el reto no estaba ya acabado y guardado.
-  // Lo guardado antes de la 1111 no lleva las cartas: ahí, la primera ronda
-  // cuya respuesta no está entre sus opciones.
-  if (!estado.guardado && estado.elegidas.length) {
-    const desde = Array.isArray(estado.cartas)
-      ? estado.cartas.findIndex((id, i) => rondas[i]?.carta?.id !== id)
-      : estado.elegidas.findIndex((id, i) => !rondas[i]?.opciones?.some((s) => s.id === id))
-    if (desde >= 0) { estado.elegidas = estado.elegidas.slice(0, desde); estado.cartas = rondas.slice(0, desde).map((x) => x.carta.id); estado.tira = tira(); escribir(CLAVE, estado) }
-  }
+  ajustarEstado()
   sesion = await getSession().catch(() => null)
   pintarTodo()
+  if (sesion && !libre) ponerCambiarCarta()
   $('qxOpciones').addEventListener('click', (e) => {
     const b = e.target.closest('[data-set]')
     if (b && !b.disabled) elegir(b.dataset.set)

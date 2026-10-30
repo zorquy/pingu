@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (352) — PINGU-Claude (1111b — el dorso de mentira)
+
+**Hecho**: PINGU: «sigue igual y he recargado». La foto de la carta 2 no
+fallaba: su fuente contestaba con una imagen que ES un dorso. Ahora:
+- Una dirección de foto que comparten dos cartas no cuenta como foto.
+- «¿De qué expansión es?» revisa el día la primera vez que lo lee, sin
+  esperar a nadie, y si cambia algo vacía la caché de la CDN. El navegador
+  ya no se guarda la respuesta hasta medianoche (un minuto) y la pide con
+  otra dirección, así que recargar sirve.
+- Un admin tiene «Cambiar esta carta para todos (admin)» debajo de las
+  opciones, por si algo se escapa.
+
+**Para PINGU**: sin migración. Si al abrirlo sigue el dorso, pulsa «Cambiar
+esta carta para todos (admin)» dos veces.
+
+**Ficheros**: `netlify/lib/fotos-reto.mjs`, `netlify/functions/que-expansion.mjs`
+(y `pedir` en las otras cuatro), `js/que-expansion-juego.js`,
+`js/reto-fotos.js`. Pruebas: 1111 ampliada, 570 (su doble contesta a la
+pregunta de la foto compartida).
+
+**Pendiente**: los rojos viejos de la entrada de abajo.
+
 ## 2026-10-30 (351) — PINGU-Claude (1111 — un reto no sale con una carta sin foto)
 
 **Hecho**: PINGU, con el reto #91 de «¿De qué expansión es?» enseñando el

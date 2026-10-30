@@ -46,6 +46,10 @@ export async function traerRetoConFotos(funcion, { libre = null, cartasDe, calid
     const q = new URLSearchParams()
     if (libre) q.set('libre', libre)
     if (revisar) q.set('revisar', '1')
+    // La 1111b acortó lo que el navegador guarda la respuesta del día (era
+    // hasta medianoche): con otra dirección, lo guardado antes no se usa. Solo
+    // el día: una libre se guarda poco y Parejas la pide antes por su dirección.
+    if (!libre) q.set('v', '2')
     const res = await fetch(`/.netlify/functions/${funcion}${q.toString() ? `?${q}` : ''}`, { headers: { accept: 'application/json' }, ...(revisar ? { cache: 'no-store' } : {}) })
     const r = await res.json()
     if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)

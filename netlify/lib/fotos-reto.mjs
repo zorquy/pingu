@@ -35,9 +35,33 @@ export async function urlContesta(url, ms = 3000) {
   return false
 }
 
-// La carta tiene foto si ALGUNA dirección de su cadena la da.
-export async function fotoContesta(carta, { probar = urlContesta, calidad = 'high' } = {}) {
-  const cadena = cadenaDeEscaneo(carta, carta?.tcg_sets?.tcg_online_code || null, calidad)
+// UNA FOTO QUE COMPARTEN DOS CARTAS NO ES LA FOTO DE NINGUNA (1111b). El
+// reto #91 siguió con el dorso después de la 1111: la dirección CONTESTABA,
+// con una imagen de verdad… que era el dorso, el «sin foto» de su fuente. Un
+// genérico así lo llevan muchas cartas a la vez, así que con `pedir` se
+// pregunta a la base si otra carta del mismo catálogo tiene la misma
+// dirección; si la tiene, esa columna no cuenta como foto.
+export async function sinFotosCompartidas(carta, pedir) {
+  if (!pedir || !carta?.id) return carta
+  const fuera = {}
+  for (const col of ['image_tcggo', 'image_path']) {
+    const v = carta[col]
+    if (!v) continue
+    try {
+      const r = await pedir(`tcg_cards?select=id&market=eq.${encodeURIComponent(carta.market || 'WEST')}&${col}=eq.${encodeURIComponent(v)}&id=neq.${encodeURIComponent(carta.id)}&limit=1`)
+      if (r?.datos?.length) fuera[col] = null
+    } catch {
+      // Si no se puede preguntar, la columna se queda: no se sabe no es un no.
+    }
+  }
+  return Object.keys(fuera).length ? { ...carta, ...fuera } : carta
+}
+
+// La carta tiene foto si ALGUNA dirección de su cadena la da (sin contar las
+// que comparte con otras cartas, si llega `pedir`).
+export async function fotoContesta(carta, { probar = urlContesta, calidad = 'high', pedir = null } = {}) {
+  const propia = await sinFotosCompartidas(carta, pedir)
+  const cadena = cadenaDeEscaneo(propia, propia?.tcg_sets?.tcg_online_code || null, calidad)
   if (!cadena.length) return false
   const respuestas = await Promise.all(cadena.map((u) => probar(u).catch(() => null)))
   if (respuestas.includes(true)) return true

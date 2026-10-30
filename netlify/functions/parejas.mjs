@@ -70,7 +70,7 @@ export async function elegirParejas({ dia, pedir, guardar, actualizar = null, li
     const filas = await Promise.all(indicesDelDia(dia, total, Math.min(CANDIDATAS, total), sal)
       .map((i) => pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&order=id.asc&limit=1&offset=${i}`).then((r) => r.datos?.[0]?.id || null)))
     const candidatas = filas.filter((id) => id && !fuera.includes(id))
-    const elegidas = cartasQueSirven(await conFoto(await cartasDe(candidatas, pedir), { probar }))
+    const elegidas = cartasQueSirven(await conFoto(await cartasDe(candidatas, pedir), { probar, pedir }))
     return elegidas.length < PAREJAS ? null : elegidas.map((c) => c.id)
   }
   let ids = null
@@ -86,7 +86,7 @@ export async function elegirParejas({ dia, pedir, guardar, actualizar = null, li
   if (ids?.length && revisar && actualizar) {
     // Revisado (1111): si alguna no tiene foto, la mesa entera es otra.
     const actuales = await cartasDe(ids, pedir)
-    const malas = await sinFoto(actuales, { probar })
+    const malas = await sinFoto(actuales, { probar, pedir })
     if (actuales.length < PAREJAS || malas.length) {
       const otras = await elegirIds(SAL_REPARO, ids)
       if (!otras) quedanSinFoto = malas

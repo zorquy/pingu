@@ -83,7 +83,7 @@ export async function elegirCartaDelDia({ dia, pedir, guardar, actualizar = null
     for (let k = 0; k < Math.min(9, total); k++) {
       const c = (await pedir(`tcg_cards?select=${COLUMNAS_CARTA}&${FILTRO_ELEGIBLES}&order=id.asc&limit=1&offset=${(i + k) % total}`)).datos?.[0]
       if (!c?.id || c.id === fuera) continue
-      if ((await fotoContesta(c, { probar })) !== false) return { id: c.id }
+      if ((await fotoContesta(c, { probar, pedir })) !== false) return { id: c.id }
     }
     return { error: 'No se ha podido elegir la carta.' }
   }
@@ -93,7 +93,7 @@ export async function elegirCartaDelDia({ dia, pedir, guardar, actualizar = null
   if (cardId && revisar && actualizar) {
     // Revisada (1111): si la del día no tiene foto, es otra.
     const c = (await pedir(`tcg_cards?select=${COLUMNAS_CARTA}&id=eq.${encodeURIComponent(cardId)}&market=eq.WEST&limit=1`)).datos?.[0]
-    if (!c || (await fotoContesta(c, { probar })) === false) {
+    if (!c || (await fotoContesta(c, { probar, pedir })) === false) {
       const otra = await elegirId({ lejos: true, fuera: cardId })
       if (!otra.id) quedanSinFoto = [cardId]
       if (otra.id) {

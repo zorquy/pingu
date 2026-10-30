@@ -41785,6 +41785,31 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1111b — El dorso de mentira
+
+PINGU, con la misma carta 2 del reto #91 después de la 1111: «sigue igual y
+he recargado». La 1111 no lo vio porque la foto NO fallaba: la dirección
+contestaba con una imagen de verdad… que era un dorso, el «sin foto» de su
+fuente. Ni el navegador ni el servidor podían llamar a eso «sin foto».
+
+- `sinFotosCompartidas` (fotos-reto.mjs): una dirección de foto
+  (`image_tcggo`, `image_path`) que lleva OTRA carta del mismo catálogo no es
+  la foto de ninguna; esa columna no cuenta. `fotoContesta` la usa si le
+  llega `pedir` (las cinco funciones se lo pasan).
+- «¿De qué expansión es?» revisa su día la PRIMERA vez que lo lee
+  (`datos.fotos_revisadas`), sin esperar a que un navegador pida revisar: un
+  dorso no lo ve roto nadie. Un día recién elegido nace revisado.
+- Si cambia algo, vacía su copia de la CDN (`netlify-cache-tag:
+  reto-expansion`, `purgarEtiquetas`). La respuesta del día va a la CDN
+  hasta medianoche y al navegador solo un minuto (`cabecerasDelDia`); antes
+  el navegador se la guardaba hasta medianoche, y por eso recargar no hacía
+  nada. El navegador la pide con `v=2` (solo el día) para no usar lo que
+  guardó antes.
+- «Cambiar esta carta para todos (admin)», debajo de las opciones mientras
+  se juega: un POST con el token de un admin (`idDeAdmin`) y la ronda, que
+  cambia esa ronda aunque tenga foto (`forzar`). Para lo que se escape a lo
+  automático.
+
 ## Tanda 1111 — Un reto no sale con una carta sin foto
 
 PINGU, con el reto #91 de «¿De qué expansión es?» enseñando el DORSO en la
