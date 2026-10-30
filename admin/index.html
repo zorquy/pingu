@@ -67,7 +67,7 @@
         <button class="admin-nav-item" data-section="account-deletions"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path><path d="M10 11v6"></path><path d="M14 11v6"></path><path d="M9 6V4a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"></path></svg> Bajas</button>
         <span class="admin-nav-grupo">Catálogo</span>
         <button class="admin-nav-item" data-section="colecciones"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"></rect><rect x="14" y="3" width="7" height="7" rx="1"></rect><rect x="3" y="14" width="7" height="7" rx="1"></rect><rect x="14" y="14" width="7" height="7" rx="1"></rect></svg> Colecciones</button>
-        <button class="admin-nav-item" data-section="cards"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="14" height="16" rx="2"></rect><path d="M8 2h12a2 2 0 0 1 2 2v12"></path></svg> Cartas</button>
+        <button class="admin-nav-item" data-section="cards"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="6" width="14" height="16" rx="2"></rect><path d="M8 2h12a2 2 0 0 1 2 2v12"></path></svg> Marcas legales</button>
         <button class="admin-nav-item" data-section="archetypes"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="7" height="16" rx="1"></rect><rect x="14" y="4" width="7" height="16" rx="1"></rect></svg> Arquetipos</button>
         <span class="admin-nav-grupo">Sistema</span>
         <button class="admin-nav-item" data-section="analytics"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg> Analítica</button>
@@ -470,41 +470,6 @@
           </div>
           <div id="repetidasLista" class="rep-lista"></div>
         </details>
-      </section>
-
-      <section class="admin-section" id="section-cards">
-        <h1>Cartas</h1>
-        <p class="admin-note">
-          Catálogo de <a href="https://tcgdex.dev" target="_blank" rel="noopener">TCGdex</a>, copiado a nuestra base
-          para que buscar sea instantáneo y no dependamos de que su servicio siga en pie.
-          Las imágenes no se copian: se enlazan a su CDN.
-        </p>
-
-        <div class="admin-stats-grid" id="cardsSummary"></div>
-
-        <div class="admin-card" style="margin-bottom: 20px;">
-          <h3 style="margin-top: 0;">Marcas de regulación legales</h3>
-          <p class="admin-note">
-            La letra pequeña de la esquina de una carta. Estas son las que valen en Estándar
-            <strong>esta temporada</strong>, y de aquí salen las dos cosas que se lo dicen a la
-            gente: el aviso del revisor de decklists de un torneo y la chapa de «se puede jugar
-            hoy» de la ficha de cada carta.
-          </p>
-          <p class="admin-note">
-            <strong>Rotan cada abril.</strong> Cuando llegue la rotación hay que cambiarlas aquí:
-            no se enteran solas, y hasta que alguien las toque la web dirá que un mazo legal no lo
-            es sin dar ningún error.
-          </p>
-          <div id="marcasAviso"></div>
-          <div class="foro-admin-fila">
-            <input type="text" id="marcasLegales" placeholder="H, I, J" style="max-width: 200px;"
-                   aria-label="Marcas legales, separadas por comas" />
-            <button class="btn-secondary" id="btnComprobarMarcas">Comprobar</button>
-            <button class="btn-primary" id="btnGuardarMarcas">Guardar</button>
-            <span class="admin-note" id="marcasNota"></span>
-          </div>
-          <div id="marcasRecuento"></div>
-        </div>
 
         <div class="admin-card" style="margin-bottom: 20px;">
           <h3 style="margin-top: 0;">Marca de regulación de cada set</h3>
@@ -536,120 +501,50 @@
             </div>
           </details>
         </div>
+      </section>
+
+      <section class="admin-section" id="section-cards">
+        <h1>Marcas legales</h1>
+        <p class="admin-note">
+          El catálogo de cartas se llena solo (TCGGO, cada día y cada semana): aquí queda lo que es
+          tuyo, las marcas que valen esta temporada. La marca de cada set está en
+          <a href="/admin/?ver=colecciones">Colecciones</a>, y si las pasadas automáticas van bien,
+          en <a href="/admin/">Hoy</a>.
+        </p>
 
         <div class="admin-card" style="margin-bottom: 20px;">
-          <h3 style="margin-top: 0;">Códigos de set de TCG Live</h3>
+          <h3 style="margin-top: 0;">Marcas de regulación legales</h3>
           <p class="admin-note">
-            Cuando alguien pega una decklist, cada línea trae el código del set tal como lo escribe
-            TCG Live («TWM 128»). Ese código se traduce a un set nuestro para poder enseñar la
-            imagen de la carta, y es también la etiqueta que se ve en la lista de sets de
-            <a href="/cartas.html">Cartas</a>: sin él ahí sale el identificador interno
-            («ME05» en vez de «PBL»).
+            La letra pequeña de la esquina de una carta. Estas son las que valen en Estándar
+            <strong>esta temporada</strong>, y de aquí salen las dos cosas que se lo dicen a la
+            gente: el aviso del revisor de decklists de un torneo y la chapa de «se puede jugar
+            hoy» de la ficha de cada carta.
           </p>
-          <p class="admin-note admin-note-alerta">
-            <strong>Esto ya no se rellena solo.</strong> El campo que traía TCGdex era el código de
-            <em>Pokémon TCG Online</em>, la plataforma vieja, que cerró en 2023: desde entonces
-            viene vacío en todos los sets nuevos. El botón de abajo sigue aquí por si TCGdex lo
-            retoma, pero hoy no va a encontrar nada de la era actual —
-            <strong>los sets nuevos se apuntan a mano aquí abajo</strong>, que son dos campos y un
-            guardar.
+          <p class="admin-note">
+            <strong>Rotan cada abril.</strong> Cuando llegue la rotación hay que cambiarlas aquí:
+            no se enteran solas, y hasta que alguien las toque la web dirá que un mazo legal no lo
+            es sin dar ningún error.
           </p>
+          <div id="marcasAviso"></div>
           <div class="foro-admin-fila">
-            <button class="btn-primary" id="btnTraerCodigos">Completar los datos que faltan de los sets</button>
-            <button class="btn-outline hidden" id="btnCancelarCodigos">Cancelar</button>
-            <span class="admin-note" id="setsLiveNota"></span>
+            <input type="text" id="marcasLegales" placeholder="H, I, J" style="max-width: 200px;"
+                   aria-label="Marcas legales, separadas por comas" />
+            <button class="btn-secondary" id="btnComprobarMarcas">Comprobar</button>
+            <button class="btn-primary" id="btnGuardarMarcas">Guardar</button>
+            <span class="admin-note" id="marcasNota"></span>
           </div>
-
-          <div id="setsLiveResumen"></div>
-          <div id="setsLiveLista"></div>
-
-          <div class="admin-bloque-mano">
-            <h4 style="margin-bottom: 4px;">Asignar un código a mano</h4>
-            <p class="admin-note">
-              El código es el que sale en la decklist (ASC, POR, PBL…). Lo que pongas aquí manda
-              sobre lo que diga TCGdex, y al guardar se escribe también en el set, así que la
-              etiqueta de <a href="/cartas.html">Cartas</a> cambia con esto.
-            </p>
-            <div class="foro-admin-fila">
-              <input type="text" id="setLiveCodigo" placeholder="Código (ASC)" style="max-width: 160px;" />
-              <select id="setLiveSet" aria-label="Set"></select>
-              <button class="btn-secondary" id="btnAnadirSetLive">Añadir</button>
-            </div>
-            <div class="foro-admin-fila">
-              <button class="btn-secondary" id="btnGuardarSetsLive">Guardar los de mano</button>
-            </div>
-          </div>
+          <div id="marcasRecuento"></div>
         </div>
 
-        <div class="cards-import-bar">
-          <button class="btn-primary" id="btnLoadTcgSets">Buscar sets en TCGdex</button>
-          <button class="btn-secondary" id="btnImportPending" disabled>Importar los que faltan</button>
-          <!-- "Los que faltan" sólo mira los que NUNCA se han importado.
-               Un set que se quedó corto —o al que TCGdex le ha añadido
-               cartas después— ya tiene fecha de importación y no volvía a
-               mirarse jamás. Este botón es para esos. -->
-          <button class="btn-secondary" id="btnImportShort" disabled>Reimportar los cortos</button>
-          <button class="btn-outline hidden" id="btnCancelImport">Cancelar</button>
-          <!-- QUÉ HAY EN CADA MERCADO (tanda 450). No importa nada: cuenta
-               lo que YA tenemos, set a set y carta a carta, por mercado.
-               Hace falta porque «no se ve ninguna carta japonesa» tiene dos
-               causas que desde la web se ven igual —que el catálogo
-               japonés no se haya importado nunca, o que algo del camino
-               esté roto— y sin este número hay que adivinar cuál es. -->
-          <!-- No importa nada: sólo pregunta a TCGdex qué catálogos hay.
-               Hace falta para decidir cómo se meten las japonesas y las
-               chinas sin pisar las que ya están. -->
-          <!-- MIRAR LO QUE CONTESTA TCGDEX, CRUDO (tanda 484).
-               PINGU: «me has dicho que TCGdex no guarda las imágenes de los
-               sets japoneses y los logos, pero sí lo hace. Revisa bien la
-               API». Y tenía derecho a dudar: lo que yo tenía no era la
-               respuesta de TCGdex, era una DEDUCCIÓN a partir de nuestras
-               propias columnas — que sale igual si el que parsea mal somos
-               nosotros.
-               Este botón no deduce nada: pide un set a TCGdex desde el
-               navegador (que es el único sitio del proyecto con salida a
-               su API) y enseña los campos TAL CUAL, al lado de lo que
-               tenemos guardado. -->
-          <!-- Y EL CATÁLOGO ENTERO, POR MUESTRA (tanda 486). El de un set
-               solo no contesta la pregunta del 30 %: PINGU sondeó SV1a (JP)
-               y sus 103 cartas vienen con imagen YA en el listado, el 100 %
-               — mientras nuestra tabla dice que de las 13.006 japonesas
-               importadas solo 3.882 tienen foto. Las dos cosas no pueden
-               ser verdad del catálogo entero, y un set no lo dice: SV1a es
-               de 2023 y es justo el caso bueno.
-               Esto sondea NUEVE repartidos por toda la lista —diez
-               peticiones— y dice si lo que falta es cobertura de TCGdex en
-               los sets viejos o si lo perdemos nosotros. Y enseña los
-               identificadores de verdad, que es lo que faltaba cuando
-               `cs1a CN` dio 404: el chino los nombra de otra forma. -->
-          <!-- EMPAREJAR CON TCGGO (tanda 588). TCGdex empareja mal con
-               Cardmarket (su issue #2325) y el cruce por orden y nombres
-               de la 587 casaba un 15 % en los sets modernos. TCGGO trae el
-               cardmarket_id de cada carta y se cruza por código de set +
-               número. Es de pago por peticiones: cada clic gasta como
-               mucho las que diga el tope, y lo hecho queda apuntado. -->
-          <label>Tope de peticiones <input type="number" inputmode="numeric" id="tcggoTope" value="40" min="1" max="2000" size="5" /></label>
-          <button class="btn-outline" id="btnTcggoEmparejar">Emparejar con TCGGO</button>
-          <button class="btn-outline" id="btnTcggoPrecios">Precios de TCGGO ahora</button>
-          <!-- Solo lectura (655): lo que han dejado apuntado las funciones
-               programadas de TCGGO —por dónde va el catálogo, qué
-               expansión no se ha dejado escribir y con qué error, cuáles
-               han escrito cero cartas—. Sin esto, «0 de 102» en un set
-               japonés no se podía explicar desde ningún sitio. -->
-          <button class="btn-outline" id="btnTcggoEstado">Estado del catálogo de TCGGO</button>
-          <!-- LA SONDA DE ORÍGENES (683). De UNA carta, qué tiene cada
-               sitio: nuestra base, TCGdex, TCGGO (y de paso sus expansiones
-               más antiguas, occidentales y japonesas) y Scrydex si quedan
-               claves. Unas 20 peticiones a TCGGO por clic. -->
-          <label>Sonda de orígenes <input type="text" id="sondaCartaId" placeholder="base1-4" size="12" /></label>
+        <details class="admin-detalle-avanzado">
+          <summary>Herramientas de diagnóstico del catálogo</summary>
+          <p class="admin-note">Solo leen (menos «traer ya las versiones»). Para cuando algo no cuadra y hay que ver qué contesta cada sitio.</p>
+          <div class="cards-import-bar">
+            <button class="btn-outline" id="btnTcggoEstado">Estado del catálogo de TCGGO</button>
+            <label>Sonda de orígenes <input type="text" id="sondaCartaId" placeholder="base1-4" size="12" /></label>
           <select id="sondaMercado" aria-label="Mercado de la carta"><option value="WEST">occidental</option><option value="JP">japonés</option></select>
           <button class="btn-outline" id="btnSondaOrigenes">¿Qué tiene cada sitio?</button>
-          <!-- LA SONDA DE TCGGO (929): UNA petición y su respuesta tal cual
-               (una carta con sus versiones, una página de expansión, un
-               lote por ids, la lista de expansiones con su símbolo), o las
-               cartas repetidas por número de un set nuestro, que no pide
-               nada a TCGGO. -->
-          <label>Sonda de TCGGO <select id="tcggoSondaModo" aria-label="Qué preguntar a TCGGO">
+            <label>Sonda de TCGGO <select id="tcggoSondaModo" aria-label="Qué preguntar a TCGGO">
             <option value="carta">una carta, con versiones</option>
             <option value="expansion">una expansión (5 cartas)</option>
             <option value="lote">un lote de ids</option>
@@ -661,27 +556,11 @@
           <input type="text" id="tcggoSondaValor" placeholder="id o set" size="14" aria-label="Id de TCGGO, id nuestro o set" />
           <select id="tcggoSondaMercado" aria-label="Catálogo"><option value="WEST">occidental</option><option value="JP">japonés</option></select>
           <button class="btn-outline" id="btnTcggoSonda">Preguntar</button>
-          <label>Solo estos sets <input type="text" id="tcggoSolo" placeholder="ex7, base1" size="16" /></label>
-          <label><input type="checkbox" id="tcggoReiniciar" /> empezar de cero (vuelve a pedir los sets ya hechos)</label>
-        </div>
-        <p class="admin-note" id="cardsImportNote"></p>
-        <!-- Para que nadie vuelva a intentar importar el japón a mano
-             (tanda 471): son ~550 sets entre los tres catálogos
-             asiáticos, o sea un cuarto de hora con esta pestaña abierta
-             y sin tocar nada. Lo hace sola la función programada
-             `catalogo-asia`, cada seis minutos y reanudándose, y
-             «Qué hay de cada mercado» dice por dónde va. -->
-        <p class="admin-note">El catálogo japonés y los dos chinos se
-          llenan solos cada seis minutos, cartas y logos incluidos: no
-          hace falta importarlos a mano. Dale a «Qué hay de cada
-          mercado» para ver por dónde va.</p>
-        <div class="cards-progress hidden" id="cardsProgress"><span class="fill" id="cardsProgressFill"></span></div>
-        <textarea id="cardsDiagnostico" class="admin-search hidden" rows="16" readonly
+          </div>
+          <p class="admin-note" id="cardsImportNote"></p>
+          <textarea id="cardsDiagnostico" class="admin-search hidden" rows="16" readonly
           style="font-family: monospace; font-size: 12px; white-space: pre; width: 100%;"></textarea>
-
-        <h2 class="admin-subtitle">Sets</h2>
-        <input type="search" enterkeyhint="search" id="cardsSetFilter" class="admin-search" placeholder="Filtrar sets por nombre…" />
-        <div id="cardsSetsTable"></div>
+        </details>
       </section>
 
     </main>

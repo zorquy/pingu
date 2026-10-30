@@ -41785,6 +41785,32 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1123 — «Cartas» se queda en «Marcas legales»
+
+Sexta y última tanda de la propuesta del admin (PINGU: «en cartas, no sé si
+hay cosas que sobran»; dijo «adelante» a las recomendadas).
+
+- La sección `cards` se llama «Marcas legales»: las marcas de la temporada
+  (que se quedan, rotan cada abril y son de PINGU) y, plegadas en
+  «Herramientas de diagnóstico del catálogo», el estado de TCGGO (con su
+  semáforo) y las dos sondas, que solo leen.
+- Se van: los importadores de TCGdex («Buscar sets», «Importar los que
+  faltan», «Reimportar los cortos», la tabla de sets y sus cifras), la
+  tarjeta de los códigos de TCG Live a mano, «Emparejar con TCGGO» y «Precios
+  de TCGGO ahora». Con ellos, de admin.js: `cargarSetsDeTcgdex`,
+  `importarSets`, `renderCardsSets`, `setsCortos`, `traerCodigosLive`, los
+  `*SetsLive`, `tcggoEmparejar`, `tcggoPrecios` y el import de
+  `js/tcgdex.js`. `loadCards` solo carga `tcgSetsLocales`.
+- El catálogo lo llenan las pasadas programadas (`tcggo-catalogo`,
+  `tcggo-emparejar-auto`, `tcggo-precios`, `catalogo-asia`…), que siguen
+  igual. Lo apuntado en `site_settings.torneos_sets_live` se sigue leyendo
+  (`lista-canonica.js`, el constructor); un código nuevo se pone en la ficha
+  del set en Colecciones (`tcg_online_code`, como corrección).
+- «Marca de regulación de cada set» y «Corregir cualquier set» se mudaron a
+  Colecciones (el mismo HTML con sus ids: el JS no cambia).
+- Pruebas: `test-tanda-1123-pantalla.mjs`; 345 (los códigos, en Colecciones),
+  341 (la marca de un set, en Colecciones) y 655 al día.
+
 ## Tanda 1122 — Los correos, editables desde /admin
 
 Quinta tanda de la propuesta del admin. PINGU: «que se pueda editar desde

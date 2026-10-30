@@ -1587,6 +1587,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   vista previa de /admin → Avisos, así que un campo nuevo del aviso va ahí y en
   `franjaHtml`, no en otra copia. A la campanita de todos solo se manda por
   `admin_aviso_campanita` (tipo `aviso_equipo`, que se puede apagar).
+- **En /admin, «Cartas» es «Marcas legales»** (tanda 1123): las marcas de
+  la temporada y, plegadas, las herramientas de diagnóstico. El catálogo se
+  llena solo (TCGGO); la marca de cada set y su código de TCG Live se corrigen
+  en Colecciones. No vuelvas a poner un importador o un botón de pasada a mano
+  en el panel: si una pasada falla, lo dice el semáforo de «Hoy».
 - **Los textos de los correos los cambia el equipo** (tanda 1122,
   `correo_textos`): asunto como plantilla con `{asunto}`, texto de arriba,
   botón y pie, por tipo. Lo que pinte un correo pasa por `renderFilaDeCola` /
@@ -1685,8 +1690,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   el que lee mal somos nosotros. Una columna vacía no dice de quién es la
   culpa. Desde este contenedor no se puede preguntar —la red cierra
   `api.tcgdex.net`—, así que lo pregunta el navegador del panel: /admin →
-  Cartas tiene **«Qué contesta TCGdex de un set»** y **«Sondear un
-  catálogo entero»**.
+  Marcas legales → «Herramientas de diagnóstico» (la sonda de orígenes, que
+  pregunta a cada sitio por una carta; desde la 1123 los importadores de
+  TCGdex ya no están).
 - **Una ficha de pruebas en otro IDIOMA que producción prueba otra web**
   (tanda 593). Los efectos de los ataques se leían de plantillas inglesas
   porque «el espejo guarda el texto en inglés» — y desde la 330 el engorde

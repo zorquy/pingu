@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (364) — PINGU-Claude (1123 — «Cartas» se queda en «Marcas legales»)
+
+**Hecho**: última tanda del admin. La sección Cartas es «Marcas legales»: las
+marcas de la temporada y, plegado, el diagnóstico (estado de TCGGO y sondas).
+Fuera los importadores de TCGdex, los códigos de TCG Live a mano, «Emparejar
+con TCGGO» y «Precios de TCGGO ahora»; la marca de cada set, a Colecciones.
+
+**Ficheros**: `admin/index.html`, `admin/js/admin.js`, SCHEMA, CLAUDE.md.
+Pruebas en `pruebas`: 1123-pantalla; 341, 345 y 655 al día.
+
+**Pendiente**: nada de esta tanda. Del admin quedan por ejecutar las
+migraciones 1118, 1120, 1121 y 1122.
+
 ## 2026-10-30 (363) — PINGU-Claude (1122 — los correos, editables)
 
 **Hecho**: /admin → Correos es una lista de los veinte correos y, al elegir
