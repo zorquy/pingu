@@ -1,0 +1,39 @@
+/* La franja del aviso del equipo (1120). Solo la baja quien la ve:
+   js/aviso-global.js la inyecta antes de pintarla. Un color por tipo; el
+   rojo sólido no, que la franja es de leer (tanda 311). */
+.aviso-global {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-sm);
+  padding: var(--e-sm) 48px var(--e-sm) var(--e-md);
+  position: relative;
+  background: var(--ice);
+  border-bottom: 1px solid var(--border);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-align: center;
+}
+.aviso-global-icono { display: inline-flex; color: var(--navy); }
+.aviso-global[data-tipo='aviso'] { background: var(--danger-bg); border-bottom-color: var(--danger); }
+.aviso-global[data-tipo='aviso'] .aviso-global-icono { color: var(--danger); }
+.aviso-global[data-tipo='mantenimiento'] { background: var(--warning-bg); }
+.aviso-global[data-tipo='mantenimiento'] .aviso-global-icono { color: var(--warning); }
+.aviso-global-enlace { color: inherit; text-decoration: underline; text-underline-offset: 2px; white-space: nowrap; }
+.aviso-global-cerrar {
+  position: absolute;
+  right: var(--e-xs);
+  top: 50%;
+  transform: translateY(-50%);
+  min-width: 44px;
+  min-height: 44px;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font-size: var(--t-md);
+  line-height: 1;
+  border-radius: var(--radius-md);
+}
+.aviso-global-cerrar:hover { background: var(--ice); }

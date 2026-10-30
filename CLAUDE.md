@@ -1582,6 +1582,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   con su número en el menú (`ponerContadorNav`); una cola nueva que espere al
   equipo es una entrada más ahí, no otra cifra suelta. Nada de cifras de
   adorno en «Hoy»: eso es Analítica.
+- **El aviso del equipo (la franja de arriba) es `site_settings.aviso_global`
+  y sus reglas viven en `js/aviso-puro.js`** (tanda 1120): las usa la web y la
+  vista previa de /admin → Avisos, así que un campo nuevo del aviso va ahí y en
+  `franjaHtml`, no en otra copia. A la campanita de todos solo se manda por
+  `admin_aviso_campanita` (tipo `aviso_equipo`, que se puede apagar).
 - **Lo que se gana en el perfil son «Logros»** (tanda 1117, PINGU: «vamos a
   escoger un nombre para todo»): ni medallas ni trofeos (la medalla de un
   curso es otra cosa). La pestaña es `logros` (`medallas` y `about`, alias), y

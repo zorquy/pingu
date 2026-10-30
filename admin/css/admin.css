@@ -1227,3 +1227,36 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
 @media (max-width: 760px) {
   .hoy-fila { grid-template-columns: 1fr; }
 }
+
+/* ── Avisos (1120): el formulario a la izquierda, la vista previa a la derecha ── */
+.hoy-aviso { padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); font-size: var(--t-xs); font-weight: 600; color: var(--text-mid); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hoy-aviso[data-estado='activo'] { color: var(--success); }
+.hoy-poner-aviso { margin-left: auto; display: inline-flex; align-items: center; gap: var(--e-xs); }
+.av-form { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: var(--e-lg); align-items: start; }
+.av-campos { display: grid; gap: var(--e-md); min-width: 0; }
+.av-campo { display: grid; gap: var(--e-xs); min-width: 0; }
+.av-campo input { width: 100%; }
+.av-eti { font-size: var(--t-xs); font-weight: 700; color: var(--text-mid); text-transform: uppercase; letter-spacing: 0.6px; }
+.av-dos { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-sm); }
+.av-chips { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.av-chip { min-height: 36px; padding: 0 var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--white); color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 600; cursor: pointer; }
+.av-chip.on { background: var(--navy-solid); border-color: var(--navy-solid); color: var(--blanco-fijo); }
+.av-interruptor { display: flex; align-items: center; gap: var(--e-sm); font-weight: 600; min-height: 44px; cursor: pointer; }
+.av-nota { color: var(--text-mid); font-size: var(--t-xs); }
+.av-mal { color: var(--danger); }
+.av-previa { display: grid; gap: var(--e-sm); position: sticky; top: var(--e-md); min-width: 0; }
+.av-estado { margin: 0; font-weight: 600; }
+.av-estado[data-estado='activo'] { color: var(--success); }
+.av-estado[data-estado='caducado'], .av-estado[data-estado='apagado'] { color: var(--text-mid); }
+.av-marco { border: 1px solid var(--border); border-radius: var(--radius-md); overflow: hidden; background: var(--bg); padding-top: 28px; position: relative; }
+.av-marco::before { content: ''; position: absolute; inset: 0 0 auto; height: 28px; background: var(--white); border-bottom: 1px solid var(--border); }
+.av-marco-movil { max-width: 360px; }
+.av-acciones { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+@media (max-width: 900px) {
+  .av-form { grid-template-columns: 1fr; }
+  .av-previa { position: static; }
+  .av-dos { grid-template-columns: 1fr; }
+}
+.hoy-sem-resumen[data-luz='gris'] .semaforo-luz { background: var(--border-strong); }
+.av-campo input[type='datetime-local'] { min-height: 44px; padding: 0 var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--white); color: var(--text); font: inherit; }
+.av-campo input[type='datetime-local']:focus { outline: none; box-shadow: var(--shadow-ring); }

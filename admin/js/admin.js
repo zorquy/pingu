@@ -23,6 +23,7 @@ import { iniciarTiendas } from './tiendas.js'
 
 let categories = []
 let perfilAdmin = null
+let avisosMontados = false
 let guidesCache = []
 
 // ── Access gate ──
@@ -55,6 +56,10 @@ function initSidebar() {
       // ~231 filas por catálogo y casi siempre se entra a otra cosa.
       if (btn.dataset.section === 'colecciones') iniciarColecciones()
       if (btn.dataset.section === 'tiendas') iniciarTiendas()
+      if (btn.dataset.section === 'avisos' && !avisosMontados) {
+        avisosMontados = true
+        import('./avisos-admin.js').then((m) => m.montarAvisos(document.getElementById('avisosPanel')))
+      }
     })
   })
   // Un enlace que abre una sección (1066: el resumen del lunes lleva a
@@ -87,46 +92,7 @@ document.addEventListener('keydown', (e) => {
 
 // ── Hoy (1119): ver admin/js/hoy.js ──
 
-// ── El aviso global (la franja de arriba de toda la web) ──
-//
-// Vive en site_settings, clave `aviso_global` (ver
-// supabase-migration-ajustes.sql). Si la tabla no existe todavía, el
-// panel lo dice al intentar guardar — leer en vacío no molesta.
-async function loadAvisoGlobal() {
-  const panel = document.getElementById('avisoGlobalPanel')
-  if (!panel) return
-  const texto = document.getElementById('avisoGlobalTexto')
-  const tono = document.getElementById('avisoGlobalTono')
-  const activo = document.getElementById('avisoGlobalActivo')
-
-  const { data } = await supabase.from('site_settings').select('value').eq('key', 'aviso_global').maybeSingle()
-  const actual = data?.value || {}
-  texto.value = actual.texto || ''
-  tono.value = actual.tono === 'aviso' ? 'aviso' : 'info'
-  activo.checked = !!actual.activo
-
-  document.getElementById('btnGuardarAvisoGlobal').addEventListener('click', async () => {
-    const { error } = await supabase.from('site_settings').upsert(
-      {
-        key: 'aviso_global',
-        value: { texto: texto.value.trim(), tono: tono.value, activo: activo.checked },
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: 'key' }
-    )
-    const faltaTabla = error && /site_settings/.test(error.message || '')
-    showToast(
-      error
-        ? faltaTabla
-          ? 'Falta ejecutar supabase-migration-ajustes.sql en el SQL Editor de Supabase.'
-          : 'No se ha podido guardar: ' + error.message
-        : activo.checked
-          ? 'Guardado. El aviso ya está en toda la web.'
-          : 'Guardado. El aviso queda apagado.',
-      error ? 'error' : 'success'
-    )
-  })
-}
+// ── El aviso global: /admin → Avisos (admin/js/avisos-admin.js, 1120) ──
 
 // ── Las claves de las notificaciones push (VAPID) ──
 //
@@ -184,7 +150,6 @@ async function loadClavesPush() {
 }
 
 async function loadDashboard() {
-  loadAvisoGlobal().catch(() => {})
   loadClavesPush().catch(() => {})
   const { montarHoy } = await import('./hoy.js')
   await montarHoy({ nombre: perfilAdmin?.display_name || perfilAdmin?.username || '' })

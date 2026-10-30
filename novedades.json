@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-30", "tipo": "mejora", "texto": "Los avisos del equipo (la franja de arriba) ahora dicen si son una novedad, un aviso o un mantenimiento, pueden llevar un enlace y se apagan solos cuando dejan de valer. Si alguno llega también a la campanita, en Ajustes → Avisos puedes apagar «Novedades y avisos del equipo».", "enlace": "/ajustes?ver=avisos" },
     { "fecha": "2026-10-30", "tipo": "mejora", "texto": "En los perfiles, «Medallas» y «Trofeos» pasan a llamarse «Logros». Y al tocar un logro se abre su ficha: lo que hiciste para conseguirlo o qué te falta, cuánta gente lo tiene y, si es tuyo, para destacarlo o compartirlo.", "enlace": "/perfil?ver=logros" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "Al citar varios mensajes en el foro, todas las citas salen como la primera: «Fulano escribió», con el enlace para ir a su mensaje, sus fotos y más texto. Las que ya estaban publicadas también se ven así si el mensaje citado está en la misma página.", "enlace": "/foro" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En el foro, la caja de responder crece con lo que escribes y ya no tiene barra de scroll dentro, aunque cites seis mensajes o toques fuera. Y al citar varios mensajes, el primero también se ve en la caja (antes solo salía al publicar).", "enlace": "/foro" },

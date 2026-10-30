@@ -37,6 +37,7 @@
   <link rel="stylesheet" href="/css/editor-texto.css" />
   <link rel="stylesheet" href="/css/cartas-lista.css" />
   <link rel="stylesheet" href="/css/cardmarket.css" />
+  <link rel="stylesheet" href="/css/aviso-global.css" />
   <link rel="stylesheet" href="/admin/css/admin.css" />
 </head>
 <body>
@@ -53,6 +54,7 @@
         <button class="admin-nav-item" data-section="pending"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg> Pendientes</button>
         <button class="admin-nav-item" data-section="guides"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg> Guías</button>
         <button class="admin-nav-item" data-section="noticias"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h13a1 1 0 0 1 1 1v14a2 2 0 0 0 2 2H5a2 2 0 0 1-2-2V5a1 1 0 0 1 1-1z"></path><path d="M18 8h2a1 1 0 0 1 1 1v10a2 2 0 0 1-2 2"></path><line x1="7" y1="8" x2="14" y2="8"></line><line x1="7" y1="12" x2="14" y2="12"></line><line x1="7" y1="16" x2="11" y2="16"></line></svg> Noticias</button>
+        <button class="admin-nav-item" data-section="avisos"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11v2a2 2 0 0 0 2 2h2l6 4V5L7 9H5a2 2 0 0 0-2 2z"></path><path d="M17 8a5 5 0 0 1 0 8"></path></svg> Avisos</button>
         <button class="admin-nav-item" data-section="categories"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path></svg> Categorías</button>
         <button class="admin-nav-item" data-section="achievements"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 4h10v4a5 5 0 0 1-10 0z"></path><path d="M5 4h2v3a3 3 0 0 1-3-3z"></path><path d="M19 4h-2v3a3 3 0 0 0 3-3z"></path><path d="M12 13v4"></path><path d="M8 21h8"></path><path d="M12 17v4"></path></svg> Logros</button>
         <span class="admin-nav-grupo">Comunidad</span>
@@ -82,6 +84,8 @@
         <div class="hoy-cab">
           <h1 id="hoySaludo">Hoy</h1>
           <span class="hoy-fecha" id="hoyFecha"></span>
+          <span class="hoy-aviso" id="hoyAviso" hidden></span>
+          <button type="button" class="btn-secondary hoy-poner-aviso" data-ir="avisos"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 11v2a2 2 0 0 0 2 2h2l6 4V5L7 9H5a2 2 0 0 0-2 2z"></path><path d="M17 8a5 5 0 0 1 0 8"></path></svg> Poner un aviso</button>
         </div>
         <div class="hoy-tarjetas" id="hoyTarjetas" aria-live="polite"><p class="admin-note">Contando lo que espera…</p></div>
         <div class="hoy-caja">
@@ -99,22 +103,12 @@
             <button type="button" class="btn-secondary" data-ir="errors">Ver los errores</button>
           </div>
         </div>
+      </section>
 
-        <div class="admin-destacada" id="avisoGlobalPanel">
-          <h2>Aviso global</h2>
-          <p class="subtext">Una franja arriba de TODA la web («el sábado hay torneo», «mantenimiento a las 22h»).
-            Cada usuario puede cerrarla; si publicas un aviso nuevo, vuelve a salir.
-            Necesita supabase-migration-ajustes.sql.</p>
-          <div class="admin-destacada-campos">
-            <input type="text" id="avisoGlobalTexto" maxlength="200" placeholder="El texto del aviso" />
-            <select id="avisoGlobalTono">
-              <option value="info">Informativo</option>
-              <option value="aviso">Importante (rojo)</option>
-            </select>
-            <label class="checkbox-row"><input type="checkbox" id="avisoGlobalActivo" /> Activo</label>
-            <button class="btn-primary" id="btnGuardarAvisoGlobal">Guardar</button>
-          </div>
-        </div>
+      <section class="admin-section" id="section-avisos">
+        <h1>Avisos</h1>
+        <p class="admin-note">La franja de arriba de toda la web («el sábado hay torneo», «mantenimiento a las 22h»). Cada cual puede cerrarla; si pones otro, vuelve a salir.</p>
+        <div id="avisosPanel"><p class="admin-note">Cargando…</p></div>
       </section>
 
       <section class="admin-section" id="section-pending">

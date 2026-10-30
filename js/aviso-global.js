@@ -1,22 +1,16 @@
 import { supabase } from './supabase.js'
-import { escapeHtml } from './html.js'
+import { hojaInyectada } from './hoja.js'
+import { estadoDeAviso, seVeAviso, huellaDeAviso, franjaHtml } from './aviso-puro.js'
 
-// La franja de AVISO GLOBAL del admin: "el sábado hay torneo",
-// "mantenimiento a las 22h". Se escribe desde /admin (tabla
+// La franja de AVISO GLOBAL del equipo: "el sábado hay torneo",
+// "mantenimiento a las 22h". Se escribe desde /admin → Avisos (tabla
 // site_settings, clave `aviso_global`) y sale debajo de la navbar en
 // toda la web. Cada cual puede cerrarla, y el cierre se recuerda POR
-// TEXTO: si el admin publica un aviso nuevo, vuelve a salir aunque
-// hubieras cerrado el anterior.
+// AVISO: si el equipo publica uno nuevo, vuelve a salir aunque hubieras
+// cerrado el anterior. Las reglas (tipo, desde y hasta, a quién, enlace)
+// están en js/aviso-puro.js.
 
 const CLAVE_CIERRE = 'pokedoc-aviso-cerrado'
-
-// Un resumen barato del texto, solo para saber si es EL MISMO aviso que
-// ya cerraste. No es criptografía: es una huella.
-function huella(s) {
-  let h = 0
-  for (let i = 0; i < s.length; i++) h = (Math.imul(h, 31) + s.charCodeAt(i)) | 0
-  return String(h)
-}
 
 export async function pintarAvisoGlobal() {
   try {
@@ -24,20 +18,22 @@ export async function pintarAvisoGlobal() {
     // Sin la tabla (migración sin ejecutar) o sin aviso: nada que pintar.
     if (error || !data) return
     const aviso = data.value || {}
-    const texto = String(aviso.texto || '').trim()
-    if (!aviso.activo || !texto) return
+    if (estadoDeAviso(aviso) !== 'activo') return
+    const raiz = document.documentElement
+    const movil = raiz.classList.contains('con-barra-movil') || matchMedia('(max-width: 760px)').matches
+    const conCuenta = aviso.publico === 'cuenta' ? Boolean((await supabase.auth.getSession()).data?.session) : false
+    if (!seVeAviso(aviso, { conCuenta, movil })) return
 
-    const marca = huella(texto)
+    const marca = huellaDeAviso(aviso)
     try {
       if (sessionStorage.getItem(CLAVE_CIERRE) === marca) return
     } catch {}
 
-    const franja = document.createElement('div')
-    franja.className = `aviso-global ${aviso.tono === 'aviso' ? 'aviso-global-serio' : ''}`
-    franja.setAttribute('role', 'status')
-    franja.innerHTML = `
-      <span class="aviso-global-texto">${escapeHtml(texto)}</span>
-      <button type="button" class="aviso-global-cerrar" aria-label="Cerrar el aviso">✕</button>`
+    // Su hoja solo la baja quien lo ve (1120: salió de components.css).
+    await hojaInyectada('css/aviso-global.css')
+    const caja = document.createElement('div')
+    caja.innerHTML = franjaHtml(aviso)
+    const franja = caja.firstElementChild
     const navbar = document.querySelector('.navbar, nav')
     if (navbar?.parentNode) navbar.after(franja)
     else document.body.prepend(franja)

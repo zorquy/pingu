@@ -51,7 +51,8 @@ export function semaforoHtml(filas, ahora = new Date()) {
   const nunca = todas.filter((p) => p.luz === 'gris').length
   const luz = (p) => `<div class="semaforo-pasada" data-luz="${p.luz}"><span class="semaforo-luz" aria-hidden="true"></span><strong>${escapeHtml(p.nombre)}</strong><small>${escapeHtml(p.motivo)}</small></div>`
   const resumen = [`${bien} al día`, mal.length ? `${mal.length} para mirar` : '', nunca ? `${nunca} sin correr nunca` : ''].filter(Boolean).join(' · ')
-  return `<p class="hoy-sem-resumen" data-luz="${mal.some((p) => p.luz === 'rojo') ? 'rojo' : mal.length ? 'ambar' : 'verde'}"><span class="semaforo-luz" aria-hidden="true"></span>${escapeHtml(resumen)}</p>
+  const general = mal.some((p) => p.luz === 'rojo') ? 'rojo' : mal.length ? 'ambar' : bien ? 'verde' : 'gris'
+  return `<p class="hoy-sem-resumen" data-luz="${general}"><span class="semaforo-luz" aria-hidden="true"></span>${escapeHtml(resumen)}</p>
     ${mal.length ? `<div class="semaforo">${mal.map(luz).join('')}</div>` : ''}
     <details class="hoy-sem-todas"><summary>Ver las ${todas.length}</summary><div class="semaforo">${todas.map(luz).join('')}</div></details>`
 }
@@ -136,5 +137,18 @@ export async function montarHoy({ nombre = '' } = {}) {
     if (errores) errores.innerHTML = erroresHtml(nuevos.error ? 0 : nuevos.count || 0, enUnDia.error ? null : enUnDia.count || 0, ultimo.data?.[0])
   })
 
-  await Promise.all([esperas, semaforo, resumen, errs].map((p) => p.catch(() => {})))
+  // El aviso que haya puesto, al lado del botón de ponerlo (1120); y otra
+  // vez cuando se guarda uno, que «Hoy» ya está pintado.
+  const pintarAviso = () => import('./avisos-admin.js').then((m) => m.estadoParaHoy()).then((est) => {
+    const chip = raiz.querySelector('#hoyAviso')
+    if (!chip) return
+    chip.hidden = !est
+    if (!est) return
+    chip.textContent = est.texto
+    chip.dataset.estado = est.e
+  })
+  const aviso = pintarAviso()
+  document.addEventListener('pd-aviso-guardado', () => pintarAviso().catch(() => {}))
+
+  await Promise.all([esperas, semaforo, resumen, errs, aviso].map((p) => p.catch(() => {})))
 }

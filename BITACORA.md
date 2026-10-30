@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (361) — PINGU-Claude (1120 — los avisos del equipo)
+
+**Hecho**: el aviso global tiene su sección en /admin (Avisos): tipo
+(novedad, aviso, mantenimiento), enlace, desde y hasta, a quién (todos, con
+cuenta, móvil), vista previa en PC y móvil mientras escribes, y «Mandarlo
+también a la campanita» a todas las cuentas. En «Hoy», «Poner un aviso» y el
+que hay. La franja de la web salió de components.css a su hoja.
+
+**Ficheros**: `admin/js/avisos-admin.js`, `js/aviso-puro.js`,
+`css/aviso-global.css` y `supabase-migration-1120-avisos.sql` (nuevos);
+`js/aviso-global.js`, `css/components.css`, `js/notifications.js`,
+`js/avisos-prefs.js`, `admin/index.html`, `admin/js/admin.js`,
+`admin/js/hoy.js`, `admin/css/admin.css`, SCHEMA, CLAUDE.md, novedades.
+Pruebas en `pruebas`: 1120 (PostgreSQL) y 1120-pantalla; el doble con
+`admin_aviso_campanita` y `avisos_enviados`.
+
+**Pendiente**: PINGU ejecuta `supabase-migration-1120-avisos.sql` (sin ella,
+la campanita no; la franja sí). Siguiente: 1121, Usuarios.
+
 ## 2026-10-30 (360) — PINGU-Claude (1119 — «Hoy» en /admin y el menú agrupado)
 
 **Hecho**: el Dashboard es ahora «Hoy»: lo que espera a alguien en tarjetas

@@ -41785,6 +41785,39 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1120 — Los avisos del equipo
+
+Tercera tanda de la propuesta del admin. PINGU: «el aviso global podemos
+hacerlo de otra manera».
+
+- /admin → Avisos (sección propia, `admin/js/avisos-admin.js`, por `import()`
+  al abrirla; desde «Hoy», «Poner un aviso» y una chapa con el que hay). El
+  aviso sigue en `site_settings.aviso_global` y lo nuevo son campos del JSON:
+  `tipo` (novedad, aviso, mantenimiento), `enlace` (de la casa o https; otro no
+  se pinta) y `texto_enlace`, `desde` y `hasta` (ISO; el formulario los pide en
+  hora local), `publico` (todos, cuenta, movil) y `activo`. Los de antes con
+  `tono` siguen saliendo (`tono: 'aviso'` es el tipo aviso).
+- Las reglas, puras, en `js/aviso-puro.js`: `estadoDeAviso` (vacio, apagado,
+  programado, caducado, activo), `seVeAviso`, `enlaceDeAviso`, `huellaDeAviso`
+  (texto, enlace y desde: cerrar uno no cierra el siguiente) y `franjaHtml`, que
+  pintan la web Y la vista previa del panel (PC y móvil) mientras escribes.
+- La franja salió de `components.css` a `css/aviso-global.css`, que
+  `js/aviso-global.js` inyecta solo cuando hay algo que pintar (bytes fuera de
+  lo que baja todo el mundo). Un color por tipo; el cerrar mide 44.
+- «Mandarlo también a la campanita»: `admin_aviso_campanita(p_titulo, p_cuerpo,
+  p_enlace)` (migración `supabase-migration-1120-avisos.sql`, solo el equipo):
+  un `user_notifications` tipo `aviso_equipo` a cada cuenta que no lo apagó, y
+  una fila en `avisos_enviados` (la lee el equipo; el panel enseña la última).
+  El mismo texto y enlace en menos de una hora devuelve `ya` y no repite. Llega
+  también por push (`enviar-push` empuja lo nuevo de la tabla). Sin la
+  migración la franja se guarda igual y el panel lo dice.
+- `aviso_equipo` está en `TIPOS` de `js/notifications.js` y en
+  `GRUPOS_CAMPANITA` («Novedades y avisos del equipo»): se puede apagar.
+- Pruebas: `test-tanda-1120.mjs` (lo puro y la migración contra PostgreSQL) y
+  `test-tanda-1120-pantalla.mjs` (el panel, sin la migración y la franja en la
+  web con cuenta, sin cuenta, móvil y caducada); 1119-pantalla al día. Rojas
+  ANTES de esta tanda (las mismas sin ella): 868-pantalla, 983, 310 y 311.
+
 ## Tanda 1119 — «Hoy», la entrada de /admin, y el menú agrupado
 
 PINGU: «el dashboard es una mierda», «guías destacadas, eso no lo vamos a

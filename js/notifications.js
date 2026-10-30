@@ -47,6 +47,8 @@ export const NOTIFICATION_TYPES = {
   tienda_la_tiene: 'Cuando una tienda tiene una carta que buscas',
   // El lunes de PokeDoc (794): lo manda netlify/functions/lunes.mjs.
   resumen_lunes: 'El resumen de tu semana, los lunes',
+  // Lo que el equipo manda a todo el mundo desde /admin → Avisos (1120).
+  aviso_equipo: 'Novedades y avisos del equipo de PokeDoc',
 }
 
 // De qué se avisa TAMBIÉN por correo.
