@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-30 (366) — PINGU-Claude (1125 — Deseos y cambios, todo hacia abajo)
+
+**Hecho**: PINGU encontraba pequeño el «Ver las 190 ›» de la 1114 y preguntó
+por enseñar todas hacia abajo. Propuesta con maquetas (A todo abajo, B
+pestañas, C botón grande) y «lo recomendado, dale». Mercado, La quiero y Las
+que doy son ahora UNA lista que se carga sola al bajar (48 en el PC, 24 en el
+móvil): occidental y luego japonés con el rótulo pegado arriba, «Los dos ·
+Pokémon · Japón» encima (recordado en el navegador) y la dirección guarda
+cuántas había para volver atrás. Fuera «Ver las N», «← Todas» y el paginador
+de estas pestañas; los enlaces de la 1114 siguen abriendo su catálogo.
+
+**Ficheros**: `js/mi-coleccion/tramos.js` (reescrito), `js/mi-coleccion/
+mercado.js`, `js/mi-coleccion/deseos.js`, `css/mi-coleccion.css`,
+`css/movil.css`, `mi-coleccion.html` y `cartas.html` (sin `paginacion.css`),
+SCHEMA, CLAUDE.md, novedades. Pruebas en `pruebas`: 1125 nueva; la de la 1114
+se va.
+
+**Pendiente**: nada de base. Si a PINGU le sobra el rótulo pegado o prefiere
+«Todas» a «Los dos», es CSS y una palabra en `tramos.js`.
+
 ## 2026-10-30 (365) — PINGU-Claude (1124 — diez niveles de XP)
 
 **Hecho**: PINGU aceptó la propuesta de niveles con lo recomendado. Diez

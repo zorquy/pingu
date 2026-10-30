@@ -1135,12 +1135,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   ordenado»): `porCatalogo` / `conRotulos` (deseos.js) ponen el rótulo como
   una fila más de la rejilla, que sigue siendo una; con un solo catálogo no
   hay rótulo. Una lista nueva de cartas tuyas que mezcle catálogos pasa por
-  ahí. Y cada tramo enseña DOS filas y «Ver las N» (1114, PINGU eligió
-  la A): dentro, ese catálogo por páginas (48 PC, 24 móvil) con el
-  paginador arriba y abajo, y el tramo en la dirección
-  (`tramo=<vista>:<WEST|JP>&pag=N`); todo en `js/mi-coleccion/tramos.js`.
-  El Mercado pide a la base solo lo que enseña; no vuelvas a poner un «Ver
-  más» que traiga de los dos catálogos. Y en el móvil esas rejillas van a TRES por fila (PINGU: «con dos hay
+  ahí. Y es UNA lista que crece sola al bajar (1125, PINGU: «mostrar todas
+  hacia abajo»; antes, dos filas y «Ver las N» de la 1114): 48 por tanda (24
+  en el móvil), occidental y luego japonés con el rótulo pegado arriba, «Los
+  dos · Pokémon · Japón» encima, y la dirección guarda catálogo y cuántas
+  (`tramo=<vista>:<cat>&hasta=N`, con `replaceState`). Todo en
+  `js/mi-coleccion/tramos.js` (`listaQueCrece`, `listaLocalHtml`): una lista
+  nueva de cartas tuyas que mezcle catálogos pasa por ahí. El Mercado pide a
+  la base solo cada tanda; lo que repinta (un corazón, Seleccionar) rehace lo
+  YA cargado, sin volver a pedirlo. Y en el móvil esas rejillas van a TRES por fila (PINGU: «con dos hay
   que bajar demasiado»): lo que se añada a una baldosa cabe en ~110 px.
 - **Un álbum hecho desde una lista (La quiero, 1031) es una COPIA de ese
   día** (`crearBinderDeLaQuiero`, albumes.js): la lista y el binder no se

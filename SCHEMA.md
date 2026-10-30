@@ -41785,6 +41785,66 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1125 — Deseos y cambios, todo hacia abajo
+
+PINGU, con la captura del Mercado: «el botoncito de ver las 190 o ver las 19
+creo que quizás es pequeño… o simplemente mostrar todas las cartas hacia
+abajo y ya está, y que tú puedas ordenarlas». Propuesta con maquetas («Todas
+las cartas hacia abajo»: A todo abajo, B pestañas, C botón grande) y «lo
+recomendado, dale»: la A, cargándose sola, un catálogo detrás de otro y en
+las tres pestañas (Mercado, La quiero, Las que doy).
+
+**Qué cambia.** Se van el escaparate de dos filas, «Ver las N», «← Todas» y el
+paginador de la 1114. Cada pestaña es UNA lista:
+
+- Encima, `selectorDeCatalogoHtml`: «Los dos · Pokémon · Japón» con sus
+  cuentas, como una fila entera de la rejilla. Solo si los dos catálogos
+  tienen algo. «Los dos» y no «Todas» porque La quiero y Las que doy ya
+  tienen un «Todas» de otro filtro al lado.
+- Con «Los dos», el occidental entero y detrás el japonés; cada uno con su
+  rótulo `mc-rotulo-pegado` (sticky a 70 px, la barra del sitio; en el móvil
+  sube a 0 cuando la barra se aparta, `html.bm-escondidas`, en `movil.css`).
+  Con un catálogo elegido, sin rótulo.
+- Al final, `[data-lista-mas]`: tres puntos y un `IntersectionObserver` con
+  800 px de margen que trae la tanda siguiente (48 en el PC, 24 en el móvil)
+  y la AÑADE antes de sí mismo (`insertAdjacentHTML`), sin repintar lo de
+  arriba. Si la pantalla es alta y el final sigue a la vista, el observador
+  vuelve a avisar y trae otra. Sin observador (o tras un fallo) se ve el
+  botón «Ver más» / «Volver a intentarlo». Acabada: «Ya están todas · N».
+
+**`js/mi-coleccion/tramos.js`** (reescrito; el nombre se queda porque lo
+nombran CLAUDE.md y las pruebas):
+
+- `listaQueCrece({ vista, orden, pedir, pintar, cargadas, alCrecer })`: el
+  corazón. `orden` es `[[mercado, total], …]`; `pedir(m, desde, n)` trae
+  filas (en el Mercado, de la base; en las otras dos, un trozo del arreglo);
+  `cargadas` es lo ya traído, para que un repintado (un corazón, Seleccionar)
+  rehaga la lista SIN volver a pedir. Si la base devuelve menos de lo que
+  dijo (alguien ha quitado cartas mientras bajabas), ese catálogo se da por
+  acabado: un freno que pregunta «¿quedan?» con un total viejo no pararía
+  nunca (la 510). Una sola viva por vista: la nueva mata a la anterior y
+  la anterior no escribe en un centinela que ya no está.
+- `listaLocalHtml` para La quiero y Las que doy: corta las `hasta` primeras
+  y devuelve el HTML; `rejillaPorTramos` (deseos.js) arma el observador en
+  un `queueMicrotask`, que corre cuando quien llama ya ha metido el HTML.
+- La dirección: `tramo=<vista>:<todas|WEST|JP>&hasta=N`, siempre con
+  `replaceState` (traer más no es ir a otro sitio). Así, volver atrás desde
+  una carta pide de una vez lo que había. Un enlace de la 1114
+  (`tramo=mercado:WEST&pag=3`) abre ese catálogo con `pag × tanda` cargadas.
+  Lo de siempre (los dos, una tanda) no ensucia la dirección. El catálogo
+  elegido se recuerda en el navegador (`mc-lista-catalogo-<vista>`).
+
+**El Mercado** (`mercado.js`): `cargar()` pide del primer catálogo de la
+lista hasta `max(tanda, hasta)` y del otro una fila (su total, que no se
+pinta); si el primero no llega, lo que falta lo trae la lista. Un filtro
+nuevo vuelve a empezar arriba. Un catálogo elegido que con el filtro se queda
+vacío enseña los dos (sin olvidar lo elegido).
+
+`mi-coleccion.html` ya no carga `css/paginacion.css` (solo lo usaban los
+tramos). Prueba: `test-tanda-1125-pantalla.mjs` (lo puro, PC, móvil, La
+quiero, la dirección, los enlaces viejos, el rótulo pegado bajo la barra y
+que no salta); la de la 1114 se va.
+
 ## Tanda 1124 — Diez niveles de XP y los rangos de colaborador cortos
 
 PINGU, con la propuesta «Niveles de PokeDoc»: «adelante con lo recomendado»

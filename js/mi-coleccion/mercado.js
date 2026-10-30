@@ -37,26 +37,23 @@ import { mercado as pedirMercado, quienDaEsta, mercadoConTiendas } from './cambi
 import { supabase } from '../supabase.js'
 import { tiendasQueTienen, enTiendasHtml } from '../en-tiendas.js'
 import { senasDe, borradorDe } from './tablon.js'
-import { porCatalogo } from './rotulos-catalogo.js'
 import { showToast } from '../toast.js'
 import * as listasDeseo from './listas-deseo.js'
 import { lineaDeSetHtml } from './linea-set.js'
-import { tramoDeDireccion, irATramo, enEscaparate, porPagina, paginasDe, rotuloConVerHtml, cabeceraDeTramoHtml, pieDeTramoHtml, tramoDelClic, subirA } from './tramos.js'
+import { porPagina, catalogoDe, elegirCatalogo, hastaDe, ordenDe, selectorDeCatalogoHtml, catalogoDelClic, listaQueCrece, listaDeDireccion } from './tramos.js'
 
 const $ = (id) => document.getElementById(id)
 // A un lado, encima de la rejilla, en cuanto no es un móvil (939).
 export const CONSULTA_AL_LADO = '(min-width: 900px)'
 
 let ctx = null
-// Sin selector de catálogo desde la 1038 (PINGU eligió lo recomendado): se
-// piden los dos a la vez y cada uno sale en su tramo, como en La quiero.
-// Desde la 1114, de cada uno lo que cabe en dos filas y «Ver las N», que
-// abre ese catálogo por páginas (js/mi-coleccion/tramos.js). Lo que se pide
-// es justo lo que se enseña: dos filas, o la página de un catálogo.
+// Los dos catálogos, cada uno en su tramo (1038), en UNA lista que crece al
+// bajar (1125, js/mi-coleccion/tramos.js): occidental y luego japonés, o el
+// elegido arriba. Lo que se pide es lo que se enseña: una tanda cada vez.
 const MERCADOS = ['WEST', 'JP']
-// El catálogo abierto y su página, o null en el escaparate.
-let tramo = null
-let cabenAlCargar = 0
+// El catálogo elegido («todas», WEST o JP) y la lista viva.
+let catalogo = 'todas'
+let lista = null
 // `quien` (1069): todos, solo personas o solo tiendas.
 const estado = { idioma: '', orden: 'nuevo', soloMias: false, texto: '', quien: 'todos' }
 let filasPor = { WEST: [], JP: [] }
@@ -138,25 +135,33 @@ function baldosaHtml(f) {
   </article>`
 }
 
+// Lo que ya ha llegado, para la ficha (← →) y «Seleccionar».
+function alCrecer(cargadas) {
+  filasPor = { WEST: cargadas.WEST || [], JP: cargadas.JP || [] }
+  filas = [...filasPor.WEST, ...filasPor.JP]
+}
+
+// Repinta lo que YA ha llegado (al marcar, al poner un corazón…) sin volver
+// a pedirlo: la lista se rehace con lo cargado y sigue creciendo desde ahí.
 function pintarRejilla() {
   const caja = $('mcMercadoRejilla')
   if (!caja) return
   filas = [...filasPor.WEST, ...filasPor.JP]
   total = totalPor.WEST + totalPor.JP
-  const cabecera = tramo ? cabeceraDeTramoHtml(tramo.market, totalPor[tramo.market], tramo.pagina, paginasDe(totalPor[tramo.market])) : ''
-  if (!filas.length) {
-    caja.innerHTML = `${cabecera}<div class="mc-quiero-vacio">
+  const selector = selectorDeCatalogoHtml('mercado', totalPor, catalogo)
+  const orden = ordenDe(totalPor, catalogo)
+  if (!orden.length) {
+    caja.innerHTML = `${selector}<div class="mc-quiero-vacio">
       <span class="mc-quiero-vacio-icono" aria-hidden="true">${icons.refreshCw(28)}</span>
       <p><strong>${estado.texto || estado.idioma || estado.soloMias ? 'Nadie da una carta así ahora mismo' : 'Todavía nadie da nada'}</strong></p>
       <p class="subtext">${estado.soloMias ? 'De las que buscas, ninguna está a cambio. Te avisamos cuando alguien la ponga.' : 'Cuando alguien ponga una carta para cambio, saldrá aquí.'}</p>
     </div>`
-  } else if (tramo) {
-    caja.innerHTML = `${cabecera}${filas.map(baldosaHtml).join('')}${pieDeTramoHtml(tramo.pagina, paginasDe(totalPor[tramo.market]))}`
+    lista?.morir()
+    lista = null
   } else {
-    // El escaparate: cada catálogo con su rótulo, su total y «Ver las N»; un
-    // catálogo solo y entero, sin rótulo.
-    const tramos = porCatalogo(filas, (f) => f.market)
-    caja.innerHTML = tramos.length < 2 && filas.length >= total ? filas.map(baldosaHtml).join('') : tramos.map(([m, l]) => `${rotuloConVerHtml(m, totalPor[m], l.length)}${l.map(baldosaHtml).join('')}`).join('')
+    lista = listaQueCrece({ vista: 'mercado', orden, pintar: baldosaHtml, cargadas: filasPor, pedir: pedirTanda, alCrecer })
+    caja.innerHTML = `${selector}${lista.html()}`
+    lista.armar(caja)
   }
   const cuenta = $('mcMercadoCuantas')
   if (cuenta) cuenta.textContent = total ? `${total.toLocaleString('es-ES', { useGrouping: 'always' })} ${total === 1 ? 'carta' : 'cartas'} a cambio` : ''
@@ -166,35 +171,53 @@ function pintarRejilla() {
 // El japonés solo existe en japonés: con otro idioma elegido no se le pide nada.
 const pideCatalogo = (m) => m !== 'JP' || !estado.idioma || estado.idioma === 'ja'
 
+// Una tanda de un catálogo, con los filtros de ahora y sus cartas completas
+// (la baldosa las pinta). `pedirTanda` es lo que llama la lista al bajar.
+let setsDeLaBusqueda = []
+async function pedirUna(m, desde, limite) {
+  const sets = setsDeLaBusqueda.filter((s) => (s.market || 'WEST') === m)
+  const leida = estado.texto ? entenderBusqueda(estado.texto, sets) : { texto: '', setIds: null }
+  const filasM = (await pedirMercado({
+    market: m,
+    idioma: m === 'JP' ? null : estado.idioma || null,
+    texto: normalizeSearch(leida.texto || ''),
+    sets: leida.setIds,
+    soloMias: estado.soloMias,
+    orden: estado.orden,
+    limite,
+    desde,
+    quien: estado.quien,
+  })).map((f) => ({ ...f, market: f.market || m }))
+  return filasM
+}
+async function pedirTanda(m, desde, limite) {
+  const nuevas = await pedirUna(m, desde, limite)
+  await ctx.completarCartas(nuevas.map((f) => f.card_id), m)
+  return nuevas
+}
+
 async function cargar() {
   const mio = ++turno
   const caja = $('mcMercadoRejilla')
-  tramo = tramoDeDireccion('mercado')
+  catalogo = catalogoDe('mercado')
+  lista?.morir()
+  lista = null
   if (caja) caja.innerHTML = '<div class="skeleton" style="height:240px"></div>'
-  const todos = await ctx.todosLosSets().catch(() => [])
+  setsDeLaBusqueda = await ctx.todosLosSets().catch(() => [])
   const pp = porPagina()
-  cabenAlCargar = enEscaparate($('mcPanelMercado'))
+  // Lo que había a la vista (volver atrás desde una carta), o una tanda.
+  const quiero = Math.max(pp, hastaDe('mercado'))
+  // El primero de la lista se trae entero hasta `quiero`; del otro, su
+  // total (una fila, que no se pinta) y lo que falte, ya en la lista.
+  const primero = ['WEST', 'JP'].find((m) => catalogo === 'todas' || catalogo === m)
   const unaVuelta = async (m) => {
     if (!pideCatalogo(m)) return { m, lista: [], total: 0 }
-    // Con un catálogo abierto, del otro solo hace falta su total (la cuenta
-    // de la pestaña es de los dos): una fila y no se pinta.
-    const soloTotal = Boolean(tramo && tramo.market !== m)
-    const sets = todos.filter((s) => (s.market || 'WEST') === m)
-    const leida = estado.texto ? entenderBusqueda(estado.texto, sets) : { texto: '', setIds: null }
-    const lista = (await pedirMercado({
-      market: m,
-      idioma: m === 'JP' ? null : estado.idioma || null,
-      texto: normalizeSearch(leida.texto || ''),
-      sets: leida.setIds,
-      soloMias: estado.soloMias,
-      orden: estado.orden,
-      limite: soloTotal ? 1 : tramo ? pp : cabenAlCargar,
-      desde: tramo && !soloTotal ? (tramo.pagina - 1) * pp : 0,
-      quien: estado.quien,
-    })).map((f) => ({ ...f, market: f.market || m }))
-    if (soloTotal) return { m, lista: [], total: Number(lista[0]?.total ?? 0) }
-    await ctx.completarCartas(lista.map((f) => f.card_id), m)
-    return { m, lista, total: Number(lista[0]?.total ?? 0) }
+    const es = m === primero
+    const llegan = await pedirUna(m, 0, es ? quiero : 1)
+    const t = Number(llegan[0]?.total ?? 0) || llegan.length
+    if (!es) return { m, lista: [], total: t }
+    await ctx.completarCartas(llegan.map((f) => f.card_id), m)
+    return { m, lista: llegan, total: t }
   }
   let vueltas
   try {
@@ -209,20 +232,19 @@ async function cargar() {
     filasPor[m] = lista
     totalPor[m] = t || lista.length
   }
-  // Una página que ya no existe (se ha dado de baja algo, o un enlace viejo):
-  // la última que hay, sin entrada nueva en el historial.
-  if (tramo && totalPor[tramo.market] && tramo.pagina > paginasDe(totalPor[tramo.market], pp)) {
-    irATramo('mercado', { ...tramo, pagina: paginasDe(totalPor[tramo.market], pp) }, { push: false })
-    return cargar()
-  }
+  // Un catálogo elegido que con estos filtros no tiene nada: los dos.
+  if (catalogo !== 'todas' && !totalPor[catalogo]) catalogo = 'todas'
   pintarMandos()
   pintarRejilla()
+  // Si el primero no llegaba a `quiero` (o se eligió volver a 96 con 30
+  // occidentales), lo que falta viene del siguiente, ya por la lista.
+  const faltan = Math.min(quiero, ordenDe(totalPor, catalogo).reduce((n, [, t]) => n + t, 0)) - (lista?.contadas() || 0)
+  if (lista && faltan > 0) await lista.mas(faltan)
 }
 
-// Con un filtro nuevo, un catálogo abierto vuelve a su página 1.
+// Con un filtro nuevo, la lista vuelve a empezar por arriba.
 function deNuevo() {
-  const t = tramoDeDireccion('mercado')
-  if (t?.pagina > 1) irATramo('mercado', { ...t, pagina: 1 }, { push: false })
+  if (hastaDe('mercado')) elegirCatalogo('mercado', catalogoDe('mercado'))
   return cargar()
 }
 const mercadoALaVista = () => { const p = $('mcPanelMercado'); return Boolean(p && !p.hidden && !p.classList.contains('hidden')) }
@@ -696,11 +718,12 @@ function enganchar() {
       void pintarAviso()
       return void deNuevo()
     }
-    // «Ver las N», «← Todas» y las páginas (1114).
-    const t = tramoDelClic(e, tramo)
-    if (t !== undefined) {
-      irATramo('mercado', t)
-      return void cargar().then(() => subirA($('mcPanelMercado')))
+    // «Los dos · Pokémon · Japón» (1125).
+    const cat = catalogoDelClic(e)
+    if (cat) {
+      if (cat.cat === catalogo) return
+      elegirCatalogo('mercado', cat.cat)
+      return void cargar()
     }
     const qn = e.target.closest('[data-merc-quien]')
     if (qn) {
@@ -743,18 +766,11 @@ function enganchar() {
     if (e.key === 'ArrowRight') { e.preventDefault(); pasarDeCarta(1) }
     if (e.key === 'ArrowLeft') { e.preventDefault(); pasarDeCarta(-1) }
   })
-  // Atrás y adelante entre el escaparate y las páginas (1114).
+  // Atrás o adelante a una dirección con otro catálogo.
   window.addEventListener('popstate', () => {
     if (!mercadoALaVista()) return
-    if (JSON.stringify(tramoDeDireccion('mercado')) !== JSON.stringify(tramo)) void cargar()
-  })
-  // Girar el móvil o ensanchar la ventana cambia lo que cabe en dos filas.
-  let esperaAncho = null
-  window.addEventListener('resize', () => {
-    clearTimeout(esperaAncho)
-    esperaAncho = setTimeout(() => {
-      if (!tramo && mercadoALaVista() && enEscaparate($('mcPanelMercado')) !== cabenAlCargar) void cargar()
-    }, 250)
+    const d = listaDeDireccion('mercado')
+    if (d && d.cat !== catalogo) void cargar()
   })
 }
 
@@ -798,8 +814,8 @@ export async function abrir(contexto) {
   pintarMandos()
   void pintarAviso()
   void pintarFranja()
-  // Volver a la pestaña con otro tramo en la dirección (un enlace, atrás) lo pide.
-  if (cargado && JSON.stringify(tramoDeDireccion('mercado')) === JSON.stringify(tramo)) return pintarRejilla()
+  // Volver a la pestaña con otro catálogo en la dirección (un enlace, atrás) lo pide.
+  if (cargado && catalogoDe('mercado') === catalogo) return pintarRejilla()
   cargado = true
   await cargar()
 }

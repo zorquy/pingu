@@ -9419,75 +9419,87 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   grid-column: 1 / -1;
 }
 
-/* Por páginas (1114, SCHEMA 1114): «Ver las N» en el rótulo de cada
-   catálogo, y dentro de uno, «← Todas» y el paginador del foro. */
-.mc-tramo-ver {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-xs);
-  min-height: 36px;
-  margin-left: auto;
-  padding: 0 var(--e-sm);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: none;
-  color: var(--navy);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 700;
-  white-space: nowrap;
-  cursor: pointer;
+/* Todo hacia abajo (1125, SCHEMA 1125): «Los dos · Pokémon · Japón», el
+   rótulo del catálogo pegado arriba mientras bajas por él y, al final, lo
+   que se está trayendo. Arriba hay 70 px de barra en el PC; en el móvil la
+   barra se aparta al bajar (709) y el rótulo sube con ella. */
+.mc-lista-cats {
+  grid-column: 1 / -1;
 }
 
-.mc-tramo-ver:hover {
-  background: var(--ice);
+.mc-lista-cats button small {
+  color: inherit;
+  font-weight: 600;
+  opacity: 0.8;
 }
 
-.mc-tramo-cab {
+.mc-lista-cats .pv-bandera {
+  display: inline-block;
+  margin-right: var(--e-xs);
+}
+
+.mc-rotulo-pegado {
+  position: sticky;
+  z-index: 3;
+  top: 70px;
+  margin-inline: calc(var(--e-sm) * -1);
+  padding: var(--e-sm);
+  background: var(--bg);
+}
+
+.mc-lista-mas,
+.mc-lista-fin {
   display: flex;
   grid-column: 1 / -1;
+  flex-direction: column;
   align-items: center;
   gap: var(--e-sm);
-}
-
-.mc-tramo-cab .mc-catalogo-rotulo {
+  min-height: 64px;
   margin: 0;
-}
-
-.mc-tramo-volver {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-xs);
-  min-height: 44px;
-  padding: 0 var(--e-md);
-  border: 0;
-  border-radius: var(--radius-pill);
-  background: var(--ice);
+  padding: var(--e-md) 0;
   color: var(--text-mid);
-  font: inherit;
   font-size: var(--t-sm);
-  font-weight: 700;
-  cursor: pointer;
+  text-align: center;
 }
 
-.mc-tramo-volver svg {
-  transform: scaleX(-1);
-}
-
-.mc-tramo-ver:focus-visible,
-.mc-tramo-volver:focus-visible {
-  outline: none;
-  box-shadow: var(--shadow-ring);
-}
-
-.mc-mercado-rejilla > .paginacion {
-  grid-column: 1 / -1;
+.mc-lista-mas p {
   margin: 0;
 }
 
-@media (pointer: coarse) {
-  .mc-tramo-ver {
-    min-height: 44px;
+.mc-lista-mas.sola button {
+  display: none;
+}
+
+.mc-lista-cargando {
+  display: flex;
+  gap: var(--e-xs);
+}
+
+.mc-lista-cargando i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--acento);
+  opacity: 0.35;
+  animation: mc-lista-punto 1s ease-in-out infinite;
+}
+
+.mc-lista-cargando i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.mc-lista-cargando i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes mc-lista-punto {
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-lista-cargando i {
+    animation: none;
+    opacity: 0.7;
   }
 }
 

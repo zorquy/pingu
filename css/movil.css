@@ -272,13 +272,21 @@
   html.bm-escondidas .bm-burbuja {
     transform: translateY(calc(72px + var(--e-xs)));
   }
+  /* El rótulo pegado de Deseos y cambios (1125) sube con la barra. */
+  .mc-rotulo-pegado {
+    transition: top 0.3s var(--ease);
+  }
+  html.bm-escondidas .mc-rotulo-pegado {
+    top: 0;
+  }
 }
 @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
   html.con-barra-movil .navbar,
   .bm,
   .bm-burbuja,
   .mc-pestanias,
-  html.con-barra-movil .carta-scan .carta-acciones {
+  html.con-barra-movil .carta-scan .carta-acciones,
+  .mc-rotulo-pegado {
     transition: none;
   }
 }

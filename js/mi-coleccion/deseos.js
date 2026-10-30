@@ -29,7 +29,7 @@ import { chapaDeVersionHtml } from './iconos-version.js'
 import { lineaDeSetHtml } from './linea-set.js'
 import { porCatalogo } from './rotulos-catalogo.js'
 import * as listasDeseo from './listas-deseo.js'
-import { tramosHtml, tramoDeDireccion, irATramo, tramoDelClic, subirA, enEscaparate } from './tramos.js'
+import { listaLocalHtml, catalogoDe, elegirCatalogo, catalogoDelClic } from './tramos.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -40,12 +40,12 @@ export function montar(c) {
   engancharTramos()
 }
 
-// POR PÁGINAS (1114): «La quiero» y «Las que doy», como el Mercado. Su lista
-// ya está entera en el navegador, así que las páginas se cortan aquí
-// (`tramosHtml`). Un oyente para las dos, una vez.
+// TODO HACIA ABAJO (1125): «La quiero» y «Las que doy», como el Mercado.
+// Su lista ya está entera en el navegador, así que cada tanda es un trozo
+// del arreglo (`listaLocalHtml`). Un oyente para las dos, una vez.
 const PANEL_DE = { quiero: 'mcQuieroPanel', doy: 'mcDoyPanel' }
+const REJILLA_DE = { quiero: 'mcQuieroRejilla', doy: 'mcDoyRejilla' }
 const pintado = { quiero: undefined, doy: undefined }
-let cabenPintado = 0
 let tramosEnganchados = false
 const aLaVista = (vista) => { const p = $(PANEL_DE[vista]); return Boolean(p && !p.hidden && !p.classList.contains('hidden') && p.offsetParent) }
 const repintarVista = (vista) => (vista === 'quiero' ? pintarQuiero() : void pintarDoy())
@@ -53,36 +53,26 @@ function engancharTramos() {
   if (tramosEnganchados) return
   tramosEnganchados = true
   document.addEventListener('click', (e) => {
-    const vista = e.target.closest?.('#mcQuieroPanel') ? 'quiero' : e.target.closest?.('#mcDoyPanel') ? 'doy' : null
-    if (!vista) return
-    const t = tramoDelClic(e, tramoDeDireccion(vista))
-    if (t === undefined) return
+    const t = catalogoDelClic(e)
+    if (!t || !PANEL_DE[t.vista]) return
     e.preventDefault()
-    irATramo(vista, t)
-    repintarVista(vista)
-    subirA($(PANEL_DE[vista]))
+    if (t.cat === catalogoDe(t.vista)) return
+    elegirCatalogo(t.vista, t.cat)
+    repintarVista(t.vista)
   })
   window.addEventListener('popstate', () => {
-    for (const v of ['quiero', 'doy']) if (aLaVista(v) && JSON.stringify(tramoDeDireccion(v)) !== JSON.stringify(pintado[v])) repintarVista(v)
-  })
-  let espera = null
-  window.addEventListener('resize', () => {
-    clearTimeout(espera)
-    espera = setTimeout(() => {
-      for (const v of ['quiero', 'doy']) if (aLaVista(v) && !pintado[v] && enEscaparate($(PANEL_DE[v])) !== cabenPintado) repintarVista(v)
-    }, 250)
+    for (const v of ['quiero', 'doy']) if (aLaVista(v) && catalogoDe(v) !== pintado[v]) repintarVista(v)
   })
 }
-// La rejilla de una de las dos, por páginas; apunta lo pintado.
+// La rejilla de una de las dos: una tanda (o lo que había a la vista) y la
+// lista lista para crecer en cuanto el HTML esté puesto.
 function rejillaPorTramos(vista, items, mercadoDe, pintar) {
-  const caja = $(PANEL_DE[vista])
-  const r = tramosHtml({ vista, items, mercadoDe, pintar, caja })
-  // Una página que ya no existe (has quitado cartas): la última, sin entrada nueva.
-  const pedido = tramoDeDireccion(vista)
-  if (pedido && r.tramo && pedido.pagina !== r.tramo.pagina) irATramo(vista, r.tramo, { push: false })
-  pintado[vista] = r.tramo
-  cabenPintado = enEscaparate(caja)
-  return r.html
+  const { lista, html } = listaLocalHtml({ vista, items, mercadoDe, pintar })
+  pintado[vista] = catalogoDe(vista)
+  // Quien llama mete este HTML en la página en la misma instrucción; al
+  // acabar, la rejilla ya está y se puede vigilar su final.
+  queueMicrotask(() => lista.armar($(REJILLA_DE[vista])))
+  return html
 }
 // Una carta o un precio traído de fuera de tu colección va también a su
 // sitio aparte (939), que la carga de la colección no borra.
