@@ -100,7 +100,7 @@ console.log('── 2. «Todo»: las de la expansión más nueva, y cuántas hay
 {
   const { page, ctx, errores } = await abrir('/buscar.html?q=zapdos', { movil: false })
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const hs = (await page.$$eval('#searchResults .bs-fila.bs-cartas', (as) => as.map((a) => a.getAttribute('href')))).map(idDe)
+  const hs = (await page.$$eval('#searchResults .bs-fila.bs-cartas, #searchResults .bs-baldosa', (as) => as.map((a) => a.getAttribute('href')))).map(idDe)
   check('cuatro, empezando por la más nueva (30th Celebration)', hs.length === 4 && hs[0] === '30c-12', JSON.stringify(hs))
   check('  …y la de 151 entre ellas', hs.includes('sv3pt5-145'), JSON.stringify(hs))
   // Desde la 968 el botón lleva DIRECTO a Cartas › Buscar (Sergio: eran

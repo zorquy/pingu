@@ -46,7 +46,8 @@ async function abrir(ruta, { movil = true, falla = null } = {}) {
 }
 const grupos = (page) => page.$$eval('#searchResults .bs-grupo', (gs) => gs.map((g) => ({
   titulo: g.querySelector('.bs-seccion')?.textContent.trim(),
-  filas: [...g.querySelectorAll('.bs-fila')].map((a) => ({ href: a.getAttribute('href'), texto: a.textContent.replace(/\s+/g, ' ').trim(), alto: a.getBoundingClientRect().height })),
+  // Desde la 1146, en «Todo» las cartas son baldosas de foto (.bs-baldosa).
+  filas: [...g.querySelectorAll('.bs-fila, .bs-baldosa')].map((a) => ({ href: a.getAttribute('href'), texto: a.textContent.replace(/\s+/g, ' ').trim(), alto: a.getBoundingClientRect().height })),
   mas: g.querySelector('.bs-mas')?.textContent.trim() || null,
   aviso: g.querySelector('.bs-aviso')?.textContent.replace(/\s+/g, ' ').trim() || null,
 })))
@@ -63,8 +64,8 @@ console.log('── 1. /buscar en un iPhone: todo a la vez ──')
   const ch = cartas.find((f) => /carta=base1-4\b/.test(f.href || ''))
   // Desde la 998 una carta del buscador se abre en el pop-up de Cartas › Buscar.
   check('Charizard lleva a su ficha (el pop-up de Buscar), con su set, su número y su precio (el mínimo en español)', ch && ch.href === '/cartas?ver=buscar&q=char&carta=base1-4' && /Charizard/.test(ch.texto) && /Set Básico · 4/.test(ch.texto) && /240,50\s?€/.test(ch.texto), JSON.stringify(ch))
-  const foto = await page.$eval('#searchResults .bs-cartas .bs-foto', (i) => ({ w: i.getAttribute('width'), h: i.getAttribute('height'), src: i.getAttribute('src') }))
-  check('  …con su foto, el hueco reservado (36×50)', foto.w === '36' && foto.h === '50' && /^https?:/.test(foto.src), JSON.stringify(foto))
+  const foto = await page.$eval('#searchResults .bs-baldosa .bs-foto', (i) => ({ w: i.getAttribute('width'), h: i.getAttribute('height'), src: i.getAttribute('src'), caja: getComputedStyle(i.parentElement).aspectRatio }))
+  check('  …con su foto, el hueco reservado (la proporción de la carta)', foto.w === '245' && foto.h === '342' && /245\s*\/\s*342/.test(foto.caja) && /^https?:/.test(foto.src), JSON.stringify(foto))
   check('  …y sin precio no se inventa uno', cartas.filter((f) => !/carta=base1-4\b/.test(f.href)).every((f) => !/€/.test(f.texto)))
   check('la guía lleva a /guia/<slug>', gs[1]?.filas[0]?.href === '/guia/guia-charizard', JSON.stringify(gs[1]))
   check('el hilo lleva a /tema/<id>', gs[2]?.filas[0]?.href === '/tema/tema-9', JSON.stringify(gs[2]))

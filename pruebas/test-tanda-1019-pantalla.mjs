@@ -88,7 +88,9 @@ console.log('\n── 4. Una guía y un torneo ──')
 {
   const { p, ctx } = await abrir('/torneo.html?slug=liga-fdn-otono')
   const datos = await p.evaluate(() => { const f = document.querySelector('.torneo-formato'); if (!f) return null; const r = [...f.querySelectorAll('.torneo-dato')].map((d) => d.getBoundingClientRect()); return { n: r.length, columnas: new Set(r.map((x) => Math.round(x.left))).size, filas: new Set(r.map((x) => Math.round(x.top))).size, alto: f.getBoundingClientRect().height } })
-  check('los datos del torneo van en dos columnas (cinco datos, tres filas)', datos && datos.n >= 4 && datos.columnas === 2 && datos.filas <= Math.ceil(datos.n / 2), JSON.stringify(datos))
+  // Desde la 1145 (W1) van en UNA fila que se desliza: en dos columnas eran
+  // tres pisos antes de «Tu plaza».
+  check('los datos del torneo van en una fila que se desliza', datos && datos.n >= 4 && datos.filas === 1 && datos.alto < 48, JSON.stringify(datos))
   check('  …con la cabecera de detalle «Torneos»', (await p.evaluate(() => document.querySelector('.bm-cab small')?.textContent)) === 'Torneos')
   await ctx.close()
 }
