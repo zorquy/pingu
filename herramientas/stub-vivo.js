@@ -48,10 +48,25 @@ export function sondeoAdaptable(fn, msNormal, factorDormido = 6) {
 
 const SONDEOS = []
 
+// La difusión (1140, «escribiendo…»): entre pestañas del mismo navegador con
+// BroadcastChannel, que es lo que hace el canal de verdad entre dos personas.
+const DIFUSIONES = []
+export function difundir({ tema, evento = 'aviso', alRecibir }) {
+  const bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(`difusion:${tema}`) : null
+  if (bc) bc.onmessage = (e) => { if (e.data?.evento === evento) alRecibir?.(e.data.payload) }
+  const d = { tema, evento, enviados: [] }
+  DIFUSIONES.push(d)
+  return {
+    enviar(payload) { d.enviados.push(payload); bc?.postMessage({ evento, payload }) },
+    parar() { try { bc?.close() } catch {} },
+  }
+}
+
 if (typeof window !== 'undefined') {
   window.__VIVO__ = {
     suscripciones: SUSCRIPCIONES,
     sondeos: SONDEOS,
+    difusiones: DIFUSIONES,
     // Simula que llega un cambio de la base.
     emitir(nombre, payload = {}) {
       SUSCRIPCIONES.filter((s) => s.viva && (!nombre || s.nombre === nombre)).forEach((s) => s.alCambiar?.(payload))
