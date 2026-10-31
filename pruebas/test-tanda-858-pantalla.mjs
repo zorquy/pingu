@@ -88,7 +88,8 @@ console.log('── 3. El tema del foro ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   await bajar(page, 1500)
   const b = await barra(page)
-  check('la flecha al foro, el título y «12 mensajes»', b?.visible && /foro\.html/.test(b.href || '') && b.titulo === '¿Charizard o Dragapult?' && b.cifra === '12 mensajes', JSON.stringify(b))
+  // Desde la 1139 la cifra dice por qué mensaje vas: «N de 12».
+  check('la flecha al foro, el título y «N de 12»', b?.visible && /foro\.html/.test(b.href || '') && b.titulo === '¿Charizard o Dragapult?' && /^\d+ de 12$/.test(b.cifra || ''), JSON.stringify(b))
   await ctx.close()
 }
 
