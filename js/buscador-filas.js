@@ -57,26 +57,42 @@ export function interiorDe(grupo, f) {
     return `<span class="bs-logo">${logo ? `<img ${logo} alt="" width="48" height="28" loading="lazy" />` : ''}</span>
       <span class="bs-texto"><b>${escapeHtml(nombreDeSet(f))}</b>${detalle ? `<small>${escapeHtml(detalle)}</small>` : ''}</span>`
   }
+  // Cada clase de resultado con su cara (1146, W2): la guía con su emoji en
+  // el color de Aprender, la noticia en el de Inicio y el tema en el de
+  // Comunidad; antes eran el mismo círculo gris para todo.
   if (grupo === 'guias') {
-    return `<span class="bs-icono" aria-hidden="true">${icons.bookOpen(18)}</span>
+    return `<span class="bs-icono bs-icono-guia" aria-hidden="true">${f.cover_emoji ? `<span class="bs-emoji">${escapeHtml(f.cover_emoji)}</span>` : icons.bookOpen(18)}</span>
       <span class="bs-texto"><b>${escapeHtml(f.title)}</b>${f.description ? `<small>${escapeHtml(f.description)}</small>` : ''}</span>`
   }
   if (grupo === 'noticias') {
     const dia = f.published_at ? new Date(f.published_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
-    return `<span class="bs-icono" aria-hidden="true">${icons.newspaper(18)}</span>
+    return `<span class="bs-icono bs-icono-noticia" aria-hidden="true">${icons.newspaper(18)}</span>
       <span class="bs-texto"><b>${escapeHtml(f.title)}</b><small>${escapeHtml(['Noticia', dia].filter(Boolean).join(' · '))}</small></span>`
   }
   if (grupo === 'temas') {
-    return `<span class="bs-icono" aria-hidden="true">${icons.messageSquare(18)}</span>
+    return `<span class="bs-icono bs-icono-tema" aria-hidden="true">${icons.messageSquare(18)}</span>
       <span class="bs-texto"><b>${escapeHtml(f.title)}</b><small>Hilo del foro</small></span>`
   }
   if (grupo === 'gente') {
     const nombre = f.display_name || f.username || 'Entrenador'
-    return `<span class="bs-avatar" style="${avatarStyle(f)}" aria-hidden="true">${f.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
+    return `<span class="bs-avatar" style="${avatarStyle(f)}"${f.id ? ` data-en-linea="${escapeHtml(f.id)}"` : ''} aria-hidden="true">${f.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
       <span class="bs-texto"><b${atributosDeRango(f)}>${escapeHtml(nombre)}</b>${f.username ? `<small>@${escapeHtml(f.username)}</small>` : ''}</span>`
   }
   return `<span class="bs-icono" aria-hidden="true">${f.icono ? icons[f.icono]?.(18) || '' : ''}</span>
     <span class="bs-texto"><b>${escapeHtml(f.nombre)}</b>${f.detalle ? `<small>${escapeHtml(f.detalle)}</small>` : ''}</span>`
+}
+
+// Una carta en BALDOSA (1146, W2): la foto grande, el nombre y el precio,
+// para la rejilla de /buscar en «Todo». La fila de siempre se queda para la
+// paleta y para «Lo más probable».
+export function baldosaDe(f, q = '') {
+  const cadena = cadenaDeEscaneo(f)
+  return `<a class="bs-baldosa" href="${escapeHtml(destinoDe('cartas', f, q))}">
+    <span class="bs-baldosa-foto" data-marca-carta="${escapeHtml(f.id)}"><img class="bs-foto" src="${escapeHtml(cadena[0] || '')}" data-cadena="${escapeHtml(JSON.stringify(cadena.slice(1)))}" width="245" height="342" loading="lazy" alt=""></span>
+    <span class="bs-baldosa-nombre">${escapeHtml(nombreDeCarta(f))}</span>
+    <small>${escapeHtml(nombreDeSet(f.tcg_sets))}${f.local_id ? ` · ${escapeHtml(f.local_id)}` : ''}</small>
+    ${f.valor ? `<span class="bs-precio">${escapeHtml(euros(f.valor))}</span>` : ''}
+  </a>`
 }
 
 // Una foto que no carga pasa a la siguiente de su cadena, y sin más, se

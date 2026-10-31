@@ -155,9 +155,19 @@ input.bs-input[type='search']:focus {
 
 .bs-chips {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: var(--e-sm);
   margin: var(--e-md) 0 var(--e-sm);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.bs-chips::-webkit-scrollbar {
+  display: none;
+}
+
+.bs-chips > * {
+  flex: 0 0 auto;
 }
 
 .bs-recientes {
@@ -497,19 +507,8 @@ input.bs-input[type='search']:focus {
    la caja ya dice qué es la página. */
 @media (max-width: 599px) {
   .bs-chips {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scrollbar-width: none;
     margin-inline: calc(-1 * var(--e-md));
     padding-inline: var(--e-md);
-  }
-
-  .bs-chips::-webkit-scrollbar {
-    display: none;
-  }
-
-  .bs-chips > * {
-    flex: 0 0 auto;
   }
 
   .bs-titulo {
@@ -519,5 +518,118 @@ input.bs-input[type='search']:focus {
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+}
+
+/* Resultados con cara (1146, W2; SCHEMA 1146): cada clase en el color de su
+   sección, la gente con su punto verde y las cartas en rejilla de fotos. */
+.bs-icono-guia { --k: #0f7f55; }
+.bs-icono-noticia { --k: #2563c9; }
+.bs-icono-tema { --k: #c62a5c; }
+:root[data-theme='dark'] .bs-icono-guia { --k: #2fb47c; }
+:root[data-theme='dark'] .bs-icono-noticia { --k: #6ea8ff; }
+:root[data-theme='dark'] .bs-icono-tema { --k: #f06c9b; }
+
+.bs-icono-guia,
+.bs-icono-noticia,
+.bs-icono-tema {
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--k) 14%, var(--white));
+  color: var(--k);
+}
+
+.bs-emoji {
+  font-size: var(--t-lg);
+  line-height: 1;
+}
+
+.bs-avatar {
+  position: relative;
+}
+
+.bs-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--e-md);
+  padding: var(--e-xs) var(--e-md) var(--e-sm);
+}
+
+.bs-baldosa {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-width: 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.bs-baldosa-foto {
+  position: relative;
+  display: block;
+  aspect-ratio: 245 / 342;
+  max-width: 100%;
+  margin-bottom: var(--e-xs);
+}
+
+.bs-baldosa .bs-foto {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s ease;
+}
+
+.bs-baldosa:hover .bs-foto {
+  transform: translateY(-2px);
+}
+
+.bs-baldosa-nombre,
+.bs-baldosa small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bs-baldosa-nombre {
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.bs-baldosa small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.bs-baldosa .bs-precio {
+  font-size: var(--t-sm);
+}
+
+.bs-baldosa:focus-visible {
+  outline: 2px solid var(--navy);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bs-baldosa .bs-foto { transition: none; }
+  .bs-baldosa:hover .bs-foto { transform: none; }
+}
+
+/* En el PC, la página más ancha y «Todo» a dos columnas: las cartas a la
+   izquierda, lo demás a la derecha. */
+@media (min-width: 1100px) {
+  .bs-pagina {
+    max-width: var(--container-w);
+  }
+
+  .bs-todo {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: var(--e-xl);
+    align-items: start;
+  }
+
+  .bs-col {
+    min-width: 0;
   }
 }

@@ -5,7 +5,7 @@
 import { icons } from './icons.js'
 import { escapeHtml } from './html.js'
 import { GRUPOS, buscarTodo, todoVacio, recordarBusqueda, leerRecientes, olvidarRecientes } from './buscador.js'
-import { destinoDe, interiorDe, engancharFotos } from './buscador-filas.js'
+import { destinoDe, interiorDe, engancharFotos, baldosaDe } from './buscador-filas.js'
 import { cuentaDeGrupo, esPersona } from './buscador-puro.js'
 
 const $ = (id) => document.getElementById(id)
@@ -62,7 +62,8 @@ function seccion(g, estado, q) {
     // sí: «ninguna carta» es la respuesta.
     return grupo ? `<p class="empty-state">Nada en ${NOMBRE[g].toLowerCase()} con «${escapeHtml(q)}».</p>` : ''
   }
-  const filas = lista.map((f) => fila(g, f, '', q)).join('') + japon
+  // En «Todo», las cartas en una rejilla de fotos (1146, W2).
+  const filas = (g === 'cartas' && !grupo && lista.length ? `<div class="bs-rejilla">${lista.map((f) => baldosaDe(f, q)).join('')}</div>` : lista.map((f) => fila(g, f, '', q)).join('')) + japon
   const mas = g === 'productos' ? masProductos(estado, q) : grupo ? '' : g === 'cartas' ? masCartas(estado, q) : estado.filas.length >= EN_TODO ? `<button type="button" class="bs-mas" data-ver="${g}">Ver más ${g === 'gente' ? 'gente' : NOMBRE[g].toLowerCase()}</button>` : ''
   return `<section class="bs-grupo"><h2 class="bs-seccion">${NOMBRE[g]}</h2>${filas}${mas}</section>`
 }
@@ -131,8 +132,14 @@ async function buscar() {
   const preguntados = GRUPOS.map(([g]) => g).filter((g) => r[g])
   resultados.innerHTML = todoVacio(r)
     ? `<p class="empty-state">Nada con «${escapeHtml(q)}». Prueba con menos letras o con otra palabra.</p>`
-    : (grupo ? '' : mejorHtml(r.cartas, q)) + preguntados.map((g) => seccion(g, r[g], q)).join('')
+    : grupo
+      ? preguntados.map((g) => seccion(g, r[g], q)).join('')
+      : // En «Todo», dos columnas en el PC (1146): las cartas a la izquierda,
+        // lo demás a la derecha; en el móvil, una debajo de otra.
+        `<div class="bs-todo"><div class="bs-col">${mejorHtml(r.cartas, q)}${['cartas', 'productos', 'expansiones'].filter((g) => r[g]).map((g) => seccion(g, r[g], q)).join('')}</div><div class="bs-col">${preguntados.filter((g) => !['cartas', 'productos', 'expansiones'].includes(g)).map((g) => seccion(g, r[g], q)).join('')}</div></div>`
   if (!esPersona(q)) pintarCuentas(q, r)
+  // El punto verde de quien está en línea (1140), también aquí.
+  if (r.gente?.filas?.length) import('./en-linea.js').then((m) => m.marcarEnLinea(resultados)).catch(() => {})
   // «La tienes» y «La quieres» en cada carta (943).
   import('./marcas-carta.js').then((m) => m.marcarCartas(resultados)).catch(() => {})
 }

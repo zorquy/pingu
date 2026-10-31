@@ -843,13 +843,64 @@
   pointer-events: none;
 }
 
+/* La barra del trato (1146, W3; SCHEMA 1146): «Proponer un cambio» y «Ya nos
+   cambiamos» en una fila fina bajo la cabecera; con un trato en marcha, su
+   tira, que se queda arriba al bajar. */
+.msg-trato {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+  padding: var(--e-sm) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.msg-trato:has(.cp-caja-tira) {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--bg);
+}
+
+.msg-trato .cp-caja {
+  margin: 0;
+}
+
+.msg-trato .cp-caja.cp-caja-tira {
+  position: static;
+  flex-basis: 100%;
+  padding-bottom: 0;
+}
+
+.msg-trato .btn-secondary,
+.msg-trato .btn-primary {
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border-radius: var(--radius-pill);
+  font-size: var(--t-sm);
+}
+
+.msg-trato:not(:has(#msgPropuestas:not([hidden]) > *, .msg-cambio > *)) {
+  display: none;
+}
+
 /* «Cambio hecho» (795, NU4). */
 .msg-cambio {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: var(--e-sm) var(--e-md);
-  margin-top: var(--e-sm);
+}
+
+.msg-cambio-abierto {
+  flex-basis: 100%;
+}
+
+.msg-cambio-explica {
+  flex-basis: 100%;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
 }
 
 .msg-cambio:empty {

@@ -41785,6 +41785,42 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1146 — Buscar con caras y la barra del trato en Mensajes (W2, W3)
+
+De la propuesta «Otra vuelta por la web» (PINGU: «todo menos lo último de la
+ficha»). Con esta quedan hechas W1–W4.
+
+**W2 · Buscar.** Antes era una lista gris: el mismo círculo para una guía, una
+noticia y un tema, y las cartas como filas. Ahora:
+
+- En «Todo», las cartas van en una rejilla de fotos (`baldosaDe` en
+  `js/buscador-filas.js`: foto grande con `data-marca-carta`, nombre, set y
+  precio; tres por fila en el móvil). «Lo más probable» y la paleta de Ctrl+K
+  siguen con la fila de siempre, y con un filtro puesto también (la fila
+  aguanta más resultados en menos sitio).
+- Guía, noticia y tema llevan su icono en un cuadrado del color de su sección
+  (`.bs-icono-guia/-noticia/-tema`, con `--k` y su versión oscura); la guía
+  enseña su `cover_emoji` si lo tiene.
+- La gente lleva `data-en-linea` y `search.js` llama a `marcarEnLinea` (1140)
+  cuando hay gente en los resultados: el punto verde, el de siempre.
+- Los filtros, en UNA fila que se desliza en todos los anchos (antes solo en
+  el móvil).
+- En el PC (≥ 1100) la página va a `--container-w` y «Todo» se parte en dos
+  columnas (`.bs-todo > .bs-col`): cartas, productos y expansiones a la
+  izquierda, lo demás a la derecha.
+
+**W3 · Mensajes.** Encima de la conversación había «Cambio hecho» + un
+párrafo de dos líneas + «Proponer un cambio», tres pisos. Ahora es
+`.msg-trato`, una fila fina con `#msgPropuestas` y `#msgCambio`:
+«Proponer un cambio» y «Ya nos cambiamos» lado a lado. La explicación sale al
+tocar «Ya nos cambiamos» (`preguntar` en `js/cambio-boton.js`: la frase,
+«Marcar el cambio» y «Ahora no», que vuelve sin preguntar a la base), y los
+pasos que necesitan la fila entera (confirmar, valorar) ponen
+`.msg-cambio-abierto`. Con un trato en marcha, su tira (1100) ocupa la fila y
+la barra entera se queda arriba al bajar (`.msg-trato:has(.cp-caja-tira)`
+sticky; la tira deja de serlo por su cuenta, que dentro de la barra se
+habría ido con ella).
+
 ## Tanda 1145 — La ficha de un torneo en el móvil y Repeticiones (W1, W4)
 
 De la propuesta «Otra vuelta por la web» (PINGU: «todo menos lo último de la

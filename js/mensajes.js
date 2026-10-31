@@ -291,8 +291,10 @@ async function renderThread(session, conversationId) {
         ${con1141 ? `<div class="msg-mas-caja"><button type="button" class="msg-mas" id="msgMas" aria-label="Más opciones" aria-haspopup="true" aria-expanded="false">${icons.moreHorizontal(18)}</button><div class="msg-mas-menu" id="msgMasMenu" hidden></div></div>` : ''}
       </div>
       <div class="msg-scroll" id="msgScroll">
-        <div class="msg-cambio" id="msgCambio"></div>
-        <div id="msgPropuestas" hidden aria-live="polite"></div>
+        <div class="msg-trato">
+          <div id="msgPropuestas" hidden aria-live="polite"></div>
+          <div class="msg-cambio" id="msgCambio"></div>
+        </div>
         <section class="perfil-cruce hidden" id="msgCruce" aria-live="polite"></section>
         <div class="msg-mensajes" id="threadMessages" aria-live="polite"><div class="skeleton msg-esqueleto"></div></div>
       </div>

@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (387) — PINGU-Claude (1146 — Buscar con caras y la barra del trato)
+
+**Hecho**: de «Otra vuelta por la web», W2 y W3 (con eso, W1–W4 hechas; W5
+descartada por PINGU). Buscar: cartas en rejilla de fotos en «Todo», iconos de
+color para guías, noticias y temas, punto verde en la gente, filtros en una
+fila que se desliza y dos columnas en el PC. Mensajes: «Proponer un cambio» y
+«Ya nos cambiamos» en una barra fina; la explicación, al tocar.
+
+**Ficheros**: js/buscador-filas.js, js/search.js, css/buscador.css,
+js/mensajes.js, js/cambio-boton.js, css/mensajes.css, SCHEMA.md,
+novedades.json. Pruebas (rama pruebas): test-tanda-1146-pantalla.mjs nueva.
+
+**En curso**: nada.
+
 ## 2026-10-31 (386) — PINGU-Claude (1145 — ficha de torneo en el móvil y Repeticiones)
 
 **Hecho**: de «Otra vuelta por la web», W1 y W4. Torneo (móvil): cabecera

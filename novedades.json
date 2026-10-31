@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-31", "tipo": "mejora", "texto": "Buscar, con cara: las cartas salen en fotos con su precio y tu marca, las guías, noticias y temas con su color, la gente con su puntito verde, y en el ordenador las cartas a un lado y lo demás al otro.", "enlace": "/buscar?q=charizard" },
+    { "fecha": "2026-10-31", "tipo": "mejora", "texto": "En una conversación, «Proponer un cambio» y «Ya nos cambiamos» van juntos en una barra fina; la explicación sale solo si la necesitas.", "enlace": "/mensajes" },
     { "fecha": "2026-10-31", "tipo": "mejora", "texto": "En el móvil, la ficha de un torneo ya no ocupa la pantalla con la cabecera: los datos en una fila que se desliza, la descripción con «Más» y tu plaza a la vista nada más entrar.", "enlace": "/torneos" },
     { "fecha": "2026-10-31", "tipo": "mejora", "texto": "Repeticiones, más directa: una línea de explicación, la ayuda plegada y un cuadro que crece al pegar el registro.", "enlace": "/repeticiones" },
     { "fecha": "2026-10-31", "tipo": "mejora", "texto": "El glosario se lee como un diccionario: cada término con su definición y su ejemplo a la vista, sin tocar nada; en el ordenador, en dos columnas con las letras a la derecha.", "enlace": "/glosario" },
