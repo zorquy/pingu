@@ -45,7 +45,11 @@ console.log('── 2. En un iPhone: la barra de arriba ──')
   check('  …pero siguen en la página (sus chapas cuentan)', (await page.locator('#navMsgBadge').count()) === 1 && (await page.locator('#navBellBadge').count()) === 1)
   await page.evaluate(() => { const m = document.getElementById('navMsgBadge'), b = document.getElementById('navBellBadge'); m.textContent = '2'; m.classList.remove('hidden'); b.textContent = '3'; b.classList.remove('hidden') })
   await page.waitForTimeout(300)
-  check('el avatar lleva la suma de lo sin leer (2 mensajes + 3 avisos = 5)', limpio(await page.locator('#navUserBtn .bm-punto').innerText().catch(() => '')) === '5' && /5 sin leer/.test(await page.getAttribute('#navUserBtn', 'aria-label')))
+  // Desde la 1142 el avatar dice lo de la campana y nada más: los mensajes
+  // llevan su número en Comunidad (contarlos aquí era contarlos dos veces).
+  const campana = await page.evaluate(() => { const b = document.getElementById('navBellBadge'); return b.classList.contains('hidden') ? '' : b.textContent })
+  const punto = limpio(await page.locator('#navUserBtn .bm-punto').innerText({ timeout: 1000 }).catch(() => ''))
+  check('el avatar lleva lo de la campana, sin los mensajes (1142)', punto === campana && (!punto || new RegExp(`${punto} sin leer`).test(await page.getAttribute('#navUserBtn', 'aria-label'))), `${punto} / ${campana}`)
   console.log('── 3. La hoja «Tú» ──')
   await page.click('#navUserBtn')
   await page.waitForTimeout(700)

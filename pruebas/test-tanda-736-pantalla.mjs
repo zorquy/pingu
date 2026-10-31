@@ -75,16 +75,21 @@ const browser = await chromium.launch()
   await page.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('la chapa cuenta los cuatro avisos', (await page.textContent('#navBellBadge')) === '4')
+  // Desde la 1142 la chapa cuenta solo lo que no es de una sección: las tres
+  // reacciones del foro ya llevan su número en Comunidad.
+  check('la chapa cuenta lo tuyo: la guía aprobada (1142)', (await page.textContent('#navBellBadge')) === '1')
   await page.click('#navBellBtn')
   await page.waitForTimeout(700)
-  const lista = await page.$$eval('#navBellList > *', (xs) => xs.map((x) => (x.classList.contains('nav-bell-tramo') ? `[${x.textContent}]` : x.querySelector('.nav-bell-item-title').textContent.replace(/\s+/g, ' ').trim())))
-  check('los tramos y las filas: tres reacciones en una', JSON.stringify(lista) === JSON.stringify(['[Hoy]', '3 reacciones a tu mensaje 3', '[Antes]', 'Tu guía ha sido aprobada']), JSON.stringify(lista))
+  const lista = await page.$$eval('#navBellList > *', (xs) => xs.map((x) => (x.classList.contains('nav-bell-bloque') ? `{${x.textContent}}` : x.classList.contains('nav-bell-tramo') ? `[${x.textContent}]` : x.querySelector('.nav-bell-item-title').textContent.replace(/\s+/g, ' ').trim())))
+  check('los tramos y las filas: tres reacciones en una, lo tuyo primero (1142)', JSON.stringify(lista) === JSON.stringify(['{Para ti}', '[Antes]', 'Tu guía ha sido aprobada', '{En tus secciones}', '[Hoy]', '3 reacciones a tu mensaje 3 Comunidad']), JSON.stringify(lista))
   const estilo = await page.evaluate(() => { const c = document.querySelector('.nav-bell-cuenta'); const t = document.querySelector('.nav-bell-tramo'); return { cuenta: getComputedStyle(c).borderRadius, tramo: getComputedStyle(t).textTransform } })
   check('  …con su hoja (la cuenta en chapa, el tramo en versalitas)', estilo.cuenta !== '0px' && estilo.tramo === 'uppercase', JSON.stringify(estilo))
   await Promise.all([page.waitForURL(/tema/, { timeout: 4000 }).catch(() => null), page.click('.nav-bell-item[data-notif-ids="n1,n2,n3"]')])
   const escrituras = await page.evaluate(() => JSON.parse(sessionStorage.getItem('__escrituras__') || '[]').filter((e) => e.tabla === 'user_notifications'))
-  check('pulsar el grupo marca leídos los TRES (una sola escritura)', escrituras.length === 1 && escrituras[0].filas.length === 3 && escrituras[0].filas.every((f) => f.read_at), JSON.stringify(escrituras).slice(0, 200))
+  // La primera escritura es la del clic. Desde la 1142, al llegar al tema el
+  // doble vuelve a sembrar los avisos sin leer y la página los da por leídos
+  // otra vez (en la base ya lo estarían): esa segunda no cuenta aquí.
+  check('pulsar el grupo marca leídos los TRES (una sola escritura)', escrituras.length >= 1 && escrituras[0].filas.length === 3 && escrituras[0].filas.every((f) => f.read_at), JSON.stringify(escrituras).slice(0, 200))
   check('  …y lleva al mensaje', /\/tema\/1/.test(page.url()), page.url())
   await ctx.close()
 }
