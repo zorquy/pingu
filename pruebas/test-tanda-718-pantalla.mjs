@@ -70,7 +70,8 @@ console.log('── 1. /buscar en un iPhone: todo a la vez ──')
   check('la guía lleva a /guia/<slug>', gs[1]?.filas[0]?.href === '/guia/guia-charizard', JSON.stringify(gs[1]))
   check('el hilo lleva a /tema/<id>', gs[2]?.filas[0]?.href === '/tema/tema-9', JSON.stringify(gs[2]))
   check('la persona lleva a su perfil, con su @', gs[3]?.filas[0]?.href === '/usuario/charlie' && /@charlie/.test(gs[3].filas[0].texto), JSON.stringify(gs[3]))
-  check('cada fila mide al menos 44 de alto', gs.every((g) => g.filas.every((f) => f.alto >= 44)))
+  // La cuarta carta va escondida en el móvil desde la 1146b (mide 0): cuentan las que se ven.
+  check('cada fila mide al menos 44 de alto', gs.every((g) => g.filas.every((f) => f.alto === 0 || f.alto >= 44)))
   // 758: el escáner se fue de al lado de la caja (escondido, el código sigue).
   check('sin escáner al lado de la caja', (await page.locator('#bsEscanear, .bs-escanear').count()) === 0)
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
