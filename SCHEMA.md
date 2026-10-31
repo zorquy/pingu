@@ -41785,6 +41785,36 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1136 — Halloween: «¿Truco o trato?» en vez del bloque de la portada
+
+PINGU, con la propuesta delante: el pop-up B («¿Truco o trato?») y «quitar la
+cabecera del fantasma». El bloque de la 1134 se repetía con el pop-up y en el
+móvil se comía 192 px antes de «Buenos días».
+
+**Cuándo sale.** `montarTemporada` (js/temporada.js, que app.js solo importa
+con la marca `data-temporada`) mira `pd-halloween-visto`; si no está, a los
+900 ms abre el pop-up y lo apunta. No lo abre —y no lo apunta, así que sale en
+la página siguiente— con otro `dialog` abierto o un campo con el foco. Sin
+almacenamiento, no sale (mejor que salir en cada página). Una página que
+Chrome está preparando (985) espera a `prerenderingchange`, o apuntaría
+«visto» un pop-up que nadie ha visto.
+
+**Cómo es.** Un `dialog` con `showModal` y tres pasos (`data-paso`): la
+pregunta, el «¡BU!» (solo con «Truco», 1,3 s) y el trato, al que se llega por
+los dos caminos (la chapa dice «¡Trato!» o «¡Truco! Y trato igualmente»). El
+fantasma es uno de `FANTASMAS` (`elegirFantasma`) con el dibujo de PokeAPI y
+su respaldo; «Ver sus cartas» va al buscador. Centrado en el PC (`inset: 0;
+margin: auto`, tope de alto) y hoja desde abajo en el móvil con
+`--seguro-abajo` (1045 y 1135); la página se queda quieta con `html:has()`.
+Tocar el fondo (el propio diálogo), «Cerrar» o Esc lo cierran y el nodo se
+quita. «Quitar la decoración» va dentro y es el mismo oyente de la 1134.
+Todo lo que anima (flotar, girar, saltar) se apaga con «menos movimiento».
+
+**Prueba.** `test-tanda-1134.mjs`, sección 3 rehecha: sale una vez y queda
+apuntado, hoja abajo en el móvil y centrado en el PC, la portada sin el
+bloque, «Trato» y «Truco», cerrar y no volver, tocar fuera, quitar la
+decoración desde el pop-up y nada el día 2.
+
 ## Tanda 1135 — El hueco de abajo, con tope
 
 PINGU, con una captura del iPhone: «se rompe el menú, sigue pasando». La

@@ -58,40 +58,60 @@ html[data-temporada='halloween'] body {
   background-size: 160px 160px;
 }
 
-/* La portada: «Noche de fantasmas». El hueco está reservado antes de que
-   llegue el JS, para que la página no salte (981). */
-html[data-temporada='halloween'] .temporada-hueco { min-height: 180px; margin-top: var(--e-lg); }
-.temporada-bloque {
-  position: relative;
-  overflow: hidden;
-  min-height: 180px;
-  border-radius: var(--radius-xl);
-  padding: var(--e-lg) var(--e-xl);
-  padding-right: 168px;
-  border: 1px solid var(--border-strong);
-  background: radial-gradient(circle at 88% 10%, #4c2a7a 0%, transparent 55%), linear-gradient(160deg, #2a1a40, #1a1028);
-  color: var(--text);
+/* El pop-up «¿Truco o trato?» (1136): una vez por persona. Centrado en el PC
+   y hoja desde abajo en el móvil, como los demás (1045). */
+.temporada-pop[open] {
   display: grid;
-  gap: var(--e-sm);
-  align-content: center;
-}
-.temporada-bloque h2 { font-family: var(--font-display); font-size: var(--t-xl); line-height: 1.2; }
-.temporada-bloque p { color: var(--text-mid); font-size: var(--t-md); max-width: 52ch; }
-.temporada-chips { display: flex; flex-wrap: wrap; gap: var(--e-sm); align-items: center; }
-.temporada-chips a {
-  display: inline-flex;
-  align-items: center;
-  min-height: 32px;
-  padding: 0 var(--e-md);
-  border-radius: var(--radius-pill);
-  background: rgba(255, 255, 255, 0.1);
+  gap: var(--e-md);
+  justify-items: center;
+  text-align: center;
+  inset: 0;
+  margin: auto;
+  width: min(400px, calc(100% - var(--e-2xl)));
+  max-width: none;
+  max-height: calc(100dvh - var(--e-2xl));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--e-xl);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  background: radial-gradient(circle at 50% 0%, #3b2163 0%, transparent 60%), var(--white);
   color: var(--text);
-  font-size: var(--t-sm);
-  font-weight: 600;
-  text-decoration: none;
+  box-shadow: var(--shadow-md);
 }
-.temporada-chips a:first-child { background: var(--acento); color: var(--acento-texto); }
+.temporada-pop::backdrop { background: rgba(8, 4, 14, 0.6); }
+html:has(.temporada-pop[open]) { overflow: hidden; }
+.temporada-paso:not([hidden]) { display: grid; gap: var(--e-sm); justify-items: center; }
+.temporada-pop h2 { font-family: var(--font-display); font-size: var(--t-2xl); line-height: 1.15; }
+.temporada-pop p { color: var(--text-mid); font-size: var(--t-md); max-width: 32ch; }
+.temporada-fantasma { width: 128px; height: 128px; object-fit: contain; animation: temporada-flota 4s ease-in-out infinite; }
+.temporada-botones { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-sm); width: 100%; margin-top: var(--e-sm); }
+.temporada-botones > * { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.temporada-chapa {
+  padding: var(--e-xs) var(--e-md);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+.temporada-carta {
+  display: grid;
+  place-items: center;
+  width: 136px;
+  aspect-ratio: 63 / 88;
+  border: 2px solid #e4b44a;
+  border-radius: var(--radius-md);
+  background: linear-gradient(160deg, #7c3aed, #3b0764);
+  box-shadow: 0 0 24px rgba(249, 115, 22, 0.45);
+  animation: temporada-gira 0.7s var(--ease) both;
+}
+.temporada-carta img { width: 88%; height: auto; }
+.temporada-bu-caja { display: grid; justify-items: center; animation: temporada-salta 0.5s var(--ease) both; }
+.temporada-bu-caja .temporada-fantasma { width: 192px; height: 192px; animation: none; }
+.temporada-bu { font-family: var(--font-display); font-size: var(--t-3xl); font-weight: 800; color: var(--blanco-fijo); text-shadow: 0 4px 16px rgba(124, 58, 237, 0.9); }
 .temporada-quitar {
+  min-height: 32px;
   background: none;
   border: 0;
   color: var(--text-mid);
@@ -99,40 +119,32 @@ html[data-temporada='halloween'] .temporada-hueco { min-height: 180px; margin-to
   font-size: var(--t-xs);
   text-decoration: underline;
   cursor: pointer;
-  justify-self: start;
-  min-height: 32px;
-}
-.temporada-fantasma {
-  position: absolute;
-  right: var(--e-md);
-  bottom: -24px;
-  width: 160px;
-  height: 160px;
-  object-fit: contain;
-  pointer-events: none;
-  animation: temporada-flota 4s ease-in-out infinite;
 }
 @keyframes temporada-flota {
   0%, 100% { transform: translateY(0) rotate(-4deg); }
   50% { transform: translateY(-8px) rotate(2deg); }
 }
+@keyframes temporada-gira { from { transform: perspective(600px) rotateY(180deg) scale(0.8); opacity: 0; } }
+@keyframes temporada-salta {
+  0% { transform: scale(0.2); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .temporada-fantasma { animation: none; }
+  .temporada-fantasma, .temporada-carta, .temporada-bu-caja, .temporada-bu-caja .temporada-fantasma { animation: none; }
 }
 @media (max-width: 599px) {
-  /* Alto FIJO en el móvil: el hueco reservado no puede depender del ancho. */
-  html[data-temporada='halloween'] .temporada-hueco { min-height: 192px; margin-top: var(--e-md); }
-  .temporada-bloque { height: 192px; min-height: 0; padding: var(--e-lg); align-content: start; }
-  .temporada-bloque > * { position: relative; z-index: 1; }
-  .temporada-bloque h2 { font-size: var(--t-lg); padding-right: 88px; }
-  .temporada-bloque p { font-size: var(--t-sm); padding-right: 88px; }
-  .temporada-largo { display: none; }
-  .temporada-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--e-lg)); padding-inline: var(--e-lg); }
-  .temporada-chips a { flex: 0 0 auto; }
-  .temporada-bloque .temporada-fantasma { position: absolute; z-index: 0; width: 96px; height: 96px; right: var(--e-sm); top: var(--e-sm); bottom: auto; }
+  .temporada-pop[open] {
+    inset: auto 0 0;
+    margin: 0;
+    width: 100%;
+    max-height: calc(100dvh - 48px);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding-bottom: calc(var(--e-xl) + var(--seguro-abajo));
+  }
 }
 @media (pointer: coarse) {
-  .temporada-chips a, .temporada-quitar { min-height: 44px; }
+  .temporada-quitar { min-height: 44px; }
 }
 
 /* Las cifras del panel morado: su `--ice` es aquí un morado oscuro. */

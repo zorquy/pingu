@@ -1,8 +1,10 @@
 // HALLOWEEN (tanda 1134, PINGU eligió la C: «para hoy solo está gracioso»).
 // La línea de la cabecera de cada página decide si toca (el 31 y el 1, o
 // `?temporada=halloween` para probarlo) y pone la web de noche con
-// `css/temporada.css`; esto solo rellena el bloque de la portada, que ya
-// tiene su hueco reservado. Lo entra app.js por `import()` y solo ese día.
+// `css/temporada.css`. Esto saca el pop-up «¿Truco o trato?» (1136, que
+// sustituye al bloque de la portada: PINGU, «quitar la cabecera del
+// fantasma»), una vez por persona. Lo entra app.js por `import()` y solo
+// ese día.
 
 import { hojaInyectada } from './hoja.js'
 
@@ -31,35 +33,87 @@ export const dibujoDe = (dex) => [
 export const esHalloween = (f = new Date()) => (f.getMonth() === 9 && f.getDate() === 31) || (f.getMonth() === 10 && f.getDate() === 1)
 
 const buscar = (nombre) => `/cartas?ver=buscar&q=${encodeURIComponent(nombre)}`
+const VISTO = 'pd-halloween-visto'
 
-export function bloqueHtml(azar = Math.random()) {
-  const i = Math.floor(azar * FANTASMAS.length) % FANTASMAS.length
-  const [dex, nombre] = FANTASMAS[i]
-  const otros = [FANTASMAS[i], ...FANTASMAS.filter((_, j) => j !== i)].slice(0, 4)
-  return `<section class="temporada-bloque" aria-label="Halloween en PokeDoc">
-    <h2>Noche de fantasmas<span class="temporada-largo"> en PokeDoc</span></h2>
-    <p>${nombre} se ha colado en la portada.<span class="temporada-largo"> Hoy la web se ha vestido de noche: ¿cuántos fantasmas tienes en tu colección?</span></p>
-    <div class="temporada-chips">${otros.map(([, n]) => `<a href="${buscar(n)}">${n}</a>`).join('')}</div>
-    <button type="button" class="temporada-quitar" data-temporada-quitar>Quitar la decoración</button>
-    <img class="temporada-fantasma" src="${dibujoDe(dex)[0]}" data-respaldo="${dibujoDe(dex)[1]}" alt="" width="160" height="160" loading="lazy" decoding="async">
-  </section>`
+export const elegirFantasma = (azar = Math.random()) => FANTASMAS[Math.floor(azar * FANTASMAS.length) % FANTASMAS.length]
+
+const dibujoHtml = (dex, clase = 'temporada-fantasma', lado = 128) => {
+  const [src, respaldo] = dibujoDe(dex)
+  return `<img class="${clase}" src="${src}" data-respaldo="${respaldo}" alt="" width="${lado}" height="${lado}" decoding="async">`
 }
 
-export async function montarTemporada() {
-  // La hoja ya la ha puesto la cabecera; esto solo espera a que esté.
-  await hojaInyectada('css/temporada.css')
-  const hueco = document.getElementById('temporadaHueco')
-  if (hueco && !hueco.firstChild) {
-    hueco.innerHTML = bloqueHtml()
-    const img = hueco.querySelector('.temporada-fantasma')
-    // Si la primera CDN no lo da, la segunda; si tampoco, sin fantasma.
-    img?.addEventListener('error', () => {
+// Tres pasos en el mismo diálogo: la pregunta, el susto (solo con «Truco»)
+// y el fantasma que te toca, que llega igual por los dos caminos.
+export function popHtml([dex, nombre]) {
+  return `<dialog class="temporada-pop" aria-labelledby="temporadaTitulo">
+    <div class="temporada-paso" data-paso="pregunta">
+      ${dibujoHtml(dex)}
+      <h2 id="temporadaTitulo">¡Feliz Halloween!</h2>
+      <p>Esta noche PokeDoc se viste de fantasma. ¿Truco o trato?</p>
+      <div class="temporada-botones">
+        <button type="button" class="btn-secondary" data-temporada-elige="truco">Truco</button>
+        <button type="button" class="btn-primary" data-temporada-elige="trato" autofocus>Trato</button>
+      </div>
+    </div>
+    <div class="temporada-paso" data-paso="bu" hidden>
+      <div class="temporada-bu-caja">${dibujoHtml(dex, 'temporada-fantasma', 192)}<b class="temporada-bu">¡BU!</b></div>
+    </div>
+    <div class="temporada-paso" data-paso="trato" hidden>
+      <span class="temporada-chapa" data-temporada-chapa>¡Trato!</span>
+      <span class="temporada-carta">${dibujoHtml(dex, 'temporada-carta-dibujo', 120)}</span>
+      <h2>Te ha tocado ${nombre}</h2>
+      <p>Tu fantasma de esta noche: mira todas sus cartas.</p>
+      <div class="temporada-botones">
+        <a class="btn-primary" href="${buscar(nombre)}">Ver sus cartas</a>
+        <button type="button" class="btn-secondary" data-temporada-cerrar>Cerrar</button>
+      </div>
+    </div>
+    <button type="button" class="temporada-quitar" data-temporada-quitar>Quitar la decoración</button>
+  </dialog>`
+}
+
+function abrirPop(doc, win) {
+  // Nunca encima de algo a medias: otra ventana abierta o escribiendo. No se
+  // apunta como visto, así que sale en la página siguiente.
+  if (doc.querySelector('dialog[open]') || doc.activeElement?.matches?.('input, textarea, select, [contenteditable="true"]')) return
+  try { win.localStorage.setItem(VISTO, '1') } catch { return }
+  doc.body.insertAdjacentHTML('beforeend', popHtml(elegirFantasma()))
+  const pop = doc.body.lastElementChild
+  // Si la primera CDN no da el dibujo, la segunda; si tampoco, sin dibujo.
+  for (const img of pop.querySelectorAll('img')) {
+    img.addEventListener('error', () => {
       if (img.dataset.respaldo) { img.src = img.dataset.respaldo; delete img.dataset.respaldo } else img.remove()
     })
   }
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest?.('[data-temporada-quitar]')) return
-    try { localStorage.setItem('pd-sin-halloween', '1') } catch { /* sin almacenamiento: solo esta visita */ }
-    location.reload()
+  const paso = (nombre) => { for (const p of pop.querySelectorAll('[data-paso]')) p.hidden = p.dataset.paso !== nombre }
+  pop.addEventListener('click', (e) => {
+    // Tocar fuera (el fondo es el propio diálogo) lo cierra.
+    if (e.target === pop || e.target.closest('[data-temporada-cerrar]')) return pop.close()
+    const elige = e.target.closest('[data-temporada-elige]')?.dataset.temporadaElige
+    if (elige === 'trato') return paso('trato')
+    if (elige === 'truco') {
+      paso('bu')
+      pop.querySelector('[data-temporada-chapa]').textContent = '¡Truco! Y trato igualmente'
+      win.setTimeout(() => { if (pop.open) paso('trato') }, 1300)
+    }
   })
+  pop.addEventListener('close', () => pop.remove())
+  pop.showModal()
+}
+
+export async function montarTemporada({ doc = document, win = window } = {}) {
+  // La hoja ya la ha puesto la cabecera; esto solo espera a que esté.
+  await hojaInyectada('css/temporada.css')
+  doc.addEventListener('click', (e) => {
+    if (!e.target.closest?.('[data-temporada-quitar]')) return
+    try { win.localStorage.setItem('pd-sin-halloween', '1') } catch { /* sin almacenamiento: solo esta visita */ }
+    win.location.reload()
+  })
+  let visto = true
+  try { visto = win.localStorage.getItem(VISTO) === '1' } catch { /* sin almacenamiento, mejor no salir en cada página */ }
+  if (visto) return
+  // Una página que Chrome solo está preparando no lo gasta (985).
+  const luego = () => win.setTimeout(() => abrirPop(doc, win), 900)
+  if (doc.prerendering) doc.addEventListener('prerenderingchange', luego, { once: true })
+  else luego()
 }

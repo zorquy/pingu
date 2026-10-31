@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (377) — PINGU-Claude (1136 — Halloween: «¿Truco o trato?» en vez del bloque)
+
+**Hecho**: PINGU eligió la B de la propuesta del pop-up y quitar el bloque del
+fantasma de la portada («dale»). Ahora, con la web de noche puesta, sale UNA
+vez por persona (`pd-halloween-visto`), en la primera página que abras, un
+pop-up «¡Feliz Halloween! ¿Truco o trato?»: «Trato» gira una carta con un
+Pokémon fantasma al azar y «Ver sus cartas» (buscador); «Truco» salta un
+«¡BU!» y luego da el trato igual. Hoja desde abajo en el móvil, ventana
+centrada en el PC; tocar fuera, «Cerrar» o Esc lo cierran. «Quitar la
+decoración» vive ahora dentro del pop-up. No sale encima de otra ventana ni
+escribiendo (y entonces no se apunta: sale en la página siguiente), ni en una
+página que Chrome solo está preparando. La portada vuelve a empezar por
+«Buenos días» (fuera `#temporadaHueco`).
+
+**Ficheros**: `js/temporada.js`, `css/temporada.css`, `index.html`, CLAUDE.md,
+SCHEMA, novedades. Pruebas en `pruebas`: 1134 al día (el pop-up en vez del
+bloque; rojos en la base); verdes 299, 305, 313, 981, 1023, 1135. La 311 trae
+el rojo de antes.
+
+**Pendiente**: nada; el día 2 se apaga solo.
+
 ## 2026-10-31 (376) — PINGU-Claude (1135 — el menú de abajo, con tope en el hueco de iOS)
 
 **Hecho**: PINGU, con captura («se rompe el menú, sigue pasando»): la burbuja

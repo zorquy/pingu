@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-31", "tipo": "nuevo", "texto": "¿Truco o trato? Hoy y mañana, al entrar en PokeDoc te espera una sorpresa de Halloween con un Pokémon fantasma. Sale solo una vez.", "enlace": "/" },
     { "fecha": "2026-10-31", "tipo": "arreglo", "texto": "En el iPhone, después de escribir algo, la barra de abajo podía crecer hasta media pantalla o dejar sus botones flotando en medio. Ya se queda en su sitio.", "enlace": "/" },
     { "fecha": "2026-10-31", "tipo": "nuevo", "texto": "¡Feliz Halloween! Hoy y mañana PokeDoc se viste de noche: calabazas, telarañas y un Pokémon fantasma colado en la portada. Si prefieres la web de siempre, en la portada tienes «Quitar la decoración».", "enlace": "/" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En Mis partidas, las rondas de un torneo de PokeDoc salen en el orden en que se jugaron y con su nombre: en una liga, con la jornada (J4·R1, J4·R2…). Y el bye también aparece en la tarjeta del torneo.", "enlace": "/mis-partidas" },
