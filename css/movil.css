@@ -925,3 +925,24 @@
     inset: -4px 0;
   }
 }
+
+/* El número de la PÁGINA (1142): Foro, Torneos y Deseos y cambios repiten el
+   de su sección, en línea al final (la burbuja se desliza y recortaría una
+   chapa puesta encima del icono). */
+@media (max-width: 900px) {
+  .bm-burbuja-item .sec-num-pagina {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    margin-left: var(--e-xs);
+    padding: 0 var(--e-xs);
+    border-radius: var(--radius-pill);
+    background: var(--danger-solid);
+    color: var(--blanco-fijo);
+    font-size: var(--t-2xs);
+    font-weight: 800;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+}

@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (383) — PINGU-Claude (1142 — la campana y los números)
+
+**Hecho**: lo que PINGU eligió de «La campana y los números». (A1) Un aviso
+se da por leído al abrir la página a la que apunta, vengas de donde vengas
+(antes solo desde la campana, y el número de Comunidad no se iba). (A2) La
+campana, y el avatar del móvil, cuentan solo lo que no es de una sección
+(seguidores, «Me ha servido», tus guías, logros, el equipo); su lista va en
+«Para ti» y «En tus secciones», con etiqueta de color. El avatar ya no suma
+los mensajes (van en Comunidad). (A3) Colección cuenta cambios, cruces,
+alertas de precio y «la tiene una tienda», y el número se repite en la
+página: Foro y Torneos en la burbuja y el cajón, Deseos y cambios en el menú
+de Mi colección. La campana se queda en el PC.
+
+**Ficheros**: js/numeros-seccion.js, js/notifications.js,
+js/avisos-grupos.js, js/barra-movil.js, css/avisos.css, css/movil.css,
+css/lateral.css, css/mi-coleccion.css, CLAUDE.md, SCHEMA.md,
+novedades.json. Pruebas (rama pruebas): test-tanda-1142-pantalla.mjs nueva,
+717 y 736 actualizadas.
+
+**Pendiente**: nada de esta tanda. Sigue pendiente ejecutar
+supabase-migration-1141-mensajes-responder-reaccionar.sql (PINGU).
+
 ## 2026-10-31 (382) — PINGU-Claude (1141 — mensajes: responder, reacciones, fijar y archivar)
 
 **Hecho**: lo de mensajes de la propuesta que lleva migración. (M1) Responder

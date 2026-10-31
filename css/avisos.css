@@ -25,3 +25,33 @@
   font-weight: 700;
   font-variant-numeric: tabular-nums;
 }
+
+/* Los dos bloques (1142): «Para ti», que es lo que cuenta la campana, y «En
+   tus secciones», que ya lleva su número en la barra. La etiqueta de cada
+   aviso de una sección va en el color de esa sección (los de style.css). */
+.nav-bell-bloque {
+  margin: 0;
+  padding: var(--e-sm) var(--e-lg) var(--e-xs);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.nav-bell-seccion {
+  --tag: #c62a5c;
+  display: inline-flex;
+  margin-left: var(--e-xs);
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--tag) 14%, transparent);
+  color: var(--tag);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  vertical-align: 1px;
+}
+.nav-bell-seccion[data-seccion='cartas'] { --tag: #9a5f06; }
+.nav-bell-seccion[data-seccion='jugar'] { --tag: #5f43d9; }
+:root[data-theme='dark'] .nav-bell-seccion { --tag: #f06c9b; }
+:root[data-theme='dark'] .nav-bell-seccion[data-seccion='cartas'] { --tag: #e4b44a; }
+:root[data-theme='dark'] .nav-bell-seccion[data-seccion='jugar'] { --tag: #9b7bff; }

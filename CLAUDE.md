@@ -834,7 +834,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (tanda 1139): no pregunta nada, lee lo que ya cuentan la campanita
   (`window.__pdAvisos`) y el sobre (`#navMsgBadge`), y se repinta con el
   evento `pd-avisos`. Un tipo de aviso nuevo que sea de una sección va en
-  `seccionDeAviso`. Y la barra pegada (`js/barra-pegada.js`) lleva el índice
+  `seccionDeAviso` (Comunidad el foro, Jugar los torneos, Colección los
+  cambios, cruces, alertas de precio y tiendas, 1142). Un aviso se cuenta en UN
+  sitio (1142, PINGU: «la campana… ¿tiene sentido?»): la campana y el avatar
+  del móvil cuentan solo lo que no es de ninguna sección (`avisosSinSeccion`),
+  y su lista va en «Para ti» y «En tus secciones» con la etiqueta de color. Y un
+  aviso se da por LEÍDO al abrir la página a la que apunta
+  (`casaConLaPagina`: misma ruta y sus parámetros, el ancla no cuenta, la
+  portada nunca): un tipo nuevo de aviso lleva un `link` a donde se lee. Y la barra pegada (`js/barra-pegada.js`) lleva el índice
   de una guía (`indice`) y un botón a la derecha (`accion`, `ponerAccion`): un
   tema la monta UNA vez, no en cada repintado.
 - **Lo que una página ESCRIBE al abrirse no puede pasar si Chrome solo la

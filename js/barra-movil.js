@@ -293,9 +293,11 @@ function montarTu(doc, win, buscar = { href: '/buscar.html', texto: 'Busca carta
     a.innerHTML = `${icons.search?.(17) || ''}<span>${escapeHtml(buscar.texto)}</span>`
     inner.insertBefore(a, derecha)
   }
-  // El número del avatar: lo que digan las chapas de mensajes y avisos,
-  // que siguen vivas aunque sus botones no se vean.
-  const chapas = () => [...doc.querySelectorAll('#navMsgBadge, #navBellBadge')].filter((b) => !b.classList.contains('hidden')).map((b) => b.textContent)
+  // El número del avatar: lo que diga la chapa de la campana, que sigue viva
+  // aunque su botón no se vea. Los mensajes ya no (1142, A2): llevan su
+  // número en Comunidad (o en Mensajes, en una tienda), y contarlos aquí era
+  // contarlos dos veces. La campana cuenta solo lo que no es de una sección.
+  const chapas = () => [...doc.querySelectorAll('#navBellBadge')].filter((b) => !b.classList.contains('hidden')).map((b) => b.textContent)
   const pintarPunto = () => {
     const btn = doc.getElementById('navUserBtn')
     if (!btn) return

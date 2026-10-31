@@ -1,6 +1,12 @@
 import { supabase } from './supabase.js'
 import { icons } from './icons.js'
 import { anotarEnPestania } from './pestania.js'
+import { avisosSinSeccion, avisosDeEstaPagina } from './numeros-seccion.js'
+
+// La dirección con la que se llegó, antes de que la pantalla la reescriba al
+// arrancar (Mi colección cambia `?ver=` por su pestaña): con ella se sabe qué
+// avisos se han leído al abrir la página (1142).
+const llegada = typeof window === 'undefined' ? null : { pathname: window.location.pathname, search: window.location.search, host: window.location.host }
 
 // Crea una notificación para OTRA persona como efecto de una acción normal
 // (comentar, seguir, aprobar una guía...). No hace nada si no hay
@@ -235,11 +241,31 @@ export async function renderNotificationBell(session) {
     return data || []
   }
 
+  // A1 (1142): lo que apunta a la página que se está viendo se da por leído,
+  // vengas de la campana o del foro. Se mira la dirección con la que se llegó
+  // (una pantalla puede reescribirla al arrancar) y la de ahora. Se quita YA
+  // y se confirma después; si la base dice que no, vuelve en la próxima carga.
+  async function leerLasDeAqui(notifications) {
+    if (document.visibilityState === 'hidden') return notifications
+    const deAqui = avisosDeEstaPagina(notifications, llegada, window.location)
+    if (!deAqui.length) return notifications
+    const ids = new Set(deAqui.map((n) => n.id))
+    supabase
+      .from('user_notifications')
+      .update({ read_at: new Date().toISOString() })
+      .in('id', [...ids])
+      .then(({ error }) => { if (error) console.warn('No se han podido marcar los avisos de esta página:', error.message) })
+    return notifications.filter((n) => !ids.has(n.id))
+  }
+
   function updateBadge(notifications) {
     const unreadCount = notifications.filter((n) => !n.read_at).length
+    // A2 (1142): la campana cuenta lo que no lleva número en su sección (el
+    // foro, los torneos y los cambios ya lo llevan en la barra).
+    const paraTi = avisosSinSeccion(notifications).length
     const badge = document.getElementById('navBellBadge')
-    badge.textContent = unreadCount > 9 ? '9+' : String(unreadCount)
-    badge.classList.toggle('hidden', unreadCount === 0)
+    badge.textContent = paraTi > 9 ? '9+' : String(paraTi)
+    badge.classList.toggle('hidden', paraTi === 0)
     // Y el mismo número, al título de la pestaña: se ve sin estar aquí.
     anotarEnPestania('avisos', unreadCount)
     // Y a las barras, para el número de cada sección (1139).
@@ -248,7 +274,7 @@ export async function renderNotificationBell(session) {
   }
 
   async function refresh() {
-    const notifications = await loadNotifications()
+    const notifications = await leerLasDeAqui(await loadNotifications())
     updateBadge(notifications)
     const list = document.getElementById('navBellList')
     // Agrupada (736) y por `import()`: este módulo lo baja la portada.
@@ -288,7 +314,14 @@ export async function renderNotificationBell(session) {
     await refresh()
   })
 
-  updateBadge(await loadNotifications())
+  updateBadge(await leerLasDeAqui(await loadNotifications()))
+  // Con la pestaña de fondo no se da nada por leído; al volver a ella, sí.
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState !== 'visible') return
+    const antes = window.__pdAvisos || []
+    const despues = await leerLasDeAqui(antes)
+    if (despues.length !== antes.length) updateBadge(despues)
+  })
 
   // ── En vivo (tanda 227) ──
   // La campanita era el sitio donde más cantaba que la web no fuera en

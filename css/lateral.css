@@ -564,3 +564,23 @@
     padding-right: 52px;
   }
 }
+
+/* El número de la página en el cajón (1142), al final de la fila. */
+@media (min-width: 1400px) and (pointer: fine) {
+  .lat-paginas a .sec-num-pagina {
+    display: inline-grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    margin-left: var(--e-xs);
+    padding: 0 var(--e-xs);
+    border-radius: var(--radius-pill);
+    background: var(--danger-solid);
+    color: var(--blanco-fijo);
+    font-size: var(--t-2xs);
+    font-weight: 800;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+  .lat-paginas a .sec-num-pagina { margin-left: auto; }
+}

@@ -41785,6 +41785,52 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1142 — La campana y los números (A1, A2, A3)
+
+PINGU preguntó si la campana tenía sentido con los números de la barra
+(1139). La propuesta «La campana y los números» (con maquetas) y su elección:
+A1, A2 y A3; la campana se queda en el PC (no B) y los avisos de tus guías,
+en la campana.
+
+**A1 · Leer es leer.** Hasta ahora un aviso solo se marcaba leído desde la
+campana: leías la respuesta entrando por el foro y el número de Comunidad no
+se iba. `casaConLaPagina(link, loc)` (js/numeros-seccion.js, puro) dice si un
+aviso apunta a la página: misma ruta con o sin `.html` y sin barra final,
+todos los parámetros del enlace con el mismo valor aquí (la página puede
+llevar más: `/tema/12?p=2` lee `/tema/12`), el ancla no cuenta, la portada
+nunca (`/` y `/index`) y un enlace de otro dominio tampoco. notifications.js
+mira la dirección de LLEGADA (capturada al cargar el módulo, antes de que Mi
+colección reescriba `?ver=`) y la de ahora (`avisosDeEstaPagina`), los quita
+de la lista y escribe `read_at` sin esperar; con la pestaña de fondo no lee
+nada, y al volver a ella sí (`visibilitychange`). Un aviso que llega en vivo
+mientras estás en su página se lee al momento (pasa por `refresh`).
+
+**A2 · La campana cuenta lo tuyo.** `avisosSinSeccion` (lo sin leer cuyo
+`seccionDeAviso` es null) es el número de la campana; la pestaña del
+navegador sigue contando todo. El avatar del móvil (`montarTu`) cuenta solo
+`#navBellBadge`: los mensajes ya van en Comunidad (y en «Mensajes» en la
+barra de una tienda, `cuentas.Mensajes`). La lista (`listaDeAvisos`) va en
+dos bloques si hay de los dos (`bloquesDeAvisos`): «Para ti» y «En tus
+secciones», cada uno por tramos de días, y lo de una sección lleva
+`.nav-bell-seccion` con su `data-seccion` (comunidad, jugar, cartas) y el
+color de esa sección en los dos temas (css/avisos.css).
+
+**A3 · Colección con número.** `seccionDeAviso` da «Colección» a
+`cambio_*`, `trade_match*`, `aviso_precio` y `tienda_la_tiene`. Y el número
+se repite en la PÁGINA (`cuentas.paginas`: foro, torneos, cambios,
+mensajes; `paginaDeEnlace`): `.bm-burbuja-item`, `.lat-paginas a` y
+`.mc-pestania[data-pestania="mercado"]` (Deseos y cambios), con la chapa
+`.sec-num-pagina` en línea (la burbuja se desliza y recortaría una puesta
+encima del icono; en la pestaña de Mi colección, en la esquina). Su CSS va en
+movil.css, lateral.css y mi-coleccion.css, cada una lo suyo.
+
+Pruebas: `test-tanda-1142-pantalla.mjs` (lo puro, la barra y la burbuja del
+móvil, el avatar, abrir un tema, la campana del PC con sus bloques y
+etiquetas, Deseos y cambios). 717 (el avatar ya no suma mensajes) y 736 (la
+chapa cuenta lo tuyo, los bloques; la segunda escritura al llegar al tema es
+del doble, que vuelve a sembrar los avisos sin leer) actualizadas. Portada:
+134,6 → 134,7 KB.
+
 ## Tanda 1141 — Mensajes: responder, reacciones, fijar y archivar
 
 Lo de mensajes de la propuesta «Comunidad, guías y menú» que necesita

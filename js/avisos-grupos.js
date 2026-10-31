@@ -13,6 +13,7 @@
 // aquí también para que la campana, que baja la portada, no cargue con él.
 import { escapeHtml } from './html.js'
 import { hojaInyectada } from './hoja.js'
+import { seccionDeAviso } from './numeros-seccion.js'
 
 const POR_TIPO = new Set(['new_follower'])
 
@@ -110,21 +111,44 @@ function timeAgo(iso) {
   return new Date(iso).toLocaleDateString('es-ES')
 }
 
+// La etiqueta de color de un aviso que ya cuenta en una sección (1142): dice
+// de dónde sale el número de la barra. El color es el de la sección.
+const LLAVE_DE_SECCION = { Comunidad: 'comunidad', Jugar: 'jugar', 'Colección': 'cartas' }
+const etiquetaDeSeccion = (tipo) => {
+  const s = seccionDeAviso(tipo)
+  return s ? ` <span class="nav-bell-seccion" data-seccion="${LLAVE_DE_SECCION[s]}">${escapeHtml(s)}</span>` : ''
+}
+
 // Una fila es un GRUPO: al pulsarla se marcan leídos todos los suyos.
 function filaDeGrupo(g) {
   return `
     <a class="nav-bell-item${g.leido ? '' : ' unread'}" href="${escapeHtml(g.link || '#')}" data-notif-id="${escapeHtml(g.ids[0])}" data-notif-ids="${escapeHtml(g.ids.join(','))}">
-      <span class="nav-bell-item-title">${escapeHtml(g.titulo)}${g.n > 1 ? ` <span class="nav-bell-cuenta">${g.n}</span>` : ''}</span>
+      <span class="nav-bell-item-title">${escapeHtml(g.titulo)}${g.n > 1 ? ` <span class="nav-bell-cuenta">${g.n}</span>` : ''}${etiquetaDeSeccion(g.tipo)}</span>
       ${g.cuerpo ? `<span class="nav-bell-item-body">${escapeHtml(g.cuerpo)}</span>` : ''}
       <span class="nav-bell-item-date">${timeAgo(g.fecha)}</span>
     </a>`
 }
 
-// El HTML de la lista entera de la campana.
+// Los dos bloques de la campana (1142): «Para ti» (lo que cuenta su número)
+// y «En tus secciones» (lo que ya lleva número en la barra). Puro.
+export function bloquesDeAvisos(lista) {
+  const paraTi = (lista || []).filter((a) => !seccionDeAviso(a?.type))
+  const enSecciones = (lista || []).filter((a) => seccionDeAviso(a?.type))
+  return { paraTi, enSecciones }
+}
+
+const tramosHtml = (lista) =>
+  agruparAvisos(lista)
+    .map((t) => `<p class="nav-bell-tramo">${escapeHtml(t.tramo)}</p>${t.grupos.map(filaDeGrupo).join('')}`)
+    .join('')
+
+// El HTML de la lista entera de la campana. Con los dos bloques, lo tuyo va
+// primero, por días, y lo de las secciones después, también por días, cada
+// uno con su etiqueta. Con uno solo, como siempre.
 export function listaDeAvisos(lista) {
   if (!lista?.length) return `<p class="empty-state" style="padding:16px;">Estás al día. No tienes avisos sin leer.</p>`
   hojaInyectada('css/avisos.css')
-  return agruparAvisos(lista)
-    .map((t) => `<p class="nav-bell-tramo">${escapeHtml(t.tramo)}</p>${t.grupos.map(filaDeGrupo).join('')}`)
-    .join('')
+  const { paraTi, enSecciones } = bloquesDeAvisos(lista)
+  if (!paraTi.length || !enSecciones.length) return tramosHtml(lista)
+  return `<p class="nav-bell-bloque">Para ti</p>${tramosHtml(paraTi)}<p class="nav-bell-bloque">En tus secciones</p>${tramosHtml(enSecciones)}`
 }

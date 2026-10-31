@@ -14763,3 +14763,25 @@ body[data-tienda] .mc-sel-abajo {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   max-width: 320px;
 }
+
+/* El número de Deseos y cambios en el menú (1142): los cambios, cruces,
+   alertas de precio y tiendas que te esperan. */
+.mc-pestania:has(.sec-num-pagina) {
+  position: relative;
+}
+.mc-pestania .sec-num-pagina {
+  position: absolute;
+  top: var(--e-xs);
+  right: var(--e-xs);
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--danger-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  line-height: 1;
+}
