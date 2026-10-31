@@ -196,3 +196,43 @@ export function medidaReducida(ancho, alto, ladoMax = 1600) {
 export function enterEnvia(evento, conRaton) {
   return !!conRaton && evento.key === 'Enter' && !evento.shiftKey && !evento.isComposing
 }
+
+// FIJAR Y ARCHIVAR (1141). Archivada lo es hasta que llega un mensaje
+// posterior: entonces vuelve sola a la lista (PINGU eligió que sí).
+export function estaArchivada(c) {
+  if (!c?.archivadaAt) return false
+  return !c.lastMessage || new Date(c.lastMessage.created_at) <= new Date(c.archivadaAt)
+}
+
+// Las fijadas arriba (la última fijada primero) y después por el último
+// mensaje, como siempre. Las archivadas van aparte (`estaArchivada`).
+export function ordenarConversaciones(lista) {
+  const fecha = (c) => new Date(c.lastMessage?.created_at || 0).getTime()
+  return [...lista].sort((a, b) => {
+    if (!!a.fijadaAt !== !!b.fijadaAt) return a.fijadaAt ? -1 : 1
+    if (a.fijadaAt && b.fijadaAt) return new Date(b.fijadaAt) - new Date(a.fijadaAt)
+    return fecha(b) - fecha(a)
+  })
+}
+
+// LAS REACCIONES (1141): las cuatro del foro, en el mismo orden y con sus
+// iconos (tema.js, `REACCIONES`). Las de un mensaje, contadas y con la tuya.
+export const REACCIONES_MENSAJE = [
+  ['like', 'thumbsUp', 'me gusta'],
+  ['love', 'heart', 'me encanta'],
+  ['laugh', 'smile', 'me hace gracia'],
+  ['wow', 'zap', 'me sorprende'],
+]
+export function reaccionesDeMensaje(todas, messageId, miId) {
+  const suyas = (todas || []).filter((r) => r.message_id === messageId)
+  const cuentas = REACCIONES_MENSAJE.map(([kind]) => ({ kind, n: suyas.filter((r) => r.kind === kind).length })).filter((x) => x.n)
+  return { cuentas, mia: suyas.find((r) => r.user_id === miId)?.kind || null }
+}
+
+// La cita de una respuesta: quién y un trozo del texto (o qué llevaba).
+export function citaDe(original, nombreDe) {
+  if (!original) return null
+  const texto = String(original.body || '').trim().replace(/\s+/g, ' ')
+  const que = original.deleted_at ? 'Mensaje eliminado' : texto ? (texto.length > 90 ? `${texto.slice(0, 90)}…` : texto) : (Array.isArray(original.adjuntos) && original.adjuntos.some((a) => a?.tipo === 'carta') ? 'Una carta' : 'Una foto')
+  return { id: original.id, quien: nombreDe(original.sender_id), que }
+}

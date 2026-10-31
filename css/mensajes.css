@@ -330,6 +330,7 @@
 }
 
 .msg-meta .msg-borrar,
+.msg-meta .msg-accion,
 .msg-meta .report-btn {
   display: inline-flex;
   align-items: center;
@@ -343,14 +344,17 @@
 }
 
 .msg-burbuja:hover .msg-borrar,
+.msg-burbuja:hover .msg-accion,
 .msg-burbuja:hover .report-btn,
 .msg-burbuja:focus-within .msg-borrar,
+.msg-burbuja:focus-within .msg-accion,
 .msg-burbuja:focus-within .report-btn {
   opacity: 1;
 }
 
 @media (pointer: coarse) {
   .msg-meta .msg-borrar,
+  .msg-meta .msg-accion,
   .msg-meta .report-btn {
     opacity: 1;
     min-width: 32px;
@@ -1052,4 +1056,232 @@
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     padding-bottom: calc(var(--e-md) + var(--seguro-abajo));
   }
+}
+
+/* ── Responder, reacciones, fijar y archivar (1141) ── */
+.msg-fijada {
+  display: inline-flex;
+  margin-left: auto;
+  color: var(--text-mid);
+}
+
+.msg-fila-nombre .msg-fijada + time {
+  margin-left: 0;
+}
+
+.msg-archivadas {
+  margin-top: var(--e-sm);
+}
+
+.msg-archivadas > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* La cita encima de una respuesta: tocarla lleva al original. */
+.msg-cita {
+  display: grid;
+  margin-bottom: var(--e-xs);
+  padding: var(--e-xs) var(--e-sm);
+  border-left: 3px solid var(--acento);
+  border-radius: var(--radius-sm);
+  background: rgba(0, 0, 0, 0.12);
+  color: inherit;
+  font-size: var(--t-xs);
+  text-decoration: none;
+}
+
+.msg-cita b {
+  font-weight: 700;
+}
+
+.msg-cita span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  opacity: 0.85;
+}
+
+.msg-destello {
+  box-shadow: var(--shadow-ring);
+}
+
+/* Las reacciones, debajo del texto. */
+.msg-reacciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  margin-top: var(--e-xs);
+}
+
+.msg-reaccion {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 24px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-2xs);
+}
+
+button.msg-reaccion {
+  cursor: pointer;
+}
+
+.msg-reaccion.mia {
+  border-color: var(--acento);
+  color: var(--acento);
+}
+
+.msg-reaccion b {
+  font-weight: 700;
+}
+
+/* El selector: las cuatro, encima de la burbuja. */
+.msg-selector {
+  position: absolute;
+  z-index: 5;
+  bottom: calc(100% + var(--e-xs));
+  left: 0;
+  display: flex;
+  gap: var(--e-xs);
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+.msg-selector-opcion {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.msg-selector-opcion:hover,
+.msg-selector-opcion.mia {
+  background: var(--ice);
+  color: var(--acento);
+}
+
+/* «Respondiendo a…» encima del cuadro de escribir. */
+.msg-respondiendo:not([hidden]) {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-xs);
+  padding: var(--e-xs) var(--e-sm);
+  border-left: 3px solid var(--acento);
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+}
+
+.msg-respondiendo-texto {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--e-sm);
+  min-width: 0;
+  color: var(--text-mid);
+}
+
+.msg-respondiendo-texto > span {
+  display: grid;
+  min-width: 0;
+}
+
+.msg-respondiendo-texto b {
+  color: var(--text);
+  font-size: var(--t-xs);
+}
+
+.msg-respondiendo-texto small {
+  overflow: hidden;
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msg-respondiendo-quitar {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: none;
+  color: var(--text-mid);
+  font-size: var(--t-lg);
+  cursor: pointer;
+}
+
+/* El «⋯» de la cabecera: fijar y archivar. */
+.msg-mas-caja {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.msg-mas {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.msg-mas:hover {
+  background: var(--ice);
+}
+
+.msg-mas-menu:not([hidden]) {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + var(--e-xs));
+  right: 0;
+  display: grid;
+  min-width: 220px;
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+.msg-mas-menu button {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.msg-mas-menu button:hover {
+  background: var(--ice);
 }

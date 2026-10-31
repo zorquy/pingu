@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { COLUMNAS_RANGO } from './rangos.js'
-import { cuentaNoLeidos } from './mensajes-puro.js'
+import { cuentaNoLeidos, ordenarConversaciones } from './mensajes-puro.js'
 
 // Capa de datos compartida para mensajería privada (1 a 1), usada tanto por
 // la campanita de mensajes de la navbar (js/nav-messages.js) como por la
@@ -30,11 +30,14 @@ export async function findOrCreateConversation(myId, otherId) {
 // Lista de conversaciones con la otra persona, el último mensaje y si hay
 // algo sin leer — usada para el desplegable de la navbar y para la bandeja.
 export async function listConversations(myId) {
-  const { data: myRows } = await supabase.from('conversation_participants').select('conversation_id, last_read_at').eq('user_id', myId)
+  // Con `*` (1141): `fijada_at` y `archivada_at` vienen si la migración está, y
+  // si no, la consulta no falla por pedir una columna que no existe (624).
+  const { data: myRows } = await supabase.from('conversation_participants').select('*').eq('user_id', myId)
   const rows = myRows || []
   if (rows.length === 0) return []
   const convIds = rows.map((r) => r.conversation_id)
   const lastReadByConv = Object.fromEntries(rows.map((r) => [r.conversation_id, r.last_read_at]))
+  const filaPorConv = Object.fromEntries(rows.map((r) => [r.conversation_id, r]))
 
   const [{ data: otherParticipants }, { data: messages }] = await Promise.all([
     supabase.from('conversation_participants').select('conversation_id, user_id').in('conversation_id', convIds).neq('user_id', myId),
@@ -62,15 +65,16 @@ export async function listConversations(myId) {
   const porConv = {}
   for (const m of messages || []) (porConv[m.conversation_id] ||= []).push(m)
 
-  return convIds
-    .map((id) => {
+  return ordenarConversaciones(
+    convIds.map((id) => {
       const lastMessage = lastMessageByConv[id] || null
       const lastReadAt = lastReadByConv[id]
       const noLeidos = cuentaNoLeidos(porConv[id], myId, lastReadAt)
       const unread = noLeidos > 0
-      return { conversationId: id, otherProfile: profileById[otherIdByConv[id]] || null, lastMessage, unread, noLeidos }
+      const fila = filaPorConv[id] || {}
+      return { conversationId: id, otherProfile: profileById[otherIdByConv[id]] || null, lastMessage, unread, noLeidos, fijadaAt: fila.fijada_at || null, archivadaAt: fila.archivada_at || null, conFijar: 'fijada_at' in fila }
     })
-    .sort((a, b) => new Date(b.lastMessage?.created_at || 0) - new Date(a.lastMessage?.created_at || 0))
+  )
 }
 
 export async function loadThreadMessages(conversationId) {
@@ -100,9 +104,12 @@ export async function markConversationRead(conversationId, myId) {
 // Solo se manda la columna cuando hay algo: así, sin la migración 891,
 // un mensaje de texto sigue entrando como siempre y solo falla el que
 // lleva fotos — con su error, que quien llama enseña.
-export async function sendMessage(conversationId, senderId, body, adjuntos = []) {
+// `replyTo` (1141): el id del mensaje al que se responde; solo se manda si lo
+// hay, así que sin la migración un mensaje normal sigue entrando.
+export async function sendMessage(conversationId, senderId, body, adjuntos = [], replyTo = null) {
   const fila = { conversation_id: conversationId, sender_id: senderId, body: body || '' }
   if (adjuntos?.length) fila.adjuntos = adjuntos
+  if (replyTo) fila.reply_to_id = replyTo
   const { error } = await supabase.from('private_messages').insert(fila)
   if (error) throw error
 }
@@ -141,4 +148,43 @@ export async function getOtherParticipant(conversationId, myId) {
     .eq('id', data.user_id)
     .single()
   return profile
+}
+
+// ── Lo de la 1141: tu fila de la conversación, fijar, archivar y reacciones ──
+
+// Tu fila, entera (`*`): dice si la migración está (`fijada_at` en la fila).
+export async function miFilaDeConversacion(conversationId, myId) {
+  const { data } = await supabase.from('conversation_participants').select('*').eq('conversation_id', conversationId).eq('user_id', myId).maybeSingle()
+  return data || null
+}
+
+// Fijar o archivar: en TU fila (la política solo deja esa). Archivar quita lo
+// fijado y fijar saca de archivadas: son lo contrario.
+export async function ponerEnConversacion(conversationId, myId, que, si) {
+  const ahora = si ? new Date().toISOString() : null
+  const cambios = que === 'fijar' ? { fijada_at: ahora, ...(si ? { archivada_at: null } : {}) } : { archivada_at: ahora, ...(si ? { fijada_at: null } : {}) }
+  const { error } = await supabase.from('conversation_participants').update(cambios).eq('conversation_id', conversationId).eq('user_id', myId)
+  if (error) throw error
+  return cambios
+}
+
+// Las reacciones de una conversación, o null si no se puede saber (sin la
+// migración la tabla no existe: entonces no se ofrecen).
+export async function reaccionesDe(conversationId) {
+  const { data, error } = await supabase.from('private_message_reactions').select('message_id, user_id, kind').eq('conversation_id', conversationId)
+  return error ? null : data || []
+}
+
+// Poner, cambiar o quitar la tuya (una por mensaje): `kind` null la quita.
+export async function reaccionar({ messageId, conversationId, myId, kind, actual }) {
+  if (!kind) {
+    const { error } = await supabase.from('private_message_reactions').delete().eq('message_id', messageId).eq('user_id', myId)
+    if (error) throw error
+    return
+  }
+  const q = actual
+    ? supabase.from('private_message_reactions').update({ kind }).eq('message_id', messageId).eq('user_id', myId)
+    : supabase.from('private_message_reactions').insert({ message_id: messageId, conversation_id: conversationId, user_id: myId, kind })
+  const { error } = await q
+  if (error) throw error
 }

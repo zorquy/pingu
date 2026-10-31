@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (382) — PINGU-Claude (1141 — mensajes: responder, reacciones, fijar y archivar)
+
+**Hecho**: lo de mensajes de la propuesta que lleva migración. (M1) Responder
+a un mensaje concreto: el botón de la cita en cada burbuja o, en el móvil,
+deslizarla a la derecha; «Respondiendo a Misty» sobre el cuadro, y la
+respuesta lleva arriba la cita, que lleva al original. (M2) Reacciones: las
+cuatro del foro con sus iconos, una por persona y nunca a lo tuyo; cambian ya
+y deshacen si la base dice que no. (M4) «⋯» en la cabecera: «Fijar arriba» y
+«Archivar»; en la bandeja las fijadas van arriba con la chincheta del foro y las
+archivadas plegadas al final, y vuelven solas si te escriben. Sin la migración
+no se ofrece nada de esto (la fila propia de la conversación, pedida con `*`,
+dice si está).
+
+**Ficheros**: `supabase-migration-1141-mensajes-responder-reaccionar.sql`
+(nueva), `js/messages.js`, `js/mensajes.js`, `js/mensajes-puro.js`,
+`css/mensajes.css`, CLAUDE.md, SCHEMA, novedades. Pruebas en `pruebas`: 1141
+(la migración contra PostgreSQL) y 1141-pantalla.
+
+**Pendiente**: **PINGU tiene que ejecutar la migración 1141** en el SQL Editor;
+hasta entonces la web se queda como antes (sin responder, reacciones ni
+fijar/archivar).
+
 ## 2026-10-31 (381) — PINGU-Claude (1140 — mensajes: punto verde, «escribiendo…» y una carta desde el clip)
 
 **Hecho**: de la propuesta «Comunidad, guías y menú», lo de mensajes que no

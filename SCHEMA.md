@@ -41785,6 +41785,60 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1141 — Mensajes: responder, reacciones, fijar y archivar
+
+Lo de mensajes de la propuesta «Comunidad, guías y menú» que necesita
+migración (`supabase-migration-1141-mensajes-responder-reaccionar.sql`).
+
+**La migración**. `private_messages.reply_to_id` (on delete set null) con un
+disparador (`mensaje_respuesta_misma_conversacion`) que solo deja responder a
+un mensaje de la MISMA conversación: con el id de otra, la cita enseñaría un
+trozo de una conversación ajena. `private_message_reactions` (message_id,
+conversation_id, user_id, kind ∈ like/love/laugh/wow), clave (mensaje,
+persona): una por persona, y cambiarla es un update. Lleva `conversation_id`
+para que el tiempo real filtre por conversación; la política de insert/update
+pasa por `mensaje_reaccionable(mensaje, conversación)` (security definer: el
+mensaje es de esa conversación, no está eliminado, no es tuyo, y estás en
+ella). Se ve solo si estás en la conversación. Y entra en `supabase_realtime`.
+`conversation_participants.fijada_at` / `archivada_at`: de cada uno, en su
+fila (la política de update de siempre). La prueba `test-tanda-1141.mjs` lo
+comprueba todo contra PostgreSQL, dos veces encima.
+
+**Sin la migración, nada**. La web pide la fila propia de la conversación con
+`*` (`miFilaDeConversacion`) y la bandeja también (`listConversations`): si
+trae `fijada_at`, la 1141 está (`con1141`); si no, ni botones ni «⋯» ni
+consultas a la tabla de reacciones, y `sendMessage` solo manda
+`reply_to_id` cuando hay respuesta. Nada pide una columna que pueda no
+existir (624).
+
+**Responder** (mensajes.js). En cada burbuja, `data-responder` (el icono de
+la cita, como «Citar» en el foro; con ratón sale al pasar, como borrar) y, en
+el móvil, deslizar la burbuja a la derecha 60 px (si el dedo va más en
+vertical, es un scroll). Pone `#msgRespondiendo` («Respondiendo a Misty» y un
+trozo, con su ×) y el envío lleva `reply_to_id`. La burbuja de la respuesta
+pinta `.msg-cita` (`citaDe`: quién y 90 caracteres, o «Mensaje eliminado» /
+«Una carta» / «Una foto»), que lleva al original y lo destella. Las burbujas
+llevan `id="msg-<id>"`.
+
+**Reacciones**. `REACCIONES_MENSAJE` son las del foro (tema.js) con sus
+iconos. En una burbuja ajena, `data-reaccionar` abre `.msg-selector` con las
+cuatro; los chips (`reaccionesDeMensaje`: cuentas en ese orden y la tuya) se
+pulsan para cambiar o quitar. En la tuya, solo se cuentan. CAMBIA YA (se
+repinta con `pintarHilo`, sin volver a pedir) y si la base dice que no, vuelve
+(896). `refreshMessages` se partió en pedir y `pintarHilo` por eso.
+
+**Fijar y archivar**. El «⋯» de la cabecera (`.msg-mas-menu`) con «Fijar
+arriba / Quitar de fijadas» y «Archivar / Sacar de archivadas»
+(`ponerEnConversacion`: fijar saca de archivadas y al revés). La bandeja
+(`ordenarConversaciones`): fijadas arriba, la última fijada primero, con la
+chincheta del foro; las archivadas (`estaArchivada`: hasta que llega un
+mensaje posterior a `archivada_at`) plegadas al final en «Archivadas (N)».
+
+**Pruebas**: `test-tanda-1141-pantalla.mjs` (PC y móvil): sin la migración no
+sale nada; responder con el botón y deslizando, el `reply_to_id`, la cita y su
+destello; las reacciones (la ajena contada en la tuya, el selector, guardar,
+quitar); fijar y archivar en tu fila y cómo queda la bandeja.
+
 ## Tanda 1140 — Mensajes: punto verde, «escribiendo…» y una carta desde el clip
 
 Lo de mensajes de la propuesta «Comunidad, guías y menú» que no necesita
