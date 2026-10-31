@@ -192,7 +192,7 @@ html:has(.tdv[open]) { overflow: hidden; }
 
 @media (max-width: 640px) {
   .tdv { inset: auto 0 0; width: 100%; max-height: 92dvh; margin: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
-  .tdv-pie { padding-bottom: max(var(--e-lg), env(safe-area-inset-bottom)); }
+  .tdv-pie { padding-bottom: max(var(--e-lg), var(--seguro-abajo)); }
 }
 
 /* El recibo de una venta (1084): centrado, con la imagen que se manda. */
@@ -226,7 +226,7 @@ html:has(.tdr[open]) { overflow: hidden; }
 
 @media (max-width: 640px) {
   .tdr { inset: auto 0 0; width: 100%; max-height: 92dvh; margin: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
-  .tdr-botones { padding-bottom: max(var(--e-lg), env(safe-area-inset-bottom)); }
+  .tdr-botones { padding-bottom: max(var(--e-lg), var(--seguro-abajo)); }
 }
 
 /* Comprar a un cliente (1091): la hoja de Vender, con la foto, el idioma, el

@@ -168,7 +168,7 @@
   justify-content: center;
   width: 100%;
   padding: var(--e-xl);
-  padding-bottom: calc(var(--e-xl) + env(safe-area-inset-bottom, 0px));
+  padding-bottom: calc(var(--e-xl) + var(--seguro-abajo));
   /* El mismo velo que arriba, por el mismo motivo. */
   background: linear-gradient(to top, rgb(0 0 0 / 55%), rgb(0 0 0 / 0%));
 }
@@ -225,7 +225,7 @@
 .mc-escaner-bandeja {
   position: absolute;
   right: var(--e-md);
-  bottom: calc(120px + env(safe-area-inset-bottom, 0px));
+  bottom: calc(120px + var(--seguro-abajo));
   left: var(--e-md);
   padding: var(--e-sm);
   border-radius: var(--radius-lg);

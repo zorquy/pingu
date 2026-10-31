@@ -1463,7 +1463,7 @@
   /* Abajo, «− Tienes N +» a lo ancho y el corazón en redondo (916);
      compartir es el botón flotante de arriba. */
   html.ficha-movil.con-barra-movil .carta-scan .carta-acciones {
-    bottom: calc(env(safe-area-inset-bottom) + var(--e-md));
+    bottom: calc(var(--seguro-abajo) + var(--e-md));
   }
 
   html.ficha-movil .carta-acciones #cmCompartir,

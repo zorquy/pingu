@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (376) — PINGU-Claude (1135 — el menú de abajo, con tope en el hueco de iOS)
+
+**Hecho**: PINGU, con captura («se rompe el menú, sigue pasando»): la burbuja
+a media pantalla y la barra de abajo desaparecida, después de usar el
+teclado. Las cuentas cuadran con una sola causa: iOS (sobre todo instalada) a
+veces se queda con `env(safe-area-inset-bottom)` valiendo el alto del
+teclado. La barra lleva ese hueco de relleno, así que crecía hasta media
+pantalla (lo que vio en la 1127) y, al esconderse al bajar, la burbuja se
+quedaba flotando a esa altura. Ahora todas las hojas piden el hueco por
+`--seguro-abajo` (`style.css`), que es `min(env(…), 48px)`: el indicador de
+inicio mide 34, un teclado pasa de 250. 42 sitios en 14 hojas.
+
+**Ficheros**: `css/style.css` (el token) y las 14 hojas que pedían el hueco,
+CLAUDE.md, SCHEMA, novedades. Pruebas en `pruebas`: 1135 nueva (3 rojos en la
+base); verdes 299, 315, 753, 776, 981, 1023 y 1134.
+
+**Pendiente**: confirmarlo en el iPhone de PINGU; si vuelve a pasar con el
+tope puesto, la causa es otra (el visor de la 776) y la captura lo dirá.
+
 ## 2026-10-31 (375) — PINGU-Claude (1134 — Halloween: la web de noche)
 
 **Hecho**: PINGU eligió la C de la propuesta «PokeDoc de temporada» («para

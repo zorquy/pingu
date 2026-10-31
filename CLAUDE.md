@@ -1532,6 +1532,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `js/temporada.js` dentro de `#temporadaHueco`, que tiene su alto reservado.
   Un navegador automático no la ve (`navigator.webdriver`) salvo con
   `?temporada=halloween`: una prueba de una fiesta la enciende así.
+- **El hueco de abajo es `var(--seguro-abajo)`, nunca `env(safe-area-inset-bottom)`
+  a pelo** (tanda 1135): iOS a veces lo deja con el alto del teclado y la barra
+  de abajo crecía hasta media pantalla con la burbuja flotando. El token lleva
+  tope (48 px) y lo vigila `test-tanda-1135.mjs`.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

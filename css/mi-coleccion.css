@@ -2459,7 +2459,7 @@
   position: fixed;
   z-index: 140;
   right: var(--e-lg);
-  bottom: calc(var(--e-lg) + env(safe-area-inset-bottom));
+  bottom: calc(var(--e-lg) + var(--seguro-abajo));
   left: var(--e-lg);
   grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: var(--e-xs);
@@ -6388,7 +6388,7 @@ html[data-desliza='sale'] #mcEstanteriaZona { animation: mc-desliza-vuelve 0.26s
 
 .mc-ensenar-sitio {
   position: absolute;
-  bottom: calc(var(--e-md) + env(safe-area-inset-bottom, 0px));
+  bottom: calc(var(--e-md) + var(--seguro-abajo));
   left: 0;
   width: 100%;
   margin: 0;
@@ -11562,7 +11562,7 @@ button.mc-fila:hover {
     overflow-y: auto;
     overscroll-behavior: contain;
     margin: 0;
-    padding: var(--e-xl) var(--e-md) calc(var(--e-lg) + env(safe-area-inset-bottom));
+    padding: var(--e-xl) var(--e-md) calc(var(--e-lg) + var(--seguro-abajo));
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
     background: var(--white);
     box-shadow: 0 -12px 32px rgba(13, 27, 42, 0.25);
@@ -12372,7 +12372,7 @@ html:not(.mc-puede-marcar) [data-seleccionar] {
     right: var(--e-xl);
     /* Encima de la burbuja de Mi colección (`.mc-pestanias`, en movil.css:
        a 80 + 8 de abajo y 56 de alto), con 12 de aire. */
-    bottom: calc(80px + env(safe-area-inset-bottom) + var(--e-sm) + 56px + var(--e-md));
+    bottom: calc(80px + var(--seguro-abajo) + var(--e-sm) + 56px + var(--e-md));
     width: 56px;
     min-width: 56px;
     height: 56px;
@@ -13021,7 +13021,7 @@ html:not(.mc-puede-marcar) [data-seleccionar] {
   position: fixed;
   z-index: 160;
   right: var(--e-lg);
-  bottom: calc(var(--e-lg) + env(safe-area-inset-bottom));
+  bottom: calc(var(--e-lg) + var(--seguro-abajo));
   left: var(--e-lg);
   gap: var(--e-sm);
   align-items: center;

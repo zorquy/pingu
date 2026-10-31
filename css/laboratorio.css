@@ -2296,7 +2296,7 @@ button.lab-pila:hover {
     bottom: 0;
     width: 100%;
     max-height: 70vh;
-    padding-bottom: calc(var(--e-sm) + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--e-sm) + var(--seguro-abajo));
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     /* El velo de detrás, sin otro elemento: una sombra que lo cubre todo. */
     box-shadow: 0 0 0 100vmax rgba(13, 27, 42, 0.36);
@@ -2868,7 +2868,7 @@ button.lab-carta.lab-no-vale:hover {
   }
 
   .lab-mesa {
-    padding: var(--e-sm) var(--e-sm) calc(var(--e-sm) + env(safe-area-inset-bottom));
+    padding: var(--e-sm) var(--e-sm) calc(var(--e-sm) + var(--seguro-abajo));
     gap: var(--e-sm);
   }
 

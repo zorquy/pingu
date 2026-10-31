@@ -232,7 +232,7 @@
   }
 
   .ch-caja {
-    padding: var(--e-sm) var(--e-lg) calc(var(--e-lg) + env(safe-area-inset-bottom));
+    padding: var(--e-sm) var(--e-lg) calc(var(--e-lg) + var(--seguro-abajo));
   }
 
   .ch-tirador {

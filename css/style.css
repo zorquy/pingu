@@ -129,6 +129,8 @@
      porqué y las medidas de contraste, en SCHEMA.md. */
   --acento: var(--navy-solid);
   --acento-texto: var(--blanco-fijo);
+  /* El hueco de abajo con tope (1135): iOS lo deja a veces con el alto del teclado (SCHEMA 1135). */
+  --seguro-abajo: min(env(safe-area-inset-bottom, 0px), 48px);
 }
 /* 1024: en oscuro, Inicio (y lo que no es de ninguna sección) va en el azul
    claro de --navy, no en el marino (PINGU: «parece deshabilitada»). */
@@ -1847,7 +1849,7 @@ html.ola-tema::view-transition-new(root) {
 html.pd-tienda:not(.es-tienda) .nav-links,
 html.pd-tienda:not([data-bm-montada]) .bm > a { visibility: hidden; }
 @media (max-width: 900px) {
-  body:has(> .bm) { padding-bottom: calc(72px + env(safe-area-inset-bottom)); }
+  body:has(> .bm) { padding-bottom: calc(72px + var(--seguro-abajo)); }
   .bm {
     position: fixed;
     inset-inline: 0;
@@ -1855,7 +1857,7 @@ html.pd-tienda:not([data-bm-montada]) .bm > a { visibility: hidden; }
     z-index: 95;
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    padding: 4px 4px calc(4px + env(safe-area-inset-bottom));
+    padding: 4px 4px calc(4px + var(--seguro-abajo));
     background: var(--white);
     border-top: 1px solid var(--border);
   }

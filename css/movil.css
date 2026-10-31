@@ -19,13 +19,13 @@
      página 64 px en cada carga. Donde no hay burbuja sobra un poco de aire. */
   html.con-burbuja-movil body,
   html.con-barra-movil body:has(> .bm) {
-    padding-bottom: calc(72px + 64px + env(safe-area-inset-bottom));
+    padding-bottom: calc(72px + 64px + var(--seguro-abajo));
   }
   .bm-burbuja {
     display: flex;
     position: fixed;
     z-index: 90;
-    bottom: calc(72px + env(safe-area-inset-bottom) + var(--e-xs));
+    bottom: calc(72px + var(--seguro-abajo) + var(--e-xs));
     inset-inline: 0;
     width: max-content;
     max-width: calc(100% - var(--e-lg) * 2);
@@ -134,7 +134,7 @@
      un menú fijo abajo, la burbuja justo encima»—, subida lo que mide la
      barra, y la página reserva sitio para las dos. */
   .mc-pestanias {
-    bottom: calc(80px + env(safe-area-inset-bottom) + var(--e-sm));
+    bottom: calc(80px + var(--seguro-abajo) + var(--e-sm));
   }
   /* 1020 (D1): el body ya reserva barra + burbuja (981); sumarlo aquí otra
      vez dejaba un cuarto de pantalla vacío antes del pie. */
@@ -162,7 +162,7 @@
     overscroll-behavior: contain;
   }
   .mc-editor {
-    padding: var(--e-md) var(--e-md) calc(var(--e-md) + env(safe-area-inset-bottom));
+    padding: var(--e-md) var(--e-md) calc(var(--e-md) + var(--seguro-abajo));
   }
   /* Una hoja no se desliza de lado (PINGU: «con el dedo se va para los
      lados; debería ser inmóvil»): la fila de mando de la ficha salía 12 px
@@ -181,7 +181,7 @@
   .mc-bandeja,
   .mc-panel-filtros,
   .mc-dlg-adorno {
-    padding-bottom: env(safe-area-inset-bottom);
+    padding-bottom: var(--seguro-abajo);
   }
 }
 
@@ -233,7 +233,7 @@
     position: fixed;
     z-index: 94;
     inset-inline: var(--e-md);
-    bottom: calc(80px + env(safe-area-inset-bottom) + var(--e-sm));
+    bottom: calc(80px + var(--seguro-abajo) + var(--e-sm));
     margin: 0;
     padding: var(--e-xs);
     border: 1px solid var(--border);
@@ -429,7 +429,7 @@
     width: auto;
     max-height: 86dvh;
     margin: 0;
-    padding-bottom: calc(var(--e-md) + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--e-md) + var(--seguro-abajo));
     overflow-y: auto;
     overscroll-behavior: contain;
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
@@ -521,7 +521,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--e-sm);
-    padding: var(--e-sm) var(--e-md) calc(var(--e-md) + env(safe-area-inset-bottom));
+    padding: var(--e-sm) var(--e-md) calc(var(--e-md) + var(--seguro-abajo));
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   }
   .bm-instalar-asa {
@@ -572,7 +572,7 @@
   .bm-instalar-nota { margin: 0; text-align: center; font-size: var(--t-xs); }
   .bm-instalar-tarjeta {
     right: var(--e-md);
-    bottom: calc(96px + env(safe-area-inset-bottom));
+    bottom: calc(96px + var(--seguro-abajo));
     left: var(--e-md);
     display: flex;
     align-items: center;
@@ -769,8 +769,8 @@
     z-index: 89;
     /* Siempre de 160 (981): crecía de 96 a 160 al llegar la burbuja y eso
        también es un salto. Sin burbuja, lo de arriba es transparente. */
-    height: calc(160px + env(safe-area-inset-bottom));
-    background: linear-gradient(to bottom, transparent calc(100% - 96px - env(safe-area-inset-bottom)), var(--bg) calc(100% - 28px - env(safe-area-inset-bottom)));
+    height: calc(160px + var(--seguro-abajo));
+    background: linear-gradient(to bottom, transparent calc(100% - 96px - var(--seguro-abajo)), var(--bg) calc(100% - 28px - var(--seguro-abajo)));
     pointer-events: none;
     transition: transform 0.3s var(--ease);
   }

@@ -1113,7 +1113,7 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
 /* ── La hoja corta de añadir (748, la C5 de su maqueta; SCHEMA 748) ── */
 .mc-anadir-dialogo .mc-ad-form {
   gap: var(--e-md);
-  padding: 0 var(--e-lg) calc(var(--e-lg) + env(safe-area-inset-bottom));
+  padding: 0 var(--e-lg) calc(var(--e-lg) + var(--seguro-abajo));
 }
 
 .mc-ad-tirador {
@@ -1818,7 +1818,7 @@ img.icono-bola.icono-version {
   position: fixed;
   z-index: 96;
   inset-inline: var(--e-md);
-  bottom: calc(var(--e-lg) + env(safe-area-inset-bottom));
+  bottom: calc(var(--e-lg) + var(--seguro-abajo));
   display: flex;
   align-items: center;
   gap: var(--e-md);
@@ -1874,7 +1874,7 @@ img.icono-bola.icono-version {
 /* En el móvil, encima de la burbuja de Mi colección y de la barra. */
 @media (max-width: 900px) {
   .mc-deshacer {
-    bottom: calc(80px + 76px + env(safe-area-inset-bottom) + var(--e-sm));
+    bottom: calc(80px + 76px + var(--seguro-abajo) + var(--e-sm));
   }
 }
 

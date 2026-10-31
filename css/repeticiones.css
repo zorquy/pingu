@@ -1815,7 +1815,7 @@
     z-index: 5;
     justify-content: center;
     padding: var(--e-sm);
-    padding-bottom: calc(var(--e-sm) + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--e-sm) + var(--seguro-abajo));
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
     box-shadow: var(--shadow-md);
   }

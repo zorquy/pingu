@@ -2161,7 +2161,7 @@ a.foro-cita-quien:hover {
 .tema-nuevos {
   position: fixed;
   left: 50%;
-  bottom: calc(96px + env(safe-area-inset-bottom));
+  bottom: calc(96px + var(--seguro-abajo));
   z-index: 60;
   display: inline-flex;
   align-items: center;
@@ -2182,7 +2182,7 @@ a.foro-cita-quien:hover {
 
 @media (max-width: 900px) {
   .tema-nuevos {
-    bottom: calc(72px + 88px + env(safe-area-inset-bottom));
+    bottom: calc(72px + 88px + var(--seguro-abajo));
   }
 }
 
@@ -2293,7 +2293,7 @@ html:has(#temaResponder) {
   /* Encima de la barra de abajo; cuando la barra se esconde al bajar
      (la 709), la caja baja al fondo. */
   html.con-barra-movil:not(.bm-escondidas) #temaResponder {
-    bottom: calc(72px + env(safe-area-inset-bottom));
+    bottom: calc(72px + var(--seguro-abajo));
   }
 
   /* Entre la caja y la barra de abajo no asoma el mensaje de debajo. */

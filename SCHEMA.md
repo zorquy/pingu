@@ -41785,6 +41785,32 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1135 — El hueco de abajo, con tope
+
+PINGU, con una captura del iPhone: «se rompe el menú, sigue pasando». La
+burbuja a media pantalla (unos 330 px por encima de su sitio) y la barra de
+abajo, que debía estar escondida al bajar, sin rastro.
+
+**La cuenta.** La burbuja va a `72px + hueco + 4px` del fondo y al bajar se
+aparta 80; la barra lleva `hueco` de relleno abajo y al bajar se aparta su
+alto entero. Con el hueco normal (34) la burbuja queda a 30 px del fondo. Para
+quedar a 330 el hueco tiene que valer ~335, que es un teclado de iPhone con la
+barra de sugerencias. Y con ese hueco la barra mide ~400 px: es «la barra de
+abajo a media pantalla» de la 1127. iOS (sobre todo instalada) a veces deja
+`env(safe-area-inset-bottom)` con el alto del teclado al cerrarlo; la 776 y la
+1127 corregían el VISOR, que es otro síntoma y no tocaba esto.
+
+**El arreglo.** `--seguro-abajo: min(env(safe-area-inset-bottom, 0px), 48px)`
+en el `:root` de `style.css`, y las 42 peticiones del hueco de abajo de 14
+hojas pasan por él. 48 cubre el indicador de inicio (34) y la barra de gestos
+de Android; ningún teclado baja de 250. El de arriba no se toca: no es el que
+se queda pegado.
+
+**La guarda.** `test-tanda-1135.mjs`: ninguna hoja ni página pide
+`env(safe-area-inset-bottom)` a pelo, el token se define una vez y con tope de
+48 o menos; y en el navegador, con el token forzado al caso del teclado, la
+barra no pasa de 120 px y la burbuja sigue a la misma distancia de ella.
+
 ## Tanda 1134 — Halloween: la web de noche
 
 PINGU, con la propuesta «PokeDoc de temporada» delante: «haz la C, para hoy
