@@ -79,26 +79,27 @@ function alTocar(e) {
 export const letraDe = (termino) => normalizeSearch(termino).charAt(0).toUpperCase()
 
 // La página /glosario: los términos por orden, agrupados por letra, cada
-// uno con su ancla. Desde la 896 cada término es un `<details>`: en el PC
-// abiertos (hay sitio); en el móvil plegados a su nombre, que 32 fichas
-// seguidas eran 7.000 px de página. El índice de letras y el buscador van
-// aparte (`pintarMandos`), pegados arriba.
-export function pintarGlosario(caja, { abiertos = true } = {}) {
+// uno con su ancla. Desde la 1144 (V3 de «Lo que se ha quedado viejo») se lee
+// como un diccionario: cada término ABIERTO —el nombre con su inglés, la
+// definición, el ejemplo en una cita y los otros nombres en una línea—, sin
+// tocar nada. Antes era un `<details>` plegado en el móvil: había que tocar
+// cada uno para saber qué significaba.
+export function pintarGlosario(caja) {
   const lista = [...GLOSARIO].sort((a, b) => a.termino.localeCompare(b.termino, 'es'))
   let letra = ''
   caja.innerHTML = lista.map((g) => {
     const l = letraDe(g.termino)
     const titulo = l !== letra ? `<h2 class="glosario-letra" id="letra-${l}">${l}</h2>` : ''
     letra = l
+    const vistos = new Set([normalizeSearch(g.termino), normalizeSearch(g.en || '')])
+    const otros = g.alias.filter((a) => { const k = normalizeSearch(a); if (vistos.has(k)) return false; vistos.add(k); return true })
     return `${titulo}
-    <details class="glosario-termino" id="${escapeHtml(g.id)}" data-letra="${l}"${abiertos ? ' open' : ''}>
-      <summary>
-        <h3>${escapeHtml(g.termino)}</h3>
-        <p class="glosario-otros">${[g.en, ...g.alias.filter((a) => a.toLowerCase() !== g.termino.toLowerCase() && a !== g.en)].map((a) => `<span>${escapeHtml(a)}</span>`).join('')}</p>
-      </summary>
-      <p>${escapeHtml(g.def)}</p>
+    <article class="glosario-termino" id="${escapeHtml(g.id)}" data-letra="${l}">
+      <h3>${escapeHtml(g.termino)}${g.en && normalizeSearch(g.en) !== normalizeSearch(g.termino) ? ` <span class="glosario-en" lang="en">${escapeHtml(g.en)}</span>` : ''}</h3>
+      <p class="glosario-def">${escapeHtml(g.def)}</p>
       ${g.ejemplo ? `<p class="glosa-ejemplo">${escapeHtml(g.ejemplo)}</p>` : ''}
-    </details>`
+      ${otros.length ? `<p class="glosario-otros">También: ${otros.map((a) => escapeHtml(a)).join(', ')}</p>` : ''}
+    </article>`
   }).join('')
 }
 
@@ -113,7 +114,6 @@ export function pintarMandos(caja, lista, { letras, buscar }) {
       const g = POR_ID.get(d.id)
       const casa = !q || normalizeSearch([g.termino, g.en, ...g.alias, g.def].join(' ')).includes(q)
       d.hidden = !casa
-      if (q && casa) d.open = true
     }
     for (const h of lista.querySelectorAll('.glosario-letra')) h.hidden = !lista.querySelector(`.glosario-termino[data-letra="${h.id.slice(6)}"]:not([hidden])`)
     // Una letra sin términos es un control DESACTIVADO (la 311 pide el gris
@@ -127,14 +127,51 @@ export function pintarMandos(caja, lista, { letras, buscar }) {
     }
   }
   buscar.addEventListener('input', filtrar)
-  // Llegar por ancla (#sir) abre ese término, esté como esté.
-  const abrirAncla = () => { const d = location.hash.length > 1 && lista.querySelector(`.glosario-termino#${CSS.escape(location.hash.slice(1))}`); if (d) d.open = true }
-  window.addEventListener('hashchange', abrirAncla)
-  abrirAncla()
+  marcarLetraActual(lista, letras)
+}
+
+// La letra en la que estás, marcada en el índice (1144): la última cuyo
+// título ya ha subido hasta los mandos pegados.
+function marcarLetraActual(lista, letras) {
+  if (typeof IntersectionObserver === 'undefined') return
+  const titulos = [...lista.querySelectorAll('.glosario-letra')]
+  const poner = (l) => {
+    for (const a of letras.querySelectorAll('a')) {
+      const es = a.textContent === l
+      a.classList.toggle('glosario-letra-actual', es)
+      if (es) a.setAttribute('aria-current', 'true')
+      else a.removeAttribute('aria-current')
+    }
+  }
+  // Al bajar, la última letra que ha pasado los mandos en la columna de la
+  // IZQUIERDA (con dos columnas, a la altura de la E de una va la O de la
+  // otra). Tocar una letra marca esa, sin esperar.
+  let tocada = 0
+  const marcar = () => {
+    if (Date.now() - tocada < 800) return
+    const tope = 180
+    const izquierda = Math.min(...titulos.filter((h) => !h.hidden).map((h) => h.getBoundingClientRect().left))
+    let actual = titulos[0]
+    for (const h of titulos) {
+      const r = h.getBoundingClientRect()
+      if (!h.hidden && Math.abs(r.left - izquierda) < 8 && r.top <= tope) actual = h
+    }
+    poner(actual?.id.slice(6))
+  }
+  letras.addEventListener('click', (e) => {
+    const a = e.target.closest('a')
+    if (!a || a.classList.contains('disabled')) return
+    tocada = Date.now()
+    poner(a.textContent)
+  })
+  const obs = new IntersectionObserver(marcar, { rootMargin: '-120px 0px -40% 0px' })
+  titulos.forEach((h) => obs.observe(h))
+  window.addEventListener('scroll', () => requestAnimationFrame(marcar), { passive: true })
+  marcar()
 }
 
 if (typeof document !== 'undefined' && document.getElementById('glosarioLista')) {
   const lista = document.getElementById('glosarioLista')
-  pintarGlosario(lista, { abiertos: !window.matchMedia?.('(max-width: 900px)').matches })
+  pintarGlosario(lista)
   if (document.getElementById('glosarioLetras')) pintarMandos(document.getElementById('glosarioMandos'), lista, { letras: document.getElementById('glosarioLetras'), buscar: document.getElementById('glosarioBuscar') })
 }

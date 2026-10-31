@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (385) — PINGU-Claude (1144 — glosario, pestaña Foro, entrar y bienvenida)
+
+**Hecho**: el resto de «Lo que se ha quedado viejo». Glosario: cada término
+abierto (definición, ejemplo en cita, otros nombres en una línea), y en el PC
+dos columnas con las letras en un índice a la derecha que marca dónde estás.
+Pestaña Foro del perfil: cifras en chapas y listas como las del foro. Entrar:
+en el PC, tarjeta partida en dos con lo que tienes con cuenta; en el móvil, un
+abanico de cartas encima. Bienvenida: la mascota y lo que hay.
+
+**Ficheros**: glosario.html, js/glosario.js, css/glosario.css,
+js/foro-actividad.js, css/perfil.css, auth.html, css/auth.css,
+onboarding.html, css/onboarding.css, SCHEMA.md, novedades.json. Pruebas (rama
+pruebas): test-tanda-1144-pantalla.mjs nueva; 896 al día.
+
+**Pendiente**: nada de esta tanda. Sigue pendiente ejecutar
+supabase-migration-1141-mensajes-responder-reaccionar.sql (PINGU).
+
 ## 2026-10-31 (384) — PINGU-Claude (1143 — Laboratorio arreglado y Mis partidas en filas)
 
 **Hecho**: de «Lo que se ha quedado viejo», V2 y V1. Laboratorio (PC): fuera

@@ -53,11 +53,22 @@
 <body>
   <div class="auth-page">
     <!-- En el PC, al lado de la caja, algo de PokeDoc (790, PA17). -->
-    <aside class="auth-arte" aria-hidden="true">
-      <img src="/assets/images/mascota.webp" alt="" width="160" height="242" />
-      <p>Tu colección, tus guías y tus torneos, en un sitio.</p>
+    <!-- En el PC, lo que tienes con cuenta (1144, V4 de «Lo que se ha
+         quedado viejo»): antes era la mascota y una frase al lado de la caja. -->
+    <aside class="auth-arte">
+      <img src="/assets/images/mascota.webp" alt="" width="120" height="182" />
+      <p class="auth-arte-titulo">Todo lo tuyo de Pokémon TCG, en español</p>
+      <ul class="auth-arte-lista">
+        <li><span class="auth-arte-icono"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="3" width="12" height="16" rx="2"/><path d="M5 6v13a2 2 0 0 0 2 2h9"/></svg></span>Tu colección, con lo que vale cada día</li>
+        <li><span class="auth-arte-icono"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h13l-4-4M17 17H4l4 4"/></svg></span>Cambios con quien tiene lo que buscas</li>
+        <li><span class="auth-arte-icono"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13 2L3 14h9l-1 8 10-12h-9z"/></svg></span>Seis retos al día y tu racha</li>
+        <li><span class="auth-arte-icono"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>El foro, las guías y los torneos</li>
+      </ul>
     </aside>
     <div class="auth-box">
+      <!-- En el móvil, un abanico de cartas encima (1144): la caja sola en
+           medio de una pantalla vacía no decía de qué iba esto. -->
+      <div class="pd-abanico" aria-hidden="true"><span></span><span></span><span></span></div>
       <div class="auth-logo"><span class="auth-logo-nombre">Poke<b>Doc</b></span></div>
       <!-- El título de la pantalla, para quien no la ve: los pasos son <h2>
            y sin esto la página no tenía <h1>. -->

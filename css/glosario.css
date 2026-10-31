@@ -48,41 +48,60 @@
 }
 
 .glosario-lista {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: var(--e-md);
-  margin-top: var(--e-lg);
+  /* 1144: un diccionario. Cada término abierto, en dos columnas en el PC. */
+  margin-top: var(--e-md);
 }
 
 .glosario-termino {
-  padding: var(--e-lg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-  scroll-margin-top: 96px;
+  display: grid;
+  gap: var(--e-xs);
+  padding: var(--e-md) 0;
+  border-top: 1px solid var(--border);
+  break-inside: avoid;
+  scroll-margin-top: 140px;
+}
+
+.glosario-termino[hidden],
+.glosario-letra[hidden] {
+  display: none;
 }
 
 .glosario-termino:target {
-  border-color: var(--navy);
-  box-shadow: var(--shadow-ring);
+  margin-inline: calc(-1 * var(--e-md));
+  padding-inline: var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--ice);
 }
 
-.glosario-termino h2,
-.glosario-termino > summary h3 {
+.glosario-termino h3 {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--e-sm);
+  margin: 0;
   font-size: var(--t-lg);
 }
 
-.glosario-otros {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-xs);
-  margin: var(--e-xs) 0 var(--e-sm);
+.glosario-en {
+  color: var(--text-mid);
+  font-family: var(--font-body, inherit);
+  font-size: var(--t-sm);
+  font-weight: 500;
 }
 
-.glosario-otros span {
-  padding: 2px var(--e-sm);
-  border-radius: var(--radius-pill);
-  background: var(--ice);
+.glosario-def {
+  margin: 0;
+}
+
+.glosario-termino .glosa-ejemplo {
+  margin: 0;
+  padding-left: var(--e-md);
+  border-left: 2px solid var(--acento);
+  font-style: normal;
+}
+
+.glosario-otros {
+  margin: 0;
   color: var(--text-mid);
   font-size: var(--t-xs);
 }
@@ -126,40 +145,20 @@
 .glosario-letras a:hover { background: var(--ice); }
 .glosario-letras a.glosario-letra-vacia.disabled { color: var(--text-dim); }
 .glosario-letra {
-  grid-column: 1 / -1;
-  margin: var(--e-md) 0 0;
+  margin: var(--e-lg) 0 0;
   scroll-margin-top: 140px;
-  font-size: var(--t-lg);
-  color: var(--text-mid);
+  color: var(--acento);
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  break-after: avoid;
 }
-.glosario-termino { scroll-margin-top: 140px; }
-.glosario-termino > summary {
-  cursor: pointer;
-  list-style: none;
-}
-.glosario-termino > summary::-webkit-details-marker { display: none; }
-.glosario-termino > summary h3 {
-  margin: 0;
-  font-size: var(--t-lg);
-}
-.glosario-termino > summary h3::after {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-left: var(--e-sm);
-  border-right: 2px solid var(--text-dim);
-  border-bottom: 2px solid var(--text-dim);
-  transform: rotate(45deg) translateY(-3px);
-}
-.glosario-termino[open] > summary h3::after { transform: rotate(-135deg) translateY(-2px); }
+.glosario-letra:first-child { margin-top: 0; }
+.glosario-letras a.glosario-letra-actual { background: var(--acento); color: var(--acento-texto); }
 @media (max-width: 900px) {
   .glosario-mandos { top: 60px; }
-  .glosario-lista { grid-template-columns: 1fr; gap: var(--e-xs); margin-top: var(--e-sm); }
-  .glosario-termino { padding: var(--e-sm) var(--e-md); }
-  .glosario-termino > summary { min-height: 44px; display: flex; flex-direction: column; justify-content: center; }
-  .glosario-termino > summary h3 { font-size: var(--t-md); }
   .glosario-letras a { min-width: 28px; min-height: 28px; }
+  .glosario-termino h3 { font-size: var(--t-md); }
+  .glosario-termino { padding: var(--e-sm) 0; }
 }
 @media (pointer: coarse) {
   .glosario-letras a { min-width: 44px; min-height: 44px; }
@@ -200,4 +199,42 @@
     position: absolute;
     inset: -4px 0;
   }
+}
+
+/* ── 1144: en el PC, dos columnas de diccionario y las letras en un índice
+   pegado a la derecha. Los mandos se deshacen (`display: contents`) para
+   que el buscador y el índice sean piezas de la rejilla de la página. ── */
+@media (min-width: 1100px) {
+  .glosario-pagina {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 48px;
+    column-gap: var(--e-lg);
+    align-content: start;
+  }
+  .glosario-pagina > .cabecera-pagina { grid-column: 1 / -1; }
+  .glosario-mandos { display: contents; }
+  .glosario-mandos input {
+    position: sticky;
+    top: 72px;
+    z-index: 5;
+    grid-column: 1;
+    margin-top: var(--e-md);
+    box-shadow: 0 0 0 var(--e-sm) var(--bg);
+  }
+  .glosario-lista { grid-column: 1; columns: 2; column-gap: var(--e-2xl); }
+  .glosario-letras {
+    position: sticky;
+    top: 88px;
+    grid-column: 2;
+    grid-row: 2 / span 2;
+    align-self: start;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 2px;
+    margin-top: var(--e-md);
+    padding: var(--e-xs) 0;
+    border-left: 1px solid var(--border);
+  }
+  .glosario-letras a { min-width: 32px; min-height: 24px; }
 }

@@ -41785,6 +41785,46 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1144 — Glosario de diccionario, pestaña Foro del perfil, entrar y bienvenida (V3, V5, V4)
+
+El resto de «Lo que se ha quedado viejo» (PINGU: «dale con lo recomendado»).
+
+**V3 · Glosario.** Cada término es un `<article>` ABIERTO (antes un
+`<details>` plegado en el móvil: había que tocarlo para saber qué
+significaba): nombre con el inglés al lado (`.glosario-en`, si no es igual),
+la definición, el ejemplo como cita con raya del color de la sección y los
+otros nombres en una línea («También: …», sin repetir el nombre ni el
+inglés, comparando con `normalizeSearch`). Las letras de cada tramo, grandes y
+en el color de la sección. En el PC (≥ 1100 px) dos columnas (`columns: 2`)
+y las letras en un índice vertical pegado a la derecha: `.glosario-mandos`
+pasa a `display: contents` para que el buscador y el índice sean piezas de la
+rejilla de la página (`.glosario-pagina`). La letra en la que estás se marca
+(`.glosario-letra-actual`): al tocarla, esa; al bajar, la última que ha
+pasado los mandos en la columna de la IZQUIERDA (con dos columnas, a la altura
+de la E de una va la O de la otra). Ojo: `.glosario-termino` lleva `display:
+grid`, que le gana a `hidden`; hay regla `[hidden] { display: none }`.
+
+**V5 · Pestaña Foro del perfil.** Las cuatro cifras en chapas
+(`.foro-act-cifra`, en singular o plural), no números grandes con rótulo en
+mayúsculas. Las listas en su caja, con el cuadro de color del foro en los
+temas (`.foro-act-icono-tema`, color de la sección) y el trozo de un mensaje
+como cita (`.foro-act-cita`). Lo vacío en una línea, sin el dibujo grande. El
+título «En el foro» se queda: las otras pestañas también lo llevan.
+
+**V4 · Entrar y bienvenida.** En el PC, /auth es una tarjeta partida en dos:
+a la izquierda «Todo lo tuyo de Pokémon TCG, en español» con la mascota y
+cuatro cosas que tienes con cuenta (`.auth-arte`, con sus iconos en el HTML),
+a la derecha el formulario; las dos mitades en una rejilla
+(`.auth-page:has(> .auth-arte)`), para que midan lo mismo. En el móvil, un
+abanico de tres dorsos encima del formulario (`.pd-abanico`, solo dibujo). La
+primera pantalla de /onboarding lleva la mascota y tres chapas con lo que hay
+(`.onb-hay`).
+
+Pruebas: `test-tanda-1144-pantalla.mjs` nueva; la 896 al día (términos
+abiertos, se cuenta lo que se ve). Rojos viejos que siguen igual con y sin la
+tanda: 581 (una transición de vista abortada), 896 (retos.css y «La quiero») y
+983.
+
 ## Tanda 1143 — Laboratorio arreglado y Mis partidas en filas (V2 y V1)
 
 De la propuesta «Lo que se ha quedado viejo» (PINGU: «dale con lo

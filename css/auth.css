@@ -177,20 +177,95 @@
   display: none;
 }
 
+/* El abanico de cartas encima de la caja, en el móvil (1144, V4): tres
+   dorsos inclinados, solo dibujo. En el PC lo hace el panel de al lado. */
+.pd-abanico {
+  position: relative;
+  height: 112px;
+  margin: calc(-1 * var(--e-sm)) 0 0;
+}
+.pd-abanico span {
+  position: absolute;
+  top: var(--e-md);
+  left: 50%;
+  width: 64px;
+  height: 90px;
+  margin-left: -32px;
+  border: 2px solid #e4b44a;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(150deg, #7c3aed, #312e81);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
+}
+.pd-abanico span:nth-child(1) { background: linear-gradient(150deg, #0ea5e9, #1e3a8a); transform: translateX(-52px) rotate(-14deg); }
+.pd-abanico span:nth-child(2) { z-index: 1; transform: translateY(-8px); }
+.pd-abanico span:nth-child(3) { background: linear-gradient(150deg, #f97316, #9a3412); transform: translateX(52px) rotate(14deg); }
+
 @media (min-width: 900px) {
-  .auth-page {
-    gap: var(--e-2xl);
+  /* Las dos mitades en una rejilla: así miden lo mismo de alto. */
+  .auth-page:has(> .auth-arte) {
+    display: grid;
+    grid-template-columns: minmax(0, 380px) minmax(0, 380px);
+    justify-content: center;
+    align-content: center;
+    align-items: stretch;
+    padding: var(--e-2xl);
   }
 
+  .pd-abanico { display: none; }
+
+  /* El panel de lo que tienes con cuenta, pegado a la caja: las dos mitades
+     de una misma tarjeta. */
   .auth-arte {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    justify-content: center;
     gap: var(--e-md);
-    max-width: 240px;
-    text-align: center;
-    color: var(--text-mid);
+    padding: var(--e-2xl);
+    border-radius: var(--radius-xl) 0 0 var(--radius-xl);
+    background: linear-gradient(160deg, var(--navy-solid), var(--navy-solid-dark));
+    color: var(--blanco-fijo);
+  }
+
+  .auth-arte img {
+    width: 96px;
+    height: auto;
+  }
+
+  .auth-arte-titulo {
+    margin: 0;
     font-family: var(--font-display);
-    font-size: var(--t-lg);
+    font-size: var(--t-xl);
+    font-weight: 800;
+    line-height: 1.2;
+  }
+
+  .auth-arte-lista {
+    display: grid;
+    gap: var(--e-sm);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--t-sm);
+  }
+
+  .auth-arte-lista li {
+    display: flex;
+    align-items: center;
+    gap: var(--e-sm);
+  }
+
+  .auth-arte-icono {
+    display: grid;
+    flex-shrink: 0;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-md);
+    background: rgba(255, 255, 255, 0.14);
+  }
+
+  .auth-arte + .auth-box {
+    justify-content: center;
+    border-radius: 0 var(--radius-xl) var(--radius-xl) 0;
   }
 }

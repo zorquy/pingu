@@ -59,7 +59,7 @@ function filaTema(t, foroPorId) {
   const foro = foroPorId[t.board_id]
   return `
     <li class="foro-act-fila">
-      <span class="foro-act-icono" aria-hidden="true">${icons.messageSquare(15)}</span>
+      <span class="foro-act-icono foro-act-icono-tema" aria-hidden="true">${icons.messageSquare(15)}</span>
       <span class="foro-act-cuerpo">
         <a class="foro-act-titulo" href="${urlTema(t.id)}">${etiquetaHtml(t.prefix)} ${escapeHtml(t.title)}</a>
         <small>
@@ -90,7 +90,7 @@ function filaMensaje(m, temaPorId) {
       <span class="foro-act-icono" aria-hidden="true">${icons.quote(15)}</span>
       <span class="foro-act-cuerpo">
         <a class="foro-act-titulo" href="${urlTema(m.thread_id)}#mensaje-${m.id}">${escapeHtml(tema.title)}</a>
-        <span class="foro-act-trozo">${escapeHtml(trozo(m.body_html))}</span>
+        <span class="foro-act-trozo foro-act-cita">${escapeHtml(trozo(m.body_html))}</span>
         <small title="${escapeHtml(fechaLarga(m.created_at))}">${escapeHtml(haceCuanto(m.created_at))}</small>
       </span>
     </li>`
@@ -162,13 +162,16 @@ export async function pintarActividadDelForo(contenedor, userId, { esMio = false
   const quien = esMio ? 'Todavía no has' : 'Todavía no ha'
   const nTemas = totalTemas ?? listaTemas.length
   const nMensajes = totalMensajes ?? listaMensajes.length
+  // Las cifras en chapas, como las de la cabecera del perfil (1144, V5): antes
+  // eran cuatro números grandes con su rótulo en mayúsculas.
+  const cifra = (n, uno, varios) => `<span class="foro-act-cifra"><strong>${n}</strong> ${n === 1 ? uno : varios}</span>`
   const recorte = (total) => (total > CUANTOS ? `<p class="subtext foro-act-recorte">Los últimos ${CUANTOS} de ${total}.</p>` : '')
   contenedor.innerHTML = `
     <div class="foro-act-numeros">
-      <div><strong>${nMensajes}</strong><span>Mensajes</span></div>
-      <div><strong>${nTemas}</strong><span>Temas abiertos</span></div>
-      <div><strong>${nComentarios}</strong><span>Comentarios en noticias y guías</span></div>
-      ${gracias === null ? '' : `<div><strong>${gracias}</strong><span>Reacciones recibidas</span></div>`}
+      ${cifra(nMensajes, 'mensaje', 'mensajes')}
+      ${cifra(nTemas, 'tema abierto', 'temas abiertos')}
+      ${cifra(nComentarios, 'comentario en noticias y guías', 'comentarios en noticias y guías')}
+      ${gracias === null ? '' : cifra(gracias, 'reacción recibida', 'reacciones recibidas')}
     </div>
     <div class="foro-act-columnas">
       <section>
@@ -176,7 +179,7 @@ export async function pintarActividadDelForo(contenedor, userId, { esMio = false
         ${
           listaTemas.length
             ? `<ul class="foro-act-lista">${listaTemas.map((t) => filaTema(t, foroPorId)).join('')}</ul>${recorte(nTemas)}`
-            : `<p class="empty-state">${quien} abierto ningún tema en el foro.</p>`
+            : `<p class="subtext foro-act-vacio">${quien} abierto ningún tema en el foro.</p>`
         }
       </section>
       <section>
@@ -184,7 +187,7 @@ export async function pintarActividadDelForo(contenedor, userId, { esMio = false
         ${
           respuestas.length
             ? `<ul class="foro-act-lista">${respuestas.map((m) => filaMensaje(m, temaPorId)).join('')}</ul>${recorte(nMensajes)}`
-            : `<p class="empty-state">${quien} escrito ningún mensaje en el foro.</p>`
+            : `<p class="subtext foro-act-vacio">${quien} escrito ningún mensaje en el foro.</p>`
         }
       </section>
       <section>
@@ -192,7 +195,7 @@ export async function pintarActividadDelForo(contenedor, userId, { esMio = false
         ${
           listaComentarios.length
             ? `<ul class="foro-act-lista">${listaComentarios.map((c) => filaComentario(c, articuloPorId)).join('')}</ul>${recorte(nComentarios)}`
-            : `<p class="empty-state">${quien} comentado ninguna noticia ni guía.</p>`
+            : `<p class="subtext foro-act-vacio">${quien} comentado ninguna noticia ni guía.</p>`
         }
       </section>
     </div>`

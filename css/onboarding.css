@@ -177,3 +177,34 @@
   justify-self: center;
   min-height: 44px;
 }
+
+/* 1144 (V4): la mascota y lo que hay en PokeDoc, en la primera pantalla. */
+.onb-mascota {
+  position: relative;
+  width: 96px;
+  height: auto;
+  margin-bottom: calc(-1 * var(--e-sm));
+}
+
+.onb-hay {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.onb-hay li {
+  padding: var(--e-xs) var(--e-md);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.14);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.onb-welcome {
+  padding-top: var(--e-2xl);
+}

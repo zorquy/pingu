@@ -584,40 +584,62 @@ button.perfil-cifra:hover .rotulo {
   color: var(--text-dim);
 }
 
-/* ── Los números de la actividad del foro en el perfil ── */
+/* ── Las cifras de la actividad del foro, en chapas (1144, V5): las mismas
+   que la cabecera del perfil, no cuatro números grandes en mayúsculas. ── */
 .foro-act-numeros {
   display: flex;
   flex-wrap: wrap;
-  /* El hueco es lo que las separa ahora que no hay borde: más ancho que
-     los 10 px de antes, o se leerían como una sola cifra larga. */
-  gap: 12px 32px;
-  margin-bottom: 16px;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-lg);
 }
 
-/* Sin borde y con la misma tipografía que la tira de cifras de la
-   cabecera (tanda 307): son lo mismo —un número y lo que cuenta— y
-   estaban a una pestaña de distancia contándose de dos maneras, una en
-   tira limpia y la otra en tres cajitas con borde. */
-.foro-act-numeros > div {
-  display: grid;
-  gap: 4px;
-  text-align: center;
-}
-
-.foro-act-numeros strong {
-  font-size: var(--t-xl);
-  font-weight: 800;
-  color: var(--navy);
-  letter-spacing: -0.3px;
-  line-height: 1.1;
-}
-
-.foro-act-numeros span {
-  font-size: var(--t-2xs);
-  font-weight: 600;
+.foro-act-cifra {
+  padding: var(--e-xs) var(--e-md);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
   color: var(--text-mid);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
+  font-size: var(--t-sm);
+}
+
+.foro-act-cifra strong {
+  color: var(--text);
+  font-weight: 800;
+}
+
+/* Las listas, como las del foro: una caja con sus filas y el cuadro de color. */
+.foro-act-lista {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.foro-act-lista .foro-act-fila {
+  padding: var(--e-md);
+}
+
+.foro-act-icono {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  margin-top: 0;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--navy);
+}
+
+.foro-act-icono-tema {
+  background: color-mix(in srgb, var(--acento) 16%, transparent);
+  color: var(--acento);
+}
+
+.foro-act-cita {
+  padding-left: var(--e-sm);
+  border-left: 2px solid var(--border-strong);
+}
+
+.foro-act-vacio {
+  margin: 0;
 }
 
 .foro-act-recorte {
