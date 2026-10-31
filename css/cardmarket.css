@@ -1465,6 +1465,122 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   flex: none;
 }
 
+/* La tabla idioma × versión (1138, SCHEMA 1138): una casilla por deseo. */
+.mc-idd-bloque,
+.mc-idd-matriz-caja {
+  min-width: 0;
+}
+
+/* Con muchas versiones no cabe en un móvil: se desliza ella (no la ventana) y
+   la columna del idioma se queda fija a la izquierda. */
+.mc-idd-matriz-caja {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.mc-idd-matriz {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--t-xs);
+}
+
+.mc-idd-matriz th {
+  padding: var(--e-xs);
+  color: var(--text-mid);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mc-idd-matriz thead th {
+  vertical-align: bottom;
+  white-space: normal;
+  line-height: 1.2;
+}
+
+.mc-idd-matriz th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--white);
+}
+
+.mc-idd-matriz thead th > * {
+  display: block;
+  width: fit-content;
+  margin-inline: auto;
+}
+
+.mc-idd-matriz tbody th {
+  text-align: left;
+}
+
+.mc-idd-matriz tbody th > * {
+  vertical-align: middle;
+}
+
+.mc-idd-matriz tbody th .pv-bandera {
+  display: inline-block;
+  margin-right: var(--e-sm);
+}
+
+.mc-idd-matriz tbody tr + tr > * {
+  border-top: 1px solid var(--border);
+}
+
+.mc-idd-matriz td {
+  padding: 0;
+  text-align: center;
+}
+
+.mc-idd-celda {
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: transparent;
+  cursor: pointer;
+}
+
+/* El cuadrado de 24 a la vista; el botón entero (44) al dedo. */
+.mc-idd-celda svg {
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  padding: 2px;
+  border: 2px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+}
+
+.mc-idd-celda.activo {
+  color: var(--blanco-fijo);
+}
+
+.mc-idd-celda.activo svg {
+  border-color: var(--navy-solid);
+  background: var(--navy-solid);
+}
+
+.mc-idd-celda:disabled {
+  cursor: not-allowed;
+}
+
+.mc-idd-celda:disabled svg {
+  border-style: dashed;
+  opacity: 0.4;
+}
+
+.mc-idd-celda:focus-visible {
+  outline: none;
+}
+
+.mc-idd-celda:focus-visible svg {
+  box-shadow: var(--shadow-ring);
+}
+
 .mc-idd-pie {
   display: flex;
   justify-content: flex-end;
@@ -1472,6 +1588,13 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
 }
 
 @media (max-width: 599px) {
+  /* «Reverse holo» y «1.ª edición» en dos renglones: cada columna, lo que su
+     casilla. */
+  .mc-idd-matriz thead th {
+    max-width: 56px;
+    font-size: var(--t-2xs);
+  }
+
   .mc-idd[open] {
     width: 100%;
     margin: auto 0 0;

@@ -786,7 +786,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   borran, se añaden). Y las VERSIONES igual (1129): cada pareja idioma ×
   versión es un deseo; la ventana devuelve `combos` (`combosDe`, sin las
   parejas que no existen) y cambiar pasa por `planDeCombos`. Un camino nuevo
-  que apunte lee `r.combos`, no `r.idioma` ni `r.variante`.
+  que apunte lee `r.combos`, no `r.idioma` ni `r.variante`. Con versiones la
+  ventana es una TABLA idioma × versión, una casilla por deseo (1138, Sergio.M
+  otra vez: cruzar todo con todo apuntaba lo que ya tenía), y cambiar toma
+  TODOS los deseos de la carta (`usaTabla`), no los de una versión.
 - **Un botón que escribe en la base cambia YA, confirma después y deshace
   si falla** (tanda 896, R6): el patrón de «Seguir» un hilo, aplicado a
   marcar leído, guardar una guía, «La quiero», el check-in y meter en un

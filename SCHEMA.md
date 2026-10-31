@@ -41785,6 +41785,51 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1138 — «¿Cómo la quieres?» en tabla: un deseo por casilla
+
+Sergio.M (por PINGU): de una edición en seis idiomas, Normal y Reverse, le
+faltan PT Normal, FR Reverse y PT Reverse. Con la 1129 los idiomas y las
+versiones eran dos filas de chapas y `combosDe` cruzaba todo con todo: FR+PT ×
+Normal+Reverse apuntaba también FR Normal, que ya tiene. Y cambiar abría solo
+los deseos de UNA versión (la baldosa), así que «la portuguesa normal, además»
+desde la Reverse cambiaba o chocaba con lo que había.
+
+**La tabla** (`js/idioma-deseo.js`, `pintarMatriz`): con una carta con más de
+una versión que se sabe (`usaTabla(carta)`: `hayVariante()` y
+`versionesParaDesear`), y ni `varias` ni `soloVersion`, la ventana pinta una
+tabla: filas los idiomas que ofrece (`opcionesDeDeseo`, «Cualquiera» arriba en
+el occidental), columnas «Cualquiera» y las versiones. Cada casilla es un botón
+`role="checkbox"` con `data-celda="idioma|variante"` ('' = cualquiera). Las
+casillas son independientes: «PT Normal» y «cualquier idioma Reverse» a la vez
+es un deseo legítimo. Una pareja que no existe (956, `valeEn`) va apagada salvo
+que ya estuviera pedida. El botón cuenta («Apuntar 3 deseos»); sin ninguna,
+apagado al apuntar y «Quitar de la lista» al cambiar. Devuelve `combos` tal
+cual, sin cruzar. Se recuerdan los idiomas marcados, como antes.
+
+**Cambiar** (`cambiarDeseoDeBaldosa`): en tabla toma TODAS las filas de la
+carta (no las de la versión de la baldosa), se las pasa como `puesto.combos` y
+aplica `planDeCombos` con `ocupados` vacío; sin casillas, las borra todas.
+`quererCarta` (buscador de «La quiero», Mercado) con una carta ya pedida y en
+tabla abre ese mismo cambio en vez de apuntar aparte. Sin versiones sigue lo de
+la 1128/1129 (chapas, una versión por baldosa).
+
+**Medidas**: casilla de 44 px (el cuadrado de 24 a la vista). Con muchas
+versiones (PINGU: «¿y con más de dos, en el móvil?»): en un Android de 360 la
+tabla empujaba la ventana entera más ancha que la pantalla (el botón quedaba
+cortado), porque una tabla dentro de una rejilla manda su ancho mínimo hacia
+arriba. Ahora `.mc-idd-bloque` y la caja llevan `min-width: 0`, la caja se
+desliza de lado ella sola (`overflow-x: auto`) y la columna del idioma va
+`sticky` a la izquierda. En el móvil, los nombres de versión van en dos
+renglones de 56 px como mucho («Reverse / holo», «1.ª / edición», y
+«Cual-quiera» con un guion blando): con cuatro versiones caben las cinco
+columnas en 360 sin deslizar; con seis o más, se desliza la tabla.
+
+**Pruebas**: `test-tanda-1138-pantalla.mjs` (PC y móvil): tabla en vez de
+chapas, apuntar FR Reverse + PT Reverse escribe solo esas dos, cambiar desde la
+Reverse abre las dos y PT Normal es una casilla más, desde la Normal salen las
+tres, sin ninguna sale de la lista, una carta sin versiones sigue con chapas, y
+con cuatro versiones en 360 la ventana no se sale y el idioma queda fijo.
+
 ## Tanda 1137 — Lo que cuenta Gente, «Novato» a la vista y el «Me gusta» de una noticia
 
 PINGU, en Comunidad → Gente: «mensajes en el foro: 38 que en la última semana;

@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (379) — PINGU-Claude (1138 — «¿Cómo la quieres?» en tabla: un deseo por casilla)
+
+**Hecho**: Sergio.M otra vez (por PINGU): «me falta portugués sin holo, y
+francés y portugués con reverse; si apunto francés y portugués cualquiera,
+estaría diciendo que me falta la francesa no holo, que ya tengo… y si apunto
+francés y portugués reverse, luego no me deja añadir la portuguesa normal».
+Con versiones, la ventana marcaba idiomas y versiones por separado y cruzaba
+todo con todo (1129). Ahora una carta con versiones abre una TABLA idioma ×
+versión («Cualquiera» de fila y de columna) y cada casilla es un deseo. Al
+cambiar (baldosa de cualquier versión, fila de la ficha, o «La quiero» del
+buscador con la carta ya pedida) salen marcados TODOS los de la carta, así
+que añadir uno es marcar una casilla; sin ninguna, «Quitar de la lista». Sin
+versiones, o para varias cartas a la vez, siguen las chapas de idioma.
+
+**Ficheros**: `js/idioma-deseo.js` (tabla, `usaTabla`),
+`js/mi-coleccion/deseos.js` (`cambiarDeseoDeBaldosa` y `quererCarta`),
+`css/cardmarket.css`, CLAUDE.md, SCHEMA, novedades. Pruebas en `pruebas`:
+1138 nueva; la parte de versiones de la 1128 se fue a la 1138.
+
+**Pendiente**: nada.
+
 ## 2026-10-31 (378) — PINGU-Claude (1137 — Gente cuenta bien, «Novato» a la vista y el «Me gusta» de las noticias)
 
 **Hecho**: PINGU, desde Comunidad → Gente. (1) «Mensajes en el foro» contaba

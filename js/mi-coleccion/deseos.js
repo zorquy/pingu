@@ -18,7 +18,7 @@ import { icons } from '../icons.js'
 import * as datos from './datos.js'
 import { abrirAviso } from '../avisos-precio.js'
 import * as laQuiero from '../la-quiero.js'
-import { preguntarDeseo } from '../idioma-deseo.js'
+import { preguntarDeseo, usaTabla } from '../idioma-deseo.js'
 import { idiomasPara, planDeDeseos, planDeCombos, combosDe, textoDeIdiomas } from '../deseo-idiomas.js'
 import { porNumero, rangoDeRareza } from './orden.js'
 import { ordenarCartas } from './filtros.js'
@@ -420,6 +420,12 @@ export async function pedirQuienBusca() {
 export async function quererCarta(c) {
   if (!ctx.sesion) return false
   await cargarDeseos()
+  // Si ya la quieres y la ventana va en tabla (1138), se abre con TODO lo
+  // pedido marcado: «la portuguesa normal, además» es una casilla más.
+  if (usaTabla(c) && ctx.deseos.some((x) => x.card_id === c.id && !x.provisional)) {
+    await cambiarDeseoDeBaldosa(c.id, null)
+    return ctx.deseos.some((x) => x.card_id === c.id)
+  }
   const r = await preguntarDeseo({ nombre: ctx.nombreDe(c), market: c.market || ctx.mercado, setId: c.set_id, carta: c })
   if (r === undefined) return false
   // Un deseo por idioma y versión marcados (1128, 1129); los que ya tenías no
@@ -1416,24 +1422,31 @@ function mercadoAvatares(gente = [], max = 4) {
 // sigan marcadas, la que solo cambia de versión se cambia, se borran las
 // desmarcadas y se apuntan las nuevas (`planDeCombos`). Cambia ya y, si la
 // base dice que no, vuelve a lo que diga la base (896).
+//
+// En TABLA (1138) se cambian TODOS los deseos de la carta a la vez, sea cual
+// sea la versión desde la que se abre: la tabla los enseña todos, y lo que
+// desmarques se borra (sin ninguna, la carta sale de la lista).
 export async function cambiarDeseoDeBaldosa(cardId, variante) {
   await cargarDeseos()
-  const filas = ctx.deseos.filter((x) => x.card_id === cardId && (x.variante || null) === variante && !x.provisional)
-  if (!filas.length) return
   // Desde la ficha de un álbum o de otra expansión (1064) la carta puede no
   // estar en las de la vista: se busca también en las de fuera.
   const c = ctx.cartas.get(cardId) || ctx.cartasDeFuera?.get(cardId)
-  const r = await preguntarDeseo({ nombre: ctx.nombreDe(c) || '', market: c?.market || ctx.mercado, setId: c?.set_id || null, carta: c, puesto: { idiomas: filas.map((f) => f.idioma || null), variantes: [variante] } })
+  const tabla = usaTabla(c)
+  const filas = ctx.deseos.filter((x) => x.card_id === cardId && (tabla || (x.variante || null) === variante) && !x.provisional)
+  if (!filas.length) return
+  const puesto = tabla ? { combos: filas.map((f) => ({ idioma: f.idioma || null, variante: f.variante || null })) } : { idiomas: filas.map((f) => f.idioma || null), variantes: [variante] }
+  const r = await preguntarDeseo({ nombre: ctx.nombreDe(c) || '', market: c?.market || ctx.mercado, setId: c?.set_id || null, carta: c, puesto })
   if (r === undefined) return
   const clave = (x) => `${x.idioma || ''}|${x.variante || ''}`
   const combos = r.combos || combosDe(r, c?.market || ctx.mercado)
   // Lo que esa carta ya tiene en OTRAS filas (otra versión) no se repite (el
   // índice único de la 1047). Si TODO lo que pides ya estaba en otra fila, se
-  // dice aquí, sin preguntar a la base, y no se toca nada.
+  // dice aquí, sin preguntar a la base, y no se toca nada. En tabla no hay
+  // otras filas: están todas.
   const ocupados = ctx.deseos.filter((x) => x.card_id === cardId && !filas.includes(x) && !x.provisional).map((x) => ({ idioma: x.idioma || null, variante: x.variante || null }))
   const deFilas = new Set(filas.map(clave))
   const deOtras = new Set(ocupados.map(clave))
-  if (!combos.some((x) => deFilas.has(clave(x))) && combos.every((x) => deOtras.has(clave(x)))) {
+  if (!tabla && !combos.some((x) => deFilas.has(clave(x))) && combos.every((x) => deOtras.has(clave(x)))) {
     showToast('Esa carta ya está en tu lista de búsqueda.', 'info')
     return
   }
@@ -1453,7 +1466,7 @@ export async function cambiarDeseoDeBaldosa(cardId, variante) {
     for (const id of plan.borrar) await ctx.cambios.borrarDeseo(id)
     for (const x of plan.anadir) nuevas.push(await ctx.cambios.anadirDeseo({ user_id: ctx.sesion.user.id, card_id: cardId, idioma: x.idioma, ...(x.variante ? { variante: x.variante } : {}) }))
     ctx.deseos = [...nuevas.filter((n) => !antes.some((x) => x.id === n.id)), ...antes.filter((x) => !fuera.has(x.id)).map((x) => nuevas.find((n) => n.id === x.id) || x)]
-    showToast('Cambiado.', 'success')
+    showToast(tabla && !combos.length ? 'Quitada de «La quiero».' : 'Cambiado.', 'success')
   } catch (err) {
     // A medias no se sabe qué entró: lo de verdad lo dice la base.
     ctx.deseos = antes

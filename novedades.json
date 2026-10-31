@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-31", "tipo": "mejora", "texto": "Al apuntar una carta que quieres con varias versiones, ahora marcas cada idioma con su versión en una tabla (por ejemplo, portugués normal y francés reverse), y al cambiarla ves todo lo que pediste y añades lo que falte.", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-10-31", "tipo": "arreglo", "texto": "En Gente, los mensajes del foro son ya todos los que se han escrito y las guías no cuentan las noticias. Quien acaba de llegar luce su nivel de Novato, y los «Me gusta» a una noticia ya no se avisan como si fueran de una guía.", "enlace": "/usuarios" },
     { "fecha": "2026-10-31", "tipo": "nuevo", "texto": "¿Truco o trato? Hoy y mañana, al entrar en PokeDoc te espera una sorpresa de Halloween con un Pokémon fantasma. Sale solo una vez.", "enlace": "/" },
     { "fecha": "2026-10-31", "tipo": "arreglo", "texto": "En el iPhone, después de escribir algo, la barra de abajo podía crecer hasta media pantalla o dejar sus botones flotando en medio. Ya se queda en su sitio.", "enlace": "/" },
