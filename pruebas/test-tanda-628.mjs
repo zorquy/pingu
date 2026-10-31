@@ -213,7 +213,8 @@ console.log('\n── 4. La lista de sueltas y los torneos ──')
 {
   const { page, errores } = await abrir()
   await page.click('#partidasTabs [data-vista="sueltas"]')
-  const fechas = async () => page.$$eval('#partidasLista .partidas-fila-donde', (xs) => xs.map((x) => x.textContent.match(/\d{4}-\d{2}-\d{2}/)?.[0]))
+  // Desde la 1143 la fecha se pinta corta («31 oct»): la completa va en <time datetime>.
+  const fechas = async () => page.$$eval('#partidasLista .partidas-fila-donde', (xs) => xs.map((x) => x.querySelector('time')?.getAttribute('datetime') || x.textContent.match(/\d{4}-\d{2}-\d{2}/)?.[0]))
   const recientes = await fechas()
   check('por defecto, las más recientes primero', recientes[0] === fechaHace(0) && recientes.at(-1) === fechaHace(55), recientes.join(' '))
   // Desde la 838 los filtros van plegados tras «Filtrar».

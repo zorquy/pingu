@@ -476,7 +476,9 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
   })
   check(`[${nombre}] sin errores`, errores.length === 0, errores.join(' | '))
   check(`[${nombre}] quién eres en una línea, y la cabecera es el enlace al perfil (869)`, /^Admin @Admin · Novato/.test(m.quien) && m.perfil === '/perfil.html', JSON.stringify(m))
-  check(`[${nombre}] avisos (con su número) y mensajes, las dos primeras baldosas`, m.dos.length === 2 && /^Avisos ?2$/.test(m.dos[0]) && /^Mensajes/.test(m.dos[1]), JSON.stringify(m.dos))
+  // Desde la 1142 la baldosa de Avisos cuenta lo que no es de una sección (la
+  // campana): los avisos del foro del fixture ya llevan su número en Comunidad.
+  check(`[${nombre}] avisos (con su número) y mensajes, las dos primeras baldosas`, m.dos.length === 2 && /^Avisos ?\d*$/.test(m.dos[0]) && /^Mensajes/.test(m.dos[1]), JSON.stringify(m.dos))
   check(`[${nombre}] lo tuyo en baldosas y «Ajustes» debajo (918)`, m.lista.join(' | ') === 'Guardados>/guardados.html | La quiero>/mi-coleccion?ver=quiero | Mis mazos>/mazos | Partidas>/mis-partidas | Ajustes>/ajustes', m.lista.join(' | '))
   check(`[${nombre}] el tema en un botón (869) y «Salir» aparte`, /^Cambiar al tema/.test(m.tema) && m.salir === 'Salir' && !m.viejo && m.dentro, JSON.stringify(m))
   check(`[${nombre}]   …y su hoja llega al abrirla`, await css())
