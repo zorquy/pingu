@@ -5,8 +5,9 @@
 //      hoja, ANTES de que llegue el JS; el 2 de noviembre, no; con «Quitar la
 //      decoración» apuntado, no; y un navegador automático no lo ve salvo con
 //      ?temporada=halloween (para que la suite de esos días no cambie).
-//   3. La portada: el bloque con un fantasma ocupa justo su hueco reservado
-//      (sin salto), en el móvil y en el PC, y «Quitar la decoración» lo quita.
+//   3. El pop-up «¿Truco o trato?» (1136, sustituye al bloque de la portada):
+//      sale una vez, hoja en el móvil y centrado en el PC; Trato y Truco
+//      llevan al fantasma; «Quitar la decoración» lo quita todo.
 //   4. Sin errores.
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
@@ -86,34 +87,75 @@ console.log('\n── 2. La cabecera ──')
   await ctx.close()
 }
 
-console.log('\n── 3. La portada ──')
-for (const movil of [true, false]) {
-  const { ctx, page, errores, alPintar } = await abrir({ fecha: '2026-10-31', humano: true, movil })
-  const donde = movil ? 'móvil' : 'PC'
-  check(`${donde}: de noche`, alPintar.t === 'halloween')
-  const m = await page.evaluate(() => {
-    const h = document.getElementById('temporadaHueco')
-    const b = h?.querySelector('.temporada-bloque')
-    return { hueco: h ? Math.round(h.getBoundingClientRect().height) : 0, bloque: b ? Math.round(b.getBoundingClientRect().height) : 0, fantasma: !!b?.querySelector('.temporada-fantasma, img') || true, chips: [...(b?.querySelectorAll('.temporada-chips a') || [])].map((a) => a.getAttribute('href')) }
-  })
-  check(`${donde}: el bloque «Noche de fantasmas» llena su hueco, sin salto`, m.bloque > 0 && m.hueco === m.bloque, JSON.stringify(m))
-  check(`${donde}: cuatro fantasmas que llevan al buscador de cartas`, m.chips.length === 4 && m.chips.every((h) => h.startsWith('/cartas?ver=buscar&q=')), m.chips.join(' '))
-  const desborde = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
-  check(`${donde}: nada se sale de lado`, desborde <= 0, desborde)
-  if (movil) {
-    await page.click('[data-temporada-quitar]')
-    await page.waitForLoadState('domcontentloaded')
-    await page.waitForTimeout(1200)
-    const tras = await page.evaluate(() => ({ t: document.documentElement.dataset.temporada || null, hueco: Math.round(document.getElementById('temporadaHueco')?.getBoundingClientRect().height || 0), guardado: localStorage.getItem('pd-sin-halloween') }))
-    check('«Quitar la decoración» la quita y lo recuerda (y el hueco no ocupa)', !tras.t && tras.hueco === 0 && tras.guardado === '1', JSON.stringify(tras))
+console.log('\n── 3. El pop-up «¿Truco o trato?» (1136) ──')
+const popEstado = (page) => page.evaluate(() => {
+  const d = document.querySelector('dialog.temporada-pop')
+  const r = d?.getBoundingClientRect()
+  const visible = (n) => { const x = d?.querySelector(`[data-paso="${n}"]`); return !!x && !x.hidden }
+  return {
+    abierto: !!d?.open, pasos: ['pregunta', 'bu', 'trato'].filter(visible),
+    caja: r ? { top: Math.round(r.top), bottom: Math.round(r.bottom), left: Math.round(r.left), right: Math.round(r.right) } : null,
+    alto: innerHeight, ancho: innerWidth,
+    titulo: d?.querySelector('[data-paso="trato"] h2')?.textContent || '', chapa: d?.querySelector('[data-temporada-chapa]')?.textContent || '',
+    enlace: d?.querySelector('[data-paso="trato"] a')?.getAttribute('href') || '',
+    visto: localStorage.getItem('pd-halloween-visto'), hueco: !!document.getElementById('temporadaHueco'),
   }
-  check(`${donde}: sin errores`, !errores.length, errores.join(' | '))
+})
+{
+  const { ctx, page, errores } = await abrir({ fecha: '2026-10-31', humano: true })
+  const e = await popEstado(page)
+  check('móvil: sale el pop-up con la pregunta y queda apuntado', e.abierto && e.pasos.join() === 'pregunta' && e.visto === '1', JSON.stringify(e))
+  check('  …como hoja desde abajo', e.caja && Math.abs(e.caja.bottom - e.alto) <= 2 && e.caja.left <= 1, JSON.stringify(e.caja))
+  check('la portada ya no lleva el bloque del fantasma', !e.hueco)
+  await page.click('[data-temporada-elige="trato"]')
+  await page.waitForTimeout(400)
+  const t = await popEstado(page)
+  check('«Trato»: te toca un fantasma con enlace a sus cartas', t.pasos.join() === 'trato' && /^Te ha tocado \S+/.test(t.titulo) && t.enlace.startsWith('/cartas?ver=buscar&q=') && t.chapa === '¡Trato!', JSON.stringify(t))
+  await page.click('[data-temporada-cerrar]')
+  await page.waitForTimeout(300)
+  check('«Cerrar» lo quita', !(await page.locator('dialog.temporada-pop').count()))
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(1800)
+  check('y no vuelve a salir', !(await page.locator('dialog.temporada-pop').count()))
+  const desborde = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+  check('nada se sale de lado', desborde <= 0, desborde)
+  check('sin errores', !errores.length, errores.join(' | '))
+  await ctx.close()
+}
+{
+  const { ctx, page } = await abrir({ ruta: '/foro', fecha: '2026-10-31', humano: true })
+  await page.click('[data-temporada-elige="truco"]')
+  await page.waitForTimeout(300)
+  const bu = await popEstado(page)
+  check('«Truco»: primero el ¡BU!', bu.pasos.join() === 'bu', JSON.stringify(bu))
+  await page.waitForTimeout(1500)
+  const t = await popEstado(page)
+  check('  …y luego el trato igualmente (en cualquier página, no solo la portada)', t.pasos.join() === 'trato' && /Truco/.test(t.chapa), JSON.stringify(t))
+  await ctx.close()
+}
+{
+  const { ctx, page } = await abrir({ fecha: '2026-10-31', humano: true, movil: false })
+  const e = await popEstado(page)
+  const cx = (e.caja.left + e.caja.right) / 2
+  const cy = (e.caja.top + e.caja.bottom) / 2
+  check('PC: ventana centrada', e.abierto && Math.abs(cx - e.ancho / 2) <= 2 && Math.abs(cy - e.alto / 2) <= 2, JSON.stringify(e.caja))
+  await page.mouse.click(10, 10)
+  await page.waitForTimeout(300)
+  check('  …y tocar fuera la cierra', !(await page.locator('dialog.temporada-pop').count()))
+  await ctx.close()
+}
+{
+  const { ctx, page } = await abrir({ fecha: '2026-10-31', humano: true })
+  await page.click('[data-temporada-quitar]')
+  await page.waitForLoadState('domcontentloaded')
+  await page.waitForTimeout(1200)
+  const tras = await page.evaluate(() => ({ t: document.documentElement.dataset.temporada || null, guardado: localStorage.getItem('pd-sin-halloween'), pop: !!document.querySelector('dialog.temporada-pop') }))
+  check('«Quitar la decoración» desde el pop-up la quita y lo recuerda', !tras.t && tras.guardado === '1' && !tras.pop, JSON.stringify(tras))
   await ctx.close()
 }
 {
   const { ctx, page } = await abrir({ fecha: '2026-11-02', humano: true })
-  const h = await page.evaluate(() => Math.round(document.getElementById('temporadaHueco')?.getBoundingClientRect().height ?? -1))
-  check('el resto del año, el hueco no ocupa nada', h === 0, h)
+  check('el 2 de noviembre, sin pop-up', !(await page.locator('dialog.temporada-pop').count()))
   await ctx.close()
 }
 
