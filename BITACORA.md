@@ -4,6 +4,17 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (388) — PINGU-Claude (1146b — Buscar: tres cartas en el móvil y el japonés al final)
+
+**Hecho**: PINGU, con una captura: en el móvil solo una fila de tres cartas;
+«Ver todas las cartas» en grande justo debajo y «También en Pokémon Japón»
+después y en pequeño.
+
+**Ficheros**: js/search.js, css/buscador.css, SCHEMA.md. Pruebas (rama
+pruebas): 1146 y 718 al día.
+
+**En curso**: nada.
+
 ## 2026-10-31 (387) — PINGU-Claude (1146 — Buscar con caras y la barra del trato)
 
 **Hecho**: de «Otra vuelta por la web», W2 y W3 (con eso, W1–W4 hechas; W5

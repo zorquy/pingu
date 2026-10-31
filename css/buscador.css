@@ -485,11 +485,31 @@ input.bs-input[type='search']:focus {
   font-size: var(--t-lg);
 }
 
+/* El japonés va después de «Ver todas las cartas» y en pequeño: buscas en
+   tu catálogo, lo otro es secundario (1146b). */
 .bs-japon {
   justify-content: space-between;
-  background: var(--ice);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.bs-japon-n {
   color: var(--navy);
   font-weight: 600;
+}
+
+/* «Ver todas las cartas», en grande debajo de la rejilla (1146b). */
+.bs-mas.bs-mas-cartas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: calc(100% - 2 * var(--e-md));
+  min-height: 48px;
+  margin: var(--e-sm) var(--e-md) var(--e-xs);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  font-size: var(--t-md);
+  text-decoration: none;
 }
 
 .bs-chip-n {
@@ -506,6 +526,11 @@ input.bs-input[type='search']:focus {
    los ocho filtros en UNA fila que se desliza, y sin el «Buscar» grande:
    la caja ya dice qué es la página. */
 @media (max-width: 599px) {
+  /* Una fila de tres en el móvil (PINGU, 1146b): la cuarta, en «Ver todas». */
+  .bs-rejilla > .bs-baldosa:nth-child(n + 4) {
+    display: none;
+  }
+
   .bs-chips {
     margin-inline: calc(-1 * var(--e-md));
     padding-inline: var(--e-md);

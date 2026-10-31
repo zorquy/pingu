@@ -41821,6 +41821,13 @@ la barra entera se queda arriba al bajar (`.msg-trato:has(.cp-caja-tira)`
 sticky; la tira deja de serlo por su cuenta, que dentro de la barra se
 habría ido con ella).
 
+**1146b (PINGU, con una captura del móvil).** En el móvil, una fila de tres
+cartas (la cuarta se esconde en `≤ 599 px` y va a «Ver todas»: por eso
+`masCartas` sale con más de tres, no solo cuando hay más de las que se
+pintan). Debajo, «Ver todas las cartas» en grande (`.bs-mas-cartas`, ancho
+entero y 48 de alto) y DESPUÉS «También en Pokémon Japón», en pequeño
+(PINGU: «estás buscando en inglés y lo japonés es secundario»).
+
 ## Tanda 1145 — La ficha de un torneo en el móvil y Repeticiones (W1, W4)
 
 De la propuesta «Otra vuelta por la web» (PINGU: «todo menos lo último de la

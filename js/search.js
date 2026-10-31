@@ -63,9 +63,11 @@ function seccion(g, estado, q) {
     return grupo ? `<p class="empty-state">Nada en ${NOMBRE[g].toLowerCase()} con «${escapeHtml(q)}».</p>` : ''
   }
   // En «Todo», las cartas en una rejilla de fotos (1146, W2).
-  const filas = (g === 'cartas' && !grupo && lista.length ? `<div class="bs-rejilla">${lista.map((f) => baldosaDe(f, q)).join('')}</div>` : lista.map((f) => fila(g, f, '', q)).join('')) + japon
+  const filas = g === 'cartas' && !grupo && lista.length ? `<div class="bs-rejilla">${lista.map((f) => baldosaDe(f, q)).join('')}</div>` : lista.map((f) => fila(g, f, '', q)).join('')
   const mas = g === 'productos' ? masProductos(estado, q) : grupo ? '' : g === 'cartas' ? masCartas(estado, q) : estado.filas.length >= EN_TODO ? `<button type="button" class="bs-mas" data-ver="${g}">Ver más ${g === 'gente' ? 'gente' : NOMBRE[g].toLowerCase()}</button>` : ''
-  return `<section class="bs-grupo"><h2 class="bs-seccion">${NOMBRE[g]}</h2>${filas}${mas}</section>`
+  // Las cartas: primero «Ver todas» en grande y DESPUÉS el japonés, en
+  // pequeño (PINGU: «lo japonés es secundario»).
+  return `<section class="bs-grupo"><h2 class="bs-seccion">${NOMBRE[g]}</h2>${filas}${mas}${japon}</section>`
 }
 
 const fila = (g, f, extra = '', q = '') => `<a class="bs-fila bs-${g}${extra}" href="${escapeHtml(destinoDe(g, f, q))}">${interiorDe(g, f)}</a>`
@@ -77,7 +79,7 @@ const mejorHtml = (estado, q = '') => (estado?.mejor ? `<section class="bs-grupo
 function lineaDeJapon(estado, q) {
   const j = estado.japon
   if (!j?.total) return ''
-  return `<a class="bs-fila bs-japon" href="/cartas?catalogo=JP&amp;ver=buscar&amp;q=${encodeURIComponent(q)}"><span class="bs-texto"><b>También en Pokémon Japón</b></span><span>${j.hayMas ? `${j.total}+` : j.total} ${j.total === 1 ? 'carta' : 'cartas'} ›</span></a>`
+  return `<a class="bs-fila bs-japon" href="/cartas?catalogo=JP&amp;ver=buscar&amp;q=${encodeURIComponent(q)}"><span class="bs-texto">También en Pokémon Japón</span><span class="bs-japon-n">${j.hayMas ? `${j.total}+` : j.total} ${j.total === 1 ? 'carta' : 'cartas'} ›</span></a>`
 }
 
 // En «Todo» salen las cuatro de la expansión más nueva y el botón dice
@@ -86,9 +88,10 @@ function lineaDeJapon(estado, q) {
 // pasos —«Ver todo», la chapa Cartas y «Verlas en Cartas»— para llegar a
 // la misma pantalla que buscar allí).
 function masCartas(estado, q) {
-  if (estado.total <= estado.filas.length) return ''
+  // Con más de tres también: en el móvil se ven tres y la cuarta va aquí.
+  if (estado.total <= Math.min(3, estado.filas.length)) return ''
   const texto = estado.hayMas ? 'Ver todas las cartas' : `Ver las ${estado.total} cartas`
-  return `<a class="bs-mas" href="${escapeHtml(enCartas(q))}">${texto}</a>`
+  return `<a class="bs-mas bs-mas-cartas" href="${escapeHtml(enCartas(q))}">${texto}</a>`
 }
 
 // Los productos (968): «Ver más» lleva a la pestaña Productos de Cartas con
