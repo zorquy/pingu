@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (386) — PINGU-Claude (1145 — ficha de torneo en el móvil y Repeticiones)
+
+**Hecho**: de «Otra vuelta por la web», W1 y W4. Torneo (móvil): cabecera
+baja, datos en una fila que se desliza, descripción con «Más», Compartir y
+Calendario como iconos; «Tu plaza» sube de ~635 a ~460 px. Repeticiones: una
+línea arriba, la ayuda plegada en los dos anchos y el cuadro que crece al
+pegar.
+
+**Ficheros**: js/torneos/torneo.js, css/torneos.css, repeticiones.html,
+js/repeticiones.js, css/repeticiones.css, SCHEMA.md, novedades.json. Pruebas
+(rama pruebas): test-tanda-1145-pantalla.mjs nueva; 1019 al día.
+
+**En curso**: la 1146 (Buscar con caras y la barra del trato en Mensajes).
+W5 (ficha de carta) descartada por PINGU.
+
 ## 2026-10-31 (385) — PINGU-Claude (1144 — glosario, pestaña Foro, entrar y bienvenida)
 
 **Hecho**: el resto de «Lo que se ha quedado viejo». Glosario: cada término

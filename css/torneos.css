@@ -3662,3 +3662,68 @@ html.torneo-jugando #torneoNombre {
   .torneos-crear-mas { display: inline; font-size: var(--t-xl); line-height: 1; }
   .torneos-crear-texto { display: none; }
 }
+
+/* ── 1145 (W1 de «Otra vuelta por la web»): en el móvil, la cabecera del
+   torneo baja; «Tu plaza» se ve sin bajar. Los datos en UNA fila que se
+   desliza, la descripción en dos líneas con «Más», y Compartir y el
+   calendario como iconos en la esquina (en el PC, con su palabra). ── */
+.torneo-calendario { margin-left: 0; }
+/* Sin el calendario en su fila, lo que va debajo se pegaba a la cabecera. */
+.torneo-cabecera { margin-bottom: var(--e-md); }
+.torneo-cab-palabra { white-space: nowrap; }
+.torneo-desc-mas {
+  display: none;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--blanco-fijo);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-decoration: underline;
+  cursor: pointer;
+}
+@media (max-width: 640px) {
+  .torneo-cabecera .torneo-compartir {
+    justify-content: center;
+    min-width: 44px;
+    min-height: 44px;
+    padding: 0;
+  }
+  .torneo-cabecera .torneo-cab-palabra {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+  .torneo-cabecera h1 { margin-top: var(--e-sm); }
+  .torneo-meta { margin-top: var(--e-xs); font-size: var(--t-sm); }
+  .torneo-cabecera .torneo-descripcion:not(.torneo-desc-abierta) {
+    display: -webkit-box;
+    overflow: hidden;
+    margin-top: var(--e-sm);
+    font-size: var(--t-sm);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  .torneo-desc-mas:not([hidden]) { display: inline; }
+  .torneo-cabecera .torneo-formato {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: var(--e-xs);
+    margin: var(--e-md) calc(-1 * var(--e-lg)) 0;
+    padding: 0 var(--e-lg);
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .torneo-cabecera .torneo-formato::-webkit-scrollbar { display: none; }
+  .torneo-cabecera .torneo-dato {
+    flex: 0 0 auto;
+    padding: var(--e-xs) var(--e-md);
+    white-space: nowrap;
+  }
+  .torneo-cabecera .torneo-plazas { margin-top: var(--e-md); }
+  .torneo-cabecera .torneo-jornadas { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+}

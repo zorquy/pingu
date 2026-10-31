@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-31", "tipo": "mejora", "texto": "En el móvil, la ficha de un torneo ya no ocupa la pantalla con la cabecera: los datos en una fila que se desliza, la descripción con «Más» y tu plaza a la vista nada más entrar.", "enlace": "/torneos" },
+    { "fecha": "2026-10-31", "tipo": "mejora", "texto": "Repeticiones, más directa: una línea de explicación, la ayuda plegada y un cuadro que crece al pegar el registro.", "enlace": "/repeticiones" },
     { "fecha": "2026-10-31", "tipo": "mejora", "texto": "El glosario se lee como un diccionario: cada término con su definición y su ejemplo a la vista, sin tocar nada; en el ordenador, en dos columnas con las letras a la derecha.", "enlace": "/glosario" },
     { "fecha": "2026-10-31", "tipo": "mejora", "texto": "La pestaña Foro de un perfil, más limpia: las cifras en chapas y los temas como en el foro.", "enlace": "/usuarios" },
     { "fecha": "2026-10-31", "tipo": "mejora", "texto": "Entrar y la bienvenida, renovadas: en el ordenador ves lo que tienes con cuenta al lado del formulario, y en el móvil te recibe un abanico de cartas.", "enlace": "/auth.html" },

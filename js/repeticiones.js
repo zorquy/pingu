@@ -1242,6 +1242,7 @@ async function cargarEjemplo() {
   try {
     const { EJEMPLO } = await import('./repeticiones/ejemplo.js')
     $('repTexto').value = EJEMPLO
+    $('repTexto').dispatchEvent(new Event('input'))
     cargar(EJEMPLO)
   } catch {
     mostrarError('No se ha podido cargar el ejemplo. Prueba otra vez.')
@@ -2785,6 +2786,14 @@ function iniciar() {
   })
   $('repEjemplo').addEventListener('click', cargarEjemplo)
   botonPegar($('repTexto'), $('repPegarBoton'))
+  // El cuadro empieza bajo y crece con lo pegado (1145, W4), hasta su tope:
+  // vacío, 240 px de caja eran la mitad de la pantalla del PC.
+  const crecerCuadro = () => {
+    const t = $('repTexto')
+    t.style.height = ''
+    if (t.value) t.style.height = `${Math.min(t.scrollHeight + 2, 420)}px`
+  }
+  $('repTexto').addEventListener('input', crecerCuadro)
 
   $('repSala').addEventListener('click', (e) => {
     const accion = e.target.closest('[data-accion]')?.dataset.accion

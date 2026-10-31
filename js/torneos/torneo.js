@@ -208,6 +208,28 @@ function activos() {
 }
 
 // ── Compartir el torneo (pedido de Ibai, 2026-09-02) ──
+// La descripción, en dos líneas con «Más» en el móvil (1145, W1): entera,
+// empujaba «Tu plaza» fuera de la pantalla. El recorte lo hace el CSS; aquí
+// solo se pone el botón cuando de verdad hay más que leer.
+function ponerMasEnDescripcion(desc) {
+  let mas = document.getElementById('torneoDescMas')
+  if (!mas) {
+    mas = document.createElement('button')
+    mas.type = 'button'
+    mas.id = 'torneoDescMas'
+    mas.className = 'torneo-desc-mas'
+    mas.textContent = 'Más'
+    mas.addEventListener('click', () => {
+      desc.classList.add('torneo-desc-abierta')
+      mas.hidden = true
+    })
+    desc.after(mas)
+  }
+  requestAnimationFrame(() => {
+    mas.hidden = desc.classList.contains('hidden') || desc.classList.contains('torneo-desc-abierta') || desc.scrollHeight <= desc.clientHeight + 2
+  })
+}
+
 // Se engancha UNA vez desde init(): la cabecera no se repinta, así que
 // no hay listeners duplicados. En móvil sale la hoja de compartir del
 // sistema; donde no la haya, el enlace va al portapapeles. La vista
@@ -215,7 +237,8 @@ function activos() {
 function montarCompartir() {
   const boton = $('btnCompartirTorneo')
   if (!boton) return
-  boton.innerHTML = `${icons.share(14)} Compartir`
+  // La palabra va en su caja: en el móvil se queda el icono solo (1145).
+  boton.innerHTML = `${icons.share(14)}<span class="torneo-cab-palabra">Compartir</span>`
   boton.addEventListener('click', async () => {
     const url = new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, window.location.origin).href
     if (navigator.share) {
@@ -290,6 +313,7 @@ function pintarFicha() {
     textoSiCambia(desc, torneo.description || '')
     desc.classList.add('torneo-descripcion-plana')
   }
+  ponerMasEnDescripcion(desc)
 
   // La caja «Formato» del original: cada dato con su icono. Una liga
   // (tanda 219) habla de jornadas y enseña su calendario debajo.
@@ -613,11 +637,16 @@ function ponerBotonCalendario(acciones) {
   // refresco (rehacerla movía la página), así que este botón tiene que
   // mirar si ya está puesto: si no, se añadía uno nuevo cada diez
   // segundos hasta tener cinco «Añadir al calendario» en fila.
-  if (acciones.querySelector('#btnCalendario')) return
+  // Desde la 1145 va en la cabecera, al lado de Compartir (en el móvil, los
+  // dos como iconos): solo en su fila ocupaba 60 px antes de «Tu plaza».
+  const sitio = document.querySelector('.torneo-ficha-cabecera') || acciones
+  if (document.getElementById('btnCalendario')) return
   const boton = document.createElement('button')
-  boton.className = 'btn-secondary'
+  boton.type = 'button'
+  boton.className = 'torneo-compartir torneo-calendario'
   boton.id = 'btnCalendario'
-  boton.textContent = 'Añadir al calendario'
+  boton.setAttribute('aria-label', 'Añadir al calendario')
+  boton.innerHTML = `${icons.calendar(14)}<span class="torneo-cab-palabra">Añadir al calendario</span>`
   boton.addEventListener('click', () => {
     const sello = (fecha) => new Date(fecha).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
     const inicio = new Date(torneo.start_at)
@@ -649,7 +678,7 @@ function ponerBotonCalendario(acciones) {
     a.click()
     URL.revokeObjectURL(url)
   })
-  acciones.appendChild(boton)
+  sitio.appendChild(boton)
 }
 
 // Dos memorias para no repetir consultas en cada refresco (la ficha se

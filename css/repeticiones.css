@@ -2214,7 +2214,34 @@
 /* ── 1040: en el teléfono el registro se pega sin leer dos párrafos antes
    (SCHEMA 1040): la cabecera no ocupa sitio, la ayuda es una línea con
    «¿Cómo se copia?» plegado y el cuadro es más bajo. ── */
-.rep-pegar-corta { display: none; }
+/* Desde la 1145 (W4) también en el PC: una línea y lo largo plegado, y el
+   cuadro empieza bajo y crece al pegar (`crecerCuadro`). */
+.rep-pegar-ayuda { display: none; }
+.rep-pegar-corta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0 var(--e-sm);
+  margin-top: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+.rep-como > summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--navy);
+  font-weight: 600;
+  cursor: pointer;
+}
+.rep-como[open] { flex-basis: 100%; }
+.rep-como p { max-width: 72ch; margin: 0 0 var(--e-sm); }
+.rep-pegar textarea {
+  min-height: 140px;
+  height: 140px;
+  max-height: 420px;
+  margin-top: var(--e-sm);
+}
 @media (max-width: 599px) {
   .rep-cabecera {
     position: absolute;

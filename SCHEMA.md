@@ -41785,6 +41785,36 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1145 — La ficha de un torneo en el móvil y Repeticiones (W1, W4)
+
+De la propuesta «Otra vuelta por la web» (PINGU: «todo menos lo último de la
+ficha»: W1–W4 sí, W5 no).
+
+**W1 · Ficha de un torneo.** En el móvil la cabecera ocupaba la pantalla
+entera y «Tu plaza» empezaba a ~635 px. Ahora (≤ 640 px): los datos del
+formato en UNA fila que se desliza (`.torneo-formato` en flex sin saltos,
+sangrado hasta el borde de la tarjeta), la descripción en dos líneas
+(`-webkit-line-clamp`) con «Más» (`#torneoDescMas`, que pone
+`ponerMasEnDescripcion` solo si de verdad hay más; al tocarlo,
+`.torneo-desc-abierta`), y Compartir y «Añadir al calendario» como dos iconos
+de 44 px en la esquina (la palabra va en `.torneo-cab-palabra`, recortada
+para la vista y leída por el lector; en el PC se ven). El botón del
+calendario se mudó de la caja de acciones a `.torneo-ficha-cabecera`
+(`ponerBotonCalendario` lo busca en el documento entero, para no ponerlo dos
+veces), y la cabecera lleva margen abajo (lo que la separaba de las pestañas
+era ese botón). «Tu plaza» queda a ~460 px.
+
+**W4 · Repeticiones.** En el PC salían dos párrafos de cuatro líneas y un
+cuadro de 240 px. Ahora, en los dos anchos, una línea en la cabecera, la
+ayuda corta con «¿Cómo se copia?» plegado (que ahora también cuenta lo que se
+puede hacer con la repetición) y el cuadro de 140 px que crece con lo pegado
+hasta 420 (`crecerCuadro`, en el `input`; `botonPegar` y «Ejemplo» lo
+disparan). «Tus repeticiones» ya pintaba cada guardada con sus mazos, turnos y
+ganador (494): no se toca.
+
+Pruebas: `test-tanda-1145-pantalla.mjs` nueva; la 1019 al día (los datos del
+torneo, una fila y no dos columnas).
+
 ## Tanda 1144 — Glosario de diccionario, pestaña Foro del perfil, entrar y bienvenida (V3, V5, V4)
 
 El resto de «Lo que se ha quedado viejo» (PINGU: «dale con lo recomendado»).
