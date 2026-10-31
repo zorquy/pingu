@@ -66,6 +66,7 @@ export async function renderNavMessages(sesion) {
     badge.classList.toggle('hidden', unreadCount === 0)
     // Y el mismo número, al título de la pestaña: se ve sin estar aquí.
     anotarEnPestania('mensajes', unreadCount)
+    window.dispatchEvent(new Event('pd-avisos'))
   }
 
   async function refresh() {

@@ -407,6 +407,8 @@ async function init() {
         volverTexto: esNoticia ? 'Volver a Noticias' : 'Volver a las guías',
         cifra: () => (cuerpo ? m.loQueQueda(minutosLectura, m.fraccionDe(cuerpo)) : ''),
         progreso: cuerpo,
+        // El índice (1139, G1): en el móvil no se ve el de al lado.
+        indice: headings,
       })
     }).catch(() => {})
   }

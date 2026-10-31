@@ -2833,3 +2833,22 @@ html:has(#temaResponder) {
     display: none;
   }
 }
+
+/* La raya «Nuevo desde tu última visita» (1139, F2) encima del primer
+   mensaje que no habías visto. */
+.foro-raya-nuevos {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  margin: var(--e-sm) 0;
+  color: var(--acento);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+.foro-raya-nuevos::before,
+.foro-raya-nuevos::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: currentColor;
+}

@@ -33,6 +33,9 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-31", "tipo": "mejora", "texto": "La barra de abajo (y la lateral en el ordenador) te dice con un número dónde tienes algo esperándote: mensajes y respuestas del foro en Comunidad, y avisos de tus torneos en Jugar.", "enlace": "/foro" },
+    { "fecha": "2026-10-31", "tipo": "mejora", "texto": "En el móvil, al bajar por una guía, la barra de arriba abre su índice para saltar a cualquier sección.", "enlace": "/aprender" },
+    { "fecha": "2026-10-31", "tipo": "mejora", "texto": "En un tema del foro, la barra de arriba dice por qué mensaje vas, una raya marca lo nuevo desde tu última visita y un botón te lleva directo a ello.", "enlace": "/foro" },
     { "fecha": "2026-10-31", "tipo": "mejora", "texto": "Al apuntar una carta que quieres con varias versiones, ahora marcas cada idioma con su versión en una tabla (por ejemplo, portugués normal y francés reverse), y al cambiarla ves todo lo que pediste y añades lo que falte.", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-10-31", "tipo": "arreglo", "texto": "En Gente, los mensajes del foro son ya todos los que se han escrito y las guías no cuentan las noticias. Quien acaba de llegar luce su nivel de Novato, y los «Me gusta» a una noticia ya no se avisan como si fueran de una guía.", "enlace": "/usuarios" },
     { "fecha": "2026-10-31", "tipo": "nuevo", "texto": "¿Truco o trato? Hoy y mañana, al entrar en PokeDoc te espera una sorpresa de Halloween con un Pokémon fantasma. Sale solo una vez.", "enlace": "/" },

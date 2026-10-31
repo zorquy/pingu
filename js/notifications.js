@@ -242,6 +242,9 @@ export async function renderNotificationBell(session) {
     badge.classList.toggle('hidden', unreadCount === 0)
     // Y el mismo número, al título de la pestaña: se ve sin estar aquí.
     anotarEnPestania('avisos', unreadCount)
+    // Y a las barras, para el número de cada sección (1139).
+    window.__pdAvisos = notifications
+    window.dispatchEvent(new Event('pd-avisos'))
   }
 
   async function refresh() {

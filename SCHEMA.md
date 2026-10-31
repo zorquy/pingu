@@ -41785,6 +41785,60 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1139 — Números en la barra, índice de la guía en el móvil y «N de M» en los temas
+
+De la propuesta «Comunidad, guías y menú» (artifact con maquetas), PINGU
+eligió N2, G1 y F2 para esta tanda (sin migración). Dijo NO a N1 (mensajes
+dentro de Comunidad: «que se queden ahí») y a N3 (la franja de instalar se
+queda como está); F1 (último tema en la lista de foros) y F3 (carta en un
+mensaje del foro) ya existían; G2 y G3, más adelante.
+
+**N2 · El número de cada sección** (`js/numeros-seccion.js`). Antes lo sin
+leer solo se sumaba en el avatar. Ahora `cuentasDeSecciones(avisos, mensajes)`
+da Comunidad = mensajes sin leer (el texto de `#navMsgBadge`, «9+» cuenta
+diez) + avisos sin leer de tipo `forum_*`, y Jugar = avisos `torneo_*` /
+`tournament_*` (`seccionDeAviso`). No hace consultas: `notifications.js` deja
+la lista en `window.__pdAvisos` y lanza `pd-avisos`, y `nav-messages.js` lanza
+el mismo evento al contar. `pintarNumeros` pone `<b class="sec-num">` en
+`nav.bm > a` (móvil, `css/movil.css`) y en `.lat-seccion-enlace` (lateral,
+`css/lateral.css`), con `aria-label` «Comunidad (3 sin leer)». Lo montan
+`montarBarraMovil` (después de reescribir la barra, que lo borraría) y
+`montarBarraLateral`, solo con sesión. Un tipo de aviso nuevo que sea de una
+sección va en `seccionDeAviso`.
+
+**G1 · El índice en el móvil** (`js/barra-pegada.js`, opción `indice`). El
+`.article-sidebar` solo se ve desde 1024 px. Con `indice: headings` (los
+títulos que `renderReferenceBlocksHtml` ya recoge), la cifra de la barra
+pegada («5 min más») es un botón que despliega `#barraPegadaIndice` debajo,
+con la sección actual (`seccionActual(tops, 140)`: la última cuyo título pasó
+por debajo de las barras) marcada en el color de la sección. Tocar una
+sección la lleva allí y pliega; tocar fuera pliega; esconderse la barra
+pliega. Los títulos llevan `scroll-margin-top: 56px` (en `css/guia.css`),
+que con los 72 del `scroll-padding-top` de style.css los deja a 128 px,
+justo debajo de las dos barras.
+
+**F2 · «N de M» y lo nuevo en un tema** (`js/tema.js`). La barra pegada se
+monta UNA vez (antes en cada repintado, con su observador y su `scroll` cada
+vez) y su cifra es `cifraDelTema()`: el `#N` del primer mensaje que asoma bajo
+las barras sobre `tema.post_count`. Con sesión, la marca de lectura de ANTES
+de entrar se lee siempre (en paralelo con el pintado; solo `?nuevo=1` la
+espera, porque salta) y da dos cosas: la raya `.foro-raya-nuevos` («Nuevo
+desde tu última visita») encima del primer mensaje de otro posterior a ella,
+si cae en la página, y el botón de la barra («N nuevos ↓», opción `accion` /
+`ponerAccion` de barra-pegada.js) con la cuenta de los de otros, que baja con
+`irAlPrimerNoLeido` y se quita. Sin marca (nunca habías entrado) no hay ni
+raya ni botón: todo sería nuevo.
+
+**Un `hidden` que no esconde**: el botón de la acción lleva `.btn-primary`,
+que pone `display`, y le ganaba al atributo `hidden`: en la guía salía un
+botón verde vacío. `.barra-pegada-accion[hidden] { display: none }`.
+
+**Pruebas**: `test-tanda-1139-pantalla.mjs`: lo puro (cuentas, «9+», la
+sección actual), los números en la barra del móvil y en la lateral (y
+ninguno sin cuenta), el índice que se abre con la sección marcada y salta
+debajo de las barras, y en un tema la raya, «N de 14», «2 nuevos ↓» que baja
+y se quita, y sin raya si nunca habías entrado.
+
 ## Tanda 1138 — «¿Cómo la quieres?» en tabla: un deseo por casilla
 
 Sergio.M (por PINGU): de una edición en seis idiomas, Normal y Reverse, le

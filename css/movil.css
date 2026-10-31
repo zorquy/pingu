@@ -421,6 +421,28 @@
     font-weight: 800;
     line-height: 1;
   }
+  /* El número de una sección en la barra de abajo (1139), con el dibujo
+     del avatar, pegado a la derecha del icono. */
+  .bm > a {
+    position: relative;
+  }
+  .bm .sec-num {
+    position: absolute;
+    top: var(--e-xs);
+    left: calc(50% + var(--e-xs));
+    display: grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 var(--e-xs);
+    border: 2px solid var(--white);
+    border-radius: var(--radius-pill);
+    background: var(--danger-solid);
+    color: var(--blanco-fijo);
+    font-size: var(--t-2xs);
+    font-weight: 800;
+    line-height: 1;
+  }
   /* La hoja: el desplegable de siempre, desde abajo y a lo ancho. */
   html.con-barra-movil #navUserDropdown:not(.hidden) {
     position: fixed;

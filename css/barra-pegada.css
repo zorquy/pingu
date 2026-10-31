@@ -83,6 +83,79 @@
     background: var(--navy);
     transition: width 0.15s linear;
   }
+  /* El índice de la guía (1139, G1): la cifra es un botón que lo despliega
+     debajo de la barra, y lo que se toca mide 44. */
+  .barra-pegada-indice-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--e-sm);
+    min-height: 44px;
+    padding: 0 var(--e-md);
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--ice);
+    color: var(--text);
+    font: inherit;
+    font-size: var(--t-sm);
+    font-weight: 600;
+  }
+  .barra-pegada-indice-flecha {
+    width: 8px;
+    height: 8px;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: translateY(-2px) rotate(45deg);
+  }
+  .barra-pegada-indice-btn[aria-expanded='true'] .barra-pegada-indice-flecha {
+    transform: translateY(2px) rotate(-135deg);
+  }
+  .barra-pegada-indice:not([hidden]) {
+    position: absolute;
+    top: calc(100% + var(--e-sm));
+    right: var(--e-md);
+    left: var(--e-md);
+    display: grid;
+    max-height: 60vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: var(--e-sm);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    box-shadow: var(--shadow-md);
+  }
+  .barra-pegada-indice b {
+    padding: var(--e-xs) var(--e-sm);
+    color: var(--text-mid);
+    font-size: var(--t-2xs);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .barra-pegada-indice a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 var(--e-sm);
+    border-radius: var(--radius-md);
+    color: var(--text-mid);
+    text-decoration: none;
+  }
+  .barra-pegada-indice a.activo {
+    background: var(--ice);
+    color: var(--acento);
+    font-weight: 700;
+  }
+  /* El botón de la derecha (1139, F2): «3 nuevos ↓» en un tema. Escondido
+     de verdad: `.btn-primary` le pone `display` y le ganaba al `hidden`. */
+  .barra-pegada-accion[hidden] {
+    display: none;
+  }
+  .barra-pegada-accion:not([hidden]) {
+    flex: none;
+    min-height: 44px;
+    padding: 0 var(--e-md);
+    font-size: var(--t-sm);
+  }
 }
 @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
   .barra-pegada:not(.hidden),

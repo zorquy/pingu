@@ -373,6 +373,22 @@
     min-width: 0;
   }
 
+  /* El número de una sección (1139): al final de su fila. */
+  .lat-seccion-enlace .sec-num {
+    display: grid;
+    place-items: center;
+    min-width: 20px;
+    height: 20px;
+    margin-left: auto;
+    padding: 0 var(--e-xs);
+    border-radius: var(--radius-pill);
+    background: var(--danger-solid);
+    color: var(--blanco-fijo);
+    font-size: var(--t-2xs);
+    font-weight: 800;
+    line-height: 1;
+  }
+
   .lat-seccion-enlace,
   .lat-paginas a {
     transition: background-color 0.15s ease, color 0.15s ease, min-height 0.15s ease;

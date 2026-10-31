@@ -480,3 +480,10 @@ a.rater-name:hover {
 .guia-mas-tema-todo {
   margin-top: var(--e-sm);
 }
+
+/* Una sección a la que se salta desde el índice (1139) no se queda debajo de
+   las dos barras de arriba del móvil: los 72 del `scroll-padding-top` de
+   style.css (la del sitio) más la pegada. */
+.article-body [id] {
+  scroll-margin-top: 56px;
+}

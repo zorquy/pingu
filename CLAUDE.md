@@ -830,6 +830,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   de esa página: `partidas-fila` ya era la fila de una partida —con su
   borde— y la fila de mandos la pisó sin un solo error (de ahí
   `partidas-mandos`).
+- **El número de cada sección de la barra sale de `js/numeros-seccion.js`**
+  (tanda 1139): no pregunta nada, lee lo que ya cuentan la campanita
+  (`window.__pdAvisos`) y el sobre (`#navMsgBadge`), y se repinta con el
+  evento `pd-avisos`. Un tipo de aviso nuevo que sea de una sección va en
+  `seccionDeAviso`. Y la barra pegada (`js/barra-pegada.js`) lleva el índice
+  de una guía (`indice`) y un botón a la derecha (`accion`, `ponerAccion`): un
+  tema la monta UNA vez, no en cada repintado.
 - **Lo que una página ESCRIBE al abrirse no puede pasar si Chrome solo la
   está preparando** (tanda 985): desde la 985 las listas de `PREPARABLES`
   (`js/precarga.js`) se preparan enteras al tocar su enlace, y una preparada

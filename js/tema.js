@@ -60,6 +60,13 @@ let soyStaff = false
 let tema = null
 let foro = null
 let pagina = paginaPedida
+// Lo nuevo desde tu última visita (1139, F2): la marca de lectura de ANTES
+// de entrar (`undefined` = aún no se sabe; `null` = nunca habías entrado, y
+// entonces no se marca nada), la última lista pintada y la barra pegada.
+let lecturaPrevia
+let listaPintada = []
+let barraTema = null
+let barraPedida = false
 
 // ─────────────────────────────────────────────────────────────
 function migasHtml(trozos) {
@@ -473,6 +480,7 @@ async function pintarMensajes() {
     .range(desde, desde + PAGINA - 1)
 
   const lista = mensajes || []
+  listaPintada = lista
   // Los @nombre de esta página, resueltos de una sola consulta: se pega
   // todo el HTML y se buscan los mencionados que existen de verdad.
   const mencionados = porNombre(await perfilesMencionados(lista.map((m) => m.body_html || '').join(' ')))
@@ -612,16 +620,22 @@ async function pintarMensajes() {
 
   enganchar(perfiles)
   pintarCabecera(perfiles[tema.author_id])
-  // La barra pegada del móvil (858): la flecha al foro, el título y los
-  // mensajes. Solo en el móvil y por `import()`.
-  if (window.matchMedia?.('(max-width: 900px)').matches) {
-    import('./barra-pegada.js').then((m) => m.montarBarraPegada({
-      cabecera: elCabecera,
-      titulo: tema.title,
-      volverHref: foro?.id ? `/foro.html?foro=${encodeURIComponent(foro.id)}` : '/foro.html',
-      volverTexto: 'Volver al foro',
-      cifra: () => { const n = Number(tema.post_count) || 1; return `${n} ${n === 1 ? 'mensaje' : 'mensajes'}` },
-    })).catch(() => {})
+  marcarRayaDeNuevos()
+  // La barra pegada del móvil (858): la flecha al foro, el título y por qué
+  // mensaje vas («12 de 22», 1139). Solo en el móvil, por `import()` y UNA
+  // vez: se repinta sola al bajar.
+  if (!barraPedida && window.matchMedia?.('(max-width: 900px)').matches) {
+    barraPedida = true
+    import('./barra-pegada.js').then((m) => {
+      barraTema = m.montarBarraPegada({
+        cabecera: elCabecera,
+        titulo: tema.title,
+        volverHref: foro?.id ? `/foro.html?foro=${encodeURIComponent(foro.id)}` : '/foro.html',
+        volverTexto: 'Volver al foro',
+        cifra: cifraDelTema,
+      })
+      if (botonDeNuevos) barraTema?.ponerAccion(botonDeNuevos)
+    }).catch(() => {})
   }
   wireReportButtons(elMensajes, sesion)
   pintarEncuesta()
@@ -1631,6 +1645,52 @@ async function irAlMensaje(postId) {
   destellar(postId)
 }
 
+// «12 de 22» (1139, F2): el número del primer mensaje que asoma por debajo
+// de las barras de arriba, sobre el total del tema.
+function cifraDelTema() {
+  const total = Number(tema.post_count) || 1
+  for (const art of elMensajes.querySelectorAll('.foro-mensaje')) {
+    if (art.getBoundingClientRect().bottom <= 130) continue
+    const n = Number(art.querySelector('.foro-mensaje-num')?.textContent.replace('#', ''))
+    if (n) return `${n} de ${total}`
+    break
+  }
+  return `${total} ${total === 1 ? 'mensaje' : 'mensajes'}`
+}
+
+// La raya «Nuevo desde tu última visita» encima del primer mensaje de otro
+// posterior a tu marca de lectura de antes de entrar, si cae en esta página.
+function marcarRayaDeNuevos() {
+  elMensajes.querySelector('.foro-raya-nuevos')?.remove()
+  if (!lecturaPrevia || !sesion) return
+  const primero = listaPintada.find((m) => m.created_at > lecturaPrevia && m.author_id !== sesion.user.id)
+  const el = primero && document.getElementById(`mensaje-${primero.id}`)
+  if (el) el.insertAdjacentHTML('beforebegin', '<p class="foro-raya-nuevos"><span>Nuevo desde tu última visita</span></p>')
+}
+
+// «3 nuevos ↓» en la barra pegada: lo que han escrito otros desde tu última
+// visita. Se cuenta una vez, al entrar; tocarlo baja al primero y se quita.
+let botonDeNuevos = null
+async function contarNuevos(referencia) {
+  if (!referencia || !sesion) return
+  const { count } = await supabase
+    .from('forum_posts')
+    .select('id', { count: 'exact', head: true })
+    .eq('thread_id', tema.id)
+    .gt('created_at', referencia)
+    .neq('author_id', sesion.user.id)
+  if (!count) return
+  botonDeNuevos = {
+    texto: `${count} ${count === 1 ? 'nuevo' : 'nuevos'} ↓`,
+    alPulsar: () => {
+      barraTema?.ponerAccion(null)
+      botonDeNuevos = null
+      irAlPrimerNoLeido(referencia).catch(() => {})
+    },
+  }
+  barraTema?.ponerAccion(botonDeNuevos)
+}
+
 // El primer mensaje POSTERIOR a tu última lectura. Sin referencia (nunca
 // habías entrado), lo nuevo empieza en el primer mensaje: no se salta.
 async function irAlPrimerNoLeido(referencia) {
@@ -1714,14 +1774,26 @@ async function init() {
 
   // La marca de lectura VIEJA se lee antes de renovarla: es la que dice
   // dónde empieza lo que no has visto.
+  // Desde la 1139 se lee siempre con sesión (la raya y «N nuevos» de la
+  // barra), a la vez que se pinta; solo `?nuevo=1` la espera, porque salta.
   const quiereNuevo = params.get('nuevo') === '1' && !!sesion
+  const referenciaDe = (marcas) => (marcas ? [marcas.porTema[tema.id], marcas.todoHasta].filter(Boolean).sort().pop() || null : undefined)
+  const marcasP = sesion ? marcasDeLectura(sesion.user.id).catch(() => null) : Promise.resolve(null)
   let referencia = null
   if (quiereNuevo) {
-    const marcas = await marcasDeLectura(sesion.user.id)
-    referencia = [marcas.porTema[tema.id], marcas.todoHasta].filter(Boolean).sort().pop() || null
+    referencia = referenciaDe(await marcasP) ?? null
+    lecturaPrevia = referencia
   }
 
   await pintarMensajes()
+  if (!quiereNuevo && sesion) {
+    const ref = referenciaDe(await marcasP)
+    if (ref !== undefined) {
+      lecturaPrevia = ref
+      marcarRayaDeNuevos()
+      contarNuevos(ref).catch(() => {})
+    }
+  }
   await montarRespuesta()
   engancharCitarSeleccion()
 

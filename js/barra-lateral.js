@@ -150,6 +150,8 @@ export function montarBarraLateral({ conSesion = false, doc = document, clave = 
   // (788). Lo que quedara apuntado de antes se olvida.
   try { localStorage.removeItem('pokedoc-lateral-plegada') } catch {}
   barra.innerHTML = `<div class="lat-cabeza">${logo ? `<a class="nav-logo lat-logo" href="/">${logo.innerHTML}</a>` : ''}</div><ul class="lat-lista">${lateralHtml(secciones, actual, clave, { conSesion })}</ul>${apoyar ? `<a class="lat-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Apoyar PokeDoc: un café en Ko-fi">${DIBUJOS.taza(20)}<span class="lat-apoyar-texto"><b>Apoyar PokeDoc</b><small>Un café en Ko-fi</small></span></a>` : ''}`
+  // El número de cada sección (1139), como en la barra de abajo.
+  if (conSesion) import('./numeros-seccion.js').then((m) => m.montarNumerosDeSeccion({ doc })).catch(() => {})
   barra.addEventListener('click', (e) => {
     const flecha = e.target.closest('.lat-flecha')
     if (flecha) {

@@ -417,6 +417,8 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
     doc.body.appendChild(barra)
   }
   if (barra.innerHTML !== html) barra.innerHTML = html
+  // El número de cada sección (1139): después de escribir la barra, que lo borraría.
+  if (conSesion) import('./numeros-seccion.js').then((m) => m.montarNumerosDeSeccion({ doc })).catch(() => {})
 
   // TOCAR LA SECCIÓN EN LA QUE YA ESTÁS TE SUBE ARRIBA (709, X1), como
   // en iOS: volver a cargar la misma página no le sirve a nadie.

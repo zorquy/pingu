@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (380) — PINGU-Claude (1139 — números en la barra, índice de la guía en el móvil y «N de M» en los temas)
+
+**Hecho**: de la propuesta «Comunidad, guías y menú» (artifact), lo que PINGU
+eligió que no lleva migración. (N2) Cada sección de la barra de abajo y de la
+lateral lleva su número: Comunidad = mensajes sin leer + avisos del foro sin
+leer; Jugar = avisos de torneos sin leer (`js/numeros-seccion.js`, lee lo que
+ya cuentan la campanita y el sobre; sin consultas nuevas). (G1) En el móvil,
+la barra pegada de una guía despliega «En esta guía» con la sección actual
+marcada (hasta ahora el índice solo salía desde 1024 px). (F2) En un tema, la
+barra pegada dice «12 de 22», ofrece «N nuevos ↓» (lo de otros desde tu
+última visita) y una raya marca «Nuevo desde tu última visita». PINGU dijo NO
+a N1 (mensajes en Comunidad) y N3 (franja de instalar); F1 y F3 ya existían;
+G2 y G3, para más adelante.
+
+**Ficheros**: `js/numeros-seccion.js` (nuevo), `js/notifications.js`,
+`js/nav-messages.js`, `js/barra-movil.js`, `js/barra-lateral.js`,
+`js/barra-pegada.js`, `js/guia.js`, `js/tema.js`, `css/movil.css`,
+`css/lateral.css`, `css/barra-pegada.css`, `css/guia.css`, `css/foro.css`,
+CLAUDE.md, SCHEMA, novedades. Pruebas en `pruebas`: 1139 nueva.
+
+**Pendiente**: la 1140 (mensajes: punto verde, escribiendo, carta desde el
+clip) y la 1141 (responder, reacciones, fijar y archivar, con migración).
+
 ## 2026-10-31 (379) — PINGU-Claude (1138 — «¿Cómo la quieres?» en tabla: un deseo por casilla)
 
 **Hecho**: Sergio.M otra vez (por PINGU): «me falta portugués sin holo, y
