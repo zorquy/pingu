@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1143 — Laboratorio arreglado y Mis partidas en filas (V2 y V1)
+
+De la propuesta «Lo que se ha quedado viejo» (PINGU: «dale con lo
+recomendado»).
+
+**V2 · Laboratorio.** Dos fallos en el PC. (1) Un hueco de ~240 px bajo el
+título: `.lp-pagina` es una rejilla de tres columnas dentro de un
+`.page-content` que mide una pantalla de alto, y sin `align-content: start`
+el sobrante se repartía entre las filas (la del título medía 342 px con 122
+de contenido). (2) El «Probar» de tus mazos se salía de la tarjeta (411 px de
+contenido en 347): `.lp-mazos` era una rejilla de una columna `auto`, que
+toma el ancho del nombre (no se parte). La 1040 lo había corregido solo por
+debajo de 599 px; ahora `minmax(0, 1fr)` va en la base. Y las tres maneras de
+empezar llevan su número (`.lp-paso`, en el color de la sección), con la de
+tus mazos un poco más ancha y las tres de la misma altura.
+
+**V1 · Mis partidas.** Cada partida suelta es UNA fila: la chapa del
+resultado (V/D/E, cuadrada, 32 px), los dos mazos con sus sprites (cada uno
+en `.partidas-fila-mazo`, para que en el móvil baje entero si no cabe) y
+debajo dónde, cuándo (`fechaCorta`: «31 oct», con el año si no es este; la
+fecha completa va en `<time datetime>`) y con qué mazo guardado. Compartir,
+Ver la repetición, Editar y Borrar van en un ⋯ (`details.partidas-mas`):
+abrir uno cierra los otros, un clic fuera o Escape lo cierra, y si abajo no
+cabe (o lo tapa la barra del móvil) se abre hacia arriba
+(`.partidas-mas-arriba`). Tocar la fila fuera de sus enlaces la abre para
+editar. Por meses (`porMeses`, en `estadisticas-partidas.js`, puro) con su
+balance V-D-E, cada mes en una caja con sus filas separadas por raya. En el
+PC, dónde y cuándo alineados a la derecha en todas las filas. Se fue la franja
+de color de la izquierda (la dice la chapa) y `.partidas-fila-acciones`.
+
+Pruebas: `test-tanda-1143-pantalla.mjs` nueva; la 628 lee la fecha de
+`<time datetime>`; la 748, al día con la 1142 (la baldosa de Avisos cuenta lo
+que no es de una sección). Rojos viejos que siguen igual con y sin la tanda:
+515, 591, 782, 836, 893.
+
 ## Tanda 1142 — La campana y los números (A1, A2, A3)
 
 PINGU preguntó si la campana tenía sentido con los números de la barra

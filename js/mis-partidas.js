@@ -42,7 +42,10 @@ import {
   rangoDePeriodo,
   seJugo,
   ultimas,
+  fechaCorta,
+  porMeses,
 } from './estadisticas-partidas.js'
+import { icons } from './icons.js'
 import { graficoBarras, graficoEvolucion } from './graficos-partidas.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { resultadoDeJuegos, filasVisibles, recortar, aColumnas, deColumnas, textoMarcador, decidida, cifrasDeJuegos } from './partidas-juegos.js'
@@ -379,34 +382,78 @@ function pintarLista(partidas) {
       : `<p class="subtext">Aquí saldrán tus partidas de escalera y amistosas. Las de un torneo van en su pestaña, cada una con el suyo.</p>`
     return
   }
-  caja.innerHTML = visibles
-    .map(
-      (p) => `
-    <div class="partidas-fila partidas-${p.resultado}${p.provisional ? ' partidas-fila-provisional' : ''}"${p.provisional ? ' aria-busy="true"' : ''}>
-      <span class="partidas-fila-mazos">${spritesDeMazoHtml(p.mioNombre, p.mio)}<strong>${escapeHtml(p.mioNombre)}</strong>
-        <span class="subtext">vs</span> ${spritesDeMazoHtml(p.rivalNombre, p.rival)}${escapeHtml(p.rivalNombre)}</span>
-      <span class="partidas-ronda-res partidas-ronda-${p.resultado}">${LETRA_RESULTADO[p.resultado] || '?'}</span>${juegosMiniHtml(p)}
-      <span class="subtext partidas-fila-donde">${
-        p.enlace ? `<a href="${escapeHtml(p.enlace)}">${escapeHtml(p.donde)}</a>` : escapeHtml(p.donde)
-      }${p.fecha ? ` · ${escapeHtml(p.fecha)}` : ''}</span>
-      ${p.mazoGuardado ? mazoGuardadoHtml(p.mazoGuardado) : ''}
-      ${p.notas ? `<span class="subtext partidas-fila-notas">${escapeHtml(p.notas)}</span>` : ''}
+  // Una partida, una fila (1143, V1 de «Lo que se ha quedado viejo»): el
+  // resultado en su chapa, los dos mazos, dónde y cuándo en una línea, y las
+  // acciones en un ⋯. Por meses con su balance cuando se ordena por fecha.
+  const fila = (p) => `
+    <div class="partidas-fila partidas-${p.resultado}${p.provisional ? ' partidas-fila-provisional' : ''}"${p.provisional ? ' aria-busy="true"' : ''}${p.deTorneo ? '' : ` data-fila="${escapeHtml(p.id)}"`}>
+      <span class="partidas-ronda-res partidas-ronda-${p.resultado}" title="${escapeHtml(TEXTO_RESULTADO[p.resultado] || 'Sin resultado')}">${LETRA_RESULTADO[p.resultado] || '?'}</span>
+      <div class="partidas-fila-centro">
+        <span class="partidas-fila-mazos"><span class="partidas-fila-mazo">${spritesDeMazoHtml(p.mioNombre, p.mio)}<strong>${escapeHtml(p.mioNombre)}</strong></span>
+          <span class="partidas-fila-mazo"><span class="subtext">vs</span> ${spritesDeMazoHtml(p.rivalNombre, p.rival)}<span class="partidas-fila-rival">${escapeHtml(p.rivalNombre)}</span></span></span>
+        <span class="subtext partidas-fila-donde">${
+          p.enlace ? `<a href="${escapeHtml(p.enlace)}">${escapeHtml(p.donde)}</a>` : escapeHtml(p.donde)
+        }${p.fecha ? ` · <time datetime="${escapeHtml(p.fecha)}">${escapeHtml(fechaCorta(p.fecha))}</time>` : ''}${p.mazoGuardado ? ` · ${mazoGuardadoHtml(p.mazoGuardado)}` : ''}</span>
+        ${p.notas ? `<span class="subtext partidas-fila-notas">${escapeHtml(p.notas)}</span>` : ''}
+      </div>
+      ${juegosMiniHtml(p)}
       ${
         p.deTorneo
           ? ''
-          : `<span class="partidas-fila-acciones">
-              <button class="btn-outline" data-compartir="${escapeHtml(p.id)}">Compartir</button>
-              ${p.repeticion ? `<a class="btn-outline" href="/repeticiones?r=${encodeURIComponent(p.repeticion)}">Ver la repetición</a>` : ''}
-              <button class="btn-outline" data-editar="${escapeHtml(p.id)}">Editar</button>
-              <button class="btn-outline partidas-borrar" data-borrar="${escapeHtml(p.id)}">Borrar</button>
-            </span>`
+          : `<details class="partidas-mas">
+              <summary class="partidas-mas-btn" aria-label="Acciones de la partida contra ${escapeHtml(p.rivalNombre)}" title="Más">${icons.moreHorizontal(20)}</summary>
+              <div class="partidas-mas-menu">
+                <button type="button" data-compartir="${escapeHtml(p.id)}">${icons.share?.(16) || ''}Compartir</button>
+                ${p.repeticion ? `<a href="/repeticiones?r=${encodeURIComponent(p.repeticion)}">${icons.eye?.(16) || ''}Ver la repetición</a>` : ''}
+                <button type="button" data-editar="${escapeHtml(p.id)}">${icons.edit?.(16) || ''}Editar</button>
+                <button type="button" class="partidas-borrar" data-borrar="${escapeHtml(p.id)}">${icons.trash?.(16) || ''}<span>Borrar</span></button>
+              </div>
+            </details>`
       }
     </div>`
-    )
-    .join('') +
+  // Las dos maneras de ordenar son por fecha: los meses salen en ese orden.
+  const grupos = porMeses(visibles)
+  caja.innerHTML =
+    grupos
+      .map(
+        (g) => `<section class="partidas-mes" aria-label="${escapeHtml(g.titulo || 'Partidas')}">
+      ${g.titulo ? `<h3 class="partidas-mes-titulo">${escapeHtml(g.titulo)} <span class="partidas-mes-balance" title="Victorias, derrotas y empates">${escapeHtml(g.balance)}</span></h3>` : ''}
+      <div class="partidas-mes-lista">${g.partidas.map(fila).join('')}</div>
+    </section>`
+      )
+      .join('') +
     (ocultas > 0
       ? `<button type="button" class="btn-secondary torneo-ver-mas" id="btnVerMasSueltas">Ver ${ocultas} más</button>`
       : '')
+  // El ⋯: abrir uno cierra los demás, y un clic fuera los cierra.
+  if (!caja.dataset.masFuera) {
+    caja.dataset.masFuera = '1'
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('.partidas-mas')) return
+      caja.querySelectorAll('.partidas-mas[open]').forEach((o) => (o.open = false))
+    })
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') caja.querySelectorAll('.partidas-mas[open]').forEach((o) => (o.open = false))
+    })
+  }
+  caja.querySelectorAll('.partidas-mas').forEach((d) =>
+    d.addEventListener('toggle', () => {
+      if (!d.open) return
+      caja.querySelectorAll('.partidas-mas[open]').forEach((o) => o !== d && (o.open = false))
+      // Abajo no cabe (o lo tapa la barra del móvil): se abre hacia arriba.
+      const menu = d.querySelector('.partidas-mas-menu')
+      const sitio = window.innerHeight - d.getBoundingClientRect().bottom
+      d.classList.toggle('partidas-mas-arriba', sitio < (menu?.offsetHeight || 180) + 150)
+    })
+  )
+  // Tocar la fila (fuera de sus enlaces y del ⋯) la abre para editarla.
+  caja.querySelectorAll('[data-fila]').forEach((f) =>
+    f.addEventListener('click', (e) => {
+      if (e.target.closest('a, button, details, summary')) return
+      const partida = todas.find((x) => x.id === f.dataset.fila)
+      if (partida && !partida.provisional) abrirFormPartida(null, partida)
+    })
+  )
   caja.querySelectorAll('[data-compartir]').forEach((b) =>
     b.addEventListener('click', () => {
       const partida = todas.find((x) => x.id === b.dataset.compartir)
@@ -417,7 +464,9 @@ function pintarLista(partidas) {
     b.addEventListener('click', async () => {
       if (!b.dataset.armado) {
         b.dataset.armado = '1'
-        b.textContent = '¿Seguro?'
+        const t = b.querySelector('span')
+        if (t) t.textContent = '¿Seguro?'
+        else b.textContent = '¿Seguro?'
         return
       }
       if (editando?.id === b.dataset.borrar) cerrarFormPartida()
@@ -441,7 +490,7 @@ function pintarLista(partidas) {
 // se ha podido leer), se dice así en vez de inventarle un nombre.
 function mazoGuardadoHtml(id) {
   const m = mazosGuardados.find((x) => x.id === id)
-  return `<span class="subtext partidas-fila-guardado">Con tu mazo <a href="/constructor?mazo=${encodeURIComponent(id)}">${escapeHtml(m?.name || 'guardado')}</a></span>`
+  return `<span class="partidas-fila-guardado">Con tu mazo <a href="/constructor?mazo=${encodeURIComponent(id)}">${escapeHtml(m?.name || 'guardado')}</a></span>`
 }
 
 // ── Los minisprites de un mazo, como los pinta trainingcourt ──

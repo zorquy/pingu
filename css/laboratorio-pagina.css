@@ -43,8 +43,25 @@
 }
 
 .lp-bloque h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
   margin: 0;
   font-size: var(--t-lg);
+}
+
+/* Las tres maneras de empezar, numeradas (1143, V2). */
+.lp-paso {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--acento) 16%, transparent);
+  color: var(--acento);
+  font-size: var(--t-xs);
+  font-weight: 800;
 }
 
 .lp-bloque > .btn-secondary {
@@ -58,6 +75,9 @@
 
 .lp-mazos {
   display: grid;
+  /* Una columna que puede encoger (1143): con `auto` tomaba el ancho del
+     nombre, que no se parte, y en el PC el «Probar» se salía de la tarjeta. */
+  grid-template-columns: minmax(0, 1fr);
   gap: var(--e-xs);
   margin: 0;
   padding: 0;
@@ -176,12 +196,21 @@
 
 /* PA14 (790): en el PC, las tres puertas una al lado de otra y a todo lo ancho. */
 @media (min-width: 1100px) {
+  /* `align-content: start` (1143): la página mide una pantalla de alto y el
+     sobrante se repartía entre las filas, dejando ~240 px vacíos bajo el
+     título. Las tres cajas, de la misma altura; la de tus mazos, más ancha. */
   .lp-pagina {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 0.85fr);
     gap: var(--e-lg);
-    align-items: start;
+    align-content: start;
+    align-items: stretch;
     max-width: var(--container-w);
+  }
+
+  .lp-pagina > .lp-bloque {
+    align-content: start;
+    margin-bottom: 0;
   }
 
   .lp-pagina > .lp-cabecera {

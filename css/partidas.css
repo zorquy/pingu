@@ -261,35 +261,110 @@
 }
 
 .partidas-fila {
-  display: flex;
-  flex-wrap: wrap;
+  /* Una partida, una fila (1143): chapa del resultado · mazos y dónde ·
+     juegos · ⋯. Las filas de un mes van en UNA caja, separadas por raya. */
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: var(--e-sm) var(--e-md);
+  padding: var(--e-sm) var(--e-sm) var(--e-sm) var(--e-md);
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+}
+.partidas-fila:first-child { border-top: none; }
+.partidas-fila:hover { background: var(--ice); }
+.partidas-fila .partidas-ronda-res { width: 32px; height: 32px; border-radius: var(--radius-md); font-size: var(--t-sm); }
+.partidas-fila-centro { display: grid; gap: 2px; min-width: 0; }
+/* Cada mazo con su sprite: si no caben, baja el del rival entero. */
+.partidas-fila-mazo { display: inline-flex; align-items: center; gap: var(--e-xs); min-width: 0; }
+.partidas-fila-mazos { flex-wrap: nowrap; min-width: 0; overflow: hidden; white-space: nowrap; }
+.partidas-fila-mazos strong,
+.partidas-fila-rival { overflow: hidden; text-overflow: ellipsis; }
+.partidas-fila-mazos strong { flex-shrink: 1; min-width: 0; }
+.partidas-fila-rival { min-width: 0; }
+.partidas-fila-res { font-size: var(--t-sm); }
+.partidas-fila-donde { font-size: var(--t-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.partidas-fila-notas { font-size: var(--t-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Los meses: el título con su balance y la caja de sus partidas. */
+.partidas-mes { margin-bottom: var(--e-lg); }
+.partidas-mes-titulo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-sm);
+  margin: 0 0 var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.partidas-mes-balance { color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.partidas-mes-lista {
+  overflow: visible;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
-  margin-bottom: 8px;
   background: var(--white);
-  /* La franja de la izquierda dice el resultado sin tener que leer. */
-  border-left-width: 4px;
 }
-.partidas-win { border-left-color: rgba(46, 160, 67, 0.8); }
-.partidas-loss { border-left-color: rgba(214, 64, 64, 0.8); }
-.partidas-draw { border-left-color: rgba(160, 160, 160, 0.8); }
-.partidas-fila-mazos { flex: 1 1 220px; }
-.partidas-fila-res { font-size: var(--t-sm); }
-.partidas-fila-donde { flex: 0 1 auto; }
-.partidas-fila-notas { flex: 1 1 100%; }
-.partidas-borrar { margin-left: auto; }
+.partidas-mes-lista > .partidas-fila:first-child { border-radius: var(--radius-md) var(--radius-md) 0 0; }
+.partidas-mes-lista > .partidas-fila:last-child { border-radius: 0 0 var(--radius-md) var(--radius-md); }
+
+/* El ⋯ con Compartir, Editar y Borrar. */
+.partidas-mas { position: relative; }
+.partidas-mas-btn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  color: var(--text-mid);
+  cursor: pointer;
+  list-style: none;
+}
+.partidas-mas-btn::-webkit-details-marker { display: none; }
+.partidas-mas-btn:hover,
+.partidas-mas[open] > .partidas-mas-btn { background: var(--ice); color: var(--text); }
+.partidas-mas-menu {
+  position: absolute;
+  top: calc(100% + var(--e-xs));
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 190px;
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: var(--shadow-lg);
+}
+.partidas-mas-menu > button,
+.partidas-mas-menu > a {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+}
+.partidas-mas-menu > button:hover,
+.partidas-mas-menu > a:hover { background: var(--ice); }
+.partidas-mas-menu svg { color: var(--text-mid); flex-shrink: 0; }
+.partidas-mas-menu .partidas-borrar,
+.partidas-mas-menu .partidas-borrar svg { color: var(--danger); }
 
 @media (max-width: 560px) {
   .partidas-barra { gap: 8px; }
   .partidas-barra label,
   .partidas-form-fila label { flex: 1 1 100%; }
-  /* La fila del registro se apila: en vertical no caben cuatro cosas
-     en una línea sin partir palabras. */
-  .partidas-fila { flex-direction: column; align-items: flex-start; }
-  .partidas-borrar { margin-left: 0; }
 }
 
 /* ── El selector de mazo con buscador (tanda 233) ──
@@ -447,7 +522,6 @@
   .partidas-ronda-acciones { opacity: 1; }
 }
 
-.partidas-fila-acciones { display: inline-flex; gap: 8px; margin-left: auto; }
 
 /* El buscador de torneos ocupa lo que le dejen; el resto de la barra
    manda menos. */
@@ -463,7 +537,7 @@
 }
 
 /* ── El mazo guardado y las repeticiones (tanda 627) ── */
-.partidas-fila-guardado { flex: 0 1 auto; }
+.partidas-fila-guardado a { color: inherit; }
 .partidas-quien {
   margin: 0 0 12px;
   padding: 8px 12px;
@@ -770,37 +844,15 @@
    resultado · dónde · guardado · acciones, y las notas debajo solo cuando
    las hay. Caben el doble en la pantalla. */
 @media (min-width: 901px) {
-  .partidas-fila {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+  /* En el PC, columnas fijas (1143): los mazos a la izquierda y dónde y
+     cuándo alineados a la derecha, en todas las filas en el mismo sitio. */
+  .partidas-fila-centro {
+    grid-template-columns: minmax(0, 1fr) minmax(200px, auto);
+    column-gap: var(--e-lg);
     align-items: center;
-    gap: 4px 16px;
-    padding: 8px 16px;
-    margin-bottom: 6px;
   }
-  .partidas-fila-mazos {
-    flex-wrap: nowrap;
-    min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-  }
-  .partidas-fila-mazos strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-  .partidas-fila-notas {
-    grid-column: 1 / -1;
-  }
-  .partidas-fila-acciones {
-    margin-left: 0;
-    gap: 4px;
-  }
-  .partidas-fila-acciones .btn-outline,
-  .partidas-fila-acciones .btn-secondary {
-    min-height: 36px;
-    padding: 0 10px;
-    font-size: var(--t-xs);
-  }
+  .partidas-fila-donde { justify-self: end; text-align: right; }
+  .partidas-fila-notas { grid-column: 1 / -1; }
 }
 
 /* ── 1040: en el teléfono, el resumen en dos filas (el aro y las cifras; el
@@ -925,4 +977,18 @@
   .partidas-guardados { grid-template-columns: 1fr; max-height: 232px; }
   .partidas-puesto-fila label { flex: 1 1 calc(50% - 8px); min-width: 0; }
   .partidas-puesto-fila input { max-width: none; }
+}
+
+/* 1143: en el teléfono los dos mazos se leen enteros (pasan a otra línea si
+   no caben) y el ⋯ de abajo se abre hacia arriba, sobre la burbuja no. */
+@media (max-width: 900px) {
+  .partidas-fila { gap: var(--e-xs) var(--e-sm); padding-left: var(--e-sm); }
+  .partidas-fila .partidas-sprite { width: 22px; height: 22px; }
+  .partidas-fila-mazos { flex-wrap: wrap; gap: 0 var(--e-sm); }
+  .partidas-fila-mazos strong,
+  .partidas-fila-rival { overflow: visible; }
+}
+.partidas-mas.partidas-mas-arriba .partidas-mas-menu {
+  top: auto;
+  bottom: calc(100% + var(--e-xs));
 }

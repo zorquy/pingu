@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (384) — PINGU-Claude (1143 — Laboratorio arreglado y Mis partidas en filas)
+
+**Hecho**: de «Lo que se ha quedado viejo», V2 y V1. Laboratorio (PC): fuera
+el hueco de ~240 px bajo el título y el «Probar» cortado de tus mazos; los
+tres pasos numerados y de la misma altura. Mis partidas: una fila por partida
+(resultado, mazos, dónde y «31 oct»), las acciones en un ⋯, agrupadas por mes
+con el balance; en el PC alineadas en columnas, en el móvil los nombres
+enteros.
+
+**Ficheros**: laboratorio.html, css/laboratorio-pagina.css,
+js/mis-partidas.js, js/estadisticas-partidas.js, css/partidas.css, SCHEMA.md,
+novedades.json. Pruebas (rama pruebas): test-tanda-1143-pantalla.mjs nueva;
+628 y 748 al día.
+
+**En curso**: la 1144 (glosario, pestaña Foro del perfil, entrar y
+bienvenida): glosario.html, js/glosario.js, css/glosario.css,
+js/foro-actividad.js, css/perfil.css, auth.html, css/auth.css,
+onboarding.html, css/onboarding.css.
+
 ## 2026-10-31 (383) — PINGU-Claude (1142 — la campana y los números)
 
 **Hecho**: lo que PINGU eligió de «La campana y los números». (A1) Un aviso

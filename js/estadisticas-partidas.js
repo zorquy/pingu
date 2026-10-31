@@ -214,3 +214,40 @@ export function porDiaDeLaSemana(partidas) {
   }
   return dias.map((d) => ({ clave: d.clave, etiqueta: d.etiqueta, ...cuenta(d.partidas) }))
 }
+
+// ── La lista de partidas sueltas por meses (1143, V1 de «Lo que se ha
+// quedado viejo»): una fila por partida, agrupadas por el mes en que se
+// jugaron, con el balance del mes. Puro, lo prueba Node.
+const NOMBRES_DE_MES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
+
+// «31 oct» (y el año si no es el de hoy): «2026-10-31» se leía como un código.
+export function fechaCorta(f, hoy = new Date()) {
+  if (!esFecha(f)) return f ? String(f) : ''
+  const [a, m, d] = f.split('-').map(Number)
+  return `${d} ${MESES[m - 1]}${a !== hoy.getFullYear() ? ` ${a}` : ''}`
+}
+
+// Los grupos en el orden en que llegan (la lista ya viene ordenada): uno por
+// mes, y las que no tienen fecha al final en «Sin fecha».
+export function porMeses(partidas) {
+  const grupos = []
+  const porClave = new Map()
+  for (const p of partidas || []) {
+    const clave = esFecha(p.fecha) ? p.fecha.slice(0, 7) : 'sin-fecha'
+    let g = porClave.get(clave)
+    if (!g) {
+      const [a, m] = clave.split('-').map(Number)
+      g = { clave, titulo: clave === 'sin-fecha' ? 'Sin fecha' : `${NOMBRES_DE_MES[m - 1][0].toUpperCase()}${NOMBRES_DE_MES[m - 1].slice(1)} de ${a}`, partidas: [] }
+      porClave.set(clave, g)
+      grupos.push(g)
+    }
+    g.partidas.push(p)
+  }
+  const sinFecha = grupos.findIndex((g) => g.clave === 'sin-fecha')
+  if (sinFecha >= 0) grupos.push(grupos.splice(sinFecha, 1)[0])
+  for (const g of grupos) {
+    const c = cuenta(g.partidas)
+    g.balance = `${c.ganadas}-${c.perdidas}-${c.empatadas}`
+  }
+  return grupos
+}

@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-31", "tipo": "mejora", "texto": "Mis partidas, más claras: cada partida en una fila con su resultado, los dos mazos y la fecha, agrupadas por mes con tu balance; compartir, editar y borrar van en el botón de los tres puntos.", "enlace": "/mis-partidas" },
+    { "fecha": "2026-10-31", "tipo": "arreglo", "texto": "En el ordenador, el Laboratorio ya no deja un hueco vacío bajo el título ni corta el botón «Probar» de tus mazos; las tres maneras de empezar van numeradas.", "enlace": "/laboratorio" },
     { "fecha": "2026-10-31", "tipo": "mejora", "texto": "Los avisos se cuentan en un solo sitio: lo del foro, los torneos y los cambios lleva su número en su sección (también en Foro, Torneos y Deseos y cambios), y la campana se queda con lo tuyo. Al abrir lo que te avisaba, se da por leído solo.", "enlace": "/foro" },
     { "fecha": "2026-10-31", "tipo": "nuevo", "texto": "En los mensajes privados puedes responder a un mensaje concreto (en el móvil, deslizándolo a la derecha), reaccionar como en el foro, y fijar o archivar conversaciones.", "enlace": "/mensajes" },
     { "fecha": "2026-10-31", "tipo": "nuevo", "texto": "En los mensajes privados ves quién está en línea (el puntito verde, también en Gente y en los perfiles) y cuándo te está escribiendo.", "enlace": "/mensajes" },
