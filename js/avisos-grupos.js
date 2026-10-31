@@ -33,6 +33,12 @@ const TITULOS = {
   torneo_partida: (n) => `${n} avisos de tu partida`,
 }
 
+// Un aviso suelto dice su título guardado, salvo el «Me gusta» de una
+// noticia anterior a la 973, que se guardó como «tu guía» (1137, PINGU: «te
+// sale alguien le ha servido tu guía, y en realidad es una noticia»).
+const tituloDeUno = (g) =>
+  g.tipo === 'guide_helpful' && /^\/noticias\//.test(g.link || '') && /servido tu guía/.test(g.titulos[0] || '') ? 'A alguien le ha gustado tu noticia' : g.titulos[0]
+
 // Las respuestas de un mismo tema llevan cada una el ancla de SU mensaje
 // (`/tema/12#mensaje-80`): sin quitarla no se juntaría ninguna. Las
 // reacciones sí la conservan: son a UN mensaje, y el título lo dice.
@@ -85,7 +91,7 @@ export function agruparAvisos(lista, ahora = Date.now()) {
     // perfil) no describen al grupo: el cuerpo se quita y se va a tu
     // perfil, que es donde está la lista de quien te sigue.
     const juntoPorTipo = POR_TIPO.has(g.tipo) && n > 1
-    const titulo = n === 1 ? g.titulos[0] : TITULOS[g.tipo]?.(n, g.link) || `${g.titulos[0]} (y ${n - 1} más)`
+    const titulo = n === 1 ? tituloDeUno(g) : TITULOS[g.tipo]?.(n, g.link) || `${g.titulos[0]} (y ${n - 1} más)`
     const link = juntoPorTipo ? '/perfil.html' : g.link
     salida[TRAMOS.indexOf(tramoDe(g.fecha, ahora))].grupos.push({ ids: g.ids, tipo: g.tipo, link, titulo, cuerpo: juntoPorTipo ? null : g.cuerpo, fecha: g.fecha, n, leido: g.leido })
   }

@@ -41785,6 +41785,38 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1137 — Lo que cuenta Gente, «Novato» a la vista y el «Me gusta» de una noticia
+
+PINGU, en Comunidad → Gente: «mensajes en el foro: 38 que en la última semana;
+ahí debería ser en total», «en la web no hay 58 guías; guías más noticias sí»,
+«los que no tienen experiencia deberían tener el nivel mínimo» y «cuando
+alguien le da a me ha servido la noticia te sale alguien le ha servido tu
+guía».
+
+**Las cifras** (`cargarCifras`, js/usuarios.js). La de mensajes llevaba
+`.gte('created_at', hace 7 días)` y el rótulo no lo decía: ahora cuenta toda
+`forum_posts`. La de guías pedía `guides` con autor y publicada, y en esa tabla
+también viven las noticias (`kind = 'news'`, columna `not null default
+'guide'`): ahora `.eq('kind', 'guide')`.
+
+**Novato.** La 781 escondía el primer nivel en las tarjetas de Gente y en la
+columna del autor del foro (`esPrimerNivel`), y el comentario de `tituloDe`
+seguía diciendo «el NIVEL sale siempre, para todo el mundo». Ahora sale
+siempre en los dos sitios. `esPrimerNivel` queda exportada en gamification.js,
+sin uso en la web.
+
+**El aviso.** Desde la 973 el botón de una noticia es «Me gusta» y su aviso se
+guarda como «A alguien le ha gustado tu noticia», y el grupo de varios ya
+miraba el enlace (`/noticias/…`). Lo que quedaba eran los avisos SUELTOS
+guardados antes con «tu guía»: `agruparAvisos` los lee con `tituloDeUno`, que
+solo cambia un `guide_helpful` con enlace a `/noticias/` y ese texto. Uno de
+antes con enlace `/guia/` no se distingue de una guía y se queda como está.
+
+**Prueba.** `test-tanda-1137.mjs`: lo puro del aviso (noticia, guía y otro
+tipo) y /usuarios con cinco mensajes de hasta 90 días, dos guías y tres
+noticias y una persona sin XP. La 781 pasa a exigir lo contrario que antes:
+ningún `esPrimerNivel` en tema.js ni en usuarios.js.
+
 ## Tanda 1136 — Halloween: «¿Truco o trato?» en vez del bloque de la portada
 
 PINGU, con la propuesta delante: el pop-up B («¿Truco o trato?») y «quitar la

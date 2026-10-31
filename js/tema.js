@@ -24,7 +24,7 @@ import {
   esDelEquipo,
   faltaElForo,
 } from './foro-comun.js'
-import { calculateLevel, esPrimerNivel, levelBadgeHtml, levelLadderHtml, tierLadderHtml } from './gamification.js'
+import { calculateLevel, levelBadgeHtml, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { orosPorUsuario } from './medallero.js'
 import { marcarLeido, marcasDeLectura, estaSuscrito, suscribir, desuscribir, avisarSuscritos } from './foro-lecturas.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
@@ -85,7 +85,9 @@ function migasHtml(trozos) {
 //      lo hay, el rango de colaborador (clicable: abre sus rangos).
 function tituloDe(perfil, guiasAprobadas) {
   const nivel = perfil?.level || calculateLevel(perfil?.total_xp || 0)
-  const trozos = esPrimerNivel(nivel) ? [] : [
+  // Novato también (1137, PINGU: «los que no tienen experiencia deberían
+  // tener el nivel mínimo»): el nivel sale SIEMPRE, como dice el punto 1.
+  const trozos = [
     `<button type="button" class="foro-chapa-rango" data-ver-niveles="${perfil?.total_xp || 0}"
        title="Ver todos los niveles">${levelBadgeHtml(nivel)}</button>`,
   ]

@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (378) — PINGU-Claude (1137 — Gente cuenta bien, «Novato» a la vista y el «Me gusta» de las noticias)
+
+**Hecho**: PINGU, desde Comunidad → Gente. (1) «Mensajes en el foro» contaba
+solo los de los últimos 7 días sin decirlo: ahora son todos. (2) «Guías
+escritas por vosotros» contaba también las noticias (viven en `guides` con
+`kind = 'news'`): ahora solo `kind = 'guide'`. (3) Quien tiene menos de 150 XP
+no llevaba chapa de nivel (la 781 escondía «Novato» en Gente y en el foro):
+ahora la lleva en los dos, como decía el comentario de `tituloDe`. (4) Un
+aviso suelto de «Me gusta» a una noticia guardado como «A alguien le ha
+servido tu guía» (los de antes de la 973) se lee «A alguien le ha gustado tu
+noticia» (`tituloDeUno` en `js/avisos-grupos.js`); los nuevos ya se guardaban
+bien desde la 973.
+
+**Ficheros**: `js/usuarios.js`, `js/tema.js`, `js/avisos-grupos.js`,
+CLAUDE.md, SCHEMA, novedades. Pruebas en `pruebas`: 1137 nueva (5 rojos en la
+base); 781 al día (Novato a la vista); verdes 301, 387, 736, 748, 867, 869,
+973. La 781 trae dos rojos de antes (colores del botón, de la 1018/1024); la
+1118 y la 1124 necesitan el PostgreSQL local, que estaba parado.
+
+**Pendiente**: nada.
+
 ## 2026-10-31 (377) — PINGU-Claude (1136 — Halloween: «¿Truco o trato?» en vez del bloque)
 
 **Hecho**: PINGU eligió la B de la propuesta del pop-up y quitar el bloque del

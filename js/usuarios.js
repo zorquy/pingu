@@ -3,7 +3,7 @@ import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 import { escapeHtml, getInitial, getSession, profileUrl, avatarStyle } from './app.js'
 import { guideHasReference } from './guia-contenido.js'
 import { decorateGuideCards, wireGuideCardClicks } from './guide-card.js'
-import { calculateLevel, esPrimerNivel, levelBadgeHtml } from './gamification.js'
+import { calculateLevel, levelBadgeHtml } from './gamification.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
 import { plegarTexto, contienePlegado } from './texto.js'
@@ -37,7 +37,7 @@ function userCardHtml(p) {
       <a class="com-persona-cara" href="${profileUrl(p)}" style="${avatarStyle(p)}" aria-label="${escapeHtml(name)}">${p.avatar_url ? '' : getInitial(name)}</a>
       <div class="com-persona-cuerpo">
         <a class="com-persona-nombre" href="${profileUrl(p)}"${atributosDeRango(p)}>${escapeHtml(name)}</a>
-        ${esPrimerNivel(calculateLevel(p.total_xp)) ? '' : levelBadgeHtml(calculateLevel(p.total_xp), 11)}
+        ${levelBadgeHtml(calculateLevel(p.total_xp), 11)}
         <span class="com-persona-hizo">${hizo.length ? escapeHtml(hizo.join(' · ')) : 'Acaba de llegar'}</span>
       </div>
       ${
@@ -105,7 +105,6 @@ async function cargarCifras() {
     const e = document.getElementById(id)
     if (e && n != null) e.textContent = new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(n)
   }
-  const desde = new Date(Date.now() - 7 * 86400e3).toISOString()
   const ayer = new Date(Date.now() - 86400e3).toISOString().slice(0, 10)
   const cuenta = async (f) => {
     try {
@@ -117,9 +116,13 @@ async function cargarCifras() {
   }
   const [miembros, mensajes, guias, rachas] = await Promise.all([
     cuenta(() => supabase.from('user_profiles').select('id', { count: 'exact', head: true })),
-    cuenta(() => supabase.from('forum_posts').select('id', { count: 'exact', head: true }).gte('created_at', desde)),
+    // Todos los mensajes del foro, como dice la cifra (1137, PINGU: «ahí debería
+    // ser en total»); antes eran los de la última semana sin decirlo.
+    cuenta(() => supabase.from('forum_posts').select('id', { count: 'exact', head: true })),
+    // Solo GUÍAS: las noticias viven en la misma tabla (`kind = 'news'`) y la
+    // cifra las contaba como guías escritas por la gente (1137).
     cuenta(() =>
-      supabase.from('guides').select('id', { count: 'exact', head: true }).not('author_id', 'is', null).not('published_at', 'is', null)
+      supabase.from('guides').select('id', { count: 'exact', head: true }).eq('kind', 'guide').not('author_id', 'is', null).not('published_at', 'is', null)
     ),
     // Racha VIVA: la de quien entró hoy o ayer. Sin el filtro de fecha se
     // contarían rachas de gente que no aparece desde hace meses, que es
