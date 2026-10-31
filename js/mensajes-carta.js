@@ -44,6 +44,14 @@ function detalleDe(a) {
   return [String(a.idioma || '').toUpperCase(), a.estado, a.variante && a.variante !== 'normal' ? nombreDeVariante(a.variante) : null].filter(Boolean).join(' · ')
 }
 
+// Lo que dice encima de la carta: la de una tienda es una pregunta (1080);
+// la del clip (1140), algo que enseñas, tuyo o del catálogo.
+function queDice(a, { mia, pendiente }) {
+  if (a.de === 'coleccion') return pendiente ? 'Vas a mandar una de tus cartas' : mia ? 'De tu colección' : 'De su colección'
+  if (a.de === 'catalogo') return pendiente ? 'Vas a mandar esta carta' : 'Una carta'
+  return pendiente ? 'Vas a preguntar por' : mia ? 'Te interesa' : 'Le interesa'
+}
+
 // `pendiente`: la que está en el cuadro de escribir, con su «quitar».
 export function cartaHtml(a, { miId = null, mia = false, pendiente = false } = {}) {
   const c = a.card_id ? cartas.get(a.card_id) : null
@@ -56,7 +64,7 @@ export function cartaHtml(a, { miId = null, mia = false, pendiente = false } = {
   return `<div class="msg-carta${pendiente ? ' msg-carta-pendiente' : ''}">
     <a class="msg-carta-foto${a.product_id ? ' msg-carta-producto' : ''}"${href ? ` href="${escapeHtml(href)}"` : ''} aria-label="${escapeHtml(nombre)}">${foto ? `<img ${foto} alt="" width="245" height="342" loading="lazy" />` : ''}</a>
     <span class="msg-carta-texto">
-      <small class="msg-carta-que">${pendiente ? 'Vas a preguntar por' : mia ? 'Te interesa' : 'Le interesa'}</small>
+      <small class="msg-carta-que">${escapeHtml(queDice(a, { mia, pendiente }))}</small>
       <strong>${escapeHtml(nombre)}</strong>
       <span>${escapeHtml(detalleDe(a))}</span>
       ${Number.isFinite(precio) && a.precio != null ? `<span class="msg-carta-precio">${escapeHtml(euros(precio))}${cuando}</span>` : ''}

@@ -110,3 +110,32 @@ export async function quienEstaEnLinea() {
     return null
   }
 }
+
+// EL PUNTO VERDE FUERA DEL FORO (1140, PINGU: «¿hay alguna manera de poner un
+// puntito verde en la gente que está online?»). Ya existía en los mensajes
+// de un tema (tema.js, `marcarConectados`); ahora cualquier avatar que lleve
+// `data-en-linea="<id>"` se marca: los mensajes privados, Gente y el perfil.
+// Una consulta de quién está por página (la de siempre, `online_now`) y otra
+// para no señalar a quien esconde su actividad en Ajustes. Devuelve los ids
+// marcados, o null si no se puede saber.
+let conectadosP = null
+export async function marcarEnLinea(raiz = document) {
+  const els = [...raiz.querySelectorAll('[data-en-linea]')]
+  if (!els.length) return []
+  conectadosP ||= quienEstaEnLinea().then((r) => (r ? new Set(r.miembros) : null))
+  const conectados = await conectadosP
+  if (!conectados) return null
+  const candidatos = [...new Set(els.map((e) => e.dataset.enLinea).filter((id) => conectados.has(id)))]
+  let ocultos = new Set()
+  if (candidatos.length) {
+    const { data } = await supabase.from('user_profiles').select('id, hide_activity').in('id', candidatos)
+    ocultos = new Set((data || []).filter((p) => p.hide_activity).map((p) => p.id))
+  }
+  const marcados = candidatos.filter((id) => !ocultos.has(id))
+  for (const e of els) {
+    const on = marcados.includes(e.dataset.enLinea)
+    e.classList.toggle('avatar-conectado', on)
+    if (on && !e.title) e.title = 'En línea ahora'
+  }
+  return marcados
+}

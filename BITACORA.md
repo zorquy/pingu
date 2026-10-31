@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (381) — PINGU-Claude (1140 — mensajes: punto verde, «escribiendo…» y una carta desde el clip)
+
+**Hecho**: de la propuesta «Comunidad, guías y menú», lo de mensajes que no
+lleva migración, y lo que PINGU añadió («un puntito verde en la gente que está
+online»). (1) El punto verde ya existía en los mensajes de un tema del foro
+(`online_now`, el latido de cada página): ahora `marcarEnLinea` de
+`js/en-linea.js` marca cualquier avatar con `data-en-linea` (la bandeja de
+mensajes, la cabecera de una conversación con «En línea», Gente y el perfil),
+sin señalar a quien esconde su actividad en Ajustes. (2) «escribiendo…» bajo
+el nombre, por un canal de difusión de Realtime (`difundir` en `js/vivo.js`,
+nombre fijo, sin tocar la base; una señal cada 2,5 s como mucho, se apaga a los
+5 s). (3) El clip abre la hoja con «Una carta» (y foto; la cámara solo con el
+dedo): se busca con el buscador de siempre, lo tuyo sale primero con idioma,
+estado y versión, y va como el adjunto `carta` de «Me interesa» sin
+`stock_id`, con `de: 'coleccion' | 'catalogo'` y el precio de su idioma
+(`js/mensajes-carta-elegir.js`).
+
+**Ficheros**: `js/en-linea.js`, `js/vivo.js`, `js/mensajes.js`,
+`js/mensajes-carta-elegir.js` (nuevo), `js/mensajes-carta.js`,
+`js/mensajes-puro.js`, `js/usuarios.js`, `js/usuario.js`, `css/components.css`
+(el punto, de `.mini-avatar.avatar-conectado` a `.avatar-conectado`),
+`css/mensajes.css`, `css/lateral.css` (el número de la 1139, encima del
+icono), CLAUDE.md, SCHEMA, novedades. Pruebas en `pruebas`: 1140 nueva y
+`herramientas/stub-vivo.js` con `difundir` (BroadcastChannel entre pestañas).
+
+**Pendiente**: la 1141 (responder, reacciones, fijar y archivar, con migración).
+
 ## 2026-10-31 (380) — PINGU-Claude (1139 — números en la barra, índice de la guía en el móvil y «N de M» en los temas)
 
 **Hecho**: de la propuesta «Comunidad, guías y menú» (artifact), lo que PINGU

@@ -86,6 +86,9 @@ async function loadHeader() {
   banner.classList.toggle('profile-hero-banner-vacio', !profile.banner_url)
 
   applyAvatarTo(document.getElementById('heroAvatar'), profile, getInitial(name))
+  // El punto verde si está en línea ahora (1140).
+  document.getElementById('heroAvatar').dataset.enLinea = profile.id
+  import('./en-linea.js').then((m) => m.marcarEnLinea(document.getElementById('heroInfo')?.parentElement || document)).catch(() => {})
 
   const achievements = await logros
   const showcase = achievements.find((a) => a.id === profile.showcase_achievement)

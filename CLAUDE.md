@@ -868,6 +868,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `pestaniaLista(nombre, visible)` (perfil-pestanias.js), no por tocar
   `hidden` a mano; «Su perfil» desde el Mercado y Cruces abre
   `?ver=cambios`.
+- **El punto verde de «en línea» es UNO: `marcarEnLinea` de
+  `js/en-linea.js`** (tanda 1140): un avatar con `data-en-linea="<id>"` lo
+  lleva si esa persona latió en los últimos 15 minutos y no esconde su
+  actividad. Una pantalla nueva con avatares pone el atributo y llama a la
+  función, no otra consulta a `online_now`. Y lo que va de pestaña a pestaña
+  sin guardarse («escribiendo…») va por `difundir` de `js/vivo.js` (nombre de
+  canal fijo), nunca por una tabla. Una carta en un mensaje es el adjunto
+  `carta`: de una tienda con `stock_id`, desde el clip con `de`.
 - **Las fotos de los mensajes privados van en un cubo PRIVADO y se piden
   FIRMADAS** (tanda 891). `mensajes-adjuntos` no es público: una carpeta
   por conversación y `mensajes_adjunto_es_mio(name)` en las tres políticas;

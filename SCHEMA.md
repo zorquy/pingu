@@ -41785,6 +41785,54 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1140 — Mensajes: punto verde, «escribiendo…» y una carta desde el clip
+
+Lo de mensajes de la propuesta «Comunidad, guías y menú» que no necesita
+migración (M3 y la mitad de M4), más lo que pidió PINGU al elegir: «¿hay
+alguna manera de poner un puntito verde en la gente que está online?».
+
+**El punto verde ya existía** (tema.js, `marcarConectados`): `online_now`
+recibe un latido por página (`latidoEnLinea`, desde app.js) y en línea es
+tener uno en los últimos 15 minutos. Solo se pintaba en los mensajes de un
+tema. Ahora `marcarEnLinea(raíz)` (js/en-linea.js) marca cualquier elemento
+con `data-en-linea="<id>"`: una consulta de quién está (cacheada por página) y
+otra de `hide_activity` de los candidatos, para no señalar a quien esconde su
+actividad (Ajustes). Lo llevan las filas de la bandeja, la cabecera de una
+conversación (más «En línea» en `#msgEstado`), las tarjetas de Gente y el
+avatar del perfil. El CSS pasa de `.mini-avatar.avatar-conectado` a
+`.avatar-conectado`: los de Gente y el perfil no son `.mini-avatar`.
+
+**«escribiendo…»** (`difundir` en js/vivo.js). `escuchar` pone un sufijo
+nuevo al canal en cada montaje (para no duplicar manejadores) y por eso dos
+personas no compartirían canal: `difundir` usa un nombre FIJO
+(`escribe-<conversación>`), suelta antes cualquier canal con ese tema y se
+apunta en `activas` (se cierra al esconder la página). No escribe en la base.
+mensajes.js manda `{ quien }` como mucho cada 2,5 s mientras hay texto, la otra
+punta lo enseña 5 s y se apaga sola; llega un mensaje suyo → fuera. Sin tiempo
+real, `enviar` no hace nada. En las pruebas, `stub-vivo.js` lo hace con
+BroadcastChannel entre pestañas.
+
+**«Una carta» en el clip** (js/mensajes-carta-elegir.js). El clip abre
+SIEMPRE la hoja (antes, con ratón abría la galería): «Una carta», «Una foto»
+y, con el dedo, «Hacer una foto» (`.msg-hoja-opcion[hidden]` necesita su
+`display: none`: el `flex` le ganaba). La búsqueda es `buscarComoEnCartas`
+con `COLUMNAS_CARTA_DE_SET`; lo tuyo (`user_collection` de esas cartas) va
+primero, una fila por línea con idioma, estado, versión y cuántas; luego el
+catálogo. El precio es el de la ficha (`valorDe(precioDeFila(fila,
+{ variante }), idioma)`). El adjunto es el `carta` de «Me interesa» sin
+`stock_id` ni `tienda`, con `de: 'coleccion' | 'catalogo'` (`cartasDe` lo
+acepta por `de`); `cartaHtml` dice «De tu colección» / «De su colección» /
+«Una carta» (`queDice`). Ocupa uno de los cuatro huecos de un mensaje.
+
+**De la 1139, corregido aquí**: el número de la lateral al final de la fila se
+comía el nombre («Comunid…»); va encima del icono, como en la barra del móvil.
+
+**Pruebas**: `test-tanda-1140-pantalla.mjs`: el punto en la bandeja (y no en
+quien esconde su actividad), «En línea» en la conversación, Gente y el perfil;
+dos pestañas (Ash y Misty) donde una escribe y la otra ve «escribiendo…», que
+se apaga solo; y en PC y móvil el clip con sus opciones, la búsqueda con lo
+tuyo primero, la carta en el cuadro, el adjunto que se manda y cómo sale.
+
 ## Tanda 1139 — Números en la barra, índice de la guía en el móvil y «N de M» en los temas
 
 De la propuesta «Comunidad, guías y menú» (artifact con maquetas), PINGU

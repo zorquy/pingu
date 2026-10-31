@@ -2233,12 +2233,12 @@ yt-video .yt-enlace:hover { color: var(--blanco-fijo); }
   }
 }
 
-/* ── El puntito verde de "en línea ahora" (foro) ── */
-.mini-avatar.avatar-conectado {
+/* ── El puntito verde de "en línea ahora" (foro; desde la 1140, cualquier avatar) ── */
+.avatar-conectado {
   position: relative;
 }
 
-.mini-avatar.avatar-conectado::after {
+.avatar-conectado::after {
   content: '';
   position: absolute;
   right: -1px;

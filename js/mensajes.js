@@ -52,7 +52,7 @@ function filaDeConversacion(c, miId, actual = null) {
   const vistoMio = !!c.lastMessage && c.lastMessage.sender_id === miId && c.otroLeyoHasta && new Date(c.otroLeyoHasta) >= new Date(c.lastMessage.created_at)
   return `
       <a class="msg-fila${c.conversationId === actual ? ' activa' : ''}${c.noLeidos ? ' noleida' : ''}" href="/mensajes.html?c=${c.conversationId}"${c.conversationId === actual ? ' aria-current="page"' : ''} data-nombre="${escapeHtml(name.toLowerCase())}">
-        <span class="mini-avatar msg-fila-avatar" style="${avatarStyle(p)}">${p?.avatar_url ? '' : getInitial(name)}</span>
+        <span class="mini-avatar msg-fila-avatar" style="${avatarStyle(p)}"${p?.id ? ` data-en-linea="${escapeHtml(p.id)}"` : ''}>${p?.avatar_url ? '' : getInitial(name)}</span>
         <span class="msg-fila-cuerpo">
           <span class="msg-fila-nombre"><strong>${escapeHtml(name)}</strong>${c.lastMessage ? `<time>${timeAgo(c.lastMessage.created_at)}</time>` : ''}</span>
           <span class="msg-fila-ultimo">${vistoMio ? `<i class="msg-check">${icons.checkCircle(13)}</i>` : ''}${ultimo.foto ? `<i class="msg-foto-ico">${icons.image(13)}</i>` : ''}<span>${escapeHtml(ultimo.texto)}</span></span>
@@ -78,6 +78,9 @@ function engancharBuscador(caja) {
   })
 }
 
+// El punto verde de quien está en línea (1140), por `import()`.
+const marcarEnLineaEn = (raiz) => import('./en-linea.js').then((m) => m.marcarEnLinea(raiz)).catch(() => null)
+
 function listaHtml(list, miId, actual) {
   return list.length ? list.map((c) => filaDeConversacion(c, miId, actual)).join('') : '<p class="subtext msg-vacio">Todavía no tienes conversaciones.</p>'
 }
@@ -89,6 +92,7 @@ async function pintarListaLateral(session, actual) {
   const list = await listConversations(session.user.id).catch(() => [])
   caja.innerHTML = `<div class="msg-lista-cabeza"><h2>Mensajes</h2><a class="btn-secondary" href="/mensajes.html?new=1">${icons.edit(14)} Nueva</a></div>${buscadorHtml(list.length)}<div class="msg-filas">${listaHtml(list, session.user.id, actual)}</div>`
   engancharBuscador(caja)
+  marcarEnLineaEn(caja)
   caja.classList.remove('hidden')
   document.querySelector('.msg-dos')?.classList.add('con-lista')
 }
@@ -114,6 +118,7 @@ async function renderInbox(session) {
       ? `<p class="empty-state">Todavía no tienes conversaciones. Escríbele a alguien desde su perfil o empieza una aquí.<br><a class="btn-primary" href="/mensajes.html?new=1">Nueva conversación</a></p>`
       : `${buscadorHtml(list.length)}<div class="msg-filas">${listaHtml(list, session.user.id)}</div>`
   engancharBuscador(listEl)
+  marcarEnLineaEn(listEl)
 }
 
 async function renderNewConversation(session) {
@@ -237,8 +242,11 @@ async function renderThread(session, conversationId) {
     <div class="msg-hilo">
       <div class="msg-cabecera">
         <a class="msg-atras" href="/mensajes.html" aria-label="Volver a mensajes">‹</a>
-        <a class="mini-avatar msg-cabecera-avatar" href="${profileUrl(otherProfile)}" style="${avatarStyle(otherProfile)}">${otherProfile.avatar_url ? '' : getInitial(name)}</a>
-        <h1 class="msg-cabecera-nombre"><a href="${profileUrl(otherProfile)}"${atributosDeRango(otherProfile, 'color:var(--text)')}>${escapeHtml(name)}</a></h1>
+        <a class="mini-avatar msg-cabecera-avatar" href="${profileUrl(otherProfile)}" style="${avatarStyle(otherProfile)}" data-en-linea="${escapeHtml(otherProfile.id)}">${otherProfile.avatar_url ? '' : getInitial(name)}</a>
+        <div class="msg-cabecera-quien">
+          <h1 class="msg-cabecera-nombre"><a href="${profileUrl(otherProfile)}"${atributosDeRango(otherProfile, 'color:var(--text)')}>${escapeHtml(name)}</a></h1>
+          <span class="msg-estado" id="msgEstado" aria-live="polite"></span>
+        </div>
         <a class="msg-ver-perfil" href="${profileUrl(otherProfile)}">Ver perfil</a>
       </div>
       <div class="msg-scroll" id="msgScroll">
@@ -252,17 +260,18 @@ async function renderThread(session, conversationId) {
         <div id="msgCartaPendiente" hidden></div>
         <div class="msg-adjuntos" id="msgAdjuntos" hidden></div>
         <div class="msg-linea">
-          <button type="button" class="msg-clip" id="msgClip" aria-label="Adjuntar foto" title="Adjuntar foto">${icons.paperclip(18)}</button>
+          <button type="button" class="msg-clip" id="msgClip" aria-label="Adjuntar una carta o una foto" title="Adjuntar">${icons.paperclip(18)}</button>
           <textarea id="msgBody" class="msg-caja" rows="1" placeholder="Escribe un mensaje…" aria-label="Mensaje"></textarea>
           <button type="submit" class="msg-enviar" id="btnSendMsg" aria-label="Enviar" title="Enviar">${icons.send(18)}</button>
         </div>
         <input type="file" id="msgFotos" accept="image/*" multiple hidden />
         <input type="file" id="msgCamara" accept="image/*" capture="environment" hidden />
       </form>
-      <dialog class="msg-hoja" id="msgHoja" aria-label="Adjuntar foto">
+      <dialog class="msg-hoja" id="msgHoja" aria-label="Adjuntar">
         <div class="msg-hoja-tirador"></div>
+        <button type="button" class="msg-hoja-opcion" data-hoja="carta"><span class="msg-hoja-ico">${icons.cards(18)}</span><span>Una carta<small>De tu colección o del catálogo, con su precio</small></span></button>
+        <button type="button" class="msg-hoja-opcion" data-hoja="galeria"><span class="msg-hoja-ico">${icons.image(18)}</span><span>Una foto<small>Hasta ${MAX_FOTOS} fotos por mensaje</small></span></button>
         <button type="button" class="msg-hoja-opcion" data-hoja="camara"><span class="msg-hoja-ico">${icons.camera(18)}</span><span>Hacer una foto<small>Abre la cámara</small></span></button>
-        <button type="button" class="msg-hoja-opcion" data-hoja="galeria"><span class="msg-hoja-ico">${icons.image(18)}</span><span>Elegir de la galería<small>Hasta ${MAX_FOTOS} fotos por mensaje</small></span></button>
         <button type="button" class="btn-secondary msg-hoja-cerrar" data-hoja="cerrar">Cancelar</button>
       </dialog>
       <dialog class="msg-dialogo" id="msgDialogoBorrar" aria-label="Eliminar mensaje">
@@ -280,6 +289,23 @@ async function renderThread(session, conversationId) {
   import('./cambio-propuesta.js').then((m) => m.pintarPropuestasCon(document.getElementById('msgPropuestas'), { sesion: session, otro: otherProfile })).catch(() => {})
   // Lo que os podéis cambiar, encima de la conversación (798, PA13): solo si hay algo.
   import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('msgCruce'), otherProfile, session, { soloSiHay: true })).catch(() => {})
+
+  // EN LÍNEA Y «ESCRIBIENDO…» (1140), debajo del nombre. Lo primero sale del
+  // latido de siempre (en-linea.js); lo segundo, de un canal de difusión que
+  // no escribe en la base y se apaga solo a los cinco segundos sin señal.
+  const elEstado = document.getElementById('msgEstado')
+  let otroEnLinea = false
+  let escribeHasta = 0
+  let apagarEscribe = null
+  const pintarEstado = () => {
+    const escribe = Date.now() < escribeHasta
+    elEstado.textContent = escribe ? 'escribiendo…' : otroEnLinea ? 'En línea' : ''
+    elEstado.className = `msg-estado${escribe ? ' escribiendo' : otroEnLinea ? ' en-linea' : ''}`
+  }
+  marcarEnLineaEn(root.querySelector('.msg-cabecera')).then((ids) => {
+    otroEnLinea = !!ids?.includes(otherProfile.id)
+    pintarEstado()
+  })
 
   const el = document.getElementById('threadMessages')
   const caja = document.getElementById('msgBody')
@@ -363,6 +389,12 @@ async function renderThread(session, conversationId) {
       const vistoId = ultimoVisto(messages, miId, otroLeyoHasta)
       const estabaAbajo = primeraPintada || cercaDelFinal()
       const nuevoAjeno = messages.length && messages[messages.length - 1].id !== ultimoIdPintado && messages[messages.length - 1].sender_id !== miId && ultimoIdPintado !== null
+      // Lo que estaba escribiendo ya ha llegado: fuera el «escribiendo…».
+      if (nuevoAjeno) {
+        escribeHasta = 0
+        otroEnLinea = true
+        pintarEstado()
+      }
       el.innerHTML =
         messages.length === 0
           ? `<p class="empty-state">Todavía no hay mensajes. ¡Escribe el primero!</p>`
@@ -523,12 +555,12 @@ async function renderThread(session, conversationId) {
       entrada.value = ''
     })
   }
-  // El clip: con ratón abre la galería directamente; con el dedo, la hoja
-  // de «cámara o galería» desde abajo (la 705).
+  // El clip abre la hoja: una carta (1140), una foto o, con el dedo, la
+  // cámara (705). Con ratón la cámara no se ofrece: no hay.
   const hoja = document.getElementById('msgHoja')
   document.getElementById('msgClip').addEventListener('click', () => {
-    if (conRaton()) entradaFotos.click()
-    else hoja.showModal()
+    hoja.querySelector('[data-hoja="camara"]').hidden = conRaton()
+    hoja.showModal()
   })
   hoja.addEventListener('click', (e) => {
     const que = e.target.closest('[data-hoja]')?.dataset.hoja
@@ -537,7 +569,25 @@ async function renderThread(session, conversationId) {
     hoja.close()
     if (que === 'camara') entradaCamara.click()
     else if (que === 'galeria') entradaFotos.click()
+    else if (que === 'carta') mandarCarta()
   })
+  // «Una carta» (1140): se queda en el cuadro como la de «Me interesa» y sale
+  // con el mensaje. Una carta ocupa uno de los cuatro huecos de adjuntos.
+  async function mandarCarta() {
+    if (pendientes.length >= MAX_FOTOS) return showToast(`Un mensaje lleva como mucho ${MAX_FOTOS} adjuntos.`)
+    try {
+      const [{ elegirCarta }, mod] = await Promise.all([import('./mensajes-carta-elegir.js'), cartaM()])
+      const elegida = await elegirCarta({ miId })
+      if (!elegida) return
+      await mod.completar([elegida]).catch(() => {})
+      cartaPendiente = elegida
+      pintarCartaPendiente()
+      bajarAlFinal()
+      caja.focus()
+    } catch {
+      showToast('No se ha podido abrir el buscador de cartas.', 'error')
+    }
+  }
   // Pegar una imagen en el cuadro (Ctrl+V desde una captura).
   caja.addEventListener('paste', (e) => {
     const ficheros = [...(e.clipboardData?.files || [])].filter((f) => /^image\//.test(f.type))
@@ -623,8 +673,27 @@ async function renderThread(session, conversationId) {
   // contestan no es una conversación. El filtro es por conversación:
   // así el servidor solo evalúa los mensajes de ESTE hilo. Aquí SÍ va
   // sondeo de respaldo: cuando el vivo conecta, baja a una vez por minuto.
-  const { escuchar, sondeoAdaptable } = await import('./vivo.js')
+  const { escuchar, sondeoAdaptable, difundir } = await import('./vivo.js')
   const sondeo = sondeoAdaptable(refreshMessages, 10000)
+  // «Escribiendo…» (1140): como mucho una señal cada dos segundos y medio
+  // mientras tecleas; la otra punta la enseña cinco segundos.
+  const difusion = difundir({
+    tema: `escribe-${conversationId}`,
+    evento: 'escribe',
+    alRecibir: (p) => {
+      if (p?.quien !== otherProfile.id) return
+      escribeHasta = Date.now() + 5000
+      pintarEstado()
+      clearTimeout(apagarEscribe)
+      apagarEscribe = setTimeout(pintarEstado, 5100)
+    },
+  })
+  let ultimaSenal = 0
+  caja.addEventListener('input', () => {
+    if (!caja.value.trim() || Date.now() - ultimaSenal < 2500) return
+    ultimaSenal = Date.now()
+    difusion.enviar({ quien: miId })
+  })
   escuchar({
     nombre: `mensajes-${conversationId}`,
     tablas: [{ tabla: 'private_messages', filtro: `conversation_id=eq.${conversationId}` }],

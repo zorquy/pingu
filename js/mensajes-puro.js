@@ -84,7 +84,8 @@ export function adjuntosDe(mensaje) {
 export function cartasDe(mensaje) {
   const a = mensaje?.adjuntos
   if (!Array.isArray(a)) return []
-  return a.filter((x) => x && x.tipo === 'carta' && typeof x.stock_id === 'string' && (x.card_id || x.product_id))
+  // Las de una tienda llevan `stock_id`; las del clip (1140), `de`.
+  return a.filter((x) => x && x.tipo === 'carta' && (typeof x.stock_id === 'string' || x.de === 'coleccion' || x.de === 'catalogo') && (x.card_id || x.product_id))
 }
 
 // EL MENSAJE DE UN CAMBIO (1101, PINGU: «en vez de texto plano, algo más

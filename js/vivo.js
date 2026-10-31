@@ -140,6 +140,61 @@ export function escuchar({ nombre, tablas, alCambiar, alEstado }) {
   }
 }
 
+// ── La difusión (1140) ──
+//
+// Lo que no se guarda: «escribiendo…» viaja por un canal de difusión de
+// Realtime, de pestaña a pestaña, sin tocar la base. A diferencia de
+// `escuchar`, el nombre del canal es FIJO (los dos lados tienen que estar en
+// el mismo), así que antes de abrirlo se suelta otro que quedara con ese
+// nombre. Si el tiempo real no conecta, `enviar` no hace nada y ya está: es
+// un adorno, no un dato.
+//
+//   const canal = difundir({ tema: 'escribe-<conversación>', evento: 'escribe', alRecibir })
+//   canal.enviar({ quien })   ·   canal.parar()
+export function difundir({ tema, evento = 'aviso', alRecibir }) {
+  const d = { canal: null, cortado: false, alVolver: () => {} }
+  d.montar = async () => {
+    const rt = await cliente()
+    if (!rt || d.cortado || escondida || d.canal) return
+    try {
+      if (typeof rt.isConnected === 'function' && !rt.isConnected()) rt.connect?.()
+      for (const c of rt.getChannels?.() || rt.channels || []) {
+        if (c.topic === `realtime:${tema}`) rt.removeChannel?.(c)
+      }
+      const canal = rt.channel(tema, { config: { broadcast: { self: false } } })
+      canal.on('broadcast', { event: evento }, (mensaje) => alRecibir?.(mensaje?.payload))
+      canal.subscribe()
+      d.rt = rt
+      d.canal = canal
+    } catch (e) {
+      console.warn(`No se pudo abrir la difusión «${tema}»:`, e?.message || e)
+    }
+  }
+  d.soltar = () => {
+    if (!d.canal) return
+    const canal = d.canal
+    d.canal = null
+    try {
+      if (d.rt?.removeChannel) d.rt.removeChannel(canal).catch?.(() => {})
+      else canal.unsubscribe()
+    } catch {}
+  }
+  activas.add(d)
+  d.montar()
+  return {
+    enviar(payload) {
+      try {
+        d.canal?.send({ type: 'broadcast', event: evento, payload })
+      } catch {}
+    },
+    parar() {
+      d.cortado = true
+      activas.delete(d)
+      d.soltar()
+    },
+  }
+}
+
 export async function alEsconder() {
   escondida = true
   if (!activas.size) return

@@ -373,14 +373,22 @@
     min-width: 0;
   }
 
-  /* El número de una sección (1139): al final de su fila. */
+  /* El número de una sección (1139): encima del icono, como en la barra del
+     móvil; al final de la fila se comía el nombre («Comunid…»). */
+  .lat-seccion-enlace {
+    position: relative;
+  }
+
   .lat-seccion-enlace .sec-num {
+    position: absolute;
+    top: var(--e-xs);
+    left: 24px;
     display: grid;
     place-items: center;
-    min-width: 20px;
-    height: 20px;
-    margin-left: auto;
+    min-width: 18px;
+    height: 18px;
     padding: 0 var(--e-xs);
+    border: 2px solid var(--white);
     border-radius: var(--radius-pill);
     background: var(--danger-solid);
     color: var(--blanco-fijo);
