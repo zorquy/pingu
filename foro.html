@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <script>/* Temporada (1134, SCHEMA): Halloween el 31 y el 1, antes del primer pintado; las pruebas automáticas no lo ven salvo con ?temporada=halloween. */(function(){try{var n=new Date(),m=n.getMonth(),d=n.getDate();if(/[?&]temporada=halloween/.test(location.search)||!navigator.webdriver&&((m===9&&d===31||m===10&&d===1)&&localStorage.getItem('pd-sin-halloween')!=='1')){var r=document.documentElement;r.dataset.temporada='halloween';r.dataset.theme='dark';document.write('<link rel="stylesheet" href="/css/temporada.css">')}}catch(e){}})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil');try{localStorage.getItem('pd-tienda')&&document.documentElement.classList.add('pd-tienda')}catch(e){}addEventListener('pagereveal',function(e){var t=e.viewTransition&&e.viewTransition.types;if(!t)return;var a=window.navigation&&navigation.activation;if(a&&a.navigationType==='traverse')t.add('atras');else if(document.documentElement.hasAttribute('data-detalle'))t.add('adelante')})</script>
   <title>Foro — PokeDoc</title>

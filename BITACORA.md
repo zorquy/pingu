@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-10-31 (375) — PINGU-Claude (1134 — Halloween: la web de noche)
+
+**Hecho**: PINGU eligió la C de la propuesta «PokeDoc de temporada» («para
+hoy solo, está gracioso»). El 31 de octubre y el 1 de noviembre toda la web va
+de noche: morado oscuro y calabaza (`css/temporada.css`, que pisa los colores
+de cada sección), calabaza en el logo y en Inicio de la barra de abajo,
+telaraña en la esquina y, en la portada, «Noche de fantasmas» con un Pokémon
+fantasma al azar (el dibujo de PokeAPI que usa «¿Quién es ese Pokémon?») y
+cuatro atajos al buscador de cartas. Lo decide una línea en la cabecera de las
+52 páginas (antes del primer pintado: marca `data-temporada`, tema oscuro y la
+hoja por `document.write`), así que el día 2 se apaga sola y el resto del año
+no baja nada. «Quitar la decoración» lo apunta en el navegador
+(`pd-sin-halloween`). Un navegador automático no lo ve (la suite de estos días
+sigue igual) salvo con `?temporada=halloween`, que sirve para mirarlo
+cualquier día.
+
+**Ficheros**: las 52 páginas (cabecera; `cartas.html` por el generador),
+`index.html` (el hueco), `css/temporada.css`, `js/temporada.js`, `js/app.js`,
+CLAUDE.md, SCHEMA, novedades. Pruebas en `pruebas`: 1134 nueva (10 rojos en
+la base); verdes 299, 305, 312, 313, 649, 753, 906, 981, 1018, 1023 y
+test-imports. La 310 y la 311 traen rojos de antes (los mismos en la base).
+
+**Pendiente**: el resto del calendario (Navidad, Pokémon Day…) y el
+interruptor en /admin se quedaron fuera por ir rápido; la línea de la
+cabecera y la hoja están pensadas para crecer.
+
 ## 2026-10-30 (374) — PINGU-Claude (1133 — las rondas de una liga, en orden y con su jornada)
 
 **Hecho**: PINGU: «no se guardan en orden las partidas automáticas jugadas en

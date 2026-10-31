@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
+  <script>/* Temporada (1134, SCHEMA): Halloween el 31 y el 1, antes del primer pintado; las pruebas automáticas no lo ven salvo con ?temporada=halloween. */(function(){try{var n=new Date(),m=n.getMonth(),d=n.getDate();if(/[?&]temporada=halloween/.test(location.search)||!navigator.webdriver&&((m===9&&d===31||m===10&&d===1)&&localStorage.getItem('pd-sin-halloween')!=='1')){var r=document.documentElement;r.dataset.temporada='halloween';r.dataset.theme='dark';document.write('<link rel="stylesheet" href="/css/temporada.css">')}}catch(e){}})();</script>
   <!-- El esqueleto del Panel, solo en el Panel (912): si la dirección abre otra pestaña, fuera ya en el primer pintado; y si abre Expansiones (o es /cartas), Expansiones ya en su sitio con su esqueleto. -->
   <script>(function(){var v=(location.search.match(/[?&]ver=([a-z]+)/)||[])[1],c=/^\/cartas/.test(location.pathname),h=document.documentElement.classList;if((v&&v!=='resumen')||c)h.add('mc-sin-esq-panel');if(v==='album'||(c&&!v))h.add('mc-ver-album')})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />

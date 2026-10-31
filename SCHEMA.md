@@ -41785,6 +41785,51 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1134 — Halloween: la web de noche
+
+PINGU, con la propuesta «PokeDoc de temporada» delante: «haz la C, para hoy
+solo, está gracioso; si quieres meter algún Pokémon, usa imágenes de “¿Quién es
+ese Pokémon?” o algún sprite».
+
+**Quién decide.** Una línea en la cabecera de cada página, detrás de la del
+tema (el mismo sitio y por lo mismo: antes del primer pintado). Si es el 31 de
+octubre o el 1 de noviembre en la hora de quien mira, y no hay
+`pd-sin-halloween` en el navegador, pone `data-temporada="halloween"`, fuerza
+`data-theme="dark"` (los componentes que miran el tema oscuro quedan bien) y
+escribe con `document.write` el `<link>` de `css/temporada.css`: una hoja
+escrita así durante el análisis bloquea el pintado, así que no hay destello de
+la web de día. El resto del año no se descarga nada.
+
+**Las pruebas.** `navigator.webdriver` (Playwright) lo apaga, porque si no
+toda la suite pasada el 31 o el 1 vería otra web (la 1018 mide los acentos de
+cada sección). `?temporada=halloween` lo enciende cualquier día y en cualquier
+navegador, que es como lo prueba la 1134 y como se puede enseñar.
+
+**La hoja.** `:root:root[data-temporada='halloween'][data-theme]` (0,4,0)
+gana al tema oscuro y a los acentos de sección (0,3,0) aunque la hoja llegue
+ANTES que `style.css`. Redefine los tokens (fondo `#120a1c`, superficie
+`#1d1229`, `--navy` calabaza, los sólidos en morado con blanco encima y
+`--acento` naranja con texto oscuro), cambia la «P» del logo y el icono de
+Inicio de la barra de abajo por una calabaza (SVG en `data:`) y pone una
+telaraña como fondo del `body`. No en `body::after`: un pseudo del cuerpo
+absoluto pintaba un rectángulo oscuro encima del bloque de la portada.
+
+**La portada.** `index.html` lleva `#temporadaHueco` vacío al principio de
+`main`; la hoja le reserva 180 px (192 en el móvil, con alto FIJO: en un
+iPhone SE el bloque medía 456 y en un 13, 300), así que no salta (981). app.js
+importa `js/temporada.js` solo si la cabecera ha puesto la marca; espera a la
+hoja con `hojaInyectada` (que también es el marcador de la 299) y pinta
+«Noche de fantasmas»: uno de diez fantasmas al azar (`FANTASMAS`, por número
+de Pokédex) con el dibujo oficial de PokeAPI por jsDelivr y GitHub (como
+`urlsDelDibujo` de quien-es.js, copiado para no arrastrar ese módulo), cuatro
+chips al buscador de cartas y «Quitar la decoración», que apunta
+`pd-sin-halloween` y recarga.
+
+**Para la próxima fiesta.** La regla de fecha vive dos veces a propósito (la
+cabecera no puede importar nada): `esHalloween` en `js/temporada.js` y la
+línea de las páginas. Otra fiesta es otra condición en esa línea, su valor de
+`data-temporada` y sus reglas en la misma hoja.
+
 ## Tanda 1133 — Las rondas de un torneo de PokeDoc, en su orden y con su jornada
 
 PINGU, con la tarjeta de la «Liga FDN» en /mis-partidas: «no se guardan en

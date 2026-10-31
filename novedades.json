@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-10-31", "tipo": "nuevo", "texto": "¡Feliz Halloween! Hoy y mañana PokeDoc se viste de noche: calabazas, telarañas y un Pokémon fantasma colado en la portada. Si prefieres la web de siempre, en la portada tienes «Quitar la decoración».", "enlace": "/" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En Mis partidas, las rondas de un torneo de PokeDoc salen en el orden en que se jugaron y con su nombre: en una liga, con la jornada (J4·R1, J4·R2…). Y el bye también aparece en la tarjeta del torneo.", "enlace": "/mis-partidas" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "En el móvil la web ya no hace zoom al escribir en el foro ni al tocar dos veces. Y si dejas una respuesta a medias y subes por el hilo, la caja se hace pequeña y se queda abajo con lo que llevas escrito; tócala para seguir.", "enlace": "/foro" },
     { "fecha": "2026-10-30", "tipo": "arreglo", "texto": "Al pegar un texto en el foro (o en una guía) ya no se queda con la letra y el tamaño de donde lo copiaste: se ve como el resto. Se mantienen las negritas, las listas y los enlaces.", "enlace": "/foro" },

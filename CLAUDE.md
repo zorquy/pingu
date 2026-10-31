@@ -1526,6 +1526,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `html:has(.x[open]) { overflow: hidden }`. En el móvil, hoja desde abajo.
   Un panel al lado que no tapa la rejilla (filtros, ficha de producto) no es
   un pop-up. Mira `.cp-dialogo` o `.ficha-rapida`.
+- **Una fiesta (Halloween, 1134) la decide la línea de `data-temporada` de la
+  cabecera** de las 52 páginas, por fecha y antes del primer pintado, con su
+  hoja (`css/temporada.css`) escrita solo ese día; lo de la portada va en
+  `js/temporada.js` dentro de `#temporadaHueco`, que tiene su alto reservado.
+  Un navegador automático no la ve (`navigator.webdriver`) salvo con
+  `?temporada=halloween`: una prueba de una fiesta la enciende así.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

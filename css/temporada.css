@@ -1,0 +1,140 @@
+/* Halloween (tanda 1134, SCHEMA): solo baja el 31 y el 1, lo escribe la
+   línea de la cabecera. Toda la web de noche: morado y calabaza. El selector
+   doble gana a los colores de cada sección (0,3,0) y al tema oscuro. */
+:root:root[data-temporada='halloween'][data-theme] {
+  color-scheme: dark;
+  --navy: #fb923c;
+  --navy-light: #fdba74;
+  --navy-dark: #f97316;
+  --ice: #2a1b3d;
+  --ice-dark: #36244f;
+  --bg: #120a1c;
+  --white: #1d1229;
+  --text: #f3ecfb;
+  --text-mid: #c9b8e2;
+  --text-dim: #9682b3;
+  --border: #33224a;
+  --border-strong: #47305f;
+  --navy-solid: #6d28d9;
+  --navy-solid-dark: #5b21b6;
+  --navy-solid-light: #7c3aed;
+  --success: #34d399;
+  --success-bg: #11312a;
+  --danger: #f87171;
+  --danger-bg: rgba(248, 113, 113, 0.14);
+  --warning: #f0a940;
+  --warning-bg: #3a2a11;
+  --indigo: #a78bfa;
+  --indigo-bg: #261a3d;
+  --pink: #f472b6;
+  --pink-bg: #3a1526;
+  --acento: #f97316;
+  --acento-texto: #1a0d00;
+  --navbar-bg: rgba(18, 10, 28, 0.92);
+  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.4);
+}
+
+/* La calabaza en el logo (en lugar de la «P») y en Inicio de la barra de abajo. */
+html[data-temporada='halloween'] .nav-logo::before {
+  content: '';
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 6c-1-2-1-3 1-4' stroke='%2365a30d' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='7.5' cy='14' rx='5' ry='7' fill='%23ea580c'/%3E%3Cellipse cx='16.5' cy='14' rx='5' ry='7' fill='%23ea580c'/%3E%3Cellipse cx='12' cy='14' rx='5' ry='7.5' fill='%23f97316'/%3E%3Cpath d='M8.5 12l1.5-2 1.5 2zM12.5 12l1.5-2 1.5 2z' fill='%23431407'/%3E%3Cpath d='M8.5 16q3.5 3 7 0l-1 1.5-1.2-1-1.3 1.2-1.3-1.2-1.2 1z' fill='%23431407'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: rotate(-8deg);
+}
+html[data-temporada='halloween'] .bm a[href='/'] svg { display: none; }
+html[data-temporada='halloween'] .bm a[href='/']::before {
+  content: '';
+  width: 24px;
+  height: 24px;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 6c-1-2-1-3 1-4' stroke='%2365a30d' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3Cellipse cx='7.5' cy='14' rx='5' ry='7' fill='%23ea580c'/%3E%3Cellipse cx='16.5' cy='14' rx='5' ry='7' fill='%23ea580c'/%3E%3Cellipse cx='12' cy='14' rx='5' ry='7.5' fill='%23f97316'/%3E%3Cpath d='M8.5 12l1.5-2 1.5 2zM12.5 12l1.5-2 1.5 2z' fill='%23431407'/%3E%3Cpath d='M8.5 16q3.5 3 7 0l-1 1.5-1.2-1-1.3 1.2-1.3-1.2-1.2 1z' fill='%23431407'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* La telaraña de la esquina: un fondo del cuerpo, que se va con la página
+   (no flota) y no se pulsa. No va en body::after: ese ya lo usa la web. */
+html[data-temporada='halloween'] body {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 70 70'%3E%3Cg stroke='%23c9b8e2' stroke-opacity='0.4' stroke-width='0.8' fill='none'%3E%3Cpath d='M70 0L10 60M70 0L40 68M70 0L2 30M70 0L68 68'/%3E%3Cpath d='M60 2q2 8 8 10M48 6q4 14 20 20M36 10q6 22 32 32M24 14q8 32 44 50'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 56px;
+  background-size: 160px 160px;
+}
+
+/* La portada: «Noche de fantasmas». El hueco está reservado antes de que
+   llegue el JS, para que la página no salte (981). */
+html[data-temporada='halloween'] .temporada-hueco { min-height: 180px; margin-top: var(--e-lg); }
+.temporada-bloque {
+  position: relative;
+  overflow: hidden;
+  min-height: 180px;
+  border-radius: var(--radius-xl);
+  padding: var(--e-lg) var(--e-xl);
+  padding-right: 168px;
+  border: 1px solid var(--border-strong);
+  background: radial-gradient(circle at 88% 10%, #4c2a7a 0%, transparent 55%), linear-gradient(160deg, #2a1a40, #1a1028);
+  color: var(--text);
+  display: grid;
+  gap: var(--e-sm);
+  align-content: center;
+}
+.temporada-bloque h2 { font-family: var(--font-display); font-size: var(--t-xl); line-height: 1.2; }
+.temporada-bloque p { color: var(--text-mid); font-size: var(--t-md); max-width: 52ch; }
+.temporada-chips { display: flex; flex-wrap: wrap; gap: var(--e-sm); align-items: center; }
+.temporada-chips a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 var(--e-md);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+.temporada-chips a:first-child { background: var(--acento); color: var(--acento-texto); }
+.temporada-quitar {
+  background: none;
+  border: 0;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-xs);
+  text-decoration: underline;
+  cursor: pointer;
+  justify-self: start;
+  min-height: 32px;
+}
+.temporada-fantasma {
+  position: absolute;
+  right: var(--e-md);
+  bottom: -24px;
+  width: 160px;
+  height: 160px;
+  object-fit: contain;
+  pointer-events: none;
+  animation: temporada-flota 4s ease-in-out infinite;
+}
+@keyframes temporada-flota {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .temporada-fantasma { animation: none; }
+}
+@media (max-width: 599px) {
+  /* Alto FIJO en el móvil: el hueco reservado no puede depender del ancho. */
+  html[data-temporada='halloween'] .temporada-hueco { min-height: 192px; margin-top: var(--e-md); }
+  .temporada-bloque { height: 192px; min-height: 0; padding: var(--e-lg); align-content: start; }
+  .temporada-bloque > * { position: relative; z-index: 1; }
+  .temporada-bloque h2 { font-size: var(--t-lg); padding-right: 88px; }
+  .temporada-bloque p { font-size: var(--t-sm); padding-right: 88px; }
+  .temporada-largo { display: none; }
+  .temporada-chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: calc(-1 * var(--e-lg)); padding-inline: var(--e-lg); }
+  .temporada-chips a { flex: 0 0 auto; }
+  .temporada-bloque .temporada-fantasma { position: absolute; z-index: 0; width: 96px; height: 96px; right: var(--e-sm); top: var(--e-sm); bottom: auto; }
+}
+@media (pointer: coarse) {
+  .temporada-chips a, .temporada-quitar { min-height: 44px; }
+}
+
+/* Las cifras del panel morado: su `--ice` es aquí un morado oscuro. */
+html[data-temporada='halloween'] .hero-panel .eyebrow,
+html[data-temporada='halloween'] .hero-panel-stat .label { color: var(--blanco-fijo); opacity: 0.8; }

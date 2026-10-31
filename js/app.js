@@ -769,6 +769,8 @@ export async function initNavbar() {
   // Una carta se abre en el pop-up y no en otra página (SCHEMA 1043). Va
   // ANTES que la barra de progreso: si el clic se queda aquí, no navega.
   document.addEventListener('click', abrirCartaEnPopup)
+  // Halloween (SCHEMA 1134): solo si la cabecera ha dicho que toca.
+  if (document.documentElement.dataset.temporada) import('./temporada.js').then((m) => m.montarTemporada()).catch(() => {})
   // La barra de progreso al tocar un enlace (SCHEMA 892).
   import('./progreso.js').then((m) => m.montarProgreso()).catch(() => {})
   // Precarga al posar el dedo (SCHEMA 723).
