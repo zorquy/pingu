@@ -28,7 +28,7 @@ console.log('── Las MEP de TCGdex ──')
     return []
   }
   const fetchImpl = async (url) => ({ ok: true, json: async () => (/\/es\//.test(url) ? { cards: [{ localId: '090', name: 'Mega-Darkrai ex' }] } : { cards: suyas }) })
-  const ahora = new Date('2026-11-01T16:00:00Z') // después del rehacerDesde de la 1159
+  const ahora = new Date('2026-11-01T17:00:00Z') // después del rehacerDesde (1160: 16:30)
   const r = await rellenar({ env, fetchImpl, restImpl, estadoImpl: async () => estado, guardarEstadoImpl: async (k, v) => { estado = v }, ahora })
   check('escribe solo las que faltan por número (89–92), sin pisar un id que ya existe', r.ok && escritas.map((f) => f.local_id).join(',') === '089,090,091,092', JSON.stringify(r))
   const d = escritas.find((f) => f.local_id === '090')
@@ -41,9 +41,12 @@ console.log('── Las MEP de TCGdex ──')
   check('a los dos días no vuelve a pedir nada (cada semana)', r2.saltado === 'nada pendiente' && escritas.length === 0, JSON.stringify(r2))
   const r3 = await rellenar({ env, fetchImpl, restImpl, estadoImpl: async () => estado, guardarEstadoImpl: async (k, v) => { estado = v }, ahora: new Date('2026-11-09T12:00:00Z') })
   check('a la semana sí repasa', r3.ok && r3.hecho, JSON.stringify(r3))
+  // Desde la 1160 las MEP llevan fichas de respaldo: sin TCGdex se escriben
+  // igual. Un relleno SIN respaldo sigue contando el intento.
   let estadoMal = {}
-  const r4 = await rellenar({ env, fetchImpl: async () => ({ ok: false, status: 503 }), restImpl, estadoImpl: async () => estadoMal, guardarEstadoImpl: async (k, v) => { estadoMal = v }, ahora })
-  check('si TCGdex falla, cuenta un intento y lo deja en el estado', !r4.ok && estadoMal.intentos['mep-tcgdex'] === 1 && /TCGdex 503/.test(estadoMal.ultimoError.error), JSON.stringify(estadoMal))
+  const sinRespaldo = [{ ...RELLENOS[0], clave: 'otro-tcgdex', tcgdex: 'otro' }]
+  const r4 = await rellenar({ env, fetchImpl: async () => ({ ok: false, status: 503 }), restImpl, estadoImpl: async () => estadoMal, guardarEstadoImpl: async (k, v) => { estadoMal = v }, ahora, rellenos: sinRespaldo })
+  check('si TCGdex falla (y no hay respaldo), cuenta un intento y lo deja en el estado', !r4.ok && estadoMal.intentos['otro-tcgdex'] === 1 && /TCGdex 503/.test(estadoMal.ultimoError.error), JSON.stringify(estadoMal))
 }
 
 console.log('── El pack de McDonald\'s, a mano ──')

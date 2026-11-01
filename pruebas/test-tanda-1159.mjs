@@ -101,7 +101,8 @@ console.log('── «Traer ahora» del relleno de TCGdex ──')
   const nuestras = [{ id: 'tcggo-1', local_id: '001' }]
   const escritas = []
   const restImpl = async (ruta, op) => {
-    if (op?.method === 'POST') { escritas.push(...JSON.parse(op.body)); return null }
+    if (op?.method === 'POST' && ruta.startsWith('tcg_cards')) { escritas.push(...JSON.parse(op.body)); return null }
+    if (op?.method === 'POST') return null
     if (ruta.startsWith('tcg_sets')) return [{ id: 'mep', name: 'MEP Black Star Promos', tcggo_id: 1 }]
     if (ruta.startsWith('tcg_cards?select=id,local_id')) return nuestras
     if (ruta.startsWith('tcg_cards?select=id,set_id')) return [{ id: 'mep-091', set_id: 'svp', local_id: '091' }]
@@ -130,10 +131,10 @@ console.log('── «Traer ahora» del relleno de TCGdex ──')
   const e2 = { intentos: { 'mep-tcgdex': 3 }, ultimoError: { clave: 'mep-tcgdex', fecha: '2026-11-01T15:45:00Z' } }
   olvidarIntentosViejos(e2, [{ clave: 'mep-tcgdex', rehacerDesde: '2026-11-01T15:30:00Z' }], new Date('2026-11-01T16:00:00Z'))
   check('  …los de después, no (un fallo nuevo sigue frenando)', e2.intentos['mep-tcgdex'] === 3)
-  let intentosQueda = { hechos: { 'mep-tcgdex': { fecha: '2026-11-01T14:31:00Z' } }, intentos: { 'mep-tcgdex': 3 }, ultimoError: { clave: 'mep-tcgdex', fecha: '2026-11-01T14:50:00Z' } }
+  let intentosQueda = { hechos: { 'mep-tcgdex': { fecha: '2026-11-01T14:31:00Z' } }, intentos: { 'mep-tcgdex': 3 }, ultimoError: { clave: 'mep-tcgdex', fecha: '2026-11-01T14:50:00Z' } } // la lista: rehacerDesde 16:30 (1160)
   escritas.length = 0
-  const vuelta = await pasada({ ...io, estadoImpl: async () => intentosQueda, guardarEstadoImpl: async (k, v) => { intentosQueda = v }, ahora: new Date('2026-11-01T16:00:00Z') })
-  check('con el rehacerDesde de la lista, la pasada programada vuelve a hacer las MEP', vuelta.ok && vuelta.hecho?.escritas === 3, JSON.stringify(vuelta))
+  const vuelta = await pasada({ ...io, estadoImpl: async () => intentosQueda, guardarEstadoImpl: async (k, v) => { intentosQueda = v }, ahora: new Date('2026-11-01T17:00:00Z') })
+  check('con el rehacerDesde de la lista, la pasada programada vuelve a hacer las MEP', vuelta.ok && vuelta.hecho?.escritas >= 3, JSON.stringify(vuelta))
 
   // La función de /admin.
   const pedir = (metodo, tok, cuerpo) => new Request('https://pokedoc.es/.netlify/functions/tcgdex-rellenar-ahora', { method: metodo, headers: { authorization: `Bearer ${tok}` }, body: metodo === 'POST' ? JSON.stringify(cuerpo) : undefined })
