@@ -96,8 +96,9 @@ console.log('\n── 3. La página ──')
   check('el siguiente va arriba, en grande, con cuenta atrás y enlace a su página', await dest.isVisible() && /Dominio Delta/.test(await dest.innerText()) && /Faltan 32 días/.test(await dest.innerText()) && (await dest.locator('a:not(.lanz-avisar)').getAttribute('href')) === '/cartas.html?ver=album&set=me03&catalogo=WEST', limpio(await dest.innerText()))
   const prox = page.locator('#listaProximos .lanz-evento')
   check('debajo, los que vienen (con el anunciado a mano)', (await prox.count()) === 2 && /Set Anunciado/.test(await prox.nth(0).innerText()) && /anunciado/.test(await prox.nth(0).innerText()) && (await prox.nth(0).locator('a:not(.lanz-avisar)').count()) === 0, limpio(await page.locator('#listaProximos').innerText()))
-  const pas = page.locator('#listaPasados .lanz-evento')
-  check('y los ya salidos, todos, por año y como enlaces', (await pas.count()) === 3 && (await page.locator('#listaPasados .lanz-anno-titulo').count()) === 2 && (await pas.nth(1).locator('a.lanzamiento-tarjeta').getAttribute('href')) === '/cartas.html?ver=album&set=me02&catalogo=WEST' && /3 expansiones/.test(await page.locator('#cuantosPasados').innerText()), limpio(await page.locator('#seccionPasados').innerText()).slice(0, 200))
+  // Desde la 1152 los ya salidos son FILAS (`.lanz-fila`), y la fila entera es el enlace.
+  const pas = page.locator('#listaPasados .lanz-fila')
+  check('y los ya salidos, todos, por año y como enlaces', (await pas.count()) === 3 && (await page.locator('#listaPasados .lanz-anno-titulo').count()) === 2 && (await pas.nth(1).getAttribute('href')) === '/cartas.html?ver=album&set=me02&catalogo=WEST' && /3 expansiones/.test(await page.locator('#cuantosPasados').innerText()), limpio(await page.locator('#seccionPasados').innerText()).slice(0, 200))
   check('  …y Pocket, los escondidos y los sin fecha no están', !/Pocket|Oculto|Sin fecha/.test(await page.locator('main').innerText()))
   // Cambiar al japonés.
   await page.selectOption('#lanzCatalogo', 'JP')

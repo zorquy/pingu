@@ -1691,6 +1691,22 @@ export const supabase = {
       if (dar) T.user_notifications.push({ id: `n-logro-${T.user_notifications.length + 1}`, recipient_id: p.id, type: 'logro', title: `Tienes un logro nuevo: ${def.title}`, body: args.p_motivo || null, link: '/perfil?ver=logros', created_at: new Date().toISOString() })
       return { data: { ok: true, xp }, error: null }
     }
+    // 1152: cuántas cartas distintas tienes de cada set, CALCULADO de las
+    // tablas como en Postgres (la de verdad se prueba contra PostgreSQL).
+    if (nombre === 'coleccion_por_set') {
+      if (typeof window !== 'undefined' && window.__SIN_1152__) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.coleccion_por_set' } }
+      const yo = typeof window !== 'undefined' ? window.__FAKE_SESSION__ : null
+      const mercado = args.p_market || 'WEST'
+      const porSet = new Map()
+      for (const l of T.user_collection || []) {
+        if (l.user_id !== yo || (l.market || 'WEST') !== mercado) continue
+        const c = (T.tcg_cards || []).find((x) => x.id === l.card_id && (x.market || 'WEST') === mercado)
+        if (!c?.set_id) continue
+        if (!porSet.has(c.set_id)) porSet.set(c.set_id, new Set())
+        porSet.get(c.set_id).add(l.card_id)
+      }
+      return { data: [...porSet].map(([set_id, ids]) => ({ set_id, distintas: ids.size })), error: null }
+    }
     // 1120: un aviso en la campanita de todas las cuentas (menos a quien lo apagó).
     if (nombre === 'admin_aviso_campanita') {
       if (typeof window !== 'undefined' && window.__SIN_1120__) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.admin_aviso_campanita' } }
