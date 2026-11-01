@@ -153,6 +153,25 @@ async function pintarCambios() {
   const deSeguidos = seguidos ? gente.filter((p) => seguidos.has(p.user_id)).length : null
   const visibles = gente.filter((p) => crucesFiltro === 'perfectos' ? p.perfecto : crucesFiltro === 'seguidos' ? seguidos?.has(p.user_id) : true)
   const valor = (f) => ctx.precioDeDeseo({ card_id: f.card_id, idioma: f.idioma })
+  // Cruces nunca vacío (1166, C2): con algo apuntado y nadie enfrente, tus
+  // cuentas arriba (cada una lleva a su pestaña), una línea que dice por qué
+  // y BOTONES para salir. Antes era una frase con «el Mercado» escrito
+  // dentro y sin nada que pulsar — en la pantalla que más mira quien acaba
+  // de apuntar sus primeras cartas.
+  const sinNadie = () => {
+    const n = ctx.deseos.length
+    const d = doy.length
+    const cuentas = `<div class="mc-cruces-cuentas">
+      <button type="button" class="mc-cruces-cuenta" data-ir-quiero><b>${n}</b><span>${n === 1 ? 'carta buscas' : 'cartas buscas'} ›</span></button>
+      <button type="button" class="mc-cruces-cuenta" data-deseos-vista="doy"><b>${d}</b><span>${d === 1 ? 'carta das' : 'cartas das'} ›</span></button>
+    </div>`
+    const [frase, salidas] = !n
+      ? ['Apunta lo que buscas y aquí saldrá quién lo da.', `<button type="button" class="btn-primary" data-deseos-vista="mercado">Ir al Mercado</button><button type="button" class="btn-secondary" data-ir-quiero>Ver La quiero</button>`]
+      : !d
+        ? ['Todavía nadie da lo que buscas. Pon algo para cambio y saldrá también quién busca lo tuyo.', `<button type="button" class="btn-primary" data-deseos-vista="doy">Poner cartas para cambio</button><button type="button" class="btn-secondary" data-deseos-vista="mercado">Ir al Mercado</button>`]
+        : ['Todavía nadie encaja contigo. En el Mercado está todo lo que se da.', `<button type="button" class="btn-primary" data-deseos-vista="mercado">Ir al Mercado</button><button type="button" class="btn-secondary" data-deseos-vista="doy">Poner más cartas para cambio</button>`]
+    return `<div class="mc-quiero-cabeza">${cuentas}</div><div class="mc-cruces-vacio"><p class="empty-state">${frase}</p><div class="mc-cruces-salidas">${salidas}</div></div>`
+  }
   caja.innerHTML = vacio
     // Sin nada apuntado no se enseña un tablón vacío: se enseña CÓMO
     // funciona, que es lo que hace falta la primera vez.
@@ -161,7 +180,7 @@ async function pintarCambios() {
          <li><span class="mc-cambio-paso">2</span><div><strong>Pon para cambio lo que te sobra</strong><p class="subtext">Tus repetidas, con cuántas copias das, en <button type="button" class="link-btn" data-deseos-vista="doy">Las que doy</button>.</p></div></li>
          <li><span class="mc-cambio-paso">3</span><div><strong>Aquí sale con quién encajas</strong><p class="subtext">Y le escribes desde aquí, sin salir de PokeDoc.</p></div></li>
        </ol>`
-    : `<div class="mc-quiero-cabeza">
+    : !gente.length ? sinNadie() : `<div class="mc-quiero-cabeza">
          <p class="mc-quiero-cifra"><b>${gente.length}</b> ${gente.length === 1 ? 'persona encaja' : 'personas encajan'} contigo${perfectos ? ` · <b>${perfectos}</b> ${perfectos === 1 ? 'cruce perfecto' : 'cruces perfectos'}` : ''}</p>
          ${gente.length ? `<span class="seg" role="group" aria-label="Quién">
            <button type="button" class="seg-btn" data-cruces-filtro="todos" aria-pressed="${crucesFiltro === 'todos'}">Todos</button>
@@ -173,11 +192,7 @@ async function pintarCambios() {
          ? visibles.length
            ? bandasDeCruces(visibles, { cartas: ctx.cartas, valor, euros })
            : `<p class="empty-state">${crucesFiltro === 'perfectos' ? 'Ningún cruce perfecto todavía.' : 'Nadie de la gente que sigues encaja ahora mismo.'}</p>`
-         : `<p class="empty-state">${!ctx.deseos.length
-           ? 'Apunta lo que buscas y aquí saldrá quién lo da.'
-           : !doy.length
-             ? 'Todavía nadie da lo que buscas. Pon algo para cambio y saldrá también quién busca lo tuyo.'
-             : 'Todavía nadie encaja contigo. Mira el Mercado: ahí está todo lo que se da.'}</p>`}`
+         : ''}`
   engancharCambios()
   void pintarMisCambiosArriba()
   // «12 cambios · todos bien» al lado de cada persona (798, NU4).

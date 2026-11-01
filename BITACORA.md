@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (408) — PINGU-Claude (1166 — Cruces nunca vacío)
+
+**Hecho** (C2 de «PokeDoc entera»): con algo apuntado y nadie enfrente, Cruces
+enseña tus cuentas arriba («3 cartas buscas ›» → La quiero, «2 cartas das ›» →
+Las que doy), una línea que dice por qué (los tres casos de antes) y BOTONES
+de salida: «Ir al Mercado» / «Poner cartas para cambio» / «Ver La quiero»,
+según lo que falte. Antes era «Todavía nadie encaja contigo. Mira el Mercado»
+con el Mercado escrito en la frase y nada que pulsar. Los «casi cruces» (quien
+da lo que buscas aunque no busque nada tuyo) ya salían como banda desde la
+1042; aquí no había nada que añadir. Con cruces la pantalla no cambia.
+
+**Ficheros**: js/mi-coleccion/deseos.js (`sinNadie` en `pintarCambios`),
+css/mi-coleccion.css, SCHEMA.md, novedades.json. Pruebas:
+test-tanda-1166-pantalla.mjs nueva; 1042, 1044, 299 verdes; 376 con el rojo
+de antes («con las cuatro cartas dentro — 3», comprobado contra el commit
+anterior).
+
+**Pendiente**: 1167 y 1168.
+
 ## 2026-11-01 (407) — PINGU-Claude (1165 — Gente, la gente primero; 1165b — el catálogo dentro de un Pokémon no respondía)
 
 **Hecho**:

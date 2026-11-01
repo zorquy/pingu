@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-01",
       "tipo": "mejora",
+      "texto": "Cruces ya no se queda en blanco: cuando nadie encaja contigo ves cuántas cartas buscas y das, y botones para ir al Mercado o poner cartas para cambio.",
+      "enlace": "/mi-coleccion?ver=cambios"
+    },
+    {
+      "fecha": "2026-11-01",
+      "tipo": "mejora",
       "texto": "Gente va al grano: las cifras en una línea, el top del mes en una tira que se abre, y la lista de personas sale nada más entrar.",
       "enlace": "/usuarios"
     },

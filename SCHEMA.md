@@ -41785,6 +41785,31 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1166 — Cruces nunca vacío (C2 de «PokeDoc entera»)
+
+Cuando nadie encaja contigo, Cruces era una pantalla con una frase y «el
+Mercado» escrito dentro, sin botón, en la pestaña que más mira quien acaba de
+apuntar sus primeras cartas. `pintarCambios` (deseos.js) tiene ahora un tercer
+estado, `sinNadie()`, entre «no has apuntado nada» (los tres pasos de la 415)
+y «hay gente» (las bandas de la 1042):
+
+- **Tus cuentas arriba**, como botones a su pestaña: `.mc-cruces-cuenta` con
+  `data-ir-quiero` («N cartas buscas ›») y `data-deseos-vista="doy"` («N cartas
+  das ›»). Sustituyen al «0 personas encajan contigo».
+- **La línea de por qué**, la de siempre según lo que falte: sin deseos
+  («Apunta lo que buscas…»), sin nada para cambio («Todavía nadie da lo que
+  buscas. Pon algo para cambio…») o las dos cosas y nadie («Todavía nadie
+  encaja contigo. En el Mercado está todo lo que se da.»).
+- **Salidas como botones** (`.mc-cruces-salidas`): el principal es lo que
+  falta (Ir al Mercado / Poner cartas para cambio) y el suave, la otra puerta.
+  Van por los `data-deseos-vista` y `data-ir-quiero` que ya escuchaban
+  `mi-coleccion.js` y `engancharCambios`.
+
+Los «casi cruces» de la propuesta (quien da lo que buscas aunque no busque
+nada tuyo) son la banda «Tienen lo que buscas» de la 1042: no faltaba nada.
+`test-tanda-1166-pantalla.mjs` prueba los tres vacíos, que los botones abren
+su pestaña y que en el móvil cabe.
+
 ## Tanda 1165 — Gente, la gente primero (M1 de «PokeDoc entera»)
 
 La página de Gente empezaba con cuatro cifras grandes en una caja, las

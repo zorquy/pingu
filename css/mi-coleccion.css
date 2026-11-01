@@ -14814,3 +14814,26 @@ body[data-tienda] .mc-sel-abajo {
    la expansión. La clase la pone el guion de la cabecera antes del primer
    pintado si la dirección trae `set=`, y el JS al entrar y salir. ── */
 html.mc-set-abierta .mc-hero { display: none; }
+
+/* ── 1166 (C2): Cruces nunca vacío ──
+   Tus cuentas (cada una es un botón a su pestaña), la línea de por qué y
+   las salidas como botones de verdad. */
+.mc-cruces-cuentas { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.mc-cruces-cuenta {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+.mc-cruces-cuenta:hover { border-color: var(--border-strong); }
+.mc-cruces-cuenta b { font-family: var(--font-display); font-size: var(--t-xl); line-height: 1; }
+.mc-cruces-cuenta span { color: var(--text-mid); font-size: var(--t-sm); }
+.mc-cruces-vacio .empty-state { margin-bottom: 0; }
+.mc-cruces-salidas { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--e-sm); margin-top: var(--e-md); }
