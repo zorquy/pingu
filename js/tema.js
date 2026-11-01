@@ -144,7 +144,7 @@ function chapaDeAutorDelTema(esAutorDelTema) {
 async function cargar() {
   const { data, error } = await supabase.from('forum_threads').select('*').eq('id', temaId).maybeSingle()
   if (faltaElForo(error)) {
-    elMensajes.innerHTML = `<p class="empty-state">El foro todavía no está activado.</p>`
+    import('./no-encontrado.js').then((m) => m.pintarSinRespuesta(elMensajes, 'el tema')).catch(() => {})
     return false
   }
   if (error) {

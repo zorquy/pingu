@@ -210,7 +210,7 @@ function cabeceraHtml() {
           <button type="button" class="seg-btn" aria-pressed="false" data-pt-ver="nuevas" hidden>Novedades</button>
           <button type="button" class="seg-btn" aria-pressed="false" data-pt-ver="sellado" hidden>Sellado</button>
         </div>
-        <input type="search" class="pt-busca" data-pt-q placeholder="Buscar en la tienda…" aria-label="Buscar en la tienda" />
+        <input type="search" class="pt-busca" data-pt-q placeholder="Busca en la tienda" aria-label="Buscar en la tienda" />
         <select class="pt-select" data-pt-idioma aria-label="Idioma" hidden><option value="">Todos los idiomas</option></select>
         <select class="pt-select" data-pt-orden aria-label="Orden">
           <option value="recientes">Lo último</option>

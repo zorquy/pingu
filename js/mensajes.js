@@ -69,7 +69,7 @@ function filaDeConversacion(c, miId, actual = null) {
 // mismo, sin consulta.
 function buscadorHtml(cuantas) {
   if (cuantas < 10) return ''
-  return `<div class="search-input-wrap msg-buscar"><input type="search" enterkeyhint="search" class="search-input" id="msgBuscar" placeholder="Buscar conversación" aria-label="Buscar conversación" /></div>`
+  return `<div class="search-input-wrap msg-buscar"><input type="search" enterkeyhint="search" class="search-input" id="msgBuscar" placeholder="Busca una conversación" aria-label="Buscar conversación" /></div>`
 }
 function engancharBuscador(caja) {
   const campo = caja.querySelector('#msgBuscar')
@@ -140,7 +140,7 @@ async function renderNewConversation(session) {
       <h1>Nueva conversación</h1>
       <p><a href="/mensajes.html">← Volver a mensajes</a></p>
     </div>
-    <div class="search-input-wrap"><input type="text" id="newMsgSearch" class="search-input" placeholder="Buscar por nombre de usuario…" /></div>
+    <div class="search-input-wrap"><input type="text" id="newMsgSearch" class="search-input" placeholder="Busca a alguien por su nombre" /></div>
     <div id="newMsgResults"></div>`
 
   document.getElementById('newMsgSearch').addEventListener('input', async (e) => {

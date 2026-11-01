@@ -48,6 +48,14 @@ function idDeLaUrl() {
 }
 
 const ID = idDeLaUrl()
+// Mientras llega la ficha, el título es lo que dice la dirección (1162):
+// un <h1> que decía «Cargando…» no era un título.
+if (ID) {
+  const provisional = ID.replace(/[-_]+/g, ' ').replace(/^\w/, (c) => c.toUpperCase())
+  const h1 = document.getElementById('mmNombre')
+  if (h1) h1.textContent = provisional
+  document.title = `${provisional} — PokeDoc`
+}
 let dias = periodoDe(new URLSearchParams(location.search).get('dias'))
 let fuente = fuenteDe(new URLSearchParams(location.search).get('fuente'))
 let turno = 0

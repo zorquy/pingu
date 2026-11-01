@@ -152,7 +152,7 @@ function pintarTuyos() {
     return
   }
   if (mios === null) {
-    caja.innerHTML = '<p class="mc-nota">Los productos todavía no están activados en la base. En cuanto lo estén, aquí verás los tuyos y lo que valen.</p>'
+    import('../no-encontrado.js').then((m) => m.pintarSinRespuesta(caja, 'tus productos')).catch(() => {})
     return
   }
   const lista = mios.filter((m) => fichas.has(m.product_id) && mercadoDe(fichas.get(m.product_id)) === catalogoActual())
@@ -233,7 +233,7 @@ function pintarEstante() {
   const caja = $('mcProdSets')
   if (!caja) return
   if (cuentaPorEpisodio === null) {
-    caja.innerHTML = '<p class="empty-state">Los productos todavía no están activados en la base.</p>'
+    import('../no-encontrado.js').then((m) => m.pintarSinRespuesta(caja, 'los productos')).catch(() => {})
     return
   }
   const lista = [...setsPorEpisodio.entries()].filter(([ep]) => cuentaPorEpisodio.has(ep)).sort((a, b) => String(b[1].release_date || '').localeCompare(String(a[1].release_date || '')))

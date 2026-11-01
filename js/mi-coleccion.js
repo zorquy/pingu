@@ -7129,7 +7129,7 @@ async function iniciar() {
     // de otro afirmaba que buscabas en la tuya.
     const caja = $('mcBuscar')
     if (caja) {
-      caja.placeholder = `Buscar en la colección de ${quien}`
+      caja.placeholder = `Busca en la colección de ${quien}`
       caja.setAttribute('aria-label', caja.placeholder)
     }
     // Lo que era una pestaña escondida ahora es un BLOQUE escondido

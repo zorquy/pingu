@@ -143,7 +143,7 @@ export async function abrirComparar(cartaA, { idioma = 'es', doc = document } = 
       <div class="comparar-lado" data-lado="b" id="cmCompararB">
         <label class="comparar-buscar">
           <span>Con qué carta</span>
-          <span class="bs-caja"><span class="bs-lupa" aria-hidden="true">${icons.search(18)}</span><input type="search" enterkeyhint="search" class="bs-input" id="cmCompararQ" placeholder="Busca una carta…" autocomplete="off"></span>
+          <span class="bs-caja"><span class="bs-lupa" aria-hidden="true">${icons.search(18)}</span><input type="search" enterkeyhint="search" class="bs-input" id="cmCompararQ" placeholder="Busca una carta" autocomplete="off"></span>
         </label>
         <div class="comparar-resultados" id="cmCompararResultados" role="listbox" aria-label="Cartas"></div>
       </div>

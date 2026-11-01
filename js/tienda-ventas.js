@@ -210,7 +210,7 @@ function pintarMandos() {
   $('[data-tdvt-periodo]').value = est.periodo
   $('[data-tdvt-donde]').value = est.donde[0] || ''
   $('[data-tdvt-donde]').hidden = compras()
-  $('[data-tdvt-q]').placeholder = compras() ? 'Buscar en tus compras…' : 'Buscar en tus ventas…'
+  $('[data-tdvt-q]').placeholder = compras() ? 'Busca en tus compras' : 'Busca en tus ventas'
   for (const b of caja.querySelectorAll('[data-tdvt-modo]')) b.setAttribute('aria-pressed', String(b.dataset.tdvtModo === est.modo))
 }
 
@@ -262,7 +262,7 @@ export function montarVentas(destino, { perfil: p }) {
       <div class="tdvt-arriba">
         <select class="tdvt-select" data-tdvt-periodo aria-label="Periodo">${PERIODOS.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
         <select class="tdvt-select" data-tdvt-donde aria-label="Dónde se vendió">${[['', 'Dónde: todo'], ...DONDE_VENTA].map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
-        <input type="search" class="tdvt-busca" data-tdvt-q placeholder="Buscar en tus ventas…" aria-label="Buscar en tus ventas" />
+        <input type="search" class="tdvt-busca" data-tdvt-q placeholder="Busca en tus ventas" aria-label="Buscar en tus ventas" />
         <button type="button" class="btn-secondary tdvt-icono" data-tdvt="lupa" aria-label="Buscar en tus ventas" aria-expanded="false">${icons.search(18)}</button>
         <span class="tds-menu-caja">
           <button type="button" class="btn-secondary tdvt-icono" data-tdvt="menu" aria-label="Exportar" title="Exportar" aria-haspopup="menu" aria-expanded="false">${icons.arrowDown(18)}</button>

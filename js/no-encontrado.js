@@ -48,7 +48,7 @@ export async function pintarNoEncontrado(caja, { tipo, trozo = '' } = {}) {
       <h1>${escapeHtml(c.titulo)}</h1>
       <p class="subtext" id="noEncontradoFrase">${escapeHtml(c.frase)}</p>
       <form class="buscador-404" action="/buscar.html" method="get" role="search">
-        <input type="search" enterkeyhint="search" name="q" value="${escapeHtml(q)}" placeholder="Buscar en PokeDoc…" aria-label="Buscar en PokeDoc" autocomplete="off" />
+        <input type="search" enterkeyhint="search" name="q" value="${escapeHtml(q)}" placeholder="Busca en PokeDoc" aria-label="Buscar en PokeDoc" autocomplete="off" />
         <input type="hidden" name="en" value="${c.grupo}" />
         <button type="submit" class="btn-primary">Buscar</button>
       </form>

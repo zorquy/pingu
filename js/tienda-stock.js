@@ -406,7 +406,7 @@ function desplegableDeSets(sets, buscaSet) {
   return `<details class="tds-desplegable" data-tds-sets ${est.setsAbierto ? 'open' : ''}>
     <summary><span>${escapeHtml(resumen)}</span>${icons.chevronRight?.(16) || ''}</summary>
     <div class="tds-desplegable-caja">
-      <input type="search" class="tds-busca" data-tds-buscaset placeholder="Buscar expansión…" value="${escapeHtml(buscaSet)}" aria-label="Buscar expansión" />
+      <input type="search" class="tds-busca" data-tds-buscaset placeholder="Busca una expansión" value="${escapeHtml(buscaSet)}" aria-label="Buscar expansión" />
       <div class="tds-checks">${vistos.map((s) => `<label><input type="checkbox" data-filtro="sets" data-valor="${escapeHtml(s)}" ${puestas.includes(s) ? 'checked' : ''} /><span>${escapeHtml(nombreDe('sets', s))}</span><small>${est.facetas.sets?.[s] || 0}</small></label>`).join('') || '<p class="tds-nada">Ninguna con ese nombre.</p>'}</div>
     </div>
   </details>`
@@ -1059,7 +1059,7 @@ export function montarStock(destino, { perfil: p }) {
       <aside class="tds-filtros" aria-label="Filtros del stock"></aside>
       <div class="tds-cuerpo">
         <div class="tds-arriba">
-          <input type="search" class="tds-busca" data-tds-q placeholder="Buscar por nombre o número…" aria-label="Buscar en tu stock" />
+          <input type="search" class="tds-busca" data-tds-q placeholder="Busca por nombre o número" aria-label="Buscar en tu stock" />
           <div class="tds-barra">
           <!-- Una fila (1086, PINGU: «demasiados botones»): Añadir con su menú,
                Filtros (en el móvil), el orden y «⋯» con lo demás. -->

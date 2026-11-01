@@ -41785,6 +41785,46 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1162 — Nombres y textos (T1, T5, T6 de «PokeDoc entera»)
+
+La propuesta «PokeDoc entera» (2026-11-01) miró las 42 pantallas en móvil y PC
+y sacó seis reglas transversales y nueve pantallas; PINGU: «dale con lo
+recomendado, en ese orden». Esta es la primera tanda, la de los textos.
+
+**T1 — Un nombre para cada cosa.** La lateral, la burbuja del móvil y el título
+de la página dicen lo mismo, y la sección se llama como la sección:
+- La lista de personas es **Gente** (`usuarios.html`: `<h1>`, `<title>`,
+  `og:title`, `twitter:title`). Antes: «La comunidad» / «Comunidad — PokeDoc»
+  / «Gente» en el desplegable. La sección sigue siendo Comunidad.
+- **Mis partidas** en `ROTULO_CORTO` de `js/barra-movil.js` (lo leen la burbuja
+  y la lateral, `barra-lateral.js`) y en la hoja «Tú» (`js/menu-tu.js`). Antes
+  «Partidas» en los tres sitios y «Mis partidas» como título.
+- **Cambios** en `.mc-texto-corto` de la pestaña de Deseos y cambios
+  (`mi-coleccion.html`; /cartas se genera sin esa pestaña). Antes «Trade», la
+  única palabra en inglés de la navegación.
+- El mazo del meta (`js/meta-mazo.js`): mientras llega la ficha, el `<h1>` y
+  `document.title` son el id de la dirección con mayúscula (`charizard-ex` →
+  «Charizard ex»); el HTML lleva «Mazo del meta» de respaldo. Antes «Cargando…».
+- El título del perfil ajeno ya lo pone `meta-social.js` (`metaDePerfil`) en el
+  servidor: el «Perfil — PokeDoc» del HTML solo se ve sin la edge function.
+
+**T5 — «Busca…» en todas las cajas.** 18 cajas tuteaban y 18 iban en infinitivo
+(«Buscar en el foro…»). Ahora todas «Busca …» con qué se busca y sin puntos
+suspensivos, salvo cuando cierran una lista de ejemplos («Charizard, Iono,
+151/165…»). Los `aria-label` no cambian (no se ven). La de Gente dice «Busca a
+alguien por su nombre»; la de mensajes, «Busca una conversación».
+
+**T6 — Nada de «todavía no está activado».** Cuatro frases de obra que salían
+cuando la base no contestaba (foro, buscador del foro, peticiones de guías,
+productos) afirmaban que PokeDoc no tenía eso. Pasan por `pintarSinRespuesta`
+(`js/no-encontrado.js`, 1149): «No hemos podido cargar el foro. Puede ser la
+conexión.» y Reintentar. `faltaLaTabla` de `peticiones.js` se fue con ellas.
+Quedan dos toasts (fotos en mensajes sin la 891, sugerencias sin su tabla) que
+solo saltan sin la migración y dicen cuál, y el aviso de /admin del foro.
+
+Lo vigila `test-tanda-1162.mjs` (sin navegador): los nombres, que ninguna caja
+empiece por «Buscar», los puntos suspensivos, y que las cuatro frases no estén.
+
 ## Tanda 1161 — Más ancho donde hay cartas
 
 PINGU, con la portada a 2.200 px: «¿por qué solo usamos el centro?». Toda la

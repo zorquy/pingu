@@ -6,7 +6,7 @@
   <script>/* Temporada (1134, SCHEMA): Halloween el 31 y el 1, antes del primer pintado; las pruebas automáticas no lo ven salvo con ?temporada=halloween. */(function(){try{var n=new Date(),m=n.getMonth(),d=n.getDate();if(/[?&]temporada=halloween/.test(location.search)||!navigator.webdriver&&((m===9&&d===31||m===10&&d===1)&&localStorage.getItem('pd-sin-halloween')!=='1')){var r=document.documentElement;r.dataset.temporada='halloween';r.dataset.theme='dark';document.write('<link rel="stylesheet" href="/css/temporada.css">')}}catch(e){}})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil');try{localStorage.getItem('pd-tienda')&&document.documentElement.classList.add('pd-tienda')}catch(e){}addEventListener('pagereveal',function(e){var t=e.viewTransition&&e.viewTransition.types;if(!t)return;var a=window.navigation&&navigation.activation;if(a&&a.navigationType==='traverse')t.add('atras');else if(document.documentElement.hasAttribute('data-detalle'))t.add('adelante')})</script>
-  <title>Comunidad — PokeDoc</title>
+  <title>Gente — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
@@ -20,14 +20,14 @@
   <meta property="og:site_name" content="PokeDoc" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_ES" />
-  <meta property="og:title" content="Comunidad — PokeDoc" />
+  <meta property="og:title" content="Gente — PokeDoc" />
   <meta property="og:description" content="Descubre a otros coleccionistas y jugadores, y las guías creadas por la comunidad de PokeDoc." />
   <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@pokedoc_es" />
-  <meta name="twitter:title" content="Comunidad — PokeDoc" />
+  <meta name="twitter:title" content="Gente — PokeDoc" />
   <meta name="twitter:description" content="Descubre a otros coleccionistas y jugadores, y las guías creadas por la comunidad de PokeDoc." />
   <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
   <!-- meta-social:fin -->
@@ -141,7 +141,7 @@
        demostrar que aquí hay alguien. -->
   <main id="contenido" class="page-content container">
     <div class="page-header cab-lista" style="padding-top: 8px;">
-      <h1>La comunidad</h1>
+      <h1>Gente</h1>
       <p class="subtext cab-lema">Quién está aquí, qué está haciendo y a quién puedes preguntarle.</p>
     </div>
 
@@ -174,7 +174,7 @@
             <h2 class="section-title">Gente de PokeDoc</h2>
           </div>
           <div class="search-input-wrap">
-            <input type="text" id="userSearchInput" class="search-input" placeholder="Buscar por nombre de usuario…" />
+            <input type="text" id="userSearchInput" class="search-input" placeholder="Busca a alguien por su nombre" />
           </div>
           <div id="userDirectoryEmpty"></div>
           <div class="user-directory-grid" id="userDirectoryGrid"></div>
@@ -185,7 +185,7 @@
           <p class="subtext" style="margin: -4px 0 16px;">Guías creadas por la comunidad, con o sin revisar todavía — las que llevan el sello ✓ Aprobada ya las ha comprobado el equipo de PokeDoc y también aparecen en el sitio oficial.</p>
           <div style="display: flex; gap: 10px; align-items: center; margin: 18px 0;">
             <div class="search-input-wrap" style="margin: 0; flex: 1;">
-              <input type="text" id="communityGuideSearchInput" class="search-input" placeholder="Buscar guías de la comunidad…" />
+              <input type="text" id="communityGuideSearchInput" class="search-input" placeholder="Busca una guía de la comunidad" />
             </div>
             <a href="/editor-guia.html" class="btn-primary" style="white-space: nowrap;">+ Crear guía</a>
           </div>

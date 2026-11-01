@@ -88,7 +88,7 @@ export const ICONO_DE_PAGINA = { index: 'home', noticias: 'newspaper', aprender:
 export const iconoDePagina = (clave) => ICONO_DE_PAGINA[clave] || 'compass'
 // En una burbuja la palabra es corta: «Constructor de mazos» pide 160 px
 // y «Constructor» dice lo mismo debajo de un lápiz.
-export const ROTULO_CORTO = { aprender: 'Guías', retos: 'Retos', cartas: 'Catálogo', 'mi-coleccion': 'Mi colección', meta: 'Meta', constructor: 'Constructor', 'mis-partidas': 'Partidas', usuarios: 'Gente' }
+export const ROTULO_CORTO = { aprender: 'Guías', retos: 'Retos', cartas: 'Catálogo', 'mi-coleccion': 'Mi colección', meta: 'Meta', constructor: 'Constructor', 'mis-partidas': 'Mis partidas', usuarios: 'Gente' }
 export const rotuloCorto = (clave, texto) => ROTULO_CORTO[clave] || texto
 
 // Una burbuja con más de lo que cabe lleva un degradado en el lado por el

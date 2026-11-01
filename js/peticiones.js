@@ -25,14 +25,6 @@ let sesion = null
 let cache = []
 let misGuias = []
 
-function faltaLaTabla(error) {
-  if (!error) return false
-  return (
-    error.code === '42P01' ||
-    error.code === 'PGRST205' ||
-    /guide_request/.test(`${error.message || ''} ${error.details || ''}`)
-  )
-}
 
 async function cargar() {
   const { data, error } = await supabase
@@ -238,9 +230,8 @@ export async function initPeticiones(contenedor, session) {
   if (error) {
     // Sin la migración puesta no se enseña un error de base de datos a
     // nadie: se dice lo que pasa, en cristiano.
-    contenedor.innerHTML = faltaLaTabla(error)
-      ? `<p class="empty-state">Las peticiones de guías todavía no están activadas.</p>`
-      : `<p class="empty-state">No se han podido cargar las peticiones.</p>`
+    // Con o sin la tabla, lo mismo: no se ha podido cargar, con salida (1162).
+    import('./no-encontrado.js').then((m) => m.pintarSinRespuesta(contenedor, 'las peticiones')).catch(() => {})
     return
   }
 

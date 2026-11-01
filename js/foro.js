@@ -80,8 +80,11 @@ function migasHtml(trozos) {
     .join('<span class="foro-migas-sep" aria-hidden="true">›</span>')
 }
 
+// Si la base no contesta (o no tiene el foro), se dice que no se ha podido
+// cargar, con salida (la 1149): «el foro todavía no está activado» era una
+// frase de obra que afirmaba que PokeDoc no tiene foro (1162).
 function sinActivar() {
-  principal.innerHTML = `<p class="empty-state">El foro todavía no está activado.</p>`
+  import('./no-encontrado.js').then((m) => m.pintarSinRespuesta(principal, 'el foro')).catch(() => {})
   lateral.innerHTML = ''
 }
 
@@ -1115,7 +1118,7 @@ async function pintarBusqueda() {
   // Si la columna no existe todavía (migración sin ejecutar), se dice en
   // vez de enseñar "no hay resultados", que sería mentira.
   if (faltaLaBusqueda(porTitulo.error) || faltaLaBusqueda(porMensaje.error)) {
-    principal.innerHTML = `<p class="empty-state">El buscador del foro todavía no está activado.</p>`
+    import('./no-encontrado.js').then((m) => m.pintarSinRespuesta(principal, 'el buscador del foro')).catch(() => {})
     return
   }
 

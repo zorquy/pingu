@@ -54,7 +54,7 @@ function montar() {
     <div class="tdv-caja">
       <header class="tdv-cab"><h2 id="tdvTitulo">Vender</h2><span class="tdc-cab-der"><button type="button" class="link-btn" data-tdv="comprar">Comprar a un cliente</button><button type="button" class="tdv-cerrar" data-tdv="cerrar" aria-label="Cerrar">&times;</button></span></header>
       <div class="tdv-cuerpo">
-        <input type="search" class="tdv-busca" id="tdvBusca" placeholder="Busca en tu stock…" aria-label="Busca en tu stock" autocomplete="off" />
+        <input type="search" class="tdv-busca" id="tdvBusca" placeholder="Busca en tu stock" aria-label="Busca en tu stock" autocomplete="off" />
         <ul class="tdv-resultados" id="tdvResultados" hidden></ul>
         <ul class="tdv-lineas" id="tdvLineas"></ul>
         <div class="tdv-donde" role="group" aria-label="Dónde se vende">${DONDE_VENTA.map(([v, t]) => `<button type="button" class="tdv-chip" data-donde="${v}" aria-pressed="false">${t}</button>`).join('')}</div>

@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (404) — PINGU-Claude (1162 — nombres y textos: Gente, Mis partidas, Cambios, «Busca…», sin frases de obra)
+
+**Hecho** (primera tanda de la propuesta «PokeDoc entera»; PINGU: «dale con lo
+recomendado, en ese orden»):
+- T1: la lista de personas se llama «Gente» (título, pestaña del navegador y
+  og:title; la sección sigue siendo Comunidad); la lateral, la burbuja y la hoja
+  «Tú» dicen «Mis partidas», como el título; la pestaña de cambios en la
+  burbuja de Mi colección es «Cambios», no «Trade»; y el mazo del meta titula
+  con lo que dice la dirección mientras llega la ficha (era «Cargando…»). El
+  título del perfil ajeno ya lo ponía `meta-social.js` en el servidor: no se toca.
+- T5: las cajas de búsqueda tutean («Busca…», sin puntos suspensivos salvo en
+  una lista de ejemplos): foro, Gente, Mi colección, glosario, 404, evento,
+  mensajes, tienda, vitrina, comparar. Los `aria-label` no cambian.
+- T6: las frases de obra («El foro todavía no está activado», «El buscador del
+  foro…», «Las peticiones de guías…», «Los productos…») pasan por
+  `pintarSinRespuesta` (1149): dicen que no se ha podido cargar y dan Reintentar.
+  Quedan dos toasts (fotos en mensajes, sugerencias) que solo saltan sin su
+  migración y lo dicen; y el aviso de /admin, que es para el equipo.
+
+**Ficheros**: usuarios.html, mi-coleccion.html, cartas.html (generado),
+mazo-meta.html, foro.html, glosario.html, 404.html, evento.html, coleccion.html,
+carta-del-dia.html, nueve.html, js/barra-movil.js, js/menu-tu.js,
+js/meta-mazo.js, js/foro.js, js/tema.js, js/peticiones.js,
+js/mi-coleccion/productos.js, js/mi-coleccion.js, js/mensajes.js, js/vitrina.js,
+js/carta-comparar.js, js/no-encontrado.js, js/tienda-*.js, js/perfil-tienda.js,
+SCHEMA.md, novedades.json. Pruebas: test-tanda-1162.mjs nueva; 309 y 314
+actualizadas a los textos nuevos; 1040, 1149, 649, 753 y test-imports verdes.
+
+**Pendiente**: las tandas 1163–1168 de la misma propuesta, en ese orden.
+
 ## 2026-11-01 (403) — PINGU-Claude (1161 — más ancho donde hay cartas)
 
 **Hecho**:

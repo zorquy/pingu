@@ -145,7 +145,7 @@ async function elegirCartas(userId, actuales, doc = document) {
   }
   d.innerHTML = `<header class="vitrina-dialogo-cabeza"><h2 id="vitrinaElegirTitulo">Tu vitrina</h2><button type="button" class="vitrina-cerrar" data-vitrina="cancelar" aria-label="Cerrar">✕</button></header>
     <p class="subtext" id="vitrinaCuenta" aria-live="polite"></p>
-    <input type="search" enterkeyhint="search" class="vitrina-buscar" id="vitrinaBuscar" placeholder="Busca entre tus cartas…" aria-label="Buscar entre tus cartas" autocomplete="off">
+    <input type="search" enterkeyhint="search" class="vitrina-buscar" id="vitrinaBuscar" placeholder="Busca entre tus cartas" aria-label="Buscar entre tus cartas" autocomplete="off">
     <div class="vitrina-opciones" id="vitrinaOpciones"><div class="skeleton" style="height:160px"></div></div>
     <footer class="vitrina-dialogo-pie"><button type="button" class="btn-secondary" data-vitrina="cancelar">Cancelar</button><button type="button" class="btn-primary" data-vitrina="guardar">Guardar</button></footer>`
   d.showModal()
