@@ -124,7 +124,8 @@ console.log('\n── 4. Mis partidas: el botón principal se muda con la pesta�
     filtrarPalabra: document.querySelector('#torneoFiltrar .cab-palabra')?.getBoundingClientRect().width || 0,
   }))
   let r = await donde()
-  check('al abrir: «Apuntar un torneo» junto al título, «Filtrar» (solo icono) en la fila de pestañas, y todo cabe sin deslizar', r.torneo === 'partidasAcciones' && r.filtrarT === 'partidasMandosExtra' && r.partida === 'partidas-barra' && r.mandosCaben && r.filtrarPalabra === 0, JSON.stringify(r))
+  // Desde la 1164 (J2) el botón va en la fila de pestañas como un «+» redondo, delante.
+  check('al abrir: «Apuntar un torneo» (un «+») delante de las pestañas, «Filtros» (solo icono) en la misma fila, y todo cabe sin deslizar', r.torneo === 'partidasMandosMas' && r.filtrarT === 'partidasMandosExtra' && r.partida === 'partidas-barra' && r.mandosCaben && r.filtrarPalabra === 0, JSON.stringify(r))
   await p.click('#partidasTabs [data-vista="sueltas"]')
   await p.waitForTimeout(200)
   r = await donde()

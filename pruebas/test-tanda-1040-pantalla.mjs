@@ -83,7 +83,8 @@ console.log('── 3. Torneos: una sola fila con el calendario y «+» delante 
   check('en el calendario, el icono vuelve a la cabecera y se ve', await visto(page, '#torneosVistaIcono'))
   await ctx.close()
   const pc = await abrir('/torneos', false)
-  check('en el PC, «Crear torneo» con su texto y la semana', /Crear torneo/.test(await pc.page.innerText('#btnNuevoTorneo')) && (await visto(pc.page, '#torneosSemana')))
+  // Desde la 1164 (J1) la semana solo sale en «Calendario»: en la lista, una fila.
+  check('en el PC, «Crear un torneo» con su texto y sin la semana en la lista', /Crear un torneo/.test(await pc.page.innerText('#btnNuevoTorneo')) && !(await visto(pc.page, '#torneosSemana')))
   await pc.ctx.close()
 }
 
