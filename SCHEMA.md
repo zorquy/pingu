@@ -41785,6 +41785,53 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1158 — Las MEP que faltan, el pack de McDonald's y sus precios
+
+PINGU: «el Darkrai no sale todavía; faltan creo que desde la 89 a la 92 y
+alguna más. En TCGGO no están; si no están en TCGdex, las hago yo a mano». Y:
+«mete este set [McDonald's Pokémon-e Minimum Pack, 18 cartas]… ¿cómo cogemos
+los precios de Cardmarket si no están ni en TCGGO ni en TCGdex?».
+
+**Las MEP, de TCGdex.** Su base de datos (tcgdex/cards-database, clonada y
+mirada) tiene las MEP del 1 al 110 y la 120: la 89 Mega Zeraora ex, la 90
+Mega Darkrai ex, la 91 Mega Dragonite ex, la 92 Paradise Resort. La pasada
+nueva `tcgdex-rellenar-set` es la forma de `scrydex-rellenar-set` (886)
+contra TCGdex, que es gratis: pide `/v2/en/sets/mep` (y `/es/` para el nombre
+en español), se queda con las que NO tenemos por NÚMERO, no pisa un id que ya
+exista en otro set y las escribe con `origen = 'relleno'` (el reemplazo de la
+1151 no las borra y, si TCGGO las trae, las casa por número). La foto solo si
+TCGdex la da. Cada una lleva su id de producto de Cardmarket en
+`cm_id_product_propio`, sacado de los ficheros (`CARDMARKET.mep`, 111
+números; la 90 es el 903676). Se repasa cada 7 días (`tocaRepasar` de la
+1151), con tres intentos y el estado en `tcgdex_rellenar_set` (con un latido
+al día para que el semáforo no la pinte en ámbar entre repasos).
+
+**El pack de McDonald's, a mano.** No está en TCGGO ni en TCGdex (ni en su
+e-Card japonés ni en sus promos). Va como una entrada más de
+`decks-jp-a-mano` (`mcd-e-minimum_ja`, 18 cartas): nombre japonés e inglés,
+tipo, PS y Pokédex leídos de la carta, y Holo las seis que Dex marca (003,
+004, 007, 010, 014, 018). Sin foto, fecha ni precio inventados. Lleva
+`soloAMano`: no es un deck y no espera a la lista de Scrydex. La era se copia
+del japonés del 2001-12-01 (Expedition); si no casa, se coloca en /admin.
+
+**Los precios.** Ya existía `cardmarket-precios` (587): baja cada día la guía
+pública de Cardmarket (`price_guide_6.json`, todos sus productos de Pokémon)
+y escribe el precio de cada carta con `cm_id_product_propio`, el campo que el
+panel ya edita («Id de producto en Cardmarket»). Era solo occidental. Ahora
+`procesar` lleva el estado por catálogo (`claveDeEstado`: `cardmarket_guia` y
+`cardmarket_guia_jp`) y en el japonés solo mira `origen` mano o relleno
+(`filtroDeOrigen`): el resto del japonés lo pone TCGGO y no se pisan. La
+pasada japonesa es `cardmarket-precios-jp` (a y 47 de cada hora). La guía da
+el mínimo de TODOS los idiomas del producto: en una japonesa es el japonés; en
+una promo occidental, «cualquier idioma». Las tres claves nuevas van en
+`PASADAS`.
+
+Pruebas: `test-tanda-1158.mjs` (escribe solo la 89–92 con su Cardmarket y su
+foto si la hay, no pisa un id ajeno, a los dos días no repite y a la semana
+sí, un fallo de TCGdex cuenta; el pack con sus 18 y sus seis Holo, creado sin
+esperar a Scrydex; la guía japonesa pide solo lo hecho a mano). La 817 al día
+(veinte pasadas).
+
 ## Tanda 1155 — Constructor vacío con tres salidas y el Panel en dos columnas (E2 y E3)
 
 De la ronda 7, con lo recomendado (esconder, no apagar, lo que no sirve).

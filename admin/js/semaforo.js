@@ -24,6 +24,10 @@ export const PASADAS = [
   ['scrydex_decks_jp', 'Decks JP (Scrydex)'],
   ['decks_jp_a_mano', 'Decks JP a mano'],
   ['scrydex_rellenar_set', 'Relleno (Scrydex)'],
+  ['tcgdex_rellenar_set', 'Relleno (TCGdex)'],
+  // La guía diaria de precios de Cardmarket (587), y la del japonés a mano (1158).
+  ['cardmarket_guia', 'Guía de Cardmarket'],
+  ['cardmarket_guia_jp', 'Guía de Cardmarket (JP a mano)'],
   // Las redes (902): lo que falla al publicar en X se apunta aquí.
   ['x_noticias', 'X (noticias)'],
   ['enviar_push', 'Avisos push'],

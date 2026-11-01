@@ -185,6 +185,43 @@ export const DECKS = [
       { n: '018', ja: 'ダブル無色エネルギー', en: 'Double Colorless Energy' },
     ],
   },
+  // El pack de McDonald's de 2002 (1158, PINGU con la lista de Dex delante):
+  // 18 cartas de la era e-Card, solo Japón, que no tienen ni TCGGO ni TCGdex
+  // (su base de datos, mirada fichero a fichero: ni en e-Card ni en las
+  // promos). No son reimpresiones: no se copia ficha, va lo que se lee en la
+  // carta (nombre, tipo, PS y su Pokédex). Holo o normal, como en Dex. Sin
+  // foto ni fecha ni precio inventados: la foto y el id de producto de
+  // Cardmarket se ponen en /admin → Colecciones (con el id, el precio lo pone
+  // cada día `cardmarket-precios-jp`). `soloAMano`: no espera a Scrydex.
+  {
+    clave: 'mcd-e-minimum_ja',
+    soloAMano: true,
+    set: {
+      id: 'mcd-e-minimum_ja', name: "McDonald's Pokémon-e Minimum Pack", name_en: "McDonald's Pokémon-e Minimum Pack",
+      release_date: null, card_count_official: 18, card_count_total: 18,
+      serieDe: { name_en: 'Expedition Expansion Pack', release_date: '2001-12-01' },
+    },
+    cartas: [
+      ['001', 'フシギダネ', 'Bulbasaur', 'Grass', 50, 1, false],
+      ['002', 'ナゾノクサ', 'Oddish', 'Grass', 50, 43, false],
+      ['003', 'チコリータ', 'Chikorita', 'Grass', 50, 152, true],
+      ['004', 'ヒトカゲ', 'Charmander', 'Fire', 50, 4, true],
+      ['005', 'ロコン', 'Vulpix', 'Fire', 50, 37, false],
+      ['006', 'ヒノアラシ', 'Cyndaquil', 'Fire', 50, 155, false],
+      ['007', 'ゼニガメ', 'Squirtle', 'Water', 50, 7, true],
+      ['008', 'ワニノコ', 'Totodile', 'Water', 50, 158, false],
+      ['009', 'マリル', 'Marill', 'Water', 50, 183, false],
+      ['010', 'ピカチュウ', 'Pikachu', 'Lightning', 50, 25, true],
+      ['011', 'チョンチー', 'Chinchou', 'Lightning', 40, 170, false],
+      ['012', 'メリープ', 'Mareep', 'Lightning', 40, 179, false],
+      ['013', 'ケーシィ', 'Abra', 'Psychic', 40, 63, false],
+      ['014', 'ヤドン', 'Slowpoke', 'Psychic', 40, 79, true],
+      ['015', 'ネイティ', 'Natu', 'Psychic', 40, 177, false],
+      ['016', 'サンド', 'Sandshrew', 'Fighting', 40, 27, false],
+      ['017', 'ゴマゾウ', 'Phanpy', 'Fighting', 50, 231, false],
+      ['018', 'ヨーギラス', 'Larvitar', 'Fighting', 50, 246, true],
+    ].map(([n, ja, en, tipo, hp, dex, holo]) => ({ n, ja, en, holo, category: 'Pokemon', stage: 'Basic', types: [tipo], hp, dex_ids: [dex] })),
+  },
 ]
 
 async function rest(ruta, clave, opciones = null) {
@@ -297,9 +334,12 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
     await persistir()
     return { ok: true, clave: pendiente.clave, yaExiste: yaExiste.id }
   }
-  // Scrydex primero, si lo tiene: trae fotos.
-  const lista = Array.isArray(deScrydex?.lista?.expansiones) ? deScrydex.lista.expansiones : null
-  if (lista) {
+  // Scrydex primero, si lo tiene: trae fotos. Lo que no es un deck
+  // (`soloAMano`, 1158) no espera a nadie.
+  const lista = !pendiente.soloAMano && Array.isArray(deScrydex?.lista?.expansiones) ? deScrydex.lista.expansiones : null
+  if (pendiente.soloAMano) {
+    // nada que esperar
+  } else if (lista) {
     const suya = loTraeScrydex(pendiente.set, lista)
     if (suya) {
       estado.hechos[pendiente.clave] = { fecha: ahora.toISOString(), estado: 'laTraeScrydex', expansion: suya.id }

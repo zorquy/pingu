@@ -642,7 +642,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `REEMPLAZOS` de `tcggo-reemplazar-set` con `conservarPorNumero`,
   `sinBorrar` y `numeroComoElNuestro`, como `mep-promos`; y como un set de promos
   CRECE, con `cadaDias` (1151: se repasa cada semana; la 1000 la trajo una vez
-  y la MEP 90 de Mega Darkrai salió después). Y una
+  y la MEP 90 de Mega Darkrai salió después). Y lo que TCGGO NO tiene pero
+  TCGdex sí (las MEP 89–92, 1158) entra por `tcgdex-rellenar-set` (lista
+  `RELLENOS`, solo lo que falta por NÚMERO, `origen = 'relleno'`, con su id de
+  Cardmarket sacado de los ficheros de TCGdex en `cm_id_product_propio`); lo
+  que no tiene NADIE va a mano en `decks-jp-a-mano` (`soloAMano` si no es un
+  deck, como el pack de McDonald's de 2002). El precio de esas cartas sale de
+  la guía pública diaria de Cardmarket por ese id (`cardmarket-precios`; el
+  japonés solo para `mano`/`relleno`, en `cardmarket-precios-jp`), y el id se
+  pone en /admin → Colecciones → la carta. Y una
   clave de estado nueva va en `PASADAS` (`admin/js/semaforo.js`), que es
   la lista que /admin LEE: la 883 y la 884 escribieron su bloque sin
   meterla y el panel decía «todavía no ha corrido» de algo que corría.

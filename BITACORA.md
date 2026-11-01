@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (399) — PINGU-Claude (1158 — las MEP que faltan, el pack de McDonald's y sus precios)
+
+**Hecho**:
+- MEP: TCGGO no tiene la 89–92 (Mega Zeraora, Mega Darkrai, Mega Dragonite,
+  Paradise Resort) y quizá alguna más; TCGdex sí (1–110 y 120). Pasada nueva
+  `tcgdex-rellenar-set` (cada 10 min, trabaja una vez por semana): mete lo que
+  falta por número, `origen = 'relleno'`, con su id de Cardmarket de los
+  ficheros de TCGdex. La primera pasada sale en cuanto se despliegue.
+- El McDonald's Pokémon-e Minimum Pack (2002, 18 cartas, JP) en
+  `decks-jp-a-mano` (`soloAMano`), con las seis Holo de Dex. Sin foto ni fecha.
+- Precios: `cardmarket-precios` por catálogo; `cardmarket-precios-jp` pone el
+  de la guía diaria de Cardmarket a lo japonés hecho a mano en cuanto la carta
+  tiene su id de producto (se pone en /admin → Colecciones → la carta).
+
+**Ficheros**: netlify/functions/tcgdex-rellenar-set.mjs (nuevo),
+netlify/functions/cardmarket-precios-jp.mjs (nuevo),
+netlify/functions/cardmarket-precios.mjs, netlify/functions/decks-jp-a-mano.mjs,
+admin/js/semaforo.js, CLAUDE.md, SCHEMA.md, novedades.json. Pruebas:
+test-tanda-1158.mjs nueva y la 817 al día.
+
+**Pendiente (PINGU)**: en /admin → Colecciones → McDonald's Pokémon-e Minimum
+Pack, poner a cada carta su foto y su «Id de producto en Cardmarket»; y la
+fecha del set. Mirar en el semáforo de «Hoy» que «Relleno (TCGdex)» diga
+hecho con 89–92. La 957, 993 y 885 fallan igual sin esto.
+
 ## 2026-11-01 (398) — PINGU-Claude (1155 — Constructor vacío con tres salidas y el Panel en dos columnas)
 
 **Hecho**: E2 y E3 de la ronda 7, con lo recomendado. Con esto, la ronda 7

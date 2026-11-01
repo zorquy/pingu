@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-01", "tipo": "arreglo", "texto": "Las promos de Megaevolución que faltaban (Mega Zeraora ex, Mega Darkrai ex, Mega Dragonite ex, Paradise Resort y alguna más) entran en el catálogo con su precio de Cardmarket.", "enlace": "/cartas" },
+    { "fecha": "2026-11-01", "tipo": "nuevo", "texto": "Nueva expansión japonesa en el catálogo: el McDonald's Pokémon-e Minimum Pack de 2002, con sus 18 cartas.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "El constructor vacío te propone por dónde empezar: copiar uno de los mazos más jugados del meta, importar una lista o buscar cartas.", "enlace": "/constructor" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "En el ordenador, el Panel de Mi colección va en dos columnas: el valor y las que más valen a la izquierda, y las que más se mueven a la derecha.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "En el ordenador, Retos te enseña la liga de la semana al lado: los cinco primeros, en qué puesto vas tú y tu racha, sin tener que abrir nada.", "enlace": "/retos" },

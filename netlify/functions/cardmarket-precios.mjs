@@ -23,6 +23,10 @@ import { URL_GUIA, filaDeGuia } from '../lib/cardmarket-catalogo.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'cardmarket_guia'
+// El japonés (1158): solo lo que TCGGO no pone (lo creado a mano y los
+// rellenos, como el pack de McDonald's), con su propio estado del día.
+export const claveDeEstado = (mercado) => (mercado === 'WEST' ? CLAVE_ESTADO : `${CLAVE_ESTADO}_${String(mercado).toLowerCase()}`)
+export const filtroDeOrigen = (mercado) => (mercado === 'WEST' ? '' : '&origen=in.(mano,relleno)')
 const PRESUPUESTO_MS = 20_000
 const POR_PAGINA = 1000
 
@@ -53,8 +57,9 @@ export async function procesar({
   const quedaTiempo = () => reloj() - arranque < PRESUPUESTO_MS
   const pedir = restImpl || ((ruta) => rest(ruta, clave))
   const guardar = guardarImpl || ((filas) => rest('tcg_card_prices', clave, { method: 'POST', body: JSON.stringify(filas) }))
-  const leerEstado = estadoImpl || (async () => (await pedir(`scrydex_estado?select=valor&clave=eq.${CLAVE_ESTADO}&limit=1`))?.[0]?.valor || {})
-  const guardarEstado = guardarEstadoImpl || ((valor) => rest('scrydex_estado', clave, { method: 'POST', body: JSON.stringify([{ clave: CLAVE_ESTADO, valor, updated_at: new Date().toISOString() }]) }))
+  const claveEstado = claveDeEstado(mercado)
+  const leerEstado = estadoImpl || (async () => (await pedir(`scrydex_estado?select=valor&clave=eq.${claveEstado}&limit=1`))?.[0]?.valor || {})
+  const guardarEstado = guardarEstadoImpl || ((valor) => rest('scrydex_estado', clave, { method: 'POST', body: JSON.stringify([{ clave: claveEstado, valor, updated_at: new Date().toISOString() }]) }))
 
   let estado
   try {
@@ -86,7 +91,7 @@ export async function procesar({
   while (quedaTiempo()) {
     let cartas
     try {
-      cartas = await pedir(`tcg_cards?select=id,cm_id_product_propio&market=eq.${mercado}&cm_id_product_propio=not.is.null&order=id&limit=${POR_PAGINA}&offset=${desde}`)
+      cartas = await pedir(`tcg_cards?select=id,cm_id_product_propio&market=eq.${mercado}&cm_id_product_propio=not.is.null${filtroDeOrigen(mercado)}&order=id&limit=${POR_PAGINA}&offset=${desde}`)
     } catch (e) {
       const m = String(e?.message || e)
       if (/cm_id_product_propio|42703/.test(m)) return { ok: true, saltado: 'falta ejecutar supabase-migration-cardmarket-propio.sql' }
