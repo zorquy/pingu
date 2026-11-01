@@ -46,7 +46,8 @@ const b = await chromium.launch()
     const m = document.querySelector('.perfil-pagina'), h = document.getElementById('profileHero')
     return { columnas: getComputedStyle(m).gridTemplateColumns.split(' ').length, pegada: getComputedStyle(h).position, barra: !!document.querySelector('.rango-barra') }
   })
-  check('PA12: en el PC, dos columnas y la identidad pegada', g.columnas === 2 && g.pegada === 'sticky', JSON.stringify(g))
+  // Desde la 1150 (C3), la cabecera a lo ancho: una columna y sin pegar.
+  check('PA12→1150: en el PC, la cabecera a lo ancho (una columna)', g.columnas === 1 && g.pegada !== 'sticky', JSON.stringify(g))
   check('  …y la barra del rango', g.barra, JSON.stringify(g))
   const rango = await p.evaluate(async () => (await import('/js/rango-barra.js')).barraDeRango(5))
   check('el rango: «5 de 150 XP para Aprendiz» (diez niveles desde la 1124)', /5 de 150 XP para Aprendiz/.test(rango), rango)
