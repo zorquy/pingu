@@ -129,8 +129,13 @@ console.log('\n── 2. Los números, que son la prueba de que hay gente ──
 console.log('\n── 3. El podio es del MES, no de quien lleva más tiempo ──')
 {
   const { page } = await abrir()
+  // Desde la 1165 el podio va dentro de una tira de una línea (`.com-top`)
+  // que se abre con «Ver el top ›»: se abre antes de leerlo.
+  check('hay podio (la tira del top)', await page.locator('.com-top-tira').isVisible())
+  await page.click('.com-top-tira')
+  await page.waitForTimeout(200)
   const podio = page.locator('.com-podio')
-  check('hay podio', await podio.isVisible())
+  check('  …y al abrirla, el podio', await podio.isVisible())
   const nombres = await page.locator('.com-puesto-nombre').allTextContents()
   // Ash tiene MÁS XP TOTAL que Misty (4210 vs 3870) pero ha ganado MENOS
   // este mes (2210 vs 3870). El oro es de Misty.

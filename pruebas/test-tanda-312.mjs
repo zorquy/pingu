@@ -208,7 +208,9 @@ console.log('\n── 3. Los números de la comunidad son un bloque, no cuatro c
       alto: Math.round(caja.getBoundingClientRect().height),
     }
   })
-  check('los cuatro números van en una sola caja', r.cuantos === 4 && r.bordeFuera !== '0px', JSON.stringify(r))
+  // Desde la 1165 (M1) en el PC las cuatro cifras son UNA LÍNEA bajo el lema,
+  // sin caja: contexto, no la noticia. Siguen siendo cuatro y sin sombras.
+  check('los cuatro números van juntos, sin caja, en una línea', r.cuantos === 4 && r.bordeFuera === '0px' && r.alto <= 40, JSON.stringify(r))
   check('  …y ninguno lleva sombra propia', r.sombrasDentro === 0, String(r.sombrasDentro))
   await page.close()
 }
