@@ -658,3 +658,149 @@ input.bs-input[type='search']:focus {
     min-width: 0;
   }
 }
+
+/* ── 1147: una sola caja (B1), antes de escribir (B2) y te lo completa (B3); SCHEMA 1147 ── */
+.bs-sugerencias {
+  display: grid;
+  margin: var(--e-sm) 0 0;
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.bs-sugerencias[hidden] {
+  display: none;
+}
+
+.bs-sug {
+  display: flex;
+  align-items: center;
+}
+
+.bs-sug-ir,
+.bs-sug-copiar {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.bs-sug-ir {
+  flex: 1;
+  gap: var(--e-md);
+  min-width: 0;
+  padding: 0 var(--e-md);
+  text-align: left;
+}
+
+.bs-sug-ir > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.bs-sug-ir svg,
+.bs-sug-copiar {
+  color: var(--text-mid);
+}
+
+.bs-sug-tuyo {
+  color: var(--text-mid);
+}
+
+.bs-sug-copiar {
+  justify-content: center;
+  min-width: 44px;
+}
+
+.bs-sug-ir:hover,
+.bs-sug-copiar:hover {
+  background: var(--ice);
+}
+
+.bs-antes {
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.bs-antes-bloque .bs-seccion {
+  margin-top: var(--e-md);
+}
+
+.bs-antes-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  padding: 0 var(--e-md);
+}
+
+.bs-reciente-chip {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+}
+
+.bs-reciente-chip .bs-reciente {
+  gap: var(--e-xs);
+  padding: 0 var(--e-xs) 0 var(--e-md);
+  border-radius: var(--radius-pill);
+  font-size: var(--t-sm);
+}
+
+.bs-reciente-x {
+  display: grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.bs-reciente-x:hover {
+  color: var(--text);
+}
+
+.bs-antes .bs-borrar {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+/* B1: en el PC ancho la caja vive en la barra de arriba, en lugar de la
+   pastilla; la página empieza por los filtros. El título se queda para el
+   lector de pantalla. */
+#navSearch.bs-en-la-barra #navSearchBtn {
+  display: none;
+}
+
+#navSearch.bs-en-la-barra .bs-caja {
+  width: 100%;
+  min-height: 44px;
+  padding-left: var(--e-md);
+}
+
+html.bs-caja-arriba .bs-titulo {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* Sin título ni caja, la página empieza por los filtros (con la lateral, la
+   barra de arriba ya no tapa el contenido: los 76 px eran para la otra). */
+html.bs-caja-arriba .bs-pagina {
+  padding-top: var(--e-lg);
+}

@@ -4,9 +4,11 @@
 // es `js/buscador.js`, el mismo de la paleta de Ctrl+K.
 import { icons } from './icons.js'
 import { escapeHtml } from './html.js'
-import { GRUPOS, buscarTodo, todoVacio, recordarBusqueda, leerRecientes, olvidarRecientes } from './buscador.js'
+import { GRUPOS, buscarTodo, todoVacio, recordarBusqueda, leerRecientes, olvidarRecientes, olvidarReciente } from './buscador.js'
+import { loQueAcabaDeSalir, ultimosDeseos } from './buscar-antes.js'
 import { destinoDe, interiorDe, engancharFotos, baldosaDe } from './buscador-filas.js'
-import { cuentaDeGrupo, esPersona } from './buscador-puro.js'
+import { cuentaDeGrupo, esPersona, sugerenciasDeNombres, trozosDeSugerencia, EJEMPLOS_DE_BUSQUEDA } from './buscador-puro.js'
+import { supabase } from './supabase.js'
 
 const $ = (id) => document.getElementById(id)
 const input = $('searchInput')
@@ -42,13 +44,80 @@ function apuntarEnLaDireccion(q) {
   if (nueva !== location.pathname + location.search) history.replaceState(null, '', nueva)
 }
 
+// ANTES DE ESCRIBIR (B2, 1147; PINGU: «dale»). La página vacía era una
+// pantalla negra: ahora, lo que buscaste (en chips, cada uno con su ×), la
+// expansión que acaba de salir, ejemplos que funcionan y, con cuenta, tus
+// últimas de «La quiero». Lo que llega de la red se pinta cuando llega, en
+// su hueco, y si no se puede saber, su bloque no sale.
+let antesVersion = 0
 function pintarRecientes() {
-  const lista = input.value.trim() ? [] : leerRecientes()
-  recientes.innerHTML = lista.length
-    ? `<div class="bs-recientes"><p class="bs-seccion">Lo que buscaste<button type="button" class="bs-borrar" id="bsOlvidar">Borrar</button></p>
-        ${lista.map((t) => `<button type="button" class="bs-reciente" data-reciente="${escapeHtml(t)}">${icons.clock(16)}<span>${escapeHtml(t)}</span></button>`).join('')}</div>`
-    : ''
+  const v = ++antesVersion
+  if (input.value.trim()) { recientes.innerHTML = ''; return }
+  const lista = leerRecientes()
+  recientes.innerHTML = `<div class="bs-antes">
+    ${lista.length ? `<section class="bs-antes-bloque"><p class="bs-seccion">Lo que buscaste<button type="button" class="bs-borrar" id="bsOlvidar">Borrar</button></p>
+      <div class="bs-antes-chips">${lista.map((t) => `<span class="bs-reciente-chip"><button type="button" class="bs-reciente" data-reciente="${escapeHtml(t)}">${icons.clock(14)}<span>${escapeHtml(t)}</span></button><button type="button" class="bs-reciente-x" data-quitar="${escapeHtml(t)}" aria-label="Quitar «${escapeHtml(t)}»">${icons.x(14)}</button></span>`).join('')}</div></section>` : ''}
+    <section class="bs-antes-bloque" id="bsAcaba" hidden></section>
+    <section class="bs-antes-bloque"><p class="bs-seccion">Prueba con</p>
+      <div class="bs-antes-chips">${EJEMPLOS_DE_BUSQUEDA.map((t) => `<button type="button" class="chip-filtro bs-ejemplo" data-ejemplo="${escapeHtml(t)}">${escapeHtml(t)}</button>`).join('')}</div></section>
+    <section class="bs-antes-bloque" id="bsDeseos" hidden></section>
+  </div>`
+  loQueAcabaDeSalir().then((set) => {
+    const caja = $('bsAcaba')
+    if (v !== antesVersion || !caja || !set) return
+    caja.innerHTML = `<p class="bs-seccion">Acaba de salir</p>${fila('expansiones', set)}`
+    caja.hidden = false
+  }).catch(() => {})
+  supabase.auth.getSession().then(({ data }) => ultimosDeseos(data?.session?.user?.id)).then((cartas) => {
+    const caja = $('bsDeseos')
+    if (v !== antesVersion || !caja || !cartas?.length) return
+    caja.innerHTML = `<p class="bs-seccion">Tus deseos<a class="bs-borrar" href="/mi-coleccion?ver=deseos">Ver todos</a></p><div class="bs-rejilla">${cartas.map((c) => baldosaDe(c)).join('')}</div>`
+    caja.hidden = false
+    import('./marcas-carta.js').then((m) => m.marcarCartas(caja)).catch(() => {})
+  }).catch(() => {})
 }
+
+// TE LO COMPLETA (B3, 1147): encima de los resultados, los nombres de carta
+// que completan lo escrito, sacados de la misma respuesta. Tocar uno lo
+// busca; la flecha lo copia a la caja sin buscar, para seguir escribiendo.
+// Va EN la página y no flotando: un desplegable tapaba los filtros y el
+// primer resultado, y esconderlo al perder el foco movía la página justo
+// cuando el dedo bajaba a un resultado. Sale mientras se escribe y se va
+// al elegir, al buscar con Intro o al tocar otra cosa que busca.
+let escribiendo = false
+const sugerencias = document.createElement('div')
+sugerencias.className = 'bs-sugerencias'
+sugerencias.id = 'bsSugerencias'
+sugerencias.hidden = true
+sugerencias.setAttribute('role', 'listbox')
+sugerencias.setAttribute('aria-label', 'Sugerencias')
+let ultimoElegido = ''
+function pintarSugerencias(q, nombres) {
+  const lista = escribiendo && q && q !== ultimoElegido ? sugerenciasDeNombres(nombres, q) : []
+  sugerencias.innerHTML = lista.map((n) => {
+    const [a, b, c] = trozosDeSugerencia(n, q)
+    return `<div class="bs-sug" role="option"><button type="button" class="bs-sug-ir" data-sug="${escapeHtml(n)}">${icons.search(14)}<span><b>${escapeHtml(a)}</b><span class="bs-sug-tuyo">${escapeHtml(b)}</span><b>${escapeHtml(c)}</b></span></button><button type="button" class="bs-sug-copiar" data-copiar="${escapeHtml(n)}" aria-label="Completar con «${escapeHtml(n)}»" title="Completar">${icons.arrowUpLeft(16)}</button></div>`
+  }).join('')
+  sugerencias.hidden = !lista.length
+}
+sugerencias.addEventListener('mousedown', (e) => e.preventDefault())
+sugerencias.addEventListener('click', (e) => {
+  const ir = e.target.closest('[data-sug]')
+  const copiar = e.target.closest('[data-copiar]')
+  if (ir) {
+    input.value = ir.dataset.sug
+    ultimoElegido = input.value
+    escribiendo = false
+    recordarBusqueda(input.value)
+    sugerencias.hidden = true
+    input.blur()
+    buscar()
+  } else if (copiar) {
+    input.value = `${copiar.dataset.copiar} `
+    input.focus()
+    buscar()
+  }
+})
 
 function seccion(g, estado, q) {
   if (estado.error) {
@@ -123,6 +192,7 @@ async function buscar() {
   apuntarEnLaDireccion(q)
   pintarRecientes()
   if (q.length < 2) {
+    sugerencias.hidden = true
     resultados.innerHTML = q ? '<p class="empty-state">Escribe al menos dos letras.</p>' : ''
     return
   }
@@ -141,6 +211,8 @@ async function buscar() {
         // lo demás a la derecha; en el móvil, una debajo de otra.
         `<div class="bs-todo"><div class="bs-col">${mejorHtml(r.cartas, q)}${['cartas', 'productos', 'expansiones'].filter((g) => r[g]).map((g) => seccion(g, r[g], q)).join('')}</div><div class="bs-col">${preguntados.filter((g) => !['cartas', 'productos', 'expansiones'].includes(g)).map((g) => seccion(g, r[g], q)).join('')}</div></div>`
   if (!esPersona(q)) pintarCuentas(q, r)
+  resultados.prepend(sugerencias)
+  pintarSugerencias(q, r.cartas?.nombres || [])
   // El punto verde de quien está en línea (1140), también aquí.
   if (r.gente?.filas?.length) import('./en-linea.js').then((m) => m.marcarEnLinea(resultados)).catch(() => {})
   // «La tienes» y «La quieres» en cada carta (943).
@@ -148,11 +220,15 @@ async function buscar() {
 }
 
 input.addEventListener('input', () => {
+  escribiendo = true
   clearTimeout(temporizador)
   temporizador = setTimeout(buscar, 250)
 })
 $('bsForm').addEventListener('submit', (e) => {
   e.preventDefault()
+  ultimoElegido = input.value.trim()
+  escribiendo = false
+  sugerencias.hidden = true
   recordarBusqueda(input.value)
   input.blur()
   buscar()
@@ -177,9 +253,17 @@ recientes.addEventListener('click', (e) => {
     pintarRecientes()
     return
   }
-  const r = e.target.closest('[data-reciente]')
+  const quitar = e.target.closest('[data-quitar]')
+  if (quitar) {
+    olvidarReciente(quitar.dataset.quitar)
+    pintarRecientes()
+    return
+  }
+  const r = e.target.closest('[data-reciente], [data-ejemplo]')
   if (!r) return
-  input.value = r.dataset.reciente
+  input.value = r.dataset.reciente || r.dataset.ejemplo
+  ultimoElegido = input.value
+  escribiendo = false
   buscar()
 })
 resultados.addEventListener('click', (e) => {
@@ -199,3 +283,33 @@ engancharFotos(resultados)
 
 pintarChips()
 buscar()
+
+// UNA SOLA CAJA EN EL PC (B1, 1147): con la barra lateral y la pastilla de
+// buscar arriba (≥ 1400 px con ratón, lateral.css), la caja de esta página
+// SE MUDA a la barra en lugar de la pastilla: era la misma caja dos veces, y
+// escribir en la de arriba abría la paleta encima de la página de buscar. Se
+// mueve el elemento de verdad, con sus manejadores (la regla de la 893), y
+// vuelve a su sitio si la ventana se estrecha.
+const caja = $('bsForm')
+const suSitio = document.createComment('caja de buscar')
+caja.before(suSitio)
+const mqArriba = matchMedia('(min-width: 1400px) and (pointer: fine)')
+function colocarCaja() {
+  const barra = document.getElementById('navSearch')
+  const arriba = !!(mqArriba.matches && barra && document.documentElement.classList.contains('con-lateral'))
+  const conFoco = document.activeElement === input
+  if (arriba && caja.parentElement !== barra) barra.appendChild(caja)
+  else if (!arriba && caja.parentElement !== suSitio.parentElement) suSitio.after(caja)
+  barra?.classList.toggle('bs-en-la-barra', arriba)
+  document.documentElement.classList.toggle('bs-caja-arriba', arriba)
+  if (conFoco) input.focus()
+  return !!barra
+}
+mqArriba.addEventListener('change', colocarCaja)
+if (!colocarCaja()) {
+  // La barra la monta app.js después; se espera a que aparezca (y a la clase
+  // de la lateral) sin quedarse mirando para siempre.
+  const vigia = new MutationObserver(() => { if (colocarCaja() && document.documentElement.classList.contains('con-lateral')) vigia.disconnect() })
+  vigia.observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ['class'] })
+  setTimeout(() => vigia.disconnect(), 10000)
+}

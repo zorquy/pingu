@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (389) — PINGU-Claude (1147 — Buscar: una sola caja, antes de escribir y te lo completa)
+
+**Hecho**: de «Buscar, otra vuelta» (PINGU: «dale»), B1, B2 y B3. En el PC
+ancho la caja de /buscar es la de la barra de arriba (sin título ni segunda
+caja; Ctrl+K va a ella). Antes de escribir: lo que buscaste con ×, lo que
+acaba de salir, «Prueba con» y tus deseos. Mientras escribes, los nombres que
+completan lo escrito encima de los resultados.
+
+**Ficheros**: js/search.js, js/buscador.js, js/buscador-puro.js,
+js/buscar-antes.js (nuevo), js/nav-search.js, js/icons.js (x y arrowUpLeft),
+css/buscador.css, SCHEMA.md, novedades.json, CLAUDE.md. Pruebas (rama
+pruebas): test-tanda-1147-pantalla.mjs nueva.
+
+**En curso**: la 1148 (vista previa en la paleta del PC, B5). B4 y B6, a la
+espera de PINGU.
+
 ## 2026-11-01 (388) — PINGU-Claude (1146b — Buscar: tres cartas en el móvil y el japonés al final)
 
 **Hecho**: PINGU, con una captura: en el móvil solo una fila de tres cartas;

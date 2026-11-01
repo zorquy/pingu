@@ -24,7 +24,7 @@ import { expansionesQueCasan, mejorResultado, esPersona, sinArroba } from './bus
 
 // Lo justo para pintar la fila (y `serie_id` para echar a TCG Pocket, y la
 // fecha del set para ordenar por expansión).
-const COLUMNAS_CARTA = 'id, market, set_id, local_id, name, name_es, name_en, image_path, image_tcggo, tcg_sets(name, name_en, serie_id, release_date, oculto)'
+export const COLUMNAS_CARTA = 'id, market, set_id, local_id, name, name_es, name_en, image_path, image_tcggo, tcg_sets(name, name_en, serie_id, release_date, oculto)'
 // El de la pestaña Buscar de Cartas: con 120 de vuelta, «hay más, afina».
 export const TOPE_CARTAS = 120
 
@@ -121,7 +121,10 @@ const CONSULTAS = {
       const set = porSet.get(c.set_id)
       c.logosDelSet = set ? [set.logo_tcggo, set.logo_scrydex, urlDeLogo(set.logo_path, 'WEST'), set.symbol_scrydex].filter(Boolean) : []
     }
-    return { filas: cartas, total: todas.length, hayMas: lista.length >= TOPE_CARTAS, porIlustrador, mejor, japon: await japonesas }
+    // Los nombres distintos de lo que ha llegado, para «te lo completa» (B3,
+    // 1147): sale de esta misma respuesta, sin otra consulta.
+    const nombres = [...new Set(todas.slice(0, 80).map((c) => nombreDeCarta(c)))]
+    return { filas: cartas, total: todas.length, hayMas: lista.length >= TOPE_CARTAS, porIlustrador, mejor, nombres, japon: await japonesas }
   },
   // Los dos catálogos; de la lista de sets que ya baja la web (la CDN).
   async expansiones(crudo, limite) {
@@ -237,6 +240,14 @@ export function leerRecientes(almacen = globalThis.localStorage) {
   } catch {
     return []
   }
+}
+
+// Quitar UNA (la × de su chip, 1147).
+export function olvidarReciente(texto, almacen = globalThis.localStorage) {
+  const t = String(texto || '').trim().toLowerCase()
+  try {
+    almacen.setItem(CLAVE, JSON.stringify(leerRecientes(almacen).filter((x) => x.toLowerCase() !== t)))
+  } catch {}
 }
 
 export function olvidarRecientes(almacen = globalThis.localStorage) {

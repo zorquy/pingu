@@ -10,7 +10,13 @@ import { hojaInyectada } from './hoja.js'
 //
 // La paleta entra por `import()` al abrirla: este módulo lo baja toda
 // página y tiene que seguir siendo una lupa y dos atajos.
-const abrir = (texto = '') => import('./paleta.js').then((m) => m.abrirPaleta({ texto })).catch(() => {
+// En /buscar, Ctrl+K y «/» van a SU caja (1147, B1): abrir la paleta encima
+// de la página de buscar era buscar dos veces.
+const cajaDeLaPagina = () => {
+  const caja = document.getElementById('searchInput')
+  return caja && caja.getClientRects().length ? caja : null
+}
+const abrir = (texto = '') => cajaDeLaPagina() ? void (cajaDeLaPagina().focus(), cajaDeLaPagina().select()) : import('./paleta.js').then((m) => m.abrirPaleta({ texto })).catch(() => {
   // Si la paleta no llega (sin red, un fallo del módulo), la búsqueda
   // grande sigue siendo una página normal.
   location.href = '/buscar.html'

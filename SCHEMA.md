@@ -41785,6 +41785,46 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1147 — Buscar: una sola caja, antes de escribir y te lo completa (B1, B2, B3)
+
+De la propuesta «Buscar, otra vuelta» (PINGU: «dale»: B1, B2, B3 y B5; B5 va
+en la 1148; B4 —«¿quisiste decir?», con migración— y B6 —acciones sin abrir la
+carta— quedan a la espera).
+
+**B1 · Una sola caja en el PC.** Con la lateral y la pastilla de buscar arriba
+(`≥ 1400 px` con ratón, la regla de lateral.css), `search.js` MUDA el
+`#bsForm` dentro de `#navSearch` (la pastilla se esconde con
+`.bs-en-la-barra`) y lo devuelve a su sitio (un comentario marcador) si la
+ventana se estrecha (`colocarCaja`, con `matchMedia` y, mientras app.js no ha
+montado la barra, un `MutationObserver` con tope de diez segundos). El título
+`h1` se queda para el lector (`html.bs-caja-arriba`), y la página empieza por
+los filtros. En /buscar, Ctrl+K y «/» enfocan su caja en vez de abrir la paleta
+encima (`cajaDeLaPagina` en `nav-search.js`).
+
+**B2 · Antes de escribir.** `pintarRecientes` pinta cuatro bloques: lo que
+buscaste en chips con su × (`olvidarReciente`), «Acaba de salir»
+(`acabaDeSalir`, pura: la más nueva con fecha de hoy o antes, sin escondidas ni
+TCG Pocket, de la lista de sets que ya baja la web), «Prueba con»
+(`EJEMPLOS_DE_BUSQUEDA`, en `buscador-puro.js`; los pulsa todos
+test-tanda-1147-pantalla, la regla de la 447) y, con cuenta, las tres últimas
+de «La quiero» con su precio (`ultimosDeseos`). Lo que llega de la red va en
+`js/buscar-antes.js` y no en `buscador.js`: la 909 vigila que el buscador no
+pregunte él a `tcg_cards`. Cada bloque que no se puede saber no sale, y la
+versión (`antesVersion`) tira lo que llega tarde de una pintada vieja (663).
+Los ejemplos llevan `data-ejemplo`, no `data-reciente`: no son búsquedas tuyas.
+
+**B3 · Te lo completa.** La búsqueda de cartas devuelve además `nombres` (los
+distintos de las 80 primeras), y `sugerenciasDeNombres` (pura) elige hasta
+cuatro que contienen lo escrito, primero los que empiezan por ello y los más
+cortos; `trozosDeSugerencia` parte el nombre para pintar lo tuyo apagado y el
+resto en negrita, plegando letra a letra para no perder la posición. Van EN la
+página, encima de los resultados (`#bsSugerencias` dentro de `#searchResults`),
+y no flotando: un desplegable tapaba los filtros y el primer resultado, y
+esconderlo al perder el foco movía la página justo cuando el dedo bajaba a un
+resultado. Salen mientras se escribe (`escribiendo`) y se van al elegir, con
+Intro o al tocar un reciente o un ejemplo. La flecha copia el nombre con un
+espacio detrás, para seguir escribiendo («charizard ex 151»).
+
 ## Tanda 1146 — Buscar con caras y la barra del trato en Mensajes (W2, W3)
 
 De la propuesta «Otra vuelta por la web» (PINGU: «todo menos lo último de la

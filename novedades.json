@@ -33,6 +33,9 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-01", "tipo": "mejora", "texto": "Buscar te ayuda antes de escribir: lo que buscaste (con su × para quitarlo), la expansión que acaba de salir, ejemplos para probar y tus últimas cartas de «La quiero».", "enlace": "/buscar" },
+    { "fecha": "2026-11-01", "tipo": "nuevo", "texto": "Al buscar, te proponemos los nombres que completan lo que escribes («chari» → Charizard ex, Charizard VSTAR…); la flecha lo pone en la caja para seguir escribiendo.", "enlace": "/buscar" },
+    { "fecha": "2026-11-01", "tipo": "mejora", "texto": "En el ordenador, la página de buscar usa la caja de arriba: sin una segunda caja ni título, los resultados empiezan antes.", "enlace": "/buscar" },
     { "fecha": "2026-10-31", "tipo": "mejora", "texto": "Buscar, con cara: las cartas salen en fotos con su precio y tu marca, las guías, noticias y temas con su color, la gente con su puntito verde, y en el ordenador las cartas a un lado y lo demás al otro.", "enlace": "/buscar?q=charizard" },
     { "fecha": "2026-10-31", "tipo": "mejora", "texto": "En una conversación, «Proponer un cambio» y «Ya nos cambiamos» van juntos en una barra fina; la explicación sale solo si la necesitas.", "enlace": "/mensajes" },
     { "fecha": "2026-10-31", "tipo": "mejora", "texto": "En el móvil, la ficha de un torneo ya no ocupa la pantalla con la cabecera: los datos en una fila que se desliza, la descripción con «Más» y tu plaza a la vista nada más entrar.", "enlace": "/torneos" },

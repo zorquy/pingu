@@ -70,3 +70,55 @@ export function cuentaDeGrupo(estado, pedidos) {
 // es una carta ni una guía.
 export const esPersona = (q) => /^\s*@/.test(String(q || ''))
 export const sinArroba = (q) => String(q || '').replace(/^\s*@+/, '').trim()
+
+// B3 (1147) · LOS NOMBRES QUE COMPLETAN LO ESCRITO: de las cartas que ya han
+// llegado con la búsqueda, así que no se pregunta nada de más. Primero los
+// que empiezan por lo escrito y, dentro, los más cortos («charizard» antes
+// que «charizard ex»). El que ya es igual a lo escrito no se ofrece.
+export function sugerenciasDeNombres(nombres, crudo, max = 4) {
+  const q = normalizeSearch(String(crudo || '')).toLowerCase().trim()
+  if (q.length < 2) return []
+  const vistos = new Set()
+  const salen = []
+  for (const n of nombres || []) {
+    const nombre = String(n || '').trim()
+    const k = normalizeSearch(nombre).toLowerCase()
+    if (!nombre || vistos.has(k) || k === q || !k.includes(q)) continue
+    vistos.add(k)
+    salen.push({ nombre, k })
+  }
+  salen.sort((a, b) => Number(b.k.startsWith(q)) - Number(a.k.startsWith(q)) || a.k.length - b.k.length || a.k.localeCompare(b.k))
+  return salen.slice(0, max).map((x) => x.nombre)
+}
+
+// Dónde va lo escrito dentro de una sugerencia, para pintarlo apagado y el
+// resto en negrita: [antes, lo escrito, después]. Se pliega letra a letra
+// (tildes y mayúsculas fuera) para no perder la posición en el original.
+export function trozosDeSugerencia(nombre, crudo) {
+  const original = String(nombre || '')
+  const q = normalizeSearch(String(crudo || '')).toLowerCase().trim()
+  let plegado = ''
+  const donde = []
+  ;[...original].forEach((c, i) => {
+    for (const p of normalizeSearch(c).toLowerCase()) { plegado += p; donde.push(i) }
+  })
+  const letras = [...original]
+  const at = q ? plegado.indexOf(q) : -1
+  if (at < 0) return [original, '', '']
+  const desde = donde[at]
+  const hasta = donde[at + q.length - 1] + 1
+  return [letras.slice(0, desde).join(''), letras.slice(desde, hasta).join(''), letras.slice(hasta).join('')]
+}
+
+// B2 (1147) · LO QUE ACABA DE SALIR: la expansión más nueva ya a la venta
+// (con fecha de hoy o de antes), sin las escondidas ni TCG Pocket.
+export function acabaDeSalir(sets, hoy = new Date().toISOString().slice(0, 10)) {
+  const validas = (sets || []).filter((s) => s && !s.oculto && esDelTCG(s) && s.release_date && String(s.release_date).slice(0, 10) <= hoy)
+  validas.sort((a, b) => String(b.release_date).localeCompare(String(a.release_date)))
+  return validas[0] || null
+}
+
+// B2 · «PRUEBA CON»: ejemplos que FUNCIONAN (la 447: un ejemplo que se pulsa
+// y da cero es peor que ninguno). Nombres de carta en los dos idiomas y una
+// expansión; los pulsa todos test-tanda-1147-pantalla.mjs.
+export const EJEMPLOS_DE_BUSQUEDA = ['Charizard', 'Pikachu', 'Gardevoir ex', 'Corona Astral']

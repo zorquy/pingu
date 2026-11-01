@@ -131,6 +131,8 @@ export const icons = {
   chevronRight: (size) => icon('<polyline points="9 18 15 12 9 6"></polyline>', size),
   paperclip: (size) => icon('<path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>', size),
   camera: (size) => icon('<path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle>', size),
+  x: (size) => icon('<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>', size),
+  arrowUpLeft: (size) => icon('<line x1="17" y1="17" x2="7" y2="7"></line><polyline points="7 17 7 7 17 7"></polyline>', size),
   arrowDown: (size) => icon('<path d="M12 5v14M19 12l-7 7-7-7"></path>', size),
 }
 

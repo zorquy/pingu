@@ -159,7 +159,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`pedirHasta`). Y /buscar NO pinta su propia lista de cartas (972): la chapa
   «Cartas» y `?en=cartas` llevan a `/cartas?ver=buscar&q=`; lo puro de
   arriba (expansiones que casan, el mejor resultado, las cuentas, «@») vive
-  en `js/buscador-puro.js`.
+  en `js/buscador-puro.js`. En el PC ancho la caja de /buscar ES la de la barra
+  (1147: se muda a `#navSearch`; no pongas una segunda). Lo de antes de escribir
+  que pide a la red va en `js/buscar-antes.js` (la 909 vigila que `buscador.js`
+  no pregunte a `tcg_cards`), y un ejemplo de «Prueba con» va en
+  `EJEMPLOS_DE_BUSQUEDA`, que la 1147 pulsa entero: si no da nada, no va.
   **Lo que lleva dentro un producto y su PVP salen de TCGGO en el mismo
   listado** (1026, `include_contained_items=1` y `msrp`): tabla
   `tcg_product_contenido` (reescrita entera por producto en cada pasada) y
