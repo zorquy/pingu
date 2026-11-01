@@ -2,8 +2,9 @@
 // PINGU: «un número en la barra cuando algo te espera, sí». Hasta ahora lo
 // que tenías sin leer solo se sumaba en el avatar (avisos + mensajes) y desde
 // la barra de abajo no se sabía dónde estaba. Ahora Comunidad cuenta los
-// mensajes sin leer y los avisos del foro, y Jugar los de torneos (te toca
-// una ronda, un recordatorio, tu plaza…). Lo mismo en la lateral del PC.
+// avisos del foro y Jugar los de torneos (te toca una ronda, un
+// recordatorio, tu plaza…). Lo mismo en la lateral del PC. Los mensajes
+// privados contaron en Comunidad hasta la 1169b: van en el sobre y el avatar.
 //
 // Desde la 1142 (PINGU eligió A1, A2 y A3 de «La campana y los números»):
 // Colección cuenta lo de los cambios, los cruces, las alertas de precio y
@@ -73,9 +74,14 @@ const numeroDeChapa = (texto) => {
 
 // Por sección (los nombres de la barra) y por página (`paginas`). Mensajes es
 // la sección de una cuenta de tienda (tienda-marco.js) y la página /mensajes.
+// Comunidad NO cuenta los mensajes privados (1169b, PINGU: «tengo un mensaje
+// privado y pone que tengo algo en comunidad»): Mensajes no está en su
+// burbuja ni en su cajón —se llega por el avatar—, así que un número en
+// Comunidad mandaba al foro a buscar lo que estaba en el sobre. El sobre y
+// el avatar ya lo cuentan.
 export function cuentasDeSecciones(avisos = [], mensajes = 0) {
   const m = numeroDeChapa(mensajes)
-  const cuentas = { Comunidad: m, Jugar: 0, 'Colección': 0, Mensajes: m }
+  const cuentas = { Comunidad: 0, Jugar: 0, 'Colección': 0, Mensajes: m }
   const paginas = { foro: 0, torneos: 0, cambios: 0, mensajes: m }
   for (const a of avisos || []) {
     if (a?.read_at) continue

@@ -41785,6 +41785,18 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1169b — Comunidad no cuenta los mensajes privados
+
+La 1139 escribió «Comunidad cuenta los mensajes sin leer y los avisos del
+foro» con la idea de que Mensajes colgara de Comunidad; la 1140–1141 dejaron
+Mensajes donde estaba (la hoja «Tú», el sobre del PC), y el número se quedó.
+Resultado: un mensaje privado sin leer ponía «1» en Comunidad, y en Comunidad
+—Foro y Gente— no había nada que leer. `cuentasDeSecciones` suma ahora a
+Comunidad solo los avisos del foro; `Mensajes` (la sección de una tienda) y
+`paginas.mensajes` siguen con el sobre. La regla: **un número de sección
+cuenta lo que se lee EN esa sección**; lo que se abre por el avatar cuenta
+en el avatar.
+
 ## Tanda 1169 — «Por aquí hoy» con la cuenta de verdad
 
 **El fallo.** PINGU: «aquí el límite es 40? nunca he visto más de 40». El

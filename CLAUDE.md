@@ -857,7 +857,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
 - **El número de cada sección de la barra sale de `js/numeros-seccion.js`**
   (tanda 1139): no pregunta nada, lee lo que ya cuentan la campanita
   (`window.__pdAvisos`) y el sobre (`#navMsgBadge`), y se repinta con el
-  evento `pd-avisos`. Un tipo de aviso nuevo que sea de una sección va en
+  evento `pd-avisos`. Los mensajes privados NO cuentan en Comunidad (1169b,
+  PINGU: «tengo un mensaje privado y pone que tengo algo en comunidad»):
+  Mensajes no está en su burbuja ni en su cajón, así que van solo en el sobre
+  y en el avatar (y en la sección Mensajes de una tienda). Un tipo de aviso nuevo que sea de una sección va en
   `seccionDeAviso` (Comunidad el foro, Jugar los torneos, Colección los
   cambios, cruces, alertas de precio y tiendas, 1142), y en una fila de
   `SECCIONES_AVISOS` (`js/avisos-prefs.js`, 1149: la tabla de Ajustes; sin

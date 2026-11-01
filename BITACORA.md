@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (412) — PINGU-Claude (1169b — Comunidad ya no cuenta los mensajes privados)
+
+**Hecho** (PINGU, con capturas: «tengo un mensaje privado y pone que tengo
+algo en comunidad, cuando es incorrecto»):
+- La 1139 sumaba el sobre al número de Comunidad pensando en meter Mensajes
+  en esa sección, y no se metió: Mensajes se abre desde el avatar. Así que un
+  mensaje privado ponía un 1 en Comunidad que mandaba al foro a buscar nada.
+  `cuentasDeSecciones` ya no suma los mensajes a Comunidad; siguen en el
+  sobre, en el avatar y en la sección Mensajes de una cuenta de tienda.
+
+**Ficheros**: js/numeros-seccion.js, CLAUDE.md, SCHEMA.md, novedades.json.
+Pruebas: 1139 y 1142 actualizadas (lo puro) y verdes.
+
+**Pendiente**: la propuesta de palabras para el glosario (las de Sergio.M).
+
 ## 2026-11-01 (411) — PINGU-Claude (1169 — «Por aquí hoy» con la cuenta de verdad)
 
 **Hecho** (PINGU: «aquí el límite es 40? nunca he visto más de 40»):
