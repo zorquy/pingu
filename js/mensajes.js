@@ -103,7 +103,7 @@ async function pintarListaLateral(session, actual) {
   const caja = document.getElementById('msgLista')
   if (!caja || !enPC()) return
   const list = await listConversations(session.user.id).catch(() => [])
-  caja.innerHTML = `<div class="msg-lista-cabeza"><h2>Mensajes</h2><a class="btn-secondary" href="/mensajes.html?new=1">${icons.edit(14)} Nueva</a></div>${buscadorHtml(list.length)}<div class="msg-filas">${listaHtml(list, session.user.id, actual)}</div>`
+  caja.innerHTML = `<div class="msg-lista-cabeza"><h2>Mensajes</h2><a class="btn-primary msg-nueva" href="/mensajes.html?new=1">${icons.edit(14)} Nueva conversación</a></div>${buscadorHtml(list.length)}<div class="msg-filas">${listaHtml(list, session.user.id, actual)}</div>`
   engancharBuscador(caja)
   marcarEnLineaEn(caja)
   caja.classList.remove('hidden')
@@ -120,7 +120,7 @@ async function renderInbox(session) {
   root.innerHTML = `
     <div class="msg-lista-cabeza msg-lista-cabeza-movil">
       <h1>Mensajes</h1>
-      <a class="btn-secondary" href="/mensajes.html?new=1">${icons.edit(14)} Nueva</a>
+      <a class="btn-primary msg-nueva" href="/mensajes.html?new=1">${icons.edit(14)} Nueva conversación</a>
     </div>
     <div id="inboxList"><div class="skeleton msg-esqueleto"></div><div class="skeleton msg-esqueleto"></div></div>`
 
@@ -255,7 +255,7 @@ function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta, cita = nul
         ${con1141 ? `<button type="button" class="msg-accion" data-responder="${m.id}" aria-label="Responder a este mensaje" title="Responder">${icons.quote(13)}</button>` : ''}
         ${con1141 && !mia ? `<button type="button" class="msg-accion" data-reaccionar="${m.id}" aria-label="Reaccionar" title="Reaccionar" aria-haspopup="true">${icons.smile(13)}</button>` : ''}
         <time datetime="${escapeHtml(m.created_at)}" title="${new Date(m.created_at).toLocaleString('es-ES')}">${horaDe(m.created_at)}</time>
-        ${mia ? `<button type="button" class="msg-borrar" data-delete-msg="${m.id}" aria-label="Eliminar mensaje" title="Eliminar">${icons.trash(13)}</button>` : reportButtonHtml('private_message', m.id)}
+        ${mia ? `<button type="button" class="msg-borrar" data-delete-msg="${m.id}" aria-label="Borrar mensaje" title="Borrar">${icons.trash(13)}</button>` : reportButtonHtml('private_message', m.id)}
       </span>
     </div>
     ${visto ? `<span class="msg-visto">${icons.checkCircle(12)} Visto${visto === true ? '' : ` ${visto}`}</span>` : ''}`
@@ -318,10 +318,10 @@ async function renderThread(session, conversationId) {
         <button type="button" class="msg-hoja-opcion" data-hoja="camara"><span class="msg-hoja-ico">${icons.camera(18)}</span><span>Hacer una foto<small>Abre la cámara</small></span></button>
         <button type="button" class="btn-secondary msg-hoja-cerrar" data-hoja="cerrar">Cancelar</button>
       </dialog>
-      <dialog class="msg-dialogo" id="msgDialogoBorrar" aria-label="Eliminar mensaje">
+      <dialog class="msg-dialogo" id="msgDialogoBorrar" aria-label="Borrar mensaje">
         <p><strong>¿Eliminar este mensaje?</strong></p>
         <p class="subtext">Se quita para los dos y queda «Mensaje eliminado» en su sitio.</p>
-        <div class="msg-dialogo-botones"><button type="button" class="btn-secondary" data-borrar="no">Cancelar</button><button type="button" class="btn-primary msg-btn-peligro" data-borrar="si">Eliminar</button></div>
+        <div class="msg-dialogo-botones"><button type="button" class="btn-secondary" data-borrar="no">Cancelar</button><button type="button" class="btn-primary msg-btn-peligro" data-borrar="si">Borrar</button></div>
       </dialog>
       <div class="msg-arrastre" id="msgArrastre" hidden>${icons.image(22)} Suelta la imagen para adjuntarla</div>
     </div>`

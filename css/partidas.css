@@ -830,6 +830,15 @@
 .partidas-mandos-extra:empty,
 .cab-acciones:empty { display: none; }
 .partidas-filtrar { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 44px; }
+/* 1163 (T3): la cabecera como la de Foro y Torneos, el botón a la derecha
+   del título; la barra de la pestaña, sin sus dos botones, no deja hueco. */
+.cabecera-pagina:has(> #partidasAcciones) {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--e-md);
+}
+.partidas-barra:not(:has(> .btn-primary, > .partidas-filtrar)) { margin-bottom: 0; }
 @media (max-width: 900px) {
   /* Caben las tres pestañas y «Filtrar» (solo su icono) en los 342 px de
      un iPhone: pestañas más apretadas y «Partidas sueltas» a «Partidas». */

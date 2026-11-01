@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-01",
       "tipo": "mejora",
+      "texto": "El botón principal de cada página está siempre en el mismo sitio: a la derecha del título («Apuntar una partida», «Nueva conversación», «Escribir un tema», «Crear un torneo»).",
+      "enlace": "/mis-partidas"
+    },
+    {
+      "fecha": "2026-11-01",
+      "tipo": "mejora",
       "texto": "Las cosas se llaman igual en todas partes: la lista de personas es «Gente», Mis partidas se llama así también en el menú, y la pestaña de cambios en el móvil es «Cambios».",
       "enlace": "/usuarios"
     },

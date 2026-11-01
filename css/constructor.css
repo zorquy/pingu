@@ -1464,7 +1464,6 @@ button.cm-camino:hover { border-color: var(--acento); }
    (SCHEMA 1040); «¿Cuánto me falta?» y «Guardado», dentro de «⋯». ── */
 .cm-menu-estado:empty { display: none; }
 @media (max-width: 599px) {
-  .cm-pagina > .breadcrumb { display: none; }
   .cm-hero {
     min-height: 0;
     height: 88px;

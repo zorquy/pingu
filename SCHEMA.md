@@ -41785,6 +41785,50 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1163 — Botones y cabeceras (T2, T3, T4 de «PokeDoc entera»)
+
+**T2 — Los botones hablan igual.** Una palabra por acción:
+- Inscribirse es **«Apuntarme»** (Colabora decía «Me apunto»; los torneos y la
+  portada ya lo decían).
+- Quitar algo: **«Quitar»** cuando sale de una lista y sigue existiendo (de un
+  álbum, de La quiero, un filtro) y **«Borrar»** cuando desaparece (un mensaje,
+  un mazo, una cuenta). «Eliminar» se fue (mensajes.js, perfil.js,
+  guide-forum.js).
+- Filtros y orden son **sustantivos** («Filtros», «Orden»): el botón abre una
+  hoja, no hace la acción. Mis partidas decía «Filtrar».
+- Un botón de peligro es un botón SUAVE con el texto en rojo, no uno con borde
+  rojo (la 917 dejó tres clases): `.aj-borrar` (btn-secondary), `.torneo-borrar`
+  y `.tema-borrar` (fondo `--ice`, borde transparente, texto `--danger`; el
+  hover sigue con `--danger-bg`). El «Borrar» del diálogo de un mensaje sigue
+  siendo principal en rojo sólido (`.msg-btn-peligro`): es la acción del diálogo.
+
+**T3 — La acción principal, siempre en el mismo sitio.** En el PC: título a la
+izquierda, lema debajo y el botón principal a la derecha en la línea del título
+(la cabecera que ya tenían Foro, Aprender y Torneos). En el móvil, en la fila
+de mandos (893/1038).
+- Mis partidas: `colocarMandos` (mis-partidas.js) mueve el botón a
+  `#partidasAcciones` y «Filtros» a `#partidasMandosExtra` también en el PC
+  (antes solo en el móvil); `.cabecera-pagina:has(> #partidasAcciones)` es flex
+  con el botón a la derecha, y `.partidas-barra` sin sus dos botones no deja
+  margen (`:not(:has(> .btn-primary, > .partidas-filtrar))`).
+- Mensajes: «Nueva conversación» como `.btn-primary.msg-nueva` al lado del
+  título de la bandeja (era «Nueva» suave), a la medida de la columna de 320 px.
+- El texto es verbo + qué: «Escribir un tema» (foro; en el móvil «Escribir»,
+  con `.cab-largo`), «Crear un torneo», «Apuntar una partida», «Nueva
+  conversación».
+
+**T4 — Migas solo en las fichas.** Estaban en 11 páginas sin regla. Se quitan
+de las páginas de LISTA, donde repiten lo que dice la lateral: el índice del
+foro (`migas.innerHTML = ''` y `.foro-migas:empty { display: none }`) y el
+constructor. Se quedan en las fichas, con la forma de la 857 («Inicio › Sección
+› … › Esto»): tema, lista de temas de un foro, búsqueda del foro, guía, curso,
+tema de Aprender, torneo, perfil ajeno, mazo del meta, carta, colección, los
+retos y los apartados de Ajustes (que son fichas de Ajustes y en el móvil son el
+camino de vuelta). En el móvil las migas no se pintan (1019): ahí no cambia nada.
+
+Lo vigila `test-tanda-1163-pantalla.mjs`; la 893 se actualizó (en el PC también
+se mueven los botones).
+
 ## Tanda 1162 — Nombres y textos (T1, T5, T6 de «PokeDoc entera»)
 
 La propuesta «PokeDoc entera» (2026-11-01) miró las 42 pantallas en móvil y PC

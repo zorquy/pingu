@@ -2038,13 +2038,13 @@ async function init() {
   // Las tres vistas, como las pestañas del perfil. Y en la dirección
   // (859, `?ver=stats`), sustituyendo la entrada: recargar o compartir
   // enseña la misma vista, y atrás no pasa por ella.
-  // EN EL MÓVIL EL BOTÓN PRINCIPAL VA JUNTO AL TÍTULO y «Filtrar» en la fila
-  // de las pestañas (893). Se mueven los botones de verdad —con sus
-  // manejadores—, y al cambiar de pestaña vuelven a su barra; en el PC no
-  // se toca nada.
-  const movil = window.matchMedia?.('(max-width: 900px)').matches
+  // EL BOTÓN PRINCIPAL VA JUNTO AL TÍTULO y «Filtros» en la fila de las
+  // pestañas (893 en el móvil; desde la 1163 también en el PC, que es la
+  // cabecera de Foro y Torneos: título a la izquierda y la acción a la
+  // derecha, sin una fila para el botón solo). Se mueven los botones de
+  // verdad —con sus manejadores—, y al cambiar de pestaña vuelven a su barra.
   const colocarMandos = (vista) => {
-    if (!movil || !$('partidasAcciones') || !$('partidasMandosExtra')) return
+    if (!$('partidasAcciones') || !$('partidasMandosExtra')) return
     for (const v of ['torneos', 'sueltas']) {
       const barra = $(`vista-${v}`).querySelector('.partidas-barra')
       const boton = $(v === 'torneos' ? 'btnApuntarTorneo' : 'btnApuntarPartida')

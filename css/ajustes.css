@@ -210,8 +210,9 @@
   min-height: 44px;
 }
 
+/* Botón suave con el texto en rojo (1163): el borde rojo no es una de las
+   tres clases de la 917. */
 .aj-borrar {
-  border-color: var(--danger);
   color: var(--danger);
   min-height: 44px;
 }

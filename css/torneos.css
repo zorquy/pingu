@@ -910,10 +910,11 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
    para que se distinga del resto del ciclo del torneo sin gritar. */
 .torneo-borrar {
   padding: 8px 16px;
-  border: 1px solid var(--border);
+  /* Suave con el texto en rojo (1163), como .btn-secondary: sin borde. */
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
-  background: transparent;
-  color: var(--text-mid);
+  background: var(--ice);
+  color: var(--danger);
   font-size: var(--t-sm);
   font-weight: 600;
   cursor: pointer;

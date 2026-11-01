@@ -50,7 +50,7 @@ function ver(id, visible) {
 
 // CADA PUESTO CON SU BOTÓN (1153, D3). Antes eran seis tarjetas de texto y
 // para apuntarse había que bajar al formulario y marcar otra vez lo mismo.
-// «Me apunto» marca su casilla y baja; sin cuenta, baja al «Entra primero»
+// «Apuntarme» marca su casilla y baja; sin cuenta, baja al «Entra primero»
 // y la vuelta lleva lo elegido (`?quiere=`), que se marca al volver.
 const URL_COLABORA = '/colabora'
 function apuntar(valor) {

@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (405) — PINGU-Claude (1163 — botones y cabeceras: una palabra por acción, la acción principal junto al título, migas solo en las fichas)
+
+**Hecho** (segunda tanda de «PokeDoc entera»):
+- T2: «Apuntarme» en Colabora (era «Me apunto»); «Borrar» donde decía «Eliminar»
+  (mensajes, mis guías, comentarios de guía); «Filtros» en Mis partidas (era
+  «Filtrar»). Los botones de peligro con borde rojo (borrar cuenta en Ajustes,
+  borrar torneo, borrar tema) pasan a botón suave con el texto en rojo (917).
+- T3: en Mis partidas el botón principal va junto al título también en el PC
+  (como Foro y Torneos) y «Filtros» en la fila de las pestañas; la barra vacía
+  no deja hueco. Mensajes: «Nueva conversación» principal al lado del título
+  (era «Nueva» suave). El foro dice «Escribir un tema» (en el móvil, «Escribir»)
+  y Torneos «Crear un torneo».
+- T4: migas solo en las fichas: fuera del índice del foro (y su hueco) y del
+  constructor. Las fichas siguen con «Inicio › Sección › … › Esto» (857).
+
+**Ficheros**: colabora.html, constructor.html, mis-partidas.html, torneos.html,
+css/ajustes.css, css/constructor.css, css/foro.css, css/mensajes.css,
+css/partidas.css, css/torneos.css, js/ajustes.js, js/colabora.js, js/foro.js,
+js/guide-forum.js, js/mensajes.js, js/mis-partidas.js, js/perfil.js, SCHEMA.md,
+novedades.json. Pruebas: test-tanda-1163-pantalla.mjs nueva; 893 actualizada
+(en el PC también se mueve); 1153, 1019, 299, 917, 300, 269 verdes. Rojos que
+YA ESTABAN (comprobado contra el commit anterior): 893 (/retos, /torneos,
+/usuarios y el meta en el móvil), 857 y 742 (migas en el móvil, desde la 1019),
+311 (auth.css, comunidad.css, torneos.css).
+
+**Pendiente**: 1164–1168 de la misma propuesta.
+
 ## 2026-11-01 (404) — PINGU-Claude (1162 — nombres y textos: Gente, Mis partidas, Cambios, «Busca…», sin frases de obra)
 
 **Hecho** (primera tanda de la propuesta «PokeDoc entera»; PINGU: «dale con lo

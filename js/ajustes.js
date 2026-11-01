@@ -474,7 +474,7 @@ const borrarHtml = () => `
     <h2>Borrar mi cuenta</h2>
     <p>Se borra tu cuenta y tus datos. No es al instante: el equipo lo revisa y lo confirma a mano.</p>
     <p class="aj-nota" id="ajBorrarEstado"></p>
-    <button type="button" class="btn-outline aj-borrar hidden" id="ajBorrar">Solicitar el borrado de mi cuenta</button>`
+    <button type="button" class="btn-secondary aj-borrar hidden" id="ajBorrar">Solicitar el borrado de mi cuenta</button>`
 
 async function montarBorrar(panel) {
   const btn = panel.querySelector('#ajBorrar')

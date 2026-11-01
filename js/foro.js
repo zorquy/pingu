@@ -425,7 +425,8 @@ async function pintarIndice() {
   principal.innerHTML = bloques
     || `<p class="empty-state">Todavía no hay ningún foro abierto. Se crean desde el panel de administración.</p>`
 
-  migas.innerHTML = migasHtml([{ texto: 'Inicio', url: '/' }, { texto: 'Foro' }])
+  // El índice es una página de lista: sin migas (1163, T4); la lateral ya dice dónde estás.
+  migas.innerHTML = ''
   // El botón faltaba justo donde más falta hace. Estaba sólo dentro de un
   // foro, así que para quitarte el "todo sin leer" de encima tenías que
   // entrar en uno cualquiera y buscarlo allí.
@@ -462,7 +463,7 @@ function montarEscribir(foros) {
   boton.className = 'btn-primary foro-escribir'
   boton.id = 'foroEscribir'
   boton.setAttribute('aria-label', 'Abrir un tema')
-  boton.innerHTML = `${icons.edit(16)}<span>Escribir</span>`
+  boton.innerHTML = `${icons.edit(16)}<span>Escribir<span class="cab-largo"> un tema</span></span>`
   if (!sesion) {
     boton.href = `/auth.html?volver=${encodeURIComponent('/foro.html')}`
     sitio.appendChild(boton)

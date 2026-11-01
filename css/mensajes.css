@@ -40,6 +40,13 @@
   font-size: var(--t-xl);
 }
 
+/* «Nueva conversación» (1163, T3): principal, pero a la medida de la bandeja. */
+.msg-lista-cabeza .msg-nueva {
+  padding: var(--e-sm) var(--e-md);
+  font-size: var(--t-sm);
+  white-space: nowrap;
+}
+
 .msg-lista-cabeza-movil {
   margin-top: var(--e-xs);
 }

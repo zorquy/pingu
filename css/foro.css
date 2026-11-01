@@ -292,6 +292,9 @@
   color: var(--text-mid);
 }
 
+/* Sin migas en el índice (1163, T4): el hueco tampoco. */
+.foro-migas:empty { display: none; }
+
 .foro-migas a {
   color: var(--text-mid);
   font-weight: 600;
@@ -1846,10 +1849,11 @@ a.foro-cita-quien:hover {
   margin-left: auto;
 }
 .tema-borrar {
-  border: 1px solid var(--border);
+  /* Suave con el texto en rojo (1163), como .btn-secondary: sin borde. */
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
-  background: transparent;
-  color: var(--text-mid);
+  background: var(--ice);
+  color: var(--danger);
   font-weight: 600;
   cursor: pointer;
   transition: color 0.15s, border-color 0.15s, background 0.15s;

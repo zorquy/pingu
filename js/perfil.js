@@ -407,7 +407,7 @@ async function loadMyGuides(session) {
               : ''
           }
           ${canEdit ? `<button data-edit="${g.id}">Editar</button>` : ''}
-          ${canDelete ? `<button class="danger" data-delete="${g.id}">Eliminar</button>` : ''}
+          ${canDelete ? `<button class="danger" data-delete="${g.id}">Borrar</button>` : ''}
         </span>
         ${g.review_status === 'rejected' && g.rejection_reason ? `<p class="my-guide-reason">Motivo del rechazo: ${escapeHtml(g.rejection_reason)}</p>` : ''}
         ${statsHtml(stats[g.id])}

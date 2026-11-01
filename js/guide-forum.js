@@ -101,7 +101,7 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
           <p class="forum-post-text">${enlazarMenciones(escapeHtml(c.body), mencionados)}</p>
           <div class="forum-post-actions">
             ${currentSession ? `<button class="forum-reply-btn" data-reply-id="${c.id}" data-reply-name="${escapeHtml(name)}" data-reply-author="${escapeHtml(c.author_id || '')}">↩ Responder</button>` : ''}
-            ${currentSession && (currentSession.user.id === c.author_id || isAdmin) ? `<button class="forum-delete-btn" data-delete-id="${c.id}">Eliminar</button>` : ''}
+            ${currentSession && (currentSession.user.id === c.author_id || isAdmin) ? `<button class="forum-delete-btn" data-delete-id="${c.id}">Borrar</button>` : ''}
             ${currentSession && currentSession.user.id !== c.author_id ? reportButtonHtml('guide_comment', c.id) : ''}
           </div>
         </div>
