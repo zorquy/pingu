@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (392) — PINGU-Claude (1150 — el perfil a lo ancho y Mis mazos compactos)
+
+**Hecho**: C3 y C4 de «Cuatro pantallas más». En el PC (≥ 1100 px) la cabecera
+del perfil (el tuyo y el de otro) va A LO ANCHO: banner entero, avatar e
+identidad a la izquierda y las cifras en una fila a la derecha; las pestañas y
+su contenido, debajo, con todo el ancho (antes, dos columnas con la identidad
+pegada a un lado). El banner sigue midiendo 136 (la 867). En el móvil, Mis
+mazos en filas compactas para todo el mundo: portada de 64 px, nombre, chapa
+del formato y lo de abajo; la barra de cartas, la leyenda y la meta se
+esconden ahí.
+
+**Ficheros**: css/perfil.css, css/mazos.css, js/mazos.js, SCHEMA.md,
+novedades.json. Pruebas (rama pruebas): test-tanda-1150-pantalla.mjs nueva;
+789 (PA12: una columna, no pegada) al día.
+
+**En curso**: nada. Propuesta de la ronda 6 publicada aparte.
+Nota: la 789 «con el rango en barra», las dos de la 836 y la 1070 fallan igual
+sin estos cambios (comparado con `git stash`).
+
 ## 2026-11-01 (391) — PINGU-Claude (1149 — avisos en una tabla y lo que no existe, con salida)
 
 **Hecho**: C1 y C2 de «Cuatro pantallas más». Ajustes › Avisos: tabla aviso ×

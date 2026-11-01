@@ -100,6 +100,7 @@ function tarjetaHtml(m) {
       <div class="cm-mazo-info">
         <a class="cm-mazo-nombre" href="${enlace}">${escapeHtml(m.name)}</a>
         <p class="cm-mazo-chapas">
+          <span class="mz-chip mz-chip-formato">${escapeHtml(FORMATOS[m.format] || m.format)}</span>
           <span class="mz-chip mz-chip-${estado.clase}">${icono(estado.clase === 'ok' ? 'checkCircle' : 'triangleAlert', 12)} ${escapeHtml(estado.texto)}</span>
           <span class="mz-chip">${m.is_public ? 'Público' : 'Privado'}</span>
           ${rec ? `<span class="mz-record"><b>${textoDeRecord(rec)}</b> en tus partidas</span>` : ''}

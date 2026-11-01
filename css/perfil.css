@@ -1297,30 +1297,47 @@ button.perfil-logro-chapa {
   background: var(--navy-solid);
 }
 
-/* El perfil a dos columnas en el PC (789, PA12): a la izquierda, pegada, la
-   identidad; a la derecha, la vitrina y las pestañas. */
+/* El perfil a lo ANCHO en el PC (1150, C3; antes, dos columnas de la 789):
+   la cabecera de lado a lado —banner, avatar encima, nombre y botones— con
+   las cifras a la derecha en la misma línea, y debajo las pestañas y la
+   vitrina con todo el ancho. SCHEMA 1150. */
 @media (min-width: 1100px) {
-  .perfil-pagina {
-    display: grid;
-    grid-template-columns: 360px minmax(0, 1fr);
-    column-gap: var(--e-xl);
-    align-items: start;
-  }
-
   .perfil-pagina > .profile-hero {
-    position: sticky;
-    top: 88px;
-    grid-column: 1;
-    grid-row: 1 / span 40;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
   }
 
-  .perfil-pagina > :not(.profile-hero) {
-    grid-column: 2;
+  /* El alto de siempre (136, con foto o sin ella: la 867); ahora a lo ancho. */
+  .perfil-pagina .profile-hero-banner {
+    grid-column: 1 / -1;
   }
 
   .perfil-pagina .profile-hero-body {
-    flex-direction: column;
+    grid-column: 1;
     align-items: flex-start;
+    padding: var(--e-sm) var(--e-lg) var(--e-md);
+  }
+
+  .perfil-pagina .profile-hero-avatar-wrap {
+    margin-top: -52px;
+  }
+
+  .perfil-pagina .profile-hero-avatar {
+    width: 104px;
+    height: 104px;
+  }
+
+  .perfil-pagina .perfil-cifras {
+    grid-column: 2;
+    flex-wrap: nowrap;
+    padding-right: var(--e-md);
+  }
+
+  .perfil-pagina .perfil-cifra {
+    flex: 0 0 auto;
+    min-width: 76px;
+    padding: var(--e-sm);
   }
 }
 

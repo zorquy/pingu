@@ -392,3 +392,52 @@
   .mz-botones .cab-palabra { display: none; }
   .mz-botones #mzImportar { min-width: 44px; padding: 0 var(--e-sm); }
 }
+
+/* ── 1150 (C4 de «Cuatro pantallas más»): más compactos. SCHEMA 1150. ──
+   En el PC, la franja de la foto más baja; el formato ya va en ella. */
+.mz-chip-formato { display: none; }
+.cm-mazo-portada { aspect-ratio: 16 / 7; }
+
+/* En el móvil, UNA FILA por mazo: la carta en pequeño a la izquierda, el
+   nombre y sus chapas, y lo que falta con «Probar» y ⋯ debajo. Caben cuatro
+   o cinco por pantalla (antes, una tarjeta casi de pantalla entera). */
+@media (max-width: 599px) {
+  .cm-mazos { grid-template-columns: minmax(0, 1fr); gap: var(--e-sm); }
+
+  .cm-mazo-tarjeta {
+    display: grid;
+    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-areas: 'portada info' 'portada pie';
+    border-radius: var(--radius-md);
+  }
+
+  .cm-mazo-portada {
+    grid-area: portada;
+    aspect-ratio: auto;
+    height: 100%;
+    min-height: 104px;
+  }
+
+  .cm-mazo-portada img {
+    width: 100%;
+    transform: none;
+    object-position: 50% 18%;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .cm-mazo-portada::after,
+  .cm-mazo-portada-chip,
+  .cm-mazo-portada-nombre { display: none; }
+
+  .cm-mazo-info { grid-area: info; gap: var(--e-xs); padding: var(--e-sm) var(--e-md) 0; }
+  .cm-mazo-nombre { font-size: var(--t-md); -webkit-line-clamp: 1; }
+  .cm-mazo-chapas { gap: var(--e-xs); font-size: var(--t-xs); }
+  .mz-chip-formato { display: inline-flex; }
+  .cm-mazo-info .mz-barra,
+  .cm-mazo-info .mz-leyenda,
+  .cm-mazo-meta { display: none; }
+
+  .cm-mazo-pie { grid-area: pie; padding: var(--e-xs) var(--e-xs) var(--e-xs) var(--e-md); border-top: 0; }
+  .cm-mazo-coste { font-size: var(--t-xs); }
+}

@@ -41785,6 +41785,34 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1150 — El perfil a lo ancho y Mis mazos compactos (C3, C4)
+
+De «Cuatro pantallas más» (PINGU: «dale con las cuatro»).
+
+**C3 · El perfil a lo ancho en el PC.** Desde la 789 (PA12), a partir de
+1100 px el perfil iba en dos columnas: la identidad pegada a la izquierda y las
+pestañas a la derecha, con media pantalla de identidad vacía en cuanto bajabas.
+Ahora (`css/perfil.css`, mismo `@media`) la cabecera `.profile-hero` es una
+rejilla `minmax(0,1fr) auto`: el banner cruza las dos pistas, el cuerpo
+(avatar de 104 px que sube 52 sobre el banner, nombre, chapas) a la izquierda,
+y `.perfil-cifras` en UNA fila a la derecha (`nowrap`, cada cifra 76 px como
+mínimo). Las pestañas y su contenido van debajo con todo el ancho. El banner
+NO cambia de alto: 136, con foto o sin ella (la 867; la 306 lo mide). Vale para
+/perfil y /usuario, que comparten `.perfil-pagina`.
+
+**C4 · Mis mazos compactos en el móvil.** En `css/mazos.css`, a ≤ 599 px la
+tarjeta `.cm-mazo` es una rejilla `64px | info` (áreas portada/info/pie): la
+portada es la foto entera sin la máscara, y se esconden la barra de cartas, la
+leyenda y la meta (lo que no cabe en una fila). La chapa del formato
+(`.mz-chip-formato`, nueva en `js/mazos.js` al principio de `.cm-mazo-chapas`)
+solo se ve ahí: en el PC el formato ya lo dice la portada. PINGU no eligió
+entre «compacta para todos» y «interruptor»: va compacta para todos, que es lo
+que la propuesta recomendaba; si quiere el interruptor, es un `data-vista` en
+la lista y una línea en `localStorage`.
+
+Pruebas: `test-tanda-1150-pantalla.mjs` (las dos cosas, PC y móvil) y la 789
+al día (PA12 pasa a «una columna, no pegada»).
+
 ## Tanda 1149 — Avisos en una tabla y lo que no existe, con salida (C1, C2)
 
 De «Cuatro pantallas más» (PINGU: «dale con las cuatro»).
