@@ -210,13 +210,22 @@ async function cargarPodio(perfiles) {
 async function cargarLateral(perfiles) {
   const hoy = new Date().toISOString().slice(0, 10)
   const activos = (perfiles || []).filter((p) => p.last_active_date === hoy)
+  // El NÚMERO es la cuenta exacta de la base (1169): `perfiles` son los 200
+  // con más XP, y contar los de hoy entre ellos se quedaba corto en cuanto
+  // había más de 200 miembros. Si la cuenta falla, vale la de la lista.
+  const total = await supabase
+    .from('user_profiles')
+    .select('id', { count: 'exact', head: true })
+    .eq('last_active_date', hoy)
+    .then(({ count, error }) => (error || count == null ? activos.length : count))
+    .catch(() => activos.length)
   const caja = document.getElementById('comHoy')
   // Se recoge sola si no hay nadie: «0 personas hoy» es peor que no
   // decir nada.
-  if (caja && activos.length) {
+  if (caja && (activos.length || total)) {
     const CARAS = 7
     caja.innerHTML = `
-      <h3>Por aquí hoy · ${activos.length}</h3>
+      <h3>Por aquí hoy · ${Math.max(total, activos.length)}</h3>
       <div class="com-monton">
         ${activos
           .slice(0, CARAS)
@@ -226,7 +235,7 @@ async function cargarLateral(perfiles) {
             )}">${p.avatar_url ? '' : getInitial(p.display_name || p.username || '?')}</a>`
           )
           .join('')}
-        ${activos.length > CARAS ? `<span class="com-monton-cara com-monton-mas">+${activos.length - CARAS}</span>` : ''}
+        ${Math.max(total, activos.length) > CARAS ? `<span class="com-monton-cara com-monton-mas">+${Math.max(total, activos.length) - CARAS}</span>` : ''}
       </div>
       <a class="btn-secondary com-boton-ancho" href="/foro">Preséntate en el foro</a>`
     caja.classList.remove('hidden')

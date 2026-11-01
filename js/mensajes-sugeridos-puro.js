@@ -10,7 +10,7 @@ export function sugerir({ tienen = [], seguidas = [], torneos = [], yo = null, t
   const meter = (p, motivo) => {
     if (!p?.user_id || vistos.has(p.user_id) || salida.length >= tope) return
     vistos.add(p.user_id)
-    salida.push({ user_id: p.user_id, username: p.username || '', display_name: p.display_name || p.username || 'Usuario', avatar_url: p.avatar_url || null, motivo })
+    salida.push({ user_id: p.user_id, username: p.username || '', display_name: p.display_name || p.username || 'Usuario', avatar_url: p.avatar_url || null, is_admin: p.is_admin === true, is_moderator: p.is_moderator === true, motivo })
   }
   // Cruces: cuántas de tus cartas tiene cada persona, de más a menos.
   const porPersona = new Map()

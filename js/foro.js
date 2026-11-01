@@ -52,6 +52,17 @@ const etiquetaFiltro = (params.get('et') || '').trim()
 
 const principal = document.getElementById('foroPrincipal')
 const lateral = document.getElementById('foroLateral')
+// «y N más» de «Por aquí hoy» (1169): despliega los nombres que vinieron
+// plegados; si aún quedan más de los que se trajeron, lo dice sin pulsarse.
+document.addEventListener('click', (e) => {
+  const b = e.target.closest('[data-gente-mas]')
+  if (!b) return
+  const resto = b.parentElement?.querySelector('.foro-gente-resto')
+  if (resto) resto.hidden = false
+  const restan = Number(b.dataset.restan || 0)
+  if (restan > 0) b.replaceWith(document.createTextNode(`y ${restan} más`))
+  else b.remove()
+})
 const migas = document.getElementById('foroMigas')
 const acciones = document.getElementById('foroAcciones')
 
@@ -520,6 +531,24 @@ async function contar(tabla) {
   }
 }
 
+export const TOPE_NOMBRES = 200
+export const NOMBRES_A_LA_VISTA = 40
+
+// «Por aquí hoy» (1169): el número de verdad, los primeros nombres a la vista
+// y el resto plegado tras «y N más» (los que no han llegado por el tope se
+// cuentan igual, que es lo que se preguntaba). Puro: lo prueba Node.
+export function porAquiHoyHtml({ lista = [], total = 0 } = {}) {
+  const coma = '<span aria-hidden="true">, </span>'
+  const vista = lista.slice(0, NOMBRES_A_LA_VISTA).map((p) => enlacePerfil(p)).join(coma)
+  const resto = lista.slice(NOMBRES_A_LA_VISTA).map((p) => coma + enlacePerfil(p)).join('')
+  const mas = total - Math.min(lista.length, NOMBRES_A_LA_VISTA)
+  const plegado = mas > 0
+    ? `${coma}<button type="button" class="foro-gente-mas" data-gente-mas data-restan="${Math.max(0, total - lista.length)}">y ${mas} más</button>${resto ? `<span class="foro-gente-resto" hidden>${resto}</span>` : ''}`
+    : ''
+  return `<h3>Por aquí hoy <span class="foro-panel-cuenta">${total}</span></h3>
+         <p class="foro-gente">${vista}${plegado}</p>`
+}
+
 async function panelDeNumerosHtml() {
   const hoy = new Date().toISOString().slice(0, 10)
 
@@ -539,13 +568,18 @@ async function panelDeNumerosHtml() {
       .catch(() => null),
     // Quién ha pasado por aquí hoy. Sale de `last_active_date`, que ya
     // mantiene la racha diaria. Quien esconde su actividad no aparece.
+    // El NÚMERO es la cuenta exacta de la base (1169, PINGU: «nunca he visto
+    // más de 40»): antes era el tamaño de una lista con tope de 40, así que
+    // un día con 57 personas decía 40. Los nombres se traen hasta `TOPE_NOMBRES`
+    // y se enseñan `NOMBRES_A_LA_VISTA`; el resto, tras «y N más».
     supabase
       .from('user_profiles')
-      .select(`id, username, display_name, hide_activity, ${COLUMNAS_RANGO}`)
+      .select(`id, username, display_name, hide_activity, ${COLUMNAS_RANGO}`, { count: 'exact' })
       .eq('last_active_date', hoy)
-      .limit(40)
-      .then(({ data, error }) => (error ? [] : (data || []).filter((p) => !p.hide_activity)))
-      .catch(() => []),
+      .or('hide_activity.is.null,hide_activity.eq.false')
+      .limit(TOPE_NOMBRES)
+      .then(({ data, error, count }) => (error ? { lista: [], total: 0 } : { lista: data || [], total: count ?? (data || []).length }))
+      .catch(() => ({ lista: [], total: 0 })),
     // Quién cumple años hoy. La columna llega con la migración de
     // cumples: mientras no esté, esta línea simplemente no sale.
     supabase
@@ -573,12 +607,7 @@ async function panelDeNumerosHtml() {
     .filter(Boolean)
     .join('')
 
-  const gente = porAqui.length
-    ? `<div class="foro-panel">
-         <h3>Por aquí hoy <span class="foro-panel-cuenta">${porAqui.length}</span></h3>
-         <p class="foro-gente">${porAqui.map((p) => enlacePerfil(p)).join('<span aria-hidden="true">, </span>')}</p>
-       </div>`
-    : ''
+  const gente = porAqui.total ? `<div class="foro-panel">${porAquiHoyHtml(porAqui)}</div>` : ''
 
   const numeros = lineas ? `<div class="foro-panel"><h3>El foro en números</h3>${lineas}</div>` : ''
   return (await panelEnLineaHtml()) + gente + numeros

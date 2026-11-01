@@ -1023,6 +1023,18 @@
   font-weight: 600;
 }
 
+/* «y N más» (1169): un enlace en una frase, no un botón. */
+.foro-gente-mas {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--navy);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
 /* ══════════════════════════════════════════════════════════════
    El foro, para usarlo a diario
    ══════════════════════════════════════════════════════════════ */

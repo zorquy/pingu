@@ -11,6 +11,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, getInitial, avatarStyle } from './app.js'
 import { sugerir } from './mensajes-sugeridos-puro.js'
+import { COLUMNAS_RANGO, atributosDeRango } from './rangos.js'
 
 export { sugerir }
 
@@ -22,8 +23,8 @@ async function pedir(sesion) {
       .then(async ({ data }) => {
         const ids = (data || []).map((f) => f.following_id)
         if (!ids.length) return []
-        const { data: perfiles } = await supabase.from('user_profiles').select('id, username, display_name, avatar_url').in('id', ids).limit(30)
-        return (perfiles || []).map((p) => ({ user_id: p.id, username: p.username, display_name: p.display_name, avatar_url: p.avatar_url }))
+        const { data: perfiles } = await supabase.from('user_profiles').select(`id, username, display_name, avatar_url, ${COLUMNAS_RANGO}`).in('id', ids).limit(30)
+        return (perfiles || []).map((p) => ({ ...p, user_id: p.id }))
       }).catch(() => []),
     supabase.from('tournament_registrations').select('tournament_id').eq('user_id', yo).eq('status', 'active').limit(10)
       .then(async ({ data }) => {
@@ -36,7 +37,7 @@ async function pedir(sesion) {
         const nombreDe = new Map((ts || []).map((t) => [t.id, t.name]))
         const gente = (otros || []).filter((r) => nombreDe.has(r.tournament_id))
         if (!gente.length) return []
-        const { data: perfiles } = await supabase.from('user_profiles').select('id, username, display_name, avatar_url').in('id', [...new Set(gente.map((g) => g.user_id))]).limit(60)
+        const { data: perfiles } = await supabase.from('user_profiles').select(`id, username, display_name, avatar_url, ${COLUMNAS_RANGO}`).in('id', [...new Set(gente.map((g) => g.user_id))]).limit(60)
         const perfil = new Map((perfiles || []).map((p) => [p.id, p]))
         return gente.map((g) => ({ ...(perfil.get(g.user_id) || {}), user_id: g.user_id, torneo: nombreDe.get(g.tournament_id) })).filter((p) => p.username)
       }).catch(() => []),
@@ -51,7 +52,7 @@ export function sugeridosHtml(gente) {
     <div class="msg-sugeridos-lista">${gente.map((p) => `
       <div class="msg-sugerido">
         <span class="mini-avatar msg-sugerido-avatar" style="${avatarStyle(p)}" data-en-linea="${escapeHtml(p.user_id)}">${p.avatar_url ? '' : getInitial(p.display_name)}</span>
-        <strong class="msg-sugerido-nombre">${escapeHtml(p.display_name)}</strong>
+        <strong class="msg-sugerido-nombre"${atributosDeRango(p)}>${escapeHtml(p.display_name)}</strong>
         <span class="msg-sugerido-motivo">${escapeHtml(p.motivo)}</span>
         <a class="btn-secondary msg-sugerido-escribir" href="/mensajes.html?with=${encodeURIComponent(p.user_id)}">Escribirle</a>
       </div>`).join('')}</div>

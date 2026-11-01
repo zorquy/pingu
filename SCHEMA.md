@@ -41785,6 +41785,31 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1169 — «Por aquí hoy» con la cuenta de verdad
+
+**El fallo.** PINGU: «aquí el límite es 40? nunca he visto más de 40». El
+panel del foro pedía `user_profiles` con `last_active_date = hoy` y
+`limit(40)`, y pintaba `porAqui.length` como número: un tope de consulta
+convertido en cifra, sin error (la familia de la 808: un `limit` es una
+promesa sobre lo que se trae, no sobre lo que hay). En Gente, «Por aquí hoy ·
+N» contaba los de hoy dentro de los 200 perfiles con más XP que ya tenía en la
+mano: otro tope disfrazado de cuenta.
+
+**La regla.** Un NÚMERO que se enseña sale de una cuenta (`count: 'exact'`),
+nunca del tamaño de una lista con tope. La lista puede tener tope (nadie
+quiere 300 nombres en un panel): se enseñan `NOMBRES_A_LA_VISTA` (40), se
+traen `TOPE_NOMBRES` (200) y el resto va plegado tras «y N más»
+(`porAquiHoyHtml`, con `data-restan` para lo que ni siquiera se trajo: al
+desplegar, si quedan, el botón se convierte en texto). El filtro de quien
+esconde su actividad va en la consulta (`or(hide_activity.is.null,
+hide_activity.eq.false)`), que filtrarlo después de contar daría una cifra
+que no cuadra con los nombres.
+
+**Y la 386, de paso.** `mensajes-sugeridos.js` (1167) pedía nombres sin
+`COLUMNAS_RANGO`; ahora los pide y el nombre lleva `atributosDeRango`. Lo
+puro (`sugerir`) copia `is_admin` e `is_moderator` para que lleguen a la
+tarjeta.
+
 ## Tanda 1168 — /avisos: todos tus avisos (M4)
 
 **Por qué.** Desde la 736 la campana enseña solo lo sin leer, y en cuanto lees

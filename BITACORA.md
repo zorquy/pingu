@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (411) — PINGU-Claude (1169 — «Por aquí hoy» con la cuenta de verdad)
+
+**Hecho** (PINGU: «aquí el límite es 40? nunca he visto más de 40»):
+- Sí, era un tope: en el foro la lista de «Por aquí hoy» se pedía con
+  `limit(40)` y el número era el tamaño de esa lista, así que con 57 personas
+  decía 40. Ahora el número es la CUENTA EXACTA de la base (`count: 'exact'`,
+  con quien esconde su actividad fuera ya en la consulta), se traen hasta 200
+  nombres, se enseñan 40 y el resto va plegado tras «y N más»
+  (`porAquiHoyHtml` en `js/foro.js`, `.foro-gente-mas` en `foro.css`). Si
+  hubiera más de 200, al desplegar queda «y N más» sin pulsar.
+- En Gente pasaba lo mismo por otro camino: «Por aquí hoy · N» contaba los de
+  hoy entre los 200 perfiles con más XP. Ahora pide la cuenta a la base y
+  cae a la de la lista si falla.
+- De paso, `js/mensajes-sugeridos.js` (1167) pide `COLUMNAS_RANGO` y pinta el
+  nombre con `atributosDeRango`: lo cantaba la 386.
+
+**Ficheros**: js/foro.js, css/foro.css, js/usuarios.js,
+js/mensajes-sugeridos.js, js/mensajes-sugeridos-puro.js, SCHEMA.md,
+novedades.json. Pruebas: test-tanda-1169-pantalla.mjs nueva; 816, 1165,
+1167, 301, 314 verdes; la 386 sigue con sus dos rojos de antes
+(cambio-propuesta, perfil-cambios, tablon), que no son de esta tanda.
+
+**Pendiente**: la propuesta nueva con imágenes que PINGU ha pedido.
+
 ## 2026-11-01 (410) — PINGU-Claude (1168 — /avisos, todos tus avisos)
 
 **Hecho** (M4 de «PokeDoc entera», la última de la propuesta):
