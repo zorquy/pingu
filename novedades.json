@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-01", "tipo": "mejora", "texto": "Cuando compartes el enlace de una noticia en WhatsApp, X o Telegram, sale con una tarjeta de PokeDoc (logo, título y foto) en vez de la foto sola.", "enlace": "/noticias" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "Las imágenes para compartir (noticias, retos, tu vitrina, tus partidas) llevan ahora el mismo estilo: el logo de PokeDoc arriba, el color de cada sección y la dirección abajo, para que en Instagram se reconozcan de un vistazo.", "enlace": "/noticias" },
     { "fecha": "2026-11-01", "tipo": "nuevo", "texto": "Al compartir una noticia ya puedes elegir Historia de Instagram de verdad (a pantalla completa), además de la publicación y la imagen para X.", "enlace": "/noticias" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "Colabora: cada forma de ayudar tiene su botón («Me apunto» te lleva al formulario con lo tuyo ya marcado, y «Crear uno» abre el formulario de torneo), y ves qué temas del foro esperan respuesta.", "enlace": "/colabora" },

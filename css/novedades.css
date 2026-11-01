@@ -12,6 +12,9 @@
 .nv-dest-texto h3 { margin: 0; font-size: var(--t-lg); }
 .nv-dest-texto p { margin: 0; color: var(--text-mid); font-size: var(--t-sm); flex: 1; }
 .nv-dest-texto code { background: var(--bg); padding: 0 var(--e-xs); border-radius: var(--radius-sm); }
+/* «Imagen para redes», solo para el equipo (1157). */
+.nv-redes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); padding-top: var(--e-sm); border-top: 1px solid var(--border); }
+.nv-redes-captura { cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; }
 .nv-ir { align-self: flex-start; margin-top: var(--e-xs); }
 .nv-chip { display: inline-block; align-self: flex-start; flex-shrink: 0; font-size: var(--t-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px var(--e-sm); border-radius: var(--radius-pill); white-space: nowrap; }
 .nv-nuevo { background: var(--pink-bg); color: var(--pink); }

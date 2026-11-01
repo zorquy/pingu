@@ -105,6 +105,9 @@ function pintar() {
   if (lista.length) {
     $('nvDestacadasTitulo').textContent = `Lo mejor de ${nombreDeMes(mes)}`
     $('nvDestacadas').innerHTML = lista.map(destacadaHtml).join('')
+    // «Imagen para redes», solo para el equipo (1157): por import(), así
+    // quien no es del equipo no baja el marco.
+    import('./novedad-imagen.js').then((m) => m.montarImagenParaRedes(lista)).catch(() => {})
   }
   $('nvFiltros').innerHTML = [['', 'Todo'], ...Object.entries(TIPOS).map(([k, t]) => [k, t.filtro])]
     .map(([k, t]) => `<button type="button" class="chip-filtro nv-filtro" data-tipo="${k}" aria-pressed="${(filtro || '') === k}">${t}</button>`)

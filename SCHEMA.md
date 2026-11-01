@@ -41785,6 +41785,51 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1157 — La tarjeta del enlace con marca y «Imagen para redes» (R3 y R4)
+
+**R3 · La tarjeta del enlace de una noticia.** Al pegar el enlace de una
+noticia en X, WhatsApp o Telegram salía la portada pelada. Ahora, al guardar
+una noticia publicada, el editor (`admin/js/editor-guia.js`) dibuja en el
+navegador la apaisada del marco (`tarjetaDeEnlace` de
+`js/noticia-compartir.js`: JPEG al 90 %, ~40 KB), la sube a `guide-images`
+(`<usuario>/og/<id>-<fecha>.jpg`, un nombre nuevo cada vez para que ninguna
+red la tenga en caché vieja) y guarda la dirección en `guides.og_image`
+(migración `supabase-migration-1157-og-image.sql`). Solo se rehace si cambia
+lo que se ve (título, entradilla, portada) o no la había (`tarjetaCaducada`).
+
+Por qué en el navegador: el servidor (una función del borde) no tiene lienzo
+ni las letras de la casa, y meter una librería de dibujo ahí es una
+dependencia nueva. El navegador del equipo ya tiene todo. Si la portada no
+deja exportar el lienzo (sin CORS), se dibuja sin ella antes que quedarse sin
+tarjeta.
+
+Nada se rompe antes de la migración: el editor no mete `og_image` en el
+guardado de la guía (la escribe aparte, después, y si falla lo dice en la
+consola) y `meta-social.js` la pide primero con la columna y, si la consulta
+falla, hace la de siempre (`pedirConVueltaAtras`), la regla de la 624.
+`imagenDeArticulo` la pone delante de la portada, y con ella se declaran las
+medidas (1200×630).
+
+Las tarjetas FIJAS (`assets/social/reto-*.png` y `assets/images/og-default.png`)
+se rehicieron con el marco: `herramientas/tarjetas-1157.mjs` (rama pruebas)
+las dibuja en el navegador con `js/redes-marco.js` sobre el sitio de pruebas;
+`SOLO=reto-parejas` rehace solo esa.
+
+**R4 · «Imagen para redes» en /novedades.** Debajo de cada destacada del mes,
+solo para el equipo (`is_admin`), dos botones: «Imagen para redes» y «Con una
+captura» (sube una imagen y va dentro de un móvil dibujado). Sale por la hoja
+de siempre en publicación, historia (1080×1920) y la de X, con la chapa NUEVO
+EN POKEDOC (o MEJOR EN POKEDOC / ARREGLADO según el tipo) y el color de la
+sección a la que lleva el enlace (`seccionDeNovedad`). Sin captura, la pieza
+es el icono del tipo en una baldosa del color. Todo en `js/novedad-imagen.js`,
+que novedades.js baja por `import()` y que pide `app.js` también por
+`import()` (lo puro se prueba en node).
+
+Pruebas: `test-tanda-1157.mjs` (lo puro de meta-social, `tarjetaCaducada` y
+la sección; la migración en PostgreSQL, repetible; la tarjeta dibujada es un
+JPEG de 1200×630; en /novedades el admin ve los botones y saca los tres
+tamaños, y alguien normal no los ve).
+
 ## Tanda 1156 — Todas las imágenes de redes, con el mismo marco (R1 y R2)
 
 PINGU, al ver la imagen del concurso de noviembre: «podemos hacer que la

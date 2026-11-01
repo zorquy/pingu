@@ -119,8 +119,10 @@ export function primeraImagenDe(bloques) {
 
 // La imagen de la tarjeta de una guía o noticia: la portada; sin ella, la
 // primera foto del cuerpo; sin ninguna, la del sitio.
+// Desde la 1157 una noticia lleva su tarjeta del enlace (`og_image`, la
+// apaisada del marco de redes, 1200×630), que va delante de todo.
 export function imagenDeArticulo(guia) {
-  return urlAbsoluta(guia?.cover_image) || primeraImagenDe(guia?.reference_blocks) || IMAGEN_POR_DEFECTO
+  return urlAbsoluta(guia?.og_image) || urlAbsoluta(guia?.cover_image) || primeraImagenDe(guia?.reference_blocks) || IMAGEN_POR_DEFECTO
 }
 
 // ── Datos estructurados (schema.org) ──
@@ -545,10 +547,12 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
   // verla en la base.
   const base = `guides?slug=eq.${encodeURIComponent(slug)}&published_at=not.is.null&select=`
   const columnas = 'title,description,cover_image,search_content,published_at,author_id,reference_blocks,categories(name,slug)'
-  const guia = await pedirConVueltaAtras(
+  // `og_image` (1157, la tarjeta del enlace con el marco) se pide primero;
+  // sin la migración, la consulta de siempre.
+  const guia = (await pedir(`${base}${columnas},updated_at,og_image&limit=1`)) || (await pedirConVueltaAtras(
     `${base}${columnas},updated_at&limit=1`,
     `${base}${columnas}&limit=1`
-  )
+  ))
   if (!guia?.title) return null
 
   const descripcion =
@@ -582,6 +586,7 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
     titulo: esCurso ? `Curso: ${guia.title} — PokeDoc` : `${guia.title} — PokeDoc`,
     descripcion: esCurso ? `Curso interactivo paso a paso. ${descripcion}` : descripcion,
     imagen,
+    imagenAncha: !!guia.og_image && imagen === urlAbsoluta(guia.og_image),
     datos: {
       '@context': 'https://schema.org',
       '@graph': [

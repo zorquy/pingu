@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (396) — PINGU-Claude (1157 — la tarjeta del enlace con marca e «Imagen para redes»)
+
+**Hecho**: R3 y R4 de «Todas las imágenes de PokeDoc, con el mismo marco».
+- R3: al guardar una noticia publicada, el editor dibuja la apaisada del marco
+  (JPEG) y la guarda en `guides.og_image`; meta-social la pone de og:image
+  delante de la portada. Las tarjetas fijas de los retos y la de la web,
+  rehechas con el marco (`herramientas/tarjetas-1157.mjs`, rama pruebas).
+- R4: «Imagen para redes» y «Con una captura» debajo de cada destacada de
+  /novedades, solo para el equipo, en los tres tamaños.
+
+**MIGRACIÓN para PINGU**: `supabase-migration-1157-og-image.sql` (una columna,
+`guides.og_image`). Hasta que se ejecute no se rompe nada: las noticias salen
+con su portada como siempre. Después, las noticias ya publicadas cogen su
+tarjeta la próxima vez que se guarden desde el editor.
+
+**Ficheros**: js/noticia-compartir.js, js/novedad-imagen.js (nuevo),
+js/novedades.js, css/novedades.css, admin/js/editor-guia.js,
+netlify/edge-functions/meta-social.js, supabase-migration-1157-og-image.sql,
+assets/social/reto-*.png, assets/images/og-default.png, CLAUDE.md, SCHEMA.md,
+novedades.json. Pruebas: test-tanda-1157.mjs (con PostgreSQL) y el generador
+herramientas/tarjetas-1157.mjs.
+
+**Pendiente**: ejecutar la migración 1157; la ronda 7 (1154 y 1155).
+
 ## 2026-11-01 (395) — PINGU-Claude (1156 — el marco común de las imágenes de redes)
 
 **Hecho**: R1 y R2 de «Todas las imágenes de PokeDoc, con el mismo marco», con

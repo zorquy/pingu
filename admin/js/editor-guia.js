@@ -14,6 +14,7 @@ import { attachEmojiPicker } from '../../js/emoji-picker.js'
 import { inlineIconHtml } from '../../js/content-icon.js'
 import { addXP } from '../../js/gamification.js'
 import { createNotification } from '../../js/notifications.js'
+import { tarjetaDeEnlace, tarjetaCaducada } from '../../js/noticia-compartir.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -430,9 +431,32 @@ async function persistGuide(extraFields = {}) {
   await recalcCategoryGuideCount(newCategoryId)
   if (existingGuide?.category_id && existingGuide.category_id !== newCategoryId) await recalcCategoryGuideCount(existingGuide.category_id)
 
+  // La tarjeta del enlace de una noticia publicada (1157): la apaisada del
+  // marco, dibujada aquí y guardada en `og_image`. Nunca frena el guardado:
+  // si falla (sin la migración, sin red), la noticia sale con su portada.
+  if (id && payload.kind === 'news' && payload.published_at && tarjetaCaducada(existingGuide, payload)) {
+    await guardarTarjetaDeEnlace(id, payload)
+  }
+
   stopAutosave()
   clearDraft(draftScope)
   window.location.href = 'index.html'
+}
+
+async function guardarTarjetaDeEnlace(id, guia) {
+  try {
+    const espera = new Promise((res) => setTimeout(() => res(null), 8000))
+    const blob = await Promise.race([tarjetaDeEnlace(guia), espera])
+    if (!blob) return
+    const ruta = `${currentSession.user.id}/og/${id}-${Date.now()}.jpg`
+    const { error: errSubir } = await supabase.storage.from('guide-images').upload(ruta, blob, { contentType: 'image/jpeg', upsert: false })
+    if (errSubir) throw errSubir
+    const url = supabase.storage.from('guide-images').getPublicUrl(ruta).data.publicUrl
+    const { error } = await supabase.from('guides').update({ og_image: url }).eq('id', id)
+    if (error) throw error
+  } catch (e) {
+    console.warn('La tarjeta del enlace no se ha guardado (¿falta la migración 1157?):', e?.message || e)
+  }
 }
 
 async function init() {

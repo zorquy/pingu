@@ -1021,6 +1021,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   lienzo con una fuente que no ha llegado pinta con otra sin avisar. Las
   piezas sueltas (un concurso, un carrusel) las hace Claude con esta misma
   plantilla; no hay generador en /admin (PINGU quitó el de Redes en la 991).
+  La tarjeta del ENLACE de una noticia (1157) es la apaisada del marco: la
+  dibuja el editor al publicar (`tarjetaDeEnlace`, en JPEG) y va en
+  `guides.og_image`, que `meta-social.js` pone delante de la portada; las
+  fijas de los retos y `og-default.png` salen de
+  `herramientas/tarjetas-1157.mjs` (rama pruebas). Una destacada de
+  /novedades se saca en imagen con «Imagen para redes» (solo el equipo,
+  `js/novedad-imagen.js`).
 - **Una partida o un torneo de /mis-partidas se comparte en una imagen**
   (tanda 997): `js/partida-imagen.js` (por `import()`) con la hoja de
   siempre y el marco de los retos (`cabecera` e `invitacionAbajo` de

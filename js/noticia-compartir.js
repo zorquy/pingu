@@ -72,3 +72,27 @@ export async function compartirNoticia(guide) {
     x: { texto: textoParaX(datos), url },
   })
 }
+
+// LA TARJETA DEL ENLACE (1157, R3): la apaisada del marco, en JPEG, para que
+// al pegar el enlace de una noticia en X, WhatsApp o Telegram salga con la
+// marca y no la portada pelada. La dibuja el editor al publicar (aquí, en el
+// navegador: el servidor no tiene lienzo ni letras) y `meta-social.js` la
+// pone de `og:image`. Devuelve un Blob, o null si no se puede (una portada
+// sin permiso de CORS deja el lienzo «manchado» y no se exporta: entonces se
+// dibuja sin foto antes que no tener tarjeta).
+export async function tarjetaDeEnlace(guia) {
+  await prepararMarco()
+  const datos = { titulo: guia.title || '', descripcion: guia.description || '', fecha: guia.published_at || '', formato: 'apaisada' }
+  const portada = guia.cover_image ? await cargarImagen(guia.cover_image).catch(() => null) : null
+  const aBlob = (lienzo) => new Promise((res) => {
+    try { lienzo.toBlob((b) => res(b), 'image/jpeg', 0.9) } catch { res(null) }
+  })
+  return (await aBlob(pintarNoticia(document.createElement('canvas'), { ...datos, portada })))
+    || (portada ? aBlob(pintarNoticia(document.createElement('canvas'), { ...datos, portada: null })) : null)
+}
+
+// ¿Hay que rehacerla? Solo si cambia lo que se ve en ella, o no la hay.
+export function tarjetaCaducada(antes, ahora) {
+  if (!antes?.og_image) return true
+  return ['title', 'description', 'cover_image'].some((k) => (antes?.[k] || '') !== (ahora?.[k] || ''))
+}
