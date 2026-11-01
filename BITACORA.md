@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (390) — PINGU-Claude (1148 — la paleta del PC con vista previa)
+
+**Hecho**: B5 de «Buscar, otra vuelta». En el PC, Ctrl+K enseña la carta en
+grande al lado de la lista (foto, set, precio en español, si la tienes) con
+«Ver ficha», «La quiero» y «+ Añadir»; y «Te lo completa» también dentro.
+
+**Ficheros**: js/paleta.js, css/buscador.css, SCHEMA.md, novedades.json.
+Pruebas (rama pruebas): test-tanda-1148-pantalla.mjs nueva; 1147 al día
+(sin sesión es `'none'` en el doble).
+
+**En curso**: nada. B4 (¿quisiste decir?, con migración) y B6 (acciones sin
+abrir la carta), a la espera de PINGU.
+
 ## 2026-11-01 (389) — PINGU-Claude (1147 — Buscar: una sola caja, antes de escribir y te lo completa)
 
 **Hecho**: de «Buscar, otra vuelta» (PINGU: «dale»), B1, B2 y B3. En el PC

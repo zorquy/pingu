@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-01", "tipo": "nuevo", "texto": "En el ordenador, Ctrl+K te enseña la carta en grande mientras buscas, con su precio y si la tienes, y la puedes apuntar en «La quiero» o añadir sin salir de donde estás.", "enlace": "/buscar" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "Buscar te ayuda antes de escribir: lo que buscaste (con su × para quitarlo), la expansión que acaba de salir, ejemplos para probar y tus últimas cartas de «La quiero».", "enlace": "/buscar" },
     { "fecha": "2026-11-01", "tipo": "nuevo", "texto": "Al buscar, te proponemos los nombres que completan lo que escribes («chari» → Charizard ex, Charizard VSTAR…); la flecha lo pone en la caja para seguir escribiendo.", "enlace": "/buscar" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "En el ordenador, la página de buscar usa la caja de arriba: sin una segunda caja ni título, los resultados empiezan antes.", "enlace": "/buscar" },

@@ -41785,6 +41785,27 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1148 — La paleta del PC con vista previa (B5)
+
+De «Buscar, otra vuelta». En el PC (`≥ 900 px` con ratón) la paleta de
+Ctrl+K se parte en dos cuando hay cartas: la lista a la izquierda y
+`#paletaPrevia` a la derecha con la carta en grande (la cadena de escaneos de
+siempre), su set y número, el precio en español (`valor`, el que ya trae la
+fila) y su marca de «la tienes» / «la quieres» (`marcarCartas`). Es la carta
+marcada si es una carta y, si no, la primera de la lista: así la caja no
+cambia de ancho al pasar con las flechas a una guía (`paleta-con-previa`, que
+la ensancha a 960). No pregunta nada que no hubiera llegado ya.
+
+Tres botones: «Ver ficha» (el pop-up, lo mismo que Intro), y con cuenta «La
+quiero» y «+ Añadir». «La quiero» es `alternar` de `js/la-quiero.js` (el
+corazón de /carta, con su pregunta del idioma) sobre los deseos de ESA carta,
+y repinta la marca (`olvidarCarta` + `marcarCartas`); «+ Añadir» es
+Mayús+Intro (la carta con `#anadir`). En el móvil la paleta sigue siendo una
+lista a pantalla completa.
+
+Y «Te lo completa» (1147, B3) entra también en la paleta, arriba, con hasta
+tres nombres: Intro en uno lo busca (`rellenar`).
+
 ## Tanda 1147 — Buscar: una sola caja, antes de escribir y te lo completa (B1, B2, B3)
 
 De la propuesta «Buscar, otra vuelta» (PINGU: «dale»: B1, B2, B3 y B5; B5 va

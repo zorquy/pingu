@@ -804,3 +804,106 @@ html.bs-caja-arriba .bs-titulo {
 html.bs-caja-arriba .bs-pagina {
   padding-top: var(--e-lg);
 }
+
+/* ── 1148: la vista previa de la paleta en el PC (B5; SCHEMA 1148) ── */
+.paleta-cuerpo {
+  display: flex;
+  flex: 1 1 auto;
+  min-height: 0;
+}
+
+.paleta-cuerpo .paleta-lista {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.paleta.paleta-con-previa {
+  width: min(960px, calc(100vw - 2 * var(--e-lg)));
+}
+
+.paleta-previa {
+  display: flex;
+  flex: 0 0 300px;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--e-xs);
+  padding: var(--e-lg);
+  overflow-y: auto;
+  border-left: 1px solid var(--border);
+  text-align: center;
+}
+
+.paleta-previa[hidden] {
+  display: none;
+}
+
+.paleta-previa-foto {
+  position: relative;
+  display: block;
+  width: 140px;
+  max-width: 100%;
+  aspect-ratio: 245 / 342;
+  margin-bottom: var(--e-sm);
+}
+
+.paleta-previa-foto .bs-foto {
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+
+.paleta-previa-nombre {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.paleta-previa > small {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.paleta-previa-precio {
+  display: grid;
+  margin: var(--e-sm) 0;
+  padding: var(--e-sm) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+}
+
+.paleta-previa-precio small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.paleta-previa-precio b {
+  font-size: var(--t-lg);
+  font-variant-numeric: tabular-nums;
+}
+
+.paleta-previa-botones {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--e-sm);
+  width: 100%;
+  margin-top: var(--e-xs);
+}
+
+.paleta-previa-botones button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  font-size: var(--t-sm);
+}
+
+.paleta-previa-botones [data-previa='abrir'] {
+  grid-column: 1 / -1;
+}
+
+.paleta-previa-botones [aria-pressed='true'] {
+  color: var(--acento);
+}

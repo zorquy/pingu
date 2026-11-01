@@ -10,6 +10,11 @@ import { hojaInyectada } from './hoja.js'
 import { contienePlegado, plegarTexto } from './texto.js'
 import { GRUPOS, buscarTodo, recordarBusqueda, leerRecientes } from './buscador.js'
 import { destinoDe, interiorDe, engancharFotos } from './buscador-filas.js'
+import { sugerenciasDeNombres } from './buscador-puro.js'
+import { cadenaDeEscaneo } from './escaneo-carta.js'
+import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
+import { euros } from './cardmarket.js'
+import { supabase } from './supabase.js'
 
 const NOMBRE = Object.fromEntries(GRUPOS)
 
@@ -98,14 +103,22 @@ function montar() {
         role="combobox" aria-expanded="true" aria-controls="paletaLista" aria-autocomplete="list" />
       <kbd>Esc</kbd>
     </div>
-    <div class="paleta-lista" id="paletaLista" role="listbox" aria-label="Resultados"></div>
+    <div class="paleta-cuerpo">
+      <div class="paleta-lista" id="paletaLista" role="listbox" aria-label="Resultados"></div>
+      <aside class="paleta-previa" id="paletaPrevia" aria-live="polite" hidden></aside>
+    </div>
     <div class="paleta-pie"><span><kbd>↑</kbd> <kbd>↓</kbd> para moverte</span><span><kbd>Intro</kbd> para abrir</span><span id="paletaPista"></span><a id="paletaTodo" href="/buscar.html">Ver todo en Buscar</a></div>`
   document.body.appendChild(dialogo)
   const input = dialogo.querySelector('#paletaInput')
   const lista = dialogo.querySelector('#paletaLista')
   const pista = dialogo.querySelector('#paletaPista')
   const todo = dialogo.querySelector('#paletaTodo')
+  const previa = dialogo.querySelector('#paletaPrevia')
   engancharFotos(lista)
+  engancharFotos(previa)
+  // La vista previa (1148, B5) solo en el PC: en el móvil la paleta es una
+  // lista a pantalla completa y no cabe al lado.
+  const anchaParaPrevia = matchMedia('(min-width: 900px) and (pointer: fine)')
 
   let items = []
   let elegido = 0
@@ -140,6 +153,9 @@ function montar() {
     // B2 (972): la carta que lo escrito señala, la primera y en grande.
     const mejor = remotos.cartas?.mejor || null
     if (mejor) bloques.unshift(['Lo más probable', [{ grupo: 'cartas', mejor: true, fila: mejor, href: destinoDe('cartas', mejor, q) }]])
+    // TE LO COMPLETA (1147, B3), también aquí: Intro en una la busca.
+    const completa = sugerenciasDeNombres(remotos.cartas?.nombres || [], q, 3)
+    if (completa.length) bloques.unshift(['Te lo completa', completa.map((n) => ({ fila: { nombre: n, icono: 'search' }, rellenar: n }))])
     for (const [g] of GRUPOS) {
       const r = remotos[g]
       if (r?.error) { bloques.push([NOMBRE[g], [{ fila: { nombre: `No se ha podido buscar en ${NOMBRE[g].toLowerCase()}`, detalle: 'Pulsa para reintentar', icono: 'refreshCw' }, hacer: () => buscar(true) }]]); continue }
@@ -171,7 +187,69 @@ function montar() {
     // Con una carta elegida y cuenta, Mayús+Intro la añade a la colección.
     const it = items[elegido]
     pista.innerHTML = it?.grupo === 'cartas' && conCuenta() ? '<kbd>Mayús</kbd> <kbd>Intro</kbd> la añade a tu colección' : ''
+    pintarPrevia(it)
   }
+
+  // LA VISTA PREVIA (1148, B5; PINGU: «dale»). La carta marcada, en grande al
+  // lado de la lista: su foto, su set, su precio en español, si la tienes y
+  // tres botones. Sale de la fila que ya ha llegado: no pregunta nada más
+  // (salvo tus deseos de esa carta, al tocar el corazón). Se mueve con las
+  // flechas, como la lista.
+  let previaDe = null
+  function pintarPrevia(it) {
+    // La marcada si es una carta; si no, la primera de la lista: así la caja
+    // no cambia de ancho al pasar de una carta a una guía con las flechas.
+    const fila = it?.grupo === 'cartas' ? it : items.find((x) => x.grupo === 'cartas')
+    const carta = fila && anchaParaPrevia.matches ? fila.fila : null
+    previa.dataset.i = fila ? String(items.indexOf(fila)) : ''
+    dialogo.classList.toggle('paleta-con-previa', !!carta)
+    previa.hidden = !carta
+    if (!carta) { previaDe = null; return }
+    if (previaDe === carta.id) return
+    previaDe = carta.id
+    const cadena = cadenaDeEscaneo(carta)
+    previa.innerHTML = `
+      <span class="paleta-previa-foto" data-marca-carta="${escapeHtml(carta.id)}"><img class="bs-foto" src="${escapeHtml(cadena[0] || '')}" data-cadena="${escapeHtml(JSON.stringify(cadena.slice(1)))}" width="245" height="342" alt=""></span>
+      <b class="paleta-previa-nombre">${escapeHtml(nombreDeCarta(carta))}</b>
+      <small>${escapeHtml(nombreDeSet(carta.tcg_sets))}${carta.local_id ? ` · ${escapeHtml(carta.local_id)}` : ''}</small>
+      <span class="paleta-previa-precio">${carta.valor ? `<small>En español</small><b>${escapeHtml(euros(carta.valor))}</b>` : '<small>Sin precio todavía</small>'}</span>
+      <div class="paleta-previa-botones">
+        <button type="button" class="btn-primary" data-previa="abrir">Ver ficha</button>
+        ${conCuenta() ? `<button type="button" class="btn-secondary" data-previa="quiero">${icons.heart(15)}<span>La quiero</span></button>
+        <button type="button" class="btn-secondary" data-previa="anadir">+ Añadir</button>` : ''}
+      </div>`
+    import('./marcas-carta.js').then((m) => m.marcarCartas(previa)).catch(() => {})
+  }
+  // Con el ratón encima de la vista previa, la lista no cambia de elegida.
+  previa.addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-previa]')
+    const it = items[Number(previa.dataset.i)]
+    if (!b || it?.grupo !== 'cartas') return
+    if (b.dataset.previa === 'abrir') return void ir(it)
+    if (b.dataset.previa === 'anadir') return void ir(it, { anadir: true })
+    // «La quiero»: el mismo corazón de /carta (`alternar`, con su pregunta
+    // del idioma), con los deseos de ESTA carta.
+    b.disabled = true
+    try {
+      const { data: sesion } = await supabase.auth.getSession()
+      const userId = sesion?.session?.user?.id
+      if (!userId) return
+      const { data: deseos } = await supabase.from('user_wants').select('id, card_id, idioma').eq('user_id', userId).eq('card_id', it.fila.id)
+      const m = await import('./la-quiero.js')
+      const nuevos = await m.alternar({ userId, cardId: it.fila.id, deseos: deseos || [], carta: it.fila })
+      const puesta = nuevos.some((d) => d.card_id === it.fila.id)
+      b.setAttribute('aria-pressed', String(puesta))
+      b.querySelector('span').textContent = puesta ? 'La quieres' : 'La quiero'
+      const marcas = await import('./marcas-carta.js')
+      marcas.olvidarCarta(it.fila.id)
+      for (const el of dialogo.querySelectorAll(`[data-marca-carta="${CSS.escape(it.fila.id)}"]`)) { el.removeAttribute('data-marcada'); el.classList.remove('mk-la-tienes', 'mk-la-quieres'); el.querySelectorAll('.mk-tengo, .mk-quiero, .mk-fila').forEach((x) => x.remove()) }
+      marcas.marcarCartas(dialogo)
+    } catch (err) {
+      import('./toast.js').then((t) => t.showToast(err?.message || 'No se ha podido apuntar.', 'error')).catch(() => {})
+    } finally {
+      b.disabled = false
+    }
+  })
 
   async function buscar(forzar = false) {
     const q = input.value.trim()
