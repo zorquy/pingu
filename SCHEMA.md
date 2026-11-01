@@ -41785,6 +41785,31 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1151 — Las promos MEP, cada semana
+
+Asier (foro): «faltan ciertas MEP, por ejemplo la de Mega Darkrai, MEP 90».
+`mep-promos` de `REEMPLAZOS` (`tcggo-reemplazar-set`, tanda 1000) se hizo una
+vez el 25 de octubre; una entrada hecha no volvía nunca. Un set de promos
+CRECE cada mes, así que no se arregla una vez: se repasa.
+
+- Una entrada puede llevar `cadaDias` (se vuelve a hacer cuando su `hechos[k].
+  fecha` tiene más de N días) y `rehacerDesde` (una fecha: si lo hecho es de
+  antes, se rehace ya). Lo decide `tocaRepasar(r, hecho, ahora)`, que es lo
+  que filtra los pendientes de la pasada. Sin `cadaDias`, como antes: de una
+  vez. Una fecha que no se lee no se repite (repetir a ciegas sería cada
+  cinco minutos: la 509).
+- Una vuelta buena de una entrada que se repasa borra sus `intentos`: cinco
+  fallos sueltos a lo largo de meses no la paran para siempre (el freno de
+  `MAXIMO_INTENTOS` sigue valiendo para fallos seguidos).
+- `mep-promos`: `cadaDias: 7`, `rehacerDesde: '2026-11-01T00:00:00Z'`. Sigue
+  `sinBorrar` + `conservarPorNumero` + `numeroComoElNuestro`, así que repetir
+  conserva lo que ya estaba (con su español) y solo añade lo nuevo. Coste: una
+  expansión de promos (dos o tres páginas de TCGGO) a la semana. Y avisa a la
+  pasada de precios (`avisarAPrecios`), así que las nuevas tienen precio en la
+  siguiente vuelta de `tcggo-precios`.
+
+Prueba: `test-tanda-1151.mjs` (la regla y la pasada con relojes de verdad).
+
 ## Tanda 1150 — El perfil a lo ancho y Mis mazos compactos (C3, C4)
 
 De «Cuatro pantallas más» (PINGU: «dale con las cuatro»).

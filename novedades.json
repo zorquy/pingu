@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-01", "tipo": "arreglo", "texto": "Las promos de Megaevolución (MEP) se ponen al día solas cada semana: entran las que han salido después, como la de Mega Darkrai.", "enlace": "/cartas" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "En el ordenador, el perfil aprovecha el ancho: tu foto, tu nombre y tus cifras arriba en una franja, y las pestañas debajo con todo el sitio.", "enlace": "/perfil" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "Mis mazos en el móvil, en filas: la portada pequeña, el nombre y el formato, para ver muchos de un vistazo.", "enlace": "/mazos" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "Los avisos de Ajustes, más fáciles: en el ordenador, una tabla con cada aviso y si te llega por la campanita o por correo; en el móvil, agrupados por temas con un interruptor para cada grupo.", "enlace": "/ajustes?ver=avisos" },

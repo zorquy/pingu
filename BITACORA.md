@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (393) — PINGU-Claude (1151 — las promos MEP, cada semana)
+
+**Hecho**: Asier Muru Loriente en el foro: «faltan ciertas MEP, por ejemplo la
+de Mega Darkrai, MEP 90». `mep-promos` (la 1000) trajo la expansión de TCGGO
+una sola vez, el 25 de octubre, y las promos siguen saliendo. Ahora la entrada
+lleva `cadaDias: 7` (se repasa sola cada semana, sin borrar y por número, así
+que solo añade lo nuevo) y `rehacerDesde: 2026-11-01` para que pase YA, en la
+siguiente pasada de cinco minutos. `tocaRepasar` decide; una entrada sin
+`cadaDias` sigue siendo de una vez, y una fecha ilegible no se repite.
+
+**Ficheros**: netlify/functions/tcggo-reemplazar-set.mjs, CLAUDE.md, SCHEMA.md,
+novedades.json. Pruebas (rama pruebas): test-tanda-1151.mjs nueva; verdes 1000,
+654, 666, 670, 886, 931 y test-imports.
+
+**Pendiente**: mirar en /admin → Estado (REEMPLAZOS) que `mep-promos` sale
+hecho HOY y cuántas «nuevas» trajo. Si la MEP 90 sigue sin salir con eso, es
+que TCGGO no la lista todavía. Las propuestas de la ronda 6 pasan a ser la
+1152 (D1, D2) y la 1153 (D3–D5).
+
 ## 2026-11-01 (392) — PINGU-Claude (1150 — el perfil a lo ancho y Mis mazos compactos)
 
 **Hecho**: C3 y C4 de «Cuatro pantallas más». En el PC (≥ 1100 px) la cabecera

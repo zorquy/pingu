@@ -143,8 +143,30 @@ export const REEMPLAZOS = [
   // su id y su español), pero SIN BORRAR: una promo que TCGdex tiene y TCGGO
   // no lista se queda. Y las nuevas, con el número escrito como el nuestro
   // («016», no «MEP 016», que en el 996 hizo repetidas «SVP 205»).
-  { clave: 'mep-promos', sets: ['mep'], destino: 'mep', mercado: 'WEST', conservarPorNumero: true, sinBorrar: true, numeroComoElNuestro: true },
+  //
+  // Y CADA SEMANA (1151). Asier, en el foro: «faltan ciertas MEP, por
+  // ejemplo la de Mega Darkrai, MEP 90». La 1000 la trajo UNA vez (el 25 de
+  // octubre) y las promos siguen saliendo: un set que crece no se arregla
+  // una vez, se repasa (`cadaDias`). `rehacerDesde` lo vuelve a pasar ya,
+  // aunque no hayan pasado los siete días. Sin borrar y por número, repetirlo
+  // no cambia lo que ya estaba: solo añade lo nuevo. Coste: una expansión de
+  // promos (dos o tres páginas) a la semana.
+  { clave: 'mep-promos', sets: ['mep'], destino: 'mep', mercado: 'WEST', conservarPorNumero: true, sinBorrar: true, numeroComoElNuestro: true, cadaDias: 7, rehacerDesde: '2026-11-01T00:00:00Z' },
 ]
+
+// ¿Toca (otra vez) esta entrada? (1151) Sin hacer, sí. Hecha, solo si se
+// repasa (`cadaDias`) y ya pasó ese plazo o es de antes de `rehacerDesde`.
+// Una fecha que no se lee (las de las pruebas viejas, «x») no se repite: no
+// se sabe cuándo fue, y repetir a ciegas cada cinco minutos es una factura.
+export function tocaRepasar(r, hecho, ahora = new Date()) {
+  if (!hecho) return true
+  if (!(Number(r?.cadaDias) > 0)) return false
+  const cuando = Date.parse(hecho.fecha)
+  if (!Number.isFinite(cuando)) return false
+  const desde = Date.parse(r.rehacerDesde || '')
+  if (Number.isFinite(desde) && cuando < desde && ahora.getTime() >= desde) return true
+  return ahora.getTime() - cuando >= Number(r.cadaDias) * 86400000
+}
 // En el modo entero, un set que se va tiene que estar DENTRO de la
 // expansión de TCGGO: si menos de la mitad de sus cartas (y tiene al menos
 // estas) tienen una suya del mismo nombre, no es la misma expansión y no se
@@ -667,7 +689,7 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
   // Una entrada cuya expansión aún no se sabe ESPERA, pero no tapa a las de
   // detrás ni al barrido (1000): antes `find` la cogía en cada pasada,
   // devolvía «esperando» y nada más se hacía nunca.
-  const pendientes = reemplazos.filter((r) => !estado.hechos[r.clave] && (Number(estado.intentos[r.clave]) || 0) < MAXIMO_INTENTOS)
+  const pendientes = reemplazos.filter((r) => tocaRepasar(r, estado.hechos[r.clave], ahora) && (Number(estado.intentos[r.clave]) || 0) < MAXIMO_INTENTOS)
   let pendiente = null
   let set = null
   let episodio = null
@@ -714,6 +736,9 @@ export async function pasada({ env = process.env, restImpl = null, estadoImpl = 
   for (const k of ['recolocarPorNumero', 'borrarSinDestino', 'conservarPorNumero', 'numerosDeTcggo', 'sinBorrar', 'numeroComoElNuestro']) if (k in pendiente) opciones[k] = pendiente[k]
   const r = await (procesarImpl || procesar)({ env, restImpl, sets: pendiente.sets, destino: pendiente.destino, mercado: pendiente.mercado || 'WEST', episodio, entero: !!pendiente.entero, ...opciones, ...resto })
   if (r.ok) {
+    // Una que se repasa empieza de cero sus intentos a cada vuelta buena:
+    // cinco fallos sueltos en meses no la pueden parar para siempre.
+    if (pendiente.cadaDias) delete estado.intentos[pendiente.clave]
     estado.hechos[pendiente.clave] = { fecha: ahora.toISOString(), episodio, por, preciosAvisados: await avisarAPrecios(pendiente.mercado, episodio, pendiente.clave), resumen: { suyas: r.suyas, escritas: r.escritas, conservadas: r.conservadas, fueraDeSuLista: r.fueraDeSuLista, renumeradas: r.renumeradas, nuevas: r.nuevas, borradas: r.borradas, lineasMovidas: r.lineasMovidas, deseosMovidos: r.deseosMovidos, albumesTocados: r.albumesTocados, seQuedan: r.seQuedan, aproximadas: r.aproximadas, lineasSinDestino: r.lineasSinDestino, setsBorrados: r.setsBorrados, setsQueSeQuedan: r.setsQueSeQuedan } }
   } else {
     estado.intentos[pendiente.clave] = (Number(estado.intentos[pendiente.clave]) || 0) + 1

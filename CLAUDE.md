@@ -640,7 +640,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   borra). Para otro set a medias, una entrada más en `RELLENOS`. Y si lo que
   falta SÍ lo tiene TCGGO (las promos que crecen, 1000), una entrada en
   `REEMPLAZOS` de `tcggo-reemplazar-set` con `conservarPorNumero`,
-  `sinBorrar` y `numeroComoElNuestro`, como `mep-promos`. Y una
+  `sinBorrar` y `numeroComoElNuestro`, como `mep-promos`; y como un set de promos
+  CRECE, con `cadaDias` (1151: se repasa cada semana; la 1000 la trajo una vez
+  y la MEP 90 de Mega Darkrai salió después). Y una
   clave de estado nueva va en `PASADAS` (`admin/js/semaforo.js`), que es
   la lista que /admin LEE: la 883 y la 884 escribieron su bloque sin
   meterla y el panel decía «todavía no ha corrido» de algo que corría.
