@@ -155,7 +155,7 @@
 .glosario-letra:first-child { margin-top: 0; }
 .glosario-letras a.glosario-letra-actual { background: var(--acento); color: var(--acento-texto); }
 @media (max-width: 900px) {
-  .glosario-mandos { top: 60px; }
+  .glosario-mandos { top: 70px; } /* la barra del móvil mide 70 (1170b: a 60 se metía debajo) */
   .glosario-letras a { min-width: 28px; min-height: 28px; }
   .glosario-termino h3 { font-size: var(--t-md); }
   .glosario-termino { padding: var(--e-sm) 0; }

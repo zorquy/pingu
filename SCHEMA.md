@@ -41798,6 +41798,8 @@ movimiento»). Y una sombra `0 0 0 var(--e-md) var(--bg)` para que el fondo
 tape también el margen lateral de la página, por donde asomaba el texto.
 La regla general: **lo que se pega a `top: 72px` en el móvil lleva su
 `html.bm-escondidas { top: 0 }`**, o deja una franja cuando la barra se va.
+Y el pegado del móvil iba a 60 px, con la barra de 70: diez píxeles del
+buscador debajo de la barra. Ahora 70, que es lo que mide.
 
 ## Tanda 1170 — La jerga de la mesa entra en el glosario
 

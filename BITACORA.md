@@ -12,10 +12,11 @@ antes de cada push (ver CLAUDE.md). Formato:
   de 72 px por la que se leía el texto de detrás. En `movil.css`, con
   `html.bm-escondidas` sube a 0 con la misma transición que el rótulo de
   Deseos y cambios (1125), y lleva una sombra del color del fondo para tapar
-  el margen lateral.
+  el margen lateral. Y con la barra a la vista iba a 60 px, diez por
+  debajo del borde de la barra (mide 70): ahora a 70.
 
-**Ficheros**: css/movil.css, SCHEMA.md, novedades.json. Pruebas:
-test-tanda-1170b-pantalla.mjs nueva; 1144, 313 y 1125 verdes.
+**Ficheros**: css/movil.css, css/glosario.css, SCHEMA.md, novedades.json.
+Pruebas: test-tanda-1170b-pantalla.mjs nueva; 1144, 313, 1040 y 1125 verdes.
 
 **Pendiente**: la ronda 10 (1171 en adelante) cuando PINGU diga.
 
