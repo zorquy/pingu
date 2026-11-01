@@ -41785,6 +41785,42 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1149 — Avisos en una tabla y lo que no existe, con salida (C1, C2)
+
+De «Cuatro pantallas más» (PINGU: «dale con las cuatro»).
+
+**C1 · Ajustes › Avisos.** Eran tres pestañas con quince interruptores cada
+una. Ahora, en `js/avisos-prefs.js`, `SECCIONES_AVISOS`: secciones (Mensajes y
+menciones, Foro y comentarios, Tus guías, Gente, Torneos, Cambios y tiendas,
+De PokeDoc) con FILAS que valen para los dos canales. Cada fila toca en cada
+canal solo los tipos suyos que ese canal tiene (`tiposEn`); si no tiene
+ninguno, la casilla es «—» y no un interruptor apagado. Un tipo que nadie
+colocó cae en «Otros» (`seccionesDeAvisos`): un aviso nuevo no se pierde, pero
+lo suyo es darle fila. `estadoDeSeccion` dice sí / a medias / no para el
+interruptor de la sección (a medias = `indeterminate`).
+- En el PC (> 900 px), una tabla con las columnas Campanita y Correo, y encima
+  el push. El push NO es por tipo: es un interruptor por dispositivo que manda
+  lo de la campanita (la propuesta lo dibujó como tercera columna; no lo es).
+- En el móvil, los tres canales arriba como antes y cada sección plegada con
+  «N de M» y su interruptor; al tocarla se abre con sus filas.
+- Lo que se guarda no cambia: `notification_prefs_disabled` y
+  `notification_email_disabled`, tipo a tipo. Cambia YA, confirma y vuelve si
+  falla (896). Los `data-interruptor` siguen siendo los ids de grupo de antes
+  (`guias`, `mensajes`, `tiendas`…) con `data-canal-de`.
+
+**C2 · Lo que no existe, con salida.** `js/no-encontrado.js` (por `import()`):
+`pintarNoEncontrado(caja, { tipo, trozo })` pinta el molde de la 404
+(`css/404.css`, la mascota) con el título de su sección, el buscador relleno
+con las palabras de la dirección (`palabrasDeDireccion`: un uuid o un número
+no rellena nada) y hasta tres parecidas de esa sección con el buscador de
+siempre (`intentosDeBusqueda`: lo entero y luego palabra a palabra, las largas
+antes, sin «guía», «para»…). Lo usan la guía y la noticia (`guia.js`), el tema
+(`tema.js`) y la persona (`usuario.js`); el torneo ya tenía el suyo. Y «no
+existe» no es «no se ha podido preguntar» (la 510): un error de la base que no
+sea «sin fila» pinta `pintarSinRespuesta` con «Reintentar». En la guía se
+vuelve a mirar si el servidor ya dejó el artículo justo antes de pintar (al
+llegar el módulo puede estar ya puesto, y manda).
+
 ## Tanda 1148 — La paleta del PC con vista previa (B5)
 
 De «Buscar, otra vuelta». En el PC (`≥ 900 px` con ratón) la paleta de

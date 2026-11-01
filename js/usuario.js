@@ -351,8 +351,12 @@ async function init() {
   currentSession = await getSession()
   if (usernameParam || profileId) vistaVigilada(claveDeVista(`usuario:${(usernameParam || profileId).toLowerCase()}`, currentSession?.user?.id), ['heroInfo', 'heroAvatar', 'profileStats', 'followersCount', 'followingCount', 'achievementsCount', 'achievementsGrid', 'publishedGuides'], { atributos: ['heroBanner', 'heroAvatar'] })
   const found = await resolveProfileId()
-  if (!found) {
+  // Lo que no existe, con salida (1149, C2): la gente con ese nombre.
+  const noEncontrado = () => import('./no-encontrado.js').then((m) => m.pintarNoEncontrado(document.querySelector('main'), { tipo: 'usuario', trozo: usernameParam || '' })).catch(() => {
     document.querySelector('main').innerHTML = `<p class="empty-state">Usuario no encontrado.</p>`
+  })
+  if (!found) {
+    noEncontrado()
     return
   }
 
@@ -361,7 +365,7 @@ async function init() {
   isViewerAdmin = !!yo?.is_admin
 
   if (!ok) {
-    document.querySelector('main').innerHTML = `<p class="empty-state">Usuario no encontrado.</p>`
+    noEncontrado()
     return
   }
 

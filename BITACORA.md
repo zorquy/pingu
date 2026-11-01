@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (391) — PINGU-Claude (1149 — avisos en una tabla y lo que no existe, con salida)
+
+**Hecho**: C1 y C2 de «Cuatro pantallas más». Ajustes › Avisos: tabla aviso ×
+canal en el PC (push encima, que es por dispositivo) y secciones plegadas en
+el móvil. Una guía, noticia, tema o persona que no existe: la mascota, el
+buscador relleno con las palabras del enlace y parecidas.
+
+**Ficheros**: js/avisos-prefs.js, js/ajustes.js, css/ajustes.css,
+js/no-encontrado.js (nuevo), css/404.css, js/guia.js, js/tema.js,
+js/usuario.js, SCHEMA.md, novedades.json, CLAUDE.md. Pruebas (rama pruebas):
+test-tanda-1149-pantalla.mjs nueva; 868, 1089 y test-ficha-guia al día.
+
+**En curso**: la 1150 (perfil a lo ancho en el PC y Mis mazos compactos).
+Nota: la 308 (pestaña por defecto del perfil) y la 311 fallan igual sin
+estos cambios; la 974 y la 1120 piden el PostgreSQL de pruebas, que no estaba
+en marcha.
+
 ## 2026-11-01 (390) — PINGU-Claude (1148 — la paleta del PC con vista previa)
 
 **Hecho**: B5 de «Buscar, otra vuelta». En el PC, Ctrl+K enseña la carta en

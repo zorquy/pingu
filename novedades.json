@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-01", "tipo": "mejora", "texto": "Los avisos de Ajustes, más fáciles: en el ordenador, una tabla con cada aviso y si te llega por la campanita o por correo; en el móvil, agrupados por temas con un interruptor para cada grupo.", "enlace": "/ajustes?ver=avisos" },
+    { "fecha": "2026-11-01", "tipo": "mejora", "texto": "Si un enlace lleva a una guía, un tema o una persona que ya no existe, ahora te proponemos lo más parecido y el buscador ya relleno, en vez de una página vacía.", "enlace": "/aprender" },
     { "fecha": "2026-11-01", "tipo": "nuevo", "texto": "En el ordenador, Ctrl+K te enseña la carta en grande mientras buscas, con su precio y si la tienes, y la puedes apuntar en «La quiero» o añadir sin salir de donde estás.", "enlace": "/buscar" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "Buscar te ayuda antes de escribir: lo que buscaste (con su × para quitarlo), la expansión que acaba de salir, ejemplos para probar y tus últimas cartas de «La quiero».", "enlace": "/buscar" },
     { "fecha": "2026-11-01", "tipo": "nuevo", "texto": "Al buscar, te proponemos los nombres que completan lo que escribes («chari» → Charizard ex, Charizard VSTAR…); la flecha lo pone en la caja para seguir escribiendo.", "enlace": "/buscar" },

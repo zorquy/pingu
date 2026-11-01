@@ -147,9 +147,17 @@ async function cargar() {
     elMensajes.innerHTML = `<p class="empty-state">El foro todavía no está activado.</p>`
     return false
   }
+  if (error) {
+    // No es que no exista: no se ha podido preguntar (la 510).
+    import('./no-encontrado.js').then((m) => m.pintarSinRespuesta(elMensajes, 'el tema')).catch(() => {})
+    return false
+  }
   if (!data) {
-    elMensajes.innerHTML = `<p class="empty-state">Este tema no existe o lo han retirado.</p>`
-    elMigas.innerHTML = migasHtml([{ texto: 'Foro', url: '/foro.html' }, { texto: 'No encontrado' }])
+    // Lo que no existe, con salida (1149, C2).
+    const main = document.querySelector('main')
+    import('./no-encontrado.js').then((m) => m.pintarNoEncontrado(main, { tipo: 'tema', trozo: temaId })).catch(() => {
+      elMensajes.innerHTML = `<p class="empty-state">Este tema no existe o lo han retirado.</p>`
+    })
     return false
   }
   tema = data

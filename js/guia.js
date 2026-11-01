@@ -127,9 +127,13 @@ async function init() {
   // igual. Mejor un artículo sin sus botones que un artículo que no
   // está.
   const loPintoElServidor = () => !!main.querySelector('h1')
+  // Sin ella, el molde de lo que no existe con salida (1149, C2): el
+  // buscador relleno con las palabras de la dirección y las parecidas.
   const noEncontrada = () => {
     if (loPintoElServidor()) return
-    main.innerHTML = `<p class="empty-state">Guía no encontrada.</p>`
+    // Se vuelve a mirar al llegar el módulo: en ese rato el servidor puede
+    // haber dejado el artículo puesto, y eso manda.
+    import('./no-encontrado.js').then((m) => { if (!loPintoElServidor()) m.pintarNoEncontrado(main, { tipo: location.pathname.startsWith('/noticias/') ? 'noticia' : 'guia', trozo: slug }) }).catch(() => { if (!loPintoElServidor()) main.innerHTML = `<p class="empty-state">Guía no encontrada.</p>` })
   }
 
   if (!slug) {
@@ -143,7 +147,13 @@ async function init() {
     .eq('slug', slug)
     .single()
 
-  if (error || !guide) {
+  // «No existe» y «no se ha podido preguntar» son dos cosas (la 510):
+  // `single` sin fila es PGRST116; otro error es la red o la base.
+  if (error && error.code !== 'PGRST116') {
+    if (!loPintoElServidor()) import('./no-encontrado.js').then((m) => { if (!loPintoElServidor()) m.pintarSinRespuesta(main, 'la guía') }).catch(() => {})
+    return
+  }
+  if (!guide) {
     noEncontrada()
     return
   }

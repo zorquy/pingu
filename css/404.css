@@ -60,3 +60,28 @@
     width: 100%;
   }
 }
+
+/* Lo que no existe, con salida (1149, C2): las parecidas debajo del buscador. */
+.no-encontrado-parecidas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  max-width: 480px;
+  margin-top: var(--e-md);
+  text-align: left;
+}
+
+.no-encontrado-parecidas:empty {
+  display: none;
+}
+
+.no-encontrado .hero-actions {
+  margin-top: var(--e-lg);
+}
+
+@media (max-width: 560px) {
+  .no-encontrado-parecidas {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}

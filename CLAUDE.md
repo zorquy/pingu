@@ -839,7 +839,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`window.__pdAvisos`) y el sobre (`#navMsgBadge`), y se repinta con el
   evento `pd-avisos`. Un tipo de aviso nuevo que sea de una sección va en
   `seccionDeAviso` (Comunidad el foro, Jugar los torneos, Colección los
-  cambios, cruces, alertas de precio y tiendas, 1142). Un aviso se cuenta en UN
+  cambios, cruces, alertas de precio y tiendas, 1142), y en una fila de
+  `SECCIONES_AVISOS` (`js/avisos-prefs.js`, 1149: la tabla de Ajustes; sin
+  fila cae en «Otros»). Un aviso se cuenta en UN
   sitio (1142, PINGU: «la campana… ¿tiene sentido?»): la campana y el avatar
   del móvil cuentan solo lo que no es de ninguna sección (`avisosSinSeccion`),
   y su lista va en «Para ti» y «En tus secciones» con la etiqueta de color. Y un
@@ -1570,6 +1572,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   a pelo** (tanda 1135): iOS a veces lo deja con el alto del teclado y la barra
   de abajo crecía hasta media pantalla con la burbuja flotando. El token lleva
   tope (48 px) y lo vigila `test-tanda-1135.mjs`.
+- **Lo que no existe se pinta CON SALIDA** (tanda 1149): una guía, noticia,
+  tema o persona que no está pasa por `pintarNoEncontrado` (`js/no-encontrado.js`:
+  la mascota de la 404, el buscador relleno con la dirección y las parecidas), y
+  un error de la base que no sea «sin fila» por `pintarSinRespuesta`, que no es
+  lo mismo (la 510). Una ficha nueva que pueda no existir hace igual.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

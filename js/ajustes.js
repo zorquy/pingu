@@ -14,7 +14,7 @@ import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { hojaInyectada } from './hoja.js'
 import { NOTIFICATION_TYPES, EMAIL_TYPES, EMAIL_TYPES_EQUIPO } from './notifications.js'
-import { GRUPOS_CAMPANITA, GRUPOS_CORREO, gruposDe, estaActivo, conGrupo } from './avisos-prefs.js'
+import { estaActivo, conGrupo, seccionesDeAvisos, estadoDeSeccion, tiposEn } from './avisos-prefs.js'
 
 const APARTADOS = [
   { id: 'avisos', nombre: 'Avisos', sub: 'Campanita, correo y push', icono: 'bell' },
@@ -51,11 +51,19 @@ async function guardar(campos) {
 const interruptor = ({ id, texto, detalle = '', activo, disabled = false }) =>
   `<label class="aj-interruptor"><span>${escapeHtml(texto)}${detalle ? `<small>${escapeHtml(detalle)}</small>` : ''}</span><input type="checkbox" role="switch" data-interruptor="${escapeHtml(id)}" ${activo ? 'checked' : ''} ${disabled ? 'disabled' : ''}></label>`
 
-// ── Avisos: tres canales, los mismos grupos ──
+// ── Avisos (1149, C1 de «Cuatro pantallas más») ──
+// En el PC, una TABLA: una fila por cosa que te puede pasar, agrupadas por
+// sección, y una columna por canal (campanita y correo), con el interruptor
+// de toda la sección en su cabecera. El push va encima: no es por tipo, es
+// un interruptor por dispositivo que manda lo de la campanita. En el móvil
+// no cabe la tabla: los tres canales arriba, como antes, y las secciones
+// plegadas con «3 de 4» y su interruptor. Lo que se guarda no cambia: las
+// mismas dos columnas de tipos apagados (SCHEMA 1149).
 function avisosHtml() {
   return `
     <h2>Avisos</h2>
     <p>De qué te avisamos y por dónde. Se guarda al tocar cada uno.</p>
+    <div class="aj-push-pc" id="ajAvisosPush"></div>
     <div class="seg aj-canales" role="tablist" aria-label="Canal">
       <button type="button" class="seg-btn" data-canal="campanita" aria-pressed="true">${icons.bell(16)} En la campanita</button>
       <button type="button" class="seg-btn" data-canal="correo" aria-pressed="false">${icons.mail(16)} Por correo</button>
@@ -64,32 +72,109 @@ function avisosHtml() {
     <div id="ajCanal"></div>`
 }
 
+const COLUMNA_DE = { campanita: 'notification_prefs_disabled', correo: 'notification_email_disabled' }
+const NOMBRE_DE_CANAL = { campanita: 'Campanita', correo: 'Correo' }
+
 function montarAvisos(panel) {
   const caja = panel.querySelector('#ajCanal')
-  const pintar = (canal) => {
+  const tiposDe = () => ({ campanita: NOTIFICATION_TYPES, correo: { ...EMAIL_TYPES, ...(perfil?.is_admin ? EMAIL_TYPES_EQUIPO : {}) } })
+  const secciones = seccionesDeAvisos(tiposDe())
+  const abiertas = new Set()
+  let canal = 'campanita'
+  let modo = null
+
+  const sw = (atributos, puesto, rotulo) => `<input type="checkbox" role="switch" class="aj-sw" ${atributos} ${puesto === 'si' || puesto === true ? 'checked' : ''} ${puesto === 'medias' ? 'data-medias' : ''} aria-label="${escapeHtml(rotulo)}">`
+  const activoEn = (fila, c) => estaActivo({ tipos: tiposEn(fila, tiposDe()[c]) }, perfil?.[COLUMNA_DE[c]])
+
+  function tabla() {
+    const canales = ['campanita', 'correo']
+    return `<div class="aj-tabla" role="table" aria-label="Avisos por canal">
+      <div class="aj-tabla-fila aj-tabla-cab" role="row"><span role="columnheader">Aviso</span>${canales.map((c) => `<span role="columnheader">${icons[c === 'correo' ? 'mail' : 'bell'](15)} ${NOMBRE_DE_CANAL[c]}</span>`).join('')}</div>
+      ${secciones.map((s) => `
+        <div class="aj-tabla-fila aj-tabla-seccion" role="row"><b role="rowheader">${escapeHtml(s.titulo)}</b>${canales.map((c) => {
+          const e = estadoDeSeccion(s, tiposDe()[c], perfil?.[COLUMNA_DE[c]])
+          return `<span role="cell">${e ? sw(`data-seccion="${s.id}" data-canal-de="${c}"`, e, `${s.titulo}: ${NOMBRE_DE_CANAL[c]}, todo`) : ''}</span>`
+        }).join('')}</div>
+        ${s.filas.map((f) => `<div class="aj-tabla-fila" role="row"><span role="rowheader">${escapeHtml(f.titulo)}</span>${canales.map((c) => `<span role="cell">${tiposEn(f, tiposDe()[c]).length ? sw(`data-interruptor="${f.id}" data-canal-de="${c}"`, activoEn(f, c), `${f.titulo}: ${NOMBRE_DE_CANAL[c]}`) : '<span class="aj-sin" title="No llega por aquí">—</span>'}</span>`).join('')}</div>`).join('')}`).join('')}
+    </div>`
+  }
+
+  function lista(c) {
+    const tipos = tiposDe()[c]
+    return (c === 'correo' ? `<p class="aj-nota">Solo te escribimos cuando alguien se dirige a ti directamente. Aunque lo desactives, lo seguirás viendo al entrar en la web.</p>` : '') +
+      `<div class="aj-grupos">${secciones.map((s) => {
+        const filas = s.filas.filter((f) => tiposEn(f, tipos).length)
+        if (!filas.length) return ''
+        const puestas = filas.filter((f) => activoEn(f, c)).length
+        const abierta = abiertas.has(s.id)
+        return `<div class="aj-grupo${abierta ? ' abierta' : ''}">
+          <div class="aj-grupo-cab"><button type="button" class="aj-grupo-abrir" data-abrir="${s.id}" aria-expanded="${abierta}"><b>${escapeHtml(s.titulo)}</b><small>${puestas} de ${filas.length}</small>${icons.chevronRight(16)}</button>${sw(`data-seccion="${s.id}" data-canal-de="${c}"`, estadoDeSeccion(s, tipos, perfil?.[COLUMNA_DE[c]]), `${s.titulo}, todo`)}</div>
+          <div class="aj-filas" ${abierta ? '' : 'hidden'}>${filas.map((f) => `<label class="aj-interruptor"><span>${escapeHtml(f.titulo)}</span>${sw(`data-interruptor="${f.id}" data-canal-de="${c}"`, activoEn(f, c), f.titulo)}</label>`).join('')}</div>
+        </div>`
+      }).join('')}</div>`
+  }
+
+  function pintar() {
+    modo = enMovil() ? 'movil' : 'pc'
+    panel.classList.toggle('aj-avisos-pc', modo === 'pc')
     for (const b of panel.querySelectorAll('[data-canal]')) b.setAttribute('aria-pressed', String(b.dataset.canal === canal))
-    if (canal === 'push') return pintarPush(caja)
-    const columna = canal === 'correo' ? 'notification_email_disabled' : 'notification_prefs_disabled'
-    const tipos = canal === 'correo' ? { ...EMAIL_TYPES, ...(perfil?.is_admin ? EMAIL_TYPES_EQUIPO : {}) } : NOTIFICATION_TYPES
-    const grupos = gruposDe(tipos, canal === 'correo' ? GRUPOS_CORREO : GRUPOS_CAMPANITA)
-    caja.innerHTML =
-      (canal === 'correo' ? `<p class="aj-nota">Solo te escribimos cuando alguien se dirige a ti directamente. Aunque lo desactives, lo seguirás viendo al entrar en la web.</p>` : '') +
-      `<div class="aj-filas">${grupos.map((g) => interruptor({ id: g.id, texto: g.titulo, activo: estaActivo(g, perfil?.[columna]) })).join('')}</div>`
-    for (const input of caja.querySelectorAll('[data-interruptor]')) {
-      input.addEventListener('change', async () => {
-        const g = grupos.find((x) => x.id === input.dataset.interruptor)
-        input.disabled = true
-        const ok = await guardar({ [columna]: conGrupo(perfil?.[columna], g, input.checked) })
-        if (!ok) input.checked = !input.checked
-        input.disabled = false
-      })
+    if (modo === 'movil' && canal === 'push') return pintarPush(caja)
+    caja.innerHTML = modo === 'pc' ? tabla() : lista(canal)
+    // «A medias» no es un atributo de HTML: se pone a mano.
+    for (const i of caja.querySelectorAll('[data-medias]')) i.indeterminate = true
+  }
+  // El push del PC, una vez (pide al navegador; no se repinta con la tabla).
+  let pushPintado = false
+  const pintarPushPc = () => {
+    if (pushPintado || enMovil()) return
+    pushPintado = true
+    pintarPush(panel.querySelector('#ajAvisosPush'))
+  }
+
+  // Cambia YA, confirma después y vuelve si la base dice que no (896).
+  async function poner(c, tipos, activo) {
+    const col = COLUMNA_DE[c]
+    const antes = perfil?.[col] || []
+    const nuevo = conGrupo(antes, { tipos }, activo)
+    perfil = { ...perfil, [col]: nuevo }
+    pintar()
+    const ok = await guardar({ [col]: nuevo })
+    if (!ok) {
+      perfil = { ...perfil, [col]: antes }
+      pintar()
     }
   }
+
+  caja.addEventListener('change', (e) => {
+    const i = e.target.closest('input[data-canal-de]')
+    if (!i) return
+    const c = i.dataset.canalDe
+    if (i.dataset.seccion) {
+      const s = secciones.find((x) => x.id === i.dataset.seccion)
+      return void poner(c, s.filas.flatMap((f) => tiposEn(f, tiposDe()[c])), i.checked)
+    }
+    const f = secciones.flatMap((x) => x.filas).find((x) => x.id === i.dataset.interruptor)
+    if (f) poner(c, tiposEn(f, tiposDe()[c]), i.checked)
+  })
+  caja.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-abrir]')
+    if (!b) return
+    abiertas.has(b.dataset.abrir) ? abiertas.delete(b.dataset.abrir) : abiertas.add(b.dataset.abrir)
+    pintar()
+  })
   panel.addEventListener('click', (e) => {
     const b = e.target.closest('[data-canal]')
-    if (b) pintar(b.dataset.canal)
+    if (!b || !caja.isConnected) return
+    canal = b.dataset.canal
+    pintar()
   })
-  pintar('campanita')
+  window.matchMedia('(max-width: 900px)').addEventListener('change', () => {
+    if (!caja.isConnected) return
+    pintar()
+    pintarPushPc()
+  })
+  pintar()
+  pintarPushPc()
 }
 
 // El interruptor de push, con su estado real. Suscribirse pide permiso al
@@ -444,6 +529,7 @@ function pintar() {
   migas.innerHTML = `<a href="/">Inicio</a> <span>›</span> <a href="/ajustes">Ajustes</a> <span>›</span> <span>${escapeHtml(a.nombre)}</span>`
   document.title = `${a.nombre} · Ajustes — PokeDoc`
   const [html, montar] = SECCIONES[ver]
+  panel.classList.remove('aj-avisos-pc')
   panel.innerHTML = html()
   montar(panel)
 }

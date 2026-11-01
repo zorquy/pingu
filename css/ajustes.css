@@ -297,3 +297,197 @@
 .aj-direccion { max-width: 520px; }
 .aj-dir-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
 .aj-dir-botones button { min-height: 44px; }
+
+/* ── 1149: los avisos en una tabla (PC) y por secciones (móvil); SCHEMA 1149 ── */
+.aj-sw {
+  appearance: none;
+  flex: none;
+  width: 44px;
+  height: 24px;
+  margin: 0;
+  border-radius: var(--radius-pill);
+  background: var(--border-strong);
+  position: relative;
+  cursor: pointer;
+  transition: background 0.15s var(--ease);
+}
+
+.aj-sw::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--blanco-fijo);
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.15s var(--ease);
+}
+
+.aj-sw:checked,
+.aj-sw:indeterminate {
+  background: var(--navy-solid);
+}
+
+.aj-sw:checked::after {
+  transform: translateX(20px);
+}
+
+.aj-sw:indeterminate {
+  opacity: 0.7;
+}
+
+.aj-sw:indeterminate::after {
+  transform: translateX(10px);
+}
+
+.aj-sw:focus-visible {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aj-sw,
+  .aj-sw::after {
+    transition: none;
+  }
+}
+
+/* PC: la tabla, sin las pestañas de canal; el push encima. */
+.aj-panel.aj-avisos-pc .aj-canales {
+  display: none;
+}
+
+.aj-panel:not(.aj-avisos-pc) .aj-push-pc,
+.aj-push-pc:empty {
+  display: none;
+}
+
+.aj-push-pc {
+  margin-bottom: var(--e-lg);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+.aj-push-pc .aj-interruptor {
+  border-bottom: 0;
+}
+
+.aj-tabla {
+  display: grid;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.aj-tabla-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px 112px;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 48px;
+  padding: 0 var(--e-md);
+  border-top: 1px solid var(--border);
+  font-size: var(--t-sm);
+}
+
+.aj-tabla-fila > :not(:first-child) {
+  justify-self: center;
+}
+
+.aj-tabla-cab {
+  border-top: 0;
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.aj-tabla-cab > span {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.aj-tabla-seccion {
+  background: var(--ice);
+}
+
+.aj-sin {
+  color: var(--text-dim);
+}
+
+/* Móvil: cada sección plegada, con su cuenta y su interruptor. */
+.aj-grupos {
+  display: grid;
+  gap: var(--e-sm);
+}
+
+.aj-grupo {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+}
+
+.aj-grupo-cab {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  padding-right: var(--e-md);
+}
+
+.aj-grupo-abrir {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: var(--e-sm);
+  min-width: 0;
+  min-height: 52px;
+  padding: 0 var(--e-md);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.aj-grupo-abrir b {
+  flex: 1 1 auto;
+  font-size: var(--t-sm);
+}
+
+.aj-grupo-abrir small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.aj-grupo-abrir svg {
+  color: var(--text-mid);
+  transition: transform 0.15s var(--ease);
+}
+
+.aj-grupo.abierta .aj-grupo-abrir svg {
+  transform: rotate(90deg);
+}
+
+.aj-grupo .aj-filas {
+  padding: 0 var(--e-md) var(--e-xs);
+  border-top: 1px solid var(--border);
+}
+
+.aj-grupo .aj-filas[hidden] {
+  display: none;
+}
+
+.aj-grupo .aj-interruptor:last-child {
+  border-bottom: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aj-grupo-abrir svg {
+    transition: none;
+  }
+}
