@@ -36,6 +36,18 @@
     {
       "fecha": "2026-11-01",
       "tipo": "mejora",
+      "texto": "Gente va al grano: las cifras en una línea, el top del mes en una tira que se abre, y la lista de personas sale nada más entrar.",
+      "enlace": "/usuarios"
+    },
+    {
+      "fecha": "2026-11-01",
+      "tipo": "arreglo",
+      "texto": "Dentro de un Pokémon de la Pokédex, los botones «Pokémon» y «Pokémon Japón» vuelven a cambiar el catálogo (gracias por avisar en el foro).",
+      "enlace": "/mi-coleccion?ver=pokedex&dex=3"
+    },
+    {
+      "fecha": "2026-11-01",
+      "tipo": "mejora",
       "texto": "Dentro de una expansión, arriba solo queda la expansión: el título de la página ya no ocupa sitio en el ordenador.",
       "enlace": "/cartas?ver=album&set=sv08"
     },

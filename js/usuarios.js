@@ -169,7 +169,20 @@ async function cargarPodio(perfiles) {
 
     const MEDALLAS = ['Oro', 'Plata', 'Bronce']
     const mesLargo = hoy.toLocaleDateString('es-ES', { month: 'long' })
+    // Una tira de una línea (1165, M1): los tres avatares, los nombres y
+    // «Ver el top ›», que abre el podio de siempre debajo. Antes el podio
+    // entero iba delante de la lista y la primera persona salía a 900 px.
+    const nombres = tres.map(({ p }) => p.display_name || p.username || 'Usuario')
+    const juntos = nombres.length > 1 ? `${nombres.slice(0, -1).join(', ')} y ${nombres.at(-1)}` : nombres[0]
     hueco.innerHTML = `
+      <details class="com-top">
+        <summary class="com-top-tira" aria-label="El top de ${escapeHtml(mesLargo)}: ${escapeHtml(juntos)}. Ver el top">
+          <span class="com-top-icono" aria-hidden="true">${icons.trophy(14)}</span>
+          <span class="com-top-mes"><span class="cab-largo">El top de ${escapeHtml(mesLargo)}</span><span class="com-top-mes-corto">Top del mes</span></span>
+          <span class="com-top-caras" aria-hidden="true">${tres.map(({ p }) => `<span class="com-top-cara" style="${avatarStyle(p)}">${p.avatar_url ? '' : getInitial(p.display_name || p.username || '?')}</span>`).join('')}</span>
+          <span class="com-top-nombres cab-largo">${escapeHtml(juntos)}</span>
+          <span class="com-top-ver">Ver el top ›</span>
+        </summary>
       <section class="com-podio">
         <span class="com-podio-rotulo">${icons.trophy(14)} El top de ${escapeHtml(mesLargo)}</span>
         <h2>Quién más ha aportado este mes</h2>
@@ -186,7 +199,8 @@ async function cargarPodio(perfiles) {
             )
             .join('')}
         </div>
-      </section>`
+      </section>
+      </details>`
   } catch {
     // El podio es un extra. Si falla, la lista de gente sale igual.
   }
@@ -401,6 +415,7 @@ function abrirPestana(nombre, { recordar = true } = {}) {
   document.querySelectorAll('.tab-panel[id^="ctab-"]').forEach((p) => p.classList.remove('active'))
   btn.classList.add('active')
   document.getElementById(`ctab-${nombre}`).classList.add('active')
+  colocarLupa(nombre)
 
   if (recordar) history.replaceState(null, '', `#${nombre}`)
 
@@ -411,7 +426,28 @@ function abrirPestana(nombre, { recordar = true } = {}) {
   return true
 }
 
+// En el PC (1165, M1) la caja de buscar va en la fila de las pestañas, a la
+// derecha, y solo con «Gente» abierta (es la que busca); en el móvil se queda
+// en su panel. Se mueve el campo de verdad, con sus manejadores.
+const pantallaAncha = typeof matchMedia === 'function' ? matchMedia('(min-width: 901px)') : { matches: false, addEventListener() {} }
+function colocarLupa(nombre = document.querySelector('#communityTabs .active')?.dataset.ctab || 'users') {
+  const campo = document.getElementById('userSearchInput')
+  const caja = campo?.closest('.search-input-wrap')
+  const chips = document.getElementById('communityTabs')
+  const panel = document.getElementById('ctab-users')
+  if (!caja || !chips || !panel) return
+  if (pantallaAncha.matches) {
+    if (caja.parentElement !== chips) chips.append(caja)
+    caja.hidden = nombre !== 'users'
+  } else {
+    if (caja.parentElement !== panel) panel.insertBefore(caja, document.getElementById('userDirectoryEmpty'))
+    caja.hidden = false
+  }
+}
+pantallaAncha.addEventListener?.('change', () => colocarLupa())
+
 function wireTabs() {
+  colocarLupa()
   // El botón de la lateral abre la pestaña de peticiones en vez de dejar
   // el ancla suelto: sin esto el navegador salta al final de la página y
   // no pasa nada más.

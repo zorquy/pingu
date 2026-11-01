@@ -5803,9 +5803,14 @@ function enganchar() {
   pintarIconos()
   // El selector de catálogo (tanda 437), en los tres sitios a la vez.
   pintarVistas()
-  for (const sel of document.querySelectorAll('.mc-mercado')) {
-    sel.addEventListener('change', () => void cambiarVista(sel.value))
-  }
+  // DELEGADO al documento (1165b, aviso del foro): el selector de una
+  // especie de la Pokédex es HTML nuevo cada vez que se pinta, y un oyente
+  // puesto solo a los que existían al arrancar dejaba «Pokémon / Pokémon
+  // Japón» mudo dentro de un Pokémon, sin error.
+  document.addEventListener('change', (e) => {
+    const sel = e.target.closest?.('.mc-mercado')
+    if (sel) void cambiarVista(sel.value)
+  })
   for (const b of document.querySelectorAll('[data-pestania]')) b.addEventListener('click', () => {
     // Tocar la pestaña en la que ya estás, con algo abierto dentro, SUBE a
     // su lista (856): es lo que hace cualquier app con su barra de abajo.

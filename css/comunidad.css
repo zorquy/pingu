@@ -388,8 +388,7 @@
   .com-largo {
     display: none;
   }
-  .page-header.cab-lista,
-  #ctab-users > .seccion-cabecera {
+  .page-header.cab-lista {
     position: absolute;
     width: 1px;
     height: 1px;
@@ -397,6 +396,16 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
+}
+/* El título de la lista («Gente de PokeDoc») repetía el de la página (1165,
+   M1): queda solo para el lector, a cualquier ancho. */
+#ctab-users > .seccion-cabecera {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* ── Las personas ── */
@@ -851,4 +860,76 @@
 @media (max-width: 900px) {
   .page-content:has(> .com-cifras) { display: flex; flex-direction: column; }
   .com-cifras { order: 10; margin: var(--e-lg) 0 0; }
+}
+
+/* ── 1165 (M1): la gente primero ──
+   En el PC las cuatro cifras son una línea bajo el lema (contexto, no la
+   noticia), la caja de buscar va en la fila de las pestañas y el top del mes
+   es una tira de una línea que se abre: la primera persona sale a ~300 px en
+   vez de a 900. En el móvil las cifras siguen al final (896). */
+@media (min-width: 901px) {
+  .com-cifras {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--e-xs) var(--e-lg);
+    margin: 0 0 var(--e-lg);
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+  .com-cifra {
+    flex-direction: row;
+    align-items: baseline;
+    gap: var(--e-xs);
+    padding: 0;
+    border: 0;
+  }
+  .com-cifra b { font-size: var(--t-lg); }
+  .com-cifra > span { font-size: var(--t-sm); text-align: left; }
+  .com-chips { align-items: center; }
+  .com-chips .search-input-wrap { margin: 0 0 0 auto; flex: 0 1 320px; min-width: 200px; }
+  .com-chips .search-input-wrap[hidden] { display: none; }
+}
+.com-top { margin-bottom: var(--e-lg); }
+.com-top-tira {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(120deg, var(--navy-dark), var(--navy) 55%, #3d8ab8);
+  color: var(--blanco-fijo);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.com-top-tira::-webkit-details-marker { display: none; }
+.com-top-icono { display: inline-flex; color: rgba(255, 255, 255, 0.85); }
+.com-top-mes { white-space: nowrap; }
+.com-top-mes-corto { display: none; }
+.com-top-caras { display: flex; flex-shrink: 0; }
+.com-top-cara {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  color: var(--blanco-fijo);
+  background-size: cover;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  margin-left: -4px;
+}
+.com-top-cara:first-child { margin-left: 0; }
+.com-top-nombres { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.com-top-ver { margin-left: auto; white-space: nowrap; font-weight: 700; }
+.com-top[open] .com-top-tira { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.com-top[open] .com-podio { margin: 0; border-radius: 0 0 var(--radius-xl) var(--radius-xl); }
+.com-top[open] .com-top-ver::after { content: ' (cerrar)'; font-weight: 400; }
+@media (max-width: 900px) {
+  .com-top-mes-corto { display: inline; }
+  .com-top-nombres { display: none; }
 }

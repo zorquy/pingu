@@ -41785,6 +41785,60 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1165 — Gente, la gente primero (M1 de «PokeDoc entera»)
+
+La página de Gente empezaba con cuatro cifras grandes en una caja, las
+pestañas, «El top de noviembre» en una tarjeta azul con tres medallas, otro
+título («Gente de PokeDoc»), la caja de buscar… y la primera persona a 900 px
+en el PC y pasado el 55 % de la pantalla en el móvil.
+
+- **Las cifras, una línea bajo el lema** (PC, `@media (min-width: 901px)` en
+  `comunidad.css`): `.com-cifras` como flex sin caja ni borde, cada
+  `.com-cifra` en fila («12 miembros · 5 mensajes en el foro …»). Mismo HTML
+  (la 312 y la 893 siguen contando cuatro); en el móvil se quedan al final
+  (896). La 312 se actualizó: en el PC ya no hay caja.
+- **La caja de buscar en la fila de las pestañas** (`colocarLupa` en
+  `usuarios.js`): en el PC se mueve el `.search-input-wrap` de
+  `#userSearchInput` a `#communityTabs` (a la derecha, `margin-left: auto`) y
+  se esconde con una pestaña que no sea «Gente» (`abrirPestana` la llama); en
+  el móvil vuelve a su panel. Se mueve el campo de verdad, con sus
+  manejadores (893), y `matchMedia('(min-width: 901px)')` lo recoloca al
+  cambiar de ancho.
+- **El top del mes, una tira** (`cargarPodio`): `<details class="com-top">`
+  con un `summary.com-top-tira` de una línea (trofeo, «El top de noviembre»,
+  los tres avatares `.com-top-cara`, los nombres «Brock, jesus y Cynthia» y
+  «Ver el top ›») y, dentro, el `.com-podio` de siempre, que se abre al
+  tocarla. En el móvil la tira dice «Top del mes» y sin nombres
+  (`.cab-largo` / `.com-top-mes-corto`). La 301 abre la tira antes de leer
+  el podio.
+- **«Gente de PokeDoc» solo para el lector**: `#ctab-users > .seccion-cabecera`
+  recortado a cualquier ancho (antes solo en el móvil, 1040).
+
+Lo vigila `test-tanda-1165-pantalla.mjs`: en el PC la primera persona antes de
+480 px y en el móvil antes del 40 %.
+
+## Tanda 1165b — El catálogo dentro de un Pokémon no respondía
+
+Aviso en el foro, comprobado por PINGU: en Colección → Pokédex, dentro de un
+Pokémon, los botones «Pokémon / Pokémon Japón» no hacían nada, en PC y en
+móvil. El selector de catálogo es UNO repetido en varios sitios
+(`.mc-mercado` + su `.seg`, `pintarVistas`): la estantería, la lista y la
+Pokédex están en el HTML, pero el de una ESPECIE lo escribe `pokedex.js`
+(`barraDeEspecie`) en cada pintado, y `enganchar()` solo ponía el `change` a
+los `.mc-mercado` que existían al arrancar. El botón sí cambiaba el `select` y
+disparaba `change`… que nadie escuchaba. Sin error.
+
+Ahora el `change` va delegado al documento (`e.target.closest('.mc-mercado')`
+→ `cambiarVista`), así que vale para los de ahora y los que se pinten luego.
+Con una especie abierta, `cambiarVista` deja `especieAbierta` a null y
+`abrirPokedex` la vuelve a abrir desde `?dex=` en el catálogo nuevo.
+
+Es la familia de la 1142 («un oyente puesto a lo que había»): lo que se pinta
+de nuevo con `innerHTML` no conserva oyentes; si el control puede repintarse,
+el oyente va en un padre que no se repinta. `test-tanda-1165b-pantalla.mjs`
+toca «Pokémon Japón» dentro de Bulbasaur en PC y móvil y comprueba que el
+catálogo cambia, se recuerda y la especie enseña la carta japonesa.
+
 ## Tanda 1164 — Una cabecera y una fila (C1, J1, J2 de «PokeDoc entera»)
 
 **C1 — Dentro de una expansión manda la expansión.** En /cartas y Mi colección

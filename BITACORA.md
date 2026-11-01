@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (407) — PINGU-Claude (1165 — Gente, la gente primero; 1165b — el catálogo dentro de un Pokémon no respondía)
+
+**Hecho**:
+- 1165 (M1 de «PokeDoc entera»): en el PC las cuatro cifras de Gente son una
+  línea bajo el lema (sin caja), la caja de buscar va en la fila de las
+  pestañas (solo con «Gente» abierta; en el móvil sigue en su panel), el top
+  del mes es una tira de una línea («El top de noviembre · B J C · Brock,
+  jesus y Cynthia · Ver el top ›») que abre el podio de siempre debajo, y
+  «Gente de PokeDoc» queda solo para el lector. La primera persona sale a
+  ~270 px (antes a 900) y en el móvil antes del 40 %.
+- 1165b (aviso en el foro, PINGU lo comprobó): dentro de un Pokémon de la
+  Pokédex, «Pokémon / Pokémon Japón» no hacía nada. El selector de la especie
+  es HTML nuevo en cada pintado y el `change` estaba enganchado solo a los
+  selectores que existían al arrancar. Delegado al documento
+  (`js/mi-coleccion.js`, `enganchar`): ahora cambia el catálogo y la especie
+  se vuelve a pintar en el japonés.
+
+**Ficheros**: usuarios.html, js/usuarios.js, css/comunidad.css,
+js/mi-coleccion.js, SCHEMA.md, novedades.json. Pruebas:
+test-tanda-1165-pantalla.mjs y test-tanda-1165b-pantalla.mjs nuevas; 301 y
+312 actualizadas (la tira del top; las cifras sin caja en el PC); 1040, 437,
+381, 418, 1054, 299 verdes. Rojos de antes, comprobados contra el commit
+anterior: 789 (rango en barra), 896 (retos.css y «La quiero»), 648 (el Panel
+con lo de otro catálogo), 311 (auth.css, comunidad.css 20px, torneos.css).
+
+**Pendiente**: 1166–1168 de la propuesta.
+
 ## 2026-11-01 (406) — PINGU-Claude (1164 — una cabecera y una fila: la expansión manda, Torneos en una fila, Mis partidas con el «+» en los mandos)
 
 **Hecho** (tercera tanda de «PokeDoc entera»):
