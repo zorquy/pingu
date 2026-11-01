@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (397) — PINGU-Claude (1154 — Retos con la liga al lado y Aprender sin repetirse)
+
+**Hecho**: E1 y E4 de la ronda 7, con lo recomendado.
+- E1: en el PC, los retos a dos columnas y la liga de la semana a la derecha
+  (los cinco primeros y tú, tu racha y «Ver la clasificación»), con la
+  consulta de la portada. En el móvil no cambia.
+- E4: la destacada del móvil en Aprender nunca es la que sale en «Sigue donde
+  lo dejaste» (pasa a la siguiente de su tema), es más baja (52 px) y la fila
+  de seguir lleva su barra.
+
+**Ficheros**: retos.html, js/retos.js, js/retos-liga.js (nuevo), css/retos.css,
+js/aprender.js, css/aprender.css, CLAUDE.md, SCHEMA.md, novedades.json.
+Pruebas: test-tanda-1154.mjs nueva y la 989 al día.
+
+**Pendiente**: la 1155 (Constructor vacío con tres salidas y el Panel en dos
+columnas). La 316 («Primeros pasos» de la portada en el PC, y=985) falla igual
+sin estos cambios; la dejo apuntada.
+
 ## 2026-11-01 (396) — PINGU-Claude (1157 — la tarjeta del enlace con marca e «Imagen para redes»)
 
 **Hecho**: R3 y R4 de «Todas las imágenes de PokeDoc, con el mismo marco».

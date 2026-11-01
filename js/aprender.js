@@ -64,13 +64,29 @@ estrecho.addEventListener?.('change', ponerEscribir)
 // terminar más reciente. Es lo que hace volver — sin ella, quien dejó un
 // curso a medias tiene que acordarse de cuál era y buscarlo. Desde la 846
 // es una fila y no un panel: en el móvil se comía la pantalla entera.
-function seguirHtml(guias, progreso) {
+function guiaSeguida(guias, progreso) {
   const empezados = guias
     .map((g) => ({ g, p: progreso[g.id] }))
     .filter(({ g, p }) => p && p.status !== 'completed' && (p.current_block || 0) > 0 && guideHasCourse(g))
     .sort((a, b) => new Date(b.p.started_at || 0) - new Date(a.p.started_at || 0))
-  if (!empezados.length) return ''
-  const { g, p } = empezados[0]
+  return empezados[0] || null
+}
+
+// La guía grande de arriba en el móvil (1154, E4 de la ronda 7): nunca la
+// que ya sale en «Sigue donde lo dejaste», que eran dos pantallas para decir
+// una cosa. Si coincide, la siguiente de su tema; si su tema no tiene otra,
+// la siguiente de la lista. Buscando, manda lo que buscas.
+export function ordenConDestacada(visibles, seguidaId, buscando = false) {
+  if (buscando || !seguidaId || visibles[0]?.id !== seguidaId || visibles.length < 2) return visibles
+  const seguida = visibles[0]
+  const otra = visibles.find((g) => g.id !== seguidaId && g.category_id === seguida.category_id) || visibles[1]
+  return [otra, ...visibles.filter((g) => g !== otra)]
+}
+
+function seguirHtml(guias, progreso) {
+  const seguida = guiaSeguida(guias, progreso)
+  if (!seguida) return ''
+  const { g, p } = seguida
   const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
   const pct = bloques ? Math.round((Math.min(p.current_block, bloques) / bloques) * 100) : 0
   return `
@@ -80,6 +96,7 @@ function seguirHtml(guias, progreso) {
       <span class="aprender-seguir-rotulo">Sigue donde lo dejaste</span>
       <strong>${escapeHtml(g.title)}</strong>
       <span class="aprender-seguir-sub">Bloque ${Math.min(p.current_block, bloques)} de ${bloques}</span>
+      <span class="aprender-seguir-barra" aria-hidden="true"><i style="width:${pct}%"></i></span>
     </span>
     <span class="aprender-seguir-boton"><span class="aprender-seguir-palabra">Continuar</span> →</span>
   </a>`
@@ -147,6 +164,7 @@ async function loadCategories(session) {
     </div>
     <div class="ap-lista" id="apLista"></div>`
   const caja = { lista: list.querySelector('#apLista') }
+  const seguidaId = guiaSeguida(guias, progreso)?.g.id || null
   ponerEscribir()
 
   // El tema de cada guía, para la chapa-enlace de la tarjeta (866).
@@ -158,7 +176,7 @@ async function loadCategories(session) {
       caja.lista.innerHTML = '<p class="empty-state">Ninguna guía habla de eso. Prueba con otra palabra.</p>'
       return
     }
-    const [primera, ...resto] = visibles
+    const [primera, ...resto] = ordenConDestacada(visibles, seguidaId, Boolean(q))
     caja.lista.innerHTML = movil.matches
       ? `${tarjetaDeGuia(primera, { progreso, tema: temaDe.get(primera.category_id) || null })}${resto.length ? `<div class="ap-filas">${resto.map((g) => filaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>` : ''}`
       : `<div class="guia-rejilla ap-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>`

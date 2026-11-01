@@ -41785,6 +41785,37 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1154 — Retos con la liga al lado y Aprender sin repetirse (E1 y E4)
+
+De «Cuatro pantallas que se pueden aprovechar mejor» (ronda 7), con lo
+recomendado.
+
+**E1 · La liga al lado de los retos (PC).** En el PC los seis retos iban a
+tres columnas con la mitad de abajo vacía, y la liga de la semana —lo que da
+ganas de volver— estaba dentro de «Tu historial». Desde 1.000 px las
+baldosas y una columna de 300 px van en `.rt-con-liga`: a la derecha,
+`#rtLigaLado` con los cinco primeros, tú aparte si no estás entre ellos (con
+la «T» de «Tú»), tu racha y «Ver la clasificación» (`/#clasificacion`). Es la
+misma consulta que la portada (`portada_clasificacion`, semana); lo pinta
+`ligaLadoHtml` (`js/retos-liga.js`, puro: la cara se la pasa retos.js con
+`avatarStyle`). Sin datos la columna no sale y los retos se quedan a tres
+(la rejilla de dos va con `.con-liga`). En el móvil no se pide nada (el menú
+cabe en una pantalla, la 989); «Tu historial» sigue igual.
+
+**E4 · Aprender sin repetirse (sobre todo móvil).** «Sigue donde lo dejaste»
+y, justo debajo, la destacada en grande era la MISMA guía. Ahora
+`ordenConDestacada` (aprender.js): si la primera de la lista es la que sigues
+(`guiaSeguida`, la regla de siempre), la destacada pasa a la siguiente de su
+tema, y si su tema no tiene otra, a la siguiente de la lista. Buscando no se
+toca: manda lo que buscas. La destacada del móvil es más baja (franja de 52
+px en vez de 100) y la fila de seguir lleva su barra de progreso
+(`.aprender-seguir-barra`).
+
+Pruebas: `test-tanda-1154.mjs` (la liga a la derecha en el PC con los cinco
+y tú, retos a dos; nada en el móvil; la destacada no repite la seguida, su
+franja de 52 px, la barra al 50 % y, buscando, la seguida arriba). La 989 al
+día (dos por fila en el PC y la clasificación pedida al cargar solo allí).
+
 ## Tanda 1157 — La tarjeta del enlace con marca y «Imagen para redes» (R3 y R4)
 
 **R3 · La tarjeta del enlace de una noticia.** Al pegar el enlace de una

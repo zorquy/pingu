@@ -86,6 +86,13 @@
   white-space: nowrap;
 }
 .aprender-seguir-sub { font-size: var(--t-xs); color: #bfdcec; }
+/* La barra de lo que llevas (1154): la de la destacada, ahora en la fila. */
+.aprender-seguir-barra { display: block; height: 4px; margin-top: var(--e-xs); border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.22); overflow: hidden; }
+.aprender-seguir-barra i { display: block; height: 100%; border-radius: inherit; background: var(--blanco-fijo); }
+/* La destacada del móvil, más baja (1154): las filas empiezan antes. */
+@media (max-width: 640px) {
+  .ap-lista > .guia-tarjeta .guia-arte { height: 52px; }
+}
 .aprender-seguir-boton {
   flex: none;
   display: inline-flex;

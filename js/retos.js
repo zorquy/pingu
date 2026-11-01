@@ -4,7 +4,7 @@
 // y, plegado, tu historial (la liga de la semana, «Hoy en PokeDoc», tus
 // logros y tus últimos 60 días), que se pide al abrirlo. El porqué, en
 // SCHEMA.md.
-import { escapeHtml, getSession } from './app.js'
+import { escapeHtml, getSession, avatarStyle } from './app.js'
 import { icons } from './icons.js'
 import { supabase } from './supabase.js'
 import { hoyISO } from './reto-diario.js'
@@ -12,6 +12,7 @@ import { RETOS, XP_DIA_PERFECTO, resumenLocal, resumenDeBase } from './retos-xp.
 import { misNumeros } from './retos-datos.js'
 import { hastaManana } from './retos-ui.js'
 import { getAllAchievements } from './gamification.js'
+import { ligaLadoHtml } from './retos-liga.js'
 
 const $ = (id) => document.getElementById(id)
 const hoy = hoyISO()
@@ -146,6 +147,19 @@ async function pintarLiga(session) {
   caja.classList.remove('hidden')
 }
 
+// La liga al lado (1154): solo en el PC, donde hay sitio. Lo mismo que la
+// clasificación de la portada; sin datos (sin la función, sin red) la
+// columna no sale y los retos se quedan a tres.
+async function pintarLigaLado(session, numeros) {
+  const caja = $('rtLigaLado')
+  if (!caja || !window.matchMedia('(min-width: 1000px)').matches) return
+  const { data, error } = await supabase.rpc('portada_clasificacion', { p_periodo: 'semana' })
+  if (error || !data) return
+  caja.innerHTML = ligaLadoHtml(data, { racha: numeros?.racha || 0, conSesion: Boolean(session), estilo: avatarStyle })
+  caja.hidden = false
+  caja.parentElement?.classList.add('con-liga')
+}
+
 function pintarCalendario(numeros) {
   const caja = $('rtCalendario')
   if (!caja || !numeros?.dias) return
@@ -193,6 +207,7 @@ async function arrancar() {
   }
   pintarDia(hechos, numeros, session)
   prepararHistorial(session, numeros)
+  pintarLigaLado(session, numeros).catch(() => {})
 }
 
 if (typeof document !== 'undefined' && $('rtLista')) arrancar()

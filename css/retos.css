@@ -96,6 +96,26 @@
   margin-bottom: var(--e-lg);
 }
 
+/* La liga al lado, en el PC (1154, SCHEMA). */
+.rt-liga-lado { display: none; }
+@media (min-width: 1000px) {
+  .rt-con-liga.con-liga { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: var(--e-lg); align-items: start; margin-bottom: var(--e-lg); }
+  .rt-con-liga.con-liga .rt-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-bottom: 0; }
+  .rt-liga-lado:not([hidden]) { display: flex; flex-direction: column; gap: var(--e-sm); position: sticky; top: 88px; padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
+}
+.rt-ll-titulo { display: flex; align-items: center; gap: var(--e-sm); margin: 0; font-size: var(--t-lg); }
+.rt-ll-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--e-xs); }
+.rt-ll-lista li { display: flex; align-items: center; gap: var(--e-sm); min-height: 40px; padding: 0 var(--e-sm); border-radius: var(--radius-md); font-size: var(--t-sm); }
+.rt-ll-lista li b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rt-ll-lista .rt-ll-tu { background: var(--ice); }
+.rt-ll-aparte { margin-top: var(--e-xs); }
+.rt-ll-pos { width: 24px; text-align: center; font-family: var(--font-display); font-weight: 700; color: var(--text-mid); }
+.rt-ll-cara { width: 28px; height: 28px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; background-size: cover; background-position: center; color: var(--blanco-fijo); font-size: var(--t-xs); font-weight: 700; }
+.rt-ll-xp { font-family: var(--font-display); font-weight: 700; }
+.rt-ll-vacio, .rt-ll-invita, .rt-ll-racha { margin: 0; font-size: var(--t-sm); color: var(--text-mid); }
+.rt-ll-racha { display: flex; align-items: center; gap: var(--e-xs); color: var(--text); font-weight: 600; }
+.rt-ll-ver { align-self: stretch; text-align: center; justify-content: center; }
+
 .rt-reto {
   display: flex;
   flex-direction: column;

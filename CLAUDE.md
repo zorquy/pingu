@@ -1005,6 +1005,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `retos_resultados_juego`, en la MISMA migración, y su ficha en el menú.
   El menú de /retos cabe en una pantalla del móvil: lo que no es jugar va
   plegado en «Tu historial» y se carga al abrirlo; si añades algo, va ahí.
+  En el PC (desde 1.000 px) la liga de la semana va AL LADO (1154,
+  `js/retos-liga.js`: los cinco primeros y tú, de `portada_clasificacion`)
+  y los retos a dos columnas; en el móvil esa columna no se pide.
   Y cada final con cuenta dice cómo te mueve en la liga (`data.liga` de
   `guardarResultado`, pintado por `premiosHtml`).
 - **Una imagen para redes lleva EL MARCO: `js/redes-marco.js`** (tanda
