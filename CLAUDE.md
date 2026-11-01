@@ -1605,6 +1605,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `html:has(.x[open]) { overflow: hidden }`. En el móvil, hoja desde abajo.
   Un panel al lado que no tapa la rejilla (filtros, ficha de producto) no es
   un pop-up. Mira `.cp-dialogo` o `.ficha-rapida`.
+- **La web va en una columna de 1.160 px, y solo las rejillas de cartas
+  crecen** (tanda 1161, PINGU eligió lo recomendado): desde 1.800 px de
+  ventana, `.mc-pagina` sube a 1.440 (6 → 8 cartas por fila) salvo con el
+  Panel a la vista. Lo que se lee (portada, foro, guías, noticias, perfiles) se
+  queda en su columna. Una pantalla nueva que sea una rejilla de cartas fuera de
+  Mi colección lleva la misma regla.
 - **Una fiesta (Halloween, 1134) la decide la línea de `data-temporada` de la
   cabecera** de las 52 páginas, por fecha y antes del primer pintado, con su
   hoja (`css/temporada.css`) escrita solo ese día; lo que se enseña de más va

@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (403) — PINGU-Claude (1161 — más ancho donde hay cartas)
+
+**Hecho**:
+- PINGU preguntó si usar todo el ancho; eligió lo recomendado de la propuesta:
+  en un monitor ancho (desde 1.800 px) Mi colección y /cartas pasan de 1.160 a
+  1.440 px (una expansión: 6 → 8 cartas por fila). El Panel se queda en 1.160
+  (se lee), y la portada, el foro, las guías y las noticias no cambian. Ni el
+  portátil ni el móvil.
+- Una regla en `css/mi-coleccion.css`:
+  `.mc-pagina:not(:has(#mcPanelResumen:not(.hidden)))`.
+
+**Ficheros**: css/mi-coleccion.css, CLAUDE.md, SCHEMA.md, novedades.json.
+Pruebas: test-tanda-1161-pantalla.mjs nueva; 299 y 748 verdes.
+
+**Pendiente**: nada.
+
 ## 2026-11-01 (402) — PINGU-Claude (1160 — las MEP 89–92 y las versiones de la 92 y la 93)
 
 **Hecho**:

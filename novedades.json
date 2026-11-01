@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-01",
+      "tipo": "mejora",
+      "texto": "En un monitor grande, las expansiones, la Pokédex, Buscar y Deseos y cambios aprovechan más el ancho: caben 8 cartas por fila en vez de 6.",
+      "enlace": "/cartas"
+    },
+    {
+      "fecha": "2026-11-01",
       "tipo": "arreglo",
       "texto": "Las promos MEP que faltaban (Mega Zeraora ex, Mega Darkrai ex, Mega Dragonite ex y Paradise Resort) ya están en el catálogo, y la 92 y la 93 tienen sus versiones de Staff, World Championships, Play! Pokémon Winner y Pokémon Game On!.",
       "enlace": "/cartas"

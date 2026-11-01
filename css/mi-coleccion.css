@@ -3747,6 +3747,14 @@ html.mc-seleccionando .mc-pagina {
   background: rgba(13, 27, 42, 0.5);
 }
 
+/* En un monitor ancho, las rejillas de cartas a 1.440 (1161: 6 → 8 por
+   fila); el Panel se lee y se queda en 1.160. El porqué, en SCHEMA 1161. */
+@media (min-width: 1800px) {
+  .mc-pagina:not(:has(#mcPanelResumen:not(.hidden))) {
+    max-width: 1440px;
+  }
+}
+
 /* EN EL ORDENADOR, UNA COLUMNA (738, X14). El mismo `<dialog>`, abierto
    sin modal por js/mi-coleccion/filtros-columna.js: pegado a la izquierda
    de la rejilla y a la vista mientras bajas. Sin «Ver resultados», que en

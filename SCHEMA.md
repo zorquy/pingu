@@ -41785,6 +41785,27 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1161 — Más ancho donde hay cartas
+
+PINGU, con la portada a 2.200 px: «¿por qué solo usamos el centro?». Toda la
+web va en `.container` de 1.160 px (`--container-w`), centrada a la derecha de
+la barra lateral: a 2.200 px quedan 440 px a cada lado. Para LEER es lo bueno
+(una línea de más de ~80 letras cuesta seguirla); para mirar una rejilla de
+cartas, ese hueco son cartas que no caben.
+
+Desde 1.800 px de ventana, `.mc-pagina` (Mi colección y /cartas, que se genera
+de la misma página) sube a 1.440 px salvo con el Panel a la vista
+(`:not(:has(#mcPanelResumen:not(.hidden)))`): una expansión pasa de 6 a 8
+cartas por fila, sin cartas más grandes (la rejilla se reparte sola). Es el
+mismo 1.440 que ya tenía la página con la columna de filtros (738). PINGU eligió
+1.440 y no 1.600 (con 9 por fila, el final de la fila queda lejos de los
+filtros) y solo las pantallas de cartas, no la portada (se lee y ya va a dos
+columnas).
+
+**Pruebas**: `test-tanda-1161-pantalla.mjs` (2.200 px: 1.440 y 8 por fila en
+una expansión, en /cartas y en la estantería; 1.536 y 1.799 px: 1.160 y 6 por
+fila; el Panel en 1.160; el móvil sin desbordar).
+
 ## Tanda 1160 — Las MEP 89–92 con su ficha de respaldo y las versiones de la 92 y la 93
 
 PINGU mandó las fotos y la lista de Bulbapedia: en /admin las MEP pasan de la
