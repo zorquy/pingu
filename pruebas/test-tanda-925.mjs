@@ -16,7 +16,9 @@ const CARTAS = nombres.map((n, i) => ({ id: `${i < 6 ? 'sv8' : 'sv3pt5'}-${i + 1
 const precio = (i) => [182, 96.5, 44, 12.3, 30, 7.2, 3.1, 1.5, 0.9, 22, 15, 5][i]
 const PRECIOS = CARTAS.map((c, i) => ({ card_id: c.id, cm_low: precio(i), cm_low_es: precio(i), checked_at: '2026-10-19T10:00:00Z' }))
 const COLECCION = CARTAS.map((c, i) => ({ id: `l${i}`, user_id: 'admin-1', card_id: c.id, market: 'WEST', idioma: 'es', estado: 'NM', variante: 'normal', cantidad: 1 + (i % 3), created_at: `2026-10-${String(1 + i).padStart(2, '0')}T10:00:00Z` }))
-const hoy = Date.UTC(2026, 9, 20)
+// El histórico se mira desde HOY menos ocho días: con una fecha fija la
+// prueba caducaba sola (la 925 se puso roja al pasar la semana).
+const hoy = Date.UTC(new Date().getUTCFullYear(), new Date().getUTCMonth(), new Date().getUTCDate())
 const VALOR = Array.from({ length: 30 }, (_, d) => ({ user_id: 'admin-1', dia: new Date(hoy - d * 864e5).toISOString().slice(0, 10), valor: 610 - d * 3 + (d % 4) * 5 }))
 const HIST = []
 CARTAS.forEach((c, i) => { for (let d = 0; d < 9; d++) { const v = precio(i) * (1 + (i % 2 ? -1 : 1) * 0.02 * d * (i < 3 ? 1 : 0.3)); HIST.push({ card_id: c.id, dia: new Date(hoy - d * 864e5).toISOString().slice(0, 10), cm_low: v, cm_low_es: v, origen: 'tcggo' }) } })

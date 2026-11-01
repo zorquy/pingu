@@ -354,7 +354,8 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
       rejilla: document.querySelectorAll('#mcValorCaja .mc-valor-rotulos, #mcValorCaja .mc-valor-chips').length,
       fichas: [...document.querySelectorAll('.mc-cartera-sub > span')].map((s) => s.textContent.replace(/\s+/g, ' ').trim()),
       movidas: [...document.querySelectorAll('#mcMovidas .mc-movida')].map((a) => ({ n: a.querySelector('b').textContent, set: a.querySelector('small').textContent, pct: a.querySelector('.mc-movida-precio small').textContent.replace(/[  ]/g, ' '), sube: a.classList.contains('sube') })),
-      movidasTras: (() => { const f = q('#mcValorCaja'), mv = q('#mcMovidas'); return !!(f && mv) && r(mv).top >= r(f).bottom - 1 })(),
+      // Debajo de la cartera en el móvil; desde 1.100 px, A SU DERECHA (1155).
+      movidasTras: (() => { const f = q('#mcValorCaja'), mv = q('#mcMovidas'); return !!(f && mv) && (innerWidth >= 1100 ? r(mv).left >= r(f).right - 1 : r(mv).top >= r(f).bottom - 1) })(),
       compartirAbajo: (() => { const c = q('#mcCompartir'), v = q('#mcVistazos'); return !!(c && v) && r(c).top >= r(v).top })(),
       ancho: document.documentElement.scrollWidth <= innerWidth + 1,
       desplazado: window.__desplazado,
@@ -365,7 +366,7 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
   check(`[${nombre}]   …con el cambio del mes y su flecha`, m.flecha && /^Sube [\d.,]+ € · [\d,]+ % este mes$/.test(m.cambio), m.cambio)
   check(`[${nombre}]   …los cinco rangos con 1M puesto, y sin rejilla`, m.rangos === '7D 1M* 6M 1A Todo' && m.rejilla === 0, m.rangos)
   check(`[${nombre}] cartas, distintas y expansiones, en una línea bajo la cifra (925)`, m.fichas.join(' | ') === '10 cartas | 4 distintas | 2 expansiones', m.fichas.join(' | '))
-  check(`[${nombre}] «Las que más se mueven», debajo de la cartera, en lista`, m.movidasTras && m.movidas.length === 3, JSON.stringify(m.movidas))
+  check(`[${nombre}] «Las que más se mueven», debajo de la cartera (a su lado en el PC, 1155), en lista`, m.movidasTras && m.movidas.length === 3, JSON.stringify(m.movidas))
   check(`[${nombre}]   …las tres que MÁS se mueven, con su set y su signo`, m.movidas[0]?.n === 'Mewtwo-EX' && m.movidas[0].set === 'Duelos Primigenios' && m.movidas[0].pct === '+18 %' && m.movidas[0].sube && m.movidas.some((x) => x.n === 'Ho-Oh-EX' && x.pct === '−6 %' && !x.sube) && !m.movidas.some((x) => x.n === 'Pikachu'), JSON.stringify(m.movidas))
   check(`[${nombre}] «Colección pública», al final`, m.compartirAbajo)
   check(`[${nombre}] la página no se va de ancho`, m.ancho)
