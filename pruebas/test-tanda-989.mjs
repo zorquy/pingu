@@ -289,14 +289,16 @@ for (const movil of [true, false]) {
     const tapa = [...document.querySelectorAll('.bm, .bm-burbuja > *')].map((e) => e.getBoundingClientRect()).filter((x) => x.height > 0 && x.top > innerHeight / 2)
     return { n: r.length, porFila: r.filter((x) => Math.round(x.top) === Math.round(r[0].top)).length, abajo: Math.round(Math.max(...r.map((x) => x.bottom))), alto: Math.round(Math.min(innerHeight, ...tapa.map((x) => x.top))) }
   })
-  check(`${que}: las seis, ${movil ? 'dos' : 'tres'} por fila`, vista.n === 6 && vista.porFila === (movil ? 2 : 3), JSON.stringify(vista))
+  // Desde la 1154, en el PC van a dos con la liga al lado (aquí la hay).
+  check(`${que}: las seis, dos por fila`, vista.n === 6 && vista.porFila === 2, JSON.stringify(vista))
   check(`  …y se ven todas sin bajar`, vista.abajo <= vista.alto, JSON.stringify(vista))
   // En el móvil la XP de cada reto no cabe y ya suma en la píldora.
   const estadoParejas = await page.locator('#rtParejasEstado').innerText()
   check(`  …Parejas: «Nuevo», su sello y «9 movimientos${movil ? '' : ' · +20 XP'}»`, (await page.locator('#rtParejas .rt-nuevo').count()) === (hoy <= '2026-10-30' ? 1 : 0) && (await page.locator('#rtSello-parejas.ok').count()) === 1 && (movil ? /9 movimientos$/.test(estadoParejas.trim()) : /9 movimientos · \+20 XP/.test(await page.locator('#rtParejasEstado').textContent())), estadoParejas)
   // En el móvil «hoy» sobra (1016: la píldora ya es lo de hoy, y con Inter no cabía).
   check('  …la píldora', (movil ? /1\/6/ : /1\/6 hoy/).test(await page.locator('#rtDia').innerText()) && /\+20 XP/.test(await page.locator('#rtDia').innerText()))
-  check('  …el historial, plegado y sin pedir nada todavía', !(await page.locator('#rtHistorial').evaluate((d) => d.open)) && !(await page.evaluate(() => (window.__RPCS__ || []).some((r) => r.nombre === 'portada_clasificacion' || r.nombre === 'retos_comunidad'))))
+  // La clasificación sí se pide en el PC desde la 1154 (la liga al lado).
+  check('  …el historial, plegado y sin pedir nada todavía', !(await page.locator('#rtHistorial').evaluate((d) => d.open)) && !(await page.evaluate((movil) => (window.__RPCS__ || []).some((r) => (movil && r.nombre === 'portada_clasificacion') || r.nombre === 'retos_comunidad'), movil)))
   await page.click('#rtHistorial summary')
   await page.waitForTimeout(900)
   check('  …al abrirlo, la liga: «Vas 4.º … con 120 XP» y a la clasificación', /Vas 4\.º en la liga de la semana, con 120 XP/.test(await page.locator('#rtLiga').innerText()) && (await page.locator('#rtLiga a').getAttribute('href')) === '/#clasificacion')
