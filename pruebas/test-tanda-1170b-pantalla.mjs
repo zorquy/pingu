@@ -16,8 +16,10 @@ const r = await p.evaluate(() => {
   return { escondidas: document.documentElement.classList.contains('bm-escondidas'), top: Math.round(caja.top), opaco: bg !== 'rgba(0, 0, 0, 0)' && bg !== 'transparent', arriba: arriba?.closest('.glosario-termino') ? 'un término' : 'nada' }
 })
 check('con la barra escondida, el buscador queda pegado a 0 y es opaco', r.escondidas && r.top === 0 && r.opaco, JSON.stringify(r))
-await p.mouse.wheel(0, -600); await p.waitForTimeout(800)
-const v = await p.evaluate(() => ({ escondidas: document.documentElement.classList.contains('bm-escondidas'), top: Math.round(document.querySelector('.glosario-mandos').getBoundingClientRect().top), nav: Math.round(document.querySelector('.navbar').getBoundingClientRect().bottom) }))
+// Al subir vuelve la barra; con el buscador pegado (más abajo de su sitio
+// natural) tiene que quedar DEBAJO de ella, no detrás.
+await p.mouse.wheel(0, -200); await p.waitForTimeout(1200)
+const v = await p.evaluate(() => ({ escondidas: document.documentElement.classList.contains('bm-escondidas'), top: Math.round(document.querySelector('.glosario-mandos').getBoundingClientRect().top), nav: Math.round(document.querySelector('.navbar').getBoundingClientRect().bottom), scroll: Math.round(scrollY) }))
 check('al subir vuelve la barra y el buscador baja a su sitio, sin pisarla', !v.escondidas && v.top >= v.nav - 1, JSON.stringify(v))
 await ctx.close(); await b.close()
 console.log(fails ? `\n${fails} FALLOS` : '\nTODO OK'); process.exit(fails ? 1 : 0)
