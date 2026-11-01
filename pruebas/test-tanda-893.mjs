@@ -138,7 +138,9 @@ console.log('\n── 4. Mis partidas: el botón principal se muda con la pesta�
   const q = await pc.newPage()
   await q.goto(`${BASE}/mis-partidas.html`, { waitUntil: 'domcontentloaded' })
   await q.waitForTimeout(1200)
-  check('en el PC nada se mueve: los botones en sus barras, con la palabra «Filtrar»', (await q.$eval('#btnApuntarTorneo', (x) => x.parentElement.className)) === 'partidas-barra' && (await q.$eval('#torneoFiltrar .cab-palabra', (x) => x.getBoundingClientRect().width > 10)))
+  // Desde la 1163 (T3) en el PC también: el botón junto al título, como la
+  // cabecera de Foro y Torneos, y «Filtros» con su palabra en la fila de pestañas.
+  check('en el PC, el botón junto al título y «Filtros» con su palabra en la fila de pestañas', (await q.$eval('#btnApuntarTorneo', (x) => x.parentElement.id)) === 'partidasAcciones' && (await q.$eval('#torneoFiltrar', (x) => x.parentElement.id === 'partidasMandosExtra' && x.querySelector('.cab-palabra').getBoundingClientRect().width > 10)))
   await pc.close()
   await ctx.close()
 }
