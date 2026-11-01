@@ -650,7 +650,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   deck, como el pack de McDonald's de 2002). El precio de esas cartas sale de
   la guía pública diaria de Cardmarket por ese id (`cardmarket-precios`; el
   japonés solo para `mano`/`relleno`, en `cardmarket-precios-jp`), y el id se
-  pone en /admin → Colecciones → la carta. Y una
+  pone en /admin → Colecciones → la carta, donde «Buscar en Cardmarket» (1159,
+  `cardmarket-buscar`) lo busca por nombre en su catálogo abierto (sin nombre
+  de expansión: cada resultado lleva su enlace por `?idProduct=` y su precio,
+  y la expansión de las hermanas con id va delante). La lista de rellenos de
+  TCGdex vive en `js/rellenos-tcgdex.js` (la leen la pasada y /admin); en un
+  set suyo, «Traer ahora lo que falta» (`tcgdex-rellenar-ahora`) la pasa al
+  momento y dice qué se saltó y dónde estaba; `rehacerDesde` la repite y
+  olvida los intentos fallidos de antes. Y una
   clave de estado nueva va en `PASADAS` (`admin/js/semaforo.js`), que es
   la lista que /admin LEE: la 883 y la 884 escribieron su bloque sin
   meterla y el panel decía «todavía no ha corrido» de algo que corría.

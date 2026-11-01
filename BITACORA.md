@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (400) — PINGU-Claude (1159 — «Buscar en Cardmarket» y «Traer ahora» de TCGdex)
+
+**Hecho**:
+- /admin → Colecciones → una carta: «Buscar en Cardmarket» bajo el «Id de
+  producto en Cardmarket». Busca por nombre en el catálogo abierto de
+  Cardmarket (función `cardmarket-buscar`, solo admin), con su enlace para
+  comprobarla, su precio y las de la misma expansión que las hermanas que ya
+  tienen id delante. «Usar» pone el id; se guarda con Guardar.
+- /admin → Colecciones → MEP Black Star Promos: «Traer ahora lo que falta de
+  TCGdex» (`tcgdex-rellenar-ahora`). Hace la pasada al momento y dice qué ha
+  escrito y qué se ha saltado porque ya estaba en otro set (y en cuál).
+- La pasada programada repite las MEP (`rehacerDesde`) y olvida los tres
+  intentos fallidos de antes, que la habrían dejado parada para siempre.
+
+**Ficheros**: netlify/functions/cardmarket-buscar.mjs (nuevo),
+netlify/lib/cardmarket-buscar.mjs (nuevo), netlify/functions/tcgdex-rellenar-ahora.mjs
+(nuevo), netlify/functions/tcgdex-rellenar-set.mjs, js/rellenos-tcgdex.js (nuevo),
+admin/js/cardmarket-buscar.js (nuevo), admin/js/catalogo-cartas.js,
+admin/js/colecciones.js, admin/css/admin.css, CLAUDE.md, SCHEMA.md. Pruebas:
+test-tanda-1159.mjs y test-tanda-1159-pantalla.mjs nuevas; la 1158 al día.
+
+**Pendiente (PINGU)**: en /admin → Colecciones → MEP Black Star Promos, pulsar
+«Traer ahora lo que falta de TCGdex» y leer lo que contesta (si dice
+«saltadas porque ya están en otro set», ese es el motivo de que no salgan).
+Luego, en el pack de McDonald's, «Buscar en Cardmarket» carta a carta.
+
 ## 2026-11-01 (399) — PINGU-Claude (1158 — las MEP que faltan, el pack de McDonald's y sus precios)
 
 **Hecho**:

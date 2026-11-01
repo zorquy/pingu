@@ -28,6 +28,7 @@ import { numeroComparable, igualarClaves } from '../lib/scrydex.mjs'
 import { consultaDelSet, elegirSet, cartasQueFaltan } from './scrydex-rellenar-set.mjs'
 import { tocaRepasar } from './tcggo-reemplazar-set.mjs'
 import { imagePathFromUrl } from '../../js/carta-detalle.js'
+import { RELLENOS_TCGDEX } from '../../js/rellenos-tcgdex.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 const TCGDEX = 'https://api.tcgdex.net/v2'
@@ -41,9 +42,22 @@ export const MAXIMO_INTENTOS = 3
 const CM_MEP = '001:851043 002:851045 003:851047 004:851049 005:851051 006:851052 007:851053 008:851054 009:851055 010:851058 011:851063 012:858146 013:859011 014:857390 015:857393 016:857396 017:857400 018:859021 019:859022 020:859024 021:859026 022:859029 023:859033 024:859036 025:859037 026:855284 027:855283 028:850977 029:873692 030:873699 031:873702 032:873708 033:873710 034:873717 035:873719 036:873721 037:875186 038:875187 039:875188 040:875189 041:875190 042:875191 043:875192 044:875193 045:875194 046:886615 047:886616 048:886617 049:886618 050:886619 051:886620 052:886621 053:886622 054:886623 055:891870 056:891880 057:891888 058:891889 059:891890 060:891891 061:891892 062:891893 063:891894 064:877543 065:877544 066:877545 067:877546 068:879250 069:879255 070:879262 071:873310 072:891720 073:891721 074:884752 075:884754 076:884756 077:884758 078:888609 079:888607 080:888506 081:885516 082:894261 083:894262 084:894263 085:894264 086:898176 087:898177 088:895779 089:903672 090:903676 091:903681 092:903686 093:894884 094:895609 095:895610 096:895606 097:895607 098:895608 099:895611 100:895612 101:895604 102:895613 103:895614 104:895620 105:895621 106:895619 107:895615 108:895616 109:895617 110:895618 120:903004'
 export const CARDMARKET = { mep: new Map(CM_MEP.split(' ').map((p) => p.split(':')).map(([n, id]) => [numeroComparable(n), Number(id)])) }
 
-export const RELLENOS = [
-  { clave: 'mep-tcgdex', mercado: 'WEST', set: { ids: ['mep'], codigo: 'MEP', nombre: 'MEP Black Star Promos' }, tcgdex: 'mep', cadaDias: 7, motivo: 'TCGGO no tiene las MEP más nuevas (la 90 de Mega Darkrai y otras)' },
-]
+// La lista vive en js/rellenos-tcgdex.js (1159): la lee también /admin para
+// saber en qué sets ofrecer «Traer ahora lo que falta».
+export const RELLENOS = RELLENOS_TCGDEX
+
+// Los intentos fallidos de ANTES de `rehacerDesde` no cuentan: si no, un
+// relleno que agotó sus tres intentos no volvería nunca, por mucho que se
+// le pida rehacerlo (la 1159).
+export function olvidarIntentosViejos(estado, rellenos, ahora = new Date()) {
+  for (const r of rellenos) {
+    const desde = Date.parse(r.rehacerDesde || '')
+    if (!Number.isFinite(desde) || ahora.getTime() < desde) continue
+    const error = estado.ultimoError
+    const fechaError = Date.parse(error?.fecha || '')
+    if (estado.intentos?.[r.clave] && (!(error?.clave === r.clave) || !Number.isFinite(fechaError) || fechaError < desde)) delete estado.intentos[r.clave]
+  }
+}
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -90,6 +104,8 @@ export function filasDeTcgdex(cartas, { set, mercado, tcgdex, es = new Map() }) 
 export async function pasada({
   env = process.env, fetchImpl = fetch, restImpl = null, estadoImpl = null, guardarEstadoImpl = null,
   rellenos = RELLENOS, ahora = new Date(),
+  // «Traer ahora» de /admin (1159): sin mirar si toca ni los intentos.
+  forzar = false, clave: soloClave = null,
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: false, error: 'Falta SUPABASE_SERVICE_ROLE_KEY' }
@@ -108,7 +124,11 @@ export async function pasada({
   estado = estado && typeof estado === 'object' ? estado : {}
   for (const k of ['hechos', 'intentos']) if (!estado[k] || typeof estado[k] !== 'object') estado[k] = {}
   const persistir = () => guardarEstado(CLAVE_ESTADO, estado)
-  const pendientes = rellenos.filter((r) => tocaRepasar(r, estado.hechos[r.clave], ahora) && (Number(estado.intentos[r.clave]) || 0) < MAXIMO_INTENTOS)
+  olvidarIntentosViejos(estado, rellenos, ahora)
+  const pendientes = forzar
+    ? rellenos.filter((r) => !soloClave || r.clave === soloClave)
+    : rellenos.filter((r) => tocaRepasar(r, estado.hechos[r.clave], ahora) && (Number(estado.intentos[r.clave]) || 0) < MAXIMO_INTENTOS)
+  if (forzar && !pendientes.length) return { ok: false, error: `No hay ningún relleno de TCGdex «${soloClave}».` }
   if (!pendientes.length) {
     // Una vez al día dice que sigue viva, o el semáforo de /admin la pinta
     // en ámbar («más de un día sin escribir») toda la semana entre repasos.
@@ -162,11 +182,16 @@ export async function pasada({
 
   const todas = filasDeTcgdex(cartas, { set: set.id, mercado: relleno.mercado, tcgdex: relleno.tcgdex, es })
   let faltan = cartasQueFaltan(todas, nuestras)
-  // Un id que ya existe en otro set no se pisa (el upsert lo movería).
+  const faltaban = faltan.map((f) => f.local_id)
+  // Un id que ya existe en otro set no se pisa (el upsert lo movería), y se
+  // dice DÓNDE está: una carta saltada en silencio es una carta que «no
+  // sale» sin que nadie sepa por qué (la 1159).
+  let enOtroSet = []
   try {
     if (faltan.length) {
-      const ya = (await pedir(`tcg_cards?select=id&market=eq.${relleno.mercado}&id=in.(${faltan.map((f) => `"${f.id}"`).join(',')})`)) || []
+      const ya = (await pedir(`tcg_cards?select=id,set_id,local_id&market=eq.${relleno.mercado}&id=in.(${faltan.map((f) => `"${f.id}"`).join(',')})`)) || []
       const usados = new Set(ya.map((f) => f.id))
+      enOtroSet = ya.map((f) => ({ id: f.id, set: f.set_id, numero: f.local_id }))
       faltan = faltan.filter((f) => !usados.has(f.id))
     }
     faltan = igualarClaves(faltan)
@@ -176,10 +201,13 @@ export async function pasada({
   }
   delete estado.intentos[relleno.clave]
   estado.hechos[relleno.clave] = {
-    fecha: ahora.toISOString(), estado: 'hecho', set: set.id,
-    suyas: todas.length, teniamos: nuestras.length, escritas: faltan.length,
+    fecha: ahora.toISOString(), estado: 'hecho', set: set.id, nombreSet: set.name_en || set.name || null,
+    suyas: todas.length, teniamos: nuestras.length, faltaban: faltaban.length, escritas: faltan.length,
     numeros: faltan.map((f) => f.local_id).join(', ') || null,
     conCardmarket: faltan.filter((f) => f.cm_id_product_propio).length,
+    sinFoto: faltan.filter((f) => !f.image_path).length,
+    enOtroSet: enOtroSet.length ? enOtroSet.slice(0, 20) : undefined,
+    ...(forzar ? { aMano: true } : {}),
   }
   await persistir()
   return { ok: true, hecho: estado.hechos[relleno.clave] }

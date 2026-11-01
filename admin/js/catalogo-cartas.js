@@ -281,6 +281,12 @@ function abrirFicha(id) {
 
   $('catAtras').addEventListener('click', pintarLista)
   $('catCancelar').addEventListener('click', pintarLista)
+  // «Buscar en Cardmarket» junto a su id (1159): por el nombre inglés, y
+  // con las hermanas que ya tienen id para poner delante su expansión.
+  void import('./cardmarket-buscar.js').then((m) => m.montarBuscadorCardmarket($('cat_cm_id_product_propio'), {
+    nombre: c?.name_en || c?.name || '',
+    cerca: [...new Set(cartas.filter((x) => x.id !== c?.id).map((x) => Number(x.cm_id_product_propio)).filter((n) => n > 0))].slice(0, 200),
+  })).catch(() => {})
 
   // La foto: se sube al cubo de las guías (público, ya existe) y RELLENA
   // la caja de la dirección; se guarda al dar a Guardar, como el logo.

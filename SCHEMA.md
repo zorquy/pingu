@@ -41785,6 +41785,64 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1159 — «Buscar en Cardmarket» y «Traer ahora lo que falta de TCGdex»
+
+PINGU: «en /admin hay un campo que pone Id de producto en Cardmarket. ¿De
+dónde saco yo el id? Yo tengo el enlace»; eligió el botón de buscar. Y: «las
+MEP no salen todavía, ¿puedes forzarlo para traer todos los datos de ese set
+ahora?».
+
+**Buscar en Cardmarket.** El enlace de una carta de Cardmarket no lleva el
+número (está en la dirección de su foto o en el código de la página). La
+función `cardmarket-buscar` (admin, GET `?q=&cerca=`) baja el catálogo
+abierto `productList/products_singles_6.json` y la guía de precios del día
+(los dos de la 587) y busca por nombre (`netlify/lib/cardmarket-buscar.mjs`,
+lo puro: `plegar`, `nombreBase`, `ataquesDe`, `buscar`). El catálogo NO trae
+el nombre de la expansión ni el número, así que cada resultado lleva:
+
+- el enlace a su página (`/es/Pokemon/Products?idProduct=N`, que Cardmarket
+  redirige; el mismo que `js/productos.js`) para comprobarla;
+- su precio de la guía (mínimo y holo), que separa una holo de la normal;
+- «misma expansión» si su `idExpansion` es el de alguna HERMANA del set que
+  ya tiene id (`cerca`): esas van delante. Con la primera carta puesta a
+  mano, las otras caen arriba solas.
+
+Un número suelto es un id (lo encuentra tal cual). Como mucho 60 y dice
+cuántas casan. Los ficheros se quedan en memoria seis horas mientras la
+función siga caliente; la guía no espera más de 2,5 s después del catálogo
+(una función que contesta a alguien tiene diez segundos): sin ella se
+contesta sin precio y sigue bajando para la siguiente. En /admin,
+`admin/js/cardmarket-buscar.js` monta el botón bajo el campo (lo puro con
+`js/html.js`, para probarlo en Node), busca solo por el nombre inglés al
+abrir y «Usar» pone el id en la caja: se guarda con «Guardar».
+
+**Traer ahora lo que falta de TCGdex.** No se puede mirar la base desde el
+contenedor, así que no se sabe por qué no salieron: la pasada de la 1158
+corre cada diez minutos, pero tras tres fallos se para PARA SIEMPRE (los
+intentos no se olvidaban nunca), y una carta saltada porque su id ya estaba
+en otro set no lo decía en ninguna parte. Tres cosas:
+
+- La lista de rellenos se muda a `js/rellenos-tcgdex.js` (`RELLENOS_TCGDEX`,
+  `rellenoDeSet`, `textoDeRelleno`): la leen la pasada y /admin.
+- `rehacerDesde` (2026-11-01 15:30 UTC para las MEP) hace que la pasada
+  programada la repita y `olvidarIntentosViejos` borra los intentos cuyo
+  último error es de antes de esa fecha.
+- En /admin → Colecciones, un set de la lista lleva «Traer ahora lo que falta
+  de TCGdex»: `tcgdex-rellenar-ahora` (admin, POST `{clave}`) corre
+  `pasada({ forzar: true, clave })` (sin mirar si toca ni los intentos),
+  vacía la CDN (`sets`) si escribió algo y contesta lo que vio. El estado
+  apunta ahora `faltaban`, `sinFoto` y `enOtroSet` (id, set y número de lo
+  que se saltó por estar ya en otro set).
+
+**Pruebas**: `test-tanda-1159.mjs` (la búsqueda con los trozos reales de
+Cardmarket de la 587, que vuelven a `pruebas/fixtures/`; la función con su
+memoria, la guía lenta y la caída; lo que pinta /admin; la pasada forzada,
+`enOtroSet`, los intentos viejos y la función de /admin) y
+`test-tanda-1159-pantalla.mjs` (los dos botones en /admin). La 1158 al día
+(el primer pase va después del `rehacerDesde`; la consulta de los ids ya
+usados pide también `set_id`). Verdes 1158, 817, test-imports; la 934 solo
+falla en su parte de PostgreSQL (no hay servidor en el contenedor).
+
 ## Tanda 1158 — Las MEP que faltan, el pack de McDonald's y sus precios
 
 PINGU: «el Darkrai no sale todavía; faltan creo que desde la 89 a la 92 y

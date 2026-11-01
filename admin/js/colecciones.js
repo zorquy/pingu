@@ -30,6 +30,7 @@ import { erasDeEstanteria } from '../../js/mi-coleccion/estanteria.js'
 import { avisarALaWeb } from './avisar-web.js'
 import { loQueCambia as cambiosDe, faltaLaMigracion as esFaltaDeRpc } from './catalogo-puro.js'
 import { cartasDeLista, idDeCartaAMano } from './lista-cartas-puro.js'
+import { rellenoDeSet, textoDeRelleno } from '../../js/rellenos-tcgdex.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -809,11 +810,17 @@ function abrirEditor(id) {
   const quitar = (col, rotulo = 'corregida · quitar') => corr.has(col) ? ` <button type="button" class="cat-quitar" data-quitar-set="${col}" title="Quitar la corrección y volver a lo que traía el catálogo">${rotulo}</button>` : ''
   const clase = (col) => corr.has(col) ? ' class="cat-campo-corregida"' : ''
   const logoActual = s.logo_scrydex || s.logo_tcggo || ''
+  // Un set de la lista de rellenos de TCGdex (las MEP) se puede completar
+  // al momento (1159), sin esperar a la pasada de la semana.
+  const relleno = rellenoDeSet(s, mercado)
   abrirHoja(`
     <h3>${escapeHtml(nombreDeSet(s) || s.id)}</h3>
     <p class="admin-note"><code>${escapeHtml(s.id)}</code> · ${escapeHtml(mercado)}${s.tcggo_id ? ` · TCGGO ${escapeHtml(String(s.tcggo_id))}` : ''}${s.origen === 'mano' ? ' · escrita a mano' : ''}${corr.size ? ` · ${corr.size} ${corr.size === 1 ? 'corrección' : 'correcciones'}` : ''}</p>
     ${notaDePadre(s)}
     <p><button class="btn-secondary btn-small" id="colCartas">Ver y editar sus cartas →</button></p>
+    ${relleno ? `<div class="col-relleno"><p class="admin-note">Este set se completa desde TCGdex cada ${relleno.cadaDias} días (${escapeHtml(relleno.motivo)}).</p>
+      <p><button class="btn-secondary btn-small" id="colTcgdexAhora">Traer ahora lo que falta de TCGdex</button></p>
+      <p class="admin-note" id="colTcgdexRes" aria-live="polite"></p></div>` : ''}
     <div class="idi-caja" id="colIdiomas"></div>
     <label${clase('name')}>Nombre${quitar('name')}<input id="colNombre" type="text" value="${escapeHtml(s.name || '')}"></label>
     <label${clase('name_en')}>Nombre occidental <small>(el que se enseña si el de arriba lleva kanji)</small>${quitar('name_en')}
@@ -883,6 +890,27 @@ function abrirEditor(id) {
     caja: $('colIdiomas'),
     abrirVersiones: () => m.abrirVersionesPorIdioma({ set: s, mercado, hoja: { abrir: abrirHoja }, volver: () => abrirEditor(s.id) }),
   }))
+
+  $('colTcgdexAhora')?.addEventListener('click', async (e) => {
+    const boton = e.currentTarget
+    const res = $('colTcgdexRes')
+    boton.disabled = true
+    if (res) res.textContent = 'Pidiendo a TCGdex…'
+    try {
+      const { data: { session } = {} } = await supabase.auth.getSession()
+      const r = await fetch('/.netlify/functions/tcgdex-rellenar-ahora', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${session?.access_token || ''}` },
+        body: JSON.stringify({ clave: relleno.clave }),
+      }).then((x) => x.json().catch(() => ({ ok: false, error: `Error ${x.status}` })))
+      if (res) res.textContent = textoDeRelleno(r)
+      if (r?.ok && r.hecho?.escritas) { await cargar(); pintarColecciones() }
+    } catch (err) {
+      if (res) res.textContent = textoDeRelleno({ ok: false, error: String(err?.message || err).slice(0, 140) })
+    } finally {
+      boton.disabled = false
+    }
+  })
 
   $('colCartas').addEventListener('click', async () => {
     const { abrirCartasDeSet } = await import('./catalogo-cartas.js')
