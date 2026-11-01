@@ -34,6 +34,7 @@ const LISTAS = [
   ['/cartas', '#mcEstanteriaRejilla'],
   ['/foro', '.foro-calientes, .foro-seccion'],
   ['/usuarios', '.com-podio, .com-persona'],
+  ['/avisos', '.av-lista .nav-bell-item'],
   ['/torneos', '.torneos-rejilla > *'],
   ['/mis-partidas', '#partidasHero'],
   ['/laboratorio', 'section.lp-bloque'],
