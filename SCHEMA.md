@@ -41785,6 +41785,28 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1170 — La jerga de la mesa entra en el glosario
+
+Sergio.M mandó quince palabras por mensaje; el glosario (792) tenía 32
+términos, casi todos de reglas y de coleccionar, y de jugar solo Mulligan,
+Meta y Lista. Entran trece suyas, una como alias y diecinueve más: 64.
+
+**Las reglas de una entrada.** El término principal es como se dice en la
+mesa en español («Brickear», «Whiffear», «Stalear», «Donkear»), con el inglés
+en `en`; lo mismo dicho de otra forma va en `alias`, no como otro término
+(«mano muerta» y «dead hand» son Brickear). Lo que en Pokémon tiene su
+nombre se pone con él: «OTK» es de Yu-Gi-Oh, aquí se dice OHKO, y OTK queda
+de alias. Y los alias son también lo que `primerasApariciones` SUBRAYA en
+guías y foro, así que un verbo corriente no va de alias («montar»,
+«sacrificar», «bloquear»: se subrayan «setup», «sack», «lock» y las formas
+largas). «Me cayó un lono» no entra: no está escrito en ningún sitio y no
+se mete una definición inventada.
+
+**Lo que no cambia.** `pintarGlosario` ordena por `localeCompare` y agrupa
+por letra: las nuevas caen en su sitio sin tocar nada. La 792 comprueba ids
+únicos y el subrayado; los alias sin repetir se comprobaron a mano en Node
+(un alias repetido subrayaría el primero que encuentre `formasDelGlosario`).
+
 ## Tanda 1169b — Comunidad no cuenta los mensajes privados
 
 La 1139 escribió «Comunidad cuenta los mensajes sin leer y los avisos del

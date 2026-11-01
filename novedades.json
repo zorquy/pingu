@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-01",
+      "tipo": "nuevo",
+      "texto": "32 palabras nuevas en el glosario, con la jerga de la mesa: brickear, whiffear, donk, gusting, matchup, outs, win condition, OHKO, tempo, carta tech… y las de coleccionar (chase, pull rate, god pack, morralla). Gracias a Sergio.M por la lista.",
+      "enlace": "/glosario"
+    },
+    {
+      "fecha": "2026-11-01",
       "tipo": "arreglo",
       "texto": "Un mensaje privado sin leer ya no pone un número en Comunidad: se ve en el sobre y en tu avatar, que es por donde se abre.",
       "enlace": "/mensajes"

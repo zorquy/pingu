@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (413) — PINGU-Claude (1170 — 32 palabras nuevas en el glosario)
+
+**Hecho** (PINGU: «añade las que consideres», sobre la propuesta del glosario):
+- `js/glosario-datos.js` pasa de 32 a 64 términos. Trece de Sergio.M
+  (Brickear, Checkmate, Donkear, Whiffear, Misplay, Gusting, Matchup, Mirror
+  match, Outs, Win condition, Stalear, Chip damage, OHKO), «mano muerta /
+  dead hand» como alias de Brickear, y diecinueve más: doce de jugar (Tempo,
+  Carta tech, Consistencia, Montar, Motor, Cuenta de Premios, Sacrificar,
+  Quedarse sin mazo, Bloqueo, Daño a la Banca, Salir primero o segundo, Mejor
+  de tres) y siete de coleccionar (Carta estrella, Ratio de salida, God pack,
+  Hit, Morralla, Fundas y toploader, Sellado). Cada una con definición,
+  ejemplo y alias; el principal en español como se dice en la mesa, el inglés
+  al lado. «OTK» va como alias de OHKO. «Me cayó un lono» NO entra: no sé qué
+  es; que Sergio lo explique.
+- Los alias son lo que se subraya en guías y foro: nada de verbos sueltos
+  («montar», «sacrificar» van como «setup», «sack»).
+
+**Ficheros**: js/glosario-datos.js, SCHEMA.md, novedades.json. Pruebas: 792
+(64 términos, ids únicos, subrayado), 1144 y 1040 verdes; alias sin repetir
+comprobado en Node.
+
+**Pendiente**: la ronda 10 (1171 en adelante) cuando PINGU diga.
+
 ## 2026-11-01 (412) — PINGU-Claude (1169b — Comunidad ya no cuenta los mensajes privados)
 
 **Hecho** (PINGU, con capturas: «tengo un mensaje privado y pone que tengo
