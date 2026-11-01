@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (398) — PINGU-Claude (1155 — Constructor vacío con tres salidas y el Panel en dos columnas)
+
+**Hecho**: E2 y E3 de la ronda 7, con lo recomendado. Con esto, la ronda 7
+entera (1154 y 1155) y la propuesta de redes (1156 y 1157).
+- E2: el constructor vacío enseña tres caminos (copiar un mazo del meta, con
+  los tres más jugados como chips a su ficha; importar una lista; buscar
+  cartas) y esconde Probar, Compartir, Deshacer y «Cartas / Lista» hasta la
+  primera carta.
+- E3: desde 1.100 px el Panel va en dos columnas («Las que más se mueven» a la
+  derecha). Solo CSS.
+- De paso: la 925 llevaba roja desde que pasó la semana de sus fixtures (fecha
+  fija); ahora cuenta desde hoy.
+
+**Ficheros**: constructor.html, js/constructor.js, css/constructor.css,
+css/mi-coleccion.css, SCHEMA.md, novedades.json. Pruebas: test-tanda-1155.mjs
+nueva y la 925 al día.
+
+**Pendiente**: las migraciones 1152 y 1157 para PINGU.
+
 ## 2026-11-01 (397) — PINGU-Claude (1154 — Retos con la liga al lado y Aprender sin repetirse)
 
 **Hecho**: E1 y E4 de la ronda 7, con lo recomendado.

@@ -41785,6 +41785,37 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1155 — Constructor vacío con tres salidas y el Panel en dos columnas (E2 y E3)
+
+De la ronda 7, con lo recomendado (esconder, no apagar, lo que no sirve).
+
+**E2 · El constructor vacío.** Antes: el aro «0 de 60», una fila de iconos que
+con 0 cartas no hacen nada y una frase con un enlace en mitad. Ahora `#cmVacio`
+son tres caminos grandes (`.cm-camino`): «Copiar un mazo del meta» con los
+tres más jugados de las dos últimas semanas como chips (`chipsDelMeta`, de
+`meta_resumen(14)` por `import()` de `js/meta/datos.js`), que llevan a su
+ficha `/meta/<mazo>` (la lista media y las del top 8, con «Guardar en mis
+mazos»: el constructor no tiene un enlace que abra la lista media, así que se
+va a donde se copia); «Importar una lista» (el importador de siempre, TCG Live,
+Limitless o una foto) y «Buscar cartas» (la pestaña de buscar con el cursor en
+la caja). Sin datos del meta queda «Ver los mazos del meta». Mientras el mazo
+está vacío, `#cmAcciones` y `.cm-resumen` llevan `cm-sin-cartas`: fuera Probar,
+Compartir, Deshacer sin nada que deshacer y el «Cartas / Lista». Con la primera
+carta, todo vuelve.
+
+**E3 · El Panel en dos columnas (PC).** Solo CSS: desde 1.100 px,
+`#mcResumenPanel` es una rejilla cuando tiene «Las que más se mueven» (o su
+esqueleto: `:has(> #mcMovidasSitio > section)`, así no salta al llegar). A la
+izquierda el valor con su gráfica y «Las que más valen»; a la derecha, en 360
+px, «Las que más se mueven» con el precio pegado al nombre. Mismas consultas;
+en el móvil y por debajo de 1.100, una columna como siempre.
+
+Pruebas: `test-tanda-1155.mjs` (los tres caminos y los chips del meta, sin
+Probar/Compartir/Deshacer y de vuelta con la primera carta, en el PC y el
+móvil; las movidas a la derecha a 1.366 y debajo a 1.024). La 925 tenía el
+histórico de sus fixtures a fecha fija (20 de octubre) y caducó sola al pasar
+la semana: ahora cuenta desde hoy.
+
 ## Tanda 1154 — Retos con la liga al lado y Aprender sin repetirse (E1 y E4)
 
 De «Cuatro pantallas que se pueden aprovechar mejor» (ronda 7), con lo

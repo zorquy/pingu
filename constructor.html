@@ -221,9 +221,23 @@
         </div>
 
         <div id="cmMazo" class="cm-mazo" data-modo="rejilla">
+          <!-- Vacío, tres caminos (1155, E2 de la ronda 7). -->
           <div class="cm-vacio" id="cmVacio">
-            <p><strong>Tu mazo está vacío.</strong></p>
-            <p>Busca cartas y púlsalas para añadirlas, o <button type="button" class="link-btn" id="cmVacioImportar">importa una lista</button> de TCG Live o de Limitless (también desde una imagen).</p>
+            <p class="cm-vacio-titulo"><strong>¿Por dónde empiezas?</strong></p>
+            <div class="cm-caminos">
+              <div class="cm-camino cm-camino-meta">
+                <span class="cm-camino-icono" data-icono="trendingUp"></span>
+                <span class="cm-camino-texto"><b>Copiar un mazo del meta</b><span class="cm-camino-chips" id="cmMetaChips"><a class="chip-filtro" href="/meta">Ver los mazos del meta</a></span></span>
+              </div>
+              <button type="button" class="cm-camino" id="cmVacioImportar">
+                <span class="cm-camino-icono" data-icono="upload"></span>
+                <span class="cm-camino-texto"><b>Importar una lista</b><small>De TCG Live o Limitless, o desde una foto</small></span>
+              </button>
+              <button type="button" class="cm-camino" id="cmVacioBuscar">
+                <span class="cm-camino-icono" data-icono="search"></span>
+                <span class="cm-camino-texto"><b>Buscar cartas</b><small>Y añadirlas una a una</small></span>
+              </button>
+            </div>
           </div>
         </div>
       </section>

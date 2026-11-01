@@ -511,6 +511,20 @@ button.cm-sello[aria-expanded='true']:not(:disabled)::after {
   margin-top: var(--e-sm);
 }
 
+/* Vacío, tres caminos (1155, SCHEMA). */
+.cm-vacio { padding: var(--e-lg) 0; text-align: left; }
+.cm-vacio-titulo { margin: 0 0 var(--e-md); font-size: var(--t-lg); color: var(--text); }
+.cm-caminos { display: grid; gap: var(--e-sm); }
+.cm-camino { display: flex; align-items: center; gap: var(--e-md); width: 100%; min-height: 64px; padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); color: var(--text); font: inherit; text-align: left; }
+button.cm-camino { cursor: pointer; }
+button.cm-camino:hover { border-color: var(--acento); }
+.cm-camino-icono { flex-shrink: 0; width: 44px; height: 44px; display: grid; place-items: center; border-radius: var(--radius-md); background: var(--acento); color: var(--acento-texto); }
+.cm-camino-texto { display: flex; flex-direction: column; gap: var(--e-xs); min-width: 0; }
+.cm-camino-texto small { color: var(--text-mid); font-size: var(--t-sm); }
+.cm-camino-chips { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.cm-sin-cartas #cmProbar, .cm-sin-cartas .cm-menu:has(#cmBtnCompartir), .cm-sin-cartas #cmDeshacer:disabled { display: none; }
+.cm-resumen.cm-sin-cartas .cm-vistas { display: none; }
+
 .cm-seccion + .cm-seccion {
   margin-top: var(--e-lg);
 }

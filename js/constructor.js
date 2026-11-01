@@ -258,6 +258,10 @@ function pintarMazo() {
   const scroll = cont.scrollTop
   cont.dataset.modo = estado.modo
   $('cmVacio').classList.toggle('hidden', entradas.length > 0)
+  // Con el mazo vacío, fuera lo que no hace nada sin cartas (1155): probar,
+  // compartir y deshacer (si no hay nada que deshacer). Vuelven con la primera.
+  $('cmAcciones').classList.toggle('cm-sin-cartas', entradas.length === 0)
+  document.querySelector('.cm-resumen')?.classList.toggle('cm-sin-cartas', entradas.length === 0)
   const nuevas = document.createDocumentFragment()
   for (const clave of ['P', 'T', 'E', 'X']) {
     const grupo = secciones[clave]
@@ -1231,11 +1235,14 @@ function enganchar() {
   document.addEventListener('click', cerrarAvisos)
 
   $('cmVacioImportar').addEventListener('click', () => accionHerramienta('importar'))
-  for (const el of document.querySelectorAll('#cmAcciones [data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(18) || ''
-  $('cmAnadirMovil').addEventListener('click', () => {
+  for (const el of document.querySelectorAll('#cmAcciones [data-icono], #cmVacio [data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(el.closest('#cmVacio') ? 22 : 18) || ''
+  const irABuscar = () => {
     $('cmTabBuscar').click()
     $('cmTexto').focus()
-  })
+  }
+  $('cmAnadirMovil').addEventListener('click', irABuscar)
+  $('cmVacioBuscar').addEventListener('click', irABuscar)
+  pintarMetaDelVacio().catch(() => {})
 
   // En el teléfono (1040), lo que no se mira a cada rato sale de la cabecera
   // y va dentro de «⋯»: se mueven los elementos de verdad, con su manejador.
@@ -1488,3 +1495,20 @@ async function iniciar() {
 }
 
 iniciar()
+
+// «Copiar un mazo del meta» (1155): los tres más jugados de las dos últimas
+// semanas, como chips que llevan a su ficha del meta (su lista media y las
+// del top 8, con «Guardar en mis mazos»). Sin datos, se queda «Ver los
+// mazos del meta».
+export function chipsDelMeta(filas) {
+  return (filas || []).slice(0, 3).map((f) => `<a class="chip-filtro" href="/meta/${encodeURIComponent(f.arquetipo)}">${escapeHtml(f.nombre || f.arquetipo)}</a>`).join('')
+}
+
+async function pintarMetaDelVacio() {
+  const caja = $('cmMetaChips')
+  if (!caja) return
+  const { resumen } = await import('./meta/datos.js')
+  const filas = await resumen(14)
+  const chips = chipsDelMeta(Array.isArray(filas) ? filas : [])
+  if (chips) caja.innerHTML = chips
+}
