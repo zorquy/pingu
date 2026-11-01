@@ -209,7 +209,7 @@ function montar() {
     previaDe = carta.id
     const cadena = cadenaDeEscaneo(carta)
     previa.innerHTML = `
-      <span class="paleta-previa-foto" data-marca-carta="${escapeHtml(carta.id)}"><img class="bs-foto" src="${escapeHtml(cadena[0] || '')}" data-cadena="${escapeHtml(JSON.stringify(cadena.slice(1)))}" width="245" height="342" alt=""></span>
+      <span class="paleta-previa-foto" data-marca-carta="${escapeHtml(carta.id)}"><img class="bs-foto" src="${escapeHtml(cadena[0] || '')}" data-cadena="${escapeHtml(JSON.stringify(cadena.slice(1)))}" width="245" height="342" alt="" loading="lazy"></span>
       <b class="paleta-previa-nombre">${escapeHtml(nombreDeCarta(carta))}</b>
       <small>${escapeHtml(nombreDeSet(carta.tcg_sets))}${carta.local_id ? ` · ${escapeHtml(carta.local_id)}` : ''}</small>
       <span class="paleta-previa-precio">${carta.valor ? `<small>En español</small><b>${escapeHtml(euros(carta.valor))}</b>` : '<small>Sin precio todavía</small>'}</span>

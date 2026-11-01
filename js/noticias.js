@@ -17,6 +17,7 @@ import { urlParaCss } from './html.js'
 import { icons } from './icons.js'
 import { faltaElTipo, rutaDeArticulo, cuandoFue, fechaMaquina } from './articulos.js'
 import { urlDeLogo } from './carta-ruta.js'
+import { tarjetasPorGrupo as porGrupos } from './noticias-grupos.js'
 
 // Cuántas se piden de golpe. La primera es el titular grande, así que se
 // piden de doce en doce: una arriba y once en la rejilla, que llena tres
@@ -24,6 +25,9 @@ import { urlDeLogo } from './carta-ruta.js'
 const POR_TANDA = 12
 
 const enlaceDeNoticia = (slug) => rutaDeArticulo('news', slug)
+
+// Por semanas (1152, D1): `js/noticias-grupos.js`.
+const tarjetasPorGrupo = (lista, anterior) => porGrupos(lista, anterior, tarjetaHtml)
 
 // LA NOTICIA DE UN SET, CON SU LOGO (787, SI4). Las que no traen portada y
 // nombran un set de los dos últimos años llevan su logo en grande. Se casa
@@ -157,7 +161,12 @@ export async function pintarNoticias() {
 
   const [primera, ...resto] = noticias
   titular.innerHTML = titularHtml(primera)
-  rejilla.innerHTML = resto.map(tarjetaHtml).join('')
+  // La rejilla empieza siempre con su rótulo, aunque sea de la misma
+  // semana que el titular: dice dónde empieza la lista.
+  let grupo = null
+  const primeros = tarjetasPorGrupo(resto, grupo)
+  grupo = primeros.ultimo
+  rejilla.innerHTML = primeros.html
   rejilla.removeAttribute('aria-hidden')
   guardarVista(clave, tomarPartes(['noticiaTitular', 'noticiasRejilla']))
 
@@ -173,7 +182,9 @@ export async function pintarNoticias() {
       btn.disabled = true
       btn.textContent = 'Cargando…'
       const siguiente = await pedir(ultima)
-      rejilla.insertAdjacentHTML('beforeend', siguiente.noticias.map(tarjetaHtml).join(''))
+      const mas = tarjetasPorGrupo(siguiente.noticias, grupo)
+      grupo = mas.ultimo
+      rejilla.insertAdjacentHTML('beforeend', mas.html)
       ultima = siguiente.noticias[siguiente.noticias.length - 1]?.published_at || ultima
       quedan = siguiente.hayMas
       pintarBoton()

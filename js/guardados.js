@@ -8,14 +8,42 @@ import { escapeHtml, requireAuth } from './app.js'
 import { icons } from './icons.js'
 import { filaDeGuia, estadoDeGuia, hoja } from './guia-fila.js'
 import { showToast } from './toast.js'
+import { servidoPorGuia, frasePersonas } from './guias-servido.js'
 
 const COLUMNAS = 'id, slug, title, description, kind, level, estimated_mins, blocks, cover_image, category_id, categories(name, slug, emoji)'
 
 const vacioHtml = () => `
   <div class="empty-state">
     <p>Todavía no has guardado nada. Toca ${icons.bookmark(14)} <b>Guardar</b> en una guía o una noticia y la tendrás aquí para luego.</p>
-    <a class="btn-primary" href="/aprender">Ver guías</a>
+    <div id="gdParaEmpezar"></div>
+    <a class="btn-secondary" href="/aprender">Ver todas las guías</a>
   </div>`
+
+// VACÍO, CON SALIDA (1153, D4). Era un icono, una frase y «Ver guías». Ahora,
+// tres guías para empezar —las que a más gente le han servido de las últimas
+// publicadas— con su marcador, que guarda ahí mismo (cambia ya y vuelve si
+// falla, la 896). Sin «Me ha servido» que contar, las más recientes.
+async function pintarParaEmpezar() {
+  const caja = document.getElementById('gdParaEmpezar')
+  if (!caja) return
+  const { data, error } = await supabase
+    .from('guides')
+    .select(COLUMNAS)
+    .eq('kind', 'guide')
+    .not('published_at', 'is', null)
+    .order('published_at', { ascending: false })
+    .limit(30)
+  if (error || !data?.length) return
+  const servido = (await servidoPorGuia(data.map((g) => g.id))) || {}
+  const tres = [...data].sort((a, b) => (servido[b.id] || 0) - (servido[a.id] || 0)).slice(0, 3)
+  await hoja
+  caja.innerHTML = `<h2 class="gd-empezar-titulo">Para empezar</h2>
+    <ul class="gd-lista gd-empezar">${tres.map((g) => `
+      <li class="gd-item">
+        ${filaDeGuia(g)}
+        <button type="button" class="gd-guardar" data-guardar="${escapeHtml(g.id)}" aria-pressed="false" aria-label="Guardar «${escapeHtml(g.title)}»" title="${servido[g.id] ? escapeHtml(frasePersonas(servido[g.id])) : 'Guardar'}">${icons.bookmark(18)}</button>
+      </li>`).join('')}</ul>`
+}
 
 // Lee la lista de la base cada vez que escribe: si has guardado algo en otra
 // pestaña mientras tanto, no se pisa.
@@ -48,6 +76,7 @@ async function loadSaved(session) {
   const ids = [...(profile?.saved_guides || [])].reverse()
   if (!ids.length) {
     list.innerHTML = vacioHtml()
+    void pintarParaEmpezar().catch(() => {})
     return
   }
 
@@ -65,6 +94,7 @@ async function loadSaved(session) {
   const todas = ids.map((id) => porId.get(id)).filter(Boolean)
   if (!todas.length) {
     list.innerHTML = vacioHtml()
+    void pintarParaEmpezar().catch(() => {})
     return
   }
   const porLeer = todas.filter((g) => !estadoDeGuia(g, progreso).leida)
@@ -96,6 +126,22 @@ let ultimasLeidas = []
 // lista y un segundo oyente lo haría todo dos veces.
 function engancharAcciones(list, session) {
   list.addEventListener('click', async (e) => {
+    // Guardar una de «Para empezar»: se marca ya; si la base dice que no, se
+    // desmarca con su aviso. Tocar otra vez la quita (mismo camino).
+    const guardar = e.target.closest('[data-guardar]')
+    if (guardar) {
+      const id = guardar.dataset.guardar
+      const poner = guardar.getAttribute('aria-pressed') !== 'true'
+      guardar.setAttribute('aria-pressed', String(poner))
+      try {
+        await escribir(session, (lista) => (poner ? (lista.includes(id) ? lista : [...lista, id]) : lista.filter((x) => x !== id)))
+        if (poner) showToast('Guardada. La tienes en «Por leer».', 'success')
+      } catch {
+        guardar.setAttribute('aria-pressed', String(!poner))
+        showToast(poner ? 'No se ha podido guardar. Inténtalo otra vez.' : 'No se ha podido quitar. Inténtalo otra vez.')
+      }
+      return
+    }
     const quitar = e.target.closest('[data-quitar]')
     if (quitar) {
       const id = quitar.dataset.quitar

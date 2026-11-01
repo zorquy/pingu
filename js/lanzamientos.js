@@ -21,7 +21,8 @@ import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, visiblesDe,
 import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
 import { urlDeLogo, urlDeLogoPorPartes } from './carta-ruta.js'
-import { nombreDeSet, plegarHermanos, esDelTCG, logosDePago } from './catalogo-series.js'
+import { nombreDeSet, plegarHermanos, esDelTCG, logosDePago, padreDeColeccion } from './catalogo-series.js'
+import { sinMigracion } from './sin-migracion.js'
 import { MERCADOS_VISIBLES, MERCADO_POR_DEFECTO } from './mercados.js'
 import { normalizeSearch } from './texto.js'
 
@@ -91,6 +92,9 @@ export function eventoDeSet(s, mercado = MERCADO_POR_DEFECTO) {
     imagen: logosDePago({ market: mercado, ...s })[0] || urlDeLogo(s.logo_path, mercado) || urlDeLogoPorPartes(s.serie_id, s.id, mercado) || null,
     codigo: s.tcg_online_code || null,
     cartas: s.card_count_official || s.card_count_total || null,
+    // El total para el progreso (1152): con las secretas, que también cuentan
+    // como cartas distintas que tienes.
+    total: s.card_count_total || s.card_count_official || null,
     // Su expansión en TCGGO, para pedir sus productos (762, Z1).
     tcggo: s.tcggo_id ?? null,
     // Escondida (una próxima sin cartas todavía) no tiene página a la que ir.
@@ -221,6 +225,67 @@ function eventoHtml(e, futuro) {
     </div>`
 }
 
+// YA EN TIENDAS, EN FILAS (1152, D2). Cada set ya salido era una caja de
+// 220 px en el móvil (un año, dos pantallas). Ahora una fila de 48: día,
+// logo, nombre y, con cuenta, tu progreso (lo rellena `pintarProgreso`).
+function filaHtml(e) {
+  const [, m, d] = String(e.fecha).split('-').map(Number)
+  const etiqueta = e.href ? 'a' : 'div'
+  return `<${etiqueta} class="lanz-fila"${e.href ? ` href="${escapeHtml(e.href)}"` : ''}${e.id ? ` data-set="${escapeHtml(e.id)}"` : ''}${e.total ? ` data-total="${e.total}"` : ''}>
+    <span class="lanz-fila-dia"><b>${d}</b><span>${MESES_CORTOS[m - 1]}</span></span>
+    ${logoHtml(e, 'lanz-fila-logo')}
+    <span class="lanz-fila-texto">
+      <strong>${escapeHtml(e.nombre)}${e.codigo ? ` <span class="lanz-chapa">${escapeHtml(e.codigo)}</span>` : ''}</strong>
+      <span class="lanz-fila-sub">${e.cartas ? `${e.cartas} cartas` : e.manual ? 'anunciado' : ''}</span>
+      <span class="lanz-fila-barra" hidden><i></i></span>
+    </span>
+    <span class="lanz-fila-prog" hidden></span>
+  </${etiqueta}>`
+}
+
+// Cuántas tienes de cada set (1152): `coleccion_por_set` cuenta las
+// distintas en la base; aquí se suman los hermanos al padre con la misma
+// regla que plegó la lista. Pura, para probarla.
+export function progresoPorSet(filas) {
+  const m = new Map()
+  for (const f of filas || []) {
+    if (!f?.set_id) continue
+    const suyo = padreDeColeccion(f.set_id) || f.set_id
+    m.set(suyo, (m.get(suyo) || 0) + (Number(f.distintas) || 0))
+  }
+  return m
+}
+
+// Sin sesión o sin la migración, no se pinta nada (no es «0 de 191»: es que
+// no se sabe, la 319).
+async function pintarProgreso(mercado) {
+  const { data: { session } = {} } = await supabase.auth.getSession().catch(() => ({ data: {} }))
+  if (!session) return
+  const { data, error } = await supabase.rpc('coleccion_por_set', { p_market: mercado })
+  if (error) {
+    if (!sinMigracion(error)) console.warn('[lanzamientos] progreso:', error.message)
+    return
+  }
+  const tengo = progresoPorSet(data)
+  for (const fila of document.querySelectorAll('#listaPasados .lanz-fila[data-set]')) {
+    const n = tengo.get(fila.dataset.set) || 0
+    const total = Number(fila.dataset.total) || 0
+    const prog = fila.querySelector('.lanz-fila-prog')
+    prog.textContent = total ? `${n}/${total}` : String(n)
+    prog.hidden = false
+    prog.classList.toggle('lanz-fila-prog-cero', n === 0)
+    // Con la cuenta a la vista sobra «191 cartas» (que son las oficiales, y
+    // al lado de «/252» parecería otro número del mismo set).
+    const sub = fila.querySelector('.lanz-fila-sub')
+    if (sub && total) sub.hidden = true
+    const barra = fila.querySelector('.lanz-fila-barra')
+    if (total) {
+      barra.hidden = false
+      barra.firstElementChild.style.width = `${Math.min(100, Math.round((n / total) * 100))}%`
+    }
+  }
+}
+
 function destacadoHtml(e) {
   return `
     <div class="lanzamiento-destacado">
@@ -285,12 +350,15 @@ async function pintar(mercado) {
   }
   if (pasados.length) {
     $('listaPasados').innerHTML = porAnno(pasados)
-      .map((g) => `<h3 class="lanz-anno-titulo">${g.anno}</h3>${g.eventos.map((e) => eventoHtml(e, false)).join('')}`)
+      .map((g) => `<h3 class="lanz-anno-titulo">${g.anno}</h3>${g.eventos.map(filaHtml).join('')}`)
       .join('')
     $('cuantosPasados').textContent = `${pasados.length} ${pasados.length === 1 ? 'expansión' : 'expansiones'}`
     $('seccionPasados').classList.remove('hidden')
   }
   guardar()
+  // Tu progreso en lo que ya salió (1152): después de guardar, que lo de
+  // la última vista no lleve los números de otra persona.
+  if (pasados.length) void pintarProgreso(mercado).catch(() => {})
   // «Avísame» en lo que viene (753): llega después, por su cuenta.
   if (siguiente) import('./lanzamientos-avisos.js').then((m) => m.montarAvisos(cal, mercado)).catch(() => {})
   // Y sus productos (762, Z1), si TCGGO los tiene.

@@ -143,3 +143,28 @@ fieldset.colabora-campo {
   font-size: var(--t-sm);
   color: var(--text-mid);
 }
+
+/* CADA PUESTO CON SU BOTÓN (1153, D3; SCHEMA 1153): el botón abajo de la
+   tarjeta, y en el foro los temas que esperan respuesta. */
+.colabora-puesto { display: flex; flex-direction: column; gap: var(--e-sm); }
+.colabora-puesto h3 { margin: 0; }
+.colabora-accion { align-self: flex-start; margin-top: auto; }
+.colabora-sin-respuesta { font-size: var(--t-sm); }
+.colabora-sin-respuesta[hidden] { display: none; }
+.colabora-vivo { margin: 0 0 var(--e-xs); color: var(--success); font-weight: 700; }
+.colabora-sin-respuesta ul { margin: 0; padding-left: var(--e-lg); display: grid; gap: var(--e-xs); }
+.colabora-sin-respuesta a { color: var(--navy); }
+@media (max-width: 599px) {
+  .colabora-lista { grid-template-columns: minmax(0, 1fr); gap: var(--e-sm); }
+  .colabora-puesto {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--e-xs) var(--e-sm);
+    padding: var(--e-md);
+  }
+  .colabora-puesto p { grid-column: 1; font-size: var(--t-xs); }
+  .colabora-puesto h3 { grid-column: 1; }
+  .colabora-accion { grid-column: 2; grid-row: 1 / 3; margin: 0; align-self: center; }
+  .colabora-sin-respuesta { grid-column: 1 / -1; }
+}

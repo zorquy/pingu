@@ -4,6 +4,41 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (394) — PINGU-Claude (1152 y 1153 — la ronda 6 entera)
+
+**Hecho**: las cinco de «Cinco pantallas que se leen de un vistazo», con lo
+recomendado.
+- 1152 · Noticias agrupadas por semana y, en el móvil, en filas con miniatura.
+  Lanzamientos: «Ya en tiendas» en filas (dos columnas en el PC) con tu progreso
+  por expansión («14/252» y barrita) y, en el móvil, lo que viene en una tira.
+- 1153 · Colabora con un botón por puesto («Me apunto» marca su casilla y baja
+  al formulario; «Crear uno» abre el formulario de torneo con
+  `/torneos.html?crear=1`) y los temas del foro que esperan respuesta.
+  Guardados vacío con tres guías para empezar y su marcador. El meta salta solo
+  al primer periodo con torneos (y lo dice); el vacío ya no dice «la primera
+  carga tarda unas horas» ni guarda una caja de 240 px, y las fuentes van
+  plegadas.
+- De paso: `loading="lazy"` en dos imágenes mías de la 1148/1149 (la 310 las
+  cantaba).
+
+**MIGRACIÓN para PINGU**: `supabase-migration-1152-coleccion-por-set.sql` (una
+función de solo lectura, `coleccion_por_set`). Hasta que se ejecute, Lanzamientos
+sale igual pero sin los números de progreso (no se rompe nada).
+
+**Ficheros**: js/noticias.js, js/noticias-grupos.js (nuevo), css/noticias.css,
+js/lanzamientos.js, css/lanzamientos.css, lanzamientos.html,
+supabase-migration-1152-coleccion-por-set.sql, colabora.html, js/colabora.js,
+css/colabora.css, js/torneos/torneos.js, js/guardados.js, css/guardados.css,
+js/meta.js, css/meta.css, meta.html, js/no-encontrado.js, js/paleta.js,
+SCHEMA.md, novedades.json. Pruebas (rama pruebas): test-tanda-1152.mjs (con
+PostgreSQL) y test-tanda-1153.mjs nuevas, 656 al día y el doble con
+`coleccion_por_set`.
+
+**Pendiente**: ejecutar la migración 1152. Siguen rojas sin estos cambios (lo
+comprobé con `git stash`) la 893 (/retos, /torneos, /usuarios y el selector del
+meta en el móvil), la 829 («nuevo para ti») y partes de la 310 y la 311 en
+ficheros que no son de estas tandas.
+
 ## 2026-11-01 (393) — PINGU-Claude (1151 — las promos MEP, cada semana)
 
 **Hecho**: Asier Muru Loriente en el foro: «faltan ciertas MEP, por ejemplo la

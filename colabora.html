@@ -145,29 +145,36 @@
     <section class="colabora-puestos" aria-labelledby="colaboraQue">
       <h2 id="colaboraQue">Qué hace falta</h2>
       <ul class="colabora-lista">
-        <li class="colabora-puesto">
+        <li class="colabora-puesto" data-puesto="noticias">
           <h3>Escribir noticias</h3>
           <p>Lo que pasa en el TCG cada semana, contado en español. Una noticia a la semana, media hora larga.</p>
+          <button type="button" class="btn-secondary colabora-accion" data-apuntar="noticias">Me apunto</button>
         </li>
-        <li class="colabora-puesto">
+        <li class="colabora-puesto" data-puesto="guias">
           <h3>Escribir guías</h3>
           <p>Explicar algo que sepas: reglas, coleccionismo, cómo detectar una falsa. A tu ritmo, sin calendario.</p>
+          <button type="button" class="btn-secondary colabora-accion" data-apuntar="guias">Me apunto</button>
         </li>
-        <li class="colabora-puesto">
+        <li class="colabora-puesto" data-puesto="torneos">
           <h3>Organizar torneos</h3>
           <p>Montar y llevar torneos en PokeDoc. Tú decides formato y fechas; la herramienta ya está hecha.</p>
+          <a class="btn-primary colabora-accion" href="/torneos.html?crear=1" id="colaboraCrearTorneo">Crear uno</a>
         </li>
-        <li class="colabora-puesto">
+        <li class="colabora-puesto" data-puesto="foro">
           <h3>Echar una mano en el foro</h3>
           <p>Abrir conversación, responder a quien llega nuevo y avisar de lo que se vaya de madre.</p>
+          <button type="button" class="btn-secondary colabora-accion" data-apuntar="foro">Me apunto</button>
+          <div class="colabora-sin-respuesta" id="colaboraSinRespuesta" hidden></div>
         </li>
-        <li class="colabora-puesto">
+        <li class="colabora-puesto" data-puesto="redes">
           <h3>Diseño y redes</h3>
           <p>Que lo que hacemos se vea. Miniaturas, redes, ideas.</p>
+          <button type="button" class="btn-secondary colabora-accion" data-apuntar="redes">Me apunto</button>
         </li>
-        <li class="colabora-puesto">
+        <li class="colabora-puesto" data-puesto="otra">
           <h3>Otra cosa</h3>
           <p>Si se te ocurre algo que no está aquí, cuéntalo abajo. Casi todo lo bueno ha salido así.</p>
+          <button type="button" class="btn-secondary colabora-accion" data-apuntar="otra">Cuéntanos</button>
         </li>
       </ul>
     </section>

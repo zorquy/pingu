@@ -87,3 +87,18 @@
   font-size: var(--t-sm);
   min-height: 44px;
 }
+
+/* VACÍO, CON SALIDA (1153, D4; SCHEMA 1153): tres para empezar, con su marcador. */
+.empty-state #gdParaEmpezar { text-align: left; margin: var(--e-lg) 0; }
+.gd-empezar-titulo { font-size: var(--t-md); margin: 0 0 var(--e-sm); color: var(--text-mid); }
+.gd-guardar {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+}
+.gd-guardar[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }

@@ -43,7 +43,7 @@ export async function pintarNoEncontrado(caja, { tipo, trozo = '' } = {}) {
   await Promise.all([hojaInyectada('css/404.css'), hojaInyectada('css/buscador.css')])
   const q = palabrasDeDireccion(trozo)
   caja.innerHTML = `<div class="pagina-404 no-encontrado" data-no-encontrado="${tipo}">
-    <img src="/assets/images/mascota.webp" class="mascota" alt="" width="523" height="791" decoding="async" />
+    <img src="/assets/images/mascota.webp" class="mascota" alt="" width="523" height="791" loading="lazy" decoding="async" />
     <div>
       <h1>${escapeHtml(c.titulo)}</h1>
       <p class="subtext" id="noEncontradoFrase">${escapeHtml(c.frase)}</p>

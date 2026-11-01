@@ -263,3 +263,58 @@
   height: 70%;
   object-fit: contain;
 }
+
+/* POR SEMANAS Y EN FILAS (1152, D1; SCHEMA 1152). El rótulo cruza la fila. */
+.noticias-grupo {
+  grid-column: 1 / -1;
+  font-family: var(--font-body);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--text-mid);
+  margin: var(--e-sm) 0 calc(-1 * var(--e-xs));
+}
+.noticias-grupo:first-child { margin-top: 0; }
+
+@media (max-width: 560px) {
+  .noticias-rejilla { gap: 0; }
+  .noticias-grupo { margin: var(--e-lg) 0 var(--e-xs); }
+  .noticias-grupo:first-child { margin-top: 0; }
+  /* Una fila: miniatura a la izquierda, fecha y título (dos líneas). */
+  .noticia-tarjeta {
+    display: grid;
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: var(--e-sm);
+    align-items: center;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid var(--border);
+    border-radius: 0;
+    padding: var(--e-sm) 0;
+  }
+  .noticia-tarjeta:hover { box-shadow: none; transform: none; border-color: var(--border); }
+  .noticia-tarjeta .noticia-portada { aspect-ratio: 4 / 3; border-radius: var(--radius-md); }
+  .noticia-tarjeta .noticia-portada-vacia svg { width: 24px; height: 24px; }
+  .noticia-tarjeta .noticia-portada-vacia::after { display: none; }
+  .noticia-tarjeta .noticia-cuerpo { padding: 0; }
+  .noticia-tarjeta h3 {
+    font-size: var(--t-lg);
+    margin-top: var(--e-xs);
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  .noticia-tarjeta p { display: none; }
+  /* El titular, más bajo: la foto a 2:1 y el resumen en dos líneas. */
+  .noticia-titular { padding: var(--e-sm); margin-bottom: var(--e-md); gap: var(--e-sm); }
+  .noticia-titular .noticia-portada { aspect-ratio: 2 / 1; }
+  .noticia-titular h2 { font-size: var(--t-xl); margin-top: var(--e-xs); }
+  .noticia-titular p {
+    margin-top: var(--e-xs);
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+  }
+}

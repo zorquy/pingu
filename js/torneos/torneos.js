@@ -1279,6 +1279,13 @@ async function init() {
   }
   engancharFormulario(session, perfil)
   engancharVistas()
+  // «Crear uno» desde /colabora (1153): `?crear=1` abre el formulario ya.
+  // Sin cuenta el botón está escondido y el formulario no serviría: se queda
+  // la lista (el registro lo pide el propio /colabora).
+  if (session && new URLSearchParams(location.search).get('crear') === '1') {
+    const btn = document.getElementById('btnNuevoTorneo')
+    if (btn && document.getElementById('torneoForm')?.classList.contains('hidden')) btn.click()
+  }
   await cargarLista(session, perfil)
 }
 

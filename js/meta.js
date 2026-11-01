@@ -19,6 +19,9 @@ import {
 
 const $ = (id) => document.getElementById(id)
 let dias = periodoDe(new URLSearchParams(location.search).get('dias'))
+// El salto al periodo con datos (1153): solo si el periodo no lo has elegido tú.
+let puedeSaltar = true
+let saltoDesde = null
 let fuente = fuenteDe(new URLSearchParams(location.search).get('fuente'))
 let turno = 0
 let verTodos = false
@@ -106,16 +109,39 @@ async function cargar() {
     filas = r
     aviso('')
     if (!t.torneos) {
+      // NUNCA EN BLANCO (1153, D5). Si no lo has elegido tú (entrar, cambiar
+      // de fuente), se pasa solo al primer periodo más largo que tenga
+      // torneos y se dice en una línea. Si lo eliges tú, te quedas en él.
+      if (puedeSaltar) {
+        for (const d of PERIODOS.filter((x) => x > dias)) {
+          const t2 = await totales(d, fuente)
+          if (mio !== turno) return
+          if (t2.torneos) {
+            saltoDesde = dias
+            puedeSaltar = false
+            ponerPeriodo(d)
+            return cargar()
+          }
+        }
+      }
       $('metaTotales').textContent = ''
       $('metaRanking').innerHTML = ''
+      $('metaRanking').classList.add('meta-ranking-vacio')
       $('metaCabeceraTabla').classList.add('hidden')
       aviso(fuente === 'oficial'
-        ? '<p><strong>No hay torneos oficiales en este periodo.</strong> Prueba con 90 días: hay dos o tres al mes.</p>'
+        ? `<p><strong>No hubo torneos oficiales en estos ${dias} días.</strong> Hay dos o tres al mes: prueba con un periodo más largo.</p>`
         : fuente === 'pokedoc'
           ? '<p><strong>No hay torneos de PokeDoc terminados en este periodo.</strong> <a class="link-btn" href="/torneos.html">Mira los próximos</a>.</p>'
-          : '<p><strong>Todavía no hay torneos leídos en este periodo.</strong> Los datos se cargan solos; la primera carga tarda unas horas.</p>')
+          : `<p><strong>No hubo torneos en estos ${dias} días.</strong> Prueba con un periodo más largo.</p>`)
       guardar()
       return
+    }
+    $('metaRanking').classList.remove('meta-ranking-vacio')
+    // Si se saltó, se dice: qué se pidió, qué se enseña y por qué.
+    if (saltoDesde) {
+      const de = fuente === 'oficial' ? 'torneos oficiales' : fuente === 'pokedoc' ? 'torneos de PokeDoc' : fuente === 'online' ? 'torneos online' : 'torneos'
+      aviso(`<p class="meta-salto-aviso">En ${saltoDesde} días no hubo ${de}; te enseño los últimos ${dias} (${entero(t.torneos)} ${t.torneos === 1 ? 'torneo' : 'torneos'}).</p>`)
+      saltoDesde = null
     }
     const partes = [
       t.oficiales ? `${entero(t.oficiales)} ${t.oficiales === 1 ? 'oficial' : 'oficiales'}` : '',
@@ -145,10 +171,23 @@ async function cargar() {
   }
 }
 
+// Pone el periodo en los dos mandos (botones y menú del móvil) y en la
+// dirección, como si se hubiera pulsado, pero sin volver a cargar.
+function ponerPeriodo(d) {
+  dias = d
+  for (const x of document.querySelectorAll('#metaPeriodo [data-dias]')) x.setAttribute('aria-pressed', String(Number(x.dataset.dias) === d))
+  const menu = $('metaPeriodoMenu')
+  if (menu) menu.value = String(d)
+  const url = new URL(location.href)
+  url.searchParams.set('dias', String(d))
+  history.replaceState(null, '', url)
+}
+
 function iniciar() {
   $('metaFuente').innerHTML = fuenteHtml(fuente)
   engancharFuente($('metaFuente'), (f) => {
     fuente = f
+    puedeSaltar = true
     cargar()
   })
   const caja = $('metaPeriodo')
@@ -164,6 +203,8 @@ function iniciar() {
   }
   engancharPeriodo(caja, (d) => {
     dias = d
+    puedeSaltar = false
+    saltoDesde = null
     if (menu) menu.value = String(d)
     cargar()
   })

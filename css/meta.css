@@ -882,3 +882,19 @@
 .meta-coste-detalle span {
   color: var(--text-mid);
 }
+
+/* NUNCA EN BLANCO (1153, D5; SCHEMA 1153): sin torneos, la caja de la lista
+   no guarda sitio; y de dónde salen los datos, plegado. */
+.meta-ranking.meta-ranking-vacio:empty { min-height: 0; }
+.meta-salto-aviso { margin: 0; }
+.meta-fuente-plegada { margin-top: var(--e-xl); }
+.meta-fuente-plegada summary {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  cursor: pointer;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+.meta-fuente-plegada .meta-fuente { margin-top: var(--e-xs); }

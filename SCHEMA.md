@@ -41785,6 +41785,89 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1153 — Colabora con botones, Guardados con salida y el meta nunca en blanco (D3–D5)
+
+De «Cinco pantallas que se leen de un vistazo» (ronda 6), con lo recomendado
+(el meta salta solo).
+
+**D3 · Colabora.** Cada puesto de «Qué hace falta» lleva su botón
+(`.colabora-accion`, en el HTML para que esté aunque el JS no llegue):
+- «Me apunto» (`data-apuntar="<puesto>"`, los valores de `PUESTOS`) marca su
+  casilla en el formulario y baja a él. Sin cuenta, baja al «Entra primero» y
+  la vuelta del registro lleva `?quiere=<puesto>`, que al volver se marca.
+- «Organizar torneos» → «Crear uno» (`/torneos.html?crear=1`; sin cuenta, por el
+  registro con esa vuelta). /torneos con `?crear=1` y sesión abre el formulario
+  de crear (pulsa `#btnNuevoTorneo`, que enfoca el nombre).
+- «Echar una mano en el foro»: debajo, los tres temas más recientes del último
+  mes con `post_count <= 1` (sin respuestas), con su enlace. Sin ninguno, no se
+  pinta (no hay «0 temas» de adorno).
+En el móvil cada puesto es una fila: título y frase a la izquierda, botón a la
+derecha.
+
+**D4 · Guardados vacío.** Además de la frase, «Para empezar»: tres guías de las
+30 últimas publicadas, las que a más gente le han servido (`servidoPorGuia`;
+sin cuenta de «Me ha servido», las más recientes), con la fila de siempre
+(`filaDeGuia`) y un marcador (`[data-guardar]`, `aria-pressed`) que guarda o
+quita ahí mismo: cambia ya y vuelve si la base dice que no (896). «Ver guías»
+pasa a «Ver todas las guías», suave. (Con guías, la página ya separaba «Por
+leer» y «Ya leídas» con su progreso desde la 847: no cambia.)
+
+**D5 · El meta nunca en blanco.** Si el periodo no tiene torneos y no lo has
+elegido tú (al entrar o al cambiar de fuente), `cargar()` pregunta los
+periodos más largos de `PERIODOS` en orden y salta al primero que tenga
+(`ponerPeriodo`: los botones, el menú del móvil y `?dias=`), con una línea en
+`#metaAviso`: «En 7 días no hubo torneos oficiales; te enseño los últimos 30 (2
+torneos)». Si eliges tú el periodo vacío (`puedeSaltar = false`), te quedas, y
+el vacío dice la verdad («No hubo torneos… en estos 7 días»; la frase de «la
+primera carga tarda unas horas» era de cuando no había datos). Sin torneos la
+lista no guarda sus 240 px (`.meta-ranking-vacio`). Y el párrafo de las fuentes
+va plegado en «¿De dónde salen estos datos?».
+
+Pruebas: `test-tanda-1153.mjs`.
+
+## Tanda 1152 — Noticias por semanas y Lanzamientos con tu progreso (D1, D2)
+
+De «Cinco pantallas que se leen de un vistazo» (ronda 6; PINGU: «me gustan
+las propuestas, adelante»; con lo recomendado: por semanas, y cada catálogo en
+su pestaña).
+
+**D1 · Noticias.** En el móvil cada noticia era una tarjeta de ~340 px: una por
+pantalla. Ahora (`css/noticias.css`, ≤ 560 px) la rejilla es una lista de FILAS:
+miniatura de 88 px (4:3) a la izquierda, fecha y título en dos líneas, sin
+resumen; el titular de arriba baja a una foto 2:1 y el resumen a dos líneas. Y
+en los dos tamaños la lista va POR SEMANAS: `js/noticias-grupos.js` (puro, para
+probarlo en Node: `noticias.js` pinta al importarse) da el grupo de una fecha
+(«Esta semana» y «La semana pasada», de lunes a domingo en la hora de quien
+mira; lo de antes por mes, con el año si no es este) y pinta un
+`h2.noticias-grupo` delante del primero de cada grupo. «Ver más noticias»
+continúa el grupo en que se quedó (no repite el rótulo). En el PC el rótulo
+cruza la fila de la rejilla de tres.
+
+**D2 · Lanzamientos.**
+- «Ya en tiendas» son FILAS (`.lanz-fila`, en `#listaPasados.lanz-filas`): día,
+  logo, nombre con su código y, debajo, «N cartas». La fila entera es el enlace
+  a la expansión. En el PC, dos columnas. Antes, una caja de 220 px por set.
+- **Tu progreso**: con cuenta, cada fila dice «14/252» con su barrita. Lo cuenta
+  la base: `coleccion_por_set(p_market)` (migración
+  `supabase-migration-1152-coleccion-por-set.sql`, `security invoker`, solo tus
+  líneas, cartas DISTINTAS por set, del catálogo pedido). El navegador suma los
+  hermanos al padre (`progresoPorSet`, con `padreDeColeccion`, la misma regla
+  que pliega la lista) y el total es `card_count_total` (con las secretas, que
+  también cuentan como distintas). Con el número a la vista se esconde «N
+  cartas» (son las oficiales: al lado de «/252» parecería otra cifra). Sin
+  cuenta o sin la migración (`sinMigracion`) no se pinta nada: no es «0 de
+  191», es que no se sabe (la 319). Se pinta DESPUÉS de guardar la última vista
+  (894), que es por persona igualmente.
+- **Lo que viene**: en el móvil, detrás del siguiente, los demás que vienen se
+  deslizan de lado (`#listaProximos` en fila con `scroll-snap`), tarjetas sin el
+  bloque de la fecha y con su «Avísame». Es CSS: el marcado y `montarAvisos`
+  no cambian.
+
+Pruebas: `test-tanda-1152.mjs` (lo puro, la migración contra PostgreSQL
+sentencia a sentencia, y las dos pantallas, con y sin cuenta, y sin la
+migración); la 656 al día (las filas en vez de `.lanz-evento`). El doble
+calcula `coleccion_por_set` de sus tablas (`__SIN_1152__` la quita).
+
 ## Tanda 1151 — Las promos MEP, cada semana
 
 Asier (foro): «faltan ciertas MEP, por ejemplo la de Mega Darkrai, MEP 90».
