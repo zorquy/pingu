@@ -168,7 +168,7 @@ console.log('\n── 3. El desplegable del perfil, más corto ──')
   check('  …y «Mis torneos» ya no está', !opciones.some((o) => /mis torneos/i.test(o)), JSON.stringify(opciones))
   check('  …ni «Enviar feedback»', !opciones.some((o) => /feedback/i.test(o)), JSON.stringify(opciones))
   check('  …y sigue estando lo que sí se usa',
-    ['La quiero', 'Guardados', 'Partidas', 'Mis mazos', 'Ajustes'].every((x) => opciones.some((o) => o.startsWith(x))) && (await page.locator('#navUserDropdown a.tu-cabeza').count()) === 1,
+    ['La quiero', 'Guardados', 'Mis partidas', 'Mis mazos', 'Ajustes'].every((x) => opciones.some((o) => o.startsWith(x))) && (await page.locator('#navUserDropdown a.tu-cabeza').count()) === 1,
     JSON.stringify(opciones))
   // «Salir» fuera de la lista: es lo que evita pulsarlo yendo a por lo de
   // arriba.

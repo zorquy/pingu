@@ -368,8 +368,10 @@ console.log('\n── 8. El buscador del foro ──')
     vacio: document.querySelector('#foroPrincipal .empty-state')?.textContent.trim() || '',
     hayResultados: document.querySelectorAll('#foroPrincipal .foro-seccion').length,
   }))
-  check('sin la migración, el buscador dice que no está activado',
-    /no está activado/i.test(dice.vacio), JSON.stringify(dice))
+  // Desde la 1162 no hay frase de obra: dice que no se ha podido cargar, con
+  // salida (pintarSinRespuesta).
+  check('sin la migración, el buscador dice que no se ha podido cargar, con Reintentar',
+    /No hemos podido cargar el buscador del foro/.test(dice.vacio) && /Reintentar/.test(dice.vacio), JSON.stringify(dice))
   check('  …y no dice que no haya nada, que sería mentira',
     !/no hay nada con/i.test(dice.vacio), dice.vacio)
   await sinColumna.close()
