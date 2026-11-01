@@ -667,6 +667,10 @@
 .torneos-mandos { display: flex; align-items: center; gap: 16px; margin: 0 0 16px; }
 .torneos-mandos .torneo-vista-conmutador { flex: 0 0 auto; margin: 0; }
 .torneos-mandos .torneos-semana { flex: 1 1 auto; margin: 0; }
+/* 1164 (J1): en la lista del PC el conmutador va delante de los chips (lo
+   mueve colocarMandosTorneos) y la fila de mandos, vacía, no deja hueco. */
+.torneo-pestanas-chips > .torneo-vista-conmutador { flex: 0 0 auto; margin: 0 var(--e-sm) 0 0; }
+.torneos-mandos:not(:has(> .torneo-vista-conmutador)):has(> .torneos-semana.hidden) { display: none; }
 .torneos-vista-icono { display: none; }
 @media (max-width: 900px) {
   .torneos-mandos .torneo-vista-conmutador { display: none; }

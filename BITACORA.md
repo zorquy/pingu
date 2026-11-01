@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (406) — PINGU-Claude (1164 — una cabecera y una fila: la expansión manda, Torneos en una fila, Mis partidas con el «+» en los mandos)
+
+**Hecho** (tercera tanda de «PokeDoc entera»):
+- C1: con una expansión abierta, la cabecera de la página («Cartas de Pokémon
+  TCG» y su lema) se recoge también en el PC (`html.mc-set-abierta .mc-hero`,
+  que en el móvil ya hacía la 1040; la clase la pone el guion de la cabecera
+  antes del primer pintado si la dirección trae `set=`). El brillo del logo
+  ya no sale por arriba de la tira (`.mc-album-fondo` sin el `-32px`).
+- J1: Torneos en el PC: el conmutador Lista/Calendario va delante de los chips
+  de estado en UNA fila (`colocarMandosTorneos` lo mueve, como ya movía el «+»
+  del móvil) y la semana solo sale en «Calendario» (`mostrarSemana`).
+- J2: Mis partidas en el móvil: el botón es un «+» redondo de 44 delante de
+  las pestañas (`#partidasMandosMas`), en la fila de «Filtros»; arriba no queda
+  una fila para él solo. Cada fila dice «29 oct · fuera» (o la fecha y el
+  torneo con su enlace) y el mazo guardado va en una chapa
+  (`.partidas-chapa-mazo`) que baja entera si no cabe, en vez de cortarse.
+
+**Ficheros**: mis-partidas.html, mi-coleccion.html (sin cambio de texto;
+cartas.html generado), css/mi-coleccion.css, css/torneos.css, css/partidas.css,
+js/torneos/torneos.js, js/mis-partidas.js, SCHEMA.md, novedades.json. Pruebas:
+test-tanda-1164-pantalla.mjs nueva; 1040 y 893 actualizadas (la semana solo en
+Calendario; el «+» en la fila de mandos); 1143, 790, 1161, 299, 981, 1023
+verdes. Los rojos de la 893 que quedan son los de antes (apuntados en la 405).
+
+**Pendiente**: 1165–1168 de la misma propuesta.
+
 ## 2026-11-01 (405) — PINGU-Claude (1163 — botones y cabeceras: una palabra por acción, la acción principal junto al título, migas solo en las fichas)
 
 **Hecho** (segunda tanda de «PokeDoc entera»):

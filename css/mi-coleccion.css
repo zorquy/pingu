@@ -7659,7 +7659,9 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 
 .mc-album-fondo {
   position: absolute;
-  inset: -32px 0 -16px;
+  /* El brillo no sale de la tira de la expansión por arriba (1164, C1):
+     con `-32px` pisaba el lema de la página. */
+  inset: 0 0 -16px;
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
@@ -14806,3 +14808,9 @@ body[data-tienda] .mc-sel-abajo {
   font-weight: 800;
   line-height: 1;
 }
+
+/* ── 1164 (C1): con una expansión abierta, la cabecera de la página se recoge
+   también en el PC (en el móvil ya lo hacía la 1040): arriba queda solo la de
+   la expansión. La clase la pone el guion de la cabecera antes del primer
+   pintado si la dirección trae `set=`, y el JS al entrar y salir. ── */
+html.mc-set-abierta .mc-hero { display: none; }

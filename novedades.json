@@ -36,6 +36,24 @@
     {
       "fecha": "2026-11-01",
       "tipo": "mejora",
+      "texto": "Dentro de una expansión, arriba solo queda la expansión: el título de la página ya no ocupa sitio en el ordenador.",
+      "enlace": "/cartas?ver=album&set=sv08"
+    },
+    {
+      "fecha": "2026-11-01",
+      "tipo": "mejora",
+      "texto": "Torneos en el ordenador: Lista/Calendario y los estados en una sola fila; la semana solo sale en el calendario.",
+      "enlace": "/torneos"
+    },
+    {
+      "fecha": "2026-11-01",
+      "tipo": "mejora",
+      "texto": "Mis partidas: cada partida dice cuándo y dónde en corto y el mazo con el que jugaste va en una chapa; en el móvil, el «+» va con las pestañas.",
+      "enlace": "/mis-partidas"
+    },
+    {
+      "fecha": "2026-11-01",
+      "tipo": "mejora",
       "texto": "El botón principal de cada página está siempre en el mismo sitio: a la derecha del título («Apuntar una partida», «Nueva conversación», «Escribir un tema», «Crear un torneo»).",
       "enlace": "/mis-partidas"
     },

@@ -391,9 +391,7 @@ function pintarLista(partidas) {
       <div class="partidas-fila-centro">
         <span class="partidas-fila-mazos"><span class="partidas-fila-mazo">${spritesDeMazoHtml(p.mioNombre, p.mio)}<strong>${escapeHtml(p.mioNombre)}</strong></span>
           <span class="partidas-fila-mazo"><span class="subtext">vs</span> ${spritesDeMazoHtml(p.rivalNombre, p.rival)}<span class="partidas-fila-rival">${escapeHtml(p.rivalNombre)}</span></span></span>
-        <span class="subtext partidas-fila-donde">${
-          p.enlace ? `<a href="${escapeHtml(p.enlace)}">${escapeHtml(p.donde)}</a>` : escapeHtml(p.donde)
-        }${p.fecha ? ` · <time datetime="${escapeHtml(p.fecha)}">${escapeHtml(fechaCorta(p.fecha))}</time>` : ''}${p.mazoGuardado ? ` · ${mazoGuardadoHtml(p.mazoGuardado)}` : ''}</span>
+        <span class="subtext partidas-fila-donde"><span class="partidas-fila-cuando">${cuandoYDondeHtml(p)}</span>${p.mazoGuardado ? mazoGuardadoHtml(p.mazoGuardado) : ''}</span>
         ${p.notas ? `<span class="subtext partidas-fila-notas">${escapeHtml(p.notas)}</span>` : ''}
       </div>
       ${juegosMiniHtml(p)}
@@ -485,12 +483,25 @@ function pintarLista(partidas) {
   })
 }
 
-// El mazo guardado de una partida, con su enlace al constructor. Si ya no
-// está en tu lista (se borró y la base aún no ha soltado el enlace, o no
-// se ha podido leer), se dice así en vez de inventarle un nombre.
+// Cuándo y dónde, en ese orden y corto (1164, J2): «29 oct · fuera» para
+// una partida de fuera de PokeDoc, «26 oct · Liga FDN · J2» para una de
+// torneo (con su enlace). «Fuera de PokeDoc · 29 oct · Con tu mazo Charizard
+// ex Pidgeot» se cortaba en el móvil justo donde estaba el mazo.
+function cuandoYDondeHtml(p) {
+  const partes = []
+  if (p.fecha) partes.push(`<time datetime="${escapeHtml(p.fecha)}">${escapeHtml(fechaCorta(p.fecha))}</time>`)
+  const donde = p.donde === 'Fuera de PokeDoc' ? 'fuera' : p.donde
+  if (donde) partes.push(p.enlace ? `<a href="${escapeHtml(p.enlace)}">${escapeHtml(donde)}</a>` : escapeHtml(donde))
+  return partes.join(' · ')
+}
+
+// El mazo guardado de una partida, en una chapa con su enlace al
+// constructor. Si ya no está en tu lista (se borró y la base aún no ha
+// soltado el enlace, o no se ha podido leer), se dice así en vez de
+// inventarle un nombre.
 function mazoGuardadoHtml(id) {
   const m = mazosGuardados.find((x) => x.id === id)
-  return `<span class="partidas-fila-guardado">Con tu mazo <a href="/constructor?mazo=${encodeURIComponent(id)}">${escapeHtml(m?.name || 'guardado')}</a></span>`
+  return `<a class="partidas-fila-guardado partidas-chapa-mazo" href="/constructor?mazo=${encodeURIComponent(id)}" title="Con tu mazo guardado">${escapeHtml(m?.name || 'Mazo guardado')}</a>`
 }
 
 // ── Los minisprites de un mazo, como los pinta trainingcourt ──
@@ -2043,15 +2054,19 @@ async function init() {
   // cabecera de Foro y Torneos: título a la izquierda y la acción a la
   // derecha, sin una fila para el botón solo). Se mueven los botones de
   // verdad —con sus manejadores—, y al cambiar de pestaña vuelven a su barra.
+  // En el teléfono (1164, J2) el botón es un «+» redondo delante de las
+  // pestañas, en la misma fila que «Filtros»; en el PC, junto al título.
+  const telefono = window.matchMedia?.('(max-width: 599px)')
   const colocarMandos = (vista) => {
     if (!$('partidasAcciones') || !$('partidasMandosExtra')) return
+    const sitioDelBoton = telefono?.matches && $('partidasMandosMas') ? $('partidasMandosMas') : $('partidasAcciones')
     for (const v of ['torneos', 'sueltas']) {
       const barra = $(`vista-${v}`).querySelector('.partidas-barra')
       const boton = $(v === 'torneos' ? 'btnApuntarTorneo' : 'btnApuntarPartida')
       const filtrar = $(v === 'torneos' ? 'torneoFiltrar' : 'listaFiltrar')
       if (!barra || !boton || !filtrar) continue
       if (v === vista) {
-        $('partidasAcciones').appendChild(boton)
+        sitioDelBoton.appendChild(boton)
         $('partidasMandosExtra').appendChild(filtrar)
       } else {
         barra.prepend(filtrar)
@@ -2062,6 +2077,7 @@ async function init() {
   // El icono de «Filtrar» (893): en el móvil el botón es solo el icono.
   for (const el of document.querySelectorAll('.partidas-filtrar [data-icono]')) el.innerHTML = ICONOS_COLECCION[el.dataset.icono]?.(16) || ''
   colocarMandos('torneos')
+  telefono?.addEventListener?.('change', () => colocarMandos(document.querySelector('#partidasTabs .seg-btn[aria-pressed="true"]')?.dataset.vista || 'torneos'))
   document.querySelectorAll('#partidasTabs .seg-btn').forEach((btn) =>
     btn.addEventListener('click', () => {
       document.querySelectorAll('#partidasTabs .seg-btn').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)))

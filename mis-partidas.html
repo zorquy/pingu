@@ -144,6 +144,9 @@
       <section class="partidas-hero hidden" id="partidasHero" aria-label="Tu resumen"></section>
 
       <div class="partidas-mandos">
+        <!-- En el móvil, el «+» de la pestaña abierta (1164, J2): un icono
+             redondo delante de las pestañas, como en Torneos. -->
+        <span class="partidas-mandos-mas" id="partidasMandosMas"></span>
         <div class="seg partidas-tabs" id="partidasTabs" role="group" aria-label="Qué ver">
           <button type="button" class="seg-btn" data-vista="torneos" aria-pressed="true">Torneos</button>
           <button type="button" class="seg-btn" data-vista="sueltas" aria-pressed="false">Partidas<span class="cab-largo"> sueltas</span></button>
@@ -155,7 +158,7 @@
 
       <div class="tab-panel active" id="vista-torneos">
       <div class="partidas-barra">
-        <button class="btn-primary" id="btnApuntarTorneo">+ Apuntar un torneo</button>
+        <button class="btn-primary partidas-apuntar" id="btnApuntarTorneo" aria-label="Apuntar un torneo"><span class="partidas-mas" aria-hidden="true">+</span><span class="cab-palabra">Apuntar un torneo</span></button>
         <!-- Buscar y filtrar (tanda 251), plegado tras «Filtrar» desde la
              838: sin torneos que buscar, tres campos eran ruido. -->
         <button type="button" class="btn-secondary partidas-filtrar" id="torneoFiltrar" aria-expanded="false" aria-controls="torneoFiltros" aria-label="Filtros"><span data-icono="sliders" aria-hidden="true"></span><span class="cab-palabra">Filtros</span></button>
@@ -248,7 +251,7 @@
 
       <div class="tab-panel" id="vista-sueltas">
       <div class="partidas-barra">
-        <button class="btn-primary" id="btnApuntarPartida">+ Apuntar una partida</button>
+        <button class="btn-primary partidas-apuntar" id="btnApuntarPartida" aria-label="Apuntar una partida"><span class="partidas-mas" aria-hidden="true">+</span><span class="cab-palabra">Apuntar una partida</span></button>
         <button type="button" class="btn-secondary partidas-filtrar" id="listaFiltrar" aria-expanded="false" aria-controls="listaFiltros" aria-label="Filtros"><span data-icono="sliders" aria-hidden="true"></span><span class="cab-palabra">Filtros</span></button>
       </div>
 

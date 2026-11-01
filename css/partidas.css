@@ -283,7 +283,11 @@
 .partidas-fila-mazos strong { flex-shrink: 1; min-width: 0; }
 .partidas-fila-rival { min-width: 0; }
 .partidas-fila-res { font-size: var(--t-sm); }
-.partidas-fila-donde { font-size: var(--t-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* Cuándo y dónde, y el mazo guardado en una chapa (1164, J2): si no caben en
+   una línea, la chapa baja entera en vez de cortarse con puntos. */
+.partidas-fila-donde { font-size: var(--t-sm); display: flex; flex-wrap: wrap; align-items: center; gap: 2px var(--e-sm); min-width: 0; }
+.partidas-fila-cuando { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.partidas-chapa-mazo { display: inline-block; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); color: var(--navy); font-size: var(--t-xs); font-weight: 700; text-decoration: none; }
 .partidas-fila-notas { font-size: var(--t-sm); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 /* Los meses: el título con su balance y la caja de sus partidas. */
@@ -828,7 +832,15 @@
 .partidas-mandos .partidas-tabs { flex: 0 0 auto; flex-wrap: nowrap; }
 .partidas-mandos-extra { flex: 0 0 auto; margin-left: auto; }
 .partidas-mandos-extra:empty,
+.partidas-mandos-mas:empty,
 .cab-acciones:empty { display: none; }
+/* El «+» (1164, J2): con su palabra junto al título; solo el signo, redondo
+   y de 44, en la fila de mandos del teléfono. */
+.partidas-apuntar .partidas-mas { font-size: var(--t-lg); line-height: 1; margin-right: var(--e-xs); }
+.partidas-mandos-mas { flex: 0 0 auto; }
+.partidas-mandos .partidas-apuntar { width: 44px; min-width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+.partidas-mandos .partidas-apuntar .partidas-mas { margin: 0; font-size: var(--t-xl); }
+.partidas-mandos .partidas-apuntar .cab-palabra { display: none; }
 .partidas-filtrar { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 44px; }
 /* 1163 (T3): la cabecera como la de Foro y Torneos, el botón a la derecha
    del título; la barra de la pestaña, sin sus dos botones, no deja hueco. */
@@ -860,7 +872,7 @@
     column-gap: var(--e-lg);
     align-items: center;
   }
-  .partidas-fila-donde { justify-self: end; text-align: right; }
+  .partidas-fila-donde { justify-self: end; justify-content: flex-end; text-align: right; }
   .partidas-fila-notas { grid-column: 1 / -1; }
 }
 

@@ -41785,6 +41785,46 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1164 — Una cabecera y una fila (C1, J1, J2 de «PokeDoc entera»)
+
+**C1 — Dentro de una expansión manda la expansión.** En /cartas y Mi colección
+con una expansión abierta quedaban dos cabeceras en el PC: la de la página
+(«Cartas de Pokémon TCG» y un lema de dos líneas) y la de la expansión, cuyo
+brillo (`.mc-album-fondo`, `inset: -32px …`) pisaba el lema. Ahora
+`html.mc-set-abierta .mc-hero { display: none }` vale a cualquier ancho (la
+1040 solo lo hacía en el móvil): la clase la pone el guion de la cabecera de
+`mi-coleccion.html` antes del primer pintado si la dirección trae `set=` (sin
+salto, la 981), y `abrirAlbum` / `volverALaEstanteria` al entrar y salir. El
+brillo se queda dentro de su tira (`inset: 0 0 -16px`).
+
+**J1 — Torneos: una fila de mandos en el PC.** Había tres filas antes del
+primer torneo: Lista/Calendario, la semana (siete casillas que en «Lista» no
+hacen nada) y los chips de estado. `colocarMandosTorneos` (torneos.js) mueve
+el conmutador `.torneo-vista-conmutador` DELANTE de los chips
+(`.torneo-pestanas-chips`) cuando la lista está a la vista y no es un
+teléfono (en el teléfono el conmutador es el icono de la 1021), y lo devuelve
+a `.torneos-mandos` en el calendario o antes de repintar (`aCasa`). La semana
+pasa por `mostrarSemana()`: `pintarSemana` la rellena y apunta en
+`data-hay` si tiene torneos, y solo se enseña con `vistaTorneos ===
+'calendario'`; `.torneos-mandos` sin conmutador y con la semana escondida no
+deja hueco (`:not(:has(…)):has(…)`). El primer torneo sube ~90 px.
+
+**J2 — Mis partidas: el «+» en la fila de mandos y filas que se leen.** En el
+móvil (≤ 599 px) `colocarMandos` lleva el botón de la pestaña abierta a
+`#partidasMandosMas`, delante de las pestañas, donde `.partidas-mandos
+.partidas-apuntar` lo pinta redondo de 44 solo con el signo
+(`.partidas-mas`; la palabra va en `.cab-palabra` y en `aria-label`); en el PC
+sigue junto al título (1163). Con `#partidasAcciones` vacío, arriba no queda
+una fila para el botón solo. Y cada fila: `cuandoYDondeHtml` escribe la fecha
+y luego dónde, corto («29 oct · fuera»; una de torneo lleva el nombre con su
+enlace), y `mazoGuardadoHtml` es una chapa `.partidas-chapa-mazo` con el
+enlace al constructor; `.partidas-fila-donde` es flex con `wrap`, así que la
+chapa baja entera en vez de cortarse en «Con t…». La 1143 sigue leyendo
+`.partidas-fila-donde time` y la columna alineada a la derecha.
+
+Lo vigila `test-tanda-1164-pantalla.mjs`; la 1040 (la semana en el PC) y la
+893 (dónde va el botón en el móvil) se actualizaron.
+
 ## Tanda 1163 — Botones y cabeceras (T2, T3, T4 de «PokeDoc entera»)
 
 **T2 — Los botones hablan igual.** Una palabra por acción:

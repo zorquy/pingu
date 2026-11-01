@@ -301,11 +301,19 @@ export function semanaDeTorneos(torneos, ahora = new Date()) {
   return dias
 }
 
+// La semana solo sale en la vista de calendario (1164, J1): en «Lista» eran
+// siete casillas que no hacían nada, la segunda de tres filas de mandos.
+function mostrarSemana() {
+  const caja = $('torneosSemana')
+  if (caja) caja.classList.toggle('hidden', !(caja.dataset.hay === '1' && vistaTorneos === 'calendario'))
+}
+
 function pintarSemana(torneos) {
   const caja = $('torneosSemana')
   if (!caja) return
   const dias = semanaDeTorneos(torneos)
-  if (!dias.some((d) => d.torneos.length)) return caja.classList.add('hidden')
+  caja.dataset.hay = dias.some((d) => d.torneos.length) ? '1' : '0'
+  if (caja.dataset.hay !== '1') return mostrarSemana()
   caja.innerHTML = dias.map((d) => {
     const primero = d.torneos[0]
     const dentro = `<span class="tsem-nombre">${d.nombre}</span><b>${d.numero}</b><span class="tsem-puntos" aria-hidden="true">${'<i></i>'.repeat(Math.min(d.torneos.length, 4))}</span><small>${escapeHtml(d.primera)}</small>`
@@ -314,7 +322,7 @@ function pintarSemana(torneos) {
       ? `<a class="tsem-dia con" href="/torneo?slug=${encodeURIComponent(primero.slug)}" aria-label="${escapeHtml(etiqueta)}">${dentro}</a>`
       : `<span class="tsem-dia" aria-label="${escapeHtml(etiqueta)}">${dentro}</span>`
   }).join('')
-  caja.classList.remove('hidden')
+  mostrarSemana()
 }
 
 // En el teléfono (1040), el calendario y «+» van DELANTE de los chips, en
@@ -327,10 +335,18 @@ function colocarMandosTorneos({ aCasa = false } = {}) {
   const casa = document.querySelector('.torneos-heroe')
   if (!acciones || !casa) return
   const chips = $('listaTorneos')?.querySelector('.torneo-pestanas-chips')
-  const enLista = telefono.matches && !aCasa && chips && !$('listaTorneos').classList.contains('hidden')
+  const listaALaVista = !aCasa && chips && !$('listaTorneos').classList.contains('hidden')
+  const enLista = telefono.matches && listaALaVista
   if (enLista) chips.prepend(acciones)
   else if (acciones.parentElement !== casa) casa.append(acciones)
   casa.classList.toggle('torneos-heroe-vacia', Boolean(enLista))
+  // En el PC (1164, J1), UNA fila: el conmutador Lista/Calendario delante de
+  // los chips de estado; en el calendario vuelve a su sitio, con la semana.
+  const conmutador = document.querySelector('.torneo-vista-conmutador')
+  const mandos = document.querySelector('.torneos-mandos')
+  if (!conmutador || !mandos) return
+  if (!telefono.matches && listaALaVista) chips.prepend(conmutador)
+  else if (conmutador.parentElement !== mandos) mandos.prepend(conmutador)
 }
 telefono.addEventListener?.('change', () => colocarMandosTorneos())
 
@@ -706,6 +722,7 @@ function engancharVistas() {
     $('torneosCalendario').classList.toggle('hidden', !calendario)
     $('listaTorneos').classList.toggle('hidden', calendario)
     if (calendario) $('torneosVacio').classList.add('hidden')
+    mostrarSemana()
     // El icono de la cabecera (1021, móvil): enseña la OTRA vista.
     const icono = $('torneosVistaIcono')
     if (icono) {
