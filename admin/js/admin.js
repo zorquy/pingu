@@ -2298,6 +2298,23 @@ async function tcggoEstado() {
         d.ultimoError ? `  último error (${d.ultimoError.fecha}, ${d.ultimoError.clave}, intento ${d.ultimoError.intento}): ${d.ultimoError.error}` : '',
       ]
     })(),
+    // Lo que le falta a un set, de TCGdex (1158): las MEP más nuevas. La
+    // 1159 lo trae aquí: sin este bloque, lo que hizo o por qué no salía solo
+    // se veía en la luz del semáforo.
+    ...(() => {
+      const d = de('tcgdex_rellenar_set')?.valor
+      if (!d) return ['RELLENO DE SETS DESDE TCGDEX (tcgdex_rellenar_set, 1158): todavía no ha corrido']
+      return [
+        `RELLENO DE SETS DESDE TCGDEX (tcgdex_rellenar_set, 1158) — ${de('tcgdex_rellenar_set')?.updated_at || 'nunca'}: ${Object.entries(d.hechos || {}).map(([k, h]) => `${k}: ${h.estado}${h.fecha ? ` el ${h.fecha}` : ''}${h.estado === 'hecho' ? ` (set ${h.set}; TCGdex ${h.suyas}, teníamos ${h.teniamos}, faltaban ${h.faltaban ?? h.escritas}, escritas ${h.escritas}${h.numeros ? `: ${h.numeros}` : ''}${h.escritas ? `; ${h.conCardmarket} con Cardmarket` : ''}${h.aMano ? '; desde /admin' : ''})` : ''}${h.estado === 'sinSet' ? ` (buscado ${JSON.stringify(h.buscado)})` : ''}`).join(' · ') || 'nada hecho todavía'}${Object.keys(d.intentos || {}).length ? ` · intentos fallidos: ${JSON.stringify(d.intentos)}` : ''}`,
+        ...Object.values(d.hechos || {}).flatMap((h) => (h.enOtroSet || []).map((x) => `  ⚠ saltada porque ya está en otro set: ${x.numero} (${x.id} en «${x.set}»)`)),
+        d.ultimoError ? `  último error (${d.ultimoError.fecha}, ${d.ultimoError.clave}, ${d.ultimoError.donde}, intento ${d.ultimoError.intento}): ${d.ultimoError.error}` : '',
+      ]
+    })(),
+    // La guía diaria de Cardmarket (587), y la del japonés a mano (1158).
+    ...[['cardmarket_guia', 'GUÍA DE CARDMARKET'], ['cardmarket_guia_jp', 'GUÍA DE CARDMARKET (JP A MANO)']].map(([k, t]) => {
+      const d = de(k)?.valor
+      return d ? `${t} (${k}) — ${de(k)?.updated_at || 'nunca'}: día ${d.dia || '—'} · hecho: ${d.hecho ? 'sí' : 'no'} · precios escritos hoy: ${d.escritas ?? 0}` : `${t} (${k}): todavía no ha corrido`
+    }),
     // Los decks japoneses de Scrydex (883): lo que TCGGO no tiene.
     ...(() => {
       const d = de('scrydex_decks_jp')?.valor

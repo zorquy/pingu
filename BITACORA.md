@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (401) — PINGU-Claude (1159b — el relleno de TCGdex y la guía de Cardmarket en el estado de /admin)
+
+**Hecho**:
+- PINGU pegó el texto de «Estado del catálogo de TCGGO» y el relleno de TCGdex
+  (1158) no salía: solo estaba en las luces del semáforo. Ahora ese texto lleva
+  su bloque (qué set, cuántas tiene TCGdex y aquí, cuáles escribió, las
+  saltadas por estar ya en otro set y el último error) y las dos guías de
+  Cardmarket (día, hecho y precios escritos).
+- Del estado pegado: `mep-promos` de TCGGO trajo hoy a las 11:19 55 MEP nuevas
+  (139 suyas); el relleno de TCGdex no aparecía porque no tenía bloque.
+
+**Ficheros**: admin/js/admin.js.
+
+**Pendiente (PINGU)**: volver a pulsar «Estado del catálogo de TCGGO» y mirar
+el bloque «RELLENO DE SETS DESDE TCGDEX»; o en Colecciones → MEP, «Traer ahora
+lo que falta de TCGdex».
+
 ## 2026-11-01 (400) — PINGU-Claude (1159 — «Buscar en Cardmarket» y «Traer ahora» de TCGdex)
 
 **Hecho**:
