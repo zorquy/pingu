@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (409) — PINGU-Claude (1167 — el perfil de otra persona compacto en el móvil; Mensajes con «con quién podrías hablar»)
+
+**Hecho** (M2 y M3 de «PokeDoc entera»):
+- M2: en el teléfono, el perfil de OTRA persona (`/usuario`, `main.perfil-ajena`)
+  tiene la cabecera en ~160 px: banner de 56 con el avatar de 48 al lado del
+  nombre (y el @ en la misma línea), nivel y racha en una línea (sin la cifra
+  de XP), los dos botones a media anchura y las cinco cifras en una fila. Lo
+  que vienes a ver empieza a 330 px (antes a ~1.000). Tu propio perfil no
+  cambia (la 1040 lo mide).
+- M3: Mensajes sin conversaciones dice «Con quién podrías hablar»: hasta seis
+  personas de tres sitios —tienen cartas que buscas (`intercambios_quien_tiene`),
+  las sigues (`user_follows`), están en un torneo contigo
+  (`tournament_registrations`)—, cada una con su motivo y «Escribirle»
+  (`?with=`). Lo puro (`sugerir`) en `js/mensajes-sugeridos-puro.js`, lo que
+  pide y pinta en `js/mensajes-sugeridos.js` (por `import()`: solo lo baja quien
+  no tiene conversaciones). En el PC, a la derecha; en el móvil, bajo el vacío.
+  La lista del PC ya no manda a «la lista» vacía: «Empieza por alguien de la
+  derecha».
+
+**Ficheros**: usuario.html, css/perfil.css, js/mensajes.js,
+js/mensajes-sugeridos.js (nuevo), js/mensajes-sugeridos-puro.js (nuevo),
+css/mensajes.css, SCHEMA.md, novedades.json. Pruebas:
+test-tanda-1167-pantalla.mjs nueva; 1040, 1150, 867, 306, 1140, 1146, 891, 299
+verdes.
+
+**Pendiente**: 1168 (/avisos), la última de la propuesta.
+
 ## 2026-11-01 (408) — PINGU-Claude (1166 — Cruces nunca vacío)
 
 **Hecho** (C2 de «PokeDoc entera»): con algo apuntado y nadie enfrente, Cruces

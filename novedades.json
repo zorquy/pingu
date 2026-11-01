@@ -36,6 +36,18 @@
     {
       "fecha": "2026-11-01",
       "tipo": "mejora",
+      "texto": "El perfil de otra persona en el móvil es más compacto: lo que viniste a ver (sus guías, su foro, sus torneos) sale sin bajar.",
+      "enlace": "/usuarios"
+    },
+    {
+      "fecha": "2026-11-01",
+      "tipo": "nuevo",
+      "texto": "Mensajes, cuando aún no tienes conversaciones, te sugiere con quién hablar: quien tiene cartas que buscas, a quien sigues y quien juega un torneo contigo.",
+      "enlace": "/mensajes"
+    },
+    {
+      "fecha": "2026-11-01",
+      "tipo": "mejora",
       "texto": "Cruces ya no se queda en blanco: cuando nadie encaja contigo ves cuántas cartas buscas y das, y botones para ir al Mercado o poner cartas para cambio.",
       "enlace": "/mi-coleccion?ver=cambios"
     },

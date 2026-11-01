@@ -101,19 +101,41 @@ function listaHtml(list, miId, actual) {
 // La lista de la izquierda en el PC, al lado de lo que esté abierto.
 async function pintarListaLateral(session, actual) {
   const caja = document.getElementById('msgLista')
-  if (!caja || !enPC()) return
+  if (!caja || !enPC()) return null
   const list = await listConversations(session.user.id).catch(() => [])
   caja.innerHTML = `<div class="msg-lista-cabeza"><h2>Mensajes</h2><a class="btn-primary msg-nueva" href="/mensajes.html?new=1">${icons.edit(14)} Nueva conversación</a></div>${buscadorHtml(list.length)}<div class="msg-filas">${listaHtml(list, session.user.id, actual)}</div>`
   engancharBuscador(caja)
   marcarEnLineaEn(caja)
   caja.classList.remove('hidden')
   document.querySelector('.msg-dos')?.classList.add('con-lista')
+  return list
+}
+
+// Sin conversaciones, con quién podrías hablar (1167, M3): la gente que
+// tiene lo que buscas, la que sigues y la de tus torneos, con «Escribirle».
+// Antes la frase mandaba a «la lista», que acababa de decir que estaba vacía.
+async function pintarQuienPodria(session, caja) {
+  if (!caja) return
+  try {
+    const m = await import('./mensajes-sugeridos.js')
+    await m.pintarSugeridos(caja, session)
+  } catch {
+    // Es un extra: sin él, el botón de nueva conversación sigue ahí.
+  }
 }
 
 async function renderInbox(session) {
   // En el PC la lista ya está a la izquierda: a la derecha, a elegir.
   if (enPC()) {
-    await pintarListaLateral(session, null)
+    const list = await pintarListaLateral(session, null)
+    if (list && !list.length) {
+      // Sin conversaciones: con quién podrías hablar, y la lista lo dice (1167).
+      const lista = document.querySelector('#msgLista .msg-vacio')
+      if (lista) lista.textContent = 'Todavía no tienes conversaciones. Empieza por alguien de la derecha.'
+      root.innerHTML = `<div class="msg-quien" id="msgQuien"></div><p class="empty-state msg-quien-pie"><a class="btn-primary" href="/mensajes.html?new=1">Nueva conversación</a></p>`
+      await pintarQuienPodria(session, document.getElementById('msgQuien'))
+      return
+    }
     root.innerHTML = `<p class="empty-state">Elige una conversación de la lista o empieza una nueva.<br><a class="btn-primary" href="/mensajes.html?new=1">Nueva conversación</a></p>`
     return
   }
@@ -128,10 +150,11 @@ async function renderInbox(session) {
   const listEl = document.getElementById('inboxList')
   listEl.innerHTML =
     list.length === 0
-      ? `<p class="empty-state">Todavía no tienes conversaciones. Escríbele a alguien desde su perfil o empieza una aquí.<br><a class="btn-primary" href="/mensajes.html?new=1">Nueva conversación</a></p>`
+      ? `<p class="empty-state">Todavía no tienes conversaciones. Escríbele a alguien desde su perfil o empieza una aquí.<br><a class="btn-primary" href="/mensajes.html?new=1">Nueva conversación</a></p><div class="msg-quien" id="msgQuien"></div>`
       : `${buscadorHtml(list.length)}<div class="msg-filas">${listaHtml(list, session.user.id)}</div>`
   engancharBuscador(listEl)
   marcarEnLineaEn(listEl)
+  if (list.length === 0) await pintarQuienPodria(session, document.getElementById('msgQuien'))
 }
 
 async function renderNewConversation(session) {

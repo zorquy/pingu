@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1167 — El perfil ajeno compacto en el móvil (M2) y Mensajes con «con quién hablar» (M3)
+
+**M2.** Abrir a alguien en el móvil era banner, avatar, dos botones, nombre,
+nivel con barra, racha, cinco cifras y pestañas: lo que venías a ver empezaba
+pasados 1.000 px, el 60 % de la pantalla, contra el 35 % de la regla 1040.
+`usuario.html` lleva ahora `main.perfil-ajena` y `perfil.css` un bloque
+`@media (max-width: 599px) .perfil-ajena …`: banner de 56, el cuerpo como
+rejilla `48px 1fr` (avatar de 48 subido 24, y al lado el nombre con el @ en
+la misma línea), `.perfil-chapas` en una línea sin `.rango-texto` ni
+`.rango-barra` (la XP se ve al tocar el nivel), los botones a media anchura
+(`flex: 1`), las cifras en una fila (`.perfil-cifra` en fila, 36 px) y sin
+márgenes de sobra entre bloques. La 1040 había puesto `order` a info y
+acciones: la ajena lo devuelve a 0/1 para que mande la rejilla. Tu propio
+perfil (`/perfil`) no cambia: la 1040 sigue midiendo su banner de 88.
+
+**M3.** Sin conversaciones, Mensajes decía «elige una conversación de la
+lista» con la lista vacía al lado. `js/mensajes-sugeridos.js` (por `import()`
+desde `pintarQuienPodria`, en `mensajes.js`) saca hasta seis personas de tres
+sitios, con su motivo: «tiene N cartas que buscas» (`intercambios_quien_tiene`,
+la misma RPC de Cruces, agrupada por persona y de más a menos), «la sigues»
+(`user_follows` + `user_profiles`) y «en <torneo> contigo»
+(`tournament_registrations` de tus torneos activos, con `tournaments.name`).
+`sugerir()` es puro y vive en `js/mensajes-sugeridos-puro.js` (la 471: lo
+que prueba Node no importa `app.js`): cruce > seguida > torneo, sin repetir
+a nadie ni a ti, tope 6. Cada tarjeta `.msg-sugerido` lleva avatar (con su
+punto verde, 1140), nombre, motivo y «Escribirle» → `/mensajes.html?with=<id>`,
+el mismo camino que el botón del perfil. En el PC se pinta a la derecha
+(`#msgQuien` en `renderInbox`) y la lista dice «Empieza por alguien de la
+derecha»; en el móvil, bajo el vacío de la bandeja. Si falla, no se pinta nada
+y «Nueva conversación» sigue ahí.
+
+`test-tanda-1167-pantalla.mjs`: lo puro con fixtures, el perfil de Misty en el
+móvil (banner 56, avatar 48, botones y cifras en línea, contenido antes del
+40 %, /perfil sin cambios) y Mensajes sin conversaciones en PC y móvil.
+
 ## Tanda 1166 — Cruces nunca vacío (C2 de «PokeDoc entera»)
 
 Cuando nadie encaja contigo, Cruces era una pantalla con una frase y «el

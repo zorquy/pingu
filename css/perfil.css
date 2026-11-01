@@ -1564,3 +1564,60 @@ html:has(.logro-ficha[open]) {
     padding-bottom: calc(var(--e-lg) + var(--seguro-abajo));
   }
 }
+
+/* ── 1167 (M2): el perfil de OTRA persona, compacto en el teléfono ──
+   Banner, avatar, dos botones, nombre, nivel, racha, cinco cifras y
+   pestañas: lo que venías a ver empezaba a 1.000 px, el 60 % de la
+   pantalla. Aquí la cabecera mide ~160: banner bajo con el avatar y el
+   nombre al lado, nivel y racha en una línea, los botones a media anchura
+   y las cifras en una fila. Tu propio perfil (/perfil) no cambia. */
+@media (max-width: 599px) {
+  .perfil-ajena .profile-hero-banner,
+  .perfil-ajena .profile-hero-banner-vacio { height: 56px; }
+  .perfil-ajena .profile-hero { margin-bottom: 0; }
+  .perfil-ajena .profile-hero-body {
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    gap: 0 var(--e-sm);
+    align-items: start;
+    padding: 0 var(--e-md) var(--e-sm);
+  }
+  .perfil-ajena .profile-hero-row-break { display: none; }
+  /* La 1040 ordena info y acciones con `order`; aquí manda la rejilla. */
+  .perfil-ajena .profile-hero-info { order: 0; }
+  .perfil-ajena .perfil-acciones { order: 1; }
+  .perfil-ajena .rango-texto { display: none; }
+  .perfil-ajena .profile-hero-avatar-wrap { margin-top: -24px; }
+  .perfil-ajena .profile-hero-avatar { width: 48px; height: 48px; font-size: var(--t-lg); border-width: 2px; }
+  .perfil-ajena .profile-hero-info {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--e-xs);
+    padding-top: 0;
+  }
+  .perfil-ajena .profile-hero-info h1 { font-size: var(--t-lg); margin: 0; }
+  .perfil-ajena .perfil-arroba { margin: 0; font-size: var(--t-xs); }
+  .perfil-ajena .perfil-chapas,
+  .perfil-ajena .profile-bio,
+  .perfil-ajena .perfil-logro-chapa { flex-basis: 100%; }
+  .perfil-ajena .perfil-chapas { flex-wrap: nowrap; margin: 0; font-size: var(--t-xs); }
+  .perfil-ajena .rango-barra { display: none; }
+  .perfil-ajena .perfil-acciones {
+    grid-column: 1 / -1;
+    margin: var(--e-xs) 0 0;
+    gap: var(--e-sm);
+  }
+  .perfil-ajena .perfil-acciones > * { flex: 1 1 0; justify-content: center; min-height: 44px; }
+  .perfil-ajena .perfil-cifras { flex-wrap: nowrap; padding: 0 var(--e-xs); }
+  .perfil-ajena .perfil-cifra {
+    flex-direction: row;
+    align-items: baseline;
+    gap: 2px;
+    min-height: 36px;
+    padding: var(--e-xs) 0;
+  }
+  .perfil-ajena .perfil-cifra .valor { font-size: var(--t-md); }
+  .perfil-ajena .perfil-cifra .rotulo { font-size: var(--t-2xs); }
+  .perfil-ajena .perfil-pestanas { margin: 0 0 var(--e-md); }
+}

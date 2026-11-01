@@ -1343,3 +1343,33 @@ button.msg-reaccion {
 .msg-mas-menu button:hover {
   background: var(--ice);
 }
+
+/* ── 1167 (M3): «Con quién podrías hablar», sin conversaciones ── */
+.msg-sugeridos { margin-top: var(--e-md); }
+.msg-sugeridos-titulo {
+  margin: 0 0 var(--e-md);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+.msg-sugeridos-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--e-sm);
+}
+.msg-sugerido {
+  display: grid;
+  justify-items: center;
+  gap: var(--e-xs);
+  padding: var(--e-md) var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  text-align: center;
+}
+.msg-sugerido-avatar { width: 44px; height: 44px; font-size: var(--t-lg); }
+.msg-sugerido-nombre { font-size: var(--t-md); }
+.msg-sugerido-motivo { font-size: var(--t-xs); color: var(--text-mid); }
+.msg-sugerido-escribir { min-height: 36px; padding: var(--e-xs) var(--e-md); font-size: var(--t-sm); }
+.msg-sugeridos-pie { margin: var(--e-md) 0 0; }
+.msg-quien:empty { display: none; }
+.msg-quien-pie { padding-top: var(--e-md); }
