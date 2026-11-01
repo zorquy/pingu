@@ -104,7 +104,9 @@ const browser = await chromium.launch()
     return out
   })
   check('la historia y la de X, con sus medidas y pintadas', r.historia.w === 1080 && r.historia.h === 1350 && r.apaisada.w === 1200 && r.apaisada.h === 630 && r.historia.colores >= 8 && r.apaisada.colores >= 8, JSON.stringify(r))
-  check('  …con el logo de la web arriba a la izquierda', r.historia.logo && Math.abs(r.historia.logo[0] - 142) < 12 && Math.abs(r.historia.logo[2] - 234) < 12, JSON.stringify(r.historia.logo))
+  // Desde la 1156 el logo es el del marco de redes: el icono de la app o, sin
+  // él (aquí no se llama a prepararMarco), la «P» en el azul de la marca.
+  check('  …con el logo de la web arriba a la izquierda', r.historia.logo && Math.abs(r.historia.logo[0] - 124) < 14 && Math.abs(r.historia.logo[2] - 228) < 14, JSON.stringify(r.historia.logo))
   check('seis filas de «¿Qué carta es?» con foto no pisan el lema', r.seisFilas === 0, String(r.seisFilas))
   check('las de la cuenta se dibujan (mañana y noche, también sin nadie)', r.manana >= 6 && r.noche >= 6 && r.nocheX === 1200, JSON.stringify([r.manana, r.noche]))
   check('sin errores', errores.length === 0, errores.join(' | '))

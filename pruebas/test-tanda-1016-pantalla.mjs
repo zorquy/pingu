@@ -17,7 +17,7 @@ const check = (l, ok, extra = '') => {
 console.log('── 1. Los tokens ──')
 {
   const css = leer('css/style.css')
-  check('--font-display y --font-marca son Outfit (1018), con Inter detrás', /--font-display: 'Outfit', 'Inter', sans-serif;/.test(css) && /--font-marca: 'Outfit', 'Fredoka', 'Inter', sans-serif;/.test(css))
+  check('--font-display y --font-marca son Outfit (1018), con Inter detrás', /--font-display: 'Outfit', 'Inter', sans-serif;/.test(css) && /--font-marca: 'Outfit', 'Inter', sans-serif;/.test(css))
   check('Outfit se sirve desde casa, variable y solo latín', /font-family: 'Outfit';[\s\S]*?font-weight: 100 900;[\s\S]*?outfit-variable-latin\.woff2/.test(css))
   check('la marca y las cifras del perfil van en --font-marca', /\.nav-logo, \.auth-logo, \.pie-marca,\n\.perfil-cifra \.valor[^{]*\{\n  font-family: var\(--font-marca\);/.test(css))
   const hojas = ['mi-coleccion', 'torneos', 'retos', 'partidas', 'hoy', 'comunidad'].map((h) => [h, leer(`css/${h}.css`)])

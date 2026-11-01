@@ -31,7 +31,7 @@ console.log('── 1. Lo estático ──')
     check(`${f}: la imagen no escribe el nombre de la respuesta`, i > 0 && !/detalle:/.test(bloque) && !bloque.includes(nombre))
     check(`  …ni se destapa a mano`, !/tapada:\s*false/.test(bloque))
   }
-  check('el marco tapa la foto si no se dice lo contrario', /chip = '', tapada = true \}\) \{/.test(leer('js/reto-imagen.js')))
+  check('el marco tapa la foto si no se dice lo contrario', /chip = '', tapada = true(, seccion = '\w+')? \}\) \{/.test(leer('js/reto-imagen.js')))
 }
 
 console.log('\n── 2. En pantalla ──')
