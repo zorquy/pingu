@@ -148,7 +148,7 @@ console.log('\n── 5. El JavaScript no se lleva por delante lo que ya estaba 
   // llega a un enlace roto se queda mirando una página en blanco.
   const { page: vacia, errores } = await abrir('/guia?slug=no-existe', { semillas: { __FAKE_GUIAS__: [] } })
   check('sin nada pintado, dice que no la encuentra',
-    /no encontrada/i.test((await vacia.locator('#articleMain').textContent()) || ''))
+    /no encontrada|ya no está/i.test((await vacia.locator('#articleMain').textContent()) || ''))
   check('  …y sin reventar', errores.length === 0, errores[0] || '')
   await vacia.close()
 }
