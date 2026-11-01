@@ -1476,7 +1476,8 @@ tcg-deck {
   width: 320px;
   max-width: 90vw;
   max-height: 420px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -1529,6 +1530,24 @@ tcg-deck {
 .nav-bell-item-date {
   font-size: var(--t-2xs);
   color: var(--text-dim);
+}
+
+/* La salida a /avisos (1168): la campana es lo sin leer; allí está todo. Se
+   desliza la lista y el pie se queda a la vista. */
+#navBellList {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+.nav-bell-pie {
+  display: block;
+  flex: 0 0 auto;
+  padding: 12px 16px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  color: var(--navy);
 }
 
 /* ── Lupa de búsqueda en la navbar ── */

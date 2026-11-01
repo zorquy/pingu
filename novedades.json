@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-01",
+      "tipo": "nuevo",
+      "texto": "Nueva página de Avisos con todos tus avisos, leídos y sin leer, por días y por sección, con «Marcar todo como leído». Llegas desde «Ver todos los avisos» al final de la campana.",
+      "enlace": "/avisos"
+    },
+    {
+      "fecha": "2026-11-01",
       "tipo": "mejora",
       "texto": "El perfil de otra persona en el móvil es más compacto: lo que viniste a ver (sus guías, su foro, sus torneos) sale sin bajar.",
       "enlace": "/usuarios"

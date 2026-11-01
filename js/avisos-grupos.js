@@ -54,13 +54,18 @@ const medianoche = (t) => {
 
 // En qué tramo cae una fecha, contado en días de calendario y no en horas:
 // un aviso de las 23:50 de ayer es de «Ayer» aunque sean las 00:10.
-export function tramoDe(iso, ahora = Date.now()) {
+// Con `meses`, lo de antes de esta semana va por meses («Octubre», «Marzo de
+// 2026»): es para /avisos (1168), donde un «Antes» con meses dentro no dice nada.
+const MESES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre']
+export function tramoDe(iso, ahora = Date.now(), { meses = false } = {}) {
   const hoy = medianoche(ahora)
   const t = new Date(iso).getTime()
   if (t >= hoy) return 'Hoy'
   if (t >= hoy - DIA) return 'Ayer'
   if (t >= hoy - 6 * DIA) return 'Esta semana'
-  return 'Antes'
+  if (!meses) return 'Antes'
+  const d = new Date(t)
+  return d.getFullYear() === new Date(ahora).getFullYear() ? MESES[d.getMonth()] : `${MESES[d.getMonth()]} de ${d.getFullYear()}`
 }
 
 export const TRAMOS = ['Hoy', 'Ayer', 'Esta semana', 'Antes']
@@ -69,10 +74,14 @@ export const TRAMOS = ['Hoy', 'Ayer', 'Esta semana', 'Antes']
 // La lista llega de la más nueva a la más vieja (así la pide la campana) y
 // el grupo cae en el tramo de su aviso MÁS NUEVO: cinco reacciones de esta
 // semana con una de hoy son una noticia de hoy.
-export function agruparAvisos(lista, ahora = Date.now()) {
+// Con `porTramo` (1168, /avisos) solo se juntan los del MISMO tramo: en un
+// historial, la respuesta de hoy y la de hace tres semanas en el mismo tema
+// son dos cosas, no «y 1 más». Los tramos salen en el orden de la lista.
+export function agruparAvisos(lista, ahora = Date.now(), { porTramo = false, meses = false } = {}) {
   const grupos = new Map()
   for (const a of lista || []) {
-    const clave = POR_TIPO.has(a.type) ? a.type : `${a.type}|${a.type === 'forum_reaction' ? a.link || '' : sinAncla(a.link)}`
+    const base = POR_TIPO.has(a.type) ? a.type : `${a.type}|${a.type === 'forum_reaction' ? a.link || '' : sinAncla(a.link)}`
+    const clave = porTramo ? `${tramoDe(a.created_at, ahora, { meses })}|${base}` : base
     const g = grupos.get(clave)
     if (g) {
       g.ids.push(a.id)
@@ -85,7 +94,7 @@ export function agruparAvisos(lista, ahora = Date.now()) {
     }
     grupos.set(clave, { ids: [a.id], tipo: a.type, link: a.link || null, titulos: [a.title], cuerpo: a.body || null, fecha: a.created_at, leido: Boolean(a.read_at) })
   }
-  const salida = TRAMOS.map((tramo) => ({ tramo, grupos: [] }))
+  const salida = new Map(TRAMOS.map((tramo) => [tramo, { tramo, grupos: [] }]))
   for (const g of grupos.values()) {
     const n = g.ids.length
     // Juntos por tipo, el cuerpo y el enlace de uno solo (un nombre, SU
@@ -94,9 +103,11 @@ export function agruparAvisos(lista, ahora = Date.now()) {
     const juntoPorTipo = POR_TIPO.has(g.tipo) && n > 1
     const titulo = n === 1 ? tituloDeUno(g) : TITULOS[g.tipo]?.(n, g.link) || `${g.titulos[0]} (y ${n - 1} más)`
     const link = juntoPorTipo ? '/perfil.html' : g.link
-    salida[TRAMOS.indexOf(tramoDe(g.fecha, ahora))].grupos.push({ ids: g.ids, tipo: g.tipo, link, titulo, cuerpo: juntoPorTipo ? null : g.cuerpo, fecha: g.fecha, n, leido: g.leido })
+    const tramo = tramoDe(g.fecha, ahora, { meses })
+    if (!salida.has(tramo)) salida.set(tramo, { tramo, grupos: [] })
+    salida.get(tramo).grupos.push({ ids: g.ids, tipo: g.tipo, link, titulo, cuerpo: juntoPorTipo ? null : g.cuerpo, fecha: g.fecha, n, leido: g.leido })
   }
-  return salida.filter((t) => t.grupos.length)
+  return [...salida.values()].filter((t) => t.grupos.length)
 }
 
 function timeAgo(iso) {
@@ -137,8 +148,10 @@ export function bloquesDeAvisos(lista) {
   return { paraTi, enSecciones }
 }
 
-const tramosHtml = (lista) =>
-  agruparAvisos(lista)
+// Por tramos, con su rótulo. Lo usa la campana y, desde la 1168, /avisos:
+// la misma fila en los dos sitios, que un aviso se pinta igual en toda la web.
+export const tramosHtml = (lista, opciones = {}) =>
+  agruparAvisos(lista, Date.now(), opciones)
     .map((t) => `<p class="nav-bell-tramo">${escapeHtml(t.tramo)}</p>${t.grupos.map(filaDeGrupo).join('')}`)
     .join('')
 

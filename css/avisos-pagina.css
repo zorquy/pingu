@@ -1,0 +1,90 @@
+/* ── /avisos (tanda 1168) ──
+   Hoja propia: solo la baja /avisos. La fila es la de la campana
+   (css/avisos.css + components.css); aquí va la página alrededor. */
+.av-pagina { max-width: 760px; }
+
+.av-cab {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  flex-wrap: wrap;
+}
+.av-cab h1 { margin: 0; }
+.av-leer-todo { flex: 0 0 auto; }
+.av-leer-todo[hidden] { display: none; }
+
+/* Los chips, una fila que se desliza en el móvil (1039). */
+.av-chips {
+  display: flex;
+  gap: var(--e-xs);
+  margin: 0 0 var(--e-md);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.av-chips::-webkit-scrollbar { display: none; }
+.av-chip { flex: 0 0 auto; }
+.av-chip-n {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--tag, var(--navy-solid)) 14%, transparent);
+  color: var(--tag, var(--navy));
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.av-chip[data-seccion='comunidad'] { --tag: #c62a5c; }
+.av-chip[data-seccion='cartas'] { --tag: #9a5f06; }
+.av-chip[data-seccion='jugar'] { --tag: #5f43d9; }
+:root[data-theme='dark'] .av-chip[data-seccion='comunidad'] { --tag: #f06c9b; }
+:root[data-theme='dark'] .av-chip[data-seccion='cartas'] { --tag: #e4b44a; }
+:root[data-theme='dark'] .av-chip[data-seccion='jugar'] { --tag: #9b7bff; }
+.av-chip[aria-selected='true'] .av-chip-n {
+  background: color-mix(in srgb, var(--blanco-fijo) 22%, transparent);
+  color: var(--blanco-fijo);
+}
+
+/* La lista: la caja de la campana, a lo ancho de la página. */
+.av-lista {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.av-lista:empty { display: none; }
+.av-lista .nav-bell-item { position: relative; }
+.av-lista .nav-bell-item:hover { background: var(--ice); }
+/* Sin leer: fondo y punto. */
+.av-lista .nav-bell-item.unread { padding-left: var(--e-xl); }
+.av-lista .nav-bell-item.unread::before {
+  content: '';
+  position: absolute;
+  left: var(--e-sm);
+  top: 18px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--navy-solid);
+}
+.av-lista .nav-bell-item-title { font-size: var(--t-md); }
+.av-lista .nav-bell-item-body { font-size: var(--t-sm); }
+.av-lista .nav-bell-item-date { font-size: var(--t-xs); }
+
+.av-vacio {
+  display: grid;
+  justify-items: center;
+  gap: var(--e-md);
+  padding: var(--e-2xl) var(--e-lg);
+  color: var(--text-mid);
+}
+.av-vacio p { max-width: 42ch; margin: 0; }
+.av-salidas { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--e-sm); }
+
+.av-pie { display: grid; justify-items: center; padding: var(--e-lg) 0; }
+.av-pie:empty { display: none; }
+.av-fin { margin: 0; color: var(--text-dim); font-size: var(--t-xs); }

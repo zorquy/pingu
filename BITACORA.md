@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (410) — PINGU-Claude (1168 — /avisos, todos tus avisos)
+
+**Hecho** (M4 de «PokeDoc entera», la última de la propuesta):
+- `/avisos` (`avisos.html`, `js/avisos.js`, `css/avisos-pagina.css`): TODOS
+  tus avisos, leídos y sin leer, con la MISMA fila de la campana
+  (`tramosHtml` de `avisos-grupos.js`), por días y, más atrás, por meses
+  («Octubre», «Marzo de 2025»: `tramoDe(…, { meses })`), y juntando solo lo
+  del mismo tramo (`agruparAvisos(…, { porTramo })`: en un historial, la
+  respuesta de hoy y la de hace tres semanas en el mismo tema son dos cosas).
+  Chips «Todos · Para ti · Comunidad · Colección · Jugar» con lo SIN LEER de
+  cada uno (`js/avisos-chips.js`, puro) y `?ver=` en la dirección; lo sin
+  leer con fondo y punto; «Marcar todo como leído» (se pinta ya, se confirma
+  después, 896; y la campana se entera por `pd-avisos-cambiados`); la lista
+  crece al bajar de 60 en 60 (`range`, con «Cargar más» de respaldo); vacío
+  con salida (Ajustes › Avisos, el foro); sin cuenta, a entrar y de vuelta.
+- La campana acaba en «Ver todos los avisos» (`.nav-bell-pie`, fijo bajo la
+  lista: el desplegable es ahora una columna flex y se desliza `#navBellList`).
+  En el móvil ese pie viaja con la lista a la hoja «Tú» → Avisos. La campana
+  sigue enseñando solo lo sin leer.
+
+**Ficheros**: avisos.html (nuevo), js/avisos.js (nuevo), js/avisos-chips.js
+(nuevo), css/avisos-pagina.css (nuevo), js/avisos-grupos.js,
+js/notifications.js, css/components.css, SCHEMA.md, novedades.json,
+CLAUDE.md. Pruebas: test-tanda-1168-pantalla.mjs nueva; 1023 (+/avisos), 312
+(48 páginas con pie) y 1040 (+/avisos) actualizadas; 736, 1142, 1139, 1149,
+299, 906, 753, 310, 305 verdes. Portada: 134,9 KB gzip (`pesar-portada`).
+Rojos de antes, no de esta tanda: 311 (auth.css, comunidad.css, torneos.css),
+313 (duraciones y `lazy`), 524 (cuatro frases viejas), 829 («nuevo para ti»).
+
+**Pendiente**: nada de la propuesta «PokeDoc entera»; queda en manos de PINGU
+mirarla en producción.
+
 ## 2026-11-01 (409) — PINGU-Claude (1167 — el perfil de otra persona compacto en el móvil; Mensajes con «con quién podrías hablar»)
 
 **Hecho** (M2 y M3 de «PokeDoc entera»):

@@ -218,6 +218,7 @@ export async function renderNotificationBell(session) {
         <button type="button" id="navBellMarkAll">Marcar todas como leídas</button>
       </div>
       <div id="navBellList"><p class="empty-state" style="padding:16px;">Cargando…</p></div>
+      <a class="nav-bell-pie" href="/avisos">Ver todos los avisos</a>
     </div>`
   navRight.insertBefore(wrap, navUser)
 
@@ -315,6 +316,9 @@ export async function renderNotificationBell(session) {
   })
 
   updateBadge(await leerLasDeAqui(await loadNotifications()))
+  // /avisos (1168) marca leídos desde fuera: deja `window.__pdAvisos` al día y
+  // avisa con este evento para que la chapa y los números se repinten.
+  window.addEventListener('pd-avisos-cambiados', () => updateBadge(window.__pdAvisos || []))
   // Con la pestaña de fondo no se da nada por leído; al volver a ella, sí.
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState !== 'visible') return

@@ -41785,6 +41785,68 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1168 — /avisos: todos tus avisos (M4)
+
+**Por qué.** Desde la 736 la campana enseña solo lo sin leer, y en cuanto lees
+uno se va: no había ningún sitio donde volver a ver «quién me siguió la semana
+pasada» o «qué me dijeron en aquel tema». `/avisos` es ese sitio: la lista
+entera, leídos y sin leer. La campana no cambia (lo sin leer, agrupado como
+siempre) y acaba en «Ver todos los avisos».
+
+**La fila es la misma.** `avisos.html` pinta con `tramosHtml` de
+`avisos-grupos.js` (exportada en esta tanda): la misma fila, la misma chapa
+de sección, el mismo tramo en versalitas. Dos opciones nuevas, solo para la
+página: `meses` en `tramoDe` (lo de antes de esta semana va por meses,
+«Octubre», «Marzo de 2025», en vez de un «Antes» que en un historial no dice
+nada) y `porTramo` en `agruparAvisos` (la clave del grupo lleva el tramo: la
+campana sigue juntando cinco reacciones de esta semana con una de hoy en una
+noticia de hoy, pero en un historial la respuesta de hoy y la de hace tres
+semanas en el mismo tema son dos cosas, no «y 1 más»). Los tramos salen ya en
+el orden de la lista (un `Map` en vez de `TRAMOS.indexOf`), que con meses no
+hay lista fija; sin opciones todo sale como antes (la 736 lo prueba).
+
+**Los chips** (`js/avisos-chips.js`, puro): «Todos», «Para ti» (lo que no es
+de ninguna sección: justo lo que cuenta la campana, 1142) y las tres
+secciones, con el color de cada una (`data-seccion`, las mismas llaves que
+`nav-bell-seccion`) y el número de lo SIN LEER de cada chip (`cuentasDeChips`).
+El activo va en `?ver=` (`replaceState`). Si el chip activo se queda sin
+filas pero quedan avisos por traer, se siguen trayendo (`completar`): un filtro
+no puede decir «nada» de lo que aún no se ha pedido.
+
+**Crece al bajar.** `range` de 60 en 60 (`TANDA`), un `IntersectionObserver`
+sobre el pie (400 px antes) y «Cargar más» para quien no llega o no lo tiene;
+«Eso es todo · N avisos» al acabar. Supabase corta a 1.000 (808): nunca se
+piden todos.
+
+**Marcar leído**, el patrón de la 896: al pulsar una fila se le quita
+`.unread`, se escribe `read_at` de sus ids y el enlace sigue su camino; «Marcar
+todo como leído» pinta todo leído, escribe `is('read_at', null)` y vuelve atrás
+con aviso si la base dice que no. Y la campana se entera: `avisarALaCampana`
+quita de `window.__pdAvisos` lo marcado y lanza `pd-avisos-cambiados`, que
+`notifications.js` escucha para `updateBadge` (que a su vez lanza `pd-avisos`
+para los números de la barra). No se lanza `pd-avisos` directamente desde
+fuera: ese lo lanza la campana cuando ya tiene la chapa al día.
+
+**El pie de la campana.** `.nav-bell-pie` va DESPUÉS de `#navBellList`; para
+que no se vaya con el scroll, el desplegable es `display: flex; flex-direction:
+column` (el `.hidden` de style.css sigue ganando, es `!important`) y el que se
+desliza es `#navBellList` (`flex: 1 1 auto; min-height: 0; overflow-y: auto`).
+En el móvil la hoja «Tú» mueve el nodo entero del desplegable (menu-tu.js), así
+que el pie va con él sin tocar nada.
+
+**Lo que no se hizo.** No hay `ultima-vista` aquí: la página se abre para
+leer lo nuevo y lo guardado de ayer pintaría avisos ya leídos como sin leer
+durante un instante. Y `/avisos` no va en `PREPARABLES`: no escribe al
+abrirse, pero tampoco se abre desde un enlace fijo de la barra.
+
+**Pruebas.** `test-tanda-1168-pantalla.mjs`: lo puro (meses, `porTramo`
+contra la campana, chips), la página en el PC (chips con cuentas, tramos con
+«Octubre» y sin «Antes», punto, filtro con `?ver=`, pulsar marca y navega,
+«Marcar todo» y la chapa de la campana, 130 avisos en dos tandas, el vacío con
+sus dos salidas, sin cuenta a entrar), el pie de la campana a la vista y en la
+hoja «Tú» del móvil. `/avisos` entra en las 1023 (solapes) y 1040 (contenido
+antes del 35 %); la 312 cuenta 48 páginas con pie.
+
 ## Tanda 1167 — El perfil ajeno compacto en el móvil (M2) y Mensajes con «con quién hablar» (M3)
 
 **M2.** Abrir a alguien en el móvil era banner, avatar, dos botones, nombre,

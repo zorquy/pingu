@@ -867,7 +867,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y su lista va en «Para ti» y «En tus secciones» con la etiqueta de color. Y un
   aviso se da por LEÍDO al abrir la página a la que apunta
   (`casaConLaPagina`: misma ruta y sus parámetros, el ancla no cuenta, la
-  portada nunca): un tipo nuevo de aviso lleva un `link` a donde se lee. Y la barra pegada (`js/barra-pegada.js`) lleva el índice
+  portada nunca): un tipo nuevo de aviso lleva un `link` a donde se lee. Y
+  TODOS los avisos, leídos también, están en `/avisos` (1168, `js/avisos.js`):
+  la misma fila de la campana (`tramosHtml`), por días y meses, con chips por
+  sección (`js/avisos-chips.js`); la campana sigue siendo solo lo sin leer y
+  acaba en «Ver todos los avisos». Lo que marque leído desde fuera de la
+  campana quita de `window.__pdAvisos` y lanza `pd-avisos-cambiados`, nunca
+  `pd-avisos` a pelo. Y la barra pegada (`js/barra-pegada.js`) lleva el índice
   de una guía (`indice`) y un botón a la derecha (`accion`, `ponerAccion`): un
   tema la monta UNA vez, no en cada repintado.
 - **Lo que una página ESCRIBE al abrirse no puede pasar si Chrome solo la
