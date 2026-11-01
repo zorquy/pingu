@@ -62,7 +62,7 @@ export async function dibujarChecklist({ nombre, cartas, dueno = '', doc = docum
   ctx.fillRect(0, 0, ANCHO, 12)
   ctx.textAlign = 'left'
   ctx.fillStyle = '#14202c'
-  ctx.font = '700 60px Fredoka, Inter, sans-serif'
+  ctx.font = '700 60px Outfit, Inter, sans-serif'
   ctx.fillText(recortado(ctx, t.titulo, ANCHO - 2 * MARGEN), MARGEN, 110)
   ctx.fillStyle = '#4a5a68'
   ctx.font = '500 30px Inter, sans-serif'

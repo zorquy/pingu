@@ -21,10 +21,9 @@
 // ya cargados (`img` o null), así que la prueba puede dibujar sin red.
 import { redondeado } from './imagen-compartir.js'
 import { fondo as fondoNoche, fondoConTono, medidasDe } from './reto-imagen.js'
+import { TITULAR, TEXTO, pintarLogo, palabraMarca } from './redes-marco.js'
 
 export const ENLACE = 'pokedoc.es'
-const TITULAR = 'Fredoka, Inter, sans-serif'
-const TEXTO = 'Inter, sans-serif'
 
 // Los colores del resultado: los mismos verdes y rojos de los cuadrados de
 // los retos, y el ámbar de la casa para el empate. Sirven en los tres fondos.
@@ -302,7 +301,7 @@ function sprites(ctx, lista, { cx, cy, lado }) {
 
 function pildora(ctx, texto, { cx, y, alto, color, cuerpo, anchoMin = 0, tinta = '#fff' }) {
   ctx.save()
-  ctx.font = `700 ${cuerpo}px ${TITULAR}`
+  ctx.font = `800 ${cuerpo}px ${TITULAR}`
   const ancho = Math.max(anchoMin, ctx.measureText(texto).width + alto)
   ctx.fillStyle = color
   redondeado(ctx, cx - ancho / 2, y, ancho, alto, alto / 2)
@@ -352,7 +351,7 @@ function cuadro(ctx, resultado, { x, y, lado }) {
   redondeado(ctx, x, y, lado, lado, lado / 4)
   ctx.fill()
   ctx.fillStyle = '#fff'
-  ctx.font = `700 ${Math.round(lado * 0.5)}px ${TITULAR}`
+  ctx.font = `800 ${Math.round(lado * 0.5)}px ${TITULAR}`
   ctx.textAlign = 'center'
   ctx.fillText(r.letra, x + lado / 2, y + lado * 0.68)
   ctx.restore()
@@ -422,24 +421,19 @@ function rotulo(ctx, texto, { x, y, cuerpo }) {
   ctx.restore()
 }
 
-// La marca: la «P» de la web y «PokeDoc», centrados. Sin frase ni enlace
-// (PINGU: «apunta las tuyas en pokedoc.es» era «muy cargante»).
+// La marca: el logo de la app y «PokeDoc», centrados (desde la 1156, la
+// del marco de redes). Sin frase ni enlace (PINGU: «apunta las tuyas en
+// pokedoc.es» era «muy cargante»).
 function marca(ctx, { cx, y, lado }) {
+  const cuerpo = Math.round(lado * 0.62)
   ctx.save()
-  ctx.font = `700 ${Math.round(lado * 0.62)}px ${TITULAR}`
+  ctx.font = `800 ${cuerpo}px ${TITULAR}`
   const palabra = ctx.measureText('PokeDoc').width
+  ctx.restore()
   const hueco = lado * 0.32
   const x = cx - (lado + hueco + palabra) / 2
-  ctx.fillStyle = '#8ec5ea'
-  redondeado(ctx, x, y, lado, lado, Math.round(lado / 4))
-  ctx.fill()
-  ctx.fillStyle = '#0d1b2a'
-  ctx.textAlign = 'center'
-  ctx.fillText('P', x + lado / 2, y + lado * 0.74)
-  ctx.fillStyle = P.texto
-  ctx.textAlign = 'left'
-  ctx.fillText('PokeDoc', x + lado + hueco, y + lado * 0.74)
-  ctx.restore()
+  pintarLogo(ctx, x, y, lado)
+  palabraMarca(ctx, { x: x + lado + hueco, y: y + lado * 0.74, cuerpo, poke: P.texto, doc: P === TINTA_CLARA ? '#1e5175' : '#7cbae4' })
 }
 
 function marcaAbajo(ctx, { w, h, larga, apaisada, cx = w / 2 }) {
@@ -454,7 +448,7 @@ function marcaAbajo(ctx, { w, h, larga, apaisada, cx = w / 2 }) {
 function pildoraDePuesto(ctx, pu, { cx, y, alto, cuerpo, anchoMin = 0, alinear = 'centro', x = 0 }) {
   const m = MEDALLA[pu.medalla]
   ctx.save()
-  ctx.font = `700 ${cuerpo}px ${TITULAR}`
+  ctx.font = `800 ${cuerpo}px ${TITULAR}`
   const ancho = Math.max(anchoMin, ctx.measureText(pu.largo).width + alto)
   ctx.restore()
   const centro = alinear === 'derecha' ? x - ancho / 2 : alinear === 'izquierda' ? x + ancho / 2 : cx
@@ -503,7 +497,7 @@ function medallon(ctx, { cx, cy, r, texto, medalla = 'azul' }) {
   const cuerpo = ajustar(ctx, texto, Math.round(r * 0.95), r * 1.35, 700, TITULAR)
   ctx.fillStyle = m.tinta
   ctx.textAlign = 'center'
-  ctx.font = `700 ${cuerpo}px ${TITULAR}`
+  ctx.font = `800 ${cuerpo}px ${TITULAR}`
   ctx.fillText(texto, cx, cy + cuerpo * 0.36)
   ctx.restore()
 }
@@ -523,7 +517,7 @@ function baldosa(ctx, p, i, { x, y, w, h }) {
   // Con pocas rondas las baldosas son grandes: la letra tiene tope.
   const pequeno = Math.min(Math.round(w / 10), Math.round(Math.min(w, h) * 0.13))
   ctx.fillStyle = P.tenue
-  ctx.font = `700 ${pequeno}px ${TITULAR}`
+  ctx.font = `800 ${pequeno}px ${TITULAR}`
   ctx.textAlign = 'left'
   ctx.fillText(p.rotulo || `R${p.ronda ?? i + 1}`, x + pequeno * 0.8, y + pequeno * 1.5)
   const l = Math.round(Math.min(w, h) * 0.22)
@@ -621,7 +615,7 @@ function filasDeRondas(ctx, rondas, caja, apaisada) {
     ctx.fill()
     const medio = fy + fila / 2
     ctx.fillStyle = P.tenue
-    ctx.font = `700 ${Math.round(fila * 0.34)}px ${TITULAR}`
+    ctx.font = `800 ${Math.round(fila * 0.34)}px ${TITULAR}`
     ctx.textAlign = 'left'
     ctx.fillText(p.rotulo || `R${p.ronda ?? i + 1}`, caja.x + 18, medio + fila * 0.12)
     const xSprite = caja.x + fila * 1.25
@@ -697,7 +691,7 @@ function disenoClasico(ctx, t, { w, h, apaisada, margen, rec, pu, lugar }) {
     ctx.fillStyle = P.suave
     ajustar(ctx, t.mazo?.nombre || 'Mi mazo', 38, tAncho, 700, TITULAR)
     ctx.fillText(recortar(ctx, t.mazo?.nombre || 'Mi mazo', tAncho), tx, banda.y + 70)
-    ctx.font = `700 112px ${TITULAR}`
+    ctx.font = `800 112px ${TITULAR}`
     ctx.fillStyle = colorRec
     ctx.fillText(rec.texto, tx, banda.y + 168)
     const anchoRec = ctx.measureText(rec.texto).width
@@ -739,7 +733,7 @@ function disenoPodio(ctx, t, { w, h, apaisada, margen, rec, pu, lugar }) {
     circuloDeMazo(ctx, { cx: x + 82, cy: 297, r: 58 })
     sprites(ctx, t.mazo?.sprites, { cx: x + 82, cy: 297, lado: 96 })
     ctx.save()
-    ctx.font = `700 64px ${TITULAR}`
+    ctx.font = `800 64px ${TITULAR}`
     const anchoRec = pu ? ctx.measureText(rec.texto).width : 0
     ctx.restore()
     const tAncho = ancho - 170 - (pu ? anchoRec + 40 : 24)
@@ -747,7 +741,7 @@ function disenoPodio(ctx, t, { w, h, apaisada, margen, rec, pu, lugar }) {
     textoIzquierda(ctx, t.mazo?.nombre || 'Mi mazo', { x: x + 160, y: 309, cuerpo: cm, fuente: TITULAR, peso: 700, maxAncho: tAncho })
     if (pu) {
       ctx.save()
-      ctx.font = `700 64px ${TITULAR}`
+      ctx.font = `800 64px ${TITULAR}`
       ctx.fillStyle = colorRec
       ctx.textAlign = 'right'
       ctx.fillText(rec.texto, x + ancho - 24, 320)
@@ -772,7 +766,7 @@ function disenoPodio(ctx, t, { w, h, apaisada, margen, rec, pu, lugar }) {
   circuloDeMazo(ctx, { cx: banda.x + 92, cy: banda.y + 75, r: 60 })
   sprites(ctx, t.mazo?.sprites, { cx: banda.x + 92, cy: banda.y + 75, lado: 100 })
   ctx.save()
-  ctx.font = `700 84px ${TITULAR}`
+  ctx.font = `800 84px ${TITULAR}`
   const anchoRec = pu ? ctx.measureText(rec.texto).width : 0
   ctx.restore()
   const tAncho = banda.w - 184 - (pu ? anchoRec + 56 : 32)
@@ -780,7 +774,7 @@ function disenoPodio(ctx, t, { w, h, apaisada, margen, rec, pu, lugar }) {
   textoIzquierda(ctx, t.mazo?.nombre || 'Mi mazo', { x: banda.x + 176, y: banda.y + 88, cuerpo: cm, fuente: TITULAR, peso: 700, maxAncho: tAncho })
   if (pu) {
     ctx.save()
-    ctx.font = `700 84px ${TITULAR}`
+    ctx.font = `800 84px ${TITULAR}`
     ctx.fillStyle = colorRec
     ctx.textAlign = 'right'
     ctx.fillText(rec.texto, banda.x + banda.w - 32, banda.y + 104)
@@ -874,7 +868,7 @@ function disenoMosaico(ctx, t, { w, h, apaisada, margen, rec, pu, lugar }) {
     circuloDeMazo(ctx, { cx: banda.x + 80, cy: banda.y + 66, r: 52 })
     sprites(ctx, t.mazo?.sprites, { cx: banda.x + 80, cy: banda.y + 66, lado: 88 })
     ctx.save()
-    ctx.font = `700 76px ${TITULAR}`
+    ctx.font = `800 76px ${TITULAR}`
     const anchoRec = ctx.measureText(rec.texto).width
     ctx.fillStyle = colorRec
     ctx.textAlign = 'right'

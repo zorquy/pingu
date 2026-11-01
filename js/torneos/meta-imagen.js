@@ -220,15 +220,15 @@ function pintarCabecera(ctx, { nombre, linea }) {
   const x = 246
   const ancho = W - x - 48
   let tam = 60
-  ctx.font = `700 ${tam}px Fredoka, Inter, sans-serif`
+  ctx.font = `700 ${tam}px Outfit, Inter, sans-serif`
   while (tam > 38 && ctx.measureText(nombre).width > ancho) {
     tam -= 2
-    ctx.font = `700 ${tam}px Fredoka, Inter, sans-serif`
+    ctx.font = `700 ${tam}px Outfit, Inter, sans-serif`
   }
   ctx.fillStyle = C.blanco
   ctx.textBaseline = 'alphabetic'
   ctx.fillText(recortar(ctx, nombre, ancho), x, 100)
-  ctx.font = '600 40px Fredoka, Inter, sans-serif'
+  ctx.font = '600 40px Outfit, Inter, sans-serif'
   ctx.fillStyle = C.hielo
   ctx.fillText('El meta del torneo', x, 158)
   ctx.font = '500 26px Inter, sans-serif'
@@ -412,7 +412,7 @@ function pintarAnillo(ctx, trozos, total, iconos) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'middle'
   ctx.fillStyle = C.blanco
-  ctx.font = '700 92px Fredoka, Inter, sans-serif'
+  ctx.font = '700 92px Outfit, Inter, sans-serif'
   ctx.fillText(String(total), CX, CY - 18)
   ctx.fillStyle = C.hielo
   ctx.font = '600 26px Inter, sans-serif'
@@ -512,10 +512,10 @@ function pintarAbajo(ctx, { jugadores, total, top, iconosTop }) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'alphabetic'
   ctx.fillStyle = C.blanco
-  ctx.font = '700 96px Fredoka, Inter, sans-serif'
+  ctx.font = '700 96px Outfit, Inter, sans-serif'
   ctx.fillText(String(jugadores), 206, y + 118)
   ctx.fillStyle = C.ambar
-  ctx.font = '700 26px Fredoka, Inter, sans-serif'
+  ctx.font = '700 26px Outfit, Inter, sans-serif'
   ctx.fillText(jugadores === 1 ? 'Jugador' : 'Jugadores', 206, y + 158)
   ctx.fillStyle = C.apagado
   ctx.font = '500 17px Inter, sans-serif'
@@ -544,7 +544,7 @@ function pintarAbajo(ctx, { jugadores, total, top, iconosTop }) {
     ctx.fillStyle = g
     ctx.fill()
     ctx.fillStyle = tinta
-    ctx.font = '700 19px Fredoka, Inter, sans-serif'
+    ctx.font = '700 19px Outfit, Inter, sans-serif'
     ctx.textAlign = 'center'
     ctx.fillText(String(i + 1), x + 44, cy + 1)
     ctx.textAlign = 'left'
@@ -575,7 +575,7 @@ function pintarPie(ctx, total) {
   ctx.fillStyle = 'rgba(124, 198, 216, 0.18)'
   ctx.fillRect(0, H - 84, W, 1)
   ctx.textBaseline = 'middle'
-  ctx.font = '700 30px Fredoka, Inter, sans-serif'
+  ctx.font = '700 30px Outfit, Inter, sans-serif'
   let x = 56
   for (const [texto, color] of [['Poke', C.blanco], ['Doc', C.hielo], ['.es', C.blanco]]) {
     ctx.fillStyle = color
@@ -595,7 +595,7 @@ function pintarPie(ctx, total) {
 export async function dibujarImagenMeta(datos) {
   const { trozos, total } = trozosDelMeta(datos.meta)
   try {
-    await Promise.all(['700 60px Fredoka', '600 40px Fredoka', '500 26px Inter', '700 25px Inter', '800 104px Inter'].map((f) => document.fonts.load(f)))
+    await Promise.all(['700 60px Outfit', '600 40px Outfit', '500 26px Inter', '700 25px Inter', '800 104px Inter'].map((f) => document.fonts.load(f)))
   } catch {}
   const [iconos, iconosTop] = await Promise.all([
     Promise.all(trozos.map((t) => (t.arq ? iconosDe(t.arq) : []))),

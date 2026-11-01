@@ -17,14 +17,6 @@
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-@font-face {
-  font-family: 'Fredoka';
-  font-style: normal;
-  font-display: swap;
-  font-weight: 300 700;
-  src: url('/assets/fonts/fredoka-variable-latin.woff2') format('woff2-variations');
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
-}
 
 :root {
   --navy: #1e5175;
@@ -119,10 +111,10 @@
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
   /* Outfit en títulos, marca y cifras desde la 1018 (PINGU eligió la B2 de
      la propuesta «PokeDoc como app»): la redondez de Fredoka sin su lado
-     infantil. El cuerpo sigue en Inter. Fredoka queda declarada para las
-     imágenes que se dibujan en un lienzo. */
+     infantil. El cuerpo sigue en Inter. Desde la 1156, también en lo que se
+     dibuja en un lienzo: Fredoka ya no se baja. */
   --font-display: 'Outfit', 'Inter', sans-serif;
-  --font-marca: 'Outfit', 'Fredoka', 'Inter', sans-serif;
+  --font-marca: 'Outfit', 'Inter', sans-serif;
   /* EL COLOR DE LA SECCIÓN (1018): la barra de abajo, la burbuja, la lateral
      y el botón principal llevan el de la sección (`data-seccion` en <html>,
      lo escribe generar-barra-movil.mjs). Cada color lleva su texto; el
@@ -247,7 +239,7 @@ h1, h2, h3 {
   letter-spacing: -0.01em;
 }
 
-/* La marca y las cifras grandes, en Fredoka (1016). */
+/* La marca y las cifras grandes, en la letra de la marca (1016, 1018). */
 .nav-logo, .auth-logo, .pie-marca,
 .perfil-cifra .valor, .hero-panel-stat .value, .xp-display, .achievement-xp {
   font-family: var(--font-marca);

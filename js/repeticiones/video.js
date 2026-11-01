@@ -595,7 +595,7 @@ function pintarFirma(K, x, y, alinear = 'right') {
   ctx.save()
   ctx.textAlign = alinear
   ctx.fillStyle = 'rgba(255,255,255,0.86)'
-  ctx.font = '700 22px Fredoka, Inter, sans-serif'
+  ctx.font = '700 22px Outfit, Inter, sans-serif'
   ctx.fillText('PokeDoc', x, y)
   ctx.fillStyle = 'rgba(255,255,255,0.6)'
   ctx.font = '500 12px Inter, sans-serif'
@@ -622,7 +622,7 @@ function pintarCartel(K, cx, cy) {
     const a = f.tipo === 'fin' ? Math.min(1, t / 0.3) : t < 0.2 ? t / 0.2 : t > 0.8 ? Math.max(0, 1 - (t - 0.8) / 0.3) : 1
     ctx.save()
     ctx.globalAlpha = a
-    ctx.font = '700 34px Fredoka, Inter, sans-serif'
+    ctx.font = '700 34px Outfit, Inter, sans-serif'
     const w = ctx.measureText(cartel).width + 64
     redondo(ctx, cx - w / 2, cy - 31, w, 62, 31)
     ctx.fillStyle = C.oscuro
@@ -900,7 +900,7 @@ export async function hacerVideo({ fotos: todas, M, ritmo = 2, alAvanzar = () =>
   const notasDelTramo = new Map([...(notas || [])].filter(([i]) => i >= a && i < a + fotos.length).map(([i, texto]) => [i - a, texto]))
   const { ancho, alto } = medidasDe(formato)
   if (document.fonts?.load) {
-    await Promise.all(['500 16px Inter', '700 16px Inter', '700 34px Fredoka'].map((f) => document.fonts.load(f).catch(() => null)))
+    await Promise.all(['500 16px Inter', '700 16px Inter', '700 34px Outfit'].map((f) => document.fonts.load(f).catch(() => null)))
   }
   alAvanzar('imagenes', 0)
   const imagenes = await cargarImagenes(nombresDeLasFotos(fotos), M.fuentesDe, (x) => alAvanzar('imagenes', x))

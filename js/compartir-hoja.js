@@ -36,6 +36,7 @@ import { escapeHtml } from './html.js'
 import { hojaInyectada } from './hoja.js'
 import { icon, icons } from './icons.js'
 import { showToast } from './toast.js'
+import { prepararMarco } from './redes-marco.js'
 
 // Dos iconos que solo se ven aquí: dibujados aquí y no en icons.js, que lo
 // baja la portada (la 452).
@@ -236,6 +237,9 @@ export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', ima
     const clave = `${f}|${eleccion.diseno}|${eleccion.fondo}|${eleccion.puesto}`
     if (lienzos[clave]) return lienzos[clave]
     const pedido = { ...eleccion }
+    // Las letras y el logo del marco antes del primer trazo (1156): un lienzo
+    // con una fuente que no ha llegado pinta con otra y no avisa.
+    await prepararMarco()
     if (f === 'historia' && historiaPropia) return (lienzos[clave] = await imagen('larga', pedido))
     const dibujo = await imagen(FORMAS[f].pide, pedido)
     lienzos[clave] = f === 'historia' ? historiaDe(dibujo) : dibujo

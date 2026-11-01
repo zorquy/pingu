@@ -26,6 +26,7 @@ export async function compartirPodio({ nombre, slug, puesto }) {
       const { pintarResultadoReto } = await import('../reto-imagen.js')
       return pintarResultadoReto(document.createElement('canvas'), {
         arriba: 'PokeDoc · torneos',
+        seccion: 'jugar',
         titulo: nombre,
         cuenta: ORDINAL[i],
         detalle: PUESTOS[i],

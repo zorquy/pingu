@@ -41785,6 +41785,69 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1156 — Todas las imágenes de redes, con el mismo marco (R1 y R2)
+
+PINGU, al ver la imagen del concurso de noviembre: «podemos hacer que la
+generación de imágenes para redes que sale de las noticias sea con una
+estructura igual… igualarlo para todo». Propuesta «Todas las imágenes de
+PokeDoc, con el mismo marco»; eligió lo recomendado: Outfit también en los
+lienzos (Fredoka fuera), el color de cada sección, la tarjeta del enlace con
+marca (R3, en la 1157) y las piezas sueltas hechas por Claude con la misma
+plantilla, sin generador en /admin.
+
+**R1 · `js/redes-marco.js`**, el marco una sola vez. Seis reglas:
+
+1. El fondo: el degradado de la web (`#1e5175 → #13324a → #0b1219`) con dos
+   brillos del color de la sección (`ACENTOS`, los de `--acento` en oscuro:
+   noticias azul, retos verde, colección ámbar, comunidad rosa, jugar
+   violeta, concurso amarillo). `fondoMarco`.
+2. Arriba, el logo de la app (`/assets/icon-192.png`; sin red, la «P»
+   dibujada) y «Poke» + «Doc» en azul, y a la derecha una chapa de lo que es
+   (NOTICIA, MI VITRINA…). `cabeceraMarco`, `palabraMarca`, `pintarLogo`.
+3. El título en Outfit 800, con lo destacado entre `*asteriscos*` en el color
+   de la sección, que baja de cuerpo hasta caber (`tituloMarco`). La
+   puntuación pegada a lo destacado va PEGADA: «*Ascended Heroes*: todo…»
+   salía «Heroes :» porque el trozo de detrás se partía como una palabra
+   suelta; cada palabra lleva `pegada` y no empieza línea.
+4. En medio, la pieza: `pintarMarco` devuelve la `caja` libre y cada
+   generador pinta ahí lo suyo (`tarjetaGirada` para una foto).
+5. Abajo, la dirección en grande, una línea debajo y una chapa (`pieMarco`).
+6. Tres tamaños: «historia» (1080×1350, la publicación; el nombre es el de la
+   hoja de la 871), «larga» (1080×1920, con 180 arriba y 260 abajo libres para
+   la barra y la caja de responder de Instagram) y «apaisada» (1200×630, el
+   texto a la izquierda y la caja a la derecha).
+
+`prepararMarco()` pide Outfit 800, Inter 600/500 y el logo UNA vez, y no falla
+nunca. La hoja de compartir lo espera antes de pedir cada imagen: un lienzo
+con una fuente que no ha llegado pinta con otra y no avisa, que es lo que les
+pasaba a las de Fredoka la primera vez que se abría la hoja.
+
+Lo que cambia en cada generador:
+- **Noticia** (`noticia-compartir.js`): entera con el marco (chapa NOTICIA,
+  portada en tarjeta girada, «pokedoc.es/noticias», la fecha en la chapa del
+  pie) y `historiaPropia`, así que la Historia es de verdad 1080×1920 y no la
+  publicación encima de sí misma desenfocada (R2).
+- **Vitrina** (`vitrina-imagen.js`): con el marco (ámbar de Colección, chapa
+  MI VITRINA, «Las favoritas de *@usuario*») y las seis cartas tan grandes
+  como quepan en la caja; también con `historiaPropia`.
+- **Retos** (`reto-imagen.js`): el `fondo` es `fondoMarco` con el verde de
+  retos (logros con el de comunidad, el podio de torneos con el de jugar:
+  `seccion` en `pintarResultadoReto`), y la `cabecera` lleva el logo y la
+  palabra de la marca ocupando lo mismo que antes, así que nada de debajo se
+  mueve. Lo de dentro no cambia.
+- **Partidas** (`partida-imagen.js`): sus cuatro diseños y tres fondos
+  siguen; la marca de abajo es el logo y la palabra del marco (con el «Doc»
+  oscuro en el fondo «Claro»).
+- **Fredoka fuera**: todos los lienzos (colección, repeticiones, decklist,
+  meta, «nueve») van en Outfit; `style.css` ya no declara su `@font-face`
+  (bytes menos para la portada), `--font-marca` es Outfit e Inter, /admin
+  precarga Outfit, y el fichero de la letra se borró.
+
+Pruebas: `test-tanda-1156.mjs` (ningún fichero pide Fredoka, el marco pide las
+letras, la hoja lo espera, y en el navegador las noticias, retos, vitrina y
+partida dibujadas en sus tamaños, con el color de su sección y la puntuación
+pegada); la 1016 al día (`--font-marca` sin Fredoka).
+
 ## Tanda 1153 — Colabora con botones, Guardados con salida y el meta nunca en blanco (D3–D5)
 
 De «Cinco pantallas que se leen de un vistazo» (ronda 6), con lo recomendado

@@ -180,7 +180,7 @@ function dibujarMarca(ctx, x, y) {
   ctx.fillText('P', 0, 1)
   ctx.restore()
   ctx.save()
-  ctx.font = '700 26px Fredoka, Inter, system-ui, sans-serif'
+  ctx.font = '700 26px Outfit, Inter, system-ui, sans-serif'
   ctx.textBaseline = 'middle'
   ctx.fillStyle = COLOR.blanco
   ctx.fillText('Poke', x + 48, y + 19)
@@ -239,7 +239,7 @@ export async function descargarImagenDecklist(nombre, parsed, { subtitulo = '' }
   // Las letras tienen que estar cargadas ANTES de dibujar: un canvas no
   // espera a una fuente, pinta con la de respaldo y ya no cambia.
   try {
-    await Promise.all(['700 26px Fredoka', '600 14px Inter', '500 16px Inter'].map((f) => document.fonts.load(f)))
+    await Promise.all(['700 26px Outfit', '600 14px Inter', '500 16px Inter'].map((f) => document.fonts.load(f)))
   } catch {}
   await cargarLetraInsignia()
 
@@ -290,7 +290,7 @@ export async function descargarImagenDecklist(nombre, parsed, { subtitulo = '' }
     subtitulo,
   ].filter(Boolean)
   ctx.fillStyle = COLOR.blanco
-  ctx.font = '700 22px Fredoka, Inter, system-ui, sans-serif'
+  ctx.font = '700 22px Outfit, Inter, system-ui, sans-serif'
   ctx.fillText(recortar(ctx, nombre || 'Mazo', libre), x0, fy + FRANJA / 2 - 12)
   ctx.fillStyle = COLOR.textoSuave
   ctx.font = '500 14px Inter, system-ui, sans-serif'

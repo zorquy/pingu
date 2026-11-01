@@ -191,7 +191,7 @@ async function pintarImagen() {
     ctx.fillRect(0, 0, ANCHO, ALTO)
     ctx.fillStyle = '#ffffff'
     ctx.textAlign = 'center'
-    ctx.font = '700 64px Fredoka, Inter, sans-serif'
+    ctx.font = '800 64px Outfit, Inter, sans-serif'
     ctx.fillText('Mis 9 cartas', ANCHO / 2, 92)
     ctx.font = '500 30px Inter, sans-serif'
     ctx.fillStyle = 'rgba(255,255,255,0.78)'
@@ -213,7 +213,7 @@ async function pintarImagen() {
       dibujarCarta(ctx, imagenes[i], { x, y, w: cw, h: ch, nombre: c ? nombreDeCarta(c) : '' })
     })
     ctx.fillStyle = 'rgba(255,255,255,0.9)'
-    ctx.font = '700 34px Fredoka, Inter, sans-serif'
+    ctx.font = '800 34px Outfit, Inter, sans-serif'
     ctx.fillText('pokedoc.es/nueve', ANCHO / 2, ALTO - 26)
     $('nvVista').hidden = false
   })())

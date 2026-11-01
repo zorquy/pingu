@@ -12,21 +12,18 @@
 // tarjeta de enlace, donde la vertical se recorta). Las dos salen del
 // mismo dato; cambia solo dónde va cada cosa.
 import { redondeado, dibujarCarta } from './imagen-compartir.js'
+import { TITULAR, TEXTO, fondoMarco, pintarLogo, palabraMarca, acentoDe } from './redes-marco.js'
 
 export const ANCHO = 1080
 export const ALTO = 1350
 export const MEDIDAS = { historia: { w: 1080, h: 1350 }, apaisada: { w: 1200, h: 630 } }
 export const medidasDe = (formato) => MEDIDAS[formato] || MEDIDAS.historia
 
-const TITULAR = 'Fredoka, Inter, sans-serif'
-const TEXTO = 'Inter, sans-serif'
-
-export function fondo(ctx, w, h) {
-  const g = ctx.createLinearGradient(0, 0, 0, h)
-  g.addColorStop(0, '#1e5175')
-  g.addColorStop(1, '#0d1b2a')
-  ctx.fillStyle = g
-  ctx.fillRect(0, 0, w, h)
+// Desde la 1156 el fondo es el del marco de redes (`redes-marco.js`): el
+// degradado de la web con el brillo del color de la sección. Sin sección, el
+// azul de PokeDoc; los retos piden el suyo.
+export function fondo(ctx, w, h, seccion = 'inicio') {
+  fondoMarco(ctx, w, h, acentoDe(seccion))
 }
 
 const COLOR = { si: '#2e9e5b', no: '#d64545', vacio: 'rgba(255,255,255,0.18)' }
@@ -90,8 +87,8 @@ export function lineaDeMedalla(medalla, racha) {
 
 // El fondo con el color de la carta: un foco del tono arriba que se funde
 // con el azul de siempre abajo. Sin tono, el degradado de siempre.
-export function fondoConTono(ctx, w, h, tono) {
-  if (!tono) return fondo(ctx, w, h)
+export function fondoConTono(ctx, w, h, tono, seccion = 'retos') {
+  if (!tono) return fondo(ctx, w, h, seccion)
   ctx.fillStyle = '#0d1b2a'
   ctx.fillRect(0, 0, w, h)
   const g = ctx.createRadialGradient(w / 2, h * 0.3, 10, w / 2, h * 0.35, Math.max(w, h) * 0.85)
@@ -108,24 +105,33 @@ function mezclar(a, b, t) {
   return `rgb(${x.map((v, i) => Math.round(v + (y[i] - v) * t)).join(',')})`
 }
 
-// La cabecera: el logo (la «P» de la web), el nombre y el número del día.
+// La cabecera: el logo, «PokeDoc» y lo que es («reto diario»), y el número
+// del día. Desde la 1156 con el logo de la app y la palabra del marco; ocupa
+// lo mismo que antes (la línea de base en `y`), así nada de debajo se mueve.
 export function cabecera(ctx, { x, y, ancho, arriba, numero, cuerpo }) {
   const lado = Math.round(cuerpo * 1.55)
+  pintarLogo(ctx, x, y - lado * 0.78, lado)
+  const [marca, ...resto] = String(arriba || '').split(' · ')
+  let xt = x + lado + Math.round(cuerpo * 0.45)
   ctx.save()
-  ctx.fillStyle = '#8ec5ea'
-  redondeado(ctx, x, y - lado * 0.78, lado, lado, Math.round(lado / 4))
-  ctx.fill()
-  ctx.fillStyle = '#0d1b2a'
-  ctx.textAlign = 'center'
-  ctx.font = `700 ${Math.round(lado * 0.62)}px ${TITULAR}`
-  ctx.fillText('P', x + lado / 2, y - lado * 0.78 + lado * 0.74)
   ctx.textAlign = 'left'
-  ctx.fillStyle = 'rgba(255,255,255,0.85)'
-  ctx.font = `600 ${cuerpo}px ${TITULAR}`
-  ctx.fillText(arriba, x + lado + Math.round(cuerpo * 0.45), y)
+  ctx.textBaseline = 'alphabetic'
+  if (marca === 'PokeDoc') xt += palabraMarca(ctx, { x: xt, y, cuerpo })
+  else {
+    ctx.font = `800 ${cuerpo}px ${TITULAR}`
+    ctx.fillStyle = '#ffffff'
+    ctx.fillText(marca, xt, y)
+    xt += ctx.measureText(marca).width
+  }
+  if (resto.length) {
+    ctx.font = `600 ${Math.round(cuerpo * 0.82)}px ${TEXTO}`
+    ctx.fillStyle = 'rgba(255,255,255,0.72)'
+    ctx.fillText(`  ·  ${resto.join(' · ')}`, xt, y)
+  }
   if (numero) {
     ctx.textAlign = 'right'
     ctx.fillStyle = ORO
+    ctx.font = `800 ${cuerpo}px ${TITULAR}`
     ctx.fillText(`#${numero}`, x + ancho, y)
   }
   ctx.restore()
@@ -220,12 +226,12 @@ function fotoGirada(ctx, foto, { cx, y, w, h, giro = -4, chip = '', nombre = '',
   }
 }
 
-export function pintarResultadoReto(lienzo, { arriba = 'PokeDoc · reto diario', titulo, cuenta, detalle = '', tira = null, filas = null, racha = 0, enlace, foto = null, fotoNombre = '', fotoProporcion = 245 / 342, formato = 'historia', numero = null, lema = '', invitacion = '¿Lo superas?', medalla = null, tono = null, chip = '', tapada = true }) {
+export function pintarResultadoReto(lienzo, { arriba = 'PokeDoc · reto diario', titulo, cuenta, detalle = '', tira = null, filas = null, racha = 0, enlace, foto = null, fotoNombre = '', fotoProporcion = 245 / 342, formato = 'historia', numero = null, lema = '', invitacion = '¿Lo superas?', medalla = null, tono = null, chip = '', tapada = true, seccion = 'retos' }) {
   const { w: W, h: H } = medidasDe(formato)
   const ctx = lienzo.getContext('2d')
   lienzo.width = W
   lienzo.height = H
-  fondoConTono(ctx, W, H, tono)
+  fondoConTono(ctx, W, H, tono, seccion)
   ctx.fillStyle = '#fff'
   ctx.textAlign = 'center'
   ctx.textBaseline = 'alphabetic'
@@ -246,7 +252,7 @@ export function pintarResultadoReto(lienzo, { arriba = 'PokeDoc · reto diario',
     cabecera(ctx, { x: izq, y: 70, ancho: W - 60 - izq, arriba, numero, cuerpo: 26 })
     ctx.textAlign = 'center'
     ctx.fillStyle = '#fff'
-    ctx.font = `700 44px ${TITULAR}`
+    ctx.font = `800 44px ${TITULAR}`
     ctx.fillText(titulo, cx, 150)
     ajustada(ctx, cuenta, 120, (foto ? W - cx : W) - 120, TITULAR)
     ctx.fillText(cuenta, cx, 280)
@@ -282,7 +288,7 @@ export function pintarResultadoReto(lienzo, { arriba = 'PokeDoc · reto diario',
   cabecera(ctx, { x: 70, y: 100, ancho: W - 140, arriba, numero, cuerpo: 38 })
   ctx.textAlign = 'center'
   ctx.fillStyle = '#fff'
-  ctx.font = `700 64px ${TITULAR}`
+  ctx.font = `800 64px ${TITULAR}`
   ctx.fillText(titulo, W / 2, 210)
 
   // Lo que ocupan las casillas, para que la foto se encoja lo justo: «¿Qué
@@ -346,7 +352,7 @@ export function pintarMiDia(lienzo, { numero, filas = [], racha = 0, enlace, for
   const ctx = lienzo.getContext('2d')
   lienzo.width = W
   lienzo.height = H
-  fondo(ctx, W, H)
+  fondo(ctx, W, H, 'retos')
   ctx.textBaseline = 'alphabetic'
   const hechos = filas.filter((f) => f.hecho).length
   const total = filas.length
@@ -359,9 +365,9 @@ export function pintarMiDia(lienzo, { numero, filas = [], racha = 0, enlace, for
     const cx = 300
     ctx.textAlign = 'center'
     ctx.fillStyle = '#fff'
-    ctx.font = `700 30px ${TITULAR}`
+    ctx.font = `800 30px ${TITULAR}`
     ctx.fillText(`PokeDoc #${numero} · mi día`, cx, 100)
-    ctx.font = `700 170px ${TITULAR}`
+    ctx.font = `800 170px ${TITULAR}`
     ctx.fillText(`${hechos}/${total}`, cx, 300)
     ctx.font = `500 30px ${TEXTO}`
     ctx.fillStyle = perfecto ? '#ffd166' : 'rgba(255,255,255,0.85)'
@@ -393,9 +399,9 @@ export function pintarMiDia(lienzo, { numero, filas = [], racha = 0, enlace, for
 
   ctx.textAlign = 'center'
   ctx.fillStyle = '#fff'
-  ctx.font = `700 44px ${TITULAR}`
+  ctx.font = `800 44px ${TITULAR}`
   ctx.fillText(`PokeDoc #${numero} · mi día`, W / 2, 110)
-  ctx.font = `700 190px ${TITULAR}`
+  ctx.font = `800 190px ${TITULAR}`
   ctx.fillText(`${hechos}/${total}`, W / 2, 330)
   ctx.font = `500 40px ${TEXTO}`
   ctx.fillStyle = perfecto ? '#ffd166' : 'rgba(255,255,255,0.85)'
@@ -440,7 +446,7 @@ export function pintarMiMes(lienzo, { dias = {}, hoy, n = 30, cifras = [], enlac
   const ctx = lienzo.getContext('2d')
   lienzo.width = W
   lienzo.height = H
-  fondo(ctx, W, H)
+  fondo(ctx, W, H, 'retos')
   ctx.textBaseline = 'alphabetic'
   ctx.textAlign = 'center'
   const [y0, m0, d0] = String(hoy).split('-').map(Number)
@@ -462,9 +468,9 @@ export function pintarMiMes(lienzo, { dias = {}, hoy, n = 30, cifras = [], enlac
     ctx.fill()
   }
   ctx.fillStyle = '#fff'
-  ctx.font = `700 ${apaisada ? 30 : 44}px ${TITULAR}`
+  ctx.font = `800 ${apaisada ? 30 : 44}px ${TITULAR}`
   ctx.fillText('PokeDoc · mis retos', W / 2, apaisada ? 70 : 110)
-  ctx.font = `700 ${apaisada ? 46 : 64}px ${TITULAR}`
+  ctx.font = `800 ${apaisada ? 46 : 64}px ${TITULAR}`
   ctx.fillText(`${jugados} de ${n} días jugados`, W / 2, apaisada ? 130 : 200)
   let y = apaisada ? 170 : 280
   celdas.forEach((v, i) => {
@@ -476,7 +482,7 @@ export function pintarMiMes(lienzo, { dias = {}, hoy, n = 30, cifras = [], enlac
   cifras.forEach(([v, t], i) => {
     const cx = anchoCifra * i + anchoCifra / 2
     ctx.fillStyle = '#fff'
-    ctx.font = `700 ${apaisada ? 54 : 96}px ${TITULAR}`
+    ctx.font = `800 ${apaisada ? 54 : 96}px ${TITULAR}`
     ctx.fillText(String(v), cx, y)
     ctx.fillStyle = 'rgba(255,255,255,0.8)'
     ctx.font = `500 ${apaisada ? 22 : 32}px ${TEXTO}`
@@ -594,7 +600,7 @@ export function pintarAnuncioReto(lienzo, { numero, temas = [], foto = null, ton
     }
     ctx.fillStyle = ORO
     ctx.textAlign = 'center'
-    ctx.font = `700 ${Math.round(h * 0.42)}px ${TITULAR}`
+    ctx.font = `800 ${Math.round(h * 0.42)}px ${TITULAR}`
     ctx.fillText('?', 0, h * 0.15)
     ctx.restore()
   }
@@ -604,7 +610,7 @@ export function pintarAnuncioReto(lienzo, { numero, temas = [], foto = null, ton
     cabecera(ctx, { x: 470, y: 70, ancho: W - 530, arriba: 'PokeDoc · reto diario', numero, cuerpo: 26 })
     ctx.textAlign = 'center'
     ctx.fillStyle = '#fff'
-    ctx.font = `700 54px ${TITULAR}`
+    ctx.font = `800 54px ${TITULAR}`
     ctx.fillText('¡Ya está el reto de hoy!', cx, 165)
     let y = chapas(ctx, temas, { cx, y: 200, cuerpo: 22, maxAncho: 620 })
     ctx.font = `500 24px ${TEXTO}`
@@ -616,7 +622,7 @@ export function pintarAnuncioReto(lienzo, { numero, temas = [], foto = null, ton
   cabecera(ctx, { x: 70, y: 100, ancho: W - 140, arriba: 'PokeDoc · reto diario', numero, cuerpo: 38 })
   ctx.textAlign = 'center'
   ctx.fillStyle = '#fff'
-  ctx.font = `700 76px ${TITULAR}`
+  ctx.font = `800 76px ${TITULAR}`
   ctx.fillText('¡Ya está el reto', W / 2, 230)
   ctx.fillText('de hoy!', W / 2, 315)
   misterio(W / 2, 370, 360, 500)
@@ -636,7 +642,7 @@ export function pintarResumenReto(lienzo, { numero, resumen, dificil = null, enl
   const ctx = lienzo.getContext('2d')
   lienzo.width = W
   lienzo.height = H
-  fondo(ctx, W, H)
+  fondo(ctx, W, H, 'retos')
   ctx.textBaseline = 'alphabetic'
   const apaisada = formato === 'apaisada'
   const k = apaisada ? 0.55 : 1
@@ -651,7 +657,7 @@ export function pintarResumenReto(lienzo, { numero, resumen, dificil = null, enl
   cabecera(ctx, { x: x0, y: apaisada ? 70 : 100, ancho: apaisada ? W - 120 : W - 140, arriba: 'PokeDoc · reto diario', numero, cuerpo: Math.round(38 * (apaisada ? 0.7 : 1)) })
   ctx.textAlign = apaisada ? 'left' : 'center'
   ctx.fillStyle = '#fff'
-  ctx.font = `700 ${Math.round(72 * (apaisada ? 0.75 : 1))}px ${TITULAR}`
+  ctx.font = `800 ${Math.round(72 * (apaisada ? 0.75 : 1))}px ${TITULAR}`
   ctx.fillText(`Así fue el reto #${numero}`, apaisada ? x0 : W / 2, apaisada ? 150 : 230)
   // Las tres cifras.
   const yc = apaisada ? 250 : 380
@@ -659,7 +665,7 @@ export function pintarResumenReto(lienzo, { numero, resumen, dificil = null, enl
     const cx = x0 + (anchoUtil / 3) * i + anchoUtil / 6
     ctx.textAlign = 'center'
     ctx.fillStyle = ORO
-    ctx.font = `700 ${Math.round(96 * k)}px ${TITULAR}`
+    ctx.font = `800 ${Math.round(96 * k)}px ${TITULAR}`
     ctx.fillText(v, cx, yc)
     ctx.fillStyle = 'rgba(255,255,255,0.8)'
     ctx.font = `500 ${Math.round(30 * k)}px ${TEXTO}`
@@ -701,7 +707,7 @@ export function pintarResumenReto(lienzo, { numero, resumen, dificil = null, enl
     ctx.fill()
     ctx.textAlign = 'left'
     ctx.fillStyle = '#fff'
-    ctx.font = `700 ${Math.round(36 * (apaisada ? 0.75 : 1))}px ${TITULAR}`
+    ctx.font = `800 ${Math.round(36 * (apaisada ? 0.75 : 1))}px ${TITULAR}`
     ctx.fillText('La más difícil', dx + 30, dy + dh * 0.42)
     ctx.fillStyle = 'rgba(255,255,255,0.8)'
     ctx.font = `500 ${Math.round(30 * (apaisada ? 0.75 : 1))}px ${TEXTO}`

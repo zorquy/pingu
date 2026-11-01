@@ -64,7 +64,7 @@ export async function dibujarLaQuiero({ cartas = [], nombre = '', titulo, ficher
 
   ctx.textAlign = 'center'
   ctx.fillStyle = '#ffffff'
-  ctx.font = '700 72px Fredoka, Inter, sans-serif'
+  ctx.font = '700 72px Outfit, Inter, sans-serif'
   ctx.fillText(t.titulo, ANCHO / 2, 120)
   ctx.fillStyle = 'rgba(255,255,255,0.72)'
   ctx.font = '500 32px Inter, sans-serif'

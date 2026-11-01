@@ -25,7 +25,7 @@ export const ANCHO = 1080
 export const ALTO = 1350
 
 // ── Lo común ──
-const F_TITULO = '700 64px Fredoka, Inter, sans-serif'
+const F_TITULO = '700 64px Outfit, Inter, sans-serif'
 const F_SUB = '500 28px Inter, sans-serif'
 const BLANCO = '#ffffff'
 const SUAVE = 'rgba(255,255,255,0.72)'
@@ -77,7 +77,7 @@ function chapa(ctx, str, cx, y, { font = '700 28px Inter, sans-serif', bg = 'rgb
 }
 
 function cifraPequena(ctx, cx, y, valor, rotulo) {
-  texto(ctx, valor, cx, y, { font: '700 40px Fredoka, Inter, sans-serif', align: 'center' })
+  texto(ctx, valor, cx, y, { font: '700 40px Outfit, Inter, sans-serif', align: 'center' })
   texto(ctx, rotulo, cx, y + 34, { font: '500 22px Inter, sans-serif', color: SUAVE, align: 'center' })
 }
 
@@ -137,7 +137,7 @@ function spriteRedondo(ctx, img, { cx, cy, r, color, nombre }) {
     ctx.drawImage(img, cx - lado / 2, cy - lado / 2, lado, lado)
     ctx.restore()
   } else {
-    texto(ctx, String(nombre || '?').slice(0, 1).toUpperCase(), cx, cy + r * 0.32, { font: `800 ${Math.round(r * 0.9)}px Fredoka, Inter, sans-serif`, color: '#0b1118', align: 'center' })
+    texto(ctx, String(nombre || '?').slice(0, 1).toUpperCase(), cx, cy + r * 0.32, { font: `800 ${Math.round(r * 0.9)}px Outfit, Inter, sans-serif`, color: '#0b1118', align: 'center' })
   }
 }
 
@@ -150,7 +150,7 @@ async function pintarEquipo(lienzo, datos) {
   texto(ctx, 'Mi equipo de 6', 80, 130, { font: F_TITULO })
   texto(ctx, `${datos.quien ? `@${datos.quien} · ` : ''}los Pokémon de los que más cartas tengo`, 80, 176, { color: SUAVE })
   if (!equipo.length) {
-    texto(ctx, 'Todavía sin Pokémon', ANCHO / 2, 600, { font: '700 48px Fredoka, Inter, sans-serif', align: 'center' })
+    texto(ctx, 'Todavía sin Pokémon', ANCHO / 2, 600, { font: '700 48px Outfit, Inter, sans-serif', align: 'center' })
     pieDeMarca(ctx, datos)
     return
   }
@@ -160,7 +160,7 @@ async function pintarEquipo(lienzo, datos) {
   caja(ctx, 80, 230, ANCHO - 160, 290, { r: 26, color: 'rgba(232,197,71,0.16)' })
   spriteRedondo(ctx, sprites[0], { cx: 230, cy: 375, r: 110, color: COLORES_EQUIPO[0], nombre: lider.nombre })
   texto(ctx, 'EL LÍDER', 370, 316, { font: '800 22px Inter, sans-serif', color: AMARILLO })
-  texto(ctx, recortado(ctx, lider.nombre, ANCHO - 80 - 370, '700 64px Fredoka, Inter, sans-serif'), 370, 382, { font: '700 64px Fredoka, Inter, sans-serif' })
+  texto(ctx, recortado(ctx, lider.nombre, ANCHO - 80 - 370, '700 64px Outfit, Inter, sans-serif'), 370, 382, { font: '700 64px Outfit, Inter, sans-serif' })
   ctx.font = '700 26px Inter, sans-serif'
   const chapaLider = `${lider.cartas} ${lider.cartas === 1 ? 'carta' : 'cartas'} · ${lider.expansiones} ${lider.expansiones === 1 ? 'expansión' : 'expansiones'}${lider.desde ? ` · desde ${lider.desde}` : ''}`
   chapa(ctx, chapaLider, 370 + ctx.measureText(chapaLider).width / 2 + 18, 408, { font: '700 26px Inter, sans-serif', px: 18, alto: 50 })
@@ -171,7 +171,7 @@ async function pintarEquipo(lienzo, datos) {
     const x = 80 + i * (wm + 16)
     caja(ctx, x, 544, wm, 256, { r: 26 })
     spriteRedondo(ctx, sprites[i + 1], { cx: x + wm / 2, cy: 628, r: 60, color: COLORES_EQUIPO[i + 1], nombre: m.nombre })
-    texto(ctx, recortado(ctx, m.nombre, wm - 20, '700 28px Fredoka, Inter, sans-serif'), x + wm / 2, 730, { font: '700 28px Fredoka, Inter, sans-serif', align: 'center' })
+    texto(ctx, recortado(ctx, m.nombre, wm - 20, '700 28px Outfit, Inter, sans-serif'), x + wm / 2, 730, { font: '700 28px Outfit, Inter, sans-serif', align: 'center' })
     chapa(ctx, `${m.cartas} ${m.cartas === 1 ? 'carta' : 'cartas'}`, x + wm / 2, 748, { font: '700 20px Inter, sans-serif', px: 14, alto: 38 })
   })
   // Las medallas.
@@ -220,12 +220,12 @@ async function pintarPerfil(lienzo, datos) {
   texto(ctx, 'Qué coleccionista soy', 80, 130, { font: F_TITULO })
   texto(ctx, `${datos.quien ? `@${datos.quien} · ` : ''}según mis cartas`, 80, 176, { color: SUAVE })
   if (!p) {
-    texto(ctx, 'Todavía sin cartas', ANCHO / 2, 600, { font: '700 48px Fredoka, Inter, sans-serif', align: 'center' })
+    texto(ctx, 'Todavía sin cartas', ANCHO / 2, 600, { font: '700 48px Outfit, Inter, sans-serif', align: 'center' })
     pieDeMarca(ctx, datos)
     return
   }
   texto(ctx, 'MI PERFIL', ANCHO / 2, 250, { font: '800 26px Inter, sans-serif', color: '#f3a0d8', align: 'center' })
-  const fuente = ctx.measureText(p.perfil.nombre).width > 0 && p.perfil.nombre.length > 18 ? '700 72px Fredoka, Inter, sans-serif' : '700 92px Fredoka, Inter, sans-serif'
+  const fuente = ctx.measureText(p.perfil.nombre).width > 0 && p.perfil.nombre.length > 18 ? '700 72px Outfit, Inter, sans-serif' : '700 92px Outfit, Inter, sans-serif'
   texto(ctx, recortado(ctx, p.perfil.nombre, ANCHO - 160, fuente), ANCHO / 2, 350, { font: fuente, align: 'center' })
   texto(ctx, recortado(ctx, p.perfil.frase, ANCHO - 160, F_SUB), ANCHO / 2, 410, { color: 'rgba(255,255,255,0.78)', align: 'center' })
   // Los cuatro rasgos.
@@ -241,7 +241,7 @@ async function pintarPerfil(lienzo, datos) {
     const py = 470 + Math.floor(i / 2) * 184
     caja(ctx, px, py, wr, 164, { r: 22 })
     texto(ctx, x.r, px + 28, py + 44, { font: '500 22px Inter, sans-serif', color: 'rgba(255,255,255,0.65)' })
-    texto(ctx, recortado(ctx, x.b, wr - 56, '700 44px Fredoka, Inter, sans-serif'), px + 28, py + 98, { font: '700 44px Fredoka, Inter, sans-serif' })
+    texto(ctx, recortado(ctx, x.b, wr - 56, '700 44px Outfit, Inter, sans-serif'), px + 28, py + 98, { font: '700 44px Outfit, Inter, sans-serif' })
     texto(ctx, recortado(ctx, x.s, wr - 56, '500 22px Inter, sans-serif'), px + 28, py + 136, { font: '500 22px Inter, sans-serif', color: 'rgba(255,255,255,0.75)' })
   })
   // De qué son las cartas.
@@ -288,7 +288,7 @@ async function pintarViaje(lienzo, datos) {
   texto(ctx, 'Mi viaje en el tiempo', 80, 130, { font: F_TITULO })
   texto(ctx, `${datos.quien ? `@${datos.quien} · ` : ''}de mi carta más antigua a la más nueva`, 80, 176, { color: SUAVE })
   if (!v) {
-    texto(ctx, 'Todavía sin fechas', ANCHO / 2, 600, { font: '700 48px Fredoka, Inter, sans-serif', align: 'center' })
+    texto(ctx, 'Todavía sin fechas', ANCHO / 2, 600, { font: '700 48px Outfit, Inter, sans-serif', align: 'center' })
     pieDeMarca(ctx, datos)
     return
   }
@@ -311,7 +311,7 @@ async function pintarViaje(lienzo, datos) {
   }
   extremo(250, fa, v.antigua, 'LA MÁS ANTIGUA')
   extremo(ANCHO - 250, fn, v.nueva, 'LA MÁS NUEVA')
-  texto(ctx, String(v.anios), ANCHO / 2, 500, { font: '700 120px Fredoka, Inter, sans-serif', align: 'center' })
+  texto(ctx, String(v.anios), ANCHO / 2, 500, { font: '700 120px Outfit, Inter, sans-serif', align: 'center' })
   texto(ctx, v.anios === 1 ? 'año de cartas' : 'años de cartas', ANCHO / 2, 544, { font: '500 26px Inter, sans-serif', color: SUAVE, align: 'center' })
   // Las épocas.
   texto(ctx, 'Mis cartas, por época', 80, 820, { font: '600 28px Inter, sans-serif', color: 'rgba(255,255,255,0.75)' })
@@ -368,7 +368,7 @@ async function pintarPokedex(lienzo, datos) {
     ctx.arc(cx, cy, r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.min(1, p.especies / (p.total || 1)))
     ctx.stroke()
   }
-  texto(ctx, String(p.especies), cx, cy + 10, { font: '700 92px Fredoka, Inter, sans-serif', align: 'center' })
+  texto(ctx, String(p.especies), cx, cy + 10, { font: '700 92px Outfit, Inter, sans-serif', align: 'center' })
   const total = String(p.total).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
   const pct = p.pct < 10 ? String(Math.round(p.pct * 10) / 10).replace('.', ',') : String(Math.round(p.pct))
   texto(ctx, `de ${total} Pokémon`, cx, cy + 54, { font: '500 26px Inter, sans-serif', color: SUAVE, align: 'center' })
@@ -389,7 +389,7 @@ async function pintarPokedex(lienzo, datos) {
   ;(p.regiones || []).forEach((g, i) => {
     const x = 80 + i * (wr + 10)
     caja(ctx, x, 712, wr, 90, { r: 14 })
-    texto(ctx, String(g.cuenta), x + wr / 2, 756, { font: '700 30px Fredoka, Inter, sans-serif', align: 'center' })
+    texto(ctx, String(g.cuenta), x + wr / 2, 756, { font: '700 30px Outfit, Inter, sans-serif', align: 'center' })
     texto(ctx, g.nombre, x + wr / 2, 786, { font: '500 20px Inter, sans-serif', color: 'rgba(255,255,255,0.65)', align: 'center' })
   })
   // Los trofeos: hasta tres, los que haya.

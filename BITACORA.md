@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (395) — PINGU-Claude (1156 — el marco común de las imágenes de redes)
+
+**Hecho**: R1 y R2 de «Todas las imágenes de PokeDoc, con el mismo marco», con
+lo recomendado (Outfit en los lienzos, color por sección).
+- `js/redes-marco.js` (nuevo): fondo con el brillo de la sección, logo +
+  «PokeDoc» y chapa arriba, título en Outfit con `*destacado*`, la caja para
+  la pieza y la dirección abajo, en publicación, historia (1080×1920) y
+  apaisada. `prepararMarco` carga las letras y el logo; la hoja de compartir lo
+  espera antes de dibujar.
+- La noticia y la vitrina, enteras con el marco y con su Historia de verdad
+  (`historiaPropia`). Los retos con el fondo y la cabecera del marco (verde;
+  logros rosa, podio violeta). Las partidas con la marca del marco abajo.
+- Fredoka fuera de toda la web: lienzos a Outfit, sin `@font-face` en
+  style.css, /admin precarga Outfit y el .woff2 borrado.
+
+**Ficheros**: js/redes-marco.js (nuevo), js/noticia-compartir.js,
+js/vitrina-imagen.js, js/reto-imagen.js, js/partida-imagen.js,
+js/compartir-hoja.js, js/logro-compartir.js, js/torneos/podio-compartir.js,
+js/nueve.js, js/mi-coleccion/imagen*.js, js/repeticiones/resumen-imagen.js,
+js/repeticiones/video.js, js/torneos/decklist-imagen.js,
+js/torneos/meta-imagen.js, css/style.css, css/portada.css, admin/index.html,
+admin/editor-guia.html, assets/fonts/fredoka-variable-latin.woff2 (borrado),
+CLAUDE.md (regla nueva del marco y la de la letra), SCHEMA.md,
+novedades.json. Pruebas: test-tanda-1156.mjs nueva y la 1016 al día.
+
+**Pendiente**: la 1157 (la tarjeta del enlace con marca, con migración, y
+«Imagen para redes» en /novedades), y la ronda 7 (1154 y 1155).
+
 ## 2026-11-01 (394) — PINGU-Claude (1152 y 1153 — la ronda 6 entera)
 
 **Hecho**: las cinco de «Cinco pantallas que se leen de un vistazo», con lo

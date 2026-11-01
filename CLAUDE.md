@@ -1007,6 +1007,20 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   plegado en «Tu historial» y se carga al abrirlo; si añades algo, va ahí.
   Y cada final con cuenta dice cómo te mueve en la liga (`data.liga` de
   `guardarResultado`, pintado por `premiosHtml`).
+- **Una imagen para redes lleva EL MARCO: `js/redes-marco.js`** (tanda
+  1156, PINGU: «que sea todo igual para mantener la concordancia»): el
+  degradado de la web con el brillo del color de la SECCIÓN (`acentoDe`),
+  arriba el logo y «PokeDoc» con una chapa de lo que es, el título en Outfit
+  con lo destacado entre `*asteriscos*`, la pieza en la `caja` que devuelve
+  `pintarMarco` y la dirección abajo, en tres tamaños («historia» es la
+  publicación de 1080×1350, «larga» la historia de 1080×1920 con
+  `historiaPropia`, y «apaisada»). Un generador nuevo pinta su pieza dentro de
+  la caja, no otro fondo ni otra cabecera; los retos, la vitrina y las
+  partidas ya llevan su fondo y su marca. Las letras y el logo se piden antes
+  del primer trazo (`prepararMarco`, que llama la hoja de compartir): un
+  lienzo con una fuente que no ha llegado pinta con otra sin avisar. Las
+  piezas sueltas (un concurso, un carrusel) las hace Claude con esta misma
+  plantilla; no hay generador en /admin (PINGU quitó el de Redes en la 991).
 - **Una partida o un torneo de /mis-partidas se comparte en una imagen**
   (tanda 997): `js/partida-imagen.js` (por `import()`) con la hoja de
   siempre y el marco de los retos (`cabecera` e `invitacionAbajo` de
@@ -1527,8 +1541,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   los botones y las chapas, Inter** (tanda 1018, B2 de «PokeDoc como app»):
   `--font-display` y `--font-marca` en `style.css`, servidas desde
   `assets/fonts/` (variable, solo latín). Un título nuevo pide el token; un
-  botón no pide letra (hereda). Fredoka solo queda para lo que se dibuja en
-  un lienzo. **Y cada sección tiene su color** (`--acento` /
+  botón no pide letra (hereda). Fredoka ya no existe (1156): lo que se dibuja
+  en un lienzo también va en Outfit. **Y cada sección tiene su color** (`--acento` /
   `--acento-texto`, por `data-seccion` en `<html>`, que escribe
   `generar-barra-movil.mjs`): la barra de abajo, la burbuja, la lateral y
   `.btn-primary` lo llevan solos. Un color nuevo va en los DOS temas con sus

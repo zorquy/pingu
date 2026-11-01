@@ -188,10 +188,10 @@ function pintarCabecera(ctx, d) {
   const x = 222
   const ancho = W - x - 48
   ctx.textBaseline = 'alphabetic'
-  ctx.font = '600 34px Fredoka, Inter, sans-serif'
+  ctx.font = '600 34px Outfit, Inter, sans-serif'
   ctx.fillStyle = C.hielo
   ctx.fillText('La partida', x, 72)
-  ajustar(ctx, d.titulo, ancho, { peso: 700, familia: 'Fredoka, Inter, sans-serif', max: 54, min: 36 })
+  ajustar(ctx, d.titulo, ancho, { peso: 700, familia: 'Outfit, Inter, sans-serif', max: 54, min: 36 })
   ctx.fillStyle = C.blanco
   ctx.fillText(recortar(ctx, d.titulo, ancho), x, 136)
   ctx.font = '500 26px Inter, sans-serif'
@@ -207,7 +207,7 @@ function pintarGanador(ctx, d) {
   ctx.textAlign = 'center'
   ctx.textBaseline = 'alphabetic'
   if (!d.ganador) {
-    ctx.font = '600 40px Fredoka, Inter, sans-serif'
+    ctx.font = '600 40px Outfit, Inter, sans-serif'
     ctx.fillStyle = C.apagado
     ctx.fillText('El registro no dice quién ganó', W / 2, 330)
     ctx.restore()
@@ -216,7 +216,7 @@ function pintarGanador(ctx, d) {
   ctx.font = '700 28px Inter, sans-serif'
   ctx.fillStyle = C.ambar
   ctx.fillText('GANA', W / 2, 292)
-  ajustar(ctx, d.ganador.nombre, W - 160, { peso: 700, familia: 'Fredoka, Inter, sans-serif', max: 92, min: 48 })
+  ajustar(ctx, d.ganador.nombre, W - 160, { peso: 700, familia: 'Outfit, Inter, sans-serif', max: 92, min: 48 })
   ctx.fillStyle = d.ganador.color
   ctx.fillText(recortar(ctx, d.ganador.nombre, W - 160), W / 2, 380)
   const como = [d.ganador.porque, d.ganador.turno ? `en el turno ${d.ganador.turno}` : null].filter(Boolean).join(', ')
@@ -247,7 +247,7 @@ function pintarJugadores(ctx, d) {
     ctx.fillStyle = j.color
     ctx.fill()
     ctx.textBaseline = 'alphabetic'
-    ajustar(ctx, j.nombre, ancho - 64, { peso: 700, familia: 'Fredoka, Inter, sans-serif', max: 44, min: 30 })
+    ajustar(ctx, j.nombre, ancho - 64, { peso: 700, familia: 'Outfit, Inter, sans-serif', max: 44, min: 30 })
     ctx.fillStyle = j.color
     ctx.fillText(recortar(ctx, j.nombre, ancho - 64), x + 36, y + 58)
     ctx.font = '500 26px Inter, sans-serif'
@@ -266,7 +266,7 @@ function pintarCarrera(ctx, d) {
   const y1 = 1000
   ctx.save()
   ctx.textBaseline = 'alphabetic'
-  ctx.font = '600 32px Fredoka, Inter, sans-serif'
+  ctx.font = '600 32px Outfit, Inter, sans-serif'
   ctx.fillStyle = C.blanco
   ctx.fillText('La carrera de premios', 48, 674)
   ctx.font = '500 22px Inter, sans-serif'
@@ -388,7 +388,7 @@ function pintarPie(ctx) {
 
 export async function dibujarResumen(d) {
   try {
-    await Promise.all(['700 54px Fredoka', '600 34px Fredoka', '500 26px Inter', '800 52px Inter'].map((f) => document.fonts.load(f)))
+    await Promise.all(['700 54px Outfit', '600 34px Outfit', '500 26px Inter', '800 52px Inter'].map((f) => document.fonts.load(f)))
   } catch {
     /* sin las fuentes de la casa sale con las del sistema: la imagen sale igual */
   }

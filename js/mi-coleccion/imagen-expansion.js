@@ -4,7 +4,7 @@
 import { fondo, medidasDe } from '../reto-imagen.js'
 import { cargarImagen } from '../imagen-compartir.js'
 
-const TITULAR = 'Fredoka, Inter, sans-serif'
+const TITULAR = 'Outfit, Inter, sans-serif'
 const TEXTO = 'Inter, sans-serif'
 export const ENLACE = 'pokedoc.es/cartas'
 
