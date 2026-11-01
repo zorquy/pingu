@@ -64,7 +64,7 @@ console.log('── 2. Antes de escribir (móvil) ──')
   await ctx.close()
 }
 {
-  const ctx = await contexto(b, true, null, conDatos)
+  const ctx = await contexto(b, true, 'none', conDatos)
   const page = await ctx.newPage()
   await page.goto(`${BASE}/buscar`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2000)
