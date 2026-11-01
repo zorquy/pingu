@@ -272,12 +272,19 @@
   html.bm-escondidas .bm-burbuja {
     transform: translateY(calc(72px + var(--e-xs)));
   }
-  /* El rótulo pegado de Deseos y cambios (1125) sube con la barra. */
-  .mc-rotulo-pegado {
+  /* El rótulo pegado de Deseos y cambios (1125) y el buscador del glosario
+     (1170b) suben con la barra: pegados a 72 px con la barra escondida
+     dejaban una franja por la que se leía el texto de detrás. */
+  .mc-rotulo-pegado,
+  .glosario-mandos {
     transition: top 0.3s var(--ease);
   }
-  html.bm-escondidas .mc-rotulo-pegado {
+  html.bm-escondidas .mc-rotulo-pegado,
+  html.bm-escondidas .glosario-mandos {
     top: 0;
+  }
+  .glosario-mandos {
+    box-shadow: 0 0 0 var(--e-md) var(--bg);
   }
 }
 @media (max-width: 900px) and (prefers-reduced-motion: reduce) {
@@ -286,7 +293,8 @@
   .bm-burbuja,
   .mc-pestanias,
   html.con-barra-movil .carta-scan .carta-acciones,
-  .mc-rotulo-pegado {
+  .mc-rotulo-pegado,
+  .glosario-mandos {
     transition: none;
   }
 }

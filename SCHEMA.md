@@ -41785,6 +41785,20 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1170b — Lo pegado arriba sube con la barra del móvil
+
+El buscador y las letras del glosario son `position: sticky; top: 72px`
+(el alto de la barra de arriba). En el móvil la barra se esconde al bajar
+(709, `html.bm-escondidas`), y lo pegado se quedaba a 72 px del borde con
+una franja transparente encima: el término de detrás se leía por el hueco.
+Es el mismo caso que el rótulo pegado de Deseos y cambios resolvió en la
+1125, y va con su misma regla en `movil.css`: con la barra escondida,
+`top: 0`, con la transición de la barra (y sin ella con «menos
+movimiento»). Y una sombra `0 0 0 var(--e-md) var(--bg)` para que el fondo
+tape también el margen lateral de la página, por donde asomaba el texto.
+La regla general: **lo que se pega a `top: 72px` en el móvil lleva su
+`html.bm-escondidas { top: 0 }`**, o deja una franja cuando la barra se va.
+
 ## Tanda 1170 — La jerga de la mesa entra en el glosario
 
 Sergio.M mandó quince palabras por mensaje; el glosario (792) tenía 32

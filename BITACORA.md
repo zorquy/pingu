@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (414) — PINGU-Claude (1170b — el buscador del glosario sube con la barra del móvil)
+
+**Hecho** (PINGU, captura: «al scrollear en el glosario pasa eso»):
+- `.glosario-mandos` (buscador + letras) va pegado a 72 px, el alto de la
+  barra de arriba; al bajar, la barra se esconde (709) y quedaba una franja
+  de 72 px por la que se leía el texto de detrás. En `movil.css`, con
+  `html.bm-escondidas` sube a 0 con la misma transición que el rótulo de
+  Deseos y cambios (1125), y lleva una sombra del color del fondo para tapar
+  el margen lateral.
+
+**Ficheros**: css/movil.css, SCHEMA.md, novedades.json. Pruebas:
+test-tanda-1170b-pantalla.mjs nueva; 1144, 313 y 1125 verdes.
+
+**Pendiente**: la ronda 10 (1171 en adelante) cuando PINGU diga.
+
 ## 2026-11-01 (413) — PINGU-Claude (1170 — 32 palabras nuevas en el glosario)
 
 **Hecho** (PINGU: «añade las que consideres», sobre la propuesta del glosario):
