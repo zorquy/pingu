@@ -24,11 +24,11 @@ console.log('── Las MEP de TCGdex ──')
     if (op?.method === 'POST' && ruta.startsWith('tcg_cards')) { escritas.push(...JSON.parse(op.body)); return null }
     if (ruta.startsWith('tcg_sets')) return [{ id: 'mep', name: 'MEP Black Star Promos', tcggo_id: 1, card_count_total: 110 }]
     if (ruta.startsWith('tcg_cards?select=id,local_id')) return nuestras
-    if (ruta.startsWith('tcg_cards?select=id&')) return [{ id: 'mep-120' }] // la 120 ya existe en otro set: no se pisa
+    if (ruta.startsWith('tcg_cards?select=id,set_id')) return [{ id: 'mep-120', set_id: 'svp', local_id: '120' }] // la 120 ya existe en otro set: no se pisa
     return []
   }
   const fetchImpl = async (url) => ({ ok: true, json: async () => (/\/es\//.test(url) ? { cards: [{ localId: '090', name: 'Mega-Darkrai ex' }] } : { cards: suyas }) })
-  const ahora = new Date('2026-11-01T12:00:00Z')
+  const ahora = new Date('2026-11-01T16:00:00Z') // después del rehacerDesde de la 1159
   const r = await rellenar({ env, fetchImpl, restImpl, estadoImpl: async () => estado, guardarEstadoImpl: async (k, v) => { estado = v }, ahora })
   check('escribe solo las que faltan por número (89–92), sin pisar un id que ya existe', r.ok && escritas.map((f) => f.local_id).join(',') === '089,090,091,092', JSON.stringify(r))
   const d = escritas.find((f) => f.local_id === '090')
