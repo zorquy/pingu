@@ -33,6 +33,12 @@
     }
   ],
   "entradas": [
+    {
+      "fecha": "2026-11-01",
+      "tipo": "arreglo",
+      "texto": "Las promos MEP que faltaban (Mega Zeraora ex, Mega Darkrai ex, Mega Dragonite ex y Paradise Resort) ya están en el catálogo, y la 92 y la 93 tienen sus versiones de Staff, World Championships, Play! Pokémon Winner y Pokémon Game On!.",
+      "enlace": "/cartas"
+    },
     { "fecha": "2026-11-01", "tipo": "arreglo", "texto": "Las promos de Megaevolución que faltaban (Mega Zeraora ex, Mega Darkrai ex, Mega Dragonite ex, Paradise Resort y alguna más) entran en el catálogo con su precio de Cardmarket.", "enlace": "/cartas" },
     { "fecha": "2026-11-01", "tipo": "nuevo", "texto": "Nueva expansión japonesa en el catálogo: el McDonald's Pokémon-e Minimum Pack de 2002, con sus 18 cartas.", "enlace": "/cartas?catalogo=JP" },
     { "fecha": "2026-11-01", "tipo": "mejora", "texto": "El constructor vacío te propone por dónde empezar: copiar uno de los mazos más jugados del meta, importar una lista o buscar cartas.", "enlace": "/constructor" },

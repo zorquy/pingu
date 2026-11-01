@@ -42,6 +42,97 @@ export const MAXIMO_INTENTOS = 3
 const CM_MEP = '001:851043 002:851045 003:851047 004:851049 005:851051 006:851052 007:851053 008:851054 009:851055 010:851058 011:851063 012:858146 013:859011 014:857390 015:857393 016:857396 017:857400 018:859021 019:859022 020:859024 021:859026 022:859029 023:859033 024:859036 025:859037 026:855284 027:855283 028:850977 029:873692 030:873699 031:873702 032:873708 033:873710 034:873717 035:873719 036:873721 037:875186 038:875187 039:875188 040:875189 041:875190 042:875191 043:875192 044:875193 045:875194 046:886615 047:886616 048:886617 049:886618 050:886619 051:886620 052:886621 053:886622 054:886623 055:891870 056:891880 057:891888 058:891889 059:891890 060:891891 061:891892 062:891893 063:891894 064:877543 065:877544 066:877545 067:877546 068:879250 069:879255 070:879262 071:873310 072:891720 073:891721 074:884752 075:884754 076:884756 077:884758 078:888609 079:888607 080:888506 081:885516 082:894261 083:894262 084:894263 085:894264 086:898176 087:898177 088:895779 089:903672 090:903676 091:903681 092:903686 093:894884 094:895609 095:895610 096:895606 097:895607 098:895608 099:895611 100:895612 101:895604 102:895613 103:895614 104:895620 105:895621 106:895619 107:895615 108:895616 109:895617 110:895618 120:903004'
 export const CARDMARKET = { mep: new Map(CM_MEP.split(' ').map((p) => p.split(':')).map(([n, id]) => [numeroComparable(n), Number(id)])) }
 
+// ── Las fichas de respaldo (tanda 1160) ──
+//
+// PINGU, con la lista de Bulbapedia: «siguen faltando la 89, 90, 91 y 92».
+// La pasada de la 1158 las pedía a la API de TCGdex, y no entraron: o la API
+// todavía no las publica (se construye desde tcgdex/cards-database y va por
+// detrás) o no contestó. Así que su ficha va aquí, copiada a mano de los
+// ficheros de cards-database (data/Mega Evolution/MEP Black Star Promos,
+// 089–092, 2026-11-01): si la API no trae un número de esta lista, se escribe
+// con esto. Sin foto (no se inventa una dirección, la 441: la pone PINGU en
+// /admin) y sin español (no lo tiene ni TCGdex).
+const ataque = (cost, name, effect, damage) => ({ cost, name, effect, ...(damage != null ? { damage } : {}) })
+export const FICHAS_DE_RESPALDO = {
+  mep: [
+    { localId: '089', name: 'Mega Zeraora ex', category: 'Pokemon', hp: 270, types: ['Lightning'], stage: 'Basic', dex_ids: [807], illustrator: '5ban Graphics', regulation_mark: 'J', retreat: 1,
+      attacks: [ataque(['Lightning'], 'Thunderous Fist', 'This attack does 60 damage for each {L} Energy attached to this Pokémon.', '60×'), ataque(['Lightning', 'Lightning', 'Lightning'], 'Zepto Turn', 'Switch this Pokémon with 1 of your Benched Pokémon.', 150)],
+      weaknesses: [{ type: 'Fighting', value: '×2' }] },
+    { localId: '090', name: 'Mega Darkrai ex', category: 'Pokemon', hp: 280, types: ['Darkness'], stage: 'Basic', dex_ids: [491], illustrator: '5ban Graphics', regulation_mark: 'J', retreat: 2,
+      attacks: [ataque(['Darkness', 'Darkness'], 'Dusk Raid', "If your Benched Pokémon have any damage counters on them, this attack does 110 more damage.", '110+'), ataque(['Darkness', 'Darkness', 'Darkness'], 'Abyss Eye', "If your opponent's Active Pokémon is affected by a Special Condition, it is Knocked Out.")],
+      weaknesses: [{ type: 'Grass', value: '×2' }] },
+    { localId: '091', name: 'Mega Dragonite ex', category: 'Pokemon', hp: 370, types: ['Dragon'], stage: 'Stage2', evolve_from: 'Dragonair', dex_ids: [149], illustrator: '5ban Graphics', regulation_mark: 'I', retreat: 2,
+      abilities: [{ type: 'Ability', name: 'Sky Transport', effect: 'Once during your turn, you may use this Ability. Switch your Active Pokémon with 1 of your Benched Pokémon.' }],
+      attacks: [ataque(['Water', 'Lightning', 'Lightning'], 'Ryuno Glide', 'Discard 2 Energy from this Pokémon.', 330)] },
+    { localId: '092', name: 'Paradise Resort', category: 'Trainer', trainer_type: 'Stadium', illustrator: 'Naoki Saito', regulation_mark: 'J',
+      description: "The Retreat Cost of each Psyduck in play (both yours and your opponent's) is {C} less." },
+  ],
+}
+
+// ── Las versiones que no son otra carta (tanda 1160) ──
+//
+// PINGU: «en la 92 metes la versión Staff, y en la 93 World Championships,
+// Play! Pokémon Winner y Pokémon Game On!». Son filas de `tcg_card_versions`
+// colgadas de la carta, como las de a mano de la 934: clase «sello» (no
+// cuentan para completar el set) y su producto de Cardmarket cuando TCGdex lo
+// da (la Staff y la Winner; origen `tcgdex`, como las Ball de la 945). Las
+// otras dos no salen en ningún catálogo: origen `mano`. Se crean UNA vez
+// (si la carta ya tiene una versión con ese nombre, no se toca) y la foto la
+// pone PINGU en /admin.
+export const VERSIONES_EXTRA = {
+  mep: [
+    { numero: '092', etiqueta: 'Staff', salio_en: '2026 Pokémon World Championships', cm: 905263 },
+    { numero: '093', etiqueta: 'World Championships', salio_en: 'Play! Pokémon 2026 Worlds Celebration events attendance reward' },
+    { numero: '093', etiqueta: 'Play! Pokémon Winner', salio_en: 'Play! Pokémon 2026 Worlds Celebration events winner reward', cm: 894885 },
+    { numero: '093', etiqueta: 'Pokémon Game On!', salio_en: 'Pokémon Game On! events participation reward (Malaysia, the Philippines, Singapore)' },
+  ],
+}
+
+// Las ids de las versiones que crea esta pasada van lejos de las de la
+// secuencia de /admin (que cuenta -1, -2…): si cogiera la siguiente, la
+// próxima versión a mano chocaría con la suya.
+export const BASE_ID_VERSIONES = -900000
+
+// El id de versión de un nombre, como `catalogo_id_de_version` de la base:
+// «Play! Pokémon Winner» y «play pokemon winner» son la misma.
+export const idDeVersion = (t) => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40)
+
+// Lo que falta de la API se completa con las fichas de respaldo; y a lo que
+// la API sí trae, se le ponen los datos de la ficha (la API del set solo da
+// id, número, nombre y foto).
+export function conRespaldo(cartas, tcgdex) {
+  const fichas = FICHAS_DE_RESPALDO[tcgdex] || []
+  const lista = (cartas || []).slice()
+  const porNumero = new Map(lista.map((c, i) => [numeroComparable(c?.localId), i]))
+  for (const f of fichas) {
+    const n = numeroComparable(f.localId)
+    if (porNumero.has(n)) lista[porNumero.get(n)] = { ...f, ...lista[porNumero.get(n)], respaldo: false }
+    else lista.push({ ...f, id: `${tcgdex}-${f.localId}`, respaldo: true })
+  }
+  return lista
+}
+
+// Las filas de versión que hay que crear: las de la lista cuya carta existe
+// y que esa carta no tiene ya (por su nombre).
+export function versionesQueFaltan({ tcgdex, mercado, set, cartas, existentes, desde = BASE_ID_VERSIONES }) {
+  const porNumero = new Map((cartas || []).map((c) => [numeroComparable(c.local_id), c]))
+  const ya = new Set((existentes || []).map((v) => `${v.card_id}|${idDeVersion(v.etiqueta)}`))
+  let id = Math.min(desde, ...(existentes || []).map((v) => Number(v.tcggo_id)).filter((x) => x <= desde)) - 1
+  const filas = []
+  const sinCarta = []
+  for (const v of VERSIONES_EXTRA[tcgdex] || []) {
+    const c = porNumero.get(numeroComparable(v.numero))
+    if (!c) { sinCarta.push(v.numero); continue }
+    if (ya.has(`${c.id}|${idDeVersion(v.etiqueta)}`)) continue
+    filas.push({
+      tcggo_id: id--, market: mercado, card_id: c.id, set_id: set, numero: null, nombre: c.name || null,
+      etiqueta: v.etiqueta, icono: 'sello', clase: 'sello', salio_en: v.salio_en || null,
+      cm_id_product: v.cm || null, origen: v.cm ? 'tcgdex' : 'mano', actualizado_at: new Date().toISOString(),
+    })
+  }
+  return { filas, sinCarta }
+}
+
 // La lista vive en js/rellenos-tcgdex.js (1159): la lee también /admin para
 // saber en qué sets ofrecer «Traer ahora lo que falta».
 export const RELLENOS = RELLENOS_TCGDEX
@@ -97,9 +188,13 @@ export function filasDeTcgdex(cartas, { set, mercado, tcgdex, es = new Map() }) 
       image_path: imagePathFromUrl(c.image) || null,
       cm_id_product_propio: cms.get(n) || null,
       origen: ORIGEN,
+      // La ficha, cuando viene de las de respaldo (1160): solo lo que trae.
+      ...Object.fromEntries(COLUMNAS_DE_FICHA.filter((k) => c[k] !== undefined).map((k) => [k, c[k]])),
+      ...(c.category ? { rarity: 'Promo', variants: { normal: false, reverse: false, holo: true, firstEdition: false } } : {}),
     }
   })
 }
+const COLUMNAS_DE_FICHA = ['category', 'hp', 'types', 'stage', 'evolve_from', 'dex_ids', 'illustrator', 'regulation_mark', 'retreat', 'trainer_type', 'description', 'attacks', 'abilities', 'weaknesses']
 
 export async function pasada({
   env = process.env, fetchImpl = fetch, restImpl = null, estadoImpl = null, guardarEstadoImpl = null,
@@ -152,7 +247,7 @@ export async function pasada({
   let nuestras
   try {
     set = elegirSet((await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,tcggo_id,oculto,card_count_total&market=eq.${relleno.mercado}&${consultaDelSet(relleno)}&limit=10`)) || [])
-    nuestras = set ? (await pedir(`tcg_cards?select=id,local_id&market=eq.${relleno.mercado}&set_id=eq.${encodeURIComponent(set.id)}&limit=2000`)) || [] : []
+    nuestras = set ? (await pedir(`tcg_cards?select=id,local_id,name&market=eq.${relleno.mercado}&set_id=eq.${encodeURIComponent(set.id)}&limit=2000`)) || [] : []
   } catch (e) {
     return tropiezo(`nuestra base: ${String(e?.message || e).slice(0, 160)}`, 'leer')
   }
@@ -164,14 +259,22 @@ export async function pasada({
 
   // Sus cartas en TCGdex (inglés) y, si las hay, sus nombres en español.
   let cartas
+  let avisoTcgdex = null
+  const hayRespaldo = (FICHAS_DE_RESPALDO[relleno.tcgdex] || []).length > 0
   try {
     const res = await fetchImpl(`${TCGDEX}/en/sets/${encodeURIComponent(relleno.tcgdex)}`)
-    if (!res.ok) return tropiezo(`TCGdex ${res.status}`, 'tcgdex')
-    cartas = (await res.json())?.cards
-    if (!Array.isArray(cartas)) return tropiezo('TCGdex no trae la lista de cartas del set', 'tcgdex')
+    if (!res.ok) avisoTcgdex = `TCGdex ${res.status}`
+    else {
+      cartas = (await res.json())?.cards
+      if (!Array.isArray(cartas)) avisoTcgdex = 'TCGdex no trae la lista de cartas del set'
+    }
   } catch (e) {
-    return tropiezo(`TCGdex: ${String(e?.message || e).slice(0, 160)}`, 'tcgdex')
+    avisoTcgdex = `TCGdex: ${String(e?.message || e).slice(0, 160)}`
   }
+  // Sin la API, lo que haya de respaldo se escribe igual (1160); sin
+  // respaldo, es un intento fallido como siempre.
+  if (avisoTcgdex && !hayRespaldo) return tropiezo(avisoTcgdex, 'tcgdex')
+  cartas = conRespaldo(Array.isArray(cartas) ? cartas : [], relleno.tcgdex)
   const es = new Map()
   try {
     const res = await fetchImpl(`${TCGDEX}/es/sets/${encodeURIComponent(relleno.tcgdex)}`)
@@ -199,6 +302,23 @@ export async function pasada({
   } catch (e) {
     return tropiezo(`nuestra base al escribir: ${String(e?.message || e).slice(0, 160)}`, 'escribir')
   }
+
+  // Las versiones de la lista (1160), sobre las cartas que ya hay en el set
+  // (las de antes y las recién escritas).
+  let versiones = null
+  if ((VERSIONES_EXTRA[relleno.tcgdex] || []).length) {
+    try {
+      const delSet = [...nuestras, ...faltan].map((c) => ({ id: c.id, local_id: c.local_id, name: c.name }))
+      const ids = [...new Set(delSet.map((c) => c.id))]
+      const existentes = ids.length ? (await pedir(`tcg_card_versions?select=tcggo_id,card_id,etiqueta&market=eq.${relleno.mercado}&card_id=in.(${ids.map((i) => `"${i}"`).join(',')})`)) || [] : []
+      const lejanas = (await pedir(`tcg_card_versions?select=tcggo_id&tcggo_id=lte.${BASE_ID_VERSIONES}&order=tcggo_id.asc&limit=1`)) || []
+      const { filas, sinCarta } = versionesQueFaltan({ tcgdex: relleno.tcgdex, mercado: relleno.mercado, set: set.id, cartas: delSet, existentes: [...existentes, ...lejanas] })
+      if (filas.length) await pedir('tcg_card_versions', { method: 'POST', body: JSON.stringify(igualarClaves(filas)) })
+      versiones = { creadas: filas.map((f) => `${f.etiqueta} (${delSet.find((c) => c.id === f.card_id)?.local_id})`), sinCarta }
+    } catch (e) {
+      versiones = { error: String(e?.message || e).slice(0, 160) }
+    }
+  }
   delete estado.intentos[relleno.clave]
   estado.hechos[relleno.clave] = {
     fecha: ahora.toISOString(), estado: 'hecho', set: set.id, nombreSet: set.name_en || set.name || null,
@@ -207,6 +327,9 @@ export async function pasada({
     conCardmarket: faltan.filter((f) => f.cm_id_product_propio).length,
     sinFoto: faltan.filter((f) => !f.image_path).length,
     enOtroSet: enOtroSet.length ? enOtroSet.slice(0, 20) : undefined,
+    conFicha: faltan.filter((f) => f.category).map((f) => f.local_id).join(', ') || undefined,
+    avisoTcgdex: avisoTcgdex || undefined,
+    versiones: versiones || undefined,
     ...(forzar ? { aMano: true } : {}),
   }
   await persistir()

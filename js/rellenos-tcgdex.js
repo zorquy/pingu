@@ -7,7 +7,9 @@
 //
 // `rehacerDesde`: la próxima pasada lo vuelve a hacer aunque ya estuviera
 // hecho, y olvida los intentos fallidos de antes de esa fecha (la 1159: la
-// primera vuelta de las MEP no salió y nadie supo por qué).
+// primera vuelta de las MEP no salió y nadie supo por qué; la 1160 lo movió
+// a las 16:30 para que la pasada meta las fichas de respaldo y las versiones
+// sola, aunque nadie pulse «Traer ahora»).
 export const RELLENOS_TCGDEX = [
   {
     clave: 'mep-tcgdex',
@@ -15,7 +17,7 @@ export const RELLENOS_TCGDEX = [
     set: { ids: ['mep'], codigo: 'MEP', nombre: 'MEP Black Star Promos' },
     tcgdex: 'mep',
     cadaDias: 7,
-    rehacerDesde: '2026-11-01T15:30:00Z',
+    rehacerDesde: '2026-11-01T16:30:00Z',
     motivo: 'TCGGO no tiene las MEP más nuevas (la 90 de Mega Darkrai y otras)',
   },
 ]
@@ -43,7 +45,13 @@ export function textoDeRelleno(r) {
   if (!h.faltaban) partes.push('No falta ninguna por número.')
   else partes.push(`Faltaban ${h.faltaban}; ${h.escritas === h.faltaban ? 'escritas todas' : `escritas ${h.escritas}`}${h.numeros ? ` (${h.numeros})` : ''}.`)
   if (h.escritas) partes.push(`${h.conCardmarket} con su id de Cardmarket${h.sinFoto ? `, ${h.sinFoto} sin foto en TCGdex` : ''}.`)
+  if (h.conFicha) partes.push(`Con su ficha de respaldo: ${h.conFicha}.`)
+  if (h.avisoTcgdex) partes.push(`TCGdex no contestó (${h.avisoTcgdex}): se ha usado lo de respaldo.`)
+  if (h.versiones?.error) partes.push(`Las versiones no se han podido escribir: ${h.versiones.error}.`)
+  else if (h.versiones?.creadas?.length) partes.push(`Versiones creadas: ${h.versiones.creadas.join(', ')}.`)
+  else if (h.versiones) partes.push('Las versiones ya estaban.')
+  if (h.versiones?.sinCarta?.length) partes.push(`Versiones sin su carta en el set: ${h.versiones.sinCarta.join(', ')}.`)
   if (h.enOtroSet?.length) partes.push(`Saltadas porque ya están en otro set: ${h.enOtroSet.map((x) => `${x.numero} (${x.id} en «${x.set}»)`).join(', ')}.`)
-  if (h.escritas) partes.push(r.web?.ok ? 'La web ya las enseña.' : 'La web puede tardar hasta diez minutos en enseñarlas.')
+  if (h.escritas || h.versiones?.creadas?.length) partes.push(r.web?.ok ? 'La web ya las enseña.' : 'La web puede tardar hasta diez minutos en enseñarlas.')
   return partes.join(' ')
 }

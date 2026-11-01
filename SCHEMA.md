@@ -41785,6 +41785,45 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1160 — Las MEP 89–92 con su ficha de respaldo y las versiones de la 92 y la 93
+
+PINGU mandó las fotos y la lista de Bulbapedia: en /admin las MEP pasan de la
+088 (Zarude, `tcggo-48516`) a la 093 (Pikachu, `tcggo-48518`). La 1158 las
+pedía a la API de TCGdex y no entraron; desde el contenedor no se llega ni a
+la API ni a la base, así que no se sabe si la API aún no las publica (se
+construye desde tcgdex/cards-database y va por detrás) o no contestó.
+
+**Fichas de respaldo** (`FICHAS_DE_RESPALDO` en `tcgdex-rellenar-set.mjs`):
+las cuatro copiadas de `data/Mega Evolution/MEP Black Star Promos/089–092.ts`
+(nombre, categoría, PS, tipos, fase, de qué evoluciona, Pokédex, ilustrador,
+marca, retirada, ataques, habilidad, debilidad, tipo de Entrenador y texto),
+con `rarity: 'Promo'` e impresión holo. `conRespaldo` las añade si la API no
+trae ese número y, si lo trae, le pone la ficha encima de lo de la API (que
+manda: foto incluida). Sin foto: no se inventa una dirección (la 441). Con
+TCGdex caído, si el set tiene respaldo se escribe igual y queda
+`avisoTcgdex`; sin respaldo, es un intento fallido como siempre.
+
+**Versiones** (`VERSIONES_EXTRA`, `versionesQueFaltan`): 092 «Staff» y 093
+«World Championships», «Play! Pokémon Winner» y «Pokémon Game On!» (los
+nombres de Bulbapedia), con su «Salió en». Clase `sello` (no cuentan para
+completar), icono `sello`. La Staff (905263) y la Winner (894885) llevan su
+producto de Cardmarket de cards-database y origen `tcgdex` (como las Ball de
+la 945); las otras dos no salen en ningún catálogo y van `mano`. Se crean si
+la carta no tiene ya una versión con ese nombre (`idDeVersion`, la misma
+cuenta que `catalogo_id_de_version`), sobre las cartas del set de antes y las
+recién escritas. Ids desde `BASE_ID_VERSIONES` (-900000) hacia abajo: la
+secuencia de /admin cuenta -1, -2…, y coger su siguiente haría chocar la
+próxima versión a mano. Si escribirlas falla, las cartas quedan y el fallo va
+en `versiones.error`.
+
+`rehacerDesde` pasa a 2026-11-01 16:30 UTC: la pasada programada lo repite
+sola. El botón «Traer ahora» y el estado de /admin dicen `conFicha`,
+`avisoTcgdex` y las versiones creadas o que no encontraron su carta.
+
+**Pruebas**: `test-tanda-1160.mjs` (lo puro; la pasada con la API hasta la
+088 escribe 089–092 con ficha y las cuatro versiones; la segunda vez no
+repite; TCGdex caído; versiones que fallan). 1158 y 1159 al día.
+
 ## Tanda 1159 — «Buscar en Cardmarket» y «Traer ahora lo que falta de TCGdex»
 
 PINGU: «en /admin hay un campo que pone Id de producto en Cardmarket. ¿De

@@ -657,7 +657,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   TCGdex vive en `js/rellenos-tcgdex.js` (la leen la pasada y /admin); en un
   set suyo, «Traer ahora lo que falta» (`tcgdex-rellenar-ahora`) la pasa al
   momento y dice qué se saltó y dónde estaba; `rehacerDesde` la repite y
-  olvida los intentos fallidos de antes. Y una
+  olvida los intentos fallidos de antes. Lo que la API de TCGdex aún no da va
+  en `FICHAS_DE_RESPALDO` (copiado de cards-database, sin foto), y una
+  versión que no es otra carta (Staff, sellos de evento) en `VERSIONES_EXTRA`
+  (1160: clase «sello», ids desde -900000, una vez por nombre). Y una
   clave de estado nueva va en `PASADAS` (`admin/js/semaforo.js`), que es
   la lista que /admin LEE: la 883 y la 884 escribieron su bloque sin
   meterla y el panel decía «todavía no ha corrido» de algo que corría.

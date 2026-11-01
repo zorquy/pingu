@@ -25,7 +25,7 @@ export async function traerAhora(req, { env = process.env, fetchImpl = fetch, es
   // Que la web lo enseñe ya: la estantería y las cartas de cada set salen
   // de una copia de la CDN con la etiqueta `sets` (978).
   let web = null
-  if (r?.ok && r.hecho?.escritas) web = await purgarImpl([ETIQUETA_CACHE], { env, fetchImpl }).catch((e) => ({ ok: false, error: String(e?.message || e) }))
+  if (r?.ok && (r.hecho?.escritas || r.hecho?.versiones?.creadas?.length)) web = await purgarImpl([ETIQUETA_CACHE], { env, fetchImpl }).catch((e) => ({ ok: false, error: String(e?.message || e) }))
   return json(r?.ok ? 200 : 502, { ...r, web })
 }
 

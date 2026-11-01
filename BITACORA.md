@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-01 (402) — PINGU-Claude (1160 — las MEP 89–92 y las versiones de la 92 y la 93)
+
+**Hecho**:
+- PINGU, con la lista de Bulbapedia: en /admin las MEP saltan de la 088 a la
+  093. La pasada de TCGdex (1158) no las metió: la API de TCGdex todavía no
+  las da o no contestó (no se puede saber desde aquí). Ahora la pasada lleva
+  sus FICHAS DE RESPALDO, copiadas de tcgdex/cards-database (089 Mega Zeraora
+  ex, 090 Mega Darkrai ex, 091 Mega Dragonite ex, 092 Paradise Resort): si la
+  API no trae un número de la lista, se escribe con eso (PS, tipos, ataques,
+  ilustrador, marca, su Cardmarket; sin foto). Con TCGdex caído también.
+- Versiones (PINGU: «92 la Staff; 93 World Championships, Play! Pokémon Winner
+  y Pokémon Game On!»): filas de `tcg_card_versions`, clase «sello», icono de
+  sello; la Staff (905263) y la Winner (894885) con su producto de Cardmarket
+  (origen `tcgdex`), las otras dos `mano`. Una vez: si la carta ya tiene una
+  versión con ese nombre, no se toca. Ids desde -900000 hacia abajo, lejos de
+  la secuencia de /admin.
+- `rehacerDesde` a las 16:30 UTC: la pasada programada lo hace sola en los
+  próximos diez minutos tras desplegar; «Traer ahora» también.
+- El botón y el estado de /admin dicen las fichas de respaldo, si TCGdex no
+  contestó y las versiones creadas.
+
+**Ficheros**: netlify/functions/tcgdex-rellenar-set.mjs,
+netlify/functions/tcgdex-rellenar-ahora.mjs, js/rellenos-tcgdex.js,
+admin/js/admin.js, CLAUDE.md, SCHEMA.md, novedades.json. Pruebas:
+test-tanda-1160.mjs nueva; 1158 y 1159 al día (TCGdex caído ya no es un
+intento si hay respaldo; el doble separa cartas de versiones).
+
+**Pendiente (PINGU)**: las fotos de las 89–92 y de las cuatro versiones en
+/admin → Colecciones → MEP → la carta (y en cada versión). Si «World
+Championships» resulta ser la misma que la 93 normal, se borra desde la carta.
+
 ## 2026-11-01 (401) — PINGU-Claude (1159b — el relleno de TCGdex y la guía de Cardmarket en el estado de /admin)
 
 **Hecho**:
