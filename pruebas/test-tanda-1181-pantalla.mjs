@@ -37,19 +37,34 @@ async function abrir(movil) {
   return { ctx, page, errores }
 }
 
-for (const [nombre, movil, alto, cifraMax] of [['PC', false, 200, 999], ['móvil', true, 160, 40]]) {
+// 140 y 112 desde la segunda vuelta: con 200 y 160 se comía media pantalla.
+for (const [nombre, movil, alto, cifraMax] of [['PC', false, 140, 999], ['móvil', true, 112, 40]]) {
   console.log(`\n── ${nombre} ──`)
   const { ctx, page, errores } = await abrir(movil)
   const m = await page.evaluate(() => {
     const r = (s) => document.querySelector(s)?.getBoundingClientRect()
     const caja = r('#mcValorCaja .mc-valor-lienzo'), svg = r('#mcValorCaja .mc-valor-grafica')
     const cifra = document.querySelector('#mcValorCaja .mc-cartera-cifra')
-    return { caja: caja && Math.round(caja.height), svg: svg && Math.round(svg.height), hueco: caja && svg ? Math.round(caja.bottom - svg.bottom) : null, cifra: cifra ? parseFloat(getComputedStyle(cifra).fontSize) : null }
+    // El final de la LÍNEA (no del relleno) contra el centro del punto, y el
+    // punto con su halo (4 px) dentro de la caja y de la pantalla.
+    const linea = document.querySelector('#mcValorCaja .mc-valor-linea')
+    const fin = linea.getPointAtLength(linea.getTotalLength()), ctm = linea.getScreenCTM()
+    const fx = fin.x * ctm.a + ctm.e, fy = fin.y * ctm.d + ctm.f
+    const p = document.querySelector('#mcValorCaja .mc-valor-punto').getBoundingClientRect()
+    const px = p.left + p.width / 2, py = p.top + p.height / 2, halo = p.width / 2 + 4
+    return {
+      caja: caja && Math.round(caja.height), svg: svg && Math.round(svg.height), hueco: caja && svg ? Math.round(caja.bottom - svg.bottom) : null,
+      cifra: cifra ? parseFloat(getComputedStyle(cifra).fontSize) : null,
+      desfase: Math.round(Math.hypot(px - fx, py - fy)),
+      holgura: { arriba: Math.round(py - halo - caja.top), derecha: Math.round(Math.min(caja.right, innerWidth) - (px + halo)) },
+    }
   })
   check('la gráfica está', m.caja && m.svg, JSON.stringify(m))
   check(`la caja mide ${alto} px`, m.caja === alto, JSON.stringify(m))
   check('  …y el dibujo la llena, sin hueco debajo', m.svg === m.caja && Math.abs(m.hueco) <= 1, JSON.stringify(m))
   check(`la cifra no pasa de ${cifraMax} px`, m.cifra !== null && m.cifra <= cifraMax, JSON.stringify(m))
+  check('el punto de hoy cae en el final de la línea', m.desfase <= 1, JSON.stringify(m))
+  check('  …y con su halo no se sale de la caja ni de la pantalla', m.holgura.arriba >= 0 && m.holgura.derecha >= 0, JSON.stringify(m.holgura))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

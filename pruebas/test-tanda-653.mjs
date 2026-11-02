@@ -125,8 +125,9 @@ console.log('\n── 4. En pantalla: más prieto ──')
   check('la cabecera no ocupa y lo que vale va arriba', hero === 0 && cifra && cifra.y < 160, JSON.stringify({ hero, cifra }))
   check('la nota vacía no ocupa', await page.locator('#mcResumenNota').evaluate((n) => n.textContent === '' && getComputedStyle(n).display === 'none'))
   const grafica = await page.locator('.mc-valor-un-punto').evaluate((n) => n.getBoundingClientRect().height)
-  // En la cartera (748) mide lo que su hueco, 128: así no salta al llegar.
-  check('con un punto, la gráfica mide lo que su hueco', grafica === 128, String(grafica))
+  // En la cartera (748) mide lo que su hueco: así no salta al llegar. 128
+  // hasta la 1179; 140 desde la 1181, caja y dibujo a la vez.
+  check('con un punto, la gráfica mide lo que su hueco', grafica === 140, String(grafica))
   check('  …y no hay párrafo debajo', (await page.locator('#mcValorCaja p.subtext').count()) === 0)
   const huecos = await page.locator('#mcVistazos').evaluate((n) => getComputedStyle(n).gap)
   check('los vistazos van a un paso menos', huecos === '24px', huecos)
