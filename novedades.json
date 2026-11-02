@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-02",
       "tipo": "mejora",
+      "texto": "En el Panel de Mi colección, «Últimas añadidas» dice cuándo metiste cada carta, las dos tiras de cartas van con nombre y del mismo tamaño, y las expansiones ocupan una fila cada una.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-02",
+      "tipo": "mejora",
       "texto": "El Panel de Mi colección, ordenado como una cartera: en el PC, lo grande a la izquierda y lo que se mira de reojo (movimientos, alertas, cambios) a la derecha; lo que pagaste, en una línea discreta bajo la gráfica.",
       "enlace": "/mi-coleccion"
     },

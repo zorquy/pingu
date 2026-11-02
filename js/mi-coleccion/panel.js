@@ -360,15 +360,34 @@ function vistazoDeValiosas(valiosas) {
     const c = v.carta
     const escaneo = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : ''
     const nombre = ctx.nombreDe(c)
-    return `<span class="mc-valiosa"><a class="mc-vistazo-carta" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`${nombre}: ${euros(v.valor)}`)}">${
+    // La misma ficha que «Últimas añadidas» (1175, V2): la carta, el dato
+    // (lo que vale una copia) y el nombre.
+    return `<span class="mc-vistazo-ficha mc-valiosa"><a class="mc-vistazo-carta" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`${nombre}: ${euros(v.valor)}`)}">${
       escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
         : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
-    }</a><b>${escapeHtml(euros(v.valor))}</b></span>`
+    }</a><b>${escapeHtml(euros(v.valor))}</b><small>${escapeHtml(nombre)}</small></span>`
   }).join('')
   // Su «Ver todas» abre el RANKING (1171), no la pestaña Cartas: lo que
   // promete el título.
   return vistazoHtml('Las que más valen', 'ranking', `<div class="mc-vistazo-cartas mc-valiosas">${cuerpo}</div>`)
     .replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcValiosas">')
+}
+
+// «hoy», «ayer», «hace 3 días» o el día (1175), para la tira de las
+// últimas añadidas. Puro, con `ahora` para probarlo.
+export function cuandoDe(iso, ahora = Date.now()) {
+  if (!iso) return ''
+  const t = new Date(iso).getTime()
+  if (!Number.isFinite(t)) return ''
+  const medianoche = (ms) => { const d = new Date(ms); d.setHours(0, 0, 0, 0); return d.getTime() }
+  const dias = Math.round((medianoche(ahora) - medianoche(t)) / 86_400_000)
+  if (dias <= 0) return 'hoy'
+  if (dias === 1) return 'ayer'
+  if (dias < 30) return `hace ${dias} días`
+  const d = new Date(t)
+  return d.getFullYear() === new Date(ahora).getFullYear()
+    ? d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+    : d.toLocaleDateString('es-ES', { month: 'short', year: 'numeric' })
 }
 
 function vistazoDeCartas() {
@@ -386,10 +405,11 @@ function vistazoDeCartas() {
     // `data-carta` es lo que hace que se abra la ficha EN LA MISMA PÁGINA
     // (tanda 562): el `href` se queda para el Ctrl+clic, para el «abrir en
     // otra pestaña» del móvil y para cuando no hay JavaScript.
-    return `<a class="mc-vistazo-carta" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">${
+    // Con el dato que esta tira contesta (1175, V2): CUÁNDO la metiste.
+    return `<span class="mc-vistazo-ficha"><a class="mc-vistazo-carta" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`${nombre}, ${cuandoDe(l.created_at)}`)}">${
       escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
         : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
-    }</a>`
+    }</a><b>${escapeHtml(cuandoDe(l.created_at))}</b><small>${escapeHtml(nombre)}</small></span>`
   }).join('')
   // «Últimas añadidas» y a la vista Añadidas (1172): «Tus cartas» no decía
   // nada que no dijera la pestaña Cartas, y su Ver todas abría esa pestaña.
@@ -462,7 +482,7 @@ function vistazoDeSets(sets) {
     // una huérfana en cualquier otro ancho que no sea el que miraste. Se
     // pide UNA FILA en el CSS y las que sobren caen en filas de alto cero.
     // Es exactamente lo que ya hace «Tus cartas» desde la tanda 446.
-    .slice(0, 6)
+    .slice(0, 4)
   if (!conAlgo.length) {
     return vistazoHtml('Expansiones', 'album', '<p class="empty-state">Cuando añadas cartas, aquí verás por dónde vas en cada colección.</p>')
   }
@@ -470,7 +490,8 @@ function vistazoDeSets(sets) {
   // las empezadas» se quita al llegar, en el manejador del vistazo).
   // PINGU: «cuando le des a ver todas, que no te lleve a solo las
   // empezadas, que te deje ver todas directamente».
-  return vistazoHtml('Expansiones', 'album', `<div class="mc-estanteria mc-vistazo-sets">${conAlgo.map((x) => ctx.tarjetaDeSet(x.set, x.tengo)).join('')}</div>`).replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcVistazoSets">')
+  // En FILAS (1175, V3): hasta cuatro, dos por fila en el PC.
+  return vistazoHtml('Expansiones', 'album', `<div class="mc-set-filas">${conAlgo.map((x) => ctx.filaDeSetHtml(x.set, x.tengo)).join('')}</div>`).replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcVistazoSets">')
 }
 
 // La tarjeta de Cambios del Panel: dos cifras y la puerta. Las dos salen

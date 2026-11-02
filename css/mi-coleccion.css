@@ -6879,15 +6879,94 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   background: var(--danger-bg);
 }
 /* Las que más valen (925): la carta y lo que vale una copia debajo. */
-.mc-valiosa {
+/* UNA FICHA DE CARTA PARA LAS DOS TIRAS (925 → 1175, V2): la carta, el
+   dato en negrita (lo que vale una copia, o cuándo la metiste) y el nombre
+   debajo, recortado. */
+.mc-vistazo-ficha {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  text-align: center;
+}
+.mc-vistazo-ficha > b {
+  margin-top: 2px;
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mc-vistazo-ficha > small {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* LAS EXPANSIONES DEL PANEL EN FILAS (1175, V3): logo, nombre con su barra y
+   «14 / 252»; dos por fila en el PC, una en el móvil. */
+.mc-set-filas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-sm);
+}
+.mc-set-fila {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  gap: var(--e-sm);
+  align-items: center;
+  min-height: 56px;
+  padding: var(--e-sm) var(--e-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mc-set-fila:hover {
+  background: var(--ice-dark);
+}
+.mc-set-fila-logo {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 32px;
+}
+.mc-set-fila-logo img {
+  max-width: 48px;
+  max-height: 32px;
+  object-fit: contain;
+}
+.mc-set-fila-nombre {
   display: grid;
   gap: var(--e-xs);
   min-width: 0;
 }
-.mc-valiosa > b {
+.mc-set-fila-nombre b {
+  font-size: var(--t-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mc-set-fila .mc-barra {
+  flex: none;
+  height: 4px;
+  background: var(--white);
+}
+.mc-set-fila em {
+  font-style: normal;
+  font-weight: 700;
   font-size: var(--t-sm);
   font-variant-numeric: tabular-nums;
-  text-align: center;
+  white-space: nowrap;
+}
+.mc-set-fila.completo em {
+  color: var(--success);
+}
+@media (max-width: 600px) {
+  .mc-set-filas { grid-template-columns: 1fr; }
 }
 .mc-esq-grafica {
   height: 128px;

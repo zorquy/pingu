@@ -41785,6 +41785,27 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1175 — Las dos tiras de cartas iguales y las expansiones del Panel en filas
+
+V2 y V3 de la propuesta de orden.
+
+**`.mc-vistazo-ficha`** (panel.js, `vistazoDeValiosas` y `vistazoDeCartas`):
+`<span class="mc-vistazo-ficha"><a class="mc-vistazo-carta" data-carta>…</a>
+<b>dato</b><small>nombre</small></span>`. El dato de «Las que más valen» es
+lo que vale una copia (la 925 sigue leyendo el `b`); el de «Últimas
+añadidas», `cuandoDe(created_at, ahora)` (exportada, pura): «hoy», «ayer»,
+«hace N días» hasta 29, y después el día («18 sept») o, de otro año, «sept
+2025». Las dos tiras comparten `.mc-vistazo-cartas` (una fila, las que
+quepan) y por eso miden igual.
+
+**`filaDeSetHtml(set, tengo)`** (mi-coleccion.js, en `ctxPanel`): la misma
+cadena de dibujos que `tarjetaDeSet` (logos de pago, TCGdex, a mano, el
+inglés, el símbolo) en un `button.mc-set-fila[data-set][data-market]` con
+`.mc-set-fila-logo`, `.mc-set-fila-nombre` (nombre y `.mc-barra`) y `em`
+(«14 / 252», en verde si está completa). `vistazoDeSets` pinta hasta CUATRO
+en `.mc-set-filas` (dos columnas; una por debajo de 600 px). El oyente de
+`[data-set]` del Panel abre la expansión igual que con la tarjeta.
+
 ## Tanda 1174 — El Panel en dos columnas de verdad, un molde de ficha y lo pagado en una línea
 
 O1 y V1 de la propuesta de orden del Panel, más lo que PINGU dijo de la

@@ -1744,6 +1744,7 @@ const ctxPanel = {
   barrasHtml,
   filaDeCartaHtml,
   tarjetaDeSet,
+  filaDeSetHtml,
   cargarSetsDeTodos,
   cuantasPorSet,
   totalDe,
@@ -3300,6 +3301,30 @@ function anilloDeSet(tengo, total) {
 function simboloDeSetHtml(set) {
   const url = typeof set?.symbol_tcggo === 'string' && /^https:\/\//.test(set.symbol_tcggo) ? set.symbol_tcggo : null
   return url ? `<img class="mc-simbolo" ${atributosDeEscaneo([url], 'this.remove()')} alt="" width="16" height="16" loading="lazy" />` : ''
+}
+
+// LA FILA DE UNA EXPANSIÓN EN EL PANEL (1175, V3 de la propuesta de
+// orden): logo, nombre, la barra y «14 / 252». La tarjeta entera de la
+// estantería (`tarjetaDeSet`, con portada, era, valor y gráfica) ocupaba
+// 200 px en el Panel para decir «14 de 252»; aquí caben cuatro en ese
+// sitio. Mismo `data-set`/`data-market`: el oyente del Panel abre la
+// expansión igual.
+function filaDeSetHtml(set, tengo) {
+  const total = totalDe(set)
+  const pct = total ? Math.round((tengo / total) * 100) : 0
+  const suMercado = set.market || mercado
+  const logo = urlDeLogo(set.logo_path, suMercado)
+  const logoAMano = set.logo_path ? null : urlDeLogoPorPartes(set.serie_id, set.id, suMercado)
+  const logoIngles = suMercado === 'WEST' ? null : urlDeLogoPorPartes(set.serie_id, set.id, 'WEST')
+  const simbolo = set.symbol_url ? `${set.symbol_url}.webp` : null
+  const dibujos = [...logosDePago({ market: suMercado, ...set }), logo, logoAMano, logoIngles, set.symbol_scrydex, simbolo].filter(Boolean)
+  const completo = total && tengo >= total
+  const nombre = nombreDeSet(set) || set.id
+  return `<button type="button" class="mc-set-fila${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}" data-market="${escapeHtml(suMercado)}" aria-label="${escapeHtml(`${nombre}: ${total ? `${tengo} de ${total}` : `${tengo} cartas`}`)}">
+    <span class="mc-set-fila-logo">${dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />` : ''}</span>
+    <span class="mc-set-fila-nombre"><b>${escapeHtml(nombre)}</b>${total ? `<span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}</span>
+    <em>${total ? `${tengo} / ${total}` : tengo}</em>
+  </button>`
 }
 
 function tarjetaDeSet(set, tengo) {

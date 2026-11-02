@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (419) — PINGU-Claude (1175 — las dos tiras de cartas iguales y las expansiones del Panel en filas)
+
+**Hecho** (V2 y V3 de la propuesta de orden):
+- **Una ficha para las dos tiras** (`.mc-vistazo-ficha`): la carta, el dato
+  en negrita y el nombre debajo. En «Las que más valen», lo que vale una
+  copia; en «Últimas añadidas», cuándo la metiste (`cuandoDe`: hoy, ayer,
+  hace N días, o el día). Las dos del mismo tamaño (antes, cuatro grandes y
+  siete pequeñas sin nombre).
+- **Expansiones en filas** (`filaDeSetHtml` en mi-coleccion.js, por
+  `ctxPanel`): logo, nombre, la barra y «14 / 252», hasta cuatro, dos por
+  fila en el PC y una en el móvil (`.mc-set-filas`). Mismo `data-set`: abre
+  la expansión igual. La tarjeta grande queda para la estantería.
+
+**Ficheros**: js/mi-coleccion.js, js/mi-coleccion/panel.js,
+css/mi-coleccion.css, SCHEMA.md, novedades.json.
+Pruebas: test-tanda-1175-pantalla.mjs nueva; 672 y 485 ajustadas; 925, 562,
+649 verdes.
+
+**Pendiente**: 1176 («Más» y el móvil); la ronda 10.
+
 ## 2026-11-02 (418) — PINGU-Claude (1174 — el Panel en dos columnas de verdad, un molde de ficha y lo pagado en una línea)
 
 **Hecho** (PINGU: «dale a las tres tandas con lo recomendado», y «lo de
