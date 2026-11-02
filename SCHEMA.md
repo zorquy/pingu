@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1185 — Una portada que cuadra (la A)
+
+PINGU: «los cinco primeros bloques están en orden. Pero luego todo está
+descuadrado», la guía grande de Aprende «ocupa demasiado» y los retos salen dos
+veces. Se propusieron tres órdenes; eligió A, «filas que cuadran», con lo
+recomendado (cuatro guías iguales, los retos en los dos sitios, «Escribe una
+guía» dentro de Aprende).
+
+- **PC (≥ 960 px)**: `.panel-portada` es una rejilla de seis pistas
+  (`components.css`) y sus dos envoltorios van en `display: contents`, así que
+  cada `section` es una celda. `portada.css` las coloca con `order` y
+  `grid-column`: Sigue (6) · torneo y lanzamiento (3 + 3, o 6 si falta uno) ·
+  foro (4) y noticias (2) · Aprende (6) · primeros pasos (6, con sus tres pasos
+  en fila) · retos, clasificación y comunidad (2 + 2 + 2, o 3 + 3 si falta
+  uno). La fila mide lo que su caja más alta y el hijo único de cada sección
+  lleva `height: 100%`: por eso cuadra traiga cada bloque el texto que traiga.
+  Lo que falta se sabe por `.seccion-recogida` (`recogerSeccion` y `recoger`)
+  y por `#homeActivity.hidden`, con `:has`.
+- **Aprende**: `aprendeHtml` pinta cuatro `tarjetaDeGuia` iguales
+  (`.pb-aprende-cuatro`); a ~260 px la tarjeta entra en su `@container` compacto
+  (arte de 68 px y descripción en dos líneas). La grande, su pie con autor y
+  guardar, y la lista con `filaDeGuia` se fueron, y con ellos `guia-fila.js`
+  sale del grafo de la portada. `escribir` pone «Escribe una guía»
+  (`.pb-escribir`) en la cabecera, al lado de «Todas las guías».
+- **«Escribe una guía»**: era la caja de `#lanzamientoSeccion` con cuenta
+  (1010). Ahora, con cuenta, `cargarLanzamiento` recoge la sección; sin cuenta
+  sigue enseñando el próximo set.
+- **Móvil**: el orden de siempre (S780.188). Las cuatro guías van en una tira
+  que se desliza (78 % de ancho, `scroll-snap`), con `scroll-padding-inline`:
+  sin él el ajuste pegaba la primera al borde del contenedor y se cortaba.
+
+Prueba: `test-tanda-1185-pantalla.mjs` (filas, alturas iguales, cuatro guías,
+dos líneas de descripción, la última fila con y sin clasificación, la tira del
+móvil y la portada sin cuenta).
+
 ## Tanda 1184 — El desplegable de Conversaciones, dentro de su caja
 
 La 1168 convirtió `.nav-bell-dropdown` (la caja de la campana Y del sobre) en

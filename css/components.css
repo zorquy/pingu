@@ -2562,11 +2562,16 @@ body.portada-compacta .page-content {
 }
 
 @media (min-width: 960px) {
+  /* Filas que cuadran (1185): seis pistas; lo coloca portada.css. */
   .panel-portada {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 340px;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
     gap: var(--e-xl);
-    align-items: start;
+  }
+
+  .portada-principal,
+  .portada-lateral {
+    display: contents;
   }
 
   /* S780.127 */

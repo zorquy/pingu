@@ -311,22 +311,31 @@
   color: var(--blanco-fijo);
 }
 
-.pb-aprende-rejilla {
+/* Cuatro guías iguales (1185): en el móvil, una tira que se desliza. */
+.pb-aprende-cuatro {
   display: grid;
-  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
-  gap: var(--e-md);
-  align-items: start;
-}
-
-.pb-aprende-grande {
-  display: grid;
-  gap: var(--e-sm);
-}
-
-.pb-aprende-lista {
-  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--e-md);
 }
+
+.pb-cab-enlaces {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-lg);
+}
+
+.pb-escribir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 32px;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.pb-escribir:hover { color: var(--navy); }
 
 /* ── Noticias ── */
 .pb-noticia {
@@ -577,8 +586,20 @@
     display: none;
   }
 
-  .pb-aprende-rejilla {
-    grid-template-columns: minmax(0, 1fr);
+  .pb-aprende-cuatro {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--e-lg);
+    margin-right: calc(var(--e-lg) * -1);
+    margin-left: calc(var(--e-lg) * -1);
+    padding: 0 var(--e-lg) var(--e-xs);
+    scrollbar-width: none;
+  }
+
+  .pb-aprende-cuatro > * {
+    flex: 0 0 78%;
+    scroll-snap-align: start;
   }
 
   .pb-temas {

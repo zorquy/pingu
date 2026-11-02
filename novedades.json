@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-02",
+      "tipo": "mejora",
+      "texto": "La portada está ordenada en filas: el foro con las noticias al lado, las guías a lo ancho con cuatro del mismo tamaño y, abajo, los retos, la clasificación y la comunidad. Ya no quedan huecos. «Escribe una guía» está ahora junto a las guías.",
+      "enlace": "/"
+    },
+    {
+      "fecha": "2026-11-02",
       "tipo": "arreglo",
       "texto": "El desplegable de mensajes de arriba vuelve a caber en su caja: con muchas conversaciones se salía por debajo y se montaba encima de la página.",
       "enlace": "/mensajes"

@@ -19,7 +19,6 @@ import { hojaInyectada } from './hoja.js'
 import { rutaDeArticulo, cuandoFue, conVueltaAtrasDeTipo } from './articulos.js'
 import { haceCuanto, perfilesPorId, urlTema, etiquetaHtml, nombreDe } from './foro-comun.js'
 import { tarjetaDeGuia } from './guia-tarjeta.js'
-import { filaDeGuia, hoja as hojaFila } from './guia-fila.js'
 import { sinMigracion } from './sin-migracion.js'
 
 export const hoja = typeof document !== 'undefined' ? hojaInyectada('css/portada-bloques.css') : Promise.resolve()
@@ -203,18 +202,19 @@ async function datosDelForoAntiguo(session) {
 // grande es la tarjeta de guía de siempre (una sola tarjeta, la 316) y las
 // otras, la misma en fila. (La «guía destacada» de /admin se fue en la 1119:
 // PINGU, «eso no lo vamos a hacer».)
-export function aprendeHtml({ guias, temas = [], activo = '', progreso = null }) {
+// Desde la 1185 (la A de «Una portada que cuadra»): cuatro tarjetas IGUALES a
+// lo ancho —la grande medía el doble que las otras tres juntas— y «Escribe una
+// guía» en la cabecera, en vez de una caja suelta encima de las noticias.
+export function aprendeHtml({ guias, temas = [], activo = '', progreso = null, escribir = false }) {
   const chips = [`<button type="button" class="pb-tema${activo ? '' : ' activo'}" data-tema="" aria-pressed="${activo ? 'false' : 'true'}">Novedades</button>`]
     .concat(temas.map((c) => `<button type="button" class="pb-tema${activo === c.id ? ' activo' : ''}" data-tema="${escapeHtml(c.id)}" aria-pressed="${activo === c.id ? 'true' : 'false'}">${escapeHtml(c.name)} <small>${c.guide_count ?? 0}</small></button>`))
     .join('')
-  const [grande, ...resto] = guias || []
-  const cuerpo = grande
-    ? `<div class="pb-aprende-rejilla">
-        <div class="pb-aprende-grande">${tarjetaDeGuia(grande, { progreso, categoria: grande.categories?.name || '', pie: true })}</div>
-        <div class="pb-aprende-lista">${resto.slice(0, 3).map((g) => filaDeGuia(g, { progreso })).join('')}</div>
-      </div>`
+  const cuerpo = guias?.length
+    ? `<div class="pb-aprende-cuatro">${guias.slice(0, 4).map((g) => tarjetaDeGuia(g, { progreso, categoria: g.categories?.name || '' })).join('')}</div>`
     : '<p class="pb-vacio">De este tema todavía no hay guías.</p>'
-  return `${cabecera('Aprende', verTodo(activo ? `/aprender.html?tema=${encodeURIComponent(temas.find((c) => c.id === activo)?.slug || '')}` : '/aprender.html', 'Todas las guías'))}
+  const todas = verTodo(activo ? `/aprender.html?tema=${encodeURIComponent(temas.find((c) => c.id === activo)?.slug || '')}` : '/aprender.html', 'Todas las guías')
+  const escribe = escribir ? `<a class="pb-escribir" href="/editor-guia.html">${ic('edit', 14)} Escribe una guía</a>` : ''
+  return `${cabecera('Aprende', `<span class="pb-cab-enlaces">${escribe}${todas}</span>`)}
     <div class="pb-temas" role="group" aria-label="Temas">${chips}</div>
     <div class="pb-aprende-cuerpo">${cuerpo}</div>`
 }
@@ -252,11 +252,9 @@ async function montarAprende(session) {
   let progreso = await progresoDe(session, guias).catch(() => null)
   let version = 0
   const pintar = (activo) => {
-    caja.innerHTML = aprendeHtml({ guias: porTema[activo] || [], temas, activo, progreso })
-    // El autor y el guardar de la tarjeta grande, como en /aprender (la 316).
-    import('./guide-card.js').then(({ decorateGuideCards }) => decorateGuideCards(caja, session)).catch(() => {})
+    caja.innerHTML = aprendeHtml({ guias: porTema[activo] || [], temas, activo, progreso, escribir: Boolean(session) })
   }
-  await Promise.all([hoja, hojaFila])
+  await hoja
   pintar('')
   document.getElementById('recientesSeccion').style.display = ''
   caja.addEventListener('click', async (e) => {

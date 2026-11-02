@@ -4,6 +4,40 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (429) — PINGU-Claude (1185 — una portada que cuadra, la A)
+
+**Hecho**: PINGU, con captura del PC: «los cinco primeros bloques están en
+orden, pero luego todo está descuadrado». Propuesta con tres opciones
+(artifact «Portada PokeDoc ordenada»); eligió la A con lo recomendado. En el
+PC la portada ya no son dos columnas que crecen a su aire: `.panel-portada` es
+una rejilla de seis pistas, `.portada-principal` y `.portada-lateral` van en
+`display: contents` y `portada.css` coloca cada sección por filas (Sigue ·
+torneo y lanzamiento · foro 2/3 y noticias 1/3 · Aprende a lo ancho ·
+primeros pasos con sus tres pasos en fila · retos, clasificación y comunidad
+en tercios). Las cajas de una fila se estiran a la más alta; cuando falta una
+(sección recogida o `#homeActivity.hidden`) las otras se reparten la fila con
+`:has`. Aprende pinta CUATRO tarjetas de guía iguales (`pb-aprende-cuatro`;
+la grande y las filas se fueron) y «Escribe una guía» pasa a su cabecera
+(`pb-escribir`, solo con cuenta): con cuenta, `cargarLanzamiento` ya no pinta
+esa caja y recoge la sección. En el móvil el orden no cambia y las guías van en
+una tira que se desliza (con `scroll-padding`, o la primera se cortaba).
+
+La última fila va por la clase `.fila-final` (en `index.html`), no por los
+ids: la 362 exige que las reglas vayan por POSICIÓN y el id del reto solo para
+su orden del móvil.
+
+**Ficheros**: `index.html`, `js/portada-bloques.js`, `js/home.js`,
+`css/components.css`, `css/portada.css`, `css/portada-bloques.css`,
+`SCHEMA.md` (1185), `novedades.json`; en `pruebas`,
+`test-tanda-1185-pantalla.mjs` (nueva) y, por el orden nuevo, la 300, 316, 785,
+844 y 1010; la 1183 (sin cuenta es `'none'`, no `null`). Verdes todas las que
+tocan la portada (1010, 1012, 1040, 1153, 269, 300, 316, 319, 362, 656, 785,
+843–847, 863–866, 1017, 1023, 299 e imports). La 981 sigue roja SOLO en
+/mi-coleccion (0,751, igual sin este cambio); la portada da 0,064.
+
+**Pendiente**: PINGU pregunta por una página de EVENTOS (card shows, trade
+days) y si hablar con TCG Map Spain: está en la conversación, sin tanda aún.
+
 ## 2026-11-02 (428) — PINGU-Claude (1184 — el desplegable de Conversaciones se salía por abajo)
 
 **Hecho**: PINGU, con captura del PC: el sobre de la barra pintaba las
