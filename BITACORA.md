@@ -38,11 +38,16 @@ una propuesta descartada (Netlify no la despliega); se puede borrar.
   bloques del Panel A, sin el aviso de «sin precio»), 408 y 651 (Cambios
   fuera del Panel; seis chips), 426 (entra por «Todas tus cartas»), 428
   (la tarjeta de lo pagado está en Estadísticas), 715 (cifra ≥ 34 px), 925
-  (Movimientos con el molde de tira), 1015, 756 y 1017 (`valorComoElPanel`).
+  (Movimientos en tira de ocho), 1015, 756 y 1017 (`valorComoElPanel`).
+  Repetidas una a una después: todas en verde.
   Y rojos de ANTES de esta tanda que arreglé en la prueba: 326 (48 pies desde
   /avisos), 406 (el body reserva la barra, 1020), 412 (el ajuste de añadir se
-  fue del ⋯ en la 1053), 748 y 869 («Mis partidas» desde la 1162), 766 (sin
-  `#mcDoyCompartir` desde la 1114), 781 (acento de sección, 1018 y 1024).
+  fue del ⋯ en la 1053), 748 y 869 («Mis partidas» desde la 1162), 781
+  (acento de sección, 1018 y 1024). En la 766 quité el `#mcDoyCompartir`
+  (se fue en la 1114), pero siguen DOS rojos que no son de esta tanda: el
+  destello del álbum se mueve con «menos movimiento» puesto, y sin
+  `coleccion_quien_la_tiene` no se pregunta carta a carta (no lo he mirado
+  contra HEAD: antes la prueba se caía antes de llegar ahí).
   Quedan rojos de antes SIN tocar: 311 (`#9a3412` en auth.css, 20px/10px),
   327 (la barra se sale 4 px a 1400 con el chip), y 369, 370 y 376 (fotos
   del editor y los bolsillos, y 3 de 4 cartas en un cruce): rojos también
