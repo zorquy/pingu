@@ -6971,8 +6971,6 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   .mc-set-filas { grid-template-columns: 1fr; }
   /* Y dos baldosas, no cuatro (1178): lo demás está en «Ver todas». */
   #mcVistazoSets .mc-set-fila:nth-child(n + 3) { display: none; }
-  #mcPanelResumen .mc-cartera-cifra { font-size: var(--t-3xl); }
-  #mcPanelResumen .mc-cartera .mc-valor-lienzo, #mcPanelResumen .mc-cartera-esq-lienzo { height: 160px; }
   /* Y las tiras de cartas a tres por fila (1176, V5; la regla de la 1033). */
   .mc-vistazo-cartas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -7355,7 +7353,18 @@ button.mc-cifra-ficha:hover { background: var(--ice-dark); }
 #mcMas { order: 10; }
 /* La cifra, más grande; la gráfica, más alta: es lo que se viene a ver. */
 #mcPanelResumen .mc-cartera-cifra { font-size: calc(var(--t-3xl) * 1.3); }
-#mcPanelResumen .mc-cartera .mc-valor-lienzo, #mcPanelResumen .mc-cartera-esq-lienzo { height: 200px; }
+/* La caja Y el dibujo, al mismo alto (1181): con solo la caja a 200 el SVG
+   se quedaba en sus 128 y dejaba 72 px vacíos debajo. Y lo del móvil va
+   DETRÁS, o esta regla le gana por orden (pasaba con la cifra también). */
+#mcPanelResumen .mc-cartera .mc-valor-lienzo,
+#mcPanelResumen .mc-cartera .mc-valor-grafica,
+#mcPanelResumen .mc-cartera-esq-lienzo { height: 200px; }
+@media (max-width: 600px) {
+  #mcPanelResumen .mc-cartera-cifra { font-size: var(--t-3xl); }
+  #mcPanelResumen .mc-cartera .mc-valor-lienzo,
+  #mcPanelResumen .mc-cartera .mc-valor-grafica,
+  #mcPanelResumen .mc-cartera-esq-lienzo { height: 160px; }
+}
 
 /* El dato de cambio de una ficha de tira: el tanto por ciento de una
    movida, en verde o en rojo. */

@@ -41785,6 +41785,23 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1181 — La gráfica del Panel llena su caja
+
+PINGU mandó una captura del Panel en el móvil: entre la gráfica y los
+periodos (7D, 1M…) había una franja vacía. Era de la 1179: para el Panel
+«A · Cartera» subí la CAJA de la gráfica (`.mc-valor-lienzo`) a 200 px y dejé
+el DIBUJO (`.mc-valor-grafica`, el SVG) en los 128 que le pone `.mc-cartera`:
+72 px de nada debajo. Y la regla iba en la hoja DETRÁS de la del móvil (160 px
+y la cifra en `--t-3xl`), con la misma especificidad, así que el móvil
+tampoco cogía ni su alto ni su cifra: la trampa de la 306 (lo que llega
+después gana por orden) dentro de la misma tanda.
+
+Ahora caja y dibujo van en la misma regla (200 en el PC, 160 en el móvil) y
+lo del móvil va justo detrás de lo del PC. Lo vigila
+`test-tanda-1181-pantalla.mjs`: en los dos anchos el SVG mide lo que su caja
+y acaba donde ella, y la cifra del móvil no pasa de 40 px. Contra la versión
+de antes da los 72 px de hueco.
+
 ## Tanda 1180 — En tus álbumes, lo que falta en color
 
 PINGU, con una captura de un álbum de Mega EX: «las cartas que no tienes salen

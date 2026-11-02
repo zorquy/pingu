@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (424) — PINGU-Claude (1181 — la gráfica del Panel sin hueco debajo)
+
+**Hecho**: PINGU mandó captura del Panel en el móvil con una franja vacía bajo
+la gráfica. Era de la 1179: la caja a 200 px y el SVG en 128 (72 px vacíos), y
+la regla detrás de la del móvil, que perdía su alto (160) y su cifra. Caja y
+dibujo en la misma regla, y el móvil detrás.
+
+**Ficheros**: `css/mi-coleccion.css`, `SCHEMA.md` (1181), `novedades.json`; en
+`pruebas`, `test-tanda-1181-pantalla.mjs` (verde; contra la de antes, 72 px
+de hueco). Verdes también 1178, 1173, 1175, 1155, 377, 715, 1015, 299, 313 e
+imports.
+
+**Pendiente**: la propuesta de la barra del álbum (botones finos, Todas/Tengo/
+Faltan en uno, gris e iconos, álbum que cabe) está con PINGU, sin tocar nada.
+
 ## 2026-11-02 (423) — PINGU-Claude (1180 — en tus álbumes, lo que falta en color)
 
 **Hecho**: en un álbum tuyo (o el público de otro) las cartas que faltan ya no

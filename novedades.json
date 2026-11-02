@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-02",
+      "tipo": "arreglo",
+      "texto": "La gráfica de lo que vale tu colección ya no deja una franja vacía debajo en el Panel, y en el móvil la cifra vuelve a su tamaño.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-02",
       "tipo": "mejora",
       "texto": "En tus álbumes, las cartas que te faltan ya no salen en gris: se ven en color, con su «+» para añadirlas, y las que tienes llevan su check. Quedan más bonitos para enseñarlos. En la vista de una expansión lo que falta sigue en gris, que ahí sirve para ver qué te queda.",
       "enlace": "/mi-coleccion?ver=carpetas"
