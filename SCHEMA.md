@@ -52909,7 +52909,9 @@ de verdad. La 1187 la siembra (`__FAKE_CLASIFICACION__`) y mide sus pestañas.
   comunidad 8 + clasificación 4 (7). Las dos columnas de las filas 3 y 7
   tienen los mismos anchos, así que la portada se lee en dos columnas.
 - **La caja verde de retos fuera del PC con cuenta**:
-  `.panel-portada:has(#sigueSeccion:not(.hidden)) .retos-abajo`. La tarjeta
+  `:root:has(.hoy-retos) .retos-abajo` (1187b: la primera versión miraba
+  `#sigueSeccion`, que con cuenta puede no estar, y a PINGU le salió la caja
+  a todo el ancho). La tarjeta
   «Retos de hoy» de arriba dice lo mismo y lleva a /retos. Va por clase porque
   la 362 solo deja `order` en las reglas con `#retoSeccion`. Sin cuenta no hay
   tarjetas y la caja se queda (es la invitación a los retos).

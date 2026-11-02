@@ -272,7 +272,7 @@
   .panel-portada .retos-abajo { order: 6; }
   #homeActivity { order: 7; grid-column: span 8; }
   #clasificacionSeccion { order: 7; grid-column: span 4; }
-  .panel-portada:has(#sigueSeccion:not(.hidden)) .retos-abajo { display: none; }
+  :root:has(.hoy-retos) .retos-abajo { display: none; }
   .panel-portada:has(#lanzamientoSeccion.seccion-recogida) #torneoPortadaSeccion,
   .panel-portada:has(#torneoPortadaSeccion.seccion-recogida) #lanzamientoSeccion,
   .panel-portada:has(#homeActivity.hidden) #clasificacionSeccion,

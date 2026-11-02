@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (432) — PINGU-Claude (1187b — la caja verde, fuera de verdad)
+
+**Hecho**: PINGU, con captura: la caja verde de retos seguía en su portada,
+a todo el ancho. La 1187 la escondía con `#sigueSeccion` a la vista, y en
+producción ese bloque («Sigue donde lo dejaste») puede no estar aunque haya
+cuenta: las tarjetas de arriba son otra cosa. Ahora la esconde la propia
+tarjeta: `:root:has(.hoy-retos) .retos-abajo` (en el PC). La 1187 lo prueba
+también sin «Sigue».
+
+**Ficheros**: `css/portada.css`; en `pruebas`, la 1187.
+
+**Pendiente**: repasar la 1040.
+
 ## 2026-11-02 (431) — PINGU-Claude (1187 — la portada: comunidad y clasificación abajo del todo, sin la caja verde en el PC)
 
 **Hecho**: PINGU sobre la 1186 (con captura): la fila de abajo, «horrible».
