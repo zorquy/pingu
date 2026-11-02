@@ -194,8 +194,8 @@ console.log('\n── 4. Los álbumes, en Carpetas; los cambios, en su pantalla 
   const { page } = await abrir('/mi-coleccion.html?ver=carpetas')
   check('los álbumes soñados están dentro de Carpetas',
     await page.locator('#mcPanelCarpetas #mcBloqueAlbumes').isVisible())
-  check('  …y con su rótulo («Mis álbumes» desde la 759)', /Mis álbumes/.test(
-    (await page.locator('#mcBloqueAlbumes > h2').textContent()) || ''))
+  check('  …y con su rótulo («Mis álbumes» desde la 759; dentro de su cabecera desde la 1049)', /Mis álbumes/.test(
+    (await page.locator('#mcBloqueAlbumes h2').first().textContent()) || ''))
   await page.close()
 }
 {
@@ -217,9 +217,9 @@ console.log('\n── 4. Los álbumes, en Carpetas; los cambios, en su pantalla 
   // Y el Panel deja una PUERTA: una pantalla sin nadie que enlace a ella
   // es una pantalla que no existe.
   const { page: panel } = await abrir('/mi-coleccion.html')
-  // Desde la 651 las dos cifras de la tarjeta también llevan a Cambios: se
-  // mira el botón de la cabecera.
-  check('  …y el Panel lleva a ella', await panel.locator('#mcVistazos .link-btn[data-ir-a="cambios"]').isVisible())
+  // Desde la 1179 el Panel no lleva Cambios (PINGU: «cada cosa en su
+  // pestaña»): la puerta es la pestaña «Deseos y cambios» del menú (765).
+  check('  …y el menú lleva a ella', await panel.locator('.mc-pestania[data-pestania="mercado"]').isVisible())
   check('  …y el bloque gordo ya no está en el Panel',
     !(await panel.locator('#mcPanelResumen #mcBloqueCambios').count()))
   await panel.close()

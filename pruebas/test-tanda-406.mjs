@@ -59,12 +59,14 @@ console.log('\n── 1. En el móvil, la barra va pegada al fondo ──')
   check('  …y es una píldora con sombra', b.sombra && parseFloat(b.radio) >= 12, JSON.stringify(b))
 
   // Y lo de debajo no se queda tapado: el sitio de la barra se reserva.
+  // Desde la 1020 lo reserva el BODY (barra de secciones + burbuja, 981) y
+  // `.mc-pagina` solo deja su hueco: se suman los dos.
   const hueco = await page.evaluate(() => {
     const m = document.querySelector('.mc-pagina')
-    return parseFloat(getComputedStyle(m).paddingBottom)
+    const cuerpo = parseFloat(getComputedStyle(document.body).paddingBottom) || 0
+    return cuerpo + parseFloat(getComputedStyle(m).paddingBottom)
   })
   check('la página reserva el sitio de la barra', hueco >= b.alto, `${hueco} para ${b.alto}`)
-  await page.close()
 }
 
 console.log('\n── 2. La barra está SIEMPRE, y no tapa el pie ──')

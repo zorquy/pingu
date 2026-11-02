@@ -255,7 +255,12 @@ console.log('\n── 3. En pantalla ──')
   const v1 = await leerPortada(con.page)
   check('con la migración: la cartera, las fichas (torneo en 2 días, el set que viene, 1 sin leer) y el foro con su «nuevo»', v1.valor === '24,00 €' && v1.fichas.some((f) => /Torneo en 2 días/.test(f)) && v1.fichas.some((f) => /^Sale /.test(f)) && v1.fichas.includes('1 sin leer') && v1.foro === 'Hola desde el foro' && /nuevo/.test(v1.nuevos) && v1.pasos === '0 de 3', JSON.stringify(v1))
   check('  …pidiendo portada_hoy y portada_foro UNA vez cada una', con.pedidas.rpcs.filter((x) => x === 'rpc:portada_hoy').length === 1 && con.pedidas.rpcs.filter((x) => x === 'rpc:portada_foro').length === 1, con.pedidas.rpcs.join(' '))
-  const deAntes = con.pedidas.tablas.filter((x) => /@js\/(hoy|primeros-pasos|curso-datos|portada-retos)\.js|forum_boards@js\/portada-bloques|forum_threads@js\/portada-bloques|forum_posts@js\/portada-bloques|user_collection@js\/mi-coleccion\/datos|^(guides|user_profiles|tcg_cards|tcg_sets)@js\/home\.js/.test(x))
+  // `user_collection@js/mi-coleccion/datos` vuelve a estar permitida desde la
+  // 1179: lo que vale tu colección AHORA lo suma el navegador como el Panel
+  // (`valorComoElPanel`: líneas, precios guardados y versiones), porque la
+  // base (`valor_de_copia`) no mira las filas de versión y PINGU veía dos
+  // cifras («el del inicio debería coger los datos del panel»).
+  const deAntes = con.pedidas.tablas.filter((x) => /@js\/(hoy|primeros-pasos|curso-datos|portada-retos)\.js|forum_boards@js\/portada-bloques|forum_threads@js\/portada-bloques|forum_posts@js\/portada-bloques|^(guides|user_profiles|tcg_cards|tcg_sets)@js\/home\.js/.test(x))
   check('  …y ninguna de las que pedían antes hoy.js, los primeros pasos, el bloque del foro ni el héroe', deAntes.length === 0, deAntes.join(' '))
   check('  …sin errores', con.errores.length === 0, con.errores.join(' | '))
   await con.ctx.close()

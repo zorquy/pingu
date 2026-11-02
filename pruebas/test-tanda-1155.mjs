@@ -105,21 +105,15 @@ for (const [ancho, dos] of [[1366, true], [1024, false]]) {
   await page.waitForTimeout(5000)
   const m = await page.evaluate(() => {
     const r = (s) => document.querySelector(s)?.getBoundingClientRect()
-    const v = r('#mcValorCaja'), mv = r(innerWidth >= 1100 ? '#mcMovidas' : '#mcReojoMovidas'), va = r('#mcValiosas'), al = r('#mcAlertas'), ca = r('#mcCambios'), me = r('#mcMes'), lado = r('.mc-cartera-lado')
+    const v = r('#mcValorCaja'), mv = r('#mcMovidas'), va = r('#mcValiosas'), al = r('#mcAlertas'), ca = r('#mcCambios'), me = r('#mcMes'), lado = r('.mc-cartera-lado')
     const caja = (e) => e && [Math.round(e.left), Math.round(e.top), Math.round(e.width), Math.round(e.bottom)]
     return { v: v && [Math.round(v.left), Math.round(v.top), Math.round(v.right), Math.round(v.bottom)], mv: mv && [Math.round(mv.left), Math.round(mv.top), Math.round(mv.width)], va: va && [Math.round(va.left), Math.round(va.top)], al: caja(al), ca: caja(ca), me: caja(me), lado: caja(lado), fichaMes: document.querySelector('#mcCarteraMes b')?.textContent, ancho: document.documentElement.scrollWidth <= innerWidth }
   })
-  if (dos) {
-    check(`${ancho} px: la cartera a lo ancho, y «Movimientos» DEBAJO, a la izquierda (1177)`, m.v && m.mv && m.mv[1] >= m.v[3] && Math.abs(m.mv[0] - m.v[0]) < 4 && m.mv[2] < (m.v[2] - m.v[0]) * 0.6, JSON.stringify(m))
-    // Sin alertas en este fixture, la fila de reojo son tres: Movimientos y
-    // Cambios arriba, Tu mes debajo a la izquierda (dos y dos a este ancho).
-    check('  …con «Cambios» a su derecha, a la misma altura', m.ca && m.ca[0] > m.mv[0] + m.mv[2] - 4 && Math.abs(m.ca[1] - m.mv[1]) < 4, JSON.stringify(m.ca))
-    check('  …y Tu mes en la fila siguiente, a la izquierda', m.me && m.me[1] >= m.ca[3] - 4 && Math.abs(m.me[0] - m.mv[0]) < 4, JSON.stringify(m.me))
-    check('  …y «Ranking» a lo ancho, debajo de la fila de reojo', m.va && Math.abs(m.va[0] - m.v[0]) < 4 && m.va[1] >= m.me[3] - 4, JSON.stringify(m.va))
-    check('  …y el lado de la cartera (este mes, esta semana, lo pagado) a la derecha de la gráfica, con su cifra', m.lado && m.lado[0] > m.v[0] + 400 && m.lado[1] < m.v[1] + 40 && /€/.test(m.fichaMes || ''), JSON.stringify([m.lado, m.fichaMes]))
-  } else {
-    check(`${ancho} px: una columna, con la tarjeta de Movimientos (1178) bajo la cartera`, m.v && m.mv && m.mv[1] > m.v[1] + 100 && Math.abs(m.mv[0] - m.v[0]) < 4, JSON.stringify(m))
-  }
+  // Panel A (1179): la cartera a lo ancho, Movimientos debajo a lo ancho y
+  // Ranking debajo; ni lado, ni Cambios, ni Tu mes, ni alertas.
+  check(`${ancho} px: la cartera a lo ancho, y «Movimientos» DEBAJO, a lo ancho (1179)`, m.v && m.mv && m.mv[1] >= m.v[3] - 4 && Math.abs(m.mv[0] - m.v[0]) < 4 && Math.abs(m.mv[2] - (m.v[2] - m.v[0])) < 4, JSON.stringify(m))
+  check('  …y «Ranking» debajo de Movimientos', m.va && Math.abs(m.va[0] - m.v[0]) < 4 && m.va[1] > m.mv[1] + 100, JSON.stringify(m.va))
+  check('  …sin Cambios, Tu mes, alertas ni el lado de la cartera', !m.ca && !m.me && !m.al && !m.lado, JSON.stringify([m.ca, m.me, m.al, m.lado]))
   check(`${ancho} px: la página no se sale y sin errores`, m.ancho && !err.length, err.join(' | '))
   await ctx.close()
 }

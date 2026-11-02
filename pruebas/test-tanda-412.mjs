@@ -91,9 +91,13 @@ console.log('\n── 2. El archivador, con los mandos en una fila ──')
   // frase para un ajuste que se toca una vez. Ahora cuelga de su chapa.
   check('el ajuste de añadir no ocupa sitio',
     (await page.locator('#mcTocarOpciones').isVisible()) === false)
+  // Desde la 1053 el ajuste ya no cuelga del ⋯ (PINGU: «esa opción ya
+  // sobra»): los dos desplegables quedan escondidos como memoria de la hoja
+  // de añadir, y el menú se abre sin enseñarlos.
   await page.click('#mcAlbumMenu > summary')
   await page.waitForTimeout(300)
-  check('  …y se abre al pedirlo', await page.locator('#mcTocarOpciones').isVisible())
+  check('  …y el menú se abre sin él', (await page.locator('#mcAlbumMenu').getAttribute('open')) !== null
+    && (await page.locator('#mcTocarOpciones').isVisible()) === false)
   // Y colgando: si empujara la fila, al abrirlo se movería todo lo de
   // debajo y se perdería de vista lo que estabas mirando. Desde la tanda
   // 475 quien flota es EL MENÚ que lo lleva dentro, no el ajuste suelto:

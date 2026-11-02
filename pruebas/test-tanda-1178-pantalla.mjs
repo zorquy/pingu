@@ -1,9 +1,8 @@
-// Tanda 1178 — El móvil de un vistazo (decisiones 3 y 4 de «Estructura del
-// Panel»): en el móvil, la fila de reojo son cuatro tarjetas en 2 × 2 con un
-// titular (Movimientos, Alertas, Cambios, Tu mes) que se pulsan, los bloques
-// enteros no se pintan (el de alertas se despliega al pulsar su tarjeta),
-// las expansiones son dos filas y la primera carta tuya está cerca. En el
-// PC, nada de esto: los bloques de siempre y ninguna tarjeta.
+// Tanda 1178 → 1179 — El Panel «A · Cartera» en el móvil y en el PC: la
+// cartera sin lado ni lo pagado, Movimientos como tira de cartas con su
+// tanto por ciento (ocho por fila en el PC, tres en el móvil), ninguna
+// tarjeta de reojo ni bloque de Cambios, Tu mes o alertas, y las expansiones
+// en baldosas con el logo (dos en el móvil, en una fila; cuatro en el PC).
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
 let fails = 0
@@ -40,45 +39,42 @@ async function abrir(opts) {
 const medir = (page) => page.evaluate(() => {
   const r = (s) => { const e = document.querySelector(s); if (!e) return null; const b = e.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top), Math.round(b.width), Math.round(b.height)] }
   const vis = (s) => { const e = document.querySelector(s); return !!e && e.getClientRects().length > 0 }
-  const txt = (s) => document.querySelector(s)?.textContent.replace(/\s+/g, ' ').trim() || ''
+  const visibles = (s) => [...document.querySelectorAll(s)].filter((e) => e.getClientRects().length)
+  const porFila = (s) => { const f = visibles(s); if (!f.length) return 0; const top = Math.round(f[0].getBoundingClientRect().top); return f.filter((e) => Math.round(e.getBoundingClientRect().top) === top).length }
+  const logo = document.querySelector('#mcVistazoSets .mc-set-fila-logo')
   return {
-    tarjetas: [...document.querySelectorAll('.mc-reojo-tarjeta')].filter((e) => e.getClientRects().length).map((e) => e.id),
-    mov: r('#mcReojoMovidas'), al: r('#mcReojoAlertas'), cam: r('#mcReojoCambios'), mes: r('#mcReojoMes'), reojo: r('.mc-panel-reojo'),
-    tMov: txt('#mcReojoMovidas'), tAl: txt('#mcReojoAlertas'), tCam: txt('#mcReojoCambios'), tMes: txt('#mcReojoMes'),
-    bloques: { mov: vis('#mcMovidas'), al: vis('#mcAlertas'), cam: vis('#mcCambios'), mes: vis('#mcMes') },
-    valiosas: r('#mcValiosas'),
-    setsVisibles: [...document.querySelectorAll('#mcVistazoSets .mc-set-fila')].filter((e) => e.getClientRects().length).length,
+    tarjetas: visibles('.mc-reojo-tarjeta').length,
+    fuera: { al: vis('#mcAlertas'), cam: vis('#mcCambios'), mes: vis('#mcMes'), balance: vis('#mcBalance'), lado: vis('.mc-cartera-lado'), nota: /no tiene(n)? precio/.test(document.getElementById('mcValorCaja')?.textContent || ''), fuente: vis('#mcFuente') },
+    cartera: r('#mcValorCaja'), mov: r('#mcMovidas'), valiosas: r('#mcValiosas'),
+    movFichas: visibles('#mcMovidas .mc-vistazo-ficha').length,
+    movPorFila: porFila('#mcMovidas .mc-vistazo-ficha'),
+    movPcts: [...document.querySelectorAll('#mcMovidas .mc-ficha-cambio')].map((e) => e.textContent.replace(/[  ]/g, ' ')),
+    movSube: [...document.querySelectorAll('#mcMovidas .mc-vistazo-ficha')].map((e) => e.classList.contains('sube') ? '+' : e.classList.contains('baja') ? '−' : '?').join(''),
+    rankPorFila: porFila('#mcValiosas .mc-vistazo-ficha'),
+    setsVisibles: visibles('#mcVistazoSets .mc-set-fila').length,
+    setsFilas: new Set(visibles('#mcVistazoSets .mc-set-fila').map((e) => Math.round(e.getBoundingClientRect().top))).size,
+    logoAlto: logo ? Math.round(logo.getBoundingClientRect().height) : 0,
     ancho: document.documentElement.scrollWidth <= innerWidth,
   }
 })
+const sinReojo = (m) => m.tarjetas === 0 && !m.fuera.al && !m.fuera.cam && !m.fuera.mes && !m.fuera.balance && !m.fuera.lado && !m.fuera.nota && !m.fuera.fuente
 
 console.log('── Móvil ──')
 {
   const { ctx, page, err } = await abrir({ ...devices['iPhone 13'] })
   const m = await medir(page)
-  check('cuatro tarjetas de reojo a la vista', m.tarjetas.length === 4 && ['mcReojoMovidas', 'mcReojoAlertas', 'mcReojoCambios', 'mcReojoMes'].every((id) => m.tarjetas.includes(id)), JSON.stringify(m.tarjetas))
-  check('  …en 2 × 2: Movimientos y Alertas arriba, Cambios y Tu mes debajo', m.mov && m.al && m.cam && m.mes && Math.abs(m.mov[1] - m.al[1]) < 4 && m.al[0] > m.mov[0] + m.mov[2] - 4 && Math.abs(m.cam[1] - m.mes[1]) < 4 && m.cam[1] >= m.mov[1] + m.mov[3] - 4 && Math.abs(m.mov[2] - m.al[2]) < 4, JSON.stringify([m.mov, m.al, m.cam, m.mes]))
-  check('  …Movimientos con la que más se mueve y «N suben · M bajan»', /esta semana/.test(m.tMov) && /\d+ suben · \d+ bajan/.test(m.tMov), m.tMov)
-  check('  …Alertas: «1 a punto de saltar», Charizard a 3,50 € y «3 activas»', /1 a punto de saltar/.test(m.tAl) && /Charizard ex, a 3,50/.test(m.tAl) && /3 activas/.test(m.tAl), m.tAl)
-  check('  …Cambios: «0 das · 0 quieres»', /0 das · 0 quieres/.test(m.tCam), m.tCam)
-  check('  …Tu mes: el valor del mes de titular y las cartas debajo', /€/.test(m.tMes) && /cartas/.test(m.tMes), m.tMes)
-  check('los bloques enteros no se pintan en el móvil', !m.bloques.mov && !m.bloques.al && !m.bloques.cam && !m.bloques.mes, JSON.stringify(m.bloques))
-  check('la primera carta tuya (Ranking) está antes de los 900 px', m.valiosas && m.valiosas[1] < 900, JSON.stringify(m.valiosas))
-  check('Expansiones: dos filas, no cuatro', m.setsVisibles === 2, String(m.setsVisibles))
+  check('ni tarjetas de reojo, ni Cambios, Tu mes, alertas, lo pagado, el lado ni la nota de «sin precio»', sinReojo(m), JSON.stringify({ t: m.tarjetas, ...m.fuera }))
+  check('Movimientos es una tira de cartas bajo la cartera, de tres por fila', m.mov && m.cartera && m.mov[1] >= m.cartera[1] + m.cartera[3] - 4 && m.movFichas >= 3 && m.movPorFila === 3, JSON.stringify([m.cartera, m.mov, m.movFichas, m.movPorFila]))
+  check('  …cada carta con su tanto por ciento, en verde o en rojo', m.movPcts.length >= 3 && m.movPcts.every((p) => /^[+−]\d+ %$/.test(p)) && /^[+−]+$/.test(m.movSube), JSON.stringify([m.movPcts, m.movSube]))
+  check('la primera carta tuya (Movimientos) está antes de los 900 px', m.mov && m.mov[1] < 900, JSON.stringify(m.mov))
+  check('Ranking a tres por fila', m.rankPorFila === 3, String(m.rankPorFila))
+  check('Expansiones: dos baldosas en una fila, con el logo grande', m.setsVisibles === 2 && m.setsFilas === 1 && m.logoAlto >= 60, JSON.stringify([m.setsVisibles, m.setsFilas, m.logoAlto]))
   check('la página no se sale', m.ancho)
-  // Pulsar Alertas despliega la lista entera, a lo ancho.
-  await page.click('#mcReojoAlertas')
-  await page.waitForTimeout(300)
-  const d = await page.evaluate(() => { const e = document.querySelector('#mcAlertas'); const g = document.querySelector('.mc-panel-reojo').getBoundingClientRect(); const b = e.getBoundingClientRect(); return { visible: e.getClientRects().length > 0, ancho: Math.round(b.width), anchoReojo: Math.round(g.width), filas: e.querySelectorAll('.mc-alerta').length, expandida: document.querySelector('#mcReojoAlertas').getAttribute('aria-expanded') } })
-  check('al pulsar Alertas se despliega la lista entera, a lo ancho', d.visible && Math.abs(d.ancho - d.anchoReojo) < 4 && d.filas === 3 && d.expandida === 'true', JSON.stringify(d))
-  await page.click('#mcReojoAlertas')
-  await page.waitForTimeout(200)
-  check('  …y al volver a pulsar se recoge', !(await page.evaluate(() => document.querySelector('#mcAlertas').getClientRects().length > 0)))
-  // Pulsar Movimientos abre su vista.
-  await page.click('#mcReojoMovidas')
+  // «Ver todas» de Movimientos abre su vista.
+  await page.click('#mcMovidas .ver-todo')
   await page.waitForTimeout(800)
   const v = await page.evaluate(() => ({ vista: document.querySelector('#mcPanelMovimientos')?.getClientRects().length > 0, ver: new URL(location.href).searchParams.get('ver') }))
-  check('al pulsar Movimientos se abre la vista Movimientos', v.vista && v.ver === 'movimientos', JSON.stringify(v))
+  check('«Ver todas» de Movimientos abre la vista Movimientos', v.vista && v.ver === 'movimientos', JSON.stringify(v))
   check('sin errores', !err.length, err.join(' | '))
   await ctx.close()
 }
@@ -86,9 +82,10 @@ console.log('── PC ──')
 {
   const { ctx, page, err } = await abrir({ viewport: { width: 1280, height: 900 } })
   const m = await medir(page)
-  check('en el PC no hay tarjetas de reojo', m.tarjetas.length === 0, JSON.stringify(m.tarjetas))
-  check('  …y los bloques de siempre están', m.bloques.mov && m.bloques.al && m.bloques.cam && m.bloques.mes, JSON.stringify(m.bloques))
-  check('  …con las cuatro expansiones', m.setsVisibles >= 3, String(m.setsVisibles))
+  check('en el PC tampoco hay reojo, Cambios, Tu mes, alertas ni lo pagado', sinReojo(m), JSON.stringify({ t: m.tarjetas, ...m.fuera }))
+  check('la cartera a lo ancho y Movimientos debajo, a lo ancho, de ocho por fila', m.mov && m.cartera && Math.abs(m.mov[2] - m.cartera[2]) < 4 && m.mov[1] >= m.cartera[1] + m.cartera[3] - 4 && m.movPorFila === Math.min(8, m.movFichas), JSON.stringify([m.cartera, m.mov, m.movFichas, m.movPorFila]))
+  check('Ranking de ocho por fila', m.rankPorFila === 8, String(m.rankPorFila))
+  check('  …con las expansiones en baldosas, en una fila', m.setsVisibles >= 3 && m.setsFilas === 1 && m.logoAlto >= 60, JSON.stringify([m.setsVisibles, m.setsFilas, m.logoAlto]))
   check('sin errores', !err.length, err.join(' | '))
   await ctx.close()
 }

@@ -179,9 +179,8 @@ console.log('── 6. DC1: quién de los que sigues la tiene ──')
   await page.waitForTimeout(600)
   check('  …que abre el aviso de precio de siempre', await page.evaluate(() => !!document.getElementById('pvAvisoDialogo')?.open && /10,00/.test(document.getElementById('pvAvisoAhora').textContent)), await page.evaluate(() => document.getElementById('pvAvisoAhora')?.textContent))
   await page.keyboard.press('Escape')
-  await page.click('#mcDoyCompartir')
-  await page.waitForTimeout(400)
-  check('  …y su «Compartir lista» da el mismo texto', (await page.evaluate(() => navigator.clipboard.readText())) === texto)
+  // El «Compartir lista» propio de «Las que doy» (#mcDoyCompartir) se fue con
+  // la lista única de la 1114: el de arriba (#mcQuieroMenu) ya lleva lo que das.
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

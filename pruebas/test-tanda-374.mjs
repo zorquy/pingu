@@ -5,8 +5,8 @@
 // más.
 //
 // Lo que importa de las tres:
-//   · Las REPETIDAS son la puerta a los intercambios: sin saber qué te
-//     sobra no hay nada que ofrecer.
+//   · LO QUE DAS es la puerta a los intercambios: sin saber qué ofreces
+//     no hay nada que cambiar (hasta la 1179 eran «las repetidas»).
 //   · Lo más valioso va por lo que vale UNA copia, no la línea: diez
 //     cartas de un euro no son «lo más valioso que tienes».
 //   · El reparto cuenta cartas DISTINTAS: «tengo 40 de Espada y Escudo»
@@ -56,32 +56,35 @@ async function abrir(coleccion, opciones = {}) {
   return { page, errores }
 }
 
+// Desde la 1179 «repetida» no existe (PINGU: «tengo una normal y una
+// reverse y pone que está repetida. No está repetida»): lo que sobra es lo
+// que TÚ marcas para cambio (`cambio`), y la caja es «Lo que das».
 const COL = [
-  { id: 'l1', card_id: 'sv1-1', cantidad: 3, valor_manual: 120 },
-  { id: 'l2', card_id: 'sv1-2', cantidad: 2, valor_manual: 8 },
+  { id: 'l1', card_id: 'sv1-1', cantidad: 3, valor_manual: 120, cambio: 2 },
+  { id: 'l2', card_id: 'sv1-2', cantidad: 2, valor_manual: 8, cambio: 1 },
   { id: 'l3', card_id: 'sv1-3', cantidad: 1, valor_manual: 45 },
-  { id: 'l4', card_id: 'sv1-4', cantidad: 4, valor_manual: 2 },
+  { id: 'l4', card_id: 'sv1-4', cantidad: 4, valor_manual: 2, cambio: 3 },
   { id: 'l5', card_id: 'swsh1-1', cantidad: 1, valor_manual: 15 },
-  { id: 'l6', card_id: 'swsh1-2', cantidad: 2, valor_manual: 30 },
+  { id: 'l6', card_id: 'swsh1-2', cantidad: 2, valor_manual: 30, cambio: 1 },
 ]
 
-console.log('\n── 1. Las repetidas ──')
+console.log('\n── 1. Lo que das ──')
 {
   const { page, errores } = await abrir(COL)
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('salen las cuatro cajas de siempre (y las dos de la 1172)', (await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()) === 6)
   const caja = page.locator('.mc-resumen-rejilla .mc-resumen-caja').first()
-  // Sobran: 2 (de 3) + 1 (de 2) + 3 (de 4) + 1 (de 2) = 7, de 4 cartas.
-  check('dice cuántas copias te sobran', /Te sobran 7 copias de 4 cartas/.test(limpio(await caja.textContent())),
+  // Das: 2 + 1 + 3 + 1 = 7 copias, de 4 cartas.
+  check('dice cuántas copias das', /Das 7 copias de 4 cartas/.test(limpio(await caja.textContent())),
     limpio(await caja.textContent()).slice(0, 90))
-  // Ordenadas por lo que sobra, no por lo que tienes: lo que se quiere
-  // ver arriba es lo que más puedes cambiar.
-  check('  …y van por lo que SOBRA', /Carta 4.*te sobran 3/.test(limpio(await caja.locator('.mc-fila-carta').first().textContent())),
+  // Ordenadas por lo que das, no por lo que tienes: lo que se quiere ver
+  // arriba es lo que más puedes cambiar.
+  check('  …y van por lo que DAS', /Carta 4.*das 3/.test(limpio(await caja.locator('.mc-fila-carta').first().textContent())),
     limpio(await caja.locator('.mc-fila-carta').first().textContent()))
-  check('  …con la cuenta de las dos cosas', /tienes 4 · te sobran 3/.test(limpio(await caja.locator('.mc-fila-carta').first().textContent())))
-  // Una carta con una sola copia no es una repetida.
-  check('  …y las que no tienes repetidas no salen',
+  // Una carta con copias y sin marcar no sobra: no se llama repetida.
+  check('  …y las que no das no salen',
     !/Carta 3/.test(limpio(await caja.textContent())), limpio(await caja.textContent()).slice(0, 200))
+  check('  …ni la palabra «repetida»', !/repetida/i.test(limpio(await page.locator('#mcResumenPanel').textContent())))
   await page.close()
 }
 
@@ -129,13 +132,13 @@ console.log('\n── 4. Una colección vacía no enseña cajas vacías ──')
   await page.close()
 }
 
-console.log('\n── 5. Sin repetidas y sin precios, se dice ──')
+console.log('\n── 5. Sin nada para cambio y sin precios, se dice ──')
 {
   const { page } = await abrir([
     { id: 'l1', card_id: 'sv1-1', cantidad: 1 },
     { id: 'l2', card_id: 'sv1-2', cantidad: 1 },
   ])
-  check('lo de las repetidas se dice', /No tienes ninguna repetida/.test(limpio(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').first().textContent())),
+  check('lo de las que das se dice', /Todavía no das ninguna/.test(limpio(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').first().textContent())),
     limpio(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').first().textContent()))
   // Sin precio no se enseña una lista vacía ni un 0,00 €, que mentiría.
   check('  …y lo del precio también', /no sabemos el precio/.test(limpio(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').nth(1).textContent())),

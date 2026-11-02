@@ -270,7 +270,7 @@ console.log('── 4. Los filtros, los de su maqueta (C6) ──')
     borrar: !!document.getElementById('mcAlbumFiltrosLimpiar').closest('.mc-panel-pie'),
   }))
   // 1055: en la hoja común el Tipo va primero y «Qué cartas» detrás de la raya.
-  check('[Expansión] el Tipo primero, y «Qué cartas»: Todas (puesta), Las tengo, Me faltan (y Repetidas, 927)', a.primero === 'Tipo' && a.que === 'Todas*|Las tengo|Me faltan|Repetidas', JSON.stringify(a))
+  check('[Expansión] el Tipo primero, y «Qué cartas»: Todas (puesta), Las tengo, Me faltan (y Para cambio, 1179)', a.primero === 'Tipo' && a.que === 'Todas*|Las tengo|Me faltan|Para cambio', JSON.stringify(a))
   check('[Expansión]   …el tipo, con los símbolos de las que hay en la expansión', a.energias.sort().join() === 'Agua,Dragón,Fuego,Planta', JSON.stringify(a.energias))
   check('[Expansión]   …y «Limpiar» abajo', a.borrar)
   await page.click('#mcAlbumSoloFaltan')
@@ -353,11 +353,11 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
       rangos: [...document.querySelectorAll('#mcValorCaja [data-rango]')].map((b) => b.textContent + (b.getAttribute('aria-pressed') === 'true' ? '*' : '')).join(' '),
       rejilla: document.querySelectorAll('#mcValorCaja .mc-valor-rotulos, #mcValorCaja .mc-valor-chips').length,
       fichas: [...document.querySelectorAll('.mc-cartera-sub > span')].map((s) => s.textContent.replace(/\s+/g, ' ').trim()),
-      movidas: [...document.querySelectorAll('#mcMovidas .mc-movida')].map((a) => ({ n: a.querySelector('b').textContent, set: a.querySelector('small').textContent, pct: a.querySelector('.mc-movida-precio small').textContent.replace(/[  ]/g, ' '), sube: a.classList.contains('sube') })),
+      movidas: [...document.querySelectorAll('#mcMovidas .mc-vistazo-ficha')].map((a) => ({ n: a.querySelector('small').textContent, precio: a.querySelector('b').textContent, pct: a.querySelector('.mc-ficha-cambio').textContent.replace(/[  ]/g, ' '), sube: a.classList.contains('sube') })),
       // Debajo de la cartera (1155 la puso a su derecha en el PC; la 1177
       // la devolvió debajo, en la fila de reojo). En el móvil, desde la
       // 1178, el bloque no se ve: está su tarjeta (#mcReojoMovidas).
-      movidasTras: (() => { const f = q('#mcValorCaja'), mv = innerWidth >= 1100 ? q('#mcMovidas') : q('#mcReojoMovidas'); return !!(f && mv) && r(mv).top >= r(f).bottom - 1 })(),
+      movidasTras: (() => { const f = q('#mcValorCaja'), mv = q('#mcMovidas'); return !!(f && mv) && r(mv).top >= r(f).bottom - 1 })(),
       compartirAbajo: (() => { const c = q('#mcCompartir'), v = q('#mcVistazos'); return !!(c && v) && r(c).top >= r(v).top })(),
       ancho: document.documentElement.scrollWidth <= innerWidth + 1,
       desplazado: window.__desplazado,
@@ -368,8 +368,8 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
   check(`[${nombre}]   …con el cambio del mes y su flecha`, m.flecha && /^Sube [\d.,]+ € · [\d,]+ % este mes$/.test(m.cambio), m.cambio)
   check(`[${nombre}]   …los cinco rangos con 1M puesto, y sin rejilla`, m.rangos === '7D 1M* 6M 1A Todo' && m.rejilla === 0, m.rangos)
   check(`[${nombre}] cartas, distintas y expansiones, en una línea bajo la cifra (925)`, m.fichas.join(' | ') === '10 cartas | 4 distintas | 2 expansiones', m.fichas.join(' | '))
-  check(`[${nombre}] «Las que más se mueven», debajo de la cartera (a su lado en el PC, 1155), en lista`, m.movidasTras && m.movidas.length === 3, JSON.stringify(m.movidas))
-  check(`[${nombre}]   …las tres que MÁS se mueven, con su set y su signo`, m.movidas[0]?.n === 'Mewtwo-EX' && m.movidas[0].set === 'Duelos Primigenios' && m.movidas[0].pct === '+18 %' && m.movidas[0].sube && m.movidas.some((x) => x.n === 'Ho-Oh-EX' && x.pct === '−6 %' && !x.sube) && !m.movidas.some((x) => x.n === 'Pikachu'), JSON.stringify(m.movidas))
+  check(`[${nombre}] «Movimientos», debajo de la cartera, en tira de cartas (1179)`, m.movidasTras && m.movidas.length >= 3, JSON.stringify(m.movidas))
+  check(`[${nombre}]   …las que MÁS se mueven, con su signo`, m.movidas[0]?.n === 'Mewtwo-EX' && m.movidas[0].pct === '+18 %' && m.movidas[0].sube && m.movidas.some((x) => !x.sube), JSON.stringify(m.movidas))
   check(`[${nombre}] «Colección pública», al final`, m.compartirAbajo)
   check(`[${nombre}] la página no se va de ancho`, m.ancho)
   check(`[${nombre}] y al cargar no baja sola (la columna de filtros enfocaba «Borrar todo»)`, m.desplazado === 0, String(m.desplazado))
@@ -482,7 +482,7 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
   // Desde la 1142 la baldosa de Avisos cuenta lo que no es de una sección (la
   // campana): los avisos del foro del fixture ya llevan su número en Comunidad.
   check(`[${nombre}] avisos (con su número) y mensajes, las dos primeras baldosas`, m.dos.length === 2 && /^Avisos ?\d*$/.test(m.dos[0]) && /^Mensajes/.test(m.dos[1]), JSON.stringify(m.dos))
-  check(`[${nombre}] lo tuyo en baldosas y «Ajustes» debajo (918)`, m.lista.join(' | ') === 'Guardados>/guardados.html | La quiero>/mi-coleccion?ver=quiero | Mis mazos>/mazos | Partidas>/mis-partidas | Ajustes>/ajustes', m.lista.join(' | '))
+  check(`[${nombre}] lo tuyo en baldosas y «Ajustes» debajo (918; «Mis partidas» desde la 1162)`, m.lista.join(' | ') === 'Guardados>/guardados.html | La quiero>/mi-coleccion?ver=quiero | Mis mazos>/mazos | Mis partidas>/mis-partidas | Ajustes>/ajustes', m.lista.join(' | '))
   check(`[${nombre}] el tema en un botón (869) y «Salir» aparte`, /^Cambiar al tema/.test(m.tema) && m.salir === 'Salir' && !m.viejo && m.dentro, JSON.stringify(m))
   check(`[${nombre}]   …y su hoja llega al abrirla`, await css())
   const temaAntes = await page.evaluate(() => document.documentElement.dataset.theme)

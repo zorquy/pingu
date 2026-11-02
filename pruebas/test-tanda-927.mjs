@@ -11,7 +11,7 @@
 //      recuerda.
 //   4. Apilar es un interruptor: pulsado, una casilla por carta; quitado,
 //      una por versión.
-//   5. En los filtros, «Repetidas» y «Versión».
+//   5. En los filtros, «Para cambio» (1179; antes «Repetidas») y «Versión».
 //   6. En el móvil, el buscador encima y los tres mandos debajo, sin
 //      desbordar; el archivador, de una hoja.
 import { readFileSync } from 'node:fs'
@@ -34,7 +34,7 @@ console.log('── 0. Lo estático ──')
   check('la vista y Apilar ya NO están en la hoja de filtros', !/id="mcAlbumVista"/.test(panel) && !/id="mcVistaVariantes"/.test(panel))
   const fila = html.slice(html.indexOf('<div class="mc-album-busca">'), html.indexOf('id="mcAlbumQuitar"'))
   check('  …van en la fila del buscador, en su orden: buscar, vista, apilar, filtros', /id="mcAlbumBuscar"[\s\S]*id="mcAlbumVista"[\s\S]*id="mcVistaVariantes"[\s\S]*id="mcAlbumAbrirFiltros"/.test(fila))
-  check('«Repetidas» y «Versión» en los filtros', /id="mcAlbumRepetidas"/.test(panel) && /id="mcAlbumVersion"/.test(panel))
+  check('«Para cambio» y «Versión» en los filtros', /id="mcAlbumCambio"/.test(panel) && /id="mcAlbumVersion"/.test(panel))
   check('los ajustes del archivador en la hoja de la vista', /id="mcAlbumVistaHoja"[\s\S]{0,2400}id="mcAlbumBolsillos"[\s\S]{0,800}id="mcAlbumPrimera"[\s\S]{0,800}id="mcAlbumArchivadorAplicar"/.test(html))
   check('cartas.html sale del generador con lo mismo', /id="mcAlbumBolsillos"/.test(readFileSync(join(RAIZ, 'cartas.html'), 'utf8')))
   const js = readFileSync(join(RAIZ, 'js/mi-coleccion.js'), 'utf8')
@@ -54,7 +54,8 @@ const semilla = (extra) => {
   // La 2 dos veces en normal, la 5 en normal y en reverse, la 7 SOLO en
   // reverse; la 1 y la 17, una normal.
   window.__FAKE_COLECCION__ = [
-    ...[1, 2, 5, 17].map((n) => ({ id: `l${n}`, user_id: 'user-1', card_id: `sv8-${n}`, market: 'WEST', idioma: 'es', estado: 'NM', variante: 'normal', cantidad: n === 2 ? 2 : 1 })),
+    // La 2 y la 5 van para cambio (1179: el filtro «Para cambio» las enseña).
+    ...[1, 2, 5, 17].map((n) => ({ id: `l${n}`, user_id: 'user-1', card_id: `sv8-${n}`, market: 'WEST', idioma: 'es', estado: 'NM', variante: 'normal', cantidad: n === 2 ? 2 : 1, cambio: n === 2 || n === 5 ? 1 : 0 })),
     { id: 'r5', user_id: 'user-1', card_id: 'sv8-5', market: 'WEST', idioma: 'es', estado: 'NM', variante: 'reverse', cantidad: 1 },
     { id: 'r7', user_id: 'user-1', card_id: 'sv8-7', market: 'WEST', idioma: 'es', estado: 'NM', variante: 'reverse', cantidad: 1 },
   ]
@@ -231,7 +232,7 @@ console.log('── 3. La vista ──')
   await otra.page.close()
 }
 
-console.log('── 5. Repetidas y Versión ──')
+console.log('── 5. Para cambio y Versión ──')
 {
   const { page } = pc
   // De vuelta a la cuadrícula para contar casillas.
@@ -241,10 +242,10 @@ console.log('── 5. Repetidas y Versión ──')
   await page.click('#mcAlbumAbrirFiltros')
   await page.waitForTimeout(300)
   check('la hoja de filtros ya no lleva «Cómo se ven»', await page.evaluate(() => !document.querySelector('#mcAlbumPanelFiltros #mcAlbumVista') && !/Cómo se ven/.test(document.getElementById('mcAlbumPanelFiltros').textContent)))
-  await page.click('#mcAlbumRepetidas')
+  await page.click('#mcAlbumCambio')
   await page.waitForTimeout(300)
   const rep = await page.evaluate(() => ({ ids: [...document.querySelectorAll('#mcAlbum [data-carta]')].map((a) => a.dataset.carta).join(), cuenta: document.getElementById('mcAlbumFiltrosCuenta').textContent.trim(), todas: document.getElementById('mcAlbumTodas').getAttribute('aria-pressed') }))
-  check('«Repetidas»: las que tienes dos o más veces (la 2 y la 5)', rep.ids === 'sv8-2,sv8-5' && rep.cuenta === '1' && rep.todas === 'false', JSON.stringify(rep))
+  check('«Para cambio»: las que das para cambio (la 2 y la 5)', rep.ids === 'sv8-2,sv8-5' && rep.cuenta === '1' && rep.todas === 'false', JSON.stringify(rep))
   await page.click('#mcAlbumTodas')
   await page.waitForTimeout(200)
   const opciones = await page.evaluate(() => [...document.querySelectorAll('#mcAlbumGrupoVersion [data-valor]')].map((b) => b.textContent.trim()).join())

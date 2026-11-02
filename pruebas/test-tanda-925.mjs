@@ -51,7 +51,9 @@ for (const movil of [true, false]) {
       cambio: cambio ? { clase: cambio.className, fondo: getComputedStyle(cambio).backgroundColor, texto: cambio.textContent.replace(/\s+/g, ' ').trim() } : null,
       valiosas: valiosas.map((v) => v.querySelector('b').textContent.trim()),
       valiosasAbren: valiosas.every((v) => v.querySelector('a[data-carta]')),
-      movidas: document.querySelectorAll('#mcMovidas .mc-movida').length,
+      // Desde la 1179 Movimientos es una tira con el molde de Ranking
+      // (`fichaDeTiraHtml`), no filas `.mc-movida`.
+      movidas: document.querySelectorAll('#mcMovidas .mc-vistazo-ficha').length,
     }
   })
   check('las tres casillas grandes se fueron', m.viejas === 0)
@@ -60,7 +62,7 @@ for (const movil of [true, false]) {
   const euros = m.valiosas.map((t) => Number(t.replace(/[^\d,]/g, '').replace(',', '.')))
   check('«Las que más valen»: ocho, de la más cara a la más barata', euros.length === 8 && euros[0] === 182 && euros.every((v, i) => i === 0 || v <= euros[i - 1]), m.valiosas.join(' · '))
   check('  …y cada una abre su ficha', m.valiosasAbren)
-  check('«Las que más se mueven» sale, con sus tres', m.movidas === 3, String(m.movidas))
+  check('«Movimientos» sale, con sus tres', m.movidas === 3, String(m.movidas))
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }

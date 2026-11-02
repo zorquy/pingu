@@ -48,8 +48,10 @@ console.log('\n── 2. El Panel (L7) ──')
     // línea de lo contado, debajo de ellos.
     return { linea: document.querySelector('#mcMas .mc-vistazo-linea')?.textContent.trim(), chips, publica: !!document.getElementById('mcPublica'), estado: document.getElementById('mcPublicaEstado')?.textContent.trim(), ajustes: document.getElementById('mcPublicaAjustes')?.getAttribute('href') }
   })
-  check('bajo «Más» va una línea con lo contado', /^2 cartas distintas · 1 copia repetida$/.test(r.linea || ''), r.linea)
-  check('las acciones son chips (44 px), no losetas de 90; desde la 1176 con Estadísticas delante', r.chips.length >= 4 && r.chips.every((c) => c.h <= 48) && r.chips.map((c) => c.t).join('|') === 'Estadísticas|Imagen|Importar CSV|Exportar CSV|Modo evento', JSON.stringify(r.chips))
+  // 1179: la línea de lo contado («N distintas · M copias repetidas») se fue
+  // con las «repetidas»; «Más» son solo los chips.
+  check('bajo «Más» no hay línea de lo contado (1179)', !r.linea, r.linea)
+  check('las acciones son chips (44 px), no losetas de 90; desde la 1176 con Estadísticas delante y desde la 1179 «Todas tus cartas» primero', r.chips.length >= 4 && r.chips.every((c) => c.h <= 48) && r.chips.map((c) => c.t).join('|') === 'Todas tus cartas|Estadísticas|Imagen|Importar CSV|Exportar CSV|Modo evento', JSON.stringify(r.chips))
   check('«Colección pública» ya no es un check aquí: se dice cómo está y se manda a Ajustes', !r.publica && /^Colección (pública|privada)$/.test(r.estado || '') && r.ajustes === '/ajustes?ver=privacidad' && !errores.length, JSON.stringify(r) + errores.join(' | '))
   await ctx.close()
 }

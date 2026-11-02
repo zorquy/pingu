@@ -87,7 +87,9 @@ const abrir = async (coleccion, { tema = 'light' } = {}) => {
       variants: { normal: true } }))
     window.__FAKE_COLECCION__ = col
   }, [tema, coleccion])
-  await page.goto(`${BASE}/mi-coleccion.html?ver=resumen`, { waitUntil: 'domcontentloaded' })
+  // La tarjeta vive en Estadísticas desde la 1172 (y el Panel «A · Cartera» de
+  // la 1179 no lleva lo pagado: PINGU, «eso es opcional»).
+  await page.goto(`${BASE}/mi-coleccion.html?ver=estadisticas`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2800)
   return { page, errores }
 }

@@ -46,7 +46,8 @@ console.log('\n── 1. Las diapositivas, en rejilla (en la vista Estadísticas
   // pinta: una diapositiva vacía no informa. Lo que tiene que estar es lo
   // que SÍ se puede calcular sin precios.
   const titulos = await page.locator('.mc-diapo h3, .mc-diapo h4').allTextContents()
-  for (const t of ['Lo que te costó', 'Lo que te sobra', 'Por rareza']) {
+  // 1179: «Lo que te sobra» (las repetidas) es «Lo que das» (lo marcado para cambio).
+  for (const t of ['Lo que te costó', 'Lo que das', 'Por rareza']) {
     check(`está «${t}»`, titulos.some((x) => x.trim() === t), titulos.join(' | '))
   }
   check('y no queda ninguna tira deslizable, que es lo que quitó la 440',

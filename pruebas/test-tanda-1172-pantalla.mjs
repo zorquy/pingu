@@ -95,7 +95,7 @@ console.log('── Estadísticas ──')
     volver: !!document.querySelector('#mcPanelEstadisticas #mcVistaVolver'),
     ancho: document.documentElement.scrollWidth <= innerWidth,
   }))
-  check('abre ?ver=estadisticas con las seis cajas', e.ver === 'estadisticas' && e.cajas.join('|') === 'Tus repetidas|Lo más valioso|Por colección|Por rareza|Por idioma|Por era' && e.volver, JSON.stringify(e))
+  check('abre ?ver=estadisticas con las seis cajas', e.ver === 'estadisticas' && e.cajas.join('|') === 'Lo que das|Lo más valioso|Por colección|Por rareza|Por idioma|Por era' && e.volver, JSON.stringify(e))
   check('  …por idioma: 7 en español y 1 en inglés', e.idioma.join('|') === 'Español 7|Inglés 1', e.idioma.join('|'))
   check('  …por era: 5 de Escarlata y Púrpura y 3 de Espada y Escudo', e.era.join('|') === 'Escarlata y Púrpura 5|Espada y Escudo 3', e.era.join('|'))
   check('  …sin salirse en el móvil', e.ancho)

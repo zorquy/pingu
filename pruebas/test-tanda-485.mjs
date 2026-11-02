@@ -121,10 +121,10 @@ console.log('\n── 4. Y las repetidas no funden dos catálogos ──')
   await page.click('#mcVerTodo')
   await page.waitForTimeout(700)
   const texto = await page.locator('#mcEstadisticas').innerText()
-  // Solo UNA repetida: la `sv1a-1` occidental, que tiene 2 copias. La
-  // japonesa tiene 1. Si se agruparan por id, saldrían 3 copias y «te
-  // sobran 2» — una repetida inventada a partir de dos cartas distintas.
-  check('te sobra UNA copia, no dos', /te sobran?\s*(una|1)\b/i.test(texto) || /\b1\b[\s\S]{0,40}copia repetida/i.test(texto),
+  // 1179: las «repetidas» ya no se enseñan (dos catálogos, dos versiones o
+  // dos idiomas no son una repetida); Estadísticas enseña «Lo que das», que
+  // con este fixture (nada marcado para cambio) está vacío y lo dice.
+  check('sin «repetidas» en Estadísticas; «Lo que das» vacío con nada para cambio', !/repetida/i.test(texto) && /Lo que das/.test(texto) && /Todavía no das ninguna/.test(texto),
     texto.replace(/\s+/g, ' ').slice(0, 260))
 }
 

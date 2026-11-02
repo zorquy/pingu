@@ -62,7 +62,9 @@ console.log('── 1. En un iPhone ──')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const m = await medir(page)
   check('la cabecera se recoge y abre la cartera: cifra, sus cifras en una línea, cambio, gráfica y rangos', m.cabecera === 0 && m.orden, JSON.stringify(m))
-  check('  …la cifra en la talla grande (34 px)', m.talla === 34, JSON.stringify(m))
+  // Desde la 1179 la cifra crece un 30 % sobre --t-3xl en el PC (44,2 px;
+  // PINGU: «muy visual»): la talla grande o más, nunca menos.
+  check('  …la cifra en la talla grande (34 px o más)', m.talla >= 34, JSON.stringify(m))
   check('cartas, distintas y expansiones en una línea, sin cajas', m.unaFila && m.fichas, JSON.stringify(m))
   check('  …y la línea va de borde a borde', m.caja && m.caja.izq <= 1 && m.caja.der <= 1, JSON.stringify(m.caja))
   const ancho = await page.evaluate(() => ({ s: document.documentElement.scrollWidth, c: document.documentElement.clientWidth }))

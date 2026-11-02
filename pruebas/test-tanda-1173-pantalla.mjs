@@ -40,55 +40,27 @@ const sembrar = (d) => {
 const datos = { SETS, CARTAS, PRECIOS, COLECCION, VALOR, HIST, AVISOS }
 const MESES = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre']
 
-console.log('── PC: la tira, las alertas y tu mes ──')
+console.log('── PC: lo pagado en Estadísticas; alertas y Tu mes fuera del Panel (1179) ──')
 {
   const ctx = await browser.newContext({ viewport: { width: 1366, height: 900 }, locale: 'es-ES', serviceWorkers: 'block' })
   await ctx.addInitScript(sembrar, datos)
   const page = await ctx.newPage()
   const err = []; page.on('pageerror', (e) => err.push(String(e).slice(0, 160)))
   await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('#mcAlertas a.mc-alerta', { timeout: 15000 }).catch(() => {})
+  await page.waitForSelector('#mcMovidas .mc-vistazo-ficha', { timeout: 15000 }).catch(() => {})
   await page.waitForTimeout(800)
-  // Desde la 1174 es UNA línea secundaria bajo la gráfica (PINGU: «no me
-  // gusta que ocupe tanto espacio»), no tres fichas.
   const t = await page.evaluate(() => ({
-    linea: document.getElementById('mcBalance')?.textContent.replace(/\s+/g, ' ').trim(),
-    vas: document.querySelector('#mcBalance b.mc-gana')?.textContent,
-    falta: document.querySelector('#mcBalance [data-ir-a="anadidas"]')?.textContent.trim(),
-    dentro: !!document.querySelector('#mcValorCaja #mcBalance'),
-    linea1: document.getElementById('mcBalance')?.classList.contains('mc-cartera-sub'),
+    balance: !!document.getElementById('mcBalance'), alertas: !!document.getElementById('mcAlertas'), mes: !!document.getElementById('mcMes'), cambios: !!document.getElementById('mcCambios'),
+    lado: !!document.querySelector('.mc-cartera-lado'),
   }))
-  check('la línea Pagaste · valen · vas, dentro de la cartera y secundaria, sobre las 5 copias con lo pagado', t.dentro && t.linea1 && /^Pagaste 273,00 € en 5 cartas valen 474,60 € vas \+201,60 € \(\+74 %\)/.test(sinNbsp(t.linea)) && sinNbsp(t.vas) === '+201,60 € (+74 %)', JSON.stringify(t))
-  check('  …y «5 sin apuntar →»', /^5 sin apuntar/.test(t.falta || ''), t.falta)
-  const al = await page.evaluate(() => ({
-    filas: [...document.querySelectorAll('#mcAlertas a.mc-alerta')].map((a) => `${a.querySelector('b').textContent}|${a.querySelector('.mc-movida-precio small').textContent.trim()}|${a.classList.contains('cerca') ? 'cerca' : ''}`),
-    textos: [...document.querySelectorAll('#mcAlertas a.mc-alerta .mc-movida-nombre small')].map((s) => s.textContent),
-    mas: !!document.querySelector('[data-alertas-mas]'),
-  }))
-  check('«Tus alertas»: las tres activas (no la apagada), la más cerca primero', sinNbsp(al.filas.join(' / ')) === 'Gengar|a 2,10 €| / Charizard ex|a 3,50 €|cerca / Pikachu ex|a 32,00 €|', JSON.stringify(al))
-  check('  …con el umbral y el precio de hoy', sinNbsp(al.textos[0]) === 'si baja de 1,00 € · hoy 3,10 €' && sinNbsp(al.textos[1]) === 'si sube de 100,00 € · hoy 96,50 €', JSON.stringify(al.textos))
-  check('  …y sin «Ver las N» con tres', !al.mas)
-  const mes = await page.evaluate(() => ({
-    titulo: document.querySelector('#mcMes .mc-subtitulo')?.textContent,
-    fichas: [...document.querySelectorAll('#mcMes .mc-mes-ficha')].map((f) => `${f.querySelector('b').textContent} ${f.querySelector('span').textContent}`),
-    mejor: document.querySelector('#mcMes .mc-vistazo-linea')?.textContent,
-  }))
-  check(`«Tu ${MESES[new Date().getMonth()]}»: 5 cartas, 1 expansión nueva, 0 cambios y el valor del mes`, mes.titulo === `Tu ${MESES[new Date().getMonth()]}` && mes.fichas[0] === '+5 cartas' && mes.fichas[1] === '1 expansión nueva' && mes.fichas[2] === '0 cambios hechos' && /^[+−]\d/.test(mes.fichas[3] || '') && /de valor este mes$/.test(mes.fichas[3] || ''), JSON.stringify(mes))
-  check('  …y la mejor compra del mes (Charizard ex: pagaste 40, vale 96,50)', sinNbsp(mes.mejor) === 'Tu mejor compra del mes: Charizard ex, pagaste 40,00 € y vale 96,50 €.', mes.mejor)
-  await page.click('#mcMes [data-mes-compartir]')
-  await page.waitForTimeout(2500)
-  const hoja = await page.evaluate(() => { const d = document.querySelector('.ch-caja')?.closest('dialog'); return { abierta: !!d?.open, titulo: document.getElementById('chTitulo')?.textContent, lienzo: !!d?.querySelector('canvas, img') } })
-  check('«Compartir» abre la hoja con la imagen del mes', hoja.abierta && hoja.titulo === `Tu ${MESES[new Date().getMonth()]}` && hoja.lienzo, JSON.stringify(hoja))
-  await page.keyboard.press('Escape')
-  await page.waitForTimeout(300)
-  // «Sin apuntar» → Añadidas filtradas.
-  await page.click('#mcBalance [data-ir-a="anadidas"]')
-  await page.waitForSelector('#mcAnadLista a.mc-movida', { timeout: 8000 }).catch(() => {})
-  const an = await page.evaluate(() => ({ url: location.search, filas: document.querySelectorAll('#mcAnadLista a.mc-movida').length, campos: document.querySelectorAll('#mcAnadLista input[data-pagado-de]').length }))
-  check('«sin apuntar» abre Añadidas con ?sin=pagado y las 5', /ver=anadidas/.test(an.url) && /sin=pagado/.test(an.url) && an.filas === 5 && an.campos === 5, JSON.stringify(an))
+  check('el Panel A no lleva Pagaste · valen · vas, ni alertas, ni Tu mes, ni Cambios, ni el lado', !t.balance && !t.alertas && !t.mes && !t.cambios && !t.lado, JSON.stringify(t))
+  // Lo pagado vive en Estadísticas (`diapoDelBalance`, la cuenta de la 428).
+  await page.click('#mcVerTodo')
+  await page.waitForSelector('#mcPanelEstadisticas .mc-diapo', { timeout: 8000 }).catch(() => {})
+  const e = await page.evaluate(() => ({ ver: new URL(location.href).searchParams.get('ver'), texto: document.getElementById('mcPanelEstadisticas')?.textContent.replace(/\s+/g, ' ').replace(/[  ]/g, ' ') || '' }))
+  check('Estadísticas lleva lo pagado (273,00 € en 5 copias, valen 474,60 €)', e.ver === 'estadisticas' && /273,00 €/.test(e.texto) && /474,60 €/.test(e.texto), e.texto.slice(0, 300))
   await page.click('#mcVistaVolver')
   await page.waitForTimeout(400)
-  check('  …y al volver se va el ?sin', await page.evaluate(() => !location.search.includes('sin=')))
   // La campanita de Movimientos.
   await page.click('#mcMovidas .ver-todo')
   await page.waitForSelector('#mcMovLista a.mc-movida', { timeout: 8000 }).catch(() => {})
@@ -102,20 +74,16 @@ console.log('── PC: la tira, las alertas y tu mes ──')
   await ctx.close()
 }
 
-console.log('── Móvil: la tira cabe y nada se sale ──')
+console.log('── Móvil: nada se sale ──')
 {
   const ctx = await browser.newContext({ ...devices['iPhone 13'], locale: 'es-ES', serviceWorkers: 'block' })
   await ctx.addInitScript(sembrar, datos)
   const page = await ctx.newPage()
   const err = []; page.on('pageerror', (e) => err.push(String(e).slice(0, 160)))
   await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('#mcAlertas a.mc-alerta', { timeout: 15000 }).catch(() => {})
-  const m = await page.evaluate(() => {
-    const r = (s) => document.querySelector(s)?.getBoundingClientRect()
-    const t = r('#mcBalance'); const mes = r('#mcMes .mc-mes-rejilla')
-    return { tira: t && t.width <= innerWidth, mes: mes && mes.width <= innerWidth, mesFilas: new Set([...document.querySelectorAll('#mcMes .mc-mes-ficha')].map((f) => Math.round(f.getBoundingClientRect().top))).size, reojoMes: !!document.querySelector('#mcReojoMes')?.getClientRects().length, ancho: document.documentElement.scrollWidth <= innerWidth, alertas: document.querySelectorAll('#mcAlertas a.mc-alerta').length }
-  })
-  check('la línea del balance cabe, Tu mes como tarjeta de reojo (1178), tres alertas', m.tira && m.reojoMes && m.alertas === 3, JSON.stringify(m))
+  await page.waitForSelector('#mcMovidas .mc-vistazo-ficha', { timeout: 15000 }).catch(() => {})
+  const m = await page.evaluate(() => ({ mov: document.querySelectorAll('#mcMovidas .mc-vistazo-ficha').length, balance: !!document.getElementById('mcBalance'), mes: !!document.getElementById('mcMes'), ancho: document.documentElement.scrollWidth <= innerWidth }))
+  check('Movimientos en tira, sin balance ni Tu mes', m.mov >= 3 && !m.balance && !m.mes, JSON.stringify(m))
   check('  …sin salirse de la pantalla', m.ancho, JSON.stringify(m))
   check('móvil: sin errores', !err.length, err.join(' | '))
   await ctx.close()

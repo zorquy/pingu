@@ -62,12 +62,13 @@ console.log('\n── 1. La cuenta, sin navegador ──')
   const alReves = resumenDeValor([...filas].reverse())
   check('las filas se ordenan por fecha', alReves.cambio === 25, String(alReves.cambio))
 
-  // El aviso de las cartas sin precio. Sin él, un salto en la gráfica no
-  // se distingue de «ese día se curaron 200 precios», que es justo lo
-  // que va a pasar las primeras semanas.
-  check('se avisa de las cartas sin precio', /no tiene precio todavía/.test(graficaHtml(filas)),
+  // El aviso de las cartas sin precio se FUE en la 1179 (PINGU: «si una
+  // carta no tiene precio todavía y no cuenta, pues no me lo escribas»): la
+  // cuenta sigue en `resumenDeValor` (sinPrecio) para quien la quiera, y la
+  // gráfica no la escribe ni con cartas sin precio ni sin ellas.
+  check('la gráfica no escribe lo de las cartas sin precio', !/precio todavía/.test(graficaHtml(filas)),
     graficaHtml(filas).slice(-200))
-  check('  …y no se avisa si no hay ninguna',
+  check('  …ni cuando no hay ninguna',
     !/precio todavía/.test(graficaHtml(filas.map((f) => ({ ...f, sin_precio: 0 })))))
 }
 
@@ -202,8 +203,14 @@ console.log('\n── 5. Sin histórico, el resumen sigue entero ──')
   // falla. El resto del resumen no puede irse con ella.
   const { page, errores } = await abrir([])
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('las otras cuatro cajas siguen ahí', (await page.locator('.mc-resumen-caja:not(.mc-valor-caja)').count()) === 4,
-    String(await page.locator('.mc-resumen-caja:not(.mc-valor-caja)').count()))
+  // Los cuatro bloques del Panel «A · Cartera» (1179): Movimientos, Ranking,
+  // Últimas añadidas y Expansiones (las cajas de la 374 viven en
+  // Estadísticas desde la 1172).
+  // Movimientos se quita solo cuando no hay precios que se muevan (aquí la
+  // carta vale lo que se apuntó a mano), así que quedan tres.
+  const BLOQUES = '#mcValiosas, #mcUltimas, #mcVistazoSets, #mcVistazoSetsEsq'
+  check('los otros bloques siguen ahí (Ranking, Últimas añadidas, Expansiones)', (await page.locator(BLOQUES).count()) === 3,
+    String(await page.locator(BLOQUES).count()))
   await page.close()
 }
 
@@ -250,8 +257,9 @@ console.log('\n── 6. Un ENLACE directo a una pestaña también se pinta ─�
   const { page } = await abrir([dia(10, 100), dia(0, 120)], 120)
   const t = limpio(await page.locator('#mcResumenPanel').textContent())
   check('/mi-coleccion?ver=resumen se pinta con las cartas', !/Cuando añadas cartas/.test(t), t.slice(0, 120))
-  check('  …y con las cuatro cajas', (await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()) === 4,
-    String(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()))
+  const BLOQUES = '#mcValiosas, #mcUltimas, #mcVistazoSets, #mcVistazoSetsEsq'
+  check('  …y con sus bloques (Ranking, Últimas añadidas, Expansiones)', (await page.locator(BLOQUES).count()) === 3,
+    String(await page.locator(BLOQUES).count()))
   await page.close()
 }
 

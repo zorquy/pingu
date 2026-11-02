@@ -21,7 +21,9 @@ check('  …ni en el constructor ni en el muro', !/dashed/.test(regla(leer('css/
 check('  …y Mensajes y los mazos con botón, no con enlaces en la frase',
   /empty-state">Todavía no tienes conversaciones[^`]*class="btn-primary"/.test(leer('js/mensajes.js')) &&
   /empty-state">Todavía no tienes mazos guardados[^']*class="btn-primary" href="\/constructor"/.test(leer('js/torneos/torneo.js')))
-check('SI5: el primario es el azul sólido con el blanco fijo', /background: var\(--navy-solid\);\s*color: var\(--blanco-fijo\)/.test(regla(style, '.btn-primary')))
+// Desde la 1018 el primario lleva el color de la SECCIÓN (`--acento` /
+// `--acento-texto`, que en Inicio es el azul sólido con el blanco fijo).
+check('SI5: el primario es el acento de la sección (el azul sólido con el blanco fijo en Inicio)', /background: var\(--acento\);\s*color: var\(--acento-texto\)/.test(regla(style, '.btn-primary')))
 const idx = leer('index.html')
 // Desde la 844 los «Ver todo» de la portada los pinta js/portada-bloques.js
 // (un solo `verTodo`, con su flecha), no index.html.
@@ -50,7 +52,12 @@ for (const tema of ['light', 'dark']) {
     out.borde = vs.borderTopStyle; out.fantasma = antes.content !== 'none' && antes.height === '56px'; v.remove()
     return out
   })
-  check(`${tema}: el primario azul oscuro con letra blanca`, r.fondo === 'rgb(30, 81, 117)' && r.letra === 'rgb(255, 255, 255)', JSON.stringify(r))
+  // En oscuro, desde la 1024 el acento de Inicio es `--navy` claro
+  // (#7cbae4) con letra oscura: el marino «parece deshabilitada» (PINGU).
+  const esperado = tema === 'dark'
+    ? r.fondo === 'rgb(124, 186, 228)' && r.letra !== 'rgb(255, 255, 255)'
+    : r.fondo === 'rgb(30, 81, 117)' && r.letra === 'rgb(255, 255, 255)'
+  check(`${tema}: el primario ${tema === 'dark' ? 'azul claro con letra oscura (1024)' : 'azul oscuro con letra blanca'}`, esperado, JSON.stringify(r))
   check(`${tema}: el vacío sin caja y con el abanico`, r.borde === 'none' && r.fantasma, JSON.stringify(r))
   await p.close()
 }
