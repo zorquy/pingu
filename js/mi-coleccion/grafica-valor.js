@@ -333,9 +333,7 @@ export function graficaHtml(filas, { ahora = null, rango = RANGO_POR_DEFECTO, no
     </div>
     <div class="mc-valor-fechas" aria-hidden="true">${ejeFechas}</div>
     <div class="mc-valor-rangos" role="group" aria-label="En cuántos días se mira">${botones}</div>
-    ${r.sinPrecio
-      ? `<p class="subtext">${r.sinPrecio} ${r.sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía, así que no cuentan. Cuando lo tengan, la línea dará un salto que no es que hayan subido.</p>`
-      : ''}`
+    `
 }
 
 // ── LA LECTURA AL PASAR EL DEDO (653) ──
@@ -468,5 +466,5 @@ export function carteraHtml(filas, { ahora = null, rango = '1M', nombre = 'tu co
       <div class="mc-valor-lectura" hidden aria-hidden="true"><span class="mc-valor-lectura-globo"></span></div>
     </div>
     <div class="mc-valor-rangos" role="group" aria-label="En cuántos días se mira">${botones}</div>
-    ${r.sinPrecio ? `<p class="mc-nota">${r.sinPrecio} ${r.sinPrecio === 1 ? 'carta no tiene' : 'cartas no tienen'} precio todavía y no cuentan.</p>` : ''}`
+    `
 }

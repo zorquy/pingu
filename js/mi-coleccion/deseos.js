@@ -177,7 +177,7 @@ async function pintarCambios() {
     // funciona, que es lo que hace falta la primera vez.
     ? `<ol class="mc-cambio-pasos">
          <li><span class="mc-cambio-paso">1</span><div><strong>Apunta lo que buscas</strong><p class="subtext">Con el corazón, en <button type="button" class="link-btn" data-deseos-vista="mercado">el Mercado</button> o en <button type="button" class="link-btn" data-ir-quiero>La quiero</button>.</p></div></li>
-         <li><span class="mc-cambio-paso">2</span><div><strong>Pon para cambio lo que te sobra</strong><p class="subtext">Tus repetidas, con cuántas copias das, en <button type="button" class="link-btn" data-deseos-vista="doy">Las que doy</button>.</p></div></li>
+         <li><span class="mc-cambio-paso">2</span><div><strong>Pon para cambio lo que te sobra</strong><p class="subtext">Lo que sobra lo decides tú: marca una copia y di cuántas das, en <button type="button" class="link-btn" data-deseos-vista="doy">Las que doy</button>.</p></div></li>
          <li><span class="mc-cambio-paso">3</span><div><strong>Aquí sale con quién encajas</strong><p class="subtext">Y le escribes desde aquí, sin salir de PokeDoc.</p></div></li>
        </ol>`
     : !gente.length ? sinNadie() : `<div class="mc-quiero-cabeza">
@@ -1090,7 +1090,7 @@ async function pintarDoy() {
     caja.innerHTML = `<div class="mc-quiero-vacio">
         <span class="mc-quiero-vacio-icono" aria-hidden="true">${icons.package(28)}</span>
         <p><strong>Todavía no das ninguna</strong></p>
-        <p class="subtext">Lo que pongas para cambio sale en el Mercado, con tu nombre, y te decimos quién lo busca.${ctx.repetidas(...ctx.pTodo()).length ? ` Te sobran copias de ${ctx.repetidas(...ctx.pTodo()).length} ${ctx.repetidas(...ctx.pTodo()).length === 1 ? 'carta' : 'cartas'}.` : ''}</p>
+        <p class="subtext">Lo que pongas para cambio sale en el Mercado, con tu nombre, y te decimos quién lo busca.</p>
         ${poner}
       </div>`
     return

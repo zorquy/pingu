@@ -4,6 +4,50 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (422) — PINGU-Claude (1179 — el Panel «A · Cartera», sin «repetidas», y la portada suma como el Panel)
+
+**Hecho** (PINGU descartó la 1177/1178 puestas y una propuesta visual
+general; de tres paneles con capturas reales eligió la A, con expansiones en
+baldosas y ocho por tira):
+
+- **Panel A**: la cartera a lo ancho (cifra más grande, gráfica a 200 px) sin
+  el lado de la 1177 ni lo pagado ni la nota «N cartas no tienen precio», y
+  debajo Movimientos (tira de ocho con el molde de Ranking:
+  `fichaDeTiraHtml`), Ranking, Últimas añadidas y Expansiones en BALDOSAS con
+  el logo (reglas al final de `mi-coleccion.css`). Cambios, Tu mes y las
+  alertas se fueron del Panel; «Más» sin la línea de cuentas y con
+  «Todas tus cartas» delante (la única puerta a la pantalla Cartas).
+- **Fuera las «repetidas»**: Estadísticas «Lo que das», filtro «Para cambio»
+  en una expansión (`#mcAlbumCambio`), textos de Deseos y cambios.
+- **La portada suma como el Panel**: `valorComoElPanel` (datos.js), que llama
+  `hoy.js` en paralelo con `portada_hoy`; la base solo pone la historia.
+  (12.046 € arriba y 12.169 € dentro: la base no mira las filas de versión.)
+
+**Ficheros**: `js/mi-coleccion/panel.js`, `js/mi-coleccion/datos.js`,
+`js/mi-coleccion/grafica-valor.js`, `js/mi-coleccion/deseos.js`,
+`js/mi-coleccion.js`, `js/hoy.js`, `mi-coleccion.html`, `cartas.html`
+(generado), `css/mi-coleccion.css`, SCHEMA, novedades, CLAUDE.md. Pruebas
+en `pruebas`: las del Panel (1177/1178/1173/1175…) ajustadas a la A.
+
+**Pendiente**: nada en curso. La rama `propuesta` de GitHub es un resto de
+una propuesta descartada (Netlify no la despliega); se puede borrar.
+
+- **Pruebas** (rama `pruebas`): la lista «mi-coleccion» son ya 340 ficheros
+  (~8 h): corrí la lista corta (lo tocado, el Panel, la portada y el valor,
+  55 pruebas). Puse al día las que decían lo de antes: 374 y 377 (Lo que das,
+  bloques del Panel A, sin el aviso de «sin precio»), 408 y 651 (Cambios
+  fuera del Panel; seis chips), 426 (entra por «Todas tus cartas»), 428
+  (la tarjeta de lo pagado está en Estadísticas), 715 (cifra ≥ 34 px), 925
+  (Movimientos con el molde de tira), 1015, 756 y 1017 (`valorComoElPanel`).
+  Y rojos de ANTES de esta tanda que arreglé en la prueba: 326 (48 pies desde
+  /avisos), 406 (el body reserva la barra, 1020), 412 (el ajuste de añadir se
+  fue del ⋯ en la 1053), 748 y 869 («Mis partidas» desde la 1162), 766 (sin
+  `#mcDoyCompartir` desde la 1114), 781 (acento de sección, 1018 y 1024).
+  Quedan rojos de antes SIN tocar: 311 (`#9a3412` en auth.css, 20px/10px),
+  327 (la barra se sale 4 px a 1400 con el chip), y 369, 370 y 376 (fotos
+  del editor y los bolsillos, y 3 de 4 cartas en un cruce): rojos también
+  en HEAD, comprobado sirviendo HEAD.
+
 ## 2026-11-02 (421) — PINGU-Claude (1177 y 1178 — el Panel en filas en el PC, y de un vistazo en el móvil)
 
 **Hecho** (la propuesta «Estructura del Panel» entera; PINGU: «había una

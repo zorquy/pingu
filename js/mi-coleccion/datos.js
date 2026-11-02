@@ -744,6 +744,26 @@ export async function versionesDeCartas(cardIds) {
   return registrarVersiones(todas)
 }
 
+// LO QUE VALE TU COLECCIÓN AHORA, COMO LO SUMA EL PANEL (noviembre de 2026).
+// La portada enseñaba `coleccion_valor_de` (la base, 1017) y el Panel esta
+// suma, y PINGU vio 12.046 € arriba y 12.169 € dentro: la base no mira las
+// filas de versión de las copias que SON una versión (862) ni suma como
+// `valorDeLineas`. Un solo camino: tus líneas, los precios guardados y las
+// versiones de las copias con versión, y la misma cuenta que el Panel. Lo
+// que el Panel pide VIVO a TCGdex para una carta sin precio guardado (los
+// `vivos`) no entra aquí: es lo que no tiene precio, y cuenta cero en los
+// dos sitios hasta que la pasada lo guarde.
+export async function valorComoElPanel(userId) {
+  const lineas = await lineasDeTodo(userId)
+  if (!lineas.length) return { total: 0, lineas: 0 }
+  const conVersion = [...new Set(lineas.filter((l) => l.variante && l.variante !== 'normal').map((l) => l.card_id))]
+  const [guardados] = await Promise.all([
+    preciosGuardados(lineas.map((l) => l.card_id)),
+    conVersion.length ? versionesDeCartas(conVersion).catch(() => []) : [],
+  ])
+  return { total: valorDeLineas(lineas, guardados), lineas: lineas.length }
+}
+
 // Lo que vale un montón de líneas (756): UNA definición para el Panel y
 // para la portada. La portada enseñaba la foto de anoche y el Panel la
 // suma de ahora, y PINGU vio 15.691 € arriba y 16.607 € dentro.

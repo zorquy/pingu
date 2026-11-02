@@ -41785,6 +41785,93 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1179 — El Panel «A · Cartera», sin «repetidas», y la portada suma como el Panel
+
+PINGU vio las dos tandas anteriores puestas (1177 y 1178) y las descartó:
+«parecen más sobre a la web», «quiero que sea muy visual y que no tenga
+mucho texto». De tres paneles propuestos con capturas de la web de verdad
+(A Cartera, B Vitrina con la carta que más se mueve en grande y un podio, C
+Mosaico de baldosas) eligió la A, con las expansiones en baldosas y ocho
+cartas por tira.
+
+**El Panel «A · Cartera»** (`#mcPanelResumen`, una pila con `order`):
+
+1. **La cartera** (`#mcValorCaja`), a lo ancho: la cifra (un 30 % más
+   grande que `--t-3xl` en el PC), cartas · distintas · expansiones, la chapa
+   del mes, la gráfica a 200 px (160 en el móvil) y los periodos. Fuera:
+   el lado de la 1177 (`ladoDeCarteraHtml`, `cambioDelTramo`,
+   `pintarLadoDeCartera`, `balanceTiraHtml`: «Este mes», «Esta semana» y
+   Pagaste · Valen · Vas) y la nota «N cartas no tienen precio todavía y no
+   cuentan» (las dos de `grafica-valor.js`). La nota de dónde salen los
+   precios (`#mcFuente`) ya no sale en el Panel (sí en Cartas y en las
+   vistas de Movimientos y Ranking).
+2. **Movimientos** (`#mcMovidas`): una tira de hasta ocho cartas con el
+   molde de Ranking (`fichaDeTiraHtml`: la carta, el precio de hoy, el
+   tanto por ciento en `em.mc-ficha-cambio` verde o rojo, el nombre), las
+   que más se mueven suban o bajen (`extremos(todas, DE_VISTAZO)`). El
+   esqueleto es una tira de ocho fichas.
+3. **Ranking** y **Últimas añadidas**, como en la 1175.
+4. **Expansiones** en baldosas (`#mcVistazoSets .mc-set-fila` como rejilla
+   de una columna: el logo a 72 px, el nombre con su barra, la cuenta a la
+   derecha), cuatro por fila en el PC y dos en el móvil (las dos primeras).
+   Las reglas van al FINAL de `mi-coleccion.css`: `.mc-set-tarjeta.mc-set-fila`
+   se define más abajo que el bloque del Panel con la misma especificidad y
+   le ganaba por orden (la trampa de la 306).
+5. **Más**: los chips de la 1176, sin la línea de «N distintas · M copias
+   repetidas».
+
+Fuera del Panel: Cambios (`vistazoDeCambios`), Tu mes (`vistazoDelMes`,
+`pintarCambiosDelMes`, `pintarValorDelMes`; `compartirMes` se queda sin
+datos, por si vuelve) y las alertas (`pintarAlertas`; `ordenarAlertas`
+sigue, puro). La plantilla pierde `#mcAlertasSitio`, `#mcDerSitio` y
+`#mcMesSitio`; la hoja, las reglas de reojo, las cifras en línea y la
+cartera a dos columnas. En el móvil, lo mismo con tiras de tres.
+
+**«Repetida» no existe** (PINGU: «tengo una normal y una reverse y pone que
+está repetida. No está repetida. No lo vamos a poner, porque ya tenemos el
+de cambio»). `repetidas()` contaba copias por `card_id`, así que dos
+versiones, dos idiomas o dos estados eran «una repetida». Lo que de verdad
+sobra es lo que marcas para cambio (`cambio > 0` en la línea):
+
+- Estadísticas: la diapositiva «Lo que te sobra» y la caja «Tus repetidas»
+  son «Lo que das» (`loQueDas(busca)` en panel.js: las líneas de
+  `ctx.loQueDoy()` agrupadas por carta, las que más das primero), con el
+  enlace a Las que doy.
+- Una expansión: el filtro «Repetidas» (`#mcAlbumRepetidas`,
+  `album.repetidas`) es «Para cambio» (`#mcAlbumCambio`, `album.paraCambio`):
+  las de ese set de las que das alguna copia (`doyEnAlbum`).
+- Deseos y cambios: el paso 2 dice «Lo que sobra lo decides tú: marca una
+  copia y di cuántas das», y el vacío de Las que doy ya no cuenta repetidas.
+- `repetidas()` y `ctx.repetidas` siguen en mi-coleccion.js sin que nadie
+  las pinte.
+
+**La portada suma como el Panel** (PINGU: «el precio que sale en la
+colección y el precio del mini panel del inicio no están cogiendo los
+mismos datos… el del inicio debería coger los datos del panel»; 12.046 €
+arriba y 12.169 € dentro). Desde la 1017 la portada enseñaba
+`coleccion_valor_de` (la base, por `valor_de_copia`), y el Panel
+`valorDeLineas(lineasTodo, guardados, vivos)`. No son la misma cuenta: la
+base no mira las filas de versión (`tcg_card_versions`, 862) de las copias
+que SON una versión (una Reverse de un set viejo vale lo de su fila, no lo
+de la carta) y su `valor_de_linea` ordena los respaldos a su manera. Ahora
+hay UN camino para «lo que vale ahora»: `valorComoElPanel(userId)` en
+`datos.js` (tus líneas, `preciosGuardados`, `versionesDeCartas` de las
+copias con versión, `valorDeLineas`), que llama la portada (`hoy.js`:
+`ahoraP`, en paralelo con `portada_hoy`, y de respaldo la suma de la base
+si falla) y que es exactamente lo que suma el Panel salvo los `vivos` (lo
+que el Panel pide VIVO a TCGdex para una carta sin precio guardado, que
+cuenta cero en los dos sitios hasta que la pasada lo guarde). Cuesta dos o
+tres consultas más en la portada, en paralelo; la base sigue poniendo la
+historia. La foto diaria (`coleccion_foto_diaria`) sigue sumando por
+`valor_de_copia`: el punto de HOY de la gráfica es el vivo y los de atrás,
+las fotos.
+
+**«Todas tus cartas» en «Más».** La pantalla Cartas (toda la colección en
+una lista) salió del menú en la 447 y se llegaba a ella por el «Ver todas»
+de la cartera; el Panel A no tenía ninguna puerta y `test-tanda-426` —que
+entra por ahí— lo cantó. Es un chip más de `vistazoDeAcciones`
+(`#mcVerCartas`, `data-ir-a="cartas"`), el primero de la fila.
+
 ## Tanda 1178 — El móvil de un vistazo
 
 Decisiones 3 y 4 de la propuesta «Estructura del Panel». En el móvil el

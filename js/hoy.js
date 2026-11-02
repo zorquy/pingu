@@ -23,7 +23,7 @@ import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
 import { euros } from './cardmarket.js'
 import { hojaInyectada } from './hoja.js'
-import { lineasDeTodo, preciosGuardados, valorDeLineas } from './mi-coleccion/datos.js'
+import { valorComoElPanel } from './mi-coleccion/datos.js'
 import { estadoDeHoy, fichaRetosHtml } from './portada-retos.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { proximaCita } from './torneos/rondas-jornada.js'
@@ -207,15 +207,12 @@ async function aMedias(uid) {
   )
 }
 
-// Lo que vale tu colección AHORA, como lo suma el Panel (756): tus líneas
-// con los precios guardados. La foto diaria es de anoche y no lleva el
-// precio que pusiste a mano ni lo que subió hoy; arriba tiene que decir
-// lo mismo que dentro.
-async function valorDeAhora(uid) {
-  const lineas = await lineasDeTodo(uid)
-  if (!lineas.length) return { total: 0, lineas: 0 }
-  return { total: valorDeLineas(lineas, await preciosGuardados(lineas.map((l) => l.card_id))), lineas: lineas.length }
-}
+// Lo que vale tu colección AHORA, como lo suma el Panel (756 → noviembre
+// de 2026): `valorComoElPanel`, la misma cuenta y los mismos datos. Con la
+// migración 1017 la base daba su propia suma (`coleccion_valor_de`) y no
+// coincidía con la del Panel; ahora la base pone la HISTORIA y el punto de
+// hoy se suma aquí, como dentro.
+const valorDeAhora = (uid) => valorComoElPanel(uid)
 
 // El histórico con el valor de ahora como punto de HOY: el de la foto de
 // hoy, si la hay, se cambia; si no, se añade. Puro.
@@ -278,10 +275,13 @@ async function intentar(fn) {
 // Lo mismo que piden las ocho consultas de abajo, sacado de `portada_hoy()`
 // (1017), en el mismo orden y con las mismas decisiones: la cita de una liga
 // la sigue poniendo `proximaCita`, y qué va en «Sigue», `loQueTienesAMedias`.
-async function deLaBase(d, uid, hoy, productosP) {
-  const valor = (() => {
+async function deLaBase(d, uid, hoy, productosP, ahoraP) {
+  const valor = await (async () => {
     const historia = Array.isArray(d.valor?.historia) ? d.valor.historia : []
-    const ahora = d.valor?.ahora
+    // El punto de hoy, sumado como en el Panel; si esa suma no llega, la de
+    // la base, que es lo que había.
+    const vivo = await ahoraP
+    const ahora = vivo ? { valor: vivo.total, lineas: vivo.lineas } : d.valor?.ahora
     if (!ahora) return historia
     if (!Number(ahora.lineas)) return []
     return conElValorDeAhora(historia, ahora.valor, hoy)
@@ -322,12 +322,14 @@ export async function montarHoy(session, { doc = document } = {}) {
   // Lo que valen tus productos (766), como lo suma el Panel: va aparte en
   // los dos caminos (su regla por idioma vive en js/productos.js, la 967).
   const productosP = intentar(async () => (await import('./productos-valor.js')).valorParaElPanel(uid))
+  // Y lo que vale AHORA, como en el Panel, en paralelo con todo lo demás.
+  const ahoraP = intentar(() => valorDeAhora(uid))
   const datos = await datosDeHoy(uid)
-  const [valor, mio, abierto, sets, sigue, hilos, productos, retos] = datos ? await deLaBase(datos, uid, hoy, productosP) : await Promise.all([
+  const [valor, mio, abierto, sets, sigue, hilos, productos, retos] = datos ? await deLaBase(datos, uid, hoy, productosP, ahoraP) : await Promise.all([
     intentar(async () => {
       const [historia, ahora] = await Promise.all([
         supabase.from('user_collection_value').select('dia,valor').eq('user_id', uid).gte('dia', hoyISO(Date.now() - 60 * DIA)).order('dia', { ascending: true }).then(({ data, error }) => (error ? null : data || [])),
-        valorDeAhora(uid).catch(() => null),
+        ahoraP,
       ])
       // Sin la suma de ahora, la foto, que es lo que había; sin las dos,
       // la tarjeta no sale. Sin líneas, la invitación.

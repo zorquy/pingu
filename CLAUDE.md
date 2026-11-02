@@ -146,8 +146,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   otra consulta suelta; y el camino de antes se queda detrás de
   `sinMigracion` (`js/sin-migracion.js`) hasta que PINGU ejecute la
   migración, sin una pantalla rota entre medias. Y lo que vale tu colección
-  AHORA es `valor_de_copia` en la base, la misma función que suma la foto
-  diaria: una cifra nueva de «lo que vale» no se suma por otro camino.
+  AHORA se suma en el navegador por `valorComoElPanel` (`js/mi-coleccion/
+  datos.js`, tanda 1179): tus líneas, los precios guardados y las versiones
+  de las copias con versión, con `valorDeLineas`, en el Panel y en la
+  portada. La base (`valor_de_copia`) suma la foto DIARIA y no mira las
+  filas de versión, y PINGU vio 12.046 € arriba y 12.169 € dentro: una cifra
+  nueva de «lo que vale AHORA» pasa por `valorComoElPanel`, no por otro
+  camino; la de un día pasado, por la foto.
 - **El buscador de cartas es UNO: `js/buscar-cartas.js`** (tanda 909).
   /cartas → Buscar y la barra de arriba (/buscar, la paleta) llaman a
   `buscarComoEnCartas`; la copia «con las mismas reglas» de /buscar tenía
@@ -835,32 +840,33 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `?ver=estadisticas` (`pintarEstadisticas` en panel.js, con idioma y era;
   nada se despliega en el Panel) y «Expansiones» abre la estantería con
   «Solo las empezadas». Una caja nueva de estadísticas va en esa vista.
-  Y el Panel lleva (1173) la tira Pagaste · Valen · Vas bajo la gráfica
-  (`balanceTiraHtml`, la cuenta de la 428), «Tus alertas»
-  (`datos.alertasActivas` + `ordenarAlertas`, en la segunda columna del PC)
-  y «Tu mes» (`js/mi-coleccion/mes.js`, puro; la imagen en
-  `js/mes-imagen.js` con el marco de redes). Una cifra nueva del mes va en
-  `resumenDelMes` y en `fichasDelMes`, no en dos sitios. El Panel es una
-  PILA de filas (1177, PINGU: «había una columna y ahora me has metido otra
-  a la derecha y no parece equilibrado»): la cartera (con su lado: este mes,
-  esta semana y lo pagado, solo en el PC), la fila de reojo
-  (`aside.mc-panel-reojo`: `#mcMovidasSitio`, `#mcAlertasSitio`,
-  `#mcDerSitio` para Cambios y `#mcMesSitio`; dos y dos, cuatro desde
-  1.800 px), las tiras, las expansiones y «Más» (`#mcMasSitio`). Las cajas
-  de dentro son `display: contents` y cada bloque lleva su `order` en
-  `mi-coleccion.css`, escrito con un id delante (`#mcPanelResumen > *` pesa
-  más que una clase); un bloque nuevo de reojo va en el `aside` con su
-  sitio, y uno grande en `#mcVistazos` con su `order`. En el PC todo lleva
-  la misma caja (`#mcPanelResumen .mc-vistazo`). Y en el móvil (1178) cada
-  bloque de reojo se ve como una TARJETA con titular (`tarjetaDeReojoHtml`,
-  pintada delante del bloque, que el CSS esconde por debajo de 1.100): un
-  bloque de reojo nuevo lleva la suya, con un `data-ir-a` a su vista o un
-  `data-despliega` si no la tiene. Una cifra con su rótulo es `.mc-cifra-ficha`
-  (`.mc-ficha` es la ficha de la carta). Y lo pagado es una línea
-  secundaria (PINGU: «es algo muy opcional»), no una tira de fichas. Lo que
-  no es un bloque (una acción, un ajuste) va como chip en «Más»
+  **El Panel es el «A · Cartera»** (tanda 1179, PINGU eligió la A de las
+  tres propuestas: «muy visuales y que no tengan mucho texto»): la cartera
+  a lo ancho (la cifra, cartas · distintas · expansiones, la chapa del mes,
+  la gráfica a 200 px y sus periodos; nada más: ni «Este mes / Esta
+  semana», ni lo pagado, ni «N cartas no tienen precio») y debajo CUATRO
+  bloques con el mismo molde, uno por fila: Movimientos (`fichaDeTiraHtml`,
+  precio y % en verde o rojo), Ranking, Últimas añadidas (tiras de ocho en
+  el PC, tres en el móvil) y Expansiones en BALDOSAS con el logo (las reglas
+  al FINAL de `mi-coleccion.css`, que las filas de la estantería les ganaban
+  por orden). Al final, los chips de «Más» (`vistazoDeAcciones`, 1176; lo
+  que no es un bloque va ahí). Cambios, Tu mes y las alertas NO son bloques
+  del Panel: cada cosa en su pestaña, y las alertas avisan por la campana.
+  Lo pagado vive en la ficha de la carta y en Estadísticas (`diapoDelBalance`),
+  no en el Panel. Un bloque nuevo del Panel es una tira con ese molde, con su
+  `order` y su «Ver todas» a su vista; una cifra suelta o una frase, no.
+  Lo que no es un bloque (una acción, un ajuste) va como chip en «Más»
   (`vistazoDeAcciones`, 1176), no como bloque nuevo; y los bloques se
-  llaman como la vista que abren (Movimientos, Ranking).
+  llaman como la vista que abren (Movimientos, Ranking). La pantalla Cartas
+  se abre solo desde el chip «Todas tus cartas» de «Más» (y por `?ver=cartas`).
+- **«Repetida» no existe en la interfaz** (tanda 1179, PINGU: «tengo una
+  normal y una reverse y pone que está repetida. No está repetida»): contar
+  copias por id llamaba repetida a dos versiones, dos idiomas o dos estados.
+  Lo que sobra es lo que TÚ marcas para cambio: Estadísticas enseña «Lo que
+  das» (`loQueDas`), el filtro de una expansión es «Para cambio»
+  (`album.paraCambio`, `#mcAlbumCambio`) y la línea de «Más» se fue. La
+  función `repetidas()` de mi-coleccion.js se queda sin pintarse en ningún
+  sitio; no la vuelvas a enseñar.
 - **Un bloque de pantalla que no usa todo el mundo va en su módulo y
   entra por `import()`** (tanda 895, R4): el Panel y los deseos de Mi
   colección (`js/mi-coleccion/panel.js`, `deseos.js`) y el editor del
