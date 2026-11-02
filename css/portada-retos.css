@@ -15,7 +15,7 @@
 }
 
 .tr-bloque.perfecto .tr-cabeza { background: linear-gradient(135deg, #0d7a57, #10a374); }
-.tr-rotulo { display: flex; align-items: center; gap: var(--e-xs); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; opacity: 0.85; }
+.tr-rotulo { display: flex; align-items: center; gap: var(--e-xs); font-size: var(--t-2xs); font-weight: 700; opacity: 0.85; }
 .tr-titular { font-family: var(--font-display); font-size: var(--t-xl); }
 .tr-casillas { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--e-xs); }
 
@@ -48,7 +48,7 @@
 
 .tr-cuerpo { display: grid; gap: var(--e-md); padding: var(--e-md) var(--e-lg); }
 .tr-siguiente { display: flex; align-items: center; gap: var(--e-md); }
-.tr-sig-icono { flex-shrink: 0; display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-md); color: var(--blanco-fijo); }
+.tr-sig-icono { flex-shrink: 0; display: grid; place-items: center; width: 24px; height: 24px; background: none !important; color: var(--navy); }
 .tr-siguiente > div { flex: 1; min-width: 0; display: grid; }
 .tr-siguiente small { color: var(--text-mid); font-size: var(--t-xs); }
 .tr-siguiente b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

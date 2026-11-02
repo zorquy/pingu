@@ -62,8 +62,6 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 .cp-items, .cp-opciones { display: grid; gap: var(--e-xs); margin: 0; padding: 0; list-style: none; }
 .cp-vacio { padding: var(--e-sm) 0; color: var(--text-mid); font-size: var(--t-sm); list-style: none; }
@@ -316,7 +314,7 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
 .cp-importe b { font-family: var(--font-display); font-size: var(--t-2xl); }
 .cp-importe s, .cp-importe small { color: var(--text-mid); font-size: var(--t-xs); }
 .cp-envio { display: grid; gap: var(--e-xs); padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); }
-.cp-envio h3 { margin: 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.cp-envio h3 { margin: 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
 .cp-envio .cp-chip { background: var(--bg); }
 .cp-envio .cp-chip[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
 .cp-envio .subtext { margin: 0; }

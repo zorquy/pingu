@@ -121,11 +121,9 @@
 
 .article-sidebar h4 {
   font-size: var(--t-2xs);
-  text-transform: uppercase;
   color: var(--text-dim);
   font-weight: 700;
   margin-bottom: 12px;
-  letter-spacing: 0.4px;
 }
 
 .article-sidebar a {

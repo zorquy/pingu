@@ -134,8 +134,6 @@
 .carta-ficha dt,
 .carta-combate dt {
   font-size: var(--t-2xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--text-mid);
   margin-bottom: var(--e-xs);
 }
@@ -321,8 +319,6 @@
   background: var(--indigo-bg);
   color: var(--indigo);
   font-size: var(--t-2xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .carta-coste-libre {
@@ -659,8 +655,6 @@
   color: var(--text-dim);
   font-size: var(--t-2xs);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .coleccion-cifras b {
@@ -812,8 +806,6 @@
 
 .juego-cifras dt {
   font-size: var(--t-2xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--text-mid);
   margin-bottom: var(--e-xs);
 }
@@ -943,8 +935,6 @@
   background: var(--ice);
   color: var(--navy);
   font-size: var(--t-2xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   font-weight: 700;
 }
 
@@ -1226,8 +1216,6 @@
     padding: 0 var(--e-md);
     border-bottom: 1px solid var(--border);
     background: color-mix(in srgb, var(--white) 92%, transparent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
     transition: top 0.3s var(--ease);
   }
   html.bm-escondidas .carta-pestanas {
@@ -1349,8 +1337,6 @@
     border: 0;
     border-radius: 50%;
     background: color-mix(in srgb, var(--white) 70%, transparent);
-    -webkit-backdrop-filter: blur(12px);
-    backdrop-filter: blur(12px);
     box-shadow: var(--shadow-sm);
     color: var(--text);
     pointer-events: auto;
@@ -1429,8 +1415,6 @@
     color: var(--text-mid);
     font-size: var(--t-xs);
     font-weight: 700;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
 
   .carta-precio-corto b {
@@ -1588,8 +1572,6 @@
      fila de cifras (923), y debajo una fila de botones suaves. */
   .carta-mercado-al-lado .section-title {
     font-size: var(--t-2xs);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
     color: var(--text-mid);
   }
 

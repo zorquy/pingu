@@ -188,7 +188,6 @@
   left: var(--e-sm);
   background: var(--warning);
   color: var(--blanco-fijo);
-  text-transform: uppercase;
 }
 
 .rt-cuerpo {

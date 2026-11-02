@@ -7,8 +7,6 @@
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 800;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
 }
 
 .eta-fila { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
@@ -115,8 +113,6 @@ html:has(.eta-dialogo[open]) { overflow: hidden; }
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 800;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
 }
 .eta-rotulo:first-child { margin-top: 0; }
 .eta-nota { margin: 0; color: var(--text-mid); }

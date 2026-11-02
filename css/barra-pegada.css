@@ -128,8 +128,6 @@
     padding: var(--e-xs) var(--e-sm);
     color: var(--text-mid);
     font-size: var(--t-2xs);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
   }
   .barra-pegada-indice a {
     display: flex;

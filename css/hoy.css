@@ -4,10 +4,17 @@
   margin-top: var(--e-md);
 }
 
+/* UNA TIRA DIVIDIDA (propuesta de noviembre): las cinco fichas en una caja
+   con rayas entre ellas, sin icono encima y sin la ficha de color de los
+   retos. La cifra manda. */
 .hoy-rejilla {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) repeat(4, minmax(0, 1fr));
-  gap: var(--e-md);
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
 }
 
 .hoy-esq-valor,
@@ -21,12 +28,14 @@
   display: flex;
   min-width: 0;
   padding: var(--e-lg);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
+  border: 0;
+  border-left: 1px solid var(--border);
+  border-radius: 0;
   background: var(--white);
   color: var(--text);
   text-decoration: none;
 }
+.hoy-rejilla > :first-child { border-left: 0; }
 
 .hoy-valor {
   align-items: center;
@@ -45,8 +54,6 @@
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .hoy-valor b {
@@ -119,9 +126,7 @@
 }
 
 .hoy-ficha-icono {
-  display: block;
-  margin-bottom: var(--e-sm);
-  color: var(--navy);
+  display: none;
 }
 
 .hoy-ficha b {
@@ -151,15 +156,8 @@
 }
 
 /* El reto que te toca hacer va de color: es lo que cambia cada día. */
-.hoy-ficha.hoy-destaca {
-  border-color: transparent;
-  background: linear-gradient(135deg, var(--navy-solid), var(--navy-solid-light));
-}
-
-.hoy-destaca,
-.hoy-destaca .hoy-ficha-icono,
-.hoy-destaca > span:not(.hoy-ficha-icono) {
-  color: var(--blanco-fijo);
+.hoy-ficha.hoy-destaca b {
+  color: var(--navy);
 }
 
 .hoy-hecho .hoy-ficha-icono {
@@ -168,7 +166,7 @@
 
 .hoy-valor:hover,
 .hoy-ficha:hover {
-  border-color: var(--navy);
+  background: var(--ice);
 }
 
 .hoy-sigue {
@@ -204,21 +202,25 @@
 
 /* Las tres tarjetas de «Sigue» (844): el arte con su anillo, lo que es y el botón. */
 #sigueSeccion.hoy-sigue { margin-top: 0; }
-.hoy-sg-fila { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: var(--e-md); }
-.hoy-sg { display: grid; grid-template-columns: 56px minmax(0, 1fr); grid-template-rows: 1fr auto; gap: var(--e-md); align-items: center; padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); color: var(--text); text-decoration: none; }
-.hoy-sg:hover { border-color: var(--navy); }
-.hoy-sg-arte { position: relative; display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--radius-md); color: var(--blanco-fijo); }
-.hoy-sg-anillo { position: absolute; right: -8px; bottom: -8px; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: conic-gradient(var(--success) calc(var(--p) * 1%), var(--border) 0); }
-.hoy-sg-anillo b { display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%; background: var(--white); color: var(--text); font-size: var(--t-2xs); }
+/* FILAS, no tarjetas (propuesta de noviembre): el anillo con el tanto por
+   ciento, qué es y el botón a la derecha, dentro de una caja. */
+.hoy-sg-fila { display: grid; grid-template-columns: 1fr; gap: 0; padding: 0 var(--e-lg); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
+.hoy-sg { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: var(--e-md); align-items: center; padding: var(--e-md) 0; border-top: 1px solid var(--border); color: var(--text); text-decoration: none; }
+.hoy-sg:first-child { border-top: 0; }
+.hoy-sg:hover .hoy-sg-texto b { color: var(--navy); }
+.hoy-sg-arte { position: relative; display: grid; place-items: center; width: 44px; height: 44px; background: none !important; color: var(--text); }
+.hoy-sg-arte > svg { display: none; }
+.hoy-sg-anillo { display: grid; place-items: center; width: 44px; height: 44px; border-radius: 50%; background: conic-gradient(var(--success) calc(var(--p) * 1%), var(--border) 0); }
+.hoy-sg-anillo b { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--white); color: var(--text); font-size: var(--t-2xs); font-weight: 700; font-variant-numeric: tabular-nums; }
 .hoy-sg-texto { display: grid; gap: 2px; min-width: 0; }
-.hoy-sg-texto small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.hoy-sg-texto small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; }
 .hoy-sg-texto b { font-family: var(--font-display); font-size: var(--t-md); line-height: 1.2; }
 .hoy-sg-texto span { color: var(--text-mid); font-size: var(--t-xs); }
-.hoy-sg-boton { grid-column: 1 / -1; width: 100%; }
+.hoy-sg-boton { grid-column: auto; width: auto; }
 
 @media (max-width: 900px) {
-  .hoy-sg-fila { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 calc(var(--e-md) * -1); padding: 0 var(--e-md) var(--e-xs); scrollbar-width: none; }
-  .hoy-sg { flex: 0 0 78%; scroll-snap-align: start; }
+  .hoy-sg { grid-template-columns: 44px minmax(0, 1fr); }
+  .hoy-sg-boton { display: none; }
 }
 
 /* A dos columnas el detalle puede ir en DOS líneas (1012, P2): una ficha
@@ -241,7 +243,10 @@
   .hoy-valor,
   .hoy-esq-valor {
     grid-column: 1 / -1;
+    border-left: 0;
   }
+  .hoy-ficha { border-top: 1px solid var(--border); }
+  .hoy-ficha:nth-child(2n + 2) { border-left: 0; }
 
   .hoy-chispa {
     width: 120px;

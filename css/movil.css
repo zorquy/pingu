@@ -43,13 +43,6 @@
   .bm-burbuja::-webkit-scrollbar {
     display: none;
   }
-  @supports (backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px)) {
-    .bm-burbuja {
-      background: color-mix(in srgb, var(--white) 82%, transparent);
-      backdrop-filter: blur(16px);
-      -webkit-backdrop-filter: blur(16px);
-    }
-  }
   /* Baja (893): solo iconos, y la activa con su palabra al lado. */
   .bm-burbuja-item {
     flex: 0 0 auto;
@@ -238,9 +231,7 @@
     padding: var(--e-xs);
     border: 1px solid var(--border);
     border-radius: var(--radius-lg);
-    background: color-mix(in srgb, var(--white) 92%, transparent);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
+    background: var(--white);
     box-shadow: var(--shadow-md);
   }
   html.con-barra-movil .carta-cuerpo {
@@ -384,8 +375,6 @@
   .bm-cab-titulo small {
     font-size: var(--t-2xs);
     font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
     color: var(--text-mid);
   }
   .bm-cab-titulo span {
@@ -482,8 +471,6 @@
      «abajo del todo» sería el pie de la barra. Con la hoja abierta, fuera. */
   html.bm-tu-abierta .navbar {
     transform: none;
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
     background: var(--white);
   }
 }
@@ -716,8 +703,6 @@
     color: var(--text-mid);
     font-size: var(--t-2xs);
     font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
   }
   html.con-barra-movil .carta-migas > :not(a:last-of-type) {
     display: none;

@@ -90,8 +90,6 @@
   color: var(--navy);
   font-size: var(--t-2xs);
   font-weight: 800;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .pt-cifras {

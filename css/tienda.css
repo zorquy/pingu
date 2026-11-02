@@ -52,8 +52,6 @@
   color: var(--warning);
   font-size: var(--t-2xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .td-cab {
@@ -325,8 +323,6 @@
   margin: 0;
   font-size: var(--t-2xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
   color: var(--text-mid);
 }
 
@@ -1368,7 +1364,7 @@ html:has(.tds-dialogo[open]) {
   border-radius: var(--radius-lg);
   background: var(--white);
 }
-.tdvt-cifra small { color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.tdvt-cifra small { color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
 .tdvt-cifra b { font-family: var(--font-display); font-size: var(--t-2xl); font-variant-numeric: tabular-nums; }
 .tdvt-cifra span { overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; }
 
@@ -1516,7 +1512,7 @@ html:has(.tdvt-hoja[open]) { overflow: hidden; }
   background: color-mix(in srgb, var(--acento) 16%, transparent);
   color: var(--acento);
 }
-.tdh-cifra small { color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.tdh-cifra small { color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
 .tdh-cifra b { font-family: var(--font-display); font-size: var(--t-2xl); font-variant-numeric: tabular-nums; }
 .tdh-cifra span:not(.tdh-cifra-icono) { color: var(--text-mid); font-size: var(--t-xs); }
 .tdh-cifra span.tdh-sube { justify-self: start; padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--success-bg); color: var(--success); font-weight: 600; }
@@ -1539,7 +1535,7 @@ html:has(.tdvt-hoja[open]) { overflow: hidden; }
 .tdh-tarjeta h3 { display: flex; align-items: center; gap: var(--e-sm); margin: 0; font-family: var(--font-display); font-size: var(--t-md); }
 .tdh-tarjeta h3 > svg { flex: none; color: var(--acento); }
 .tdh-ir { display: inline-flex; align-items: center; gap: 2px; margin-left: auto; font-size: var(--t-xs); font-weight: 600; color: var(--navy); }
-.tdh-sub { margin: var(--e-sm) 0 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.tdh-sub { margin: var(--e-sm) 0 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
 
 /* La gráfica: barras del color de la sección, la mayor con su cifra y la
    fecha al pasar por encima (dataviz: una serie, sin leyenda). */

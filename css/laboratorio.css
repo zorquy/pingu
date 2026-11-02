@@ -292,8 +292,6 @@ html.lab-abierto {
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .lab-vacio {
@@ -742,9 +740,7 @@ button.lab-carta:focus-visible {
   color: var(--navy-solid-dark);
   font-size: var(--t-2xs);
   font-weight: 800;
-  letter-spacing: 0.06em;
   line-height: 1.8;
-  text-transform: uppercase;
 }
 
 .lab-zona-premios {
@@ -1454,8 +1450,6 @@ button.lab-pila:hover {
   color: var(--tp-tenue);
   font-size: var(--t-2xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .lab-segmento {
@@ -1620,8 +1614,6 @@ button.lab-pila:hover {
   color: var(--tp-tenue);
   font-size: var(--t-2xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .lab-maniqui-nombre {
@@ -1995,8 +1987,6 @@ button.lab-pila:hover {
   color: var(--text);
   font-size: var(--t-2xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .lab-registro-turno::before,
@@ -2069,8 +2059,6 @@ button.lab-pila:hover {
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
   white-space: normal;
 }
 
@@ -2116,8 +2104,6 @@ button.lab-pila:hover {
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 .lab-fila-grupo th[scope='row'] {
@@ -2322,7 +2308,6 @@ button.lab-pila:hover {
   justify-content: center;
   padding: var(--e-lg);
   background: rgba(13, 27, 42, 0.48);
-  backdrop-filter: blur(2px);
 }
 
 /* La ventana no se desplaza entera: se desplaza su cuerpo, y el título y
@@ -3257,8 +3242,6 @@ button.lab-carta.lab-no-vale:hover {
   color: var(--navy);
   font-size: var(--t-xs);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .lab-camino-p {

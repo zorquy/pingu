@@ -164,7 +164,7 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
     }
     formEl.innerHTML = `
       <div class="simple-card">
-        <textarea id="forumCommentBody" placeholder="Escribe un comentario..."></textarea>
+        <textarea id="forumCommentBody" placeholder="Escribe un comentario…"></textarea>
         <button class="btn-primary" id="btnSubmitForumComment" style="margin-top:8px;">Publicar</button>
       </div>`
     import('./mencion-autocompletar.js')

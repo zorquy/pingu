@@ -16,7 +16,7 @@
 .nv-redes { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); padding-top: var(--e-sm); border-top: 1px solid var(--border); }
 .nv-redes-captura { cursor: pointer; min-height: 44px; display: inline-flex; align-items: center; }
 .nv-ir { align-self: flex-start; margin-top: var(--e-xs); }
-.nv-chip { display: inline-block; align-self: flex-start; flex-shrink: 0; font-size: var(--t-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px var(--e-sm); border-radius: var(--radius-pill); white-space: nowrap; }
+.nv-chip { display: inline-block; align-self: flex-start; flex-shrink: 0; font-size: var(--t-2xs); font-weight: 700; padding: 2px var(--e-sm); border-radius: var(--radius-pill); white-space: nowrap; }
 .nv-nuevo { background: var(--pink-bg); color: var(--pink); }
 .nv-mejora { background: var(--ice); color: var(--navy); }
 .nv-arreglo { background: var(--success-bg); color: var(--success); }
@@ -25,7 +25,7 @@
    temas (va sobre color, como los `--arte-*`). */
 .nv-mini { background: var(--blanco-fijo); color: var(--navy-solid-dark); border-radius: var(--radius-md); padding: var(--e-md); width: 100%; max-width: 260px; box-shadow: var(--shadow-lg); font-size: var(--t-xs); }
 .nv-mini-estante { display: flex; flex-direction: column; }
-.nv-mini-era { font-weight: 700; font-size: var(--t-2xs); text-transform: uppercase; color: var(--navy-solid-light); margin: var(--e-xs) 0; }
+.nv-mini-era { font-weight: 700; font-size: var(--t-2xs); color: var(--navy-solid-light); margin: var(--e-xs) 0; }
 .nv-mini-fila { display: flex; align-items: center; gap: var(--e-sm); padding: var(--e-xs) 0; }
 .nv-mini-fila i { width: 24px; height: 16px; border-radius: var(--radius-sm); flex-shrink: 0; }
 .nv-mini-fila span { flex: 1; }
@@ -44,7 +44,7 @@
 /* La lista. */
 .nv-filtros { display: flex; gap: var(--e-sm); margin-bottom: var(--e-lg); flex-wrap: wrap; }
 .nv-semana { margin-bottom: var(--e-xl); }
-.nv-semana-titulo { font-size: var(--t-sm); text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-mid); margin: 0 0 var(--e-sm); display: flex; align-items: center; gap: var(--e-sm); }
+.nv-semana-titulo { font-size: var(--t-sm); color: var(--text-mid); margin: 0 0 var(--e-sm); display: flex; align-items: center; gap: var(--e-sm); }
 .nv-punto { text-transform: none; letter-spacing: 0; font-weight: 600; color: var(--pink); font-size: var(--t-xs); display: inline-flex; align-items: center; gap: var(--e-xs); }
 .nv-punto::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--pink); }
 .nv-fila { display: flex; align-items: center; gap: var(--e-md); padding: var(--e-md); background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: var(--e-sm); color: inherit; text-decoration: none; min-height: 56px; }

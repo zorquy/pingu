@@ -261,8 +261,6 @@
   /* El desenfoque de la barra la convierte en la caja de lo que va fijo
      (la misma trampa que la hoja del móvil): con la hoja abierta, fuera. */
   html.lat-con-yo:has(#navUserDropdown:not(.hidden)) .navbar {
-    -webkit-backdrop-filter: none;
-    backdrop-filter: none;
     transform: none;
     background: var(--white);
   }

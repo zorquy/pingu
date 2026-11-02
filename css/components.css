@@ -326,8 +326,6 @@
   font-size: var(--t-2xs);
   font-weight: 700;
   color: var(--navy);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
 }
 
 .simple-card {
@@ -374,7 +372,6 @@
   position: fixed;
   inset: 0;
   background: rgba(13, 27, 42, 0.48);
-  backdrop-filter: blur(2px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -508,7 +505,6 @@
   position: fixed;
   inset: 0;
   background: rgba(13, 27, 42, 0.5);
-  backdrop-filter: blur(2px);
   display: flex;
   align-items: flex-end;
   justify-content: center;
@@ -531,7 +527,6 @@
   align-items: center;
   gap: 12px;
   animation: slideUpModal 0.35s var(--ease);
-  box-shadow: var(--shadow-md);
 }
 
 @media (min-width: 480px) {
@@ -1382,7 +1377,6 @@ tcg-deck {
   gap: 4px;
   padding: 4px 8px;
   border-radius: var(--radius-pill);
-  background: rgba(245, 158, 11, 0.12);
   color: #b45309;
   font-size: var(--t-xs);
   font-weight: 800;
@@ -1391,7 +1385,7 @@ tcg-deck {
 }
 
 .nav-racha:hover {
-  background: rgba(245, 158, 11, 0.22);
+  color: var(--text);
 }
 
 :root[data-theme='dark'] .nav-racha {
@@ -2055,12 +2049,12 @@ yt-video iframe {
   gap: 12px;
   padding: 24px;
   color: var(--blanco-fijo);
-  background: radial-gradient(120% 120% at 50% 40%, #24445c 0%, #0d1b2a 100%);
+  background: #1a3548;
   font: inherit;
   transition: background 0.15s ease;
 }
 
-.yt-portada:hover { background: radial-gradient(120% 120% at 50% 40%, #2d5673 0%, #0d1b2a 100%); }
+.yt-portada:hover { background: #22435a; }
 
 /* S780.106 */
 .yt-miniatura {
@@ -2592,8 +2586,6 @@ body.portada-compacta .page-content {
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .bienvenida-texto strong {
@@ -2856,13 +2848,10 @@ body.portada-compacta .page-content {
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
   transition: box-shadow 0.15s var(--ease), border-color 0.15s, transform 0.15s var(--ease);
 }
 .guia-tarjeta:hover {
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
 }
 @media (prefers-reduced-motion: reduce) {
   .guia-tarjeta:hover { transform: none; }
@@ -2884,7 +2873,7 @@ body.portada-compacta .page-content {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%);
+  display: none;
   opacity: 0.5;
   pointer-events: none;
 }

@@ -108,8 +108,6 @@
   color: var(--navy);
   font-size: var(--t-2xs);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .suc-cuando {

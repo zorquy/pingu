@@ -4,8 +4,6 @@
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 
 .il-cifras {

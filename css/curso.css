@@ -188,7 +188,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.14), transparent 60%);
+  display: none;
   pointer-events: none;
 }
 
@@ -217,8 +217,6 @@
 .block-label {
   font-size: var(--t-2xs);
   font-weight: 800;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
 }
 
 .block-concept,
@@ -622,7 +620,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.14), transparent 60%);
+  display: none;
   pointer-events: none;
 }
 
@@ -897,8 +895,6 @@
 .reward-tabla h3 {
   font-size: var(--t-sm);
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
   color: var(--ice);
   margin-bottom: 8px;
   text-align: center;
@@ -1094,8 +1090,6 @@
   display: block;
   font-size: var(--t-xs);
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
   color: var(--text-mid);
   margin-bottom: 8px;
 }

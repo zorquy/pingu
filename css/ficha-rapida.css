@@ -94,8 +94,6 @@
     border: 0;
     background: none;
     box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
     transform: none;
   }
 

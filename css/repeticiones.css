@@ -204,8 +204,6 @@
   color: var(--tp-tenue);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .rep-turno .lab-jugador {
@@ -643,8 +641,6 @@
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .rep-bloque-titulo .lab-jugador {
@@ -1189,8 +1185,6 @@
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .rep-momentos-botones {
@@ -1253,7 +1247,6 @@
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 700;
-  text-transform: uppercase;
 }
 
 .rep-momento-que {
@@ -1715,8 +1708,6 @@
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
 }
 
 .rep-mazo-seccion ul {

@@ -439,7 +439,7 @@
 .foro-fila,
 .foro-tema-fila {
   display: grid;
-  grid-template-columns: 26px minmax(0, 1fr) 96px minmax(0, 1.15fr);
+  grid-template-columns: minmax(0, 1fr) 96px minmax(0, 1.15fr);
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
@@ -451,12 +451,9 @@
   border-top: none;
 }
 
+/* Sin icono (propuesta de noviembre): el nombre del foro ya dice lo que es. */
 .foro-fila-icono {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--navy);
-  opacity: 0.55;
+  display: none;
 }
 
 .foro-tema-fijado .foro-fila-icono {
@@ -1216,8 +1213,9 @@
 }
 
 .foro-chapa-nuevos {
-  background: var(--navy);
-  color: var(--blanco-fijo);
+  padding: 0;
+  background: none;
+  color: var(--acento, var(--navy));
 }
 
 /* Los subforos que cuelgan de una fila del índice: van como enlaces en
@@ -1272,8 +1270,6 @@
   margin-bottom: 8px;
   font-size: var(--t-2xs);
   font-weight: 800;
-  letter-spacing: 0.5px;
-  text-transform: uppercase;
   color: var(--text-dim);
 }
 
@@ -1528,8 +1524,6 @@ a.foro-cita-quien:hover {
 }
 .foro-caliente:hover {
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-1px);
 }
 @media (prefers-reduced-motion: reduce) {
   .foro-caliente:hover { transform: none; }
@@ -1580,7 +1574,7 @@ a.foro-cita-quien:hover {
 
   .foro-fila,
   .foro-tema-fila {
-    grid-template-columns: 28px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 12px;
   }
 
@@ -2503,8 +2497,6 @@ html:has(#temaResponder) {
     background: none;
     color: var(--text-mid);
     font-size: var(--t-xs);
-    text-transform: uppercase;
-    letter-spacing: 0.6px;
   }
 
   .foro-en-indice .foro-seccion > .foro-fila {
@@ -2839,7 +2831,7 @@ html:has(#temaResponder) {
   }
   .foro-en-indice .foro-seccion > .foro-fila {
     display: grid;
-    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     align-items: center;
     gap: 0 var(--e-md);
     min-height: 0;

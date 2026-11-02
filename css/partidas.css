@@ -19,8 +19,6 @@
 }
 .partidas-dato-titulo {
   font-size: var(--t-xs);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
   color: var(--text-mid);
 }
 
@@ -300,8 +298,6 @@
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
 }
 .partidas-mes-balance { color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: 0; }
 .partidas-mes-lista {
@@ -501,8 +497,6 @@
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .partidas-cerrado-nota { margin-right: auto; align-self: center; }
 
@@ -787,7 +781,7 @@
 }
 
 .partidas-torneo-fecha b { display: block; font-family: var(--font-display); font-size: var(--t-lg); }
-.partidas-torneo-fecha small { font-size: var(--t-2xs); font-weight: 700; text-transform: uppercase; color: var(--text-mid); }
+.partidas-torneo-fecha small { font-size: var(--t-2xs); font-weight: 700; color: var(--text-mid); }
 .partidas-torneo-sub { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-sm); }
 
 .partidas-origen {

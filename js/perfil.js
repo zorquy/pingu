@@ -578,7 +578,7 @@ document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       <p class="subtext" id="peUsernamePreview" style="margin:0;"></p>
       <p class="subtext" id="peUsernameError" style="margin:0; color:var(--danger); display:none;">Ese nombre de usuario ya está en uso, prueba con otro.</p>
     </div>
-    <div class="form-group"><label>Sobre ti</label><textarea id="peBio" placeholder="Cuéntanos algo sobre ti...">${escapeHtml(currentProfile?.bio || '')}</textarea></div>
+    <div class="form-group"><label>Sobre ti</label><textarea id="peBio" placeholder="Cuéntanos algo sobre ti…">${escapeHtml(currentProfile?.bio || '')}</textarea></div>
     <div class="form-group">
       <label>Firma del foro</label>
       <p class="subtext" style="margin:0 0 6px;">Sale al pie de tus mensajes del foro. El mismo editor que los mensajes:

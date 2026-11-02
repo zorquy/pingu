@@ -51,12 +51,12 @@
   --navy-solid-light: #2a6b96;
 
   /* La paleta de ARTE (tanda 315) (el porqué, en SCHEMA.md: tanda 359) */
-  --arte-verde: linear-gradient(135deg, #0d9e6e, #7cc6d8 130%);
-  --arte-azul: linear-gradient(135deg, #2a6b96, #7cc6d8 130%);
-  --arte-ambar: linear-gradient(135deg, #c8720a, #e0b252 130%);
-  --arte-cian: linear-gradient(135deg, #0891b2, #2a6b96 130%);
-  --arte-morado: linear-gradient(135deg, #7c3aed, #4f46e5 130%);
-  --arte-rosa: linear-gradient(135deg, #be185d, #7c3aed 130%);
+  --arte-verde: #0d9e6e;
+  --arte-azul: #2a6b96;
+  --arte-ambar: #c8720a;
+  --arte-cian: #0891b2;
+  --arte-morado: #7c3aed;
+  --arte-rosa: #be185d;
   --warning: #c8720a;
   --warning-bg: #fdf1de;
   --indigo: #4f46e5;
@@ -65,13 +65,13 @@
   --pink-bg: #fce8f1;
 
   --rarity-bronze: #a8622f;
-  --rarity-bronze-bg: linear-gradient(155deg, #f3e1d1, #e6c6a4);
+  --rarity-bronze-bg: #ecd4bd;
   --rarity-silver: #6b7c88;
-  --rarity-silver-bg: linear-gradient(155deg, #eef2f4, #d3dee3);
+  --rarity-silver-bg: #e1e8ec;
   --rarity-gold: #a6790a;
-  --rarity-gold-bg: linear-gradient(155deg, #fbedc4, #f0cf7c);
+  --rarity-gold-bg: #f6dfa2;
   --rarity-platinum: #2a7ba6;
-  --rarity-platinum-bg: linear-gradient(155deg, #e4f4fb, #bfe3f2);
+  --rarity-platinum-bg: #d2ecf7;
 
 
   /* La escala tipográfica (305; en rem, 734) */
@@ -105,7 +105,7 @@
   --shadow-lg: 0 10px 28px rgba(13, 27, 42, 0.16);
   --shadow-ring: 0 0 0 2px var(--navy);
 
-  --navbar-bg: rgba(255, 255, 255, 0.92);
+  --navbar-bg: var(--white);
 
   --container-w: 1160px;
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
@@ -167,7 +167,7 @@ html[data-seccion='jugar'] { --acento: #5f43d9; }
   --indigo-bg: #211f3d;
   --pink: #f472b6;
   --pink-bg: #3a1526;
-  --navbar-bg: rgba(11, 18, 25, 0.92);
+  --navbar-bg: var(--white);
 }
 
 * {
@@ -425,8 +425,6 @@ body:has(> .footer) .page-content {
   top: 0;
   z-index: 100;
   background: var(--navbar-bg);
-  backdrop-filter: saturate(1.4) blur(10px);
-  -webkit-backdrop-filter: saturate(1.4) blur(10px);
   border-bottom: 1px solid var(--border);
   /* La muesca del iPhone instalado como app (708, con viewport-fit=cover). */
   padding-top: env(safe-area-inset-top);
@@ -434,7 +432,6 @@ body:has(> .footer) .page-content {
 }
 
 .navbar.scrolled {
-  box-shadow: var(--shadow-sm);
 }
 
 .nav-inner {
@@ -702,8 +699,6 @@ body:has(> .footer) .page-content {
 
 /* S780.27 */
 .navbar:has(.nav-menu-mobile.open) {
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
   background: var(--white);
 }
 
@@ -1081,15 +1076,13 @@ button.btn-block {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(120% 90% at 100% 0%, rgba(255, 255, 255, 0.14), transparent 60%);
+  display: none;
   pointer-events: none;
 }
 
 .hero-panel .eyebrow {
   font-size: var(--t-2xs);
   font-weight: 700;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
   color: var(--ice);
   opacity: 0.85;
 }
@@ -1179,9 +1172,7 @@ button.btn-block {
 }
 
 .category-card:hover {
-  transform: translateY(-3px);
   border-color: var(--navy);
-  box-shadow: var(--shadow-md);
 }
 
 .category-icon {
@@ -1193,7 +1184,6 @@ button.btn-block {
   align-items: center;
   justify-content: center;
   color: var(--navy);
-  box-shadow: 0 3px 0 0 var(--ice-dark);
 }
 
 .category-card h3 {
@@ -1237,9 +1227,7 @@ button.btn-block {
 }
 
 .recent-card:hover {
-  transform: translateY(-3px);
   border-color: var(--navy);
-  box-shadow: var(--shadow-md);
 }
 
 .recent-card .emoji {
@@ -1363,7 +1351,7 @@ button.btn-block {
   content: '';
   position: absolute;
   inset: 0;
-  background: radial-gradient(120% 90% at 0% 100%, rgba(255, 255, 255, 0.1), transparent 60%);
+  display: none;
   pointer-events: none;
 }
 
@@ -1497,31 +1485,26 @@ button.btn-block {
 .icon-tint-0 {
   background: var(--ice);
   color: var(--navy);
-  box-shadow: 0 3px 0 0 var(--ice-dark);
 }
 
 .icon-tint-1 {
   background: var(--indigo-bg);
   color: var(--indigo);
-  box-shadow: 0 3px 0 0 rgba(79, 70, 229, 0.3);
 }
 
 .icon-tint-2 {
   background: var(--warning-bg);
   color: var(--warning);
-  box-shadow: 0 3px 0 0 rgba(200, 114, 10, 0.3);
 }
 
 .icon-tint-3 {
   background: var(--success-bg);
   color: var(--success);
-  box-shadow: 0 3px 0 0 rgba(13, 158, 110, 0.3);
 }
 
 .icon-tint-4 {
   background: var(--pink-bg);
   color: var(--pink);
-  box-shadow: 0 3px 0 0 rgba(190, 24, 93, 0.3);
 }
 
 /* ── Card media (imagen de portada, si existe) ── */
@@ -1556,7 +1539,6 @@ button.btn-block {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--shadow-sm);
 }
 
 /* ── Rarity medallions (logros / rareza de guías) ── */
@@ -1601,22 +1583,18 @@ button.btn-block {
 
 .achievement-tile .icon.rarity-bronze,
 .achievement-icon.rarity-bronze {
-  box-shadow: 0 3px 0 0 var(--rarity-bronze);
 }
 
 .achievement-tile .icon.rarity-silver,
 .achievement-icon.rarity-silver {
-  box-shadow: 0 3px 0 0 var(--rarity-silver);
 }
 
 .achievement-tile .icon.rarity-gold,
 .achievement-icon.rarity-gold {
-  box-shadow: 0 3px 0 0 var(--rarity-gold);
 }
 
 .achievement-tile .icon.rarity-platinum,
 .achievement-icon.rarity-platinum {
-  box-shadow: 0 3px 0 0 var(--rarity-platinum);
 }
 
 /* ── Chunky colored card borders ── */
@@ -1640,7 +1618,7 @@ button.btn-block {
 
 /* ── Alternating section band ── */
 .band-ice {
-  background: linear-gradient(180deg, var(--ice) 0%, rgba(225, 240, 244, 0.35) 100%);
+  background: var(--ice);
   border-top: 1px solid var(--ice-dark);
   border-bottom: 1px solid var(--ice-dark);
 }
@@ -1704,8 +1682,6 @@ button.btn-block {
   margin: 0 0 12px;
   font-size: var(--t-2xs);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
   color: var(--text-mid);
 }
 
@@ -1821,7 +1797,7 @@ html.ola-tema::view-transition-new(root) {
   left: 0;
   width: 100%;
   height: 3px;
-  background: linear-gradient(90deg, var(--navy), #38bdf8);
+  background: var(--navy);
   transform: scaleX(0);
   transform-origin: left;
   z-index: 1200;

@@ -6,8 +6,6 @@
   margin: 16px 0 8px;
   font-size: var(--t-md);
   color: var(--text-mid);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 .mis-torneos-grupo:first-child { margin-top: 0; }
 
@@ -186,7 +184,6 @@
   font-weight: 700;
   cursor: pointer;
   border: none;
-  backdrop-filter: blur(2px);
 }
 
 .profile-hero-banner .profile-hero-edit-btn {
@@ -478,8 +475,6 @@ button.achievement-tile:focus-visible {
   font-size: var(--t-2xs);
   font-weight: 600;
   color: var(--text-mid);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
   line-height: 1.25;
 }
 
@@ -834,7 +829,6 @@ button.perfil-cifra:hover .rotulo {
   border-radius: var(--radius-sm);
   background: var(--ice);
   object-fit: cover;
-  box-shadow: var(--shadow-sm);
 }
 
 .vitrina-carta span {
@@ -1069,7 +1063,6 @@ button.perfil-cifra:hover .rotulo {
   background: var(--white);
   color: var(--text);
   font-size: var(--t-md);
-  backdrop-filter: none;
 }
 
 .perfil-acciones .profile-hero-edit-btn:not(.perfil-compartir) svg {
@@ -1458,10 +1451,10 @@ html:has(.logro-ficha[open]) {
   font-size: var(--t-3xl);
 }
 
-.logro-ficha-icono.rarity-bronze { box-shadow: 0 4px 0 0 var(--rarity-bronze); }
-.logro-ficha-icono.rarity-silver { box-shadow: 0 4px 0 0 var(--rarity-silver); }
-.logro-ficha-icono.rarity-gold { box-shadow: 0 4px 0 0 var(--rarity-gold); }
-.logro-ficha-icono.rarity-platinum { box-shadow: 0 4px 0 0 var(--rarity-platinum); }
+.logro-ficha-icono.rarity-bronze { }
+.logro-ficha-icono.rarity-silver { }
+.logro-ficha-icono.rarity-gold { }
+.logro-ficha-icono.rarity-platinum { }
 
 .logro-ficha-icono.bloqueado {
   background: var(--bg);
@@ -1518,8 +1511,6 @@ html:has(.logro-ficha[open]) {
   font-size: var(--t-xs);
   font-weight: 700;
   color: var(--text-mid);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .logro-ficha-texto p {

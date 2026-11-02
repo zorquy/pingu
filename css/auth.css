@@ -222,7 +222,7 @@
     gap: var(--e-md);
     padding: var(--e-2xl);
     border-radius: var(--radius-xl) 0 0 var(--radius-xl);
-    background: linear-gradient(160deg, var(--navy-solid), var(--navy-solid-dark));
+    background: var(--navy-solid);
     color: var(--blanco-fijo);
   }
 

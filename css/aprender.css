@@ -25,12 +25,11 @@
   display: flex;
   align-items: center;
   gap: 16px;
-  background: linear-gradient(115deg, var(--navy-solid-dark), var(--navy-solid-light) 62%, #347fae);
+  background: var(--navy-solid);
   color: var(--blanco-fijo);
   border-radius: var(--radius-xl);
   padding: 12px 16px;
   margin-bottom: 16px;
-  box-shadow: var(--shadow-sm);
   text-decoration: none;
   position: relative;
   overflow: hidden;
@@ -39,7 +38,7 @@
   content: '';
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%);
+  display: none;
   opacity: 0.55;
 }
 .aprender-seguir > * { position: relative; z-index: 1; }
@@ -67,8 +66,6 @@
 .aprender-seguir-texto { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
 .aprender-seguir-rotulo {
   font-size: var(--t-2xs);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
   color: #a9cee3;
   font-weight: 700;
 }
@@ -216,8 +213,6 @@
   font-size: var(--t-2xs);
   font-weight: 700;
   color: var(--text-mid);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
 }
 
 /* ── La lista ──
@@ -310,11 +305,9 @@
 .ap-baldosa:hover { border-color: var(--navy); }
 .ap-baldosa-icono {
   flex: none;
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-md);
   display: grid;
   place-items: center;
+  background: none !important;
 }
 .ap-baldosa-texto { display: grid; gap: 1px; min-width: 0; flex: 1; }
 .ap-baldosa-nombre {

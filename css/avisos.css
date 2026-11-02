@@ -7,8 +7,6 @@
   color: var(--text-mid);
   font-size: var(--t-xs);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
 }
 
 .nav-bell-cuenta {

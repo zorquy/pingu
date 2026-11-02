@@ -157,8 +157,6 @@
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 /* ── Las impresiones: la elegida lleva el precio ── */
@@ -239,8 +237,6 @@ button.pv-impresion {
   font-size: var(--t-2xs);
   font-weight: 700;
   text-align: left;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
 }
 
 .pv-tabla td {
@@ -1171,8 +1167,6 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 /* Los idiomas en UNA fila que se desliza, como en la maqueta. */

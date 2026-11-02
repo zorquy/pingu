@@ -94,7 +94,6 @@
   color: var(--blanco-fijo);
   font-size: var(--t-xs);
   font-weight: 700;
-  backdrop-filter: blur(4px);
 }
 
 .cd-bote b {
@@ -211,9 +210,7 @@
   padding: 0 var(--e-sm);
   color: var(--text-mid);
   font-size: var(--t-2xs);
-  letter-spacing: 0.05em;
   text-align: center;
-  text-transform: uppercase;
 }
 
 .cd-intentos {

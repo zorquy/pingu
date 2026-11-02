@@ -439,7 +439,6 @@
 .pb-pestanas button.activo {
   background: var(--white);
   color: var(--text);
-  box-shadow: var(--shadow-sm);
 }
 
 .pb-clas-sub {
@@ -502,9 +501,9 @@
   font-size: var(--t-lg);
 }
 
-.pb-podio-1 .pb-podio-caja { height: 64px; background: linear-gradient(180deg, #e0b252, #a8770c); }
-.pb-podio-2 .pb-podio-caja { height: 44px; background: linear-gradient(180deg, #94a3b8, #5b6b80); }
-.pb-podio-3 .pb-podio-caja { height: 32px; background: linear-gradient(180deg, #d08b4c, #8a5426); }
+.pb-podio-1 .pb-podio-caja { height: 64px; background: #e0b252; }
+.pb-podio-2 .pb-podio-caja { height: 44px; background: #94a3b8; }
+.pb-podio-3 .pb-podio-caja { height: 32px; background: #d08b4c; }
 
 .pb-clas-lista {
   display: grid;

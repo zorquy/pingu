@@ -53,14 +53,14 @@
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  background-image: linear-gradient(135deg, #16405e 0%, #2a7fb5 55%, #3fa3c9 100%);
+  background-color: var(--navy-solid);
   color: rgba(255, 255, 255, 0.7);
 }
 .noticia-portada-vacia::before {
   content: '';
   position: absolute;
   inset: 0;
-  background-image: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%);
+  display: none;
 }
 /* El sello. Es decorativo —el nombre del sitio ya está en la barra— así
    que va por CSS y no por markup: no tiene que leerlo un lector de
@@ -99,7 +99,6 @@
 
 .noticia-titular:hover {
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-md);
 }
 
 .noticia-titular h2 {
@@ -120,8 +119,6 @@
   display: inline-block;
   font-size: var(--t-2xs);
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
   color: var(--white);
   background: var(--navy);
   border-radius: var(--radius-pill);
@@ -151,8 +148,6 @@
 
 .noticia-tarjeta:hover {
   border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-2px);
 }
 
 .noticia-tarjeta h3 {
@@ -196,8 +191,6 @@
   font-size: var(--t-2xs);
   font-weight: 700;
   color: var(--text-mid);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
 }
 
 .noticias-mas {
@@ -270,8 +263,6 @@
   font-family: var(--font-body);
   font-size: var(--t-2xs);
   font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.6px;
   color: var(--text-mid);
   margin: var(--e-sm) 0 calc(-1 * var(--e-xs));
 }
@@ -293,7 +284,7 @@
     border-radius: 0;
     padding: var(--e-sm) 0;
   }
-  .noticia-tarjeta:hover { box-shadow: none; transform: none; border-color: var(--border); }
+  .noticia-tarjeta:hover { transform: none; border-color: var(--border); }
   .noticia-tarjeta .noticia-portada { aspect-ratio: 4 / 3; border-radius: var(--radius-md); }
   .noticia-tarjeta .noticia-portada-vacia svg { width: 24px; height: 24px; }
   .noticia-tarjeta .noticia-portada-vacia::after { display: none; }
