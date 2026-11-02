@@ -6967,6 +6967,25 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 }
 @media (max-width: 600px) {
   .mc-set-filas { grid-template-columns: 1fr; }
+  /* Y las tiras de cartas a tres por fila (1176, V5; la regla de la 1033). */
+  .mc-vistazo-cartas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* «MÁS» (1176): la privacidad vive dentro de la fila de chips, con sus
+   hijos como chips más. `:not(.hidden)`, o el `display` le ganaría al
+   `.hidden` con que arranca. */
+.mc-acciones-rejilla .mc-compartir:not(.hidden) {
+  display: contents;
+}
+.mc-acciones-rejilla #mcPublicaEstado {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+.mc-acciones-rejilla #mcPublicaAjustes {
+  min-height: 44px;
 }
 .mc-esq-grafica {
   height: 128px;
@@ -12498,9 +12517,15 @@ html:not(.mc-puede-marcar) [data-seleccionar] {
 /* 1020 (D1, D2 y D3 de «PokeDoc como app»; el porqué, en SCHEMA.md) */
 @media (max-width: 900px) {
   /* D1: las cuatro acciones del Panel en losetas iguales, icono encima. */
+  /* Tres por fila desde la 1176 («Más» lleva cinco: Estadísticas delante)
+     y la privacidad en su línea, debajo. */
   .mc-acciones-rejilla {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .mc-acciones-rejilla .mc-compartir:not(.hidden) {
+    display: flex;
+    grid-column: 1 / -1;
   }
   .mc-accion-loseta {
     flex-direction: column;

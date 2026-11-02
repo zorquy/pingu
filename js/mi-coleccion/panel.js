@@ -94,24 +94,9 @@ export function pintarResumenPanel() {
   const cifraPanel = document.querySelector('#mcValorCaja .mc-cartera-cifra')
   if (ctx.esMia && cifraPanel) import('../contar.js').then(({ contarCifra }) => contarCifra(cifraPanel, 'valor', ctx.valorDeAhora(), ctx.eurosConMiles)).catch(() => {})
 
+  // Las estadísticas van en «Más» (1176): el hueco de antes queda vacío.
   const mas = $('mcMasEstadisticas')
-  const distintas = new Set(ls.map(clave)).size
-  if (mas) {
-    // CON LA MISMA CABECERA QUE LOS DEMÁS BLOQUES DEL PANEL (451), y su
-    // «Ver todas» abre la VISTA Estadísticas (1172, P4): hasta ahora era el
-    // único «Ver todas» del Panel que no iba a ninguna parte (desplegaba un
-    // bloque escondido debajo), sin dirección para volver ni compartir.
-    mas.innerHTML = `
-    <section class="mc-vistazo">
-      <div class="mc-vistazo-cabecera">
-        <h2 class="mc-subtitulo">Estadísticas</h2>
-        <button type="button" class="link-btn ver-todo" id="mcVerTodo" data-ir-a="estadisticas">Ver todas <span class="ver-todo-flecha" aria-hidden="true">→</span></button>
-      </div>
-      <!-- Un título sin nada debajo no dice nada (1015, L7): una línea con lo
-           que ya está contado. -->
-      <p class="mc-vistazo-linea">${distintas} ${distintas === 1 ? 'carta distinta' : 'cartas distintas'} · ${sobran} ${sobran === 1 ? 'copia repetida' : 'copias repetidas'}</p>
-    </section>`
-  }
+  if (mas) mas.innerHTML = ''
   // La gráfica es una consulta y llega cuando llega: el resto del panel
   // sale de lo que ya está en memoria y no la espera.
   pintarValorEnElTiempo()
@@ -369,7 +354,7 @@ function vistazoDeValiosas(valiosas) {
   }).join('')
   // Su «Ver todas» abre el RANKING (1171), no la pestaña Cartas: lo que
   // promete el título.
-  return vistazoHtml('Las que más valen', 'ranking', `<div class="mc-vistazo-cartas mc-valiosas">${cuerpo}</div>`)
+  return vistazoHtml('Ranking', 'ranking', `<div class="mc-vistazo-cartas mc-valiosas">${cuerpo}</div>`)
     .replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcValiosas">')
 }
 
@@ -522,19 +507,30 @@ const ICONO_DESCARGAR = (size) => icon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 
 // importar y exportar eran dos tarjetas con un párrafo cada una y un
 // enlace pequeño. Son tres botones; se pintan como tres botones. Los ids
 // se quedan (los manejadores y las pruebas cuelgan de ellos).
+// «MÁS» (651 → 1176, V4 de la propuesta de orden): una fila de chips para
+// lo que no es un bloque: Estadísticas (su vista, 1172), Imagen, Importar
+// CSV, Exportar CSV, Modo evento y la privacidad (el `#mcCompartir` de la
+// plantilla, que se MUEVE aquí dentro con sus manejadores, 893). Eran tres
+// bloques y 250 px al final del Panel; debajo, la línea de lo contado.
 function vistazoDeAcciones() {
   const hay = ctx.lineasTodo.length || ctx.lineas.length
+  const [ls, clave, busca] = ctx.pTodo()
+  const rep = ls.length ? ctx.repetidas(ls, clave, busca) : []
+  const sobran = rep.reduce((n, r) => n + r.sobran, 0)
+  const distintas = new Set(ls.map(clave)).size
   const loseta = (id, dibujo, texto, extra = '') => `<button type="button" class="mc-accion-loseta" id="${id}"${extra}><span class="mc-accion-icono" aria-hidden="true">${dibujo}</span><span>${texto}</span></button>`
-  return `<section class="mc-vistazo mc-vistazo-imagen mc-vistazo-importar">
+  return `<section class="mc-vistazo mc-vistazo-imagen mc-vistazo-importar" id="mcMas">
       <div class="mc-vistazo-cabecera">
-        <h2 class="mc-subtitulo">Compartir, importar y exportar</h2>
+        <h2 class="mc-subtitulo">Más</h2>
       </div>
       <div class="mc-acciones-rejilla">
+        ${hay ? loseta('mcVerTodo', icons.barChart(18), 'Estadísticas', ' data-ir-a="estadisticas"') : ''}
         ${hay ? loseta('mcImagenCrear', icons.image(18), 'Imagen') : ''}
         ${loseta('mcImportarAbrir', icons.upload(18), 'Importar CSV')}
         ${loseta('mcExportar', ICONO_DESCARGAR(18), 'Exportar CSV', hay ? '' : ' disabled')}
         <a class="mc-accion-loseta" id="mcModoEvento" href="/evento"><span class="mc-accion-icono" aria-hidden="true">${icons.scan(18)}</span><span>Modo evento</span></a>
       </div>
+      ${hay ? `<p class="mc-vistazo-linea">${distintas} ${distintas === 1 ? 'carta distinta' : 'cartas distintas'} · ${sobran} ${sobran === 1 ? 'copia repetida' : 'copias repetidas'}</p>` : ''}
     </section>`
 }
 
@@ -604,7 +600,16 @@ export async function pintarVistazos() {
   void pintarCambiosDelMes(version)
   // Cambios y lo demás, en la columna de la derecha (1174).
   const der = $('mcDerSitio')
-  if (der) der.innerHTML = vistazoDeCambios() + vistazoDeAcciones()
+  if (der) {
+    // La privacidad («Colección privada · Ajustes») es el elemento de la
+    // plantilla, con sus manejadores: se MUEVE (893), no se copia. Y antes
+    // de repintar la caja se saca, que un `innerHTML` se lo llevaría.
+    const privacidad = $('mcCompartir')
+    if (privacidad && der.contains(privacidad)) $('mcPanelResumen')?.append(privacidad)
+    der.innerHTML = vistazoDeCambios() + vistazoDeAcciones()
+    const rejilla = der.querySelector('#mcMas .mc-acciones-rejilla')
+    if (privacidad && rejilla) rejilla.append(privacidad)
+  }
   // MI COLECCIÓN EN UNA IMAGEN (571), IMPORTAR Y EXPORTAR (580): desde la
   // 651 son tres losetas en una tarjeta (`vistazoDeAcciones`). Importar
   // sale siempre: es justo quien NO tiene cartas aquí quien lo necesita.
@@ -772,7 +777,7 @@ async function pintarMovidas(version) {
     if (!conPrecio.length) return
     // El hueco, en esqueleto mientras llega (748): tres filas del alto de
     // las de verdad, para que lo de debajo no salte al llegar.
-    if (!movidasHtml) sitio.innerHTML = `<section class="mc-vistazo mc-movidas-esq" aria-hidden="true"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Las que más se mueven</h2></div><ul class="mc-movidas">${'<li class="mc-movida"><span class="skeleton mc-movida-foto"></span><span class="skeleton mc-movida-esq"></span></li>'.repeat(3)}</ul></section>`
+    if (!movidasHtml) sitio.innerHTML = `<section class="mc-vistazo mc-movidas-esq" aria-hidden="true"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Movimientos</h2></div><ul class="mc-movidas">${'<li class="mc-movida"><span class="skeleton mc-movida-foto"></span><span class="skeleton mc-movida-esq"></span></li>'.repeat(3)}</ul></section>`
     const desde = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
     // Solo los extremos del periodo (1171): la semana entera de 150 cartas
     // pasaba de las 1.000 filas que Supabase devuelve (la 808).
@@ -802,7 +807,7 @@ async function pintarMovidas(version) {
       </a></li>`
     }
     // Y «Ver todas» abre MOVIMIENTOS (1171), la lista entera por periodo.
-    sitio.innerHTML = movidasHtml = vistazoHtml('Las que más se mueven', 'movimientos', `<ul class="mc-movidas">${tres.map(fila).join('')}</ul>`)
+    sitio.innerHTML = movidasHtml = vistazoHtml('Movimientos', 'movimientos', `<ul class="mc-movidas">${tres.map(fila).join('')}</ul>`)
       .replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcMovidas">')
   } catch {
     // Sin histórico (o sin red), el hueco se va y el Panel sigue.

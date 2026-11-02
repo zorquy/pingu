@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (420) — PINGU-Claude (1176 — la fila «Más» y el móvil; los bloques se llaman como sus vistas)
+
+**Hecho** (V4 y V5 de la propuesta de orden, y la pregunta 5):
+- **«Más»** (`vistazoDeAcciones`, en `#mcDerSitio` tras Cambios): una fila
+  de chips con Estadísticas (`#mcVerTodo`, `data-ir-a="estadisticas"`),
+  Imagen, Importar CSV, Exportar CSV, Modo evento y la privacidad (el
+  `#mcCompartir` de la plantilla, movido dentro con sus manejadores y sacado
+  antes de cada repintado), y debajo la línea «N distintas · M repetidas».
+  El bloque viejo de Estadísticas (`#mcMasEstadisticas`) ya no se pinta.
+  En el móvil, tres chips por fila y la privacidad en su línea.
+- **Las tiras de cartas a tres por fila en el móvil** (`.mc-vistazo-cartas`).
+- **Los bloques se llaman como la vista que abren**: «Movimientos» y
+  «Ranking» (la vista del ranking también).
+
+**Ficheros**: js/mi-coleccion/panel.js, js/mi-coleccion/movimientos.js,
+css/mi-coleccion.css, SCHEMA.md, novedades.json, CLAUDE.md.
+Pruebas: 1015, 651 y 580 ajustadas (cinco chips en «Más»; nada abre Cartas);
+1172, 1173, 1175 verdes; 1023 y 1040 pasadas.
+
+**Pendiente**: la ronda 10 (1177 en adelante) cuando PINGU diga.
+
 ## 2026-11-02 (419) — PINGU-Claude (1175 — las dos tiras de cartas iguales y las expansiones del Panel en filas)
 
 **Hecho** (V2 y V3 de la propuesta de orden):

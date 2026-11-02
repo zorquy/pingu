@@ -41785,6 +41785,31 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1176 — La fila «Más» y el móvil; los bloques se llaman como sus vistas
+
+V4 y V5 de la propuesta de orden.
+
+**«Más»** (`vistazoDeAcciones` en panel.js, `section#mcMas.mc-vistazo
+.mc-vistazo-importar`): la `.mc-acciones-rejilla` de chips de la 1015 con
+cinco `.mc-accion-loseta` (Estadísticas —`#mcVerTodo`, que las pruebas 374,
+410 y 562 siguen pulsando—, Imagen, Importar CSV, Exportar CSV, Modo
+evento) y, al final, el `#mcCompartir` de la plantilla (estado de la
+privacidad, Copiar enlace, Ajustes), que `pintarVistazos` MUEVE dentro
+(893) y saca a `#mcPanelResumen` antes de cada `innerHTML` de
+`#mcDerSitio`, que si no se lo lleva (la 1015 lo cazó: `#mcPublicaEstado`
+desaparecía en el segundo pintado). En el PC `.mc-compartir:not(.hidden)`
+es `display: contents` (sus hijos son chips más); por debajo de 900 px la
+rejilla es de tres y la privacidad ocupa su línea. Debajo, la línea «N
+cartas distintas · M copias repetidas» que antes era el bloque
+Estadísticas; `#mcMasEstadisticas` queda vacío.
+
+**El móvil**: `.mc-vistazo-cartas` a `repeat(3, 1fr)` por debajo de 600 px
+(la 1033: tres por fila).
+
+**Los nombres**: «Movimientos» y «Ranking», como las vistas que abren
+(`?ver=movimientos`, `?ver=ranking`); la vista del ranking se titula
+«Ranking» también. Las pruebas miran los ids (`#mcMovidas`, `#mcValiosas`).
+
 ## Tanda 1175 — Las dos tiras de cartas iguales y las expansiones del Panel en filas
 
 V2 y V3 de la propuesta de orden.

@@ -846,7 +846,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   bloque nuevo va en una de las dos, con su id y su `order` del móvil en
   `mi-coleccion.css`. Una cifra con su rótulo es `.mc-cifra-ficha`
   (`.mc-ficha` es la ficha de la carta). Y lo pagado es una línea
-  secundaria (PINGU: «es algo muy opcional»), no una tira de fichas.
+  secundaria (PINGU: «es algo muy opcional»), no una tira de fichas. Lo que
+  no es un bloque (una acción, un ajuste) va como chip en «Más»
+  (`vistazoDeAcciones`, 1176), no como bloque nuevo; y los bloques se
+  llaman como la vista que abren (Movimientos, Ranking).
 - **Un bloque de pantalla que no usa todo el mundo va en su módulo y
   entra por `import()`** (tanda 895, R4): el Panel y los deseos de Mi
   colección (`js/mi-coleccion/panel.js`, `deseos.js`) y el editor del

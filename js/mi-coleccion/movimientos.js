@@ -377,7 +377,7 @@ function pintarRanking() {
   const [ls, clave, busca] = ctx.pTodo()
   const modos = `<div class="mc-seg mc-seg-sueltas mc-vista-modos" role="group" aria-label="Por qué ordenar">${seg('modo', 'copia', 'Por copia', modoRanking === 'copia')}${seg('modo', 'linea', 'Por línea', modoRanking === 'linea')}</div>`
   if (!panel.dataset.montado) {
-    panel.innerHTML = `${cabeceraHtml('Las que más valen', modos)}
+    panel.innerHTML = `${cabeceraHtml('Ranking', modos)}
       <p class="mc-vista-resumen" id="mcRankResumen"></p>
       <div id="mcRankLista"></div>`
     panel.dataset.montado = '1'

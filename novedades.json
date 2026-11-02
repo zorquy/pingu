@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-02",
       "tipo": "mejora",
+      "texto": "El Panel de Mi colección termina en una fila «Más» (estadísticas, imagen, importar, exportar, modo evento y privacidad) en vez de tres bloques; y los bloques se llaman como lo que abren: Movimientos y Ranking.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-02",
+      "tipo": "mejora",
       "texto": "En el Panel de Mi colección, «Últimas añadidas» dice cuándo metiste cada carta, las dos tiras de cartas van con nombre y del mismo tamaño, y las expansiones ocupan una fila cada una.",
       "enlace": "/mi-coleccion"
     },
