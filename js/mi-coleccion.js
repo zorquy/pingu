@@ -2810,7 +2810,7 @@ async function guardarEditor({ retardo = 0 } = {}) {
 // pantalla ancha (como al abrirlo) y de una en una en el móvil.
 // Lo último que pintó pintarAlbum, para compartirlo (873).
 let albumResumen = null
-let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, soloTengo: false, repetidas: false, split: false, vista: 'cuadricula', idioma: '' }
+let album = { set: null, cartas: [], pagina: 0, soloFaltan: false, soloTengo: false, paraCambio: false, split: false, vista: 'cuadricula', idioma: '' }
 
 // ── LAS TRES FORMAS DE VER UNA EXPANSIÓN (tanda 478) ──
 //
@@ -4269,11 +4269,14 @@ function cartasDelAlbumFiltradas() {
   // solo salen las cartas que existen en ella (o que tienes en ella).
   const version = $('mcAlbumVersion')?.value || ''
   const cuantas = (c) => tengoEnAlbum(c.id, version || null)
+  // «Para cambio» (propuesta de noviembre; antes «Repetidas», 927): las de
+  // esta expansión de las que das alguna copia. Lo que sobra lo decides tú.
+  const doyEnAlbum = album.paraCambio ? new Set(loQueDoy().map((l) => l.card_id)) : new Set()
   const encajan = album.cartas.filter((c) => {
     if (version && !cuantas(c) && !variantesDeCarta(c).some((v) => v.nuestro === version)) return false
     if (album.soloFaltan && cuantas(c)) return false
     if (album.soloTengo && !cuantas(c)) return false
-    if (album.repetidas && cuantas(c) < 2) return false
+    if (album.paraCambio && !doyEnAlbum.has(c.id)) return false
     if (rareza && rarezaDeCarta(c) !== rareza) return false
     if (tipo && (!c.category || categoriaEs(c.category) !== tipo)) return false
     if (energia && !(Array.isArray(c.types) && c.types.map(tipoEs).includes(energia))) return false
@@ -4376,7 +4379,7 @@ function cuantosFiltrosDeAlbum() {
     ($('mcAlbumEnergia')?.value ? 1 : 0) +
     (album.soloFaltan ? 1 : 0) +
     (album.soloTengo ? 1 : 0) +
-    (album.repetidas ? 1 : 0) +
+    (album.paraCambio ? 1 : 0) +
     ($('mcAlbumVersion')?.value ? 1 : 0) +
     (album.idioma ? 1 : 0) +
     (rangoDelAlbum().puesto ? 1 : 0)
@@ -4416,7 +4419,7 @@ function limpiarFiltrosDeAlbum() {
   album.idioma = ''
   album.soloFaltan = false
   album.soloTengo = false
-  album.repetidas = false
+  album.paraCambio = false
   album.pagina = 0
   pintarSoloFaltan()
   pintarAlbum()
@@ -4434,9 +4437,9 @@ function pintarSoloFaltan() {
   const t = $('mcAlbumSoloTengo')
   t?.classList.toggle('activo', Boolean(album.soloTengo))
   t?.setAttribute('aria-pressed', album.soloTengo ? 'true' : 'false')
-  $('mcAlbumRepetidas')?.setAttribute('aria-pressed', album.repetidas ? 'true' : 'false')
+  $('mcAlbumCambio')?.setAttribute('aria-pressed', album.paraCambio ? 'true' : 'false')
   // «Todas» (748) está puesta cuando no lo está ninguna de las otras.
-  $('mcAlbumTodas')?.setAttribute('aria-pressed', !album.soloFaltan && !album.soloTengo && !album.repetidas ? 'true' : 'false')
+  $('mcAlbumTodas')?.setAttribute('aria-pressed', !album.soloFaltan && !album.soloTengo && !album.paraCambio ? 'true' : 'false')
   for (const b of document.querySelectorAll('#mcAlbumQue [data-que]')) b.setAttribute('aria-pressed', $(b.dataset.que)?.getAttribute('aria-pressed') || 'false')
 }
 
@@ -6585,7 +6588,7 @@ function enganchar() {
   }
   $('mcAlbumSoloFaltan').addEventListener('click', () => {
     album.soloFaltan = !album.soloFaltan
-    if (album.soloFaltan) album.soloTengo = album.repetidas = false
+    if (album.soloFaltan) album.soloTengo = album.paraCambio = false
     pintarSoloFaltan()
     album.pagina = 0
     pintarAlbum()
@@ -6593,7 +6596,7 @@ function enganchar() {
   $('mcAlbumTodas')?.addEventListener('click', () => {
     album.soloFaltan = false
     album.soloTengo = false
-    album.repetidas = false
+    album.paraCambio = false
     pintarSoloFaltan()
     album.pagina = 0
     pintarAlbum()
@@ -6601,15 +6604,15 @@ function enganchar() {
   // La otra mitad (714): las dos a la vez no enseñarían nada.
   $('mcAlbumSoloTengo')?.addEventListener('click', () => {
     album.soloTengo = !album.soloTengo
-    if (album.soloTengo) album.soloFaltan = album.repetidas = false
+    if (album.soloTengo) album.soloFaltan = album.paraCambio = false
     pintarSoloFaltan()
     album.pagina = 0
     pintarAlbum()
   })
-  // Las que tienes dos o más veces (927): las que puedes cambiar.
-  $('mcAlbumRepetidas')?.addEventListener('click', () => {
-    album.repetidas = !album.repetidas
-    if (album.repetidas) album.soloFaltan = album.soloTengo = false
+  // Las que das para cambio (propuesta de noviembre; antes «Repetidas», 927).
+  $('mcAlbumCambio')?.addEventListener('click', () => {
+    album.paraCambio = !album.paraCambio
+    if (album.paraCambio) album.soloFaltan = album.soloTengo = false
     pintarSoloFaltan()
     album.pagina = 0
     pintarAlbum()

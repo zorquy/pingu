@@ -779,7 +779,7 @@
                   <button type="button" id="mcAlbumTodas" aria-pressed="true">Todas</button>
                   <button type="button" id="mcAlbumSoloTengo" aria-pressed="false">Las tengo</button>
                   <button type="button" id="mcAlbumSoloFaltan" aria-pressed="false">Me faltan</button>
-                  <button type="button" id="mcAlbumRepetidas" aria-pressed="false">Repetidas</button>
+                  <button type="button" id="mcAlbumCambio" aria-pressed="false">Para cambio</button>
                 </div>
               </div>
             </div>
@@ -875,15 +875,14 @@
              plegado; desde la 1172 aquí va solo la cabecera con su línea y
              «Ver todas» abre la vista #mcPanelEstadisticas. -->
         <div id="mcMasEstadisticas"></div>
-        <!-- LA FILA DE REOJO (1177): Movimientos, Tus alertas, Cambios y Tu
-             mes, cuatro tarjetas iguales en el PC (las que haya: sin alertas,
-             tres); en el móvil, cada una en su sitio de la pila. -->
-        <aside class="mc-panel-reojo" id="mcPanelDer" aria-label="De un vistazo">
-          <div id="mcMovidasSitio"></div>
-          <div id="mcAlertasSitio"></div>
-          <div id="mcDerSitio"></div>
-          <div id="mcMesSitio"></div>
-        </aside>
+        <!-- LOS HUECOS DE LA PILA (propuesta de noviembre; antes la fila de
+             reojo de la 1177): Movimientos y Alertas (tiras de cartas),
+             Cambios y Tu mes (una línea de cifras). Cada uno se abre con
+             `display: contents` y su bloque lleva su `order`. -->
+        <div id="mcMovidasSitio"></div>
+        <div id="mcAlertasSitio"></div>
+        <div id="mcDerSitio"></div>
+        <div id="mcMesSitio"></div>
         <!-- «Más» (1176), la última fila. -->
         <div id="mcMasSitio"></div>
 

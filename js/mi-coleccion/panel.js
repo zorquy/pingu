@@ -55,11 +55,7 @@ export function pintarResumenPanel() {
     </section>`
     return
   }
-  const rep = ctx.repetidas(ls, clave, busca)
-  const sobran = rep.reduce((n, r) => n + r.sobran, 0)
-  const valiosas = ctx.masValiosas(3, ls, clave, busca)
   const valiosasTira = ctx.masValiosas(DE_VISTAZO, ls, clave, busca)
-  const porRareza = ctx.repartoPor((c) => rarezaDeCarta(c), ls, clave, busca)
 
   // Arriba, solo la gráfica: es la ÚNICA cifra que cambia sola y es a
   // lo que se entra (la lección de la 416). Las listas de números van
@@ -117,8 +113,12 @@ export async function pintarEstadisticas() {
     engancharVolver(panel, ctx)
     return
   }
-  const rep = ctx.repetidas(ls, clave, busca)
-  const sobran = rep.reduce((n, r) => n + r.sobran, 0)
+  // LO QUE DAS, y no «las repetidas» (propuesta de noviembre, PINGU: «tengo
+  // una normal y una reverse y pone que está repetida. No está repetida»).
+  // Contar copias por id llamaba repetida a dos versiones, dos idiomas o dos
+  // estados; lo que de verdad te sobra es lo que TÚ marcas para cambio.
+  const doy = loQueDas(busca)
+  const dasCopias = doy.reduce((n, d) => n + d.das, 0)
   const valiosas = ctx.masValiosas(3, ls, clave, busca)
   const porRareza = ctx.repartoPor((c) => rarezaDeCarta(c), ls, clave, busca)
   panel.innerHTML = `${cabeceraDeVistaHtml('Estadísticas')}
@@ -132,16 +132,16 @@ export async function pintarEstadisticas() {
           : ''
       }
       ${diapoDelBalance()}
-      ${diapoHtml('Lo que te sobra', `
-        <p class="mc-diapo-cifra">${sobran.toLocaleString('es-ES', { useGrouping: 'always' })}</p>
-        <p class="mc-diapo-pie">${sobran === 1 ? 'copia repetida' : 'copias repetidas'}${rep.length ? `, de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}` : ''}</p>
+      ${diapoHtml('Lo que das', `
+        <p class="mc-diapo-cifra">${dasCopias.toLocaleString('es-ES', { useGrouping: 'always' })}</p>
+        <p class="mc-diapo-pie">${dasCopias === 1 ? 'copia para cambio' : 'copias para cambio'}${doy.length ? `, de ${doy.length} ${doy.length === 1 ? 'carta' : 'cartas'}` : ''}</p>
         ${
-          rep.length
-            ? `<ul class="mc-diapo-lista">${rep
+          doy.length
+            ? `<ul class="mc-diapo-lista">${doy
                 .slice(0, 3)
-                .map((r) => `<li><span>${escapeHtml(ctx.nombreDe(r.carta))}</span><strong>+${r.sobran}</strong></li>`)
+                .map((d) => `<li><span>${escapeHtml(ctx.nombreDe(d.carta))}</span><strong>×${d.das}</strong></li>`)
                 .join('')}</ul>`
-            : '<p class="subtext">No tienes ninguna repetida todavía.</p>'
+            : '<p class="subtext">Todavía no das ninguna.</p>'
         }`)}
       ${diapoHtml('Por rareza', porRareza.length
         ? ctx.barrasHtml(porRareza.slice(0, 5))
@@ -149,12 +149,13 @@ export async function pintarEstadisticas() {
       </div>
       <div class="mc-resumen-rejilla">
         <section class="mc-resumen-caja">
-          <h3>Tus repetidas</h3>
+          <h3>Lo que das</h3>
           ${
-            rep.length
-              ? `<p class="subtext">${sobran === 1 ? 'Te sobra' : 'Te sobran'} <strong>${sobran}</strong> ${sobran === 1 ? 'copia' : 'copias'} de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}. ${sobran === 1 ? 'Es la que puedes' : 'Son las que puedes'} cambiar.</p>
-                 <ul class="mc-lista-cartas">${rep.slice(0, 12).map((r) => ctx.filaDeCartaHtml(r.carta, `tienes ${r.tengo} · <strong>te sobran ${r.sobran}</strong>`)).join('')}</ul>`
-              : '<p class="subtext">No tienes ninguna repetida todavía.</p>'
+            doy.length
+              ? `<p class="subtext">Das <strong>${dasCopias}</strong> ${dasCopias === 1 ? 'copia' : 'copias'} de ${doy.length} ${doy.length === 1 ? 'carta' : 'cartas'}. ${doy.length === 1 ? 'Sale' : 'Salen'} en el Mercado con tu nombre.</p>
+                 <ul class="mc-lista-cartas">${doy.slice(0, 12).map((d) => ctx.filaDeCartaHtml(d.carta, `<strong>das ${d.das}</strong>`)).join('')}</ul>
+                 <p><button type="button" class="link-btn" data-ir-a="cambios">Las que doy →</button></p>`
+              : '<p class="subtext">Todavía no das ninguna. Lo que te sobra lo decides tú: marca una copia para cambio y di cuántas das.</p>'
           }
         </section>
         <section class="mc-resumen-caja">
@@ -196,6 +197,20 @@ export async function pintarEstadisticas() {
     const caja = $('mcEstEra')
     if (caja) caja.innerHTML = '<h3>Por era</h3><p class="subtext">No se ha podido leer la estantería.</p>'
   }
+}
+
+// Lo que das para cambio, agrupado por carta: las líneas con `cambio > 0`
+// (`ctx.loQueDoy`), sumadas, con su carta, las que más das primero.
+function loQueDas(busca) {
+  const por = new Map()
+  for (const l of ctx.loQueDoy()) {
+    const c = busca(l)
+    if (!c) continue
+    const d = por.get(c.id) || { carta: c, das: 0 }
+    d.das += Number(l.cambio) || 0
+    por.set(c.id, d)
+  }
+  return [...por.values()].sort((a, b) => b.das - a.das)
 }
 
 // Cuántas cartas DISTINTAS en cada idioma (la misma cuenta que
@@ -543,16 +558,13 @@ function vistazoDeSets(sets) {
 function vistazoDeCambios() {
   const doy = ctx.loQueDoy().length
   const busco = Array.isArray(ctx.deseos) ? ctx.deseos.length : null
-  const dentro = `<div class="mc-panel-cifras">
-    <button type="button" class="mc-cifra-ficha mc-panel-cifra" data-ir-a="cambios"><b>${doy}</b><span>${doy === 1 ? 'carta que das' : 'cartas que das'}</span></button>
-    ${busco === null ? '' : `<button type="button" class="mc-cifra-ficha mc-panel-cifra" data-ir-a="quiero"><b>${busco}</b><span>${busco === 1 ? 'carta que quieres' : 'cartas que quieres'}</span></button>`}
-  </div>`
-  const tarjeta = tarjetaDeReojoHtml({
-    id: 'mcReojoCambios', titulo: 'Cambios', accion: ' data-ir-a="cambios"',
-    cifra: `<b>${doy} das${busco === null ? '' : ` · ${busco} quieres`}</b>`,
-    linea: 'Lo que das y lo que buscas',
-  })
-  return tarjeta + vistazoHtml('Cambios', 'cambios', dentro, 'Abrir').replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcCambios">')
+  // UNA LÍNEA DE CIFRAS, no dos baldosas (propuesta de noviembre): las dos
+  // cuentas son texto, y cada una lleva a lo suyo.
+  const dentro = `<p class="mc-cifras-linea">
+    <button type="button" class="mc-cifra-linea" data-ir-a="cambios"><b>${doy}</b> ${doy === 1 ? 'carta que das' : 'cartas que das'}</button>
+    ${busco === null ? '' : `<span class="mc-cifras-sep" aria-hidden="true">·</span> <button type="button" class="mc-cifra-linea" data-ir-a="quiero"><b>${busco}</b> ${busco === 1 ? 'carta que quieres' : 'cartas que quieres'}</button>`}
+  </p>`
+  return vistazoHtml('Cambios', 'cambios', dentro, 'Abrir').replace('<section class="mc-vistazo">', '<section class="mc-vistazo mc-vistazo-linea-cifras" id="mcCambios">')
 }
 
 // El icono de descargar, aquí y no en js/icons.js: ese fichero lo baja la
@@ -572,9 +584,8 @@ const ICONO_DESCARGAR = (size) => icon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 
 // bloques y 250 px al final del Panel; debajo, la línea de lo contado.
 function vistazoDeAcciones() {
   const hay = ctx.lineasTodo.length || ctx.lineas.length
-  const [ls, clave, busca] = ctx.pTodo()
-  const rep = ls.length ? ctx.repetidas(ls, clave, busca) : []
-  const sobran = rep.reduce((n, r) => n + r.sobran, 0)
+  const [ls, clave] = ctx.pTodo()
+  const paraCambio = ls.length ? new Set(ctx.loQueDoy().map((l) => l.card_id)).size : 0
   const distintas = new Set(ls.map(clave)).size
   const loseta = (id, dibujo, texto, extra = '') => `<button type="button" class="mc-accion-loseta" id="${id}"${extra}><span class="mc-accion-icono" aria-hidden="true">${dibujo}</span><span>${texto}</span></button>`
   return `<section class="mc-vistazo mc-vistazo-imagen mc-vistazo-importar" id="mcMas">
@@ -588,25 +599,20 @@ function vistazoDeAcciones() {
         ${loseta('mcExportar', ICONO_DESCARGAR(18), 'Exportar CSV', hay ? '' : ' disabled')}
         <a class="mc-accion-loseta" id="mcModoEvento" href="/evento"><span class="mc-accion-icono" aria-hidden="true">${icons.scan(18)}</span><span>Modo evento</span></a>
       </div>
-      ${hay ? `<p class="mc-vistazo-linea">${distintas} ${distintas === 1 ? 'carta distinta' : 'cartas distintas'} · ${sobran} ${sobran === 1 ? 'copia repetida' : 'copias repetidas'}</p>` : ''}
+      ${hay ? `<p class="mc-vistazo-linea">${distintas} ${distintas === 1 ? 'carta distinta' : 'cartas distintas'} · ${paraCambio} para cambio</p>` : ''}
     </section>`
 }
 
-// ── EL MÓVIL DE UN VISTAZO (1178, decisión 3 de «Estructura del Panel») ──
-//
-// En el móvil, entre la cartera y la primera carta tuya había seis filas de
-// movimientos y alertas (600 px). Cada bloque de reojo pinta ADEMÁS una
-// tarjeta con un titular —«Flying Pikachu V +208 %», «1 a punto de saltar»,
-// «33 das · 229 quieres», «+10.430 €»— que se pulsa y abre lo suyo. Las
-// cuatro van en 2 × 2 (`.mc-panel-reojo` es una rejilla en el móvil) y el
-// bloque entero se esconde; en el PC es al revés (CSS, no `matchMedia`:
-// así un giro de pantalla no tiene que repintar nada).
-function tarjetaDeReojoHtml({ id, titulo, cifra, linea = '', accion = '', flecha = '' }) {
-  return `<button type="button" class="mc-reojo-tarjeta" id="${id}"${accion}>
-    <small>${escapeHtml(titulo)} <span aria-hidden="true">${flecha || '→'}</span></small>
-    ${cifra}
-    ${linea ? `<span>${linea}</span>` : ''}
-  </button>`
+// UNA PILA DE TIRAS (propuesta de noviembre; antes 1177/1178): las tarjetas
+// de reojo del móvil y la fila 2 × 2 del PC se fueron. Movimientos y Alertas
+// son tiras de cartas con el molde de Ranking y Últimas añadidas
+// (`fichaDeTiraHtml`); Cambios y Tu mes, una línea de cifras.
+function fichaDeTiraHtml({ carta, dato, cambio = '', nombre, clase = '', etiqueta = '' }) {
+  const escaneo = carta ? atributosDeEscaneo(cadenaDeEscaneo(carta)) : ''
+  return `<span class="mc-vistazo-ficha${clase ? ` ${clase}` : ''}"><a class="mc-vistazo-carta" href="${escapeHtml(carta ? rutaDeCarta(carta) : '#')}"${carta ? ` data-carta="${escapeHtml(carta.id)}"` : ''} aria-label="${escapeHtml(etiqueta || nombre)}">${
+    escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`
+      : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
+  }</a><b>${dato}</b>${cambio ? `<em class="mc-ficha-cambio">${cambio}</em>` : ''}<small>${escapeHtml(nombre)}</small></span>`
 }
 
 // Cuántas veces se ha pintado el Panel (663): lo que llega tarde de una
@@ -733,7 +739,6 @@ export function ordenarAlertas(alertas, precioDe) {
   }).sort((x, y) => (x.falta === null) - (y.falta === null) || (x.falta ?? 0) - (y.falta ?? 0))
 }
 
-const DE_ALERTAS = 5
 async function pintarAlertas(version) {
   const sitio = $('mcAlertasSitio')
   if (!ctx.esMia || !ctx.sesion?.user?.id || !sitio) return
@@ -754,41 +759,38 @@ async function pintarAlertas(version) {
       const v = fila ? valorDe(precioDeFila(fila), a.idioma || 'es') : null
       return v > 0 ? v : null
     })
-    const fila = (a) => {
+    // La misma tira que Movimientos: la carta, a cuánto está hoy, a cuánto
+    // de avisar (en ámbar si está cerca) y el nombre.
+    const ficha = (a) => {
       const c = cartas.get(a.card_id)
-      const escaneo = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : ''
       const nombre = c ? ctx.nombreDe(c) : 'Una carta'
-      const que = `si ${a.tipo === 'baja' ? 'baja de' : 'sube de'} ${euros(a.umbral)} · ${a.hoy === null ? 'hoy sin precio' : `hoy ${euros(a.hoy)}`}`
-      const lejos = a.falta === null ? '' : a.falta <= 0 ? 'ya cumple' : `a ${euros(a.falta)}`
-      return `<li><a class="mc-movida mc-alerta${a.cerca ? ' cerca' : ''}" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`${nombre}: ${que}${lejos ? `, ${lejos} de avisar` : ''}`)}">
-        <span class="mc-movida-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
-        <span class="mc-movida-nombre"><b>${escapeHtml(nombre)}</b><small>${escapeHtml(que)}</small></span>
-        <span class="mc-movida-precio"><small>${a.cerca ? icons.bell(14) : ''}${escapeHtml(lejos)}</small></span>
-      </a></li>`
+      const que = `si ${a.tipo === 'baja' ? 'baja de' : 'sube de'} ${euros(a.umbral)}`
+      const lejos = a.falta === null ? 'sin precio hoy' : a.falta <= 0 ? 'ya cumple' : `a ${euros(a.falta)} de avisar`
+      return fichaDeTiraHtml({
+        carta: c, nombre, clase: `mc-alerta${a.cerca ? ' cerca' : ''}`,
+        dato: a.hoy === null ? '—' : escapeHtml(euros(a.hoy)),
+        cambio: `${a.cerca ? icons.bell(12) : ''}${escapeHtml(lejos)}`,
+        etiqueta: `${nombre}: ${que}, ${a.hoy === null ? 'hoy sin precio' : `hoy ${euros(a.hoy)}`}, ${lejos}`,
+      })
     }
-    const mas = lista.length - DE_ALERTAS
-    // La tarjeta del móvil (1178): cuántas están a punto de saltar y la
-    // primera; al pulsarla se despliega la lista entera debajo.
     const cerca = lista.filter((a) => a.cerca).length
-    const primera = lista.find((a) => a.cerca) || lista[0]
-    const nombrePrimera = cartas.get(primera.card_id) ? ctx.nombreDe(cartas.get(primera.card_id)) : 'Una carta'
-    const lejosPrimera = primera.falta === null ? '' : primera.falta <= 0 ? 'ya cumple' : `a ${euros(primera.falta)}`
-    const tarjeta = tarjetaDeReojoHtml({
-      id: 'mcReojoAlertas', titulo: 'Alertas', accion: ' data-despliega="mcAlertas" aria-expanded="false"',
-      cifra: cerca ? `<b class="mc-reojo-ambar">${cerca} a punto de saltar</b>` : `<b>${lista.length} ${lista.length === 1 ? 'activa' : 'activas'}</b>`,
-      linea: escapeHtml(`${nombrePrimera}${lejosPrimera ? `, ${lejosPrimera}` : ''}${cerca ? ` · ${lista.length} ${lista.length === 1 ? 'activa' : 'activas'}` : ''}`),
-      flecha: '⌄',
-    })
-    sitio.innerHTML = tarjeta + `<section class="mc-vistazo" id="mcAlertas">
-      <div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Tus alertas</h2>${mas > 0 ? `<button type="button" class="link-btn ver-todo" data-alertas-mas>Ver las ${lista.length} <span class="ver-todo-flecha" aria-hidden="true">→</span></button>` : ''}</div>
-      <ul class="mc-movidas mc-alertas">${lista.slice(0, DE_ALERTAS).map(fila).join('')}</ul>
-      <ul class="mc-movidas mc-alertas hidden" id="mcAlertasResto">${lista.slice(DE_ALERTAS).map(fila).join('')}</ul>
+    // Con alguna cerca de saltar, la tira; si ninguna lo está, una línea y
+    // la tira plegada detrás de «Ver las N» (decisión D2 de la propuesta).
+    const tira = `<div class="mc-vistazo-cartas mc-alertas${cerca ? '' : ' hidden'}" id="mcAlertasTira">${lista.map(ficha).join('')}</div>`
+    const linea = cerca
+      ? ''
+      : `<p class="mc-cifras-linea"><b>${lista.length}</b> ${lista.length === 1 ? 'alerta activa' : 'alertas activas'}, ninguna cerca de saltar.</p>`
+    sitio.innerHTML = `<section class="mc-vistazo" id="mcAlertas">
+      <div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Alertas</h2><button type="button" class="link-btn ver-todo" data-alertas-mas>Ver las ${lista.length} <span class="ver-todo-flecha" aria-hidden="true">→</span></button></div>
+      ${linea}${tira}
     </section>`
-    sitio.querySelector('[data-alertas-mas]')?.addEventListener('click', (e) => { $('mcAlertasResto')?.classList.remove('hidden'); e.currentTarget.remove() }, { once: true })
-    sitio.querySelector('[data-despliega]')?.addEventListener('click', (e) => {
-      const abierta = $('mcAlertas')?.classList.toggle('abierta')
-      e.currentTarget.setAttribute('aria-expanded', abierta ? 'true' : 'false')
-    })
+    sitio.querySelector('[data-alertas-mas]')?.addEventListener('click', (e) => {
+      const t = $('mcAlertasTira')
+      t?.classList.remove('hidden')
+      t?.classList.add('todas')
+      sitio.querySelector('.mc-cifras-linea')?.remove()
+      e.currentTarget.remove()
+    }, { once: true })
   } catch {
     const s2 = $('mcAlertasSitio')
     if (s2) s2.innerHTML = ''
@@ -803,25 +805,23 @@ function vistazoDelMes() {
   const c = cambioDelMes()
   mesDatos = { ...r, mes: nombreDelMes(), valor: c ? c.cambio : undefined, mejor: r.mejor ? { nombre: ctx.nombreDe(r.mejor.carta), pagado: r.mejor.pagado, vale: r.mejor.vale } : null }
   const n = (x) => Number(x).toLocaleString('es-ES', { useGrouping: 'always' })
-  const ficha = (id, cifra, texto, clase = '') => `<div class="mc-cifra-ficha mc-mes-ficha${clase ? ` ${clase}` : ''}" id="${id}"><b>${cifra}</b><span>${escapeHtml(texto)}</span></div>`
+  // Cada cifra es un `<span id>` con su `<b>` y su `<span>`: lo que llega
+  // después (los cambios hechos, el valor) los busca por id y los rellena.
+  const ficha = (id, cifra, texto, clase = '') => `<span class="mc-cifra-linea mc-mes-ficha${clase ? ` ${clase}` : ''}" id="${id}"><b>${cifra}</b> <span>${escapeHtml(texto)}</span></span>`
   const valorHtml = (cc) => {
     if (!cc) return ficha('mcMesValor', '—', 'de valor este mes')
     const signo = cc.cambio > 0 ? '+' : cc.cambio < 0 ? '−' : ''
     return ficha('mcMesValor', `${signo}${escapeHtml(euros(Math.abs(cc.cambio)))}`, 'de valor este mes', cc.cambio > 0 ? 'mc-gana' : cc.cambio < 0 ? 'mc-pierde' : '')
   }
-  const tarjeta = tarjetaDeReojoHtml({
-    id: 'mcReojoMes', titulo: `Tu ${mesDatos.mes}`, accion: ' data-mes-compartir', flecha: icons.share(12),
-    cifra: `<b id="mcReojoMesCifra">+${n(r.cartas)} ${r.cartas === 1 ? 'carta' : 'cartas'}</b>`,
-    linea: `<span id="mcReojoMesLinea">${n(r.expansiones)} ${r.expansiones === 1 ? 'expansión nueva' : 'expansiones nuevas'}</span>`,
-  })
-  return tarjeta + `<section class="mc-vistazo mc-vistazo-mes" id="mcMes">
+  const sep = '<span class="mc-cifras-sep" aria-hidden="true">·</span>'
+  return `<section class="mc-vistazo mc-vistazo-mes mc-vistazo-linea-cifras" id="mcMes">
     <div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Tu ${escapeHtml(mesDatos.mes)}</h2><button type="button" class="link-btn ver-todo" data-mes-compartir>${icons.share(14)} Compartir</button></div>
-    <div class="mc-mes-rejilla">
-      ${ficha('mcMesCartas', `+${n(r.cartas)}`, r.cartas === 1 ? 'carta' : 'cartas')}
-      ${ficha('mcMesSets', n(r.expansiones), r.expansiones === 1 ? 'expansión nueva' : 'expansiones nuevas')}
-      ${ficha('mcMesCambios', '—', 'cambios hechos')}
+    <p class="mc-cifras-linea">
+      ${ficha('mcMesCartas', `+${n(r.cartas)}`, r.cartas === 1 ? 'carta' : 'cartas')} ${sep}
+      ${ficha('mcMesSets', n(r.expansiones), r.expansiones === 1 ? 'expansión nueva' : 'expansiones nuevas')} ${sep}
+      ${ficha('mcMesCambios', '—', 'cambios hechos')} ${sep}
       ${valorHtml(c)}
-    </div>
+    </p>
     ${r.mejor ? `<p class="mc-vistazo-linea">Tu mejor compra del mes: <b>${escapeHtml(ctx.nombreDe(r.mejor.carta))}</b>, pagaste ${escapeHtml(euros(r.mejor.pagado))} y vale ${escapeHtml(euros(r.mejor.vale))}.</p>` : r.cartas ? '' : '<p class="mc-vistazo-linea">Este mes todavía no has añadido ninguna carta.</p>'}
   </section>`
 }
@@ -855,15 +855,6 @@ function pintarValorDelMes() {
   ficha.querySelector('b').textContent = `${signo}${euros(Math.abs(c.cambio))}`
   ficha.classList.toggle('mc-gana', c.cambio > 0)
   ficha.classList.toggle('mc-pierde', c.cambio < 0)
-  // La tarjeta del móvil (1178): el valor de titular y las cartas debajo.
-  const cifra = $('mcReojoMesCifra')
-  const linea = $('mcReojoMesLinea')
-  if (cifra && mesDatos) {
-    cifra.textContent = `${signo}${euros(Math.abs(c.cambio))}`
-    cifra.className = c.cambio > 0 ? 'mc-gana' : c.cambio < 0 ? 'mc-pierde' : ''
-    const n = (x) => Number(x).toLocaleString('es-ES', { useGrouping: 'always' })
-    if (linea) linea.textContent = `+${n(mesDatos.cartas)} ${mesDatos.cartas === 1 ? 'carta' : 'cartas'} · ${n(mesDatos.expansiones)} ${mesDatos.expansiones === 1 ? 'expansión nueva' : 'expansiones nuevas'}`
-  }
 }
 
 export async function compartirMes() {
@@ -886,7 +877,7 @@ async function pintarMovidas(version) {
     if (!conPrecio.length) return
     // El hueco, en esqueleto mientras llega (748): tres filas del alto de
     // las de verdad, para que lo de debajo no salte al llegar.
-    if (!movidasHtml) sitio.innerHTML = `<div class="mc-reojo-tarjeta mc-reojo-esq" aria-hidden="true"><small>Movimientos</small><span class="skeleton"></span><span class="skeleton"></span></div><section class="mc-vistazo mc-movidas-esq" aria-hidden="true"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Movimientos</h2></div><ul class="mc-movidas">${'<li class="mc-movida"><span class="skeleton mc-movida-foto"></span><span class="skeleton mc-movida-esq"></span></li>'.repeat(3)}</ul></section>`
+    if (!movidasHtml) sitio.innerHTML = `<section class="mc-vistazo mc-movidas-esq" aria-hidden="true"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Movimientos</h2></div><div class="mc-vistazo-cartas">${'<span class="mc-vistazo-ficha"><span class="mc-vistazo-carta skeleton"></span><b class="skeleton mc-ficha-esq"></b><small class="skeleton mc-ficha-esq"></small></span>'.repeat(DE_VISTAZO)}</div></section>`
     const desde = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
     // Solo los extremos del periodo (1171): la semana entera de 150 cartas
     // pasaba de las 1.000 filas que Supabase devuelve (la 808).
@@ -897,42 +888,33 @@ async function pintarMovidas(version) {
     sitio = $('mcMovidasSitio')
     if (ctx.pestania !== 'resumen' || !sitio || version !== vistazosVersion) return
     const todas = movidas.movidasDe(conPrecio, filas, busca)
-    const { suben, bajan } = movidas.extremos(todas, 3)
+    const { suben, bajan } = movidas.extremos(todas, DE_VISTAZO)
     // Cuántas suben y cuántas bajan, para la ficha «Esta semana» (1177).
     const nSuben = todas.filter((m) => m.cambio > 0).length
     const nBajan = todas.filter((m) => m.cambio < 0).length
     semanaSubenBajan = nSuben || nBajan ? `${nSuben} ${nSuben === 1 ? 'sube' : 'suben'} · ${nBajan} ${nBajan === 1 ? 'baja' : 'bajan'}` : ''
     const semana = $('mcCarteraSemana')
     if (semana && semanaSubenBajan && semana.querySelector('b').textContent !== '—') semana.querySelector('small').textContent = semanaSubenBajan
-    // Las tres que MÁS se mueven, suban o bajen, como en la maqueta: una
-    // lista de tres filas y no dos tiras de seis fotos.
-    const tres = [...suben, ...bajan]
+    // Las que MÁS se mueven, suban o bajen, en una tira de cartas con el
+    // molde de Ranking (propuesta de noviembre): el precio de hoy, el tanto
+    // por ciento en verde o rojo y el nombre. Ocho en el PC, tres en el móvil
+    // (lo decide la rejilla, como en las otras tiras).
+    const masMovidas = [...suben, ...bajan]
       .sort((a, b) => Math.abs(b.pct ?? 0) - Math.abs(a.pct ?? 0) || Math.abs(b.cambio) - Math.abs(a.cambio))
-      .slice(0, 3)
-    if (!tres.length) { sitio.innerHTML = movidasHtml = ''; return }
-    const fila = (m) => {
+      .slice(0, DE_VISTAZO)
+    if (!masMovidas.length) { sitio.innerHTML = movidasHtml = ''; return }
+    const ficha = (m) => {
       const c = m.carta
-      const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
       const signo = m.cambio > 0 ? '+' : '−'
       const pct = m.pct === null ? `${signo}${euros(Math.abs(m.cambio))}` : `${signo}${Math.abs(Math.round(m.pct))} %`
-      const set = nombreDeSet(c.tcg_sets?.name ? c.tcg_sets : (ctx.todosLosSets || []).find((x) => x.id === c.set_id) || c.tcg_sets) || c.set_id || ''
-      return `<li><a class="mc-movida ${m.cambio > 0 ? 'sube' : 'baja'}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(`${ctx.nombreDe(c)}: ${pct} esta semana, de ${euros(m.antes)} a ${euros(m.ahora)}`)}">
-        <span class="mc-movida-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
-        <span class="mc-movida-nombre"><b>${escapeHtml(ctx.nombreDe(c))}</b><small>${escapeHtml(set)}</small></span>
-        <span class="mc-movida-precio"><b>${escapeHtml(euros(m.ahora))}</b><small>${escapeHtml(pct)}</small></span>
-      </a></li>`
+      return fichaDeTiraHtml({
+        carta: c, nombre: ctx.nombreDe(c), clase: m.cambio > 0 ? 'sube' : 'baja',
+        dato: escapeHtml(euros(m.ahora)), cambio: escapeHtml(pct),
+        etiqueta: `${ctx.nombreDe(c)}: ${pct} esta semana, de ${euros(m.antes)} a ${euros(m.ahora)}`,
+      })
     }
     // Y «Ver todas» abre MOVIMIENTOS (1171), la lista entera por periodo.
-    // La tarjeta del móvil (1178): la que más se mueve, con su foto.
-    const top = tres[0]
-    const escaneoTop = atributosDeEscaneo(cadenaDeEscaneo(top.carta))
-    const pctTop = top.pct === null ? `${top.cambio > 0 ? '+' : '−'}${euros(Math.abs(top.cambio))}` : `${top.cambio > 0 ? '+' : '−'}${Math.abs(Math.round(top.pct))} %`
-    const tarjeta = tarjetaDeReojoHtml({
-      id: 'mcReojoMovidas', titulo: 'Movimientos', accion: ' data-ir-a="movimientos"',
-      cifra: `<span class="mc-reojo-fila"><span class="mc-movida-foto">${escaneoTop ? `<img ${escaneoTop} alt="" width="245" height="342" loading="lazy" />` : ''}</span><span class="mc-reojo-dato"><b>${escapeHtml(ctx.nombreDe(top.carta))}</b><em class="${top.cambio > 0 ? 'mc-gana' : 'mc-pierde'}">${escapeHtml(pctTop)} esta semana</em></span></span>`,
-      linea: escapeHtml(semanaSubenBajan),
-    })
-    sitio.innerHTML = movidasHtml = tarjeta + vistazoHtml('Movimientos', 'movimientos', `<ul class="mc-movidas">${tres.map(fila).join('')}</ul>`)
+    sitio.innerHTML = movidasHtml = vistazoHtml('Movimientos', 'movimientos', `<div class="mc-vistazo-cartas mc-movidas-tira">${masMovidas.map(ficha).join('')}</div>`)
       .replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcMovidas">')
   } catch {
     // Sin histórico (o sin red), el hueco se va y el Panel sigue.
