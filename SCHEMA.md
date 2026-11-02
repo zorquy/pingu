@@ -41785,6 +41785,49 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1173 — Pagaste · Valen · Vas, Tus alertas y Tu mes
+
+P5, P6 y P7 de la propuesta del Panel.
+
+**Pagaste · Valen · Vas** (`balanceTiraHtml` en `panel.js`, dentro de
+`#mcValorCaja` tras la gráfica): `balanceDeCompra` sobre todas tus líneas
+(`lineasTodo`), con Pagaste (y en cuántas copias), Valen (esas) y Vas (la
+diferencia con signo y el tanto por ciento sobre lo pagado). La diapositiva
+«Lo que te costó» de Estadísticas sigue con la misma cuenta. Sin ninguna
+con lo pagado, una línea que lo dice. Y siempre que falte alguna, el botón
+`.mc-balance-falta` con `data-ir-a="anadidas" data-sin="pagado"`: el oyente
+de `[data-ir-a]` escribe `sin` en la dirección antes de `cambiarPestania`,
+y `cambiarPestania` lo borra para cualquier pestaña que no sea Añadidas.
+
+**Tus alertas** (`pintarAlertas`, con `vistazosVersion` como las movidas):
+`datos.alertasActivas(uid)` (`user_price_alerts` con `activo`, 50 como
+mucho; sin la migración, vacío), las cartas con `cartasPorIds` por mercado
+(un aviso puesto desde /carta puede ser de una carta que no tienes) y el
+precio de hoy con `preciosGuardados` → `valorDe(precioDeFila(fila),
+idioma)`. `ordenarAlertas(alertas, precioDe)` calcula `falta` (baja: hoy −
+umbral; sube: umbral − hoy), `cerca` (a menos del 10 % del umbral, mínimo
+0,50 €) y ordena por lo que falta, las sin precio al final. Filas
+`a.mc-movida.mc-alerta` (abren el pop-up por `engancharFicha` del Panel),
+las cinco primeras y el resto tras «Ver las N». En el PC va en la segunda
+columna (`#mcAlertasSitio`, `grid-row: 2 / span 2`), bajo las movidas. En
+Movimientos cada fila lleva `button.mc-movida-campana[data-alerta-de]`
+(fuera del enlace) que llama a `abrirAviso` con el precio de hoy.
+
+**Tu mes** (`vistazoDelMes`, después de Cambios): `resumenDelMes(lineas,
+{ ahora, busca, valorDe, cambios })` en `js/mi-coleccion/mes.js` (puro):
+`cartas` (copias de las líneas con `created_at` del mes), `expansiones`
+(sets cuya primera línea es del mes), `cambios` (filas de
+`trade_confirmations` del mes con los dos `hecho_*_at`, o null si no se
+han leído) y `mejor` (la compra del mes con más diferencia entre lo que vale
+una copia y lo pagado). Los cambios llegan después (`pintarCambiosDelMes`,
+con `ultimosHechos` de cambios-hechos.js) y el valor cuando llega la gráfica
+(`pintarValorDelMes`, desde `pintarCambioDelMes`): hasta entonces las fichas
+dicen «—». «Compartir» (`[data-mes-compartir]`, oído en `#mcPanelResumen`)
+abre `js/mes-imagen.js` por import: `pintarMes` pinta el marco (1156) con
+`chapa: 'Mi colección'`, el título `Mi *mes* en PokeDoc`, la mejor compra de
+entradilla y las fichas (`fichasDelMes`) en la caja; `textoDelMes` es lo que
+se pega.
+
 ## Tanda 1172 — Añadidas y Estadísticas como vistas; Expansiones a las empezadas
 
 P3 y P4 de la propuesta del Panel, por el mismo camino que la 1171 (las dos

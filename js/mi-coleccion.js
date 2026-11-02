@@ -5313,6 +5313,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
   // volver abriría una expansión que no habías pedido.
   if (nueva !== 'album') url.searchParams.delete('set')
   if (nueva !== 'pokedex') url.searchParams.delete('dex')
+  if (nueva !== 'anadidas') url.searchParams.delete('sin')
   // CAMBIAR DE PESTAÑA NO DEJA RASTRO (856; antes, desde la 468, era un
   // paso). PINGU: «si estoy abriendo muchas cosas y cambiando entre las
   // pestañas y le voy dando para atrás, va a la pestaña anterior y no me
@@ -6153,6 +6154,8 @@ function enganchar() {
   // no se repinta: los vistazos de dentro sí, y uno por botón habría que
   // volver a colgarlo cada vez.
   $('mcPanelResumen')?.addEventListener('click', (e) => {
+    // «Compartir» de Tu mes (1173): la imagen con el marco de redes.
+    if (e.target.closest('[data-mes-compartir]')) return void panel().then((m) => m.compartirMes())
     const ir = e.target.closest('[data-ir-a]')
     if (ir) {
       // «Ver todas» de Expansiones abre LAS EMPEZADAS (1172, P4; antes,
@@ -6160,6 +6163,12 @@ function enganchar() {
       // empezadas con su progreso, y eso es lo que promete. La estantería
       // entera ya está en el menú.
       if (ir.dataset.irA === 'album' && queSets !== 'empezadas') ponerQueSets?.('empezadas')
+      // «N cartas sin apuntar lo que pagaste» (1173) abre Añadidas filtradas.
+      if (ir.dataset.sin) {
+        const u = new URL(location.href)
+        u.searchParams.set('sin', ir.dataset.sin)
+        history.replaceState(null, '', u)
+      }
       return cambiarPestania(ir.dataset.irA)
     }
     // Y una expansión del vistazo abre esa expansión, no la estantería: es

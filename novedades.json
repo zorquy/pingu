@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-02",
       "tipo": "nuevo",
+      "texto": "El Panel de Mi colección dice ahora lo que pagaste, lo que vale y cómo vas, debajo de la gráfica; enseña tus alertas de precio con lo que les falta para saltar; y resume tu mes (cartas, expansiones nuevas, cambios y valor) con una imagen para compartir.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-02",
+      "tipo": "nuevo",
       "texto": "En el Panel de Mi colección, «Últimas añadidas → Ver todas» abre tus cartas por el día en que las metiste, con lo que pagaste en cada tramo y un campo para apuntarlo donde falte; y «Estadísticas» tiene su propia página, con el reparto por idioma y por era.",
       "enlace": "/mi-coleccion?ver=anadidas"
     },

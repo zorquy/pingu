@@ -38,6 +38,8 @@ import { euros, valorDeLinea, idiomaDe } from '../cardmarket.js'
 import { banderaHtml } from '../precio-vista.js'
 import { tramoDe } from '../avisos-grupos.js'
 import { showToast } from '../toast.js'
+import { icons } from '../icons.js'
+import { abrirAviso } from '../avisos-precio.js'
 import * as datos from './datos.js'
 import { movidasDe } from './movidas.js'
 import { migasHtml } from './migas.js'
@@ -156,11 +158,15 @@ export function filaDeMovidaHtml(m, { nombre, larga = false }) {
   // estrecho se esconde y el nombre no se queda sin sitio.
   const detalle = larga ? `${escapeHtml(`${signo}${euros(Math.abs(m.cambio))}${m.pct === null ? '' : ` · ${signo}${pctTxt(m.pct)}`}`)}<span class="mc-movida-antes"> · antes ${escapeHtml(euros(m.antes))}</span>` : escapeHtml(pct)
   const copias = larga && m.copias ? ` · ${m.copias === 1 ? '1 copia' : `${m.copias} copias`}` : ''
-  return `<li><a class="mc-movida ${m.cambio > 0 ? 'sube' : 'baja'}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(`${nombre}: ${pct} en el periodo, de ${euros(m.antes)} a ${euros(m.ahora)}`)}">
+  // En la lista larga, la campanita (1173, P6): una alerta de precio desde
+  // aquí, que lo que se mueve es justo lo que se quiere vigilar. Fuera del
+  // enlace: un botón no puede ir dentro de otro.
+  const campana = larga ? `<button type="button" class="mc-movida-campana" data-alerta-de="${escapeHtml(c.id)}" data-market="${escapeHtml(c.market || 'WEST')}" data-idioma="${escapeHtml(m.idioma || 'es')}" data-precio="${m.ahora}" aria-label="${escapeHtml(`Avísame de ${nombre}`)}" title="Avísame">${icons.bell(16)}</button>` : ''
+  return `<li${larga ? ' class="mc-anadida"' : ''}><a class="mc-movida ${m.cambio > 0 ? 'sube' : 'baja'}" href="${escapeHtml(rutaDeCarta(c))}" data-carta="${escapeHtml(c.id)}" aria-label="${escapeHtml(`${nombre}: ${pct} en el periodo, de ${euros(m.antes)} a ${euros(m.ahora)}`)}">
     <span class="mc-movida-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
     <span class="mc-movida-nombre"><b>${escapeHtml(nombre)}</b><small>${escapeHtml(setDe(c))}${larga ? ` ${banderaHtml(m.idioma || 'es')}` : ''}${escapeHtml(copias)}</small></span>
     <span class="mc-movida-precio"><b>${escapeHtml(euros(m.ahora))}</b><small>${detalle}</small></span>
-  </a></li>`
+  </a>${campana}</li>`
 }
 
 // La cabecera de una vista del Panel: la miga de volver, el título y los
@@ -310,7 +316,9 @@ async function pintarMovimientos() {
       if (f) { filtro = f.dataset.filtro; cuantas = DE_UNA_VEZ; pintarListaDeMovidas(); return }
       const o = e.target.closest('[data-orden]')
       if (o) { orden = o.dataset.orden; pintarListaDeMovidas(); return }
-      if (e.target.closest('[data-mas]')) { cuantas += DE_UNA_VEZ; pintarListaDeMovidas() }
+      if (e.target.closest('[data-mas]')) { cuantas += DE_UNA_VEZ; pintarListaDeMovidas(); return }
+      const campana = e.target.closest('[data-alerta-de]')
+      if (campana) abrirAviso({ cardId: campana.dataset.alertaDe, market: campana.dataset.market, idioma: campana.dataset.idioma, precio: Number(campana.dataset.precio) || null })
     })
   } else {
     panel.querySelector('.mc-vista-periodos').outerHTML = periodos

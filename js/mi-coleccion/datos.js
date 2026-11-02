@@ -559,6 +559,17 @@ export async function historicoDeExtremos(ids, desde, { hoy = Date.now() } = {})
   return [...primeros, ...primeraDe.values(), ...ultimos]
 }
 
+// Tus avisos de precio activos (1173, el bloque «Tus alertas» del Panel).
+// Sin la migración de la 665, vacío y sin ruido.
+export async function alertasActivas(userId, limite = 50) {
+  const { data, error } = await supabase.from('user_price_alerts').select('id,card_id,market,idioma,tipo,umbral,created_at').eq('user_id', userId).eq('activo', true).order('created_at', { ascending: false }).limit(limite)
+  if (error) {
+    if (traducir(error).sinMigracion) return []
+    throw traducir(error)
+  }
+  return data || []
+}
+
 // Uno en el momento, a TCGdex. Con caché por visita: la ficha y el
 // formulario de añadir preguntan por la misma carta.
 const enVivo = new Map()

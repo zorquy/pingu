@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (417) — PINGU-Claude (1173 — Pagaste · Valen · Vas, Tus alertas y Tu mes)
+
+**Hecho** (P5, P6 y P7 de la propuesta del Panel; con esto las tres tandas
+que PINGU aprobó con «dale» están subidas):
+- **Pagaste · Valen · Vas** (`balanceTiraHtml`, panel.js) debajo de la
+  gráfica de la cartera: `balanceDeCompra` (la regla de la 428, solo sobre
+  las copias con lo pagado y diciendo cuántas), el tanto por ciento, y «N
+  cartas sin apuntar lo que pagaste →», que abre Añadidas con `?sin=pagado`
+  (el oyente de `[data-ir-a]` escribe `data-sin` en la dirección y
+  `cambiarPestania` lo quita al salir de Añadidas).
+- **Tus alertas** (`pintarAlertas`, en `#mcAlertasSitio`, segunda columna
+  del PC debajo de las movidas): tus avisos de precio activos
+  (`datos.alertasActivas`), con las cartas por id (`cartasPorIds`, también
+  las que no tienes) y el precio de hoy de `preciosGuardados`;
+  `ordenarAlertas` pone primero las más cerca de saltar («a 3,50 €», con la
+  campana y en ámbar si está a menos del 10 %). Cinco y «Ver las N». Y en
+  cada fila de Movimientos, la campanita (`abrirAviso` con el precio de hoy).
+- **Tu mes** (`vistazoDelMes`, antes de Compartir/importar): cartas y
+  expansiones nuevas del mes (`js/mi-coleccion/mes.js`, puro), cambios
+  hechos (`ultimosHechos`, llega después) y el cambio de valor del mes (de la
+  gráfica, `pintarValorDelMes`), más «Tu mejor compra del mes». «Compartir»
+  saca la imagen con el marco de redes (`js/mes-imagen.js`, por import).
+
+**Ficheros**: js/mi-coleccion/panel.js, js/mi-coleccion/datos.js,
+js/mi-coleccion/mes.js (nuevo), js/mes-imagen.js (nuevo),
+js/mi-coleccion/movimientos.js, js/mi-coleccion.js, css/mi-coleccion.css,
+CLAUDE.md, SCHEMA.md, novedades.json.
+Pruebas: test-tanda-1173-pantalla.mjs nueva; 1155, 1171, 1172, 925, 410, 1040
+y 1023 verdes.
+
+**Pendiente**: la propuesta visual y de orden del Panel que pidió PINGU
+(«cuando acabes con las tandas»); y la ronda 10.
+
 ## 2026-11-02 (416) — PINGU-Claude (1172 — Añadidas y Estadísticas como vistas; Expansiones a las empezadas)
 
 **Hecho** (P3 y P4 de la propuesta del Panel):

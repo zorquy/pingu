@@ -11,8 +11,9 @@ import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { rarezaDeCarta } from '../carta-traducciones.js'
 import { padreDeColeccion, registrarEpisodios, nombreDeSet, eraDeSet } from '../catalogo-series.js'
-import { euros, valorDeLinea, idiomaDe } from '../cardmarket.js'
+import { euros, valorDeLinea, idiomaDe, precioDeFila, valorDe } from '../cardmarket.js'
 import { cabeceraDeVistaHtml, engancharVolver } from './movimientos.js'
+import { resumenDelMes, nombreDelMes } from './mes.js'
 import { icons, icon } from '../icons.js'
 import { botonOcultarHtml } from './valor-oculto.js'
 import * as datos from './datos.js'
@@ -84,9 +85,10 @@ export function pintarResumenPanel() {
         <div class="skeleton mc-cartera-esq-lienzo"></div>
         <div class="mc-valor-rangos" aria-hidden="true">${'<span class="skeleton mc-cartera-esq-rango"></span>'.repeat(5)}</div>
       </div>
+      ${ctx.esMia ? balanceTiraHtml() : ''}
     </section>
     ${vistazoDeValiosas(valiosasTira)}
-    ${ctx.esMia ? `<div id="mcMovidasSitio">${movidasHtml}</div>` : ''}
+    ${ctx.esMia ? `<div id="mcMovidasSitio">${movidasHtml}</div><div id="mcAlertasSitio"></div>` : ''}
 `
   if (ctx.esMia && ctx.sesion) void ctx.pintarRepartoProductos()
   // La cifra cuenta desde la de la última vez (783, MV2).
@@ -278,6 +280,38 @@ function diapoDelBalance() {
         ? `<p class="subtext">${b.sinValorar} ${b.sinValorar === 1 ? 'carta más tiene' : 'cartas más tienen'} precio de compra pero todavía no de mercado, así que ${b.sinValorar === 1 ? 'no entra' : 'no entran'} en la cuenta.</p>`
         : ''
     }`)
+}
+
+// PAGASTE · VALEN · VAS, DEBAJO DE LA GRÁFICA (tanda 1173, P5). «Lo que te
+// costó» (428) es lo más interesante del Panel y vivía plegado en
+// Estadísticas, donde nadie lo abría. Aquí, como una cartera: cuánto vale,
+// cuánto ha cambiado (la gráfica) y cuánto te ha costado. La misma regla de
+// la 428: solo sobre las cartas con lo pagado apuntado, y se dice cuántas.
+// Y lo que falta para que la cuenta sea entera —las que no lo tienen— con
+// su salida: Añadidas filtradas (1172), con el campo a mano.
+function balanceTiraHtml() {
+  const ls = ctx.lineasTodo.length ? ctx.lineasTodo : ctx.lineas
+  if (!ls.length) return ''
+  const b = balanceDeCompra(ls, (l) => valorDeLinea(l, ctx.precioDe(l)))
+  const sinApuntar = ls.filter((l) => !(Number(l.precio_compra) > 0)).length
+  const n = (x) => Number(x).toLocaleString('es-ES', { useGrouping: 'always' })
+  const falta = sinApuntar
+    ? `<button type="button" class="mc-balance-falta" data-ir-a="anadidas" data-sin="pagado">${n(sinApuntar)} ${sinApuntar === 1 ? 'carta sin apuntar lo que pagaste' : 'cartas sin apuntar lo que pagaste'} <span class="ver-todo-flecha" aria-hidden="true">→</span></button>`
+    : ''
+  if (!b.hayBalance) {
+    return `<div class="mc-balance" id="mcBalance"><p class="mc-balance-vacio">Apunta lo que pagaste por tus cartas y aquí verás si vas ganando.</p>${falta}</div>`
+  }
+  const dif = Math.round(b.diferencia * 100) / 100
+  const signo = dif === 0 ? '' : dif > 0 ? '+' : '−'
+  const pct = b.pagado > 0 ? Math.round((dif / b.pagado) * 100) : null
+  return `<div class="mc-balance" id="mcBalance">
+    <dl class="mc-balance-tira">
+      <div><dt>Pagaste</dt><dd>${escapeHtml(euros(b.pagado))}</dd><small>en ${n(b.copias)} ${b.copias === 1 ? 'carta' : 'cartas'}</small></div>
+      <div><dt>Valen</dt><dd>${escapeHtml(euros(b.valor))}</dd><small>${b.copias === 1 ? 'esa' : 'esas'} ${n(b.copias)}</small></div>
+      <div><dt>Vas</dt><dd class="${dif > 0 ? 'mc-gana' : dif < 0 ? 'mc-pierde' : ''}">${signo}${escapeHtml(euros(Math.abs(dif)))}</dd><small>${pct === null ? '' : `${signo}${Math.abs(pct)} %`}</small></div>
+    </dl>
+    ${falta}
+  </div>`
 }
 
 // `diapoHtml` y `tiraHtml` se mudaron a `js/mi-coleccion/diapos.js` en la
@@ -528,6 +562,8 @@ export async function pintarVistazos() {
   // LAS QUE MÁS SE MUEVEN (663), por su cuenta y en su hueco de debajo de
   // las fichas (748): es una consulta al histórico y el Panel no la espera.
   void pintarMovidas(version)
+  // TUS ALERTAS (1173, P6), en su hueco de debajo de las movidas.
+  void pintarAlertas(version)
   // El hueco de las expansiones, en esqueleto hasta que lleguen (675).
   caja.insertAdjacentHTML('beforeend', `<section class="mc-vistazo" id="mcVistazoSetsEsq"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Expansiones</h2></div>${ctx.esqueletoDeSets(2)}</section>`)
   // Los sets y su valor de TODOS los catálogos (672), y el registro de qué
@@ -543,6 +579,9 @@ export async function pintarVistazos() {
   // decir: cuántas das, cuántas buscas, y un sitio por donde entrar. Sin
   // esto, una pantalla que existe deja de tener puerta.
   caja.insertAdjacentHTML('beforeend', vistazoDeCambios())
+  // TU MES (1173, P7): lo que has hecho este mes, con Compartir.
+  caja.insertAdjacentHTML('beforeend', vistazoDelMes())
+  void pintarCambiosDelMes(version)
   // MI COLECCIÓN EN UNA IMAGEN (571), IMPORTAR Y EXPORTAR (580): desde la
   // 651 son tres losetas en una tarjeta (`vistazoDeAcciones`). Importar
   // sale siempre: es justo quien NO tiene cartas aquí quien lo necesita.
@@ -572,6 +611,131 @@ const TOPE_MOVIDAS = 600
 // nuevo nacía vacío — «Las que más se mueven» se perdía casi siempre, sin
 // error. Se repone al repintar, y lo que llega busca el hueco de AHORA.
 let movidasHtml = ''
+// ── TUS ALERTAS (1173, P6) ──
+//
+// Desde la 665 se pide «avísame si baja de X» en la ficha de una carta y
+// después no se ve en ningún sitio hasta que salta. Aquí, las activas: la
+// carta, el umbral y a cuánto está HOY, las que están cerca de saltar
+// primero. Las cartas que no tienes (un aviso puesto desde /carta) se piden
+// por id, y el precio de hoy de todas sale de `tcg_card_prices`.
+export function ordenarAlertas(alertas, precioDe) {
+  return (alertas || []).map((a) => {
+    const hoy = precioDe(a)
+    const umbral = Number(a.umbral)
+    const falta = hoy === null ? null : a.tipo === 'baja' ? hoy - umbral : umbral - hoy
+    return { ...a, hoy, umbral, falta, cerca: falta !== null && falta <= Math.max(0.5, umbral * 0.1) }
+  }).sort((x, y) => (x.falta === null) - (y.falta === null) || (x.falta ?? 0) - (y.falta ?? 0))
+}
+
+const DE_ALERTAS = 5
+async function pintarAlertas(version) {
+  const sitio = $('mcAlertasSitio')
+  if (!ctx.esMia || !ctx.sesion?.user?.id || !sitio) return
+  try {
+    const alertas = await datos.alertasActivas(ctx.sesion.user.id)
+    if (ctx.pestania !== 'resumen' || version !== vistazosVersion) return
+    if (!alertas.length) { sitio.innerHTML = ''; return }
+    const ids = [...new Set(alertas.map((a) => a.card_id))]
+    const [precios, ...mapas] = await Promise.all([
+      datos.preciosGuardados(ids),
+      ...[...new Set(alertas.map((a) => a.market || 'WEST'))].map((m) => datos.cartasPorIds(alertas.filter((a) => (a.market || 'WEST') === m).map((a) => a.card_id), m).catch(() => new Map())),
+    ])
+    if (ctx.pestania !== 'resumen' || version !== vistazosVersion) return
+    const cartas = new Map()
+    for (const mapa of mapas) for (const [k, v] of mapa) cartas.set(k, v)
+    const lista = ordenarAlertas(alertas, (a) => {
+      const fila = precios.get(a.card_id)
+      const v = fila ? valorDe(precioDeFila(fila), a.idioma || 'es') : null
+      return v > 0 ? v : null
+    })
+    const fila = (a) => {
+      const c = cartas.get(a.card_id)
+      const escaneo = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : ''
+      const nombre = c ? ctx.nombreDe(c) : 'Una carta'
+      const que = `si ${a.tipo === 'baja' ? 'baja de' : 'sube de'} ${euros(a.umbral)} · ${a.hoy === null ? 'hoy sin precio' : `hoy ${euros(a.hoy)}`}`
+      const lejos = a.falta === null ? '' : a.falta <= 0 ? 'ya cumple' : `a ${euros(a.falta)}`
+      return `<li><a class="mc-movida mc-alerta${a.cerca ? ' cerca' : ''}" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(`${nombre}: ${que}${lejos ? `, ${lejos} de avisar` : ''}`)}">
+        <span class="mc-movida-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
+        <span class="mc-movida-nombre"><b>${escapeHtml(nombre)}</b><small>${escapeHtml(que)}</small></span>
+        <span class="mc-movida-precio"><small>${a.cerca ? icons.bell(14) : ''}${escapeHtml(lejos)}</small></span>
+      </a></li>`
+    }
+    const mas = lista.length - DE_ALERTAS
+    sitio.innerHTML = `<section class="mc-vistazo" id="mcAlertas">
+      <div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Tus alertas</h2>${mas > 0 ? `<button type="button" class="link-btn ver-todo" data-alertas-mas>Ver las ${lista.length} <span class="ver-todo-flecha" aria-hidden="true">→</span></button>` : ''}</div>
+      <ul class="mc-movidas mc-alertas">${lista.slice(0, DE_ALERTAS).map(fila).join('')}</ul>
+      <ul class="mc-movidas mc-alertas hidden" id="mcAlertasResto">${lista.slice(DE_ALERTAS).map(fila).join('')}</ul>
+    </section>`
+    sitio.querySelector('[data-alertas-mas]')?.addEventListener('click', (e) => { $('mcAlertasResto')?.classList.remove('hidden'); e.currentTarget.remove() }, { once: true })
+  } catch {
+    const s2 = $('mcAlertasSitio')
+    if (s2) s2.innerHTML = ''
+  }
+}
+
+// ── TU MES (1173, P7) ──
+let mesDatos = null
+function vistazoDelMes() {
+  const [ls, , busca] = ctx.pTodo()
+  const r = resumenDelMes(ls, { busca, valorDe: (l) => valorDeLinea(l, ctx.precioDe(l)) })
+  const c = cambioDelMes()
+  mesDatos = { ...r, mes: nombreDelMes(), valor: c ? c.cambio : undefined, mejor: r.mejor ? { nombre: ctx.nombreDe(r.mejor.carta), pagado: r.mejor.pagado, vale: r.mejor.vale } : null }
+  const n = (x) => Number(x).toLocaleString('es-ES', { useGrouping: 'always' })
+  const ficha = (id, cifra, texto, clase = '') => `<div class="mc-mes-ficha${clase ? ` ${clase}` : ''}" id="${id}"><b>${cifra}</b><span>${escapeHtml(texto)}</span></div>`
+  const valorHtml = (cc) => {
+    if (!cc) return ficha('mcMesValor', '—', 'de valor este mes')
+    const signo = cc.cambio > 0 ? '+' : cc.cambio < 0 ? '−' : ''
+    return ficha('mcMesValor', `${signo}${escapeHtml(euros(Math.abs(cc.cambio)))}`, 'de valor este mes', cc.cambio > 0 ? 'mc-gana' : cc.cambio < 0 ? 'mc-pierde' : '')
+  }
+  return `<section class="mc-vistazo mc-vistazo-mes" id="mcMes">
+    <div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Tu ${escapeHtml(mesDatos.mes)}</h2><button type="button" class="link-btn ver-todo" data-mes-compartir>${icons.share(14)} Compartir</button></div>
+    <div class="mc-mes-rejilla">
+      ${ficha('mcMesCartas', `+${n(r.cartas)}`, r.cartas === 1 ? 'carta' : 'cartas')}
+      ${ficha('mcMesSets', n(r.expansiones), r.expansiones === 1 ? 'expansión nueva' : 'expansiones nuevas')}
+      ${ficha('mcMesCambios', '—', 'cambios hechos')}
+      ${valorHtml(c)}
+    </div>
+    ${r.mejor ? `<p class="mc-vistazo-linea">Tu mejor compra del mes: <b>${escapeHtml(ctx.nombreDe(r.mejor.carta))}</b>, pagaste ${escapeHtml(euros(r.mejor.pagado))} y vale ${escapeHtml(euros(r.mejor.vale))}.</p>` : r.cartas ? '' : '<p class="mc-vistazo-linea">Este mes todavía no has añadido ninguna carta.</p>'}
+  </section>`
+}
+
+// Los cambios hechos son una consulta: llegan después a su ficha.
+async function pintarCambiosDelMes(version) {
+  if (!ctx.sesion?.user?.id) return
+  try {
+    const { ultimosHechos } = await import('../cambios-hechos.js')
+    const filas = await ultimosHechos(ctx.sesion.user.id, 50)
+    if (version !== vistazosVersion) return
+    const ficha = $('mcMesCambios')
+    if (!ficha || filas === null) return
+    const [ls, , busca] = ctx.pTodo()
+    const r = resumenDelMes(ls, { busca, cambios: filas })
+    if (mesDatos) mesDatos.cambios = r.cambios
+    ficha.querySelector('b').textContent = String(r.cambios)
+    ficha.querySelector('span').textContent = r.cambios === 1 ? 'cambio hecho' : 'cambios hechos'
+  } catch {
+    // Sin la tabla, la ficha se queda en «—».
+  }
+}
+
+// La ficha del valor se rellena cuando llega la gráfica (pintarCambioDelMes).
+function pintarValorDelMes() {
+  const ficha = $('mcMesValor')
+  const c = cambioDelMes()
+  if (!ficha || !c) return
+  if (mesDatos) mesDatos.valor = c.cambio
+  const signo = c.cambio > 0 ? '+' : c.cambio < 0 ? '−' : ''
+  ficha.querySelector('b').textContent = `${signo}${euros(Math.abs(c.cambio))}`
+  ficha.classList.toggle('mc-gana', c.cambio > 0)
+  ficha.classList.toggle('mc-pierde', c.cambio < 0)
+}
+
+export async function compartirMes() {
+  if (!mesDatos) return
+  const m = await import('../mes-imagen.js')
+  return m.compartirMes(mesDatos)
+}
+
 async function pintarMovidas(version) {
   if (!ctx.esMia || !$('mcMovidasSitio')) return
   let sitio = $('mcMovidasSitio')
@@ -673,6 +837,7 @@ export function pintarCambioDelMes() {
   sitio.classList.toggle('hidden', !c)
   sitio.classList.toggle('sube', !!c && c.cambio > 0)
   sitio.classList.toggle('baja', !!c && c.cambio < 0)
+  pintarValorDelMes()
 }
 
 export async function pintarValorEnElTiempo() {

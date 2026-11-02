@@ -7147,6 +7147,132 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   outline: none;
   box-shadow: var(--shadow-ring);
 }
+/* PAGASTE · VALEN · VAS (1173), debajo de la gráfica de la cartera. */
+.mc-balance {
+  margin-top: var(--e-md);
+}
+.mc-balance-tira {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e-sm);
+  margin: 0;
+}
+.mc-balance-tira > div {
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  min-width: 0;
+}
+.mc-balance-tira dt {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.mc-balance-tira dd {
+  margin: 2px 0 0;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mc-balance-tira dd.mc-gana { color: var(--success); }
+.mc-balance-tira dd.mc-pierde { color: var(--danger); }
+.mc-balance-tira small {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+}
+.mc-balance-vacio {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+.mc-balance-falta {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+  margin-top: var(--e-xs);
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--warning);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (max-width: 480px) {
+  .mc-balance-tira dd { font-size: var(--t-md); }
+}
+/* TUS ALERTAS (1173): las filas de las movidas, con «a X €» a la derecha. */
+.mc-alerta .mc-movida-precio small {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  white-space: nowrap;
+}
+.mc-alerta .mc-movida-precio {
+  flex: 0 0 auto;
+}
+.mc-alerta.cerca .mc-movida-precio small {
+  color: var(--warning);
+}
+.mc-movida-campana {
+  flex: 0 0 auto;
+  display: inline-grid;
+  place-items: center;
+  width: 44px;
+  min-height: 44px;
+  margin-right: var(--e-xs);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: none;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+.mc-movida-campana:hover {
+  background: var(--bg);
+  color: var(--navy);
+}
+/* TU MES (1173): cuatro fichas y la mejor compra. */
+.mc-mes-rejilla {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--e-sm);
+}
+.mc-mes-ficha {
+  display: grid;
+  gap: 2px;
+  padding: var(--e-md) var(--e-sm);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  text-align: center;
+}
+.mc-mes-ficha b {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mc-mes-ficha.mc-gana b { color: var(--success); }
+.mc-mes-ficha.mc-pierde b { color: var(--danger); }
+.mc-mes-ficha span {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+@media (max-width: 600px) {
+  .mc-mes-rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
 /* La vista Estadísticas: lo de antes, sin plegar. */
 #mcPanelEstadisticas .mc-estadisticas {
   margin-top: 0;
@@ -7161,8 +7287,11 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
     column-gap: var(--e-xl);
     align-items: start;
   }
-  #mcResumenPanel:has(> #mcMovidasSitio > section) > :not(#mcMovidasSitio) { grid-column: 1; }
-  #mcResumenPanel > #mcMovidasSitio { grid-column: 2; grid-row: 1 / span 2; }
+  #mcResumenPanel:has(> #mcMovidasSitio > section) > :not(#mcMovidasSitio, #mcAlertasSitio) { grid-column: 1; }
+  #mcResumenPanel > #mcMovidasSitio { grid-column: 2; grid-row: 1; }
+  /* Y las alertas (1173) debajo, en la misma columna, a la altura de «Las
+     que más valen». */
+  #mcResumenPanel > #mcAlertasSitio { grid-column: 2; grid-row: 2 / span 2; }
 }
 /* En el móvil, la línea a sangre: de borde a borde, como en la maqueta
    (24 px es el relleno lateral de `.container`). */

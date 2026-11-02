@@ -835,6 +835,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `?ver=estadisticas` (`pintarEstadisticas` en panel.js, con idioma y era;
   nada se despliega en el Panel) y «Expansiones» abre la estantería con
   «Solo las empezadas». Una caja nueva de estadísticas va en esa vista.
+  Y el Panel lleva (1173) la tira Pagaste · Valen · Vas bajo la gráfica
+  (`balanceTiraHtml`, la cuenta de la 428), «Tus alertas»
+  (`datos.alertasActivas` + `ordenarAlertas`, en la segunda columna del PC)
+  y «Tu mes» (`js/mi-coleccion/mes.js`, puro; la imagen en
+  `js/mes-imagen.js` con el marco de redes). Una cifra nueva del mes va en
+  `resumenDelMes` y en `fichasDelMes`, no en dos sitios.
 - **Un bloque de pantalla que no usa todo el mundo va en su módulo y
   entra por `import()`** (tanda 895, R4): el Panel y los deseos de Mi
   colección (`js/mi-coleccion/panel.js`, `deseos.js`) y el editor del
