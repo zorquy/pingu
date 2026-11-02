@@ -106,7 +106,8 @@ console.log('\n── 3. El Panel enseña lo último que añadiste, de donde sea
   // La más reciente es la JAPONESA (`l4`, de ayer). Con el catálogo español
   // puesto, el Panel la tenía que estar escondiendo: era el caso de PINGU.
   const cartasDelVistazo = await page.locator('.mc-vistazo-cartas a').evaluateAll((as) => as.map((a) => a.getAttribute('aria-label')))
-  check('la japonesa de ayer sale en «Últimas añadidas»', cartasDelVistazo.includes('フシギダネ'), JSON.stringify(cartasDelVistazo))
+  // Desde la 1175 el aria-label lleva también cuándo la metiste («…, ayer»).
+  check('la japonesa de ayer sale en «Últimas añadidas»', cartasDelVistazo.some((x) => /^フシギダネ/.test(x || '')), JSON.stringify(cartasDelVistazo))
   check('  …y la occidental también', cartasDelVistazo.some((x) => /Pikachu|Charizard/.test(x || '')), JSON.stringify(cartasDelVistazo))
 }
 

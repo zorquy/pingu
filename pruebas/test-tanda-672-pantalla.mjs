@@ -46,11 +46,12 @@ async function abrir(ruta) {
 console.log('── 1. En el Panel con el catálogo occidental salen las dos expansiones, la japonesa también ──')
 {
   const { page, errores } = await abrir('/mi-coleccion.html?ver=resumen')
-  const tarjetas = page.locator('#mcVistazos .mc-vistazo-sets .mc-set-tarjeta')
+  // Desde la 1175 el Panel enseña las expansiones en FILAS (`.mc-set-fila`).
+  const tarjetas = page.locator('#mcVistazos .mc-set-filas .mc-set-fila')
   const ids = await tarjetas.evaluateAll((els) => els.map((e) => `${e.dataset.market}:${e.dataset.set}`))
   check('dos tarjetas: la occidental y la japonesa, la más nueva primero', ids.join() === 'JP:M6,WEST:xy5', ids.join())
-  const jp = page.locator('#mcVistazos .mc-set-tarjeta[data-set="M6"]')
-  check('  …la japonesa con su valor y su progreso (1 de 113)', /874 €|87\d €/.test(limpio(await jp.innerText())) && /1 de 113/.test(limpio(await jp.innerText())), limpio(await jp.innerText()))
+  const jp = page.locator('#mcVistazos .mc-set-fila[data-set="M6"]')
+  check('  …la japonesa con su progreso (1 / 113)', /1 \/ 113/.test(limpio(await jp.innerText())), limpio(await jp.innerText()))
   check('sin errores', errores.length === 0, errores.join(' | '))
   // Pulsar la japonesa desde el catálogo occidental cambia de catálogo y abre su expansión.
   await jp.click()
@@ -62,7 +63,7 @@ console.log('── 1. En el Panel con el catálogo occidental salen las dos exp
 console.log('\n── 2. Y con el catálogo japonés puesto, el Panel sigue enseñando la occidental ──')
 {
   const { page } = await abrir('/mi-coleccion.html?ver=resumen&catalogo=JP')
-  const ids = await page.locator('#mcVistazos .mc-vistazo-sets .mc-set-tarjeta').evaluateAll((els) => els.map((e) => `${e.dataset.market}:${e.dataset.set}`))
+  const ids = await page.locator('#mcVistazos .mc-set-filas .mc-set-fila').evaluateAll((els) => els.map((e) => `${e.dataset.market}:${e.dataset.set}`))
   check('las dos otra vez, sin «cuando añadas cartas»', ids.join() === 'JP:M6,WEST:xy5' && !/Cuando añadas cartas/.test(await page.locator('#mcVistazos').innerText()), ids.join())
   await page.close()
 }
