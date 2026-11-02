@@ -3,9 +3,11 @@
 //        tres más jugados, importar una lista, buscar cartas) y sin los iconos
 //        que no hacen nada con 0 cartas (probar, compartir, deshacer sin nada).
 //        Con la primera carta, todo como siempre.
-//   E3 · El Panel de Mi colección en dos columnas desde 1.100 px: el valor y
-//        «Las que más valen» a la izquierda, «Las que más se mueven» a la
-//        derecha. En el móvil, como siempre.
+//   E3 · El Panel de Mi colección en dos columnas desde 1.100 px (1155 →
+//        1174). Desde la 1177 es una pila de FILAS: la cartera, la fila de
+//        reojo (Movimientos, Tus alertas, Cambios, Tu mes: dos y dos, o
+//        cuatro desde 1.800 px) y las tiras a lo ancho. En el móvil, una
+//        columna como siempre.
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
 let fails = 0
@@ -103,14 +105,20 @@ for (const [ancho, dos] of [[1366, true], [1024, false]]) {
   await page.waitForTimeout(5000)
   const m = await page.evaluate(() => {
     const r = (s) => document.querySelector(s)?.getBoundingClientRect()
-    const v = r('#mcValorCaja'), mv = r('#mcMovidas'), va = r('#mcValiosas')
-    return { v: v && [Math.round(v.left), Math.round(v.top), Math.round(v.right)], mv: mv && [Math.round(mv.left), Math.round(mv.top), Math.round(mv.width)], va: va && [Math.round(va.left), Math.round(va.top)], ancho: document.documentElement.scrollWidth <= innerWidth }
+    const v = r('#mcValorCaja'), mv = r(innerWidth >= 1100 ? '#mcMovidas' : '#mcReojoMovidas'), va = r('#mcValiosas'), al = r('#mcAlertas'), ca = r('#mcCambios'), me = r('#mcMes'), lado = r('.mc-cartera-lado')
+    const caja = (e) => e && [Math.round(e.left), Math.round(e.top), Math.round(e.width), Math.round(e.bottom)]
+    return { v: v && [Math.round(v.left), Math.round(v.top), Math.round(v.right), Math.round(v.bottom)], mv: mv && [Math.round(mv.left), Math.round(mv.top), Math.round(mv.width)], va: va && [Math.round(va.left), Math.round(va.top)], al: caja(al), ca: caja(ca), me: caja(me), lado: caja(lado), fichaMes: document.querySelector('#mcCarteraMes b')?.textContent, ancho: document.documentElement.scrollWidth <= innerWidth }
   })
   if (dos) {
-    check(`${ancho} px: «Las que más se mueven» a la derecha del valor, arriba`, m.v && m.mv && m.mv[0] >= m.v[2] && Math.abs(m.mv[1] - m.v[1]) < 60 && m.mv[2] <= 380, JSON.stringify(m))
-    check('  …y «Las que más valen» debajo del valor, en su columna', m.va && Math.abs(m.va[0] - m.v[0]) < 4 && m.va[1] > m.v[1], JSON.stringify(m))
+    check(`${ancho} px: la cartera a lo ancho, y «Movimientos» DEBAJO, a la izquierda (1177)`, m.v && m.mv && m.mv[1] >= m.v[3] && Math.abs(m.mv[0] - m.v[0]) < 4 && m.mv[2] < (m.v[2] - m.v[0]) * 0.6, JSON.stringify(m))
+    // Sin alertas en este fixture, la fila de reojo son tres: Movimientos y
+    // Cambios arriba, Tu mes debajo a la izquierda (dos y dos a este ancho).
+    check('  …con «Cambios» a su derecha, a la misma altura', m.ca && m.ca[0] > m.mv[0] + m.mv[2] - 4 && Math.abs(m.ca[1] - m.mv[1]) < 4, JSON.stringify(m.ca))
+    check('  …y Tu mes en la fila siguiente, a la izquierda', m.me && m.me[1] >= m.ca[3] - 4 && Math.abs(m.me[0] - m.mv[0]) < 4, JSON.stringify(m.me))
+    check('  …y «Ranking» a lo ancho, debajo de la fila de reojo', m.va && Math.abs(m.va[0] - m.v[0]) < 4 && m.va[1] >= m.me[3] - 4, JSON.stringify(m.va))
+    check('  …y el lado de la cartera (este mes, esta semana, lo pagado) a la derecha de la gráfica, con su cifra', m.lado && m.lado[0] > m.v[0] + 400 && m.lado[1] < m.v[1] + 40 && /€/.test(m.fichaMes || ''), JSON.stringify([m.lado, m.fichaMes]))
   } else {
-    check(`${ancho} px: una columna, como siempre`, m.v && m.mv && m.mv[1] > m.v[1] + 100 && Math.abs(m.mv[0] - m.v[0]) < 4, JSON.stringify(m))
+    check(`${ancho} px: una columna, con la tarjeta de Movimientos (1178) bajo la cartera`, m.v && m.mv && m.mv[1] > m.v[1] + 100 && Math.abs(m.mv[0] - m.v[0]) < 4, JSON.stringify(m))
   }
   check(`${ancho} px: la página no se sale y sin errores`, m.ancho && !err.length, err.join(' | '))
   await ctx.close()

@@ -113,9 +113,9 @@ console.log('── Móvil: la tira cabe y nada se sale ──')
   const m = await page.evaluate(() => {
     const r = (s) => document.querySelector(s)?.getBoundingClientRect()
     const t = r('#mcBalance'); const mes = r('#mcMes .mc-mes-rejilla')
-    return { tira: t && t.width <= innerWidth, mes: mes && mes.width <= innerWidth, mesFilas: new Set([...document.querySelectorAll('#mcMes .mc-mes-ficha')].map((f) => Math.round(f.getBoundingClientRect().top))).size, ancho: document.documentElement.scrollWidth <= innerWidth, alertas: document.querySelectorAll('#mcAlertas a.mc-alerta').length }
+    return { tira: t && t.width <= innerWidth, mes: mes && mes.width <= innerWidth, mesFilas: new Set([...document.querySelectorAll('#mcMes .mc-mes-ficha')].map((f) => Math.round(f.getBoundingClientRect().top))).size, reojoMes: !!document.querySelector('#mcReojoMes')?.getClientRects().length, ancho: document.documentElement.scrollWidth <= innerWidth, alertas: document.querySelectorAll('#mcAlertas a.mc-alerta').length }
   })
-  check('la línea del balance cabe, Tu mes en dos filas de dos, tres alertas', m.tira && m.mesFilas === 2 && m.alertas === 3, JSON.stringify(m))
+  check('la línea del balance cabe, Tu mes como tarjeta de reojo (1178), tres alertas', m.tira && m.reojoMes && m.alertas === 3, JSON.stringify(m))
   check('  …sin salirse de la pantalla', m.ancho, JSON.stringify(m))
   check('móvil: sin errores', !err.length, err.join(' | '))
   await ctx.close()

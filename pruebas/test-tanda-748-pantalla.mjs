@@ -354,8 +354,10 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
       rejilla: document.querySelectorAll('#mcValorCaja .mc-valor-rotulos, #mcValorCaja .mc-valor-chips').length,
       fichas: [...document.querySelectorAll('.mc-cartera-sub > span')].map((s) => s.textContent.replace(/\s+/g, ' ').trim()),
       movidas: [...document.querySelectorAll('#mcMovidas .mc-movida')].map((a) => ({ n: a.querySelector('b').textContent, set: a.querySelector('small').textContent, pct: a.querySelector('.mc-movida-precio small').textContent.replace(/[  ]/g, ' '), sube: a.classList.contains('sube') })),
-      // Debajo de la cartera en el móvil; desde 1.100 px, A SU DERECHA (1155).
-      movidasTras: (() => { const f = q('#mcValorCaja'), mv = q('#mcMovidas'); return !!(f && mv) && (innerWidth >= 1100 ? r(mv).left >= r(f).right - 1 : r(mv).top >= r(f).bottom - 1) })(),
+      // Debajo de la cartera (1155 la puso a su derecha en el PC; la 1177
+      // la devolvió debajo, en la fila de reojo). En el móvil, desde la
+      // 1178, el bloque no se ve: está su tarjeta (#mcReojoMovidas).
+      movidasTras: (() => { const f = q('#mcValorCaja'), mv = innerWidth >= 1100 ? q('#mcMovidas') : q('#mcReojoMovidas'); return !!(f && mv) && r(mv).top >= r(f).bottom - 1 })(),
       compartirAbajo: (() => { const c = q('#mcCompartir'), v = q('#mcVistazos'); return !!(c && v) && r(c).top >= r(v).top })(),
       ancho: document.documentElement.scrollWidth <= innerWidth + 1,
       desplazado: window.__desplazado,

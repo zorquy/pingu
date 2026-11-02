@@ -153,18 +153,18 @@ console.log('\n── 2. Los vistazos ──')
   check('  …la más reciente primero', /Carta 8/.test(nombres[0] || ''), nombres.join(' | '))
   check('  …y la más vieja fuera', !nombres.some((n) => /Otra /.test(n || '')), nombres.join(' | '))
   check('  …y no sale el estado vacío', !/Todavía no has añadido/.test(await page.locator('#mcVistazos').textContent()))
-  check('las expansiones también', (await page.locator('.mc-vistazo .mc-set-tarjeta').count()) === 2,
-    String(await page.locator('.mc-vistazo .mc-set-tarjeta').count()))
+  check('las expansiones también', (await page.locator('.mc-vistazo .mc-set-fila').count()) === 2,
+    String(await page.locator('.mc-vistazo .mc-set-fila').count()))
   // Hay TRES sets y de uno no llevas nada: una expansión a cero no dice
   // «por dónde vas», dice «no has empezado», y de esas hay doscientas.
-  const sets = await page.locator('.mc-vistazo .mc-set-nombre').allTextContents()
+  const sets = await page.locator('.mc-vistazo .mc-set-fila-nombre').allTextContents()
   check('  …y la que no has empezado no sale', !sets.some((t) => /Obsidian/.test(t)), sets.join(' | '))
   // Y LA MÁS NUEVA, primero. Esta tanda puso delante la que más llevas, y
   // la 451 lo cambió a propósito: PINGU, «¿qué ha pasado con las
   // expansiones? ¿ya no están las más nuevas?». En un vistazo de una sola
   // fila, ordenar por cuántas tienes esconde justo lo que acabas de
   // empezar — y decía una cosa distinta de la pantalla de Expansiones.
-  const fechas = await page.locator('.mc-vistazo .mc-set-tarjeta').evaluateAll(
+  const fechas = await page.locator('.mc-vistazo .mc-set-fila').evaluateAll(
     (ns) => ns.map((n) => n.getAttribute('data-set')))
   check('  …con la más nueva delante', fechas[0] === 'sv2', fechas.join(' | '))
 
@@ -200,7 +200,7 @@ console.log('\n── 3. Los vistazos llevan a su pestaña ──')
   // su progreso.
   await page.click('[data-pestania="resumen"]')
   await page.waitForTimeout(1200)
-  await page.locator('.mc-vistazo .mc-set-tarjeta').first().click()
+  await page.locator('.mc-vistazo .mc-set-fila').first().click()
   await page.waitForTimeout(1500)
   check('pulsar una expansión abre ESA expansión', (await activa(page)) === 'Expansiones', await activa(page))
   // La PRIMERA del vistazo es la más NUEVA desde la 451, que es Paldea.
@@ -226,8 +226,8 @@ console.log('\n── 4. Llegar al Panel desde otra pestaña ──')
   check('al pulsar «Panel» los vistazos se pintan',
     (await page.locator('.mc-vistazo-carta').count()) === 8,
     String(await page.locator('.mc-vistazo-carta').count()))
-  check('  …y las expansiones también', (await page.locator('.mc-vistazo .mc-set-tarjeta').count()) === 2,
-    String(await page.locator('.mc-vistazo .mc-set-tarjeta').count()))
+  check('  …y las expansiones también', (await page.locator('.mc-vistazo .mc-set-fila').count()) === 2,
+    String(await page.locator('.mc-vistazo .mc-set-fila').count()))
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }

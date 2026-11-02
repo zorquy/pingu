@@ -44,7 +44,7 @@ for (const movil of [false, true]) {
       anchoUltima: Math.round(document.querySelector('#mcUltimas .mc-vistazo-carta')?.getBoundingClientRect().width || 0),
       sets: [...document.querySelectorAll('#mcVistazoSets .mc-set-fila')].map((f) => `${f.dataset.set}:${f.querySelector('b').textContent}:${f.querySelector('em').textContent}:${!!f.querySelector('.mc-barra i')}`),
       tarjetas: document.querySelectorAll('#mcVistazoSets .mc-set-tarjeta').length,
-      filasDeSets: new Set(top('#mcVistazoSets .mc-set-fila')).size,
+      filasDeSets: new Set([...document.querySelectorAll('#mcVistazoSets .mc-set-fila')].filter((f) => f.getClientRects().length).map((f) => Math.round(f.getBoundingClientRect().top))).size,
       ancho: document.documentElement.scrollWidth <= innerWidth,
     }
   })
@@ -52,7 +52,7 @@ for (const movil of [false, true]) {
   check('«Últimas añadidas»: la carta, cuándo la metiste y el nombre', v.ultimas.length >= 4 && v.ultimas[0] === 'Pikachu ex|hoy|true' && v.ultimas.some((x) => /\|ayer\|/.test(x)) && v.ultimas.some((x) => /\|hace 2 días\|/.test(x)) && v.ultimas.some((x) => /\|hace 3 días\|/.test(x)), JSON.stringify(v.ultimas))
   check('  …y las dos tiras con cartas del mismo tamaño', v.anchoValiosa > 0 && v.anchoValiosa === v.anchoUltima, `${v.anchoValiosa} vs ${v.anchoUltima}`)
   check('Expansiones: cuatro filas (de las cinco que tienes), las más nuevas, con nombre, barra y «N / total», sin tarjeta grande', v.sets.length === 4 && v.tarjetas === 0 && v.sets[0] === 'sv9:Evoluciones Prismáticas:1 / 180:true' && v.sets[1] === 'sv8:Chispas Fulgurantes:2 / 252:true' && v.sets[3] === 'sv5:Fuerzas Temporales:3 / 218:true', JSON.stringify(v.sets))
-  check(`  …${movil ? 'una por fila en el móvil' : 'dos por fila en el PC'}`, v.filasDeSets === (movil ? 4 : 2), String(v.filasDeSets))
+  check(`  …${movil ? 'dos filas en el móvil (1178), una por fila' : 'las cuatro en una fila en el PC (1177)'}`, v.filasDeSets === (movil ? 2 : 1), String(v.filasDeSets))
   check('  …sin salirse', v.ancho)
   await page.click('#mcVistazoSets .mc-set-fila[data-set="sv8"]')
   await page.waitForTimeout(1500)

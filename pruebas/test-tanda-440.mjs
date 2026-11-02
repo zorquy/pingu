@@ -78,7 +78,7 @@ console.log('\n── 1. La cabecera de perfil ──')
   // que es la que se ve en la colección de otra persona.
   check('el h1 vive dentro de la cabecera, para quien escucha',
     (await page.locator('.mc-hero h1#mcTitulo.sr-only').count()) === 1)
-  check('  …y las cifras se ven, en la cartera', await page.locator('#mcValorCaja .mc-cartera-cifra').isVisible() && (await page.locator('.mc-cartera-sub > span').count()) === 3 && await page.locator('.mc-cartera-sub > span').first().isVisible())
+  check('  …y las cifras se ven, en la cartera', await page.locator('#mcValorCaja .mc-cartera-cifra').isVisible() && (await page.locator('.mc-cartera-sub:not(.mc-balance) > span').count()) === 3 && await page.locator('.mc-cartera-sub:not(.mc-balance) > span').first().isVisible())
   // El avatar lleva la inicial cuando no hay foto. Sin ella es un círculo
   // de color y nada más, y no hay ningún otro sitio donde se vea de quién
   // es esta pantalla.
@@ -113,13 +113,13 @@ console.log('\n── 1. La cabecera de perfil ──')
   // Desde la 748 son la cifra grande de la cartera y TRES fichas en una
   // fila (cartas, distintas, expansiones): lo que se defiende es lo mismo,
   // que caben sin deslizarse y que ninguna se sale de su hueco.
-  const r = await page.locator('.mc-cartera-sub').evaluate((n) => ({
+  const r = await page.locator('.mc-cartera-sub:not(.mc-balance)').evaluate((n) => ({
     filas: new Set([...n.children].map((e) => Math.round(e.getBoundingClientRect().top))).size,
     sobra: n.scrollWidth > n.clientWidth + 4 || document.documentElement.scrollWidth > innerWidth,
   }))
   check('en 390 px las tres cifras caben en una línea (925)', r.filas === 1, JSON.stringify(r))
   check('  …y sin deslizarse', !r.sobra, JSON.stringify(r))
-  const dentro = await page.locator('.mc-cartera-sub > span').evaluateAll((ns) => ns.map((x) => ({
+  const dentro = await page.locator('.mc-cartera-sub:not(.mc-balance) > span').evaluateAll((ns) => ns.map((x) => ({
     nombre: x.textContent,
     sobra: Math.max(x.scrollWidth - x.clientWidth, x.querySelector('b').scrollWidth - x.clientWidth),
   })))
@@ -134,18 +134,16 @@ console.log('\n── 2. Fuera el carrusel, y las listas de números al final �
   const { page } = await abrir()
   check('el resumen ya no es una tira que se desliza',
     (await page.locator('#mcTira').count()) === 0)
-  check('  …sino una rejilla', (await page.locator('.mc-diapos').count()) === 1)
-  // Y están PLEGADAS: lo que se ve al entrar es tu colección, no listas de
-  // rarezas. Si el bloque sale abierto, el panel vuelve a ser larguísimo
-  // y nada da error.
-  check('las estadísticas nacen plegadas', await page.locator('#mcEstadisticas').isHidden())
-  check('  …y la rejilla de números está DENTRO del plegado',
-    await page.locator('#mcEstadisticas .mc-diapos').count() === 1)
-  check('  …y las cajas de listas también',
-    await page.locator('#mcEstadisticas .mc-resumen-rejilla').count() === 1)
+  // Y FUERA DEL PANEL: lo que se ve al entrar es tu colección, no listas
+  // de rarezas. Desde la 1172 las estadísticas son su VISTA
+  // (`#mcPanelEstadisticas`, `?ver=estadisticas`), que abre «Estadísticas»
+  // en la fila «Más» (`#mcVerTodo`); hasta la 1172 era un plegado.
+  check('las estadísticas no están en el Panel', (await page.locator('#mcPanelResumen .mc-diapos').count()) === 0 && await page.locator('#mcPanelEstadisticas').isHidden())
   await page.locator('#mcVerTodo').click()
-  await page.waitForTimeout(400)
-  check('y el botón las abre', await page.locator('#mcEstadisticas').isVisible())
+  await page.waitForTimeout(800)
+  check('y el botón las abre', await page.locator('#mcPanelEstadisticas').isVisible())
+  check('  …con la rejilla de números dentro', (await page.locator('#mcPanelEstadisticas .mc-diapos').count()) === 1)
+  check('  …y las cajas de listas también', (await page.locator('#mcPanelEstadisticas .mc-resumen-rejilla').count()) === 1)
   // Y con el sitio de una pantalla ancha, la rejilla REPARTE: varias
   // tarjetas por fila. Una sola columna de 300 px es el carrusel otra vez,
   // solo que sin poder deslizarlo — y «es una rejilla» seguía siendo
