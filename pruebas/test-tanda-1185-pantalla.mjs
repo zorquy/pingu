@@ -34,9 +34,15 @@ console.log('── 1. Aprende (en el navegador: el módulo arrastra app.js) ─
   await ctx.close()
 }
 
+// Seis noticias: más de las que caben al lado del foro (1186).
+const masNoticias = () => {
+  const hace = (h) => new Date(Date.now() - h * 3600e3).toISOString()
+  window.__FAKE_NOTICIAS__ = [...(window.__FAKE_NOTICIAS__ || []), ...[5, 6].map((i) => ({ id: `n-extra-${i}`, slug: `extra-${i}`, title: `Noticia de relleno ${i}`, kind: 'news', published_at: hace(200 + i * 24), created_at: hace(200 + i * 24) }))]
+}
+
 console.log('── 2. El PC, con cuenta ──')
 {
-  const ctx = await contexto(b, false, 'user-1')
+  const ctx = await contexto(b, false, 'user-1', masNoticias)
   const page = await ctx.newPage()
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 160)))
@@ -55,13 +61,41 @@ console.log('── 2. El PC, con cuenta ──')
   check('  …con la descripción en dos líneas como mucho', desc <= 2, desc)
   check('«Escribe una guía» en la cabecera de Aprende y no en una caja suelta', (await page.locator('#aprende .pb-escribir').count()) === 1 && m.lanzamientoSeccion === null)
   const ult = [m.retoSeccion, m.homeActivity].filter(Boolean)
-  check('la última fila: retos y comunidad, a la misma altura y del mismo alto', ult.length === 2 && ult[0].y === ult[1].y && ult[0].h === ult[1].h && ult[0].w === ult[1].w && ult[0].y > m.recientesSeccion.y, JSON.stringify(ult))
+  // 1186: la comunidad ocupa el doble que los retos (sin la clasificación, 2/3).
+  check('la última fila: retos y comunidad, a la misma altura, la comunidad el doble', ult.length === 2 && ult[0].y === ult[1].y && ult[0].h === ult[1].h && Math.abs(ult[1].w - 2 * ult[0].w) < 40 && ult[0].y > m.recientesSeccion.y, JSON.stringify(ult))
+  const noticias = await page.evaluate(() => {
+    const caja = document.getElementById('noticiaPortada')
+    const lis = [...caja.querySelectorAll('.pb-noticias-mas li')]
+    const vistas = lis.filter((l) => l.style.display !== 'none')
+    const abajo = caja.getBoundingClientRect().bottom
+    return { total: lis.length, vistas: vistas.length, dentro: vistas.every((l) => l.getBoundingClientRect().bottom <= abajo), sobra: Math.round(abajo - (vistas.at(-1)?.getBoundingClientRect().bottom || 0)) }
+  })
+  check('las noticias llenan su caja con las que caben, sin cortar ninguna (1186)', noticias.vistas >= 3 && noticias.vistas < noticias.total && noticias.dentro && noticias.sobra < 90, JSON.stringify(noticias))
   // Con la clasificación (en este doble no llega): tres de un tercio.
   await page.evaluate(() => { const s = document.getElementById('clasificacionSeccion'); s.classList.remove('seccion-recogida'); s.style.display = ''; document.getElementById('clasificacion').innerHTML = '<h2>Clasificación</h2>' })
   await page.waitForTimeout(200)
   const t = await medir(page)
   const tres = [t.retoSeccion, t.clasificacionSeccion, t.homeActivity]
-  check('  …con la clasificación, tres cajas iguales de un tercio', tres.every(Boolean) && new Set(tres.map((x) => x.y)).size === 1 && new Set(tres.map((x) => x.w)).size === 1 && Math.abs(tres[0].w * 3 - ancho) < 80 && t.clasificacionSeccion.x > t.retoSeccion.x && t.homeActivity.x > t.clasificacionSeccion.x, JSON.stringify(tres))
+  // Con la clasificación: retos ¼, comunidad ½ y clasificación ¼, en ese orden.
+  check('  …con la clasificación: retos, comunidad (el doble) y clasificación a la derecha', tres.every(Boolean) && new Set(tres.map((x) => x.y)).size === 1 && tres[0].w === tres[1].w && Math.abs(tres[2].w - 2 * tres[0].w) < 40 && t.homeActivity.x > t.retoSeccion.x && t.clasificacionSeccion.x > t.homeActivity.x, JSON.stringify(tres))
+  // De dónde se entra a los retos (1186): la ficha de arriba y la caja de abajo.
+  const desde = await page.evaluate(() => {
+    const salida = []
+    for (const sel of ['.hoy-retos', '#retoTarjetas a[href]']) {
+      const a = document.querySelector(sel)
+      if (!a) { salida.push('sin ' + sel); continue }
+      a.addEventListener('click', (e) => e.preventDefault(), { once: true })
+      a.click()
+      salida.push(sessionStorage.getItem('pd-desde'))
+    }
+    return salida
+  })
+  check('un clic en la ficha de arriba o en la caja de abajo apunta desde dónde (1186)', desde[0] === 'portada-retos-arriba' && desde[1] === 'portada-retos-abajo', desde.join(' | '))
+  // …y la visita siguiente lo guarda como su campaña, que /admin ya cuenta.
+  await page.goto(`${BASE}/retos.html`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(1500)
+  const visita = await page.evaluate(() => (window.__TABLAS__?.page_views || []).map((v) => v.campana).filter(Boolean))
+  check('  …y la visita a los retos lo guarda como su campaña, una vez', visita.includes('portada-retos-abajo') && (await page.evaluate(() => sessionStorage.getItem('pd-desde'))) === null, JSON.stringify(visita))
   const sobra = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)
   check('sin desbordar a lo ancho', sobra <= 0, sobra)
   await page.screenshot({ path: '/tmp/1185-pc.png', fullPage: true })
