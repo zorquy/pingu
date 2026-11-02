@@ -129,7 +129,7 @@ console.log('\n── 2. Los vistazos ──')
   // orden, no que sean los únicos: una lista cerrada convierte cada tanda
   // siguiente en un rojo que no dice nada.
   check('hay un vistazo de cartas y otro de expansiones',
-    titulos[0] === 'Tus cartas' && titulos[1] === 'Expansiones', titulos.join('|'))
+    titulos[0] === 'Últimas añadidas' && titulos[1] === 'Expansiones', titulos.join('|'))
 
   // ESTO es lo que más importa: entrando DIRECTO al panel, los vistazos se
   // pintan de lo que hay en memoria... y al arrancar no hay nada. Es el

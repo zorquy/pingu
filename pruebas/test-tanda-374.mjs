@@ -50,10 +50,9 @@ async function abrir(coleccion, opciones = {}) {
     }))
     window.__FAKE_COLECCION__ = col
   }, [SETS, coleccion])
-  await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(2400)
-  await page.locator('[data-pestania="resumen"]').click()
-  await page.waitForTimeout(1200)
+  // Las cajas viven en la vista Estadísticas desde la 1172.
+  await page.goto(`${BASE}/mi-coleccion.html?ver=estadisticas`, { waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(3200)
   return { page, errores }
 }
 
@@ -70,7 +69,7 @@ console.log('\n── 1. Las repetidas ──')
 {
   const { page, errores } = await abrir(COL)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('salen las cuatro cajas', (await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()) === 4)
+  check('salen las cuatro cajas de siempre (y las dos de la 1172)', (await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()) === 6)
   const caja = page.locator('.mc-resumen-rejilla .mc-resumen-caja').first()
   // Sobran: 2 (de 3) + 1 (de 2) + 3 (de 4) + 1 (de 2) = 7, de 4 cartas.
   check('dice cuántas copias te sobran', /Te sobran 7 copias de 4 cartas/.test(limpio(await caja.textContent())),
@@ -125,7 +124,7 @@ console.log('\n── 4. Una colección vacía no enseña cajas vacías ──')
   check('no se pintan cuatro cajas en blanco', (await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()) === 0,
     String(await page.locator('.mc-resumen-rejilla .mc-resumen-caja').count()))
   // Desde la 581 el estado vacío es un dibujo, un título y una acción.
-  check('  …sino que se dice', /Tu colección está vacía/.test(limpio(await page.locator('#mcResumenPanel').textContent())),
+  check('  …sino que se dice', /Todavía no has añadido ninguna carta/.test(limpio(await page.locator('#mcPanelEstadisticas').textContent())),
     limpio(await page.locator('#mcResumenPanel').textContent()))
   await page.close()
 }
@@ -149,15 +148,12 @@ console.log('\n── 6. Cuatro cajas, dos columnas ──')
   // Con tres columnas la cuarta se queda sola en una fila con media
   // pantalla en blanco al lado. Se mide dónde acaban pintadas.
   const { page } = await abrir(COL)
-  // Desde la 410 las estadísticas largas viven detrás de «Ver todas las
-  // estadísticas». Hay que abrirlas para medir dónde caen: escondidas,
-  // todas miden 0 y «dos por fila» pasaría a ser «una sola fila».
-  await page.locator('#mcVerTodo').click()
-  await page.waitForTimeout(500)
+  // Desde la 1172 la vista Estadísticas se abre por su dirección (arriba).
   const filas = await page.evaluate(() =>
     [...document.querySelectorAll('.mc-resumen-rejilla .mc-resumen-caja')].map((e) => Math.round(e.getBoundingClientRect().top))
   )
-  check('dos por fila', new Set(filas).size === 2, filas.join(', '))
+  // Seis cajas desde la 1172 (idioma y era): tres filas de dos.
+  check('dos por fila', new Set(filas).size === 3 && filas.length === 6, filas.join(', '))
   await page.close()
 
   // Y en el móvil, una: un `minmax` con un mínimo mayor que la pantalla

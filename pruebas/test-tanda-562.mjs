@@ -95,9 +95,10 @@ console.log('── 3. Y las listas del Panel, igual ──')
   // Las listas largas viven detrás de «Ver todas» desde la 440, así que
   // hay que abrirlas: un elemento que está en el DOM y no se ve no se
   // puede pulsar (la lección de la 447).
+  // Y desde la 1172 ese botón abre la VISTA Estadísticas.
   await page.click('#mcVerTodo')
-  await page.waitForTimeout(300)
-  const filas = page.locator('#mcPanelResumen .mc-fila-carta a[data-carta]')
+  await page.waitForTimeout(800)
+  const filas = page.locator('#mcPanelEstadisticas .mc-fila-carta a[data-carta]')
   const cuantas = await filas.count()
   // Y que LLEGUE: el fixture tiene tres copias de una carta justo para que
   // el Panel pinte «te sobran». Si no hubiera ninguna fila, esta sección

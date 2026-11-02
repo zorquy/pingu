@@ -13,7 +13,7 @@ const check = (l, ok, extra = '') => {
 }
 const browser = await chromium.launch()
 
-const abrir = async (ancho = 1280, alto = 950) => {
+const abrir = async (ancho = 1280, alto = 950, ver = 'resumen') => {
   const page = await browser.newPage({ viewport: { width: ancho, height: alto } })
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 150)))
@@ -26,7 +26,7 @@ const abrir = async (ancho = 1280, alto = 950) => {
     window.__FAKE_COLECCION__ = window.__FAKE_CARTAS__.map((c, i) => ({ id: 'l' + i, card_id: c.id,
       cantidad: (i % 3) + 1, idioma: 'es', estado: 'NM', variante: 'normal', notas: null }))
   })
-  await page.goto('http://localhost:8892/mi-coleccion.html?ver=resumen', { waitUntil: 'domcontentloaded' })
+  await page.goto(`http://localhost:8892/mi-coleccion.html?ver=${ver}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
   return { page, errores }
 }
@@ -38,9 +38,9 @@ const abrir = async (ancho = 1280, alto = 950) => {
 // las tarjetas estén y se puedan ver enteras, y eso es lo que se mira
 // ahora. (Esta prueba llevaba roja desde la 440 sin que nadie la mirara:
 // es uno de los once de la 447.)
-console.log('\n── 1. Las diapositivas, en rejilla ──')
+console.log('\n── 1. Las diapositivas, en rejilla (en la vista Estadísticas desde la 1172) ──')
 {
-  const { page, errores } = await abrir()
+  const { page, errores } = await abrir(1280, 950, 'estadisticas')
   check('sin errores', errores.length === 0, errores.join(' | '))
   // Con este fixture no hay precios, así que «Las que más valen» no se
   // pinta: una diapositiva vacía no informa. Lo que tiene que estar es lo
@@ -64,7 +64,9 @@ console.log('\n── 1. Las diapositivas, en rejilla ──')
 console.log('\n── 2. Lo largo, detrás de un botón ──')
 {
   const { page } = await abrir()
-  const escondidas = () => page.locator('#mcEstadisticas').evaluate((e) => e.classList.contains('hidden'))
+  // Desde la 1172 lo largo no se despliega: vive en la vista Estadísticas
+  // (?ver=estadisticas), y en el Panel no está de entrada.
+  const escondidas = () => page.evaluate(() => { const e = document.getElementById('mcEstadisticas'); return !e || !!e.closest('#mcPanelEstadisticas.hidden') })
   check('las estadísticas no están de entrada', await escondidas())
   // Pero la GRÁFICA del valor sí (tanda 416). La 410 la metió aquí
   // dentro y PINGU: «¿y dónde está el gráfico de precios? No existe».
@@ -73,16 +75,16 @@ console.log('\n── 2. Lo largo, detrás de un botón ──')
   check('  …pero la gráfica del valor sí', await page.locator('#mcValorCaja').isVisible())
   check('  …y está FUERA del bloque que se esconde',
     await page.locator('#mcValorCaja').evaluate((e) => !e.closest('#mcEstadisticas')))
-  check('  …y el botón lo dice', (await page.locator('#mcVerTodo').getAttribute('aria-expanded')) === 'false')
+  check('  …y el botón lleva a la vista', (await page.locator('#mcVerTodo').getAttribute('data-ir-a')) === 'estadisticas')
   await page.locator('#mcVerTodo').click()
-  await page.waitForTimeout(600)
-  check('al pulsar, salen', (await escondidas()) === false)
-  check('  …y son las cuatro cajas de siempre',
-    (await page.locator('#mcEstadisticas .mc-resumen-caja').count()) === 4,
+  await page.waitForTimeout(800)
+  check('al pulsar, salen (en ?ver=estadisticas)', (await escondidas()) === false && /ver=estadisticas/.test(page.url()), page.url())
+  check('  …y son las cuatro cajas de siempre más idioma y era (1172)',
+    (await page.locator('#mcEstadisticas .mc-resumen-caja').count()) === 6,
     await page.locator('#mcEstadisticas .mc-resumen-caja').count())
-  await page.locator('#mcVerTodo').click()
+  await page.locator('#mcVistaVolver').click()
   await page.waitForTimeout(400)
-  check('  …y se vuelven a esconder', await escondidas())
+  check('  …y «‹ Panel» vuelve y las esconde', await escondidas())
   await page.close()
 }
 
@@ -103,7 +105,7 @@ console.log('\n── 3. Los cambios ya no están al fondo ──')
 
 console.log('\n── 4. En el móvil ──')
 {
-  const { page, errores } = await abrir(390, 820)
+  const { page, errores } = await abrir(390, 820, 'estadisticas')
   check('sin errores', errores.length === 0, errores.join(' | '))
   // Una tarjeta no puede ser más ancha que la pantalla: si lo fuera, la
   // tira dejaría de deslizarse y pasaría a desbordar la página.

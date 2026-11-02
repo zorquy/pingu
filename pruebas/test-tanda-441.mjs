@@ -164,7 +164,7 @@ console.log('\n── 4. «Dónde estás cerca», fuera ──')
   // PINGU: «no tiene sentido porque abajo ya están las expansiones».
   check('no queda ni rastro del bloque', (await page.locator('.mc-cerca').count()) === 0)
   const titulos = await page.locator('.mc-vistazo .mc-subtitulo').allTextContents()
-  check('  …y el panel empieza por tus cartas', titulos[0] === 'Tus cartas', titulos.join(' | '))
+  check('  …y el panel empieza por tus últimas añadidas (1172)', titulos[0] === 'Últimas añadidas', titulos.join(' | '))
   check('  …con las expansiones debajo, que es lo que lo repetía',
     titulos.includes('Expansiones'), titulos.join(' | '))
   await page.close()

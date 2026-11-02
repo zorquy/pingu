@@ -152,7 +152,7 @@ console.log('\n── 2. /cartas con cuenta: lo mismo, con tu progreso y tu copi
   await page.close()
 }
 
-console.log('\n── 3. Mi colección: Expansiones sigue en el menú, y «Ver todas» son TODAS ──')
+console.log('\n── 3. Mi colección: Expansiones sigue en el menú, y «Ver todas» abre las EMPEZADAS (1172) ──')
 {
   const { page, errores } = await abrir('/mi-coleccion.html', { sesion: 'admin-1' })
   check('sin errores', errores.length === 0, errores.join(' | '))
@@ -160,21 +160,19 @@ console.log('\n── 3. Mi colección: Expansiones sigue en el menú, y «Ver t
   // Productos, desde la 762 (PR1); Deseos y cambios desde la 765, y Buscar
   // vuelve a ser pestaña en la 767.
   check('el menú: Panel, Expansiones, Pokédex, Álbumes, Productos, Deseos y cambios y Buscar', pestanas.join('|') === 'Panel|Expansiones|Pokédex|Álbumes|Productos|Deseos y cambios|Buscar', pestanas.join('|'))
-  // «Solo las empezadas» puesto de antes, y después «Ver todas»: tiene
-  // que quitarse, que si no el Panel dice «ver todas» y la estantería
-  // enseña una.
+  // La estantería entera desde el menú; y el «Ver todas» del Panel (que
+  // enseña las EMPEZADAS con su progreso) abre la estantería con «solo las
+  // empezadas» puesto (1172, P4; de la 649 a la 1172 abría todas).
   await page.click('[data-pestania="album"]')
   await page.waitForTimeout(600)
-  await pulsarQue(page, '#mcEstanteriaEmpezadas')
-  await page.waitForTimeout(600)
-  check('con «solo las empezadas» se ve una', (await page.locator('#mcEstanteriaRejilla .mc-set-tarjeta').count()) === 1)
+  check('desde el menú, la estantería con las TRES', (await page.locator('#mcEstanteriaRejilla .mc-set-tarjeta').count()) === 3)
   await page.click('[data-pestania="resumen"]')
   await page.waitForTimeout(600)
   const vistazo = page.locator('.mc-vistazo').filter({ has: page.locator('h2', { hasText: 'Expansiones' }) })
   await vistazo.locator('[data-ir-a="album"]').click()
   await page.waitForTimeout(800)
-  check('«Ver todas» abre la estantería con las TRES', (await page.locator('#mcPanelAlbum').isVisible()) && (await page.locator('#mcEstanteriaRejilla .mc-set-tarjeta').count()) === 3, String(await page.locator('#mcEstanteriaRejilla .mc-set-tarjeta').count()))
-  check('  …y el botón de «solo las empezadas» queda sin pulsar', (await page.locator('#mcEstanteriaEmpezadas').getAttribute('aria-pressed')) === 'false')
+  check('«Ver todas» abre la estantería con la EMPEZADA (1172)', (await page.locator('#mcPanelAlbum').isVisible()) && (await page.locator('#mcEstanteriaRejilla .mc-set-tarjeta').count()) === 1, String(await page.locator('#mcEstanteriaRejilla .mc-set-tarjeta').count()))
+  check('  …y el botón de «solo las empezadas» queda pulsado', (await page.locator('#mcEstanteriaEmpezadas').getAttribute('aria-pressed')) === 'true')
   await page.click('[data-pestania="resumen"]')
   await page.waitForTimeout(600)
   await vistazo.locator('[data-set="me02"]').first().click()
