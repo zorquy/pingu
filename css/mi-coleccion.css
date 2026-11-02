@@ -6985,6 +6985,122 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 #mcCompartir {
   margin-top: var(--e-lg);
 }
+
+/* MOVIMIENTOS Y RANKING (1171): las vistas enteras de dos bloques del
+   Panel. La cabecera es la miga de volver, el título y los mandos en UNA
+   fila (1034); las filas son las `.mc-movida` del bloque. */
+.mc-vista-cab {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm) var(--e-md);
+  align-items: center;
+  margin-bottom: var(--e-md);
+}
+.mc-vista-cab .mc-migas {
+  margin: 0;
+}
+.mc-vista-cab .mc-vista-titulo {
+  margin: 0;
+}
+.mc-vista-cab .mc-valor-rangos,
+.mc-vista-cab .mc-vista-modos {
+  margin: 0 0 0 auto;
+  justify-content: flex-end;
+}
+.mc-vista-cab .mc-valor-rango {
+  flex: 0 0 auto;
+  min-width: 44px;
+}
+.mc-vista-panel .mc-movida-nombre .pv-bandera {
+  display: inline-block;
+  width: 14px;
+  height: 10px;
+  vertical-align: -1px;
+}
+.mc-vista-panel .mc-movida-precio {
+  flex: 0 0 auto;
+}
+@media (max-width: 640px) {
+  .mc-vista-cab .mc-valor-rangos {
+    flex: 1 1 100%;
+    margin: 0;
+    justify-content: space-around;
+  }
+  .mc-vista-cab .mc-valor-rango {
+    flex: 1 1 0;
+  }
+  .mc-movida-antes {
+    display: none;
+  }
+  /* Los mandos, UNA fila que se desliza (1038), no dos pisos. */
+  .mc-vista-mandos {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .mc-vista-mandos .mc-seg {
+    flex: 0 0 auto;
+  }
+}
+.mc-vista-mandos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-sm);
+}
+.mc-vista-mandos .mc-seg small,
+.mc-vista-cab .mc-seg small {
+  font-size: var(--t-2xs);
+  font-weight: 600;
+  color: var(--text-dim);
+}
+.mc-vista-resumen {
+  margin: 0 0 var(--e-md);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+.mc-vista-resumen b {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+}
+.mc-vista-resumen b.mc-gana {
+  color: var(--success);
+}
+.mc-vista-resumen b.mc-pierde {
+  color: var(--danger);
+}
+.mc-vista-mas {
+  display: flex;
+  justify-content: center;
+  margin: var(--e-md) 0 0;
+}
+.mc-rank-puesto {
+  flex: 0 0 28px;
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: 700;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.mc-rank-podio {
+  color: var(--warning);
+}
+.mc-rank-acum {
+  display: block;
+  height: 3px;
+  margin-top: var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  overflow: hidden;
+}
+.mc-rank-acum i {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--navy);
+}
 /* El Panel en dos columnas en el PC (1155, E3; SCHEMA): el valor y «Las que
    más valen» a la izquierda, «Las que más se mueven» en una lista estrecha a
    la derecha. Solo si ese bloque está (o su esqueleto). */

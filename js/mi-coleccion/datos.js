@@ -509,11 +509,17 @@ export async function preciosGuardados(ids) {
 // El histórico diario de unas cartas (663), desde una fecha: para «las que
 // más se mueven» del Panel. Por tandas de 150 ids, como los precios. Sin
 // la migración del histórico, vacío y sin ruido.
-export async function historicoDeCartas(ids, desde) {
+// `hasta` (1171): el último día que se pide, incluido. `tope`: cuántas
+// filas como mucho por tanda (Supabase corta a 1.000 sin avisar, la 808).
+export async function historicoDeCartas(ids, desde, { hasta = null, porTanda = 150, tope = null } = {}) {
   const unicos = [...new Set((ids || []).filter(Boolean))]
   const filas = []
-  for (let i = 0; i < unicos.length; i += 150) {
-    const { data, error } = await supabase.from('tcg_card_history').select('card_id,dia,cm_low,cm_low_es,cm_low_en,cm_low_de,cm_low_fr,cm_low_it,cm_low_ja').in('card_id', unicos.slice(i, i + 150)).gte('dia', desde).order('dia')
+  for (let i = 0; i < unicos.length; i += porTanda) {
+    let q = supabase.from('tcg_card_history').select('card_id,dia,cm_low,cm_low_es,cm_low_en,cm_low_de,cm_low_fr,cm_low_it,cm_low_ja').in('card_id', unicos.slice(i, i + porTanda)).gte('dia', desde)
+    if (hasta) q = q.lte('dia', hasta)
+    q = q.order('dia')
+    if (tope) q = q.limit(tope)
+    const { data, error } = await q
     if (error) {
       if (traducir(error).sinMigracion) return filas
       throw traducir(error)
@@ -521,6 +527,36 @@ export async function historicoDeCartas(ids, desde) {
     filas.push(...(data || []))
   }
   return filas
+}
+
+// LOS DOS EXTREMOS del histórico de unas cartas desde una fecha (1171):
+// las fotos de los tres primeros días del periodo y las de los tres
+// últimos, que es lo que hace falta para saber cuánto se ha movido cada
+// una. Pedir el periodo entero no vale: 150 cartas por un mes son 4.500
+// filas y Supabase devuelve 1.000 (la 808), así que una carta se quedaba
+// sin su primer día o sin el último sin que nada avisara. Y la que no
+// tiene foto al principio del periodo (la compraste después, o el
+// histórico empezó más tarde) se busca aparte, por orden de día y en
+// tandas cortas: el corte de las 1.000 se lleva los días de DESPUÉS, y lo
+// que se quiere es el primero.
+const dia = (ms) => new Date(ms).toISOString().slice(0, 10)
+export async function historicoDeExtremos(ids, desde, { hoy = Date.now() } = {}) {
+  const unicos = [...new Set((ids || []).filter(Boolean))]
+  const d0 = new Date(`${String(desde).slice(0, 10)}T00:00:00Z`).getTime()
+  const [primeros, ultimos] = await Promise.all([
+    historicoDeCartas(unicos, dia(d0), { hasta: dia(d0 + 2 * 86_400_000) }),
+    historicoDeCartas(unicos, dia(hoy - 2 * 86_400_000)),
+  ])
+  const conPrincipio = new Set(primeros.map((f) => f.card_id))
+  const conFinal = new Set(ultimos.map((f) => f.card_id))
+  const faltan = unicos.filter((id) => conFinal.has(id) && !conPrincipio.has(id))
+  const tardias = faltan.length
+    ? await historicoDeCartas(faltan, dia(d0 + 3 * 86_400_000), { hasta: dia(hoy - 3 * 86_400_000), porTanda: 25, tope: 1000 })
+    : []
+  // De las tardías, solo la PRIMERA foto de cada carta.
+  const primeraDe = new Map()
+  for (const f of tardias) if (!primeraDe.has(f.card_id)) primeraDe.set(f.card_id, f)
+  return [...primeros, ...primeraDe.values(), ...ultimos]
 }
 
 // Uno en el momento, a TCGdex. Con caché por visita: la ficha y el

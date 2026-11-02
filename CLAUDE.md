@@ -820,6 +820,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   álbum. No se apaga a esperar: se pinta como queda, y si la base dice que
   no, se vuelve (o se recarga, cuando el estado de verdad es la página
   entera) con su aviso. Un botón nuevo que escriba algo va así.
+- **Cada «Ver todas» del Panel de Mi colección abre LO QUE DICE** (tanda
+  1171, PINGU: «que me enseñe los movimientos y que no me lleve a la
+  colección a secas»): «Las que más se mueven» abre `?ver=movimientos` y
+  «Las que más valen» `?ver=ranking` (`js/mi-coleccion/movimientos.js`, por
+  `import()` con `ctxPanel`). Una vista nueva del Panel va en `PESTANAS` y
+  en `VISTAS_DEL_PANEL`, en el `data-tambien` del botón Panel, con su
+  `<section class="mc-vista-panel">` en la plantilla (y `generar-cartas`),
+  la miga «‹ Panel» (`mcVistaVolver`) y `engancharFicha` para sus filas. Y
+  el histórico de un periodo se pide por sus EXTREMOS
+  (`datos.historicoDeExtremos`): el periodo entero pasa de las 1.000 filas.
 - **Un bloque de pantalla que no usa todo el mundo va en su módulo y
   entra por `import()`** (tanda 895, R4): el Panel y los deseos de Mi
   colección (`js/mi-coleccion/panel.js`, `deseos.js`) y el editor del

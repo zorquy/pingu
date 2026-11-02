@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (415) — PINGU-Claude (1171 — Movimientos y Ranking: los «Ver todas» del Panel abren lo que dicen)
+
+**Hecho** (PINGU, «dale» a la propuesta del Panel: «si le doy a las que
+más se mueven, que me enseñe los movimientos y que no me lleve a la
+colección a secas; lo mismo con lo demás»):
+- Dos vistas nuevas de Mi colección, sin botón en el menú (se llega desde
+  el Panel, el botón Panel sigue encendido por `data-tambien`, y se vuelve
+  con la miga «‹ Panel»): `?ver=movimientos` y `?ver=ranking`. Las pinta
+  `js/mi-coleccion/movimientos.js`, que entra por `import()` al abrirlas
+  con el mismo `ctxPanel` del Panel (ahora con `cambiarPestania`).
+- **Movimientos**: todas tus cartas con precio (hasta 600, las que más
+  valen) por lo que se han movido en 7D · 1M · 6M · 1A (1M de serie, se
+  recuerda), Todas · Suben · Bajan con sus cuentas, Por % · Por €, la línea
+  del total («+6,97 € este mes en lo que tienes · 6 suben · 6 bajan») y una
+  fila por carta con copias, antes y ahora; 50 por tanda con «Ver N más».
+- **Ranking** («Las que más valen»): todas por lo que vale una copia o la
+  línea entera (segmento, se recuerda), con el puesto (los tres primeros en
+  color), copias, banderas, «N % de todo · acum. M %» y la raya que acumula.
+- Los «Ver todas» de «Las que más se mueven» y «Las que más valen» apuntan
+  ahí; cada fila abre el pop-up de la carta (`engancharFicha`).
+- `datos.historicoDeExtremos`: el histórico de un periodo se pide por los
+  DOS extremos (tres días al principio, tres al final, y aparte la primera
+  foto de las que no tenían al principio), porque el periodo entero de 150
+  cartas pasaba de las 1.000 filas de Supabase (808). El bloque del Panel
+  también lo usa.
+
+**Ficheros**: js/mi-coleccion/movimientos.js (nuevo), js/mi-coleccion/datos.js,
+js/mi-coleccion/panel.js, js/mi-coleccion.js, mi-coleccion.html, cartas.html
+(generado), css/mi-coleccion.css, CLAUDE.md, SCHEMA.md, novedades.json.
+Pruebas: test-tanda-1171-pantalla.mjs nueva; 1155, 925, 895, 649, 662, 748,
+299, 1040, 1053, 1034 y 312 verdes.
+
+**Pendiente**: 1172 (Pagaste · Valen · Vas, alertas, Tu mes) y 1173
+(Añadidas, Estadísticas, Expansiones a las empezadas); después, la propuesta
+visual y de orden del Panel que pidió PINGU; y la ronda 10.
+
 ## 2026-11-02 (414) — PINGU-Claude (1170b — el buscador del glosario sube con la barra del móvil)
 
 **Hecho** (PINGU, captura: «al scrollear en el glosario pasa eso»):

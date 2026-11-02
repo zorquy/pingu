@@ -294,7 +294,9 @@ function vistazoDeValiosas(valiosas) {
         : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
     }</a><b>${escapeHtml(euros(v.valor))}</b></span>`
   }).join('')
-  return vistazoHtml('Las que más valen', 'cartas', `<div class="mc-vistazo-cartas mc-valiosas">${cuerpo}</div>`)
+  // Su «Ver todas» abre el RANKING (1171), no la pestaña Cartas: lo que
+  // promete el título.
+  return vistazoHtml('Las que más valen', 'ranking', `<div class="mc-vistazo-cartas mc-valiosas">${cuerpo}</div>`)
     .replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcValiosas">')
 }
 
@@ -547,8 +549,10 @@ async function pintarMovidas(version) {
     // las de verdad, para que lo de debajo no salte al llegar.
     if (!movidasHtml) sitio.innerHTML = `<section class="mc-vistazo mc-movidas-esq" aria-hidden="true"><div class="mc-vistazo-cabecera"><h2 class="mc-subtitulo">Las que más se mueven</h2></div><ul class="mc-movidas">${'<li class="mc-movida"><span class="skeleton mc-movida-foto"></span><span class="skeleton mc-movida-esq"></span></li>'.repeat(3)}</ul></section>`
     const desde = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
+    // Solo los extremos del periodo (1171): la semana entera de 150 cartas
+    // pasaba de las 1.000 filas que Supabase devuelve (la 808).
     const [filas, movidas] = await Promise.all([
-      datos.historicoDeCartas(conPrecio.map((l) => l.card_id), desde),
+      datos.historicoDeExtremos(conPrecio.map((l) => l.card_id), desde),
       import('./movidas.js'),
     ])
     sitio = $('mcMovidasSitio')
@@ -572,7 +576,8 @@ async function pintarMovidas(version) {
         <span class="mc-movida-precio"><b>${escapeHtml(euros(m.ahora))}</b><small>${escapeHtml(pct)}</small></span>
       </a></li>`
     }
-    sitio.innerHTML = movidasHtml = vistazoHtml('Las que más se mueven', 'cartas', `<ul class="mc-movidas">${tres.map(fila).join('')}</ul>`)
+    // Y «Ver todas» abre MOVIMIENTOS (1171), la lista entera por periodo.
+    sitio.innerHTML = movidasHtml = vistazoHtml('Las que más se mueven', 'movimientos', `<ul class="mc-movidas">${tres.map(fila).join('')}</ul>`)
       .replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcMovidas">')
   } catch {
     // Sin histórico (o sin red), el hueco se va y el Panel sigue.

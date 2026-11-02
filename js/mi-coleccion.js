@@ -131,7 +131,11 @@ const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
 // mudado cada cosa. Un `?ver=` que ya no existe no da error — abre la
 // primera pestaña y parece que el enlace estaba mal.
 // `mercado` (770): lo que da todo el mundo, la primera vista de Deseos y cambios.
-const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios', 'quiero', 'productos', 'mercado']
+// `movimientos` y `ranking` (1171): las listas enteras de dos bloques del
+// Panel. Sin botón en el menú (se llega desde el Panel y se vuelve con la
+// miga), pero con dirección: se comparten y aguantan el atrás.
+const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios', 'quiero', 'productos', 'mercado', 'movimientos', 'ranking']
+const VISTAS_DEL_PANEL = ['movimientos', 'ranking']
 // `cambios` ya NO se muda al panel (tanda 451): vuelve a tener pantalla
 // propia, así que su enlace de siempre lleva otra vez a donde dice.
 const MUDANZAS = { anadir: 'cartas', albumes: 'carpetas' }
@@ -1743,6 +1747,8 @@ const ctxPanel = {
   totalDe,
   cargarValoresDeSets,
   guardarPanel,
+  // Para volver al Panel desde sus vistas (1171).
+  cambiarPestania: (...a) => cambiarPestania(...a),
 }
 let panelMod = null
 const panel = () =>
@@ -5265,7 +5271,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
   }
   centrarPestaniaActiva()
   esqueletoDelPanel()
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos'], ['mcPanelMercado', 'mercado']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos'], ['mcPanelMercado', 'mercado'], ['mcPanelMovimientos', 'movimientos'], ['mcPanelRanking', 'ranking']]) {
     // Con `?.` (762): /cartas se genera de esta página y un panel nuevo que
     // aún no esté en su HTML no puede dejar el catálogo público sin JS.
     $(id)?.classList.toggle('hidden', nombre !== nueva)
@@ -5278,7 +5284,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
   // Y de dónde salen los precios, solo donde se enseñan precios (tanda
   // 442). Son las cartas y el panel; en Expansiones, la Pokédex y las
   // carpetas no hay ninguno.
-  $('mcFuente')?.classList.toggle('hidden', !['cartas', 'resumen'].includes(nueva))
+  $('mcFuente')?.classList.toggle('hidden', !['cartas', 'resumen', ...VISTAS_DEL_PANEL].includes(nueva))
   // LA CABECERA, SOLO EN EL PANEL (tanda 444). PINGU: «lo de mi colección
   // debería verse solo en el panel, porque en los demás módulos es un
   // espacio desperdiciado». Son ~400 px de avatar, cifras y interruptor
@@ -5327,6 +5333,9 @@ function cambiarPestania(nueva, { push = true } = {}) {
     pintarResumenPanel()
     void pintarVistazos()
   }
+  // Movimientos y Ranking (1171): su módulo entra al abrirlas, con el
+  // mismo contexto que el Panel.
+  if (VISTAS_DEL_PANEL.includes(nueva)) void import('./mi-coleccion/movimientos.js').then((m) => m.abrir(ctxPanel, nueva)).catch((err) => { const p = $(nueva === 'ranking' ? 'mcPanelRanking' : 'mcPanelMovimientos'); if (p) p.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` })
   if (nueva === 'cambios' && esMia) abrirCambios()
   if (nueva === 'quiero' && esMia) void abrirQuiero()
   if (nueva === 'mercado') void abrirMercado()
@@ -6693,6 +6702,9 @@ function enganchar() {
   // Son los dos sitios donde el Panel enseña cartas: la tira de «Tus
   // cartas» y las listas de «te sobran» y «las más valiosas».
   engancharFicha('mcPanelResumen', '.mc-vistazo-carta, .mc-fila-carta a, a.mc-movida')
+  // Y en Movimientos y Ranking (1171), cada fila abre el pop-up igual.
+  engancharFicha('mcPanelMovimientos', 'a.mc-movida')
+  engancharFicha('mcPanelRanking', 'a.mc-movida')
   // Deseos y cambios (763): el selector de las tres vistas, en los dos
   // paneles, y lo de «Las que doy».
   for (const id of ['mcPanelQuiero', 'mcPanelCambios', 'mcPanelMercado']) {

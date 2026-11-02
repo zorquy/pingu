@@ -41785,6 +41785,54 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1171 — Movimientos y Ranking: cada «Ver todas» del Panel abre lo que dice
+
+PINGU, sobre la propuesta del Panel: «si le doy a las que más se mueven,
+que me enseñe los movimientos y que no me lleve a la colección a secas; lo
+mismo con lo demás». Los cinco «Ver todas» del Panel llevaban a la pestaña
+Cartas (por expansión y número) o a la estantería: lo que el título del
+bloque prometía no existía.
+
+**Dos vistas nuevas** en `PESTANAS` de `js/mi-coleccion.js`, agrupadas en
+`VISTAS_DEL_PANEL`: `movimientos` y `ranking`. Sin botón en `#mcMenu` (se
+llega desde el Panel; el botón Panel lleva `data-tambien="movimientos
+ranking"` y sigue encendido, como Deseos y cambios con `cambios`), con su
+`<section id="mcPanelMovimientos|mcPanelRanking" class="mc-vista-panel">`
+vacía en `mi-coleccion.html` (y en `cartas.html`, generado), que pinta
+`js/mi-coleccion/movimientos.js` por `import()` al abrirlas con `ctxPanel`
+(que ahora expone `cambiarPestania` para la miga de volver). Las filas son
+`a.mc-movida` con `data-carta`: `engancharFicha` de los dos paneles abre el
+pop-up (1043) y no la ficha entera.
+
+- **Movimientos** (`?ver=movimientos`): `lineasConPrecio` (las 600 que más
+  valen), `datos.historicoDeExtremos` por periodo (`PERIODOS`: 7D, 1M, 6M,
+  1A; 1M de serie, recordado en `mc-mov-periodo`), `movidasDe` (663) y
+  `resumenDeMovidas` (suben, bajan y el total contando las copias de cada
+  línea). `ordenarMovidas` filtra Todas · Suben · Bajan y ordena por % o
+  por €. 50 filas por tanda con «Ver N más». El histórico de cada periodo
+  se pide una vez por visita (`pedidos`).
+- **Ranking** (`?ver=ranking`): `rankingDe` agrupa por `clave` (la de
+  `pTodo`), con lo que vale una copia (`unidad`), `copias`, `total` de la
+  línea, `parte` del total de la colección y `acumulado`. `modo: 'copia'`
+  ordena por lo que vale UNA (lo que dice el bloque del Panel); `'linea'`
+  por copias × valor. Recordado en `mc-rank-modo`.
+- La cabecera es UNA fila (1034): la miga `migasHtml([{ texto: 'Panel',
+  id: 'mcVistaVolver' }])`, el título y los mandos a la derecha
+  (`.mc-vista-cab`); en el móvil los periodos ocupan su fila entera y los
+  segmentos se deslizan. Las filas largas llevan el precio de antes en
+  `.mc-movida-antes`, escondido por debajo de 640 px.
+
+**`historicoDeExtremos(ids, desde)`** (`datos.js`): la lista de un periodo
+de 150 cartas son 4.500 filas y Supabase devuelve 1.000 sin avisar (808):
+el bloque del Panel pedía 8 días de 150 cartas (1.200) y ya podía perder el
+primer o el último día de una carta. Se piden las fotos de los tres primeros
+días y las de los tres últimos; a las que tienen final y no principio (las
+compradas después, o el histórico empezó más tarde) se les busca aparte la
+PRIMERA foto, en tandas de 25 y por orden de día con `limit(1000)`: el
+corte se lleva los días de después, que no hacen falta.
+`historicoDeCartas` acepta `{ hasta, porTanda, tope }` para eso. El bloque
+«Las que más se mueven» del Panel pasa por ahí también.
+
 ## Tanda 1170b — Lo pegado arriba sube con la barra del móvil
 
 El buscador y las letras del glosario son `position: sticky; top: 72px`
