@@ -10,8 +10,9 @@ import { escapeHtml } from '../app.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { rarezaDeCarta } from '../carta-traducciones.js'
-import { padreDeColeccion, registrarEpisodios, nombreDeSet } from '../catalogo-series.js'
-import { euros, valorDeLinea } from '../cardmarket.js'
+import { padreDeColeccion, registrarEpisodios, nombreDeSet, eraDeSet } from '../catalogo-series.js'
+import { euros, valorDeLinea, idiomaDe } from '../cardmarket.js'
+import { cabeceraDeVistaHtml, engancharVolver } from './movimientos.js'
 import { icons, icon } from '../icons.js'
 import { botonOcultarHtml } from './valor-oculto.js'
 import * as datos from './datos.js'
@@ -95,44 +96,56 @@ export function pintarResumenPanel() {
   const mas = $('mcMasEstadisticas')
   const distintas = new Set(ls.map(clave)).size
   if (mas) {
+    // CON LA MISMA CABECERA QUE LOS DEMÁS BLOQUES DEL PANEL (451), y su
+    // «Ver todas» abre la VISTA Estadísticas (1172, P4): hasta ahora era el
+    // único «Ver todas» del Panel que no iba a ninguna parte (desplegaba un
+    // bloque escondido debajo), sin dirección para volver ni compartir.
     mas.innerHTML = `
-    <!-- CON LA MISMA CABECERA QUE LOS DEMÁS BLOQUES DEL PANEL (tanda
-         451). Era un botón suelto detrás del último vistazo, y PINGU: «el
-         botón de ver todas es un enlace pocho». Pegado debajo de la
-         tarjeta de Cambios parecía además que era SUYO. Todo lo que hay en
-         este panel es una tarjeta con su título y su enlace a la derecha;
-         esto también, y así se sabe de qué es el botón sin leerlo entero.
-
-         Y lo largo sigue sin enseñarse hasta que se pide: la gráfica del
-         valor es una consulta, y sin abrir esto no se pide. -->
     <section class="mc-vistazo">
       <div class="mc-vistazo-cabecera">
         <h2 class="mc-subtitulo">Estadísticas</h2>
-        <button type="button" class="link-btn" id="mcVerTodo" aria-expanded="false" aria-controls="mcEstadisticas">Ver todas</button>
+        <button type="button" class="link-btn ver-todo" id="mcVerTodo" data-ir-a="estadisticas">Ver todas <span class="ver-todo-flecha" aria-hidden="true">→</span></button>
       </div>
       <!-- Un título sin nada debajo no dice nada (1015, L7): una línea con lo
            que ya está contado. -->
       <p class="mc-vistazo-linea">${distintas} ${distintas === 1 ? 'carta distinta' : 'cartas distintas'} · ${sobran} ${sobran === 1 ? 'copia repetida' : 'copias repetidas'}</p>
-    </section>
+    </section>`
+  }
+  // La gráfica es una consulta y llega cuando llega: el resto del panel
+  // sale de lo que ya está en memoria y no la espera.
+  pintarValorEnElTiempo()
+}
 
-    <div class="mc-estadisticas hidden" id="mcEstadisticas">
-          <div class="mc-diapos">
+// ── LA VISTA ESTADÍSTICAS (1172, P4) ──
+//
+// Lo que desde la 440 vivía plegado detrás de «Ver todas» (las diapositivas
+// y las cuatro cajas), con dirección propia (`?ver=estadisticas`) y dos
+// repartos que faltaban: por IDIOMA y por ERA. Las expansiones se piden
+// (`cargarSetsDeTodos`) porque la era está en el set y no en la carta.
+export async function pintarEstadisticas() {
+  const panel = $('mcPanelEstadisticas')
+  if (!panel || !ctx.esMia) return
+  const [ls, clave, busca] = ctx.pTodo()
+  if (!ls.length) {
+    panel.innerHTML = `${cabeceraDeVistaHtml('Estadísticas')}<p class="empty-state">Todavía no has añadido ninguna carta.</p>`
+    engancharVolver(panel, ctx)
+    return
+  }
+  const rep = ctx.repetidas(ls, clave, busca)
+  const sobran = rep.reduce((n, r) => n + r.sobran, 0)
+  const valiosas = ctx.masValiosas(3, ls, clave, busca)
+  const porRareza = ctx.repartoPor((c) => rarezaDeCarta(c), ls, clave, busca)
+  panel.innerHTML = `${cabeceraDeVistaHtml('Estadísticas')}
+    <div class="mc-estadisticas" id="mcEstadisticas">
+      <div class="mc-diapos">
       ${
-        // AQUÍ VIVÍAN «Tu colección» y el total de «Lo que vale» (fuera en
-        // la 439). Las cartas, las distintas, las colecciones y el valor ya
-        // están en el listón de arriba, que además se ve desde CUALQUIER
-        // pestaña: repetirlos aquí era decir cuatro números dos veces y
-        // gastar en ello las dos primeras diapositivas, que son las únicas
-        // que se ven sin deslizar. Lo que sí añadía la segunda —CUÁLES son
-        // las que más valen— se queda, que es lo que no estaba en ningún
-        // otro sitio.
         valiosas.length
           ? diapoHtml('Las que más valen', `<ul class="mc-diapo-lista">${valiosas
               .map((v) => `<li><span>${escapeHtml(ctx.nombreDe(v.carta))}</span><strong>${escapeHtml(euros(v.valor))}</strong></li>`)
               .join('')}</ul>`)
           : ''
       }
-      ${ctx.esMia ? diapoDelBalance() : ''}
+      ${diapoDelBalance()}
       ${diapoHtml('Lo que te sobra', `
         <p class="mc-diapo-cifra">${sobran.toLocaleString('es-ES', { useGrouping: 'always' })}</p>
         <p class="mc-diapo-pie">${sobran === 1 ? 'copia repetida' : 'copias repetidas'}${rep.length ? `, de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}` : ''}</p>
@@ -147,15 +160,12 @@ export function pintarResumenPanel() {
       ${diapoHtml('Por rareza', porRareza.length
         ? ctx.barrasHtml(porRareza.slice(0, 5))
         : '<p class="subtext">Tus cartas todavía no tienen rareza guardada.</p>')}
-    </div>
+      </div>
       <div class="mc-resumen-rejilla">
         <section class="mc-resumen-caja">
           <h3>Tus repetidas</h3>
           ${
             rep.length
-              // El verbo concuerda también (tanda 485): «Te sobran 1 copia»
-              // se leía con una sola repetida, y lo vi en lo que imprimía
-              // la prueba al lado de un `ok`.
               ? `<p class="subtext">${sobran === 1 ? 'Te sobra' : 'Te sobran'} <strong>${sobran}</strong> ${sobran === 1 ? 'copia' : 'copias'} de ${rep.length} ${rep.length === 1 ? 'carta' : 'cartas'}. ${sobran === 1 ? 'Es la que puedes' : 'Son las que puedes'} cambiar.</p>
                  <ul class="mc-lista-cartas">${rep.slice(0, 12).map((r) => ctx.filaDeCartaHtml(r.carta, `tienes ${r.tengo} · <strong>te sobran ${r.sobran}</strong>`)).join('')}</ul>`
               : '<p class="subtext">No tienes ninguna repetida todavía.</p>'
@@ -178,21 +188,48 @@ export function pintarResumenPanel() {
           <h3>Por rareza</h3>
           ${ctx.barrasHtml(porRareza.slice(0, 10)) || '<p class="subtext">Tus cartas todavía no tienen rareza guardada.</p>'}
         </section>
+        <section class="mc-resumen-caja" id="mcEstIdioma">
+          <h3>Por idioma</h3>
+          ${ctx.barrasHtml(repartoPorIdioma(ls, clave)) || '<p class="subtext">—</p>'}
+        </section>
+        <section class="mc-resumen-caja" id="mcEstEra">
+          <h3>Por era</h3>
+          <p class="subtext">Un momento…</p>
+        </section>
       </div>
     </div>`
+  engancharVolver(panel, ctx)
+  // La era llega con las expansiones, que son una consulta (813: de la CDN).
+  try {
+    const sets = await ctx.cargarSetsDeTodos()
+    const caja = $('mcEstEra')
+    if (!caja || ctx.pestania !== 'estadisticas') return
+    const porEra = ctx.repartoPor((c) => eraDeCarta(c, sets), ls, clave, busca).slice(0, 10)
+    caja.innerHTML = `<h3>Por era</h3>${ctx.barrasHtml(porEra) || '<p class="subtext">Tus cartas todavía no tienen era: la estantería no ha llegado.</p>'}`
+  } catch {
+    const caja = $('mcEstEra')
+    if (caja) caja.innerHTML = '<h3>Por era</h3><p class="subtext">No se ha podido leer la estantería.</p>'
   }
+}
 
-  // AQUÍ SE LLAMABA A `engancharTira()` (fuera en la 440): el resumen ya no
-  // es una tira. La del álbum tampoco desde la 459, así que la función se
-  // ha ido con ella.
-  $('mcVerTodo').addEventListener('click', () => {
-    const abierto = !$('mcEstadisticas').classList.toggle('hidden')
-    $('mcVerTodo').setAttribute('aria-expanded', abierto ? 'true' : 'false')
-    $('mcVerTodo').textContent = abierto ? 'Ocultar' : 'Ver todas'
-  })
-  // La gráfica es una consulta y llega cuando llega: el resto del panel
-  // sale de lo que ya está en memoria y no la espera.
-  pintarValorEnElTiempo()
+// Cuántas cartas DISTINTAS en cada idioma (la misma cuenta que
+// `repartoPor`, pero el idioma está en la LÍNEA, no en la carta).
+export function repartoPorIdioma(ls, clave) {
+  const vistas = new Map()
+  for (const l of ls || []) {
+    const k = `${l.idioma || 'es'}|${clave(l)}`
+    if (!vistas.has(k)) vistas.set(k, l.idioma || 'es')
+  }
+  const cuenta = new Map()
+  for (const idioma of vistas.values()) cuenta.set(idioma, (cuenta.get(idioma) || 0) + 1)
+  return [...cuenta.entries()].sort((a, b) => b[1] - a[1]).map(([id, n]) => [idiomaDe(id)?.nombre || id, n])
+}
+
+function eraDeCarta(c, sets) {
+  if (!c) return ''
+  const m = c.market || 'WEST'
+  const s = (sets || []).find((x) => x.id === c.set_id && (x.market || 'WEST') === m) || c.tcg_sets
+  return eraDeSet(s) || s?.serie_id || ''
 }
 
 // Una tarjeta de la tira. Todas iguales por fuera: lo que cambia es lo
@@ -306,7 +343,7 @@ function vistazoDeCartas() {
     .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
     .slice(0, DE_VISTAZO)
   if (!ultimas.length) {
-    return vistazoHtml('Tus cartas', 'cartas', '<p class="empty-state">Todavía no has añadido ninguna carta.</p>')
+    return vistazoHtml('Últimas añadidas', 'anadidas', '<p class="empty-state">Todavía no has añadido ninguna carta.</p>')
   }
   const cuerpo = ultimas.map((l) => {
     const c = busca(l)
@@ -320,7 +357,9 @@ function vistazoDeCartas() {
         : `<span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>`
     }</a>`
   }).join('')
-  return vistazoHtml('Tus cartas', 'cartas', `<div class="mc-vistazo-cartas">${cuerpo}</div>`)
+  // «Últimas añadidas» y a la vista Añadidas (1172): «Tus cartas» no decía
+  // nada que no dijera la pestaña Cartas, y su Ver todas abría esa pestaña.
+  return vistazoHtml('Últimas añadidas', 'anadidas', `<div class="mc-vistazo-cartas">${cuerpo}</div>`)
 }
 
 // Las expansiones en las que MÁS llevas. No las más nuevas: lo que se

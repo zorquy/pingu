@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (416) — PINGU-Claude (1172 — Añadidas y Estadísticas como vistas; Expansiones a las empezadas)
+
+**Hecho** (P3 y P4 de la propuesta del Panel):
+- **Añadidas** (`?ver=anadidas`, en `js/mi-coleccion/movimientos.js`): tu
+  colección por fecha de entrada, por tramos de días (Hoy, Ayer, Esta
+  semana, los meses; `tramoDe` de avisos-grupos.js) con cuántas y cuánto
+  pagaste en cada tramo. «Sin apuntar lo pagado» (`?sin=pagado`) deja solo
+  las líneas sin `precio_compra`, cada una con un campo «Pagaste (€)» que
+  guarda al salir (`datos.actualizar` + `ctx.cambiarLinea`) y repinta. El
+  bloque del Panel se llama «Últimas añadidas» y su Ver todas va ahí.
+- **Estadísticas** (`?ver=estadisticas`, `pintarEstadisticas` en panel.js):
+  lo que vivía plegado en el Panel (diapositivas y las cuatro cajas), con
+  dirección y miga de volver, más **Por idioma** (`repartoPorIdioma`) y
+  **Por era** (con la estantería, `eraDeSet`). En el Panel queda la
+  cabecera con la línea de resumen y «Ver todas» (`#mcVerTodo`, ahora
+  `data-ir-a="estadisticas"`).
+- «Expansiones → Ver todas» abre la estantería con «Solo las empezadas»
+  puesto (lo que el bloque enseña); la entera sigue en el menú.
+- `cabeceraDeVistaHtml` y `engancharVolver` salen de movimientos.js para
+  las cuatro vistas.
+
+**Ficheros**: js/mi-coleccion/movimientos.js, js/mi-coleccion/panel.js,
+js/mi-coleccion.js, mi-coleccion.html, cartas.html (generado),
+css/mi-coleccion.css, CLAUDE.md, SCHEMA.md, novedades.json.
+Pruebas: test-tanda-1172-pantalla.mjs nueva; 374, 410, 436, 441, 485, 562 y
+649 ajustadas a las vistas (las cajas y las diapositivas ya no están en el
+Panel; Expansiones abre las empezadas); 1171 verde.
+
+**Pendiente**: 1173 (Pagaste · Valen · Vas, alertas, Tu mes); después, la
+propuesta visual y de orden del Panel que pidió PINGU; y la ronda 10.
+
 ## 2026-11-02 (415) — PINGU-Claude (1171 — Movimientos y Ranking: los «Ver todas» del Panel abren lo que dicen)
 
 **Hecho** (PINGU, «dale» a la propuesta del Panel: «si le doy a las que

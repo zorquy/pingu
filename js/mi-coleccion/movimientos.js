@@ -15,6 +15,15 @@
 //   vale a la que menos, con el puesto, cuántas tienes y qué parte de tu
 //   colección es cada una (la raya acumula). Por copia (la mejor carta) o
 //   por línea (dónde está el dinero).
+// · AÑADIDAS (`?ver=anadidas`, tanda 1172, P3): tu colección por FECHA DE
+//   ENTRADA, agrupada por días como /avisos (Hoy, Ayer, Esta semana, los
+//   meses), con lo que pagaste en cada tramo. «Tus cartas» del Panel
+//   enseñaba lo último que metiste y su Ver todas abría Cartas, que va por
+//   expansión y número: la pregunta «¿qué añadí el otro día?» se perdía al
+//   pulsar. Con `?sin=pagado`, solo las líneas sin lo pagado apuntado, cada
+//   una con su campo a mano: la cuenta de «Lo que te costó» (428) solo vale
+//   sobre las que lo tienen, y rellenarlo carta a carta desde la ficha era
+//   lo que nadie hacía.
 //
 // Son vistas de Mi colección sin botón en el menú: se llega desde el Panel
 // y se vuelve con «‹ Panel» (la miga de la 474, hecha botón en la 856).
@@ -25,8 +34,10 @@ import { escapeHtml } from '../app.js'
 import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { nombreDeSet } from '../catalogo-series.js'
-import { euros, valorDeLinea } from '../cardmarket.js'
+import { euros, valorDeLinea, idiomaDe } from '../cardmarket.js'
 import { banderaHtml } from '../precio-vista.js'
+import { tramoDe } from '../avisos-grupos.js'
+import { showToast } from '../toast.js'
 import * as datos from './datos.js'
 import { movidasDe } from './movidas.js'
 import { migasHtml } from './migas.js'
@@ -126,6 +137,7 @@ export async function abrir(c, vista) {
   ctx = c
   cuantas = DE_UNA_VEZ
   if (vista === 'ranking') return pintarRanking()
+  if (vista === 'anadidas') return pintarAnadidas()
   return pintarMovimientos()
 }
 
@@ -151,16 +163,130 @@ export function filaDeMovidaHtml(m, { nombre, larga = false }) {
   </a></li>`
 }
 
-const cabeceraHtml = (titulo, mandos = '') => `<div class="mc-vista-cab">
+// La cabecera de una vista del Panel: la miga de volver, el título y los
+// mandos en una fila. La usan también las Estadísticas (panel.js).
+export const cabeceraDeVistaHtml = (titulo, mandos = '') => `<div class="mc-vista-cab">
     ${migasHtml([{ texto: 'Panel', id: 'mcVistaVolver' }])}
     <h2 class="mc-subtitulo mc-vista-titulo">${escapeHtml(titulo)}</h2>
     ${mandos}
   </div>`
+const cabeceraHtml = cabeceraDeVistaHtml
 
 const seg = (grupo, id, texto, activo, cuenta = null) => `<button type="button" data-${grupo}="${id}" aria-pressed="${activo ? 'true' : 'false'}">${escapeHtml(texto)}${cuenta == null ? '' : ` <small>${n(cuenta)}</small>`}</button>`
 
-function engancharVolver(panel) {
-  panel.querySelector('#mcVistaVolver')?.addEventListener('click', () => ctx.cambiarPestania('resumen'))
+export function engancharVolver(panel, c = ctx) {
+  panel.querySelector('#mcVistaVolver')?.addEventListener('click', () => c.cambiarPestania('resumen'))
+}
+
+// ── Añadidas (1172) ──
+
+// Las líneas por fecha de entrada, de la más nueva a la más vieja, en
+// tramos de días. `sinPagado` deja solo las que no tienen lo pagado.
+export function tramosDeAnadidas(lineas, { ahora = Date.now(), sinPagado = false } = {}) {
+  const orden = [...(lineas || [])]
+    .filter((l) => !sinPagado || !(Number(l.precio_compra) > 0))
+    .sort((a, b) => String(b.created_at || '').localeCompare(String(a.created_at || '')))
+  const tramos = []
+  for (const l of orden) {
+    const nombre = l.created_at ? tramoDe(l.created_at, ahora, { meses: true }) : 'Sin fecha'
+    let t = tramos[tramos.length - 1]
+    if (!t || t.nombre !== nombre) { t = { nombre, lineas: [], copias: 0, pagado: 0, sinApuntar: 0 }; tramos.push(t) }
+    const copias = Number(l.cantidad) || 1
+    t.lineas.push(l)
+    t.copias += copias
+    if (Number(l.precio_compra) > 0) t.pagado += Number(l.precio_compra) * copias
+    else t.sinApuntar += 1
+  }
+  return tramos
+}
+
+let sinPagado = false
+async function pintarAnadidas() {
+  const panel = $('mcPanelAnadidas')
+  if (!panel || !ctx.esMia) return
+  const [ls, , busca] = ctx.pTodo()
+  sinPagado = new URLSearchParams(location.search).get('sin') === 'pagado'
+  const sinApuntar = ls.filter((l) => !(Number(l.precio_compra) > 0)).length
+  const modos = `<div class="mc-seg mc-seg-sueltas mc-vista-modos" role="group" aria-label="Cuáles">${seg('sin', 'todas', 'Todas', !sinPagado, ls.length)}${seg('sin', 'pagado', 'Sin apuntar lo pagado', sinPagado, sinApuntar)}</div>`
+  if (!panel.dataset.montado) {
+    panel.innerHTML = `${cabeceraHtml('Añadidas', modos)}
+      <p class="mc-vista-resumen" id="mcAnadResumen"></p>
+      <div id="mcAnadLista"></div>`
+    panel.dataset.montado = '1'
+    engancharVolver(panel)
+    panel.addEventListener('click', (e) => {
+      const m = e.target.closest('[data-sin]')
+      if (m) {
+        const url = new URL(location.href)
+        if (m.dataset.sin === 'pagado') url.searchParams.set('sin', 'pagado')
+        else url.searchParams.delete('sin')
+        history.replaceState(null, '', url)
+        cuantas = DE_UNA_VEZ
+        void pintarAnadidas()
+        return
+      }
+      if (e.target.closest('[data-mas]')) { cuantas += DE_UNA_VEZ; void pintarAnadidas() }
+    })
+    // Lo pagado, a mano y guardado al salir del campo (896: se apunta ya y
+    // se deshace si la base dice que no).
+    panel.addEventListener('change', (e) => {
+      const campo = e.target.closest('input[data-pagado-de]')
+      if (campo) void guardarPagado(campo)
+    })
+  } else {
+    panel.querySelector('.mc-vista-modos').outerHTML = modos
+  }
+  const tramos = tramosDeAnadidas(ls, { sinPagado })
+  const lista = $('mcAnadLista')
+  const total = tramos.reduce((n2, t) => n2 + t.lineas.length, 0)
+  $('mcAnadResumen').innerHTML = sinPagado
+    ? (total ? `<b>${n(total)}</b> ${total === 1 ? 'línea sin lo que pagaste' : 'líneas sin lo que pagaste'}: apúntalo aquí y entran en «Lo que te costó».` : 'Todas tus cartas tienen apuntado lo que pagaste.')
+    : (total ? `<b>${n(total)}</b> ${total === 1 ? 'línea' : 'líneas'}, de la última que añadiste a la primera.` : '')
+  if (!total) {
+    lista.innerHTML = `<p class="empty-state">${sinPagado ? 'No queda ninguna por apuntar.' : 'Todavía no has añadido ninguna carta.'}</p>`
+    return
+  }
+  let quedan = cuantas
+  const trozos = []
+  for (const t of tramos) {
+    if (quedan <= 0) break
+    const filas = t.lineas.slice(0, quedan)
+    quedan -= filas.length
+    trozos.push(`<h3 class="mc-vista-tramo">${escapeHtml(t.nombre)}<small>${n(t.copias)} ${t.copias === 1 ? 'carta' : 'cartas'}${t.pagado ? ` · ${escapeHtml(euros(t.pagado))}` : ''}${t.sinApuntar && !sinPagado ? ` · ${n(t.sinApuntar)} sin apuntar` : ''}</small></h3>
+      <ul class="mc-movidas mc-anadidas">${filas.map((l) => filaDeAnadidaHtml(l, busca(l))).join('')}</ul>`)
+  }
+  lista.innerHTML = trozos.join('') + (total > cuantas ? `<p class="mc-vista-mas"><button type="button" class="btn-secondary" data-mas>Ver ${n(Math.min(DE_UNA_VEZ, total - cuantas))} más</button></p>` : '')
+}
+
+function filaDeAnadidaHtml(l, c) {
+  const escaneo = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : ''
+  const nombre = c ? ctx.nombreDe(c) : 'Carta'
+  const copias = Number(l.cantidad) || 1
+  const pagado = Number(l.precio_compra) > 0 ? Number(l.precio_compra) : null
+  const dato = pagado !== null
+    ? `<b>+${n(copias)}</b><small>pagaste ${escapeHtml(euros(pagado))}${copias > 1 ? ' por copia' : ''}</small>`
+    : `<b>+${n(copias)}</b><label class="mc-anadida-pagado"><span class="sr-only">Lo que pagaste por ${escapeHtml(nombre)} (€)</span><input type="text" inputmode="decimal" placeholder="Pagaste (€)" data-pagado-de="${escapeHtml(l.id)}" /></label>`
+  return `<li class="mc-anadida"><a class="mc-movida" href="${escapeHtml(c ? rutaDeCarta(c) : '#')}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">
+    <span class="mc-movida-foto">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}</span>
+    <span class="mc-movida-nombre"><b>${escapeHtml(nombre)}</b><small>${c ? escapeHtml(setDe(c)) : ''} ${banderaHtml(l.idioma || 'es')} ${escapeHtml(idiomaDe(l.idioma || 'es').nombre || '')}</small></span>
+  </a><span class="mc-movida-precio mc-anadida-dato">${dato}</span></li>`
+}
+
+async function guardarPagado(campo) {
+  const id = campo.dataset.pagadoDe
+  const valor = Number(String(campo.value).replace(',', '.'))
+  if (!(valor > 0)) { campo.value = ''; return }
+  campo.disabled = true
+  try {
+    const nueva = await datos.actualizar(id, { precio_compra: Math.round(valor * 100) / 100 })
+    ctx.cambiarLinea(id, nueva)
+    showToast('Apuntado')
+    // Se repinta entero: cambia la cuenta del tramo y, filtrando, la fila se va.
+    void pintarAnadidas()
+  } catch (err) {
+    campo.disabled = false
+    showToast(err?.message || 'No se ha podido guardar', 'error')
+  }
 }
 
 async function pintarMovimientos() {

@@ -169,7 +169,7 @@
            el ordenador la columna no necesita rótulos de grupo: cinco
            nombres se leen de un vistazo. -->
       <nav class="mc-pestanias mc-menu" id="mcMenu" role="tablist" aria-label="Vistas de la colección">
-        <button type="button" role="tab" class="mc-pestania activa" data-pestania="resumen" data-tambien="movimientos ranking" data-icono="barChart" aria-selected="true" aria-controls="mcPanelResumen"><span class="mc-menu-texto">Panel</span></button>
+        <button type="button" role="tab" class="mc-pestania activa" data-pestania="resumen" data-tambien="movimientos ranking anadidas estadisticas" data-icono="barChart" aria-selected="true" aria-controls="mcPanelResumen"><span class="mc-menu-texto">Panel</span></button>
         <!-- Y SE QUEDA (tanda 649). La misma estantería es ahora también el
              catálogo público (/cartas, generado de esta página); se pensó
              quitar la pestaña de aquí y PINGU paró: «alguien que quiera
@@ -866,12 +866,9 @@
              memoria —tus cartas— se pinta al momento. -->
         <div class="mc-vistazos" id="mcVistazos"></div>
 
-        <!-- LO DEMÁS, DETRÁS DEL BOTÓN (tanda 440). El botón y las
-             estadísticas vivían arriba del todo, dentro de #mcResumenPanel,
-             y con el carrusel convertido en rejilla eso apilaba tres
-             tarjetas de números ENCIMA de tus cartas: en el móvil, 200 px
-             más antes de ver la primera. Lo que cambia solo —la gráfica—
-             se queda arriba; lo que son listas, aquí abajo y plegado. -->
+        <!-- ESTADÍSTICAS (tanda 440 → 1172). Desde la 440 lo largo vivía aquí
+             plegado; desde la 1172 aquí va solo la cabecera con su línea y
+             «Ver todas» abre la vista #mcPanelEstadisticas. -->
         <div id="mcMasEstadisticas"></div>
 
         <!-- Compartir la colección, AL FINAL del Panel desde la 748: en la
@@ -1000,6 +997,10 @@
            pinta js/mi-coleccion/movimientos.js. -->
       <section id="mcPanelMovimientos" class="hidden mc-vista-panel" role="tabpanel" aria-label="Movimientos"></section>
       <section id="mcPanelRanking" class="hidden mc-vista-panel" role="tabpanel" aria-label="Las que más valen"></section>
+      <!-- AÑADIDAS y ESTADÍSTICAS (1172): lo último que añadiste por días (con lo
+           pagado a mano) y lo que vivía plegado en el Panel. -->
+      <section id="mcPanelAnadidas" class="hidden mc-vista-panel" role="tabpanel" aria-label="Añadidas"></section>
+      <section id="mcPanelEstadisticas" class="hidden mc-vista-panel" role="tabpanel" aria-label="Estadísticas"></section>
       <section id="mcPanelMercado" class="hidden" role="tabpanel" aria-label="Mercado">
         <div class="mc-bloque-mercado">
           <div class="mc-deseos-cabeza">

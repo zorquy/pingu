@@ -41785,6 +41785,43 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1172 — Añadidas y Estadísticas como vistas; Expansiones a las empezadas
+
+P3 y P4 de la propuesta del Panel, por el mismo camino que la 1171 (las dos
+entran en `PESTANAS` y `VISTAS_DEL_PANEL`, en el `data-tambien` del botón
+Panel, con su `<section class="mc-vista-panel">`).
+
+**Añadidas** (`?ver=anadidas`, `pintarAnadidas` en `movimientos.js`):
+`tramosDeAnadidas(lineas, { ahora, sinPagado })` ordena las líneas por
+`created_at` de la más nueva a la más vieja y las corta en tramos con
+`tramoDe` (avisos-grupos.js, con `meses`): cada tramo lleva `copias`,
+`pagado` (precio_compra × cantidad) y `sinApuntar`. Con `?sin=pagado` solo
+las líneas sin lo pagado, y cada fila lleva un `<input data-pagado-de=id>`
+FUERA del enlace de la carta (`.mc-anadida`: un campo dentro de un `<a>` no
+se puede escribir); al cambiar, `datos.actualizar(id, { precio_compra })`,
+`ctx.cambiarLinea` (nuevo en `ctxPanel`) y se repinta entero, que cambia la
+cuenta del tramo y, filtrando, la fila se va. El segmento Todas · Sin
+apuntar escribe o quita `sin` con `replaceState`. El bloque del Panel pasa
+de «Tus cartas» a «Últimas añadidas» (su «Ver todas» abría Cartas, por
+expansión y número; la pregunta del bloque es «¿qué añadí el otro día?»).
+
+**Estadísticas** (`?ver=estadisticas`, `pintarEstadisticas` exportada de
+`panel.js` y llamada desde `cambiarPestania` por el puente `panel()`): lo
+que desde la 440 vivía en `#mcEstadisticas` plegado dentro del Panel, ahora
+en `#mcPanelEstadisticas` con `cabeceraDeVistaHtml('Estadísticas')`. Dos
+cajas más: **Por idioma** (`repartoPorIdioma(ls, clave)`: cartas distintas
+por idioma de la LÍNEA, que `repartoPor` solo mira la carta) y **Por era**
+(`eraDeCarta` busca el set en `cargarSetsDeTodos()` y pasa por `eraDeSet`;
+llega después, en su caja `#mcEstEra`). En el Panel, `#mcMasEstadisticas`
+solo pinta la cabecera, la línea «N distintas · M repetidas» y «Ver todas»
+(`#mcVerTodo`, ahora `data-ir-a="estadisticas"`, sin desplegar nada). Las
+pruebas 374, 410 y 562 que medían las cajas en el Panel abren la vista.
+
+**Expansiones → Ver todas** (`[data-ir-a="album"]` en el oyente de
+`#mcPanelResumen`): `ponerQueSets('empezadas')`, no `'todas'` como desde la
+649. El bloque enseña las empezadas con su progreso; la estantería entera
+está en el menú y en la burbuja.
+
 ## Tanda 1171 — Movimientos y Ranking: cada «Ver todas» del Panel abre lo que dice
 
 PINGU, sobre la propuesta del Panel: «si le doy a las que más se mueven,

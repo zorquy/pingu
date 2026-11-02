@@ -134,8 +134,10 @@ const vivos = new Map() // id → { pricing, variants } pedido a TCGdex
 // `movimientos` y `ranking` (1171): las listas enteras de dos bloques del
 // Panel. Sin botón en el menú (se llega desde el Panel y se vuelve con la
 // miga), pero con dirección: se comparten y aguantan el atrás.
-const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios', 'quiero', 'productos', 'mercado', 'movimientos', 'ranking']
-const VISTAS_DEL_PANEL = ['movimientos', 'ranking']
+// `anadidas` y `estadisticas` (1172): lo último que añadiste por días, y
+// las estadísticas que vivían plegadas.
+const PESTANAS = ['cartas', 'album', 'carpetas', 'pokedex', 'resumen', 'buscar', 'cambios', 'quiero', 'productos', 'mercado', 'movimientos', 'ranking', 'anadidas', 'estadisticas']
+const VISTAS_DEL_PANEL = ['movimientos', 'ranking', 'anadidas', 'estadisticas']
 // `cambios` ya NO se muda al panel (tanda 451): vuelve a tener pantalla
 // propia, así que su enlace de siempre lleva otra vez a donde dice.
 const MUDANZAS = { anadir: 'cartas', albumes: 'carpetas' }
@@ -1749,6 +1751,8 @@ const ctxPanel = {
   guardarPanel,
   // Para volver al Panel desde sus vistas (1171).
   cambiarPestania: (...a) => cambiarPestania(...a),
+  // Añadidas apunta lo pagado a mano (1172) y lo deja en memoria.
+  cambiarLinea: (...a) => cambiarLinea(...a),
 }
 let panelMod = null
 const panel = () =>
@@ -5271,7 +5275,7 @@ function cambiarPestania(nueva, { push = true } = {}) {
   }
   centrarPestaniaActiva()
   esqueletoDelPanel()
-  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos'], ['mcPanelMercado', 'mercado'], ['mcPanelMovimientos', 'movimientos'], ['mcPanelRanking', 'ranking']]) {
+  for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos'], ['mcPanelMercado', 'mercado'], ['mcPanelMovimientos', 'movimientos'], ['mcPanelRanking', 'ranking'], ['mcPanelAnadidas', 'anadidas'], ['mcPanelEstadisticas', 'estadisticas']]) {
     // Con `?.` (762): /cartas se genera de esta página y un panel nuevo que
     // aún no esté en su HTML no puede dejar el catálogo público sin JS.
     $(id)?.classList.toggle('hidden', nombre !== nueva)
@@ -5335,7 +5339,8 @@ function cambiarPestania(nueva, { push = true } = {}) {
   }
   // Movimientos y Ranking (1171): su módulo entra al abrirlas, con el
   // mismo contexto que el Panel.
-  if (VISTAS_DEL_PANEL.includes(nueva)) void import('./mi-coleccion/movimientos.js').then((m) => m.abrir(ctxPanel, nueva)).catch((err) => { const p = $(nueva === 'ranking' ? 'mcPanelRanking' : 'mcPanelMovimientos'); if (p) p.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` })
+  if (nueva === 'estadisticas') void panel().then((m) => m.pintarEstadisticas()).catch((err) => { const p = $('mcPanelEstadisticas'); if (p) p.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` })
+  else if (VISTAS_DEL_PANEL.includes(nueva)) void import('./mi-coleccion/movimientos.js').then((m) => m.abrir(ctxPanel, nueva)).catch((err) => { const p = $({ ranking: 'mcPanelRanking', anadidas: 'mcPanelAnadidas' }[nueva] || 'mcPanelMovimientos'); if (p) p.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>` })
   if (nueva === 'cambios' && esMia) abrirCambios()
   if (nueva === 'quiero' && esMia) void abrirQuiero()
   if (nueva === 'mercado') void abrirMercado()
@@ -6150,10 +6155,11 @@ function enganchar() {
   $('mcPanelResumen')?.addEventListener('click', (e) => {
     const ir = e.target.closest('[data-ir-a]')
     if (ir) {
-      // «Ver todas» de Expansiones son TODAS (tanda 649): si «Solo las
-      // empezadas» se quedó pulsado de antes, se quita, que si no el botón
-      // dice una cosa y la estantería enseña otra.
-      if (ir.dataset.irA === 'album' && queSets !== 'todas') ponerQueSets?.('todas')
+      // «Ver todas» de Expansiones abre LAS EMPEZADAS (1172, P4; antes,
+      // desde la 649, todas): el bloque del Panel enseña las que tienes
+      // empezadas con su progreso, y eso es lo que promete. La estantería
+      // entera ya está en el menú.
+      if (ir.dataset.irA === 'album' && queSets !== 'empezadas') ponerQueSets?.('empezadas')
       return cambiarPestania(ir.dataset.irA)
     }
     // Y una expansión del vistazo abre esa expansión, no la estantería: es
@@ -6705,6 +6711,8 @@ function enganchar() {
   // Y en Movimientos y Ranking (1171), cada fila abre el pop-up igual.
   engancharFicha('mcPanelMovimientos', 'a.mc-movida')
   engancharFicha('mcPanelRanking', 'a.mc-movida')
+  engancharFicha('mcPanelAnadidas', 'a.mc-movida')
+  engancharFicha('mcPanelEstadisticas', '.mc-fila-carta a')
   // Deseos y cambios (763): el selector de las tres vistas, en los dos
   // paneles, y lo de «Las que doy».
   for (const id of ['mcPanelQuiero', 'mcPanelCambios', 'mcPanelMercado']) {

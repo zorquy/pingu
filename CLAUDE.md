@@ -830,6 +830,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   la miga «‹ Panel» (`mcVistaVolver`) y `engancharFicha` para sus filas. Y
   el histórico de un periodo se pide por sus EXTREMOS
   (`datos.historicoDeExtremos`): el periodo entero pasa de las 1.000 filas.
+  Desde la 1172 son cuatro: «Últimas añadidas» abre `?ver=anadidas` (por
+  días, con lo pagado a mano en `?sin=pagado`), «Estadísticas» abre
+  `?ver=estadisticas` (`pintarEstadisticas` en panel.js, con idioma y era;
+  nada se despliega en el Panel) y «Expansiones» abre la estantería con
+  «Solo las empezadas». Una caja nueva de estadísticas va en esa vista.
 - **Un bloque de pantalla que no usa todo el mundo va en su módulo y
   entra por `import()`** (tanda 895, R4): el Panel y los deseos de Mi
   colección (`js/mi-coleccion/panel.js`, `deseos.js`) y el editor del

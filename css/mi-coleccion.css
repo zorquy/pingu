@@ -7101,6 +7101,56 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   border-radius: var(--radius-pill);
   background: var(--navy);
 }
+/* AÑADIDAS (1172): los tramos de días y el campo de lo pagado, fuera del
+   enlace de la fila (un campo dentro de un enlace no se puede escribir). */
+.mc-vista-tramo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  align-items: baseline;
+  margin: var(--e-lg) 0 var(--e-sm);
+  font-size: var(--t-md);
+}
+.mc-vista-tramo:first-child {
+  margin-top: 0;
+}
+.mc-vista-tramo small {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  font-weight: 500;
+}
+.mc-anadida {
+  display: flex;
+  align-items: center;
+}
+.mc-anadida .mc-movida {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.mc-anadida-dato {
+  flex: 0 0 auto;
+  padding-right: var(--e-md);
+}
+.mc-anadida-pagado input {
+  width: 108px;
+  min-height: 36px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  text-align: right;
+}
+.mc-anadida-pagado input:focus {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+/* La vista Estadísticas: lo de antes, sin plegar. */
+#mcPanelEstadisticas .mc-estadisticas {
+  margin-top: 0;
+}
 /* El Panel en dos columnas en el PC (1155, E3; SCHEMA): el valor y «Las que
    más valen» a la izquierda, «Las que más se mueven» en una lista estrecha a
    la derecha. Solo si ese bloque está (o su esqueleto). */

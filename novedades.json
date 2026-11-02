@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-02",
       "tipo": "nuevo",
+      "texto": "En el Panel de Mi colección, «Últimas añadidas → Ver todas» abre tus cartas por el día en que las metiste, con lo que pagaste en cada tramo y un campo para apuntarlo donde falte; y «Estadísticas» tiene su propia página, con el reparto por idioma y por era.",
+      "enlace": "/mi-coleccion?ver=anadidas"
+    },
+    {
+      "fecha": "2026-11-02",
+      "tipo": "nuevo",
       "texto": "En el Panel de Mi colección, «Ver todas» de «Las que más se mueven» abre la lista entera de movimientos (por semana, mes, seis meses o año, las que suben y las que bajan), y el de «Las que más valen», el ranking completo con qué parte de tu colección es cada carta.",
       "enlace": "/mi-coleccion?ver=movimientos"
     },
