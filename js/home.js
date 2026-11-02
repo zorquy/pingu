@@ -515,6 +515,17 @@ async function cargarLanzamiento() {
 }
 cargarLanzamiento().catch(() => recogerSeccion('lanzamientoSeccion'))
 
+// ¿Desde qué caja se entra a los retos? (1186, PINGU: «quiero ver desde dónde
+// clica la gente»): la ficha de arriba o la caja de abajo. Se apunta aquí y la
+// visita siguiente lo guarda como su campaña (page-views.js, `desdeDePortada`),
+// que /admin → Analítica → Tráfico ya cuenta. Sin migración.
+document.addEventListener('click', (e) => {
+  const a = e.target.closest?.('a[href]')
+  const desde = a?.closest('.hoy-retos') ? 'portada-retos-arriba' : a?.closest('#retoTarjetas') ? 'portada-retos-abajo' : ''
+  if (!desde) return
+  try { sessionStorage.setItem('pd-desde', desde) } catch {}
+})
+
 // Si el módulo no llega, los huecos se recogen: un esqueleto girando para
 // siempre no dice nada.
 getSession()

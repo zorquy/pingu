@@ -163,6 +163,18 @@ export function origenDe(referrer = '', host = '') {
   return h.slice(0, 60)
 }
 
+// La caja de la portada desde la que se ha llegado (1186): la apunta home.js
+// al hacer clic y se gasta en la primera visita que la lee.
+function desdeDePortada() {
+  try {
+    const d = sessionStorage.getItem('pd-desde')
+    sessionStorage.removeItem('pd-desde')
+    return /^portada-[a-z-]{1,30}$/.test(d || '') ? d : null
+  } catch {
+    return null
+  }
+}
+
 // La etiqueta de campaña de un enlace que compartes (`?utm_source=telegram`).
 export function campanaDe(search = '') {
   try {
@@ -242,7 +254,7 @@ export async function logPageView(session) {
       user_id: session?.user?.id || null,
       is_bot: pareceRobot(),
       origen: origenDe(document.referrer, location.hostname),
-      campana: campanaDe(location.search),
+      campana: campanaDe(location.search) || desdeDePortada(),
       aparato: aparatoDe(window.innerWidth, matchMedia?.('(pointer: coarse)').matches),
     }
     // Lo de la 1065: app o web, y las tres marcas del navegador.

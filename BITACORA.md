@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (430) — PINGU-Claude (1186 — la portada, otra vuelta: comunidad ancha y noticias llenas)
+
+**Hecho**: PINGU: «En la comunidad» se lee roto en un tercio, debería ocupar
+dos bloques; la clasificación a la derecha; las noticias dejan hueco abajo; y
+quiere saber si la gente entra a los retos por la ficha de arriba o por la caja
+de abajo (si por la de abajo no entra nadie, la caja se quita y queda
+comunidad 2/3 + clasificación 1/3). Hecho:
+- La rejilla pasa a DOCE pistas. Última fila: retos ¼ · comunidad ½ ·
+  clasificación ¼ (sin clasificación, retos ⅓ y comunidad ⅔; sin comunidad,
+  retos y clasificación a medias).
+- Noticias: se piden seis y la caja no estira su fila (`contain: size` cuando
+  hay foro al lado): `encajarNoticias` deja las que caben, y se repite con un
+  `ResizeObserver` (el foro llega después). En el móvil, dos como siempre.
+- La caja de retos en un cuarto: el siguiente reto baja de línea y «Jugar» va
+  debajo (`@container tr-bloque`), sin cortar el título.
+- Medir: un clic en la ficha de arriba (`.hoy-retos`) o en la caja de abajo
+  (`#retoTarjetas`) deja `pd-desde` en `sessionStorage` (home.js) y la visita
+  siguiente lo guarda como su `campana` (`desdeDePortada`, page-views.js):
+  «portada-retos-arriba» / «portada-retos-abajo» en /admin → Analítica →
+  Tráfico → Campañas. Sin migración.
+
+**Ficheros**: `css/components.css`, `css/portada.css`,
+`css/portada-retos.css`, `js/portada-bloques.js`, `js/home.js`,
+`js/page-views.js`, `admin/js/analitica.js`, `SCHEMA.md` (1186),
+`novedades.json`; en `pruebas`, la 1185 (doce pistas, noticias, la medida).
+Verdes 1185, 299, 313, 316, 362, 785, 843, 844, 1010, 1012, 1023, 1040 e
+imports. Sin pasar por el PostgreSQL local caído: 1017, 1065 y 848. La 983
+roja en /perfil (las olas de consultas), que esta tanda no toca. Subido a
+petición de PINGU antes de acabar la tanda de pruebas.
+
+**Pendiente**: en un par de semanas, mirar las dos campañas en /admin. Si la
+caja de abajo casi no se usa, quitarla y dejar comunidad ⅔ + clasificación ⅓.
+
 ## 2026-11-02 (429) — PINGU-Claude (1185 — una portada que cuadra, la A)
 
 **Hecho**: PINGU, con captura del PC: «los cinco primeros bloques están en

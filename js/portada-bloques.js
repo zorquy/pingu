@@ -295,10 +295,20 @@ export function noticiasHtml(noticias) {
     <div class="pb-pie-enlace">${verTodo('/noticias', 'Todas las noticias')}</div>`
 }
 
+export function encajarNoticias(caja) {
+  const filas = [...caja.querySelectorAll('.pb-noticias-mas li')]
+  for (const li of filas) li.style.display = ''
+  if (!matchMedia('(min-width: 960px)').matches) {
+    filas.slice(2).forEach((li) => { li.style.display = 'none' })
+    return
+  }
+  for (let i = filas.length - 1; i >= 0 && caja.scrollHeight > caja.clientHeight + 1; i--) filas[i].style.display = 'none'
+}
+
 async function montarNoticias() {
   const hueco = document.getElementById('noticiaPortada')
   if (!hueco) return []
-  const { data, error } = await supabase.from('guides').select('id, slug, title, published_at, cover_image').eq('kind', 'news').not('published_at', 'is', null).order('published_at', { ascending: false }).limit(3)
+  const { data, error } = await supabase.from('guides').select('id, slug, title, published_at, cover_image').eq('kind', 'news').not('published_at', 'is', null).order('published_at', { ascending: false }).limit(6)
   if (error || !data?.length) {
     recoger('noticiaPortadaSeccion')
     return []
@@ -306,6 +316,11 @@ async function montarNoticias() {
   await hoja
   hueco.innerHTML = noticiasHtml(data)
   document.getElementById('noticiaPortadaSeccion').style.display = ''
+  // En el PC la caja mide lo que el foro de al lado (portada.css), así que se
+  // dejan las que caben y se vuelve a mirar cuando cambia de alto (el foro
+  // llega después, o se estrecha la ventana). En el móvil, dos como siempre.
+  encajarNoticias(hueco)
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => encajarNoticias(hueco)).observe(hueco)
   return data.flatMap((n) => [`noticia:${n.id}`])
 }
 

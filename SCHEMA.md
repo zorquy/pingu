@@ -41785,6 +41785,36 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1186 — La portada, otra vuelta: comunidad ancha, noticias llenas y de dónde se entra a los retos
+
+PINGU sobre la 1185: «En la comunidad» en un tercio rompe las líneas (sus dos
+columnas no caben), la clasificación iría a la derecha, la caja de noticias deja
+hueco, y quiere saber desde dónde entra la gente a los retos antes de quitar la
+caja de abajo.
+
+- **Doce pistas** (`components.css`). La última fila (`.fila-final`, por clase y
+  no por id: la 362) es retos 3 · comunidad 6 · clasificación 3, con el orden
+  por `order` (retos 6, `#homeActivity` 7, `#clasificacionSeccion` 8). Sin
+  clasificación: 4 + 8. Sin comunidad (`#homeActivity.hidden`): 6 + 6.
+- **Noticias del alto del foro**: con el foro a la vista,
+  `#noticiaPortadaSeccion` lleva `contain: size`, así que no cuenta para el alto
+  de la fila y se estira hasta el del foro; su caja es `overflow: hidden`. Se
+  piden seis y `encajarNoticias(caja)` (portada-bloques.js) esconde desde la
+  última las que no caben (en el móvil deja dos). Un `ResizeObserver` la repite
+  cuando la caja cambia de alto, que pasa cuando el foro llega después.
+- **La caja de retos en un cuarto**: `.tr-bloque` es contenedor y por debajo de
+  300 px el siguiente reto parte línea y «Jugar» ocupa la fila de abajo.
+- **De dónde se entra a los retos**: home.js apunta en `sessionStorage`
+  (`pd-desde`) «portada-retos-arriba» si el clic es en `.hoy-retos` y
+  «portada-retos-abajo» si es en `#retoTarjetas`; page-views.js lo gasta en la
+  visita siguiente como su `campana` si no trae `utm_source`
+  (`desdeDePortada`, solo valores `portada-…`). Sale en Analítica → Tráfico →
+  Campañas, sin migración.
+
+Prueba: `test-tanda-1185-pantalla.mjs` (las proporciones de la última fila con y
+sin clasificación, las noticias que caben sin cortarse, el clic que apunta y la
+visita que lo guarda una vez).
+
 ## Tanda 1185 — Una portada que cuadra (la A)
 
 PINGU: «los cinco primeros bloques están en orden. Pero luego todo está

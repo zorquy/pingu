@@ -262,19 +262,24 @@
 /* Filas que cuadran (1185, la A; el porqué en SCHEMA): cada fila mide lo que
    la más alta de sus cajas y las demás se estiran hasta ella. */
 @media (min-width: 960px) {
-  .panel-portada > * > section { grid-column: span 6; min-width: 0; }
+  .panel-portada > * > section { grid-column: span 12; min-width: 0; }
   #sigueSeccion { order: 1; }
-  #torneoPortadaSeccion, #lanzamientoSeccion { order: 2; grid-column: span 3; }
-  #foroVivoSeccion { order: 3; grid-column: span 4; }
-  #noticiaPortadaSeccion { order: 3; grid-column: span 2; }
+  #torneoPortadaSeccion, #lanzamientoSeccion { order: 2; grid-column: span 6; }
+  #foroVivoSeccion { order: 3; grid-column: span 8; }
+  #noticiaPortadaSeccion { order: 3; grid-column: span 4; }
   #recientesSeccion { order: 4; }
   #primerosPasos { order: 5; }
-  .panel-portada .fila-final { order: 6; grid-column: span 2; }
-  #clasificacionSeccion { order: 7; }
-  #homeActivity { order: 8; }
+  .panel-portada .fila-final { order: 6; grid-column: span 3; }
+  #homeActivity { order: 7; grid-column: span 6; }
+  #clasificacionSeccion { order: 8; }
   .panel-portada:has(#lanzamientoSeccion.seccion-recogida) #torneoPortadaSeccion,
-  .panel-portada:has(#torneoPortadaSeccion.seccion-recogida) #lanzamientoSeccion { grid-column: span 6; }
-  .panel-portada:has(.fila-final:is(.hidden, .seccion-recogida)) .fila-final { grid-column: span 3; }
+  .panel-portada:has(#torneoPortadaSeccion.seccion-recogida) #lanzamientoSeccion { grid-column: span 12; }
+  .panel-portada:has(#homeActivity.hidden) .fila-final { grid-column: span 6; }
+  .panel-portada:has(#clasificacionSeccion.seccion-recogida) .fila-final { grid-column: span 4; }
+  .panel-portada:has(#clasificacionSeccion.seccion-recogida) #homeActivity { grid-column: span 8; }
+  /* Las noticias no estiran su fila: miden lo que el foro, y caben las que caben (1186). */
+  .panel-portada:has(#foroVivoSeccion:not(.seccion-recogida)) #noticiaPortadaSeccion { contain: size; }
+  #noticiaPortadaSeccion > .pb-caja { overflow: hidden; }
   .panel-portada > * > section > :only-child,
   .fila-final > .reto-tarjetas,
   #lanzamientoSeccion > .lanzamiento-portada { height: 100%; }

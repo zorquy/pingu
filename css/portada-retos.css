@@ -86,3 +86,12 @@
   .tr-cuerpo { padding: var(--e-sm) var(--e-md); }
   .tr-esqueleto { height: 68px; }
 }
+
+/* En una caja estrecha (la cuarta parte de la última fila de la portada, 1186)
+   el título del siguiente reto no se corta: baja y el botón va debajo. */
+.tr-bloque { container: tr-bloque / inline-size; }
+@container tr-bloque (max-width: 300px) {
+  .tr-siguiente { flex-wrap: wrap; }
+  .tr-siguiente b { white-space: normal; }
+  .tr-siguiente .tr-jugar { flex: 1 0 100%; justify-content: center; }
+}

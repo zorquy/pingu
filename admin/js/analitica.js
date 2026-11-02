@@ -485,7 +485,7 @@ export function pintarAnalitica(raiz, datos, { pageLabel = (r) => r, resumen = n
       ${tarjeta('Quién vuelve', retencionHtml(ret), { clase: 'an-ancha', tab: 'hacen', sub: 'Las últimas ocho semanas, entre quien tiene cuenta' })}
       ${tarjeta('Lo más buscado', barrasHtml(buscado, { vacio: 'Nadie ha buscado nada todavía (o falta la migración).' }), { tab: 'hacen', sub: `${fmt(bus.total)} búsquedas en el periodo` })}
       ${tarjeta('Buscado sin resultado', barrasHtml(sinNada, { vacio: 'Todo lo que se ha buscado ha encontrado algo.' }), { tab: 'hacen', sub: 'Ideas de guías, o nombres que no casan' })}
-      ${campanas.length ? tarjeta('Campañas', barrasHtml(campanas), { tab: 'trafico', sub: 'Los enlaces con <code>?utm_source=</code> que has compartido' }) : ''}
+      ${campanas.length ? tarjeta('Campañas', barrasHtml(campanas), { tab: 'trafico', sub: 'Los enlaces con <code>?utm_source=</code> que has compartido, y «portada-retos-arriba» o «-abajo»: desde qué caja de la portada se entra a los retos' }) : ''}
       ${tarjeta(
         'Páginas rotas',
         rotos.length

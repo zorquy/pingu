@@ -2562,10 +2562,10 @@ body.portada-compacta .page-content {
 }
 
 @media (min-width: 960px) {
-  /* Filas que cuadran (1185): seis pistas; lo coloca portada.css. */
+  /* Filas que cuadran (1185, 1186): doce pistas; lo coloca portada.css. */
   .panel-portada {
     display: grid;
-    grid-template-columns: repeat(6, minmax(0, 1fr));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
     gap: var(--e-xl);
   }
 
