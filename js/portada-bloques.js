@@ -295,11 +295,17 @@ export function noticiasHtml(noticias) {
     <div class="pb-pie-enlace">${verTodo('/noticias', 'Todas las noticias')}</div>`
 }
 
-export function encajarNoticias(caja) {
-  const filas = [...caja.querySelectorAll('.pb-noticias-mas li')]
+export const encajarNoticias = (caja) => encajar(caja, '.pb-noticias-mas li', 2)
+
+// Lo mismo para la comunidad (1187): en el PC mide lo que la clasificación
+// de al lado y enseña los sucesos que quepan; en el móvil, seis.
+export const encajarComunidad = (caja) => encajar(caja, '.suc-lista > li', 6)
+
+function encajar(caja, selector, enMovil) {
+  const filas = [...caja.querySelectorAll(selector)]
   for (const li of filas) li.style.display = ''
   if (!matchMedia('(min-width: 960px)').matches) {
-    filas.slice(2).forEach((li) => { li.style.display = 'none' })
+    filas.slice(enMovil).forEach((li) => { li.style.display = 'none' })
     return
   }
   for (let i = filas.length - 1; i >= 0 && caja.scrollHeight > caja.clientHeight + 1; i--) filas[i].style.display = 'none'
@@ -394,21 +400,24 @@ async function montarClasificacion(session) {
 // ── 7 · En la comunidad ──
 //
 // Una línea por suceso, con el molde de js/comunidad-sucesos.js (el mismo que
-// la pestaña Actividad de /usuarios, 845). Aquí, seis como mucho, sin las
-// noticias —van en su bloque— y sin lo que ya está arriba.
+// la pestaña Actividad de /usuarios, 845). Aquí, los que quepan, sin las
+// noticias —van en su bloque— y sin lo que ya está arriba. Se piden catorce
+// y en el PC se enseñan los que caben al lado de la clasificación (1187).
 async function montarComunidad(session, yaEnPantalla) {
   const caja = document.getElementById('homeActivityFeed')
   if (!session || !caja) return
   try {
     const m = await import('./comunidad-sucesos.js')
-    const [{ actividad, nuevos }, fuera] = await Promise.all([m.cargarSucesos(12), yaEnPantalla.catch(() => new Set())])
+    const [{ actividad, nuevos }, fuera] = await Promise.all([m.cargarSucesos(14), yaEnPantalla.catch(() => new Set())])
     const clave = (e) => (e.tipo === 'tema' ? `tema:${String(e.enlace || '').split('/').pop()}` : e.tipo === 'noticia' ? `noticia:${e.guideId}` : null)
     const deSiempre = actividad.filter((e) => e.tipo !== 'noticia' && !fuera.has(clave(e)))
-    const sucesos = m.sucesosDeLaComunidad(deSiempre, nuevos).slice(0, 6)
+    const sucesos = m.sucesosDeLaComunidad(deSiempre, nuevos).slice(0, 14)
     if (!sucesos.length) return
     await Promise.all([hoja, m.hoja])
     caja.innerHTML = `${cabecera('En la comunidad', verTodo('/usuarios.html#activity'))}${m.listaHtml(sucesos, { dos: true })}`
     document.getElementById('homeActivity').classList.remove('hidden')
+    encajarComunidad(caja)
+    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => encajarComunidad(caja)).observe(caja)
   } catch {}
 }
 

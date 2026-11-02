@@ -52895,3 +52895,29 @@ y, si TCGGO lo trae, lo vuelca encima por número. /admin y
 **Pruebas**: `test-tanda-884.mjs` (la lista, las filas con la Dragonite
 copiada, el orden con Scrydex y TCGGO, la pasada y sus frenos).
 
+## Tanda 1187 — La portada: comunidad y clasificación abajo del todo
+
+PINGU sobre la 1186: la última fila, rota. La clasificación en tres pistas de
+doce (252 px) no tiene sitio para el título y «Semana / Mes» (se salían 25 px),
+la comunidad en seis pistas enseñaba seis sucesos en una caja estirada hasta la
+altura de la más alta, y la más alta era la caja verde de retos. La prueba de la
+1186 sustituía la clasificación por `<h2>` y un hueco de 260 px: nunca pintó la
+de verdad. La 1187 la siembra (`__FAKE_CLASIFICACION__`) y mide sus pestañas.
+
+- **Orden en el PC**: tarjetas (1), torneo y lanzamiento (2), foro 8 + noticias
+  4 (3), Aprende (4), primeros pasos (5), retos (6, solo sin cuenta) y
+  comunidad 8 + clasificación 4 (7). Las dos columnas de las filas 3 y 7
+  tienen los mismos anchos, así que la portada se lee en dos columnas.
+- **La caja verde de retos fuera del PC con cuenta**:
+  `.panel-portada:has(#sigueSeccion:not(.hidden)) .retos-abajo`. La tarjeta
+  «Retos de hoy» de arriba dice lo mismo y lleva a /retos. Va por clase porque
+  la 362 solo deja `order` en las reglas con `#retoSeccion`. Sin cuenta no hay
+  tarjetas y la caja se queda (es la invitación a los retos).
+- **La comunidad mide lo que la clasificación**: `contain: size` cuando la
+  clasificación está a la vista (si se recoge, la comunidad va a doce pistas y
+  sin `contain`, que la dejaría a cero de alto). `encajar(caja, selector,
+  enMovil)` es el de las noticias generalizado: en el PC quita desde el final
+  hasta que `scrollHeight` cabe; en el móvil deja `enMovil` (2 noticias, 6
+  sucesos). Se piden 14 sucesos (`cargarSucesos(14)`); con los de prueba
+  caben 11. La lista va en `columns: 2`, que reparte sola al quitar.
+

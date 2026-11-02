@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (431) — PINGU-Claude (1187 — la portada: comunidad y clasificación abajo del todo, sin la caja verde en el PC)
+
+**Hecho**: PINGU sobre la 1186 (con captura): la fila de abajo, «horrible».
+«Semana / Mes» se salía de la clasificación (en un cuarto no cabe), la
+comunidad medio vacía y la caja verde de retos marcando la altura de la fila.
+Mi prueba de la 1186 cambiaba la clasificación por un bloque falso y no lo vio.
+Propuesta con capturas de la portada de verdad (A, B, C:
+https://claude.ai/artifact/QdDqFEWH3JDKMC9erfLGWG); PINGU eligió la A con su
+orden: foro y noticias, Aprende, primeros pasos y, abajo del todo, comunidad y
+clasificación; y que la comunidad aproveche su caja. Hecho:
+- PC (`css/portada.css`): comunidad 8 pistas y clasificación 4, en la última
+  fila, con los anchos del foro y las noticias. La caja de retos
+  (`#retoSeccion`, ahora clase `retos-abajo` en vez de `fila-final`) se
+  esconde en el PC cuando hay tarjetas de arriba (`#sigueSeccion` a la vista,
+  o sea con cuenta); sin cuenta sigue. Sin clasificación, la comunidad a todo
+  el ancho; sin comunidad, la clasificación.
+- La comunidad no estira su fila (`contain: size` con la clasificación a la
+  vista) y enseña los sucesos que caben: se piden 14 y `encajarComunidad`
+  (portada-bloques.js, el mismo `encajar` que las noticias) quita desde el
+  final; en el móvil, seis como antes.
+- El móvil no cambia (la tira de retos arriba, clasificación y comunidad al
+  final). La medida de «arriba / abajo» de la 1186 sigue, ahora solo cuenta
+  la caja del móvil.
+
+**Ficheros**: `index.html`, `css/portada.css`, `js/portada-bloques.js`,
+`SCHEMA.md` (1187), `novedades.json` (la línea de la 1186, reescrita); en
+`pruebas`, la 1187 nueva (con la clasificación de verdad) y la 1185 sin la
+última fila.
+
+**Pruebas**: verdes 1185, 1187, 299 y 844 (estas dos, ajustadas: la caja
+verde ya no está en el PC con cuenta y la comunidad pide catorce), 313, 362,
+316, 300, 368, 785, 843, 1010, 1012, 1023 e imports. La 981 roja en
+/mi-coleccion (CLS 0,751, igual que antes de esta tanda). La 1040 sin
+repasar: PINGU pidió subir ya.
+
+**Pendiente**: repasar la 1040.
+
 ## 2026-11-02 (430) — PINGU-Claude (1186 — la portada, otra vuelta: comunidad ancha y noticias llenas)
 
 **Hecho**: PINGU: «En la comunidad» se lee roto en un tercio, debería ocupar
