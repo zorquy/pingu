@@ -15272,3 +15272,37 @@ html.mc-set-abierta .mc-hero { display: none; }
   filter: none;
   opacity: 1;
 }
+
+/* ── 1182: la barra del álbum con las píldoras de las expansiones (SCHEMA 1182) ── */
+.mc-alb-fila .mc-alb-anadir {
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+.mc-alb-fila .mc-chip-mando[aria-pressed='true'] {
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+}
+.mc-alb-ciclo-n {
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+@media (max-width: 700px) {
+  /* Detrás de «Añadir», como en la maqueta: los iconos van con order -1. */
+  .mc-alb-fila > #mcAlbQue { order: -1; }
+  #mcAlbQue > svg,
+  .mc-alb-ciclo-n { display: none; }
+}
+/* El pliego, centrado cuando `encajarAlto` lo encoge. */
+#mcAlbumesDetalle .mc-archivador-caja { margin-inline: auto; }
+/* Lo que falta, en gris si el álbum lo pide (la regla de la 757). */
+#mcAlbArchivador.mc-alb-gris .mc-bolsillo:not(.tengo) img {
+  filter: grayscale(1) brightness(0.62) contrast(0.95);
+}
+:root:not([data-theme='dark']) #mcAlbArchivador.mc-alb-gris .mc-bolsillo:not(.tengo) img {
+  filter: grayscale(1) brightness(1.08) contrast(0.8);
+}
+/* Sin iconos: solo las cartas, para enseñarlo o hacerle una captura. */
+#mcAlbArchivador.mc-alb-sin-iconos :is(.mc-tengo-marca, .mc-insignias, .mc-mas, .mc-quiero-marca, .mc-bolsillo-num, .mc-tengo-version, .mc-alb-cinta) {
+  display: none;
+}

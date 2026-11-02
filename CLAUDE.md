@@ -1322,6 +1322,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   Dentro de un álbum tuyo lo que falta va en COLOR, sin ✓ y con su «+» (1180,
   PINGU: «para hacer álbumes queda feo» el gris); en el Archivador de una
   expansión sigue en gris. La regla va por `#mcAlbArchivador`, no por la clase.
+  Su barra son pastillas `mc-chip-mando` (1182): un ciclo Todas → Tengo →
+  Faltan, «En color / En gris», Seleccionar y «Personalizar» fuera; «Ocultar
+  iconos» va en el ⋯ (PINGU). Gris e iconos son DEL ÁLBUM (`estilo.gris`,
+  `estilo.sinIconos`, por `vistaDeAlbum` / `cambiarVista`): un campo nuevo de
+  `estilo` se conserva en `estiloCompleto`, o Personalizar lo borra al guardar.
 - **Un álbum se edita y se borra desde UN sitio: la hoja de
   `album-editar.js`** (tanda 1032), que abren el ⋯ de cada baldosa y
   «Editar álbum» dentro. Un campo nuevo de un álbum (nombre, tapa, portada,

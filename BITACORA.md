@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (426) — PINGU-Claude (1182 — la barra de un álbum, en pastillas)
+
+**Hecho**: PINGU aceptó la propuesta de la barra del álbum («me gusta todo»),
+con dos cambios suyos: «Personalizar» fuera y «Ocultar iconos» dentro del ⋯.
+Pastillas de 36 como las de una expansión (`mc-chip-mando`), un solo botón que
+da la vuelta Todas → Tengo → Faltan con su cuenta, «En color / En gris» a la
+vista y «Ocultar iconos» en el menú. Gris e iconos van con el álbum, en
+`estilo` (`gris`, `sinIconos`; `vistaDeAlbum` / `cambiarVista` en
+`albumes.js`, y `album-editar.js` los conserva al guardar el aspecto); sin la
+columna, en el navegador (`mc-alb-vista-<id>`). En el PC el álbum se encoge
+para caber en el alto de la pantalla (`encajarAlto`, mínimo 640).
+
+**Ficheros**: `mi-coleccion.html` (+ `cartas.html` generado),
+`css/mi-coleccion.css`, `js/mi-coleccion/albumes.js`,
+`js/mi-coleccion/album-editar.js`, `SCHEMA.md` (1182), `CLAUDE.md` (regla del
+álbum), `novedades.json`; en `pruebas`, `test-tanda-1182-pantalla.mjs` (nueva)
+y la 1048 (el ciclo en vez de `[data-filtro]`). Verdes 1032, 1048, 417, 764,
+767, 760, 1052, 649, 1180, 1182, 299, 312, 313 e imports. La 1049 y la 1050
+siguen en rojo como antes (botones de 36 del editor y de Mis álbumes, no de
+esta barra).
+
+**Pendiente**: nada de esta tanda.
+
 ## 2026-11-02 (425) — PINGU-Claude (1181b — gráfica del Panel más baja, punto de hoy dentro)
 
 **Hecho**: PINGU: la gráfica ocupa demasiado y el punto final está mal. Caja y

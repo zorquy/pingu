@@ -41785,6 +41785,37 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1182 — La barra de un álbum, en pastillas
+
+PINGU: los botones del álbum eran «demasiado grandes, toscos y cutres», el
+álbum no cabía en la pantalla y se pidió poder elegir gris e iconos. Aceptó la
+propuesta con dos cambios: «Personalizar» fuera (es lo principal) y «Ocultar
+iconos» dentro del ⋯.
+
+- **La barra** son pastillas `mc-chip-mando` (36 px, la letra de una
+  expansión): Añadir cartas (en acento), el ciclo, En color / En gris,
+  Seleccionar y Personalizar; en el móvil, solo iconos salvo el ciclo, que
+  enseña la palabra («Todas») sin su cuenta. El estilo de «pulsado» de las
+  pastillas solo existía para `#mcVistaVariantes`: la barra lleva el suyo
+  (`.mc-alb-fila .mc-chip-mando[aria-pressed='true']`).
+- **El ciclo** (`#mcAlbQue`) va Todas → Tengo → Faltan → Todas con la cuenta de
+  cada una (`#mcAlbQueCuenta`); ya no hay `[data-filtro]`.
+- **Gris e iconos son del álbum**: `user_albums.estilo.gris` y
+  `estilo.sinIconos`, leídos con `vistaDeAlbum(album)` (exportada) y escritos
+  con `cambiarVista`, que cambia ya y guarda después, y si falla, vuelve con
+  su aviso (896). Sin la columna, `localStorage` `mc-alb-vista-<id>`. Las
+  clases son `mc-alb-gris` y `mc-alb-sin-iconos` en `#mcAlbArchivador`; el
+  gris es el de la vista Archivador de una expansión, en los dos temas.
+  `estiloCompleto` y `cambiosDelEditor` (album-editar.js) los conservan: sin
+  eso, guardar el color desde Personalizar los borraba.
+- **Encajar en alto** (`encajarAlto`, desde 900 px de ancho): la caja del
+  álbum toma el ancho que hace que su alto quepa hasta 56 px del final de la
+  ventana, sin bajar de 640; se rehace al cambiar el tamaño.
+
+Prueba: `test-tanda-1182-pantalla.mjs` (las pastillas, el ciclo con sus
+cuentas, el encaje en 1000 y 720 de alto, gris e iconos guardados en `estilo`
+sin perder el color, el respaldo del navegador y la fila del móvil).
+
 ## Tanda 1181 — La gráfica del Panel llena su caja
 
 PINGU mandó una captura del Panel en el móvil: entre la gráfica y los

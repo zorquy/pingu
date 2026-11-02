@@ -106,8 +106,24 @@ let ctx = null // lo que pasa /mi-coleccion: sesión, colección, precios…
 let albumes = []
 let actual = null // { ...fila, cartas: [{ id }] }
 let cartasDelAlbum = new Map()
-// Qué cartas se ven (1048): todas, las que tienes o las que te faltan.
+// Qué cartas se ven (1048): todas, las que tienes o las que te faltan. Desde
+// la 1182 es UN botón que pasa al siguiente, en este orden.
 let filtro = 'todas'
+const FILTROS = ['todas', 'tengo', 'faltan']
+const NOMBRE_DE_FILTRO = { todas: 'Todas', tengo: 'Tengo', faltan: 'Faltan' }
+
+// CÓMO SE VE ESTE ÁLBUM (1182, PINGU: «la opción de ponerlos grises, los que
+// te faltan, o no» y «ocultar iconos»): de cada álbum, en su `estilo` (jsonb
+// de la 1050) para que salga igual en el móvil y en el PC; sin la columna, en
+// este navegador. De serie, en color y con iconos (la 1180).
+const VISTA_LOCAL = 'mc-alb-vista-'
+export function vistaDeAlbum(album) {
+  let e = album?.estilo
+  if (!(album && 'estilo' in album)) {
+    try { e = JSON.parse(localStorage.getItem(VISTA_LOCAL + album?.id) || 'null') } catch { e = null }
+  }
+  return { gris: e?.gris === true, iconos: e?.sinIconos !== true }
+}
 // Los bolsillos marcados con «Seleccionar» (1048): un Set de índices, o null
 // si no se está seleccionando.
 let marcadas = null
@@ -654,8 +670,15 @@ function pintarDetalle() {
     $('mcAlbSiguiente').hidden = pagina + deUnaVez >= armado.paginas
   }
   $('mcAlbAnterior').dataset.paso = String(deUnaVez)
-  for (const b of $('mcAlbQue')?.querySelectorAll('[data-filtro]') || []) b.setAttribute('aria-pressed', String(b.dataset.filtro === filtro))
+  // El botón de qué se ve (1182): dice dónde estás y cuántas hay.
+  const cuantas = { todas: ids.length, tengo: mias, faltan: ids.length - mias }
+  const siguiente = FILTROS[(FILTROS.indexOf(filtro) + 1) % FILTROS.length]
+  if ($('mcAlbQueTexto')) $('mcAlbQueTexto').textContent = NOMBRE_DE_FILTRO[filtro]
+  if ($('mcAlbQueCuenta')) $('mcAlbQueCuenta').textContent = String(cuantas[filtro])
+  $('mcAlbQue')?.setAttribute('aria-label', `Viendo ${NOMBRE_DE_FILTRO[filtro].toLowerCase()} (${cuantas[filtro]}). Toca para ver ${{ todas: 'todas', tengo: 'las que tienes', faltan: 'las que te faltan' }[siguiente]}`)
   $('mcAlbArchivador').classList.toggle('mc-album-marcando', Boolean(marcadas))
+  pintarVista()
+  encajarAlto()
   pintarCabecera()
 }
 
@@ -975,6 +998,71 @@ function guardarLuego(cambios) {
   }, 500)
 }
 
+// El gris y los iconos (1182): cambia YA, guarda después y deshace si la base
+// dice que no (la 896). Con la columna, en `estilo` sin tocar lo demás de él;
+// sin ella, en el navegador.
+async function cambiarVista(cambio) {
+  if (!actual || !esMio()) return
+  const album = actual
+  const antes = vistaDeAlbum(album)
+  const ahora = { ...antes, ...cambio }
+  const claves = { ...(ahora.gris ? { gris: true } : {}), ...(ahora.iconos ? {} : { sinIconos: true }) }
+  if (!('estilo' in album)) {
+    try { localStorage.setItem(VISTA_LOCAL + album.id, JSON.stringify(claves)) } catch {}
+    return void pintarVista()
+  }
+  const estiloAntes = album.estilo
+  const base = { ...(estiloAntes && typeof estiloAntes === 'object' ? estiloAntes : {}) }
+  delete base.gris
+  delete base.sinIconos
+  album.estilo = { ...base, ...claves }
+  pintarVista()
+  try {
+    await guardarAlbum(album.id, { estilo: album.estilo })
+  } catch (err) {
+    album.estilo = estiloAntes
+    if (actual === album) pintarVista()
+    showToast(err.message || 'No se ha podido guardar.', 'error')
+  }
+}
+
+// Los dos botones y las dos clases del archivador, según la vista del álbum.
+function pintarVista() {
+  if (!actual) return
+  const v = vistaDeAlbum(actual)
+  const arch = $('mcAlbArchivador')
+  arch?.classList.toggle('mc-alb-gris', v.gris)
+  arch?.classList.toggle('mc-alb-sin-iconos', !v.iconos)
+  const gris = $('mcAlbGris')
+  if (gris) {
+    gris.setAttribute('aria-pressed', String(v.gris))
+    gris.setAttribute('aria-label', v.gris ? 'Lo que te falta, en gris. Toca para ponerlo en color' : 'Lo que te falta, en color. Toca para ponerlo en gris')
+    $('mcAlbGrisTexto').textContent = v.gris ? 'En gris' : 'En color'
+  }
+  const ico = $('mcAlbIconos')
+  if (ico) {
+    ico.setAttribute('aria-pressed', String(!v.iconos))
+    $('mcAlbIconosTexto').textContent = v.iconos ? 'Ocultar iconos' : 'Enseñar iconos'
+  }
+}
+
+// EL PLIEGO CABE EN LA PANTALLA (1182, PINGU: «no entra el álbum del todo y no
+// se ven las páginas de abajo»): en el PC se encoge lo justo para que el
+// pliego y la línea de páginas quepan en el alto de la ventana, con un mínimo
+// de 640 px. Se mide sobre el ancho natural: el alto crece con el ancho.
+const HUECO_DE_ABAJO = 56
+const ANCHO_MINIMO = 640
+function encajarAlto() {
+  const caja = document.querySelector('#mcAlbumesDetalle .mc-archivador-caja')
+  if (!caja) return
+  caja.style.maxWidth = ''
+  if (!window.matchMedia('(min-width: 900px)').matches || !$('mcAlbArchivador')?.querySelector('.mc-archivador')) return
+  const r = caja.getBoundingClientRect()
+  const libre = window.innerHeight - (r.top + window.scrollY) - HUECO_DE_ABAJO
+  if (r.height <= libre || r.height <= 0) return
+  caja.style.maxWidth = `${Math.max(ANCHO_MINIMO, Math.floor((r.width * libre) / r.height))}px`
+}
+
 // ── Añadir cartas al álbum ──
 // Desde la 767, con la pestaña Buscar en modo elegir (PINGU: «el buscador
 // tiene que dejar buscar en la occidental o en la japonesa»): la carta va al
@@ -1238,13 +1326,25 @@ export function iniciarAlbumes(contexto) {
       b.disabled = false
     }
   })
-  // Qué cartas ver (1048): todas, las que tengo o las que faltan.
-  $('mcAlbQue')?.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-filtro]')
-    if (!b || !actual || b.dataset.filtro === filtro) return
-    filtro = b.dataset.filtro
+  // Qué cartas ver (1048): todas, las que tengo o las que faltan. Desde la
+  // 1182, un botón que pasa a la siguiente.
+  $('mcAlbQue')?.addEventListener('click', () => {
+    if (!actual) return
+    filtro = FILTROS[(FILTROS.indexOf(filtro) + 1) % FILTROS.length]
     pagina = 0
     pintarDetalle()
+  })
+  // En color o en gris (1182), y los iconos, desde el «⋯».
+  $('mcAlbGris')?.addEventListener('click', () => void cambiarVista({ gris: !vistaDeAlbum(actual).gris }))
+  $('mcAlbIconos')?.addEventListener('click', () => {
+    cerrarMenu()
+    void cambiarVista({ iconos: !vistaDeAlbum(actual).iconos })
+  })
+  // El pliego cabe en la pantalla (1182): al cambiar el tamaño, se vuelve a medir.
+  let encaje = 0
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(encaje)
+    encaje = requestAnimationFrame(() => actual && encajarAlto())
   })
   $('mcAlbSeleccionar')?.addEventListener('click', () => actual && esMio() && seleccionar(!marcadas))
   $('mcAlbSelCerrar')?.addEventListener('click', () => seleccionar(false))

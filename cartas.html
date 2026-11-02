@@ -1242,19 +1242,23 @@
             <!-- Lo que se desliza en el móvil va aparte del «⋯»: dentro de algo
                  que se desliza, su menú saldría recortado. -->
             <div class="mc-alb-fila mc-mandos">
-            <button type="button" class="btn-primary mc-alb-mando" id="mcAlbBuscarAbrir" data-icono="search" aria-label="Añadir cartas"><span class="mc-q-largo">Añadir cartas</span></button>
-            <div class="mc-seg mc-seg-sueltas mc-alb-que" id="mcAlbQue" role="group" aria-label="Qué cartas ver">
-              <button type="button" data-filtro="todas" aria-pressed="true">Todas</button>
-              <button type="button" data-filtro="tengo" aria-pressed="false">Tengo</button>
-              <button type="button" data-filtro="faltan" aria-pressed="false">Faltan</button>
-            </div>
+            <!-- LAS PÍLDORAS DE LAS EXPANSIONES (1182, PINGU: «demasiado
+                 grandes, toscos»): `mc-chip-mando`, 36 px; en el móvil, lo que
+                 es icono va sin palabra. Todas/Tengo/Faltan es UN botón que
+                 pasa al siguiente y dice cuántas hay; «En color/En gris» es de
+                 este álbum. «Ocultar iconos» va en el «⋯» (PINGU) y
+                 «Personalizar» fuera, que es principal. -->
+            <button type="button" class="mc-chip-mando mc-chip-icono-movil mc-alb-anadir" id="mcAlbBuscarAbrir" data-icono="search" aria-label="Añadir cartas"><span class="mc-chip-texto">Añadir cartas</span></button>
+            <button type="button" class="mc-chip-mando mc-alb-ciclo" id="mcAlbQue" data-icono="refreshCw" aria-pressed="true" aria-label="Viendo todas. Toca para ver las que tienes"><span class="mc-chip-texto" id="mcAlbQueTexto">Todas</span><small class="mc-alb-ciclo-n" id="mcAlbQueCuenta"></small></button>
+            <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcAlbGris" data-icono="droplet" aria-pressed="false" aria-label="Lo que te falta, en color. Toca para ponerlo en gris"><span class="mc-chip-texto" id="mcAlbGrisTexto">En color</span></button>
             <span class="mc-alb-estado" id="mcAlbEstado" role="status"></span>
-            <button type="button" class="btn-secondary mc-alb-mando" id="mcAlbSeleccionar" data-icono="checkSquare" aria-label="Seleccionar cartas"><span class="mc-q-largo">Seleccionar</span></button>
-            <button type="button" class="btn-secondary mc-alb-mando" id="mcAlbAjustes" data-icono="palette" aria-label="Personalizar el álbum"><span class="mc-q-largo">Personalizar</span></button>
+            <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcAlbSeleccionar" data-icono="checkSquare" aria-label="Seleccionar cartas"><span class="mc-chip-texto">Seleccionar</span></button>
+            <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcAlbAjustes" data-icono="palette" aria-label="Personalizar el álbum"><span class="mc-chip-texto">Personalizar</span></button>
             </div>
             <details class="mc-menu-caja" id="mcAlbMenu">
               <summary class="mc-icono-mando" aria-label="Más opciones del álbum" title="Más opciones"><span data-icono="moreHorizontal" aria-hidden="true"></span></summary>
               <div class="mc-menu">
+                <button type="button" class="mc-menu-opcion" id="mcAlbIconos" aria-pressed="false"><span class="mc-menu-icono" data-icono="image" aria-hidden="true"></span><span id="mcAlbIconosTexto">Ocultar iconos</span></button>
                 <button type="button" class="mc-menu-opcion" id="mcAlbPublico" aria-pressed="false"><span class="mc-menu-icono" data-icono="eye" aria-hidden="true"></span><span id="mcAlbPublicoTexto">Hacer público</span></button>
                 <button type="button" class="mc-menu-opcion hidden" id="mcAlbCopiar"><span class="mc-menu-icono" data-icono="share" aria-hidden="true"></span>Compartir enlace</button>
                 <!-- 764, Z5: la lista del álbum, para imprimirla o mandarla. -->

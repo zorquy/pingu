@@ -18,8 +18,16 @@ const PAGINAS_MAX = 120
 
 // El estilo entero de un álbum, con la ventana (que `estiloDe` no mira: es
 // de la tapa, no del dibujo de dentro).
+// Y lo de cómo se VE por dentro (1182): el gris y los iconos, que se cambian
+// desde la barra y no desde esta hoja, pero viven en la misma columna; sin
+// llevarlos aquí, cambiar el acabado los borraba.
 export function estiloCompleto(estilo) {
-  return { ...estiloDe(estilo), ventana: estilo?.ventana === 'no' ? 'no' : 'si' }
+  return {
+    ...estiloDe(estilo),
+    ventana: estilo?.ventana === 'no' ? 'no' : 'si',
+    ...(estilo?.gris === true ? { gris: true } : {}),
+    ...(estilo?.sinIconos === true ? { sinIconos: true } : {}),
+  }
 }
 
 // Lo que cambia respecto a la fila, y solo eso: una corrección sobre una
@@ -35,7 +43,8 @@ export function cambiosDelEditor(album, { nombre, descripcion, tapa, portada, is
   if ('portada' in album && (portada || null) !== (album.portada || null)) c.portada = portada || null
   if (Boolean(is_public) !== Boolean(album.is_public)) c.is_public = Boolean(is_public)
   if ('estilo' in album && estilo) {
-    const nuevo = estiloCompleto(estilo)
+    // Sobre lo que el álbum ya tiene: la hoja no sabe del gris ni de los iconos.
+    const nuevo = estiloCompleto({ ...(album.estilo && typeof album.estilo === 'object' ? album.estilo : {}), ...estilo })
     const antes = estiloCompleto(album.estilo)
     if (Object.keys(nuevo).some((k) => nuevo[k] !== antes[k])) c.estilo = nuevo
   }
