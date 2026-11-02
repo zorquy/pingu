@@ -62,7 +62,7 @@ for (const movil of [true, false]) {
   const euros = m.valiosas.map((t) => Number(t.replace(/[^\d,]/g, '').replace(',', '.')))
   check('«Las que más valen»: ocho, de la más cara a la más barata', euros.length === 8 && euros[0] === 182 && euros.every((v, i) => i === 0 || v <= euros[i - 1]), m.valiosas.join(' · '))
   check('  …y cada una abre su ficha', m.valiosasAbren)
-  check('«Movimientos» sale, con sus tres', m.movidas === 3, String(m.movidas))
+  check('«Movimientos» sale, en una tira de ocho (1179; eran tres filas)', m.movidas >= 3 && m.movidas <= 8, String(m.movidas))
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }

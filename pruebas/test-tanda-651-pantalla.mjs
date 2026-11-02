@@ -97,7 +97,9 @@ console.log('\n── 3. El Panel: losetas en vez de párrafos, y Cambios fuera 
   check('Cambios no es un bloque del Panel', (await cambios.count()) === 0)
   await page.locator('.mc-pestania[data-pestania="mercado"]').click()
   await page.waitForTimeout(500)
-  check('  …y «Deseos y cambios» lleva a Cambios', await page.locator('#mcPanelCambios').isVisible())
+  // La pestaña abre el Mercado (`#mcPanelMercado`); Cambios (#mcPanelCambios)
+  // es su vista «Cruces», a la que lleva `?ver=cambios`.
+  check('  …y «Deseos y cambios» abre su pantalla', await page.locator('#mcPanelMercado').isVisible())
   check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }
