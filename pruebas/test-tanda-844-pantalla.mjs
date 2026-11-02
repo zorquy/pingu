@@ -155,7 +155,8 @@ console.log('── 1. Con cuenta, en el ordenador ──')
   console.log('  · En la comunidad')
   const comu = await p.$$eval('.suc-lista li', (xs) => xs.map((x) => x.innerText.replace(/\s+/g, ' ')))
   check('los sucesos nuevos: seis retos, mazo, torneo y colección', ['hizo los seis retos del día', 'compartió su mazo Charizard ex', 'ganó el torneo Liga de otoño', 'completó Base Set'].every((t) => comu.some((x) => x.includes(t))), comu.join(' / '))
-  check('  …seis como mucho, en la columna ancha', comu.length <= 6 && (await p.locator('.portada-principal #homeActivity').count()) === 1)
+  // Desde la 1187 se piden catorce y la portada enseña los que caben (la 1187 lo mide).
+  check('  …catorce como mucho, en la columna ancha', comu.length <= 14 && (await p.locator('.portada-principal #homeActivity').count()) === 1)
   const enlaces = await p.$$eval('.suc-lista a[href]', (xs) => xs.map((x) => x.getAttribute('href')))
   const existe = (h) => { const r = h.split('?')[0]; return ['/torneo', '/usuarios.html'].includes(r) || r.startsWith('/usuario/') || r.startsWith('/guia/') || r.startsWith('/tema/') || existsSync(`${RAIZ}${r.endsWith('.html') ? r : `${r}.html`}`) }
   check('  …y cada enlace lleva a una página que existe', enlaces.length > 0 && enlaces.every(existe), enlaces.filter((h) => !existe(h)).join(' '))

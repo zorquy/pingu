@@ -60,9 +60,7 @@ console.log('── 2. El PC, con cuenta ──')
   const desc = await page.$eval('#aprende .guia-desc', (d) => Math.round(d.getBoundingClientRect().height / parseFloat(getComputedStyle(d).lineHeight)))
   check('  …con la descripción en dos líneas como mucho', desc <= 2, desc)
   check('«Escribe una guía» en la cabecera de Aprende y no en una caja suelta', (await page.locator('#aprende .pb-escribir').count()) === 1 && m.lanzamientoSeccion === null)
-  const ult = [m.retoSeccion, m.homeActivity].filter(Boolean)
-  // 1186: la comunidad ocupa el doble que los retos (sin la clasificación, 2/3).
-  check('la última fila: retos y comunidad, a la misma altura, la comunidad el doble', ult.length === 2 && ult[0].y === ult[1].y && ult[0].h === ult[1].h && Math.abs(ult[1].w - 2 * ult[0].w) < 40 && ult[0].y > m.recientesSeccion.y, JSON.stringify(ult))
+  // La última fila (comunidad y clasificación) la mira la 1187.
   const noticias = await page.evaluate(() => {
     const caja = document.getElementById('noticiaPortada')
     const lis = [...caja.querySelectorAll('.pb-noticias-mas li')]
@@ -71,13 +69,6 @@ console.log('── 2. El PC, con cuenta ──')
     return { total: lis.length, vistas: vistas.length, dentro: vistas.every((l) => l.getBoundingClientRect().bottom <= abajo), sobra: Math.round(abajo - (vistas.at(-1)?.getBoundingClientRect().bottom || 0)) }
   })
   check('las noticias llenan su caja con las que caben, sin cortar ninguna (1186)', noticias.vistas >= 3 && noticias.vistas < noticias.total && noticias.dentro && noticias.sobra < 90, JSON.stringify(noticias))
-  // Con la clasificación (en este doble no llega): tres de un tercio.
-  await page.evaluate(() => { const s = document.getElementById('clasificacionSeccion'); s.classList.remove('seccion-recogida'); s.style.display = ''; document.getElementById('clasificacion').innerHTML = '<h2>Clasificación</h2>' })
-  await page.waitForTimeout(200)
-  const t = await medir(page)
-  const tres = [t.retoSeccion, t.clasificacionSeccion, t.homeActivity]
-  // Con la clasificación: retos ¼, comunidad ½ y clasificación ¼, en ese orden.
-  check('  …con la clasificación: retos, comunidad (el doble) y clasificación a la derecha', tres.every(Boolean) && new Set(tres.map((x) => x.y)).size === 1 && tres[0].w === tres[1].w && Math.abs(tres[2].w - 2 * tres[0].w) < 40 && t.homeActivity.x > t.retoSeccion.x && t.clasificacionSeccion.x > t.homeActivity.x, JSON.stringify(tres))
   // De dónde se entra a los retos (1186): la ficha de arriba y la caja de abajo.
   const desde = await page.evaluate(() => {
     const salida = []
@@ -90,7 +81,7 @@ console.log('── 2. El PC, con cuenta ──')
     }
     return salida
   })
-  check('un clic en la ficha de arriba o en la caja de abajo apunta desde dónde (1186)', desde[0] === 'portada-retos-arriba' && desde[1] === 'portada-retos-abajo', desde.join(' | '))
+  check('un clic en la ficha de arriba o en la caja de abajo (la del móvil desde la 1187) apunta desde dónde (1186)', desde[0] === 'portada-retos-arriba' && desde[1] === 'portada-retos-abajo', desde.join(' | '))
   // …y la visita siguiente lo guarda como su campaña, que /admin ya cuenta.
   await page.goto(`${BASE}/retos.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1500)

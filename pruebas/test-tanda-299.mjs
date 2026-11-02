@@ -452,11 +452,13 @@ console.log('\n── 5. F · El reto abre la portada, en grande ──')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
   // Desde la 843 el héroe con cuenta es el bloque de los SEIS retos (antes,
   // solo el de preguntas); el héroe viejo queda para quien no tiene cuenta.
-  const heroe = page.locator('.tr-bloque')
-  check('  …con el bloque de los retos de hoy', await heroe.isVisible())
-  check('  …y la noticia al lado', await page.locator('#noticiaPortada .pb-noticia').isVisible())
-  const alto = await heroe.evaluate((e) => e.getBoundingClientRect().height)
-  check('  …y es de verdad grande', alto > 150, `${Math.round(alto)}px`)
+  // Desde la 1187, en el PC con cuenta los retos los abre la tarjeta «Retos
+  // de hoy» de arriba y la caja de los seis (`.tr-bloque`) se queda para el
+  // móvil y para quien no tiene cuenta: en el PC repetía lo mismo.
+  const heroe = page.locator('.hoy-retos')
+  check('  …con la tarjeta de los retos de hoy arriba', await heroe.isVisible())
+  check('  …y sin repetirlo en la caja de abajo', !(await page.locator('.tr-bloque').isVisible()))
+  check('  …y la noticia a la vista', await page.locator('#noticiaPortada .pb-noticia').isVisible())
   // Y ARRIBA DEL TODO en su columna. Hasta la tanda 368 esto se
   // comprobaba contra `#portadaHoy`, una fila propia por encima del
   // panel; esa fila se fue porque medía lo que medía su caja más alta y
