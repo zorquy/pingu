@@ -146,7 +146,7 @@ export function resumenDeValor(filas, { ahora = null } = {}) {
 }
 
 // La fecha, corta y en cristiano: «14 sept».
-function fechaCorta(iso) {
+export function fechaCorta(iso) {
   const d = new Date(`${String(iso).slice(0, 10)}T00:00:00`)
   if (Number.isNaN(d.getTime())) return String(iso).slice(0, 10)
   return d.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }).replace('.', '')

@@ -3748,9 +3748,11 @@ html.mc-seleccionando .mc-pagina {
 }
 
 /* En un monitor ancho, las rejillas de cartas a 1.440 (1161: 6 → 8 por
-   fila); el Panel se lee y se queda en 1.160. El porqué, en SCHEMA 1161. */
+   fila). El Panel se quedaba en 1.160 por ser lectura; desde la 1177 es una
+   rejilla de tarjetas (la fila de reojo a cuatro) y crece igual. El porqué,
+   en SCHEMA 1161 y 1177. */
 @media (min-width: 1800px) {
-  .mc-pagina:not(:has(#mcPanelResumen:not(.hidden))) {
+  .mc-pagina {
     max-width: 1440px;
   }
 }
@@ -6967,6 +6969,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 }
 @media (max-width: 600px) {
   .mc-set-filas { grid-template-columns: 1fr; }
+  /* Y dos filas, no cuatro (1178): lo demás está en «Ver todas». */
+  #mcVistazoSets .mc-set-fila:nth-child(n + 3) { display: none; }
   /* Y las tiras de cartas a tres por fila (1176, V5; la regla de la 1033). */
   .mc-vistazo-cartas { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
@@ -7331,40 +7335,164 @@ button.mc-cifra-ficha:hover { background: var(--ice-dark); }
 #mcPanelEstadisticas .mc-estadisticas {
   margin-top: 0;
 }
-/* EL PANEL EN DOS COLUMNAS (1155 → 1174, O1 de la propuesta de orden): la
-   izquierda (`.mc-panel-izq`: cartera, tiras, expansiones, tu mes) y la
-   derecha (`.mc-panel-der`: movidas, alertas, Cambios, Más), que son dos
-   cajas de verdad y no una rejilla que compartía filas. Solo con algo en la
-   derecha: en /cartas (el catálogo) no hay. */
+/* EL PANEL EN FILAS (1155 → 1174 → 1177; el porqué, en SCHEMA 1177): una
+   pila en la que cada fila se cierra sola. Las cajas de dentro se abren
+   (`display: contents`) y cada bloque lleva su número; la fila de reojo
+   (`.mc-panel-reojo`) es la única caja de verdad en el PC. */
+#mcPanelResumen { display: flex; flex-direction: column; gap: var(--e-xl); }
+#mcResumenPanel, #mcVistazos, #mcMovidasSitio, #mcAlertasSitio, #mcDerSitio, #mcMesSitio, #mcMasSitio { display: contents; }
+#mcPanelResumen > *, #mcResumenPanel > *, #mcVistazos > *, .mc-panel-reojo > *, #mcMovidasSitio > *, #mcAlertasSitio > *, #mcDerSitio > *, #mcMesSitio > *, #mcMasSitio > * { order: 9; }
+#mcValorCaja { order: 1; }
+/* Con el id delante: `#mcPanelResumen > *` pesa más que una clase. */
+#mcPanelResumen > .mc-panel-reojo { order: 2; }
+#mcValiosas { order: 3; }
+#mcUltimas { order: 4; }
+#mcVistazoSets, #mcVistazoSetsEsq { order: 5; }
+#mcMas { order: 10; }
+.mc-vistazos { margin-top: 0; }
+#mcMasEstadisticas:empty { display: none; }
 @media (min-width: 1100px) {
-  #mcPanelResumen:has(> .mc-panel-der section) {
+  /* La fila de reojo: las tarjetas que haya (cuatro, o tres sin alertas),
+     iguales y a la misma altura. */
+  .mc-panel-reojo {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--e-lg);
+    align-items: stretch;
+  }
+  .mc-panel-reojo > div { display: contents; }
+  /* Sin alertas o sin movidas (sin histórico), las que haya, iguales. */
+  .mc-panel-reojo:not(:has(#mcAlertas)):not(:has(#mcMovidas, .mc-movidas-esq)) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Todo en una caja igual: fondo, borde, esquinas. */
+  #mcPanelResumen .mc-cartera,
+  #mcPanelResumen .mc-vistazo {
+    margin: 0;
+    padding: var(--e-lg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+  }
+  .mc-panel-reojo .mc-vistazo { min-width: 0; }
+  /* Dentro de una tarjeta, la lista no lleva su propia caja (dos marcos). */
+  .mc-panel-reojo .mc-movidas { border: 0; border-radius: 0; background: none; }
+  .mc-panel-reojo .mc-movida { padding-inline: 0; }
+  .mc-panel-reojo .mc-cifra-ficha b { font-size: var(--t-lg); }
+  .mc-panel-reojo .mc-mes-rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .mc-panel-reojo .mc-panel-cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  /* Las tiras, de ocho; las expansiones, de cuatro en cuatro. */
+  #mcPanelResumen .mc-vistazo-cartas { grid-template-columns: repeat(8, minmax(0, 1fr)); }
+  #mcPanelResumen .mc-set-filas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  /* «Más»: el título, los chips y la línea de lo contado, en UNA fila. */
+  #mcMas { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm) var(--e-lg); }
+  #mcMas .mc-vistazo-cabecera { margin: 0; }
+  #mcMas .mc-acciones-rejilla { flex: 1 1 auto; }
+  #mcMas .mc-vistazo-linea { margin: 0; }
+  /* La cartera a dos columnas: la gráfica a la izquierda, el lado (este
+     mes, esta semana, lo pagado) a la derecha. */
+  #mcPanelResumen .mc-cartera {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 280px;
     column-gap: var(--e-xl);
     align-items: start;
   }
-  #mcPanelResumen:has(> .mc-panel-der section) > .mc-compartir,
-  #mcPanelResumen:has(> .mc-panel-der section) > dialog { grid-column: 1 / -1; }
-  .mc-panel-der { display: grid; gap: var(--e-xl); }
-  .mc-panel-der > div:empty { display: none; }
+  #mcPanelResumen .mc-cartera > * { grid-column: 1; }
+  #mcPanelResumen .mc-cartera > .mc-cartera-lado {
+    grid-column: 2;
+    grid-row: 1 / span 6;
+    align-self: stretch;
+    display: grid;
+    gap: var(--e-sm);
+    align-content: start;
+    padding-left: var(--e-xl);
+    border-left: 1px solid var(--border);
+  }
+  .mc-cartera-ficha { text-align: left; padding: var(--e-md); }
+  .mc-cartera-ficha > span { text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; }
+  .mc-cartera-ficha > b { margin-top: 2px; }
+  .mc-cartera-ficha > small { color: var(--text-mid); font-size: var(--t-xs); }
+  .mc-cartera-lado .mc-balance { margin-top: var(--e-xs); }
 }
-/* Y en una columna, el orden de una cartera: cuánto vale, qué se mueve, qué
-   tienes, qué puedes hacer. Las cajas se abren (`display: contents`) y cada
-   bloque lleva su número. */
+/* Con sitio de sobra (la lateral deja ~815 px a 1.280 y 1.080 a 1.600,
+   donde cuatro salen a 258 y recortan nombres), las cuatro en una fila; si
+   no, dos y dos. */
+@media (min-width: 1800px) {
+  .mc-panel-reojo { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mc-panel-reojo:not(:has(#mcAlertas)), .mc-panel-reojo:not(:has(#mcMovidas, .mc-movidas-esq)) { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+/* EL MÓVIL DE UN VISTAZO (1178): la fila de reojo son cuatro tarjetas en
+   2 × 2 con un titular (`.mc-reojo-tarjeta`, las pinta cada bloque) y los
+   bloques enteros no se pintan; el de las alertas se despliega bajo las
+   tarjetas al pulsar la suya (`.abierta`). En el PC es al revés. */
+.mc-reojo-tarjeta {
+  display: grid;
+  gap: var(--e-xs);
+  align-content: start;
+  min-width: 0;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.mc-reojo-tarjeta:hover { background: var(--ice); }
+.mc-reojo-tarjeta > small {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-mid);
+}
+.mc-reojo-tarjeta > small > span { color: var(--navy); letter-spacing: 0; text-transform: none; display: inline-flex; }
+.mc-reojo-tarjeta b {
+  display: block;
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mc-reojo-tarjeta > span {
+  font-size: var(--t-xs);
+  color: var(--text-mid);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mc-reojo-fila { display: flex; gap: var(--e-sm); align-items: center; min-width: 0; }
+.mc-reojo-fila .mc-movida-foto { flex: 0 0 28px; width: 28px; height: 39px; }
+.mc-reojo-dato { display: grid; min-width: 0; }
+.mc-reojo-dato em { font-style: normal; font-size: var(--t-xs); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mc-reojo-ambar { color: var(--warning); }
+.mc-reojo-esq .skeleton { display: block; height: 16px; border-radius: var(--radius-pill); }
+.mc-reojo-esq .skeleton + .skeleton { width: 60%; height: 12px; }
+@media (min-width: 1100px) {
+  .mc-reojo-tarjeta { display: none; }
+}
 @media (max-width: 1099px) {
-  #mcPanelResumen { display: flex; flex-direction: column; gap: var(--e-xl); }
-  #mcPanelResumen > .mc-panel-izq, #mcPanelResumen > .mc-panel-der, #mcResumenPanel, #mcVistazos, #mcMovidasSitio, #mcAlertasSitio, #mcDerSitio { display: contents; }
-  #mcPanelResumen > *, .mc-panel-izq > *, .mc-panel-der > *, #mcResumenPanel > *, #mcVistazos > *, #mcDerSitio > * { order: 9; }
-  #mcValorCaja { order: 1; }
-  #mcMovidasSitio > *, #mcMovidas { order: 2; }
-  #mcAlertasSitio > *, #mcAlertas { order: 3; }
+  .mc-panel-reojo {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--e-sm);
+    align-items: stretch;
+  }
+  .mc-panel-reojo > div { display: contents; }
+  #mcMovidas, .mc-movidas-esq, #mcCambios, #mcMes { display: none; }
+  #mcAlertas { display: none; grid-column: 1 / -1; }
+  #mcAlertas.abierta { display: block; }
   #mcValiosas { order: 4; }
   #mcUltimas { order: 5; }
   #mcVistazoSets, #mcVistazoSetsEsq { order: 6; }
-  #mcMes { order: 7; }
-  #mcCambios { order: 8; }
-  .mc-vistazos { margin-top: 0; }
-  #mcMasEstadisticas:empty { display: none; }
+  /* Sin el PC, el lado no es un lado: las dos fichas sobran (la chapa de
+     la gráfica ya dice lo del mes) y lo pagado se queda bajo la gráfica. */
+  .mc-cartera-lado { display: contents; }
+  .mc-cartera-ficha { display: none; }
 }
 /* En el móvil, la línea a sangre: de borde a borde, como en la maqueta
    (24 px es el relleno lateral de `.container`). */

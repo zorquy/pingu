@@ -850,13 +850,13 @@
            · El reparto por serie y por rareza, que es lo que cuenta qué
              clase de coleccionista eres. -->
       <section id="mcPanelResumen" class="hidden" role="tabpanel" aria-label="Resumen">
-        <!-- DOS COLUMNAS DE VERDAD (1174, O1 de la propuesta de orden): la
-             izquierda lleva lo grande (la cartera, las tiras de cartas, las
-             expansiones, tu mes) y la derecha lo que se mira de reojo (las que
-             más se mueven, las alertas, Cambios y «Más»). En el móvil, una
-             columna en el orden de una cartera (`order` en movil.css no: en
-             mi-coleccion.css, con `display: contents`). -->
-        <div class="mc-panel-izq">
+        <!-- EL PANEL EN FILAS (1177; antes dos columnas, 1174). PINGU, con su
+             Panel delante: «había una columna y ahora me has metido otra a la
+             derecha y no parece equilibrado». Cada fila se cierra sola: la
+             cartera, la fila de lo que se mira de reojo (el `aside`), las dos
+             tiras, las expansiones y «Más». Las cajas de dentro se abren con
+             `display: contents` en mi-coleccion.css y cada bloque lleva su
+             `order`; el porqué, en SCHEMA 1177. -->
         <div id="mcResumenPanel"></div>
 
         <!-- Los VISTAZOS (tanda 436). PINGU, con el panel de Dex delante:
@@ -875,12 +875,17 @@
              plegado; desde la 1172 aquí va solo la cabecera con su línea y
              «Ver todas» abre la vista #mcPanelEstadisticas. -->
         <div id="mcMasEstadisticas"></div>
-        </div>
-        <aside class="mc-panel-der" id="mcPanelDer" aria-label="De un vistazo">
+        <!-- LA FILA DE REOJO (1177): Movimientos, Tus alertas, Cambios y Tu
+             mes, cuatro tarjetas iguales en el PC (las que haya: sin alertas,
+             tres); en el móvil, cada una en su sitio de la pila. -->
+        <aside class="mc-panel-reojo" id="mcPanelDer" aria-label="De un vistazo">
           <div id="mcMovidasSitio"></div>
           <div id="mcAlertasSitio"></div>
           <div id="mcDerSitio"></div>
+          <div id="mcMesSitio"></div>
         </aside>
+        <!-- «Más» (1176), la última fila. -->
+        <div id="mcMasSitio"></div>
 
         <!-- Compartir la colección, AL FINAL del Panel desde la 748: en la
              maqueta de la cartera arriba va lo que vale y nada más. El

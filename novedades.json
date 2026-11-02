@@ -36,6 +36,18 @@
     {
       "fecha": "2026-11-02",
       "tipo": "mejora",
+      "texto": "En el móvil, el Panel de Mi colección resume Movimientos, Alertas, Cambios y Tu mes en cuatro tarjetas con un titular (la carta que más se mueve, cuántas alertas están a punto de saltar…) que se pulsan: tus cartas aparecen mucho antes.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-02",
+      "tipo": "mejora",
+      "texto": "El Panel de Mi colección en el ordenador va ahora en filas de tarjetas que llenan el ancho: la cartera arriba (con lo de este mes y esta semana al lado), debajo Movimientos, Tus alertas, Cambios y Tu mes iguales, y luego el Ranking, las Últimas añadidas y las Expansiones a lo ancho.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-02",
+      "tipo": "mejora",
       "texto": "El Panel de Mi colección termina en una fila «Más» (estadísticas, imagen, importar, exportar, modo evento y privacidad) en vez de tres bloques; y los bloques se llaman como lo que abren: Movimientos y Ranking.",
       "enlace": "/mi-coleccion"
     },

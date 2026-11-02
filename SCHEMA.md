@@ -41785,6 +41785,134 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1178 — El móvil de un vistazo
+
+Decisiones 3 y 4 de la propuesta «Estructura del Panel». En el móvil el
+Panel de la 1176 eran nueve bloques apilados, y entre la cartera y la
+primera carta tuya había seis filas de movimientos y alertas (600 px).
+
+**Las tarjetas de reojo** (`tarjetaDeReojoHtml` en panel.js,
+`button.mc-reojo-tarjeta`): cada bloque de reojo pinta ADEMÁS, delante de
+sí, una tarjeta con un titular, y en el móvil se ve la tarjeta y no el
+bloque (CSS: `.mc-reojo-tarjeta { display: none }` desde 1.100 y
+`#mcMovidas, .mc-movidas-esq, #mcCambios, #mcMes { display: none }` por
+debajo; nada de `matchMedia`, así un giro de pantalla no repinta). La fila
+de reojo (`.mc-panel-reojo`) es una rejilla de 2 × 2 en el móvil, con los
+sitios en `display: contents`.
+
+- **Movimientos** (`#mcReojoMovidas`, `data-ir-a="movimientos"`): la que
+  más se mueve con su foto (`.mc-reojo-fila` + `.mc-reojo-dato`), «+9 %
+  esta semana» y «6 suben · 6 bajan» (`semanaSubenBajan`, el de la 1177).
+  Mientras llega el histórico, un esqueleto con la misma caja
+  (`.mc-reojo-esq`). Va dentro de `movidasHtml`, así que se repone al
+  repintar como el bloque.
+- **Alertas** (`#mcReojoAlertas`, `data-despliega="mcAlertas"`): «N a
+  punto de saltar» en ámbar (`.mc-reojo-ambar`, `--warning`) o «N activas»,
+  y la primera de la lista con lo que le falta. No hay vista de alertas:
+  al pulsarla se DESPLIEGA el bloque entero debajo de las cuatro tarjetas
+  (`#mcAlertas.abierta`, `grid-column: 1 / -1`), con `aria-expanded`.
+- **Cambios** (`#mcReojoCambios`, `data-ir-a="cambios"`): «33 das · 229
+  quieres».
+- **Tu mes** (`#mcReojoMes`, `data-mes-compartir`, con el icono de
+  compartir en vez de la flecha): nace con «+30 cartas» de titular y las
+  expansiones nuevas debajo, y cuando llega el histórico
+  `pintarValorDelMes` pone el valor del mes de titular
+  (`#mcReojoMesCifra`) y «+30 cartas · 1 expansión nueva» en la línea
+  (`#mcReojoMesLinea`). Es la única sin vista: lo que se hace con el mes es
+  compartirlo.
+
+Los manejadores son los de siempre: `[data-ir-a]` y `[data-mes-compartir]`
+están delegados en `#mcPanelResumen` (mi-coleccion.js); el de
+`[data-despliega]` lo cuelga `pintarAlertas` en su sitio.
+
+**Lo demás del móvil**: las tiras ya eran de tres (1176) y una sola fila
+(el truco de filas a cero de la 446); las expansiones pasan de cuatro a
+DOS filas (`#mcVistazoSets .mc-set-fila:nth-child(n + 3) { display: none }`
+hasta 600 px): lo demás está en «Ver todas». Con todo, la primera carta
+tuya (Ranking) empieza antes de los 900 px en un iPhone 13 con tres
+alertas; eran más de 1.000.
+
+**Prueba**: `test-tanda-1178-pantalla.mjs` (móvil: las cuatro tarjetas en
+2 × 2 con sus textos, los bloques escondidos, dos expansiones, Ranking
+antes de 900 px, Alertas que se despliega y se recoge, Movimientos que abre
+su vista; PC: ninguna tarjeta y los bloques de siempre).
+
+## Tanda 1177 — El Panel en filas: cada fila se cierra sola
+
+PINGU, con su Panel de producción delante (2026-11-02): «No me gusta la
+estructura. Había una columna y ahora me has metido otra columna a la
+derecha y no parece equilibrado». Tenía razón: las dos columnas de la 1174
+eran de distinto largo —la derecha (movidas, alertas, Cambios, Más) se
+acababa a media pantalla y la izquierda seguía sola 600 px más— y los
+bloques iban al aire, sin caja, así que no se veía dónde empezaba uno y
+acababa otro. Es la propuesta «Estructura del Panel» (artifact
+8qN8fmSt5zX5vYhSxLuwgB), decisiones 1 y 2.
+
+**La estructura.** `#mcPanelResumen` es una PILA (`display: flex; column`)
+y cada fila se cierra sola. Las cajas de dentro (`#mcResumenPanel`,
+`#mcVistazos`, los `*Sitio`) se abren con `display: contents` a TODOS los
+anchos y cada bloque lleva su `order`: la cartera (1), la fila de reojo
+(2), Ranking (3), Últimas añadidas (4), Expansiones (5), álbumes y lo demás
+(9) y «Más» (10). Ojo con la especificidad: `#mcPanelResumen > *` lleva el
+`order: 9` con un id, así que una clase sola (`.mc-panel-reojo`) no le
+gana; el `order` se escribe con el id delante (`#mcPanelResumen >
+.mc-panel-reojo`, `#mcMovidasSitio > .mc-movidas-esq`).
+
+**La fila de reojo** es el `aside.mc-panel-reojo#mcPanelDer` de la
+plantilla, con cuatro sitios: `#mcMovidasSitio`, `#mcAlertasSitio`,
+`#mcDerSitio` (Cambios) y `#mcMesSitio` (Tu mes, que la 1173 pintaba en
+`#mcVistazos`). En el PC (≥ 1.100) es la única caja de verdad: una rejilla
+de dos columnas (las tarjetas que haya, iguales y a la misma altura), y
+desde 1.800 px de cuatro —tres si faltan las alertas o las movidas, con
+`:has`—. Por qué dos y no cuatro a 1.280: la lateral deja ~815 px al
+contenido, y cuatro tarjetas de 190 recortan los nombres de las movidas
+(«Chari…») y las cifras del mes. En el móvil (< 1.100) el `aside` y sus
+sitios son `display: contents` y cada bloque va a su sitio de la pila con
+el orden de la 1174 (valor, movidas, alertas, Ranking, Últimas,
+Expansiones, Tu mes, Cambios, Más).
+
+**«Más»** (`#mcMasSitio`, la última fila, fuera del `aside`): en el PC el
+título, los chips y la línea «N distintas · M repetidas» van en UNA fila
+(`#mcMas { display: flex }`, la rejilla con `flex: 1`). La privacidad
+(`#mcCompartir`) se sigue moviendo dentro antes de cada repintado, ahora
+desde `#mcMasSitio`.
+
+**Las cajas.** En el PC, `#mcPanelResumen .mc-cartera` y `#mcPanelResumen
+.mc-vistazo` llevan la misma caja (fondo `--white`, borde `--border`,
+`--radius-lg`, relleno `--e-lg`). Dentro de una tarjeta de reojo la lista
+de movidas no lleva su propio marco (`.mc-panel-reojo .mc-movidas { border:
+0 }`: eran dos marcos) y las cifras del mes y de Cambios van a `--t-lg`
+en dos columnas. Las tiras son de ocho (`repeat(8, …)` dentro del Panel) y
+las expansiones de cuatro en cuatro.
+
+**El lado de la cartera** (`ladoDeCarteraHtml` en panel.js,
+`.mc-cartera-lado`): en el PC la cartera es una rejilla de dos columnas
+(`minmax(0,1fr) 280px`) y a la derecha, con una raya, van dos fichas
+`.mc-cifra-ficha.mc-cartera-ficha` —«Este mes» (`#mcCarteraMes`) y «Esta
+semana» (`#mcCarteraSemana`)— y debajo la línea de lo pagado (`#mcBalance`,
+la de la 1174, que ahora nace dentro del lado). Las fichas salen con «—» y
+las rellena `pintarLadoDeCartera` cuando llega el histórico (desde
+`pintarCambioDelMes`): `cambioDelTramo('1M' | '7D')` es `cambioDelMes`
+con el rango como parámetro, y `fechaCorta` sale exportada de
+grafica-valor.js para el «desde el 4 oct». El «6 suben · 6 bajan» de la
+semana lo escribe `pintarMovidas` (`semanaSubenBajan`) cuando cuenta las
+movidas, y `pintarLadoDeCartera` lo respeta si ya está. En el móvil
+`.mc-cartera-lado` es `display: contents` y las dos fichas `display: none`:
+la chapa de la gráfica ya dice lo del mes, y lo pagado se queda bajo la
+gráfica como en la 1174.
+
+**El ancho.** La 1161 dejaba el Panel en 1.160 en un monitor de 1.800
+(«se lee»); desde esta tanda es una rejilla de tarjetas y crece a 1.440
+como las demás (`.mc-pagina { max-width: 1440px }` sin la excepción). Así
+a 1.920 el contenido mide 1.360 y la fila de reojo cabe a cuatro (328 cada
+una); a 1.600 sigue a dos y dos.
+
+**Pruebas.** `test-tanda-1155.mjs` (E3) comprueba ahora la pila: a 1.366
+la cartera a lo ancho con su lado y su cifra, Movimientos DEBAJO y a la
+izquierda con Cambios a su derecha (el fixture no tiene alertas: tres
+tarjetas, dos y una), Tu mes en la fila siguiente y Ranking a lo ancho
+debajo; a 1.024, una columna. `test-tanda-1161` espera el Panel a 1.440.
+
 ## Tanda 1176 — La fila «Más» y el móvil; los bloques se llaman como sus vistas
 
 V4 y V5 de la propuesta de orden.

@@ -840,11 +840,22 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`datos.alertasActivas` + `ordenarAlertas`, en la segunda columna del PC)
   y «Tu mes» (`js/mi-coleccion/mes.js`, puro; la imagen en
   `js/mes-imagen.js` con el marco de redes). Una cifra nueva del mes va en
-  `resumenDelMes` y en `fichasDelMes`, no en dos sitios. El Panel son DOS
-  cajas (1174): `.mc-panel-izq` (lo grande) y `.mc-panel-der` (lo que se
-  mira de reojo: `#mcMovidasSitio`, `#mcAlertasSitio`, `#mcDerSitio`); un
-  bloque nuevo va en una de las dos, con su id y su `order` del móvil en
-  `mi-coleccion.css`. Una cifra con su rótulo es `.mc-cifra-ficha`
+  `resumenDelMes` y en `fichasDelMes`, no en dos sitios. El Panel es una
+  PILA de filas (1177, PINGU: «había una columna y ahora me has metido otra
+  a la derecha y no parece equilibrado»): la cartera (con su lado: este mes,
+  esta semana y lo pagado, solo en el PC), la fila de reojo
+  (`aside.mc-panel-reojo`: `#mcMovidasSitio`, `#mcAlertasSitio`,
+  `#mcDerSitio` para Cambios y `#mcMesSitio`; dos y dos, cuatro desde
+  1.800 px), las tiras, las expansiones y «Más» (`#mcMasSitio`). Las cajas
+  de dentro son `display: contents` y cada bloque lleva su `order` en
+  `mi-coleccion.css`, escrito con un id delante (`#mcPanelResumen > *` pesa
+  más que una clase); un bloque nuevo de reojo va en el `aside` con su
+  sitio, y uno grande en `#mcVistazos` con su `order`. En el PC todo lleva
+  la misma caja (`#mcPanelResumen .mc-vistazo`). Y en el móvil (1178) cada
+  bloque de reojo se ve como una TARJETA con titular (`tarjetaDeReojoHtml`,
+  pintada delante del bloque, que el CSS esconde por debajo de 1.100): un
+  bloque de reojo nuevo lleva la suya, con un `data-ir-a` a su vista o un
+  `data-despliega` si no la tiene. Una cifra con su rótulo es `.mc-cifra-ficha`
   (`.mc-ficha` es la ficha de la carta). Y lo pagado es una línea
   secundaria (PINGU: «es algo muy opcional»), no una tira de fichas. Lo que
   no es un bloque (una acción, un ajuste) va como chip en «Más»

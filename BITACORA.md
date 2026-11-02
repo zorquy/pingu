@@ -4,6 +4,53 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (421) — PINGU-Claude (1177 y 1178 — el Panel en filas en el PC, y de un vistazo en el móvil)
+
+**Hecho** (la propuesta «Estructura del Panel» entera; PINGU: «había una
+columna y ahora me has metido otra a la derecha y no parece equilibrado»).
+
+**1178, el móvil de un vistazo** (decisiones 3 y 4):
+- Cada bloque de reojo pinta delante una **tarjeta con titular**
+  (`tarjetaDeReojoHtml`, `.mc-reojo-tarjeta`): Movimientos (la que más se
+  mueve, «N suben · M bajan», abre su vista), Alertas («N a punto de
+  saltar», despliega la lista entera debajo con `data-despliega`), Cambios
+  («33 das · 229 quieres», abre Cambios) y Tu mes (el valor del mes de
+  titular cuando llega, comparte). En el móvil se ven las tarjetas en 2 × 2
+  y no los bloques; en el PC, al revés (solo CSS).
+- Expansiones a dos filas en el móvil; Ranking antes de los 900 px.
+- Prueba nueva `test-tanda-1178-pantalla.mjs`.
+
+**1177, el PC en filas** (decisiones 1 y 2):
+- **Una pila de filas** en vez de dos columnas: `#mcPanelResumen` es flex
+  en columna a todos los anchos, las cajas de dentro `display: contents` y
+  cada bloque con su `order` (con un id delante: `#mcPanelResumen > *`
+  pesa más que una clase). Sin `.mc-panel-izq`.
+- **La fila de reojo** (`aside.mc-panel-reojo#mcPanelDer`): Movimientos,
+  Tus alertas, Cambios (`#mcDerSitio`) y Tu mes (`#mcMesSitio`, nuevo);
+  en el PC, dos y dos (cuatro desde 1.800 px, tres sin alertas o sin
+  movidas), iguales y a la misma altura. «Más» va en `#mcMasSitio`, la
+  última fila, con título, chips y línea en una.
+- **La misma caja para todo en el PC** (`#mcPanelResumen .mc-vistazo` y la
+  cartera): fondo, borde y esquinas; las tiras de ocho, las expansiones de
+  cuatro en cuatro; la lista de movidas sin su segundo marco.
+- **El lado de la cartera** (`ladoDeCarteraHtml`): «Este mes» y «Esta
+  semana» (`cambioDelTramo`, rellenas al llegar el histórico;
+  «N suben · M bajan» desde `pintarMovidas`) y lo pagado debajo, a la
+  derecha de la gráfica. En el móvil las fichas no se pintan.
+- El Panel crece a 1.440 en monitores anchos como el resto (la excepción
+  de la 1161 se va). `fechaCorta` exportada de grafica-valor.js.
+
+**Ficheros**: mi-coleccion.html (+ cartas.html generado),
+js/mi-coleccion/panel.js, js/mi-coleccion/grafica-valor.js,
+css/mi-coleccion.css, SCHEMA.md, novedades.json, CLAUDE.md.
+Pruebas: 1155 reescrita (E3: la pila), 1175 (cuatro expansiones en una
+fila), 1161 (el Panel a 1.440) y 436 (las filas de la 1175) ajustadas;
+1178 nueva; el bloque del Panel pasado (la 441 ya venía roja de antes:
+la imagen de la tapa del álbum).
+
+**Pendiente**: nada de la propuesta del Panel. Lo siguiente, lo que
+PINGU diga.
+
 ## 2026-11-02 (420) — PINGU-Claude (1176 — la fila «Más» y el móvil; los bloques se llaman como sus vistas)
 
 **Hecho** (V4 y V5 de la propuesta de orden, y la pregunta 5):
