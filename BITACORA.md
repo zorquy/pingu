@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (428) — PINGU-Claude (1184 — el desplegable de Conversaciones se salía por abajo)
+
+**Hecho**: PINGU, con captura del PC: el sobre de la barra pintaba las
+conversaciones por debajo de su caja, encima de la página. Lo rompió la 1168:
+quitó el `overflow-y: auto` de `.nav-bell-dropdown` (la caja común de la
+campana y del sobre, ahora columna flexible) y se lo dio solo a `#navBellList`.
+`#navMsgList` va ahora en la misma regla: se desliza dentro y el pie («Iniciar
+una nueva conversación») se queda a la vista.
+
+**Ficheros**: `css/components.css`, `SCHEMA.md` (1184), `novedades.json`; en
+`pruebas`, `test-tanda-1184-pantalla.mjs` (ocho conversaciones y doce avisos;
+roja con el CSS de antes, verde con este). Verdes 299, 717, 1142, 1168 e
+imports.
+
+**Pendiente**: nada.
+
 ## 2026-11-02 (427) — PINGU-Claude (1183 — los avisos del foro, en su foro y en su tema)
 
 **Hecho**: PINGU, con captura del móvil: la burbuja decía «Foro 1» y ninguna

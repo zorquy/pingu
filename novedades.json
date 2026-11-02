@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-02",
       "tipo": "arreglo",
+      "texto": "El desplegable de mensajes de arriba vuelve a caber en su caja: con muchas conversaciones se salía por debajo y se montaba encima de la página.",
+      "enlace": "/mensajes"
+    },
+    {
+      "fecha": "2026-11-02",
+      "tipo": "arreglo",
       "texto": "Cuando el foro tiene algo para ti (una respuesta, una mención o una reacción), ahora la tarjeta de ese foro lo dice con «para ti» y te lleva directo, y dentro del foro el tema va marcado. Antes solo salía el número en la burbuja y no sabías dónde entrar.",
       "enlace": "/foro"
     },

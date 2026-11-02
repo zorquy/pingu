@@ -1533,8 +1533,10 @@ tcg-deck {
 }
 
 /* La salida a /avisos (1168): la campana es lo sin leer; allí está todo. Se
-   desliza la lista y el pie se queda a la vista. */
-#navBellList {
+   desliza la lista y el pie se queda a la vista. La de los mensajes va en la
+   misma caja y también se desliza (1184: sin ella se salía por abajo). */
+#navBellList,
+#navMsgList {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;

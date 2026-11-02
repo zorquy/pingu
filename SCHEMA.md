@@ -41785,6 +41785,17 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1184 — El desplegable de Conversaciones, dentro de su caja
+
+La 1168 convirtió `.nav-bell-dropdown` (la caja de la campana Y del sobre) en
+una columna flexible con `max-height: 420px` y movió el scroll a `#navBellList`
+para dejar el pie «Ver todos los avisos» a la vista. El sobre usa la misma caja
+y su lista (`#navMsgList`, hasta ocho conversaciones) se quedó sin scroll: con
+más de tres pasaba del tope y se pintaba por debajo, encima de la página y sin
+fondo. Ahora `#navBellList, #navMsgList` comparten la regla (`flex: 1 1 auto;
+min-height: 0; overflow-y: auto`). Una lista nueva dentro de esa caja va en la
+misma regla. Prueba: `test-tanda-1184-pantalla.mjs`.
+
 ## Tanda 1183 — Los avisos del foro, en su foro y en su tema
 
 PINGU, con una captura del móvil: «cuando hay algo nuevo se marca en la burbuja
