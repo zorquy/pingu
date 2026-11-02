@@ -89,7 +89,8 @@ console.log('── 2. Importar un CSV de Collectr ──')
   check('la bandeja se cierra', await page.evaluate(() => !document.getElementById('mcImportarDialogo')?.open))
   // Y la pantalla se entera SIN recargar (el doble vive en la página: una
   // recarga lo sembraría de nuevo y no probaría nada).
-  await page.locator('#mcVistazos [data-ir-a="cartas"]').first().click()
+  // Desde la 1172 ningún «Ver todas» abre Cartas: se va por la dirección.
+  await page.evaluate(() => { history.replaceState(null, '', '?ver=cartas'); dispatchEvent(new PopStateEvent('popstate')) })
   await page.waitForTimeout(1200)
   const cuantas = await page.locator('.mc-carta-foto').count()
   check('la pestaña Cartas enseña las nuevas', cuantas >= 3, String(cuantas))

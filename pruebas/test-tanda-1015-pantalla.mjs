@@ -44,10 +44,12 @@ console.log('\n── 2. El Panel (L7) ──')
   const { p, ctx, errores } = await abrir('/mi-coleccion.html?ver=resumen', { espera: 3500 })
   const r = await p.evaluate(() => {
     const chips = [...document.querySelectorAll('.mc-accion-loseta')].map((c) => ({ t: c.textContent.trim(), h: Math.round(c.getBoundingClientRect().height), y: Math.round(c.getBoundingClientRect().top) }))
-    return { linea: document.querySelector('.mc-vistazo-linea')?.textContent.trim(), chips, publica: !!document.getElementById('mcPublica'), estado: document.getElementById('mcPublicaEstado')?.textContent.trim(), ajustes: document.getElementById('mcPublicaAjustes')?.getAttribute('href') }
+    // Desde la 1176 los chips van en «Más» (con Estadísticas delante) y la
+    // línea de lo contado, debajo de ellos.
+    return { linea: document.querySelector('#mcMas .mc-vistazo-linea')?.textContent.trim(), chips, publica: !!document.getElementById('mcPublica'), estado: document.getElementById('mcPublicaEstado')?.textContent.trim(), ajustes: document.getElementById('mcPublicaAjustes')?.getAttribute('href') }
   })
-  check('bajo «Estadísticas» va una línea con lo contado', /^2 cartas distintas · 1 copia repetida$/.test(r.linea || ''), r.linea)
-  check('las acciones son chips de una fila (44 px), no losetas de 90', r.chips.length >= 3 && r.chips.every((c) => c.h <= 48) && new Set(r.chips.map((c) => c.y)).size === 1 && r.chips.map((c) => c.t).join('|') === 'Imagen|Importar CSV|Exportar CSV|Modo evento', JSON.stringify(r.chips))
+  check('bajo «Más» va una línea con lo contado', /^2 cartas distintas · 1 copia repetida$/.test(r.linea || ''), r.linea)
+  check('las acciones son chips (44 px), no losetas de 90; desde la 1176 con Estadísticas delante', r.chips.length >= 4 && r.chips.every((c) => c.h <= 48) && r.chips.map((c) => c.t).join('|') === 'Estadísticas|Imagen|Importar CSV|Exportar CSV|Modo evento', JSON.stringify(r.chips))
   check('«Colección pública» ya no es un check aquí: se dice cómo está y se manda a Ajustes', !r.publica && /^Colección (pública|privada)$/.test(r.estado || '') && r.ajustes === '/ajustes?ver=privacidad' && !errores.length, JSON.stringify(r) + errores.join(' | '))
   await ctx.close()
 }

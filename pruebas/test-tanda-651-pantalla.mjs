@@ -22,7 +22,8 @@ console.log('── 0. Lo estático ──')
   const js = readFileSync(`${RAIZ}/js/mi-coleccion.js`, 'utf8')
   check('las tres vistas de la expansión abren el pop-up', /engancharFicha\('mcAlbum', '\.mc-bolsillo-enlace, \.mc-rejilla-celda, \.mc-album-fila'\)/.test(js))
   check('el precio de una que no tienes se pide', /async function completarPrecioDeFicha/.test(js) && /datos\.preciosGuardados\(\[id\]\)/.test(js))
-  check('el icono de descargar NO entra en js/icons.js (la portada no tiene sitio)', !/download/.test(readFileSync(`${RAIZ}/js/icons.js`, 'utf8')) && /ICONO_DESCARGAR/.test(js))
+  // `ICONO_DESCARGAR` vive en panel.js desde la 895.
+  check('el icono de descargar NO entra en js/icons.js (la portada no tiene sitio)', !/download/.test(readFileSync(`${RAIZ}/js/icons.js`, 'utf8')) && /ICONO_DESCARGAR/.test(readFileSync(`${RAIZ}/js/mi-coleccion/panel.js`, 'utf8')))
 }
 
 const browser = await chromium.launch()
@@ -85,8 +86,9 @@ console.log('\n── 3. El Panel: losetas en vez de párrafos, y Cambios en cif
   const { page, errores } = await abrir('/mi-coleccion.html')
   await page.waitForTimeout(800)
   const losetas = page.locator('.mc-acciones-rejilla .mc-accion-loseta')
-  check('cuatro losetas: imagen, importar, exportar y Modo evento (869, 1029)', (await losetas.count()) === 4 && (await page.locator('#mcImagenCrear').isVisible()) && (await page.locator('#mcImportarAbrir').isVisible()) && (await page.locator('#mcExportar').isVisible()))
-  check('  …cada una con su icono y su texto, y sin párrafos', (await losetas.locator('.mc-accion-icono svg').count()) === 4 && (await page.locator('.mc-vistazo-importar p.subtext').count()) === 0)
+  // Desde la 1176 son cinco (Estadísticas delante) en «Más».
+  check('cinco losetas: estadísticas, imagen, importar, exportar y Modo evento (869, 1029, 1176)', (await losetas.count()) === 5 && (await page.locator('#mcImagenCrear').isVisible()) && (await page.locator('#mcImportarAbrir').isVisible()) && (await page.locator('#mcExportar').isVisible()))
+  check('  …cada una con su icono y su texto, y sin párrafos', (await losetas.locator('.mc-accion-icono svg').count()) === 5 && (await page.locator('.mc-vistazo-importar p.subtext').count()) === 0)
   check('  …y miden 44 px o más', (await losetas.first().boundingBox()).height >= 44)
   const cambios = page.locator('.mc-vistazo').filter({ has: page.locator('h2', { hasText: 'Cambios' }) })
   check('Cambios dice una cifra, no un párrafo', (await cambios.locator('.mc-panel-cifra').count()) >= 1 && /0 cartas que das/.test(limpio(await cambios.innerText())) && (await cambios.locator('p.subtext, p.empty-state').count()) === 0, limpio(await cambios.innerText()))
