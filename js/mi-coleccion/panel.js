@@ -88,7 +88,6 @@ export function pintarResumenPanel() {
       ${ctx.esMia ? balanceTiraHtml() : ''}
     </section>
     ${vistazoDeValiosas(valiosasTira)}
-    ${ctx.esMia ? `<div id="mcMovidasSitio">${movidasHtml}</div><div id="mcAlertasSitio"></div>` : ''}
 `
   if (ctx.esMia && ctx.sesion) void ctx.pintarRepartoProductos()
   // La cifra cuenta desde la de la última vez (783, MV2).
@@ -295,23 +294,24 @@ function balanceTiraHtml() {
   const b = balanceDeCompra(ls, (l) => valorDeLinea(l, ctx.precioDe(l)))
   const sinApuntar = ls.filter((l) => !(Number(l.precio_compra) > 0)).length
   const n = (x) => Number(x).toLocaleString('es-ES', { useGrouping: 'always' })
+  // UNA LÍNEA, NO TRES FICHAS (1174). PINGU, con la tira de la 1173 delante:
+  // «no me gusta que ocupe tanto espacio ahí; no todo el mundo apuntará
+  // cuánto pagó, es algo muy opcional». Así que es una línea secundaria
+  // bajo la gráfica, como la de cartas · distintas · expansiones, y quien no
+  // apunta nada ve solo un enlace pequeño.
   const falta = sinApuntar
-    ? `<button type="button" class="mc-balance-falta" data-ir-a="anadidas" data-sin="pagado">${n(sinApuntar)} ${sinApuntar === 1 ? 'carta sin apuntar lo que pagaste' : 'cartas sin apuntar lo que pagaste'} <span class="ver-todo-flecha" aria-hidden="true">→</span></button>`
+    ? `<button type="button" class="mc-balance-falta" data-ir-a="anadidas" data-sin="pagado">${b.hayBalance ? `${n(sinApuntar)} sin apuntar` : 'Apunta lo que pagaste y verás si vas ganando'} <span class="ver-todo-flecha" aria-hidden="true">→</span></button>`
     : ''
-  if (!b.hayBalance) {
-    return `<div class="mc-balance" id="mcBalance"><p class="mc-balance-vacio">Apunta lo que pagaste por tus cartas y aquí verás si vas ganando.</p>${falta}</div>`
-  }
+  if (!b.hayBalance) return falta ? `<p class="mc-cartera-sub mc-balance" id="mcBalance">${falta}</p>` : ''
   const dif = Math.round(b.diferencia * 100) / 100
   const signo = dif === 0 ? '' : dif > 0 ? '+' : '−'
   const pct = b.pagado > 0 ? Math.round((dif / b.pagado) * 100) : null
-  return `<div class="mc-balance" id="mcBalance">
-    <dl class="mc-balance-tira">
-      <div><dt>Pagaste</dt><dd>${escapeHtml(euros(b.pagado))}</dd><small>en ${n(b.copias)} ${b.copias === 1 ? 'carta' : 'cartas'}</small></div>
-      <div><dt>Valen</dt><dd>${escapeHtml(euros(b.valor))}</dd><small>${b.copias === 1 ? 'esa' : 'esas'} ${n(b.copias)}</small></div>
-      <div><dt>Vas</dt><dd class="${dif > 0 ? 'mc-gana' : dif < 0 ? 'mc-pierde' : ''}">${signo}${escapeHtml(euros(Math.abs(dif)))}</dd><small>${pct === null ? '' : `${signo}${Math.abs(pct)} %`}</small></div>
-    </dl>
-    ${falta}
-  </div>`
+  return `<p class="mc-cartera-sub mc-balance" id="mcBalance" aria-label="Lo que te costó">
+    <span>Pagaste <b>${escapeHtml(euros(b.pagado))}</b> en ${n(b.copias)} ${b.copias === 1 ? 'carta' : 'cartas'}</span>
+    <span>valen <b>${escapeHtml(euros(b.valor))}</b></span>
+    <span>vas <b class="${dif > 0 ? 'mc-gana' : dif < 0 ? 'mc-pierde' : ''}">${signo}${escapeHtml(euros(Math.abs(dif)))}${pct === null ? '' : ` (${signo}${Math.abs(pct)} %)`}</b></span>
+    ${falta ? `<span>${falta}</span>` : ''}
+  </p>`
 }
 
 // `diapoHtml` y `tiraHtml` se mudaron a `js/mi-coleccion/diapos.js` en la
@@ -393,7 +393,7 @@ function vistazoDeCartas() {
   }).join('')
   // «Últimas añadidas» y a la vista Añadidas (1172): «Tus cartas» no decía
   // nada que no dijera la pestaña Cartas, y su Ver todas abría esa pestaña.
-  return vistazoHtml('Últimas añadidas', 'anadidas', `<div class="mc-vistazo-cartas">${cuerpo}</div>`)
+  return vistazoHtml('Últimas añadidas', 'anadidas', `<div class="mc-vistazo-cartas">${cuerpo}</div>`).replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcUltimas">')
 }
 
 // Las expansiones en las que MÁS llevas. No las más nuevas: lo que se
@@ -470,7 +470,7 @@ function vistazoDeSets(sets) {
   // las empezadas» se quita al llegar, en el manejador del vistazo).
   // PINGU: «cuando le des a ver todas, que no te lleve a solo las
   // empezadas, que te deje ver todas directamente».
-  return vistazoHtml('Expansiones', 'album', `<div class="mc-estanteria mc-vistazo-sets">${conAlgo.map((x) => ctx.tarjetaDeSet(x.set, x.tengo)).join('')}</div>`)
+  return vistazoHtml('Expansiones', 'album', `<div class="mc-estanteria mc-vistazo-sets">${conAlgo.map((x) => ctx.tarjetaDeSet(x.set, x.tengo)).join('')}</div>`).replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcVistazoSets">')
 }
 
 // La tarjeta de Cambios del Panel: dos cifras y la puerta. Las dos salen
@@ -485,10 +485,10 @@ function vistazoDeCambios() {
   const doy = ctx.loQueDoy().length
   const busco = Array.isArray(ctx.deseos) ? ctx.deseos.length : null
   const dentro = `<div class="mc-panel-cifras">
-    <button type="button" class="mc-panel-cifra" data-ir-a="cambios"><b>${doy}</b><span>${doy === 1 ? 'carta que das' : 'cartas que das'}</span></button>
-    ${busco === null ? '' : `<button type="button" class="mc-panel-cifra" data-ir-a="quiero"><b>${busco}</b><span>${busco === 1 ? 'carta que quieres' : 'cartas que quieres'}</span></button>`}
+    <button type="button" class="mc-cifra-ficha mc-panel-cifra" data-ir-a="cambios"><b>${doy}</b><span>${doy === 1 ? 'carta que das' : 'cartas que das'}</span></button>
+    ${busco === null ? '' : `<button type="button" class="mc-cifra-ficha mc-panel-cifra" data-ir-a="quiero"><b>${busco}</b><span>${busco === 1 ? 'carta que quieres' : 'cartas que quieres'}</span></button>`}
   </div>`
-  return vistazoHtml('Cambios', 'cambios', dentro, 'Abrir')
+  return vistazoHtml('Cambios', 'cambios', dentro, 'Abrir').replace('<section class="mc-vistazo">', '<section class="mc-vistazo" id="mcCambios">')
 }
 
 // El icono de descargar, aquí y no en js/icons.js: ese fichero lo baja la
@@ -578,10 +578,12 @@ export async function pintarVistazos() {
   // entera— se ha ido a la suya; aquí queda lo que el Panel sí tiene que
   // decir: cuántas das, cuántas buscas, y un sitio por donde entrar. Sin
   // esto, una pantalla que existe deja de tener puerta.
-  caja.insertAdjacentHTML('beforeend', vistazoDeCambios())
   // TU MES (1173, P7): lo que has hecho este mes, con Compartir.
   caja.insertAdjacentHTML('beforeend', vistazoDelMes())
   void pintarCambiosDelMes(version)
+  // Cambios y lo demás, en la columna de la derecha (1174).
+  const der = $('mcDerSitio')
+  if (der) der.innerHTML = vistazoDeCambios() + vistazoDeAcciones()
   // MI COLECCIÓN EN UNA IMAGEN (571), IMPORTAR Y EXPORTAR (580): desde la
   // 651 son tres losetas en una tarjeta (`vistazoDeAcciones`). Importar
   // sale siempre: es justo quien NO tiene cartas aquí quien lo necesita.
@@ -590,7 +592,6 @@ export async function pintarVistazos() {
     quiereImportar = false
     setTimeout(() => $('mcImportarAbrir')?.click(), 0)
   }
-  caja.insertAdjacentHTML('beforeend', vistazoDeAcciones())
   if (ctx.carpetasLista.length) {
     caja.insertAdjacentHTML('beforeend', vistazoHtml('Álbumes', 'carpetas',
       ctx.carpetas.rejillaHtml(ctx.carpetas.arbolDeCarpetas(ctx.carpetasLista), ctx.carpetasResumen)))
@@ -681,7 +682,7 @@ function vistazoDelMes() {
   const c = cambioDelMes()
   mesDatos = { ...r, mes: nombreDelMes(), valor: c ? c.cambio : undefined, mejor: r.mejor ? { nombre: ctx.nombreDe(r.mejor.carta), pagado: r.mejor.pagado, vale: r.mejor.vale } : null }
   const n = (x) => Number(x).toLocaleString('es-ES', { useGrouping: 'always' })
-  const ficha = (id, cifra, texto, clase = '') => `<div class="mc-mes-ficha${clase ? ` ${clase}` : ''}" id="${id}"><b>${cifra}</b><span>${escapeHtml(texto)}</span></div>`
+  const ficha = (id, cifra, texto, clase = '') => `<div class="mc-cifra-ficha mc-mes-ficha${clase ? ` ${clase}` : ''}" id="${id}"><b>${cifra}</b><span>${escapeHtml(texto)}</span></div>`
   const valorHtml = (cc) => {
     if (!cc) return ficha('mcMesValor', '—', 'de valor este mes')
     const signo = cc.cambio > 0 ? '+' : cc.cambio < 0 ? '−' : ''

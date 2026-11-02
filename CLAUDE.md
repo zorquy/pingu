@@ -840,7 +840,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`datos.alertasActivas` + `ordenarAlertas`, en la segunda columna del PC)
   y «Tu mes» (`js/mi-coleccion/mes.js`, puro; la imagen en
   `js/mes-imagen.js` con el marco de redes). Una cifra nueva del mes va en
-  `resumenDelMes` y en `fichasDelMes`, no en dos sitios.
+  `resumenDelMes` y en `fichasDelMes`, no en dos sitios. El Panel son DOS
+  cajas (1174): `.mc-panel-izq` (lo grande) y `.mc-panel-der` (lo que se
+  mira de reojo: `#mcMovidasSitio`, `#mcAlertasSitio`, `#mcDerSitio`); un
+  bloque nuevo va en una de las dos, con su id y su `order` del móvil en
+  `mi-coleccion.css`. Una cifra con su rótulo es `.mc-cifra-ficha`
+  (`.mc-ficha` es la ficha de la carta). Y lo pagado es una línea
+  secundaria (PINGU: «es algo muy opcional»), no una tira de fichas.
 - **Un bloque de pantalla que no usa todo el mundo va en su módulo y
   entra por `import()`** (tanda 895, R4): el Panel y los deseos de Mi
   colección (`js/mi-coleccion/panel.js`, `deseos.js`) y el editor del

@@ -7247,7 +7247,7 @@ function coleccionCargada() {
 function guardarPanel() {
   if (!panelFiable || !esMia || !dueno?.id || pestania !== 'resumen') return
   vistaAlDia()
-  guardarVista(claveDeVista('panel', dueno.id), tomarPartes(['mcResumen', 'mcResumenPanel', 'mcVistazos']))
+  guardarVista(claveDeVista('panel', dueno.id), tomarPartes(['mcResumen', 'mcResumenPanel', 'mcVistazos', 'mcPanelDer']))
 }
 
 // ── EL ARRANQUE DEL CATÁLOGO (tanda 649) ──

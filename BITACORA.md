@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (418) — PINGU-Claude (1174 — el Panel en dos columnas de verdad, un molde de ficha y lo pagado en una línea)
+
+**Hecho** (PINGU: «dale a las tres tandas con lo recomendado», y «lo de
+pagaste está bien, pero no me gusta que ocupe tanto espacio; es algo muy
+opcional»):
+- **Lo pagado, una línea secundaria** bajo la gráfica (`balanceTiraHtml`,
+  ahora `p.mc-cartera-sub#mcBalance`): «Pagaste X en N cartas · valen Y ·
+  vas +Z (+P %) · N sin apuntar →». Quien no apunta nada ve solo un enlace
+  pequeño («Apunta lo que pagaste y verás si vas ganando →»).
+- **Dos columnas de verdad en el PC** (O1): `mi-coleccion.html` envuelve el
+  Panel en `.mc-panel-izq` (cartera, tiras, expansiones, tu mes) y
+  `aside.mc-panel-der#mcPanelDer` (`#mcMovidasSitio`, `#mcAlertasSitio` y
+  `#mcDerSitio`, donde van Cambios y, de momento, Compartir/importar). Los
+  sitios de las movidas y las alertas ya no se pintan dentro de
+  `#mcResumenPanel`. En el móvil, el orden de una cartera con
+  `display: contents` y `order` (cartera, movidas, alertas, las que más
+  valen, últimas añadidas, expansiones, tu mes, cambios, lo demás).
+- **Un molde de ficha de cifra** (V1): `.mc-cifra-ficha` (`.mc-ficha` ya
+  era la ficha de la carta) para Cambios y Tu mes.
+- `guardarPanel` guarda también `mcPanelDer` para la última vista.
+
+**Ficheros**: mi-coleccion.html, cartas.html (generado), js/mi-coleccion/panel.js,
+js/mi-coleccion.js, css/mi-coleccion.css, SCHEMA.md, novedades.json.
+Pruebas: 1173 y 436 ajustadas (la línea del balance; ningún «Ver todas» abre
+Cartas); 1155, 925, 1171, 1172, 562 verdes.
+
+**Pendiente**: 1175 (tiras iguales, expansiones en filas) y 1176 («Más» y el
+móvil); la ronda 10.
+
 ## 2026-11-02 (417) — PINGU-Claude (1173 — Pagaste · Valen · Vas, Tus alertas y Tu mes)
 
 **Hecho** (P5, P6 y P7 de la propuesta del Panel; con esto las tres tandas

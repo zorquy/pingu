@@ -5812,16 +5812,10 @@ html.mc-seleccionando .mc-pagina {
   gap: var(--e-sm);
 }
 
+/* Desde la 1174 `.mc-panel-cifra` lleva el molde `.mc-cifra-ficha`; aquí queda
+   solo lo suyo. */
 .mc-panel-cifra {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
   min-height: 64px;
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
   color: var(--text-mid);
   font: inherit;
   font-size: var(--t-xs);
@@ -5829,15 +5823,8 @@ html.mc-seleccionando .mc-pagina {
   cursor: pointer;
 }
 
-.mc-panel-cifra b {
-  color: var(--text);
-  font-family: var(--font-marca);
-  font-size: var(--t-xl);
-  line-height: 1;
-}
-
 .mc-panel-cifra:hover {
-  border-color: var(--navy);
+  background: var(--ice-dark);
 }
 
 /* La gráfica con un solo punto (651): la raya de base; el punto es la
@@ -7147,58 +7134,20 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   outline: none;
   box-shadow: var(--shadow-ring);
 }
-/* PAGASTE · VALEN · VAS (1173), debajo de la gráfica de la cartera. */
+/* LO PAGADO, UNA LÍNEA SECUNDARIA (1173 → 1174, PINGU: «no me gusta que
+   ocupe tanto espacio; es algo muy opcional»): bajo la gráfica, como la
+   línea de cartas · distintas · expansiones. */
 .mc-balance {
-  margin-top: var(--e-md);
+  margin-top: var(--e-sm);
+  align-items: baseline;
 }
-.mc-balance-tira {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: var(--e-sm);
-  margin: 0;
-}
-.mc-balance-tira > div {
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  min-width: 0;
-}
-.mc-balance-tira dt {
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.mc-balance-tira dd {
-  margin: 2px 0 0;
-  font-family: var(--font-display);
-  font-size: var(--t-lg);
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.mc-balance-tira dd.mc-gana { color: var(--success); }
-.mc-balance-tira dd.mc-pierde { color: var(--danger); }
-.mc-balance-tira small {
-  display: block;
-  color: var(--text-mid);
-  font-size: var(--t-2xs);
-}
-.mc-balance-vacio {
-  margin: 0;
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-}
+.mc-balance b.mc-gana { color: var(--success); }
+.mc-balance b.mc-pierde { color: var(--danger); }
 .mc-balance-falta {
   display: inline-flex;
   align-items: center;
   gap: var(--e-xs);
-  min-height: 36px;
-  margin-top: var(--e-xs);
+  min-height: 24px;
   padding: 0;
   border: 0;
   background: none;
@@ -7208,9 +7157,37 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   font-weight: 600;
   cursor: pointer;
 }
-@media (max-width: 480px) {
-  .mc-balance-tira dd { font-size: var(--t-md); }
+/* UN MOLDE DE FICHA DE CIFRA (1174, V1; `.mc-ficha` ya era la ficha de la carta, por eso el nombre): Cambios y Tu mes (y lo que venga)
+   con la misma pinta: fondo `--ice`, sin borde, cifra en Outfit. */
+.mc-cifra-ficha {
+  display: grid;
+  gap: 2px;
+  padding: var(--e-md) var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  color: var(--text-mid);
+  font: inherit;
+  text-align: center;
+  min-width: 0;
 }
+.mc-cifra-ficha b {
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mc-cifra-ficha span {
+  font-size: var(--t-xs);
+}
+.mc-cifra-ficha.mc-gana b { color: var(--success); }
+.mc-cifra-ficha.mc-pierde b { color: var(--danger); }
+button.mc-cifra-ficha { cursor: pointer; }
+button.mc-cifra-ficha:hover { background: var(--ice-dark); }
 /* TUS ALERTAS (1173): las filas de las movidas, con «a X €» a la derecha. */
 .mc-alerta .mc-movida-precio small {
   display: inline-flex;
@@ -7248,28 +7225,7 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--e-sm);
 }
-.mc-mes-ficha {
-  display: grid;
-  gap: 2px;
-  padding: var(--e-md) var(--e-sm);
-  border-radius: var(--radius-md);
-  background: var(--ice);
-  text-align: center;
-}
-.mc-mes-ficha b {
-  font-family: var(--font-display);
-  font-size: var(--t-xl);
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.mc-mes-ficha.mc-gana b { color: var(--success); }
-.mc-mes-ficha.mc-pierde b { color: var(--danger); }
-.mc-mes-ficha span {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
+/* `.mc-mes-ficha` lleva el molde `.mc-cifra-ficha` desde la 1174. */
 @media (max-width: 600px) {
   .mc-mes-rejilla { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
@@ -7277,21 +7233,40 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 #mcPanelEstadisticas .mc-estadisticas {
   margin-top: 0;
 }
-/* El Panel en dos columnas en el PC (1155, E3; SCHEMA): el valor y «Las que
-   más valen» a la izquierda, «Las que más se mueven» en una lista estrecha a
-   la derecha. Solo si ese bloque está (o su esqueleto). */
+/* EL PANEL EN DOS COLUMNAS (1155 → 1174, O1 de la propuesta de orden): la
+   izquierda (`.mc-panel-izq`: cartera, tiras, expansiones, tu mes) y la
+   derecha (`.mc-panel-der`: movidas, alertas, Cambios, Más), que son dos
+   cajas de verdad y no una rejilla que compartía filas. Solo con algo en la
+   derecha: en /cartas (el catálogo) no hay. */
 @media (min-width: 1100px) {
-  #mcResumenPanel:has(> #mcMovidasSitio > section) {
+  #mcPanelResumen:has(> .mc-panel-der section) {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 360px;
     column-gap: var(--e-xl);
     align-items: start;
   }
-  #mcResumenPanel:has(> #mcMovidasSitio > section) > :not(#mcMovidasSitio, #mcAlertasSitio) { grid-column: 1; }
-  #mcResumenPanel > #mcMovidasSitio { grid-column: 2; grid-row: 1; }
-  /* Y las alertas (1173) debajo, en la misma columna, a la altura de «Las
-     que más valen». */
-  #mcResumenPanel > #mcAlertasSitio { grid-column: 2; grid-row: 2 / span 2; }
+  #mcPanelResumen:has(> .mc-panel-der section) > .mc-compartir,
+  #mcPanelResumen:has(> .mc-panel-der section) > dialog { grid-column: 1 / -1; }
+  .mc-panel-der { display: grid; gap: var(--e-xl); }
+  .mc-panel-der > div:empty { display: none; }
+}
+/* Y en una columna, el orden de una cartera: cuánto vale, qué se mueve, qué
+   tienes, qué puedes hacer. Las cajas se abren (`display: contents`) y cada
+   bloque lleva su número. */
+@media (max-width: 1099px) {
+  #mcPanelResumen { display: flex; flex-direction: column; gap: var(--e-xl); }
+  #mcPanelResumen > .mc-panel-izq, #mcPanelResumen > .mc-panel-der, #mcResumenPanel, #mcVistazos, #mcMovidasSitio, #mcAlertasSitio, #mcDerSitio { display: contents; }
+  #mcPanelResumen > *, .mc-panel-izq > *, .mc-panel-der > *, #mcResumenPanel > *, #mcVistazos > *, #mcDerSitio > * { order: 9; }
+  #mcValorCaja { order: 1; }
+  #mcMovidasSitio > *, #mcMovidas { order: 2; }
+  #mcAlertasSitio > *, #mcAlertas { order: 3; }
+  #mcValiosas { order: 4; }
+  #mcUltimas { order: 5; }
+  #mcVistazoSets, #mcVistazoSetsEsq { order: 6; }
+  #mcMes { order: 7; }
+  #mcCambios { order: 8; }
+  .mc-vistazos { margin-top: 0; }
+  #mcMasEstadisticas:empty { display: none; }
 }
 /* En el móvil, la línea a sangre: de borde a borde, como en la maqueta
    (24 px es el relleno lateral de `.container`). */

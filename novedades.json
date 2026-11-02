@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-02",
+      "tipo": "mejora",
+      "texto": "El Panel de Mi colección, ordenado como una cartera: en el PC, lo grande a la izquierda y lo que se mira de reojo (movimientos, alertas, cambios) a la derecha; lo que pagaste, en una línea discreta bajo la gráfica.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-02",
       "tipo": "nuevo",
       "texto": "El Panel de Mi colección dice ahora lo que pagaste, lo que vale y cómo vas, debajo de la gráfica; enseña tus alertas de precio con lo que les falta para saltar; y resume tu mes (cartas, expansiones nuevas, cambios y valor) con una imagen para compartir.",
       "enlace": "/mi-coleccion"

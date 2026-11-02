@@ -852,6 +852,13 @@
            · El reparto por serie y por rareza, que es lo que cuenta qué
              clase de coleccionista eres. -->
       <section id="mcPanelResumen" class="hidden" role="tabpanel" aria-label="Resumen">
+        <!-- DOS COLUMNAS DE VERDAD (1174, O1 de la propuesta de orden): la
+             izquierda lleva lo grande (la cartera, las tiras de cartas, las
+             expansiones, tu mes) y la derecha lo que se mira de reojo (las que
+             más se mueven, las alertas, Cambios y «Más»). En el móvil, una
+             columna en el orden de una cartera (`order` en movil.css no: en
+             mi-coleccion.css, con `display: contents`). -->
+        <div class="mc-panel-izq">
         <div id="mcResumenPanel"></div>
 
         <!-- Los VISTAZOS (tanda 436). PINGU, con el panel de Dex delante:
@@ -870,6 +877,12 @@
              plegado; desde la 1172 aquí va solo la cabecera con su línea y
              «Ver todas» abre la vista #mcPanelEstadisticas. -->
         <div id="mcMasEstadisticas"></div>
+        </div>
+        <aside class="mc-panel-der" id="mcPanelDer" aria-label="De un vistazo">
+          <div id="mcMovidasSitio"></div>
+          <div id="mcAlertasSitio"></div>
+          <div id="mcDerSitio"></div>
+        </aside>
 
         <!-- Compartir la colección, AL FINAL del Panel desde la 748: en la
              maqueta de la cartera arriba va lo que vale y nada más. El

@@ -41785,6 +41785,41 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1174 — El Panel en dos columnas de verdad, un molde de ficha y lo pagado en una línea
+
+O1 y V1 de la propuesta de orden del Panel, más lo que PINGU dijo de la
+tira del balance.
+
+**La plantilla** (`mi-coleccion.html`, y `cartas.html` generado):
+`#mcPanelResumen` lleva `div.mc-panel-izq` (`#mcResumenPanel`,
+`#mcVistazos`, `#mcMasEstadisticas`) y `aside.mc-panel-der#mcPanelDer`
+(`#mcMovidasSitio`, `#mcAlertasSitio`, `#mcDerSitio`). `pintarResumenPanel`
+ya no escribe los dos sitios dentro del resumen (son estáticos, y
+`pintarMovidas`/`pintarAlertas` los buscan por id), y `pintarVistazos`
+escribe en `#mcDerSitio` Cambios (`#mcCambios`) y las acciones. Cada bloque
+lleva id para el orden del móvil: `#mcValorCaja`, `#mcMovidas`,
+`#mcAlertas`, `#mcValiosas`, `#mcUltimas`, `#mcVistazoSets`, `#mcMes`,
+`#mcCambios`.
+
+**CSS** (`mi-coleccion.css`): desde 1.100 px, `#mcPanelResumen:has(>
+.mc-panel-der section)` es una rejilla `minmax(0,1fr) 360px` de DOS cajas
+(antes, la 1155 hacía rejilla de todos los bloques y las filas se
+compartían: la derecha quedaba vacía a la altura de las expansiones). Sin
+nada en la derecha (el catálogo), una columna. Por debajo, `#mcPanelResumen`
+es una columna flexible, las cajas y los sitios van con `display: contents`
+y cada bloque con su `order` (el resto, 9).
+
+**`.mc-cifra-ficha`**: el molde de una cifra con su rótulo (fondo `--ice`,
+sin borde, cifra en Outfit, centrado) para `.mc-panel-cifra` (Cambios) y
+`.mc-mes-ficha` (Tu mes). No se llama `.mc-ficha` porque ese nombre es la
+ficha de la carta (la 893: grepar el nombre antes de usarlo; me pasó).
+
+**El balance**: `balanceTiraHtml` devuelve una `p.mc-cartera-sub.mc-balance`
+(la misma línea que cartas · distintas · expansiones): Pagaste, valen, vas
+(con `.mc-gana`/`.mc-pierde`) y el botón `.mc-balance-falta` («N sin
+apuntar →», o «Apunta lo que pagaste y verás si vas ganando →» sin balance).
+`guardarPanel` guarda también `mcPanelDer`.
+
 ## Tanda 1173 — Pagaste · Valen · Vas, Tus alertas y Tu mes
 
 P5, P6 y P7 de la propuesta del Panel.
