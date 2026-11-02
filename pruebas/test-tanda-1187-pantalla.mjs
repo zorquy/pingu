@@ -56,6 +56,11 @@ console.log('── 1. El PC, con cuenta y con la clasificación ──')
   const { ctx, page, errores } = await abrir(b, false, 'user-1', true)
   const m = await medir(page)
   check('sin la caja verde de retos (la tarjeta de arriba dice lo mismo)', m.retoSeccion === null && (await page.locator('.hoy-retos').count()) === 1, JSON.stringify(m.retoSeccion))
+  // La primera 1187 lo colgaba de «Sigue donde lo dejaste», y PINGU no lo
+  // tiene: la caja verde salió a todo el ancho. Lo que manda es la tarjeta.
+  await page.evaluate(() => document.getElementById('sigueSeccion').classList.add('hidden'))
+  await page.waitForTimeout(200)
+  check('  …también sin «Sigue donde lo dejaste»', (await medir(page)).retoSeccion === null)
   check('el orden: foro, Aprende, primeros pasos y la comunidad abajo del todo', m.foroVivoSeccion.y < m.recientesSeccion.y && m.recientesSeccion.y < m.primerosPasos.y && m.primerosPasos.y < m.homeActivity.y, JSON.stringify(m))
   const [c, k] = [m.homeActivity, m.clasificacionSeccion]
   check('comunidad y clasificación en la misma fila, la comunidad a la izquierda y el doble de ancha', c && k && c.y === k.y && c.x < k.x && Math.abs(c.w - 2 * k.w) < 40, JSON.stringify([c, k]))
