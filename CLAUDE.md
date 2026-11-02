@@ -843,7 +843,7 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   **El Panel es el «A · Cartera»** (tanda 1179, PINGU eligió la A de las
   tres propuestas: «muy visuales y que no tengan mucho texto»): la cartera
   a lo ancho (la cifra, cartas · distintas · expansiones, la chapa del mes,
-  la gráfica a 200 px y sus periodos; nada más: ni «Este mes / Esta
+  la gráfica a 140 px en el PC y 112 en el móvil, caja Y dibujo, 1181, y sus periodos; nada más: ni «Este mes / Esta
   semana», ni lo pagado, ni «N cartas no tienen precio») y debajo CUATRO
   bloques con el mismo molde, uno por fila: Movimientos (`fichaDeTiraHtml`,
   precio y % en verde o rojo), Ranking, Últimas añadidas (tiras de ocho en

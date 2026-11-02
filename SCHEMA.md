@@ -41802,6 +41802,25 @@ lo del móvil va justo detrás de lo del PC. Lo vigila
 y acaba donde ella, y la cifra del móvil no pasa de 40 px. Contra la versión
 de antes da los 72 px de hueco.
 
+## Tanda 1181b — Una gráfica más baja y el punto de hoy dentro
+
+Con el hueco quitado, PINGU: «el gráfico está ocupando demasiado espacio,
+tanto en PC como en móvil, y el punto del final está mal alineado». La caja y
+el dibujo bajan a 140 px en el PC y 112 en el móvil (eran 200 y 160 desde la
+1179). El punto de su captura estaba desplazado porque se colocaba en tanto
+por ciento de la caja de 200 y la línea se dibujaba en el SVG de 128: con los
+dos al mismo alto ya cae en el final de la línea.
+
+Quedaba otra cosa: la línea de `carteraHtml` acababa a 10 unidades del borde
+derecho y a 12 del de arriba, y el punto mide 6 px de radio más 4 de halo.
+Como el SVG se estira sin guardar proporción (`preserveAspectRatio="none"`),
+esas unidades son menos píxeles cuanto más pequeña es la caja, y en el móvil
+el halo se salía por el borde de la pantalla. Ahora son 20 y 20, unos 12 px en
+la caja más pequeña (112 × 390). `test-tanda-1181-pantalla.mjs` mide, en los
+dos anchos, que el centro del punto cae en el final de la LÍNEA (no del
+relleno) y que con el halo no se sale ni de la caja ni de la pantalla; la 653
+pasa de 128 a 140 (la gráfica de un punto mide lo que su hueco).
+
 ## Tanda 1180 — En tus álbumes, lo que falta en color
 
 PINGU, con una captura de un álbum de Mega EX: «las cartas que no tienes salen

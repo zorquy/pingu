@@ -427,11 +427,14 @@ export function carteraHtml(filas, { ahora = null, rango = '1M', nombre = 'tu co
   const max = Math.max(...valores)
   const min = Math.min(...valores)
   const span = max - min || 1
-  const arriba = 12
+  // La línea acaba antes del borde derecho y por debajo del de arriba: ahí va
+  // la marca de HOY (6 px de radio y 4 de halo), que pegada se cortaba (1181,
+  // PINGU: «el punto del final está mal alineado»). Son unidades del
+  // `viewBox` y la caja se estira sin guardar proporción: 20 de 180 y 20 de
+  // 600 dan ~12 px en la caja más pequeña, la del móvil (112 × 390).
+  const arriba = 20
   const alto = ALTO - arriba - 28
-  // La línea acaba un pelo antes del borde derecho: ahí va la marca de
-  // HOY, que a sangre se quedaría cortada por la mitad.
-  const fin = ANCHO - 10
+  const fin = ANCHO - 20
   const x = (i) => (dias.length === 1 ? fin / 2 : (i / (dias.length - 1)) * fin)
   const y = (v) => arriba + alto - ((v - min) / span) * alto
   const linea = `M${dias.map((d, i) => `${x(i).toFixed(1)},${y(d.valor).toFixed(1)}`).join(' L')}`

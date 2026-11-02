@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (425) — PINGU-Claude (1181b — gráfica del Panel más baja, punto de hoy dentro)
+
+**Hecho**: PINGU: la gráfica ocupa demasiado y el punto final está mal. Caja y
+dibujo a 140 (PC) y 112 (móvil); la línea de `carteraHtml` deja 20 unidades
+arriba y a la derecha para que el punto y su halo no se corten.
+
+**Ficheros**: `css/mi-coleccion.css`, `js/mi-coleccion/grafica-valor.js`,
+`SCHEMA.md` (1181b), `novedades.json`; en `pruebas`, la 1181 (punto en el
+final de la línea y dentro) y la 653 (128 → 140). Verdes 1178, 1173, 1175,
+1155, 377, 715, 748, 925, 1015, 299, 313, 662, 756, 653, 1181 e imports.
+
+**Pendiente**: la propuesta de la barra del álbum sigue con PINGU.
+
 ## 2026-11-02 (424) — PINGU-Claude (1181 — la gráfica del Panel sin hueco debajo)
 
 **Hecho**: PINGU mandó captura del Panel en el móvil con una franja vacía bajo
