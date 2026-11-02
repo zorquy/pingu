@@ -1319,6 +1319,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`tapaCerradaHtml`: la misma de la cabecera) o su LOMO en una estantería;
   quien mira elige (`mc-albumes-vista`, en su navegador). Lo que se le añada
   a un álbum (color, acabado, cierre) se pinta en los dos.
+  Dentro de un álbum tuyo lo que falta va en COLOR, sin ✓ y con su «+» (1180,
+  PINGU: «para hacer álbumes queda feo» el gris); en el Archivador de una
+  expansión sigue en gris. La regla va por `#mcAlbArchivador`, no por la clase.
 - **Un álbum se edita y se borra desde UN sitio: la hoja de
   `album-editar.js`** (tanda 1032), que abren el ⋯ de cada baldosa y
   «Editar álbum» dentro. Un campo nuevo de un álbum (nombre, tapa, portada,

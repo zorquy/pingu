@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-02",
       "tipo": "mejora",
+      "texto": "En tus álbumes, las cartas que te faltan ya no salen en gris: se ven en color, con su «+» para añadirlas, y las que tienes llevan su check. Quedan más bonitos para enseñarlos. En la vista de una expansión lo que falta sigue en gris, que ahí sirve para ver qué te queda.",
+      "enlace": "/mi-coleccion?ver=carpetas"
+    },
+    {
+      "fecha": "2026-11-02",
+      "tipo": "mejora",
       "texto": "El Panel de Mi colección, más visual y con menos texto: lo que vale tu colección con su gráfica arriba, a lo ancho, y debajo Movimientos, Ranking y Últimas añadidas en tiras de cartas y tus expansiones en baldosas con su logo. Lo pagado queda en la ficha de cada carta y en Estadísticas.",
       "enlace": "/mi-coleccion"
     },

@@ -41785,6 +41785,32 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1180 — En tus álbumes, lo que falta en color
+
+PINGU, con una captura de un álbum de Mega EX: «las cartas que no tienes salen
+en gris, pero para hacer álbumes queda feo. Mejor solo para los álbumes que
+las que tenemos tengan el check y color, y las que no, que no saquen el check
+y sigan teniendo el plus».
+
+El gris viene de dos reglas de `mi-coleccion.css` que valen para todo bolsillo
+sin `.tengo`: la base de `.mc-bolsillo img` (371, `saturate` y opacidad) y la
+de la 757 (`grayscale` por tema). Las dos las comparten tus álbumes y la vista
+Archivador de una expansión, porque los pinta el mismo `archivadorHtml`. En la
+expansión el gris es la información («qué te falta del set»); en un álbum que
+montas para enseñarlo, no. Por eso la regla nueva va por el CONTENEDOR,
+`#mcAlbArchivador`, donde solo se pintan álbumes (los tuyos y los públicos de
+otros), y no por la clase del bolsillo: con un id gana a las dos sin `!important`
+y la expansión no se entera.
+
+El check y el «+» no se tocan: ya los ponía `bolsilloHtml` (el ✓ solo en lo
+que tienes, el «+» en todas). La vista previa de «Personalizar» ya pintaba
+todos los bolsillos como `.tengo`.
+
+Lo vigila `test-tanda-1180-pantalla.mjs`: en un álbum de set y en un binder,
+con los dos temas, lo que falta lleva `filter: none` y opacidad 1, sin ✓ y con
+«+»; lo que tienes, en color y con ✓; y en el Archivador de la expansión lo
+que falta sigue con su filtro de gris.
+
 ## Tanda 1179 — El Panel «A · Cartera», sin «repetidas», y la portada suma como el Panel
 
 PINGU vio las dos tandas anteriores puestas (1177 y 1178) y las descartó:

@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (423) — PINGU-Claude (1180 — en tus álbumes, lo que falta en color)
+
+**Hecho**: en un álbum tuyo (o el público de otro) las cartas que faltan ya no
+van en gris: color, sin ✓ y con su «+». Lo tuyo, igual que antes (color y ✓).
+En el Archivador de una EXPANSIÓN lo que falta sigue en gris, a propósito.
+Una regla al final de `css/mi-coleccion.css` por `#mcAlbArchivador`.
+
+**Ficheros**: `css/mi-coleccion.css`, `CLAUDE.md` (regla del álbum),
+`SCHEMA.md` (1180), `novedades.json`, y en `pruebas`
+`test-tanda-1180-pantalla.mjs` (verde: dos álbumes, dos temas, y la expansión
+en gris). `test-tanda-760` exigía gris dentro de un álbum: ahora exige color.
+Pasadas en verde: imports, 299, 313, 760, 1048 y 1180. Rojas TAMBIÉN sin
+el cambio (comprobado sirviendo HEAD): 757 (el ✓ no va en el centro), 1049
+y 1050 (botones de 36 donde piden 44) y 829 («nuevo para ti» por semanas).
+
+**Pendiente**: nada en curso.
+
 ## 2026-11-02 (422) — PINGU-Claude (1179 — el Panel «A · Cartera», sin «repetidas», y la portada suma como el Panel)
 
 **Hecho** (PINGU descartó la 1177/1178 puestas y una propuesta visual
