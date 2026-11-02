@@ -254,7 +254,8 @@ console.log('\n── 6. Las guías nuevas, con su portada ──')
   // con el nivel y el curso: son las tres cómo es esta guía. Lo que
   // defiende esta comprobación —que se diga, y en español— no cambia.
   const rarezas = await page.locator('#aprende .guia-rareza').allTextContents()
-  check('  …y la grande dice su rareza', rarezas.length === 1, String(rarezas.length))
+  // Desde la 1185 son cuatro tarjetas iguales y cada una dice la suya.
+  check('  …y las guías dicen su rareza', rarezas.length >= 1, String(rarezas.length))
   check('  …en español', rarezas.every((r) => /^(Bronce|Plata|Oro|Platino)$/.test(r.trim())), rarezas.join(' | '))
   await page.close()
 }

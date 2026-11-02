@@ -71,8 +71,13 @@ console.log('── 2. La portada con cuenta ──')
 {
   const { page, ctx, errores } = await abrir('/index.html', 'user-1')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const franja = page.locator('#lanzamientoPortada')
-  check('la franja de la lateral invita a escribir una guía y lleva al editor', /Escribe una guía/.test(n(await franja.innerText())) && (await franja.getAttribute('href')) === '/editor-guia.html' && (await franja.locator('img').count()) === 0, n(await franja.innerText()))
+  // Desde la 1185 «Escribe una guía» va en la cabecera de Aprende y la
+  // franja suelta se recoge (la A de «Una portada que cuadra»).
+  const escribe = page.locator('#aprende .pb-escribir')
+  // (En este doble no hay guías y Aprende se recoge: entonces no hay cabecera.)
+  const hayGuias = (await page.locator('#aprende .guia-tarjeta').count()) > 0
+  check('la franja suelta ya no está (1185)', (await page.locator('#lanzamientoSeccion.seccion-recogida').count()) === 1)
+  check('  …y «Escribe una guía» va en Aprende y lleva al editor', !hayGuias || ((await escribe.count()) === 1 && (await escribe.getAttribute('href')) === '/editor-guia.html'), n(await escribe.innerText().catch(() => '')))
   const fichas = await page.$$eval('#hoyPortada .hoy-ficha', (as) => as.map((a) => ({ t: a.innerText.replace(/\s+/g, ' ').trim(), href: a.getAttribute('href'), logo: a.querySelector('.hoy-ficha-logo img')?.getAttribute('src') || '', alto: a.querySelector('.hoy-ficha-logo img')?.getBoundingClientRect().height || 0 })))
   const lanz = fichas.find((f) => f.href === '/lanzamientos.html')
   check('la ficha del lanzamiento enseña el logo del set, a 32 px', lanz?.logo === 'https://images.tcggo.com/dr.png' && Math.round(lanz.alto) === 32 && /^Sale/.test(lanz.t), JSON.stringify(lanz))

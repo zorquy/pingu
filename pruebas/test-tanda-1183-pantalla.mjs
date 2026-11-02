@@ -95,7 +95,7 @@ for (const movil of [true, false]) {
 
 console.log('── 5. Sin cuenta, nada ──')
 {
-  const ctx = await contexto(b, true, null)
+  const ctx = await contexto(b, true, 'none')
   const page = await ctx.newPage()
   await page.goto(`${BASE}/foro.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1800)

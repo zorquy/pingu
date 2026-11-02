@@ -130,8 +130,11 @@ console.log('\n── 1. Una guía se dibuja IGUAL en la portada y en /aprender 
     await page.close()
   }
   // Y lo que la portada aporta de más sigue estando.
-  check('  …y la portada conserva su autor y su guardar',
-    enPortada.has('guia-pie-autor') && [...enPortada].some((c) => c === 'card-save-btn'),
+  // Desde la 1185 la portada pinta cuatro tarjetas iguales, sin el pie de
+  // autor y guardar que llevaba la grande: lo que se comprueba es que siguen
+  // siendo LA tarjeta, con su título y su descripción.
+  check('  …y la portada pinta la misma tarjeta, con título y descripción',
+    enPortada.has('guia-titulo') && enPortada.has('guia-desc'),
     [...enPortada].join(' '))
 }
 
@@ -208,7 +211,9 @@ console.log('\n── 4. En el móvil, los primeros pasos van arriba ──')
     check('  …y en el móvil va después de Aprende y antes de la clasificación (1012)',
       // (la clasificación puede no salir en el doble: entonces solo lo primero)
       movil.y > movil.aprende && (!movil.clasificacion || movil.y < movil.clasificacion), `y=${movil.y}, aprende=${movil.aprende}, clasificación=${movil.clasificacion}`)
-    check('  …y en escritorio sigue arriba en la lateral', escritorio.y < 900, `y=${escritorio.y}`)
+    // Desde la 1185 (filas que cuadran) en el PC va en su fila, detrás de
+    // Aprende, como en el móvil.
+    check('  …y en escritorio, en su fila detrás de Aprende (1185)', escritorio.y > escritorio.aprende, `y=${escritorio.y}, aprende=${escritorio.aprende}`)
   }
 }
 

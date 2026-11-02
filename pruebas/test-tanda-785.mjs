@@ -80,7 +80,8 @@ const semilla = () => {
     filas: document.querySelectorAll('#aprende .guia-fila').length,
     viejos: document.querySelectorAll('#recentGrid, #topMesSeccion, #ligaSeccion').length,
   }))
-  check('PA1 (844): en el móvil, una guía grande y las demás en fila', m.grande === 1 && m.filas >= 1, JSON.stringify(m))
+  // Desde la 1185: cuatro tarjetas iguales, que en el móvil van en una tira.
+  check('PA1 (1185): en el móvil, cuatro guías iguales y sin filas', m.grande === 4 && m.filas === 0, JSON.stringify(m))
   check('  …y la liga y el top del mes ya no son dos bloques', m.viejos === 0, JSON.stringify(m))
   await ctx.close()
 }
