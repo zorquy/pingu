@@ -923,7 +923,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   sección (`js/avisos-chips.js`); la campana sigue siendo solo lo sin leer y
   acaba en «Ver todos los avisos». Lo que marque leído desde fuera de la
   campana quita de `window.__pdAvisos` y lanza `pd-avisos-cambiados`, nunca
-  `pd-avisos` a pelo. Y la barra pegada (`js/barra-pegada.js`) lleva el índice
+  `pd-avisos` a pelo. Y un aviso del foro se ve en la tarjeta de SU foro y en
+  la fila de SU tema («N para ti», `js/foro-avisos.js`, 1183, PINGU: «no sabes
+  dónde entrar»): un aviso nuevo del foro lleva un `link` a `/tema/<id>` o no
+  sale ahí. Y la barra pegada (`js/barra-pegada.js`) lleva el índice
   de una guía (`indice`) y un botón a la derecha (`accion`, `ponerAccion`): un
   tema la monta UNA vez, no en cada repintado.
 - **Lo que una página ESCRIBE al abrirse no puede pasar si Chrome solo la

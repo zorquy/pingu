@@ -20,6 +20,7 @@ import {
   faltaElForo,
 } from './foro-comun.js'
 import { casillaHtml, botonMenuHtml, engancharModeracion } from './foro-moderar.js'
+import { montarAvisosDelForo } from './foro-avisos.js'
 import { marcasDeLectura, estaSinLeer, marcarTodoLeido, sinLeerPorForo } from './foro-lecturas.js'
 import { sinMigracion } from './sin-migracion.js'
 import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, vistaAlDia } from './ultima-vista.js'
@@ -372,7 +373,7 @@ async function pintarIndice() {
     const nuevos = nuevosDe(f)
     const temas = f.thread_count || 0
     return `
-    <div class="foro-fila ${nuevos ? 'foro-fila-nueva' : marcas?.hayDatos ? 'foro-fila-leida' : ''}" data-tono="${tonoDe.get(f.id) ?? 0}">
+    <div class="foro-fila ${nuevos ? 'foro-fila-nueva' : marcas?.hayDatos ? 'foro-fila-leida' : ''}" data-tono="${tonoDe.get(f.id) ?? 0}" data-foro="${escapeHtml(String(f.id))}">
       <div class="foro-fila-icono" aria-hidden="true">${
         nuevos ? `<span class="foro-punto-nuevo" title="Con mensajes nuevos"></span>` : ''
       }${icons.messageSquare(18)}</div>
@@ -388,7 +389,7 @@ async function pintarIndice() {
             ? `<p class="foro-subforos">${subforos
                 .map(
                   (s) =>
-                    `<a class="${nuevosPorForo[s.id] ? 'foro-subforo-nuevo' : ''}" href="${urlForo(s.slug)}">${
+                    `<a class="${nuevosPorForo[s.id] ? 'foro-subforo-nuevo' : ''}" href="${urlForo(s.slug)}" data-foro="${escapeHtml(String(s.id))}">${
                       nuevosPorForo[s.id] ? `<span class="foro-punto-nuevo"></span>` : ''
                     }${icons.messageSquare(12)} ${escapeHtml(s.name)}</a>`
                 )
@@ -435,6 +436,8 @@ async function pintarIndice() {
   // filas de una línea, el índice entero cabe en una pantalla del móvil.
   principal.innerHTML = bloques
     || `<p class="empty-state">Todavía no hay ningún foro abierto. Se crean desde el panel de administración.</p>`
+  // Lo que te espera (tus avisos del foro), en la tarjeta de su foro (1183).
+  if (sesion) montarAvisosDelForo({ supabase, raiz: principal, foros })
 
   // El índice es una página de lista: sin migas (1163, T4); la lateral ya dice dónde estás.
   migas.innerHTML = ''
@@ -787,7 +790,7 @@ async function pintarListaDeTemas(foro) {
     const quien = perfiles[ultimo?.author_id || t.last_post_author_id] || perfiles[t.author_id]
     const respuestas = Math.max(0, (t.post_count || 1) - 1)
     return `
-    <div class="foro-tema-fila foro-tema-conv ${t.is_pinned ? 'foro-tema-fijado' : ''} ${sinLeer ? 'foro-tema-nuevo' : ''} ${leido ? 'foro-tema-leido' : ''}">
+    <div class="foro-tema-fila foro-tema-conv ${t.is_pinned ? 'foro-tema-fijado' : ''} ${sinLeer ? 'foro-tema-nuevo' : ''} ${leido ? 'foro-tema-leido' : ''}" data-tema="${escapeHtml(String(t.id))}">
       ${soyStaff ? casillaHtml(t) : ''}
       ${avatarSpan(quien, 44)}
       <div class="foro-conv-cuerpo">
@@ -819,7 +822,7 @@ async function pintarListaDeTemas(foro) {
          ${(subforos || [])
            .map(
              (s) => `
-         <div class="foro-fila ${nuevosPorForo[s.id] ? 'foro-fila-nueva' : marcas?.hayDatos ? 'foro-fila-leida' : ''}">
+         <div class="foro-fila ${nuevosPorForo[s.id] ? 'foro-fila-nueva' : marcas?.hayDatos ? 'foro-fila-leida' : ''}" data-foro="${escapeHtml(String(s.id))}">
            <div class="foro-fila-icono" aria-hidden="true">${
              nuevosPorForo[s.id] ? `<span class="foro-punto-nuevo" title="Con mensajes nuevos"></span>` : ''
            }${icons.messageSquare(18)}</div>
@@ -891,6 +894,9 @@ async function pintarListaDeTemas(foro) {
   // el menú de cada tema. Solo se engancha para el equipo; para el resto
   // ni siquiera se ha pintado nada que enganchar.
   if (soyStaff) engancharModeracion({ foro, temas: lista, soyAdmin })
+
+  // Tus avisos del foro, en la fila de su tema y de su subforo (1183).
+  if (sesion) montarAvisosDelForo({ supabase, raiz: principal, foros: subforos || [] })
 
   // Se devuelve si hay algo sin leer para que la cabecera decida si
   // enseña el botón de "marcar todo como leído".

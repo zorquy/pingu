@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-02 (427) — PINGU-Claude (1183 — los avisos del foro, en su foro y en su tema)
+
+**Hecho**: PINGU, con captura del móvil: la burbuja decía «Foro 1» y ninguna
+tarjeta del índice, así que no sabía dónde entrar. Ese número son sus AVISOS
+del foro (respuestas, menciones, reacciones) y el índice solo marcaba los
+mensajes sin leer (`nuevosPorForo`): una reacción no es un mensaje nuevo. Ahora
+`js/foro-avisos.js` cuelga cada aviso sin leer de su tema (`/tema/<id>`), el
+tema de su foro (una consulta a `forum_threads` solo si hay avisos) y el foro
+de su padre: la tarjeta lleva «N para ti» (enlace al aviso más nuevo), el
+subforo del índice va marcado y, dentro del foro, la fila del tema lleva «Para
+ti». Se repinta con `pd-avisos`; al abrir el tema se lee (1142) y se va.
+
+**Ficheros**: `js/foro-avisos.js` (nuevo), `js/foro.js` (`data-foro`,
+`data-tema` y las dos llamadas), `css/foro.css`, `SCHEMA.md` (1183),
+`CLAUDE.md`, `novedades.json`; en `pruebas`, `test-tanda-1183-pantalla.mjs`.
+Verdes las 46 pruebas que tocan el foro salvo 327, 386, 524, 704, 723, 742,
+896 y 995, que salen IGUAL de rojas sin este cambio (mismo número de fallos),
+y 993, que no encuentra `web-push` en el contenedor. 299, 312, 313, 1139,
+1142, 1017 e imports, verdes.
+
+**Pendiente**: nada. (El carrusel de los 500 usuarios para redes se hizo
+fuera del repo, con `js/redes-marco.js`.)
+
 ## 2026-11-02 (426) — PINGU-Claude (1182 — la barra de un álbum, en pastillas)
 
 **Hecho**: PINGU aceptó la propuesta de la barra del álbum («me gusta todo»),

@@ -41785,6 +41785,35 @@ calco que respeta los conservados y los usa de destino). Verdes 806, 809,
 test-imports y el resto de las que tocan el calco. La 848 estaba roja
 antes de esta tanda (analítica contra el PostgreSQL local).
 
+## Tanda 1183 — Los avisos del foro, en su foro y en su tema
+
+PINGU, con una captura del móvil: «cuando hay algo nuevo se marca en la burbuja
+pero no en qué subforo… no sabes dónde entrar». El número de la burbuja (1139,
+`cuentasDeSecciones`) cuenta tus AVISOS sin leer del foro; el índice marcaba
+otra cosa, los mensajes sin leer por foro (`nuevosPorForo`, de
+`foro_resumen`). Una reacción no es un mensaje nuevo, y una respuesta en un
+tema que ya abriste tampoco: el número salía en la burbuja y en ninguna tarjeta.
+
+- `js/foro-avisos.js`: `temaDeAviso(link)` saca el tema de `/tema/<id>` (como
+  texto, para casar con `data-tema`); `avisosDelForo` filtra los sin leer de
+  la sección Comunidad que llevan a un tema, el más nuevo primero;
+  `avisosPorSitio` los cuenta por tema y por foro, y el de un subforo cuenta
+  también en su padre (la 360 de foro.js, con los avisos).
+- El foro de cada tema sale de UNA consulta a `forum_threads (id, board_id)`
+  solo con los temas de los avisos (y en caché mientras dura la página).
+- `marcarAvisosDelForo` pinta en `.foro-fila[data-foro]` la chapa «N para ti»
+  (enlace al aviso más nuevo, color de la sección), marca
+  `.foro-subforos a[data-foro]` y pone «Para ti» en la fila `[data-tema]`
+  (por encima del enlace estirado de la fila). `montarAvisosDelForo` la llama
+  al pintar y en cada `pd-avisos` (llegan después que el foro, se leen desde
+  la campana o entra uno en vivo). Sin sesión no se llama.
+- Al abrir el tema el aviso se da por leído (1142, `casaConLaPagina`) y la
+  marca se va con el número.
+
+Prueba: `test-tanda-1183-pantalla.mjs` (lo puro; el índice en móvil y PC con
+un subforo; leer desde la campana quita la marca; las filas de tema; sin
+cuenta, nada).
+
 ## Tanda 1182 — La barra de un álbum, en pastillas
 
 PINGU: los botones del álbum eran «demasiado grandes, toscos y cutres», el

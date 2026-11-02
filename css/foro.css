@@ -1220,6 +1220,43 @@
   color: var(--blanco-fijo);
 }
 
+/* Lo que te espera (1183): tus avisos del foro en la tarjeta de su foro y en
+   la fila de su tema, en el color de la sección, como el número de la
+   burbuja. Es un enlace: lleva al aviso. Detalle en SCHEMA 1183. */
+.foro-chapa-para-ti,
+.foro-fila .foro-fila-cuerpo h3 a.foro-chapa-para-ti {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  background: var(--acento);
+  color: var(--acento-texto);
+  text-decoration: none;
+  white-space: nowrap;
+  vertical-align: middle;
+}
+
+.foro-con-aviso > .foro-fila-cuerpo h3 > a:first-child,
+.foro-subforos a.foro-con-aviso {
+  font-weight: 800;
+}
+
+.foro-subforos a.foro-con-aviso {
+  color: var(--acento);
+}
+
+/* Una chapa que se pulsa mide 44 al dedo (312), sin cambiar su dibujo. */
+@media (pointer: coarse) {
+  .foro-chapa-para-ti {
+    position: relative;
+  }
+
+  .foro-chapa-para-ti::after {
+    content: '';
+    position: absolute;
+    inset: -12px -4px;
+  }
+}
+
 /* Los subforos que cuelgan de una fila del índice: van como enlaces en
    una línea, así que el punto es lo único que cabe. */
 .foro-subforo-nuevo {
@@ -1957,6 +1994,7 @@ a.foro-cita-quien:hover {
 .foro-tema-conv .foro-mod-menu-btn,
 .foro-tema-conv .foro-etiqueta-enlace,
 .foro-tema-conv .foro-conv-punto,
+.foro-tema-conv .foro-chapa-para-ti,
 .foro-tema-conv .foro-mod-form {
   position: relative;
   z-index: 1;

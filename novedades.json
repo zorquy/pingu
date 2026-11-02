@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-02",
+      "tipo": "arreglo",
+      "texto": "Cuando el foro tiene algo para ti (una respuesta, una mención o una reacción), ahora la tarjeta de ese foro lo dice con «para ti» y te lleva directo, y dentro del foro el tema va marcado. Antes solo salía el número en la burbuja y no sabías dónde entrar.",
+      "enlace": "/foro"
+    },
+    {
+      "fecha": "2026-11-02",
       "tipo": "mejora",
       "texto": "La barra de tus álbumes es más ligera: un solo botón para ver todas, las que tienes o las que te faltan, y otro para poner en gris lo que te falta. Desde los tres puntos puedes ocultar los iconos, y cada álbum recuerda cómo lo dejaste. En el ordenador el álbum entero cabe en la pantalla.",
       "enlace": "/mi-coleccion?ver=carpetas"
