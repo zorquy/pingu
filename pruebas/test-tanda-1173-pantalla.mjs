@@ -49,14 +49,17 @@ console.log('── PC: la tira, las alertas y tu mes ──')
   await page.goto(`${BASE}/mi-coleccion.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForSelector('#mcAlertas a.mc-alerta', { timeout: 15000 }).catch(() => {})
   await page.waitForTimeout(800)
+  // Desde la 1174 es UNA línea secundaria bajo la gráfica (PINGU: «no me
+  // gusta que ocupe tanto espacio»), no tres fichas.
   const t = await page.evaluate(() => ({
-    tira: [...document.querySelectorAll('#mcBalance .mc-balance-tira > div')].map((d) => `${d.querySelector('dt').textContent}=${d.querySelector('dd').textContent}|${d.querySelector('small').textContent}`),
-    vas: document.querySelector('#mcBalance dd.mc-gana')?.textContent,
+    linea: document.getElementById('mcBalance')?.textContent.replace(/\s+/g, ' ').trim(),
+    vas: document.querySelector('#mcBalance b.mc-gana')?.textContent,
     falta: document.querySelector('#mcBalance [data-ir-a="anadidas"]')?.textContent.trim(),
     dentro: !!document.querySelector('#mcValorCaja #mcBalance'),
+    linea1: document.getElementById('mcBalance')?.classList.contains('mc-cartera-sub'),
   }))
-  check('la tira Pagaste · Valen · Vas, dentro de la cartera, sobre las 5 copias con lo pagado', t.dentro && sinNbsp(t.tira.join(' / ')) === 'Pagaste=273,00 €|en 5 cartas / Valen=474,60 €|esas 5 / Vas=+201,60 €|+74 %', JSON.stringify(t))
-  check('  …y «5 cartas sin apuntar lo que pagaste»', /^5 cartas sin apuntar lo que pagaste/.test(t.falta || ''), t.falta)
+  check('la línea Pagaste · valen · vas, dentro de la cartera y secundaria, sobre las 5 copias con lo pagado', t.dentro && t.linea1 && /^Pagaste 273,00 € en 5 cartas valen 474,60 € vas \+201,60 € \(\+74 %\)/.test(sinNbsp(t.linea)) && sinNbsp(t.vas) === '+201,60 € (+74 %)', JSON.stringify(t))
+  check('  …y «5 sin apuntar →»', /^5 sin apuntar/.test(t.falta || ''), t.falta)
   const al = await page.evaluate(() => ({
     filas: [...document.querySelectorAll('#mcAlertas a.mc-alerta')].map((a) => `${a.querySelector('b').textContent}|${a.querySelector('.mc-movida-precio small').textContent.trim()}|${a.classList.contains('cerca') ? 'cerca' : ''}`),
     textos: [...document.querySelectorAll('#mcAlertas a.mc-alerta .mc-movida-nombre small')].map((s) => s.textContent),
@@ -109,10 +112,10 @@ console.log('── Móvil: la tira cabe y nada se sale ──')
   await page.waitForSelector('#mcAlertas a.mc-alerta', { timeout: 15000 }).catch(() => {})
   const m = await page.evaluate(() => {
     const r = (s) => document.querySelector(s)?.getBoundingClientRect()
-    const t = r('#mcBalance .mc-balance-tira'); const mes = r('#mcMes .mc-mes-rejilla')
-    return { tira: t && t.width <= innerWidth, fichas: [...document.querySelectorAll('#mcBalance .mc-balance-tira > div')].map((d) => Math.round(d.getBoundingClientRect().top)), mes: mes && mes.width <= innerWidth, mesFilas: new Set([...document.querySelectorAll('#mcMes .mc-mes-ficha')].map((f) => Math.round(f.getBoundingClientRect().top))).size, ancho: document.documentElement.scrollWidth <= innerWidth, alertas: document.querySelectorAll('#mcAlertas a.mc-alerta').length }
+    const t = r('#mcBalance'); const mes = r('#mcMes .mc-mes-rejilla')
+    return { tira: t && t.width <= innerWidth, mes: mes && mes.width <= innerWidth, mesFilas: new Set([...document.querySelectorAll('#mcMes .mc-mes-ficha')].map((f) => Math.round(f.getBoundingClientRect().top))).size, ancho: document.documentElement.scrollWidth <= innerWidth, alertas: document.querySelectorAll('#mcAlertas a.mc-alerta').length }
   })
-  check('la tira en una fila de tres, Tu mes en dos filas de dos, tres alertas', m.tira && new Set(m.fichas).size === 1 && m.mesFilas === 2 && m.alertas === 3, JSON.stringify(m))
+  check('la línea del balance cabe, Tu mes en dos filas de dos, tres alertas', m.tira && m.mesFilas === 2 && m.alertas === 3, JSON.stringify(m))
   check('  …sin salirse de la pantalla', m.ancho, JSON.stringify(m))
   check('móvil: sin errores', !err.length, err.join(' | '))
   await ctx.close()

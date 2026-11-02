@@ -84,9 +84,11 @@ console.log('\n── 1. El Panel es lo primero ──')
   // Buscar— y dejó la PANTALLA, a la que se llega por el «Ver todas» del
   // Panel y por `?ver=cartas`. Esta prueba clicaba la pestaña que ya no
   // existe y se caía con un tiempo agotado que parece un fallo de la web.
-  await page.click('[data-ir-a="cartas"]')
+  // Desde la 1172 ningún «Ver todas» del Panel abre Cartas (abren lo que
+  // dicen): se prueba con el de «Últimas añadidas».
+  await page.click('#mcUltimas [data-ir-a="anadidas"]')
   await page.waitForTimeout(500)
-  check('ir a Cartas sí lo pone', (await page.evaluate(() => location.search)) === '?ver=cartas')
+  check('ir a otra pestaña sí lo pone', (await page.evaluate(() => location.search)) === '?ver=anadidas')
   await page.click('[data-pestania="resumen"]')
   await page.waitForTimeout(500)
   check('  …y volver al Panel lo quita', (await page.evaluate(() => location.search)) === '')
@@ -182,11 +184,11 @@ console.log('\n── 2. Los vistazos ──')
 console.log('\n── 3. Los vistazos llevan a su pestaña ──')
 {
   const { page, errores } = await abrir()
-  await page.locator('[data-ir-a="cartas"]').click()
+  // Desde la 1172 «Últimas añadidas → Ver todas» abre Añadidas (ninguno
+  // abre ya Cartas a secas).
+  await page.locator('#mcUltimas [data-ir-a="anadidas"]').click()
   await page.waitForTimeout(600)
-  // Sin pestaña que mirar desde la 447: lo que dice que has llegado es que
-  // su panel sea el que se ve.
-  check('«ver todas» de las cartas lleva a Cartas', await page.locator('#mcPanelCartas').isVisible())
+  check('«ver todas» de las últimas añadidas lleva a Añadidas', await page.locator('#mcPanelAnadidas').isVisible())
   await page.click('[data-pestania="resumen"]')
   await page.waitForTimeout(1200)
   await page.locator('[data-ir-a="album"]').click()
