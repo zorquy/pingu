@@ -1,4 +1,6 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
+// Desde la 1205 editar y moderar van en el «⋯» de la cabecera del tema.
+const abrirMenuTema = async (page) => { if (!(await page.isVisible('#temaMas'))) await page.click('#temaMasBtn').catch(() => {}) }
 
 // Tanda 247, las dos cosas que pidió PINGU el 2026-09-01:
 //
@@ -95,7 +97,7 @@ console.log('\n── 1. Quién ve el botón de borrar ──')
 console.log('\n── 2. El primer clic pregunta y NO borra ──')
 {
   const { page } = await abrir('/tema?t=tema-1', { ...CON_RESPUESTAS, __FAKE_SESSION__: 'admin-1' })
-  await page.locator('#btnBorrarTema').click()
+  await abrirMenuTema(page); await page.locator('#btnBorrarTema').click()
   await page.waitForTimeout(300)
   const texto = await page.locator('#btnBorrarTema').innerText()
   check('el botón pasa a pedir confirmación', /seguro/i.test(texto), texto)
@@ -107,7 +109,7 @@ console.log('\n── 2. El primer clic pregunta y NO borra ──')
 {
   // Un tema sin respuestas no puede decir «se van también 0 respuestas».
   const { page } = await abrir('/tema?t=tema-1', { ...SIN_RESPUESTAS, __FAKE_SESSION__: 'user-1' })
-  await page.locator('#btnBorrarTema').click()
+  await abrirMenuTema(page); await page.locator('#btnBorrarTema').click()
   await page.waitForTimeout(300)
   const texto = await page.locator('#btnBorrarTema').innerText()
   check('sin respuestas, no habla de respuestas', !/respuesta/i.test(texto), texto)
@@ -118,9 +120,9 @@ console.log('\n── 2. El primer clic pregunta y NO borra ──')
 console.log('\n── 3. El segundo clic borra y te devuelve al foro ──')
 {
   const { page } = await abrir('/tema?t=tema-1', { ...CON_RESPUESTAS, __FAKE_SESSION__: 'admin-1' })
-  await page.locator('#btnBorrarTema').click()
+  await abrirMenuTema(page); await page.locator('#btnBorrarTema').click()
   await page.waitForTimeout(250)
-  await page.locator('#btnBorrarTema').click()
+  await abrirMenuTema(page); await page.locator('#btnBorrarTema').click()
   await page.waitForTimeout(1600)
   const borrados = await escrituras(page, 'forum_threads', 'delete')
   check('se borra el tema', borrados.length === 1 && borrados[0].filas[0]?.id === 'tema-1', JSON.stringify(borrados).slice(0, 120))
@@ -138,9 +140,9 @@ console.log('\n── 4. Si la base dice que no, la página se entera ──')
     __FAKE_SESSION__: 'admin-1',
     __RLS_SIN_BORRAR__: ['forum_threads'],
   })
-  await page.locator('#btnBorrarTema').click()
+  await abrirMenuTema(page); await page.locator('#btnBorrarTema').click()
   await page.waitForTimeout(250)
-  await page.locator('#btnBorrarTema').click()
+  await abrirMenuTema(page); await page.locator('#btnBorrarTema').click()
   await page.waitForTimeout(1500)
   check('NO nos manda al foro', page.url().includes('tema-1'), page.url())
   const cuerpo = await page.locator('body').innerText()

@@ -187,7 +187,9 @@ console.log('── 5. El tema, en el móvil ──')
   })))
   const mioM = lados.find((x) => x.mio)
   const otroM = lados.find((x) => !x.mio)
-  check('en el móvil, burbujas: la tuya a la derecha, con otro fondo y sin «Tú»', mioM && otroM && mioM.izq > otroM.izq + 10 && mioM.fondo !== otroM.fondo && !lados.some((x) => x.tu), JSON.stringify(lados))
+  // Desde la 1205 el móvil es un foro (PINGU: «parece que está como flotando
+  // la caja del mensaje»): lo tuyo en el mismo sitio que lo de los demás.
+  check('en el móvil, cajas de foro: la tuya en el mismo sitio y sin «Tú»', mioM && otroM && mioM.izq === otroM.izq && !lados.some((x) => x.tu), JSON.stringify(lados))
   check('las burbujas no se salen de la pantalla', await page.$$eval('.foro-mensaje', (as) => as.every((a) => a.getBoundingClientRect().right <= innerWidth + 1 && a.getBoundingClientRect().left >= -1)))
   await ctx.close()
 }
