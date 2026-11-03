@@ -14,10 +14,12 @@ export function eventoPortadaHtml(e, ahora = new Date()) {
   const color = /^#[0-9a-f]{6}$/i.test(e.color || '') ? e.color : ''
   const cartel = urlParaCss(webSegura(e.cartel_url))
   const estilo = [color ? `--ev-color:${color}` : '', cartel ? `--ev-cartel:url('${cartel}')` : ''].filter(Boolean).join(';')
-  return `<a class="portada-torneo portada-evento${cartel ? ' con-imagen' : ''}" href="/eventos/${encodeURIComponent(e.slug)}"${estilo ? ` style="${estilo}"` : ''}>
+  // Lleva a la AGENDA, no a la ficha (1202, PINGU: «mejor tener una visión
+  // general»): el más cercano ya sale el primero allí.
+  return `<a class="portada-torneo portada-evento${cartel ? ' con-imagen' : ''}" href="/eventos"${estilo ? ` style="${estilo}"` : ''} aria-label="${escapeHtml(`${e.nombre}: ver todos los eventos`)}">
       <span class="portada-torneo-fecha"><b>${d.getDate()}</b><span>${MESES[d.getMonth()]}</span></span>
       <span class="portada-torneo-cuerpo"><strong>${escapeHtml(e.nombre)}</strong><small>${escapeHtml(linea)}</small></span>
-      <span class="portada-torneo-boton">${e.voy ? 'Vas' : 'Ver'}</span>
+      <span class="portada-torneo-boton">${e.voy ? 'Vas' : 'Ver eventos'}</span>
     </a>`
 }
 

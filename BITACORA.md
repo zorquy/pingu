@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (447) — PINGU-Claude (1202 — el próximo evento de la portada lleva a la agenda)
+
+**Hecho**: PINGU: «en vez de que le des a ver… te lleve a la página de eventos
+para que veas los siguientes… es mejor tener una visión general». La franja
+del próximo evento (`js/evento-portada.js`) va a `/eventos` y su botón dice
+«Ver eventos» (o «Vas» si vas). Propuesta aparte, con imágenes, para que los
+«Ver todo» de la portada (y de toda la web, `.ver-todo`) sean píldoras como
+ese botón: https://claude.ai/artifact/BiyzC9PztpnDKTAkVRJj7D — espera a que
+PINGU elija.
+
+**Ficheros**: `js/evento-portada.js`, `novedades.json`. En `pruebas`:
+`test-tanda-1192-pantalla.mjs` (el enlace es la agenda).
+
+**Pruebas**: verdes 1192-pantalla, 1194-pantalla, imports.
+
+**Pendiente**: lo que elija PINGU de los botones; luego invitar (/r/usuario),
+/coleccion con su valor y Tu 2026.
+
 ## 2026-11-03 (446) — PINGU-Claude (1201 — la tarjeta del enlace de cada página)
 
 **Hecho**: PINGU: «cuando compartas un evento quiero que se cree una tarjeta…

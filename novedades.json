@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-03",
+      "tipo": "mejora",
+      "texto": "El próximo evento de la portada te lleva a la agenda, para ver de un vistazo todos los que vienen.",
+      "enlace": "/eventos"
+    },
+    {
+      "fecha": "2026-11-03",
       "tipo": "nuevo",
       "texto": "Cuando compartes un enlace de PokeDoc por WhatsApp, X o Instagram, sale con su propia imagen: el evento con su logo y sus fechas, la carta, el perfil, el tema del foro o el torneo que compartes.",
       "enlace": "/eventos"
