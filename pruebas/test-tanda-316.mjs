@@ -69,7 +69,8 @@ console.log('\n── 1. Una guía se dibuja IGUAL en /aprender, y la portada di
   check('[portada] sin errores de JavaScript', errores.length === 0, errores.join(' | '))
   const chapa = (await page.locator('#aprende .pb-portada .pb-chip').first().textContent({ timeout: 3000 }).catch(() => ''))?.trim() || ''
   check('  …y en portada dice de qué es la guía', CATS.some((c) => chapa.includes(c.name)), chapa || '(vacía)')
-  check('  …y cuánto cuesta leerla', /\d+ min/.test(chapa), chapa || '(vacía)')
+  // Los minutos salieron de la portada en la 1191 (PINGU: la chapa se alargaba y rompía la tarjeta); /aprender los sigue diciendo.
+  check('  …y sin los minutos, que rompían la tarjeta (1191)', !/\d+ min/.test(chapa), chapa || '(vacía)')
   await page.close()
   const a = await abrir('/aprender')
   const chapaA = (await a.page.locator('.guia-tarjeta .guia-chapa-cat').first().textContent({ timeout: 1500 }).catch(() => ''))?.trim()
