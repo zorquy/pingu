@@ -308,10 +308,19 @@ export function genteNuevaHtml(n, caras = []) {
   return `<a class="pb-gente-nueva" href="/usuarios.html"><b>+${n}</b><span><small>${n === 1 ? 'persona nueva' : 'gente nueva'} esta semana</small><span class="pb-pila">${caras.slice(0, 6).map((p) => caraHtml(p, 24)).join('')}</span></span></a>`
 }
 
-// Cuántos se han unido en siete días y los seis últimos, en UNA consulta: la
-// cuenta exacta viene en la cabecera y las filas son las caras.
+// El lunes a las 00:00 de esta semana, en tu hora (1205, PINGU: «que lo
+// contabilice de lunes a lunes; cuando empieza el lunes cuenta a cero»). Puro.
+export function inicioDeSemana(ahora = new Date()) {
+  const d = new Date(ahora)
+  d.setHours(0, 0, 0, 0)
+  d.setDate(d.getDate() - ((d.getDay() + 6) % 7))
+  return d
+}
+
+// Cuántos se han unido ESTA semana (desde el lunes) y los seis últimos, en
+// UNA consulta: la cuenta exacta viene en la cabecera y las filas son las caras.
 async function genteNueva() {
-  const desde = new Date(Date.now() - 7 * 864e5).toISOString()
+  const desde = inicioDeSemana().toISOString()
   const { data, count, error } = await supabase
     .from('user_profiles')
     .select('id, username, display_name, avatar_url', { count: 'exact' })

@@ -1222,7 +1222,13 @@ async function completarPrecios() {
 // último punto. No daba error: daba una gráfica que parecía decir que
 // acabas de perder tu colección.
 function valorDeAhora() {
-  return datos.valorDeLineas(lineasTodo.length ? lineasTodo : lineas, guardados, vivos)
+  const total = datos.valorDeLineas(lineasTodo.length ? lineasTodo : lineas, guardados, vivos)
+  // La cifra que enseña el Panel la copia la portada (1205): se apunta con
+  // los productos, y solo de la colección entera (no la de un catálogo).
+  if (esMia && !modoTienda && sesion?.user?.id && (lineasTodo.length || !lineas.length)) {
+    import('./cifra-panel.js').then((m) => m.anotarCifraDelPanel(sesion.user.id, total + productosDelPanel)).catch(() => {})
+  }
+  return total
 }
 
 // Quién eres y desde cuándo, que es lo que abre el panel de Dex y lo que
@@ -1551,6 +1557,8 @@ function fichasDeCartera() {
 // que es de lo que hay historia, y lo dice. El módulo entra solo si hace
 // falta y una pintada vieja no pisa a la nueva (la 663).
 let repartoVersion = 0
+// Lo que valen tus productos, cuando el Panel ya lo sabe (1205).
+let productosDelPanel = 0
 export function repartoDeValor(cartasValor, productos) {
   const c = Math.max(0, Number(cartasValor) || 0)
   const p = Math.max(0, Number(productos?.total) || 0)
@@ -1566,6 +1574,7 @@ async function pintarRepartoProductos() {
   } catch { v = null }
   const caja = $('mcCarteraReparto')
   if (mia !== repartoVersion || !caja) return
+  productosDelPanel = v?.unidades ? Number(v.total) || 0 : 0
   if (!v?.unidades) return caja.classList.add('hidden')
   const r = repartoDeValor(valorDeAhora(), v)
   const cifra = document.querySelector('#mcValorCaja .mc-cartera-cifra')

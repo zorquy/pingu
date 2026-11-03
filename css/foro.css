@@ -1850,7 +1850,7 @@ a.foro-cita-quien:hover {
   align-items: center;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 0 0 4px;
+  margin: 0 0 var(--e-sm);
   font-size: var(--t-2xl);
   line-height: 1.25;
 }
@@ -1858,15 +1858,75 @@ a.foro-cita-quien:hover {
 .tema-firma {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin: 0 0 16px;
-  font-size: var(--t-xs);
-  /* Sin esto, la línea de la firma no cabe en un móvil estrecho: avatar,
-     nombre, fecha, vistas y DOS botones (Seguir y Compartir) suman más
-     de 360 px, y la página entera se arrastraba de lado. Con `wrap`, los
-     botones se caen a una segunda línea y ya está. */
   flex-wrap: wrap;
-  row-gap: 8px;
+  gap: var(--e-sm);
+  min-width: 0;
+  margin: 0;
+  font-size: var(--t-xs);
+}
+
+/* La cabecera de un foro (1205): quién y cuándo, y a la derecha los botones
+   (Compartir en icono, Seguir y «⋯»). El menú del «⋯» cuelga de aquí. */
+.tema-meta {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--e-sm) var(--e-md);
+  margin: 0 0 var(--e-md);
+}
+
+.tema-vistas {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+}
+
+.tema-botones {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-left: auto;
+}
+
+.tema-icono {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.tema-icono:hover,
+.tema-icono[aria-expanded='true'] {
+  background: var(--ice-dark);
+  color: var(--navy);
+}
+
+@media (pointer: coarse) {
+  .tema-icono::after { position: absolute; inset: -6px; content: ''; }
+}
+
+/* En el móvil la barra de arriba ya lleva Compartir: aquí sobraba. */
+html.con-barra-movil #btnCompartirTema {
+  display: none;
+}
+
+@media (max-width: 900px) {
+  .tema-meta { flex-wrap: nowrap; }
+  .tema-firma { flex-wrap: nowrap; overflow: hidden; white-space: nowrap; }
+}
+
+/* En un teléfono estrecho no caben las visitas: mejor sin ellas que cortadas. */
+@media (max-width: 480px) {
+  .tema-vistas { display: none; }
 }
 
 .tema-moderacion {
@@ -2096,22 +2156,17 @@ a.foro-cita-quien:hover {
   opacity: 0.55;
 }
 
-/* El tema en el MÓVIL es una conversación: cada mensaje es una burbuja y
-   los tuyos van a la derecha (746). En el PC es el foro clásico de la base
-   de arriba, con la columna del autor (1095, PINGU: «en el PC que sea como
-   un foro más»). */
+/* El tema en el MÓVIL es un foro, como en el PC (1205, PINGU: «parece que
+   está como flotando la caja del mensaje»; antes, burbujas de chat con lo
+   tuyo a la derecha, 746): cada mensaje es una caja a lo ancho y el autor
+   va DENTRO, en su cabecera (avatar, nombre y hora). Lo tuyo lleva el borde
+   del color de la sección, como en el PC. */
 @media (max-width: 900px) {
   .foro-mensaje {
     grid-template-columns: minmax(0, 1fr);
-    max-width: 88%;
+    max-width: none;
     margin: 0 0 var(--e-md);
-    border: 0;
-    background: transparent;
-    overflow: visible;
-  }
-
-  .foro-mensaje-mio {
-    margin-left: auto;
+    overflow: hidden;
   }
 
   .foro-mensaje-autor {
@@ -2120,43 +2175,30 @@ a.foro-cita-quien:hover {
     align-items: center;
     justify-content: flex-start;
     gap: var(--e-sm);
-    padding: 0 var(--e-xs) var(--e-xs);
+    padding: var(--e-md) var(--e-md) 0;
     border: 0;
     background: transparent;
     text-align: left;
   }
 
-  .foro-mensaje-mio .foro-mensaje-autor {
-    justify-content: flex-end;
-  }
-
   .foro-mensaje-autor .mini-avatar {
-    width: 28px !important;
-    height: 28px !important;
+    width: 32px !important;
+    height: 32px !important;
     font-size: var(--t-sm) !important;
   }
 
-  /* Los contadores de siempre («Mensajes», «Gracias», «Oros») siguen en el
-     perfil; en una burbuja eran ruido. */
+  /* Los contadores de siempre («Mensajes», «Gracias») siguen en el perfil. */
   .foro-mensaje-autor .foro-autor-mensajes {
     display: none;
   }
 
   .foro-mensaje-cuerpo {
-    border: 1px solid var(--border);
-    border-radius: var(--radius-xl);
-    border-top-left-radius: var(--radius-sm);
-    background: var(--white);
+    border: 0;
+    background: transparent;
   }
 
-  .foro-mensaje-mio .foro-mensaje-cuerpo {
-    border-top-left-radius: var(--radius-xl);
-    border-top-right-radius: var(--radius-sm);
-    background: var(--ice);
-  }
-
-  .foro-mensaje-solucion .foro-mensaje-cuerpo {
-    border-radius: var(--radius-xl);
+  .foro-mensaje-mio {
+    border-color: color-mix(in srgb, var(--acento) 45%, var(--border));
   }
 
   .foro-mensaje-cabecera {
@@ -2164,8 +2206,8 @@ a.foro-cita-quien:hover {
     border-bottom: 0;
   }
 
-  /* La hora va junto al nombre y los seguidos van juntos (813, FO3): ver
-     SCHEMA, tanda 813. En la burbuja queda la hora solo del que va seguido. */
+  /* La hora va junto al nombre (813, FO3); la de la cabecera, solo en el
+     que va seguido, que no lleva autor. */
   .foro-autor-hora {
     color: var(--text-mid);
     font-size: var(--t-xs);
@@ -2175,20 +2217,8 @@ a.foro-cita-quien:hover {
     display: none;
   }
 
-  .foro-mensaje-seguido {
-    margin-top: calc(-1 * var(--e-sm));
-  }
-
   .foro-mensaje-seguido .foro-mensaje-autor {
     display: none;
-  }
-
-  .foro-mensaje-seguido .foro-mensaje-cuerpo {
-    border-top-left-radius: var(--radius-xl);
-  }
-
-  .foro-mensaje-mio.foro-mensaje-seguido .foro-mensaje-cuerpo {
-    border-top-right-radius: var(--radius-xl);
   }
 }
 
@@ -2360,16 +2390,11 @@ html:has(#temaResponder) {
     background: var(--bg);
     content: '';
   }
-
-  .foro-mensaje {
-    max-width: 94%;
-  }
 }
 
 /* ── 748: el foro de su maqueta (J1; SCHEMA 748) ── */
 .foro-corto,
 .foro-lupa,
-.tema-mas-btn,
 .foro-mensaje-mas {
   display: none;
 }
@@ -2441,15 +2466,77 @@ html:has(#temaResponder) {
 }
 
 .tema-mas {
+  position: absolute;
+  top: calc(100% + var(--e-xs));
+  right: 0;
+  z-index: 30;
+  display: none;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 220px;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow: var(--shadow-md);
+}
+
+.tema-mas.abierto {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: var(--e-sm);
-  margin-bottom: var(--e-md);
 }
 
 .tema-mas .tema-moderacion {
+  flex-direction: column;
+  gap: var(--e-xs);
   margin: 0;
+}
+
+.tema-mas button {
+  justify-content: flex-start;
+  gap: var(--e-sm);
+  width: 100%;
+  min-height: 40px;
+  margin: 0;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+
+.tema-mas button:hover {
+  background: var(--ice);
+  color: var(--navy);
+}
+
+.tema-mas .tema-borrar,
+.tema-mas .tema-borrar:hover {
+  color: var(--danger);
+}
+
+.tema-botones .tema-seguir {
+  min-height: 32px;
+  margin: 0;
+}
+
+.tema-mas .tema-moderacion button + .tema-borrar {
+  margin-left: 0;
+}
+
+/* El paginador de arriba, pequeño y a la izquierda (1205). */
+#temaPaginacionArriba .paginacion {
+  justify-content: flex-start;
+  margin: 0 0 var(--e-md);
+}
+
+@media (pointer: fine) {
+  #temaPaginacionArriba :is(.pag-num, .pag-flecha) {
+    min-width: 32px;
+    min-height: 32px;
+    font-size: var(--t-xs);
+  }
 }
 
 @media (max-width: 900px) {
@@ -2607,8 +2694,7 @@ html:has(#temaResponder) {
     padding-inline: var(--e-md);
   }
 
-  /* El hilo: la cabecera en dos renglones y lo demás tras «⋯». */
-  .tema-mas-btn,
+  /* El «⋯» de cada mensaje, en el móvil. */
   .foro-mensaje-mas {
     display: inline-grid;
     place-items: center;
@@ -2624,10 +2710,6 @@ html:has(#temaResponder) {
     min-width: 32px;
     min-height: 32px;
     margin-left: auto;
-  }
-
-  .tema-mas:not(.abierto) {
-    display: none;
   }
 
   .foro-mensaje-cabecera .foro-copiar-enlace,
@@ -2704,31 +2786,6 @@ html:has(#temaResponder) {
   #temaResponder .foro-form:not(.abierta):not(:focus-within) #btnResponder svg {
     width: 20px;
     height: 20px;
-  }
-}
-
-/* Lo tuyo, en el azul de su maqueta (748): blanco fijo encima (la 315). */
-@media (max-width: 900px) {
-  .foro-mensaje-mio .foro-mensaje-cuerpo {
-    border-color: var(--navy-solid);
-    background: var(--navy-solid);
-    color: var(--blanco-fijo);
-  }
-
-  .foro-mensaje-mio .foro-mensaje-cuerpo .subtext,
-  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-texto,
-  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-texto a,
-  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-accion,
-  .foro-mensaje-mio .foro-mensaje-cuerpo .link-btn,
-  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-mas,
-  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-copiar-enlace,
-  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-mensaje-num {
-    color: var(--blanco-fijo);
-  }
-
-  .foro-mensaje-mio .foro-mensaje-cuerpo .foro-accion {
-    border-color: rgb(255 255 255 / 40%);
-    background: transparent;
   }
 }
 

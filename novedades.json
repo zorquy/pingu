@@ -36,6 +36,24 @@
     {
       "fecha": "2026-11-03",
       "tipo": "mejora",
+      "texto": "Los temas del foro ocupan menos arriba: compartir, seguir y las opciones van en iconos pequeños, y en el móvil cada mensaje es una caja a lo ancho, como en un foro.",
+      "enlace": "/foro"
+    },
+    {
+      "fecha": "2026-11-03",
+      "tipo": "arreglo",
+      "texto": "Lo que vale tu colección en la portada es ahora exactamente la cifra de tu Panel.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-03",
+      "tipo": "mejora",
+      "texto": "«Gente nueva esta semana» cuenta desde el lunes: cada semana empieza en cero.",
+      "enlace": "/usuarios"
+    },
+    {
+      "fecha": "2026-11-03",
+      "tipo": "mejora",
       "texto": "El próximo evento de la portada ocupa la mitad: su logo, su nombre, las fechas y las caras de quien va de PokeDoc.",
       "enlace": "/eventos"
     },

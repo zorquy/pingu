@@ -24,6 +24,7 @@ import { icons } from './icons.js'
 import { euros } from './cardmarket.js'
 import { hojaInyectada } from './hoja.js'
 import { valorComoElPanel } from './mi-coleccion/datos.js'
+import { cifraDelPanel } from './cifra-panel.js'
 import { estadoDeHoy, fichaRetosHtml } from './portada-retos.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { proximaCita } from './torneos/rondas-jornada.js'
@@ -228,7 +229,8 @@ export function conElValorDeAhora(filas, ahora, hoy = hoyISO()) {
 // `productos` (766, PR2): lo que valen tus productos sellados. La cifra es
 // la MISMA que la grande del Panel —cartas más productos—; la línea y «este
 // mes» siguen siendo de las cartas, que es de lo que hay historia.
-export function valorHtml(filas, { productos = 0 } = {}) {
+// `cifra` (1205): la que enseñó el Panel hace poco; si está, es la grande.
+export function valorHtml(filas, { productos = 0, cifra = null } = {}) {
   if (!filas) return ''
   if (!filas.length) {
     return `<a class="hoy-valor" href="/mi-coleccion"><span class="hoy-valor-texto"><small>Tu colección</small><b class="hoy-valor-invita">Empieza a llevarla</b><span>Añade tus cartas y aquí verás lo que vale</span></span></a>`
@@ -240,7 +242,7 @@ export function valorHtml(filas, { productos = 0 } = {}) {
   return `<a class="hoy-valor" href="/mi-coleccion">
     <span class="hoy-valor-texto">
       <small>Tu colección</small>
-      <b>${escapeHtml(conMiles.format(Number(ultimo.valor) + (Number(productos) || 0)))}</b>
+      <b>${escapeHtml(conMiles.format(cifra != null ? cifra : Number(ultimo.valor) + (Number(productos) || 0)))}</b>
       ${mes ? `<span class="hoy-valor-mes ${tono}">${sentido ? `<i class="hoy-flecha" aria-hidden="true"></i><span class="sr-only">${sentido}</span>` : ''}${escapeHtml(euros(Math.abs(mes.cambio)))} <span>este mes</span></span>` : '<span>Todavía sin un mes de historia</span>'}
     </span>
     ${chispaSvg(filas.slice(-30))}
@@ -371,11 +373,12 @@ export async function montarHoy(session, { doc = document } = {}) {
   const torneo = mio ? { ...mio, mio: true } : abierto || null
   // El logo, el mismo que la miniatura de la portada sin cuenta (home.js).
   const lanzamiento = sets?.[0] ? { nombre: sets[0].name || sets[0].name_en, fecha: sets[0].release_date, logo: sets[0].logo_scrydex || sets[0].logo_tcggo || '' } : null
-  caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null, { productos: productos?.unidades ? productos.total : 0 }) + fichasHtml({ retos: retos ?? null, torneo, lanzamiento, hilos: hilos ?? null })
+  const delPanel = cifraDelPanel(uid)
+  caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null, { productos: productos?.unidades ? productos.total : 0, cifra: delPanel }) + fichasHtml({ retos: retos ?? null, torneo, lanzamiento, hilos: hilos ?? null })
   // La cifra cuenta desde la de la última vez (783, MV2).
   const cifra = caja.querySelector('.hoy-valor b:not(.hoy-valor-invita)')
   if (cifra && valor?.length) {
-    const total = Number(valor[valor.length - 1].valor) + (productos?.unidades ? Number(productos.total) || 0 : 0)
+    const total = delPanel != null ? delPanel : Number(valor[valor.length - 1].valor) + (productos?.unidades ? Number(productos.total) || 0 : 0)
     import('./contar.js').then(({ contarCifra }) => contarCifra(cifra, 'valor', total, (n) => conMiles.format(n), caja.querySelector('.hoy-chispa'))).catch(() => {})
   }
   // En su hueco de la columna ancha (844); sin el hueco, debajo, como antes.

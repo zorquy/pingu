@@ -4,6 +4,45 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (450) — PINGU-Claude (1205 — el foro como un foro, la cifra de la portada es la del Panel y la gente nueva de lunes a lunes)
+
+**Hecho**: tres cosas que pidió PINGU.
+- **La cabecera de un tema** («la parte de arriba está horrible», con capturas
+  de WhatsHack): título; debajo, quién · cuándo · visitas a la izquierda y a
+  la derecha Compartir en icono redondo, Seguir y un «⋯» (`#temaMasBtn`) que
+  abre un menú con Editar título, Fijar/Quitar de arriba, Cerrar y Borrar
+  (`#temaMas`, se cierra fuera o con Escape). Antes era una fila de cinco
+  botones grandes. El paginador de arriba, pequeño y a la izquierda. En el
+  móvil, Compartir no sale (ya está en la barra de arriba), todo en una línea
+  y sin visitas por debajo de 480 px.
+- **Los mensajes del móvil son un foro** («parece que está como flotando la
+  caja»): caja a lo ancho con el autor dentro (avatar, nombre y hora); se
+  acabaron las burbujas de chat al 88 % con lo tuyo a la derecha en azul (746,
+  748). Lo tuyo lleva el borde del color de la sección, como en el PC.
+- **La cifra de tu colección en la portada ES la del Panel**: el Panel la
+  apunta (`js/cifra-panel.js`, `anotarCifraDelPanel`, con los productos) cada
+  vez que la calcula, y la portada enseña esa si es de hoy y de las últimas 12
+  horas (`cifraDelPanel`). La diferencia venía de los precios que el Panel
+  pide en vivo a TCGdex para las cartas sin precio guardado (`vivos`), que la
+  portada no pedía. Sin cifra del Panel (otro dispositivo), suma como antes.
+- **«Gente nueva esta semana» cuenta desde el lunes a las 00:00**
+  (`inicioDeSemana`, en tu hora), no los últimos siete días.
+
+**Ficheros**: `js/tema.js`, `css/foro.css`, `js/cifra-panel.js` (nuevo),
+`js/mi-coleccion.js`, `js/hoy.js`, `js/portada-bloques.js`, `SCHEMA.md`,
+`novedades.json`. En `pruebas`: `test-tanda-1205-pantalla.mjs` y 247.
+
+**Pruebas**: verdes 1205-pantalla, foro-1, foro-2, 247, 314, 746, 748, 813,
+816, 899, 990, 1115, 1116, 1132, 1023, 1040, 1198, 1183, 1141, 1188, 1010,
+1017, 756, 744, 299, 312, 313, 309, 780 e imports (746, 748, 1188 y 247
+puestas al día: burbujas fuera, gente desde el lunes y moderar tras «⋯»).
+Rojas de antes, que salen igual sin esta tanda: 995 (`ViewTransition`
+abortada en el navegador de pruebas) y 386 (nombres sin rango en otras
+consultas).
+
+**Pendiente**: la cifra igual en dos dispositivos necesitaría guardarla en la
+base (una columna o tabla con lo que enseñó el Panel); hoy es por navegador.
+
 ## 2026-11-03 (449) — PINGU-Claude (1204 — la franja del evento, en una línea)
 
 **Hecho**: PINGU: «la tarjeta se ha expandido y ocupa más en vertical… solo

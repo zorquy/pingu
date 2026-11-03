@@ -53402,3 +53402,42 @@ próximo evento crecía a unos 150 px. Eligió lo recomendado de la propuesta:
 - Hasta 600 px el botón es una flecha redonda de 36 px (`.pe-boton`, el texto
   `.pe-largo` escondido): así cabe en dos líneas (76 px). Toda la franja es el
   enlace a `/eventos`. Si vas, el botón dice «Vas».
+
+
+## Tanda 1205 — El foro como un foro, la cifra del Panel y la gente nueva de la semana
+
+**La cabecera de un tema** (PINGU, con capturas de WhatsHack: «no está
+ocupando tanto espacio arriba»): `.tema-meta` es una fila con la firma
+(`.tema-firma`: avatar, nombre, hace cuánto, `.tema-vistas`) y `.tema-botones`
+a la derecha: `#btnCompartirTema` es un icono redondo de 32 px (`.tema-icono`,
+44 al dedo con `::after`), `#btnSeguirTema` la píldora de siempre y
+`#temaMasBtn` el «⋯», que solo sale si hay algo dentro (editar o moderar). El
+menú `#temaMas` cuelga de `.tema-meta` (absoluto, a la derecha), se abre con
+`.abierto` y se cierra al pulsar fuera o con Escape (el oyente va UNA vez en el
+documento y busca los elementos por id, porque la cabecera se repinta al
+moderar). «Leyendo ahora» va debajo. En el móvil, `#btnCompartirTema` se
+esconde bajo `html.con-barra-movil` (la cabecera de app ya lo lleva), la fila no
+se parte y las visitas se van por debajo de 480 px (antes «840» se cortaba en
+«84»). El paginador de arriba (`#temaPaginacionArriba`) va a la izquierda y, con
+ratón, a 32 px.
+
+**Los mensajes en el móvil** dejan de ser burbujas de chat (746/748: 88 % de
+ancho, lo tuyo a la derecha y en azul sólido) y son la caja del foro a lo ancho
+con el autor DENTRO (`.foro-mensaje-autor` en fila: avatar de 32, nombre y
+hora). Lo tuyo lleva el borde del color de la sección, como en el PC (1095).
+
+**La cifra de la portada es la del Panel** (PINGU: «que coja el mismo dato, que
+no calcule de otro lado»). `valorComoElPanel` (1179) sumaba lo mismo que el
+Panel MENOS los `vivos`: el precio que el Panel pide en vivo a TCGdex para las
+cartas sin precio guardado. Desde aquí `valorDeAhora()` del Panel apunta su
+cifra (más los productos que ya conoce, `productosDelPanel`) con
+`anotarCifraDelPanel` (`js/cifra-panel.js`, en `localStorage` `pd-cifra-panel`,
+por usuario), solo de la colección entera y no en modo tienda; y `valorHtml` de
+la portada la pinta tal cual (`cifra`), también al contar, si es del mismo día y
+de las últimas 12 horas (`cifraDelPanel`). Sin ella, la suma de antes. La línea
+y «este mes» siguen saliendo del histórico. Lo que falta para que coincida
+ENTRE dispositivos es guardarla en la base.
+
+**«Gente nueva esta semana»** cuenta desde el lunes a las 00:00 en tu hora
+(`inicioDeSemana` en `js/portada-bloques.js`), no los últimos siete días: el
+lunes empieza en cero.

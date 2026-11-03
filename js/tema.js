@@ -206,31 +206,51 @@ function pintarCabecera(perfilAutor) {
       ${etiquetaHtml(tema.prefix)}
       ${escapeHtml(tema.title)}
     </h1>
-    <p class="subtext tema-leyendo hidden" id="temaLeyendo"></p>
-    <p class="subtext tema-firma">
-      ${avatarHtml(perfilAutor, 20)} ${enlacePerfil(perfilAutor)}
-      · <span title="${escapeHtml(fechaLarga(tema.created_at))}">${escapeHtml(haceCuanto(tema.created_at))}</span>
-      ${tema.view_count ? `· ${icons.eye(13)} ${tema.view_count}` : ''}
-      ${sesion ? '<button type="button" class="tema-seguir" id="btnSeguirTema" aria-pressed="false">…</button>' : ''}
-      <button type="button" class="tema-mas-btn" id="temaMasBtn" aria-expanded="false" aria-controls="temaMas" aria-label="Más opciones del tema">${icons.moreHorizontal(18)}</button>
-    </p>
-    <!-- Compartir, editar y moderar (748): en el ordenador, a la vista; en
-         el móvil, tras el «⋯» de arriba, que es lo que deja la cabecera
-         del hilo en dos renglones como en su maqueta. -->
-    <div class="tema-mas" id="temaMas">
+    <!-- La cabecera de un foro (1205, PINGU con capturas de WhatsHack: «no
+         ocupa tanto espacio arriba»): quién y cuándo a la izquierda, y a la
+         derecha Compartir en icono, Seguir y un «⋯» con editar y moderar,
+         en el PC y en el móvil. -->
+    <div class="tema-meta">
+      <p class="subtext tema-firma">
+        ${avatarHtml(perfilAutor, 20)} ${enlacePerfil(perfilAutor)}
+        · <span title="${escapeHtml(fechaLarga(tema.created_at))}">${escapeHtml(haceCuanto(tema.created_at))}</span>
+        ${tema.view_count ? `<span class="tema-vistas" title="Visitas">· ${icons.eye(13)} ${tema.view_count}</span>` : ''}
+      </p>
+      <div class="tema-botones">
+        ${
+          // Compartir SIN pedir cuenta, a diferencia de "Seguir": es la
+          // mitad de la gracia. Alguien llega a un hilo desde fuera, le
+          // resuelve la duda, y se lo pasa a otro que tiene la misma.
+          `<button type="button" class="tema-icono" id="btnCompartirTema" aria-label="Compartir" title="Compartir">${icons.share(16)}</button>`
+        }
+        ${sesion ? '<button type="button" class="tema-seguir" id="btnSeguirTema" aria-pressed="false">…</button>' : ''}
+        ${puedoEditarTema() || soyStaff || puedoBorrarTema() ? `<button type="button" class="tema-icono tema-mas-btn" id="temaMasBtn" aria-expanded="false" aria-controls="temaMas" aria-label="Más opciones del tema" title="Más opciones">${icons.moreHorizontal(18)}</button>` : ''}
+      </div>
       ${
-        // Compartir SIN pedir cuenta, a diferencia de "Seguir": es la
-        // mitad de la gracia. Alguien llega a un hilo desde fuera, le
-        // resuelve la duda, y se lo pasa a otro que tiene la misma.
-        `<button type="button" class="tema-seguir" id="btnCompartirTema">${icons.share(13)} Compartir</button>`
+        puedoEditarTema() || soyStaff || puedoBorrarTema()
+          ? `<div class="tema-mas" id="temaMas">
+        ${puedoEditarTema() ? `<button type="button" class="tema-seguir" id="btnEditarTema">${icons.edit(13)} Editar título</button>` : ''}
+        ${soyStaff || puedoBorrarTema() ? panelModeracionHtml() : ''}
+      </div>`
+          : ''
       }
-      ${puedoEditarTema() ? `<button type="button" class="tema-seguir" id="btnEditarTema">${icons.edit(13)} Editar título</button>` : ''}
-      ${soyStaff || puedoBorrarTema() ? panelModeracionHtml() : ''}
-    </div>`
-  document.getElementById('temaMasBtn')?.addEventListener('click', (e) => {
-    const abierto = document.getElementById('temaMas')?.classList.toggle('abierto')
+    </div>
+    <p class="subtext tema-leyendo hidden" id="temaLeyendo"></p>`
+  // El «⋯» abre su menú encima de los mensajes; se cierra al tocar fuera o
+  // con Escape (pero no al pedir la confirmación de borrar, que es dentro).
+  const masBtn = document.getElementById('temaMasBtn')
+  const menu = document.getElementById('temaMas')
+  // Por id, no por las de arriba: la cabecera se repinta al moderar.
+  const cerrarMenu = () => { document.getElementById('temaMas')?.classList.remove('abierto'); document.getElementById('temaMasBtn')?.setAttribute('aria-expanded', 'false') }
+  masBtn?.addEventListener('click', (e) => {
+    const abierto = menu?.classList.toggle('abierto')
     e.currentTarget.setAttribute('aria-expanded', abierto ? 'true' : 'false')
   })
+  if (masBtn && !document.body.dataset.menuTema) {
+    document.body.dataset.menuTema = '1'
+    document.addEventListener('click', (e) => { if (!e.target.closest?.('#temaMas, #temaMasBtn')) cerrarMenu() })
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') cerrarMenu() })
+  }
 
   engancharCompartir(document.getElementById('btnCompartirTema'), { titulo: tema.title })
   if (sesion) engancharSeguir()
