@@ -8,7 +8,6 @@
 //   3. «Gente nueva esta semana» cuenta desde el lunes.
 import { readFileSync } from 'node:fs'
 import { chromium, contexto, BASE } from './fixtures-app.mjs'
-import { anotarCifraDelPanel, cifraDelPanel } from '/home/user/pingu/js/cifra-panel.js'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -16,35 +15,13 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
 
-console.log('── La cifra del Panel (puro) ──')
+console.log('── La gente nueva, desde el lunes ──')
 {
-  const m = new Map()
-  const almacen = { getItem: (k) => m.get(k) ?? null, setItem: (k, v) => m.set(k, v) }
-  const t = new Date(2026, 10, 3, 10).getTime()
-  anotarCifraDelPanel('u1', 12169.444, { almacen, ahora: t })
-  check('se lee la que apuntó el Panel, a céntimos', cifraDelPanel('u1', { almacen, ahora: t + 3600e3 }) === 12169.44)
-  check('  …solo de quien la apuntó', cifraDelPanel('u2', { almacen, ahora: t }) === null)
-  check('  …y no de ayer ni de hace más de 12 h', cifraDelPanel('u1', { almacen, ahora: new Date(2026, 10, 4, 1).getTime() }) === null && cifraDelPanel('u1', { almacen, ahora: t + 13 * 3600e3 }) === null)
-  check('sin almacén, nada (y no rompe)', cifraDelPanel('u1', { almacen: null }) === null)
   const pb = readFileSync('/home/user/pingu/js/portada-bloques.js', 'utf8')
   check('la gente nueva se cuenta desde el lunes de esta semana', /const desde = inicioDeSemana\(\)\.toISOString\(\)/.test(pb) && /d\.setDate\(d\.getDate\(\) - \(\(d\.getDay\(\) \+ 6\) % 7\)\)/.test(pb))
 }
 
 const b = await chromium.launch()
-
-console.log('── La portada copia la cifra del Panel ──')
-{
-  const ctx = await contexto(b, false, 'user-1', () => {
-    try { localStorage.setItem('pd-cifra-panel', JSON.stringify({ uid: 'user-1', total: 12345.67, at: Date.now() - 60000 })) } catch {}
-  })
-  const page = await ctx.newPage()
-  await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.hoy-valor b', { timeout: 15000 }).catch(() => {})
-  await page.waitForTimeout(2500)
-  const cifra = (await page.textContent('.hoy-valor b').catch(() => '')).replace(/\s/g, ' ')
-  check('«Tu colección» enseña la cifra del Panel', /12\.345,67/.test(cifra), cifra)
-  await ctx.close()
-}
 
 console.log('── El tema en el PC ──')
 {

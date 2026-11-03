@@ -36,8 +36,10 @@ console.log('── 1. Una sola suma, y el valor de ahora como punto de hoy ─�
   // Desde la 1179 la portada llama a `valorComoElPanel` (datos.js), que es
   // quien junta las líneas, los precios y las versiones y suma con
   // `valorDeLineas`: la misma función, un paso más arriba.
-  check('el Panel y la portada suman con LA MISMA función', /datos\.valorDeLineas\(/.test(mc) && /valorComoElPanel\(/.test(hoy)
-    && /export async function valorComoElPanel/.test(datos) && /return \{ total: valorDeLineas\(lineas, guardados\)/.test(datos))
+  // Desde la 1206 el Panel TAMBIÉN pide `valorComoElPanel` (y guarda su
+  // resultado 10 minutos): una sola cifra para los dos.
+  check('el Panel y la portada suman con LA MISMA función', /datos\.valorComoElPanel\(/.test(mc) && /valorComoElPanel\(/.test(hoy)
+    && /export async function valorComoElPanel/.test(datos) && /const total = Math\.round\(valorDeLineas\(lineas, guardados\) \* 100\) \/ 100/.test(datos))
   const filas = [{ dia: '2026-10-06', valor: 100 }, { dia: '2026-10-07', valor: 150 }, { dia: '2026-10-08', valor: 160 }]
   const r = conElValorDeAhora(filas, 170, '2026-10-08')
   check('la foto de hoy se cambia por el valor de ahora', r.length === 3 && r[2].valor === 170 && r[2].dia === '2026-10-08', JSON.stringify(r))
