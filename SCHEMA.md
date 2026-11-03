@@ -53441,3 +53441,32 @@ ENTRE dispositivos es guardarla en la base.
 **«Gente nueva esta semana»** cuenta desde el lunes a las 00:00 en tu hora
 (`inicioDeSemana` en `js/portada-bloques.js`), no los últimos siete días: el
 lunes empieza en cero.
+
+
+## Tanda 1206 — La cifra de tu colección es UNA
+
+PINGU: «no puede haber variaciones entre el panel del inicio y el panel de la
+colección». La 1205 copiaba en la portada lo que el Panel apuntaba en ESE
+navegador; en otro dispositivo, o pasadas 12 horas, cada uno volvía a sumar a
+su manera (el Panel con los `vivos`, la portada sin ellos).
+
+Ahora la cifra sale de UNA función para las dos, `valorComoElPanel(uid,
+{ lineas })` en `js/mi-coleccion/datos.js`:
+
+- suma las líneas con los precios guardados (`preciosGuardados`) y las filas
+  de versión, con `valorDeLineas` **sin** `vivos`, y redondea a céntimos;
+- guarda el resultado en `localStorage` (`pd-valor-oficial`: usuario, firma,
+  total y hora) durante `VIGENCIA_VALOR_MS` (10 minutos, lo que tarda en
+  volver la pasada de precios); quien pide después con las mismas líneas lee
+  ESA cifra en vez de volver a sumar;
+- la firma (`firmaDeLineas`) es la de qué cartas tienes y cómo (versión,
+  idioma, copias, gradeo y valor a mano), sin importar el orden: si cambias
+  algo de la colección, cambia y se vuelve a sumar.
+
+El Panel (`valorDeAhora()` en `js/mi-coleccion.js`) devuelve esa cifra
+oficial; mientras llega, la misma cuenta con lo que hay en memoria (también sin
+`vivos`), y al llegar repinta `.mc-cartera-cifra`, la gráfica y el reparto con
+los productos (que los dos sacan de `valorParaElPanel`). Los `vivos` siguen
+para enseñar el precio de una carta suelta, no para el total. `js/cifra-panel.js`
+(1205) se fue. Una cifra nueva de «lo que vale AHORA» pasa por
+`valorComoElPanel`, nunca por otra suma.

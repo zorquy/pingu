@@ -152,7 +152,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   portada. La base (`valor_de_copia`) suma la foto DIARIA y no mira las
   filas de versión, y PINGU vio 12.046 € arriba y 12.169 € dentro: una cifra
   nueva de «lo que vale AHORA» pasa por `valorComoElPanel`, no por otro
-  camino; la de un día pasado, por la foto.
+  camino; la de un día pasado, por la foto. Desde la 1206 el Panel TAMBIÉN
+  enseña esa (su `valorDeAhora()`), sin los `vivos`, y el resultado se guarda
+  10 minutos con la firma de tus líneas (`firmaDeLineas`): PINGU, «no puede
+  haber variaciones» entre la portada y el Panel.
 - **El buscador de cartas es UNO: `js/buscar-cartas.js`** (tanda 909).
   /cartas → Buscar y la barra de arriba (/buscar, la paleta) llaman a
   `buscarComoEnCartas`; la copia «con las mismas reglas» de /buscar tenía

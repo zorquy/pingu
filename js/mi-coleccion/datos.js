@@ -753,15 +753,56 @@ export async function versionesDeCartas(cardIds) {
 // que el Panel pide VIVO a TCGdex para una carta sin precio guardado (los
 // `vivos`) no entra aquí: es lo que no tiene precio, y cuenta cero en los
 // dos sitios hasta que la pasada lo guarde.
-export async function valorComoElPanel(userId) {
-  const lineas = await lineasDeTodo(userId)
+//
+// LA CIFRA ES UNA (1206, PINGU: «no puede haber variaciones entre el panel del
+// inicio y el panel de la colección. Haz lo que tengas que hacer»). El Panel Y
+// la portada piden ESTA función, que guarda el resultado en el navegador con la
+// firma de tus líneas (`firmaDeLineas`: qué cartas, versión, idioma, copias,
+// gradeo y valor a mano) durante 10 minutos, lo que tarda la pasada de precios
+// en volver. Quien llega después en esos 10 minutos, con las mismas líneas,
+// lee LA MISMA cifra; si cambias algo de la colección, la firma cambia y se
+// vuelve a sumar. Los precios que el Panel pide en vivo a TCGdex (`vivos`) ya
+// no entran en el total: esta suma no los tiene.
+const LLAVE_VALOR = 'pd-valor-oficial'
+export const VIGENCIA_VALOR_MS = 10 * 60 * 1000
+
+export function firmaDeLineas(lineas) {
+  const partes = (lineas || []).map((l) => [l.card_id, l.variante || 'normal', l.idioma || '', Number(l.cantidad) || 1, l.gradeo || '', l.valor_manual ?? ''].join('|')).sort()
+  let h = 2166136261
+  const t = partes.join(';')
+  for (let i = 0; i < t.length; i++) h = Math.imul(h ^ t.charCodeAt(i), 16777619)
+  return `${partes.length}:${(h >>> 0).toString(36)}`
+}
+
+function valorGuardado(userId, firma, ahora = Date.now()) {
+  try {
+    const v = JSON.parse(globalThis.localStorage?.getItem(LLAVE_VALOR) || 'null')
+    return v && v.uid === userId && v.firma === firma && Number.isFinite(v.total) && ahora - v.at >= 0 && ahora - v.at < VIGENCIA_VALOR_MS ? v.total : null
+  } catch {
+    return null
+  }
+}
+
+function guardarValor(userId, firma, total) {
+  try {
+    globalThis.localStorage?.setItem(LLAVE_VALOR, JSON.stringify({ uid: userId, firma, total, at: Date.now() }))
+  } catch { /* sin almacén, cada página suma: con los mismos datos, lo mismo */ }
+}
+
+export async function valorComoElPanel(userId, { lineas: dadas = null } = {}) {
+  const lineas = dadas || (await lineasDeTodo(userId))
   if (!lineas.length) return { total: 0, lineas: 0 }
+  const firma = firmaDeLineas(lineas)
+  const yaSumado = valorGuardado(userId, firma)
+  if (yaSumado != null) return { total: yaSumado, lineas: lineas.length, firma }
   const conVersion = [...new Set(lineas.filter((l) => l.variante && l.variante !== 'normal').map((l) => l.card_id))]
   const [guardados] = await Promise.all([
     preciosGuardados(lineas.map((l) => l.card_id)),
     conVersion.length ? versionesDeCartas(conVersion).catch(() => []) : [],
   ])
-  return { total: valorDeLineas(lineas, guardados), lineas: lineas.length }
+  const total = Math.round(valorDeLineas(lineas, guardados) * 100) / 100
+  guardarValor(userId, firma, total)
+  return { total, lineas: lineas.length, firma }
 }
 
 // Lo que vale un montón de líneas (756): UNA definición para el Panel y

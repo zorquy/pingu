@@ -1221,14 +1221,30 @@ async function completarPrecios() {
 // puesto, la gráfica subía dos años y se caía por un precipicio en el
 // último punto. No daba error: daba una gráfica que parecía decir que
 // acabas de perder tu colección.
+// La cifra de TU colección es la oficial (1206): la misma función y el mismo
+// resultado guardado que la portada (`datos.valorComoElPanel`). Mientras llega,
+// la misma cuenta con lo que hay en memoria (sin los `vivos`, que la oficial
+// no tiene), y al llegar se repinta la cifra y la gráfica.
+let valorOficial = null // { firma, total }
+let pidiendoValor = ''
 function valorDeAhora() {
-  const total = datos.valorDeLineas(lineasTodo.length ? lineasTodo : lineas, guardados, vivos)
-  // La cifra que enseña el Panel la copia la portada (1205): se apunta con
-  // los productos, y solo de la colección entera (no la de un catálogo).
-  if (esMia && !modoTienda && sesion?.user?.id && (lineasTodo.length || !lineas.length)) {
-    import('./cifra-panel.js').then((m) => m.anotarCifraDelPanel(sesion.user.id, total + productosDelPanel)).catch(() => {})
+  const todas = lineasTodo.length ? lineasTodo : lineas
+  if (esMia && !modoTienda && sesion?.user?.id && lineasTodo.length) {
+    const firma = datos.firmaDeLineas(lineasTodo)
+    if (valorOficial?.firma === firma) return valorOficial.total
+    if (pidiendoValor !== firma) {
+      pidiendoValor = firma
+      datos.valorComoElPanel(sesion.user.id, { lineas: lineasTodo }).then((r) => {
+        if (datos.firmaDeLineas(lineasTodo) !== firma) return
+        valorOficial = { firma, total: r.total }
+        const cifra = document.querySelector('#mcValorCaja .mc-cartera-cifra')
+        if (cifra) cifra.textContent = eurosConMiles(r.total + productosDelPanel)
+        if (document.getElementById('mcCarteraGrafica')) void pintarValorEnElTiempo()
+        if (productosDelPanel) void pintarRepartoProductos()
+      }).catch(() => { pidiendoValor = '' })
+    }
   }
-  return total
+  return datos.valorDeLineas(todas, guardados)
 }
 
 // Quién eres y desde cuándo, que es lo que abre el panel de Dex y lo que

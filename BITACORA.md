@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (451) — PINGU-Claude (1206 — la cifra de tu colección es UNA)
+
+**Hecho**: PINGU: «no puede haber variaciones entre el panel del inicio y el
+panel de la colección. Haz lo que tengas que hacer». Lo de la 1205 (la portada
+copiaba lo que apuntó el Panel en ESE navegador) no bastaba: en otro
+dispositivo, o pasadas 12 h, la portada volvía a sumar por su cuenta y el
+Panel seguía metiendo los `vivos` (precios pedidos en el momento a TCGdex).
+Ahora hay UNA función, `valorComoElPanel` (`js/mi-coleccion/datos.js`), para
+las dos: suma tus líneas con los precios guardados y las versiones, sin
+`vivos`, y guarda el resultado en el navegador con la firma de tus líneas
+(`firmaDeLineas`) durante 10 minutos (lo que tarda en volver la pasada de
+precios). El Panel ya no suma aparte: su `valorDeAhora()` es esa cifra (pinta
+la misma cuenta en memoria mientras llega y luego repinta cifra y gráfica).
+`js/cifra-panel.js` (1205) se fue.
+
+**Ficheros**: `js/mi-coleccion/datos.js`, `js/mi-coleccion.js`, `js/hoy.js`,
+`js/cifra-panel.js` (borrado), `SCHEMA.md`. En `pruebas`:
+`test-tanda-1206-pantalla.mjs` (portada → Panel y Panel → portada, la misma
+cifra) y 1205 sin lo de la copia.
+
+**Pruebas**: verdes 1206-pantalla, 1205, 756 (al día: el Panel también pide
+`valorComoElPanel`), 783, 744, 1010, 1017, 1171, 1173, 1178, 1181, 299 e
+imports. La 766 sale roja igual sin esta tanda (de antes).
+
+**El precio del Lugia-EX (pregunta de PINGU)**: enseñamos el mínimo NM en
+español que da TCGGO (`lowest_near_mint_ES`), pedido UNA vez al día por
+expansión en `tcggo-precios`; Cardmarket enseña su mínimo en directo. Ponía 850 €
+de hoy y en Cardmarket había ofertas de 450 € y 549,90 €. O se publicaron
+después de la foto, o TCGGO no cuenta igual (no tiene documentación pública de
+cómo lo calcula). Pendiente de que PINGU elija qué hacer.
+
 ## 2026-11-03 (450) — PINGU-Claude (1205 — el foro como un foro, la cifra de la portada es la del Panel y la gente nueva de lunes a lunes)
 
 **Hecho**: tres cosas que pidió PINGU.
