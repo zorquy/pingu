@@ -776,3 +776,46 @@
   }
 }
 
+/* 1191 (PINGU): las portadas de guía, iguales —la chapa de una línea y el
+ * título en tres, cortado si hace falta—, y en el PC el foro y «Más noticias»
+ * más apretados para que quepa un tema y una noticia más. */
+.pb-portada-sobre { width: 100%; }
+
+.pb-portada-sobre .pb-chip {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pb-portada-sobre strong {
+  display: -webkit-box;
+  height: calc(1.25em * 3);
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+@media (min-width: 960px) {
+  .pb-foro-ultimo { -webkit-line-clamp: 3; }
+  .pb-foro-fila { padding: var(--e-sm) 0; }
+
+  .pb-foro-fila-texto b {
+    font-size: var(--t-xs);
+    line-height: 1.35;
+  }
+
+  .pb-foro-fila-texto small { margin-top: 2px; }
+  .pb-noticias-mas a { gap: var(--e-sm); padding: var(--e-xs) 0; }
+
+  .pb-noticia-mini {
+    width: 44px;
+    height: 44px;
+  }
+
+  .pb-noticias-mas b {
+    font-size: var(--t-xs);
+    -webkit-line-clamp: 2;
+  }
+}
+

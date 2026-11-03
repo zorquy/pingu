@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (436) — PINGU-Claude (1191 — guías iguales, foro y noticias más apretados)
+
+**Hecho**: PINGU, con capturas del PC:
+- Guías nuevas: la chapa y el título de cada portada a la misma altura en
+  todas. Fuera los minutos (la chapa se alargaba y rompía la tarjeta): solo el
+  tema, en una línea; el título, siempre tres líneas de alto, cortado si no
+  cabe.
+- Foro: el tema destacado igual; las demás filas más pequeñas (letra `t-xs`,
+  menos aire, cara de 18) para que entre el tercer tema y llegue hasta «Todo
+  el foro». El trocito del destacado, a tres líneas.
+- Más noticias: filas más bajas (miniatura de 44, título a dos líneas) para
+  que quepa una cuarta (con los datos de prueba, cinco).
+El móvil no cambia (lo del foro y las noticias va tras `min-width: 960px`).
+
+**Ficheros**: `js/portada-bloques.js`, `css/portada-bloques.css`; en `pruebas`,
+la 1188 (alturas iguales) y la 316 (sin minutos).
+
+**Pruebas**: verdes imports, 1188, 844, 1185, 300, 316 y 299.
+
+**Pendiente**: nada.
+
 ## 2026-11-03 (435) — PINGU-Claude (1190 — las noticias del móvil, en una tira)
 
 **Hecho**: PINGU, con captura del móvil: la noticia grande era más ancha que

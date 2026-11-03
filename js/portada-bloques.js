@@ -64,7 +64,7 @@ export function foroHtml({ temas, perfiles = {}, foros = {}, hoy = {}, escribien
     return `<li class="pb-foro-fila">
       <a class="pb-foro-fila-texto" href="${urlTema(t.id)}">
         <b>${etiquetaHtml(t.prefix)}${escapeHtml(t.title)}</b>
-        <small>${caraHtml(p, 20)}<span class="pb-quien">${escapeHtml(nombre(p))}</span> · ${haceCuanto(t.last_post_at || t.created_at)}</small>
+        <small>${caraHtml(p, 18)}<span class="pb-quien">${escapeHtml(nombre(p))}</span> · ${haceCuanto(t.last_post_at || t.created_at)}</small>
       </a>
       <span class="pb-foro-n${sinLeer ? ' nuevo' : ''}" title="${(t.post_count || 1) === 1 ? '1 mensaje' : `${t.post_count} mensajes`}">${t.post_count || 1}</span>
     </li>`
@@ -197,8 +197,9 @@ async function datosDelForoAntiguo(session) {
 // tarjeta de /aprender. Y sin los temas de filtro: «Todas las guías» lleva a
 // /aprender, que los tiene. Puro.
 export function portadaDeGuia(g) {
-  const cat = g.categories?.name || ''
-  const meta = [cat, g.estimated_mins ? `${g.estimated_mins} min` : ''].filter(Boolean).join(' · ')
+  // Solo el tema (1191, PINGU): con los minutos la chapa se alargaba y rompía
+  // la tarjeta.
+  const meta = g.categories?.name || ''
   return `<a class="pb-portada arte-${arteDe(g.categories?.slug || g.category_id || g)}" href="/guia/${encodeURIComponent(g.slug)}">
       ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" decoding="async" onerror="this.remove()" />` : ''}
       <span class="pb-portada-sobre">${meta ? `<span class="pb-chip claro">${escapeHtml(meta)}</span>` : ''}<strong>${escapeHtml(g.title)}</strong></span>
