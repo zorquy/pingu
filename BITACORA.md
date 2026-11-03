@@ -4,6 +4,41 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (439) — PINGU-Claude (1194 — eventos en carteles; la ficha con todo arriba)
+
+**Hecho**: PINGU eligió la A de la propuesta «Eventos con cartel» y pidió que
+en la ficha la información vaya en la cabecera, al lado del logo, «como en las
+tiendas»; lo demás de la propuesta, tal cual.
+- **Agenda**: carteles por mes (tres por fila en el PC, uno en el móvil): la
+  imagen del evento o su color con el logo y unas cartas al bies, el tipo, la
+  pastilla de la fecha («SÁB–DOM 7–8»), la cuenta atrás («Faltan 4 días»,
+  hasta dos semanas; «Hoy», «Mañana», «En marcha»), «Desde 5 €», quién va y
+  «Voy». Lo pasado, debajo en gris. En el móvil los filtros van en una fila
+  que se desliza.
+- **Ficha**: el cartel a lo ancho y debajo la cabecera con el logo encima del
+  borde; al lado, tipo, nombre, fecha, descripción y chapas (dónde, juegos,
+  web, @, TCG Map Spain); a la derecha Voy, «Ir sin decirlo», Compartir y el
+  modo evento. Debajo: entradas como entradas (VIP en dorado, gratis en verde,
+  «Comprar ›» si hay enlace), los días con su horario, quién va y dónde.
+- **Admin**: el cartel (imagen apaisada, con la vista previa tal como sale en
+  la agenda) y un enlace para comprar en cada entrada.
+- **Portada**: el bloque del próximo evento con su color o su cartel de fondo.
+
+**Ficheros**: `supabase-migration-1194-eventos-cartel.sql`, `js/eventos.js`,
+`js/eventos-puro.js`, `css/eventos.css`, `admin/js/eventos-admin.js`,
+`admin/css/admin.css`, `js/evento-portada.js`, `css/portada.css`,
+`SCHEMA.md`, `novedades.json`. En `pruebas`: `test-tanda-1194-pantalla.mjs`;
+la 1192-pantalla, la 1193 y la 1193-pantalla a la estructura nueva.
+
+**Pruebas**: verdes imports, 1192-pantalla, 1193, 1193-pantalla,
+1194-pantalla, 299, 305, 313, 1188 y 844. La 310, la 311 y la 315 tienen
+rojos que no son de esta tanda (auth.css, comunidad.css, torneos.css,
+avisos-pagina.css, imágenes sin `lazy` en ficheros de tiendas y colección).
+
+**Pendiente**: **PINGU tiene que ejecutar
+`supabase-migration-1194-eventos-cartel.sql`** (y la 1193 si no lo ha hecho).
+Sin la 1194, /admin no ofrece el cartel y lo dice; la agenda pinta el color.
+
 ## 2026-11-03 (438) — PINGU-Claude (1193 — eventos: Trade night, días con horario y varias entradas)
 
 **Hecho**: PINGU, tras meter el primer card show:

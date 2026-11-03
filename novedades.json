@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-03",
       "tipo": "mejora",
+      "texto": "Los eventos son ahora carteles: con su imagen o su color, la fecha, cuántos días faltan y desde cuánto es la entrada. Y en cada evento, todo lo importante arriba, y las entradas con su enlace para comprarlas.",
+      "enlace": "/eventos"
+    },
+    {
+      "fecha": "2026-11-03",
+      "tipo": "mejora",
       "texto": "Los eventos dicen cada día con su horario y todas las entradas con su precio (general, VIP…).",
       "enlace": "/eventos"
     },

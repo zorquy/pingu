@@ -108,6 +108,8 @@ export function entradasDe(e) {
     nombre: String(x.nombre).trim(),
     precio: x.precio === null || x.precio === undefined || x.precio === '' || Number.isNaN(Number(x.precio)) ? null : Number(x.precio),
     nota: String(x.nota || '').trim(),
+    // Dónde comprarla (1194): solo http(s).
+    url: webSegura(x.url),
   }))
 }
 export const precioTexto = (p) => (p === null || p === undefined ? '' : p === 0 ? 'Gratis' : `${Number(p).toLocaleString('es-ES', { minimumFractionDigits: Number.isInteger(Number(p)) ? 0 : 2, maximumFractionDigits: 2 })} €`)
@@ -120,7 +122,12 @@ export function desdePrecio(l) {
   if (!p.length) return ''
   const min = Math.min(...p)
   if (min === 0 && p.every((x) => x === 0)) return 'Gratis'
-  return p.length > 1 && p.some((x) => x !== min) ? `Desde ${min ? precioTexto(min) : '0 €'}` : precioTexto(min)
+  // Con una gratis (la de los niños) y otras de pago, «Desde» cuenta la de pago
+  // más barata: «Desde 0 €» no dice nada (1194).
+  const pago = p.filter((x) => x > 0)
+  if (!pago.length) return precioTexto(min)
+  const minPago = Math.min(...pago)
+  return p.length > 1 && p.some((x) => x !== minPago) ? `Desde ${precioTexto(minPago)}` : precioTexto(minPago)
 }
 
 // Lo que acabó antes de hoy va a «Pasados».
@@ -180,3 +187,38 @@ export function slugDeEvento(nombre, fecha) {
 }
 
 export const vanTexto = (n, pasado = false) => (pasado ? `${n} ${n === 1 ? 'fue' : 'fueron'}` : `${n} ${n === 1 ? 'va' : 'van'}`)
+
+// ── El cartel (1194) ──
+const DIAS_PASTILLA = ['DOM', 'LUN', 'MAR', 'MIÉ', 'JUE', 'VIE', 'SÁB']
+// La pastilla de la fecha: «SÁB–DOM» y «7–8», o «SÁB» y «21».
+export function pastillaDe(e) {
+  const h = horarioDe(e)
+  if (!h.length) return { arriba: '', dia: '' }
+  const a = fechaDeDia(h[0].dia)
+  const b = fechaDeDia(h[h.length - 1].dia)
+  if (h.length === 1) return { arriba: DIAS_PASTILLA[a.getDay()], dia: String(a.getDate()) }
+  return { arriba: `${DIAS_PASTILLA[a.getDay()]}–${DIAS_PASTILLA[b.getDay()]}`, dia: `${a.getDate()}–${b.getDate()}` }
+}
+
+// La cuenta atrás: «Hoy», «Mañana», «Faltan N días» (hasta dos semanas), y
+// «En marcha» si ya empezó y no ha acabado. Más lejos o pasado, nada.
+export function cuentaAtras(e, ahora = new Date()) {
+  if (esPasado(e, ahora)) return ''
+  const d = diasEntre(ahora, e.empieza)
+  if (d < 0) return 'En marcha'
+  if (d === 0) return 'Hoy'
+  if (d === 1) return 'Mañana'
+  return d <= 14 ? `Faltan ${d} días` : ''
+}
+
+// Para agrupar la agenda: «Noviembre 2026».
+export const mesDe = (e) => { const d = new Date(e.empieza); return `${MESES_LARGOS[d.getMonth()][0].toUpperCase()}${MESES_LARGOS[d.getMonth()].slice(1)} ${d.getFullYear()}` }
+
+// Una entrada que se pinta en dorado: la VIP y sus parientes.
+export const esEntradaVip = (x) => /\b(vip|premium|gold|oro|platino|full ?pass|pase completo)\b/i.test(x?.nombre || '')
+
+// Las horas de un vistazo para la tarjeta: «10:00 – 20:00» si es la misma.
+export function horasDe(e) {
+  const h = horarioDe(e)
+  return mismoHorario(h) ? (h[0].desde ? `${h[0].desde}${h[0].hasta ? ` – ${h[0].hasta}` : ''}` : '') : ''
+}

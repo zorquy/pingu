@@ -4,22 +4,30 @@
 // (supabase-migration-1192-eventos.sql); «Voy» pasa por `evento_voy`. Sin la
 // migración, la página lo dice con calma y no se rompe.
 //
-// La propuesta (PINGU, «como me propusiste, me parece bien»): en Comunidad, lo
-// próximo arriba y lo pasado apagado debajo; quién va se ve (con la opción de
-// ir «sin decirlo»); los da de alta el equipo desde /admin → Eventos; y cada
-// ficha enlaza a TCG Map Spain, que es quien tiene el mapa de tiendas.
+// Desde la 1194 (PINGU eligió la A de «Eventos con cartel»: «cada evento
+// vamos a ponerlo como que es más especial»): la agenda son CARTELES por mes
+// (la imagen del evento o su color con el logo, la fecha en una pastilla y la
+// cuenta atrás), y la ficha lleva todo lo que se lee arriba, en la cabecera al
+// lado del logo (PINGU: «como en las tiendas… que no tengas que bajar para ver
+// sobre el evento»); debajo, las entradas, los días, quién va y dónde.
 import { supabase } from './supabase.js'
-import { escapeHtml } from './html.js'
+import { escapeHtml, urlParaCss } from './html.js'
 import { avatarStyle, getInitial, getSession, profileUrl } from './app.js'
 import { icons } from './icons.js'
 import { sinMigracion } from './sin-migracion.js'
 import { showToast } from './toast.js'
-import { TIPOS, MESES, cuandoEs, fechaLarga, siglasDe, filtrar, separar, webSegura, instagramDe, mapaDe, vanTexto, horarioDe, mismoHorario, diasConHora, entradasDe, precioTexto } from './eventos-puro.js'
+import {
+  TIPOS, fechaLarga, siglasDe, filtrar, separar, webSegura, instagramDe, mapaDe, vanTexto,
+  horarioDe, fechaDeDia, entradasDe, precioTexto, desdePrecio, pastillaDe, cuentaAtras, mesDe, esEntradaVip, horasDe,
+} from './eventos-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const ic = (n, t = 16) => icons[n]?.(t) || ''
 const caja = $('eventos')
 const nombre = (p) => p?.display_name || p?.username || 'Alguien'
+const DIAS_SEMANA = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado']
+// Para lo pasado: una fecha tan lejana que no queda cuenta atrás.
+const NUNCA = new Date(8.64e15)
 
 const slugDeLaDireccion = () => {
   const p = new URLSearchParams(location.search).get('e')
@@ -28,11 +36,29 @@ const slugDeLaDireccion = () => {
   return m ? decodeURIComponent(m[1]) : ''
 }
 const rutaDe = (e) => `/eventos/${encodeURIComponent(e.slug)}`
+const colorDe = (e) => (/^#[0-9a-f]{6}$/i.test(e.color || '') ? e.color : '')
 
-function logoHtml(e, grande = false) {
-  const color = /^#[0-9a-f]{6}$/i.test(e.color || '') ? e.color : ''
+function logoHtml(e, clase = 'ev-logo') {
+  const color = colorDe(e)
   const foto = webSegura(e.logo_url)
-  return `<span class="ev-logo${grande ? ' grande' : ''}"${color ? ` style="--ev-color:${color}"` : ''} aria-hidden="true">${foto ? `<img src="${escapeHtml(foto)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<b>${escapeHtml(siglasDe(e))}</b></span>`
+  return `<span class="${clase}"${color ? ` style="--ev-color:${color}"` : ''} aria-hidden="true">${foto ? `<img src="${escapeHtml(foto)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<b>${escapeHtml(siglasDe(e))}</b></span>`
+}
+
+// El cartel: la imagen del evento si la hay; si no, su color (lo pinta el CSS
+// con `--ev-color`) con el logo encima. La pastilla de la fecha y la cuenta
+// atrás van encima de los dos.
+function cartelHtml(e, { ahora = new Date(), conPastilla = true, conTipo = true, clase = 'ev-cartel', etiqueta = '' } = {}) {
+  const color = colorDe(e)
+  const foto = urlParaCss(webSegura(e.cartel_url))
+  const p = pastillaDe(e)
+  const cuenta = cuentaAtras(e, ahora)
+  const estilo = [color ? `--ev-color:${color}` : '', foto ? `background-image:url('${foto}')` : ''].filter(Boolean).join(';')
+  return `<span class="${clase}${foto ? ' con-imagen' : ''}"${estilo ? ` style="${estilo}"` : ''}${etiqueta ? ` role="img" aria-label="${escapeHtml(etiqueta)}"` : ''}>
+      ${conTipo ? `<span class="ev-tipo">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>` : ''}
+      ${conPastilla && p.dia ? `<span class="ev-pastilla"><small>${escapeHtml(p.arriba)}</small><b>${escapeHtml(p.dia)}</b></span>` : ''}
+      ${cuenta ? `<span class="ev-cuenta">${escapeHtml(cuenta)}</span>` : ''}
+      ${foto || !conPastilla ? '' : logoHtml(e, 'ev-logo ev-logo-cartel')}
+    </span>`
 }
 
 const caraHtml = (p, t = 24) => `<span class="ev-cara" style="width:${t}px;height:${t}px;${avatarStyle(p)}" title="${escapeHtml(nombre(p))}" aria-hidden="true">${p?.avatar_url ? '' : escapeHtml(getInitial(nombre(p)))}</span>`
@@ -43,36 +69,37 @@ function voyHtml(e, sesion, { pasado = false } = {}) {
   return `<button type="button" class="${e.voy ? 'btn-primary' : 'btn-secondary'} ev-voy" data-voy="${escapeHtml(e.id)}" aria-pressed="${e.voy ? 'true' : 'false'}">${e.voy ? `${ic('checkCircle', 16)} Voy` : 'Voy'}</button>`
 }
 
-// «7» o, si dura varios días del mismo mes, «7–8» (1193).
-function diasDeFila(e, d) {
-  const h = horarioDe(e)
-  if (h.length < 2) return String(d.getDate())
-  const [a, b] = [h[0].dia, h[h.length - 1].dia]
-  return a.slice(0, 7) === b.slice(0, 7) ? `${Number(a.slice(8))}–${Number(b.slice(8))}` : String(d.getDate())
-}
-
-function filaHtml(e, sesion, ahora) {
-  const d = new Date(e.empieza)
+// ── La agenda: un cartel por evento ──
+function tarjetaHtml(e, sesion, ahora) {
   const pasado = new Date(e.termina || e.empieza) < new Date(ahora).setHours(0, 0, 0, 0)
   const donde = [e.sitio, e.ciudad].filter(Boolean).join(' · ')
-  const cuando = pasado ? '' : cuandoEs(e.empieza, ahora)
+  const horas = horasDe(e)
   const caras = (e.caras || []).slice(0, 3)
-  return `<li class="ev-fila${pasado ? ' pasado' : ''}" data-ev="${escapeHtml(e.slug)}">
-    <a class="ev-enlace" href="${rutaDe(e)}">
-      <span class="ev-fecha"><b>${escapeHtml(diasDeFila(e, d))}</b><small>${MESES[d.getMonth()]}</small></span>
-      ${logoHtml(e)}
-      <span class="ev-cuerpo">
-        <strong>${escapeHtml(e.nombre)}</strong>
-        ${donde ? `<small>${escapeHtml(donde)}</small>` : ''}
-        <span class="ev-chips"><span class="ev-tipo">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>${cuando ? `<span class="ev-cuando">${escapeHtml(cuando)}</span>` : ''}</span>
-      </span>
+  const desde = desdePrecio(entradasDe(e))
+  return `<li class="ev-tarjeta${pasado ? ' pasado' : ''}" data-ev="${escapeHtml(e.slug)}">
+    <a class="ev-tarjeta-enlace" href="${rutaDe(e)}">
+      ${cartelHtml(e, { ahora: pasado ? NUNCA : ahora })}
+      <span class="ev-tarjeta-texto"><strong>${escapeHtml(e.nombre)}</strong><small>${escapeHtml([donde, horas].filter(Boolean).join(' · '))}</small></span>
     </a>
-    <span class="ev-van">${caras.length ? `<span class="ev-caras">${caras.map((p) => caraHtml(p, 22)).join('')}</span>` : ''}<span data-van>${e.van ? escapeHtml(vanTexto(e.van, pasado)) : pasado ? '' : 'Sé el primero'}</span></span>
-    ${voyHtml(e, sesion, { pasado })}
+    <div class="ev-tarjeta-pie">
+      <span class="ev-van">${caras.length ? `<span class="ev-caras">${caras.map((p) => caraHtml(p, 22)).join('')}</span>` : ''}<span data-van>${e.van ? escapeHtml(vanTexto(e.van, pasado)) : pasado ? '' : 'Sé el primero'}</span></span>
+      ${desde ? `<span class="ev-desde">${escapeHtml(desde)}</span>` : ''}
+      ${voyHtml(e, sesion, { pasado })}
+    </div>
   </li>`
 }
 
-// ── La agenda ──
+// Por meses: «Noviembre 2026» y sus carteles.
+function porMeses(eventos, sesion, ahora) {
+  const grupos = []
+  for (const e of eventos) {
+    const m = mesDe(e)
+    if (grupos.at(-1)?.mes !== m) grupos.push({ mes: m, eventos: [] })
+    grupos.at(-1).eventos.push(e)
+  }
+  return grupos.map((g) => `<h3 class="ev-mes">${escapeHtml(g.mes)}</h3><ul class="ev-carteles">${g.eventos.map((e) => tarjetaHtml(e, sesion, ahora)).join('')}</ul>`).join('')
+}
+
 async function pintarAgenda(sesion) {
   const { data, error } = await supabase.rpc('eventos_lista')
   if (error) {
@@ -101,10 +128,10 @@ async function pintarAgenda(sesion) {
     caja.innerHTML = `
       <div class="ev-mandos">${chips}${prov}${mios}</div>
       <section aria-labelledby="evProximosT">
-        <h2 class="section-title" id="evProximosT">Próximos</h2>
-        ${proximos.length ? `<ul class="ev-lista">${proximos.map((e) => filaHtml(e, sesion, ahora)).join('')}</ul>` : `<p class="empty-state">${estado.soloVoy ? 'Todavía no has marcado «Voy» en ningún evento.' : 'Con estos filtros no hay ningún evento próximo.'}</p>`}
+        <h2 class="sr-only" id="evProximosT">Próximos</h2>
+        ${proximos.length ? porMeses(proximos, sesion, ahora) : `<p class="empty-state">${estado.soloVoy ? 'Todavía no has marcado «Voy» en ningún evento.' : 'Con estos filtros no hay ningún evento próximo.'}</p>`}
       </section>
-      ${pasados.length ? `<section aria-labelledby="evPasadosT"><h2 class="section-title" id="evPasadosT">Pasados</h2><ul class="ev-lista">${pasados.map((e) => filaHtml(e, sesion, ahora)).join('')}</ul></section>` : ''}`
+      ${pasados.length ? `<section class="ev-pasados" aria-labelledby="evPasadosT"><h2 class="ev-mes" id="evPasadosT">Pasados</h2><ul class="ev-carteles">${pasados.map((e) => tarjetaHtml(e, sesion, ahora)).join('')}</ul></section>` : ''}`
   }
   pintar()
   caja.addEventListener('click', async (ev) => {
@@ -142,6 +169,24 @@ async function alternarVoy(e, voy, oculto, repintar, alDia = null) {
 }
 
 // ── La ficha ──
+// Las entradas como entradas (1194): la VIP en dorado, la gratis en verde, y
+// «Comprar ›» si tiene dónde.
+function entradaHtml(x) {
+  const clase = esEntradaVip(x) ? ' vip' : x.precio === 0 ? ' gratis' : ''
+  return `<li class="ev-entrada${clase}">
+      <b>${escapeHtml(x.nombre)}</b>
+      <span class="ev-entrada-precio">${escapeHtml(precioTexto(x.precio) || 'Consultar')}</span>
+      ${x.nota ? `<small>${escapeHtml(x.nota)}</small>` : ''}
+      ${x.url ? `<a class="ev-comprar" href="${escapeHtml(x.url)}" target="_blank" rel="noopener nofollow">Comprar ›</a>` : ''}
+    </li>`
+}
+
+function diaHtml(x) {
+  const d = fechaDeDia(x.dia)
+  const horas = x.desde ? `${x.desde}${x.hasta ? ` – ${x.hasta}` : ''}` : 'Horario por confirmar'
+  return `<li class="ev-dia"><b>${d.getDate()}</b><span><em>${DIAS_SEMANA[d.getDay()]}</em>${escapeHtml(horas)}</span></li>`
+}
+
 async function pintarFicha(slug, sesion) {
   $('eventosCabecera')?.classList.add('hidden')
   const { data, error } = await supabase.rpc('evento_ficha', { p_slug: slug })
@@ -157,12 +202,14 @@ async function pintarFicha(slug, sesion) {
   const ahora = new Date()
   const pasado = new Date(e.termina || e.empieza) < new Date(ahora).setHours(0, 0, 0, 0)
   document.title = `${e.nombre} — Eventos — PokeDoc`
-  const desc = [fechaLarga(e), e.sitio, e.ciudad].filter(Boolean).join(' · ')
+  const lugar = [e.sitio, e.ciudad].filter(Boolean).join(', ')
+  const desc = [fechaLarga(e), lugar].filter(Boolean).join(' · ')
   const web = webSegura(e.web)
   const insta = instagramDe(e.instagram)
   const mapa = mapaDe(e)
   const tcgmap = webSegura(e.tcgmap_url)
   const entradas = entradasDe(e)
+  const dias = horarioDe(e)
   const pintar = () => {
     const visibles = e.caras || []
     const ocultos = Math.max(0, (e.van || 0) - visibles.length)
@@ -170,38 +217,47 @@ async function pintarFicha(slug, sesion) {
       ? `<p class="ev-cuantos"><b>${e.van}</b> ${e.van === 1 ? (pasado ? 'persona fue' : 'persona va') : pasado ? 'personas fueron' : 'personas van'}${ocultos ? ` <small>(${ocultos} sin decirlo)</small>` : ''}</p>
          ${visibles.length ? `<ul class="ev-gente">${visibles.map((p) => `<li><a href="${profileUrl(p)}">${caraHtml(p, 32)}<span>${escapeHtml(nombre(p))}</span></a></li>`).join('')}</ul>` : ''}`
       : `<p class="ev-cuantos">${pasado ? 'Nadie de PokeDoc marcó que iba.' : 'Todavía no ha marcado nadie que va. ¡Sé el primero!'}</p>`
-    const fila = (icono, titulo, valor) => (valor ? `<div class="ev-dato">${ic(icono, 18)}<span><b>${titulo}</b>${valor}</span></div>` : '')
+    // Lo de leer, en chapas como las de una tienda: dónde, juegos y enlaces.
+    const datos = [
+      lugar ? `<li>${ic('pin', 16)}<span>${escapeHtml([e.sitio, e.direccion, e.ciudad, e.provincia && e.provincia !== e.ciudad ? e.provincia : ''].filter(Boolean).join(', '))}</span></li>` : '',
+      e.juegos ? `<li>${ic('cards', 16)}<span>${escapeHtml(e.juegos)}</span></li>` : '',
+      web ? `<li>${ic('link', 16)}<a href="${escapeHtml(web)}" target="_blank" rel="noopener nofollow">${escapeHtml(web.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</a></li>` : '',
+      insta ? `<li>${ic('camera', 16)}<a href="${escapeHtml(insta.url)}" target="_blank" rel="noopener nofollow">@${escapeHtml(insta.usuario)}</a></li>` : '',
+      tcgmap ? `<li class="ev-dato-tcgmap">${ic('pin', 16)}<a href="${escapeHtml(tcgmap)}" target="_blank" rel="noopener">Ver en TCG Map Spain</a></li>` : '',
+    ].filter(Boolean).join('')
     caja.innerHTML = `
       <a class="ev-volver" href="/eventos">${ic('chevronLeft', 16)} Eventos</a>
+      ${cartelHtml(e, { ahora: pasado ? NUNCA : ahora, conPastilla: false, conTipo: false, clase: 'ev-cartel ev-cartel-ficha', etiqueta: `Cartel de ${e.nombre}` })}
       <header class="ev-cab">
-        ${logoHtml(e, true)}
+        ${logoHtml(e, 'ev-logo grande')}
         <div class="ev-cab-texto">
-          <span class="ev-chips"><span class="ev-tipo">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>${!pasado && cuandoEs(e.empieza, ahora) ? `<span class="ev-cuando">${escapeHtml(cuandoEs(e.empieza, ahora))}</span>` : ''}${pasado ? '<span class="ev-cuando">Ya pasó</span>' : ''}</span>
+          <span class="ev-chips"><span class="ev-chapa">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>${pasado ? '<span class="ev-chapa">Ya pasó</span>' : ''}</span>
           <h1>${escapeHtml(e.nombre)}</h1>
-          <p>${escapeHtml(desc)}</p>
+          <p class="ev-cuando-largo">${escapeHtml(fechaLarga(e))}</p>
+          ${e.descripcion ? `<p class="ev-desc">${escapeHtml(e.descripcion)}</p>` : ''}
+          ${datos ? `<ul class="ev-datos">${datos}</ul>` : ''}
+        </div>
+        <div class="ev-acciones">
+          ${voyHtml(e, sesion, { pasado })}
+          ${sesion && e.voy && !pasado ? `<label class="ev-oculto"><input type="checkbox" id="evOculto"${e.oculto ? ' checked' : ''}> Ir sin decirlo</label>` : ''}
+          <button type="button" class="btn-secondary" id="evCompartir">${ic('share', 16)} Compartir</button>
+          ${e.voy && !pasado ? `<a class="btn-secondary" href="/evento">${ic('cards', 16)} Abrir mi modo evento</a>` : ''}
         </div>
       </header>
-      <div class="ev-acciones">
-        ${voyHtml(e, sesion, { pasado })}
-        ${sesion && e.voy && !pasado ? `<label class="ev-oculto"><input type="checkbox" id="evOculto"${e.oculto ? ' checked' : ''}> Ir sin decirlo <small>(solo cuentas en el número)</small></label>` : ''}
-        <button type="button" class="btn-secondary" id="evCompartir">${ic('share', 16)} Compartir</button>
-        ${e.voy && !pasado ? `<a class="btn-secondary" href="/evento">${ic('cards', 16)} Abrir mi modo evento</a>` : ''}
-      </div>
       <div class="ev-ficha-cols">
-        <section class="ev-caja" aria-labelledby="evQuienT"><h2 id="evQuienT">Quién va de PokeDoc</h2>${quien}</section>
-        <section class="ev-caja" aria-labelledby="evSobreT">
-          <h2 id="evSobreT">Sobre el evento</h2>
-          ${fila('calendar', 'Cuándo', escapeHtml(fechaLarga(e)) + (mismoHorario(horarioDe(e)) ? '' : `<ul class="ev-dias">${diasConHora(e).map((d) => `<li>${escapeHtml(d.texto)} <span>${escapeHtml(d.horas)}</span></li>`).join('')}</ul>`))}
-          ${fila('pin', 'Dónde', `${escapeHtml([e.sitio, e.direccion, e.ciudad, e.provincia && e.provincia !== e.ciudad ? e.provincia : ''].filter(Boolean).join(', '))}${mapa ? ` · <a href="${escapeHtml(mapa)}" target="_blank" rel="noopener">Ver en el mapa</a>` : ''}`)}
-          ${entradas.length ? fila('receipt', entradas.length > 1 ? 'Entradas' : 'Entrada', `<ul class="ev-entradas">${entradas.map((x) => `<li><span>${escapeHtml(x.nombre)}${x.nota ? `<small>${escapeHtml(x.nota)}</small>` : ''}</span><b>${escapeHtml(precioTexto(x.precio) || 'Consultar')}</b></li>`).join('')}</ul>`) : fila('receipt', 'Entrada', escapeHtml(e.entrada || ''))}
-          ${fila('cards', 'Juegos', escapeHtml(e.juegos || ''))}
-          ${e.descripcion ? `<p class="ev-desc">${escapeHtml(e.descripcion)}</p>` : ''}
-          <div class="ev-enlaces">
-            ${web ? `<a class="btn-secondary" href="${escapeHtml(web)}" target="_blank" rel="noopener">${ic('link', 16)} Web</a>` : ''}
-            ${insta ? `<a class="btn-secondary" href="${escapeHtml(insta.url)}" target="_blank" rel="noopener">${ic('camera', 16)} @${escapeHtml(insta.usuario)}</a>` : ''}
-            ${tcgmap ? `<a class="btn-secondary" href="${escapeHtml(tcgmap)}" target="_blank" rel="noopener">${ic('pin', 16)} Ver en TCG Map Spain</a>` : ''}
-          </div>
-        </section>
+        <div class="ev-col">
+          ${entradas.length ? `<section class="ev-caja" aria-labelledby="evEntradasT"><h2 id="evEntradasT">${entradas.length > 1 ? 'Entradas' : 'Entrada'}</h2><ul class="ev-entradas">${entradas.map(entradaHtml).join('')}</ul></section>`
+            : e.entrada ? `<section class="ev-caja" aria-labelledby="evEntradasT"><h2 id="evEntradasT">Entrada</h2><p class="ev-desc">${escapeHtml(e.entrada)}</p></section>` : ''}
+          ${dias.length ? `<section class="ev-caja" aria-labelledby="evCuandoT"><h2 id="evCuandoT">Cuándo</h2><ul class="ev-dias">${dias.map(diaHtml).join('')}</ul></section>` : ''}
+        </div>
+        <div class="ev-col">
+          <section class="ev-caja" aria-labelledby="evQuienT"><h2 id="evQuienT">Quién va de PokeDoc</h2>${quien}</section>
+          ${mapa ? `<section class="ev-caja" aria-labelledby="evDondeT"><h2 id="evDondeT">Dónde</h2>
+            <a class="ev-mapa" href="${escapeHtml(mapa)}" target="_blank" rel="noopener" aria-label="Ver ${escapeHtml(lugar || 'el sitio')} en el mapa"><span class="ev-mapa-pin">${ic('pin', 22)}</span></a>
+            <p class="ev-desc">${escapeHtml([e.sitio, e.direccion, e.ciudad].filter(Boolean).join(', '))}</p>
+            <a class="btn-secondary ev-llegar" href="${escapeHtml(mapa)}" target="_blank" rel="noopener">${ic('pin', 16)} Cómo llegar</a>
+          </section>` : ''}
+        </div>
       </div>`
   }
   pintar()

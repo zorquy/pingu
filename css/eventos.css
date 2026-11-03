@@ -1,4 +1,5 @@
-/* /eventos (1192): la agenda y la ficha de un evento. El porqué, en SCHEMA. */
+/* /eventos (1192; carteles desde la 1194): la agenda y la ficha de un evento.
+   El porqué, en SCHEMA. */
 
 .ev-mandos {
   display: flex;
@@ -19,60 +20,95 @@
   font-size: var(--t-sm);
 }
 
-.ev-lista {
-  display: grid;
-  gap: var(--e-sm);
-  margin: 0 0 var(--e-xl);
-  padding: 0;
-  list-style: none;
+/* ── El cartel: la imagen o el color del evento, con su logo ── */
+.ev-cartel {
+  --ev-color: var(--navy-solid);
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 10;
+  max-width: 100%;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 85% 10%, rgba(255, 255, 255, 0.22), transparent 55%),
+    radial-gradient(80% 80% at 10% 100%, rgba(0, 0, 0, 0.35), transparent 60%),
+    linear-gradient(135deg, color-mix(in srgb, var(--ev-color) 55%, #000), var(--ev-color));
 }
 
-.ev-fila {
-  display: flex;
-  align-items: center;
-  gap: var(--e-md);
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  background: var(--white);
-}
-
-.ev-fila.pasado { opacity: 0.6; }
-
-.ev-enlace {
-  display: flex;
-  flex: 1;
-  align-items: center;
-  gap: var(--e-md);
-  min-width: 0;
-  color: var(--text);
-  text-decoration: none;
-}
-
-.ev-enlace:hover strong { color: var(--navy); }
-
-.ev-fecha {
-  display: grid;
-  flex-shrink: 0;
-  place-items: center;
-  min-width: 48px;
-  padding: var(--e-xs) var(--e-xs);
+/* Unas cartas al bies de fondo: lo que se compra y se cambia allí. */
+.ev-cartel:not(.con-imagen)::before {
+  content: '';
+  position: absolute;
+  right: -6%;
+  bottom: -24%;
+  width: 40%;
+  aspect-ratio: 63 / 88;
   border-radius: var(--radius-md);
-  background: var(--ice);
-  line-height: 1.1;
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: -28px -8px 0 rgba(255, 255, 255, 0.07);
+  transform: rotate(14deg);
 }
 
-.ev-fecha b {
-  font-family: var(--font-display);
-  font-size: var(--t-xl);
+.ev-cartel.con-imagen {
+  background-color: var(--ice);
+  background-position: center;
+  background-size: cover;
 }
 
-.ev-fecha small {
-  color: var(--acento);
+.ev-tipo,
+.ev-cuenta {
+  position: absolute;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
   font-size: var(--t-2xs);
   font-weight: 700;
+  letter-spacing: 0.03em;
 }
 
+.ev-tipo {
+  top: var(--e-sm);
+  left: var(--e-sm);
+  background: rgba(0, 0, 0, 0.5);
+  color: var(--blanco-fijo);
+  text-transform: uppercase;
+}
+
+.ev-cuenta {
+  right: var(--e-sm);
+  bottom: var(--e-sm);
+  background: #e4b44a;
+  color: #1c1405;
+}
+
+/* La fecha, en una pastilla blanca como un sello. */
+.ev-pastilla {
+  position: absolute;
+  top: var(--e-sm);
+  right: var(--e-sm);
+  display: grid;
+  min-width: 48px;
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-md);
+  background: var(--blanco-fijo);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.3);
+  color: #10202c;
+  line-height: 1.05;
+  text-align: center;
+}
+
+.ev-pastilla small {
+  color: #c62a5c;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.ev-pastilla b {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 800;
+}
+
+/* ── El logo (o sus siglas en su color) ── */
 .ev-logo {
   --ev-color: var(--navy-solid);
   position: relative;
@@ -87,19 +123,11 @@
   color: var(--blanco-fijo);
 }
 
-.ev-logo.grande {
-  width: 88px;
-  height: 88px;
-  border-radius: var(--radius-lg);
-}
-
 .ev-logo b {
   font-family: var(--font-display);
   font-size: var(--t-xs);
   letter-spacing: 0.04em;
 }
-
-.ev-logo.grande b { font-size: var(--t-lg); }
 
 .ev-logo img {
   position: absolute;
@@ -110,21 +138,95 @@
   background: var(--white);
 }
 
-.ev-cuerpo {
+.ev-logo-cartel {
+  position: absolute;
+  bottom: var(--e-md);
+  left: var(--e-md);
+  width: 56px;
+  height: 56px;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.ev-logo-cartel b { font-size: var(--t-sm); }
+
+.ev-logo.grande {
+  width: 112px;
+  height: 112px;
+  border: 4px solid var(--bg);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+}
+
+.ev-logo.grande b { font-size: var(--t-2xl); }
+
+/* ── La agenda: carteles por mes ── */
+.ev-mes {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  margin: var(--e-xl) 0 var(--e-md);
+  color: var(--text-mid);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.ev-mes::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.ev-carteles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: var(--e-lg);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ev-tarjeta {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  transition: transform 0.15s var(--ease), box-shadow 0.15s var(--ease);
+}
+
+.ev-tarjeta:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.ev-tarjeta.pasado { opacity: 0.55; }
+.ev-tarjeta.pasado .ev-cartel { filter: grayscale(1); }
+
+.ev-tarjeta-enlace {
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.ev-tarjeta-texto {
   display: grid;
   gap: 2px;
+  padding: var(--e-md) var(--e-md) 0;
   min-width: 0;
 }
 
-.ev-cuerpo strong {
-  overflow: hidden;
+.ev-tarjeta-texto strong {
   font-family: var(--font-display);
-  font-size: var(--t-md);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: var(--t-lg);
+  line-height: 1.2;
 }
 
-.ev-cuerpo small {
+.ev-tarjeta-enlace:hover strong { color: var(--navy); }
+
+.ev-tarjeta-texto small {
   overflow: hidden;
   color: var(--text-mid);
   font-size: var(--t-xs);
@@ -132,36 +234,27 @@
   white-space: nowrap;
 }
 
-.ev-chips {
+.ev-tarjeta-pie {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--e-xs);
-  margin-top: 2px;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  margin-top: auto;
+  padding: var(--e-md);
 }
 
-.ev-tipo,
-.ev-cuando {
-  padding: 2px var(--e-sm);
-  border-radius: var(--radius-pill);
-  font-size: var(--t-2xs);
+.ev-desde {
+  margin-left: auto;
+  color: var(--warning);
+  font-size: var(--t-sm);
   font-weight: 700;
-}
-
-.ev-tipo {
-  background: var(--ice);
-  color: var(--text-mid);
-}
-
-.ev-cuando {
-  background: color-mix(in srgb, var(--acento) 18%, transparent);
-  color: var(--text);
 }
 
 .ev-van {
   display: inline-flex;
-  flex-shrink: 0;
   align-items: center;
   gap: var(--e-xs);
+  min-width: 0;
   color: var(--text-mid);
   font-size: var(--t-xs);
   white-space: nowrap;
@@ -180,7 +273,7 @@
   font-weight: 700;
 }
 
-.ev-caras .ev-cara + .ev-cara { margin-left: -6px; }
+.ev-caras .ev-cara + .ev-cara { margin-left: calc(-1 * var(--e-sm)); }
 
 .ev-voy {
   flex-shrink: 0;
@@ -188,7 +281,12 @@
   min-height: 40px;
 }
 
-/* ── La ficha ── */
+.ev-desde + .ev-voy { margin-left: 0; }
+.ev-van + .ev-voy { margin-left: auto; }
+
+.ev-pasados { margin-top: var(--e-xl); }
+
+/* ── La ficha: el cartel a lo ancho y la cabecera con todo lo que se lee ── */
 .ev-volver {
   display: inline-flex;
   align-items: center;
@@ -200,49 +298,149 @@
   text-decoration: none;
 }
 
+.ev-cartel-ficha {
+  aspect-ratio: 16 / 5;
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+}
+
+.ev-cartel-ficha .ev-tipo,
+.ev-cartel-ficha .ev-cuenta {
+  font-size: var(--t-xs);
+}
+
+.ev-cartel-ficha .ev-cuenta {
+  top: var(--e-md);
+  right: var(--e-md);
+  bottom: auto;
+}
+
+.ev-cartel-ficha .ev-tipo {
+  top: var(--e-md);
+  left: var(--e-md);
+}
+
 .ev-cab {
-  display: flex;
-  align-items: center;
-  gap: var(--e-lg);
-  margin-bottom: var(--e-lg);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: 'logo texto acciones';
+  gap: var(--e-lg) var(--e-xl);
+  align-items: start;
+  margin-bottom: var(--e-xl);
+  padding: 0 var(--e-xl) var(--e-xl);
+  border: 1px solid var(--border);
+  border-top: 0;
+  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+  background: var(--white);
+}
+
+.ev-cab > .ev-logo {
+  grid-area: logo;
+  margin-top: -56px;
 }
 
 .ev-cab-texto {
+  grid-area: texto;
   display: grid;
+  justify-items: start;
   gap: var(--e-xs);
   min-width: 0;
+  padding-top: var(--e-lg);
 }
 
 .ev-cab h1 {
   margin: 0;
-  font-size: var(--t-2xl);
-  line-height: 1.15;
+  font-size: var(--t-3xl);
+  line-height: 1.1;
   text-wrap: balance;
+  overflow-wrap: anywhere;
 }
 
-.ev-cab p {
+.ev-cuando-largo {
   margin: 0;
-  color: var(--text-mid);
+  color: var(--text);
+  font-weight: 600;
 }
 
-.ev-acciones {
+.ev-chips {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: var(--e-sm);
-  margin-bottom: var(--e-xl);
+  gap: var(--e-xs);
 }
 
-.ev-oculto {
+.ev-chapa {
+  padding: 1px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--acento);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.ev-desc {
+  max-width: 70ch;
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  white-space: pre-line;
+}
+
+/* Dónde, juegos, web, Instagram y TCG Map Spain: chapas como las de una tienda. */
+.ev-datos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin: var(--e-sm) 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-sm);
+}
+
+.ev-datos li {
   display: inline-flex;
   align-items: center;
   gap: var(--e-xs);
+  min-height: 36px;
+  max-width: 100%;
+  padding: 0 var(--e-md);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  font-weight: 600;
+}
+
+.ev-datos svg {
+  flex-shrink: 0;
+  color: var(--acento);
+}
+
+.ev-datos span,
+.ev-datos a {
+  overflow-wrap: anywhere;
+}
+
+.ev-datos a { color: inherit; }
+
+.ev-acciones {
+  grid-area: acciones;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--e-sm);
+  padding-top: var(--e-lg);
+}
+
+.ev-acciones > * {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-xs);
+}
+
+.ev-oculto {
   min-height: 44px;
   color: var(--text-mid);
   font-size: var(--t-sm);
 }
-
-.ev-oculto small { color: var(--text-dim); }
 
 .ev-ficha-cols {
   display: grid;
@@ -252,6 +450,12 @@
 
 @media (min-width: 900px) {
   .ev-ficha-cols { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+}
+
+.ev-col {
+  display: grid;
+  gap: var(--e-lg);
+  min-width: 0;
 }
 
 .ev-caja {
@@ -268,6 +472,107 @@
   margin: 0;
   font-family: var(--font-display);
   font-size: var(--t-lg);
+}
+
+/* Las entradas, como entradas: con su talón troquelado. */
+.ev-entradas {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr));
+  gap: var(--e-md);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ev-entrada {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: var(--e-md) var(--e-xl) var(--e-md) var(--e-md);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+}
+
+.ev-entrada::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: var(--e-lg);
+  bottom: 0;
+  border-left: 2px dashed var(--border-strong);
+}
+
+.ev-entrada b { font-size: var(--t-sm); }
+
+.ev-entrada-precio {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  font-weight: 800;
+  line-height: 1.15;
+}
+
+.ev-entrada small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.ev-entrada.vip {
+  border-color: color-mix(in srgb, #e4b44a 55%, var(--border));
+  background: linear-gradient(135deg, color-mix(in srgb, #e4b44a 22%, var(--ice)), var(--ice) 70%);
+}
+
+.ev-entrada.vip b,
+.ev-entrada.vip .ev-entrada-precio { color: var(--warning); }
+
+.ev-entrada.gratis .ev-entrada-precio { color: var(--success); }
+
+.ev-comprar {
+  align-self: flex-start;
+  margin-top: var(--e-xs);
+  color: var(--navy);
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+/* Los días, cada uno con su horario. */
+.ev-dias {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 160px), 1fr));
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ev-dia {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+}
+
+.ev-dia b {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  line-height: 1;
+}
+
+.ev-dia span {
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  line-height: 1.3;
+}
+
+.ev-dia em {
+  display: block;
+  color: var(--text);
+  font-style: normal;
+  font-weight: 600;
 }
 
 .ev-cuantos { margin: 0; }
@@ -299,71 +604,82 @@
   white-space: nowrap;
 }
 
-.ev-dato {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--e-sm);
-  color: var(--text-mid);
+/* Dónde: un plano dibujado que lleva al mapa de verdad. */
+.ev-mapa {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 120px;
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(90deg, transparent 48%, color-mix(in srgb, var(--navy) 25%, transparent) 48% 52%, transparent 52%),
+    linear-gradient(0deg, transparent 58%, color-mix(in srgb, var(--navy) 18%, transparent) 58% 61%, transparent 61%),
+    linear-gradient(35deg, transparent 30%, color-mix(in srgb, var(--text) 6%, transparent) 30% 33%, transparent 33%),
+    var(--ice);
 }
 
-.ev-dato svg {
-  flex-shrink: 0;
-  margin-top: 2px;
-  color: var(--acento);
+.ev-mapa-pin {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--acento);
+  color: var(--acento-texto);
+  box-shadow: var(--shadow-md);
 }
 
-.ev-dato b {
-  display: block;
-  color: var(--text);
-  font-size: var(--t-sm);
+.ev-llegar {
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
 }
 
-.ev-desc {
-  margin: 0;
-  color: var(--text-mid);
-  white-space: pre-line;
-}
-
-.ev-enlaces {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--e-sm);
-}
-
-/* En el móvil, la fila de la agenda baja «van» y «Voy» a su propia línea. */
-@media (max-width: 600px) {
-  .ev-fila {
-    flex-wrap: wrap;
-    padding: var(--e-sm);
+/* ── El móvil: un cartel a lo ancho y la cabecera en una columna ── */
+@media (max-width: 700px) {
+  /* Los filtros, en UNA fila que se desliza (1040). */
+  .ev-mandos {
+    flex-wrap: nowrap;
+    margin-inline: calc(-1 * var(--e-lg));
+    padding-inline: var(--e-lg);
+    overflow-x: auto;
+    scrollbar-width: none;
   }
 
-  .ev-enlace { flex-basis: 100%; }
-  .ev-van { margin-left: calc(48px + var(--e-md)); }
-  .ev-voy { margin-left: auto; }
+  .ev-mandos > * { flex-shrink: 0; }
+  .ev-cartel { aspect-ratio: 16 / 9; }
+  .ev-cartel-ficha { aspect-ratio: 16 / 7; }
 
-  .ev-logo { display: none; }
-  .ev-logo.grande { display: grid; width: 64px; height: 64px; }
-  .ev-cab h1 { font-size: var(--t-xl); }
+  .ev-datos { gap: var(--e-xs); font-size: var(--t-xs); }
+  .ev-datos li { min-height: 32px; padding: 0 var(--e-sm); }
+
+  .ev-cab {
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas:
+      'logo .'
+      'texto texto'
+      'acciones acciones';
+    gap: var(--e-md);
+    padding: 0 var(--e-lg) var(--e-lg);
+  }
+
+  .ev-cab > .ev-logo { margin-top: -40px; }
+  .ev-logo.grande { width: 80px; height: 80px; }
+  .ev-logo.grande b { font-size: var(--t-xl); }
+  .ev-cab-texto { padding-top: 0; }
+  .ev-cab h1 { font-size: var(--t-2xl); }
+
+  .ev-acciones {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding-top: 0;
+  }
+
   .ev-caja { padding: var(--e-lg); }
 }
 
-/* 1193: las entradas una a una y los días con su hora. */
-.ev-entradas,
-.ev-dias {
-  display: grid;
-  gap: var(--e-xs);
-  margin: var(--e-xs) 0 0;
-  padding: 0;
-  list-style: none;
+@media (prefers-reduced-motion: reduce) {
+  .ev-tarjeta { transition: none; }
+  .ev-tarjeta:hover { transform: none; }
 }
-
-.ev-entradas li {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--e-md);
-}
-
-.ev-entradas li span { display: grid; }
-.ev-entradas small { color: var(--text-dim); font-size: var(--t-xs); }
-.ev-entradas b { color: var(--text); white-space: nowrap; }
-.ev-dias span { color: var(--text); }

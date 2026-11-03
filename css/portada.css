@@ -164,8 +164,9 @@
   transition: transform 0.15s var(--ease);
 }
 
-/* Un evento es de Comunidad: su rosa (fijo, lleva blanco encima). */
-.portada-evento { background: linear-gradient(120deg, #8f1d43, #c62a5c); }
+/* Un evento lleva su color (o su cartel), oscurecido: lleva blanco encima (1194). */
+.portada-evento { --ev-color: #c62a5c; background: linear-gradient(120deg, color-mix(in srgb, var(--ev-color) 40%, #0b1219), color-mix(in srgb, var(--ev-color) 62%, #0b1219)); }
+.portada-evento.con-imagen { background: linear-gradient(90deg, rgba(11, 18, 25, 0.88), rgba(11, 18, 25, 0.5)), var(--ev-cartel) center / cover; }
 
 .portada-torneo:hover {
   transform: translateY(-1px);

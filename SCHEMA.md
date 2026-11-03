@@ -53039,3 +53039,38 @@ PINGU, con el primer card show dentro: «este son el día 7 y 8 de noviembre, de
   pierde lo escrito). Un evento de antes se abre con sus días y su `entrada`
   de texto convertida en una fila. Sin la migración (se pregunta una vez por
   `horario, entradas`), avisa y guarda sin esas columnas.
+
+## Tanda 1194 — Eventos en carteles; la ficha con todo arriba
+
+PINGU eligió la A de «Eventos con cartel» («me gusta la A») y pidió la
+información del evento en la cabecera, al lado del logo, como en el perfil de
+una tienda (`perfil-tienda.js`), «para que no tengas que bajar». Lo demás de la
+propuesta (cartel, «Comprar ›», cuenta atrás), aceptado.
+
+- **Migración** (`supabase-migration-1194-eventos-cartel.sql`): `cartel_url`.
+  El enlace de compra va dentro de `entradas` (`url`), sin columna. /admin
+  pregunta una vez por `cartel_url` y, sin ella, no ofrece el cartel.
+- **Lo puro** (`js/eventos-puro.js`): `pastillaDe` («SÁB–DOM» / «7–8»),
+  `cuentaAtras` («Hoy», «Mañana», «Faltan N días» hasta 14, «En marcha»),
+  `mesDe`, `esEntradaVip` (VIP, premium, gold…), `horasDe` y el `url` de
+  `entradasDe` (por `webSegura`). `desdePrecio` cuenta la entrada de pago más
+  barata cuando hay gratis y de pago: «Desde 0 €» no decía nada.
+- **Agenda** (`js/eventos.js`): `.ev-carteles` por mes (`.ev-mes`), rejilla
+  `auto-fill` de 280 px; cada `.ev-tarjeta` es `cartelHtml` + nombre + pie
+  (van, desde, Voy). El cartel es la imagen (`.con-imagen`, sin el logo
+  encima) o el color con `color-mix` hacia negro, el logo y unas cartas al
+  bies (`::before`). Lo pasado lleva `NUNCA` como «ahora» para no tener
+  cuenta atrás, y va en gris.
+- **Ficha**: `.ev-cartel-ficha` (16:5; 16:7 en el móvil, sin el tipo, que va
+  en la cabecera) y `.ev-cab` en rejilla `logo texto acciones`: el logo sube
+  sobre el cartel (`margin-top` negativo), y el texto lleva la descripción y
+  `.ev-datos` (chapas como `.pt-datos`). Debajo, `.ev-entradas` (talón con
+  borde discontinuo; `vip` y `gratis`), `.ev-dias`, quién va y `.ev-mapa`
+  (un plano dibujado que enlaza a Google Maps: no se incrusta nada de fuera).
+- **Móvil**: `.ev-mandos` en una fila que se desliza (la 1040).
+- **Admin**: el cartel con su vista previa pintada con las clases de la
+  agenda (`/admin` carga `css/eventos.css`) y una columna de enlace por
+  entrada; un enlace que no es http(s) no se guarda.
+- **Portada**: `.portada-evento` con `--ev-color` mezclado hacia el azul
+  oscuro (40 % → 62 %, para que el blanco se lea en un color claro) o con
+  `--ev-cartel` bajo un velo.

@@ -28,8 +28,10 @@ const ic = (n, t = 16) => icons[n]?.(t) || ''
 let raiz = null
 let eventos = []
 let editando = null
-// ¿Está la migración 1193? Se pregunta una vez al abrir.
+// ¿Están las migraciones 1193 (días y entradas) y 1194 (cartel)? Se pregunta
+// una vez al abrir.
 let con1193 = true
+let con1194 = true
 // Lo que se está editando de los días y las entradas (el resto vive en los campos).
 let borr = null
 
@@ -44,6 +46,8 @@ async function cargar() {
   eventos = data || []
   const { error: sinCols } = await supabase.from('eventos').select('id, horario, entradas').limit(1)
   con1193 = !sinCols
+  const { error: sinCartel } = await supabase.from('eventos').select('id, cartel_url').limit(1)
+  con1194 = !sinCartel
   pintar()
 }
 
@@ -75,14 +79,14 @@ function borradorDe(e) {
   const dias = new Map(h.map((x) => [x.dia, { desde: x.desde, hasta: x.hasta }]))
   const comun = h.length ? { desde: h[0].desde, hasta: h[0].hasta } : { desde: '10:00', hasta: '20:00' }
   const primero = h.length ? fechaDeDia(h[0].dia) : new Date()
-  let entradas = entradasDe(e).map((x) => ({ nombre: x.nombre, precio: x.precio === null ? '' : String(x.precio), nota: x.nota }))
+  let entradas = entradasDe(e).map((x) => ({ nombre: x.nombre, precio: x.precio === null ? '' : String(x.precio), nota: x.nota, url: x.url }))
   // Lo escrito antes de la 1193 en el texto de `entrada`: una fila con su
   // precio si se ve uno, y el texto entero de nota para no perder nada.
   if (!entradas.length && e?.entrada) {
     const m = /(\d+(?:[.,]\d+)?)\s*€/.exec(e.entrada)
-    entradas = [{ nombre: 'General', precio: m ? m[1].replace(',', '.') : '', nota: e.entrada }]
+    entradas = [{ nombre: 'General', precio: m ? m[1].replace(',', '.') : '', nota: e.entrada, url: '' }]
   }
-  if (!entradas.length) entradas = [{ nombre: 'General', precio: '', nota: '' }]
+  if (!entradas.length) entradas = [{ nombre: 'General', precio: '', nota: '', url: '' }]
   return { dias, mismo: mismoHorario(h) || h.length <= 1, comun, mes: new Date(primero.getFullYear(), primero.getMonth(), 1), entradas }
 }
 
@@ -128,6 +132,7 @@ function entradasHtml() {
       <input type="text" data-campo="nombre" value="${escapeHtml(x.nombre)}" placeholder="General, VIP, Niños…" aria-label="Nombre de la entrada" maxlength="40">
       <span class="evadm-precio"><input type="number" data-campo="precio" value="${escapeHtml(x.precio)}" min="0" step="0.5" inputmode="decimal" placeholder="—" aria-label="Precio en euros"><span aria-hidden="true">€</span></span>
       <input type="text" data-campo="nota" value="${escapeHtml(x.nota)}" placeholder="Nota (opcional): entra a las 9, incluye sobre…" aria-label="Nota" maxlength="120">
+      <input type="url" data-campo="url" value="${escapeHtml(x.url || '')}" placeholder="Dónde comprarla (opcional)" aria-label="Enlace para comprarla" maxlength="300">
       <button type="button" class="evadm-quitar" data-quitar-entrada="${i}" aria-label="Quitar esta entrada"${borr.entradas.length === 1 ? ' disabled' : ''}>${ic('x', 16)}</button>
     </div>`).join('')
 }
@@ -154,7 +159,7 @@ function formHtml(e) {
       <div class="evadm-entradas" id="evfEntradas">${entradasHtml()}</div>
       <div class="evadm-entradas-pie">
         <button type="button" class="btn-secondary" id="evfMasEntrada">+ Añadir entrada</button>
-        <span class="av-nota">Precio 0 = gratis; sin precio, «consultar».</span>
+        <span class="av-nota">Precio 0 = gratis; sin precio, «consultar». Con enlace, sale «Comprar ›».</span>
       </div>
     </fieldset>
     <div class="evadm-rejilla">
@@ -169,6 +174,19 @@ function formHtml(e) {
       <label class="av-campo"><span class="av-eti">Dirección en PokeDoc</span><input type="text" id="evf-slug" value="${v('slug')}" placeholder="se pone sola con el nombre y el año" pattern="[a-z0-9-]+"></label>
     </div>
     <label class="av-campo"><span class="av-eti">Descripción</span><textarea id="evf-descripcion" rows="3" maxlength="1500">${v('descripcion')}</textarea></label>
+    <fieldset class="evadm-grupo">
+      <legend class="av-eti">Cartel</legend>
+      <div class="evadm-cartel">
+        <div class="evadm-cartel-vista" id="evfCartelVista"></div>
+        <div class="evadm-logo-mandos">
+          ${con1194 ? `<label class="av-campo"><span class="av-eti">Imagen apaisada (se recorta a 16:10)</span><input type="file" id="evf-cartel" accept="image/*"></label>
+          <input type="hidden" id="evf-cartel_url" value="${v('cartel_url')}">
+          <button type="button" class="btn-secondary" id="evfQuitarCartel"${e?.cartel_url ? '' : ' hidden'}>Quitar el cartel</button>`
+            : '<p class="admin-note av-mal">Para subir el cartel, ejecuta <code>supabase-migration-1194-eventos-cartel.sql</code>.</p>'}
+          <p class="av-nota">Sin cartel, sale el color del evento con su logo encima. Así se ve en la agenda.</p>
+        </div>
+      </div>
+    </fieldset>
     <div class="evadm-logo">
       <span class="ev-logo grande" id="evfLogoVista"></span>
       <div class="evadm-logo-mandos">
@@ -191,7 +209,27 @@ function formHtml(e) {
   </form>`
 }
 
+// La vista previa del cartel, con las clases de la agenda (css/eventos.css).
+function pintarCartel() {
+  const vista = raiz.querySelector('#evfCartelVista')
+  if (!vista) return
+  const url = webSegura(raiz.querySelector('#evf-cartel_url')?.value || '')
+  const color = raiz.querySelector('#evf-color').value
+  const nombre = raiz.querySelector('#evf-nombre').value || 'Nombre del evento'
+  const tipo = TIPOS[raiz.querySelector('#evf-tipo').value] || 'Evento'
+  const h = horarioDelBorrador()
+  const d = h.length ? fechaDeDia(h[0].dia) : null
+  const siglas = siglasDe({ siglas: raiz.querySelector('#evf-siglas').value, nombre })
+  const logo = webSegura(raiz.querySelector('#evf-logo_url').value)
+  vista.innerHTML = `<div class="ev-tarjeta"><span class="ev-cartel${url ? ' con-imagen' : ''}" style="--ev-color:${escapeHtml(color)};${url ? `background-image:url('${escapeHtml(url)}')` : ''}">
+      <span class="ev-tipo">${escapeHtml(tipo)}</span>
+      ${d ? `<span class="ev-pastilla"><small>${escapeHtml(DIAS_CORTOS[d.getDay()].toUpperCase())}</small><b>${d.getDate()}</b></span>` : ''}
+      ${url ? '' : `<span class="ev-logo ev-logo-cartel">${logo ? `<img src="${escapeHtml(logo)}" alt="">` : ''}<b>${escapeHtml(siglas)}</b></span>`}
+    </span><span class="ev-tarjeta-texto"><strong>${escapeHtml(nombre)}</strong></span></div>`
+}
+
 function pintarLogo() {
+  pintarCartel()
   const vista = raiz.querySelector('#evfLogoVista')
   if (!vista) return
   const url = webSegura(raiz.querySelector('#evf-logo_url').value)
@@ -251,13 +289,16 @@ async function guardar() {
   for (const x of borr.entradas) {
     const nombre = x.nombre.trim()
     const precioTxt = String(x.precio ?? '').trim().replace(',', '.')
-    if (!nombre && !precioTxt && !x.nota.trim()) continue
+    if (!nombre && !precioTxt && !x.nota.trim() && !String(x.url || '').trim()) continue
     const precio = precioTxt === '' ? null : Number(precioTxt)
     if (precio !== null && (Number.isNaN(precio) || precio < 0)) return (err.textContent = `El precio de «${nombre || 'la entrada'}» no es un número.`)
-    entradas.push({ nombre: nombre || 'General', precio, nota: x.nota.trim() })
+    const url = String(x.url || '').trim()
+    if (url && !webSegura(url)) return (err.textContent = `El enlace de «${nombre || 'la entrada'}» no es una dirección web.`)
+    entradas.push({ nombre: nombre || 'General', precio, nota: x.nota.trim(), url: webSegura(url) })
   }
   fila.entrada = resumenEntradas(entradas) || null
   if (con1193) { fila.horario = horario; fila.entradas = entradas }
+  if (con1194) fila.cartel_url = val('cartel_url') || null
 
   fila.slug = val('slug') || slugDeEvento(fila.nombre, fila.empieza)
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(fila.slug)) return (err.textContent = 'La dirección solo lleva minúsculas, números y guiones.')
@@ -288,6 +329,7 @@ export async function montarEventos(panel) {
     const ed = ev.target.closest('[data-ev-editar]')
     if (ed) { abrirFormulario(eventos.find((e) => e.id === ed.dataset.evEditar) || null); raiz.scrollIntoView({ behavior: 'smooth' }); return }
     if (ev.target.closest('#evfCancelar')) { abrirFormulario(null); return }
+    if (ev.target.closest('#evfQuitarCartel')) { raiz.querySelector('#evf-cartel_url').value = ''; ev.target.closest('#evfQuitarCartel').hidden = true; pintarCartel(); return }
     if (ev.target.closest('#evfQuitarLogo')) { raiz.querySelector('#evf-logo_url').value = ''; ev.target.closest('#evfQuitarLogo').remove(); pintarLogo(); return }
     const dia = ev.target.closest('[data-cal-dia]')
     if (dia) {
@@ -295,14 +337,14 @@ export async function montarEventos(panel) {
       if (borr.dias.has(k)) borr.dias.delete(k)
       else borr.dias.set(k, { ...borr.comun })
       if (borr.dias.size <= 1) borr.mismo = true
-      repintarCal(); repintarHoras()
+      repintarCal(); repintarHoras(); pintarCartel()
       return
     }
     const mes = ev.target.closest('[data-cal-mes]')
     if (mes) { borr.mes = new Date(borr.mes.getFullYear(), borr.mes.getMonth() + Number(mes.dataset.calMes), 1); repintarCal(); return }
     if (ev.target.closest('#evfMasEntrada')) {
       leerEntradas()
-      borr.entradas.push({ nombre: '', precio: '', nota: '' })
+      borr.entradas.push({ nombre: '', precio: '', nota: '', url: '' })
       repintarEntradas()
       raiz.querySelector(`[data-entrada="${borr.entradas.length - 1}"] [data-campo="nombre"]`)?.focus()
       return
@@ -340,16 +382,19 @@ export async function montarEventos(panel) {
       repintarHoras()
       return
     }
-    if (ev.target.id !== 'evf-logo' || !ev.target.files?.[0]) return
+    if (ev.target.id === 'evf-tipo') { pintarCartel(); return }
+    const cual = { 'evf-logo': 'logo_url', 'evf-cartel': 'cartel_url' }[ev.target.id]
+    if (!cual || !ev.target.files?.[0]) return
     const err = raiz.querySelector('#evfError')
     try {
       const sesion = await getSession()
       const url = await uploadGuideImage(sesion.user.id, ev.target.files[0])
-      raiz.querySelector('#evf-logo_url').value = url
+      raiz.querySelector(`#evf-${cual}`).value = url
+      if (cual === 'cartel_url') raiz.querySelector('#evfQuitarCartel')?.removeAttribute('hidden')
       err.textContent = ''
       pintarLogo()
     } catch (e) {
-      err.textContent = `No se ha podido subir el logo: ${e.message || ''}`
+      err.textContent = `No se ha podido subir la imagen: ${e.message || ''}`
     }
   })
   await cargar()

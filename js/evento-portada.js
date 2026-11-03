@@ -3,14 +3,18 @@
 // Entra por import() desde home.js: la portada no lo baja si no hay hueco.
 // Sin evento cerca (o sin la migración), la sección se recoge.
 import { supabase } from './supabase.js'
-import { escapeHtml } from './html.js'
-import { TIPOS, MESES, cuandoEs, proximoEvento, vanTexto } from './eventos-puro.js'
+import { escapeHtml, urlParaCss } from './html.js'
+import { TIPOS, MESES, cuandoEs, proximoEvento, vanTexto, webSegura } from './eventos-puro.js'
 
 export function eventoPortadaHtml(e, ahora = new Date()) {
   const d = new Date(e.empieza)
   const cuando = cuandoEs(e.empieza, ahora)
   const linea = [TIPOS[e.tipo], e.ciudad, cuando, e.van ? `${vanTexto(e.van)} de PokeDoc` : ''].filter(Boolean).join(' · ')
-  return `<a class="portada-torneo portada-evento" href="/eventos/${encodeURIComponent(e.slug)}">
+  // De fondo, su cartel o su color (1194), oscurecidos para que se lea encima.
+  const color = /^#[0-9a-f]{6}$/i.test(e.color || '') ? e.color : ''
+  const cartel = urlParaCss(webSegura(e.cartel_url))
+  const estilo = [color ? `--ev-color:${color}` : '', cartel ? `--ev-cartel:url('${cartel}')` : ''].filter(Boolean).join(';')
+  return `<a class="portada-torneo portada-evento${cartel ? ' con-imagen' : ''}" href="/eventos/${encodeURIComponent(e.slug)}"${estilo ? ` style="${estilo}"` : ''}>
       <span class="portada-torneo-fecha"><b>${d.getDate()}</b><span>${MESES[d.getMonth()]}</span></span>
       <span class="portada-torneo-cuerpo"><strong>${escapeHtml(e.nombre)}</strong><small>${escapeHtml(linea)}</small></span>
       <span class="portada-torneo-boton">${e.voy ? 'Vas' : 'Ver'}</span>
