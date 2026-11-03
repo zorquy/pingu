@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (445) — PINGU-Claude (1200 — la portada del PC no se recoloca al cargar)
+
+**Hecho**: PINGU: «carga así… y después se pone en su forma real y trae los
+datos de comunidad, y lo de las guías se empequeñece… debería escribirse todo
+a la vez». «Comunidad» (`#homeActivity`) empezaba escondida (`hidden`). Con
+`.hoy-retos` y Comunidad escondida, las guías tomaban 9 columnas (cuatro
+portadas); al llegar los datos de Comunidad pasaban a 6. Ahora:
+- **Su hueco va reservado desde el primer pintado.** Con sesión (la clase
+  `con-sesion` del `<head>`), `#homeActivity` sale con su esqueleto, y
+  `.retos-abajo` no ocupa esa casilla en el PC.
+- **Sin sesión, no se ve** (`:root:not(.con-sesion) #homeActivity`).
+- **Si no hay nada que enseñar se recoge**: sin sesión, sin sucesos o con un
+  error, se llama a `recoger('homeActivity')` y las guías se ensanchan.
+
+**Ficheros**: `index.html`, `css/portada.css`, `js/portada-bloques.js`,
+`SCHEMA.md`, `novedades.json`. En `pruebas`: `test-tanda-1200-pantalla.mjs`
+(un ResizeObserver apunta cada ancho que toman las guías: con el código de
+antes da 528 → 804 → 528).
+
+**Pruebas**: verdes imports, 1200-pantalla, 1188-pantalla, 1187-pantalla,
+1185-pantalla, 844-pantalla, 1012-pantalla, 300, 316, 387 y 299. Quedan dos
+rojos que ya estaban antes de esta tanda (salen igual con los ficheros
+anteriores): la 289 («…y las noticias, en su bloque (tres)») y la 981 en
+`/mi-coleccion`.
+
+**Pendiente**: los dos rojos de antes, la 289 y la 981 en /mi-coleccion.
+
 ## 2026-11-03 (444) — PINGU-Claude (1199 — las filas que se deslizan de lado ya no se cortan; la dirección del evento, solo en «Dónde»)
 
 **Hecho**: PINGU, con una captura de Comunidad en el iPhone: «el menú

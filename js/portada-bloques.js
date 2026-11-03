@@ -323,7 +323,10 @@ async function genteNueva() {
 
 async function montarComunidad(session, yaEnPantalla) {
   const caja = document.getElementById('homeActivityFeed')
-  if (!session || !caja) return
+  if (!caja) return
+  // Su hueco va reservado desde el primer pintado (1200); sin nada que
+  // enseñar se recoge y las guías toman el ancho.
+  if (!session) return recoger('homeActivity')
   try {
     const m = await import('./comunidad-sucesos.js')
     const [{ actividad, nuevos }, fuera, gente] = await Promise.all([m.cargarSucesos(14), yaEnPantalla.catch(() => new Set()), genteNueva().catch(() => ({ n: 0, caras: [] }))])
@@ -331,13 +334,15 @@ async function montarComunidad(session, yaEnPantalla) {
     const deSiempre = actividad.filter((e) => e.tipo !== 'noticia' && !fuera.has(clave(e)))
     const todos = m.sucesosDeLaComunidad(deSiempre, nuevos)
     const sucesos = (gente.n ? todos.filter((s) => s.tipo !== 'alta') : todos).slice(0, 14)
-    if (!sucesos.length && !gente.n) return
+    if (!sucesos.length && !gente.n) return recoger('homeActivity')
     await Promise.all([hoja, m.hoja])
     caja.innerHTML = `${cabecera('Comunidad', verTodo('/usuarios.html#activity'))}${genteNuevaHtml(gente.n, gente.caras)}${m.listaHtml(sucesos)}`
     document.getElementById('homeActivity').classList.remove('hidden')
     encajarComunidad(caja)
     if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => encajarComunidad(caja)).observe(caja)
-  } catch {}
+  } catch {
+    recoger('homeActivity')
+  }
 }
 
 // Todo a la vez: cada bloque va por su lado y se calla solo si falla.

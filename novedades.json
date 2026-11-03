@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-03",
+      "tipo": "arreglo",
+      "texto": "En el ordenador, la portada ya no se recoloca al cargar: las guías y la comunidad salen en su sitio desde el principio.",
+      "enlace": "/"
+    },
+    {
+      "fecha": "2026-11-03",
       "tipo": "mejora",
       "texto": "La ficha de un evento queda más limpia: la dirección va solo en «Dónde», con su botón para llegar en Google Maps.",
       "enlace": "/eventos"

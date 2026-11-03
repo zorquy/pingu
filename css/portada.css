@@ -263,6 +263,9 @@
   }
 }
 
+/* Comunidad solo con sesión; con ella, su hueco desde el primer pintado (1200). */
+:root:not(.con-sesion) #homeActivity { display: none; }
+
 /* El mosaico (1188; el porqué en SCHEMA): la noticia y las suyas (9 de 12)
    con el foro a la derecha de arriba abajo, y debajo guías (6) y comunidad
    (3). Las columnas van fijas: así un bloque que falta no descoloca a otro. */
@@ -280,9 +283,9 @@
   #foroVivoSeccion { order: 5; grid-column: 10 / span 3; grid-row: span 2; contain: size; }
   #recientesSeccion { order: 6; grid-column: 1 / span 6; }
   #homeActivity, .panel-portada .retos-abajo { order: 7; grid-column: 7 / span 3; }
-  :root:has(.hoy-retos) .retos-abajo { display: none; }
+  :root:is(.con-sesion, :has(.hoy-retos)) .retos-abajo { display: none; }
   .panel-portada:has(#foroVivoSeccion.seccion-recogida) #noticiaPortadaSeccion { grid-column: span 12; }
-  :root:has(.hoy-retos) .panel-portada:has(#homeActivity.hidden) #recientesSeccion,
+  :root:has(.hoy-retos) .panel-portada:has(#homeActivity.seccion-recogida) #recientesSeccion,
   .panel-portada:has(#foroVivoSeccion.seccion-recogida) #recientesSeccion { grid-column: 1 / span 9; }
   #homeActivity { contain: size; }
   #homeActivity > .pb-caja, #foroVivoSeccion > .pb-caja { overflow: hidden; }

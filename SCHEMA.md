@@ -53244,3 +53244,33 @@ más ancha y más fea… ya tienes abajo dónde es»). En `js/eventos.js`, la ch
 del sitio de `.ev-datos` solo sale si no hay `mapa` (`lugar && !mapa`): con
 caja «Dónde», la dirección vive allí con su «Cómo llegar». La prueba de la
 1194 ya no la pide en la cabecera, y la de la 1199 comprueba las dos cosas.
+
+## Tanda 1200 — La portada del PC no se recoloca al cargar
+
+PINGU: «carga así… y después se pone en su forma real y trae los datos de
+comunidad, y lo de las guías se empequeñece… debería escribirse todo a la
+vez».
+
+En el mosaico (1188), «Comunidad» (`#homeActivity`) ocupa las columnas 7–9
+debajo de la noticia, al lado de las guías (1–6). Empezaba con `hidden`, y la
+regla «con `.hoy-retos` y Comunidad escondida, las guías van a 9 columnas»
+hacía que el primer pintado pusiera cuatro portadas a lo ancho. Cuando
+llegaban los sucesos, Comunidad aparecía y las guías se encogían a seis
+columnas.
+
+Ahora:
+- **Hueco reservado.** `#homeActivity` no lleva `hidden` en el HTML y trae un
+  esqueleto. `:root:not(.con-sesion) #homeActivity { display: none }`, así que
+  sin sesión no ocupa nada. La clase `con-sesion` la pone el `<head>` antes
+  del primer pintado si hay sesión guardada, y `home.js` la quita si resulta
+  no haberla.
+- **`.retos-abajo` cede la casilla.** Con `con-sesion`, en el PC no ocupa la
+  casilla de Comunidad, igual que ya pasaba con `.hoy-retos`.
+- **Se recoge si no hay nada.** `montarComunidad` llama a
+  `recoger('homeActivity')` sin sesión, sin sucesos ni gente nueva, o si
+  falla. La regla de las 9 columnas mira ahora
+  `#homeActivity.seccion-recogida`, no `.hidden`.
+
+Un bloque nuevo de la portada que llegue tarde y ocupe una casilla del mosaico
+va así: su hueco desde el primer pintado, y si no tiene nada, se recoge. Si
+empieza escondido, lo de al lado se recoloca al llegar.
