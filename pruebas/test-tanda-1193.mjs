@@ -29,7 +29,7 @@ check('  …y sin hora de acabar en varios días, el último a las 23:59', new D
 const ent = m.entradasDe({ entradas: [{ nombre: 'General', precio: 5 }, { nombre: 'VIP', precio: 15.5, nota: 'Entra a las 9' }, { nombre: 'Niños', precio: 0 }, { nombre: '', precio: 3 }, { nombre: 'Prensa' }] })
 check('entradas: las que tienen nombre, con precio o sin él', ent.length === 4 && ent[3].precio === null, JSON.stringify(ent))
 check('el resumen: «General 5 € · VIP 15,50 € · Niños Gratis · Prensa»', m.resumenEntradas(ent) === 'General 5 € · VIP 15,50 € · Niños Gratis · Prensa', m.resumenEntradas(ent))
-check('«Desde» con la más barata; «Gratis» si todas lo son', m.desdePrecio(ent) === 'Desde 0 €' && m.desdePrecio([{ precio: 5 }, { precio: 15 }]) === 'Desde 5 €' && m.desdePrecio([{ precio: 0 }]) === 'Gratis' && m.desdePrecio([{ precio: null }]) === '')
+check('«Desde» con la de pago más barata (la gratis de los niños no la baja a 0 €); «Gratis» si todas lo son', m.desdePrecio(ent) === 'Desde 5 €' && m.desdePrecio([{ precio: 5 }, { precio: 15 }]) === 'Desde 5 €' && m.desdePrecio([{ precio: 0 }]) === 'Gratis' && m.desdePrecio([{ precio: null }]) === '')
 
 console.log('── La migración, contra PostgreSQL ──')
 const PG = ['-h', '/var/tmp', '-p', '5433', '-U', 'postgres', '-v', 'ON_ERROR_STOP=1', '-q']
