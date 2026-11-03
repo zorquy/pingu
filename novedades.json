@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-03",
+      "tipo": "arreglo",
+      "texto": "Ya salen en Productos las latas de Mega Forces (Mega Dragonite ex, Mega Darkrai ex…) y el resto de productos nuevos que no son de ninguna expansión.",
+      "enlace": "/cartas?ver=productos"
+    },
+    {
+      "fecha": "2026-11-03",
       "tipo": "mejora",
       "texto": "Los eventos son ahora carteles: con su imagen o su color, la fecha, cuántos días faltan y desde cuánto es la entrada. Y en cada evento, todo lo importante arriba, y las entradas con su enlace para comprarlas.",
       "enlace": "/eventos"

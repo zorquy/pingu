@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (440) — PINGU-Claude (1195 — las latas de Mega Forces que no salían)
+
+**Hecho**: un usuario preguntó por las latas de Mega Forces (Mega Dragonite,
+Mega Darkrai…) y PINGU pegó la respuesta de TCGGO. Cuelgan del episodio 226
+(«Pokémon», los productos sueltos), que tiene 796 productos en 40 páginas
+ordenadas de lo más viejo a lo más nuevo. `tcggo-productos` se paraba en la
+página 30 (`MAX_PAGINAS_SUELTOS`) y al día siguiente volvía a la 1: las
+páginas 31–40, que es donde está lo nuevo, no se pedían nunca.
+- `MAX_PAGINAS_SUELTOS` de 30 a 100: sigue siendo un tope (la 510), pero con
+  sitio. Hoy son unas 40 peticiones al día de las 800 del tope.
+- `REVISION_SUELTOS` (una vez): lo que hoy ya se dio por hecho con el tope
+  viejo se reabre desde la página 31, así que las latas entran en las
+  próximas horas sin esperar a mañana.
+
+**Ficheros**: `netlify/functions/tcggo-productos.mjs`, `SCHEMA.md`,
+`novedades.json`. En `pruebas`: `test-tanda-1195.mjs` (con la respuesta de
+TCGGO de la lata, pegada tal cual) y la 968 (24 pasadas para llegar al tope).
+
+**Pruebas**: verdes imports, 1195, 968 y 808.
+
+**Pendiente**: nada. En unas horas, mirar en /admin → «Hoy» (semáforo) que la
+pasada de productos llega a la página 40.
+
 ## 2026-11-03 (439) — PINGU-Claude (1194 — eventos en carteles; la ficha con todo arriba)
 
 **Hecho**: PINGU eligió la A de la propuesta «Eventos con cartel» y pidió que

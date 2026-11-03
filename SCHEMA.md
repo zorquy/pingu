@@ -53074,3 +53074,21 @@ propuesta (cartel, «Comprar ›», cuenta atrás), aceptado.
 - **Portada**: `.portada-evento` con `--ev-color` mezclado hacia el azul
   oscuro (40 % → 62 %, para que el blanco se lea en un color claro) o con
   `--ev-cartel` bajo un velo.
+
+## Tanda 1195 — Los productos sueltos, hasta la última página
+
+Las latas de Mega Forces (TCGGO 78965, «Mega Forces Tins: Mega Dragonite ex
+Tin», y sus hermanas) no estaban: cuelgan del episodio 226 («Pokémon»), que
+ya tiene 40 páginas (796 productos) ordenadas de lo más viejo a lo más nuevo,
+y `tcggo-productos` cortaba la vuelta del día en la 30 (`MAX_PAGINAS_SUELTOS`)
+y al día siguiente volvía a la 1. Lo nuevo va siempre al final, así que no
+entraba NUNCA, sin un error: el estado decía «hecho».
+
+- `MAX_PAGINAS_SUELTOS = 100`: un tope que cabe (la 510 pide un tope; uno
+  más corto que la lista es un agujero). Seis páginas por pasada y cada hora:
+  las 40 de hoy en unas siete pasadas.
+- `REVISION_SUELTOS = 1195`: una vez, lo que hoy ya se había dado por hecho se
+  reabre desde la página 31 (`TOPE_VIEJO_SUELTOS + 1`), para no esperar a
+  mañana ni repetir las 30 de la mañana.
+- Si el 226 vuelve a crecer cerca de 100 páginas, subir el tope antes de que
+  pase lo mismo (`test-tanda-1195.mjs` lleva la lata real como fixture).

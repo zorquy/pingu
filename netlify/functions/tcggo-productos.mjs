@@ -57,7 +57,17 @@ export const DIAS_CERCA = 1
 export const DIAS_LEJOS = 7
 const CERCA = 60 // días alrededor de su salida
 export const EPISODIOS_SUELTOS = ['226']
-export const MAX_PAGINAS_SUELTOS = 30
+// 1195: eran 30 y el 226 ya tiene 40 páginas (796 productos), ordenadas de lo
+// más viejo a lo más nuevo, así que las latas de Mega Forces (id 78965, la de
+// Mega Dragonite ex; pedidas en el foro) caían en las páginas 31–40 y no se
+// pedían NUNCA: cada día se volvía a empezar por la 1. El tope sigue siendo
+// un tope (la 510: una paginación que no acaba no puede gastar sin fin), pero
+// con sitio: 100 páginas, unas 40 peticiones al día hoy, de 800.
+export const MAX_PAGINAS_SUELTOS = 100
+// Una vez (1195): lo que ya se dio por hecho hoy con el tope viejo se vuelve
+// a abrir desde la página que nunca se pidió, para no esperar a mañana.
+export const REVISION_SUELTOS = 1195
+const TOPE_VIEJO_SUELTOS = 30
 export function episodiosSueltos(env = {}) {
   const texto = env.TCGGO_EPISODIOS_SUELTOS
   const lista = texto != null ? String(texto).split(',') : EPISODIOS_SUELTOS
@@ -174,6 +184,15 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
   const sueltas = new Set(sueltos.map((e) => claveDe(e.mercado, e.id)))
   const comoSets = sueltos.map((e) => ({ market: e.mercado, tcggo_id: e.id, release_date: hoy }))
   estado.sigue = estado.sigue || {}
+  if (estado.revisionSueltos !== REVISION_SUELTOS) {
+    for (const k of sueltas) {
+      if (estado.hechos[k] === hoy) {
+        delete estado.hechos[k]
+        estado.sigue[k] = Math.max(Number(estado.sigue[k]) || 1, TOPE_VIEJO_SUELTOS + 1)
+      }
+    }
+    estado.revisionSueltos = REVISION_SUELTOS
+  }
   const toca = expansionesQueTocan([...comoSets, ...(sets || [])].filter(sirve), estado.hechos, hoy).slice(0, MAX_EXPANSIONES)
   const { base, host } = baseDe(env)
   const bases = { WEST: base, JP: baseJpDe(base) }
