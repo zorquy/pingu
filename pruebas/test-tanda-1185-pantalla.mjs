@@ -28,8 +28,9 @@ console.log('── 1. Aprende (en el navegador: el módulo arrastra app.js) ─
     const guias = [1, 2, 3, 4, 5].map((i) => ({ id: `g${i}`, slug: `g${i}`, title: `Guía ${i}`, description: 'Una descripción larga', kind: 'guide' }))
     return { con: B.aprendeHtml({ guias, escribir: true }), sin: B.aprendeHtml({ guias, escribir: false }) }
   })
-  check('cuatro tarjetas iguales, sin grande ni lista aparte', (r.con.match(/class="guia-tarjeta"/g) || []).length === 4 && !/pb-aprende-grande|pb-aprende-lista/.test(r.con))
-  check('«Escribe una guía» en la cabecera, con cuenta', /class="pb-escribir" href="\/editor-guia.html"/.test(r.con) && r.con.indexOf('pb-escribir') < r.con.indexOf('pb-temas'))
+  // Desde la 1188, portadas (`.pb-portada`) en vez de la tarjeta de siempre.
+  check('cuatro portadas, sin grande ni lista aparte', (r.con.match(/class="pb-portada /g) || []).length === 4 && !/pb-aprende-grande|pb-aprende-lista|guia-tarjeta/.test(r.con))
+  check('«Escribe una guía» en la cabecera, con cuenta', /class="pb-escribir" href="\/editor-guia.html"/.test(r.con) && r.con.indexOf('pb-escribir') < r.con.indexOf('pb-portadas'))
   check('  …y sin cuenta, no', !/pb-escribir/.test(r.sin))
   await ctx.close()
 }
@@ -47,28 +48,10 @@ console.log('── 2. El PC, con cuenta ──')
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 160)))
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('#aprende .guia-tarjeta', { timeout: 10000 }).catch(() => {})
+  await page.waitForSelector('#aprende .pb-portada', { timeout: 10000 }).catch(() => {})
   await page.waitForTimeout(1500)
-  const m = await medir(page)
-  const ancho = m.recientesSeccion?.w
-  check('Aprende ocupa todo el ancho', ancho > 1000 && m.sigueSeccion?.w === ancho, JSON.stringify({ ancho, sigue: m.sigueSeccion?.w }))
-  check('foro y noticias en la misma fila, 2/3 y 1/3', m.foroVivoSeccion.y === m.noticiaPortadaSeccion.y && Math.abs(m.foroVivoSeccion.w - 2 * m.noticiaPortadaSeccion.w) < 40, JSON.stringify([m.foroVivoSeccion, m.noticiaPortadaSeccion]))
-  check('  …y miden lo mismo, también la caja de dentro', m.foroVivoSeccion.h === m.noticiaPortadaSeccion.h && Math.abs(m.noticiaPortadaSeccion.hDentro - m.noticiaPortadaSeccion.h) <= 1, JSON.stringify([m.foroVivoSeccion, m.noticiaPortadaSeccion]))
-  check('Aprende debajo de esa fila', m.recientesSeccion.y > m.foroVivoSeccion.y + m.foroVivoSeccion.h)
-  const guias = await page.$$eval('#aprende .guia-tarjeta', (gs) => gs.map((g) => { const r = g.getBoundingClientRect(); return [Math.round(r.top), Math.round(r.width), Math.round(r.height)] }))
-  check('cuatro guías en una fila, todas del mismo tamaño', guias.length === 4 && new Set(guias.map((g) => g[0])).size === 1 && new Set(guias.map((g) => g[1])).size === 1 && Math.max(...guias.map((g) => g[2])) - Math.min(...guias.map((g) => g[2])) <= 2, JSON.stringify(guias))
-  const desc = await page.$eval('#aprende .guia-desc', (d) => Math.round(d.getBoundingClientRect().height / parseFloat(getComputedStyle(d).lineHeight)))
-  check('  …con la descripción en dos líneas como mucho', desc <= 2, desc)
-  check('«Escribe una guía» en la cabecera de Aprende y no en una caja suelta', (await page.locator('#aprende .pb-escribir').count()) === 1 && m.lanzamientoSeccion === null)
-  // La última fila (comunidad y clasificación) la mira la 1187.
-  const noticias = await page.evaluate(() => {
-    const caja = document.getElementById('noticiaPortada')
-    const lis = [...caja.querySelectorAll('.pb-noticias-mas li')]
-    const vistas = lis.filter((l) => l.style.display !== 'none')
-    const abajo = caja.getBoundingClientRect().bottom
-    return { total: lis.length, vistas: vistas.length, dentro: vistas.every((l) => l.getBoundingClientRect().bottom <= abajo), sobra: Math.round(abajo - (vistas.at(-1)?.getBoundingClientRect().bottom || 0)) }
-  })
-  check('las noticias llenan su caja con las que caben, sin cortar ninguna (1186)', noticias.vistas >= 3 && noticias.vistas < noticias.total && noticias.dentro && noticias.sobra < 90, JSON.stringify(noticias))
+  // El reparto de la portada lo mira la 1188 (el mosaico). Aquí se queda la
+  // medida de la 1186.
   // De dónde se entra a los retos (1186): la ficha de arriba y la caja de abajo.
   const desde = await page.evaluate(() => {
     const salida = []
@@ -104,8 +87,8 @@ console.log('── 3. El móvil ──')
   await page.waitForSelector('#aprende .guia-tarjeta', { timeout: 10000 }).catch(() => {})
   await page.waitForTimeout(1500)
   const tira = await page.evaluate(() => {
-    const t = document.querySelector('#aprende .pb-aprende-cuatro')
-    const gs = [...t.querySelectorAll('.guia-tarjeta')].map((g) => g.getBoundingClientRect())
+    const t = document.querySelector('#aprende .pb-portadas')
+    const gs = [...t.querySelectorAll('.pb-portada')].map((g) => g.getBoundingClientRect())
     return { desliza: getComputedStyle(t).overflowX === 'auto' && t.scrollWidth > t.clientWidth, enFila: new Set(gs.map((g) => Math.round(g.top))).size === 1, alto: Math.round(t.getBoundingClientRect().height), sobra: document.documentElement.scrollWidth - innerWidth }
   })
   check('las guías en una tira que se desliza, en una fila', tira.desliza && tira.enFila, JSON.stringify(tira))

@@ -121,36 +121,24 @@ console.log('── 1. Con cuenta, en el ordenador ──')
 
   console.log('  · El foro')
   const foro = await texto(p, '#foroVivo')
-  check('el tema con la ráfaga de hoy va delante, «Lo más hablado hoy»', /Lo más hablado hoy/.test(foro) && /¿Qué mazo me recomendáis para empezar\?/.test(await texto(p, '.pb-foro-titulo')), foro.slice(0, 200))
+  check('el tema con la ráfaga de hoy va delante, «Lo más hablado» (1188: el título del bloque)', /Lo más hablado/.test(await texto(p, '#foroVivo .pb-cab h2')) && /¿Qué mazo me recomendáis para empezar\?/.test(await texto(p, '.pb-foro-titulo')), foro.slice(0, 200))
   check('  …con su último mensaje citado y quién participa', /«Yo empezaría por una baraja de liga\.»/.test(await texto(p, '.pb-foro-ultimo')) && (await p.locator('.pb-foro-pie .pb-pila .pb-cara').count()) >= 2, await texto(p, '.pb-foro-ultimo'))
   check('  …cuánta gente ha escrito hoy', /\d+ personas escribiendo hoy/.test(foro))
   check('  …y los otros tres en filas, sin repetir el de arriba', (await p.locator('.pb-foro-fila').count()) === 3 && !(await p.$$eval('.pb-foro-fila b', (xs) => xs.some((x) => /Qué mazo me recomendáis/.test(x.textContent)))))
-  check('  …«Participar» lleva al foro', (await p.locator('#foroVivo .pb-cab .pb-boton').getAttribute('href')) === '/foro')
+  check('  …«Todo el foro» abajo (1188)', (await p.locator('#foroVivo .pb-pie-enlace a').getAttribute('href')) === '/foro')
 
-  console.log('  · Aprende')
-  const chips = await p.$$eval('.pb-tema', (xs) => xs.map((x) => x.textContent.replace(/\s+/g, ' ').trim()))
-  check('«Novedades» y los temas con su cuenta, de más a menos', chips[0] === 'Novedades' && /Empezar de cero 3/.test(chips[1]) && chips.length === 4, chips.join(' | '))
-  // Desde la 1185: cuatro tarjetas iguales (la de siempre), sin grande ni filas.
-  check('  …cuatro tarjetas iguales, la de siempre (1185)', (await p.locator('.pb-aprende-cuatro .guia-tarjeta').count()) === 4 && (await p.locator('#aprende .guia-fila').count()) === 0)
-  check('  …la tarjeta dice lo que ya está hecho', /✓/.test(await p.locator('.guia-tarjeta[data-guide-id="guia-3"]').innerText().catch(() => '')))
-  await p.locator('.pb-tema', { hasText: 'Cartas falsas' }).click()
-  await p.waitForTimeout(700)
-  const cat2 = await p.$$eval('#aprende a[href^="/guia/"]', (xs) => [...new Set(xs.map((x) => x.getAttribute('href')))])
-  check('al pulsar «Cartas falsas» salen solo las suyas (la 2 y la 5)', cat2.length === 2 && cat2.every((h) => ['/guia/guia-2', '/guia/guia-5'].includes(h)), cat2.join(' '))
-  check('  …con el tema marcado y «Todas las guías» a ese tema', (await p.locator('.pb-tema.activo').innerText()).includes('Cartas falsas') && /tema=falsas/.test(await p.locator('#aprende .pb-cab .ver-todo').getAttribute('href')))
-  await p.locator('.pb-tema', { hasText: 'Novedades' }).click()
-  await p.waitForTimeout(400)
-  check('  …y «Novedades» vuelve a lo último', (await p.locator('#aprende .guia-tarjeta').count()) === 4)
+  console.log('  · Guías nuevas')
+  // Desde la 1188: las últimas guías como PORTADAS (sin temas de filtro, ni
+  // descripción, ni progreso); en el PC, tres a la vista.
+  const portadas = await p.$$eval('#aprende .pb-portada', (xs) => xs.map((x) => [x.getAttribute('href'), getComputedStyle(x).display]))
+  check('las últimas guías como portadas, tres a la vista', portadas.length === 4 && portadas.every((x) => x[0].startsWith('/guia/')) && portadas.filter((x) => x[1] !== 'none').length === 3, JSON.stringify(portadas))
+  check('  …sin temas de filtro y con «Todas las guías» a /aprender', !(await p.locator('.pb-tema').count()) && (await p.locator('#aprende .pb-cab .ver-todo').getAttribute('href')) === '/aprender.html')
 
   console.log('  · Noticias')
-  check('la última con el titular sobre la foto y dos más debajo', /Mew RGB secretas/.test(await texto(p, '.pb-noticia')) && (await p.locator('.pb-noticia-foto').count()) === 1 && (await p.locator('.pb-noticias-mas li').count()) === 2)
+  check('la última con el titular sobre la foto y las demás al lado, en «Más noticias»', /Mew RGB secretas/.test(await texto(p, '.pb-noticia')) && (await p.locator('.pb-noticia-foto').count()) === 1 && (await p.locator('.pb-noticias-lado .pb-noticias-mas li').count()) === 2)
 
-  console.log('  · Clasificación')
-  const pod = await p.$$eval('.pb-podio > div', (xs) => xs.map((x) => x.className))
-  check('el podio en su orden (2.º, 1.º, 3.º), el 4.º y el 5.º, y tu puesto con lo que te falta', pod.join() === 'pb-podio-2,pb-podio-1,pb-podio-3' && (await p.locator('.pb-clas-lista li').count()) === 2 && /40 XP para pasar a Gary/.test(await texto(p, '.pb-clas-tu')), pod.join())
-  await p.locator('[data-periodo="mes"]').click()
-  await p.waitForTimeout(500)
-  check('«Mes» cambia a la del mes, contigo dentro del podio («Tú»)', /desde el día 1/.test(await texto(p, '#clasificacion')) && /Tú/.test(await texto(p, '.pb-podio-2')) && !(await p.locator('.pb-clas-tu').count()))
+  // La clasificación salió de la portada en la 1188: la mira la 1188 en /retos.
+  check('sin clasificación en la portada (1188)', !(await p.locator('#clasificacionSeccion, .pb-podio').count()))
 
   console.log('  · En la comunidad')
   const comu = await p.$$eval('.suc-lista li', (xs) => xs.map((x) => x.innerText.replace(/\s+/g, ' ')))
@@ -167,7 +155,7 @@ console.log('── 1. Con cuenta, en el ordenador ──')
 console.log('── 2. Sin las funciones de la 844 (la migración sin correr) ──')
 {
   const { p, ctx, errores } = await abrir({ clas: null, suc: null })
-  check('la clasificación no sale (no se sabe, no «nadie»), y la portada sigue sin errores', !(await p.locator('#clasificacionSeccion').isVisible()) && !errores.length, errores.join(' | '))
+  check('la portada sigue sin errores', !errores.length, errores.join(' | '))
   check('  …y la comunidad sale con lo de siempre', (await p.locator('.suc-lista li').count()) > 0 && !(await texto(p, '.suc-lista')).includes('Charizard ex'))
   await ctx.close()
 }
@@ -176,17 +164,17 @@ console.log('── 3. Sin cuenta ──')
 {
   const { p, ctx, errores } = await abrir({ sesion: 'none' })
   check('sin errores, sin «Sigue» y sin comunidad', !errores.length && !(await p.locator('#sigueSeccion').isVisible()) && !(await p.locator('#homeActivity').isVisible()), errores.join(' | '))
-  check('  …el foro, Aprende, las noticias y la clasificación, sí', (await p.locator('#foroVivo .pb-foro-top').count()) === 1 && (await p.locator('#aprende .guia-tarjeta').count()) >= 1 && (await p.locator('.pb-noticia').count()) === 1 && (await p.locator('.pb-podio').count()) === 1)
-  check('  …y «Participar» lleva a crear la cuenta', /auth\.html\?registro=1/.test(await p.locator('#foroVivo .pb-cab .pb-boton').getAttribute('href')))
+  check('  …el foro, las guías y las noticias, sí', (await p.locator('#foroVivo .pb-foro-top').count()) === 1 && (await p.locator('#aprende .pb-portada').count()) >= 1 && (await p.locator('.pb-noticia').count()) === 1)
+  check('  …y «Participar» lleva a crear la cuenta', /auth\.html\?registro=1/.test(await p.locator('#foroVivo .pb-pie-enlace .pb-boton').getAttribute('href')))
   await ctx.close()
 }
 
 console.log('── 4. En el móvil ──')
 {
   const { p, ctx, errores } = await abrir({ movil: true })
-  const y = await p.evaluate(() => Object.fromEntries(['retoSeccion', 'sigueSeccion', 'foroVivoSeccion', 'noticiaPortadaSeccion', 'recientesSeccion', 'clasificacionSeccion', 'homeActivity'].map((id) => [id, Math.round(document.getElementById(id).getBoundingClientRect().top + scrollY)])))
+  const y = await p.evaluate(() => Object.fromEntries(['retoSeccion', 'sigueSeccion', 'noticiaPortadaSeccion', 'foroVivoSeccion', 'recientesSeccion', 'homeActivity'].map((id) => [id, Math.round(document.getElementById(id).getBoundingClientRect().top + scrollY)])))
   const orden = Object.entries(y).sort((a, b) => a[1] - b[1]).map((x) => x[0])
-  check('el orden: retos, sigue, foro, noticias, aprende, clasificación y comunidad', orden.join() === 'retoSeccion,sigueSeccion,foroVivoSeccion,noticiaPortadaSeccion,recientesSeccion,clasificacionSeccion,homeActivity', orden.join(' → '))
+  check('el orden (1188): retos, sigue, noticias, foro, guías y comunidad', orden.join() === 'retoSeccion,sigueSeccion,noticiaPortadaSeccion,foroVivoSeccion,recientesSeccion,homeActivity', orden.join(' → '))
   const sale = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth)
   check('  …nada se sale de la pantalla, y sin errores', sale <= 1 && !errores.length, `${sale}px ${errores.join(' | ')}`)
   await ctx.close()

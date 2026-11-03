@@ -77,13 +77,15 @@ console.log('\n── 1. La portada ya no tiene una fila que deje hueco ──')
   // salto entre el final del torneo y el principio de lo siguiente en su
   // misma columna. Mirar si «existe la fila» no probaría nada: el hueco
   // lo dejaba la fila aunque la fila estuviera perfectamente puesta.
+  // Desde la 1188 la portada es una rejilla y lo que va debajo del torneo no
+  // es su hermano en el HTML: se mide contra la caja que de verdad queda más
+  // cerca por debajo.
   const hueco = await page.evaluate(() => {
     const t = document.getElementById('torneoPortadaSeccion')
     if (!t) return null
-    let s = t.nextElementSibling
-    while (s && !s.getBoundingClientRect().height) s = s.nextElementSibling
-    if (!s) return null
-    return Math.round(s.getBoundingClientRect().top - t.getBoundingClientRect().bottom)
+    const abajo = t.getBoundingClientRect().bottom
+    const tops = [...document.querySelectorAll('.panel-portada section')].filter((s) => s !== t && s.getBoundingClientRect().height && s.getBoundingClientRect().top >= abajo - 1).map((s) => s.getBoundingClientRect().top - abajo)
+    return tops.length ? Math.round(Math.min(...tops)) : null
   })
   // 16 px es el `gap` de la columna. Con la fila vieja aquí salían 250 y
   // pico.

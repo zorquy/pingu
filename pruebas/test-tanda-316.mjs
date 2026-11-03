@@ -59,44 +59,24 @@ const abrir = async (url, ancho = 1280, extra = {}) => {
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 1. Una guía se dibuja IGUAL en la portada y en /aprender ──')
+console.log('\n── 1. Una guía se dibuja IGUAL en /aprender, y la portada dice lo mismo ──')
 {
-  // Había dos moldes con cero clases en común para el mismo objeto.
-  const clases = {}
-  for (const [url, nombre] of [['/index.html', 'portada'], ['/aprender', 'aprender']]) {
-    const { page, errores } = await abrir(url)
-    check(`[${nombre}] sin errores de JavaScript`, errores.length === 0, errores.join(' | '))
-    clases[nombre] = await page.evaluate(() => {
-      const c = document.querySelector('.guia-tarjeta')
-      return c ? [...c.querySelectorAll('*')].map((n) => n.className).filter((x) => typeof x === 'string' && x) : null
-    })
-    check(`  …y la tarjeta es .guia-tarjeta`, Array.isArray(clases[nombre]), String(clases[nombre]))
-    await page.close()
-  }
-  // La FORMA del fallo: que las dos pantallas vuelvan a divergir. No se
-  // comprueba una clase concreta —eso no cazaría un molde nuevo— sino
-  // que lo que dice la tarjeta de /aprender lo diga también la portada.
-  const enAprender = new Set((clases.aprender || []).flatMap((c) => c.split(' ')))
-  const enPortada = new Set((clases.portada || []).flatMap((c) => c.split(' ')))
-  const faltan = [...enAprender].filter((c) => !enPortada.has(c) && c.startsWith('guia-'))
-  check('la portada no se deja nada de la tarjeta de /aprender', faltan.length === 0, faltan.join(', '))
-  // Y lo que la tarjeta DICE, no solo qué clases lleva: la categoría era
-  // justo lo que no decía la de la portada, y comparar listas de clases
-  // no lo cazaría si un día se pintara la chapa vacía.
-  // Desde la 682 la categoría se dice SOLO en la portada, donde las guías
-  // van mezcladas; en /aprender los chips de filtro de arriba ya la dicen
-  // y la chapa sobraba (PINGU: «menos chips en las tarjetas»).
-  for (const [url, nombre] of [['/index.html', 'portada'], ['/aprender', 'aprender']]) {
-    const { page } = await abrir(url)
-    const chapa = (await page.locator('.guia-tarjeta .guia-chapa-cat').first().textContent({ timeout: 1500 }).catch(() => ''))?.trim()
-    if (nombre === 'portada') check(`  …y en ${nombre} dice de qué es la guía`, !!chapa && CATS.some((c) => c.name === chapa), chapa || '(vacía)')
-    // La 682 quitó la chapa de TEXTO de /aprender; la 866 la devuelve como
-    // ENLACE al tema (un camino, no un adorno), así que ahora se espera.
-    else check(`  …y en ${nombre} la chapa es un enlace a su tema (866)`, !!chapa && CATS.some((c) => c.name === chapa) && (await page.locator('.guia-tarjeta a.guia-chapa-tema').count()) > 0, chapa || '(sin chapa)')
-    const min = (await page.locator('.guia-tarjeta .guia-chapa-min').first().textContent().catch(() => ''))?.trim()
-    check(`  …y cuánto cuesta leerla`, /\d+ min/.test(min || ''), min || '(vacía)')
-    await page.close()
-  }
+  // Desde la 1188 la portada pinta las guías como PORTADAS (`.pb-portada`,
+  // PINGU: «demasiada letra y poco visual»): ya no es la tarjeta de
+  // /aprender, a propósito. Lo que la 316 defendía —que la portada diga de
+  // qué es la guía y cuánto cuesta leerla— se sigue exigiendo.
+  const { page, errores } = await abrir('/index.html')
+  check('[portada] sin errores de JavaScript', errores.length === 0, errores.join(' | '))
+  const chapa = (await page.locator('#aprende .pb-portada .pb-chip').first().textContent({ timeout: 3000 }).catch(() => ''))?.trim() || ''
+  check('  …y en portada dice de qué es la guía', CATS.some((c) => chapa.includes(c.name)), chapa || '(vacía)')
+  check('  …y cuánto cuesta leerla', /\d+ min/.test(chapa), chapa || '(vacía)')
+  await page.close()
+  const a = await abrir('/aprender')
+  const chapaA = (await a.page.locator('.guia-tarjeta .guia-chapa-cat').first().textContent({ timeout: 1500 }).catch(() => ''))?.trim()
+  check('  …y en /aprender la chapa es un enlace a su tema (866)', !!chapaA && CATS.some((c) => c.name === chapaA) && (await a.page.locator('.guia-tarjeta a.guia-chapa-tema').count()) > 0, chapaA || '(sin chapa)')
+  const min = (await a.page.locator('.guia-tarjeta .guia-chapa-min').first().textContent().catch(() => ''))?.trim()
+  check('  …y cuánto cuesta leerla', /\d+ min/.test(min || ''), min || '(vacía)')
+  await a.page.close()
   check('  …y ya no existe el molde viejo', !/class="recent-card"/.test(leer('js/home.js')))
   // La rareza se mudó de la franja a la fila de etiquetas, y ahí tiene
   // que seguir llevando SU color. No es un detalle: `.guia-etiqueta`
@@ -129,13 +109,8 @@ console.log('\n── 1. Una guía se dibuja IGUAL en la portada y en /aprender 
       JSON.stringify(colores))
     await page.close()
   }
-  // Y lo que la portada aporta de más sigue estando.
-  // Desde la 1185 la portada pinta cuatro tarjetas iguales, sin el pie de
-  // autor y guardar que llevaba la grande: lo que se comprueba es que siguen
-  // siendo LA tarjeta, con su título y su descripción.
-  check('  …y la portada pinta la misma tarjeta, con título y descripción',
-    enPortada.has('guia-titulo') && enPortada.has('guia-desc'),
-    [...enPortada].join(' '))
+  // (Hasta la 1188 aquí se exigía que la portada pintara la tarjeta de
+  // /aprender; desde entonces pinta portadas, a propósito: arriba.)
 }
 
 // ═════════════════════════════════════════════════════════════════════
@@ -208,12 +183,13 @@ console.log('\n── 4. En el móvil, los primeros pasos van arriba ──')
     // Desde la 1012 (P3) en el móvil «Primeros pasos» (para quien acaba de
     // llegar) va DETRÁS de «Sigue», el foro, la noticia y Aprende, y antes
     // de la clasificación: ya no está en el primer tercio a propósito.
-    check('  …y en el móvil va después de Aprende y antes de la clasificación (1012)',
-      // (la clasificación puede no salir en el doble: entonces solo lo primero)
-      movil.y > movil.aprende && (!movil.clasificacion || movil.y < movil.clasificacion), `y=${movil.y}, aprende=${movil.aprende}, clasificación=${movil.clasificacion}`)
-    // Desde la 1185 (filas que cuadran) en el PC va en su fila, detrás de
-    // Aprende, como en el móvil.
-    check('  …y en escritorio, en su fila detrás de Aprende (1185)', escritorio.y > escritorio.aprende, `y=${escritorio.y}, aprende=${escritorio.aprende}`)
+    // Desde la 1188 (el mosaico; PINGU dijo «dale» a ponerlos arriba) van
+    // DELANTE de las noticias y de las guías, en el móvil y en el PC: son
+    // solo de los primeros días y se van solos al acabarlos.
+    const noticias = async (ancho) => { const { page } = await abrir('/index.html', ancho); const y = await page.evaluate(() => Math.round(document.getElementById('noticiaPortadaSeccion').getBoundingClientRect().top + scrollY)); await page.close(); return y }
+    const [nm, ne] = [await noticias(390), await noticias(1280)]
+    check('  …y en el móvil va antes de las noticias y de las guías (1188)', movil.y < nm && movil.y < movil.aprende, `y=${movil.y}, noticias=${nm}, aprende=${movil.aprende}`)
+    check('  …y en escritorio, encima del mosaico (1188)', escritorio.y < ne && escritorio.y < escritorio.aprende, `y=${escritorio.y}, noticias=${ne}, aprende=${escritorio.aprende}`)
   }
 }
 
@@ -292,22 +268,11 @@ console.log('\n── 7. La tarjeta se mide a sí misma, no a la ventana ──'
     await page.close()
     return r
   }
-  const portada960 = await anchoDe('/index.html', 960)
+  // Hasta la 1188 se comparaba con la portada; desde entonces la portada pinta
+  // portadas (`.pb-portada`) y no la tarjeta. Se queda lo de /aprender.
   const aprender960 = await anchoDe('/aprender', 960, '.ap-rejilla .guia-tarjeta:nth-child(2)')
-  check('hay tarjeta en las dos', !!portada960 && !!aprender960, JSON.stringify({ portada960, aprender960 }))
-  if (portada960 && aprender960) {
-    // La MISMA ventana da dos anchos distintos: eso es lo que un @media
-    // no puede distinguir.
-    check('  …y con la MISMA ventana miden distinto',
-      Math.abs(portada960.tarjeta - aprender960.tarjeta) > 100,
-      `portada ${portada960.tarjeta} · aprender ${aprender960.tarjeta}`)
-    // Y la franja responde al ancho de la TARJETA, no al de la ventana.
-    const estrecha = portada960.tarjeta < 300
-    check('  …y la franja se encoge con la tarjeta estrecha',
-      estrecha ? portada960.arte < 100 : true,
-      `tarjeta ${portada960.tarjeta} → arte ${portada960.arte}`)
-    check('  …mientras la ancha la conserva', aprender960.arte === 100, String(aprender960.arte))
-  }
+  check('hay tarjeta en /aprender', !!aprender960, JSON.stringify({ aprender960 }))
+  if (aprender960) check('  …y la ancha conserva la franja', aprender960.arte === 100, String(aprender960.arte))
   check('la declaración está en la hoja que bajan las dos',
     /container-type:\s*inline-size/.test(leer('css/components.css')) && /@container guia/.test(leer('css/components.css')))
 }

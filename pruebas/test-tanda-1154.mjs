@@ -39,7 +39,7 @@ for (const movil of [false, true]) {
     check('PC: la liga sale a la derecha de los retos', r.visible && r.alLado, JSON.stringify(r))
     check('  …los retos van a dos columnas', r.cols === 2, r.cols)
     check('  …con los cinco primeros y tú, aparte', r.filas.length === 6 && r.filas[0] === '1BBrock640' && r.filas[5] === '7TTú320', JSON.stringify(r.filas))
-    check('  …y «Ver la clasificación» lleva a la de la portada', r.ver === '/#clasificacion')
+    check('  …y «Ver la clasificación» lleva a la de /retos (1188: salió de la portada)', r.ver === '/retos#clasificacion')
   } else {
     check('móvil: la liga no sale y los retos siguen a dos columnas', !r.visible && r.cols === 2, JSON.stringify(r))
   }

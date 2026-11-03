@@ -106,7 +106,7 @@ console.log('\n── 1. El reparto: lo que pasa, y lo tuyo ──')
     // (en dos columnas) y la liga y el top del mes son la clasificación.
     ['sigueSeccion', 'principal'],
     ['homeActivity', 'principal'],
-    ['clasificacionSeccion', 'lateral'],
+    // La clasificación salió de la portada en la 1188 (a /retos).
   ]) {
     check(`${id} → ${donde}`, (await columnaDe(page, id)) === donde, await columnaDe(page, id))
   }
@@ -153,24 +153,13 @@ console.log('\n── 2. El torneo es una cita, no un enlace más ──')
 console.log('\n── 3. Los temas NO llevan a una página vacía ──')
 {
   const { page } = await abrir('/index.html')
-  // Desde la 844 los temas son los filtros de «Aprende»: se quedan en la
-  // portada y «Todas las guías» lleva a /aprender con ESE tema. Lo que la 300
-  // defendía —ni un camino a categoria.html, ni temas vacíos, de más a menos—
-  // sigue igual.
-  const chips = page.locator('#aprende .pb-tema[data-tema]:not([data-tema=""])')
-  check('hay chips de tema', (await chips.count()) > 0, String(await chips.count()))
+  // Desde la 1188 la portada ya no lleva temas de filtro (las guías van en
+  // portada y «Todas las guías» lleva a /aprender, que los tiene). Lo que la
+  // 300 defendía —ni un camino a categoria.html— sigue igual.
+  check('sin chips de tema en la portada (1188)', (await page.locator('#aprende .pb-tema').count()) === 0)
   const enlaces = await page.locator('#aprende a').evaluateAll((as) => as.map((a) => a.getAttribute('href')))
-  check('  …y NINGÚN enlace lleva a categoria.html', !enlaces.some((h) => /categoria/.test(h || '')), enlaces.join(' | '))
-  const nombres = await chips.allTextContents()
-  check('  …y la categoría sin guías no sale', !nombres.some((t) => /vac/i.test(t)), nombres.join(' | '))
-  const cuentas = await chips.locator('small').evaluateAll((bs) => bs.map((b) => Number(b.textContent)))
-  check('  …y van de más guías a menos', cuentas.every((n, i) => i === 0 || cuentas[i - 1] >= n), cuentas.join(' > '))
-  await chips.first().click()
-  await page.waitForTimeout(600)
-  const todas = await page.locator('#aprende .pb-cab .ver-todo').getAttribute('href')
-  check('  …y con un tema puesto, «Todas las guías» lleva a /aprender con su tema', /aprender\.html\?tema=[a-z]/.test(todas || ''), todas)
-  check('  …y no en el chip entero', !(await chips.first().evaluate((e) => e.className)).includes('icon-tint'),
-    await chips.first().evaluate((e) => e.className))
+  check('  …y NINGÚN enlace lleva a categoria.html', enlaces.length > 0 && !enlaces.some((h) => /categoria/.test(h || '')), enlaces.join(' | '))
+  check('  …y «Todas las guías» lleva a /aprender', (await page.locator('#aprende .pb-cab .ver-todo').getAttribute('href')) === '/aprender.html')
   await page.close()
 }
 
@@ -228,16 +217,15 @@ console.log('\n── 5. El foro dice cuánta conversación hay ──')
 console.log('\n── 6. Las guías nuevas, con su portada ──')
 {
   const { page } = await abrir('/index.html')
-  // Desde la tanda 316 la portada usa la MISMA tarjeta que /aprender.
-  // Desde la 844: una con la tarjeta de siempre y tres en fila, las cuatro
-  // con su color de arte.
-  const tarjetas = page.locator('#aprende .guia-tarjeta, #aprende .guia-fila')
+  // Desde la 1188 las guías de la portada son PORTADAS (`.pb-portada`), con
+  // el color de su tema: cuatro pintadas (tres a la vista en el PC).
+  const tarjetas = page.locator('#aprende .pb-portada')
   check('salen cuatro guías', (await tarjetas.count()) === 4, String(await tarjetas.count()))
-  check('  …cada una con su portada de color', (await page.locator('#aprende .guia-arte').count()) === 4)
+  const artes = () => tarjetas.evaluateAll((es) => es.map((e) => [...e.classList].find((c) => c.startsWith('arte-'))))
+  const antes = await artes()
+  check('  …cada una con su portada de color', antes.length === 4 && antes.every(Boolean), antes.join(','))
   // El degradado sale del SLUG, no al azar: si cambiara en cada pintada
   // la rejilla parpadearía. Se comprueba recargando.
-  const artes = () => page.locator('#aprende .guia-arte').evaluateAll((es) => es.map((e) => [...e.classList].find((c) => c.startsWith('arte-'))))
-  const antes = await artes()
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
   check('  …y el color no cambia al recargar', JSON.stringify(antes) === JSON.stringify(await artes()), antes.join(','))
@@ -247,16 +235,8 @@ console.log('\n── 6. Las guías nuevas, con su portada ──')
   check('  …y el degradado vive en la hoja compartida', /\.arte-1 \{/.test(leer('css/components.css')))
   check('  …y no duplicado en aprender.css', !/\.arte-1 \{/.test(leer('css/aprender.css')))
   check('  …ni en portada.css', !/\.arte-1 \{/.test(leer('css/portada.css')))
-  // La rareza se muda del galón de la 299 a una pastilla SOBRE la
-  // portada: tiene que seguir diciéndose, y en español — la columna
-  // guarda «gold» y eso aquí no lo dice nadie.
-  // La rareza baja de la franja a la fila de etiquetas en la tanda 316,
-  // con el nivel y el curso: son las tres cómo es esta guía. Lo que
-  // defiende esta comprobación —que se diga, y en español— no cambia.
-  const rarezas = await page.locator('#aprende .guia-rareza').allTextContents()
-  // Desde la 1185 son cuatro tarjetas iguales y cada una dice la suya.
-  check('  …y las guías dicen su rareza', rarezas.length >= 1, String(rarezas.length))
-  check('  …en español', rarezas.every((r) => /^(Bronce|Plata|Oro|Platino)$/.test(r.trim())), rarezas.join(' | '))
+  // La rareza ya no sale en la portada desde la 1188 (PINGU: «demasiada
+  // letra»): la dice la tarjeta de /aprender, que la mira la 316.
   await page.close()
 }
 

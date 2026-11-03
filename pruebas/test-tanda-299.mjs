@@ -548,30 +548,16 @@ console.log('\n── 8. F · El color deja de gritar en las rejillas ──')
   // sigue siendo lo mismo — que ningún color salga de un hash y que
   // ninguno pinte el marco entero.
   const { page } = await abrir('/index.html')
-  // Desde la 844 los temas son los filtros de «Aprende» (.pb-tema): sin
-  // color de ningún hash y del blanco de las cajas, que es lo que se vigila.
-  const chip = page.locator('#aprende .pb-tema:not(.activo)').first()
-  check('el tema es un chip, no una tarjeta con marco de color',
-    !(await chip.evaluate((e) => e.className)).includes('icon-tint'), await chip.evaluate((e) => e.className))
-  const fondoChip = await chip.evaluate((e) => getComputedStyle(e).backgroundColor)
-  const fondoCaja = await page.evaluate(() => getComputedStyle(document.querySelector('#foroVivo')).backgroundColor)
-  check('  …y el chip es blanco como el resto de cajas', fondoChip === fondoCaja, `${fondoChip} vs ${fondoCaja}`)
-
-  // Desde la tanda 316 la tarjeta de la portada es la MISMA que la de
-  // /aprender (.guia-tarjeta), y la rareza se dice en la fila de
-  // etiquetas en vez de flotando sobre la franja de color. Lo que esta
-  // comprobación defiende no cambia: que la rareza no pinte el marco de
-  // la tarjeta y que se diga en español.
-  const guia = page.locator('#aprende .guia-tarjeta').first()
-  check('la guía reciente no lleva marco de rareza', !(await guia.evaluate((e) => e.className)).includes('border-rarity'),
-    await guia.evaluate((e) => e.className))
-  const grosor = await guia.evaluate((e) => getComputedStyle(e).borderTopWidth)
-  check('  …y su borde es fino', grosor === '1px', grosor)
-  check('  …pero la rareza se sigue diciendo',
-    (await page.locator('#aprende .guia-rareza').count()) > 0)
-  // Y en español: la columna guarda «gold» y eso no lo dice nadie aquí.
-  const rareza = await page.locator('#aprende .guia-rareza').first().textContent()
-  check('  …y en español', /Oro|Plata|Bronce|Platino/.test(rareza || ''), rareza)
+  // Desde la 1188 la portada ya no lleva temas de filtro ni la tarjeta de
+  // guía: las guías son portadas con el color de SU tema (`arte-*`, que sale
+  // del slug, no de un hash al azar) y sin marco de rareza. Lo que se vigila
+  // —que ningún color pinte el marco entero— sigue igual.
+  check('sin chips de tema en la portada (1188)', (await page.locator('#aprende .pb-tema').count()) === 0)
+  const guia = page.locator('#aprende .pb-portada').first()
+  const clases = await guia.evaluate((e) => e.className)
+  check('la guía reciente no lleva marco de rareza', !clases.includes('border-rarity') && !clases.includes('icon-tint'), clases)
+  const borde = await guia.evaluate((e) => getComputedStyle(e).borderTopWidth)
+  check('  …ni borde de color', borde === '0px', borde)
   // Las .border-tint-* solo las usaba esto: si quedaron, es CSS muerto.
   check('y el CSS muerto se fue', !/\.border-tint-\d \{/.test(leer('css/style.css')))
   await page.close()

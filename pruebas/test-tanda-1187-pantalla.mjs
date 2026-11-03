@@ -51,7 +51,9 @@ async function abrir(b, movil, quien, conClas) {
 }
 
 const b = await chromium.launch()
-console.log('── 1. El PC, con cuenta y con la clasificación ──')
+// Desde la 1188 (el mosaico) la clasificación salió de la portada y el
+// reparto lo mira la 1188: aquí se queda lo de la caja verde (1187 y 1187b).
+console.log('── 1. El PC, con cuenta ──')
 {
   const { ctx, page, errores } = await abrir(b, false, 'user-1', true)
   const m = await medir(page)
@@ -61,32 +63,13 @@ console.log('── 1. El PC, con cuenta y con la clasificación ──')
   await page.evaluate(() => document.getElementById('sigueSeccion').classList.add('hidden'))
   await page.waitForTimeout(200)
   check('  …también sin «Sigue donde lo dejaste»', (await medir(page)).retoSeccion === null)
-  check('el orden: foro, Aprende, primeros pasos y la comunidad abajo del todo', m.foroVivoSeccion.y < m.recientesSeccion.y && m.recientesSeccion.y < m.primerosPasos.y && m.primerosPasos.y < m.homeActivity.y, JSON.stringify(m))
-  const [c, k] = [m.homeActivity, m.clasificacionSeccion]
-  check('comunidad y clasificación en la misma fila, la comunidad a la izquierda y el doble de ancha', c && k && c.y === k.y && c.x < k.x && Math.abs(c.w - 2 * k.w) < 40, JSON.stringify([c, k]))
-  check('  …con los mismos anchos que el foro y las noticias', c.x === m.foroVivoSeccion.x && c.w === m.foroVivoSeccion.w, JSON.stringify([c, m.foroVivoSeccion]))
-  check('  …y miden lo mismo: manda la clasificación', c.h === k.h && Math.abs(k.hDentro - k.h) <= 1 && Math.abs(c.hDentro - c.h) <= 1, JSON.stringify([c, k]))
-  const n = await comunidad(page)
-  check('la comunidad enseña las que caben, sin cortar ninguna y sin hueco de más de una línea', n.vistas >= 8 && n.dentro && n.sobra < 80, JSON.stringify(n))
-  const pest = await page.evaluate(() => { const s = document.getElementById('clasificacionSeccion').getBoundingClientRect(); const t = document.querySelector('#clasificacionSeccion .pb-pestanas').getBoundingClientRect(); return { dentro: t.right <= s.right && t.left >= s.left, sobra: Math.round(s.right - t.right) } })
-  check('«Semana / Mes» dentro de la caja de la clasificación', pest.dentro, JSON.stringify(pest))
   check('sin desbordar a lo ancho', (await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 0)
   await page.screenshot({ path: '/tmp/1187-pc.png', fullPage: true })
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }
 
-console.log('── 2. El PC sin clasificación: la comunidad a lo ancho, y con sus líneas ──')
-{
-  const { ctx, page } = await abrir(b, false, 'user-1', false)
-  const m = await medir(page)
-  const n = await comunidad(page)
-  check('la clasificación recogida y la comunidad a todo el ancho', m.clasificacionSeccion === null && m.homeActivity?.w === m.recientesSeccion.w, JSON.stringify(m))
-  check('  …sin quedarse a cero de alto ni cortarse', m.homeActivity.h > 150 && n.vistas >= 6 && n.dentro, JSON.stringify([m.homeActivity, n]))
-  await ctx.close()
-}
-
-console.log('── 3. Sin cuenta, la caja de retos sigue ──')
+console.log('── 2. Sin cuenta, la caja de retos sigue ──')
 {
   const { ctx, page } = await abrir(b, false, 'none', false)
   const m = await medir(page)
@@ -94,12 +77,11 @@ console.log('── 3. Sin cuenta, la caja de retos sigue ──')
   await ctx.close()
 }
 
-console.log('── 4. El móvil ──')
+console.log('── 3. El móvil ──')
 {
   const { ctx, page, errores } = await abrir(b, true, 'user-1', true)
   const m = await medir(page)
   check('la tira de retos sigue, arriba', m.retoSeccion !== null && m.retoSeccion.y < m.foroVivoSeccion.y, JSON.stringify(m.retoSeccion))
-  check('clasificación y comunidad al final', m.clasificacionSeccion.y > m.primerosPasos.y && m.homeActivity.y > m.clasificacionSeccion.y, JSON.stringify(m))
   const n = await comunidad(page)
   check('  …con seis sucesos como mucho', n.vistas === 6, JSON.stringify(n))
   check('sin desbordar a lo ancho', (await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 0)

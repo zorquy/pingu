@@ -76,12 +76,12 @@ const semilla = () => {
   // que PINGU aprobó en imágenes), en vez del carrusel de la PA1; y la liga y
   // el top del mes son UN bloque con pestañas, así que no se repiten.
   const m = await p.evaluate(() => ({
-    grande: document.querySelectorAll('#aprende .guia-tarjeta').length,
+    grande: document.querySelectorAll('#aprende .pb-portada').length,
     filas: document.querySelectorAll('#aprende .guia-fila').length,
     viejos: document.querySelectorAll('#recentGrid, #topMesSeccion, #ligaSeccion').length,
   }))
-  // Desde la 1185: cuatro tarjetas iguales, que en el móvil van en una tira.
-  check('PA1 (1185): en el móvil, cuatro guías iguales y sin filas', m.grande === 4 && m.filas === 0, JSON.stringify(m))
+  // Desde la 1185: cuatro iguales en una tira; desde la 1188, como portadas.
+  check('PA1 (1188): en el móvil, cuatro portadas de guía y sin filas', m.grande === 4 && m.filas === 0, JSON.stringify(m))
   check('  …y la liga y el top del mes ya no son dos bloques', m.viejos === 0, JSON.stringify(m))
   await ctx.close()
 }
