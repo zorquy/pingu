@@ -2845,6 +2845,35 @@ export const supabase = {
     }
     // Los eventos (1192): `window.__FAKE_EVENTOS__` (cada uno con `asistentes`:
     // [{ user_id, oculto }]), o «no existe» como sin la migración.
+    // El hilo de un evento firmado por PokeDoc (1198): como la función de la
+    // base (hilo y primer mensaje sin autor, `de_pokedoc`), o «no existe» con
+    // `__SIN_1198__`.
+    if (nombre === 'evento_hilo') {
+      const evs = typeof window !== 'undefined' ? window.__FAKE_EVENTOS__ : null
+      if (!evs || window.__SIN_1198__) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.evento_hilo' } }
+      const yo = T.user_profiles.find((x) => x.id === quienSoy)
+      if (!yo?.is_admin) return { data: null, error: { code: '42501', message: 'Solo el equipo abre los hilos de los eventos' } }
+      const e = evs.find((x) => x.id === args.p_evento)
+      if (!e) return { data: null, error: { code: 'P0002', message: 'Ese evento no existe' } }
+      T.forum_threads = T.forum_threads || []
+      T.forum_posts = T.forum_posts || []
+      const hilo = e.hilo_id && T.forum_threads.find((t) => t.id === e.hilo_id)
+      if (hilo) {
+        const primero = T.forum_posts.filter((p) => p.thread_id === hilo.id).sort((a, b) => new Date(a.created_at) - new Date(b.created_at))[0]
+        if (primero) Object.assign(primero, { author_id: null, body_html: args.p_cuerpo, edited_at: new Date().toISOString() })
+        Object.assign(hilo, { title: args.p_titulo.slice(0, 150), prefix: args.p_prefijo ?? hilo.prefix, author_id: null, de_pokedoc: true })
+        if ((hilo.post_count ?? 1) <= 1) hilo.last_post_author_id = null
+        return { data: hilo.id, error: null }
+      }
+      const foro = (T.forum_boards || []).find((b) => b.slug === 'eventos')
+      if (!foro) return { data: null, error: { code: 'P0002', message: 'Falta el foro «Eventos y quedadas»' } }
+      const ahora = new Date().toISOString()
+      const id = `hilo-${Math.random().toString(36).slice(2, 10)}`
+      T.forum_threads.push({ id, board_id: foro.id, author_id: null, title: args.p_titulo.slice(0, 150), prefix: args.p_prefijo, de_pokedoc: true, is_pinned: false, is_locked: false, view_count: 0, post_count: 1, last_post_at: ahora, last_post_author_id: null, created_at: ahora })
+      T.forum_posts.push({ id: `p-${id}`, thread_id: id, author_id: null, body_html: args.p_cuerpo, created_at: ahora })
+      e.hilo_id = id
+      return { data: id, error: null }
+    }
     if (nombre === 'eventos_lista' || nombre === 'evento_ficha' || nombre === 'evento_voy') {
       const evs = typeof window !== 'undefined' ? window.__FAKE_EVENTOS__ : null
       if (!evs) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
@@ -3055,6 +3084,8 @@ export const supabase = {
         foros,
         nuevos,
         perfiles: perfiles(foros.map((f) => f.last_post_author_id).filter(Boolean)),
+        // 1198: los foros cuyo último mensaje es el primero de un hilo de PokeDoc.
+        pokedoc: foros.filter((f) => { const t = T.forum_threads.find((x) => x.id === f.last_thread_id); return !f.last_post_author_id && t?.de_pokedoc && (t.post_count ?? 1) <= 1 }).map((f) => f.id),
         rol: p ? { staff: Boolean(p.is_admin || p.is_moderator), admin: Boolean(p.is_admin) } : null,
         marcas: Boolean(yo),
       }, error: null }
