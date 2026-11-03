@@ -530,4 +530,4 @@ document.addEventListener('click', (e) => {
 // siempre no dice nada.
 getSession()
   .then((s) => import('./portada-bloques.js').then((m) => m.montarPortada(s)))
-  .catch(() => ['foroVivoSeccion', 'recientesSeccion', 'noticiaPortadaSeccion', 'clasificacionSeccion'].forEach(recogerSeccion))
+  .catch(() => ['foroVivoSeccion', 'recientesSeccion', 'noticiaPortadaSeccion'].forEach(recogerSeccion))

@@ -4,6 +4,12 @@
 // de la semana y del mes con la XP de los seis retos, y la comunidad en una
 // línea por suceso.
 //
+// Desde la 1188 es un MOSAICO (la C de «Tres portadas nuevas», con los
+// cambios de PINGU): la noticia en grande y las siguientes al lado, el foro
+// de arriba abajo a la derecha, y debajo las guías en portada y la comunidad.
+// La clasificación salió de la portada: la pinta /retos con
+// js/clasificacion.js.
+//
 // Entra por `import()` desde home.js con su hoja (css/portada-bloques.css):
 // el presupuesto de peso de la portada mide lo que baja AL ABRIRLA, y esto
 // llega con los datos, que es cuando se pinta. Los huecos del HTML (los
@@ -13,26 +19,16 @@
 // recoge (`recoger`), no se queda un esqueleto girando ni un «no hay nada»
 // que a lo mejor es «no he podido preguntar» (la 510).
 import { supabase } from './supabase.js'
-import { escapeHtml, avatarStyle, getInitial, arteDe } from './app.js'
-import { icons } from './icons.js'
-import { hojaInyectada } from './hoja.js'
+import { escapeHtml, arteDe } from './app.js'
+import { hoja, caraHtml, cabecera, verTodo, ic, nombre } from './pb-comun.js'
 import { rutaDeArticulo, cuandoFue, conVueltaAtrasDeTipo } from './articulos.js'
 import { haceCuanto, perfilesPorId, urlTema, etiquetaHtml, nombreDe } from './foro-comun.js'
-import { tarjetaDeGuia } from './guia-tarjeta.js'
 import { sinMigracion } from './sin-migracion.js'
 
-export const hoja = typeof document !== 'undefined' ? hojaInyectada('css/portada-bloques.css') : Promise.resolve()
-
-const ic = (n, t = 16) => icons[n]?.(t) || ''
-const nombre = (p) => p?.display_name || p?.username || 'Alguien'
-
-// La cara de alguien. Sin enlace a propósito: a su lado va siempre el nombre,
-// que sí lo lleva (o la fila entera lleva a otro sitio), y una cara de 36 px
-// que se pulsa se queda por debajo de los 44 (la 312).
-export function caraHtml(p, t = 32) {
-  const dentro = p?.avatar_url ? '' : escapeHtml(getInitial(nombre(p)))
-  return `<span class="pb-cara" style="width:${t}px;height:${t}px;${avatarStyle(p)}" title="${escapeHtml(nombre(p))}" aria-hidden="true">${dentro}</span>`
-}
+// La cara, la cabecera de un bloque, «Ver todo» y la hoja viven en
+// js/pb-comun.js (1188): /retos pinta la clasificación con ellas y no debe
+// arrastrar la portada entera.
+export { hoja, caraHtml } from './pb-comun.js'
 
 // El texto de un mensaje del foro, sin etiquetas y cortado. Puro.
 export function extracto(html, largo = 170) {
@@ -47,8 +43,6 @@ function recoger(id) {
   s.classList.add('seccion-recogida')
 }
 
-const cabecera = (titulo, derecha = '') => `<div class="pb-cab"><h2>${titulo}</h2>${derecha}</div>`
-const verTodo = (href, texto = 'Ver todo') => `<a class="ver-todo" href="${href}">${texto} <span class="ver-todo-flecha" aria-hidden="true">→</span></a>`
 
 // ── 2 · El foro ──
 //
@@ -62,34 +56,32 @@ export function foroHtml({ temas, perfiles = {}, foros = {}, hoy = {}, escribien
   const quien = perfiles[ultimo?.author_id] || perfiles[top.last_post_author_id] || perfiles[top.author_id]
   const mensajes = top.post_count || 1
   const nuevosTop = nuevos[top.id] || 0
-  const derecha = `<span class="pb-cab-der">${escribiendo > 1 ? `<span class="pb-vivo"><i aria-hidden="true"></i>${escribiendo} personas escribiendo hoy</span>` : ''}<a class="btn-secondary pb-boton" href="${sesion ? '/foro' : '/auth.html?registro=1'}">Participar</a></span>`
+  // Una columna de arriba abajo (1188): el tema que más se mueve con un
+  // trocito, y los demás en filas de tres líneas (título, quién y cuántos).
   const fila = (t) => {
     const p = perfiles[t.last_post_author_id] || perfiles[t.author_id]
-    const verbo = t.last_post_author_id && t.last_post_author_id !== t.author_id ? 'respondió' : (t.post_count || 1) > 1 ? 'escribió' : 'abrió el tema'
     const sinLeer = nuevos[t.id] > 0
     return `<li class="pb-foro-fila">
-      ${caraHtml(p, 36)}
       <a class="pb-foro-fila-texto" href="${urlTema(t.id)}">
         <b>${etiquetaHtml(t.prefix)}${escapeHtml(t.title)}</b>
-        <small><span class="pb-quien">${escapeHtml(nombre(p))}</span> ${verbo} ${haceCuanto(t.last_post_at || t.created_at)}${foros[t.board_id] ? ` · ${escapeHtml(foros[t.board_id])}` : ''}</small>
+        <small>${caraHtml(p, 20)}<span class="pb-quien">${escapeHtml(nombre(p))}</span> · ${haceCuanto(t.last_post_at || t.created_at)}</small>
       </a>
       <span class="pb-foro-n${sinLeer ? ' nuevo' : ''}" title="${(t.post_count || 1) === 1 ? '1 mensaje' : `${t.post_count} mensajes`}">${t.post_count || 1}</span>
     </li>`
   }
-  return `${cabecera('Ahora en el foro', derecha)}
-    <div class="pb-foro-top">
-      <div class="pb-foro-top-cab">${foros[top.board_id] ? `<span class="pb-chip">${escapeHtml(foros[top.board_id])}</span>` : ''}<span class="pb-foro-caliente">${ic(masHablado ? 'flame' : 'clock', 12)} ${masHablado ? 'Lo más hablado hoy' : 'Lo último'}</span></div>
-      <a class="pb-foro-titulo" href="${urlTema(top.id)}">${etiquetaHtml(top.prefix)}${escapeHtml(top.title)}</a>
-      ${ultimo ? `<div class="pb-foro-ultimo">${caraHtml(quien, 32)}<div><small><b>${escapeHtml(nombre(quien))}</b> · ${haceCuanto(ultimo.created_at)}</small><p>«${escapeHtml(extracto(ultimo.body_html))}»</p></div></div>` : ''}
-      <div class="pb-foro-pie">
-        ${participantes.length > 1 ? `<span class="pb-pila">${participantes.slice(0, 5).map((p) => caraHtml(p, 26)).join('')}</span>` : ''}
+  return `${cabecera(masHablado ? 'Lo más hablado' : 'En el foro', verTodo('/foro', 'Foro'))}
+    ${escribiendo > 1 ? `<span class="pb-vivo"><i aria-hidden="true"></i>${escribiendo} personas escribiendo hoy</span>` : ''}
+    <a class="pb-foro-top" href="${urlTema(top.id)}">
+      <span class="pb-foro-top-cab">${foros[top.board_id] ? `<span class="pb-chip">${escapeHtml(foros[top.board_id])}</span>` : ''}${nuevosTop > 0 ? `<span class="pb-nuevos">${nuevosTop} ${nuevosTop === 1 ? 'nuevo' : 'nuevos'}</span>` : ''}</span>
+      <b class="pb-foro-titulo">${etiquetaHtml(top.prefix)}${escapeHtml(top.title)}</b>
+      ${ultimo ? `<span class="pb-foro-ultimo">«${escapeHtml(extracto(ultimo.body_html))}»<small>${escapeHtml(nombre(quien))} · ${haceCuanto(ultimo.created_at)}</small></span>` : ''}
+      <span class="pb-foro-pie">
+        ${participantes.length > 1 ? `<span class="pb-pila">${participantes.slice(0, 5).map((p) => caraHtml(p, 24)).join('')}</span>` : ''}
         <span class="pb-tenue">${mensajes} ${mensajes === 1 ? 'mensaje' : 'mensajes'}</span>
-        ${nuevosTop > 0 ? `<span class="pb-nuevos">${nuevosTop} ${nuevosTop === 1 ? 'nuevo' : 'nuevos'}</span>` : ''}
-        <a class="btn-primary pb-boton" href="${urlTema(top.id)}">Entrar</a>
-      </div>
-    </div>
+      </span>
+    </a>
     ${resto.length ? `<ul class="pb-foro-lista">${resto.map(fila).join('')}</ul>` : ''}
-    <div class="pb-pie-enlace">${verTodo('/foro', 'Todo el foro')}</div>`
+    <div class="pb-pie-enlace">${sesion ? verTodo('/foro', 'Todo el foro') : '<a class="btn-secondary pb-boton" href="/auth.html?registro=1">Participar</a>'}</div>`
 }
 
 // Lo que pinta el bloque, de UNA vez (1017): `portada_foro()` trae los
@@ -132,6 +124,8 @@ async function montarForo(session) {
   await hoja
   hueco.innerHTML = foroHtml(d)
   document.getElementById('foroVivoSeccion').style.display = ''
+  encajarForo(hueco)
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => encajarForo(hueco)).observe(hueco)
   return d.temas.map((t) => `tema:${t.id}`)
 }
 
@@ -195,28 +189,27 @@ async function datosDelForoAntiguo(session) {
   }
 }
 
-// ── 3 · Aprende, con los temas dentro ──
+// ── 3 · Guías nuevas ──
 //
-// Las categorías eran una fila suelta al final («Busca por tema»): ahora son
-// el filtro del bloque. «Novedades» es lo último; un tema trae lo suyo. La
-// grande es la tarjeta de guía de siempre (una sola tarjeta, la 316) y las
-// otras, la misma en fila. (La «guía destacada» de /admin se fue en la 1119:
-// PINGU, «eso no lo vamos a hacer».)
-// Desde la 1185 (la A de «Una portada que cuadra»): cuatro tarjetas IGUALES a
-// lo ancho —la grande medía el doble que las otras tres juntas— y «Escribe una
-// guía» en la cabecera, en vez de una caja suelta encima de las noticias.
-export function aprendeHtml({ guias, temas = [], activo = '', progreso = null, escribir = false }) {
-  const chips = [`<button type="button" class="pb-tema${activo ? '' : ' activo'}" data-tema="" aria-pressed="${activo ? 'false' : 'true'}">Novedades</button>`]
-    .concat(temas.map((c) => `<button type="button" class="pb-tema${activo === c.id ? ' activo' : ''}" data-tema="${escapeHtml(c.id)}" aria-pressed="${activo === c.id ? 'true' : 'false'}">${escapeHtml(c.name)} <small>${c.guide_count ?? 0}</small></button>`))
-    .join('')
-  const cuerpo = guias?.length
-    ? `<div class="pb-aprende-cuatro">${guias.slice(0, 4).map((g) => tarjetaDeGuia(g, { progreso, categoria: g.categories?.name || '' })).join('')}</div>`
-    : '<p class="pb-vacio">De este tema todavía no hay guías.</p>'
-  const todas = verTodo(activo ? `/aprender.html?tema=${encodeURIComponent(temas.find((c) => c.id === activo)?.slug || '')}` : '/aprender.html', 'Todas las guías')
+// Desde la 1188 (PINGU: «demasiada letra y poco visual»): las últimas guías
+// como PORTADAS —la foto o el color de su categoría, la categoría con los
+// minutos y el título—, sin descripción, nivel ni progreso, que están en la
+// tarjeta de /aprender. Y sin los temas de filtro: «Todas las guías» lleva a
+// /aprender, que los tiene. Puro.
+export function portadaDeGuia(g) {
+  const cat = g.categories?.name || ''
+  const meta = [cat, g.estimated_mins ? `${g.estimated_mins} min` : ''].filter(Boolean).join(' · ')
+  return `<a class="pb-portada arte-${arteDe(g.categories?.slug || g.category_id || g)}" href="/guia/${encodeURIComponent(g.slug)}">
+      ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" decoding="async" onerror="this.remove()" />` : ''}
+      <span class="pb-portada-sobre">${meta ? `<span class="pb-chip claro">${escapeHtml(meta)}</span>` : ''}<strong>${escapeHtml(g.title)}</strong></span>
+    </a>`
+}
+
+export function aprendeHtml({ guias, escribir = false }) {
+  if (!guias?.length) return ''
   const escribe = escribir ? `<a class="pb-escribir" href="/editor-guia.html">${ic('edit', 14)} Escribe una guía</a>` : ''
-  return `${cabecera('Aprende', `<span class="pb-cab-enlaces">${escribe}${todas}</span>`)}
-    <div class="pb-temas" role="group" aria-label="Temas">${chips}</div>
-    <div class="pb-aprende-cuerpo">${cuerpo}</div>`
+  return `${cabecera('Guías nuevas', `<span class="pb-cab-enlaces">${escribe}${verTodo('/aprender.html', 'Todas las guías')}</span>`)}
+    <div class="pb-portadas">${guias.slice(0, 4).map(portadaDeGuia).join('')}</div>`
 }
 
 const COLUMNAS_GUIA = 'id, slug, title, description, kind, category_id, level, guide_rarity, estimated_mins, blocks, cover_image, author_id, published_at, categories(name, slug, emoji)'
@@ -232,57 +225,20 @@ async function guiasDe(tema) {
   return data || []
 }
 
-async function progresoDe(session, guias) {
-  if (!session) return null
-  const { data } = await supabase.from('user_progress').select('guide_id, status, read_at, current_block, started_at').eq('user_id', session.user.id).in('guide_id', guias.map((g) => g.id))
-  return Object.fromEntries((data || []).map((f) => [f.guide_id, f]))
-}
-
 async function montarAprende(session) {
   const caja = document.getElementById('aprende')
   if (!caja) return
-  const [guias, { data: cats }] = await Promise.all([
-    guiasDe(''),
-    supabase.from('categories').select('id, slug, name, guide_count, order_pos').order('order_pos'),
-  ])
+  const guias = await guiasDe('')
   if (!guias.length) return recoger('recientesSeccion')
-  // Los temas con guías, de más a menos (la 300), como mucho cinco.
-  const temas = (cats || []).filter((c) => (c.guide_count ?? 0) > 0).sort((a, b) => (b.guide_count ?? 0) - (a.guide_count ?? 0)).slice(0, 5)
-  const porTema = { '': guias }
-  let progreso = await progresoDe(session, guias).catch(() => null)
-  let version = 0
-  const pintar = (activo) => {
-    caja.innerHTML = aprendeHtml({ guias: porTema[activo] || [], temas, activo, progreso, escribir: Boolean(session) })
-  }
   await hoja
-  pintar('')
+  caja.innerHTML = aprendeHtml({ guias, escribir: Boolean(session) })
   document.getElementById('recientesSeccion').style.display = ''
-  caja.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-tema]')
-    if (!b) return
-    const activo = b.dataset.tema
-    const mia = ++version
-    if (!porTema[activo]) {
-      b.setAttribute('aria-busy', 'true')
-      try {
-        porTema[activo] = await guiasDe(activo)
-        const p = await progresoDe(session, porTema[activo]).catch(() => null)
-        if (p) progreso = { ...(progreso || {}), ...p }
-      } catch {
-        b.removeAttribute('aria-busy')
-        return
-      }
-    }
-    // Si mientras tanto se ha pulsado otro tema, gana el último (la 663).
-    if (mia !== version) return
-    pintar(activo)
-    caja.querySelector(`[data-tema="${CSS.escape(activo)}"]`)?.focus()
-  })
 }
 
 // ── 4 · Noticias ──
-// La última con el titular encima de su foto; dos más debajo, en filas. Sin
-// foto, el color de su arte. Puro.
+// La última con el titular encima de su foto y, al lado, «Más noticias» con
+// su miniatura (1188: en el móvil, una tira que se desliza). Sin foto, el
+// color de su arte. Puro.
 export function noticiasHtml(noticias) {
   if (!noticias?.length) return ''
   const [n, ...resto] = noticias
@@ -291,14 +247,21 @@ export function noticiasHtml(noticias) {
       ${foto(n, 'pb-noticia-foto')}
       <span class="pb-noticia-sobre"><span class="pb-chip claro">${ic('newspaper', 12)} Noticia · ${escapeHtml(cuandoFue(n.published_at))}</span><strong>${escapeHtml(n.title)}</strong></span>
     </a>
-    ${resto.length ? `<ul class="pb-noticias-mas">${resto.map((x) => `<li><a href="${rutaDeArticulo('news', x.slug)}"><span class="pb-noticia-mini arte-${arteDe(x)}" aria-hidden="true">${foto(x, '')}</span><span><b>${escapeHtml(x.title)}</b><small>${escapeHtml(cuandoFue(x.published_at))}</small></span></a></li>`).join('')}</ul>` : ''}
-    <div class="pb-pie-enlace">${verTodo('/noticias', 'Todas las noticias')}</div>`
+    <div class="pb-noticias-lado">
+      ${cabecera('Más noticias', verTodo('/noticias', 'Todas'))}
+      ${resto.length ? `<ul class="pb-noticias-mas">${resto.map((x) => `<li><a href="${rutaDeArticulo('news', x.slug)}"><span class="pb-noticia-mini arte-${arteDe(x)}" aria-hidden="true">${foto(x, '')}</span><span><b>${escapeHtml(x.title)}</b><small>${escapeHtml(cuandoFue(x.published_at))}</small></span></a></li>`).join('')}</ul>` : ''}
+    </div>`
 }
 
-export const encajarNoticias = (caja) => encajar(caja, '.pb-noticias-mas li', 2)
+export const encajarNoticias = (caja) => encajar(caja.querySelector('.pb-noticias-lado') || caja, '.pb-noticias-mas li', Infinity)
 
-// Lo mismo para la comunidad (1187): en el PC mide lo que la clasificación
-// de al lado y enseña los sucesos que quepan; en el móvil, seis.
+// El foro (1188) mide lo que la noticia y las guías de su izquierda y enseña
+// los temas que caben; en el móvil, todos (son cuatro).
+export const encajarForo = (caja) => encajar(caja, '.pb-foro-fila', Infinity)
+
+// Lo mismo para la comunidad (1187): en el PC mide lo que las guías de al
+// lado (1188; antes, la clasificación) y enseña los sucesos que quepan; en el
+// móvil, seis.
 export const encajarComunidad = (caja) => encajar(caja, '.suc-lista > li', 6)
 
 function encajar(caja, selector, enMovil) {
@@ -322,99 +285,52 @@ async function montarNoticias() {
   await hoja
   hueco.innerHTML = noticiasHtml(data)
   document.getElementById('noticiaPortadaSeccion').style.display = ''
-  // En el PC la caja mide lo que el foro de al lado (portada.css), así que se
-  // dejan las que caben y se vuelve a mirar cuando cambia de alto (el foro
-  // llega después, o se estrecha la ventana). En el móvil, dos como siempre.
+  // En el PC la caja mide lo que la noticia grande (portada.css), así que se
+  // dejan las que caben y se vuelve a mirar cuando cambia de alto. En el
+  // móvil van todas, en una tira que se desliza.
   encajarNoticias(hueco)
   if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => encajarNoticias(hueco)).observe(hueco)
   return data.flatMap((n) => [`noticia:${n.id}`])
-}
-
-// ── 6 · La clasificación ──
-//
-// Junta la liga de la semana y el top del mes, y los dos cuentan lo mismo:
-// la XP de los seis retos (`portada_clasificacion`, supabase-migration-
-// portada.sql). Podio con los tres primeros, el 4.º y el 5.º, y tu puesto
-// siempre: es lo que se mira. Puro.
-export function clasificacionHtml(d, { periodo = 'semana', conSesion = false } = {}) {
-  const r = d?.ranking || []
-  const sub = periodo === 'mes' ? 'La XP de los seis retos desde el día 1' : 'La XP de los seis retos, de lunes a domingo'
-  const pestanas = `<span class="pb-pestanas" role="group" aria-label="Periodo">${['semana', 'mes'].map((p) => `<button type="button" data-periodo="${p}" class="${p === periodo ? 'activo' : ''}" aria-pressed="${p === periodo}">${p === 'semana' ? 'Semana' : 'Mes'}</button>`).join('')}</span>`
-  if (!r.length) {
-    return `${cabecera('Clasificación', pestanas)}<p class="pb-tenue pb-clas-sub">${sub}</p><p class="pb-vacio">${periodo === 'mes' ? 'Este mes' : 'Esta semana'} todavía no ha puntuado nadie. <a href="/retos">Juega un reto</a> y estrénala.</p>`
-  }
-  const podio = [r[1], r[0], r[2]]
-    .map((x, i) => (x ? `<div class="pb-podio-${[2, 1, 3][i]}">${[2, 1, 3][i] === 1 ? `<span class="pb-corona" aria-hidden="true">${ic('crown', 18)}</span>` : ''}${caraHtml(x, [2, 1, 3][i] === 1 ? 56 : 46)}<b>${x.tu ? 'Tú' : escapeHtml(nombre(x))}</b><small>${x.xp} XP</small><span class="pb-podio-caja">${x.puesto}</span></div>` : '<div></div>'))
-    .join('')
-  const fila = (x) => `<li class="${x.tu ? 'tu' : ''}"><span class="pb-pos">${x.puesto}</span>${caraHtml(x, 28)}<b>${x.tu ? 'Tú' : escapeHtml(nombre(x))}</b><span class="pb-xp">${x.xp}</span></li>`
-  const t = d.tu
-  const enLista = r.slice(0, 5).some((x) => x.tu)
-  const tuHtml = t && !enLista
-    ? `<div class="pb-clas-tu"><span class="pb-pos">${t.puesto}</span><b>Tú</b><small class="pb-tenue">${t.faltan ? `${t.faltan} XP para pasar${t.pasarA ? ` a ${escapeHtml(t.pasarA)}` : ' al de delante'}` : ''}</small><span class="pb-xp">${t.xp}</span></div>`
-    : conSesion && !t
-      ? `<p class="pb-clas-invita">${periodo === 'mes' ? 'Este mes' : 'Esta semana'} todavía no puntúas — <a href="/retos">juega un reto</a></p>`
-      : ''
-  return `${cabecera('Clasificación', pestanas)}
-    <p class="pb-tenue pb-clas-sub">${sub}</p>
-    <div class="pb-podio">${podio}</div>
-    ${r.length > 3 ? `<ol class="pb-clas-lista">${r.slice(3, 5).map(fila).join('')}</ol>` : ''}
-    ${tuHtml}`
-}
-
-async function montarClasificacion(session) {
-  const caja = document.getElementById('clasificacion')
-  if (!caja) return
-  const cache = {}
-  const pedir = async (periodo) => {
-    if (!cache[periodo]) {
-      const { data, error } = await supabase.rpc('portada_clasificacion', { p_periodo: periodo })
-      if (error) throw error
-      cache[periodo] = data
-    }
-    return cache[periodo]
-  }
-  let datos
-  try {
-    datos = await pedir('semana')
-  } catch {
-    // Sin la migración, ni semana ni mes: no se sabe, y no se dice «nadie».
-    return recoger('clasificacionSeccion')
-  }
-  let periodo = 'semana'
-  await hoja
-  caja.innerHTML = clasificacionHtml(datos, { periodo, conSesion: Boolean(session) })
-  document.getElementById('clasificacionSeccion').style.display = ''
-  caja.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-periodo]')
-    if (!b || b.dataset.periodo === periodo) return
-    periodo = b.dataset.periodo
-    try {
-      const d = await pedir(periodo)
-      if (periodo !== b.dataset.periodo) return
-      caja.innerHTML = clasificacionHtml(d, { periodo, conSesion: Boolean(session) })
-      caja.querySelector(`[data-periodo="${periodo}"]`)?.focus()
-    } catch {}
-  })
 }
 
 // ── 7 · En la comunidad ──
 //
 // Una línea por suceso, con el molde de js/comunidad-sucesos.js (el mismo que
 // la pestaña Actividad de /usuarios, 845). Aquí, los que quepan, sin las
-// noticias —van en su bloque— y sin lo que ya está arriba. Se piden catorce
-// y en el PC se enseñan los que caben al lado de la clasificación (1187).
+// noticias —van en su bloque— y sin lo que ya está arriba. Desde la 1188,
+// arriba «+N gente nueva esta semana» con sus caras, y los «se unió» salen de
+// la lista porque ya están en esa cifra. Puro.
+export function genteNuevaHtml(n, caras = []) {
+  if (!n) return ''
+  return `<a class="pb-gente-nueva" href="/usuarios.html"><b>+${n}</b><span><small>${n === 1 ? 'persona nueva' : 'gente nueva'} esta semana</small><span class="pb-pila">${caras.slice(0, 6).map((p) => caraHtml(p, 24)).join('')}</span></span></a>`
+}
+
+// Cuántos se han unido en siete días y los seis últimos, en UNA consulta: la
+// cuenta exacta viene en la cabecera y las filas son las caras.
+async function genteNueva() {
+  const desde = new Date(Date.now() - 7 * 864e5).toISOString()
+  const { data, count, error } = await supabase
+    .from('user_profiles')
+    .select('id, username, display_name, avatar_url', { count: 'exact' })
+    .gte('created_at', desde)
+    .order('created_at', { ascending: false })
+    .limit(6)
+  return error ? { n: 0, caras: [] } : { n: count ?? (data || []).length, caras: data || [] }
+}
+
 async function montarComunidad(session, yaEnPantalla) {
   const caja = document.getElementById('homeActivityFeed')
   if (!session || !caja) return
   try {
     const m = await import('./comunidad-sucesos.js')
-    const [{ actividad, nuevos }, fuera] = await Promise.all([m.cargarSucesos(14), yaEnPantalla.catch(() => new Set())])
+    const [{ actividad, nuevos }, fuera, gente] = await Promise.all([m.cargarSucesos(14), yaEnPantalla.catch(() => new Set()), genteNueva().catch(() => ({ n: 0, caras: [] }))])
     const clave = (e) => (e.tipo === 'tema' ? `tema:${String(e.enlace || '').split('/').pop()}` : e.tipo === 'noticia' ? `noticia:${e.guideId}` : null)
     const deSiempre = actividad.filter((e) => e.tipo !== 'noticia' && !fuera.has(clave(e)))
-    const sucesos = m.sucesosDeLaComunidad(deSiempre, nuevos).slice(0, 14)
-    if (!sucesos.length) return
+    const todos = m.sucesosDeLaComunidad(deSiempre, nuevos)
+    const sucesos = (gente.n ? todos.filter((s) => s.tipo !== 'alta') : todos).slice(0, 14)
+    if (!sucesos.length && !gente.n) return
     await Promise.all([hoja, m.hoja])
-    caja.innerHTML = `${cabecera('En la comunidad', verTodo('/usuarios.html#activity'))}${m.listaHtml(sucesos, { dos: true })}`
+    caja.innerHTML = `${cabecera('Comunidad', verTodo('/usuarios.html#activity'))}${genteNuevaHtml(gente.n, gente.caras)}${m.listaHtml(sucesos)}`
     document.getElementById('homeActivity').classList.remove('hidden')
     encajarComunidad(caja)
     if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => encajarComunidad(caja)).observe(caja)
@@ -427,7 +343,6 @@ export function montarPortada(session) {
   return Promise.all([
     arriba,
     montarAprende(session).catch(() => recoger('recientesSeccion')),
-    montarClasificacion(session).catch(() => recoger('clasificacionSeccion')),
     montarComunidad(session, arriba),
   ])
 }

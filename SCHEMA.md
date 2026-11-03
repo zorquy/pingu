@@ -52923,3 +52923,34 @@ de verdad. La 1187 la siembra (`__FAKE_CLASIFICACION__`) y mide sus pestañas.
   sucesos). Se piden 14 sucesos (`cargarSucesos(14)`); con los de prueba
   caben 11. La lista va en `columns: 2`, que reparte sola al quitar.
 
+## Tanda 1188 — La portada en mosaico
+
+PINGU, después de la 1187: «demasiada letra y poco visual». Tres portadas
+nuevas en imágenes (Revista, Tu muro, Bento); eligió el orden del Bento
+quitando «Tus cartas hoy» y el lanzamiento (ya está en las tarjetas), con la
+noticia a la izquierda, las siguientes al lado y el foro en vertical a la
+derecha.
+
+- **Columnas fijas, filas automáticas.** En el PC cada bloque lleva su
+  `grid-column` con línea de inicio (`1 / span 9`, `10 / span 3`, `1 / span 6`,
+  `7 / span 3`) y la fila la pone la colocación automática: si falta uno, los
+  demás no cambian de columna (con `span` a secas, un bloque que falta corría a
+  los de detrás). El foro lleva `grid-row: span 2` y `contain: size`: mide lo
+  que la noticia y las guías juntas, y nunca estira su columna.
+- **Cada caja enseña lo que le cabe** (`encajar(caja, selector, enMovil)`):
+  «Más noticias» (`contain: size`, la noticia grande manda), las filas del foro
+  y los sucesos de la comunidad. En el móvil, todas las noticias en una tira,
+  todos los temas y seis sucesos.
+- **Las guías son portadas** (`portadaDeGuia`): `aspect-ratio: 3 / 4`, la foto
+  o `arte-*` de su tema y el título encima. Tres en seis pistas; cuatro con
+  `@container (min-width: 760px)` cuando no hay comunidad al lado. Sin los
+  temas de filtro: la portada pedía guías y además el progreso de cada una; ya
+  no.
+- **Gente nueva**: `user_profiles` desde hace siete días con `count: 'exact'`
+  y `limit(6)`: la cuenta llega en la cabecera y las seis filas son las caras.
+  Los sucesos `alta` no se repiten debajo.
+- **La clasificación vive en /retos** (dentro de «Tu historial», `#rtLiga`):
+  es el mismo `clasificacionHtml` con su `montarClasificacion(caja, session)`,
+  que trae la hoja de la portada. `/retos#clasificacion` abre el historial y
+  baja; lo usan la liga de al lado, la línea de la liga y el final de cada reto.
+

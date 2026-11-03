@@ -259,29 +259,26 @@
   }
 }
 
-/* Filas que cuadran (1185, la A; 1187 el orden; el porqué en SCHEMA): cada
-   fila mide lo que la más alta de sus cajas y las demás se estiran hasta ella. */
+/* El mosaico (1188; el porqué en SCHEMA): la noticia y las suyas (9 de 12)
+   con el foro a la derecha de arriba abajo, y debajo guías (6) y comunidad
+   (3). Las columnas van fijas: así un bloque que falta no descoloca a otro. */
 @media (min-width: 960px) {
   .panel-portada > * > section { grid-column: span 12; min-width: 0; }
   #sigueSeccion { order: 1; }
   #torneoPortadaSeccion, #lanzamientoSeccion { order: 2; grid-column: span 6; }
-  #foroVivoSeccion { order: 3; grid-column: span 8; }
-  #noticiaPortadaSeccion { order: 3; grid-column: span 4; }
-  #recientesSeccion { order: 4; }
-  #primerosPasos { order: 5; }
-  .panel-portada .retos-abajo { order: 6; }
-  #homeActivity { order: 7; grid-column: span 8; }
-  #clasificacionSeccion { order: 7; grid-column: span 4; }
+  #primerosPasos { order: 3; }
+  #noticiaPortadaSeccion { order: 4; grid-column: 1 / span 9; }
+  #foroVivoSeccion { order: 5; grid-column: 10 / span 3; grid-row: span 2; contain: size; }
+  #recientesSeccion { order: 6; grid-column: 1 / span 6; }
+  #homeActivity, .panel-portada .retos-abajo { order: 7; grid-column: 7 / span 3; }
   :root:has(.hoy-retos) .retos-abajo { display: none; }
   .panel-portada:has(#lanzamientoSeccion.seccion-recogida) #torneoPortadaSeccion,
   .panel-portada:has(#torneoPortadaSeccion.seccion-recogida) #lanzamientoSeccion,
-  .panel-portada:has(#homeActivity.hidden) #clasificacionSeccion,
-  .panel-portada:has(#clasificacionSeccion.seccion-recogida) #homeActivity { grid-column: span 12; }
-  /* Noticias y comunidad no estiran su fila: miden lo que el foro y la
-     clasificación, y enseñan lo que cabe (1186, 1187). */
-  .panel-portada:has(#foroVivoSeccion:not(.seccion-recogida)) #noticiaPortadaSeccion,
-  .panel-portada:has(#clasificacionSeccion:not(.seccion-recogida)) #homeActivity { contain: size; }
-  #noticiaPortadaSeccion > .pb-caja, #homeActivity > .pb-caja { overflow: hidden; }
+  .panel-portada:has(#foroVivoSeccion.seccion-recogida) #noticiaPortadaSeccion { grid-column: span 12; }
+  :root:has(.hoy-retos) .panel-portada:has(#homeActivity.hidden) #recientesSeccion,
+  .panel-portada:has(#foroVivoSeccion.seccion-recogida) #recientesSeccion { grid-column: 1 / span 9; }
+  #homeActivity { contain: size; }
+  #homeActivity > .pb-caja, #foroVivoSeccion > .pb-caja { overflow: hidden; }
   .panel-portada > * > section > :only-child,
   .retos-abajo > .reto-tarjetas,
   #lanzamientoSeccion > .lanzamiento-portada { height: 100%; }
@@ -301,12 +298,11 @@
   #retoSeccion { order: -10; }
   #torneoPortadaSeccion { order: -9; }
   #sigueSeccion { order: -8; }
-  #foroVivoSeccion { order: -7; }
+  #primerosPasos { order: -7; }
   #noticiaPortadaSeccion { order: -6; }
-  #recientesSeccion { order: -5; }
-  #primerosPasos { order: -4; }
+  #foroVivoSeccion { order: -5; }
+  #recientesSeccion { order: -4; }
   #lanzamientoSeccion { order: -3; }
-  #clasificacionSeccion { order: -2; }
 }
 
 /* S780.189 */

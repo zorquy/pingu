@@ -40,9 +40,9 @@ export function premiosHtml(guardado, { posible = 0, volver = '/retos', racha = 
   }
   if (racha >= 2) premios.push(`<div class="rj-premio racha"><b>${racha} días</b><small>${escapeHtml(rachaTexto)}</small></div>`)
   // La liga de la semana (989): la XP de los seis retos, de lunes a domingo.
-  // Se ve entera en la portada.
+  // Se ve entera en /retos (1188; antes, en la portada).
   const liga = guardado?.liga ? textoSaltoLiga(guardado.liga.antes, guardado.liga.despues) : ''
-  const ligaHtml = liga ? `<a class="rj-liga" href="/#clasificacion">${icons.trophy(16)} ${escapeHtml(liga)}</a>` : ''
+  const ligaHtml = liga ? `<a class="rj-liga" href="/retos#clasificacion">${icons.trophy(16)} ${escapeHtml(liga)}</a>` : ''
   return premios.length || ligaHtml ? `<div class="rj-premios">${premios.join('')}${ligaHtml}</div>` : ''
 }
 

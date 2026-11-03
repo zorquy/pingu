@@ -165,21 +165,20 @@
 }
 
 .pb-foro-ultimo {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--e-md);
-}
-
-.pb-foro-ultimo small {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
-
-.pb-foro-ultimo p {
-  margin: 2px 0 0;
+  display: -webkit-box;
+  overflow: hidden;
   color: var(--text-mid);
   font-size: var(--t-sm);
   line-height: 1.45;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
+.pb-foro-ultimo small {
+  display: block;
+  margin-top: 2px;
+  color: var(--text-dim);
+  font-size: var(--t-xs);
 }
 
 .pb-foro-pie {
@@ -191,10 +190,6 @@
 
 .pb-foro-pie > * {
   white-space: nowrap;
-}
-
-.pb-foro-pie .btn-primary {
-  margin-left: auto;
 }
 
 .pb-nuevos {
@@ -270,54 +265,7 @@
   color: var(--blanco-fijo);
 }
 
-/* ── Aprende ── */
-.pb-temas {
-  display: flex;
-  gap: var(--e-sm);
-  margin-bottom: var(--e-md);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.pb-tema {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  gap: var(--e-sm);
-  min-height: 36px;
-  padding: 0 var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-pill);
-  background: var(--white);
-  color: var(--text-mid);
-  font: inherit;
-  font-size: var(--t-sm);
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.pb-tema small {
-  font-weight: 700;
-}
-
-.pb-tema:hover {
-  border-color: var(--navy);
-}
-
-.pb-tema.activo {
-  border-color: var(--navy-solid);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
-}
-
-/* Cuatro guías iguales (1185): en el móvil, una tira que se desliza. */
-.pb-aprende-cuatro {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: var(--e-md);
-}
-
+/* ── Guías nuevas (1188): portadas ── */
 .pb-cab-enlaces {
   display: inline-flex;
   align-items: center;
@@ -581,38 +529,242 @@
   }
 
   .pb-vivo,
-  .pb-foro-top-cab .pb-chip,
-  .pb-foro-pie .pb-pila {
+  .pb-foro-pie .pb-pila,
+  .pb-cab-enlaces .pb-escribir {
     display: none;
-  }
-
-  .pb-aprende-cuatro {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    scroll-padding-inline: var(--e-lg);
-    margin-right: calc(var(--e-lg) * -1);
-    margin-left: calc(var(--e-lg) * -1);
-    padding: 0 var(--e-lg) var(--e-xs);
-    scrollbar-width: none;
-  }
-
-  .pb-aprende-cuatro > * {
-    flex: 0 0 78%;
-    scroll-snap-align: start;
-  }
-
-  .pb-temas {
-    margin-right: calc(var(--e-lg) * -1);
-    margin-left: calc(var(--e-lg) * -1);
-    padding: 0 var(--e-lg);
   }
 }
 
 @media (pointer: coarse) {
-  .pb-tema,
   .pb-pestanas button,
   .pb-boton {
     min-height: 44px;
   }
 }
+
+/* ── El mosaico (1188; el porqué en SCHEMA) ── */
+#foroVivo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+}
+
+#foroVivo .pb-cab { margin-bottom: 0; }
+#foroVivo .pb-vivo { margin-top: calc(var(--e-sm) * -1); }
+
+.pb-foro-top {
+  color: var(--text);
+  text-decoration: none;
+}
+
+.pb-foro-top:hover .pb-foro-titulo { color: var(--navy); }
+
+.pb-foro-titulo {
+  display: block;
+  font-size: var(--t-lg);
+}
+
+.pb-foro-lista { margin: 0; }
+
+.pb-foro-fila {
+  align-items: flex-start;
+  padding: var(--e-lg) 0;
+}
+
+.pb-foro-fila-texto b {
+  font-size: var(--t-sm);
+  line-height: 1.4;
+}
+
+.pb-foro-fila-texto small {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  margin-top: var(--e-xs);
+}
+
+#foroVivo .pb-pie-enlace { margin-top: auto; }
+
+/* Las noticias: la grande y, al lado, «Más noticias» en su caja. */
+.pb-caja-noticias {
+  display: grid;
+  gap: var(--e-xl);
+  border: 0;
+  border-radius: 0;
+  background: none;
+  overflow: visible;
+}
+
+.pb-noticia {
+  height: 220px;
+  border-radius: var(--radius-xl);
+}
+
+.pb-noticia-sobre strong { font-size: var(--t-xl); }
+
+.pb-noticias-lado {
+  padding: var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+}
+
+.pb-noticias-lado .pb-cab { margin-bottom: var(--e-xs); }
+.pb-noticias-mas { padding: 0; }
+.pb-noticias-mas li:last-child a { border-bottom: 0; }
+
+.pb-noticia-mini {
+  width: 56px;
+  height: 56px;
+}
+
+.pb-noticias-mas b {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+
+/* Las guías como portadas: la foto (o el color de su tema), la categoría y
+ * el título. */
+.pb-portadas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--e-md);
+}
+
+.pb-portada {
+  position: relative;
+  display: flex;
+  aspect-ratio: 3 / 4;
+  align-items: flex-end;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  color: var(--blanco-fijo);
+  text-decoration: none;
+  isolation: isolate;
+}
+
+.pb-portada img {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pb-portada::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(transparent 35%, rgba(5, 12, 20, 0.9));
+}
+
+.pb-portada-sobre {
+  display: grid;
+  justify-items: start;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+}
+
+.pb-portada-sobre strong {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  line-height: 1.25;
+  text-wrap: balance;
+}
+
+.pb-portada:hover strong { text-decoration: underline; }
+
+/* «+N gente nueva esta semana» encima de los sucesos. */
+.pb-gente-nueva {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  margin-bottom: var(--e-md);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.pb-gente-nueva > b {
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  line-height: 1;
+  color: var(--indigo);
+}
+
+.pb-gente-nueva small {
+  display: block;
+  margin-bottom: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+@media (min-width: 960px) {
+  .pb-caja-noticias { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+  #foroVivo, #homeActivityFeed { padding: var(--e-lg); }
+  #aprende {
+    padding: var(--e-lg);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    background: var(--white);
+  }
+  .pb-noticia { height: auto; min-height: 400px; }
+  .pb-noticias-lado { contain: size; overflow: hidden; }
+  .pb-portada:nth-child(4) { display: none; }
+}
+
+/* Sin la caja de al lado (sin comunidad), las guías van a nueve de doce y
+ * caben cuatro. */
+#aprende { container-type: inline-size; }
+
+@container (min-width: 760px) {
+  .pb-portadas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .pb-portadas .pb-portada:nth-child(4) { display: flex; }
+}
+
+/* En el móvil (y la tableta), las noticias de al lado son una tira que se
+ * desliza, y las guías también. */
+@media (max-width: 959px) {
+  .pb-noticias-lado {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .pb-noticias-mas,
+  .pb-portadas {
+    display: flex;
+    gap: var(--e-md);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .pb-noticias-mas li {
+    flex: 0 0 42%;
+    scroll-snap-align: start;
+  }
+
+  .pb-noticias-mas a {
+    display: grid;
+    gap: var(--e-sm);
+    border: 0;
+  }
+
+  .pb-noticia-mini {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 10;
+  }
+
+  .pb-noticias-mas b { -webkit-line-clamp: 2; }
+
+  .pb-portada {
+    flex: 0 0 46%;
+    scroll-snap-align: start;
+  }
+}
+

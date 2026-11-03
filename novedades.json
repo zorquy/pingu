@@ -34,6 +34,12 @@
   ],
   "entradas": [
     {
+      "fecha": "2026-11-03",
+      "tipo": "mejora",
+      "texto": "Portada nueva, más visual: la noticia del día en grande con las siguientes al lado, lo más hablado del foro a la derecha, las guías nuevas con su portada y la gente nueva de la semana. La clasificación de los retos está ahora en Retos, dentro de «Tu historial».",
+      "enlace": "/"
+    },
+    {
       "fecha": "2026-11-02",
       "tipo": "mejora",
       "texto": "La portada, ordenada otra vez: el foro con las noticias al lado (todas las que caben), las guías debajo y, al final, «En la comunidad» a lo ancho con todo lo que ha pasado y la clasificación a su derecha, las dos a la misma altura.",

@@ -4,6 +4,51 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (433) — PINGU-Claude (1188 — la portada en mosaico)
+
+**Hecho**: PINGU: «demasiada letra y poco visual». Tres portadas en imágenes
+(https://claude.ai/artifact/Jd21VWPgZ5jiFiVppwuU3X); eligió el orden de la C
+sin «Tus cartas hoy» ni el lanzamiento, con la noticia grande a la izquierda,
+las siguientes al lado y lo más hablado del foro de arriba abajo a la derecha
+(https://claude.ai/artifact/KodhSG8s61RsaUoRsyE9Ae). «dale». Hecho:
+- PC (`css/portada.css`): tarjetas, torneo/lanzamiento, primeros pasos y el
+  mosaico con columnas FIJAS: noticias `1 / span 9`, foro `10 / span 3` y dos
+  filas de alto (`contain: size`), guías `1 / span 6` y comunidad (o la caja de
+  retos sin cuenta) `7 / span 3`. Sin foro, las noticias a lo ancho; sin
+  comunidad con cuenta, las guías a nueve.
+- Noticias (`noticiasHtml`): la grande y «Más noticias» al lado, en su caja,
+  con las que caben (`encajarNoticias` sobre `.pb-noticias-lado`); en el móvil,
+  una tira que se desliza.
+- Foro (`foroHtml`): «Lo más hablado» (o «En el foro»), el tema destacado con
+  su trocito y los demás en filas de título, cara y cuántos; enseña los que
+  caben (`encajarForo`). Sin cuenta, «Participar» abajo.
+- Guías (`aprendeHtml`, `portadaDeGuia`): «Guías nuevas» como PORTADAS (foto o
+  color de su tema, categoría · minutos, título). Fuera los temas de filtro,
+  la descripción y el progreso (están en /aprender): una consulta menos.
+- Comunidad: «+N gente nueva esta semana» con sus caras (una consulta a
+  `user_profiles` con `count: 'exact'`) y los sucesos sin los «se unió».
+- La clasificación sale de la portada y va ENTERA (semana, mes, podio) a
+  /retos → «Tu historial» (`montarClasificacion(caja, session)`, exportada de
+  portada-bloques.js); los «Ver la clasificación» llevan a
+  `/retos#clasificacion`, que abre el historial y baja.
+
+**Ficheros**: `index.html`, `retos.html`, `css/portada.css`,
+`css/portada-bloques.css`, `js/portada-bloques.js`, `js/home.js`,
+`js/retos.js`, `js/retos-liga.js`, `js/retos-ui.js`, `SCHEMA.md` (1188),
+`novedades.json`, `js/pb-comun.js` y `js/clasificacion.js` (nuevos: lo
+común de los bloques y la clasificación, para que /retos no arrastre la
+portada; la 299 lo cantó); en `pruebas`, la 1188 nueva y ajustadas a la
+portada nueva la 299, 300, 316, 368, 785, 844, 989, 1012, 1154, 1185 y 1187.
+
+**Pruebas**: verdes imports, 1188, 1187, 1185, 844, 299, 300, 305, 312, 313,
+316, 362, 368, 737, 785, 843, 989, 1010, 1012, 1017, 1023, 1040 y 1154. La
+989 cazó un fallo: sin lista pero con tu puesto, la clasificación decía
+«nadie ha puntuado»; ahora dice tu puesto. Rojas de antes y en ficheros que
+esta tanda no toca: 311 (`auth.css`, `comunidad.css`, `torneos.css`) y 981
+(/mi-coleccion). La portada pesa 135,6 KB gzip (caben 34,4).
+
+**Pendiente**: nada (la 1040, que quedó por repasar en la 1187, está verde).
+
 ## 2026-11-03 (432) — PINGU-Claude (1187b — la caja verde, fuera de verdad)
 
 **Hecho**: PINGU, con captura: la caja verde de retos seguía en su portada,

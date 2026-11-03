@@ -30,5 +30,5 @@ export function ligaLadoHtml(d, { racha = 0, conSesion = false, estilo = () => '
   return `<h2 class="rt-ll-titulo">${icons.trophy(18)} Liga de la semana</h2>
     ${vacio}${r.length ? `<ol class="rt-ll-lista">${filas}${tuFila}</ol>` : ''}
     ${invita}${fuego}
-    <a class="btn-secondary rt-ll-ver" href="/#clasificacion">Ver la clasificación</a>`
+    <a class="btn-secondary rt-ll-ver" href="/retos#clasificacion">Ver la clasificación</a>`
 }

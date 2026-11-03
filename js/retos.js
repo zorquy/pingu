@@ -134,17 +134,24 @@ function pintarDia(hechos, numeros, session) {
   pararCuenta = () => clearInterval(t)
 }
 
-// La liga de la semana (989): la XP de los seis retos, de lunes a domingo
-// (`portada_clasificacion`, la que enseña entera la portada).
+// La clasificación (989; entera desde la 1188, que la sacó de la portada):
+// la XP de los seis retos, semana y mes, con el podio. La pinta
+// js/clasificacion.js, que trae su hoja. Sin la función, la sección no sale.
 async function pintarLiga(session) {
   const caja = $('rtLiga')
-  if (!caja || !session) return
-  const { data, error } = await supabase.rpc('portada_clasificacion', { p_periodo: 'semana' })
-  if (error || !data) return
-  const tu = data.tu
-  const texto = tu?.puesto ? `Vas <b>${tu.puesto}.º</b> en la liga de la semana, con ${tu.xp} XP` : 'Esta semana todavía no puntúas en la liga: cada reto suma su XP'
-  caja.innerHTML = `<p class="rt-liga"><span>${icons.trophy(16)} ${texto}.</span><a class="btn-secondary" href="/#clasificacion">Ver la clasificación</a></p>`
-  caja.classList.remove('hidden')
+  if (!caja) return
+  const { montarClasificacion } = await import('./clasificacion.js')
+  if (await montarClasificacion(caja, session)) caja.classList.remove('hidden')
+}
+
+// «Ver la clasificación» lleva a /retos#clasificacion: abre «Tu historial» y
+// baja hasta ella.
+function irAClasificacion() {
+  if (location.hash !== '#clasificacion') return
+  const d = $('rtHistorial')
+  if (!d) return
+  d.open = true
+  setTimeout(() => $('rtLiga')?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 400)
 }
 
 // La liga al lado (1154): solo en el PC, donde hay sitio. Lo mismo que la
@@ -189,6 +196,8 @@ function prepararHistorial(session, numeros) {
   }
   d.addEventListener('toggle', abrir)
   abrir()
+  irAClasificacion()
+  addEventListener('hashchange', irAClasificacion)
 }
 
 async function arrancar() {
