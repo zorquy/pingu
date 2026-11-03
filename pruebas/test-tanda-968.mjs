@@ -94,7 +94,7 @@ console.log('\n── 3. La función: el episodio «Pokémon» (226) ──')
   check('  …las siguientes siguen por ahí hasta la última, y entonces está hecho', pag().length === 15 && pag().at(-1) === 15 && b.estado().hechos['226'] === '2026-10-22' && !b.estado().sigue['226'], `${pag()}`)
 
   const c = montar({ paginas: 1000, estado: { revision: fn.REVISION } })
-  for (let h = 0; h < 12; h++) await fn.procesar({ env, ahora: new Date(Date.UTC(2026, 9, 22, h)), restImpl: c.restImpl, fetchImpl: c.fetchImpl })
+  for (let h = 0; h < 24; h++) await fn.procesar({ env, ahora: new Date(Date.UTC(2026, 9, 22, h)), restImpl: c.restImpl, fetchImpl: c.fetchImpl })
   const n = c.llamadas.filter((u) => /episodes\/226/.test(u)).length
   check(`una paginación que no acaba: como mucho ${fn.MAX_PAGINAS_SUELTOS} páginas al día (la 510)`, n <= fn.MAX_PAGINAS_SUELTOS + fn.MAX_PAGINAS && c.estado().hechos['226'] === '2026-10-22', `${n} páginas`)
 
