@@ -181,7 +181,8 @@ console.log('── 7. La portada ──')
   const t = await caja(page, 'torneoPortadaSeccion')
   check('el próximo evento sale en la portada, en la fila del torneo', ev && (!t || t.y === ev.y), JSON.stringify([t, ev]))
   const tx = await page.textContent('#eventoPortada')
-  check('  …el más cercano, con quién va y a su ficha', /Castellón Card Show/.test(tx) && /3 van de PokeDoc/.test(tx) && (await page.getAttribute('#eventoPortada a', 'href')) === '/eventos/castellon-card-show-2026', tx.replace(/\s+/g, ' '))
+  // Desde la 1202 lleva a la AGENDA (PINGU: «mejor tener una visión general»).
+  check('  …el más cercano, con quién va, y lleva a la agenda', /Castellón Card Show/.test(tx) && /3 van de PokeDoc/.test(tx) && /Ver eventos/.test(tx) && (await page.getAttribute('#eventoPortada a', 'href')) === '/eventos', tx.replace(/\s+/g, ' '))
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
   const lejos = () => { const x = new Date(); x.setDate(x.getDate() + 40); window.__FAKE_EVENTOS__ = [{ id: 'x', slug: 'lejos', nombre: 'Lejos', tipo: 'card_show', empieza: x.toISOString(), publicado: true, asistentes: [] }] }
