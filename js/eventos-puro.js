@@ -95,6 +95,25 @@ export function fechaLarga(e) {
   return horas ? `${texto} · ${horas}` : texto
 }
 
+// La fecha CORTA (1204, la franja de la portada): «7 nov», «14 y 15 nov»,
+// «Del 13 al 15 nov», «30 nov – 1 dic»; sueltos, «7 y 14 nov». Sin hora ni
+// día de la semana: eso va en la ficha.
+export function fechaCorta(e) {
+  const h = horarioDe(e)
+  if (!h.length) return ''
+  const f = h.map((x) => fechaDeDia(x.dia))
+  const mes = (d) => MESES[d.getMonth()].toLowerCase()
+  const pri = f[0]
+  const ult = f[f.length - 1]
+  if (f.length === 1) return `${pri.getDate()} ${mes(pri)}`
+  const seguidos = f.every((d, i) => i === 0 || Math.round((d - f[i - 1]) / 864e5) === 1)
+  const mismoMes = f.every((d) => d.getMonth() === pri.getMonth() && d.getFullYear() === pri.getFullYear())
+  if (!mismoMes) return `${pri.getDate()} ${mes(pri)} – ${ult.getDate()} ${mes(ult)}`
+  if (seguidos && f.length > 2) return `Del ${pri.getDate()} al ${ult.getDate()} ${mes(ult)}`
+  const dias = f.map((d) => d.getDate())
+  return `${dias.slice(0, -1).join(', ')} y ${dias[dias.length - 1]} ${mes(ult)}`
+}
+
 // Cada día con su hora, para la ficha cuando no todos son iguales.
 export const diasConHora = (e) => horarioDe(e).map((x) => {
   const d = fechaDeDia(x.dia)

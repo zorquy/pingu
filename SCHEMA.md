@@ -53382,3 +53382,23 @@ evento, que se queda como el único blanco, y la flecha sola (C) no decía adón
 
 Un «ver todo» nuevo en cualquier pantalla usa `verTodo()` (`js/pb-comun.js`) o
 la clase `.ver-todo`, no otro enlace con flecha.
+
+
+## Tanda 1204 — La franja del evento, en una línea
+
+PINGU, con una captura del móvil: con «Ver eventos» (1202) la franja del
+próximo evento crecía a unos 150 px. Eligió lo recomendado de la propuesta:
+
+- `.pe-logo` (52 px) con el logo del evento (`logo_url`, por `webSegura`) o su
+  sigla (`siglasDe`) en lugar de la pastilla del día.
+- El nombre en una línea (`.pe-nombre`, con elipsis) y debajo `.pe-linea`: la
+  fecha de `fechaCorta(e)` y quién va — hasta tres caras (`caraHtml` de
+  `pb-comun.js`, las `caras` de `evento_json`) y `vanTexto(van)`; sin nadie,
+  «sé el primero». El tipo, la ciudad y «el sábado» ya no van aquí: están en la
+  agenda.
+- `fechaCorta`: un día «7 nov»; dos seguidos del mismo mes «14 y 15 nov»;
+  tres o más seguidos «Del 13 al 15 nov»; si cambia el mes «30 nov – 1 dic»;
+  sueltos «7 y 14 nov». Sale de `horarioDe`, así que vale también sin horario.
+- Hasta 600 px el botón es una flecha redonda de 36 px (`.pe-boton`, el texto
+  `.pe-largo` escondido): así cabe en dos líneas (76 px). Toda la franja es el
+  enlace a `/eventos`. Si vas, el botón dice «Vas».

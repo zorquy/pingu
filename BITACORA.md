@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (449) — PINGU-Claude (1204 — la franja del evento, en una línea)
+
+**Hecho**: PINGU: «la tarjeta se ha expandido y ocupa más en vertical… solo
+dejaría el título y las fechas… y cuántos van, con sus avatares… y donde va el
+7 de noviembre, el logo». Eligió lo recomendado de la propuesta
+(https://claude.ai/artifact/AhsPJgLb6AepheGkyY7xFt): logo (o su sigla) en
+lugar del día, el nombre en una línea y debajo la fecha corta
+(`fechaCorta`, nueva en `js/eventos-puro.js`: «7 nov», «14 y 15 nov», «Del 13
+al 15 nov», «30 nov – 1 dic») con hasta tres caras y «N van» («sé el primero»
+si no va nadie). En el móvil (≤600 px) el botón es una flecha redonda; en el
+PC, «Ver eventos». De ~150 a 76 px en el móvil.
+
+**Ficheros**: `js/evento-portada.js`, `js/eventos-puro.js`, `js/icons.js`
+(`arrowRight`), `css/portada.css`, `SCHEMA.md`, `novedades.json`. En
+`pruebas`: `test-tanda-1204-pantalla.mjs`.
+
+**Pruebas**: verdes 1204-pantalla (y las de alrededor, abajo).
+
+**Pendiente**: invitar (/r/usuario), /coleccion con su valor y Tu 2026.
+
 ## 2026-11-03 (448) — PINGU-Claude (1203 — los «Ver todo» son píldoras)
 
 **Hecho**: PINGU eligió la B de la propuesta de botones («dale con el B»).

@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-03",
       "tipo": "mejora",
+      "texto": "El próximo evento de la portada ocupa la mitad: su logo, su nombre, las fechas y las caras de quien va de PokeDoc.",
+      "enlace": "/eventos"
+    },
+    {
+      "fecha": "2026-11-03",
+      "tipo": "mejora",
       "texto": "Los «Ver todo» de la portada y de tu colección son ahora botones redondeados, más fáciles de ver y de pulsar.",
       "enlace": "/"
     },
