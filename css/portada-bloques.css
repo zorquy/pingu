@@ -702,8 +702,13 @@
   font-size: var(--t-xs);
 }
 
+/* La primera noticia va en grande en el PC y en la tira del móvil (1190). */
+.pb-caja-noticias > * { min-width: 0; }
+
 @media (min-width: 960px) {
   .pb-caja-noticias { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+  .pb-solo-movil,
+  .pb-noticias-mas li:first-child { display: none; }
   #foroVivo, #homeActivityFeed { padding: var(--e-lg); }
   #aprende {
     padding: var(--e-lg);
@@ -728,6 +733,9 @@
 /* En el móvil (y la tableta), las noticias de al lado son una tira que se
  * desliza, y las guías también. */
 @media (max-width: 959px) {
+  .pb-noticia,
+  .pb-solo-pc { display: none; }
+
   .pb-noticias-lado {
     padding: 0;
     border: 0;

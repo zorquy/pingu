@@ -237,8 +237,10 @@ async function montarAprende(session) {
 
 // ── 4 · Noticias ──
 // La última con el titular encima de su foto y, al lado, «Más noticias» con
-// su miniatura (1188: en el móvil, una tira que se desliza). Sin foto, el
-// color de su arte. Puro.
+// su miniatura. En el móvil (1190, PINGU: la grande desplazaba la portada) no
+// hay grande: «Noticias», todas en una tira que se desliza. Por eso la lista
+// lleva también la primera, y en el PC se esconde. Sin foto, el color de su
+// arte. Puro.
 export function noticiasHtml(noticias) {
   if (!noticias?.length) return ''
   const [n, ...resto] = noticias
@@ -248,8 +250,8 @@ export function noticiasHtml(noticias) {
       <span class="pb-noticia-sobre"><span class="pb-chip claro">${ic('newspaper', 12)} Noticia · ${escapeHtml(cuandoFue(n.published_at))}</span><strong>${escapeHtml(n.title)}</strong></span>
     </a>
     <div class="pb-noticias-lado">
-      ${cabecera('Más noticias', verTodo('/noticias', 'Todas'))}
-      ${resto.length ? `<ul class="pb-noticias-mas">${resto.map((x) => `<li><a href="${rutaDeArticulo('news', x.slug)}"><span class="pb-noticia-mini arte-${arteDe(x)}" aria-hidden="true">${foto(x, '')}</span><span><b>${escapeHtml(x.title)}</b><small>${escapeHtml(cuandoFue(x.published_at))}</small></span></a></li>`).join('')}</ul>` : ''}
+      ${cabecera('<span class="pb-solo-pc">Más noticias</span><span class="pb-solo-movil">Noticias</span>', verTodo('/noticias', 'Todas'))}
+      ${noticias.length ? `<ul class="pb-noticias-mas">${noticias.map((x) => `<li><a href="${rutaDeArticulo('news', x.slug)}"><span class="pb-noticia-mini arte-${arteDe(x)}" aria-hidden="true">${foto(x, '')}</span><span><b>${escapeHtml(x.title)}</b><small>${escapeHtml(cuandoFue(x.published_at))}</small></span></a></li>`).join('')}</ul>` : ''}
     </div>`
 }
 

@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-03",
       "tipo": "arreglo",
+      "texto": "En el móvil, las noticias de la portada van todas en una tira que se desliza, y la portada ya no se mueve hacia un lado.",
+      "enlace": "/"
+    },
+    {
+      "fecha": "2026-11-03",
+      "tipo": "arreglo",
       "texto": "En el móvil, al abrir una conversación corta, el cuadro de escribir ya no se queda a media pantalla: va siempre abajo, junto a la barra.",
       "enlace": "/mensajes.html"
     },

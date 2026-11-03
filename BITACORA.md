@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (435) — PINGU-Claude (1190 — las noticias del móvil, en una tira)
+
+**Hecho**: PINGU, con captura del móvil: la noticia grande era más ancha que
+la pantalla y desplazaba la portada entera a un lado (y cortaba «Todas»).
+«Pon las noticias como las pequeñitas de abajo». En el móvil ya no hay noticia
+grande: el bloque se llama «Noticias» y van TODAS en la tira que se desliza,
+la última primero. La lista lleva también la primera (en el PC se esconde,
+porque allí va en grande) y los hijos de `.pb-caja-noticias` tienen
+`min-width: 0`, que es lo que dejaba a la foto ensanchar la rejilla.
+
+**Ficheros**: `js/portada-bloques.js`, `css/portada-bloques.css`,
+`novedades.json`; en `pruebas`, la 1188 y la 844.
+
+**Pruebas**: verdes imports, 1188, 844, 1185 y 1040.
+
+**Pendiente**: nada.
+
 ## 2026-11-03 (434) — PINGU-Claude (1189 — el cuadro de escribir, abajo en el móvil)
 
 **Hecho**: PINGU, con captura de la app instalada: en una conversación corta
