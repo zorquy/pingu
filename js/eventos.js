@@ -18,7 +18,7 @@ import { sinMigracion } from './sin-migracion.js'
 import { showToast } from './toast.js'
 import {
   TIPOS, fechaLarga, siglasDe, filtrar, separar, webSegura, instagramDe, mapaDe, vanTexto,
-  horarioDe, fechaDeDia, entradasDe, precioTexto, desdePrecio, pastillaDe, cuentaAtras, mesDe, esEntradaVip, horasDe,
+  horarioDe, mismoHorario, fechaDeDia, entradasDe, precioTexto, desdePrecio, pastillaDe, cuentaAtras, mesDe, esEntradaVip, horasDe,
 } from './eventos-puro.js'
 
 const $ = (id) => document.getElementById(id)
@@ -44,16 +44,20 @@ function logoHtml(e, clase = 'ev-logo') {
   return `<span class="${clase}"${color ? ` style="--ev-color:${color}"` : ''} aria-hidden="true">${foto ? `<img src="${escapeHtml(foto)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<b>${escapeHtml(siglasDe(e))}</b></span>`
 }
 
-// El cartel: la imagen del evento si la hay; si no, su color (lo pinta el CSS
-// con `--ev-color`) con el logo encima. La pastilla de la fecha y la cuenta
-// atrás van encima de los dos.
+// El cartel: una franja baja (1196, PINGU: «¿para qué queremos tanto
+// amarillo?»). Con imagen subida, la imagen; si no, el ambiente sale del
+// LOGO, muy difuminado (`.ev-ambiente`), o del color del evento si no hay
+// logo; y el logo nítido en medio. La pastilla de la fecha y la cuenta atrás
+// van encima.
 function cartelHtml(e, { ahora = new Date(), conPastilla = true, conTipo = true, clase = 'ev-cartel', etiqueta = '' } = {}) {
   const color = colorDe(e)
   const foto = urlParaCss(webSegura(e.cartel_url))
+  const logo = urlParaCss(webSegura(e.logo_url))
   const p = pastillaDe(e)
   const cuenta = cuentaAtras(e, ahora)
   const estilo = [color ? `--ev-color:${color}` : '', foto ? `background-image:url('${foto}')` : ''].filter(Boolean).join(';')
   return `<span class="${clase}${foto ? ' con-imagen' : ''}"${estilo ? ` style="${estilo}"` : ''}${etiqueta ? ` role="img" aria-label="${escapeHtml(etiqueta)}"` : ''}>
+      ${!foto && logo ? `<span class="ev-ambiente" style="background-image:url('${logo}')" aria-hidden="true"></span>` : ''}
       ${conTipo ? `<span class="ev-tipo">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>` : ''}
       ${conPastilla && p.dia ? `<span class="ev-pastilla"><small>${escapeHtml(p.arriba)}</small><b>${escapeHtml(p.dia)}</b></span>` : ''}
       ${cuenta ? `<span class="ev-cuenta">${escapeHtml(cuenta)}</span>` : ''}
@@ -244,20 +248,20 @@ async function pintarFicha(slug, sesion) {
           ${e.voy && !pasado ? `<a class="btn-secondary" href="/evento">${ic('cards', 16)} Abrir mi modo evento</a>` : ''}
         </div>
       </header>
-      <div class="ev-ficha-cols">
-        <div class="ev-col">
-          ${entradas.length ? `<section class="ev-caja" aria-labelledby="evEntradasT"><h2 id="evEntradasT">${entradas.length > 1 ? 'Entradas' : 'Entrada'}</h2><ul class="ev-entradas">${entradas.map(entradaHtml).join('')}</ul></section>`
-            : e.entrada ? `<section class="ev-caja" aria-labelledby="evEntradasT"><h2 id="evEntradasT">Entrada</h2><p class="ev-desc">${escapeHtml(e.entrada)}</p></section>` : ''}
-          ${dias.length ? `<section class="ev-caja" aria-labelledby="evCuandoT"><h2 id="evCuandoT">Cuándo</h2><ul class="ev-dias">${dias.map(diaHtml).join('')}</ul></section>` : ''}
-        </div>
-        <div class="ev-col">
+      <div class="ev-rejilla">
+        ${entradas.length || e.entrada ? `<section class="ev-caja" aria-labelledby="evEntradasT"><h2 id="evEntradasT">${entradas.length > 1 ? 'Entradas' : 'Entrada'}</h2>${entradas.length ? `<ul class="ev-entradas">${entradas.map(entradaHtml).join('')}</ul>` : `<p class="ev-desc">${escapeHtml(e.entrada)}</p>`}</section>` : ''}
+        <div class="ev-r-lado${entradas.length || e.entrada ? '' : ' ev-r-ancha'}">
           <section class="ev-caja" aria-labelledby="evQuienT"><h2 id="evQuienT">Quién va de PokeDoc</h2>${quien}</section>
-          ${mapa ? `<section class="ev-caja" aria-labelledby="evDondeT"><h2 id="evDondeT">Dónde</h2>
-            <a class="ev-mapa" href="${escapeHtml(mapa)}" target="_blank" rel="noopener" aria-label="Ver ${escapeHtml(lugar || 'el sitio')} en el mapa"><span class="ev-mapa-pin">${ic('pin', 22)}</span></a>
+          ${dias.length && !mismoHorario(dias) ? `<section class="ev-caja" aria-labelledby="evCuandoT"><h2 id="evCuandoT">Cuándo</h2><ul class="ev-dias">${dias.map(diaHtml).join('')}</ul></section>` : ''}
+        </div>
+        ${mapa ? `<section class="ev-caja ev-r-ancha ev-donde" aria-labelledby="evDondeT">
+          <a class="ev-mapa" href="${escapeHtml(mapa)}" target="_blank" rel="noopener" aria-label="Ver ${escapeHtml(lugar || 'el sitio')} en el mapa"><span class="ev-mapa-pin">${ic('pin', 22)}</span></a>
+          <div class="ev-donde-texto">
+            <h2 id="evDondeT">Dónde</h2>
             <p class="ev-desc">${escapeHtml([e.sitio, e.direccion, e.ciudad].filter(Boolean).join(', '))}</p>
             <a class="btn-secondary ev-llegar" href="${escapeHtml(mapa)}" target="_blank" rel="noopener">${ic('pin', 16)} Cómo llegar</a>
-          </section>` : ''}
-        </div>
+          </div>
+        </section>` : ''}
       </div>`
   }
   pintar()

@@ -53092,3 +53092,22 @@ entraba NUNCA, sin un error: el estado decía «hecho».
   mañana ni repetir las 30 de la mañana.
 - Si el 226 vuelve a crecer cerca de 100 páginas, subir el tope antes de que
   pase lo mismo (`test-tanda-1195.mjs` lleva la lata real como fixture).
+
+## Tanda 1196 — Eventos compactos: el color sale del logo, la ficha en rejilla
+
+PINGU con el primer evento de verdad (Castellón Card Show): la franja era
+enorme y amarilla, y «en los casos generales no vamos a tener un fondo». Eligió
+la A de «Eventos más compactos».
+
+- `.ev-cartel` es una franja de 88 px (agenda) y `.ev-cartel-ficha` de 140 px
+  (88 en el móvil). Sin `cartel_url`, si hay logo, `.ev-ambiente` lo pinta
+  de fondo con `filter: blur(32px) saturate(1.4) brightness(0.55)` sobre un
+  `inset: -40%` (para que el difuminado no deje bordes); sin logo, dos
+  radiales del `--ev-color` sobre casi negro. La franja es SIEMPRE oscura: lo
+  de encima es blanco o va en su chapa. Las cartas al bies (1194) se fueron.
+- La ficha: `.ev-rejilla` (2fr / 1fr desde 900 px, `align-items: stretch`):
+  Entradas y `.ev-r-lado` (Quién va y, si hace falta, Cuándo; el último
+  crece con `flex: 1`) en la misma fila; Dónde (`.ev-r-ancha .ev-donde`)
+  debajo. Sin entradas, el lado ocupa la fila entera.
+- «Cuándo» sale solo con `!mismoHorario(dias)`: con el mismo horario, la
+  cabecera ya dice «Sábado 7 y domingo 8 de noviembre · 10:00 – 20:00».

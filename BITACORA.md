@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (441) — PINGU-Claude (1196 — eventos compactos: el color sale del logo)
+
+**Hecho**: PINGU, con el Castellón Card Show ya publicado: «demasiado grande,
+sobre todo el banner… ¿para qué queremos tanto amarillo?… en los casos
+generales no vamos a tener un fondo… prefiero que esté bien alineada». Eligió
+la A de «Eventos más compactos» y quitar «Cuándo» cuando el horario es el
+mismo.
+- **La franja**: 140 px en la ficha (88 en el móvil; antes 16:5, unos 420) y
+  88 en la agenda (antes 16:10). Sin cartel subido, el fondo es el propio LOGO
+  muy difuminado y oscurecido (`.ev-ambiente`); sin logo, el color del
+  evento. En la agenda, el logo nítido en el centro. El cartel subido ocupa la
+  misma franja.
+- **La ficha en rejilla**: Entradas y Quién va en la misma fila y del mismo
+  alto; Dónde debajo a lo ancho (mapa a la izquierda, dirección a la derecha).
+- **«Cuándo»** solo si los días tienen horarios distintos (va en la columna de
+  Quién va); si no, ya lo dice la cabecera.
+- La vista previa del admin, con el mismo ambiente.
+
+**Ficheros**: `js/eventos.js`, `css/eventos.css`, `admin/js/eventos-admin.js`,
+`SCHEMA.md`. En `pruebas`: `test-tanda-1196-pantalla.mjs`.
+
+**Pruebas**: verdes imports, 299, 1192-pantalla, 1193-pantalla,
+1194-pantalla y 1196-pantalla. 311 y 315, solo los rojos de antes (auth,
+comunidad, torneos, avisos-pagina).
+
+**Pendiente**: nada.
+
 ## 2026-11-03 (440) — PINGU-Claude (1195 — las latas de Mega Forces que no salían)
 
 **Hecho**: un usuario preguntó por las latas de Mega Forces (Mega Dragonite,

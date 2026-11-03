@@ -20,32 +20,32 @@
   font-size: var(--t-sm);
 }
 
-/* ── El cartel: la imagen o el color del evento, con su logo ── */
+/* ── El cartel: una franja baja con el ambiente del evento (1196) ──
+   Sin imagen subida, el color sale del LOGO, muy difuminado y oscurecido
+   (`.ev-ambiente`); sin logo, del color del evento. Es siempre oscura: lo de
+   encima es blanco o va en su chapa. */
 .ev-cartel {
   --ev-color: var(--navy-solid);
   position: relative;
-  display: block;
-  aspect-ratio: 16 / 10;
-  max-width: 100%;
+  display: grid;
+  place-items: center;
+  height: 88px;
   overflow: hidden;
+  isolation: isolate;
   background:
-    radial-gradient(120% 90% at 85% 10%, rgba(255, 255, 255, 0.22), transparent 55%),
-    radial-gradient(80% 80% at 10% 100%, rgba(0, 0, 0, 0.35), transparent 60%),
-    linear-gradient(135deg, color-mix(in srgb, var(--ev-color) 55%, #000), var(--ev-color));
+    radial-gradient(60% 130% at 25% 60%, color-mix(in srgb, var(--ev-color) 70%, transparent), transparent 65%),
+    radial-gradient(40% 90% at 78% 20%, color-mix(in srgb, var(--ev-color) 30%, transparent), transparent 60%),
+    #12161a;
 }
 
-/* Unas cartas al bies de fondo: lo que se compra y se cambia allí. */
-.ev-cartel:not(.con-imagen)::before {
-  content: '';
+.ev-ambiente {
   position: absolute;
-  right: -6%;
-  bottom: -24%;
-  width: 40%;
-  aspect-ratio: 63 / 88;
-  border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.12);
-  box-shadow: -28px -8px 0 rgba(255, 255, 255, 0.07);
-  transform: rotate(14deg);
+  inset: -40%;
+  z-index: -1;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+  filter: blur(32px) saturate(1.4) brightness(0.55);
 }
 
 .ev-cartel.con-imagen {
@@ -139,12 +139,9 @@
 }
 
 .ev-logo-cartel {
-  position: absolute;
-  bottom: var(--e-md);
-  left: var(--e-md);
   width: 56px;
   height: 56px;
-  background: rgba(0, 0, 0, 0.3);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
 .ev-logo-cartel b { font-size: var(--t-sm); }
@@ -299,7 +296,7 @@
 }
 
 .ev-cartel-ficha {
-  aspect-ratio: 16 / 5;
+  height: 140px;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
 }
 
@@ -442,21 +439,46 @@
   font-size: var(--t-sm);
 }
 
-.ev-ficha-cols {
+/* La rejilla de la ficha (1196, PINGU: «que esté bien alineada»): las cajas
+   de una fila miden lo mismo. Arriba Entradas y, al lado, Quién va (y Cuándo
+   si los días tienen horarios distintos); abajo, Dónde a lo ancho. */
+.ev-rejilla {
   display: grid;
-  align-items: start;
+  align-items: stretch;
   gap: var(--e-lg);
 }
 
 @media (min-width: 900px) {
-  .ev-ficha-cols { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+  .ev-rejilla { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+  .ev-r-ancha { grid-column: 1 / -1; }
 }
 
-.ev-col {
-  display: grid;
+.ev-r-lado {
+  display: flex;
+  flex-direction: column;
   gap: var(--e-lg);
   min-width: 0;
 }
+
+.ev-r-lado > :last-child { flex: 1; }
+
+.ev-donde {
+  display: grid;
+  align-items: center;
+  gap: var(--e-lg);
+}
+
+@media (min-width: 900px) {
+  .ev-donde { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+}
+
+.ev-donde-texto {
+  display: grid;
+  justify-items: start;
+  gap: var(--e-sm);
+}
+
+.ev-donde-texto h2 { margin: 0; }
 
 .ev-caja {
   display: grid;
@@ -648,8 +670,7 @@
   }
 
   .ev-mandos > * { flex-shrink: 0; }
-  .ev-cartel { aspect-ratio: 16 / 9; }
-  .ev-cartel-ficha { aspect-ratio: 16 / 7; }
+  .ev-cartel-ficha { height: 88px; }
 
   .ev-datos { gap: var(--e-xs); font-size: var(--t-xs); }
   .ev-datos li { min-height: 32px; padding: 0 var(--e-sm); }

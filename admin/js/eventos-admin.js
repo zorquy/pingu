@@ -222,6 +222,7 @@ function pintarCartel() {
   const siglas = siglasDe({ siglas: raiz.querySelector('#evf-siglas').value, nombre })
   const logo = webSegura(raiz.querySelector('#evf-logo_url').value)
   vista.innerHTML = `<div class="ev-tarjeta"><span class="ev-cartel${url ? ' con-imagen' : ''}" style="--ev-color:${escapeHtml(color)};${url ? `background-image:url('${escapeHtml(url)}')` : ''}">
+      ${!url && logo ? `<span class="ev-ambiente" style="background-image:url('${escapeHtml(logo)}')"></span>` : ''}
       <span class="ev-tipo">${escapeHtml(tipo)}</span>
       ${d ? `<span class="ev-pastilla"><small>${escapeHtml(DIAS_CORTOS[d.getDay()].toUpperCase())}</small><b>${d.getDate()}</b></span>` : ''}
       ${url ? '' : `<span class="ev-logo ev-logo-cartel">${logo ? `<img src="${escapeHtml(logo)}" alt="">` : ''}<b>${escapeHtml(siglas)}</b></span>`}
