@@ -135,7 +135,7 @@ console.log('── 1. Con cuenta, en el ordenador ──')
   check('  …sin temas de filtro y con «Todas las guías» a /aprender', !(await p.locator('.pb-tema').count()) && (await p.locator('#aprende .pb-cab .ver-todo').getAttribute('href')) === '/aprender.html')
 
   console.log('  · Noticias')
-  check('la última con el titular sobre la foto y las demás al lado, en «Más noticias»', /Mew RGB secretas/.test(await texto(p, '.pb-noticia')) && (await p.locator('.pb-noticia-foto').count()) === 1 && (await p.locator('.pb-noticias-lado .pb-noticias-mas li').count()) === 2)
+  check('la última con el titular sobre la foto y las demás al lado, en «Más noticias»', /Mew RGB secretas/.test(await texto(p, '.pb-noticia')) && (await p.locator('.pb-noticia-foto').count()) === 1 && (await p.locator('.pb-noticias-lado .pb-noticias-mas li:visible').count()) === 2)
 
   // La clasificación salió de la portada en la 1188: la mira la 1188 en /retos.
   check('sin clasificación en la portada (1188)', !(await p.locator('#clasificacionSeccion, .pb-podio').count()))

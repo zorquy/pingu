@@ -101,6 +101,10 @@ console.log('── 4. El móvil ──')
   check('el orden: retos, primeros pasos, noticias, foro, guías y comunidad', orden.join() === ids.filter((id) => orden.includes(id)).join(), orden.join(' → '))
   const tiras = await page.evaluate(() => ['.pb-noticias-mas', '.pb-portadas'].map((s) => { const t = document.querySelector(s); return { s, desliza: getComputedStyle(t).overflowX === 'auto' && t.scrollWidth > t.clientWidth } }))
   check('las noticias de al lado y las guías, en tiras que se deslizan', tiras.every((t) => t.desliza), JSON.stringify(tiras))
+  // 1190 (PINGU: la grande desplazaba la portada): en el móvil no hay noticia
+  // grande, y la tira se llama «Noticias» y empieza por la última.
+  const nm = await page.evaluate(() => ({ grande: getComputedStyle(document.querySelector('.pb-noticia')).display, titulo: document.querySelector('.pb-noticias-lado h2').innerText.trim(), primera: document.querySelector('.pb-noticias-mas li a')?.getAttribute('href') === document.querySelector('.pb-noticia').getAttribute('href') }))
+  check('  …sin noticia grande: «Noticias», todas en la tira, la última primero (1190)', nm.grande === 'none' && nm.titulo === 'Noticias' && nm.primera, JSON.stringify(nm))
   const suc = await cabe(page, '#homeActivityFeed .suc-lista > li', '#homeActivityFeed')
   check('  …y seis sucesos como mucho', suc.vistas <= 6 && suc.vistas >= 1, JSON.stringify(suc))
   check('sin desbordar a lo ancho', (await page.evaluate(() => document.documentElement.scrollWidth - innerWidth)) <= 0)
