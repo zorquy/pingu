@@ -249,6 +249,10 @@ const DEFECTOS_AL_INSERTAR = {
   user_products: { idioma: 'en', pagado: null },
 }
 
+// Los eventos (1192): la tabla ES la lista de `__FAKE_EVENTOS__` (la misma
+// referencia), así lo que escribe /admin sale en `eventos_lista`.
+if (typeof window !== 'undefined' && Array.isArray(window.__FAKE_EVENTOS__)) Object.defineProperty(T, 'eventos', { get: () => window.__FAKE_EVENTOS__, set: (v) => { window.__FAKE_EVENTOS__ = v }, enumerable: true, configurable: true })
+
 // Filas a medida en CUALQUIER tabla (tanda 891): `window.__FAKE_FILAS__ =
 // { conversations: [...], private_messages: [...] }`. Para las tablas que
 // no tienen gancho propio (los mensajes privados no lo tenían) y que una
@@ -2838,6 +2842,29 @@ export const supabase = {
       const d = typeof window !== 'undefined' ? window.__FAKE_CLASIFICACION__ : null
       const p = args.p_periodo === 'mes' ? 'mes' : 'semana'
       return d ? { data: { periodo: p, ...(d[p] || d) }, error: null } : { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.portada_clasificacion' } }
+    }
+    // Los eventos (1192): `window.__FAKE_EVENTOS__` (cada uno con `asistentes`:
+    // [{ user_id, oculto }]), o «no existe» como sin la migración.
+    if (nombre === 'eventos_lista' || nombre === 'evento_ficha' || nombre === 'evento_voy') {
+      const evs = typeof window !== 'undefined' ? window.__FAKE_EVENTOS__ : null
+      if (!evs) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
+      const yo = quienSoy === 'none' ? null : quienSoy
+      const json = (e, n) => {
+        const as = e.asistentes || []
+        const caras = as.filter((a) => !a.oculto).slice(0, n).map((a) => { const p = T.user_profiles.find((x) => x.id === a.user_id) || { id: a.user_id }; return { id: p.id, username: p.username, display_name: p.display_name, avatar_url: p.avatar_url || null } })
+        const mia = as.find((a) => a.user_id === yo)
+        const { asistentes, ...resto } = e
+        return { ...resto, van: as.length, caras, voy: !!mia, oculto: !!mia?.oculto }
+      }
+      const pub = evs.filter((e) => e.publicado !== false)
+      if (nombre === 'eventos_lista') return { data: pub.slice().sort((a, b) => new Date(a.empieza) - new Date(b.empieza)).map((e) => json(e, 5)), error: null }
+      if (nombre === 'evento_ficha') { const e = pub.find((x) => x.slug === args.p_slug); return { data: e ? json(e, 500) : null, error: null } }
+      if (!yo) return { data: null, error: { code: '42501', message: 'permission denied for function evento_voy' } }
+      const e = pub.find((x) => x.id === args.p_evento)
+      if (!e) return { data: null, error: { code: 'P0001', message: 'Ese evento no existe' } }
+      e.asistentes = (e.asistentes || []).filter((a) => a.user_id !== yo)
+      if (args.p_voy !== false) e.asistentes.push({ user_id: yo, oculto: !!args.p_oculto })
+      return { data: { voy: args.p_voy !== false, oculto: args.p_voy !== false && !!args.p_oculto, van: e.asistentes.length }, error: null }
     }
     // El panel de analítica (848): lo que diga la prueba, o «no existe».
     // El Resumen de la 1066: lo que diga la prueba, o «no existe» (sin la migración 1065).

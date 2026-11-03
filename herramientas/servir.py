@@ -19,6 +19,7 @@ REESCRITURAS = [
     (re.compile(r'^/evento/[^/]+$'), '/usuario.html'),
     (re.compile(r'^/feria$'), '/evento.html'),
     (re.compile(r'^/tema/[^/]+$'), '/tema.html'),
+    (re.compile(r'^/eventos/[^/]+$'), '/eventos.html'),
     (re.compile(r'^/foro/[^/]+$'), '/foro.html'),
     (re.compile(r'^/noticias/[^/]+$'), '/guia.html'),
     (re.compile(r'^/guia/[^/]+$'), '/guia.html'),
