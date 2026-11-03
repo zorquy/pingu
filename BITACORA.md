@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (438) — PINGU-Claude (1193 — eventos: Trade night, días con horario y varias entradas)
+
+**Hecho**: PINGU, tras meter el primer card show:
+- Tipo **Trade night** (al lado del Trade day).
+- **Cuándo**: fuera «Empieza» y «Acaba». Ahora es un calendario donde se tocan
+  los días (seguidos o no) y al lado el horario: el mismo para todos («Mismo
+  horario todos los días») o uno por día. Se guarda en `horario`; `empieza` y
+  `termina` se siguen escribiendo con el primer y el último día.
+- **Entradas**: una lista (nombre, precio, nota) con «+ Añadir entrada» y la
+  ✕ para quitar. Se guarda en `entradas`, y el resumen en `entrada`.
+- La ficha pública ya enseña las entradas una a una y, si el horario cambia
+  de un día a otro, cada día con su hora. En la agenda, «7–8» si dura dos días.
+- Un evento de antes (como el card show de PINGU) se abre con sus días
+  marcados y su entrada de texto pasada a una fila.
+
+**Ficheros**: `supabase-migration-1193-eventos-dias-entradas.sql`,
+`js/eventos-puro.js`, `admin/js/eventos-admin.js`, `admin/css/admin.css`,
+`js/eventos.js`, `css/eventos.css`, `SCHEMA.md`, `novedades.json`. En
+`pruebas`: `test-tanda-1193.mjs` (lo puro y la migración contra PostgreSQL,
+sentencia a sentencia y encima de un evento ya dentro),
+`test-tanda-1193-pantalla.mjs` y la 1192-pantalla al calendario.
+
+**Pruebas**: verdes imports, 1193, 1193-pantalla, 1192-pantalla y 299.
+
+**Pendiente**: **PINGU tiene que ejecutar
+`supabase-migration-1193-eventos-dias-entradas.sql`**. Hasta entonces /admin
+lo avisa arriba del formulario, guarda el primer y el último día y las
+entradas como texto, y «Trade night» no se deja guardar. La propuesta visual
+(tarjetas grandes en la agenda y la ficha) va aparte, con imágenes.
+
 ## 2026-11-03 (437) — PINGU-Claude (1192 — Eventos: la agenda, primera tanda)
 
 **Hecho**: PINGU aprobó la propuesta de eventos con todo lo recomendado

@@ -14,7 +14,7 @@ import { avatarStyle, getInitial, getSession, profileUrl } from './app.js'
 import { icons } from './icons.js'
 import { sinMigracion } from './sin-migracion.js'
 import { showToast } from './toast.js'
-import { TIPOS, MESES, cuandoEs, fechaLarga, siglasDe, filtrar, separar, webSegura, instagramDe, mapaDe, vanTexto } from './eventos-puro.js'
+import { TIPOS, MESES, cuandoEs, fechaLarga, siglasDe, filtrar, separar, webSegura, instagramDe, mapaDe, vanTexto, horarioDe, mismoHorario, diasConHora, entradasDe, precioTexto } from './eventos-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const ic = (n, t = 16) => icons[n]?.(t) || ''
@@ -43,6 +43,14 @@ function voyHtml(e, sesion, { pasado = false } = {}) {
   return `<button type="button" class="${e.voy ? 'btn-primary' : 'btn-secondary'} ev-voy" data-voy="${escapeHtml(e.id)}" aria-pressed="${e.voy ? 'true' : 'false'}">${e.voy ? `${ic('checkCircle', 16)} Voy` : 'Voy'}</button>`
 }
 
+// «7» o, si dura varios días del mismo mes, «7–8» (1193).
+function diasDeFila(e, d) {
+  const h = horarioDe(e)
+  if (h.length < 2) return String(d.getDate())
+  const [a, b] = [h[0].dia, h[h.length - 1].dia]
+  return a.slice(0, 7) === b.slice(0, 7) ? `${Number(a.slice(8))}–${Number(b.slice(8))}` : String(d.getDate())
+}
+
 function filaHtml(e, sesion, ahora) {
   const d = new Date(e.empieza)
   const pasado = new Date(e.termina || e.empieza) < new Date(ahora).setHours(0, 0, 0, 0)
@@ -51,7 +59,7 @@ function filaHtml(e, sesion, ahora) {
   const caras = (e.caras || []).slice(0, 3)
   return `<li class="ev-fila${pasado ? ' pasado' : ''}" data-ev="${escapeHtml(e.slug)}">
     <a class="ev-enlace" href="${rutaDe(e)}">
-      <span class="ev-fecha"><b>${d.getDate()}</b><small>${MESES[d.getMonth()]}</small></span>
+      <span class="ev-fecha"><b>${escapeHtml(diasDeFila(e, d))}</b><small>${MESES[d.getMonth()]}</small></span>
       ${logoHtml(e)}
       <span class="ev-cuerpo">
         <strong>${escapeHtml(e.nombre)}</strong>
@@ -154,6 +162,7 @@ async function pintarFicha(slug, sesion) {
   const insta = instagramDe(e.instagram)
   const mapa = mapaDe(e)
   const tcgmap = webSegura(e.tcgmap_url)
+  const entradas = entradasDe(e)
   const pintar = () => {
     const visibles = e.caras || []
     const ocultos = Math.max(0, (e.van || 0) - visibles.length)
@@ -182,9 +191,9 @@ async function pintarFicha(slug, sesion) {
         <section class="ev-caja" aria-labelledby="evQuienT"><h2 id="evQuienT">Quién va de PokeDoc</h2>${quien}</section>
         <section class="ev-caja" aria-labelledby="evSobreT">
           <h2 id="evSobreT">Sobre el evento</h2>
-          ${fila('calendar', 'Cuándo', escapeHtml(fechaLarga(e)))}
+          ${fila('calendar', 'Cuándo', escapeHtml(fechaLarga(e)) + (mismoHorario(horarioDe(e)) ? '' : `<ul class="ev-dias">${diasConHora(e).map((d) => `<li>${escapeHtml(d.texto)} <span>${escapeHtml(d.horas)}</span></li>`).join('')}</ul>`))}
           ${fila('pin', 'Dónde', `${escapeHtml([e.sitio, e.direccion, e.ciudad, e.provincia && e.provincia !== e.ciudad ? e.provincia : ''].filter(Boolean).join(', '))}${mapa ? ` · <a href="${escapeHtml(mapa)}" target="_blank" rel="noopener">Ver en el mapa</a>` : ''}`)}
-          ${fila('receipt', 'Entrada', escapeHtml(e.entrada || ''))}
+          ${entradas.length ? fila('receipt', entradas.length > 1 ? 'Entradas' : 'Entrada', `<ul class="ev-entradas">${entradas.map((x) => `<li><span>${escapeHtml(x.nombre)}${x.nota ? `<small>${escapeHtml(x.nota)}</small>` : ''}</span><b>${escapeHtml(precioTexto(x.precio) || 'Consultar')}</b></li>`).join('')}</ul>`) : fila('receipt', 'Entrada', escapeHtml(e.entrada || ''))}
           ${fila('cards', 'Juegos', escapeHtml(e.juegos || ''))}
           ${e.descripcion ? `<p class="ev-desc">${escapeHtml(e.descripcion)}</p>` : ''}
           <div class="ev-enlaces">

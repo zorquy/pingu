@@ -53013,3 +53013,29 @@ imagen para redes) queda para cuando la pida.
   tres funciones, y la tabla `eventos` ES esa lista (un `defineProperty`), así
   lo que escribe /admin sale en la agenda. Prueba de pantalla:
   `test-tanda-1192-pantalla.mjs`.
+
+## Tanda 1193 — Eventos: Trade night, días con horario y varias entradas
+
+PINGU, con el primer card show dentro: «este son el día 7 y 8 de noviembre, de
+10 a 8, ambos días» y «tienen la entrada normal, la VIP… a distintos precios».
+
+- **Migración** (`supabase-migration-1193-eventos-dias-entradas.sql`):
+  `tipo` admite `trade_night`; `horario` jsonb (`[{dia, desde, hasta}]`, hasta
+  31) y `entradas` jsonb (`[{nombre, precio, nota}]`, hasta 12), las dos `'[]'`
+  por defecto. Las funciones de la 1192 no cambian: `evento_json` es
+  `to_jsonb(e)`, así que las columnas llegan solas. `empieza`/`termina` se
+  siguen guardando (los escribe /admin con `extremosDeHorario`): ordenar, lo
+  pasado y la portada salen de ahí. Cada sentencia vale sola (la 631).
+- **Lo puro** (`js/eventos-puro.js`): `horarioDe(e)` da los días (de `horario`
+  o, para los de antes, cada día entre `empieza` y `termina` con sus horas);
+  `fechaLarga` dice «Sábado 7 y domingo 8 de noviembre · 10:00 – 20:00», «Del
+  6 al 8…» o «7 y 14 de noviembre», con la hora solo si es la misma
+  (`mismoHorario`); `diasConHora` la pone día a día. `entradasDe`,
+  `precioTexto` (0 = «Gratis», sin precio = «Consultar» en la ficha),
+  `resumenEntradas` (lo que va en `entrada`) y `desdePrecio`.
+- **/admin**: calendario propio (lunes primero, tocar marca y desmarca, pasar
+  de mes) con el horario al lado; al quitar «Mismo horario» cada día empieza
+  con el común. Entradas en filas (`leerEntradas` antes de repintar, o se
+  pierde lo escrito). Un evento de antes se abre con sus días y su `entrada`
+  de texto convertida en una fila. Sin la migración (se pregunta una vez por
+  `horario, entradas`), avisa y guarda sin esas columnas.

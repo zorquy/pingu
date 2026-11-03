@@ -55,8 +55,8 @@
   display: grid;
   flex-shrink: 0;
   place-items: center;
-  width: 48px;
-  padding: var(--e-xs) 0;
+  min-width: 48px;
+  padding: var(--e-xs) var(--e-xs);
   border-radius: var(--radius-md);
   background: var(--ice);
   line-height: 1.1;
@@ -346,3 +346,24 @@
   .ev-cab h1 { font-size: var(--t-xl); }
   .ev-caja { padding: var(--e-lg); }
 }
+
+/* 1193: las entradas una a una y los días con su hora. */
+.ev-entradas,
+.ev-dias {
+  display: grid;
+  gap: var(--e-xs);
+  margin: var(--e-xs) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ev-entradas li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--e-md);
+}
+
+.ev-entradas li span { display: grid; }
+.ev-entradas small { color: var(--text-dim); font-size: var(--t-xs); }
+.ev-entradas b { color: var(--text); white-space: nowrap; }
+.ev-dias span { color: var(--text); }

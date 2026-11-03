@@ -1384,3 +1384,36 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
   .evadm-fila { flex-wrap: wrap; }
   .evadm-cuerpo { flex-basis: calc(100% - 64px); }
 }
+/* 1193: los días en un calendario, su horario y las entradas una a una */
+.evadm-grupo { display: grid; gap: var(--e-sm); min-width: 0; margin: 0; padding: 0; border: 0; }
+.evadm-cuando { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: var(--e-lg); align-items: start; }
+.evadm-cal { padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
+.evadm-cal-cab { display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--e-sm); }
+.evadm-cal-cab b { font-family: var(--font-display); }
+.evadm-cal-flecha { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: 50%; background: var(--ice); color: var(--text); cursor: pointer; }
+.evadm-cal-rejilla { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
+.evadm-cal-sem { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; }
+.evadm-cal-dia { aspect-ratio: 1; min-height: 36px; border: 1px solid transparent; border-radius: var(--radius-md); background: transparent; color: var(--text); font: inherit; font-size: var(--t-sm); cursor: pointer; }
+.evadm-cal-dia:hover { background: var(--ice); }
+.evadm-cal-dia.hoy { border-color: var(--border-strong); }
+.evadm-cal-dia[aria-pressed='true'] { background: var(--acento); color: var(--acento-texto); font-weight: 700; }
+.evadm-horas { display: grid; gap: var(--e-sm); align-content: start; min-width: 0; }
+.evadm-resumen { margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
+.evadm-hora-fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm) var(--e-md); }
+.evadm-hora-fila > span:first-child { min-width: 112px; color: var(--text-mid); font-weight: 600; }
+.evadm-par { display: inline-flex; flex-wrap: wrap; gap: var(--e-sm); }
+.evadm-par label { display: inline-flex; align-items: center; gap: var(--e-xs); color: var(--text-mid); }
+.evadm-form input[type='time'], .evadm-form input[type='number'] { min-height: 44px; padding: 0 var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--white); color: var(--text); font: inherit; }
+.evadm-entradas { display: grid; gap: var(--e-sm); }
+.evadm-entrada { display: grid; grid-template-columns: minmax(0, 1fr) 120px minmax(0, 2fr) 44px; gap: var(--e-sm); align-items: center; }
+.evadm-precio { position: relative; display: block; }
+.evadm-precio input { width: 100%; padding-right: var(--e-xl); }
+.evadm-precio span { position: absolute; top: 50%; right: var(--e-md); transform: translateY(-50%); color: var(--text-mid); pointer-events: none; }
+.evadm-quitar { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: var(--ice); color: var(--text-mid); cursor: pointer; }
+.evadm-quitar:disabled { opacity: 0.4; cursor: default; }
+.evadm-entradas-pie { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-md); }
+@media (max-width: 700px) {
+  .evadm-cuando { grid-template-columns: 1fr; }
+  .evadm-entrada { grid-template-columns: minmax(0, 1fr) 104px 44px; }
+  .evadm-entrada [data-campo='nota'] { grid-column: 1 / -1; grid-row: 2; }
+}
