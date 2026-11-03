@@ -125,7 +125,8 @@ console.log('── 1. Con cuenta, en el ordenador ──')
   check('  …con su último mensaje citado y quién participa', /«Yo empezaría por una baraja de liga\.»/.test(await texto(p, '.pb-foro-ultimo')) && (await p.locator('.pb-foro-pie .pb-pila .pb-cara').count()) >= 2, await texto(p, '.pb-foro-ultimo'))
   check('  …cuánta gente ha escrito hoy', /\d+ personas escribiendo hoy/.test(foro))
   check('  …y los otros tres en filas, sin repetir el de arriba', (await p.locator('.pb-foro-fila').count()) === 3 && !(await p.$$eval('.pb-foro-fila b', (xs) => xs.some((x) => /Qué mazo me recomendáis/.test(x.textContent)))))
-  check('  …«Todo el foro» abajo (1188)', (await p.locator('#foroVivo .pb-pie-enlace a').getAttribute('href')) === '/foro')
+  // Desde la 1203 un botón por bloque: «Foro» arriba, y el de abajo se fue.
+  check('  …«Foro» arriba y sin «Todo el foro» abajo (1203)', (await p.locator('#foroVivo .pb-cab .ver-todo').getAttribute('href')) === '/foro' && (await p.locator('#foroVivo .pb-pie-enlace').count()) === 0)
 
   console.log('  · Guías nuevas')
   // Desde la 1188: las últimas guías como PORTADAS (sin temas de filtro, ni

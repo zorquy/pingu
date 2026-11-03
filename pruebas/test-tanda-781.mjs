@@ -27,7 +27,8 @@ check('SI5: el primario es el acento de la sección (el azul sólido con el blan
 const idx = leer('index.html')
 // Desde la 844 los «Ver todo» de la portada los pinta js/portada-bloques.js
 // (un solo `verTodo`, con su flecha), no index.html.
-const pb = leer('js/portada-bloques.js')
+// (el molde se mudó a js/pb-comun.js; se miran los dos)
+const pb = leer('js/portada-bloques.js') + leer('js/pb-comun.js')
 check('SI3: la portada dice «Ver todo» con su flecha, con un solo molde', /const verTodo = \(href, texto = 'Ver todo'\) => `<a class="ver-todo" href="\$\{href\}">\$\{texto\} <span class="ver-todo-flecha"/.test(pb) && (pb.match(/verTodo\(/g) || []).length >= 4)
 // Desde la 895 el Panel se pinta desde js/mi-coleccion/panel.js.
 check('  …y el foro, «Hoy» y el Panel también', /verTodo\('\/foro'/.test(pb) && /class="ver-todo"/.test(leer('js/hoy.js')) && /link-btn ver-todo/.test(leer('js/mi-coleccion/panel.js')))
