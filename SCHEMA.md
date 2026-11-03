@@ -52954,3 +52954,15 @@ derecha.
   que trae la hoja de la portada. `/retos#clasificacion` abre el historial y
   baja; lo usan la liga de al lado, la línea de la liga y el final de cada reto.
 
+## Tanda 1189 — El cuadro de escribir, abajo en el móvil
+
+`medirHilo` (js/mensajes.js) da al hilo el alto de lo que queda de pantalla.
+Desde la 891b medía contra `visualViewport.height` para que el teclado
+encogiera el hilo. Con la app instalada, iOS deja esa altura encogida después
+de cerrar el teclado, y una conversación corta salía con el cuadro de escribir
+a media pantalla (con historial largo no se notaba: el hueco quedaba fuera de
+la vista). Regla: la ventana visual cuenta solo si hay foco en un campo
+(`escribiendo()`); sin teclado, `max(innerHeight, visualViewport.height)`. Y se
+vuelve a medir en `focusout`, `pageshow` (la caché de atrás trae la medida
+vieja) y `visibilitychange`.
+

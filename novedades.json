@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-03",
+      "tipo": "arreglo",
+      "texto": "En el móvil, al abrir una conversación corta, el cuadro de escribir ya no se queda a media pantalla: va siempre abajo, junto a la barra.",
+      "enlace": "/mensajes.html"
+    },
+    {
+      "fecha": "2026-11-03",
       "tipo": "mejora",
       "texto": "Portada nueva, más visual: la noticia del día en grande con las siguientes al lado, lo más hablado del foro a la derecha, las guías nuevas con su portada y la gente nueva de la semana. La clasificación de los retos está ahora en Retos, dentro de «Tu historial».",
       "enlace": "/"

@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (434) — PINGU-Claude (1189 — el cuadro de escribir, abajo en el móvil)
+
+**Hecho**: PINGU, con captura de la app instalada: en una conversación corta
+el cuadro de escribir salía pegado a los mensajes, a media pantalla, con un
+hueco hasta la barra de abajo. El hilo se mide con `visualViewport.height`
+(891b) y con la app instalada iOS la deja encogida con el alto del teclado
+después de cerrarlo (venía de escribir una contraoferta). Ahora
+`medirHilo` usa la ventana visual SOLO si se está escribiendo (foco en un
+campo); si no, el alto de la ventana. Y se vuelve a medir al soltar el foco,
+en `pageshow` y al volver a la pestaña. La 1189 simula la ventana encogida:
+sin el arreglo sale el hueco de la captura (273 px), con él, 8.
+
+**Ficheros**: `js/mensajes.js`, `SCHEMA.md` (1189), `novedades.json`; en
+`pruebas`, la 1189.
+
+**Pruebas**: verdes imports, 1101, 1102, 1103, 1140, 1141, 1146, 1184 y 1189.
+La 891 se para esperando el selector de fotos, igual sin este cambio.
+
+**Pendiente**: nada.
+
 ## 2026-11-03 (433) — PINGU-Claude (1188 — la portada en mosaico)
 
 **Hecho**: PINGU: «demasiada letra y poco visual». Tres portadas en imágenes

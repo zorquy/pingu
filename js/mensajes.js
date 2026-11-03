@@ -397,10 +397,19 @@ async function renderThread(session, conversationId) {
   const hilo = root.querySelector('.msg-hilo')
   const scroller = document.getElementById('msgScroll')
   document.body.classList.add('msg-hilo-abierto')
+  // La ventana VISUAL solo cuando se está escribiendo (1189): con la app
+  // instalada, iOS deja `visualViewport.height` encogida con el alto del
+  // teclado después de cerrarlo, y el hilo se quedaba a media pantalla con el
+  // cuadro de escribir pegado a los mensajes y un hueco debajo (PINGU, con
+  // captura). Sin teclado, manda el alto de la ventana de verdad.
+  const escribiendo = () => {
+    const a = document.activeElement
+    return !!a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && !/^(button|submit|checkbox|radio|file)$/.test(a.type)) || a.isContentEditable)
+  }
   function medirHilo() {
     const vv = window.visualViewport
-    const altoVentana = vv ? vv.height : window.innerHeight
-    const arriba = hilo.getBoundingClientRect().top + window.scrollY - (vv ? vv.offsetTop : 0)
+    const altoVentana = vv && escribiendo() ? vv.height : Math.max(window.innerHeight, vv ? vv.height : 0)
+    const arriba = hilo.getBoundingClientRect().top + window.scrollY - (vv && escribiendo() ? vv.offsetTop : 0)
     const barra = document.querySelector('body > .bm')
     let abajo = 0
     if (barra && getComputedStyle(barra).display !== 'none') {
@@ -420,6 +429,11 @@ async function renderThread(session, conversationId) {
   // antes de tiempo deja un hueco de 50 px entre el cuadro y la barra.
   new MutationObserver(() => { medirHilo(); bajarAlFinal() }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
   for (const ms of [250, 1000]) setTimeout(() => { medirHilo(); bajarAlFinal() }, ms)
+  // Al cerrar el teclado, al volver a la pestaña o al volver atrás (la página
+  // sale de la caché con la medida de antes), se mide otra vez.
+  document.addEventListener('focusout', () => setTimeout(medirHilo, 350))
+  window.addEventListener('pageshow', () => { medirHilo(); bajarAlFinal() })
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) medirHilo() })
 
   const cercaDelFinal = () => scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 160
   const bajarAlFinal = (suave = false) => {
