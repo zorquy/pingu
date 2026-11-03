@@ -222,3 +222,70 @@ export function horasDe(e) {
   const h = horarioDe(e)
   return mismoHorario(h) ? (h[0].desde ? `${h[0].desde}${h[0].hasta ? ` – ${h[0].hasta}` : ''}` : '') : ''
 }
+
+// ── Añadir al calendario (1197) ──
+// Un .ics con un VEVENT por día (cada uno con su horario; sin hora, el día
+// entero). Las horas van en UTC desde la hora de aquí: así lo entienden Google,
+// Apple y Outlook sin tener que mandar la zona horaria.
+const icsTexto = (t) => String(t || '').replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([,;])/g, '\\$1')
+const icsUtc = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+const icsDia = (dia) => dia.replace(/-/g, '')
+// Las líneas de más de 75 caracteres se doblan (la norma lo pide).
+const icsDoblar = (linea) => linea.match(/.{1,74}/g).join('\r\n ')
+
+export function icsDeEvento(e, url = '', ahora = new Date()) {
+  const dias = horarioDe(e)
+  const lugar = [e.sitio, e.direccion, e.ciudad].filter(Boolean).join(', ')
+  const desc = [e.descripcion, url].filter(Boolean).join('\n\n')
+  const lineas = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//PokeDoc//Eventos//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH']
+  for (const x of dias) {
+    lineas.push('BEGIN:VEVENT', `UID:${e.slug || e.id}-${icsDia(x.dia)}@pokedoc.es`, `DTSTAMP:${icsUtc(ahora)}`)
+    if (x.desde) {
+      const ini = fechaDeDia(x.dia, x.desde)
+      let fin = x.hasta ? fechaDeDia(x.dia, x.hasta) : new Date(ini.getTime() + 2 * 3600e3)
+      if (fin <= ini) fin = new Date(ini.getTime() + 2 * 3600e3)
+      lineas.push(`DTSTART:${icsUtc(ini)}`, `DTEND:${icsUtc(fin)}`)
+    } else {
+      const sig = fechaDeDia(x.dia)
+      sig.setDate(sig.getDate() + 1)
+      lineas.push(`DTSTART;VALUE=DATE:${icsDia(x.dia)}`, `DTEND;VALUE=DATE:${icsDia(diaDe(sig))}`)
+    }
+    lineas.push(`SUMMARY:${icsTexto(e.nombre)}`)
+    if (lugar) lineas.push(`LOCATION:${icsTexto(lugar)}`)
+    if (desc) lineas.push(`DESCRIPTION:${icsTexto(desc)}`)
+    if (url) lineas.push(`URL:${url}`)
+    lineas.push('END:VEVENT')
+  }
+  lineas.push('END:VCALENDAR')
+  return lineas.map(icsDoblar).join('\r\n') + '\r\n'
+}
+
+// ── El hilo del foro (1197) ──
+// El título del hilo: «Castellón Card Show · 7 y 8 de noviembre».
+export function tituloDeHilo(e) {
+  // Sin los nombres de los días: «Sábado 7 y domingo 8 de…» → «7 y 8 de…».
+  const f = fechaLarga(e).split(' · ')[0].replace(/^(Lunes|Martes|Miércoles|Jueves|Viernes|Sábado|Domingo),? /, '').replace(/ y (lunes|martes|miércoles|jueves|viernes|sábado|domingo) /, ' y ')
+  return `${e.nombre} · ${f.replace(/^Del /, 'del ')}`.slice(0, 150)
+}
+
+// El primer mensaje del hilo: lo que se lee y el enlace a la ficha (que el
+// foro pinta como la tarjeta del evento, js/foro-eventos.js).
+export function cuerpoDeHilo(e, escapar) {
+  const esc = escapar || ((t) => String(t ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]))
+  const ent = entradasDe(e)
+  const lugar = [e.sitio, e.direccion, e.ciudad].filter(Boolean).join(', ')
+  const partes = []
+  if (e.descripcion) partes.push(...String(e.descripcion).split(/\n{2,}/).map((p) => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`))
+  const datos = [
+    `<li><strong>Cuándo:</strong> ${esc(fechaLarga(e))}</li>`,
+    lugar ? `<li><strong>Dónde:</strong> ${esc(lugar)}</li>` : '',
+    ent.length ? `<li><strong>Entradas:</strong> ${esc(resumenEntradas(ent))}</li>` : e.entrada ? `<li><strong>Entrada:</strong> ${esc(e.entrada)}</li>` : '',
+  ].filter(Boolean).join('')
+  partes.push(`<ul>${datos}</ul>`)
+  partes.push('<p>¿Quién se viene? Contad qué vais a llevar para cambiar y quedamos allí.</p>')
+  // El enlace «a pelo» (el texto es la dirección): el foro lo convierte en la
+  // tarjeta del evento (js/enlaces-internos.js).
+  const url = `https://pokedoc.es/eventos/${encodeURIComponent(e.slug)}`
+  partes.push(`<p><a href="${url}">${url}</a></p>`)
+  return partes.join('')
+}

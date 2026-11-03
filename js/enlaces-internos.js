@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml } from './app.js'
 import { icons } from './icons.js'
+import { TIPOS, fechaLarga, siglasDe, vanTexto, webSegura } from './eventos-puro.js'
 
 // Los enlaces INTERNOS pegados "a pelo" en un mensaje o una guía se
 // convierten al leerlos en una tarjetita con el título real de la página
@@ -17,6 +18,9 @@ const RUTA_TEMA = /^\/tema\/([^/?#]+)/
 // Las guías viven en /guia?slug=… (y el slug limpio /guia/… que sirve la
 // edge function).
 const RUTA_GUIA = /^\/guia(?:\/([^/?#]+))?$/
+// Un evento de la agenda (1197): /eventos/<slug>, la tarjeta con su logo,
+// su fecha y cuántos van. Es lo que lleva el primer mensaje de su hilo.
+const RUTA_EVENTO = /^\/eventos\/([a-z0-9-]+)\/?$/
 
 function destinoInterno(href) {
   let url
@@ -29,6 +33,8 @@ function destinoInterno(href) {
   if (!propio) return null
   const tema = RUTA_TEMA.exec(url.pathname)
   if (tema) return { tipo: 'tema', clave: decodeURIComponent(tema[1]) }
+  const evento = RUTA_EVENTO.exec(url.pathname)
+  if (evento) return { tipo: 'evento', clave: evento[1] }
   const guia = RUTA_GUIA.exec(url.pathname)
   if (guia) {
     const slug = guia[1] || url.searchParams.get('slug')
@@ -44,7 +50,7 @@ function esEnlaceDesnudo(a) {
   if (!texto) return false
   const href = (a.getAttribute('href') || '').trim()
   if (texto === href) return true
-  if (!/^(https?:\/\/|\/tema\/|\/guia)/.test(texto)) return false
+  if (!/^(https?:\/\/|\/tema\/|\/guia|\/eventos\/)/.test(texto)) return false
   // La misma dirección aunque una vaya relativa y la otra absoluta, con
   // o sin protocolo o barra final.
   const pelar = (s) => {
@@ -120,7 +126,31 @@ export async function enriquecerEnlacesInternos(raiz) {
   const tituloDeTema = Object.fromEntries(temas.map((t) => [t.id, t.title]))
   const tituloDeGuia = Object.fromEntries(guias.map((g) => [g.slug, g.title]))
 
-  for (const { a, tipo, clave } of candidatos) {
+  // Los eventos, uno a uno por su ficha (son pocos: uno por hilo). Lo que no
+  // existe (borrado o sin publicar) lo dice; sin la migración, se queda igual.
+  const slugsEventos = [...new Set(candidatos.filter((c) => c.tipo === 'evento').map((c) => c.clave))]
+  const eventos = Object.fromEntries(await Promise.all(slugsEventos.map((slug) =>
+    supabase.rpc('evento_ficha', { p_slug: slug }).then(({ data, error }) => [slug, error ? undefined : data || null], () => [slug, undefined]))))
+  for (const { a, clave } of candidatos.filter((c) => c.tipo === 'evento')) {
+    const e = eventos[clave]
+    if (e === undefined) continue
+    a.classList.add('enlace-tarjeta')
+    if (!e) {
+      a.innerHTML = `<span class="et-icono" aria-hidden="true">${icons.calendar(16)}</span><span class="et-textos"><span class="et-titulo">Este evento ya no está en la agenda</span><span class="et-tipo">Eventos · PokeDoc</span></span>`
+      continue
+    }
+    const color = /^#[0-9a-f]{6}$/i.test(e.color || '') ? e.color : ''
+    const logo = webSegura(e.logo_url)
+    a.classList.add('enlace-evento')
+    a.innerHTML = `
+      <span class="et-icono et-evento"${color ? ` style="--ev-color:${color}"` : ''} aria-hidden="true">${logo ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<b>${escapeHtml(siglasDe(e))}</b></span>
+      <span class="et-textos">
+        <span class="et-titulo">${escapeHtml(e.nombre)}</span>
+        <span class="et-tipo">${escapeHtml([TIPOS[e.tipo] || 'Evento', fechaLarga(e), e.van ? vanTexto(e.van) : ''].filter(Boolean).join(' · '))}</span>
+      </span>`
+  }
+
+  for (const { a, tipo, clave } of candidatos.filter((c) => c.tipo !== 'evento')) {
     const titulo = tipo === 'tema' ? tituloDeTema[clave] : tituloDeGuia[clave]
     // Sin título (borrado, o sin permiso de verlo) el enlace se queda
     // como estaba: una tarjetita que dice "no sé qué es" es peor que nada.

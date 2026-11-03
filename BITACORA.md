@@ -4,6 +4,39 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (442) — PINGU-Claude (1197 — Voy en forma de entrada, atajos y el hilo del foro)
+
+**Hecho**: PINGU, «lo recomendado va» de «Voy, botones y foro»:
+- **«Voy» es una entrada**: muescas a los lados, en el color de la sección y
+  con un talón con cuántos van (sin talón si no va nadie). Ya marcado, «Vas»
+  en verde suave. En la ficha y, en pequeño, en las tarjetas de la agenda.
+- **Atajos** en la ficha: círculos de 44 px con la palabra debajo —
+  Compartir, Calendario, Cómo llegar, Foro · N y, si vas, Modo evento—.
+- **«Añadir al calendario»**: baja un .ics con un evento por día y su hora.
+- **«Cómo llegar»** en «Dónde»: tarjeta-enlace (icono, «Abrir en Google
+  Maps», flecha).
+- **El foro**: foro nuevo «Eventos y quedadas» en Comunidad detrás de
+  Anuncios (solo el equipo abre temas). Al publicar un evento desde /admin
+  (casilla marcada por defecto) se abre su hilo a tu nombre con el resumen y
+  el enlace a la ficha, que el foro pinta como la tarjeta del evento; al
+  editarlo, el primer mensaje se pone al día; si el evento se borra, la
+  tarjeta dice «Este evento ya no está en la agenda».
+
+**Ficheros**: `supabase-migration-1197-eventos-foro.sql`, `js/eventos.js`,
+`js/eventos-puro.js`, `css/eventos.css`, `admin/js/eventos-admin.js`,
+`js/enlaces-internos.js`, `css/components.css`, `CLAUDE.md`, `SCHEMA.md`,
+`novedades.json`. En `pruebas`: `test-tanda-1197-pantalla.mjs` (con la
+migración contra PostgreSQL).
+
+**Pruebas**: verdes imports, 299, 312, 1192, 1192-pantalla, 1193,
+1193-pantalla, 1194-pantalla, 1196-pantalla y 1197-pantalla. 311 y 315, solo
+los rojos de antes. Portada: 136,0 KB de 170.
+
+**Pendiente**: **PINGU tiene que ejecutar
+`supabase-migration-1197-eventos-foro.sql`** (crea el foro y `hilo_id`). El
+Castellón ya publicado no tiene hilo: abrirlo en /admin → Editar y Guardar
+(la casilla sale marcada en todo evento sin hilo) se lo abre.
+
 ## 2026-11-03 (441) — PINGU-Claude (1196 — eventos compactos: el color sale del logo)
 
 **Hecho**: PINGU, con el Castellón Card Show ya publicado: «demasiado grande,

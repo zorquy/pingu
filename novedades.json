@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-03",
+      "tipo": "nuevo",
+      "texto": "Cada evento tiene su hilo en el foro (Comunidad → Eventos y quedadas) para hablar de quién va y qué lleváis, y ya puedes añadirlo a tu calendario con un toque.",
+      "enlace": "/eventos"
+    },
+    {
+      "fecha": "2026-11-03",
       "tipo": "arreglo",
       "texto": "Ya salen en Productos las latas de Mega Forces (Mega Dragonite ex, Mega Darkrai ex…) y el resto de productos nuevos que no son de ninguna expansión.",
       "enlace": "/cartas?ver=productos"

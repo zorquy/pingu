@@ -272,11 +272,105 @@
 
 .ev-caras .ev-cara + .ev-cara { margin-left: calc(-1 * var(--e-sm)); }
 
+/* «Voy» es una entrada (1197): muescas a los lados (una máscara) y un talón
+   troquelado con cuántos van, en el color de la sección; ya marcado, en
+   verde suave. Los colores son tokens: en oscuro el rosa es claro y el texto
+   oscuro (`--acento-texto`). */
 .ev-voy {
+  position: relative;
+  display: inline-flex;
   flex-shrink: 0;
-  min-width: 72px;
-  min-height: 40px;
+  align-items: stretch;
+  min-height: 48px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--acento), color-mix(in srgb, var(--acento) 78%, var(--blanco-fijo)));
+  box-shadow: 0 6px 18px color-mix(in srgb, var(--acento) 35%, transparent);
+  color: var(--acento-texto);
+  font: inherit;
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  cursor: pointer;
+  transition: transform 0.15s var(--ease);
+  -webkit-mask: radial-gradient(circle 7px at 0 50%, transparent 6.5px, #000 7px) left / 51% 100% no-repeat, radial-gradient(circle 7px at 100% 50%, transparent 6.5px, #000 7px) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle 7px at 0 50%, transparent 6.5px, #000 7px) left / 51% 100% no-repeat, radial-gradient(circle 7px at 100% 50%, transparent 6.5px, #000 7px) right / 51% 100% no-repeat;
 }
+
+.ev-voy:hover { transform: translateY(-1px) rotate(-1deg); color: var(--acento-texto); }
+
+.ev-voy-cuerpo {
+  display: inline-flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-sm);
+  padding: 0 var(--e-lg);
+}
+
+.ev-voy-talon {
+  display: grid;
+  place-items: center;
+  min-width: 40px;
+  padding: 0 var(--e-md) 0 var(--e-sm);
+  border-left: 2px dashed color-mix(in srgb, var(--acento-texto) 45%, transparent);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+}
+
+.ev-voy[aria-pressed='true'] {
+  background: var(--success-bg);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--success) 50%, transparent);
+  color: var(--success);
+}
+
+.ev-voy[aria-pressed='true'] .ev-voy-talon { border-left-color: color-mix(in srgb, var(--success) 45%, transparent); }
+
+.ev-voy.peq { min-height: 40px; font-size: var(--t-sm); }
+.ev-voy.peq .ev-voy-cuerpo { padding: 0 var(--e-md); }
+.ev-voy.peq .ev-voy-talon { min-width: 32px; padding: 0 var(--e-sm); }
+
+/* Los atajos de la ficha: círculos de 44 con la palabra debajo. */
+.ev-atajos {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--e-sm);
+}
+
+.ev-atajo {
+  display: grid;
+  justify-items: center;
+  gap: var(--e-xs);
+  min-width: 56px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.ev-atajo-ic {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text);
+  transition: background 0.15s var(--ease), color 0.15s var(--ease);
+}
+
+.ev-atajo:hover { color: var(--text); }
+.ev-atajo:hover .ev-atajo-ic { background: color-mix(in srgb, var(--acento) 16%, var(--ice)); color: var(--acento); }
 
 .ev-desde + .ev-voy { margin-left: 0; }
 .ev-van + .ev-voy { margin-left: auto; }
@@ -419,6 +513,7 @@
 
 .ev-acciones {
   grid-area: acciones;
+  width: 272px;
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -651,11 +746,43 @@
   box-shadow: var(--shadow-md);
 }
 
+/* «Cómo llegar», tarjeta-enlace (1197): el icono en su cuadrito, lo que hace
+   y la flecha. */
 .ev-llegar {
-  justify-self: start;
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: var(--e-xs);
+  gap: var(--e-md);
+  width: 100%;
+  min-height: 52px;
+  padding: var(--e-xs) var(--e-md) var(--e-xs) var(--e-xs);
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+  transition: background 0.15s var(--ease);
+}
+
+.ev-llegar:hover { background: color-mix(in srgb, var(--acento) 10%, var(--ice)); color: var(--text); }
+
+.ev-llegar > svg { margin-left: auto; color: var(--text-dim); }
+
+.ev-llegar small {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 400;
+}
+
+.ev-llegar-ic {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--acento) 16%, var(--ice));
+  color: var(--acento);
 }
 
 /* ── El móvil: un cartel a lo ancho y la cabecera en una columna ── */
@@ -692,15 +819,21 @@
   .ev-cab h1 { font-size: var(--t-2xl); }
 
   .ev-acciones {
-    flex-direction: row;
-    flex-wrap: wrap;
+    width: auto;
     padding-top: 0;
   }
+
+  .ev-atajos { justify-content: space-around; }
 
   .ev-caja { padding: var(--e-lg); }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ev-tarjeta { transition: none; }
-  .ev-tarjeta:hover { transform: none; }
+  .ev-tarjeta,
+  .ev-voy,
+  .ev-atajo-ic,
+  .ev-llegar { transition: none; }
+
+  .ev-tarjeta:hover,
+  .ev-voy:hover { transform: none; }
 }

@@ -18,7 +18,7 @@ import { sinMigracion } from './sin-migracion.js'
 import { showToast } from './toast.js'
 import {
   TIPOS, fechaLarga, siglasDe, filtrar, separar, webSegura, instagramDe, mapaDe, vanTexto,
-  horarioDe, mismoHorario, fechaDeDia, entradasDe, precioTexto, desdePrecio, pastillaDe, cuentaAtras, mesDe, esEntradaVip, horasDe,
+  horarioDe, mismoHorario, icsDeEvento, fechaDeDia, entradasDe, precioTexto, desdePrecio, pastillaDe, cuentaAtras, mesDe, esEntradaVip, horasDe,
 } from './eventos-puro.js'
 
 const $ = (id) => document.getElementById(id)
@@ -67,10 +67,30 @@ function cartelHtml(e, { ahora = new Date(), conPastilla = true, conTipo = true,
 
 const caraHtml = (p, t = 24) => `<span class="ev-cara" style="width:${t}px;height:${t}px;${avatarStyle(p)}" title="${escapeHtml(nombre(p))}" aria-hidden="true">${p?.avatar_url ? '' : escapeHtml(getInitial(nombre(p)))}</span>`
 
-function voyHtml(e, sesion, { pasado = false } = {}) {
+// «Voy» es una ENTRADA (1197, PINGU eligió la 2 de «Botones del Voy»): con
+// muescas a los lados y un talón con cuántos van. Ya marcado, «Vas» en verde.
+function voyHtml(e, sesion, { pasado = false, peq = false } = {}) {
   if (pasado) return ''
-  if (!sesion) return `<a class="btn-secondary ev-voy" href="/auth.html?registro=1&volver=${encodeURIComponent(rutaDe(e))}">Voy</a>`
-  return `<button type="button" class="${e.voy ? 'btn-primary' : 'btn-secondary'} ev-voy" data-voy="${escapeHtml(e.id)}" aria-pressed="${e.voy ? 'true' : 'false'}">${e.voy ? `${ic('checkCircle', 16)} Voy` : 'Voy'}</button>`
+  const clase = `ev-voy${peq ? ' peq' : ''}`
+  // Sin nadie todavía, sin talón: un «0» no anima a nadie.
+  const talon = e.van ? `<span class="ev-voy-talon" aria-label="${escapeHtml(vanTexto(e.van))}">${e.van}</span>` : ''
+  if (!sesion) return `<a class="${clase}" href="/auth.html?registro=1&volver=${encodeURIComponent(rutaDe(e))}"><span class="ev-voy-cuerpo">¡Voy!</span>${talon}</a>`
+  return `<button type="button" class="${clase}" data-voy="${escapeHtml(e.id)}" aria-pressed="${e.voy ? 'true' : 'false'}"><span class="ev-voy-cuerpo">${e.voy ? `${ic('checkCircle', 16)} Vas` : '¡Voy!'}</span>${talon}</button>`
+}
+
+// Los atajos de la ficha (1197): círculos con la palabra debajo, como en una app.
+const atajo = (icono, texto, attrs) => `<${attrs.href ? 'a' : 'button type="button"'} class="ev-atajo" ${Object.entries(attrs).map(([k, v]) => `${k}="${escapeHtml(v)}"`).join(' ')}><span class="ev-atajo-ic">${ic(icono, 20)}</span><span>${escapeHtml(texto)}</span></${attrs.href ? 'a' : 'button'}>`
+
+// El .ics del evento, para el calendario del móvil.
+function descargarCalendario(e) {
+  const blob = new Blob([icsDeEvento(e, `${location.origin}${rutaDe(e)}`)], { type: 'text/calendar;charset=utf-8' })
+  const a = document.createElement('a')
+  a.href = URL.createObjectURL(blob)
+  a.download = `${e.slug || 'evento'}.ics`
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000)
 }
 
 // ── La agenda: un cartel por evento ──
@@ -88,7 +108,7 @@ function tarjetaHtml(e, sesion, ahora) {
     <div class="ev-tarjeta-pie">
       <span class="ev-van">${caras.length ? `<span class="ev-caras">${caras.map((p) => caraHtml(p, 22)).join('')}</span>` : ''}<span data-van>${e.van ? escapeHtml(vanTexto(e.van, pasado)) : pasado ? '' : 'Sé el primero'}</span></span>
       ${desde ? `<span class="ev-desde">${escapeHtml(desde)}</span>` : ''}
-      ${voyHtml(e, sesion, { pasado })}
+      ${voyHtml(e, sesion, { pasado, peq: true })}
     </div>
   </li>`
 }
@@ -214,6 +234,13 @@ async function pintarFicha(slug, sesion) {
   const tcgmap = webSegura(e.tcgmap_url)
   const entradas = entradasDe(e)
   const dias = horarioDe(e)
+  // Los mensajes del hilo del foro (1197), si tiene: se piden aparte y
+  // repintan; sin la migración no hay `hilo_id` y no se pide nada.
+  let mensajes = null
+  if (e.hilo_id) {
+    supabase.from('forum_threads').select('post_count').eq('id', e.hilo_id).maybeSingle()
+      .then(({ data: h }) => { if (h) { mensajes = h.post_count || 0; pintar() } }).catch(() => {})
+  }
   const pintar = () => {
     const visibles = e.caras || []
     const ocultos = Math.max(0, (e.van || 0) - visibles.length)
@@ -244,8 +271,13 @@ async function pintarFicha(slug, sesion) {
         <div class="ev-acciones">
           ${voyHtml(e, sesion, { pasado })}
           ${sesion && e.voy && !pasado ? `<label class="ev-oculto"><input type="checkbox" id="evOculto"${e.oculto ? ' checked' : ''}> Ir sin decirlo</label>` : ''}
-          <button type="button" class="btn-secondary" id="evCompartir">${ic('share', 16)} Compartir</button>
-          ${e.voy && !pasado ? `<a class="btn-secondary" href="/evento">${ic('cards', 16)} Abrir mi modo evento</a>` : ''}
+          <div class="ev-atajos">
+            ${atajo('share', 'Compartir', { id: 'evCompartir' })}
+            ${!pasado && dias.length ? atajo('calendar', 'Calendario', { id: 'evCalendario', 'aria-label': 'Añadir al calendario' }) : ''}
+            ${mapa ? atajo('pin', 'Cómo llegar', { href: mapa, target: '_blank', rel: 'noopener' }) : ''}
+            ${e.hilo_id ? atajo('messageSquare', mensajes ? `Foro · ${mensajes}` : 'Foro', { href: `/tema/${e.hilo_id}`, id: 'evForo' }) : ''}
+            ${e.voy && !pasado ? atajo('cards', 'Modo evento', { href: '/evento', 'aria-label': 'Abrir mi modo evento' }) : ''}
+          </div>
         </div>
       </header>
       <div class="ev-rejilla">
@@ -259,7 +291,7 @@ async function pintarFicha(slug, sesion) {
           <div class="ev-donde-texto">
             <h2 id="evDondeT">Dónde</h2>
             <p class="ev-desc">${escapeHtml([e.sitio, e.direccion, e.ciudad].filter(Boolean).join(', '))}</p>
-            <a class="btn-secondary ev-llegar" href="${escapeHtml(mapa)}" target="_blank" rel="noopener">${ic('pin', 16)} Cómo llegar</a>
+            <a class="ev-llegar" href="${escapeHtml(mapa)}" target="_blank" rel="noopener"><span class="ev-llegar-ic">${ic('pin', 20)}</span><span>Cómo llegar<small>Abrir en Google Maps</small></span>${ic('chevronRight', 18)}</a>
           </div>
         </section>` : ''}
       </div>`
@@ -273,6 +305,7 @@ async function pintarFicha(slug, sesion) {
   }
   caja.addEventListener('click', async (ev) => {
     if (ev.target.closest('[data-voy]')) await alternarVoy(e, !e.voy, false, pintar, alDia)
+    if (ev.target.closest('#evCalendario')) { descargarCalendario(e); return }
     if (ev.target.closest('#evCompartir')) {
       const url = `${location.origin}${rutaDe(e)}`
       try {

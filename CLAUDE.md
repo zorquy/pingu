@@ -1694,6 +1694,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   la mascota de la 404, el buscador relleno con la dirección y las parecidas), y
   un error de la base que no sea «sin fila» por `pintarSinRespuesta`, que no es
   lo mismo (la 510). Una ficha nueva que pueda no existir hace igual.
+- **Los eventos de la agenda (/eventos, 1192–1197) los da de alta el equipo
+  en /admin → Eventos** y lo puro vive en `js/eventos-puro.js` (días con su
+  horario en `horario`, entradas en `entradas`, el .ics, el título y el primer
+  mensaje del hilo). Al publicar uno se abre su hilo en el foro «Eventos y
+  quedadas» (slug `eventos`, solo el equipo abre temas) y se apunta en
+  `eventos.hilo_id`; editar el evento pone al día el primer mensaje, que lleva
+  el enlace «a pelo» a la ficha y el foro lo pinta como su tarjeta
+  (`js/enlaces-internos.js`). «Voy» es una entrada (`voyHtml`), y la franja de
+  arriba sale del logo difuminado (`.ev-ambiente`), no de un cartel que casi
+  nunca habrá.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

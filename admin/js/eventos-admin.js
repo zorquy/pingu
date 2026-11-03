@@ -17,7 +17,7 @@ import { showToast } from '../../js/toast.js'
 import { sinMigracion } from '../../js/sin-migracion.js'
 import {
   TIPOS, MESES, slugDeEvento, siglasDe, webSegura, horarioDe, mismoHorario, extremosDeHorario,
-  fechaLarga, diaDe, fechaDeDia, entradasDe, resumenEntradas,
+  fechaLarga, diaDe, fechaDeDia, entradasDe, resumenEntradas, tituloDeHilo, cuerpoDeHilo,
 } from '../../js/eventos-puro.js'
 
 const CAMPOS = ['nombre', 'tipo', 'sitio', 'direccion', 'ciudad', 'provincia', 'juegos', 'descripcion', 'web', 'instagram', 'tcgmap_url', 'logo_url', 'siglas', 'color']
@@ -32,6 +32,8 @@ let editando = null
 // una vez al abrir.
 let con1193 = true
 let con1194 = true
+// 1197: el hilo del foro de cada evento (`hilo_id` y el foro «eventos»).
+let con1197 = true
 // Lo que se está editando de los días y las entradas (el resto vive en los campos).
 let borr = null
 
@@ -48,6 +50,8 @@ async function cargar() {
   con1193 = !sinCols
   const { error: sinCartel } = await supabase.from('eventos').select('id, cartel_url').limit(1)
   con1194 = !sinCartel
+  const { error: sinHilo } = await supabase.from('eventos').select('id, hilo_id').limit(1)
+  con1197 = !sinHilo
   pintar()
 }
 
@@ -200,6 +204,9 @@ function formHtml(e) {
       </div>
     </div>
     <label class="av-interruptor"><input type="checkbox" id="evf-publicado" ${e?.publicado === false ? '' : 'checked'}> <span>Publicado (sale en la agenda)</span></label>
+    ${!con1197 ? '<p class="av-nota">Para abrir el hilo del foro de cada evento, ejecuta <code>supabase-migration-1197-eventos-foro.sql</code>.</p>'
+      : e?.hilo_id ? `<p class="av-nota">Tiene su hilo en el foro: <a href="/tema/${escapeHtml(e.hilo_id)}" target="_blank" rel="noopener">verlo</a>. Al guardar, su primer mensaje se pone al día.</p>`
+        : '<label class="av-interruptor"><input type="checkbox" id="evf-hilo" checked> <span>Abrir el hilo en el foro<small class="av-nota"> · en Comunidad → Eventos y quedadas, a tu nombre</small></span></label>'}
     <p class="av-nota av-mal" id="evfError" role="alert"></p>
     <div class="av-acciones">
       <button type="submit" class="btn-primary" id="evfGuardar">${e?.id ? 'Guardar' : 'Publicar el evento'}</button>
@@ -309,7 +316,7 @@ async function guardar() {
   const consulta = editando.id
     ? supabase.from('eventos').update(fila).eq('id', editando.id).select().single()
     : supabase.from('eventos').insert({ ...fila, creado_por: (await getSession())?.user?.id || null }).select().single()
-  const { error } = await consulta
+  const { data: guardado, error } = await consulta
   boton.disabled = false
   if (error) {
     const m = error.message || ''
@@ -318,9 +325,38 @@ async function guardar() {
         : `No se ha podido guardar: ${m}`
     return
   }
+  const quiereHilo = !!raiz.querySelector('#evf-hilo')?.checked
   showToast(editando.id ? 'Evento guardado.' : 'Evento publicado.', 'success')
+  if (con1197 && guardado && guardado.publicado !== false) await ponerHilo(guardado, quiereHilo)
   abrirFormulario(null)
   await cargar()
+}
+
+// El hilo del foro del evento (1197): si ya lo tiene, se pone al día (título
+// y primer mensaje); si no y se ha pedido, se abre en «Eventos y quedadas»
+// con el primer mensaje, y se apunta en el evento. Un hilo sin primer mensaje
+// no sirve: si el mensaje falla, el hilo se borra (como en los torneos).
+async function ponerHilo(e, quiereHilo) {
+  const yo = (await getSession())?.user?.id
+  if (!yo) return
+  if (e.hilo_id) {
+    await supabase.from('forum_threads').update({ title: tituloDeHilo(e) }).eq('id', e.hilo_id)
+    const { data: primero } = await supabase.from('forum_posts').select('id').eq('thread_id', e.hilo_id).order('created_at', { ascending: true }).limit(1).maybeSingle()
+    if (primero) await supabase.from('forum_posts').update({ body_html: cuerpoDeHilo(e, escapeHtml), edited_at: new Date().toISOString() }).eq('id', primero.id)
+    return
+  }
+  if (!quiereHilo) return
+  const { data: foro } = await supabase.from('forum_boards').select('id').eq('slug', 'eventos').maybeSingle()
+  if (!foro) return showToast('No está el foro «Eventos y quedadas» (supabase-migration-1197-eventos-foro.sql): el evento se ha guardado sin hilo.')
+  const { data: hilo, error } = await supabase.from('forum_threads').insert({ board_id: foro.id, author_id: yo, title: tituloDeHilo(e), prefix: TIPOS[e.tipo] || 'Evento' }).select('id').single()
+  if (error || !hilo) return showToast(`El evento se ha guardado, pero no se ha podido abrir su hilo: ${error?.message || ''}`)
+  const { error: errMsg } = await supabase.from('forum_posts').insert({ thread_id: hilo.id, author_id: yo, body_html: cuerpoDeHilo(e, escapeHtml) })
+  if (errMsg) {
+    await supabase.from('forum_threads').delete().eq('id', hilo.id)
+    return showToast(`El evento se ha guardado, pero no se ha podido escribir en su hilo: ${errMsg.message || ''}`)
+  }
+  await supabase.from('eventos').update({ hilo_id: hilo.id }).eq('id', e.id)
+  showToast('Y su hilo ya está en el foro.', 'success')
 }
 
 export async function montarEventos(panel) {

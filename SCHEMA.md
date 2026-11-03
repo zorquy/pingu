@@ -53111,3 +53111,33 @@ la A de «Eventos más compactos».
   debajo. Sin entradas, el lado ocupa la fila entera.
 - «Cuándo» sale solo con `!mismoHorario(dias)`: con el mismo horario, la
   cabecera ya dice «Sábado 7 y domingo 8 de noviembre · 10:00 – 20:00».
+
+## Tanda 1197 — «Voy» en forma de entrada, los atajos y el hilo del foro
+
+PINGU: «el botón de voy… algo que incite más a clicarlo… compartir y cómo
+llegar, con otro estilo más moderno», y «desde el panel de admin yo creo un
+hilo en el foro… un botón para ir al hilo». Eligió lo recomendado.
+
+- **`.ev-voy`** (`voyHtml`): un botón con `mask` de dos radiales (las muescas)
+  y un talón (`.ev-voy-talon`, borde discontinuo) con cuántos van; sin nadie,
+  sin talón. Colores por token (`--acento` / `--acento-texto`: en oscuro el
+  rosa es claro y el texto oscuro); marcado, `--success-bg` / `--success`.
+  `.peq` en la agenda.
+- **`.ev-atajos`**: círculos de 44 px con la palabra debajo (botón icono de la
+  917). Compartir, Calendario (si no ha pasado), Cómo llegar (si hay mapa),
+  Foro · N (si hay `hilo_id`; N es `forum_threads.post_count`, pedido aparte)
+  y Modo evento (si vas). La columna mide 272 px: caben cuatro en una fila.
+- **El .ics** (`icsDeEvento`): un VEVENT por día, horas en UTC desde la hora
+  local (sin VTIMEZONE: lo entienden Google, Apple y Outlook), día entero sin
+  hora, líneas dobladas a 75. Se baja con un `Blob` y `a.download`.
+- **El foro** (`supabase-migration-1197-eventos-foro.sql`): «Eventos y
+  quedadas» (slug `eventos`, `post_policy = 'staff'`) detrás de Anuncios en su
+  sección, corriendo lo de después; `eventos.hilo_id` (`on delete set null`).
+  /admin (`ponerHilo`): al guardar un evento publicado sin hilo, con la
+  casilla marcada, abre el tema (prefijo, el tipo) y su primer mensaje
+  (`cuerpoDeHilo`); si el mensaje falla, borra el tema (como los torneos). Con
+  hilo, pone al día el título y el primer mensaje (`edited_at`).
+- **La tarjeta en el foro**: el primer mensaje lleva el enlace «a pelo» a
+  `https://pokedoc.es/eventos/<slug>`, y `enlaces-internos.js` (que ya hacía
+  esto con temas y guías) lo pinta con `evento_ficha`: logo, nombre, tipo,
+  fecha y cuántos van; si no está, «Este evento ya no está en la agenda».
