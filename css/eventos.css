@@ -1,0 +1,348 @@
+/* /eventos (1192): la agenda y la ficha de un evento. El porqué, en SCHEMA. */
+
+.ev-mandos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-lg);
+}
+
+.ev-provincia {
+  min-height: 36px;
+  padding: 0 var(--e-xl) 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+}
+
+.ev-lista {
+  display: grid;
+  gap: var(--e-sm);
+  margin: 0 0 var(--e-xl);
+  padding: 0;
+  list-style: none;
+}
+
+.ev-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.ev-fila.pasado { opacity: 0.6; }
+
+.ev-enlace {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--e-md);
+  min-width: 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.ev-enlace:hover strong { color: var(--navy); }
+
+.ev-fecha {
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 48px;
+  padding: var(--e-xs) 0;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  line-height: 1.1;
+}
+
+.ev-fecha b {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.ev-fecha small {
+  color: var(--acento);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.ev-logo {
+  --ev-color: var(--navy-solid);
+  position: relative;
+  display: grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--ev-color);
+  color: var(--blanco-fijo);
+}
+
+.ev-logo.grande {
+  width: 88px;
+  height: 88px;
+  border-radius: var(--radius-lg);
+}
+
+.ev-logo b {
+  font-family: var(--font-display);
+  font-size: var(--t-xs);
+  letter-spacing: 0.04em;
+}
+
+.ev-logo.grande b { font-size: var(--t-lg); }
+
+.ev-logo img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  background: var(--white);
+}
+
+.ev-cuerpo {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.ev-cuerpo strong {
+  overflow: hidden;
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ev-cuerpo small {
+  overflow: hidden;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ev-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  margin-top: 2px;
+}
+
+.ev-tipo,
+.ev-cuando {
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.ev-tipo {
+  background: var(--ice);
+  color: var(--text-mid);
+}
+
+.ev-cuando {
+  background: color-mix(in srgb, var(--acento) 18%, transparent);
+  color: var(--text);
+}
+
+.ev-van {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  white-space: nowrap;
+}
+
+.ev-caras { display: inline-flex; }
+
+.ev-cara {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--white);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+.ev-caras .ev-cara + .ev-cara { margin-left: -6px; }
+
+.ev-voy {
+  flex-shrink: 0;
+  min-width: 72px;
+  min-height: 40px;
+}
+
+/* ── La ficha ── */
+.ev-volver {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  margin-bottom: var(--e-sm);
+  color: var(--navy);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ev-cab {
+  display: flex;
+  align-items: center;
+  gap: var(--e-lg);
+  margin-bottom: var(--e-lg);
+}
+
+.ev-cab-texto {
+  display: grid;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+
+.ev-cab h1 {
+  margin: 0;
+  font-size: var(--t-2xl);
+  line-height: 1.15;
+  text-wrap: balance;
+}
+
+.ev-cab p {
+  margin: 0;
+  color: var(--text-mid);
+}
+
+.ev-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-xl);
+}
+
+.ev-oculto {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.ev-oculto small { color: var(--text-dim); }
+
+.ev-ficha-cols {
+  display: grid;
+  align-items: start;
+  gap: var(--e-lg);
+}
+
+@media (min-width: 900px) {
+  .ev-ficha-cols { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+}
+
+.ev-caja {
+  display: grid;
+  align-content: start;
+  gap: var(--e-md);
+  padding: var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+}
+
+.ev-caja h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+}
+
+.ev-cuantos { margin: 0; }
+.ev-cuantos b { font-family: var(--font-display); font-size: var(--t-xl); }
+.ev-cuantos small { color: var(--text-dim); }
+
+.ev-gente {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ev-gente a {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  color: var(--text);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ev-gente a span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ev-dato {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-sm);
+  color: var(--text-mid);
+}
+
+.ev-dato svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--acento);
+}
+
+.ev-dato b {
+  display: block;
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+.ev-desc {
+  margin: 0;
+  color: var(--text-mid);
+  white-space: pre-line;
+}
+
+.ev-enlaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+/* En el móvil, la fila de la agenda baja «van» y «Voy» a su propia línea. */
+@media (max-width: 600px) {
+  .ev-fila {
+    flex-wrap: wrap;
+    padding: var(--e-sm);
+  }
+
+  .ev-enlace { flex-basis: 100%; }
+  .ev-van { margin-left: calc(48px + var(--e-md)); }
+  .ev-voy { margin-left: auto; }
+
+  .ev-logo { display: none; }
+  .ev-logo.grande { display: grid; width: 64px; height: 64px; }
+  .ev-cab h1 { font-size: var(--t-xl); }
+  .ev-caja { padding: var(--e-lg); }
+}

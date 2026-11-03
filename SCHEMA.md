@@ -52966,3 +52966,50 @@ la vista). Regla: la ventana visual cuenta solo si hay foco en un campo
 vuelve a medir en `focusout`, `pageshow` (la caché de atrás trae la medida
 vieja) y `visibilitychange`.
 
+
+## Tanda 1192 — Eventos: la agenda (primera tanda)
+
+PINGU aprobó la propuesta «Eventos: dónde nos vemos» con todo lo recomendado
+(«móntamela como me propusiste»). Esta es la primera tanda; la segunda (el
+cruce «tiene 3 que buscas», proponer un evento con su cola en «Hoy», avisos e
+imagen para redes) queda para cuando la pida.
+
+- **Base** (`supabase-migration-1192-eventos.sql`): `eventos` (lo publica el
+  equipo; la gente lee solo `publicado`) y `evento_asistentes` (quién marca
+  «Voy», con `oculto` para ir «sin decirlo»: cuenta en el número y no sale en
+  la lista). Dos políticas en `eventos` y no una con `or is_admin()` (la 555).
+  Nadie lee `evento_asistentes` entera: la agenda sale de `eventos_lista`
+  (con `van`, hasta cinco `caras` y `voy`), la ficha de `evento_ficha(slug)`
+  (con hasta 500 caras; el equipo ve también lo sin publicar) y «Voy» de
+  `evento_voy(evento, voy, oculto)` (con sesión; no en uno pasado ni sin
+  publicar). Prueba contra PostgreSQL: `test-tanda-1192.mjs`.
+- **/eventos** (`eventos.html`, `js/eventos.js`, `css/eventos.css`, lo puro en
+  `js/eventos-puro.js`): la agenda con chips de tipo, provincia y «Solo a los
+  que voy», próximos y pasados (apagados, sin «Voy»). `/eventos/<slug>` es una
+  reescritura 200 a `eventos.html?e=<slug>` (netlify.toml), así que la página
+  pide TODO por ruta absoluta (`/css/…`, `/js/…`): con rutas relativas, bajo
+  `/eventos/x` pedía `/eventos/css/…`. La ficha: «Voy», «Ir sin decirlo»,
+  Compartir, «Abrir mi modo evento» (`/evento`, si vas), quién va, cuándo,
+  dónde con el mapa, entrada, juegos, web, Instagram y TCG Map Spain. Tras
+  «Voy» o «sin decirlo» la ficha vuelve a pedir quién va (`alDia`): lo
+  optimista cambia el número, pero la lista de caras sale de la base. Sin
+  cuenta, «Voy» lleva a registrarse con `volver`. Sin la migración, «La
+  agenda de eventos llega muy pronto».
+- **Menú**: «Eventos» en Comunidad (las 48 páginas, menú de arriba y pie), así
+  que la página es `data-seccion="comunidad"` por el generador.
+- **/admin → Eventos** (`admin/js/eventos-admin.js`, por `import()`): lista
+  (próximos y pasados, con «Sin publicar»), alta y edición escribiendo directo
+  en `eventos` (la política `eventos_equipo`), la dirección se pone sola con
+  `slugDeEvento` (nombre + año), el logo se sube al cubo `guide-images`
+  (`uploadGuideImage`) y sin logo se pintan las siglas en su color, con la
+  vista previa al lado. Borrar es en dos toques (se lleva quién iba).
+- **Portada**: `#eventoPortadaSeccion` al lado del torneo, con
+  `js/evento-portada.js` por `import()` (no pesa en la portada): el más
+  cercano de los próximos 14 días (`proximoEvento`), con «N van de PokeDoc»,
+  en el rosa de Comunidad. La fila de citas (torneo, evento, lanzamiento) se
+  reparte con `--fila-cita`: 4 columnas con los tres, 6 con dos, 12 con uno.
+  Sin evento cerca o sin migración, se recoge.
+- **Doble**: `window.__FAKE_EVENTOS__` (cada uno con `asistentes`) contesta las
+  tres funciones, y la tabla `eventos` ES esa lista (un `defineProperty`), así
+  lo que escribe /admin sale en la agenda. Prueba de pantalla:
+  `test-tanda-1192-pantalla.mjs`.

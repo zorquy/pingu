@@ -164,6 +164,9 @@
   transition: transform 0.15s var(--ease);
 }
 
+/* Un evento es de Comunidad: su rosa (fijo, lleva blanco encima). */
+.portada-evento { background: linear-gradient(120deg, #8f1d43, #c62a5c); }
+
 .portada-torneo:hover {
   transform: translateY(-1px);
   color: var(--blanco-fijo);
@@ -265,15 +268,18 @@
 @media (min-width: 960px) {
   .panel-portada > * > section { grid-column: span 12; min-width: 0; }
   #sigueSeccion { order: 1; }
-  #torneoPortadaSeccion, #lanzamientoSeccion { order: 2; grid-column: span 6; }
+  .panel-portada { --fila-cita: 4; }
+  .panel-portada:has(:is(#torneoPortadaSeccion, #eventoPortadaSeccion, #lanzamientoSeccion).seccion-recogida) { --fila-cita: 6; }
+  .panel-portada:has(#torneoPortadaSeccion.seccion-recogida):has(#eventoPortadaSeccion.seccion-recogida),
+  .panel-portada:has(#torneoPortadaSeccion.seccion-recogida):has(#lanzamientoSeccion.seccion-recogida),
+  .panel-portada:has(#eventoPortadaSeccion.seccion-recogida):has(#lanzamientoSeccion.seccion-recogida) { --fila-cita: 12; }
+  #torneoPortadaSeccion, #eventoPortadaSeccion, #lanzamientoSeccion { order: 2; grid-column: span var(--fila-cita); }
   #primerosPasos { order: 3; }
   #noticiaPortadaSeccion { order: 4; grid-column: 1 / span 9; }
   #foroVivoSeccion { order: 5; grid-column: 10 / span 3; grid-row: span 2; contain: size; }
   #recientesSeccion { order: 6; grid-column: 1 / span 6; }
   #homeActivity, .panel-portada .retos-abajo { order: 7; grid-column: 7 / span 3; }
   :root:has(.hoy-retos) .retos-abajo { display: none; }
-  .panel-portada:has(#lanzamientoSeccion.seccion-recogida) #torneoPortadaSeccion,
-  .panel-portada:has(#torneoPortadaSeccion.seccion-recogida) #lanzamientoSeccion,
   .panel-portada:has(#foroVivoSeccion.seccion-recogida) #noticiaPortadaSeccion { grid-column: span 12; }
   :root:has(.hoy-retos) .panel-portada:has(#homeActivity.hidden) #recientesSeccion,
   .panel-portada:has(#foroVivoSeccion.seccion-recogida) #recientesSeccion { grid-column: 1 / span 9; }
@@ -296,7 +302,7 @@
      quien ya está (Sigue) antes que lo de quien acaba de llegar (Primeros
      pasos), y la comunidad al final. */
   #retoSeccion { order: -10; }
-  #torneoPortadaSeccion { order: -9; }
+  #torneoPortadaSeccion, #eventoPortadaSeccion { order: -9; }
   #sigueSeccion { order: -8; }
   #primerosPasos { order: -7; }
   #noticiaPortadaSeccion { order: -6; }

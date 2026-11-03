@@ -209,6 +209,15 @@ async function cargarTorneoPortada() {
   }
 }
 
+// El próximo evento (1192), al lado del torneo: el módulo entra por import().
+function cargarEventoPortada() {
+  const seccion = document.getElementById('eventoPortadaSeccion')
+  const hueco = document.getElementById('eventoPortada')
+  if (!seccion || !hueco) return null
+  const recoger = () => recogerSeccion('eventoPortadaSeccion')
+  return import('./evento-portada.js').then((m) => m.pintarEventoPortada(seccion, hueco, recoger)).catch(recoger)
+}
+
 // «hoy a las 19:00», «mañana a las 19:00», «el viernes 4 de septiembre».
 // Lo cercano se dice en relativo porque es lo que uno necesita saber
 // —¿me da tiempo?—; a partir de una semana, la fecha a secas.
@@ -329,7 +338,7 @@ function pintarPortadaGuardada(session) {
     }
     seccion.appendChild(caja)
   }
-  vistaVigilada(clave, ['bienvenida', 'hoyPortada', 'foroVivo', 'aprende', 'torneoPortada', 'lanzamientoPortada', 'noticiaPortada', 'retoTarjetas', 'clasificacion'])
+  vistaVigilada(clave, ['bienvenida', 'hoyPortada', 'foroVivo', 'aprende', 'torneoPortada', 'eventoPortada', 'lanzamientoPortada', 'noticiaPortada', 'retoTarjetas', 'clasificacion'])
 }
 
 // Lo que pinta el héroe del visitante: la cuenta de guías, los números de
@@ -353,6 +362,7 @@ async function init() {
   await Promise.all([
     session ? null : pintarHeroe(),
     cargarTorneoPortada(),
+    cargarEventoPortada(),
     cargarBienvenida(session),
     montarPrimerosPasos(document.getElementById('primerosPasos'), session),
   ])

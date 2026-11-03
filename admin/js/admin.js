@@ -22,6 +22,7 @@ import { iniciarTiendas } from './tiendas.js'
 let categories = []
 let perfilAdmin = null
 let avisosMontados = false
+let eventosMontados = false
 let guidesCache = []
 
 // ── Access gate ──
@@ -56,6 +57,10 @@ function initSidebar() {
       if (btn.dataset.section === 'tiendas') iniciarTiendas()
       if (btn.dataset.section === 'users') loadUsers()
       if (btn.dataset.section === 'correos') pintarCorreos()
+      if (btn.dataset.section === 'eventos' && !eventosMontados) {
+        eventosMontados = true
+        import('./eventos-admin.js').then((m) => m.montarEventos(document.getElementById('eventosPanel')))
+      }
       if (btn.dataset.section === 'avisos' && !avisosMontados) {
         avisosMontados = true
         import('./avisos-admin.js').then((m) => m.montarAvisos(document.getElementById('avisosPanel')))

@@ -158,6 +158,13 @@
   to = "/tema.html?t=:id"
   status = 200
 
+# La ficha de un evento (1192): /eventos/<slug>. La agenda es /eventos a secas
+# (eventos.html). No confundir con /evento, el modo evento de Deseos y cambios.
+[[redirects]]
+  from = "/eventos/:slug"
+  to = "/eventos.html?e=:slug"
+  status = 200
+
 # El escaneo de una carta de Limitless, servido por nosotros (tanda 413):
 # la imagen que se exporta de un mazo se dibuja en un canvas, y uno que
 # pinta una imagen de Limitless (sin CORS) ya no se puede guardar. Solo

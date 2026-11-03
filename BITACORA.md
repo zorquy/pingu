@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (437) — PINGU-Claude (1192 — Eventos: la agenda, primera tanda)
+
+**Hecho**: PINGU aprobó la propuesta de eventos con todo lo recomendado
+(«móntamela como me propusiste»). Primera tanda:
+- **/eventos**: la agenda de card shows, trade days, quedadas y torneos de
+  fuera, con chips de tipo, provincia y «Solo a los que voy»; lo pasado debajo
+  y apagado. **/eventos/<slug>**: la ficha con «Voy» (y «Ir sin decirlo»),
+  quién va de PokeDoc, cuándo, dónde con mapa, entrada, juegos, web,
+  Instagram, **TCG Map Spain**, Compartir y «Abrir mi modo evento».
+- «Eventos» en el menú de **Comunidad** (las 48 páginas, arriba y en el pie).
+- **/admin → Eventos**: alta, edición, publicar y borrar; logo subido o siglas
+  en su color; la dirección se pone sola (nombre + año).
+- **Portada**: el próximo evento de los 14 días siguientes al lado del torneo,
+  en rosa de Comunidad, con «N van de PokeDoc».
+
+**Ficheros**: nuevos `eventos.html`, `js/eventos.js`, `js/eventos-puro.js`,
+`js/evento-portada.js`, `css/eventos.css`, `admin/js/eventos-admin.js`,
+`supabase-migration-1192-eventos.sql`; tocados `netlify.toml` (reescritura
+`/eventos/:slug`), `index.html`, `js/home.js`, `css/portada.css`,
+`admin/index.html`, `admin/js/admin.js`, `admin/css/admin.css`, el menú de las
+48 páginas (y `cartas.html` regenerada), `SCHEMA.md`, `novedades.json`. En
+`pruebas`: el doble (`__FAKE_EVENTOS__`), `servir.py` (la reescritura),
+`test-tanda-1192.mjs` (PostgreSQL) y `test-tanda-1192-pantalla.mjs`.
+
+**Pruebas**: verdes imports, 1192 (PostgreSQL), 1192-pantalla, 299, 753, 906,
+1188, 844 y 1185. La 524 da un rojo que no es de esta tanda (nombra
+«Remitente», «De esas, doy», «+ Apuntar un torneo» y «charmander ember»,
+en ficheros que no he tocado).
+
+**Pendiente**: **PINGU tiene que ejecutar
+`supabase-migration-1192-eventos.sql`** en el SQL Editor; hasta entonces
+/eventos dice «llega muy pronto», la portada no enseña nada y /admin →
+Eventos dice qué falta. La segunda tanda (cruce «tiene 3 que buscas»,
+proponer un evento con su cola en «Hoy», avisos e imagen para redes), cuando
+la pida.
+
 ## 2026-11-03 (436) — PINGU-Claude (1191 — guías iguales, foro y noticias más apretados)
 
 **Hecho**: PINGU, con capturas del PC:

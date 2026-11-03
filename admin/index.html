@@ -38,6 +38,7 @@
   <link rel="stylesheet" href="/css/cartas-lista.css" />
   <link rel="stylesheet" href="/css/cardmarket.css" />
   <link rel="stylesheet" href="/css/aviso-global.css" />
+  <link rel="stylesheet" href="/css/eventos.css" />
   <link rel="stylesheet" href="/admin/css/admin.css" />
 </head>
 <body>
@@ -60,6 +61,7 @@
         <span class="admin-nav-grupo">Comunidad</span>
         <button class="admin-nav-item" data-section="users"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg> Usuarios</button>
         <button class="admin-nav-item" data-section="foro"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path><line x1="8" y1="9" x2="16" y2="9"></line><line x1="8" y1="13" x2="13" y2="13"></line></svg> Foro</button>
+        <button class="admin-nav-item" data-section="eventos"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg> Eventos</button>
         <button class="admin-nav-item" data-section="reports"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></svg> Reportes</button>
         <button class="admin-nav-item" data-section="colabora"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg> Colabora</button>
         <button class="admin-nav-item" data-section="feedback"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg> Feedback</button>
@@ -103,6 +105,12 @@
             <button type="button" class="btn-secondary" data-ir="errors">Ver los errores</button>
           </div>
         </div>
+      </section>
+
+      <section class="admin-section" id="section-eventos">
+        <h1>Eventos</h1>
+        <p class="admin-note">La agenda de <a href="/eventos" target="_blank" rel="noopener">/eventos</a>: card shows, trade days, quedadas y torneos de fuera. Lo que publicas sale en la agenda y, si es en los próximos 14 días, en la portada.</p>
+        <div id="eventosPanel"><p class="admin-note">Cargando…</p></div>
       </section>
 
       <section class="admin-section" id="section-avisos">

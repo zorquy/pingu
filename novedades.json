@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-03",
+      "tipo": "nuevo",
+      "texto": "Eventos: la agenda de card shows, trade days y quedadas de España. Marca «Voy» (o ve sin decirlo), mira quién más va de PokeDoc y abre tu modo evento ese día.",
+      "enlace": "/eventos"
+    },
+    {
+      "fecha": "2026-11-03",
       "tipo": "arreglo",
       "texto": "En el móvil, las noticias de la portada van todas en una tira que se desliza, y la portada ya no se mueve hacia un lado.",
       "enlace": "/"

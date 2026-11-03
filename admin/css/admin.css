@@ -1360,3 +1360,27 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
   .co-cuerpo { grid-template-columns: minmax(0, 1fr); }
   .co-lista { position: static; max-height: 240px; }
 }
+
+/* ── Eventos (1192): la lista y el formulario de alta ── */
+.evadm-titulo { margin: var(--e-xl) 0 var(--e-sm); font-size: var(--t-lg); }
+.evadm-fila { display: flex; align-items: center; gap: var(--e-md); margin-bottom: var(--e-sm); padding: var(--e-sm) var(--e-md); }
+.evadm-fila.pasado { opacity: 0.6; }
+.evadm-fecha { display: grid; flex-shrink: 0; place-items: center; width: 48px; line-height: 1.1; }
+.evadm-fecha b { font-family: var(--font-display); font-size: var(--t-xl); }
+.evadm-fecha small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; }
+.evadm-cuerpo { display: grid; flex: 1; gap: 2px; min-width: 0; }
+.evadm-cuerpo small { color: var(--text-mid); font-size: var(--t-xs); }
+.evadm-chapa { padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; }
+.evadm-form { display: grid; gap: var(--e-md); margin-bottom: var(--e-lg); }
+.evadm-form h2 { margin: 0; font-size: var(--t-lg); }
+.evadm-rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--e-md); }
+.evadm-form input[type='text'], .evadm-form select, .evadm-form textarea { width: 100%; min-height: 44px; padding: var(--e-sm) var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--white); color: var(--text); font: inherit; }
+.evadm-form input[type='color'] { width: 100%; min-height: 44px; border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--white); }
+.evadm-form :is(input, select, textarea):focus { outline: none; box-shadow: var(--shadow-ring); }
+.evadm-logo { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--e-lg); }
+.evadm-logo-mandos { display: grid; flex: 1 1 280px; gap: var(--e-sm); min-width: 0; }
+.evadm-borrar { margin-left: auto; color: var(--danger); }
+@media (max-width: 600px) {
+  .evadm-fila { flex-wrap: wrap; }
+  .evadm-cuerpo { flex-basis: calc(100% - 64px); }
+}
