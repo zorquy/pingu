@@ -2297,16 +2297,15 @@
   margin: 0;
 }
 
-/* «Ver todas» no es un `.link-btn` subrayado (446, «un enlace pocho»): desde
-   la 781 es el `.ver-todo` de toda la web, palabra y flecha, sin chapa. */
-.mc-vistazo-cabecera .link-btn {
+/* «Ver todas» es el `.ver-todo` de toda la web: la píldora (781, 1203). */
+.mc-vistazo-cabecera .link-btn:not(.ver-todo) {
   min-height: 32px;
   font-size: var(--t-sm);
   text-decoration: none;
 }
 
 @media (pointer: coarse) {
-  .mc-vistazo-cabecera .link-btn {
+  .mc-vistazo-cabecera .link-btn:not(.ver-todo) {
     min-height: 44px;
   }
 }

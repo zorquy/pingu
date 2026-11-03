@@ -81,7 +81,7 @@ export function foroHtml({ temas, perfiles = {}, foros = {}, hoy = {}, escribien
       </span>
     </a>
     ${resto.length ? `<ul class="pb-foro-lista">${resto.map(fila).join('')}</ul>` : ''}
-    <div class="pb-pie-enlace">${sesion ? verTodo('/foro', 'Todo el foro') : '<a class="btn-secondary pb-boton" href="/auth.html?registro=1">Participar</a>'}</div>`
+    ${sesion ? '' : '<div class="pb-pie-enlace"><a class="btn-secondary pb-boton" href="/auth.html?registro=1">Participar</a></div>'}`
 }
 
 // Lo que pinta el bloque, de UNA vez (1017): `portada_foro()` trae los
@@ -208,7 +208,7 @@ export function portadaDeGuia(g) {
 
 export function aprendeHtml({ guias, escribir = false }) {
   if (!guias?.length) return ''
-  const escribe = escribir ? `<a class="pb-escribir" href="/editor-guia.html">${ic('edit', 14)} Escribe una guía</a>` : ''
+  const escribe = escribir ? `<a class="pb-escribir" href="/editor-guia.html" title="Escribe una guía">${ic('edit', 16)}<span class="sr-only">Escribe una guía</span></a>` : ''
   return `${cabecera('Guías nuevas', `<span class="pb-cab-enlaces">${escribe}${verTodo('/aprender.html', 'Todas las guías')}</span>`)}
     <div class="pb-portadas">${guias.slice(0, 4).map(portadaDeGuia).join('')}</div>`
 }

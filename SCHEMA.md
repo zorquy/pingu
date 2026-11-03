@@ -53358,3 +53358,27 @@ lo largo viene aquí:
 - `css/components.css`: La chapa del tema como enlace (866): fuera del <a> de la tarjeta, encima del arte, en el sitio de la de texto. El <a> es la caja que se pulsa (44 px, la 312) y la píldora de dentro mide lo de siempre.
 - `css/components.css`: 917: suelto, un botón suave; en una frase, subrayado (SCHEMA 917). Con :where, para que las medidas de cada pantalla le sigan ganando.
 - `css/portada.css`: S780.188 · el orden del móvil (844; 1012 P3): lo de hoy arriba, lo de quien ya está (Sigue) antes que lo de quien acaba de llegar (Primeros pasos), y la comunidad al final.
+
+
+## Tanda 1203 — Los «Ver todo» son píldoras
+
+PINGU: «el botón ese de ver así medio circular me ha gustado mucho… podría
+sustituir Más noticias Todas, Foro, Ver todo, Todas las guías… porque parecen
+enlaces». Eligió la B (la píldora suave) de tres: la blanca (A) competía con el
+evento, que se queda como el único blanco, y la flecha sola (C) no decía adónde.
+
+- `.ver-todo` (components.css) es UNA píldora para toda la web: 32 px, radio
+  pill, `color-mix(in srgb, var(--navy) 13%, transparent)` (22 % al pasar) y
+  el texto en `--navy`, con la flecha que se mueve 2 px. Al dedo mide 44 por
+  una franja `::after` de 6 px arriba y abajo, como los chips (1038): con
+  `min-height: 44px` la píldora crecía de verdad.
+- Va como `:is(a, button).ver-todo` (0,1,1) porque el «Ver todas» del Panel
+  es `link-btn ver-todo` y `.link-btn:where(…)` le ponía su fondo `--ice` y su
+  radio; `.mc-vistazo-cabecera .link-btn` ya no se aplica a `.ver-todo`.
+- Un botón por bloque: «Todo el foro» del pie de «Lo más hablado» repetía
+  «Foro» de arriba y se fue (sin sesión sigue «Participar»).
+- «Escribe una guía» es un lápiz redondo de 32 px (`--ice`) con el texto para
+  el lector (`sr-only` y `title`), y ahora también sale en el móvil.
+
+Un «ver todo» nuevo en cualquier pantalla usa `verTodo()` (`js/pb-comun.js`) o
+la clase `.ver-todo`, no otro enlace con flecha.

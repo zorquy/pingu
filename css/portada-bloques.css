@@ -269,21 +269,26 @@
 .pb-cab-enlaces {
   display: inline-flex;
   align-items: center;
-  gap: var(--e-lg);
+  gap: var(--e-sm);
 }
 
+/* «Escribe una guía»: un lápiz redondo al lado de la píldora (1203). */
 .pb-escribir {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-xs);
-  min-height: 32px;
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--ice);
   color: var(--text-mid);
-  font-size: var(--t-sm);
-  font-weight: 600;
-  text-decoration: none;
 }
 
-.pb-escribir:hover { color: var(--navy); }
+.pb-escribir:hover { background: var(--ice-dark); color: var(--navy); }
+
+@media (pointer: coarse) {
+  .pb-escribir::after { content: ''; position: absolute; inset: -6px; }
+}
 
 /* ── Noticias ── */
 .pb-noticia {
@@ -529,8 +534,7 @@
   }
 
   .pb-vivo,
-  .pb-foro-pie .pb-pila,
-  .pb-cab-enlaces .pb-escribir {
+  .pb-foro-pie .pb-pila {
     display: none;
   }
 }

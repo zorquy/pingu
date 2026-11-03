@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (448) — PINGU-Claude (1203 — los «Ver todo» son píldoras)
+
+**Hecho**: PINGU eligió la B de la propuesta de botones («dale con el B»).
+`.ver-todo` (el «Ver todo» de toda la web: portada, Panel de Mi colección,
+«Sigue donde lo dejaste») es una píldora de 32 px con el azul de la marca al
+13 % y su texto en azul; al dedo, 44 px por una franja `::after` (ya no
+`min-height`). El selector es `:is(a, button).ver-todo` para ganarle al
+`.link-btn` del Panel. Con lo recomendado: «Todo el foro» del pie de «Lo más
+hablado» se fue (un botón por bloque; sin sesión sigue «Participar») y
+«Escribe una guía» es un lápiz redondo al lado de la píldora (también en el
+móvil, antes escondido). Propuesta nueva de la franja del evento (logo,
+nombre, fechas y caras, la mitad de alta en el móvil):
+https://claude.ai/artifact/AhsPJgLb6AepheGkyY7xFt — espera a PINGU.
+
+**Ficheros**: `css/components.css`, `css/mi-coleccion.css`,
+`css/portada-bloques.css`, `js/portada-bloques.js`, `SCHEMA.md`,
+`novedades.json`. En `pruebas`: 781 (el molde vive en pb-comun.js; estaba
+roja de antes) y 844 (sin «Todo el foro»).
+
+**Pruebas**: verdes 781, 300, 844, 1010, 1185, 1188, 312, 299, 1171, 1173,
+1178, 780, 309, 305, 313, 1040, 1023, 1200 e imports.
+
+**Pendiente**: la franja del evento (lo que elija PINGU); invitar, /coleccion
+con su valor y Tu 2026.
+
 ## 2026-11-03 (447) — PINGU-Claude (1202 — el próximo evento de la portada lleva a la agenda)
 
 **Hecho**: PINGU: «en vez de que le des a ver… te lleve a la página de eventos

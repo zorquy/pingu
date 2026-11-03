@@ -1880,22 +1880,28 @@ a.reto-tarjeta:hover {
   font-weight: 600;
 }
 
-/* Un solo «Ver todo» (781, SI3): palabra y flecha, sin borde. */
-.ver-todo {
+/* Un solo «Ver todo»: la píldora suave del azul (1203, la B; SCHEMA). */
+:is(a, button).ver-todo {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--e-xs);
-  padding: 0;
+  min-height: 32px;
+  padding: 0 var(--e-md);
   border: 0;
-  background: none;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--navy) 13%, transparent);
   color: var(--navy);
   font: inherit;
   font-size: var(--t-sm);
-  font-weight: 600;
+  font-weight: 700;
   text-decoration: none;
   white-space: nowrap;
   cursor: pointer;
+  transition: background 0.15s var(--ease);
 }
+
+:is(a, button).ver-todo:hover { background: color-mix(in srgb, var(--navy) 22%, transparent); color: var(--navy); }
 
 .ver-todo-flecha {
   transition: transform 0.15s var(--ease);
@@ -1906,7 +1912,7 @@ a.reto-tarjeta:hover {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .ver-todo-flecha { transition: none; }
+  .ver-todo-flecha, :is(a, button).ver-todo { transition: none; }
 }
 
 /* ── Seguir un tema ── */
@@ -2826,11 +2832,11 @@ body.portada-compacta .page-content {
   .card-save-btn,
   .autor-link,
   .pie-col a,
-  .seccion-cabecera a,
-  .ver-todo,
+  .seccion-cabecera a:not(.ver-todo),
   .breadcrumb a {
     min-height: 44px;
   }
+  .ver-todo::after { content: ''; position: absolute; inset: -6px 0; }
   .card-save-btn,
   .tab-btn {
     min-width: 44px;
