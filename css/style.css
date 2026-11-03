@@ -109,23 +109,16 @@
 
   --container-w: 1160px;
   --ease: cubic-bezier(0.2, 0.7, 0.3, 1);
-  /* Outfit en títulos, marca y cifras desde la 1018 (PINGU eligió la B2 de
-     la propuesta «PokeDoc como app»): la redondez de Fredoka sin su lado
-     infantil. El cuerpo sigue en Inter. Desde la 1156, también en lo que se
-     dibuja en un lienzo: Fredoka ya no se baja. */
+  /* Outfit en títulos, marca y cifras; el cuerpo en Inter (1018, SCHEMA). */
   --font-display: 'Outfit', 'Inter', sans-serif;
   --font-marca: 'Outfit', 'Inter', sans-serif;
-  /* EL COLOR DE LA SECCIÓN (1018): la barra de abajo, la burbuja, la lateral
-     y el botón principal llevan el de la sección (`data-seccion` en <html>,
-     lo escribe generar-barra-movil.mjs). Cada color lleva su texto; el
-     porqué y las medidas de contraste, en SCHEMA.md. */
+  /* EL COLOR DE LA SECCIÓN (1018) (largo en SCHEMA 1201). */
   --acento: var(--navy-solid);
   --acento-texto: var(--blanco-fijo);
   /* El hueco de abajo con tope (1135): iOS lo deja a veces con el alto del teclado (SCHEMA 1135). */
   --seguro-abajo: min(env(safe-area-inset-bottom, 0px), 48px);
 }
-/* 1024: en oscuro, Inicio (y lo que no es de ninguna sección) va en el azul
-   claro de --navy, no en el marino (PINGU: «parece deshabilitada»). */
+/* 1024 (largo en SCHEMA 1201). */
 :root[data-theme='dark'] { --acento: var(--navy); --acento-texto: #0b1219; }
 html[data-seccion='aprender'] { --acento: #0f7f55; }
 html[data-seccion='cartas'] { --acento: #9a5f06; }
@@ -228,8 +221,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Los títulos van en la letra de los títulos; los botones y las chapas
-   son cuerpo (Inter, heredada) desde la 1018. */
+/* Títulos en su letra; botones y chapas en el cuerpo (largo en SCHEMA 1201). */
 h1, h2, h3 {
   font-family: var(--font-display);
   font-weight: 600;
@@ -383,8 +375,7 @@ body:has(> .footer) {
 }
 body:has(> .footer) .page-content {
   flex: 1 0 auto;
-  /* Una pantalla como mínimo (981): con menos, el pie se ve al abrir y lo
-     empuja abajo todo lo que llega después (SCHEMA 981). */
+  /* Una pantalla como mínimo (981) (largo en SCHEMA 1201). */
   min-height: 100svh;
   /* S780.15 */
   width: 100%;
@@ -1904,10 +1895,7 @@ html.uv-actualizando .page-content h1::after { content: ''; display: inline-bloc
   @view-transition { navigation: auto; }
   .bm { view-transition-name: barra-abajo; }
   .navbar { view-transition-name: barra-arriba; }
-  /* 1023 (A4): la transición tiene DIRECCIÓN. Entrar en una hoja (una
-     página de detalle) desliza desde la derecha; volver atrás, hacia la
-     derecha; cambiar de pestaña, el fundido de siempre. El tipo lo pone el
-     guion de la cabecera (generar-barra-movil.mjs) en `pagereveal`. */
+  /* 1023 (A4) (largo en SCHEMA 1201). */
   html:active-view-transition-type(adelante)::view-transition-old(root) { animation: 0.25s var(--ease) both vt-sale-izquierda; }
   html:active-view-transition-type(adelante)::view-transition-new(root) { animation: 0.25s var(--ease) both vt-entra-derecha; }
   html:active-view-transition-type(atras)::view-transition-old(root) { animation: 0.25s var(--ease) both vt-sale-derecha; }

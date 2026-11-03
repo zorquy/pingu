@@ -53274,3 +53274,87 @@ Ahora:
 Un bloque nuevo de la portada que llegue tarde y ocupe una casilla del mosaico
 va así: su hueco desde el primer pintado, y si no tiene nada, se recoge. Si
 empieza escondido, lo de al lado se recoloca al llegar.
+
+
+## Tanda 1201 — La tarjeta del enlace de cada página
+
+PINGU, tras la propuesta «Que PokeDoc se comparta solo»: «cuando compartas un
+evento quiero que se cree una tarjeta, pero es que además lo quiero hacer para
+cualquier enlace, que el enlace esté compartiendo exactamente lo que comparto,
+se genera una imagen que tenga que ver con lo que compartes de la web».
+
+**Cómo va.** WhatsApp, X o Instagram leen la imagen del enlace sin ejecutar
+JavaScript, así que la dibuja el SERVIDOR:
+
+1. `meta-social.js` (el borde) calcula, junto a las etiquetas de cada página
+   con datos, `meta.tarjeta`: `{ seccion, chapa, titulo, entradilla, linea,
+   enlace, pieza }`. La pieza es `carta` (la foto en su marco, girada),
+   `avatar` (la foto o la inicial), `logo` (un evento o una expansión, en un
+   panel de su color), `portada` (la de una guía) o `cifras` (respuestas,
+   jugadores, rondas). La tienen: evento (nuevo en el borde: `/eventos/*`,
+   con datos estructurados `Event` para Google), perfil, tema, foro,
+   categoría, torneo, carta, colección y guía/curso/noticia.
+2. `conTarjeta` pone de `og:image` `urlDeTarjeta(meta)`:
+   `/tarjeta/<ruta canónica>.png?<sus parámetros>&v=<huella>`, ancha
+   (1200×630, `summary_large_image`). La `v` es la huella FNV de
+   `meta.tarjeta`: si cambia el título o la foto, cambia la dirección, y ni la
+   CDN ni WhatsApp enseñan la vieja. Una noticia con la tarjeta del editor
+   (1157, `og_image`) se queda con la suya.
+3. `netlify/functions/tarjeta.mjs` (detrás de `/tarjeta/*`, lee la RUTA como
+   pide la 633) vuelve a llamar a `metaDeRuta` con esa dirección: la tarjeta y
+   el título del enlace salen del MISMO sitio y no se pueden separar. Trae las
+   imágenes (4 s, 8 MB, solo `image/*`), las pasa por **sharp** a PNG (resvg no
+   lee WebP), pinta el SVG de `netlify/lib/tarjeta-svg.mjs` y lo convierte con
+   **resvg**. Sin datos, o si algo falla: 302 a `og-default.png` (nunca un
+   enlace sin foto). La CDN la guarda un mes (`durable`).
+4. Las páginas FIJAS (portada, eventos, foro, cartas, aprender, noticias,
+   gente, lanzamientos, glosario, constructor, meta, laboratorio, novedades,
+   tiendas, colabora, sobre) llevan en su HTML `/tarjeta/fija/<nombre>.png`,
+   con su texto en `netlify/lib/tarjetas-fijas.mjs` y la mascota. `/cartas`
+   sale de `generar-cartas.mjs`.
+
+**El dibujo** es la «apaisada» del marco de redes (`js/redes-marco.js`, 1156)
+pasada a SVG: degradado de la web con el brillo del acento de la sección, el
+logo y «PokeDoc», la chapa, el título en Outfit 800 (de 64 a 40 px, tres líneas
+como mucho, `*destacado*` del color de la sección), la entradilla en Inter, la
+pieza a la derecha y la dirección abajo. El texto se parte con una tabla de
+anchos por carácter (`ANCHOS` de `tarjeta-letras.mjs`), que es lo que hace el
+lienzo con `measureText`; lo que la letra no sabe pintar (emojis, kanji) se
+quita (`soloPintable`).
+
+**Las letras.** `netlify/lib/tarjeta-letras.mjs` lleva Outfit 800/700 e Inter
+500/700 en base64 (solo latín), generado con
+`herramientas/tarjetas-1201/generar-letras.py` (rama pruebas, python3.13 con
+fontTools: instancia las variables y renombra la familia). **resvg-js en Node
+NO hace caso de `fontBuffers`**: se salta TODAS las opciones de letra y pinta
+con las del sistema (aquí, Liberation Sans; en Netlify, ninguna). Por eso la
+función escribe las letras en `tmpdir()` la primera vez y usa `fontFiles`. La
+prueba lo vigila pintando «Geometría» en Outfit y en una familia que no existe:
+tienen que salir distintas.
+
+**Netlify.** `package.json` lleva `@resvg/resvg-js` y `sharp` (con su
+`package-lock`); `[functions.tarjeta]` en `netlify.toml` los declara
+`external_node_modules` e incluye `node_modules/@img/**` y `@resvg/**`: los
+binarios de plataforma se cargan por nombre en ejecución y el empaquetador no
+los ve. Comprobado con `zip-it-and-ship-it` (el empaquetador de Netlify): el
+paquete lleva `sharp-linux-x64`, `resvg-js-linux-x64-gnu` y meta-social dentro,
+y contesta un PNG.
+
+**Una página nueva con datos** que se comparta pone `tarjeta` en su `metaDe*`;
+una fija, su entrada en `TARJETAS_FIJAS` y `PAGINA_DE_FIJA` y la dirección en
+su HTML (la prueba recorre la lista).
+
+**De paso**: `.ev-logo.grande` dibujaba su aro con un `border` de 4 px (la 309
+pide 1 o 2): ahora es un `box-shadow` con las mismas medidas. Y la 780 (sin
+comentarios largos en las hojas de la portada) estaba roja por comentarios de
+la 866, 917, 981, 1018, 1023, 1024, 1168, 1188 y 1200: se quedan en un renglón y
+lo largo viene aquí:
+
+- `css/style.css`: EL COLOR DE LA SECCIÓN (1018): la barra de abajo, la burbuja, la lateral y el botón principal llevan el de la sección (`data-seccion` en <html>, lo escribe generar-barra-movil.mjs). Cada color lleva su texto; el porqué y las medidas de contraste, en SCHEMA.md.
+- `css/style.css`: 1024: en oscuro, Inicio (y lo que no es de ninguna sección) va en el azul claro de --navy, no en el marino (PINGU: «parece deshabilitada»).
+- `css/style.css`: Los títulos van en la letra de los títulos; los botones y las chapas son cuerpo (Inter, heredada) desde la 1018.
+- `css/style.css`: Una pantalla como mínimo (981): con menos, el pie se ve al abrir y lo empuja abajo todo lo que llega después (SCHEMA 981).
+- `css/style.css`: 1023 (A4): la transición tiene DIRECCIÓN. Entrar en una hoja (una página de detalle) desliza desde la derecha; volver atrás, hacia la derecha; cambiar de pestaña, el fundido de siempre. El tipo lo pone el guion de la cabecera (generar-barra-movil.mjs) en `pagereveal`.
+- `css/components.css`: La chapa del tema como enlace (866): fuera del <a> de la tarjeta, encima del arte, en el sitio de la de texto. El <a> es la caja que se pulsa (44 px, la 312) y la píldora de dentro mide lo de siempre.
+- `css/components.css`: 917: suelto, un botón suave; en una frase, subrayado (SCHEMA 917). Con :where, para que las medidas de cada pantalla le sigan ganando.
+- `css/portada.css`: S780.188 · el orden del móvil (844; 1012 P3): lo de hoy arriba, lo de quien ya está (Sigue) antes que lo de quien acaba de llegar (Primeros pasos), y la comunidad al final.

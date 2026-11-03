@@ -39,6 +39,7 @@ import {
   rutaDeCarta,
   subtituloDeCarta,
   urlDeImagen,
+  urlDeLogo,
   clavesDeJuego,
   unirJuego,
   hayDatosDeJuego,
@@ -50,7 +51,9 @@ import {
   rutaDeColeccion,
 } from '../../js/carta-nucleo.js'
 import { mercadoDeRuta, elegirCartaDeRuta } from '../../js/carta-ruta.js'
-import { esDelTCG, padreDeColeccion, prefijoDeColeccion, nombreDeCarta } from '../../js/catalogo-series.js'
+import { esDelTCG, padreDeColeccion, prefijoDeColeccion, nombreDeCarta, logosDePago } from '../../js/catalogo-series.js'
+import { nivelDeXp } from '../../js/niveles.js'
+import { TIPOS as TIPOS_DE_EVENTO, fechaLarga, entradasDe, desdePrecio, siglasDe } from '../../js/eventos-puro.js'
 import { numeroDelDia } from '../../js/reto-compartir.js'
 import { rutaDeArticulo } from '../../js/articulos.js'
 import { RETOS } from '../../js/retos-xp.js'
@@ -587,6 +590,16 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
     descripcion: esCurso ? `Curso interactivo paso a paso. ${descripcion}` : descripcion,
     imagen,
     imagenAncha: !!guia.og_image && imagen === urlAbsoluta(guia.og_image),
+    // Sin la tarjeta que dibuja el editor (1157), la del servidor (1201).
+    tarjeta: {
+      seccion: esNoticia ? 'inicio' : 'aprender',
+      chapa: esNoticia ? 'Noticia' : esCurso ? 'Curso' : 'Guía',
+      titulo: guia.title,
+      entradilla: recortar(guia.description, 140),
+      linea: esNoticia ? 'Noticias de Pokémon TCG en español' : categoria?.name || 'Guías de Pokémon TCG en español',
+      enlace: esNoticia ? 'pokedoc.es/noticias' : 'pokedoc.es/aprender',
+      pieza: guia.cover_image ? { tipo: 'portada', src: urlAbsoluta(guia.cover_image) } : null,
+    },
     datos: {
       '@context': 'https://schema.org',
       '@graph': [
@@ -648,6 +661,7 @@ async function metaDeCategoria(url) {
     titulo: `${cat.name} — PokeDoc`,
     descripcion,
     imagen: IMAGEN_POR_DEFECTO,
+    tarjeta: { seccion: 'aprender', chapa: 'Aprender', titulo: cat.name, entradilla: descripcion, linea: 'Guías y cursos de Pokémon TCG', enlace: 'pokedoc.es/aprender' },
     datos: {
       '@context': 'https://schema.org',
       '@graph': [
@@ -677,7 +691,7 @@ async function metaDePerfil(url) {
   const nombre = enRuta ? decodeURIComponent(enRuta[1]) : url.searchParams.get('u')
   if (!nombre) return null
   const perfil = await pedir(
-    `user_profiles?username=eq.${encodeURIComponent(nombre)}&select=username,display_name,bio,avatar_url&limit=1`
+    `user_profiles?username=eq.${encodeURIComponent(nombre)}&select=username,display_name,bio,avatar_url,total_xp&limit=1`
   )
   if (!perfil?.username) return null
 
@@ -706,8 +720,18 @@ async function metaDePerfil(url) {
       recortar(perfil.bio) || `Perfil de ${visible} en PokeDoc: sus guías, sus logros y su muro.`,
     imagen: avatar || IMAGEN_POR_DEFECTO,
     // Un avatar es cuadrado: pedirle a Twitter una tarjeta panorámica con
-    // una foto cuadrada la deja recortada por arriba y por abajo.
+    // una foto cuadrada la deja recortada por arriba y por abajo. (Con la
+    // tarjeta del enlace de la 1201, el avatar va DENTRO de la tarjeta.)
     imagenCuadrada: !!avatar,
+    tarjeta: {
+      seccion: 'comunidad',
+      chapa: 'Perfil',
+      titulo: `*${visible}*`,
+      entradilla: `${nivelDeXp(perfil.total_xp).level} · @${perfil.username}`,
+      linea: recortar(perfil.bio, 90),
+      enlace: `pokedoc.es/usuario/${perfil.username}`,
+      pieza: { tipo: 'avatar', src: avatar, inicial: visible.trim().charAt(0).toUpperCase() },
+    },
   }
 }
 
@@ -768,6 +792,15 @@ async function metaDeTema(url) {
     titulo: `${tema.prefix ? `[${tema.prefix}] ` : ''}${tema.title} — Foro de PokeDoc`,
     descripcion,
     imagen: IMAGEN_POR_DEFECTO,
+    tarjeta: {
+      seccion: 'comunidad',
+      chapa: 'Foro',
+      titulo: `${tema.prefix ? `*[${tema.prefix}]* ` : ''}${tema.title}`,
+      entradilla: primero?.body_html ? `«${recortar(textoDeHtml(primero.body_html), 130)}»` : '',
+      linea: 'Léelo y responde en PokeDoc',
+      enlace: 'pokedoc.es/foro',
+      pieza: respuestas ? { tipo: 'cifras', cifras: [{ n: String(respuestas), t: respuestas === 1 ? 'respuesta' : 'respuestas' }] } : null,
+    },
     datos: {
       '@context': 'https://schema.org',
       '@graph': [
@@ -815,6 +848,7 @@ async function metaDeForo(url) {
     titulo: `${foro.name} — Foro de PokeDoc`,
     descripcion,
     imagen: IMAGEN_POR_DEFECTO,
+    tarjeta: { seccion: 'comunidad', chapa: 'Foro', titulo: foro.name, entradilla: descripcion, linea: 'El foro de Pokémon TCG en español', enlace: 'pokedoc.es/foro' },
     datos: {
       '@context': 'https://schema.org',
       '@graph': [
@@ -936,6 +970,21 @@ async function metaDeTorneo(url) {
     titulo: `${torneo.name}${estado ? ` — ${estado}` : ''} · Torneos de PokeDoc`,
     descripcion,
     imagen: IMAGEN_POR_DEFECTO,
+    tarjeta: {
+      seccion: 'jugar',
+      chapa: estado || 'Torneo',
+      titulo: torneo.name,
+      entradilla: [cuando, formatoTorneo(torneo)].filter(Boolean).join(' · '),
+      linea: torneo.status === 'registration_open' ? 'Inscríbete en PokeDoc' : 'Síguelo en PokeDoc',
+      enlace: 'pokedoc.es/torneos',
+      pieza: {
+        tipo: 'cifras',
+        cifras: [
+          ocupadas !== null ? { n: String(ocupadas), t: ocupadas === 1 ? 'jugador' : 'jugadores' } : null,
+          torneo.swiss_rounds ? { n: String(torneo.swiss_rounds), t: torneo.format === 'league' ? 'jornadas' : 'rondas' } : null,
+        ].filter(Boolean),
+      },
+    },
     datos: {
       '@context': 'https://schema.org',
       '@graph': [
@@ -1110,6 +1159,17 @@ async function metaDeCarta(url) {
     // abajo, que es justo donde está el nombre y donde el número.
     imagen: urlDeImagen(carta.image_path, 'high') || IMAGEN_POR_DEFECTO,
     imagenCuadrada: true,
+    // La tarjeta del enlace (1201) lleva la carta dentro, girada en su
+    // marco: así no se recorta y dice qué es.
+    tarjeta: urlDeImagen(carta.image_path, 'high') ? {
+      seccion: 'coleccion',
+      chapa: 'Carta',
+      titulo: nombreDeCarta(carta),
+      entradilla: [set?.name, carta.local_id, sub].filter(Boolean).join(' · '),
+      linea: hayDatosDeJuego(play) ? `La llevan ${play.decks} mazos en los torneos de PokeDoc` : 'Su precio por idioma y quién la tiene',
+      enlace: 'pokedoc.es/cartas',
+      pieza: { tipo: 'carta', src: urlDeImagen(carta.image_path, 'high') },
+    } : null,
     robots: mereceIndexarse(carta, play) ? null : 'noindex,follow',
     nucleo: nucleoDeCarta(carta, set, play, legalidad),
     datos: {
@@ -1158,7 +1218,7 @@ async function metaDeColeccion(url) {
   // resuelvan igual.
   let set = await pedir(
     `tcg_sets?or=(${encodeURIComponent(filtroDeColeccion(clave))})&market=eq.WEST` +
-      '&select=id,name,serie_id,serie_name,logo_path,logo_scrydex,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code&limit=1'
+      '&select=id,name,serie_id,serie_name,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code&limit=1'
   )
   // Pokémon TCG Pocket es otro juego: su colección no tiene página aquí.
   if (!set || !esDelTCG(set)) return null
@@ -1170,7 +1230,7 @@ async function metaDeColeccion(url) {
   if (padre) {
     const suyo = await pedir(
       `tcg_sets?id=eq.${encodeURIComponent(padre)}&market=eq.WEST` +
-        '&select=id,name,serie_id,serie_name,logo_path,logo_scrydex,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code&limit=1'
+        '&select=id,name,serie_id,serie_name,logo_path,logo_scrydex,logo_tcggo,symbol_scrydex,release_date,card_count_official,card_count_total,tcg_online_code&limit=1'
     )
     if (suyo) set = suyo
   }
@@ -1198,6 +1258,15 @@ async function metaDeColeccion(url) {
     ),
     imagen: urlDeImagen(cartas[0]?.image_path, 'high') || IMAGEN_POR_DEFECTO,
     imagenCuadrada: true,
+    tarjeta: {
+      seccion: 'coleccion',
+      chapa: 'Expansión',
+      titulo: set.name,
+      entradilla: [total ? `${total} cartas` : '', set.serie_name, set.release_date ? set.release_date.slice(0, 4) : ''].filter(Boolean).join(' · '),
+      linea: 'Todas sus cartas, con su precio',
+      enlace: 'pokedoc.es/cartas',
+      pieza: { tipo: 'logo', src: logosDePago(set)[0] || urlDeLogo(set.logo_path) || null, iniciales: set.tcg_online_code || '' },
+    },
     robots: coleccionMereceIndexarse(set, cartas.length) ? null : 'noindex,follow',
     coleccionCabecera: cabeceraDeColeccion(set, cartas.length),
     coleccionCartas: rejillaDeCartas(cartas),
@@ -1279,7 +1348,93 @@ export function metaDeReto(url, hoy = new Date().toISOString().slice(0, 10)) {
   }
 }
 
-async function calcularMeta(url) {
+// Un evento de la agenda (1201): /eventos/<slug>. Hasta ahora salía con la
+// tarjeta genérica de /eventos; PINGU: «cuando compartas un evento quiero
+// que se cree una tarjeta». La ficha la da `evento_ficha` (la misma de la
+// web), que devuelve un objeto y no una lista.
+async function pedirObjeto(ruta) {
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
+    headers: { apikey: SUPABASE_KEY, authorization: `Bearer ${SUPABASE_KEY}`, accept: 'application/json' },
+    signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS),
+  })
+  if (!res.ok) return null
+  const v = await res.json()
+  return v && typeof v === 'object' && !Array.isArray(v) ? v : null
+}
+
+async function metaDeEvento(url) {
+  const enRuta = url.pathname.match(/^\/eventos\/([a-z0-9-]+)\/?$/)
+  const slug = enRuta ? enRuta[1] : url.searchParams.get('e')
+  if (!slug || !/^[a-z0-9]+(-[a-z0-9]+)*$/.test(slug)) return null
+  const e = await pedirObjeto(`rpc/evento_ficha?p_slug=${encodeURIComponent(slug)}`)
+  if (!e?.nombre) return null
+
+  const tipo = TIPOS_DE_EVENTO[e.tipo] || 'Evento'
+  const cuando = fechaLarga(e)
+  const donde = [e.sitio, e.ciudad].filter(Boolean).join(', ')
+  const precio = desdePrecio(entradasDe(e))
+  const van = Number(e.van) || 0
+  const canonica = `${SITIO}/eventos/${slug}`
+  const descripcion = recortar(textoDeHtml(e.descripcion)) || recortar(`${tipo} de Pokémon TCG${cuando ? `: ${cuando}` : ''}${donde ? `, en ${donde}` : ''}. Mira quién de PokeDoc va.`)
+  return {
+    url: canonica,
+    tipo: 'article',
+    titulo: `${e.nombre}${cuando ? ` — ${cuando.split(' · ')[0]}` : ''} · Eventos de PokeDoc`,
+    descripcion,
+    imagen: IMAGEN_POR_DEFECTO,
+    tarjeta: {
+      seccion: 'comunidad',
+      chapa: tipo,
+      titulo: e.nombre,
+      entradilla: [cuando.replace(' – ', '–'), donde].filter(Boolean).join(' · '),
+      linea: [van ? `${van} ${van === 1 ? 'va' : 'van'} de PokeDoc` : 'Mira quién de PokeDoc va', precio ? `entradas: ${precio.toLowerCase()}` : ''].filter(Boolean).join(' · '),
+      enlace: 'pokedoc.es/eventos',
+      pieza: { tipo: 'logo', src: urlAbsoluta(e.logo_url) || null, color: e.color || null, iniciales: siglasDe(e), cuadrado: true },
+    },
+    datos: {
+      '@context': 'https://schema.org',
+      '@type': 'Event',
+      '@id': canonica,
+      name: e.nombre,
+      url: canonica,
+      startDate: e.empieza,
+      ...(e.termina ? { endDate: e.termina } : {}),
+      eventAttendanceMode: 'https://schema.org/OfflineEventAttendanceMode',
+      eventStatus: 'https://schema.org/EventScheduled',
+      ...(donde || e.direccion ? { location: { '@type': 'Place', name: e.sitio || e.ciudad || e.nombre, address: [e.direccion, e.ciudad, e.provincia].filter(Boolean).join(', ') } } : {}),
+      ...(e.logo_url ? { image: urlAbsoluta(e.logo_url) } : {}),
+      description: descripcion,
+      inLanguage: 'es-ES',
+    },
+  }
+}
+
+// La dirección de la tarjeta del enlace de una página (1201): la dibuja la
+// función `tarjeta` con lo que hay en `meta.tarjeta`, que vuelve a calcular
+// desde la misma dirección. La `v` es la huella de lo que se dibuja: si
+// cambia el título o la foto, cambia la dirección, y ni la CDN ni WhatsApp
+// enseñan la vieja.
+export function huella(texto) {
+  let h = 2166136261
+  for (let i = 0; i < texto.length; i++) h = Math.imul(h ^ texto.charCodeAt(i), 16777619)
+  return (h >>> 0).toString(36)
+}
+
+export function urlDeTarjeta(meta) {
+  const u = new URL(meta.url)
+  const q = new URLSearchParams(u.search)
+  q.set('v', huella(JSON.stringify(meta.tarjeta)))
+  return `${SITIO}/tarjeta${u.pathname.replace(/\/$/, '') || '/inicio'}.png?${q}`
+}
+
+// Con tarjeta, la imagen del enlace ES la tarjeta (ancha, 1200×630), salvo
+// que la página traiga una dibujada a mano (la de una noticia, 1157).
+export function conTarjeta(meta) {
+  if (!meta?.tarjeta || meta.imagenAncha) return meta
+  return { ...meta, imagen: urlDeTarjeta(meta), imagenAncha: true, imagenCuadrada: false }
+}
+
+async function metaDeRuta(url) {
   const ruta = url.pathname
   // Los retos van ANTES que la ficha de carta: '/carta-del-dia' empieza
   // por '/carta' y la guarda de abajo mira el final, pero mejor no fiarse.
@@ -1302,8 +1457,16 @@ async function calcularMeta(url) {
   // Con cuidado: '/torneos' (la lista) también empieza por '/torneo'.
   if (/^\/torneo(\.html)?$/.test(ruta)) return metaDeTorneo(url)
   if (/^\/repeticiones(\.html)?$/.test(ruta)) return metaDeRepeticion(url)
+  if (ruta.startsWith('/eventos/')) return metaDeEvento(url)
   return null
 }
+
+// Lo que se inyecta en la página, con la tarjeta del enlace puesta. Lo usa
+// también la función `tarjeta` (sin `conTarjeta`) para saber qué dibujar.
+export async function calcularMeta(url) {
+  return conTarjeta(await metaDeRuta(url))
+}
+export { metaDeRuta }
 
 export default async (request, context) => {
   const respuesta = await context.next()
@@ -1395,5 +1558,7 @@ export const config = {
     '/que-expansion.html',
     '/parejas',
     '/parejas.html',
+    // La ficha de un evento (1201), con su tarjeta.
+    '/eventos/*',
   ],
 }

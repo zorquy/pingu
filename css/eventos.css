@@ -147,11 +147,11 @@
 .ev-logo-cartel b { font-size: var(--t-sm); }
 
 .ev-logo.grande {
-  width: 112px;
-  height: 112px;
-  border: 4px solid var(--bg);
+  width: 104px;
+  height: 104px;
+  margin: 4px;
   border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 0 0 4px var(--bg), var(--shadow-md);
 }
 
 .ev-logo.grande b { font-size: var(--t-2xl); }
@@ -834,7 +834,7 @@
   }
 
   .ev-cab > .ev-logo { margin-top: -40px; }
-  .ev-logo.grande { width: 80px; height: 80px; }
+  .ev-logo.grande { width: 72px; height: 72px; }
   .ev-logo.grande b { font-size: var(--t-xl); }
   .ev-cab-texto { padding-top: 0; }
   .ev-cab h1 { font-size: var(--t-2xl); }

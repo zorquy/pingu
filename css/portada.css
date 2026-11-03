@@ -266,9 +266,7 @@
 /* Comunidad solo con sesión; con ella, su hueco desde el primer pintado (1200). */
 :root:not(.con-sesion) #homeActivity { display: none; }
 
-/* El mosaico (1188; el porqué en SCHEMA): la noticia y las suyas (9 de 12)
-   con el foro a la derecha de arriba abajo, y debajo guías (6) y comunidad
-   (3). Las columnas van fijas: así un bloque que falta no descoloca a otro. */
+/* El mosaico de 12 columnas fijas (1188; el porqué en SCHEMA). */
 @media (min-width: 960px) {
   .panel-portada > * > section { grid-column: span 12; min-width: 0; }
   #sigueSeccion { order: 1; }
@@ -302,9 +300,7 @@
     display: contents;
   }
 
-  /* S780.188 · el orden del móvil (844; 1012 P3): lo de hoy arriba, lo de
-     quien ya está (Sigue) antes que lo de quien acaba de llegar (Primeros
-     pasos), y la comunidad al final. */
+  /* S780.188 · el orden del móvil (844; 1012 P3) (largo en SCHEMA 1201). */
   #retoSeccion { order: -10; }
   #torneoPortadaSeccion, #eventoPortadaSeccion { order: -9; }
   #sigueSeccion { order: -8; }

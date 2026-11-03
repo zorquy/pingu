@@ -1143,6 +1143,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   sitemap. Y antes de abrir miles de páginas a Google, mira en Search
   Console cuántas tiene «descubiertas sin indexar»: si la cola ya es
   larga, abrir más la alarga.
+- **La imagen de un enlace la dibuja el servidor** (tanda 1201, PINGU: «para
+  cualquier enlace… una imagen que tenga que ver con lo que compartes»):
+  `meta-social.js` pone `meta.tarjeta` en cada página con datos y de og:image
+  `/tarjeta/<ruta>.png?v=<huella>` (`urlDeTarjeta`); la función `tarjeta` la
+  vuelve a calcular con `metaDeRuta` y la pinta (`netlify/lib/tarjeta-svg.mjs`,
+  resvg + sharp). Una página nueva con datos pone `tarjeta` en su `metaDe*`;
+  una fija, su entrada en `netlify/lib/tarjetas-fijas.mjs` y la dirección en su
+  HTML. Y resvg-js en Node NO hace caso de `fontBuffers`: las letras van por
+  `fontFiles` (escritas en `tmpdir()`), o sale todo en la letra del sistema.
 - **Una página no salta al cargar** (tanda 981): se mide con
   `herramientas/medir-saltos.mjs` (rama `pruebas`; CLS en un iPhone, con sesión
   y la base lenta) y `test-tanda-981-pantalla.mjs` exige menos de 0,1 en 20

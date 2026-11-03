@@ -42,14 +42,14 @@ const CAMBIOS = [
   <meta property="og:locale" content="es_ES" />
   <meta property="og:title" content="${TITULO} en español" />
   <meta property="og:description" content="${DESCRIPCION}" />
-  <meta property="og:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <meta property="og:image" content="https://pokedoc.es/tarjeta/fija/cartas.png?v=1201" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@pokedoc_es" />
   <meta name="twitter:title" content="${TITULO} en español" />
   <meta name="twitter:description" content="${DESCRIPCION}" />
-  <meta name="twitter:image" content="https://pokedoc.es/assets/images/og-default.png" />
+  <meta name="twitter:image" content="https://pokedoc.es/tarjeta/fija/cartas.png?v=1201" />
   <!-- meta-social:fin -->
 `,
   ],

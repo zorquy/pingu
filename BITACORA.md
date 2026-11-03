@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (446) — PINGU-Claude (1201 — la tarjeta del enlace de cada página)
+
+**Hecho**: PINGU: «cuando compartas un evento quiero que se cree una tarjeta…
+y lo quiero para cualquier enlace». Cada página con datos (evento, carta,
+colección, perfil, tema, foro, torneo, guía, noticia sin tarjeta propia) sale
+en WhatsApp, X o Instagram con SU imagen de 1200×630, y las páginas fijas con
+la suya. `meta-social.js` calcula `meta.tarjeta` y pone de og:image
+`/tarjeta/<ruta>.png?v=<huella>`; la función `tarjeta` la vuelve a calcular
+desde esa dirección y la pinta (SVG → PNG con resvg; las fotos por sharp). Los
+eventos tienen etiquetas en el borde por primera vez (`/eventos/*`, con datos
+estructurados `Event`). Todo en SCHEMA 1201.
+
+**Ficheros**: `netlify/functions/tarjeta.mjs`, `netlify/lib/tarjeta-svg.mjs`,
+`netlify/lib/tarjeta-letras.mjs` (generado), `netlify/lib/tarjetas-fijas.mjs`,
+`netlify/edge-functions/meta-social.js`, `netlify.toml`, `package.json`,
+`package-lock.json`, el og:image de 15 páginas fijas y `generar-cartas.mjs`
+(+ `cartas.html`). De paso: `css/eventos.css` (el aro del logo sin borde de
+4 px) y los comentarios largos de `style.css`, `components.css`,
+`portada.css` e `index.html` a SCHEMA (la 780). En `pruebas`:
+`test-tanda-1201.mjs` y `herramientas/tarjetas-1201/`.
+
+**Pruebas**: verdes 1201, imports, 299, 309, 780, 1018, 1157, 906, 1199,
+1200, 1194, 1196, 649, 753, 324, 325, 331, 335, 346, 353, 863, 986, 989,
+998, meta-torneo, ficha-guia, 800, 872, 902. Rojas que no son de esta tanda
+(no tocan nada de lo cambiado): 327 (un chip se sale 4 px a 1.400),
+480 (una carta de otro dominio en el lienzo), 893 (/retos, /torneos y
+/usuarios en el móvil) y las de antes, 289 y 981.
+
+**Pendiente**: comprobar en producción que la función se despliega (si
+fallara, el enlace cae a la tarjeta de siempre). Siguen 1202 (invitar),
+1203 (/coleccion con su valor) y 1204 (Tu 2026).
+
 ## 2026-11-03 (445) — PINGU-Claude (1200 — la portada del PC no se recoloca al cargar)
 
 **Hecho**: PINGU: «carga así… y después se pone en su forma real y trae los

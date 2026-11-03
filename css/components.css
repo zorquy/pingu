@@ -1532,9 +1532,7 @@ tcg-deck {
   color: var(--text-dim);
 }
 
-/* La salida a /avisos (1168): la campana es lo sin leer; allí está todo. Se
-   desliza la lista y el pie se queda a la vista. La de los mensajes va en la
-   misma caja y también se desliza (1184: sin ella se salía por abajo). */
+/* La lista de la campana y la del sobre se deslizan; el pie, a la vista (1168, 1184). */
 #navBellList,
 #navMsgList {
   flex: 1 1 auto;
@@ -2967,9 +2965,7 @@ body.portada-compacta .page-content {
   background: rgba(255, 255, 255, 0.94);
   color: #0d1b2a;
 }
-/* La chapa del tema como enlace (866): fuera del <a> de la tarjeta, encima
-   del arte, en el sitio de la de texto. El <a> es la caja que se pulsa
-   (44 px, la 312) y la píldora de dentro mide lo de siempre. */
+/* La chapa del tema como enlace (866) (largo en SCHEMA 1201). */
 .guia-chapa-tema {
   position: absolute;
   z-index: 2;
@@ -3081,8 +3077,7 @@ body.portada-compacta .page-content {
   cursor: default;
 }
 
-/* 917: suelto, un botón suave; en una frase, subrayado (SCHEMA 917). Con :where, para
-   que las medidas de cada pantalla le sigan ganando. */
+/* 917 (largo en SCHEMA 1201). */
 .link-btn:where(:not(:is(p, .subtext, td) .link-btn)) {
   display: inline-flex;
   align-items: center;

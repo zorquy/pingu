@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-03",
+      "tipo": "nuevo",
+      "texto": "Cuando compartes un enlace de PokeDoc por WhatsApp, X o Instagram, sale con su propia imagen: el evento con su logo y sus fechas, la carta, el perfil, el tema del foro o el torneo que compartes.",
+      "enlace": "/eventos"
+    },
+    {
+      "fecha": "2026-11-03",
       "tipo": "arreglo",
       "texto": "En el ordenador, la portada ya no se recoloca al cargar: las guías y la comunidad salen en su sitio desde el principio.",
       "enlace": "/"

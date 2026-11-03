@@ -1,6 +1,14 @@
 [functions]
   directory = "netlify/functions"
 
+# La tarjeta del enlace (tanda 1201) usa dos módulos con binario nativo:
+# resvg (SVG → PNG) y sharp (las fotos WebP, que resvg no lee). Se copian
+# enteros con sus paquetes de plataforma, que se cargan por nombre en
+# ejecución y el empaquetador no ve.
+[functions.tarjeta]
+  external_node_modules = ["sharp", "@resvg/resvg-js"]
+  included_files = ["node_modules/@img/**/*", "node_modules/@resvg/**/*", "node_modules/detect-libc/**/*", "node_modules/semver/**/*"]
+
 # Las Edge Functions viven en netlify/edge-functions/, que es donde
 # Netlify las busca por defecto; cada fichero declara sus rutas en su
 # propio `export const config`. Hoy solo hay una: meta-social.js, que
@@ -189,6 +197,14 @@
 [[redirects]]
   from = "/yt-portada"
   to = "/.netlify/functions/yt-portada"
+  status = 200
+
+# La tarjeta del enlace de cada página (tanda 1201): la imagen que enseñan
+# WhatsApp, X o Instagram al pegar un enlace. La dirección la pone
+# meta-social.js (`urlDeTarjeta`) y la función lee la RUTA (la 633).
+[[redirects]]
+  from = "/tarjeta/*"
+  to = "/.netlify/functions/tarjeta"
   status = 200
 
 # El canal RSS (tanda 271). Igual que el sitemap: se genera en la
