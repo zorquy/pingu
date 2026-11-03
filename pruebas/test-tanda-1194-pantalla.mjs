@@ -78,7 +78,8 @@ console.log('── 3. La ficha: todo lo que se lee, arriba ──')
     logo: !!h.querySelector('.ev-logo.grande'),
     voy: !!h.querySelector('[data-voy]'),
   }))
-  check('la cabecera lleva el logo, la descripción, dónde, juegos, web, @ y TCG Map Spain', cab.logo && cab.voy && cab.desc === 'Más de 120 mesas de compraventa.' && cab.datos.some((d) => /Pabellón Cristal/.test(d)) && cab.datos.includes('iberiancardshow.es') && cab.datos.includes('@iberiancardshow') && cab.datos.includes('Ver en TCG Map Spain') && cab.datos.some((d) => /One Piece/.test(d)), JSON.stringify(cab))
+  // La dirección va en «Dónde» y no en la cabecera desde la 1199 (PINGU).
+  check('la cabecera lleva el logo, la descripción, juegos, web, @ y TCG Map Spain (la dirección, solo en «Dónde»)', cab.logo && cab.voy && cab.desc === 'Más de 120 mesas de compraventa.' && !cab.datos.some((d) => /Pabellón Cristal/.test(d)) && cab.datos.includes('iberiancardshow.es') && cab.datos.includes('@iberiancardshow') && cab.datos.includes('Ver en TCG Map Spain') && cab.datos.some((d) => /One Piece/.test(d)), JSON.stringify(cab))
   const pliegue = await page.evaluate(() => { const d = document.querySelector('.ev-datos'); return d.getBoundingClientRect().bottom <= innerHeight })
   check('  …y se ve sin bajar (PC)', pliegue)
   check('el tipo sale una vez (en la cabecera, no en el cartel)', (await page.$$('.ev-cartel-ficha .ev-tipo')).length === 0 && /Card show/i.test(await page.textContent('.ev-cab .ev-chapa')))
