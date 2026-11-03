@@ -36,6 +36,18 @@
     {
       "fecha": "2026-11-03",
       "tipo": "nuevo",
+      "texto": "Hilo nuevo en Eventos y quedadas: cuéntanos los card shows, quedadas y trade nights que conozcas y los añadimos a la agenda. Los hilos de cada evento ahora los firma PokeDoc.",
+      "enlace": "/foro/eventos"
+    },
+    {
+      "fecha": "2026-11-03",
+      "tipo": "arreglo",
+      "texto": "En la ficha de un evento, las fotos de quién va se ven enteras, y Compartir, Calendario y Cómo llegar están al pie de la cabecera, junto al sitio y la web.",
+      "enlace": "/eventos"
+    },
+    {
+      "fecha": "2026-11-03",
+      "tipo": "nuevo",
       "texto": "Cada evento tiene su hilo en el foro (Comunidad → Eventos y quedadas) para hablar de quién va y qué lleváis, y ya puedes añadirlo a tu calendario con un toque.",
       "enlace": "/eventos"
     },

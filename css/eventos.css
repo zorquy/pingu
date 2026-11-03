@@ -261,6 +261,8 @@
 
 .ev-cara {
   display: inline-grid;
+  background-size: cover;
+  background-position: center;
   flex-shrink: 0;
   place-items: center;
   border-radius: 50%;
@@ -413,7 +415,9 @@
 .ev-cab {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: 'logo texto acciones';
+  grid-template-areas:
+    'logo texto acciones'
+    'pie pie pie';
   gap: var(--e-lg) var(--e-xl);
   align-items: start;
   margin-bottom: var(--e-xl);
@@ -476,12 +480,28 @@
   white-space: pre-line;
 }
 
+/* El pie de la cabecera (1198): los datos a la izquierda y los atajos a la
+   derecha, a la misma altura (PINGU: «abajo de la tarjeta, a la derecha de la
+   ubicación»). */
+.ev-cab-pie {
+  grid-area: pie;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--e-md) var(--e-xl);
+  padding-top: var(--e-md);
+  border-top: 1px solid var(--border);
+}
+
 /* Dónde, juegos, web, Instagram y TCG Map Spain: chapas como las de una tienda. */
 .ev-datos {
   display: flex;
+  flex: 1 1 320px;
   flex-wrap: wrap;
+  align-self: center;
   gap: var(--e-sm);
-  margin: var(--e-sm) 0 0;
+  margin: 0;
   padding: 0;
   list-style: none;
   font-size: var(--t-sm);
@@ -807,7 +827,8 @@
     grid-template-areas:
       'logo .'
       'texto texto'
-      'acciones acciones';
+      'acciones acciones'
+      'pie pie';
     gap: var(--e-md);
     padding: 0 var(--e-lg) var(--e-lg);
   }
@@ -823,7 +844,8 @@
     padding-top: 0;
   }
 
-  .ev-atajos { justify-content: space-around; }
+  .ev-cab-pie { padding-top: var(--e-md); }
+  .ev-cab-pie .ev-atajos { flex: 1 1 100%; justify-content: space-around; }
 
   .ev-caja { padding: var(--e-lg); }
 }

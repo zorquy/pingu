@@ -18,6 +18,8 @@ import {
   foroDeLaRuta,
   rolEnElEquipo,
   faltaElForo,
+  PERFIL_POKEDOC,
+  firmaPokedoc,
 } from './foro-comun.js'
 import { casillaHtml, botonMenuHtml, engancharModeracion } from './foro-moderar.js'
 import { montarAvisosDelForo } from './foro-avisos.js'
@@ -79,6 +81,8 @@ let marcas = null
 // distinguir un foro con novedades de uno que ya te has leído: antes los
 // dos se veían igual y había que entrar en todos para saberlo.
 let nuevosPorForo = {}
+// Los foros cuyo último mensaje lo firma PokeDoc (1198, `pokedoc` de foro_resumen).
+let pokedocEn = new Set()
 // Lo de arriba, cuando ha llegado (983): el índice pide lo suyo sin esperarlo.
 let lecturas = Promise.resolve()
 
@@ -230,7 +234,7 @@ async function loQueSeHabla(idsForosVisibles = null, foros = []) {
   ])
   if (error) return { franja: '', ultimo: '' }
   const { data: temas } = mensajes?.length
-    ? await supabase.from('forum_threads').select('id, title, prefix, post_count, board_id, last_post_at, last_post_author_id').in('id', [...new Set(mensajes.map((m) => m.thread_id))])
+    ? await supabase.from('forum_threads').select('*').in('id', [...new Set(mensajes.map((m) => m.thread_id))])
     : { data: [] }
   // Solo temas de foros VISIBLES: la lectura de forum_threads es abierta,
   // así que sin esto un tema de un foro escondido (el de Noticias desde la
@@ -268,7 +272,7 @@ async function loQueSeHabla(idsForosVisibles = null, foros = []) {
       const palabra = t ? 'mensaje' : 'comentario'
       return `
       <div class="foro-caliente">
-        ${avatarHtml(perfiles[m.author_id], 30)}
+        ${avatarHtml(firmaPokedoc(m.tema, m.author_id) ? PERFIL_POKEDOC : perfiles[m.author_id], 30)}
         <span class="foro-caliente-texto">
           <a class="foro-caliente-titulo" href="${href}">${escapeHtml(titulo)}</a>
           <span class="foro-caliente-meta">
@@ -291,7 +295,7 @@ async function loQueSeHabla(idsForosVisibles = null, foros = []) {
         <ol class="foro-lou-lista">${ultimos
           .map((m) => {
             const nuevo = estaSinLeer(m.tema, leido)
-            const quien = perfiles[m.author_id]
+            const quien = firmaPokedoc(m.tema, m.author_id) ? PERFIL_POKEDOC : perfiles[m.author_id]
             return `<li class="foro-lou-fila${nuevo ? ' foro-lou-nuevo' : ''}">
               ${avatarHtml(quien, 24)}
               <span class="foro-lou-texto">
@@ -329,6 +333,7 @@ async function pintarIndice() {
     secciones = resumen.secciones || []
     foros = (resumen.foros || []).filter((f) => !f.is_hidden)
     perfiles = resumen.perfiles || {}
+    pokedocEn = new Set(resumen.pokedoc || [])
     if (sesion) {
       nuevosPorForo = resumen.nuevos || {}
       // Las marcas tema a tema no hacen falta aquí: las cuentas ya vienen.
@@ -405,7 +410,7 @@ async function pintarIndice() {
         titulo: f.last_thread_title,
         url: f.last_thread_id ? urlTema(f.last_thread_id) : '#',
         fecha: f.last_post_at,
-        perfil: perfiles[f.last_post_author_id],
+        perfil: perfiles[f.last_post_author_id] || (pokedocEn.has(f.id) ? PERFIL_POKEDOC : undefined),
       })}
     </div>`
   }
@@ -787,7 +792,7 @@ async function pintarListaDeTemas(foro) {
     const ultimo = ultimos.get(t.id)
     // `last_post_author_id` llega de supabase-migration-foro-ultimo-autor.sql;
     // sin ella, el autor del tema (en uno sin respuestas es el mismo).
-    const quien = perfiles[ultimo?.author_id || t.last_post_author_id] || perfiles[t.author_id]
+    const quien = perfiles[ultimo?.author_id || t.last_post_author_id] || perfiles[t.author_id] || (firmaPokedoc(t, ultimo?.author_id || t.last_post_author_id) ? PERFIL_POKEDOC : undefined)
     const respuestas = Math.max(0, (t.post_count || 1) - 1)
     return `
     <div class="foro-tema-fila foro-tema-conv ${t.is_pinned ? 'foro-tema-fijado' : ''} ${sinLeer ? 'foro-tema-nuevo' : ''} ${leido ? 'foro-tema-leido' : ''}" data-tema="${escapeHtml(String(t.id))}">

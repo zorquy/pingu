@@ -53141,3 +53141,65 @@ hilo en el foro… un botón para ir al hilo». Eligió lo recomendado.
   `https://pokedoc.es/eventos/<slug>`, y `enlaces-internos.js` (que ya hacía
   esto con temas y guías) lo pinta con `evento_ficha`: logo, nombre, tipo,
   fecha y cuántos van; si no está, «Este evento ya no está en la agenda».
+
+## Tanda 1198 — Los hilos de los eventos los firma PokeDoc, atajos al pie y caras con foto
+
+PINGU: «el hilo que se cree en el foro… que esté creado por PokeDoc, como las
+noticias… para que no salga creado por mí»; «los botones de compartir,
+calendario y cómo llegar… abajo de la tarjeta, a la derecha de la ubicación,
+la web, el Instagram»; «no carga el avatar de esa persona».
+
+**Firma de PokeDoc** (`supabase-migration-1198-hilos-de-pokedoc.sql`):
+- Un hilo de PokeDoc va sin `author_id` y con `forum_threads.de_pokedoc`, y
+  su PRIMER mensaje también va sin autor.
+- La regla que pinta «PokeDoc» es `firmaPokedoc(tema, autorId, esPrimero)`
+  (`js/foro-comun.js`): el mensaje no tiene autor, el hilo es `de_pokedoc` y
+  es el primero. Dentro del tema, «el primero» es `numero === 1`. En una
+  lista es «el hilo tiene un solo mensaje», porque lo que se pinta es el
+  último.
+- `PERFIL_POKEDOC` lleva el logo (`/assets/icon-192.png`). `avatarHtml` y
+  `enlacePerfil` no lo enlazan, y en el tema sale «Cuenta oficial» en vez
+  del nivel.
+- Cualquier otro mensaje sin autor sigue siendo una cuenta borrada
+  («Alguien»).
+- Nadie se pone la marca a sí mismo:
+  - La restricción `forum_threads_de_pokedoc_sin_autor` exige que un hilo
+    `de_pokedoc` no tenga autor.
+  - Un hilo sin autor no lo puede crear el navegador, porque las políticas
+    piden `auth.uid() = author_id`.
+  - Si se borra una cuenta, su hilo queda sin autor pero sin la marca.
+- `evento_hilo(p_evento, p_titulo, p_cuerpo, p_prefijo)`:
+  - Es `security definer` y solo la usa el admin.
+  - Abre el hilo en «Eventos y quedadas», o lo pone al día si ya existe.
+  - Si encuentra un hilo abierto con una cuenta (los de la 1197), lo pasa a
+    PokeDoc y le quita el autor al primer mensaje.
+  - /admin la llama al guardar un evento. Sin la migración, `sinMigracion`
+    devuelve el camino de la 1197.
+- `foro_resumen()` se redefine entera, con lo mismo de la 1017 y una clave
+  más, `pokedoc`: los foros cuyo último mensaje es el primero de un hilo de
+  PokeDoc. La vista `forum_boards_resumen` no se toca: su `b.*` está fijado
+  y reescribirla movería columnas.
+- En «lo que se habla» y «Lo último», los hilos se piden con `*`, así que
+  `de_pokedoc` llega cuando la columna existe sin romper nada antes (la 624).
+- **Hilo índice**: la misma migración abre «Índice de eventos: cuéntanos los
+  que conozcas», fijado y de PokeDoc, con un mensaje que pide los datos de
+  un evento y enlaza a /eventos. Busca el título para no abrirlo dos veces.
+- Para escribir un hilo de PokeDoc desde otra parte (noticias, avisos), usa
+  una función como `evento_hilo`, nunca un insert desde el navegador.
+
+**Ficha del evento**:
+- `.ev-cab-pie` ocupa toda la fila de abajo de la cabecera (`pie` en la
+  rejilla): los datos (`.ev-datos`) a la izquierda y los atajos a la
+  derecha, separados por una raya. En el móvil, los atajos van debajo.
+- `.ev-acciones` se queda con el Voy y «Ir sin decirlo».
+- `.ev-cara` lleva `background-size: cover` y `background-position: center`.
+  `avatarStyle` solo pone la imagen; en el foro el tamaño lo pone
+  `.mini-avatar`.
+
+Prueba: `test-tanda-1198-pantalla.mjs`. Cubre:
+- La ficha en PC y móvil, con las posiciones medidas.
+- Las caras.
+- El tema, la lista, el índice y un huérfano que sigue siendo «Alguien».
+- /admin con la migración y sin ella.
+- La migración contra PostgreSQL, ejecutada dos veces y sentencia a
+  sentencia, con `forum_recontar_tema` y la vista de verdad.

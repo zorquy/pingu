@@ -1704,6 +1704,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`js/enlaces-internos.js`). «Voy» es una entrada (`voyHtml`), y la franja de
   arriba sale del logo difuminado (`.ev-ambiente`), no de un cartel que casi
   nunca habrá.
+  El hilo lo firma PokeDoc (1198): lo abre `evento_hilo` sin autor y con
+  `de_pokedoc`, y la web pinta «PokeDoc» con `firmaPokedoc` /
+  `PERFIL_POKEDOC` (`js/foro-comun.js`). Algo nuevo que escriba en el foro
+  como PokeDoc pasa por una función así, nunca por un insert del navegador.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

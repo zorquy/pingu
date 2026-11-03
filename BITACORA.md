@@ -4,6 +4,48 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (443) — PINGU-Claude (1198 — hilos de PokeDoc, atajos al pie y caras con foto)
+
+**Hecho**: tres arreglos que pidió PINGU sobre los eventos.
+- **Atajos al pie de la cabecera**: Compartir, Calendario, Cómo llegar y
+  Foro van abajo a la derecha, junto a las chapas de sitio, web e Instagram.
+  El «Voy» se queda solo arriba a la derecha. En el móvil, debajo de las
+  chapas.
+- **Caras con foto**: `.ev-cara` no tenía `background-size`, así que una
+  foto grande enseñaba una esquina (en «Quién va» y en la tarjeta de la
+  agenda). Ahora va con `cover` y centrada.
+- **Los hilos los firma PokeDoc**: con la migración 1198, el hilo y su primer
+  mensaje van sin autor y el hilo lleva `de_pokedoc`. La web pinta
+  «PokeDoc» con el logo, sin enlace y con «Cuenta oficial» en el tema, en
+  la lista, en «Lo último», en el índice y en lo que se habla. Cómo
+  funciona:
+  - `evento_hilo` es `security definer` y solo la usa el admin. Abre el hilo
+    o lo pone al día, y pasa a PokeDoc el que se abrió con tu cuenta.
+  - /admin la llama al guardar un evento; sin la 1198, hace lo de la 1197.
+  - La restricción `forum_threads_de_pokedoc_sin_autor` impide que alguien
+    se ponga la marca en su propio hilo.
+  - `foro_resumen` lleva `pokedoc`, con los foros cuyo último mensaje es el
+    de PokeDoc.
+- **Hilo índice**: la migración abre «Índice de eventos: cuéntanos los que
+  conozcas», fijado y de PokeDoc, en «Eventos y quedadas». Ahí la gente
+  cuenta los eventos y el equipo los da de alta en /eventos.
+
+**Ficheros**: `supabase-migration-1198-hilos-de-pokedoc.sql`,
+`js/foro-comun.js`, `js/tema.js`, `js/foro.js`, `js/eventos.js`,
+`css/eventos.css`, `admin/js/eventos-admin.js`, `SCHEMA.md`, `CLAUDE.md`,
+`novedades.json`. En `pruebas`:
+- `test-tanda-1198-pantalla.mjs`, con la migración contra PostgreSQL.
+- El doble sabe hacer `evento_hilo` y `pokedoc` en `foro_resumen`.
+
+**Pruebas**: verdes imports, 1192-pantalla, 1194-pantalla, 1196-pantalla,
+1197-pantalla, 1198-pantalla, 314, 1116-pantalla, 1139-pantalla,
+1183-pantalla, 299, 305, 312, 313 y 1017. En 311 y 315, solo los rojos de
+antes (auth, comunidad, torneos, avisos-pagina). Portada: 136,1 KB de 170.
+
+**Pendiente**: **PINGU tiene que ejecutar la 1197 y luego la 1198**. Después,
+para que el Castellón tenga su hilo de PokeDoc, ábrelo en /admin → Editar →
+Guardar.
+
 ## 2026-11-03 (442) — PINGU-Claude (1197 — Voy en forma de entrada, atajos y el hilo del foro)
 
 **Hecho**: PINGU, «lo recomendado va» de «Voy, botones y foro»:

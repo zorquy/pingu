@@ -266,11 +266,13 @@ async function pintarFicha(slug, sesion) {
           <h1>${escapeHtml(e.nombre)}</h1>
           <p class="ev-cuando-largo">${escapeHtml(fechaLarga(e))}</p>
           ${e.descripcion ? `<p class="ev-desc">${escapeHtml(e.descripcion)}</p>` : ''}
-          ${datos ? `<ul class="ev-datos">${datos}</ul>` : ''}
         </div>
         <div class="ev-acciones">
           ${voyHtml(e, sesion, { pasado })}
           ${sesion && e.voy && !pasado ? `<label class="ev-oculto"><input type="checkbox" id="evOculto"${e.oculto ? ' checked' : ''}> Ir sin decirlo</label>` : ''}
+        </div>
+        <div class="ev-cab-pie">
+          ${datos ? `<ul class="ev-datos">${datos}</ul>` : '<span></span>'}
           <div class="ev-atajos">
             ${atajo('share', 'Compartir', { id: 'evCompartir' })}
             ${!pasado && dias.length ? atajo('calendar', 'Calendario', { id: 'evCalendario', 'aria-label': 'Añadir al calendario' }) : ''}

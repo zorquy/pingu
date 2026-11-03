@@ -28,6 +28,18 @@ export function fechaLarga(iso) {
   return new Date(iso).toLocaleString('es-ES', { dateStyle: 'long', timeStyle: 'short' })
 }
 
+// PokeDoc como autor (1198): el primer mensaje sin autor de un hilo
+// `de_pokedoc` (los de los eventos y el índice). Con el logo y sin enlace a un
+// perfil, como la firma de una noticia. Lo demás sin autor es una cuenta
+// borrada y sigue diciendo «Alguien».
+export const PERFIL_POKEDOC = Object.freeze({ id: null, display_name: 'PokeDoc', avatar_url: '/assets/icon-192.png', esPokedoc: true })
+
+// ¿Ese mensaje lo firma PokeDoc? `esPrimero` lo sabe quien pinta el tema; en
+// una lista, el último mensaje de un hilo de un solo mensaje es el primero.
+export function firmaPokedoc(tema, autorId, esPrimero = (tema?.post_count ?? 1) <= 1) {
+  return Boolean(tema?.de_pokedoc && !autorId && esPrimero)
+}
+
 export function nombreDe(perfil) {
   return perfil?.display_name || perfil?.username || 'Alguien'
 }
@@ -51,7 +63,7 @@ export function avatarHtml(perfil, tamano = 20) {
   const nombre = nombreDe(perfil)
   const estilo = `width:${tamano}px; height:${tamano}px; font-size:${Math.round(tamano * 0.45)}px; ${avatarStyle(perfil)}`
   const contenido = perfil?.avatar_url ? '' : escapeHtml(getInitial(nombre))
-  if (!perfil) return `<span class="mini-avatar" style="${estilo}">${contenido}</span>`
+  if (!perfil || perfil.esPokedoc) return `<span class="mini-avatar" style="${estilo}">${contenido}</span>`
   return `<a class="mini-avatar" href="${profileUrl(perfil)}" style="${estilo}">${contenido}</a>`
 }
 
@@ -59,6 +71,7 @@ export function enlacePerfil(perfil) {
   const nombre = escapeHtml(nombreDe(perfil))
   // El color del rango sale de `js/rangos.js` y de ningún otro sitio
   // (tanda 386). Aquí solo se pega lo que aquella función diga.
+  if (perfil?.esPokedoc) return `<span>${nombre}</span>`
   return perfil ? `<a href="${profileUrl(perfil)}"${atributosDeRango(perfil)}>${nombre}</a>` : `<span>${nombre}</span>`
 }
 

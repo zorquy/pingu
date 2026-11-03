@@ -23,6 +23,8 @@ import {
   temaDeLaRuta,
   esDelEquipo,
   faltaElForo,
+  PERFIL_POKEDOC,
+  firmaPokedoc,
 } from './foro-comun.js'
 import { calculateLevel, levelBadgeHtml, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { orosPorUsuario } from './medallero.js'
@@ -627,7 +629,7 @@ async function pintarMensajes() {
   }
 
   enganchar(perfiles)
-  pintarCabecera(perfiles[tema.author_id])
+  pintarCabecera(firmaPokedoc(tema, tema.author_id, true) ? PERFIL_POKEDOC : perfiles[tema.author_id])
   marcarRayaDeNuevos()
   // La barra pegada del móvil (858): la flecha al foro, el título y por qué
   // mensaje vas («12 de 22», 1139). Solo en el móvil, por `import()` y UNA
@@ -752,7 +754,8 @@ function esSeguido(anterior, m) {
 }
 
 function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { seguido = false, reacciones, hayReacciones, mencionados, gracias, oros }) {
-  const perfil = perfiles[m.author_id]
+  // El primer mensaje sin autor de un hilo de PokeDoc lo firma PokeDoc (1198).
+  const perfil = firmaPokedoc(tema, m.author_id, numero === 1) ? PERFIL_POKEDOC : perfiles[m.author_id]
   const nombre = nombreDe(perfil)
   const citado = m.reply_to_id ? citadoPorId[m.reply_to_id] : null
   const esMio = sesion && m.author_id === sesion.user.id
@@ -768,7 +771,7 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { seguido = fals
       <div class="foro-autor-nombre">${enlacePerfil(perfil)}</div>
       ${esMio ? '<span class="foro-chapa foro-chapa-tu">Tú</span>' : ''}
       <time class="foro-autor-hora" datetime="${escapeHtml(m.created_at || '')}" title="${escapeHtml(fechaLarga(m.created_at))}">${escapeHtml(haceCuanto(m.created_at))}${m.edited_at ? ' · editado' : ''}</time>
-      ${tituloDe(perfil, cuentas[m.author_id] || 0)}
+      ${perfil?.esPokedoc ? '<span class="foro-autor-titulo foro-autor-rangos"><span class="foro-titulo-etiqueta">Cuenta oficial</span></span>' : tituloDe(perfil, cuentas[m.author_id] || 0)}
       ${
         // El clásico "Mensajes: 336". Number.isFinite y no truthiness: el
         // 0 de quien estrena cuenta también se dice.

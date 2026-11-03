@@ -339,6 +339,16 @@ async function guardar() {
 async function ponerHilo(e, quiereHilo) {
   const yo = (await getSession())?.user?.id
   if (!yo) return
+  if (!e.hilo_id && !quiereHilo) return
+  // Desde la 1198 lo abre y lo pone al día la base, firmado por PokeDoc (y
+  // pasa a PokeDoc el que se abrió antes con tu cuenta). Sin la migración,
+  // como en la 1197.
+  const { data: hiloId, error: errRpc } = await supabase.rpc('evento_hilo', { p_evento: e.id, p_titulo: tituloDeHilo(e), p_cuerpo: cuerpoDeHilo(e, escapeHtml), p_prefijo: TIPOS[e.tipo] || 'Evento' })
+  if (!errRpc) {
+    if (!e.hilo_id && hiloId) showToast('Y su hilo ya está en el foro, firmado por PokeDoc.', 'success')
+    return
+  }
+  if (!sinMigracion(errRpc)) return showToast(`El evento se ha guardado, pero no su hilo: ${errRpc.message || ''}`)
   if (e.hilo_id) {
     await supabase.from('forum_threads').update({ title: tituloDeHilo(e) }).eq('id', e.hilo_id)
     const { data: primero } = await supabase.from('forum_posts').select('id').eq('thread_id', e.hilo_id).order('created_at', { ascending: true }).limit(1).maybeSingle()
