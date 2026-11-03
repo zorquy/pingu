@@ -250,7 +250,9 @@ async function pintarFicha(slug, sesion) {
       : `<p class="ev-cuantos">${pasado ? 'Nadie de PokeDoc marcó que iba.' : 'Todavía no ha marcado nadie que va. ¡Sé el primero!'}</p>`
     // Lo de leer, en chapas como las de una tienda: dónde, juegos y enlaces.
     const datos = [
-      lugar ? `<li>${ic('pin', 16)}<span>${escapeHtml([e.sitio, e.direccion, e.ciudad, e.provincia && e.provincia !== e.ciudad ? e.provincia : ''].filter(Boolean).join(', '))}</span></li>` : '',
+      // La dirección ya va en «Dónde» con su «Cómo llegar» (1199, PINGU: «la
+      // hace más ancha y más fea»): aquí solo si no hay caja de «Dónde».
+      lugar && !mapa ? `<li>${ic('pin', 16)}<span>${escapeHtml([e.sitio, e.direccion, e.ciudad, e.provincia && e.provincia !== e.ciudad ? e.provincia : ''].filter(Boolean).join(', '))}</span></li>` : '',
       e.juegos ? `<li>${ic('cards', 16)}<span>${escapeHtml(e.juegos)}</span></li>` : '',
       web ? `<li>${ic('link', 16)}<a href="${escapeHtml(web)}" target="_blank" rel="noopener nofollow">${escapeHtml(web.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</a></li>` : '',
       insta ? `<li>${ic('camera', 16)}<a href="${escapeHtml(insta.url)}" target="_blank" rel="noopener nofollow">@${escapeHtml(insta.usuario)}</a></li>` : '',

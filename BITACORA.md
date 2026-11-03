@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-03 (444) — PINGU-Claude (1199 — las filas que se deslizan de lado ya no se cortan; la dirección del evento, solo en «Dónde»)
+
+**Hecho**: PINGU, con una captura de Comunidad en el iPhone: «el menú
+deslizante de la comunidad se rompe al deslizar». Eran dos fallos:
+- **La fila se movía en vertical.** Las pestañas Gente · Sus guías ·
+  Actividad miden 36 px, pero la franja táctil de 44 de cada chip (1038) se
+  salía 4 px por arriba y por abajo. Con `overflow-x: auto`, la fila también
+  se podía desplazar en vertical, y el iPhone la arrastraba hacia arriba:
+  pestañas cortadas por la mitad. Pasaba en seis filas: Comunidad, vistas del
+  foro, mandos de Mi colección, pestañas del perfil, chips de /avisos y del
+  buscador. Arreglo en `movil.css`: `overflow-y: hidden` y `padding-block`
+  de 4 px para que la franja quepa dentro.
+- **Salía «tirar para refrescar».** En la app instalada, deslizar la fila de
+  lado enseñaba la Poké Ball. `tirar-refrescar.js` ya no empieza dentro de
+  algo que se desliza de lado (`dentroDeFilaLateral`) y suelta el gesto
+  cuando va más de lado que hacia abajo.
+- **La ficha de un evento no repite la dirección arriba** (PINGU: «la hace
+  más ancha y más fea… ya tienes abajo dónde es»). La chapa del sitio sale
+  de la cabecera cuando hay caja «Dónde» con «Cómo llegar»; arriba quedan la
+  web, el Instagram, los juegos y TCG Map Spain.
+
+**Ficheros**: `css/movil.css`, `js/tirar-refrescar.js`, `js/eventos.js`, `SCHEMA.md`,
+`CLAUDE.md`, `novedades.json`. En `pruebas`: `test-tanda-1199-pantalla.mjs`.
+
+**Pruebas**: verdes imports, 1199-pantalla, 1194-pantalla (ajustada: la
+dirección ya no se pide en la cabecera), 1192-pantalla, 1196-pantalla,
+1198-pantalla, 732-pantalla, 786, 1038-pantalla, 1040-pantalla, 312, 299,
+1023-pantalla y 1183-pantalla. 981-pantalla falla en `/mi-coleccion` (0,751
+en `#mcContenido`), y falla igual con el `movil.css` de antes: es de antes
+de esta tanda y queda pendiente.
+
+**Pendiente**: el salto de `/mi-coleccion` en la 981. Y en la captura de Actividad salía «PINGU abrió el tema ❗ÍNDICE
+DE EVENTOS…». Si se abrió a mano además del que crea la 1198 («Índice de
+eventos: cuéntanos los que conozcas», de PokeDoc), hay dos hilos índice y
+sobra uno.
+
 ## 2026-11-03 (443) — PINGU-Claude (1198 — hilos de PokeDoc, atajos al pie y caras con foto)
 
 **Hecho**: tres arreglos que pidió PINGU sobre los eventos.

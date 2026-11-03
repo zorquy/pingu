@@ -35,6 +35,18 @@
   "entradas": [
     {
       "fecha": "2026-11-03",
+      "tipo": "mejora",
+      "texto": "La ficha de un evento queda más limpia: la dirección va solo en «Dónde», con su botón para llegar en Google Maps.",
+      "enlace": "/eventos"
+    },
+    {
+      "fecha": "2026-11-03",
+      "tipo": "arreglo",
+      "texto": "En el móvil, las pestañas que se deslizan de lado (Comunidad, el foro, tu perfil, avisos, el buscador y Mi colección) ya no se cortan al deslizarlas, y en la app instalada deslizarlas no intenta recargar la página.",
+      "enlace": "/usuarios"
+    },
+    {
+      "fecha": "2026-11-03",
       "tipo": "nuevo",
       "texto": "Hilo nuevo en Eventos y quedadas: cuéntanos los card shows, quedadas y trade nights que conozcas y los añadimos a la agenda. Los hilos de cada evento ahora los firma PokeDoc.",
       "enlace": "/foro/eventos"

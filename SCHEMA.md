@@ -53203,3 +53203,44 @@ Prueba: `test-tanda-1198-pantalla.mjs`. Cubre:
 - /admin con la migración y sin ella.
 - La migración contra PostgreSQL, ejecutada dos veces y sentencia a
   sentencia, con `forum_recontar_tema` y la vista de verdad.
+
+## Tanda 1199 — Las filas que se deslizan de lado ya no se cortan
+
+PINGU, con una captura de Comunidad en el iPhone: «el menú deslizante de la
+comunidad se rompe al deslizar». Eran dos fallos que se veían juntos.
+
+**1. Las filas también se movían en vertical.** La franja táctil de la 1038
+(`::after` con `inset: -4px 0`) hace que un chip de 36 px mida 44 al dedo, y
+se sale 4 px por arriba y por abajo de su fila. En una fila con
+`overflow-x: auto`, `overflow-y` pasa a `auto` (no puede quedarse `visible`),
+así que esos 4 px se convierten en desplazamiento vertical: 39/36 en
+Comunidad. En el iPhone, al deslizar la fila con un poco de ángulo, lo de
+dentro se iba hacia arriba con su rebote y las pestañas quedaban cortadas
+por la mitad.
+
+El barrido de la prueba busca filas con desplazamiento lateral y con
+`scrollHeight > clientHeight`. Encontró seis: `.com-chips`, `.foro-vistas`,
+`.mc-mandos`, `.perfil-pestanas`, `.av-chips` y `.bs-chips`. En `movil.css`,
+bajo `pointer: coarse`, las seis llevan `overflow-y: hidden`, para que no
+haya desplazamiento ni rebote vertical, y `padding-block: var(--e-xs)`, para
+que la franja quepa dentro y siga contando al dedo; cuesta 8 px de alto.
+
+Una fila nueva de chips que se deslice de lado entra en esa lista. Lo vigila
+el barrido de `test-tanda-1199-pantalla.mjs`.
+
+**2. «Tirar para refrescar» saltaba al deslizar de lado.**
+`js/tirar-refrescar.js` (732, solo en la app instalada) empezaba el gesto en
+cualquier `touchstart` arriba de la página y pintaba la Poké Ball con
+cualquier `dy > 0`. Solo `tocaRefrescar` exigía que el gesto fuera vertical,
+y eso se miraba al soltar. Ahora:
+- No empieza si el dedo está dentro de algo que se desliza de lado
+  (`dentroDeFilaLateral`: un antepasado con desplazamiento lateral y
+  `overflow-x` auto o scroll).
+- Se suelta en cuanto el gesto va más de lado que hacia abajo (más de 12 px y
+  `|dx| × 1,5 > dy`).
+
+**3. La ficha de un evento no repite la dirección arriba** (PINGU: «la hace
+más ancha y más fea… ya tienes abajo dónde es»). En `js/eventos.js`, la chapa
+del sitio de `.ev-datos` solo sale si no hay `mapa` (`lugar && !mapa`): con
+caja «Dónde», la dirección vive allí con su «Cómo llegar». La prueba de la
+1194 ya no la pide en la cabecera, y la de la 1199 comprueba las dos cosas.

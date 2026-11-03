@@ -931,6 +931,12 @@
     content: '';
     position: absolute;
     inset: -4px 0;
+  }  /* Las filas que se deslizan de lado no se mueven en vertical (1199): la
+     franja se salía 4 px y el iPhone dejaba arrastrar la fila hacia arriba,
+     que quedaba cortada. Con el hueco de la franja dentro (SCHEMA 1199). */
+  html.con-barra-movil :is(.com-chips, .foro-vistas, .mc-mandos, .perfil-pestanas, .av-chips, .bs-chips) {
+    overflow-y: hidden;
+    padding-block: var(--e-xs);
   }
 }
 

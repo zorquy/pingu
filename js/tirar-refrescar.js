@@ -14,6 +14,16 @@ export function tocaRefrescar({ arriba, dy, dx }) {
   return arriba && dy >= UMBRAL && dy > Math.abs(dx) * 1.5
 }
 
+// ¿Empieza el dedo en algo que se desliza de lado (una fila de pestañas o
+// de chips)? Ahí el gesto es de la fila, no de la página (1199: deslizar
+// las pestañas de Comunidad enseñaba la Poké Ball de recargar).
+export function dentroDeFilaLateral(el, win = window) {
+  for (let x = el; x && x.nodeType === 1; x = x.parentElement) {
+    if (x.scrollWidth > x.clientWidth + 1 && /auto|scroll/.test(win.getComputedStyle(x).overflowX)) return true
+  }
+  return false
+}
+
 export function montarTirarRefrescar({ doc = document, win = window, recargar = () => win.location.reload() } = {}) {
   const marca = doc.createElement('div')
   marca.className = 'bm-refrescar'
@@ -25,11 +35,19 @@ export function montarTirarRefrescar({ doc = document, win = window, recargar = 
   doc.addEventListener('touchstart', (e) => {
     const t = e.touches[0]
     const dentro = e.target.closest?.('dialog[open], [data-sin-refrescar], .bm-burbuja, .mc-pestanias, .nav-user-dropdown')
-    inicio = e.touches.length === 1 && win.scrollY <= 0 && !dentro && !doc.querySelector('dialog[open]') ? { x: t.clientX, y: t.clientY } : null
+    inicio = e.touches.length === 1 && win.scrollY <= 0 && !dentro && !doc.querySelector('dialog[open]') && !dentroDeFilaLateral(e.target, win) ? { x: t.clientX, y: t.clientY } : null
   }, { passive: true })
   doc.addEventListener('touchmove', (e) => {
     if (!inicio) return
     const dy = e.touches[0].clientY - inicio.y
+    const dx = e.touches[0].clientX - inicio.x
+    // Un gesto que va más de lado que hacia abajo no es tirar: se suelta.
+    if (Math.abs(dx) > 12 && Math.abs(dx) * 1.5 > dy) {
+      inicio = null
+      marca.style.removeProperty('--tirado')
+      marca.classList.remove('lista')
+      return
+    }
     if (dy <= 0 || win.scrollY > 0) return
     const parte = Math.min(1, dy / UMBRAL)
     marca.style.setProperty('--tirado', String(parte))
