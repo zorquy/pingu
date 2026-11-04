@@ -1140,7 +1140,7 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
     caja.hidden = !caja.innerHTML
     return
   }
-  if (!ofertas.length) { caja.innerHTML = ''; caja.hidden = true; return }
+  if (!ofertas.length) { caja.innerHTML = ''; caja.hidden = true; caja.dataset.vivas = '0'; return }
   // «¿Qué tal fue?» en los hechos que no has valorado (1105): la valoración
   // vive en su cambio hecho (`trade_confirmations`, 795).
   const confs = await confirmacionesPorId(ofertas.filter((o) => o.estado === 'hecha' && o.confirmacion).map((o) => o.confirmacion))
@@ -1152,6 +1152,8 @@ export async function pintarMisCambios(caja, { sesion } = {}) {
   estado.perfiles = await perfilesDe(ofertas.map((o) => (o.de === yo ? o.para : o.de)))
   const vivas = ofertas.filter(estaViva)
   const pasadas = ofertas.filter((o) => !estaViva(o))
+  // Cuántos tratos siguen vivos, para la banda de Cruces (1213).
+  caja.dataset.vivas = String(vivas.length)
   ;[estado.cartaDe, estado.miDir, estado.misCobros] = await Promise.all([
     fichasDe(vivas.flatMap((o) => o.items)),
     vivas.some((o) => o.direcciones && vaPorCorreo(o)) ? miDireccion(yo) : null,

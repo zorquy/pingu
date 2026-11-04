@@ -15384,36 +15384,92 @@ html.mc-set-abierta .mc-hero { display: none; }
   font-size: var(--t-2xs);
 }
 
-/* Los dos lados, uno al lado del otro, y la balanza debajo, a lo ancho. */
+/* Los dos lados (1213, como la maqueta): las fotos de sus cartas con el
+   precio pequeño debajo, y una línea al pie con «Unos N € por lado» o la
+   balanza fina de quién pone más. */
 .mc-cruce-t .mc-cruce-lados {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: var(--e-sm);
   align-items: stretch;
 }
 
-.mc-cruce-t .mc-cruce-balanza {
-  grid-column: 1 / -1;
-  grid-row: 2;
-}
-
 .mc-cruce-t .mc-cruce-lado {
+  display: grid;
   align-content: start;
+  gap: var(--e-sm);
   padding: var(--e-md);
   border-radius: var(--radius-lg);
   background: var(--ice);
 }
 
-.mc-cruce-t .mc-cruce-flecha { display: none; }
+/* Los dos lados se leen igual, de izquierda a derecha (el de «Le das» iba
+   alineado a la derecha desde la 1042). */
+.mc-cruce-t .mc-cruce-lado[data-cruce-lado] { text-align: left; justify-items: stretch; }
 
-.mc-cruce-t .mc-cruce-nombres li { grid-template-columns: 40px minmax(0, 1fr) auto; }
+.mc-cruce-t .mc-cruce-titulo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--e-xs);
+  margin: 0;
+}
 
-.mc-cruce-t .mc-cruce-carta {
-  width: 40px;
+.mc-cruce-t .mc-cruce-titulo span { color: var(--text-mid); font-weight: 600; }
+.mc-cruce-t .mc-cruce-titulo b { margin-left: auto; color: var(--text); font-variant-numeric: tabular-nums; letter-spacing: 0; text-transform: none; }
+
+.mc-cruce-fotos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mc-cruce-fotos > li {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  width: 56px;
+}
+
+.mc-cruce-t .mc-cruce-fotos .mc-cruce-carta {
+  width: 56px;
   box-shadow: var(--shadow-sm);
   transition: transform 0.2s var(--ease);
 }
 
 .mc-cruce-t .mc-cruce-carta:hover { transform: translateY(-3px); }
+
+.mc-cruce-fotos .mc-cruce-precio {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.mc-cruce-fotos .mc-cruce-mas {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  aspect-ratio: 245 / 342;
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text-mid);
+  font-weight: 700;
+}
+
+.mc-cruce-nada { margin: 0; }
+
+.mc-cruce-porlado,
+.mc-cruce-t > .mc-cruce-balanza p {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  text-align: center;
+}
+
+.mc-cruce-t > .mc-cruce-balanza { display: grid; gap: var(--e-xs); }
+.mc-cruce-t > .mc-cruce-balanza .mc-balanza-barra { height: 4px; }
 
 .mc-cruce-t .mc-cruce-acciones {
   display: flex;
@@ -15421,13 +15477,8 @@ html.mc-set-abierta .mc-hero { display: none; }
   gap: var(--e-sm);
 }
 
-.mc-cruce-balanza-t {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
+.mc-cruce-t .mc-cruce-acciones .btn-secondary { gap: var(--e-xs); }
+.mc-cruce-t .mc-cruce-acciones .btn-primary { flex: 1; }
 
 @media (max-width: 599px) {
   /* Los filtros, una fila que se desliza (la 1199). */
@@ -15441,10 +15492,18 @@ html.mc-set-abierta .mc-hero { display: none; }
 
   .mc-cruces-filtros .seg-btn { flex-shrink: 0; }
   .mc-cruce-t .mc-cruce-lado { padding: var(--e-sm); }
-  .mc-cruce-t .mc-cruce-nombres li { grid-template-columns: 40px minmax(0, 1fr); }
-  .mc-cruce-t .mc-cruce-precio { grid-column: 2; }
-  /* La chapa ya dice que es perfecto. */
+  /* La chapa ya dice que es perfecto, y «Mensaje» es su sobre (1213). */
   .mc-cruce-t.perfecto .mc-cruce-quien .subtext { display: none; }
+  .mc-cruce-t .mc-cruce-acciones { flex-wrap: nowrap; }
+  .mc-cruce-msg-t { display: none; }
+  .mc-cruce-t .mc-cruce-acciones .btn-secondary { flex: 0 0 44px; min-width: 44px; padding-inline: 0; justify-content: center; }
+  /* La banda en una tira: las cuatro cifras en fila y sin el abanico. */
+  #mcCambiosPanel .banda-s-abanico { display: none; }
+  #mcCambiosPanel .banda-s-cifras { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-sm); }
+  #mcCambiosPanel .banda-s-cifra small { letter-spacing: 0; text-transform: none; line-height: 1.2; }
+  .mc-cruce-fotos > li,
+  .mc-cruce-t .mc-cruce-fotos .mc-cruce-carta,
+  .mc-cruce-fotos .mc-cruce-mas { width: 44px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -220,6 +220,9 @@ function bandaDeCruces(gente, perfectos, das) {
       { n: ctx.deseos.length, texto: ctx.deseos.length === 1 ? 'carta buscas' : 'cartas buscas', accion: 'data-ir-quiero' },
       { n: das, texto: das === 1 ? 'carta das' : 'cartas das', accion: 'data-deseos-vista="doy"' },
       { n: perfectos, texto: perfectos === 1 ? 'cruce perfecto' : 'cruces perfectos' },
+      // Los tratos en curso (1213): nace con guion y lo pone
+      // `pintarMisCambiosArriba` cuando sabe cuántos hay.
+      { n: '—', texto: 'tratos en curso', accion: 'data-ir-curso' },
     ],
     derecha: abanicoHtml(fotos),
   })
@@ -341,6 +344,8 @@ function engancharCambios() {
 
     // Lo que buscas vive en «La quiero» desde la 751.
     if (e.target.closest('[data-ir-quiero]')) return ctx.cambiarPestania('quiero')
+    // Los tratos en curso, arriba de los cruces (1213).
+    if (e.target.closest('[data-ir-curso]')) return $('mcMisCambios')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
   })
 }
 
@@ -364,6 +369,8 @@ async function pintarMisCambiosArriba() {
     const m = await import('../cambio-propuesta.js')
     await m.pintarMisCambios(caja, { sesion: ctx.sesion })
   } catch { caja.hidden = true }
+  const cifra = document.querySelector('[data-ir-curso] b')
+  if (cifra) cifra.textContent = caja.dataset.vivas ?? '0'
 }
 
 // El mensaje se deja ESCRITO, no enviado: quien lo manda lo lee antes.

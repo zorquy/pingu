@@ -53711,3 +53711,29 @@ Lo vigilan las pruebas del Panel (1155, 1175, 1178, 1181, 1206, 436, 440), de
 torneos (252, 266, 1163, 1164, 1040), del meta (384, 721, 889) y del foro (314,
 804, 816), en verde; y 893 deja /retos y /torneos a las bandas.
 
+## Tanda 1213 — Cruces como la maqueta
+
+PINGU: «veo algunas cosas a medio cambiar, como la parte de cruces». La 1208
+puso la banda y las tarjetas, pero dentro de cada lado seguía la lista de la
+1100 (nombre, número, idioma y precio de cada carta), la balanza con su frase
+de debajo y los dos iconos; la maqueta eran las FOTOS. Ahora
+(`cruceTarjetaHtml` en `js/mi-coleccion/tablon.js`):
+
+- Cada lado («Te da N · ≈ total», «Le das N · ≈ total») son las fotos de sus
+  cartas (`fotosHtml`: cuatro como mucho y «+N»), con el precio de cada una en
+  pequeño debajo. El NOMBRE, el idioma y el precio van en la etiqueta de la
+  foto (`title` y `aria-label`): se lee al pasar y con el lector, sin una fila
+  de texto por carta. Los dos lados se leen de izquierda a derecha.
+- Al pie, una línea: «Unos 46 € por lado» cuando los dos lados se llevan menos
+  de un 15 % (`porLado`, puro); si no, la balanza fina de la 1042 con quién
+  pone más (sin la frase «Puedes compensarlo…», que ya dice la propuesta).
+- Abajo, «Mensaje» (en el móvil, su sobre) y el verbo entero. El perfil, en el
+  nombre (el icono suelto se fue).
+- En la banda, una cifra más: los tratos en curso (`data-ir-curso`, lleva a
+  «Tus cambios»); la cuenta la deja `pintarMisCambios` en `data-vivas` de su
+  caja. En el móvil las cuatro cifras van en fila, sin el abanico.
+
+Lo que no entra: «Cerca de ti» (no sabemos de dónde es cada persona; haría
+falta un campo nuevo en el perfil). Lo vigilan `test-tanda-1208-pantalla.mjs`,
+1042, 1100 y 376, al día.
+

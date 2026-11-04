@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (458) — PINGU-Claude (1213 — Cruces como la maqueta)
+
+**Hecho**: PINGU vio Cruces «a medio cambiar» y pidió terminar lo de la
+propuesta («haz todo lo recomendado»). Cada lado son las fotos de sus cartas
+con el precio debajo (el nombre en la etiqueta), «Unos N € por lado» o la
+balanza fina, Mensaje y el verbo; la banda suma los tratos en curso. Siguen:
+1214 (cifras que cuentan, brillo, lo vivo late) y 1215 (los huecos de cada
+página). Decidido sin preguntar (lo recomendado): sin «Cerca de ti», sin temas
+del foro en Guardados, sin sprites en las tarjetas de torneo y sin el carrusel
+del foro en el PC.
+
+**Ficheros**: `js/mi-coleccion/tablon.js`, `js/mi-coleccion/deseos.js`,
+`js/cambio-propuesta.js` (`data-vivas`), `css/mi-coleccion.css`, `SCHEMA.md`,
+`novedades.json`. En `pruebas`: 1208, 1042, 1100 y 376 al día.
+
+**Pruebas**: verdes 1208, 1042, 1100, 376, 772, 1166, 1047, 1033, 942, 940,
+777, 1101, 1109, 299, 312, 313 e imports.
+
 ## 2026-11-04 (457) — PINGU-Claude (1212 — Panel, Torneos y los toques)
 
 **Hecho**: quinta y última tanda del repaso. Panel: cartera con brillo,

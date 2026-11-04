@@ -216,12 +216,59 @@ export function cruceTarjetaHtml(p, op) {
       ${p.perfecto ? `<span class="mc-chapa-reciproco">${icons.refreshCw(14)}Cruce perfecto</span>` : ''}
       <span class="mc-cruce-encaje"><b>${encajan}</b><small>${encajan === 1 ? 'encaja' : 'encajan'}</small></span>
     </header>
-    ${ladosHtml(p, op)}
+    ${ladosEnFotosHtml(p, op)}
     <div class="mc-cruce-acciones">
-      ${iconosDe(p, nombre)}
+      <button type="button" class="btn-secondary mc-cambio-escribir" data-escribir="${escapeHtml(p.user_id)}" data-direccion="cruce" aria-label="Escribir a ${escapeHtml(nombre)}">${icons.mail(16)}<span class="mc-cruce-msg-t">Mensaje</span></button>
       <button type="button" class="btn-primary mc-cambio-proponer" data-proponer="${escapeHtml(p.user_id)}">${icons.refreshCw(15)}${verboDe(p)}</button>
     </div>
   </article>`
+}
+
+// La tarjeta de Cruces como la maqueta (1213, PINGU: «la parte de cruces, a
+// medio cambiar»): cada lado son las FOTOS de sus cartas (cuatro como mucho y
+// «+N»), con el precio de cada una en pequeño debajo; el nombre va en la
+// etiqueta de la foto (se lee al pasar y con el lector), no escrito al lado.
+// Debajo, una línea: «Unos 46 € por lado» si los dos lados se parecen, o la
+// balanza fina de la 1042 con quién pone más.
+function fotosHtml(filas, { cartas, valor, euros }, max = 4) {
+  return `<ul class="mc-cruce-fotos">${filas.slice(0, max).map((f) => {
+    const c = cartas.get(f.card_id)
+    const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
+    const nombre = nombreDe(c)
+    const v = valor(f)
+    const etiqueta = [nombre, senasDe(f), v ? euros(v) : ''].filter(Boolean).join(' · ')
+    return `<li><a class="mc-cruce-carta" href="${c ? escapeHtml(rutaDeCarta(c)) : '#'}"${c ? ` data-carta="${escapeHtml(c.id)}"` : ''} title="${escapeHtml(etiqueta)}" aria-label="${escapeHtml(etiqueta)}"><span class="mc-carta-sinfoto">${escapeHtml(nombre)}</span>${escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''}${chapaDeVersionHtml(f.variante || 'normal', { nombre: false })}</a>${v ? `<small class="mc-cruce-precio">${escapeHtml(euros(v))}</small>` : ''}</li>`
+  }).join('')}${filas.length > max ? `<li class="mc-cruce-mas">+${filas.length - max}</li>` : ''}</ul>`
+}
+
+// «Unos 46 € por lado» cuando los dos lados se llevan menos de un 15 %; si
+// no, null y manda la balanza. Puro.
+export function porLado(recibes, das, euros) {
+  if (!recibes || !das) return null
+  const mayor = Math.max(recibes, das)
+  if (Math.abs(recibes - das) / mayor >= 0.15) return null
+  return `Unos ${euros(Math.round((recibes + das) / 2))} por lado`
+}
+
+function ladosEnFotosHtml(p, op) {
+  const suma = (filas) => filas.reduce((a, f) => a + (op.valor(f) || 0), 0)
+  const recibes = suma(p.teDa)
+  const das = suma(p.leDas)
+  const lado = (titulo, filas, total, vacio, modo) => `<div class="mc-cruce-lado" data-cruce-lado="${modo}">
+      <p class="mc-cruce-titulo">${titulo}${filas.length ? ` <span>${filas.length}</span>` : ''}${total ? `<b>≈ ${escapeHtml(op.euros(total))}</b>` : ''}</p>
+      ${filas.length ? fotosHtml(filas, op) : `<p class="subtext mc-cruce-nada">${vacio}</p>`}
+    </div>`
+  const igual = porLado(recibes, das, op.euros)
+  const b = igual ? null : balanzaDe(recibes, das, op.euros)
+  const pie = igual
+    ? `<p class="mc-cruce-porlado">${escapeHtml(igual)}</p>`
+    : b
+      ? `<div class="mc-cruce-balanza" role="img" aria-label="${escapeHtml(b.texto.replace(/<[^>]+>/g, ''))}"><span class="mc-balanza-barra"><i style="width:${b.pct}%"></i><i style="width:${100 - b.pct}%"></i></span><p>${b.texto}</p></div>`
+      : ''
+  return `<div class="mc-cruce-lados">
+      ${lado('Te da', p.teDa, recibes, 'Nada de tu lista', 'da')}
+      ${lado('Le das', p.leDas, das, 'Nada de su lista', 'busca')}
+    </div>${pie}`
 }
 
 // Pliega o despliega una fila (1044). Devuelve si ha quedado abierta.

@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "Cruces, por fin como en la propuesta: cada persona con las fotos de las cartas que te da y las que le das (el precio debajo y el nombre al pasar), «Unos N € por lado» cuando se parecen, y Mensaje y Proponer a mano. Arriba, también los tratos que tienes en curso.",
+      "enlace": "/mi-coleccion?ver=cambios"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "El Panel de tu colección, Torneos y Mis partidas con lo de la portada: la cartera con el brillo de Colección, las expansiones en baldosas con el logo y un anillo de lo que llevas, Torneos con sus cifras arriba y las barras del meta que crecen al aparecer.",
       "enlace": "/mi-coleccion"
     },
