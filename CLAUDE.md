@@ -1319,7 +1319,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   los 296 px de un iPhone de 844 (35 %). La 5 la vigila
   `test-tanda-1040-pantalla.mjs` en doce páginas: una página de lista nueva
   entra en su lista `LISTAS`. Aprender es la excepción (1227, PINGU: la banda
-  «déjala, no ocupa tanto y queda bien»): su banda se ve en el móvil.
+  «déjala, no ocupa tanto y queda bien»): su banda se ve en el móvil, y su
+  buscador va detrás de una lupa en ella (1229, `ponerBuscador`), no en una fila.
 - **En Deseos y cambios y el modo evento, occidental y japonés van cada
   uno en su tramo** (tanda 1033, PINGU: «separado está bien y está
   ordenado»): `porCatalogo` / `conRotulos` (deseos.js) ponen el rótulo como

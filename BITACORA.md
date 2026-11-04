@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (469) — PINGU-Claude (1229 — el buscador de Aprender detrás de una lupa en el móvil)
+
+**Hecho** (PINGU eligió la A de la propuesta: «la recomendada pero que no se
+coma texto de la banda»): en el móvil ya no hay fila fija de buscar; una lupa
+de 44 px al lado del lápiz abre la caja DEBAJO de la banda (la banda no
+cambia), con el foco dentro y una «×» que la cierra y borra lo escrito. La
+caja es la de siempre, mudada con su manejador (`ponerBuscador`); en el PC
+vuelve a su fila y la lupa no se ve. Las cifras se acercan para no pisar los
+dos botones y, por debajo de 360 px, la última baja de línea. De paso, el
+campo de dentro ya no lleva su propio contorno al enfocarlo (el de
+`style.css` le ganaba) y en el móvil se quita la «×» del navegador. La página
+de un tema no cambia (allí no hay banda).
+
+**Ficheros** (web): `aprender.html`, `js/aprender.js`, `css/aprender.css`,
+`BITACORA.md`, `SCHEMA.md`, `novedades.json`, `CLAUDE.md`.
+
+**Pruebas**: rama `pruebas`, `test-tanda-1229-pantalla.mjs` nueva (390, 360 y
+340 px: lupa de 44 sin pisar cifras, abre debajo con foco, filtra, la «×»
+cierra y borra; PC sin lupa) y la 1039 al día. Verdes 299, 305, 309, 312, 313,
+737, 864, 865, 1023, 1215, 1226 e imports; los rojos de 311, 846, 981, 1039 y
+1040 son los de antes (Glosario, Novedades…).
+
+**Queda**: nada.
+
 ## 2026-11-04 (468) — PINGU-Claude (1228 — el nombre largo de un tema ya no pisa su línea)
 
 **Hecho** (PINGU, captura del móvil: «Comprar, vender & mercado» encima de «2

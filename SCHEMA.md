@@ -54094,3 +54094,18 @@ lápiz se queda en `.banda-s-derecha` también en el móvil (círculo de 44), la
 banda no se recorta (solo su `h1`, como en `seccion.css`) y recupera el relleno
 que `.cab-lista` le quitaba. /aprender sale de la regla de los 296 px de la 1040
 por decisión de PINGU; la 1039 pide que las guías salgan en la primera pantalla.
+
+## Tanda 1229 — El buscador de Aprender, detrás de una lupa en el móvil
+
+PINGU eligió la A de la propuesta («que no se coma texto de la banda»). En el
+móvil (≤599 px) `ponerBuscador` (js/aprender.js) muda la `.ap-buscar` de la
+lista a `#apBuscarSitio`, un hueco justo debajo de la banda, que sale al tocar
+`#apLupa` (al lado del lápiz, en `.banda-s-derecha`) o si ya hay algo escrito,
+con su «×» (`.ap-buscar-cerrar`: vacía, avisa con `input` y cierra). La caja
+se arma una vez y no se repinta al escribir, así que mudarla conserva el
+manejador; su `input` se engancha por id, porque ya no está dentro de la
+lista. En el PC vuelve a `.ap-herramientas`. Las cifras de la banda van con
+`column-gap` corto y sin saltar de línea; por debajo de 360 px saltan, y la
+banda no (los botones se quedan a la derecha). `.ap-buscar input:focus` quita
+el contorno que `input[type=search]:focus` de style.css le ponía dentro de la
+caja (la 737: el anillo es de la caja).

@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "En el móvil, Aprender busca con una lupa al lado del lápiz: las guías suben una fila y el buscador sale solo cuando lo necesitas.",
+      "enlace": "/aprender"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "Los temas de Aprender se leen enteros y cada uno lleva un Pokémon que tiene que ver con él: Pichu para empezar, Meowth para comprar y vender, Ditto para las falsas…",
       "enlace": "/aprender"
     },

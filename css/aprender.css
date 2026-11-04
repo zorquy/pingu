@@ -544,3 +544,35 @@
 @media (max-width: 599px) {
   .ap-cab.banda-s { padding: var(--e-md) var(--e-lg); margin-bottom: var(--e-sm); }
 }
+
+/* 1229: el buscador en el móvil (la A de la propuesta; SCHEMA 1229). La lupa
+   va al lado del lápiz; la caja sale debajo de la banda, sin tocarla. */
+.ap-lupa { display: none; }
+.ap-buscar-sitio { display: flex; align-items: center; gap: var(--e-sm); margin-bottom: var(--e-sm); }
+.ap-buscar-sitio[hidden] { display: none; }
+.ap-buscar-sitio .ap-buscar { flex: 1 1 auto; min-width: 0; }
+.ap-buscar-cerrar { flex: none; width: 44px; height: 44px; padding: 0; border-radius: 50%; }
+@media (max-width: 599px) {
+  .ap-cab .banda-s-derecha { display: flex; align-items: center; gap: var(--e-sm); flex: none; }
+  .ap-cab .ap-lupa { display: grid; place-items: center; width: 44px; height: 44px; min-height: 44px; padding: 0; border-radius: 50%; }
+  .ap-cab .ap-lupa[aria-expanded='true'] { background: var(--acento); color: var(--acento-texto); }
+  /* Las cifras, enteras al lado de los dos botones: se acercan y no se cortan. */
+  .ap-cab .banda-s-texto { min-width: 0; }
+  .ap-cab .banda-s-cifras { flex-wrap: nowrap; column-gap: var(--e-sm); }
+  /* Sin la caja, la fila de herramientas se queda vacía (el orden es del PC). */
+  #categoriesList .ap-herramientas:not(:has(.ap-buscar)) { display: none; }
+}
+@media (max-width: 359px) {
+  /* Más estrecho aún: la última cifra baja de línea antes que meterse bajo la lupa. */
+  .ap-cab .banda-s-cifras { flex-wrap: wrap; }
+}
+/* El anillo es de la caja (la 737): el campo de dentro, sin borde ni anillo
+   propios al enfocarlo (`input[type=search]:focus` de style.css le ganaba). */
+.ap-buscar input:focus { border-color: transparent; box-shadow: none; }
+/* En el móvil la «×» es la nuestra: fuera la del navegador. */
+.ap-buscar-sitio .ap-buscar input::-webkit-search-cancel-button { -webkit-appearance: none; appearance: none; display: none; }
+@media (max-width: 599px) {
+  /* Los botones a la derecha siempre: lo que baja de línea son las cifras. */
+  .ap-cab.banda-s { flex-wrap: nowrap; }
+  .ap-cab .banda-s-texto { flex: 1 1 auto; }
+}

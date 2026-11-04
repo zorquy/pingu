@@ -7,7 +7,7 @@ import { tarjetaDeGuia, avanceDeGuia } from './guia-tarjeta.js'
 import { portadaDeGuia, artePokemonHtml } from './guia-portada.js'
 import { icons } from './icons.js'
 // El lápiz de «Escribir una guía» (1015, L10): en el móvil el botón es solo él.
-for (const el of document.querySelectorAll('.ap-escribir [data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(16) || ''
+for (const el of document.querySelectorAll('.ap-cab [data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(16) || ''
 import { filaDeGuia } from './guia-fila.js'
 import { normalizeSearch } from './texto.js'
 import { pokemonDelTema, porqueDelPokemon } from './temas-pokemon.js'
@@ -65,6 +65,47 @@ function ponerEscribir() {
   if (boton.parentElement !== cabecera) cabecera.append(boton)
 }
 estrecho.addEventListener?.('change', ponerEscribir)
+
+// El buscador en el móvil (1229, PINGU eligió la A: «que no se coma texto de
+// la banda»): no ocupa una fila fija; una lupa al lado del lápiz lo abre
+// DEBAJO de la banda, con una «×» que lo cierra y borra lo escrito. La caja
+// es la de siempre, MOVIDA con su manejador (la 893); en el PC vuelve a su
+// fila. Con algo escrito no se esconde (si no, la lista filtraría sin decir
+// por qué).
+let buscadorAbierto = false
+function ponerBuscador() {
+  const caja = document.querySelector('#categoriesList .ap-buscar, #apBuscarSitio .ap-buscar')
+  const sitio = document.getElementById('apBuscarSitio')
+  const lupa = document.getElementById('apLupa')
+  const fila = document.querySelector('#categoriesList .ap-herramientas')
+  if (!caja || !sitio || !lupa || !fila) return
+  if (estrecho.matches) {
+    if (caja.parentElement !== sitio) sitio.prepend(caja)
+    if (!sitio.querySelector('.ap-buscar-cerrar')) {
+      sitio.insertAdjacentHTML('beforeend', `<button type="button" class="btn-secondary ap-buscar-cerrar" aria-label="Cerrar el buscador">${icons.x(16)}</button>`)
+    }
+    const escrito = Boolean(caja.querySelector('input')?.value)
+    sitio.hidden = !(buscadorAbierto || escrito)
+    lupa.setAttribute('aria-expanded', String(!sitio.hidden))
+  } else {
+    if (caja.parentElement !== fila) fila.prepend(caja)
+    sitio.hidden = true
+  }
+}
+estrecho.addEventListener?.('change', ponerBuscador)
+document.getElementById('apLupa')?.addEventListener('click', () => {
+  buscadorAbierto = document.getElementById('apBuscarSitio')?.hidden ?? false
+  ponerBuscador()
+  if (buscadorAbierto) document.getElementById('apBuscar')?.focus()
+})
+document.getElementById('apBuscarSitio')?.addEventListener('click', (e) => {
+  if (!e.target.closest('.ap-buscar-cerrar')) return
+  const input = document.getElementById('apBuscar')
+  if (input?.value) { input.value = ''; input.dispatchEvent(new Event('input')) }
+  buscadorAbierto = false
+  ponerBuscador()
+  document.getElementById('apLupa')?.focus()
+})
 
 // «Sigue donde lo dejaste» DENTRO de la banda en el PC (1215, de la
 // propuesta); en el móvil se queda encima de los temas, que es donde se ve
@@ -197,6 +238,7 @@ async function loadCategories(session) {
   const seguidaId = guiaSeguida(guias, progreso)?.g.id || null
   ponerEscribir()
   ponerSeguir()
+  ponerBuscador()
 
   // El tema de cada guía, para la chapa-enlace de la tarjeta (866).
   const temaDe = new Map((categories || []).map((c) => [c.id, { nombre: c.name, slug: c.slug, emoji: c.emoji || '' }]))
@@ -235,7 +277,9 @@ async function loadCategories(session) {
     pintar()
   })
 
-  list.querySelector('#apBuscar').addEventListener('input', (e) => {
+  // Por id y no dentro de `list`: en el móvil la caja ya se ha mudado debajo
+  // de la banda (1229).
+  document.getElementById('apBuscar').addEventListener('input', (e) => {
     busqueda = e.target.value
     pintar()
   })

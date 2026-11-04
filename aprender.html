@@ -161,9 +161,13 @@
         </div>
       </div>
       <div class="banda-s-derecha">
+        <button type="button" class="btn-secondary ap-lupa" id="apLupa" aria-label="Buscar una guía" aria-expanded="false" aria-controls="apBuscarSitio"><span data-icono="search" aria-hidden="true"></span></button>
         <a class="btn-primary ap-escribir" href="/editor-guia.html" title="Cualquiera puede escribir una guía: la revisamos y sale aquí" aria-label="Escribir una guía"><span data-icono="edit" aria-hidden="true"></span><span class="cab-largo">Escribir una guía</span></a>
       </div>
     </section>
+    <!-- En el móvil la caja de buscar vive aquí, debajo de la banda, y sale al
+         tocar la lupa (1229); js/aprender.js la muda. En el PC, no se usa. -->
+    <div class="ap-buscar-sitio" id="apBuscarSitio" hidden></div>
 
     <!-- Ya no es una rejilla de categorías (tanda 299): dentro van la
          franja de «sigue donde lo dejaste», los filtros y la rejilla de
