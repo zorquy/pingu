@@ -119,13 +119,15 @@ console.log('── B. Las chapas del Mercado ──')
   await ctx.close()
 }
 
-console.log('── C. Los cruces por bandas ──')
+// Desde la 1208 ya no hay bandas: una rejilla de tarjetas iguales, por orden
+// de cuánto encajan (los perfectos primero).
+console.log('── C. Los cruces en tarjetas ──')
 for (const movil of [false, true]) {
   const { ctx, page, errores } = await abrir({ movil, extra })
   await ir(page, '/mi-coleccion.html?ver=cambios')
   await page.waitForTimeout(1200)
   const r = await page.evaluate(() => {
-    const bandas = [...document.querySelectorAll('#mcCambiosPanel .mc-cruces-banda')].map((b) => ({ titulo: b.querySelector('.mc-cruces-titulo')?.childNodes[0]?.textContent.trim(), quien: [...b.querySelectorAll('[data-cruce]')].map((c) => c.dataset.cruce + (c.classList.contains('mc-cruce-fila') ? ':fila' : ':tarjeta')) }))
+    const bandas = [...document.querySelectorAll('#mcCambiosPanel .mc-cruces-rejilla [data-cruce]')].map((c) => c.dataset.cruce + (c.classList.contains('mc-cruce-t') ? ':tarjeta' : ':otra'))
     const lucia = document.querySelector('[data-cruce="user-1"]')
     const bal = lucia?.querySelector('.mc-cruce-balanza')
     const barra = bal ? [...bal.querySelectorAll('.mc-balanza-barra i')].map((i) => Math.round(i.getBoundingClientRect().width)) : []
@@ -134,12 +136,12 @@ for (const movil of [false, true]) {
     return { bandas, balanza: bal?.getAttribute('aria-label'), barra, icos, fuertes, fila: document.querySelector('[data-cruce="user-4"]')?.innerText.replace(/\s+/g, ' ').trim(), ancho: document.documentElement.scrollWidth <= innerWidth + 1 }
   })
   const lado = movil ? 'móvil' : 'PC'
-  check(`${lado}: tres bandas en orden — perfecto (tarjeta), tienen lo que buscas y buscan lo que das (filas)`, JSON.stringify(r.bandas) === JSON.stringify([{ titulo: 'Cruce perfecto', quien: ['user-1:tarjeta'] }, { titulo: 'Tienen lo que buscas', quien: ['user-4:fila'] }, { titulo: 'Buscan lo que das', quien: ['user-2:fila'] }]), JSON.stringify(r.bandas))
+  check(`${lado}: todos en tarjeta, el perfecto primero (1208)`, r.bandas.length === 3 && r.bandas[0] === 'user-1:tarjeta' && r.bandas.every((x) => x.endsWith(':tarjeta')), JSON.stringify(r.bandas))
   check('  …la balanza dice quién pone más y cuánto', /^Te da 590,60\s€ más$/.test(r.balanza || ''), r.balanza)
   check('  …y la barra se reparte como el valor (612 contra 21,40)', r.barra.length === 2 && r.barra[0] > r.barra[1] * 20, JSON.stringify(r.barra))
   check('  …un solo botón fuerte y «Escribir» y «Su perfil» en iconos de 44', r.fuertes === 1 && r.icos.length === 2 && r.icos.every((i) => i.w === 44 && i.h === 44 && i.texto === '' && i.et), JSON.stringify(r.icos))
   // Desde la 1100 el botón dice qué es: quien tiene lo que buscas, «Comprar».
-  check('  …la fila de Íker dice lo que mueve y cuánto vale', /Te da 1 de tu lista · ≈ 612,00\s€/.test(r.fila || '') && /Comprar/.test(r.fila || ''), r.fila)
+  check('  …la tarjeta de Íker dice lo que mueve y cuánto vale', /1 carta · ≈ 612,00\s€/.test(r.fila || '') && /Proponer compra/.test(r.fila || ''), r.fila)
   check('  …sin desplazamiento de lado', r.ancho)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()

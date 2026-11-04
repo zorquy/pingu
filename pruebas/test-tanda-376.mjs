@@ -111,13 +111,13 @@ console.log('\n── 1. La doble coincidencia va primero y va marcada ──')
   check('  …y se distingue en el marco', borde !== bordeOtra, `${borde} vs ${bordeOtra}`)
 
   // Y arriba se dice cuántas hay, que es lo que hace volver.
-  check('la cabecera cuenta los cruces perfectos', /1 cruce perfecto/.test(limpio(await page.locator('#mcCambiosPanel .mc-quiero-cifra').textContent())),
-    limpio(await page.locator('#mcCambiosPanel .mc-quiero-cifra').textContent()).slice(0, 140))
+  check('la cabecera cuenta los cruces perfectos (1208: en la banda)', /1\s*cruce perfecto/.test(limpio(await page.locator('#mcCambiosPanel .banda-s').textContent())),
+    limpio(await page.locator('#mcCambiosPanel .banda-s').textContent()).slice(0, 140))
 
   // Y la otra dirección: Bea busca lo que doy, en SU tarjeta («Le das»).
   check('la otra dirección también sale, en la tarjeta de Bea', (await gente.first().locator('.mc-cruce-lado').nth(1).locator('.mc-cruce-carta').count()) === 1)
-  // Desde la 1042 quien solo da va en una FILA de «Tienen lo que buscas».
-  check('  …y Carlos no busca nada mío', await gente.nth(1).evaluate((e) => e.classList.contains('mc-cruce-fila') && /^Te da/.test(e.querySelector('.mc-cruce-quien .subtext')?.textContent || '')))
+  // Desde la 1208 quien solo da va en su tarjeta, como los demás.
+  check('  …y Carlos no busca nada mío', await gente.nth(1).evaluate((e) => e.classList.contains('mc-cruce-t') && /^Tiene lo que buscas/.test(e.querySelector('.mc-cruce-quien .subtext')?.textContent || '')))
   await page.close()
 }
 
@@ -133,7 +133,8 @@ console.log('\n── 2. Se agrupa por PERSONA, no por carta ──')
   check('una sola tarjeta', (await gente.count()) === 1, String(await gente.count()))
   // Desde la 1044 el primer cruce va en la tarjeta grande (una sola persona
   // es la primera): las cuatro cartas y su cuenta.
-  check('  …con las cuatro cartas dentro', (await gente.first().locator('.mc-cruce-carta').count()) === 4,
+  // Tres a la vista con su nombre y «+1 más» (1100).
+  check('  …con las cuatro cartas dentro', (await gente.first().locator('.mc-cruce-carta').count()) === 3 && /\+1 más/.test(await gente.first().innerText()),
     String(await gente.first().locator('.mc-cruce-carta').count()))
   check('  …y lo dice', /Te da.*4 cartas/.test(limpio(await gente.first().textContent())),
     limpio(await gente.first().textContent()).slice(0, 120))

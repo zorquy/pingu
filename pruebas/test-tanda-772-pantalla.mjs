@@ -140,9 +140,10 @@ console.log('── 3. Los cruces, por persona ──')
   // Desde la 1042 la diferencia la dice la balanza: «Te da 590,60 € más».
   check('  …con la diferencia de valor (612 − 21,40)', /Te da 590,60\s€ más/.test(lucia), lucia)
   check('  …y las cartas de cada lado', (await page.locator('[data-cruce="user-1"] .mc-cruce-lado:first-child .mc-cruce-carta').count()) === 1 && (await page.locator('[data-cruce="user-1"] .mc-cruce-lado:last-child .mc-cruce-carta').count()) === 1)
-  // Desde la 1042, una FILA en «Tienen lo que buscas» (no la tarjeta con media vacía).
-  check('Íker: solo «te da», en una fila de «Tienen lo que buscas»', await page.$eval('[data-cruce="user-4"]', (c) => c.classList.contains('mc-cruce-fila') && /Te da 1 de tu lista/.test(c.innerText) && /Tienen lo que buscas/.test(c.closest('.mc-cruces-banda')?.innerText || '')))
-  check('la cabecera: 3 personas · 1 cruce perfecto', /3 personas encajan contigo · 1 cruce perfecto/.test((await page.textContent('#mcCambiosPanel .mc-quiero-cifra')).replace(/\s+/g, ' ')), await page.textContent('#mcCambiosPanel .mc-quiero-cifra'))
+  // Desde la 1208, una tarjeta como las demás: «Tiene lo que buscas» y su lado de «Le das» vacío.
+  check('Íker: solo «te da», en su tarjeta', await page.$eval('[data-cruce="user-4"]', (c) => c.classList.contains('mc-cruce-t') && /Tiene lo que buscas/.test(c.innerText) && /Nada de su lista/.test(c.innerText)))
+  // Desde la 1208, en la banda: el título y la cifra de los perfectos.
+  check('la cabecera: 3 personas · 1 cruce perfecto', /3 personas encajan contigo/.test((await page.textContent('#mcCambiosPanel .banda-s h2')) || '') && /1\s*cruce perfecto/.test((await page.textContent('#mcCambiosPanel .banda-s')).replace(/\s+/g, ' ')), await page.textContent('#mcCambiosPanel .banda-s'))
   if (CAPS) await page.screenshot({ path: `${CAPS}/773-cruces.png`, fullPage: true })
   await page.click('[data-cruces-filtro="perfectos"]')
   await page.waitForTimeout(800)
@@ -166,7 +167,7 @@ console.log('── 4. En el iPhone ──')
   await page.waitForTimeout(1200)
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
   check('cruces: sin irse de ancho', ancho <= 1, String(ancho))
-  const seg = await page.$eval('#mcCambiosPanel .mc-quiero-cabeza .seg', (s) => Math.round(s.getBoundingClientRect().height))
+  const seg = await page.$eval('#mcCambiosPanel .mc-cruces-filtros', (s) => Math.round(s.getBoundingClientRect().height))
   check('  …los filtros en una fila', seg < 60, String(seg))
   if (CAPS) await page.screenshot({ path: `${CAPS}/773-movil.png` })
   await page.click('#mcPanelCambios [data-deseos-vista="doy"]')

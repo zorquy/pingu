@@ -100,7 +100,8 @@ console.log('── 1. Los cruces ──')
   const t = (await lucia.innerText()).replace(/\s+/g, ' ')
   check('el cruce perfecto: cada carta con su nombre y su precio', /Umbreon VMAX/.test(t) && /612,00 €/.test(t) && /Mew ex/.test(t) && /38,00 €/.test(t) && (await lucia.locator('.mc-cruce-nombre').count()) === 2, t)
   check('  …y «Proponer cambio»', /Proponer cambio/.test(await lucia.locator('[data-proponer]').innerText()))
-  check('quien solo tiene lo que buscas: «Comprar»', (await page.locator('#mcCambiosPanel [data-cruce="user-4"] [data-proponer]').innerText()).trim() === 'Comprar')
+  // Desde la 1208 todas son tarjetas, con el verbo entero.
+  check('quien solo tiene lo que buscas: «Proponer compra»', (await page.locator('#mcCambiosPanel [data-cruce="user-4"] [data-proponer]').innerText()).trim() === 'Proponer compra')
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
