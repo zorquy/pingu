@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (452) — PINGU-Claude (1207 — la portada «A con banda»)
+
+**Hecho**: PINGU pidió una portada del PC más moderna, más visual y con menos
+letra, con el foro y la comunidad siempre llenos («en el foro tiene un espacio
+bastante grande abajo»; «en comunidad sale uno o dos o tres»). Vio la propuesta
+con imágenes (PC y móvil) y eligió lo recomendado: la A con la banda y las
+cuatro animaciones.
+- **El mosaico del PC, en dos filas iguales**: la noticia (8 de 12) y el foro
+  (4), de 392 px; las guías (cuatro portadas) y la comunidad, de 348; y debajo
+  «Más noticias» con foto, a lo ancho (solo en el PC).
+- **Siempre cuatro**: el foro pinta cuatro temas en filas que se reparten la
+  caja, y la comunidad cuatro sucesos, con los «se unió» como relleno
+  (`cuatroSucesos`). Cada suceso lleva su dibujo a la derecha. Se fue el
+  «encajar», que escondía filas y dejaba el hueco.
+- **Color por sección**: el icono de cada cabecera (y la raya del foro y la
+  comunidad) va en el color de su sección.
+- **La banda**: el saludo y «Hoy» en un fondo propio, con la mascota y las tres
+  cartas que más suben esta semana, que flotan; se guardan seis horas.
+- **Animaciones**: cascada al entrar, la cifra que cuenta (ya existía), brillo
+  al pasar el ratón por las fotos y el latido del punto del foro. Todo se apaga
+  con «menos movimiento».
+- **En el móvil** se notan los cuatro, los colores, la banda en pequeño y la
+  cascada; el orden y la tira de noticias siguen como estaban (1190).
+
+**Ficheros**: `index.html` (la banda `#banda`, `#masNoticiasSeccion`, clases de
+color), `js/portada-bloques.js`, `js/pb-comun.js` (icono en la cabecera),
+`js/comunidad-sucesos.js` (`dibujo`), `js/escaparate.js` (`pintarAbanico`),
+`js/home.js` y `js/hoy.js` (lo de hoy va en la banda), `css/portada.css`,
+`css/portada-bloques.css`, `css/comunidad-sucesos.css`, `SCHEMA.md`,
+`novedades.json`. En `pruebas`: `test-tanda-1207-pantalla.mjs` nueva, y
+1188, 844, 316, 782 y 1187 al día.
+
+**Pruebas**: verdes 1207-pantalla (nueva), 1188, 1187, 1017, 844, 316, 299,
+313, 312, 1023, 1040, 737, 1018, 783, 985, 1200, 1204, 1205, 1206 e imports.
+Rojos de antes, sin esta tanda: 981 (solo /mi-coleccion; la portada da bien) y
+782 «Mensajes, en sus dos cabeceras» (`js/mensajes.js`, 1167/1189). La
+portada pesa 137,2 KB de 170.
+
+**Pendiente**: lo del precio del Lugia-EX (1206) sigue esperando a PINGU.
+
 ## 2026-11-03 (451) — PINGU-Claude (1206 — la cifra de tu colección es UNA)
 
 **Hecho**: PINGU: «no puede haber variaciones entre el panel del inicio y el

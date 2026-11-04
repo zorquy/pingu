@@ -125,129 +125,6 @@
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--success) 25%, transparent);
 }
 
-.pb-foro-top {
-  display: grid;
-  gap: var(--e-md);
-  padding: var(--e-lg);
-  border: 1px solid color-mix(in srgb, var(--navy) 30%, transparent);
-  border-radius: var(--radius-lg);
-  background: color-mix(in srgb, var(--navy) 8%, var(--bg));
-}
-
-.pb-foro-top-cab {
-  display: flex;
-  align-items: center;
-  gap: var(--e-sm);
-}
-
-.pb-foro-caliente {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-xs);
-  margin-left: auto;
-  color: var(--warning);
-  font-size: var(--t-xs);
-  font-weight: 700;
-}
-
-.pb-foro-titulo {
-  font-weight: 600;
-  color: var(--text);
-  font-family: var(--font-display);
-  font-size: var(--t-xl);
-  line-height: 1.25;
-  text-decoration: none;
-  text-wrap: balance;
-}
-
-.pb-foro-titulo:hover {
-  color: var(--navy);
-}
-
-.pb-foro-ultimo {
-  display: -webkit-box;
-  overflow: hidden;
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-  line-height: 1.45;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 4;
-}
-
-.pb-foro-ultimo small {
-  display: block;
-  margin-top: 2px;
-  color: var(--text-dim);
-  font-size: var(--t-xs);
-}
-
-.pb-foro-pie {
-  display: flex;
-  align-items: center;
-  gap: var(--e-md);
-  font-size: var(--t-sm);
-}
-
-.pb-foro-pie > * {
-  white-space: nowrap;
-}
-
-.pb-nuevos {
-  padding: 2px var(--e-sm);
-  border-radius: var(--radius-pill);
-  background: var(--pink);
-  color: var(--blanco-fijo);
-  font-size: var(--t-2xs);
-  font-weight: 700;
-}
-
-.pb-foro-lista {
-  margin: var(--e-sm) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.pb-foro-fila {
-  display: flex;
-  align-items: center;
-  gap: var(--e-md);
-  padding: var(--e-md) var(--e-xs);
-  border-bottom: 1px solid var(--border);
-}
-
-.pb-foro-fila:last-child {
-  border-bottom: 0;
-}
-
-.pb-foro-fila-texto {
-  display: grid;
-  flex: 1;
-  gap: 2px;
-  min-width: 0;
-  color: var(--text);
-  text-decoration: none;
-}
-
-/* El título entero, en las líneas que haga falta: cortado no se lee de qué
- * va el tema (la 316). */
-.pb-foro-fila-texto b {
-  font-size: var(--t-md);
-  line-height: 1.5;
-  text-wrap: balance;
-}
-
-.pb-foro-fila-texto:hover b {
-  color: var(--navy);
-}
-
-.pb-foro-fila-texto small {
-  overflow: hidden;
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .pb-foro-n {
   display: grid;
   min-width: 28px;
@@ -532,9 +409,7 @@
   .pb-caja-noticias {
     padding: 0;
   }
-
-  .pb-vivo,
-  .pb-foro-pie .pb-pila {
+.pb-vivo {
     display: none;
   }
 }
@@ -555,37 +430,6 @@
 
 #foroVivo .pb-cab { margin-bottom: 0; }
 #foroVivo .pb-vivo { margin-top: calc(var(--e-sm) * -1); }
-
-.pb-foro-top {
-  color: var(--text);
-  text-decoration: none;
-}
-
-.pb-foro-top:hover .pb-foro-titulo { color: var(--navy); }
-
-.pb-foro-titulo {
-  display: block;
-  font-size: var(--t-lg);
-}
-
-.pb-foro-lista { margin: 0; }
-
-.pb-foro-fila {
-  align-items: flex-start;
-  padding: var(--e-lg) 0;
-}
-
-.pb-foro-fila-texto b {
-  font-size: var(--t-sm);
-  line-height: 1.4;
-}
-
-.pb-foro-fila-texto small {
-  display: flex;
-  align-items: center;
-  gap: var(--e-xs);
-  margin-top: var(--e-xs);
-}
 
 #foroVivo .pb-pie-enlace { margin-top: auto; }
 
@@ -706,13 +550,13 @@
   font-size: var(--t-xs);
 }
 
-/* La primera noticia va en grande en el PC y en la tira del móvil (1190). */
+/* La primera noticia va en grande en el PC y en la tira del móvil (1190).
+ * Desde la 1207 las siguientes van en el PC abajo, a lo ancho
+ * (#masNoticias), así que la lista de al lado solo es del móvil. */
 .pb-caja-noticias > * { min-width: 0; }
 
 @media (min-width: 960px) {
-  .pb-caja-noticias { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
-  .pb-solo-movil,
-  .pb-noticias-mas li:first-child { display: none; }
+  .pb-noticias-lado { display: none; }
   #foroVivo, #homeActivityFeed { padding: var(--e-lg); }
   #aprende {
     padding: var(--e-lg);
@@ -720,25 +564,13 @@
     border-radius: var(--radius-xl);
     background: var(--white);
   }
-  .pb-noticia { height: auto; min-height: 400px; }
-  .pb-noticias-lado { contain: size; overflow: hidden; }
-  .pb-portada:nth-child(4) { display: none; }
-}
-
-/* Sin la caja de al lado (sin comunidad), las guías van a nueve de doce y
- * caben cuatro. */
-#aprende { container-type: inline-size; }
-
-@container (min-width: 760px) {
-  .pb-portadas { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  .pb-portadas .pb-portada:nth-child(4) { display: flex; }
+  .pb-noticia { height: 392px; }
 }
 
 /* En el móvil (y la tableta), las noticias de al lado son una tira que se
  * desliza, y las guías también. */
 @media (max-width: 959px) {
-  .pb-noticia,
-  .pb-solo-pc { display: none; }
+  .pb-noticia { display: none; }
 
   .pb-noticias-lado {
     padding: 0;
@@ -781,8 +613,7 @@
 }
 
 /* 1191 (PINGU): las portadas de guía, iguales —la chapa de una línea y el
- * título en tres, cortado si hace falta—, y en el PC el foro y «Más noticias»
- * más apretados para que quepa un tema y una noticia más. */
+ * título en tres, cortado si hace falta—. */
 .pb-portada-sobre { width: 100%; }
 
 .pb-portada-sobre .pb-chip {
@@ -800,26 +631,254 @@
   -webkit-line-clamp: 3;
 }
 
-@media (min-width: 960px) {
-  .pb-foro-ultimo { -webkit-line-clamp: 3; }
-  .pb-foro-fila { padding: var(--e-sm) 0; }
+/* ── 1207 (PINGU eligió «A con banda»; el porqué en SCHEMA) ── */
 
-  .pb-foro-fila-texto b {
-    font-size: var(--t-xs);
-    line-height: 1.35;
+/* Cada bloque, con el color de su sección: el de la barra de abajo. */
+.pb-s-com { --s: #c62a5c; }
+.pb-s-apr { --s: #0f7f55; }
+.pb-s-not { --s: var(--navy); }
+:root[data-theme='dark'] .pb-s-com { --s: #f06c9b; }
+:root[data-theme='dark'] .pb-s-apr { --s: #2fb47c; }
+
+.pb-cab-ic {
+  display: grid;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--s, var(--navy)) 16%, transparent);
+  color: var(--s, var(--navy));
+}
+
+.pb-cab-ic + h2 {
+  flex: 1;
+  min-width: 0;
+}
+
+/* En el móvil, las guías llevan dos botones a la derecha: sin el icono el
+ * título cabe en una línea. */
+@media (max-width: 600px) {
+  #aprende .pb-cab-ic { display: none; }
+}
+
+/* La raya de arriba de la caja, en ese color. */
+.pb-caja.pb-s-com {
+  position: relative;
+  overflow: hidden;
+}
+
+.pb-caja.pb-s-com::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, var(--s), transparent 80%);
+}
+
+/* El foro: cuatro filas iguales. */
+.pb-foro-cuatro {
+  display: grid;
+  grid-auto-rows: minmax(0, 1fr);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pb-foro-cuatro > li + li {
+  border-top: 1px solid var(--border);
+}
+
+.pb-hilo {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-md);
+  height: 100%;
+  padding: var(--e-sm) 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.pb-hilo:hover b { color: var(--navy); }
+
+.pb-hilo-texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+
+/* El título entero en el móvil (la 316); en el PC la caja mide lo que la
+ * noticia, así que va en dos líneas y entero al pasar el ratón (`title`). */
+.pb-hilo-texto b {
+  font-size: var(--t-sm);
+  line-height: 1.3;
+}
+
+.pb-hilo-texto small {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-width: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.pb-hilo-quien {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pb-hilo .pb-foro-n {
+  display: inline-flex;
+  gap: var(--e-xs);
+  padding: 0 var(--e-sm);
+}
+
+/* Lo que está vivo, late. */
+.pb-vivo i { animation: pb-latido 2s ease-out infinite; }
+
+@keyframes pb-latido {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--success) 55%, transparent); }
+  70%, 100% { box-shadow: 0 0 0 7px color-mix(in srgb, var(--success) 0%, transparent); }
+}
+
+/* «Más noticias», en el PC abajo y a lo ancho. */
+.pb-masnot {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--e-lg);
+}
+
+.pb-masnot-item {
+  display: grid;
+  align-content: start;
+  gap: var(--e-sm);
+  color: var(--text);
+  text-decoration: none;
+}
+
+.pb-masnot-foto {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+}
+
+.pb-masnot-foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s var(--ease);
+}
+
+.pb-masnot-item:hover img { transform: scale(1.04); }
+
+.pb-masnot-item b {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: var(--t-sm);
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.pb-masnot-item:hover b { color: var(--navy); }
+
+.pb-masnot-item small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+/* El brillo al pasar el ratón: lo que tiene foto se levanta un poco y le
+ * cruza un brillo, como a una holo. */
+.pb-portada,
+.pb-noticia,
+.pb-masnot-foto {
+  transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
+}
+
+.pb-portada::before,
+.pb-noticia::before,
+.pb-masnot-foto::before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  z-index: 1;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+  transform: translateX(-70%);
+  transition: transform 0.7s var(--ease);
+  pointer-events: none;
+}
+
+.pb-portada:hover,
+.pb-masnot-item:hover .pb-masnot-foto {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-md);
+}
+
+.pb-portada:hover::before,
+.pb-noticia:hover::before,
+.pb-masnot-item:hover .pb-masnot-foto::before {
+  transform: translateX(70%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pb-vivo i,
+  .pb-portada,
+  .pb-noticia,
+  .pb-masnot-foto,
+  .pb-portada::before,
+  .pb-noticia::before,
+  .pb-masnot-foto::before,
+  .pb-masnot-foto img {
+    animation: none;
+    transition: none;
   }
 
-  .pb-foro-fila-texto small { margin-top: 2px; }
-  .pb-noticias-mas a { gap: var(--e-sm); padding: var(--e-xs) 0; }
-
-  .pb-noticia-mini {
-    width: 44px;
-    height: 44px;
-  }
-
-  .pb-noticias-mas b {
-    font-size: var(--t-xs);
-    -webkit-line-clamp: 2;
+  .pb-portada:hover,
+  .pb-masnot-item:hover .pb-masnot-foto,
+  .pb-masnot-item:hover img {
+    transform: none;
   }
 }
 
+/* En el PC, dos filas de la misma altura: la noticia y el foro (392 px) y
+ * las guías y la comunidad (348). El foro y la comunidad miden lo que su
+ * vecina (contain: size, portada.css) y reparten sus cuatro filas. */
+@media (min-width: 960px) {
+  #foroVivo,
+  #homeActivityFeed {
+    display: flex;
+    flex-direction: column;
+  }
+
+  #foroVivo .pb-cab,
+  #homeActivityFeed .pb-cab { margin-bottom: var(--e-sm); }
+  .pb-foro-cuatro,
+  #homeActivityFeed .suc-lista { flex: 1; min-height: 0; }
+  #foroVivo .pb-pie-enlace { margin-top: var(--e-sm); }
+
+  #aprende {
+    display: flex;
+    flex-direction: column;
+    min-height: 348px;
+  }
+
+  #aprende .pb-portadas {
+    flex: 1;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  #aprende .pb-portada { aspect-ratio: auto; }
+
+  .pb-hilo-texto b {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}

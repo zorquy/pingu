@@ -316,7 +316,7 @@ export async function montarHoy(session, { doc = document } = {}) {
   // llegar, que es un salto más.
   await hoja
   if (!previa && doc.getElementById('hoyPortada')) return null
-  if (!previa) seccion.appendChild(caja)
+  if (!previa) (seccion.querySelector('.banda') || seccion).appendChild(caja)
 
   const hoy = hoyISO()
   // Lo que valen tus productos (766), como lo suma el Panel: va aparte en

@@ -19,5 +19,8 @@ export function caraHtml(p, t = 32) {
   return `<span class="pb-cara" style="width:${t}px;height:${t}px;${avatarStyle(p)}" title="${escapeHtml(nombre(p))}" aria-hidden="true">${dentro}</span>`
 }
 
-export const cabecera = (titulo, derecha = '') => `<div class="pb-cab"><h2>${titulo}</h2>${derecha}</div>`
+// Con `icono` (1207), el icono va delante del título en el color de la
+// sección del bloque (`--s`, lo pone su caja: pb-s-com, pb-s-apr, pb-s-not).
+export const cabecera = (titulo, derecha = '', icono = '') =>
+  `<div class="pb-cab">${icono ? `<span class="pb-cab-ic" aria-hidden="true">${ic(icono, 16)}</span>` : ''}<h2>${titulo}</h2>${derecha}</div>`
 export const verTodo = (href, texto = 'Ver todo') => `<a class="ver-todo" href="${href}">${texto} <span class="ver-todo-flecha" aria-hidden="true">→</span></a>`

@@ -25,6 +25,52 @@ export function lasQueMasSuben(filas, n = 3) {
     .slice(0, n)
 }
 
+// Las tres que más suben, con su foto (o null). Se guardan seis horas en el
+// navegador (la media de 7 días no se mueve más deprisa): la banda de la
+// portada con cuenta (1207) las pide en cada visita.
+const GUARDA = 'pd-suben-1207'
+const VIGENCIA = 6 * 3600 * 1000
+async function tresQueSuben() {
+  try {
+    const g = JSON.parse(localStorage.getItem(GUARDA) || 'null')
+    if (g && Date.now() - g.at < VIGENCIA && g.tres?.length === 3) return g.tres
+  } catch { /* sin memoria, se pide */ }
+  const { data: precios, error } = await supabase
+    .from('tcg_card_prices')
+    .select('card_id, cm_trend, cm_avg7, cm_avg30')
+    .gt('cm_trend', 10)
+    .order('cm_trend', { ascending: false })
+    .limit(120)
+  if (error) return null
+  const suben = lasQueMasSuben(precios, 6)
+  if (suben.length < 3) return null
+  const { data: cartas } = await supabase
+    .from('tcg_cards')
+    .select('id, name, name_es, name_en, image_path, market, set_id, local_id')
+    .eq('market', 'WEST')
+    .in('id', suben.map((s) => s.id))
+  const porId = new Map((cartas || []).filter((c) => c.image_path).map((c) => [c.id, c]))
+  const tres = suben.filter((s) => porId.has(s.id)).slice(0, 3).map((s) => ({ ...s, carta: porId.get(s.id) }))
+  if (tres.length < 3) return null
+  try { localStorage.setItem(GUARDA, JSON.stringify({ at: Date.now(), tres })) } catch { /* sin memoria */ }
+  return tres
+}
+
+// La banda de bienvenida con cuenta (1207, PINGU eligió «A con banda»): las
+// tres cartas que más suben esta semana en abanico, cada una con cuánto ha
+// subido y su enlace (que abre su ficha en el pop-up, app.js). Sin tres, la
+// banda se queda sin cartas: mejor eso que un abanico a medias.
+export async function pintarAbanico(caja) {
+  if (!caja) return false
+  const tres = await tresQueSuben().catch(() => null)
+  if (!tres) return false
+  caja.innerHTML = `<span class="banda-rotulo">Lo que más sube</span>${tres.map(({ carta: c, sube }, i) => `<a class="banda-carta banda-carta-${i + 1}" href="${escapeHtml(rutaDeCarta(c))}" title="${escapeHtml(nombreDeCarta(c))}">
+      <img src="${escapeHtml(urlDeImagen(c.image_path, 'low', c.market))}" alt="${escapeHtml(nombreDeCarta(c))}" width="245" height="342" decoding="async" onerror="this.remove()">
+      <span class="banda-sube">+${Math.round(sube * 100)} %</span>
+    </a>`).join('')}`
+  return true
+}
+
 export async function pintarEscaparate(doc = document) {
   const marcos = [...doc.querySelectorAll('.hero-portada .card-stack .tcg-card')]
   const lista = doc.getElementById('heroSuben')

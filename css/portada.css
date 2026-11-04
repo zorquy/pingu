@@ -293,14 +293,16 @@
   .panel-portada:has(#eventoPortadaSeccion.seccion-recogida):has(#lanzamientoSeccion.seccion-recogida) { --fila-cita: 12; }
   #torneoPortadaSeccion, #eventoPortadaSeccion, #lanzamientoSeccion { order: 2; grid-column: span var(--fila-cita); }
   #primerosPasos { order: 3; }
-  #noticiaPortadaSeccion { order: 4; grid-column: 1 / span 9; }
-  #foroVivoSeccion { order: 5; grid-column: 10 / span 3; grid-row: span 2; contain: size; }
-  #recientesSeccion { order: 6; grid-column: 1 / span 6; }
-  #homeActivity, .panel-portada .retos-abajo { order: 7; grid-column: 7 / span 3; }
+  #noticiaPortadaSeccion { order: 4; grid-column: 1 / span 8; }
+  #foroVivoSeccion { order: 5; grid-column: 9 / span 4; contain: size; }
+  #recientesSeccion { order: 6; grid-column: 1 / span 8; }
+  #homeActivity, .panel-portada .retos-abajo { order: 7; grid-column: 9 / span 4; }
+  #masNoticiasSeccion { order: 8; }
   :root:is(.con-sesion, :has(.hoy-retos)) .retos-abajo { display: none; }
-  .panel-portada:has(#foroVivoSeccion.seccion-recogida) #noticiaPortadaSeccion { grid-column: span 12; }
-  :root:has(.hoy-retos) .panel-portada:has(#homeActivity.seccion-recogida) #recientesSeccion,
-  .panel-portada:has(#foroVivoSeccion.seccion-recogida) #recientesSeccion { grid-column: 1 / span 9; }
+  .panel-portada:has(#foroVivoSeccion.seccion-recogida) #noticiaPortadaSeccion,
+  :root:has(.hoy-retos) .panel-portada:has(#homeActivity.seccion-recogida) #recientesSeccion { grid-column: span 12; }
+  .panel-portada:has(#noticiaPortadaSeccion.seccion-recogida) #foroVivoSeccion,
+  .panel-portada:has(#recientesSeccion.seccion-recogida) #homeActivity { grid-column: span 12; contain: none; }
   #homeActivity { contain: size; }
   #homeActivity > .pb-caja, #foroVivoSeccion > .pb-caja { overflow: hidden; }
   .panel-portada > * > section > :only-child,
@@ -325,6 +327,7 @@
   #foroVivoSeccion { order: -5; }
   #recientesSeccion { order: -4; }
   #lanzamientoSeccion { order: -3; }
+  #masNoticiasSeccion { display: none; }
 }
 
 /* S780.189 */
@@ -359,3 +362,160 @@
 }
 
 /* La portada del móvil, la mitad de larga (785, PA1; el porqué en SCHEMA). */
+
+/* ── La banda de bienvenida (1207; el porqué en SCHEMA) ── */
+:root { --banda-a: #e4f1f8; --banda-b: #f4f8fa; --banda-luz: rgba(30, 81, 117, 0.16); --banda-borde: #cfe1ea; }
+:root[data-theme='dark'] { --banda-a: #12304a; --banda-b: #0e1c29; --banda-luz: rgba(124, 186, 228, 0.3); --banda-borde: #234259; }
+
+:root.con-sesion .banda {
+  position: relative;
+  min-height: 336px;
+  padding: var(--e-xl);
+  overflow: hidden;
+  border: 1px solid var(--banda-borde);
+  border-radius: var(--radius-xl);
+  background: radial-gradient(70% 120% at 85% 0%, var(--banda-luz), transparent 60%), linear-gradient(135deg, var(--banda-a), var(--banda-b) 70%);
+  isolation: isolate;
+}
+
+.banda :is(.hoy-valor, .hoy-ficha:not(.hoy-destaca)) {
+  background: color-mix(in srgb, var(--white) 72%, transparent);
+  -webkit-backdrop-filter: blur(6px);
+  backdrop-filter: blur(6px);
+}
+
+.banda-abanico {
+  position: relative;
+  flex-shrink: 0;
+  width: 324px;
+  height: 132px;
+  margin-left: auto;
+}
+
+.banda-rotulo {
+  position: absolute;
+  top: 0;
+  left: 124px;
+  color: var(--navy);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.banda-carta {
+  position: absolute;
+  bottom: 0;
+  width: 76px;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  box-shadow: var(--shadow-lg);
+  animation: banda-flota 6s ease-in-out infinite;
+}
+
+.banda-carta img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banda-carta::after {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.5) 50%, transparent 60%);
+  transform: translateX(-60%);
+  animation: banda-brillo 6s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.banda-carta-1 { left: 120px; --giro: -10deg; animation-delay: -1s; }
+.banda-carta-2 { left: 180px; bottom: 12px; z-index: 2; --giro: 0deg; animation-delay: -3s; }
+.banda-carta-3 { left: 240px; --giro: 10deg; animation-delay: -5s; }
+.banda-carta-2::after { animation-delay: -2s; }
+.banda-carta-3::after { animation-delay: -4s; }
+
+.banda-sube {
+  position: absolute;
+  bottom: 4px;
+  left: 4px;
+  z-index: 1;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+}
+
+.banda-mascota {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 88px;
+  height: auto;
+}
+
+.banda-cartas { position: absolute; inset: 0; }
+
+@keyframes banda-flota {
+  0%, 100% { transform: translateY(0) rotate(var(--giro, 0deg)); }
+  50% { transform: translateY(-6px) rotate(var(--giro, 0deg)); }
+}
+
+@keyframes banda-brillo {
+  0%, 60% { transform: translateX(-60%); }
+  85%, 100% { transform: translateX(60%); }
+}
+
+@media (max-width: 600px) {
+  :root.con-sesion .banda { min-height: 496px; padding: var(--e-lg); }
+  .banda .bienvenida {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--e-sm) var(--e-md);
+  }
+  .banda .bienvenida-texto strong { font-size: var(--t-xl); }
+  .banda .bienvenida-chips { grid-column: 1; }
+  .banda-abanico { grid-column: 2; grid-row: 1 / span 2; width: 96px; height: 76px; }
+  .banda-rotulo,
+  .banda-mascota { display: none; }
+  .banda-carta { width: 44px; }
+  .banda-carta-1 { left: 0; }
+  .banda-carta-2 { left: 26px; bottom: 8px; }
+  .banda-carta-3 { left: 52px; }
+  .banda-sube { display: none; }
+}
+
+/* Las cajas entran en cascada al abrir la portada (1207): suben un poco y
+ * aparecen, 60 ms detrás de la anterior. */
+@keyframes portada-entra {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+:root.con-sesion #bienvenidaSeccion,
+.panel-portada > * > section {
+  animation: portada-entra 0.5s var(--ease) backwards;
+}
+
+:is(#torneoPortadaSeccion, #eventoPortadaSeccion, #lanzamientoSeccion) { animation-delay: 60ms; }
+#noticiaPortadaSeccion { animation-delay: 120ms; }
+#foroVivoSeccion { animation-delay: 180ms; }
+#recientesSeccion { animation-delay: 240ms; }
+:is(#homeActivity, #retoSeccion) { animation-delay: 300ms; }
+#masNoticiasSeccion { animation-delay: 360ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  :root.con-sesion #bienvenidaSeccion,
+  .panel-portada > * > section,
+  .banda-carta,
+  .banda-carta::after {
+    animation: none;
+  }
+}
+
+@media (min-width: 960px) {
+  #noticiaPortada > .skeleton { height: 392px !important; }
+}

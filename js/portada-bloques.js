@@ -46,41 +46,30 @@ function recoger(id) {
 
 // ── 2 · El foro ──
 //
-// El tema que más se mueve HOY va delante, con su último mensaje y quién
-// participa; los otros, en filas. «Lo más hablado» solo si de verdad ha
-// tenido mensajes hoy; si no, es «lo último», y se dice así. Puro.
-export function foroHtml({ temas, perfiles = {}, foros = {}, hoy = {}, escribiendo = 0, ultimo = null, participantes = [], nuevos = {}, sesion = false }) {
+// Desde la 1207 (PINGU: «en el foro tiene un espacio bastante grande abajo y
+// parece que nunca se rellena»): SIEMPRE los cuatro temas, en cuatro filas
+// iguales que se reparten la caja —cada una con la cara de quien escribió lo
+// último, el foro y cuándo, y los mensajes en una burbuja (rosa si hay algo
+// que no has leído)—. Antes el tema que más se movía iba en grande con su
+// trocito y la caja quitaba filas hasta que cabían, y sobraba sitio abajo.
+// «Lo más hablado» solo si el primero ha tenido mensajes hoy; si no, es «En
+// el foro». Puro.
+export function foroHtml({ temas, perfiles = {}, foros = {}, hoy = {}, escribiendo = 0, nuevos = {}, sesion = false }) {
   if (!temas?.length) return ''
-  const [top, ...resto] = temas
-  const masHablado = (hoy[top.id] || 0) > 0
-  const quien = perfiles[ultimo?.author_id] || perfiles[top.last_post_author_id] || perfiles[top.author_id]
-  const mensajes = top.post_count || 1
-  const nuevosTop = nuevos[top.id] || 0
-  // Una columna de arriba abajo (1188): el tema que más se mueve con un
-  // trocito, y los demás en filas de tres líneas (título, quién y cuántos).
+  const masHablado = (hoy[temas[0].id] || 0) > 0
   const fila = (t) => {
     const p = perfiles[t.last_post_author_id] || perfiles[t.author_id]
-    const sinLeer = nuevos[t.id] > 0
-    return `<li class="pb-foro-fila">
-      <a class="pb-foro-fila-texto" href="${urlTema(t.id)}">
-        <b>${etiquetaHtml(t.prefix)}${escapeHtml(t.title)}</b>
-        <small>${caraHtml(p, 18)}<span class="pb-quien">${escapeHtml(nombre(p))}</span> · ${haceCuanto(t.last_post_at || t.created_at)}</small>
-      </a>
-      <span class="pb-foro-n${sinLeer ? ' nuevo' : ''}" title="${(t.post_count || 1) === 1 ? '1 mensaje' : `${t.post_count} mensajes`}">${t.post_count || 1}</span>
-    </li>`
+    const n = t.post_count || 1
+    const foro = foros[t.board_id]
+    return `<li><a class="pb-hilo" href="${urlTema(t.id)}">
+      ${caraHtml(p, 40)}
+      <span class="pb-hilo-texto"><b title="${escapeHtml(t.title)}">${etiquetaHtml(t.prefix)}${escapeHtml(t.title)}</b><small>${foro ? `<span class="pb-chip">${escapeHtml(foro)}</span>` : ''}<span class="pb-hilo-quien">${escapeHtml(nombre(p))} · ${haceCuanto(t.last_post_at || t.created_at)}</span></small></span>
+      <span class="pb-foro-n${nuevos[t.id] > 0 ? ' nuevo' : ''}" title="${n === 1 ? '1 mensaje' : `${n} mensajes`}">${ic('messageSquare', 12)}${n}</span>
+    </a></li>`
   }
-  return `${cabecera(masHablado ? 'Lo más hablado' : 'En el foro', verTodo('/foro', 'Foro'))}
-    ${escribiendo > 1 ? `<span class="pb-vivo"><i aria-hidden="true"></i>${escribiendo} personas escribiendo hoy</span>` : ''}
-    <a class="pb-foro-top" href="${urlTema(top.id)}">
-      <span class="pb-foro-top-cab">${foros[top.board_id] ? `<span class="pb-chip">${escapeHtml(foros[top.board_id])}</span>` : ''}${nuevosTop > 0 ? `<span class="pb-nuevos">${nuevosTop} ${nuevosTop === 1 ? 'nuevo' : 'nuevos'}</span>` : ''}</span>
-      <b class="pb-foro-titulo">${etiquetaHtml(top.prefix)}${escapeHtml(top.title)}</b>
-      ${ultimo ? `<span class="pb-foro-ultimo">«${escapeHtml(extracto(ultimo.body_html))}»<small>${escapeHtml(nombre(quien))} · ${haceCuanto(ultimo.created_at)}</small></span>` : ''}
-      <span class="pb-foro-pie">
-        ${participantes.length > 1 ? `<span class="pb-pila">${participantes.slice(0, 5).map((p) => caraHtml(p, 24)).join('')}</span>` : ''}
-        <span class="pb-tenue">${mensajes} ${mensajes === 1 ? 'mensaje' : 'mensajes'}</span>
-      </span>
-    </a>
-    ${resto.length ? `<ul class="pb-foro-lista">${resto.map(fila).join('')}</ul>` : ''}
+  const vivo = escribiendo > 1 ? `<span class="pb-vivo" title="${escribiendo} personas han escrito hoy"><i aria-hidden="true"></i>${escribiendo} hoy</span>` : ''
+  return `${cabecera(masHablado ? 'Lo más hablado' : 'En el foro', `<span class="pb-cab-enlaces">${vivo}${verTodo('/foro', 'Foro')}</span>`, 'messageSquare')}
+    <ul class="pb-foro-cuatro">${temas.slice(0, 4).map(fila).join('')}</ul>
     ${sesion ? '' : '<div class="pb-pie-enlace"><a class="btn-secondary pb-boton" href="/auth.html?registro=1">Participar</a></div>'}`
 }
 
@@ -124,8 +113,6 @@ async function montarForo(session) {
   await hoja
   hueco.innerHTML = foroHtml(d)
   document.getElementById('foroVivoSeccion').style.display = ''
-  encajarForo(hueco)
-  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => encajarForo(hueco)).observe(hueco)
   return d.temas.map((t) => `tema:${t.id}`)
 }
 
@@ -209,7 +196,7 @@ export function portadaDeGuia(g) {
 export function aprendeHtml({ guias, escribir = false }) {
   if (!guias?.length) return ''
   const escribe = escribir ? `<a class="pb-escribir" href="/editor-guia.html" title="Escribe una guía">${ic('edit', 16)}<span class="sr-only">Escribe una guía</span></a>` : ''
-  return `${cabecera('Guías nuevas', `<span class="pb-cab-enlaces">${escribe}${verTodo('/aprender.html', 'Todas las guías')}</span>`)}
+  return `${cabecera('Guías nuevas', `<span class="pb-cab-enlaces">${escribe}${verTodo('/aprender.html', 'Todas las guías')}</span>`, 'bookOpen')}
     <div class="pb-portadas">${guias.slice(0, 4).map(portadaDeGuia).join('')}</div>`
 }
 
@@ -251,30 +238,22 @@ export function noticiasHtml(noticias) {
       <span class="pb-noticia-sobre"><span class="pb-chip claro">${ic('newspaper', 12)} Noticia · ${escapeHtml(cuandoFue(n.published_at))}</span><strong>${escapeHtml(n.title)}</strong></span>
     </a>
     <div class="pb-noticias-lado">
-      ${cabecera('<span class="pb-solo-pc">Más noticias</span><span class="pb-solo-movil">Noticias</span>', verTodo('/noticias', 'Todas'))}
+      ${cabecera('Noticias', verTodo('/noticias', 'Todas'), 'newspaper')}
       ${noticias.length ? `<ul class="pb-noticias-mas">${noticias.map((x) => `<li><a href="${rutaDeArticulo('news', x.slug)}"><span class="pb-noticia-mini arte-${arteDe(x)}" aria-hidden="true">${foto(x, '')}</span><span><b>${escapeHtml(x.title)}</b><small>${escapeHtml(cuandoFue(x.published_at))}</small></span></a></li>`).join('')}</ul>` : ''}
     </div>`
 }
 
-export const encajarNoticias = (caja) => encajar(caja.querySelector('.pb-noticias-lado') || caja, '.pb-noticias-mas li', Infinity)
-
-// El foro (1188) mide lo que la noticia y las guías de su izquierda y enseña
-// los temas que caben; en el móvil, todos (son cuatro).
-export const encajarForo = (caja) => encajar(caja, '.pb-foro-fila', Infinity)
-
-// Lo mismo para la comunidad (1187): en el PC mide lo que las guías de al
-// lado (1188; antes, la clasificación) y enseña los sucesos que quepan; en el
-// móvil, seis.
-export const encajarComunidad = (caja) => encajar(caja, '.suc-lista > li', 6)
-
-function encajar(caja, selector, enMovil) {
-  const filas = [...caja.querySelectorAll(selector)]
-  for (const li of filas) li.style.display = ''
-  if (!matchMedia('(min-width: 960px)').matches) {
-    filas.slice(enMovil).forEach((li) => { li.style.display = 'none' })
-    return
-  }
-  for (let i = filas.length - 1; i >= 0 && caja.scrollHeight > caja.clientHeight + 1; i--) filas[i].style.display = 'none'
+// «Más noticias» en el PC (1207, PINGU: «demasiado texto»): una fila más
+// abajo, a lo ancho, con las cuatro siguientes en tarjetas con foto, y no
+// cinco renglones al lado de la grande. En el móvil no sale: allí las
+// noticias son la tira de arriba (1190). Puro.
+export function masNoticiasHtml(noticias) {
+  if (!noticias?.length) return ''
+  return `${cabecera('Más noticias', verTodo('/noticias', 'Todas'), 'newspaper')}
+    <div class="pb-masnot">${noticias.slice(0, 4).map((x) => `<a class="pb-masnot-item" href="${rutaDeArticulo('news', x.slug)}">
+      <span class="pb-masnot-foto arte-${arteDe(x)}">${x.cover_image ? `<img src="${escapeHtml(x.cover_image)}" alt="" loading="lazy" decoding="async" onerror="this.remove()" />` : ''}</span>
+      <b>${escapeHtml(x.title)}</b><small>${escapeHtml(cuandoFue(x.published_at))}</small>
+    </a>`).join('')}</div>`
 }
 
 async function montarNoticias() {
@@ -283,16 +262,18 @@ async function montarNoticias() {
   const { data, error } = await supabase.from('guides').select('id, slug, title, published_at, cover_image').eq('kind', 'news').not('published_at', 'is', null).order('published_at', { ascending: false }).limit(6)
   if (error || !data?.length) {
     recoger('noticiaPortadaSeccion')
+    recoger('masNoticiasSeccion')
     return []
   }
   await hoja
   hueco.innerHTML = noticiasHtml(data)
   document.getElementById('noticiaPortadaSeccion').style.display = ''
-  // En el PC la caja mide lo que la noticia grande (portada.css), así que se
-  // dejan las que caben y se vuelve a mirar cuando cambia de alto. En el
-  // móvil van todas, en una tira que se desliza.
-  encajarNoticias(hueco)
-  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => encajarNoticias(hueco)).observe(hueco)
+  // Las cuatro siguientes, abajo y a lo ancho (solo en el PC, portada.css).
+  const mas = document.getElementById('masNoticias')
+  if (mas && data.length > 1) {
+    mas.innerHTML = masNoticiasHtml(data.slice(1))
+    document.getElementById('masNoticiasSeccion')?.classList.remove('hidden')
+  }
   return data.flatMap((n) => [`noticia:${n.id}`])
 }
 
@@ -330,6 +311,15 @@ async function genteNueva() {
   return error ? { n: 0, caras: [] } : { n: count ?? (data || []).length, caras: data || [] }
 }
 
+// SIEMPRE cuatro (1207, PINGU: «según el evento sale uno o dos o tres… que
+// siempre saliese lo mismo, ocupando lo mismo del bloque»). Con la cifra de
+// gente nueva arriba, los «se unió» van al final: solo rellenan si no hay
+// cuatro de lo demás, para que nunca quede un hueco. Puro.
+export function cuatroSucesos(todos, genteNueva = 0) {
+  const lista = genteNueva ? [...todos.filter((s) => s.tipo !== 'alta'), ...todos.filter((s) => s.tipo === 'alta')] : todos
+  return lista.slice(0, 4)
+}
+
 async function montarComunidad(session, yaEnPantalla) {
   const caja = document.getElementById('homeActivityFeed')
   if (!caja) return
@@ -342,13 +332,11 @@ async function montarComunidad(session, yaEnPantalla) {
     const clave = (e) => (e.tipo === 'tema' ? `tema:${String(e.enlace || '').split('/').pop()}` : e.tipo === 'noticia' ? `noticia:${e.guideId}` : null)
     const deSiempre = actividad.filter((e) => e.tipo !== 'noticia' && !fuera.has(clave(e)))
     const todos = m.sucesosDeLaComunidad(deSiempre, nuevos)
-    const sucesos = (gente.n ? todos.filter((s) => s.tipo !== 'alta') : todos).slice(0, 14)
+    const sucesos = cuatroSucesos(todos, gente.n)
     if (!sucesos.length && !gente.n) return recoger('homeActivity')
     await Promise.all([hoja, m.hoja])
-    caja.innerHTML = `${cabecera('Comunidad', verTodo('/usuarios.html#activity'))}${genteNuevaHtml(gente.n, gente.caras)}${m.listaHtml(sucesos)}`
+    caja.innerHTML = `${cabecera('Comunidad', verTodo('/usuarios.html#activity'), 'users')}${genteNuevaHtml(gente.n, gente.caras)}${m.listaHtml(sucesos, { dibujo: true })}`
     document.getElementById('homeActivity').classList.remove('hidden')
-    encajarComunidad(caja)
-    if (typeof ResizeObserver !== 'undefined') new ResizeObserver(() => encajarComunidad(caja)).observe(caja)
   } catch {
     recoger('homeActivity')
   }

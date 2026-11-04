@@ -280,6 +280,9 @@ async function cargarBienvenida(session) {
     // la racha a la derecha. El avatar, el nivel y «Tu perfil» viven en la
     // hoja «Tú», a un toque.
     const h = new Date().getHours()
+    // Las tres cartas de la banda (1207): lo de la última vez se queda puesto
+    // mientras llega lo de ahora, que lo pinta js/escaparate.js.
+    const abanicoPrevio = hueco.querySelector('#bandaCartas')?.innerHTML || ''
     hueco.innerHTML = `
       <div class="bienvenida-texto">
         <small>${new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}</small>
@@ -289,7 +292,9 @@ async function cargarBienvenida(session) {
         ${racha > 0 && matchMedia('(max-width: 900px)').matches ? `<span class="bienvenida-chip" title="Días seguidos">${icons.flame(16)} ${racha}</span>` : ''}
         ${escudos > 0 ? `<span class="bienvenida-chip bienvenida-escudo" title="Protectores de racha: si un día no entras, uno se gasta solo y la racha sigue">${icons.shield(14)} ${escudos}</span>` : ''}
         ${salvada ? `<span class="bienvenida-chip bienvenida-salvada">${icons.shield(14)} Tu protector salvó la racha</span>` : ''}
-      </div>`
+      </div>
+      <div class="banda-abanico"><img class="banda-mascota" src="/assets/images/mascota.webp" alt="" width="96" height="96" loading="lazy" decoding="async"><div class="banda-cartas" id="bandaCartas">${abanicoPrevio}</div></div>`
+    import('./escaparate.js').then(({ pintarAbanico }) => pintarAbanico(document.getElementById('bandaCartas'))).catch(() => {})
     // El hero se esconde SOLO cuando la bienvenida está lista: si algo
     // de arriba fallara, la portada de siempre sigue entera. La clase
     // del body compacta el aire de arriba: los 76px de .page-content
@@ -336,7 +341,8 @@ function pintarPortadaGuardada(session) {
       caja.style.visibility = 'hidden'
       hojaInyectada('css/hoy.css').then(() => caja.style.removeProperty('visibility'))
     }
-    seccion.appendChild(caja)
+    const banda = seccion.querySelector('.banda') || seccion
+    banda.appendChild(caja)
   }
   vistaVigilada(clave, ['bienvenida', 'hoyPortada', 'foroVivo', 'aprende', 'torneoPortada', 'eventoPortada', 'lanzamientoPortada', 'noticiaPortada', 'retoTarjetas', 'clasificacion'])
 }

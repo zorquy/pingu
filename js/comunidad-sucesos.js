@@ -91,16 +91,22 @@ const caraHtml = (p) => `<span class="suc-cara" style="${avatarStyle(p)}" aria-h
 const quienHtml = (p) =>
   p?.username ? `<b class="suc-quien"><a href="${profileUrl(p)}"${atributosDeRango(p)}>${escapeHtml(nombre(p))}</a></b>` : `<b class="suc-quien">${escapeHtml(nombre(p))}</b>`
 
-export function sucesoHtml(s) {
+// Con `dibujo` (la portada, 1207: «más visual»), a la derecha de cada suceso
+// va su dibujo en su color: el anillo de 6/6 de un día perfecto, o el icono
+// de lo que pasó en grande.
+const dibujoHtml = (s, t) => `<span class="suc-dib tono-${t.tono}" aria-hidden="true">${s.tipo === 'perfecto' ? '<b>6/6</b>' : ic(t.icono, 16)}</span>`
+
+export function sucesoHtml(s, { dibujo = false } = {}) {
   const t = SUCESOS[s.tipo]
   const cuando = `<small class="suc-cuando">· ${escapeHtml(haceCuanto(s.fecha))}</small>`
+  const dib = dibujo ? dibujoHtml(s, t) : ''
   if (t.casa) {
-    return `<li class="suc suc-de-la-casa"><span class="suc-cara suc-cara-casa" aria-hidden="true">${ic(t.icono, 16)}</span><p><span class="suc-chapa">${escapeHtml(t.casa)}</span> ${t.texto(s.datos)} ${cuando}</p></li>`
+    return `<li class="suc suc-de-la-casa"><span class="suc-cara suc-cara-casa" aria-hidden="true">${ic(t.icono, 16)}</span><p><span class="suc-chapa">${escapeHtml(t.casa)}</span> ${t.texto(s.datos)} ${cuando}</p>${dib}</li>`
   }
-  return `<li class="suc"><span class="suc-cara-caja">${caraHtml(s.perfil)}<span class="suc-ic tono-${t.tono}" aria-hidden="true">${ic(t.icono, 10)}</span></span><p>${quienHtml(s.perfil)} ${t.texto(s.datos)} ${cuando}</p></li>`
+  return `<li class="suc"><span class="suc-cara-caja">${caraHtml(s.perfil)}<span class="suc-ic tono-${t.tono}" aria-hidden="true">${ic(t.icono, 10)}</span></span><p>${quienHtml(s.perfil)} ${t.texto(s.datos)} ${cuando}</p>${dib}</li>`
 }
 
-export const listaHtml = (sucesos, { dos = false } = {}) => `<ul class="suc-lista${dos ? ' dos' : ''}">${sucesos.map(sucesoHtml).join('')}</ul>`
+export const listaHtml = (sucesos, { dos = false, dibujo = false } = {}) => `<ul class="suc-lista${dos ? ' dos' : ''}${dibujo ? ' con-dibujo' : ''}">${sucesos.map((s) => sucesoHtml(s, { dibujo })).join('')}</ul>`
 
 // Lo pide todo a la vez. `fallos` dice si alguna fuente no contestó: con eso
 // quien pinta distingue «no hay nada» de «no se ha podido mirar» (la 510).

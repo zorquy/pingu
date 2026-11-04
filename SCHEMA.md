@@ -53470,3 +53470,70 @@ los productos (que los dos sacan de `valorParaElPanel`). Los `vivos` siguen
 para enseñar el precio de una carta suelta, no para el total. `js/cifra-panel.js`
 (1205) se fue. Una cifra nueva de «lo que vale AHORA» pasa por
 `valorComoElPanel`, nunca por otra suma.
+
+## Tanda 1207 — La portada «A con banda»
+
+PINGU, sobre la portada del PC: «modernizar más la portada… alguna animación
+chula… según el evento que salga en comunidad, sale uno o dos o tres… en el
+foro tiene un espacio bastante grande abajo y parece que nunca se rellena…
+demasiado texto». Vio la propuesta con imágenes (A «Mosaico igualado», B «Tres
+columnas», la banda y cuatro animaciones) y eligió lo recomendado: A con la
+banda y las cuatro.
+
+**El mosaico (portada.css, ≥ 960 px)**: dos filas de la misma altura. Fila 1,
+la noticia grande (8 de 12, 392 px) y el foro (4 de 12); fila 2, las guías (8,
+348 px con cuatro portadas que llenan su caja) y la comunidad (4). El foro y la
+comunidad siguen con `contain: size`: miden lo que su vecina. Fila 3,
+«Más noticias» (`#masNoticiasSeccion`, `masNoticiasHtml`): las cuatro
+siguientes con foto, a lo ancho; en el móvil no sale, que allí las noticias son
+la tira de arriba (1190) y la lista de al lado (`.pb-noticias-lado`) es solo del
+móvil. Si falta la noticia o las guías, el foro o la comunidad van a lo ancho y
+sin `contain` (si no, con `contain: size` y sin vecina medirían cero).
+
+**Siempre cuatro**: antes el foro y la comunidad «encajaban» (`encajar`
+escondía filas hasta que cabían), así que el número cambiaba y sobraba sitio
+abajo. Ahora `foroHtml` pinta los cuatro temas en filas iguales
+(`.pb-foro-cuatro`, `grid-auto-rows: minmax(0, 1fr)`: cara de quien escribió lo
+último, título en dos líneas, foro, cuándo y la burbuja de mensajes, rosa si
+hay algo sin leer) y `cuatroSucesos` elige los cuatro sucesos: con «+N gente
+nueva» arriba, los «se unió» van al final y solo rellenan. Cada suceso lleva su
+dibujo a la derecha (`listaHtml(…, { dibujo: true })`, `.suc-dib`: el icono en
+su tono, o «6/6» en un día perfecto). `encajar*` se fue. El tema destacado con
+su trocito (844) también: los cuatro son iguales.
+
+**El color de cada sección**: la cabecera de un bloque lleva su icono
+(`cabecera(título, derecha, icono)`, `.pb-cab-ic`) en `--s`, que pone la caja:
+`pb-s-com` (foro y comunidad, el rosa de Comunidad), `pb-s-apr` (guías, el
+verde de Aprender) y `pb-s-not` (noticias, el azul). Los valores son los
+`--acento` de cada sección de style.css, copiados en portada-bloques.css para
+no tocar la hoja que baja todo el mundo. El foro y la comunidad llevan además
+una raya de 2 px arriba en ese color.
+
+**La banda** (`#banda`, dentro de `#bienvenidaSeccion`): el saludo y «Hoy» en
+un fondo propio (`--banda-a`, `--banda-b`, `--banda-luz`, en los dos temas) con
+las tarjetas de «Hoy» medio transparentes. A la derecha, la mascota y las tres
+cartas que más suben esta semana (`pintarAbanico` de escaparate.js, la misma
+cuenta que el héroe sin cuenta, `lasQueMasSuben`), guardadas seis horas en
+`pd-suben-1207` para no pedir 120 precios en cada visita. Cada carta enlaza a
+su ficha (que abre el pop-up, 1043). El hueco del abanico está reservado desde
+el primer pintado y lo de la última vez se queda puesto mientras llega lo
+nuevo. `hoy.js` y `pintarPortadaGuardada` meten «Hoy» en la banda, no en la
+sección. En el móvil, el abanico va pequeño a la derecha del saludo y sin
+mascota.
+
+**Las cuatro animaciones**: (1) las secciones entran en cascada al abrir la
+página (`portada-entra`, 60 ms detrás de la anterior, por id); (2) la cifra de
+tu colección cuenta desde la de tu última visita (ya existía, 783:
+`contarCifra`); (3) las portadas de guía, la noticia y las de «Más noticias»
+se levantan y les cruza un brillo al pasar el ratón; (4) el punto de «N hoy»
+del foro late y las tres cartas de la banda flotan con un brillo cada pocos
+segundos. Todo se apaga con «menos movimiento». Solo opacidad y `transform`:
+nada mueve el dibujo.
+
+Cada fila del foro es `.pb-hilo` y no `.pb-tema`: ese nombre ya lo llevaron
+los temas de filtro de las guías (844) y la prueba 844 sigue mirando que no
+haya ninguno (la lección de `partidas-fila`, 893: grepa el nombre antes).
+
+Lo vigila `test-tanda-1207-pantalla.mjs` (las filas, los cuatro, la banda, los
+colores, las animaciones y el móvil); 1188, 1187, 1017, 844, 316 y 782 se
+pusieron al día.

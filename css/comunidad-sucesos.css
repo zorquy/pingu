@@ -160,3 +160,46 @@
     flex-shrink: 0;
   }
 }
+
+/* En la portada (1207), cuatro sucesos en filas iguales que se reparten la
+ * caja, cada uno con su dibujo a la derecha. */
+.suc-lista.con-dibujo {
+  grid-auto-rows: minmax(0, 1fr);
+  gap: 0;
+}
+
+.suc-lista.con-dibujo > li {
+  border-top: 1px solid var(--border);
+}
+
+.suc-lista.con-dibujo > li:first-child {
+  border-top: 0;
+}
+
+.suc-lista.con-dibujo .suc p {
+  flex: 1;
+  min-width: 0;
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.suc-dib {
+  display: grid;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: var(--radius-md);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+}
+
+.suc-dib.tono-verde { background: var(--arte-verde); }
+.suc-dib.tono-morado { background: var(--arte-morado); }
+.suc-dib.tono-ambar { background: var(--arte-ambar); }
+.suc-dib.tono-azul { background: var(--arte-azul); }
+.suc-dib.tono-cian { background: var(--arte-cian); }
+.suc-dib.tono-rosa { background: var(--arte-rosa); }
+.suc-dib b { font-weight: 800; }

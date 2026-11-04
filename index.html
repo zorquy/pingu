@@ -220,7 +220,10 @@
 
     <!-- S780.199 -->
     <section class="container" id="bienvenidaSeccion">
-      <div class="bienvenida" id="bienvenida"><div class="skeleton" style="height: 48px; width: 100%;"></div></div>
+      <!-- La banda de bienvenida (1207): el saludo, las tres que más suben y lo de hoy. -->
+      <div class="banda" id="banda">
+        <div class="bienvenida" id="bienvenida"><div class="skeleton" style="height: 48px; width: 100%;"></div></div>
+      </div>
     </section>
 
     <!-- S780.200 -->
@@ -232,17 +235,22 @@
 
         <!-- S780.203 · del 844 en adelante lo pinta js/portada-bloques.js -->
         <section id="foroVivoSeccion">
-          <div class="pb-caja" id="foroVivo"><div class="skeleton" style="height: 360px;"></div></div>
+          <div class="pb-caja pb-s-com" id="foroVivo"><div class="skeleton" style="height: 360px;"></div></div>
         </section>
 
         <!-- S780.204 · «Aprende», con los temas dentro (844) -->
         <section id="recientesSeccion">
-          <div id="aprende"><div class="skeleton" style="height: 380px;"></div></div>
+          <div class="pb-s-apr" id="aprende"><div class="skeleton" style="height: 314px;"></div></div>
         </section>
 
         <!-- Su sitio, reservado desde el primer pintado (1200, SCHEMA). -->
         <section id="homeActivity">
-          <div class="pb-caja" id="homeActivityFeed"><div class="skeleton" style="height: 100%; min-height: 280px;"></div></div>
+          <div class="pb-caja pb-s-com" id="homeActivityFeed"><div class="skeleton" style="height: 100%; min-height: 280px;"></div></div>
+        </section>
+
+        <!-- Las cuatro noticias siguientes, a lo ancho y solo en el PC (1207). -->
+        <section class="hidden" id="masNoticiasSeccion">
+          <div class="pb-s-not" id="masNoticias"></div>
         </section>
 
       </div>

@@ -34,6 +34,12 @@
   ],
   "entradas": [
     {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "La portada, más visual: arriba una banda con tu saludo y las tres cartas que más suben esta semana, el foro y la comunidad siempre con cuatro cosas y sin huecos, cada bloque con el color de su sección y «Más noticias» con foto. Y todo entra con una animación suave.",
+      "enlace": "/"
+    },
+    {
       "fecha": "2026-11-03",
       "tipo": "mejora",
       "texto": "Los temas del foro ocupan menos arriba: compartir, seguir y las opciones van en iconos pequeños, y en el móvil cada mensaje es una caja a lo ancho, como en un foro.",
