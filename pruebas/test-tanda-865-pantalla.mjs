@@ -27,7 +27,7 @@ console.log('── 0. Lo estático ──')
   check(`«Glosario» va detrás de «Guardados» en el menú de Aprender (PC y móvil) y en el pie de las ${conMenu.length} páginas`, conMenu.length >= 40 && sinGlosario.length === 0, sinGlosario.join(', '))
   const html = readFileSync(`${RAIZ}/aprender.html`, 'utf8')
   // Desde la 1039, sin medallero (las medallas, en Perfil › Medallas).
-  check('la cabecera de /aprender es el título y «Escribir una guía», sin medallero ni texto de bienvenida', /<div class="page-header ap-cab cab-lista">\s*<h1>Aprender<\/h1>\s*<a class="btn-primary ap-escribir"/.test(html) && !/id="medallero"/.test(html) && !/Guías y cursos gratis/.test(html))
+  check('la cabecera de /aprender (la banda, 1211) es el título y «Escribir una guía», sin medallero ni texto de bienvenida', /<section class="banda-s cabecera-pagina ap-cab cab-lista">[\s\S]*?<h1>Aprender<\/h1>[\s\S]*?<a class="btn-primary ap-escribir"/.test(html) && !/id="medallero"/.test(html) && !/Guías y cursos gratis/.test(html))
 }
 
 const browser = await chromium.launch()

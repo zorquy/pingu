@@ -106,7 +106,7 @@ console.log('── 4. Aprender ──')
   const boton = page.locator('.ap-cab a.btn-primary', { hasText: 'Escribir una guía' })
   const caja = await boton.boundingBox()
   const titulo = await page.locator('.ap-cab h1').boundingBox()
-  check('«Escribir una guía» junto al título, a la derecha, y lleva al editor', (await boton.count()) === 1 && (await boton.getAttribute('href')) === '/editor-guia.html' && caja && titulo && caja.x > titulo.x + titulo.width && Math.abs(caja.y + caja.height / 2 - (titulo.y + titulo.height / 2)) < 16 && caja.height >= 40, JSON.stringify({ caja, titulo }))
+  check('«Escribir una guía» en la banda, a la derecha del título (1211), y lleva al editor', (await boton.count()) === 1 && (await boton.getAttribute('href')) === '/editor-guia.html' && caja && titulo && caja.x > titulo.x + titulo.width && caja.y < titulo.y + 120 && caja.height >= 40, JSON.stringify({ caja, titulo }))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
