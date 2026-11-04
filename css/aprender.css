@@ -518,7 +518,7 @@
 .ap-baldosas > .ap-baldosa::after { content: none; }
 .ap-baldosas > .ap-baldosa:hover { border-color: var(--c); }
 .ap-baldosas .ap-baldosa-texto { gap: 4px; padding: 0; }
-.ap-baldosas .ap-baldosa-nombre { font-size: var(--t-md); font-weight: 700; white-space: normal; overflow: visible; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ap-baldosas .ap-baldosa-nombre { font-size: var(--t-md); font-weight: 700; white-space: normal; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
 .ap-baldosas .ap-baldosa-sub { display: block; color: var(--text-mid); }
 .ap-baldosa-porque { font-size: var(--t-2xs); font-weight: 600; color: var(--c); }
 .ap-baldosas .ap-baldosa-barra { display: block; background: color-mix(in srgb, var(--c) 18%, transparent); }

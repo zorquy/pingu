@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (468) — PINGU-Claude (1228 — el nombre largo de un tema ya no pisa su línea)
+
+**Hecho** (PINGU, captura del móvil: «Comprar, vender & mercado» encima de «2
+guías · 2 cursos»): el nombre de la baldosa se corta a dos líneas con
+`-webkit-line-clamp`, que necesita `overflow: hidden`; la 1226 lo dejó en
+`visible` y la tercera línea se pintaba fuera de la caja (la caja mide dos
+líneas igual, así que ninguna medida de alto lo veía).
+
+**Ficheros** (web): `css/aprender.css`, `BITACORA.md`.
+
+**Pruebas**: rama `pruebas`, la 1226 mete un nombre largo y mira si el texto
+se sale A LA VISTA (`scrollHeight` contra `clientHeight` con `overflow`
+visible): con el fallo puesto falla en el móvil, arreglado pasa.
+
+**Queda**: la propuesta del buscador de Aprender en el móvil.
+
 ## 2026-11-04 (467) — PINGU-Claude (1227 — la banda de Aprender se queda en el móvil)
 
 **Hecho** (PINGU: «en el móvil se pinta la banda y luego desaparece… déjala,
