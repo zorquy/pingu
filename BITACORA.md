@@ -4,6 +4,49 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (472) — PINGU-Claude (1233 — nada se pisa: repaso de toda la web)
+
+**Hecho** (PINGU, captura de Gente: «hay algunos espaciados en la web que no
+funcionan y causa pisotones entre objetos, revísalo todo»): un detector recorre
+las 52 páginas y 13 vistas más a 390, 768, 1024 y 1440 px, con los datos de
+prueba y con los textos ALARGADOS (los de verdad son más largos), y busca dos
+cosas pintadas que se montan sin ser una de la otra y cajas con borde pegadas
+sin hueco. Lo que salió y se arregló:
+
+- **Gente**: la banda iba pegada a los chips en el PC (sin margen; en el móvil
+  sí lo tenía). `.banda-gente { margin-bottom: --e-lg }`.
+- **Portada, tu colección**: la línea «+X € este mes» (que no se parte) se
+  metía debajo de la gráfica, y con cifras largas se salía de la tarjeta. El
+  texto ya no cede, la gráfica toma lo que sobra y baja de fila si no cabe, y
+  esa línea puede partirse.
+- **Portada, el foro**: la caja aplastaba las cuatro filas (`min-height: 0`) y
+  un título de dos líneas caía encima de la fila de abajo (ya pasaba con los
+  datos de prueba, por 2 px). Ahora las filas son iguales y miden lo que lleva
+  la más alta.
+- **Perfil, la vitrina**: «Compartir» y «Cambiar» tocaban el borde de los
+  huecos. Margen debajo de la cabecera.
+- **Aprender, temas**: «N guías · N cursos» no se partía y se metía debajo del
+  Pokémon (a 768) o en la baldosa de al lado (móvil). Ahora se corta con «…».
+- **Gente, el podio**: con nombres o XP largos se montaban las columnas. Las
+  XP se cortan con «…» como el nombre.
+
+Lo que el detector marca y está bien a propósito: las filas de una lista con
+raya (Glosario, Novedades, Mis partidas, «Lo que acaba de pasar»), el avatar
+sobre la franja y las caras en montón (margen negativo).
+
+**Ficheros** (web): `css/comunidad.css`, `css/hoy.css`, `css/portada-bloques.css`,
+`css/perfil.css`, `css/aprender.css`, `css/seccion.css`, `BITACORA.md`,
+`SCHEMA.md`, `novedades.json`, `CLAUDE.md`.
+
+**Pruebas**: rama `pruebas`, `test-tanda-1233-pantalla.mjs` nueva (23 páginas a
+390, 1024 y 1440 con textos alargados; con el fallo de Gente puesto, cae en
+1024 y 1440). Verdes 299, 305, 309, 312, 313, 743, 1165, 1207, 1208, 1214,
+1215, 1226, 1229 e imports; portada 137,6 KB de 170. Rojos de antes: 981
+(/mi-coleccion) y 1040 (Glosario).
+
+**Queda**: el detector solo ve lo que pintan los datos de prueba. Si PINGU ve
+otro pisotón con datos reales, una captura y su ancho bastan para meterlo.
+
 ## 2026-11-04 (471) — PINGU-Claude (1231 y 1232 — Buscar de Mi colección y Mensajes, como la maqueta)
 
 **Hecho** (PINGU: «el buscar de mi colección se ve feo, no como me habías

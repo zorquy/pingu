@@ -54156,3 +54156,25 @@ círculo del acento. Lo tuyo (`.msg-burbuja.mia`) pasa de blanco sobre
 altura la sigue midiendo `medirHilo` desde su borde de arriba, así que el
 margen de arriba no la descuadra.
 
+## Tanda 1233 — Nada se pisa
+
+`test-tanda-1233-pantalla.mjs` (rama pruebas) recorre 23 páginas a 390, 1024 y
+1440 px. Antes de medir ALARGA los textos (duplica cada texto de 3 a 28
+caracteres y multiplica las cifras sueltas), porque los datos de verdad son
+más largos que los de las pruebas. Mide las «hojas pintadas» (con texto propio,
+fondo, borde o que son imagen/control), recortadas por los ancestros con
+`overflow`, y por líneas lo que va en línea. Falla si dos se montan más de 3
+px sin ser una de la otra, o si dos cajas con borde quedan a menos de 4 px una
+encima de otra. No cuenta: lo fijo, absoluto o pegajoso (chapas, barras), lo
+que tiene margen negativo hasta tres niveles arriba (montarse a propósito), lo
+de un `details` cerrado y las filas de una lista (mismo padre y misma primera
+clase, o `li`/`article`/`tr`).
+
+Arreglos: `.banda-gente` con margen abajo en el PC; en la portada
+`.hoy-valor` hace `flex-wrap`, `.hoy-valor-texto` no cede (`flex: 0 1 auto`),
+`.hoy-chispa` es `flex: 1 1 48px; max-width: 160px` y `.hoy-valor-mes` puede
+partirse; `.pb-foro-cuatro` con `grid-auto-rows: 1fr` y sin `min-height: 0`
+(una rejilla de altura intrínseca con `1fr` iguala todas las filas a la más
+alta); `.vitrina-cabeza` con margen abajo; `.ap-baldosa-sub` y
+`.banda-s-puesto-xp` se cortan con `text-overflow: ellipsis`.
+

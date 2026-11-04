@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-04",
+      "tipo": "arreglo",
+      "texto": "Repaso de espacios en toda la web: ya no se montan la banda y las pestañas de Gente, la cifra de tu colección y su gráfica en la portada, los temas del foro de la portada ni los botones de la vitrina del perfil.",
+      "enlace": "/usuarios"
+    },
+    {
+      "fecha": "2026-11-04",
       "tipo": "mejora",
       "texto": "Buscar en Mi colección, rehecho: la caja grande arriba, ejemplos para probar en una fila, lo último que buscaste con foto y los sets de ahora con su logo.",
       "enlace": "/mi-coleccion?ver=buscar"

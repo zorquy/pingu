@@ -698,6 +698,9 @@
 .com-persona-vitrina { flex-basis: auto; }
 .com-persona-cuerpo { flex: 0 0 auto; align-content: flex-start; }
 #communityTabs { margin-bottom: var(--e-md); }
+/* La banda no va pegada a los chips (1233, PINGU: «pisotones»): en el PC no
+   tenía margen y la fila de chips le tocaba el borde de abajo. */
+.banda-gente { margin-bottom: var(--e-lg); }
 #userDirectoryGrid { margin-top: 0; }
 
 /* En el móvil, la banda es UNA tira: las cuatro cifras en una línea con el

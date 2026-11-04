@@ -679,7 +679,7 @@
 /* El foro: cuatro filas iguales. */
 .pb-foro-cuatro {
   display: grid;
-  grid-auto-rows: minmax(0, 1fr);
+  grid-auto-rows: 1fr;
   margin: 0;
   padding: 0;
   list-style: none;
@@ -858,7 +858,7 @@
 
   #foroVivo .pb-cab,
   #homeActivityFeed .pb-cab { margin-bottom: var(--e-sm); }
-  .pb-foro-cuatro,
+  .pb-foro-cuatro { flex: 1; }
   #homeActivityFeed .suc-lista { flex: 1; min-height: 0; }
   #foroVivo .pb-pie-enlace { margin-top: var(--e-sm); }
 

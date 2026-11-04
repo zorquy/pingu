@@ -204,6 +204,7 @@
   align-items: center;
   gap: var(--e-xs);
   width: 72px;
+  min-width: 0;
   color: var(--text);
   text-decoration: none;
 }
@@ -234,6 +235,9 @@
 }
 
 .banda-s-puesto-xp {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--text-mid);
   font-size: var(--t-2xs);
   font-variant-numeric: tabular-nums;

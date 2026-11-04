@@ -798,6 +798,7 @@ button.perfil-cifra:hover .rotulo {
   align-items: baseline;
   justify-content: space-between;
   gap: var(--e-md);
+  margin-bottom: var(--e-md);
 }
 
 .vitrina-acciones {

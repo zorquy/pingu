@@ -1865,6 +1865,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`js/temas-pokemon.js`, tanda 1226, PINGU: «unos Pokémon ahí random»):
   `categories.pokemon` y, sin ella, las palabras del nombre; lo que no casa
   lleva su icono. Nunca `pokemonDe` (una cuenta con el slug) para un tema.
+- **Nada se pisa, ni con textos largos** (tanda 1233, PINGU: «pisotones entre
+  objetos»): `test-tanda-1233-pantalla.mjs` alarga los textos y falla si dos
+  cosas pintadas se montan o dos cajas con borde quedan pegadas. Una línea con
+  `nowrap` lleva su salida (`ellipsis` o que pueda partirse), una caja que
+  estira su lista no la aplasta (`min-height: 0` con filas de contenido) y lo
+  que se monta A PROPÓSITO va con margen negativo o posicionado. Una página
+  nueva de lista entra en sus `RUTAS`.
 - **Buscar de Mi colección y Mensajes van como la maqueta** (tandas 1231 y
   1232, PINGU: «no como me habías propuesto»): antes de escribir, la caja a lo
   ancho, «Prueba con» en una fila y los sets de cuatro; los mandos de una lista
