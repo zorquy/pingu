@@ -2963,3 +2963,19 @@ html:has(#temaResponder) {
   height: 1px;
   background: currentColor;
 }
+
+/* ── 1212: lo de la portada (el porqué en SCHEMA) ──
+   Los grupos de foros del índice entran uno detrás de otro, como los bloques
+   de la portada. Solo opacidad y `transform`; nada con «menos movimiento». */
+@keyframes foro-entra {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+#foroPrincipal > .foro-seccion { animation: foro-entra 0.5s var(--ease) backwards; }
+#foroPrincipal > .foro-seccion:nth-child(2) { animation-delay: 60ms; }
+#foroPrincipal > .foro-seccion:nth-child(3) { animation-delay: 120ms; }
+#foroPrincipal > .foro-seccion:nth-child(n + 4) { animation-delay: 180ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  #foroPrincipal > .foro-seccion { animation: none; }
+}

@@ -1013,3 +1013,14 @@
   top: auto;
   bottom: calc(100% + var(--e-xs));
 }
+
+/* ── 1212: lo de la portada (el porqué en SCHEMA) ──
+   Tu resumen (el anillo, las cifras y lo más jugado) con el brillo de la
+   sección, como las bandas de las otras páginas. */
+.partidas-hero {
+  border-color: color-mix(in srgb, var(--acento) 28%, var(--border));
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(60% 140% at 92% 0%, color-mix(in srgb, var(--acento) 22%, transparent), transparent 62%),
+    linear-gradient(135deg, color-mix(in srgb, var(--acento) 8%, var(--white)), var(--white) 72%);
+}

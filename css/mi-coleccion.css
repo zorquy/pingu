@@ -15457,3 +15457,79 @@ html.mc-set-abierta .mc-hero { display: none; }
   background: var(--acento);
   color: var(--acento-texto);
 }
+
+/* ── 1212: el Panel con lo de la portada (el porqué en SCHEMA) ──
+   La cartera, con el brillo de la sección como las bandas; los bloques
+   entran uno detrás de otro; y las expansiones, baldosas de verdad (la regla
+   de arriba apuntaba a `.mc-set-tarjeta`, que el Panel no pinta) con el logo,
+   el nombre entero y un anillo con lo que llevas. */
+@keyframes mc-panel-entra {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+@media (min-width: 600px) {
+  #mcValorCaja.mc-cartera {
+    border-color: color-mix(in srgb, var(--acento) 28%, var(--border));
+    background:
+      radial-gradient(60% 140% at 92% 0%, color-mix(in srgb, var(--acento) 22%, transparent), transparent 62%),
+      linear-gradient(135deg, color-mix(in srgb, var(--acento) 8%, var(--white)), var(--white) 72%);
+  }
+}
+
+#mcResumenPanel .mc-cartera,
+#mcVistazos > .mc-vistazo {
+  animation: mc-panel-entra 0.5s var(--ease) backwards;
+}
+#mcVistazos > :nth-child(1) { animation-delay: 60ms; }
+#mcVistazos > :nth-child(2) { animation-delay: 120ms; }
+#mcVistazos > :nth-child(3) { animation-delay: 180ms; }
+#mcVistazos > :nth-child(n + 4) { animation-delay: 240ms; }
+
+#mcVistazoSets .mc-set-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-rows: 72px auto;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  min-height: 0;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  text-align: left;
+  transition: border-color 0.15s, transform 0.2s var(--ease);
+}
+#mcVistazoSets .mc-set-fila:hover { border-color: var(--acento); transform: translateY(-2px); }
+#mcVistazoSets .mc-set-fila + .mc-set-fila { border-top: 1px solid var(--border); }
+#mcVistazoSets .mc-set-fila-logo { grid-column: 1 / -1; display: grid; place-items: center; width: 100%; height: 72px; }
+#mcVistazoSets .mc-set-fila-logo img { width: auto; max-width: 90%; max-height: 64px; }
+#mcVistazoSets .mc-set-fila-nombre b { white-space: normal; display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
+#mcVistazoSets .mc-set-fila-nombre .mc-barra { display: none; }
+#mcVistazoSets .mc-set-fila > em {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-sm);
+  justify-self: end;
+  font-variant-numeric: tabular-nums;
+}
+#mcVistazoSets .mc-set-fila > em::before {
+  content: '';
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, var(--white) 66%, transparent 68%),
+    conic-gradient(var(--acento) calc(var(--pct, 0) * 1%), var(--border) 0);
+}
+#mcVistazoSets .mc-set-fila.completo > em::before {
+  background:
+    radial-gradient(closest-side, var(--white) 66%, transparent 68%),
+    conic-gradient(var(--success) 100%, var(--border) 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #mcResumenPanel .mc-cartera,
+  #mcVistazos > .mc-vistazo { animation: none; }
+  #mcVistazoSets .mc-set-fila { transition: none; }
+  #mcVistazoSets .mc-set-fila:hover { transform: none; }
+}

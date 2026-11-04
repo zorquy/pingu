@@ -3345,7 +3345,8 @@ function filaDeSetHtml(set, tengo) {
   const dibujos = [...logosDePago({ market: suMercado, ...set }), logo, logoAMano, logoIngles, set.symbol_scrydex, simbolo].filter(Boolean)
   const completo = total && tengo >= total
   const nombre = nombreDeSet(set) || set.id
-  return `<button type="button" class="mc-set-fila${completo ? ' completo' : ''}" data-set="${escapeHtml(set.id)}" data-market="${escapeHtml(suMercado)}" aria-label="${escapeHtml(`${nombre}: ${total ? `${tengo} de ${total}` : `${tengo} cartas`}`)}">
+  // `--pct`: el anillo de la baldosa del Panel (1212).
+  return `<button type="button" class="mc-set-fila${completo ? ' completo' : ''}" style="--pct:${pct}" data-set="${escapeHtml(set.id)}" data-market="${escapeHtml(suMercado)}" aria-label="${escapeHtml(`${nombre}: ${total ? `${tengo} de ${total}` : `${tengo} cartas`}`)}">
     <span class="mc-set-fila-logo">${dibujos.length ? `<img ${atributosDeEscaneo(dibujos)} alt="" loading="lazy" />` : ''}</span>
     <span class="mc-set-fila-nombre"><b>${escapeHtml(nombre)}</b>${total ? `<span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}</span>
     <em>${total ? `${tengo} / ${total}` : tengo}</em>

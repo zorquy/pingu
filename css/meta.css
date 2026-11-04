@@ -898,3 +898,19 @@
   font-weight: 600;
 }
 .meta-fuente-plegada .meta-fuente { margin-top: var(--e-xs); }
+
+/* ── 1212: lo de la portada (el porqué en SCHEMA) ──
+   Las barras de uso crecen al aparecer, desde la izquierda; solo `transform`,
+   y nada con «menos movimiento». */
+@keyframes meta-crece {
+  from { transform: scaleX(0); }
+}
+
+.meta-barra i {
+  transform-origin: left center;
+  animation: meta-crece 0.7s var(--ease) backwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .meta-barra i { animation: none; }
+}

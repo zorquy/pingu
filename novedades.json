@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "El Panel de tu colección, Torneos y Mis partidas con lo de la portada: la cartera con el brillo de Colección, las expansiones en baldosas con el logo y un anillo de lo que llevas, Torneos con sus cifras arriba y las barras del meta que crecen al aparecer.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "Aprender y los Retos, con lo de la portada: Aprender lleva arriba cuántas guías, cursos y temas hay, y los temas se levantan al pasar; los retos, un anillo de seis que se va llenando con cada reto que haces hoy.",
       "enlace": "/retos"
     },

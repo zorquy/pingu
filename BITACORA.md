@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (457) — PINGU-Claude (1212 — Panel, Torneos y los toques)
+
+**Hecho**: quinta y última tanda del repaso. Panel: cartera con brillo,
+bloques en cascada y las expansiones en baldosas de verdad (la regla de la
+1179 no llegaba: apuntaba a `.mc-set-tarjeta`) con un anillo. Torneos con la
+banda y sus cifras. Meta: barras que crecen. Mis partidas: el resumen con
+brillo. Foro: los grupos en cascada. Fuera, y explicado en SCHEMA: el carrusel
+del foro en el PC, los sprites en las tarjetas de torneo y las caras del
+Mercado.
+
+**Ficheros**: `js/mi-coleccion.js` (`--pct` en `filaDeSetHtml`),
+`css/mi-coleccion.css`, `torneos.html`, `js/torneos/torneos.js`,
+`css/torneos.css`, `css/meta.css`, `css/partidas.css`, `css/foro.css`,
+`SCHEMA.md`, `novedades.json`. En `pruebas`: 893.
+
+**Pruebas**: verdes las del Panel (1155, 1175, 1178, 1181, 1206, 436, 440),
+torneos (252, 266, 1163, 1164), meta (384, 721, 889), foro (314, 804, 816),
+1040, 1023, 299, 312, 313 e imports. Rojos de antes: 836 (las acciones del
+constructor en el móvil y el icono escondido de Torneos), 893 (el selector del
+meta en el móvil), 311 (`auth.css`, `torneos.css`).
+
+**Pendiente**: el repaso está entero. Queda el precio del Lugia (refresco a
+demanda en la ficha y la etiqueta de fecha y fuente), sin decidir.
+
 ## 2026-11-04 (456) — PINGU-Claude (1211 — Aprender y Retos)
 
 **Hecho**: cuarta tanda del repaso. Aprender con la banda (guías, con curso,

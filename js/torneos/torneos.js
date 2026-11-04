@@ -369,7 +369,7 @@ function pintarGrupos(grupos) {
         )
         .join('')}
     </nav>
-    <div class="torneos-rejilla">${activa.filas.join('')}</div>
+    <div class="torneos-rejilla en-cascada">${activa.filas.join('')}</div>
     ${activa.pie || ''}`
   lista.querySelectorAll('[data-grupo]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -545,6 +545,11 @@ async function cargarLista(session, perfil = null) {
   const borradores = torneos.filter((t) => t.status === 'draft').map((t) => tarjeta(t))
 
   pintarSemana(torneos)
+  // Las cifras de la banda (1212), de los torneos ya cargados.
+  for (const [id, n] of [['tNAbiertas', abiertas.length], ['tNEnJuego', enJuego.length], ['tNTerminados', acabados.length]]) {
+    const el = $(id)
+    if (el) el.textContent = String(n)
+  }
   pintarGrupos([
     { id: 'mios', texto: 'Tus torneos', filas: mios },
     { id: 'abiertas', texto: 'Abiertas', filas: abiertas },

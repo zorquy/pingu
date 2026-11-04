@@ -53678,3 +53678,36 @@ cabiendo en la pantalla (989).
 
 Lo vigilan `test-tanda-569.mjs` (el anillo), 865, 1010 y 1039, al día.
 
+## Tanda 1212 — El Panel, Torneos y los toques, con lo de la portada
+
+La quinta y última tanda del repaso aprobado.
+
+**Panel de Mi colección**: la cartera lleva en el PC el brillo de la sección,
+como las bandas (sin cambiar lo que dice: la regla del «A · Cartera» sigue),
+y los bloques entran uno detrás de otro (`mc-panel-entra`). Las expansiones
+del Panel son BALDOSAS de verdad: las reglas de la 1179 apuntaban a
+`.mc-set-tarjeta.mc-set-fila`, y el Panel pinta `.mc-set-fila` a secas
+(`filaDeSetHtml`), así que salían como una fila con el nombre cortado. Ahora:
+el logo arriba, el nombre entero (dos líneas) y un ANILLO con lo que llevas
+(`--pct` en el botón, un `conic-gradient`), verde con la expansión completa.
+
+**Torneos**: la cabecera es la banda (`banda-s cabecera-pagina torneos-heroe
+cab-lista`), con cuántos hay abiertos, en juego y terminados (de los ya
+cargados) y «Crear un torneo» a la derecha (`torneos-heroe-acciones`, que en el
+teléfono sigue mudándose a la fila de los chips, la 1040). La rejilla entra en
+cascada.
+
+**Los toques**: las barras de uso del meta crecen al aparecer
+(`meta-crece`, solo `transform`); el resumen de Mis partidas (su anillo y sus
+cifras) lleva el brillo de la sección; y los grupos del índice del foro entran
+en cascada. Todo se apaga con «menos movimiento».
+
+Lo que se quedó fuera, a propósito: el carrusel de «Lo que se está hablando»
+en el PC del foro (desde la 1096 eso va en el lateral, «Lo último», y saldría
+dos veces), los sprites en las tarjetas de torneo (la tarjeta no trae los mazos
+y pedirlos sería una consulta por tarjeta) y las caras en el Mercado.
+
+Lo vigilan las pruebas del Panel (1155, 1175, 1178, 1181, 1206, 436, 440), de
+torneos (252, 266, 1163, 1164, 1040), del meta (384, 721, 889) y del foro (314,
+804, 816), en verde; y 893 deja /retos y /torneos a las bandas.
+

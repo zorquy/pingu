@@ -3732,3 +3732,17 @@ html.torneo-jugando #torneoNombre {
   .torneo-cabecera .torneo-plazas { margin-top: var(--e-md); }
   .torneo-cabecera .torneo-jornadas { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
 }
+
+/* ── 1212: lo de la portada (el porqué en SCHEMA) ──
+   La cabecera es la banda de css/seccion.css, con sus cifras y «Crear un
+   torneo» a la derecha. En el teléfono, como antes (1040): el título no
+   ocupa sitio y las acciones se van a la fila de los chips. */
+.torneos-heroe.banda-s { align-items: center; padding: var(--e-xl); margin-bottom: var(--e-lg); }
+.torneos-heroe.banda-s h1 { font-size: var(--t-2xl); }
+.torneos-heroe.banda-s p { font-size: var(--t-sm); margin: 0; }
+@media (max-width: 900px) {
+  .torneos-heroe.banda-s { padding: var(--e-md) var(--e-lg); }
+}
+@media (max-width: 599px) {
+  .torneos-heroe.banda-s.torneos-heroe-vacia { padding: 0; border: 0; min-height: 0; }
+}
