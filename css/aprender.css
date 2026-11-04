@@ -349,9 +349,8 @@
    lápiz va junto al buscador, «Sigue donde lo dejaste» es una línea y los
    temas son chips de texto. ── */
 @media (max-width: 599px) {
-  /* Recortada solo cuando el lápiz ya se ha ido al buscador: sin guías no
-     hay buscador y el lápiz se queda aquí, a la vista. */
-  .ap-cab:not(:has(.ap-escribir)),
+  /* La banda se ve también en el móvil (1227, PINGU: «déjala, no ocupa tanto
+     y queda bien»); solo el título, como en las demás bandas. */
   .ap-cab h1 {
     position: absolute;
     width: 1px;
@@ -366,7 +365,7 @@
   .ap-herramientas .ap-buscar {
     flex: 1 1 auto;
   }
-  .ap-herramientas .ap-escribir {
+  .ap-cab .ap-escribir {
     flex: 0 0 auto;
     width: 44px;
     height: 44px;
@@ -426,11 +425,6 @@
   .ap-baldosa:hover { transform: none; }
 }
 
-/* En el móvil la banda entera se recorta para el lector (la 1039): sin su
-   borde ni su relleno, que dejarían una caja de 2 px. */
-@media (max-width: 599px) {
-  .ap-cab:not(:has(.ap-escribir)) { min-height: 0; padding: 0; border: 0; }
-}
 
 /* ── 1215: lo que faltaba de la propuesta (el porqué en SCHEMA) ──
    «Sigue donde lo dejaste» dentro de la banda, en el PC; los temas, baldosas
@@ -543,4 +537,10 @@
   .ap-baldosas .ap-baldosa-barra { display: none; }
   .ap-baldosas .ap-baldosa-arte { width: 40px; height: 40px; }
   .ap-baldosas .ap-baldosa-icono { width: 36px; height: 36px; }
+}
+
+/* 1227: en el móvil la banda se queda (PINGU: «déjala»), con su relleno:
+   `.cab-lista` de movil.css se lo quita a las cabeceras de lista. */
+@media (max-width: 599px) {
+  .ap-cab.banda-s { padding: var(--e-md) var(--e-lg); margin-bottom: var(--e-sm); }
 }

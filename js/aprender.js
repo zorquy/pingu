@@ -52,17 +52,17 @@ let servidoDe = null
 // 400 px de pantalla cada una; una fila, 88.
 const movil = typeof matchMedia === 'function' ? matchMedia('(max-width: 640px)') : { matches: false, addEventListener() {} }
 
-// «Escribir una guía» en el móvil (1039): sin título arriba, el lápiz se
-// muda al lado del buscador; en el PC vuelve a la cabecera. Se MUEVE el
-// elemento de verdad, con lo que lleva (la 893), no se copia.
+// «Escribir una guía» va en la banda, en el PC y en el móvil (1227, PINGU:
+// «déjala, no ocupa tanto y queda bien»). Hasta la 1227 en el móvil se mudaba
+// al lado del buscador, y al irse la banda se quedaba vacía y desaparecía
+// después de pintarse. Se sigue devolviendo a su sitio por si un repintado la
+// sacó: se MUEVE el elemento de verdad (la 893), no se copia.
 const estrecho = typeof matchMedia === 'function' ? matchMedia('(max-width: 599px)') : { matches: false, addEventListener() {} }
 function ponerEscribir() {
   const boton = document.querySelector('.ap-escribir')
-  const herramientas = document.querySelector('#categoriesList .ap-herramientas')
   const cabecera = document.querySelector('.ap-cab .banda-s-derecha') || document.querySelector('.ap-cab')
   if (!boton || !cabecera) return
-  if (estrecho.matches && herramientas) herramientas.append(boton)
-  else if (boton.parentElement !== cabecera) cabecera.append(boton)
+  if (boton.parentElement !== cabecera) cabecera.append(boton)
 }
 estrecho.addEventListener?.('change', ponerEscribir)
 

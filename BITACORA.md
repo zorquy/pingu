@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (467) — PINGU-Claude (1227 — la banda de Aprender se queda en el móvil)
+
+**Hecho** (PINGU: «en el móvil se pinta la banda y luego desaparece… déjala,
+no ocupa tanto y queda bien»): `ponerEscribir` ya no muda el lápiz al lado del
+buscador; al irse, la banda se quedaba sin `.ap-escribir` y la regla de la 1039
+la recortaba. Fuera ese recorte: en el móvil la banda sale con las cifras y el
+lápiz (círculo de 44), y con su relleno (`.cab-lista` se lo quitaba). El título
+sigue solo para el lector, como en las demás bandas.
+
+**Ficheros** (web): `js/aprender.js`, `css/aprender.css`, `BITACORA.md`,
+`SCHEMA.md`, `CLAUDE.md`.
+
+**Pruebas**: rama `pruebas`, 1039 (la banda se ve, el lápiz en ella, las guías
+en la primera pantalla) y 1040 (/aprender fuera de su lista de 296 px) al día.
+Verdes 299, 312, 864, 1023, 1215 y 1226. Lo que queda rojo de 1039 y 1040 es
+del Glosario y de Novedades, como antes.
+
+**Queda**: nada.
+
 ## 2026-11-04 (466) — PINGU-Claude (1226 — los temas de Aprender con un Pokémon que tenga que ver)
 
 **Hecho** (PINGU eligió la A de la propuesta, con los seis Pokémon):

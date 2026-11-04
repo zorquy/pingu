@@ -54084,3 +54084,13 @@ Propuesta con tres opciones; eligió la A con los seis.
   el móvil, 160 px con el Pokémon de 40, sin el porqué ni la barra.
 - /admin → Categorías: el campo sale solo si alguna fila trae `pokemon`, y
   solo entonces se manda en el upsert (la 624).
+
+## Tanda 1227 — La banda de Aprender se queda en el móvil
+
+PINGU vio en el móvil la banda pintarse y desaparecer. Era la 1039: el lápiz
+«Escribir una guía» se mudaba al lado del buscador (`ponerEscribir`) y la regla
+`.ap-cab:not(:has(.ap-escribir))` recortaba la banda vacía. Desde la 1227 el
+lápiz se queda en `.banda-s-derecha` también en el móvil (círculo de 44), la
+banda no se recorta (solo su `h1`, como en `seccion.css`) y recupera el relleno
+que `.cab-lista` le quitaba. /aprender sale de la regla de los 296 px de la 1040
+por decisión de PINGU; la 1039 pide que las guías salgan en la primera pantalla.
