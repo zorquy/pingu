@@ -130,6 +130,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   CGC); se PINTA con `chapaDeGradeoHtml` (PSA roja, Beckett negra, CGC blanca,
   colores `--casa-*` en `components.css`). Un camino nuevo para meter cartas
   al stock lleva ese selector; con cápsula el estado no aplica (NM).
+  Las fotos de VERDAD de una copia (1235, PINGU: «frontal y trasera, solo a
+  cartas») van en `tienda_stock_fotos` (rutas `frente`/`dorso`, aparte de
+  `tienda_stock` para no redefinir sus funciones) y en el cubo público
+  `tienda-fotos/<tienda>/…`; se ponen y se ven por `js/tienda-fotos.js`
+  (`fotosDeStock`, `abrirFotosDeStock`, `verFotosDeStock`), comprimidas antes.
+  Una pantalla nueva que enseñe una copia de tienda pregunta ahí.
 - **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
   1065 y 1066): cada visita lleva `modo` (app instalada o web),
   `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que

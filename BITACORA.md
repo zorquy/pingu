@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (474) — PINGU-Claude (1235 — fotos frontal y trasera en el stock)
+
+**Hecho** (PINGU: «agregar imágenes a cada carta, solo a cartas no a
+productos, frontal y trasera… desde el stock, una columna con el botón de foto
+y un pop-up»):
+
+- Stock: columna «Fotos» en la tabla (cámara, o miniatura con «1»/«2»), el
+  botón en la rejilla, y en el móvil en la ficha de la línea. Un producto no
+  lleva botón.
+- Pop-up con Frontal y Trasera: subir (comprimida a WebP), cambiar (borra la
+  de antes) y quitar, al momento.
+- Escaparate: «Ver las fotos» bajo la carta y el pop-up con las dos.
+
+**Ficheros**: `supabase-migration-1235-tienda-fotos.sql` (nuevo),
+`js/tienda-fotos.js` (nuevo), `css/tienda-fotos.css` (nuevo),
+`js/tienda-stock.js`, `js/perfil-tienda.js`, `css/tienda.css`, SCHEMA,
+CLAUDE.md, novedades.json. Pruebas (rama `pruebas`): `test-tanda-1235.mjs`
+(PostgreSQL) y `test-tanda-1235-pantalla.mjs`.
+
+**Pendiente**: **PINGU ejecuta `supabase-migration-1235-tienda-fotos.sql`**
+(tabla, políticas y el cubo `tienda-fotos`). Hasta entonces no sale nada
+nuevo y nada se rompe. Después: propuesta con imágenes de cómo enseñar las
+tiendas en el Mercado (varias tiendas, pop-up de la carta, agenda de tiendas).
+
 ## 2026-11-04 (473) — PINGU-Claude (1234 — cartas gradeadas en las tiendas)
 
 **Hecho** (PINGU: «las tiendas venden cartas gradeadas… PSA, Beckett y CGC»;

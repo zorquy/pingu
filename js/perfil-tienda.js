@@ -24,12 +24,13 @@ import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { enlaceAMapa, enlacesDeTienda } from './tiendas-puro.js'
 import { icons } from './icons.js'
 import { chapaDeGradeoHtml } from './gradeo-elegir.js'
+import { fotosDeStock, verFotosDeStock, cuantasFotos } from './tienda-fotos.js'
 
 const POR_PAGINA = 60
 const COLUMNAS = COLUMNAS_CARTA_DE_SET.replace('tcg_sets(tcg_online_code,serie_id,release_date)', 'tcg_sets(name,name_en,tcg_online_code,serie_id,release_date,oculto)')
 const NOMBRE_IDIOMA = Object.fromEntries(IDIOMAS.map((i) => [i.id, i.nombre]))
 
-const est = { tienda: null, datos: null, perfil: null, sesion: null, filtros: {}, orden: 'recientes', filas: [], total: 0, tiras: [], cartas: new Map(), productos: new Map(), pedido: 0 }
+const est = { tienda: null, datos: null, perfil: null, sesion: null, filtros: {}, orden: 'recientes', filas: [], total: 0, tiras: [], cartas: new Map(), productos: new Map(), fotos: new Map(), pedido: 0 }
 
 // Las tiras de arriba (1079, y las ofertas de la 1082): lo que la tienda
 // destaca, lo rebajado y lo que acaba de entrar. Solo en «Todo» sin buscar
@@ -76,6 +77,13 @@ async function completar(filas) {
       for (const c of data || []) est.cartas.set(c.id, c)
     }
   }
+  // Las fotos de las copias (1235): sin la migración, ninguna (y sin aviso:
+  // para quien mira, no hay nada que echar de menos).
+  const sinFotos = filas.filter((f) => f.card_id && f.id && !est.fotos.has(f.id)).map((f) => f.id)
+  if (sinFotos.length) {
+    const m = await fotosDeStock(sinFotos)
+    for (const id of sinFotos) est.fotos.set(id, m?.get(id) || null)
+  }
   const prod = [...new Set(filas.filter((f) => f.product_id && !est.productos.has(String(f.product_id))).map((f) => f.product_id))]
   if (prod.length) {
     const { data } = await supabase.from('tcg_products').select('id,name,image').in('id', prod)
@@ -90,6 +98,12 @@ function interesaHtml(f) {
   const destino = `/mensajes.html?with=${encodeURIComponent(est.perfil.id)}&carta=${encodeURIComponent(f.id)}`
   const href = est.sesion ? destino : `/auth.html?registro=1&volver=${encodeURIComponent(destino)}`
   return `<a class="pt-interesa" href="${escapeHtml(href)}">${icons.mail(14)}<span>Me interesa</span></a>`
+}
+
+// «Ver fotos» (1235): la copia de verdad, por delante y por detrás.
+function fotosVerHtml(f) {
+  const n = cuantasFotos(est.fotos.get(f.id))
+  return n ? `<button type="button" class="tdf-chapa-ver" data-pt-fotos="${escapeHtml(f.id)}">${icons.camera(14)}<span>Ver ${n === 2 ? 'las fotos' : 'la foto'}</span></button>` : ''
 }
 
 function baldosaHtml(f) {
@@ -113,6 +127,7 @@ function baldosaHtml(f) {
     <span class="pt-precio">${precio}</span>
     <span class="pt-nombre">${escapeHtml(nombre)}</span>
     <span class="pt-detalle">${escapeHtml(detalle)}${f.unidades > 1 ? ` · ${f.unidades} uds.` : ''}</span>
+    ${fotosVerHtml(f)}
     ${interesaHtml(f)}
   </article>`
 }
@@ -281,6 +296,7 @@ function contarVisita(perfil, sesion, qr) {
 // que la tienda vea lo que ve la gente; sin botones y sin contar su visita.
 export async function montarPerfilTienda(destino, perfil, sesion, { previa = false } = {}) {
   await hojaInyectada('css/perfil-tienda.css')
+  hojaInyectada('css/tienda-fotos.css')
   caja = destino
   est.perfil = perfil
   est.sesion = sesion
@@ -304,6 +320,13 @@ export async function montarPerfilTienda(destino, perfil, sesion, { previa = fal
   caja.classList.toggle('pt-previa', previa)
   caja.innerHTML = cabeceraHtml()
   caja.addEventListener('click', (e) => {
+    const fotos = e.target.closest('[data-pt-fotos]')
+    if (fotos) {
+      const f = est.filas.concat(...est.tiras.map((t) => t.filas)).find((x) => x.id === fotos.dataset.ptFotos)
+      const c = f?.card_id ? est.cartas.get(f.card_id) : null
+      if (f) verFotosDeStock({ nombre: c ? nombreDeCarta(c) : f.nombre || '', detalle: [String(f.idioma || '').toUpperCase(), f.gradeo || f.estado].filter(Boolean).join(' · '), fotos: est.fotos.get(f.id) })
+      return
+    }
     const ver = e.target.closest('[data-pt-ver]')
     if (ver) {
       const f = { ...est.filtros }

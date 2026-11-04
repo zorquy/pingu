@@ -1,0 +1,330 @@
+/* Las fotos de una copia del stock: delante y detrás (tanda 1235). La meten
+   el Stock (`js/tienda-stock.js`) y el escaparate (`js/perfil-tienda.js`)
+   por `hojaInyectada`: el porqué largo, en SCHEMA 1235. */
+
+/* El botón de la columna «Fotos» y de la rejilla. */
+.tdf-boton {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.tdf-boton:hover {
+  border-color: var(--acento);
+  color: var(--acento-texto);
+  background: var(--ice);
+}
+
+.tdf-boton-con {
+  border-style: solid;
+}
+
+.tdf-boton img {
+  width: 28px;
+  height: 39px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+.tdf-cuenta {
+  position: absolute;
+  right: -4px;
+  bottom: -4px;
+  display: grid;
+  place-items: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+
+/* El pop-up: centrado y con tope en el PC; hoja desde abajo en el móvil. */
+.tdf-dialogo {
+  width: min(560px, calc(100% - 32px));
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+
+.tdf-dialogo[open] {
+  inset: 0;
+  margin: auto;
+  max-height: min(90vh, 760px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.tdf-dialogo::backdrop {
+  background: rgba(13, 27, 42, 0.5);
+}
+
+html:has(.tdf-dialogo[open]) {
+  overflow: hidden;
+}
+
+.tdf-cuerpo {
+  display: grid;
+  gap: var(--e-md);
+  padding: var(--e-lg) var(--e-xl) var(--e-xl);
+}
+
+.tdf-cab {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--e-md);
+}
+
+.tdf-cab > div {
+  min-width: 0;
+}
+
+.tdf-cab h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+}
+
+.tdf-cab p {
+  margin: var(--e-xs) 0 0;
+  overflow: hidden;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tdf-cerrar {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  min-width: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.tdf-lema {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.tdf-lados {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--e-md);
+}
+
+.tdf-lados-ver.tdf-una {
+  grid-template-columns: minmax(0, 280px);
+  justify-content: center;
+}
+
+.tdf-lado {
+  display: grid;
+  gap: var(--e-sm);
+  margin: 0;
+  min-width: 0;
+}
+
+/* El hueco tiene la forma de una carta desde el principio (la regla del
+   hueco reservado): vacía, con la cámara; llena, con la foto entera. */
+.tdf-hueco {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 245 / 342;
+  max-width: 100%;
+  overflow: hidden;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+  color: var(--text-mid);
+  cursor: pointer;
+}
+
+.tdf-hueco:hover,
+.tdf-lado:focus-within .tdf-hueco {
+  border-color: var(--acento);
+  color: var(--text);
+}
+
+.tdf-lado:focus-within .tdf-hueco {
+  box-shadow: var(--shadow-ring);
+}
+
+.tdf-hueco-lleno {
+  border-style: solid;
+  background: var(--bg);
+}
+
+.tdf-hueco img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.tdf-vacio {
+  display: grid;
+  justify-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-align: center;
+}
+
+.tdf-cargando {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--white) 70%, transparent);
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.tdf-subiendo .tdf-hueco {
+  pointer-events: none;
+}
+
+.tdf-lado figcaption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-xs) var(--e-sm);
+  font-size: var(--t-sm);
+}
+
+.tdf-lado figcaption small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.tdf-quitar {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 32px;
+  color: var(--danger);
+}
+
+.tdf-pie {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (pointer: coarse) {
+  .tdf-quitar {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 600px) {
+  .tdf-dialogo[open] {
+    inset: auto 0 0;
+    width: 100%;
+    max-width: none;
+    max-height: 92vh;
+    margin: 0;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+
+  .tdf-cuerpo {
+    padding: var(--e-lg) var(--e-lg) calc(var(--e-xl) + var(--seguro-abajo));
+  }
+
+  .tdf-lados {
+    gap: var(--e-sm);
+  }
+
+  .tdf-pie .btn-primary {
+    flex: 1;
+  }
+}
+
+/* En la ficha de una línea del stock: la tira con las dos y su botón. */
+.tdf-en-ficha {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+}
+
+.tdf-en-ficha > span {
+  display: grid;
+  flex: 1 1 160px;
+  min-width: 0;
+  font-size: var(--t-sm);
+}
+
+.tdf-en-ficha small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.tdf-miniaturas {
+  display: flex;
+  gap: var(--e-xs);
+}
+
+.tdf-miniaturas img {
+  width: 32px;
+  height: 45px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+}
+
+/* En el escaparate, bajo la carta: «Ver fotos · 2». Fuera de la foto, que
+   ya lleva el corazón, las chapas y la etiqueta de la cápsula. */
+.tdf-chapa-ver {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: var(--e-xs);
+  min-height: 32px;
+  margin-top: var(--e-xs);
+  padding: 0 var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tdf-chapa-ver:hover {
+  background: color-mix(in srgb, var(--acento) 20%, var(--ice));
+}
+
+@media (pointer: coarse) {
+  .tdf-chapa-ver {
+    min-height: 44px;
+  }
+}

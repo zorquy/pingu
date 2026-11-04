@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-04",
       "tipo": "nuevo",
+      "texto": "Las tiendas pueden poner fotos de verdad de cada carta que venden, por delante y por detrás, y en su escaparate se ven con «Ver las fotos».",
+      "enlace": "/tiendas"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "nuevo",
       "texto": "Las tiendas ya pueden meter cartas gradeadas: elige PSA, Beckett o CGC y la nota al añadirla, y en el stock y el escaparate sale la etiqueta de la cápsula con su color.",
       "enlace": "/tiendas"
     },

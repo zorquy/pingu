@@ -27,6 +27,7 @@ import { banderaHtml } from './precio-vista.js'
 import { marcaDeRarezaHtml } from './rarezas.js'
 import { iconoDeVersion } from './mi-coleccion/iconos-version.js'
 import { gradeoHtml, engancharGradeo, chapaDeGradeoHtml } from './gradeo-elegir.js'
+import { fotosDeStock, botonFotosHtml, abrirFotosDeStock, urlDeFotoDeTienda, cuantasFotos } from './tienda-fotos.js'
 
 const POR_PAGINA = 50
 const COLUMNAS = COLUMNAS_CARTA_DE_SET.replace('tcg_sets(tcg_online_code,serie_id,release_date)', 'tcg_sets(name,name_en,tcg_online_code,serie_id,release_date,oculto)')
@@ -68,6 +69,9 @@ const est = {
   productos: new Map(),
   sets: new Map(),
   apartadas: new Map(),
+  // Las fotos de cada copia (1235): un Map, o null sin la migración (y
+  // entonces no hay columna ni botón).
+  fotos: new Map(),
   pedido: 0,
   masAbierto: false,
   vista: leerVista(),
@@ -119,7 +123,7 @@ async function pedir({ mas = false } = {}) {
   est.facetas = data.facetas || {}
   // Sin la migración 1079 no hay estrella (ni la cuenta de las ocho).
   est.destacadas = data.destacadas ?? null
-  await Promise.all([completarCartas(est.filas), completarProductos(est.filas), completarSets(Object.keys(est.facetas.sets || {})), completarApartadas(est.filas)])
+  await Promise.all([completarCartas(est.filas), completarProductos(est.filas), completarSets(Object.keys(est.facetas.sets || {})), completarApartadas(est.filas), completarFotos(est.filas)])
   if (n !== est.pedido) return
   pintarTodo()
 }
@@ -136,6 +140,55 @@ async function completarApartadas(filas) {
     if (!est.apartadas.has(r.stock_id)) est.apartadas.set(r.stock_id, [])
     est.apartadas.get(r.stock_id).push(r)
   }
+}
+
+// Las fotos de las cartas que hay en pantalla (1235). Sin la tabla, null.
+async function completarFotos(filas) {
+  if (est.fotos === null) return
+  const ids = filas.filter((f) => f.card_id).map((f) => f.id)
+  if (!ids.length) return
+  const m = await fotosDeStock(ids)
+  if (m === null) {
+    est.fotos = null
+    return
+  }
+  for (const id of ids) est.fotos.delete(id)
+  for (const [id, f] of m) est.fotos.set(id, f)
+}
+
+const conFotos = () => est.fotos instanceof Map
+const fotosCeldaHtml = (f) => (f.card_id ? botonFotosHtml(f.id, est.fotos.get(f.id), nombreFila(f)) : '')
+
+// El pop-up de las fotos; al cambiar, se repinta lo que las enseña.
+function abrirFotos(id, alCambiar = () => {}) {
+  const f = est.filas.find((x) => x.id === id)
+  if (!f || !f.card_id || !conFotos()) return
+  const detalle = [String(f.idioma || '').toUpperCase(), f.gradeo || f.estado, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null].filter(Boolean).join(' · ')
+  abrirFotosDeStock({
+    stockId: f.id,
+    tiendaId: perfil.id,
+    nombre: nombreFila(f),
+    detalle,
+    fotos: est.fotos.get(f.id) || null,
+    alCambiar: (fotos) => {
+      if (fotos) est.fotos.set(f.id, fotos)
+      else est.fotos.delete(f.id)
+      document.querySelectorAll(`.tds-tabla-caja [data-fotos="${CSS.escape(f.id)}"]`).forEach((b) => { b.outerHTML = fotosCeldaHtml(f) })
+      alCambiar(fotos)
+    },
+  })
+}
+
+// En la ficha de la línea (la que se abre en el móvil, donde la columna no
+// cabe): las dos miniaturas y el botón.
+function fotosDeFichaHtml(f) {
+  const fotos = est.fotos.get(f.id)
+  const n = cuantasFotos(fotos)
+  return `<div class="tdf-en-ficha" data-fotos-ficha>
+    ${n ? `<span class="tdf-miniaturas">${['frente', 'dorso'].filter((l) => fotos[l]).map((l) => `<img src="${escapeHtml(urlDeFotoDeTienda(fotos[l]))}" alt="" width="32" height="45" loading="lazy" onerror="this.remove()" />`).join('')}</span>` : ''}
+    <span><strong>Fotos de tu copia</strong><small>${n ? `${n} de 2 · se ven en tu escaparate` : 'Opcional: frontal y trasera, para que se vea la copia de verdad'}</small></span>
+    <button type="button" class="btn-secondary" data-fotos-abrir>${icons.camera(16)} ${n ? 'Cambiar' : 'Añadir'}</button>
+  </div>`
 }
 
 function apartadaHtml(f) {
@@ -258,6 +311,7 @@ function filaHtml(f) {
   return `<tr class="${pierde || dias > 90 ? 'tds-mal' : debajo ? 'tds-alerta' : ''}${marcada ? ' tds-marcada' : ''}" data-fila="${escapeHtml(f.id)}">
     ${est.seleccionando ? `<td class="tds-check"><input type="checkbox" aria-label="Marcar" data-marcar="${escapeHtml(f.id)}" ${marcada ? 'checked' : ''} /></td>` : ''}
     <td class="tds-c-nombre"><div class="tds-nombre">${fotoHtml(f)}<span><strong>${escapeHtml(nombreFila(f))}</strong><small>${escapeHtml(detalleFila(f))}${f.variante && f.variante !== 'normal' && !f.product_id ? ` · ${escapeHtml(nombreDeVariante(f.variante))}` : ''}</small><span class="tds-meta">${f.idioma ? banderaHtml(f.idioma) : ''}${escapeHtml(String(f.idioma || '').toUpperCase())}${estadoOGradeoHtml(f)}</span></span>${estrellaHtml(f)}</div></td>
+    ${conFotos() ? `<td class="tds-c-fotos">${fotosCeldaHtml(f)}</td>` : ''}
     <td class="tds-c-idioma">${f.idioma ? banderaHtml(f.idioma) : ''}<span>${escapeHtml(String(f.idioma || '').toUpperCase())}</span></td>
     <td class="tds-c-estado">${estadoOGradeoHtml(f)}</td>
     <td class="tds-num tds-c-uds">${f.unidades}</td>
@@ -286,7 +340,7 @@ function pintarTabla() {
     return
   }
   tabla.innerHTML = `<table class="tds-tabla">
-    <thead><tr>${est.seleccionando ? '<th class="tds-check"><input type="checkbox" aria-label="Marcar todas las de esta lista" data-tds="todas" /></th>' : ''}<th>Carta</th><th class="tds-c-idioma">Idioma</th><th class="tds-c-estado">Estado</th><th class="tds-num">Uds.</th><th class="tds-num">Coste</th><th class="tds-num">Tu precio</th><th class="tds-num">Cardmarket</th><th class="tds-num">Margen</th><th class="tds-c-marcas"><span class="sr-only">En stock y escaparate</span></th></tr></thead>
+    <thead><tr>${est.seleccionando ? '<th class="tds-check"><input type="checkbox" aria-label="Marcar todas las de esta lista" data-tds="todas" /></th>' : ''}<th>Carta</th>${conFotos() ? '<th class="tds-c-fotos">Fotos</th>' : ''}<th class="tds-c-idioma">Idioma</th><th class="tds-c-estado">Estado</th><th class="tds-num">Uds.</th><th class="tds-num">Coste</th><th class="tds-num">Tu precio</th><th class="tds-num">Cardmarket</th><th class="tds-num">Margen</th><th class="tds-c-marcas"><span class="sr-only">En stock y escaparate</span></th></tr></thead>
     <tbody>${est.filas.map(filaHtml).join('')}</tbody>
   </table>
   ${est.filas.length < est.total ? `<button type="button" class="btn-secondary tds-mas" data-tds="mas">Ver ${Math.min(POR_PAGINA, est.total - est.filas.length)} más</button>` : ''}`
@@ -310,6 +364,7 @@ function baldosaHtml(f) {
       ${est.seleccionando ? `<input type="checkbox" class="tds-baldosa-check" aria-label="Marcar" data-marcar="${id}" ${marcada ? 'checked' : ''} />` : ''}
       ${estrellaHtml(f)}
       <span class="tds-baldosa-chapas">${f.gradeo ? chapaDeGradeoHtml(f.gradeo) : ''}${o ? `<span class="tds-baldosa-chapa tds-baldosa-oferta">${o.pct ? `−${o.pct} %` : 'Oferta'}</span>` : ''}${f.visible ? '' : '<span class="tds-baldosa-chapa">Oculta</span>'}${apartadaHtml(f)}</span>
+      ${conFotos() ? fotosCeldaHtml(f) : ''}
     </div>
     <strong class="tds-baldosa-nombre">${escapeHtml(nombreFila(f))}</strong>
     <small class="tds-baldosa-detalle">${f.idioma && !f.product_id ? banderaHtml(f.idioma) : ''}${escapeHtml(detalle)}</small>
@@ -645,6 +700,7 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
   form.innerHTML = `
     <p class="tds-form-titulo"><strong>${escapeHtml(titulo)}</strong>${carta ? `<small>${escapeHtml(nombreDeSet(carta.tcg_sets) || carta.set_id)} · ${escapeHtml(carta.local_id || '')}</small>` : ''}</p>
     ${fotoDeFichaHtml(carta, elProducto)}
+    ${fila && !esProducto && conFotos() ? fotosDeFichaHtml(fila) : ''}
     ${esProducto ? '' : `${gradeoHtml(v.gradeo || '')}
     <label class="tds-version${versionesDe(idioma).length > 1 ? '' : ' hidden'}">Versión<select name="variante"></select></label>
     <div class="tds-form-fila">
@@ -693,6 +749,14 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
     form.querySelector('.tds-version').classList.toggle('hidden', conLaSuya.length < 2)
   }
   ponerVersiones()
+  // Las fotos de la copia (1235): se guardan solas al subir, aparte de «Guardar».
+  const engancharFotos = () => form.querySelector('[data-fotos-abrir]')?.addEventListener('click', () => abrirFotos(fila.id, () => {
+    const caja = form.querySelector('[data-fotos-ficha]')
+    if (!caja) return
+    caja.outerHTML = fotosDeFichaHtml(fila)
+    engancharFotos()
+  }))
+  if (fila) engancharFotos()
   // Lo que vale en Cardmarket, como en la ficha (la 900): el mínimo de SU
   // idioma y su versión, con un «poner» rápido.
   let filaPrecio = null
@@ -1076,6 +1140,8 @@ export function montarStock(destino, { perfil: p }) {
   // hojas de toda la web: se piden aquí, que solo lo abre una tienda.
   hojaInyectada('css/cardmarket.css')
   hojaInyectada('css/carta-holo.css')
+  // El botón de las fotos (1235) sale en la tabla antes de abrir nada.
+  hojaInyectada('css/tienda-fotos.css')
   caja.innerHTML = `
     <div class="tds">
       <aside class="tds-filtros" aria-label="Filtros del stock"></aside>
@@ -1203,6 +1269,8 @@ export function montarStock(destino, { perfil: p }) {
     }
     const estrella = e.target.closest('[data-estrella]')
     if (estrella) return alternarEstrella(estrella.dataset.estrella)
+    const fotos = e.target.closest('[data-fotos]')
+    if (fotos) return abrirFotos(fotos.dataset.fotos)
     const bloque = e.target.closest('[data-bloque]')
     if (bloque) return enBloque(bloque.dataset.bloque)
     const marcar = e.target.closest('[data-marcar]')

@@ -54199,3 +54199,49 @@ casa). Los colores `--casa-*` viven en `:root` de `components.css` (más
 `--casa-bgs-texto`, `--casa-cgc-texto`, `--casa-cgc-borde`): PSA #c8102e,
 Beckett #111 con blanco, CGC blanco con #111 y un borde para que se vea.
 
+## Tanda 1235 — Fotos frontal y trasera de las cartas del stock
+
+PINGU: «agregar imágenes a cada carta, solo a cartas no a productos. Que te
+deje meter imagen frontal y trasera, para ver. Es algo opcional, así que
+desde el stock: una columna con el botón de foto y un pop-up para añadir
+frontal y trasera».
+
+**Base** (`supabase-migration-1235-tienda-fotos.sql`, la ejecuta PINGU):
+
+- `tienda_stock_fotos (stock_id pk → tienda_stock on delete cascade,
+  tienda_id default auth.uid(), frente, dorso, updated_at)`. Aparte de
+  `tienda_stock` a propósito: así `tienda_escaparate`, `tienda_vender`,
+  `tienda_stock_lista` y las demás no se redefinen. Un `check` obliga a que
+  cada ruta empiece por la carpeta de la tienda (`<tienda_id>/…`).
+- Se ve (`tienda_foto_se_ve`, security definer, para anon y authenticated —
+  la 555): la de una línea visible y con unidades, o la tuya. Se escribe
+  (`tienda_foto_puedo`): solo una tienda, en una línea suya que sea CARTA
+  (`card_id is not null`); un producto no tiene fotos.
+- Cubo `tienda-fotos`, PÚBLICO (3 MB, webp/jpeg/png), como los avatares: se
+  sirve por su dirección, sin política de lectura para todos (nadie lista las
+  carpetas). Sí hay SELECT de la PROPIA carpeta, porque Storage la pide para
+  borrar y sobrescribir; insertar exige `soy_tienda()`.
+- Prueba contra PostgreSQL: `test-tanda-1235.mjs` (con un `storage` de
+  mentira: `buckets`, `objects` con RLS y `foldername`), y la migración
+  sentencia a sentencia, cada una en su conexión (631).
+
+**Web** (`js/tienda-fotos.js` + `css/tienda-fotos.css`, por `hojaInyectada`):
+
+- Stock, tabla: columna «Fotos» (`.tds-c-fotos`) con `botonFotosHtml`: la
+  cámara, o la frontal en miniatura con la cuenta. En la rejilla, el mismo
+  botón abajo a la derecha de la carta (las chapas le dejan sitio). En el
+  móvil la columna no está (la línea es una tarjeta) y las fotos van en la
+  ficha de la línea (`.tdf-en-ficha`, con «Añadir / Cambiar»).
+- El pop-up (`abrirFotosDeStock`): dos huecos con forma de carta, se toca o
+  se suelta una foto, se comprime (`comprimirImagen`, 1.600 px y WebP), se
+  sube a `tienda-fotos/<tienda>/<línea>-<lado>-<ms>.<ext>` y se apunta la
+  fila (upsert por `stock_id`); la de antes se borra del cubo. Quitar cambia
+  ya y vuelve si la base dice que no (896); sin ninguna, la fila se borra.
+  Se guarda al momento, sin pasar por «Guardar» de la ficha.
+- Escaparate (`perfil-tienda.js`): «Ver las fotos» bajo la carta que las
+  tiene (fuera de la foto: ahí ya van el corazón, las chapas y la cápsula) y
+  `verFotosDeStock`, las dos en grande.
+- Sin la migración, `fotosDeStock` devuelve null: ni columna ni botón, y el
+  escaparate sale igual.
+- Prueba: `test-tanda-1235-pantalla.mjs`.
+
