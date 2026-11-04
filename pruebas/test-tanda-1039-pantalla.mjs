@@ -34,12 +34,14 @@ console.log('── 1. Aprender en el móvil ──')
 {
   const { ctx, page, errores } = await abrir('/aprender')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('el título no ocupa sitio, pero sigue para el lector', (await soloLector(page, '.ap-cab')) === true, await soloLector(page, '.ap-cab'))
+  // Desde la 1227 la banda se queda en el móvil (PINGU: «déjala, no ocupa
+  // tanto y queda bien»); solo el título va para el lector, y el lápiz en ella.
+  check('la banda se ve y el título sigue para el lector', (await visto(page, '.ap-cab')) && (await soloLector(page, '.ap-cab h1')) === true, await soloLector(page, '.ap-cab h1'))
   check('sin medallero', !(await page.$('#medallero, .medallero')))
   const r = await page.evaluate(() => {
     const h = document.querySelector('#categoriesList .ap-herramientas')
     const bu = h?.querySelector('.ap-buscar')?.getBoundingClientRect()
-    const es = h?.querySelector('.ap-escribir')
+    const es = document.querySelector('.ap-cab .ap-escribir')
     const er = es?.getBoundingClientRect()
     return {
       // Lo que se ve: el orden de la 1215 está y en el móvil no sale.
@@ -49,16 +51,19 @@ console.log('── 1. Aprender en el móvil ──')
       chips: document.querySelectorAll('#categoriesList [data-nivel], #apChips').length,
     }
   })
-  check('la fila de mandos es el buscador y el lápiz, nada más', JSON.stringify(r.hijos) === JSON.stringify(['ap-buscar', 'link-btn ap-escribir']) || (r.hijos?.length === 2 && r.hijos[0] === 'ap-buscar' && /ap-escribir/.test(r.hijos[1])), JSON.stringify(r.hijos))
+  check('la fila de mandos es el buscador, nada más (el lápiz va en la banda, 1227)', JSON.stringify(r.hijos) === JSON.stringify(['ap-buscar']), JSON.stringify(r.hijos))
   check('  …sin chips de nivel ni «Sin leer»', r.chips === 0, r.chips)
-  check('  …el lápiz es un círculo de 44 en la misma línea que el buscador', r.escribir?.ancho === 44 && r.escribir?.alto === 44 && r.misma, JSON.stringify(r.escribir))
+  check('  …el lápiz es un círculo de 44, en la banda', r.escribir?.ancho === 44 && r.escribir?.alto === 44, JSON.stringify(r.escribir))
   check('  …y dice qué hace', /escribir/i.test(r.escribir?.etiqueta || ''), r.escribir?.etiqueta)
   const temas = await page.evaluate(() => [...document.querySelectorAll('.ap-baldosa')].map((x) => { const a = getComputedStyle(x, '::after'); return { alto: Math.round(x.getBoundingClientRect().height), franja: -parseFloat(a.top) - parseFloat(a.bottom), icono: !!x.querySelector('.ap-baldosa-icono')?.getBoundingClientRect().width } }))
-  check('los temas son chips de 36 (44 al dedo), sin icono', temas.length >= 3 && temas.every((x) => x.alto === 36 && x.alto + x.franja >= 44 && !x.icono), JSON.stringify(temas))
+  // Desde la 1217/1226 los temas son baldosas con su Pokémon, no chips.
+  check('los temas, baldosas de una línea de alto parejo (menos de 72 px)', temas.length >= 3 && temas.every((x) => x.alto < 72 && x.alto === temas[0].alto), JSON.stringify(temas))
   const sub = await visto(page, '.aprender-seguir-sub')
   check('«Sigue donde lo dejaste» en una línea (sin el bloque)', !sub)
   const top = await empieza(page, '#apLista .guia-tarjeta, #apLista .ap-fila, #apLista a')
-  check(`las guías empiezan antes de ${TOPE} px`, top <= TOPE, top)
+  // Con la banda (1227) el tope de 296 ya no es el de Aprender: que salgan
+  // en la primera pantalla.
+  check('las guías empiezan en la primera pantalla (antes de 420 px)', top <= 420, top)
   await ctx.close()
 }
 

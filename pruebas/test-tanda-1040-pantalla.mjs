@@ -26,7 +26,8 @@ const filas = (page, sel) => page.evaluate((sel) => new Set([...document.querySe
 
 console.log('── 0. La regla: en las páginas de lista, el contenido antes de 296 px ──')
 const LISTAS = [
-  ['/aprender', '#apLista .guia-tarjeta, #apLista .guia-fila'],
+  // /aprender salió en la 1227: PINGU quiso la banda también en el móvil
+  // («déjala, no ocupa tanto y queda bien»); su tope lo mira la 1039.
   ['/glosario', '.glosario-termino'],
   ['/novedades', '#nvDestacadas .nv-dest'],
   ['/lanzamientos', '#proximoDestacado .lanzamiento-destacado'],
