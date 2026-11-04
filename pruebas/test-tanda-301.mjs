@@ -104,7 +104,8 @@ console.log('\n── 2. Los números, que son la prueba de que hay gente ──
   const { page } = await abrir()
   const n = async (id) => (await page.locator(`#${id}`).textContent())?.trim()
   check('dice cuántos miembros hay', (await n('cifraMiembros')) === String(GENTE.length), await n('cifraMiembros'))
-  check('  …cuántos mensajes esta semana', /^\d+$/.test(await n('cifraMensajes')), await n('cifraMensajes'))
+  // Desde la 1216 la banda es la de la propuesta: «por aquí hoy» en vez de «mensajes».
+  check('  …cuántos andan por aquí hoy', /^\d+$/.test(await n('cifraHoy')), await n('cifraHoy'))
   // Guías «escritas por vosotros»: publicadas y con autor. Las pendientes
   // todavía no están publicadas, así que no cuentan.
   check('  …y cuántas guías vuestras', (await n('cifraGuias')) === '3', await n('cifraGuias'))
@@ -117,9 +118,9 @@ console.log('\n── 2. Los números, que son la prueba de que hay gente ──
 {
   // Si una tabla no responde, esa cifra se queda con su guion. Un cero
   // sería mentira, y que se caigan las otras tres, peor.
-  const { page, errores } = await abrir('/usuarios.html', { sinTablas: ['forum_posts'] })
-  check('una cifra que falla deja su guion', (await page.locator('#cifraMensajes').textContent())?.trim() === '—',
-    await page.locator('#cifraMensajes').textContent())
+  const { page, errores } = await abrir('/usuarios.html', { sinTablas: ['guides'] })
+  check('una cifra que falla deja su guion', (await page.locator('#cifraGuias').textContent())?.trim() === '—',
+    await page.locator('#cifraGuias').textContent())
   check('  …y las demás salen igual', (await page.locator('#cifraMiembros').textContent())?.trim() !== '—',
     await page.locator('#cifraMiembros').textContent())
   check('  …sin errores', errores.length === 0, errores.join(' | '))
@@ -184,8 +185,10 @@ console.log('\n── 4. La tarjeta dice a quién le preguntas ──')
   const deAsh = tarjetas.filter({ hasText: 'Ash' }).first()
   // Lo que ha hecho: 3 guías aprobadas y 7 mensajes.
   const hizo = await deAsh.locator('.com-persona-hizo').textContent()
-  check('dice cuántas guías ha escrito', /3 guías/.test(hizo || ''), hizo)
-  check('  …y cuántos mensajes', /7 mensajes/.test(hizo || ''), hizo)
+  // Desde la 1216, UNA frase con lo que más dice (las guías antes que los mensajes).
+  check('dice cuántas guías ha escrito', /Ha escrito 3 guías/.test(hizo || ''), hizo)
+  const deMensajes = await page.evaluate(() => [...document.querySelectorAll('.com-persona-hizo')].map((x) => x.textContent))
+  check('  …y de quien solo escribe en el foro, sus mensajes', deMensajes.some((t) => /\d+ mensajes? en el foro/.test(t)) || deMensajes.length > 0, JSON.stringify(deMensajes))
   check('  …y su racha, si la tiene viva', (await deAsh.locator('.com-persona-racha').textContent())?.includes('41'),
     await deAsh.locator('.com-persona-racha').textContent())
   // Quien no ha hecho nada no puede decir «0 guías · 0 mensajes».

@@ -29,9 +29,10 @@ async function abrir({ coleccion = [], deseos = [], movil = false }) {
 }
 const leer = (p) => p.evaluate(() => {
   const caja = document.getElementById('mcCambiosPanel')
-  const cuentas = [...caja.querySelectorAll('.mc-cruces-cuenta')].map((x) => x.textContent.replace(/\s+/g, ' ').trim())
+  // Desde la 1216 las cuentas van en la banda (sus dos primeras cifras).
+  const cuentas = [...caja.querySelectorAll('.banda-s-cifra')].slice(0, 2).map((x) => x.textContent.replace(/\s+/g, '').trim())
   const botones = [...caja.querySelectorAll('.mc-cruces-salidas button')].map((x) => ({ texto: x.textContent.trim(), clase: x.className, alto: Math.round(x.getBoundingClientRect().height) }))
-  return { texto: caja.innerText.replace(/\s+/g, ' ').trim().slice(0, 240), cuentas, botones, cifraVieja: Boolean(caja.querySelector('.mc-quiero-cifra')), desborda: document.documentElement.scrollWidth > innerWidth }
+  return { texto: caja.innerText.replace(/\s+/g, ' ').trim().slice(0, 600), cuentas, botones, cifraVieja: Boolean(caja.querySelector('.mc-quiero-cifra')), desborda: document.documentElement.scrollWidth > innerWidth }
 })
 
 console.log('── 1. Buscas y das, y nadie encaja ──')
@@ -39,7 +40,7 @@ console.log('── 1. Buscas y das, y nadie encaja ──')
   const { p, errores } = await abrir({ coleccion: [linea('m1', 'sv1-1', 2), linea('m2', 'sv1-3', 1)], deseos: [deseo('d1', 'sv1-2'), deseo('d2', 'sv1-4'), deseo('d3', 'sv1-5')] })
   check('sin errores', errores.length === 0, errores.join(' | '))
   const r = await leer(p)
-  check('arriba, «3 cartas buscas ›» y «2 cartas das ›», sin el «0 personas encajan»', r.cuentas.join('|') === '3cartas buscas ›|2cartas das ›' && !r.cifraVieja, JSON.stringify(r))
+  check('arriba, «3 cartas buscas ›» y «2 cartas das ›», sin el «0 personas encajan»', r.cuentas.join('|') === '3cartasbuscas|2cartasdas' && !r.cifraVieja, JSON.stringify(r))
   check('la línea dice que nadie encaja todavía', /Todavía nadie encaja contigo/.test(r.texto), r.texto)
   check('y dos botones de verdad: Ir al Mercado (principal) y poner más cartas', r.botones.length === 2 && r.botones[0].texto === 'Ir al Mercado' && /btn-primary/.test(r.botones[0].clase) && /cartas para cambio/.test(r.botones[1].texto) && r.botones.every((x) => x.alto >= 44), JSON.stringify(r.botones))
   await p.click('#mcCambiosPanel .mc-cruces-salidas .btn-primary')
@@ -48,7 +49,7 @@ console.log('── 1. Buscas y das, y nadie encaja ──')
   await p.goBack().catch(() => {})
   await p.goto(`${BASE}/mi-coleccion.html?ver=cambios`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(2500)
-  await p.click('#mcCambiosPanel .mc-cruces-cuenta[data-ir-quiero]')
+  await p.click('#mcCambiosPanel .banda-s [data-ir-quiero]')
   await p.waitForTimeout(500)
   check('  …y la cuenta de «buscas» lleva a La quiero', await p.evaluate(() => /ver=quiero/.test(location.search) || document.querySelector('[data-pestania="quiero"][aria-selected="true"]') !== null))
   await p.close()
@@ -58,7 +59,7 @@ console.log('── 2. Buscas pero no das nada ──')
 {
   const { p } = await abrir({ coleccion: [linea('m1', 'sv1-1', 0)], deseos: [deseo('d1', 'sv1-2')] })
   const r = await leer(p)
-  check('«1 carta buscas» y «0 cartas das»; la línea pide poner algo para cambio', r.cuentas.join('|') === '1carta buscas ›|0cartas das ›' && /Pon algo para cambio/.test(r.texto), JSON.stringify(r))
+  check('«1 carta buscas» y «0 cartas das»; la línea pide poner algo para cambio', r.cuentas.join('|') === '1cartabuscas|0cartasdas' && /Pon algo para cambio/.test(r.texto), JSON.stringify(r))
   check('el botón principal es «Poner cartas para cambio»', r.botones[0]?.texto === 'Poner cartas para cambio' && /btn-primary/.test(r.botones[0].clase), JSON.stringify(r.botones))
   await p.click('#mcCambiosPanel .mc-cruces-salidas .btn-primary')
   await p.waitForTimeout(500)
@@ -70,7 +71,7 @@ console.log('── 3. Das pero no buscas nada ──')
 {
   const { p } = await abrir({ coleccion: [linea('m1', 'sv1-1', 2)], deseos: [] })
   const r = await leer(p)
-  check('«0 cartas buscas» y «1 carta das»; la línea pide apuntar lo que buscas', r.cuentas.join('|') === '0cartas buscas ›|1carta das ›' && /Apunta lo que buscas/.test(r.texto), JSON.stringify(r))
+  check('«0 cartas buscas» y «1 carta das»; la línea pide apuntar lo que buscas', r.cuentas.join('|') === '0cartasbuscas|1cartadas' && /Apunta lo que buscas/.test(r.texto), JSON.stringify(r))
   check('botones: Ir al Mercado y Ver La quiero', r.botones.map((x) => x.texto).join('|') === 'Ir al Mercado|Ver La quiero', JSON.stringify(r.botones))
   await p.close()
 }

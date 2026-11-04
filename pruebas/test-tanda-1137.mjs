@@ -56,7 +56,8 @@ await page.goto(`${BASE}/usuarios`, { waitUntil: 'domcontentloaded' })
 await page.waitForTimeout(2500)
 const cifras = await page.evaluate(() => ({ mensajes: document.getElementById('cifraMensajes')?.textContent, guias: document.getElementById('cifraGuias')?.textContent }))
 const enBase = await page.evaluate(() => ({ posts: (window.__TABLAS__?.forum_posts || []).length, guias: (window.__TABLAS__?.guides || []).filter((x) => x.kind === 'guide' && x.author_id && x.published_at).length }))
-check('«mensajes en el foro» son TODOS, también los de hace meses', Number(cifras.mensajes) === enBase.posts && enBase.posts >= 5, JSON.stringify({ cifras, enBase }))
+// La cifra de mensajes salió de la banda en la 1216 (la propuesta pone «por aquí hoy»).
+check('«mensajes» ya no está en la banda (1216)', cifras.mensajes === undefined, JSON.stringify({ cifras, enBase }))
 check('«guías» no cuenta las noticias', Number(cifras.guias) === enBase.guias && enBase.guias >= 2, JSON.stringify({ cifras, enBase }))
 const chapa = await page.evaluate(() => {
   const c = document.querySelector('.com-persona[data-user-id="nuevo-1"]')

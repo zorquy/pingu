@@ -110,15 +110,17 @@ console.log('── 5. Novedades: la cuenta de cada semana ──')
   await m.ctx.close()
 }
 
-console.log('── 6. Gente: «N por aquí hoy» en la banda ──')
+console.log('── 6. Gente: «por aquí hoy» es una cifra de la banda (1216) ──')
 {
   const { ctx, p, errores } = await abrir('/usuarios')
-  const r = await p.evaluate(() => ({ hoy: document.getElementById('genteHoy')?.textContent || '', visible: !document.getElementById('genteHoy')?.hidden, caja: document.querySelector('#comHoy h3')?.textContent || '' }))
-  const n = r.hoy.match(/^(\d+) por aquí hoy$/)?.[1]
-  check('la ceja dice «N por aquí hoy»', r.visible && Boolean(n), JSON.stringify(r))
-  check('  …con la misma cuenta que la caja de la derecha', n && r.caja.endsWith(`· ${n}`), JSON.stringify(r))
-  const anima = await p.$eval('#genteHoy', (x) => getComputedStyle(x, '::before').animationName)
+  await p.waitForTimeout(800)
+  const r = await p.evaluate(() => ({ hoy: document.getElementById('cifraHoy')?.textContent || '', rotulo: document.getElementById('cifraHoy')?.nextElementSibling?.textContent || '', caja: document.querySelector('#comHoy h3')?.textContent || '', cifras: document.querySelectorAll('.com-cifra').length }))
+  check('la cifra dice cuántos andan por aquí hoy', /^\d+$/.test(r.hoy) && /por aquí hoy/.test(r.rotulo) && r.cifras === 4, JSON.stringify(r))
+  check('  …con la misma cuenta que la caja de la derecha', r.caja.endsWith(`· ${r.hoy}`), JSON.stringify(r))
+  const anima = await p.$eval('.com-cifra-hoy .gente-hoy', (x) => getComputedStyle(x).animationName)
   check('  …y su punto late', anima === 'seccion-late', anima)
+  const frases = await p.$$eval('.com-persona-hizo', (xs) => xs.map((x) => x.textContent.trim()))
+  check('cada tarjeta dice lo que hace esa persona, en una frase', frases.length > 3 && frases.every((f) => /^(Tiene \d+ cartas? que buscas|Ha escrito (una guía|\d+ guías)|Lleva \d+ días seguidos|\d+ mensajes? en el foro|Hoy por aquí|Acaba de llegar)$/.test(f)), JSON.stringify(frases))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

@@ -89,7 +89,8 @@ console.log('── 1. En el PC, con cuenta ──')
   const { page, ctx, errores } = await abrir()
   const r = await leer(page)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('la franja de arriba no se ve', !r.franja)
+  // Desde la 1216 la franja sale también en el PC, como carrusel (la propuesta del repaso).
+  check('la franja de arriba sale, como carrusel', r.franja)
   check('«Lo último» va arriba del lateral', r.lateral && r.primero && r.titulo === 'Lo último', JSON.stringify(r))
   check('un tema por fila, el más nuevo primero, y sin la noticia', JSON.stringify(r.filas.map((f) => f.t)) === JSON.stringify([LARGO, 'Cambio Charizard', 'Duda con Boss', 'Lo mío']), JSON.stringify(r.filas.map((f) => f.t)))
   const [f1, f2, f3, f4] = r.filas

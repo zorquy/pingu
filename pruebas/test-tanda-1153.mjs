@@ -105,7 +105,11 @@ console.log('\n── D4 · Guardados vacío ──')
     const { supabase } = await import('/js/supabase.js')
     const { data: { session } } = await supabase.auth.getSession()
     await supabase.from('user_profiles').update({ saved_guides: [] }).eq('id', session.user.id)
+    // Y los temas que sigue (1216: también salen en Guardados).
+    await supabase.from('forum_subscriptions').delete().eq('user_id', session.user.id)
   })
+  // Sin temas seguidos tampoco (1216: salen en Guardados).
+  await page.addInitScript(() => { window.__FAKE_SUSCRIPCIONES__ = [] })
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
   const m = await page.evaluate(() => ({
