@@ -817,6 +817,9 @@
    sobre su dibujo. */
 .rt-cabecera .rt-cifras { margin-top: var(--e-sm); }
 .rt-cabecera .rt-cifras .banda-s-cifra b { font-variant-numeric: tabular-nums; }
+/* El puesto en la banda (1221b): `--acento-texto` es el texto que va ENCIMA
+   del acento (blanco), y aquí no hay acento debajo: salía blanco sobre claro. */
+.rt-cabecera .rt-puesto { color: var(--text); }
 .rt-cuerpo { position: relative; padding-right: 72px; }
 .rt-xp-chapa {
   position: absolute;
@@ -838,7 +841,13 @@
   inset: 0;
   background: rgb(11 18 25 / 30%) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center / 56px no-repeat;
 }
+/* En el móvil (1221b): el menú cabe en una pantalla. La XP de cada reto ya
+   la dice «Hasta +N XP» y la chapa estrechaba el texto a dos líneas; las tres
+   cifras van en una línea, cada una con su palabra al lado. */
 @media (max-width: 599px) {
-  .rt-cuerpo { padding-right: 64px; }
-  .rt-xp-chapa { right: var(--e-sm); font-size: var(--t-2xs); }
+  .rt-cuerpo { padding-right: var(--e-sm); }
+  .rt-xp-chapa { display: none; }
+  .rt-cabecera .rt-cifras { display: flex; flex-wrap: wrap; gap: 2px var(--e-md); margin-top: var(--e-xs); }
+  .rt-cabecera .rt-cifras .banda-s-cifra { flex-direction: row; align-items: baseline; gap: var(--e-xs); }
+  .rt-cabecera .rt-cifras .banda-s-cifra b { font-size: var(--t-md); }
 }

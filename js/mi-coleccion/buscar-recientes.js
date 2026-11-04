@@ -10,7 +10,7 @@ import { urlDeLogo } from '../carta-ruta.js'
 const CLAVE = 'pd-buscar-recientes'
 const TOPE = 8
 // Lo justo para volver a pintar la foto sin pedir nada.
-const CAMPOS = ['id', 'market', 'set_id', 'local_id', 'name', 'name_es', 'name_en', 'image_path', 'image_tcggo', 'image_scrydex']
+const CAMPOS = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_tcggo,image_scrydex'.split(',')
 
 export function leerRecientes() {
   try { return JSON.parse(localStorage.getItem(CLAVE) || '[]').filter((c) => c?.id) } catch { return [] }

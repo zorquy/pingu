@@ -35,6 +35,18 @@
   "entradas": [
     {
       "fecha": "2026-11-04",
+      "tipo": "arreglo",
+      "texto": "En Guardados, las noticias que guardas vuelven a abrir la noticia, y lo que ya leíste lo dice en su portada.",
+      "enlace": "/guardados"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "arreglo",
+      "texto": "En el móvil, los seis retos vuelven a caber en una pantalla, y tu puesto en la liga se lee bien.",
+      "enlace": "/retos"
+    },
+    {
+      "fecha": "2026-11-04",
       "tipo": "mejora",
       "texto": "Tus tratos en marcha están ahora en Cruces → «En curso», en tarjetas que dicen en qué paso va cada uno.",
       "enlace": "/mi-coleccion?ver=cambios"

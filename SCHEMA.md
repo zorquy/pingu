@@ -53953,3 +53953,18 @@ hizo, por tanda, y lo que quedó distinto de la maqueta (con su porqué).
 Las bandas que el móvil no enseña se neutralizan en la propia hoja
 (`.x.banda-s` en `@media (max-width: 900px)`), con la especificidad de la
 clase doble porque `seccion.css` carga después.
+
+### 1221b — lo que destapó la suite entera
+
+- `portadaDeGuia` enlaza con `rutaDeArticulo(kind, slug)`: en Guardados hay
+  noticias, y la primera versión mandaba todo a /guia/. Con lo leído entero
+  (`avanceDeGuia` = 100) pinta `.guia-portada-leida` («✓ Leída»).
+- Retos en el móvil (≤ 599 px): `.rt-xp-chapa` fuera y `.rt-cuerpo` sin el
+  hueco de la chapa; `.rt-cabecera .rt-cifras` en flex de una línea con cada
+  cifra en fila (número y palabra al lado). Así el menú cabe en una pantalla
+  (la regla de la 989). `.rt-cabecera .rt-puesto` pide `--text`: el
+  `--acento-texto` de la píldora vieja es el texto que va ENCIMA del acento.
+- Ojo con `.rt-cifras`: ya era la rejilla de 3 del historial (línea ~563 de
+  `retos.css`) y la banda la reutiliza; lo de la banda va siempre bajo
+  `.rt-cabecera`.
+

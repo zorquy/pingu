@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (463) — PINGU-Claude (1221b — lo que destapó la suite entera)
+
+**Hecho**: pasada la suite completa (823) sobre lo de la 462 y comparado cada
+rojo con el árbol de antes (`10e051ef`). Lo que era de verdad, arreglado en
+la web:
+- Guardados en el PC: una NOTICIA guardada enlazaba a /guia/… (la portada
+  nueva no miraba el tipo). `portadaDeGuia` usa `rutaDeArticulo`, como la
+  tarjeta. Y la portada vuelve a decir «✓ Leída» (también en /aprender).
+- Retos en el móvil: con la banda los seis retos ya no cabían en una
+  pantalla (31 px de más). Las tres cifras van en una línea, sin la chapa de
+  XP en cada reto (ya lo dice «Hasta +N XP»), y «Nº 4 en la liga» salía en
+  BLANCO sobre claro (`--acento-texto` es el texto de ENCIMA del acento).
+- `buscar-recientes.js`: la lista de columnas en una cadena (la guarda de la
+  640 exige `image_tcggo` junto a `image_scrydex`).
+El resto eran pruebas que esperaban lo de antes de la 462 (el «Ver» de los
+torneos, la franja del Mercado que ahora es el chip «Lo que busco», las
+portadas de /aprender, la cifra que «se calcula», las mayúsculas de la banda,
+los productos que ahora son las fotos del cartel…): actualizadas en `pruebas`.
+
+**Ficheros** (web): `js/guia-portada.js`, `css/guia-portada.css`,
+`css/retos.css`, `js/mi-coleccion/buscar-recientes.js`, `BITACORA.md`,
+`SCHEMA.md`, `novedades.json`.
+
+**Pruebas**: rama `pruebas`, 33 pruebas puestas al día (foro-1, 297, 640,
+656, 689, 748, 762, 770, 783, 835, 847, 850, 864, 865, 866, 894, 989, 990,
+1014, 1061, 1069, 1214 y las de la 462). Los rojos que quedan en la suite ya
+lo eran en el árbol de antes (entorno: PostgreSQL, PIL, ficheros de
+scratchpad; o viejos: 310, 311, 315, 386, 524, 896, 981…). 481, 492 y 1046
+salen rojas a veces por carga y verdes al repetirlas.
+
+**Queda**: nada de la propuesta.
+
 ## 2026-11-04 (462) — PINGU-Claude (1217–1221 — toda la web como la portada)
 
 **Hecho**: PINGU repasó la propuesta «La web como la portada» página a página
