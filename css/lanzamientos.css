@@ -423,3 +423,76 @@ a.lanz-fila:hover strong { color: var(--navy); }
   #listaProximos .lanzamiento-tarjeta { border: 0; padding: 0; gap: var(--e-sm); background: none; }
   #listaProximos .lanz-avisar { margin-left: 0; flex-direction: row; min-height: 36px; justify-content: center; }
 }
+
+/* ── 1210: lo de la portada (el porqué en SCHEMA) ──
+   La cabecera es la banda de css/seccion.css, con el catálogo a la derecha;
+   la cuenta atrás del siguiente, en tres cajas; y lo que llevas de cada set
+   ya salido, en un anillo del color de la sección. */
+.lanz-banda { margin-bottom: var(--e-lg); }
+.lanz-banda .lanz-mandos { margin: 0; }
+
+.lanzamiento-cuenta-grande:has(.lanz-digitos) { padding: 0; background: none; }
+
+.lanz-digitos { display: flex; gap: var(--e-sm); }
+
+.lanz-digito {
+  display: grid;
+  min-width: 64px;
+  padding: var(--e-sm) var(--e-sm) var(--e-xs);
+  justify-items: center;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--acento) 14%, var(--white));
+  border: 1px solid color-mix(in srgb, var(--acento) 30%, var(--border));
+  color: var(--text);
+  line-height: 1;
+}
+
+.lanz-digito b {
+  font-family: var(--font-marca);
+  font-size: var(--t-2xl);
+  font-variant-numeric: tabular-nums;
+}
+
+.lanz-digito small {
+  margin-top: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* El anillo: un `conic-gradient` con lo que llevas, y la cuenta al lado. */
+.lanz-fila-prog.lanz-anillo {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.lanz-fila-prog.lanz-anillo::before {
+  content: '';
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background:
+    radial-gradient(closest-side, var(--bg) 66%, transparent 68%),
+    conic-gradient(var(--acento) calc(var(--pct, 0) * 1%), var(--border) 0);
+}
+
+.lanz-fila-prog.lanz-anillo[hidden] { display: none; }
+
+@media (max-width: 900px) {
+  .lanz-banda { flex-wrap: wrap; }
+  .lanz-banda .banda-s-derecha { flex: 1 1 100%; margin-left: 0; }
+  .lanz-banda .lanz-mandos { width: 100%; }
+}
+
+@media (max-width: 599px) {
+  .lanz-banda { margin-bottom: var(--e-md); gap: var(--e-sm); }
+  .lanz-digito { min-width: 44px; padding: var(--e-xs); }
+  .lanz-digito b { font-size: var(--t-lg); }
+  .lanz-digito small { margin-top: 2px; letter-spacing: 0; }
+  .lanzamiento-destacado .lanz-reloj:has(.lanz-digitos) { padding: 0; }
+  .lanz-fila-prog.lanz-anillo::before { width: 24px; height: 24px; }
+}

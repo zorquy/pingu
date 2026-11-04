@@ -22,7 +22,7 @@ export function grupoDeNoticia(iso, ahora = new Date()) {
   const mismoAno = d.getFullYear() === ahora.getFullYear()
   return { clave: `m${d.getFullYear()}-${d.getMonth()}`, rotulo: `${NOMBRE_MES[d.getMonth()]}${mismoAno ? '' : ` de ${d.getFullYear()}`}` }
 }
-// Las tarjetas (las pinta `pintar`) con su rótulo delante de cada grupo
+// Las tarjetas (las pinta `pintar(noticia, grupo)`) con su rótulo delante de cada grupo
 // nuevo. `anterior` es la clave del último grupo ya pintado («Ver más» no
 // repite el rótulo).
 export function tarjetasPorGrupo(noticias, anterior = null, pintar = () => '', ahora = new Date()) {
@@ -34,7 +34,23 @@ export function tarjetasPorGrupo(noticias, anterior = null, pintar = () => '', a
       html += `<h2 class="noticias-grupo" data-grupo="${g.clave}">${escapeHtml(g.rotulo)}</h2>`
       ultimo = g.clave
     }
-    html += pintar(n)
+    html += pintar(n, g)
   }
   return { html, ultimo }
+}
+
+// Cuántas de `noticias` son de esta semana y de este mes (la banda, 1210).
+// Sobre las que se han pedido: con doce de golpe, si las doce son del mes,
+// el mes dice «12+».
+export function cuentasDeNoticias(noticias, hayMas = false, ahora = new Date()) {
+  let semana = 0
+  let mes = 0
+  for (const n of noticias) {
+    const d = new Date(n.published_at)
+    if (Number.isNaN(d.getTime())) continue
+    if (grupoDeNoticia(n.published_at, ahora)?.clave === 's0') semana++
+    if (d.getFullYear() === ahora.getFullYear() && d.getMonth() === ahora.getMonth()) mes++
+  }
+  const todas = noticias.length
+  return { semana: hayMas && semana === todas ? `${semana}+` : String(semana), mes: hayMas && mes === todas ? `${mes}+` : String(mes) }
 }

@@ -43,6 +43,7 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="css/noticias.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
@@ -130,17 +131,23 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container">
-    <header class="noticias-cabecera cabecera-pagina">
-      <div class="noticias-cabecera-fila cab-lista">
-        <div>
-          <h1>Noticias</h1>
-          <p class="cab-lema">Lo que va pasando en el juego de cartas Pokémon, contado en español: cartas reveladas, sets, torneos y cambios de formato.</p>
+    <!-- La banda de la sección (1210, lo de la portada): el título, cuántas
+         van esta semana y este mes (las pone js/noticias.js; nacen con guion)
+         y, a la derecha, «Escribir noticia» para quien puede. -->
+    <section class="banda-s cabecera-pagina noticias-cabecera">
+      <div class="banda-s-texto">
+        <span class="banda-s-ceja">Lo que pasa en el TCG</span>
+        <h1>Noticias</h1>
+        <p class="banda-s-lema cab-lema">Cartas reveladas, sets, torneos y cambios de formato, contado en español.</p>
+        <div class="banda-s-cifras">
+          <span class="banda-s-cifra"><b id="noticiasNSemana">—</b><small>esta semana</small></span>
+          <span class="banda-s-cifra"><b id="noticiasNMes">—</b><small>este mes</small></span>
         </div>
-        <!-- «Escribir noticia» lo rellena js/noticias.js, y solo para
-             administración. Se queda vacío para todos los demás. -->
-        <div id="noticiasEscribir"></div>
       </div>
-    </header>
+      <!-- «Escribir noticia» lo rellena js/noticias.js, y solo para
+           administración. Se queda vacío para todos los demás. -->
+      <div class="banda-s-derecha" id="noticiasEscribir"></div>
+    </section>
 
     <!-- La última noticia, grande. La rellena js/noticias.js: aquí se
          queda el hueco para que la página no dé el salto al cargar. -->
@@ -149,7 +156,7 @@
          tarjetas con su portada, su fecha y su titular, no un «Cargando
          noticias…» en gris. `aria-hidden` porque para quien no ve la
          pantalla no es más que ruido: el aviso va aparte, en .sr-only. -->
-    <div class="noticias-rejilla" id="noticiasRejilla" aria-hidden="true">
+    <div class="noticias-rejilla en-cascada" id="noticiasRejilla" aria-hidden="true">
         <div class="esq-tarjeta">
           <div class="esq-bloque"></div>
           <div class="esq-linea" style="width:35%"></div>

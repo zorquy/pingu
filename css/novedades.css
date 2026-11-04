@@ -89,3 +89,54 @@ a.nv-fila:hover { border-color: var(--border-strong); }
   .nv-dest-texto p { display: none; }
   .nv-pie-foro { display: block; margin-top: var(--e-lg); }
 }
+
+/* ── 1210: lo de la portada (el porqué en SCHEMA) ──
+   La cabecera es la banda de css/seccion.css; cada semana, un tramo de la
+   línea del tiempo con un punto por cambio, del color de su tipo. */
+.nv-banda .banda-s-lema a { color: var(--acento); font-weight: 600; }
+
+.nv-semana {
+  position: relative;
+  padding-left: var(--e-xl);
+}
+
+.nv-semana::before {
+  content: '';
+  position: absolute;
+  top: var(--e-xl);
+  bottom: var(--e-sm);
+  left: 7px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--border);
+}
+
+.nv-fila { position: relative; }
+
+.nv-fila::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: calc(-1 * var(--e-xl) + 2px);
+  width: 12px;
+  height: 12px;
+  transform: translateY(-50%);
+  border: 2px solid var(--bg);
+  border-radius: 50%;
+  background: var(--navy);
+}
+
+.nv-fila-nuevo::before { background: var(--pink); }
+.nv-fila-arreglo::before { background: var(--success); }
+
+.nv-semana-titulo { margin-left: calc(-1 * var(--e-xl)); padding-left: var(--e-xl); }
+
+@media (max-width: 599px) {
+  /* La regla de la 1039 deja la cabecera sin aire: la banda lo recupera. */
+  .cabecera-pagina.nv-banda { margin: 0 0 var(--e-md); padding: var(--e-md) var(--e-lg); }
+  .nv-semana { padding-left: var(--e-lg); }
+  .nv-semana::before { left: 5px; }
+  .nv-fila::before { left: calc(-1 * var(--e-lg) + 0px); width: 12px; height: 12px; }
+  .nv-semana-titulo { margin-left: calc(-1 * var(--e-lg)); padding-left: var(--e-lg); }
+  .nv-fila::before { top: var(--e-lg); transform: none; }
+}

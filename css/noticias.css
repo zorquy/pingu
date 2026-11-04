@@ -318,3 +318,75 @@
     overflow: hidden;
   }
 }
+
+/* ── 1210: lo de la portada (el porqué en SCHEMA) ──
+   La cabecera es la banda de css/seccion.css; el titular, la foto a lo ancho
+   con el texto encima sobre un velo; y lo de antes de la semana pasada, en
+   filas compactas. */
+.noticias-cabecera { margin-bottom: var(--e-lg); }
+
+.noticia-titular {
+  position: relative;
+  display: block;
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  isolation: isolate;
+}
+
+.noticia-titular .noticia-portada {
+  aspect-ratio: 5 / 2;
+  border-radius: 0;
+  transition: transform 0.6s var(--ease);
+}
+
+.noticia-titular:hover .noticia-portada { transform: scale(1.03); }
+.noticia-titular .noticia-portada-vacia::after { display: none; }
+
+.noticia-titular .noticia-cuerpo {
+  position: absolute;
+  inset: auto 0 0;
+  z-index: 1;
+  padding: var(--e-2xl) var(--e-xl) var(--e-xl);
+  background: linear-gradient(180deg, transparent, rgba(6, 14, 24, 0.62) 38%, rgba(6, 14, 24, 0.9));
+  color: var(--blanco-fijo);
+}
+
+.noticia-titular h2 { max-width: 30ch; color: var(--blanco-fijo); text-wrap: balance; }
+.noticia-titular p { max-width: 60ch; color: rgba(255, 255, 255, 0.86); }
+.noticia-titular .noticia-fecha { color: rgba(255, 255, 255, 0.86); }
+.noticia-titular .noticia-ultima { background: var(--acento); color: var(--acento-texto); }
+
+/* Las de antes, una fila: foto pequeña, fecha y titular en dos líneas. */
+.noticia-fila {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: var(--e-md);
+  align-items: center;
+  padding: var(--e-sm);
+}
+
+.noticia-fila .noticia-portada { aspect-ratio: 4 / 3; border-radius: var(--radius-md); }
+.noticia-fila .noticia-portada-vacia svg { width: 24px; height: 24px; }
+.noticia-fila .noticia-portada-vacia::after { display: none; }
+.noticia-fila .noticia-cuerpo { padding: 0; }
+.noticia-fila h3 { height: auto; margin-top: var(--e-xs); font-size: var(--t-md); -webkit-line-clamp: 2; line-clamp: 2; }
+.noticia-fila p { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .noticia-titular .noticia-portada { transition: none; }
+  .noticia-titular:hover .noticia-portada { transform: none; }
+}
+
+@media (max-width: 900px) {
+  .noticia-titular .noticia-portada { aspect-ratio: 16 / 9; }
+}
+
+@media (max-width: 560px) {
+  .noticia-titular { padding: 0; }
+  .noticia-titular .noticia-portada { aspect-ratio: 4 / 3; }
+  .noticia-titular .noticia-cuerpo { padding: var(--e-xl) var(--e-md) var(--e-md); }
+  .noticia-titular h2 { font-size: var(--t-xl); }
+  .noticia-titular p { display: none; }
+  .noticia-fila { padding: var(--e-sm) 0; }
+}

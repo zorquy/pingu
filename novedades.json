@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "Noticias, Lanzamientos y Novedades, con lo de la portada: arriba una banda con sus cifras; la última noticia con el titular sobre su foto; la cuenta atrás del siguiente set en días, horas y minutos, y lo que llevas de cada expansión en un anillo; y las novedades en una línea del tiempo.",
+      "enlace": "/lanzamientos"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "Guardados, en portadas: lo que te guardaste se ve como en Aprender, con su foto, por dónde vas y un marcador para quitarlo (con Deshacer). Arriba, cuántas te quedan por leer, a medias y leídas, y chips para ver solo unas u otras.",
       "enlace": "/guardados"
     },

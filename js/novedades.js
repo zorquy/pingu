@@ -3,7 +3,7 @@
 // filtro por tipo. Los datos son `/novedades.json` (ver js/novedades-datos.js).
 import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
-import { TIPOS, porSemanas, destacadasDelMes, nombreDeMes, semanasNuevas, ultimaFecha, CLAVE_VISTO } from './novedades-datos.js'
+import { TIPOS, porSemanas, destacadasDelMes, nombreDeMes, semanasNuevas, ultimaFecha, CLAVE_VISTO, cuentasDelMes } from './novedades-datos.js'
 
 const $ = (id) => document.getElementById(id)
 // Cuántas semanas se ven de entrada; «Ver semanas anteriores» enseña el resto.
@@ -67,7 +67,9 @@ export function destacadaHtml(d) {
 export function filaHtml(e) {
   const enlace = enlaceSeguro(e.enlace)
   const dentro = `${chip(e.tipo)}<span class="nv-fila-texto">${escapeHtml(e.texto)}</span>${enlace ? '<span class="nv-ver">Ver</span>' : ''}`
-  return enlace ? `<a class="nv-fila" href="${escapeHtml(enlace)}">${dentro}</a>` : `<div class="nv-fila">${dentro}</div>`
+  // `nv-fila-<tipo>`: el punto de su color en la línea del tiempo (1210).
+  const clase = `nv-fila nv-fila-${TIPOS[e.tipo] ? e.tipo : 'mejora'}`
+  return enlace ? `<a class="${clase}" href="${escapeHtml(enlace)}">${dentro}</a>` : `<div class="${clase}">${dentro}</div>`
 }
 
 function leerVisto() {
@@ -90,7 +92,7 @@ function pintarLista() {
   const nuevas = semanasNuevas(porSemanas(datos.entradas), vistoAlEntrar)
   const aLaVista = todas ? semanas : semanas.slice(0, SEMANAS_DE_ENTRADA)
   $('nvLista').innerHTML = aLaVista.length
-    ? aLaVista.map((s) => `<section class="nv-semana" data-semana="${s.lunes}">
+    ? aLaVista.map((s) => `<section class="nv-semana en-cascada" data-semana="${s.lunes}">
         <h2 class="nv-semana-titulo">${escapeHtml(s.rotulo)}${nuevas.has(s.lunes) ? ' <span class="nv-punto">nuevo para ti</span>' : ''}</h2>
         ${(semanasAbiertas.has(s.lunes) ? s.entradas : s.entradas.slice(0, FILAS_POR_SEMANA)).map(filaHtml).join('')}
         ${!semanasAbiertas.has(s.lunes) && s.entradas.length > FILAS_POR_SEMANA ? `<button type="button" class="nv-mas-semana" data-abrir="${s.lunes}">Ver ${s.entradas.length - FILAS_POR_SEMANA} más de esta semana</button>` : ''}
@@ -100,6 +102,8 @@ function pintarLista() {
 }
 
 function pintar() {
+  const c = cuentasDelMes(datos.entradas)
+  for (const [id, n] of [['nvNMes', c.total], ['nvNNuevo', c.nuevo], ['nvNArreglo', c.arreglo]]) $(id).textContent = String(n)
   const { mes, lista } = destacadasDelMes(datos.destacadas)
   $('nvDestacadasSeccion').classList.toggle('hidden', !lista.length)
   if (lista.length) {

@@ -50,6 +50,23 @@ export function relojHasta(fecha, ahora = Date.now()) {
   return `faltan ${horas} h y ${minutos} min`
 }
 
+// La cuenta atrás en cifras (1210, lo de la portada): días, horas y minutos
+// en tres cajas. Pura. Sin nada que contar (hoy o ya salió), vacía, y el
+// destacado se queda con la frase.
+export function digitosHasta(fecha, ahora = Date.now()) {
+  const ms = new Date(`${fecha}T00:00:00`).getTime() - ahora
+  if (!Number.isFinite(ms) || ms <= 0) return null
+  return { dias: Math.floor(ms / 864e5), horas: Math.floor((ms % 864e5) / 36e5), minutos: Math.floor((ms % 36e5) / 6e4) }
+}
+
+function relojHtml(fecha, ahora = Date.now()) {
+  const d = digitosHasta(fecha, ahora)
+  const frase = cuentaDelDestacado(fecha, ahora)
+  if (!d) return escapeHtml(frase)
+  const caja = (n, uno, varios) => `<span class="lanz-digito"><b>${String(n).padStart(2, '0')}</b><small>${n === 1 ? uno : varios}</small></span>`
+  return `<span class="lanz-digitos" aria-hidden="true">${caja(d.dias, 'día', 'días')}${caja(d.horas, 'hora', 'horas')}${caja(d.minutos, 'min', 'min')}</span><span class="sr-only">${escapeHtml(frase)}</span>`
+}
+
 // UNA cuenta atrás en el destacado (1013, L6): antes decía «Faltan 12 días»
 // y debajo «faltan 11 días y 6 h». Con más de tres días, los días a secas;
 // con tres o menos, la precisa, que es cuando importa.
@@ -227,7 +244,8 @@ function eventoHtml(e, futuro) {
 
 // YA EN TIENDAS, EN FILAS (1152, D2). Cada set ya salido era una caja de
 // 220 px en el móvil (un año, dos pantallas). Ahora una fila de 48: día,
-// logo, nombre y, con cuenta, tu progreso (lo rellena `pintarProgreso`).
+// logo, nombre y, con cuenta, tu progreso en un anillo (lo rellena
+// `pintarProgreso`).
 function filaHtml(e) {
   const [, m, d] = String(e.fecha).split('-').map(Number)
   const etiqueta = e.href ? 'a' : 'div'
@@ -237,7 +255,6 @@ function filaHtml(e) {
     <span class="lanz-fila-texto">
       <strong>${escapeHtml(e.nombre)}${e.codigo ? ` <span class="lanz-chapa">${escapeHtml(e.codigo)}</span>` : ''}</strong>
       <span class="lanz-fila-sub">${e.cartas ? `${e.cartas} cartas` : e.manual ? 'anunciado' : ''}</span>
-      <span class="lanz-fila-barra" hidden><i></i></span>
     </span>
     <span class="lanz-fila-prog" hidden></span>
   </${etiqueta}>`
@@ -278,10 +295,11 @@ async function pintarProgreso(mercado) {
     // al lado de «/252» parecería otro número del mismo set).
     const sub = fila.querySelector('.lanz-fila-sub')
     if (sub && total) sub.hidden = true
-    const barra = fila.querySelector('.lanz-fila-barra')
+    // El anillo (1210): lo que llevas, en el color de la sección, alrededor
+    // de la cuenta (`--pct`, de 0 a 100).
     if (total) {
-      barra.hidden = false
-      barra.firstElementChild.style.width = `${Math.min(100, Math.round((n / total) * 100))}%`
+      prog.classList.add('lanz-anillo')
+      prog.style.setProperty('--pct', String(Math.min(100, Math.round((n / total) * 100))))
     }
   }
 }
@@ -295,7 +313,7 @@ function destacadoHtml(e) {
         <h2>${e.href ? `<a href="${escapeHtml(e.href)}">${escapeHtml(e.nombre)}</a>` : escapeHtml(e.nombre)}</h2>
         <p class="subtext">${detalleHtml(e)}</p>
       </div>
-      <span class="lanzamiento-cuenta lanzamiento-cuenta-grande lanz-reloj" data-fecha="${escapeHtml(e.fecha)}">${cuentaDelDestacado(e.fecha)}</span>
+      <span class="lanzamiento-cuenta lanzamiento-cuenta-grande lanz-reloj" data-fecha="${escapeHtml(e.fecha)}">${relojHtml(e.fecha)}</span>
     </div>`
 }
 
@@ -326,6 +344,8 @@ async function pintar(mercado) {
   $('lanzamientosCargando')?.classList.add('hidden')
   for (const id of ['proximoDestacado', 'seccionProximos', 'seccionPasados']) $(id)?.classList.add('hidden')
   const { siguiente, proximos, pasados } = cal
+  if ($('lanzNProximos')) $('lanzNProximos').textContent = String((siguiente ? 1 : 0) + proximos.length)
+  if ($('lanzNPasados')) $('lanzNPasados').textContent = String(pasados.length)
   if (!siguiente && !pasados.length) {
     // Las listas se vacían de verdad: escondidas con lo del otro catálogo
     // dentro, lo guardado llevaría lo que no es.
@@ -341,7 +361,7 @@ async function pintar(mercado) {
     clearInterval(pintar.reloj)
     pintar.reloj = setInterval(() => {
       const r = destacadoEl.querySelector('.lanz-reloj')
-      if (r) r.textContent = cuentaDelDestacado(r.dataset.fecha)
+      if (r) r.innerHTML = relojHtml(r.dataset.fecha)
     }, 60_000)
   }
   if (proximos.length) {

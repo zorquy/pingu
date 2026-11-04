@@ -90,3 +90,11 @@ export function hayNovedades(entradas, visto) {
 }
 
 export const CLAVE_VISTO = 'pokedoc-novedades-visto'
+
+// Lo de este mes, para la banda (1210): cuántos cambios, cuántos nuevos y
+// cuántos arreglos. Puro: `hoy` es una fecha AAAA-MM-DD.
+export function cuentasDelMes(entradas = [], hoy = new Date().toISOString().slice(0, 10)) {
+  const mes = hoy.slice(0, 7)
+  const delMes = entradas.filter((e) => String(e.fecha || '').slice(0, 7) === mes)
+  return { total: delMes.length, nuevo: delMes.filter((e) => e.tipo === 'nuevo').length, arreglo: delMes.filter((e) => e.tipo === 'arreglo').length }
+}

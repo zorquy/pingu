@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (455) — PINGU-Claude (1210 — Noticias, Lanzamientos y Novedades)
+
+**Hecho**: tercera tanda del repaso. Las tres con la banda de sección y sus
+cifras. Noticias: titular con el texto sobre la foto y lo de hace más de dos
+semanas en filas. Lanzamientos: cuenta atrás en cajas (días, horas, min) y un
+anillo con lo que llevas de cada set. Novedades: línea del tiempo con un
+punto por cambio.
+
+**Ficheros**: `noticias.html`, `js/noticias.js`, `js/noticias-grupos.js`,
+`css/noticias.css`, `lanzamientos.html`, `js/lanzamientos.js`,
+`css/lanzamientos.css`, `novedades.html`, `js/novedades.js`,
+`js/novedades-datos.js`, `css/novedades.css`, `SCHEMA.md`, `novedades.json`.
+En `pruebas`: 1152, 1039, 893, 782 (nada), 269 y 288 al día.
+
+**Pruebas**: verdes noticias, 269, 288, 1152, 656, 753, 762, 1039, 1040, 803,
+894, 299, 312, 313, 1023, 737 e imports. Rojos de antes: 829 (`/foro/eventos`
+y «nuevo para ti»), 893 (/retos, /torneos), 782 (Mensajes), 308 (/perfil),
+311 (`auth.css`, `torneos.css`), 981 (/mi-coleccion). El PostgreSQL de
+pruebas se había parado; arrancado otra vez en /var/tmp:5433.
+
+**Pendiente**: 1211 (Aprender y Retos) y 1212; el precio del Lugia.
+
 ## 2026-11-04 (454) — PINGU-Claude (1209 — Gente y Guardados)
 
 **Hecho**: segunda tanda del repaso («adelante con lo recomendado»).

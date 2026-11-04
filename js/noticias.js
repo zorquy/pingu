@@ -17,7 +17,7 @@ import { urlParaCss } from './html.js'
 import { icons } from './icons.js'
 import { faltaElTipo, rutaDeArticulo, cuandoFue, fechaMaquina } from './articulos.js'
 import { urlDeLogo } from './carta-ruta.js'
-import { tarjetasPorGrupo as porGrupos } from './noticias-grupos.js'
+import { tarjetasPorGrupo as porGrupos, cuentasDeNoticias } from './noticias-grupos.js'
 
 // Cuántas se piden de golpe. La primera es el titular grande, así que se
 // piden de doce en doce: una arriba y once en la rejilla, que llena tres
@@ -65,8 +65,11 @@ function portadaHtml(n, tamano) {
   return `<div class="noticia-portada noticia-portada-${tamano} noticia-portada-vacia">${icons.newspaper(38)}</div>`
 }
 
-function tarjetaHtml(n) {
-  return `<a class="noticia-tarjeta" href="${enlaceDeNoticia(n.slug)}">
+// Lo de las dos últimas semanas, en tarjeta con su foto; lo de antes, en una
+// fila compacta (1210): la foto pequeña, la fecha y el titular.
+function tarjetaHtml(n, g) {
+  const fila = g && !/^s[01]$/.test(g.clave)
+  return `<a class="noticia-tarjeta${fila ? ' noticia-fila' : ''}" href="${enlaceDeNoticia(n.slug)}">
     ${portadaHtml(n, 'chica')}
     <div class="noticia-cuerpo">
       <time class="noticia-fecha" datetime="${fechaMaquina(n.published_at)}">${escapeHtml(cuandoFue(n.published_at))}</time>
@@ -76,6 +79,8 @@ function tarjetaHtml(n) {
   </a>`
 }
 
+// El titular (1210): la foto a lo ancho y el texto encima, sobre un velo,
+// como las portadas de la portada.
 function titularHtml(n) {
   return `<a class="noticia-titular" href="${enlaceDeNoticia(n.slug)}">
     ${portadaHtml(n, 'grande')}
@@ -153,6 +158,7 @@ export async function pintarNoticias() {
   }
   if (noticias.length === 0) {
     titular.innerHTML = ''
+    for (const id of ['noticiasNSemana', 'noticiasNMes']) { const el = document.getElementById(id); if (el) el.textContent = '0' }
     rejilla.innerHTML = `<p class="empty-state">Todavía no hay noticias publicadas. Vuelve pronto.</p>`
     rejilla.removeAttribute('aria-hidden')
     guardarVista(clave, tomarPartes(['noticiaTitular', 'noticiasRejilla']))
@@ -161,6 +167,11 @@ export async function pintarNoticias() {
 
   const [primera, ...resto] = noticias
   titular.innerHTML = titularHtml(primera)
+  const cuentas = cuentasDeNoticias(noticias, hayMas)
+  for (const [id, n] of [['noticiasNSemana', cuentas.semana], ['noticiasNMes', cuentas.mes]]) {
+    const el = document.getElementById(id)
+    if (el) el.textContent = n
+  }
   // La rejilla empieza siempre con su rótulo, aunque sea de la misma
   // semana que el titular: dice dónde empieza la lista.
   let grupo = null

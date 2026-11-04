@@ -36,6 +36,7 @@
   <link rel="modulepreload" href="/js/html.js" />
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="/css/novedades.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
@@ -123,9 +124,19 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container">
-    <header class="cabecera-pagina">
-      <h1>Novedades</h1>
-      <p class="subtext">Lo que vamos cambiando en PokeDoc, contado corto. ¿Una idea o algo que falla? <a id="nvForo" href="/foro">Cuéntanoslo en el foro</a>.</p>
+    <!-- La banda de la sección (1210, lo de la portada): lo de este mes en
+         cifras (las pone js/novedades.js; nacen con guion). -->
+    <header class="banda-s cabecera-pagina nv-banda">
+      <div class="banda-s-texto">
+        <span class="banda-s-ceja">Lo que cambia en PokeDoc</span>
+        <h1>Novedades</h1>
+        <p class="banda-s-lema subtext">Contado corto. ¿Una idea o algo que falla? <a id="nvForo" href="/foro">Cuéntanoslo en el foro</a>.</p>
+        <div class="banda-s-cifras" id="nvCifras">
+          <span class="banda-s-cifra"><b id="nvNMes">—</b><small>cambios este mes</small></span>
+          <span class="banda-s-cifra"><b id="nvNNuevo">—</b><small>cosas nuevas</small></span>
+          <span class="banda-s-cifra"><b id="nvNArreglo">—</b><small>arreglos</small></span>
+        </div>
+      </div>
     </header>
 
     <p id="nvCargando" class="subtext">Cargando las novedades…</p>

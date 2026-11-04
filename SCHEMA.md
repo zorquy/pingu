@@ -53621,3 +53621,36 @@ chips), al día; 893 deja /usuarios a esta tanda; 1153 cuenta portadas. Y 319 y
 866 miraban el bloque de guías de la portada como tarjeta y filas, que desde
 la 1191 son portadas: puestas al día.
 
+## Tanda 1210 — Noticias, Lanzamientos y Novedades, con lo de la portada
+
+La tercera tanda del repaso aprobado. Las tres páginas cambian la cabecera por
+la banda de la sección (`css/seccion.css`, en el HTML) con sus cifras, y la
+banda lleva también `cabecera-pagina` (la cabecera común de la 782).
+
+**Noticias**: en la banda, cuántas van esta semana y este mes
+(`cuentasDeNoticias`, en `js/noticias-grupos.js`, sobre las doce pedidas: si
+las doce son del mes, «12+») y «Escribir noticia» a la derecha. El titular es
+la foto a lo ancho (5:2 en el PC, 4:3 en el móvil) con el texto ENCIMA sobre
+un velo, como las portadas de la portada. Lo de esta semana y la pasada sigue
+en tarjetas con foto; lo de antes (los grupos por mes) va en filas compactas:
+`tarjetasPorGrupo` le pasa a quien pinta el grupo de cada noticia.
+
+**Lanzamientos**: en la banda, cuántas vienen y cuántas están ya en tiendas,
+y el catálogo a la derecha. La cuenta atrás del siguiente set va en tres cajas
+(días, horas, minutos: `digitosHasta`), con la frase de siempre para el lector;
+el día que sale, la frase. Lo que llevas de cada set ya salido es un ANILLO
+(`conic-gradient` con `--pct`) al lado de la cuenta, en vez de la barra.
+«Próximos sets» pasa a llamarse «Lo que viene».
+
+**Novedades**: en la banda, lo de este mes (cambios, cosas nuevas y arreglos:
+`cuentasDelMes`, en `js/novedades-datos.js`) y el enlace al foro en el lema.
+Cada semana es un tramo de la LÍNEA DEL TIEMPO: una raya a la izquierda y un
+punto por cambio, del color de su tipo (`nv-fila-<tipo>`). Lo mejor del mes
+ya eran portadas con su dibujo y se quedan.
+
+Lo vigilan `test-tanda-1152.mjs` (el titular a 4:3 y el anillo),
+`test-tanda-1039-pantalla.mjs` y `test-tanda-893.mjs`, al día. Y dos pruebas
+de la portada se quedaron viejas con la 1207 y se pusieron al día aquí: la 269
+(las guías son portadas) y la 288 (el bloque de noticias: «Todas» en la
+cabecera, la lista con todas y, en el móvil, la tira).
+
