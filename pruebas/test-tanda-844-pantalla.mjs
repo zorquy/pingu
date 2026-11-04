@@ -121,10 +121,11 @@ console.log('── 1. Con cuenta, en el ordenador ──')
 
   console.log('  · El foro')
   const foro = await texto(p, '#foroVivo')
-  check('el tema con la ráfaga de hoy va delante, «Lo más hablado» (1188: el título del bloque)', /Lo más hablado/.test(await texto(p, '#foroVivo .pb-cab h2')) && /¿Qué mazo me recomendáis para empezar\?/.test(await texto(p, '.pb-foro-titulo')), foro.slice(0, 200))
-  check('  …con su último mensaje citado y quién participa', /«Yo empezaría por una baraja de liga\.»/.test(await texto(p, '.pb-foro-ultimo')) && (await p.locator('.pb-foro-pie .pb-pila .pb-cara').count()) >= 2, await texto(p, '.pb-foro-ultimo'))
-  check('  …cuánta gente ha escrito hoy', /\d+ personas escribiendo hoy/.test(foro))
-  check('  …y los otros tres en filas, sin repetir el de arriba', (await p.locator('.pb-foro-fila').count()) === 3 && !(await p.$$eval('.pb-foro-fila b', (xs) => xs.some((x) => /Qué mazo me recomendáis/.test(x.textContent)))))
+  check('el tema con la ráfaga de hoy va delante, «Lo más hablado» (1188: el título del bloque)', /Lo más hablado/.test(await texto(p, '#foroVivo .pb-cab h2')) && /¿Qué mazo me recomendáis para empezar\?/.test(await texto(p, '.pb-foro-cuatro .pb-hilo b')), foro.slice(0, 200))
+  // Desde la 1207 los cuatro temas son iguales: sin el trocito del primero.
+  check('  …cada tema con la cara de quien escribió lo último', (await p.locator('.pb-foro-cuatro .pb-hilo .pb-cara').count()) === 4)
+  check('  …cuánta gente ha escrito hoy', /\d+ hoy/.test(await texto(p, '#foroVivo .pb-vivo')))
+  check('  …y cuatro temas, sin repetir ninguno (1207)', (await p.locator('.pb-foro-cuatro > li').count()) === 4 && new Set(await p.$$eval('.pb-hilo', (xs) => xs.map((x) => x.getAttribute('href')))).size === 4)
   // Desde la 1203 un botón por bloque: «Foro» arriba, y el de abajo se fue.
   check('  …«Foro» arriba y sin «Todo el foro» abajo (1203)', (await p.locator('#foroVivo .pb-cab .ver-todo').getAttribute('href')) === '/foro' && (await p.locator('#foroVivo .pb-pie-enlace').count()) === 0)
 
@@ -132,18 +133,19 @@ console.log('── 1. Con cuenta, en el ordenador ──')
   // Desde la 1188: las últimas guías como PORTADAS (sin temas de filtro, ni
   // descripción, ni progreso); en el PC, tres a la vista.
   const portadas = await p.$$eval('#aprende .pb-portada', (xs) => xs.map((x) => [x.getAttribute('href'), getComputedStyle(x).display]))
-  check('las últimas guías como portadas, tres a la vista', portadas.length === 4 && portadas.every((x) => x[0].startsWith('/guia/')) && portadas.filter((x) => x[1] !== 'none').length === 3, JSON.stringify(portadas))
+  check('las últimas guías como portadas, las cuatro a la vista (1207)', portadas.length === 4 && portadas.every((x) => x[0].startsWith('/guia/')) && portadas.filter((x) => x[1] !== 'none').length === 4, JSON.stringify(portadas))
   check('  …sin temas de filtro y con «Todas las guías» a /aprender', !(await p.locator('.pb-tema').count()) && (await p.locator('#aprende .pb-cab .ver-todo').getAttribute('href')) === '/aprender.html')
 
   console.log('  · Noticias')
-  check('la última con el titular sobre la foto y las demás al lado, en «Más noticias»', /Mew RGB secretas/.test(await texto(p, '.pb-noticia')) && (await p.locator('.pb-noticia-foto').count()) === 1 && (await p.locator('.pb-noticias-lado .pb-noticias-mas li:visible').count()) === 2)
+  check('la última con el titular sobre la foto y las demás al lado, en «Más noticias»', /Mew RGB secretas/.test(await texto(p, '.pb-noticia')) && (await p.locator('.pb-noticia-foto').count()) === 1 && (await p.locator('#masNoticias .pb-masnot-item').count()) >= 2)
 
   // La clasificación salió de la portada en la 1188: la mira la 1188 en /retos.
   check('sin clasificación en la portada (1188)', !(await p.locator('#clasificacionSeccion, .pb-podio').count()))
 
   console.log('  · En la comunidad')
   const comu = await p.$$eval('.suc-lista li', (xs) => xs.map((x) => x.innerText.replace(/\s+/g, ' ')))
-  check('los sucesos nuevos: seis retos, mazo, torneo y colección', ['hizo los seis retos del día', 'compartió su mazo Charizard ex', 'ganó el torneo Liga de otoño', 'completó Base Set'].every((t) => comu.some((x) => x.includes(t))), comu.join(' / '))
+  // Desde la 1207, los cuatro más nuevos (la colección completada queda fuera).
+  check('los sucesos nuevos: seis retos, mazo y torneo', ['hizo los seis retos del día', 'compartió su mazo Charizard ex', 'ganó el torneo Liga de otoño'].every((t) => comu.some((x) => x.includes(t))) && comu.length === 4, comu.join(' / '))
   // Desde la 1187 se piden catorce y la portada enseña los que caben (la 1187 lo mide).
   check('  …catorce como mucho, en la columna ancha', comu.length <= 14 && (await p.locator('.portada-principal #homeActivity').count()) === 1)
   const enlaces = await p.$$eval('.suc-lista a[href]', (xs) => xs.map((x) => x.getAttribute('href')))
@@ -165,7 +167,7 @@ console.log('── 3. Sin cuenta ──')
 {
   const { p, ctx, errores } = await abrir({ sesion: 'none' })
   check('sin errores, sin «Sigue» y sin comunidad', !errores.length && !(await p.locator('#sigueSeccion').isVisible()) && !(await p.locator('#homeActivity').isVisible()), errores.join(' | '))
-  check('  …el foro, las guías y las noticias, sí', (await p.locator('#foroVivo .pb-foro-top').count()) === 1 && (await p.locator('#aprende .pb-portada').count()) >= 1 && (await p.locator('.pb-noticia').count()) === 1)
+  check('  …el foro, las guías y las noticias, sí', (await p.locator('#foroVivo .pb-foro-cuatro > li').count()) >= 1 && (await p.locator('#aprende .pb-portada').count()) >= 1 && (await p.locator('.pb-noticia').count()) === 1)
   check('  …y «Participar» lleva a crear la cuenta', /auth\.html\?registro=1/.test(await p.locator('#foroVivo .pb-pie-enlace .pb-boton').getAttribute('href')))
   await ctx.close()
 }

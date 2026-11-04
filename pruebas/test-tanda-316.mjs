@@ -121,15 +121,18 @@ console.log('\n── 2. En el móvil se lee de qué va cada tema ──')
   for (const ancho of [320, 390, 1280]) {
     const { page } = await abrir('/index.html', ancho)
     const titulos = await page.evaluate(() =>
-      // Desde la 844: el tema de delante (.pb-foro-titulo) y los de las filas.
-      [...document.querySelectorAll('.pb-foro-titulo, .pb-foro-fila-texto b')].map((n) => ({
+      // Desde la 1207: los cuatro temas, iguales (.pb-hilo-texto b).
+      [...document.querySelectorAll('.pb-hilo-texto b')].map((n) => ({
         w: Math.round(n.clientWidth),
         corta: n.scrollWidth > n.clientWidth + 1 || n.scrollHeight > n.clientHeight + 1,
+        entero: n.getAttribute('title') || '',
         t: n.textContent.trim(),
       })))
-    check(`[${ancho}] hay temas en la portada`, titulos.length === 3, String(titulos.length))
-    const cortados = titulos.filter((x) => x.corta)
-    check(`  …y ninguno se corta`, cortados.length === 0, cortados.map((x) => `${x.t} (${x.w}px)`).join(' | '))
+    check(`[${ancho}] hay temas en la portada`, titulos.length >= 3, String(titulos.length))
+    // En el PC (1207) la caja mide lo que la noticia: dos líneas, y el título
+    // entero al pasar el ratón. En el móvil, entero siempre.
+    const cortados = titulos.filter((x) => x.corta && (ancho < 960 || !x.entero.length))
+    check(`  …y ninguno se corta${ancho >= 960 ? ' sin su título entero al pasar' : ''}`, cortados.length === 0, cortados.map((x) => `${x.t} (${x.w}px)`).join(' | '))
     // Y la portada no se sale de la pantalla por arreglarlo.
     check('  …sin desborde lateral', !(await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth)))
     await page.close()
@@ -147,11 +150,11 @@ console.log('\n── 3. La portada no cuenta lo mismo dos veces ──')
     const enActividad = [...document.querySelectorAll('#homeActivityFeed .suc-lista li')]
       .map((f) => [...f.querySelectorAll('a')].pop()?.textContent.trim())
       .filter((x) => x && x.length > 3)
-    const enForo = [...document.querySelectorAll('.pb-foro-titulo, .pb-foro-fila-texto b')].map((n) => n.textContent.trim())
+    const enForo = [...document.querySelectorAll('.pb-hilo-texto b')].map((n) => n.textContent.trim())
     const noticia = document.querySelector('#noticiaPortada strong')?.textContent.trim() || ''
     return { enForo, enActividad, noticia }
   })
-  check('la franja del foro trae temas', r.enForo.length === 3, String(r.enForo.length))
+  check('la franja del foro trae temas', r.enForo.length >= 3, String(r.enForo.length))
   // El título de la franja lleva la etiqueta pegada delante («Duda¿Qué
   // mazo…»), así que se compara por el final y no por igualdad.
   const repes = r.enActividad.filter((a) => r.enForo.some((f) => f.endsWith(a)))

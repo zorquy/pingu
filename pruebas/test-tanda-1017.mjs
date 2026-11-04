@@ -247,8 +247,9 @@ console.log('\n── 3. En pantalla ──')
   const leerPortada = (page) => page.evaluate(() => ({
     valor: (document.querySelector('.hoy-valor b')?.textContent || '').replace(/\u00a0/g, ' ').trim(),
     fichas: [...document.querySelectorAll('.hoy-ficha b')].map((b) => b.textContent.trim()),
-    foro: document.querySelector('#foroVivo .pb-foro-titulo')?.textContent.trim() || '',
-    nuevos: document.querySelector('#foroVivo .pb-nuevos')?.textContent.trim() || '',
+    // Desde la 1207 los cuatro temas son iguales: el primero, y su burbuja rosa.
+    foro: document.querySelector('#foroVivo .pb-hilo b')?.getAttribute('title') || '',
+    nuevos: document.querySelector('#foroVivo .pb-hilo .pb-foro-n.nuevo') ? 'nuevo' : '',
     pasos: document.querySelector('#primerosPasos .primeros-pasos-cuenta')?.textContent.trim() || '',
   }))
   const con = await abrir('/index.html')
