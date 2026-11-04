@@ -28,11 +28,9 @@ const PAGINAS = [
   { ruta: 'cartas', cab: '.mc-hero', lema: '.mc-catalogo-lema', sinClase: true, primero: '.mc-estanteria-barra' },
   { ruta: 'aprender', cab: '.ap-cab', primero: '#categoriesList' },
   { ruta: 'foro', cab: '.foro-cabecera', lema: '#foroSubtitulo', primero: '#foroDestacado, #foroPrincipal' },
-  { ruta: 'torneos', cab: '.torneos-heroe', lema: '.torneos-heroe .cab-lema', primero: '#torneoVivo, [data-vista-torneos]' },
   { ruta: 'meta', cab: '.meta-cabecera', lema: '.meta-lema', primero: '.meta-filtros-cab' },
-  { ruta: 'retos', cab: '.rt-cabecera', lema: '.rt-cabecera .subtext', primero: '.rt-perfecto' },
-  // /usuarios, /lanzamientos y /noticias: desde la 1209 y la 1210 su cabecera es la
-  // banda de sección (la vigilan esas tandas).
+  // /usuarios, /lanzamientos, /noticias, /retos y /torneos: desde las tandas
+  // 1209–1212 su cabecera es la banda de sección (la vigilan esas tandas y la 1040).
   { ruta: 'mis-partidas', cab: '.page-header', lema: '.page-header .cab-lema', primero: '.partidas-mandos' },
   { ruta: 'mazos', cab: '.mz-cabecera', lema: '#mzCuenta', primero: '#mzLista, #mzVacio' },
 ]
