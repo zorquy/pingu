@@ -139,15 +139,25 @@ let tablas
 {
   const { ctx, page, errores } = await abrirCon(tablas, 'admin-1', { ancho: 1280 })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  // Desde la 1217 los tratos van en el chip «En curso» de Cruces, en tarjetas.
+  await page.click('[data-cruces-filtro="curso"]')
+  await page.waitForTimeout(800)
   const lineas = page.locator('#mcMisCambios .cp-linea')
-  const quien = await lineas.evaluateAll((ls) => ls.map((l) => ({ t: l.querySelector('summary b').textContent, abierta: l.open, frase: l.querySelector('.cp-linea-frase')?.textContent || '' })))
-  check('«En curso · 2»: primero lo que te toca (Íker), abierto', /En curso · 2/.test(await page.locator('#mcMisCambios h2').innerText()) && quien[0]?.t === 'Le vendes a Íker' && quien[0].abierta && quien[1]?.t === 'Cambio con Lucía' && !quien[1].abierta, JSON.stringify(quien))
+  const quien = await lineas.evaluateAll((ls) => ls.map((l) => ({ t: l.querySelector('.cp-trato-quien b')?.textContent, toca: l.classList.contains('cp-toca'), tipo: l.querySelector('.cp-trato-tipo')?.textContent, frase: l.querySelector('.cp-trato-pie small')?.textContent || '' })))
+  check('«En curso 2»: primero lo que te toca (Íker), marcado', /2/.test(await page.locator('[data-curso-n]').innerText()) && quien[0]?.t === 'Íker' && quien[0].toca && quien[0].tipo === 'Venta' && quien[1]?.t === 'Lucía' && !quien[1].toca && quien[1].tipo === 'Cambio', JSON.stringify(quien))
   check('  …cada uno con su frase', /Te toca/.test(quien[0].frase) && /Esperando a que Lucía/.test(quien[1].frase), JSON.stringify(quien))
+  // Y abierta, la tarjeta ocupa la fila con el trato entero.
+  await lineas.first().locator('summary').click()
+  await page.waitForTimeout(300)
+  const abierta = await lineas.first().evaluate((l) => ({ open: l.open, ancho: Math.round(l.getBoundingClientRect().width), fila: Math.round(l.parentElement.getBoundingClientRect().width), tarjeta: Boolean(l.querySelector('.cp-tarjeta')) }))
+  check('  …y al abrirla ocupa la fila y enseña el trato', abierta.open && abierta.ancho === abierta.fila && abierta.tarjeta, JSON.stringify(abierta))
   check('sin errores', errores.length === 0, errores.join(' | '))
   const deLucia = tablas.trade_offers.find((o) => o.para === 'user-1')
   // Con la página ya abierta, cambiar el `#` no recarga: lo escucha.
+  await page.click('[data-cruces-filtro="todos"]')
+  await page.waitForTimeout(500)
   await page.evaluate((id) => { location.hash = `oferta-${id}` }, deLucia.id)
-  await page.waitForTimeout(400)
+  await page.waitForTimeout(800)
   check('con #oferta-<id> se abre ese (también con la página ya abierta)', await page.$eval(`[id="oferta-${deLucia.id}"]`, (d) => d.open))
   await ctx.close()
 }

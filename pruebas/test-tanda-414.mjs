@@ -38,11 +38,11 @@ const browser = await chromium.launch()
     window.__FAKE_COLECCION__ = window.__FAKE_CARTAS__.map((c, i) => ({ id: 'l' + i, card_id: c.id,
       cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', notas: null }))
   })
-  await page.goto('http://localhost:8892/mi-coleccion.html?ver=pokedex', { waitUntil: 'domcontentloaded' })
+  await page.goto(`${process.env.PD_BASE || 'http://localhost:8892'}/mi-coleccion.html?ver=pokedex`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
   check('sin errores', errores.length === 0, errores.join(' | '))
 
-  const anillo = await page.locator('.mc-anillo').evaluate((e) => ({
+  const anillo = await page.locator('.mc-anillo').first().evaluate((e) => ({
     pct: e.style.getPropertyValue('--pct'),
     fondo: getComputedStyle(e).backgroundImage.slice(0, 30),
     etiqueta: e.getAttribute('aria-label'),
@@ -95,7 +95,7 @@ console.log('\n── 3. El anillo no se sale de su caja (tanda 424) ──')
       window.__FAKE_COLECCION__ = [0, 0, 0, 1, 1, 2, 3, 4].map((c, i) => ({ id: 'l' + i,
         card_id: 'sv1-' + c, cantidad: 1, idioma: 'es', estado: 'NM', variante: 'normal', notas: null }))
     })
-    await page.goto('http://localhost:8892/mi-coleccion.html?ver=pokedex', { waitUntil: 'domcontentloaded' })
+    await page.goto(`${process.env.PD_BASE || 'http://localhost:8892'}/mi-coleccion.html?ver=pokedex`, { waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(2600)
     const r = await page.evaluate(() => {
       // Desde la tanda 476 la primera tarjeta de la Pokédex es la primera

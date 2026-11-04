@@ -89,8 +89,8 @@ console.log('── 1. En el PC, con cuenta ──')
   const { page, ctx, errores } = await abrir()
   const r = await leer(page)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  // Desde la 1216 la franja sale también en el PC, como carrusel (la propuesta del repaso).
-  check('la franja de arriba sale, como carrusel', r.franja)
+  // Desde la 1221 no hay franja (PINGU): «Lo último» al lado.
+  check('ya no hay franja de arriba', !r.franja)
   check('«Lo último» va arriba del lateral', r.lateral && r.primero && r.titulo === 'Lo último', JSON.stringify(r))
   check('un tema por fila, el más nuevo primero, y sin la noticia', JSON.stringify(r.filas.map((f) => f.t)) === JSON.stringify([LARGO, 'Cambio Charizard', 'Duda con Boss', 'Lo mío']), JSON.stringify(r.filas.map((f) => f.t)))
   const [f1, f2, f3, f4] = r.filas
@@ -117,8 +117,9 @@ console.log('── 3. En el móvil ──')
   const { page, ctx, errores } = await abrir({ movil: true })
   const r = await leer(page)
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('la franja se queda (y con la noticia, como antes)', r.franja && r.franjaNoticia, JSON.stringify({ franja: r.franja, noticia: r.franjaNoticia }))
-  check('el lateral no sale', !r.lateral)
+  // Desde la 1221, sin franja; «Lo último» sale al final, solo él de la lateral.
+  check('sin franja', !r.franja, JSON.stringify({ franja: r.franja }))
+  check('«Lo último» sale (al final de la lista), sin los números', r.lateral && r.primero && !(await page.$$eval('#foroLateral .foro-panel', (ps) => ps.slice(1).some((p) => p.getBoundingClientRect().height > 0))))
   await ctx.close()
 }
 

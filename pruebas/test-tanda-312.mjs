@@ -49,7 +49,9 @@ console.log('\n── 1. La franja de color de la tarjeta de guía dice algo ─
   // Eran 100 px —un tercio de la tarjeta— con un degradado y nada
   // dentro. Y la CATEGORÍA no salía en la tarjeta por ningún lado,
   // aunque los chips de arriba filtren justo por eso.
-  const { page, errores } = await abrir('/aprender')
+  // Desde la 1219 la tarjeta vive en la página de un tema (la lista general
+  // del PC son portadas).
+  const { page, errores } = await abrir('/aprender?tema=mazos')
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
   const m = await page.evaluate(() => {
     const arte = document.querySelector('.guia-tarjeta .guia-arte')

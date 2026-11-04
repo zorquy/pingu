@@ -56,7 +56,8 @@ console.log('── 2. Sin cuenta ──')
 {
   const { page, errores } = await abrir({ sesion: 'none' })
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('hay un h1 «Retos diarios»', (await page.locator('h1').textContent()).trim() === 'Retos diarios')
+  // Desde la 1219 el título de la banda es «Retos de hoy» (la maqueta); el menú sigue diciendo «Retos diarios».
+  check('hay un h1 «Retos de hoy»', (await page.locator('h1').textContent()).trim() === 'Retos de hoy')
   const baldosas = await page.$$eval('.rt-reto', (as) => as.map((a) => [a.dataset.juego, a.getAttribute('href'), a.tagName]))
   check('seis retos, y la baldosa entera lleva a su juego', baldosas.length === 6 && baldosas.every(([j, h, t]) => t === 'A' && h === RUTAS[j]), JSON.stringify(baldosas))
   check('  …sin el cuestionario', (await page.locator('#rtHoy, [href="/reto"]').count()) === 0)
@@ -75,7 +76,8 @@ console.log('── 3. Con cuenta ──')
   await page.goto(`${BASE}/retos.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1800)
   const pildora = (await page.locator('#rtDia').innerText()).replace(/\s+/g, ' ')
-  check('la píldora: cuántos hoy, la XP y la racha', /1\/6 hoy/.test(pildora) && /\+45 XP/.test(pildora) && /3 días/.test(pildora), pildora)
+  // Desde la 1219 son cifras de la banda: «45 · XP hoy» y «3 · días de racha».
+  check('la píldora: cuántos hoy, la XP y la racha', /1\/6 hoy/.test(pildora) && /45 XP hoy/i.test(pildora) && /3 días de racha/i.test(pildora), pildora)
   check('la hecha, «Acertada en 2 · +45 XP» y su sello', /Acertada en 2 · \+45 XP/.test((await page.locator('#rtCartaEstado').textContent()).replace(/\s+/g, ' ')) && (await page.locator('#rtSello-carta.ok').count()) === 1)
   // Desde la 1211, el anillo de los seis: un tramo lleno de seis.
   check('el anillo del día perfecto, un tramo de seis', (await page.locator('#rtAnillo circle.lleno').count()) === 1 && (await page.locator('#rtAnillo circle').count()) === 6)

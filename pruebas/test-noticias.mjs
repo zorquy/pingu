@@ -104,26 +104,25 @@ console.log('\n── 3. Sin noticias, y sin romperse ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 4. «Ver más» solo cuando hay más ──')
+console.log('\n── 4. Por páginas, solo cuando hay más (1218) ──')
 {
-  // Se piden 13 para pintar 12: así se sabe si queda alguna sin contar
-  // la tabla entera. Con 13 tiene que salir el botón.
+  // Desde la 1218 Noticias va por páginas de 12 (la maqueta): con 13 sale el
+  // paginador abajo y la página 2 trae la que faltaba.
   const { page } = await abrir('/noticias', {
     semillas: { __FAKE_NOTICIAS__: Array.from({ length: 13 }, (_, i) => noticia(i + 1)) },
   })
-  check('con 13 noticias sale el botón de ver más', (await page.locator('#btnMasNoticias').count()) === 1)
-  check('  …y se han pintado 12 (un titular y once tarjetas)',
-    (await page.locator('.noticia-tarjeta').count()) === 11)
-  await page.locator('#btnMasNoticias').click()
+  const tarjetas = () => page.locator('#noticiasRejilla .noticia-tarjeta, #noticiasRejilla .noticia-titular').count()
+  check('con 13 noticias sale el paginador abajo', (await page.locator('#noticiasMasCaja .paginacion').count()) === 1)
+  const primera = await tarjetas()
+  await page.locator('#noticiasMasCaja [data-pagina="2"]').first().click()
   await page.waitForTimeout(1200)
-  check('  …y al pulsarlo llega la que faltaba', (await page.locator('.noticia-tarjeta').count()) === 12)
-  check('  …y el botón desaparece cuando no queda ninguna', (await page.locator('#btnMasNoticias').count()) === 0)
+  check('  …y la segunda trae la que faltaba (y la dirección lo dice)', (await tarjetas()) === 1 && primera >= 11 && /[?&]p=2/.test(page.url()), `${primera} + ${await tarjetas()} · ${page.url()}`)
   await page.close()
 
   const { page: pocas } = await abrir('/noticias', {
     semillas: { __FAKE_NOTICIAS__: Array.from({ length: 5 }, (_, i) => noticia(i + 1)) },
   })
-  check('con cinco no sale el botón', (await pocas.locator('#btnMasNoticias').count()) === 0)
+  check('con cinco no sale el paginador', (await pocas.locator('#noticiasMasCaja .paginacion').count()) === 0)
   await pocas.close()
 }
 

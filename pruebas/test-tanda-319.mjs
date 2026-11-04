@@ -110,7 +110,9 @@ console.log('\n── 2. Y /aprender sigue diciendo lo mismo ──')
   // La tarjeta es la misma desde la 316: si una pantalla acierta y la
   // otra no, es que el dato lo trae cada una por su cuenta y una se
   // olvidó — que es exactamente lo que pasó.
-  const { page } = await abrir('/aprender')
+  // Desde la 1219 la lista general del PC son portadas; la tarjeta con su
+  // frase de progreso sigue en la página de un tema, que es la que se mira.
+  const { page } = await abrir('/aprender?tema=hist')
   const cartas = await tarjetas(page, '.guia-rejilla')
   check('salen las cuatro guías', cartas.length === 4, String(cartas.length))
   for (const c of cartas) {

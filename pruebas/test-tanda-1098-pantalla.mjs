@@ -82,6 +82,11 @@ const ir = async (page, ruta = '/mi-coleccion.html?ver=mercado') => {
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
 }
+const abrirEnCurso = async (page) => {
+  const chip = page.locator('[data-cruces-filtro="curso"]')
+  if (await chip.count()) { await chip.click(); await page.waitForTimeout(700) }
+  await page.$$eval('#mcMisCambios details.cp-linea', (ds) => ds.forEach((d) => { d.open = true }))
+}
 const baldosas = (page) => page.$$eval('#mcMercadoRejilla .mc-merc', (as) => as.map((a) => a.dataset.merc))
 const textoDe = (page, id) => page.$eval(`#mcMercadoRejilla [data-merc="${id}"]`, (a) => a.innerText.replace(/\s+/g, ' ').trim())
 const visible = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); return !!e && !e.closest('.hidden') && e.getBoundingClientRect().height > 0 }, sel)
@@ -120,7 +125,8 @@ let tablas
   await page.waitForTimeout(800)
   await page.locator('#mcMisCambios details').first().evaluate((d) => { d.open = true })
   const mis = (await page.locator('#mcMisCambios').innerText()).replace(/\s+/g, ' ')
-  check('«Tus cambios»: «Das 1 carta · recibes 20,00 €»', /Das 1 carta · recibes 20,00 €/.test(mis), mis)
+  // Desde la 1217 la tarjeta de «En curso» dice el tipo y «Recibes 20,00 €».
+  check('«En curso»: una Venta en la que recibes 20,00 €', /Venta/.test(mis) && /Recibes ?20,00 €/.test(mis), mis)
   const recibes = (await page.locator('#mcMisCambios .cp-t-lado').nth(1).innerText()).replace(/\s+/g, ' ')
   check('  …y en la tarjeta, «Recibes · 20,00 €» con el dinero dentro y sin «Nada»', /Recibes · 20,00 €/.test(recibes) && /20,00 € · Bizum/.test(recibes) && !/Nada/.test(recibes), recibes)
   check('sin errores', errores.length === 0, errores.join(' | '))
@@ -135,6 +141,7 @@ console.log('── 2. Lucía la acepta y confirma la carta ──')
   // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
   // queda una tira que lleva allí.
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const caja = page.locator('#mcMisCambios')
   const das = (await caja.locator('.cp-t-lado').first().innerText()).replace(/\s+/g, ' ')
   check('desde su lado: «Das · 20,00 €» con el dinero dentro', /Das · 20,00 €/.test(das) && /20,00 € · Bizum/.test(das) && !/Nada/.test(das), das)
@@ -158,6 +165,7 @@ console.log('── 3. Yo confirmo el dinero ──')
   // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
   // queda una tira que lleva allí.
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const caja = page.locator('#mcMisCambios')
   const boton = (await caja.locator('[data-cp-accion="lo-tengo"]').innerText()).trim()
   const quien = (await caja.locator('.cp-quien').innerText()).replace(/\s+/g, ' ')

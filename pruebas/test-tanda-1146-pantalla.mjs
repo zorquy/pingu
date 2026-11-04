@@ -100,7 +100,9 @@ for (const movil of [true, false]) {
   await page.waitForSelector('.msg-trato [data-cambio="preguntar"]', { timeout: 8000 }).catch(() => {})
   const fila = await page.$$eval('.msg-trato button', (bs) => bs.map((x) => ({ t: x.innerText.trim(), y: Math.round(x.getBoundingClientRect().top) })))
   const t = fila.map((x) => x.t)
-  check(`${movil ? 'móvil' : 'PC'}: «Proponer un cambio» y «Ya nos cambiamos» en la MISMA fila`, t.includes('Proponer un cambio') && t.includes('Ya nos cambiamos') && new Set(fila.map((x) => x.y)).size === 1, JSON.stringify(fila))
+  // Desde la 1221 «Proponer cambio» va en la cabecera de la conversación (la
+  // maqueta) y la barra fina se queda con «Ya nos cambiamos».
+  check(`${movil ? 'móvil' : 'PC'}: «Proponer cambio» en la cabecera y «Ya nos cambiamos» en la barra fina`, (await page.locator('.msg-cabecera #msgProponer').count()) === 1 && t.includes('Ya nos cambiamos') && !t.includes('Proponer un cambio') && new Set(fila.map((x) => x.y)).size === 1, JSON.stringify(fila))
   check('  …sin el párrafo de explicación de entrada', (await page.locator('.msg-trato').innerText()).includes('¿Os habéis') === false)
   await page.click('[data-cambio="preguntar"]')
   check('  …al tocar «Ya nos cambiamos», la explicación con «Marcar el cambio»', (await page.locator('.msg-cambio').innerText()).includes('¿Os habéis cambiado cartas?') && (await page.locator('[data-cambio="marcar"]').count()) === 1)

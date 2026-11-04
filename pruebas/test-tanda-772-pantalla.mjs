@@ -70,6 +70,11 @@ const ir = async (page, ruta = '/mi-coleccion.html?ver=mercado') => {
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
 }
+const abrirEnCurso = async (page) => {
+  const chip = page.locator('[data-cruces-filtro="curso"]')
+  if (await chip.count()) { await chip.click(); await page.waitForTimeout(700) }
+  await page.$$eval('#mcMisCambios details.cp-linea', (ds) => ds.forEach((d) => { d.open = true }))
+}
 const baldosas = (page) => page.$$eval('#mcMercadoRejilla .mc-merc', (as) => as.map((a) => a.dataset.merc))
 const textoDe = (page, id) => page.$eval(`#mcMercadoRejilla [data-merc="${id}"]`, (a) => a.innerText.replace(/\s+/g, ' ').trim())
 const visible = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); return !!e && !e.closest('.hidden') && e.getBoundingClientRect().height > 0 }, sel)
@@ -148,9 +153,8 @@ console.log('── 3. Los cruces, por persona ──')
   await page.click('[data-cruces-filtro="perfectos"]')
   await page.waitForTimeout(800)
   check('«Solo perfectos»: Lucía', (await page.$$eval('.mc-cruce', (cs) => cs.map((c) => c.dataset.cruce))).join() === 'user-1')
-  await page.click('[data-cruces-filtro="seguidos"]')
-  await page.waitForTimeout(800)
-  check('«Gente que sigo»: Dani', (await page.$$eval('.mc-cruce', (cs) => cs.map((c) => c.dataset.cruce))).join() === 'user-2')
+  // «Gente que sigo» se fue en la 1217 (PINGU: Todos, Perfectos y En curso).
+  check('los filtros son Todos · Perfectos · En curso', (await page.$$eval('[data-cruces-filtro]', (bs) => bs.map((b) => b.dataset.crucesFiltro))).join() === 'todos,perfectos,curso')
   await page.click('[data-cruces-filtro="todos"]')
   await page.waitForTimeout(800)
   await Promise.all([page.waitForURL(/mensajes\.html/), page.click('[data-cruce="user-1"] [data-escribir]')])

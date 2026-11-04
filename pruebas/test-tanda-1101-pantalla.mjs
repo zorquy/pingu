@@ -80,6 +80,11 @@ const ir = async (page, ruta = '/mi-coleccion.html?ver=mercado') => {
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
 }
+const abrirEnCurso = async (page) => {
+  const chip = page.locator('[data-cruces-filtro="curso"]')
+  if (await chip.count()) { await chip.click(); await page.waitForTimeout(700) }
+  await page.$$eval('#mcMisCambios details.cp-linea', (ds) => ds.forEach((d) => { d.open = true }))
+}
 const baldosas = (page) => page.$$eval('#mcMercadoRejilla .mc-merc', (as) => as.map((a) => a.dataset.merc))
 const textoDe = (page, id) => page.$eval(`#mcMercadoRejilla [data-merc="${id}"]`, (a) => a.innerText.replace(/\s+/g, ' ').trim())
 const visible = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); return !!e && !e.closest('.hidden') && e.getBoundingClientRect().height > 0 }, sel)
@@ -138,6 +143,7 @@ for (const sin of [false, true]) {
     // Lucía la acepta: el mensaje nuevo es «Propuesta aceptada».
     const r = await abrirCon(tablas, 'user-1', { ancho: 1280 })
     await ir(r.page, '/mi-coleccion.html?ver=cambios')
+    await abrirEnCurso(r.page)
     await r.page.locator('#mcMisCambios [data-cp-accion="aceptar"]').click()
     await r.page.waitForTimeout(1500)
     tablas = await foto(r.page)

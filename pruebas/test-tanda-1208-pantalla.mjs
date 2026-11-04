@@ -117,10 +117,9 @@ for (const movil of [false, true]) {
   await page.screenshot({ path: `/tmp/1208-cruces-${movil ? 'movil' : 'pc'}.png`, fullPage: true })
   await page.click('[data-cruces-filtro="perfectos"]')
   await page.waitForTimeout(400)
-  check('«Cruces perfectos» deja solo a Lucía', (await estado(page)).tarjetas.map((x) => x.quien).join() === 'user-1')
-  await page.click('[data-cruces-filtro="seguidos"]')
-  await page.waitForTimeout(400)
-  check('«Gente que sigo» deja solo a Dani', (await estado(page)).tarjetas.map((x) => x.quien).join() === 'user-2')
+  check('«Perfectos» deja solo a Lucía', (await estado(page)).tarjetas.map((x) => x.quien).join() === 'user-1')
+  // «Gente que sigo» se fue en la 1217: Todos · Perfectos · En curso.
+  check('  …y los filtros son Todos · Perfectos · En curso', (await page.$$eval('[data-cruces-filtro]', (bs) => bs.map((b) => b.dataset.crucesFiltro))).join() === 'todos,perfectos,curso')
   const pestana = await page.evaluate(() => { const b = document.querySelector('#mcBloqueCambios .mc-deseos-seg [data-deseos-vista="cruces"]'); const a = getComputedStyle(document.documentElement).getPropertyValue('--acento').trim(); const tmp = document.createElement('i'); tmp.style.color = a; document.body.appendChild(tmp); const c = getComputedStyle(tmp).color; tmp.remove(); return { fondo: getComputedStyle(b).backgroundColor, acento: c } })
   check('la pestaña de Cruces, en el color de Colección', pestana.fondo === pestana.acento, JSON.stringify(pestana))
   check('sin desplazamiento de lado', e.ancho)

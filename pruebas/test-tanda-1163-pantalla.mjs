@@ -49,9 +49,10 @@ const abrir = async (ruta, movil = false) => {
   const r = await p.evaluate(() => {
     const a = document.querySelector('.msg-lista-cabeza .msg-nueva')
     const h = document.querySelector('.msg-lista-cabeza h1, .msg-lista-cabeza h2')
-    return { texto: a?.textContent.trim(), principal: a?.classList.contains('btn-primary'), cabe: a && h && a.getBoundingClientRect().left >= h.getBoundingClientRect().right && a.getBoundingClientRect().right <= innerWidth, unaLinea: a && a.getBoundingClientRect().height < 48 }
+    return { texto: a?.getAttribute('aria-label') || a?.textContent.trim(), corto: a?.textContent.trim(), principal: a?.classList.contains('btn-primary'), cabe: a && h && a.getBoundingClientRect().left >= h.getBoundingClientRect().right && a.getBoundingClientRect().right <= innerWidth, unaLinea: a && a.getBoundingClientRect().height < 48 }
   })
-  check('Mensajes: «Nueva conversación», principal, al lado del título y en una línea', r.texto === 'Nueva conversación' && r.principal && r.cabe && r.unaLinea, JSON.stringify(r))
+  // Desde la 1221 en el PC dice «Nueva» (la maqueta), con lo largo para el lector.
+  check('Mensajes: «Nueva conversación», principal, al lado del título y en una línea', r.texto === 'Nueva conversación' && /^Nueva/.test(r.corto || '') && r.principal && r.cabe && r.unaLinea, JSON.stringify(r))
   await ctx.close()
 }
 {

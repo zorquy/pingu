@@ -79,6 +79,11 @@ const ir = async (page, ruta = '/mi-coleccion.html?ver=mercado') => {
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
 }
+const abrirEnCurso = async (page) => {
+  const chip = page.locator('[data-cruces-filtro="curso"]')
+  if (await chip.count()) { await chip.click(); await page.waitForTimeout(700) }
+  await page.$$eval('#mcMisCambios details.cp-linea', (ds) => ds.forEach((d) => { d.open = true }))
+}
 const baldosas = (page) => page.$$eval('#mcMercadoRejilla .mc-merc', (as) => as.map((a) => a.dataset.merc))
 const textoDe = (page, id) => page.$eval(`#mcMercadoRejilla [data-merc="${id}"]`, (a) => a.innerText.replace(/\s+/g, ' ').trim())
 const visible = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); return !!e && !e.closest('.hidden') && e.getBoundingClientRect().height > 0 }, sel)
@@ -122,6 +127,7 @@ async function proponerYAceptar(envio, extra = {}, venta20 = false) {
   }
   const { ctx, page } = await abrirCon(t, 'user-1', { ancho: 1280, extra })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const tj = page.locator('#mcMisCambios .cp-tarjeta').first()
   await tj.locator(envio === 'mano' ? '[data-cp-envio-elegir="mano"]' : '[data-cp-envio-elegir]:not([data-cp-envio-elegir="mano"])').click()
   await tj.locator('[data-cp-accion="aceptar"]').click()
@@ -149,6 +155,7 @@ check('aceptado por certificado, con las dos direcciones', tablas.trade_offers[0
 {
   const { ctx, page, errores } = await abrirCon(tablas, 'user-1', { movil: true })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const linea = page.locator('#mcMisCambios details.cp-linea').first()
   check('a Lucía le toca: «mándaselo y pulsa Ya lo he enviado»', await linea.evaluate((d) => d.open) && /mándaselo a Admin y pulsa «Ya lo he enviado»/.test(await texto(linea)))
   const envia = linea.locator('.cp-t-envia')
@@ -169,6 +176,7 @@ check('aceptado por certificado, con las dos direcciones', tablas.trade_offers[0
 {
   const { ctx, page, errores } = await abrirCon(tablas, 'admin-1', { movil: true })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const tj = page.locator('#mcMisCambios .cp-tarjeta').first()
   const t = await texto(tj)
   check('Admin ve que Lucía se lo ha enviado, con el número y Copiar', /Lucía te lo ha enviado a Av\. Libertad 3 · 41002 Sevilla\. Seguimiento: PK123456789ES/.test(t) && (await tj.locator('.cp-t-enviado [data-cp-copiar="PK123456789ES"]').count()) === 1, t)
@@ -186,6 +194,7 @@ check('aceptado por certificado, con las dos direcciones', tablas.trade_offers[0
   const o = tablas.trade_offers[0]
   const { ctx, page } = await abrirCon(tablas, 'user-1', { movil: true })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   check('Lucía lo ve «En camino»', /En camino/.test(await texto(page.locator('#mcMisCambios details.cp-linea').first())))
   await page.route(/\/mensajes\.html/, (r) => r.continue())
   await ir(page, `/mensajes.html?c=${o.conversacion}`)
@@ -201,6 +210,7 @@ console.log('── 3. Por correo ordinario, sin número ──')
   const t = await proponerYAceptar('correo', {}, true)
   const { ctx, page } = await abrirCon(t, 'admin-1', { ancho: 1280 })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const envia = page.locator('#mcMisCambios .cp-t-envia').first()
   check('«Ya lo he enviado» sin campo de número', (await envia.locator('[data-cp-accion="enviado"]').count()) === 1 && (await envia.locator('[data-cp-seguimiento]').count()) === 0)
   await ctx.close()
@@ -211,6 +221,7 @@ console.log('── 4. Sin la migración ──')
   const t = await proponerYAceptar('correo', { __SIN_1103__: true })
   const { ctx, page, errores } = await abrirCon(t, 'user-1', { ancho: 1280, extra: { __SIN_1103__: true } })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const tj = page.locator('#mcMisCambios .cp-tarjeta').first()
   check('sin «Ya lo he enviado» y sin el paso «Enviado»', (await tj.locator('[data-cp-accion="enviado"]').count()) === 0 && !(await tj.locator('.cp-pasos').innerText()).includes('Enviado'))
   check('pero la dirección sigue ahí', /Envía a Admin/.test(await texto(tj)))

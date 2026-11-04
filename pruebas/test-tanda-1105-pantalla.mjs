@@ -78,6 +78,11 @@ const ir = async (page, ruta = '/mi-coleccion.html?ver=mercado') => {
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
 }
+const abrirEnCurso = async (page) => {
+  const chip = page.locator('[data-cruces-filtro="curso"]')
+  if (await chip.count()) { await chip.click(); await page.waitForTimeout(700) }
+  await page.$$eval('#mcMisCambios details.cp-linea', (ds) => ds.forEach((d) => { d.open = true }))
+}
 const baldosas = (page) => page.$$eval('#mcMercadoRejilla .mc-merc', (as) => as.map((a) => a.dataset.merc))
 const textoDe = (page, id) => page.$eval(`#mcMercadoRejilla [data-merc="${id}"]`, (a) => a.innerText.replace(/\s+/g, ' ').trim())
 const visible = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); return !!e && !e.closest('.hidden') && e.getBoundingClientRect().height > 0 }, sel)
@@ -157,6 +162,7 @@ console.log('── 4. Un trato que se cierra pregunta «¿Qué tal fue?» ─�
   for (const [quien, accion] of [['user-1', 'aceptar'], ['user-1', 'lo-tengo'], ['admin-1', 'lo-tengo']]) {
     const { ctx, page } = await abrirCon(t, quien, { ancho: 1280 })
     await ir(page, '/mi-coleccion.html?ver=cambios')
+    await abrirEnCurso(page)
     await page.locator(`#mcMisCambios [data-cp-accion="${accion}"]`).first().click()
     await page.waitForTimeout(600)
     const si = page.locator('#cpCerrar [data-r="si"]')
@@ -169,6 +175,7 @@ console.log('── 4. Un trato que se cierra pregunta «¿Qué tal fue?» ─�
   check('el trato está hecho y apuntado como cambio', t.trade_offers[0].estado === 'hecha' && t.trade_confirmations.length === 1, t.trade_offers[0].estado)
   const { ctx, page, errores } = await abrirCon(t, 'admin-1', { movil: true })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const linea = page.locator('#mcMisCambios details.cp-linea').first()
   check('«¿Qué tal fue con Lucía?», con el trato abierto', await linea.evaluate((d) => d.open) && /¿Qué tal fue con Lucía\?/.test(await texto(linea)))
   if (OUT) await page.screenshot({ path: `${OUT}/trato-valorar.jpg`, type: 'jpeg', quality: 72, fullPage: true })

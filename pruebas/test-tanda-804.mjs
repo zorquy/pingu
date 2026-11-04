@@ -57,16 +57,11 @@ for (const movil of [false, true]) {
   check(`[${nombre}] las secciones y sus foros, a la vista`,
     (await page.locator('.foro-seccion-titulo:visible').allTextContents()).join('|') === 'Comunidad|Juego'
     && (await page.locator('.foro-fila:visible').count()) === 2)
-  const calientes = page.locator('.foro-calientes')
-  // Desde la 1096 en el PC lo último va en el lateral («Lo último») y la
-  // franja es solo del móvil.
-  if (movil) check('[móvil] «Lo que se está hablando» arriba', (await calientes.count()) === 1 && (await calientes.isVisible()))
-  else check('[ordenador] la franja no se ve y «Lo último» va en el lateral', !(await calientes.isVisible()) && (await page.locator('#foroLateral .foro-lou:visible').count()) === 1)
-  if (movil) {
-    // La franja se desliza de lado y no saca la página de ancho.
-    const r = await page.evaluate(() => ({ ancho: document.documentElement.scrollWidth, ventana: innerWidth, fila: getComputedStyle(document.querySelector('.foro-calientes-rejilla')).overflowX }))
-    check('[móvil] la franja se desliza y la página no se sale de ancho', r.fila === 'auto' && r.ancho <= r.ventana, JSON.stringify(r))
-  }
+  // Desde la 1221 no hay franja en ningún lado (PINGU: «te quita mucho
+  // espacio vertical»): «Lo último» va en el lateral (en el móvil, al final).
+  check(`[${nombre}] sin «Lo que se está hablando» y con «Lo último»`, (await page.locator('.foro-calientes').count()) === 0 && (await page.locator('#foroLateral .foro-lou:visible').count()) === 1)
+  const r = await page.evaluate(() => ({ ancho: document.documentElement.scrollWidth, ventana: innerWidth }))
+  check(`[${nombre}] la página no se sale de ancho`, r.ancho <= r.ventana, JSON.stringify(r))
   await ctx.close()
 }
 

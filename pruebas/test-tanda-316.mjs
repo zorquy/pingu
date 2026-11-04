@@ -72,9 +72,15 @@ console.log('\n── 1. Una guía se dibuja IGUAL en /aprender, y la portada di
   // Los minutos salieron de la portada en la 1191 (PINGU: la chapa se alargaba y rompía la tarjeta); /aprender los sigue diciendo.
   check('  …y sin los minutos, que rompían la tarjeta (1191)', !/\d+ min/.test(chapa), chapa || '(vacía)')
   await page.close()
-  const a = await abrir('/aprender')
-  const chapaA = (await a.page.locator('.guia-tarjeta .guia-chapa-cat').first().textContent({ timeout: 1500 }).catch(() => ''))?.trim()
-  check('  …y en /aprender la chapa es un enlace a su tema (866)', !!chapaA && CATS.some((c) => c.name === chapaA) && (await a.page.locator('.guia-tarjeta a.guia-chapa-tema').count()) > 0, chapaA || '(sin chapa)')
+  // La tarjeta de /aprender vive desde la 1219 en la página de un tema (la
+  // lista general del PC son portadas).
+  const a = await abrir('/aprender?tema=empezar')
+  // El tema lo dice la portada de la lista general (1219: la tarjeta entera es
+  // un enlace a la guía y no cabe otro dentro); dentro de un tema no se repite.
+  const g = await abrir('/aprender')
+  const chapaA = (await g.page.locator('.guia-portada .guia-portada-tema').first().textContent({ timeout: 1500 }).catch(() => ''))?.trim()
+  await g.page.close()
+  check('  …y en /aprender la portada dice su tema', !!chapaA && CATS.some((c) => c.name === chapaA), chapaA || '(sin chapa)')
   const min = (await a.page.locator('.guia-tarjeta .guia-chapa-min').first().textContent().catch(() => ''))?.trim()
   check('  …y cuánto cuesta leerla', /\d+ min/.test(min || ''), min || '(vacía)')
   await a.page.close()
@@ -86,7 +92,7 @@ console.log('\n── 1. Una guía se dibuja IGUAL en /aprender, y la portada di
   // bloque a components.css quedó detrás la gris y la rareza salió
   // apagada sin que nada diera error (es la trampa de la tanda 306).
   {
-    const { page } = await abrir('/aprender')
+    const { page } = await abrir('/aprender?tema=empezar')
     const colores = await page.evaluate(() => {
       const r = document.querySelector('.guia-rareza')
       const otra = [...document.querySelectorAll('.guia-etiqueta')].find((e) => !e.classList.contains('guia-rareza'))
@@ -274,7 +280,8 @@ console.log('\n── 7. La tarjeta se mide a sí misma, no a la ventana ──'
   }
   // Hasta la 1188 se comparaba con la portada; desde entonces la portada pinta
   // portadas (`.pb-portada`) y no la tarjeta. Se queda lo de /aprender.
-  const aprender960 = await anchoDe('/aprender', 960, '.ap-rejilla .guia-tarjeta:nth-child(2)')
+  // Desde la 1219, en la página de un tema (la general son portadas).
+  const aprender960 = await anchoDe('/aprender?tema=empezar', 960, '.guia-rejilla .guia-tarjeta')
   check('hay tarjeta en /aprender', !!aprender960, JSON.stringify({ aprender960 }))
   if (aprender960) check('  …y la ancha conserva la franja', aprender960.arte === 100, String(aprender960.arte))
   check('la declaración está en la hoja que bajan las dos',

@@ -88,6 +88,11 @@ const ir = async (page, ruta = '/mi-coleccion.html?ver=mercado') => {
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
 }
+const abrirEnCurso = async (page) => {
+  const chip = page.locator('[data-cruces-filtro="curso"]')
+  if (await chip.count()) { await chip.click(); await page.waitForTimeout(700) }
+  await page.$$eval('#mcMisCambios details.cp-linea', (ds) => ds.forEach((d) => { d.open = true }))
+}
 const baldosas = (page) => page.$$eval('#mcMercadoRejilla .mc-merc', (as) => as.map((a) => a.dataset.merc))
 const textoDe = (page, id) => page.$eval(`#mcMercadoRejilla [data-merc="${id}"]`, (a) => a.innerText.replace(/\s+/g, ' ').trim())
 const visible = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); return !!e && !e.closest('.hidden') && e.getBoundingClientRect().height > 0 }, sel)
@@ -169,7 +174,8 @@ console.log('\n── 2. Desde Cruces ──')
   check('el editor se cierra', !(await d.evaluate((x) => x.open)))
   await page.waitForTimeout(800)
   // «En curso» desde la 1100 (era «Tus cambios · 1 en curso»).
-  check('«En curso» arriba de los cruces: «Esperando a Lucía»', /En curso · 1/.test(await page.locator('#mcMisCambios').innerText()) && /Esperando a Lucía/.test(await page.locator('#mcMisCambios').innerText()), await page.locator('#mcMisCambios').innerText().catch(() => ''))
+  await abrirEnCurso(page)
+  check('«En curso 1»: «Esperando a Lucía»', /1/.test(await page.locator('[data-curso-n]').innerText()) && /Esperando a Lucía/.test(await page.locator('#mcMisCambios').innerText()), await page.locator('#mcMisCambios').innerText().catch(() => ''))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
@@ -186,6 +192,7 @@ console.log('\n── 3. Lucía, en Mensajes ──')
   // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
   // queda una tira que lleva allí.
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const caja = page.locator('#mcMisCambios')
   const t3 = (await caja.innerText().catch(() => '')).replace(/\s+/g, ' ')
   check('la tarjeta encima de la conversación: «Te toca»', /Te toca/.test(t3), t3)
@@ -223,6 +230,7 @@ console.log('\n── 4. Yo cierro el cambio, y lo deshago ──')
   // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
   // queda una tira que lleva allí.
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const caja = page.locator('#mcMisCambios')
   check('«Lucía ya tiene lo tuyo»', /Lucía ya tiene lo tuyo/.test(await caja.innerText()), await caja.innerText())
   check('  …y el botón dice «Cartas recibidas» (te llegan dos)', (await caja.locator('[data-cp-accion="lo-tengo"]').innerText()).trim() === 'Cartas recibidas')

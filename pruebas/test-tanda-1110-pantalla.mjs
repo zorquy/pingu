@@ -78,6 +78,11 @@ const ir = async (page, ruta = '/mi-coleccion.html?ver=mercado') => {
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
 }
+const abrirEnCurso = async (page) => {
+  const chip = page.locator('[data-cruces-filtro="curso"]')
+  if (await chip.count()) { await chip.click(); await page.waitForTimeout(700) }
+  await page.$$eval('#mcMisCambios details.cp-linea', (ds) => ds.forEach((d) => { d.open = true }))
+}
 const baldosas = (page) => page.$$eval('#mcMercadoRejilla .mc-merc', (as) => as.map((a) => a.dataset.merc))
 const textoDe = (page, id) => page.$eval(`#mcMercadoRejilla [data-merc="${id}"]`, (a) => a.innerText.replace(/\s+/g, ' ').trim())
 const visible = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); return !!e && !e.closest('.hidden') && e.getBoundingClientRect().height > 0 }, sel)
@@ -121,6 +126,7 @@ async function proponerYAceptar(envio, extra = {}, venta20 = false) {
   }
   const { ctx, page } = await abrirCon(t, 'user-1', { ancho: 1280, extra })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const tj = page.locator('#mcMisCambios .cp-tarjeta').first()
   await tj.locator(envio === 'mano' ? '[data-cp-envio-elegir="mano"]' : '[data-cp-envio-elegir]:not([data-cp-envio-elegir="mano"])').click()
   await tj.locator('[data-cp-accion="aceptar"]').click()
@@ -156,6 +162,7 @@ let tablas = await proponerYAceptar('correo')
 {
   const { ctx, page, errores } = await abrirCon(tablas, 'user-1', { ancho: 1280 })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const envia = page.locator('#mcMisCambios .cp-t-envia').first()
   check('«Etiqueta» al lado de Copiar en «Envía a Admin»', /Envía a Admin/.test(await texto(envia)) && (await envia.locator('.cp-t-envia-botones [data-cp-copiar]').count()) === 1 && (await envia.locator('.cp-t-envia-botones [data-cp-etiqueta]').count()) === 1)
   if (OUT) await page.screenshot({ path: `${OUT}/etq-boton.jpg`, type: 'jpeg', quality: 72 })
@@ -178,6 +185,7 @@ let tablas = await proponerYAceptar('correo')
 {
   const { ctx, page } = await abrirCon(tablas, 'admin-1', { movil: true })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const linea = page.locator('#mcMisCambios details.cp-linea').first()
   if (!(await linea.evaluate((d) => d.open))) await linea.locator('summary').click()
   const b = page.locator('#mcMisCambios .cp-t-envia [data-cp-etiqueta]').first()
@@ -194,6 +202,7 @@ console.log('── 3. Venta ordinaria, sin dirección guardada ──')
   t.user_direcciones = t.user_direcciones.filter((d) => d.user_id !== 'admin-1')
   const { ctx, page, errores } = await abrirCon(t, 'admin-1', { ancho: 1280 })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const e = await bajarEtiqueta(page)
   check('sale igual, con el nombre de Lucía', e.nombre === 'etiqueta-envio-lucia-perez-gil.pdf' && e.pdf.subarray(0, 5).toString() === '%PDF-', e.nombre)
   check('y avisa de escribir el remitente a mano', /escríbela a mano en «Remitente»/.test(e.aviso), e.aviso)

@@ -70,8 +70,9 @@ console.log('\n── 1. La portada de noticias ──')
   check('el titular enlaza a su dirección limpia',
     (await page.locator('.noticia-titular').getAttribute('href')) === '/noticias/noticia-1')
   // La rejilla, de verdad: que la regla de CSS exista no basta.
-  check('tres columnas en escritorio',
-    (await page.locator('.noticias-rejilla').evaluate((e) => getComputedStyle(e).gridTemplateColumns.split(' ').length)) === 3)
+  // Desde la 1218 la rejilla es de 12 pistas (cuatro por fila, «Antes» a dos).
+  check('varias columnas en escritorio',
+    (await page.locator('.noticias-rejilla').evaluate((e) => getComputedStyle(e).gridTemplateColumns.split(' ').length)) >= 3)
   await page.setViewportSize({ width: 420, height: 900 })
   await page.waitForTimeout(250)
   check('una sola en el móvil',
@@ -127,17 +128,18 @@ console.log('\n── 4. El puente: desplegar ANTES de ejecutar el SQL ──')
   // etiqueta de la fila de categoría, ahora en la cuenta del chip.
   const conMigracion = await abrir('/aprender')
   // Los chips con cuenta se fueron (863 y 1039): se cuentan las tarjetas.
-  const todas = String(await conMigracion.page.locator('.guia-tarjeta').count())
+  // Desde la 1219 en el PC son portadas (`.guia-portada`).
+  const todas = String(await conMigracion.page.locator('.guia-tarjeta, .guia-portada').count())
   // Dos guías y tres noticias en la misma categoría: el temario cuenta 2.
   check('«Aprender» cuenta guías, no filas', todas === '2', todas)
-  const tarjetas = await conMigracion.page.locator('.guia-tarjeta h3, .guia-titulo').allTextContents()
+  const tarjetas = await conMigracion.page.locator('.guia-tarjeta h3, .guia-titulo, .guia-portada strong').allTextContents()
   check('  …y ninguna noticia se cuela en la rejilla',
     !tarjetas.some((t) => NOTICIAS.some((n) => n.title === t)), tarjetas.join(' | '))
   await conMigracion.page.close()
 
   const r = await abrir('/aprender', { __COLUMNAS_QUE_FALTAN__: ['kind'] })
   check('«Aprender» tampoco', r.errores.length === 0, r.errores[0] || '')
-  check('y no se queda sin guías', (await r.page.locator('.guia-tarjeta').count()) > 0)
+  check('y no se queda sin guías', (await r.page.locator('.guia-tarjeta, .guia-portada').count()) > 0)
   await r.page.close()
 
   // Y /noticias, sin columna, no puede enseñar un error: es que todavía

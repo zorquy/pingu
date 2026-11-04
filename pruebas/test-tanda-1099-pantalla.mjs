@@ -84,6 +84,11 @@ const ir = async (page, ruta = '/mi-coleccion.html?ver=mercado') => {
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
 }
+const abrirEnCurso = async (page) => {
+  const chip = page.locator('[data-cruces-filtro="curso"]')
+  if (await chip.count()) { await chip.click(); await page.waitForTimeout(700) }
+  await page.$$eval('#mcMisCambios details.cp-linea', (ds) => ds.forEach((d) => { d.open = true }))
+}
 const baldosas = (page) => page.$$eval('#mcMercadoRejilla .mc-merc', (as) => as.map((a) => a.dataset.merc))
 const textoDe = (page, id) => page.$eval(`#mcMercadoRejilla [data-merc="${id}"]`, (a) => a.innerText.replace(/\s+/g, ' ').trim())
 const visible = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); return !!e && !e.closest('.hidden') && e.getBoundingClientRect().height > 0 }, sel)
@@ -155,6 +160,7 @@ console.log('── 3. Lucía hace una contraoferta ──')
   // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
   // queda una tira que lleva allí.
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const caja = page.locator('#mcMisCambios')
   const t = (await caja.innerText()).replace(/\s+/g, ' ')
   check('«Admin te vende», con el envío por elegir y el total en el botón', /Admin te vende/.test(t) && (await caja.locator('[data-cp-envio-elegir]').count()) === 2 && (await caja.locator('[data-cp-accion="aceptar"]').innerText()).trim() === 'Aceptar · 37,06 €', t)
@@ -184,6 +190,7 @@ console.log('── 4. Yo la acepto: el envío lo elijo yo y lo paga ella ──
   // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
   // queda una tira que lleva allí.
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const caja = page.locator('#mcMisCambios')
   const t = (await caja.innerText()).replace(/\s+/g, ' ')
   check('«Le vendes a Lucía · 2.ª versión», con «Lo paga Lucía» y el botón sin sumar', /Le vendes a Lucía · 2\.ª versión/.test(t) && /Lo paga Lucía/.test(t) && (await caja.locator('[data-cp-accion="aceptar"]').innerText()).trim() === 'Aceptar', t)

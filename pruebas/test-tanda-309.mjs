@@ -228,7 +228,8 @@ console.log('\n── 5. Los bordes tienen escala ──')
   // de perfil 1, y juntas se veían de dos épocas distintas.
   // Desde la 316 la tarjeta de guía es UNA (`.guia-tarjeta`, js/guia-tarjeta.js)
   // y /categoria se fue en la 863: se mira en /aprender.
-  const { page } = await abrir('/aprender', {
+  // (Desde la 1219, en la página de un tema: la lista general del PC son portadas.)
+  const { page } = await abrir('/aprender?tema=basico', {
     semillas: { __FAKE_GUIAS__: [{ id: 'g1', slug: 'g1', title: 'Guía', category_id: 'cat-1', published_at: '2026-10-01T10:00:00Z', blocks: [{ type: 'paragraph', text: 'x' }] }] },
   })
   const borde = await page.locator('.guia-tarjeta').first().evaluate((n) => getComputedStyle(n).borderTopWidth)

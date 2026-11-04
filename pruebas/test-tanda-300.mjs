@@ -185,15 +185,16 @@ console.log('\n── 4. /aprender sabe leer el tema de la URL ──')
   check('  …y el volver lleva a /aprender, donde están todas', volver === '/aprender', String(volver))
   await page.goto(`${BASE}/aprender`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1500)
-  check('  …y a un clic se ven todas', (await page.locator('.guia-tarjeta').count()) === GUIAS.length,
-    String(await page.locator('.guia-tarjeta').count()))
+  // En la lista general del PC son portadas desde la 1219.
+  check('  …y a un clic se ven todas', (await page.locator('.guia-tarjeta, .guia-portada').count()) === GUIAS.length,
+    String(await page.locator('.guia-tarjeta, .guia-portada').count()))
   await page.close()
 }
 {
   // Un tema que no existe —enlace viejo, categoría borrada— no puede
   // dejar la pantalla en blanco sin explicar nada.
   const { page, errores } = await abrir('/aprender?tema=esto-no-existe')
-  check('un tema que no existe no vacía la pantalla', (await page.locator('.guia-tarjeta').count()) === GUIAS.length,
+  check('un tema que no existe no vacía la pantalla', (await page.locator('.guia-tarjeta, .guia-portada').count()) === GUIAS.length,
     String(await page.locator('.guia-tarjeta').count()))
   check('  …ni da error', errores.length === 0, errores.join(' | '))
   await page.close()

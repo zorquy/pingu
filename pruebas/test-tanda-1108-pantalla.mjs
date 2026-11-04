@@ -80,6 +80,11 @@ const ir = async (page, ruta = '/mi-coleccion.html?ver=mercado') => {
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
 }
+const abrirEnCurso = async (page) => {
+  const chip = page.locator('[data-cruces-filtro="curso"]')
+  if (await chip.count()) { await chip.click(); await page.waitForTimeout(700) }
+  await page.$$eval('#mcMisCambios details.cp-linea', (ds) => ds.forEach((d) => { d.open = true }))
+}
 const baldosas = (page) => page.$$eval('#mcMercadoRejilla .mc-merc', (as) => as.map((a) => a.dataset.merc))
 const textoDe = (page, id) => page.$eval(`#mcMercadoRejilla [data-merc="${id}"]`, (a) => a.innerText.replace(/\s+/g, ' ').trim())
 const visible = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); return !!e && !e.closest('.hidden') && e.getBoundingClientRect().height > 0 }, sel)
@@ -142,6 +147,7 @@ let tablas
 {
   const { ctx, page, errores } = await abrirCon(tablas, 'user-1', { movil: true })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const tj = page.locator('#mcMisCambios .cp-tarjeta').first()
   const chips = await tj.locator('[data-cp-envio-elegir]').allInnerTexts()
   check('quien acepta: «Por correo · Ordinario · 1,45 €» o «En mano»', chips.join('|') === 'Por correo · Ordinario · 1,45 €|En mano', chips.join('|'))
@@ -177,6 +183,7 @@ console.log('── 3. Un cambio: cada uno el suyo ──')
   {
     const { ctx, page } = await abrirCon(t, 'user-1', { ancho: 1280 })
     await ir(page, '/mi-coleccion.html?ver=cambios')
+    await abrirEnCurso(page)
     const tj = page.locator('#mcMisCambios .cp-tarjeta').first()
     check('Lucía: «Tú mandas certificado · 125,95 € · Admin te manda certificado · 7,06 €»', /Tú mandas certificado · 125,95 € · Admin te manda certificado · 7,06 €\. Cada uno paga lo que manda/.test(await texto(tj)))
     await tj.locator('[data-cp-accion="aceptar"]').click()
@@ -187,6 +194,7 @@ console.log('── 3. Un cambio: cada uno el suyo ──')
   }
   const { ctx, page, errores } = await abrirCon(t, 'admin-1', { movil: true })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const envia = page.locator('#mcMisCambios .cp-t-envia').first()
   check('Admin: «Envía a Lucía · certificado · 7,06 €» con el número de seguimiento', /Envía a Lucía · certificado · 7,06 €/.test(await texto(envia)) && (await envia.locator('[data-cp-seguimiento]').count()) === 1, await texto(envia))
   if (OUT) await page.screenshot({ path: `${OUT}/envio-cambio.jpg`, type: 'jpeg', quality: 72, fullPage: true })

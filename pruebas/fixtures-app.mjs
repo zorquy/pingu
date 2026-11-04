@@ -8,7 +8,7 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { readFileSync } from 'node:fs'
 const FOTOS = new URL('../fotos/', import.meta.url).pathname
-export const BASE = 'http://localhost:8892'
+export const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const cartas = [1, 2, 3, 4, 5].map((i) => readFileSync(`${FOTOS}carta${i}.svg`, 'utf8'))
 const fotos = [1, 2, 3].map((i) => readFileSync(`${FOTOS}foto${i}.svg`, 'utf8'))
 

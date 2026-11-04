@@ -81,6 +81,11 @@ const ir = async (page, ruta = '/mi-coleccion.html?ver=mercado') => {
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
 }
+const abrirEnCurso = async (page) => {
+  const chip = page.locator('[data-cruces-filtro="curso"]')
+  if (await chip.count()) { await chip.click(); await page.waitForTimeout(700) }
+  await page.$$eval('#mcMisCambios details.cp-linea', (ds) => ds.forEach((d) => { d.open = true }))
+}
 const baldosas = (page) => page.$$eval('#mcMercadoRejilla .mc-merc', (as) => as.map((a) => a.dataset.merc))
 const textoDe = (page, id) => page.$eval(`#mcMercadoRejilla [data-merc="${id}"]`, (a) => a.innerText.replace(/\s+/g, ' ').trim())
 const visible = (page, sel) => page.evaluate((sel) => { const e = document.querySelector(sel); return !!e && !e.closest('.hidden') && e.getBoundingClientRect().height > 0 }, sel)
@@ -137,6 +142,7 @@ console.log('── 3. Lucía acepta poniendo la suya ──')
 {
   const { ctx, page, errores } = await abrirCon(tablas, 'user-1', { movil: true })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const t = page.locator('#mcMisCambios .cp-tarjeta').first()
   const caja = t.locator('[data-cp-dir-aceptar]')
   check('«¿A dónde te lo manda?» con el formulario (no tiene guardada)', await caja.isVisible() && (await caja.locator('[data-dir="nombre"]').count()) === 1)
@@ -167,6 +173,7 @@ console.log('── 3. Lucía acepta poniendo la suya ──')
 {
   const { ctx, page } = await abrirCon(tablas, 'admin-1', { ancho: 1280 })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const envia = await texto(page.locator('#mcMisCambios .cp-t-envia').first())
   check('Admin ve «Envía a Lucía» con su dirección', /Envía a Lucía/.test(envia) && /Lucía Pérez Gil/.test(envia) && /28013 Madrid/.test(envia), envia)
   await ctx.close()
@@ -189,6 +196,7 @@ console.log('── 4. Sin guardada: Admin la pone después ──')
   {
     const { ctx, page } = await abrirCon({ ...t4, user_direcciones: [{ ...DIR_ADMIN, user_id: 'user-1', nombre: 'Lucía Pérez Gil', calle: 'C/ Mayor 12', cp: '28013', ciudad: 'Madrid' }] }, 'user-1', { ancho: 1280 })
     await ir(page, '/mi-coleccion.html?ver=cambios')
+    await abrirEnCurso(page)
     const t = page.locator('#mcMisCambios .cp-tarjeta').first()
     check('Lucía con guardada: sale puesta, con «Cambiar»', /C\/ Mayor 12/.test(await texto(t.locator('.cp-dir-guardada'))) && await t.locator('.cp-dir-form').isHidden())
     await t.locator('[data-cp-accion="aceptar"]').click()
@@ -201,6 +209,7 @@ console.log('── 4. Sin guardada: Admin la pone después ──')
   {
     const { ctx, page, errores } = await abrirCon(t4, 'admin-1', { movil: true })
     await ir(page, '/mi-coleccion.html?ver=cambios')
+    await abrirEnCurso(page)
     const linea = page.locator('#mcMisCambios details.cp-linea').first()
     check('a Admin le toca: abierta y con la frase', await linea.evaluate((d) => d.open) && /pon tu dirección para que Lucía te lo envíe/.test(await texto(linea)))
     const caja = linea.locator('[data-cp-dir-poner]')
@@ -267,6 +276,7 @@ console.log('── 6. Sin la migración ──')
   }
   const { ctx, page, errores } = await abrirCon(t6, 'user-1', { ancho: 1280, extra: SIN })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  await abrirEnCurso(page)
   const t = page.locator('#mcMisCambios .cp-tarjeta').first()
   check('la tarjeta sin bloque de dirección', (await t.locator('.cp-t-dir').count()) === 0)
   await t.locator('[data-cp-accion="aceptar"]').click()

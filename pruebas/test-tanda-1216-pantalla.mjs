@@ -82,16 +82,13 @@ console.log('── 4. Torneos: el mazo del campeón ──')
   await ctx.close()
 }
 
-console.log('── 5. Foro: «Lo que se está hablando» también en el PC ──')
+console.log('── 5. Foro: «Lo que se está hablando» se fue en la 1221 ──')
 {
   const { ctx, p, errores } = await abrir('/foro')
-  const r = await p.evaluate(() => {
-    const f = document.querySelector('.foro-calientes')
-    const rej = f?.querySelector('.foro-calientes-rejilla')
-    const c = rej?.querySelector('.foro-caliente')
-    return { ve: Boolean(f && f.getBoundingClientRect().height > 0), display: rej ? getComputedStyle(rej).display : '', ancho: c ? Math.round(c.getBoundingClientRect().width) : 0 }
-  })
-  check('se ve, como una fila que se desliza de tarjetas de 320 px', r.ve && r.display === 'flex' && r.ancho === 320, JSON.stringify(r))
+  // PINGU (1221): «ya tienes a la derecha lo de lo último, y te quita mucho
+  // espacio vertical». El carrusel de la 1216 ya no está; «Lo último», sí.
+  const r = await p.evaluate(() => ({ franja: document.querySelectorAll('.foro-calientes').length, ultimo: Boolean(document.querySelector('#foroLateral .foro-lou')) }))
+  check('ni franja ni carrusel; «Lo último» al lado', r.franja === 0 && r.ultimo, JSON.stringify(r))
   check('  …sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

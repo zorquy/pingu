@@ -74,10 +74,11 @@ for (const sesion of ['user-1', 'admin-1']) {
   check(`[${sesion}] sin errores`, errores.length === 0, errores[0] || '')
   const foros = await page.locator('.foro-fila .foro-fila-nombre, .foro-fila h3, .foro-fila a').allTextContents()
   check(`[${sesion}] el foro escondido no está en el índice (ni para administración)`, !foros.some((t) => /^Noticias$/.test(t.trim())) && foros.some((t) => /Presentaciones/.test(t)), foros.join(' | '))
-  const filas = await page.$$eval('.foro-caliente', (xs) => xs.map((x) => ({ href: x.querySelector('.foro-caliente-titulo')?.getAttribute('href'), titulo: x.querySelector('.foro-caliente-titulo')?.textContent.trim(), meta: x.querySelector('.foro-caliente-meta')?.textContent.replace(/\s+/g, ' ').trim() })))
-  check(`[${sesion}] la noticia comentada va la primera, con su enlace y «1 comentario»`, filas[0]?.href === '/noticias/mega-heatran' && /Noticia/.test(filas[0].meta) && /1 comentario\b/.test(filas[0].meta), JSON.stringify(filas))
-  check(`[${sesion}] el tema del foro visible, detrás`, filas[1]?.href === '/tema/t1' && /2 mensajes/.test(filas[1].meta), JSON.stringify(filas))
-  check(`[${sesion}] y el hilo viejo del foro escondido no sale, aunque sea el mensaje más nuevo`, !filas.some((f) => /t-viejo/.test(f.href || '')), JSON.stringify(filas))
+  // La franja (con la noticia comentada) se fue en la 1221: lo que queda es
+  // «Lo último», solo con temas de los foros que se ven.
+  const ultimos = await page.$$eval('#foroLateral .foro-lou-titulo', (xs) => xs.map((x) => x.getAttribute('href')))
+  check(`[${sesion}] sin franja; «Lo último» con el tema del foro visible`, (await page.locator('.foro-calientes').count()) === 0 && ultimos.some((h) => /\/tema\/t1/.test(h || '')), JSON.stringify(ultimos))
+  check(`[${sesion}] y el hilo viejo del foro escondido no sale, aunque sea el mensaje más nuevo`, !ultimos.some((h) => /t-viejo/.test(h || '')), JSON.stringify(ultimos))
   await ctx.close()
 }
 

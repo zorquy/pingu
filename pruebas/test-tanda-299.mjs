@@ -109,31 +109,11 @@ console.log('\n── 1. D · El foro dice de qué se está hablando ──')
 {
   const { page, errores } = await abrir('/foro.html')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  const franja = page.locator('#foroDestacado')
-  // Desde la 1096 la franja se pinta igual pero en el PC no se ve: lo
-  // último va en el lateral. Lo de la franja se sigue mirando en el DOM.
-  check('hay franja de lo caliente (en el PC escondida) y «Lo último» en el lateral', (await franja.locator('.foro-calientes').count()) === 1 && (await page.locator('#foroLateral .foro-lou').isVisible()))
-  const tarjetas = franja.locator('.foro-caliente')
-  const n = await tarjetas.count()
-  check('  …con 3 temas, ni más ni menos', n === 3, `${n} de ${5} temas que hay`)
-  // Un tema por tarjeta: si la franja repitiera el mismo tema por cada
-  // mensaje suyo, el tema más hablado taparía a los demás.
-  const titulos = await franja.locator('.foro-caliente-titulo').allTextContents()
-  check('  …sin repetir tema', new Set(titulos).size === titulos.length, titulos.join(' | '))
-  // El fallo del <a> dentro de <a>: la tarjeta tiene que ser un div, que
-  // si no el navegador cierra el enlace de fuera y la caja se descoloca.
-  check('  …y la tarjeta no es un enlace', await tarjetas.first().evaluate((e) => e.tagName === 'ARTICLE' || e.tagName === 'DIV'),
-    await tarjetas.first().evaluate((e) => e.tagName))
-  check('  …pero el título sí lleva a su tema', /tema/.test((await franja.locator('.foro-caliente-titulo').first().getAttribute('href')) || ''),
-    await franja.locator('.foro-caliente-titulo').first().getAttribute('href'))
-  // La franja va ARRIBA, antes de la lista de subforos: si quedara
-  // debajo no cambiaría nada de lo que se ve al entrar.
-  const orden = await page.evaluate(() => {
-    const d = document.getElementById('foroDestacado')
-    const c = document.querySelector('.foro-columnas')
-    return d && c ? d.compareDocumentPosition(c) & Node.DOCUMENT_POSITION_FOLLOWING : 0
-  })
-  check('  …y va por encima de los subforos', orden !== 0)
+  // Desde la 1221 no hay franja (PINGU: «ya tienes a la derecha lo de lo
+  // último»): lo que se está hablando es «Lo último», en el lateral.
+  check('sin franja de lo caliente y con «Lo último» en el lateral', (await page.locator('.foro-calientes, #foroDestacado').count()) === 0 && (await page.locator('#foroLateral .foro-lou').isVisible()))
+  const ultimos = await page.locator('#foroLateral .foro-lou-titulo').allTextContents()
+  check('  …sin repetir tema', ultimos.length > 0 && new Set(ultimos).size === ultimos.length, ultimos.join(' | '))
   // Y lo que ya estaba tiene que seguir: la lista de subforos.
   check('la lista de subforos sigue ahí', (await page.locator('.foro-fila').count()) >= 2, String(await page.locator('.foro-fila').count()))
   await page.close()
@@ -402,12 +382,13 @@ console.log('\n── 3. E · Las guías se ven al entrar en /aprender ──')
 {
   const { page, errores } = await abrir('/aprender.html')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  const tarjetas = page.locator('.guia-tarjeta')
+  // En el PC, portadas desde la 1219.
+  const tarjetas = page.locator('.guia-tarjeta, .guia-portada')
   check('las 7 guías salen sin dar un clic', (await tarjetas.count()) === 7, String(await tarjetas.count()))
   // Desde la tanda 353 la guía vive en /guia/<slug>: era la única
   // sección del sitio con dirección de parámetro.
-  check('  …con su enlace a la guía', /^\/guia\/[^?]/.test((await page.locator('.guia-tarjeta-enlace').first().getAttribute('href')) || ''),
-    (await page.locator('.guia-tarjeta-enlace').first().getAttribute('href')) || '')
+  check('  …con su enlace a la guía', /^\/guia\/[^?]/.test((await page.locator('.guia-tarjeta-enlace, a.guia-portada').first().getAttribute('href')) || ''),
+    (await page.locator('.guia-tarjeta-enlace, a.guia-portada').first().getAttribute('href')) || '')
   // La franja de seguir: el curso empezado y sin terminar más reciente.
   const seguir = page.locator('.aprender-seguir')
   check('hay «sigue donde lo dejaste»', await seguir.isVisible())
@@ -436,13 +417,13 @@ console.log('\n── 4. E · Las categorías son filtros, y filtran sin ir a la
   check('sin chips de nivel ni «Sin leer» (1039)', (await page.locator('[data-nivel], [data-sinleer]').count()) === 0)
   await page.locator('#apBuscar').fill('número 3')
   await page.waitForTimeout(300)
-  const conBusca = await page.locator('.guia-tarjeta').allTextContents()
+  const conBusca = await page.locator('.guia-tarjeta, .guia-portada').allTextContents()
   check('el buscador filtra', conBusca.length === 1 && conBusca[0].includes('Guía número 3'), String(conBusca.length))
   const despues = await page.evaluate(() => window.__CONSULTAS__?.n ?? -1)
   check('  …sin volver a la base', despues === antes, `${antes} → ${despues}`)
   await page.locator('#apBuscar').fill('')
   await page.waitForTimeout(300)
-  check('  …y vaciarlo las devuelve todas', (await page.locator('.guia-tarjeta').count()) === 7, String(await page.locator('.guia-tarjeta').count()))
+  check('  …y vaciarlo las devuelve todas', (await page.locator('.guia-tarjeta, .guia-portada').count()) === 7, String(await page.locator('.guia-tarjeta, .guia-portada').count()))
   await page.close()
 }
 
