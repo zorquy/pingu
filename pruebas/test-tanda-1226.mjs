@@ -78,6 +78,23 @@ for (const movil of [false, true]) {
     check('móvil: fila de baldosas de 160 px', t.length >= 3 && t.every((x) => x.ancho === 160) && t[0].top === t[1].top, t.map((x) => `${x.ancho}@${x.top}`).join())
     check('móvil: sin el porqué', t.every((x) => x.ver === 'none'))
   }
+  // Un nombre largo (el «Comprar, vender & mercado» de producción) se corta a
+  // dos líneas y NO pisa la línea de debajo (1228: con `overflow: visible` la
+  // tercera línea caía encima de «2 guías · 2 cursos»).
+  const pisa = await p.evaluate(() => {
+    const a = document.querySelector('#apTemas .ap-baldosa')
+    if (!a) return 'sin baldosa'
+    a.querySelector('.ap-baldosa-nombre').textContent = 'Comprar, vender & mercado de cartas sueltas'
+    const el = a.querySelector('.ap-baldosa-nombre')
+    const n = el.getBoundingClientRect()
+    const sub = a.querySelector('.ap-baldosa-sub').getBoundingClientRect()
+    // La caja mide dos líneas aunque el texto se salga: lo que se sale se pinta
+    // FUERA de ella. Se mira si sobra texto y si se ve.
+    const sobra = el.scrollHeight > el.clientHeight + 1 && getComputedStyle(el).overflowY === 'visible'
+    if (sobra) return `se sale y se ve (${el.scrollHeight} > ${el.clientHeight})`
+    return Math.round(n.bottom) <= Math.round(sub.top) + 1 ? 'no' : `${Math.round(n.bottom)} > ${Math.round(sub.top)}`
+  })
+  check(`${movil ? 'móvil' : 'PC'}: un nombre largo no pisa la línea de debajo`, pisa === 'no', pisa)
   check(`${movil ? 'móvil' : 'PC'}: sin errores de JavaScript`, errores.length === 0, errores.join(' | '))
   if (process.env.OUT) await p.screenshot({ path: `${process.env.OUT}/1226-${movil ? 'movil' : 'pc'}.png` })
   await ctx.close()
