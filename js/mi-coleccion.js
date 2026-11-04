@@ -2611,7 +2611,13 @@ function abrirEditor(l) {
   // pop-up central, que es bastante mejor»): la ficha a la derecha de la 740
   // apartaba la rejilla y la dejaba en cuatro cartas por fila.
   const yaAbierta = d.open
-  if (!yaAbierta) d.showModal()
+  if (!yaAbierta) {
+    d.showModal()
+    // El foco, en el diálogo y no en el primer botón (1237): con el dedo, el
+    // iPhone pintaba el aro de foco en compartir sin haberlo tocado.
+    d.tabIndex = -1
+    d.focus({ preventScroll: true })
+  }
   // Y al cambiar de carta, arriba: la ficha es otra, y quedarse a media
   // altura de la anterior deja la carta nueva fuera de la pantalla.
   if (yaAbierta) d.scrollTop = 0

@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "La ficha de una carta, más limpia: «− Tienes N +» en una pastilla redonda (en el ordenador, debajo de la carta), el precio de tu idioma en grande con los demás en chips y los datos en una sola caja.",
+      "enlace": "/cartas"
+    },
+    {
+      "fecha": "2026-11-04",
       "tipo": "nuevo",
       "texto": "Nueva agenda de tiendas: busca por nombre o ciudad, mira cuáles tienen algo de tu lista y entra en su escaparate.",
       "enlace": "/tiendas"

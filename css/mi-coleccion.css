@@ -15814,3 +15814,223 @@ html.con-barra-movil .mc-prod-banda { display: none; }
 .mc-mercado-tiendas-titulo small { color: var(--text-mid); font-weight: 600; }
 .mc-tienda-cuentas { overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
 .mc-tienda-cuentas em { font-style: normal; font-weight: 700; color: var(--pink); }
+
+/* ── 1237: la ficha de una carta, estilizada (PINGU, SCHEMA 1237) ──
+   «− Tienes N +» en una pastilla redonda con los pasos en círculo (el «+» en
+   el color de la sección); sin copias, la misma pastilla dice «Añadir a mi
+   colección». En el PC, debajo de la carta. Los atributos, en una caja. */
+.mc-editor #mcEdAcciones {
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 64px;
+  padding: var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.mc-editor #mcEdAcciones .mc-paso {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  min-height: 48px;
+  border-radius: 50%;
+  background: var(--white);
+}
+
+.mc-editor #mcEdAcciones .mc-paso.mc-ficha-mas {
+  background: var(--acento);
+  color: var(--acento-texto);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--acento) 40%, transparent);
+}
+
+.mc-editor #mcEdAcciones .mc-paso.mc-ficha-mas:hover {
+  background: color-mix(in srgb, var(--acento) 86%, var(--text));
+}
+
+.mc-editor #mcEdAcciones .mc-paso-centro {
+  min-height: 48px;
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: transparent;
+}
+
+.mc-editor #mcEdAcciones .mc-paso-centro:hover {
+  background: color-mix(in srgb, var(--white) 60%, transparent);
+}
+
+.mc-editor #mcEdAcciones .mc-paso-centro b {
+  font-family: var(--font-display);
+}
+
+.mc-editor #mcEdAcciones .mc-paso-centro span {
+  font-size: var(--t-2xs);
+  font-weight: 600;
+}
+
+.mc-editor #mcEdAcciones.mc-sin-copias {
+  padding: 0;
+  background: none;
+  box-shadow: none;
+}
+
+.mc-editor #mcEdAcciones.mc-sin-copias .mc-ficha-mas {
+  display: flex;
+  gap: var(--e-md);
+  width: 100%;
+  height: 64px;
+  min-height: 64px;
+  padding: 0 var(--e-lg);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  box-shadow: 0 8px 20px color-mix(in srgb, var(--acento) 35%, transparent);
+}
+
+.mc-editor #mcEdAcciones.mc-sin-copias .mc-ficha-mas i {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 14%);
+}
+
+/* El foco se queda en el diálogo al abrirlo (mi-coleccion.js), no en
+   compartir: el aro azul salía sin haber tocado nada. */
+.mc-editor:focus {
+  outline: none;
+}
+
+/* «Añadir a un álbum», si todavía no está en ninguno: la pastilla sola,
+   debajo del contador y sin el rótulo. */
+.mc-editor #mcEdAlbumes:not(:has(.eta-chip)) > h3 {
+  display: none;
+}
+
+/* Los atributos: una caja con filas finas (el molde de Mensajes, 1232). */
+.mc-editor .mc-atributos {
+  gap: 0;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  background: var(--bg);
+}
+
+.mc-editor .mc-atrib {
+  min-height: 48px;
+  padding: var(--e-sm) var(--e-md);
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  background: none;
+}
+
+.mc-editor .mc-atrib:last-child {
+  border-bottom: 0;
+}
+
+@media (hover: hover) {
+  .mc-editor a.mc-atrib:hover {
+    background: var(--ice);
+  }
+}
+
+@media (max-width: 760px) {
+  .mc-editor #mcEdAlbumes:not(:has(.eta-chip)) .eta-fila {
+    justify-content: center;
+  }
+
+  .mc-editor #mcEdAlbumes:not(:has(.eta-chip)) {
+    margin-top: 0;
+  }
+
+  .mc-editor .mc-atrib .mc-fila-texto {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--e-md);
+    min-width: 0;
+  }
+
+  .mc-editor .mc-atrib .mc-fila-texto small {
+    flex: none;
+    font-size: var(--t-sm);
+  }
+
+  .mc-editor .mc-atrib .mc-fila-texto b {
+    min-width: 0;
+    font-size: var(--t-sm);
+    text-align: right;
+  }
+}
+
+/* En el PC, el contador debajo de la carta, encima de «Ficha completa»: se
+   coloca contra el diálogo, como #mcEdFicha (la columna de datos no es su
+   caja), y la carta deja su sitio. */
+@media (min-width: 761px) {
+  .mc-editor .mc-ficha:has(#mcEdAcciones:not(.hidden)) .mc-ficha-carta {
+    padding-bottom: 144px;
+  }
+
+  .mc-editor .mc-ficha-datos > #mcEdAcciones,
+  .mc-editor .mc-ficha-datos:has(> #mcEdVersiones.hidden) > #mcEdAcciones {
+    position: absolute;
+    bottom: 64px;
+    left: var(--e-lg);
+    z-index: 2;
+    width: calc(var(--ficha-izq) - var(--e-lg) * 2);
+  }
+
+  .mc-editor .mc-ficha-datos > #mcEdAcciones:not(.mc-sin-copias) {
+    grid-template-columns: 48px minmax(0, 1fr) 48px;
+  }
+
+  .mc-editor .mc-ficha-datos > #mcEdAcciones.mc-sin-copias {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* El precio en UNA fila: tu idioma a la izquierda y los chips al lado,
+     para que la columna quepa sin desplazarse (923). */
+  .mc-editor .pv.pv-con-tarjetas .pv-tarjetas {
+    align-items: center;
+    padding: var(--e-xs) var(--e-md);
+  }
+
+  .mc-editor .pv.pv-con-tarjetas .pv-tarjeta.pv-tarjeta-tuya {
+    flex: 0 0 auto;
+    padding: 0 var(--e-md) 0 0;
+  }
+
+  .mc-editor .pv.pv-con-tarjetas .pv-tarjeta-tuya .pv-cifra {
+    font-size: var(--t-xl);
+  }
+
+  .mc-editor .pv.pv-con-tarjetas .pv-tarjeta-tuya .pv-de {
+    display: none;
+  }
+
+  .mc-editor #mcEdAcciones .mc-paso,
+  .mc-editor #mcEdAcciones .mc-paso-centro {
+    min-height: 48px;
+  }
+
+  .mc-editor #mcEdAcciones.mc-sin-copias .mc-ficha-mas {
+    min-height: 64px;
+    font-size: var(--t-lg);
+  }
+
+  /* La fila de versiones ya no deja sitio al contador a su derecha. */
+  .mc-editor .mc-ficha-datos > #mcEdVersiones {
+    padding-right: 0;
+  }
+
+  .mc-editor .mc-atributos {
+    padding: 0 var(--e-md);
+  }
+
+  .mc-editor .mc-atrib {
+    padding: var(--e-xs) 0;
+  }
+}

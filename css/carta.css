@@ -1793,3 +1793,148 @@
     background: var(--bg);
   }
 }
+
+/* ── 1237: «− Tienes N +» en una pastilla redonda, como en el pop-up de Mi
+   colección (SCHEMA 1237): los pasos en círculo, el «+» en el color de la
+   sección y, sin copias, «Añadir a mi colección» en la pastilla entera. */
+.carta-acciones:not(.mc-sin-copias) .carta-pasos {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 60px;
+  padding: var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  box-shadow: inset 0 0 0 1px var(--border);
+}
+
+.carta-pasos .mc-paso {
+  display: grid;
+  place-items: center;
+}
+
+.carta-acciones:not(.mc-sin-copias) .carta-pasos .mc-paso {
+  width: 44px;
+  height: 44px;
+  min-height: 44px;
+  border: 0;
+  border-radius: 50%;
+}
+
+.carta-acciones:not(.mc-sin-copias) .carta-pasos .mc-paso:not(.mc-ficha-mas) {
+  border: 0;
+  background: var(--white);
+}
+
+.carta-acciones:not(.mc-sin-copias) .carta-pasos .mc-paso-centro {
+  min-height: 44px;
+  padding: 0 var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+}
+
+.carta-pasos .mc-paso-centro b {
+  font-family: var(--font-display);
+}
+
+.carta-pasos .mc-paso.mc-ficha-mas {
+  background: var(--acento);
+  color: var(--acento-texto);
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--acento) 40%, transparent);
+}
+
+.carta-pasos .mc-paso.mc-ficha-mas:hover {
+  background: color-mix(in srgb, var(--acento) 86%, var(--text));
+}
+
+.mc-sin-copias .carta-pasos .mc-ficha-mas {
+  min-height: 56px;
+  padding: 0 var(--e-lg);
+  border-radius: var(--radius-pill);
+  font-family: var(--font-display);
+  font-weight: 700;
+}
+
+.mc-sin-copias .carta-pasos .mc-ficha-mas i {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgb(0 0 0 / 14%);
+}
+
+/* ♡ y compartir, redondos y sin borde, como en el pop-up. */
+.carta-redondos .mc-ficha-redondo {
+  border-color: transparent;
+  background: var(--ice);
+}
+
+/* «Añadir a un álbum» solo, sin el rótulo de encima. */
+.carta-albumes:not(:has(.eta-chip)) > h3 {
+  display: none;
+}
+
+/* El precio: la caja de la 1237 (cardmarket.css). Aquí manda sobre la fila
+   de cifras de la 926 y el blanco de la 920. */
+#cmPrecios .pv-tarjetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+}
+
+#cmPrecios .pv-tarjeta:not(.pv-tarjeta-tuya) {
+  padding: var(--e-xs) var(--e-md);
+  background: var(--white);
+}
+
+#cmPrecios a.pv-tarjeta:not(.pv-tarjeta-tuya):hover {
+  background: var(--bg);
+}
+
+#cmPrecios .pv-tarjeta-tuya {
+  padding: 0 0 var(--e-sm);
+  background: none;
+}
+
+#cmPrecios .pv-tarjeta-tuya .pv-cifra {
+  overflow: visible;
+  font-size: var(--t-3xl);
+}
+
+#cmPrecios .pv-t-cifra {
+  font-size: var(--t-sm);
+}
+
+/* En el PC, en una fila (923 y 926: la ficha cabe sin desplazarse). */
+@media (min-width: 761px) {
+  #cmPrecios .pv-tarjetas {
+    align-items: center;
+    padding: var(--e-sm) var(--e-md);
+  }
+
+  #cmPrecios .pv-tarjeta.pv-tarjeta-tuya {
+    flex: 0 0 auto;
+    padding: 0 var(--e-md) 0 0;
+  }
+
+  #cmPrecios .pv-tarjeta-tuya .pv-cifra {
+    font-size: var(--t-2xl);
+  }
+}
+
+.mc-sin-copias .carta-pasos .mc-ficha-mas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-sm);
+  padding: 0 var(--e-md);
+  white-space: nowrap;
+}
+
+.mc-sin-copias .carta-pasos .mc-ficha-mas i {
+  width: 28px;
+  height: 28px;
+  flex: none;
+}

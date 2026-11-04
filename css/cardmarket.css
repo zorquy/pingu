@@ -2077,3 +2077,103 @@ img.icono-bola.icono-version {
 .mc-chapa-variante.en-linea[data-var='normal'] b {
   background: rgb(20 24 32 / 82%);
 }
+
+/* ── 1237: el precio, tu idioma en grande y los demás en chips (SCHEMA 1237)
+   Una caja: arriba la cifra de tu idioma; debajo, cada idioma y TCGplayer en
+   un chip pequeño que lleva a su Cardmarket. Igual en el pop-up y en /carta. */
+.pv.pv-con-tarjetas .pv-tarjetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+  overflow: visible;
+  padding: var(--e-md);
+  border-radius: var(--radius-xl);
+  background: var(--ice);
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta {
+  flex: 0 0 auto;
+  min-width: 0;
+  max-width: none;
+  margin: 0;
+  padding: var(--e-xs) var(--e-md);
+  gap: 0;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+}
+
+.pv.pv-con-tarjetas a.pv-tarjeta:hover {
+  background: var(--bg);
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta .pv-t-cab {
+  font-size: var(--t-2xs);
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta .pv-t-cifra {
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta-sin .pv-t-cifra {
+  font-weight: 600;
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta .pv-t-nombre {
+  display: none;
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta.pv-tarjeta-tuya {
+  flex: 1 0 100%;
+  gap: 2px;
+  padding: 0 0 var(--e-sm);
+  border-radius: 0;
+  background: none;
+  color: var(--text);
+}
+
+.pv.pv-con-tarjetas a.pv-tarjeta-tuya:hover .pv-cifra {
+  color: var(--navy);
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta-tuya .pv-t-cab {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta-tuya .pv-t-cab b {
+  color: var(--text);
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta-tuya .pv-chapa-tuya {
+  margin-left: var(--e-xs);
+  background: var(--white);
+  color: var(--text);
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta-tuya .pv-cifra {
+  font-family: var(--font-display);
+  font-size: var(--t-3xl);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta-tuya .pv-cifra.pv-sin {
+  font-size: var(--t-xl);
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta-tuya .pv-de,
+.pv.pv-con-tarjetas .pv-tarjeta-tuya .pv-sin {
+  color: var(--text-mid);
+}
+
+.pv.pv-con-tarjetas .pv-tarjeta-tuya .pv-de {
+  font-size: var(--t-xs);
+}
+
+/* Son enlaces: 44 px de alto, también con el ratón (589, 645). */
+.pv.pv-con-tarjetas .pv-tarjeta {
+  min-height: 44px;
+  align-content: center;
+}

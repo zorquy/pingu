@@ -240,6 +240,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   la carta a la izquierda, los datos en dos columnas a la derecha. Una hoja
   que se abra DENTRO de la ficha en el móvil (versión, tus copias) lleva
   `data-sin-arrastre`, o el arrastre de hojas (804) cierra la ficha entera.
+  Desde la 1237 (PINGU: «más estilizado todo», con la carta, ♡ y compartir
+  donde estaban) «− Tienes N +» es UNA pastilla redonda con los pasos en
+  círculo y el «+» en `--acento` (sin copias, la pastilla entera dice «Añadir
+  a mi colección»); en el PC del pop-up va debajo de la carta. El precio es
+  una caja: tu idioma en grande y los demás en chips (`.pv-con-tarjetas`), en
+  una fila en el PC para que quepa sin desplazarse (923). Un mando nuevo de la
+  ficha sigue ese molde, no vuelve a las losetas cuadradas.
 - **Una carta se abre en su pop-up, en toda la web** (tanda 1043, PINGU:
   «a la ficha completa solo si le das a ver ficha completa»): un oyente de
   `app.js` convierte cualquier clic en un enlace a `/carta/…` o

@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (477) — PINGU-Claude (1237 — la ficha de una carta, estilizada)
+
+**Hecho** (PINGU eligió lo recomendado de la segunda propuesta, «La carta
+arriba, como ahora; el contador, grande y redondo»):
+
+- «− Tienes N +» es una pastilla redonda de 64 px con «−» y «+» en círculo y
+  el «+» en el color de la sección; sin copias, la pastilla entera dice «Añadir
+  a mi colección». En el pop-up de Mi colección y /cartas, en el PC, va debajo
+  de la carta. En /carta y el pop-up de las demás páginas, el mismo molde.
+- El precio, una caja: tu idioma en grande y los demás en chips (en el PC, en
+  una fila, para que la ficha siga cabiendo sin desplazarse).
+- «Añadir a un álbum», una pastilla suave sin la raya discontinua (y sin el
+  rótulo si la carta no está en ningún álbum).
+- Los atributos del pop-up, una caja con filas finas.
+- Al abrir la ficha el foco va al diálogo: se acabó el aro azul en compartir.
+
+Ningún botón cambia lo que hace; la base no se toca.
+
+**Ficheros**: `css/mi-coleccion.css` (bloque 1237 al final), `css/cardmarket.css`
+(bloque 1237 al final), `css/carta.css` (bloque 1237 al final),
+`css/en-tus-albumes.css`, `js/mi-coleccion.js` (el foco al abrir), SCHEMA,
+CLAUDE.md, novedades. Pruebas (rama pruebas): 915, 920, 921, 923 y 926
+puestas al día con el diseño nuevo (la cifra de tu idioma sin el azul fijo,
+los precios que ya no se deslizan, el contador bajo la carta, una fila contada
+por su centro).
+
+**Pendiente**: lo de la 475.
+
 ## 2026-11-04 (476) — PINGU-Claude (1236b — el Mercado se recarga solo si mezcla despliegues)
 
 **Hecho**: PINGU abrió el Mercado en el iPhone justo después de subir la 1236 y

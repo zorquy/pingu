@@ -54314,3 +54314,47 @@ una vez cada cinco minutos) y devuelve si lo ha hecho. Lo llaman los tres
 `import()` que pinte el error debería pasar por ahí. Prueba: sección 3b de
 `test-tanda-1236-pantalla.mjs` (el primer en-tiendas.js que llega es el viejo).
 
+
+## Tanda 1237 — La ficha de una carta, estilizada
+
+PINGU: «el pop-up de las cartas y también la ficha completa… adaptarla al
+nuevo estilo, con los botones más pequeños, redondeados y más estilizado
+todo». Rechazó la primera propuesta («arriba tiene que estar como ahora»: la
+carta, ♡ y compartir donde están, el nombre y el set debajo) y de la segunda
+eligió lo recomendado. Es solo CSS (más el foco al abrir); ningún botón cambia
+de lo que hace y la base no se toca.
+
+- **«− Tienes N +» es una pastilla redonda** de 64 px (`#mcEdAcciones` en
+  mi-coleccion.css; `.carta-pasos` en carta.css, que pintan /carta y el pop-up
+  de las demás páginas): fondo `--ice`, «−» y «+» en círculos de 48 (44 en
+  /carta) dentro, el «+» en `--acento` con su brillo y «Tienes N · Editar» en
+  medio. Sin copias, la misma pastilla entera en el acento dice «Añadir a mi
+  colección» con el «+» en un círculo. En el PC del pop-up de Mi colección el
+  contador va DEBAJO de la carta, encima de «Ficha completa»: se coloca contra
+  el diálogo con `position: absolute` (la columna de datos no es su caja, el
+  mismo truco que `#mcEdFicha`) y la columna de la carta deja 144 px abajo.
+  Ojo con la especificidad: la regla de la 923
+  `.mc-ficha-datos:has(> #mcEdVersiones.hidden) > #mcEdAcciones` pesa
+  (2,4,0) por el id de dentro del `:has`, así que las columnas del contador
+  van en reglas aparte (`:not(.mc-sin-copias)` / `.mc-sin-copias`) y no en una
+  lista con ella: así salía «Añadir» en 48 px.
+- **El foco, en el diálogo al abrir** (`d.tabIndex = -1; d.focus()` tras
+  `showModal`): el iPhone dejaba el aro de foco en compartir, el primer botón,
+  sin haberlo tocado.
+- **El precio es una caja** (`.pv.pv-con-tarjetas`, cardmarket.css): tu idioma
+  en grande (Outfit, `--t-3xl`) sin el azul fijo, y los demás idiomas y
+  TCGplayer en chips blancos pequeños (sin el nombre del idioma: lo dice la
+  bandera), que siguen siendo los enlaces a Cardmarket. En el móvil la cifra
+  va arriba y los chips debajo, partidos en filas: ya no se desliza de lado, así
+  que el dedo de lado sobre ellos pasa de carta como en el resto de la ficha
+  (la 920 lo dice). En el PC, tu idioma a la izquierda y los chips en la misma
+  fila (sin «mínimo en…», que ya dice el rótulo): con la caja en dos pisos la
+  columna de la 923 dejaba de caber sin desplazarse. Las pruebas 920, 923 y 926
+  cuentan una fila por su CENTRO, no por su borde de arriba.
+- **«Añadir a un álbum»** (`.eta-anadir`, en todas partes) es una pastilla
+  suave, sin la raya discontinua; si la carta no está en ningún álbum, sin el
+  rótulo «En tus álbumes» y centrada en el móvil.
+- **Los atributos del pop-up, una caja con filas finas** (el molde de Mensajes,
+  1232): en el móvil, la etiqueta a la izquierda y el dato a la derecha; en el
+  PC, las tres columnas de la 923 en la misma caja.
+- ♡ y compartir de /carta, redondos en `--ice` y sin borde.

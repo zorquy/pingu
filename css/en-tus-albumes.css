@@ -33,9 +33,11 @@
 }
 .eta-chip small { color: var(--text-mid); font-weight: 500; white-space: nowrap; }
 .eta-chip-nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.eta-anadir { padding-left: var(--e-md); border-style: dashed; border-color: var(--acento); color: var(--text); }
+/* 1237: una pastilla suave, sin la raya discontinua (PINGU, SCHEMA 1237). */
+.eta-anadir { padding-left: var(--e-md); border-color: transparent; background: var(--ice); color: var(--text); }
 .eta-anadir span { color: var(--acento); font-size: var(--t-lg); line-height: 1; }
-.eta-chip:hover, .eta-anadir:hover { border-color: var(--acento); }
+.eta-chip:hover { border-color: var(--acento); }
+.eta-anadir:hover { background: var(--ice-dark); }
 @media (pointer: coarse) {
   .eta-chip, .eta-anadir { min-height: 44px; }
 }
