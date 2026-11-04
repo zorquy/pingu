@@ -35,7 +35,7 @@ import { crecerDesde } from './gestos-ficha.js'
 import { entenderBusqueda } from './busqueda.js'
 import { mercado as pedirMercado, quienDaEsta, mercadoConTiendas } from './cambios.js'
 import { supabase } from '../supabase.js'
-import { tiendasQueTienen, enTiendasHtml } from '../en-tiendas.js'
+import { tiendasQueTienen, enTiendasHtml, fotosDeTiendas, engancharEnTiendas } from '../en-tiendas.js'
 import { senasDe, borradorDe } from './tablon.js'
 import { bandaDeDeseosHtml, miles } from './banda-deseos.js'
 import { hojaInyectada } from '../hoja.js'
@@ -102,6 +102,27 @@ export function chapaDeBaldosa({ busco }) {
   return null
 }
 
+// La línea de las tiendas bajo la carta (1236, PINGU: «si hay varias tiendas
+// con distintos precios, ¿cómo se muestra?»): con una, su precio y su nombre;
+// con varias, «Desde» el más barato y cuántas son. El precio de arriba (el de
+// Cardmarket, con su bandera) no se toca. Pura, para la prueba.
+export function textoDeTiendas(f) {
+  const n = Number(f?.tiendas) || 0
+  if (!n) return ''
+  const desde = f.desde != null ? euros(Number(f.desde)) : null
+  if (n === 1) {
+    const t = (f.gente || []).find((p) => p.tienda)
+    const nombre = t ? t.display_name || t.username || '' : ''
+    if (desde) return nombre ? `${desde} · ${nombre}` : `${desde} · 1 tienda`
+    return nombre ? `En ${nombre}` : 'En 1 tienda'
+  }
+  return desde ? `Desde ${desde} · ${n} tiendas` : `En ${n} tiendas`
+}
+function lineaDeTiendasHtml(f) {
+  const t = textoDeTiendas(f)
+  return t ? `<span class="mc-merc-desde">${escapeHtml(t)}</span>` : ''
+}
+
 function deseosDe(cardId) {
   const d = ctx.deseos()
   return Array.isArray(d) ? d.filter((x) => x.card_id === cardId) : []
@@ -133,7 +154,7 @@ function baldosaHtml(f) {
     <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
     ${lineaDeSetHtml(c)}
     <span class="mc-merc-fila"><b class="mc-merc-precio">${precio == null ? '' : escapeHtml(euros(precio))}</b><span class="mc-merc-idiomas">${(f.idiomas || []).slice(0, 4).map((i) => banderaHtml(i)).join('')}</span></span>
-    ${f.desde != null ? `<span class="mc-merc-desde">En tienda: ${escapeHtml(euros(f.desde))}</span>` : ''}
+    ${lineaDeTiendasHtml(f)}
   </article>`
 }
 
@@ -266,19 +287,41 @@ async function pintarFranja() {
     caja = $('mcMercadoTiendas')
   }
   if (!caja) return
-  if (!ctx.sesion || estado.quien === 'personas' || mercadoConTiendas === false) return caja.classList.add('hidden')
+  if (estado.quien === 'personas' || mercadoConTiendas === false) return caja.classList.add('hidden')
+  // En la pestaña «Tiendas» (1236): TODAS las tiendas, las de tu lista
+  // primero, y «Ver todas» a la agenda. Sin la migración, lo de antes.
+  if (estado.quien === 'tiendas') {
+    agendaPedida ??= supabase.rpc('tiendas_agenda', { p_cuantas: 8 }).then(({ data, error }) => (error ? null : data), () => null)
+    const a = await agendaPedida
+    if (estado.quien !== 'tiendas') return void pintarFranja()
+    if (a?.tiendas?.length) {
+      caja.classList.remove('hidden')
+      caja.innerHTML = `<div class="mc-mercado-tiendas-cab"><h3 class="mc-mercado-tiendas-titulo">Tiendas <small>· ${miles(a.total)}</small></h3><a class="link-btn" href="/tiendas">Ver todas</a></div>
+        <div class="mc-mercado-tiendas-fila">${a.tiendas.map((t) => tarjetaDeTiendaHtml(t, { cuentas: true })).join('')}</div>`
+      return
+    }
+  }
+  if (!ctx.sesion) return caja.classList.add('hidden')
   franjaPedida ??= supabase.rpc('tiendas_con_mis_deseos', { p_limite: 12 }).then(({ data, error }) => (error ? [] : data || []), () => [])
   const tiendas = await franjaPedida
   caja.classList.toggle('hidden', !tiendas.length)
   if (!tiendas.length) return
-  caja.innerHTML = `<h3 class="mc-mercado-tiendas-titulo">Tiendas con cartas de tu lista</h3>
-    <div class="mc-mercado-tiendas-fila">${tiendas.map((t) => {
-      const nombre = t.display_name || t.username || 'Tienda'
-      return `<a class="mc-tienda-tarjeta" href="/usuario/${encodeURIComponent(t.username || '')}?lista=1"${atributosDeRango(t)}>
-        <span class="mc-tienda-logo" style="${t.avatar_url ? avatarStyle(t) : ''}">${t.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
-        <span class="mc-tienda-datos"><strong>${escapeHtml(nombre)}</strong>${t.ciudad ? `<small>${escapeHtml(t.ciudad)}</small>` : ''}<em>${t.cartas === 1 ? '1 de tu lista' : `${t.cartas} de tu lista`}</em></span>
-      </a>`
-    }).join('')}</div>`
+  caja.innerHTML = `<div class="mc-mercado-tiendas-cab"><h3 class="mc-mercado-tiendas-titulo">Tiendas con cartas de tu lista</h3>${agendaPedida === null ? '' : '<a class="link-btn" href="/tiendas">Todas las tiendas</a>'}</div>
+    <div class="mc-mercado-tiendas-fila">${tiendas.map((t) => tarjetaDeTiendaHtml({ ...t, de_tu_lista: t.cartas })).join('')}</div>`
+}
+let agendaPedida = undefined
+
+// Una tienda en la franja: logo, nombre, ciudad y lo que tiene. Con
+// `cuentas`, también cuántas cartas enseña (la agenda lo sabe; la franja de
+// tu lista, no). Lleva a su escaparate, con lo de tu lista puesto si hay.
+function tarjetaDeTiendaHtml(t, { cuentas = false } = {}) {
+  const nombre = t.display_name || t.username || 'Tienda'
+  const tuyas = Number(t.de_tu_lista) || 0
+  const lineas = [cuentas && Number(t.cartas) ? `${miles(Number(t.cartas))} ${Number(t.cartas) === 1 ? 'carta' : 'cartas'}` : '', tuyas ? `<em>${tuyas === 1 ? '1 de tu lista' : `${tuyas} de tu lista`}</em>` : ''].filter(Boolean)
+  return `<a class="mc-tienda-tarjeta" href="/usuario/${encodeURIComponent(t.username || '')}${tuyas ? '?lista=1' : ''}"${atributosDeRango(t)}>
+    <span class="mc-tienda-logo" style="${t.avatar_url ? avatarStyle(t) : ''}">${t.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
+    <span class="mc-tienda-datos"><strong>${escapeHtml(nombre)}</strong>${t.ciudad ? `<small>${escapeHtml(t.ciudad)}</small>` : ''}${lineas.length ? `<span class="mc-tienda-cuentas">${lineas.join(' · ')}</span>` : ''}</span>
+  </a>`
 }
 
 // LA BANDA (1217): cuántas cartas se dan, cuánta gente (solo si está todo
@@ -565,6 +608,31 @@ function doyHtml(c) {
 
 let gentePorCarta = new Map()
 const tiendasPorCarta = new Map()
+const fotosPorCarta = new Map()
+// Qué enseña la ficha (1236): todo, las personas o las tiendas. Abre con el
+// chip de la rejilla de la que sale.
+let verEnFicha = 'todo'
+
+// Los dos precios arriba (1236): Cardmarket y, si alguna tienda la tiene,
+// «En tiendas desde». Con la fila de la rejilla mientras llegan las tiendas.
+function preciosDeFichaHtml(c, precio, tiendas) {
+  const fila = filas.find((f) => f.card_id === c.id)
+  const conPrecio = (tiendas || []).filter((t) => t.precio != null).map((t) => Number(t.precio))
+  const desde = conPrecio.length ? Math.min(...conPrecio) : fila?.desde != null ? Number(fila.desde) : null
+  const hay = tiendas ? tiendas.length > 0 : Number(fila?.tiendas) > 0
+  const caja = (rotulo, valor, clase = '') => `<span class="mc-merf-precio-caja${clase}"><small>${rotulo}</small><b>${valor}</b></span>`
+  return `<div class="mc-merf-precios${hay ? ' con-tiendas' : ''}">
+    ${caja('Cardmarket', precio == null ? 'Sin precio' : escapeHtml(euros(precio)))}
+    ${hay ? caja('En tiendas', desde == null ? 'Pregunta' : `${conPrecio.length > 1 || Number(fila?.tiendas) > 1 ? 'desde ' : ''}${escapeHtml(euros(desde))}`, ' tiendas') : ''}
+  </div>`
+}
+
+function selectorDeFichaHtml(nPersonas, nTiendas) {
+  if (!nPersonas || !nTiendas) return ''
+  const b = (v, t, n) => `<button type="button" class="seg-btn" data-merf-ver="${v}" aria-pressed="${verEnFicha === v}">${t} · ${n}</button>`
+  return `<div class="mc-merf-ver seg" role="group" aria-label="Qué enseñar">${b('todo', 'Todo', nPersonas + nTiendas)}${b('personas', 'Personas', nPersonas)}${b('tiendas', 'Tiendas', nTiendas)}</div>`
+}
+
 async function pintarFicha(cardId) {
   const c = ctx.cartas.get(cardId)
   const cuerpo = $('mcMercadoFichaCuerpo')
@@ -573,17 +641,23 @@ async function pintarFicha(cardId) {
   const escaneo = atributosDeEscaneo(cadenaDeEscaneo(c))
   const precio = ctx.precioDeCarta(c.id)
   const gente = gentePorCarta.get(cardId)
+  const tiendas = modoAbierto === 'busca' ? [] : tiendasPorCarta.get(cardId)
+  const nPersonas = gente ? porPersona(gente).length : 0
+  const nTiendas = tiendas?.length || 0
+  // Con una sola clase de gente no hay nada que elegir.
+  const ver = nPersonas && nTiendas ? verEnFicha : 'todo'
+  cuerpo.dataset.ver = ver
   cuerpo.innerHTML = `
     <div class="mc-prodf-arriba">
       <a class="mc-prodf-foto mc-merf-foto" href="${escapeHtml(rutaDeCarta(c))}">${escaneo ? `<img ${escaneo} alt="" width="245" height="342" />` : ''}</a>
       <div class="mc-prodf-datos">
         <p class="mc-prodf-set">${escapeHtml([nombreDeSet(c.tcg_sets), c.local_id].filter(Boolean).join(' · '))}</p>
-        <p class="mc-merf-precio">${precio == null ? 'Sin precio' : escapeHtml(euros(precio))}</p>
-        ${precio == null ? '' : '<p class="subtext">Lo más barato en Cardmarket</p>'}
+        ${modoAbierto === 'busca' ? `<p class="mc-merf-precio">${precio == null ? 'Sin precio' : escapeHtml(euros(precio))}</p>${precio == null ? '' : '<p class="subtext">Lo más barato en Cardmarket</p>'}` : preciosDeFichaHtml(c, precio, tiendas)}
         <a class="link-btn" href="${escapeHtml(rutaDeCarta(c))}">Ver la carta</a>
       </div>
     </div>
     ${modoAbierto === 'busca' ? doyHtml(c) : `<div id="mcMercadoFichaQuiero">${botonQuieroHtml(c)}</div><div class="mc-merf-listas" id="mcMercadoFichaListas">${listasHtml(c)}</div>`}
+    ${modoAbierto === 'busca' ? '' : selectorDeFichaHtml(nPersonas, nTiendas)}
     ${gente === undefined
       ? '<div class="skeleton" style="height:120px"></div>'
       : gente === null
@@ -593,17 +667,20 @@ async function pintarFicha(cardId) {
              <ul class="mc-merf-gente">${porPersona(gente).map((p) => personaHtml(p, c, modoAbierto)).join('')}</ul>`
           : modoAbierto === 'busca'
             ? '<p class="subtext">Nadie la busca todavía. En cuanto alguien la apunte, saldrá aquí.</p>'
-            : '<p class="subtext">Ahora mismo nadie la da. Con el corazón te avisamos cuando alguien la ponga.</p>'}
-    ${modoAbierto === 'busca' ? '' : `<div class="mc-merf-tiendas" id="mcMercadoFichaTiendas">${tiendasPorCarta.has(cardId) ? enTiendasHtml(tiendasPorCarta.get(cardId), cardId) : ''}</div>`}`
-  // Las tiendas que la tienen (1069), una vez por carta.
+            // Si la tiene una tienda, «nadie la da» no es verdad (1236).
+            : nTiendas || tiendas === undefined ? '' : '<p class="subtext">Ahora mismo nadie la da. Con el corazón te avisamos cuando alguien la ponga.</p>'}
+    ${modoAbierto === 'busca' ? '' : `<div class="mc-merf-tiendas" id="mcMercadoFichaTiendas">${nTiendas ? enTiendasHtml(tiendas, cardId, { conSesion: Boolean(ctx.sesion), fotos: fotosPorCarta.get(cardId) }) : ''}</div>`}`
+  if (nTiendas) engancharEnTiendas($('mcMercadoFichaTiendas'), { tiendas: () => tiendasPorCarta.get(abierta), fotos: () => fotosPorCarta.get(abierta), nombre: () => nombreDe(ctx.cartas.get(abierta)) || '' })
+  // Las tiendas que la tienen (1069), una vez por carta; al llegar, se
+  // repinta la ficha entera (los precios de arriba y el selector cambian).
   if (modoAbierto !== 'busca' && !tiendasPorCarta.has(cardId)) {
     tiendasQueTienen(cardId).then(async (t) => {
+      if (t.length) {
+        await hojaInyectada('css/en-tiendas.css')
+        fotosPorCarta.set(cardId, await fotosDeTiendas(t))
+      }
       tiendasPorCarta.set(cardId, t)
-      const hueco = $('mcMercadoFichaTiendas')
-      if (!t.length || abierta !== cardId || !hueco) return
-      const { hojaInyectada } = await import('../hoja.js')
-      await hojaInyectada('css/en-tiendas.css')
-      hueco.innerHTML = enTiendasHtml(t, cardId)
+      if (abierta === cardId) void pintarFicha(cardId)
     })
   }
   import('../cambios-hechos.js').then((m) => m.ponerConfianza(cuerpo)).catch(() => {})
@@ -621,6 +698,7 @@ const idDeBaldosa = (el) => el.dataset.merc || el.dataset.deseoCarta || el.datas
 async function abrirFicha(cardId, { modo = 'da', desde = null } = {}) {
   const d = $('mcMercadoFicha')
   if (!d) return
+  if (abierta !== cardId || !$('mcMercadoFicha')?.open) verEnFicha = estado.quien === 'tiendas' ? 'tiendas' : estado.quien === 'personas' ? 'personas' : 'todo'
   abierta = cardId
   modoAbierto = modo
   if (desde) vecinas = [...new Set([...desde.querySelectorAll(BALDOSAS)].map(idDeBaldosa).filter(Boolean))]
@@ -808,6 +886,11 @@ function enganchar() {
     if (al) return void aUnaLista(al.dataset.merfALista)
     const sl = e.target.closest('[data-merf-sacar-lista]')
     if (sl) return void sacarDeUnaLista(sl.dataset.merfSacarLista, sl.dataset.carta)
+    const vf = e.target.closest('[data-merf-ver]')
+    if (vf) {
+      verEnFicha = vf.dataset.merfVer
+      return void pintarFicha(abierta)
+    }
     const w = e.target.closest('[data-merf-escribir]')
     if (w) return escribir(w.dataset.merfEscribir, w.dataset.carta, w.dataset.modo)
     const pr = e.target.closest('[data-merf-proponer]')

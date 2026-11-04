@@ -136,6 +136,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `tienda-fotos/<tienda>/…`; se ponen y se ven por `js/tienda-fotos.js`
   (`fotosDeStock`, `abrirFotosDeStock`, `verFotosDeStock`), comprimidas antes.
   Una pantalla nueva que enseñe una copia de tienda pregunta ahí.
+  En el Mercado (1236, PINGU eligió lo recomendado): la línea de una carta
+  con tiendas sale de `textoDeTiendas` («Desde X € · N tiendas» o «X € ·
+  Nombre»; el precio de arriba, con su bandera, no se toca), y las tiendas de
+  una carta se pintan en tarjetas con `enTiendasHtml` (`js/en-tiendas.js`:
+  «Me interesa» por `enlaceMeInteresa`, «Su tienda», «Ver fotos», tres a la
+  vista); salen de `tiendas_con_la_carta` (con la línea, `stock_id`) y caen a
+  `tiendas_que_tienen` sin la migración. La agenda de tiendas es /tiendas
+  (`js/tiendas-agenda.js`, `tiendas_agenda`), con «Pide acceso» debajo; la
+  pestaña «Tiendas» del Mercado enseña su franja con «Ver todas».
 - **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
   1065 y 1066): cada visita lleva `modo` (app instalada o web),
   `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que

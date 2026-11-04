@@ -15796,3 +15796,21 @@ html.con-barra-movil .mc-prod-banda { display: none; }
   #mcBuscarAntes .mc-antes-set > span:last-child { width: 100%; }
   #mcBuscarAntes .mc-antes-logo { width: 72px; height: 36px; }
 }
+
+/* Las tiendas en el Mercado (1236): la línea de la carta dice cuántas y
+   desde cuánto; la ficha, los dos precios arriba y Todo · Personas · Tiendas. */
+.mc-merc-desde { overflow: hidden; color: var(--text); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.mc-merf-precios { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); margin: var(--e-xs) 0 var(--e-sm); }
+.mc-merf-precios:not(.con-tiendas) { grid-template-columns: minmax(0, 1fr); }
+.mc-merf-precio-caja { display: grid; min-width: 0; padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--ice); }
+.mc-merf-precio-caja small { color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }
+.mc-merf-precio-caja b { overflow: hidden; font-family: var(--font-display); font-size: var(--t-lg); text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.mc-merf-precio-caja.tiendas { background: color-mix(in srgb, var(--acento) 18%, var(--white)); }
+.mc-merf-ver { display: flex; gap: var(--e-xs); margin: var(--e-sm) 0; }
+.mc-merf-ver .seg-btn { flex: 1; }
+#mcMercadoFichaCuerpo[data-ver='tiendas'] :is(.mc-merf-sub, .mc-merf-gente) { display: none; }
+#mcMercadoFichaCuerpo[data-ver='personas'] .mc-merf-tiendas { display: none; }
+.mc-mercado-tiendas-cab { display: flex; align-items: baseline; justify-content: space-between; gap: var(--e-md); }
+.mc-mercado-tiendas-titulo small { color: var(--text-mid); font-weight: 600; }
+.mc-tienda-cuentas { overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.mc-tienda-cuentas em { font-style: normal; font-weight: 700; color: var(--pink); }

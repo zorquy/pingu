@@ -1,46 +1,57 @@
-/* «En tiendas» (tanda 1069): las tiendas que tienen una carta, en su ficha.
-   La inyecta js/en-tiendas.js. */
+/* «En tiendas» (tanda 1069; en tarjetas desde la 1236): las tiendas que
+   tienen una carta, en su ficha y en el pop-up del Mercado. La inyecta
+   js/en-tiendas.js. El molde es el de las personas del pop-up: quién, lo que
+   da y sus botones (SCHEMA 1236). */
 
 .ent-titulo {
   margin: var(--e-md) 0 var(--e-sm);
-  font-size: var(--t-sm);
+  font-size: var(--t-xs);
   font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--text-mid);
 }
 
 .ent-lista {
   display: grid;
-  gap: var(--e-xs);
+  gap: var(--e-sm);
 }
 
-.ent-fila {
+.ent-tarjeta {
   display: grid;
-  grid-template-columns: 36px minmax(0, 1fr) auto;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+
+.ent-tarjeta.ent-barata {
+  border-color: var(--acento);
+}
+
+.ent-oculta {
+  display: none;
+}
+
+.ent-arriba {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
   gap: var(--e-md);
   align-items: center;
-  min-height: 44px;
-  padding: var(--e-xs) var(--e-sm);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  color: var(--text);
-  text-decoration: none;
-}
-
-.ent-fila:hover {
-  border-color: var(--border-strong);
 }
 
 .ent-logo {
   display: grid;
   place-items: center;
-  width: 36px;
-  height: 36px;
-  border-radius: var(--radius-sm);
-  background: var(--navy-solid);
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-md);
+  background: var(--navy-solid) center / cover no-repeat;
   color: var(--blanco-fijo);
   font-family: var(--font-display);
   font-weight: 800;
+  text-decoration: none;
 }
 
 .ent-quien {
@@ -65,16 +76,88 @@
 .ent-precio {
   display: grid;
   justify-items: end;
-  font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+.ent-precio b {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
 }
 
 .ent-precio .ent-antes {
   font-size: var(--t-xs);
-  font-weight: 500;
   color: var(--text-mid);
 }
 
-.ent-precio .ent-tuya {
-  color: var(--pink);
+.ent-precio .ent-barata-txt {
+  color: var(--acento);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.ent-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+}
+
+.ent-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 24px;
+  padding: 0 var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+
+.ent-chip .pv-bandera {
+  display: inline-block;
+}
+
+.ent-chip.ent-tuya {
+  background: color-mix(in srgb, var(--pink) 16%, var(--white));
+}
+
+.ent-chip.ent-fotos {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--navy);
+  cursor: pointer;
+}
+
+.ent-chip.ent-fotos:hover {
+  background: var(--ice);
+}
+
+.ent-botones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+}
+
+.ent-botones > a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  text-decoration: none;
+}
+
+.ent-mas {
+  justify-self: center;
+  margin-top: var(--e-sm);
+}
+
+@media (pointer: coarse) {
+  .ent-chip.ent-fotos {
+    min-height: 44px;
+  }
 }

@@ -1,46 +1,137 @@
-// «En tiendas» (tanda 1069): las tiendas que tienen una carta, la más
-// barata primero, para la ficha de una carta y la del Mercado. Lo cuenta la
-// base (`tiendas_que_tienen`): solo lo visible y con unidades, nunca el
-// coste, y sin precio si la tienda no lo enseña. Sin la migración, o sin
-// ninguna tienda, el bloque no sale: «ninguna tienda» no se dice mientras
-// apenas haya tiendas.
+// «En tiendas» (tanda 1069; tarjetas desde la 1236): las tiendas que tienen
+// una carta, la más barata primero, para la ficha de una carta y la del
+// Mercado. Lo cuenta la base: solo lo visible y con unidades, nunca el coste,
+// y sin precio si la tienda no lo enseña. Sin la migración, o sin ninguna
+// tienda, el bloque no sale: «ninguna tienda» no se dice mientras apenas haya
+// tiendas.
+//
+// PINGU (1236): «debería tener en el pop-up de esa carta, igual que sale para
+// los usuarios proponer cambio, pues a la tienda contactar, me interesa». Cada
+// tienda va en su tarjeta, con el molde de las personas: lo que vende (idioma,
+// estado o cápsula, versión, «Ver fotos») y dos botones, «Me interesa» (el del
+// escaparate, 1080: la conversación con esa carta dentro) y «Su tienda».
+// Tres a la vista y «Ver N más».
 import { supabase } from './supabase.js'
-import { escapeHtml } from './html.js'
+import { escapeHtml, urlParaCss } from './html.js'
 import { hojaInyectada } from './hoja.js'
 import { euros } from './cardmarket.js'
 import { nombreDeVariante } from './mi-coleccion/variantes.js'
+import { banderaHtml } from './precio-vista.js'
+import { chapaDeGradeoHtml } from './gradeo-elegir.js'
+import { icons } from './icons.js'
 
+export const A_LA_VISTA = 3
+const IDIOMA_CORTO = { es: 'Español', en: 'Inglés', fr: 'Francés', de: 'Alemán', it: 'Italiano', pt: 'Portugués', ja: 'Japonés', ko: 'Coreano', 'zh-tw': 'Chino', 'zh-cn': 'Chino' }
+
+// Con la 1236, `tiendas_con_la_carta` trae la línea del stock (para «Me
+// interesa» y las fotos) y si tiene local; sin ella, la de la 1069/1079.
+let conLaCarta = true
 export async function tiendasQueTienen(cardId) {
   if (!cardId) return []
-  const { data, error } = await supabase.rpc('tiendas_que_tienen', { p_card_id: cardId, p_limite: 12 })
+  if (conLaCarta) {
+    const { data, error } = await supabase.rpc('tiendas_con_la_carta', { p_card_id: cardId, p_limite: 24 })
+    if (!error) return data || []
+    conLaCarta = false
+  }
+  const { data, error } = await supabase.rpc('tiendas_que_tienen', { p_card_id: cardId, p_limite: 24 })
   return error ? [] : data || []
 }
 
 // La URL del perfil de la tienda, con la carta a la vista.
 export const enlaceDeTienda = (t, cardId = null) => `/usuario/${encodeURIComponent(t.username || '')}${cardId ? `?carta=${encodeURIComponent(cardId)}` : ''}`
 
-export function enTiendasHtml(tiendas, cardId) {
+// «Me interesa»: con la línea, la conversación con esa carta dentro (1080);
+// sin ella (la base sin la 1236), su escaparate en esa carta, donde está el
+// mismo botón. Sin cuenta, a registrarse y de vuelta ahí.
+export function enlaceMeInteresa(t, cardId, conSesion) {
+  const destino = t.stock_id ? `/mensajes.html?with=${encodeURIComponent(t.tienda_id)}&carta=${encodeURIComponent(t.stock_id)}` : enlaceDeTienda(t, cardId)
+  return conSesion || !t.stock_id ? destino : `/auth.html?registro=1&volver=${encodeURIComponent(destino)}`
+}
+
+// Lo que se dice de dónde está: la ciudad y si tiene local.
+const dondeDe = (t) => [t.ciudad, t.con_local === true ? 'Con local' : null].filter(Boolean).join(' · ')
+
+export function enTiendasHtml(tiendas, cardId, { conSesion = false, fotos = null, abierto = false } = {}) {
   if (!tiendas?.length) return ''
-  const fila = (t) => {
+  const conPrecio = tiendas.filter((t) => t.precio != null)
+  const minimo = conPrecio.length ? Math.min(...conPrecio.map((t) => Number(t.precio))) : null
+  // «La más barata» solo si hay con quién comparar, y solo la primera.
+  let barataPuesta = false
+  const tarjeta = (t, i) => {
     const nombre = t.display_name || t.username || 'Tienda'
-    const detalle = [String(t.idioma || '').toUpperCase(), t.estado, t.variante && t.variante !== 'normal' ? nombreDeVariante(t.variante) : null, t.gradeo].filter(Boolean).join(' · ')
-    return `<a class="ent-fila" href="${escapeHtml(enlaceDeTienda(t, cardId))}">
-      <span class="ent-logo" aria-hidden="true">${escapeHtml(nombre.slice(0, 1).toUpperCase())}</span>
-      <span class="ent-quien"><strong>${escapeHtml(nombre)}</strong><small>${escapeHtml([t.ciudad, detalle].filter(Boolean).join(' · '))}</small></span>
-      <span class="ent-precio">${t.precio == null ? '<small>Pregunta el precio</small>' : `${t.precio_antes != null ? `<s class="ent-antes">${escapeHtml(euros(t.precio_antes))}</s> ` : ''}${escapeHtml(euros(t.precio))}`}${t.de_tu_lista ? '<small class="ent-tuya">de tu lista</small>' : ''}</span>
-    </a>`
+    const barata = !barataPuesta && conPrecio.length > 1 && t.precio != null && Number(t.precio) === minimo
+    if (barata) barataPuesta = true
+    const n = fotos?.get?.(t.stock_id)
+    const nFotos = n ? Number(Boolean(n.frente)) + Number(Boolean(n.dorso)) : 0
+    const chips = [
+      t.idioma ? `<span class="ent-chip">${banderaHtml(t.idioma)}${escapeHtml(IDIOMA_CORTO[t.idioma] || String(t.idioma).toUpperCase())}</span>` : '',
+      t.gradeo ? chapaDeGradeoHtml(t.gradeo) : t.estado ? `<span class="ent-chip">${escapeHtml(t.estado)}</span>` : '',
+      t.variante && t.variante !== 'normal' ? `<span class="ent-chip">${escapeHtml(nombreDeVariante(t.variante))}</span>` : '',
+      Number(t.unidades) > 1 ? `<span class="ent-chip">${Number(t.unidades)} uds.</span>` : '',
+      t.de_tu_lista ? '<span class="ent-chip ent-tuya">De tu lista</span>' : '',
+      nFotos ? `<button type="button" class="ent-chip ent-fotos" data-ent-fotos="${escapeHtml(t.stock_id)}">${icons.camera(13)}Ver ${nFotos === 2 ? 'fotos' : 'la foto'}</button>` : '',
+    ].join('')
+    const urlLogo = t.avatar_url ? urlParaCss(t.avatar_url) : ''
+    const logo = urlLogo ? ` style="background-image:url('${urlLogo}')"` : ''
+    return `<article class="ent-tarjeta${barata ? ' ent-barata' : ''}${i >= A_LA_VISTA && !abierto ? ' ent-oculta' : ''}" data-ent-tienda="${escapeHtml(t.tienda_id || '')}">
+      <div class="ent-arriba">
+        <a class="ent-logo${urlLogo ? ' con-foto' : ''}" href="${escapeHtml(enlaceDeTienda(t, cardId))}"${logo} aria-label="${escapeHtml(`${nombre}: su tienda`)}">${urlLogo ? '' : escapeHtml(nombre.slice(0, 1).toUpperCase())}</a>
+        <span class="ent-quien"><strong>${escapeHtml(nombre)}</strong>${dondeDe(t) ? `<small>${escapeHtml(dondeDe(t))}</small>` : ''}</span>
+        <span class="ent-precio">${t.precio == null ? '<small>Pregunta el precio</small>' : `${t.precio_antes != null ? `<s class="ent-antes">${escapeHtml(euros(t.precio_antes))}</s>` : ''}<b>${escapeHtml(euros(t.precio))}</b>`}${barata ? '<small class="ent-barata-txt">La más barata</small>' : ''}</span>
+      </div>
+      ${chips ? `<div class="ent-chips">${chips}</div>` : ''}
+      <div class="ent-botones">
+        <a class="btn-primary" href="${escapeHtml(enlaceMeInteresa(t, cardId, conSesion))}">${icons.mail(15)}<span>Me interesa</span></a>
+        <a class="btn-secondary" href="${escapeHtml(enlaceDeTienda(t, cardId))}">Su tienda</a>
+      </div>
+    </article>`
   }
-  return `<h3 class="ent-titulo">En tiendas</h3><div class="ent-lista">${tiendas.map(fila).join('')}</div>`
+  const ocultas = abierto ? 0 : Math.max(0, tiendas.length - A_LA_VISTA)
+  return `<h3 class="ent-titulo">En ${tiendas.length === 1 ? '1 tienda' : `${tiendas.length} tiendas`}</h3>
+    <div class="ent-lista">${tiendas.map(tarjeta).join('')}</div>
+    ${ocultas ? `<button type="button" class="btn-secondary ent-mas" data-ent-mas>Ver ${ocultas === 1 ? '1 tienda más' : `${ocultas} tiendas más`}</button>` : ''}`
+}
+
+// Las fotos de las copias (1235), si las hay; sin la migración, ninguna.
+export async function fotosDeTiendas(tiendas) {
+  const ids = (tiendas || []).map((t) => t.stock_id).filter(Boolean)
+  if (!ids.length) return null
+  const { fotosDeStock } = await import('./tienda-fotos.js')
+  return fotosDeStock(ids).catch(() => null)
+}
+
+// «Ver N más» y «Ver fotos», una vez por caja.
+export function engancharEnTiendas(caja, { tiendas = () => [], fotos = () => null, nombre = () => '' } = {}) {
+  if (!caja || caja.dataset.entEnganchada) return
+  caja.dataset.entEnganchada = '1'
+  caja.addEventListener('click', async (e) => {
+    if (e.target.closest('[data-ent-mas]')) {
+      caja.querySelectorAll('.ent-oculta').forEach((x) => x.classList.remove('ent-oculta'))
+      e.target.closest('[data-ent-mas]').remove()
+      return
+    }
+    const b = e.target.closest('[data-ent-fotos]')
+    if (!b) return
+    const t = (tiendas() || []).find((x) => x.stock_id === b.dataset.entFotos)
+    const f = fotos()?.get?.(b.dataset.entFotos)
+    if (!t || !f) return
+    const { verFotosDeStock } = await import('./tienda-fotos.js')
+    verFotosDeStock({ nombre: nombre(), detalle: [t.display_name || t.username, String(t.idioma || '').toUpperCase(), t.gradeo || t.estado].filter(Boolean).join(' · '), fotos: f })
+  })
 }
 
 // Pinta el bloque en `caja` si hay alguna tienda; `sigue()` dice si la ficha
 // sigue siendo la de esa carta cuando llega la respuesta (la 663).
-export async function pintarEnTiendas(caja, cardId, { sigue = () => true } = {}) {
+export async function pintarEnTiendas(caja, cardId, { sigue = () => true, nombre = () => '' } = {}) {
   if (!caja) return
   caja.hidden = true
-  const tiendas = await tiendasQueTienen(cardId)
+  const [tiendas, sesion] = await Promise.all([tiendasQueTienen(cardId), supabase.auth.getSession().then((r) => r?.data?.session || null, () => null)])
   if (!sigue() || !tiendas.length) return
   await hojaInyectada('css/en-tiendas.css')
-  caja.innerHTML = enTiendasHtml(tiendas, cardId)
+  const fotos = await fotosDeTiendas(tiendas)
+  if (!sigue()) return
+  caja.innerHTML = enTiendasHtml(tiendas, cardId, { conSesion: Boolean(sesion), fotos })
   caja.hidden = false
+  caja._entDatos = { tiendas, fotos }
+  engancharEnTiendas(caja, { tiendas: () => caja._entDatos?.tiendas, fotos: () => caja._entDatos?.fotos, nombre })
 }

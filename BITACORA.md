@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (475) — PINGU-Claude (1236 — las tiendas en el Mercado)
+
+**Hecho** (PINGU eligió lo recomendado de la propuesta «Tiendas en el
+Mercado», sin el «CM» delante del precio):
+
+- La carta del Mercado: «Desde 72 € · 4 tiendas» o «1.200 € · RyuCards»
+  (antes «En tienda: 80 €»). El precio de arriba, como estaba.
+- El pop-up: Cardmarket y «En tiendas desde» arriba; Todo · Personas ·
+  Tiendas; cada tienda en su tarjeta (la más barata marcada, chips, cápsula,
+  «Ver fotos») con «Me interesa» y «Su tienda»; tres a la vista y «Ver N más».
+- La pestaña «Tiendas»: la franja con todas las tiendas y «Ver todas».
+- /tiendas es la agenda de tiendas, con «Pide acceso» debajo.
+
+**Ficheros**: `supabase-migration-1236-tiendas-mercado.sql` (nuevo),
+`js/tiendas-agenda.js` (nuevo), `js/en-tiendas.js`, `css/en-tiendas.css`,
+`js/mi-coleccion/mercado.js`, `css/mi-coleccion.css`, `js/tiendas.js`,
+`css/tiendas.css`, `tiendas.html`, `netlify/lib/tarjetas-fijas.mjs`, SCHEMA,
+CLAUDE.md, novedades.json. Pruebas (rama `pruebas`): `test-tanda-1236.mjs`,
+`test-tanda-1236-pantalla.mjs`, la 1069 al día y el doble con las dos
+funciones nuevas.
+
+**Pendiente**: **PINGU ejecuta `supabase-migration-1236-tiendas-mercado.sql`**
+(y la 1235 si aún no). Sin ella: la carta y el pop-up ya salen nuevos (con la
+función de antes, y «Me interesa» va al escaparate), y /tiendas es la página
+de pedir acceso de siempre.
+
 ## 2026-11-04 (474) — PINGU-Claude (1235 — fotos frontal y trasera en el stock)
 
 **Hecho** (PINGU: «agregar imágenes a cada carta, solo a cartas no a

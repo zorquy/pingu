@@ -36,6 +36,18 @@
     {
       "fecha": "2026-11-04",
       "tipo": "nuevo",
+      "texto": "Nueva agenda de tiendas: busca por nombre o ciudad, mira cuáles tienen algo de tu lista y entra en su escaparate.",
+      "enlace": "/tiendas"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "En el Mercado, una carta que tienen varias tiendas dice «Desde» el precio más barato y cuántas son, y al abrirla cada tienda sale en su tarjeta con «Me interesa» para escribirle con esa carta.",
+      "enlace": "/mi-coleccion?ver=mercado"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "nuevo",
       "texto": "Las tiendas pueden poner fotos de verdad de cada carta que venden, por delante y por detrás, y en su escaparate se ven con «Ver las fotos».",
       "enlace": "/tiendas"
     },

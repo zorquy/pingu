@@ -6,30 +6,30 @@
   <script>/* Temporada (1134, SCHEMA): Halloween el 31 y el 1, antes del primer pintado; las pruebas automáticas no lo ven salvo con ?temporada=halloween. */(function(){try{var n=new Date(),m=n.getMonth(),d=n.getDate();if(/[?&]temporada=halloween/.test(location.search)||!navigator.webdriver&&((m===9&&d===31||m===10&&d===1)&&localStorage.getItem('pd-sin-halloween')!=='1')){var r=document.documentElement;r.dataset.temporada='halloween';r.dataset.theme='dark';document.write('<link rel="stylesheet" href="/css/temporada.css">')}}catch(e){}})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil');try{localStorage.getItem('pd-tienda')&&document.documentElement.classList.add('pd-tienda')}catch(e){}addEventListener('pagereveal',function(e){var t=e.viewTransition&&e.viewTransition.types;if(!t)return;var a=window.navigation&&navigation.activation;if(a&&a.navigationType==='traverse')t.add('atras');else if(document.documentElement.hasAttribute('data-detalle'))t.add('adelante')})</script>
-  <title>PokeDoc para tiendas — PokeDoc</title>
+  <title>Tiendas de cartas Pokémon — PokeDoc</title>
   <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <meta name="theme-color" content="#1e5175" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="PokeDoc" />
   <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
-  <meta name="description" content="¿Tienes una tienda de cartas? Lleva tu stock en PokeDoc, con coste, precio y margen, y enséñaselo a tus clientes con un QR. Por ahora, solo por invitación." />
+  <meta name="description" content="Las tiendas de cartas Pokémon que hay en PokeDoc: su stock, sus precios y cuáles tienen lo que buscas. ¿Tienes una tienda? Pide tu cuenta." />
   <!-- meta-social:inicio -->
   <link rel="canonical" href="https://pokedoc.es/tiendas" />
   <meta property="og:url" content="https://pokedoc.es/tiendas" />
   <meta property="og:site_name" content="PokeDoc" />
   <meta property="og:type" content="website" />
   <meta property="og:locale" content="es_ES" />
-  <meta property="og:title" content="PokeDoc para tiendas" />
-  <meta property="og:description" content="¿Tienes una tienda de cartas? Lleva tu stock en PokeDoc, con coste, precio y margen, y enséñaselo a tus clientes con un QR. Por ahora, solo por invitación." />
-  <meta property="og:image" content="https://pokedoc.es/tarjeta/fija/tiendas.png?v=1201" />
+  <meta property="og:title" content="Tiendas de cartas Pokémon" />
+  <meta property="og:description" content="Las tiendas de cartas Pokémon que hay en PokeDoc: su stock, sus precios y cuáles tienen lo que buscas. ¿Tienes una tienda? Pide tu cuenta." />
+  <meta property="og:image" content="https://pokedoc.es/tarjeta/fija/tiendas.png?v=1236" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:site" content="@pokedoc_es" />
-  <meta name="twitter:title" content="PokeDoc para tiendas" />
-  <meta name="twitter:description" content="¿Tienes una tienda de cartas? Lleva tu stock en PokeDoc, con coste, precio y margen, y enséñaselo a tus clientes con un QR. Por ahora, solo por invitación." />
-  <meta name="twitter:image" content="https://pokedoc.es/tarjeta/fija/tiendas.png?v=1201" />
+  <meta name="twitter:title" content="Tiendas de cartas Pokémon" />
+  <meta name="twitter:description" content="Las tiendas de cartas Pokémon que hay en PokeDoc: su stock, sus precios y cuáles tienen lo que buscas. ¿Tienes una tienda? Pide tu cuenta." />
+  <meta name="twitter:image" content="https://pokedoc.es/tarjeta/fija/tiendas.png?v=1236" />
   <!-- meta-social:fin -->
   <link rel="preload" href="/assets/fonts/inter-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
   <link rel="preload" href="/assets/fonts/outfit-variable-latin.woff2" as="font" type="font/woff2" crossorigin />
@@ -135,8 +135,32 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container-narrow">
-    <div class="page-header" style="padding-top: 8px;">
-      <h1>PokeDoc para tiendas</h1>
+    <!-- La agenda (1236, PINGU: «que tú vayas a una tienda desde aquí para
+         entrar a su perfil, una agenda de tiendas»): la pinta
+         js/tiendas-agenda.js con `tiendas_agenda`. Sin la migración se
+         esconde y la página es la de antes, la de pedir acceso. -->
+    <div class="page-header cab-lista" style="padding-top: 8px;">
+      <h1>Tiendas</h1>
+      <p class="cab-lema" id="tagLema">Las tiendas de cartas que hay en PokeDoc. Entra en su escaparate o mira cuáles tienen algo de tu lista.</p>
+    </div>
+    <section class="tag" id="tiendasAgenda" aria-label="Las tiendas">
+      <div class="tag-mandos">
+        <input type="search" class="tag-busca" id="tagBusca" placeholder="Busca una tienda o una ciudad" aria-label="Buscar una tienda" autocomplete="off" />
+        <div class="tag-chips">
+          <select id="tagCiudad" class="tag-ciudad" aria-label="Ciudad"><option value="">Todas las ciudades</option></select>
+          <button type="button" class="seg-btn tag-chip" data-tag-filtro="lista" aria-pressed="false" hidden>De tu lista</button>
+          <button type="button" class="seg-btn tag-chip" data-tag-filtro="local" aria-pressed="false">Con local</button>
+        </div>
+      </div>
+      <p class="tag-cuenta" id="tagCuenta" aria-live="polite"></p>
+      <div class="tag-rejilla" id="tagRejilla">
+        <span class="tag-tarjeta skeleton"></span><span class="tag-tarjeta skeleton"></span><span class="tag-tarjeta skeleton"></span><span class="tag-tarjeta skeleton"></span>
+      </div>
+      <button type="button" class="btn-secondary tag-mas" id="tagMas" hidden>Ver más tiendas</button>
+    </section>
+
+    <div class="page-header tiendas-para" id="para-tiendas">
+      <h2>¿Tienes una tienda o vendes cartas?</h2>
       <p>Lleva tu stock en PokeDoc y enséñaselo a quien busca cartas. Para tiendas con local y también para quien se dedica a la compraventa desde casa. Ahora mismo estamos empezando con unas pocas tiendas, así que entra solo por invitación: pídela aquí y te escribimos.</p>
     </div>
 

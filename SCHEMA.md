@@ -54245,3 +54245,57 @@ frontal y trasera».
   escaparate sale igual.
 - Prueba: `test-tanda-1235-pantalla.mjs`.
 
+## Tanda 1236 — Las tiendas en el Mercado: precio, pop-up y agenda
+
+PINGU, tras la propuesta «Tiendas en el Mercado»: «con lo recomendado, pero
+en las tiendas no pongas CM… déjalo como está. Si está en inglés, banderita
+en inglés y el precio». O sea: la propuesta entera salvo el «CM» delante del
+precio de Cardmarket.
+
+**Base** (`supabase-migration-1236-tiendas-mercado.sql`, la ejecuta PINGU):
+
+- `tiendas_con_la_carta(card, límite)`: lo de `tiendas_que_tienen` (la 1079,
+  que se queda para la web de antes) más `stock_id` y `con_local` (dirección
+  escrita, no en blanco). Función NUEVA y no la de siempre redefinida: cambiar
+  lo que devuelve obliga a borrarla, y una página abierta con la web vieja se
+  quedaría sin tiendas. La más barata primero (con la oferta), nunca el coste.
+- `tiendas_agenda(texto, ciudad, con_local, de_mi_lista, desde, cuántas)` →
+  `{ total, ciudades, tiendas }`: cada tienda (no baneada) con `cartas` y
+  `productos` a la vista (visibles y con unidades), `de_tu_lista` (por idioma y
+  versión, como un deseo) y su portada; las de tu lista primero, luego las que
+  enseñan algo y lo último que movieron. `ciudades` sale de TODAS (sin los
+  filtros), para que el desplegable no se vacíe al elegir.
+- Las dos para anon y authenticated. Prueba: `test-tanda-1236.mjs`.
+
+**Web**:
+
+- La carta del Mercado (`textoDeTiendas` en `mercado.js`, pura): con una
+  tienda, «95,00 € · El Rincón» (el nombre sale de `gente`); con varias,
+  «Desde 72,00 € · 4 tiendas»; sin precio, «En N tiendas». El precio de
+  arriba sigue siendo el de Cardmarket con su bandera, sin «CM».
+- El pop-up: arriba dos cajas, «Cardmarket» y «En tiendas (desde)»; con
+  personas y tiendas a la vez, «Todo · Personas · Tiendas» (abre con el chip
+  de la rejilla de la que sale; `data-ver` en el cuerpo esconde lo que no
+  toca). Las tiendas, con `enTiendasHtml` (`js/en-tiendas.js`): una tarjeta
+  por tienda con logo, ciudad y «Con local», precio (tachado si hay oferta),
+  «La más barata» (solo con dos o más con precio), chips (idioma con bandera,
+  estado o la etiqueta de la cápsula, versión, unidades, «De tu lista», «Ver
+  fotos» si la copia tiene, la 1235) y «Me interesa» + «Su tienda». Tres a la
+  vista y «Ver N más». «Me interesa» con la línea abre la conversación con esa
+  carta dentro (1080); sin la migración va a su escaparate en esa carta, donde
+  está el mismo botón; sin cuenta, a registrarse y de vuelta. Ya no dice
+  «Ahora mismo nadie la da» si la tiene una tienda. La ficha de Mi colección
+  (`pintarEnTiendas`) pinta lo mismo.
+- La pestaña «Tiendas»: la franja (`#mcMercadoTiendas`) enseña TODAS las
+  tiendas de la agenda, con «N cartas · M de tu lista» y «Ver todas» →
+  /tiendas. En «Todo», la franja de antes (las que tienen algo de tu lista).
+- /tiendas es la agenda (`js/tiendas-agenda.js`, estilos al final de
+  `css/tiendas.css`): buscador, ciudad, «De tu lista» (con cuenta), «Con
+  local», «Ver N más», y «Pide acceso» debajo con su formulario de siempre.
+  Sin la migración la agenda se esconde y la página es la de antes. Cambian el
+  título, la descripción y la tarjeta del enlace (`tarjetas-fijas.mjs`,
+  `?v=1236`). No hay «Envían a casa»: ninguna columna lo dice todavía.
+- El doble de Supabase contesta «la función no existe» a `tiendas_con_la_carta`
+  y `tiendas_agenda` si la prueba no las da, como la base sin la migración.
+- Prueba: `test-tanda-1236-pantalla.mjs` (y la 1069, con los textos nuevos).
+

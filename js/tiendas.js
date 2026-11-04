@@ -1,4 +1,5 @@
-// /tiendas: una tienda pide acceso (tanda 1067).
+// /tiendas: la agenda de tiendas (1236) y, debajo, una tienda pide acceso
+// (tanda 1067).
 //
 // Sin cuenta: la de la tienda se crea DESPUÉS, con la invitación que llega
 // por correo cuando el equipo acepta (SCHEMA 1067). Lo guarda la base
@@ -7,6 +8,10 @@
 import { supabase } from './supabase.js'
 import { icons } from './icons.js'
 import { validarSolicitud, instagramDe } from './tiendas-puro.js'
+import { montarAgenda } from './tiendas-agenda.js'
+
+// La agenda de tiendas va arriba (1236); el formulario de pedir acceso, debajo.
+void montarAgenda()
 
 const $ = (id) => document.getElementById(id)
 
