@@ -74,7 +74,8 @@ console.log('── 1. El PC: cuatro capas ──')
   // 1039: sin medallero; el título con «Escribir una guía» y sin párrafo.
   check('la cabecera: el título, sin medallero y sin párrafo', c.h1?.visible && !c.medallero && c.texto === null, JSON.stringify({ h1: c.h1, m: c.medallero }))
   check('lo tuyo: «sigue donde lo dejaste»', c.seguir?.visible)
-  check('los temas: las seis en UNA fila (misma altura), de menos de 70 px', c.baldosas.length === 6 && new Set(c.baldosas).size === 1 && c.temas.alto < 70, JSON.stringify({ tops: c.baldosas, alto: c.temas?.alto }))
+  // Desde la 1226 (PINGU eligió la A): tres por fila, para que el nombre quepa.
+  check('los temas: las seis en DOS filas de tres, de menos de 220 px', c.baldosas.length === 6 && new Set(c.baldosas.slice(0, 3)).size === 1 && new Set(c.baldosas.slice(3)).size === 1 && c.baldosas[3] > c.baldosas[0] && c.temas.alto < 220, JSON.stringify({ tops: c.baldosas, alto: c.temas?.alto }))
   // 1039: de los mandos solo queda el buscador (nivel, «Sin leer», «Con curso» y la cuenta se fueron).
   check('una sola fila de mandos: el buscador; sin chips de tema ni de nivel', c.buscar && !c.chips && c.chipsTema === 0 && !c.cuenta, JSON.stringify({ b: c.buscar, ch: c.chips, tema: c.chipsTema, cuenta: c.cuenta }))
   check('sin títulos de sección, y la primera guía antes de los 520 px', c.secciones === 0 && c.primeraGuia && c.primeraGuia.top < 520, JSON.stringify({ secciones: c.secciones, y: c.primeraGuia?.top }))

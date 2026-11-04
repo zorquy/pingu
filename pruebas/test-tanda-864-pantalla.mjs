@@ -53,7 +53,7 @@ const baldosas = (page) => page.evaluate(() => {
   const lista = document.getElementById('apLista')
   return {
     hay: Boolean(z),
-    temas: [...(z?.querySelectorAll('.ap-baldosa') || [])].map((b) => ({ nombre: b.querySelector('.ap-baldosa-nombre')?.textContent, sub: b.querySelector('.ap-baldosa-sub')?.textContent, href: b.getAttribute('href'), barra: b.querySelector('.ap-baldosa-barra i')?.style.width ?? null, icono: Boolean(b.querySelector('.ap-baldosa-icono')) })),
+    temas: [...(z?.querySelectorAll('.ap-baldosa') || [])].map((b) => ({ nombre: b.querySelector('.ap-baldosa-nombre')?.textContent, sub: b.querySelector('.ap-baldosa-sub')?.textContent, href: b.getAttribute('href'), barra: b.querySelector('.ap-baldosa-barra i')?.style.width ?? null, icono: Boolean(b.querySelector('.ap-baldosa-icono')), arte: Boolean(b.querySelector('.ap-baldosa-arte')) })),
     desliza: z ? z.scrollWidth > z.clientWidth + 10 : null,
     alto: z ? Math.round(z.getBoundingClientRect().height) : 0,
     listaY: lista ? Math.round(lista.getBoundingClientRect().top) : null,
@@ -65,7 +65,7 @@ console.log('── 1. La puerta en el PC ──')
   const { page, ctx, errores } = await abrir('/aprender.html')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const b = await baldosas(page)
-  check('tres baldosas (la vacía no sale), en el orden de los temas, con icono, «N guías · M cursos» y el enlace al tema', b.hay && b.temas.map((t) => t.nombre).join('|') === 'Primeros pasos|Mazos & estrategia|Reglas' && b.temas[0].sub === '2 guías · 1 curso' && b.temas[1].sub === '3 guías · 1 curso' && b.temas[2].sub === '1 guía' && b.temas[1].href === '/aprender?tema=mazos' && b.temas.every((t) => t.icono), JSON.stringify(b.temas))
+  check('tres baldosas (la vacía no sale), en el orden de los temas, con su Pokémon o su icono (1226), «N guías · M cursos» y el enlace al tema', b.hay && b.temas.map((t) => t.nombre).join('|') === 'Primeros pasos|Mazos & estrategia|Reglas' && b.temas[0].sub === '2 guías · 1 curso' && b.temas[1].sub === '3 guías · 1 curso' && b.temas[2].sub === '1 guía' && b.temas[1].href === '/aprender?tema=mazos' && b.temas.every((t) => t.icono || t.arte), JSON.stringify(b.temas))
   check('  …con la barra de lo leído: 100 %, 33 % y 0 %', b.temas.map((t) => t.barra).join() === '100%,33%,0%', JSON.stringify(b.temas.map((t) => t.barra)))
   // Desde la 865 no hay títulos de sección: las baldosas, la fila de mandos y las guías.
   check('  …y debajo, la lista de siempre, sin títulos de sección', document_sinSeccion(await page.evaluate(() => document.querySelectorAll('.ap-seccion').length)) && (await page.locator('#apLista .guia-portada, #apLista .guia-tarjeta').count()) === 6)
@@ -84,7 +84,7 @@ console.log('── 2. En el iPhone ──')
   // Desde la 1039 los temas son chips de texto en UNA fila (36 a la vista,
   // 44 al dedo con su franja); con tres temas caben sin deslizar.
   const fila = await page.evaluate(() => new Set([...document.querySelectorAll('#apTemas .ap-baldosa')].map((x) => Math.round(x.getBoundingClientRect().top))).size)
-  check('una fila (que se desliza si no caben), de menos de 80 px (865), y la lista empieza en la primera pantalla', b.hay && fila === 1 && b.alto < 80 && b.listaY < 700, JSON.stringify({ fila, desliza: b.desliza, alto: b.alto, listaY: b.listaY }))
+  check('una fila (que se desliza si no caben), de menos de 100 px (las baldosas de la 1226), y la lista empieza en la primera pantalla', b.hay && fila === 1 && b.alto < 100 && b.listaY < 700, JSON.stringify({ fila, desliza: b.desliza, alto: b.alto, listaY: b.listaY }))
   const toca = await page.evaluate(() => { const x = document.querySelector('#apTemas .ap-baldosa'); const r = x.getBoundingClientRect(); const a = getComputedStyle(x, '::after'); return [Math.round(r.width), Math.round(r.height) - parseFloat(a.top) - parseFloat(a.bottom)] })
   check('  …y cada chip se puede tocar (≥ 44 px con su franja)', toca[0] >= 44 && toca[1] >= 44, toca.join('×'))
   await ctx.close()
