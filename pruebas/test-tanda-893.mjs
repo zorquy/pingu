@@ -31,11 +31,10 @@ const PAGINAS = [
   { ruta: 'torneos', cab: '.torneos-heroe', lema: '.torneos-heroe .cab-lema', primero: '#torneoVivo, [data-vista-torneos]' },
   { ruta: 'meta', cab: '.meta-cabecera', lema: '.meta-lema', primero: '.meta-filtros-cab' },
   { ruta: 'retos', cab: '.rt-cabecera', lema: '.rt-cabecera .subtext', primero: '.rt-perfecto' },
-  // /usuarios: desde la 1209 su cabecera es la banda de sección (la vigila la 1209).
+  // /usuarios, /lanzamientos y /noticias: desde la 1209 y la 1210 su cabecera es la
+  // banda de sección (la vigilan esas tandas).
   { ruta: 'mis-partidas', cab: '.page-header', lema: '.page-header .cab-lema', primero: '.partidas-mandos' },
   { ruta: 'mazos', cab: '.mz-cabecera', lema: '#mzCuenta', primero: '#mzLista, #mzVacio' },
-  { ruta: 'lanzamientos', cab: '.page-header', lema: '.page-header .cab-lema', primero: '.lanz-mandos' },
-  { ruta: 'noticias', cab: '.noticias-cabecera-fila', lema: '.noticias-cabecera .cab-lema', primero: '#noticiaTitular, #noticiasRejilla' },
 ]
 
 console.log('── 1. Lo estático: las once llevan la clase y su párrafo ──')

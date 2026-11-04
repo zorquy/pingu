@@ -39,12 +39,15 @@ console.log('\n── 1. Con portada: el titular sobre la foto ──')
   check('con el titular', (await b.locator('strong').textContent())?.includes('128 cartas'))
   check('y la chapa de que es una noticia', /^Noticia/.test((await b.locator('.pb-chip').textContent())?.trim() || ''))
   check('el banner lleva al artículo', (await b.getAttribute('href')) === '/noticias/noticia-1', await b.getAttribute('href'))
-  const todas = page.locator('#noticiaPortada .pb-pie-enlace a')
+  // Desde la 1207, «Todas» va en la cabecera del bloque.
+  const todas = page.locator('#noticiaPortada a[href="/noticias"]')
   check('hay enlace a todas las noticias', (await todas.count()) === 1)
   check('y lleva a /noticias', (await todas.getAttribute('href')) === '/noticias')
   check('que NO está dentro del banner', (await b.locator('.pb-pie-enlace').count()) === 0)
   // La caja tiene su alto antes de que llegue la foto (alto fijo).
-  check('la imagen reserva su hueco', (await b.evaluate((n) => getComputedStyle(n).height)) === '200px', await b.evaluate((n) => getComputedStyle(n).height))
+  // El alto lo pone la caja (desde la 1207 llena el alto del bloque), no la foto.
+  const alto = await b.evaluate((n) => getComputedStyle(n).height)
+  check('la imagen reserva su hueco', /px$/.test(alto) && parseFloat(alto) >= 200, alto)
   check('sin errores de página', errores.length === 0, errores.join(' | '))
   await page.close()
 }
@@ -77,7 +80,9 @@ console.log('\n── 4. La más reciente arriba, y dos más ──')
   })
   check('una grande, y es la más reciente', (await page.locator('#noticiaPortada .pb-noticia').count()) === 1 && (await page.locator('#noticiaPortada .pb-noticia strong').textContent())?.includes('La de hoy'))
   const mas = await page.locator('#noticiaPortada .pb-noticias-mas b').allTextContents()
-  check('  …y las dos siguientes en filas (la cuarta no)', mas.join('|') === 'La de ayer|La de anteayer', mas.join(' | '))
+  // Desde la 1190 la lista lleva también la primera (el móvil no tiene la
+  // grande; en el PC se esconde), y desde la 1207 van hasta seis.
+  check('  …y la lista, todas por orden', mas.join('|') === 'La de hoy|La de ayer|La de anteayer|La de hace una semana', mas.join(' | '))
   await page.close()
 }
 
@@ -96,8 +101,9 @@ console.log('\n── 6. En móvil no se desborda ──')
   await page.goto(`${BASE}/`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1700)
   check('la portada no coge scroll lateral', await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1))
-  const caja = await page.locator('#noticiaPortada .pb-noticia').boundingBox()
-  check('y el banner cabe en la pantalla', caja && caja.width <= 390, JSON.stringify(caja))
+  // En el móvil no hay grande (1190): la tira de noticias cabe en la pantalla.
+  const caja = await page.locator('#noticiaPortada .pb-noticias-lado').boundingBox()
+  check('y la tira cabe en la pantalla', caja && caja.width <= 390, JSON.stringify(caja))
   await page.close()
 }
 

@@ -110,7 +110,8 @@ console.log('── 5. Lanzamientos: el siguiente set en una tarjeta baja ──
 {
   const { ctx, page, errores } = await abrir('/lanzamientos')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('el título no ocupa sitio', (await soloLector(page, '.page-header')) === true, await soloLector(page, '.page-header'))
+  // Desde la 1210 la cabecera es la banda: en el móvil, título y lema para el lector.
+  check('el título no ocupa sitio', (await soloLector(page, '.lanz-banda h1')) === true, await soloLector(page, '.lanz-banda h1'))
   const r = await page.evaluate(() => {
     const d = document.querySelector('.lanzamiento-destacado')
     const logo = d.querySelector('.lanzamiento-logo-grande').getBoundingClientRect()
@@ -128,7 +129,7 @@ console.log('── 5. Lanzamientos: el siguiente set en una tarjeta baja ──
 }
 
 console.log('── 6. En el PC, los títulos siguen ──')
-for (const [ruta, sel] of [['/glosario', '.cabecera-pagina h1'], ['/novedades', '.cabecera-pagina h1'], ['/lanzamientos', '.page-header h1']]) {
+for (const [ruta, sel] of [['/glosario', '.cabecera-pagina h1'], ['/novedades', '.cabecera-pagina h1'], ['/lanzamientos', '.lanz-banda h1']]) {
   const { ctx, page } = await abrir(ruta, false)
   check(`${ruta}: el título se ve`, await visto(page, sel))
   if (ruta === '/novedades') {

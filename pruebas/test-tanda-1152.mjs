@@ -121,7 +121,8 @@ console.log('\n── 3. Noticias en el móvil ──')
   })
   check('la rejilla empieza con su rótulo de semana', m.primeroEsRotulo && m.grupos.length >= 1, JSON.stringify(m.grupos))
   check('cada noticia es una fila baja (miniatura al lado, sin resumen)', m.altos.length >= 2 && m.altos.every((h) => h < 120) && /^88px/.test(m.fila) && m.resumen === 'none', JSON.stringify(m))
-  check('el titular, con la foto a 2:1', m.titular && Math.abs(m.anchoTit / m.titular - 2) < 0.05, `${m.anchoTit}x${m.titular}`)
+  // Desde la 1210 el titular lleva el texto ENCIMA de la foto, a 4:3.
+  check('el titular, con la foto a 4:3', m.titular && Math.abs(m.anchoTit / m.titular - 4 / 3) < 0.05, `${m.anchoTit}x${m.titular}`)
   check('sin errores', !err.length, err.join(' | '))
   await ctx.close()
 }
@@ -155,7 +156,8 @@ for (const movil of [true, false]) {
       n: filas.length,
       altos: filas.map((f) => Math.round(f.getBoundingClientRect().height)),
       progs: filas.map((f) => f.querySelector('.lanz-fila-prog')).filter((p) => !p.hidden).map((p) => p.textContent),
-      barra: filas.map((f) => f.querySelector('.lanz-fila-barra i')?.style.width),
+      // Desde la 1210, un anillo (`--pct`) en vez de la barra.
+      barra: filas.map((f) => f.querySelector('.lanz-fila-prog.lanz-anillo')?.style.getPropertyValue('--pct')),
       sub: filas.filter((f) => !f.querySelector('.lanz-fila-sub').hidden).length,
       enlace: filas[0]?.tagName === 'A' && /set=/.test(filas[0].getAttribute('href') || ''),
       cols: getComputedStyle(document.getElementById('listaPasados')).gridTemplateColumns.split(' ').length,
@@ -164,7 +166,7 @@ for (const movil of [true, false]) {
   })
   const q = movil ? 'móvil' : 'PC'
   check(`${q}: filas de 64 px como mucho, y la fila entera es el enlace`, m.n >= 3 && m.altos.every((h) => h <= 64) && m.enlace, JSON.stringify(m.altos))
-  check(`${q}: con cuenta, «n/total» en cada una, con su barra`, m.progs.length === m.n && m.progs.every((t) => /^\d+\/\d+$/.test(t)) && m.progs.some((t) => !t.startsWith('0/')) && m.barra.every(Boolean) && m.sub === 0, JSON.stringify(m.progs) + JSON.stringify(m.barra))
+  check(`${q}: con cuenta, «n/total» en cada una, con su anillo`, m.progs.length === m.n && m.progs.every((t) => /^\d+\/\d+$/.test(t)) && m.progs.some((t) => !t.startsWith('0/')) && m.barra.every(Boolean) && m.sub === 0, JSON.stringify(m.progs) + JSON.stringify(m.barra))
   check(`${q}: preguntado UNA vez, del catálogo que se mira`, m.rpc.length === 1 && m.rpc[0] === 'WEST', JSON.stringify(m.rpc))
   check(`${q}: ${movil ? 'una columna' : 'dos columnas'}`, m.cols === (movil ? 1 : 2), m.cols)
   check(`${q}: sin errores`, !err.length, err.join(' | '))
