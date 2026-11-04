@@ -142,7 +142,7 @@ const QUE_TIENEN = [{ tienda_id: 'tienda-1', username: 'rincon', display_name: '
   check('«Todos / Personas / Tiendas», con Todos puesto', (await p.isVisible('#mcMercadoQuien')) && (await p.getAttribute('[data-merc-quien="todos"]', 'aria-pressed')) === 'true')
   const b1 = p.locator('[data-merc="carta-1"]').first()
   check('la carta que dan una persona y una tienda: los dos avatares, el de la tienda cuadrado', (await b1.locator('.mc-gente-av').count()) === 2 && (await b1.locator('.mc-gente-av.tienda').count()) === 1)
-  check('  …lo dice en la etiqueta («la da 1 · 1 tienda») y el precio de tienda', /la da 1 · 1 tienda/.test(await b1.locator('[data-merc-ficha]').first().getAttribute('aria-label')) && /En tienda: 95,00\s€/.test(await b1.textContent()))
+  check('  …lo dice en la etiqueta («la da 1 · 1 tienda») y el precio de tienda con su nombre (1236)', /la da 1 · 1 tienda/.test(await b1.locator('[data-merc-ficha]').first().getAttribute('aria-label')) && /95,00\s€ · El Rincón/.test(await b1.textContent()))
   const b2 = p.locator('[data-merc="carta-2"]').first()
   check('la que solo tiene una tienda: «Tiendas 1» y «en 1 tienda»', /Tiendas\s*1/.test(await b2.locator('.mc-merc-texto').textContent()) && /en 1 tienda/.test(await b2.locator('[data-merc-ficha]').first().getAttribute('aria-label')))
   check('la franja: la tienda con cartas de tu lista, a su perfil con «De tu lista»', (await p.isVisible('#mcMercadoTiendas')) && (await p.getAttribute('.mc-tienda-tarjeta', 'href')) === '/usuario/rincon?lista=1' && /2 de tu lista/.test(await p.textContent('.mc-tienda-tarjeta')))
@@ -152,8 +152,8 @@ const QUE_TIENEN = [{ tienda_id: 'tienda-1', username: 'rincon', display_name: '
   check('«Personas»: solo personas, y la franja se va', (await ultima(p, 'mercado_con_tiendas')).p_quien === 'personas' && !(await p.isVisible('#mcMercadoTiendas')))
   await p.click('[data-merc-quien="todos"]'); await p.waitForTimeout(500)
   await p.locator('[data-merc="carta-1"] [data-merc-ficha]').first().click(); await p.waitForTimeout(1500)
-  check('la ficha del Mercado: «En tiendas», con la tienda, su precio y «de tu lista»', /En tiendas/.test(await p.textContent('#mcMercadoFichaTiendas')) && /El Rincón/.test(await p.textContent('#mcMercadoFichaTiendas')) && /95,00\s€/.test(await p.textContent("#mcMercadoFichaTiendas")) && /de tu lista/.test(await p.textContent('#mcMercadoFichaTiendas')))
-  check('  …que lleva a la tienda con esa carta', (await p.getAttribute('#mcMercadoFichaTiendas .ent-fila', 'href')) === '/usuario/rincon?carta=carta-1')
+  check('la ficha del Mercado: «En tiendas», con la tienda, su precio y «de tu lista»', /En (1 tienda|\d+ tiendas)/.test(await p.textContent('#mcMercadoFichaTiendas')) && /El Rincón/.test(await p.textContent('#mcMercadoFichaTiendas')) && /95,00\s€/.test(await p.textContent("#mcMercadoFichaTiendas")) && /de tu lista/i.test(await p.textContent('#mcMercadoFichaTiendas')))
+  check('  …que lleva a la tienda con esa carta', (await p.getAttribute('#mcMercadoFichaTiendas .ent-tarjeta a.btn-secondary', 'href')) === '/usuario/rincon?carta=carta-1')
   await ctx.close()
 }
 {
