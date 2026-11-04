@@ -22,7 +22,7 @@ const check = (l, ok, extra = '') => {
   console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`)
 }
 
-// Las once páginas de lista y, de cada una, dónde está su cabecera y qué
+// Las páginas de lista y, de cada una, dónde está su cabecera y qué
 // se ve justo debajo (para medir cuánto baja lo primero de verdad).
 const PAGINAS = [
   { ruta: 'cartas', cab: '.mc-hero', lema: '.mc-catalogo-lema', sinClase: true, primero: '.mc-estanteria-barra' },
@@ -31,7 +31,7 @@ const PAGINAS = [
   { ruta: 'torneos', cab: '.torneos-heroe', lema: '.torneos-heroe .cab-lema', primero: '#torneoVivo, [data-vista-torneos]' },
   { ruta: 'meta', cab: '.meta-cabecera', lema: '.meta-lema', primero: '.meta-filtros-cab' },
   { ruta: 'retos', cab: '.rt-cabecera', lema: '.rt-cabecera .subtext', primero: '.rt-perfecto' },
-  { ruta: 'usuarios', cab: '.page-header', lema: '.page-header .subtext', primero: '.com-cifras' },
+  // /usuarios: desde la 1209 su cabecera es la banda de sección (la vigila la 1209).
   { ruta: 'mis-partidas', cab: '.page-header', lema: '.page-header .cab-lema', primero: '.partidas-mandos' },
   { ruta: 'mazos', cab: '.mz-cabecera', lema: '#mzCuenta', primero: '#mzLista, #mzVacio' },
   { ruta: 'lanzamientos', cab: '.page-header', lema: '.page-header .cab-lema', primero: '.lanz-mandos' },

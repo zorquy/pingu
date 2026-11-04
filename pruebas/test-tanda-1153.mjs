@@ -109,7 +109,7 @@ console.log('\n── D4 · Guardados vacío ──')
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
   const m = await page.evaluate(() => ({
-    filas: document.querySelectorAll('#gdParaEmpezar .guia-fila').length,
+    filas: document.querySelectorAll('#gdParaEmpezar .guia-tarjeta').length, // en portadas desde la 1209
     botones: [...document.querySelectorAll('#gdParaEmpezar [data-guardar]')].map((x) => x.getAttribute('aria-pressed')),
     titulo: document.querySelector('.gd-empezar-titulo')?.textContent,
   }))

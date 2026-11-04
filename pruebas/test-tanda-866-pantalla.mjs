@@ -76,8 +76,9 @@ console.log('── 2. La portada: el bloque «Aprende» ──')
 {
   const { page, ctx, errores } = await abrir('/index.html')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const c = await chapas(page, '#aprende')
-  check('la tarjeta grande lleva la chapa del tema como enlace', c.length >= 1 && /^\/aprender\?tema=/.test(c[0].href || '') && !c[0].dentroDelEnlace, JSON.stringify(c))
+  // Desde la 1191 son portadas: el tema va en su chapa, dentro de la portada.
+  const c = await page.$$eval('#aprende .pb-portada .pb-chip', (xs) => xs.map((x) => x.textContent.trim()))
+  check('cada portada lleva la chapa de su tema', c.length >= 1 && c.every(Boolean), JSON.stringify(c))
   await ctx.close()
 }
 

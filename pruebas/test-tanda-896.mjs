@@ -24,7 +24,8 @@ console.log('── 1. Lo estático ──')
 {
   // Desde la 989 las baldosas ya no llevan párrafo ni chips en ningún ancho.
   check('retos.css: dos columnas en el móvil', /max-width: 760px\) \{\n  \.rt-lista \{\n    grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)/.test(leer('css/retos.css')) && !/rj-chips/.test(leer('retos.html')))
-  check('comunidad.css: en el móvil las cifras van al final', /\.com-cifras \{ order: 10/.test(leer('css/comunidad.css')))
+  // Desde la 1209 las cifras van en la banda de arriba, que en el móvil es UNA tira.
+  check('comunidad.css: en el móvil las cifras de la banda, en una línea', /\.banda-gente \.banda-s-cifras \{ flex-wrap: nowrap/.test(leer('css/comunidad.css')))
   const gl = leer('js/glosario.js')
   // Desde la 1144 cada término es un <article> abierto (un diccionario), no
   // un <details> plegado en el móvil: PINGU eligió leer sin tocar.
@@ -50,8 +51,8 @@ console.log('\n── 2. Retos y Comunidad en el iPhone ──')
   // Desde la 989 la baldosa entera es el enlace.
   check('los seis retos en parejas, sin párrafo, que se tocan enteros y la página por debajo de 2.000 px (era 3.100)', r.n === 6 && r.enParejas && r.subtextos === 0 && r.alto < 2000 && r.botones && !p.errores.length, JSON.stringify(r))
   const u = await abrir(ctx, 'usuarios.html')
-  const o = await u.evaluate(() => ({ cifras: Math.round(document.querySelector('.com-cifras').getBoundingClientRect().top), gente: Math.round(document.querySelector('.com-dos').getBoundingClientRect().top) }))
-  check('en Comunidad la gente va antes que las cifras', o.gente < o.cifras, JSON.stringify(o))
+  const o = await u.evaluate(() => ({ banda: Math.round(document.querySelector('.banda-gente').getBoundingClientRect().height), gente: Math.round(document.querySelector('.com-persona').getBoundingClientRect().top), vh: innerHeight }))
+  check('en Gente las cifras son una tira baja y la gente sale antes del 40 %', o.banda <= 100 && o.gente < o.vh * 0.4, JSON.stringify(o))
   await ctx.close()
 }
 

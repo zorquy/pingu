@@ -33,7 +33,7 @@ const LISTAS = [
   ['/mi-coleccion?ver=quiero', 'article.mc-deseo-baldosa, #mcPanelQuiero .empty-state'],
   ['/cartas', '#mcEstanteriaRejilla'],
   ['/foro', '.foro-calientes, .foro-seccion'],
-  ['/usuarios', '.com-podio, .com-persona'],
+  ['/usuarios', '.com-persona'],
   ['/avisos', '.av-lista .nav-bell-item'],
   ['/torneos', '.torneos-rejilla > *'],
   ['/mis-partidas', '#partidasHero'],
@@ -60,8 +60,10 @@ console.log('── 1. Foro: los foros en filas de una línea, sin chips ──'
 console.log('── 2. Comunidad: el podio en una fila de tres ──')
 {
   const { ctx, page } = await abrir('/usuarios')
-  check('el podio, los tres en la misma fila', (await filas(page, '.com-puesto')) === 1)
-  check('sin «La comunidad» ni «Gente de PokeDoc» a la vista', (await soloLector(page, '.page-header.cab-lista')) === true && (await soloLector(page, '#ctab-users > .seccion-cabecera')) === true)
+  // Desde la 1209 el podio va en la banda de arriba, al lado de las cifras.
+  const bases = await page.$$eval('.banda-s-peana', (xs) => xs.map((x) => Math.round(x.getBoundingClientRect().bottom)))
+  check('el podio, los tres en la misma fila (sus peanas al mismo suelo)', bases.length === 3 && new Set(bases).size === 1, bases.join())
+  check('sin «La gente de PokeDoc» ni «Gente de PokeDoc» a la vista', (await soloLector(page, '.banda-gente h1')) === true && (await soloLector(page, '#ctab-users > .seccion-cabecera')) === true)
   check('«+N XP» sin «este mes» (lo dice el rótulo)', !(await visto(page, '.com-largo')))
   await ctx.close()
 }

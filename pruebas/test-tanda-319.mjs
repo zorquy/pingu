@@ -96,13 +96,11 @@ console.log('\n── 1. La portada dice el progreso de VERDAD ──')
 {
   const { page, errores } = await abrir('/index.html')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  const cartas = await portada(page)
-  check('salen las cuatro guías', cartas.length === 4, String(cartas.length))
-  for (const c of cartas) {
-    const esperado = ESPERADO_PORTADA[c.titulo]
-    if (!esperado) { check(`guía inesperada: ${c.titulo}`, false); continue }
-    check(`«${c.titulo}» dice «${esperado}»`, c.estado === esperado, `dice «${c.estado}»`)
-  }
+  // Desde la 1191 la portada pinta PORTADAS (la foto y el título, sin
+  // progreso): lo que se prueba es que no afirme nada que no sepa.
+  const n = await page.locator('#aprende .pb-portada').count()
+  check('salen las cuatro guías (en portadas)', n === 4, String(n))
+  check('  …y ninguna afirma un progreso', !(await page.locator('#aprende .guia-progreso, #aprende .guia-fila-barra, #aprende .guia-fila-hecha').count()))
   await page.close()
 }
 
@@ -130,8 +128,8 @@ console.log('\n── 3. Sin sesión no hay barra, que no es lo mismo que cero �
   const { page, errores } = await abrir('/index.html', 'none')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
   const cartas = await tarjetas(page, '#aprende')
-  const filas = await page.evaluate(() => [...document.querySelectorAll('#aprende .guia-fila')].map((n) => n.textContent))
-  check('salen las cuatro guías igual', cartas.length + filas.length === 4, String(cartas.length + filas.length))
+  const n = await page.locator('#aprende .pb-portada').count()
+  check('salen las cuatro guías igual (en portadas, desde la 1191)', n === 4, String(n))
   check('  …y ninguna fila afirma nada (ni barra ni ✓)', !(await page.locator('#aprende .guia-fila-barra, #aprende .guia-fila-hecha').count()))
   const conBarra = cartas.filter((c) => c.estado !== null)
   check('  …y ninguna enseña barra', conBarra.length === 0, conBarra.map((c) => `${c.titulo}: ${c.estado}`).join(' | '))

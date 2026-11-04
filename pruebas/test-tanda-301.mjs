@@ -129,35 +129,34 @@ console.log('\n── 2. Los números, que son la prueba de que hay gente ──
 console.log('\n── 3. El podio es del MES, no de quien lleva más tiempo ──')
 {
   const { page } = await abrir()
-  // Desde la 1165 el podio va dentro de una tira de una línea (`.com-top`)
-  // que se abre con «Ver el top ›»: se abre antes de leerlo.
-  check('hay podio (la tira del top)', await page.locator('.com-top-tira').isVisible())
-  await page.click('.com-top-tira')
-  await page.waitForTimeout(200)
-  const podio = page.locator('.com-podio')
-  check('  …y al abrirla, el podio', await podio.isVisible())
-  const nombres = await page.locator('.com-puesto-nombre').allTextContents()
+  // Desde la 1209 el podio va en la banda de arriba: las tres caras sobre
+  // su peana, el primero en medio (orden 2·1·3 en la página).
+  const podio = page.locator('.banda-s-podio')
+  check('hay podio (en la banda)', await podio.isVisible())
+  const nombres = []
+  for (const n of [1, 2, 3]) nombres.push((await page.locator(`.banda-s-puesto-${n} .banda-s-puesto-nombre`).textContent()) || '')
   // Ash tiene MÁS XP TOTAL que Misty (4210 vs 3870) pero ha ganado MENOS
   // este mes (2210 vs 3870). El oro es de Misty.
   check('el oro es de quien más ha ganado ESTE MES', nombres[0] === 'Misty', nombres.join(' | '))
   check('  …y no de quien más XP total tiene', nombres[0] !== 'Ash', nombres.join(' | '))
-  check('  …y son tres', nombres.length === 3, String(nombres.length))
-  const xp = await page.locator('.com-puesto-xp').first().textContent()
+  check('  …y son tres', (await page.locator('.banda-s-puesto').count()) === 3, String(await page.locator('.banda-s-puesto').count()))
+  const xp = await page.locator('.banda-s-puesto-1 .banda-s-puesto-xp').textContent()
   // 3.370 es lo GANADO; 3.870 es su XP total. Que salga el primero y no
   // el segundo es la prueba de que el podio cuenta el mes.
   check('  …con la XP del mes', /3\.?370/.test(xp || ''), xp)
   check('  …y no la total', !/3\.?870/.test(xp || ''), xp)
-  check('  …y lleva a su perfil', /usuario/.test((await page.locator('.com-puesto').first().getAttribute('href')) || ''),
-    await page.locator('.com-puesto').first().getAttribute('href'))
-  // Nada de emojis: la norma de la casa son iconos SVG.
-  check('  …con medalla de icono, no de emoji', (await page.locator('.com-puesto-medalla svg').count()) === 3)
+  check('  …y lleva a su perfil', /usuario/.test((await page.locator('.banda-s-puesto-1').getAttribute('href')) || ''),
+    await page.locator('.banda-s-puesto-1').getAttribute('href'))
+  // El primero en medio: el orden de un podio.
+  const orden = await page.evaluate(() => [...document.querySelectorAll('.banda-s-puesto')].map((a) => a.className.match(/puesto-(\d)/)[1]).join(''))
+  check('  …el primero en medio (2·1·3)', orden === '213', orden)
   await page.close()
 }
 {
   // Sin la foto del mes no hay podio. Uno vacío no es un podio, y uno
   // inventado por XP total sería peor.
   const { page, errores } = await abrir('/usuarios.html', { xpMes: [] })
-  check('sin datos del mes, no hay podio', (await page.locator('.com-podio').count()) === 0)
+  check('sin datos del mes, no hay podio', (await page.locator('.banda-s-podio').count()) === 0)
   check('  …pero la gente sale igual', (await page.locator('.com-persona').count()) === GENTE.length,
     String(await page.locator('.com-persona').count()))
   check('  …y sin errores', errores.length === 0, errores.join(' | '))
@@ -171,8 +170,8 @@ console.log('\n── 3. El podio es del MES, no de quien lleva más tiempo ─�
   // igual.
   const nadieHaGanado = GENTE.map((p) => ({ user_id: p.id, mes: MES, xp_inicio: p.total_xp }))
   const { page, errores } = await abrir('/usuarios.html', { xpMes: nadieHaGanado })
-  check('con el mes recién empezado, tampoco hay podio', (await page.locator('.com-podio').count()) === 0)
-  check('  …y no sale nadie con «+0 XP»', (await page.locator('.com-puesto').count()) === 0)
+  check('con el mes recién empezado, tampoco hay podio', (await page.locator('.banda-s-podio').count()) === 0)
+  check('  …y no sale nadie con «+0 XP»', (await page.locator('.banda-s-puesto').count()) === 0)
   check('  …y sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }
@@ -303,7 +302,7 @@ console.log('\n── 8. El CSS de la comunidad no lo baja todo el mundo ──'
   check('/usuarios trae su propia hoja', /css\/comunidad\.css/.test(leer('usuarios.html')))
   // Y no puede colarse en components.css, que lo descarga hasta quien
   // solo entra a la portada — el fallo de la tanda 299.
-  check('  …y no está en la hoja de todos', !/\.com-podio \{/.test(leer('css/components.css')))
+  check('  …y no está en la hoja de todos', !/\.com-persona \{/.test(leer('css/components.css')))
   check('  …ni la portada la carga', !/comunidad\.css/.test(leer('index.html')))
 }
 
