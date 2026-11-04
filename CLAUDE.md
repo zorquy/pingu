@@ -1865,6 +1865,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`js/temas-pokemon.js`, tanda 1226, PINGU: «unos Pokémon ahí random»):
   `categories.pokemon` y, sin ella, las palabras del nombre; lo que no casa
   lleva su icono. Nunca `pokemonDe` (una cuenta con el slug) para un tema.
+- **Buscar de Mi colección y Mensajes van como la maqueta** (tandas 1231 y
+  1232, PINGU: «no como me habías propuesto»): antes de escribir, la caja a lo
+  ancho, «Prueba con» en una fila y los sets de cuatro; los mandos de una lista
+  (orden, filtros, Seleccionar) salen solo cuando hay lista. En Mensajes la
+  lista es UNA caja con filas sin borde propio (no una tarjeta por
+  conversación) y lo tuyo va teñido del acento con la letra de siempre. Un
+  bloque nuevo en esas pantallas sigue el molde, no vuelve a las tarjetas.
 - **«Leída» va en la ESQUINA de la portada de una guía, no debajo** (tanda
   1230, PINGU: «para que no haya cambio entre uno y otro»): `.guia-portada-leida`
   arriba a la izquierda en `--acento`; dentro de `.guia-portada-sobre` solo van

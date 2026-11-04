@@ -53,7 +53,7 @@ export function setsDeAhoraHtml(sets = [], mercado = 'WEST', hoy = new Date().to
       const logo = s.logo_tcggo || s.logo_scrydex || (s.logo_path ? urlDeLogo(s.logo_path, s.market || 'WEST') : '')
       const sub = s.release_date > hoy ? `sale el ${new Date(`${s.release_date}T00:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}` : s.card_count_official ? `${s.card_count_official} cartas` : ''
       return `<a class="mc-antes-set" href="/mi-coleccion?ver=album&set=${encodeURIComponent(s.id)}&catalogo=${encodeURIComponent(s.market || 'WEST')}">
-        <span class="mc-antes-logo">${logo ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy" onerror="this.remove()" />` : escapeHtml(s.tcg_online_code || '')}</span>
+        <span class="mc-antes-logo">${logo ? `<img src="${escapeHtml(logo)}" alt="" loading="lazy" onerror="this.parentNode.textContent=this.dataset.codigo" data-codigo="${escapeHtml(s.tcg_online_code || '')}" />` : escapeHtml(s.tcg_online_code || '')}</span>
         <span><b>${escapeHtml(s.name || s.id)}</b>${sub ? `<small>${escapeHtml(sub)}</small>` : ''}</span>
       </a>`
     }).join('')}</div>

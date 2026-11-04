@@ -15761,3 +15761,38 @@ html.con-barra-movil .mc-prod-banda { display: none; }
 .mc-cruce-t > .mc-cruce-lados { flex: 1 0 auto; }
 .mc-cruce-t > .mc-cruce-acciones { margin-top: auto; }
 .mc-cruce-t .mc-cruce-fotos { flex-wrap: nowrap; }
+/* Buscar antes de escribir, como la maqueta (1231, PINGU: «se ve feo, no como
+   me habías propuesto»; SCHEMA 1231): la caja grande a lo ancho, «Prueba con»
+   en una fila de chips pequeños, la tira de lo último y los sets en baldosas
+   de cuatro. Los mandos de una lista (orden, filtros…) esperan a que haya
+   lista: antes de escribir solo queda el catálogo. */
+#mcBuscarBarra .mc-buscador { max-width: none; }
+#mcBuscarBarra .mc-buscador input[type="search"] { min-height: 56px; padding-left: 52px; border: 1px solid var(--border-strong); background: var(--white); font-size: var(--t-lg); }
+#mcBuscarBarra .mc-buscador input[type="search"]:focus { border-color: var(--acento); box-shadow: var(--shadow-ring); }
+#mcBuscarBarra .mc-buscador-lupa { left: var(--e-lg); }
+#mcBuscarBarra:has(~ #mcBuscarVacio:not(.hidden)) .mc-mandos > :is(.mc-chip-mando, .mc-seg-sueltas) { display: none; }
+#mcBuscarVacio.mc-vacio-buscar { justify-items: stretch; max-width: none; margin: var(--e-md) 0 0; padding: 0; gap: var(--e-xl); text-align: left; }
+#mcBuscarVacio .mc-vacio-buscar-texto { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding-block: var(--e-xs); scrollbar-width: none; font-size: var(--t-sm); line-height: 1.3; }
+#mcBuscarVacio .mc-vacio-buscar-texto::-webkit-scrollbar { display: none; }
+#mcBuscarVacio .mc-antes-prueba { flex-shrink: 0; flex-basis: auto; margin-right: var(--e-xs); color: var(--text-dim); }
+#mcBuscarVacio .mc-sugerencia { flex-shrink: 0; min-height: 36px; padding: 0 var(--e-md); border-color: transparent; background: var(--ice); color: var(--text); font-size: var(--t-sm); white-space: nowrap; }
+#mcBuscarVacio .mc-sugerencia:hover { border-color: var(--border-strong); background: var(--ice); }
+#mcBuscarAntes { gap: var(--e-xl); margin-top: 0; }
+#mcBuscarAntes .mc-antes-titulo { margin-bottom: var(--e-md); }
+#mcBuscarAntes .mc-antes-tira { gap: var(--e-md); }
+#mcBuscarAntes .mc-antes-carta b { font-size: var(--t-sm); }
+#mcBuscarAntes .mc-antes-carta small { color: var(--text-mid); font-size: var(--t-xs); }
+#mcBuscarAntes .mc-antes-sets { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-md); }
+#mcBuscarAntes .mc-antes-set { padding: var(--e-md); }
+#mcBuscarAntes .mc-antes-set:hover { border-color: var(--border-strong); }
+#mcBuscarAntes .mc-antes-logo { width: 84px; height: 44px; border-radius: var(--radius-md); }
+#mcBuscarAntes .mc-antes-logo:not(:has(img)) { background: linear-gradient(135deg, var(--acento), color-mix(in srgb, var(--acento) 45%, #000)); color: var(--blanco-fijo); font-family: var(--font-display); font-size: var(--t-sm); letter-spacing: .04em; }
+@media (max-width: 899px) { #mcBuscarAntes .mc-antes-sets { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 599px) {
+  #mcBuscarBarra .mc-buscador input[type="search"] { min-height: 48px; padding-left: 44px; }
+  #mcBuscarBarra .mc-buscador-lupa { left: var(--e-md); }
+  #mcBuscarAntes .mc-antes-sets { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
+  #mcBuscarAntes .mc-antes-set { flex-direction: column; align-items: flex-start; gap: var(--e-sm); min-height: 0; padding: var(--e-md); }
+  #mcBuscarAntes .mc-antes-set > span:last-child { width: 100%; }
+  #mcBuscarAntes .mc-antes-logo { width: 72px; height: 36px; }
+}

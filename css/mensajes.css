@@ -1402,3 +1402,35 @@ button.msg-reaccion {
   .msg-proponer span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
   .msg-cabecera .msg-ver-perfil { display: none; }
 }
+
+/* 1232 — como la maqueta (PINGU: «sigue como antiguamente, se ve anticuado»;
+   SCHEMA 1232): la lista es UNA caja con las filas separadas por una raya (no
+   una tarjeta por conversación), la abierta teñida del color de la sección y
+   los no leídos en un círculo; en el PC la conversación va en su caja, con
+   las burbujas en hielo y las tuyas teñidas del acento, y el cuadro de
+   escribir es una pastilla. */
+.msg-filas { gap: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); }
+.msg-filas > .msg-fila,
+.msg-archivadas .msg-fila { margin-bottom: -1px; padding: var(--e-md); border: 0; border-bottom: 1px solid var(--border); border-radius: 0; background: transparent; }
+.msg-filas .msg-fila:hover { border-color: var(--border); background: color-mix(in srgb, var(--text) 4%, transparent); }
+.msg-filas .msg-fila.activa { border-color: var(--border); background: color-mix(in srgb, var(--acento) 14%, transparent); box-shadow: inset 3px 0 0 var(--acento); }
+.msg-filas .msg-fila.noleida .msg-fila-nombre strong { font-weight: 800; }
+.msg-filas .msg-filtro-vacio { margin: 0; }
+.msg-archivadas { margin: 0; border-top: 1px solid var(--border); }
+.msg-archivadas > summary { padding: 0 var(--e-md); }
+.msg-noleidos { min-width: 20px; height: 20px; padding: 0 var(--e-xs); background: var(--acento); color: var(--acento-texto); }
+.msg-burbuja { padding: var(--e-sm) var(--e-md); border-radius: 16px; border-bottom-left-radius: 4px; }
+.msg-burbuja.mia { border-radius: 16px; border-bottom-right-radius: 4px; background: color-mix(in srgb, var(--acento) 24%, var(--ice)); color: var(--text); }
+.msg-burbuja.mia .msg-meta { color: var(--text-mid); opacity: 1; }
+.msg-burbuja.mia a { color: var(--navy); }
+.msg-burbuja p { font-size: var(--t-md); }
+.msg-caja { min-height: 46px; border-color: transparent; background: var(--ice); }
+.msg-caja:focus { border-color: var(--acento); }
+.msg-clip { border-color: transparent; background: var(--ice); }
+.msg-enviar { border-color: var(--acento); background: var(--acento); color: var(--acento-texto); }
+.msg-compositor { border-top: 0; }
+@media (min-width: 1100px) {
+  .msg-dos.con-lista .msg-hilo { margin-top: var(--e-lg); padding: var(--e-md) var(--e-lg) 0; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); }
+  .msg-dos.con-lista .msg-compositor { background: var(--white); }
+  .msg-dos.con-lista .msg-dia span { background: var(--ice); }
+}

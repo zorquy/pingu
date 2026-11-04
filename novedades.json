@@ -36,6 +36,18 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "Buscar en Mi colección, rehecho: la caja grande arriba, ejemplos para probar en una fila, lo último que buscaste con foto y los sets de ahora con su logo.",
+      "enlace": "/mi-coleccion?ver=buscar"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Mensajes con otra cara: tus conversaciones en una sola lista, la que tienes abierta resaltada, y lo que escribes en el color de la sección.",
+      "enlace": "/mensajes"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "Las guías que ya has leído llevan «Leída» en verde arriba a la izquierda, y el título no se mueve de sitio entre una leída y una sin leer.",
       "enlace": "/aprender"
     },

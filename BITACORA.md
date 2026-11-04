@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (471) — PINGU-Claude (1231 y 1232 — Buscar de Mi colección y Mensajes, como la maqueta)
+
+**Hecho** (PINGU: «el buscar de mi colección se ve feo, no como me habías
+propuesto» y «los mensajes siguen como antiguamente, se ve anticuado»):
+
+- **Buscar (1231)**, antes de escribir: la caja a lo ancho, de 56 px (48 en el
+  móvil) y con su borde; «Prueba con» en una fila de chips pequeños que se
+  desliza; lo último que buscaste en la tira de fotos; los sets de ahora en
+  baldosas de cuatro (dos en el móvil, con el logo arriba) y, sin logo, el
+  código sobre el color de la sección. Orden, Filtros, Apilar y Seleccionar
+  esperan a que haya lista (`:has` con `#mcBuscarVacio`); el catálogo se queda.
+  El texto de la caja dice lo que hace: «Busca una carta o un ilustrador…».
+- **Mensajes (1232)**: la lista es UNA caja con las filas separadas por una
+  raya (no una tarjeta por conversación), la abierta teñida del color de la
+  sección con su raya a la izquierda y los no leídos en un círculo del acento;
+  en el PC la conversación va en su caja; lo tuyo, teñido del acento con la
+  letra de siempre (antes blanco sobre azul); burbujas más redondas y el cuadro
+  de escribir en pastilla de hielo con el enviar del acento. Solo CSS.
+
+**Ficheros** (web): `mi-coleccion.html` (+ `cartas.html` generado),
+`css/mi-coleccion.css`, `js/mi-coleccion/buscar-recientes.js`,
+`css/mensajes.css`, `BITACORA.md`, `SCHEMA.md`, `novedades.json`, `CLAUDE.md`.
+
+**Pruebas**: rama `pruebas`, `test-tanda-1231-pantalla.mjs` nueva (Buscar y
+Mensajes en PC y móvil). Verdes 299, 312, 313, 447, 450, 649, 747, 891, 998,
+1002, 1004, 1007, 1018, 1023, 1054, 1055, 1080, 1101, 1113, 1140, 1141, 1146,
+1147, 1167 e imports. Rojos de antes, sin tocar: 311 (auth.css y torneos.css),
+1040 (Glosario) y 789 (mira el HTML del perfil, de la 1150).
+
+**Queda**: nada de esta tanda. «Sigue donde lo dejaste» se queda mientras
+PINGU no diga lo contrario (se le explicó cómo funciona).
+
 ## 2026-11-04 (470) — PINGU-Claude (1230 — «Leída» arriba a la izquierda y Guardados solo con guías)
 
 **Hecho** (PINGU, capturas: «para que no haya cambio entre uno y otro», y «los

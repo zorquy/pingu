@@ -54127,3 +54127,32 @@ Guardados (js/guardados.js) ya no lee `forum_subscriptions` ni `forum_threads`
 seguir y las reglas `.gd-tema*` y `.gd-item-tema`. Lo que sigues del foro se
 ve en el foro.
 
+## Tanda 1231 — Buscar de Mi colección, como la maqueta
+
+El bloque «1231» al final de `css/mi-coleccion.css` rehace lo de antes de
+escribir con los mismos nodos (no cambia el JS de buscar): `#mcBuscarBarra
+.mc-buscador` sin el tope de 520 px de la 444 y la caja a 56 px con borde (48
+en el móvil); `#mcBuscarVacio` deja de ser el estado vacío centrado de 520 px y
+pasa a columna entera, con «Prueba con» en una fila que se desliza
+(`overflow-y: hidden` y su `padding-block`, la regla de la 1199) y chips de 36;
+`#mcBuscarAntes .mc-antes-sets` va a `repeat(4)` (2 por debajo de 900 px, y en
+el móvil la baldosa pone el logo encima). Los mandos de una lista se esconden
+mientras se ve el vacío: `#mcBuscarBarra:has(~ #mcBuscarVacio:not(.hidden))
+.mc-mandos > :is(.mc-chip-mando, .mc-seg-sueltas)`; el catálogo se queda,
+porque cambia los sets de ahora. Un logo que no carga deja su código
+(`data-codigo` en el `onerror`), y sin logo el código va sobre el acento.
+
+## Tanda 1232 — Mensajes, como la maqueta
+
+Solo CSS, al final de `css/mensajes.css`. `.msg-filas` es la caja (borde,
+`--radius-xl`, `overflow: hidden`) y cada `.msg-fila` una fila sin borde propio
+con una raya abajo; la última se esconde con `margin-bottom: -1px` dentro del
+`overflow: hidden`, que funciona aunque el filtro esconda filas con `hidden`
+(un `+`/`~` entre hermanos no lo sabría). `.activa` lleva
+`color-mix(--acento 14%)` y `inset 3px 0 0 --acento`; `.msg-noleidos` es el
+círculo del acento. Lo tuyo (`.msg-burbuja.mia`) pasa de blanco sobre
+`--navy-solid` a `color-mix(--acento 24%, --ice)` con `--text` (y su enlace en
+`--navy`). Desde 1.100 px, con lista, `.msg-hilo` va en caja con borde; su
+altura la sigue midiendo `medirHilo` desde su borde de arriba, así que el
+margen de arriba no la descuadra.
+
