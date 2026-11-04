@@ -18,7 +18,7 @@
 .guia-portada-tema { padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--blanco-fijo); color: #0b1219; font-size: var(--t-2xs); font-weight: 700; }
 /* 1225: más negro abajo y una sombra al título (PINGU: «blancos con las fotos no se diferencian»). */
 .guia-portada-sobre strong { font-family: var(--font-display); font-size: var(--t-md); line-height: 1.2; text-shadow: 0 1px 3px rgb(0 0 0 / 70%); }
-.guia-portada-leida { padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: rgb(11 18 25 / 60%); font-size: var(--t-2xs); font-weight: 700; }
+.guia-portada-leida { position: absolute; top: var(--e-sm); left: var(--e-sm); z-index: 2; display: inline-flex; align-items: center; gap: 4px; padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--acento); color: var(--acento-texto); font-size: var(--t-2xs); font-weight: 700; }
 .guia-portada-barra { display: block; width: 100%; height: 4px; overflow: hidden; border-radius: 2px; background: rgb(255 255 255 / 25%); }
 .guia-portada-barra i { display: block; height: 100%; background: var(--acento); }
 @media (prefers-reduced-motion: reduce) {

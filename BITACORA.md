@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (470) — PINGU-Claude (1230 — «Leída» arriba a la izquierda y Guardados solo con guías)
+
+**Hecho** (PINGU, capturas: «para que no haya cambio entre uno y otro», y «los
+temas del foro no deberían contar, ocupa demasiadísimo»): en las portadas de
+guía (Aprender, Guardados) «Leída» es una chapa verde, del color de la
+sección, en la esquina de arriba a la izquierda, frente a los minutos; ya no
+es una línea más abajo, así que el tema y el título quedan a la misma altura
+en una leída, una a medias y una sin empezar. Guardados deja de pedir y pintar
+los temas del foro que sigues (fuera el chip «Temas», la tarjeta, dejar de
+seguir y su CSS): son guías y noticias. Seguir un tema sigue igual en el foro.
+
+**Ficheros** (web): `js/guia-portada.js`, `css/guia-portada.css`,
+`js/guardados.js`, `css/guardados.css`, `BITACORA.md`, `SCHEMA.md`,
+`novedades.json`, `CLAUDE.md`.
+
+**Pruebas**: rama `pruebas`, `test-tanda-1230-pantalla.mjs` nueva (la chapa en
+la esquina y en el acento, el tema a la misma altura en las tres, Guardados
+sin temas ni consultas al foro) y la 1216 al día (su sección 3 era la de los
+temas). Verdes 299, 313, 319, 847, 1153, 1182, 1215, 1217, 1226, 1229 e
+imports.
+
+**Queda**: 1231 (Buscar de Mi colección como la propuesta) y 1232 (Mensajes
+como la propuesta).
+
 ## 2026-11-04 (469) — PINGU-Claude (1229 — el buscador de Aprender detrás de una lupa en el móvil)
 
 **Hecho** (PINGU eligió la A de la propuesta: «la recomendada pero que no se

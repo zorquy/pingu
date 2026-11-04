@@ -36,6 +36,18 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "Las guías que ya has leído llevan «Leída» en verde arriba a la izquierda, y el título no se mueve de sitio entre una leída y una sin leer.",
+      "enlace": "/aprender"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Guardados es solo para guías y noticias: los temas del foro que sigues ya no ocupan sitio ahí.",
+      "enlace": "/guardados"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "En el móvil, Aprender busca con una lupa al lado del lápiz: las guías suben una fila y el buscador sale solo cuando lo necesitas.",
       "enlace": "/aprender"
     },

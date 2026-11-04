@@ -1865,6 +1865,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`js/temas-pokemon.js`, tanda 1226, PINGU: «unos Pokémon ahí random»):
   `categories.pokemon` y, sin ella, las palabras del nombre; lo que no casa
   lleva su icono. Nunca `pokemonDe` (una cuenta con el slug) para un tema.
+- **«Leída» va en la ESQUINA de la portada de una guía, no debajo** (tanda
+  1230, PINGU: «para que no haya cambio entre uno y otro»): `.guia-portada-leida`
+  arriba a la izquierda en `--acento`; dentro de `.guia-portada-sobre` solo van
+  tema, título y barra, para que nada suba ni baje entre una leída y una sin
+  leer. Y Guardados es de guías y noticias: los temas del foro que sigues no
+  salen ahí (PINGU: «ocupa demasiadísimo»).
 - **Una guía tiene UNA señal: «Me ha servido»** (tanda 974, PINGU eligió
   la A): la caja «¿Te ha servido? Sí / No tanto» se fue porque preguntaba
   lo mismo justo debajo. Es `guide_helpful` (`js/guide-helpful.js`, con su

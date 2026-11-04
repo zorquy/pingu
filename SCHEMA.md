@@ -54109,3 +54109,21 @@ lista. En el PC vuelve a `.ap-herramientas`. Las cifras de la banda van con
 banda no (los botones se quedan a la derecha). `.ap-buscar input:focus` quita
 el contorno que `input[type=search]:focus` de style.css le ponía dentro de la
 caja (la 737: el anillo es de la caja).
+
+## Tanda 1230 — «Leída» en la esquina y Guardados solo con guías
+
+PINGU: «lo de leída puede ir arriba a la izquierda en forma verde? para que no
+haya cambio entre uno y otro». En `portadaDeGuia` (js/guia-portada.js) la chapa
+`.guia-portada-leida` sale FUERA de `.guia-portada-sobre`, con `position:
+absolute` arriba a la izquierda y en `--acento` / `--acento-texto` (en
+Aprender, el verde de la sección), frente a `.guia-portada-mins`. Dentro de
+`.guia-portada-sobre` quedan solo el tema, el título y la barra (que sale
+siempre que llega el progreso, también a cero), así que el bloque mide lo
+mismo en una leída, una a medias y una sin empezar y nada sube ni baja.
+
+Guardados (js/guardados.js) ya no lee `forum_subscriptions` ni `forum_threads`
+(PINGU: «ocupa demasiadísimo, solo para guías es mejor»): se fueron
+`temasQueSigues`, `temaHtml`, el filtro y el chip «Temas», dejar/volver a
+seguir y las reglas `.gd-tema*` y `.gd-item-tema`. Lo que sigues del foro se
+ve en el foro.
+

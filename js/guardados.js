@@ -22,7 +22,7 @@ const COLUMNAS = 'id, slug, title, description, kind, level, estimated_mins, blo
 const vacioHtml = () => `
   <div class="empty-state gd-vacio">
     <img src="/assets/images/mascota.webp" class="gd-vacio-mascota" alt="" width="523" height="791" loading="lazy" decoding="async" />
-    <p>Todavía no has guardado nada. Toca ${icons.bookmark(14)} <b>Guardar</b> en una guía o una noticia, o <b>Seguir</b> en un tema del foro, y lo tendrás aquí para luego.</p>
+    <p>Todavía no has guardado nada. Toca ${icons.bookmark(14)} <b>Guardar</b> en una guía o una noticia y lo tendrás aquí para luego.</p>
     <div id="gdParaEmpezar"></div>
     <a class="btn-secondary" href="/aprender">Ver todas las guías</a>
   </div>`
@@ -83,12 +83,11 @@ function itemHtml(g, progreso) {
 // Los chips de arriba de la rejilla: por estado y, si hay de los dos, por tipo.
 const FILTROS = {
   todas: () => true,
-  leer: (el) => el.dataset.estado !== 'leida' && el.dataset.kind !== 'tema',
+  leer: (el) => el.dataset.estado !== 'leida',
   medias: (el) => el.dataset.estado === 'medias',
   leidas: (el) => el.dataset.estado === 'leida',
   guias: (el) => el.dataset.kind === 'guide',
   noticias: (el) => el.dataset.kind === 'news',
-  temas: (el) => el.dataset.kind === 'tema',
 }
 let filtro = 'todas'
 
@@ -105,38 +104,10 @@ function ponerCifras(porLeer, medias, leidas) {
   poner('gdNLeidas', leidas)
 }
 
-// Los TEMAS del foro que sigues (1216, la propuesta del repaso: «toca el
-// marcador de cualquier guía, noticia o tema y sale aquí»). En un tema, el
-// marcador es «Seguir» (forum_subscriptions): lo que sigues es lo que has
-// dejado para volver. Quitar es dejar de seguir, con Deshacer.
-async function temasQueSigues(session) {
-  const { data: subs, error } = await supabase.from('forum_subscriptions').select('thread_id').eq('user_id', session.user.id).limit(200)
-  if (error || !subs?.length) return []
-  const { data } = await supabase.from('forum_threads').select('id, title, post_count, last_post_at').in('id', subs.map((x) => x.thread_id))
-  return (data || []).sort((a, b) => String(b.last_post_at || '').localeCompare(String(a.last_post_at || '')))
-}
-const haceCuanto = (iso) => {
-  const min = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 6e4))
-  if (!iso || Number.isNaN(min)) return ''
-  if (min < 60) return `hace ${Math.max(1, min)} min`
-  if (min < 1440) return `hace ${Math.round(min / 60)} h`
-  return `hace ${Math.round(min / 1440)} d`
-}
-export function temaHtml(t) {
-  const n = Math.max(0, Number(t.post_count) || 0)
-  return `<div class="gd-item gd-item-tema" data-id="tema-${escapeHtml(t.id)}" data-estado="leer" data-kind="tema">
-    <a class="gd-tema" href="/tema/${escapeHtml(t.id)}">
-      <span class="gd-tema-ico" aria-hidden="true">${icons.messageSquare(22)}</span>
-      <span class="gd-tema-ceja">Tema del foro</span>
-      <span class="gd-tema-texto"><b>${escapeHtml(t.title || 'Tema')}</b><small>${n} ${n === 1 ? 'mensaje' : 'mensajes'}${t.last_post_at ? ` · ${haceCuanto(t.last_post_at)}` : ''}</small></span>
-    </a>
-    <button type="button" class="gd-marca gd-quitar" data-dejar-tema="${escapeHtml(t.id)}" aria-label="Dejar de seguir «${escapeHtml(t.title || 'el tema')}»" title="Dejar de seguir">${icons.bookmark(18, true)}</button>
-  </div>`
-}
-
+// Los temas del foro que sigues NO salen aquí (1230, PINGU: «ocupa
+// demasiadísimo, solo para guías es mejor»): lo que sigues está en el foro.
 async function loadSaved(session) {
   const list = document.getElementById('savedList')
-  const pidiendoTemas = temasQueSigues(session).catch(() => [])
 
   const { data: profile, error } = await supabase.from('user_profiles').select('saved_guides').eq('id', session.user.id).single()
   if (error) {
@@ -145,8 +116,7 @@ async function loadSaved(session) {
   }
   // Se guardan al final de la lista: dándole la vuelta, lo último primero.
   const ids = [...(profile?.saved_guides || [])].reverse()
-  const temas = await pidiendoTemas
-  if (!ids.length && !temas.length) {
+  if (!ids.length) {
     ponerCifras(0, 0, 0)
     list.innerHTML = vacioHtml()
     void pintarParaEmpezar().catch(() => {})
@@ -165,7 +135,7 @@ async function loadSaved(session) {
   // Una guardada que ya no está publicada no vuelve en la consulta: se calla.
   const porId = new Map((guias || []).map((g) => [g.id, g]))
   const todas = ids.map((id) => porId.get(id)).filter(Boolean)
-  if (!todas.length && !temas.length) {
+  if (!todas.length) {
     ponerCifras(0, 0, 0)
     list.innerHTML = vacioHtml()
     void pintarParaEmpezar().catch(() => {})
@@ -177,14 +147,13 @@ async function loadSaved(session) {
   const medias = porLeer.filter((g) => estadoDeGuia(g, progreso).pct > 0)
   const noticias = todas.filter((g) => g.kind === 'news').length
   const chip = (clave, texto, n) => (n ? `<button type="button" class="seg-btn gd-chip" data-gd-filtro="${clave}" aria-pressed="false">${texto} <span class="gd-n">${n}</span></button>` : '')
-  // Por TIPO (1217, la maqueta): Todo · Guías · Noticias · Temas, con su
+  // Por TIPO (1217, la maqueta): Todo · Guías · Noticias, con su
   // número; en el PC van en la banda, a la derecha. Lo que llevas lo dicen
   // las cifras de la banda.
   const chips = [
-    chip('todas', 'Todo', todas.length + temas.length),
+    chip('todas', 'Todo', todas.length),
     chip('guias', 'Guías', todas.length - noticias),
     chip('noticias', 'Noticias', noticias),
-    chip('temas', 'Temas', temas.length),
   ].join('')
   // Si el filtro de antes ya no tiene nada (se han quitado las leídas), a «Todas».
   if (!chips.includes(`data-gd-filtro="${filtro}"`)) filtro = 'todas'
@@ -194,8 +163,8 @@ async function loadSaved(session) {
       <div class="gd-chips" role="group" aria-label="Filtrar">${chips}</div>
       ${leidas.length > 1 ? '<button type="button" class="link-btn gd-limpiar" data-limpiar>Quitar <span class="cab-largo">las </span>leídas</button>' : ''}
     </div>
-    ${porLeer.length || !todas.length ? '' : '<p class="gd-todo-leido">' + icons.checkCircle(16) + ' Te has leído todo lo que guardaste. <a href="/aprender">Busca algo nuevo</a>.</p>'}
-    <div class="guia-rejilla gd-rejilla gd-rejilla-tuyas en-cascada">${[...porLeer, ...leidas].map((g) => itemHtml(g, progreso)).join('')}${temas.map(temaHtml).join('')}</div>`
+    ${porLeer.length ? '' : '<p class="gd-todo-leido">' + icons.checkCircle(16) + ' Te has leído todo lo que guardaste. <a href="/aprender">Busca algo nuevo</a>.</p>'}
+    <div class="guia-rejilla gd-rejilla gd-rejilla-tuyas en-cascada">${[...porLeer, ...leidas].map((g) => itemHtml(g, progreso)).join('')}</div>`
   aplicarFiltro(list)
   ponerChipsEnLaBanda(list)
   ponerCifras(porLeer.length, medias.length, leidas.length)
@@ -277,29 +246,6 @@ function engancharAcciones(list, session) {
       item.dataset.antes = antes
       item.dataset.pos = pos
       item.querySelector('[data-deshacer]').focus()
-      return
-    }
-    const dejar = e.target.closest('[data-dejar-tema]')
-    if (dejar) {
-      const id = dejar.dataset.dejarTema
-      const item = dejar.closest('.gd-item')
-      const { desuscribir } = await import('./foro-lecturas.js')
-      if (!(await desuscribir(session.user.id, id))) return showToast('No se ha podido quitar. Inténtalo otra vez.')
-      item.dataset.antes = item.innerHTML
-      item.classList.add('gd-quitada')
-      item.innerHTML = `<span>Ya no sigues este tema.</span><button type="button" class="link-btn" data-volver-tema="${escapeHtml(id)}">Deshacer</button>`
-      item.querySelector('[data-volver-tema]').focus()
-      return
-    }
-    const volver = e.target.closest('[data-volver-tema]')
-    if (volver) {
-      const id = volver.dataset.volverTema
-      const item = volver.closest('.gd-item')
-      const { suscribir } = await import('./foro-lecturas.js')
-      if (!(await suscribir(session.user.id, id))) return showToast('No se ha podido volver a seguir. Inténtalo otra vez.')
-      item.classList.remove('gd-quitada')
-      item.innerHTML = item.dataset.antes
-      delete item.dataset.antes
       return
     }
     const deshacer = e.target.closest('[data-deshacer]')
