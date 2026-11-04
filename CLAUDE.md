@@ -1859,6 +1859,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   Logros (`admin/js/logros-admin.js`, 1118), y se dan o quitan a mano solo
   por `admin_logro_dar` / `admin_logro_quitar`, que mueven su XP y lo apuntan
   en `logros_a_mano`: no escribas `achievements` de otra persona a pelo.
+- **El Pokémon de un tema de Aprender sale de `pokemonDelTema`**
+  (`js/temas-pokemon.js`, tanda 1226, PINGU: «unos Pokémon ahí random»):
+  `categories.pokemon` y, sin ella, las palabras del nombre; lo que no casa
+  lleva su icono. Nunca `pokemonDe` (una cuenta con el slug) para un tema.
 - **Una guía tiene UNA señal: «Me ha servido»** (tanda 974, PINGU eligió
   la A): la caja «¿Te ha servido? Sí / No tanto» se fue porque preguntaba
   lo mismo justo debajo. Es `guide_helpful` (`js/guide-helpful.js`, con su

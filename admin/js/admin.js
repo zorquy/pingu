@@ -18,6 +18,7 @@ import { claveDePregunta, esPractica } from '../../js/curso-juego.js'
 import { checkSchema } from '../../js/schema-check.js'
 import { iniciarColecciones } from './colecciones.js'
 import { iniciarTiendas } from './tiendas.js'
+import { pokemonDelTema } from '../../js/temas-pokemon.js'
 
 let categories = []
 let perfilAdmin = null
@@ -212,6 +213,9 @@ async function loadCategories() {
 
 function openCategoryModal(category) {
   const c = category || { name: '', slug: '', description: '', emoji: '', cover_image: '', icon_image: '', order_pos: categories.length }
+  // La columna llega con la migración 1226: sin ella, el campo no sale y no
+  // se manda (un upsert con una columna que no existe falla entero, la 624).
+  const conPokemon = categories.some((x) => 'pokemon' in x)
   openModal(`
     <h3>${category ? 'Editar' : 'Nueva'} categoría</h3>
     <div class="form-group"><label>Nombre</label><input id="catName" value="${escapeHtml(c.name)}" /></div>
@@ -221,6 +225,7 @@ function openCategoryModal(category) {
     <div class="form-group"><label>Icono personalizado (URL, opcional)</label><input id="catIconImage" value="${escapeHtml(c.icon_image || '')}" placeholder="https://..." /><p style="font-size:12px; color:var(--text-mid); margin-top:4px;">Sustituye al icono en las tarjetas de categoría. Sube la imagen en la pestaña "Imágenes" y pega aquí la URL.</p></div>
     <div class="form-group"><label>Imagen de portada (URL)</label><input id="catCoverImage" value="${escapeHtml(c.cover_image || '')}" /></div>
     <div class="form-group"><label>Orden</label><input id="catOrder" type="number" inputmode="numeric" value="${c.order_pos ?? 0}" /></div>
+    ${conPokemon ? `<div class="form-group"><label>Pokémon (número de la Pokédex)</label><input id="catPokemon" type="number" inputmode="numeric" min="1" max="1100" value="${c.pokemon ?? ''}" placeholder="${pokemonDelTema(c) ?? 'sin Pokémon: sale el icono'}" /><p style="font-size:12px; color:var(--text-mid); margin-top:4px;">El dibujo de su baldosa en Aprender (1226). Que tenga que ver con el tema: Pichu (172) para empezar, Meowth (52) para comprar y vender… Vacío, se elige por el nombre.</p></div>` : ''}
     <button class="btn-primary btn-block" id="btnSaveCategory">Guardar</button>`)
 
   attachEmojiPicker(document.getElementById('catEmoji'))
@@ -234,6 +239,10 @@ function openCategoryModal(category) {
       icon_image: document.getElementById('catIconImage').value.trim() || null,
       cover_image: document.getElementById('catCoverImage').value.trim() || null,
       order_pos: Number(document.getElementById('catOrder').value) || 0,
+    }
+    if (conPokemon) {
+      const n = Number(document.getElementById('catPokemon').value)
+      payload.pokemon = Number.isInteger(n) && n > 0 ? n : null
     }
     if (c.id) payload.id = c.id
     const { error } = await supabase.from('categories').upsert(payload)

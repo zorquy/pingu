@@ -1,15 +1,16 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo } from './articulos.js'
-import { escapeHtml, getSession, tintClassForKey, categoryIconHtml, arteDe } from './app.js'
+import { escapeHtml, getSession, tintClassForKey, categoryIconHtml } from './app.js'
 import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { tarjetaDeGuia, avanceDeGuia } from './guia-tarjeta.js'
-import { portadaDeGuia, artePokemonHtml, pokemonDe } from './guia-portada.js'
+import { portadaDeGuia, artePokemonHtml } from './guia-portada.js'
 import { icons } from './icons.js'
 // El lápiz de «Escribir una guía» (1015, L10): en el móvil el botón es solo él.
 for (const el of document.querySelectorAll('.ap-escribir [data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(16) || ''
 import { filaDeGuia } from './guia-fila.js'
 import { normalizeSearch } from './texto.js'
+import { pokemonDelTema, porqueDelPokemon } from './temas-pokemon.js'
 
 // El medallero y los chips de nivel se fueron de lo alto en la 1039 (PINGU:
 // «hay demasiada cosa hasta que empiezan las guías»): las medallas están en
@@ -252,8 +253,10 @@ async function loadCategories(session) {
 // rejilla. Las cuentas salen de las guías ya cargadas: ninguna consulta
 // más. Un tema sin guías publicadas no sale: una baldosa vacía es la caja
 // de «0 de 2» que la 299 quitó.
-// Los temas (1217): baldosas de su color con un Pokémon a la derecha.
-const POKEMON_DE_TEMA = { empezar: 133, principiante: 133, competitivo: 448, coleccionar: 384, coleccionismo: 384 }
+// Los temas (1217 → 1226): baldosas del color de su tema, tres por fila en el
+// PC para que el nombre quepa entero, con el Pokémon QUE TIENE QUE VER con el
+// tema (`pokemonDelTema`) en su hueco a la derecha y su porqué debajo; sin
+// Pokémon que case, su icono.
 function temasHtml(categorias, guias, progreso, session) {
   const n = (x, uno, varios) => `${x} ${x === 1 ? uno : varios}`
   const baldosas = categorias.map((c) => {
@@ -262,14 +265,16 @@ function temasHtml(categorias, guias, progreso, session) {
     const cursos = suyas.filter((g) => guideHasCourse(g)).length
     const leidas = suyas.filter((g) => leida(g, progreso)).length
     const sub = `${n(suyas.length, 'guía', 'guías')}${cursos ? ` · ${n(cursos, 'curso', 'cursos')}` : ''}`
-    return `<a class="ap-baldosa ap-baldosa-${tintClassForKey(c.id)} arte-${arteDe(c.slug || c.id)}" href="/aprender?tema=${encodeURIComponent(c.slug)}" aria-label="${escapeHtml(`${c.name}: ${sub}${session ? `, ${leidas} leídas` : ''}`)}">
-      <span class="ap-baldosa-icono ${tintClassForKey(c.id)}">${categoryIconHtml(c, 18)}</span>
-      ${artePokemonHtml(POKEMON_DE_TEMA[c.slug] || pokemonDe(c.slug || c.id), 'ap-baldosa-arte')}
+    const dex = pokemonDelTema(c)
+    const porque = dex ? porqueDelPokemon(dex) : null
+    return `<a class="ap-baldosa ap-tema-${tintClassForKey(c.id)}" href="/aprender?tema=${encodeURIComponent(c.slug)}" aria-label="${escapeHtml(`${c.name}: ${sub}${session ? `, ${leidas} leídas` : ''}`)}">
       <span class="ap-baldosa-texto">
         <span class="ap-baldosa-nombre">${escapeHtml(c.name)}</span>
         <span class="ap-baldosa-sub">${escapeHtml(sub)}</span>
+        ${porque ? `<span class="ap-baldosa-porque">${escapeHtml(`${porque.nombre}: ${porque.porque}`)}</span>` : ''}
         ${session ? `<span class="ap-baldosa-barra" aria-hidden="true"><i style="width:${Math.round((leidas / suyas.length) * 100)}%"></i></span>` : ''}
       </span>
+      ${dex ? artePokemonHtml(dex, 'ap-baldosa-arte') : `<span class="ap-baldosa-icono ${tintClassForKey(c.id)}">${categoryIconHtml(c, 22)}</span>`}
     </a>`
   }).join('')
   if (!baldosas) return ''

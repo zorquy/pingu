@@ -54065,3 +54065,22 @@ modal y Esc lo cierra), 1105 y 1125. El doble aprende `reputacion_de`
   entradas desde la segunda pintada subía el CLS de /mi-coleccion de 0,49 a
   0,74 (la 981): lo que aparece por primera vez entrando con opacidad no
   cuenta como salto, y sin entrada sí.
+
+## Tanda 1226 — Los temas de Aprender con un Pokémon que tenga que ver
+
+PINGU: «has puesto unos Pokémon ahí random… y la categoría no se puede leer».
+Propuesta con tres opciones; eligió la A con los seis.
+
+- `categories.pokemon` (int, migración 1226): el número de la Pokédex de la
+  baldosa. La migración pone los seis por el nombre y solo donde está vacío.
+- `pokemonDelTema(c)` (`js/temas-pokemon.js`, puro): la columna; si no, las
+  palabras del nombre (primeros/empezar → Pichu 172, comprar/vender → Meowth
+  52, real/falsa → Ditto 132, identificar → Unown 201, historia/curiosidad →
+  Aerodactyl 142, mazo/estrategia/competitivo → Alakazam 65); si no, `null` y
+  la baldosa lleva el icono del tema. `pokemonDe` (la cuenta con el slug) ya
+  no se usa para los temas. `porqueDelPokemon` da la línea de debajo.
+- Las baldosas (`.ap-tema-icon-tint-N` da `--c`): en el PC, rejilla de 3 con
+  el nombre en dos líneas como mucho y el Pokémon de 64 px en su columna; en
+  el móvil, 160 px con el Pokémon de 40, sin el porqué ni la barra.
+- /admin → Categorías: el campo sale solo si alguna fila trae `pokemon`, y
+  solo entonces se manda en el upsert (la 624).

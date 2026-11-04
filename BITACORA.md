@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (466) — PINGU-Claude (1226 — los temas de Aprender con un Pokémon que tenga que ver)
+
+**Hecho** (PINGU eligió la A de la propuesta, con los seis Pokémon):
+- Cada tema lleva el Pokémon de `pokemonDelTema` (`js/temas-pokemon.js`):
+  manda `categories.pokemon` y, sin ella, las palabras del nombre (Pichu,
+  Meowth, Ditto, Unown, Aerodactyl, Alakazam); lo que no casa lleva su
+  icono, nunca uno al azar. En el PC, tres por fila con el nombre entero y
+  el porqué debajo («Meowth: Día de Pago»); en el móvil, baldosas de 160 px
+  que se deslizan, sin porqué ni barra (la lista sigue empezando antes de los
+  296 px de la 1040).
+- /admin → Guías → Categorías: campo «Pokémon (número de la Pokédex)», solo
+  si la columna existe.
+- De paso: el relleno de los botones a un paso de la escala (16 px; el 20 de
+  la 1225 no lo era) y la flecha del Historial en `--text-mid` (311).
+
+**Ficheros** (web): `js/temas-pokemon.js` (nuevo), `js/aprender.js`,
+`css/aprender.css`, `admin/js/admin.js`, `css/style.css`,
+`css/cambio-propuesta.css`, `supabase-migration-1226-temas-pokemon.sql`,
+`BITACORA.md`, `SCHEMA.md`, `novedades.json`, `CLAUDE.md`.
+
+**Pruebas**: rama `pruebas`, `test-tanda-1226.mjs` nueva (la migración contra
+PostgreSQL sentencia a sentencia, la función y /aprender en PC y móvil); 864 y
+865 al día (tres por fila). Verdes 299, 305, 309, 312, 313, 1023, 1166, 1215 e
+imports. 310, 311, 846, 981, 1039 y 1040 tienen los mismos rojos que antes.
+
+**Queda**: PINGU ejecuta `supabase-migration-1226-temas-pokemon.sql` (pone los
+seis en la base y deja cambiarlos desde /admin). Sin ella la web ya los pinta,
+por el nombre.
+
 ## 2026-11-04 (465) — PINGU-Claude (1225 — los detalles: botones, trato hecho, guías, Panel)
 
 **Hecho** (PINGU, con capturas):

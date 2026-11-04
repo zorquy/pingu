@@ -495,3 +495,52 @@
   .ap-baldosas > .ap-baldosa[class*='arte-'] { flex: 0 0 72%; min-height: 56px; padding: var(--e-sm) var(--e-md); }
   .ap-baldosa-arte { width: 56px; height: 56px; }
 }
+
+/* ── 1226: los temas, como la A de la propuesta (SCHEMA 1226) ──
+   El color de su tema (--c), tres por fila en el PC con el nombre entero y el
+   Pokémon que tiene que ver en su hueco de la derecha; en el móvil, la fila
+   que se desliza con baldosas de 160 px. Va al final: les gana a las de la
+   1039 (chips) y la 1217 (degradado blanco). */
+.ap-tema-icon-tint-0 { --c: var(--navy); }
+.ap-tema-icon-tint-1 { --c: var(--indigo); }
+.ap-tema-icon-tint-2 { --c: var(--warning); }
+.ap-tema-icon-tint-3 { --c: var(--success); }
+.ap-tema-icon-tint-4 { --c: var(--pink); }
+.ap-baldosas > .ap-baldosa {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 92px;
+  max-width: none;
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid color-mix(in srgb, var(--c) 28%, var(--border));
+  border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--c) 16%, var(--white)), var(--white) 75%);
+  color: var(--text);
+}
+.ap-baldosas > .ap-baldosa::before,
+.ap-baldosas > .ap-baldosa::after { content: none; }
+.ap-baldosas > .ap-baldosa:hover { border-color: var(--c); }
+.ap-baldosas .ap-baldosa-texto { gap: 4px; padding: 0; }
+.ap-baldosas .ap-baldosa-nombre { font-size: var(--t-md); font-weight: 700; white-space: normal; overflow: visible; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
+.ap-baldosas .ap-baldosa-sub { display: block; color: var(--text-mid); }
+.ap-baldosa-porque { font-size: var(--t-2xs); font-weight: 600; color: var(--c); }
+.ap-baldosas .ap-baldosa-barra { display: block; background: color-mix(in srgb, var(--c) 18%, transparent); }
+.ap-baldosas .ap-baldosa-barra i { background: var(--c); }
+.ap-baldosas .ap-baldosa-arte { position: static; width: 64px; height: 64px; filter: drop-shadow(0 6px 8px rgb(0 0 0 / 18%)); }
+.ap-baldosas .ap-baldosa-icono { display: grid; width: 52px; height: 52px; border-radius: 50%; background: color-mix(in srgb, var(--c) 22%, var(--white)); color: var(--c); }
+@media (min-width: 600px) {
+  .ap-baldosas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-md); overflow: visible; }
+}
+@media (max-width: 599px) {
+  .ap-baldosas > .ap-baldosa { flex: 0 0 160px; min-height: 0; padding: var(--e-sm) var(--e-md); gap: var(--e-sm); border-radius: var(--radius-lg); }
+  .ap-baldosas .ap-baldosa-nombre { font-size: var(--t-sm); }
+  /* La lista tiene que empezar antes de los 296 px (la 1040): en el móvil, sin
+     el porqué ni la barra (lo leído se ve dentro del tema). */
+  .ap-baldosa-porque,
+  .ap-baldosas .ap-baldosa-barra { display: none; }
+  .ap-baldosas .ap-baldosa-arte { width: 40px; height: 40px; }
+  .ap-baldosas .ap-baldosa-icono { width: 36px; height: 36px; }
+}
