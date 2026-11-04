@@ -30,7 +30,7 @@ console.log('── 0. Lo estático ──')
 {
   check('el módulo de la ficha a la derecha se fue', !existsSync(join(RAIZ, 'js/mi-coleccion/ficha-al-lado.js')))
   const js = readFileSync(join(RAIZ, 'js/mi-coleccion.js'), 'utf8')
-  check('  …y la ficha se abre siempre modal', !/vaAlLado|abrirFichaDonde|mc-ficha-al-lado/.test(js) && /if \(!yaAbierta\) d\.showModal\(\)/.test(js))
+  check('  …y la ficha se abre siempre modal', !/vaAlLado|abrirFichaDonde|mc-ficha-al-lado/.test(js) && /if \(!yaAbierta\) \{?\s*d\.showModal\(\)/.test(js))
   check('cartas.html sale del generador con el fondo y el velo', /id="mcEdFondo"/.test(readFileSync(join(RAIZ, 'cartas.html'), 'utf8')) && /id="mcEdSubvelo"/.test(readFileSync(join(RAIZ, 'cartas.html'), 'utf8')))
 }
 
@@ -109,9 +109,12 @@ for (const ancho of [1366, 1440]) {
   vers.ultimoDer = await page.$eval('#mcEdVersiones .mc-version:last-child', (e) => Math.round(e.getBoundingClientRect().right))
   const acc = await caja(page, '#mcEdAcciones')
   check('las versiones en chips, a la vista', chips.length === 2 && /^Normal ✓$/.test(chips[0]) && chips[1] === 'Reverse holo' && !(await page.locator('#mcEdVersion').isVisible()), JSON.stringify(chips))
-  // Desde la 923 la fila de versiones ocupa todo el ancho y deja su sitio
-  // a la derecha (`padding-right`) al «− Tienes 2 +»: se mira el último chip.
-  check('  …y «− Tienes 2 +» en la misma fila, a la derecha', Math.abs(vers.y + vers.h / 2 - (acc.y + acc.h / 2)) <= 12 && acc.x > vers.ultimoDer, JSON.stringify({ vers, acc }))
+  // Desde la 1237 «− Tienes 2 +» va en la columna de la carta, debajo de
+  // ella y encima de «Ficha completa», en su pastilla redonda.
+  const ficha = await caja(page, '#mcEdFicha')
+  check('  …y «− Tienes 2 +» debajo de la carta, en su columna (1237)', acc.x >= d.x && acc.der <= datos.x && acc.y >= foto.abajo && acc.abajo <= ficha.y && acc.h === 64, JSON.stringify({ acc, foto, ficha }))
+  const radio = await page.$eval('#mcEdAcciones', (e) => getComputedStyle(e).borderRadius)
+  check('  …redonda', parseFloat(radio) >= 32, radio)
   await page.waitForTimeout(600)
   const alb = await caja(page, '#mcEdAlbumes')
   const quien = await caja(page, '#mcEdQuienBloque')

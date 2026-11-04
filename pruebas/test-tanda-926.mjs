@@ -45,7 +45,8 @@ const medir = (page) => page.evaluate(() => {
   const q = (s) => document.querySelector(s)
   const r = (e) => e.getBoundingClientRect()
   const art = q('#cartaNucleo'), scan = q('.carta-scan'), img = q('.carta-scan img'), h1 = q('.carta-cabecera h1'), datos = q('.carta-datos')
-  const tarjetas = [...document.querySelectorAll('#cmPrecios .pv-tarjeta')].map((t) => Math.round(r(t).top))
+  // 1237: una fila es el mismo centro (tu idioma es más alto que los chips).
+  const tarjetas = [...document.querySelectorAll('#cmPrecios .pv-tarjeta')].map((t) => Math.round((r(t).top + r(t).bottom) / 8))
   const fila = ['#cmAvisoSitio', '#cmComparar', '.carta-mercado-pie'].map((s) => q(s)).filter(Boolean).map((e) => Math.round(r(e).top + r(e).height / 2))
   const legal = q('.carta-legal')
   return {

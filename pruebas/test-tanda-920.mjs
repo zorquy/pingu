@@ -8,8 +8,8 @@
 //   5. Sin botón de Cardmarket: las tarjetas ya llevan a Cardmarket y a
 //      TCGplayer (y TCGplayer sin cifra también es tarjeta).
 //   6. En el PC, las tarjetas de precio en rejilla, sin barra de desplazar.
-//   7. En el móvil, el dedo de lado sobre los precios mueve los precios, no
-//      cambia de carta.
+//   7. (Hasta la 1237) En el móvil, el dedo de lado sobre los precios movía
+//      los precios; desde la 1237 caben y no hay nada que mover.
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
@@ -89,17 +89,13 @@ console.log('── 1–3, 5, 7. En un iPhone ──')
   check('el corazón y compartir, dentro de la hoja y a la altura de la carta (no cortados arriba)', r.icono.top >= r.dlgTop + 16 && r.icono.top >= r.foto.top - 4 && r.icono.right <= r.dlgRight && r.icono.alto >= 44, JSON.stringify(r))
   check('sin botón de Cardmarket bajo los precios', (await page.locator('#mcEdPrecioBloque .btn-cardmarket, #mcEdPrecioBloque .pv-botones').count()) === 0)
 
-  // El dedo de lado sobre los precios: mueve los precios.
+  // Desde la 1237 los precios ya no se deslizan: tu idioma en grande y los
+  // demás en chips que caben (se parten en filas). No hay nada que mover de
+  // lado, así que el dedo de lado sobre ellos pasa de carta como en el resto.
   await page.locator('#mcEdPrecioBloque .pv-tarjetas').scrollIntoViewIfNeeded()
   await page.waitForTimeout(300)
-  const t = await page.$eval('#mcEdPrecioBloque .pv-tarjetas', (e) => { const b = e.getBoundingClientRect(); return { x: Math.round(b.left + b.width * 0.7), y: Math.round(b.top + b.height / 2), desborda: e.scrollWidth > e.clientWidth } })
-  check('en el móvil los precios se deslizan (no caben)', t.desborda)
-  const antes = await sitio(page)
-  await arrastrar(cdp, t, { x: t.x - 180, y: t.y + 4 })
-  await page.waitForTimeout(800)
-  const lejos = await page.$eval('#mcEdPrecioBloque .pv-tarjetas', (e) => e.scrollLeft)
-  check('deslizar de lado sobre los precios NO cambia de carta', (await sitio(page)) === antes && antes === '1 de 3', `${antes} → ${await sitio(page)}`)
-  check('  …y mueve los precios', lejos > 40, String(lejos))
+  const t = await page.$eval('#mcEdPrecioBloque .pv-tarjetas', (e) => { const b = e.getBoundingClientRect(); const ts = [...e.querySelectorAll('.pv-tarjeta')].map((x) => x.getBoundingClientRect()); return { desborda: e.scrollWidth > e.clientWidth + 1, todas: ts.every((x) => x.right <= b.right + 1 && x.left >= b.left - 1) } })
+  check('en el móvil los precios caben (1237: tu idioma grande y chips), sin deslizar', !t.desborda && t.todas, JSON.stringify(t))
 
   // Sobre la carta sigue pasando de carta.
   await page.evaluate(() => { document.getElementById('mcEditor').scrollTop = 0 })
@@ -128,11 +124,12 @@ console.log('── 4 y 6. En el ordenador ──')
   const r = await page.$eval('#mcEdPrecioBloque .pv-tarjetas', (e) => {
     const caja = e.getBoundingClientRect()
     const ts = [...e.querySelectorAll('.pv-tarjeta')].map((t) => t.getBoundingClientRect())
-    return { barra: e.scrollWidth > e.clientWidth + 1, desborda: getComputedStyle(e).overflowX, todas: ts.every((t) => t.right <= caja.right + 1 && t.left >= caja.left - 1), filas: new Set(ts.map((t) => Math.round(t.top))).size, n: ts.length }
+    return { barra: e.scrollWidth > e.clientWidth + 1, desborda: getComputedStyle(e).overflowX, todas: ts.every((t) => t.right <= caja.right + 1 && t.left >= caja.left - 1), filas: new Set(ts.map((t) => Math.round((t.top + t.bottom) / 8))).size, n: ts.length }
   })
   check('las tarjetas de precio caben todas, sin barra de desplazar', !r.barra && r.desborda === 'visible' && r.todas && r.n === 6, JSON.stringify(r))
-  // Desde la 921 el pop-up es ancho: las seis caben en UNA fila.
-  check('  …y en el pop-up ancho (921), las seis en una fila', r.filas === 1, JSON.stringify(r))
+  // Desde la 1237: tu idioma en grande a la izquierda y las otras cinco en
+  // chips a su lado, en UNA fila (mismo centro).
+  check('  …y en el pop-up ancho, las seis en una fila (1237: mismo centro)', r.filas === 1, JSON.stringify(r))
   check('  …y sin botón de Cardmarket debajo', (await page.locator('#mcEdPrecioBloque .btn-cardmarket, #mcEdPrecioBloque .pv-botones').count()) === 0)
   await page.click('#mcEdCerrar')
   await page.waitForTimeout(500)

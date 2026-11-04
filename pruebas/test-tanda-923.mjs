@@ -69,7 +69,9 @@ const medir = (page) => page.evaluate(() => {
   const desbordan = visibles('button, a').filter((e) => e.scrollWidth > e.clientWidth + 1 || e.scrollHeight > e.clientHeight + 1).map((e) => `${e.id || e.className}: «${e.textContent.trim().slice(0, 30)}» ${e.scrollWidth}x${e.scrollHeight} > ${e.clientWidth}x${e.clientHeight}`)
   // Y que nada visible se salga del pop-up por abajo o por la derecha.
   const fuera = visibles('.mc-ficha-datos *').filter((e) => { const r = e.getBoundingClientRect(); return r.width && (r.bottom > caja.bottom + 1 || r.right > caja.right + 1) }).map((e) => e.id || e.className).slice(0, 4)
-  const tarjetas = visibles('#mcEdPrecioBloque .pv-tarjeta').map((e) => Math.round(e.getBoundingClientRect().top))
+  // Desde la 1237 tu idioma es más alto que los chips: una fila es el mismo
+  // centro (van centrados), no la misma altura de arriba.
+  const tarjetas = visibles('#mcEdPrecioBloque .pv-tarjeta').map((e) => { const r = e.getBoundingClientRect(); return Math.round((r.top + r.bottom) / 8) })
   const svg = d.querySelector('#mcEdHistorial svg')
   const ficha = document.getElementById('mcEdFicha').getBoundingClientRect()
   const carta = d.querySelector('.mc-ficha-carta').getBoundingClientRect()
