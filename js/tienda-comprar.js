@@ -13,7 +13,9 @@ import { supabase } from './supabase.js'
 import { escapeHtml } from './html.js'
 import { showToast } from './toast.js'
 import { hojaInyectada } from './hoja.js'
-import { IDIOMAS, ESTADOS, euros, valorDe, precioDeFila, idiomasParaAnadirEn, versionesDelIdioma } from './cardmarket.js'
+import { IDIOMAS, ESTADOS, euros, valorDe, valorGradeado, precioDeFila, idiomasParaAnadirEn, versionesDelIdioma } from './cardmarket.js'
+import { CASAS_A_ELEGIR } from './gradeo-elegir.js'
+import { notasDeCasa } from './mi-coleccion/gradeo.js'
 import { idiomasDeSetSinEsperar, reglasDeVersiones, sinReglas } from './idiomas-de-set.js'
 import { variantesDeCarta, nombreDeVariante } from './mi-coleccion/variantes.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
@@ -227,8 +229,14 @@ function versionesDe(l) {
 function cmDe(l) {
   if (l.producto) return Number(l.producto.cm_lowest_es ?? l.producto.cm_lowest_eu ?? l.producto.cm_lowest) || null
   if (!l.filaPrecio) return null
-  return valorDe(precioDeFila(l.filaPrecio, { variante: l.variante }), l.idioma) || null
+  const pr = precioDeFila(l.filaPrecio, { variante: l.variante })
+  // Una gradeada se tasa por SU casa y nota (1234), si Cardmarket la tiene.
+  return (l.gradeo ? valorGradeado(pr, l.gradeo) : null) || valorDe(pr, l.idioma) || null
 }
+
+// «Sin gradear» o casa y nota en UN desplegable (1234): la fila de una compra
+// es corta y lleva ya idioma, estado y versión.
+const gradeoOpcionesHtml = (actual) => `<option value="">Sin gradear</option>${CASAS_A_ELEGIR.map((c) => `<optgroup label="${escapeHtml(c.nombre)}">${notasDeCasa(c.id).map((n) => `<option value="${escapeHtml(`${c.id} ${n}`)}" ${actual === `${c.id} ${n}` ? 'selected' : ''}>${escapeHtml(`${c.id} ${n}`)}</option>`).join('')}</optgroup>`).join('')}`
 
 async function anadir(f) {
   if (!f) return
@@ -286,7 +294,8 @@ function pintarLineas() {
           <div class="tdc-linea-cab">${fotoHtml(l)}<div class="tdv-linea-que"><strong>${escapeHtml(nombre)}</strong><small>${escapeHtml(detalle)}</small></div><button type="button" class="tdv-quitar" data-quitar aria-label="Quitar ${escapeHtml(nombre)}">&times;</button></div>
           ${l.carta ? `<div class="tdc-elige">
             <label><span class="sr-only">Idioma</span><select data-campo="idioma">${opciones(l.idiomas, l.idioma)}</select></label>
-            <label><span class="sr-only">Estado</span><select data-campo="estado">${opciones(ESTADOS.map((e) => ({ id: e.id, nombre: e.id })), l.estado)}</select></label>
+            ${l.gradeo ? '' : `<label><span class="sr-only">Estado</span><select data-campo="estado">${opciones(ESTADOS.map((e) => ({ id: e.id, nombre: e.id })), l.estado)}</select></label>`}
+            <label><span class="sr-only">Gradeada</span><select data-campo="gradeo">${gradeoOpcionesHtml(l.gradeo || '')}</select></label>
             ${l.versiones.length > 1 ? `<label><span class="sr-only">Versión</span><select data-campo="variante">${opciones(l.versiones, l.variante)}</select></label>` : ''}
           </div>` : ''}
           <div class="tdv-linea-mandos">
@@ -316,7 +325,7 @@ async function comprar() {
   const boton = $('#tdcComprada')
   boton.disabled = true
   const pedidas = lineas.map((l) => ({
-    ...(l.carta ? { card_id: l.carta.id, idioma: l.idioma, estado: l.estado, variante: l.variante } : { product_id: Number(l.producto.id), idioma: l.idioma }),
+    ...(l.carta ? { card_id: l.carta.id, idioma: l.idioma, estado: l.gradeo ? 'NM' : l.estado, variante: l.variante, gradeo: l.gradeo || null } : { product_id: Number(l.producto.id), idioma: l.idioma }),
     market: l.market,
     unidades: l.unidades,
     coste: l.pagas,

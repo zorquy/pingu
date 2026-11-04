@@ -23,6 +23,7 @@ import { COLUMNAS_CARTA_DE_SET } from './mi-coleccion/columnas-set.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { enlaceAMapa, enlacesDeTienda } from './tiendas-puro.js'
 import { icons } from './icons.js'
+import { chapaDeGradeoHtml } from './gradeo-elegir.js'
 
 const POR_PAGINA = 60
 const COLUMNAS = COLUMNAS_CARTA_DE_SET.replace('tcg_sets(tcg_online_code,serie_id,release_date)', 'tcg_sets(name,name_en,tcg_online_code,serie_id,release_date,oculto)')
@@ -97,7 +98,8 @@ function baldosaHtml(f) {
   const nombre = c ? nombreDeCarta(c) : p?.name || f.nombre || ''
   const foto = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : p?.image ? `src="${escapeHtml(p.image)}" onerror="this.remove()"` : null
   const href = c ? rutaDeCarta(c) : f.product_id ? rutaDeProducto({ id: f.product_id }) : null
-  const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.estado, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null, f.gradeo].filter(Boolean).join(' · ')
+  // Una gradeada lleva su etiqueta sobre la foto y no dice estado (1234).
+  const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.gradeo ? null : f.estado, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null].filter(Boolean).join(' · ')
   // Una oferta (1082): el precio rebajado, el de siempre tachado y cuánto baja.
   const antes = f.precio_antes != null && f.precio != null && Number(f.precio_antes) > Number(f.precio) ? Number(f.precio_antes) : null
   const baja = antes ? Math.round((1 - Number(f.precio) / antes) * 100) : 0
@@ -107,7 +109,7 @@ function baldosaHtml(f) {
     f.nueva ? '<span class="pt-chapa-foto pt-chapa-nueva">Nueva</span>' : '',
   ].join('')
   return `<article class="pt-carta${f.de_tu_lista ? ' tuya' : ''}${antes ? ' pt-oferta' : ''}">
-    <a class="pt-foto${f.product_id ? ' pt-foto-producto' : ''}" href="${escapeHtml(href || '#')}"${c ? ` data-marca-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">${foto ? `<img ${foto} alt="" width="245" height="342" loading="lazy" />` : ''}${chapas ? `<span class="pt-chapas-foto">${chapas}</span>` : ''}${f.de_tu_lista ? `<span class="pt-tuya" title="De tu lista">${ICONOS_COLECCION.corazon(14)}</span>` : ''}</a>
+    <a class="pt-foto${f.product_id ? ' pt-foto-producto' : ''}" href="${escapeHtml(href || '#')}"${c ? ` data-marca-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">${foto ? `<img ${foto} alt="" width="245" height="342" loading="lazy" />` : ''}${chapas ? `<span class="pt-chapas-foto">${chapas}</span>` : ''}${f.gradeo && !f.product_id ? chapaDeGradeoHtml(f.gradeo, { clase: 'chapa-gradeo-foto' }) : ''}${f.de_tu_lista ? `<span class="pt-tuya" title="De tu lista">${ICONOS_COLECCION.corazon(14)}</span>` : ''}</a>
     <span class="pt-precio">${precio}</span>
     <span class="pt-nombre">${escapeHtml(nombre)}</span>
     <span class="pt-detalle">${escapeHtml(detalle)}${f.unidades > 1 ? ` · ${f.unidades} uds.` : ''}</span>

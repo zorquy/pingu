@@ -11,7 +11,7 @@ import { escapeHtml } from './html.js'
 import { showToast } from './toast.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
-import { IDIOMAS, ESTADOS, euros, valorDe, precioDeFila, idiomasParaAnadirEn, versionesDelIdioma, enlaceCardmarket } from './cardmarket.js'
+import { IDIOMAS, ESTADOS, euros, valorDe, precioDeFila, valorGradeado, idiomasParaAnadirEn, versionesDelIdioma, enlaceCardmarket } from './cardmarket.js'
 import { enlaceCardmarketDeProducto } from './productos.js'
 import { idiomasDeSetSinEsperar, reglasDeVersiones, sinReglas } from './idiomas-de-set.js'
 import { variantesDeCarta, nombreDeVariante } from './mi-coleccion/variantes.js'
@@ -26,6 +26,7 @@ import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { banderaHtml } from './precio-vista.js'
 import { marcaDeRarezaHtml } from './rarezas.js'
 import { iconoDeVersion } from './mi-coleccion/iconos-version.js'
+import { gradeoHtml, engancharGradeo, chapaDeGradeoHtml } from './gradeo-elegir.js'
 
 const POR_PAGINA = 50
 const COLUMNAS = COLUMNAS_CARTA_DE_SET.replace('tcg_sets(tcg_online_code,serie_id,release_date)', 'tcg_sets(name,name_en,tcg_online_code,serie_id,release_date,oculto)')
@@ -242,6 +243,12 @@ function precioCeldaHtml(f) {
   return `<strong>${f.precio != null ? euros(f.precio) : '<span class="tds-falta">Sin precio</span>'}</strong>${acabada}`
 }
 
+// El estado de una copia o, si va en cápsula, su etiqueta (1234).
+function estadoOGradeoHtml(f) {
+  if (f.gradeo && !f.product_id) return chapaDeGradeoHtml(f.gradeo)
+  return `<span class="tds-chapa">${dibujoDe('estado', f.estado)}${escapeHtml(f.estado === 'sellado' ? 'Sellado' : f.estado)}</span>`
+}
+
 function filaHtml(f) {
   const m = margenDe(f.precio, f.coste)
   const debajo = f.precio != null && f.cm > 0 && f.precio < f.cm * 0.95
@@ -250,9 +257,9 @@ function filaHtml(f) {
   const marcada = est.marcadas.has(f.id)
   return `<tr class="${pierde || dias > 90 ? 'tds-mal' : debajo ? 'tds-alerta' : ''}${marcada ? ' tds-marcada' : ''}" data-fila="${escapeHtml(f.id)}">
     ${est.seleccionando ? `<td class="tds-check"><input type="checkbox" aria-label="Marcar" data-marcar="${escapeHtml(f.id)}" ${marcada ? 'checked' : ''} /></td>` : ''}
-    <td class="tds-c-nombre"><div class="tds-nombre">${fotoHtml(f)}<span><strong>${escapeHtml(nombreFila(f))}</strong><small>${escapeHtml(detalleFila(f))}${f.variante && f.variante !== 'normal' && !f.product_id ? ` · ${escapeHtml(nombreDeVariante(f.variante))}` : ''}${f.gradeo ? ` · ${escapeHtml(f.gradeo)}` : ''}</small><span class="tds-meta">${f.idioma ? banderaHtml(f.idioma) : ''}${escapeHtml(String(f.idioma || '').toUpperCase())}<span class="tds-chapa">${dibujoDe('estado', f.estado)}${escapeHtml(f.estado === 'sellado' ? 'Sellado' : f.estado)}</span></span></span>${estrellaHtml(f)}</div></td>
+    <td class="tds-c-nombre"><div class="tds-nombre">${fotoHtml(f)}<span><strong>${escapeHtml(nombreFila(f))}</strong><small>${escapeHtml(detalleFila(f))}${f.variante && f.variante !== 'normal' && !f.product_id ? ` · ${escapeHtml(nombreDeVariante(f.variante))}` : ''}</small><span class="tds-meta">${f.idioma ? banderaHtml(f.idioma) : ''}${escapeHtml(String(f.idioma || '').toUpperCase())}${estadoOGradeoHtml(f)}</span></span>${estrellaHtml(f)}</div></td>
     <td class="tds-c-idioma">${f.idioma ? banderaHtml(f.idioma) : ''}<span>${escapeHtml(String(f.idioma || '').toUpperCase())}</span></td>
-    <td class="tds-c-estado"><span class="tds-chapa">${dibujoDe('estado', f.estado)}${escapeHtml(f.estado === 'sellado' ? 'Sellado' : f.estado)}</span></td>
+    <td class="tds-c-estado">${estadoOGradeoHtml(f)}</td>
     <td class="tds-num tds-c-uds">${f.unidades}</td>
     <td class="tds-num tds-c-coste">${f.coste != null ? euros(f.coste) : '<span class="tds-falta">—</span>'}</td>
     <td class="tds-num tds-c-precio">${precioCeldaHtml(f)}</td>
@@ -297,12 +304,12 @@ function baldosaHtml(f) {
   const marcada = est.marcadas.has(f.id)
   const o = ofertaDe(f)
   const id = escapeHtml(f.id)
-  const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.estado, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null, f.gradeo].filter(Boolean).join(' · ')
+  const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.gradeo ? null : f.estado, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null].filter(Boolean).join(' · ')
   return `<article class="tds-baldosa${marcada ? ' tds-marcada' : ''}${f.visible ? '' : ' tds-baldosa-oculta'}" data-fila="${id}">
     <div class="tds-baldosa-foto">${fotoHtml(f)}
       ${est.seleccionando ? `<input type="checkbox" class="tds-baldosa-check" aria-label="Marcar" data-marcar="${id}" ${marcada ? 'checked' : ''} />` : ''}
       ${estrellaHtml(f)}
-      <span class="tds-baldosa-chapas">${o ? `<span class="tds-baldosa-chapa tds-baldosa-oferta">${o.pct ? `−${o.pct} %` : 'Oferta'}</span>` : ''}${f.visible ? '' : '<span class="tds-baldosa-chapa">Oculta</span>'}${apartadaHtml(f)}</span>
+      <span class="tds-baldosa-chapas">${f.gradeo ? chapaDeGradeoHtml(f.gradeo) : ''}${o ? `<span class="tds-baldosa-chapa tds-baldosa-oferta">${o.pct ? `−${o.pct} %` : 'Oferta'}</span>` : ''}${f.visible ? '' : '<span class="tds-baldosa-chapa">Oculta</span>'}${apartadaHtml(f)}</span>
     </div>
     <strong class="tds-baldosa-nombre">${escapeHtml(nombreFila(f))}</strong>
     <small class="tds-baldosa-detalle">${f.idioma && !f.product_id ? banderaHtml(f.idioma) : ''}${escapeHtml(detalle)}</small>
@@ -638,12 +645,12 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
   form.innerHTML = `
     <p class="tds-form-titulo"><strong>${escapeHtml(titulo)}</strong>${carta ? `<small>${escapeHtml(nombreDeSet(carta.tcg_sets) || carta.set_id)} · ${escapeHtml(carta.local_id || '')}</small>` : ''}</p>
     ${fotoDeFichaHtml(carta, elProducto)}
-    ${esProducto ? '' : `<div class="tds-form-fila">
-      <label>Idioma<select name="idioma">${idiomas.map((i) => `<option value="${i.id}" ${i.id === idioma ? 'selected' : ''}>${escapeHtml(i.nombre)}</option>`).join('')}</select></label>
-      <label>Estado<select name="estado">${ESTADOS.map((e) => `<option value="${e.id}" ${(v.estado || 'NM') === e.id ? 'selected' : ''}>${e.id} · ${escapeHtml(e.nombre)}</option>`).join('')}</select></label>
-    </div>
+    ${esProducto ? '' : `${gradeoHtml(v.gradeo || '')}
     <label class="tds-version${versionesDe(idioma).length > 1 ? '' : ' hidden'}">Versión<select name="variante"></select></label>
-    <label>Gradeada (opcional)<input name="gradeo" maxlength="20" placeholder="PSA 10" value="${escapeHtml(v.gradeo || '')}" /></label>`}
+    <div class="tds-form-fila">
+      <label>Idioma<select name="idioma">${idiomas.map((i) => `<option value="${i.id}" ${i.id === idioma ? 'selected' : ''}>${escapeHtml(i.nombre)}</option>`).join('')}</select></label>
+      <label class="tds-estado-campo"${v.gradeo ? ' hidden' : ''}>Estado<select name="estado">${ESTADOS.map((e) => `<option value="${e.id}" ${(v.estado || 'NM') === e.id ? 'selected' : ''}>${e.id} · ${escapeHtml(e.nombre)}</option>`).join('')}</select></label>
+    </div>`}
     <div class="tds-form-fila">
       <label>Unidades<input name="unidades" type="number" inputmode="numeric" min="0" max="99999" value="${v.unidades ?? 1}" /></label>
       <label>Lo que pagaste (€/u)<input name="coste" type="number" inputmode="decimal" min="0" step="0.01" value="${v.coste ?? ''}" /></label>
@@ -693,11 +700,17 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
   const pintarCm = () => {
     const caja = form.querySelector('[data-cm]')
     let cm = null
+    // Una gradeada vale lo de SU casa y nota (1234), no lo de la carta suelta.
+    const gradeo = form.querySelector('[name="gradeo"]')?.value || ''
+    let deLaCasa = false
     if (esProducto) {
       const p = producto || est.productos.get(String(fila?.product_id))
       cm = fila?.cm ?? p?.cm_lowest_es ?? p?.cm_lowest_eu ?? p?.cm_lowest ?? null
     } else if (filaPrecio) {
-      cm = valorDe(precioDeFila(filaPrecio, { variante: sel?.value || 'normal' }), form.querySelector('[name="idioma"]').value)
+      const pr = precioDeFila(filaPrecio, { variante: sel?.value || 'normal' })
+      const g = gradeo ? valorGradeado(pr, gradeo) : null
+      deLaCasa = g != null
+      cm = g ?? valorDe(pr, form.querySelector('[name="idioma"]').value)
     } else if (fila) cm = fila.cm
     // Para mirarlo allí (1090): el precio es orientativo y a veces falla en
     // un idioma, así que la tienda lo comprueba con los filtros de la ficha.
@@ -708,13 +721,19 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
       enlace = enlaceCardmarket({ idProduct: pr?.idProduct, url: pr?.url, dudoso: pr?.dudoso, idioma: form.querySelector('[name="idioma"]').value, estado: form.querySelector('[name="estado"]').value, variante: sel?.value || 'normal', nombre: carta?.name || titulo })
     }
     const ver = enlace ? ` · <a class="link-btn tds-cm-ver" href="${escapeHtml(enlace)}" target="_blank" rel="noopener">Ver en Cardmarket</a>` : ''
+    const deQue = gradeo ? (deLaCasa ? ` ${escapeHtml(gradeo)}` : ' (sin gradear: no hay precio de esta nota)') : ''
     caja.innerHTML = cm > 0
-      ? `Cardmarket (orientativo): <strong>${euros(cm)}</strong> · <button type="button" class="link-btn" data-poner="${cm}">Poner ese</button> · <button type="button" class="link-btn" data-poner="${precioSugerido(cm, 10, '95')}">+10 % (${euros(precioSugerido(cm, 10, '95'))})</button>${ver}`
+      ? `Cardmarket${deQue} (orientativo): <strong>${euros(cm)}</strong> · <button type="button" class="link-btn" data-poner="${cm}">Poner ese</button> · <button type="button" class="link-btn" data-poner="${precioSugerido(cm, 10, '95')}">+10 % (${euros(precioSugerido(cm, 10, '95'))})</button>${ver}`
       : `Sin precio de Cardmarket para este idioma.${ver}`
   }
   pintarCm()
   form.querySelector('[name="idioma"]')?.addEventListener('change', () => { ponerVersiones(); pintarCm() })
   form.querySelector('[name="estado"]')?.addEventListener('change', pintarCm)
+  // Con cápsula, el estado no aplica: se esconde (se guarda NM).
+  engancharGradeo(form, (g) => {
+    form.querySelector('.tds-estado-campo')?.toggleAttribute('hidden', !!g)
+    pintarCm()
+  })
   sel?.addEventListener('change', pintarCm)
   form.onclick = async (e) => {
     const poner = e.target.closest('[data-poner]')
@@ -780,7 +799,10 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
       notas: (datos.notas || '').trim() || null,
       updated_at: new Date().toISOString(),
     }
-    if (!esProducto) Object.assign(linea, { idioma: datos.idioma, estado: datos.estado, variante: sel?.value || 'normal', gradeo: (datos.gradeo || '').trim() || null })
+    if (!esProducto) {
+      const gradeo = (datos.gradeo || '').trim() || null
+      Object.assign(linea, { idioma: datos.idioma, estado: gradeo ? 'NM' : datos.estado, variante: sel?.value || 'normal', gradeo })
+    }
     // La oferta y la estrella (1079, 1082): solo con la migración.
     if (est.destacadas != null) {
       const oferta = num(datos.oferta_precio)

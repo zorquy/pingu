@@ -81,20 +81,7 @@
 /* ── El bloque de precio (tanda 589), el mismo en /carta y en la ficha
    emergente de /mi-coleccion. Lo pinta js/precio-vista.js. ── */
 
-/* Los colores de las casas de gradeo, los suyos: PSA rojo, Beckett
-   amarillo (con letra oscura: blanco sobre amarillo no se lee), CGC azul,
-   ACE naranja, TAG rosa, SGC negro. Fijos en los dos temas, porque son la
-   marca de otro y llevan el blanco fijo encima. */
-.pv,
-.mc-chip-gradeo {
-  --casa-psa: #c8102e;
-  --casa-bgs: #f2c200;
-  --casa-bgs-texto: #1a1a1a;
-  --casa-cgc: #1b64c4;
-  --casa-ace: #e8771d;
-  --casa-tag: #e0338c;
-  --casa-sgc: #2b2b2b;
-}
+/* Los colores de las casas de gradeo están en components.css (1234). */
 
 .pv {
   display: flex;
@@ -370,7 +357,7 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
 @media (prefers-reduced-motion: reduce) { .pv-gradeadas-cab::after { transition: none; } }
 .pv-gradeada[data-casa='PSA'] { --casa: var(--casa-psa); }
 .pv-gradeada[data-casa='BGS'] { --casa: var(--casa-bgs); color: var(--casa-bgs-texto); }
-.pv-gradeada[data-casa='CGC'] { --casa: var(--casa-cgc); }
+.pv-gradeada[data-casa='CGC'] { --casa: var(--casa-cgc); color: var(--casa-cgc-texto); box-shadow: inset 0 0 0 1px var(--casa-cgc-borde); }
 .pv-gradeada[data-casa='ACE'] { --casa: var(--casa-ace); }
 .pv-gradeada[data-casa='TAG'] { --casa: var(--casa-tag); }
 .pv-gradeada[data-casa='SGC'] { --casa: var(--casa-sgc); }

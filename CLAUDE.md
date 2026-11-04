@@ -125,6 +125,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   escaparate, Mercado y Vender no las ofrecen sin tocarlos; recoger es una venta
   (`tienda_reserva_recoger`) y lo caducado vuelve con `tienda_reservas_al_dia`,
   que llaman el panel y el escaparate al abrirse.
+  Una gradeada (1234) lleva su casa y nota en `gradeo` («PSA 10») y se elige
+  con `gradeoHtml` / `engancharGradeo` (`js/gradeo-elegir.js`: PSA, Beckett y
+  CGC); se PINTA con `chapaDeGradeoHtml` (PSA roja, Beckett negra, CGC blanca,
+  colores `--casa-*` en `components.css`). Un camino nuevo para meter cartas
+  al stock lleva ese selector; con cápsula el estado no aplica (NM).
 - **La analítica cuenta PERSONAS y no páginas, y sin identificador** (tandas
   1065 y 1066): cada visita lleva `modo` (app instalada o web),
   `primera_del_dia`, `nueva_visita` y `primera_en_app` (una instalación), que

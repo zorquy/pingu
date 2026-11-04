@@ -3123,3 +3123,37 @@ body.portada-compacta .page-content {
 :root[data-theme='dark'] .foro-titulo-etiqueta {
   color: var(--chapa, var(--navy));
 }
+/* El gradeo (1234, PINGU): PSA roja con letras blancas, Beckett negra con
+   letras blancas, CGC blanca con letras negras. Fijos en los dos temas: son
+   la marca de otro. La etiqueta y el selector: js/gradeo-elegir.js. */
+:root {
+  --casa-psa: #c8102e;
+  --casa-bgs: #111;
+  --casa-bgs-texto: #fff;
+  --casa-cgc: #fff;
+  --casa-cgc-texto: #111;
+  --casa-cgc-borde: rgb(0 0 0 / 30%);
+  --casa-ace: #e8771d;
+  --casa-tag: #e0338c;
+  --casa-sgc: #2b2b2b;
+}
+.chapa-gradeo { display: inline-flex; align-items: baseline; gap: var(--e-xs); padding: 2px var(--e-sm); border-radius: var(--radius-sm); background: var(--ice); color: var(--text); font-size: var(--t-xs); font-weight: 700; line-height: 1.3; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.chapa-gradeo b { font-weight: 800; letter-spacing: 0.04em; }
+:is(.chapa-gradeo, .ge-casa[aria-pressed='true'])[data-casa='PSA'] { background: var(--casa-psa); color: var(--blanco-fijo); }
+:is(.chapa-gradeo, .ge-casa[aria-pressed='true'])[data-casa='BGS'] { background: var(--casa-bgs); color: var(--casa-bgs-texto); box-shadow: inset 0 0 0 1px rgb(255 255 255 / 22%); }
+:is(.chapa-gradeo, .ge-casa[aria-pressed='true'])[data-casa='CGC'] { background: var(--casa-cgc); color: var(--casa-cgc-texto); box-shadow: inset 0 0 0 1px var(--casa-cgc-borde); }
+.ge { display: grid; gap: var(--e-sm); min-width: 0; margin: 0; padding: 0; border: 0; }
+.ge-rotulo { padding: 0; color: var(--text-mid); font-size: var(--t-sm); font-weight: 600; }
+.ge-casas { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.ge-casa { min-height: 36px; padding: 0 var(--e-md); border: 1px solid transparent; border-radius: var(--radius-pill); background: var(--ice); color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 700; cursor: pointer; }
+.ge-casa[aria-pressed='true'] { border-color: transparent; background: var(--navy-solid); color: var(--blanco-fijo); }
+/* La CGC elegida es blanca: sin un borde fuerte no se distingue de las demás. */
+.ge-casa[aria-pressed='true'][data-casa='CGC'] { box-shadow: inset 0 0 0 2px var(--casa-cgc-texto); }
+.ge-nota { display: flex; align-items: center; gap: var(--e-sm); }
+.ge-nota[hidden] { display: none; }
+.ge-nota span { color: var(--text-mid); font-size: var(--t-sm); font-weight: 600; }
+.ge-nota select { min-height: 36px; }
+@media (pointer: coarse) { .ge-casa, .ge-nota select { min-height: 44px; } }
+/* Sobre la foto (stock, escaparate): abajo a la izquierda, como la cápsula. */
+.chapa-gradeo-foto { position: absolute; bottom: var(--e-sm); left: var(--e-sm); z-index: 2; padding: var(--e-xs) var(--e-sm); font-size: var(--t-sm); box-shadow: var(--shadow-sm); }
+.chapa-gradeo-foto[data-casa='CGC'] { box-shadow: inset 0 0 0 1px var(--casa-cgc-borde), var(--shadow-sm); }

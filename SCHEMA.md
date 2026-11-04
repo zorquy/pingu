@@ -54178,3 +54178,24 @@ partirse; `.pb-foro-cuatro` con `grid-auto-rows: 1fr` y sin `min-height: 0`
 alta); `.vitrina-cabeza` con margen abajo; `.ap-baldosa-sub` y
 `.banda-s-puesto-xp` se cortan con `text-overflow: ellipsis`.
 
+## Tanda 1234 — Cartas gradeadas en las tiendas
+
+`js/gradeo-elegir.js`: `gradeoHtml(valor, { nombre })` pinta un `fieldset.ge`
+con «No» y las tres casas de `CASAS_A_ELEGIR` (PSA, BGS como «Beckett», CGC), la
+nota en un `select` con `notasDeCasa` (escala de `mi-coleccion/gradeo.js`) y un
+`input[type=hidden]` con el texto que se guarda («PSA 10», `escribirGradeo`).
+`engancharGradeo(raiz, alCambiar)` lo hace funcionar y devuelve `{ valor }`;
+una casa nueva se abre en 10. Un valor que no es de esas tres (SGC, ACE, texto
+a mano) sale como un botón más con su texto y se devuelve tal cual: editar no
+lo borra. `chapaDeGradeoHtml(gradeo, { clase })` es la etiqueta
+(`.chapa-gradeo[data-casa]`, con `chapa-gradeo-foto` para ir sobre una foto).
+
+Dónde: el formulario del stock (gradeada, versión, idioma y estado; con
+cápsula `.tds-estado-campo` se esconde y se guarda `estado: 'NM'`; el precio
+de Cardmarket pasa por `valorGradeado`), el «añadir» de la Colección en modo
+tienda (`#mcAdGradeoCaja`, lo inserta `prepararModoTienda` y lo rellena
+`prepararAnadir`) y cada línea de «Comprar» (un `select` con `optgroup` por
+casa). Los colores `--casa-*` viven en `:root` de `components.css` (más
+`--casa-bgs-texto`, `--casa-cgc-texto`, `--casa-cgc-borde`): PSA #c8102e,
+Beckett #111 con blanco, CGC blanco con #111 y un borde para que se vea.
+

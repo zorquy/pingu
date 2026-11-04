@@ -4,6 +4,47 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (473) — PINGU-Claude (1234 — cartas gradeadas en las tiendas)
+
+**Hecho** (PINGU: «las tiendas venden cartas gradeadas… PSA, Beckett y CGC»;
+«añadir una carta gradeada no se puede»): un selector común, «Gradeada: No ·
+PSA · Beckett · CGC» y la nota con la escala de cada casa (la de la 563), en
+los tres sitios por donde entra una carta al stock:
+
+- **Stock → Añadir / Editar** (`js/tienda-stock.js`): sustituye al campo de
+  texto libre; va lo primero, luego la versión, luego idioma y estado. Con
+  cápsula el estado se esconde (se guarda NM) y el precio de Cardmarket es el
+  de esa casa y nota (`valorGradeado`), o lo dice si no lo hay.
+- **Colección de la tienda** (el «añadir» de /cartas): «Gradeada» arriba del
+  todo, solo en modo tienda. Y para todos, en ese diálogo el idioma va ahora
+  DESPUÉS de la versión (PINGU: «que elijas la versión, luego el idioma»).
+- **Comprar a un cliente**: un desplegable «Sin gradear / PSA 10 / …» por
+  línea (la base ya lo aceptaba).
+
+La etiqueta de la cápsula (`chapaDeGradeoHtml`) con los colores que pidió:
+PSA roja con letras blancas, Beckett negra con letras blancas, CGC blanca con
+letras negras. Sale en la tabla del stock (en lugar del estado), en la rejilla
+y en el escaparate, sobre la foto. Los colores de las casas pasan a `:root` en
+`components.css` (antes en `cardmarket.css`, con Beckett amarilla y CGC azul),
+así que el precio de las gradeadas y la chapa de Mi colección cambian igual.
+
+Sin migración: `tienda_stock.gradeo` existía desde la 1068 (texto, «PSA 10»)
+y dos notas distintas ya eran dos líneas (`claveDeLinea`). «La rareza» del
+mensaje se ha tomado por el ESTADO, que es lo que cambia de una copia a otra.
+
+**Ficheros** (web): `js/gradeo-elegir.js` (nuevo), `js/tienda-stock.js`,
+`js/tienda-comprar.js`, `js/perfil-tienda.js`, `js/mi-coleccion.js`,
+`mi-coleccion.html` (+ `cartas.html`), `css/components.css`, `css/cardmarket.css`,
+`css/mi-coleccion.css`, `BITACORA.md`, `SCHEMA.md`, `novedades.json`, `CLAUDE.md`.
+
+**Pruebas**: rama `pruebas`, `test-tanda-1234-pantalla.mjs` nueva (colores de
+las tres etiquetas en tabla y rejilla, editar una Beckett, cambiar a PSA con sus
+notas, «No» devuelve el estado, añadir una CGC 9.5 desde la Colección, una SGC
+de antes no se pierde).
+
+**Queda**: SGC, ACE y TAG siguen en la ficha de una copia de Mi colección (la
+563) pero no se ofrecen al añadir en una tienda (PINGU: «por ahora esas»).
+
 ## 2026-11-04 (472) — PINGU-Claude (1233 — nada se pisa: repaso de toda la web)
 
 **Hecho** (PINGU, captura de Gente: «hay algunos espaciados en la web que no

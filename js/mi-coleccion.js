@@ -72,6 +72,7 @@ import { variantesDeCarta, tieneVarias, nombreDeVariante, varianteDeCarta, pegar
 import { montarEleccion } from './mi-coleccion/elegir-version.js'
 import { iconoDeVersion, chapaDeVersionHtml } from './mi-coleccion/iconos-version.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
+import { gradeoHtml, engancharGradeo } from './gradeo-elegir.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
 import { simboloDeTipoHtml } from './mi-coleccion/energias.js'
 import { comoDeshacer, avisoConDeshacer } from './mi-coleccion/deshacer.js'
@@ -619,6 +620,15 @@ function prepararAnadir() {
   // cuál; directa si solo hay una o si se viene de una versión.
   eleccionDeVersion().abrir({ versiones: vs, puesta: anadir.variante, seSabe: seSabenVariantes(c), tienes: (id) => copiasDeVersion(c.id, id), precio: (id) => precioDeVersionEnFicha({ card_id: c.id, idioma: idiomaDeAnadir(), variante: vs[0]?.id }, id) })
   pintarIdiomasDeAnadir(idiomas, idiomas.some((i) => i.id === recordado) ? recordado : idiomas[0]?.id)
+  // En una tienda, «¿Gradeada?» lo primero (1234): PSA, Beckett o CGC con su
+  // nota; con cápsula el estado no aplica y se esconde.
+  const cajaGradeo = $('mcAdGradeoCaja')
+  if (cajaGradeo) {
+    cajaGradeo.innerHTML = gradeoHtml('', { nombre: 'mcAdGradeo' })
+    const campoEstado = $('mcAdEstado').closest('.mc-ad-campo')
+    campoEstado?.classList.remove('hidden')
+    anadir.gradeo = engancharGradeo(cajaGradeo, (g) => campoEstado?.classList.toggle('hidden', !!g))
+  }
   $('mcAdCantidad').value = '1'
   $('mcAdCompra').value = ''
   if ($('mcAdPrecio')) $('mcAdPrecio').value = ''
@@ -668,6 +678,9 @@ async function guardarAnadir(e) {
     variante: $('mcAdVariante').value,
     cantidad: Math.max(1, Math.min(999, Math.round(Number($('mcAdCantidad').value) || 1))),
   }
+  // Gradeada (1234): la etiqueta de la cápsula, y el estado NM (no aplica).
+  const gradeo = modoTienda ? anadir.gradeo?.valor() : null
+  if (gradeo) Object.assign(linea, { gradeo, estado: 'NM' })
   // Lo que pagaste, solo si lo has escrito: un cero no es «no lo sé».
   const pagado = Number(String($('mcAdCompra').value || '').replace(',', '.'))
   if (Number.isFinite(pagado) && pagado > 0) linea.precio_compra = pagado
@@ -7368,6 +7381,9 @@ function prepararModoTienda() {
     if (!document.getElementById('mcAdPrecio')) compra.insertAdjacentHTML('afterend', '<input type="text" id="mcAdPrecio" inputmode="decimal" placeholder="Tu precio (€)" aria-label="A cuánto la vendes (€), opcional" />')
   }
   document.getElementById('mcAdCantidad')?.setAttribute('aria-label', 'Unidades')
+  // El hueco de «¿Gradeada?», arriba del todo (1234): lo rellena prepararAnadir.
+  const cabeza = document.querySelector('#mcAdForm .mc-ad-cabeza')
+  if (cabeza && !document.getElementById('mcAdGradeoCaja')) cabeza.insertAdjacentHTML('afterend', '<div class="mc-ad-gradeo" id="mcAdGradeoCaja"></div>')
 }
 
 async function iniciarCatalogo() {

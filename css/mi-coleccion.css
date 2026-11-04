@@ -1165,7 +1165,7 @@
    la chapa de tu PSA 10 y la del precio de las PSA 10 sean del mismo rojo. */
 .mc-chip-gradeo[data-casa='PSA'] { --casa: var(--casa-psa); }
 .mc-chip-gradeo[data-casa='BGS'] { --casa: var(--casa-bgs); color: var(--casa-bgs-texto); }
-.mc-chip-gradeo[data-casa='CGC'] { --casa: var(--casa-cgc); }
+.mc-chip-gradeo[data-casa='CGC'] { --casa: var(--casa-cgc); color: var(--casa-cgc-texto); box-shadow: inset 0 0 0 1px var(--casa-cgc-borde); }
 .mc-chip-gradeo[data-casa='SGC'] { --casa: var(--casa-sgc); }
 .mc-chip-gradeo[data-casa='ACE'] { --casa: var(--casa-ace); }
 .mc-chip-gradeo[data-casa='TAG'] { --casa: var(--casa-tag); }
