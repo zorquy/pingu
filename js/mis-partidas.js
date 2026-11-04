@@ -416,7 +416,7 @@ function pintarLista(partidas) {
       .map(
         (g) => `<section class="partidas-mes" aria-label="${escapeHtml(g.titulo || 'Partidas')}">
       ${g.titulo ? `<h3 class="partidas-mes-titulo">${escapeHtml(g.titulo)} <span class="partidas-mes-balance" title="Victorias, derrotas y empates">${escapeHtml(g.balance)}</span></h3>` : ''}
-      <div class="partidas-mes-lista">${g.partidas.map(fila).join('')}</div>
+      <div class="partidas-mes-lista en-cascada">${g.partidas.map(fila).join('')}</div>
     </section>`
       )
       .join('') +

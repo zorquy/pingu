@@ -731,9 +731,8 @@
   .com-persona-vitrina { grid-column: 2; }
 }
 
-/* «N por aquí hoy» en la ceja de la banda (1215), con el punto que late. */
-.gente-hoy { display: inline-flex; align-items: center; gap: var(--e-xs); margin-left: var(--e-sm); text-transform: none; letter-spacing: 0; color: var(--success); font-weight: 600; }
-.gente-hoy::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--success); animation: seccion-late 2s ease-in-out infinite; }
+/* El punto que late de «por aquí hoy», en la cifra de la banda (1216). */
+.gente-hoy { display: inline-block; width: 8px; height: 8px; margin-right: var(--e-xs); border-radius: 50%; background: var(--success); vertical-align: middle; animation: seccion-late 2s ease-in-out infinite; }
 @media (prefers-reduced-motion: reduce) {
-  .gente-hoy::before { animation: none; }
+  .gente-hoy { animation: none; }
 }

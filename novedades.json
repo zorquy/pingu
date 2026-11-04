@@ -36,6 +36,30 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "Guardados también enseña los temas del foro que sigues, y en Noticias puedes filtrar por tema.",
+      "enlace": "/guardados"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Gente dice arriba cuántos andáis hoy por aquí y, en cada persona, lo que hace: si tiene cartas que buscas, si ha escrito guías o cuántos días lleva seguidos.",
+      "enlace": "/usuarios"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Los torneos terminados enseñan el mazo de su campeón, y «Lo que se está hablando» del foro sale también en el ordenador.",
+      "enlace": "/torneos"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Cruces enseña lo que buscas, lo que das y tus tratos en curso aunque todavía no encaje nadie, y Lanzamientos pone los sobres del próximo set al lado de la cuenta atrás.",
+      "enlace": "/lanzamientos"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "Si estás apuntado a un torneo que aún no ha empezado, Torneos te lo pone arriba: cuánto falta, las plazas, desde cuándo hay check-in y un botón a tu lista.",
       "enlace": "/torneos"
     },

@@ -1024,3 +1024,41 @@
     radial-gradient(60% 140% at 92% 0%, color-mix(in srgb, var(--acento) 22%, transparent), transparent 62%),
     linear-gradient(135deg, color-mix(in srgb, var(--acento) 8%, var(--white)), var(--white) 72%);
 }
+
+/* El anillo se dibuja al entrar (1216, la propuesta del repaso): una capa
+   del color del fondo que se va abriendo en redondo, de 0 a 360°. */
+@property --anillo-abre {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 360deg;
+}
+.partidas-hero-anillo::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background: conic-gradient(transparent 0 calc(360deg - var(--anillo-abre)), var(--white) calc(360deg - var(--anillo-abre)) 360deg);
+  animation: partidas-anillo-abre 0.9s var(--ease) both;
+}
+.partidas-hero-anillo b { z-index: 1; }
+@keyframes partidas-anillo-abre {
+  from { --anillo-abre: 360deg; }
+  to { --anillo-abre: 0deg; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .partidas-hero-anillo::after { animation: none; display: none; }
+}
+
+/* Las filas entran en cascada (1216), como en la portada; esta página no
+   carga seccion.css, así que la cascada va aquí. */
+.partidas-mes-lista.en-cascada > * { animation: partidas-entra 0.4s var(--ease) backwards; }
+.partidas-mes-lista.en-cascada > :nth-child(2) { animation-delay: 50ms; }
+.partidas-mes-lista.en-cascada > :nth-child(3) { animation-delay: 100ms; }
+.partidas-mes-lista.en-cascada > :nth-child(4) { animation-delay: 150ms; }
+.partidas-mes-lista.en-cascada > :nth-child(n + 5) { animation-delay: 200ms; }
+@keyframes partidas-entra {
+  from { opacity: 0; transform: translateY(8px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .partidas-mes-lista.en-cascada > * { animation: none; }
+}

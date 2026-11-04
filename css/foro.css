@@ -1473,12 +1473,8 @@ a.foro-cita-quien:hover {
 .foro-calientes {
   margin-bottom: 24px;
 }
-/* En el PC lo último va en el lateral (1096): la franja es del móvil. */
-@media (min-width: 901px) {
-  .foro-calientes {
-    display: none;
-  }
-}
+/* En el PC la franja también sale (1216): su carrusel va al FINAL de la hoja. */
+
 
 /* «Lo último», arriba del lateral del índice (1096): quién escribió lo
    último, el título en dos líneas, cuándo y en qué foro. */
@@ -2978,4 +2974,25 @@ html:has(#temaResponder) {
 
 @media (prefers-reduced-motion: reduce) {
   #foroPrincipal > .foro-seccion { animation: none; }
+}
+
+/* Al final a propósito: la rejilla base de más arriba le ganaría por orden. */
+/* En el PC también, como carrusel (1216, la propuesta del repaso: «el
+   carrusel de Lo que se está hablando del móvil, también en el PC»): una fila
+   de tarjetas de 320 px que se desliza, con la sombra del borde que dice que
+   hay más. El lateral sigue con «Lo último» (1096). */
+@media (min-width: 901px) {
+  .foro-calientes-rejilla {
+    display: flex;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: var(--e-xs);
+    scroll-snap-type: x mandatory;
+    scrollbar-width: thin;
+    mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent);
+  }
+  .foro-calientes-rejilla > .foro-caliente {
+    flex: 0 0 320px;
+    scroll-snap-align: start;
+  }
 }

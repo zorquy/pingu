@@ -401,3 +401,10 @@
 @media (min-width: 561px) and (max-width: 900px) {
   .noticias-rejilla > .noticia-tarjeta.noticia-fila { grid-column: 1 / -1; }
 }
+
+/* Los temas (1216): una fila de chips que se desliza en el móvil. */
+.noticias-temas { display: flex; gap: var(--e-sm); margin-bottom: var(--e-md); overflow-x: auto; overflow-y: hidden; padding-block: var(--e-xs); scrollbar-width: none; }
+.noticias-temas[hidden] { display: none; }
+.noticias-tema { flex-shrink: 0; }
+.noticias-tema[aria-pressed='true'] { border-color: var(--acento); background: var(--acento); color: var(--acento-texto); }
+.noticias-tema-n { opacity: 0.75; font-weight: 500; }

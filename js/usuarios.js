@@ -29,9 +29,7 @@ const COMMUNITY_GUIDES_PAGE_SIZE = 12
 // tiene viva.
 function userCardHtml(p) {
   const name = p.display_name || p.username || 'Usuario'
-  const hizo = []
-  if (p.approvedGuidesCount > 0) hizo.push(`${p.approvedGuidesCount} ${p.approvedGuidesCount === 1 ? 'guía' : 'guías'}`)
-  if (p.mensajes > 0) hizo.push(`${p.mensajes} ${p.mensajes === 1 ? 'mensaje' : 'mensajes'}`)
+  const hizo = loQueHace(p)
   return `
     <div class="com-persona" data-user-id="${escapeHtml(p.id || '')}">
       <span class="com-persona-franja" style="${avatarStyle(p)}" aria-hidden="true"></span>
@@ -39,7 +37,7 @@ function userCardHtml(p) {
       <div class="com-persona-cuerpo">
         <a class="com-persona-nombre" href="${profileUrl(p)}"${atributosDeRango(p)}>${escapeHtml(name)}</a>
         ${levelBadgeHtml(calculateLevel(p.total_xp), 11)}
-        <span class="com-persona-hizo">${hizo.length ? escapeHtml(hizo.join(' · ')) : 'Acaba de llegar'}</span>
+        <span class="com-persona-hizo">${escapeHtml(hizo)}</span>
       </div>
       ${
         p.racha > 0
@@ -47,6 +45,37 @@ function userCardHtml(p) {
           : ''
       }
     </div>`
+}
+
+// Lo que hace aquí cada uno, en UNA frase (1216, la propuesta del repaso:
+// «Javi tiene 7 cartas que buscas», «Sergio.M ha escrito una guía»). Va
+// primero lo que te sirve a ti (tiene cartas que buscas), luego lo que ha
+// hecho, y «Hoy por aquí» antes que nada. Puro.
+export function loQueHace(p, hoy = new Date().toISOString().slice(0, 10)) {
+  if (p.teDa > 0) return `Tiene ${p.teDa} ${p.teDa === 1 ? 'carta que buscas' : 'cartas que buscas'}`
+  if (p.approvedGuidesCount > 0) return p.approvedGuidesCount === 1 ? 'Ha escrito una guía' : `Ha escrito ${p.approvedGuidesCount} guías`
+  if (p.racha >= 7) return `Lleva ${p.racha} días seguidos`
+  if (p.mensajes > 0) return `${p.mensajes} ${p.mensajes === 1 ? 'mensaje' : 'mensajes'} en el foro`
+  if (p.last_active_date === hoy) return 'Hoy por aquí'
+  return 'Acaba de llegar'
+}
+
+// «Tiene N cartas que buscas» (1216): con sesión, los mismos datos de Cruces
+// (`intercambios_quien_tiene`, una consulta), contados por persona.
+async function ponerLoQueTeDan(lista) {
+  const sesion = await getSession().catch(() => null)
+  if (!sesion) return false
+  const { quienTiene } = await import('./mi-coleccion/cambios.js')
+  const filas = await quienTiene().catch(() => [])
+  const porPersona = new Map()
+  for (const f of filas) {
+    if (!f?.user_id || f.user_id === sesion.user.id) continue
+    if (!porPersona.has(f.user_id)) porPersona.set(f.user_id, new Set())
+    porPersona.get(f.user_id).add(f.card_id)
+  }
+  if (!porPersona.size) return false
+  for (const p of lista) p.teDa = porPersona.get(p.id)?.size || 0
+  return true
 }
 
 // Cuántas caras se enseñan de entrada (tanda 304).
@@ -117,11 +146,11 @@ async function cargarCifras() {
       return null
     }
   }
-  const [miembros, mensajes, guias, rachas] = await Promise.all([
+  // Las cuatro de la propuesta del repaso (1216): miembros, por aquí hoy,
+  // guías y rachas. «Por aquí hoy» la pone `cargarLateral`, que ya la cuenta
+  // exacta (1169); «mensajes» salió de la banda (el foro dice los suyos).
+  const [miembros, guias, rachas] = await Promise.all([
     cuenta(() => supabase.from('user_profiles').select('id', { count: 'exact', head: true })),
-    // Todos los mensajes del foro, como dice la cifra (1137, PINGU: «ahí debería
-    // ser en total»); antes eran los de la última semana sin decirlo.
-    cuenta(() => supabase.from('forum_posts').select('id', { count: 'exact', head: true })),
     // Solo GUÍAS: las noticias viven en la misma tabla (`kind = 'news'`) y la
     // cifra las contaba como guías escritas por la gente (1137).
     cuenta(() =>
@@ -135,7 +164,6 @@ async function cargarCifras() {
     ),
   ])
   poner('cifraMiembros', miembros)
-  poner('cifraMensajes', mensajes)
   poner('cifraGuias', guias)
   poner('cifraRachas', rachas)
   const chip = document.getElementById('chipGente')
@@ -199,13 +227,10 @@ async function cargarLateral(perfiles) {
     .eq('last_active_date', hoy)
     .then(({ count, error }) => (error || count == null ? activos.length : count))
     .catch(() => activos.length)
-  // La misma cuenta, en la ceja de la banda (1215, de la propuesta): con el
+  // La misma cuenta, como cifra de la banda (1216, de la propuesta): con el
   // punto verde que late, que se vea desde arriba que hay gente.
-  const vivo = document.getElementById('genteHoy')
-  if (vivo && Math.max(total, activos.length)) {
-    vivo.textContent = `${new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(Math.max(total, activos.length))} por aquí hoy`
-    vivo.hidden = false
-  }
+  const vivo = document.getElementById('cifraHoy')
+  if (vivo) vivo.textContent = new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(Math.max(total, activos.length))
   const caja = document.getElementById('comHoy')
   // Se recoge sola si no hay nadie: «0 personas hoy» es peor que no
   // decir nada.
@@ -276,6 +301,7 @@ async function loadUsers() {
     racha: rachaVisible(p),
   }))
   render(allUsers)
+  ponerLoQueTeDan(allUsers).then((hay) => { if (hay && !buscando) render(allUsers) }).catch(() => {})
   cargarPodio(allUsers)
   cargarLateral(allUsers)
 

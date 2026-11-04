@@ -165,7 +165,7 @@ function tarjetaHtml(t, datos) {
   return `
   <article class="torneo-tarjeta torneo-tarjeta-${viva ? 'viva' : 'normal'}${t.image_url ? '' : ' torneo-tarjeta-sin-imagen'}">
     <a class="torneo-tarjeta-enlace" href="${url}">
-      <span class="torneo-arte torneo-arte-${arteDe(t)}">
+      <span class="torneo-arte torneo-arte-${arteDe(t)}" data-torneo="${escapeHtml(String(t.id))}">
         ${
           // La imagen del torneo (tanda 239) pasa de un cuadradito de
           // 48 px a ser la portada entera de la tarjeta. Si no carga se
@@ -596,7 +596,8 @@ async function cargarLista(session, perfil = null) {
   guardar()
   Promise.resolve(vivoListo).then(guardar, () => {})
   // Los torneos sin imagen llevan los sprites del meta (796, SI4).
-  import('./arte-meta.js').then((m) => m.ponerArteDelMeta(document)).catch(() => {}).then(guardar)
+  // Y los terminados, el mazo de su campeón (1216), encima de los del meta.
+  import('./arte-meta.js').then(async (m) => { await m.ponerArteDeCampeones(document, torneosCargados).catch(() => {}); await m.ponerArteDelMeta(document) }).catch(() => {}).then(guardar)
 }
 
 // ── El calendario anual (tanda 242, pedido por Ibai) ──

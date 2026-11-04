@@ -41,4 +41,18 @@ export async function montarProductos(siguiente, doc = document) {
     <p class="subtext"><a href="/mi-coleccion?ver=productos">Apúntalos en tu colección</a></p>`
   doc.getElementById('lanzProductos')?.remove()
   doc.getElementById('proximoDestacado')?.after(caja)
+  // Los sobres del set AL LADO de la cuenta atrás (1216, la propuesta del
+  // repaso): dos fotos, primero un sobre y luego lo que más se compra.
+  const dest = doc.querySelector('#proximoDestacado .lanzamiento-destacado')
+  const conFoto = lista.filter((f) => f.image)
+  const sobre = conFoto.find((f) => f.tipo === 'sobre')
+  const dos = [...(sobre ? [sobre] : []), ...conFoto.filter((f) => f !== sobre)].slice(0, 2)
+  if (dest && dos.length) {
+    dest.querySelector('.lanz-dest-sobres')?.remove()
+    const sobres = doc.createElement('span')
+    sobres.className = 'lanz-dest-sobres'
+    sobres.setAttribute('aria-hidden', 'true')
+    sobres.innerHTML = dos.map((f) => `<img src="${escapeHtml(f.image)}" alt="" width="96" height="128" loading="lazy" onerror="this.remove()" />`).join('')
+    dest.querySelector('.lanz-reloj')?.before(sobres)
+  }
 }

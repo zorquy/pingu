@@ -96,6 +96,8 @@ function titularHtml(n) {
 
 // Se pide UNA MÁS de las que se van a pintar. Es la forma de saber si
 // queda alguna sin tener que contar la tabla entera en cada carga.
+// El tema elegido en los chips de arriba (1216); null es «Todas».
+let temaElegido = null
 async function pedir(desde) {
   let q = supabase
     .from('guides')
@@ -105,6 +107,7 @@ async function pedir(desde) {
     .order('published_at', { ascending: false })
     .limit(POR_TANDA + 1)
   if (desde) q = q.lt('published_at', desde)
+  if (temaElegido) q = q.eq('category_id', temaElegido)
   const { data, error } = await q
   // Mientras la migración no esté puesta, `kind` no existe y esto falla.
   // No es un error que enseñarle a nadie: es que todavía no hay noticias.
@@ -140,7 +143,43 @@ async function pintarBotonEscribir() {
   caja.innerHTML = `<a class="btn-primary" href="${editor}?tipo=noticia">${icons.edit(15)} Escribir noticia</a>`
 }
 
-export async function pintarNoticias() {
+// Chips por tema (1216, la propuesta del repaso: «si las noticias llevan
+// tema; si no, solo Todas»). Los temas son las categorías que ya tiene cada
+// artículo; con uno solo (o ninguno) no sale nada, que un chip que no filtra
+// es ruido. Una consulta de dos columnas, con su número.
+export function chipsDeTemas(filas, elegido = null) {
+  const porTema = new Map()
+  for (const f of filas || []) {
+    if (!f?.category_id) continue
+    const t = porTema.get(f.category_id) || { id: f.category_id, nombre: f.categories?.name || 'Otras', n: 0 }
+    t.n++
+    porTema.set(f.category_id, t)
+  }
+  if (porTema.size < 2) return ''
+  const temas = [...porTema.values()].sort((a, b) => b.n - a.n)
+  const chip = (id, nombre, n) => `<button type="button" class="chip-filtro noticias-tema" data-tema="${escapeHtml(id || '')}" aria-pressed="${(elegido || '') === (id || '')}">${escapeHtml(nombre)}${n != null ? ` <span class="noticias-tema-n">${n}</span>` : ''}</button>`
+  return chip('', 'Todas', (filas || []).length) + temas.map((t) => chip(t.id, t.nombre, t.n)).join('')
+}
+async function pintarTemas() {
+  const caja = document.getElementById('noticiasTemas')
+  if (!caja) return
+  const { data, error } = await supabase.from('guides').select('category_id, categories(name)').eq('kind', 'news').not('published_at', 'is', null).limit(1000)
+  if (error) return
+  const html = chipsDeTemas(data, temaElegido)
+  caja.innerHTML = html
+  caja.hidden = !html
+  if (caja.dataset.enganchado) return
+  caja.dataset.enganchado = '1'
+  caja.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-tema]')
+    if (!b) return
+    temaElegido = b.dataset.tema || null
+    for (const x of caja.querySelectorAll('[data-tema]')) x.setAttribute('aria-pressed', String(x === b))
+    pintarNoticias({ sinCache: true })
+  })
+}
+
+export async function pintarNoticias({ sinCache = false } = {}) {
   const titular = document.getElementById('noticiaTitular')
   const rejilla = document.getElementById('noticiasRejilla')
   const masCaja = document.getElementById('noticiasMasCaja')
@@ -149,8 +188,8 @@ export async function pintarNoticias() {
   // Las de la última vez, ya (894). Y la rejilla deja de ser la silueta
   // (`aria-hidden`) en cuanto lleva noticias de verdad, de la caché o de
   // ahora: antes se quedaba escondida para quien escucha.
-  const clave = claveDeVista('noticias')
-  if (pintarUltimaVista(clave)) rejilla.removeAttribute('aria-hidden')
+  const clave = claveDeVista(temaElegido ? `noticias-${temaElegido}` : 'noticias')
+  if (!sinCache && pintarUltimaVista(clave)) rejilla.removeAttribute('aria-hidden')
   const [{ noticias, hayMas, error }] = await Promise.all([pedir(null), cargarSetsConLogo().catch(() => {})])
   vistaAlDia()
   if (error) {
@@ -206,4 +245,5 @@ export async function pintarNoticias() {
 }
 
 pintarNoticias()
+pintarTemas()
 pintarBotonEscribir()

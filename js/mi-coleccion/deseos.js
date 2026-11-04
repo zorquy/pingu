@@ -174,7 +174,10 @@ async function pintarCambios() {
       : !d
         ? ['Todavía nadie da lo que buscas. Pon algo para cambio y saldrá también quién busca lo tuyo.', `<button type="button" class="btn-primary" data-deseos-vista="doy">Poner cartas para cambio</button><button type="button" class="btn-secondary" data-deseos-vista="mercado">Ir al Mercado</button>`]
         : ['Todavía nadie encaja contigo. En el Mercado está todo lo que se da.', `<button type="button" class="btn-primary" data-deseos-vista="mercado">Ir al Mercado</button><button type="button" class="btn-secondary" data-deseos-vista="doy">Poner más cartas para cambio</button>`]
-    return `<div class="mc-quiero-cabeza">${cuentas}</div><div class="mc-cruces-vacio"><p class="empty-state">${frase}</p><div class="mc-cruces-salidas">${salidas}</div></div>`
+    // La banda sale también sin nadie (1216): lo que buscas, lo que das y los
+    // tratos en curso no dependen de que alguien encaje. Las cuentas de antes
+    // quedan solo si no hay banda (no debería pasar).
+    return `${bandaDeCruces([], 0, d) || `<div class="mc-quiero-cabeza">${cuentas}</div>`}<div class="mc-cruces-vacio"><p class="empty-state">${frase}</p><div class="mc-cruces-salidas">${salidas}</div></div>`
   }
   caja.innerHTML = vacio
     // Sin nada apuntado no se enseña un tablón vacío: se enseña CÓMO
@@ -216,8 +219,8 @@ function bandaDeCruces(gente, perfectos, das) {
   }
   return bandaSeccionHtml({
     ceja: 'Deseos y cambios · Cruces',
-    titulo: `${gente.length} ${gente.length === 1 ? 'persona encaja' : 'personas encajan'} contigo`,
-    lema: 'Tienen cartas que buscas o buscan cartas que das. Primero, las que más encajan.',
+    titulo: gente.length ? `${gente.length} ${gente.length === 1 ? 'persona encaja' : 'personas encajan'} contigo` : 'Nadie encaja contigo todavía',
+    lema: gente.length ? 'Tienen cartas que buscas o buscan cartas que das. Primero, las que más encajan.' : 'En cuanto alguien tenga lo que buscas o busque lo que das, sale aquí.',
     cifras: [
       { n: ctx.deseos.length, texto: ctx.deseos.length === 1 ? 'carta buscas' : 'cartas buscas', accion: 'data-ir-quiero' },
       { n: das, texto: das === 1 ? 'carta das' : 'cartas das', accion: 'data-deseos-vista="doy"' },

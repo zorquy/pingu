@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (461) — PINGU-Claude (1216 — lo que recorté o se me pasó del repaso)
+
+**Hecho**: PINGU: «de las propuestas que me has mandado, hay muchísimas cosas
+sin hacer». Repasadas TODAS contra su propio texto. Del «Repaso de la web»
+faltaban cosas que yo había quitado llamándolas «lo recomendado» y otras que
+no miré: Cruces con banda aunque nadie encaje; Gente con «por aquí hoy» como
+cifra (sale «mensajes») y una frase por persona («Tiene N cartas que
+buscas», «Ha escrito N guías»…); chips por tema en Noticias; los sobres del
+próximo set junto a la cuenta atrás; los temas del foro que sigues en
+Guardados (quitar = dejar de seguir, con Deshacer); el mazo del campeón en los
+torneos terminados; «Lo que se está hablando» también en el PC (carrusel); el
+anillo de Mis partidas que se dibuja y sus filas en cascada. De otras
+propuestas siguen sin hacer: G2 (rutas de guías) y G3 (cartas de la guía a tu
+colección), B4 (¿quisiste decir?, con migración) y B6 (acciones sin abrir la
+carta), y lo de «PokeDoc para crecer» (invitar en las imágenes y en el menú,
+cartel con QR del evento, /coleccion con su valor, «Tu 2026», probar sin
+cuenta): van en las tandas siguientes.
+
+**Ficheros**: `js/mi-coleccion/deseos.js`, `usuarios.html`, `js/usuarios.js`,
+`css/comunidad.css`, `noticias.html`, `js/noticias.js`, `css/noticias.css`,
+`js/lanzamientos-productos.js`, `css/lanzamientos.css`, `js/guardados.js`,
+`css/guardados.css`, `js/torneos/torneos.js`, `js/torneos/arte-meta.js`,
+`css/foro.css`, `js/mis-partidas.js`, `css/partidas.css`, `SCHEMA.md`,
+`novedades.json`. En `pruebas`: `test-tanda-1216-pantalla.mjs` nueva; 301,
+1137, 1153, 1166, 1096 y 1215 al día (lo que cambia la propuesta).
+
+**Pruebas**: ver la entrada; rojos de antes sin tocar: 893, 829, 981, 836.
+
 ## 2026-11-04 (460) — PINGU-Claude (1215 — los huecos de la propuesta, página a página)
 
 **Hecho**: lo que la propuesta del repaso pedía en cada pantalla y faltaba.

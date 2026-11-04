@@ -53809,3 +53809,46 @@ cuente por persona), y las tiras del Panel «siempre de ocho» ya toman hasta
 ocho: si salen menos, es que hay menos cartas con historial.
 
 Lo vigila `test-tanda-1215-pantalla.mjs`.
+
+## Tanda 1216 — Lo que recorté o se me pasó del repaso
+
+PINGU: «de las propuestas que me has mandado, hay muchísimas cosas sin
+hacer». Era verdad: en la 1213–1215 di por «recomendado» quitar cosas que la
+propuesta SÍ traía (sprites en torneos, temas en Guardados, el carrusel del
+foro en el PC) y otras no las miré contra la maqueta. La regla para la
+próxima: **una propuesta aprobada se repasa contra su propio texto, punto por
+punto, no contra el resumen de lo que creo que hice.**
+
+- **Cruces sin nadie** lleva la banda (lo que buscas, lo que das, los
+  perfectos y los tratos en curso), con «Nadie encaja contigo todavía»; antes
+  eran las dos cuentas sueltas de la 1166.
+- **Gente**: las cifras son las de la maqueta (miembros, **por aquí hoy** con
+  el punto que late, guías y rachas); «mensajes» salió de la banda. Cada
+  tarjeta dice lo que hace esa persona en una frase (`loQueHace`): «Tiene N
+  cartas que buscas» (con sesión, de `intercambios_quien_tiene`, una
+  consulta), «Ha escrito N guías», «Lleva N días seguidos», «N mensajes en el
+  foro», «Hoy por aquí» o «Acaba de llegar».
+- **Noticias**: chips por tema arriba (`chipsDeTemas`), con la categoría que
+  ya lleva cada artículo; con un solo tema no sale nada. Elegir uno vuelve a
+  pedir la lista con `category_id`.
+- **Lanzamientos**: dos fotos de los productos del próximo set (primero un
+  sobre) al lado de la cuenta atrás, de la misma consulta de «Lo que sale
+  con…»; en el móvil no.
+- **Guardados**: los temas del foro que SIGUES (forum_subscriptions) como
+  tarjeta con su icono, mensajes y cuándo, con su chip «Temas»; quitar es
+  dejar de seguir, con Deshacer. Sin migración: en un tema el marcador ES
+  «Seguir».
+- **Torneos**: un torneo terminado lleva los sprites del mazo de su CAMPEÓN
+  (`ponerArteDeCampeones`: su lista, visible al terminar, y
+  `deducirIconos`); los demás, los del meta (796). Las tarjetas llevan
+  `data-torneo`.
+- **Foro**: «Lo que se está hablando» también en el PC, como carrusel de
+  tarjetas de 320 px (al final de `foro.css`: la rejilla base le ganaba por
+  orden).
+- **Mis partidas**: el anillo se dibuja al entrar (`@property
+  --anillo-abre`) y las filas entran en cascada (en `partidas.css`, que esta
+  página no carga `seccion.css`).
+
+Comprobado y ya estaba: Retos con ✓ y la XP de cada uno, la liga al lado y
+el puesto; Aprender con la primera a doble ancho; Novedades; Meta con sus
+barras que crecen; el Mercado con las caras encima de cada carta.
