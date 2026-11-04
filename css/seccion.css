@@ -267,3 +267,61 @@
   .banda-s-puesto-3 .banda-s-peana { height: 8px; font-size: 0; }
   .banda-s-peana { font-size: var(--t-xs); }
 }
+
+/* ── 1214: las otras dos animaciones de la portada (el porqué en SCHEMA) ──
+   Lo que tiene foto BRILLA al pasar el ratón (un reflejo que cruza), y lo que
+   está vivo LATE (el punto verde de «en línea»). Las cifras que cuentan son
+   js/cifras-cuentan.js. Todo quieto con «menos movimiento». */
+@keyframes seccion-reflejo {
+  from { transform: translateX(-120%) skewX(-18deg); }
+  to { transform: translateX(220%) skewX(-18deg); }
+}
+
+/* Lo que se posiciona para llevar el reflejo (el abanico ya lo está). */
+:where(.guia-tarjeta .guia-arte, .noticia-portada, .mc-cruce-carta, .com-persona-vitrina a) {
+  position: relative;
+  overflow: hidden;
+}
+
+:is(.guia-tarjeta .guia-arte, .noticia-portada:not(.noticia-portada-vacia), .mc-cruce-carta, .banda-s-abanico > *, .com-persona-vitrina a)::after {
+  content: '';
+  position: absolute;
+  inset: 0 auto 0 0;
+  z-index: 2;
+  width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.32), transparent);
+  transform: translateX(-120%) skewX(-18deg);
+  pointer-events: none;
+}
+
+:is(.guia-tarjeta:hover .guia-arte, .noticia-tarjeta:hover .noticia-portada, .noticia-titular:hover .noticia-portada, .mc-cruce-carta:hover, .banda-s-abanico > :hover, .com-persona-vitrina a:hover)::after {
+  animation: seccion-reflejo 0.7s var(--ease);
+}
+
+@keyframes seccion-late {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55); }
+  70% { box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); }
+}
+
+.avatar-conectado::after { animation: seccion-late 2.4s ease-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  :is(.guia-tarjeta:hover .guia-arte, .noticia-tarjeta:hover .noticia-portada, .noticia-titular:hover .noticia-portada, .mc-cruce-carta:hover, .banda-s-abanico > :hover, .com-persona-vitrina a:hover)::after,
+  .avatar-conectado::after {
+    animation: none;
+  }
+}
+
+/* Las cabeceras de bloque con su icono en el color de la sección (1214). */
+.cab-bloque-ico {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  margin-right: var(--e-sm);
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--acento) 18%, transparent);
+  color: var(--acento);
+  vertical-align: middle;
+}
+.cab-bloque-ico svg { width: 16px; height: 16px; }

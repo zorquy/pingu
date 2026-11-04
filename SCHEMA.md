@@ -53737,3 +53737,29 @@ Lo que no entra: «Cerca de ti» (no sabemos de dónde es cada persona; haría
 falta un campo nuevo en el perfil). Lo vigilan `test-tanda-1208-pantalla.mjs`,
 1042, 1100 y 376, al día.
 
+## Tanda 1214 — Lo común de la portada que faltaba
+
+De las cuatro animaciones de la propuesta solo estaba la cascada. Ahora:
+
+- **Las cifras cuentan** (`js/cifras-cuentan.js`): un número de
+  `.banda-s-cifra b` sube de 0 a su valor en 0,6 s cuando aparece o cambia
+  (MutationObserver sobre la página, así que vale para las cifras que pone el
+  JS de cada página y para las bandas pintadas después). Lo que escribe la
+  propia cuenta lo ve también el observador, y tarde: mientras cuenta, la
+  cifra lleva `data-contando`, y si otro escribe en medio, la cuenta lo nota y
+  vuelve a empezar hacia el nuevo valor (la primera versión acababa en «2» con
+  doce miembros). «—», «12,5 €» y los números menores que 2 no cuentan
+  (`partesDeCifra`, puro). Lo carga `app.js` solo donde hay banda o
+  `seccion.css` (y Cruces, que inyecta la hoja). Con «menos movimiento», la
+  cifra sale ya puesta.
+- **Brillo al pasar**: un reflejo que cruza las fotos (guías, noticias, cartas
+  de Cruces, el abanico de las bandas, la vitrina de Gente), en
+  `css/seccion.css`. La portada vacía de una noticia guarda su sello
+  «PokeDoc» (`:not(.noticia-portada-vacia)`).
+- **Lo vivo late**: el punto verde de «en línea» (`.avatar-conectado`) en las
+  páginas con banda; el «En juego» de Torneos ya latía (297).
+- **Cabeceras de bloque con icono de color** (`.cab-bloque-ico`): los bloques
+  del Panel (`ICONO_DE_BLOQUE`) y «Lo que viene» / «Ya en tiendas».
+
+Lo vigila `test-tanda-1214-pantalla.mjs`. La portada sigue en 137,3 KB.
+

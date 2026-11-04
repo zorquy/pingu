@@ -386,6 +386,8 @@ async function pintar(mercado) {
 }
 
 function init() {
+  // Los iconos de color de las cabeceras de bloque (1214).
+  for (const el of document.querySelectorAll('.cab-bloque-ico[data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(16) || ''
   const sel = $('lanzCatalogo')
   if (!sel) return
   let guardado = null

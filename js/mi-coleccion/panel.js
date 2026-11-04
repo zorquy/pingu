@@ -299,10 +299,15 @@ const DE_VISTAZO = 8
 // para cartas y para expansiones, pero debajo de «Cambios» suena a que
 // hay una lista de cambios que ver, y lo que hay es una pantalla donde se
 // hacen. Un enlace dice a dónde lleva o no sirve de nada.
+// Cada bloque con su icono en el color de la sección (1214, «cabeceras con
+// icono de color», como los bloques de la portada).
+const ICONO_DE_BLOQUE = { Movimientos: 'trendingUp', Ranking: 'trophy', 'Últimas añadidas': 'clock', Expansiones: 'layers', Álbumes: 'folder' }
+
 function vistazoHtml(titulo, pestana, dentro, rotulo = 'Ver todas') {
+  const ico = ICONO_DE_BLOQUE[titulo] && icons[ICONO_DE_BLOQUE[titulo]] ? `<span class="cab-bloque-ico" aria-hidden="true">${icons[ICONO_DE_BLOQUE[titulo]](16)}</span>` : ''
   return `<section class="mc-vistazo">
     <div class="mc-vistazo-cabecera">
-      <h2 class="mc-subtitulo">${escapeHtml(titulo)}</h2>
+      <h2 class="mc-subtitulo">${ico}${escapeHtml(titulo)}</h2>
       <button type="button" class="link-btn ver-todo" data-ir-a="${escapeHtml(pestana)}">${escapeHtml(rotulo)} <span class="ver-todo-flecha" aria-hidden="true">→</span></button>
     </div>
     ${dentro}

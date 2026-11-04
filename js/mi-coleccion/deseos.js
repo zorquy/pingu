@@ -149,6 +149,8 @@ async function pintarCambios() {
   const precios = [...new Set([...tiene, ...busca].map((f) => f.card_id))].filter((id) => !ctx.guardados.has(id))
   if (precios.length) for (const [k, v] of await datos.preciosGuardados(precios).catch(() => new Map())) ponerPrecio(k, v)
   const [seguidos] = await Promise.all([pedirSeguidos().catch(() => null), hojaInyectada('css/seccion.css').catch(() => {})])
+  // Las cifras de la banda cuentan (1214); en las demás páginas lo pide app.js.
+  import('../cifras-cuentan.js').catch(() => {})
   const vacio = !doy.length && !ctx.deseos.length
   const gente = tablon.cruzarPorPersona(tiene, busca)
   const perfectos = gente.filter((p) => p.perfecto).length

@@ -15592,3 +15592,18 @@ html.mc-set-abierta .mc-hero { display: none; }
   #mcVistazoSets .mc-set-fila { transition: none; }
   #mcVistazoSets .mc-set-fila:hover { transform: none; }
 }
+
+/* El icono de color de cada bloque del Panel (1214; la regla es la de
+   css/seccion.css, que esta pantalla no carga). */
+.mc-vistazo-cabecera .cab-bloque-ico {
+  display: inline-grid;
+  width: 28px;
+  height: 28px;
+  margin-right: var(--e-sm);
+  place-items: center;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--acento) 18%, transparent);
+  color: var(--acento);
+  vertical-align: middle;
+}
+.mc-vistazo-cabecera .cab-bloque-ico svg { width: 16px; height: 16px; }

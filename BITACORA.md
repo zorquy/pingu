@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (459) — PINGU-Claude (1214 — lo común que faltaba)
+
+**Hecho**: las cifras de las bandas cuentan (`js/cifras-cuentan.js`), las fotos
+brillan al pasar, el punto de «en línea» late y los bloques del Panel y de
+Lanzamientos llevan su icono de color.
+
+**Ficheros**: `js/cifras-cuentan.js` (nuevo), `js/app.js`,
+`js/mi-coleccion/deseos.js`, `js/mi-coleccion/panel.js`, `js/lanzamientos.js`,
+`lanzamientos.html`, `css/seccion.css`, `css/mi-coleccion.css`, `SCHEMA.md`,
+`novedades.json`. En `pruebas`: `test-tanda-1214-pantalla.mjs` nueva.
+
+**Pruebas**: verdes 1214, 847, 301, 1165, 1208, 1152, 1039, 569, 1181, 1178,
+1207, 299, 312, 313, 316 e imports. Portada 137,3 KB.
+
 ## 2026-11-04 (458) — PINGU-Claude (1213 — Cruces como la maqueta)
 
 **Hecho**: PINGU vio Cruces «a medio cambiar» y pidió terminar lo de la

@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "Las cifras de arriba de cada página cuentan al aparecer, las fotos de guías, noticias y cartas brillan al pasar el ratón, el punto verde de quien está en línea late y los bloques del Panel y de Lanzamientos llevan su icono de color.",
+      "enlace": "/usuarios"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "Cruces, por fin como en la propuesta: cada persona con las fotos de las cartas que te da y las que le das (el precio debajo y el nombre al pasar), «Unos N € por lado» cuando se parecen, y Mensaje y Proponer a mano. Arriba, también los tratos que tienes en curso.",
       "enlace": "/mi-coleccion?ver=cambios"
     },
