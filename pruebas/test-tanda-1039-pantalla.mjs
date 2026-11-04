@@ -42,7 +42,8 @@ console.log('── 1. Aprender en el móvil ──')
     const es = h?.querySelector('.ap-escribir')
     const er = es?.getBoundingClientRect()
     return {
-      hijos: h ? [...h.children].map((x) => x.className) : null,
+      // Lo que se ve: el orden de la 1215 está y en el móvil no sale.
+      hijos: h ? [...h.children].filter((x) => x.getClientRects().length).map((x) => x.className) : null,
       escribir: er ? { ancho: Math.round(er.width), alto: Math.round(er.height), etiqueta: es.getAttribute('aria-label') || es.innerText.trim() } : null,
       misma: bu && er ? Math.abs((bu.top + bu.height / 2) - (er.top + er.height / 2)) < 4 : false,
       chips: document.querySelectorAll('#categoriesList [data-nivel], #apChips').length,

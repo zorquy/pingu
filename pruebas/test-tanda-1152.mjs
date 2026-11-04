@@ -137,9 +137,11 @@ console.log('\n── 4. Noticias en el PC: la rejilla de siempre con sus rótul
     cols: getComputedStyle(document.getElementById('noticiasRejilla')).gridTemplateColumns.split(' ').length,
     rotuloAncho: Math.round(document.querySelector('.noticias-grupo')?.getBoundingClientRect().width || 0),
     rejilla: Math.round(document.getElementById('noticiasRejilla').getBoundingClientRect().width),
-    resumen: getComputedStyle(document.querySelector('.noticia-tarjeta p')).display,
+    // Desde la 1215 lo de antes de esta semana son filas, dos por fila: la
+    // rejilla tiene seis pistas (tarjeta 2, fila 3).
+    filas: [...document.querySelectorAll('#noticiasRejilla .noticia-fila')].map((x) => Math.round(x.getBoundingClientRect().width)),
   }))
-  check('tres columnas, el rótulo cruza la fila y el resumen sigue', m.cols === 3 && m.rotuloAncho === m.rejilla && m.resumen !== 'none', JSON.stringify(m))
+  check('seis pistas, el rótulo cruza la fila y lo de antes va en filas de media rejilla', m.cols === 6 && m.rotuloAncho === m.rejilla && m.filas.length >= 2 && m.filas.every((w) => Math.abs(w - m.rejilla / 2) < 16), JSON.stringify(m))
   await ctx.close()
 }
 
@@ -165,10 +167,11 @@ for (const movil of [true, false]) {
     }
   })
   const q = movil ? 'móvil' : 'PC'
-  check(`${q}: filas de 64 px como mucho, y la fila entera es el enlace`, m.n >= 3 && m.altos.every((h) => h <= 64) && m.enlace, JSON.stringify(m.altos))
+  // Desde la 1215, en el PC son baldosas (logo, nombre, día y anillo).
+  check(`${q}: ${movil ? 'filas de 64 px como mucho' : 'baldosas bajas'}, y la fila entera es el enlace`, m.n >= 3 && m.altos.every((h) => h <= (movil ? 64 : 160)) && m.enlace, JSON.stringify(m.altos))
   check(`${q}: con cuenta, «n/total» en cada una, con su anillo`, m.progs.length === m.n && m.progs.every((t) => /^\d+\/\d+$/.test(t)) && m.progs.some((t) => !t.startsWith('0/')) && m.barra.every(Boolean) && m.sub === 0, JSON.stringify(m.progs) + JSON.stringify(m.barra))
   check(`${q}: preguntado UNA vez, del catálogo que se mira`, m.rpc.length === 1 && m.rpc[0] === 'WEST', JSON.stringify(m.rpc))
-  check(`${q}: ${movil ? 'una columna' : 'dos columnas'}`, m.cols === (movil ? 1 : 2), m.cols)
+  check(`${q}: ${movil ? 'una columna' : 'varias por fila'}`, movil ? m.cols === 1 : m.cols >= 3, m.cols)
   check(`${q}: sin errores`, !err.length, err.join(' | '))
   await ctx.close()
 }

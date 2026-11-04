@@ -297,8 +297,9 @@ for (const movil of [true, false]) {
   check(`  …Parejas: «Nuevo», su sello y «9 movimientos${movil ? '' : ' · +20 XP'}»`, (await page.locator('#rtParejas .rt-nuevo').count()) === (hoy <= '2026-10-30' ? 1 : 0) && (await page.locator('#rtSello-parejas.ok').count()) === 1 && (movil ? /9 movimientos$/.test(estadoParejas.trim()) : /9 movimientos · \+20 XP/.test(await page.locator('#rtParejasEstado').textContent())), estadoParejas)
   // En el móvil «hoy» sobra (1016: la píldora ya es lo de hoy, y con Inter no cabía).
   check('  …la píldora', (movil ? /1\/6/ : /1\/6 hoy/).test(await page.locator('#rtDia').innerText()) && /\+20 XP/.test(await page.locator('#rtDia').innerText()))
-  // La clasificación sí se pide en el PC desde la 1154 (la liga al lado).
-  check('  …el historial, plegado y sin pedir nada todavía', !(await page.locator('#rtHistorial').evaluate((d) => d.open)) && !(await page.evaluate((movil) => (window.__RPCS__ || []).some((r) => (movil && r.nombre === 'portada_clasificacion') || r.nombre === 'retos_comunidad'), movil)))
+  // La clasificación sí se pide en el PC desde la 1154 (la liga al lado), y
+  // con cuenta también en el móvil desde la 1215 (tu puesto en la píldora).
+  check('  …el historial, plegado y sin pedir nada todavía', !(await page.locator('#rtHistorial').evaluate((d) => d.open)) && !(await page.evaluate(() => (window.__RPCS__ || []).some((r) => r.nombre === 'retos_comunidad'))))
   await page.click('#rtHistorial summary')
   await page.waitForTimeout(900)
   // Desde la 1188 es la clasificación ENTERA (salió de la portada): podio, Semana / Mes y tu puesto.
