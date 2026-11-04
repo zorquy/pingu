@@ -149,8 +149,12 @@ let tablas
   // Y abierta, la tarjeta ocupa la fila con el trato entero.
   await lineas.first().locator('summary').click()
   await page.waitForTimeout(300)
-  const abierta = await lineas.first().evaluate((l) => ({ open: l.open, ancho: Math.round(l.getBoundingClientRect().width), fila: Math.round(l.parentElement.getBoundingClientRect().width), tarjeta: Boolean(l.querySelector('.cp-tarjeta')) }))
-  check('  …y al abrirla ocupa la fila y enseña el trato', abierta.open && abierta.ancho === abierta.fila && abierta.tarjeta, JSON.stringify(abierta))
+  // Desde la 1223 abierta NO crece: el trato sale en su pop-up centrado.
+  const abierta = await lineas.first().evaluate((l) => { const d = l.querySelector('dialog.cp-trato-dialogo'); return { open: l.open, modal: Boolean(d?.matches(':modal')), ancho: Math.round(l.getBoundingClientRect().width), fila: Math.round(l.parentElement.getBoundingClientRect().width), tarjeta: Boolean(d?.querySelector('.cp-tarjeta')) } })
+  check('  …y al abrirla enseña el trato en su pop-up, sin crecer', abierta.open && abierta.modal && abierta.ancho < abierta.fila && abierta.tarjeta, JSON.stringify(abierta))
+  await page.keyboard.press('Escape')
+  await page.waitForTimeout(300)
+  check('  …y Esc lo cierra', !(await lineas.first().evaluate((l) => l.open)))
   check('sin errores', errores.length === 0, errores.join(' | '))
   const deLucia = tablas.trade_offers.find((o) => o.para === 'user-1')
   // Con la página ya abierta, cambiar el `#` no recarga: lo escucha.

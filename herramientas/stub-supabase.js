@@ -2129,6 +2129,25 @@ export const supabase = {
     // cartas, apuntar lo movido y deshacerlo. `window.__SIN_942__` hace como
     // si la migración no estuviera.
     // Los cambios hechos (795) que lee el perfil y se valoran (1105).
+    // La reputación (1224), como `reputacion_de` (probada contra PostgreSQL en
+    // test-tanda-1224.mjs): solo lo hecho por los dos, lo que dijo EL OTRO y
+    // el tipo por la propuesta que lo cerró. `window.__SIN_1224__` hace como
+    // si la migración no estuviera.
+    if (nombre === 'reputacion_de') {
+      if (typeof window !== 'undefined' && window.__SIN_1224__) return { data: null, error: { code: 'PGRST202', message: 'Could not find the function public.reputacion_de' } }
+      const u = args.p_user
+      const hechas = (T.trade_confirmations || []).filter((f) => [f.user_a, f.user_b].includes(u) && f.hecho_a_at && f.hecho_b_at)
+      const suya = (f) => (f.user_a === u ? f.valoracion_b : f.valoracion_a)
+      const tipo = (f) => {
+        const o = (T.trade_offers || []).find((x) => x.confirmacion === f.id)
+        const its = o ? (T.trade_offer_items || []).filter((i) => i.oferta === o.id) : []
+        const doy = its.some((i) => i.quien === u)
+        const recibo = its.some((i) => i.quien !== u)
+        return doy && recibo ? 'cambio' : doy ? 'venta' : recibo ? 'compra' : 'cambio'
+      }
+      const cuando = hechas.map((f) => [f.hecho_a_at, f.hecho_b_at].sort().at(-1)).sort()
+      return { data: [{ hechos: hechas.length, bien: hechas.filter((f) => suya(f) === 'bien').length, problemas: hechas.filter((f) => suya(f) === 'problema').length, cambios: hechas.filter((f) => tipo(f) === 'cambio').length, ventas: hechas.filter((f) => tipo(f) === 'venta').length, compras: hechas.filter((f) => tipo(f) === 'compra').length, primero: cuando[0] || null, ultimo: cuando.at(-1) || null }], error: null }
+    }
     if (nombre === 'cambios_de' || nombre === 'cambio_valorar') {
       const filas = (T.trade_confirmations ||= [])
       if (nombre === 'cambios_de') {

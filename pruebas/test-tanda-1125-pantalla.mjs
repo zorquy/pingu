@@ -90,7 +90,8 @@ console.log('── 2. El Mercado en el PC ──')
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=mercado')
   check('al entrar, una tanda: 48 occidentales y ninguna japonesa todavía', (await cuantasEn(page, '#mcMercadoRejilla', 'WEST')) === 48 && (await cuantasEn(page, '#mcMercadoRejilla', 'JP')) === 0, `${await cuantasEn(page, '#mcMercadoRejilla', 'WEST')} + ${await cuantasEn(page, '#mcMercadoRejilla', 'JP')}`)
-  const chips = await page.$$eval('#mcMercadoRejilla [data-lista-cat]', (els) => els.map((e) => `${e.dataset.listaCat}:${e.innerText.replace(/\s+/g, ' ').trim()}:${e.getAttribute('aria-pressed')}`))
+  // Desde la 1222 en el PC el selector va en la barra, al lado del buscador.
+  const chips = await page.$$eval('[data-lista-cat][data-lista-vista="mercado"]', (els) => els.map((e) => `${e.dataset.listaCat}:${e.innerText.replace(/\s+/g, ' ').trim()}:${e.getAttribute('aria-pressed')}`))
   check('«Los dos · Pokémon · Japón» con sus cuentas', chips.join('|') === 'todas:Los dos 90:true|WEST:Pokémon 70:false|JP:Japón 20:false', chips.join('|'))
   check('la cuenta sigue siendo de los dos', /90 cartas a cambio/.test(await page.locator('#mcMercadoCuantas').innerText()))
   check('ya no hay «Ver las N» ni páginas', (await page.locator('[data-tramo-ver], #mcMercadoRejilla .paginacion').count()) === 0)

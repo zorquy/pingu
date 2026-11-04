@@ -41,7 +41,9 @@ const r = await p.evaluate(async () => {
     ],
   }
 })
-check('el rótulo: todos bien, sin valorar, algunos, y nada sin cambios', JSON.stringify(r.t) === JSON.stringify(['12 cambios · todos bien', '1 cambio', '5 cambios · 3 dijeron que fue bien', '', '']), JSON.stringify(r.t))
+// Desde la 1224 son «tratos» (cambio, venta o compra) y con niveles: 12 todos
+// bien es «De fiar»; sin la migración (sin `problemas`) no se dice cuántos.
+check('el rótulo: todos bien, sin valorar, algunos, y nada sin cambios', JSON.stringify(r.t) === JSON.stringify(['De fiar · 12 tratos', '1 trato', '5 tratos', '', '']), JSON.stringify(r.t))
 check('los pasos: marcar, esperar, confirmar, valorar, hecho', r.p.join() === 'marcar,esperando,confirmar,valorar,hecho', r.p.join())
 await b.close()
 
