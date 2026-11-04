@@ -30,6 +30,16 @@ export function montar(c) {
 
 let quiereImportar = new URLSearchParams(location.search).get('importar') === '1'
 
+// La entrada del Panel, una vez por bloque (1225, PINGU: «carga y después
+// como que carga otra vez para pintar otra vez los números»). El Panel se
+// pinta varias veces —lo de la última vez, lo de ahora, los productos al
+// llegar— y cada vez los bloques entraban, la cifra se calculaba y la gráfica
+// se dibujaba otra vez. Ahora entra solo lo que NO estaba ya en pantalla
+// (`mc-sin-entrada` a lo que repite): lo nuevo sigue entrando, que es lo que
+// hace que aparecer no se lea como un salto.
+let graficaDibujada = false
+const SIN_ENTRADA = 'mc-sin-entrada'
+
 export function pintarResumenPanel() {
   const caja = $('mcResumenPanel')
   if (!caja) return
@@ -37,6 +47,9 @@ export function pintarResumenPanel() {
   // pisa con el «todavía no has añadido ninguna carta» de antes de cargar:
   // los puentes de la 895 llegan en diferido, después de la caché.
   if (!ctx.panelFiable && caja.dataset.ultimaVista) return
+  // Ya se veía (la de la última vez o una pintada anterior): ni entra ni
+  // vuelve a calcular la cifra (1225).
+  const yaSeVeia = !!caja.querySelector('.mc-cartera')
   delete caja.dataset.ultimaVista
   const [ls, clave, busca] = ctx.pTodo()
   if (!ls.length) {
@@ -87,7 +100,8 @@ export function pintarResumenPanel() {
   if (ctx.esMia && ctx.sesion) void ctx.pintarRepartoProductos()
   // La cifra cuenta desde la de la última vez (783, MV2).
   const cifraPanel = document.querySelector('#mcValorCaja .mc-cartera-cifra')
-  if (ctx.esMia && cifraPanel) import('../contar.js').then(({ contarCifra, calcularCifra }) => {
+  if (yaSeVeia) caja.querySelector('.mc-cartera')?.classList.add(SIN_ENTRADA)
+  if (ctx.esMia && cifraPanel && !yaSeVeia) import('../contar.js').then(({ contarCifra, calcularCifra }) => {
     contarCifra(cifraPanel, 'valor', ctx.valorDeAhora(), ctx.eurosConMiles)
     // Las cuentas pequeñas de debajo también se calculan (1217).
     for (const b of document.querySelectorAll('#mcValorCaja .mc-cartera-sub b')) calcularCifra(b, b.textContent)
@@ -578,6 +592,15 @@ export async function pintarVistazos() {
   if (!caja || !ctx.esMia) return
   // Lo de la última vez (894) se queda hasta que la colección esté cargada.
   if (!ctx.panelFiable && caja.dataset.ultimaVista) return
+  // Lo que ya estaba en pantalla no vuelve a entrar (1225): se apunta por id
+  // (el esqueleto de Expansiones cuenta como su bloque) y se marca al llegar.
+  const habia = new Set([...caja.children].map((c) => c.id.replace(/Esq$/, '')).filter(Boolean))
+  if (habia.size) {
+    const marcar = (n) => { if (n.id && habia.has(n.id.replace(/Esq$/, ''))) n.classList.add(SIN_ENTRADA) }
+    const obs = new MutationObserver((ms) => { for (const m of ms) m.addedNodes.forEach(marcar) })
+    obs.observe(caja, { childList: true })
+    setTimeout(() => obs.disconnect(), 8000)
+  }
   delete caja.dataset.ultimaVista
   const version = ++vistazosVersion
   // Lo de memoria, ya. Lo demás, cuando llegue: el panel es lo primero que
@@ -787,7 +810,9 @@ export async function pintarValorEnElTiempo() {
     sitio.removeAttribute('aria-busy')
     // La gráfica se dibuja de izquierda a derecha (1217, PINGU: «que aparezca
     // la gráfica como de izquierda a derecha generándose»).
-    sitio.querySelector('.mc-valor-lienzo')?.setAttribute('data-dibujando', '')
+    // Una vez por visita (1225): repintar no la vuelve a dibujar.
+    if (!graficaDibujada) sitio.querySelector('.mc-valor-lienzo')?.setAttribute('data-dibujando', '')
+    graficaDibujada = true
     engancharRangosDelValor()
     // Y la lectura al pasar el dedo (653), sobre el lienzo recién pintado.
     ctx.historico.grafica.engancharLectura(sitio.querySelector('.mc-valor-lienzo'))

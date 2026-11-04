@@ -35,6 +35,24 @@
   "entradas": [
     {
       "fecha": "2026-11-04",
+      "tipo": "arreglo",
+      "texto": "Un trato que ya está hecho deja de salir en «En curso» y pasa a tu historial, como «Venta hecha», «Compra hecha» o «Cambio hecho».",
+      "enlace": "/mi-coleccion?ver=cambios"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Los botones de toda la web son ahora redondeados y más ligeros, y los títulos de las guías se leen mejor sobre su foto.",
+      "enlace": "/aprender"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "arreglo",
+      "texto": "El Panel de tu colección ya no parpadea al cargar: la cifra y la gráfica salen una sola vez.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-04",
       "tipo": "nuevo",
       "texto": "Reputación en los cambios: tu perfil enseña cuántos cambios, ventas y compras has cerrado y si la gente dice que fueron bien. Con cinco tratos sin problemas eres «De fiar», y con veinte, «Muy de fiar». Lo verás también en Cruces, el Mercado y los mensajes.",
       "enlace": "/perfil?ver=cambios"

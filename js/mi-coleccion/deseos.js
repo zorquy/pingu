@@ -398,7 +398,10 @@ async function pintarMisCambiosArriba() {
   } catch { caja.hidden = true }
   // Se ve en su chip, o encima de los pasos si no hay nada apuntado y hay tratos.
   const enSuSitio = crucesFiltro === 'curso' && caja.parentElement?.id === 'mcCambiosPanel'
-  const arriba = !document.querySelector('#mcCambiosPanel .mc-cruces-filtros') && Number(caja.dataset.vivas || 0) > 0
+  // Sin chips (no tienes nada apuntado), también con solo el Historial (1225):
+  // un trato hecho ya no cuenta como vivo y su «¿Qué tal fue?» no puede
+  // quedarse escondido.
+  const arriba = !document.querySelector('#mcCambiosPanel .mc-cruces-filtros') && (Number(caja.dataset.vivas || 0) > 0 || !!caja.querySelector('.cp-historial'))
   caja.hidden = !(enSuSitio || arriba)
   const n = caja.dataset.vivas ?? '0'
   const cifra = document.querySelector('[data-ir-curso] b')

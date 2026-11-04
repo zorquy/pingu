@@ -877,7 +877,7 @@ export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null, misCobros = nu
   const filaQuien = (quien, que, ya) => `<li><span>${quien} · ${escapeHtml(loQueEs(que))}</span><span class="${ya ? 'cp-ya' : ''}">${que.cartas || que.dinero ? (ya ? `${escapeHtml(textoDeRecibido(que))} ✓` : 'Pendiente') : 'Nada que confirmar'}</span></li>`
   return `<article class="cp-tarjeta tono-${est.tono}" data-oferta="${escapeHtml(o.id)}">
     <header class="cp-t-cab"><b>${escapeHtml(tituloDe(o, yo, nombre))}${o.version > 1 ? ` · ${o.version}.ª versión` : ''}</b><span class="cp-estado">${escapeHtml(est.texto)}</span></header>
-    ${o.estado === 'enviada' || o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de ${pasos.length}">${pasos.map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
+    ${o.estado === 'enviada' || o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de ${pasos.length}">${pasos.map((p, i) => `<li class="${i + 1 < paso || o.estado === 'hecha' ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
     <div class="cp-t-lados">
       ${ladoHtml(`Das · ${euros(sumaDe(das) + (dinero.pagaYo ? dinero.cantidad : 0) + (pagoYo ? envioP : 0))}`, das, cartaDe, 'Nada', dinero.cantidad && dinero.pagaYo ? { ...dinero, envio: pagoYo ? envioP : 0 } : null)}
       ${ladoHtml(`Recibes · ${euros(sumaDe(recibes) + (dinero.cantidad && !dinero.pagaYo ? dinero.cantidad : 0) + (pagaEnvio && !pagoYo ? envioP : 0))}`, recibes, cartaDe, 'Nada', dinero.cantidad && !dinero.pagaYo ? { ...dinero, envio: pagaEnvio && !pagoYo ? envioP : 0 } : null)}

@@ -333,7 +333,8 @@ export function estadoDe(oferta, yo, nombreOtro = 'la otra persona') {
       if (!yaLoTengo) return { texto: loTieneEl ? `${nombreOtro} ya tiene lo tuyo` : 'Aceptado', tono: 'toca', acciones: ['lo-tengo', 'anular'], frase: loTieneEl ? `${nombreOtro} ya tiene lo tuyo. Cuando te llegue lo suyo, confírmalo.` : 'Aceptado: mandaos lo vuestro y confírmalo cuando te llegue.' }
       return { texto: `Esperando a que ${nombreOtro} lo confirme`, tono: 'espera', acciones: ['anular'], frase: `Esperando a que a ${nombreOtro} le llegue lo tuyo y lo confirme.` }
     case 'hecha':
-      return { texto: 'Cambio hecho', tono: 'hecho', acciones: oferta?.deshacer_hasta && new Date(oferta.deshacer_hasta) > new Date() ? ['deshacer'] : [], frase: 'Hecho: las cartas ya están en la colección de cada uno.' }
+      // Lo hecho se dice como lo que fue (1225): una venta no es un cambio.
+      return { texto: { vendo: 'Venta hecha', compro: 'Compra hecha' }[tipoDe(oferta?.items || [], yo)] || 'Cambio hecho', tono: 'hecho', acciones: oferta?.deshacer_hasta && new Date(oferta.deshacer_hasta) > new Date() ? ['deshacer'] : [], frase: 'Hecho: las cartas ya están en la colección de cada uno.' }
     case 'rechazada':
       return { texto: 'Rechazada', tono: 'fin', acciones: [] }
     case 'anulada':
@@ -369,7 +370,10 @@ export function pasosDe(o) {
 }
 
 // Viva = lo que todavía pide algo a alguien (o se puede deshacer).
-export const estaViva = (o) => o?.estado === 'enviada' || o?.estado === 'aceptada' || (o?.estado === 'hecha' && o.deshacer_hasta && new Date(o.deshacer_hasta) > new Date())
+// Un trato HECHO ya no está en curso aunque aún se pueda deshacer (1225,
+// PINGU: «ya lo he recibido… debería ponerse en acabados»): pasa al Historial
+// al momento y su «Deshacer» va en su pop-up mientras dure el plazo.
+export const estaViva = (o) => o?.estado === 'enviada' || o?.estado === 'aceptada'
 
 // Lo que va a pasar al cerrar el cambio, para enseñarlo antes: lo que sale
 // de tu colección y lo que entra, y el dinero. `items` desde quien mira.

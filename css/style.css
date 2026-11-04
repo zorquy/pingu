@@ -915,8 +915,10 @@ body:has(.nav-menu-mobile.open) {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 16px 24px;
-  border-radius: var(--radius-md);
+  /* 1225: pastilla, como la propuesta (PINGU: «los redondillos ocupan menos»). */
+  min-height: 44px;
+  padding: 8px 20px;
+  border-radius: var(--radius-pill);
   font-weight: 600;
   font-size: var(--t-md);
   line-height: 1;

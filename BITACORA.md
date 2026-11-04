@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (465) — PINGU-Claude (1225 — los detalles: botones, trato hecho, guías, Panel)
+
+**Hecho** (PINGU, con capturas):
+- Botones en pastilla en TODA la web: `.btn-primary` / `.btn-secondary` /
+  `.btn-outline` con `--radius-pill`, 44 px de alto y menos relleno (eran
+  48 con esquinas de 10). También `.link-btn` suelto y `.grupo-acciones`.
+  Lo heredan Cruces (Mensaje / Proponer), Modo evento, «Escribir una guía»,
+  «Escribir un tema» y el resto.
+- Un trato HECHO ya no se queda en «En curso» el día que dura Deshacer:
+  `estaViva` solo es enviada/aceptada. Pasa al Historial al momento (su
+  Deshacer y su «¿Qué tal fue?» siguen ahí) y dice «Venta hecha», «Compra
+  hecha» o «Cambio hecho»; los pasos salen todos en verde. Sin chips (nada
+  apuntado), «Tus cambios» sale también con solo el Historial.
+- Portadas de guía: más negro abajo y sombra en el título.
+- Panel: entra solo lo que NO estaba ya en pantalla (`mc-sin-entrada`), y la
+  cifra no se vuelve a «calcular» ni la gráfica a dibujar al repintarse (lo
+  de la última vez → lo de ahora → los productos).
+
+**Ficheros** (web): `css/style.css`, `css/components.css`,
+`css/guia-portada.css`, `css/mi-coleccion.css`, `js/cambio-propuesta.js`,
+`js/cambio-propuesta-puro.js`, `js/mi-coleccion/deseos.js`,
+`js/mi-coleccion/panel.js`, `BITACORA.md`, `SCHEMA.md`, `novedades.json`,
+`CLAUDE.md`.
+
+**Pruebas**: rama `pruebas`, 1105 al día (lo hecho se valora en el
+Historial). Verdes 299, 306, 312, 313, 942, 1099, 1100, 1166, 1217, 1224,
+795, panel (436, 440, 748, 783, 894, 1171, 1172, 1178, 1206, 1214) e
+imports. 315, 766, 887, 981 (0,487, como antes) y 1040 ya eran rojas.
+
+**Queda**: la propuesta de los temas de las guías (con imágenes).
+
 ## 2026-11-04 (464) — PINGU-Claude (1222–1224 — Deseos y cambios: barra, trato en pop-up, reputación)
 
 **Hecho** (PINGU: «dale con lo recomendado» a la propuesta con imágenes):

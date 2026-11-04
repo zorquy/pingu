@@ -54040,3 +54040,28 @@ Pruebas (rama `pruebas`): `test-tanda-1224.mjs` (la función contra
 PostgreSQL y lo que pinta la web), y al día 795, 1100 (el pop-up abre
 modal y Esc lo cierra), 1105 y 1125. El doble aprende `reputacion_de`
 (con `__SIN_1224__` para probar el respaldo).
+
+## Tanda 1225 — Los detalles: botones en pastilla, el trato hecho, las guías y el Panel
+
+- **Botones**: la base de `style.css` (`.btn-primary`, `.btn-secondary`,
+  `.btn-outline`) es una pastilla (`--radius-pill`) de 44 px de alto con
+  `padding: 8px 20px` (PINGU: «los redondillos ocupan menos»). Los 44 se
+  quedan para todo el mundo (la regla de la 312: un botón no es un control
+  denso). `.link-btn` suelto y `.grupo-acciones` también van en pastilla.
+- **El trato hecho**: `estaViva` (cambio-propuesta-puro.js) ya no cuenta
+  `hecha` aunque quede plazo de Deshacer: pasa al Historial al momento, y su
+  pop-up lleva el Deshacer mientras dure. `estadoDe` dice «Venta hecha»,
+  «Compra hecha» o «Cambio hecho» según `tipoDe`. En Cruces, sin chips (nada
+  apuntado), `#mcMisCambios` sale también si solo hay Historial: si no, el
+  «¿Qué tal fue?» de un trato recién hecho quedaba escondido.
+- **Portadas de guía**: el degradado baja a 94 % de negro y el título lleva
+  sombra.
+- **El Panel no pestañea**: antes cada repintado (lo de la última vez, lo de
+  ahora, los productos al llegar) volvía a hacer entrar la cartera y los
+  bloques, a calcular la cifra y a dibujar la gráfica. Ahora entra solo lo
+  que no estaba ya: la cartera lleva `mc-sin-entrada` si ya se veía, y en
+  `pintarVistazos` un `MutationObserver` marca los bloques cuyo id ya estaba
+  (el esqueleto `…Esq` cuenta como su bloque). OJO: apagar TODAS las
+  entradas desde la segunda pintada subía el CLS de /mi-coleccion de 0,49 a
+  0,74 (la 981): lo que aparece por primera vez entrando con opacidad no
+  cuenta como salto, y sin entrada sí.

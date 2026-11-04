@@ -804,7 +804,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   fiar (5, sin problemas) / Muy de fiar (20, 95 % bien). Los problemas no
   salen nunca como número, solo el tanto por ciento. Una pantalla nueva que
   enseñe a alguien de los cambios pone `data-confianza="<id>"` y llama a
-  `ponerConfianza`. Y un trato se abre en su pop-up (`.cp-trato-dialogo`,
+  `ponerConfianza`. Un trato HECHO no está «en curso» (1225: `estaViva` es
+  enviada o aceptada; su Deshacer va en el Historial). Y un trato se abre en su pop-up (`.cp-trato-dialogo`,
   1223, `engancharDialogos`): con `showModal` lo de fuera está INERTE, así que
   los avisos van dentro (`toast.js` busca `dialog:modal`). En el PC el
   selector de catálogo de una lista que crece va en la barra
@@ -1661,7 +1662,7 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   mezcla, `js/error-log.js` recarga una vez (`tocaRecargar`). Un error de
   import en el panel justo después de un push es esto antes que un export
   que falta: `test-imports` lo distingue en un segundo.
-- **Los botones son tres clases** (tanda 917): principal (`.btn-primary`),
+- **Los botones son tres clases, y en pastilla** (tanda 917; pastilla de 44 px desde la 1225, PINGU: «los redondillos ocupan menos»): principal (`.btn-primary`),
   suave (`.btn-secondary`/`.btn-outline`: fondo `--ice`, borde transparente)
   e icono (círculo de 44 px). Un `.link-btn` suelto ya es un botón suave; en
   una frase (`p`, `.subtext`, `td`), un enlace. Un botón nuevo es de una de

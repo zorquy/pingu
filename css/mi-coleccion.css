@@ -15535,8 +15535,8 @@ html.mc-set-abierta .mc-hero { display: none; }
   }
 }
 
-#mcResumenPanel .mc-cartera,
-#mcVistazos > .mc-vistazo {
+#mcResumenPanel .mc-cartera:not(.mc-sin-entrada),
+#mcVistazos > .mc-vistazo:not(.mc-sin-entrada) {
   animation: mc-panel-entra 0.5s var(--ease) backwards;
 }
 #mcVistazos > :nth-child(1) { animation-delay: 60ms; }
@@ -15587,8 +15587,8 @@ html.mc-set-abierta .mc-hero { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  #mcResumenPanel .mc-cartera,
-  #mcVistazos > .mc-vistazo { animation: none; }
+  #mcResumenPanel .mc-cartera:not(.mc-sin-entrada),
+#mcVistazos > .mc-vistazo:not(.mc-sin-entrada) { animation: none; }
   #mcVistazoSets .mc-set-fila { transition: none; }
   #mcVistazoSets .mc-set-fila:hover { transform: none; }
 }

@@ -147,7 +147,7 @@
 /* Acciones sobre una lista, en UN grupo (1042, SCHEMA 1042). */
 .grupo-acciones {
   display: inline-flex;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   background: var(--ice);
   overflow: hidden;
 }
@@ -3091,7 +3091,7 @@ body.portada-compacta .page-content {
   gap: var(--e-xs);
   min-height: 36px;
   padding: 0 var(--e-md);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-pill);
   background: var(--ice);
   text-decoration: none;
 }
