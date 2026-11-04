@@ -31,6 +31,8 @@ import { lineaDeSetHtml } from './linea-set.js'
 import { porCatalogo } from './rotulos-catalogo.js'
 import * as listasDeseo from './listas-deseo.js'
 import { listaLocalHtml, catalogoDe, elegirCatalogo, catalogoDelClic } from './tramos.js'
+import { hojaInyectada } from '../hoja.js'
+import { bandaSeccionHtml, abanicoHtml } from '../banda-seccion.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -146,7 +148,7 @@ async function pintarCambios() {
   if (faltan.length) await completarCartasDeFuera(faltan, ctx.mercado)
   const precios = [...new Set([...tiene, ...busca].map((f) => f.card_id))].filter((id) => !ctx.guardados.has(id))
   if (precios.length) for (const [k, v] of await datos.preciosGuardados(precios).catch(() => new Map())) ponerPrecio(k, v)
-  const seguidos = await pedirSeguidos().catch(() => null)
+  const [seguidos] = await Promise.all([pedirSeguidos().catch(() => null), hojaInyectada('css/seccion.css').catch(() => {})])
   const vacio = !doy.length && !ctx.deseos.length
   const gente = tablon.cruzarPorPersona(tiene, busca)
   const perfectos = gente.filter((p) => p.perfecto).length
@@ -180,44 +182,47 @@ async function pintarCambios() {
          <li><span class="mc-cambio-paso">2</span><div><strong>Pon para cambio lo que te sobra</strong><p class="subtext">Lo que sobra lo decides tú: marca una copia y di cuántas das, en <button type="button" class="link-btn" data-deseos-vista="doy">Las que doy</button>.</p></div></li>
          <li><span class="mc-cambio-paso">3</span><div><strong>Aquí sale con quién encajas</strong><p class="subtext">Y le escribes desde aquí, sin salir de PokeDoc.</p></div></li>
        </ol>`
-    : !gente.length ? sinNadie() : `<div class="mc-quiero-cabeza">
-         <p class="mc-quiero-cifra"><b>${gente.length}</b> ${gente.length === 1 ? 'persona encaja' : 'personas encajan'} contigo${perfectos ? ` · <b>${perfectos}</b> ${perfectos === 1 ? 'cruce perfecto' : 'cruces perfectos'}` : ''}</p>
-         ${gente.length ? `<span class="seg" role="group" aria-label="Quién">
-           <button type="button" class="seg-btn" data-cruces-filtro="todos" aria-pressed="${crucesFiltro === 'todos'}">Todos</button>
-           <button type="button" class="seg-btn" data-cruces-filtro="perfectos" aria-pressed="${crucesFiltro === 'perfectos'}">Solo perfectos <span class="mc-deseos-n">${perfectos}</span></button>
-           ${deSeguidos === null ? '' : `<button type="button" class="seg-btn" data-cruces-filtro="seguidos" aria-pressed="${crucesFiltro === 'seguidos'}">Gente que sigo <span class="mc-deseos-n">${deSeguidos}</span></button>`}
-         </span>` : ''}
+    : !gente.length ? sinNadie() : `${bandaDeCruces(gente, perfectos, doy.length)}
+       <div class="mc-cruces-filtros" role="group" aria-label="Quién">
+         <button type="button" class="seg-btn" data-cruces-filtro="todos" aria-pressed="${crucesFiltro === 'todos'}">Todos <span class="mc-deseos-n">${gente.length}</span></button>
+         <button type="button" class="seg-btn" data-cruces-filtro="perfectos" aria-pressed="${crucesFiltro === 'perfectos'}">Cruces perfectos <span class="mc-deseos-n">${perfectos}</span></button>
+         ${deSeguidos === null ? '' : `<button type="button" class="seg-btn" data-cruces-filtro="seguidos" aria-pressed="${crucesFiltro === 'seguidos'}">Gente que sigo <span class="mc-deseos-n">${deSeguidos}</span></button>`}
        </div>
-       ${gente.length
-         ? visibles.length
-           ? bandasDeCruces(visibles, { cartas: ctx.cartas, valor, euros })
-           : `<p class="empty-state">${crucesFiltro === 'perfectos' ? 'Ningún cruce perfecto todavía.' : 'Nadie de la gente que sigues encaja ahora mismo.'}</p>`
-         : ''}`
+       ${visibles.length
+         ? `<div class="mc-cruces-rejilla en-cascada">${visibles.map((p) => tablon.cruceTarjetaHtml(p, { cartas: ctx.cartas, valor, euros })).join('')}</div>`
+         : `<p class="empty-state">${crucesFiltro === 'perfectos' ? 'Ningún cruce perfecto todavía.' : 'Nadie de la gente que sigues encaja ahora mismo.'}</p>`}`
   engancharCambios()
   void pintarMisCambiosArriba()
   // «12 cambios · todos bien» al lado de cada persona (798, NU4).
-  import('../cambios-hechos.js').then((m) => m.ponerConfianza(document.querySelector('.mc-cruces-bandas'))).catch(() => {})
+  import('../cambios-hechos.js').then((m) => m.ponerConfianza(document.querySelector('.mc-cruces-rejilla'))).catch(() => {})
 }
 
-// Los cruces por BANDAS (1042): los perfectos arriba; luego quien tiene lo
-// que buscas y quien busca lo que das. Desde la 1044 solo el PRIMERO de
-// todos va en la tarjeta grande (PINGU: «el primero que aparezca desplegado
-// está bien, pero los siguientes que estén plegados»); los demás son filas
-// que se despliegan al tocarlas.
-function bandasDeCruces(gente, op) {
-  let abierto = null
-  const banda = (titulo, lista) => {
-    if (!lista.length) return ''
-    const primero = abierto ? null : (abierto = lista[0])
-    const filas = primero ? lista.slice(1) : lista
-    return `<section class="mc-cruces-banda"><h3 class="mc-cruces-titulo">${titulo} <span class="mc-deseos-n">${lista.length}</span></h3>${primero ? `<div class="mc-cruces">${tablon.cruceHtml(primero, op)}</div>` : ''}${filas.length ? `<div class="mc-cruces-filas">${filas.map((p) => tablon.cruceFilaHtml(p, op)).join('')}</div>` : ''}</section>`
+// La banda de arriba de Cruces (1208): cuántas personas encajan, lo que
+// buscas y das (cada cifra lleva a su lista) y los perfectos, con tres
+// cartas de las que te darían en abanico. Desde la 1208 los cruces son una
+// rejilla de tarjetas iguales (`cruceTarjetaHtml`), por orden de cuánto
+// encajan; antes eran bandas con el primero en grande y los demás plegados.
+function bandaDeCruces(gente, perfectos, das) {
+  const fotos = []
+  for (const p of gente) {
+    for (const f of [...p.teDa, ...p.leDas]) {
+      const c = ctx.cartas.get(f.card_id)
+      const escaneo = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : ''
+      if (escaneo && fotos.length < 3) fotos.push(`<img ${escaneo} alt="" width="245" height="342" loading="lazy" />`)
+    }
+    if (fotos.length >= 3) break
   }
-  const perfectos = gente.filter((p) => p.perfecto)
-  return `<div class="mc-cruces-bandas">
-    ${banda(perfectos.length === 1 ? 'Cruce perfecto' : 'Cruces perfectos', perfectos)}
-    ${banda('Tienen lo que buscas', gente.filter((p) => !p.perfecto && p.teDa.length))}
-    ${banda('Buscan lo que das', gente.filter((p) => !p.perfecto && !p.teDa.length))}
-  </div>`
+  return bandaSeccionHtml({
+    ceja: 'Deseos y cambios · Cruces',
+    titulo: `${gente.length} ${gente.length === 1 ? 'persona encaja' : 'personas encajan'} contigo`,
+    lema: 'Tienen cartas que buscas o buscan cartas que das. Primero, las que más encajan.',
+    cifras: [
+      { n: ctx.deseos.length, texto: ctx.deseos.length === 1 ? 'carta buscas' : 'cartas buscas', accion: 'data-ir-quiero' },
+      { n: das, texto: das === 1 ? 'carta das' : 'cartas das', accion: 'data-deseos-vista="doy"' },
+      { n: perfectos, texto: perfectos === 1 ? 'cruce perfecto' : 'cruces perfectos' },
+    ],
+    derecha: abanicoHtml(fotos),
+  })
 }
 
 // El buscador de la lista de búsqueda, con su propio turno: dos

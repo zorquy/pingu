@@ -195,6 +195,35 @@ export function cruceFilaHtml(p, op) {
   </article>`
 }
 
+// LA TARJETA DE UNA PERSONA (1208, de «Lo de la portada en el resto de la
+// web», PINGU: «el tema de cruces está muy anticuado»). Todas iguales, en
+// rejilla: quién es y cuántas cartas encajan, en dos lados lo que te da y lo
+// que le das (la foto, el nombre y el precio de cada carta, 1100) con la
+// balanza en medio (1042), y abajo escribir, su perfil y proponer. Antes el primero iba en grande con los
+// nombres y los demás plegados en filas (1044): había que desplegar para ver
+// qué cartas eran.
+export function cruceTarjetaHtml(p, op) {
+  const nombre = p.display_name || p.username || 'Alguien'
+  const encajan = p.teDa.length + p.leDas.length
+  return `<article class="mc-cruce mc-cruce-t${p.perfecto ? ' perfecto' : ''}" data-cruce="${escapeHtml(p.user_id)}">
+    <header class="mc-cruce-cabeza">
+      ${avatarDe(p, nombre)}
+      <div class="mc-cruce-quien">
+        <a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>
+        <p class="subtext">${p.perfecto ? 'Las dos listas encajan' : p.teDa.length ? 'Tiene lo que buscas' : 'Busca lo que das'}</p>
+        <p class="mc-confianza" data-confianza="${escapeHtml(p.user_id)}"></p>
+      </div>
+      ${p.perfecto ? `<span class="mc-chapa-reciproco">${icons.refreshCw(14)}Cruce perfecto</span>` : ''}
+      <span class="mc-cruce-encaje"><b>${encajan}</b><small>${encajan === 1 ? 'encaja' : 'encajan'}</small></span>
+    </header>
+    ${ladosHtml(p, op)}
+    <div class="mc-cruce-acciones">
+      ${iconosDe(p, nombre)}
+      <button type="button" class="btn-primary mc-cambio-proponer" data-proponer="${escapeHtml(p.user_id)}">${icons.refreshCw(15)}${verboDe(p)}</button>
+    </div>
+  </article>`
+}
+
 // Pliega o despliega una fila (1044). Devuelve si ha quedado abierta.
 export function desplegarCruce(fila, abrir) {
   const boton = fila?.querySelector('[data-desplegar]')

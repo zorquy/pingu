@@ -15305,3 +15305,155 @@ html.mc-set-abierta .mc-hero { display: none; }
 #mcAlbArchivador.mc-alb-sin-iconos :is(.mc-tengo-marca, .mc-insignias, .mc-mas, .mc-quiero-marca, .mc-bolsillo-num, .mc-tengo-version, .mc-alb-cinta) {
   display: none;
 }
+
+/* ── Cruces en tarjetas por persona (1208; el porqué en SCHEMA) ── */
+.mc-cruces-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm);
+  margin: var(--e-lg) 0 var(--e-md);
+}
+
+.mc-cruces-filtros .seg-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 36px;
+  padding: 0 var(--e-lg);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.mc-cruces-filtros .seg-btn[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--acento) 22%, transparent);
+  color: var(--text);
+}
+
+.mc-cruces-rejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 440px), 1fr));
+  gap: var(--e-lg);
+}
+
+.mc-cruce-t {
+  position: relative;
+  align-content: start;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+}
+
+.mc-cruce-t::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, var(--acento), transparent 80%);
+}
+
+.mc-cruce-t.perfecto { border-color: color-mix(in srgb, var(--success) 60%, var(--border)); }
+.mc-cruce-t.perfecto::before { background: linear-gradient(90deg, var(--success), transparent 80%); }
+
+.mc-cruce-t .mc-cruce-cabeza .mini-avatar {
+  width: 44px;
+  height: 44px;
+}
+
+.mc-cruce-t .mc-cruce-quien a { font-family: var(--font-display); font-size: var(--t-lg); }
+.mc-cruce-t .mc-cruce-quien .subtext { display: flex; align-items: center; gap: var(--e-xs); }
+
+.mc-cruce-encaje {
+  display: grid;
+  justify-items: end;
+  line-height: 1;
+}
+
+.mc-cruce-encaje b {
+  color: var(--acento);
+  font-family: var(--font-marca);
+  font-size: var(--t-2xl);
+}
+
+.mc-cruce-encaje small {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+}
+
+/* Los dos lados, uno al lado del otro, y la balanza debajo, a lo ancho. */
+.mc-cruce-t .mc-cruce-lados {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--e-sm);
+  align-items: stretch;
+}
+
+.mc-cruce-t .mc-cruce-balanza {
+  grid-column: 1 / -1;
+  grid-row: 2;
+}
+
+.mc-cruce-t .mc-cruce-lado {
+  align-content: start;
+  padding: var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+}
+
+.mc-cruce-t .mc-cruce-flecha { display: none; }
+
+.mc-cruce-t .mc-cruce-nombres li { grid-template-columns: 40px minmax(0, 1fr) auto; }
+
+.mc-cruce-t .mc-cruce-carta {
+  width: 40px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.2s var(--ease);
+}
+
+.mc-cruce-t .mc-cruce-carta:hover { transform: translateY(-3px); }
+
+.mc-cruce-t .mc-cruce-acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+}
+
+.mc-cruce-balanza-t {
+  flex: 1;
+  min-width: 0;
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+@media (max-width: 599px) {
+  /* Los filtros, una fila que se desliza (la 1199). */
+  .mc-cruces-filtros {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: var(--e-xs);
+    scrollbar-width: none;
+  }
+
+  .mc-cruces-filtros .seg-btn { flex-shrink: 0; }
+  .mc-cruce-t .mc-cruce-lado { padding: var(--e-sm); }
+  .mc-cruce-t .mc-cruce-nombres li { grid-template-columns: 40px minmax(0, 1fr); }
+  .mc-cruce-t .mc-cruce-precio { grid-column: 2; }
+  /* La chapa ya dice que es perfecto. */
+  .mc-cruce-t.perfecto .mc-cruce-quien .subtext { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mc-cruce-t .mc-cruce-carta { transition: none; }
+  .mc-cruce-t .mc-cruce-carta:hover { transform: none; }
+}
+
+/* Las pestañas de Deseos y cambios, en el color de Colección (1208). */
+.mc-deseos-seg .seg-btn[aria-pressed='true'] {
+  background: var(--acento);
+  color: var(--acento-texto);
+}

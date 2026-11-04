@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (453) — PINGU-Claude (1208 — lo común de la portada, y Cruces en tarjetas)
+
+**Hecho**: PINGU vio el «Repaso de la web» con imágenes y dijo «adelante con lo
+recomendado». Primera tanda de cinco:
+- **Lo común**: la banda de sección (`js/banda-seccion.js` + `css/seccion.css`)
+  y la cascada `en-cascada`. En el móvil la banda es una tira con las cifras.
+- **Cruces**: la banda arriba, filtros en chips y una rejilla de tarjetas
+  iguales por persona (`cruceTarjetaHtml`), con los dos lados con foto,
+  nombre y precio, la balanza debajo y el verbo entero. Adiós a las bandas
+  (1042) y a las filas plegadas (1044).
+- La pestaña activa de Deseos y cambios, en el dorado de Colección.
+- **Portada (1207)**: en claro, las tarjetas de «Hoy» de la banda vuelven a
+  ser opacas (contraste 4,0, la 311).
+
+**Ficheros**: `css/seccion.css` y `js/banda-seccion.js` (nuevos),
+`js/mi-coleccion/tablon.js`, `js/mi-coleccion/deseos.js`,
+`css/mi-coleccion.css`, `css/portada.css`, `SCHEMA.md`, `novedades.json`. En
+`pruebas`: `test-tanda-1208-pantalla.mjs` nueva; 1042, 1044 (nota), 1100, 376,
+772 y 798 al día.
+
+**Pruebas**: verdes 1208, 1042, 1044, 1047, 1100, 1166, 376, 772, 777, 940,
+942, 1033, 1207, 299, 305, 312, 313, 1018, 1023, 1040 e imports. Rojos de
+antes: 798 (dos logros de /admin) y 311 (`auth.css`, `comunidad.css`,
+`torneos.css`).
+
+**Pendiente**: las tandas 1209–1212 del repaso, y el precio del Lugia.
+
 ## 2026-11-04 (452) — PINGU-Claude (1207 — la portada «A con banda»)
 
 **Hecho**: PINGU pidió una portada del PC más moderna, más visual y con menos

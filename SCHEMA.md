@@ -53537,3 +53537,46 @@ haya ninguno (la lección de `partidas-fila`, 893: grepa el nombre antes).
 Lo vigila `test-tanda-1207-pantalla.mjs` (las filas, los cuatro, la banda, los
 colores, las animaciones y el móvil); 1188, 1187, 1017, 844, 316 y 782 se
 pusieron al día.
+
+## Tanda 1208 — Lo común de la portada, y Cruces en tarjetas
+
+PINGU vio el «Repaso de la web» (cada página como está y como quedaría, con los
+criterios de la portada 1207) y dijo «adelante con lo recomendado»: lo común y
+Cruces primero, la banda también en el móvil en pequeño, y luego las demás
+tandas en orden (Gente y Guardados; Noticias, Lanzamientos y Novedades;
+Aprender y Retos; Panel, Torneos y los toques).
+
+**Lo común** (`css/seccion.css`, `js/banda-seccion.js`): la banda de arriba de
+una página principal (`bandaSeccionHtml`: ceja, título, una línea, cifras
+grandes —cada una puede ser un botón que lleva a su sitio— y un dibujo a la
+derecha, `abanicoHtml` con tres fotos de carta que flotan) en el color de la
+sección (`--acento`, de `data-seccion`); en el móvil (≤ 600 px) se queda en
+una tira con las cifras: el título y la línea se recortan para el lector,
+porque la burbuja de abajo ya dice dónde estás (1038) y lo que se viene a ver
+tiene que empezar en la primera pantalla (1040). Y la cascada: lo que lleva
+`en-cascada` entra hijo a hijo (60 ms, como mucho ocho), solo con opacidad y
+`transform`; con «menos movimiento», nada. La hoja la inyecta quien pinta
+(`hojaInyectada('css/seccion.css')`) o la página la enlaza. Una página
+principal nueva usa estas dos piezas, no otra banda.
+
+**Cruces** (Colección → Deseos y cambios → Cruces): arriba la banda («N
+personas encajan contigo», lo que buscas y das —que llevan a «La quiero» y a
+«Las que doy»— y los perfectos, con tres cartas de las que te darían); debajo
+los filtros como chips (Todos, Cruces perfectos, Gente que sigo, en una fila
+que se desliza en el móvil); y una REJILLA de tarjetas iguales
+(`cruceTarjetaHtml` en tablon.js: dos columnas en el PC, una en el móvil), por
+orden de cuánto encajan. Cada tarjeta: la cara, el nombre y su confianza, la
+chapa de perfecto y cuántas cartas encajan; los dos lados («Te da», «Le das»)
+con la foto, el nombre y el precio de cada carta (1100) y su total; la balanza
+debajo, a lo ancho (1042); y escribir, su perfil y el verbo entero
+(«Proponer cambio», «Proponer compra», «Ofrecer en venta»). Sustituye a las
+bandas de la 1042 y a las filas plegadas de la 1044 (había que desplegar para
+ver qué cartas eran). La pestaña activa de Deseos y cambios va en el color de
+Colección.
+
+De paso, la portada: las tarjetas de «Hoy» dentro de la banda son medio
+transparentes solo en oscuro; en claro, el gris de su texto se quedaba en 4,0
+de contraste (lo cazó la 311).
+
+Lo vigila `test-tanda-1208-pantalla.mjs`; 1042, 772, 376, 1100 y 798 al día y
+la 1044 queda como nota (sustituida).

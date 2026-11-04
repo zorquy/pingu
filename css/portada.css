@@ -378,7 +378,9 @@
   isolation: isolate;
 }
 
-.banda :is(.hoy-valor, .hoy-ficha:not(.hoy-destaca)) {
+/* Medio transparentes solo en oscuro: en claro el gris de su texto se quedaba
+ * en 4,0 de contraste (la 311). */
+:root[data-theme='dark'] .banda :is(.hoy-valor, .hoy-ficha:not(.hoy-destaca)) {
   background: color-mix(in srgb, var(--white) 72%, transparent);
   -webkit-backdrop-filter: blur(6px);
   backdrop-filter: blur(6px);

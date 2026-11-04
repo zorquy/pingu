@@ -1,0 +1,188 @@
+/* Lo de la portada (1207) en el resto de la web (1208; el porqué en SCHEMA):
+ * la banda de arriba de cada página principal, en el color de su sección
+ * (`--acento`, que pone `data-seccion`), y la cascada de sus bloques. La
+ * inyecta quien pinta (`hojaInyectada('css/seccion.css')`) o la página la
+ * enlaza en su cabecera. */
+
+.banda-s {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--e-xl);
+  min-height: 132px;
+  padding: var(--e-xl);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--acento) 28%, var(--border));
+  border-radius: var(--radius-xl);
+  background:
+    radial-gradient(60% 140% at 92% 0%, color-mix(in srgb, var(--acento) 30%, transparent), transparent 62%),
+    linear-gradient(135deg, color-mix(in srgb, var(--acento) 12%, var(--white)), var(--white) 72%);
+  isolation: isolate;
+}
+
+.banda-s-texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--e-xs);
+  min-width: 0;
+}
+
+.banda-s-ceja {
+  color: var(--acento);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+:root[data-theme='dark'] .banda-s-ceja { color: color-mix(in srgb, var(--acento) 85%, var(--blanco-fijo)); }
+
+.banda-s h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--t-2xl);
+  line-height: 1.1;
+  text-wrap: balance;
+}
+
+.banda-s-lema {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.banda-s-cifras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-sm) var(--e-xl);
+  margin-top: var(--e-sm);
+}
+
+.banda-s-cifra {
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+}
+
+.banda-s-cifra b {
+  font-family: var(--font-marca);
+  font-size: var(--t-2xl);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.banda-s-cifra small {
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+:is(a, button).banda-s-cifra { cursor: pointer; }
+:is(a, button).banda-s-cifra:hover small { color: var(--acento); }
+
+.banda-s-derecha {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--e-md);
+  margin-left: auto;
+}
+
+/* Tres cartas en abanico (las de la banda de la portada, en pequeño). */
+.banda-s-abanico {
+  position: relative;
+  width: 148px;
+  height: 104px;
+}
+
+.banda-s-abanico > * {
+  position: absolute;
+  bottom: 0;
+  width: 64px;
+  aspect-ratio: 245 / 342;
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+  background: var(--ice);
+  box-shadow: var(--shadow-lg);
+  animation: seccion-flota 6s ease-in-out infinite;
+}
+
+.banda-s-abanico img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.banda-s-abanico > :nth-child(1) { left: 0; --giro: -10deg; animation-delay: -1s; }
+.banda-s-abanico > :nth-child(2) { left: 42px; bottom: 10px; z-index: 1; --giro: 0deg; animation-delay: -3s; }
+.banda-s-abanico > :nth-child(3) { left: 84px; --giro: 10deg; animation-delay: -5s; }
+
+@keyframes seccion-flota {
+  0%, 100% { transform: translateY(0) rotate(var(--giro, 0deg)); }
+  50% { transform: translateY(-5px) rotate(var(--giro, 0deg)); }
+}
+
+/* En el móvil la banda es una tira con las cifras: el título ya lo dice la
+ * burbuja de abajo (la 1038) y lo que se viene a ver tiene que empezar en
+ * la primera pantalla (la 1040). */
+@media (max-width: 600px) {
+  .banda-s {
+    min-height: 0;
+    padding: var(--e-md) var(--e-lg);
+  }
+
+  .banda-s h2,
+  .banda-s-lema,
+  .banda-s-ceja {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .banda-s-cifras { margin-top: 0; gap: var(--e-sm) var(--e-lg); }
+  .banda-s-cifra b { font-size: var(--t-xl); }
+  .banda-s-abanico { width: 92px; height: 64px; }
+  .banda-s-abanico > * { width: 40px; }
+  .banda-s-abanico > :nth-child(2) { left: 26px; bottom: 6px; }
+  .banda-s-abanico > :nth-child(3) { left: 52px; }
+}
+
+/* La cascada (1207): lo que lleva `en-cascada` entra con sus hijos uno
+ * detrás de otro, 60 ms cada uno y como mucho ocho. Solo opacidad y
+ * `transform`: nada mueve el dibujo. */
+@keyframes seccion-entra {
+  from { opacity: 0; transform: translateY(12px); }
+}
+
+.banda-s,
+.en-cascada > * {
+  animation: seccion-entra 0.5s var(--ease) backwards;
+}
+
+.en-cascada > :nth-child(2) { animation-delay: 60ms; }
+.en-cascada > :nth-child(3) { animation-delay: 120ms; }
+.en-cascada > :nth-child(4) { animation-delay: 180ms; }
+.en-cascada > :nth-child(5) { animation-delay: 240ms; }
+.en-cascada > :nth-child(6) { animation-delay: 300ms; }
+.en-cascada > :nth-child(7) { animation-delay: 360ms; }
+.en-cascada > :nth-child(n + 8) { animation-delay: 420ms; }
+
+@media (prefers-reduced-motion: reduce) {
+  .banda-s,
+  .en-cascada > *,
+  .banda-s-abanico > * {
+    animation: none;
+  }
+}
