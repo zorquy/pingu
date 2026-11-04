@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (476) — PINGU-Claude (1236b — el Mercado se recarga solo si mezcla despliegues)
+
+**Hecho**: PINGU abrió el Mercado en el iPhone justo después de subir la 1236 y
+vio «Importing binding name 'engancharEnTiendas' is not found» en la rejilla.
+El export existe: es la mezcla de dos despliegues de la 910 (mercado.js nuevo
+con en-tiendas.js viejo de la caché). `error-log.js` ya recargaba una vez en
+ese caso, pero solo con errores SIN atrapar, y el Mercado lo atrapaba y lo
+pintaba. Ahora `recargarSiDesajuste(err)` (error-log.js) hace lo mismo para un
+error atrapado, y lo llaman los tres `import('…mercado.js')` (abrir el
+Mercado, «Ver quién» y la ficha desde Cambios).
+
+**Ficheros**: `js/error-log.js`, `js/mi-coleccion/deseos.js`,
+`js/mi-coleccion.js`, SCHEMA, CLAUDE.md. Prueba: la 1236 de pantalla simula el
+módulo viejo (y sin el arreglo, falla).
+
+**Pendiente**: lo de la 475.
+
 ## 2026-11-04 (475) — PINGU-Claude (1236 — las tiendas en el Mercado)
 
 **Hecho** (PINGU eligió lo recomendado de la propuesta «Tiendas en el

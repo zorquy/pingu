@@ -434,12 +434,17 @@ function abrirMensaje(userId, direccion) {
 // memoria), tus deseos y las dos consultas de los cruces, que comparten el
 // Mercado, las cuentas del selector y las tres listas.
 
+const desajuste = (err) => import('../error-log.js').then((m) => m.recargarSiDesajuste(err), () => false)
+
 export async function abrirMercado() {
   try {
     ctx.mercadoMod = ctx.mercadoMod || (await import('./mercado.js'))
     if (ctx.sesion) await cargarDeseos().catch(() => null)
     await ctx.mercadoMod.abrir(ctx.contexto)
   } catch (err) {
+    // Módulos de dos despliegues (la 910): se recarga sola en vez de pintar
+    // el error del navegador.
+    if (await desajuste(err)) return void ($('mcMercadoRejilla') && ($('mcMercadoRejilla').innerHTML = '<p class="empty-state">Actualizando la página…</p>'))
     if ($('mcMercadoRejilla')) $('mcMercadoRejilla').innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
   }
 }
@@ -1610,6 +1615,7 @@ async function verQuienDa(cardId) {
     ctx.mercadoMod = ctx.mercadoMod || (await import('./mercado.js'))
     await ctx.mercadoMod.abrirFichaDe(ctx.contexto, cardId)
   } catch (err) {
+    if (await desajuste(err)) return
     showToast(err.message, 'error')
   }
 }

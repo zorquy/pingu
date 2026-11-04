@@ -1681,7 +1681,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   puntero de generación), una página que llega de la red durante una
   renovación ya es de la nueva, y lo que se escribe desde una generación
   pasada no se guarda (`test-tanda-982.mjs`). Y si aun así llega una
-  mezcla, `js/error-log.js` recarga una vez (`tocaRecargar`). Un error de
+  mezcla, `js/error-log.js` recarga una vez (`tocaRecargar`). Y un `import()` que se ATRAPA en un `try` pasa
+  el error por `recargarSiDesajuste` (1236b): si no, la pantalla pinta el
+  «Importing binding name…» y la recarga no salta nunca. Un error de
   import en el panel justo después de un push es esto antes que un export
   que falta: `test-imports` lo distingue en un segundo.
 - **Los botones son tres clases, y en pastilla** (tanda 917; pastilla de 44 px desde la 1225, PINGU: «los redondillos ocupan menos»): principal (`.btn-primary`),

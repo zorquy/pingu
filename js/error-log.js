@@ -100,6 +100,19 @@ function apuntar(mensaje, error) {
   logError(mensaje, pila)
 }
 
+// Lo mismo para un error que alguien ATRAPA (1236): el Mercado cargaba su
+// módulo en un `try` y pintaba «Importing binding name … is not found» en la
+// rejilla, así que la recarga de arriba no saltaba nunca y la pantalla se
+// quedaba rota. Quien atrapa un `import()` pasa el error por aquí: si es un
+// desajuste de despliegues, se apunta, se vacía la caché y se recarga (una
+// vez cada cinco minutos) y devuelve true; si no, false y lo pinta él.
+export function recargarSiDesajuste(error) {
+  const mensaje = error?.message || String(error || '')
+  if (!tocaRecargar(mensaje)) return false
+  logError(mensaje, `${error?.stack || ''}\n(atrapado; la página se ha recargado sola)`).finally(vaciarYRecargar)
+  return true
+}
+
 export function initErrorLogging() {
   window.addEventListener('error', (e) => apuntar(e.message, e.error))
   window.addEventListener('unhandledrejection', (e) => apuntar(e.reason?.message || String(e.reason), e.reason))

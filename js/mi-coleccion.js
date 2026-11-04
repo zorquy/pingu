@@ -5587,6 +5587,8 @@ async function abrirFichaDeCambios(cardId, opciones) {
     mercadoMod = mercadoMod || (await import('./mi-coleccion/mercado.js'))
     await mercadoMod.abrirFichaDe(contexto, cardId, opciones)
   } catch (err) {
+    // Dos despliegues mezclados (la 910): recarga sola, sin el error a la vista.
+    if (await import('./error-log.js').then((m) => m.recargarSiDesajuste(err), () => false)) return
     showToast(err.message, 'error')
   }
 }

@@ -54299,3 +54299,18 @@ precio de Cardmarket.
   y `tiendas_agenda` si la prueba no las da, como la base sin la migración.
 - Prueba: `test-tanda-1236-pantalla.mjs` (y la 1069, con los textos nuevos).
 
+## Tanda 1236b — Un desajuste de despliegues ATRAPADO también recarga
+
+Tras subir la 1236, PINGU vio en el Mercado (iPhone) «Importing binding name
+'engancharEnTiendas' is not found». El export existía: la página llevaba
+`mercado.js` del despliegue nuevo y `en-tiendas.js` del viejo (la 910). La
+recarga automática de `error-log.js` (`tocaRecargar`) solo mira `error` y
+`unhandledrejection`, y `abrirMercado` hacía `import()` en un `try` y pintaba
+`err.message` en la rejilla: nunca saltaba. `recargarSiDesajuste(err)` hace lo
+mismo para un error atrapado (apunta, vacía las cachés de la casa y recarga,
+una vez cada cinco minutos) y devuelve si lo ha hecho. Lo llaman los tres
+`import()` del Mercado (`abrirMercado` y `verQuienDa` en deseos.js,
+`abrirFichaDeCambios` en mi-coleccion.js). Un `try` nuevo alrededor de un
+`import()` que pinte el error debería pasar por ahí. Prueba: sección 3b de
+`test-tanda-1236-pantalla.mjs` (el primer en-tiendas.js que llega es el viejo).
+
