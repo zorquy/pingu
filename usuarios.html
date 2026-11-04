@@ -49,6 +49,7 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/comunidad.css" />
+  <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
 <body>
@@ -142,19 +143,23 @@
        completo, y lo primero son los números — que es la única forma de
        demostrar que aquí hay alguien. -->
   <main id="contenido" class="page-content container">
-    <div class="page-header cab-lista" style="padding-top: 8px;">
-      <h1>Gente</h1>
-      <p class="subtext cab-lema">Quién está aquí, qué está haciendo y a quién puedes preguntarle.</p>
-    </div>
-
-    <!-- Los números. Nacen con guiones y no con ceros: un «0 miembros»
-         mientras carga es mentira, y un guion se entiende. -->
-    <div class="com-cifras" id="comCifras">
-      <div class="com-cifra"><b id="cifraMiembros">—</b><span>miembros</span></div>
-      <div class="com-cifra"><b id="cifraMensajes">—</b><span>mensajes<span class="cab-largo"> en el foro</span></span></div>
-      <div class="com-cifra"><b id="cifraGuias">—</b><span>guías<span class="cab-largo"> escritas por vosotros</span></span></div>
-      <div class="com-cifra"><b id="cifraRachas">—</b><span>rachas<span class="cab-largo"> vivas</span> hoy</span></div>
-    </div>
+    <!-- La banda de la sección (1208/1209, lo de la portada): el título, las
+         cuatro cifras (nacen con guion: un «0 miembros» mientras carga es
+         mentira) y, a la derecha, el podio del mes (cargarPodio). -->
+    <section class="banda-s banda-gente">
+      <div class="banda-s-texto">
+        <span class="banda-s-ceja">Comunidad · Gente</span>
+        <h1>La gente de PokeDoc</h1>
+        <p class="banda-s-lema">Quién está aquí, qué está haciendo y con quién puedes cambiar.</p>
+        <div class="banda-s-cifras com-cifras" id="comCifras">
+          <span class="banda-s-cifra com-cifra"><b id="cifraMiembros">—</b><small>miembros</small></span>
+          <span class="banda-s-cifra com-cifra"><b id="cifraMensajes">—</b><small>mensajes</small></span>
+          <span class="banda-s-cifra com-cifra"><b id="cifraGuias">—</b><small>guías<span class="cab-largo"> escritas</span></small></span>
+          <span class="banda-s-cifra com-cifra"><b id="cifraRachas">—</b><small>rachas<span class="cab-largo"> vivas</span></small></span>
+        </div>
+      </div>
+      <div class="banda-s-derecha" id="comPodio"></div>
+    </section>
 
     <!-- Las pestañas pasan a chips con su cuenta, como en /aprender y en
          /torneos: así toda la web habla el mismo idioma. Conservan
@@ -171,7 +176,6 @@
       <div class="com-principal">
         <!-- GENTE es la pestaña de entrada: la página se llama Comunidad. -->
         <div class="tab-panel active" id="ctab-users">
-          <div id="comPodio"></div>
           <!-- El título de la lista queda para el lector (1165): repetía el de la página. -->
           <div class="seccion-cabecera">
             <h2 class="section-title">Gente de PokeDoc</h2>
@@ -180,7 +184,7 @@
             <input type="text" id="userSearchInput" class="search-input" placeholder="Busca a alguien por su nombre" />
           </div>
           <div id="userDirectoryEmpty"></div>
-          <div class="user-directory-grid" id="userDirectoryGrid"></div>
+          <div class="user-directory-grid en-cascada" id="userDirectoryGrid"></div>
           <div id="userDirectoryPie"></div>
         </div>
 

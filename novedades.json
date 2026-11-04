@@ -36,6 +36,18 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "Guardados, en portadas: lo que te guardaste se ve como en Aprender, con su foto, por dónde vas y un marcador para quitarlo (con Deshacer). Arriba, cuántas te quedan por leer, a medias y leídas, y chips para ver solo unas u otras.",
+      "enlace": "/guardados"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Gente, más visual: cada persona es una tarjeta con su color, su cara, lo que hace aquí y su vitrina de cartas, y arriba los números de la comunidad con el podio del mes sobre sus peanas.",
+      "enlace": "/usuarios"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "Cruces, más claro: cada persona que encaja contigo es una tarjeta con las cartas que te da y las que le das, con su foto y su precio, lo que vale cada lado y el botón para proponer. Y arriba, de un vistazo, cuántas personas encajan y cuántas cartas buscas y das.",
       "enlace": "/mi-coleccion?ver=cambios"
     },

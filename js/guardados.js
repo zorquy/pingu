@@ -1,23 +1,34 @@
 // Guardados (tanda 847): lo que te guardaste para luego, separado en «Por
-// leer» y «Ya leídas», lo último que guardaste primero, con la misma fila que
-// la portada y /aprender (js/guia-fila.js). PINGU: «¿te parece algo útil? Y si
+// leer» y «Ya leídas», lo último que guardaste primero. Desde la 1209, en
+// portadas (la tarjeta de /aprender, js/guia-tarjeta.js) con la banda de la
+// sección arriba y chips para filtrar, como lo demás de la web. PINGU: «¿te parece algo útil? Y si
 // no… hay que mejorarla». Útil sí —está en la burbuja de Aprender—, pero era
 // una lista de títulos en cualquier orden que no decía si ya la habías leído.
 import { supabase } from './supabase.js'
 import { escapeHtml, requireAuth } from './app.js'
 import { icons } from './icons.js'
-import { filaDeGuia, estadoDeGuia, hoja } from './guia-fila.js'
+import { estadoDeGuia } from './guia-fila.js'
+import { tarjetaDeGuia } from './guia-tarjeta.js'
+import { abanicoHtml } from './banda-seccion.js'
 import { showToast } from './toast.js'
 import { servidoPorGuia, frasePersonas } from './guias-servido.js'
 
 const COLUMNAS = 'id, slug, title, description, kind, level, estimated_mins, blocks, cover_image, category_id, categories(name, slug, emoji)'
 
 const vacioHtml = () => `
-  <div class="empty-state">
+  <div class="empty-state gd-vacio">
+    <img src="/assets/images/mascota.webp" class="gd-vacio-mascota" alt="" width="523" height="791" loading="lazy" decoding="async" />
     <p>Todavía no has guardado nada. Toca ${icons.bookmark(14)} <b>Guardar</b> en una guía o una noticia y la tendrás aquí para luego.</p>
     <div id="gdParaEmpezar"></div>
     <a class="btn-secondary" href="/aprender">Ver todas las guías</a>
   </div>`
+
+// El marcador encima de la portada: fuera del enlace (un botón dentro de un
+// <a> no existe), en la esquina del arte.
+const marcadorHtml = (g, { quitar }) =>
+  quitar
+    ? `<button type="button" class="gd-marca gd-quitar" data-quitar="${escapeHtml(g.id)}" aria-label="Quitar «${escapeHtml(g.title)}» de guardados" title="Quitar de guardados">${icons.bookmark(18, true)}</button>`
+    : `<button type="button" class="gd-marca gd-guardar" data-guardar="${escapeHtml(g.id)}" aria-pressed="false" aria-label="Guardar «${escapeHtml(g.title)}»" title="Guardar">${icons.bookmark(18)}</button>`
 
 // VACÍO, CON SALIDA (1153, D4). Era un icono, una frase y «Ver guías». Ahora,
 // tres guías para empezar —las que a más gente le han servido de las últimas
@@ -36,13 +47,12 @@ async function pintarParaEmpezar() {
   if (error || !data?.length) return
   const servido = (await servidoPorGuia(data.map((g) => g.id))) || {}
   const tres = [...data].sort((a, b) => (servido[b.id] || 0) - (servido[a.id] || 0)).slice(0, 3)
-  await hoja
   caja.innerHTML = `<h2 class="gd-empezar-titulo">Para empezar</h2>
-    <ul class="gd-lista gd-empezar">${tres.map((g) => `
-      <li class="gd-item">
-        ${filaDeGuia(g)}
-        <button type="button" class="gd-guardar" data-guardar="${escapeHtml(g.id)}" aria-pressed="false" aria-label="Guardar «${escapeHtml(g.title)}»" title="${servido[g.id] ? escapeHtml(frasePersonas(servido[g.id])) : 'Guardar'}">${icons.bookmark(18)}</button>
-      </li>`).join('')}</ul>`
+    <div class="guia-rejilla gd-rejilla gd-empezar en-cascada">${tres.map((g) => `
+      <div class="gd-item" title="${servido[g.id] ? escapeHtml(frasePersonas(servido[g.id])) : ''}">
+        ${tarjetaDeGuia(g)}
+        ${marcadorHtml(g, { quitar: false })}
+      </div>`).join('')}</div>`
 }
 
 // Lee la lista de la base cada vez que escribe: si has guardado algo en otra
@@ -55,17 +65,43 @@ async function escribir(session, cambiar) {
   if (e2) throw e2
 }
 
+// Cada portada lleva lo que hace falta para filtrar sin volver a pedir nada.
 function itemHtml(g, progreso) {
+  const { leida, pct } = estadoDeGuia(g, progreso)
+  const estado = leida ? 'leida' : pct > 0 ? 'medias' : 'leer'
   return `
-  <li class="gd-item" data-id="${escapeHtml(g.id)}">
-    ${filaDeGuia(g, { progreso })}
-    <button type="button" class="gd-quitar" data-quitar="${escapeHtml(g.id)}" aria-label="Quitar «${escapeHtml(g.title)}» de guardados" title="Quitar de guardados">${icons.xCircle(20)}</button>
-  </li>`
+  <div class="gd-item${leida ? ' gd-item-leida' : ''}" data-id="${escapeHtml(g.id)}" data-estado="${estado}" data-kind="${g.kind === 'news' ? 'news' : 'guide'}">
+    ${tarjetaDeGuia(g, { progreso })}
+    ${marcadorHtml(g, { quitar: true })}
+  </div>`
+}
+
+// Los chips de arriba de la rejilla: por estado y, si hay de los dos, por tipo.
+const FILTROS = {
+  todas: () => true,
+  leer: (el) => el.dataset.estado !== 'leida',
+  medias: (el) => el.dataset.estado === 'medias',
+  leidas: (el) => el.dataset.estado === 'leida',
+  guias: (el) => el.dataset.kind === 'guide',
+  noticias: (el) => el.dataset.kind === 'news',
+}
+let filtro = 'todas'
+
+function aplicarFiltro(list) {
+  const ok = FILTROS[filtro] || FILTROS.todas
+  for (const el of list.querySelectorAll('.gd-rejilla-tuyas > .gd-item')) el.hidden = !ok(el)
+  for (const b of list.querySelectorAll('[data-gd-filtro]')) b.setAttribute('aria-pressed', String(b.dataset.gdFiltro === filtro))
+}
+
+function ponerCifras(porLeer, medias, leidas) {
+  const poner = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = String(n) }
+  poner('gdNLeer', porLeer)
+  poner('gdNMedias', medias)
+  poner('gdNLeidas', leidas)
 }
 
 async function loadSaved(session) {
   const list = document.getElementById('savedList')
-  const resumen = document.getElementById('gdResumen')
 
   const { data: profile, error } = await supabase.from('user_profiles').select('saved_guides').eq('id', session.user.id).single()
   if (error) {
@@ -75,6 +111,7 @@ async function loadSaved(session) {
   // Se guardan al final de la lista: dándole la vuelta, lo último primero.
   const ids = [...(profile?.saved_guides || [])].reverse()
   if (!ids.length) {
+    ponerCifras(0, 0, 0)
     list.innerHTML = vacioHtml()
     void pintarParaEmpezar().catch(() => {})
     return
@@ -93,28 +130,40 @@ async function loadSaved(session) {
   const porId = new Map((guias || []).map((g) => [g.id, g]))
   const todas = ids.map((id) => porId.get(id)).filter(Boolean)
   if (!todas.length) {
+    ponerCifras(0, 0, 0)
     list.innerHTML = vacioHtml()
     void pintarParaEmpezar().catch(() => {})
     return
   }
+  // Lo que queda por leer primero; dentro, lo último que guardaste primero.
   const porLeer = todas.filter((g) => !estadoDeGuia(g, progreso).leida)
   const leidas = todas.filter((g) => estadoDeGuia(g, progreso).leida)
+  const medias = porLeer.filter((g) => estadoDeGuia(g, progreso).pct > 0)
+  const noticias = todas.filter((g) => g.kind === 'news').length
+  const chip = (clave, texto, n) => (n ? `<button type="button" class="seg-btn gd-chip" data-gd-filtro="${clave}" aria-pressed="false">${texto} <span class="gd-n">${n}</span></button>` : '')
+  const chips = [
+    chip('todas', 'Todas', todas.length),
+    porLeer.length && leidas.length ? chip('leer', 'Por leer', porLeer.length) : '',
+    medias.length ? chip('medias', 'A medias', medias.length) : '',
+    porLeer.length && leidas.length ? chip('leidas', 'Leídas', leidas.length) : '',
+    noticias && noticias < todas.length ? chip('guias', 'Guías', todas.length - noticias) + chip('noticias', 'Noticias', noticias) : '',
+  ].join('')
+  // Si el filtro de antes ya no tiene nada (se han quitado las leídas), a «Todas».
+  if (!chips.includes(`data-gd-filtro="${filtro}"`)) filtro = 'todas'
 
-  await hoja
-  const bloque = (titulo, guias, extra = '', clase = '') =>
-    guias.length
-      ? `<section class="gd-bloque${clase}">
-          <div class="gd-cab"><h2>${titulo} <span class="gd-n">${guias.length}</span></h2>${extra}</div>
-          <ul class="gd-lista">${guias.map((g) => itemHtml(g, progreso)).join('')}</ul>
-        </section>`
-      : ''
   list.innerHTML = `
-    ${bloque('Por leer', porLeer)}
+    <div class="gd-mandos">
+      <div class="gd-chips" role="group" aria-label="Filtrar">${chips}</div>
+      ${leidas.length > 1 ? '<button type="button" class="link-btn gd-limpiar" data-limpiar>Quitar <span class="cab-largo">las </span>leídas</button>' : ''}
+    </div>
     ${porLeer.length ? '' : '<p class="gd-todo-leido">' + icons.checkCircle(16) + ' Te has leído todo lo que guardaste. <a href="/aprender">Busca algo nuevo</a>.</p>'}
-    ${bloque('Ya leídas', leidas, leidas.length > 1 ? '<button type="button" class="link-btn gd-limpiar" data-limpiar>Quitar las leídas</button>' : '', ' gd-leidas')}`
-  resumen.textContent = porLeer.length
-    ? `${porLeer.length} por leer${leidas.length ? ` · ${leidas.length} ${leidas.length === 1 ? 'leída' : 'leídas'}` : ''}`
-    : 'Todo leído'
+    <div class="guia-rejilla gd-rejilla gd-rejilla-tuyas en-cascada">${[...porLeer, ...leidas].map((g) => itemHtml(g, progreso)).join('')}</div>`
+  aplicarFiltro(list)
+  ponerCifras(porLeer.length, medias.length, leidas.length)
+  // Las tres primeras portadas con foto, en abanico a la derecha de la banda.
+  const fotos = todas.filter((g) => g.cover_image).map((g) => `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" />`)
+  const abanico = document.getElementById('gdAbanico')
+  if (abanico) abanico.innerHTML = abanicoHtml(fotos)
 
   ultimasLeidas = leidas
 }
@@ -126,6 +175,12 @@ let ultimasLeidas = []
 // lista y un segundo oyente lo haría todo dos veces.
 function engancharAcciones(list, session) {
   list.addEventListener('click', async (e) => {
+    const chip = e.target.closest('[data-gd-filtro]')
+    if (chip) {
+      filtro = chip.dataset.gdFiltro
+      aplicarFiltro(list)
+      return
+    }
     // Guardar una de «Para empezar»: se marca ya; si la base dice que no, se
     // desmarca con su aviso. Tocar otra vez la quita (mismo camino).
     const guardar = e.target.closest('[data-guardar]')

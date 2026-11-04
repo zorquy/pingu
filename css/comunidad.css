@@ -14,63 +14,9 @@
    —que es el dato— iba pequeño y pegado a la esquina. Son CUATRO CARAS
    DE LO MISMO, así que se leen mejor como un bloque con separadores:
    ocupa la mitad de alto y el número manda. */
-.com-cifras {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  margin: 16px 0 24px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
 
-@media (min-width: 760px) {
-  .com-cifras {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
-}
-
-.com-cifra {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 16px 12px;
-  min-width: 0;
-  /* Las rayas de dentro. En dos columnas la de la derecha no lleva
-     vertical y la fila de arriba sí lleva horizontal; con `overflow:
-     hidden` en el padre, los bordes de los extremos quedan recortados y
-     no hace falta un `:last-child` por cada caso. */
-  border-right: 1px solid var(--border);
-  border-bottom: 1px solid var(--border);
-}
-
-@media (min-width: 760px) {
-  .com-cifra {
-    border-bottom: 0;
-  }
-}
-
-.com-cifra b {
-  display: block;
-  font-family: var(--font-marca);
-  font-size: var(--t-2xl);
-  font-weight: 600;
-  line-height: 1.1;
-}
-
-.com-cifra > span {
-  display: block;
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-  line-height: 1.35;
-  text-align: center;
-}
 /* 1022 (D11): el trozo largo («en el foro», «vivas») es un span DENTRO del
    span, y `display: block` lo partía en otra línea: «rachas / vivas / hoy». */
-.com-cifra > span > span {
-  display: inline;
-}
 
 /* ── Las pestañas, como chips ──
  * Mismo idioma que /aprender y /torneos. Conservan `data-ctab`, así que
@@ -196,198 +142,24 @@
 }
 
 /* ── El podio del mes ── */
-.com-podio {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-xl);
-  padding: 16px 20px;
-  margin-bottom: 24px;
-  color: var(--blanco-fijo);
-  background: linear-gradient(120deg, var(--navy-dark), var(--navy) 55%, #3d8ab8);
-  box-shadow: var(--shadow-md);
-}
 
 /* La trama de puntos, como en la cabecera de un torneo y en el héroe del
    reto: sin ella el degradado se ve plano. */
-.com-podio::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background-image: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.14) 50%, transparent 65%);
-  opacity: 0.55;
-  pointer-events: none;
-}
-
-.com-podio > * {
-  position: relative;
-  z-index: 1;
-}
-
-.com-podio-rotulo {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--t-2xs);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  font-weight: 700;
-  color: rgba(255, 255, 255, 0.82);
-}
-
-.com-podio h2 {
-  margin: 4px 0 12px;
-  font-size: var(--t-xl);
-}
-
-.com-podio-tres {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.com-puesto {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  padding: 16px 12px;
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  color: var(--blanco-fijo);
-  text-align: center;
-  min-width: 0;
-  transition: background 0.15s var(--ease);
-}
-
-.com-puesto:hover {
-  background: rgba(255, 255, 255, 0.18);
-  color: var(--blanco-fijo);
-}
 
 /* El primero se distingue, pero sin marco dorado: un tinte cálido y el
    nombre de la medalla. Tres marcos de color en fila es justo lo que la
    tanda 299 quitó del resto de la web. */
-.com-puesto-1 {
-  background: rgba(255, 209, 102, 0.16);
-  border-color: rgba(255, 209, 102, 0.45);
-}
-
-.com-puesto-medalla {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: var(--t-2xs);
-  font-weight: 800;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.com-puesto-1 .com-puesto-medalla {
-  color: #ffd166;
-}
-
-.com-puesto-cara {
-  display: grid;
-  place-items: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.35);
-  font-weight: 700;
-  font-size: var(--t-xl);
-  background-size: cover;
-  background-position: center;
-}
-
-.com-puesto-nombre {
-  font-weight: 700;
-  font-size: var(--t-md);
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.com-puesto-xp {
-  color: rgba(255, 255, 255, 0.82);
-  font-size: var(--t-xs);
-}
 
 /* Cada puesto es una FILA en todas las pantallas (1025, D12 de «PokeDoc como
    app»: en el PC el podio medía 268 px por tres avatares): cara · nombre y
    XP · medalla. En rejilla (1013, L3) el nombre tiene su fila y no compite
    con la XP ni con la medalla, que lo dejaban en «Br…». */
-.com-puesto {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas: 'cara nombre medalla' 'cara xp medalla';
-  align-items: center;
-  text-align: left;
-  column-gap: 12px;
-  row-gap: 2px;
-  padding: 12px;
-}
-
-.com-puesto-nombre { grid-area: nombre; }
-.com-puesto-xp { grid-area: xp; }
-
-.com-puesto-cara {
-  grid-area: cara;
-  width: 40px;
-  height: 40px;
-  font-size: var(--t-lg);
-}
-
-.com-puesto-medalla {
-  grid-area: medalla;
-}
 
 /* En el móvil, los tres en una fila (1040): cara, nombre y «+N XP» uno
    debajo de otro; «este mes» ya lo dice el rótulo. */
 @media (max-width: 599px) {
-  .com-podio {
-    padding: var(--e-md);
-  }
-  .com-podio h2 {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
-  }
-  .com-podio-tres {
-    margin-top: var(--e-sm);
-    gap: var(--e-sm);
-  }
-  .com-puesto {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: var(--e-xs);
-    padding: var(--e-sm) var(--e-xs);
-    text-align: center;
-  }
-  .com-puesto-cara {
-    width: 32px;
-    height: 32px;
-    font-size: var(--t-md);
-  }
   /* El nombre entero, en dos líneas si hace falta (1013, L3: «Br…» no). */
-  .com-puesto-nombre {
-    font-size: var(--t-sm);
-    white-space: normal;
-    overflow-wrap: anywhere;
-    line-height: 1.2;
-  }
-  .com-puesto-xp {
-    font-size: var(--t-2xs);
-  }
-  .com-largo {
-    display: none;
-  }
+
   .page-header.cab-lista {
     position: absolute;
     width: 1px;
@@ -842,24 +614,8 @@
 
 /* ── 893: las cuatro cifras en UNA línea en el móvil (SCHEMA 893) ── */
 @media (max-width: 900px) {
-  .com-cifras {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin: 0 0 var(--e-md);
-  }
-  .com-cifra {
-    padding: var(--e-sm) var(--e-xs);
-    border-bottom: 0;
-  }
-  .com-cifra b { font-size: var(--t-lg); }
-  .com-cifra > span { font-size: var(--t-2xs); }
   /* `display: block` del span de arriba le gana al `cab-largo` común. */
-  .com-cifra .cab-largo { display: none; }
-}
 
-/* ── 896: en el móvil la gente va primero y las cifras al final (I5) ── */
-@media (max-width: 900px) {
-  .page-content:has(> .com-cifras) { display: flex; flex-direction: column; }
-  .com-cifras { order: 10; margin: var(--e-lg) 0 0; }
 }
 
 /* ── 1165 (M1): la gente primero ──
@@ -868,68 +624,109 @@
    es una tira de una línea que se abre: la primera persona sale a ~300 px en
    vez de a 900. En el móvil las cifras siguen al final (896). */
 @media (min-width: 901px) {
-  .com-cifras {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--e-xs) var(--e-lg);
-    margin: 0 0 var(--e-lg);
-    background: none;
-    border: 0;
-    border-radius: 0;
-  }
-  .com-cifra {
-    flex-direction: row;
-    align-items: baseline;
-    gap: var(--e-xs);
-    padding: 0;
-    border: 0;
-  }
-  .com-cifra b { font-size: var(--t-lg); }
-  .com-cifra > span { font-size: var(--t-sm); text-align: left; }
   .com-chips { align-items: center; }
   .com-chips .search-input-wrap { margin: 0 0 0 auto; flex: 0 1 320px; min-width: 200px; }
   .com-chips .search-input-wrap[hidden] { display: none; }
 }
-.com-top { margin-bottom: var(--e-lg); }
-.com-top-tira {
-  display: flex;
-  align-items: center;
+
+
+/* ── 1209: la tarjeta de persona (de «Lo de la portada en el resto de la
+   web»; el porqué en SCHEMA) ── */
+.user-directory-grid {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+  gap: var(--e-md);
+}
+
+.com-persona {
+  position: relative;
+  flex-direction: column;
+  align-items: stretch;
   gap: var(--e-sm);
-  min-height: 44px;
-  padding: var(--e-sm) var(--e-md);
-  border-radius: var(--radius-lg);
-  background: linear-gradient(120deg, var(--navy-dark), var(--navy) 55%, #3d8ab8);
-  color: var(--blanco-fijo);
-  font-size: var(--t-sm);
-  font-weight: 600;
-  cursor: pointer;
-  list-style: none;
+  padding: 0 var(--e-md) var(--e-md);
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+  transition: border-color 0.15s var(--ease), transform 0.2s var(--ease), box-shadow 0.2s var(--ease);
 }
-.com-top-tira::-webkit-details-marker { display: none; }
-.com-top-icono { display: inline-flex; color: rgba(255, 255, 255, 0.85); }
-.com-top-mes { white-space: nowrap; }
-.com-top-mes-corto { display: none; }
-.com-top-caras { display: flex; flex-shrink: 0; }
-.com-top-cara {
-  width: 24px;
-  height: 24px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  font-size: var(--t-2xs);
-  font-weight: 700;
-  color: var(--blanco-fijo);
+
+.com-persona:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+/* La franja de arriba: su foto, difuminada, o su color. */
+.com-persona-franja {
+  height: 52px;
+  margin: 0 calc(var(--e-md) * -1);
   background-size: cover;
-  border: 2px solid rgba(255, 255, 255, 0.6);
-  margin-left: -4px;
+  background-position: center;
+  filter: saturate(1.2);
+  opacity: 0.85;
 }
-.com-top-cara:first-child { margin-left: 0; }
-.com-top-nombres { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.com-top-ver { margin-left: auto; white-space: nowrap; font-weight: 700; }
-.com-top[open] .com-top-tira { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
-.com-top[open] .com-podio { margin: 0; border-radius: 0 0 var(--radius-xl) var(--radius-xl); }
-.com-top[open] .com-top-ver::after { content: ' (cerrar)'; font-weight: 400; }
-@media (max-width: 900px) {
-  .com-top-mes-corto { display: inline; }
-  .com-top-nombres { display: none; }
+
+/* `position` para pintarse encima de la franja, que con su `opacity` va a la
+   capa de lo posicionado y la tapaba. */
+.com-persona-cara {
+  position: relative;
+  z-index: 1;
+  width: 56px;
+  height: 56px;
+  margin-top: -40px;
+  border: 3px solid var(--white);
+  box-shadow: var(--shadow-sm);
+}
+
+.com-persona-racha {
+  position: absolute;
+  top: var(--e-sm);
+  right: var(--e-sm);
+}
+
+.com-persona-vitrina img {
+  width: 40px;
+  height: 56px;
+  box-shadow: var(--shadow-xs);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .com-persona { transition: none; }
+  .com-persona:hover { transform: none; }
+}
+
+/* La tarjeta es una columna: sin el `wrap` de la 789, la vitrina se iba a
+   una segunda columna a la derecha. */
+.com-persona { flex-wrap: nowrap; justify-content: flex-start; }
+.com-persona-vitrina { flex-basis: auto; }
+.com-persona-cuerpo { flex: 0 0 auto; align-content: flex-start; }
+#communityTabs { margin-bottom: var(--e-md); }
+#userDirectoryGrid { margin-top: 0; }
+
+/* En el móvil, la banda es UNA tira: las cuatro cifras en una línea con el
+   podio al lado (seccion.css), y nada de huecos hasta la primera persona. */
+@media (max-width: 600px) {
+  .banda-gente { flex-wrap: wrap; gap: var(--e-sm); margin-bottom: var(--e-md); padding-block: var(--e-sm); }
+  .banda-gente .banda-s-cifras { flex-wrap: nowrap; gap: var(--e-sm) var(--e-md); }
+  .banda-gente .banda-s-cifra b { font-size: var(--t-lg); }
+  .banda-gente .banda-s-cifra small { letter-spacing: 0; text-transform: none; }
+  #communityTabs { margin-bottom: var(--e-sm); }
+  #ctab-users .search-input-wrap { margin: 0 0 var(--e-sm); }
+
+  .user-directory-grid { grid-template-columns: minmax(0, 1fr); }
+
+  .com-persona {
+    display: grid;
+    grid-template-columns: 56px minmax(0, 1fr);
+    padding: var(--e-md);
+    gap: var(--e-xs) var(--e-md);
+  }
+
+  .com-persona-franja {
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 6px;
+    height: auto;
+    margin: 0;
+  }
+
+  .com-persona-cara { margin-top: 0; grid-row: 1 / span 2; }
+  .com-persona-vitrina { grid-column: 2; }
 }

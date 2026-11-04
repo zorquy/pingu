@@ -101,7 +101,7 @@ export function sucesoHtml(s, { dibujo = false } = {}) {
   const cuando = `<small class="suc-cuando">· ${escapeHtml(haceCuanto(s.fecha))}</small>`
   const dib = dibujo ? dibujoHtml(s, t) : ''
   if (t.casa) {
-    return `<li class="suc suc-de-la-casa"><span class="suc-cara suc-cara-casa" aria-hidden="true">${ic(t.icono, 16)}</span><p><span class="suc-chapa">${escapeHtml(t.casa)}</span> ${t.texto(s.datos)} ${cuando}</p>${dib}</li>`
+    return `<li class="suc suc-de-la-casa"><span class="suc-cara suc-cara-casa" aria-hidden="true">${ic(t.icono, 16)}</span><p><span class="suc-chapa">${escapeHtml(t.casa)}</span> ${t.texto(s.datos)} ${cuando}</p></li>`
   }
   return `<li class="suc"><span class="suc-cara-caja">${caraHtml(s.perfil)}<span class="suc-ic tono-${t.tono}" aria-hidden="true">${ic(t.icono, 10)}</span></span><p>${quienHtml(s.perfil)} ${t.texto(s.datos)} ${cuando}</p>${dib}</li>`
 }
@@ -166,7 +166,7 @@ export async function montarUltimo(caja, cuantos = 5) {
     const [{ actividad, nuevos, fallos }] = await Promise.all([cargarSucesos(12), hoja])
     const s = sucesosDeLaComunidad(actividad, nuevos).slice(0, cuantos)
     caja.innerHTML = s.length
-      ? listaHtml(s)
+      ? listaHtml(s, { dibujo: true })
       : `<p class="subtext" style="margin:0">${fallos.length ? 'No hemos podido cargar la actividad.' : 'Todavía no ha pasado nada por aquí.'}</p>`
   } catch {
     caja.innerHTML = '<p class="subtext" style="margin:0">No hemos podido cargar la actividad.</p>'

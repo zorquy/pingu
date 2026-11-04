@@ -1,24 +1,5 @@
 /* ── Guardados (tanda 847) ──
-   Hoja propia: solo la baja /guardados. La fila es la de css/guia-fila.css. */
-.gd-caja { max-width: 760px; }
-
-.gd-bloque + .gd-bloque { margin-top: var(--e-xl); }
-
-.gd-cab {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--e-md);
-  margin-bottom: var(--e-sm);
-}
-
-.gd-cab h2 {
-  display: flex;
-  align-items: center;
-  gap: var(--e-sm);
-  font-size: var(--t-lg);
-}
-
+   Hoja propia: solo la baja /guardados. La portada es la de components.css. */
 .gd-n {
   background: var(--ice);
   color: var(--navy);
@@ -27,35 +8,6 @@
   font-size: var(--t-xs);
   font-weight: 700;
 }
-
-.gd-lista {
-  display: grid;
-  gap: var(--e-sm);
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-/* La fila y su «quitar» en una caja: el botón no puede ir dentro del enlace. */
-.gd-item {
-  display: flex;
-  align-items: center;
-  gap: var(--e-xs);
-}
-
-.gd-item > .guia-fila { flex: 1; min-width: 0; }
-
-.gd-quitar {
-  flex: none;
-  display: inline-grid;
-  place-items: center;
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: var(--radius-pill);
-  color: var(--text-mid);
-}
-
-.gd-quitar:hover { color: var(--danger); background: var(--danger-bg); }
 
 .gd-quitada {
   justify-content: space-between;
@@ -68,9 +20,6 @@
 }
 
 .gd-quitada .link-btn { min-height: 44px; }
-
-/* Lo ya leído, un paso por detrás. */
-.gd-leidas .guia-fila { background: transparent; }
 
 .gd-todo-leido {
   display: flex;
@@ -91,14 +40,90 @@
 /* VACÍO, CON SALIDA (1153, D4; SCHEMA 1153): tres para empezar, con su marcador. */
 .empty-state #gdParaEmpezar { text-align: left; margin: var(--e-lg) 0; }
 .gd-empezar-titulo { font-size: var(--t-md); margin: 0 0 var(--e-sm); color: var(--text-mid); }
-.gd-guardar {
-  flex: none;
-  display: inline-grid;
-  place-items: center;
-  min-width: 44px;
-  min-height: 44px;
-  border-radius: var(--radius-pill);
-  background: var(--ice);
-  color: var(--navy);
+
+/* ── 1209: Guardados en portadas (lo de la portada en el resto de la web;
+   el porqué en SCHEMA). La banda es la de css/seccion.css; aquí, los chips,
+   la rejilla y el marcador encima de cada portada. ── */
+.gd-caja { max-width: none; margin-top: var(--e-lg); }
+
+.gd-mandos {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  margin-bottom: var(--e-md);
 }
-.gd-guardar[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+
+.gd-chips {
+  display: flex;
+  gap: var(--e-sm);
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.gd-chip { white-space: nowrap; }
+.gd-chip[aria-pressed='true'] { background: var(--acento); color: var(--acento-texto); }
+.gd-chip[aria-pressed='true'] .gd-n { background: color-mix(in srgb, var(--blanco-fijo) 30%, transparent); color: inherit; }
+
+.gd-rejilla { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+
+.gd-rejilla > .gd-item {
+  position: relative;
+  display: block;
+}
+
+.gd-rejilla > .gd-item > .guia-tarjeta { height: 100%; }
+
+/* Los minutos se apartan del marcador, que va en la misma esquina. */
+.gd-rejilla .guia-arte-info { padding-right: 56px; }
+
+/* Lo ya leído, un paso por detrás. */
+.gd-item-leida > .guia-tarjeta { opacity: 0.78; }
+.gd-item-leida:hover > .guia-tarjeta { opacity: 1; }
+
+.gd-marca {
+  position: absolute;
+  top: var(--e-sm);
+  right: var(--e-sm);
+  z-index: 2;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--white) 88%, transparent);
+  color: var(--acento);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(4px);
+}
+
+.gd-marca.gd-quitar:hover { color: var(--danger); background: var(--white); }
+.gd-marca.gd-guardar[aria-pressed='true'] { background: var(--acento); color: var(--acento-texto); }
+
+.gd-rejilla > .gd-quitada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-sm);
+  min-height: 240px;
+  padding: var(--e-lg);
+  text-align: center;
+}
+
+.gd-esqueleto { height: 280px; border-radius: var(--radius-xl); }
+
+/* El vacío: la mascota encima y las tres portadas para empezar. */
+.gd-vacio { display: flex; flex-direction: column; align-items: center; }
+.gd-vacio::before { content: none; }
+.gd-vacio .guia-tarjeta { color: var(--text); text-align: left; }
+.gd-vacio-mascota { width: 96px; height: auto; aspect-ratio: 523 / 791; }
+.gd-vacio #gdParaEmpezar { align-self: stretch; }
+
+@media (max-width: 600px) {
+  .gd-caja { margin-top: var(--e-md); }
+  .gd-limpiar { flex-shrink: 0; }
+  .gd-rejilla { grid-template-columns: minmax(0, 1fr); }
+  .gd-vacio-mascota { width: 72px; }
+}

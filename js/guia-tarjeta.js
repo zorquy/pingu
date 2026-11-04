@@ -15,6 +15,7 @@ import { escapeHtml, arteDe } from './app.js'
 import { guideHasCourse } from './guia-contenido.js'
 import { energiaDeTexto } from './energia-de-texto.js'
 import { contentIconHtml } from './content-icon.js'
+import { rutaDeArticulo } from './articulos.js'
 
 export const NIVELES = { beginner: 'Principiante', intermediate: 'Intermedio', advanced: 'Avanzado' }
 export const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Platino' }
@@ -67,7 +68,7 @@ export function tarjetaDeGuia(g, { progreso = null, categoria = '', tema = null,
   const energia = g.cover_image ? null : energiaDeTexto(`${g.title || ''} ${g.description || ''}`)
   return `
   <article class="guia-tarjeta" data-guide-id="${escapeHtml(g.id || '')}" data-author-id="${escapeHtml(g.author_id || '')}">
-    <a class="guia-tarjeta-enlace" href="/guia/${encodeURIComponent(g.slug)}">
+    <a class="guia-tarjeta-enlace" href="${rutaDeArticulo(g.kind, g.slug)}">
       <span class="guia-arte arte-${arte}${energia ? ' con-energia' : ''}"${energia ? ` style="--energia:url('/assets/energias/${energia}.svg')"` : ''}>
         ${g.cover_image ? `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" onerror="this.style.display='none'" />` : ''}
         <span class="guia-arte-info">
@@ -79,6 +80,7 @@ export function tarjetaDeGuia(g, { progreso = null, categoria = '', tema = null,
         <strong class="guia-titulo">${escapeHtml(g.title)}</strong>
         ${g.description ? `<span class="guia-desc">${escapeHtml(g.description)}</span>` : ''}
         <span class="guia-etiquetas">
+          ${g.kind === 'news' ? '<span class="guia-etiqueta">Noticia</span>' : ''}
           ${nivel ? `<span class="guia-etiqueta">${nivel}</span>` : ''}
           ${guideHasCourse(g) ? '<span class="guia-etiqueta">Con curso</span>' : ''}
           ${rareza ? `<span class="guia-etiqueta guia-rareza rareza-${escapeHtml(rareza)}">${RAREZAS[rareza]}</span>` : ''}

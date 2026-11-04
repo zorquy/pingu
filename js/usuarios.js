@@ -34,6 +34,7 @@ function userCardHtml(p) {
   if (p.mensajes > 0) hizo.push(`${p.mensajes} ${p.mensajes === 1 ? 'mensaje' : 'mensajes'}`)
   return `
     <div class="com-persona" data-user-id="${escapeHtml(p.id || '')}">
+      <span class="com-persona-franja" style="${avatarStyle(p)}" aria-hidden="true"></span>
       <a class="com-persona-cara" href="${profileUrl(p)}" style="${avatarStyle(p)}" aria-label="${escapeHtml(name)}" data-en-linea="${escapeHtml(p.id || '')}">${p.avatar_url ? '' : getInitial(name)}</a>
       <div class="com-persona-cuerpo">
         <a class="com-persona-nombre" href="${profileUrl(p)}"${atributosDeRango(p)}>${escapeHtml(name)}</a>
@@ -167,40 +168,19 @@ async function cargarPodio(perfiles) {
       .slice(0, 3)
     if (!tres.length) return
 
-    const MEDALLAS = ['Oro', 'Plata', 'Bronce']
+    // En la banda de arriba (1209): las tres caras sobre su peana, el
+    // primero en medio. Antes era una tira azul que se desplegaba (1165).
     const mesLargo = hoy.toLocaleDateString('es-ES', { month: 'long' })
-    // Una tira de una línea (1165, M1): los tres avatares, los nombres y
-    // «Ver el top ›», que abre el podio de siempre debajo. Antes el podio
-    // entero iba delante de la lista y la primera persona salía a 900 px.
-    const nombres = tres.map(({ p }) => p.display_name || p.username || 'Usuario')
-    const juntos = nombres.length > 1 ? `${nombres.slice(0, -1).join(', ')} y ${nombres.at(-1)}` : nombres[0]
-    hueco.innerHTML = `
-      <details class="com-top">
-        <summary class="com-top-tira" aria-label="El top de ${escapeHtml(mesLargo)}: ${escapeHtml(juntos)}. Ver el top">
-          <span class="com-top-icono" aria-hidden="true">${icons.trophy(14)}</span>
-          <span class="com-top-mes"><span class="cab-largo">El top de ${escapeHtml(mesLargo)}</span><span class="com-top-mes-corto">Top del mes</span></span>
-          <span class="com-top-caras" aria-hidden="true">${tres.map(({ p }) => `<span class="com-top-cara" style="${avatarStyle(p)}">${p.avatar_url ? '' : getInitial(p.display_name || p.username || '?')}</span>`).join('')}</span>
-          <span class="com-top-nombres cab-largo">${escapeHtml(juntos)}</span>
-          <span class="com-top-ver">Ver el top ›</span>
-        </summary>
-      <section class="com-podio">
-        <span class="com-podio-rotulo">${icons.trophy(14)} El top de ${escapeHtml(mesLargo)}</span>
-        <h2>Quién más ha aportado este mes</h2>
-        <div class="com-podio-tres">
-          ${tres
-            .map(
-              ({ p, ganado }, i) => `
-            <a class="com-puesto com-puesto-${i + 1}" href="${profileUrl(p)}">
-              <span class="com-puesto-medalla">${icons.medal(14)} ${MEDALLAS[i]}</span>
-              <span class="com-puesto-cara" style="${avatarStyle(p)}">${p.avatar_url ? '' : getInitial(p.display_name || p.username || '?')}</span>
-              <span class="com-puesto-nombre">${escapeHtml(p.display_name || p.username || 'Usuario')}</span>
-              <span class="com-puesto-xp">+${new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(ganado)} XP<span class="com-largo"> este mes</span></span>
-            </a>`
-            )
-            .join('')}
-        </div>
-      </section>
-      </details>`
+    const nombreDe = (p) => p.display_name || p.username || 'Usuario'
+    const puesto = ({ p, ganado }, i) => `<a class="banda-s-puesto banda-s-puesto-${i + 1}" href="${profileUrl(p)}" title="${escapeHtml(`${nombreDe(p)}: +${new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(ganado)} XP en ${mesLargo}`)}">
+        <span class="banda-s-puesto-cara" style="${avatarStyle(p)}">${p.avatar_url ? '' : getInitial(nombreDe(p))}</span>
+        <span class="banda-s-puesto-nombre">${escapeHtml(nombreDe(p))}</span>
+        <span class="banda-s-puesto-xp">+${new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(ganado)} XP</span>
+        <span class="banda-s-peana">${i + 1}</span>
+      </a>`
+    // El orden de un podio: el segundo, el primero y el tercero.
+    const orden = [1, 0, 2].filter((i) => tres[i])
+    hueco.innerHTML = `<div class="banda-s-podio" role="list" aria-label="El top de ${escapeHtml(mesLargo)}">${orden.map((i) => `<span role="listitem">${puesto(tres[i], i)}</span>`).join('')}</div>`
   } catch {
     // El podio es un extra. Si falla, la lista de gente sale igual.
   }

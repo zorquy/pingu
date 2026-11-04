@@ -53580,3 +53580,44 @@ de contraste (lo cazó la 311).
 
 Lo vigila `test-tanda-1208-pantalla.mjs`; 1042, 772, 376, 1100 y 798 al día y
 la 1044 queda como nota (sustituida).
+
+## Tanda 1209 — Gente y Guardados, con lo de la portada
+
+La segunda tanda del repaso que PINGU aprobó («adelante con lo recomendado»).
+
+**Gente** (/usuarios): arriba, la banda de la sección (`css/seccion.css`, en
+el HTML para estar en el primer pintado) con las cuatro cifras de siempre
+(nacen con guion) y, a la derecha, el podio del mes: las tres caras sobre su
+peana (`.banda-s-podio`, el primero en medio y más alto, con su «+N XP» del
+mes debajo del nombre). Sustituye a la tira desplegable de la 1165 (había que
+abrirla para ver quién iba primero). Cada persona es una TARJETA en columna:
+una franja de su color (o su foto) arriba, la cara que la pisa, el nombre con
+su rango, lo que hace aquí y la vitrina de tres cartas; la racha en la
+esquina. Dos cosas de CSS que costaron: la franja lleva `opacity`, que la manda
+a la capa de lo posicionado y tapaba la cara (la cara va con `position:
+relative`), y el `flex-wrap` de la vitrina de la 789 mandaba la vitrina a una
+SEGUNDA columna en cuanto la tarjeta pasó a ser columna. En el móvil la banda
+es una tira de una línea (las cuatro cifras sin las palabras largas y el podio
+pequeño, sin nombres) y la tarjeta vuelve a ser una fila con la franja de 6 px
+a la izquierda: la primera persona sale a menos del 35 % de la pantalla (la
+1040). En «Lo que acaba de pasar» va el dibujo de cada suceso a la derecha,
+como en la portada, salvo en lo que publica la casa, que ya lleva su icono a
+la izquierda.
+
+**Guardados**: la banda (por leer, a medias y leídas, y en abanico las tres
+primeras con foto) y la rejilla de PORTADAS, la tarjeta de /aprender
+(`tarjetaDeGuia`, que desde aquí enlaza por `rutaDeArticulo` —una noticia va a
+/noticias— y dice «Noticia» en sus etiquetas). Lo por leer primero y lo leído
+detrás, un paso apagado. Encima de cada portada, el marcador (fuera del
+enlace, en la esquina del arte, con los minutos apartados) que la quita con
+«Deshacer» como antes. Los chips filtran sin volver a pedir nada (Todas, Por
+leer, A medias, Leídas y, si hay de los dos, Guías y Noticias). El vacío lleva
+la mascota y tres portadas para empezar con su marcador.
+
+Lo vigilan `test-tanda-301.mjs` (el podio del mes, ahora en la banda),
+`test-tanda-1165-pantalla.mjs`, `test-tanda-1040-pantalla.mjs`,
+`test-tanda-896.mjs` y `test-tanda-847-pantalla.mjs` (Guardados entero, con los
+chips), al día; 893 deja /usuarios a esta tanda; 1153 cuenta portadas. Y 319 y
+866 miraban el bloque de guías de la portada como tarjeta y filas, que desde
+la 1191 son portadas: puestas al día.
+

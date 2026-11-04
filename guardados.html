@@ -32,6 +32,7 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="/css/guia-fila.css" />
+  <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="/css/guardados.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
@@ -119,15 +120,28 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container">
-    <div class="page-header cabecera-pagina" style="padding-top: 8px;">
-      <h1>Guardados</h1>
-      <p id="gdResumen">Lo que te guardaste para leer más tarde.</p>
-    </div>
+    <!-- La banda de la sección (1209, lo de la portada): cuántas te quedan por
+         leer, a medias y leídas (nacen con guion) y las portadas en abanico. -->
+    <section class="banda-s">
+      <div class="banda-s-texto">
+        <span class="banda-s-ceja">Aprender · Guardados</span>
+        <h1>Guardados</h1>
+        <p class="banda-s-lema">Lo que te guardaste para leer más tarde.</p>
+        <div class="banda-s-cifras" id="gdCifras">
+          <span class="banda-s-cifra"><b id="gdNLeer">—</b><small>por leer</small></span>
+          <span class="banda-s-cifra"><b id="gdNMedias">—</b><small>a medias</small></span>
+          <span class="banda-s-cifra"><b id="gdNLeidas">—</b><small>leídas</small></span>
+        </div>
+      </div>
+      <div class="banda-s-derecha" id="gdAbanico"></div>
+    </section>
 
     <div id="savedList" class="gd-caja">
-      <div class="skeleton" style="height: 84px; margin-bottom: 8px;"></div>
-      <div class="skeleton" style="height: 84px; margin-bottom: 8px;"></div>
-      <div class="skeleton" style="height: 84px; margin-bottom: 8px;"></div>
+      <div class="guia-rejilla">
+        <div class="skeleton gd-esqueleto"></div>
+        <div class="skeleton gd-esqueleto"></div>
+        <div class="skeleton gd-esqueleto"></div>
+      </div>
     </div>
   </main>
 

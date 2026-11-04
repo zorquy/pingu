@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (454) — PINGU-Claude (1209 — Gente y Guardados)
+
+**Hecho**: segunda tanda del repaso («adelante con lo recomendado»).
+- **Gente**: banda con las cuatro cifras y el podio del mes sobre sus peanas
+  (adiós a la tira desplegable de la 1165); cada persona, una tarjeta con su
+  franja de color, la cara, el rango, lo que hace y la vitrina. En el móvil,
+  banda de una línea y tarjetas en fila. «Lo que acaba de pasar» con el
+  dibujo de cada suceso (sin repetir el icono en lo de la casa).
+- **Guardados**: banda (por leer, a medias, leídas), chips que filtran y una
+  rejilla de portadas (la tarjeta de /aprender) con el marcador encima para
+  quitar con Deshacer. El vacío, con la mascota y tres portadas.
+- `tarjetaDeGuia` enlaza por `rutaDeArticulo` y dice «Noticia» en una noticia.
+
+**Ficheros**: `usuarios.html`, `js/usuarios.js`, `css/comunidad.css`,
+`css/seccion.css`, `js/comunidad-sucesos.js`, `guardados.html`,
+`js/guardados.js`, `css/guardados.css`, `js/guia-tarjeta.js`, `SCHEMA.md`,
+`novedades.json`. En `pruebas`: 301, 1165, 1040, 896, 893, 847, 1153, 319 y
+866 al día.
+
+**Pruebas**: verdes 301, 1165, 1040, 847, 1153, 312, 313, 299, 316, 319, 866,
+1001, 1010, 1014, 1023, 1140, 1154, 1185, 864 e imports. Rojos de antes (los
+mismos con el código de la 1208): 893 (/retos, /torneos, el selector del
+móvil), 896 (retos.css, «La quiero»), 981 (/mi-coleccion) y 311 (`auth.css`,
+`torneos.css`; el 20 px de `comunidad.css` ya no está).
+
+**Pendiente**: las tandas 1210–1212 del repaso, y el precio del Lugia.
+
 ## 2026-11-04 (453) — PINGU-Claude (1208 — lo común de la portada, y Cruces en tarjetas)
 
 **Hecho**: PINGU vio el «Repaso de la web» con imágenes y dijo «adelante con lo
