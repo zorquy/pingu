@@ -34,6 +34,7 @@ import { mazosDeLaPosicion, colocarPosicion, sePuedeJugarDesde } from './repetic
 import { fotos as sacarFotos, indiceDeTurnos, arriba } from './repeticiones/estado.js'
 import { ICONOS_REPETICION as ICONO } from './repeticiones/iconos.js'
 import { icons } from './icons.js'
+import { spritesDeNombreDeMazo, spritesHtml } from './sprites-de-mazo.js'
 import { showToast } from './toast.js'
 import * as datos from './repeticiones/datos.js'
 import { empaquetar, desempaquetar, esEnlaceDeRepeticion } from './repeticiones/enlace.js'
@@ -2533,11 +2534,30 @@ async function cargarGuardadas() {
     caja.innerHTML = lista.length
       ? `<ul class="rep-lista">${lista.map(itemHtml).join('')}</ul>`
       : '<p class="rep-guardadas-vacio">Aún no has guardado ninguna. Abre una partida y pulsa «Guardar».</p>'
+    pintarBandaDeRepeticiones(lista)
   } catch (err) {
     caja.innerHTML = `<p class="rep-guardadas-vacio">${escapeHtml(err.message)}</p>`
   } finally {
     caja.removeAttribute('aria-busy')
   }
+}
+
+// La banda (1221, la maqueta de «La web como la portada»): las guardadas y
+// las compartidas. Sin cuenta no hay cifras que dar.
+function pintarBandaDeRepeticiones(lista) {
+  const cifras = $('repBandaCifras')
+  if (!cifras) return
+  cifras.hidden = false
+  $('repNGuardadas').textContent = String(lista.length)
+  $('repNCompartidas').textContent = String(lista.filter((r) => r.compartida).length)
+}
+
+// Cada repetición en una tarjeta (1221): los dos mazos con sus sprites, quién
+// ganó, cuándo y cuántos turnos. Quién eras tú no lo guarda la fila, así que
+// se dice quién ganó y no «victoria» o «derrota».
+function mazoDeItemHtml(nombre) {
+  const urls = spritesDeNombreDeMazo(nombre)
+  return `<span class="rep-item-mazo" title="${escapeHtml(nombre || 'Sin identificar')}">${urls.length ? spritesHtml(urls.slice(0, 1), 'rep-item-sprite', 40) : `<span class="rep-item-sprite-vacio">${icons.cards(18)}</span>`}</span>`
 }
 
 function itemHtml(r) {
@@ -2549,6 +2569,7 @@ function itemHtml(r) {
   const mazos = r.mazo_a || r.mazo_b ? `<span class="rep-item-mazos">${escapeHtml(r.mazo_a || 'Sin identificar')} <span class="rep-item-contra">contra</span> ${escapeHtml(r.mazo_b || 'Sin identificar')}</span>` : ''
   return `
     <li class="rep-item" data-id="${id}" data-titulo="${escapeHtml(r.titulo)}" data-compartida="${r.compartida ? 'si' : 'no'}">
+      <span class="rep-item-cara" aria-hidden="true">${mazoDeItemHtml(r.mazo_a)}<span class="rep-item-vs">vs</span>${mazoDeItemHtml(r.mazo_b)}${r.ganador ? `<span class="rep-item-gana">Gana ${escapeHtml(r.ganador)}</span>` : ''}</span>
       <button type="button" class="rep-item-abrir" data-abrir="${id}">
         <span class="rep-item-titulo">${escapeHtml(r.titulo)}</span>
         ${mazos}
@@ -2699,6 +2720,7 @@ function iniciar() {
   // Los iconos de los botones de la cabecera.
   const ICONOS_CAB = { guardar: icons.bookmark(16), compartir: icons.share(16), descargar: ICONO.descargar(16) }
   document.querySelectorAll('[data-icono]').forEach((el) => (el.innerHTML = ICONOS_CAB[el.dataset.icono] || ''))
+  document.querySelectorAll('[data-icono-ojo]').forEach((el) => (el.innerHTML = icons.eye(16)))
   document.querySelector('.rep-nota-icono').innerHTML = ICONO.nota(18)
 
   // La ventana de guardar, compartir y el vídeo.

@@ -102,8 +102,16 @@ function pintarJuego(juego, r) {
     sello.innerHTML = r?.hecho ? `${icons.checkCircle(12)} Hecho` : `${icons.clock(12)} A medias`
   }
   caja.classList.toggle('hecho', Boolean(r?.hecho))
+  // La XP en su chapa, a la derecha del nombre (1217): la que te dio, o la
+  // que da como mucho.
+  const cuerpo = caja.closest('.rt-cuerpo')
+  if (cuerpo) {
+    const xp = r?.hecho && r.xp ? r.xp : Number(/\+(\d+)/.exec(reto.chips[0] || '')?.[1]) || 0
+    cuerpo.querySelector('.rt-xp-chapa')?.remove()
+    if (xp) cuerpo.insertAdjacentHTML('beforeend', `<span class="rt-xp-chapa${r?.hecho ? ' ganada' : ''}">+${xp} XP</span>`)
+  }
   caja.innerHTML = r?.hecho
-    ? `${icons.checkCircle(14)} ${escapeHtml(r.texto)}${r.xp ? `<span class="rt-estado-xp"> · +${r.xp} XP</span>` : ''}`
+    ? `Hecho · ${escapeHtml(r.texto)}${r.xp ? `<span class="rt-estado-xp"> · +${r.xp} XP</span>` : ''}`
     : r?.empezado
       ? `A medias · ${escapeHtml(r.texto)}`
       : escapeHtml(reto.chips.join(' · '))
@@ -120,7 +128,7 @@ export function anilloHtml(hechos, total = 6) {
 // píldora se repinta (un reto hecho), se vuelve a poner con el último puesto.
 let puestoEnLiga = null
 export function puestoHtml(puesto) {
-  return puesto ? `<span class="rt-puesto" id="rtPuesto">${icons.trophy(14)} Nº ${puesto}<span class="cab-largo"> en la liga</span></span>` : ''
+  return puesto ? `<span class="banda-s-cifra rt-puesto" id="rtPuesto"><b>Nº ${puesto}</b><small>en la liga</small></span>` : ''
 }
 function ponerPuestoEnPildora(puesto) {
   puestoEnLiga = puesto || null
@@ -134,9 +142,11 @@ function ponerPuestoEnPildora(puesto) {
 let pararCuenta = () => {}
 function pintarDia(hechos, numeros, session) {
   const total = RETOS.length
-  const partes = [`<span id="rtHechos">${hechos}/${total} <span class="cab-largo">hoy</span></span>`]
-  if (numeros) partes.push(`<span class="rt-xp">${icons.zap(14)} +${numeros.xpHoy || 0} XP</span>`)
-  if (numeros?.racha >= 1) partes.push(`<span class="rt-fuego">${icons.flame(14)} ${numeros.racha} ${numeros.racha === 1 ? 'día' : 'días'}</span>`)
+  // Las cifras de la banda (1217, la maqueta): XP de hoy, la racha y el
+  // puesto en la liga; los hechos los dice el anillo (y el lector, aquí).
+  const partes = [`<span class="sr-only" id="rtHechos">${hechos}/${total} hoy</span>`]
+  if (numeros) partes.push(`<span class="banda-s-cifra rt-xp"><b>${numeros.xpHoy || 0}</b><small>XP hoy</small></span>`)
+  if (numeros) partes.push(`<span class="banda-s-cifra rt-fuego"><b>${numeros.racha || 0}</b><small>${numeros.racha === 1 ? 'día de racha' : 'días de racha'}</small></span>`)
   $('rtDia').innerHTML = partes.join('') + puestoHtml(puestoEnLiga)
   const p = $('rtPerfecto')
   p.classList.toggle('hecho', hechos >= total)

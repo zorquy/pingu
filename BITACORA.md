@@ -4,6 +4,67 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (462) — PINGU-Claude (1217–1221 — toda la web como la portada)
+
+**Hecho**: PINGU repasó la propuesta «La web como la portada» página a página
+y la aprobó con cambios («házmelo todo, no pares hasta hacerlo todo»). Hecho
+todo lo aprobado, en cinco tandas (el detalle y lo que quedó distinto de la
+maqueta, en SCHEMA «Tandas 1217–1221»):
+- 1217 Deseos y cambios: los tratos se van a Cruces como chip «En curso»
+  (fuera «Gente que sigo»), en tarjetas con su barra de pasos; la banda de
+  las cuatro pestañas solo en el PC; Mercado, La quiero y Las que doy como
+  la maqueta.
+- 1218 Inicio: Noticias por páginas, Lanzamientos con el cartel del próximo
+  set, Novedades con portadas y línea de tiempo.
+- 1219 Aprender: portadas de guía comunes (`js/guia-portada.js`), Retos,
+  Guardados y Glosario (palabra del día). El dibujo del Pokémon, aparte en
+  `js/arte-pokemon.js`.
+- 1220 Colección: las cifras «se calculan», la gráfica se dibuja; Pokédex
+  (PC), Álbumes, Productos y Buscar. Expansiones sin tocar (PINGU).
+- 1221 Foro sin «Lo que se está hablando» y con banda en el PC; Mensajes con
+  chips y «Proponer cambio»; Torneos, Meta, Mis mazos, Laboratorio,
+  Repeticiones y Avisos con su banda y sus sprites.
+
+**Ficheros** (web): `foro.html`, `js/foro.js`, `css/foro.css`, `js/mensajes.js`,
+`js/messages.js`, `css/mensajes.css`, `js/cambio-propuesta.js`,
+`css/cambio-propuesta.css`, `js/cruce-persona.js`, `js/torneos/torneos.js`,
+`css/torneos.css`, `meta.html`, `js/meta.js`, `css/meta.css`, `mazos.html`,
+`js/mazos.js`, `css/mazos.css`, `laboratorio.html`, `js/laboratorio-pagina.js`,
+`css/laboratorio-pagina.css`, `repeticiones.html`, `js/repeticiones.js`,
+`css/repeticiones.css`, `avisos.html`, `js/avisos.js`, `css/avisos-pagina.css`,
+`js/sprites-de-mazo.js` (nueva), `js/arte-pokemon.js` (nueva),
+`js/guia-portada.js` (nueva), `css/guia-portada.css` (nueva),
+`js/mi-coleccion/banda-deseos.js` (nueva), `js/mi-coleccion/buscar-recientes.js`
+(nueva), `js/mi-coleccion/deseos.js`, `js/mi-coleccion/mercado.js`,
+`js/mi-coleccion/panel.js`, `js/mi-coleccion/pokedex.js`,
+`js/mi-coleccion/pokedex-ui.js`, `js/mi-coleccion/albumes.js`,
+`js/mi-coleccion/productos.js`, `js/mi-coleccion.js`, `mi-coleccion.html`,
+`cartas.html` (generada), `css/mi-coleccion.css`, `js/contar.js`,
+`js/cifras-cuentan.js`, `noticias.html`, `js/noticias.js`,
+`js/noticias-grupos.js`, `css/noticias.css`, `lanzamientos.html`,
+`js/lanzamientos.js`, `js/lanzamientos-productos.js`, `css/lanzamientos.css`,
+`js/novedades.js`, `css/novedades.css`, `aprender.html`, `js/aprender.js`,
+`css/aprender.css`, `js/guia-tarjeta.js`, `retos.html`, `js/retos.js`,
+`css/retos.css`, `guardados.html`, `js/guardados.js`, `css/guardados.css`,
+`glosario.html`, `js/glosario.js`, `css/glosario.css`, `CLAUDE.md`,
+`SCHEMA.md`, `novedades.json`.
+En `pruebas`: `test-tanda-1217-pantalla.mjs` (nueva); `fixtures-app.mjs`
+respeta `PD_BASE`; las de tratos abren «En curso» (942, 1098–1110, 772,
+1100, 1208, 1166) y las que miraban lo de antes, al día.
+
+**Pruebas**: la suite en carriles se torció a mitad (el servidor de 8892 se
+apagó por su límite de tiempo y casi todo lo de detrás salió rojo). Triaje: las
+65 rojas, contra este árbol y contra HEAD. Solo 8 eran nuevas y las 8 están en
+verde ya (noticias, 299, 306, 309, 312, 316, 319, 414: pruebas que miraban la
+forma de antes, y dos fallos de verdad: el Glosario y la guía arrastraban las
+clases de la portada, y los tratos usaban clases de Mi colección en Mensajes y
+los perfiles). Las otras 57 ya estaban rojas en HEAD: del entorno (sin
+PostgreSQL ni PIL, ficheros del scratchpad que no están) o de antes (311, 386,
+524, 532, 543…). `test-tanda-1217-pantalla.mjs` y las de tratos, en verde;
+test-imports en verde; la portada, 137,3 KB de 170. Arreglado de paso: /aprender
+?tema= se paraba con un TypeError desde la 1215 (buscaba «Ordenar»). La suite
+entera vuelve a pasar al subir esto; lo que salga, en la entrada siguiente.
+
 ## 2026-11-04 (461) — PINGU-Claude (1216 — lo que recorté o se me pasó del repaso)
 
 **Hecho**: PINGU: «de las propuestas que me has mandado, hay muchísimas cosas

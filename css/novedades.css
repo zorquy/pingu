@@ -154,3 +154,58 @@ a.nv-fila:hover { border-color: var(--border-strong); }
   .nv-semana-titulo { flex-wrap: wrap; }
   .nv-cuentas { margin-left: 0; flex-basis: 100%; }
 }
+
+/* ── 1217: como la maqueta (SCHEMA 1217) ──
+   Las destacadas son portadas: el Pokémon sobre su color, el tipo y el
+   titular encima con un velo; y cada semana, su rótulo y sus cuentas a la
+   izquierda y las novedades en una línea de tiempo a la derecha, sin cajas. */
+.nv-dest.nv-dest-portada { padding: 0; border: 0; background: none; }
+.nv-dest-portada .nv-dest-dibujo {
+  position: relative;
+  display: block;
+  height: auto;
+  aspect-ratio: 16 / 11;
+  padding: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  color: var(--blanco-fijo);
+  text-decoration: none;
+}
+.nv-dest-portada .nv-dest-dibujo::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, transparent 45%, rgb(11 18 25 / 78%)); }
+.nv-dest-arte { position: absolute; right: 8%; bottom: 10%; width: 62%; height: auto; max-height: 92%; object-fit: contain; filter: drop-shadow(0 12px 18px rgb(0 0 0 / 35%)); transition: transform 0.3s var(--ease); }
+a.nv-dest-dibujo:hover .nv-dest-arte { transform: scale(1.04) rotate(-2deg); }
+.nv-dest-portada .nv-dest-texto { position: absolute; inset: auto 0 0; z-index: 1; display: grid; gap: var(--e-xs); padding: var(--e-lg); }
+.nv-dest-portada .nv-dest-texto h3 { margin: 0; color: var(--blanco-fijo); font-family: var(--font-display); font-size: var(--t-lg); }
+.nv-dest-portada .nv-chip { background: var(--blanco-fijo); color: #0b1219; }
+@media (prefers-reduced-motion: reduce) {
+  .nv-dest-arte { transition: none; }
+  a.nv-dest-dibujo:hover .nv-dest-arte { transform: none; }
+}
+
+@media (min-width: 900px) {
+  .nv-semana { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: var(--e-lg); padding-left: 0; }
+  .nv-semana::before { content: none; }
+  .nv-semana-titulo { flex-direction: column; align-items: flex-start; margin: 0; padding: 0; color: var(--text); font-family: var(--font-display); font-size: var(--t-md); text-transform: none; letter-spacing: 0; }
+  .nv-semana-titulo .nv-cuentas { flex-direction: column; align-items: flex-start; margin: var(--e-xs) 0 0; }
+  .nv-semana-lineas { position: relative; padding-left: var(--e-xl); }
+  .nv-semana-lineas::before { content: ''; position: absolute; top: var(--e-md); bottom: var(--e-md); left: 7px; width: 2px; border-radius: 1px; background: var(--border); }
+}
+.nv-cuenta { padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: color-mix(in srgb, var(--navy) 14%, transparent); color: var(--text); }
+.nv-cuenta-nuevo { background: color-mix(in srgb, var(--pink) 16%, transparent); }
+.nv-cuenta-arreglo { background: color-mix(in srgb, var(--success) 16%, transparent); }
+.nv-semana-lineas .nv-fila { min-height: 44px; margin: 0; padding: var(--e-sm) 0; border: 0; border-radius: 0; background: none; }
+.nv-semana-lineas .nv-fila + .nv-fila { border-top: 1px solid color-mix(in srgb, var(--border) 60%, transparent); }
+.nv-semana-lineas .nv-fila .nv-chip { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.nv-semana-lineas .nv-ver { display: inline-flex; align-items: center; gap: 2px; color: var(--acento); font-weight: 600; }
+.nv-semana-lineas .nv-ver svg { width: 14px; height: 14px; }
+@media (max-width: 899px) {
+  .nv-semana-lineas .nv-fila::before { top: 50%; transform: translateY(-50%); }
+}
+.nv-dest-portada .nv-chip { justify-self: start; }
+@media (max-width: 600px) {
+  .nv-semana-lineas .nv-fila { flex-wrap: nowrap; }
+  .nv-semana-lineas .nv-fila-texto { flex-basis: auto; order: 0; }
+  .nv-semana-lineas .nv-ver { order: 0; }
+  .nv-dest-portada .nv-dest-dibujo { height: auto; padding: 0; align-items: stretch; }
+  .nv-dest-portada .nv-dest-texto { padding: var(--e-md); }
+}

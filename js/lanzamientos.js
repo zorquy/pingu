@@ -221,9 +221,12 @@ const detalleHtml = (e) => [
 // Cada set es un evento de agenda: el bloque de la fecha a la izquierda,
 // la tarjeta con el logo al lado —que es un ENLACE a su página— y la
 // cuenta atrás (o «Ya salió», apagado) de pastilla.
+// LO QUE VIENE (1217): una fila por set, al lado del cartel: el día en
+// calendario, el nombre con lo que falta y el logo a la derecha.
 function eventoHtml(e, futuro) {
   const [a, m, d] = String(e.fecha).split('-').map(Number)
   const etiqueta = e.href ? 'a' : 'div'
+  const sub = [e.cartas ? `${e.cartas} cartas` : e.manual ? 'Sin nombre aún' : '', futuro ? cuentaAtras(diasHasta(e.fecha)).toLowerCase() : ''].filter(Boolean).join(' · ')
   return `
     <div class="lanz-evento ${futuro ? '' : 'lanzamiento-pasado'}">
       <div class="lanz-dia">
@@ -232,12 +235,12 @@ function eventoHtml(e, futuro) {
         <span class="lanz-anno">${a}</span>
       </div>
       <${etiqueta} class="lanzamiento-tarjeta"${e.href ? ` href="${escapeHtml(e.href)}"` : ''}>
-        ${logoHtml(e, 'lanzamiento-logo')}
         <div class="lanzamiento-texto">
-          <strong>${escapeHtml(e.nombre)}${e.codigo ? ` <span class="lanz-chapa">${escapeHtml(e.codigo)}</span>` : ''}</strong>
-          <span class="subtext">${detalleHtml(e)}</span>
+          <strong>${escapeHtml(e.nombre)}</strong>
+          <span class="subtext">${escapeHtml(sub)}</span>
         </div>
-        ${futuro ? `<span class="lanzamiento-cuenta">${cuentaAtras(diasHasta(e.fecha))}</span>` : e.href ? '<span class="lanzamiento-ver">Ver sus cartas →</span>' : ''}
+        ${logoHtml(e, 'lanzamiento-logo')}
+        <span class="lanzamiento-cuenta sr-only">${cuentaAtras(diasHasta(e.fecha))}</span>
       </${etiqueta}>
     </div>`
 }
@@ -247,7 +250,7 @@ function eventoHtml(e, futuro) {
 // logo, nombre y, con cuenta, tu progreso en un anillo (lo rellena
 // `pintarProgreso`).
 function filaHtml(e) {
-  const [, m, d] = String(e.fecha).split('-').map(Number)
+  const [a, m, d] = String(e.fecha).split('-').map(Number)
   const etiqueta = e.href ? 'a' : 'div'
   return `<${etiqueta} class="lanz-fila"${e.href ? ` href="${escapeHtml(e.href)}"` : ''}${e.id ? ` data-set="${escapeHtml(e.id)}"` : ''}${e.total ? ` data-total="${e.total}"` : ''}>
     <span class="lanz-fila-dia"><b>${d}</b><span>${MESES_CORTOS[m - 1]}</span></span>
@@ -255,6 +258,7 @@ function filaHtml(e) {
     <span class="lanz-fila-texto">
       <strong>${escapeHtml(e.nombre)}${e.codigo ? ` <span class="lanz-chapa">${escapeHtml(e.codigo)}</span>` : ''}</strong>
       <span class="lanz-fila-sub">${e.cartas ? `${e.cartas} cartas` : e.manual ? 'anunciado' : ''}</span>
+      <span class="lanz-fila-fecha">${d} ${MESES_CORTOS[m - 1].toLowerCase()} ${a}</span>
     </span>
     <span class="lanz-fila-prog" hidden></span>
   </${etiqueta}>`
@@ -298,22 +302,27 @@ async function pintarProgreso(mercado) {
     // El anillo (1210): lo que llevas, en el color de la sección, alrededor
     // de la cuenta (`--pct`, de 0 a 100).
     if (total) {
+      const pct = Math.min(100, Math.round((n / total) * 100))
       prog.classList.add('lanz-anillo')
-      prog.style.setProperty('--pct', String(Math.min(100, Math.round((n / total) * 100))))
+      prog.style.setProperty('--pct', String(pct))
+      // En la baldosa (1217) el anillo lleva el tanto por ciento; la cuenta
+      // exacta va debajo, pequeña.
+      prog.dataset.pct = `${pct} %`
     }
   }
 }
 
+// EL CARTEL (1217, la maqueta de «La web como la portada»): la fecha arriba,
+// el logo grande, la cuenta atrás en tres cajas, «Avísame» con las cartas al
+// lado y los dos sobres girados abajo a la derecha (los pone
+// lanzamientos-productos.js). En el dorado de Colección.
 function destacadoHtml(e) {
   return `
-    <div class="lanzamiento-destacado">
-      ${logoHtml(e, 'lanzamiento-logo-grande')}
-      <div>
-        <span class="eyebrow">El siguiente set</span>
-        <h2>${e.href ? `<a href="${escapeHtml(e.href)}">${escapeHtml(e.nombre)}</a>` : escapeHtml(e.nombre)}</h2>
-        <p class="subtext">${detalleHtml(e)}</p>
-      </div>
+    <div class="lanzamiento-destacado lanz-cartel">
+      <span class="eyebrow lanz-cartel-ceja">El siguiente set · ${escapeHtml(fechaBonita(e.fecha))}</span>
+      <h2 class="lanz-cartel-titulo">${e.href ? `<a href="${escapeHtml(e.href)}">` : ''}${logoHtml(e, 'lanzamiento-logo-grande')}<span class="lanz-cartel-nombre">${escapeHtml(e.nombre)}</span>${e.href ? '</a>' : ''}</h2>
       <span class="lanzamiento-cuenta lanzamiento-cuenta-grande lanz-reloj" data-fecha="${escapeHtml(e.fecha)}">${relojHtml(e.fecha)}</span>
+      <p class="subtext lanz-cartel-pie">${[e.cartas ? `${e.cartas} cartas` : '', e.codigo].filter(Boolean).map(escapeHtml).join(' · ')}</p>
     </div>`
 }
 
@@ -369,9 +378,9 @@ async function pintar(mercado) {
     $('seccionProximos').classList.remove('hidden')
   }
   if (pasados.length) {
-    $('listaPasados').innerHTML = porAnno(pasados)
-      .map((g) => `<h3 class="lanz-anno-titulo">${g.anno}</h3>${g.eventos.map(filaHtml).join('')}`)
-      .join('')
+    // En baldosas sin años de rótulo (1217, la maqueta): la fecha de cada
+    // una ya lleva su año, y el orden sigue siendo el de `porAnno`.
+    $('listaPasados').innerHTML = porAnno(pasados).flatMap((g) => g.eventos).map(filaHtml).join('')
     $('cuantosPasados').textContent = `${pasados.length} ${pasados.length === 1 ? 'expansión' : 'expansiones'}`
     $('seccionPasados').classList.remove('hidden')
   }

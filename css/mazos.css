@@ -441,3 +441,59 @@
   .cm-mazo-pie { grid-area: pie; padding: var(--e-xs) var(--e-xs) var(--e-xs) var(--e-md); border-top: 0; }
   .cm-mazo-coste { font-size: var(--t-xs); }
 }
+
+/* 1221 (la maqueta de «La web como la portada»): los dos Pokémon del mazo en
+   grande sobre su color, con la portada elegida detrás y apagada; la banda
+   de Jugar arriba (solo en el PC) y un hueco para empezar otro al final. */
+.cm-mazo-portada.con-sprites img:not(.mz-portada-sprite) { opacity: 0.28; filter: blur(2px) saturate(1.2); }
+.mz-portada-sprites {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+.cm-mazo-portada .mz-portada-sprite {
+  position: static;
+  width: 42%;
+  max-width: 120px;
+  height: auto;
+  aspect-ratio: 1;
+  margin: 0 -6%;
+  object-fit: contain;
+  transform: none;
+  -webkit-mask-image: none;
+  mask-image: none;
+  filter: drop-shadow(0 4px 8px rgb(0 0 0 / 40%));
+}
+.cm-mazo-portada.con-sprites .cm-mazo-portada-nombre { display: none; }
+.mz-cabecera.banda-s { align-items: center; margin-bottom: var(--e-lg); }
+.mz-cabecera.banda-s .cm-mazos-cuenta { margin: 0; }
+.mz-nuevo-hueco {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-sm);
+  min-height: 240px;
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-lg);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-decoration: none;
+}
+.mz-nuevo-hueco:hover { border-color: var(--acento); }
+@media (max-width: 900px) {
+  .mz-cabecera.banda-s {
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+  .mz-cabecera.banda-s :is(.banda-s-ceja, .banda-s-cifras) { display: none; }
+  .mz-nuevo-hueco { display: none; }
+}

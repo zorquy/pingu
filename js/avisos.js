@@ -15,6 +15,27 @@ import { requireAuth } from './app.js'
 import { escapeHtml } from './html.js'
 import { tramosHtml } from './avisos-grupos.js'
 import { CHIPS, casaConChip, cuentasDeChips } from './avisos-chips.js'
+import { icons } from './icons.js'
+
+// Cada aviso con el icono de su sección en su color (1221, la maqueta de «La
+// web como la portada»). La fila sigue siendo la de la campana (`tramosHtml`):
+// aquí, después de pintarla, se le pone delante el icono y la sección pasa a
+// la línea de la fecha («Comunidad · hace 3 h»). La campana no cambia.
+const ICONO_DE_SECCION = { comunidad: icons.messageSquare, cartas: icons.refreshCw, jugar: icons.trophy, ti: icons.users }
+function vestirFilas(lista) {
+  for (const fila of lista.querySelectorAll('.nav-bell-item')) {
+    if (fila.querySelector('.av-ico')) continue
+    const etiqueta = fila.querySelector('.nav-bell-seccion')
+    const llave = etiqueta?.dataset.seccion || 'ti'
+    fila.insertAdjacentHTML('afterbegin', `<span class="av-ico" data-seccion="${llave}" aria-hidden="true">${(ICONO_DE_SECCION[llave] || icons.bell)(16)}</span>`)
+    const fecha = fila.querySelector('.nav-bell-item-date')
+    if (fecha) fecha.textContent = `${etiqueta ? etiqueta.textContent : 'Para ti'} · ${fecha.textContent}`
+    etiqueta?.remove()
+  }
+}
+
+// «Esta semana»: los avisos de los últimos siete días que ya se han traído.
+const deEstaSemana = (lista) => lista.filter((a) => Date.now() - new Date(a.created_at).getTime() < 7 * 864e5).length
 
 export const TANDA = 60
 const chipsHtml = (cuentas, activo) => CHIPS.map((c) => `
@@ -78,6 +99,12 @@ export async function montar() {
     leerTodo.hidden = !cuentas.todos
     const visibles = avisos.filter((a) => casaConChip(a, activo))
     lista.innerHTML = visibles.length ? tramosHtml(visibles, { porTramo: true, meses: true }) : seAcabo ? vacioHtml(activo) : ''
+    vestirFilas(lista)
+    const nSin = document.getElementById('avNSinLeer')
+    if (nSin) {
+      nSin.textContent = String(cuentas.todos || 0)
+      document.getElementById('avNSemana').textContent = `${deEstaSemana(avisos)}${seAcabo ? '' : '+'}`
+    }
     pie.innerHTML = seAcabo
       ? (visibles.length ? `<p class="av-fin">Eso es todo${avisos.length > TANDA ? ` · ${avisos.length} avisos` : ''}</p>` : '')
       : `<button type="button" class="btn-secondary av-mas" id="avMas">Cargar más</button>`

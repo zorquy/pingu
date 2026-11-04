@@ -87,7 +87,11 @@ export function pintarResumenPanel() {
   if (ctx.esMia && ctx.sesion) void ctx.pintarRepartoProductos()
   // La cifra cuenta desde la de la última vez (783, MV2).
   const cifraPanel = document.querySelector('#mcValorCaja .mc-cartera-cifra')
-  if (ctx.esMia && cifraPanel) import('../contar.js').then(({ contarCifra }) => contarCifra(cifraPanel, 'valor', ctx.valorDeAhora(), ctx.eurosConMiles)).catch(() => {})
+  if (ctx.esMia && cifraPanel) import('../contar.js').then(({ contarCifra, calcularCifra }) => {
+    contarCifra(cifraPanel, 'valor', ctx.valorDeAhora(), ctx.eurosConMiles)
+    // Las cuentas pequeñas de debajo también se calculan (1217).
+    for (const b of document.querySelectorAll('#mcValorCaja .mc-cartera-sub b')) calcularCifra(b, b.textContent)
+  }).catch(() => {})
 
   // Las estadísticas van en «Más» (1176): el hueco de antes queda vacío.
   const mas = $('mcMasEstadisticas')
@@ -776,6 +780,9 @@ export async function pintarValorEnElTiempo() {
     if (!sitio) return
     sitio.innerHTML = ctx.historico.grafica.carteraHtml(ctx.historico.filas, { ahora: ctx.valorDeAhora(), rango: rangoDelValor, nombre: ctx.esMia ? 'tu colección' : 'esta colección' })
     sitio.removeAttribute('aria-busy')
+    // La gráfica se dibuja de izquierda a derecha (1217, PINGU: «que aparezca
+    // la gráfica como de izquierda a derecha generándose»).
+    sitio.querySelector('.mc-valor-lienzo')?.setAttribute('data-dibujando', '')
     engancharRangosDelValor()
     // Y la lectura al pasar el dedo (653), sobre el lienzo recién pintado.
     ctx.historico.grafica.engancharLectura(sitio.querySelector('.mc-valor-lienzo'))

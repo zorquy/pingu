@@ -88,3 +88,29 @@
 .av-pie { display: grid; justify-items: center; padding: var(--e-lg) 0; }
 .av-pie:empty { display: none; }
 .av-fin { margin: 0; color: var(--text-dim); font-size: var(--t-xs); }
+
+/* 1221 (la maqueta de «La web como la portada»): la banda en el PC (a lo
+   ancho de la columna) y el icono de la sección delante de cada aviso, en su
+   color. En el móvil, la cabecera de una línea de siempre. */
+.av-pagina { max-width: 960px; }
+.av-cab.banda-s { margin-bottom: var(--e-md); }
+.nav-bell-item:has(.av-ico) { display: grid; grid-template-columns: 32px minmax(0, 1fr); column-gap: var(--e-md); align-items: center; }
+.nav-bell-item:has(.av-ico) > :not(.av-ico) { grid-column: 2; }
+.av-ico { --tag: var(--navy); grid-row: 1 / span 3; display: grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--tag) 16%, transparent); color: var(--tag); }
+.av-ico[data-seccion='comunidad'] { --tag: #c62a5c; }
+.av-ico[data-seccion='cartas'] { --tag: #9a5f06; }
+.av-ico[data-seccion='jugar'] { --tag: #5f43d9; }
+:root[data-theme='dark'] .av-ico[data-seccion='comunidad'] { --tag: #f06c9b; }
+:root[data-theme='dark'] .av-ico[data-seccion='cartas'] { --tag: #e4b44a; }
+:root[data-theme='dark'] .av-ico[data-seccion='jugar'] { --tag: #9b7bff; }
+@media (max-width: 900px) {
+  .av-cab.banda-s {
+    min-height: 0;
+    padding: var(--e-sm) 0 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+  .av-cab.banda-s :is(.banda-s-ceja, .banda-s-cifras, .banda-s-lema) { display: none; }
+}

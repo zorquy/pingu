@@ -2281,3 +2281,27 @@
     margin-top: var(--e-sm);
   }
 }
+
+/* 1221 (la maqueta de «La web como la portada»): la banda de Jugar, el título
+   de la caja de pegar con su ojo y tus repeticiones en tarjetas a tres por
+   fila, con los dos mazos y quién ganó arriba. En el móvil, sin banda (lo de
+   la 1040) y las tarjetas en una columna. */
+.rep-cabecera.banda-s { align-items: center; }
+.rep-cabecera.banda-s .rep-lema { margin-top: 0; }
+.rep-pegar { border-top: 2px solid color-mix(in srgb, var(--acento) 70%, transparent); }
+.rep-pegar h2 { display: flex; align-items: center; gap: var(--e-sm); }
+.rep-pegar-ico { display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--acento) 18%, transparent); color: var(--acento); }
+.rep-item { flex-direction: column; align-items: stretch; gap: var(--e-xs); padding: var(--e-md); }
+.rep-item-cara { display: flex; align-items: center; gap: var(--e-xs); }
+.rep-item-mazo { display: inline-flex; }
+.rep-item-sprite { width: 40px; height: 40px; object-fit: contain; }
+.rep-item-sprite-vacio { display: inline-grid; place-items: center; width: 40px; height: 40px; color: var(--text-dim); }
+.rep-item-vs { color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
+.rep-item-gana { margin-left: auto; padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--success-bg); color: var(--success); font-size: var(--t-2xs); font-weight: 700; }
+.rep-item-abrir { flex: none; }
+@media (min-width: 900px) {
+  .rep-lista { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 599px) {
+  .rep-cabecera.banda-s { padding: 0; border: 0; min-height: 0; }
+}

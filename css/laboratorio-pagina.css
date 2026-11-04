@@ -248,3 +248,43 @@
     padding-inline: var(--e-md);
   }
 }
+
+/* 1221 (la maqueta de «La web como la portada»): la banda de Jugar con el
+   abanico de los tres mazos que más se juegan, las tres formas de empezar en
+   tarjetas IGUALES con el sprite de cada mazo, y lo que se puede hacer
+   dentro en una fila al final. */
+.lp-cabecera.banda-s { align-items: center; }
+.lp-cabecera.banda-s .banda-s-lema { max-width: 56ch; }
+.lp-mazo-sprites { display: flex; flex-shrink: 0; }
+.lp-mazo-sprite { width: 40px; height: 40px; margin-right: -8px; object-fit: contain; }
+.lp-meta-lista .lp-meta-mazo { display: flex; align-items: center; gap: var(--e-sm); }
+.lp-meta-sprite { display: inline-flex; flex-shrink: 0; }
+.lp-meta-icono { width: 32px; height: 32px; object-fit: contain; }
+.lp-meta-nombre { flex: 1; min-width: 0; }
+.lp-abanico-carta { display: grid; place-items: center; }
+.banda-s-abanico > .lp-abanico-1 { background: var(--arte-ambar); }
+.banda-s-abanico > .lp-abanico-2 { background: var(--arte-azul); }
+.banda-s-abanico > .lp-abanico-3 { background: var(--arte-morado); }
+.banda-s-abanico .lp-abanico-carta .lp-meta-icono { width: 88%; height: auto; object-fit: contain; }
+.lp-dentro { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-sm); }
+.lp-dentro .lp-que { margin: 0; }
+@media (min-width: 1100px) {
+  .lp-pagina { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .lp-pagina > .lp-dentro { grid-column: 1 / -1; }
+}
+/* Con tres columnas iguales, cada mazo en dos renglones: el nombre entero y,
+   debajo, sus cartas y «Editar»; «Probar» a la derecha. */
+@media (min-width: 1100px) {
+  .lp-mazo {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: 'spr txt probar' 'spr editar probar';
+    column-gap: var(--e-sm);
+    row-gap: 0;
+  }
+  .lp-mazo-sprites { grid-area: spr; }
+  .lp-mazo-texto { grid-area: txt; }
+  .lp-mazo-nombre { white-space: normal; }
+  .lp-mazo-editar { grid-area: editar; justify-self: start; min-height: 0; padding: 0; font-size: var(--t-xs); }
+  .lp-mazo-probar { grid-area: probar; }
+}

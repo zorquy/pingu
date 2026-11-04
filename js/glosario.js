@@ -170,8 +170,34 @@ function marcarLetraActual(lista, letras) {
   marcar()
 }
 
+// LA PALABRA DE HOY (1217, la maqueta): una al día, la misma para todos (el
+// día del año sobre la lista ordenada), con un Pokémon al lado.
+export function palabraDelDia(fecha = new Date(), lista = GLOSARIO) {
+  const orden = [...lista].sort((a, b) => a.id.localeCompare(b.id))
+  if (!orden.length) return null
+  const dia = Math.floor(Date.UTC(fecha.getFullYear(), fecha.getMonth(), fecha.getDate()) / 864e5)
+  return orden[dia % orden.length]
+}
+async function pintarHoy(caja) {
+  const g = palabraDelDia()
+  if (!caja || !g) return
+  const { artePokemonHtml, pokemonDe } = await import('./arte-pokemon.js')
+  caja.innerHTML = `<a class="glosario-hoy-caja" href="#${escapeHtml(g.id)}">
+    <span class="glosario-hoy-texto">
+      <span class="glosario-hoy-ceja">La palabra de hoy</span>
+      <strong>${escapeHtml(g.termino)}${g.en && normalizeSearch(g.en) !== normalizeSearch(g.termino) ? ` <span class="glosario-en" lang="en">${escapeHtml(g.en)}</span>` : ''}</strong>
+      <span class="glosario-hoy-def">${escapeHtml(g.def)}${g.ejemplo ? ` <i>«${escapeHtml(g.ejemplo)}»</i>` : ''}</span>
+    </span>
+    <span class="glosario-hoy-carta" aria-hidden="true">${artePokemonHtml(pokemonDe(g.id), 'glosario-hoy-arte')}</span>
+  </a>`
+}
+
 if (typeof document !== 'undefined' && document.getElementById('glosarioLista')) {
   const lista = document.getElementById('glosarioLista')
   pintarGlosario(lista)
+  const poner = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = String(n) }
+  poner('glosarioNTerminos', GLOSARIO.length)
+  poner('glosarioNLetras', new Set(GLOSARIO.map((g) => letraDe(g.termino))).size)
+  void pintarHoy(document.getElementById('glosarioHoy')).catch(() => {})
   if (document.getElementById('glosarioLetras')) pintarMandos(document.getElementById('glosarioMandos'), lista, { letras: document.getElementById('glosarioLetras'), buscar: document.getElementById('glosarioBuscar') })
 }

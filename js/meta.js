@@ -3,7 +3,7 @@
 // programada meta-limitless. Cada fila lleva a la ficha del arquetipo.
 import { escapeHtml } from './html.js'
 import { resumen, totales, tiposDeArquetipos, tiposDeEspecies, TIPOS_CON_BARRA } from './meta/datos.js'
-import { iconosHtml, periodoHtml, engancharPeriodo, fuenteHtml, engancharFuente, haceCuanto } from './meta/pintar.js'
+import { iconoHtml, iconosHtml, periodoHtml, engancharPeriodo, fuenteHtml, engancharFuente, haceCuanto } from './meta/pintar.js'
 import { claveDeVista, pintarUltimaVista, guardarVista, tomarPartes, visiblesDe, vistaAlDia } from './ultima-vista.js'
 import {
   periodoDe,
@@ -70,6 +70,19 @@ function filaHtml(f, i, maximo) {
     </li>`
 }
 
+// La banda (1221): las listas y los torneos del periodo, los días, y los tres
+// primeros mazos en abanico (su primer Pokémon, sobre una carta de color).
+function pintarBanda(t) {
+  const listas = filas.reduce((n, f) => n + (Number(f.mazos) || 0), 0)
+  $('metaNListas').textContent = t?.torneos ? entero(listas) : '—'
+  $('metaNTorneos').textContent = t?.torneos ? entero(t.torneos) : '—'
+  $('metaNDias').textContent = `${dias} d`
+  const tres = filas.filter((f) => f.arquetipo !== ARQUETIPO_OTROS && (f.iconos || [])[0]).slice(0, 3)
+  $('metaAbanico').innerHTML = t?.torneos && tres.length === 3
+    ? `<span class="banda-s-abanico meta-abanico">${tres.map((f, i) => `<span class="meta-abanico-carta meta-abanico-${i + 1}">${iconoHtml(f.iconos[0])}</span>`).join('')}</span>`
+    : ''
+}
+
 function pintar() {
   const lista = filas.filter((f) => f.arquetipo !== ARQUETIPO_OTROS)
   const otros = filas.find((f) => f.arquetipo === ARQUETIPO_OTROS)
@@ -125,6 +138,7 @@ async function cargar() {
         }
       }
       $('metaTotales').textContent = ''
+      pintarBanda(null)
       $('metaRanking').innerHTML = ''
       $('metaRanking').classList.add('meta-ranking-vacio')
       $('metaCabeceraTabla').classList.add('hidden')
@@ -151,6 +165,7 @@ async function cargar() {
     $('metaTotales').textContent = `${entero(t.torneos)} torneos${partes.length > 1 ? ` (${partes.join(', ')})` : ''} · ${entero(t.jugadores)} jugadores · actualizado ${haceCuanto(t.ultima_lectura)}`
     // El de la especie, ya; el de las cartas, cuando llegue (748).
     tipos = tiposDeEspecies(filas)
+    pintarBanda(t)
     pintar()
     guardar()
     tiposDeArquetipos(filas)

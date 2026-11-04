@@ -1405,13 +1405,17 @@
                sin ningún error, solo una pantalla vacía. Desde la 450 sí
                sabe, y por eso vuelven a estar. -->
           <p class="mc-vacio-buscar-texto">
-            Busca cualquier carta del catálogo por su <strong>nombre</strong> (en español o en
-            inglés), por su <strong>número</strong> o por su <strong>ilustrador</strong>. Prueba con
-            <button type="button" class="mc-sugerencia" data-sugerencia="Charizard">Charizard</button>,
-            <button type="button" class="mc-sugerencia" data-sugerencia="Mewtwo 64">Mewtwo 64</button> o
-            <button type="button" class="mc-sugerencia" data-sugerencia="Mitsuhiro Arita">Mitsuhiro Arita</button>.
-            Y también como viene abajo en la carta: <strong>151/165</strong> o <strong>MEW 151</strong>.
+            <span class="sr-only">Busca cualquier carta del catálogo por su nombre (en español o en inglés), por su número o por su ilustrador.</span>
+            <span class="mc-antes-prueba">Prueba con</span>
+            <button type="button" class="mc-sugerencia" data-sugerencia="Charizard">Charizard</button>
+            <button type="button" class="mc-sugerencia" data-sugerencia="Mewtwo 64">Mewtwo 64</button>
+            <button type="button" class="mc-sugerencia" data-sugerencia="Mitsuhiro Arita">Mitsuhiro Arita</button>
+            <button type="button" class="mc-sugerencia" data-sugerencia="151/165">151/165</button>
+            <button type="button" class="mc-sugerencia" data-sugerencia="MEW 151">MEW 151</button>
           </p>
+          <!-- Lo último que buscaste y los sets de ahora (1217): los pinta
+               js/mi-coleccion/buscar-recientes.js. -->
+          <div id="mcBuscarAntes"></div>
         </div>
 
         <div class="mc-resultados" id="mcBuscarResultados"></div>

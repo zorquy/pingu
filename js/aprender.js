@@ -1,9 +1,10 @@
 import { supabase } from './supabase.js'
 import { conVueltaAtrasDeTipo } from './articulos.js'
-import { escapeHtml, getSession, tintClassForKey, categoryIconHtml } from './app.js'
+import { escapeHtml, getSession, tintClassForKey, categoryIconHtml, arteDe } from './app.js'
 import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 import { guideHasCourse } from './guia-contenido.js'
-import { tarjetaDeGuia } from './guia-tarjeta.js'
+import { tarjetaDeGuia, avanceDeGuia } from './guia-tarjeta.js'
+import { portadaDeGuia, artePokemonHtml, pokemonDe } from './guia-portada.js'
 import { icons } from './icons.js'
 // El lápiz de «Escribir una guía» (1015, L10): en el móvil el botón es solo él.
 for (const el of document.querySelectorAll('.ap-escribir [data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(16) || ''
@@ -152,7 +153,6 @@ async function loadCategories(session) {
   const poner = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = String(n) }
   poner('apNGuias', guias.length)
   poner('apNCursos', guias.filter((g) => guideHasCourse(g)).length)
-  poner('apNTemas', new Set(guias.map((g) => g.category_id).filter(Boolean)).size)
 
   const progreso = {}
   if (session) {
@@ -161,6 +161,9 @@ async function loadCategories(session) {
       .select('guide_id, status, read_at, current_block, started_at')
       .eq('user_id', session.user.id)
     for (const f of filas || []) progreso[f.guide_id] = f
+    // Las que llevas a medias (1217, la maqueta): solo con sesión.
+    poner('apNEmpezadas', guias.filter((g) => { const a = avanceDeGuia(g, progreso); return a > 0 && a < 100 }).length)
+    document.getElementById('apEmpezadasCifra')?.removeAttribute('hidden')
   }
 
   // UN TEMA (863): /aprender?tema=<slug> es la página del tema, a la que
@@ -207,7 +210,7 @@ async function loadCategories(session) {
     const [primera, ...resto] = ordenConDestacada(visibles, seguidaId, Boolean(q))
     caja.lista.innerHTML = movil.matches
       ? `${tarjetaDeGuia(primera, { progreso, tema: temaDe.get(primera.category_id) || null })}${resto.length ? `<div class="ap-filas">${resto.map((g) => filaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>` : ''}`
-      : `<div class="guia-rejilla ap-rejilla en-cascada">${visibles.map((g) => tarjetaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>`
+      : `<div class="ap-portadas en-cascada">${[primera, ...resto].map((g) => portadaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>`
   }
 
   // Ordenar: «Más útiles» pide a cuántos les ha servido cada una (una
@@ -249,6 +252,8 @@ async function loadCategories(session) {
 // rejilla. Las cuentas salen de las guías ya cargadas: ninguna consulta
 // más. Un tema sin guías publicadas no sale: una baldosa vacía es la caja
 // de «0 de 2» que la 299 quitó.
+// Los temas (1217): baldosas de su color con un Pokémon a la derecha.
+const POKEMON_DE_TEMA = { empezar: 133, principiante: 133, competitivo: 448, coleccionar: 384, coleccionismo: 384 }
 function temasHtml(categorias, guias, progreso, session) {
   const n = (x, uno, varios) => `${x} ${x === 1 ? uno : varios}`
   const baldosas = categorias.map((c) => {
@@ -257,8 +262,9 @@ function temasHtml(categorias, guias, progreso, session) {
     const cursos = suyas.filter((g) => guideHasCourse(g)).length
     const leidas = suyas.filter((g) => leida(g, progreso)).length
     const sub = `${n(suyas.length, 'guía', 'guías')}${cursos ? ` · ${n(cursos, 'curso', 'cursos')}` : ''}`
-    return `<a class="ap-baldosa ap-baldosa-${tintClassForKey(c.id)}" href="/aprender?tema=${encodeURIComponent(c.slug)}" aria-label="${escapeHtml(`${c.name}: ${sub}${session ? `, ${leidas} leídas` : ''}`)}">
+    return `<a class="ap-baldosa ap-baldosa-${tintClassForKey(c.id)} arte-${arteDe(c.slug || c.id)}" href="/aprender?tema=${encodeURIComponent(c.slug)}" aria-label="${escapeHtml(`${c.name}: ${sub}${session ? `, ${leidas} leídas` : ''}`)}">
       <span class="ap-baldosa-icono ${tintClassForKey(c.id)}">${categoryIconHtml(c, 18)}</span>
+      ${artePokemonHtml(POKEMON_DE_TEMA[c.slug] || pokemonDe(c.slug || c.id), 'ap-baldosa-arte')}
       <span class="ap-baldosa-texto">
         <span class="ap-baldosa-nombre">${escapeHtml(c.name)}</span>
         <span class="ap-baldosa-sub">${escapeHtml(sub)}</span>
@@ -366,7 +372,9 @@ function pintarTema({ tema, guias, progreso, session, list }) {
     if (orden === 'utiles' && servidoDe) return [...lista].sort((a, b) => (servidoDe[b.id] || 0) - (servidoDe[a.id] || 0))
     return lista
   }
-  list.querySelector('.ap-orden').addEventListener('click', async (e) => {
+  // El tema va en el orden del temario y no lleva «Ordenar» (1221: sin el
+  // `?.`, /aprender?tema= se paraba aquí con un TypeError desde la 1215).
+  list.querySelector('.ap-orden')?.addEventListener('click', async (e) => {
     const b = e.target.closest('[data-ap-orden]')
     if (!b) return
     orden = b.dataset.apOrden

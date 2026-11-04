@@ -17,17 +17,14 @@ import { urlParaCss } from './html.js'
 import { icons } from './icons.js'
 import { faltaElTipo, rutaDeArticulo, cuandoFue, fechaMaquina } from './articulos.js'
 import { urlDeLogo } from './carta-ruta.js'
-import { tarjetasPorGrupo as porGrupos, cuentasDeNoticias } from './noticias-grupos.js'
+import { tarjetasPorGrupo as porGrupos, cuentasDeNoticias, grupoSemanaOAntes, POR_PAGINA, paginaDeDireccion, paginasDe } from './noticias-grupos.js'
+import { paginacionHtml } from './paginacion.js'
 
-// Cuántas se piden de golpe. La primera es el titular grande, así que se
-// piden de doce en doce: una arriba y once en la rejilla, que llena tres
-// filas de cuatro y dos de seis sin dejar un hueco raro.
-const POR_TANDA = 12
 
 const enlaceDeNoticia = (slug) => rutaDeArticulo('news', slug)
 
 // Por semanas (1152, D1): `js/noticias-grupos.js`.
-const tarjetasPorGrupo = (lista, anterior) => porGrupos(lista, anterior, tarjetaHtml)
+const tarjetasPorGrupo = (lista, anterior) => porGrupos(lista, anterior, tarjetaHtml, new Date(), grupoSemanaOAntes)
 
 // LA NOTICIA DE UN SET, CON SU LOGO (787, SI4). Las que no traen portada y
 // nombran un set de los dos últimos años llevan su logo en grande. Se casa
@@ -94,30 +91,28 @@ function titularHtml(n) {
   </a>`
 }
 
-// Se pide UNA MÁS de las que se van a pintar. Es la forma de saber si
-// queda alguna sin tener que contar la tabla entera en cada carga.
-// El tema elegido en los chips de arriba (1216); null es «Todas».
+// Una página (1217): doce, con la cuenta de cuántas hay para saber cuántas
+// páginas salen. El tema elegido en los chips de arriba (1216); null es «Todas».
 let temaElegido = null
-async function pedir(desde) {
+async function pedir(pagina) {
   let q = supabase
     .from('guides')
-    .select('id, slug, title, description, cover_image, published_at')
+    .select('id, slug, title, description, cover_image, published_at', { count: 'exact' })
     .eq('kind', 'news')
     .not('published_at', 'is', null)
     .order('published_at', { ascending: false })
-    .limit(POR_TANDA + 1)
-  if (desde) q = q.lt('published_at', desde)
+    .range((pagina - 1) * POR_PAGINA, pagina * POR_PAGINA - 1)
   if (temaElegido) q = q.eq('category_id', temaElegido)
-  const { data, error } = await q
+  const { data, error, count } = await q
   // Mientras la migración no esté puesta, `kind` no existe y esto falla.
   // No es un error que enseñarle a nadie: es que todavía no hay noticias.
   if (faltaElTipo(error)) {
     console.warn('[noticias] Falta la columna `kind`. Ejecuta supabase-migration-noticias.sql en Supabase.')
-    return { noticias: [], hayMas: false, error: null }
+    return { noticias: [], total: 0, error: null }
   }
-  if (error) return { noticias: [], hayMas: false, error }
-  const hayMas = (data?.length || 0) > POR_TANDA
-  return { noticias: (data || []).slice(0, POR_TANDA), hayMas, error: null }
+  if (error) return { noticias: [], total: 0, error }
+  const noticias = (data || []).slice(0, POR_PAGINA)
+  return { noticias, total: Number.isFinite(count) ? count : noticias.length, error: null }
 }
 
 // El botón de escribir, para administración y para quien redacta
@@ -168,6 +163,12 @@ async function pintarTemas() {
   const html = chipsDeTemas(data, temaElegido)
   caja.innerHTML = html
   caja.hidden = !html
+  // En el PC los chips van en la banda, a la derecha (1217, la maqueta); en
+  // el móvil, sin banda, encima de la última. Se MUEVE el elemento (893).
+  const cabecera = document.querySelector('.noticias-cabecera')
+  if (html && cabecera && !document.documentElement.classList.contains('con-barra-movil') && caja.parentElement !== cabecera) {
+    cabecera.insertBefore(caja, document.getElementById('noticiasEscribir'))
+  }
   if (caja.dataset.enganchado) return
   caja.dataset.enganchado = '1'
   caja.addEventListener('click', (e) => {
@@ -175,10 +176,13 @@ async function pintarTemas() {
     if (!b) return
     temaElegido = b.dataset.tema || null
     for (const x of caja.querySelectorAll('[data-tema]')) x.setAttribute('aria-pressed', String(x === b))
+    // Otro tema empieza en su primera página.
+    if (pagina !== 1) return irAPagina(1)
     pintarNoticias({ sinCache: true })
   })
 }
 
+let pagina = paginaDeDireccion(location.search)
 export async function pintarNoticias({ sinCache = false } = {}) {
   const titular = document.getElementById('noticiaTitular')
   const rejilla = document.getElementById('noticiasRejilla')
@@ -188,9 +192,14 @@ export async function pintarNoticias({ sinCache = false } = {}) {
   // Las de la última vez, ya (894). Y la rejilla deja de ser la silueta
   // (`aria-hidden`) en cuanto lleva noticias de verdad, de la caché o de
   // ahora: antes se quedaba escondida para quien escucha.
-  const clave = claveDeVista(temaElegido ? `noticias-${temaElegido}` : 'noticias')
+  const clave = claveDeVista(`noticias${temaElegido ? `-${temaElegido}` : ''}${pagina > 1 ? `-p${pagina}` : ''}`)
   if (!sinCache && pintarUltimaVista(clave)) rejilla.removeAttribute('aria-hidden')
-  const [{ noticias, hayMas, error }] = await Promise.all([pedir(null), cargarSetsConLogo().catch(() => {})])
+  let [{ noticias, total, error }] = await Promise.all([pedir(pagina), cargarSetsConLogo().catch(() => {})])
+  // Una página que ya no existe (se publicó menos, o un enlace viejo): la última.
+  if (!error && !noticias.length && pagina > 1 && total) {
+    pagina = paginasDe(total)
+    ;({ noticias, total, error } = await pedir(pagina))
+  }
   vistaAlDia()
   if (error) {
     rejilla.innerHTML = `<p class="empty-state">No se han podido cargar las noticias. Vuelve a intentarlo en un momento.</p>`
@@ -198,6 +207,7 @@ export async function pintarNoticias({ sinCache = false } = {}) {
   }
   if (noticias.length === 0) {
     titular.innerHTML = ''
+    masCaja.innerHTML = ''
     for (const id of ['noticiasNSemana', 'noticiasNMes']) { const el = document.getElementById(id); if (el) el.textContent = '0' }
     rejilla.innerHTML = `<p class="empty-state">Todavía no hay noticias publicadas. Vuelve pronto.</p>`
     rejilla.removeAttribute('aria-hidden')
@@ -205,44 +215,46 @@ export async function pintarNoticias({ sinCache = false } = {}) {
     return
   }
 
-  const [primera, ...resto] = noticias
-  titular.innerHTML = titularHtml(primera)
-  const cuentas = cuentasDeNoticias(noticias, hayMas)
-  for (const [id, n] of [['noticiasNSemana', cuentas.semana], ['noticiasNMes', cuentas.mes]]) {
-    const el = document.getElementById(id)
-    if (el) el.textContent = n
+  // En la primera, la última en grande; en las demás, todo en filas.
+  const [primera, ...resto] = pagina === 1 ? noticias : [null, ...noticias]
+  titular.innerHTML = primera ? titularHtml(primera) : ''
+  if (pagina === 1) {
+    const cuentas = cuentasDeNoticias(noticias, total > noticias.length)
+    for (const [id, n] of [['noticiasNSemana', cuentas.semana], ['noticiasNMes', cuentas.mes]]) {
+      const el = document.getElementById(id)
+      if (el) el.textContent = n
+    }
   }
   // La rejilla empieza siempre con su rótulo, aunque sea de la misma
   // semana que el titular: dice dónde empieza la lista.
-  let grupo = null
-  const primeros = tarjetasPorGrupo(resto, grupo)
-  grupo = primeros.ultimo
-  rejilla.innerHTML = primeros.html
+  rejilla.innerHTML = tarjetasPorGrupo(resto, null).html
   rejilla.removeAttribute('aria-hidden')
   guardarVista(clave, tomarPartes(['noticiaTitular', 'noticiasRejilla']))
-
-  let ultima = noticias[noticias.length - 1]?.published_at || null
-  let quedan = hayMas
-  const pintarBoton = () => {
-    masCaja.innerHTML = quedan
-      ? `<button class="btn btn-secondary" id="btnMasNoticias">Ver más noticias</button>`
-      : ''
-    const btn = document.getElementById('btnMasNoticias')
-    if (!btn) return
-    btn.addEventListener('click', async () => {
-      btn.disabled = true
-      btn.textContent = 'Cargando…'
-      const siguiente = await pedir(ultima)
-      const mas = tarjetasPorGrupo(siguiente.noticias, grupo)
-      grupo = mas.ultimo
-      rejilla.insertAdjacentHTML('beforeend', mas.html)
-      ultima = siguiente.noticias[siguiente.noticias.length - 1]?.published_at || ultima
-      quedan = siguiente.hayMas
-      pintarBoton()
+  masCaja.innerHTML = paginacionHtml(pagina, paginasDe(total))
+  if (!masCaja.dataset.enganchado) {
+    masCaja.dataset.enganchado = '1'
+    masCaja.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-pagina]')
+      if (!b) return
+      irAPagina(Number(b.dataset.pagina))
     })
   }
-  pintarBoton()
 }
+
+// Cambiar de página pone `?p=` en la dirección (sin recargar) y sube arriba.
+function irAPagina(n) {
+  pagina = Math.max(1, n)
+  const url = new URL(location.href)
+  if (pagina > 1) url.searchParams.set('p', String(pagina))
+  else url.searchParams.delete('p')
+  history.pushState(null, '', url)
+  window.scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' })
+  void pintarNoticias({ sinCache: true })
+}
+window.addEventListener('popstate', () => {
+  pagina = paginaDeDireccion(location.search)
+  void pintarNoticias({ sinCache: true })
+})
 
 pintarNoticias()
 pintarTemas()

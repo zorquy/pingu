@@ -1,6 +1,7 @@
-// Las cifras de una banda CUENTAN al aparecer (1214, la segunda de las cuatro
-// animaciones de la portada en el resto de la web): un número grande de
-// `.banda-s-cifra b` sube de 0 a su valor en 0,6 s. Vigila la página con un
+// Las cifras de una banda SE CALCULAN al aparecer (1214; desde la 1217, PINGU:
+// «que vayan como calculándose y al final aparezca el número final»): los
+// dígitos de un número grande de `.banda-s-cifra b` dan vueltas y se fijan,
+// con `calcularCifra` de js/contar.js (la misma del Panel y la portada). Vigila la página con un
 // MutationObserver, así que vale para las bandas del HTML (cuyas cifras pone
 // el JS de cada página, que nacen con guion) y para las que se pintan después
 // (Cruces). Con «menos movimiento», nada: la cifra sale ya puesta.
@@ -18,6 +19,8 @@ export function partesDeCifra(texto) {
 // cuando ya no se puede saber quién fue): mientras cuenta, la cifra lleva
 // `data-contando`, y si alguien escribe otro valor en medio, la cuenta lo
 // nota (no es lo último que puso ella) y vuelve a empezar hacia el nuevo.
+let calcularCifra = null
+const listo = import('./contar.js').then((m) => { calcularCifra = m.calcularCifra })
 function contar(b) {
   const p = partesDeCifra(b.textContent)
   if (!p || p.n < 2 || b.dataset.contada === b.textContent) return
@@ -25,21 +28,14 @@ function contar(b) {
   b.dataset.contada = final
   if (reducir) return
   b.dataset.contando = '1'
-  let puesto = null
-  const inicio = performance.now()
-  const paso = (t) => {
-    if (puesto !== null && b.textContent !== puesto) {
-      delete b.dataset.contando
-      return contar(b)
-    }
-    const k = Math.min(1, (t - inicio) / 600)
-    const v = Math.round(p.n * (1 - Math.pow(1 - k, 3)))
-    puesto = k < 1 ? (p.miles ? v.toLocaleString('es-ES') : String(v)) : final
-    b.textContent = puesto
-    if (k < 1) requestAnimationFrame(paso)
-    else delete b.dataset.contando
+  const ir = () => {
+    calcularCifra(b, final)
+    // Lo que escribe la propia vuelta lo ve el observador: mientras dura,
+    // `data-contando` le dice que no empiece otra.
+    setTimeout(() => { delete b.dataset.contando }, 1150)
   }
-  requestAnimationFrame(paso)
+  if (calcularCifra) ir()
+  else void listo.then(ir, () => { delete b.dataset.contando })
 }
 
 function repasar(raiz) {

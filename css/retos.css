@@ -810,3 +810,35 @@
   .rt-anillo b { font-size: var(--t-lg); }
   .rt-anillo b small { font-size: var(--t-2xs); }
 }
+
+/* ── 1217: como la maqueta (SCHEMA 1217) ──
+   La banda con tres cifras (XP de hoy, racha y puesto) en vez de la píldora;
+   cada reto con su chapa de XP a la derecha del nombre y, hecho, un ✓ grande
+   sobre su dibujo. */
+.rt-cabecera .rt-cifras { margin-top: var(--e-sm); }
+.rt-cabecera .rt-cifras .banda-s-cifra b { font-variant-numeric: tabular-nums; }
+.rt-cuerpo { position: relative; padding-right: 72px; }
+.rt-xp-chapa {
+  position: absolute;
+  top: 50%;
+  right: var(--e-md);
+  transform: translateY(-50%);
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--success) 16%, transparent);
+  color: var(--success);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+.rt-reto .rt-arte { position: relative; }
+.rt-reto:has(.rt-sello.ok) .rt-arte::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgb(11 18 25 / 30%) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E") center / 56px no-repeat;
+}
+@media (max-width: 599px) {
+  .rt-cuerpo { padding-right: 64px; }
+  .rt-xp-chapa { right: var(--e-sm); font-size: var(--t-2xs); }
+}

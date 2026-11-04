@@ -53852,3 +53852,104 @@ punto, no contra el resumen de lo que creo que hice.**
 Comprobado y ya estaba: Retos con ✓ y la XP de cada uno, la liga al lado y
 el puesto; Aprender con la primera a doble ancho; Novedades; Meta con sus
 barras que crecen; el Mercado con las caras encima de cada carta.
+
+## Tandas 1217–1221 — Toda la web como la portada (la propuesta página a página)
+
+PINGU repasó la propuesta «La web como la portada» página a página y la
+aprobó con cambios («házmelo todo, no pares hasta hacerlo todo»). Lo que se
+hizo, por tanda, y lo que quedó distinto de la maqueta (con su porqué).
+
+### 1217 — Deseos y cambios
+- **Tratos en Cruces** (PINGU: «no quiero que se deslice… pon Todos,
+  Perfectos y una pestaña que ponga En curso»): los chips de Cruces son
+  `Todos · Perfectos · En curso`; «Gente que sigo» se fue. `#mcMisCambios`
+  se muda a `[data-curso-sitio]` y se pinta con `pintarMisCambios(caja,
+  { tarjetas: true })`: cada trato es un `details.cp-trato` con quién, el
+  tipo (Venta/Compra/Cambio), Das/Recibes, la barra de pasos (`pasosDe`) y la
+  tarjeta entera dentro; «Los anteriores», plegados. Un `#oferta-<id>` abre
+  En curso y ese trato (`abrirPedida` en cada repintado, que el repintado lo
+  cerraba). Las pruebas de tratos abren En curso con `abrirEnCurso(page)`.
+- **La banda, solo en el PC** en las cuatro pestañas (PINGU: «en el móvil
+  quítala, ya te lo dice arriba»): `html.con-barra-movil #mcCambiosPanel
+  .banda-s { display: none }`. La Quiero y Las que doy llevan banda propia
+  (`js/mi-coleccion/banda-deseos.js`, con sus fotos en abanico); el Mercado,
+  chips Todo / Lo que busco / Personas / Tiendas (`pintarMandos`).
+- Distinto de la maqueta: La quiero sigue con su desplegable de listas (no
+  chips): las listas son de cada uno y pueden ser muchas.
+
+### 1218 — Inicio
+- **Noticias por páginas** (`POR_PAGINA = 12`, `?pagina=N`, `paginacionHtml`
+  abajo; la de la 995 «arriba y abajo» es la del foro, aquí PINGU pidió solo
+  abajo). Los chips de tema van en la banda en el PC.
+- **Lanzamientos**: el próximo set es un cartel (`.lanz-cartel`: la fecha,
+  el logo, el reloj y los sobres de `lanzamientos-productos.js`, que ya no
+  pinta su sección aparte); los siguientes, filas compactas.
+- **Novedades**: cada destacada es una portada con su Pokémon (`pokemonDe`:
+  el `pokemon` de la entrada o uno elegido por el título) y las semanas, una
+  línea de tiempo (`.nv-semana-lineas`).
+
+### 1219 — Aprender
+- **La portada de una guía es UNA** (`js/guia-portada.js` + su hoja
+  `css/guia-portada.css`): /aprender (PC) y /guardados la usan. El dibujo del
+  Pokémon vive en `js/arte-pokemon.js` (`pokemonDe`, `artePokemonHtml`), que
+  importan también el Glosario y Novedades: quien solo quiere el dibujo no
+  arrastra las clases de la portada (la 299 lo cuenta).
+- Retos: «Retos de hoy», la XP de hoy y la racha como cifras y la chapa de
+  XP en cada reto. Guardados: portadas en el PC y los chips en la banda.
+  Glosario: la palabra del día (`palabraDelDia`) y las cifras.
+
+### 1220 — Colección
+- **Las cifras se calculan** (PINGU: «que vayan como calculándose y al final
+  aparezca el número final»): `calcularCifra(el, final)` en `js/contar.js`
+  (los dígitos dan vueltas y se fijan de izquierda a derecha);
+  `cifras-cuentan.js` la usa en todas las bandas. **La gráfica se dibuja de
+  izquierda a derecha** (`.mc-valor-lienzo[data-dibujando]`, un `clip-path`).
+  Las cuentas de cartas · distintas · expansiones siguen pequeñas (PINGU).
+- Pokédex: banda en el PC con especies, de la región y las que faltan, y lo
+  que falta sale como sombra con «???»; en el móvil, la estructura de antes
+  (PINGU: «está muy bien»). Álbumes: banda (pequeña en el móvil). Productos:
+  banda (solo PC). Buscar: antes de escribir, tus búsquedas recientes
+  (`pd-buscar-recientes`, `js/mi-coleccion/buscar-recientes.js`), los sets de
+  ahora y «Prueba con». Expansiones no se tocó (PINGU: «yo no las tocaría»).
+
+### 1221 — Comunidad, Jugar y Avisos
+- **Foro sin «Lo que se está hablando»** (PINGU: «ya tienes a la derecha lo
+  de lo último, y te quita mucho espacio vertical»): fuera la franja y su
+  CSS; `loUltimo()` solo calcula «Lo último». En el PC la cabecera del
+  índice es la banda de Comunidad (`ponerBandaDelForo`: temas y mensajes de
+  los foros que se ven y «por aquí hoy», con el buscador y «Escribir un
+  tema» dentro) y cada foro lleva su icono de color (`data-tono`) y
+  «N temas · M». En el móvil, la fila de mandos de siempre, y «Lo último» al
+  final (la lateral no se ve ahí).
+- **Mensajes**: chips Todas / Sin leer / Tratos / Tiendas encima de la lista
+  (`FILTROS_DE_MENSAJES`; «Tratos» es una conversación por la que ha pasado
+  una propuesta, `conTrato` en `listConversations`, que ya trae los mensajes;
+  «Tiendas», el `tipo` del perfil). La cabecera de una conversación dice
+  «tiene N cartas que buscas» (el cruce deja `data-te-da`) y lleva
+  «Proponer cambio» (`abrirPropuesta`); la tira de la caja ya no lo repite
+  (`pintarPropuestasCon(…, { sinProponer: true })`).
+- **Torneos**: la tarjeta sin el recuadro del día (va en la chapa: «17 nov ·
+  12:14»), el dibujo arriba más alto con los sprites grandes y «Ver» como
+  botón para lo que solo lleva a la ficha (con lo largo en `aria-label`).
+  Distinto de la maqueta: «Crear un torneo» sigue en la banda.
+- **Meta**: banda con listas, torneos y el periodo y los tres primeros mazos
+  en abanico; la fuente a la izquierda y el periodo a la derecha.
+- **Mis mazos**: cada mazo con sus dos Pokémon en grande
+  (`js/sprites-de-mazo.js`: `spritesDeMazoGuardado`, de su lista como el
+  arquetipo de Mis partidas) sobre su color, con la portada elegida (413)
+  detrás y apagada; banda con mazos, el récord del que más juegas y las
+  cartas que te faltan; un hueco «+ Nuevo mazo» al final.
+- **Laboratorio**: banda con las tres formas de empezar y el abanico del
+  meta; las tres tarjetas iguales, cada mazo con sus sprites, y «Lo que
+  puedes hacer dentro» al final.
+- **Repeticiones**: banda con guardadas y compartidas; tus repeticiones en
+  tarjetas con los dos mazos (`spritesDeNombreDeMazo`) y quién ganó.
+  Distinto de la maqueta: «Victoria/Derrota» no, porque la fila no guarda
+  quién eras tú; se dice «Gana X».
+- **Avisos**: banda con sin leer y esta semana, y cada aviso con el icono de
+  su sección en su color (`vestirFilas`, después de pintar la fila de la
+  campana: la campana no cambia).
+
+Las bandas que el móvil no enseña se neutralizan en la propia hoja
+(`.x.banda-s` en `@media (max-width: 900px)`), con la especificidad de la
+clase doble porque `seccion.css` carga después.

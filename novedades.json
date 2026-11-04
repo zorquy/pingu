@@ -36,6 +36,60 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "Tus tratos en marcha están ahora en Cruces → «En curso», en tarjetas que dicen en qué paso va cada uno.",
+      "enlace": "/mi-coleccion?ver=cambios"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Al abrir el Panel de tu colección, las cifras se van calculando y la gráfica se dibuja de izquierda a derecha.",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Noticias por páginas, el próximo set en un cartel con su cuenta atrás en Lanzamientos y las destacadas de Novedades como portadas con su Pokémon.",
+      "enlace": "/noticias"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Las guías, en portadas con su Pokémon, y en el Glosario, la palabra del día.",
+      "enlace": "/aprender"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "En Buscar, antes de escribir, tus búsquedas recientes y ejemplos para probar; en la Pokédex del ordenador, lo que te falta sale en sombra.",
+      "enlace": "/mi-coleccion?ver=buscar"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "El foro, sin «Lo que se está hablando»: más sitio para los foros, cada uno con su icono de color, y «Lo último» al lado.",
+      "enlace": "/foro"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Mensajes con filtros (Sin leer, Tratos, Tiendas) y «Proponer cambio» arriba de cada conversación, con cuántas cartas tiene que buscas.",
+      "enlace": "/mensajes"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Torneos, Meta, Mis mazos, Laboratorio y Repeticiones con su banda y los Pokémon de cada mazo en grande.",
+      "enlace": "/mazos"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "En Avisos, cada aviso lleva el icono de su sección en su color, y arriba cuántos tienes sin leer.",
+      "enlace": "/avisos"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "Guardados también enseña los temas del foro que sigues, y en Noticias puedes filtrar por tema.",
       "enlace": "/guardados"
     },

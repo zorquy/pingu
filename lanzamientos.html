@@ -135,7 +135,7 @@
     <section class="banda-s cabecera-pagina lanz-banda">
       <div class="banda-s-texto">
         <span class="banda-s-ceja">Lo que viene</span>
-        <h1>Calendario de lanzamientos</h1>
+        <h1><span class="cab-bloque-ico lanz-h1-ico" data-icono="calendar" aria-hidden="true"></span>Lanzamientos</h1>
         <p class="banda-s-lema cab-lema">La fecha de salida de cada expansión, con cuenta atrás para la siguiente.</p>
         <div class="banda-s-cifras">
           <span class="banda-s-cifra"><b id="lanzNProximos">—</b><small>por salir</small></span>
@@ -159,17 +159,18 @@
 
     <p id="lanzamientosCargando" class="subtext">Cargando el calendario…</p>
 
-    <!-- El siguiente set, en grande y con su cuenta atrás. Lo pinta
-         js/lanzamientos.js; sin sets futuros, no sale. -->
-    <div id="proximoDestacado" class="hidden"></div>
-
-    <section id="seccionProximos" class="hidden">
-      <h2 class="section-title"><span class="cab-bloque-ico" data-icono="calendar" aria-hidden="true"></span>Lo que viene</h2>
-      <div id="listaProximos" class="lanzamientos-lista"></div>
-    </section>
+    <!-- El siguiente set, en un cartel con su cuenta atrás, y AL LADO lo que
+         viene (1217, la maqueta). Lo pinta js/lanzamientos.js. -->
+    <div class="lanz-arriba">
+      <div id="proximoDestacado" class="hidden"></div>
+      <section id="seccionProximos" class="hidden">
+        <h2 class="section-title lanz-sub">Lo que viene</h2>
+        <div id="listaProximos" class="lanzamientos-lista"></div>
+      </section>
+    </div>
 
     <section id="seccionPasados" class="hidden">
-      <h2 class="section-title"><span class="cab-bloque-ico" data-icono="package" aria-hidden="true"></span>Ya en tiendas <span class="lanz-cuantos" id="cuantosPasados"></span></h2>
+      <h2 class="section-title lanz-sub">Ya en tiendas <span class="lanz-cuantos" id="cuantosPasados"></span></h2>
       <div id="listaPasados" class="lanz-filas"></div>
     </section>
 

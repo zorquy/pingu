@@ -33,6 +33,7 @@ import * as listasDeseo from './listas-deseo.js'
 import { listaLocalHtml, catalogoDe, elegirCatalogo, catalogoDelClic } from './tramos.js'
 import { hojaInyectada } from '../hoja.js'
 import { bandaSeccionHtml, abanicoHtml } from '../banda-seccion.js'
+import { bandaDeDeseosHtml, miles } from './banda-deseos.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -112,18 +113,11 @@ export async function abrirCambios() {
 }
 
 // LOS CRUCES (773): una tarjeta por persona con lo que te da y lo que le
-// das, lado a lado y con lo que vale cada lado. Filtros: todos, solo los
-// perfectos y la gente que sigues (con quien más fácil sale un cambio).
-let crucesFiltro = 'todos'
-let seguidosIds = null // Set de a quién sigues · null = no se sabe
-async function pedirSeguidos() {
-  if (seguidosIds || !ctx.sesion) return seguidosIds
-  // sin rango: solo se piden ids, para filtrar.
-  const { data, error } = await supabase.from('user_follows').select('following_id').eq('follower_id', ctx.sesion.user.id).limit(2000)
-  if (!error) seguidosIds = new Set((data || []).map((f) => f.following_id))
-  return seguidosIds
-}
-
+// das, lado a lado y con lo que vale cada lado. Filtros (1217, PINGU): Todos,
+// Perfectos y En curso, que son los tratos que llevas (antes iban encima de
+// los cruces; «Gente que sigo» se fue). Llegar con `#oferta-<id>` abre «En
+// curso».
+let crucesFiltro = location.hash.startsWith('#oferta-') ? 'curso' : 'todos'
 async function pintarCambios() {
   const caja = $('mcCambiosPanel')
   const doy = ctx.loQueDoy()
@@ -148,14 +142,21 @@ async function pintarCambios() {
   if (faltan.length) await completarCartasDeFuera(faltan, ctx.mercado)
   const precios = [...new Set([...tiene, ...busca].map((f) => f.card_id))].filter((id) => !ctx.guardados.has(id))
   if (precios.length) for (const [k, v] of await datos.preciosGuardados(precios).catch(() => new Map())) ponerPrecio(k, v)
-  const [seguidos] = await Promise.all([pedirSeguidos().catch(() => null), hojaInyectada('css/seccion.css').catch(() => {})])
+  await hojaInyectada('css/seccion.css').catch(() => {})
   // Las cifras de la banda cuentan (1214); en las demás páginas lo pide app.js.
   import('../cifras-cuentan.js').catch(() => {})
   const vacio = !doy.length && !ctx.deseos.length
   const gente = tablon.cruzarPorPersona(tiene, busca)
   const perfectos = gente.filter((p) => p.perfecto).length
-  const deSeguidos = seguidos ? gente.filter((p) => seguidos.has(p.user_id)).length : null
-  const visibles = gente.filter((p) => crucesFiltro === 'perfectos' ? p.perfecto : crucesFiltro === 'seguidos' ? seguidos?.has(p.user_id) : true)
+  const visibles = gente.filter((p) => (crucesFiltro === 'perfectos' ? p.perfecto : true))
+  const curso = crucesFiltro === 'curso'
+  // Los tres chips; el número de «En curso» lo pone `pintarMisCambiosArriba`.
+  const vivas = $('mcMisCambios')?.dataset.vivas
+  const chips = `<div class="mc-cruces-filtros" role="group" aria-label="Qué enseñar">
+       <button type="button" class="seg-btn" data-cruces-filtro="todos" aria-pressed="${crucesFiltro === 'todos'}">Todos <span class="mc-deseos-n">${gente.length}</span></button>
+       <button type="button" class="seg-btn" data-cruces-filtro="perfectos" aria-pressed="${crucesFiltro === 'perfectos'}">Perfectos <span class="mc-deseos-n">${perfectos}</span></button>
+       <button type="button" class="seg-btn" data-cruces-filtro="curso" aria-pressed="${curso}">En curso <span class="mc-deseos-n" data-curso-n>${vivas ?? ''}</span></button>
+     </div>`
   const valor = (f) => ctx.precioDeDeseo({ card_id: f.card_id, idioma: f.idioma })
   // Cruces nunca vacío (1166, C2): con algo apuntado y nadie enfrente, tus
   // cuentas arriba (cada una lleva a su pestaña), una línea que dice por qué
@@ -177,8 +178,13 @@ async function pintarCambios() {
     // La banda sale también sin nadie (1216): lo que buscas, lo que das y los
     // tratos en curso no dependen de que alguien encaje. Las cuentas de antes
     // quedan solo si no hay banda (no debería pasar).
-    return `${bandaDeCruces([], 0, d) || `<div class="mc-quiero-cabeza">${cuentas}</div>`}<div class="mc-cruces-vacio"><p class="empty-state">${frase}</p><div class="mc-cruces-salidas">${salidas}</div></div>`
+    return `${bandaDeCruces([], 0, d) || `<div class="mc-quiero-cabeza">${cuentas}</div>`}${chips}${curso ? '<div data-curso-sitio></div>' : `<div class="mc-cruces-vacio"><p class="empty-state">${frase}</p><div class="mc-cruces-salidas">${salidas}</div></div>`}`
   }
+  // «En curso» vive en `#mcMisCambios`, que se pinta una vez y se MUEVE a su
+  // sitio en cada repintado (con sus botones ya enganchados): se saca antes
+  // del `innerHTML`, que si no se lo llevaría.
+  const mis = $('mcMisCambios')
+  mis?.remove()
   caja.innerHTML = vacio
     // Sin nada apuntado no se enseña un tablón vacío: se enseña CÓMO
     // funciona, que es lo que hace falta la primera vez.
@@ -188,14 +194,17 @@ async function pintarCambios() {
          <li><span class="mc-cambio-paso">3</span><div><strong>Aquí sale con quién encajas</strong><p class="subtext">Y le escribes desde aquí, sin salir de PokeDoc.</p></div></li>
        </ol>`
     : !gente.length ? sinNadie() : `${bandaDeCruces(gente, perfectos, doy.length)}
-       <div class="mc-cruces-filtros" role="group" aria-label="Quién">
-         <button type="button" class="seg-btn" data-cruces-filtro="todos" aria-pressed="${crucesFiltro === 'todos'}">Todos <span class="mc-deseos-n">${gente.length}</span></button>
-         <button type="button" class="seg-btn" data-cruces-filtro="perfectos" aria-pressed="${crucesFiltro === 'perfectos'}">Cruces perfectos <span class="mc-deseos-n">${perfectos}</span></button>
-         ${deSeguidos === null ? '' : `<button type="button" class="seg-btn" data-cruces-filtro="seguidos" aria-pressed="${crucesFiltro === 'seguidos'}">Gente que sigo <span class="mc-deseos-n">${deSeguidos}</span></button>`}
-       </div>
-       ${visibles.length
+       ${chips}
+       ${curso ? '<div data-curso-sitio></div>' : visibles.length
          ? `<div class="mc-cruces-rejilla en-cascada">${visibles.map((p) => tablon.cruceTarjetaHtml(p, { cartas: ctx.cartas, valor, euros })).join('')}</div>`
-         : `<p class="empty-state">${crucesFiltro === 'perfectos' ? 'Ningún cruce perfecto todavía.' : 'Nadie de la gente que sigues encaja ahora mismo.'}</p>`}`
+         : '<p class="empty-state">Ningún cruce perfecto todavía.</p>'}`
+  if (mis) {
+    const sitio = caja.querySelector('[data-curso-sitio]')
+    // Sin nada apuntado (los pasos), los tratos que haya van arriba.
+    if (sitio) sitio.replaceWith(mis)
+    else caja.prepend(mis)
+    mis.hidden = sitio ? false : !(vacio && Number(mis.dataset.vivas || 0) > 0)
+  }
   engancharCambios()
   void pintarMisCambiosArriba()
   // «12 cambios · todos bien» al lado de cada persona (798, NU4).
@@ -317,6 +326,12 @@ function engancharCambios() {
   const caja = $('mcCambiosPanel')
   if (cambiosEnganchados) return
   cambiosEnganchados = true
+  // Un aviso de un trato con la página abierta (`#oferta-<id>`) abre «En curso».
+  window.addEventListener('hashchange', () => {
+    if (!location.hash.startsWith('#oferta-') || crucesFiltro === 'curso') return
+    crucesFiltro = 'curso'
+    void pintarCambios()
+  })
   caja.addEventListener('click', async (e) => {
     const escribir = e.target.closest('[data-escribir]')
     if (escribir) return abrirMensaje(escribir.dataset.escribir, escribir.dataset.direccion)
@@ -349,8 +364,11 @@ function engancharCambios() {
 
     // Lo que buscas vive en «La quiero» desde la 751.
     if (e.target.closest('[data-ir-quiero]')) return ctx.cambiarPestania('quiero')
-    // Los tratos en curso, arriba de los cruces (1213).
-    if (e.target.closest('[data-ir-curso]')) return $('mcMisCambios')?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' })
+    // Los tratos en curso, en su chip (1217).
+    if (e.target.closest('[data-ir-curso]')) {
+      crucesFiltro = 'curso'
+      return void pintarCambios()
+    }
   })
 }
 
@@ -372,10 +390,17 @@ async function pintarMisCambiosArriba() {
   if (!caja || !ctx.sesion) return
   try {
     const m = await import('../cambio-propuesta.js')
-    await m.pintarMisCambios(caja, { sesion: ctx.sesion })
+    await m.pintarMisCambios(caja, { sesion: ctx.sesion, tarjetas: true })
   } catch { caja.hidden = true }
+  // Se ve en su chip, o encima de los pasos si no hay nada apuntado y hay tratos.
+  const enSuSitio = crucesFiltro === 'curso' && caja.parentElement?.id === 'mcCambiosPanel'
+  const arriba = !document.querySelector('#mcCambiosPanel .mc-cruces-filtros') && Number(caja.dataset.vivas || 0) > 0
+  caja.hidden = !(enSuSitio || arriba)
+  const n = caja.dataset.vivas ?? '0'
   const cifra = document.querySelector('[data-ir-curso] b')
-  if (cifra) cifra.textContent = caja.dataset.vivas ?? '0'
+  if (cifra) cifra.textContent = n
+  const chip = document.querySelector('[data-curso-n]')
+  if (chip) chip.textContent = n
 }
 
 // El mensaje se deja ESCRITO, no enviado: quien lo manda lo lee antes.
@@ -767,6 +792,33 @@ function pintarBarraQuiero({ n, conAlguien }) {
   $('mcQuieroSeleccionar')?.setAttribute('aria-pressed', String(marcando))
 }
 
+// LA BANDA DE «LA QUIERO» (1217): cuántas buscas, lo que valen y cuántas
+// da alguien; en el PC (en el móvil la esconde la hoja). La cuenta y la nota
+// de debajo de la rejilla siguen para el móvil y se esconden con ella.
+function pintarBandaQuiero({ n, suma, conAlguien, lista, grupos }) {
+  const alta = $('mcDeseoAlta')
+  if (!alta) return
+  let caja = $('mcQuieroBanda')
+  if (!caja) {
+    alta.insertAdjacentHTML('beforebegin', '<div id="mcQuieroBanda"></div>')
+    caja = $('mcQuieroBanda')
+    // «alguien las da» filtra como el chip «La dan».
+    caja.addEventListener('click', (e) => void clicEnBarra(e))
+  }
+  void hojaInyectada('css/seccion.css').catch(() => {})
+  if (!n) { caja.innerHTML = ''; return }
+  const cifras = [{ n: miles(n), texto: n === 1 ? 'carta' : 'cartas' }]
+  if (suma != null) cifras.push({ n: euros(suma), texto: 'lo que valen' })
+  if (conAlguien != null) cifras.push({ n: miles(conAlguien), texto: 'alguien las da', accion: 'data-quiero-filtro="dan"' })
+  caja.innerHTML = bandaDeDeseosHtml({
+    vista: 'quiero',
+    titulo: lista ? `${miles(n)} ${n === 1 ? 'carta' : 'cartas'} en «${lista.nombre}»` : `${miles(n)} ${n === 1 ? 'carta que buscas' : 'cartas que buscas'}`,
+    lema: lista ? 'Esta lista la ves solo tú; las cartas siguen en «La quiero», que la ve todo el mundo.' : 'Lo que te falta. La cara de encima es alguien que la da; el resto, nadie todavía.',
+    cifras,
+    cartas: grupos.map((g) => ctx.cartas.get(g.card_id)),
+  })
+}
+
 function pintarQuiero() {
   const caja = $('mcQuieroPanel')
   if (!caja || !Array.isArray(ctx.deseos)) return
@@ -784,6 +836,7 @@ function pintarQuiero() {
   const visibles = grupos.map((g, i) => ({ g, precio: precios[i] })).filter(({ g }) =>
     quieroFiltro === 'todas' || !dantesDeQuiero || (quieroFiltro === 'dan' ? dan(g) > 0 : dan(g) === 0))
   pintarBarraQuiero({ n, conAlguien })
+  pintarBandaQuiero({ n, suma: conPrecio.length ? suma : null, conAlguien, lista, grupos })
   // Sin nada apuntado, el buscador sale abierto: es lo único que hacer (la propuesta).
   if (!todos.length && !$('mcDeseoAlta')?.classList.contains('buscando')) {
     $('mcDeseoAlta')?.classList.add('buscando')
@@ -795,7 +848,7 @@ function pintarQuiero() {
     ? `<div class="mc-mercado-rejilla mc-deseos-rejilla" id="mcQuieroRejilla">${rejillaPorTramos('quiero', visibles, ({ g }) => mercadoDeCarta(g.card_id), ({ g, precio }) => deseoHtml(g, precio))}</div>
        <p class="mc-quiero-cifra" id="mcQuieroCifra"><b>${n.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${n === 1 ? 'carta' : 'cartas'}${conPrecio.length ? ` · unos <b>${escapeHtml(euros(suma))}</b>` : ''}${conPrecio.length && sinPrecio ? ` <small>(${sinPrecio} sin precio)</small>` : ''}</p>
        ${visibles.length ? '' : `<p class="subtext">${quieroFiltro === 'dan' ? 'Nadie da todavía ninguna de estas.' : 'Todas estas las da alguien.'}</p>`}
-       <p class="subtext">${lista ? 'Esta lista la ves solo tú; las cartas siguen en «La quiero», que la ve todo el mundo.' : 'Tu lista la ve todo el mundo: es lo que hace que alguien te escriba. Quítala tocando el corazón.'}</p>`
+       <p class="subtext mc-quiero-nota">${lista ? 'Esta lista la ves solo tú; las cartas siguen en «La quiero», que la ve todo el mundo.' : 'Tu lista la ve todo el mundo: es lo que hace que alguien te escriba. Quítala tocando el corazón.'}</p>`
     : lista && todos.length
       ? `<div class="mc-quiero-vacio">
            <span class="mc-quiero-vacio-icono" aria-hidden="true">${laQuiero.corazon(28)}</span>
@@ -1136,7 +1189,20 @@ async function pintarDoy() {
   const seg = (v, texto, n) => `<button type="button" data-doy-filtro="${v}" aria-pressed="${doyFiltro === v}">${texto}${n == null ? '' : ` <small>${n}</small>`}</button>`
   // La barra (1057b): la misma de «La quiero», sin listas: Seleccionar,
   // la cuenta, «+» Poner más, ⋯ y Todas / La buscan / Nadie.
-  caja.innerHTML = `<div class="mc-mandos mc-quiero-barra mc-doy-barra" id="mcDoyBarra">
+  // La banda (1217), como en La quiero: en el PC; en el móvil la esconde la
+  // hoja y quedan la cuenta de la barra y la nota de abajo.
+  void hojaInyectada('css/seccion.css').catch(() => {})
+  const cifrasBanda = [{ n: miles(copias), texto: copias === 1 ? 'copia das' : 'copias das' }]
+  if (suma) cifrasBanda.push({ n: euros(suma), texto: 'lo que valen' })
+  if (nBuscan != null) cifrasBanda.push({ n: miles(nBuscan), texto: nBuscan === 1 ? 'la busca alguien' : 'las busca alguien', accion: 'data-doy-filtro="buscan"' })
+  const banda = `<div id="mcDoyBanda">${bandaDeDeseosHtml({
+    vista: 'doy',
+    titulo: `${miles(todas.length)} ${todas.length === 1 ? 'carta que das' : 'cartas que das'}`,
+    lema: 'Sale en el Mercado con tu nombre. La cara de encima es alguien que la busca.',
+    cifras: cifrasBanda,
+    cartas: todas.map((f) => f.c),
+  })}</div>`
+  caja.innerHTML = `${banda}<div class="mc-mandos mc-quiero-barra mc-doy-barra" id="mcDoyBarra">
       <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcDoySeleccionar" aria-pressed="${marcandoDoy}">${icons.checkSquare(18)}<span class="mc-chip-texto">Seleccionar</span></button>
       <span class="mc-doy-cifra" id="mcDoyCifra"><b>${copias.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${copias === 1 ? 'copia' : 'copias'}${suma ? ` · <b>${escapeHtml(euros(suma))}</b>` : ''}</span>
       <button type="button" class="mc-chip-mando mc-doy-mas" id="mcDoyPoner" aria-label="Poner más para cambio"><span aria-hidden="true">+</span><span class="mc-q-largo">Poner más</span></button>

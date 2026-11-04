@@ -543,3 +543,139 @@ a.lanz-fila:hover strong { color: var(--navy); }
 .lanz-dest-sobres img + img { margin-left: -24px; transform: rotate(6deg); }
 .lanz-dest-sobres + .lanz-reloj { margin-left: 0; }
 @media (max-width: 599px) { .lanz-dest-sobres { display: none; } }
+
+/* ── 1217: como la maqueta de «La web como la portada» (SCHEMA 1217) ──
+   Arriba una línea (el título y el catálogo; en el móvil solo el catálogo),
+   el cartel del siguiente set con lo que viene AL LADO, y «Ya en tiendas» en
+   baldosas. La lista de productos se fue. */
+.lanz-banda.banda-s { padding: 0; border: 0; background: none; box-shadow: none; align-items: center; margin-bottom: var(--e-lg); }
+.lanz-banda.banda-s::before,
+.lanz-banda.banda-s::after { content: none; }
+.lanz-banda .banda-s-ceja,
+.lanz-banda .banda-s-lema,
+.lanz-banda .banda-s-cifras { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.lanz-banda h1 { display: flex; align-items: center; gap: var(--e-sm); margin: 0; font-size: var(--t-xl); }
+.lanz-h1-ico { display: inline-grid; place-items: center; width: 36px; height: 36px; border-radius: var(--radius-md); background: color-mix(in srgb, var(--acento) 16%, transparent); color: var(--acento); }
+.lanz-h1-ico svg { width: 18px; height: 18px; }
+.lanz-banda .lanz-mandos-rotulo { display: none; }
+html.con-barra-movil .lanz-banda h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+.lanz-arriba { display: grid; gap: var(--e-lg); margin-bottom: var(--e-xl); }
+@media (min-width: 900px) {
+  .lanz-arriba:has(#seccionProximos:not(.hidden)) { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); align-items: stretch; }
+}
+.lanz-arriba #seccionProximos { min-width: 0; }
+.lanz-sub { margin: 0 0 var(--e-sm); font-size: var(--t-md); }
+
+/* El cartel, en el dorado de Colección. */
+.lanz-cartel {
+  --oro: #9a5f06;
+  position: relative;
+  display: grid;
+  align-content: start;
+  justify-items: start;
+  gap: var(--e-md);
+  height: 100%;
+  margin: 0;
+  padding: var(--e-xl);
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--oro) 30%, var(--border));
+  border-radius: var(--radius-xl);
+  background: radial-gradient(120% 140% at 85% 0%, color-mix(in srgb, var(--oro) 26%, transparent), transparent 60%), linear-gradient(135deg, color-mix(in srgb, var(--oro) 14%, var(--white)), var(--white));
+}
+:root[data-theme='dark'] .lanz-cartel { --oro: #e4b44a; }
+.lanz-cartel .lanz-cartel-ceja { color: var(--oro); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.lanz-cartel h2.lanz-cartel-titulo { display: grid; gap: var(--e-xs); margin: 0; font-size: var(--t-xl); }
+.lanz-cartel h2 a { display: grid; gap: var(--e-xs); }
+.lanz-cartel .lanzamiento-logo-grande { width: 220px; height: 80px; object-fit: contain; object-position: left center; }
+.lanz-cartel .lanzamiento-logo-grande:not([hidden]) + .lanz-cartel-nombre { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+.lanz-cartel .lanz-reloj { margin: 0; padding: 0; background: none; }
+.lanz-cartel .lanz-digitos { gap: var(--e-sm); }
+.lanz-cartel .lanz-digito { min-width: 72px; padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: color-mix(in srgb, var(--text) 8%, transparent); }
+.lanz-cartel .lanz-digito b { font-family: var(--font-marca); font-size: var(--t-2xl); }
+.lanz-cartel .lanz-cartel-pie { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.lanz-cartel .lanz-avisar { order: 5; margin: 0; min-height: 44px; padding: 0 var(--e-lg); border-radius: var(--radius-pill); background: var(--oro); color: var(--blanco-fijo); border: 0; }
+:root[data-theme='dark'] .lanz-cartel .lanz-avisar { color: #0b1219; }
+.lanz-cartel .lanz-avisar svg { width: 16px; height: 16px; }
+.lanz-cartel .lanz-dest-sobres { position: absolute; right: var(--e-lg); bottom: var(--e-lg); margin: 0; }
+.lanz-cartel .lanz-dest-sobres img { width: 84px; height: 112px; }
+@media (max-width: 599px) {
+  .lanz-cartel { padding: var(--e-lg); gap: var(--e-sm); }
+  .lanz-cartel .lanzamiento-logo-grande { width: 160px; height: 60px; }
+  .lanz-cartel .lanz-digito { min-width: 56px; }
+  .lanz-cartel .lanz-dest-sobres { display: flex; right: var(--e-sm); bottom: var(--e-sm); }
+  .lanz-cartel .lanz-dest-sobres img { width: 56px; height: 76px; }
+}
+
+/* Lo que viene, en filas al lado del cartel (también en el móvil, debajo). */
+.lanz-arriba #listaProximos { display: grid; gap: var(--e-sm); margin: 0; padding: 0; overflow: visible; }
+.lanz-arriba #listaProximos::before { display: none; }
+.lanz-arriba .lanz-evento {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-md);
+  margin: 0;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  flex: none;
+}
+.lanz-arriba .lanz-dia { display: grid; justify-items: center; width: 48px; padding: var(--e-xs) 0; border-radius: var(--radius-md); background: color-mix(in srgb, var(--acento) 14%, transparent); line-height: 1.1; }
+.lanz-arriba .lanz-dia strong { font-family: var(--font-display); font-size: var(--t-lg); }
+.lanz-arriba .lanz-dia span { font-size: var(--t-2xs); font-weight: 700; }
+.lanz-arriba .lanz-dia .lanz-anno { display: none; }
+.lanz-arriba .lanzamiento-tarjeta { display: flex; align-items: center; gap: var(--e-md); min-width: 0; padding: 0; border: 0; background: none; box-shadow: none; color: inherit; text-decoration: none; }
+.lanz-arriba .lanzamiento-texto { display: grid; flex: 1 1 auto; min-width: 0; }
+.lanz-arriba .lanzamiento-texto strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lanz-arriba .lanzamiento-texto .subtext { margin: 0; font-size: var(--t-xs); }
+.lanz-arriba .lanzamiento-logo { width: 84px; height: 32px; object-fit: contain; flex-shrink: 0; }
+.lanz-arriba .lanz-evento .lanz-avisar { margin: 0; }
+
+/* Ya en tiendas: baldosas con el logo, el anillo con el tanto por ciento, el
+   nombre y la fecha; cuatro o más por fila en el PC y dos en el móvil. */
+.lanz-filas { grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); gap: var(--e-md); }
+@media (max-width: 599px) { .lanz-filas { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); } }
+.lanz-filas .lanz-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas: 'logo' 'prog' 'texto';
+  justify-items: center;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 0;
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  text-align: center;
+}
+.lanz-filas .lanz-fila-dia { display: none; }
+.lanz-filas .lanz-fila-logo { grid-area: logo; width: 100%; height: 48px; }
+.lanz-filas .lanz-fila-texto { grid-area: texto; justify-items: center; }
+.lanz-filas .lanz-fila-texto strong { font-size: var(--t-sm); white-space: normal; }
+.lanz-filas .lanz-fila-texto .lanz-chapa { display: none; }
+.lanz-fila-fecha { color: var(--text-dim); font-size: var(--t-xs); }
+.lanz-filas .lanz-fila-prog { grid-area: prog; display: grid; justify-items: center; gap: 2px; font-size: var(--t-2xs); color: var(--text-mid); }
+.lanz-filas .lanz-fila-prog.lanz-anillo::before {
+  content: attr(data-pct);
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  color: var(--text);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  background:
+    radial-gradient(closest-side, var(--white) 76%, transparent 78%),
+    conic-gradient(var(--acento) calc(var(--pct, 0) * 1%), var(--border) 0);
+}
+.lanz-banda.banda-s { min-height: 0; }
+@media (max-width: 599px) {
+  .lanzamiento-destacado.lanz-cartel { display: grid; grid-template-columns: minmax(0, 1fr); justify-items: start; gap: var(--e-sm); padding: var(--e-lg); }
+  .lanzamiento-destacado.lanz-cartel > * { grid-column: auto; grid-row: auto; }
+  .lanzamiento-destacado.lanz-cartel .lanzamiento-logo-grande { grid-row: auto; }
+  .lanzamiento-destacado.lanz-cartel .lanz-reloj { justify-self: start; padding: 0; }
+}

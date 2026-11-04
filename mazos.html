@@ -25,6 +25,7 @@
   <link rel="stylesheet" href="/css/components.css" />
   <link rel="stylesheet" href="/css/constructor.css" />
   <link rel="stylesheet" href="/css/mazos.css" />
+  <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
 <body>
@@ -108,12 +109,21 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container cm-pagina">
-    <div class="mz-cabecera cab-lista">
-      <div>
+    <!-- La banda de Jugar (1221, la maqueta de «La web como la portada»): tus
+         mazos, cómo te va con el que más juegas y cuántas cartas te faltan
+         (las pone js/mazos.js). En el móvil, la fila de siempre. -->
+    <div class="mz-cabecera banda-s cab-lista">
+      <div class="banda-s-texto">
+        <span class="banda-s-ceja">Jugar · Mis mazos</span>
         <h1>Mis mazos</h1>
         <p class="subtext cm-mazos-cuenta cab-lema" id="mzCuenta"></p>
+        <div class="banda-s-cifras mz-banda-cifras">
+          <span class="banda-s-cifra"><b id="mzNMazos">—</b><small>mazos</small></span>
+          <span class="banda-s-cifra" id="mzRecordCifra" hidden><b id="mzNRecord">—</b><small id="mzRecordDe">con tu mazo</small></span>
+          <span class="banda-s-cifra" id="mzFaltanCifra" hidden><b id="mzNFaltan">—</b><small>cartas que te faltan</small></span>
+        </div>
       </div>
-      <div class="mz-botones">
+      <div class="mz-botones banda-s-derecha">
         <a class="btn-secondary cm-btn" href="/constructor?nuevo=1&amp;importar=1" id="mzImportar" aria-label="Importar lista"><span data-icono="upload"></span><span class="cab-palabra">Importar lista</span></a>
         <a class="btn-primary cm-btn" href="/constructor?nuevo=1"><span data-icono="sparkles"></span>Nuevo mazo</a>
       </div>

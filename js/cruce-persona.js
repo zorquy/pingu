@@ -72,6 +72,9 @@ export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, es
     const cartas = new Map([...teDa, ...leDas].map((f) => [f.card_id, mapa.get(claveDeCarta(f.card_id, f.market)) || mapa.get(f.card_id)]).filter(([, c]) => c))
     const nombre = escapeHtml(persona.display_name || persona.username || 'Esta persona')
     // En una conversación (798, PA13) solo sale si hay algo que cambiar.
+    // Cuántas de las tuyas tiene, para quien lo pinte al lado (la cabecera de
+    // una conversación, 1221).
+    caja.dataset.teDa = String(teDa.length)
     if (soloSiHay && !teDa.length && !leDas.length) { caja.classList.add('hidden'); return }
     caja.classList.remove('hidden')
     caja.innerHTML = `<h2>Vuestro cruce</h2>

@@ -42,6 +42,7 @@
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
   <link rel="stylesheet" href="/css/meta.css" />
+  <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
 <body>
@@ -125,11 +126,22 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container meta-pagina">
-    <header class="meta-cabecera cab-lista">
-      <div>
+    <!-- La banda de Jugar (1221, la maqueta de «La web como la portada»):
+         listas, torneos y el periodo, y los tres mazos de arriba en abanico.
+         Las cifras y el abanico los pone js/meta.js. En el móvil, la fila de
+         siempre (título y periodo). -->
+    <header class="meta-cabecera banda-s cab-lista">
+      <div class="banda-s-texto">
+        <span class="banda-s-ceja">Jugar · Meta</span>
         <h1>Mazos del meta</h1>
-        <p class="meta-lema cab-lema">Los mazos que más se juegan en Estándar, en los torneos oficiales de Pokémon, en los online de Limitless y en los de PokeDoc: cuánto se usan, cómo les va y, dentro de cada uno, su lista media, listas del top 8 para copiar y guías para aprender a llevarlo.</p>
+        <p class="meta-lema banda-s-lema cab-lema">Lo que más se juega en Estándar: torneos oficiales, Limitless y los de PokeDoc.</p>
+        <div class="banda-s-cifras meta-banda-cifras">
+          <span class="banda-s-cifra"><b id="metaNListas">—</b><small>listas</small></span>
+          <span class="banda-s-cifra"><b id="metaNTorneos">—</b><small>torneos</small></span>
+          <span class="banda-s-cifra"><b id="metaNDias">—</b><small>el periodo</small></span>
+        </div>
       </div>
+      <div class="banda-s-derecha meta-banda-derecha" id="metaAbanico" aria-hidden="true"></div>
       <!-- En el móvil el periodo es un menú junto al título (893); en el
            PC sigue siendo el selector de abajo. Los dos dicen lo mismo:
            meta.js los mantiene a la par. -->

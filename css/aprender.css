@@ -476,3 +476,22 @@
 @media (max-width: 599px) {
   .ap-orden { display: none; }
 }
+
+/* ── 1217: como la maqueta (SCHEMA 1217) ──
+   Las guías en portadas del mismo alto (la primera a doble ancho) y los temas
+   en baldosas de su color con un Pokémon. */
+.ap-portadas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-auto-rows: 240px; gap: var(--e-md); }
+.ap-portadas > .guia-portada:first-child { grid-column: span 2; }
+.ap-portadas > .guia-portada:first-child .guia-portada-sobre strong { font-size: var(--t-xl); }
+@media (max-width: 1100px) { .ap-portadas { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+.ap-baldosas > .ap-baldosa[class*='arte-'] { position: relative; flex: 1 1 0; max-width: none; min-height: 64px; padding: var(--e-md) var(--e-lg); overflow: hidden; border-color: transparent; color: var(--blanco-fijo); }
+.ap-baldosa[class*='arte-'] .ap-baldosa-icono { display: none; }
+.ap-baldosa[class*='arte-'] .ap-baldosa-nombre { font-size: var(--t-md); }
+.ap-baldosa[class*='arte-'] .ap-baldosa-sub { color: rgb(255 255 255 / 85%); }
+.ap-baldosa-arte { position: absolute; right: var(--e-sm); bottom: -8px; width: 72px; height: 72px; object-fit: contain; pointer-events: none; }
+.ap-baldosa[class*='arte-'] .ap-baldosa-texto { position: relative; z-index: 1; padding-right: 64px; }
+.ap-baldosa[class*='arte-'] .ap-baldosa-barra { background: rgb(255 255 255 / 25%); }
+@media (max-width: 599px) {
+  .ap-baldosas > .ap-baldosa[class*='arte-'] { flex: 0 0 72%; min-height: 56px; padding: var(--e-sm) var(--e-md); }
+  .ap-baldosa-arte { width: 56px; height: 56px; }
+}

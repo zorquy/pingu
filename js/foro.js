@@ -167,41 +167,9 @@ function engancharMarcarTodo() {
 // se quitó en la 875. PINGU: «ocupa mucha pantalla y ya tenemos arriba lo
 // que se está hablando, que ocupa menos».
 
-// ── Lo que se está hablando (tanda 299) ──
-//
-// Un índice de foros contesta a «qué hay aquí», pero la pregunta de
-// quien entra es otra: «¿de qué se habla AHORA?». Eso estaba en la
-// columna lateral, en 280 px, con los títulos cortados a media palabra
-// («¡Hola! Vengo de Sevilla y ll…»): lo más informativo de la página
-// tenía el sitio más estrecho.
-//
-// Sube arriba y a lo ancho. NO es información nueva: es la misma que
-// tenía el lateral, movida a donde se lee. Por eso el lateral la suelta
-// —tenerla dos veces sería peor que no tenerla.
-const CALIENTES = 3
-
-// Los comentarios en las NOTICIAS cuentan como conversación (876). Una
-// noticia ya no abre hilo en el foro: se comenta debajo del artículo, así
-// que lo que se dice ahí tiene que salir aquí igual que un mensaje del foro.
-// Dos consultas: las noticias publicadas más nuevas y sus comentarios.
-async function comentariosDeNoticias() {
-  const { data: noticias, error } = await supabase
-    .from('guides')
-    .select('id, title, slug')
-    .eq('kind', 'news')
-    .not('published_at', 'is', null)
-    .order('published_at', { ascending: false })
-    .limit(40)
-  if (error || !noticias?.length) return []
-  const porId = Object.fromEntries(noticias.map((n) => [n.id, n]))
-  const { data: comentarios } = await supabase
-    .from('guide_comments')
-    .select('id, guide_id, author_id, created_at')
-    .in('guide_id', noticias.map((n) => n.id))
-    .order('created_at', { ascending: false })
-    .limit(12)
-  return (comentarios || []).filter((c) => porId[c.guide_id]).map((c) => ({ clave: `noticia:${c.guide_id}`, noticia: porId[c.guide_id], author_id: c.author_id, created_at: c.created_at }))
-}
+// «Lo que se está hablando» (la franja de arriba de la 299) se fue en la
+// 1221. PINGU: «ya tienes a la derecha lo de lo último, y te quita mucho
+// espacio vertical». Las noticias tienen su sitio; aquí, «Lo último».
 
 // «Lo último» del lateral (1096, PINGU, con WAH de ejemplo): en el PC la
 // franja de arriba empujaba el índice y enseñaba tres; al lado caben seis
@@ -227,12 +195,9 @@ async function marcasDeTemas(ids) {
   }
 }
 
-async function loQueSeHabla(idsForosVisibles = null, foros = []) {
-  const [{ data: mensajes, error }, deNoticias] = await Promise.all([
-    supabase.from('forum_posts').select('id, thread_id, author_id, created_at').order('created_at', { ascending: false }).limit(40),
-    comentariosDeNoticias().catch(() => []),
-  ])
-  if (error) return { franja: '', ultimo: '' }
+async function loUltimo(idsForosVisibles = null, foros = []) {
+  const { data: mensajes, error } = await supabase.from('forum_posts').select('id, thread_id, author_id, created_at').order('created_at', { ascending: false }).limit(40)
+  if (error) return { ultimo: '' }
   const { data: temas } = mensajes?.length
     ? await supabase.from('forum_threads').select('*').in('id', [...new Set(mensajes.map((m) => m.thread_id))])
     : { data: [] }
@@ -241,49 +206,12 @@ async function loQueSeHabla(idsForosVisibles = null, foros = []) {
   // 876) se colaría por aquí.
   const temaPorId = Object.fromEntries((temas || []).filter((t) => !idsForosVisibles || idsForosVisibles.includes(t.board_id)).map((t) => [t.id, t]))
   const delForo = (mensajes || []).filter((m) => temaPorId[m.thread_id]).map((m) => ({ clave: `tema:${m.thread_id}`, tema: temaPorId[m.thread_id], thread_id: m.thread_id, author_id: m.author_id, created_at: m.created_at }))
-
-  // Un tema (o una noticia) por fila: si alguien contesta cinco veces
-  // seguidas, no llena él solo la franja entera. Mezclados por fecha.
-  const unoPorTema = (lista) => {
-    const vistos = new Set()
-    return lista.sort((x, y) => new Date(y.created_at) - new Date(x.created_at)).filter((m) => !vistos.has(m.clave) && vistos.add(m.clave))
-  }
-  const elegidos = unoPorTema([...delForo, ...deNoticias]).slice(0, CALIENTES)
-  const ultimos = unoPorTema([...delForo]).slice(0, ULTIMOS)
-  if (!elegidos.length && !ultimos.length) return { franja: '', ultimo: '' }
-  // Cuántos comentarios lleva cada noticia elegida (tres como mucho).
-  const [cuentas, perfiles, leido] = await Promise.all([
-    Promise.all(elegidos.map((m) => (m.noticia ? supabase.from('guide_comments').select('id', { count: 'exact', head: true }).eq('guide_id', m.noticia.id).then((r) => r.count || 1) : null))),
-    perfilesPorId([...elegidos, ...ultimos].map((m) => m.author_id)),
-    marcasDeTemas(ultimos.map((m) => m.thread_id)),
-  ])
-  const filas = elegidos
-    .map((m, i) => {
-      // Dos enlaces HERMANOS, nunca uno dentro de otro: `avatarHtml` ya
-      // devuelve un <a> al perfil, y un <a> dentro de otro <a> no existe
-      // en HTML — el navegador cierra el de fuera al toparse con el de
-      // dentro, y la tarjeta se parte en pedazos sueltos. Es el mismo
-      // aviso que dejó escrito el lateral en su día; me lo comí igual.
-      const t = m.tema
-      const href = t ? urlTema(m.thread_id) : `/noticias/${encodeURIComponent(m.noticia.slug)}`
-      const titulo = t ? t.title : m.noticia.title
-      const prefijo = t ? t.prefix : 'Noticia'
-      const n = t ? t.post_count || 1 : cuentas[i]
-      const palabra = t ? 'mensaje' : 'comentario'
-      return `
-      <div class="foro-caliente">
-        ${avatarHtml(firmaPokedoc(m.tema, m.author_id) ? PERFIL_POKEDOC : perfiles[m.author_id], 30)}
-        <span class="foro-caliente-texto">
-          <a class="foro-caliente-titulo" href="${href}">${escapeHtml(titulo)}</a>
-          <span class="foro-caliente-meta">
-            ${prefijo ? `<span class="foro-caliente-pref">${escapeHtml(prefijo)}</span>` : ''}
-            <small>${n} ${palabra}${n === 1 ? '' : 's'} · ${escapeHtml(haceCuanto(m.created_at))}</small>
-          </span>
-        </span>
-      </div>`
-    })
-    .join('')
-  const franja = filas ? `<section class="foro-calientes"><h2>Lo que se está hablando</h2><div class="foro-calientes-rejilla">${filas}</div></section>` : ''
+  // Un tema por fila: si alguien contesta cinco veces seguidas, no llena él
+  // solo la lista entera.
+  const vistos = new Set()
+  const ultimos = delForo.sort((x, y) => new Date(y.created_at) - new Date(x.created_at)).filter((m) => !vistos.has(m.clave) && vistos.add(m.clave)).slice(0, ULTIMOS)
+  if (!ultimos.length) return { ultimo: '' }
+  const [perfiles, leido] = await Promise.all([perfilesPorId(ultimos.map((m) => m.author_id)), marcasDeTemas(ultimos.map((m) => m.thread_id))])
 
   // El lateral: el avatar y el título son dos enlaces hermanos (lo de
   // arriba), y lo no leído lleva el punto y va a lo nuevo, como en la lista
@@ -307,7 +235,7 @@ async function loQueSeHabla(idsForosVisibles = null, foros = []) {
           .join('')}</ol>
       </section>`
     : ''
-  return { franja, ultimo }
+  return { ultimo }
 }
 
 // El índice de UNA vez (1017): `foro_resumen()` trae las secciones, los foros
@@ -341,7 +269,7 @@ async function pintarIndice() {
       soyStaff = Boolean(resumen.rol?.staff)
       soyAdmin = Boolean(resumen.rol?.admin)
     }
-    calientes = await loQueSeHabla(foros.map((f) => f.id), foros)
+    calientes = await loUltimo(foros.map((f) => f.id), foros)
   } else {
     if (sesion) lecturas = cargarLecturas()
     const [seccionesRes, forosRes] = await Promise.all([
@@ -358,7 +286,7 @@ async function pintarIndice() {
     foros = (forosRes.data || []).filter((f) => !f.is_hidden)
     // Los perfiles del último que escribió y la franja de lo que se está
     // hablando, a la vez: las dos salen de la lista de foros (894, R3).
-    ;[perfiles, calientes] = await Promise.all([perfilesPorId(foros.map((f) => f.last_post_author_id)), loQueSeHabla(foros.map((f) => f.id), foros), lecturas])
+    ;[perfiles, calientes] = await Promise.all([perfilesPorId(foros.map((f) => f.last_post_author_id)), loUltimo(foros.map((f) => f.id), foros), lecturas])
   }
 
   const hijosDe = (id) => foros.filter((f) => f.parent_id === id).sort((a, b) => a.position - b.position)
@@ -402,9 +330,8 @@ async function pintarIndice() {
             : ''
         }
       </div>
-      <div class="foro-fila-numeros">
-        <span><small>Temas</small><strong>${f.thread_count || 0}</strong></span>
-        <span><small>Mensajes</small><strong>${f.post_count || 0}</strong></span>
+      <div class="foro-fila-numeros foro-fila-numeros-indice">
+        <span><strong>${miles(f.thread_count || 0)}</strong><small>temas · ${miles(f.post_count || 0)}</small></span>
       </div>
       ${ultimoHtml({
         titulo: f.last_thread_title,
@@ -427,11 +354,11 @@ async function pintarIndice() {
     })
     .join('')
 
-  // La franja va en su propio hueco, ancho completo: dentro de la
-  // columna principal los títulos se volvían a cortar, que es el fallo
-  // del que venimos.
-  const destacado = document.getElementById('foroDestacado')
-  if (destacado) destacado.innerHTML = calientes.franja
+  // La banda de Comunidad (1221, la maqueta de «La web como la portada»):
+  // las cifras del foro, y el buscador y «Escribir un tema» dentro. Solo en
+  // el índice y solo en el PC: en el móvil la cabecera sigue siendo la fila
+  // de mandos (la burbuja ya dice dónde estás).
+  ponerBandaDelForo(foros)
 
   // El índice es el de siempre, por secciones (804): la lista de
   // conversaciones con chips que lo encabezaba desde la 746 repetía lo que
@@ -463,9 +390,11 @@ async function pintarIndice() {
   montarEscribir(foros)
   // «Lo último» y los números, de una vez: el lateral no salta (981).
   lateral.innerHTML = calientes.ultimo + (await lateralLista)
+  const hoy = document.getElementById('foroNHoy')
+  if (hoy && porAquiHoy !== null) hoy.textContent = miles(porAquiHoy)
   // Lo de ahora, guardado para la próxima vez (894).
   vistaAlDia()
-  guardarVista(claveDeVista('foro', sesion?.user?.id), tomarPartes(['foroDestacado', 'foroPrincipal', 'foroLateral']))
+  guardarVista(claveDeVista('foro', sesion?.user?.id), tomarPartes(['foroPrincipal', 'foroLateral']))
 }
 
 // EL BOTÓN DE ESCRIBIR (748): flotante, como en su maqueta. Abrir un tema
@@ -557,6 +486,38 @@ export function porAquiHoyHtml({ lista = [], total = 0 } = {}) {
          <p class="foro-gente">${vista}${plegado}</p>`
 }
 
+// Cuántos han pasado hoy (lo cuenta «Por aquí hoy»): la tercera cifra de la
+// banda. `null` mientras no se sabe.
+let porAquiHoy = null
+
+// «1.418», con el punto también en las de cuatro cifras (toLocaleString no lo pone).
+const miles = (n) => String(Math.round(Number(n) || 0)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')
+
+// Pone la banda en la cabecera del índice: la ceja, las tres cifras (temas y
+// mensajes de los foros que se ven, sumados con sus subforos; «por aquí hoy»
+// llega con la lateral) y la clase que la viste (css/seccion.css).
+function ponerBandaDelForo(foros) {
+  const cab = document.querySelector('.foro-cabecera')
+  if (!cab) return
+  cab.classList.add('banda-s', 'foro-banda')
+  cab.style.removeProperty('padding-top')
+  const texto = cab.firstElementChild
+  const temas = foros.reduce((t, f) => t + (f.thread_count || 0), 0)
+  const mensajes = foros.reduce((t, f) => t + (f.post_count || 0), 0)
+  document.getElementById('foroTitulo').textContent = 'El foro'
+  if (!texto.querySelector('.banda-s-ceja')) texto.insertAdjacentHTML('afterbegin', '<span class="banda-s-ceja">Comunidad · Foro</span>')
+  texto.classList.add('banda-s-texto')
+  texto.querySelector('.banda-s-cifras')?.remove()
+  texto.insertAdjacentHTML(
+    'beforeend',
+    `<div class="banda-s-cifras foro-banda-cifras">
+      <span class="banda-s-cifra"><b>${miles(temas)}</b><small>temas</small></span>
+      <span class="banda-s-cifra"><b>${miles(mensajes)}</b><small>mensajes</small></span>
+      <span class="banda-s-cifra"><b id="foroNHoy">${porAquiHoy === null ? '—' : miles(porAquiHoy)}</b><small>por aquí hoy</small></span>
+    </div>`
+  )
+}
+
 async function panelDeNumerosHtml() {
   const hoy = new Date().toISOString().slice(0, 10)
 
@@ -615,6 +576,7 @@ async function panelDeNumerosHtml() {
     .filter(Boolean)
     .join('')
 
+  porAquiHoy = porAqui.total
   const gente = porAqui.total ? `<div class="foro-panel">${porAquiHoyHtml(porAqui)}</div>` : ''
 
   const numeros = lineas ? `<div class="foro-panel"><h3>El foro en números</h3>${lineas}</div>` : ''

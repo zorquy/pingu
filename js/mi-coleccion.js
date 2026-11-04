@@ -4885,6 +4885,18 @@ function pintarBandejaCatalogo() {
   if (flecha) flecha.textContent = sentidoCatalogo === 'desc' ? '↓' : '↑'
 }
 
+// Antes de escribir (1217): lo último que abriste desde aquí y los sets de
+// ahora. Entra por `import()`: solo lo baja quien abre Buscar.
+async function pintarAntesDeBuscar() {
+  const caja = $('mcBuscarAntes')
+  if (!caja) return
+  try {
+    const m = await import('./mi-coleccion/buscar-recientes.js')
+    if (!todosLosSets) await cargarSets().catch(() => null)
+    caja.innerHTML = m.recientesHtml() + m.setsDeAhoraHtml(todosLosSets || [], vista === 'ja' ? 'JP' : 'WEST')
+  } catch { /* sin esto, el buscador sigue igual */ }
+}
+
 async function buscarEnTodo({ variantes = null } = {}) {
   const campo = $('mcBuscarTodo')
   if (!campo) return
@@ -4906,6 +4918,7 @@ async function buscarEnTodo({ variantes = null } = {}) {
     vacio?.classList.remove('hidden')
     caja.innerHTML = ''
     if (cuenta) cuenta.textContent = ''
+    void pintarAntesDeBuscar()
     return
   }
   vacio?.classList.add('hidden')
@@ -6462,6 +6475,13 @@ function enganchar() {
     if (!s) return
     $('mcBuscarTodo').value = s.dataset.sugerencia
     void buscarEnTodo()
+  })
+  void pintarAntesDeBuscar()
+  // Lo que abres desde un resultado entra en «Lo último que buscaste» (1217).
+  $('mcBuscarResultados')?.addEventListener('click', (e) => {
+    const r = e.target.closest('.mc-resultado[data-carta]')
+    const c = r && ultimaBusqueda.find((x) => x.id === r.dataset.carta)
+    if (c) import('./mi-coleccion/buscar-recientes.js').then((m) => m.apuntarReciente(c)).catch(() => {})
   })
 
   // Las tres chapas de qué se ve (748). Pulsar la que ya está puesta la

@@ -42,6 +42,7 @@
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
   <link rel="stylesheet" href="/css/laboratorio-pagina.css" />
+  <link rel="stylesheet" href="/css/seccion.css" />
   <!-- El laboratorio se baja al abrirlo, pero su hoja va aquí: el barrido
        de la 299 sigue los import() y lo que pinta tiene que tener su CSS. -->
   <link rel="stylesheet" href="/css/laboratorio.css" />
@@ -134,16 +135,18 @@
          laboratorio es el mismo y se abre encima de esta página, así que
          al cerrarlo se vuelve aquí. Lo que no depende de la cuenta va en
          el HTML, para que esté aunque el JS no llegue. -->
-    <header class="lp-cabecera cabecera-pagina">
-      <h1>Laboratorio</h1>
-      <p class="subtext">Juega partidas de prueba con un mazo, con las reglas y los efectos de las cartas: contra el muñeco, que mide tu daño, o tú contra ti, con los dos lados de la mesa.</p>
-      <ul class="lp-que">
-        <li>Las probabilidades de robo, en vivo</li>
-        <li>La mejor manera de encontrar una carta</li>
-        <li>Deshacer y compartir la posición</li>
-      </ul>
+    <!-- La banda de Jugar (1221, la maqueta de «La web como la portada»): las
+         tres formas de empezar y, a la derecha, los tres mazos que más se
+         juegan (los pone js/laboratorio-pagina.js). En el móvil, sin banda. -->
+    <header class="lp-cabecera cabecera-pagina banda-s">
+      <div class="banda-s-texto">
+        <span class="banda-s-ceja">Jugar · Laboratorio</span>
+        <h1>Laboratorio</h1>
+        <p class="subtext banda-s-lema">Juega partidas de prueba con las reglas de verdad: contra el muñeco, que mide tu daño, o tú contra ti.</p>
+        <div class="banda-s-cifras lp-banda-cifras"><span class="banda-s-cifra"><b>3</b><small>formas de empezar</small></span></div>
+      </div>
+      <div class="banda-s-derecha" id="lpAbanico" aria-hidden="true"></div>
     </header>
-
     <section class="lp-bloque" aria-labelledby="lpMiosTitulo">
       <h2 id="lpMiosTitulo"><span class="lp-paso" aria-hidden="true">1</span>Con uno de tus mazos</h2>
       <div class="lp-mios" id="lpMios" aria-live="polite"><span class="skeleton lp-esqueleto"></span></div>
@@ -167,6 +170,15 @@
       <div class="lp-meta" id="lpMeta"></div>
       <a class="btn-secondary" href="/meta">Ver los mazos del meta</a>
     </section>
+
+    <div class="lp-dentro">
+      <span class="subtext">Lo que puedes hacer dentro</span>
+      <ul class="lp-que">
+        <li>Las probabilidades de robo, en vivo</li>
+        <li>La mejor manera de encontrar una carta</li>
+        <li>Deshacer y compartir la posición</li>
+      </ul>
+    </div>
   </main>
 
   <footer class="footer">

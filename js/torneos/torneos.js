@@ -99,7 +99,10 @@ function caraHtml(perfil) {
   return `<span class="torneo-cara" style="background:${colorDeNombre(nombre)}" title="${escapeHtml(nombre)}">${escapeHtml(nombre.slice(0, 1).toUpperCase())}</span>`
 }
 
-// Qué dice el botón, que es la única acción de la tarjeta. Apuntarse de
+// Qué dice el botón, que es la única acción de la tarjeta. Lo que solo LLEVA a
+// la ficha dice «Ver» (1221, la maqueta de «La web como la portada»), con lo
+// largo para el lector de pantalla; lo que hace algo distinto (apuntarse, el
+// directo, seguir editando) lo sigue diciendo entero. Apuntarse de
 // verdad se hace en la FICHA (ahí está el aviso de decklist, el código
 // del torneo privado y la lista de espera): esto lleva allí, no hace el
 // trabajo. Un botón que promete más de lo que hace es peor que ninguno.
@@ -107,16 +110,16 @@ function accionDe(t, miEstado, pausa = false) {
   if (t.status === 'draft') return { texto: 'Seguir editando', clase: 'btn-secondary' }
   if (t.status === 'registration_open') {
     return miEstado === 'active'
-      ? { texto: 'Ver el torneo', clase: 'btn-secondary' }
+      ? { texto: 'Ver el torneo', corto: 'Ver', clase: 'btn-secondary' }
       : { texto: 'Apuntarme', clase: 'torneo-btn-apuntarse' }
   }
   // Entre jornadas no hay directo que ver (850): se va a la liga.
-  if (t.status === 'in_progress' && pausa) return { texto: 'Ver la liga', clase: 'btn-secondary' }
+  if (t.status === 'in_progress' && pausa) return { texto: 'Ver la liga', corto: 'Ver', clase: 'btn-secondary' }
   if (t.status === 'in_progress') {
     return { texto: 'Ver el directo', clase: miEstado === 'active' ? 'btn-primary' : 'btn-secondary' }
   }
-  if (t.status === 'finished') return { texto: 'Resultados y mazos', clase: 'btn-secondary' }
-  return { texto: 'Ver el torneo', clase: 'btn-secondary' }
+  if (t.status === 'finished') return { texto: 'Resultados y mazos', corto: 'Ver', clase: 'btn-secondary' }
+  return { texto: 'Ver el torneo', corto: 'Ver', clase: 'btn-secondary' }
 }
 
 // La estructura en dos palabras. `textoFormato` de comun.js es la frase
@@ -181,7 +184,6 @@ function tarjetaHtml(t, datos) {
             ${esOficial(t) ? CHAPA_OFICIAL() : ''}
           </span>
         </span>
-        <span class="torneo-fecha-bloque" aria-hidden="true"><strong>${fecha.getDate()}</strong><span>${escapeHtml(mes)}</span></span>
       </span>
       <span class="torneo-cuerpo">
         <strong class="torneo-nombre">${escapeHtml(t.name)}</strong>
@@ -198,7 +200,7 @@ function tarjetaHtml(t, datos) {
           <span class="torneo-etiqueta">${escapeHtml(estructuraCorta(t))}</span>
           ${t.swiss_bo === 3 ? '<span class="torneo-etiqueta">BO3</span>' : ''}
           ${t.top_cut_size ? `<span class="torneo-etiqueta">Top ${t.top_cut_size}</span>` : ''}
-          <span class="torneo-etiqueta">${escapeHtml(hora)}</span>
+          <span class="torneo-etiqueta torneo-etiqueta-cuando">${fecha.getDate()} ${escapeHtml(mes)} · ${escapeHtml(hora)}</span>
         </span>
         ${
           campeon
@@ -231,7 +233,7 @@ function tarjetaHtml(t, datos) {
           ? `<button type="button" class="torneo-borrar torneo-borrar-fila" data-borrar="${escapeHtml(t.id)}" data-nombre="${escapeHtml(t.name)}" data-dentro="${ocupadas}">Borrar</button>`
           : ''
       }
-      <a class="${accion.clase} torneo-pie-accion" href="${url}">${accion.texto}</a>
+      <a class="${accion.clase} torneo-pie-accion" href="${url}"${accion.corto ? ` aria-label="${escapeHtml(/^Ver /.test(accion.texto) ? accion.texto : `Ver ${accion.texto.toLowerCase()}`)}: ${escapeHtml(t.name)}"` : ''}>${accion.corto || accion.texto}</a>
     </div>
   </article>`
 }

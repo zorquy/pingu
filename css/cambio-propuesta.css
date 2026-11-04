@@ -413,3 +413,148 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
 .cp-total-campo input { width: 6.5em; min-height: 44px; padding: 0 var(--e-sm); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); background: var(--white); color: var(--text); font: inherit; text-align: right; font-variant-numeric: tabular-nums; }
 .cp-total-campo input:focus { border-color: var(--navy); outline: none; box-shadow: var(--shadow-ring); }
 .cp-total-ayuda { margin: 0; }
+
+/* LOS TRATOS EN TARJETAS (1217, Cruces → «En curso»): como las de los
+   cruces. Abierta, la tarjeta ocupa la fila y enseña el trato entero. */
+.cp-mis-tarjetas { gap: var(--e-lg); }
+.cp-tratos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--e-lg);
+}
+.cp-trato {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
+}
+.cp-trato::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(90deg, var(--acento), transparent 80%);
+}
+.cp-trato[open] { grid-column: 1 / -1; }
+.cp-trato > summary {
+  display: grid;
+  align-items: stretch;
+  gap: var(--e-md);
+  padding: var(--e-md);
+}
+.cp-trato[open] > summary { border-bottom: 1px solid var(--border); }
+.cp-trato-cab { display: flex; align-items: center; gap: var(--e-sm); min-width: 0; }
+.cp-trato-cab .mini-avatar { width: 40px; height: 40px; flex-shrink: 0; }
+.cp-trato-quien { display: grid; flex: 1 1 auto; min-width: 0; }
+.cp-trato-quien b { overflow: hidden; font-family: var(--font-display); font-size: var(--t-md); text-overflow: ellipsis; white-space: nowrap; }
+.cp-trato-quien small { color: var(--text-mid); font-size: var(--t-xs); }
+.cp-trato-tipo {
+  flex-shrink: 0;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--acento) 18%, transparent);
+  color: var(--text);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.cp-trato-lados {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+}
+.cp-trato-lado { display: grid; align-content: start; gap: var(--e-xs); min-width: 0; }
+.cp-trato-lado > small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.cp-trato-cosas { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs); min-height: 50px; }
+.cp-trato-cosas .cp-mini { width: 36px; }
+.cp-trato-mas { color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; }
+.cp-trato-dinero { color: var(--success); font-family: var(--font-marca); font-size: var(--t-xl); font-variant-numeric: tabular-nums; }
+.cp-trato-nada { color: var(--text-dim); font-size: var(--t-sm); }
+.cp-trato-flecha {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--white);
+  color: var(--acento);
+}
+.cp-trato-pasos { display: grid; grid-auto-columns: 1fr; grid-auto-flow: column; gap: var(--e-xs); }
+.cp-trato-pasos i { height: 4px; border-radius: var(--radius-pill); background: var(--border); }
+.cp-trato-pasos i.hecho { background: var(--acento); }
+.cp-trato-pie { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); }
+.cp-trato-pie small { color: var(--text-mid); font-size: var(--t-xs); line-height: 1.35; }
+.cp-trato .cp-linea-ver {
+  flex-shrink: 0;
+  min-height: 36px;
+  border-radius: var(--radius-pill);
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+.cp-trato.cp-toca { border-color: color-mix(in srgb, var(--acento) 60%, var(--border)); }
+.cp-sin-tratos {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  padding: var(--e-lg);
+  border: 1px dashed var(--border-strong);
+  border-radius: var(--radius-xl);
+  color: var(--text-mid);
+}
+.cp-sin-tratos p { margin: 0; font-size: var(--t-sm); }
+.cp-sin-tratos b { color: var(--text); }
+.cp-sin-tratos-ico,
+.cp-anteriores-ico {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--acento) 16%, transparent);
+  color: var(--acento);
+}
+.cp-anteriores {
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+}
+.cp-anteriores > summary {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  list-style: none;
+}
+.cp-anteriores > summary::-webkit-details-marker { display: none; }
+.cp-anteriores ul { gap: 0; }
+.cp-anteriores .cp-pasada { flex-wrap: nowrap; justify-content: flex-start; padding: var(--e-sm) 0; }
+.cp-anteriores .cp-pasada + .cp-pasada { border-top: 1px solid var(--border); }
+.cp-anteriores .cp-pasada .mini-avatar { width: 32px; height: 32px; flex-shrink: 0; }
+.cp-pasada-texto { display: grid; flex: 1 1 auto; min-width: 0; }
+.cp-pasada-texto b { color: var(--text); }
+.cp-pasada-texto small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cp-pasada-dia { flex-shrink: 0; color: var(--text-dim); font-size: var(--t-xs); }
+.cp-mis[hidden] { display: none; }
+/* La cuenta de «Los anteriores» (1221): propia, que Mensajes y los perfiles
+   no cargan la hoja de Mi colección. */
+.cp-anteriores-n {
+  min-width: 20px;
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}

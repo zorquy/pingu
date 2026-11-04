@@ -408,3 +408,23 @@
 .noticias-tema { flex-shrink: 0; }
 .noticias-tema[aria-pressed='true'] { border-color: var(--acento); background: var(--acento); color: var(--acento-texto); }
 .noticias-tema-n { opacity: 0.75; font-weight: 500; }
+
+/* 1217 (la maqueta de «La web como la portada»): los temas en la banda, a la
+   derecha; «Esta semana» a cuatro por fila y «Antes» en filas a dos; en el
+   móvil, sin banda (la burbuja ya dice dónde estás) y todo en filas. */
+.noticias-cabecera > .noticias-temas { align-self: center; flex-wrap: wrap; justify-content: flex-end; margin: 0 0 0 auto; max-width: 50%; }
+@media (min-width: 901px) {
+  .noticias-rejilla { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .noticias-rejilla > .noticia-tarjeta { grid-column: span 3; }
+  .noticias-rejilla > .noticia-tarjeta.noticia-fila { grid-column: span 6; }
+}
+html.con-barra-movil .noticias-cabecera {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+}
+#noticiasMasCaja .paginacion { margin-top: var(--e-xl); }

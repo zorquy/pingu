@@ -11,6 +11,7 @@
 import { supabase } from '../supabase.js'
 import { migasHtml } from './migas.js'
 import { escapeHtml } from '../html.js'
+import { bandaSeccionHtml } from '../banda-seccion.js'
 import { icons } from '../icons.js'
 import { showToast } from '../toast.js'
 import { rutaDeCarta } from '../carta-ruta.js'
@@ -302,6 +303,33 @@ function pintarRejilla() {
   caja.innerHTML = caja.dataset.vista === 'lomos' ? lomosHtml() : coleccionHtml() + albumes.map(tarjetaHtml).join('') + empezarHtml()
   for (const b of document.querySelectorAll('[data-alb-vista]')) b.setAttribute('aria-pressed', String(b.dataset.albVista === caja.dataset.vista))
   if ($('mcAlbumesCuenta')) $('mcAlbumesCuenta').textContent = albumes.length ? String(albumes.length) : ''
+  pintarBandaDeAlbumes()
+}
+
+// LA BANDA (1217, la maqueta): cuántos álbumes, cuántas cartas tienes dentro
+// y cuántos enseñas; en el móvil, la misma, pequeña.
+function pintarBandaDeAlbumes() {
+  const cab = $('mcAlbumesCab')
+  if (!cab) return
+  let caja = $('mcAlbumesBanda')
+  if (!caja) {
+    cab.insertAdjacentHTML('beforebegin', '<div id="mcAlbumesBanda"></div>')
+    caja = $('mcAlbumesBanda')
+  }
+  void import('../hoja.js').then((m) => m.hojaInyectada('css/seccion.css')).catch(() => {})
+  const dentro = albumes.reduce((n, a) => n + cuentasDe(a).mias, 0)
+  const publicos = albumes.filter((a) => a.is_public).length
+  const miles = (n) => n.toLocaleString('es-ES', { useGrouping: 'always' })
+  caja.innerHTML = albumes.length ? bandaSeccionHtml({
+    ceja: 'Colección · Álbumes',
+    titulo: 'Mis álbumes',
+    lema: 'Tus binders, como los tendrías en la estantería.',
+    cifras: [
+      { n: miles(albumes.length), texto: albumes.length === 1 ? 'álbum' : 'álbumes' },
+      { n: miles(dentro), texto: 'cartas dentro' },
+      { n: miles(publicos), texto: publicos === 1 ? 'público' : 'públicos' },
+    ],
+  }).replace('<section class="banda-s"', '<section class="banda-s mc-albumes-banda"') : ''
 }
 
 // LAS CARPETAS PASAN A BINDERS (759), solas y una vez. Cada carpeta —y cada

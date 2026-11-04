@@ -1,8 +1,7 @@
 // /novedades (tanda 829): lo que cambia en PokeDoc, contado corto. Arriba las
-// tres destacadas del mes con su dibujo; debajo, el resto por semanas, con
+// tres destacadas del mes como portadas (1217: con su Pokémon); debajo, el resto por semanas, con
 // filtro por tipo. Los datos son `/novedades.json` (ver js/novedades-datos.js).
 import { escapeHtml } from './html.js'
-import { icons } from './icons.js'
 import { TIPOS, porSemanas, destacadasDelMes, nombreDeMes, semanasNuevas, ultimaFecha, CLAVE_VISTO, cuentasDelMes } from './novedades-datos.js'
 
 const $ = (id) => document.getElementById(id)
@@ -11,34 +10,7 @@ const SEMANAS_DE_ENTRADA = 2
 // Y cuántas filas por semana: PINGU quiere «menos info»; el resto, a un toque.
 const FILAS_POR_SEMANA = 6
 
-// Los dibujos de las destacadas: una miniatura de la pantalla hecha con
-// HTML, no una captura (una captura se queda vieja en cuanto la pantalla
-// cambia, y pesa). Uno que no está en la lista sale con el icono del tipo.
-const DIBUJOS = {
-  'estanteria-jp': () => `<div class="nv-mini nv-mini-estante" aria-hidden="true">
-    <span class="nv-mini-era">Original</span>
-    <span class="nv-mini-fila"><i class="nv-tono-1"></i><span>Expansion Pack</span><b>450 €</b></span>
-    <span class="nv-mini-fila"><i class="nv-tono-2"></i><span>Jungle</span><b>12 €</b></span>
-    <span class="nv-mini-era">Neo</span>
-    <span class="nv-mini-fila"><i class="nv-tono-3"></i><span>Gold, Silver, to a New World</span><b>8 €</b></span>
-  </div>`,
-  parejas: () => `<div class="nv-mini nv-mini-parejas" aria-hidden="true">
-    <i></i><i class="nv-par"></i><i></i><i></i>
-    <i></i><i></i><i class="nv-par"></i><i></i>
-  </div>`,
-  retos: () => `<div class="nv-mini nv-mini-estante" aria-hidden="true">
-    <span class="nv-mini-era">Tu día · 4 de 6</span>
-    <span class="nv-mini-fila"><i class="nv-tono-2"></i><span>¿Qué carta es?</span><b>+45 XP</b></span>
-    <span class="nv-mini-fila"><i class="nv-tono-1"></i><span>¿Quién es ese Pokémon?</span><b>+30 XP</b></span>
-    <span class="nv-mini-fila"><i class="nv-tono-3"></i><span>Ordena por precio</span><b>Jugar</b></span>
-  </div>`,
-  'sin-conexion': () => `<div class="nv-mini nv-mini-guia" aria-hidden="true">
-    <span class="nv-mini-sinred">Sin conexión</span>
-    <span class="nv-mini-lineas"><i style="--largo: 80%"></i><i style="--largo: 96%"></i><i style="--largo: 60%"></i><i style="--largo: 88%"></i></span>
-  </div>`,
-}
 const FONDOS = ['rosa', 'azul', 'verde', 'ambar', 'cian', 'morado']
-const ICONO_DE_TIPO = { nuevo: 'sparkles', mejora: 'trendingUp', arreglo: 'checkCircle' }
 
 const chip = (tipo) => `<span class="nv-chip nv-${tipo}">${TIPOS[tipo].rotulo}</span>`
 
@@ -46,21 +18,40 @@ const chip = (tipo) => `<span class="nv-chip nv-${tipo}">${TIPOS[tipo].rotulo}</
 // fiar, pero un `javascript:` no tiene por qué llegar nunca a un href.
 const enlaceSeguro = (h) => (typeof h === 'string' && /^\/(?!\/)/.test(h) ? h : null)
 
+// LAS DESTACADAS COMO PORTADAS (1217, la maqueta de «La web como la
+// portada»): un Pokémon grande sobre el color de su fondo, el tipo y el
+// titular encima, y toda la portada lleva a su sitio. El Pokémon es el de
+// `pokemon` (su número de la Pokédex) o, si la entrada no dice, uno de la
+// lista elegido por el título: siempre el mismo para la misma novedad.
+const ARTE = 'sprites/pokemon/other/official-artwork'
+const POKEMON_DE_PORTADA = [445, 7, 151, 6, 25, 94, 197, 448, 658, 887, 384, 249, 133, 282, 1008, 4, 1]
+export function pokemonDe(d) {
+  const n = Number(d?.pokemon)
+  if (Number.isInteger(n) && n > 0 && n < 1100) return n
+  let h = 0
+  for (const ch of String(d?.titulo || '')) h = (h * 31 + ch.codePointAt(0)) >>> 0
+  return POKEMON_DE_PORTADA[h % POKEMON_DE_PORTADA.length]
+}
 export function destacadaHtml(d) {
   const tipo = TIPOS[d.tipo] ? d.tipo : 'nuevo'
   const fondo = FONDOS.includes(d.fondo) ? d.fondo : 'azul'
-  const dibujo = DIBUJOS[d.dibujo]?.() || `<span class="nv-mini-icono" aria-hidden="true">${icons[ICONO_DE_TIPO[tipo]](48)}</span>`
   const enlace = enlaceSeguro(d.enlace)
+  const dex = pokemonDe(d)
   // `[[Arven]]` en el texto se pinta como lo que es: lo que se escribe.
   const texto = escapeHtml(d.texto || '').replace(/\[\[([^\]]+)\]\]/g, '<code>[[$1]]</code>')
-  return `<article class="nv-dest">
-    <div class="nv-dest-dibujo nv-fondo-${fondo}">${dibujo}</div>
-    <div class="nv-dest-texto">
-      ${chip(tipo)}
-      <h3>${escapeHtml(d.titulo)}</h3>
-      <p>${texto}</p>
-      ${enlace ? `<a class="btn-secondary nv-ir" href="${escapeHtml(enlace)}">${escapeHtml(d.boton || 'Verlo')}</a>` : ''}
-    </div>
+  const etiqueta = enlace ? 'a' : 'div'
+  // La foto: jsDelivr y, si no contesta, GitHub a pelo (la cadena de la 321);
+  // sin las dos, se queda el color.
+  const foto = `<img class="nv-dest-arte" src="https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/${ARTE}/${dex}.png" alt="" width="240" height="240" loading="lazy" decoding="async" onerror="if(!this.dataset.r){this.dataset.r=1;this.src='https://raw.githubusercontent.com/PokeAPI/sprites/master/${ARTE}/${dex}.png'}else{this.remove()}" />`
+  return `<article class="nv-dest nv-dest-portada">
+    <${etiqueta} class="nv-dest-dibujo nv-fondo-${fondo}"${enlace ? ` href="${escapeHtml(enlace)}"` : ''}>
+      ${foto}
+      <span class="nv-dest-texto">
+        ${chip(tipo)}
+        <h3>${escapeHtml(d.titulo)}</h3>
+        <span class="sr-only">${texto}</span>
+      </span>
+    </${etiqueta}>
   </article>`
 }
 
@@ -103,10 +94,14 @@ function pintarLista() {
   const nuevas = semanasNuevas(porSemanas(datos.entradas), vistoAlEntrar)
   const aLaVista = todas ? semanas : semanas.slice(0, SEMANAS_DE_ENTRADA)
   $('nvLista').innerHTML = aLaVista.length
+    // La semana a la izquierda con sus cuentas debajo, y sus novedades a la
+    // derecha en una línea de tiempo (1217, la maqueta).
     ? aLaVista.map((s) => `<section class="nv-semana en-cascada" data-semana="${s.lunes}">
-        <h2 class="nv-semana-titulo">${escapeHtml(s.rotulo)}${nuevas.has(s.lunes) ? ' <span class="nv-punto">nuevo para ti</span>' : ''}${cuentaDeSemana(s.entradas)}</h2>
+        <h2 class="nv-semana-titulo"><span class="nv-semana-rotulo">${escapeHtml(s.rotulo)}</span>${nuevas.has(s.lunes) ? ' <span class="nv-punto">nuevo para ti</span>' : ''}${cuentaDeSemana(s.entradas)}</h2>
+        <div class="nv-semana-lineas">
         ${(semanasAbiertas.has(s.lunes) ? s.entradas : s.entradas.slice(0, FILAS_POR_SEMANA)).map(filaHtml).join('')}
         ${!semanasAbiertas.has(s.lunes) && s.entradas.length > FILAS_POR_SEMANA ? `<button type="button" class="nv-mas-semana" data-abrir="${s.lunes}">Ver ${s.entradas.length - FILAS_POR_SEMANA} más de esta semana</button>` : ''}
+        </div>
       </section>`).join('')
     : `<p class="empty-state">No hay ${filtro ? TIPOS[filtro].filtro.toLowerCase() : 'novedades'} todavía.</p>`
   $('nvMas').classList.toggle('hidden', todas || semanas.length <= SEMANAS_DE_ENTRADA)

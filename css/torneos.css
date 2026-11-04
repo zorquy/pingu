@@ -3772,3 +3772,18 @@ html.torneo-jugando #torneoNombre {
   .t-proximo-botones { grid-column: 2; grid-row: 1 / span 3; align-self: center; margin-top: 0; }
   .t-proximo-botones > :last-child { display: none; }
 }
+
+/* 1221 (la maqueta de «La web como la portada»): la tarjeta con su dibujo
+   arriba —el estado y, en grande, los Pokémon de los mazos (los del meta o
+   los del campeón, arte-meta.js)— y sin el recuadro del día, que va en la
+   chapa de la hora. «Ver» como botón. */
+.torneo-tarjeta-sin-imagen .torneo-arte { height: 96px; padding: var(--e-sm) var(--e-md); }
+.torneo-tarjeta-sin-imagen .torneo-arte-chapas { padding-left: 0; }
+.torneo-tarjeta .torneo-cuerpo { padding-top: var(--e-md); }
+.torneo-arte-sprite { width: 72px; height: 72px; margin-left: -16px; }
+.torneo-arte-meta { bottom: calc(-1 * var(--e-xs)); }
+.torneo-pie-accion { min-width: 64px; justify-content: center; }
+@media (max-width: 599px) {
+  .torneo-tarjeta-sin-imagen .torneo-arte { height: 72px; }
+  .torneo-arte-sprite { width: 56px; height: 56px; margin-left: -12px; }
+}

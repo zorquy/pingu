@@ -19,6 +19,7 @@ import { showToast } from './toast.js'
 import { botonPegar } from './boton-pegar.js'
 import { cargarSets, cartasPorIds, cargarMazo, misMazos, resolverLineas } from './constructor/datos.js'
 import { leerLista, leerEnlaceLimitless, decodificarMazo, esBasico } from './constructor/nucleo.js'
+import { spritesDeMazoGuardado, spritesHtml } from './sprites-de-mazo.js'
 
 const $ = (id) => document.getElementById(id)
 // El que el constructor guarda en el navegador mientras se edita (la misma
@@ -94,8 +95,10 @@ async function probarMazo(id, boton) {
 }
 
 // ── Tus mazos ──
-function filaHtml({ id, nombre, total, detalle, editar }) {
+// Con los dos Pokémon del mazo delante (1221), si se sabe cuáles son.
+function filaHtml({ id, nombre, total, detalle, editar, sprites = [] }) {
   return `<li class="lp-mazo">
+      ${sprites.length ? `<span class="lp-mazo-sprites" aria-hidden="true">${spritesHtml(sprites, 'lp-mazo-sprite', 40)}</span>` : ''}
       <div class="lp-mazo-texto">
         <strong class="lp-mazo-nombre">${escapeHtml(nombre)}</strong>
         <span class="lp-mazo-detalle">${total}/60${detalle ? ` · ${escapeHtml(detalle)}` : ''}</span>
@@ -134,8 +137,14 @@ async function pintarMios() {
     caja.innerHTML = `<p class="empty-state">Todavía no tienes mazos guardados.<br><a class="btn-primary" href="/constructor">Montar un mazo</a></p>`
     return
   }
-  const filas = mazos.map((m) => filaHtml({ id: m.id, nombre: m.name, total: totalDe(m.cards), detalle: '', editar: `/constructor?mazo=${m.id}` }))
-  caja.innerHTML = `<ul class="lp-mazos">${borrador}${filas.join('')}</ul>`
+  const pintar = (filaDe = () => null) => {
+    const filas = mazos.map((m) => filaHtml({ id: m.id, nombre: m.name, total: totalDe(m.cards), detalle: '', editar: `/constructor?mazo=${m.id}`, sprites: spritesDeMazoGuardado(m.cards, filaDe) }))
+    caja.innerHTML = `<ul class="lp-mazos">${borrador}${filas.join('')}</ul>`
+  }
+  pintar()
+  // Los sprites, cuando llegan las cartas (una consulta para todos).
+  const ids = [...new Set(mazos.flatMap((m) => (m.cards || []).map((c) => c?.id)).filter(Boolean))]
+  if (ids.length) cartasPorIds(ids).then((cartas) => pintar((id) => cartas.get(id))).catch(() => {})
 }
 
 // ── Una lista pegada ──
@@ -201,9 +210,20 @@ async function pintarMeta() {
     // que se pueda abrir.
     const filas = (await resumen(periodoDe(null))).filter((f) => f.arquetipo !== ARQUETIPO_OTROS).slice(0, 8)
     if (!filas.length) return
+    // El icono a mano y no `iconoHtml` de meta/pintar.js: esa trae las clases
+    // de la hoja del meta, que esta página no carga (la 299 lo cuenta).
+    const [{ urlDeIcono }, { CDN_SPRITES, atributosDeRespaldo }] = await Promise.all([import('./meta/nucleo.js'), import('./torneos/sprites-pokemon.js')])
+    const iconoHtml = (icono) => {
+      const url = urlDeIcono(icono, CDN_SPRITES)
+      return url ? `<img class="lp-meta-icono" src="${escapeHtml(url)}" alt="" width="32" height="32" loading="lazy"${atributosDeRespaldo(url)} />` : ''
+    }
     $('lpMeta').innerHTML = `<ul class="lp-meta-lista">${filas
-      .map((f) => `<li><a class="lp-meta-mazo" href="/meta/${encodeURIComponent(f.arquetipo)}">${escapeHtml(f.nombre || f.arquetipo)}${f.cuota != null ? ` <span class="lp-meta-cuota">${porcentaje(f.cuota)}</span>` : ''}</a></li>`)
+      .map((f) => `<li><a class="lp-meta-mazo" href="/meta/${encodeURIComponent(f.arquetipo)}">${(f.iconos || [])[0] ? `<span class="lp-meta-sprite" aria-hidden="true">${iconoHtml(f.iconos[0])}</span>` : ''}<span class="lp-meta-nombre">${escapeHtml(f.nombre || f.arquetipo)}</span>${f.cuota != null ? ` <span class="lp-meta-cuota">${porcentaje(f.cuota)}</span>` : ''}</a></li>`)
       .join('')}</ul>`
+    // Y los tres primeros, en el abanico de la banda (1221).
+    const tres = filas.filter((f) => (f.iconos || [])[0]).slice(0, 3)
+    const abanico = $('lpAbanico')
+    if (abanico && tres.length === 3) abanico.innerHTML = `<span class="banda-s-abanico lp-abanico">${tres.map((f, i) => `<span class="lp-abanico-carta lp-abanico-${i + 1}">${iconoHtml(f.iconos[0])}</span>`).join('')}</span>`
   } catch {
     // Sin la lista, el botón de abajo sigue llevando a /meta.
   }

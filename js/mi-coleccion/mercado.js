@@ -37,6 +37,8 @@ import { mercado as pedirMercado, quienDaEsta, mercadoConTiendas } from './cambi
 import { supabase } from '../supabase.js'
 import { tiendasQueTienen, enTiendasHtml } from '../en-tiendas.js'
 import { senasDe, borradorDe } from './tablon.js'
+import { bandaDeDeseosHtml, miles } from './banda-deseos.js'
+import { hojaInyectada } from '../hoja.js'
 import { showToast } from '../toast.js'
 import * as listasDeseo from './listas-deseo.js'
 import { lineaDeSetHtml } from './linea-set.js'
@@ -236,6 +238,7 @@ async function cargar() {
   if (catalogo !== 'todas' && !totalPor[catalogo]) catalogo = 'todas'
   pintarMandos()
   pintarRejilla()
+  pintarBanda()
   // Si el primero no llegaba a `quiero` (o se eligió volver a 96 con 30
   // occidentales), lo que falta viene del siguiente, ya por la lista.
   const faltan = Math.min(quiero, ordenDe(totalPor, catalogo).reduce((n, [, t]) => n + t, 0)) - (lista?.contadas() || 0)
@@ -276,27 +279,59 @@ async function pintarFranja() {
     }).join('')}</div>`
 }
 
+// LA BANDA (1217): cuántas cartas se dan, cuánta gente (solo si está todo
+// cargado: con la lista a medias sería una cuenta de lo que ha llegado, no
+// de lo que hay) y cuántas de las que buscas; tres cartas en abanico.
+function pintarBanda() {
+  const panel = $('mcPanelMercado')
+  const barra = panel?.querySelector('.mc-mercado-barra')
+  if (!barra) return
+  let caja = $('mcMercadoBanda')
+  if (!caja) {
+    barra.insertAdjacentHTML('beforebegin', '<div id="mcMercadoBanda"></div>')
+    caja = $('mcMercadoBanda')
+  }
+  void hojaInyectada('css/seccion.css').catch(() => {})
+  // La gente se cuenta solo si cada carta trae a TODOS los que la dan.
+  const enteras = filas.length >= total && filas.every((f) => (f.gente || []).length >= (Number(f.personas) || 0) + (Number(f.tiendas) || 0))
+  const gente = enteras ? new Set(filas.flatMap((f) => (f.gente || []).map((p) => p.id || p.user_id)).filter(Boolean)).size : null
+  const cifras = [{ n: miles(total), texto: total === 1 ? 'carta' : 'cartas' }]
+  if (gente) cifras.push({ n: miles(gente), texto: gente === 1 ? 'persona' : 'personas' })
+  if (deLasQueBusco != null) cifras.push({ n: miles(deLasQueBusco), texto: 'que buscas', accion: 'data-merc-busco-banda' })
+  caja.innerHTML = total ? bandaDeDeseosHtml({
+    vista: 'mercado',
+    titulo: `${miles(total)} ${total === 1 ? 'carta se da' : 'cartas se dan'} ahora`,
+    lema: 'Todo lo que la gente pone para cambio o venta. La cara de encima es quién la da.',
+    cifras,
+    cartas: filas.map((f) => ctx.cartas.get(f.card_id)),
+  }) : ''
+}
+
+// Lo que buscas que está aquí: su número va en el chip «Lo que busco» (1217).
+// La franja rosa de antes (`#mcMercadoAviso`) se queda escondida: el chip
+// dice lo mismo sin otra fila encima de las cartas.
 async function pintarAviso() {
-  const b = $('mcMercadoAviso')
-  if (!b) return
-  if (!ctx.sesion || estado.soloMias) return b.classList.add('hidden')
+  $('mcMercadoAviso')?.classList.add('hidden')
+  if (!ctx.sesion) return
   const tiene = await ctx.quienTiene().catch(() => null)
-  const n = new Set((tiene || []).map((f) => f.card_id)).size
-  b.classList.toggle('hidden', !n)
-  if (n) b.innerHTML = `${ICONOS_COLECCION.corazon(16)}<span>${n === 1 ? '1 de las que buscas está aquí' : `${n} de las que buscas están aquí`}</span><span class="mc-mercado-aviso-ir">Verlas</span>`
+  deLasQueBusco = tiene ? new Set(tiene.map((f) => f.card_id)).size : null
+  pintarMandos()
+  pintarBanda()
 }
 
 let hayTiendas = null
+// Cuántas de las que buscas están aquí, para el chip «Lo que busco» (1217;
+// antes era la franja rosa «N de las que buscas está aquí»). Null = no se sabe.
+let deLasQueBusco = null
+// LOS CHIPS (1217, como la maqueta): Todo · Lo que busco N · Personas ·
+// Tiendas, en una fila delante de Idioma y Orden. Son UNO elegido: «Lo que
+// busco» es `soloMias` con todos; Personas y Tiendas, `quien` sin él. Los
+// botones de antes siguen con su id y su atributo (`#mcMercadoMias`,
+// `data-merc-quien`): solo cambian de sitio y de dibujo.
 function pintarMandos() {
-  const mias = $('mcMercadoMias')
-  if (mias) {
-    mias.classList.toggle('hidden', !ctx.sesion)
-    mias.setAttribute('aria-pressed', String(estado.soloMias))
-    mias.classList.toggle('activo', estado.soloMias)
-  }
-  // Todos / Personas / Tiendas (1069), detrás de «Seleccionar». Sin la
-  // migración de las tiendas, o sin ninguna tienda dada de alta, no sale: no
-  // hay nada que separar, y «Tiendas» saldría siempre vacío.
+  // Todos / Personas / Tiendas (1069). Sin la migración de las tiendas, o sin
+  // ninguna tienda dada de alta, Personas y Tiendas no salen: no hay nada que
+  // separar, y «Tiendas» saldría siempre vacío.
   if (mercadoConTiendas === true && hayTiendas === null) {
     hayTiendas = false
     void supabase.from('tiendas').select('user_id', { count: 'exact', head: true }).then(({ count }) => {
@@ -305,14 +340,32 @@ function pintarMandos() {
     }, () => {})
   }
   let quien = $('mcMercadoQuien')
-  if (!quien && $('mcMercadoSeleccionar')) {
-    $('mcMercadoSeleccionar').insertAdjacentHTML('afterend', `<span class="seg mc-mercado-quien" id="mcMercadoQuien" role="group" aria-label="Quién">${[['todos', 'Todos'], ['personas', 'Personas'], ['tiendas', 'Tiendas']].map(([v, t]) => `<button type="button" class="seg-btn" data-merc-quien="${v}" aria-pressed="false">${t}</button>`).join('')}</span>`)
+  const mandos = document.querySelector('#mcPanelMercado .mc-mercado-mandos')
+  if (!quien && mandos) {
+    mandos.insertAdjacentHTML('afterbegin', `<span class="mc-deseos-chips mc-mercado-quien" id="mcMercadoQuien" role="group" aria-label="Qué enseñar">${[['todos', 'Todo'], ['personas', 'Personas'], ['tiendas', 'Tiendas']].map(([v, t]) => `<button type="button" class="seg-btn" data-merc-quien="${v}" aria-pressed="false">${t}</button>`).join('')}</span>`)
     quien = $('mcMercadoQuien')
+    // «Lo que busco» va detrás de «Todo».
+    const mias = $('mcMercadoMias')
+    if (mias) {
+      mias.className = 'seg-btn mc-mercado-mias hidden'
+      mias.innerHTML = '<span>Lo que busco</span><span class="mc-deseos-n" data-merc-busco></span>'
+      quien.querySelector('[data-merc-quien="todos"]').after(mias)
+    }
+  }
+  const mias = $('mcMercadoMias')
+  if (mias) {
+    mias.classList.toggle('hidden', !ctx.sesion)
+    mias.setAttribute('aria-pressed', String(estado.soloMias))
+    mias.classList.toggle('activo', estado.soloMias)
+    const n = mias.querySelector('[data-merc-busco]')
+    if (n) n.textContent = deLasQueBusco ? String(deLasQueBusco) : ''
   }
   if (quien) {
-    quien.classList.toggle('hidden', mercadoConTiendas !== true || !hayTiendas)
+    const conTiendas = mercadoConTiendas === true && hayTiendas
+    quien.classList.toggle('hidden', !ctx.sesion && !conTiendas)
     for (const b of quien.querySelectorAll('[data-merc-quien]')) {
-      const si = b.dataset.mercQuien === estado.quien
+      if (b.dataset.mercQuien !== 'todos') b.classList.toggle('hidden', !conTiendas)
+      const si = b.dataset.mercQuien === estado.quien && !(estado.soloMias && b.dataset.mercQuien === 'todos')
       b.classList.toggle('activa', si)
       b.setAttribute('aria-pressed', String(si))
     }
@@ -712,8 +765,10 @@ function enganchar() {
       pintarRejilla()
       return pintarSel()
     }
-    if (e.target.closest('#mcMercadoMias') || e.target.closest('#mcMercadoAviso')) {
-      estado.soloMias = e.target.closest('#mcMercadoAviso') ? true : !estado.soloMias
+    if (e.target.closest('#mcMercadoMias') || e.target.closest('#mcMercadoAviso') || e.target.closest('[data-merc-busco-banda]')) {
+      estado.soloMias = e.target.closest('#mcMercadoMias') ? !estado.soloMias : true
+      // Un chip elegido cada vez (1217): «Lo que busco» es con todos.
+      if (estado.soloMias && estado.quien !== 'todos') { estado.quien = 'todos'; void pintarFranja() }
       pintarMandos()
       void pintarAviso()
       return void deNuevo()
@@ -728,6 +783,7 @@ function enganchar() {
     const qn = e.target.closest('[data-merc-quien]')
     if (qn) {
       estado.quien = qn.dataset.mercQuien
+      estado.soloMias = false
       pintarMandos()
       void pintarFranja()
       return void deNuevo()

@@ -39,6 +39,16 @@ export const RAREZAS = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinu
 // la chapa del tema es un ENLACE a /aprender?tema=…, y va fuera del <a> de
 // la tarjeta (un enlace dentro de otro no existe en HTML), colocado encima
 // del arte en el mismo sitio. Sin slug, la chapa de texto de siempre.
+// Cuánto llevas de una guía, de 0 a 100 (null = no se sabe). Lo usan la
+// tarjeta y la portada de /aprender (1217), con la MISMA cuenta.
+export function avanceDeGuia(g, progreso) {
+  if (progreso === null || progreso === undefined) return null
+  const p = progreso[g.id] || null
+  const bloques = Array.isArray(g.blocks) ? g.blocks.length : 0
+  const hecho = p?.status === 'completed' ? 100 : p && bloques ? Math.round((Math.min(p.current_block || 0, bloques) / bloques) * 100) : 0
+  return (Boolean(p?.read_at) || p?.status === 'completed') && hecho === 0 ? 100 : hecho
+}
+
 export function tarjetaDeGuia(g, { progreso = null, categoria = '', tema = null, pie = false } = {}) {
   const t = tema || (g.categories?.slug ? { nombre: g.categories.name || g.categories.slug, slug: g.categories.slug, emoji: g.categories.emoji || '' } : null)
   // El color del arte es el de la CATEGORÍA (1014, V2): dos guías de

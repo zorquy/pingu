@@ -21,6 +21,7 @@
 // Este módulo entra por `import()` y no se carga hasta que abres la
 // pestaña: se trae `sprites-pokemon.js`, que son los 1.025 nombres.
 import { escapeHtml } from '../html.js'
+import { bandaSeccionHtml } from '../banda-seccion.js'
 import { chapaDeVersionHtml } from './iconos-version.js'
 import { migasHtml } from './migas.js'
 import { diapoHtml, tiraHtml } from './diapos.js'
@@ -175,7 +176,7 @@ function filaHtml(f) {
       <span class="pdx-sprite">${
         sprite ? `<img src="${escapeHtml(sprite)}" alt="" width="68" height="56" loading="lazy" decoding="async"${atributosDeRespaldo(sprite)} />` : ''
       }</span>
-      <span class="pdx-nombre">${f.tengo ? escapeHtml(f.nombre) : '???'}</span>
+      <span class="pdx-nombre">${f.tengo ? escapeHtml(f.nombre) : `<span class="pdx-nombre-oculto">???</span><span class="pdx-nombre-sombra">${escapeHtml(f.nombre)}</span>`}</span>
       <span class="pdx-cuenta">${!f.tengo ? 'te falta' : f.total ? `${f.tengo} de ${f.total}` : `${f.tengo} ${f.tengo === 1 ? 'carta' : 'cartas'}`}</span>
       ${f.total && f.tengo ? `<span class="mc-barra" role="presentation"><i style="--ancho:${pct}%"></i></span>` : ''}
     </button>`
@@ -257,7 +258,24 @@ export function encabezadoHtml(filas, { region = 0, registrados = 0, total = 102
   const tengo = deLaRegion.filter((f) => f.tengo).length
   const crudo = total ? (registrados / total) * 100 : 0
   const pct = crudo > 0 && crudo < 10 ? crudo.toFixed(1).replace('.', ',') : Math.round(crudo)
-  return `<div class="pdx-encabezado">
+  const miles = (n) => n.toLocaleString('es-ES', { useGrouping: 'always' })
+  const anillo = `<span class="mc-anillo" style="--pct:${crudo.toFixed(1)}" role="img" aria-label="${escapeHtml(String(pct))} % de la Pokédex registrado"><b>${escapeHtml(String(pct))} %</b></span>`
+  // En el PC, la banda de la maqueta (1217): las especies, las de la región
+  // y las que faltan, con el anillo a la derecha. En el móvil se queda el
+  // encabezado de siempre (PINGU: «en móvil déjala como está»); la hoja
+  // enseña uno u otro.
+  const banda = bandaSeccionHtml({
+    ceja: 'Colección · Pokédex',
+    titulo: `${miles(registrados)} de ${miles(total)} especies`,
+    lema: 'Cada Pokémon del que tienes al menos una carta. Toca uno para ver todas las suyas.',
+    cifras: [
+      { n: miles(registrados), texto: registrados === 1 ? 'especie' : 'especies' },
+      { n: miles(tengo), texto: `de ${g.region}` },
+      { n: miles(Math.max(0, total - registrados)), texto: 'te faltan' },
+    ],
+    derecha: anillo,
+  }).replace('<section class="banda-s"', '<section class="banda-s pdx-banda"')
+  return `${banda}<div class="pdx-encabezado">
       <div>
         <h2 class="pdx-titulo">Pokédex</h2>
         <p class="pdx-sub">${registrados.toLocaleString('es-ES', { useGrouping: 'always' })} de ${total.toLocaleString('es-ES', { useGrouping: 'always' })} especies</p>

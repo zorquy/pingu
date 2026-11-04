@@ -186,6 +186,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   producto=<id>` (`rutaDeProducto`), que se ve sin cuenta. Lo que TCGGO no
   cuelga de ninguna expansión nuestra (su episodio 226, «Pokémon») entra por
   `EPISODIOS_SUELTOS` de `tcggo-productos` y sale en «Productos especiales».
+- **Los dos Pokémon de un mazo salen de `js/sprites-de-mazo.js`** (tanda
+  1221): `spritesDeMazoGuardado(cards, filaDe)` para uno guardado (de su lista,
+  como el arquetipo de Mis partidas) y `spritesDeNombreDeMazo(nombre)` para uno
+  del que solo se sabe el nombre (una repetición). Una pantalla nueva que
+  pinte un mazo con sus Pokémon pasa por ahí. Y el dibujo oficial de un
+  Pokémon (portadas de guía, Glosario, Novedades) es `js/arte-pokemon.js`:
+  quien solo quiere el dibujo no importa `guia-portada.js`, que arrastra las
+  clases de la portada (la 299 lo cuenta). El foro ya no tiene «Lo que se está
+  hablando» (PINGU, 1221: «ya tienes a la derecha lo de lo último»): no lo
+  vuelvas a poner, ni en el móvil.
 - **En Jugar una carta se pinta como en Mi colección y se resuelve a una
   impresión CON ficha** (tanda 913). La foto: filas con `market` y
   `tcg_sets(serie_id,tcg_online_code)` (están en `COLUMNAS` del
@@ -1026,7 +1036,7 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   nombres de función—, su tipo (`nuevo`, `mejora`, `arreglo`) y, si se
   puede, un `enlace` a donde probarlo (que exista: lo comprueba
   `test-tanda-829-pantalla.mjs`). Lo interno que nadie nota no va. Y cada
-  mes, tres `destacadas` con su `dibujo` (los de `js/novedades.js`) —las
+  mes, tres `destacadas` con su `pokemon` (1217: son portadas con el Pokémon; sin número, uno elegido por el título) —las
   elige quien escribe; si PINGU prefiere otras, se cambian—. La bitácora
   sigue siendo para nosotros; esto es para la gente.
 - **La imagen que se comparte de un reto lleva siempre el marco** (tanda

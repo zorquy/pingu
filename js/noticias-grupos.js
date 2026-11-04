@@ -25,11 +25,11 @@ export function grupoDeNoticia(iso, ahora = new Date()) {
 // Las tarjetas (las pinta `pintar(noticia, grupo)`) con su rótulo delante de cada grupo
 // nuevo. `anterior` es la clave del último grupo ya pintado («Ver más» no
 // repite el rótulo).
-export function tarjetasPorGrupo(noticias, anterior = null, pintar = () => '', ahora = new Date()) {
+export function tarjetasPorGrupo(noticias, anterior = null, pintar = () => '', ahora = new Date(), agrupar = grupoDeNoticia) {
   let ultimo = anterior
   let html = ''
   for (const n of noticias) {
-    const g = grupoDeNoticia(n.published_at, ahora)
+    const g = agrupar(n.published_at, ahora)
     if (g && g.clave !== ultimo) {
       html += `<h2 class="noticias-grupo" data-grupo="${g.clave}">${escapeHtml(g.rotulo)}</h2>`
       ultimo = g.clave
@@ -54,3 +54,22 @@ export function cuentasDeNoticias(noticias, hayMas = false, ahora = new Date()) 
   const todas = noticias.length
   return { semana: hayMas && semana === todas ? `${semana}+` : String(semana), mes: hayMas && mes === todas ? `${mes}+` : String(mes) }
 }
+
+// Dos grupos, como la maqueta de 1217: «Esta semana» (tarjetas) y «Antes»
+// (filas). Con páginas, el mes de cada una ya lo dice su fecha.
+export function grupoSemanaOAntes(iso, ahora = new Date()) {
+  const g = grupoDeNoticia(iso, ahora)
+  if (!g) return null
+  return g.clave === 's0' ? g : { clave: 'antes', rotulo: 'Antes' }
+}
+
+// LAS PÁGINAS (1217, PINGU: «páginas abajo, no un ver más»): doce por página
+// y la página en la dirección (`?p=2`), para poder compartirla. La 1 si no
+// dice nada o dice algo raro; nunca más allá de la última.
+export const POR_PAGINA = 12
+export function paginaDeDireccion(busqueda = '', total = Infinity) {
+  const p = Number.parseInt(new URLSearchParams(busqueda).get('p') || '1', 10)
+  const n = Number.isFinite(p) && p >= 1 ? p : 1
+  return Math.min(n, Math.max(1, total))
+}
+export const paginasDe = (total) => Math.max(1, Math.ceil((Number(total) || 0) / POR_PAGINA))

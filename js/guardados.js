@@ -8,10 +8,14 @@ import { supabase } from './supabase.js'
 import { escapeHtml, requireAuth } from './app.js'
 import { icons } from './icons.js'
 import { estadoDeGuia } from './guia-fila.js'
+import { portadaDeGuia } from './guia-portada.js'
 import { tarjetaDeGuia } from './guia-tarjeta.js'
 import { abanicoHtml } from './banda-seccion.js'
 import { showToast } from './toast.js'
 import { servidoPorGuia, frasePersonas } from './guias-servido.js'
+// El PC pinta portadas y los chips en la banda (1217); el móvil, las tarjetas
+// y los chips encima de la lista.
+const movil = window.matchMedia('(max-width: 599px)')
 
 const COLUMNAS = 'id, slug, title, description, kind, level, estimated_mins, blocks, cover_image, category_id, categories(name, slug, emoji)'
 
@@ -71,7 +75,7 @@ function itemHtml(g, progreso) {
   const estado = leida ? 'leida' : pct > 0 ? 'medias' : 'leer'
   return `
   <div class="gd-item${leida ? ' gd-item-leida' : ''}" data-id="${escapeHtml(g.id)}" data-estado="${estado}" data-kind="${g.kind === 'news' ? 'news' : 'guide'}">
-    ${tarjetaDeGuia(g, { progreso })}
+    ${movil.matches ? tarjetaDeGuia(g, { progreso }) : portadaDeGuia(g, { progreso, tema: g.kind === 'news' ? { nombre: 'Noticia' } : { nombre: g.categories?.name || 'Guía', slug: g.categories?.slug } })}
     ${marcadorHtml(g, { quitar: true })}
   </div>`
 }
@@ -123,6 +127,7 @@ export function temaHtml(t) {
   return `<div class="gd-item gd-item-tema" data-id="tema-${escapeHtml(t.id)}" data-estado="leer" data-kind="tema">
     <a class="gd-tema" href="/tema/${escapeHtml(t.id)}">
       <span class="gd-tema-ico" aria-hidden="true">${icons.messageSquare(22)}</span>
+      <span class="gd-tema-ceja">Tema del foro</span>
       <span class="gd-tema-texto"><b>${escapeHtml(t.title || 'Tema')}</b><small>${n} ${n === 1 ? 'mensaje' : 'mensajes'}${t.last_post_at ? ` · ${haceCuanto(t.last_post_at)}` : ''}</small></span>
     </a>
     <button type="button" class="gd-marca gd-quitar" data-dejar-tema="${escapeHtml(t.id)}" aria-label="Dejar de seguir «${escapeHtml(t.title || 'el tema')}»" title="Dejar de seguir">${icons.bookmark(18, true)}</button>
@@ -172,13 +177,14 @@ async function loadSaved(session) {
   const medias = porLeer.filter((g) => estadoDeGuia(g, progreso).pct > 0)
   const noticias = todas.filter((g) => g.kind === 'news').length
   const chip = (clave, texto, n) => (n ? `<button type="button" class="seg-btn gd-chip" data-gd-filtro="${clave}" aria-pressed="false">${texto} <span class="gd-n">${n}</span></button>` : '')
+  // Por TIPO (1217, la maqueta): Todo · Guías · Noticias · Temas, con su
+  // número; en el PC van en la banda, a la derecha. Lo que llevas lo dicen
+  // las cifras de la banda.
   const chips = [
-    chip('todas', 'Todas', todas.length + temas.length),
-    porLeer.length && leidas.length ? chip('leer', 'Por leer', porLeer.length) : '',
-    medias.length ? chip('medias', 'A medias', medias.length) : '',
-    porLeer.length && leidas.length ? chip('leidas', 'Leídas', leidas.length) : '',
-    noticias && noticias < todas.length ? chip('guias', 'Guías', todas.length - noticias) + chip('noticias', 'Noticias', noticias) : '',
-    temas.length && todas.length ? chip('temas', 'Temas', temas.length) : '',
+    chip('todas', 'Todo', todas.length + temas.length),
+    chip('guias', 'Guías', todas.length - noticias),
+    chip('noticias', 'Noticias', noticias),
+    chip('temas', 'Temas', temas.length),
   ].join('')
   // Si el filtro de antes ya no tiene nada (se han quitado las leídas), a «Todas».
   if (!chips.includes(`data-gd-filtro="${filtro}"`)) filtro = 'todas'
@@ -191,13 +197,33 @@ async function loadSaved(session) {
     ${porLeer.length || !todas.length ? '' : '<p class="gd-todo-leido">' + icons.checkCircle(16) + ' Te has leído todo lo que guardaste. <a href="/aprender">Busca algo nuevo</a>.</p>'}
     <div class="guia-rejilla gd-rejilla gd-rejilla-tuyas en-cascada">${[...porLeer, ...leidas].map((g) => itemHtml(g, progreso)).join('')}${temas.map(temaHtml).join('')}</div>`
   aplicarFiltro(list)
+  ponerChipsEnLaBanda(list)
   ponerCifras(porLeer.length, medias.length, leidas.length)
   // Las tres primeras portadas con foto, en abanico a la derecha de la banda.
   const fotos = todas.filter((g) => g.cover_image).map((g) => `<img src="${escapeHtml(g.cover_image)}" alt="" loading="lazy" />`)
   const abanico = document.getElementById('gdAbanico')
-  if (abanico) abanico.innerHTML = abanicoHtml(fotos)
+  // En el PC, a la derecha de la banda van los chips (1217); el abanico, en
+  // el móvil no sale nunca.
+  if (abanico && movil.matches) abanico.innerHTML = abanicoHtml(fotos)
 
   ultimasLeidas = leidas
+}
+
+// En el PC los chips se MUDAN a la banda (893: se mueve el elemento, con su
+// clic, que se escucha aquí porque fuera de la lista no llega el delegado).
+function ponerChipsEnLaBanda(list) {
+  const chips = list.querySelector('.gd-chips')
+  const sitio = document.getElementById('gdAbanico')
+  if (!chips || !sitio || movil.matches) return
+  sitio.querySelector('.gd-chips')?.remove()
+  sitio.prepend(chips)
+  chips.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-gd-filtro]')
+    if (!b) return
+    filtro = b.dataset.gdFiltro
+    aplicarFiltro(list)
+    for (const x of chips.querySelectorAll('[data-gd-filtro]')) x.setAttribute('aria-pressed', String(x === b))
+  })
 }
 
 // Las que salen ahora en «Ya leídas», para «Quitar las leídas».

@@ -1,6 +1,6 @@
 import { supabase } from './supabase.js'
 import { COLUMNAS_RANGO } from './rangos.js'
-import { cuentaNoLeidos, ordenarConversaciones } from './mensajes-puro.js'
+import { cuentaNoLeidos, ordenarConversaciones, propuestaDe } from './mensajes-puro.js'
 
 // Capa de datos compartida para mensajería privada (1 a 1), usada tanto por
 // la campanita de mensajes de la navbar (js/nav-messages.js) como por la
@@ -51,7 +51,7 @@ export async function listConversations(myId) {
       // sin rango: en la lista de conversaciones el nombre va dentro del
       // enlace A LA CONVERSACIÓN, no al perfil. Colorearlo diría «pulsa
       // aquí para ver a esta persona» y lleva a otro sitio (tanda 386).
-      ? await supabase.from('user_profiles').select('id, username, display_name, avatar_url').in('id', otherIds)
+      ? await supabase.from('user_profiles').select('id, username, display_name, avatar_url, tipo').in('id', otherIds)
       : { data: [] }
   const profileById = Object.fromEntries((profiles || []).map((p) => [p.id, p]))
 
@@ -72,7 +72,9 @@ export async function listConversations(myId) {
       const noLeidos = cuentaNoLeidos(porConv[id], myId, lastReadAt)
       const unread = noLeidos > 0
       const fila = filaPorConv[id] || {}
-      return { conversationId: id, otherProfile: profileById[otherIdByConv[id]] || null, lastMessage, unread, noLeidos, fijadaAt: fila.fijada_at || null, archivadaAt: fila.archivada_at || null, conFijar: 'fijada_at' in fila }
+      // «Tratos» (1221): una conversación por la que ha pasado una propuesta.
+      const conTrato = (porConv[id] || []).some((m) => propuestaDe(m))
+      return { conversationId: id, otherProfile: profileById[otherIdByConv[id]] || null, lastMessage, unread, noLeidos, conTrato, fijadaAt: fila.fijada_at || null, archivadaAt: fila.archivada_at || null, conFijar: 'fijada_at' in fila }
     })
   )
 }

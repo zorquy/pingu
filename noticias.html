@@ -45,6 +45,7 @@
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="css/noticias.css" />
+  <link rel="stylesheet" href="css/paginacion.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
 <body>
@@ -151,7 +152,8 @@
 
     <!-- La última noticia, grande. La rellena js/noticias.js: aquí se
          queda el hueco para que la página no dé el salto al cargar. -->
-    <!-- Los temas (1216): solo salen si las noticias llevan más de uno. -->
+    <!-- Los temas (1216): solo salen si las noticias llevan más de uno; en el
+         PC, js/noticias.js los muda a la banda (1217). -->
     <div class="noticias-temas" id="noticiasTemas" role="group" aria-label="Temas" hidden></div>
     <div id="noticiaTitular"></div>
     <!-- La silueta de la rejilla mientras llega (tanda 308): seis

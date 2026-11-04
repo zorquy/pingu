@@ -55,7 +55,7 @@ function filaDeConversacion(c, miId, actual = null) {
   // El doble check verde (891): lo último es tuyo y ya lo ha leído.
   const vistoMio = !!c.lastMessage && c.lastMessage.sender_id === miId && c.otroLeyoHasta && new Date(c.otroLeyoHasta) >= new Date(c.lastMessage.created_at)
   return `
-      <a class="msg-fila${c.conversationId === actual ? ' activa' : ''}${c.noLeidos ? ' noleida' : ''}" href="/mensajes.html?c=${c.conversationId}"${c.conversationId === actual ? ' aria-current="page"' : ''} data-nombre="${escapeHtml(name.toLowerCase())}">
+      <a class="msg-fila${c.conversationId === actual ? ' activa' : ''}${c.noLeidos ? ' noleida' : ''}" href="/mensajes.html?c=${c.conversationId}"${c.conversationId === actual ? ' aria-current="page"' : ''} data-nombre="${escapeHtml(name.toLowerCase())}"${c.noLeidos ? ' data-sin-leer' : ''}${c.conTrato ? ' data-trato' : ''}${p?.tipo === 'tienda' ? ' data-tienda' : ''}>
         <span class="mini-avatar msg-fila-avatar" style="${avatarStyle(p)}"${p?.id ? ` data-en-linea="${escapeHtml(p.id)}"` : ''}>${p?.avatar_url ? '' : getInitial(name)}</span>
         <span class="msg-fila-cuerpo">
           <span class="msg-fila-nombre"><strong>${escapeHtml(name)}</strong>${c.fijadaAt ? `<i class="msg-fijada" title="Fijada">${icons.pin(13)}</i>` : ''}${c.lastMessage ? `<time>${timeAgo(c.lastMessage.created_at)}</time>` : ''}</span>
@@ -71,15 +71,47 @@ function buscadorHtml(cuantas) {
   if (cuantas < 10) return ''
   return `<div class="search-input-wrap msg-buscar"><input type="search" enterkeyhint="search" class="search-input" id="msgBuscar" placeholder="Busca una conversación" aria-label="Buscar conversación" /></div>`
 }
-function engancharBuscador(caja) {
-  const campo = caja.querySelector('#msgBuscar')
-  if (!campo) return
-  campo.addEventListener('input', () => {
-    const q = campo.value.trim().toLowerCase()
-    caja.querySelectorAll('.msg-fila').forEach((f) => {
-      f.hidden = !!q && !f.dataset.nombre.includes(q)
-    })
+// Los chips de arriba de la lista (1221, la maqueta de «La web como la
+// portada»): Todas, Sin leer, Tratos (por la que ha pasado una propuesta) y
+// Tiendas. Filtran aquí mismo, como el buscador, y se suman a él.
+const FILTROS_DE_MENSAJES = [
+  ['todas', 'Todas', () => true],
+  ['sin-leer', 'Sin leer', (c) => c.noLeidos > 0],
+  ['tratos', 'Tratos', (c) => c.conTrato],
+  ['tiendas', 'Tiendas', (c) => c.otherProfile?.tipo === 'tienda'],
+]
+let filtroDeMensajes = 'todas'
+function chipsHtml(list) {
+  if (!list.length) return ''
+  return `<div class="msg-chips" role="group" aria-label="Qué conversaciones">${FILTROS_DE_MENSAJES.map(([id, texto, vale]) => {
+    const n = id === 'todas' ? 0 : list.filter(vale).length
+    return `<button type="button" class="chip-filtro msg-chip" data-msg-filtro="${id}" aria-pressed="${id === filtroDeMensajes}">${texto}${n ? ` <span class="msg-chip-n">${n}</span>` : ''}</button>`
+  }).join('')}</div>`
+}
+const ATRIBUTO_DE_FILTRO = { 'sin-leer': 'sinLeer', tratos: 'trato', tiendas: 'tienda' }
+function aplicarFiltros(caja) {
+  const q = (caja.querySelector('#msgBuscar')?.value || '').trim().toLowerCase()
+  const attr = ATRIBUTO_DE_FILTRO[filtroDeMensajes]
+  let vistas = 0
+  caja.querySelectorAll('.msg-fila').forEach((f) => {
+    f.hidden = (!!q && !f.dataset.nombre.includes(q)) || (!!attr && !(attr in f.dataset))
+    if (!f.hidden) vistas++
   })
+  let vacio = caja.querySelector('.msg-filtro-vacio')
+  if (!vistas && caja.querySelector('.msg-fila')) {
+    if (!vacio) caja.querySelector('.msg-filas')?.insertAdjacentHTML('beforeend', '<p class="subtext msg-filtro-vacio">Aquí no hay ninguna.</p>')
+  } else vacio?.remove()
+}
+function engancharBuscador(caja) {
+  caja.querySelector('#msgBuscar')?.addEventListener('input', () => aplicarFiltros(caja))
+  caja.querySelectorAll('[data-msg-filtro]').forEach((b) =>
+    b.addEventListener('click', () => {
+      filtroDeMensajes = b.dataset.msgFiltro
+      caja.querySelectorAll('[data-msg-filtro]').forEach((x) => x.setAttribute('aria-pressed', String(x === b)))
+      aplicarFiltros(caja)
+    })
+  )
+  if (filtroDeMensajes !== 'todas') aplicarFiltros(caja)
 }
 
 // El punto verde de quien está en línea (1140), por `import()`.
@@ -103,7 +135,7 @@ async function pintarListaLateral(session, actual) {
   const caja = document.getElementById('msgLista')
   if (!caja || !enPC()) return null
   const list = await listConversations(session.user.id).catch(() => [])
-  caja.innerHTML = `<div class="msg-lista-cabeza"><h2>Mensajes</h2><a class="btn-primary msg-nueva" href="/mensajes.html?new=1">${icons.edit(14)} Nueva conversación</a></div>${buscadorHtml(list.length)}<div class="msg-filas">${listaHtml(list, session.user.id, actual)}</div>`
+  caja.innerHTML = `<div class="msg-lista-cabeza"><h2>Mensajes</h2><a class="btn-primary msg-nueva" href="/mensajes.html?new=1" aria-label="Nueva conversación">${icons.edit(14)} Nueva</a></div>${chipsHtml(list)}${buscadorHtml(list.length)}<div class="msg-filas">${listaHtml(list, session.user.id, actual)}</div>`
   engancharBuscador(caja)
   marcarEnLineaEn(caja)
   caja.classList.remove('hidden')
@@ -151,7 +183,7 @@ async function renderInbox(session) {
   listEl.innerHTML =
     list.length === 0
       ? `<p class="empty-state">Todavía no tienes conversaciones. Escríbele a alguien desde su perfil o empieza una aquí.<br><a class="btn-primary" href="/mensajes.html?new=1">Nueva conversación</a></p><div class="msg-quien" id="msgQuien"></div>`
-      : `${buscadorHtml(list.length)}<div class="msg-filas">${listaHtml(list, session.user.id)}</div>`
+      : `${chipsHtml(list)}${buscadorHtml(list.length)}<div class="msg-filas">${listaHtml(list, session.user.id)}</div>`
   engancharBuscador(listEl)
   marcarEnLineaEn(listEl)
   if (list.length === 0) await pintarQuienPodria(session, document.getElementById('msgQuien'))
@@ -308,9 +340,10 @@ async function renderThread(session, conversationId) {
         <a class="mini-avatar msg-cabecera-avatar" href="${profileUrl(otherProfile)}" style="${avatarStyle(otherProfile)}" data-en-linea="${escapeHtml(otherProfile.id)}">${otherProfile.avatar_url ? '' : getInitial(name)}</a>
         <div class="msg-cabecera-quien">
           <h1 class="msg-cabecera-nombre"><a href="${profileUrl(otherProfile)}"${atributosDeRango(otherProfile, 'color:var(--text)')}>${escapeHtml(name)}</a></h1>
-          <span class="msg-estado" id="msgEstado" aria-live="polite"></span>
+          <span class="msg-cabecera-linea"><span class="msg-estado" id="msgEstado" aria-live="polite"></span><span class="msg-tiene" id="msgTiene" hidden></span></span>
         </div>
         <a class="msg-ver-perfil" href="${profileUrl(otherProfile)}">Ver perfil</a>
+        <button type="button" class="btn-primary msg-proponer" id="msgProponer" aria-label="Proponer un cambio a ${escapeHtml(name)}">${icons.refreshCw(15)}<span>Proponer cambio</span></button>
         ${con1141 ? `<div class="msg-mas-caja"><button type="button" class="msg-mas" id="msgMas" aria-label="Más opciones" aria-haspopup="true" aria-expanded="false">${icons.moreHorizontal(18)}</button><div class="msg-mas-menu" id="msgMasMenu" hidden></div></div>` : ''}
       </div>
       <div class="msg-scroll" id="msgScroll">
@@ -353,9 +386,25 @@ async function renderThread(session, conversationId) {
   import('./cambio-boton.js').then((m) => m.pintarBotonDeCambio(document.getElementById('msgCambio'), miId, otherProfile.id, name)).catch(() => {})
   // Las propuestas de cambio con esta persona (942): las vivas, con sus
   // botones, y «Proponer un cambio». Si la migración no está, nada.
-  import('./cambio-propuesta.js').then((m) => m.pintarPropuestasCon(document.getElementById('msgPropuestas'), { sesion: session, otro: otherProfile })).catch(() => {})
+  const pintarPropuestas = () => import('./cambio-propuesta.js').then((m) => m.pintarPropuestasCon(document.getElementById('msgPropuestas'), { sesion: session, otro: otherProfile, sinProponer: true })).catch(() => {})
+  void pintarPropuestas()
   // Lo que os podéis cambiar, encima de la conversación (798, PA13): solo si hay algo.
-  import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('msgCruce'), otherProfile, session, { soloSiHay: true })).catch(() => {})
+  // Y cuántas de las que buscas tiene, en la cabecera (1221): «tiene 5 cartas
+  // que buscas», con «Proponer cambio» al lado.
+  import('./cruce-persona.js')
+    .then((m) => m.pintarCruce(document.getElementById('msgCruce'), otherProfile, session, { soloSiHay: true }))
+    .then(() => {
+      const n = Number(document.getElementById('msgCruce')?.dataset.teDa || 0)
+      const tiene = document.getElementById('msgTiene')
+      if (n && tiene) {
+        tiene.textContent = `tiene ${n} ${n === 1 ? 'carta' : 'cartas'} que buscas`
+        tiene.hidden = false
+      }
+    })
+    .catch(() => {})
+  document.getElementById('msgProponer')?.addEventListener('click', () =>
+    import('./cambio-propuesta.js').then((m) => m.abrirPropuesta({ sesion: session, otro: otherProfile, alEnviar: pintarPropuestas })).catch(() => {})
+  )
 
   // EN LÍNEA Y «ESCRIBIENDO…» (1140), debajo del nombre. Lo primero sale del
   // latido de siempre (en-linea.js); lo segundo, de un canal de difusión que

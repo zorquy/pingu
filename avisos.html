@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="/css/avisos.css" />
   <link rel="stylesheet" href="/css/avisos-pagina.css" />
+  <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
 <body>
@@ -123,8 +124,19 @@
          leer, por días y por sección. La campana sigue enseñando solo lo sin
          leer; esta es la lista entera, con salida desde el pie de la campana
          y desde la hoja «Tú» del móvil. El porqué largo, en SCHEMA 1168. -->
-    <div class="page-header cabecera-pagina cab-lista av-cab" style="padding-top: 8px;">
-      <h1>Avisos</h1>
+    <!-- La banda (1221, la maqueta de «La web como la portada»): lo sin leer y
+         lo de esta semana (las pone js/avisos.js) y «Marcar todo como leído».
+         En el móvil, la fila de siempre. -->
+    <div class="page-header cabecera-pagina cab-lista av-cab banda-s">
+      <div class="banda-s-texto">
+        <span class="banda-s-ceja">Tú · Avisos</span>
+        <h1>Avisos</h1>
+        <p class="banda-s-lema cab-lema">Todo lo que te ha llegado, leído o no, por días.</p>
+        <div class="banda-s-cifras av-banda-cifras">
+          <span class="banda-s-cifra"><b id="avNSinLeer">—</b><small>sin leer</small></span>
+          <span class="banda-s-cifra"><b id="avNSemana">—</b><small>esta semana</small></span>
+        </div>
+      </div>
       <button type="button" class="btn-secondary av-leer-todo" id="avLeerTodo" hidden>Marcar todo<span class="cab-largo"> como leído</span></button>
     </div>
     <div class="av-chips" id="avChips" role="tablist" aria-label="Qué avisos ver"></div>

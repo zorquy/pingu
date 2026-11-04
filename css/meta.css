@@ -914,3 +914,29 @@
 @media (prefers-reduced-motion: reduce) {
   .meta-barra i { animation: none; }
 }
+
+/* 1221 (la maqueta de «La web como la portada»): la banda de Jugar con las
+   listas, los torneos y el periodo, y los tres primeros mazos en abanico; la
+   fuente a la izquierda y el periodo a la derecha. En el móvil, la fila de
+   siempre: título y periodo (893). */
+.meta-cabecera.banda-s { align-items: center; margin-bottom: var(--e-md); }
+.meta-cabecera.banda-s .meta-lema { margin-top: 0; }
+.meta-abanico-carta { display: grid; place-items: center; }
+.banda-s-abanico > .meta-abanico-1 { background: var(--arte-ambar); }
+.banda-s-abanico > .meta-abanico-2 { background: var(--arte-azul); }
+.banda-s-abanico > .meta-abanico-3 { background: var(--arte-morado); }
+.banda-s-abanico .meta-abanico-carta img { width: 88%; height: auto; object-fit: contain; filter: drop-shadow(0 2px 4px rgb(0 0 0 / 35%)); }
+@media (min-width: 901px) {
+  .meta-filtros-cab { justify-content: space-between; }
+}
+@media (max-width: 900px) {
+  .meta-cabecera.banda-s {
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+  .meta-cabecera.banda-s :is(.banda-s-ceja, .banda-s-cifras, .banda-s-derecha) { display: none; }
+}

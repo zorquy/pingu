@@ -245,7 +245,6 @@
    Se mudan TAL CUAL, sin tocar una coma: si algo se ve distinto después
    de esto, es que el traslado se hizo mal, no que el diseño cambió. */
 
-
 /* ══════════════════════════════════════════════════════════════
    El foro
    ══════════════════════════════════════════════════════════════ */
@@ -783,8 +782,6 @@
 .foro-reaccion-quieta {
   cursor: default;
 }
-
-
 
 .foro-mensaje-autor .contributor-badge {
   font-size: var(--t-2xs);
@@ -1465,16 +1462,7 @@ a.foro-cita-quien:hover {
 }
 .foro-autor-oros svg { vertical-align: -2px; }
 :root[data-theme='dark'] .foro-autor-oros { color: #fbbf24; }
-
-/* ── Lo que se está hablando (tanda 299) ──
-   La franja de arriba del índice. Es la misma información que tenía el
-   lateral, pero a lo ancho: aquí un título de tema cabe entero, que es
-   lo único que hace que sirva para algo. */
-.foro-calientes {
-  margin-bottom: 24px;
-}
 /* En el PC la franja también sale (1216): su carrusel va al FINAL de la hoja. */
-
 
 /* «Lo último», arriba del lateral del índice (1096): quién escribió lo
    último, el título en dos líneas, cuándo y en qué foro. */
@@ -1538,69 +1526,6 @@ a.foro-cita-quien:hover {
 }
 .foro-lou-foro {
   color: var(--text-mid);
-}
-.foro-calientes > h2 {
-  font-size: var(--t-xl);
-  margin: 0 0 12px;
-}
-.foro-calientes-rejilla {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 12px;
-}
-.foro-caliente {
-  display: flex;
-  gap: 12px;
-  padding: 16px 16px;
-  background: var(--white);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  color: inherit;
-  text-decoration: none;
-  transition: border-color 0.15s, box-shadow 0.15s var(--ease), transform 0.15s var(--ease);
-}
-.foro-caliente:hover {
-  border-color: var(--border-strong);
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-1px);
-}
-@media (prefers-reduced-motion: reduce) {
-  .foro-caliente:hover { transform: none; }
-}
-.foro-caliente-texto {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-.foro-caliente-titulo {
-  font-weight: 600;
-  font-size: var(--t-md);
-  line-height: 1.35;
-  color: inherit;
-  text-decoration: none;
-  /* Dos líneas y corta: un título de foro puede ser largo, pero tres
-     líneas ya desequilibran la franja entera. */
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-.foro-caliente:hover .foro-caliente-titulo { color: var(--navy); }
-.foro-caliente-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-}
-.foro-caliente-meta small { color: var(--text-dim); font-size: var(--t-xs); }
-.foro-caliente-pref {
-  background: var(--ice);
-  color: var(--navy);
-  border-radius: var(--radius-sm);
-  padding: 2px 8px;
-  font-size: var(--t-2xs);
-  font-weight: 700;
 }
 
 /* En móvil se cae todo a una columna: las cuatro columnas de un índice de
@@ -2585,26 +2510,10 @@ html:has(#temaResponder) {
     cursor: pointer;
   }
 
-  /* Lo que se está hablando, en una fila que se desliza (804). */
-  .foro-calientes-rejilla {
-    display: flex;
-    margin-inline: calc(-1 * var(--e-xl));
-    padding-inline: var(--e-xl);
-    overflow-x: auto;
-    scroll-padding-inline: var(--e-xl);
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-  }
-
   /* En el índice, los números de cada foro sobran en el móvil: dice más
      el último tema, que sí se queda. */
   .foro-en-indice .foro-fila .foro-fila-numeros {
     display: none;
-  }
-
-  .foro-caliente {
-    flex: 0 0 82%;
-    scroll-snap-align: start;
   }
 
   /* El índice del móvil (813, FO1): los foros en baldosas de dos en dos,
@@ -2922,9 +2831,6 @@ html:has(#temaResponder) {
     min-height: 0;
     margin-bottom: var(--e-sm);
   }
-  .foro-calientes h2 {
-    font-size: var(--t-md);
-  }
   .foro-en-indice .foro-seccion {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -2976,23 +2882,43 @@ html:has(#temaResponder) {
   #foroPrincipal > .foro-seccion { animation: none; }
 }
 
-/* Al final a propósito: la rejilla base de más arriba le ganaría por orden. */
-/* En el PC también, como carrusel (1216, la propuesta del repaso: «el
-   carrusel de Lo que se está hablando del móvil, también en el PC»): una fila
-   de tarjetas de 320 px que se desliza, con la sombra del borde que dice que
-   hay más. El lateral sigue con «Lo último» (1096). */
+/* 1221 (la maqueta de «La web como la portada»): el índice sin «Lo que se
+   está hablando» (PINGU: «ya tienes a la derecha lo de lo último»), con la
+   banda de Comunidad en el PC y cada foro con su icono de color. En el
+   móvil la cabecera sigue siendo la fila de mandos, y «Lo último» va al
+   final de la lista (la lateral no se ve ahí). */
+.foro-cabecera.foro-banda { margin: var(--e-md) 0 var(--e-xl); }
+.foro-banda .foro-cabecera-derecha { position: relative; z-index: 1; }
+.foro-banda .foro-buscador input { background: color-mix(in srgb, var(--white) 70%, transparent); }
+.foro-fila-numeros-indice span { gap: 0; }
+.foro-fila-numeros-indice strong { color: var(--text); font-size: var(--t-md); }
+.foro-fila-numeros-indice small { white-space: nowrap; }
 @media (min-width: 901px) {
-  .foro-calientes-rejilla {
-    display: flex;
-    overflow-x: auto;
-    overflow-y: hidden;
-    padding-block: var(--e-xs);
-    scroll-snap-type: x mandatory;
-    scrollbar-width: thin;
-    mask-image: linear-gradient(90deg, #000 calc(100% - 48px), transparent);
+  .foro-en-indice .foro-fila { grid-template-columns: 40px minmax(0, 1fr) 96px minmax(0, 1.15fr); padding-block: var(--e-md); }
+  .foro-en-indice .foro-fila .foro-fila-icono {
+    position: relative;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    background: var(--tono-bg);
+    color: var(--tono);
+    opacity: 1;
   }
-  .foro-calientes-rejilla > .foro-caliente {
-    flex: 0 0 320px;
-    scroll-snap-align: start;
+  .foro-en-indice .foro-fila-leida .foro-fila-icono { opacity: 0.6; }
+  .foro-en-indice .foro-fila .foro-punto-nuevo { position: absolute; top: -2px; right: -2px; }
+  .foro-en-indice .foro-seccion-titulo { color: var(--text-mid); font-size: var(--t-xs); letter-spacing: 0.08em; text-transform: uppercase; }
+}
+@media (max-width: 900px) {
+  .foro-cabecera.foro-banda {
+    min-height: 0;
+    margin-bottom: var(--e-sm);
+    padding: var(--e-sm) 0 var(--e-md);
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
   }
+  .foro-banda :is(.banda-s-ceja, .banda-s-cifras) { display: none; }
+  .foro-en-indice .foro-lateral { display: flex; margin-top: var(--e-lg); }
+  .foro-en-indice .foro-lateral > :not(.foro-lou) { display: none; }
 }

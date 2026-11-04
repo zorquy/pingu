@@ -17,6 +17,7 @@ import { misMazos, cartasPorIds, borrarMazo, guardarMazo, cambiarPortada, buscar
 import { nombreVisible, esEnergiaBasica, imagenDeEnergiaBasica, seccionesDelMazo, validarMazo } from './constructor/nucleo.js'
 import { marcasLegales, nombresConReimpresionLegal } from './carta-legalidad.js'
 import { tipoDelMazo, reparto, estadoDelMazo, textoDeRecord, ordenarMazos } from './mazos-nucleo.js'
+import { spritesDeMazoGuardado, spritesHtml } from './sprites-de-mazo.js'
 
 const $ = (id) => document.getElementById(id)
 const FORMATOS = { standard: 'Estándar', expanded: 'Expandido', libre: 'Libre' }
@@ -78,6 +79,12 @@ function costeHtml(m) {
   return `Faltan <b>${r.faltan}${euros}</b>`
 }
 
+// Los dos Pokémon del mazo (1221, la maqueta de «La web como la portada»):
+// salen de su lista (js/sprites-de-mazo.js) y van en grande sobre su color;
+// la portada que elegiste (413) queda detrás, difuminada. Sin Pokémon que
+// deducir, la portada como siempre.
+const spritesDelMazo = (m) => spritesDeMazoGuardado(m.cards, (id) => cartas.get(id))
+
 function tarjetaHtml(m) {
   const entradas = entradasDe(m)
   const total = totalDe(m)
@@ -90,10 +97,12 @@ function tarjetaHtml(m) {
   const rec = records.get(m.id)
   const tipo = tipoDelMazo(entradas, portada)
   const r = costes.get(m.id)
+  const sprites = spritesDelMazo(m)
   return `
     <article class="cm-mazo-tarjeta" data-id="${escapeHtml(m.id)}"${tipo ? ` data-tipo="${escapeHtml(tipo)}"` : ''}>
-      <a class="cm-mazo-portada" href="${enlace}" aria-hidden="true" tabindex="-1">
+      <a class="cm-mazo-portada${sprites.length ? ' con-sprites' : ''}" href="${enlace}" aria-hidden="true" tabindex="-1">
         ${imagenDe(portada, 'high')}
+        ${sprites.length ? `<span class="mz-portada-sprites">${spritesHtml(sprites, 'mz-portada-sprite')}</span>` : ''}
         <span class="cm-mazo-portada-chip">${escapeHtml(FORMATOS[m.format] || m.format)}</span>
         <span class="cm-mazo-portada-nombre">${portada ? escapeHtml(nombreVisible(portada)) : ''}</span>
       </a>
@@ -132,7 +141,32 @@ function pintar() {
   $('mzVacio').classList.toggle('hidden', mazos.length > 0)
   const conPartidas = mazos.some((m) => records.has(m.id))
   $('mzCuenta').textContent = mazos.length ? `${mazos.length} ${mazos.length === 1 ? 'mazo' : 'mazos'}${conPartidas && mazos.length > 1 ? ' · el que más juegas va primero' : ''}` : ''
-  $('mzLista').innerHTML = ordenarMazos(mazos, records).map(tarjetaHtml).join('')
+  $('mzLista').innerHTML = mazos.length
+    ? ordenarMazos(mazos, records).map(tarjetaHtml).join('') +
+      `<a class="mz-nuevo-hueco" href="/constructor?nuevo=1"><span class="btn-primary">+ Nuevo mazo</span><small>o importa una lista</small></a>`
+    : ''
+  pintarBanda()
+}
+
+// La banda (1221): cuántos mazos, cómo te va con el que más juegas y cuántas
+// cartas te faltan entre todos (cuando llega lo de tu colección).
+function pintarBanda() {
+  const n = $('mzNMazos')
+  if (!n) return
+  n.textContent = String(mazos.length)
+  const masJugado = ordenarMazos(mazos, records).find((m) => records.has(m.id))
+  const caja = $('mzRecordCifra')
+  if (masJugado && caja) {
+    caja.hidden = false
+    $('mzNRecord').textContent = textoDeRecord(records.get(masJugado.id))
+    $('mzRecordDe').textContent = `con ${masJugado.name}`
+  } else if (caja) caja.hidden = true
+  const conCoste = mazos.map((m) => costes.get(m.id)).filter(Boolean)
+  const faltan = $('mzFaltanCifra')
+  if (faltan) {
+    faltan.hidden = !conCoste.length
+    $('mzNFaltan').textContent = conCoste.reduce((t, r) => t + (r.faltan || 0), 0).toLocaleString('es-ES')
+  }
 }
 
 // El récord de cada mazo: solo las partidas que se apuntaron con ese mazo

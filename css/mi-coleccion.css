@@ -15644,3 +15644,106 @@ html.mc-set-abierta .mc-hero { display: none; }
 @media (prefers-reduced-motion: reduce) {
   .mc-cartera-abanico > span { animation: none; transform: rotate(var(--giro, 0deg)); }
 }
+
+/* ── 1217: Deseos y cambios como la maqueta (SCHEMA 1217) ── */
+/* La banda, solo en el PC (PINGU: en el móvil «ya te lo dice arriba»). */
+html.con-barra-movil .mc-banda-deseos,
+html.con-barra-movil #mcCambiosPanel .banda-s { display: none; }
+#mcMercadoBanda:not(:empty),
+#mcQuieroBanda:not(:empty),
+#mcDoyBanda:not(:empty) { margin-bottom: var(--e-lg); }
+/* Los chips de Mercado (Todo · Lo que busco · Personas · Tiendas) con el
+   dibujo de los de Cruces. */
+.mc-deseos-chips { display: inline-flex; flex-wrap: nowrap; gap: var(--e-sm); }
+.mc-deseos-chips .seg-btn {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 36px;
+  padding: 0 var(--e-lg);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.mc-deseos-chips .seg-btn[aria-pressed='true'] {
+  background: color-mix(in srgb, var(--acento) 22%, transparent);
+  color: var(--text);
+}
+.mc-deseos-chips .seg-btn.hidden { display: none; }
+#mcPanelMercado .mc-mercado-mandos { flex: 1 1 auto; }
+#mcPanelMercado .mc-mercado-quien { margin-right: auto; }
+/* En el Mercado la cara de quien la da va arriba, en la esquina, y el
+   corazón en la otra; «La buscas» ya lo dice el corazón relleno. */
+.mc-mercado-rejilla .mc-merc-chapa { display: none; }
+.mc-mercado-rejilla .mc-merc-chapas { top: var(--e-xs); bottom: auto; }
+/* Cruces: los filtros son Todos · Perfectos · En curso, y en «En curso» los
+   tratos van debajo, en su sitio. */
+#mcCambiosPanel > #mcMisCambios { margin: 0; }
+/* Con la banda a la vista (el PC), su cuenta y su nota de abajo sobran. */
+html:not(.con-barra-movil) section:has(#mcQuieroBanda:not(:empty)) :is(#mcQuieroCifra, .mc-quiero-nota),
+html:not(.con-barra-movil) #mcDoyPanel:has(#mcDoyBanda) :is(#mcDoyCifra, .mc-doy-nota),
+html:not(.con-barra-movil) #mcPanelMercado:has(#mcMercadoBanda:not(:empty)) #mcMercadoCuantas { display: none; }
+/* La gráfica de la cartera se dibuja de izquierda a derecha (1217); el punto
+   de hoy llega al final. */
+.mc-valor-lienzo[data-dibujando] svg { animation: mc-valor-dibujar 1.1s var(--ease) both; }
+.mc-valor-lienzo[data-dibujando] .mc-valor-punto { animation: mc-valor-punto 0.3s 1s both; }
+@keyframes mc-valor-dibujar { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes mc-valor-punto { from { opacity: 0; transform: translate(-50%, -50%) scale(0.4); } to { opacity: 1; transform: translate(-50%, -50%); } }
+[data-calculando] { font-variant-numeric: tabular-nums; }
+@media (prefers-reduced-motion: reduce) {
+  .mc-valor-lienzo[data-dibujando] svg,
+  .mc-valor-lienzo[data-dibujando] .mc-valor-punto { animation: none; }
+}
+/* La Pokédex en el PC (1217): la banda con el anillo y las tres cifras, y
+   el nombre de lo que falta, en sombra como su dibujo. En el móvil, lo de
+   siempre (el encabezado y «???»). */
+html:not(.con-barra-movil) .pdx-encabezado,
+html.con-barra-movil .pdx-banda,
+html.con-barra-movil .pdx-nombre-sombra,
+html:not(.con-barra-movil) .pdx-nombre-oculto { display: none; }
+.pdx-banda { margin-bottom: var(--e-lg); }
+.pdx-banda .mc-anillo { width: 88px; height: 88px; }
+.pdx-especie:not(.tengo) .pdx-nombre-sombra { color: var(--text-mid); }
+/* Álbumes (1217): la banda; en el móvil, pequeña (PINGU). */
+#mcAlbumesBanda:not(:empty) { margin-bottom: var(--e-md); }
+html.con-barra-movil .mc-albumes-banda { padding: var(--e-sm) var(--e-md); }
+html.con-barra-movil .mc-albumes-banda .banda-s-lema,
+html.con-barra-movil .mc-albumes-banda .banda-s-ceja { display: none; }
+html.con-barra-movil .mc-albumes-banda h2 { font-size: var(--t-md); }
+html.con-barra-movil .mc-albumes-banda .banda-s-cifra b { font-size: var(--t-lg); }
+html:not(.con-barra-movil) #mcBloqueAlbumes:has(#mcAlbumesBanda:not(:empty)) .mc-albumes-titulo { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+/* Productos (1217): la banda arriba (en el móvil no, como Deseos y cambios)
+   y la foto de cada producto sobre un brillo del color de la sección. */
+#mcProdBanda:not(:empty) { margin-bottom: var(--e-lg); }
+html.con-barra-movil .mc-prod-banda { display: none; }
+.mc-prod-foto { background: radial-gradient(circle at 50% 45%, color-mix(in srgb, var(--acento) 22%, transparent), transparent 70%), var(--ice); }
+/* Buscar antes de escribir (1217, la maqueta): «Prueba con» en chips, lo
+   último que buscaste en una tira de fotos y los sets de ahora con su logo. */
+.mc-vacio-buscar-texto { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); margin: 0; text-align: left; }
+.mc-antes-prueba { margin-right: auto; color: var(--text-mid); font-size: var(--t-sm); }
+#mcBuscarAntes { display: grid; gap: var(--e-lg); margin-top: var(--e-lg); text-align: left; }
+.mc-antes-titulo { display: flex; align-items: center; gap: var(--e-md); margin: 0 0 var(--e-sm); font-family: var(--font-display); font-size: var(--t-md); }
+.mc-antes-titulo::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.mc-antes-tira { display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); gap: var(--e-sm); }
+.mc-antes-carta { display: grid; gap: 2px; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.mc-antes-foto { display: block; aspect-ratio: 63 / 88; overflow: hidden; border-radius: var(--radius-md); background: var(--ice); }
+.mc-antes-foto img { width: 100%; height: 100%; object-fit: cover; }
+.mc-antes-carta b { overflow: hidden; font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.mc-antes-carta small { color: var(--text-dim); font-size: var(--t-2xs); }
+.mc-antes-sets { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 220px), 1fr)); gap: var(--e-sm); }
+.mc-antes-set { display: flex; align-items: center; gap: var(--e-md); min-height: 56px; padding: var(--e-sm) var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); color: inherit; text-decoration: none; }
+.mc-antes-set span:last-child { display: grid; min-width: 0; }
+.mc-antes-set b { overflow: hidden; font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
+.mc-antes-set small { color: var(--text-mid); font-size: var(--t-xs); }
+.mc-antes-logo { display: grid; place-items: center; flex-shrink: 0; width: 72px; height: 36px; font-size: var(--t-xs); font-weight: 700; }
+.mc-antes-logo img { max-width: 100%; max-height: 100%; object-fit: contain; }
+@media (max-width: 599px) {
+  .mc-antes-tira { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .mc-antes-prueba { flex-basis: 100%; }
+}

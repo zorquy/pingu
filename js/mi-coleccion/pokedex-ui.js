@@ -89,6 +89,8 @@ export function pintarPokedex() {
   const buscando = Boolean(String($('mcPdxBuscar').value || '').trim())
   const todas = ctx.pokedex.filasDePokedex({ mio, totales: ctx.totalesPokedex, soloMios: ctx.pdxSoloMios, tipos: ctx.pokedex.tiposPorEspecie(ctx.lineas, ctx.cartas) })
   const encabezado = $('mcPdxEncabezado')
+  // La banda del PC (1217) lleva la hoja de las bandas.
+  if (encabezado) import('../hoja.js').then((m) => m.hojaInyectada('css/seccion.css')).catch(() => {})
   if (encabezado) encabezado.innerHTML = ctx.pokedex.encabezadoHtml(todas, { region: pdxRegion, registrados: resumen.registrados })
   caja.innerHTML = buscando || orden !== 'dex'
     ? ctx.pokedex.rejillaHtml(filas, orden)

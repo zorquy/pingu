@@ -26,6 +26,7 @@
 import { supabase } from '../supabase.js'
 import { hojaInyectada } from '../hoja.js'
 import { escapeHtml } from '../html.js'
+import { bandaSeccionHtml } from '../banda-seccion.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { marcaCardmarket } from '../cardmarket-marca.js'
@@ -156,6 +157,7 @@ function pintarTuyos() {
     return
   }
   const lista = mios.filter((m) => fichas.has(m.product_id) && mercadoDe(fichas.get(m.product_id)) === catalogoActual())
+  pintarBandaDeProductos(lista)
   if (!lista.length) {
     // Sin el «Todavía no tienes productos…» (1038, PINGU: «las letras y el
     // título los quitaría»): la estantería de debajo ya lleva su «+ Añadir».
@@ -168,6 +170,30 @@ function pintarTuyos() {
       <p class="mc-prod-valor"><b>${escapeHtml(euros(v.total))}</b> · ${v.unidades} ${v.unidades === 1 ? 'producto' : 'productos'}${v.sinPrecio ? ` · ${v.sinPrecio} sin precio` : ''}</p>
     </div>
     ${gruposDeTuyos(lista).map((g) => `${g.set ? `<div class="mc-prod-set">${cabezaDeSetHtml(g.set)}</div>` : g.especial ? `<div class="mc-prod-set">${cabezaDeEspecialesHtml()}</div>` : ''}<div class="mc-prod-rejilla">${[...new Set(g.lista.map((m) => m.product_id))].map((id) => tarjetaDeProductoHtml(fichas.get(id))).join('')}</div>`).join('')}`
+}
+
+// LA BANDA (1217, la maqueta): los tuyos, lo que valen hoy y cuántos de los
+// que ya conocemos están en preventa. Va encima de la estantería.
+function pintarBandaDeProductos(lista) {
+  const estante = $('mcProdEstante')
+  if (!estante) return
+  let caja = $('mcProdBanda')
+  if (!caja) {
+    estante.insertAdjacentHTML('beforebegin', '<div id="mcProdBanda"></div>')
+    caja = $('mcProdBanda')
+  }
+  void hojaInyectada('css/seccion.css').catch(() => {})
+  const v = valorDeProductos(lista, fichas)
+  const preventa = [...fichas.values()].filter((f) => mercadoDe(f) === catalogoActual() && esPreventa(f)).length
+  const cifras = [{ n: String(v.unidades), texto: v.unidades === 1 ? 'tuyo' : 'tuyos' }]
+  if (v.total) cifras.push({ n: euros(v.total), texto: 'lo que valen' })
+  if (preventa) cifras.push({ n: String(preventa), texto: 'en preventa' })
+  caja.innerHTML = bandaSeccionHtml({
+    ceja: 'Colección · Productos',
+    titulo: 'Productos sellados',
+    lema: 'Cajas, latas y sobres de cada expansión, con lo que piden hoy en España. Apunta los que tienes.',
+    cifras,
+  }).replace('<section class="banda-s"', '<section class="banda-s mc-prod-banda"')
 }
 
 // Tus productos, por expansión (766, PR1): la más nueva primero.

@@ -238,3 +238,49 @@
   }
   .glosario-letras a { min-width: 32px; min-height: 24px; }
 }
+
+/* ── 1217: como la maqueta (SCHEMA 1217) ──
+   La banda, la palabra de hoy en grande con su Pokémon, las letras al lado
+   del buscador y los términos en tarjetas a tres columnas (dos en tablet,
+   una en el móvil). Deja vieja la rejilla con el índice a la derecha (1144). */
+.glosario-hoy-caja {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--e-lg);
+  margin: var(--e-lg) 0;
+  padding: var(--e-lg) var(--e-xl);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--acento);
+  border-radius: var(--radius-xl);
+  background: radial-gradient(90% 140% at 90% 0%, color-mix(in srgb, var(--acento) 14%, transparent), transparent 60%), var(--white);
+  color: inherit;
+  text-decoration: none;
+}
+.glosario-hoy-texto { display: grid; flex: 1 1 auto; gap: var(--e-xs); min-width: 0; }
+.glosario-hoy-ceja { color: var(--acento); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.glosario-hoy-texto strong { font-family: var(--font-display); font-size: var(--t-2xl); }
+.glosario-hoy-def { color: var(--text-mid); font-size: var(--t-sm); }
+.glosario-hoy-carta { display: grid; place-items: center; flex-shrink: 0; width: 88px; aspect-ratio: 63 / 88; border-radius: var(--radius-md); background: var(--arte-morado); box-shadow: 0 8px 20px rgb(0 0 0 / 25%); }
+.glosario-hoy-arte { width: 84%; height: auto; }
+@media (max-width: 599px) {
+  .glosario-hoy-caja { margin: var(--e-sm) 0 var(--e-md); padding: var(--e-md); gap: var(--e-md); }
+  .glosario-hoy-texto strong { font-size: var(--t-lg); }
+  .glosario-hoy-carta { width: 64px; }
+}
+
+@media (min-width: 900px) {
+  .glosario-pagina { display: block; }
+  .glosario-mandos { display: flex; align-items: center; gap: var(--e-md); position: sticky; top: 72px; z-index: 5; padding-block: var(--e-sm); background: var(--bg); }
+  .glosario-mandos input { position: static; flex: 0 1 320px; margin: 0; box-shadow: none; }
+  .glosario-letras { position: static; flex: 1 1 auto; flex-direction: row; flex-wrap: wrap; justify-content: flex-end; gap: var(--e-xs); margin: 0; padding: 0; border: 0; }
+  .glosario-letras a { min-width: 32px; min-height: 32px; border-radius: var(--radius-sm); background: var(--white); }
+  .glosario-lista { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-md); columns: auto; }
+  .glosario-lista > .glosario-letra { grid-column: 1 / -1; margin: var(--e-md) 0 0; }
+  .glosario-termino { align-content: start; padding: var(--e-md) var(--e-lg); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
+  .glosario-termino .glosa-ejemplo { padding-left: var(--e-sm); border-left: 2px solid var(--acento); font-size: var(--t-sm); }
+}
+@media (min-width: 900px) and (max-width: 1099px) {
+  .glosario-lista { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

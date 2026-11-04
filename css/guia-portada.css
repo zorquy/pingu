@@ -1,0 +1,26 @@
+/* La portada de una guía (1217): /aprender y /guardados en el PC. El porqué
+   en SCHEMA 1217. */
+.guia-portada {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  color: var(--blanco-fijo);
+  text-decoration: none;
+  isolation: isolate;
+}
+.guia-portada::after { content: ''; position: absolute; inset: 0; z-index: 1; background: linear-gradient(180deg, transparent 35%, rgb(11 18 25 / 82%)); }
+.guia-portada-foto { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.guia-portada-arte { position: absolute; right: 6%; top: 8%; width: auto; height: 74%; max-width: 70%; object-fit: contain; filter: drop-shadow(0 10px 16px rgb(0 0 0 / 30%)); transition: transform 0.3s var(--ease); }
+.guia-portada:hover .guia-portada-arte { transform: scale(1.05) rotate(-2deg); }
+.guia-portada-mins { position: absolute; top: var(--e-sm); right: var(--e-sm); z-index: 2; padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: rgb(11 18 25 / 60%); font-size: var(--t-2xs); font-weight: 700; }
+.guia-portada-sobre { position: absolute; inset: auto 0 0; z-index: 2; display: grid; justify-items: start; gap: var(--e-xs); padding: var(--e-md); }
+.guia-portada-tema { padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--blanco-fijo); color: #0b1219; font-size: var(--t-2xs); font-weight: 700; }
+.guia-portada-sobre strong { font-family: var(--font-display); font-size: var(--t-md); line-height: 1.2; }
+.guia-portada-barra { display: block; width: 100%; height: 4px; overflow: hidden; border-radius: 2px; background: rgb(255 255 255 / 25%); }
+.guia-portada-barra i { display: block; height: 100%; background: var(--acento); }
+@media (prefers-reduced-motion: reduce) {
+  .guia-portada-arte { transition: none; }
+  .guia-portada:hover .guia-portada-arte { transform: none; }
+}
+
