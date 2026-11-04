@@ -133,15 +133,17 @@ for (const movil of [false, true]) {
     const barra = bal ? [...bal.querySelectorAll('.mc-balanza-barra i')].map((i) => Math.round(i.getBoundingClientRect().width)) : []
     const icos = lucia ? [...lucia.querySelectorAll('.mc-cruce-ico')].map((i) => ({ et: i.getAttribute('aria-label'), w: Math.round(i.getBoundingClientRect().width), h: Math.round(i.getBoundingClientRect().height), texto: i.innerText.trim() })) : []
     const fuertes = lucia ? lucia.querySelectorAll('.btn-primary').length : 0
-    return { bandas, balanza: bal?.getAttribute('aria-label'), barra, icos, fuertes, fila: document.querySelector('[data-cruce="user-4"]')?.innerText.replace(/\s+/g, ' ').trim(), ancho: document.documentElement.scrollWidth <= innerWidth + 1 }
+    const mensaje = lucia?.querySelector('[data-escribir]')?.innerText.trim()
+    return { bandas, balanza: bal?.getAttribute('aria-label'), barra, icos, fuertes, mensaje, fila: document.querySelector('[data-cruce="user-4"]')?.innerText.replace(/\s+/g, ' ').trim(), ancho: document.documentElement.scrollWidth <= innerWidth + 1 }
   })
   const lado = movil ? 'móvil' : 'PC'
   check(`${lado}: todos en tarjeta, el perfecto primero (1208)`, r.bandas.length === 3 && r.bandas[0] === 'user-1:tarjeta' && r.bandas.every((x) => x.endsWith(':tarjeta')), JSON.stringify(r.bandas))
   check('  …la balanza dice quién pone más y cuánto', /^Te da 590,60\s€ más$/.test(r.balanza || ''), r.balanza)
   check('  …y la barra se reparte como el valor (612 contra 21,40)', r.barra.length === 2 && r.barra[0] > r.barra[1] * 20, JSON.stringify(r.barra))
-  check('  …un solo botón fuerte y «Escribir» y «Su perfil» en iconos de 44', r.fuertes === 1 && r.icos.length === 2 && r.icos.every((i) => i.w === 44 && i.h === 44 && i.texto === '' && i.et), JSON.stringify(r.icos))
+  // Desde la 1213 (la maqueta): «Mensaje» con su palabra y el verbo; el perfil, en el nombre.
+  check('  …un solo botón fuerte y «Mensaje» al lado', r.fuertes === 1 && r.icos.length === 0 && r.mensaje === 'Mensaje', JSON.stringify(r))
   // Desde la 1100 el botón dice qué es: quien tiene lo que buscas, «Comprar».
-  check('  …la tarjeta de Íker dice lo que mueve y cuánto vale', /1 carta · ≈ 612,00\s€/.test(r.fila || '') && /Proponer compra/.test(r.fila || ''), r.fila)
+  check('  …la tarjeta de Íker dice lo que mueve y cuánto vale', /te da 1 ≈ 612,00\s€/i.test(r.fila || '') && /Proponer compra/.test(r.fila || ''), r.fila)
   check('  …sin desplazamiento de lado', r.ancho)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()

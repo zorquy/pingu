@@ -98,7 +98,9 @@ console.log('── 1. Los cruces ──')
   await ir(page, '/mi-coleccion.html?ver=cambios')
   const lucia = page.locator('#mcCambiosPanel [data-cruce="user-1"]')
   const t = (await lucia.innerText()).replace(/\s+/g, ' ')
-  check('el cruce perfecto: cada carta con su nombre y su precio', /Umbreon VMAX/.test(t) && /612,00 €/.test(t) && /Mew ex/.test(t) && /38,00 €/.test(t) && (await lucia.locator('.mc-cruce-nombre').count()) === 2, t)
+  // Desde la 1213 la carta es su foto: el precio, debajo; el nombre, en la etiqueta.
+  const etiquetas = (await lucia.locator('.mc-cruce-fotos .mc-cruce-carta').evaluateAll((xs) => xs.map((x) => x.getAttribute('aria-label')))).join(' | ')
+  check('el cruce perfecto: cada carta con su nombre y su precio', /Umbreon VMAX/.test(etiquetas) && /612,00 €/.test(t) && /Mew ex/.test(etiquetas) && /38,00 €/.test(t) && (await lucia.locator('.mc-cruce-fotos .mc-cruce-carta').count()) === 2, etiquetas + ' — ' + t)
   check('  …y «Proponer cambio»', /Proponer cambio/.test(await lucia.locator('[data-proponer]').innerText()))
   // Desde la 1208 todas son tarjetas, con el verbo entero.
   check('quien solo tiene lo que buscas: «Proponer compra»', (await page.locator('#mcCambiosPanel [data-cruce="user-4"] [data-proponer]').innerText()).trim() === 'Proponer compra')

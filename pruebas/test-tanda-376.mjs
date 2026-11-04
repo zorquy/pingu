@@ -133,10 +133,10 @@ console.log('\n── 2. Se agrupa por PERSONA, no por carta ──')
   check('una sola tarjeta', (await gente.count()) === 1, String(await gente.count()))
   // Desde la 1044 el primer cruce va en la tarjeta grande (una sola persona
   // es la primera): las cuatro cartas y su cuenta.
-  // Tres a la vista con su nombre y «+1 más» (1100).
-  check('  …con las cuatro cartas dentro', (await gente.first().locator('.mc-cruce-carta').count()) === 3 && /\+1 más/.test(await gente.first().innerText()),
+  // Desde la 1213, las cuatro en foto (hasta cuatro a la vista; con más, «+N»).
+  check('  …con las cuatro cartas dentro', (await gente.first().locator('.mc-cruce-carta').count()) === 4,
     String(await gente.first().locator('.mc-cruce-carta').count()))
-  check('  …y lo dice', /Te da.*4 cartas/.test(limpio(await gente.first().textContent())),
+  check('  …y lo dice', /Te da 4/.test(limpio(await gente.first().textContent())),
     limpio(await gente.first().textContent()).slice(0, 120))
   check('  …y un solo botón de escribir', (await gente.first().locator('[data-escribir]').count()) === 1)
   await page.close()

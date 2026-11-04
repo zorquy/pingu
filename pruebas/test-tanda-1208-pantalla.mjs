@@ -91,7 +91,7 @@ const estado = (page) => page.evaluate(() => {
   return {
     titulo: banda?.querySelector('h2')?.textContent.trim(),
     cifras: banda ? [...banda.querySelectorAll('.banda-s-cifra')].map((c) => ({ t: c.textContent.replace(/\s+/g, ' ').trim(), boton: c.tagName === 'BUTTON', ir: c.getAttribute('data-deseos-vista') || (c.hasAttribute('data-ir-quiero') ? 'quiero' : '') })) : [],
-    tarjetas: tarjetas.map((c) => ({ quien: c.dataset.cruce, t: c.classList.contains('mc-cruce-t'), lados: c.querySelectorAll('.mc-cruce-lado').length, nombres: c.querySelectorAll('.mc-cruce-nombre').length, encaje: c.querySelector('.mc-cruce-encaje b')?.textContent, chapa: Boolean(c.querySelector('.mc-chapa-reciproco')), top: Math.round(r(c).top), h: Math.round(r(c).height) })),
+    tarjetas: tarjetas.map((c) => ({ quien: c.dataset.cruce, t: c.classList.contains('mc-cruce-t'), lados: c.querySelectorAll('.mc-cruce-lado').length, nombres: [...c.querySelectorAll('.mc-cruce-fotos .mc-cruce-carta')].filter((a) => /\S/.test(a.getAttribute('aria-label') || '')).length, encaje: c.querySelector('.mc-cruce-encaje b')?.textContent, chapa: Boolean(c.querySelector('.mc-chapa-reciproco')), top: Math.round(r(c).top), h: Math.round(r(c).height) })),
     filas: panel.querySelectorAll('.mc-cruce-fila').length,
     cascada: tarjetas[0] ? getComputedStyle(tarjetas[0]).animationName : '',
     ancho: document.documentElement.scrollWidth <= innerWidth + 1,
@@ -106,10 +106,11 @@ for (const movil of [false, true]) {
   await page.waitForTimeout(1200)
   const e = await estado(page)
   check('la banda: «3 personas encajan contigo»', e.titulo === '3 personas encajan contigo' || movil, JSON.stringify(e.titulo))
-  check('  …con lo que buscas y das (que llevan a su lista) y los perfectos', e.cifras.length === 3 && /^1\s*carta buscas$/.test(e.cifras[0]?.t) && e.cifras[0].ir === 'quiero' && /^2\s*cartas das$/.test(e.cifras[1]?.t) && e.cifras[1].ir === 'doy' && /^1\s*cruce perfecto$/.test(e.cifras[2]?.t) && !e.cifras[2].boton, JSON.stringify(e.cifras))
+  // Desde la 1213, también los tratos en curso (lleva a «Tus cambios»).
+  check('  …con lo que buscas y das (que llevan a su lista), los perfectos y los tratos en curso', e.cifras.length === 4 && /^1\s*carta buscas$/.test(e.cifras[0]?.t) && e.cifras[0].ir === 'quiero' && /^2\s*cartas das$/.test(e.cifras[1]?.t) && e.cifras[1].ir === 'doy' && /^1\s*cruce perfecto$/.test(e.cifras[2]?.t) && !e.cifras[2].boton && /^\d+\s*tratos en curso$/.test(e.cifras[3]?.t) && e.cifras[3].boton, JSON.stringify(e.cifras))
   check('tres tarjetas iguales y ninguna fila plegada', e.tarjetas.length === 3 && e.tarjetas.every((x) => x.t && x.lados === 2) && e.filas === 0, JSON.stringify(e.tarjetas))
   check('  …la primera, Lucía, con su chapa de cruce perfecto y «2 encajan»', e.tarjetas[0]?.quien === 'user-1' && e.tarjetas[0].chapa && e.tarjetas[0].encaje === '2', JSON.stringify(e.tarjetas[0]))
-  check('  …con el nombre de cada carta a la vista (1100)', e.tarjetas.every((x) => x.nombres >= 1), JSON.stringify(e.tarjetas))
+  check('  …cada carta en foto, con su nombre en la etiqueta (1213)', e.tarjetas.every((x) => x.nombres >= 1), JSON.stringify(e.tarjetas))
   check(movil ? '  …en una columna' : '  …en dos columnas (las dos primeras a la misma altura)', movil ? e.tarjetas[1].top > e.tarjetas[0].top : e.tarjetas[0].top === e.tarjetas[1].top, JSON.stringify(e.tarjetas.map((x) => x.top)))
   check('  …y entran en cascada', e.cascada === 'seccion-entra', e.cascada)
   await page.waitForTimeout(700)
