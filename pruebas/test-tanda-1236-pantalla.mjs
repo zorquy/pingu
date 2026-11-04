@@ -139,6 +139,35 @@ console.log('── 3. La pestaña «Tiendas» ──')
   await ctx.close()
 }
 
+console.log('── 3b. Dos despliegues mezclados (PINGU: «Importing binding name engancharEnTiendas is not found») ──')
+{
+  // El primer en-tiendas.js que llega es el de ANTES (sin el export nuevo),
+  // como cuando la caché sirve un módulo viejo a uno nuevo: el Mercado no
+  // pinta el error, se recarga una vez y sale bien.
+  const ctx = await b.newContext({ viewport: { width: 1360, height: 900 }, serviceWorkers: 'block' })
+  await ctx.addInitScript(([r, c, st]) => {
+    window.__FAKE_SESSION__ = 'user-2'
+    window.__RPC_RESPUESTAS__ = r
+    window.__FAKE_FILAS__ = { tiendas: [{ user_id: 't1' }] }
+    window.__FAKE_CARTAS__ = c
+    window.__FAKE_SETS__ = st
+  }, [{ mercado_con_tiendas: MERCADO, tiendas_con_mis_deseos: [] }, CARTAS, SETS])
+  let viejo = true
+  await ctx.route(/\/js\/en-tiendas\.js/, async (r) => {
+    if (!viejo) return r.continue()
+    viejo = false
+    r.fulfill({ status: 200, contentType: 'text/javascript', body: "export async function tiendasQueTienen() { return [] }\nexport function enTiendasHtml() { return '' }\nexport async function pintarEnTiendas() {}\n" })
+  })
+  const p = await ctx.newPage()
+  let cargas = 0
+  p.on('load', () => cargas++)
+  await p.goto(`${BASE}/mi-coleccion.html?ver=mercado`, { waitUntil: 'domcontentloaded' })
+  await p.waitForTimeout(5000)
+  const txt = await p.textContent('#mcMercadoRejilla').catch(() => '')
+  check('se recarga sola una vez y el Mercado sale (sin el error del navegador)', cargas >= 2 && !/Importing binding|export named/i.test(txt) && (await p.locator('[data-merc="carta-1"]').count()) >= 1 && (await p.evaluate(() => Boolean(sessionStorage.getItem('pd-recarga-despliegue')))), `cargas ${cargas} · ${txt.slice(0, 120)}`)
+  await ctx.close()
+}
+
 console.log('── 4. /tiendas: la agenda ──')
 {
   const { p, ctx, errs } = await abrir('/tiendas', { rpc: { tiendas_agenda: '__AGENDA__' } })
