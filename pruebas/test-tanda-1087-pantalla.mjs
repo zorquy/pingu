@@ -47,7 +47,9 @@ console.log('── La tabla en un portátil ──')
 {
   const { p, ctx, errs } = await abrir()
   const cab = await cabeceras(p)
-  check('siete columnas: Carta, Uds., Coste, Tu precio, Cardmarket, Margen y la de las marcas', !errs.length && cab.length === 7 && cab.slice(0, 6).join('|') === 'Carta|Uds.|Coste|Tu precio|Cardmarket|Margen', cab.join('|') || errs.join(' | '))
+  // La 1235 añade «Fotos» detrás de Carta (con la migración de las fotos).
+  const sinFotos = cab.filter((c) => c !== 'Fotos')
+  check('siete columnas: Carta, Uds., Coste, Tu precio, Cardmarket, Margen y la de las marcas (más Fotos, 1235)', !errs.length && sinFotos.length === 7 && sinFotos.slice(0, 6).join('|') === 'Carta|Uds.|Coste|Tu precio|Cardmarket|Margen' && cab.length <= 8, cab.join('|') || errs.join(' | '))
   check('  …y cabe sin deslizarse', await p.evaluate(() => { const c = document.querySelector('.tds-tabla-caja'); return c.scrollWidth <= c.clientWidth }))
   check('el idioma y el estado, debajo del nombre', /EN\s*EX/.test(await p.textContent('[data-fila="st-1"] .tds-meta')) && (await p.locator('[data-fila="st-1"] .tds-meta .pv-bandera').count()) === 1)
   check('los días en pequeño; más de 90, en rojo y con su reloj; y la oculta, dicho', /3 d/.test(await p.textContent('[data-fila="st-0"] .tds-c-marcas')) && /Vitrina/.test(await p.textContent('[data-fila="st-0"] .tds-c-marcas')) && (await p.locator('[data-fila="st-1"] .tds-dias.tds-rojo svg').count()) === 1 && /Oculta/.test(await p.textContent('[data-fila="st-1"] .tds-c-marcas')))
