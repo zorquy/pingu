@@ -51,7 +51,8 @@ console.log('── 1. Aprender en el móvil ──')
       chips: document.querySelectorAll('#categoriesList [data-nivel], #apChips').length,
     }
   })
-  check('la fila de mandos es el buscador, nada más (el lápiz va en la banda, 1227)', JSON.stringify(r.hijos) === JSON.stringify(['ap-buscar']), JSON.stringify(r.hijos))
+  // Desde la 1229 el buscador va detrás de la lupa de la banda: no hay fila.
+  check('sin fila de mandos (el buscador sale con la lupa, 1229)', !r.hijos || r.hijos.length === 0, JSON.stringify(r.hijos))
   check('  …sin chips de nivel ni «Sin leer»', r.chips === 0, r.chips)
   check('  …el lápiz es un círculo de 44, en la banda', r.escribir?.ancho === 44 && r.escribir?.alto === 44, JSON.stringify(r.escribir))
   check('  …y dice qué hace', /escribir/i.test(r.escribir?.etiqueta || ''), r.escribir?.etiqueta)
