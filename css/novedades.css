@@ -140,3 +140,17 @@ a.nv-fila:hover { border-color: var(--border-strong); }
   .nv-semana-titulo { margin-left: calc(-1 * var(--e-lg)); padding-left: var(--e-lg); }
   .nv-fila::before { top: var(--e-lg); transform: none; }
 }
+
+/* La cuenta de cada semana (1215): tres chapas pequeñas con el punto de su
+   color, al lado del rótulo. */
+.nv-cuentas { display: inline-flex; flex-wrap: wrap; gap: var(--e-sm); margin-left: auto; text-transform: none; letter-spacing: 0; font-weight: 600; }
+.nv-cuenta { display: inline-flex; align-items: center; gap: var(--e-xs); color: var(--text-mid); font-size: var(--t-xs); }
+.nv-cuenta::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--navy); }
+.nv-cuenta-nuevo::before { background: var(--pink); }
+.nv-cuenta-arreglo::before { background: var(--success); }
+@media (max-width: 599px) {
+  /* Las tres cifras de la banda en UNA fila (1215): la tercera caía sola. */
+  .nv-banda .banda-s-cifras { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: var(--e-md); }
+  .nv-semana-titulo { flex-wrap: wrap; }
+  .nv-cuentas { margin-left: 0; flex-basis: 100%; }
+}

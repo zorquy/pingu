@@ -53763,3 +53763,49 @@ De las cuatro animaciones de la propuesta solo estaba la cascada. Ahora:
 
 Lo vigila `test-tanda-1214-pantalla.mjs`. La portada sigue en 137,3 KB.
 
+
+## Tanda 1215 — Los huecos de la propuesta, página a página
+
+Lo que la propuesta del repaso (1207–1212) pedía en cada pantalla y no
+estaba. Decidido sin preguntar, con lo recomendado (PINGU: «haz todo lo
+recomendado»): sin «Cerca de ti», sin temas del foro en Guardados, sin sprites
+en las tarjetas de torneo, sin carrusel del foro en el PC, y en Cruces el precio
+y la balanza pequeños (1213).
+
+- **Torneos**: si estás inscrito en uno que aún no ha empezado, la banda es
+  «Tu próximo torneo · en N días» (`proximoHtml`, en `js/torneos/torneos.js`):
+  nombre, día y hora, plazas, desde cuándo hay check-in (`checkin_minutes`) y
+  «Tu lista» (`?ver=jugar`) / «Ver el torneo». Con él, el lema y las cifras se
+  apartan (`.torneos-heroe.con-proximo`); en el móvil, que recorta la banda, la
+  caja del próximo se queda a la vista.
+- **Aprender**: el orden de la rejilla (Recientes · Más útiles · Más cortas):
+  «Más útiles» pide `guias-servido.js` al pulsarlo, no al abrir. En el PC
+  «Seguir» va a la derecha de la banda (se MUEVE el elemento, 893) y cada
+  baldosa de categoría lleva el tinte de su icono (`ap-baldosa-*`). En el
+  móvil el orden no sale: arriba es una fila (1038).
+- **Lanzamientos**: «Ya en tiendas» en baldosas en el PC (logo, nombre a dos
+  líneas, el día y el anillo de tu progreso).
+- **Panel**: las tres que más valen, con foto, en abanico junto a la cifra de
+  la cartera (`abanicoDeCartera`), solo en el PC: en el móvil la cartera ya va
+  justa.
+- **Noticias**: todo lo de antes de esta semana es una FILA, a dos columnas en
+  el PC (la rejilla tiene seis pistas: tarjeta 2, fila 3).
+- **Novedades**: cada semana con su cuenta al lado del rótulo («7 nuevas · 28
+  mejoras · 13 arreglos», `cuentaDeSemana`), y las tres cifras de la banda en
+  una fila en el móvil (la regla vive en `novedades.css`: en general, las
+  bandas reparten sus cifras a su manera, y en Gente columnas iguales
+  aplastaban las palabras).
+- **Gente**: «N por aquí hoy» en la ceja, con el punto que late; es la misma
+  cuenta exacta de la caja de la derecha (1169). En el móvil la ceja se
+  recorta, así que solo sale en el PC.
+- **Retos**: con cuenta, «Nº N en la liga» en la píldora de arriba (`puestoHtml`,
+  y se vuelve a poner cuando la píldora se repinta). Por eso el móvil ahora
+  pide `portada_clasificacion` al abrir con sesión (la 989 decía «nada hasta
+  abrir el historial»: una consulta ligera, a cambio de tu sitio sin bajar).
+
+Lo que NO entró: «para cambiar» en las tarjetas de Gente (contarlo serían
+200 consultas o una función nueva de la base; si se quiere, va en una RPC que
+cuente por persona), y las tiras del Panel «siempre de ocho» ya toman hasta
+ocho: si salen menos, es que hay menos cartas con historial.
+
+Lo vigila `test-tanda-1215-pantalla.mjs`.

@@ -199,6 +199,13 @@ async function cargarLateral(perfiles) {
     .eq('last_active_date', hoy)
     .then(({ count, error }) => (error || count == null ? activos.length : count))
     .catch(() => activos.length)
+  // La misma cuenta, en la ceja de la banda (1215, de la propuesta): con el
+  // punto verde que late, que se vea desde arriba que hay gente.
+  const vivo = document.getElementById('genteHoy')
+  if (vivo && Math.max(total, activos.length)) {
+    vivo.textContent = `${new Intl.NumberFormat('es-ES', { useGrouping: 'always' }).format(Math.max(total, activos.length))} por aquí hoy`
+    vivo.hidden = false
+  }
   const caja = document.getElementById('comHoy')
   // Se recoge sola si no hay nadie: «0 personas hoy» es peor que no
   // decir nada.

@@ -116,6 +116,20 @@ export function anilloHtml(hechos, total = 6) {
   return `<svg viewBox="0 0 100 100" width="96" height="96">${tramos}</svg><b>${hechos}<small>/${total}</small></b>`
 }
 
+// «Nº 4 en la liga» en la píldora (1215). Puro en lo que pinta; si la
+// píldora se repinta (un reto hecho), se vuelve a poner con el último puesto.
+let puestoEnLiga = null
+export function puestoHtml(puesto) {
+  return puesto ? `<span class="rt-puesto" id="rtPuesto">${icons.trophy(14)} Nº ${puesto}<span class="cab-largo"> en la liga</span></span>` : ''
+}
+function ponerPuestoEnPildora(puesto) {
+  puestoEnLiga = puesto || null
+  const dia = $('rtDia')
+  if (!dia) return
+  $('rtPuesto')?.remove()
+  if (puestoEnLiga) dia.insertAdjacentHTML('beforeend', puestoHtml(puestoEnLiga))
+}
+
 // La píldora de arriba, el anillo y la frase del día perfecto.
 let pararCuenta = () => {}
 function pintarDia(hechos, numeros, session) {
@@ -123,7 +137,7 @@ function pintarDia(hechos, numeros, session) {
   const partes = [`<span id="rtHechos">${hechos}/${total} <span class="cab-largo">hoy</span></span>`]
   if (numeros) partes.push(`<span class="rt-xp">${icons.zap(14)} +${numeros.xpHoy || 0} XP</span>`)
   if (numeros?.racha >= 1) partes.push(`<span class="rt-fuego">${icons.flame(14)} ${numeros.racha} ${numeros.racha === 1 ? 'día' : 'días'}</span>`)
-  $('rtDia').innerHTML = partes.join('')
+  $('rtDia').innerHTML = partes.join('') + puestoHtml(puestoEnLiga)
   const p = $('rtPerfecto')
   p.classList.toggle('hecho', hechos >= total)
   const anillo = $('rtAnillo')
@@ -170,9 +184,14 @@ function irAClasificacion() {
 // columna no sale y los retos se quedan a tres.
 async function pintarLigaLado(session, numeros) {
   const caja = $('rtLigaLado')
-  if (!caja || !window.matchMedia('(min-width: 1000px)').matches) return
+  const enPc = caja && window.matchMedia('(min-width: 1000px)').matches
+  // Con cuenta, el puesto va también en la píldora de arriba (1215, de la
+  // propuesta: «tu sitio en la liga, sin bajar»), en el móvil también.
+  if (!enPc && !session) return
   const { data, error } = await supabase.rpc('portada_clasificacion', { p_periodo: 'semana' })
   if (error || !data) return
+  ponerPuestoEnPildora(data?.tu?.puesto)
+  if (!enPc) return
   caja.innerHTML = ligaLadoHtml(data, { racha: numeros?.racha || 0, conSesion: Boolean(session), estilo: avatarStyle })
   caja.hidden = false
   caja.parentElement?.classList.add('con-liga')

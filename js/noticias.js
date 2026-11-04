@@ -65,10 +65,11 @@ function portadaHtml(n, tamano) {
   return `<div class="noticia-portada noticia-portada-${tamano} noticia-portada-vacia">${icons.newspaper(38)}</div>`
 }
 
-// Lo de las dos últimas semanas, en tarjeta con su foto; lo de antes, en una
-// fila compacta (1210): la foto pequeña, la fecha y el titular.
+// Lo de esta semana, en tarjeta con su foto; lo de antes, en una fila
+// compacta a dos columnas (1215, como la maqueta; la 1210 dejaba también la
+// semana pasada en tarjetas): la foto pequeña, la fecha y el titular.
 function tarjetaHtml(n, g) {
-  const fila = g && !/^s[01]$/.test(g.clave)
+  const fila = g && g.clave !== 's0'
   return `<a class="noticia-tarjeta${fila ? ' noticia-fila' : ''}" href="${enlaceDeNoticia(n.slug)}">
     ${portadaHtml(n, 'chica')}
     <div class="noticia-cuerpo">

@@ -87,13 +87,24 @@ const semanasAbiertas = new Set()
 // del menú), pero la marca de esta visita sigue con lo de antes.
 let vistoAlEntrar = null
 
+// Lo de cada semana en cifras, al lado de su rótulo (1215, de la propuesta:
+// «la semana con sus cuentas»): «3 nuevas · 28 mejoras · 10 arreglos», cada
+// una con el punto de su color.
+function cuentaDeSemana(entradas) {
+  const n = (t) => entradas.filter((e) => e.tipo === t).length
+  const partes = [['nuevo', n('nuevo'), 'nueva', 'nuevas'], ['mejora', n('mejora'), 'mejora', 'mejoras'], ['arreglo', n('arreglo'), 'arreglo', 'arreglos']]
+    .filter(([, k]) => k)
+    .map(([t, k, uno, varios]) => `<span class="nv-cuenta nv-cuenta-${t}">${k} ${k === 1 ? uno : varios}</span>`)
+  return partes.length ? `<span class="nv-cuentas">${partes.join('')}</span>` : ''
+}
+
 function pintarLista() {
   const semanas = porSemanas(datos.entradas, filtro)
   const nuevas = semanasNuevas(porSemanas(datos.entradas), vistoAlEntrar)
   const aLaVista = todas ? semanas : semanas.slice(0, SEMANAS_DE_ENTRADA)
   $('nvLista').innerHTML = aLaVista.length
     ? aLaVista.map((s) => `<section class="nv-semana en-cascada" data-semana="${s.lunes}">
-        <h2 class="nv-semana-titulo">${escapeHtml(s.rotulo)}${nuevas.has(s.lunes) ? ' <span class="nv-punto">nuevo para ti</span>' : ''}</h2>
+        <h2 class="nv-semana-titulo">${escapeHtml(s.rotulo)}${nuevas.has(s.lunes) ? ' <span class="nv-punto">nuevo para ti</span>' : ''}${cuentaDeSemana(s.entradas)}</h2>
         ${(semanasAbiertas.has(s.lunes) ? s.entradas : s.entradas.slice(0, FILAS_POR_SEMANA)).map(filaHtml).join('')}
         ${!semanasAbiertas.has(s.lunes) && s.entradas.length > FILAS_POR_SEMANA ? `<button type="button" class="nv-mas-semana" data-abrir="${s.lunes}">Ver ${s.entradas.length - FILAS_POR_SEMANA} más de esta semana</button>` : ''}
       </section>`).join('')

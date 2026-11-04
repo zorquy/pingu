@@ -73,6 +73,7 @@ export function pintarResumenPanel() {
     <section class="mc-cartera" id="mcValorCaja">
       <h2 class="mc-cartera-etiqueta">Lo que vale ${ctx.esMia ? 'tu' : 'esta'} colección ${botonOcultarHtml()}</h2>
       <p class="mc-cartera-cifra">${escapeHtml(ctx.eurosConMiles(ctx.valorDeAhora()))}</p>
+      ${abanicoDeCartera(valiosasTira)}
       ${ctx.fichasDeCartera()}
       ${ctx.esMia ? '<div class="mc-cartera-reparto hidden" id="mcCarteraReparto"></div>' : ''}
       <div class="mc-cartera-grafica" id="mcCarteraGrafica" aria-busy="true">
@@ -312,6 +313,17 @@ function vistazoHtml(titulo, pestana, dentro, rotulo = 'Ver todas') {
     </div>
     ${dentro}
   </section>`
+}
+
+// Tus tres cartas que más valen, en abanico a la derecha de la cartera
+// (1215, de la propuesta del repaso: «la cartera como banda, con tres cartas
+// tuyas en abanico»). Solo dibujo: lo que valen ya lo dice el Ranking de
+// debajo. Con menos de tres con foto, nada (un abanico a medias parece un
+// fallo). En el móvil no sale (mi-coleccion.css).
+function abanicoDeCartera(valiosas) {
+  const fotos = valiosas.map((v) => (v.carta ? atributosDeEscaneo(cadenaDeEscaneo(v.carta)) : '')).filter(Boolean).slice(0, 3)
+  if (fotos.length < 3) return ''
+  return `<span class="mc-cartera-abanico" aria-hidden="true">${fotos.map((f) => `<span><img ${f} alt="" width="245" height="342" loading="lazy" /></span>`).join('')}</span>`
 }
 
 // Las últimas que has metido, que es lo que se quiere ver al entrar: «¿qué

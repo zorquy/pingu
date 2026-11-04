@@ -35,7 +35,8 @@
    en línea: si fuera flex, el «hoy» (que el móvil esconde, 1016) iría a
    su propia caja. */
 .rt-xp,
-.rt-fuego {
+.rt-fuego,
+.rt-puesto {
   display: inline-flex;
   align-items: center;
   gap: var(--e-xs);
@@ -47,6 +48,11 @@
 
 .rt-fuego {
   color: var(--warning);
+}
+
+/* Tu puesto en la liga (1215), en el color de la sección. */
+.rt-puesto {
+  color: var(--acento-texto);
 }
 
 /* El día perfecto: una barra fina y su frase, con la cuenta atrás dentro. */

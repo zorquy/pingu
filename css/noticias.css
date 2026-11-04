@@ -388,5 +388,16 @@
   .noticia-titular .noticia-cuerpo { padding: var(--e-xl) var(--e-md) var(--e-md); }
   .noticia-titular h2 { font-size: var(--t-xl); }
   .noticia-titular p { display: none; }
-  .noticia-fila { padding: var(--e-sm) 0; }
+  .noticia-fila { padding: var(--e-sm) 0; grid-template-columns: 88px minmax(0, 1fr); }
+}
+
+/* Las filas de lo de antes, a dos columnas en el PC (1215): la rejilla pasa
+   a seis pistas; una tarjeta ocupa dos (tres por fila) y una fila, tres. */
+@media (min-width: 901px) {
+  .noticias-rejilla { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .noticias-rejilla > .noticia-tarjeta { grid-column: span 2; }
+  .noticias-rejilla > .noticia-tarjeta.noticia-fila { grid-column: span 3; }
+}
+@media (min-width: 561px) and (max-width: 900px) {
+  .noticias-rejilla > .noticia-tarjeta.noticia-fila { grid-column: 1 / -1; }
 }

@@ -431,3 +431,48 @@
 @media (max-width: 599px) {
   .ap-cab:not(:has(.ap-escribir)) { min-height: 0; padding: 0; border: 0; }
 }
+
+/* ── 1215: lo que faltaba de la propuesta (el porqué en SCHEMA) ──
+   «Sigue donde lo dejaste» dentro de la banda, en el PC; los temas, baldosas
+   del color de su tema; el orden en chips; y las tarjetas de la rejilla del
+   mismo alto, sin la descripción (se lee al entrar). */
+.ap-cab .aprender-seguir { flex: 0 1 380px; min-width: 0; margin: 0; }
+.ap-cab .aprender-seguir .aprender-seguir-sub { display: none; }
+
+.ap-orden { display: flex; gap: var(--e-xs); }
+.ap-orden .seg-btn {
+  min-height: 36px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.ap-orden .seg-btn[aria-pressed='true'] { background: var(--acento); color: var(--acento-texto); }
+
+@media (min-width: 600px) {
+  .ap-baldosa { position: relative; overflow: hidden; isolation: isolate; }
+  .ap-baldosa::before { content: ''; position: absolute; inset: 0; z-index: -1; opacity: 0.55; }
+  .ap-baldosa-icon-tint-0::before { background: var(--ice); }
+  .ap-baldosa-icon-tint-1::before { background: var(--indigo-bg); }
+  .ap-baldosa-icon-tint-2::before { background: var(--warning-bg); }
+  .ap-baldosa-icon-tint-3::before { background: var(--success-bg); }
+  .ap-baldosa-icon-tint-4::before { background: var(--pink-bg); }
+
+  .ap-rejilla { align-items: stretch; }
+  .ap-rejilla > .guia-tarjeta { display: flex; flex-direction: column; }
+  .ap-rejilla > .guia-tarjeta > .guia-tarjeta-enlace { display: flex; flex: 1; flex-direction: column; }
+  .ap-rejilla .guia-cuerpo { display: flex; flex: 1; flex-direction: column; }
+  .ap-rejilla .guia-progreso { margin-top: auto; }
+  .ap-rejilla .guia-desc { display: none; }
+}
+
+/* En el móvil lo de arriba es UNA fila (la 1038): el buscador y el lápiz;
+   el orden se queda para el PC. */
+@media (max-width: 599px) {
+  .ap-orden { display: none; }
+}

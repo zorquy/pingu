@@ -127,6 +127,23 @@ function estructuraCorta(t) {
   return t.format === 'league' ? `Liga de ${numJornadas(t)} jornadas${rondasPorJornada(t) > 1 ? ` × ${rondasPorJornada(t)} rondas` : ''}` : `${t.swiss_rounds} rondas suizas`
 }
 
+// Tu próximo torneo, en la banda (1215, de la propuesta del repaso): cuándo
+// es (y cuánto falta), las plazas, desde qué hora es el check-in y los dos
+// caminos: tu lista (la pestaña Jugar de la ficha) y el torneo. Puro.
+export function proximoHtml(t, ocupadas = 0, ahora = Date.now()) {
+  const inicio = new Date(t.start_at)
+  const dias = Math.max(0, Math.round((new Date(inicio.getFullYear(), inicio.getMonth(), inicio.getDate()) - new Date(new Date(ahora).getFullYear(), new Date(ahora).getMonth(), new Date(ahora).getDate())) / 864e5))
+  const cuando = dias === 0 ? 'hoy' : dias === 1 ? 'mañana' : `en ${dias} días`
+  const hora = (d) => d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  const checkin = Number(t.checkin_minutes) > 0 ? `check-in desde las ${hora(new Date(inicio.getTime() - Number(t.checkin_minutes) * 6e4))}` : ''
+  const plazas = t.max_players == null ? `${ocupadas} inscrito${ocupadas === 1 ? '' : 's'}` : `${ocupadas} de ${t.max_players} plazas`
+  const url = `/torneo?slug=${encodeURIComponent(t.slug)}`
+  return `<span class="t-proximo-ceja">Tu próximo torneo · ${escapeHtml(cuando)}</span>
+    <a class="t-proximo-nombre" href="${url}">${escapeHtml(t.name)}</a>
+    <span class="t-proximo-datos">${escapeHtml([`${inicio.getDate()} ${inicio.toLocaleString('es-ES', { month: 'long' })}, ${hora(inicio)}`, 'Estás inscrito', plazas, checkin].filter(Boolean).join(' · '))}</span>
+    <span class="t-proximo-botones"><a class="btn-secondary" href="${url}&ver=jugar">Tu lista</a><a class="btn-primary" href="${url}">Ver el torneo</a></span>`
+}
+
 function tarjetaHtml(t, datos) {
   const { ocupadas = 0, miEstado = null, caras = [], organiza = null, campeon = null, puedeBorrar = false, rondas = null } = datos || {}
   // Una liga entre jornadas se dice así, sin el punto que late (850).
@@ -545,6 +562,17 @@ async function cargarLista(session, perfil = null) {
   const borradores = torneos.filter((t) => t.status === 'draft').map((t) => tarjeta(t))
 
   pintarSemana(torneos)
+  // Tu próximo torneo en la banda (1215): el más cercano en el que estás
+  // inscrito y que todavía no ha empezado.
+  const proximo = torneos
+    .filter((t) => miEstado[t.id] && miEstado[t.id] !== 'dropped' && ['registration_open', 'registration_closed'].includes(t.status) && new Date(t.start_at) > Date.now() - 36e5)
+    .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))[0]
+  const cajaProximo = $('torneosProximo')
+  if (cajaProximo) {
+    cajaProximo.innerHTML = proximo ? proximoHtml(proximo, ocupadasDe[proximo.id] || 0) : ''
+    cajaProximo.hidden = !proximo
+    document.querySelector('.torneos-heroe')?.classList.toggle('con-proximo', Boolean(proximo))
+  }
   // Las cifras de la banda (1212), de los torneos ya cargados.
   for (const [id, n] of [['tNAbiertas', abiertas.length], ['tNEnJuego', enJuego.length], ['tNTerminados', acabados.length]]) {
     const el = $(id)

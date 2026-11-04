@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (460) — PINGU-Claude (1215 — los huecos de la propuesta, página a página)
+
+**Hecho**: lo que la propuesta del repaso pedía en cada pantalla y faltaba.
+Torneos: «Tu próximo torneo · en N días» en la banda (con plazas, check-in y
+«Tu lista»). Aprender: orden Recientes / Más útiles / Cortas, «Seguir» en la
+banda y baldosas con su color. Lanzamientos: «Ya en tiendas» en baldosas en el
+PC. Panel: las tres más valiosas en abanico junto a la cartera (PC). Noticias:
+lo de antes de esta semana en filas, a dos columnas. Novedades: la cuenta de
+cada semana y las cifras en una fila en el móvil. Gente: «N por aquí hoy» en
+la ceja. Retos: «Nº N en la liga» en la píldora (también en el móvil, que
+ahora pide `portada_clasificacion` al abrir con sesión). Lo recomendado y
+decidido sin preguntar: sin «Cerca de ti», sin temas del foro en Guardados,
+sin sprites en torneos, sin carrusel del foro en el PC. NO entró «para
+cambiar» en las tarjetas de Gente (haría falta una RPC que cuente por
+persona).
+
+**Ficheros**: `torneos.html`, `js/torneos/torneos.js`, `css/torneos.css`,
+`js/aprender.js`, `css/aprender.css`, `css/lanzamientos.css`,
+`js/mi-coleccion/panel.js`, `css/mi-coleccion.css`, `js/noticias.js`,
+`css/noticias.css`, `js/novedades.js`, `css/novedades.css`, `usuarios.html`,
+`js/usuarios.js`, `css/comunidad.css`, `js/retos.js`, `css/retos.css`,
+`SCHEMA.md`, `novedades.json`. En `pruebas`: `test-tanda-1215-pantalla.mjs`
+nueva; 1152, 1039 y 989 al día.
+
+**Pruebas**: verdes 1215, 1152, 1039, 1040, 1010, 865, 1178, 1181, 1206, 252,
+266, 1164, 1214, 1023, 1165, 301, 1137, 1154, 1208, 989, 1207, 1018, 297,
+1145, 299, 312, 313 e imports. Rojos de antes, sin tocar: 893 (selector del
+meta en el móvil), 829 (/foro/eventos y «nuevo para ti»), 981 (/mi-coleccion)
+y 836 (constructor / acciones de Torneos). Portada 137,3 KB.
+
 ## 2026-11-04 (459) — PINGU-Claude (1214 — lo común que faltaba)
 
 **Hecho**: las cifras de las bandas cuentan (`js/cifras-cuentan.js`), las fotos

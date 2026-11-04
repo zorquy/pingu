@@ -36,6 +36,36 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "Si estás apuntado a un torneo que aún no ha empezado, Torneos te lo pone arriba: cuánto falta, las plazas, desde cuándo hay check-in y un botón a tu lista.",
+      "enlace": "/torneos"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Las guías se pueden ordenar por las más recientes, las que más han servido o las más cortas.",
+      "enlace": "/aprender"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "En el ordenador, «Ya en tiendas» de Lanzamientos va en baldosas con el logo y tu progreso, y el Panel de tu colección enseña tus tres cartas más valiosas junto a lo que vale.",
+      "enlace": "/lanzamientos"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Noticias: lo de antes de esta semana va en filas, para llegar antes a lo de hace días; Novedades dice cuántas cosas nuevas, mejoras y arreglos trae cada semana.",
+      "enlace": "/noticias"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
+      "texto": "Gente dice arriba cuántos andáis hoy por aquí, y Retos te enseña tu puesto en la liga de la semana sin tener que bajar.",
+      "enlace": "/retos"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "Las cifras de arriba de cada página cuentan al aparecer, las fotos de guías, noticias y cartas brillan al pasar el ratón, el punto verde de quien está en línea late y los bloques del Panel y de Lanzamientos llevan su icono de color.",
       "enlace": "/usuarios"
     },

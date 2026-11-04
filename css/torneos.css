@@ -3746,3 +3746,29 @@ html.torneo-jugando #torneoNombre {
 @media (max-width: 599px) {
   .torneos-heroe.banda-s.torneos-heroe-vacia { padding: 0; border: 0; min-height: 0; }
 }
+
+/* Tu próximo torneo, en la banda (1215): con él a la vista, el lema y las
+   cifras dejan su sitio. */
+.torneos-heroe.con-proximo .banda-s-lema,
+.torneos-heroe.con-proximo .banda-s-cifras { display: none; }
+.t-proximo { display: grid; gap: var(--e-xs); margin-top: var(--e-xs); }
+.t-proximo[hidden] { display: none; }
+.t-proximo-ceja { color: var(--acento); font-size: var(--t-sm); font-weight: 700; }
+.t-proximo-nombre { color: var(--text); font-family: var(--font-display); font-size: var(--t-xl); font-weight: 700; text-decoration: none; }
+.t-proximo-nombre:hover { color: var(--acento); }
+.t-proximo-datos { color: var(--text-mid); font-size: var(--t-sm); }
+.t-proximo-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); margin-top: var(--e-sm); }
+@media (max-width: 599px) {
+  /* En el teléfono el texto de la banda no ocupa sitio (1040), salvo esto. */
+  .torneos-heroe.con-proximo .torneos-heroe-texto { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal; }
+  .torneos-heroe.con-proximo .torneos-heroe-texto > :not(.t-proximo) { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .torneos-heroe.con-proximo.torneos-heroe-vacia { position: static; width: auto; height: auto; overflow: visible; clip-path: none; white-space: normal; padding: var(--e-md); border: 1px solid color-mix(in srgb, var(--acento) 28%, var(--border)); }
+  .t-proximo-nombre { font-size: var(--t-lg); }
+  /* Compacta (1040: lo primero antes de los 296 px): el texto a la izquierda,
+     «Tu lista» a la derecha; «Ver el torneo» sobra, el nombre ya es el enlace. */
+  .t-proximo { grid-template-columns: minmax(0, 1fr) auto; column-gap: var(--e-md); row-gap: 0; margin-top: 0; }
+  .t-proximo > :not(.t-proximo-botones) { grid-column: 1; min-width: 0; }
+  .t-proximo-datos { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .t-proximo-botones { grid-column: 2; grid-row: 1 / span 3; align-self: center; margin-top: 0; }
+  .t-proximo-botones > :last-child { display: none; }
+}

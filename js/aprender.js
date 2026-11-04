@@ -39,6 +39,10 @@ try {
   temaDeLaUrl = new URLSearchParams(location.search).get('tema') || null
 } catch {}
 let busqueda = ''
+// El orden de la rejilla (1215, de la propuesta): las recientes, las que más
+// han servido («Me ha servido», 974) o las cortas (lo que se lee en un rato).
+let orden = 'recientes'
+let servidoDe = null
 
 // En el móvil la primera va en grande y las demás en FILAS (tanda 846; la
 // fila es la de js/guia-fila.js desde la 847):
@@ -59,6 +63,19 @@ function ponerEscribir() {
   else if (boton.parentElement !== cabecera) cabecera.append(boton)
 }
 estrecho.addEventListener?.('change', ponerEscribir)
+
+// «Sigue donde lo dejaste» DENTRO de la banda en el PC (1215, de la
+// propuesta); en el móvil se queda encima de los temas, que es donde se ve
+// (la banda allí no ocupa sitio). Se mueve el elemento, no se copia (893).
+function ponerSeguir() {
+  const seguir = document.querySelector('.aprender-seguir')
+  const banda = document.querySelector('.ap-cab .banda-s-derecha')
+  const lista = document.getElementById('categoriesList')
+  if (!seguir || !banda || !lista) return
+  if (!estrecho.matches) banda.prepend(seguir)
+  else if (seguir.parentElement !== lista) lista.prepend(seguir)
+}
+estrecho.addEventListener?.('change', ponerSeguir)
 
 // La franja de «sigue donde lo dejaste»: el curso empezado y sin
 // terminar más reciente. Es lo que hace volver — sin ella, quien dejó un
@@ -167,17 +184,22 @@ async function loadCategories(session) {
     ${temasHtml(categories || [], guias, progreso, session)}
     <div class="ap-herramientas">
       <label class="ap-buscar">${icons.search(16)}<input type="search" id="apBuscar" enterkeyhint="search" placeholder="Busca una guía" aria-label="Buscar guías" autocomplete="off" /></label>
+      <div class="ap-orden" role="group" aria-label="Ordenar">
+        ${[['recientes', 'Recientes'], ['utiles', 'Más útiles'], ['cortas', 'Cortas']].map(([k, t]) => `<button type="button" class="seg-btn" data-ap-orden="${k}" aria-pressed="${orden === k}">${t}</button>`).join('')}
+      </div>
     </div>
     <div class="ap-lista" id="apLista"></div>`
   const caja = { lista: list.querySelector('#apLista') }
   const seguidaId = guiaSeguida(guias, progreso)?.g.id || null
   ponerEscribir()
+  ponerSeguir()
 
   // El tema de cada guía, para la chapa-enlace de la tarjeta (866).
   const temaDe = new Map((categories || []).map((c) => [c.id, { nombre: c.name, slug: c.slug, emoji: c.emoji || '' }]))
   const pintar = () => {
     const q = normalizeSearch(busqueda)
-    const visibles = guias.filter((g) => !q || normalizeSearch(`${g.title || ''} ${g.description || ''}`).includes(q))
+    const filtradas = guias.filter((g) => !q || normalizeSearch(`${g.title || ''} ${g.description || ''}`).includes(q))
+    const visibles = ordenar(filtradas)
     if (!visibles.length) {
       caja.lista.innerHTML = '<p class="empty-state">Ninguna guía habla de eso. Prueba con otra palabra.</p>'
       return
@@ -187,6 +209,27 @@ async function loadCategories(session) {
       ? `${tarjetaDeGuia(primera, { progreso, tema: temaDe.get(primera.category_id) || null })}${resto.length ? `<div class="ap-filas">${resto.map((g) => filaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>` : ''}`
       : `<div class="guia-rejilla ap-rejilla en-cascada">${visibles.map((g) => tarjetaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>`
   }
+
+  // Ordenar: «Más útiles» pide a cuántos les ha servido cada una (una
+  // consulta, la primera vez); «Cortas», las de 6 minutos o menos primero.
+  const ordenar = (lista) => {
+    if (orden === 'cortas') return [...lista].sort((a, b) => (a.estimated_mins || 99) - (b.estimated_mins || 99))
+    if (orden === 'utiles' && servidoDe) return [...lista].sort((a, b) => (servidoDe[b.id] || 0) - (servidoDe[a.id] || 0))
+    return lista
+  }
+  list.querySelector('.ap-orden').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-ap-orden]')
+    if (!b) return
+    orden = b.dataset.apOrden
+    for (const x of list.querySelectorAll('[data-ap-orden]')) x.setAttribute('aria-pressed', String(x === b))
+    if (orden === 'utiles' && !servidoDe) {
+      try {
+        const { servidoPorGuia } = await import('./guias-servido.js')
+        servidoDe = (await servidoPorGuia(guias.map((g) => g.id))) || {}
+      } catch { servidoDe = {} }
+    }
+    pintar()
+  })
 
   list.querySelector('#apBuscar').addEventListener('input', (e) => {
     busqueda = e.target.value
@@ -214,7 +257,7 @@ function temasHtml(categorias, guias, progreso, session) {
     const cursos = suyas.filter((g) => guideHasCourse(g)).length
     const leidas = suyas.filter((g) => leida(g, progreso)).length
     const sub = `${n(suyas.length, 'guía', 'guías')}${cursos ? ` · ${n(cursos, 'curso', 'cursos')}` : ''}`
-    return `<a class="ap-baldosa" href="/aprender?tema=${encodeURIComponent(c.slug)}" aria-label="${escapeHtml(`${c.name}: ${sub}${session ? `, ${leidas} leídas` : ''}`)}">
+    return `<a class="ap-baldosa ap-baldosa-${tintClassForKey(c.id)}" href="/aprender?tema=${encodeURIComponent(c.slug)}" aria-label="${escapeHtml(`${c.name}: ${sub}${session ? `, ${leidas} leídas` : ''}`)}">
       <span class="ap-baldosa-icono ${tintClassForKey(c.id)}">${categoryIconHtml(c, 18)}</span>
       <span class="ap-baldosa-texto">
         <span class="ap-baldosa-nombre">${escapeHtml(c.name)}</span>
@@ -316,6 +359,27 @@ function pintarTema({ tema, guias, progreso, session, list }) {
     for (const x of caja.seg.querySelectorAll('[data-vista]')) x.setAttribute('aria-pressed', String(x === b))
     pintar()
   })
+  // Ordenar: «Más útiles» pide a cuántos les ha servido cada una (una
+  // consulta, la primera vez); «Cortas», las de 6 minutos o menos primero.
+  const ordenar = (lista) => {
+    if (orden === 'cortas') return [...lista].sort((a, b) => (a.estimated_mins || 99) - (b.estimated_mins || 99))
+    if (orden === 'utiles' && servidoDe) return [...lista].sort((a, b) => (servidoDe[b.id] || 0) - (servidoDe[a.id] || 0))
+    return lista
+  }
+  list.querySelector('.ap-orden').addEventListener('click', async (e) => {
+    const b = e.target.closest('[data-ap-orden]')
+    if (!b) return
+    orden = b.dataset.apOrden
+    for (const x of list.querySelectorAll('[data-ap-orden]')) x.setAttribute('aria-pressed', String(x === b))
+    if (orden === 'utiles' && !servidoDe) {
+      try {
+        const { servidoPorGuia } = await import('./guias-servido.js')
+        servidoDe = (await servidoPorGuia(guias.map((g) => g.id))) || {}
+      } catch { servidoDe = {} }
+    }
+    pintar()
+  })
+
   list.querySelector('#apBuscar').addEventListener('input', (e) => { busqueda = e.target.value; pintar() })
   movil.addEventListener?.('change', pintar)
   pintar()
