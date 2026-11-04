@@ -49,7 +49,8 @@ console.log('── 1. Lo puro ──')
 
 console.log('\n── 2. Lo estático ──')
 {
-  check('foro: el rol y las marcas, a la vez; los perfiles y la franja, a la vez; la lateral desde el principio', /Promise\.all\(\[rolEnElEquipo\(sesion\), marcasDeLectura\(/.test(leer('js/foro.js')) && /Promise\.all\(\[perfilesPorId\([^\n]*loQueSeHabla\(/.test(leer('js/foro.js')) && /const lateralLista = panelDeNumerosHtml\(\)/.test(leer('js/foro.js')))
+  // Desde la 1221 «Lo que se está hablando» se fue: va con los perfiles «Lo último».
+  check('foro: el rol y las marcas, a la vez; los perfiles y la franja, a la vez; la lateral desde el principio', /Promise\.all\(\[rolEnElEquipo\(sesion\), marcasDeLectura\(/.test(leer('js/foro.js')) && /Promise\.all\(\[perfilesPorId\([^\n]*loUltimo\(/.test(leer('js/foro.js')) && /const lateralLista = panelDeNumerosHtml\(\)/.test(leer('js/foro.js')))
   const t = leer('js/torneos/torneos.js')
   check('torneos: torneos e inscripciones a la vez; rondas y perfiles a la vez', /Promise\.all\(\[\s*supabase\s*\.from\('tournaments'\)[\s\S]*?\.from\('tournament_registrations'\)/.test(t) && /const \[rondasRes, perfilesRes\] = await Promise\.all/.test(t))
   check('al salir de la cuenta se olvidan las vistas', /signOut\(\) \{[\s\S]*?olvidarVistas\(\)/.test(leer('js/app.js')))

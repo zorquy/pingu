@@ -52,26 +52,27 @@ console.log('── 1. Las dos listas ──')
 {
   const { p, ctx, errores } = await abrir()
   check('sin errores', !errores.length, errores.join(' | '))
-  // Desde la 1209, en portadas (la tarjeta de /aprender): lo de por leer
+  // Desde la 1219, en el PC son las portadas de /aprender (el título en su
+  // `strong`). Desde la 1209, en portadas (la tarjeta de /aprender): lo de por leer
   // primero y las leídas detrás, marcadas.
-  const porLeer = await p.$$eval('.gd-item:not(.gd-item-leida) .guia-titulo', (xs) => xs.map((x) => x.textContent))
-  const leidas = await p.$$eval('.gd-item-leida .guia-titulo', (xs) => xs.map((x) => x.textContent))
+  const porLeer = await p.$$eval('.gd-item:not(.gd-item-leida) :is(.guia-titulo, .guia-portada-sobre strong)', (xs) => xs.map((x) => x.textContent))
+  const leidas = await p.$$eval('.gd-item-leida :is(.guia-titulo, .guia-portada-sobre strong)', (xs) => xs.map((x) => x.textContent))
   check('«Por leer»: la noticia, la de curso a medias y la primera, lo último guardado primero', JSON.stringify(porLeer) === JSON.stringify(['Un altavoz con Pikachu', 'Todas las rarezas', 'Cómo funcionan los pull rates']), porLeer.join(' / '))
   check('«Ya leídas»: las dos leídas, detrás', JSON.stringify(leidas) === JSON.stringify(['Cómo detectar slabs PSA falsas', 'Comprar seguro en Wallapop']), leidas.join(' / '))
   check('  …la que ya no existe no sale ni rompe nada', (await p.locator('.gd-item').count()) === 5)
   const cifras = await p.evaluate(() => ['gdNLeer', 'gdNMedias', 'gdNLeidas'].map((id) => document.getElementById(id).textContent).join(' '))
   check('las cifras de la banda: 3 por leer · 1 a medias · 2 leídas', cifras === '3 1 2', cifras)
   const tarjeta = (t) => p.locator('.gd-item', { hasText: t })
-  check('la noticia lleva a /noticias y dice que es noticia', (await tarjeta('altavoz').locator('.guia-tarjeta-enlace').getAttribute('href')) === '/noticias/beats-pill' && /Noticia/.test(await tarjeta('altavoz').innerText()))
-  check('la de curso a medias, con su barra al 50 %', (await tarjeta('rarezas').locator('.guia-barra i').getAttribute('style'))?.includes('50%'))
-  check('las leídas dicen «✓ Leída»', (await p.locator('.gd-item-leida .guia-hecha').count()) === 2)
+  check('la noticia lleva a /noticias y dice que es noticia', (await tarjeta('altavoz').locator('.guia-tarjeta-enlace, a.guia-portada').first().getAttribute('href')) === '/noticias/beats-pill' && /Noticia/.test(await tarjeta('altavoz').innerText()))
+  check('la de curso a medias, con su barra al 50 %', (await tarjeta('rarezas').locator('.guia-barra i, .guia-portada-barra i').first().getAttribute('style'))?.includes('50%'))
+  check('las leídas dicen «✓ Leída»', (await p.locator('.gd-item-leida :is(.guia-hecha, .guia-portada-leida)').count()) === 2)
   check('la que tiene foto, la enseña', (await tarjeta('pull rates').locator('img').count()) === 1)
   // Los chips filtran sin volver a pedir nada.
   const visibles = () => p.$$eval('.gd-rejilla-tuyas > .gd-item', (xs) => xs.filter((x) => !x.hidden).length)
-  await p.click('[data-gd-filtro="leidas"]')
-  check('el chip «Leídas» deja las dos leídas', (await visibles()) === 2, String(await visibles()))
-  await p.click('[data-gd-filtro="medias"]')
-  check('  …«A medias», la del curso', (await visibles()) === 1, String(await visibles()))
+  // Desde la 1219 los chips son por TIPO (Todo · Guías · Noticias · Temas,
+  // la maqueta); lo leído y lo que llevas lo dicen la portada y la banda.
+  await p.click('[data-gd-filtro="guias"]')
+  check('el chip «Guías» deja las cuatro guías', (await visibles()) === 4, String(await visibles()))
   await p.click('[data-gd-filtro="noticias"]')
   check('  …«Noticias», la noticia', (await visibles()) === 1, String(await visibles()))
   await p.click('[data-gd-filtro="todas"]')

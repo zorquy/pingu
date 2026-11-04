@@ -63,9 +63,11 @@ for (const movil of [true, false]) {
     const av = await page.$eval('.mc-deseo-baldosa .mc-quiero-aviso', (b) => { const r = b.getBoundingClientRect(); const s = b.querySelector('svg').getBoundingClientRect(); const cs = getComputedStyle(b.querySelector('svg')); return { caja: Math.round(r.width), visto: Math.round(s.width + (cs.boxSizing === 'content-box' ? 0 : 0)) } })
     check('  …la campana, de 28 (44 al dedo en el móvil)', (movil ? av.caja === 44 && av.visto === 28 : av.caja === 28), JSON.stringify(av))
     // B: «La da 1» en una chapa sobre la foto; las baldosas miden lo mismo.
+    // Desde la 1217 la chapa va ARRIBA, en la esquina (la maqueta): basta con
+    // que esté dentro de la foto.
     const b = await page.evaluate(() => {
       const ts = [...document.querySelectorAll('#mcQuieroRejilla .mc-deseo-baldosa')]
-      return ts.map((t) => { const q = t.querySelector('.mc-deseo-quien'); const f = t.querySelector('.mc-merc-foto').getBoundingClientRect(); const r = q?.getBoundingClientRect(); return { id: t.dataset.deseoCarta, alto: Math.round(t.getBoundingClientRect().height), q: q ? { aria: q.getAttribute('aria-label'), texto: q.innerText.replace(/\s+/g, ' ').trim(), sobre: r.left >= f.left && r.right <= f.right && r.bottom <= f.bottom && r.top >= f.top + f.height / 2 } : null } })
+      return ts.map((t) => { const q = t.querySelector('.mc-deseo-quien'); const f = t.querySelector('.mc-merc-foto').getBoundingClientRect(); const r = q?.getBoundingClientRect(); return { id: t.dataset.deseoCarta, alto: Math.round(t.getBoundingClientRect().height), q: q ? { aria: q.getAttribute('aria-label'), texto: q.innerText.replace(/\s+/g, ' ').trim(), sobre: r.left >= f.left && r.right <= f.right && r.bottom <= f.bottom && r.top >= f.top } : null } })
     })
     check('B: las dos baldosas que alguien da llevan la chapa sobre la foto, abajo', b.length === 2 && b.every((x) => x.q?.sobre && x.q.aria === 'La da 1 persona'), JSON.stringify(b))
     check(movil ? '  …en el móvil, solo los avatares y la cifra' : '  …en el PC, «La da 1»', b.every((x) => (movil ? /^\S? ?1$/.test(x.q.texto.replace(/^L ?/, '')) : /La da 1/.test(x.q.texto))), JSON.stringify(b.map((x) => x.q.texto)))
@@ -107,7 +109,7 @@ for (const movil of [true, false]) {
     const h = await corazon(page, '#mcMercadoRejilla .mc-merc-corazon.puesto')
     check('A: el corazón puesto se ve de 28, no un círculo rosa de 44', h.visto === 28 && (!movil || transparente(h.fondoBoton)), JSON.stringify(h))
     // 1061b (PINGU: «vamos a ser consistentes»): «La da N» también aquí, en la chapa sobre la foto.
-    const m = await page.$$eval('#mcMercadoRejilla .mc-merc', (ts) => ts.map((t) => { const f = t.querySelector('.mc-merc-foto').getBoundingClientRect(); const q = t.querySelector('.mc-merc-foto .mc-chapa-gente'); const r = q?.getBoundingClientRect(); return { q: Boolean(q), sobre: q ? r.bottom <= f.bottom && r.top >= f.top + f.height / 2 && r.left < f.left + f.width / 2 : false, fila: Boolean(t.querySelector('.mc-merc-dan')), alto: Math.round(t.getBoundingClientRect().height) } }))
+    const m = await page.$$eval('#mcMercadoRejilla .mc-merc', (ts) => ts.map((t) => { const f = t.querySelector('.mc-merc-foto').getBoundingClientRect(); const q = t.querySelector('.mc-merc-foto .mc-chapa-gente'); const r = q?.getBoundingClientRect(); return { q: Boolean(q), sobre: q ? r.bottom <= f.bottom && r.top >= f.top && r.left < f.left + f.width / 2 : false, fila: Boolean(t.querySelector('.mc-merc-dan')), alto: Math.round(t.getBoundingClientRect().height) } }))
     check('B: el Mercado, con «La da» en la chapa sobre la foto y sin la fila de abajo', m.length > 0 && m.every((x) => x.q && x.sobre && !x.fila) && new Set(m.map((x) => x.alto)).size === 1, JSON.stringify(m))
     const h2 = await corazon(page, '#mcMercadoRejilla .mc-merc-corazon:not(.puesto)').catch(() => null)
     if (h2) check('  …y el que no está puesto, igual', h2.visto === 28 && h2.encima, JSON.stringify(h2))

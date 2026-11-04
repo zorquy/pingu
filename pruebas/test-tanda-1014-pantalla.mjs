@@ -41,10 +41,12 @@ console.log('── 1. Aprender: un color por categoría y el icono en la chapa 
   })
   await page.goto(`${BASE}/aprender.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
-  const r = await page.$$eval('.guia-tarjeta', (xs) => xs.map((x) => ({ id: x.dataset.guideId, arte: [...x.querySelector('.guia-arte').classList].find((c) => /^arte-\d$/.test(c)), icono: !!x.querySelector('.guia-chapa-cat svg'), chapa: x.querySelector('.guia-chapa-cat')?.textContent.trim() })))
+  // Desde la 1219 /aprender son portadas (el color del tema en la propia
+  // portada y el tema de texto encima, sin icono: la maqueta).
+  const r = await page.$$eval('.guia-portada', (xs) => xs.map((x) => ({ id: 'g-' + (x.getAttribute('href') || '').split('guia-').pop(), arte: [...x.classList].find((c) => /^arte-\d$/.test(c)), chapa: x.querySelector('.guia-portada-tema')?.textContent.trim() })))
   const de = (id) => r.find((x) => x.id === id)
   check('V2: dos guías de Competitivo llevan el mismo color, y la de Empezar otro', r.length >= 3 && de('g-1')?.arte && de('g-1').arte === de('g-2')?.arte && de('g-3')?.arte !== de('g-1').arte && !errores.length, JSON.stringify(r) + errores.join(' | '))
-  check('  …y la chapa del tema lleva el icono de la categoría (SVG) con su nombre', r.every((x) => x.icono) && de('g-1')?.chapa === 'Competitivo' && de('g-3')?.chapa === 'Empezar', JSON.stringify(r.map((x) => [x.icono, x.chapa])))
+  check('  …y cada portada dice su tema', de('g-1')?.chapa === 'Competitivo' && de('g-3')?.chapa === 'Empezar', JSON.stringify(r.map((x) => x.chapa)))
   await page.close()
 }
 

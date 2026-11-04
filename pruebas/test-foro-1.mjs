@@ -58,7 +58,8 @@ console.log('\n── 1. El índice del foro se pinta entero ──')
   const { page, errores } = await abrir('/foro', MUNDO)
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
   const texto = await page.locator('body').innerText()
-  check('salen las dos secciones', /General/.test(texto) && /Mercadillo/.test(texto))
+  // Desde la 1221 el rótulo de sección va en mayúsculas (CSS), e `innerText` lo da así.
+  check('salen las dos secciones', /General/i.test(texto) && /Mercadillo/i.test(texto))
   for (const foro of ['Dudas de reglas', 'Mazos', 'Compra-venta']) {
     check(`sale el foro «${foro}»`, texto.includes(foro))
   }

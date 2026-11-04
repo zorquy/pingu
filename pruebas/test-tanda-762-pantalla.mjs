@@ -139,7 +139,7 @@ const SETS = [
   { id: 'me30', name: '30 aniversario', serie_id: 'me', market: 'WEST', release_date: '2026-09-16', card_count_official: 128, card_count_total: 128, tcggo_id: 431 },
   { id: 'dr', name: 'Delta Reign', serie_id: 'me', market: 'WEST', release_date: '2026-11-06', card_count_official: 0, card_count_total: 0, tcggo_id: 500, oculto: true },
 ]
-const PRODUCTOS = [...productos, { id: 77001, episode_id: 500, lang: 'en', name: 'Delta Reign Elite Trainer Box', tipo: 'etb', image: null, cm_lowest: 59.9, cm_lowest_eu: 59.9, cm_lowest_es: 61.5, cm_avg30: null, release_date: '2026-11-06' }]
+const PRODUCTOS = [...productos, { id: 77001, episode_id: 500, lang: 'en', name: 'Delta Reign Elite Trainer Box', tipo: 'etb', image: 'https://images.tcggo.com/delta-etb.png', cm_lowest: 59.9, cm_lowest_eu: 59.9, cm_lowest_es: 61.5, cm_avg30: null, release_date: '2026-11-06' }]
 async function abrir(ruta, { movil = false, mios = [] } = {}) {
   const ctx = await browser.newContext(movil ? { ...devices['iPhone 13'], locale: 'es-ES' } : { viewport: { width: 1280, height: 900 }, locale: 'es-ES' })
   await ctx.addInitScript(({ SETS, PRODUCTOS, mios }) => {
@@ -241,8 +241,11 @@ console.log('── 4. /lanzamientos: lo que sale con la próxima ──')
 {
   const { ctx, page, errores } = await abrir('/lanzamientos.html')
   await page.waitForTimeout(800)
-  const bloque = await page.$eval('#lanzProductos', (e) => ({ titulo: e.querySelector('h2').textContent, n: e.querySelectorAll('.lanz-producto').length, texto: e.textContent.replace(/\s+/g, ' '), tras: e.previousElementSibling?.id })).catch(() => null)
-  check('debajo de «El siguiente set», sus productos', bloque && /Lo que sale con Delta Reign/.test(bloque.titulo) && bloque.n === 1 && /Caja de Entrenador Élite · preventa/.test(bloque.texto) && /61,50 € mín\. español/.test(bloque.texto) && bloque.tras === 'proximoDestacado', JSON.stringify(bloque))
+  // Desde la 1218 la lista «Lo que sale con…» se fue: del producto quedan
+  // las fotos en el cartel, junto a la cuenta atrás (los productos están en
+  // Colección → Productos).
+  const bloque = await page.evaluate(() => ({ lista: !!document.getElementById('lanzProductos'), fotos: document.querySelectorAll('#proximoDestacado .lanz-dest-sobres img').length }))
+  check('en el cartel de «El siguiente set», la foto de sus productos (y sin la lista de debajo)', !bloque.lista && bloque.fotos >= 1, JSON.stringify(bloque))
   check('sin errores', errores.length === 0, errores.join(' | '))
   if (CAPS) await page.screenshot({ path: `${CAPS}/762-lanzamientos.png` })
   await ctx.close()

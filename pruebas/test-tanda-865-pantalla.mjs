@@ -27,7 +27,7 @@ console.log('── 0. Lo estático ──')
   check(`«Glosario» va detrás de «Guardados» en el menú de Aprender (PC y móvil) y en el pie de las ${conMenu.length} páginas`, conMenu.length >= 40 && sinGlosario.length === 0, sinGlosario.join(', '))
   const html = readFileSync(`${RAIZ}/aprender.html`, 'utf8')
   // Desde la 1039, sin medallero (las medallas, en Perfil › Medallas).
-  check('la cabecera de /aprender (la banda, 1211) es el título y «Escribir una guía», sin medallero ni texto de bienvenida', /<section class="banda-s cabecera-pagina ap-cab cab-lista">[\s\S]*?<h1>Aprender<\/h1>[\s\S]*?<a class="btn-primary ap-escribir"/.test(html) && !/id="medallero"/.test(html) && !/Guías y cursos gratis/.test(html))
+  check('la cabecera de /aprender (la banda, 1211) es el título y «Escribir una guía», sin medallero ni texto de bienvenida', /<section class="banda-s cabecera-pagina ap-cab cab-lista">[\s\S]*?<h1>[^<]+<\/h1>[\s\S]*?<a class="btn-primary ap-escribir"/.test(html) && !/id="medallero"/.test(html) && !/Guías y cursos gratis/.test(html))
 }
 
 const browser = await chromium.launch()
@@ -59,7 +59,7 @@ const capas = (page) => page.evaluate(() => {
   const m = document.getElementById('medallero')
   return {
     h1: r('.ap-cab h1'), medallero: r('#medallero'), medalleroDentro: Boolean(m?.closest('.ap-cab')), medalleroTexto: m?.textContent.replace(/\s+/g, ' ').trim(), medalleroEtiqueta: m?.getAttribute('aria-label'), medalleroHref: m?.getAttribute('href'),
-    seguir: r('.aprender-seguir'), temas: r('#apTemas'), buscar: r('.ap-buscar'), chips: r('#apChips'), lista: r('#apLista'), primeraGuia: r('#apLista .guia-tarjeta, #apLista .guia-fila'),
+    seguir: r('.aprender-seguir'), temas: r('#apTemas'), buscar: r('.ap-buscar'), chips: r('#apChips'), lista: r('#apLista'), primeraGuia: r('#apLista .guia-portada, #apLista .guia-tarjeta, #apLista .guia-fila'),
     secciones: document.querySelectorAll('.ap-seccion, #categoriesList h2').length, chipsTema: document.querySelectorAll('[data-cat]').length,
     baldosas: [...document.querySelectorAll('#apTemas .ap-baldosa')].map((b) => Math.round(b.getBoundingClientRect().top)),
     cuenta: document.getElementById('apCuenta')?.textContent, texto: document.querySelector('.page-header p')?.textContent || null,
@@ -81,7 +81,7 @@ console.log('── 1. El PC: cuatro capas ──')
   // El buscador sigue funcionando.
   await page.fill('#apBuscar', 'número 7')
   await page.waitForTimeout(300)
-  check('el buscador filtra', (await page.locator('#apLista .guia-tarjeta').count()) === 1)
+  check('el buscador filtra', (await page.locator('#apLista .guia-portada, #apLista .guia-tarjeta').count()) === 1)
   // El menú de Aprender lleva Glosario.
   const menu = await page.evaluate(() => [...document.querySelectorAll('.nav-grupo .nav-sub a')].map((a) => a.textContent.trim()))
   check('el menú «Aprender» del PC: Guías y cursos · Retos diarios · Guardados · Glosario', menu.slice(0, 4).join('|') === 'Guías y cursos|Retos diarios|Guardados|Glosario', menu.join('|'))

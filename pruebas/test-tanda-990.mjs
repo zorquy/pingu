@@ -83,7 +83,9 @@ const nov = JSON.parse(leer('novedades.json'))
 check('ninguna novedad lo promete', !/\[\[/.test(JSON.stringify(nov)))
 const dest = nov.destacadas.filter((d) => d.mes === '2026-10')
 check('las tres destacadas de octubre siguen, una es Parejas con su dibujo', dest.length === 3 && dest.some((d) => d.enlace === '/parejas' && d.dibujo === 'parejas'), dest.map((d) => d.titulo).join(' | '))
-check('el dibujo de Parejas existe y el del foro se fue', /^\s*parejas: \(\) =>/m.test(leer('js/novedades.js')) && !/'foro-carta'/.test(leer('js/novedades.js')))
+// Desde la 1218 las destacadas son portadas con su Pokémon (`artePokemonHtml`),
+// no dibujos a mano: queda que el del foro no vuelva.
+check('las destacadas van con su Pokémon y el dibujo del foro se fue', /export function pokemonDe/.test(leer('js/novedades.js')) && !/'foro-carta'/.test(leer('js/novedades.js')))
 
 await browser.close()
 console.log(fails ? `\n❌ ${fails} FALLA(S)` : '\n✅ TODO BIEN')

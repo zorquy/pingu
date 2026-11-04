@@ -128,7 +128,9 @@ console.log('── 2. La lista de /torneos ──')
   }
   const liga = await tarjetaDe('porempezar', 'Liga FDN')
   check('la liga entre jornadas va a «Por empezar», no a «En juego»', grupos.includes('porempezar') && /Entre jornadas · J2/i.test(liga), liga)
-  check('  …con «Ver la liga» y no «Ver el directo»', /Ver la liga/.test(liga) && !/directo/.test(liga), liga)
+  // Desde la 1221 el botón dice «Ver» y lo largo va en su aria-label.
+  const accion = (await page.locator('.torneo-tarjeta', { hasText: 'Liga FDN' }).first().locator('.torneo-pie-accion').getAttribute('aria-label').catch(() => '')) || ''
+  check('  …con «Ver la liga» y no «Ver el directo»', /^Ver la liga/.test(accion) && !/directo/.test(liga + accion), accion)
   const otro = await tarjetaDe('enjuego', 'Torneo del sábado')
   check('el torneo que se juega sigue en «En juego» con su punto', /en juego/i.test(otro) && (await page.locator('.torneo-tarjeta', { hasText: 'Torneo del sábado' }).locator('.torneo-punto').count()) >= 1, otro)
   check('  …y la liga no está ahí', !/Liga FDN/.test(await texto(page, '.torneos-rejilla')))

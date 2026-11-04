@@ -59,11 +59,11 @@ console.log('── 1. /aprender: la chapa del tema es un enlace ──')
 {
   const { page, ctx, errores } = await abrir('/aprender.html')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const c = await chapas(page, '#apLista')
-  check('cada tarjeta lleva la chapa de su tema como enlace a /aprender?tema=…, fuera del enlace de la tarjeta y encima del arte', c.length === 5 && c.every((x) => x.href && /^\/aprender\?tema=(mazos|reglas)$/.test(x.href) && !x.dentroDelEnlace && x.sobreElArte && x.alto >= 24 && !x.textoViejo) && c[0].texto === 'Reglas', JSON.stringify(c.slice(0, 2)))
-  await page.click('#apLista .guia-tarjeta:first-child a.guia-chapa-tema')
-  await page.waitForTimeout(1800)
-  check('  …y tocarla abre el tema, no la guía', (await page.evaluate(() => [location.search, document.querySelector('#apTemaCab h1')?.textContent])).join('|') === '?tema=reglas|Reglas')
+  // Desde la 1219 /aprender son PORTADAS con su Pokémon: la portada entera
+  // lleva a la guía y el tema va dentro, de texto (PINGU aprobó la maqueta;
+  // un enlace dentro de otro no existe). Dentro de cada tema sigue la tarjeta.
+  const c = await page.$$eval('#apLista .guia-portada', (xs) => xs.map((x) => ({ href: x.getAttribute('href'), tema: x.querySelector('.guia-portada-tema')?.textContent.trim() || null })))
+  check('cada portada lleva a su guía y dice su tema', c.length === 5 && c.every((x) => /^\/guia\//.test(x.href) && /^(Mazos & estrategia|Reglas)$/.test(x.tema || '')), JSON.stringify(c.slice(0, 2)))
   await ctx.close()
   // En el móvil, las filas llevan el tema de texto delante del nivel.
   const m = await abrir('/aprender.html', { movil: true })

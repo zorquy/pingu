@@ -9,6 +9,10 @@
 // del torneo que estás jugando, y que la portada de un torneo no cambie
 // de color en cada recarga.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
+
+// Desde la 1221 el botón dice «Ver» y lo largo («Ver el torneo», «Resultados
+// y mazos») va en su aria-label, antes de los dos puntos con el nombre.
+const accionDe = (a) => (a.getAttribute('aria-label') || a.textContent).split(':')[0].trim()
 import { readFileSync } from 'node:fs'
 
 let fails = 0
@@ -93,7 +97,7 @@ console.log('\n── 1. Una tarjeta por torneo, y UNA acción ──')
   const copa = tarjetaDe(page, 'Copa de Invierno')
   check('cada tarjeta tiene UNA acción', (await copa.locator('.torneo-pie-accion').count()) === 1)
   // user-1 está inscrito en la Copa: no se le ofrece apuntarse otra vez.
-  check('inscrito → «Ver el torneo»', (await copa.locator('.torneo-pie-accion').textContent()) === 'Ver el torneo')
+  check('inscrito → «Ver el torneo»', (await copa.locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver el torneo')
   check('  …y se le marca que está dentro', (await copa.locator('.torneo-mio').count()) === 1)
   // Y el enlace de la tarjeta y el del botón van al MISMO sitio: si se
   // separan, pulsar el botón te lleva a otro torneo.
@@ -110,16 +114,16 @@ console.log('\n── 2. La acción dice la verdad según el estado ──')
   // al lado de la otra, tienen que decir cosas distintas.
   await abrirGrupo(page, 'Abiert')
   check('no inscrito y abierto → «Apuntarme»',
-    (await tarjetaDe(page, 'Casi llena').locator('.torneo-pie-accion').textContent()) === 'Apuntarme')
+    (await tarjetaDe(page, 'Casi llena').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Apuntarme')
   // «Apuntarme» va en verde: es la única acción de la sección que suma
   // gente y tiene que distinguirse de «ver» a un metro.
   check('  …y va en verde', await tarjetaDe(page, 'Casi llena').locator('.torneo-btn-apuntarse').count() === 1)
   check('  …y el de al lado, donde SÍ está, no lo ofrece',
-    (await tarjetaDe(page, 'Copa de Invierno').locator('.torneo-pie-accion').textContent()) === 'Ver el torneo')
+    (await tarjetaDe(page, 'Copa de Invierno').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver el torneo')
   check('en juego → «Ver el directo»', await abrirGrupo(page, 'En juego') &&
-    (await tarjetaDe(page, 'Pachanga').locator('.torneo-pie-accion').textContent()) === 'Ver el directo')
+    (await tarjetaDe(page, 'Pachanga').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver el directo')
   check('terminado → «Resultados y mazos»', await abrirGrupo(page, 'Terminad') &&
-    (await tarjetaDe(page, 'Inaugural').locator('.torneo-pie-accion').textContent()) === 'Resultados y mazos')
+    (await tarjetaDe(page, 'Inaugural').locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver resultados y mazos')
   // En un torneo terminado la ocupación no dice nada: lo que se quiere
   // saber es quién ganó.
   const fin = tarjetaDe(page, 'Inaugural')

@@ -28,7 +28,9 @@ console.log('── 2. Gente: las cifras cuentan y acaban en su valor ──')
   })
   await p.waitForTimeout(2500)
   const r = await p.evaluate(() => ({ final: document.getElementById('cifraMiembros').textContent, vistos: window.__vistos }))
-  check('la cifra de miembros pasa por valores intermedios', r.vistos.length > 3 && r.vistos.some((v) => /^\d+$/.test(v) && Number(v) < Number(r.final)), JSON.stringify(r).slice(0, 200))
+  // Desde la 1220 una cifra sin otra de la que contar «se calcula»: sus
+  // dígitos dan vueltas y se fijan en la buena.
+  check('la cifra de miembros pasa por valores intermedios', r.vistos.length > 3 && r.vistos.some((v) => /^\d+$/.test(v) && v !== r.final) && r.final === '12', JSON.stringify(r).slice(0, 200))
   check('  …y acaba en su valor (12 en el doble)', r.final === '12' && r.final === r.vistos.at(-1), JSON.stringify(r).slice(0, 200))
   // En el doble nadie latió hace poco: se prueba con un avatar puesto a mano.
   const late = await p.evaluate(() => { const a = document.createElement('span'); a.className = 'avatar-conectado'; document.body.append(a); const n = getComputedStyle(a, '::after').animationName; a.remove(); return n })
@@ -58,8 +60,10 @@ console.log('── 4. Las cabeceras de bloque con su icono ──')
   const p = await ctx.newPage()
   await p.goto(`${BASE}/lanzamientos`, { waitUntil: 'domcontentloaded' })
   await p.waitForTimeout(2000)
-  const n = await p.$$eval('.section-title .cab-bloque-ico svg', (xs) => xs.length)
-  check('Lanzamientos: «Lo que viene» y «Ya en tiendas» con su icono', n >= 1, String(n))
+  // Desde la 1218 el icono va en el título de la página y «Lo que viene» y
+  // «Ya en tiendas» son rótulos pequeños (la maqueta del cartel).
+  const n = await p.$$eval('h1 .cab-bloque-ico svg, .section-title .cab-bloque-ico svg', (xs) => xs.length)
+  check('Lanzamientos: el título con su icono', n >= 1, String(n))
   await ctx.close()
 }
 await b.close()

@@ -305,9 +305,11 @@ console.log('── 5. La Pokédex: el color no depende de que tus cartas traiga
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
   await page.goto(`${BASE}/mi-coleccion.html?ver=pokedex`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3000)
+  // Desde la 1220 la casilla lleva también el nombre en sombra (solo se ve en
+  // el PC): en el móvil lo que se VE es «???», y eso es lo que se lee.
   const t = await page.evaluate(() => Object.fromEntries([150, 147, 6, 7].map((d) => {
     const b = document.querySelector(`.pdx-especie[data-dex="${d}"]`)
-    return [d, { tipo: (b.className.match(/tipo-([A-Z])/) || [])[1] || null, icono: b.querySelector('.pdx-energia')?.getAttribute('src') || null, nombre: b.querySelector('.pdx-nombre').textContent, cuenta: b.querySelector('.pdx-cuenta').textContent, etiqueta: b.getAttribute('aria-label') }]
+    return [d, { tipo: (b.className.match(/tipo-([A-Z])/) || [])[1] || null, icono: b.querySelector('.pdx-energia')?.getAttribute('src') || null, nombre: [...b.querySelector('.pdx-nombre').childNodes].filter((n) => n.nodeType === 3 || getComputedStyle(n).display !== 'none').map((n) => n.textContent).join('').trim(), cuenta: b.querySelector('.pdx-cuenta').textContent, etiqueta: b.getAttribute('aria-label') }]
   })))
   check('Mewtwo tuyo SIN tipo en su carta: teñido de Psíquico igual (sale de la especie)', t[150].tipo === 'P' && /P\.svg$/.test(t[150].icono), JSON.stringify(t[150]))
   check('  …Dratini, de Dragón, con su símbolo nuevo', t[147].tipo === 'N' && /N\.svg$/.test(t[147].icono), JSON.stringify(t[147]))

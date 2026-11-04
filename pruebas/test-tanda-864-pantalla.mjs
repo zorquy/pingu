@@ -68,7 +68,7 @@ console.log('── 1. La puerta en el PC ──')
   check('tres baldosas (la vacía no sale), en el orden de los temas, con icono, «N guías · M cursos» y el enlace al tema', b.hay && b.temas.map((t) => t.nombre).join('|') === 'Primeros pasos|Mazos & estrategia|Reglas' && b.temas[0].sub === '2 guías · 1 curso' && b.temas[1].sub === '3 guías · 1 curso' && b.temas[2].sub === '1 guía' && b.temas[1].href === '/aprender?tema=mazos' && b.temas.every((t) => t.icono), JSON.stringify(b.temas))
   check('  …con la barra de lo leído: 100 %, 33 % y 0 %', b.temas.map((t) => t.barra).join() === '100%,33%,0%', JSON.stringify(b.temas.map((t) => t.barra)))
   // Desde la 865 no hay títulos de sección: las baldosas, la fila de mandos y las guías.
-  check('  …y debajo, la lista de siempre, sin títulos de sección', document_sinSeccion(await page.evaluate(() => document.querySelectorAll('.ap-seccion').length)) && (await page.locator('#apLista .guia-tarjeta').count()) === 6)
+  check('  …y debajo, la lista de siempre, sin títulos de sección', document_sinSeccion(await page.evaluate(() => document.querySelectorAll('.ap-seccion').length)) && (await page.locator('#apLista .guia-portada, #apLista .guia-tarjeta').count()) === 6)
   await page.click('#apTemas .ap-baldosa[href="/aprender?tema=mazos"]')
   await page.waitForTimeout(1800)
   const t = await page.evaluate(() => ({ h1: document.querySelector('#apTemaCab h1')?.textContent, baldosas: Boolean(document.getElementById('apTemas')) }))

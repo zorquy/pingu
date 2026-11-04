@@ -143,7 +143,9 @@ console.log('── 3. Se pasa de una a otra: flechas, puntos, teclas, dedo ─�
 console.log('── 4. Compartir coge la que se ve ──')
 {
   await page.locator('#mcImagenCompartir').click()
-  await page.waitForTimeout(800)
+  // El PNG sale de un toBlob, que con la suite cargada tarda más de 0,8 s: se
+  // espera a que llegue (hasta 8 s) en vez de leer a ciegas.
+  await page.waitForFunction(() => window.__compartido?.ficheros?.length, null, { timeout: 8000 }).catch(() => {})
   const c = await page.evaluate(() => window.__compartido)
   check('compartir recibe un PNG con el nombre de la variante', c?.ficheros?.[0]?.tipo === 'image/png' && c.ficheros[0].bytes > 1000 && /-pokedex\.png$/.test(c.ficheros[0].nombre), JSON.stringify(c))
   check('sin errores al final', errores.length === 0, errores.join(' | '))

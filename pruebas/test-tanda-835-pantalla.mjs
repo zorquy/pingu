@@ -182,7 +182,10 @@ const GUARDADO = (x) => ({ retos_guardar: { nuevo: true, xp: x, perfecto: false,
   const { page, ctx, errores } = await abrir('retos', { sesion: 'admin-1', rpc: { retos_mis_numeros: numeros } })
   check('menú con cuenta: sin errores', !errores.length, errores.join(' | '))
   check('  …lo de hoy sale de la base: la silueta a la primera, ordenadas en 2, 4 de 5', /A la primera/.test(await page.locator('#rtSiluetaEstado').innerText()) && /Ordenadas en 2/.test(await page.locator('#rtOrdenaEstado').innerText()) && /4 de 5/.test(await page.locator('#rtExpansionEstado').innerText()))
-  check('  …la XP de hoy y la racha en la píldora (989)', /\+85 XP/.test(await page.locator('#rtDia').innerText()) && /4 días/.test(await page.locator('#rtDia').innerText()), await page.locator('#rtDia').innerText())
+  // Desde la 1219 son cifras de la banda («85 XP hoy», «4 días de racha»),
+  // y llegan con lo de la base: se espera a que estén.
+  await page.waitForSelector('#rtDia .rt-fuego', { timeout: 5000 }).catch(() => {})
+  check('  …la XP de hoy y la racha en la píldora (989)', /85\s*XP hoy/i.test(await page.locator('#rtDia').innerText()) && /4\s*días de racha/i.test(await page.locator('#rtDia').innerText()), await page.locator('#rtDia').innerText())
   // El calendario va en el historial plegado (989): se pide al abrirlo.
   await page.click('#rtHistorial summary')
   await page.waitForTimeout(600)

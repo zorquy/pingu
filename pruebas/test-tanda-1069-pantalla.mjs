@@ -159,14 +159,16 @@ const QUE_TIENEN = [{ tienda_id: 'tienda-1', username: 'rincon', display_name: '
 {
   const { p, ctx, errs } = await abrir('/mi-coleccion.html?ver=mercado', { errores: { mercado_con_tiendas: { code: 'PGRST202', message: 'Could not find the function public.mercado_con_tiendas' } } })
   await p.waitForTimeout(800)
-  check('sin la migración: el Mercado de siempre, sin «Personas / Tiendas» ni franja', !errs.length && (await llamadas(p, 'intercambios_mercado')).length >= 1 && !(await p.isVisible('#mcMercadoQuien')) && !(await p.isVisible('#mcMercadoTiendas')), errs.join(' | '))
+  check('sin la migración: el Mercado de siempre, sin «Personas / Tiendas» ni franja', !errs.length && (await llamadas(p, 'intercambios_mercado')).length >= 1 && !(await p.isVisible('[data-merc-quien="personas"]')) && !(await p.isVisible('[data-merc-quien="tiendas"]')) && !(await p.isVisible('#mcMercadoTiendas')), errs.join(' | '))
   await ctx.close()
 }
 
 {
   const { p, ctx } = await abrir('/mi-coleccion.html?ver=mercado', { rpc: { mercado_con_tiendas: MERCADO.slice(0, 1).map((m) => ({ ...m, tiendas: 0, gente: m.gente.slice(0, 1), desde: null })) }, filas: { tiendas: [] } })
   await p.waitForTimeout(800)
-  check('con la migración y sin ninguna tienda dada de alta: sin «Personas / Tiendas»', !(await p.isVisible('#mcMercadoQuien')) && (await llamadas(p, 'mercado_con_tiendas')).length >= 1)
+  // Desde la 1217 los chips del Mercado son una fila (Todo · Lo que busco ·
+  // Personas · Tiendas): sin tiendas, lo que no sale es Personas y Tiendas.
+  check('con la migración y sin ninguna tienda dada de alta: sin «Personas / Tiendas»', !(await p.isVisible('[data-merc-quien="personas"]')) && !(await p.isVisible('[data-merc-quien="tiendas"]')) && (await llamadas(p, 'mercado_con_tiendas')).length >= 1)
   await ctx.close()
 }
 

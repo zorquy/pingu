@@ -34,7 +34,10 @@ const b = await chromium.launch()
     const f = (n) => `${Math.round(n)} €`
     const el = document.createElement('b'); document.body.appendChild(el)
     localStorage.removeItem('pd-cifra-prueba')
+    // Desde la 1220, sin cifra de otro día de la que contar, la cifra «se
+    // calcula» (los dígitos dan vueltas ~0,9 s) y acaba en la buena.
     const primera = contarCifra(el, 'prueba', 100, f)
+    await new Promise((r) => setTimeout(r, 1200))
     const textoPrimera = el.textContent
     const ayer = new Date(Date.now() - 864e5).toISOString().slice(0, 10)
     localStorage.setItem('pd-cifra-prueba', JSON.stringify({ dia: ayer, valor: 500 }))
@@ -43,6 +46,7 @@ const b = await chromium.launch()
     await new Promise((r) => setTimeout(r, 1000))
     const alAcabar = el.textContent
     const tercera = contarCifra(el, 'prueba', 120, f)
+    await new Promise((r) => setTimeout(r, 1200))
     return { primera, textoPrimera, segunda, alEmpezar, alAcabar, tercera, textoTercera: el.textContent }
   })
   check('la primera vez de todas no cuenta (no hay de dónde)', r.primera === false && r.textoPrimera === '100 €', JSON.stringify(r))
