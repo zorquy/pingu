@@ -415,11 +415,13 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
 .cp-total-ayuda { margin: 0; }
 
 /* LOS TRATOS EN TARJETAS (1217, Cruces → «En curso»): como las de los
-   cruces. Abierta, la tarjeta ocupa la fila y enseña el trato entero. */
+   cruces, y todas del mismo tamaño (1223): abierta, el trato sale en su
+   pop-up (`.cp-trato-dialogo`) y la tarjeta no se mueve. */
 .cp-mis-tarjetas { gap: var(--e-lg); }
 .cp-tratos {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  grid-auto-rows: 1fr;
   gap: var(--e-lg);
 }
 .cp-trato {
@@ -435,14 +437,12 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
   height: 2px;
   background: linear-gradient(90deg, var(--acento), transparent 80%);
 }
-.cp-trato[open] { grid-column: 1 / -1; }
 .cp-trato > summary {
   display: grid;
   align-items: stretch;
   gap: var(--e-md);
   padding: var(--e-md);
 }
-.cp-trato[open] > summary { border-bottom: 1px solid var(--border); }
 .cp-trato-cab { display: flex; align-items: center; gap: var(--e-sm); min-width: 0; }
 .cp-trato-cab .mini-avatar { width: 40px; height: 40px; flex-shrink: 0; }
 .cp-trato-quien { display: grid; flex: 1 1 auto; min-width: 0; }
@@ -557,4 +557,137 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   text-align: center;
+}
+
+/* EL TRATO EN SU POP-UP (1223, PINGU eligió la A de la propuesta): centrado
+   en el PC y hoja desde abajo en el móvil; una cabecera (quién, qué, cómo
+   va, escribirle y cerrar), los pasos, lo que das y recibes UNA vez y la caja
+   «Ahora te toca» con lo único pendiente. Contraoferta, Rechazar y Anular,
+   como texto. Fuera del pop-up, `.cp-t-ahora` no pinta nada. */
+.cp-t-ahora { display: contents; }
+.cp-trato-dialogo {
+  inset: 0;
+  width: min(560px, calc(100% - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+.cp-trato-dialogo::backdrop { background: rgb(5 9 13 / 60%); }
+/* Lo último de una tarjeta lleva margen (`.cp-linea > :last-child`): el pop-up no. */
+:is(.cp-linea, .cp-hist) > .cp-trato-dialogo { margin: auto; }
+html:has(.cp-trato-dialogo[open]) { overflow: hidden; }
+.cp-dlg-cab {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+  border-bottom: 1px solid var(--border);
+  background: var(--white);
+}
+.cp-dlg-quien { display: inline-flex; }
+.cp-dlg-quien .mini-avatar { width: 40px; height: 40px; }
+.cp-dlg-texto { display: grid; flex: 1 1 auto; min-width: 0; line-height: 1.25; }
+.cp-dlg-texto b { overflow: hidden; font-family: var(--font-display); font-size: var(--t-md); text-overflow: ellipsis; white-space: nowrap; }
+.cp-dlg-texto small { color: var(--text-mid); font-size: var(--t-xs); }
+.cp-dlg-conf:not(:empty)::before { content: ' · '; }
+.cp-dlg-conf:not(:empty) { color: var(--success); font-weight: 600; }
+.cp-dlg-ico {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text-mid);
+  cursor: pointer;
+}
+.cp-dlg-ico:hover { color: var(--text); }
+.cp-trato-dialogo .cp-tarjeta { gap: var(--e-md); padding: var(--e-md); border: 0; border-radius: 0; background: transparent; }
+.cp-trato-dialogo .cp-t-cab { display: none; }
+.cp-trato-dialogo .cp-t-ahora:has(> *) {
+  display: grid;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+  border: 1px solid var(--acento);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--acento) 10%, var(--white));
+}
+.cp-trato-dialogo .cp-t-ahora > .cp-t-ayuda:first-child { margin: 0; color: var(--text); font-weight: 600; }
+.cp-trato-dialogo .cp-t-acciones { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-md); }
+.cp-trato-dialogo .cp-t-acciones .btn-primary { min-height: 44px; padding-inline: var(--e-lg); }
+.cp-trato-dialogo .cp-t-acciones .btn-secondary {
+  min-height: 44px;
+  padding-inline: var(--e-xs);
+  background: transparent;
+  color: var(--text-mid);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.cp-trato-dialogo .cp-t-acciones .btn-secondary:hover { color: var(--text); }
+@media (max-width: 599px) {
+  :is(.cp-linea, .cp-hist) > .cp-trato-dialogo { margin: auto 0 0; }
+  .cp-trato-dialogo {
+    width: 100%;
+    max-height: 92dvh;
+    padding-bottom: var(--seguro-abajo);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+}
+
+/* EL HISTORIAL (1223, en vez de «Los anteriores»): lo que tienes por valorar
+   delante, por meses, cada fila con las miniaturas y su estado en color. De
+   serie solo los hechos (`data-hist="hechos"`). */
+.cp-historial { display: grid; gap: var(--e-sm); padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); }
+.cp-hist-cab { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
+.cp-hist-cab h3 { margin: 0; font-family: var(--font-display); font-size: var(--t-md); }
+.cp-hist-chips { display: inline-flex; gap: var(--e-xs); }
+.cp-hist-chip { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 32px; padding: 0 var(--e-md); border: 0; border-radius: var(--radius-pill); background: var(--ice); color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 600; cursor: pointer; }
+.cp-hist-chip small { color: inherit; font-weight: 600; opacity: 0.8; }
+.cp-hist-chip[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+@media (pointer: coarse) { .cp-hist-chip { min-height: 44px; } }
+.cp-hist-rep { margin-left: auto; color: var(--success); font-size: var(--t-xs); font-weight: 600; text-decoration: none; }
+.cp-hist-rep:empty { display: none; }
+.cp-hist-rep::before { content: 'Tu reputación: '; color: var(--text-mid); font-weight: 500; }
+.cp-hist-valorar { padding: var(--e-sm) var(--e-md); border-radius: var(--radius-lg); background: color-mix(in srgb, var(--acento) 10%, var(--white)); }
+.cp-hist-mes-t { margin: var(--e-xs) 0 0; color: var(--text-dim); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.cp-historial[data-hist='hechos'] .cp-hist:not(.cp-hist-hecho),
+.cp-historial[data-hist='hechos'] .cp-hist-mes:not(.con-hechos) { display: none; }
+.cp-hist > summary {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 48px;
+  padding: var(--e-sm) 0;
+  border-top: 1px solid var(--border);
+  cursor: pointer;
+  list-style: none;
+}
+.cp-hist > summary::-webkit-details-marker { display: none; }
+.cp-hist > summary:hover .cp-hist-quien b { color: var(--acento); }
+.cp-hist .mini-avatar { width: 32px; height: 32px; }
+.cp-hist-quien { display: grid; min-width: 0; line-height: 1.25; }
+.cp-hist-quien b { overflow: hidden; font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
+.cp-hist-quien small { color: var(--text-mid); font-size: var(--t-xs); }
+.cp-hist-cosas { display: flex; align-items: center; gap: var(--e-xs); }
+.cp-hist-cosas .cp-mini { width: 24px; }
+.cp-hist-flecha { color: var(--text-dim); font-size: var(--t-xs); }
+.cp-hist-dinero { color: var(--success); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
+.cp-hist-dia { color: var(--text-dim); font-size: var(--t-xs); white-space: nowrap; }
+@media (max-width: 599px) {
+  .cp-hist > summary { grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--e-sm); }
+  .cp-hist-cosas, .cp-hist-dia { display: none; }
 }

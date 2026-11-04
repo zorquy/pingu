@@ -834,6 +834,10 @@ function cobroEnTarjetaHtml(o, { yo, nombre, misCobros }) {
   return `<section class="cp-t-dir cp-t-envia cp-t-paga"><h4>Págale ${escapeHtml(euros(total))} por ${escapeHtml(c.nombre)}</h4><div class="cp-t-envia-fila"><span class="cp-dir-texto"><b>${escapeHtml(datoBonito(suyo.como, suyo.dato))}</b></span><button type="button" class="btn-secondary cp-copiar" data-cp-copiar="${escapeHtml(suyo.dato)}" data-cp-copiado="${o.dinero_como === 'bizum' ? 'Número copiado.' : 'PayPal copiado.'}">Copiar</button></div></section>`
 }
 
+// Desde la 1223 los pasos van arriba, debajo del título, y lo que te toca
+// (el envío, la dirección, el pago, lo recibido, valorar y los botones) va
+// junto en `.cp-t-ahora`: fuera del pop-up de «En curso» es transparente
+// (`display: contents`); dentro, la caja «Ahora te toca».
 export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null, misCobros = null }) {
   const nombre = nombreDePersona(otro)
   const das = o.items.filter((it) => it.quien === yo)
@@ -873,10 +877,14 @@ export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null, misCobros = nu
   const filaQuien = (quien, que, ya) => `<li><span>${quien} · ${escapeHtml(loQueEs(que))}</span><span class="${ya ? 'cp-ya' : ''}">${que.cartas || que.dinero ? (ya ? `${escapeHtml(textoDeRecibido(que))} ✓` : 'Pendiente') : 'Nada que confirmar'}</span></li>`
   return `<article class="cp-tarjeta tono-${est.tono}" data-oferta="${escapeHtml(o.id)}">
     <header class="cp-t-cab"><b>${escapeHtml(tituloDe(o, yo, nombre))}${o.version > 1 ? ` · ${o.version}.ª versión` : ''}</b><span class="cp-estado">${escapeHtml(est.texto)}</span></header>
+    ${o.estado === 'enviada' || o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de ${pasos.length}">${pasos.map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
     <div class="cp-t-lados">
       ${ladoHtml(`Das · ${euros(sumaDe(das) + (dinero.pagaYo ? dinero.cantidad : 0) + (pagoYo ? envioP : 0))}`, das, cartaDe, 'Nada', dinero.cantidad && dinero.pagaYo ? { ...dinero, envio: pagoYo ? envioP : 0 } : null)}
       ${ladoHtml(`Recibes · ${euros(sumaDe(recibes) + (dinero.cantidad && !dinero.pagaYo ? dinero.cantidad : 0) + (pagaEnvio && !pagoYo ? envioP : 0))}`, recibes, cartaDe, 'Nada', dinero.cantidad && !dinero.pagaYo ? { ...dinero, envio: pagaEnvio && !pagoYo ? envioP : 0 } : null)}
     </div>
+    ${o.nota ? `<p class="cp-t-nota">«${escapeHtml(o.nota)}»</p>` : ''}
+    <div class="cp-t-ahora">
+    ${o.estado === 'enviada' && est.frase ? `<p class="subtext cp-t-ayuda">${escapeHtml(est.frase)}</p>` : ''}
     ${eligeEnvio ? `<div class="cp-t-envio"><p>${envioVenta ? `${o.items.some((it) => it.quien !== yo) ? 'Te lo manda' : 'Se lo mandas'} ${escapeHtml(envioCorto(envioVenta).toLowerCase())} (${escapeHtml(porQue(envioVenta))}).${pagaEnvio ? ` Lo ${pagoYo ? 'pagas tú' : `paga ${escapeHtml(nombre)}`}.` : ''}` : `${escapeHtml(cadaUno())}. Cada uno paga lo que manda.`}</p><div class="cp-chips" role="radiogroup" aria-label="Envío"><button type="button" class="cp-chip" role="radio" data-cp-envio-elegir="${envioVenta ? envioVenta.tipo : envios.some((e) => e.tipo === 'certificado') ? 'certificado' : 'normal'}" data-precio="${envioVenta ? envioVenta.precio : 0}" data-oferta="${escapeHtml(o.id)}" aria-checked="true">${envioVenta ? escapeHtml(`Por correo · ${envioCorto(envioVenta)}`) : 'Por correo'}</button><button type="button" class="cp-chip" role="radio" data-cp-envio-elegir="mano" data-precio="0" data-oferta="${escapeHtml(o.id)}" aria-checked="false">En mano</button></div></div>`
       : o.envio_tipo === 'mano' ? '<p class="cp-t-envio-info">En mano.</p>'
         : o.envio_tipo ? `<p class="cp-t-envio-info">${envioVenta ? `Envío: ${escapeHtml(TIPO_DE_ENVIO[o.envio_tipo] || o.envio_tipo)}${envioP ? ` · ${escapeHtml(euros(envioP))}` : ''}${pagaEnvio ? `, lo paga ${pagoYo ? 'quien compra (tú)' : escapeHtml(nombre)}` : ''}` : `${escapeHtml(cadaUno())}. Cada uno paga lo que manda.`}</p>`
@@ -884,13 +892,11 @@ export function tarjetaHtml(o, { yo, otro, cartaDe, miDir = null, misCobros = nu
             : o.envio === 'mano' ? '<p class="cp-t-envio-info">En mano.</p>' : ''}
     ${direccionEnTarjetaHtml(o, { yo, nombre, miDir })}
     ${cobroEnTarjetaHtml(o, { yo, nombre, misCobros })}
-    ${o.estado === 'enviada' && est.frase ? `<p class="subtext cp-t-ayuda">${escapeHtml(est.frase)}</p>` : ''}
-    ${o.nota ? `<p class="cp-t-nota">«${escapeHtml(o.nota)}»</p>` : ''}
-    ${o.estado === 'enviada' || o.estado === 'aceptada' || o.estado === 'hecha' ? `<ol class="cp-pasos" aria-label="Paso ${paso} de ${pasos.length}">${pasos.map((p, i) => `<li class="${i + 1 < paso ? 'hecho' : i + 1 === paso ? 'ahora' : ''}">${p}</li>`).join('')}</ol>` : ''}
     ${o.estado === 'aceptada' ? `<ul class="cp-quien" aria-label="Quién ha confirmado">${filaQuien(escapeHtml(nombre), recibeEl, yaEl)}${filaQuien('Tú', recibo, yaYo)}</ul>
     <p class="subtext cp-t-ayuda">${yaYo ? `Cuando ${escapeHtml(nombre)} lo confirme, las cartas se mueven solas.` : `Cuando te llegue${recibo.cartas && !recibo.dinero ? (recibo.cartas === 1 ? ' la carta' : 'n las cartas') : recibo.dinero && !recibo.cartas ? ' el dinero' : ' todo'}, pulsa «${escapeHtml(textoDeRecibido(recibo) || 'Ya lo he mandado')}». Al confirmarlo los dos, las cartas cambian de colección solas.`}</p>` : ''}
     ${o.estado === 'hecha' && o.porValorar ? valorarHtml(o.confirmacion, nombre) : ''}
     ${acciones ? `<div class="cp-t-acciones">${acciones}</div>` : ''}
+    </div>
   </article>`
 }
 
@@ -1145,6 +1151,19 @@ function ladoDeTratoHtml(titulo, items, dinero, cartaDe) {
   return `<span class="cp-trato-lado"><small>${titulo}</small><span class="cp-trato-cosas">${minis}${mas}${plata || (minis ? '' : '<span class="cp-trato-nada">Nada</span>')}</span></span>`
 }
 function tratosEnTarjetasHtml(vivas, pasadas, { yo, estado, otroDe, toca }) {
+  // El pop-up de un trato (1223): el mismo para los vivos y para los del
+  // historial (estos, sin botones: ya no les queda nada por hacer).
+  const dialogo = (o, p, est) => `
+      <dialog class="cp-trato-dialogo" aria-labelledby="ofertaT-${escapeHtml(o.id)}">
+        <header class="cp-dlg-cab">
+          <a class="cp-dlg-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}</a>
+          <span class="cp-dlg-texto"><b id="ofertaT-${escapeHtml(o.id)}">${escapeHtml(tituloDe(o, yo, nombreDePersona(p)))}${o.version > 1 ? ` · ${o.version}.ª versión` : ''}</b><small>${escapeHtml(haceCuanto(o.updated_at || o.created_at))}<span class="cp-dlg-conf" data-confianza="${escapeHtml(p.id)}"></span></small></span>
+          <span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span>
+          ${o.conversacion ? `<a class="cp-dlg-ico" href="/mensajes.html?c=${escapeHtml(o.conversacion)}" aria-label="Escribir a ${escapeHtml(nombreDePersona(p))}" title="Escribirle">${icons.mail(18)}</a>` : ''}
+          <button type="button" class="cp-dlg-ico" data-cp-cerrar aria-label="Cerrar">${icons.x(18)}</button>
+        </header>
+        ${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe, miDir: estado.miDir, misCobros: estado.misCobros })}
+      </dialog>`
   const tarjeta = (o) => {
     const p = otroDe(o)
     const est = estadoDe(o, yo, nombreDePersona(p))
@@ -1159,20 +1178,96 @@ function tratosEnTarjetasHtml(vivas, pasadas, { yo, estado, otroDe, toca }) {
         <span class="cp-trato-pasos" role="img" aria-label="Paso ${paso} de ${nombres.length}: ${escapeHtml(nombres[paso - 1] || '')}">${pasos}</span>
         <span class="cp-trato-pie"><small>${escapeHtml(est.frase || est.texto)}</small><span class="cp-linea-ver">${toca(o) ? 'Ver y responder' : 'Ver la propuesta'}</span></span>
       </summary>
-      <div class="cp-con"><a class="cp-con-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}<span>${escapeHtml(nombreDePersona(p))}</span></a>${o.conversacion ? `<a class="link-btn" href="/mensajes.html?c=${escapeHtml(o.conversacion)}">Escribirle</a>` : ''}</div>${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe, miDir: estado.miDir, misCobros: estado.misCobros })}
+      ${dialogo(o, p, est)}
     </details>`
   }
   const fecha = (iso) => (iso ? new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' }) : '')
-  const anteriores = pasadas.length ? `<details class="cp-pasadas cp-anteriores"${pasadas.some((o) => o.porValorar) ? ' open' : ''}><summary><span class="cp-anteriores-ico" aria-hidden="true">${icons.clock(16)}</span>Los anteriores <span class="cp-anteriores-n">${pasadas.length}</span></summary><ul>${pasadas.map((o) => {
+  // EL HISTORIAL (1223, en vez de «Los anteriores»): lo que tienes por
+  // valorar delante; luego por meses, cada uno con las miniaturas de lo que
+  // diste y lo que recibiste y su estado en color. De serie, solo los hechos
+  // (PINGU eligió la recomendada); «Todos» enseña también los que no salieron.
+  // Cada fila abre su trato en el pop-up, para leerlo.
+  const hechos = pasadas.filter((o) => o.estado === 'hecha')
+  const deSerie = hechos.length ? 'hechos' : 'todos'
+  const mesDe = (iso) => {
+    const d = new Date(iso || Date.now())
+    const m = d.toLocaleDateString('es-ES', { month: 'long' })
+    return `${m[0].toUpperCase()}${m.slice(1)}${d.getFullYear() !== new Date().getFullYear() ? ` de ${d.getFullYear()}` : ''}`
+  }
+  const como = (o) => [TIPO_CORTO[tipoDe(o.items || [], yo)], o.envio === 'mano' || o.envio_tipo === 'mano' ? 'en mano' : o.envio === 'correo' ? 'por correo' : ''].filter(Boolean).join(' · ')
+  const lado = (items, dinero) => [...items.slice(0, 2).map((it) => miniHtml(estado.cartaDe(it), it)), items.length > 2 ? `<span class="cp-trato-mas">+${items.length - 2}</span>` : '', dinero > 0 ? `<b class="cp-hist-dinero">${escapeHtml(euros(dinero))}</b>` : ''].join('')
+  const fila = (o) => {
     const p = otroDe(o)
     const est = estadoDe(o, yo, nombreDePersona(p))
-    return `<li class="cp-pasada">${avatarHtml(p)}<span class="cp-pasada-texto"><b>${escapeHtml(nombreDePersona(p))}</b><small>${escapeHtml(est.texto)} · ${escapeHtml(resumenDe(o, yo).toLowerCase())}</small></span><small class="cp-pasada-dia">${escapeHtml(fecha(o.updated_at || o.created_at))}</small>${o.porValorar ? valorarHtml(o.confirmacion, nombreDePersona(p)) : ''}</li>`
-  }).join('')}</ul></details>` : ''
-  return `${vivas.length ? `<div class="cp-tratos">${vivas.map(tarjeta).join('')}</div>` : sinTratosHtml()}${anteriores}`
+    const das = (o.items || []).filter((it) => it.quien === yo)
+    const recibes = (o.items || []).filter((it) => it.quien !== yo)
+    return `<details class="cp-hist${o.estado === 'hecha' ? ' cp-hist-hecho' : ''}" id="oferta-${escapeHtml(o.id)}">
+      <summary>${avatarHtml(p)}<span class="cp-hist-quien"><b>${escapeHtml(nombreDePersona(p))}</b><small>${escapeHtml(como(o))}</small></span><span class="cp-hist-cosas" aria-hidden="true">${lado(das, queRecibe(o, p.id).dinero)}<span class="cp-hist-flecha">⇄</span>${lado(recibes, queRecibe(o, yo).dinero)}</span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span><small class="cp-hist-dia">${escapeHtml(fecha(o.updated_at || o.created_at))}</small></summary>
+      ${dialogo(o, p, est)}
+    </details>`
+  }
+  const porValorar = pasadas.filter((o) => o.porValorar)
+  const grupos = []
+  for (const o of pasadas) {
+    const m = mesDe(o.updated_at || o.created_at)
+    if (grupos.at(-1)?.mes !== m) grupos.push({ mes: m, ofertas: [] })
+    grupos.at(-1).ofertas.push(o)
+  }
+  const chip = (v, texto, n) => `<button type="button" class="cp-hist-chip" data-cp-hist="${v}" aria-pressed="${v === deSerie}">${texto} <small>${n}</small></button>`
+  const historial = pasadas.length ? `<section class="cp-historial" data-hist="${deSerie}" aria-label="Historial de tratos">
+      <header class="cp-hist-cab"><h3>Historial</h3>${hechos.length && hechos.length < pasadas.length ? `<span class="cp-hist-chips" role="group" aria-label="Qué tratos">${chip('hechos', 'Hechos', hechos.length)}${chip('todos', 'Todos', pasadas.length)}</span>` : ''}<a class="cp-hist-rep" href="/perfil?ver=cambios" data-confianza="${escapeHtml(yo)}"></a></header>
+      ${porValorar.map((o) => `<div class="cp-hist-valorar">${valorarHtml(o.confirmacion, nombreDePersona(otroDe(o)))}</div>`).join('')}
+      ${grupos.map((g) => `<div class="cp-hist-mes${g.ofertas.some((o) => o.estado === 'hecha') ? ' con-hechos' : ''}"><p class="cp-hist-mes-t">${escapeHtml(g.mes)}</p>${g.ofertas.map(fila).join('')}</div>`).join('')}
+    </section>` : ''
+  return `${vivas.length ? `<div class="cp-tratos">${vivas.map(tarjeta).join('')}</div>` : sinTratosHtml()}${historial}`
 }
 
 // «Tus cambios», para Deseos y cambios: los vivos en tarjeta y los demás
 // en una lista corta.
+// EL TRATO EN SU POP-UP (1223, PINGU eligió la A): la tarjeta de «En curso»
+// sigue siendo el `details.cp-linea` de siempre (con su `#oferta-<id>`, y
+// abierto se vuelve a abrir al repintar), pero lo de dentro es un `dialog`
+// centrado (hoja desde abajo en el móvil) que se abre y se cierra con él. Va
+// DENTRO de la caja para que los botones sigan pasando por su oyente.
+function engancharDialogos(caja) {
+  if (caja.dataset.cpDialogos) return
+  caja.dataset.cpDialogos = '1'
+  caja.addEventListener('toggle', (e) => {
+    const d = e.target
+    if (!(d instanceof HTMLDetailsElement) || !d.matches('details.cp-trato, details.cp-hist')) return
+    const dlg = d.querySelector(':scope > dialog.cp-trato-dialogo')
+    if (!dlg) return
+    if (d.open && !dlg.open) {
+      dlg.showModal()
+      // Si había un aviso a la vista (un «Deshacer»), que siga pulsable.
+      const avisos = document.querySelector('body > .toast-container')
+      if (avisos?.childElementCount) dlg.appendChild(avisos)
+      import('./cambios-hechos.js').then((m) => m.ponerConfianza(dlg)).catch(() => {})
+    } else if (!d.open && dlg.open) dlg.close()
+  }, true)
+  // Cerrar el pop-up (Esc, la X o el fondo) cierra su tarjeta.
+  caja.addEventListener('close', (e) => {
+    const dlg = e.target
+    if (dlg instanceof HTMLDialogElement && dlg.matches('.cp-trato-dialogo')) {
+      const d = dlg.closest('details.cp-trato, details.cp-hist')
+      if (d?.open) d.open = false
+    }
+  }, true)
+  caja.addEventListener('click', (e) => {
+    // Hechos / Todos del historial: lo esconde la hoja, sin repintar.
+    const h = e.target.closest?.('[data-cp-hist]')
+    if (h) {
+      const sec = h.closest('.cp-historial')
+      if (sec) sec.dataset.hist = h.dataset.cpHist
+      for (const x of sec?.querySelectorAll('[data-cp-hist]') || []) x.setAttribute('aria-pressed', String(x === h))
+      return
+    }
+    const dlg = e.target.closest?.('dialog.cp-trato-dialogo')
+    if (!dlg) return
+    if (e.target === dlg || e.target.closest('[data-cp-cerrar]')) dlg.close()
+  })
+}
+
 export async function pintarMisCambios(caja, { sesion, tarjetas = false } = {}) {
   if (!caja || !sesion?.user?.id) return
   hojaInyectada('css/cambio-propuesta.css')
@@ -1206,7 +1301,8 @@ export async function pintarMisCambios(caja, { sesion, tarjetas = false } = {}) 
   // Cuántos tratos siguen vivos, para la banda de Cruces (1213).
   caja.dataset.vivas = String(vivas.length)
   ;[estado.cartaDe, estado.miDir, estado.misCobros] = await Promise.all([
-    fichasDe(vivas.flatMap((o) => o.items)),
+    // Las del historial también llevan sus miniaturas (1223): las 40 últimas.
+    fichasDe([...vivas, ...(tarjetas ? pasadas.slice(0, 40) : [])].flatMap((o) => o.items)),
     vivas.some((o) => o.direcciones && vaPorCorreo(o)) ? miDireccion(yo) : null,
     vivas.some((o) => o.cobros && quienCobra(o) === yo) ? miCobro(yo) : null,
   ])
@@ -1221,6 +1317,9 @@ export async function pintarMisCambios(caja, { sesion, tarjetas = false } = {}) 
   // Lo que estaba abierto sigue abierto al repintar (tras aceptar, enviar…):
   // si no, el trato en el que estás se pliega debajo del dedo.
   const abiertos = new Set([...caja.querySelectorAll('details.cp-linea[open]')].map((d) => d.id))
+  // Un aviso pintado dentro del pop-up (toast.js) no se va con el repintado.
+  const avisos = caja.querySelector('.toast-container')
+  if (avisos) document.body.appendChild(avisos)
   if (tarjetas) caja.innerHTML = tratosEnTarjetasHtml(vivas, pasadas, { yo, estado, otroDe, toca })
   else caja.innerHTML = `<h2 class="section-title cp-mis-titulo">${vivas.length ? `En curso · ${vivas.length}` : 'Tus cambios'}</h2>
     ${vivas.map((o) => {
@@ -1236,9 +1335,16 @@ export async function pintarMisCambios(caja, { sesion, tarjetas = false } = {}) 
       const est = estadoDe(o, yo, nombreDePersona(p))
       return `<li class="cp-pasada"><span>${avatarHtml(p)} <b>${escapeHtml(nombreDePersona(p))}</b> · ${escapeHtml(resumenDe(o, yo).toLowerCase())}</span><span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span>${o.porValorar ? valorarHtml(o.confirmacion, nombreDePersona(p)) : ''}</li>`
     }).join('')}</ul></details>` : ''}`
-  if (tarjetas) for (const id of abiertos) { const d = id && caja.querySelector(`[id="${CSS.escape(id)}"]`); if (d) d.open = true }
+  // Solo los vivos: uno que se acaba de cerrar pasa al historial y no se
+  // vuelve a abrir solo (1223).
+  if (tarjetas) for (const id of abiertos) { const d = id && caja.querySelector(`details.cp-trato[id="${CSS.escape(id)}"]`); if (d) d.open = true }
   engancharAcciones(caja, () => estado, recargar)
   engancharValorar(caja)
+  if (tarjetas) {
+    engancharDialogos(caja)
+    // La reputación de la cabecera del historial (la tuya).
+    import('./cambios-hechos.js').then((m) => m.ponerConfianza(caja.querySelector('.cp-hist-cab'))).catch(() => {})
+  }
   // Llegar con `#oferta-<id>` (la tira de Mensajes, un aviso) lo abre; y
   // también si cambia con la página ya abierta (no se recarga).
   const abrirPedida = () => {

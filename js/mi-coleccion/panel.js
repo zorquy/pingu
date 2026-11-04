@@ -553,10 +553,15 @@ async function mirarLogrosDeColeccion() {
   const { especiesDeLaCarta } = await import('./pokedex.js')
   const especies = new Set()
   for (const id of new Set(ctx.lineas.map((l) => l.card_id))) for (const n of especiesDeLaCarta(ctx.cartas.get(id)) || []) especies.add(Number(n))
-  const cambiosHechos = (await import('../cambios-hechos.js').then((m) => m.cambiosDe(ctx.sesion.user.id)).catch(() => null))?.hechos || 0
+  // Tus tratos hechos y si ya eres «Muy de fiar» (1224).
+  const ch = await import('../cambios-hechos.js').catch(() => null)
+  const rep = ch ? await ch.reputacionDe(ctx.sesion.user.id).catch(() => null) : null
+  const cambiosHechos = Number(rep?.hechos) || 0
+  const muyDeFiar = ch && rep ? ch.nivelDe(rep) === 'muy' : false
   const stats = statsDeColeccion({
     especies,
     cambiosHechos,
+    muyDeFiar,
     lineas: ctx.lineas,
     cartaDe: (id) => ctx.cartas.get(id),
     cuantasPorSet: ctx.cuantasPorSet(),

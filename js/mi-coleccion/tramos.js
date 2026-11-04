@@ -87,6 +87,23 @@ export function selectorDeCatalogoHtml(vista, totales, cat) {
   return `<div class="mc-seg mc-seg-sueltas mc-lista-cats" role="group" aria-label="Catálogo">${b('todas', 'Los dos', w + j)}${b('WEST', 'Pokémon', w, banderaHtml('en'))}${b('JP', 'Japón', j, banderaHtml('ja'))}</div>`
 }
 
+// En el PC el selector va en la BARRA de su pantalla (1222, PINGU: «hay
+// espacio de sobra para ponerlos sin apilar»): se MUEVE el que pinta la
+// rejilla, con su clic, que se escucha en el documento. En el móvil se queda
+// en la rejilla, donde la fila de arriba ya va llena. Cada repintado de la
+// rejilla trae uno nuevo: el que estaba en la barra se quita.
+// `tras`: el hijo de la barra detrás del que va (en el Mercado, el buscador,
+// que tiene sitio a su derecha); sin él, al final.
+export function catalogoALaBarra(rejilla, barra, { tras = null, doc = document } = {}) {
+  if (!rejilla || !barra) return
+  barra.querySelector(':scope > .mc-lista-cats')?.remove()
+  if (doc.documentElement.classList.contains('con-barra-movil')) return
+  const sel = rejilla.querySelector(':scope > .mc-lista-cats')
+  if (!sel) return
+  if (tras?.parentElement === barra) tras.after(sel)
+  else barra.appendChild(sel)
+}
+
 // El catálogo tocado en el selector, o undefined si el clic no era suyo.
 export function catalogoDelClic(e) {
   const b = e.target.closest?.('[data-lista-cat]')

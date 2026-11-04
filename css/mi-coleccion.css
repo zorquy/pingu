@@ -15747,3 +15747,17 @@ html.con-barra-movil .mc-prod-banda { display: none; }
   .mc-antes-tira { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .mc-antes-prueba { flex-basis: 100%; }
 }
+/* El catálogo es un INTERRUPTOR (1222, PINGU: «me gusta que sea un toggle»):
+   una pastilla con la elegida resaltada; en el PC, al final de la barra. */
+.mc-seg.mc-lista-cats { display: inline-flex; width: max-content; max-width: 100%; gap: 2px; padding: 2px; border-radius: var(--radius-pill); background: var(--ice); }
+.mc-seg.mc-lista-cats button { min-height: 32px; border: 0; background: transparent; color: var(--text-mid); }
+.mc-seg.mc-lista-cats button[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+:is(.mc-mandos, .mc-mercado-barra) > .mc-lista-cats { margin-left: auto; }
+/* Cruces del mismo tamaño (1222, PINGU: «deberían ser todos iguales»): cada
+   lado es UNA fila de tres casillas (tablon.js), la rejilla iguala el alto de
+   todas las filas y la balanza y los botones van pegados abajo. */
+.mc-cruces-rejilla { grid-auto-rows: 1fr; }
+.mc-cruce-t { display: flex; flex-direction: column; }
+.mc-cruce-t > .mc-cruce-lados { flex: 1 0 auto; }
+.mc-cruce-t > .mc-cruce-acciones { margin-top: auto; }
+.mc-cruce-t .mc-cruce-fotos { flex-wrap: nowrap; }

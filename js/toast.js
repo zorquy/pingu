@@ -1,12 +1,16 @@
 let container = null
 
+// Con un pop-up modal abierto (el trato de «En curso», 1223), lo de fuera no
+// se puede tocar: el aviso va DENTRO del pop-up, o su «Deshacer» no se pulsa.
 function getContainer() {
-  if (container && document.body.contains(container)) return container
-  container = document.createElement('div')
-  container.className = 'toast-container'
-  container.setAttribute('role', 'status')
-  container.setAttribute('aria-live', 'polite')
-  document.body.appendChild(container)
+  const sitio = document.querySelector('dialog:modal') || document.body
+  if (!container) {
+    container = document.createElement('div')
+    container.className = 'toast-container'
+    container.setAttribute('role', 'status')
+    container.setAttribute('aria-live', 'polite')
+  }
+  if (container.parentElement !== sitio) sitio.appendChild(container)
   return container
 }
 

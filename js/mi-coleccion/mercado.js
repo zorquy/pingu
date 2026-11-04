@@ -42,7 +42,7 @@ import { hojaInyectada } from '../hoja.js'
 import { showToast } from '../toast.js'
 import * as listasDeseo from './listas-deseo.js'
 import { lineaDeSetHtml } from './linea-set.js'
-import { porPagina, catalogoDe, elegirCatalogo, hastaDe, ordenDe, selectorDeCatalogoHtml, catalogoDelClic, listaQueCrece, listaDeDireccion } from './tramos.js'
+import { porPagina, catalogoDe, elegirCatalogo, hastaDe, ordenDe, selectorDeCatalogoHtml, catalogoDelClic, catalogoALaBarra, listaQueCrece, listaDeDireccion } from './tramos.js'
 
 const $ = (id) => document.getElementById(id)
 // A un lado, encima de la rejilla, en cuanto no es un móvil (939).
@@ -165,6 +165,8 @@ function pintarRejilla() {
     caja.innerHTML = `${selector}${lista.html()}`
     lista.armar(caja)
   }
+  const barra = document.querySelector('#mcPanelMercado .mc-mercado-barra')
+  catalogoALaBarra(caja, barra, { tras: barra?.querySelector(':scope > .mc-buscador') })
   const cuenta = $('mcMercadoCuantas')
   if (cuenta) cuenta.textContent = total ? `${total.toLocaleString('es-ES', { useGrouping: 'always' })} ${total === 1 ? 'carta' : 'cartas'} a cambio` : ''
   ctx.alContar?.({ mercado: total })

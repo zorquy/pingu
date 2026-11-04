@@ -151,7 +151,7 @@ export function cruceHtml(p, op) {
       <div class="mc-cruce-quien">
         <a href="${escapeHtml(profileUrl(p))}"${atributosDeRango(p)}>${escapeHtml(nombre)}</a>
         <p class="subtext">${p.perfecto ? 'Las dos listas encajan' : p.teDa.length ? 'Tiene lo que buscas' : 'Busca lo que das'}</p>
-        <p class="mc-confianza" data-confianza="${escapeHtml(p.user_id)}"></p>
+        <p class="mc-confianza" data-confianza="${escapeHtml(p.user_id)}" data-confianza-nuevo></p>
       </div>
       ${p.perfecto ? `<span class="mc-chapa-reciproco">${icons.refreshCw(14)}Cruce perfecto</span>` : ''}
     </header>
@@ -225,8 +225,9 @@ export function cruceTarjetaHtml(p, op) {
 }
 
 // La tarjeta de Cruces como la maqueta (1213, PINGU: «la parte de cruces, a
-// medio cambiar»): cada lado son las FOTOS de sus cartas (cuatro como mucho y
-// «+N»), con el precio de cada una en pequeño debajo; el nombre va en la
+// medio cambiar»): cada lado son las FOTOS de sus cartas (desde la 1222, UNA
+// fila de tres casillas como mucho: tres cartas, o dos y «+N», para que todas
+// las tarjetas midan lo mismo), con el precio de cada una en pequeño debajo; el nombre va en la
 // etiqueta de la foto (se lee al pasar y con el lector), no escrito al lado.
 // Debajo, una línea: «Unos 46 € por lado» si los dos lados se parecen, o la
 // balanza fina de la 1042 con quién pone más.
@@ -256,7 +257,7 @@ function ladosEnFotosHtml(p, op) {
   const das = suma(p.leDas)
   const lado = (titulo, filas, total, vacio, modo) => `<div class="mc-cruce-lado" data-cruce-lado="${modo}">
       <p class="mc-cruce-titulo">${titulo}${filas.length ? ` <span>${filas.length}</span>` : ''}${total ? `<b>≈ ${escapeHtml(op.euros(total))}</b>` : ''}</p>
-      ${filas.length ? fotosHtml(filas, op) : `<p class="subtext mc-cruce-nada">${vacio}</p>`}
+      ${filas.length ? fotosHtml(filas, op, filas.length > 3 ? 2 : 3) : `<p class="subtext mc-cruce-nada">${vacio}</p>`}
     </div>`
   const igual = porLado(recibes, das, op.euros)
   const b = igual ? null : balanzaDe(recibes, das, op.euros)

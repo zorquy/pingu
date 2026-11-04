@@ -16,7 +16,7 @@ export function regionesCompletas(especies) {
   return REGIONES_DEX.filter(([a, b]) => { for (let n = a; n <= b; n++) if (!tengo.has(n)) return false; return true }).length
 }
 
-export function statsDeColeccion({ lineas, cartaDe, cuantasPorSet, totalDeSet, unidad, especies = null, cambiosHechos = 0 }) {
+export function statsDeColeccion({ lineas, cartaDe, cuantasPorSet, totalDeSet, unidad, especies = null, cambiosHechos = 0, muyDeFiar = false }) {
   const distintas = new Set(lineas.map((l) => l.card_id))
   let setsCompletos = 0
   for (const [set, n] of cuantasPorSet) {
@@ -37,6 +37,7 @@ export function statsDeColeccion({ lineas, cartaDe, cuantasPorSet, totalDeSet, u
     maxIlustrador: Math.max(0, ...porIlustrador.values()),
     regiones: especies ? regionesCompletas(especies) : 0,
     cambios: Number(cambiosHechos) || 0,
+    muyDeFiar: muyDeFiar ? 1 : 0,
   }
 }
 

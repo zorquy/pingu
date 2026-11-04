@@ -340,7 +340,7 @@ async function renderThread(session, conversationId) {
         <a class="mini-avatar msg-cabecera-avatar" href="${profileUrl(otherProfile)}" style="${avatarStyle(otherProfile)}" data-en-linea="${escapeHtml(otherProfile.id)}">${otherProfile.avatar_url ? '' : getInitial(name)}</a>
         <div class="msg-cabecera-quien">
           <h1 class="msg-cabecera-nombre"><a href="${profileUrl(otherProfile)}"${atributosDeRango(otherProfile, 'color:var(--text)')}>${escapeHtml(name)}</a></h1>
-          <span class="msg-cabecera-linea"><span class="msg-estado" id="msgEstado" aria-live="polite"></span><span class="msg-tiene" id="msgTiene" hidden></span></span>
+          <span class="msg-cabecera-linea"><span class="msg-estado" id="msgEstado" aria-live="polite"></span><span class="msg-tiene" id="msgTiene" hidden></span><span class="msg-confianza" data-confianza="${escapeHtml(otherProfile.id)}"></span></span>
         </div>
         <a class="msg-ver-perfil" href="${profileUrl(otherProfile)}">Ver perfil</a>
         <button type="button" class="btn-primary msg-proponer" id="msgProponer" aria-label="Proponer un cambio a ${escapeHtml(name)}">${icons.refreshCw(15)}<span>Proponer cambio</span></button>
@@ -402,6 +402,8 @@ async function renderThread(session, conversationId) {
       }
     })
     .catch(() => {})
+  // Su reputación en los cambios (1224), en la misma línea.
+  import('./cambios-hechos.js').then((m) => m.ponerConfianza(root.querySelector('.msg-cabecera-linea'))).catch(() => {})
   document.getElementById('msgProponer')?.addEventListener('click', () =>
     import('./cambio-propuesta.js').then((m) => m.abrirPropuesta({ sesion: session, otro: otherProfile, alEnviar: pintarPropuestas })).catch(() => {})
   )

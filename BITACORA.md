@@ -4,6 +4,41 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (464) — PINGU-Claude (1222–1224 — Deseos y cambios: barra, trato en pop-up, reputación)
+
+**Hecho** (PINGU: «dale con lo recomendado» a la propuesta con imágenes):
+- 1222: en el PC el selector Pokémon/Japón va en la barra de mandos como
+  interruptor (en el Mercado, detrás de la lupa): `catalogoALaBarra` en
+  `tramos.js`. Los cruces miden todos lo mismo (`grid-auto-rows: 1fr`, las
+  acciones abajo, tres fotos como mucho).
+- 1223: un trato «En curso» se abre en un pop-up centrado (hoja en el móvil)
+  con lo que toca ahora en una sola caja; «Los anteriores» es el Historial
+  (por meses, solo los hechos y «Todos», lo que falta por valorar arriba).
+  Los avisos (`toast.js`) van dentro del pop-up abierto: con `showModal` lo
+  de fuera no se puede pulsar.
+- 1224: reputación (`reputacion_de` + `nivelDe`/`textoDeConfianza`): niveles
+  Nuevo / N tratos / De fiar / Muy de fiar, tarjeta en el perfil (cambios,
+  ventas, compras, último, desde) y la confianza en Cruces, Mercado,
+  propuesta, trato y Mensajes. Tres logros nuevos.
+
+**Ficheros** (web): `css/cambio-propuesta.css`, `css/cambios-hechos.css`,
+`css/mensajes.css`, `css/mi-coleccion.css`, `js/cambio-propuesta.js`,
+`js/cambios-hechos.js`, `js/gamification.js`, `js/logro-objetivo.js`,
+`js/logros-coleccion.js`, `js/mensajes.js`, `js/mi-coleccion/deseos.js`,
+`js/mi-coleccion/mercado.js`, `js/mi-coleccion/panel.js`,
+`js/mi-coleccion/tablon.js`, `js/mi-coleccion/tramos.js`,
+`js/perfil-cambios.js`, `js/toast.js`,
+`supabase-migration-1224-reputacion.sql`, `BITACORA.md`, `SCHEMA.md`,
+`novedades.json`, `CLAUDE.md`.
+
+**Pruebas**: rama `pruebas`, `test-tanda-1224.mjs` nueva (PostgreSQL y
+navegador) y al día 795, 1100, 1105 y 1125; el doble con `reputacion_de`.
+Verdes además 299, 306, 942, 1099 e imports.
+
+**Queda**: PINGU ejecuta `supabase-migration-1224-reputacion.sql`. Hasta
+entonces la web enseña el sello de antes (sin ventas/compras ni fechas) y
+los tres logros no existen.
+
 ## 2026-11-04 (463) — PINGU-Claude (1221b — lo que destapó la suite entera)
 
 **Hecho**: pasada la suite completa (823) sobre lo de la 462 y comparado cada

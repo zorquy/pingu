@@ -26,3 +26,31 @@
   cursor: pointer;
 }
 @media (pointer: coarse) { .perfil-confianza { min-height: 44px; } }
+
+/* LA REPUTACIÓN (1224): el color del rótulo y del sello va por nivel; «De
+   fiar» en verde y «Muy de fiar» en el dorado de Colección. */
+[data-confianza][data-nivel='nuevo'] { color: var(--text-dim); }
+[data-confianza][data-nivel='tratos'] { color: var(--text-mid); }
+[data-confianza][data-nivel='fiar'] { color: var(--success); }
+[data-confianza][data-nivel='muy'] { color: var(--warning); }
+.perfil-confianza[data-nivel='tratos'] { background: var(--ice); color: var(--text); }
+.perfil-confianza[data-nivel='muy'] { background: var(--warning-bg); color: var(--warning); }
+
+/* La tarjeta del perfil (pestaña Cambios). */
+.rep-tarjeta { display: grid; gap: var(--e-md); margin-bottom: var(--e-lg); padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); }
+.rep-cab { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-md); }
+.rep-escudo { width: 44px; height: 48px; flex-shrink: 0; }
+.rep-escudo path { fill: var(--ice); stroke: var(--text-mid); stroke-width: 2; }
+.rep-escudo .rep-ok { fill: none; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; }
+.rep-tarjeta[data-nivel='fiar'] .rep-escudo path { fill: var(--success-bg); stroke: var(--success); }
+.rep-tarjeta[data-nivel='muy'] .rep-escudo path { fill: var(--warning-bg); stroke: var(--warning); }
+.rep-t { display: grid; flex: 1 1 auto; min-width: 0; line-height: 1.25; }
+.rep-t b { font-family: var(--font-display); font-size: var(--t-lg); }
+.rep-t small { color: var(--text-mid); font-size: var(--t-sm); font-weight: 600; }
+.rep-tarjeta[data-nivel='fiar'] .rep-t small { color: var(--success); }
+.rep-falta { color: var(--text-mid); font-size: var(--t-xs); }
+.rep-cifras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-sm); }
+.rep-cifras div { display: grid; justify-items: center; padding: var(--e-sm); border-radius: var(--radius-md); background: var(--ice); }
+.rep-cifras b { font-family: var(--font-marca); font-size: var(--t-xl); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.rep-cifras small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.rep-datos { display: flex; flex-wrap: wrap; gap: var(--e-xs) var(--e-lg); color: var(--text-mid); font-size: var(--t-xs); }

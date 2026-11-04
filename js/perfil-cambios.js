@@ -289,6 +289,9 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
   if (total > 0) abrirLaQueTengaAlgo()
 
   const hechos = propia && miId ? hechosHtml(miId).catch(() => '') : Promise.resolve('')
+  // La reputación, arriba de la pestaña (1224): nivel, tratos por tipo y
+  // fechas. Sin tratos hechos no sale (un «0» señala a quien empieza).
+  const ponerReputacion = () => import('./cambios-hechos.js').then((m) => m.ponerTarjetaDeReputacion(caja, persona.id)).catch(() => {})
   const ponerHechos = async () => {
     const html = await hechos
     if (!html || !caja.isConnected) return
@@ -299,6 +302,7 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
   if (!total) {
     caja.innerHTML = vaciaHtml(propia, { daVacio: true, buscaVacio: true })
     void ponerHechos()
+    void ponerReputacion()
     return cuentas
   }
 
@@ -350,6 +354,7 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
     </section>`
 
   void ponerHechos()
+  void ponerReputacion()
   // Las flechas pasan una «pantalla» de la fila; «Ver todas», la hoja.
   const listas = {
     pcRejillaDa: { titulo: `Lo que ${propia ? 'das' : `da ${nombre}`}`, items: itemsDa, textoSolo: hayDeLoMio(itemsDa) ? 'Las que buscas' : '' },

@@ -53968,3 +53968,75 @@ clase doble porque `seccion.css` carga después.
   `retos.css`) y la banda la reutiliza; lo de la banda va siempre bajo
   `.rt-cabecera`.
 
+
+## Tandas 1222–1224 — Deseos y cambios: la barra, el trato en un pop-up y la reputación
+
+PINGU, con capturas: los filtros apilados en el PC, inglés/Japón como
+interruptor, cruces de tamaños distintos, «Los anteriores» flojo, el trato
+desplegado con «demasiadas cosas» y la reputación («que otros usuarios vean
+que has completado trades»). Propuesta con imágenes y «dale con lo
+recomendado».
+
+**1222 · La barra en una fila y los cruces iguales.** El selector de
+catálogo (`.mc-lista-cats`, que pinta `listaQueCrece`) se MUEVE a la barra de
+la pantalla en el PC con `catalogoALaBarra(rejilla, barra, { tras })`
+(`js/mi-coleccion/tramos.js`): se quita el que hubiera de la pintada
+anterior, y en el móvil (`con-barra-movil`) se queda donde estaba. Su clic va
+delegado en el documento, así que mudarlo no le quita nada. En el Mercado va
+detrás de la lupa (`tras`), o caía a otra fila. Se pinta como interruptor
+(`.mc-seg.mc-lista-cats`: pastilla `--ice`, el pulsado en `--navy-solid`).
+Los cruces: `grid-auto-rows: 1fr` y cada tarjeta columna flexible con las
+acciones abajo (`margin-top: auto`); las fotos, como mucho tres huecos
+(con más de tres cartas, dos y «+N»), sin saltar de línea.
+
+**1223 · El trato en un pop-up y el Historial.** Cada trato «En curso» sigue
+siendo su `details.cp-trato`, pero al abrirse (`toggle` en captura) hace
+`showModal()` de su `dialog.cp-trato-dialogo` y cerrar el diálogo (Esc, la
+X `data-cp-cerrar` o el fondo) cierra el `details`: `engancharDialogos(caja)`
+en `js/cambio-propuesta.js`. Dentro, una cabecera propia (`.cp-dlg-cab`:
+avatar, título —con la versión si es la 2.ª o más—, cuándo, la confianza y
+el estado, el sobre y la X) y `tarjetaHtml` de siempre, ordenada: pasos,
+lados, nota y, en UNA caja con el acento (`.cp-t-ahora`), lo que toca ahora
+(la frase, envío, dirección, cobro, valorar y los botones). Fuera del
+diálogo `.cp-t-ahora` es `display: contents`, así que el modo lista no
+cambia. Centrado en el PC (la regla de la 1045, con `margin: auto` en
+`:is(.cp-linea, .cp-hist) > .cp-trato-dialogo`, que `.cp-linea > :last-child`
+le ganaba), hoja desde abajo en el móvil.
+OJO: un `showModal` deja INERTE todo lo de fuera, también los avisos. Por eso
+`toast.js` pone su caja dentro del `dialog:modal` abierto, el repintado la
+devuelve al `body` antes de rehacer la lista, y reabrir un diálogo vuelve a
+meter dentro un aviso a la vista (el «Deshacer» de la 942). Tras repintar se
+reabre solo un trato vivo (`details.cp-trato`), nunca una fila del historial.
+«Los anteriores» es el **Historial** (`section.cp-historial`): cabecera con
+«Hechos / Todos» (`data-cp-hist`, que pone `data-hist`; por defecto solo los
+hechos), tu reputación a la derecha, lo que falta por valorar primero y luego
+por meses; cada fila es un `details.cp-hist` con su mismo diálogo.
+
+**1224 · La reputación.** `reputacion_de(p_user)` (migración
+`supabase-migration-1224-reputacion.sql`, security definer, para `anon` y
+`authenticated`): tratos hechos (los dos confirmaron), cuántos dijo el OTRO
+que fueron bien y cuántos que hubo un problema, cuántos fueron cambio, venta
+o compra (lo dice la propuesta que lo cerró por `trade_offers.confirmacion`;
+sin propuesta, cambio) y el primero y el último. Con quién, nunca. En la web
+(`js/cambios-hechos.js`):
+- `reputacionDe(id)` la pide y, si la base no la tiene o no hay fila, cae a
+  `cambiosDe` (795) sin tipos ni fechas.
+- `nivelDe(c)`: `nuevo` (0), `tratos`, `fiar` (5 o más y ningún problema) y
+  `muy` (20 o más y el 95 % de los valorados, bien). `NOMBRE_DE_NIVEL`.
+- `textoDeConfianza(c, { nuevo })`: «De fiar · N tratos», «N tratos · todos
+  bien», «N tratos · X % bien» con algún problema (los problemas NUNCA salen
+  como número) o «Nuevo en los cambios» donde se pide (`data-confianza-nuevo`).
+- `ponerConfianza(raíz)` rellena los `[data-confianza]` (Cruces, Mercado, la
+  propuesta, la cabecera del trato y de Mensajes) y les pone `data-nivel`.
+- `tarjetaDeReputacionHtml` / `ponerTarjetaDeReputacion`: la tarjeta de la
+  pestaña Cambios del perfil (escudo, nivel, «Faltan N para…», cambios ·
+  ventas · compras, el último y «desde»).
+Tres logros (en la misma migración): «Primer trato» (`cambios_1`), «Diez
+tratos» (`cambios_10`) y «Muy de fiar» (`muy_de_fiar`, condición nueva
+`trades_trusted`, con su frase y su fila en `js/logro-objetivo.js` y su
+cuenta en `gamification.js` desde `statsDeColeccion({ muyDeFiar })`).
+
+Pruebas (rama `pruebas`): `test-tanda-1224.mjs` (la función contra
+PostgreSQL y lo que pinta la web), y al día 795, 1100 (el pop-up abre
+modal y Esc lo cierra), 1105 y 1125. El doble aprende `reputacion_de`
+(con `__SIN_1224__` para probar el respaldo).

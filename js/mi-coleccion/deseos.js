@@ -30,7 +30,7 @@ import { chapaDeVersionHtml } from './iconos-version.js'
 import { lineaDeSetHtml } from './linea-set.js'
 import { porCatalogo } from './rotulos-catalogo.js'
 import * as listasDeseo from './listas-deseo.js'
-import { listaLocalHtml, catalogoDe, elegirCatalogo, catalogoDelClic } from './tramos.js'
+import { listaLocalHtml, catalogoDe, elegirCatalogo, catalogoDelClic, catalogoALaBarra } from './tramos.js'
 import { hojaInyectada } from '../hoja.js'
 import { bandaSeccionHtml, abanicoHtml } from '../banda-seccion.js'
 import { bandaDeDeseosHtml, miles } from './banda-deseos.js'
@@ -49,6 +49,7 @@ export function montar(c) {
 // del arreglo (`listaLocalHtml`). Un oyente para las dos, una vez.
 const PANEL_DE = { quiero: 'mcQuieroPanel', doy: 'mcDoyPanel' }
 const REJILLA_DE = { quiero: 'mcQuieroRejilla', doy: 'mcDoyRejilla' }
+const BARRA_DE = { quiero: 'mcQuieroBarra', doy: 'mcDoyBarra' }
 const pintado = { quiero: undefined, doy: undefined }
 let tramosEnganchados = false
 const aLaVista = (vista) => { const p = $(PANEL_DE[vista]); return Boolean(p && !p.hidden && !p.classList.contains('hidden') && p.offsetParent) }
@@ -75,7 +76,10 @@ function rejillaPorTramos(vista, items, mercadoDe, pintar) {
   pintado[vista] = catalogoDe(vista)
   // Quien llama mete este HTML en la página en la misma instrucción; al
   // acabar, la rejilla ya está y se puede vigilar su final.
-  queueMicrotask(() => lista.armar($(REJILLA_DE[vista])))
+  queueMicrotask(() => {
+    lista.armar($(REJILLA_DE[vista]))
+    catalogoALaBarra($(REJILLA_DE[vista]), $(BARRA_DE[vista]))
+  })
   return html
 }
 // Una carta o un precio traído de fuera de tu colección va también a su

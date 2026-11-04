@@ -449,6 +449,9 @@ function achievementValue(condition, stats) {
       return stats.coleccion?.regiones || 0
     case 'trades_done_count':
       return stats.coleccion?.cambios || 0
+    // «Muy de fiar» (1224): 1 si ya lo es (lo cuenta cambios-hechos.js).
+    case 'trades_trusted':
+      return stats.coleccion?.muyDeFiar || 0
     case 'was_referred':
       return stats.invitado
     // Los de los retos diarios (835): salen de `retos_mis_numeros`, que solo

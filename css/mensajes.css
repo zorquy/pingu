@@ -1393,6 +1393,9 @@ button.msg-reaccion {
 .msg-cabecera-linea { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-sm); min-width: 0; }
 .msg-tiene { color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }
 .msg-estado:not(:empty) + .msg-tiene::before { content: '·'; margin-right: var(--e-sm); color: var(--text-dim); }
+.msg-confianza { font-size: var(--t-xs); font-weight: 600; }
+.msg-confianza:empty { display: none; }
+.msg-cabecera-linea > :not(:empty) ~ .msg-confianza:not(:empty)::before { content: '·'; margin-right: var(--e-sm); color: var(--text-dim); }
 .msg-proponer { flex-shrink: 0; gap: var(--e-xs); padding: var(--e-sm) var(--e-md); font-size: var(--t-sm); white-space: nowrap; }
 @media (max-width: 599px) {
   .msg-proponer { min-width: 44px; min-height: 44px; padding: 0; justify-content: center; border-radius: 50%; }

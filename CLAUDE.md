@@ -797,6 +797,18 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `cambio_libres_de`, nunca con `cambio` a secas. La etiqueta del sobre (1110) es
   `js/cambio-etiqueta.js` (por `import()`), con lo que ya trae el trato: nada
   de la dirección sale de ahí a otro sitio.
+- **La reputación de los cambios es UNA: `reputacionDe` + `nivelDe` +
+  `textoDeConfianza`** (`js/cambios-hechos.js`, tanda 1224, PINGU: «que otros
+  usuarios vean que has completado trades»): sale de `reputacion_de` (la
+  base, con `cambiosDe` de respaldo) y los niveles son Nuevo / N tratos / De
+  fiar (5, sin problemas) / Muy de fiar (20, 95 % bien). Los problemas no
+  salen nunca como número, solo el tanto por ciento. Una pantalla nueva que
+  enseñe a alguien de los cambios pone `data-confianza="<id>"` y llama a
+  `ponerConfianza`. Y un trato se abre en su pop-up (`.cp-trato-dialogo`,
+  1223, `engancharDialogos`): con `showModal` lo de fuera está INERTE, así que
+  los avisos van dentro (`toast.js` busca `dialog:modal`). En el PC el
+  selector de catálogo de una lista que crece va en la barra
+  (`catalogoALaBarra`), movido, no duplicado.
 - **Una carta pintada en cualquier pantalla lleva sus marcas** (tanda 943,
   PINGU: «debería estar en todos los lados de la web»): el ✓ de «la tienes»
   y el corazón de «La quiero». Dentro de /mi-coleccion, con
