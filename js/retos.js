@@ -109,7 +109,14 @@ function pintarJuego(juego, r) {
       : escapeHtml(reto.chips.join(' · '))
 }
 
-// La píldora de arriba y la barra del día perfecto.
+// El anillo de los seis (1211): un tramo por reto, lleno en el color de la
+// sección si está hecho, y la cuenta en medio. Puro.
+export function anilloHtml(hechos, total = 6) {
+  const tramos = Array.from({ length: total }, (_, i) => `<circle cx="50" cy="50" r="42" pathLength="${total * 10}" stroke-dasharray="8.6 ${total * 10 - 8.6}" stroke-dashoffset="${-i * 10 - 0.7}" class="${i < hechos ? 'lleno' : ''}" />`).join('')
+  return `<svg viewBox="0 0 100 100" width="96" height="96">${tramos}</svg><b>${hechos}<small>/${total}</small></b>`
+}
+
+// La píldora de arriba, el anillo y la frase del día perfecto.
 let pararCuenta = () => {}
 function pintarDia(hechos, numeros, session) {
   const total = RETOS.length
@@ -119,7 +126,11 @@ function pintarDia(hechos, numeros, session) {
   $('rtDia').innerHTML = partes.join('')
   const p = $('rtPerfecto')
   p.classList.toggle('hecho', hechos >= total)
-  $('rtBarraDia').style.width = `${Math.round((hechos / total) * 100)}%`
+  const anillo = $('rtAnillo')
+  if (anillo) {
+    anillo.innerHTML = anilloHtml(hechos, total)
+    anillo.classList.toggle('hecho', hechos >= total)
+  }
   const falta = total - hechos
   const conCuenta = session ? '' : ' <a href="/auth.html?registro=1&amp;volver=/retos">Crea tu cuenta</a> y cada reto da XP.'
   const pintar = () => {

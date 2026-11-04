@@ -53654,3 +53654,27 @@ de la portada se quedaron viejas con la 1207 y se pusieron al día aquí: la 269
 (las guías son portadas) y la 288 (el bloque de noticias: «Todas» en la
 cabecera, la lista con todas y, en el móvil, la tira).
 
+## Tanda 1211 — Aprender y Retos, con lo de la portada
+
+La cuarta tanda del repaso aprobado.
+
+**Aprender**: la cabecera es la banda (`banda-s cabecera-pagina ap-cab
+cab-lista`, en el HTML) con cuántas guías, con curso y temas hay (de las guías
+ya cargadas, sin otra consulta) y «Escribir una guía» a la derecha:
+`ponerEscribir` lo devuelve a `.ap-cab .banda-s-derecha`. En el móvil la banda
+entera se recorta para el lector, como la cabecera de antes (1039), sin su
+borde ni su relleno. La página de un tema (863) sustituye a `.ap-cab`, ya no a
+`.page-header`. Los temas, baldosas que se levantan con la barra en el color de
+la sección, y la rejilla y los temas entran en cascada. La raya de color bajo
+el título de una lista (1018) no sale dentro de una banda (`seccion.css`).
+
+**Retos**: la cabecera es la banda: la frase del día perfecto con su cuenta
+atrás, la píldora de hoy (hechos, XP y racha, como antes) y, a la derecha, el
+ANILLO de los seis (`anilloHtml` en `js/retos.js`: seis tramos de un SVG, el
+de cada reto hecho en el color de la sección y todos en verde con el día
+perfecto). Sustituye a la barra del día perfecto (`#rtBarraDia` ya no existe).
+En el móvil la banda es una tira con el anillo pequeño y los seis retos siguen
+cabiendo en la pantalla (989).
+
+Lo vigilan `test-tanda-569.mjs` (el anillo), 865, 1010 y 1039, al día.
+

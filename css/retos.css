@@ -754,3 +754,53 @@
     transition: none;
   }
 }
+
+/* ── 1211: lo de la portada (el porqué en SCHEMA) ──
+   La cabecera es la banda de css/seccion.css: la frase del día perfecto, la
+   píldora de hoy y, a la derecha, el anillo de los seis (un tramo por reto). */
+.rt-cabecera.banda-s { flex-wrap: nowrap; justify-content: flex-start; margin-bottom: var(--e-lg); }
+.rt-cabecera .rt-perfecto { margin: 0; }
+.rt-cabecera .rt-pildora { align-self: flex-start; margin: var(--e-xs) 0 0; }
+
+.rt-anillo {
+  position: relative;
+  display: grid;
+  width: 96px;
+  height: 96px;
+  place-items: center;
+}
+
+.rt-anillo svg { position: absolute; inset: 0; transform: rotate(-90deg); }
+
+.rt-anillo circle {
+  fill: none;
+  stroke: var(--border);
+  stroke-width: 10;
+  stroke-linecap: round;
+  transition: stroke 0.3s var(--ease);
+}
+
+.rt-anillo circle.lleno { stroke: var(--acento); }
+.rt-anillo.hecho circle.lleno { stroke: var(--success); }
+
+.rt-anillo b {
+  font-family: var(--font-marca);
+  font-size: var(--t-2xl);
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+.rt-anillo b small { color: var(--text-mid); font-size: var(--t-sm); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rt-anillo circle { transition: none; }
+}
+
+@media (max-width: 760px) {
+  .rt-cabecera.banda-s { gap: var(--e-md); padding: var(--e-sm) var(--e-md); margin-bottom: var(--e-sm); }
+  .rt-cabecera .rt-pildora { min-height: 32px; font-size: var(--t-xs); }
+  .rt-anillo { width: 64px; height: 64px; }
+  .rt-anillo svg { width: 64px; height: 64px; }
+  .rt-anillo b { font-size: var(--t-lg); }
+  .rt-anillo b small { font-size: var(--t-2xs); }
+}

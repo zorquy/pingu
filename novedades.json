@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-04",
       "tipo": "mejora",
+      "texto": "Aprender y los Retos, con lo de la portada: Aprender lleva arriba cuántas guías, cursos y temas hay, y los temas se levantan al pasar; los retos, un anillo de seis que se va llenando con cada reto que haces hoy.",
+      "enlace": "/retos"
+    },
+    {
+      "fecha": "2026-11-04",
+      "tipo": "mejora",
       "texto": "Noticias, Lanzamientos y Novedades, con lo de la portada: arriba una banda con sus cifras; la última noticia con el titular sobre su foto; la cuenta atrás del siguiente set en días, horas y minutos, y lo que llevas de cada expansión en un anillo; y las novedades en una línea del tiempo.",
       "enlace": "/lanzamientos"
     },

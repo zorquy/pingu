@@ -407,3 +407,27 @@
     display: none;
   }
 }
+
+/* ── 1211: lo de la portada (el porqué en SCHEMA) ──
+   La cabecera es la banda de css/seccion.css (con «Escribir una guía» a la
+   derecha); los temas, baldosas que se levantan, con la barra en el color de
+   la sección; y la rejilla entra en cascada. */
+@media (min-width: 600px) {
+  .ap-cab { flex-wrap: nowrap; gap: var(--e-xl); margin-bottom: var(--e-lg); }
+  .ap-cab .ap-escribir { margin-left: 0; }
+  .ap-baldosa { padding: var(--e-md); transition: border-color 0.15s, transform 0.2s var(--ease), box-shadow 0.2s var(--ease); }
+  .ap-baldosa:hover { border-color: var(--acento); transform: translateY(-2px); box-shadow: var(--shadow-sm); }
+  .ap-baldosa-icono { width: 40px; height: 40px; }
+  .ap-baldosa-barra i { background: var(--acento); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-baldosa { transition: none; }
+  .ap-baldosa:hover { transform: none; }
+}
+
+/* En el móvil la banda entera se recorta para el lector (la 1039): sin su
+   borde ni su relleno, que dejarían una caja de 2 px. */
+@media (max-width: 599px) {
+  .ap-cab:not(:has(.ap-escribir)) { min-height: 0; padding: 0; border: 0; }
+}

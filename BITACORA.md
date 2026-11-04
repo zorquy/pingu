@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-04 (456) — PINGU-Claude (1211 — Aprender y Retos)
+
+**Hecho**: cuarta tanda del repaso. Aprender con la banda (guías, con curso,
+temas) y «Escribir una guía» a la derecha; los temas se levantan; cascada.
+Retos con la banda y el anillo de los seis en vez de la barra.
+
+**Ficheros**: `aprender.html`, `js/aprender.js`, `css/aprender.css`,
+`retos.html`, `js/retos.js`, `css/retos.css`, `css/seccion.css`, `SCHEMA.md`,
+`novedades.json`. En `pruebas`: 569, 865, 1010 y 1039 al día.
+
+**Pruebas**: verdes 569, 835, 989, 1154, 1040, 1039, 865, 864, 863, 846, 1010,
+1014, 866, 316, 319, 299, 312, 313, 1023 e imports. Rojos de antes: 893
+(/retos, /torneos), 782 (Mensajes), 311 (`auth.css`, `torneos.css`).
+
+**Pendiente**: 1212 (Panel, Torneos y los toques); el precio del Lugia.
+
 ## 2026-11-04 (455) — PINGU-Claude (1210 — Noticias, Lanzamientos y Novedades)
 
 **Hecho**: tercera tanda del repaso. Las tres con la banda de sección y sus

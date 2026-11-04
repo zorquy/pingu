@@ -42,6 +42,7 @@
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/retos-juego.css" />
+  <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="css/retos.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
@@ -134,15 +135,20 @@
          juegos en baldosas (la baldosa entera es el enlace) y el historial
          plegado. Las baldosas van aquí para que estén aunque el JS no llegue;
          su estado lo pinta js/retos.js. -->
-    <header class="rt-cabecera cabecera-pagina cab-lista">
-      <h1>Retos diarios</h1>
-      <p class="rt-pildora" id="rtDia" aria-live="polite"><span id="rtHechos">0/6 hoy</span></p>
+    <!-- La banda de la sección (1211, lo de la portada): lo de hoy en la
+         píldora, la frase del día perfecto con su cuenta atrás y, a la
+         derecha, el anillo de los seis (lo pinta js/retos.js). -->
+    <header class="banda-s rt-cabecera cabecera-pagina cab-lista">
+      <div class="banda-s-texto">
+        <span class="banda-s-ceja">Aprender · Retos</span>
+        <h1>Retos diarios</h1>
+        <div class="rt-perfecto" id="rtPerfecto">
+          <p id="rtPerfectoTexto">Día perfecto: completa los seis de hoy y llévate +25 XP extra.</p>
+        </div>
+        <p class="rt-pildora" id="rtDia" aria-live="polite"><span id="rtHechos">0/6 hoy</span></p>
+      </div>
+      <div class="banda-s-derecha"><span class="rt-anillo" id="rtAnillo" aria-hidden="true"></span></div>
     </header>
-
-    <div class="rt-perfecto" id="rtPerfecto">
-      <span class="rt-barra-dia" aria-hidden="true"><i id="rtBarraDia" style="width: 0%"></i></span>
-      <p id="rtPerfectoTexto">Día perfecto: completa los seis de hoy y llévate +25 XP extra.</p>
-    </div>
 
     <!-- En el PC, la liga de la semana al lado (1154): retos a dos columnas
          y la liga en su columna. En el móvil la columna no sale. -->

@@ -53,7 +53,7 @@ const estrecho = typeof matchMedia === 'function' ? matchMedia('(max-width: 599p
 function ponerEscribir() {
   const boton = document.querySelector('.ap-escribir')
   const herramientas = document.querySelector('#categoriesList .ap-herramientas')
-  const cabecera = document.querySelector('.ap-cab')
+  const cabecera = document.querySelector('.ap-cab .banda-s-derecha') || document.querySelector('.ap-cab')
   if (!boton || !cabecera) return
   if (estrecho.matches && herramientas) herramientas.append(boton)
   else if (boton.parentElement !== cabecera) cabecera.append(boton)
@@ -131,6 +131,12 @@ async function loadCategories(session) {
     return
   }
 
+  // Las cifras de la banda (1211): de las guías ya cargadas, sin otra consulta.
+  const poner = (id, n) => { const el = document.getElementById(id); if (el) el.textContent = String(n) }
+  poner('apNGuias', guias.length)
+  poner('apNCursos', guias.filter((g) => guideHasCourse(g)).length)
+  poner('apNTemas', new Set(guias.map((g) => g.category_id).filter(Boolean)).size)
+
   const progreso = {}
   if (session) {
     const { data: filas } = await supabase
@@ -179,7 +185,7 @@ async function loadCategories(session) {
     const [primera, ...resto] = ordenConDestacada(visibles, seguidaId, Boolean(q))
     caja.lista.innerHTML = movil.matches
       ? `${tarjetaDeGuia(primera, { progreso, tema: temaDe.get(primera.category_id) || null })}${resto.length ? `<div class="ap-filas">${resto.map((g) => filaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>` : ''}`
-      : `<div class="guia-rejilla ap-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>`
+      : `<div class="guia-rejilla ap-rejilla en-cascada">${visibles.map((g) => tarjetaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>`
   }
 
   list.querySelector('#apBuscar').addEventListener('input', (e) => {
@@ -218,7 +224,7 @@ function temasHtml(categorias, guias, progreso, session) {
     </a>`
   }).join('')
   if (!baldosas) return ''
-  return `<nav class="ap-baldosas" id="apTemas" aria-label="Temas">${baldosas}</nav>`
+  return `<nav class="ap-baldosas en-cascada" id="apTemas" aria-label="Temas">${baldosas}</nav>`
 }
 
 // ── LA PÁGINA DE UN TEMA (tanda 863) ──
@@ -258,7 +264,8 @@ function cabeceraDeTemaHtml(tema, guias, progreso, session) {
 
 function pintarTema({ tema, guias, progreso, session, list }) {
   document.title = `${tema.name} · Aprender · PokeDoc`
-  const cabecera = document.querySelector('.page-header')
+  // La banda de Aprender (1211) da paso a la cabecera del tema.
+  const cabecera = document.querySelector('.ap-cab')
   if (cabecera) {
     cabecera.insertAdjacentHTML('beforebegin', `<nav class="breadcrumb" aria-label="Dónde estás"><a href="/">Inicio</a> <span>›</span> <a href="/aprender">Aprender</a> <span>›</span> <span>${escapeHtml(tema.name)}</span></nav>`)
     cabecera.outerHTML = cabeceraDeTemaHtml(tema, guias, progreso, session)
