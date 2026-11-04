@@ -1,5 +1,5 @@
 // Tanda 1216 — lo que recorté o se me pasó del repaso, contra la maqueta:
-// Cruces con banda aunque nadie encaje, los temas de Noticias, los temas del
+// Cruces con banda aunque nadie encaje, los temas de Noticias, (1230: sin) los temas del
 // foro en Guardados, el campeón en Torneos, el carrusel del foro en el PC y el
 // anillo de Mis partidas que se dibuja.
 import { chromium, contexto, BASE } from './fixtures-app.mjs'
@@ -49,21 +49,15 @@ console.log('── 2. Noticias: los temas ──')
   await ctx.close()
 }
 
-console.log('── 3. Guardados: los temas que sigues ──')
+console.log('── 3. Guardados: solo guías y noticias (1230: los temas del foro, fuera) ──')
 {
   const { ctx, p, errores } = await abrir('/guardados')
   const r = await p.evaluate(() => ({
-    temas: [...document.querySelectorAll('.gd-item-tema')].map((x) => ({ href: x.querySelector('a')?.getAttribute('href'), texto: x.innerText.replace(/\s+/g, ' ').trim() })),
-    chip: [...document.querySelectorAll('[data-gd-filtro]')].map((x) => x.textContent.replace(/\s+/g, ' ').trim()),
+    temas: document.querySelectorAll('.gd-item-tema, [data-kind="tema"]').length,
+    chips: [...document.querySelectorAll('[data-gd-filtro]')].map((x) => x.dataset.gdFiltro),
+    items: document.querySelectorAll('.gd-item').length,
   }))
-  check('los dos temas que sigue user-1, con su enlace y sus mensajes', r.temas.length === 2 && r.temas.every((t) => /^\/tema\//.test(t.href) && /\d+ mensajes?/.test(t.texto)), JSON.stringify(r))
-  await p.click('.gd-item-tema [data-dejar-tema]')
-  await p.waitForTimeout(600)
-  const quitado = await p.evaluate(() => ({ texto: document.querySelector('.gd-item-tema')?.innerText || '', deshacer: Boolean(document.querySelector('[data-volver-tema]')) }))
-  check('quitar es dejar de seguir, con Deshacer', /Ya no sigues este tema/.test(quitado.texto) && quitado.deshacer, JSON.stringify(quitado))
-  await p.click('[data-volver-tema]')
-  await p.waitForTimeout(600)
-  check('  …y Deshacer lo vuelve a poner', (await p.locator('.gd-item-tema [data-dejar-tema]').count()) === 2)
+  check('ningún tema del foro, ni chip «Temas», y las guías siguen', r.temas === 0 && !r.chips.includes('temas') && r.items > 0, JSON.stringify(r))
   check('  …sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
