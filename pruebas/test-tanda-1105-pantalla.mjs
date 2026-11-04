@@ -176,9 +176,13 @@ console.log('── 4. Un trato que se cierra pregunta «¿Qué tal fue?» ─�
   check('el trato está hecho y apuntado como cambio', t.trade_offers[0].estado === 'hecha' && t.trade_confirmations.length === 1, t.trade_offers[0].estado)
   const { ctx, page, errores } = await abrirCon(t, 'admin-1', { movil: true })
   await ir(page, '/mi-coleccion.html?ver=cambios')
+  // Hecho, ya no está «En curso» (1225): pasa al Historial (debajo, en la
+  // misma pestaña), y lo que falta por valorar sale arriba de todo.
   await abrirEnCurso(page)
-  const linea = page.locator('#mcMisCambios details.cp-linea').first()
-  check('«¿Qué tal fue con Lucía?», con el trato abierto', await linea.evaluate((d) => d.open) && /¿Qué tal fue con Lucía\?/.test(await texto(linea)))
+  const linea = page.locator('#mcMisCambios .cp-historial .cp-hist-valorar').first()
+  await linea.waitFor({ timeout: 8000 }).catch(() => {})
+  check('ya no está en curso: va al Historial', (await page.locator('#mcMisCambios details.cp-trato').count()) === 0 && (await page.locator('#mcMisCambios details.cp-hist').count()) === 1)
+  check('«¿Qué tal fue con Lucía?», arriba del Historial', /¿Qué tal fue con Lucía\?/.test(await texto(linea).catch(() => '')))
   if (OUT) await page.screenshot({ path: `${OUT}/trato-valorar.jpg`, type: 'jpeg', quality: 72, fullPage: true })
   await linea.locator('[data-cv="bien"]').click()
   await page.waitForTimeout(800)
