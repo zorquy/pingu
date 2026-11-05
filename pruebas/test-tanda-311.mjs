@@ -148,6 +148,9 @@ console.log('\n── 2. El rojo de peligro tiene nombre ──')
   //    identificador de cada persona y no puede cambiar al cambiar de
   //    tema. Aquí llegó a colarse `var(--danger)`, que en oscuro vuelve
   //    el rojo rosado y deja la inicial blanca encima en 2,4.
+  //  · --estado-* (components.css, 1249): los siete colores de los estados de
+  //    Cardmarket (PO rojo, PL rosa). Son de IDENTIDAD, como las casas de gradeo:
+  //    el rojo de «Poor» no es un peligro, es el color con el que se reconoce.
   //  · --casa y --casa-* (css/cardmarket.css desde la 589; antes en
   //    mi-coleccion.css, tanda 563): el color de cada casa de gradeo. El
   //    rojo de PSA es EL rojo de PSA —es su marca, no un aviso— y
@@ -172,7 +175,7 @@ console.log('\n── 2. El rojo de peligro tiene nombre ──')
   const aMano = []
   for (const hoja of HOJAS) {
     for (const m of sinBanderas(sinComentarios(leer(hoja))).matchAll(/([a-z-]+)\s*:\s*([^;{]*#[0-9a-f]{6}[^;{]*);/gi)) {
-      if (m[1].startsWith('--rt-') || m[1] === '--tipo-energia' || m[1] === '--casa' || m[1].startsWith('--casa-')) continue
+      if (m[1].startsWith('--rt-') || m[1] === '--tipo-energia' || m[1] === '--casa' || m[1].startsWith('--casa-') || m[1].startsWith('--estado-')) continue
       for (const h of m[2].matchAll(/#[0-9a-f]{6}/gi)) {
         if (esRojo(h[0]) && !/^--danger/.test(m[1])) aMano.push(`${hoja}: ${m[1]}: ${h[0]}`)
       }

@@ -65,13 +65,17 @@ async function abrir(ruta, { sesion = 'user-1', mensajes = [], stock = [LINEA] }
 console.log('── El botón del escaparate ──')
 {
   const { p, ctx, errs } = await abrir('/usuario/rincon')
-  const href = await p.getAttribute('.pt-rejilla .pt-carta:first-child .pt-interesa', 'href')
-  check('cada carta lleva «Me interesa», a la conversación con esa línea', !errs.length && (await p.locator('.pt-rejilla .pt-interesa').count()) === 2 && href === '/mensajes.html?with=user-2&carta=st-1', errs.join(' | ') || href)
+  // 1249: «Me interesa» abre el pop-up de la carta, y desde ahí se escribe.
+  check('cada carta lleva «Me interesa»', !errs.length && (await p.locator('.pt-rejilla .pt-interesa').count()) === 2, errs.join(' | '))
+  await p.click('.pt-rejilla .pt-carta:first-child .pt-interesa'); await p.waitForTimeout(900)
+  const href = await p.getAttribute('dialog.ptc[open] .ptc-acciones a.btn-primary', 'href')
+  check('  …que abre su pop-up, y su «Me interesa» lleva a la conversación con esa línea', href === '/mensajes.html?with=user-2&carta=st-1', href)
   await ctx.close()
 }
 {
   const { p, ctx } = await abrir('/usuario/rincon', { sesion: 'none' })
-  const href = await p.getAttribute('.pt-rejilla .pt-interesa', 'href')
+  await p.click('.pt-rejilla .pt-interesa'); await p.waitForTimeout(900)
+  const href = await p.getAttribute('dialog.ptc[open] .ptc-acciones a.btn-primary', 'href')
   check('sin cuenta, a registrarse y de vuelta a la conversación', /^\/auth\.html\?registro=1&volver=%2Fmensajes\.html%3Fwith%3Duser-2%26carta%3Dst-1$/.test(href), href)
   await ctx.close()
 }
@@ -114,7 +118,7 @@ const MENSAJE = { id: 'm1', conversation_id: 'c1', sender_id: 'user-1', body: 'h
   check('  …la foto es la del catálogo y lo escrito no se ejecuta', !(await p.evaluate(() => window.__XSS__)) && !(await p.locator('.msg-carta img[src*="malo.example"]').count()) && (await p.locator('.msg-carta img').count()) === 1)
   // 1092: y «Apartar», para quien escribe.
   await p.click('[data-apartar-carta="st-1"]'); await p.waitForTimeout(1200)
-  check('«Apartar» se abre para quien escribe, con su @', (await p.locator('dialog.tda[open]').count()) === 1 && /^@/.test(await p.inputValue('.tda [data-para]')) && (await p.inputValue('.tda [data-precio]')) === '30', await p.inputValue('.tda [data-para]').catch(() => ''))
+  check('«Reservar» (antes «Apartar») se abre para quien escribe, con su @', (await p.locator('dialog.tda[open]').count()) === 1 && /^@/.test(await p.inputValue('.tda [data-para]')) && (await p.inputValue('.tda [data-precio]')) === '30', await p.inputValue('.tda [data-para]').catch(() => ''))
   await p.click('.tda [data-tda="cerrar"]'); await p.waitForTimeout(300)
   await p.click('[data-vender-carta="st-1"]'); await p.waitForTimeout(1500)
   check('Vender se abre con esa línea y su precio', (await p.locator('dialog.tdv[open]').count()) === 1 && (await p.inputValue('dialog.tdv [data-precio]')) === '30', await p.textContent('body').then((t) => t.slice(0, 0)))

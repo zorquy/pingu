@@ -63,8 +63,8 @@ console.log('── 1. El perfil de una tienda es su escaparate ──')
   check('pide SU escaparate', pedido?.p_tienda === 'tienda-1' && JSON.stringify(pedido.p_filtros) === '{}')
   check('arriba, lo que tiene de tu lista', /Tiene 1 carta de tu lista/.test(await p.textContent('.pt-tuyas')) && (await p.isVisible('.pt-tuyas')))
   const cartas = await p.$$eval('.pt-carta', (cs) => cs.map((c) => c.innerText.replace(/\s+/g, ' ')))
-  check('la rejilla: precio, nombre e idioma · estado', cartas.length === 3 && /95,00 €/.test(cartas[0]) && /Carta 1/.test(cartas[0]) && /ES · NM/.test(cartas[0]), cartas.join(' | '))
-  check('  …la versión y las unidades', /EN · EX · Reverse holo · 2 uds\./.test(cartas[1]), cartas[1])
+  check('la rejilla: precio, nombre e idioma · estado', cartas.length === 3 && /95,00 €/.test(cartas[0]) && /Carta 1/.test(cartas[0]) && /ES/.test(cartas[0]) && (await p.getAttribute('.pt-carta:first-child .chapa-estado', 'data-estado')) === 'NM', cartas.join(' | '))
+  check('  …la versión y las unidades (1249: el estado en su chapa de color)', /EN · Reverse holo · 2 uds\./.test(cartas[1]) && (await p.getAttribute('.pt-carta:nth-child(2) .chapa-estado', 'data-estado')) === 'EX', cartas[1])
   check('  …lo sellado', /ETB de prueba/.test(cartas[2]) && /Sellado/.test(cartas[2]))
   check('  …la de tu lista, con su corazón', (await p.locator('.pt-carta.tuya .pt-tuya').count()) === 1)
   check('  …la carta enlaza a su ficha (el pop-up de siempre) y lleva sus marcas', /^\/carta\//.test(await p.getAttribute('.pt-carta:first-child .pt-foto', 'href')) && (await p.getAttribute('.pt-carta:first-child .pt-foto', 'data-marca-carta')) === 'carta-1')
@@ -85,9 +85,9 @@ console.log('── 1. El perfil de una tienda es su escaparate ──')
 }
 {
   const { p, ctx } = await abrir('/usuario.html?u=rincon&carta=carta-2', { rpc: { tienda_escaparate: ESCAPARATE } })
-  check('?carta= (desde «En tiendas»): pide solo esa y lo dice', JSON.stringify((await llamadas(p, 'tienda_escaparate'))[0].p_filtros) === '{"carta":"carta-2"}' && (await p.isVisible('.pt-solo')))
-  await p.click('.pt-solo [data-pt-ver="todo"]'); await p.waitForTimeout(400)
-  check('  …y «Ver todo el stock» lo quita', JSON.stringify((await ultima(p, 'tienda_escaparate')).p_filtros) === '{}')
+  // 1249: la tienda ENTERA y, encima, el pop-up de esa carta (ya no «solo esa»).
+  const ls = await llamadas(p, 'tienda_escaparate')
+  check('?carta= (desde «En tiendas»): la tienda entera y el pop-up de esa carta', JSON.stringify(ls[0].p_filtros) === '{}' && ls.some((l) => JSON.stringify(l.p_filtros) === '{"carta":"carta-2"}') && (await p.isVisible('dialog.ptc[open]')) && (await p.locator('.pt-solo').count()) === 0)
   await ctx.close()
 }
 {
@@ -153,7 +153,7 @@ const QUE_TIENEN = [{ tienda_id: 'tienda-1', username: 'rincon', display_name: '
   await p.click('[data-merc-quien="todos"]'); await p.waitForTimeout(500)
   await p.locator('[data-merc="carta-1"] [data-merc-ficha]').first().click(); await p.waitForTimeout(1500)
   check('la ficha del Mercado: «En tiendas», con la tienda, su precio y «de tu lista»', /En (1 tienda|\d+ tiendas)/.test(await p.textContent('#mcMercadoFichaTiendas')) && /El Rincón/.test(await p.textContent('#mcMercadoFichaTiendas')) && /95,00\s€/.test(await p.textContent("#mcMercadoFichaTiendas")) && /de tu lista/i.test(await p.textContent('#mcMercadoFichaTiendas')))
-  check('  …que lleva a la tienda con esa carta', (await p.getAttribute('#mcMercadoFichaTiendas .ent-tarjeta a.btn-secondary', 'href')) === '/tiendas/rincon?carta=carta-1')
+  check('  …«Su tienda» lleva a la tienda entera, y «Me interesa» a esa carta en ella (1249)', (await p.getAttribute('#mcMercadoFichaTiendas .ent-tarjeta a.btn-secondary', 'href')) === '/tiendas/rincon' && /^\/tiendas\/rincon\?carta=carta-1/.test(await p.getAttribute('#mcMercadoFichaTiendas .ent-tarjeta a.btn-primary', 'href')))
   await ctx.close()
 }
 {

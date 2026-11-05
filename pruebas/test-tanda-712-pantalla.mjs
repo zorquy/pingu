@@ -93,7 +93,7 @@ console.log('── 2. Una que no tienes: la hoja corta, añadir dos y deshacer 
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(1200)
   const aviso = page.locator('.mc-deshacer')
-  check('al guardar sale el aviso: la carta, y «ya tienes 2»', (await aviso.isVisible()) && /Weedle añadida · ya tienes 2/.test(limpio(await aviso.innerText())), limpio(await aviso.innerText().catch(() => '')))
+  check('al guardar sale el aviso: la carta, y «ya tienes 2»', (await aviso.isVisible()) && /Weedle añadida · (.* · )?ya tienes 2/.test(limpio(await aviso.innerText())), limpio(await aviso.innerText().catch(() => '')))
   const pos = await page.evaluate(() => ({ aviso: document.querySelector('.mc-deshacer').getBoundingClientRect().bottom, burbuja: document.querySelector('.mc-pestanias').getBoundingClientRect().top }))
   check('  …encima de la burbuja, sin taparla', pos.aviso <= pos.burbuja, JSON.stringify(pos))
   check('  …y la casilla pasa a «la tengo»', await tengoLa(page, 'xy5-1'))
@@ -111,7 +111,7 @@ console.log('── 3. Una que ya tienes: sumar una y deshacer devuelve una ─�
   check('la hoja dice «Ya tienes 1»', limpio(await page.locator('#mcAdTienes').innerText()) === 'Ya tienes 1')
   await page.click('#mcAdGuardar')
   await page.waitForTimeout(1200)
-  check('el aviso dice «ya tienes 2»', /Groudon EX añadida · ya tienes 2/.test(limpio(await page.locator('.mc-deshacer').innerText())), limpio(await page.locator('.mc-deshacer').innerText().catch(() => '')))
+  check('el aviso dice «ya tienes 2»', /Groudon EX añadida · (.* · )?ya tienes 2/.test(limpio(await page.locator('.mc-deshacer').innerText())), limpio(await page.locator('.mc-deshacer').innerText().catch(() => '')))
   await page.locator('.mc-deshacer button').click()
   await page.waitForTimeout(1200)
   // Desde la 757 se ha sumado desde la ficha, que sigue abierta: dice ya
