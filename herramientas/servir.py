@@ -17,6 +17,7 @@ REESCRITURAS = [
     (re.compile(r'^/coleccion/[^/]+$'), '/coleccion.html'),
     (re.compile(r'^/usuario/[^/]+$'), '/usuario.html'),
     (re.compile(r'^/evento/[^/]+$'), '/usuario.html'),
+    (re.compile(r'^/tiendas/[^/]+$'), '/usuario.html'),
     (re.compile(r'^/feria$'), '/evento.html'),
     (re.compile(r'^/tema/[^/]+$'), '/tema.html'),
     (re.compile(r'^/eventos/[^/]+$'), '/eventos.html'),

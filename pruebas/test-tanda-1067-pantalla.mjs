@@ -166,7 +166,7 @@ console.log('── 3. /alta-tienda ──')
   const a = (await rpcs(p, 'tienda_alta'))[0]
   const args = a?.args || a?.[1] || {}
   check('tienda_alta con el token y los datos', args.p_token === TOKEN && args.p_username === 'el-rincon-del-entrenador' && args.p_nombre === 'El Rincón del Entrenador' && args.p_ciudad === 'Bilbao' && args.p_direccion === 'Calle de ejemplo, 12' && args.p_web === null, JSON.stringify(a))
-  check('  …y queda lista: a su panel o a su perfil', (await p.isVisible('#altaStock')) && (await p.getAttribute('#altaPerfil', 'href')) === '/usuario/el-rincon-del-entrenador' && (await p.locator('#altaStock a[href="/tienda"]').count()) === 1)
+  check('  …y queda lista: a su panel o a su perfil', (await p.isVisible('#altaStock')) && (await p.getAttribute('#altaPerfil', 'href')) === '/tiendas/el-rincon-del-entrenador' && (await p.locator('#altaStock a[href="/tienda"]').count()) === 1)
   check('  …y olvida la invitación', (await p.evaluate(() => localStorage.getItem('pd-alta-tienda'))) === null)
   await ctx.close()
 }
@@ -213,7 +213,7 @@ const TIENDA_FILAS = { tiendas: [{ user_id: 'user-2', ciudad: 'Bilbao', direccio
   const { p, ctx, errs } = await abrir('/tienda.html', { sesion: 'user-2', perfil: { tipo: 'tienda', display_name: 'El Rincón del Entrenador', username: 'rincon' }, filas: TIENDA_FILAS })
   check('una tienda: su panel, con su nombre y su ciudad', !errs.length && (await p.isVisible('#tdPanel')) && (await p.textContent('#tdNombre')) === 'El Rincón del Entrenador' && (await p.textContent('#tdDonde')) === 'Bilbao', errs.join(' | '))
   // Desde la 1085 su perfil se abre desde la pestaña Escaparate («Abrirlo como lo ve la gente»).
-  check('  …«Abrirlo como lo ve la gente» lleva a su perfil', (await p.getAttribute('#tdVerPerfil2', 'href')) === '/usuario/rincon')
+  check('  …«Abrirlo como lo ve la gente» lleva a su perfil', (await p.getAttribute('#tdVerPerfil2', 'href')) === '/tiendas/rincon')
   // Cinco desde la 1072 (Ventas).
   check('  …cinco pestañas, el Panel elegido (1074)', (await p.locator('[data-td]').count()) === 5 && (await p.getAttribute('[data-td="hoy"]', 'aria-selected')) === 'true' && (await p.textContent('[data-td="hoy"]')) === 'Panel')
   check('  …sin primeros pasos (1074, PINGU: «los quitaría»)', (await p.locator('#tdPasos, #tdPasosCaja').count()) === 0)

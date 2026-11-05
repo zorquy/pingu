@@ -113,8 +113,8 @@ console.log('── 2. El QR del escaparate ──')
 {
   const { p, ctx } = await abrir('/tienda.html?ver=escaparate', { qr: false })
   await p.waitForTimeout(800)
-  const qr = await p.evaluate(async () => { const { svgQR } = await import('/js/qr.js'); const t = document.createElement('div'); t.innerHTML = svgQR('https://pokedoc.es/usuario/prueba?utm_source=qr', { tam: 220 }); return document.getElementById('tdQr').innerHTML === t.innerHTML })
-  check('el QR lleva la marca del QR (para contar sus visitas aparte)', qr && (await p.textContent('#tdEnlace')) === 'pokedoc.es/usuario/prueba')
+  const qr = await p.evaluate(async () => { const { svgQR } = await import('/js/qr.js'); const t = document.createElement('div'); t.innerHTML = svgQR('https://pokedoc.es/tiendas/prueba?utm_source=qr', { tam: 220 }); return document.getElementById('tdQr').innerHTML === t.innerHTML })
+  check('el QR lleva la marca del QR (para contar sus visitas aparte)', qr && (await p.textContent('#tdEnlace')) === 'pokedoc.es/tiendas/prueba')
   await ctx.close()
 }
 

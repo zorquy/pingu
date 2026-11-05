@@ -45,7 +45,8 @@ for (const r of ['/index.html', '/mi-coleccion.html?ver=cartas', '/foro.html', '
 }
 for (const r of ['/usuario.html?u=prueba', '/mensajes.html']) {
   const { p, ctx, errs } = await abrir(r, { ancho: 1200 })
-  check(`${r} se abre (su perfil, sus mensajes)`, ruta(p) === r.split('?')[0].replace(/\.html$/, '') && !errs.length, `${p.url()} ${errs.join(' | ')}`)
+  // Desde la 1243 su escaparate vive en /tiendas/<usuario>: la barra pasa ahí.
+  check(`${r} se abre (su perfil, sus mensajes)`, ruta(p) === (r.startsWith('/usuario') ? '/tiendas/prueba' : r.split('?')[0].replace(/\.html$/, '')) && !errs.length, `${p.url()} ${errs.join(' | ')}`)
   await ctx.close()
 }
 {
