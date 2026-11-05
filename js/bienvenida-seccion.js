@@ -11,6 +11,7 @@ import { escapeHtml } from './html.js'
 import { hojaInyectada } from './hoja.js'
 import { icons } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
+import { esNueva } from './paginas-nuevas.js'
 
 export const LLAVE = (seccion) => `pd-bienvenida-${seccion}`
 
@@ -57,6 +58,7 @@ export const BIENVENIDAS = {
     paginas: [
       { nombre: 'Foro', icono: 'messageSquare', href: '/foro', clave: 'foro', texto: 'Pregunta, comparte y habla de lo que quieras. Sigue un tema y te avisamos de lo nuevo.' },
       { nombre: 'Eventos', icono: 'calendar', href: '/eventos', clave: 'eventos', texto: 'Card shows, trade days y quedadas en España: di «Voy» y apúntalo en tu calendario.' },
+      { nombre: 'Tiendas', icono: 'store', href: '/tiendas', clave: 'tiendas', texto: 'Las tiendas de cartas de PokeDoc: su escaparate, dónde están y cuáles tienen algo de tu lista.' },
       { nombre: 'Gente', icono: 'users', href: '/usuarios', clave: 'usuarios', texto: 'Otros coleccionistas y jugadores: mira su vitrina y escríbeles.' },
     ],
   },
@@ -105,7 +107,7 @@ export function bienvenidaHtml(seccion, opts = {}) {
   const lema = opts.catalogo && s.lemaSinCuenta ? s.lemaSinCuenta : s.lema
   const filas = paginasDe(seccion, opts).map((p) => `<li><a class="bvs-fila${p.aqui ? ' aqui' : ''}" href="${escapeHtml(p.href)}"${p.pestania ? ` data-bvs-pestania="${escapeHtml(p.pestania)}"` : ''}${p.aqui ? ' aria-current="page"' : ''}>
       <span class="bvs-fila-ico" aria-hidden="true">${icono(p.icono, 16)}</span>
-      <span class="bvs-fila-texto"><b>${escapeHtml(p.nombre)}${p.aqui ? ' <span class="bvs-aqui">Estás aquí</span>' : ''}</b><span>${escapeHtml(p.texto)}</span></span>
+      <span class="bvs-fila-texto"><b>${escapeHtml(p.nombre)}${p.aqui ? ' <span class="bvs-aqui">Estás aquí</span>' : p.clave && esNueva(p.clave) ? ' <span class="bvs-aqui bvs-nueva">Nuevo</span>' : ''}</b><span>${escapeHtml(p.texto)}</span></span>
       <span class="bvs-flecha" aria-hidden="true">${icons.chevronRight(14)}</span>
     </a></li>`).join('')
   return `<div class="bvs-banda">

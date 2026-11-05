@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-05",
+      "tipo": "nuevo",
+      "texto": "Las tiendas tienen su sitio en Comunidad, entre Eventos y Gente: su escaparate, dónde están y, arriba, las que tienen algo de tu lista. Y Eventos lleva ya el icono del calendario.",
+      "enlace": "/tiendas"
+    },
+    {
+      "fecha": "2026-11-05",
       "tipo": "arreglo",
       "texto": "Cruces ya no te ofrece una carta que tienes en un trato en curso: ni a la persona con la que ya estás tratando ni, si era tu única copia, a otra que también la busque.",
       "enlace": "/mi-coleccion?ver=cambios"

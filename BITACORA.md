@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (484) — PINGU-Claude (1242 — Tiendas en Comunidad)
+
+**Hecho**: PINGU: «me parece bien hacer un nuevo apartado para las tiendas en
+comunidad. Y deseos y cambios se queda como está», y «cámbiame el icono de
+eventos… mejor el de calendario». Comunidad pasa a Foro · Eventos · **Tiendas**
+· Gente en las 49 páginas con barra (el desplegable de arriba y el menú
+plegado; el pie sigue con «Para tiendas»), /tiendas deja de ser ficha (sin
+`data-detalle`: burbuja de su sección y Tiendas marcada) y la bienvenida de
+Comunidad lleva su fila. Icono nuevo `store` en icons.js; `ICONO_DE_PAGINA`
+gana `eventos: 'calendar'` (caía a la brújula por defecto) y `tiendas: 'store'`.
+«Nuevo» unas semanas con `js/paginas-nuevas.js` (`NUEVA_HASTA`, hasta el
+3-12-2026): chapa en la lateral, punto en el icono de la burbuja y chapa en la
+fila de la bienvenida. La agenda ya ponía arriba las que tienen algo de tu lista
+(1236). El Mercado no se toca.
+
+Y la propuesta con imágenes de lo que quedó en cola (color e icono en el nombre
+de una tienda, dirección /tiendas/<usuario> con 301 desde /usuario):
+https://claude.ai/artifact/T8GdKVoeiWuiMBePUHS9t8 — espera a PINGU.
+
+**Ficheros**: las 49 `.html` con barra (+ `cartas.html` generado), `tiendas.html`
+(generador), `js/icons.js`, `js/barra-movil.js`, `js/barra-lateral.js`,
+`js/paginas-nuevas.js` (nuevo), `js/bienvenida-seccion.js`, `css/lateral.css`,
+`css/movil.css`, `css/bienvenida-seccion.css`, `css/tiendas.css` (el título
+en el móvil, solo para el lector), SCHEMA, CLAUDE.md, novedades. Verdes: 1242,
+1239, 1067, 1236, 717, 649, 753, 299, 1023, 1233, `test-imports`; 1040 con sus
+tres rojos de antes (glosario, laboratorio, repeticiones), /tiendas en verde.
+Rama pruebas: `test-tanda-1242-pantalla.mjs` (nueva); 1239 (Comunidad con
+cuatro), y /tiendas en las listas de 1023, 1040 y 1233.
+
+**Pendiente**: la tanda del nombre y la dirección de las tiendas (1243), cuando
+PINGU diga. Lo de la 475.
+
 ## 2026-11-05 (483) — PINGU-Claude (1241 — Cruces sin lo que ya va en un trato)
 
 **Hecho**: PINGU, con dos capturas: Lauyks salía en Cruces → Todos con

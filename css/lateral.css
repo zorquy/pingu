@@ -84,6 +84,18 @@
     font-weight: 500;
   }
 
+  /* «Nuevo» unas semanas (1242, js/paginas-nuevas.js). */
+  .lat-nuevo {
+    margin-left: auto;
+    padding: 0 var(--e-xs);
+    border-radius: var(--radius-pill);
+    background: var(--acento);
+    color: var(--acento-texto);
+    font-size: var(--t-2xs);
+    font-style: normal;
+    font-weight: 700;
+  }
+
   /* El menú de Mi colección, colgado de su página (740). Es el de la
      columna de siempre; aquí va con la cara de la lateral. */
   .lat .mc-pestanias {

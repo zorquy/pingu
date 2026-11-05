@@ -13,6 +13,7 @@
 import { icons } from './icons.js'
 import { hojaInyectada } from './hoja.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
+import { esNueva } from './paginas-nuevas.js'
 import { ICONOS, claveDePagina, seccionesDeLaBarra, seccionActual, destinoDe, iconoDePagina, rotuloCorto } from './barra-movil.js'
 
 export const CONSULTA = '(min-width: 1400px) and (pointer: fine)'
@@ -85,7 +86,7 @@ export function lateralHtml(secciones, actual, clave, { conSesion = false, abier
           : paginasDe(s)
             .map((e) => {
               const k = claveDePagina(e.href)
-              return `<li><a href="${e.href}"${k === clave ? ' aria-current="page"' : ''}>${icons[iconoDePagina(k)]?.(18) || ''}<span>${rotuloCorto(k, e.texto)}</span></a></li>`
+              return `<li><a href="${e.href}"${k === clave ? ' aria-current="page"' : ''}>${icons[iconoDePagina(k)]?.(18) || ''}<span>${rotuloCorto(k, e.texto)}</span>${esNueva(k) ? '<em class="lat-nuevo">Nuevo</em>' : ''}</a></li>`
             })
             .join('')}</ul></div>`
         : ''

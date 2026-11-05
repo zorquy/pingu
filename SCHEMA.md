@@ -54549,3 +54549,43 @@ que también lo busca, tampoco (era tu única copia); Íker sí; «Todos» cuent
 que salen; en PC y móvil, entrando por la pestaña. Y lo puro: solo tratos vivos,
 por persona y por lado, y lo prometido contra `cambio`. Sin el arreglo, Lucía
 sale (comprobado).
+
+## Tanda 1242 — Tiendas en Comunidad
+
+PINGU: «me parece bien hacer un nuevo apartado para las tiendas en comunidad. Y
+deseos y cambios se queda como está». Y, con una captura de la lateral: «me has
+puesto… un icono como de brújula. Mejor el de calendario» (Eventos).
+
+**Dónde**: Comunidad es Foro · Eventos · Tiendas · Gente. Las barras de arriba
+están escritas en cada HTML (el desplegable `.nav-sub` y el menú plegado
+`.nav-menu-grupo`), así que la fila va en las 49 páginas; la burbuja del móvil,
+la lateral y la bienvenida la leen de ahí o de `BIENVENIDAS`. El pie no cambia:
+ya tenía «Para tiendas» a /tiendas. /tiendas era ficha (`data-detalle`, sin
+burbuja) porque no estaba en ningún desplegable; ahora el generador la trata
+como página de su sección. Ya llevaba `cab-lista`; en el móvil su título queda para el lector
+(`css/tiendas.css`, como Gente) y la burbuja no pinta el punto de «Nuevo» en la
+página en la que estás. Entra en las listas de las
+pruebas de páginas de lista (1023, 1040, 1233).
+
+**Los iconos**: Eventos no estaba en `ICONO_DE_PAGINA` y caía al `compass` por
+defecto (la brújula de la captura): ahora `calendar`, el mismo que su
+bienvenida. Tiendas lleva `store` (icons.js, nuevo: tejadillo, toldo y puerta).
+
+**«Nuevo» unas semanas**: `js/paginas-nuevas.js` (`NUEVA_HASTA`, `esNueva`),
+un fichero sin dependencias porque lo leen la lateral, la burbuja y la
+bienvenida (que no importa barra-movil.js para no arrastrar la barra). En la
+lateral es una chapa en `--acento` al final de la fila; en la burbuja, donde las
+páginas que no son la actual solo enseñan el icono, un punto de 8 px en la
+esquina (`position: relative` en `.bm-burbuja-item`) con «Nuevo» para el lector;
+en la bienvenida, la chapa de «Estás aquí» en `--ice`. El texto de los enlaces
+de la barra no cambia: la burbuja y la lateral leen su `textContent`.
+
+**Lo que no cambia**: el Mercado sigue con su pestaña Tiendas; la agenda ya
+ponía delante las que tienen algo de tu lista (`tiendas_agenda`, 1236). Una
+cuenta de tienda no ve nada de esto: su barra la monta `tienda-marco.js`.
+
+**Pruebas** (rama pruebas): `test-tanda-1242-pantalla.mjs` — las 49 páginas con
+Tiendas entre Eventos y Gente arriba y en el menú, /tiendas sin `data-detalle`,
+`esNueva` antes y después de su día, la burbuja de /foro (orden, calendario,
+tienda, punto dentro del botón), /tiendas marcada en la burbuja y en la lateral
+con «Nuevo», y la bienvenida de Comunidad con cuatro filas.

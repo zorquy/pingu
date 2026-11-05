@@ -16,6 +16,7 @@
 // comprobar el ancho) y se trae su hoja: en el escritorio no se descarga
 // ni un byte, que es lo que cuida el presupuesto de la portada.
 import { icons } from './icons.js'
+import { esNueva } from './paginas-nuevas.js'
 import { hojaInyectada } from './hoja.js'
 import { montarArrastreDeHojas } from './hoja-arrastre.js'
 import { engancharCompartir } from './compartir.js'
@@ -84,7 +85,7 @@ export function destinoDe(seccion, conSesion) {
 }
 
 // El icono de cada página de una sección (lo que hay en js/icons.js).
-export const ICONO_DE_PAGINA = { index: 'home', noticias: 'newspaper', aprender: 'bookOpen', retos: 'zap', guardados: 'bookmark', cartas: 'cards', lanzamientos: 'calendar', novedades: 'sparkles', 'mi-coleccion': 'layers', foro: 'messageSquare', usuarios: 'users', torneos: 'trophy', meta: 'trendingUp', constructor: 'edit', laboratorio: 'lightbulb', mazos: 'package', 'mis-partidas': 'gamepad', repeticiones: 'eye' }
+export const ICONO_DE_PAGINA = { index: 'home', noticias: 'newspaper', aprender: 'bookOpen', retos: 'zap', guardados: 'bookmark', cartas: 'cards', lanzamientos: 'calendar', novedades: 'sparkles', 'mi-coleccion': 'layers', foro: 'messageSquare', eventos: 'calendar', tiendas: 'store', usuarios: 'users', torneos: 'trophy', meta: 'trendingUp', constructor: 'edit', laboratorio: 'lightbulb', mazos: 'package', 'mis-partidas': 'gamepad', repeticiones: 'eye' }
 export const iconoDePagina = (clave) => ICONO_DE_PAGINA[clave] || 'compass'
 // En una burbuja la palabra es corta: «Constructor de mazos» pide 160 px
 // y «Constructor» dice lo mismo debajo de un lápiz.
@@ -482,7 +483,7 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   if (conSesion && (clave === 'index' || enLista)) import('./invitar-push.js').then((m) => m.montarInvitarPush()).catch(() => {})
   const propia = clave === 'mi-coleccion' ? doc.querySelector('.mc-pestanias') : null
   if (seccion && enLista && (propia || seccion.enlaces.length > 1)) {
-    const item = (e, clase) => { const k = claveDePagina(e.href); return `<a class="${clase}" href="${e.href}"${k === clave ? ' aria-current="page"' : ''} title="${e.texto}">${icons[iconoDePagina(k)]?.(24) || ''}<span class="bm-texto">${rotuloCorto(k, e.texto)}</span></a>` }
+    const item = (e, clase) => { const k = claveDePagina(e.href); return `<a class="${clase}" href="${e.href}"${k === clave ? ' aria-current="page"' : ''} title="${e.texto}">${icons[iconoDePagina(k)]?.(24) || ''}<span class="bm-texto">${rotuloCorto(k, e.texto)}</span>${esNueva(k) ? '<i class="bm-nuevo"><span class="sr-only">Nuevo</span></i>' : ''}</a>` }
     // SIN ESCANEAR (758): PINGU, «ocúltalo, que no funciona muy bien». Se
     // va de la burbuja, de la paleta y del atajo del icono; el código del
     // escáner se queda en Mi colección, sin ninguna puerta que lleve a él.

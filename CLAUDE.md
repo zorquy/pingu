@@ -113,7 +113,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   de tienda pasa por ahí. Las destacadas son ocho como mucho (lo pone la base,
   1079). «Me interesa» (1080) es un adjunto `tipo: 'carta'` de un mensaje: lo
   escribe quien lo manda, así que la foto sale del catálogo y Vender busca la
-  línea en el stock de la tienda, nunca se fía del adjunto. Y el recibo (1084)
+  línea en el stock de la tienda, nunca se fía del adjunto. Las tiendas son
+  una página de Comunidad (1242, PINGU): Foro · Eventos · Tiendas · Gente en
+  las barras de cada HTML, y una página recién llegada a una sección lleva
+  «Nuevo» unas semanas por `js/paginas-nuevas.js` (`NUEVA_HASTA`), no con
+  texto en el enlace: la burbuja y la lateral leen su `textContent`. Y el recibo (1084)
   no lleva NUNCA el coste ni el beneficio: es para quien compra. «Avisar a los
   que la buscan» (1089) pasa por `tienda_avisar`: uno por persona, carta y
   tienda (`tienda_avisos`, sin políticas: la tienda solo ve CUÁNTOS, por

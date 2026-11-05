@@ -52,6 +52,7 @@
   }
   /* Baja (893): solo iconos, y la activa con su palabra al lado. */
   .bm-burbuja-item {
+    position: relative;
     flex: 0 0 auto;
     display: flex;
     flex-direction: row;
@@ -82,6 +83,18 @@
     width: 22px;
     height: 22px;
   }
+  /* Un punto de «Nuevo» en el icono, unas semanas (1242). */
+  .bm-nuevo {
+    position: absolute;
+    top: var(--e-xs);
+    right: var(--e-xs);
+    width: 8px;
+    height: 8px;
+    border: 2px solid var(--white);
+    border-radius: 50%;
+    background: var(--acento);
+  }
+  .bm-burbuja-item[aria-current='page'] .bm-nuevo { display: none; }
   /* La palabra de las que no están activas se esconde para la vista, no
      para quien escucha (la lección de la 565). */
   .bm-burbuja-item:not([aria-current='page']) .bm-texto {
