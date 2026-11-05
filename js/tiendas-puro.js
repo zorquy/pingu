@@ -710,6 +710,14 @@ export function skuDe(linea, codigoSet = '') {
   return [set, numero, idioma, estado, versionCorta(l.variante)].filter(Boolean).join('-')
 }
 
+// Lo que lleva el QR de una etiqueta (1253): la tienda y el SKU. Abre la línea
+// en el panel si quien escanea es la tienda, y la carta en su escaparate si
+// es otra persona. En pokedoc.es, que es lo que se imprime y se escanea fuera.
+export const enlaceDeSku = (usuario, sku) => `https://pokedoc.es/s/${encodeURIComponent(usuario || '')}/${encodeURIComponent(sku || '')}`
+// Lo que escribe un lector de códigos (o alguien a mano) parece un SKU: letras
+// y cifras en tres trozos o más separados por guiones, sin espacios.
+export const pareceSku = (t) => /^[A-Z0-9]+(-[A-Z0-9]+){2,}$/i.test(String(t ?? '').trim())
+
 // ── COMPRARLE A UNA TIENDA (1250) ──
 // Cómo cobra una tienda (`tienda_cobros`): en efectivo, solo en mano.
 export const PAGOS_TIENDA = [['bizum', 'Bizum'], ['paypal', 'PayPal'], ['efectivo', 'Efectivo']]

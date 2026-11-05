@@ -55007,3 +55007,44 @@ toma el molde del «A · Cartera» del Panel de Mi colección (1179):
 
 Prueba: `test-tanda-1252-pantalla.mjs` (cartera, pastillas y sus cuentas,
 fotos, nada se sale en el móvil, dos columnas en el PC).
+
+## Tanda 1253 — el SKU con código de barras y QR
+
+PINGU eligió lo recomendado: el SKU es GENERAL (el mismo en todas las tiendas,
+`skuDe` de la 1249) y va escrito y en código de barras en la etiqueta; el QR,
+el de la TIENDA: `pokedoc.es/s/<tienda>/<SKU>` (`enlaceDeSku`).
+
+- **La regla, dos veces y la misma**: `skuDe` (web) y `tienda_sku(codigo, set,
+  número, idioma, estado, gradeo, variante, producto)` (base, inmutable, con
+  `tienda_sku_limpio` y `tienda_sku_version`). El código del set es
+  `tcg_sets.tcg_online_code` de SU catálogo (el japonés lleva el suyo). Si
+  cambia una, cambia la otra: `test-tanda-1253.mjs` las compara con catorce
+  casos (total en el número, ceros, TG01, «SVP 205», gradeadas, versiones de
+  TCGGO, producto, acentos).
+- **Buscar**: `tienda_sku_buscar(tienda, sku)` (sin tienda, la tuya). Limpia lo
+  que escribe el lector (minúsculas, espacios, un salto de línea). La tienda ve
+  todas sus líneas (ocultas y a cero, al final); los demás, visibles con
+  unidades y de tienda pública. Nunca `coste`. Orden: con unidades, luego más
+  barata.
+- **Code 128** (`js/codigo-barras.js`): juego B, o C si son cifras en número
+  par. `dibujarCodigo` usa un módulo de píxeles ENTEROS (un lector no perdona
+  barras de anchos distintos por redondear) y deja 10 módulos en blanco a cada
+  lado; si no cabe ni a 1 px, no dibuja. A 203 ppp un SKU de 15 caracteres sale
+  a 3 px por módulo en la A4 y a 2 en el rollo.
+- **La etiqueta**: si la línea trae `sku`, la tira de abajo (barras de 6,5 mm
+  en la A4 y 5 en el rollo, y el SKU escrito) y lo demás encima; sin `sku`,
+  como antes.
+- **/s/**: `netlify.toml` lo sirve con usuario.html (la `s` está en
+  `profileParamsFromLocation` y en `puedeAbrirTienda`); `usuario.js` lo deja en
+  `/tiendas/<u>?sku=`; `perfil-tienda.js` busca la copia y abre su pop-up (y
+  quita `sku` de la dirección) o, si mira la propia tienda, va a
+  `/tienda?ver=stock&sku=`, que abre la línea (`abrirPorSku`).
+- **Lector USB**: un lector de mostrador escribe y manda Intro. En la lupa del
+  Stock y en la caja de Vender, Intro con algo que `pareceSku` (tres trozos o
+  más con guiones, sin espacios) busca por SKU; un texto normal sigue siendo
+  buscar por nombre. En Vender entra la primera línea con unidades que aún no
+  va entera en la venta, con la fila completa de `tienda_stock_lista`.
+- **Sin cámara en la web**: escanear desde el móvil es el QR (la cámara del
+  teléfono ya lo lee); un lector de barras dentro de la web sería una
+  dependencia o la Shape Detection API, que en iOS no está (la 447).
+

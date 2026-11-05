@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (495) — PINGU-Claude (1253 — el SKU con código de barras y QR)
+
+**Hecho**: la última tanda de la propuesta de tiendas («dale con lo
+recomendado»): el SKU general en la etiqueta, en barras para un lector de
+mostrador, y el QR de la tienda.
+- **Migración** `supabase-migration-1253-tienda-sku.sql`: `tienda_sku(…)` es
+  la MISMA regla que `skuDe` (la prueba compara las dos con catorce casos),
+  `tienda_sku_de(stock)` y `tienda_sku_buscar(tienda, sku)`: la tienda ve
+  todas sus líneas; los demás, solo lo del escaparate (nunca la de pruebas,
+  nunca el coste), primero lo que tiene unidades y lo más barato.
+- **Código de barras** `js/codigo-barras.js` (Code 128 B, o C si son cifras
+  en número par; puro, sin dependencias). La tabla se comparó símbolo a símbolo
+  con la de JsBarcode (leída como texto, sin ejecutarla): 107 de 107.
+- **Etiquetas**: abajo, a lo ancho, las barras con un módulo de píxeles
+  ENTEROS y su zona en blanco, y el SKU escrito; el QR va a
+  `pokedoc.es/s/<tienda>/<SKU>`.
+- **/s/<tienda>/<SKU>** (netlify.toml → usuario.html): quien escanea ve el
+  escaparate con el pop-up de esa copia (la visita cuenta como de QR); si es
+  la propia tienda, va a esa línea de su stock (`/tienda?ver=stock&sku=`).
+- **Lector USB**: en la lupa del Stock, un SKU y un Intro abren la línea; en
+  Vender la meten en la venta (otra lectura, otra unidad; sin más, lo dice).
+  El SKU sale también en la ficha de cada línea del Stock.
+
+**Ficheros**: la migración; `js/codigo-barras.js` (nuevo),
+`js/tienda-etiquetas.js`, `js/tienda-stock.js`, `js/tienda-vender.js`,
+`js/tiendas-puro.js` (`enlaceDeSku`, `pareceSku`), `js/perfil-tienda.js`,
+`js/usuario.js`, `js/tienda.js`, `js/tienda-puertas.js`, `js/app.js` (la `s`
+en `profileParamsFromLocation`), `css/tienda.css`, `netlify.toml`, CLAUDE.md,
+SCHEMA, novedades. Rama pruebas: `test-tanda-1253.mjs` (PostgreSQL) y
+`test-tanda-1253-pantalla.mjs` (lee las barras de la etiqueta pintada);
+`herramientas/servir.py` con `/s/`.
+
+**Pendiente**: PINGU, ejecutar la 1253 (después de la 1250 y la 1251). Sin
+ella, el Stock y Vender dicen que falta y el QR abre la tienda sin pop-up.
+La 1253 cierra la propuesta de tiendas.
+
 ## 2026-11-05 (494) — PINGU-Claude (1252 — el Panel de una tienda, nuevo)
 
 **Hecho**: la cuarta tanda de la propuesta de tiendas («dale con lo

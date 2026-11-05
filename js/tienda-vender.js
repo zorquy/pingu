@@ -13,7 +13,7 @@ import { hojaInyectada } from './hoja.js'
 import { euros } from './cardmarket.js'
 import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { nombreDeSet } from './catalogo-series.js'
-import { DONDE_VENTA, cuentaDeVenta, precioQueCuenta, ofertaDe } from './tiendas-puro.js'
+import { DONDE_VENTA, cuentaDeVenta, precioQueCuenta, ofertaDe, pareceSku } from './tiendas-puro.js'
 
 const CLAVE_DONDE = 'pd-tienda-donde'
 const $ = (sel) => dialogo?.querySelector(sel)
@@ -54,7 +54,7 @@ function montar() {
     <div class="tdv-caja">
       <header class="tdv-cab"><h2 id="tdvTitulo">Vender</h2><span class="tdc-cab-der"><button type="button" class="link-btn" data-tdv="comprar">Comprar a un cliente</button><button type="button" class="tdv-cerrar" data-tdv="cerrar" aria-label="Cerrar">&times;</button></span></header>
       <div class="tdv-cuerpo">
-        <input type="search" class="tdv-busca" id="tdvBusca" placeholder="Busca en tu stock" aria-label="Busca en tu stock" autocomplete="off" />
+        <input type="search" class="tdv-busca" id="tdvBusca" placeholder="Busca en tu stock o escanea el SKU" aria-label="Busca en tu stock o escanea el SKU" autocomplete="off" />
         <ul class="tdv-resultados" id="tdvResultados" hidden></ul>
         <ul class="tdv-lineas" id="tdvLineas"></ul>
         <div class="tdv-donde" role="group" aria-label="Dónde se vende">${DONDE_VENTA.map(([v, t]) => `<button type="button" class="tdv-chip" data-donde="${v}" aria-pressed="false">${t}</button>`).join('')}</div>
@@ -89,6 +89,19 @@ function montar() {
         ? data.filas.map((f) => `<li><button type="button" class="tdv-resultado" data-fila='${escapeHtml(JSON.stringify(f))}'><span><strong>${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(f, nombreSet))}</small></span><span class="tdv-res-der">${precioQueCuenta(f) != null ? `<b>${ofertaDe(f) ? 'Oferta · ' : ''}${euros(precioQueCuenta(f))}</b>` : ''}<small>${f.unidades} ${f.unidades === 1 ? 'ud.' : 'uds.'}</small></span></button></li>`).join('')
         : `<li class="tdv-nada">Nada con unidades que case con «${escapeHtml(q)}».</li>`
     }, 220)
+  })
+
+  // Un lector de códigos (1253) escribe el SKU de la etiqueta y un Intro: la
+  // línea entra en la venta sin elegirla (y otra vez, otra unidad).
+  $('#tdvBusca').addEventListener('keydown', (e) => {
+    if (e.key !== 'Enter' || !pareceSku(e.target.value)) return
+    e.preventDefault()
+    clearTimeout(espera)
+    pedido++
+    const sku = e.target.value.trim().toUpperCase()
+    e.target.value = ''
+    $('#tdvResultados').hidden = true
+    anadirPorSku(sku)
   })
 
   dialogo.addEventListener('click', (e) => {
@@ -132,6 +145,22 @@ function montar() {
     pintarCuenta()
   })
   return dialogo
+}
+
+// Por SKU: la primera línea con unidades que aún no va entera en la venta.
+// La fila completa (precio, oferta, coste) sale de la lista del stock, la
+// misma que da el buscador.
+async function anadirPorSku(sku) {
+  const r = await supabase.rpc('tienda_sku_buscar', { p_tienda: null, p_sku: sku })
+  if (r.error) return showToast(/tienda_sku_buscar|schema cache|does not exist/i.test(r.error.message || '') ? 'Para vender por SKU falta un paso en la base (la migración 1253).' : 'No se ha podido buscar ese SKU.', 'error')
+  const libre = (r.data || []).find((f) => f.unidades > 0 && (lineas.find((l) => l.id === f.id)?.vender || 0) < f.unidades)
+  if (!libre) return showToast((r.data || []).length ? `No te quedan más de ${sku}.` : `Nada en tu stock con el SKU ${sku}.`, 'info')
+  const { data } = await supabase.rpc('tienda_stock_lista', { p_filtros: { q: libre.nombre || '', unidades: ['una', 'varias'] }, p_orden: 'nombre', p_desde: 0, p_cuantas: 100 })
+  const f = (data?.filas || []).find((x) => x.id === libre.id)
+  if (!f) return showToast('No se ha podido añadir esa carta. Búscala por su nombre.', 'error')
+  await completarSets([f])
+  anadir(f)
+  $('#tdvBusca').focus()
 }
 
 function anadir(f) {

@@ -162,6 +162,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   debajo lo que espera en PASTILLAS (`.tdh-pendientes`): lo que le toca a la
   tienda (ofertas, fotos pedidas) va delante con `.tdh-pill-toca`; un pendiente
   nuevo es una pastilla más en `pintarPendientes`, no otra tarjeta.
+  El SKU (1253) es GENERAL y la regla está dos veces, la misma: `skuDe` en la
+  web y `tienda_sku` en la base (`test-tanda-1253` las compara): si cambia una,
+  cambia la otra. Se busca con `tienda_sku_buscar`; un SKU y un Intro (un
+  lector USB) en la lupa del Stock o en Vender va por ahí (`pareceSku`). El QR
+  de una etiqueta es `enlaceDeSku` → `/s/<tienda>/<SKU>`: escaparate con el
+  pop-up, o su línea si escanea la tienda. Las barras son `js/codigo-barras.js`
+  (Code 128, módulo de píxeles enteros): no metas otra librería de barras.
   «Pedir fotos» (1251) es `tienda_pedir_fotos`; al subirlas avisa el
   DISPARADOR de `tienda_stock_fotos` (`trg_tienda_fotos_subidas`), así que un
   camino nuevo para subir fotos de una copia no tiene que avisar a mano.

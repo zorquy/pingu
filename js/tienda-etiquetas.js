@@ -1,7 +1,8 @@
 // ETIQUETAS PARA IMPRIMIR (tanda 1093). Se marcan cartas en el Stock y sale
 // un PDF de etiquetas: el nombre, la colección y el número, el idioma y el
 // estado, el precio en grande (con la oferta, el de antes tachado) y un QR que
-// abre esa carta en el escaparate de la tienda. En la hoja A4 de 24 de
+// abre esa carta en el escaparate de la tienda; desde la 1253, abajo el SKU en
+// código de barras y escrito, y el QR va a /s/<tienda>/<SKU>. En la hoja A4 de 24 de
 // papelería o una por página para impresora de etiquetas. Nunca el coste.
 //
 // Cada página se dibuja en un lienzo y va al PDF como JPEG (`pdfDeImagenes`,
@@ -12,6 +13,7 @@ import { hojaInyectada } from './hoja.js'
 import { euros } from './cardmarket.js'
 import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { matrizQR } from './qr.js'
+import { dibujarCodigo } from './codigo-barras.js'
 import { FORMATOS_ETIQUETA, PUNTOS_POR_MM, etiquetasDeLineas, colocarEtiquetas, pdfDeImagenes, ofertaDe, precioQueCuenta } from './tiendas-puro.js'
 
 const PX_MM = 8 // 203 ppp: lo de una impresora de etiquetas, y de sobra en A4
@@ -58,6 +60,20 @@ function pintarQR(ctx, texto, x, y, lado) {
 export function dibujarEtiqueta(ctx, e, { x, y, w, h, enlace }) {
   const mm = (v) => v * PX_MM
   const pad = 2.5
+  // El SKU (1253), abajo a lo ancho: las barras para el lector y el texto
+  // debajo, que es lo que se lee a ojo. Lo de arriba se queda con el resto.
+  const tira = e.sku ? (h > 32 ? 6.5 : 5) + 2.6 : 0
+  if (e.sku) {
+    const altoBarras = h > 32 ? 6.5 : 5
+    const yb = y + h - pad * 0.6 - tira
+    dibujarCodigo(ctx, e.sku, { x: mm(x + pad * 0.6), y: mm(yb), ancho: mm(w - pad * 1.2), alto: mm(altoBarras), tinta: C.tinta })
+    ctx.fillStyle = C.tinta
+    ctx.font = `600 ${mm(2.2)}px ui-monospace, Menlo, monospace`
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'alphabetic'
+    ctx.fillText(e.sku, mm(x + w / 2), mm(yb + altoBarras + 2.2))
+    h -= tira + 0.8 // un poco de aire entre el precio y las barras
+  }
   const qr = Math.min(h - pad * 2, w * 0.36)
   const texto = w - pad * 3 - qr
   const X = mm(x + pad)
@@ -164,7 +180,7 @@ export function abrirEtiquetas({ filas, enlaceDe, nombreFichero = 'etiquetas' })
         <label class="tdc-campo tde-saltar">Empezar en la etiqueta (de una hoja empezada)<input type="number" inputmode="numeric" min="1" max="24" step="1" value="1" data-saltar /></label>
         <p class="tdc-cm" data-cuenta></p>
         <div class="tde-vista"><img alt="Cómo queda la primera página" data-vista /></div>
-        <p class="tdc-cm">El QR abre esa carta en tu escaparate. Ninguna lleva lo que te costó.</p>
+        <p class="tdc-cm">El QR abre esa carta en tu escaparate (y, si lo escaneas tú, su línea en tu stock). El código de barras es el SKU, para un lector de mostrador. Ninguna lleva lo que te costó.</p>
       </div>
       <footer class="tdv-pie"><p class="tdv-error" data-error role="alert"></p><button type="button" class="btn-primary tdv-vendida" data-tde="pdf">Descargar PDF</button></footer>
     </div>`

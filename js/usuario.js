@@ -374,8 +374,13 @@ async function init() {
   if (profile?.tipo === 'tienda') {
     // Su dirección es /tiendas/<usuario> (1243). El servidor ya manda ahí con un
     // 301; esto cubre lo que llegue por otro camino (usuario.html?u=…).
+    // Desde una etiqueta (1253), /s/<tienda>/<SKU>: el SKU pasa a `?sku=`, que
+    // lee el escaparate para abrir esa carta.
     if (profile.username && !location.pathname.startsWith('/tiendas/') && !location.pathname.startsWith('/evento/')) {
-      try { history.replaceState(history.state, '', `/tiendas/${encodeURIComponent(profile.username)}${location.search.replace(/([?&])(u|id)=[^&]*&?/g, '$1').replace(/[?&]$/, '')}${location.hash}`) } catch {}
+      const sku = location.pathname.match(/^\/s\/[^/]+\/([^/?#]+)/)?.[1]
+      let busca = location.search.replace(/([?&])(u|id)=[^&]*&?/g, '$1').replace(/[?&]$/, '')
+      if (sku) busca += `${busca ? '&' : '?'}sku=${sku}`
+      try { history.replaceState(history.state, '', `/tiendas/${encodeURIComponent(profile.username)}${busca}${location.hash}`) } catch {}
     }
     const main = document.querySelector('main')
     // Ancha en el PC (1078): fuera la rejilla de dos columnas del perfil de

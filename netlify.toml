@@ -140,6 +140,14 @@
   to = "/usuario.html?u=:username"
   status = 200
 
+# El QR de una etiqueta de tienda (1253): /s/<tienda>/<SKU>. Es el escaparate
+# (usuario.js la deja en /tiendas/<tienda>?sku=…); si quien escanea es la
+# propia tienda, js/perfil-tienda.js la manda a esa línea de su stock.
+[[redirects]]
+  from = "/s/:username/:sku"
+  to = "/usuario.html?u=:username"
+  status = 200
+
 # El QR del modo evento (1029): /evento/<usuario> es la ficha de esa persona
 # abierta por Cambios, con el cruce. Y /feria, el nombre de antes (794),
 # está impreso en QRs: lleva a /evento.

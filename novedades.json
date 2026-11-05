@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-05",
+      "tipo": "nuevo",
+      "texto": "Tiendas: cada etiqueta lleva el SKU con su código de barras para el lector del mostrador (en Vender y en el Stock, escanear y listo), y su QR abre esa carta en tu escaparate; si lo escaneas tú, su línea en tu stock.",
+      "enlace": "/para-tiendas"
+    },
+    {
+      "fecha": "2026-11-05",
       "tipo": "mejora",
       "texto": "Tiendas: el Panel, nuevo. Lo vendido en grande con cómo va, cuatro cifras debajo, lo que te espera (ofertas y fotos pedidas) en pastillas arriba y cada carta con su foto.",
       "enlace": "/para-tiendas"

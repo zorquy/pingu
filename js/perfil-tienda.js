@@ -314,7 +314,17 @@ export async function montarPerfilTienda(destino, perfil, sesion, { previa = fal
   // abrirte la tienda en general»; antes se filtraba a «solo esa»). `linea`
   // dice cuál de sus copias.
   est.abrir = params.get('carta') ? { carta: params.get('carta'), linea: params.get('linea') } : null
-  if (!previa) contarVisita(perfil, sesion, params.get('utm_source') === 'qr')
+  // El QR de una etiqueta (1253), /s/<tienda>/<SKU> → `?sku=`: si quien escanea
+  // es la propia tienda, a esa línea de su stock; si no, la carta aquí.
+  const sku = params.get('sku')
+  if (sku && !previa) {
+    if (sesion?.user?.id === perfil.id) {
+      location.replace(`/tienda?ver=stock&sku=${encodeURIComponent(sku)}`)
+      return
+    }
+    est.abrir = { sku }
+  }
+  if (!previa) contarVisita(perfil, sesion, params.get('utm_source') === 'qr' || !!sku)
   // Lo apartado que caducó vuelve al escaparate (1092): caduca cuando alguien
   // mira, que es cuando importa. Sin la migración, no hace nada.
   if (!previa) supabase.rpc('tienda_reservas_al_dia', { p_tienda: perfil.id }).then(() => {}, () => {})
@@ -411,6 +421,7 @@ function ponerEnLaDireccion(f) {
     u.searchParams.delete('carta')
     u.searchParams.delete('linea')
   }
+  u.searchParams.delete('sku')
   history.replaceState(history.state, '', u.pathname + u.search + u.hash)
 }
 
@@ -437,9 +448,23 @@ async function abrirLinea(f, lineas = null) {
 
 // Al llegar con `?carta=`: el pop-up de esa carta, y si ya no la tiene, se dice.
 async function abrirDelEnlace() {
-  const pedida = est.abrir
+  let pedida = est.abrir
   est.abrir = null
   if (!pedida) return
+  // Por SKU (1253): la primera copia que enseña el escaparate con ese SKU.
+  if (pedida.sku) {
+    const { data } = await supabase.rpc('tienda_sku_buscar', { p_tienda: est.perfil.id, p_sku: pedida.sku }).then((r) => r, () => ({ data: null }))
+    const f = Array.isArray(data) ? data[0] : null
+    if (!f) {
+      showToast('Esa carta ya no está en esta tienda. Mira lo que tiene.', 'info')
+      return ponerEnLaDireccion(null)
+    }
+    if (!f.card_id) {
+      const ls = await lineasDe({ id: f.id }).catch(() => [])
+      return ls.length ? abrirLinea(ls[0], ls) : ponerEnLaDireccion(null)
+    }
+    pedida = { carta: f.card_id, linea: f.id }
+  }
   const ls = await lineasDe({ card_id: pedida.carta }).catch(() => [])
   if (!ls.length) {
     showToast('Esa carta ya no está en esta tienda. Mira lo que tiene.', 'info')

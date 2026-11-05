@@ -247,7 +247,7 @@ export function profileUrl(p) {
 export function profileParamsFromLocation() {
   const params = new URLSearchParams(window.location.search)
   // /evento/<usuario> (1029) es la misma ficha, abierta por Cambios y con el cruce.
-  const pathMatch = window.location.pathname.match(/\/(?:usuario|evento|tiendas)\/([^/?#]+)/)
+  const pathMatch = window.location.pathname.match(/\/(?:usuario|evento|tiendas|s)\/([^/?#]+)/)
   return {
     username: pathMatch ? decodeURIComponent(pathMatch[1]) : params.get('u'),
     id: params.get('id'),

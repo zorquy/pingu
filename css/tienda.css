@@ -1008,6 +1008,7 @@ html:has(.tds-dialogo[open]) {
   font-size: var(--t-xs);
   color: var(--text-mid);
 }
+.tds-form-titulo .tds-sku span { font-family: ui-monospace, 'SF Mono', Menlo, monospace; letter-spacing: 0.02em; color: var(--text); user-select: all; }
 
 .tds-form-foto {
   display: block;

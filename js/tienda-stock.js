@@ -20,7 +20,7 @@ import { rarezaDeCarta } from './rarezas-nombres.js'
 import { buscarComoEnCartas } from './buscar-cartas.js'
 import { buscarProductos } from './productos-valor.js'
 import { COLUMNAS_CARTA_DE_SET } from './mi-coleccion/columnas-set.js'
-import { margenDe, precioSugerido, alternarFiltro, chapasDeFiltros, quitarChapa, csvDeStock, ofertaDe, precioRebajado } from './tiendas-puro.js'
+import { margenDe, precioSugerido, alternarFiltro, chapasDeFiltros, quitarChapa, csvDeStock, ofertaDe, precioRebajado, skuDe, enlaceDeSku, pareceSku } from './tiendas-puro.js'
 import { hojaInyectada } from './hoja.js'
 import { icons } from './icons.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
@@ -704,7 +704,7 @@ async function montarForm(d, { carta = null, producto = null, fila = null, base 
   const titulo = esProducto ? producto?.name || nombreFila(fila) : carta ? nombreDeCarta(carta) : nombreFila(fila)
   const elProducto = esProducto ? producto || est.productos.get(String(fila?.product_id)) || null : null
   form.innerHTML = `
-    <p class="tds-form-titulo"><strong>${escapeHtml(titulo)}</strong>${carta ? `<small>${escapeHtml(nombreDeSet(carta.tcg_sets) || carta.set_id)} · ${escapeHtml(carta.local_id || '')}</small>` : ''}</p>
+    <p class="tds-form-titulo"><strong>${escapeHtml(titulo)}</strong>${carta ? `<small>${escapeHtml(nombreDeSet(carta.tcg_sets) || carta.set_id)} · ${escapeHtml(carta.local_id || '')}</small>` : ''}${fila ? `<small class="tds-sku">SKU <span>${escapeHtml(skuDe({ ...fila, numero: carta?.local_id || fila.numero }, carta?.tcg_sets?.tcg_online_code))}</span></small>` : ''}</p>
     ${fotoDeFichaHtml(carta, elProducto)}
     ${fila && !esProducto && conFotos() ? fotosDeFichaHtml(fila) : ''}
     ${esProducto ? '' : `${gradeoHtml(v.gradeo || '')}
@@ -1083,13 +1083,15 @@ async function abrirEtiquetas() {
   const filas = est.filas.filter((f) => est.marcadas.has(f.id)).map((f) => {
     const c = f.card_id ? est.cartas.get(f.card_id) : null
     const numero = c?.local_id || f.numero
-    return { ...f, nombre: nombreFila(f), numero, detalle: '', _codigo: c?.tcg_sets?.tcg_online_code || '', _set: c?.tcg_sets ? nombreDeSet(c.tcg_sets) : est.sets.get(f.set_id) || '' }
+    const codigo = c?.tcg_sets?.tcg_online_code || ''
+    return { ...f, nombre: nombreFila(f), numero, detalle: '', sku: skuDe({ ...f, numero }, codigo), _codigo: codigo, _set: c?.tcg_sets ? nombreDeSet(c.tcg_sets) : est.sets.get(f.set_id) || '' }
   })
   if (!filas.length) return
   const m = await import('./tienda-etiquetas.js')
   for (const f of filas) f.detalle = m.detalleDeEtiqueta(f, { codigo: f._codigo, nombreSet: f._set })
-  const base = `https://pokedoc.es/tiendas/${encodeURIComponent(perfil?.username || '')}`
-  m.abrirEtiquetas({ filas, enlaceDe: (f) => (f.card_id ? `${base}?carta=${encodeURIComponent(f.card_id)}&linea=${encodeURIComponent(f.id)}` : base), nombreFichero: `etiquetas-${perfil?.username || 'tienda'}-${new Date().toISOString().slice(0, 10)}` })
+  // El QR (1253): /s/<tienda>/<SKU>, que abre la línea en tu panel si lo
+  // escaneas tú y la carta en tu escaparate si es otra persona (js/perfil-tienda.js).
+  m.abrirEtiquetas({ filas, enlaceDe: (f) => enlaceDeSku(perfil?.username, f.sku), nombreFichero: `etiquetas-${perfil?.username || 'tienda'}-${new Date().toISOString().slice(0, 10)}` })
 }
 
 // ── Vistas ──
@@ -1137,6 +1139,27 @@ async function abrirImportar() {
   abrirImportarStock({ perfil, alTerminar: () => pedir() })
 }
 
+// Abrir una línea por su SKU (1253): lo escribe un lector de códigos en la
+// lupa (y un Intro), o llega por /s/<tienda>/<SKU> al escanear tú una etiqueta
+// tuya. Se busca en la base (`tienda_sku_buscar`, la misma regla que `skuDe`),
+// la lista se queda con esa carta y se abre la línea para editarla.
+export async function abrirPorSku(sku) {
+  if (!caja) return
+  clearTimeout(espera)
+  const { data, error } = await supabase.rpc('tienda_sku_buscar', { p_tienda: null, p_sku: sku })
+  if (error) return showToast(/tienda_sku_buscar|schema cache|does not exist/i.test(error.message || '') ? 'Para buscar por SKU falta un paso en la base (la migración 1253).' : 'No se ha podido buscar ese SKU.', 'error')
+  const ls = Array.isArray(data) ? data : []
+  if (!ls.length) return showToast(`Ninguna línea de tu stock con el SKU ${sku}.`, 'info')
+  const texto = ls[0].nombre || ''
+  const q = $('[data-tds-q]')
+  if (q) q.value = texto
+  est.filtros = texto ? { q: texto } : {}
+  est.marcadas.clear()
+  await pedir()
+  if (ls.length > 1) showToast(`${ls.length} líneas con ese SKU: te abro la primera.`, 'info')
+  if (est.filas.some((f) => f.id === ls[0].id)) abrirEditar(ls[0].id)
+}
+
 // Poner unos filtros desde fuera (los avisos de Hoy, 1073).
 export function filtrarStock(filtros) {
   if (!caja) return
@@ -1161,7 +1184,7 @@ export function montarStock(destino, { perfil: p }) {
       <aside class="tds-filtros" aria-label="Filtros del stock"></aside>
       <div class="tds-cuerpo">
         <div class="tds-arriba">
-          <input type="search" class="tds-busca" data-tds-q placeholder="Busca por nombre o número" aria-label="Buscar en tu stock" />
+          <input type="search" class="tds-busca" data-tds-q placeholder="Busca por nombre, número o SKU" aria-label="Buscar en tu stock" />
           <div class="tds-barra">
           <!-- Una fila (1086, PINGU: «demasiados botones»): Añadir con su menú,
                Filtros (en el móvil), el orden y «⋯» con lo demás. -->
@@ -1329,6 +1352,11 @@ export function montarStock(destino, { perfil: p }) {
   // Intro en un campo de la rejilla lo guarda (el `change` llega al salir).
   caja.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && e.target.matches('[data-en-linea]')) e.target.blur()
+    // Un SKU y un Intro (lo que manda un lector de códigos): esa línea.
+    if (e.key === 'Enter' && e.target.matches('[data-tds-q]') && pareceSku(e.target.value)) {
+      e.preventDefault()
+      abrirPorSku(e.target.value.trim().toUpperCase())
+    }
   })
   caja.addEventListener('change', (e) => {
     if (e.target.matches('[data-en-linea]')) return guardarEnLinea(e.target)

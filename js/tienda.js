@@ -212,6 +212,11 @@ async function arrancar() {
   if (params.has('buscar')) buscarEnStock()
   else if (params.get('ver') === 'stock' && params.get('filtro')) stockFiltrado(params.get('filtro'))
   else pestana(params.get('ver'))
+  // Una etiqueta tuya escaneada (1253, /s/<tú>/<SKU>): esa línea del stock.
+  if (params.get('sku')) {
+    pestana('stock')
+    montarStockSiToca('stock')?.then((m) => m?.abrirPorSku(params.get('sku').toUpperCase()))
+  }
   if (params.has('vender')) abrirVender()
   if (params.has('comprar')) abrirComprar()
 }
