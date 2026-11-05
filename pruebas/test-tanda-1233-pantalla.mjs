@@ -10,7 +10,7 @@
 import { contexto, chromium } from './fixtures-app.mjs'
 
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
-const RUTAS = ['/', '/aprender', '/usuarios', '/perfil', '/foro', '/noticias', '/lanzamientos', '/novedades', '/retos', '/torneos', '/guardados', '/glosario', '/mensajes', '/mis-partidas', '/mazos', '/meta', '/eventos', '/mi-coleccion', '/mi-coleccion?ver=buscar', '/mi-coleccion?ver=deseos', '/cartas', '/avisos', '/ajustes']
+const RUTAS = ['/', '/aprender', '/usuarios', '/perfil', '/foro', '/noticias', '/lanzamientos', '/novedades', '/retos', '/torneos', '/guardados', '/glosario', '/mensajes', '/mis-partidas', '/mazos', '/meta', '/eventos', '/tiendas', '/mi-coleccion', '/mi-coleccion?ver=buscar', '/mi-coleccion?ver=deseos', '/cartas', '/avisos', '/ajustes']
 let fails = 0
 const check = (l, ok, extra = '') => {
   if (!ok) fails++

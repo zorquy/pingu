@@ -28,7 +28,7 @@ console.log('── 1. El CSS y el guion de la cabecera (A4) ──')
 }
 
 console.log('\n── 2. Los solapes, página a página (móvil) ──')
-const PAGINAS = ['/', '/aprender', '/retos', '/glosario', '/guardados', '/avisos', '/foro', '/foro/competitivo', '/tema/tema-2', '/usuarios', '/usuario/Misty', '/mensajes', '/noticias', '/lanzamientos', '/novedades',
+const PAGINAS = ['/', '/aprender', '/retos', '/glosario', '/guardados', '/avisos', '/foro', '/foro/competitivo', '/tema/tema-2', '/usuarios', '/usuario/Misty', '/tiendas', '/mensajes', '/noticias', '/lanzamientos', '/novedades',
   '/cartas', '/cartas?ver=album&set=sv08&catalogo=WEST', '/mi-coleccion', '/mi-coleccion?ver=cartas', '/mi-coleccion?ver=album', '/mi-coleccion?ver=pokedex', '/mi-coleccion?ver=albumes', '/mi-coleccion?ver=productos', '/mi-coleccion?ver=mercado', '/mi-coleccion?ver=quiero', '/mi-coleccion?ver=cambios',
   '/torneos', '/torneo?slug=liga-fdn-otono', '/mazos', '/constructor?mazo=mazo-1', '/mis-partidas', '/meta', '/laboratorio', '/repeticiones', '/perfil', '/ajustes', '/guia/charizard-ex', '/buscar?q=charizard']
 const b = await chromium.launch()

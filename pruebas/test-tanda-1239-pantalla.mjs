@@ -87,7 +87,7 @@ const datos = (page) => page.evaluate(() => {
   check('apuntar una sección no apunta otra', reglas.otra === true)
   check('ni en una ficha ni en una página sin sección', reglas.ficha === false && reglas.sinSeccion === false)
   check('sin almacén del navegador no sale (si no, saldría en cada página)', reglas.sinAlmacen === false)
-  check('cinco secciones con sus páginas', JSON.stringify(reglas.cuentas) === '{"inicio":4,"aprender":4,"cartas":7,"comunidad":3,"jugar":7}', JSON.stringify(reglas.cuentas))
+  check('cinco secciones con sus páginas', JSON.stringify(reglas.cuentas) === '{"inicio":4,"aprender":4,"cartas":7,"comunidad":4,"jugar":7}', JSON.stringify(reglas.cuentas))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
@@ -144,7 +144,7 @@ const datos = (page) => page.evaluate(() => {
   check('Esc la cierra', !(await abierta(page)))
   await ir(page, '/foro.html?bienvenida=1')
   const f = await datos(page)
-  check('Comunidad: Foro, Eventos y Gente, en una columna', f?.filas.join('|') === 'Foro|Eventos|Gente' && f.columnas === 1, JSON.stringify(f?.filas))
+  check('Comunidad: Foro, Eventos, Tiendas y Gente, en una columna', f?.filas.join('|') === 'Foro|Eventos|Tiendas|Gente' && f.columnas === 1, JSON.stringify(f?.filas))
   if (CAPS) await page.screenshot({ path: `${CAPS}/1239-comunidad-movil.png` })
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
