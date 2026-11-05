@@ -204,7 +204,7 @@ $('altaTienda')?.addEventListener('submit', async (e) => {
     if (session) await supabase.from('tiendas').update({ instagram: ig }).eq('user_id', session.user.id).then(() => {}, () => {})
   }
   apuntar(null)
-  $('altaPerfil').href = `/usuario/${encodeURIComponent(data?.username || usuario)}`
+  $('altaPerfil').href = `/tiendas/${encodeURIComponent(data?.username || usuario)}`
   ver('altaStock')
 })
 

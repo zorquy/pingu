@@ -25,6 +25,7 @@ import { enlaceAMapa, enlacesDeTienda } from './tiendas-puro.js'
 import { icons } from './icons.js'
 import { chapaDeGradeoHtml } from './gradeo-elegir.js'
 import { fotosDeStock, verFotosDeStock, cuantasFotos } from './tienda-fotos.js'
+import { ATRIBUTOS_DE_TIENDA } from './rangos.js'
 
 const POR_PAGINA = 60
 const COLUMNAS = COLUMNAS_CARTA_DE_SET.replace('tcg_sets(tcg_online_code,serie_id,release_date)', 'tcg_sets(name,name_en,tcg_online_code,serie_id,release_date,oculto)')
@@ -206,7 +207,7 @@ function cabeceraHtml() {
     <header class="pt-cab${portada ? ' pt-cab-portada' : ''}">
       <div class="pt-quien">
         <span class="pt-logo" style="${p.avatar_url ? avatarStyle(p) : ''}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
-        <span class="pt-quien-texto"><span class="pt-chapa">Tienda</span><h1>${escapeHtml(nombre)}</h1><small>@${escapeHtml(p.username || '')}${t.ciudad ? ` · ${escapeHtml(t.ciudad)}` : ''}</small></span>
+        <span class="pt-quien-texto"><span class="pt-chapa">Tienda</span><h1${ATRIBUTOS_DE_TIENDA}>${escapeHtml(nombre)}</h1><small>@${escapeHtml(p.username || '')}${t.ciudad ? ` · ${escapeHtml(t.ciudad)}` : ''}</small></span>
       </div>
       <dl class="pt-cifras">
         <div><dt>En el escaparate</dt><dd data-pt-en-escaparate>—</dd></div>

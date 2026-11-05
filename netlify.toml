@@ -133,6 +133,13 @@
   to = "/usuario.html?u=:username"
   status = 200
 
+# El escaparate de una tienda (1243): /tiendas/<usuario> es la misma ficha. El
+# 301 entre las dos direcciones lo hace meta-social, que sabe si es una tienda.
+[[redirects]]
+  from = "/tiendas/:username"
+  to = "/usuario.html?u=:username"
+  status = 200
+
 # El QR del modo evento (1029): /evento/<usuario> es la ficha de esa persona
 # abierta por Cambios, con el cruce. Y /feria, el nombre de antes (794),
 # está impreso en QRs: lleva a /evento.

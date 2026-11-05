@@ -19,6 +19,7 @@ import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { banderaHtml } from './precio-vista.js'
 import { chapaDeGradeoHtml } from './gradeo-elegir.js'
 import { icons } from './icons.js'
+import { ATRIBUTOS_DE_TIENDA } from './rangos.js'
 
 export const A_LA_VISTA = 3
 const IDIOMA_CORTO = { es: 'Español', en: 'Inglés', fr: 'Francés', de: 'Alemán', it: 'Italiano', pt: 'Portugués', ja: 'Japonés', ko: 'Coreano', 'zh-tw': 'Chino', 'zh-cn': 'Chino' }
@@ -38,7 +39,7 @@ export async function tiendasQueTienen(cardId) {
 }
 
 // La URL del perfil de la tienda, con la carta a la vista.
-export const enlaceDeTienda = (t, cardId = null) => `/usuario/${encodeURIComponent(t.username || '')}${cardId ? `?carta=${encodeURIComponent(cardId)}` : ''}`
+export const enlaceDeTienda = (t, cardId = null) => `/tiendas/${encodeURIComponent(t.username || '')}${cardId ? `?carta=${encodeURIComponent(cardId)}` : ''}`
 
 // «Me interesa»: con la línea, la conversación con esa carta dentro (1080);
 // sin ella (la base sin la 1236), su escaparate en esa carta, donde está el
@@ -76,7 +77,7 @@ export function enTiendasHtml(tiendas, cardId, { conSesion = false, fotos = null
     return `<article class="ent-tarjeta${barata ? ' ent-barata' : ''}${i >= A_LA_VISTA && !abierto ? ' ent-oculta' : ''}" data-ent-tienda="${escapeHtml(t.tienda_id || '')}">
       <div class="ent-arriba">
         <a class="ent-logo${urlLogo ? ' con-foto' : ''}" href="${escapeHtml(enlaceDeTienda(t, cardId))}"${logo} aria-label="${escapeHtml(`${nombre}: su tienda`)}">${urlLogo ? '' : escapeHtml(nombre.slice(0, 1).toUpperCase())}</a>
-        <span class="ent-quien"><strong>${escapeHtml(nombre)}</strong>${dondeDe(t) ? `<small>${escapeHtml(dondeDe(t))}</small>` : ''}</span>
+        <span class="ent-quien"><strong${ATRIBUTOS_DE_TIENDA}>${escapeHtml(nombre)}</strong>${dondeDe(t) ? `<small>${escapeHtml(dondeDe(t))}</small>` : ''}</span>
         <span class="ent-precio">${t.precio == null ? '<small>Pregunta el precio</small>' : `${t.precio_antes != null ? `<s class="ent-antes">${escapeHtml(euros(t.precio_antes))}</s>` : ''}<b>${escapeHtml(euros(t.precio))}</b>`}${barata ? '<small class="ent-barata-txt">La más barata</small>' : ''}</span>
       </div>
       ${chips ? `<div class="ent-chips">${chips}</div>` : ''}

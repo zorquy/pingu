@@ -54589,3 +54589,55 @@ Tiendas entre Eventos y Gente arriba y en el menú, /tiendas sin `data-detalle`,
 `esNueva` antes y después de su día, la burbuja de /foro (orden, calendario,
 tienda, punto dentro del botón), /tiendas marcada en la burbuja y en la lateral
 con «Nuevo», y la bienvenida de Comunidad con cuatro filas.
+
+## Tanda 1243 — Una tienda se reconoce por su nombre
+
+La propuesta con imágenes (https://claude.ai/artifact/T8GdKVoeiWuiMBePUHS9t8),
+aprobada por PINGU. Una cosa no aplica: una cuenta de tienda no escribe en el
+foro (solo tiene su panel, 1071), así que no hay chapa bajo el nombre allí.
+
+**El color**: el verde azulado es el único que no dice ya otra cosa (azul,
+persona; ámbar, administración; morado, moderación; las secciones tienen los
+suyos, y el verde de Aprender es más amarillento). `#0a7480` en claro (5,5:1
+sobre blanco) y `#3cc8c0` en oscuro (7,7:1 sobre `--white`). Es un escalón más
+de `ESCALA` en `js/rangos.js`, con `valor` porque no es un booleano
+(`tipo = 'tienda'`), y va el ÚLTIMO: si una cuenta fuese tienda y del equipo,
+manda el equipo, pero el icono se pone igual.
+
+**El icono**: `[data-nombre-tienda]::after` en style.css pinta la tienda de
+js/icons.js con una máscara en `currentColor` (sigue el color del nombre y su
+tamaño de letra). Un ATRIBUTO y no la clase `rango-tienda`: `atributosDeRango`
+devuelve `class=…` y media web lo pone en etiquetas que ya traen su `class`; de
+dos, el navegador se queda con la primera, y el icono se habría perdido justo en
+Gente, la tarjeta flotante o el foro de las guías. Y no `data-tienda`, que ya
+usan `body` (modo tienda de Mi colección) y la fila de Mensajes.
+
+**Dónde llega**: donde ya se pintaba un rango, sin tocar pantalla a pantalla,
+porque `COLUMNAS_RANGO` pide ahora `tipo` (la columna es de la 1067 y se lee
+sin permiso por columnas). Las pantallas que solo enseñan tiendas y reciben
+filas de una RPC sin `tipo` (agenda, franja del Mercado, «En tiendas», el h1 del
+escaparate) ponen `ATRIBUTOS_DE_TIENDA`. La franja del Mercado llevaba el rango
+en la tarjeta entera (el enlace): ahora va en el nombre. La lista de Mensajes
+pinta el nombre con su rango (antes no lo llevaba). Las @menciones, por DOM, con
+`dataset.nombreTienda`.
+
+**La dirección**: `/tiendas/<usuario>` es la misma ficha (`usuario.html`,
+netlify.toml y `profileParamsFromLocation`). El 301 lo hace meta-social antes de
+servir (`redireccionDePerfil` → `destinoDePerfil`, pura): `/usuario/<tienda>` →
+`/tiendas/<tienda>` y `/tiendas/<persona>` → `/usuario/<persona>`, con la
+consulta (los QR impresos llevan `?utm_source=qr`, y el Panel cuenta las visitas
+que llegan del QR). Solo con la dirección bonita; si la base no contesta, la
+página se sirve donde se pidió. Lo que llegue por `usuario.html?u=` lo corrige
+usuario.js con `replaceState` (sin `u`/`id`). La canónica, la descripción y la
+tarjeta del enlace de una tienda dicen «Tienda» y su dirección nueva.
+`profileUrl` elige por `tipo`; quien no lo pida cae en /usuario/ y el 301 la
+lleva. `tienda-puertas` deja a la tienda abrir `/tiendas/<suyo>` (y no
+`/tiendas` ni otra), y page-views junta `/tiendas/<x>` con «/usuario» por lo
+mismo que los perfiles: no guardar quién mira a quién.
+
+**Pruebas** (rama pruebas): `test-tanda-1243-pantalla.mjs` — la regla (tienda,
+persona, tienda del equipo), las cinco direcciones de `destinoDePerfil`, las
+puertas de la tienda, netlify.toml y meta-social; el escaparate en
+`/tiendas/rincon` con el color y el icono en claro y oscuro y su contraste,
+`/usuario/rincon?utm_source=qr` corregido en la barra, la propia tienda en su
+dirección, y la agenda enlazando a `/tiendas/rincon?lista=1`.

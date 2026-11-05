@@ -40,6 +40,7 @@
   /* S780.2 */
   --rango-admin: #a1560a;
   --rango-moderador: #7040b8;
+  --rango-tienda: #0a7480;
   /* S780.3 */
   --danger-solid: #dc2626;
   /* El blanco que NO es el del tema (tanda 315) (el porqué, en SCHEMA.md: tanda 359) */
@@ -138,6 +139,7 @@ html[data-seccion='jugar'] { --acento: #5f43d9; }
   /* Los rangos, aclarados para el fondo oscuro (tanda 386). */
   --rango-admin: #f0a63a;
   --rango-moderador: #b389ee;
+  --rango-tienda: #3cc8c0;
   --navy-light: #63a8d6;
   --navy-dark: #3a76a3;
   --ice: #1d2d3b;
@@ -2004,4 +2006,18 @@ html.uv-actualizando .page-content h1::after { content: ''; display: inline-bloc
   .hero-portada {
     padding: var(--e-2xl) 0 var(--e-2xl);
   }
+}
+
+/* El icono de tienda detrás de su nombre (1243, js/rangos.js). */
+[data-nombre-tienda]::after {
+  --dibujo: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3 9l1.5-5h15L21 9'/%3E%3Cpath d='M3 9h18v1.5a3 3 0 0 1-6 0 3 3 0 0 1-6 0 3 3 0 0 1-6 0z'/%3E%3Cpath d='M5 13v8h14v-8'/%3E%3Cpath d='M10 21v-5h4v5'/%3E%3C/svg%3E");
+  content: '';
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-left: 0.25em;
+  vertical-align: -0.1em;
+  background: currentColor;
+  -webkit-mask: var(--dibujo) center / contain no-repeat;
+  mask: var(--dibujo) center / contain no-repeat;
 }

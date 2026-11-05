@@ -21,7 +21,7 @@
 // de la página —las cartas en memoria, los precios, tus deseos— llega por el
 // contexto: este módulo no toca `user_wants` por su cuenta.
 import { escapeHtml, avatarStyle, getInitial, profileUrl } from '../app.js'
-import { atributosDeRango } from '../rangos.js'
+import { atributosDeRango, ATRIBUTOS_DE_TIENDA } from '../rangos.js'
 import { icons } from '../icons.js'
 import { nombreDeVariante } from './variantes.js'
 import { ICONOS_COLECCION } from './iconos.js'
@@ -318,9 +318,9 @@ function tarjetaDeTiendaHtml(t, { cuentas = false } = {}) {
   const nombre = t.display_name || t.username || 'Tienda'
   const tuyas = Number(t.de_tu_lista) || 0
   const lineas = [cuentas && Number(t.cartas) ? `${miles(Number(t.cartas))} ${Number(t.cartas) === 1 ? 'carta' : 'cartas'}` : '', tuyas ? `<em>${tuyas === 1 ? '1 de tu lista' : `${tuyas} de tu lista`}</em>` : ''].filter(Boolean)
-  return `<a class="mc-tienda-tarjeta" href="/usuario/${encodeURIComponent(t.username || '')}${tuyas ? '?lista=1' : ''}"${atributosDeRango(t)}>
+  return `<a class="mc-tienda-tarjeta" href="/tiendas/${encodeURIComponent(t.username || '')}${tuyas ? '?lista=1' : ''}">
     <span class="mc-tienda-logo" style="${t.avatar_url ? avatarStyle(t) : ''}">${t.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
-    <span class="mc-tienda-datos"><strong>${escapeHtml(nombre)}</strong>${t.ciudad ? `<small>${escapeHtml(t.ciudad)}</small>` : ''}${lineas.length ? `<span class="mc-tienda-cuentas">${lineas.join(' · ')}</span>` : ''}</span>
+    <span class="mc-tienda-datos"><strong${ATRIBUTOS_DE_TIENDA}>${escapeHtml(nombre)}</strong>${t.ciudad ? `<small>${escapeHtml(t.ciudad)}</small>` : ''}${lineas.length ? `<span class="mc-tienda-cuentas">${lineas.join(' · ')}</span>` : ''}</span>
   </a>`
 }
 

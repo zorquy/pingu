@@ -162,7 +162,7 @@ export async function dibujarRecibo({ lineas, perfil, tienda, compra = false }) 
   ctx.fillText(compra ? '¡Gracias por confiar en nosotros!' : '¡Gracias por tu compra!', 72, alto - 86)
   ctx.fillStyle = C.marca
   ctx.font = `500 26px ${LETRA}`
-  ctx.fillText(`pokedoc.es/usuario/${perfil.username || ''}`, 72, alto - 46)
+  ctx.fillText(`pokedoc.es/tiendas/${perfil.username || ''}`, 72, alto - 46)
   ctx.textAlign = 'right'
   ctx.font = `700 34px ${TITULO}`
   ctx.fillStyle = C.tinta

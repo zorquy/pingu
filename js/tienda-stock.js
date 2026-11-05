@@ -1085,7 +1085,7 @@ async function abrirEtiquetas() {
   if (!filas.length) return
   const m = await import('./tienda-etiquetas.js')
   for (const f of filas) f.detalle = m.detalleDeEtiqueta(f, { codigo: f._codigo, nombreSet: f._set })
-  const base = `https://pokedoc.es/usuario/${encodeURIComponent(perfil?.username || '')}`
+  const base = `https://pokedoc.es/tiendas/${encodeURIComponent(perfil?.username || '')}`
   m.abrirEtiquetas({ filas, enlaceDe: (f) => (f.card_id ? `${base}?carta=${encodeURIComponent(f.card_id)}` : base), nombreFichero: `etiquetas-${perfil?.username || 'tienda'}-${new Date().toISOString().slice(0, 10)}` })
 }
 

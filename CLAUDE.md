@@ -117,7 +117,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   una página de Comunidad (1242, PINGU): Foro · Eventos · Tiendas · Gente en
   las barras de cada HTML, y una página recién llegada a una sección lleva
   «Nuevo» unas semanas por `js/paginas-nuevas.js` (`NUEVA_HASTA`), no con
-  texto en el enlace: la burbuja y la lateral leen su `textContent`. Y el recibo (1084)
+  texto en el enlace: la burbuja y la lateral leen su `textContent`. Y una tienda se
+  reconoce por su nombre (1243): es el rango `tienda` de `js/rangos.js` (verde
+  azulado, `--rango-tienda`) con su icono por `data-nombre-tienda` (style.css),
+  y su escaparate vive en `/tiendas/<usuario>` (`profileUrl`; meta-social manda
+  ahí con un 301 desde `/usuario/`). Un enlace nuevo a una tienda pasa por
+  `profileUrl` o `enlaceDeTienda`, nunca un `/usuario/` escrito a mano; y una
+  pantalla que solo pinta tiendas pone `ATRIBUTOS_DE_TIENDA` en el nombre. Y el recibo (1084)
   no lleva NUNCA el coste ni el beneficio: es para quien compra. «Avisar a los
   que la buscan» (1089) pasa por `tienda_avisar`: uno por persona, carta y
   tienda (`tienda_avisos`, sin políticas: la tienda solo ve CUÁNTOS, por

@@ -58,7 +58,7 @@ function filaDeConversacion(c, miId, actual = null) {
       <a class="msg-fila${c.conversationId === actual ? ' activa' : ''}${c.noLeidos ? ' noleida' : ''}" href="/mensajes.html?c=${c.conversationId}"${c.conversationId === actual ? ' aria-current="page"' : ''} data-nombre="${escapeHtml(name.toLowerCase())}"${c.noLeidos ? ' data-sin-leer' : ''}${c.conTrato ? ' data-trato' : ''}${p?.tipo === 'tienda' ? ' data-tienda' : ''}>
         <span class="mini-avatar msg-fila-avatar" style="${avatarStyle(p)}"${p?.id ? ` data-en-linea="${escapeHtml(p.id)}"` : ''}>${p?.avatar_url ? '' : getInitial(name)}</span>
         <span class="msg-fila-cuerpo">
-          <span class="msg-fila-nombre"><strong>${escapeHtml(name)}</strong>${c.fijadaAt ? `<i class="msg-fijada" title="Fijada">${icons.pin(13)}</i>` : ''}${c.lastMessage ? `<time>${timeAgo(c.lastMessage.created_at)}</time>` : ''}</span>
+          <span class="msg-fila-nombre"><strong${atributosDeRango(p)}>${escapeHtml(name)}</strong>${c.fijadaAt ? `<i class="msg-fijada" title="Fijada">${icons.pin(13)}</i>` : ''}${c.lastMessage ? `<time>${timeAgo(c.lastMessage.created_at)}</time>` : ''}</span>
           <span class="msg-fila-ultimo">${vistoMio ? `<i class="msg-check">${icons.checkCircle(13)}</i>` : ''}${ultimo.foto ? `<i class="msg-foto-ico">${icons.image(13)}</i>` : ''}<span>${escapeHtml(ultimo.texto)}</span></span>
         </span>
         ${c.noLeidos ? `<span class="msg-noleidos" aria-label="${c.noLeidos} sin leer">${c.noLeidos > 99 ? '99+' : c.noLeidos}</span>` : ''}

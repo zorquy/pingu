@@ -231,8 +231,12 @@ export function slugify(text) {
     .slice(0, 80)
 }
 
+// Una tienda vive en /tiendas/<usuario> (1243): su escaparate cuelga de la agenda.
+// Quien no pida `tipo` (COLUMNAS_RANGO lo trae) cae en /usuario/, y el servidor
+// la manda a /tiendas/ con un 301.
 export function profileUrl(p) {
-  return p?.username ? `/usuario/${encodeURIComponent(p.username)}` : `/usuario.html?id=${p?.id}`
+  if (!p?.username) return `/usuario.html?id=${p?.id}`
+  return `/${p.tipo === 'tienda' ? 'tiendas' : 'usuario'}/${encodeURIComponent(p.username)}`
 }
 
 // El redirect de netlify.toml reescribe /usuario/<nombre> a
@@ -243,7 +247,7 @@ export function profileUrl(p) {
 export function profileParamsFromLocation() {
   const params = new URLSearchParams(window.location.search)
   // /evento/<usuario> (1029) es la misma ficha, abierta por Cambios y con el cruce.
-  const pathMatch = window.location.pathname.match(/\/(?:usuario|evento)\/([^/?#]+)/)
+  const pathMatch = window.location.pathname.match(/\/(?:usuario|evento|tiendas)\/([^/?#]+)/)
   return {
     username: pathMatch ? decodeURIComponent(pathMatch[1]) : params.get('u'),
     id: params.get('id'),

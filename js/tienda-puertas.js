@@ -16,7 +16,8 @@ const SUYAS = ['tienda', 'cartas', 'mensajes', 'privacidad', 'terminos', 'sobre'
 export function puedeAbrirTienda(ruta, buscar, tienda) {
   const tramos = String(ruta || '/').replace(/\.html$/, '').split('/').filter(Boolean)
   const k = (tramos[0] || 'index').toLowerCase()
-  if (k !== 'usuario') return SUYAS.includes(k)
+  // Su escaparate vive en /tiendas/<usuario> desde la 1243 (y /usuario/ lo manda allí).
+  if (k !== 'usuario' && !(k === 'tiendas' && tramos[1])) return SUYAS.includes(k)
   // Su perfil sí (es su escaparate), el de otra persona no.
   const p = new URLSearchParams(buscar || '')
   const u = tramos[1] ? decodeURIComponent(tramos[1]) : p.get('u')

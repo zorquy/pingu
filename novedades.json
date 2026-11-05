@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-05",
+      "tipo": "mejora",
+      "texto": "Las tiendas se reconocen de un vistazo: su nombre va en verde azulado con un iconito de tienda, en Mensajes, Gente, el Mercado y donde salgan. Y su escaparate tiene dirección propia: pokedoc.es/tiendas/su-nombre (los QR de antes siguen funcionando).",
+      "enlace": "/tiendas"
+    },
+    {
+      "fecha": "2026-11-05",
       "tipo": "nuevo",
       "texto": "Las tiendas tienen su sitio en Comunidad, entre Eventos y Gente: su escaparate, dónde están y, arriba, las que tienen algo de tu lista. Y Eventos lleva ya el icono del calendario.",
       "enlace": "/tiendas"

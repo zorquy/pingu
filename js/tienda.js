@@ -89,7 +89,7 @@ let qrMontado = false
 async function montarEscaparateSiToca(v) {
   if (v !== 'escaparate' || qrMontado || !perfil?.username) return
   qrMontado = true
-  const url = `https://pokedoc.es/usuario/${encodeURIComponent(perfil.username)}`
+  const url = `https://pokedoc.es/tiendas/${encodeURIComponent(perfil.username)}`
   const { svgQR } = await import('./qr.js')
   // El QR lleva `utm_source=qr`: el Panel cuenta aparte las visitas que llegan de él (1073).
   $('tdQr').innerHTML = svgQR(`${url}?utm_source=qr`, { tam: 220 })

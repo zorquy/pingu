@@ -134,6 +134,7 @@ export function enlazarMenciones(html, perfilesPorNombre) {
         a.setAttribute('style', estilo)
         a.title = nombreDeRango(perfil)
       }
+      if (perfil.tipo === 'tienda') a.dataset.nombreTienda = ''
       a.href = profileUrl(perfil)
       a.textContent = `@${perfil.username}`
       trozos.appendChild(a)

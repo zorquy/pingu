@@ -47,7 +47,7 @@ export function normalizePath(pathname, search = '') {
   // Se juntan todos en "/usuario" A PROPÓSITO: guardar a quién ha mirado
   // cada persona sería un registro de quién vigila a quién, y para saber
   // si la gente usa los perfiles basta con el total.
-  if (ruta === '/usuario' || ruta.startsWith('/usuario/')) return '/usuario'
+  if (ruta === '/usuario' || ruta.startsWith('/usuario/') || ruta.startsWith('/tiendas/')) return '/usuario'
 
   // Los temas del foro se juntan todos en "/tema", y aquí la razón es
   // otra: la ruta es un uuid. Una tabla con cincuenta filas de

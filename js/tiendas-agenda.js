@@ -7,6 +7,7 @@
 import { supabase } from './supabase.js'
 import { escapeHtml, urlParaCss } from './html.js'
 import { profileUrl } from './app.js'
+import { ATRIBUTOS_DE_TIENDA } from './rangos.js'
 
 const POR_PAGINA = 24
 const $ = (id) => document.getElementById(id)
@@ -24,12 +25,12 @@ export function tarjetaDeAgendaHtml(t) {
   const tuyas = Number(t.de_tu_lista) || 0
   const lo = [cartas ? `${miles(cartas)} ${cartas === 1 ? 'carta' : 'cartas'}` : '', productos ? `${miles(productos)} ${productos === 1 ? 'producto' : 'productos'}` : ''].filter(Boolean).join(' · ')
   const donde = [t.ciudad, t.con_local ? 'Con local' : null].filter(Boolean).join(' · ')
-  const enlace = `${profileUrl(t)}${tuyas ? '?lista=1' : ''}`
+  const enlace = `${profileUrl({ ...t, tipo: 'tienda' })}${tuyas ? '?lista=1' : ''}`
   return `<a class="tag-tarjeta" href="${escapeHtml(enlace)}">
     <span class="tag-portada"${portada ? ` style="background-image:url('${portada}')"` : ''}></span>
     <span class="tag-dentro">
       <span class="tag-logo"${logo ? ` style="background-image:url('${logo}')"` : ''}>${logo ? '' : escapeHtml(nombre.slice(0, 1).toUpperCase())}</span>
-      <strong class="tag-nombre">${escapeHtml(nombre)}</strong>
+      <strong class="tag-nombre"${ATRIBUTOS_DE_TIENDA}>${escapeHtml(nombre)}</strong>
       ${donde ? `<small class="tag-donde">${escapeHtml(donde)}</small>` : ''}
       <span class="tag-cuentas">${lo ? `<span class="tag-chip-dato">${escapeHtml(lo)}</span>` : '<span class="tag-chip-dato">Aún sin cartas a la vista</span>'}${tuyas ? `<span class="tag-chip-dato tag-tuyas">${tuyas === 1 ? '1 de tu lista' : `${tuyas} de tu lista`}</span>` : ''}</span>
     </span>

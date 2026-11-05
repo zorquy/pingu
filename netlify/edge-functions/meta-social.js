@@ -687,17 +687,20 @@ async function metaDePerfil(url) {
   // El nombre puede venir por la URL bonita (/usuario/pepe) o por el
   // parámetro (/usuario.html?u=pepe), según en qué orden aplique Netlify
   // la reescritura. Se aceptan los dos.
-  const enRuta = url.pathname.match(/^\/usuario\/([^/?#]+)/)
+  // El escaparate de una tienda vive en /tiendas/<usuario> (1243).
+  const enRuta = url.pathname.match(/^\/(?:usuario|tiendas)\/([^/?#]+)/)
   const nombre = enRuta ? decodeURIComponent(enRuta[1]) : url.searchParams.get('u')
   if (!nombre) return null
   const perfil = await pedir(
-    `user_profiles?username=eq.${encodeURIComponent(nombre)}&select=username,display_name,bio,avatar_url,total_xp&limit=1`
+    `user_profiles?username=eq.${encodeURIComponent(nombre)}&select=username,display_name,bio,avatar_url,total_xp,tipo&limit=1`
   )
   if (!perfil?.username) return null
 
   const visible = perfil.display_name || perfil.username
   const avatar = urlAbsoluta(perfil.avatar_url)
-  const canonica = `${SITIO}/usuario/${encodeURIComponent(perfil.username)}`
+  const tienda = perfil.tipo === 'tienda'
+  const camino = `${tienda ? 'tiendas' : 'usuario'}/${encodeURIComponent(perfil.username)}`
+  const canonica = `${SITIO}/${camino}`
   return {
     url: canonica,
     datos: {
@@ -717,7 +720,7 @@ async function metaDePerfil(url) {
     tipo: 'profile',
     titulo: `${visible} — PokeDoc`,
     descripcion:
-      recortar(perfil.bio) || `Perfil de ${visible} en PokeDoc: sus guías, sus logros y su muro.`,
+      recortar(perfil.bio) || (tienda ? `${visible} en PokeDoc: su escaparate, sus cartas y dónde está.` : `Perfil de ${visible} en PokeDoc: sus guías, sus logros y su muro.`),
     imagen: avatar || IMAGEN_POR_DEFECTO,
     // Un avatar es cuadrado: pedirle a Twitter una tarjeta panorámica con
     // una foto cuadrada la deja recortada por arriba y por abajo. (Con la
@@ -725,11 +728,11 @@ async function metaDePerfil(url) {
     imagenCuadrada: !!avatar,
     tarjeta: {
       seccion: 'comunidad',
-      chapa: 'Perfil',
+      chapa: tienda ? 'Tienda' : 'Perfil',
       titulo: `*${visible}*`,
-      entradilla: `${nivelDeXp(perfil.total_xp).level} · @${perfil.username}`,
+      entradilla: tienda ? `Tienda · @${perfil.username}` : `${nivelDeXp(perfil.total_xp).level} · @${perfil.username}`,
       linea: recortar(perfil.bio, 90),
-      enlace: `pokedoc.es/usuario/${perfil.username}`,
+      enlace: `pokedoc.es/${tienda ? 'tiendas' : 'usuario'}/${perfil.username}`,
       pieza: { tipo: 'avatar', src: avatar, inicial: visible.trim().charAt(0).toUpperCase() },
     },
   }
@@ -1451,7 +1454,7 @@ async function metaDeRuta(url) {
   if (ruta.startsWith('/categoria')) return metaDeCategoria(url)
   // El tema vive en /aprender?tema=… desde la 863 (/categoria redirige).
   if (/^\/aprender(\.html)?$/.test(ruta) && url.searchParams.get('tema')) return metaDeCategoria(url)
-  if (ruta.startsWith('/usuario')) return metaDePerfil(url)
+  if (ruta.startsWith('/usuario') || ruta.startsWith('/tiendas/')) return metaDePerfil(url)
   if (ruta.startsWith('/tema')) return metaDeTema(url)
   if (ruta.startsWith('/foro')) return metaDeForo(url)
   // Con cuidado: '/torneos' (la lista) también empieza por '/torneo'.
@@ -1468,7 +1471,32 @@ export async function calcularMeta(url) {
 }
 export { metaDeRuta }
 
+// Una tienda vive en /tiendas/<usuario> y una persona en /usuario/<usuario>
+// (1243): la otra dirección manda a la buena con un 301, conservando la
+// consulta (el `?utm_source=qr` de los QR impresos, `?carta=`). Solo con la
+// dirección bonita: lo que llega como usuario.html?u= lo arregla la página.
+export function destinoDePerfil(url, tipo) {
+  const m = url.pathname.match(/^\/(usuario|tiendas)\/([^/?#]+)\/?$/)
+  if (!m || !tipo) return null
+  const quiere = tipo === 'tienda' ? 'tiendas' : 'usuario'
+  return m[1] === quiere ? null : `${url.origin}/${quiere}/${m[2]}${url.search}`
+}
+
+async function redireccionDePerfil(url) {
+  const m = url.pathname.match(/^\/(usuario|tiendas)\/([^/?#]+)\/?$/)
+  if (!m) return null
+  const perfil = await pedir(`user_profiles?username=eq.${encodeURIComponent(decodeURIComponent(m[2]))}&select=tipo&limit=1`)
+  return destinoDePerfil(url, perfil ? perfil.tipo || 'persona' : null)
+}
+
 export default async (request, context) => {
+  try {
+    const destino = await redireccionDePerfil(new URL(request.url))
+    if (destino) return Response.redirect(destino, 301)
+  } catch {
+    // Sin respuesta de la base, la página se sirve donde se pidió: el perfil
+    // se ve igual en las dos direcciones.
+  }
   const respuesta = await context.next()
 
   // Solo se toca HTML. Cualquier otra cosa (un 404, una redirección, un
@@ -1521,6 +1549,8 @@ export const config = {
     '/aprender',
     '/usuario.html',
     '/usuario/*',
+    // El escaparate de una tienda (1243), y su redirección desde /usuario/.
+    '/tiendas/*',
     '/tema.html',
     '/tema/*',
     '/foro.html',

@@ -4,6 +4,45 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (485) — PINGU-Claude (1243 — una tienda se reconoce por su nombre)
+
+**Hecho**: la propuesta https://claude.ai/artifact/T8GdKVoeiWuiMBePUHS9t8, que
+PINGU aprobó («me gusta lo que me has propuesto… dale»). Lo del foro no aplica:
+una cuenta de tienda no escribe en el foro (PINGU), así que no hay chapa
+«Tienda · ciudad» bajo el nombre.
+- **El nombre**: la tienda es un rango más en `js/rangos.js` (`tipo = 'tienda'`,
+  detrás del equipo), en verde azulado (`--rango-tienda`, #0a7480 / #3cc8c0) y
+  con el icono de tienda detrás, que dibuja `[data-nombre-tienda]::after` en
+  style.css (un atributo y no una clase: media web pone `atributosDeRango` en
+  etiquetas con `class`). `COLUMNAS_RANGO` pide `tipo`. Las pantallas que solo
+  pintan tiendas (agenda, franja del Mercado, «En tiendas», escaparate) usan
+  `ATRIBUTOS_DE_TIENDA`; la lista de Mensajes pinta ya su nombre con su rango; las
+  @menciones llevan el atributo.
+- **La dirección**: el escaparate vive en `/tiendas/<usuario>` (netlify.toml lo
+  sirve con usuario.html). meta-social manda `/usuario/<tienda>` a la nueva con
+  un 301 conservando la consulta (`?utm_source=qr` de los QR impresos), y
+  `/tiendas/<persona>` a `/usuario/` (`destinoDePerfil`); su canónica y su
+  tarjeta dicen «Tienda». `profileUrl` lleva a una tienda a /tiendas/, y también
+  el QR del Escaparate, las etiquetas, el recibo, «Tu perfil público», el alta,
+  la tarjeta flotante y «Su tienda». usuario.js corrige la barra si llega por
+  otro camino; tienda-puertas deja a la tienda abrir su escaparate nuevo; la
+  analítica lo junta con «/usuario» (sin quién mira a quién).
+
+**Ficheros**: `js/rangos.js`, `css/style.css`, `js/app.js`, `js/menciones.js`,
+`js/mensajes.js`, `js/mi-coleccion/mercado.js`, `js/tiendas-agenda.js`,
+`js/en-tiendas.js`, `js/perfil-tienda.js`, `js/usuario.js`, `js/hovercard.js`,
+`js/tienda.js`, `js/tienda-stock.js`, `js/tienda-recibo.js`, `js/menu-tu.js`,
+`js/alta-tienda.js`, `js/tienda-puertas.js`, `js/page-views.js`,
+`netlify/edge-functions/meta-social.js`, `netlify.toml`, SCHEMA, CLAUDE.md,
+novedades. Rama pruebas: `test-tanda-1243-pantalla.mjs` (nueva),
+`herramientas/servir.py` (la reescritura de /tiendas/) y la dirección nueva en
+1067, 1069, 1071, 1073 y 1236. Verdes: 1243, 1242, 1067, 1069, 1071, 1073, 1236,
+1140, 906, 1201, 299, `test-imports`. Rojos de antes, iguales sin esta tanda:
+805 (los `url(` de tiendas/eventos), 1157 (la hoja de Instagram) y 386.
+Sin migración.
+
+**Pendiente**: lo de la 475.
+
 ## 2026-11-05 (484) — PINGU-Claude (1242 — Tiendas en Comunidad)
 
 **Hecho**: PINGU: «me parece bien hacer un nuevo apartado para las tiendas en

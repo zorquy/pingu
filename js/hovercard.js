@@ -55,7 +55,7 @@ async function abrir(enlace, username) {
   tarjeta.innerHTML = `
     <span class="hovercard-avatar" style="${avatarStyle(perfil)}">${perfil.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
     <div class="hovercard-datos">
-      <a class="hovercard-nombre" href="/usuario/${encodeURIComponent(perfil.username)}"${atributosDeRango(perfil)}>${escapeHtml(nombre)}</a>
+      <a class="hovercard-nombre" href="/${perfil.tipo === 'tienda' ? 'tiendas' : 'usuario'}/${encodeURIComponent(perfil.username)}"${atributosDeRango(perfil)}>${escapeHtml(nombre)}</a>
       <span class="hovercard-linea">${levelBadgeHtml(perfil.level, 11)} · ${perfil.total_xp || 0} XP</span>
       ${Number.isFinite(perfil.forum_post_count) ? `<span class="hovercard-linea subtext">Mensajes en el foro: ${perfil.forum_post_count}</span>` : ''}
       ${perfil.bio ? `<span class="hovercard-bio">${escapeHtml(perfil.bio).slice(0, 90)}</span>` : ''}

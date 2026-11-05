@@ -372,6 +372,11 @@ async function init() {
   // Una TIENDA (1069) no tiene el perfil de una persona: su perfil es su
   // escaparate, sin vitrina, guías, foro, torneos ni medallas.
   if (profile?.tipo === 'tienda') {
+    // Su dirección es /tiendas/<usuario> (1243). El servidor ya manda ahí con un
+    // 301; esto cubre lo que llegue por otro camino (usuario.html?u=…).
+    if (profile.username && !location.pathname.startsWith('/tiendas/') && !location.pathname.startsWith('/evento/')) {
+      try { history.replaceState(history.state, '', `/tiendas/${encodeURIComponent(profile.username)}${location.search.replace(/([?&])(u|id)=[^&]*&?/g, '$1').replace(/[?&]$/, '')}${location.hash}`) } catch {}
+    }
     const main = document.querySelector('main')
     // Ancha en el PC (1078): fuera la rejilla de dos columnas del perfil de
     // una persona, que la dejaba en la columna estrecha.

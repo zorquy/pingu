@@ -87,7 +87,7 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
   // lleva a su panel, y sin Ajustes ni Ko-fi (la web de una persona).
   const tienda = profile?.tipo === 'tienda'
   // Su escaparate, con texto fijo (sin nombre que pintar con su rango, 386).
-  const miEscaparate = `/usuario/${encodeURIComponent(profile?.username || '')}`
+  const miEscaparate = `/tiendas/${encodeURIComponent(profile?.username || '')}`
   const quien = tienda ? lineaDeQuien({ usuario: profile?.username, nivel: 'Tienda' }) : lineaDeQuien({ usuario: profile?.username, nivel, racha: Number(profile?.current_streak) || 0 })
   const oscuro = doc.documentElement.dataset.theme === 'dark'
   // Las seis baldosas (918): avisos y mensajes con lo que tienes sin leer
