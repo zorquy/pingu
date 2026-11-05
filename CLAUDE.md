@@ -157,6 +157,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (Bizum, PayPal) va en `tienda_cobros`, que es privada; nunca en `tiendas`,
   que la lee cualquiera. Un paso nuevo de una oferta deja su mensaje por
   `tienda_oferta_avisar` y su frase en `puntoDeOferta` / `textoDePaso`.
+  El Panel de una tienda (1252) es una CARTERA como la de Mi colección (lo
+  vendido en grande en `.tdh-vendido`, periodos, gráfica y cuatro cifras) y
+  debajo lo que espera en PASTILLAS (`.tdh-pendientes`): lo que le toca a la
+  tienda (ofertas, fotos pedidas) va delante con `.tdh-pill-toca`; un pendiente
+  nuevo es una pastilla más en `pintarPendientes`, no otra tarjeta.
   «Pedir fotos» (1251) es `tienda_pedir_fotos`; al subirlas avisa el
   DISPARADOR de `tienda_stock_fotos` (`trg_tienda_fotos_subidas`), así que un
   camino nuevo para subir fotos de una copia no tiene que avisar a mano.

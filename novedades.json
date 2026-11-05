@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-05",
+      "tipo": "mejora",
+      "texto": "Tiendas: el Panel, nuevo. Lo vendido en grande con cómo va, cuatro cifras debajo, lo que te espera (ofertas y fotos pedidas) en pastillas arriba y cada carta con su foto.",
+      "enlace": "/para-tiendas"
+    },
+    {
+      "fecha": "2026-11-05",
       "tipo": "nuevo",
       "texto": "«Pedir fotos»: si una carta de una tienda no tiene fotos de verdad, pídeselas desde su ficha. A la tienda le llega en sus ofertas y en el chat, y te avisamos en cuanto las suba.",
       "enlace": "/tiendas"

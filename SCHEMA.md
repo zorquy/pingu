@@ -54979,3 +54979,31 @@ Las funciones:
   y `data-fotos-ver`).
 - `tienda-ofertas.js` (`fotosHtml`, `pedirFotos`, `subirFotos`).
 
+
+## Tanda 1252 — el Panel de una tienda, nuevo
+
+PINGU eligió lo recomendado de la propuesta de tiendas. El Panel (`js/tienda-hoy.js`)
+toma el molde del «A · Cartera» del Panel de Mi colección (1179):
+
+- **La cartera** (`.tdh-cartera`): `.tdh-vendido` (etiqueta, `b.tdh-vendido-cifra`
+  y `.tdh-vendido-sub` con la comparación `.tdh-sube`/`.tdh-baja` y el número de
+  ventas), los chips de periodo, la gráfica y `.tdh-cifras` con cuatro
+  `cifraHtml`: Beneficio, Margen medio, Valor del stock y Visitas (esta con la
+  clase `tdh-visitas`; el párrafo de antes se fue y sus reglas también).
+- **Lo que espera** (`.tdh-pendientes`): `.tdh-espera` (lo cuenta
+  `pintarPendientes` con dos consultas `head: true`: `tienda_ofertas` abiertas
+  en turno de la tienda y `tienda_fotos_pedidas` sin `atendida_at`; sin la 1250
+  o la 1251 la consulta falla y cuenta 0) y `.tdh-avisos`, las dos con
+  `display: contents` para que todas las pastillas vayan en una fila. Cada
+  pastilla lleva su número en `b.tdh-pill-n`; lo que espera a la tienda,
+  `.tdh-pill-toca` (`--rango-tienda`). Sin nada, la caja se esconde con `:has`.
+  En el móvil la fila se desliza de lado (`overflow-y: hidden`, la 1199).
+- **Fotos en las filas**: `fotoHtml(cardId)` (`span.tdh-foto`, 36 px y
+  245/342) con las cartas de `completarCartas` (`COLUMNAS_CARTA_DE_SET` y
+  `cadenaDeEscaneo`). OJO con las reglas viejas de las filas: cogían el primer
+  `span` como nombre; la foto lleva sus propias reglas (`li > span.tdh-foto`) y
+  el nombre de la demanda es `span:nth-child(2)`. En el móvil la demanda va sin
+  foto: con foto, nombre, corazón, «tienes» y «Avisar», el botón se salía 3 px.
+
+Prueba: `test-tanda-1252-pantalla.mjs` (cartera, pastillas y sus cuentas,
+fotos, nada se sale en el móvil, dos columnas en el PC).

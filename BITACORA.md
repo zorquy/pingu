@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (494) — PINGU-Claude (1252 — el Panel de una tienda, nuevo)
+
+**Hecho**: la cuarta tanda de la propuesta de tiendas («dale con lo
+recomendado»). El Panel con el molde de la cartera del Panel de Mi colección:
+- **Cartera** arriba: «Vendido hoy/esta semana…» en grande, cómo va contra el
+  periodo anterior y cuántas ventas; los periodos, la gráfica y debajo CUATRO
+  cifras: Beneficio, Margen medio, Valor del stock y Visitas (las visitas
+  dejan de ser un párrafo suelto y son una cifra más).
+- **Lo que espera, en pastillas**: ofertas por contestar (las suyas, abiertas
+  y en su turno) y fotos pedidas sin atender, del color de la tienda y
+  delante; después los avisos del stock con su número aparte. Las de ofertas
+  llevan a la pestaña Ofertas sin recargar. En el móvil, una fila que se
+  desliza.
+- **Filas con la foto** de la carta (36 px, hueco reservado) en lo que busca
+  la gente, últimas ventas, el top y lo que no rota; en el móvil la de «lo
+  que busca la gente» va sin foto para que «Avisar» no se salga.
+- «Últimas ventas» vacía lo dice en una línea.
+
+**Ficheros**: `js/tienda-hoy.js`, `css/tienda.css`, CLAUDE.md, SCHEMA,
+novedades. Rama pruebas: `test-tanda-1252-pantalla.mjs`; 1073 con lo vendido
+en `.tdh-vendido`.
+
+**Pendiente**: sin migración. PINGU, la 1250 y la 1251 siguen por ejecutar.
+Sigue la 1253 (SKU, código de barras y QR). Ojo: `test-tanda-1040-pantalla`
+da rojo en /glosario («lo primero, a 361 px», con cabecera y párrafo a la
+vista); no viene de aquí (glosario no carga nada de la tienda) y estaba antes:
+lo último que tocó /glosario fue la 1242/1244. La 311 sigue con sus tres rojos
+de siempre (auth.css, bienvenida-seccion.css, torneos.css).
+
 ## 2026-11-05 (493) — PINGU-Claude (1251 — «Pedir fotos» de una copia de una tienda)
 
 **Hecho**: la tercera tanda de la propuesta de tiendas. Va en el MISMO push

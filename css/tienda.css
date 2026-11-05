@@ -1612,9 +1612,6 @@ html:has(.tdvt-hoja[open]) { overflow: hidden; }
 .tdh-gris { background: var(--ice); color: var(--text-mid); }
 .tdh-bien { display: flex; gap: var(--e-sm); align-items: center; margin: 0; color: var(--success); font-size: var(--t-sm); }
 
-.tdh-visitas { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e-xs) var(--e-sm); margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
-.tdh-visitas b { color: var(--text); font-family: var(--font-display); font-size: var(--t-2xl); }
-.tdh-visitas small { width: 100%; font-size: var(--t-xs); }
 
 /* Las cifras de la 1083: lo más vendido, lo que no rota y el valor. */
 .tdh-tres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-md); align-items: start; margin-top: var(--e-md); }
@@ -1642,8 +1639,6 @@ html:has(.tdvt-hoja[open]) { overflow: hidden; }
 .tdh-valor svg { display: block; width: 100%; height: 100%; overflow: visible; }
 .tdh-valor-linea { fill: none; stroke: var(--acento); stroke-width: 2; vector-effect: non-scaling-stroke; stroke-linejoin: round; }
 .tdh-valor-area { fill: color-mix(in srgb, var(--acento) 14%, transparent); stroke: none; }
-.tdh-visitas small.tdh-sube { color: var(--success); }
-.tdh-visitas small.tdh-baja { color: var(--danger); }
 .tdh-sin { margin: 0; padding: var(--e-md) 0; color: var(--text-mid); font-size: var(--t-sm); }
 
 @media (max-width: 1100px) {
@@ -1662,6 +1657,60 @@ html:has(.tdvt-hoja[open]) { overflow: hidden; }
   .tdh-cifra { grid-template-columns: minmax(0, 1fr); padding: var(--e-md); }
   .tdh-cifra-icono { display: none; }
   .tdh-cifra b { font-size: var(--t-xl); }
+}
+
+/* ── El Panel nuevo (1252, PINGU: «que se viese más moderno, como el resto de
+   la web»): el molde del Panel de Mi colección. La CARTERA arriba (lo vendido
+   en grande, su gráfica y cuatro cifras sin caja propia), las pastillas de lo
+   que te espera y bloques iguales con la foto de cada carta. Va detrás de lo
+   de antes a propósito: lo pisa por orden. ── */
+.tdh-cartera { display: grid; gap: var(--e-md); padding: var(--e-lg); border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); }
+.tdh-cartera-cab { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: var(--e-md); }
+.tdh-vendido { display: grid; gap: var(--e-xs); min-width: 0; }
+.tdh-vendido small { color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.tdh-vendido-cifra { font-family: var(--font-display); font-size: var(--t-3xl); line-height: 1; font-variant-numeric: tabular-nums; }
+.tdh-vendido-sub { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); color: var(--text-mid); font-size: var(--t-xs); }
+.tdh-vendido-sub .tdh-sube, .tdh-vendido-sub .tdh-baja { padding: 2px var(--e-sm); border-radius: var(--radius-pill); font-weight: 700; }
+.tdh-vendido-sub .tdh-sube { background: var(--success-bg); color: var(--success); }
+.tdh-vendido-sub .tdh-baja { background: var(--danger-bg); color: var(--danger); }
+.tdh-grafica-cab { display: flex; align-items: center; margin: 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.tdh-grafica-cab .tdh-ir { letter-spacing: 0; text-transform: none; }
+.tdh-cartera .tdh-cifras { padding-top: var(--e-md); border-top: 1px solid var(--border); }
+.tdh-cartera .tdh-cifra { padding: var(--e-sm) var(--e-md); border: 0; border-radius: var(--radius-md); background: var(--ice); }
+.tdh-cartera .tdh-cifra-icono { width: 32px; height: 32px; background: var(--white); }
+.tdh-cartera .tdh-cifra b { font-size: var(--t-xl); }
+/* Lo que te espera: pastillas con su número, en una fila que se parte. */
+.tdh-pendientes { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.tdh-pendientes:not(:has(.tdh-aviso, .tdh-bien)) { display: none; }
+.tdh-espera, .tdh-pendientes .tdh-avisos { display: contents; }
+.tdh-pendientes .tdh-aviso { min-height: 40px; padding: 0 var(--e-md) 0 var(--e-xs); border-radius: var(--radius-pill); }
+.tdh-pendientes .tdh-aviso span { flex: none; }
+.tdh-pill-n { display: grid; place-items: center; min-width: 28px; height: 28px; padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--white); color: inherit; font-variant-numeric: tabular-nums; }
+.tdh-pill-toca { background: var(--rango-tienda); color: var(--blanco-fijo); }
+.tdh-pill-toca .tdh-pill-n { color: var(--rango-tienda); }
+.tdh-pendientes .tdh-bien { min-height: 40px; padding: 0 var(--e-md); border-radius: var(--radius-pill); background: var(--success-bg); }
+@media (pointer: coarse) { .tdh-pendientes .tdh-aviso { min-height: 44px; } }
+/* Los bloques, iguales: misma caja, y cada fila con la foto de su carta. */
+.tdh-dos { align-items: stretch; }
+.tdh-tres { align-items: stretch; margin-top: 0; }
+.tdh-tarjeta { border-radius: var(--radius-xl); }
+.tdh-foto { flex: none; width: 36px; aspect-ratio: 245 / 342; border-radius: var(--e-xs); background: var(--ice); overflow: hidden; }
+.tdh-foto img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.tdh-ultimas li, .tdh-demanda li, .tdh-top li, .tdh-quietas li { gap: var(--e-sm); }
+/* La foto no es el nombre: las reglas de antes cogían «el primer span» o
+   «todos los spans» de la fila y la estiraban. */
+.tdh-tarjeta li > span.tdh-foto { display: block; flex: none; width: 36px; }
+.tdh-demanda li > span:nth-child(2) { display: grid; flex: 1; min-width: 0; }
+@media (max-width: 600px) { .tdh-demanda li > span.tdh-foto { display: none; } }
+@media (max-width: 600px) {
+  .tdh-cartera { padding: var(--e-md); }
+  .tdh-vendido-cifra { font-size: var(--t-2xl); }
+  .tdh-cartera-cab .tdvt-chips { width: 100%; }
+  /* Las pastillas, en UNA fila que se desliza (1040): apiladas, cinco
+     avisos se comían media pantalla antes de lo que se viene a ver. */
+  .tdh-pendientes { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding-block: var(--e-xs); margin-inline: calc(-1 * var(--e-md)); padding-inline: var(--e-md); scrollbar-width: none; }
+  .tdh-pendientes::-webkit-scrollbar { display: none; }
+  .tdh-pendientes .tdh-aviso, .tdh-pendientes .tdh-bien { flex: none; white-space: nowrap; }
 }
 
 /* ── El stock, más claro (1077) ── */
