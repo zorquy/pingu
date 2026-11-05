@@ -91,7 +91,7 @@ const tarjetas = (p, sel) => p.$$eval(`${sel} .tag-tarjeta`, (xs) => xs.map((x) 
   nombre: x.querySelector('.tag-nombre')?.textContent, tienda: x.querySelector('.tag-nombre')?.hasAttribute('data-nombre-tienda'),
   href: x.querySelector('.tag-nombre-enlace')?.getAttribute('href'), linea: x.querySelector('.tag-linea')?.innerText.replace(/\s+/g, ' '),
   datos: x.querySelector('.tag-datos')?.innerText.replace(/\s+/g, ' '), estado: x.querySelector('.tag-estado')?.textContent || null,
-  cartas: [...x.querySelectorAll('.tag-carta')].map((c) => (c.querySelector('.tag-precio')?.textContent || '').replace(/\s/g, ' ')),
+  cartas: [...x.querySelectorAll('.tag-carta:not(.tag-carta-hueco)')].map((c) => (c.querySelector('.tag-precio')?.textContent || '').replace(/\s/g, ' ')),
   escribir: x.querySelector('.tag-botones a.btn-secondary')?.getAttribute('href') || null,
 })))
 const pastilla = (p, sel) => p.evaluate((s) => { const e = document.querySelector(s); return e && !e.hidden && e.classList.contains('btn-secondary') && parseFloat(getComputedStyle(e).borderTopLeftRadius) >= 20 && e.getBoundingClientRect().height >= 40 }, sel)
@@ -122,6 +122,18 @@ console.log('── 2. /tiendas en el PC ──')
   check('  …y «Ver más» en pastilla', await pastilla(p, '#tagRecienMas'))
   await p.click('#tagRecienMas'); await p.waitForTimeout(500)
   check('  …que pide más', (await llamadas(p, 'tiendas_recien')).at(-1)?.p_cuantas === 24)
+  // 1245 (PINGU: «que tengan o no tengan más o menos información sea el mismo
+  // tamaño para todo»): todas las tarjetas miden lo mismo, en los dos bloques,
+  // y los botones caen a la misma altura; las sin escaparate, con sus 4 huecos.
+  const igual = await p.evaluate(() => {
+    const ts = [...document.querySelectorAll('.tag-tarjeta:not(.skeleton)')]
+    return {
+      altos: [...new Set(ts.map((t) => Math.round(t.getBoundingClientRect().height)))],
+      botones: [...new Set(ts.map((t) => Math.round(t.getBoundingClientRect().bottom - t.querySelector('.tag-botones').getBoundingClientRect().top)))],
+      huecos: ts.map((t) => t.querySelectorAll('.tag-carta').length),
+    }
+  })
+  check('todas las tarjetas del mismo alto, con los botones abajo y cuatro sitios de carta', igual.altos.length === 1 && igual.botones.length === 1 && igual.huecos.every((n) => n === 4), JSON.stringify(igual))
   check('la invitación a las tiendas, abajo, a /para-tiendas', (await p.getAttribute('.tag-cta a', 'href')) === '/para-tiendas')
   if (process.env.OUT) await p.screenshot({ path: `${process.env.OUT}/1244-pc.png`, fullPage: true })
 
@@ -162,7 +174,7 @@ console.log('── 4. Sin la migración, sin respuesta y la dirección vieja �
   // Lo de la 1236: sin cifras, horario, destacadas ni «Recién llegado».
   const vieja = { total: 2, ciudades: { Bilbao: 2 }, tiendas: [{ user_id: 't1', username: 'ryu', display_name: 'RyuCards', ciudad: 'Bilbao', con_local: true, cartas: 3, productos: 0, de_tu_lista: 0 }, { user_id: 't2', username: 'norte', display_name: 'Norte', ciudad: 'Bilbao', con_local: false, cartas: 0, productos: 0, de_tu_lista: 0 }] }
   const { p, ctx, errs } = await abrir('/tiendas', { rpc: { tiendas_agenda: vieja } })
-  check('con la 1236: las tarjetas, sin cifras, sin chapa, sin cartas y sin tira', !errs.length && (await p.locator('#tagRejilla .tag-tarjeta').count()) === 2 && !(await p.isVisible('#tagCifras')) && (await p.locator('.tag-estado, .tag-carta').count()) === 0 && !(await p.isVisible('#tagRecien')) && !(await p.isVisible('[data-tag-filtro="abiertas"]')), errs.join(' | '))
+  check('con la 1236: las tarjetas, sin cifras, sin chapa, sin cartas y sin tira', !errs.length && (await p.locator('#tagRejilla .tag-tarjeta').count()) === 2 && !(await p.isVisible('#tagCifras')) && (await p.locator('.tag-estado, .tag-carta:not(.tag-carta-hueco)').count()) === 0 && !(await p.isVisible('#tagRecien')) && !(await p.isVisible('[data-tag-filtro="abiertas"]')), errs.join(' | '))
   check('  …y «Aún sin cartas a la vista» en la que no tiene', /Aún sin cartas a la vista/.test(await p.textContent('#tagRejilla')))
   await ctx.close()
 }
@@ -187,6 +199,8 @@ console.log('── 5. El móvil ──')
     titulo: Math.round(document.querySelector('.tag-banda-texto').getBoundingClientRect().width),
     tira: getComputedStyle(document.getElementById('tagTira')).overflowX,
   }))
+  const altos = await p.evaluate(() => [...new Set([...document.querySelectorAll('.tag-tarjeta:not(.skeleton)')].map((t) => Math.round(t.getBoundingClientRect().height)))])
+  check('en el móvil también, todas del mismo alto (1245)', altos.length === 1, JSON.stringify(altos))
   check('sin salirse de ancho, la primera tienda antes de 296 px', m.ancho <= 390 && m.primera <= 296, JSON.stringify(m))
   check('  …los chips en una fila, el título para el lector y la tira de lado', m.chips === 1 && m.titulo <= 1 && m.tira === 'auto', JSON.stringify(m))
   if (process.env.OUT) await p.screenshot({ path: `${process.env.OUT}/1244-movil.png` })
