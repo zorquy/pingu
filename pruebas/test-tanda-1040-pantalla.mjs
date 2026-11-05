@@ -35,7 +35,7 @@ const LISTAS = [
   ['/cartas', '#mcEstanteriaRejilla'],
   ['/foro', '.foro-calientes, .foro-seccion'],
   ['/usuarios', '.com-persona'],
-  ['/tiendas', '#tagRejilla .tag-tarjeta, #para-tiendas'],
+  ['/tiendas', '#tagRejilla .tag-tarjeta:not(.skeleton), #tagRejilla .tag-vacio'],
   ['/avisos', '.av-lista .nav-bell-item'],
   ['/torneos', '.torneos-rejilla > *'],
   ['/mis-partidas', '#partidasHero'],

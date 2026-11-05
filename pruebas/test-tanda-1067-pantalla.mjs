@@ -41,21 +41,21 @@ const rpcs = (p, nombre) => p.evaluate((n) => (window.__RPCS__ || []).filter((r)
 console.log('── 1. «Para tiendas» en el pie ──')
 {
   const conPie = readdirSync(REPO).filter((f) => f.endsWith('.html') && readFileSync(`${REPO}/${f}`, 'utf8').includes('class="pie-rejilla"'))
-  const sin = conPie.filter((f) => !readFileSync(`${REPO}/${f}`, 'utf8').includes('<a href="/tiendas">Para tiendas</a>'))
+  const sin = conPie.filter((f) => !readFileSync(`${REPO}/${f}`, 'utf8').includes('<a href="/para-tiendas">Para tiendas</a>'))
   check(`las ${conPie.length} páginas con pie lo llevan`, conPie.length >= 40 && !sin.length, sin.join(', '))
   const { p, ctx } = await abrir('/foro.html')
-  await p.locator('footer a[href="/tiendas"]').click()
-  await p.waitForURL(/\/tiendas/)
-  check('  …y lleva a /tiendas', /\/tiendas/.test(p.url()))
+  await p.locator('footer a[href="/para-tiendas"]').click()
+  await p.waitForURL(/\/para-tiendas/)
+  check('  …y lleva a /para-tiendas (1244: el formulario, en su página)', /\/para-tiendas/.test(p.url()))
   await ctx.close()
 }
 
 console.log('── 2. /tiendas: pedir acceso sin cuenta ──')
 {
-  const { p, ctx, errs } = await abrir('/tiendas.html', { sesion: 'none' })
+  const { p, ctx, errs } = await abrir('/para-tiendas.html', { sesion: 'none' })
   check('sin errores', !errs.length, errs.join(' | '))
-  // Desde la 1236 /tiendas es la agenda (`<h1>` «Tiendas») y lo de pedir acceso va debajo.
-  check('el título y los tres puntos, con su icono', (await p.textContent('h1')).trim() === 'Tiendas' && /¿Tienes una tienda/.test(await p.textContent('#para-tiendas')) && (await p.locator('.tiendas-punto').count()) === 3 && (await p.locator('.tiendas-icono svg').count()) === 3)
+  // Desde la 1244 pedir acceso tiene su página, /para-tiendas.
+  check('el título y los tres puntos, con su icono', (await p.textContent('h1')).trim() === 'Lleva tu tienda a PokeDoc' && (await p.locator('.tiendas-punto').count()) === 3 && (await p.locator('.tiendas-icono svg').count()) === 3)
   await p.click('#tiendasEnviar')
   check('vacío: dice qué falta y no manda nada', (await p.textContent('#tiendasError')) === 'Escribe el nombre de la tienda.' && !(await rpcs(p, 'tienda_pedir')).length)
   await p.fill('#tiendasNombre', 'El Rincón del Entrenador')
@@ -75,14 +75,14 @@ console.log('── 2. /tiendas: pedir acceso sin cuenta ──')
   await ctx.close()
 }
 {
-  const { p, ctx } = await abrir('/tiendas.html', { sesion: 'none', errores: { tienda_pedir: { code: 'P0001', message: 'Ahora mismo llegan demasiadas solicitudes. Prueba dentro de un rato.' } } })
+  const { p, ctx } = await abrir('/para-tiendas.html', { sesion: 'none', errores: { tienda_pedir: { code: 'P0001', message: 'Ahora mismo llegan demasiadas solicitudes. Prueba dentro de un rato.' } } })
   await p.fill('#tiendasNombre', 'Rincón'); await p.fill('#tiendasCiudad', 'Bilbao'); await p.fill('#tiendasEmail', 'a@b.es')
   await p.click('#tiendasEnviar'); await p.waitForTimeout(400)
   check('un no de la base se enseña tal cual y el formulario sigue', /demasiadas solicitudes/.test(await p.textContent('#tiendasError')) && (await p.isVisible('#tiendasForm')))
   await ctx.close()
 }
 {
-  const { p, ctx } = await abrir('/tiendas.html', { sesion: 'none' })
+  const { p, ctx } = await abrir('/para-tiendas.html', { sesion: 'none' })
   await p.fill('#tiendasNombre', 'Rincón'); await p.fill('#tiendasCiudad', 'Bilbao'); await p.fill('#tiendasEmail', 'a@b.es')
   await p.evaluate(() => { document.getElementById('tiendasPagina').value = 'http://spam' })
   await p.click('#tiendasEnviar'); await p.waitForTimeout(400)
@@ -90,7 +90,7 @@ console.log('── 2. /tiendas: pedir acceso sin cuenta ──')
   await ctx.close()
 }
 {
-  const { p, ctx } = await abrir('/tiendas.html', { sesion: 'none', movil: true })
+  const { p, ctx } = await abrir('/para-tiendas.html', { sesion: 'none', movil: true })
   const ancho = await p.evaluate(() => document.documentElement.scrollWidth)
   check('en el móvil no se sale de ancho', ancho <= 390, ancho)
   await ctx.close()
@@ -99,7 +99,7 @@ console.log('── 2. /tiendas: pedir acceso sin cuenta ──')
 console.log('── 3. /alta-tienda ──')
 {
   const { p, ctx, errs } = await abrir('/alta-tienda.html', { sesion: 'none' })
-  check('sin token: «no vale» y a pedir otra vez', !errs.length && (await p.isVisible('#altaInvalida')) && /no es de ninguna invitación/.test(await p.textContent('#altaInvalidaMotivo')) && (await p.getAttribute('#altaInvalida a', 'href')) === '/tiendas', errs.join(' | '))
+  check('sin token: «no vale» y a pedir otra vez', !errs.length && (await p.isVisible('#altaInvalida')) && /no es de ninguna invitación/.test(await p.textContent('#altaInvalidaMotivo')) && (await p.getAttribute('#altaInvalida a', 'href')) === '/para-tiendas', errs.join(' | '))
   await ctx.close()
 }
 {

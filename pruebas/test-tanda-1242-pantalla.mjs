@@ -28,7 +28,7 @@ console.log('── 1. Las barras de las páginas ──')
   const mal = conBarra.filter((f) => {
     const s = readFileSync(`${RAIZ}/${f}`, 'utf8')
     const arriba = /<a href="\/eventos">Eventos<\/a>\n\s*<a href="\/tiendas">Tiendas<\/a>\n\s*<a href="\/usuarios.html">Gente<\/a>/g
-    return (s.match(arriba) || []).length !== 2 || !s.includes('<a href="/tiendas">Para tiendas</a>')
+    return (s.match(arriba) || []).length !== 2 || !s.includes('<a href="/para-tiendas">Para tiendas</a>')
   })
   check(`las ${conBarra.length} páginas: Tiendas entre Eventos y Gente arriba y en el menú, el pie igual`, conBarra.length >= 45 && !mal.length, mal.join(', '))
   const t = readFileSync(`${RAIZ}/tiendas.html`, 'utf8').match(/<html[^>]*>/)[0]

@@ -168,42 +168,8 @@ console.log('── 3b. Dos despliegues mezclados (PINGU: «Importing binding na
   await ctx.close()
 }
 
-console.log('── 4. /tiendas: la agenda ──')
-{
-  const { p, ctx, errs } = await abrir('/tiendas', { rpc: { tiendas_agenda: '__AGENDA__' } })
-  check('sin errores; el <h1> es «Tiendas»', !errs.length && (await p.textContent('h1')).trim() === 'Tiendas', errs.join(' | '))
-  const t = await p.$$eval('#tagRejilla .tag-tarjeta', (xs) => xs.map((x) => `${x.getAttribute('href')}|${x.innerText.replace(/\s+/g, ' ')}`))
-  check('las tres tiendas, a su escaparate (con lo de tu lista si tienen)', t.length === 3 && /^\/tiendas\/norte\?lista=1\|N Norte Cartas Bilbao · Con local 1\.240 cartas · 3 productos 2 de tu lista/.test(t[0]) && /^\/tiendas\/kanto\|/.test(t[2]), JSON.stringify(t))
-  check('  …la portada de la que la tiene', /banner\.webp/.test(await p.getAttribute('#tagRejilla .tag-tarjeta:nth-child(2) .tag-portada', 'style')))
-  check('  …«3 tiendas» y las ciudades en el desplegable', (await p.textContent('#tagCuenta')) === '3 tiendas' && (await p.locator('#tagCiudad option').count()) === 4)
-  check('  …y «De tu lista» se ofrece con cuenta', await p.isVisible('[data-tag-filtro="lista"]'))
-  await p.fill('#tagBusca', 'ryu'); await p.waitForTimeout(600)
-  check('buscar', (await llamadas(p, 'tiendas_agenda')).at(-1).p_texto === 'ryu' && (await p.locator('#tagRejilla .tag-tarjeta').count()) === 1)
-  await p.fill('#tagBusca', ''); await p.waitForTimeout(600)
-  await p.click('[data-tag-filtro="local"]'); await p.waitForTimeout(400)
-  check('«Con local»', (await llamadas(p, 'tiendas_agenda')).at(-1).p_con_local === true && (await p.locator('#tagRejilla .tag-tarjeta').count()) === 1 && (await p.getAttribute('[data-tag-filtro="local"]', 'aria-pressed')) === 'true')
-  await p.click('[data-tag-filtro="local"]'); await p.waitForTimeout(400)
-  await p.selectOption('#tagCiudad', 'Madrid'); await p.waitForTimeout(400)
-  check('la ciudad', (await llamadas(p, 'tiendas_agenda')).at(-1).p_ciudad === 'Madrid' && (await p.locator('#tagRejilla .tag-tarjeta').count()) === 1)
-  await p.selectOption('#tagCiudad', ''); await p.fill('#tagBusca', 'zzz'); await p.waitForTimeout(600)
-  check('ninguna: lo dice, con «Quitar los filtros»', /Ninguna tienda cumple esto/.test(await p.textContent('#tagRejilla')))
-  await p.click('[data-tag-limpiar]'); await p.waitForTimeout(400)
-  check('  …que las vuelve a enseñar', (await p.locator('#tagRejilla .tag-tarjeta').count()) === 3 && (await p.inputValue('#tagBusca')) === '')
-  check('«Pide acceso» sigue debajo, con su formulario', (await p.isVisible('#tiendasForm')) && /¿Tienes una tienda/.test(await p.textContent('#para-tiendas')))
-  if (process.env.OUT) await p.screenshot({ path: `${process.env.OUT}/1236-agenda.png` })
-  await ctx.close()
-}
-{
-  const { p, ctx } = await abrir('/tiendas', { sesion: 'none', movil: true, rpc: { tiendas_agenda: '__AGENDA__' } })
-  check('sin cuenta, en el móvil: sin «De tu lista» y sin salirse de ancho', !(await p.isVisible('[data-tag-filtro="lista"]')) && (await p.evaluate(() => document.documentElement.scrollWidth)) <= 390 && (await p.locator('#tagRejilla .tag-tarjeta').count()) === 3)
-  if (process.env.OUT) await p.screenshot({ path: `${process.env.OUT}/1236-agenda-movil.png`, fullPage: true })
-  await ctx.close()
-}
-{
-  const { p, ctx, errs } = await abrir('/tiendas', {})
-  check('sin la migración: sin agenda, y la página de pedir acceso como antes', !errs.length && !(await p.isVisible('#tiendasAgenda')) && !(await p.isVisible('#tagLema')) && (await p.isVisible('#tiendasForm')), errs.join(' | '))
-  await ctx.close()
-}
+// La agenda de /tiendas se rehízo en la 1244 (escaparate de escaparates): su
+// prueba es test-tanda-1244-pantalla.mjs.
 
 await b.close()
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')

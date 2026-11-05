@@ -3126,7 +3126,7 @@ export const supabase = {
     // El Mercado con tiendas (1069) solo existe si la prueba lo da: si no, la
     // base no tiene la migración y el cliente vuelve a `intercambios_mercado`,
     // que el doble sí calcula. Un vacío sin error sería un Mercado vacío.
-    if (['mercado_con_tiendas', 'tiendas_con_la_carta', 'tiendas_agenda'].includes(nombre)) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
+    if (['mercado_con_tiendas', 'tiendas_con_la_carta', 'tiendas_agenda', 'tiendas_recien'].includes(nombre)) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
     // (1236: las dos de la agenda y las tiendas de una carta, igual.)
     return { data: null, error: null }
   },

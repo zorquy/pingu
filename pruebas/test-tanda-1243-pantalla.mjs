@@ -113,9 +113,9 @@ for (const tema of ['light', 'dark']) {
 console.log('── 4. La agenda y el Mercado ──')
 {
   const { p, ctx } = await abrir('/tiendas')
-  const enlace = await p.evaluate(() => document.querySelector('#tagRejilla a[href*="rincon"]')?.getAttribute('href'))
+  const enlace = await p.evaluate(() => document.querySelector('#tiendasAgenda a[href*="rincon"]')?.getAttribute('href'))
   check('la agenda enlaza a /tiendas/rincon (con lo de tu lista)', enlace === '/tiendas/rincon?lista=1', enlace)
-  const n = await nombre(p, '#tagRejilla .tag-nombre')
+  const n = await nombre(p, '#tiendasAgenda .tag-nombre')
   check('y su nombre va pintado como tienda', n && n.icono && n.titulo === 'Tienda' && n.color === 'rgb(10, 116, 128)', JSON.stringify(n))
   await ctx.close()
 }
