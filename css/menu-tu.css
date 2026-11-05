@@ -222,6 +222,22 @@
   cursor: pointer;
 }
 
+/* «Qué hay en esta sección» (1239): un botón con pinta de fila. */
+.tu-lista > [data-tu='bienvenida'] {
+  width: 100%;
+  padding: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-md);
+  font-weight: 700;
+  cursor: pointer;
+}
+.tu-lista > [data-tu='bienvenida']:first-child { border-top: 0; }
+
 .tu-lista .tu-salir svg {
   color: var(--danger);
 }

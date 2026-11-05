@@ -771,6 +771,11 @@ export async function initNavbar() {
   document.addEventListener('click', abrirCartaEnPopup)
   // Halloween (SCHEMA 1134): solo si la cabecera ha dicho que toca.
   if (document.documentElement.dataset.temporada) import('./temporada.js').then((m) => m.montarTemporada()).catch(() => {})
+  // La bienvenida de la sección (SCHEMA 1239), la primera vez: se baja solo si toca.
+  const sec = document.documentElement.dataset.seccion
+  let vistaSec = true
+  try { vistaSec = !!localStorage.getItem(`pd-bienvenida-${sec}`) && !location.search.includes('bienvenida=1') } catch {}
+  if (sec && !deTienda && !vistaSec && !document.documentElement.hasAttribute('data-detalle')) import('./bienvenida-seccion.js').then((m) => m.montarBienvenida()).catch(() => {})
   // Las cifras de las bandas cuentan (SCHEMA 1214): solo donde hay banda.
   if (document.querySelector('link[href*="seccion.css"], .banda-s')) import('./cifras-cuentan.js').catch(() => {})
   // La barra de progreso al tocar un enlace (SCHEMA 892).

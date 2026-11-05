@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-05",
       "tipo": "nuevo",
+      "texto": "La primera vez que entras en cada sección (Inicio, Aprender, Colección, Comunidad y Jugar), una ventana te cuenta qué hay en cada página y te lleva a la que quieras. Sale una vez, y la vuelves a ver desde tu avatar, en «Qué hay en esta sección».",
+      "enlace": "/mi-coleccion?bienvenida=1"
+    },
+    {
+      "fecha": "2026-11-05",
+      "tipo": "nuevo",
       "texto": "«Cómo funciona» en los tratos: los cuatro pasos de un cambio, una venta o una compra (en mano o por correo) con el tuyo marcado, al proponer, en cada trato y en el mensaje que te llega. Y si es tu primer trato, una franja te dice qué te toca.",
       "enlace": "/mi-coleccion?ver=cambios"
     },

@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (480) — PINGU-Claude (1239 — la bienvenida de cada sección)
+
+**Hecho** (PINGU eligió lo recomendado de la propuesta, con un cambio: «que le
+salga a todo el mundo, aunque estén registrados ya… cuando lo cierren, ya
+está»):
+
+- La primera vez que alguien entra en una página de una sección (Inicio,
+  Aprender, Colección, Comunidad, Jugar), una ventana con TODAS sus páginas:
+  icono, nombre y una frase, «Estás aquí» en la de ahora y cada fila a su
+  página (en Mi colección, cambia de pestaña sin recargar). En el color de la
+  sección; hoja desde abajo en el móvil, centrada en dos columnas en el PC.
+- A todo el mundo, con cuenta o sin ella, una vez por sección (se apunta en el
+  navegador al abrirse: `pd-bienvenida-<sección>`). En /cartas sin cuenta, solo
+  sus tres páginas y una frase que dice lo que añade una cuenta.
+- No sale en una ficha, encima de otra ventana modal, escribiendo, a una tienda
+  ni a un navegador automático (las pruebas), salvo con `?bienvenida=1`.
+- «Qué hay en esta sección» en el menú del avatar la vuelve a abrir.
+- La portada no pesa más: app.js mira la marca y solo entonces baja el módulo.
+
+**Ficheros**: `js/bienvenida-seccion.js` y `css/bienvenida-seccion.css`
+(nuevos), `js/app.js`, `js/menu-tu.js`, `css/menu-tu.css`, SCHEMA, CLAUDE.md,
+novedades. Pruebas (rama pruebas): `test-tanda-1239-pantalla.mjs` nueva y la
+717 al día (la lista del menú lleva una fila más en una página con sección).
+Verdes: 1239, 717, 748, 1071, 299, 305, 309, 312, 313, 737, 1018, 1023, 1135,
+`test-imports`; portada 138,6 KB. Rojos de antes, sin tocar: 310, 315 y 1162
+(ficheros que esta tanda no toca).
+
+**Pendiente**: lo de la 475.
+
 ## 2026-11-05 (479) — PINGU-Claude (1238 — «Cómo funciona» un trato y las tarjetas de «En curso» iguales)
 
 **Hecho** (PINGU eligió lo recomendado de la propuesta: «le he hecho una

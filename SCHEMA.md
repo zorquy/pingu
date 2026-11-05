@@ -54417,3 +54417,53 @@ hasta tres y una pastilla «+N»), en un lado de alto fijo (56 px). El dinero
 que va al lado de un abanico baja a `--t-md`. `test-tanda-1238-pantalla.mjs`
 mide en PC y móvil que dos tratos (una carta y tres) tienen el mismo alto de
 lados y el pie a la misma altura, y pulsa la ayuda en los tres sitios.
+
+## Tanda 1239 — La bienvenida de cada sección
+
+PINGU: «que pongas instrucciones por cada sección… entran en Colección y sale un
+pop-up: Panel, aquí verás tus cartas; Expansiones, aquí podrás ver todas las
+expansiones… que solo salga la primera vez que entras en eso». Propuesta con
+imágenes (ventana por sección, recorrido paso a paso o franja por página);
+eligió la ventana y, sobre lo recomendado, «que le salga a todo el mundo, aunque
+estén registrados ya».
+
+**`js/bienvenida-seccion.js`**. `BIENVENIDAS` tiene las cinco secciones (la
+llave es la de `data-seccion`: `inicio`, `aprender`, `cartas`, `comunidad`,
+`jugar`), cada una con su icono, título, frase y sus páginas (nombre, icono,
+frase y `href` + `clave` de ruta, o `pestania` en Colección). `paginasDe`
+decide qué filas salen y cuál es la de ahora: por la ruta (`claveDeRuta`, la
+misma regla que `claveDePagina` de barra-movil.js, sin importarla) o, en
+Colección, por la pestaña marcada (`.mc-pestania[aria-selected]`). En /cartas
+(`body[data-modo=catalogo]`) salen solo Expansiones, Productos y Buscar,
+enlazadas a /cartas, con `lemaSinCuenta`. `abrirBienvenida` pinta el `dialog`
+modal (`#bvsDialogo`, con `data-sin-arrastre`), con el foco en el diálogo; una
+fila de la pantalla en la que ya estás cierra (la de ahora) o pulsa su pestaña
+sin recargar.
+
+**Cuándo sale sola** (`tocaBienvenida` + `montarBienvenida`): en una página con
+`data-seccion` y sin `data-detalle` (las de los desplegables), si no está la
+marca `pd-bienvenida-<sección>`. Sin almacén del navegador NO sale (si no,
+saldría en cada página). Espera 1,2 s (después de lo que pinta la página y de
+Halloween) y entonces, si hay otra ventana MODAL (`dialog:modal`: los Filtros de
+Mi colección van abiertos con `show()` en el PC y con `dialog[open]` la
+bienvenida no salía nunca allí) o el foco está en un campo, no sale y no se
+apunta: saldrá en la página siguiente. Al salir, se apunta (cerrarla de
+cualquier forma ya cuenta). Una página que Chrome solo prepara espera a
+`prerenderingchange` (985). A un navegador automático no le sale salvo con
+`?bienvenida=1`, que también la fuerza para cualquiera (el enlace de
+/novedades la usa). Una tienda no la ve (`deTienda`).
+
+**El peso**: app.js lee la marca y solo baja el módulo (y su hoja, por
+`hojaInyectada`) si toca; la portada se queda igual (138,6 KB gzip).
+
+**Volver a verla**: «Qué hay en esta sección» en `.tu-lista` del menú del avatar
+(`data-tu="bienvenida"`), solo en una página con sección y no para una tienda;
+cierra el menú y llama a `abrirBienvenida`.
+
+`test-tanda-1239-pantalla.mjs` mira: que una prueba no la ve sin pedirla, ni en
+una ficha, ni encima de otra ventana (y que entonces no se apunta); la regla de
+una vez por sección con un navegador de verdad simulado; Colección en el PC
+(siete filas, dos columnas, Panel marcado, ámbar, se apunta, «Expansiones»
+cambia de pestaña sin recargar); /cartas sin cuenta (tres filas a /cartas);
+Jugar en un iPhone (hoja abajo, entera, filas y cerrar de 44, Esc); y el menú
+del avatar en PC y móvil. La 717 cuenta la fila nueva de `.tu-lista`.

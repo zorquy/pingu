@@ -1,0 +1,96 @@
+/* La bienvenida de cada sección (1239): js/bienvenida-seccion.js la inyecta al
+   abrirse. Centrada en el PC (en dos columnas si caben), hoja desde abajo en el
+   móvil (1045), en el color de la sección. El porqué, en SCHEMA 1239. */
+.bvs-dialogo {
+  box-sizing: border-box;
+  inset: 0;
+  width: min(640px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+.bvs-dialogo::backdrop { background: rgb(5 9 13 / 60%); }
+.bvs-dialogo:focus { outline: none; }
+html:has(.bvs-dialogo[open]) { overflow: hidden; }
+.bvs-banda {
+  position: relative;
+  display: grid;
+  gap: var(--e-xs);
+  padding: var(--e-lg) var(--e-lg) var(--e-md);
+  background: linear-gradient(135deg, color-mix(in srgb, var(--acento) 20%, var(--white)), var(--white) 75%);
+}
+.bvs-cerrar {
+  position: absolute;
+  top: var(--e-md);
+  right: var(--e-md);
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text-mid);
+  cursor: pointer;
+}
+.bvs-cerrar:hover { color: var(--text); }
+.bvs-ico { display: grid; place-items: center; width: 44px; height: 44px; border-radius: var(--radius-md); background: var(--acento); color: var(--acento-texto); }
+.bvs-banda small { margin-top: var(--e-xs); color: var(--acento); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.07em; text-transform: uppercase; }
+.bvs-banda h2 { margin: 0; padding-right: 48px; font-family: var(--font-display); font-size: var(--t-xl); line-height: 1.2; text-wrap: balance; }
+.bvs-banda p { margin: 0; color: var(--text-mid); font-size: var(--t-sm); line-height: 1.45; }
+
+.bvs-lista { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-xs); margin: 0; padding: var(--e-xs) var(--e-md); list-style: none; }
+.bvs-fila {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) 16px;
+  gap: var(--e-sm);
+  align-items: center;
+  height: 100%;
+  min-height: 44px;
+  padding: var(--e-sm);
+  border-radius: var(--radius-lg);
+  color: var(--text);
+  text-decoration: none;
+}
+.bvs-fila:hover { background: var(--ice); }
+.bvs-fila.aqui { background: color-mix(in srgb, var(--acento) 10%, var(--white)); }
+.bvs-fila-ico { display: grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--ice); color: var(--text); }
+.bvs-fila.aqui .bvs-fila-ico { background: var(--acento); color: var(--acento-texto); }
+.bvs-fila-texto { display: grid; gap: 2px; min-width: 0; }
+.bvs-fila-texto b { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs); font-family: var(--font-display); font-size: var(--t-md); }
+.bvs-fila-texto > span { color: var(--text-mid); font-size: var(--t-xs); line-height: 1.4; }
+.bvs-aqui { padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--acento); color: var(--acento-texto); font-family: inherit; font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
+.bvs-flecha { color: var(--text-dim); }
+.bvs-pie { display: grid; gap: var(--e-xs); justify-items: center; padding: var(--e-sm) var(--e-lg) var(--e-lg); }
+.bvs-empezar { width: 100%; max-width: 320px; }
+.bvs-nota { color: var(--text-mid); font-size: var(--t-2xs); text-align: center; }
+
+/* Cuatro páginas o menos (Inicio, Aprender, Comunidad), en una columna. */
+.bvs-lista:not(:has(li:nth-child(5))) { grid-template-columns: minmax(0, 1fr); }
+.bvs-dialogo:has(.bvs-lista:not(:has(li:nth-child(5)))) { width: min(480px, calc(100vw - 32px)); }
+
+@media (max-width: 599px) {
+  .bvs-dialogo {
+    inset: auto 0 0;
+    width: 100%;
+    max-height: 94dvh;
+    margin: 0;
+    padding-bottom: var(--seguro-abajo);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+  .bvs-banda { padding: var(--e-md) var(--e-md) var(--e-sm); }
+  .bvs-ico { display: none; }
+  .bvs-banda small { margin-top: 0; }
+  .bvs-banda h2 { font-size: var(--t-lg); }
+  .bvs-lista { grid-template-columns: minmax(0, 1fr); gap: 0; padding: 0 var(--e-sm); }
+  .bvs-fila { padding: var(--e-xs) var(--e-sm); }
+  .bvs-pie { padding: var(--e-sm) var(--e-md) var(--e-md); }
+}

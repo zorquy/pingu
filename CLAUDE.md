@@ -825,6 +825,16 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `cambio_libres_de`, nunca con `cambio` a secas. La etiqueta del sobre (1110) es
   `js/cambio-etiqueta.js` (por `import()`), con lo que ya trae el trato: nada
   de la dirección sale de ahí a otro sitio.
+- **Cada sección se presenta con UNA ventana: `js/bienvenida-seccion.js`**
+  (tanda 1239, PINGU: «que te explique todas las subcategorías… solo la primera
+  vez», y «que le salga a todo el mundo»): las páginas de la sección con su
+  frase (`BIENVENIDAS`), «Estás aquí» y cada fila a su página, una vez por
+  sección y navegador (`pd-bienvenida-<sección>`), y de nuevo desde el avatar
+  («Qué hay en esta sección»). Una página nueva en el desplegable de una sección
+  lleva su fila ahí, con su frase; una pestaña nueva de Mi colección, también
+  (`pestania`, y `soloCuenta` si /cartas no la tiene). Una ventana que se abra
+  sola al cargar mira `dialog:modal`, no `dialog[open]`: los Filtros de Mi
+  colección están siempre abiertos con `show()` en el PC.
 - **Cómo funciona un trato se cuenta en UN sitio: `js/cambio-ayuda.js`**
   (tanda 1238, PINGU: «me ha dicho: ¿cómo funciona esto? Soy nuevo»): los
   cuatro pasos de ESE trato (`pasosDeAyuda`, por tipo, envío y quién mira), el
