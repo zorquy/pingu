@@ -1640,9 +1640,14 @@ export const supabase = {
       const ofertas = T.trade_offers || []
       const enJuego = (id) => (T.trade_offer_items || []).filter((i) => i.linea === id && ['enviada', 'aceptada'].includes(ofertas.find((o) => o.id === i.oferta)?.estado)).reduce((n, i) => n + (Number(i.cantidad) || 0), 0)
       T.user_collection = original.map((c) => (Number(c.cambio) > 0 ? { ...c, cambio: Math.max(0, Math.min(Number(c.cambio), (Number(c.cantidad) || 0) - enJuego(c.id))) } : c))
+      // Lo de verdad, para las funciones que la 1109 NO cambió y corren a la
+      // vez (`intercambios_quien_busca`, 1241): sin esto veían la vista
+      // recortada y el doble escondía un fallo que la base sí tiene.
+      T.__real1109 = original
       try {
         return await supabase.rpc(nombre, { ...args, __vista1109: true })
       } finally {
+        T.__real1109 = null
         T.user_collection = original
       }
     }
@@ -2062,7 +2067,10 @@ export const supabase = {
       // La versión (1047): un deseo sin ella casa con todas; con ella, solo con
       // esa, y una copia sin versión es la «normal».
       const casaV = (w, c) => !w.variante || w.variante === (c.variante || 'normal')
-      const doy = T.user_collection.filter((c) => c.user_id === yo && Number(c.cambio) > 0)
+      // `intercambios_quien_busca` no cuenta lo reservado (la 1109 no la tocó):
+      // mira la colección de verdad aunque otra función esté con la recortada.
+      const COL = (nombre === 'intercambios_quien_busca' && T.__real1109) || T.user_collection
+      const doy = COL.filter((c) => c.user_id === yo && Number(c.cambio) > 0)
       const busco = T.user_wants.filter((w) => w.user_id === yo)
       const fila = (c, w, quien) => {
         const p = perfil(quien)
@@ -2110,7 +2118,7 @@ export const supabase = {
             if (perfil(w.user_id).is_banned) continue
             const f = fila(c, w, w.user_id)
             // Reciproco: esa persona da algo que yo busco.
-            f.reciproco = T.user_collection.some(
+            f.reciproco = COL.some(
               (c2) => c2.user_id === w.user_id && Number(c2.cambio) > 0 && busco.some((b) => b.card_id === c2.card_id && casa(b.idioma, c2.idioma) && casaV(b, c2))
             )
             filas.push(f)
