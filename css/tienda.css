@@ -1696,13 +1696,14 @@ html:has(.tdvt-hoja[open]) { overflow: hidden; }
   border-radius: 50%;
   background: var(--text-dim);
 }
-.tds-estado[data-estado='MT'],
-.tds-estado[data-estado='NM'] { background: var(--success); }
-.tds-estado[data-estado='EX'] { background: #7cb342; }
-.tds-estado[data-estado='GD'] { background: var(--warning); }
-.tds-estado[data-estado='LP'] { background: #e8833a; }
-.tds-estado[data-estado='PL'],
-.tds-estado[data-estado='PO'] { background: var(--danger); }
+/* Los colores de Cardmarket (1249), los de .chapa-estado. */
+.tds-estado[data-estado='MT'] { background: var(--estado-mt); }
+.tds-estado[data-estado='NM'] { background: var(--estado-nm); }
+.tds-estado[data-estado='EX'] { background: var(--estado-ex); }
+.tds-estado[data-estado='GD'] { background: var(--estado-gd); }
+.tds-estado[data-estado='LP'] { background: var(--estado-lp); }
+.tds-estado[data-estado='PL'] { background: var(--estado-pl); }
+.tds-estado[data-estado='PO'] { background: var(--estado-po); }
 .tds-estado[data-estado='sellado'] { background: var(--acento); }
 
 /* Las expansiones, en un desplegable con su buscador. */

@@ -249,7 +249,7 @@ async function pintarApartadas() {
   tarjeta.hidden = !r.filas.length
   $('.tdh-apartadas-n').textContent = r.filas.length ? String(r.filas.length) : ''
   $('.tda-lista').innerHTML = m.apartadasHtml(r.filas, nombreSet)
-  if (r.caducadas) showToast(`${r.caducadas === 1 ? 'Una apartada caducó y vuelve' : `${r.caducadas} apartadas caducaron y vuelven`} a tu stock.`, 'info')
+  if (r.caducadas) showToast(`${r.caducadas === 1 ? 'Una reserva caducó y vuelve' : `${r.caducadas} reservas caducaron y vuelven`} a tu stock.`, 'info')
 }
 
 async function recogerApartada(boton) {
@@ -306,7 +306,7 @@ export function montarHoy(destino) {
             <ul class="tdh-ultimas"></ul>
           </section>
           <div class="tdh-col">
-            <section class="tdh-tarjeta tdh-apartadas" hidden><h3>${icons.clock(18)} Apartadas <small class="tdh-apartadas-n"></small></h3><ul class="tda-lista"></ul></section>
+            <section class="tdh-tarjeta tdh-apartadas" hidden><h3>${icons.clock(18)} Reservadas <small class="tdh-apartadas-n"></small></h3><ul class="tda-lista"></ul></section>
             <section class="tdh-tarjeta"><h3>${icons.triangleAlert(18)} Necesita atención</h3><div class="tdh-avisos"></div></section>
             <section class="tdh-tarjeta"><h3>${icons.heart(18)} Lo que busca la gente y tienes</h3><ul class="tdh-demanda"></ul></section>
             <section class="tdh-tarjeta"><h3>${icons.eye(18)} Visitas a tu escaparate</h3><p class="tdh-visitas"></p></section>

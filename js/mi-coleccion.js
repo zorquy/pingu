@@ -73,6 +73,7 @@ import { montarEleccion } from './mi-coleccion/elegir-version.js'
 import { iconoDeVersion, chapaDeVersionHtml } from './mi-coleccion/iconos-version.js'
 import { CASAS, OTRA, notasDeCasa, escribirGradeo, leerGradeo } from './mi-coleccion/gradeo.js'
 import { gradeoHtml, engancharGradeo } from './gradeo-elegir.js'
+import { chapaDeEstadoHtml } from './estado-chapa.js'
 import { segmentar } from './mi-coleccion/segmentado.js'
 import { simboloDeTipoHtml } from './mi-coleccion/energias.js'
 import { comoDeshacer, avisoConDeshacer } from './mi-coleccion/deshacer.js'
@@ -1837,9 +1838,10 @@ function pintarResumenDeCopia(l, precio) {
 }
 
 function chipsDe(l) {
-  const chips = [idiomaDe(l.idioma).id.toUpperCase(), estadoDe(l.estado).id]
+  const chips = [idiomaDe(l.idioma).id.toUpperCase()]
   if (l.variante !== 'normal') chips.push(varianteDe(l.variante).nombre)
-  let base = chips.map((c) => `<span class="mc-chip">${escapeHtml(c)}</span>`).join('')
+  // El estado con su color de Cardmarket (1249); con gradeo no aplica.
+  let base = `<span class="mc-chip">${escapeHtml(chips[0])}</span>${l.gradeo ? '' : chapaDeEstadoHtml(estadoDe(l.estado).id)}${chips.slice(1).map((c) => `<span class="mc-chip">${escapeHtml(c)}</span>`).join('')}`
   // La del gradeo va con el COLOR de la casa (tanda 563). PINGU pidió los
   // logos, y un `<option>` no admite imágenes y los logos de PSA, Beckett
   // o CGC son marcas de otros que habría que alojar: lo que sí se puede

@@ -11,6 +11,7 @@
 // estado o cápsula, versión, «Ver fotos») y dos botones, «Me interesa» (el del
 // escaparate, 1080: la conversación con esa carta dentro) y «Su tienda».
 // Tres a la vista y «Ver N más».
+import { chapaDeEstadoHtml } from './estado-chapa.js'
 import { supabase } from './supabase.js'
 import { escapeHtml, urlParaCss } from './html.js'
 import { hojaInyectada } from './hoja.js'
@@ -39,14 +40,20 @@ export async function tiendasQueTienen(cardId) {
 }
 
 // La URL del perfil de la tienda, con la carta a la vista.
-export const enlaceDeTienda = (t, cardId = null) => `/tiendas/${encodeURIComponent(t.username || '')}${cardId ? `?carta=${encodeURIComponent(cardId)}` : ''}`
+// Con una carta, la tienda ENTERA con el pop-up de esa carta encima (1249);
+// con su línea (`stockId`), esa copia elegida en el pop-up.
+export const enlaceDeTienda = (t, cardId = null, stockId = null) => {
+  const q = new URLSearchParams()
+  if (cardId) q.set('carta', cardId)
+  if (cardId && stockId) q.set('linea', stockId)
+  return `/tiendas/${encodeURIComponent(t.username || '')}${q.size ? `?${q}` : ''}`
+}
 
-// «Me interesa»: con la línea, la conversación con esa carta dentro (1080);
-// sin ella (la base sin la 1236), su escaparate en esa carta, donde está el
-// mismo botón. Sin cuenta, a registrarse y de vuelta ahí.
-export function enlaceMeInteresa(t, cardId, conSesion) {
-  const destino = t.stock_id ? `/mensajes.html?with=${encodeURIComponent(t.tienda_id)}&carta=${encodeURIComponent(t.stock_id)}` : enlaceDeTienda(t, cardId)
-  return conSesion || !t.stock_id ? destino : `/auth.html?registro=1&volver=${encodeURIComponent(destino)}`
+// «Me interesa» (1249, PINGU: «debería abrirte la tienda en general… con el
+// pop-up de esa carta»): su escaparate con esa copia abierta, que se ve sin
+// cuenta; escribir o comprar desde el pop-up ya la pide.
+export function enlaceMeInteresa(t, cardId) {
+  return enlaceDeTienda(t, cardId, t.stock_id || null)
 }
 
 // Lo que se dice de dónde está: la ciudad y si tiene local.
@@ -66,7 +73,7 @@ export function enTiendasHtml(tiendas, cardId, { conSesion = false, fotos = null
     const nFotos = n ? Number(Boolean(n.frente)) + Number(Boolean(n.dorso)) : 0
     const chips = [
       t.idioma ? `<span class="ent-chip">${banderaHtml(t.idioma)}${escapeHtml(IDIOMA_CORTO[t.idioma] || String(t.idioma).toUpperCase())}</span>` : '',
-      t.gradeo ? chapaDeGradeoHtml(t.gradeo) : t.estado ? `<span class="ent-chip">${escapeHtml(t.estado)}</span>` : '',
+      t.gradeo ? chapaDeGradeoHtml(t.gradeo) : t.estado ? chapaDeEstadoHtml(t.estado) || `<span class="ent-chip">${escapeHtml(t.estado)}</span>` : '',
       t.variante && t.variante !== 'normal' ? `<span class="ent-chip">${escapeHtml(nombreDeVariante(t.variante))}</span>` : '',
       Number(t.unidades) > 1 ? `<span class="ent-chip">${Number(t.unidades)} uds.</span>` : '',
       t.de_tu_lista ? '<span class="ent-chip ent-tuya">De tu lista</span>' : '',
@@ -76,14 +83,14 @@ export function enTiendasHtml(tiendas, cardId, { conSesion = false, fotos = null
     const logo = urlLogo ? ` style="background-image:url('${urlLogo}')"` : ''
     return `<article class="ent-tarjeta${barata ? ' ent-barata' : ''}${i >= A_LA_VISTA && !abierto ? ' ent-oculta' : ''}" data-ent-tienda="${escapeHtml(t.tienda_id || '')}">
       <div class="ent-arriba">
-        <a class="ent-logo${urlLogo ? ' con-foto' : ''}" href="${escapeHtml(enlaceDeTienda(t, cardId))}"${logo} aria-label="${escapeHtml(`${nombre}: su tienda`)}">${urlLogo ? '' : escapeHtml(nombre.slice(0, 1).toUpperCase())}</a>
+        <a class="ent-logo${urlLogo ? ' con-foto' : ''}" href="${escapeHtml(enlaceDeTienda(t))}"${logo} aria-label="${escapeHtml(`${nombre}: su tienda`)}">${urlLogo ? '' : escapeHtml(nombre.slice(0, 1).toUpperCase())}</a>
         <span class="ent-quien"><strong${ATRIBUTOS_DE_TIENDA}>${escapeHtml(nombre)}</strong>${dondeDe(t) ? `<small>${escapeHtml(dondeDe(t))}</small>` : ''}</span>
         <span class="ent-precio">${t.precio == null ? '<small>Pregunta el precio</small>' : `${t.precio_antes != null ? `<s class="ent-antes">${escapeHtml(euros(t.precio_antes))}</s>` : ''}<b>${escapeHtml(euros(t.precio))}</b>`}${barata ? '<small class="ent-barata-txt">La más barata</small>' : ''}</span>
       </div>
       ${chips ? `<div class="ent-chips">${chips}</div>` : ''}
       <div class="ent-botones">
         <a class="btn-primary" href="${escapeHtml(enlaceMeInteresa(t, cardId, conSesion))}">${icons.mail(15)}<span>Me interesa</span></a>
-        <a class="btn-secondary" href="${escapeHtml(enlaceDeTienda(t, cardId))}">Su tienda</a>
+        <a class="btn-secondary" href="${escapeHtml(enlaceDeTienda(t))}">Su tienda</a>
       </div>
     </article>`
   }

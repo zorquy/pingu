@@ -13,6 +13,7 @@ import { rutaDeCarta } from '../carta-ruta.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from '../escaneo-carta.js'
 import { nombreDeSet } from '../catalogo-series.js'
 import { idiomaDe, estadoDe, euros, valorDeLinea } from '../cardmarket.js'
+import { chapaDeEstadoHtml } from '../estado-chapa.js'
 import { banderaHtml } from '../precio-vista.js'
 import { icons } from '../icons.js'
 import * as datos from './datos.js'
@@ -1255,7 +1256,7 @@ async function pintarDoy() {
         <button type="button" class="mc-quiero-aviso mc-doy-aviso" data-avisar-doy="${escapeHtml(l.card_id)}" data-idioma="${escapeHtml(l.idioma || 'es')}" aria-label="Avísame si ${escapeHtml(nombre)} cambia de precio" title="Avísame si cambia de precio">${icons.bell(16)}</button>
         <span class="mc-merc-nombre">${escapeHtml(nombre)}</span>
         ${lineaDeSetHtml(c)}
-        <span class="mc-merc-fila mc-deseo-precio-fila"><b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>${banderaHtml(l.idioma || 'es')}<span class="mc-merc-texto" title="${escapeHtml(estadoDe(l.estado).nombre)}">${escapeHtml(estadoDe(l.estado).id)}</span></span>
+        <span class="mc-merc-fila mc-deseo-precio-fila"><b class="mc-quiero-precio${precio == null ? ' sin' : ''}">${precio == null ? 'sin precio' : escapeHtml(euros(precio))}</b>${banderaHtml(l.idioma || 'es')}${l.gradeo ? '' : chapaDeEstadoHtml(estadoDe(l.estado).id)}</span>
         <span class="mc-merc-fila mc-doy-paso">
           <button type="button" class="mc-doy-boton" data-doy-menos="${escapeHtml(l.id)}" aria-label="Dar una menos de ${escapeHtml(nombre)}">−</button>
           <span class="mc-doy-cuantas"><span class="mc-merc-largo">Doy </span>${das} de ${tienes}</span>

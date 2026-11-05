@@ -11,6 +11,7 @@ import { escapeHtml } from './html.js'
 import { showToast } from './toast.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
+import { chapaDeEstadoHtml } from './estado-chapa.js'
 import { IDIOMAS, ESTADOS, euros, valorDe, precioDeFila, valorGradeado, idiomasParaAnadirEn, versionesDelIdioma, enlaceCardmarket } from './cardmarket.js'
 import { enlaceCardmarketDeProducto } from './productos.js'
 import { idiomasDeSetSinEsperar, reglasDeVersiones, sinReglas } from './idiomas-de-set.js'
@@ -195,7 +196,7 @@ function apartadaHtml(f) {
   const rs = est.apartadas.get(f.id)
   if (!rs?.length) return ''
   const n = rs.reduce((s, r) => s + r.unidades, 0)
-  return `<span class="tds-apartada" title="${escapeHtml(rs.map((r) => `${r.unidades} para ${r.para}`).join(' · '))}">${icons.clock(12)}${n} ${n === 1 ? 'apartada' : 'apartadas'}</span>`
+  return `<span class="tds-apartada" title="${escapeHtml(rs.map((r) => `${r.unidades} para ${r.para}`).join(' · '))}">${icons.clock(12)}${n} ${n === 1 ? 'reservada' : 'reservadas'}</span>`
 }
 
 async function completarCartas(filas) {
@@ -299,6 +300,8 @@ function precioCeldaHtml(f) {
 // El estado de una copia o, si va en cápsula, su etiqueta (1234).
 function estadoOGradeoHtml(f) {
   if (f.gradeo && !f.product_id) return chapaDeGradeoHtml(f.gradeo)
+  // El estado con su color de Cardmarket (1249); lo sellado, su chapa de siempre.
+  if (f.estado !== 'sellado' && !f.product_id) return chapaDeEstadoHtml(f.estado)
   return `<span class="tds-chapa">${dibujoDe('estado', f.estado)}${escapeHtml(f.estado === 'sellado' ? 'Sellado' : f.estado)}</span>`
 }
 
@@ -358,7 +361,7 @@ function baldosaHtml(f) {
   const marcada = est.marcadas.has(f.id)
   const o = ofertaDe(f)
   const id = escapeHtml(f.id)
-  const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.gradeo ? null : f.estado, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null].filter(Boolean).join(' · ')
+  const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null].filter(Boolean).join(' · ')
   return `<article class="tds-baldosa${marcada ? ' tds-marcada' : ''}${f.visible ? '' : ' tds-baldosa-oculta'}" data-fila="${id}">
     <div class="tds-baldosa-foto">${fotoHtml(f)}
       ${est.seleccionando ? `<input type="checkbox" class="tds-baldosa-check" aria-label="Marcar" data-marcar="${id}" ${marcada ? 'checked' : ''} />` : ''}
@@ -367,7 +370,7 @@ function baldosaHtml(f) {
       ${conFotos() ? fotosCeldaHtml(f) : ''}
     </div>
     <strong class="tds-baldosa-nombre">${escapeHtml(nombreFila(f))}</strong>
-    <small class="tds-baldosa-detalle">${f.idioma && !f.product_id ? banderaHtml(f.idioma) : ''}${escapeHtml(detalle)}</small>
+    <small class="tds-baldosa-detalle">${f.idioma && !f.product_id ? banderaHtml(f.idioma) : ''}${escapeHtml(detalle)}${f.product_id || f.gradeo ? '' : chapaDeEstadoHtml(f.estado)}</small>
     <div class="tds-baldosa-edita">
       <label><span>Uds.</span><input type="number" inputmode="numeric" min="0" max="99999" step="1" value="${f.unidades}" data-en-linea="unidades" data-id="${id}" aria-label="Unidades de ${escapeHtml(nombreFila(f))}" /></label>
       <label><span>Precio</span><input type="number" inputmode="decimal" min="0" step="0.01" value="${f.precio ?? ''}" placeholder="—" data-en-linea="precio" data-id="${id}" aria-label="Tu precio de ${escapeHtml(nombreFila(f))}" /></label>
@@ -709,7 +712,7 @@ async function montarForm(d, { carta = null, producto = null, fila = null, base 
     <label class="tds-version${versionesDe(idioma).length > 1 ? '' : ' hidden'}">Versión<select name="variante"></select></label>
     <div class="tds-form-fila">
       <label>Idioma<select name="idioma">${idiomas.map((i) => `<option value="${i.id}" ${i.id === idioma ? 'selected' : ''}>${escapeHtml(i.nombre)}</option>`).join('')}</select></label>
-      <label class="tds-estado-campo"${v.gradeo ? ' hidden' : ''}>Estado<select name="estado">${ESTADOS.map((e) => `<option value="${e.id}" ${(v.estado || 'NM') === e.id ? 'selected' : ''}>${e.id} · ${escapeHtml(e.nombre)}</option>`).join('')}</select></label>
+      <label class="tds-estado-campo"${v.gradeo ? ' hidden' : ''}>Estado<select name="estado">${ESTADOS.map((e) => `<option value="${e.id}" ${(v.estado || 'NM') === e.id ? 'selected' : ''}>${e.id} · ${escapeHtml(e.nombre)} (${escapeHtml(e.que)})</option>`).join('')}</select></label>
     </div>`}
     <div class="tds-form-fila">
       <label>Unidades<input name="unidades" type="number" inputmode="numeric" min="0" max="99999" value="${v.unidades ?? 1}" /></label>
@@ -732,11 +735,11 @@ async function montarForm(d, { carta = null, producto = null, fila = null, base 
     </div>
     <datalist id="tdsUbicaciones">${Object.keys(est.facetas.ubicacion || {}).map((u) => `<option value="${escapeHtml(u)}"></option>`).join('')}</datalist>
     <label>Notas (opcional)<input name="notas" maxlength="300" value="${escapeHtml(v.notas || '')}" /></label>
-    ${fila && est.apartadas.get(fila.id)?.length ? `<div class="tds-apartadas"><b>${icons.clock(16)} Apartadas</b>${est.apartadas.get(fila.id).map((r) => `<span>${r.unidades} para ${escapeHtml(r.para)} · hasta ${escapeHtml(new Date(r.hasta).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }))} <button type="button" class="link-btn" data-quitar-apartada="${escapeHtml(r.id)}">Quitar</button></span>`).join('')}<small>Están fuera de las unidades de arriba hasta que se recojan o caduquen.</small></div>` : ''}
+    ${fila && est.apartadas.get(fila.id)?.length ? `<div class="tds-apartadas"><b>${icons.clock(16)} Reservadas</b>${est.apartadas.get(fila.id).map((r) => `<span>${r.unidades} para ${escapeHtml(r.para)} · hasta ${escapeHtml(new Date(r.hasta).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }))} <button type="button" class="link-btn" data-quitar-apartada="${escapeHtml(r.id)}">Quitar</button></span>`).join('')}<small>Están fuera de las unidades de arriba hasta que se recojan o caduquen.</small></div>` : ''}
     <p class="tds-error" role="alert"></p>
     <div class="tds-form-pie">
       ${fila ? `<button type="button" class="btn-secondary tds-borrar" data-borrar="${escapeHtml(fila.id)}">Borrar</button>` : lista ? '<button type="button" class="btn-secondary" data-volver>← Otra</button>' : '<button type="button" class="btn-secondary" data-cerrar-form>Cancelar</button>'}
-      ${fila && fila.unidades > 0 ? '<button type="button" class="btn-secondary" data-apartar-esta>Apartar</button><button type="button" class="btn-secondary" data-vender-esta>Vender</button>' : ''}
+      ${fila && fila.unidades > 0 ? '<button type="button" class="btn-secondary" data-apartar-esta>Reservar</button><button type="button" class="btn-secondary" data-vender-esta>Vender</button>' : ''}
       ${fila || !lista ? '' : '<button type="submit" class="btn-secondary" data-seguir>Añadir y seguir</button>'}
       <button type="submit" class="btn-primary">${fila ? 'Guardar' : 'Añadir'}</button>
     </div>`
@@ -1086,7 +1089,7 @@ async function abrirEtiquetas() {
   const m = await import('./tienda-etiquetas.js')
   for (const f of filas) f.detalle = m.detalleDeEtiqueta(f, { codigo: f._codigo, nombreSet: f._set })
   const base = `https://pokedoc.es/tiendas/${encodeURIComponent(perfil?.username || '')}`
-  m.abrirEtiquetas({ filas, enlaceDe: (f) => (f.card_id ? `${base}?carta=${encodeURIComponent(f.card_id)}` : base), nombreFichero: `etiquetas-${perfil?.username || 'tienda'}-${new Date().toISOString().slice(0, 10)}` })
+  m.abrirEtiquetas({ filas, enlaceDe: (f) => (f.card_id ? `${base}?carta=${encodeURIComponent(f.card_id)}&linea=${encodeURIComponent(f.id)}` : base), nombreFichero: `etiquetas-${perfil?.username || 'tienda'}-${new Date().toISOString().slice(0, 10)}` })
 }
 
 // ── Vistas ──

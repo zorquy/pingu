@@ -68,7 +68,7 @@ export function cartaHtml(a, { miId = null, mia = false, pendiente = false } = {
       <strong>${escapeHtml(nombre)}</strong>
       <span>${escapeHtml(detalleDe(a))}</span>
       ${Number.isFinite(precio) && a.precio != null ? `<span class="msg-carta-precio">${escapeHtml(euros(precio))}${cuando}</span>` : ''}
-      ${!pendiente && miId && a.tienda === miId ? `<span class="msg-carta-botones"><button type="button" class="btn-primary msg-carta-vender" data-vender-carta="${escapeHtml(a.stock_id)}">Vender esta carta</button><button type="button" class="btn-secondary msg-carta-vender" data-apartar-carta="${escapeHtml(a.stock_id)}">Apartar</button></span>` : ''}
+      ${!pendiente && miId && a.tienda === miId ? `<span class="msg-carta-botones"><button type="button" class="btn-primary msg-carta-vender" data-vender-carta="${escapeHtml(a.stock_id)}">Vender esta carta</button><button type="button" class="btn-secondary msg-carta-vender" data-apartar-carta="${escapeHtml(a.stock_id)}">Reservar</button></span>` : ''}
     </span>
     ${pendiente ? '<button type="button" class="msg-carta-quitar" data-quitar-carta aria-label="No mandar la carta">×</button>' : ''}
   </div>`

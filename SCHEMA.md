@@ -54824,3 +54824,43 @@ para el punto verde). La portada es `aria-hidden` (es un enlace duplicado), así
 que lo mismo va dicho con el nombre en un `.sr-only`. El filtro «Con local» de
 la agenda se rotula «Tienda física» para decir lo mismo que la burbuja; las
 tarjetas «En tiendas» del Mercado (`en-tiendas.js`) no cambian.
+
+## Tanda 1249 — Comprar empieza en el escaparate (pop-up de tienda, estados con color, Reservar)
+
+PINGU aprobó la propuesta de comprar a tiendas «con lo recomendado»: A (SKU
+general en el texto, la tienda en el QR), B (aceptar reserva 7 días), C
+(ofertas a 48 h), D (mínimo opcional a las ofertas), E (colores de estado en
+toda la web) y F (la tarifa de envío de la casa). Cinco tandas: 1249 (esto),
+1250 (ofertas), 1251 (pedir fotos), 1252 (panel), 1253 (SKU, barras y QR).
+
+**El pop-up de tienda** (`js/tienda-carta.js`, `abrirCartaDeTienda`). Lo abre
+el escaparate (`perfil-tienda.js`) en tres casos: al llegar con `?carta=<id>`
+(y `&linea=<stock>` para elegir copia), al tocar la foto de una baldosa y con
+su «Me interesa». Las copias salen de `tienda_escaparate` con el filtro
+`carta` (o `id` para lo sellado), así que nunca llevan coste ni lo oculto. El
+clic se ataja en el escaparate con `preventDefault`, antes del oyente de
+`app.js` que abre la ficha de la colección (1043): en una tienda una carta se
+abre para comprarla. La dirección se pone al día con `replaceState` al abrir y
+se limpia al cerrar (salvo en la previa de /tienda). Una carta que ya no está
+lo dice con un aviso y deja la tienda.
+
+`enlaceDeTienda(t, cardId, stockId)` arma `?carta=&linea=`; `enlaceMeInteresa`
+lleva ahí (antes a /mensajes) y «Su tienda» a la tienda sin carta. Las
+etiquetas (1093) llevan también la línea.
+
+**El SKU** (`skuDe` en `tiendas-puro.js`): código de TCG Live del set (o su id)
+· número impreso sin total ni ceros · idioma · estado (o gradeo sin espacios) ·
+versión corta (`versionCorta`: R, H, 1E, o las iniciales de una de TCGGO). Lo
+sellado, `SEL-<producto>-<idioma>`. La 1253 lo repite en la base.
+
+**Los estados**: `ESTADOS` lleva `que` (la columna en español de la tabla de
+Cardmarket). `chapaDeEstadoHtml(id)` pinta la sigla sobre `--estado-mt…po`
+(fijos en los dos temas, como `--danger-solid`, porque llevan la letra
+encima). Contraste medido: MT 5,21 · NM 4,97 · EX 5,21 · GD 9,44 (letra oscura)
+· LP 6,31 (letra oscura) · PL 5,87 · PO 6,57. Los puntos `.tds-estado` del
+Stock usan los mismos tokens. `opciones()` de Mi colección pinta un estado
+como «NM · Near Mint».
+
+**Reservar**: solo cambian los textos; las funciones y clases siguen
+llamándose `apartar` (`tienda_apartar`, `.tda`, `data-apartar-*`).
+

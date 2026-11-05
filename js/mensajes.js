@@ -768,7 +768,7 @@ async function renderThread(session, conversationId) {
     const ap = e.target.closest('[data-apartar-carta]')
     if (ap) {
       const adjunto = ultimos.flatMap(cartasDe).find((a) => a.stock_id === ap.dataset.apartarCarta)
-      return (await cartaM()).apartarDesdeMensaje(ap.dataset.apartarCarta, adjunto, otherProfile).catch(() => showToast('No se ha podido abrir Apartar.', 'error'))
+      return (await cartaM()).apartarDesdeMensaje(ap.dataset.apartarCarta, adjunto, otherProfile).catch(() => showToast('No se ha podido abrir Reservar.', 'error'))
     }
     const b = e.target.closest('[data-vender-carta]')
     if (!b) return

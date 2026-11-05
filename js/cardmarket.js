@@ -173,14 +173,16 @@ export function idiomasDeLaVersion(idiomas, versiones, reglas, variante, cardId 
 // Los estados, con el número del filtro `minCondition` de Cardmarket.
 // Es «este estado O MEJOR», que es lo que se quiere: si tu carta está
 // en Good, una en Near Mint al mismo precio también es tu precio.
+// `que` es lo que dice la tabla de Cardmarket en español (1249): la chapa lo
+// lleva de título, y los selectores al lado del nombre.
 export const ESTADOS = [
-  { id: 'MT', cm: 1, nombre: 'Mint' },
-  { id: 'NM', cm: 2, nombre: 'Near Mint' },
-  { id: 'EX', cm: 3, nombre: 'Excellent' },
-  { id: 'GD', cm: 4, nombre: 'Good' },
-  { id: 'LP', cm: 5, nombre: 'Light Played' },
-  { id: 'PL', cm: 6, nombre: 'Played' },
-  { id: 'PO', cm: 7, nombre: 'Poor' },
+  { id: 'MT', cm: 1, nombre: 'Mint', que: 'Perfecta' },
+  { id: 'NM', cm: 2, nombre: 'Near Mint', que: 'Recién sacada del sobre' },
+  { id: 'EX', cm: 3, nombre: 'Excellent', que: 'Desgaste menor' },
+  { id: 'GD', cm: 4, nombre: 'Good', que: 'Desgaste visible' },
+  { id: 'LP', cm: 5, nombre: 'Light Played', que: 'Desgaste severo' },
+  { id: 'PL', cm: 6, nombre: 'Played', que: 'Dañada' },
+  { id: 'PO', cm: 7, nombre: 'Poor', que: 'Destruida' },
 ]
 export const ESTADO_POR_DEFECTO = 'NM'
 

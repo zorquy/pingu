@@ -24,6 +24,7 @@ import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { enlaceAMapa, enlacesDeTienda } from './tiendas-puro.js'
 import { icons } from './icons.js'
 import { chapaDeGradeoHtml } from './gradeo-elegir.js'
+import { chapaDeEstadoHtml } from './estado-chapa.js'
 import { fotosDeStock, verFotosDeStock, cuantasFotos } from './tienda-fotos.js'
 import { ATRIBUTOS_DE_TIENDA } from './rangos.js'
 
@@ -92,13 +93,12 @@ async function completar(filas) {
   }
 }
 
-// «Me interesa» (1080): una conversación con la tienda con esa carta dentro.
-// Sin cuenta, a registrarse y de vuelta ahí; ni en la previa ni a sí misma.
+// «Me interesa» (1080) abre su pop-up desde la 1249 (js/tienda-carta.js), que
+// es donde se ve lo que tiene la tienda de esa carta y desde donde se le
+// escribe. Ni en la previa ni a sí misma.
 function interesaHtml(f) {
   if (est.previa || est.sesion?.user?.id === est.perfil.id) return ''
-  const destino = `/mensajes.html?with=${encodeURIComponent(est.perfil.id)}&carta=${encodeURIComponent(f.id)}`
-  const href = est.sesion ? destino : `/auth.html?registro=1&volver=${encodeURIComponent(destino)}`
-  return `<a class="pt-interesa" href="${escapeHtml(href)}">${icons.mail(14)}<span>Me interesa</span></a>`
+  return `<button type="button" class="pt-interesa" data-pt-abrir="${escapeHtml(f.id)}">${icons.mail(14)}<span>Me interesa</span></button>`
 }
 
 // «Ver fotos» (1235): la copia de verdad, por delante y por detrás.
@@ -114,7 +114,7 @@ function baldosaHtml(f) {
   const foto = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : p?.image ? `src="${escapeHtml(p.image)}" onerror="this.remove()"` : null
   const href = c ? rutaDeCarta(c) : f.product_id ? rutaDeProducto({ id: f.product_id }) : null
   // Una gradeada lleva su etiqueta sobre la foto y no dice estado (1234).
-  const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.gradeo ? null : f.estado, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null].filter(Boolean).join(' · ')
+  const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null].filter(Boolean).join(' · ')
   // Una oferta (1082): el precio rebajado, el de siempre tachado y cuánto baja.
   const antes = f.precio_antes != null && f.precio != null && Number(f.precio_antes) > Number(f.precio) ? Number(f.precio_antes) : null
   const baja = antes ? Math.round((1 - Number(f.precio) / antes) * 100) : 0
@@ -124,10 +124,10 @@ function baldosaHtml(f) {
     f.nueva ? '<span class="pt-chapa-foto pt-chapa-nueva">Nueva</span>' : '',
   ].join('')
   return `<article class="pt-carta${f.de_tu_lista ? ' tuya' : ''}${antes ? ' pt-oferta' : ''}">
-    <a class="pt-foto${f.product_id ? ' pt-foto-producto' : ''}" href="${escapeHtml(href || '#')}"${c ? ` data-marca-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">${foto ? `<img ${foto} alt="" width="245" height="342" loading="lazy" />` : ''}${chapas ? `<span class="pt-chapas-foto">${chapas}</span>` : ''}${f.gradeo && !f.product_id ? chapaDeGradeoHtml(f.gradeo, { clase: 'chapa-gradeo-foto' }) : ''}${f.de_tu_lista ? `<span class="pt-tuya" title="De tu lista">${ICONOS_COLECCION.corazon(14)}</span>` : ''}</a>
+    <a class="pt-foto${f.product_id ? ' pt-foto-producto' : ''}" href="${escapeHtml(href || '#')}" data-pt-abrir="${escapeHtml(f.id)}"${c ? ` data-marca-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">${foto ? `<img ${foto} alt="" width="245" height="342" loading="lazy" />` : ''}${chapas ? `<span class="pt-chapas-foto">${chapas}</span>` : ''}${f.gradeo && !f.product_id ? chapaDeGradeoHtml(f.gradeo, { clase: 'chapa-gradeo-foto' }) : ''}${f.de_tu_lista ? `<span class="pt-tuya" title="De tu lista">${ICONOS_COLECCION.corazon(14)}</span>` : ''}</a>
     <span class="pt-precio">${precio}</span>
     <span class="pt-nombre">${escapeHtml(nombre)}</span>
-    <span class="pt-detalle">${escapeHtml(detalle)}${f.unidades > 1 ? ` · ${f.unidades} uds.` : ''}</span>
+    <span class="pt-detalle">${f.product_id || f.gradeo ? '' : chapaDeEstadoHtml(f.estado)}${escapeHtml(detalle)}${f.unidades > 1 ? ` · ${f.unidades} uds.` : ''}</span>
     ${fotosVerHtml(f)}
     ${interesaHtml(f)}
   </article>`
@@ -166,7 +166,6 @@ function pintar() {
   const sel = $('[data-pt-idioma]')
   if (sel && sel.options.length <= 1) sel.innerHTML = `<option value="">Todos los idiomas</option>${idiomas.map((i) => `<option value="${i}">${escapeHtml(NOMBRE_IDIOMA[i] || i)}</option>`).join('')}`
   if (sel) sel.hidden = idiomas.length < 2
-  $('.pt-solo').hidden = !est.filtros.carta
   const enEsc = $('[data-pt-en-escaparate]')
   if (enEsc) enEsc.textContent = Number(d.en_escaparate || 0).toLocaleString('es-ES')
   $('.pt-cuenta').textContent = `${est.total.toLocaleString('es-ES')} ${est.total === 1 ? 'cosa' : 'cosas'}${est.total !== d.en_escaparate ? ` de ${Number(d.en_escaparate || 0).toLocaleString('es-ES')}` : ''}`
@@ -218,7 +217,6 @@ function cabeceraHtml() {
     </header>
     <section class="pt-stock" aria-label="El stock de la tienda">
       <div class="pt-tuyas" role="status" hidden></div>
-      <p class="pt-solo" hidden>Solo la carta que buscabas. <button type="button" class="link-btn" data-pt-ver="todo">Ver todo el stock</button></p>
       <div class="pt-barra">
         <div class="seg" role="group" aria-label="Qué ver">
           <button type="button" class="seg-btn activa" aria-pressed="true" data-pt-ver="todo">Todo</button>
@@ -311,8 +309,11 @@ export async function montarPerfilTienda(destino, perfil, sesion, { previa = fal
   // Desde el Mercado o «En tiendas» (`?lista=1`): ya con lo de tu lista.
   const params = new URLSearchParams(location.search)
   if (sesion && params.get('lista') === '1') est.filtros.de_tu_lista = true
-  // Y desde «En tiendas» de una carta (`?carta=`): solo esa, con la salida a todo.
-  if (params.get('carta')) est.filtros.carta = params.get('carta')
+  // Y con `?carta=` (de «Me interesa», «En tiendas», /tiendas o una etiqueta):
+  // la tienda ENTERA con el pop-up de esa carta encima (1249, PINGU: «debería
+  // abrirte la tienda en general»; antes se filtraba a «solo esa»). `linea`
+  // dice cuál de sus copias.
+  est.abrir = params.get('carta') ? { carta: params.get('carta'), linea: params.get('linea') } : null
   if (!previa) contarVisita(perfil, sesion, params.get('utm_source') === 'qr')
   // Lo apartado que caducó vuelve al escaparate (1092): caduca cuando alguien
   // mira, que es cuando importa. Sin la migración, no hace nada.
@@ -323,10 +324,21 @@ export async function montarPerfilTienda(destino, perfil, sesion, { previa = fal
   caja.addEventListener('click', (e) => {
     const fotos = e.target.closest('[data-pt-fotos]')
     if (fotos) {
-      const f = est.filas.concat(...est.tiras.map((t) => t.filas)).find((x) => x.id === fotos.dataset.ptFotos)
+      const f = todas().find((x) => x.id === fotos.dataset.ptFotos)
       const c = f?.card_id ? est.cartas.get(f.card_id) : null
       if (f) verFotosDeStock({ nombre: c ? nombreDeCarta(c) : f.nombre || '', detalle: [String(f.idioma || '').toUpperCase(), f.gradeo || f.estado].filter(Boolean).join(' · '), fotos: est.fotos.get(f.id) })
       return
+    }
+    const abrir = e.target.closest('[data-pt-abrir]')
+    if (abrir && !(e.button || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey)) {
+      const f = todas().find((x) => x.id === abrir.dataset.ptAbrir)
+      if (f) {
+        // Antes que el oyente de app.js (1043), que la abriría en la ficha de
+        // la colección: en una tienda, la carta se abre para comprarla.
+        e.preventDefault()
+        abrirLinea(f).catch(() => { if (abrir.href) location.href = abrir.href })
+        return
+      }
     }
     const ver = e.target.closest('[data-pt-ver]')
     if (ver) {
@@ -369,6 +381,70 @@ export async function montarPerfilTienda(destino, perfil, sesion, { previa = fal
       pedir()
     }
   })
-  pedir()
+  pedir().then(abrirDelEnlace).catch(() => {})
   seguir().catch(() => {})
+}
+
+const todas = () => est.filas.concat(...est.tiras.map((t) => t.filas))
+
+// Las copias que tiene la tienda de una carta (o la línea, si es un producto):
+// las de `tienda_escaparate`, así que nunca el coste ni lo oculto.
+async function lineasDe(f) {
+  const filtro = f.card_id ? { carta: f.card_id } : { id: f.id }
+  const { data, error } = await supabase.rpc('tienda_escaparate', { p_tienda: est.perfil.id, p_filtros: filtro, p_orden: 'precio_asc', p_desde: 0, p_cuantas: 40 })
+  if (error) throw error
+  const lineas = data?.filas || []
+  await completar(lineas)
+  return lineas
+}
+
+// La dirección dice qué carta está abierta (para compartirla o volver con el
+// botón de atrás del navegador), salvo en la previa, que vive en /tienda.
+function ponerEnLaDireccion(f) {
+  if (est.previa) return
+  const u = new URL(location.href)
+  if (f) {
+    if (f.card_id) u.searchParams.set('carta', f.card_id)
+    else u.searchParams.delete('carta')
+    u.searchParams.set('linea', f.id)
+  } else {
+    u.searchParams.delete('carta')
+    u.searchParams.delete('linea')
+  }
+  history.replaceState(history.state, '', u.pathname + u.search + u.hash)
+}
+
+async function abrirLinea(f, lineas = null) {
+  const ls = lineas || (await lineasDe(f))
+  const elegida = ls.find((l) => l.id === f.id) || ls[0]
+  if (!elegida) return false
+  const m = await import('./tienda-carta.js')
+  ponerEnLaDireccion(elegida)
+  return m.abrirCartaDeTienda({
+    tienda: est.perfil,
+    nombreTienda: est.perfil.display_name || est.perfil.username || 'Tienda',
+    sesion: est.sesion,
+    previa: est.previa,
+    carta: elegida.card_id ? est.cartas.get(elegida.card_id) || null : null,
+    producto: elegida.product_id ? est.productos.get(String(elegida.product_id)) || null : null,
+    lineas: ls,
+    elegida: elegida.id,
+    fotos: est.fotos,
+    sinPrecios: est.datos?.precios === false,
+    alCerrar: () => ponerEnLaDireccion(null),
+  })
+}
+
+// Al llegar con `?carta=`: el pop-up de esa carta, y si ya no la tiene, se dice.
+async function abrirDelEnlace() {
+  const pedida = est.abrir
+  est.abrir = null
+  if (!pedida) return
+  const ls = await lineasDe({ card_id: pedida.carta }).catch(() => [])
+  if (!ls.length) {
+    showToast('Esa carta ya no está en esta tienda. Mira lo que tiene.', 'info')
+    return ponerEnLaDireccion(null)
+  }
+  const f = ls.find((l) => l.id === pedida.linea) || ls[0]
+  await abrirLinea(f, ls)
 }

@@ -63,7 +63,7 @@ export function abrirApartar({ fila, para = '', paraUsuario = null, nombreSet = 
   const precio = precioQueCuenta(fila)
   dialogo.innerHTML = `
     <div class="tdv-caja">
-      <header class="tdv-cab"><h2 id="tdaTitulo">Apartar</h2><button type="button" class="tdv-cerrar" data-tda="cerrar" aria-label="Cerrar">&times;</button></header>
+      <header class="tdv-cab"><h2 id="tdaTitulo">Reservar</h2><button type="button" class="tdv-cerrar" data-tda="cerrar" aria-label="Cerrar">&times;</button></header>
       <div class="tdv-cuerpo">
         <div class="tdv-linea"><div class="tdv-linea-que"><strong>${escapeHtml(fila.nombre || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(fila, nombreSet))} · quedan ${fila.unidades}</small></div></div>
         <label class="tdc-campo">Para quién<input type="text" maxlength="80" data-para value="${escapeHtml(para)}" placeholder="Un nombre o un @usuario" /></label>
@@ -74,9 +74,9 @@ export function abrirApartar({ fila, para = '', paraUsuario = null, nombreSet = 
           <label class="tdv-precio"><span class="sr-only">Precio por unidad</span><input type="number" inputmode="decimal" min="0" step="0.01" data-precio value="${precio ?? ''}" placeholder="Precio" /> €</label>
         </div>
         <label class="tdc-campo">Nota (opcional)<input type="text" maxlength="200" data-nota placeholder="Viene el sábado por la tarde" /></label>
-        <p class="tdc-cm">Mientras esté apartada no sale en tu escaparate ni en Vender. Si nadie la recoge, vuelve sola al stock.</p>
+        <p class="tdc-cm">Mientras esté reservada no sale en tu escaparate ni en Vender. Si nadie la recoge, vuelve sola al stock.</p>
       </div>
-      <footer class="tdv-pie"><p class="tdv-error" data-error role="alert"></p><button type="button" class="btn-primary tdv-vendida" data-tda="apartar">Apartar</button></footer>
+      <footer class="tdv-pie"><p class="tdv-error" data-error role="alert"></p><button type="button" class="btn-primary tdv-vendida" data-tda="apartar">Reservar</button></footer>
     </div>`
   const $ = (s) => dialogo.querySelector(s)
   const pintar = () => {
@@ -107,12 +107,12 @@ export function abrirApartar({ fila, para = '', paraUsuario = null, nombreSet = 
     })
     boton.disabled = false
     if (error || !data?.id) {
-      $('[data-error]').textContent = sinMigracion(error) ? 'Falta un paso en la base para apartar (la migración 1092).' : error?.message || 'No se ha podido apartar.'
+      $('[data-error]').textContent = sinMigracion(error) ? 'Falta un paso en la base para reservar (la migración 1092).' : error?.message || 'No se ha podido reservar.'
       return
     }
     dialogo.close()
     alTerminar?.(data)
-    showToast(`Apartada${n > 1 ? `s ${n}` : ''} para ${quien}, hasta ${rotuloDeHasta(hasta)}.`, 'success', {
+    showToast(`Reservada${n > 1 ? `s ${n}` : ''} para ${quien}, hasta ${rotuloDeHasta(hasta)}.`, 'success', {
       acciones: [{ texto: 'Deshacer', alPulsar: () => quitar(data.id).then(() => alTerminar?.(null), () => {}) }],
     })
   }
@@ -126,7 +126,7 @@ export async function quitar(id) {
     showToast(error.message || 'No se ha podido quitar.', 'error')
     throw error
   }
-  showToast('Ya no está apartada: vuelve a tu stock.', 'success')
+  showToast('Ya no está reservada: vuelve a tu stock.', 'success')
 }
 
 // Recogida: la venta, al precio que quedó y en el sitio de siempre.

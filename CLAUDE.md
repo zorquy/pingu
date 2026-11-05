@@ -138,7 +138,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (1092) SACA las unidades del stock mientras dure (`tienda_apartar`), así que
   escaparate, Mercado y Vender no las ofrecen sin tocarlos; recoger es una venta
   (`tienda_reserva_recoger`) y lo caducado vuelve con `tienda_reservas_al_dia`,
-  que llaman el panel y el escaparate al abrirse.
+  que llaman el panel y el escaparate al abrirse. En la web se llama
+  «Reservar» (1249); por dentro sigue siendo `apartar`.
+  Una carta de una tienda se abre en SU pop-up (1249, PINGU: «debería abrirte
+  la tienda en general… con el pop-up de esa carta»): `js/tienda-carta.js`
+  sobre el escaparate entero, con `?carta=<id>&linea=<stock>`
+  (`enlaceDeTienda`); nunca otra vez «solo esa carta» ni la ficha de la
+  colección con «Añadir». Un enlace nuevo a una carta de una tienda pasa por
+  `enlaceDeTienda` con la carta (y la línea si la sabe). Su SKU es
+  `skuDe` (`tiendas-puro.js`, general: el mismo en todas las tiendas). Y el
+  estado de una copia se PINTA con `chapaDeEstadoHtml` (`js/estado-chapa.js`,
+  los colores de Cardmarket, en toda la web), nunca la sigla suelta.
   Una tienda DE PRUEBAS (`tiendas.de_pruebas`, 1245, PINGU: «un perfil como
   fantasma de pruebas») solo se ve a sí misma: una función nueva que enseñe
   tiendas o su stock a la gente pone `public.tienda_publica(tienda)` al lado de

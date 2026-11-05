@@ -3157,3 +3157,12 @@ body.portada-compacta .page-content {
 /* Sobre la foto (stock, escaparate): abajo a la izquierda, como la cápsula. */
 .chapa-gradeo-foto { position: absolute; bottom: var(--e-sm); left: var(--e-sm); z-index: 2; padding: var(--e-xs) var(--e-sm); font-size: var(--t-sm); box-shadow: var(--shadow-sm); }
 .chapa-gradeo-foto[data-casa='CGC'] { box-shadow: inset 0 0 0 1px var(--casa-cgc-borde), var(--shadow-sm); }
+/* El estado (1249): los colores de Cardmarket, fijos en los dos temas (llevan la letra encima). js/estado-chapa.js; contraste en SCHEMA 1249. */
+:root { --estado-mt: #0b7a70; --estado-nm: #22803d; --estado-ex: #66731a; --estado-gd: #e8b923; --estado-lp: #ef7d1a; --estado-pl: #c2185b; --estado-po: #b71c1c; --estado-tinta: #0d1b2a; }
+.chapa-estado { display: inline-flex; align-items: center; padding: 2px var(--e-sm); border-radius: var(--radius-sm); background: var(--estado-nm); color: var(--blanco-fijo); font-size: var(--t-xs); font-weight: 800; letter-spacing: 0.03em; line-height: 1.3; white-space: nowrap; }
+.chapa-estado[data-estado='MT'] { background: var(--estado-mt); }
+.chapa-estado[data-estado='EX'] { background: var(--estado-ex); }
+.chapa-estado[data-estado='GD'] { background: var(--estado-gd); color: var(--estado-tinta); }
+.chapa-estado[data-estado='LP'] { background: var(--estado-lp); color: var(--estado-tinta); }
+.chapa-estado[data-estado='PL'] { background: var(--estado-pl); }
+.chapa-estado[data-estado='PO'] { background: var(--estado-po); }

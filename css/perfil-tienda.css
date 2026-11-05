@@ -200,12 +200,6 @@
   color: var(--pink);
 }
 
-.pt-solo {
-  margin: 0;
-  font-size: var(--t-sm);
-  color: var(--text-mid);
-}
-
 .pt-barra {
   display: flex;
   flex-wrap: wrap;
@@ -319,6 +313,10 @@
   white-space: nowrap;
 }
 
+.pt-detalle .chapa-estado {
+  margin-right: var(--e-xs);
+}
+
 .pt-detalle {
   font-size: var(--t-xs);
   color: var(--text-mid);
@@ -422,6 +420,10 @@
   font-size: var(--t-xs);
   font-weight: 600;
   text-decoration: none;
+  /* Un botón desde la 1249 (abre el pop-up): la letra de los demás. */
+  border: 0;
+  font-family: inherit;
+  cursor: pointer;
 }
 
 .pt-interesa:hover {

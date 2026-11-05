@@ -954,6 +954,14 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   color: var(--text);
   box-shadow: var(--shadow-sm);
 }
+/* El estado elegido, con su color de Cardmarket (1249, la chapa de js/estado-chapa.js). */
+.mc-seg button[data-valor='MT'][aria-checked='true'] { background: var(--estado-mt); color: var(--blanco-fijo); }
+.mc-seg button[data-valor='NM'][aria-checked='true'] { background: var(--estado-nm); color: var(--blanco-fijo); }
+.mc-seg button[data-valor='EX'][aria-checked='true'] { background: var(--estado-ex); color: var(--blanco-fijo); }
+.mc-seg button[data-valor='GD'][aria-checked='true'] { background: var(--estado-gd); color: var(--estado-tinta); }
+.mc-seg button[data-valor='LP'][aria-checked='true'] { background: var(--estado-lp); color: var(--estado-tinta); }
+.mc-seg button[data-valor='PL'][aria-checked='true'] { background: var(--estado-pl); color: var(--blanco-fijo); }
+.mc-seg button[data-valor='PO'][aria-checked='true'] { background: var(--estado-po); color: var(--blanco-fijo); }
 .mc-seg-nombre {
   color: var(--text-mid);
   font-size: var(--t-2xs);

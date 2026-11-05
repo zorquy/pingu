@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (491) — PINGU-Claude (1249 — comprar empieza en el escaparate: pop-up de tienda, estados con color, Reservar)
+
+**Hecho**: PINGU aprobó la propuesta de comprar a tiendas «con lo
+recomendado» (SKU general en el texto y de la tienda en el QR; aceptar reserva
+7 días; ofertas que caducan a las 48 h; mínimo opcional; colores de estado en
+toda la web; la tarifa de envío de la casa). Esta es la primera de cinco
+tandas (1249–1253):
+- «Me interesa» (Mercado, ficha, «En tiendas»), /tiendas y el QR de las
+  etiquetas llevan a `/tiendas/<u>?carta=<id>&linea=<stock>`: la tienda ENTERA
+  y, encima, el pop-up de esa carta (`js/tienda-carta.js` + `css/tienda-carta.css`).
+  Se fue «Solo la carta que buscabas · Ver todo el stock». Tocar una carta o
+  su «Me interesa» en el escaparate abre ese pop-up (no la ficha de la
+  colección: el clic se queda antes que el oyente de app.js). Enseña sus copias
+  para elegir (idioma, estado o gradeo, versión, precio), «Quedan N», el precio
+  con la oferta tachada, las fotos de verdad, el SKU y «Me interesa» (a la
+  conversación con esa copia, como en la 1080; la 1250 lo cambia por el trato).
+  La dirección lleva la carta abierta y se limpia al cerrar.
+- `skuDe(linea, códigoDeSet)` en `js/tiendas-puro.js` (se calcula, no se
+  guarda): «ASC-276-ES-NM-H», gradeada «…-ES-PSA10», sellado «SEL-<id>-<idioma>».
+- Los siete estados de Cardmarket con color: `chapaDeEstadoHtml` /
+  `textoDeEstado` (`js/estado-chapa.js`), `--estado-*` en components.css (fijos
+  en los dos temas, ≥ 4,5:1). En Mi colección (chips de las copias, Las que
+  doy), el Stock (tabla, baldosas, puntos de los filtros), el escaparate y «En
+  tiendas». Los desplegables dicen «NM · Near Mint» y el significado de título.
+- «Apartar» → «Reservar» en todo lo que se ve (la hoja, el Stock, el Panel,
+  la conversación); por dentro sigue siendo `tienda_apartar`.
+
+**Ficheros**: `js/tienda-carta.js` y `css/tienda-carta.css` (nuevos),
+`js/estado-chapa.js` (nuevo), `js/perfil-tienda.js`, `css/perfil-tienda.css`,
+`js/en-tiendas.js`, `js/tiendas-puro.js`, `js/cardmarket.js` (`que` en
+ESTADOS), `css/components.css`, `css/tienda.css`, `js/tienda-stock.js`,
+`js/tienda-apartar.js`, `js/tienda-hoy.js`, `js/mensajes-carta.js`,
+`js/mensajes.js`, `js/mi-coleccion.js`, `js/mi-coleccion/deseos.js`, CLAUDE.md,
+SCHEMA, novedades. Rama pruebas: `test-tanda-1249-pantalla.mjs` (nueva) y
+1069, 1080, 1092 y 1236 al día.
+
+**Pendiente**: 1250 (ofertas, con migración), 1251 (pedir fotos), 1252 (panel
+nuevo), 1253 (SKU en la base, barras y QR). Las migraciones 1244 y 1245. Las
+fotos del pack de la película (1247).
+
 ## 2026-11-05 (490) — PINGU-Claude (1248 — tarjetas de tiendas con menos texto)
 
 **Hecho**: PINGU, con la captura de FDN Cards y RyuCards: «hay demasiada

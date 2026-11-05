@@ -36,6 +36,18 @@
     {
       "fecha": "2026-11-05",
       "tipo": "mejora",
+      "texto": "«Me interesa» de una tienda te lleva a su tienda entera con esa carta abierta encima: ves las copias que tiene (idioma, estado, versión), su precio, sus fotos y su código. Y al tocar cualquier carta de una tienda se abre igual.",
+      "enlace": "/tiendas"
+    },
+    {
+      "fecha": "2026-11-05",
+      "tipo": "mejora",
+      "texto": "El estado de una carta (de Mint a Poor) se ve con los colores de Cardmarket en toda la web: tu colección, el Mercado y las tiendas. Y en las tiendas, «Apartar» ahora se llama «Reservar».",
+      "enlace": "/mi-coleccion"
+    },
+    {
+      "fecha": "2026-11-05",
+      "tipo": "mejora",
       "texto": "Las tarjetas de la página de tiendas, más limpias: el nombre, cuántas cartas tiene y, arriba, si es tienda física u online y si está abierta. La ciudad, la web y el Instagram, dentro de su escaparate.",
       "enlace": "/tiendas"
     },

@@ -678,3 +678,31 @@ export function filtrarTiendas(tiendas, { lista, local, online, abiertas } = {},
 // propia (quien la usa para probar se sigue viendo).
 export const sinFantasmas = (perfiles, fantasmas, yo = null) =>
   (Array.isArray(perfiles) ? perfiles : []).filter((p) => !fantasmas?.has?.(p?.id) || p.id === yo)
+
+// EL SKU DE UNA LÍNEA (1249, PINGU: «un SKU por cada artículo»; eligió el
+// GENERAL: el mismo en todas las tiendas, y el QR pone la tienda). Se calcula,
+// no se guarda: colección (su código de TCG Live, o su id), número impreso,
+// idioma, estado o gradeo, y la versión si no es la normal. «ASC-276-ES-NM-H».
+// Una gradeada no dice estado («ASC-276-ES-PSA10»), y lo sellado es
+// «SEL-<producto>-<idioma>». La base hace lo mismo en la 1253 (`tienda_sku`):
+// si cambias una regla, cámbiala en los dos.
+const VERSION_CORTA = { normal: '', reverse: 'R', holo: 'H', primera: '1E' }
+const limpio = (t) => String(t ?? '').toUpperCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^A-Z0-9]/g, '')
+export function versionCorta(variante) {
+  const v = String(variante || 'normal').toLowerCase()
+  if (v in VERSION_CORTA) return VERSION_CORTA[v]
+  // Una de TCGGO o de TCGdex (`poke-ball`, `master-ball`): sus iniciales.
+  return v.split(/[^a-z0-9]+/).filter(Boolean).map((p) => (/^\d/.test(p) ? p : p[0])).join('').toUpperCase()
+}
+export function skuDe(linea, codigoSet = '') {
+  const l = linea || {}
+  const idioma = limpio(l.idioma || 'es')
+  if (l.product_id) return ['SEL', limpio(l.product_id), idioma].join('-')
+  const set = limpio(codigoSet) || limpio(l.set_id) || 'X'
+  // El número tal como va impreso, sin el total ni los ceros de delante:
+  // «276/217» y «0276» son la 276; «TG01» se queda «TG01».
+  const n = String(l.numero ?? '').split('/')[0]
+  const numero = /^\d+$/.test(n) ? String(Number(n)) : limpio(n) || '0'
+  const estado = l.gradeo ? limpio(l.gradeo) : limpio(l.estado || 'NM')
+  return [set, numero, idioma, estado, versionCorta(l.variante)].filter(Boolean).join('-')
+}
