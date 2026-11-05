@@ -147,6 +147,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `quitarFantasmas` / `sinFantasmas` (`js/tiendas-fantasma.js`). Se marca en
   /admin → Tiendas. Y las tarjetas de /tiendas miden todas lo mismo (1245): lo
   que se añada a una va en una fila de alto fijo, con su hueco si falta.
+  La actividad de la comunidad (`js/comunidad-sucesos.js`) sabe qué cuenta es
+  cada uno por `conCuentas` (1246: `portada_comunidad` no da `tipo`); un suceso
+  nuevo que nombre a otra persona pone su username en `datos` y pasa por ahí, o
+  una tienda saldrá como una persona. Y la pestaña Actividad usa el molde de la
+  portada (`cajasHtml`, con su dibujo a la derecha), no una lista de texto.
   Una gradeada (1234) lleva su casa y nota en `gradeo` («PSA 10») y se elige
   con `gradeoHtml` / `engancharGradeo` (`js/gradeo-elegir.js`: PSA, Beckett y
   CGC); se PINTA con `chapaDeGradeoHtml` (PSA roja, Beckett negra, CGC blanca,

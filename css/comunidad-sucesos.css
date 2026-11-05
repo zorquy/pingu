@@ -203,3 +203,47 @@
 .suc-dib.tono-cian { background: var(--arte-cian); }
 .suc-dib.tono-rosa { background: var(--arte-rosa); }
 .suc-dib b { font-weight: 800; }
+
+/* La pestaña Actividad de /usuarios (1245b): el molde de la portada en
+ * cajas; dos en el PC, y en el móvil las dos listas son UNA caja. */
+.suc-cajas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  padding: var(--e-xs) var(--e-lg);
+}
+
+.suc-cajas > .suc-lista + .suc-lista > li:first-child {
+  border-top: 1px solid var(--border);
+}
+
+.suc-cajas .suc {
+  padding: var(--e-sm) 0;
+}
+
+@media (min-width: 761px) {
+  .suc-cajas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: var(--e-lg);
+    border: 0;
+    background: none;
+    padding: 0;
+  }
+
+  .suc-cajas > .suc-lista {
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    padding: var(--e-xs) var(--e-lg);
+  }
+
+  .suc-cajas > .suc-lista + .suc-lista > li:first-child {
+    border-top: 0;
+  }
+  .suc-cajas.una {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

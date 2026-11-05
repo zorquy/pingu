@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-05",
       "tipo": "mejora",
+      "texto": "La actividad de Gente se ve como en el inicio: cada cosa en su fila, con el dibujo de lo que ha pasado a la derecha. Y cuando alguien sigue a una tienda, la tienda sale con su color y su icono.",
+      "enlace": "/usuarios.html#activity"
+    },
+    {
+      "fecha": "2026-11-05",
+      "tipo": "mejora",
       "texto": "En la página de tiendas, todas las tarjetas miden lo mismo, tengan más o menos información: cuatro sitios para sus cartas y los botones siempre a la misma altura.",
       "enlace": "/tiendas"
     },

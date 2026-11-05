@@ -54757,3 +54757,34 @@ tienda no la ven en ninguna de las ocho; ella sí; avisar desde ella no avisa;
 el equipo la desmarca y vuelve a todo; dos veces y sentencia a sentencia) y
 `test-tanda-1245-pantalla.mjs` (lo puro, Gente, el buscador, sin la migración y
 /admin → Tiendas). Las dos guardas del navegador se mutaron y cazan.
+
+## Tanda 1246 — La actividad, como en el inicio, y las tiendas con su nombre
+
+PINGU, con dos capturas: «en actividad las tiendas no tienen ni el color ni el
+icono de tienda» (PINGU empezó a seguir a FDN Cards y RyuCards) y «rehacer la
+parte de actividad como está en el inicio, que es texto y en el inicio está guay
+con los iconos de qué hace cada acción».
+
+**Por qué no salían como tiendas**: `atributosDeRango` decide por `tipo`, y
+`portada_comunidad` (supabase-migration-portada.sql) da de cada uno username,
+nombre, `is_admin` e `is_moderator`, pero no `tipo`. En vez de redefinir esa
+función (otra migración pendiente), `cargarSucesos` hace UNA consulta más a
+`user_profiles` (id, username, tipo) con los nombres que salen —quien hace y,
+en un «sigue», a quién— y `conCuentas(nuevos, perfiles, fantasmas)` (puro) pone
+`cuenta` en el suceso (que acaba en `perfil.tipo`) y `datos.tipo` en el «sigue».
+De paso quita todo suceso de la tienda de pruebas o hacia ella (1245): «empezó a
+seguir a Tienda de Prueba» la enseñaba. Si la consulta falla, los sucesos van
+como venían. El «sigue» a una tienda dibuja la tienda (`iconoDe` en `SUCESOS`,
+para la chapa pequeña de la cara y el dibujo de la derecha).
+
+**Actividad**: el molde con `dibujo` de la portada (1207), en `cajasHtml`. En el
+PC son dos cajas, la primera mitad y la segunda (se lee de arriba abajo, como
+las `columns` de antes); en el móvil la hoja junta las dos en una caja
+(`.suc-cajas` lleva el borde y las listas no); con menos de seis, una sola a lo
+ancho (`.una`), que dos cajas de una fila parecían a medias. Las filas de una
+caja miden lo mismo (`grid-auto-rows` de `.con-dibujo`).
+
+**Pruebas** (rama pruebas): `test-tanda-1246-pantalla.mjs` (lo puro; Actividad
+en el PC y el móvil; la tienda con su color, su icono, su dirección y su dibujo;
+una persona sin ellos; nada de la de pruebas; el filtro con una caja; la lateral
+y la portada).

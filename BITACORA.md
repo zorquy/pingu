@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (488) — PINGU-Claude (1246 — la actividad, como en el inicio, y las tiendas con su nombre)
+
+**Hecho**: lo que pidió PINGU con dos capturas («en actividad las tiendas no
+tienen ni el color ni el icono de tienda»; «rehacer la actividad como está en el
+inicio, con los iconos de qué hace cada acción»).
+- **Las tiendas en la actividad**: `portada_comunidad` no dice qué cuenta es cada
+  uno, así que «empezó a seguir a FDN Cards» la pintaba como una persona.
+  `cargarSucesos` pregunta UNA vez por los nombres que salen (`user_profiles`:
+  id, username, tipo) y `conCuentas` (puro) apunta la cuenta de quien hace y de a
+  quién sigue: el nombre de una tienda va con su verde, su icono y a
+  `/tiendas/<usuario>`, y el dibujo de la fila es la tienda. Lo de la tienda de
+  pruebas (1245) se quita. Vale para la portada, la lateral y Actividad, que son
+  el mismo molde. Sin migración.
+- **Actividad (/usuarios)**: el molde de la portada (`dibujo`): cada fila con su
+  icono de color a la derecha, en cajas (`cajasHtml`): dos en el PC, que se leen
+  de arriba abajo; una en el móvil; una a lo ancho si quedan menos de seis (un
+  filtro). Los filtros y «Ver más» siguen.
+
+**Ficheros**: `js/comunidad-sucesos.js`, `css/comunidad-sucesos.css`, SCHEMA,
+CLAUDE.md, novedades. Rama pruebas: `test-tanda-1246-pantalla.mjs` (nueva).
+
+**Pendiente**: que PINGU ejecute las migraciones 1244 y 1245. Lo de la 475.
+
 ## 2026-11-05 (487) — PINGU-Claude (1245 — tarjetas de tiendas iguales y la tienda de pruebas, fantasma)
 
 **Hecho**: lo que pidió PINGU con la captura de /tiendas.

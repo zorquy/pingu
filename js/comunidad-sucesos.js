@@ -18,6 +18,7 @@ import { hojaInyectada } from './hoja.js'
 import { rutaDeArticulo } from './articulos.js'
 import { haceCuanto } from './foro-comun.js'
 import { atributosDeRango } from './rangos.js'
+import { tiendasDePruebas } from './tiendas-fantasma.js'
 
 export const hoja = typeof document !== 'undefined' ? hojaInyectada('css/comunidad-sucesos.css') : Promise.resolve()
 
@@ -43,7 +44,10 @@ export const SUCESOS = {
   comentario: { grupo: 'guias', icono: 'messageSquare', tono: 'cian', texto: (d) => `comentó en ${d.enlace}` },
   peticion: { grupo: 'guias', icono: 'helpCircle', tono: 'ambar', texto: (d) => `pidió una guía sobre ${d.enlace}` },
   alta: { grupo: 'gente', icono: 'user', tono: 'morado', texto: () => 'se unió a PokeDoc' },
-  sigue: { grupo: 'gente', icono: 'users', tono: 'morado', texto: (d) => `empezó a seguir a ${d.username ? `<a href="${profileUrl(d)}"${atributosDeRango(d)}>${escapeHtml(d.display_name || d.username)}</a>` : 'alguien'}` },
+  // A quién sigue puede ser una tienda (1245b, PINGU: «esos dos son tiendas»):
+  // su nombre va con el verde y el icono de tienda (`atributosDeRango` mira
+  // `tipo`, que pone `conCuentas`), y el dibujo es la tienda.
+  sigue: { grupo: 'gente', icono: 'users', iconoDe: (d) => (d.tipo === 'tienda' ? 'store' : 'users'), tono: 'morado', texto: (d) => `empezó a seguir a ${d.username ? `<a href="${profileUrl(d)}"${atributosDeRango(d)}>${escapeHtml(d.display_name || d.username)}</a>` : 'alguien'}` },
   // Una noticia es del SITIO, no de quien la teclea (la 289): sin cara ni
   // nombre, con la chapa «Noticia».
   noticia: { grupo: 'guias', icono: 'newspaper', tono: 'azul', casa: 'Noticia', texto: (d) => d.enlace },
@@ -82,7 +86,7 @@ export function sucesosDeLaComunidad(actividad = [], nuevos = []) {
     }))
   const deLaBase = (nuevos || [])
     .filter((e) => SUCESOS[e.tipo] && !SUCESOS[e.tipo].casa)
-    .map((e) => ({ tipo: e.tipo, fecha: e.fecha, perfil: { username: e.username, display_name: e.display_name, avatar_url: e.avatar_url, is_admin: e.is_admin, is_moderator: e.is_moderator }, datos: e.datos || {} }))
+    .map((e) => ({ tipo: e.tipo, fecha: e.fecha, perfil: { username: e.username, display_name: e.display_name, avatar_url: e.avatar_url, is_admin: e.is_admin, is_moderator: e.is_moderator, tipo: e.cuenta }, datos: e.datos || {} }))
   return [...deLaBase, ...deSiempre].sort((a, b) => String(b.fecha).localeCompare(String(a.fecha)))
 }
 
@@ -94,7 +98,8 @@ const quienHtml = (p) =>
 // Con `dibujo` (la portada, 1207: «más visual»), a la derecha de cada suceso
 // va su dibujo en su color: el anillo de 6/6 de un día perfecto, o el icono
 // de lo que pasó en grande.
-const dibujoHtml = (s, t) => `<span class="suc-dib tono-${t.tono}" aria-hidden="true">${s.tipo === 'perfecto' ? '<b>6/6</b>' : ic(t.icono, 16)}</span>`
+const iconoDe = (s, t) => t.iconoDe?.(s.datos || {}) || t.icono
+const dibujoHtml = (s, t) => `<span class="suc-dib tono-${t.tono}" aria-hidden="true">${s.tipo === 'perfecto' ? '<b>6/6</b>' : ic(iconoDe(s, t), 16)}</span>`
 
 export function sucesoHtml(s, { dibujo = false } = {}) {
   const t = SUCESOS[s.tipo]
@@ -103,10 +108,41 @@ export function sucesoHtml(s, { dibujo = false } = {}) {
   if (t.casa) {
     return `<li class="suc suc-de-la-casa"><span class="suc-cara suc-cara-casa" aria-hidden="true">${ic(t.icono, 16)}</span><p><span class="suc-chapa">${escapeHtml(t.casa)}</span> ${t.texto(s.datos)} ${cuando}</p></li>`
   }
-  return `<li class="suc"><span class="suc-cara-caja">${caraHtml(s.perfil)}<span class="suc-ic tono-${t.tono}" aria-hidden="true">${ic(t.icono, 10)}</span></span><p>${quienHtml(s.perfil)} ${t.texto(s.datos)} ${cuando}</p>${dib}</li>`
+  return `<li class="suc"><span class="suc-cara-caja">${caraHtml(s.perfil)}<span class="suc-ic tono-${t.tono}" aria-hidden="true">${ic(iconoDe(s, t), 10)}</span></span><p>${quienHtml(s.perfil)} ${t.texto(s.datos)} ${cuando}</p>${dib}</li>`
 }
 
 export const listaHtml = (sucesos, { dos = false, dibujo = false } = {}) => `<ul class="suc-lista${dos ? ' dos' : ''}${dibujo ? ' con-dibujo' : ''}">${sucesos.map((s) => sucesoHtml(s, { dibujo })).join('')}</ul>`
+
+// `portada_comunidad` no dice qué cuenta es cada uno: sin eso una tienda sale
+// como una persona. Se pregunta UNA vez por los nombres que salen (quien hace
+// y a quién sigue) y se apunta `cuenta` / `datos.tipo`; y lo de la tienda de
+// pruebas (1245) se va entero: «empezó a seguir a Tienda de Prueba» la
+// enseñaría. Si la consulta falla, se pinta como antes. Puro.
+export function conCuentas(nuevos = [], perfiles = [], fantasmas = new Set()) {
+  const por = new Map((perfiles || []).map((p) => [p.username, p]))
+  const fantasma = (u) => Boolean(u && fantasmas.has(por.get(u)?.id))
+  return (nuevos || [])
+    .filter((e) => !fantasma(e.username) && !(e.tipo === 'sigue' && fantasma(e.datos?.username)))
+    .map((e) => {
+      const cuenta = por.get(e.username)?.tipo
+      const objetivo = e.tipo === 'sigue' ? por.get(e.datos?.username)?.tipo : null
+      return { ...e, ...(cuenta ? { cuenta } : {}), ...(objetivo ? { datos: { ...e.datos, tipo: objetivo } } : {}) }
+    })
+}
+
+async function completarCuentas(nuevos) {
+  const nombres = [...new Set(nuevos.flatMap((e) => [e.username, e.tipo === 'sigue' ? e.datos?.username : null]).filter(Boolean))]
+  if (!nombres.length) return nuevos
+  try {
+    const [{ data, error }, fantasmas] = await Promise.all([
+      supabase.from('user_profiles').select('id, username, tipo').in('username', nombres),
+      tiendasDePruebas(),
+    ])
+    return conCuentas(nuevos, error ? [] : data, fantasmas)
+  } catch {
+    return nuevos
+  }
+}
 
 // Lo pide todo a la vez. `fallos` dice si alguna fuente no contestó: con eso
 // quien pinta distingue «no hay nada» de «no se ha podido mirar» (la 510).
@@ -115,8 +151,21 @@ export async function cargarSucesos(limite = 12) {
     import('./activity.js'),
     supabase.rpc('portada_comunidad', { p_limite: limite }).then(({ data, error }) => (error ? null : data || [])),
   ])
-  const actividad = await loadActivity(limite)
-  return { actividad: actividad.eventos, nuevos: nuevos || [], fallos: actividad.fallos || [] }
+  const [actividad, conTipo] = await Promise.all([loadActivity(limite), completarCuentas(nuevos || [])])
+  return { actividad: actividad.eventos, nuevos: conTipo, fallos: actividad.fallos || [] }
+}
+
+// La pestaña Actividad con el molde de la portada (1245b, PINGU: «como está
+// en el inicio, con los iconos de qué hace cada acción»): filas con su dibujo
+// a la derecha, en cajas. En el PC, dos cajas que se leen de arriba abajo (la
+// primera mitad y luego la segunda, como el tiempo); en el móvil, una sola
+// (la hoja junta las dos). Puro.
+export function cajasHtml(sucesos) {
+  // Con menos de seis (un filtro con poco), dos cajas de una o dos filas
+  // parecerían a medias: va una sola, a lo ancho.
+  if (sucesos.length < 6) return `<div class="suc-cajas una">${listaHtml(sucesos, { dibujo: true })}</div>`
+  const mitad = Math.ceil(sucesos.length / 2)
+  return `<div class="suc-cajas">${[sucesos.slice(0, mitad), sucesos.slice(mitad)].map((l) => listaHtml(l, { dibujo: true })).join('')}</div>`
 }
 
 // La pestaña Actividad de /usuarios: filtros por tipo, 20 cada vez y «Ver más».
@@ -138,7 +187,7 @@ export async function montarActividad(caja) {
       <div class="suc-filtros" role="group" aria-label="Qué ver">${FILTROS.filter(([g]) => !g || hay.has(g))
         .map(([g, n]) => `<button type="button" class="suc-filtro${g === filtro ? ' activo' : ''}" data-suc-filtro="${g}" aria-pressed="${g === filtro}">${n}</button>`)
         .join('')}</div>
-      ${listaHtml(visibles.slice(0, cuantos), { dos: true })}
+      ${cajasHtml(visibles.slice(0, cuantos))}
       ${visibles.length > cuantos ? `<button type="button" class="btn-secondary suc-mas" data-suc-mas>Ver más (${visibles.length - cuantos})</button>` : ''}`
   }
   pintar()
