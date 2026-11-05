@@ -17,12 +17,13 @@ export const TARJETAS_FIJAS = {
   meta: { seccion: 'jugar', chapa: 'Meta', titulo: 'Los mazos que *ganan* ahora', entradilla: 'El meta de Pokémon TCG, con las listas de los torneos.', linea: 'Actualizado cada semana', enlace: 'pokedoc.es/meta', pieza: { tipo: 'mascota' } },
   laboratorio: { seccion: 'jugar', chapa: 'Laboratorio', titulo: 'Prueba tu mazo *antes del torneo*', entradilla: 'Roba manos, mira las probabilidades y juega turnos de prueba.', linea: 'Gratis en PokeDoc', enlace: 'pokedoc.es/laboratorio', pieza: { tipo: 'mascota' } },
   novedades: { seccion: 'inicio', chapa: 'Novedades', titulo: 'Lo nuevo de *PokeDoc*', entradilla: 'Cada cosa que añadimos o arreglamos, mes a mes.', linea: 'Hecho con lo que pide la comunidad', enlace: 'pokedoc.es/novedades', pieza: { tipo: 'mascota' } },
-  tiendas: { seccion: 'comunidad', chapa: 'Tiendas', titulo: 'Las *tiendas* de PokeDoc', entradilla: 'Su stock, sus precios y cuáles tienen lo que buscas.', linea: 'Y si tienes una, pide tu cuenta', enlace: 'pokedoc.es/tiendas', pieza: { tipo: 'mascota' } },
+  tiendas: { seccion: 'comunidad', chapa: 'Tiendas', titulo: 'Las *tiendas* de PokeDoc', entradilla: 'Su escaparate, sus precios y cuáles tienen lo que buscas.', linea: 'Mira lo que acaba de llegar', enlace: 'pokedoc.es/tiendas', pieza: { tipo: 'mascota' } },
+  'para-tiendas': { seccion: 'comunidad', chapa: 'Para tiendas', titulo: 'Lleva tu *tienda* a PokeDoc', entradilla: 'Tu stock carta a carta, tu escaparate con QR y que te encuentre quien busca.', linea: 'Pide acceso', enlace: 'pokedoc.es/para-tiendas', pieza: { tipo: 'mascota' } },
   colabora: { seccion: 'comunidad', chapa: 'Colabora', titulo: 'Ayúdanos a hacer *PokeDoc*', entradilla: 'Escribe guías, corrige cartas o cuéntanos qué falta.', linea: 'La web la hace la comunidad', enlace: 'pokedoc.es/colabora', pieza: { tipo: 'mascota' } },
   sobre: { seccion: 'inicio', chapa: 'PokeDoc', titulo: 'Qué es *PokeDoc*', entradilla: 'La comunidad en español de Pokémon TCG: colección, foro, torneos y guías.', linea: 'Gratis y hecha por jugadores', enlace: 'pokedoc.es/sobre', pieza: { tipo: 'mascota' } },
 }
 
 // Qué página usa cada una (el HTML que la lleva en su og:image).
 export const PAGINA_DE_FIJA = {
-  inicio: 'index.html', eventos: 'eventos.html', foro: 'foro.html', cartas: 'cartas.html', aprender: 'aprender.html', noticias: 'noticias.html', gente: 'usuarios.html', lanzamientos: 'lanzamientos.html', glosario: 'glosario.html', constructor: 'constructor.html', meta: 'meta.html', laboratorio: 'laboratorio.html', novedades: 'novedades.html', tiendas: 'tiendas.html', colabora: 'colabora.html', sobre: 'sobre.html',
+  inicio: 'index.html', eventos: 'eventos.html', foro: 'foro.html', cartas: 'cartas.html', aprender: 'aprender.html', noticias: 'noticias.html', gente: 'usuarios.html', lanzamientos: 'lanzamientos.html', glosario: 'glosario.html', constructor: 'constructor.html', meta: 'meta.html', laboratorio: 'laboratorio.html', novedades: 'novedades.html', tiendas: 'tiendas.html', 'para-tiendas': 'para-tiendas.html', colabora: 'colabora.html', sobre: 'sobre.html',
 }

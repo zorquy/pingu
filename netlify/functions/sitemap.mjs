@@ -60,7 +60,9 @@ const ESTATICAS = [
   // formulario pide sesión, pero la página es un escaparate y quien
   // todavía no tiene cuenta es justo a quien hay que convencer.
   ['/colabora', '0.5'],
-  ['/tiendas', '0.4'],
+  ['/tiendas', '0.6'],
+  // Pedir acceso, en su página desde la 1244.
+  ['/para-tiendas', '0.4'],
   ['/foro', '0.8'],
   // El constructor de mazos: pública e indexable (los mazos concretos no,
   // van por parámetro y son de cada usuario).

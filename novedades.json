@@ -35,6 +35,18 @@
   "entradas": [
     {
       "fecha": "2026-11-05",
+      "tipo": "nuevo",
+      "texto": "La página de tiendas, nueva: cada tienda con su portada, si está abierta ahora, sus cartas destacadas con precio y un botón para escribirle. Arriba, las que tienen algo de tu lista; en medio, lo último que han puesto a la venta. Y se buscan también por carta.",
+      "enlace": "/tiendas"
+    },
+    {
+      "fecha": "2026-11-05",
+      "tipo": "mejora",
+      "texto": "Si tienes una tienda o vendes cartas, pedir acceso tiene su página: «Para tiendas», en el pie.",
+      "enlace": "/para-tiendas"
+    },
+    {
+      "fecha": "2026-11-05",
       "tipo": "mejora",
       "texto": "Las tiendas se reconocen de un vistazo: su nombre va en verde azulado con un iconito de tienda, en Mensajes, Gente, el Mercado y donde salgan. Y su escaparate tiene dirección propia: pokedoc.es/tiendas/su-nombre (los QR de antes siguen funcionando).",
       "enlace": "/tiendas"

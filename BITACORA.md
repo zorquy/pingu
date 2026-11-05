@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (486) — PINGU-Claude (1244 — /tiendas, un escaparate de escaparates, y /para-tiendas)
+
+**Hecho**: la propuesta https://claude.ai/artifact/UWXbUamynU7UMQ9APiUtDJ, con lo
+recomendado (PINGU: «adelante», y los «Ver más» «redonditos, como en la web»).
+- **/tiendas** es solo para quien busca tiendas: banda de Comunidad con las cifras
+  de todas (tiendas, ciudades, cartas a la vista), buscador que busca también por
+  CARTA, chips (Todas, De tu lista, Con local, Online, Abiertas ahora) y ciudad.
+  Cada tienda en una tarjeta grande: portada, logo, nombre con su icono, chapa de
+  «Abierta · hasta 20:30» / «Cerrada · abre mañana 10:00» (de su horario escrito a
+  mano, `estadoDeHorario`; lo que no se entiende no pinta chapa), ciudad, local u
+  online, web e Instagram, cuentas, sus cuatro de escaparate con precio (las
+  destacadas primero), «Ver escaparate» y «Escribir». «Tienen algo de tu lista»
+  arriba, «Recién llegado a las tiendas» (ocho, «Ver más» trae 24) y «Más tiendas»
+  (12 y «Ver más tiendas»). Los «Ver más» son `btn-secondary` en pastilla.
+- **/para-tiendas**: el «Qué es» y el formulario de siempre (js/para-tiendas.js).
+  El pie de las 50 páginas, /tienda, /admin → Tiendas y el alta llevan aquí; y
+  `/tiendas#para-tiendas`, también.
+- **Migración 1244** (`supabase-migration-1244-tiendas-pagina.sql`, PENDIENTE de
+  ejecutar): `tiendas_agenda` con la misma firma da además horario, web,
+  Instagram, online, precios, `destacadas` y `cifras`, y busca por carta;
+  `tiendas_recien` (dos por tienda). Sin coste nunca y sin precio si la tienda no
+  lo enseña. Sin la migración, la página pinta lo de la 1236 sin nada roto.
+
+**Ficheros**: `tiendas.html`, `para-tiendas.html` (nuevo), `js/tiendas.js`,
+`js/para-tiendas.js` (nuevo), `js/tiendas-agenda.js`, `js/tiendas-puro.js`,
+`js/icons.js` (`mapPin`), `js/barra-movil.js` (SECCION_DE), `css/tiendas.css`, el
+pie de todas las páginas, `tienda.html`, `admin/index.html`, `alta-tienda.html`,
+`netlify/functions/sitemap.mjs`, `netlify/lib/tarjetas-fijas.mjs`, la migración,
+SCHEMA, CLAUDE.md, novedades. Rama pruebas: `test-tanda-1244.mjs` (PostgreSQL) y
+`test-tanda-1244-pantalla.mjs` (nuevas); 1067, 1236, 1242 y 1040 al día, y el doble
+contesta «no existe» a `tiendas_recien`; 312 cuenta 50 pies, 1201 la tarjeta de
+/para-tiendas, y 1243 mira la agenda nueva. Verdes: 1244 (las dos), 1236 (las
+dos), 1067, 1069, 1242, 1243, 299, 312, 313, 906, 753, 649, 1201, 1023, 1233,
+`test-imports`. Rojos de antes: 1040 (glosario, laboratorio, repeticiones; /tiendas
+en verde) y 829 (/foro/eventos y los dibujos de las destacadas).
+
+**Pendiente**: que PINGU ejecute la migración 1244. Lo de la 475.
+
 ## 2026-11-05 (485) — PINGU-Claude (1243 — una tienda se reconoce por su nombre)
 
 **Hecho**: la propuesta https://claude.ai/artifact/T8GdKVoeiWuiMBePUHS9t8, que

@@ -54641,3 +54641,62 @@ puertas de la tienda, netlify.toml y meta-social; el escaparate en
 `/tiendas/rincon` con el color y el icono en claro y oscuro y su contraste,
 `/usuario/rincon?utm_source=qr` corregido en la barra, la propia tienda en su
 dirección, y la agenda enlazando a `/tiendas/rincon?lista=1`.
+
+## Tanda 1244 — /tiendas, un escaparate de escaparates, y /para-tiendas
+
+La propuesta con imágenes (https://claude.ai/artifact/UWXbUamynU7UMQ9APiUtDJ),
+con lo recomendado. PINGU: «que se vean bien las tiendas, que sea un apartado
+visualmente guapo… el formulario lo dejaría aparte», y «cuidado con los botones
+de ver más: hazlos como en la web, redonditos».
+
+**Partir la página**: /tiendas era la agenda pequeña y, debajo, el «Qué es» y el
+formulario. Quien llega desde Comunidad viene a ver tiendas, y quien tiene una
+tienda llega por el pie («Para tiendas»): son dos públicos. El formulario se fue
+TAL CUAL a `/para-tiendas` (`para-tiendas.html` + `js/para-tiendas.js`, los mismos
+ids, la misma `tienda_pedir`), página de detalle de Comunidad (`SECCION_DE`). No
+puede ir dentro de `/tiendas/…`: ahí están los escaparates (1243) y una tienda
+llamada «registro» chocaría. El pie, /tienda (cuenta sin panel), /admin → Tiendas
+y el alta caducada llevan ahí, y `/tiendas#para-tiendas` (el ancla vieja) salta.
+
+**La migración 1244**: `tiendas_agenda` con la MISMA firma (la web de antes sigue
+funcionando con la nueva y la nueva con la de antes) da además `horario`, `web`,
+`instagram`, `online` (sin dirección), `precios`, `destacadas` (cuatro: las de la
+estrella primero y, si faltan, lo último; con `tienda_precio_de` y el precio de
+antes si hay oferta; sin precio si la tienda no lo enseña) y `cifras` de TODAS.
+El texto, sin acentos por los dos lados (`immutable_unaccent`), busca también en
+`name_search` de lo que la tienda tiene a la vista. `tiendas_recien`: lo último a
+la vista, dos por tienda como mucho. Nunca el coste. Se prueba contra
+PostgreSQL (`test-tanda-1244.mjs`: la 1236 y la 1244 encima, dos veces y
+sentencia a sentencia).
+
+**La web** (`js/tiendas-agenda.js`): se piden todas las tiendas de una vez (100;
+hoy son pocas) y los chips filtran en el navegador (`filtrarTiendas`); el texto
+va a la base. Con filtros, una sola lista; sin ellos, «Tienen algo de tu lista»
+arriba, «Recién llegado» en medio y «Más tiendas» (12 y «Ver más tiendas»).
+«Con local» y «Online» se excluyen. Las fotos, como el escaparate
+(`COLUMNAS_CARTA_DE_SET`, `cadenaDeEscaneo`), y cada carta lleva a su tienda con
+esa carta (`enlaceDeTienda(t, card_id)`). «Escribir» va a sus mensajes; sin
+cuenta, a registrarse y vuelta (como «Me interesa»). Los «Ver más» son
+`btn-secondary`: la pastilla de la 1225.
+
+**«Abierta ahora»**: el horario lo escribe la tienda a mano (`tiendas.horario`,
+120 caracteres, «L–S · 10:30–20:30»). `leerHorario` (tiendas-puro.js) entiende
+días sueltos y en rango (L, lunes, X, «lunes a sábado»), tramos de horas («10-14 y
+17-20:30», «de 10:00 a 20:00», «10h a 14h»), «todos los días» y «cerrado»; ante
+CUALQUIER cosa que no entiende devuelve null y no hay chapa, ni chip «Abiertas
+ahora» si ninguna se entiende. Un «Cerrada» de una tienda abierta es peor que
+ninguna chapa, que es la condición con la que PINGU la aceptó. La hora es la del
+navegador de quien mira.
+
+**El móvil**: la banda queda en las cifras (el título lo dice la burbuja, para el
+lector), los chips en una fila que se desliza (`flex: 1 1 100%` y `min-width: 0`,
+o su contenido ensancha la página entera: un hijo de flex no cede por debajo de
+su contenido), la tira de lado, y `.tag`, `.tag-bloque` y la página en
+`grid-template-columns: minmax(0, 1fr)` por lo mismo. La primera tienda queda a
+287 px (1040).
+
+**Pruebas** (rama pruebas): `test-tanda-1244.mjs` (PostgreSQL) y
+`test-tanda-1244-pantalla.mjs` (lo puro, la página en el PC con sus bloques,
+tarjetas, chips, buscador, «Ver más» en pastilla, sin la migración, sin respuesta,
+el ancla vieja y el móvil). La 1236 deja su parte de la agenda a esta, y la 1067
+prueba el formulario en /para-tiendas.

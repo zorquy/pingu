@@ -574,3 +574,102 @@ export function cuentaDeRecibo(lineas) {
   })
   return { filas, unidades: filas.reduce((n, l) => n + l.unidades, 0), total: Math.round(filas.reduce((n, l) => n + l.importe, 0) * 100) / 100 }
 }
+
+// ── El horario (1244): «Abierta · hasta 20:30» ──
+// El horario lo escribe la tienda a mano en Datos («L–S · 10:30–20:30»,
+// «L-V 10-14 y 17-20:30, S 10-14», «lunes a sábado de 10:00 a 20:00»). Se lee
+// lo que se entiende y, si algo no se entiende, NO se dice nada: un «cerrada»
+// de una tienda abierta es peor que ninguna chapa (PINGU eligió la chapa con
+// esa condición). Los días van de 0 (domingo) a 6 (sábado), como Date.
+const DIAS_DE_HORARIO = [
+  [/^(?:domingos?|dom|do|d)$/, 0], [/^(?:lunes|lun|lu|l)$/, 1], [/^(?:martes|mar|ma|m)$/, 2],
+  [/^(?:miercoles|mie|mi|x)$/, 3], [/^(?:jueves|jue|ju|j)$/, 4], [/^(?:viernes|vie|vi|v)$/, 5],
+  [/^(?:sabados?|sab|sa|s)$/, 6],
+]
+const diaDeHorario = (p) => DIAS_DE_HORARIO.find(([re]) => re.test(p))?.[1] ?? null
+const NOMBRE_DE_DIA = ['domingo', 'lunes', 'martes', 'miércoles', 'jueves', 'viernes', 'sábado']
+const horaDe = (h, m) => (Number(h) <= 24 && Number(m || 0) < 60 ? Number(h) * 60 + Number(m || 0) : null)
+export const textoDeHora = (min) => `${String(Math.floor(min / 60) % 24).padStart(2, '0')}:${String(min % 60).padStart(2, '0')}`
+
+// { día: [[desde, hasta], …] } en minutos, o null si no se entiende entero.
+export function leerHorario(texto) {
+  let t = String(texto || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '')
+  if (!t.trim()) return null
+  t = t.replace(/[–—−]/g, '-').replace(/\bh(?:oras)?\b\.?/g, ' ').replace(/(\d)\s*h\b/g, '$1')
+  if (/todos los dias|diario|a diario/.test(t)) t = t.replace(/todos los dias|a diario|diario/g, ' l-d ')
+  const horario = {}
+  let dias = []
+  let conHoras = false
+  let entendido = false
+  // Una ficha: un tramo de horas, un rango de días o un día suelto.
+  const fichas = /(\d{1,2})(?:[:.](\d{2}))?\s*(?:-|a|hasta)\s*(\d{1,2})(?:[:.](\d{2}))?|([a-z]+)\s*(?:-|\ba\b|\bal\b|hasta)\s*([a-z]+)|([a-z]+)|(\d+)/g
+  for (const f of t.matchAll(fichas)) {
+    if (f[1] != null) {
+      const desde = horaDe(f[1], f[2])
+      const hasta = horaDe(f[3], f[4])
+      if (desde == null || hasta == null || hasta <= desde || !dias.length) return null
+      for (const d of dias) (horario[d] ||= []).push([desde, hasta])
+      conHoras = true
+      entendido = true
+      continue
+    }
+    if (f[5] != null) {
+      const a = diaDeHorario(f[5])
+      const b = diaDeHorario(f[6])
+      if (a == null || b == null) return null
+      if (conHoras) { dias = []; conHoras = false }
+      for (let d = a, n = 0; n < 7; d = (d + 1) % 7, n++) { dias.push(d); if (d === b) break }
+      continue
+    }
+    if (f[7] != null) {
+      const d = diaDeHorario(f[7])
+      if (d != null) {
+        if (conHoras) { dias = []; conHoras = false }
+        dias.push(d)
+        continue
+      }
+      // Palabras que acompañan sin cambiar nada; «cerrado» deja esos días sin horas.
+      if (/^(de|y|e|por|la|las|manana|tarde|tardes|mananas|abierto|horario|del|al|a|cerrado|festivos?)$/.test(f[7])) {
+        if (f[7] === 'cerrado') { dias = []; conHoras = false }
+        continue
+      }
+      return null
+    }
+    if (f[8] != null) return null
+  }
+  return entendido ? horario : null
+}
+
+// Lo que dice la chapa ahora: { abierta: true, hasta } o { abierta: false,
+// abre: 'hoy 17:00' | 'mañana 10:00' | 'el lunes 10:00' }, o null.
+export function estadoDeHorario(texto, ahora = new Date()) {
+  const h = leerHorario(texto)
+  if (!h) return null
+  const hoy = ahora.getDay()
+  const min = ahora.getHours() * 60 + ahora.getMinutes()
+  const tramo = (h[hoy] || []).find(([a, b]) => min >= a && min < b)
+  if (tramo) return { abierta: true, hasta: textoDeHora(tramo[1]) }
+  for (let n = 0; n < 8; n++) {
+    const d = (hoy + n) % 7
+    const sig = (h[d] || []).filter(([a]) => n > 0 || a > min).sort((x, y) => x[0] - y[0])[0]
+    if (sig) return { abierta: false, abre: `${n === 0 ? 'hoy' : n === 1 ? 'mañana' : `el ${NOMBRE_DE_DIA[d]}`} ${textoDeHora(sig[0])}` }
+  }
+  return null
+}
+
+// La chapa de la portada de /tiendas (`null` = no se dice nada) y lo que
+// filtran sus chips, sobre lo que ya ha llegado (1244).
+export function chapaDeEstado(t, ahora = new Date()) {
+  const e = t?.horario ? estadoDeHorario(t.horario, ahora) : null
+  if (!e) return null
+  return e.abierta ? { abierta: true, texto: `Abierta · hasta ${e.hasta}` } : { abierta: false, texto: `Cerrada · abre ${e.abre}` }
+}
+
+export function filtrarTiendas(tiendas, { lista, local, online, abiertas } = {}, ciudad = '', ahora = new Date()) {
+  return tiendas.filter((t) => (!lista || Number(t.de_tu_lista) > 0)
+    && (!local || t.con_local)
+    && (!online || !t.con_local)
+    && (!abiertas || chapaDeEstado(t, ahora)?.abierta === true)
+    && (!ciudad || String(t.ciudad || '').toLowerCase() === ciudad.toLowerCase()))
+}
+

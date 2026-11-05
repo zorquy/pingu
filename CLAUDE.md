@@ -78,7 +78,7 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   fichero (mira css/lanzamientos.css o css/curso.css como ejemplo).
 - **Una tienda es una CUENTA de tipo «tienda», y solo entra por invitación**
   (tanda 1067, PINGU: «no quiero que cambie el login de ahora»): pide en
-  `/tiendas`, el equipo acepta en /admin → Tiendas (`tienda-decidir` manda el
+  `/para-tiendas` (1244), el equipo acepta en /admin → Tiendas (`tienda-decidir` manda el
   correo) y el alta es `/alta-tienda?i=` con el email de la invitación. El
   tipo lo pone la base (`tienda_alta`) y no se lo cambia nadie a sí mismo
   (`trg_tienda_guarda_tipo`). Lo que sea de tiendas va en su página y su
@@ -123,7 +123,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y su escaparate vive en `/tiendas/<usuario>` (`profileUrl`; meta-social manda
   ahí con un 301 desde `/usuario/`). Un enlace nuevo a una tienda pasa por
   `profileUrl` o `enlaceDeTienda`, nunca un `/usuario/` escrito a mano; y una
-  pantalla que solo pinta tiendas pone `ATRIBUTOS_DE_TIENDA` en el nombre. Y el recibo (1084)
+  pantalla que solo pinta tiendas pone `ATRIBUTOS_DE_TIENDA` en el nombre. /tiendas es
+  el escaparate de escaparates (1244): tarjetas de `tiendas_agenda` con sus
+  destacadas y su horario («Abierta ahora» por `estadoDeHorario`, que calla lo
+  que no entiende), «Recién llegado» de `tiendas_recien`; pedir acceso es
+  `/para-tiendas` (el pie lleva ahí), nunca otra vez debajo de la agenda. Y el recibo (1084)
   no lleva NUNCA el coste ni el beneficio: es para quien compra. «Avisar a los
   que la buscan» (1089) pasa por `tienda_avisar`: uno por persona, carta y
   tienda (`tienda_avisos`, sin políticas: la tienda solo ve CUÁNTOS, por
