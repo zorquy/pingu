@@ -723,7 +723,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `RELLENOS`, solo lo que falta por NÚMERO, `origen = 'relleno'`, con su id de
   Cardmarket sacado de los ficheros de TCGdex en `cm_id_product_propio`); lo
   que no tiene NADIE va a mano en `decks-jp-a-mano` (`soloAMano` si no es un
-  deck, como el pack de McDonald's de 2002). El precio de esas cartas sale de
+  deck, como el pack de McDonald's de 2002 o el de la película de 2009, 1247:
+  sin PS ni ataques que no se sepan, la «M» de película en el nombre como la
+  escribe Cardmarket, para que «Buscar en Cardmarket» la encuentre). El precio de esas cartas sale de
   la guía pública diaria de Cardmarket por ese id (`cardmarket-precios`; el
   japonés solo para `mano`/`relleno`, en `cardmarket-precios-jp`), y el id se
   pone en /admin → Colecciones → la carta, donde «Buscar en Cardmarket» (1159,

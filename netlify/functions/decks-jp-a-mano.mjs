@@ -222,6 +222,49 @@ export const DECKS = [
       ['018', 'ヨーギラス', 'Larvitar', 'Fighting', 50, 246, true],
     ].map(([n, ja, en, tipo, hp, dex, holo]) => ({ n, ja, en, holo, category: 'Pokemon', stage: 'Basic', types: [tipo], hp, dex_ids: [dex] })),
   },
+  // El pack de la película de 2009 (1247, PINGU con la lista de Bulbapedia y
+  // la de Dex delante): 映画公開記念ランダムパック, 22 cartas, solo Japón, el
+  // 18 de julio de 2009 (el estreno de la película de Arceus). Ni TCGGO (el
+  // calco no lo ha traído) ni TCGdex (de DP y Platino japonés solo tiene el
+  // nombre de los sets, sin cartas). No son reimpresiones: va el número, los
+  // dos nombres (con la «M» de película, como lo nombra Cardmarket: así lo
+  // encuentra «Buscar en Cardmarket»), el tipo de la lista y su Pokédex. Ni
+  // PS ni ataques ni fase: no se inventan. Holo las tres Pichu (009–011) y las
+  // tres Arceus (020–022), como en Dex. La era, la de Pt4 (アルセウス光臨, el
+  // 8 de julio de 2009). Las fotos las pone PINGU en /admin → «Fotos de todas».
+  {
+    clave: 'dpt-movie-random_ja',
+    soloAMano: true,
+    set: {
+      id: 'dpt-movie-random_ja', name: '映画公開記念ランダムパック', name_en: 'Movie Commemoration Random Pack',
+      release_date: '2009-07-18', card_count_official: 22, card_count_total: 22,
+      serieDe: { name_en: 'Advent of Arceus', release_date: '2009-07-08' },
+    },
+    cartas: [
+      ['001', 'チコリータM', 'Chikorita M', 'Grass', 152, false],
+      ['002', 'ヘラクロスM', 'Heracross M', 'Grass', 214, false],
+      ['003', 'アゲハントM', 'Beautifly M', 'Grass', 267, false],
+      ['004', 'ヒノアラシM', 'Cyndaquil M', 'Fire', 155, false],
+      ['005', 'ヒードランM', 'Heatran M', 'Fire', 485, false],
+      ['006', 'ワニノコM', 'Totodile M', 'Water', 158, false],
+      ['007', 'ポッチャマM', 'Piplup M', 'Water', 393, false],
+      ['008', 'パルキアM', 'Palkia M', 'Water', 484, false],
+      ['009', 'ギザみみピチューM', 'Spiky-eared Pichu M', 'Lightning', 172, true],
+      ['010', 'ギザみみピチューM', 'Spiky-eared Pichu M', 'Lightning', 172, true],
+      ['011', 'ギザみみピチューM', 'Spiky-eared Pichu M', 'Lightning', 172, true],
+      ['012', 'ピカチュウM', 'Pikachu M', 'Lightning', 25, false],
+      ['013', 'グレッグルM', 'Croagunk M', 'Psychic', 453, false],
+      ['014', 'ギラティナM', 'Giratina M', 'Psychic', 487, false],
+      ['015', 'ドータクンM', 'Bronzong M', 'Metal', 437, false],
+      ['016', 'ディアルガM', 'Dialga M', 'Metal', 483, false],
+      ['017', 'ニャースM', 'Meowth M', 'Colorless', 52, false],
+      ['018', 'ムクホークM', 'Staraptor M', 'Colorless', 398, false],
+      ['019', 'ミミロルM', 'Buneary M', 'Colorless', 427, false],
+      ['020', 'アルセウス', 'Arceus', 'Colorless', 493, true],
+      ['021', 'アルセウス', 'Arceus', 'Colorless', 493, true],
+      ['022', 'アルセウス', 'Arceus', 'Colorless', 493, true],
+    ].map(([n, ja, en, tipo, dex, holo]) => ({ n, ja, en, holo, category: 'Pokemon', types: [tipo], dex_ids: [dex] })),
+  },
 ]
 
 async function rest(ruta, clave, opciones = null) {

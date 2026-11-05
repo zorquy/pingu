@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (489) — PINGU-Claude (1247 — el Movie Commemoration Random Pack, a mano)
+
+**Hecho**: PINGU pidió el set japonés 映画公開記念ランダムパック (2009-07-18, 22
+cartas) y pasó la lista de Bulbapedia. No lo tiene nadie a quien lleguemos:
+TCGdex (clonado y mirado: de DP y Platino japonés solo hay los sets sin
+cartas), y TCGGO, Cardmarket y Scrydex no se alcanzan desde el contenedor (el
+calco japonés de TCGGO no lo ha traído). Va como entrada `soloAMano` de
+`decks-jp-a-mano` (`dpt-movie-random_ja`), como el pack de McDonald's: número,
+nombre japonés e inglés con la «M» de película (como Cardmarket, para «Buscar
+en Cardmarket»), tipo, Pokédex, Holo en 009–011 y 020–022; sin PS ni ataques.
+La era la copia de Pt4 (Advent of Arceus, 2009-07-08). La pasada (cada 10 min)
+lo crea sola; probado en seco: 22 cartas y su set.
+
+**Ficheros**: `netlify/functions/decks-jp-a-mano.mjs`, SCHEMA, CLAUDE.md,
+novedades. Verdes: 884, 1158, `test-imports`.
+
+**Pendiente**: PINGU pone las fotos (/admin → Colecciones → el set → «Fotos de
+todas») y, si quiere precio, «Buscar en Cardmarket» en cada carta. Las
+migraciones 1244 y 1245. Lo de la 475.
+
 ## 2026-11-05 (488) — PINGU-Claude (1246 — la actividad, como en el inicio, y las tiendas con su nombre)
 
 **Hecho**: lo que pidió PINGU con dos capturas («en actividad las tiendas no

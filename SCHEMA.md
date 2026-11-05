@@ -54788,3 +54788,23 @@ caja miden lo mismo (`grid-auto-rows` de `.con-dibujo`).
 en el PC y el móvil; la tienda con su color, su icono, su dirección y su dibujo;
 una persona sin ellos; nada de la de pruebas; el filtro con una caja; la lateral
 y la portada).
+
+## Tanda 1247 — El Movie Commemoration Random Pack, a mano
+
+PINGU: «¿Puedes traerte este set de algún sitio? … si no, te paso la lista».
+映画公開記念ランダムパック, 18 de julio de 2009, 22 cartas (lista de
+Bulbapedia). Lo que se miró: TCGdex (`tcgdex/cards-database`, clonado sin
+contenido y leído fichero a fichero): `data-asia/DPt/Pt1–Pt4.ts` y
+`data-asia/DP/*.ts` son solo la ficha del set, sin una carta, y no hay ningún
+pack de película. TCGGO, Cardmarket y Scrydex no se alcanzan desde el
+contenedor; el calco japonés copia todas las expansiones que TCGGO lista y no
+lo ha traído, así que lo más probable es que TCGGO no lo tenga.
+
+Va en `DECKS` de `decks-jp-a-mano` como `soloAMano` (`dpt-movie-random_ja`):
+número, nombre japonés e inglés (con la «M» de película de las 001–019, como
+lo nombra Cardmarket: «Spiky-eared Pichu M»), tipo, Pokédex y Holo (las tres
+Pichu y las tres Arceus, como en Dex). Sin PS, fase ni ataques: no son
+reimpresiones y no se inventan. La era sale de Pt4 (`serieDe`: «Advent of
+Arceus» o el 2009-07-08). Las fotos, en /admin → «Fotos de todas» (cada
+fichero a su carta por el número); el precio, con «Buscar en Cardmarket» en
+cada carta (luego lo trae `cardmarket-precios-jp`, que mira lo `mano`).

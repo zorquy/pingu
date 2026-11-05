@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-05",
+      "tipo": "nuevo",
+      "texto": "Nueva colección japonesa: el Movie Commemoration Random Pack de 2009, las 22 cartas del pack de la película de Arceus, con la Pichu Picoreja y las tres Arceus.",
+      "enlace": "/cartas?catalogo=JP"
+    },
+    {
+      "fecha": "2026-11-05",
       "tipo": "mejora",
       "texto": "La actividad de Gente se ve como en el inicio: cada cosa en su fila, con el dibujo de lo que ha pasado a la derecha. Y cuando alguien sigue a una tienda, la tienda sale con su color y su icono.",
       "enlace": "/usuarios.html#activity"
