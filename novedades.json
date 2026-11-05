@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-05",
+      "tipo": "arreglo",
+      "texto": "Tiendas: una carta gradeada ya no se duplica con la misma nota. El «+» de la ficha abre «añadir» con la casa puesta para elegir la nota (una PSA 9 y otra PSA 10), y en el Stock cada línea tiene «Añádela aparte».",
+      "enlace": "/tiendas"
+    },
+    {
+      "fecha": "2026-11-05",
       "tipo": "nuevo",
       "texto": "La primera vez que entras en cada sección (Inicio, Aprender, Colección, Comunidad y Jugar), una ventana te cuenta qué hay en cada página y te lleva a la que quieras. Sale una vez, y la vuelves a ver desde tu avatar, en «Qué hay en esta sección».",
       "enlace": "/mi-coleccion?bienvenida=1"

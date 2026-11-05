@@ -54475,3 +54475,34 @@ que parece que no hace nada, pon Entendido… a mí no me ha hecho nada». No ha
 nada más que cerrar: el rótulo de la banda es «Bienvenid@ a <sección>» y el
 botón, «Entendido» (`.bvs-entendido`, antes `.bvs-empezar`). Un botón que solo
 cierra una explicación dice que la has leído, no promete una acción.
+
+## Tanda 1240 — Una PSA 9 y una PSA 10 de la misma carta
+
+Un amigo de PINGU, con tienda: «si tengo una PSA 9 me deja añadir otra, pero se
+pone automático en PSA 9; no me deja tener una PSA 9 y una PSA 10». Dos cosas lo
+hacían: el «+» de la ficha suma una copia IGUAL a la que miras (915), con su
+gradeo, y «Editar» cambia la línea entera, así que poner 10 en una línea de dos
+PSA 9 deja dos PSA 10. La base sí las separa (la clave de línea lleva el gradeo,
+`claveDeLinea`); faltaba un camino a la vista para meter la segunda aparte.
+
+**Colección de una tienda** (`js/mi-coleccion.js`): con la línea abierta
+gradeada, `#mcEdMas` no llama a `sumarCopia`: abre `abrirAnadir(id, versión,
+base)` con `base = { gradeo, idioma }`, y `prepararAnadir` pinta el selector con
+esa casa y nota (y el estado escondido) e idioma. Su rótulo lo dice: «Otra
+gradeada: elige su nota». Sin gradear, el «+» sigue siendo una igual sin
+preguntar. Una persona no tiene selector de gradeo al añadir, así que va solo en
+modo tienda.
+
+**Stock** (`js/tienda-stock.js`): `montarForm` acepta `base` (una línea de la
+que se copian idioma, versión, estado, gradeo, dónde está y si se ve; ni
+unidades ni precios) y, sin `fila`, inserta. Editar una línea de carta pinta
+bajo «Gradeada» «¿Tienes otra con otra nota?» (o «en otro estado o idioma») con
+«Añádela aparte» (`data-otra-copia`) y, con varias unidades, «Lo que cambies
+aquí cambia las N». En el diálogo de editar no hay lista de búsqueda: el pie
+lleva «Cancelar» (`data-cerrar-form`) en vez de «← Otra», y sin «Añadir y
+seguir».
+
+`test-tanda-1240-pantalla.mjs`: la ficha de una PSA 9 abre la hoja con PSA y 9,
+no suma, y con 10 deja dos líneas (PSA 9 y PSA 10); una sin gradear suma sin
+hoja; en el Stock, el aviso de las 4 unidades, «Añádela aparte» con PSA 9, una
+unidad y sin precios, y la PSA 10 entra nueva sin tocar la vieja.

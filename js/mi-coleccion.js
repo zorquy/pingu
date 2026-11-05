@@ -473,7 +473,7 @@ function idiomaDeLaVista() {
 // La puerta es el «+» pegado a la carta, que abre este diálogo. Desde la
 // 748 (la C5 de su maqueta) va SIEMPRE al formulario: lo que ya tienes lo
 // dice la cabecera («Ya tienes 2»), sin un paso de «Añadir más» delante.
-const anadir = { carta: null, variante: null, idiomas: null, reglas: sinReglas() }
+const anadir = { carta: null, variante: null, base: null, idiomas: null, reglas: sinReglas() }
 
 // La carta por su id, esté donde esté: en tu colección (los dos mapas),
 // en la expansión abierta o en lo último que devolvió el buscador. Una
@@ -514,7 +514,10 @@ function masHtml(c, nombre, variante = null) {
   return `<span class="mc-mas" role="button" tabindex="0" data-anadir="${escapeHtml(c.id)}"${v ? ` data-variante="${escapeHtml(v.id)}"` : ''} aria-label="Añadir ${escapeHtml(nombre)}${v ? ` (${escapeHtml(v.nombre)})` : ''} ${modoTienda ? 'a tu stock' : 'a mi colección'}" title="${A_MI_COLECCION()}">${DIBUJO_MAS}</span>`
 }
 
-function abrirAnadir(cardId, variante = null) {
+// `base` (1240): la copia de la que se parte, para el «+» de una gradeada: la
+// hoja sale con su casa, su nota y su idioma puestos, y se cambia lo que no sea
+// igual (una PSA 9 y luego una PSA 10).
+function abrirAnadir(cardId, variante = null, base = null) {
   const c = cartaPorId(cardId)
   // Un «+» que no hace nada es un silencio (la 510): si la carta no está
   // en memoria o no hay sesión, se dice.
@@ -522,6 +525,7 @@ function abrirAnadir(cardId, variante = null) {
   if (!sesion || !esMia) { showToast('Inicia sesión para añadir cartas a tu colección.', 'error'); return }
   anadir.carta = c
   anadir.variante = variante
+  anadir.base = base
   anadir.reglas = sinReglas()
   const d = $('mcAnadirDialogo')
   pintarCartaDeAnadir(variante)
@@ -604,7 +608,7 @@ function prepararAnadir() {
   const c = anadir.carta
   const idiomas = idiomasDeLaVista()
   anadir.idiomas = idiomas
-  const recordado = $('mcTocarIdioma')?.value || idiomaDeLaVista()
+  const recordado = anadir.base?.idioma || $('mcTocarIdioma')?.value || idiomaDeLaVista()
   // Los idiomas se pintan DESPUÉS de la versión (1006): el desplegable aún
   // tiene la de la carta anterior, que apagaría idiomas que aquí valen.
   $('mcAdEstado').innerHTML = opciones(ESTADOS, $('mcTocarEstado')?.value || ESTADO_POR_DEFECTO)
@@ -624,9 +628,9 @@ function prepararAnadir() {
   // nota; con cápsula el estado no aplica y se esconde.
   const cajaGradeo = $('mcAdGradeoCaja')
   if (cajaGradeo) {
-    cajaGradeo.innerHTML = gradeoHtml('', { nombre: 'mcAdGradeo' })
+    cajaGradeo.innerHTML = gradeoHtml(anadir.base?.gradeo || '', { nombre: 'mcAdGradeo' })
     const campoEstado = $('mcAdEstado').closest('.mc-ad-campo')
-    campoEstado?.classList.remove('hidden')
+    campoEstado?.classList.toggle('hidden', Boolean(anadir.base?.gradeo))
     anadir.gradeo = engancharGradeo(cajaGradeo, (g) => campoEstado?.classList.toggle('hidden', !!g))
   }
   $('mcAdCantidad').value = '1'
@@ -882,8 +886,9 @@ function pintarAccionesDeFicha(l) {
   $('mcEdMenos')?.classList.toggle('hidden', !conCopia)
   const mas = $('mcEdMas')
   if (mas) {
-    mas.setAttribute('aria-label', conCopia ? `Una copia más (${deEsta} de esta)` : A_MI_COLECCION())
-    mas.title = conCopia ? 'Una copia más, igual que esta' : A_MI_COLECCION()
+    const gradeada = conCopia && modoTienda && Boolean(l.gradeo)
+    mas.setAttribute('aria-label', gradeada ? 'Otra gradeada: elige su nota' : conCopia ? `Una copia más (${deEsta} de esta)` : A_MI_COLECCION())
+    mas.title = gradeada ? 'Otra gradeada: elige su nota' : conCopia ? 'Una copia más, igual que esta' : A_MI_COLECCION()
   }
   const aviso = $('mcEdAviso')
   if (aviso) aviso.dataset.aviso = l.card_id || ''
@@ -5964,7 +5969,11 @@ function enganchar() {
   $('mcEdMas')?.addEventListener('click', () => {
     if (!cartaAbierta) return
     const l = lineaDeLaFicha()
-    if (l && l.card_id === cartaAbierta) void sumarCopia(l, 1)
+    // Una gradeada no se repite a ciegas (1240, una tienda: «tengo una PSA 9 y
+    // se pone automático en PSA 9; no me deja tener una PSA 9 y una PSA 10»):
+    // el «+» abre la hoja con su casa y su nota puestas, para cambiar la nota.
+    if (l && l.card_id === cartaAbierta && modoTienda && l.gradeo) abrirAnadir(cartaAbierta, l.variante || null, { gradeo: l.gradeo, idioma: l.idioma })
+    else if (l && l.card_id === cartaAbierta) void sumarCopia(l, 1)
     else abrirAnadir(cartaAbierta, versionDeLaFicha)
   })
   $('mcEdMenos')?.addEventListener('click', () => {

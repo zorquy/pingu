@@ -129,7 +129,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   con `gradeoHtml` / `engancharGradeo` (`js/gradeo-elegir.js`: PSA, Beckett y
   CGC); se PINTA con `chapaDeGradeoHtml` (PSA roja, Beckett negra, CGC blanca,
   colores `--casa-*` en `components.css`). Un camino nuevo para meter cartas
-  al stock lleva ese selector; con cápsula el estado no aplica (NM).
+  al stock lleva ese selector; con cápsula el estado no aplica (NM). Una
+  gradeada no se repite a ciegas (1240): el «+» de su ficha abre «añadir» con su
+  casa y nota puestas (`abrirAnadir(id, versión, base)`) y el Stock tiene
+  «Añádela aparte» (`montarForm` con `base`): editar cambia todas las unidades.
   Las fotos de VERDAD de una copia (1235, PINGU: «frontal y trasera, solo a
   cartas») van en `tienda_stock_fotos` (rutas `frente`/`dorso`, aparte de
   `tienda_stock` para no redefinir sus funciones) y en el cubo público

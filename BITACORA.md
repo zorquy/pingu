@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (482) — PINGU-Claude (1240 — una PSA 9 y una PSA 10 de la misma carta)
+
+**Hecho**: un amigo de PINGU con tienda: «si tengo una PSA 9 me deja añadir
+otra, pero se pone automático en PSA 9; no me deja tener una PSA 9 y una PSA
+10». El «+» de la ficha suma otra IGUAL a la que miras (915), gradeo incluido,
+y luego cambiar la nota en «Editar» cambia TODAS las unidades de la línea.
+- En la Colección de una tienda, el «+» de una copia gradeada abre la hoja de
+  añadir con su casa, su nota y su idioma puestos (`abrirAnadir(id, versión,
+  base)`): se cambia la nota y entra como línea aparte. El de una sin gradear
+  sigue sumando una igual.
+- En el Stock, editar una línea de carta ofrece «¿Tienes otra con otra nota?»
+  (o «en otro estado o idioma») → «Añádela aparte»: el formulario de añadir con
+  lo de esa línea menos la nota, las unidades y los precios, que INSERTA. Y si
+  la línea tiene varias unidades, avisa de que lo que cambies cambia todas.
+
+**Ficheros**: `js/mi-coleccion.js`, `js/tienda-stock.js`, SCHEMA, CLAUDE.md,
+novedades. Prueba nueva (rama pruebas): `test-tanda-1240-pantalla.mjs`. Verdes:
+1240, 1068, 1072, 1075, 1076, 1081, 1086, 1087, 1091, 1092, 1234, 1235, 1236,
+1237b, 915, 920, 299, 312. Rojo de antes, sin tocar: 1090 (edita una PSA 10 y
+elige su estado, que la 1234 esconde en una gradeada; falla igual sin esta
+tanda).
+
+**Pendiente**: lo de la 475.
+
 ## 2026-11-05 (481) — PINGU-Claude (1239b — «Bienvenid@» y «Entendido»)
 
 **Hecho**: PINGU: «mejor pon bienvenid@… y en vez de Empezar, que parece que no

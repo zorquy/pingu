@@ -675,7 +675,10 @@ function fotoDeFichaHtml(carta, producto) {
   return attrs ? `<span class="tds-form-foto"><img ${attrs} alt="" width="245" height="342" /></span>` : ''
 }
 
-async function montarForm(d, { carta = null, producto = null, fila = null }) {
+// `base` (1240): una línea de la que se copia todo menos la nota, las unidades y
+// los precios, para añadir APARTE otra copia de la misma carta (una PSA 9 y una
+// PSA 10). Sin `fila`, así que se inserta.
+async function montarForm(d, { carta = null, producto = null, fila = null, base = null }) {
   const form = d.querySelector('form')
   const lista = d.querySelector('.tds-resultados')
   lista?.classList.add('hidden')
@@ -691,7 +694,7 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
     reglas = rs
     versiones = variantesDeCarta(carta).map((v) => ({ id: v.nuestro, nombre: v.nombre }))
   }
-  const v = fila || {}
+  const v = fila || base || {}
   const idioma = v.idioma || (market === 'JP' ? 'ja' : idiomas.some((i) => i.id === 'es') ? 'es' : idiomas[0]?.id)
   if (fila && !idiomas.some((i) => i.id === fila.idioma)) idiomas = [...idiomas, IDIOMAS.find((i) => i.id === fila.idioma) || { id: fila.idioma, nombre: fila.idioma }]
   const versionesDe = (id) => (versiones.length ? versionesDelIdioma(versiones, reglas, id, carta?.id).versiones : [])
@@ -702,6 +705,7 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
     ${fotoDeFichaHtml(carta, elProducto)}
     ${fila && !esProducto && conFotos() ? fotosDeFichaHtml(fila) : ''}
     ${esProducto ? '' : `${gradeoHtml(v.gradeo || '')}
+    ${fila && carta ? `<p class="tds-nota tds-otra-copia">${fila.gradeo ? '¿Tienes otra con otra nota?' : '¿Tienes otra en otro estado o idioma?'} <button type="button" class="link-btn" data-otra-copia>Añádela aparte</button>${fila.unidades > 1 ? ` Lo que cambies aquí cambia las ${fila.unidades}.` : ''}</p>` : ''}
     <label class="tds-version${versionesDe(idioma).length > 1 ? '' : ' hidden'}">Versión<select name="variante"></select></label>
     <div class="tds-form-fila">
       <label>Idioma<select name="idioma">${idiomas.map((i) => `<option value="${i.id}" ${i.id === idioma ? 'selected' : ''}>${escapeHtml(i.nombre)}</option>`).join('')}</select></label>
@@ -731,9 +735,9 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
     ${fila && est.apartadas.get(fila.id)?.length ? `<div class="tds-apartadas"><b>${icons.clock(16)} Apartadas</b>${est.apartadas.get(fila.id).map((r) => `<span>${r.unidades} para ${escapeHtml(r.para)} · hasta ${escapeHtml(new Date(r.hasta).toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' }))} <button type="button" class="link-btn" data-quitar-apartada="${escapeHtml(r.id)}">Quitar</button></span>`).join('')}<small>Están fuera de las unidades de arriba hasta que se recojan o caduquen.</small></div>` : ''}
     <p class="tds-error" role="alert"></p>
     <div class="tds-form-pie">
-      ${fila ? `<button type="button" class="btn-secondary tds-borrar" data-borrar="${escapeHtml(fila.id)}">Borrar</button>` : '<button type="button" class="btn-secondary" data-volver>← Otra</button>'}
+      ${fila ? `<button type="button" class="btn-secondary tds-borrar" data-borrar="${escapeHtml(fila.id)}">Borrar</button>` : lista ? '<button type="button" class="btn-secondary" data-volver>← Otra</button>' : '<button type="button" class="btn-secondary" data-cerrar-form>Cancelar</button>'}
       ${fila && fila.unidades > 0 ? '<button type="button" class="btn-secondary" data-apartar-esta>Apartar</button><button type="button" class="btn-secondary" data-vender-esta>Vender</button>' : ''}
-      ${fila ? '' : '<button type="submit" class="btn-secondary" data-seguir>Añadir y seguir</button>'}
+      ${fila || !lista ? '' : '<button type="submit" class="btn-secondary" data-seguir>Añadir y seguir</button>'}
       <button type="submit" class="btn-primary">${fila ? 'Guardar' : 'Añadir'}</button>
     </div>`
   const sel = form.querySelector('[name="variante"]')
@@ -802,6 +806,13 @@ async function montarForm(d, { carta = null, producto = null, fila = null }) {
   form.onclick = async (e) => {
     const poner = e.target.closest('[data-poner]')
     if (poner) form.querySelector('[name="precio"]').value = Number(poner.dataset.poner).toFixed(2)
+    // Otra copia aparte (1240): la misma carta, idioma y versión, sin la nota.
+    if (e.target.closest('[data-otra-copia]')) {
+      const cab = d.querySelector('.tds-dialogo-cab h2')
+      if (cab) cab.textContent = 'Añadir otra'
+      return montarForm(d, { carta, base: { idioma: fila.idioma, variante: fila.variante, estado: fila.estado, gradeo: fila.gradeo, ubicacion: fila.ubicacion, visible: fila.visible } })
+    }
+    if (e.target.closest('[data-cerrar-form]')) return d.close()
     if (e.target.closest('[data-volver]')) {
       form.classList.add('hidden')
       lista?.classList.remove('hidden')
