@@ -111,13 +111,13 @@ export function bienvenidaHtml(seccion, opts = {}) {
   return `<div class="bvs-banda">
       <button type="button" class="bvs-cerrar" data-bvs-cerrar aria-label="Cerrar">${icons.x(16)}</button>
       <span class="bvs-ico" aria-hidden="true">${icono(s.icono, 22)}</span>
-      <small>Bienvenida a ${escapeHtml(s.nombre)}</small>
+      <small>Bienvenid@ a ${escapeHtml(s.nombre)}</small>
       <h2 id="bvsTitulo">${escapeHtml(s.titulo)}</h2>
       <p>${escapeHtml(lema)}</p>
     </div>
     <ul class="bvs-lista">${filas}</ul>
     <div class="bvs-pie">
-      <button type="button" class="btn-primary bvs-empezar" data-bvs-cerrar>Empezar</button>
+      <button type="button" class="btn-primary bvs-entendido" data-bvs-cerrar>Entendido</button>
       ${opts.conCuenta ? '<span class="bvs-nota">Puedes volver a verla desde tu avatar, en «Qué hay en esta sección».</span>' : ''}
     </div>`
 }

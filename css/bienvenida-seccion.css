@@ -70,7 +70,7 @@ html:has(.bvs-dialogo[open]) { overflow: hidden; }
 .bvs-aqui { padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--acento); color: var(--acento-texto); font-family: inherit; font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
 .bvs-flecha { color: var(--text-dim); }
 .bvs-pie { display: grid; gap: var(--e-xs); justify-items: center; padding: var(--e-sm) var(--e-lg) var(--e-lg); }
-.bvs-empezar { width: 100%; max-width: 320px; }
+.bvs-entendido { width: 100%; max-width: 320px; }
 .bvs-nota { color: var(--text-mid); font-size: var(--t-2xs); text-align: center; }
 
 /* Cuatro páginas o menos (Inicio, Aprender, Comunidad), en una columna. */

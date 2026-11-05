@@ -4,6 +4,17 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (481) — PINGU-Claude (1239b — «Bienvenid@» y «Entendido»)
+
+**Hecho**: PINGU: «mejor pon bienvenid@… y en vez de Empezar, que parece que no
+hace nada, pon Entendido». La ventana de cada sección dice «Bienvenid@ a …» y
+su botón, «Entendido» (`.bvs-entendido`): solo cierra, y ahora lo dice.
+
+**Ficheros**: `js/bienvenida-seccion.js`, `css/bienvenida-seccion.css`, SCHEMA.
+Prueba (rama pruebas): la 1239 mira los dos textos; en verde.
+
+**Pendiente**: lo de la 475.
+
 ## 2026-11-05 (480) — PINGU-Claude (1239 — la bienvenida de cada sección)
 
 **Hecho** (PINGU eligió lo recomendado de la propuesta, con un cambio: «que le

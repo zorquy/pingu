@@ -54467,3 +54467,11 @@ una vez por sección con un navegador de verdad simulado; Colección en el PC
 cambia de pestaña sin recargar); /cartas sin cuenta (tres filas a /cartas);
 Jugar en un iPhone (hoja abajo, entera, filas y cerrar de 44, Esc); y el menú
 del avatar en PC y móvil. La 717 cuenta la fila nueva de `.tu-lista`.
+
+## Tanda 1239b — «Bienvenid@» y «Entendido»
+
+PINGU: «mejor pon bienvenid@, que ahora pone bienvenida a; y en vez de Empezar,
+que parece que no hace nada, pon Entendido… a mí no me ha hecho nada». No hacía
+nada más que cerrar: el rótulo de la banda es «Bienvenid@ a <sección>» y el
+botón, «Entendido» (`.bvs-entendido`, antes `.bvs-empezar`). Un botón que solo
+cierra una explicación dice que la has leído, no promete una acción.
