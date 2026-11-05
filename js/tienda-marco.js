@@ -22,6 +22,8 @@ export const SECCIONES_DE_TIENDA = [
   // tienda (js/mi-coleccion.js), así que no tiene `ver`: se navega.
   { nombre: 'Colección', icono: 'layers', href: '/cartas', menu: true },
   { nombre: 'Stock', ver: 'stock', icono: 'package', href: '/tienda?ver=stock' },
+  // Ofertas (1250): lo que le piden y le ofrecen, y lo reservado por una oferta.
+  { nombre: 'Ofertas', ver: 'ofertas', icono: 'tag', href: '/tienda?ver=ofertas' },
   { nombre: 'Ventas', ver: 'ventas', icono: 'receipt', href: '/tienda?ver=ventas' },
   { nombre: 'Escaparate', ver: 'escaparate', icono: 'eye', href: '/tienda?ver=escaparate' },
   { nombre: 'Mensajes', icono: 'mail', href: '/mensajes' },

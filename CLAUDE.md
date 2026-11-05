@@ -149,6 +149,17 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `skuDe` (`tiendas-puro.js`, general: el mismo en todas las tiendas). Y el
   estado de una copia se PINTA con `chapaDeEstadoHtml` (`js/estado-chapa.js`,
   los colores de Cardmarket, en toda la web), nunca la sigla suelta.
+  Comprarle a una tienda es una OFERTA (1250): `tienda_oferta_enviar` /
+  `_responder` / `_paso` (aceptar RESERVA 7 días; «hecha» es la venta con
+  `donde = 'pokedoc'`), y se sigue en Mensajes con la tarjeta de
+  `js/mensajes-oferta.js` y en la pestaña Ofertas del panel
+  (`js/tienda-ofertas.js`), con los mismos botones. Cómo cobra una tienda
+  (Bizum, PayPal) va en `tienda_cobros`, que es privada; nunca en `tiendas`,
+  que la lee cualquiera. Un paso nuevo de una oferta deja su mensaje por
+  `tienda_oferta_avisar` y su frase en `puntoDeOferta` / `textoDePaso`.
+  «Pedir fotos» (1251) es `tienda_pedir_fotos`; al subirlas avisa el
+  DISPARADOR de `tienda_stock_fotos` (`trg_tienda_fotos_subidas`), así que un
+  camino nuevo para subir fotos de una copia no tiene que avisar a mano.
   Una tienda DE PRUEBAS (`tiendas.de_pruebas`, 1245, PINGU: «un perfil como
   fantasma de pruebas») solo se ve a sí misma: una función nueva que enseñe
   tiendas o su stock a la gente pone `public.tienda_publica(tienda)` al lado de

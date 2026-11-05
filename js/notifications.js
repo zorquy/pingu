@@ -51,6 +51,10 @@ export const NOTIFICATION_TYPES = {
   trade_match_seguido: 'Cuando alguien a quien sigues da una carta que buscas',
   // Lo manda una tienda desde su Panel (1089), uno por carta y tienda.
   tienda_la_tiene: 'Cuando una tienda tiene una carta que buscas',
+  // Cada paso de una compra a una tienda (1250): oferta, respuesta, envío.
+  tienda_oferta: 'Tus compras a tiendas: ofertas, respuestas y envíos',
+  // «Pedir fotos» (1251): te las piden, o ya están.
+  tienda_fotos: 'Tus compras a tiendas: ofertas, respuestas y envíos',
   // El lunes de PokeDoc (794): lo manda netlify/functions/lunes.mjs.
   resumen_lunes: 'El resumen de tu semana, los lunes',
   // Lo que el equipo manda a todo el mundo desde /admin → Avisos (1120).

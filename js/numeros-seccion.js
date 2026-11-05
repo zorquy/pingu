@@ -23,7 +23,7 @@ export function seccionDeAviso(tipo = '') {
   const t = String(tipo || '')
   if (t.startsWith('forum_')) return 'Comunidad'
   if (t.startsWith('torneo_') || t.startsWith('tournament_')) return 'Jugar'
-  if (t.startsWith('cambio_') || t.startsWith('trade_match') || t === 'aviso_precio' || t === 'tienda_la_tiene') return 'Colección'
+  if (t.startsWith('cambio_') || t.startsWith('trade_match') || t === 'aviso_precio' || t === 'tienda_la_tiene' || t === 'tienda_oferta' || t === 'tienda_fotos') return 'Colección'
   return null
 }
 

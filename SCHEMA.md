@@ -54864,3 +54864,118 @@ como «NM · Near Mint».
 **Reservar**: solo cambian los textos; las funciones y clases siguen
 llamándose `apartar` (`tienda_apartar`, `.tda`, `data-apartar-*`).
 
+## Tanda 1250 — Comprarle a una tienda (ofertas, contraofertas, reservas)
+
+PINGU: «un sistema como el de las propuestas, pero para las tiendas… el precio
+de esa carta y editarlo por si quieres lanzar una oferta… aceptar o la
+contraoferta, como en Vinted… en mano o enviar… PayPal, Bizum o efectivo».
+
+**Base** (`supabase-migration-1250-tienda-ofertas.sql`).
+
+`tienda_cobros(tienda_id, pagos[], bizum, paypal, minimo)` va aparte de
+`tiendas` porque esa la lee cualquiera (política `tiendas_se_ven`). No tiene
+políticas. Lo de fuera es `tienda_condiciones(tienda)` → `{pagos, minimo}`.
+
+`tienda_ofertas`:
+- Copia lo que es (carta, idioma, `estado_carta`, versión, gradeo).
+- Guarda `precio_tienda` (el de la tienda al empezar), `precio` (el que está
+  sobre la mesa, por unidad), `turno`, `pasos` jsonb `[{quien, que, precio,
+  at}]`, `estado`, envío y pago, `reserva_id` y `reservada_hasta`, `ticket` y
+  `seguimiento`, y `caduca_at`.
+- Una viva por (comprador, copia): índice único parcial `estado = 'abierta'`.
+- RLS de lectura para sus dos; nadie escribe a mano.
+
+Las funciones:
+- `tienda_oferta_enviar(stock, precio, envio, pago, unidades)`:
+  - Rechaza a la propia tienda, a otra cuenta de tienda, una copia oculta y la
+    tienda de pruebas.
+  - Nunca deja más que el precio que cuenta (`tienda_precio_de`, con la oferta
+    de la 1082) y respeta el mínimo (`round(pide × minimo / 100, 2)`).
+  - Solo las formas de pago de la tienda; el efectivo, solo en mano.
+  - El envío sale de `cambio_envio_tarifa` (la tabla de la 1108).
+  - Si hay una viva, añade un paso a esa.
+- `tienda_oferta_responder(oferta, accion, precio)`:
+  - aceptar, rechazar o contraoferta, a quien le toca; retirar, solo quien
+    compra.
+  - La tienda no contraoferta por encima de `precio_tienda`.
+  - Aceptar bloquea la línea, resta las unidades y crea la reserva
+    (`tienda_reservas`, 7 días, `para '@usuario'`, `para_usuario`). Puede
+    aceptar quien compra (una contraoferta), así que no llama a
+    `tienda_apartar`, que usa `auth.uid()` como tienda.
+- `tienda_oferta_paso(oferta, paso, seguimiento)`, solo la tienda:
+  - `pagada`.
+  - `hecha`: la venta, como `tienda_reserva_recoger` pero con `donde =
+    'pokedoc'` (la restricción de `tienda_ventas` se amplía).
+  - `alargar` (+7 días, con tope de 60) y `cancelar` (devuelve las unidades).
+- `tienda_ofertas_al_dia(tienda)`:
+  - Primero `tienda_reservas_al_dia`.
+  - Luego marca caducadas las abiertas pasadas las 48 h y las aceptadas o
+    pagadas sin reserva (la FK pone `reserva_id` a NULL al borrarse la
+    reserva).
+  - La llaman `ver` y `lista`.
+- `tienda_oferta_ver(oferta)`: la oferta con `soy`, los dos perfiles, `cobro`
+  (el Bizum o PayPal solo a quien compra y aceptada o pagada), `coste` (solo a
+  la tienda) y `quedan`.
+- `tienda_ofertas_lista(que)`: responder, esperando, reservadas o cerradas (60
+  días), con las cuentas.
+- `tienda_oferta_avisar` (interna): conversación por `cambio_conversacion`, un
+  `private_messages` con el adjunto
+  `{tipo:'oferta_tienda', oferta, evento}` y un aviso `tienda_oferta`. A la
+  tienda va a `/tienda?ver=ofertas#oferta-<id>`; a quien compra, a la
+  conversación.
+
+**Web**.
+- `tienda-carta.js`: `prepararCompra` pide las condiciones y las ofertas vivas
+  tuyas de esas copias (la tabla, por RLS). Sin condiciones, el «Me interesa»
+  de la 1080. `cuenta()` usa `envioAutomatico`, la misma tabla que la base.
+  El campo admite coma.
+- `mensajes-oferta.js`:
+  - `cargarOfertas` (las del hilo, por `tienda_oferta_ver`, con la foto del
+    catálogo).
+  - `ofertaHtml` (la tarjeta en el último mensaje de cada oferta, por
+    `ultimosDeOfertas` de mensajes-puro; una línea en los demás).
+  - `engancharOfertas` (los botones; lo de dos pasos se abre en
+    `.msg-oft-mas`).
+  - `ponerOfertas` y `accionesDeOferta`, que usa el panel.
+- `tienda-ofertas.js`: `montarOfertas` (la pestaña) y `montarCobros` (en
+  Datos).
+
+**Lo puro** (`tiendas-puro.js`): `PAGOS_TIENDA`, `NOMBRE_PAGO`,
+`minimoDeOferta`, `queEsLaOferta`, `totalDeOferta`, `puntoDeOferta(o, soy)`,
+`textoDePaso` y `DONDE_NOMBRE` (los sitios de venta con «PokeDoc», que no se
+elige en Vender).
+
+## Tanda 1251 — «Pedir fotos» de una copia de una tienda
+
+PINGU: «un botón… para pedir fotos… que a la tienda le salga “el cliente
+quiere fotos”, lo mismo que tienes en el stock para añadir desde el frontal y
+la trasera».
+
+`tienda_fotos_pedidas(tienda_id, comprador_id, stock_id, created_at,
+atendida_at, como)`:
+- `como` vale `subidas` o `quitada`.
+- Índice único parcial: una pendiente por (comprador, copia).
+- RLS de lectura para sus dos.
+
+Las funciones:
+- `tienda_pedir_fotos(stock)`: rechaza a la propia tienda, una copia oculta o
+  sin unidades y la tienda de pruebas (`tienda_publica`). Con frente y dorso
+  ya puestos, `{ya_tiene}`; si ya están pedidas, `{ya_pedidas}`.
+- `tienda_fotos_avisar` (interna): el mensaje con
+  `{tipo:'fotos_tienda', stock_id, evento}` y el aviso `tienda_fotos`.
+- `tienda_fotos_pedidas_lista()`: con la carta, el idioma, el estado y el
+  precio que cuenta.
+- `tienda_fotos_quitar(id)`: solo la tienda.
+- El disparador `trg_tienda_fotos_subidas` va en `after insert or update of
+  frente, dorso`: atiende las pendientes de esa copia y avisa. Va en la base
+  porque la hoja de fotos (1235) escribe la fila desde el navegador; así
+  cualquier camino de subida avisa. Subir el dorso después no repite el aviso
+  porque ya no hay pendientes.
+
+**Web**:
+- `tienda-carta.js` (`pedirFotosHtml`, `pedirFotos`): se ofrece si la tabla
+  responde (con cuenta) o si la base ya sabe de ofertas (sin cuenta).
+- `mensajes-oferta.js` (`fotosTiendaHtml` y los botones `data-fotos-subir`
+  y `data-fotos-ver`).
+- `tienda-ofertas.js` (`fotosHtml`, `pedirFotos`, `subirFotos`).
+

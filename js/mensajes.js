@@ -24,7 +24,7 @@ import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
-import { agruparPorDia, horaDe, ultimoVisto, resumenDeUltimo, adjuntosDe, cartasDe, propuestaDe, cabenAdjuntos, enterEnvia, MAX_FOTOS, estaArchivada, REACCIONES_MENSAJE, reaccionesDeMensaje, citaDe } from './mensajes-puro.js'
+import { agruparPorDia, horaDe, ultimoVisto, resumenDeUltimo, adjuntosDe, cartasDe, propuestaDe, cabenAdjuntos, enterEnvia, MAX_FOTOS, estaArchivada, REACCIONES_MENSAJE, reaccionesDeMensaje, citaDe, ofertaTiendaDe, ultimosDeOfertas, fotosTiendaDe } from './mensajes-puro.js'
 
 const root = document.getElementById('messagesRoot')
 const params = new URLSearchParams(window.location.search)
@@ -281,7 +281,7 @@ function reaccionesHtml(m, reac, mia) {
     .join('')}</span>`
 }
 
-function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta, cita = null, reac = null, con1141 = false }) {
+function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta, cita = null, reac = null, con1141 = false, oferta = null, ultimas = null }) {
   if (m.deleted_at) {
     return `<div class="msg-burbuja msg-eliminado${mia ? ' mia' : ''}" data-id="${m.id}" id="msg-${m.id}">Mensaje eliminado</div>`
   }
@@ -299,13 +299,18 @@ function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta, cita = nul
         ${!mia && (prop.evento === 'cambio_propuesta' || prop.evento === 'cambio_contraoferta') ? `<button type="button" class="msg-propuesta-ayuda" data-trato-ayuda>${icons.helpCircle(14)}<span>¿Primera vez? Así funciona un trato</span></button>` : ''}
       </div>`
     : ''
+  // Una compra a una tienda (1250): la tarjeta viva en su último mensaje.
+  const ot = ofertaTiendaDe(m)
+  const ft = fotosTiendaDe(m)
+  const compra = ot && oferta ? oferta.ofertaHtml(m, ot, { ultima: !!ultimas?.has(m.id) }) : ft && oferta ? oferta.fotosTiendaHtml(m, ft, { mia }) : ''
   return `
-    <div class="msg-burbuja${mia ? ' mia' : ''}${m.seguido ? ' seguida' : ''}${fotos && !texto ? ' solo-fotos' : ''}${cartas ? ' con-carta' : ''}${propuesta ? ' con-propuesta' : ''}${reac?.cuentas.length ? ' con-reacciones' : ''}" data-id="${m.id}" id="msg-${m.id}">
+    <div class="msg-burbuja${mia ? ' mia' : ''}${m.seguido ? ' seguida' : ''}${fotos && !texto ? ' solo-fotos' : ''}${cartas ? ' con-carta' : ''}${propuesta ? ' con-propuesta' : ''}${compra ? ' con-oferta' : ''}${reac?.cuentas.length ? ' con-reacciones' : ''}" data-id="${m.id}" id="msg-${m.id}">
       ${citaHtml(cita)}
       ${cartas}
       ${propuesta}
+      ${compra}
       ${fotos}
-      ${texto && !propuesta ? `<p>${enlazarMenciones(escapeHtml(texto), mencionados)}</p>` : ''}
+      ${texto && !propuesta && !compra ? `<p>${enlazarMenciones(escapeHtml(texto), mencionados)}</p>` : ''}
       ${reaccionesHtml(m, reac, mia)}
       <span class="msg-meta">
         ${con1141 ? `<button type="button" class="msg-accion" data-responder="${m.id}" aria-label="Responder a este mensaje" title="Responder">${icons.quote(13)}</button>` : ''}
@@ -439,6 +444,15 @@ async function renderThread(session, conversationId) {
   // Y las cartas de «Me interesa» (1080), igual: solo si hay alguna.
   let cartaMod = null
   const cartaM = async () => (cartaMod ||= await import('./mensajes-carta.js'))
+  // Y las compras a una tienda (1250): su módulo, solo si hay alguna.
+  let ofertaMod = null
+  let ultimasOfertas = new Set()
+  const ofertaM = async () => {
+    if (ofertaMod) return ofertaMod
+    ofertaMod = await import('./mensajes-oferta.js')
+    ofertaMod.engancharOfertas(el, { alCambiar: () => refreshMessages(), miId })
+    return ofertaMod
+  }
   let ultimos = []
 
   // ── El hilo ocupa la pantalla y los mensajes hacen scroll DENTRO (891b) ──
@@ -525,6 +539,8 @@ async function renderThread(session, conversationId) {
                     cita: m.reply_to_id ? citaDe(porId.get(m.reply_to_id), nombreDe) : null,
                     reac: reacciones ? reaccionesDeMensaje(reacciones, m.id, miId) : null,
                     con1141,
+                    oferta: ofertaMod,
+                    ultimas: ultimasOfertas,
                   })
                 )
                 .join('')}`
@@ -553,7 +569,13 @@ async function renderThread(session, conversationId) {
           const cartas = messages.flatMap(cartasDe)
           if (cartas.length) await (await cartaM()).completar(cartas).catch(() => {})
         })(),
+        (async () => {
+          const ids = messages.map(ofertaTiendaDe).filter(Boolean).map((o) => o.oferta)
+          if (ids.length) await (await ofertaM()).cargarOfertas(ids).catch(() => {})
+          else if (messages.some(fotosTiendaDe)) await ofertaM().catch(() => {})
+        })(),
       ])
+      ultimasOfertas = ultimosDeOfertas(messages)
       ultimos = messages
       const vistoId = ultimoVisto(messages, miId, otroLeyoHasta)
       const estabaAbajo = primeraPintada || cercaDelFinal()

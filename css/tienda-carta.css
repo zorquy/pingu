@@ -101,6 +101,35 @@ html:has(.ptc[open]) { overflow: hidden; }
 .ptc-nota { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
 .ptc-ficha { justify-self: start; color: var(--text-mid); font-size: var(--t-sm); text-decoration: underline; text-underline-offset: 2px; }
 
+/* Comprar (1250): el precio editable, la entrega, el pago y el total, en la
+   caja del precio; el botón dice «Pedir por» u «Ofrecer» según lo escrito. */
+.ptc-trato { display: grid; gap: var(--e-md); }
+.ptc-compra { display: grid; gap: var(--e-sm); padding: var(--e-md); border-radius: var(--radius-lg); background: var(--ice); }
+.ptc-campo { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); font-size: var(--t-sm); font-weight: 600; color: var(--text-mid); }
+.ptc-campo > span:first-child { flex: 1 0 100%; }
+.ptc-input { display: inline-flex; align-items: center; gap: var(--e-xs); flex: 1 1 140px; min-height: 48px; padding: 0 var(--e-md); border-radius: var(--radius-md); background: var(--white); box-shadow: inset 0 0 0 2px var(--rango-tienda); color: var(--text); font-family: var(--font-display); font-size: var(--t-xl); font-weight: 700; }
+.ptc-input:focus-within { box-shadow: inset 0 0 0 2px var(--rango-tienda), var(--shadow-ring); }
+.ptc-input input { flex: 1; min-width: 0; border: 0; outline: none; background: transparent; color: inherit; font: inherit; font-variant-numeric: tabular-nums; }
+.ptc-uds select { min-height: 48px; }
+.ptc-aviso { margin: 0; min-height: 1.4em; color: var(--warning); font-size: var(--t-xs); font-weight: 600; }
+.ptc-aviso[data-mal='true'] { color: var(--danger); }
+.ptc-seg { display: flex; gap: 2px; padding: 2px; border-radius: var(--radius-pill); background: var(--white); }
+.ptc-seg button { flex: 1; min-height: 40px; padding: 0 var(--e-sm); border: 0; border-radius: var(--radius-pill); background: transparent; color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 600; cursor: pointer; white-space: nowrap; }
+.ptc-seg button[aria-pressed='true'] { background: var(--rango-tienda); color: var(--blanco-fijo); }
+.ptc-seg button:disabled { opacity: 0.45; cursor: not-allowed; }
+.ptc-seg small { font-size: var(--t-xs); font-weight: 500; }
+@media (pointer: coarse) { .ptc-seg button { min-height: 44px; } }
+.ptc-total { display: flex; justify-content: space-between; align-items: baseline; margin: 0; padding-top: var(--e-sm); border-top: 1px dashed var(--border-strong); color: var(--text-mid); font-size: var(--t-sm); }
+.ptc-total b { color: var(--text); font-family: var(--font-display); font-size: var(--t-lg); font-variant-numeric: tabular-nums; }
+.ptc-error { margin: 0; color: var(--danger); font-size: var(--t-sm); font-weight: 600; }
+.ptc-error:empty { display: none; }
+.ptc-nota-trato { margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
+.ptc-viva { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-lg); background: var(--ice); font-size: var(--t-sm); }
+.ptc-viva-chapa { padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--warning-bg); color: var(--warning); font-size: var(--t-xs); font-weight: 700; }
+.ptc-viva[data-clase='ok'] .ptc-viva-chapa { background: var(--success-bg); color: var(--success); }
+.ptc-viva[data-clase='toca'] .ptc-viva-chapa { background: var(--rango-tienda); color: var(--blanco-fijo); }
+.ptc-viva-texto { flex: 1 1 160px; min-width: 0; }
+
 @media (max-width: 760px) {
   .ptc[open] {
     width: 100vw;
@@ -120,6 +149,13 @@ html:has(.ptc[open]) { overflow: hidden; }
   .ptc-tienda, .ptc-der h2, .ptc-set, .ptc-chapas { grid-column: 2; }
   .ptc-tienda { padding-right: var(--e-2xl); }
   .ptc-der h2 { font-size: var(--t-xl); }
-  .ptc-ops, .ptc-precio, .ptc-sku, .ptc-acciones, .ptc-ficha, .ptc-nota { grid-column: 1 / -1; }
+  .ptc-ops, .ptc-precio, .ptc-sku, .ptc-acciones, .ptc-ficha, .ptc-nota, .ptc-trato { grid-column: 1 / -1; }
   .ptc-fotos span { display: none; }
+}
+/* «Pedir fotos» (1251): con la misma forma que la caja de las fotos. */
+.ptc-pedir { justify-content: center; color: var(--rango-tienda); text-decoration: none; box-shadow: inset 0 0 0 1px var(--rango-tienda); background: transparent; }
+.ptc-pedidas { margin: 0; justify-content: center; color: var(--text-mid); font-weight: 500; cursor: default; }
+@media (max-width: 760px) {
+  .ptc-pedir, .ptc-pedidas { flex-direction: column; gap: var(--e-xs); padding: var(--e-sm) var(--e-xs); text-align: center; }
+  .ptc-pedir span, .ptc-pedidas span { display: inline; font-size: var(--t-xs); }
 }

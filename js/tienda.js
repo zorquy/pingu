@@ -15,7 +15,7 @@ import { caraDelPanel, instagramDe } from './tiendas-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const CARAS = ['tdCargando', 'tdCerrado', 'tdEntrar', 'tdEquipo', 'tdPanel']
-const PESTANAS = ['hoy', 'stock', 'ventas', 'escaparate', 'datos']
+const PESTANAS = ['hoy', 'stock', 'ofertas', 'ventas', 'escaparate', 'datos']
 
 for (const el of document.querySelectorAll('[data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(28) || ''
 
@@ -47,6 +47,21 @@ function montarHoySiToca(v) {
 function stockFiltrado(clave) {
   pestana('stock')
   Promise.all([stockMontado, import('./tienda-hoy.js')]).then(([m, h]) => m?.filtrarStock(h.FILTROS_DE_AVISO[clave] || {}))
+}
+
+// Las ofertas (1250) y, en Datos, cómo cobras: igual, la primera vez.
+let ofertasMontadas = false
+let cobrosMontados = false
+function montarOfertasSiToca(v) {
+  if (v === 'datos' && !cobrosMontados) {
+    cobrosMontados = true
+    import('./tienda-ofertas.js').then(({ montarCobros }) => montarCobros($('tdCobros'))).catch(() => { cobrosMontados = false })
+  }
+  if (v !== 'ofertas' || ofertasMontadas) return
+  ofertasMontadas = true
+  import('./tienda-ofertas.js')
+    .then(({ montarOfertas }) => montarOfertas($('tdOfertas')))
+    .catch(() => { ofertasMontadas = false; $('tdOfertas').innerHTML = '<p class="subtext">No se han podido abrir tus ofertas. Recarga la página.</p>' })
 }
 
 // Las ventas (1072), igual: por `import()` la primera vez.
@@ -107,6 +122,7 @@ function pestana(cual) {
   const v = PESTANAS.includes(cual) ? cual : 'hoy'
   montarStockSiToca(v)
   montarVentasSiToca(v)
+  montarOfertasSiToca(v)
   montarHoySiToca(v)
   montarEscaparateSiToca(v).catch(() => {})
   for (const b of document.querySelectorAll('[data-td]')) {

@@ -15,7 +15,7 @@ import { euros } from './cardmarket.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { cargarImagen, redondeado, comoBlob, descargarLienzo } from './imagen-compartir.js'
-import { cuentaDeRecibo, pdfDeJpeg, DONDE_VENTA } from './tiendas-puro.js'
+import { cuentaDeRecibo, pdfDeJpeg, DONDE_NOMBRE } from './tiendas-puro.js'
 
 const ANCHO = 1080
 const C = { papel: '#ffffff', tinta: '#0d1b2a', suave: '#52717f', raya: '#e1eaee', marca: '#1e5175', fondo: '#e1f0f4' }
@@ -147,7 +147,7 @@ export async function dibujarRecibo({ lineas, perfil, tienda, compra = false }) 
   ctx.font = `800 64px ${TITULO}`
   ctx.fillText(euros(total), ANCHO - 72, y + 40)
   ctx.textAlign = 'left'
-  const NOMBRE_DONDE = Object.fromEntries(DONDE_VENTA)
+  const NOMBRE_DONDE = DONDE_NOMBRE
   if (!compra && primera.donde && primera.donde !== 'otro') {
     ctx.fillStyle = C.suave
     ctx.font = `500 26px ${LETRA}`

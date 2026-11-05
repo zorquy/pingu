@@ -1,0 +1,44 @@
+/* Una compra a una tienda en la conversación (1250): js/mensajes-oferta.js.
+   La tarjeta va en el último mensaje de cada oferta; los de antes, una línea.
+   El color de la chapa dice a quién le toca (`data-clase`). */
+.msg-burbuja.con-oferta { max-width: min(440px, 100%); padding: 0; background: transparent; border: 0; }
+.msg-oft { display: grid; gap: var(--e-sm); padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); color: var(--text); }
+.msg-oft-cab { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto; gap: var(--e-sm); align-items: start; }
+.msg-oft-foto { display: block; aspect-ratio: 245 / 342; border-radius: var(--e-xs); background: var(--ice); overflow: hidden; }
+.msg-oft-foto img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.msg-oft-producto img { object-fit: contain; }
+.msg-oft-que { display: grid; gap: 2px; min-width: 0; }
+.msg-oft-que small { color: var(--rango-tienda); font-size: var(--t-xs); font-weight: 700; }
+.msg-oft-que b { font-size: var(--t-md); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.msg-oft-chapas { display: flex; flex-wrap: wrap; gap: var(--e-xs); align-items: center; color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }
+.msg-oft-chapa { padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; white-space: nowrap; }
+.msg-oft[data-clase='toca'] .msg-oft-chapa { background: var(--rango-tienda); color: var(--blanco-fijo); }
+.msg-oft[data-clase='espera'] .msg-oft-chapa { background: var(--warning-bg); color: var(--warning); }
+.msg-oft[data-clase='ok'] .msg-oft-chapa { background: var(--success-bg); color: var(--success); }
+.msg-oft[data-clase='toca'] { border-color: var(--rango-tienda); }
+.msg-oft-pasos { display: grid; gap: 2px; margin: 0; padding: 0 0 0 var(--e-md); color: var(--text-mid); font-size: var(--t-xs); }
+.msg-oft-pasos li:last-child { color: var(--text); font-weight: 600; }
+.msg-oft-resumen { margin: 0; font-size: var(--t-sm); color: var(--text-mid); }
+.msg-oft-resumen b { color: var(--text); font-family: var(--font-display); font-size: var(--t-lg); font-variant-numeric: tabular-nums; }
+.msg-oft-margen { color: var(--success); font-weight: 600; }
+.msg-oft-frase { margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
+.msg-oft-cobro { margin: 0; padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--success-bg); font-size: var(--t-sm); }
+.msg-oft-dato { font-family: ui-monospace, 'SF Mono', Menlo, monospace; font-weight: 700; user-select: all; }
+.msg-oft-acciones { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.msg-oft-acciones:empty { display: none; }
+.msg-oft-btn { min-height: 40px; }
+@media (pointer: coarse) { .msg-oft-btn { min-height: 44px; } }
+.msg-oft-mas { display: flex; flex-wrap: wrap; gap: var(--e-sm); align-items: end; padding-top: var(--e-sm); border-top: 1px dashed var(--border-strong); }
+.msg-oft-mas[hidden] { display: none; }
+.msg-oft-campo { display: grid; gap: var(--e-xs); flex: 1 1 160px; color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }
+.msg-oft-campo input { min-height: 44px; padding: 0 var(--e-md); border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--white); color: var(--text); font: inherit; font-size: var(--t-md); }
+.msg-oft-campo input:focus { outline: none; box-shadow: var(--shadow-ring); }
+.msg-oft-coste { flex: 1 0 100%; color: var(--text-mid); font-size: var(--t-xs); }
+.msg-oft-peligro { color: var(--danger); }
+.msg-oft-error { margin: 0; color: var(--danger); font-size: var(--t-sm); font-weight: 600; }
+.msg-oft-error:empty { display: none; }
+.msg-oft-linea { display: grid; gap: 2px; padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--ice); font-size: var(--t-sm); }
+.msg-oft-linea small { color: var(--text-mid); font-size: var(--t-xs); }
+@media (max-width: 600px) { .msg-oft-campo input { font-size: var(--t-lg); } }
+/* «Pedir fotos» (1251): la línea con su botón. */
+.msg-oft-fotos .msg-oft-btn { justify-self: start; margin-top: var(--e-xs); }

@@ -220,6 +220,9 @@ export function enlaceAMapa(direccion, ciudad) {
 
 // Dónde se vendió (PINGU eligió apuntarlo): los mismos que acepta la base.
 export const DONDE_VENTA = [['mostrador', 'Mostrador'], ['cardmarket', 'Cardmarket'], ['evento', 'Evento'], ['otro', 'Otro']]
+// Los nombres de TODOS los sitios de venta: lo vendido por una oferta (1250)
+// dice «PokeDoc», pero no se elige en Vender.
+export const DONDE_NOMBRE = Object.fromEntries([...DONDE_VENTA, ['pokedoc', 'PokeDoc']])
 
 // Lo que suma una venta antes de apuntarla, con la cuenta de `tienda_vender`:
 // el beneficio solo de lo que tiene coste, y sin ninguna con coste no hay
@@ -350,7 +353,7 @@ export function csvDeVentas(filas, nombreDeSet = (id) => id || '') {
     lineas.push([
       f.vendida_el, f.ticket, f.card_id, f.product_id, f.nombre, f.set_id ? nombreDeSet(f.set_id) : '', f.numero, f.idioma,
       f.product_id ? '' : f.estado, f.product_id ? '' : f.variante, f.gradeo, f.unidades, Number(f.precio), f.coste == null ? null : Number(f.coste), beneficio,
-      (DONDE_VENTA.find(([v]) => v === f.donde) || [])[1] || f.donde,
+      DONDE_NOMBRE[f.donde] || f.donde,
     ].map(celda).join(';'))
   }
   return lineas.join('\n')
@@ -705,4 +708,51 @@ export function skuDe(linea, codigoSet = '') {
   const numero = /^\d+$/.test(n) ? String(Number(n)) : limpio(n) || '0'
   const estado = l.gradeo ? limpio(l.gradeo) : limpio(l.estado || 'NM')
   return [set, numero, idioma, estado, versionCorta(l.variante)].filter(Boolean).join('-')
+}
+
+// ── COMPRARLE A UNA TIENDA (1250) ──
+// Cómo cobra una tienda (`tienda_cobros`): en efectivo, solo en mano.
+export const PAGOS_TIENDA = [['bizum', 'Bizum'], ['paypal', 'PayPal'], ['efectivo', 'Efectivo']]
+export const NOMBRE_PAGO = Object.fromEntries(PAGOS_TIENDA)
+// Lo menos que se puede ofrecer con el mínimo de la tienda (en %), como en la
+// base (`tienda_oferta_enviar`): redondeado al céntimo. Sin mínimo, nada.
+export function minimoDeOferta(pide, minimo) {
+  const p = Number(pide)
+  const m = Number(minimo)
+  if (!(p > 0) || !(m > 0)) return null
+  return Math.round(p * m) / 100
+}
+// «Pedir» es a su precio (o más, que la base deja en el suyo); por debajo, «ofrecer».
+export const queEsLaOferta = (precio, pide) => (pide != null && Number(precio) >= Number(pide) ? 'pide' : 'ofrece')
+// Lo que pagas: las cartas y el envío.
+export const totalDeOferta = ({ precio, unidades = 1, envio_precio = 0 }) => Math.round((Number(precio) * (Number(unidades) || 1) + (Number(envio_precio) || 0)) * 100) / 100
+
+// En qué punto está una oferta, dicho para quien mira (`soy`: 'tienda' o
+// 'comprador'): la chapa, su clase de color y la frase del siguiente paso.
+export function puntoDeOferta(o, soy) {
+  const mio = o.turno === soy
+  switch (o.estado) {
+    case 'abierta':
+      if (mio) return { chapa: soy === 'tienda' ? 'Te toca' : 'Te contraofertan', clase: 'toca', frase: soy === 'tienda' ? 'Acéptala, haz una contraoferta o recházala.' : 'Acepta su precio u ofrece otro.' }
+      return { chapa: soy === 'tienda' ? 'Esperando respuesta' : 'Esperando a la tienda', clase: 'espera', frase: 'Si nadie contesta en 48 horas, caduca.' }
+    case 'aceptada': return { chapa: 'Aceptada', clase: 'ok', frase: soy === 'tienda' ? 'Está reservada. Márcala como pagada cuando te llegue el pago.' : 'Está reservada para ti. Paga y la tienda te la prepara.' }
+    case 'pagada': return { chapa: 'Pagada', clase: 'ok', frase: soy === 'tienda' ? (o.envio === 'correo' ? 'Mándala y apunta el seguimiento.' : 'Entrégala cuando quedéis.') : (o.envio === 'correo' ? 'La tienda te la manda.' : 'Ya solo queda recogerla.') }
+    case 'hecha': return { chapa: o.envio === 'correo' ? 'Enviada' : 'Hecha', clase: 'ok', frase: o.seguimiento ? `Seguimiento: ${o.seguimiento}` : '' }
+    case 'rechazada': return { chapa: 'Rechazada', clase: 'fin', frase: '' }
+    case 'retirada': return { chapa: 'Retirada', clase: 'fin', frase: '' }
+    case 'cancelada': return { chapa: 'Cancelada', clase: 'fin', frase: 'La carta volvió a la tienda.' }
+    case 'caducada': return { chapa: 'Caducada', clase: 'fin', frase: 'Pasó el plazo sin respuesta.' }
+    default: return { chapa: o.estado || '', clase: 'fin', frase: '' }
+  }
+}
+// Un paso de la historia en una línea: «Ofreciste · 35,00 €», «RyuCards
+// contraofertó · 38,00 €». `soy` dice quién es «tú».
+const PASO_TU = { pide: 'Pediste a su precio', ofrece: 'Ofreciste', contraoferta: 'Contraofertaste', acepta: 'Aceptaste', rechaza: 'Rechazaste', retira: 'Retiraste la oferta', pagada: 'Marcaste el pago', entregada: 'La entregaste', enviada: 'La enviaste', cancela: 'Cancelaste' }
+const PASO_EL = { pide: 'pidió a tu precio', ofrece: 'ofreció', contraoferta: 'contraofertó', acepta: 'aceptó', rechaza: 'rechazó', retira: 'retiró la oferta', pagada: 'recibió el pago', entregada: 'la entregó', enviada: 'la envió', cancela: 'canceló' }
+const CON_PRECIO = new Set(['pide', 'ofrece', 'contraoferta', 'acepta'])
+export function textoDePaso(p, { soy, nombreTienda = 'La tienda', nombreComprador = 'Quien compra' } = {}) {
+  if (p.quien === 'nadie') return p.que === 'caducada' ? 'Caducó sin respuesta' : 'Venció la reserva'
+  const euros = CON_PRECIO.has(p.que) && p.precio != null ? ` · ${Number(p.precio).toFixed(2).replace('.', ',')} €` : ''
+  if (p.quien === soy) return `${PASO_TU[p.que] || p.que}${euros}`
+  return `${p.quien === 'tienda' ? nombreTienda : nombreComprador} ${PASO_EL[p.que] || p.que}${euros}`
 }

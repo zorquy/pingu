@@ -236,3 +236,26 @@ export function citaDe(original, nombreDe) {
   const que = original.deleted_at ? 'Mensaje eliminado' : texto ? (texto.length > 90 ? `${texto.slice(0, 90)}…` : texto) : (Array.isArray(original.adjuntos) && original.adjuntos.some((a) => a?.tipo === 'carta') ? 'Una carta' : 'Una foto')
   return { id: original.id, quien: nombreDe(original.sender_id), que }
 }
+
+// UNA COMPRA A UNA TIENDA (1250): el adjunto `{ tipo: 'oferta_tienda', oferta,
+// evento }` que deja cada paso de `tienda_oferta_*`. Y de cada oferta, cuál es
+// su ÚLTIMO mensaje (el que lleva la tarjeta viva; los de antes, una línea).
+export function ofertaTiendaDe(mensaje) {
+  const a = Array.isArray(mensaje?.adjuntos) ? mensaje.adjuntos.find((x) => x && x.tipo === 'oferta_tienda' && x.oferta) : null
+  return a ? { oferta: String(a.oferta), evento: String(a.evento || '') } : null
+}
+export function ultimosDeOfertas(mensajes = []) {
+  const ultimo = new Map()
+  for (const m of mensajes) {
+    const o = ofertaTiendaDe(m)
+    if (o) ultimo.set(o.oferta, m.id)
+  }
+  return new Set(ultimo.values())
+}
+
+// «Pedir fotos» (1251): el adjunto `{ tipo: 'fotos_tienda', stock_id, evento }`
+// de cuando se piden (`fotos_pedidas`) y de cuando se suben (`fotos_subidas`).
+export function fotosTiendaDe(mensaje) {
+  const a = Array.isArray(mensaje?.adjuntos) ? mensaje.adjuntos.find((x) => x && x.tipo === 'fotos_tienda' && x.stock_id) : null
+  return a ? { stock_id: String(a.stock_id), evento: String(a.evento || '') } : null
+}

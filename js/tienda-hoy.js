@@ -10,7 +10,7 @@ import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
 import { euros } from './cardmarket.js'
 import { nombreDeSet } from './catalogo-series.js'
-import { PERIODOS_HOY, periodoDeHoy, comparacion, DONDE_VENTA } from './tiendas-puro.js'
+import { PERIODOS_HOY, periodoDeHoy, comparacion, DONDE_NOMBRE } from './tiendas-puro.js'
 import { detalleDeLinea } from './tienda-vender.js'
 import { showToast } from './toast.js'
 
@@ -89,7 +89,7 @@ function pintar(d, ultimas) {
 
   $('.tdh-grafica-titulo').textContent = { hoy: 'Ventas de hoy', semana: 'Ventas de la semana', mes: 'Ventas del mes', anio: 'Ventas del año' }[est.periodo]
   $('.tdh-grafica').innerHTML = graficaHtml(d.serie || [], p.paso)
-  const NOMBRE_DONDE = Object.fromEntries(DONDE_VENTA)
+  const NOMBRE_DONDE = DONDE_NOMBRE
   $('.tdh-sub').hidden = !(ultimas || []).length
   $('.tdh-ultimas').innerHTML = (ultimas || []).map((f) => {
     const ben = f.coste == null ? null : Math.round((Number(f.precio) - Number(f.coste)) * f.unidades * 100) / 100

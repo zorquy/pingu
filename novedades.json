@@ -35,6 +35,18 @@
   "entradas": [
     {
       "fecha": "2026-11-05",
+      "tipo": "nuevo",
+      "texto": "«Pedir fotos»: si una carta de una tienda no tiene fotos de verdad, pídeselas desde su ficha. A la tienda le llega en sus ofertas y en el chat, y te avisamos en cuanto las suba.",
+      "enlace": "/tiendas"
+    },
+    {
+      "fecha": "2026-11-05",
+      "tipo": "nuevo",
+      "texto": "Cómprale a una tienda desde su escaparate: el precio viene puesto y puedes ofrecer menos, elegir en mano o por correo y cómo pagar (Bizum, PayPal o efectivo). La tienda acepta, te contraoferta o la rechaza, y todo se sigue en Mensajes. Si acepta, te la reserva 7 días.",
+      "enlace": "/tiendas"
+    },
+    {
+      "fecha": "2026-11-05",
       "tipo": "mejora",
       "texto": "«Me interesa» de una tienda te lleva a su tienda entera con esa carta abierta encima: ves las copias que tiene (idioma, estado, versión), su precio, sus fotos y su código. Y al tocar cualquier carta de una tienda se abre igual.",
       "enlace": "/tiendas"

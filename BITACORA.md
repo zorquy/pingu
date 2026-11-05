@@ -4,6 +4,87 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (493) — PINGU-Claude (1251 — «Pedir fotos» de una copia de una tienda)
+
+**Hecho**: la tercera tanda de la propuesta de tiendas. Va en el MISMO push
+que la 1250 porque toca los mismos ficheros.
+- **Migración** `supabase-migration-1251-tienda-fotos-pedidas.sql`:
+  - `tienda_fotos_pedidas`: una pendiente por persona y copia, que la ven sus
+    dos.
+  - `tienda_pedir_fotos(stock)`: no deja pedírselas a la propia tienda, ni de
+    una copia oculta, ni a la tienda de pruebas; con las dos fotos puestas
+    dice «ya las tiene». Avisa a la tienda con un mensaje (adjunto
+    `{tipo:'fotos_tienda', stock_id, evento}`) y un aviso `tienda_fotos` a
+    `#fotos-<id>`.
+  - `tienda_fotos_pedidas_lista()` y `tienda_fotos_quitar(id)`.
+  - Un DISPARADOR en `tienda_stock_fotos` (que escribe el navegador al subir)
+    da por atendidas las peticiones y avisa a quien las pidió.
+- **Pop-up de tienda**: una copia sin fotos lleva «Pedir fotos de esta
+  carta», que pasa a «Fotos pedidas». Sin cuenta, lleva a registrarse.
+- **Mensajes**: la línea «Te piden fotos» con «Subir fotos» (la hoja de
+  frente y dorso de siempre), y «Ya están las fotos» con «Ver las fotos».
+- **Panel → Ofertas**: «Te piden fotos» arriba, con Subir fotos, Ir al chat y
+  Quitar.
+
+**Ficheros**: la migración; `js/tienda-carta.js`, `css/tienda-carta.css`,
+`js/mensajes.js`, `js/mensajes-puro.js` (`fotosTiendaDe`),
+`js/mensajes-oferta.js` (`fotosTiendaHtml`), `css/mensajes-oferta.css`,
+`js/tienda-ofertas.js`, `css/tienda-ofertas.css`, `js/avisos-prefs.js`,
+`js/notifications.js`, `js/numeros-seccion.js`, CLAUDE.md, SCHEMA, novedades.
+Rama pruebas: `test-tanda-1251.mjs` (PostgreSQL) y
+`test-tanda-1251-pantalla.mjs`; 1071 y 1075 con «Ofertas» en las barras.
+
+**Pendiente**: PINGU, ejecutar la 1250 y DESPUÉS la 1251. Siguen la 1252
+(panel nuevo) y la 1253 (SKU, barras y QR).
+
+## 2026-11-05 (492) — PINGU-Claude (1250 — comprarle a una tienda: ofertas, contraofertas y reservas)
+
+**Hecho**: la segunda de las cinco tandas de la propuesta aprobada «con lo
+recomendado».
+- **Migración** `supabase-migration-1250-tienda-ofertas.sql`:
+  - `tienda_cobros`: qué acepta la tienda, su Bizum, su PayPal y el mínimo. Va
+    en una tabla PRIVADA, porque `tiendas` la lee cualquiera.
+  - `tienda_ofertas` (RLS: la ven sus dos) y sus funciones: `enviar` (pedir u
+    ofrecer; ofrecer otra vez es un paso), `responder` (aceptar, rechazar,
+    contraofertar, retirar), `paso` (pagada, hecha = venta con «pokedoc» y el
+    coste, alargar, cancelar), `al_dia` (48 h; reserva vencida), `ver` (el
+    Bizum solo a quien compra y aceptada; el coste solo a la tienda) y `lista`.
+  - `tienda_condiciones`, `tienda_cobros_mios` y `tienda_cobros_poner`.
+  - Aceptar saca las unidades a una reserva de 7 días (la de la 1092) a nombre
+    de quien compra. Cada paso deja un mensaje con el adjunto
+    `{tipo:'oferta_tienda'}` y un aviso `tienda_oferta`. `tienda_ventas.donde`
+    admite `pokedoc`.
+- **El pop-up de tienda** (`js/tienda-carta.js`):
+  - El precio viene puesto y se puede cambiar: «Pedir por 40 €» u «Ofrecer
+    35 €», con el aviso del mínimo.
+  - En mano o por correo (la tabla de los cambios) y las formas de pago de la
+    tienda (efectivo solo en mano), con unidades y total.
+  - Si ya le ofreciste algo, lo dice. Sin cuenta pide cuenta; sin la
+    migración, el «Me interesa» de antes.
+- **Mensajes** (`js/mensajes-oferta.js` + `css/mensajes-oferta.css`): la
+  tarjeta viva en el último mensaje de cada oferta, con los pasos, a quién le
+  toca y sus botones. Contraoferta, seguimiento y cancelar se abren debajo.
+- **Panel → Ofertas** (`js/tienda-ofertas.js` + `css/tienda-ofertas.css`;
+  nueva en `SECCIONES_DE_TIENDA`):
+  - Cuatro montones (Por responder, Esperando, Reservadas, Cerradas) con los
+    mismos botones, el margen e «Ir al chat».
+  - En Datos, «Cómo cobras».
+
+**Ficheros**: la migración; `js/tienda-carta.js`, `css/tienda-carta.css`,
+`js/mensajes-oferta.js` y `css/mensajes-oferta.css` (nuevos),
+`js/tienda-ofertas.js` y `css/tienda-ofertas.css` (nuevos), `js/mensajes.js`,
+`js/mensajes-puro.js`, `js/tiendas-puro.js`, `js/tienda.js`, `tienda.html`,
+`js/tienda-marco.js`, `js/icons.js` (`tag`), `js/tienda-cierre.js`,
+`js/tienda-hoy.js`, `js/tienda-recibo.js`, `js/tienda-ventas.js`
+(`DONDE_NOMBRE`), `js/avisos-prefs.js`, `js/notifications.js`,
+`js/numeros-seccion.js`, CLAUDE.md, SCHEMA, novedades. Rama pruebas:
+`test-tanda-1250.mjs` (PostgreSQL) y `test-tanda-1250-pantalla.mjs`.
+
+**Pendiente**: PINGU, ejecutar `supabase-migration-1250-tienda-ofertas.sql`;
+hasta entonces se queda el «Me interesa» de antes. Siguen 1251 (pedir fotos),
+1252 (panel nuevo) y 1253 (SKU, barras y QR). Las migraciones 1244 y 1245, y
+las fotos del pack de la película.
+
 ## 2026-11-05 (491) — PINGU-Claude (1249 — comprar empieza en el escaparate: pop-up de tienda, estados con color, Reservar)
 
 **Hecho**: PINGU aprobó la propuesta de comprar a tiendas «con lo

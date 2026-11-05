@@ -12,13 +12,13 @@ import { showToast } from './toast.js'
 import { hojaInyectada } from './hoja.js'
 import { euros } from './cardmarket.js'
 import { nombreDeSet } from './catalogo-series.js'
-import { DONDE_VENTA, mesesDeCierre, rangoDeMes, cierreDelMes, csvDeVentas, csvDeCompras, pdfDeImagenes, PUNTOS_POR_MM } from './tiendas-puro.js'
+import { DONDE_NOMBRE, mesesDeCierre, rangoDeMes, cierreDelMes, csvDeVentas, csvDeCompras, pdfDeImagenes, PUNTOS_POR_MM } from './tiendas-puro.js'
 
 const PX_MM = 8
 const C = { papel: '#ffffff', tinta: '#0d1b2a', suave: '#52717f', raya: '#e1eaee', fondo: '#e1f0f4', barra: '#0b7285', verde: '#0d9e6e', rojo: '#dc2626' }
 const LETRA = 'Inter, system-ui, sans-serif'
 const TITULO = 'Outfit, Inter, system-ui, sans-serif'
-const NOMBRE_DONDE = Object.fromEntries(DONDE_VENTA)
+const NOMBRE_DONDE = DONDE_NOMBRE
 let dialogo = null
 const sets = new Map()
 

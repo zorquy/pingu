@@ -186,6 +186,7 @@
       <nav class="seg td-pestanas" id="tdPestanas" role="tablist" aria-label="Panel de la tienda">
         <button type="button" class="seg-btn" role="tab" data-td="hoy" aria-selected="true">Panel</button>
         <button type="button" class="seg-btn" role="tab" data-td="stock" aria-selected="false">Stock</button>
+        <button type="button" class="seg-btn" role="tab" data-td="ofertas" aria-selected="false">Ofertas</button>
         <button type="button" class="seg-btn" role="tab" data-td="ventas" aria-selected="false">Ventas</button>
         <button type="button" class="seg-btn" role="tab" data-td="escaparate" aria-selected="false">Escaparate</button>
         <button type="button" class="seg-btn" role="tab" data-td="datos" aria-selected="false">Datos</button>
@@ -198,6 +199,11 @@
       <section class="td-hoja hidden" data-td-hoja="stock">
         <h2 class="sr-only">Stock</h2>
         <div id="tdStock"><p class="subtext">Cargando tu stock…</p></div>
+      </section>
+
+      <section class="td-hoja hidden" data-td-hoja="ofertas">
+        <h2 class="sr-only">Ofertas</h2>
+        <div id="tdOfertas"><p class="subtext">Cargando tus ofertas…</p></div>
       </section>
 
       <section class="td-hoja hidden" data-td-hoja="ventas">
@@ -267,6 +273,9 @@
           <p class="td-error" id="tdDatosError" role="alert"></p>
           <button type="submit" class="btn-primary" id="tdDatosGuardar">Guardar</button>
         </form>
+        <!-- Cómo cobras (1250): lo que aceptas, tu Bizum y tu PayPal (solo los ve
+             quien te compra, con la oferta aceptada) y el mínimo de las ofertas. -->
+        <div class="td-cobros" id="tdCobros"></div>
         <div class="td-cuenta">
           <h2>Tu cuenta</h2>
           <p class="subtext">Entras con <strong id="tdCuentaEmail"></strong>. Es una cuenta de tienda: para lo demás de PokeDoc (el foro, los retos, una colección personal), hazte una cuenta personal con otro correo.</p>

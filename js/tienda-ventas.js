@@ -14,7 +14,7 @@ import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { euros } from './cardmarket.js'
 import { nombreDeSet } from './catalogo-series.js'
-import { DONDE_VENTA, PERIODOS, rangoDePeriodo, csvDeVentas, csvDeCompras } from './tiendas-puro.js'
+import { DONDE_NOMBRE, PERIODOS, rangoDePeriodo, csvDeVentas, csvDeCompras } from './tiendas-puro.js'
 import { detalleDeLinea } from './tienda-vender.js'
 
 const POR_PAGINA = 100
@@ -27,7 +27,7 @@ let caja = null
 let perfil = null
 const $ = (sel) => caja.querySelector(sel)
 const nombreSet = (id) => sets.get(id) || id
-const NOMBRE_DONDE = Object.fromEntries(DONDE_VENTA)
+const NOMBRE_DONDE = DONDE_NOMBRE
 
 function filtros() {
   const f = { ...rangoDePeriodo(est.periodo) }
@@ -261,7 +261,7 @@ export function montarVentas(destino, { perfil: p }) {
       </div>
       <div class="tdvt-arriba">
         <select class="tdvt-select" data-tdvt-periodo aria-label="Periodo">${PERIODOS.map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
-        <select class="tdvt-select" data-tdvt-donde aria-label="Dónde se vendió">${[['', 'Dónde: todo'], ...DONDE_VENTA].map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
+        <select class="tdvt-select" data-tdvt-donde aria-label="Dónde se vendió">${[['', 'Dónde: todo'], ...Object.entries(DONDE_NOMBRE)].map(([v, t]) => `<option value="${v}">${t}</option>`).join('')}</select>
         <input type="search" class="tdvt-busca" data-tdvt-q placeholder="Busca en tus ventas" aria-label="Buscar en tus ventas" />
         <button type="button" class="btn-secondary tdvt-icono" data-tdvt="lupa" aria-label="Buscar en tus ventas" aria-expanded="false">${icons.search(18)}</button>
         <span class="tds-menu-caja">
