@@ -69,9 +69,12 @@ console.log('── 1. Hoy, con cifras ──')
   // la 1085, sin los cuatro atajos (la barra y la lateral ya los tienen).
   check('arriba, el saludo con la tienda, sin atajos', /Buen|Hola/.test(await p.textContent('#tdSaludo')) && (await p.isVisible('.td-cab')) && (await p.locator('.tdh-atajo, .tdh-rapido').count()) === 0)
   check('  …la cabecera dice sus líneas y unidades', /812 líneas · 1212 uds\./.test((await p.textContent('[data-tdh-stock]')).replace(/\u00a0/g, ' ').replace('1.212', '1212')))
-  check('  …cada cifra con su icono, y la que sube con su flecha', (await p.locator('.tdh-cifra-icono svg').count()) === 4 && /▲/.test(await p.textContent('.tdh-cifra .tdh-sube')))
+  // 1252: lo vendido es la cifra grande de la cartera (`.tdh-vendido`), y
+  // las cuatro de debajo son beneficio, margen, valor del stock y visitas.
+  check('  …cada cifra con su icono, y la que sube con su flecha', (await p.locator('.tdh-cifra-icono svg').count()) === 4 && /▲/.test(await p.textContent('.tdh-vendido .tdh-sube')))
   const cifras = (await p.innerText('.tdh-cifras')).replace(/\s+/g, ' ')
-  check('vendido, con «+18 % que ayer a esta hora»', /411,50 €/.test(cifras) && /\+18 % que ayer a esta hora/.test(cifras), cifras)
+  const vendido = (await p.innerText('.tdh-vendido')).replace(/\s+/g, ' ')
+  check('vendido, con «+18 % que ayer a esta hora»', /411,50 €/.test(vendido) && /\+18 % que ayer a esta hora/.test(vendido), vendido)
   check('beneficio y margen sobre lo pagado (136,20 € / 49 %), con lo que no tenía coste dicho', /\+136,20 €/.test(cifras) && /49 %/.test(cifras) && /1 sin coste/.test(cifras))
   check('el valor del stock a tu precio y en Cardmarket', /8\.940,00 €/.test(cifras) && /1212 uds\. · Cardmarket 9\.120,40 €/.test(cifras))
   check('la subida, en verde; con su texto (no solo color)', (await p.evaluate(() => getComputedStyle(document.querySelector('.tdh-sube')).color)) === 'rgb(13, 158, 110)')
@@ -100,7 +103,7 @@ console.log('── 1. Hoy, con cifras ──')
 {
   const { p, ctx } = await abrir('/tienda.html', { rpc: { tienda_hoy: VACIO, tienda_ventas_lista: { filas: [] } } })
   check('sin nada todavía: lo dice, sin inventar cifras', /Sin ventas en este periodo/.test(await p.textContent('.tdh-grafica')) && /Todo en orden/.test(await p.textContent('.tdh-avisos')) && /Nadie tiene en su lista/.test(await p.textContent('.tdh-demanda')))
-  check('  …ni un beneficio ni un porcentaje que no existen', (await p.innerText('.tdh-cifras')).includes('—') && !/%.*que ayer/.test(await p.innerText('.tdh-cifras')))
+  check('  …ni un beneficio ni un porcentaje que no existen', (await p.innerText('.tdh-cifras')).includes('—') && !/%.*que ayer/.test((await p.innerText('.tdh-cifras')) + (await p.innerText('.tdh-vendido'))))
   await ctx.close()
 }
 {
