@@ -825,6 +825,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `cambio_libres_de`, nunca con `cambio` a secas. La etiqueta del sobre (1110) es
   `js/cambio-etiqueta.js` (por `import()`), con lo que ya trae el trato: nada
   de la dirección sale de ahí a otro sitio.
+- **Cómo funciona un trato se cuenta en UN sitio: `js/cambio-ayuda.js`**
+  (tanda 1238, PINGU: «me ha dicho: ¿cómo funciona esto? Soy nuevo»): los
+  cuatro pasos de ESE trato (`pasosDeAyuda`, por tipo, envío y quién mira), el
+  de ahora (`pasoDeAyuda`) y «Para ir seguro», en una hoja que abren «Cómo
+  funciona» al proponer, el «?» del pop-up de un trato y «¿Primera vez?» del
+  mensaje. Un paso nuevo de un trato cambia esos textos, no otra explicación
+  suelta. La franja de la primera vez sale a quien no tiene ningún trato hecho
+  (`tocaPrimeraVez`) hasta «Entendido». Y las tarjetas de «En curso» miden lo
+  mismo: las cartas van en abanico (tres y «+N»), nunca en fila que crece.
 - **La reputación de los cambios es UNA: `reputacionDe` + `nivelDe` +
   `textoDeConfianza`** (`js/cambios-hechos.js`, tanda 1224, PINGU: «que otros
   usuarios vean que has completado trades»): sale de `reputacion_de` (la

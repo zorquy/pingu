@@ -54371,3 +54371,49 @@ MISMO pop-up que ya estaba abierto y no pasaba nada a la vista. Lleva la marca
 en la plantilla. `test-tanda-1237b-pantalla.mjs` mira las dos plantillas y
 pulsa el enlace en Mi colección (PC y móvil) y en /cartas; sin la marca, la
 página se queda donde estaba.
+
+## Tanda 1238 — «Cómo funciona» un trato y las tarjetas de «En curso» iguales
+
+PINGU: «le he hecho una propuesta a un chico y me ha dicho: hola, ¿cómo
+funciona esto? Soy nuevo». Y de «En curso»: «la que tiene tres cartas está más
+ancha que las otras; se rompe la estética». Eligió lo recomendado de la
+propuesta (con imágenes): la ayuda en tres sitios, la franja de la primera vez
+y las tarjetas en abanico. Nada cambia en cómo funciona un trato ni en la base.
+
+**`js/cambio-ayuda.js`** (por `import()` desde `cambio-propuesta.js` y
+`mensajes.js`; su hoja, `css/cambio-ayuda.css`, la inyecta `hojaInyectada`).
+`pasosDeAyuda({ tipo, correo, propones, nombre })` cuenta los cuatro pasos
+(Propuesta, Aceptar, Mandar, Confirmar) para ESE trato: el primero cambia con
+el tipo (cambio, venta, compra) y con quién mira; el tercero, con el envío
+(`correo` true, false o null = los dos, cuando aún no se ha elegido); el cobro
+por Bizum o PayPal sale solo en venta y compra. `pasoDeAyuda(oferta, yo)` dice
+en cuál está: enviada → 1, aceptada → 2 o 3 si lo tuyo ya te llegó, hecha → 4.
+`abrirAyuda(opts, paso)` abre `dialog#cayDialogo` modal (encima del pop-up del
+trato, que también es modal: un `dialog` con `showModal` encima de otro es lo
+único que no queda inerte) con chips para ver los otros tipos (al cambiar de
+tipo el paso deja de marcarse: ya no es tu trato) y «Para ir seguro» (PokeDoc
+no cobra, confirma con la carta en la mano, mira su confianza).
+
+Los tres sitios: «Cómo funciona» en la cabecera de la hoja de proponer
+(`data-cp="ayuda"`, con el tipo y el envío que lleve la hoja), el «?» de la
+cabecera del pop-up de un trato vivo (`data-cp-ayuda` con `data-cay-*`, que
+lee `abrirDesdeBoton`) y la línea «¿Primera vez? Así funciona un trato» bajo
+«Ver propuesta» en la tarjeta de un `cambio_propuesta` o `cambio_contraoferta`
+que te llega (Mensajes, `data-trato-ayuda`).
+
+La franja (`franjaHtml`): a quien no tiene NINGÚN trato hecho
+(`tocaPrimeraVez(ofertas)`) y no la ha quitado, dentro del pop-up de un trato
+vivo, debajo de la cabecera: «Es tu primera propuesta» (te la han mandado) o
+«Tu primer trato», una barrita con los cuatro pasos y el de ahora, y la frase
+de lo que te toca. «Entendido» guarda `pd-trato-ayuda-vista` en el navegador
+(`quitarFranjas`) y no vuelve; el «?» sigue ahí.
+
+**Las tarjetas de «En curso»**. La rejilla ya las estiraba al mismo alto, pero
+el `summary` no ocupaba la tarjeta y las cartas de cada lado iban en fila: con
+tres, el lado crecía y empujaba la barra y el pie. Ahora el `summary` es una
+rejilla de alto entero (`auto auto auto 1fr`) con el pie `align-self: end`, y
+las minis van en abanico (`.cp-trato-abanico`: 36 px, solapadas 16 y giradas;
+hasta tres y una pastilla «+N»), en un lado de alto fijo (56 px). El dinero
+que va al lado de un abanico baja a `--t-md`. `test-tanda-1238-pantalla.mjs`
+mide en PC y móvil que dos tratos (una carta y tres) tienen el mismo alto de
+lados y el pie a la misma altura, y pulsa la ayuda en los tres sitios.

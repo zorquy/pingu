@@ -296,6 +296,7 @@ function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta, cita = nul
         <span class="msg-propuesta-icono" aria-hidden="true">${(ICONO_DE_EVENTO[prop.evento] || icons.refreshCw)(16)}</span>
         <span class="msg-propuesta-texto"><b>${escapeHtml(prop.titulo)}</b><small>${escapeHtml(prop.texto)}</small></span>
         <a class="btn-secondary msg-propuesta-ver" href="${escapeHtml(prop.enlace)}">Ver propuesta</a>
+        ${!mia && (prop.evento === 'cambio_propuesta' || prop.evento === 'cambio_contraoferta') ? `<button type="button" class="msg-propuesta-ayuda" data-trato-ayuda>${icons.helpCircle(14)}<span>¿Primera vez? Así funciona un trato</span></button>` : ''}
       </div>`
     : ''
   return `
@@ -1046,3 +1047,11 @@ async function init() {
 }
 
 init()
+
+// «¿Primera vez? Así funciona un trato» (1238): la hoja de los pasos, por
+// `import()` (con su hoja de estilos) solo cuando se pulsa.
+document.addEventListener('click', (e) => {
+  const b = e.target.closest?.('[data-trato-ayuda]')
+  if (!b) return
+  import('./cambio-ayuda.js').then((m) => m.abrirAyuda({ tipo: 'cambio', correo: null, propones: false })).catch(() => {})
+})

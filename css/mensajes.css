@@ -1434,3 +1434,25 @@ button.msg-reaccion {
   .msg-dos.con-lista .msg-compositor { background: var(--white); }
   .msg-dos.con-lista .msg-dia span { background: var(--ice); }
 }
+
+/* «¿Primera vez? Así funciona un trato» (1238), bajo «Ver propuesta». */
+.msg-burbuja .msg-propuesta-ayuda {
+  display: inline-flex;
+  grid-column: 2;
+  justify-self: start;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 32px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 600;
+  text-align: left;
+  cursor: pointer;
+}
+.msg-burbuja .msg-propuesta-ayuda svg { flex-shrink: 0; }
+.msg-burbuja .msg-propuesta-ayuda:hover { text-decoration: underline; }
+@media (pointer: coarse) { .msg-burbuja .msg-propuesta-ayuda { min-height: 44px; } }

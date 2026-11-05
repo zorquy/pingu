@@ -35,6 +35,18 @@
   "entradas": [
     {
       "fecha": "2026-11-05",
+      "tipo": "nuevo",
+      "texto": "«Cómo funciona» en los tratos: los cuatro pasos de un cambio, una venta o una compra (en mano o por correo) con el tuyo marcado, al proponer, en cada trato y en el mensaje que te llega. Y si es tu primer trato, una franja te dice qué te toca.",
+      "enlace": "/mi-coleccion?ver=cambios"
+    },
+    {
+      "fecha": "2026-11-05",
+      "tipo": "arreglo",
+      "texto": "Los tratos de «En curso» miden lo mismo aunque uno lleve más cartas: van en abanico (hasta tres y «+N») y la barra y el botón quedan siempre abajo.",
+      "enlace": "/mi-coleccion?ver=cambios"
+    },
+    {
+      "fecha": "2026-11-05",
       "tipo": "arreglo",
       "texto": "«Ficha completa» en la ficha de una carta de tu colección vuelve a llevarte a la ficha entera, con ataques y versiones.",
       "enlace": "/cartas"

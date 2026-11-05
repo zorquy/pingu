@@ -1,0 +1,137 @@
+/* «Así funciona un trato» y la franja de la primera vez (1238): js/cambio-ayuda.js
+   la inyecta al abrirse. Centrada en el PC, hoja desde abajo en el móvil
+   (1045). El porqué, en SCHEMA 1238. */
+.cay-dialogo {
+  box-sizing: border-box;
+  inset: 0;
+  width: min(460px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - 48px);
+  margin: auto;
+  padding: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+.cay-dialogo::backdrop { background: rgb(5 9 13 / 60%); }
+html:has(.cay-dialogo[open]) { overflow: hidden; }
+.cay-cab {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-md) var(--e-md) var(--e-sm) var(--e-lg);
+  background: var(--white);
+}
+.cay-cab h2 { flex: 1 1 auto; margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
+.cay-cerrar {
+  display: inline-grid;
+  flex-shrink: 0;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text-mid);
+  cursor: pointer;
+}
+.cay-cerrar:hover { color: var(--text); }
+.cay-cuerpo { display: grid; gap: var(--e-md); padding: 0 var(--e-lg) var(--e-lg); }
+.cay-tipos { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.cay-tipo {
+  min-height: 32px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.cay-tipo[aria-pressed='true'] { background: var(--acento); color: var(--acento-texto); }
+@media (pointer: coarse) { .cay-tipo { min-height: 44px; } }
+
+.cay-pasos { display: grid; margin: 0; padding: 0; list-style: none; }
+.cay-paso { position: relative; display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: var(--e-md); padding: var(--e-sm) 0; }
+.cay-paso::before { position: absolute; top: 44px; bottom: calc(var(--e-sm) * -1); left: 15px; width: 2px; background: var(--border); content: ''; }
+.cay-paso:last-child::before { display: none; }
+.cay-paso-ico {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--text);
+}
+.cay-paso.hecho .cay-paso-ico { background: color-mix(in srgb, var(--acento) 22%, var(--ice)); color: var(--text); }
+.cay-paso.ahora .cay-paso-ico { background: var(--acento); color: var(--acento-texto); }
+.cay-paso b { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs); font-family: var(--font-display); font-size: var(--t-md); }
+.cay-paso p { margin: 2px 0 0; color: var(--text-mid); font-size: var(--t-sm); line-height: 1.45; }
+.cay-tu {
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.cay-seguro { display: grid; gap: var(--e-xs); padding: var(--e-md); border-radius: var(--radius-lg); background: var(--ice); }
+.cay-seguro b { font-family: var(--font-display); font-size: var(--t-sm); }
+.cay-seguro ul { display: grid; gap: var(--e-xs); margin: 0; padding-left: var(--e-lg); color: var(--text-mid); font-size: var(--t-sm); line-height: 1.4; }
+
+/* La franja de la primera vez, dentro del pop-up de un trato. */
+.cay-franja {
+  display: grid;
+  gap: var(--e-sm);
+  margin: var(--e-md) var(--e-md) 0;
+  padding: var(--e-md);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--acento) 12%, var(--white));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--acento) 45%, transparent);
+}
+.cay-franja-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); }
+.cay-franja-cab b { font-family: var(--font-display); font-size: var(--t-md); }
+.cay-entendido {
+  min-height: 32px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+@media (pointer: coarse) { .cay-entendido { min-height: 44px; } }
+.cay-mini { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-xs); }
+.cay-mini span { display: grid; gap: var(--e-xs); color: var(--text-mid); font-size: var(--t-2xs); text-align: center; }
+.cay-mini i { height: 4px; border-radius: var(--radius-pill); background: var(--border); }
+.cay-mini .hecho i, .cay-mini .ahora i { background: var(--acento); }
+.cay-mini .ahora { color: var(--text); font-weight: 700; }
+.cay-franja p { margin: 0; color: var(--text); font-size: var(--t-sm); line-height: 1.45; }
+
+@media (max-width: 599px) {
+  .cay-dialogo {
+    inset: auto 0 0;
+    width: 100%;
+    max-height: 92dvh;
+    margin: 0;
+    padding-bottom: var(--seguro-abajo);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  }
+}

@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (479) — PINGU-Claude (1238 — «Cómo funciona» un trato y las tarjetas de «En curso» iguales)
+
+**Hecho** (PINGU eligió lo recomendado de la propuesta: «le he hecho una
+propuesta a un chico y me ha dicho: ¿cómo funciona esto?»):
+
+- «Así funciona un trato» (`js/cambio-ayuda.js` + `css/cambio-ayuda.css`, por
+  `import()`): los cuatro pasos contados para ESE trato (cambio, venta o compra;
+  en mano o por correo; propones o recibes, con el nombre del otro), el paso de
+  ahora marcado y «Para ir seguro». Se abre desde tres sitios: «Cómo funciona»
+  en la hoja de proponer, el «?» de la cabecera del pop-up de un trato vivo y
+  «¿Primera vez? Así funciona un trato» en la tarjeta del mensaje que llega.
+- La franja «Es tu primera propuesta» / «Tu primer trato» dentro del pop-up,
+  a quien no tiene ningún trato hecho, con su paso en una barrita y
+  «Entendido», que la quita para siempre (`pd-trato-ayuda-vista`).
+- Las tarjetas de «En curso», iguales: las cartas de cada lado en abanico
+  (hasta tres y «+N») y el resumen como rejilla con el pie abajo; la de tres
+  cartas ya no es más alta por dentro.
+
+Nada cambia en cómo funciona un trato; la base no se toca.
+
+**Ficheros**: `js/cambio-ayuda.js` y `css/cambio-ayuda.css` (nuevos),
+`js/cambio-propuesta.js`, `css/cambio-propuesta.css`, `js/mensajes.js`,
+`css/mensajes.css`, SCHEMA, CLAUDE.md, novedades. Prueba nueva (rama pruebas):
+`test-tanda-1238-pantalla.mjs`. Verdes: 1100–1103, 1105, 1107–1110, 1140, 1141,
+299, 312, 313, 1018, 1023, 1233. Rojos de antes, sin tocar: 311 (auth.css,
+torneos.css), 1040 (/glosario) y 829 (el enlace /foro/eventos y
+los dibujos de las destacadas; igual sin esta tanda).
+
+**Pendiente**: lo de la 475.
+
 ## 2026-11-05 (478) — PINGU-Claude (1237b — «Ficha completa» del pop-up vuelve a llevar a /carta)
 
 **Hecho**: PINGU: «le doy a ficha completa y no funciona el enlace». En el

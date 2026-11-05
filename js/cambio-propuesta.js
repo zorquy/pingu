@@ -31,6 +31,7 @@ import {
 } from './cambio-propuesta-puro.js'
 import { confirmacionesPorId, miValoracion, valorarHtml, engancharValorar } from './cambios-hechos.js'
 import { haceCuanto } from './foro-comun.js'
+import { abrirAyuda, abrirDesdeBoton, franjaHtml, pasoDeAyuda, quitarFranjas, tocaPrimeraVez } from './cambio-ayuda.js'
 import {
   miDireccion, guardarMiDireccion, ponerEnTrato, direccionesDe, direccionHtml, elegirHtml, leerElegida, abrirFormulario, faltaLaMigracion,
   miCobro, guardarMiCobro, ponerCobroEnTrato, cobrosDe, cobroElegirHtml, leerCobro,
@@ -241,6 +242,7 @@ function pintarCabecera() {
   $('cpCab').innerHTML = `${avatarHtml(p, 'mini-avatar cp-cab-avatar')}
     <div class="cp-cab-texto"><h2 id="cpTitulo">${ed.anterior ? 'Cambiar la propuesta' : `Propuesta para ${escapeHtml(nombreDePersona(p))}`}</h2>
     <p class="mc-confianza" data-confianza="${escapeHtml(p.id)}"></p></div>
+    <button type="button" class="cp-ayuda" data-cp="ayuda" title="Cómo funciona un trato">${icons.helpCircle(16)}<span>Cómo funciona</span></button>
     <button type="button" class="cp-cerrar" data-cp="cerrar" aria-label="Cerrar">✕</button>`
   import('./cambios-hechos.js').then((m) => m.ponerConfianza($('cpCab'))).catch(() => {})
 }
@@ -599,6 +601,8 @@ function alPulsarEnEditor(e) {
   if (!t) return
   const ds = t.dataset
   if (ds.cp === 'cerrar') return d.close()
+  // «Cómo funciona» (1238): los pasos de lo que estás preparando.
+  if (ds.cp === 'ayuda') return void abrirAyuda({ tipo: ed.modo || tipoDe(ed.items), correo: ed.envio === 'correo' ? null : false, propones: true, nombre: nombreDePersona(ed.otro) })
   if (ds.cp === 'enviar') return void enviar()
   if (ds.cp === 'volver') { ed.vista = 'principal'; return pintarEditor() }
   if (ds.cp === 'anadir') return anadirMarcadas()
@@ -1148,9 +1152,18 @@ function ladoDeTratoHtml(titulo, items, dinero, cartaDe) {
   const minis = items.slice(0, 3).map((it) => miniHtml(cartaDe(it), it)).join('')
   const mas = items.length > 3 ? `<span class="cp-trato-mas">+${items.length - 3}</span>` : ''
   const plata = dinero > 0 ? `<b class="cp-trato-dinero">${escapeHtml(euros(dinero))}</b>` : ''
-  return `<span class="cp-trato-lado"><small>${titulo}</small><span class="cp-trato-cosas">${minis}${mas}${plata || (minis ? '' : '<span class="cp-trato-nada">Nada</span>')}</span></span>`
+  // Las cartas en abanico (1238): montadas, hasta tres y «+N», en una fila
+  // siempre, para que todas las tarjetas tengan la caja del mismo alto.
+  const abanico = minis ? `<span class="cp-trato-abanico">${minis}${mas}</span>` : ''
+  return `<span class="cp-trato-lado"><small>${titulo}</small><span class="cp-trato-cosas">${abanico}${plata || (minis ? '' : '<span class="cp-trato-nada">Nada</span>')}</span></span>`
 }
-function tratosEnTarjetasHtml(vivas, pasadas, { yo, estado, otroDe, toca }) {
+// El «?» de la cabecera de un trato (1238): lleva lo que la hoja necesita
+// para contar ESE trato, y lo abre el oyente de `engancharDialogos`.
+function botonAyudaHtml(o, yo, nombre) {
+  const correo = o.estado === 'enviada' ? (o.envio === 'correo' ? '' : 'no') : vaPorCorreo(o) ? 'si' : 'no'
+  return `<button type="button" class="cp-dlg-ico cp-dlg-ayuda" data-cp-ayuda data-cay-tipo-trato="${escapeHtml(tipoDe(o.items || [], yo))}" data-cay-correo="${correo}" data-cay-propones="${o.de === yo ? 'si' : 'no'}" data-cay-nombre="${escapeHtml(nombre)}" data-cay-paso="${pasoDeAyuda(o, yo) ?? ''}" aria-label="Cómo funciona un trato" title="Cómo funciona">${icons.helpCircle(18)}</button>`
+}
+function tratosEnTarjetasHtml(vivas, pasadas, { yo, estado, otroDe, toca, primeraVez = false }) {
   // El pop-up de un trato (1223): el mismo para los vivos y para los del
   // historial (estos, sin botones: ya no les queda nada por hacer).
   const dialogo = (o, p, est) => `
@@ -1159,9 +1172,11 @@ function tratosEnTarjetasHtml(vivas, pasadas, { yo, estado, otroDe, toca }) {
           <a class="cp-dlg-quien" href="${escapeHtml(profileUrl(p))}">${avatarHtml(p)}</a>
           <span class="cp-dlg-texto"><b id="ofertaT-${escapeHtml(o.id)}">${escapeHtml(tituloDe(o, yo, nombreDePersona(p)))}${o.version > 1 ? ` · ${o.version}.ª versión` : ''}</b><small>${escapeHtml(haceCuanto(o.updated_at || o.created_at))}<span class="cp-dlg-conf" data-confianza="${escapeHtml(p.id)}"></span></small></span>
           <span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span>
+          ${estaViva(o) ? botonAyudaHtml(o, yo, nombreDePersona(p)) : ''}
           ${o.conversacion ? `<a class="cp-dlg-ico" href="/mensajes.html?c=${escapeHtml(o.conversacion)}" aria-label="Escribir a ${escapeHtml(nombreDePersona(p))}" title="Escribirle">${icons.mail(18)}</a>` : ''}
           <button type="button" class="cp-dlg-ico" data-cp-cerrar aria-label="Cerrar">${icons.x(18)}</button>
         </header>
+        ${primeraVez && estaViva(o) ? franjaHtml({ recibida: o.estado === 'enviada' && o.de !== yo, frase: est.frase || est.texto, paso: pasoDeAyuda(o, yo) }) : ''}
         ${tarjetaHtml(o, { yo, otro: p, cartaDe: estado.cartaDe, miDir: estado.miDir, misCobros: estado.misCobros })}
       </dialog>`
   const tarjeta = (o) => {
@@ -1262,6 +1277,9 @@ function engancharDialogos(caja) {
       for (const x of sec?.querySelectorAll('[data-cp-hist]') || []) x.setAttribute('aria-pressed', String(x === h))
       return
     }
+    const ayuda = e.target.closest?.('[data-cp-ayuda]')
+    if (ayuda) return void abrirDesdeBoton(ayuda)
+    if (e.target.closest?.('[data-cay-entendido]')) return quitarFranjas(caja)
     const dlg = e.target.closest?.('dialog.cp-trato-dialogo')
     if (!dlg) return
     if (e.target === dlg || e.target.closest('[data-cp-cerrar]')) dlg.close()
@@ -1320,7 +1338,10 @@ export async function pintarMisCambios(caja, { sesion, tarjetas = false } = {}) 
   // Un aviso pintado dentro del pop-up (toast.js) no se va con el repintado.
   const avisos = caja.querySelector('.toast-container')
   if (avisos) document.body.appendChild(avisos)
-  if (tarjetas) caja.innerHTML = tratosEnTarjetasHtml(vivas, pasadas, { yo, estado, otroDe, toca })
+  // La franja de la primera vez (1238): a quien no ha cerrado ningún trato.
+  const primeraVez = tarjetas && vivas.length > 0 && tocaPrimeraVez(ofertas)
+  if (primeraVez) hojaInyectada('css/cambio-ayuda.css')
+  if (tarjetas) caja.innerHTML = tratosEnTarjetasHtml(vivas, pasadas, { yo, estado, otroDe, toca, primeraVez })
   else caja.innerHTML = `<h2 class="section-title cp-mis-titulo">${vivas.length ? `En curso · ${vivas.length}` : 'Tus cambios'}</h2>
     ${vivas.map((o) => {
       const p = otroDe(o)

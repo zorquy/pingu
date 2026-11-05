@@ -691,3 +691,46 @@ html:has(.cp-trato-dialogo[open]) { overflow: hidden; }
   .cp-hist > summary { grid-template-columns: auto minmax(0, 1fr) auto; gap: var(--e-sm); }
   .cp-hist-cosas, .cp-hist-dia { display: none; }
 }
+
+/* ── 1238: los tratos, con su ayuda y sus tarjetas iguales (SCHEMA 1238) ── */
+.cp-ayuda {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+  padding: 0 var(--e-md) 0 var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.cp-ayuda svg { color: var(--acento); }
+@media (pointer: coarse) { .cp-ayuda { min-height: 44px; } }
+@media (max-width: 459px) {
+  .cp-ayuda { justify-content: center; width: 44px; min-height: 44px; padding: 0; border-radius: 50%; }
+  .cp-ayuda span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+.cp-dlg-ayuda { color: var(--acento); }
+
+/* Las tarjetas de «En curso», todas iguales: las cartas en abanico (una fila
+   siempre) y las rayitas y el pie abajo, lleve una carta o cinco. */
+.cp-trato > summary { height: 100%; grid-template-rows: auto auto auto 1fr; }
+.cp-trato-pie { align-self: end; }
+.cp-trato-cosas { flex-wrap: nowrap; min-height: 56px; }
+.cp-trato-abanico { display: inline-flex; flex: none; align-items: center; padding-left: var(--e-xs); }
+.cp-trato-abanico .cp-mini { flex: none; width: 36px; box-shadow: 0 0 0 2px var(--ice), var(--shadow-sm); }
+.cp-trato-abanico .cp-mini + .cp-mini { margin-left: -16px; }
+.cp-trato-abanico .cp-mini:nth-child(1):not(:only-of-type) { transform: rotate(-6deg); }
+.cp-trato-abanico .cp-mini:nth-child(3) { transform: rotate(5deg); }
+.cp-trato-abanico .cp-trato-mas {
+  margin-left: var(--e-xs);
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+}
+.cp-trato-cosas:has(.cp-trato-abanico) .cp-trato-dinero { margin-left: var(--e-xs); font-size: var(--t-md); }
