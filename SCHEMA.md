@@ -54358,3 +54358,16 @@ de lo que hace y la base no se toca.
   1232): en el móvil, la etiqueta a la izquierda y el dato a la derecha; en el
   PC, las tres columnas de la 923 en la misma caja.
 - ♡ y compartir de /carta, redondos en `--ice` y sin borde.
+
+## Tanda 1237b — «Ficha completa» del pop-up de Mi colección no iba a ninguna parte
+
+PINGU: «le doy a ficha completa y no funciona el enlace». Desde la 1043,
+`abrirCartaEnPopup` (app.js) intercepta cualquier clic en un enlace a
+`/carta/…` o `/cartas?…&carta=` y abre la carta en su pop-up; lo que deba IR a
+la ficha lleva `data-ficha-completa`. El «Ver ficha completa» de
+`ficha-rapida.js` lo llevaba, pero el `#mcEdFicha` de mi-coleccion.html (y de
+cartas.html, que sale de ella) no: el clic abría por `pokedocAbrirCarta` el
+MISMO pop-up que ya estaba abierto y no pasaba nada a la vista. Lleva la marca
+en la plantilla. `test-tanda-1237b-pantalla.mjs` mira las dos plantillas y
+pulsa el enlace en Mi colección (PC y móvil) y en /cartas; sin la marca, la
+página se queda donde estaba.

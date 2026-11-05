@@ -34,6 +34,12 @@
   ],
   "entradas": [
     {
+      "fecha": "2026-11-05",
+      "tipo": "arreglo",
+      "texto": "«Ficha completa» en la ficha de una carta de tu colección vuelve a llevarte a la ficha entera, con ataques y versiones.",
+      "enlace": "/cartas"
+    },
+    {
       "fecha": "2026-11-04",
       "tipo": "mejora",
       "texto": "La ficha de una carta, más limpia: «− Tienes N +» en una pastilla redonda (en el ordenador, debajo de la carta), el precio de tu idioma en grande con los demás en chips y los datos en una sola caja.",

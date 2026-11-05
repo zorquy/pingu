@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (478) — PINGU-Claude (1237b — «Ficha completa» del pop-up vuelve a llevar a /carta)
+
+**Hecho**: PINGU: «le doy a ficha completa y no funciona el enlace». En el
+pop-up de Mi colección y /cartas, `#mcEdFicha` no llevaba
+`data-ficha-completa`, así que el oyente de la 1043 (app.js: un clic en un
+enlace a una carta abre su pop-up) se lo comía y volvía a abrir el MISMO
+pop-up: parecía que no hacía nada. Pasaba desde la 1043, no es de la 1237.
+Lleva la marca en la plantilla (y `cartas.html` regenerado).
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html` (generado), SCHEMA, CLAUDE.md,
+novedades. Prueba nueva (rama pruebas): `test-tanda-1237b-pantalla.mjs` (pulsa
+«Ficha completa» en Mi colección PC y móvil y en /cartas; sin el arreglo se
+queda en la página).
+
+**Pendiente**: lo de la 475.
+
 ## 2026-11-04 (477) — PINGU-Claude (1237 — la ficha de una carta, estilizada)
 
 **Hecho** (PINGU eligió lo recomendado de la segunda propuesta, «La carta

@@ -253,7 +253,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `/cartas?…&carta=` en `js/ficha-rapida.js` (lo de /carta en un `dialog`);
   en Mi colección y /cartas, su `#mcEditor` por `window.pokedocAbrirCarta`.
   Una pantalla nueva solo enlaza con `rutaDeCarta`; lo que deba IR a la
-  ficha lleva `data-ficha-completa`.
+  ficha lleva `data-ficha-completa` (el «Ficha completa» del pop-up de Mi
+  colección no la llevaba y, hasta la 1237b, volvía a abrir el mismo pop-up).
 - **/carta y el pop-up enseñan una carta con LO MISMO** (tanda 998, PINGU:
   «cojamos solo un sitio»): las versiones son las chapas del precio y salen de
   `versionesDeCartas` (con las de a mano), la rareza de `rarezaCrudaDeCarta`
