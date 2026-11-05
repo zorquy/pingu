@@ -1,4 +1,5 @@
-// /admin → Tiendas (tanda 1067): las solicitudes de /tiendas.
+// /admin → Tiendas (tanda 1067): las solicitudes de /tiendas. Y debajo (1245),
+// las cuentas de tienda con su «De pruebas» (`admin_tienda_de_pruebas`).
 //
 // «Aceptar» y «Rechazar» van por la función de Netlify `tienda-decidir`,
 // que decide en la base (`tienda_decidir`, solo el equipo) y manda el
@@ -59,6 +60,45 @@ function pintar() {
   $('tiendasLista').innerHTML = lista.length
     ? lista.map(tarjeta).join('')
     : `<p class="admin-note">${viendo === 'pendiente' ? 'Ninguna tienda esperando.' : 'Ninguna.'}</p>`
+}
+
+// Las cuentas de tienda y cuál es de pruebas. Sin la migración 1245 la
+// columna no existe: se dice, no se pinta un interruptor que no guardaría.
+async function cargarCuentas() {
+  const caja = $('tiendasCuentas')
+  if (!caja) return
+  const [{ data: perfiles, error: e1 }, { data: marcas, error: e2 }] = await Promise.all([
+    supabase.from('user_profiles').select('id, username, display_name').eq('tipo', 'tienda').order('display_name'),
+    supabase.from('tiendas').select('user_id, de_pruebas'),
+  ])
+  if (e1) {
+    caja.innerHTML = `<p class="admin-note admin-note-alerta">No se pueden leer: ${escapeHtml(e1.message)}.</p>`
+    return
+  }
+  if (e2) {
+    caja.innerHTML = `<p class="admin-note admin-note-alerta">Falta ejecutar <code>supabase-migration-1245-tienda-de-pruebas.sql</code> para poder marcar una tienda de pruebas.</p>`
+    return
+  }
+  const dePruebas = new Set((marcas || []).filter((m) => m.de_pruebas).map((m) => m.user_id))
+  caja.innerHTML = (perfiles || []).length
+    ? perfiles.map((p) => `<label class="admin-card" style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px; min-height: 44px; cursor: pointer;">
+        <input type="checkbox" data-tienda-pruebas="${escapeHtml(p.id)}" ${dePruebas.has(p.id) ? 'checked' : ''}>
+        <span><strong>${escapeHtml(p.display_name || p.username || 'Sin nombre')}</strong> <span class="subtext">@${escapeHtml(p.username || '')}</span></span>
+        <span class="subtext" style="margin-left: auto;">De pruebas</span>
+      </label>`).join('')
+    : '<p class="admin-note">Ninguna cuenta de tienda todavía.</p>'
+}
+
+// Cambia ya y deshace si la base dice que no (896).
+async function marcarDePruebas(caja) {
+  const si = caja.checked
+  const { error } = await supabase.rpc('admin_tienda_de_pruebas', { p_tienda: caja.dataset.tiendaPruebas, p_si: si })
+  if (error) {
+    caja.checked = !si
+    showToast(`No se ha podido: ${error.message}`, 'error')
+    return
+  }
+  showToast(si ? 'Ya no la ve nadie más que ella.' : 'Vuelve a verse en la web.', 'success')
 }
 
 async function cargar() {
@@ -134,5 +174,10 @@ export function iniciarTiendas() {
     const no = e.target.closest('[data-tienda-rechazar]')
     if (no) return decidir(no.dataset.tiendaRechazar, false, no)
   })
+  $('tiendasCuentas')?.addEventListener('change', (e) => {
+    const caja = e.target.closest('[data-tienda-pruebas]')
+    if (caja) marcarDePruebas(caja)
+  })
   cargar().catch(() => {})
+  cargarCuentas().catch(() => {})
 }

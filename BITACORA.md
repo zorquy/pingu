@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (487) — PINGU-Claude (1245 — tarjetas de tiendas iguales y la tienda de pruebas, fantasma)
+
+**Hecho**: lo que pidió PINGU con la captura de /tiendas.
+- **Tarjetas iguales** («reserva el espacio… que sea el mismo tamaño para todo»):
+  cada tarjeta lleva SIEMPRE cuatro sitios de carta (los que faltan, huecos del
+  mismo tamaño y sin nada que pulsar), la línea de ciudad/web y la de cifras van en
+  una fila (lo que no cabe se corta) y los botones caen abajo (`margin-top: auto`).
+  Todas miden lo mismo en «Tienen algo de tu lista» y «Más tiendas», en PC y móvil.
+- **La tienda de pruebas, fantasma** («ocultar todo lo que tenga que ver con esa
+  tienda, el stock también»): migración 1245 (PENDIENTE de ejecutar). Columna
+  `tiendas.de_pruebas`; `tienda_publica(tienda)` dice si lo de esa tienda se puede
+  enseñar a quien pregunta (a ella misma sí; a nadie más, tampoco al equipo); las
+  ocho funciones que enseñan tiendas o su stock la llevan (agenda, «Recién
+  llegado», escaparate, «En tiendas», las dos de la 1069, el Mercado y las fotos),
+  y `tienda_por_avisar` no avisa a nadie desde una de pruebas. La migración marca
+  la que se llama «Tienda de Prueba»; se cambia en /admin → Tiendas → «Cuentas de
+  tienda» (`admin_tienda_de_pruebas`, solo el equipo). Gente y el buscador de gente,
+  que leen `user_profiles` a pelo, la quitan con `js/tiendas-fantasma.js`.
+  La prueba contra PostgreSQL cazó un agujero de la primera versión: sin cuenta,
+  `p_tienda = auth.uid()` es NULL y el `if` del escaparate la dejaba pasar
+  (`coalesce`).
+
+**Ficheros**: `supabase-migration-1245-tienda-de-pruebas.sql` (nuevo),
+`js/tiendas-fantasma.js` (nuevo), `js/tiendas-puro.js` (`sinFantasmas`),
+`js/usuarios.js`, `js/buscador.js`, `js/tiendas-agenda.js`, `css/tiendas.css`,
+`admin/index.html`, `admin/js/tiendas.js`, SCHEMA, CLAUDE.md, novedades. Rama
+pruebas: `test-tanda-1245.mjs` (PostgreSQL) y `test-tanda-1245-pantalla.mjs`
+(nuevas); `test-tanda-1244-pantalla.mjs` mira el alto igual y no cuenta los huecos.
+
+**Pendiente**: que PINGU ejecute las migraciones 1244 y 1245 (en ese orden). Lo de
+la 475.
+
 ## 2026-11-05 (486) — PINGU-Claude (1244 — /tiendas, un escaparate de escaparates, y /para-tiendas)
 
 **Hecho**: la propuesta https://claude.ai/artifact/UWXbUamynU7UMQ9APiUtDJ, con lo

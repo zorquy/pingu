@@ -9,6 +9,8 @@ import { contentIconHtml } from './content-icon.js'
 import { plegarTexto, contienePlegado } from './texto.js'
 import { initPeticiones } from './peticiones.js'
 import { rachaVisible } from './racha-visible.js'
+import { tiendasDePruebas } from './tiendas-fantasma.js'
+import { sinFantasmas } from './tiendas-puro.js'
 
 let allUsers = []
 // Si hay algo escrito en el buscador: manda el resultado entero, sin
@@ -265,7 +267,7 @@ async function cargarLateral(perfiles) {
 }
 
 async function loadUsers() {
-  const [{ data }, { data: approvedGuides }, { data: mensajes }] = await Promise.all([
+  const [{ data }, { data: approvedGuides }, { data: mensajes }, fantasmas] = await Promise.all([
     supabase
       .from('user_profiles')
       // Y el rango (tanda 386): sin estas dos columnas todo el
@@ -278,6 +280,8 @@ async function loadUsers() {
     // hecho» de la tarjeta. Se trae SOLO la columna del autor y se
     // cuenta aquí — una consulta, no doscientas.
     supabase.from('forum_posts').select('author_id').not('author_id', 'is', null).limit(20000),
+    // La tienda de pruebas no sale en Gente (1245).
+    tiendasDePruebas(),
   ])
 
   // Se comprueba que sea un ARRAY y no solo que exista: entre que se
@@ -293,7 +297,7 @@ async function loadUsers() {
   const guiasPorAutor = porAutor(approvedGuides)
   const mensajesPorAutor = porAutor(mensajes)
 
-  allUsers = (Array.isArray(data) ? data : []).map((p, i) => ({
+  allUsers = sinFantasmas(data, fantasmas).map((p, i) => ({
     ...p,
     rank: i + 1,
     approvedGuidesCount: guiasPorAutor[p.id] || 0,

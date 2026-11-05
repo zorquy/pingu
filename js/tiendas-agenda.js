@@ -51,6 +51,11 @@ function cartaDeEscaparateHtml(d, t) {
 }
 
 // Una tienda, en grande. `t.precios` es false si no enseña precios (1069).
+// Los cuatro sitios de cartas van SIEMPRE (1245, PINGU: «que tengan o no
+// tengan más o menos información sea el mismo tamaño para todo»): lo que falta
+// es un hueco del mismo tamaño, sin nada que pulsar.
+const HUECO = '<span class="tag-carta tag-carta-hueco" aria-hidden="true"></span>'
+
 export function tarjetaDeAgendaHtml(t, { sesion = null, ahora = new Date() } = {}) {
   const nombre = t.display_name || t.username || 'Tienda'
   const portada = t.banner_url ? urlParaCss(t.banner_url) : ''
@@ -83,7 +88,7 @@ export function tarjetaDeAgendaHtml(t, { sesion = null, ahora = new Date() } = {
       <a class="tag-nombre-enlace" href="${escapeHtml(enlace)}"><strong class="tag-nombre"${ATRIBUTOS_DE_TIENDA}>${escapeHtml(nombre)}</strong></a>
       <p class="tag-linea">${linea}</p>
       <p class="tag-datos">${datos}</p>
-      ${escaparate.length ? `<div class="tag-cartas">${escaparate.map((d) => cartaDeEscaparateHtml(d, t)).join('')}</div>` : ''}
+      <div class="tag-cartas">${escaparate.map((d) => cartaDeEscaparateHtml(d, t)).join('')}${HUECO.repeat(4 - escaparate.length)}</div>
       <div class="tag-botones"><a class="btn-primary" href="${escapeHtml(enlace)}">Ver escaparate</a>${escribir}</div>
     </div>
   </article>`

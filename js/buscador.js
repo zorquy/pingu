@@ -18,6 +18,7 @@ import { llevaElNumero } from './mi-coleccion/busqueda.js'
 import { setsDelCatalogo } from './sets-catalogo.js'
 import { buscarComoEnCartas } from './buscar-cartas.js'
 import { nombreDeCarta } from './catalogo-series.js'
+import { quitarFantasmas } from './tiendas-fantasma.js'
 import { urlDeLogo } from './carta-ruta.js'
 import { buscarProductos } from './productos-valor.js'
 import { expansionesQueCasan, mejorResultado, esPersona, sinArroba } from './buscador-puro.js'
@@ -175,7 +176,8 @@ const CONSULTAS = {
       .order('username')
       .limit(limite)
     if (error) throw error
-    return data || []
+    // Sin la tienda de pruebas (1245).
+    return quitarFantasmas(data || [])
   },
 }
 

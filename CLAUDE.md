@@ -139,6 +139,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   escaparate, Mercado y Vender no las ofrecen sin tocarlos; recoger es una venta
   (`tienda_reserva_recoger`) y lo caducado vuelve con `tienda_reservas_al_dia`,
   que llaman el panel y el escaparate al abrirse.
+  Una tienda DE PRUEBAS (`tiendas.de_pruebas`, 1245, PINGU: «un perfil como
+  fantasma de pruebas») solo se ve a sí misma: una función nueva que enseñe
+  tiendas o su stock a la gente pone `public.tienda_publica(tienda)` al lado de
+  `s.visible` (con `coalesce` dentro: sin cuenta, un NULL en un `if` dejaba
+  pasar), y una lista que lea `user_profiles` a pelo la quita con
+  `quitarFantasmas` / `sinFantasmas` (`js/tiendas-fantasma.js`). Se marca en
+  /admin → Tiendas. Y las tarjetas de /tiendas miden todas lo mismo (1245): lo
+  que se añada a una va en una fila de alto fijo, con su hueco si falta.
   Una gradeada (1234) lleva su casa y nota en `gradeo` («PSA 10») y se elige
   con `gradeoHtml` / `engancharGradeo` (`js/gradeo-elegir.js`: PSA, Beckett y
   CGC); se PINTA con `chapaDeGradeoHtml` (PSA roja, Beckett negra, CGC blanca,

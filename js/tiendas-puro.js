@@ -673,3 +673,8 @@ export function filtrarTiendas(tiendas, { lista, local, online, abiertas } = {},
     && (!ciudad || String(t.ciudad || '').toLowerCase() === ciudad.toLowerCase()))
 }
 
+
+// Tanda 1245 — Fuera de una lista de gente las tiendas de pruebas, salvo la
+// propia (quien la usa para probar se sigue viendo).
+export const sinFantasmas = (perfiles, fantasmas, yo = null) =>
+  (Array.isArray(perfiles) ? perfiles : []).filter((p) => !fantasmas?.has?.(p?.id) || p.id === yo)

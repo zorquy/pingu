@@ -167,28 +167,29 @@
 
 /* La tarjeta de una tienda: portada, logo montado encima y lo de dentro. */
 .tag-rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); gap: var(--e-lg); }
-.tag-tarjeta { position: relative; display: grid; grid-template-rows: 96px auto; min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); color: var(--text); }
+.tag-tarjeta { position: relative; display: grid; grid-template-rows: 96px 1fr; min-width: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); color: var(--text); }
 .tag-tarjeta.skeleton { min-height: 320px; }
 .tag-tarjeta.tuya { border-color: color-mix(in srgb, var(--acento) 40%, var(--border)); }
 .tag-portada { position: relative; display: block; background: var(--arte-azul) center / cover no-repeat; }
 .tag-estado { position: absolute; top: var(--e-sm); right: var(--e-sm); display: inline-flex; gap: var(--e-xs); align-items: center; padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: rgb(0 0 0 / 60%); color: var(--blanco-fijo); font-size: var(--t-2xs); font-weight: 700; }
 .tag-estado i { width: 8px; height: 8px; border-radius: 50%; background: #34d399; }
 .tag-logo { position: absolute; top: 64px; left: var(--e-lg); display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--radius-lg); background: var(--navy-solid) center / cover no-repeat; box-shadow: 0 0 0 3px var(--white); color: var(--blanco-fijo); font-family: var(--font-display); font-size: var(--t-xl); font-weight: 800; }
-.tag-dentro { display: grid; gap: var(--e-sm); align-content: start; min-width: 0; padding: var(--e-2xl) var(--e-lg) var(--e-lg); }
+.tag-dentro { display: flex; flex-direction: column; gap: var(--e-sm); min-width: 0; padding: var(--e-2xl) var(--e-lg) var(--e-lg); }
 .tag-nombre-enlace { min-width: 0; font-family: var(--font-display); font-size: var(--t-md); text-decoration: none; }
 .tag-nombre { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tag-linea { display: flex; flex-wrap: wrap; gap: var(--e-xs) var(--e-md); margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
-.tag-linea span { display: inline-flex; gap: var(--e-xs); align-items: center; }
-.tag-linea a { color: var(--text-mid); }
-.tag-datos { display: flex; flex-wrap: wrap; gap: var(--e-xs); margin: 0; }
-.tag-chip-dato { padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); font-size: var(--t-xs); font-weight: 600; }
+.tag-linea { display: flex; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; gap: var(--e-xs) var(--e-md); margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
+.tag-linea span { display: inline-flex; flex-shrink: 0; gap: var(--e-xs); align-items: center; }
+.tag-linea a { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--text-mid); }
+.tag-datos { display: flex; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; gap: var(--e-xs); margin: 0; }
+.tag-chip-dato { flex-shrink: 0; padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); font-size: var(--t-xs); font-weight: 600; }
 .tag-tuyas { background: color-mix(in srgb, var(--acento) 18%, var(--white)); }
 .tag-cartas { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-sm); }
 .tag-carta, .tag-nov-foto { position: relative; display: block; aspect-ratio: 63 / 88; overflow: hidden; border-radius: var(--radius-sm); background: var(--ice); }
 .tag-carta img, .tag-nov-foto img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .tag-carta-producto img { object-fit: contain; }
+.tag-carta-hueco { opacity: 0.5; }
 .tag-precio { position: absolute; right: var(--e-xs); bottom: var(--e-xs); left: var(--e-xs); padding: 0 var(--e-xs); border-radius: var(--radius-pill); background: rgb(0 0 0 / 65%); color: var(--blanco-fijo); font-size: var(--t-2xs); text-align: center; }
-.tag-botones { display: flex; gap: var(--e-sm); margin-top: var(--e-xs); }
+.tag-botones { display: flex; gap: var(--e-sm); margin-top: auto; padding-top: var(--e-xs); }
 .tag-botones > * { flex: 1 1 0; justify-content: center; }
 
 /* «Recién llegado a las tiendas»: ocho de un vistazo en el PC. */

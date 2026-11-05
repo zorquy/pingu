@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-05",
+      "tipo": "mejora",
+      "texto": "En la página de tiendas, todas las tarjetas miden lo mismo, tengan más o menos información: cuatro sitios para sus cartas y los botones siempre a la misma altura.",
+      "enlace": "/tiendas"
+    },
+    {
+      "fecha": "2026-11-05",
       "tipo": "nuevo",
       "texto": "La página de tiendas, nueva: cada tienda con su portada, si está abierta ahora, sus cartas destacadas con precio y un botón para escribirle. Arriba, las que tienen algo de tu lista; en medio, lo último que han puesto a la venta. Y se buscan también por carta.",
       "enlace": "/tiendas"

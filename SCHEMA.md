@@ -54700,3 +54700,60 @@ su contenido), la tira de lado, y `.tag`, `.tag-bloque` y la página en
 tarjetas, chips, buscador, «Ver más» en pastilla, sin la migración, sin respuesta,
 el ancla vieja y el móvil). La 1236 deja su parte de la agenda a esta, y la 1067
 prueba el formulario en /para-tiendas.
+
+## Tanda 1245 — Tarjetas de tiendas iguales y la tienda de pruebas, fantasma
+
+PINGU, con la captura de /tiendas: «el bloque de tiendas no tiene la misma
+altura… reserva el espacio que tengas que reservar para que tengan o no tengan
+más o menos información sea el mismo tamaño para todo», y «la tienda de prueba…
+no quiero que se vea… ocultar todo lo que tenga que ver con esa tienda, el stock
+también. Que sea un perfil como fantasma de pruebas».
+
+**Tarjetas iguales**: la rejilla ya igualaba la altura dentro de una fila, pero
+el contenido no (los botones flotaban) y entre bloques cada tarjeta medía lo
+suyo. Ahora todo lo variable tiene sitio fijo: `.tag-cartas` lleva SIEMPRE cuatro
+casillas (`HUECO` en `tiendas-agenda.js`: `span.tag-carta.tag-carta-hueco`,
+`aria-hidden`, al 50 %); `.tag-linea` y `.tag-datos` son una fila (`nowrap`,
+`overflow: hidden`, la web y el Instagram con `ellipsis`); `.tag-dentro` es una
+columna flex y `.tag-botones` va con `margin-top: auto`; `.tag-tarjeta` reparte
+`96px 1fr`. Lo vigila `test-tanda-1244-pantalla.mjs`: un solo alto para todas las
+tarjetas, PC y móvil, los botones a la misma distancia del borde y cuatro
+casillas en cada una.
+
+**La marca**: `tiendas.de_pruebas` (migración 1245). La pone el equipo en
+/admin → Tiendas → «Cuentas de tienda» por `admin_tienda_de_pruebas(tienda, si)`
+(solo `is_admin()`, solo a cuentas `tipo = 'tienda'`), y la migración se la pone
+a la que se llama «Tienda de Prueba».
+
+**Una sola pregunta**: `tienda_publica(tienda)` — si lo de esa tienda se puede
+enseñar a quien pregunta. A ella misma sí (prueba su escaparate tal como lo
+vería la gente); a nadie más, TAMPOCO al equipo, que es quien no quiere verla en
+la agenda. Va con `coalesce(p_tienda = auth.uid(), false)`: sin cuenta
+`auth.uid()` es NULL, y en el `if not exists (…) or not tienda_publica(…)` del
+escaparate un NULL no entra en la rama — la primera versión le enseñaba el
+escaparate de la de pruebas a quien no tenía cuenta. En un `where` NULL no deja
+pasar, así que solo se veía en el `if`; lo cazó la prueba contra PostgreSQL.
+
+**Dónde va**: al lado de cada `s.visible` de lo que se enseña a la gente, en la
+última definición de cada función (copiada entera, con su firma): `tiendas_agenda`
+y `tiendas_recien` (1244), `tienda_escaparate` (1079: también en su comprobación
+de que existe), `tiendas_con_la_carta` (1236), `tiendas_que_tienen` (1079),
+`tiendas_con_mis_deseos` (1069), `mercado_con_tiendas` (1109) y
+`tienda_foto_se_ve` (1235). Y `tienda_por_avisar` (1089) no devuelve a nadie desde
+una de pruebas: «Avisar a los que la buscan» le contesta 0 y no escribe avisos de
+verdad. El panel de la tienda (`tienda_hoy`, el stock, las ventas) no cambia: es
+suyo.
+
+**Lo que no pasa por la base**: Gente (`loadUsers`) y el buscador de gente
+(`buscador.js`) leen `user_profiles` a pelo, así que preguntan una vez por
+visita quiénes son de pruebas (`tiendasDePruebas` en `js/tiendas-fantasma.js`,
+una consulta a `tiendas` con `de_pruebas = true`) y filtran con `sinFantasmas`
+(tiendas-puro.js). Sin la migración la columna no existe, la consulta falla y no
+se esconde a nadie: nada se rompe. Ni una ni otra están en el grafo de la portada.
+
+**Pruebas** (rama pruebas): `test-tanda-1245.mjs` contra PostgreSQL (la 1244, la
+1089 y la 1235 debajo; sin cuenta, una persona que la busca, el equipo y otra
+tienda no la ven en ninguna de las ocho; ella sí; avisar desde ella no avisa;
+el equipo la desmarca y vuelve a todo; dos veces y sentencia a sentencia) y
+`test-tanda-1245-pantalla.mjs` (lo puro, Gente, el buscador, sin la migración y
+/admin → Tiendas). Las dos guardas del navegador se mutaron y cazan.
