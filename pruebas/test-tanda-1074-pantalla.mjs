@@ -35,7 +35,7 @@ const TIENDA = { tipo: 'tienda', display_name: 'Cartas de Ane', username: 'carta
 
 console.log('── 1. /tiendas: sin ciudad y con su Instagram ──')
 {
-  const { p, ctx, errs } = await abrir('/tiendas.html', { sesion: 'none' })
+  const { p, ctx, errs } = await abrir('/para-tiendas.html', { sesion: 'none' })
   check('sin errores', !errs.length, errs.join(' | '))
   check('la ciudad dice que es opcional y que no hace falta local', /Ciudad \(opcional\)/.test(await p.textContent('label:has(#tiendasCiudad)')) && !(await p.getAttribute('#tiendasCiudad', 'required') !== null) && /vendes desde casa/.test(await p.textContent('label:has(#tiendasCiudad)')))
   check('  …la web y el Instagram, cada uno en su campo', (await p.locator('#tiendasWeb').count()) === 1 && (await p.locator('#tiendasInstagram').count()) === 1)

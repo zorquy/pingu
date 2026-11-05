@@ -27,7 +27,7 @@ check('sin saber quién es la tienda, ningún perfil', !puedeAbrirTienda('/usuar
 check('la marca del navegador es una', MARCA_TIENDA === 'pd-tienda')
 
 console.log('── Las secciones ──')
-check('Panel, Colección, Stock, Ventas, Escaparate, Mensajes y Datos, en ese orden (1074 y 1075)', SECCIONES_DE_TIENDA.map((s) => s.nombre).join(',') === 'Panel,Colección,Stock,Ventas,Escaparate,Mensajes,Datos')
+check('Panel, Colección, Stock, Ofertas, Ventas, Escaparate, Mensajes y Datos, en ese orden (1074, 1075 y 1250)', SECCIONES_DE_TIENDA.map((s) => s.nombre).join(',') === 'Panel,Colección,Stock,Ofertas,Ventas,Escaparate,Mensajes,Datos')
 check('la Colección es /cartas (su modo tienda), con su menú colgado en la lateral', SECCIONES_DE_TIENDA[1].href === '/cartas' && seccionesDeTienda()[1].menu === true && seccionDeTienda('/cartas', '?ver=pokedex') === 'Colección')
 check('  …y su enlace no se cambia por Mi colección (fija)', seccionesDeTienda().every((s) => s.fija === true))
 check('en la forma de la barra: un enlace cada una y su icono', seccionesDeTienda().every((s) => s.enlaces.length === 1 && s.icono))
