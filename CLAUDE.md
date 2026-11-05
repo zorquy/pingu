@@ -146,7 +146,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   pasar), y una lista que lea `user_profiles` a pelo la quita con
   `quitarFantasmas` / `sinFantasmas` (`js/tiendas-fantasma.js`). Se marca en
   /admin → Tiendas. Y las tarjetas de /tiendas miden todas lo mismo (1245): lo
-  que se añada a una va en una fila de alto fijo, con su hueco si falta.
+  que se añada a una va en una fila de alto fijo, con su hueco si falta. Y
+  dicen poco (1248, PINGU: «no es necesario enseñar tanta información antes de
+  entrar a la ficha»): nombre, cifras y, en burbujas sobre la portada
+  (`.tag-chapas`), «Tienda física»/«Online» y si está abierta; la ciudad, la
+  web y el Instagram van en su escaparate, no en la tarjeta.
   La actividad de la comunidad (`js/comunidad-sucesos.js`) sabe qué cuenta es
   cada uno por `conCuentas` (1246: `portada_comunidad` no da `tipo`); un suceso
   nuevo que nombre a otra persona pone su username en `datos` y pasa por ahí, o

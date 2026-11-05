@@ -54808,3 +54808,19 @@ reimpresiones y no se inventan. La era sale de Pt4 (`serieDe`: «Advent of
 Arceus» o el 2009-07-08). Las fotos, en /admin → «Fotos de todas» (cada
 fichero a su carta por el número); el precio, con «Buscar en Cardmarket» en
 cada carta (luego lo trae `cardmarket-precios-jp`, que mira lo `mano`).
+
+## Tanda 1248 — Tarjetas de tiendas con menos texto
+
+PINGU, con la captura de dos tarjetas (FDN Cards con ciudad, «Online», web e
+Instagram; RyuCards solo con «Online»): «hay demasiada información… no es
+necesario enseñar tanta información antes de entrar a la ficha, simplemente el
+nombre de la tienda y si es local u online… como una burbujita en la cabecera».
+
+`tarjetaDeAgendaHtml` ya no pinta `.tag-linea`: la portada lleva `.tag-chapas`
+(arriba a la derecha, en fila que puede partirse) con «Tienda física» u
+«Online» (`con_local`, con el icono `store` o el nuevo `globe`) y la chapa de
+`chapaDeEstado` cuando el horario se entiende (la clase `tag-estado` sigue
+para el punto verde). La portada es `aria-hidden` (es un enlace duplicado), así
+que lo mismo va dicho con el nombre en un `.sr-only`. El filtro «Con local» de
+la agenda se rotula «Tienda física» para decir lo mismo que la burbuja; las
+tarjetas «En tiendas» del Mercado (`en-tiendas.js`) no cambian.

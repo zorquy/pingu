@@ -171,15 +171,15 @@
 .tag-tarjeta.skeleton { min-height: 320px; }
 .tag-tarjeta.tuya { border-color: color-mix(in srgb, var(--acento) 40%, var(--border)); }
 .tag-portada { position: relative; display: block; background: var(--arte-azul) center / cover no-repeat; }
-.tag-estado { position: absolute; top: var(--e-sm); right: var(--e-sm); display: inline-flex; gap: var(--e-xs); align-items: center; padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: rgb(0 0 0 / 60%); color: var(--blanco-fijo); font-size: var(--t-2xs); font-weight: 700; }
+/* Las burbujas de la cabecera (1248): el tipo de tienda y, si se entiende su horario, si está abierta. */
+.tag-chapas { position: absolute; top: var(--e-sm); right: var(--e-sm); left: var(--e-sm); display: flex; flex-wrap: wrap; gap: var(--e-xs); justify-content: flex-end; }
+.tag-chapa { display: inline-flex; gap: var(--e-xs); align-items: center; padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: rgb(0 0 0 / 60%); color: var(--blanco-fijo); font-size: var(--t-2xs); font-weight: 700; white-space: nowrap; }
+.tag-chapa svg { flex-shrink: 0; }
 .tag-estado i { width: 8px; height: 8px; border-radius: 50%; background: #34d399; }
 .tag-logo { position: absolute; top: 64px; left: var(--e-lg); display: grid; place-items: center; width: 56px; height: 56px; border-radius: var(--radius-lg); background: var(--navy-solid) center / cover no-repeat; box-shadow: 0 0 0 3px var(--white); color: var(--blanco-fijo); font-family: var(--font-display); font-size: var(--t-xl); font-weight: 800; }
 .tag-dentro { display: flex; flex-direction: column; gap: var(--e-sm); min-width: 0; padding: var(--e-2xl) var(--e-lg) var(--e-lg); }
 .tag-nombre-enlace { min-width: 0; font-family: var(--font-display); font-size: var(--t-md); text-decoration: none; }
 .tag-nombre { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tag-linea { display: flex; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; gap: var(--e-xs) var(--e-md); margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
-.tag-linea span { display: inline-flex; flex-shrink: 0; gap: var(--e-xs); align-items: center; }
-.tag-linea a { min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--text-mid); }
 .tag-datos { display: flex; flex-wrap: nowrap; overflow: hidden; white-space: nowrap; gap: var(--e-xs); margin: 0; }
 .tag-chip-dato { flex-shrink: 0; padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); font-size: var(--t-xs); font-weight: 600; }
 .tag-tuyas { background: color-mix(in srgb, var(--acento) 18%, var(--white)); }

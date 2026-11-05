@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (490) — PINGU-Claude (1248 — tarjetas de tiendas con menos texto)
+
+**Hecho**: PINGU, con la captura de FDN Cards y RyuCards: «hay demasiada
+información… simplemente el nombre de la tienda y el número de cartas… y si es
+local u online, como una burbujita en la cabecera». La tarjeta de /tiendas
+pierde la línea de ciudad, local/online, web e Instagram; arriba, sobre la
+portada, van las burbujas «Tienda física» (icono de tienda) u «Online» (icono
+nuevo `globe` en `js/icons.js`) y, si su horario se entiende, «Abierta · hasta
+X» (`.tag-chapas`). Para el lector de pantalla las dos van con el nombre
+(`sr-only`). El chip del filtro «Con local» pasa a «Tienda física», como la
+burbuja.
+
+**Ficheros**: `js/tiendas-agenda.js`, `css/tiendas.css`, `js/icons.js`,
+`tiendas.html`, CLAUDE.md, SCHEMA, novedades. Rama pruebas:
+`test-tanda-1244-pantalla.mjs` mira las burbujas y que no esté la línea.
+
+**Pendiente**: las migraciones 1244 y 1245. Las fotos del pack de la película
+(1247). Lo de la 475.
+
 ## 2026-11-05 (489) — PINGU-Claude (1247 — el Movie Commemoration Random Pack, a mano)
 
 **Hecho**: PINGU pidió el set japonés 映画公開記念ランダムパック (2009-07-18, 22

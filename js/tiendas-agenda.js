@@ -27,7 +27,7 @@ import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { nombreDeCarta } from './catalogo-series.js'
 import { COLUMNAS_CARTA_DE_SET } from './mi-coleccion/columnas-set.js'
 import { enlaceDeTienda } from './en-tiendas.js'
-import { enlacesDeTienda, chapaDeEstado, filtrarTiendas } from './tiendas-puro.js'
+import { chapaDeEstado, filtrarTiendas } from './tiendas-puro.js'
 
 const TODAS = 100
 const A_LA_VISTA = 12
@@ -65,12 +65,11 @@ export function tarjetaDeAgendaHtml(t, { sesion = null, ahora = new Date() } = {
   const tuyas = Number(t.de_tu_lista) || 0
   const enlace = `${profileUrl({ ...t, tipo: 'tienda' })}${tuyas ? '?lista=1' : ''}`
   const estado = chapaDeEstado(t, ahora)
-  const fuera = enlacesDeTienda(t)
-  const linea = [
-    t.ciudad ? `<span>${icons.mapPin(14)}${escapeHtml(t.ciudad)}</span>` : '',
-    `<span>${t.con_local ? 'Con local' : 'Online'}</span>`,
-    ...fuera.map((f) => `<a href="${escapeHtml(f.href)}" target="_blank" rel="noopener">${escapeHtml(f.texto)}</a>`),
-  ].join('')
+  // Lo de fuera de la tarjeta, en burbujas sobre la portada (1248, PINGU:
+  // «simplemente el nombre de la tienda… y si es local u online, como una
+  // burbujita en la cabecera»). Ciudad, web e Instagram, en su escaparate.
+  const tipo = t.con_local ? 'Tienda física' : 'Online'
+  const chapas = `<span class="tag-chapas"><span class="tag-chapa">${icons[t.con_local ? 'store' : 'globe'](12)}${tipo}</span>${estado ? `<span class="tag-chapa tag-estado${estado.abierta ? ' abierta' : ''}">${estado.abierta ? '<i></i>' : ''}${escapeHtml(estado.texto)}</span>` : ''}</span>`
   const datos = [
     tuyas ? `<span class="tag-chip-dato tag-tuyas">${tuyas === 1 ? '1 de tu lista' : `${tuyas} de tu lista`}</span>` : '',
     cartas ? `<span class="tag-chip-dato">${miles(cartas)} ${cartas === 1 ? 'carta' : 'cartas'}</span>` : '',
@@ -82,11 +81,10 @@ export function tarjetaDeAgendaHtml(t, { sesion = null, ahora = new Date() } = {
   const escribir = sesion?.user?.id === t.user_id || !t.user_id ? ''
     : `<a class="btn-secondary" href="${escapeHtml(sesion ? destino : `/auth.html?registro=1&volver=${encodeURIComponent(destino)}`)}">${icons.mail(16)}<span>Escribir</span></a>`
   return `<article class="tag-tarjeta${tuyas ? ' tuya' : ''}" data-tienda-id="${escapeHtml(t.user_id || '')}">
-    <a class="tag-portada" href="${escapeHtml(enlace)}" tabindex="-1" aria-hidden="true"${portada ? ` style="background-image:url('${portada}')"` : ''}>${estado ? `<span class="tag-estado${estado.abierta ? ' abierta' : ''}">${estado.abierta ? '<i></i>' : ''}${escapeHtml(estado.texto)}</span>` : ''}</a>
+    <a class="tag-portada" href="${escapeHtml(enlace)}" tabindex="-1" aria-hidden="true"${portada ? ` style="background-image:url('${portada}')"` : ''}>${chapas}</a>
     <span class="tag-logo"${logo ? ` style="background-image:url('${logo}')"` : ''} aria-hidden="true">${logo ? '' : escapeHtml(nombre.slice(0, 1).toUpperCase())}</span>
     <div class="tag-dentro">
-      <a class="tag-nombre-enlace" href="${escapeHtml(enlace)}"><strong class="tag-nombre"${ATRIBUTOS_DE_TIENDA}>${escapeHtml(nombre)}</strong></a>
-      <p class="tag-linea">${linea}</p>
+      <a class="tag-nombre-enlace" href="${escapeHtml(enlace)}"><strong class="tag-nombre"${ATRIBUTOS_DE_TIENDA}>${escapeHtml(nombre)}</strong><span class="sr-only"> · ${tipo}${estado ? ` · ${escapeHtml(estado.texto)}` : ''}</span></a>
       <p class="tag-datos">${datos}</p>
       <div class="tag-cartas">${escaparate.map((d) => cartaDeEscaparateHtml(d, t)).join('')}${HUECO.repeat(4 - escaparate.length)}</div>
       <div class="tag-botones"><a class="btn-primary" href="${escapeHtml(enlace)}">Ver escaparate</a>${escribir}</div>
