@@ -116,6 +116,22 @@ export async function abrirCambios() {
   }
 }
 
+// Tus tratos enviados o aceptados, con lo que lleva cada uno (quién da qué
+// carta). Sin la migración de los tratos, o si falla, ninguno: Cruces sale como
+// antes en vez de no salir.
+async function tratosVivos(yo) {
+  if (!yo) return []
+  try {
+    const { data: ofertas, error } = await supabase.from('trade_offers').select('id,de,para,estado').or(`de.eq.${yo},para.eq.${yo}`).in('estado', ['enviada', 'aceptada'])
+    if (error || !ofertas?.length) return []
+    const { data: items, error: e2 } = await supabase.from('trade_offer_items').select('oferta,quien,card_id,cantidad').in('oferta', ofertas.map((o) => o.id))
+    if (e2) return []
+    return ofertas.map((o) => ({ ...o, items: (items || []).filter((it) => it.oferta === o.id) }))
+  } catch {
+    return []
+  }
+}
+
 // LOS CRUCES (773): una tarjeta por persona con lo que te da y lo que le
 // das, lado a lado y con lo que vale cada lado. Filtros (1217, PINGU): Todos,
 // Perfectos y En curso, que son los tratos que llevas (antes iban encima de
@@ -138,6 +154,8 @@ async function pintarCambios() {
     caja.innerHTML = `<p class="empty-state">${escapeHtml(err.message)}</p>`
     return
   }
+  // Lo que ya va en un trato vivo con esa persona no se vuelve a ofrecer (1241).
+  ;[tiene, busca] = tablon.sinLoDeTratosVivos(tiene, busca, await tratosVivos(ctx.sesion?.user?.id), ctx.sesion?.user?.id)
   tablonTiene = tiene
   tablonBusca = busca
   // Las cartas del tablón pueden no estar en el mapa: son de OTRA gente

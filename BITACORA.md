@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-05 (483) — PINGU-Claude (1241 — Cruces sin lo que ya va en un trato)
+
+**Hecho**: PINGU, con dos capturas: Lauyks salía en Cruces → Todos con
+«Ofrecer en venta» de la carta que ya le estaba vendiendo en «En curso». La
+base no lo quitaba: la 1109 hizo que `intercambios_quien_tiene` (lo que te dan)
+contara solo lo libre, pero `intercambios_quien_busca` (lo que das) no se tocó.
+Lo arregla la web, sin migración: `pintarCambios` (deseos.js) pide tus tratos
+enviados o aceptados con sus cartas (`tratosVivos`) y `sinLoDeTratosVivos`
+(tablon.js, pura) quita de cada persona lo que ya va en un trato con ella (sus
+cartas de lo que te da y las tuyas de lo que le das) y, con la regla de la
+1109, tus cartas cuyas copias para cambio ya están todas prometidas en algún
+trato. Quien se queda sin nada no sale, y «Todos» lo cuenta.
+
+Y el DOBLE de pruebas lo escondía (rama pruebas, `stub-supabase.js`): al simular
+la 1109 cambiaba la colección de todas las funciones mientras esperaba, y
+`intercambios_quien_busca`, que corre a la vez, veía la recortada. Ahora ve la
+de verdad, como en la base; sin el arreglo la prueba nueva sale roja.
+
+**Ficheros**: `js/mi-coleccion/deseos.js`, `js/mi-coleccion/tablon.js`, SCHEMA,
+CLAUDE.md, novedades. Rama pruebas: `test-tanda-1241-pantalla.mjs` (nueva) y
+`herramientas/stub-supabase.js`. Verdes: 1241, 1047, 1100–1103, 1105,
+1107–1110, 1166, 1208, 1217, 1238, `test-imports`. Rojos de antes, sin tocar:
+1042 (el texto del botón «Mensaje») y 386 (consultas de otros ficheros); fallan
+igual sin esta tanda.
+
+**Pendiente**: si se quiere también en la base (para el perfil y lo que no pasa
+por Cruces), `intercambios_quien_busca` con `cambio_libres_de`, como la 1109;
+no hace falta para esto. Y lo de la 475.
+
 ## 2026-11-05 (482) — PINGU-Claude (1240 — una PSA 9 y una PSA 10 de la misma carta)
 
 **Hecho**: un amigo de PINGU con tienda: «si tengo una PSA 9 me deja añadir

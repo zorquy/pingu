@@ -825,7 +825,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   dirección: `trade_offer_cobros` por `cambio_cobro_poner` / `cambio_cobros`,
   y se borra con ella. Lo que está en una propuesta enviada o aceptada no se
   ofrece (1109): lo que liste lo que da la gente cuenta con
-  `cambio_libres_de`, nunca con `cambio` a secas. La etiqueta del sobre (1110) es
+  `cambio_libres_de`, nunca con `cambio` a secas. Y en Cruces (1241) lo que ya
+  va en un trato vivo con esa persona, o tu carta ya prometida entera, lo quita
+  `sinLoDeTratosVivos` (tablon.js): `intercambios_quien_busca` no lo descuenta. La etiqueta del sobre (1110) es
   `js/cambio-etiqueta.js` (por `import()`), con lo que ya trae el trato: nada
   de la dirección sale de ahí a otro sitio.
 - **Cada sección se presenta con UNA ventana: `js/bienvenida-seccion.js`**

@@ -54506,3 +54506,46 @@ seguir».
 no suma, y con 10 deja dos líneas (PSA 9 y PSA 10); una sin gradear suma sin
 hoja; en el Stock, el aviso de las 4 unidades, «Añádela aparte» con PSA 9, una
 unidad y sin precios, y la PSA 10 entra nueva sin tocar la vieja.
+
+## Tanda 1241 — Cruces sin lo que ya va en un trato
+
+PINGU: «sale uno de los que está en curso… si está en curso, no debería
+salir»: Lauyks, con una venta enviada de PINGU, salía en Cruces → Todos con
+«Busca lo que das · Ofrecer en venta» de esa misma carta.
+
+**Por qué**: la 1109 hizo que lo que se OFRECE contara solo las copias libres
+(`cambio_libres_de`) en el Mercado, «quién la da», el perfil y
+`intercambios_quien_tiene` (lo que otros te dan). `intercambios_quien_busca`
+(quién busca lo que TÚ das) se quedó con `c.cambio` a secas, así que tus copias
+prometidas seguían saliendo en Cruces.
+
+**El arreglo, en la web** (sin migración): `pintarCambios`
+(`js/mi-coleccion/deseos.js`) pide tus tratos `enviada`/`aceptada` y sus cartas
+(`tratosVivos`: `trade_offers` + `trade_offer_items` con quién da cada una y
+cuántas; si falla o no está la 942, ninguno y Cruces sale como antes) y pasa
+lo que da la base por `sinLoDeTratosVivos(tiene, busca, tratos, yo)`
+(`js/mi-coleccion/tablon.js`, pura):
+
+- de cada persona se quita lo que ya va en un trato vivo CON ELLA: sus cartas
+  de lo que te da y las tuyas de lo que le das;
+- y, como en la 1109, una carta tuya cuyas copias para cambio (`cambio` de la
+  fila) ya están todas prometidas en tratos vivos no se le ofrece a nadie más.
+
+Después se cruzan por persona como siempre: quien se queda sin nada no sale y
+«Todos» y «Perfectos» lo cuentan. El perfil de alguien abierto desde Cruces usa
+la misma lista ya filtrada (`tablonTiene` / `tablonBusca`).
+
+**El doble de pruebas lo escondía** (rama pruebas, `herramientas/stub-supabase.js`):
+la simulación de la 1109 cambiaba `T.user_collection` para la función que
+corría y lo devolvía al acabar, con un `await` en medio; `intercambios_quien_busca`
+se pide A LA VEZ (`Promise.all`) y veía la colección recortada. Es «un doble más
+simple que la base esconde fallos que la base no puede tener» por el otro lado:
+el doble era MÁS estricto que la base. Ahora la simulación deja la colección de
+verdad en `T.__real1109` y `intercambios_quien_busca` mira esa.
+
+`test-tanda-1241-pantalla.mjs` (la preparación de la 1238 y un deseo más):
+Lucía, cuyo único cruce es el Mew ex que ya va en vuestro trato, no sale; Dani,
+que también lo busca, tampoco (era tu única copia); Íker sí; «Todos» cuenta los
+que salen; en PC y móvil, entrando por la pestaña. Y lo puro: solo tratos vivos,
+por persona y por lado, y lo prometido contra `cambio`. Sin el arreglo, Lucía
+sale (comprobado).

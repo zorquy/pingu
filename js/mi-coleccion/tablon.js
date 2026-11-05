@@ -30,6 +30,32 @@ export { senasDe, borradorDe, borradorDeCruce }
 // —«dan lo que buscas» y «buscan lo que das»— y la misma persona salía en
 // los dos sin que se viera que era un cambio cerrado. Primero los cruces
 // perfectos (los dos tenéis algo del otro), luego quien más cartas mueve.
+// LO QUE YA ESTÁ EN UN TRATO NO SE OFRECE OTRA VEZ (1241, PINGU: «sale uno de
+// los que está en curso… si está en curso, no debería salir»): de cada persona
+// se quitan las cartas que ya van en un trato VIVO con ella (enviado o
+// aceptado), las suyas de lo que te da y las tuyas de lo que le das. Quien se
+// queda sin nada no sale. `tratos`: [{ de, para, estado, items: [{ quien,
+// card_id, cantidad }] }].
+export function sinLoDeTratosVivos(tiene = [], busca = [], tratos = [], yo = null) {
+  const ya = new Set()
+  // Y tus copias prometidas en cualquier trato vivo (la regla de la 1109): si
+  // ya no te queda ninguna libre, tampoco se le ofrece a otra persona.
+  const prometidas = new Map()
+  for (const o of tratos || []) {
+    if (o?.estado !== 'enviada' && o?.estado !== 'aceptada') continue
+    const otro = o.de === yo ? o.para : o.de
+    for (const it of o.items || []) {
+      ya.add(`${otro}|${it.quien === yo ? 'mia' : 'suya'}|${it.card_id}`)
+      if (it.quien === yo) prometidas.set(it.card_id, (prometidas.get(it.card_id) || 0) + (Number(it.cantidad) || 1))
+    }
+  }
+  if (!ya.size) return [tiene, busca]
+  return [
+    tiene.filter((f) => !ya.has(`${f.user_id}|suya|${f.card_id}`)),
+    busca.filter((f) => !ya.has(`${f.user_id}|mia|${f.card_id}`) && (prometidas.get(f.card_id) || 0) < (Number(f.cambio) || 1)),
+  ]
+}
+
 export function cruzarPorPersona(tiene = [], busca = []) {
   const gente = new Map()
   const de = (f) => {

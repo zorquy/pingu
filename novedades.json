@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-05",
       "tipo": "arreglo",
+      "texto": "Cruces ya no te ofrece una carta que tienes en un trato en curso: ni a la persona con la que ya estás tratando ni, si era tu única copia, a otra que también la busque.",
+      "enlace": "/mi-coleccion?ver=cambios"
+    },
+    {
+      "fecha": "2026-11-05",
+      "tipo": "arreglo",
       "texto": "Tiendas: una carta gradeada ya no se duplica con la misma nota. El «+» de la ficha abre «añadir» con la casa puesta para elegir la nota (una PSA 9 y otra PSA 10), y en el Stock cada línea tiene «Añádela aparte».",
       "enlace": "/tiendas"
     },
