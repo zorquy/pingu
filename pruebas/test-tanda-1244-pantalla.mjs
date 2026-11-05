@@ -89,7 +89,7 @@ async function abrir(ruta, { sesion = 'user-2', movil = false, rpc = null } = {}
 const llamadas = (p, n) => p.evaluate((nombre) => (window.__RPCS__ || []).filter((r) => (r.nombre || r.name) === nombre).map((r) => r.args), n)
 const tarjetas = (p, sel) => p.$$eval(`${sel} .tag-tarjeta`, (xs) => xs.map((x) => ({
   nombre: x.querySelector('.tag-nombre')?.textContent, tienda: x.querySelector('.tag-nombre')?.hasAttribute('data-nombre-tienda'),
-  href: x.querySelector('.tag-nombre-enlace')?.getAttribute('href'), linea: x.querySelector('.tag-linea')?.innerText.replace(/\s+/g, ' '),
+  href: x.querySelector('.tag-nombre-enlace')?.getAttribute('href'), chapas: [...x.querySelectorAll('.tag-chapas .tag-chapa')].map((c) => c.textContent.trim()), linea: x.querySelector('.tag-linea')?.textContent || null, aLector: x.querySelector('.tag-nombre-enlace .sr-only')?.textContent.trim() || null,
   datos: x.querySelector('.tag-datos')?.innerText.replace(/\s+/g, ' '), estado: x.querySelector('.tag-estado')?.textContent || null,
   cartas: [...x.querySelectorAll('.tag-carta:not(.tag-carta-hueco)')].map((c) => (c.querySelector('.tag-precio')?.textContent || '').replace(/\s/g, ' ')),
   escribir: x.querySelector('.tag-botones a.btn-secondary')?.getAttribute('href') || null,
@@ -104,7 +104,10 @@ console.log('── 2. /tiendas en el PC ──')
   check('«Tienen algo de tu lista»: RyuCards y Cartas del Norte', tuyas.map((t) => t.nombre).join('|') === 'RyuCards|Cartas del Norte', JSON.stringify(tuyas.map((t) => t.nombre)))
   const ryu = tuyas[0] || {}
   check('RyuCards: nombre de tienda, a /tiendas/ryu con lo de tu lista', ryu.tienda && ryu.href === '/tiendas/ryu?lista=1', JSON.stringify(ryu))
-  check('  …Bilbao, con local, su web y su Instagram', /Bilbao/.test(ryu.linea) && /Con local/.test(ryu.linea) && /ryucards\.es/.test(ryu.linea) && /@ryucards/.test(ryu.linea), ryu.linea)
+  // 1248 (PINGU: «simplemente el nombre… y si es local u online, como una
+  // burbujita en la cabecera»): ni ciudad ni web ni Instagram en la tarjeta.
+  check('  …en la cabecera, «Tienda física» y si está abierta; sin línea de ciudad, web ni Instagram', ryu.chapas?.join('|') === 'Tienda física|Abierta · hasta 23:59' && ryu.linea === null && !/Bilbao|ryucards\.es|@ryucards/.test(JSON.stringify(ryu)), JSON.stringify(ryu))
+  check('  …y quien no ve la cabecera lo oye con el nombre', ryu.aLector === '· Tienda física · Abierta · hasta 23:59', ryu.aLector)
   check('  …3 de tu lista, 860 cartas y 12 productos', /3 de tu lista/.test(ryu.datos) && /860 cartas/.test(ryu.datos) && /12 productos/.test(ryu.datos), ryu.datos)
   check('  …abierta ahora (su horario)', /^Abierta · hasta 23:59$/.test(ryu.estado || ''), ryu.estado)
   check('  …sus cuatro de escaparate con precio', ryu.cartas?.length === 4 && ryu.cartas[0] === '45,00 €' && ryu.cartas[3] === '64,95 €', JSON.stringify(ryu.cartas))
@@ -113,7 +116,7 @@ console.log('── 2. /tiendas en el PC ──')
   check('«Más tiendas»: las demás, 12 a la vista', (await p.textContent('#tagTituloTodas')) === 'Más tiendas' && resto.length === 12 && !resto.some((t) => t.nombre === 'RyuCards'), resto.length)
   const kanto = resto.find((t) => t.nombre === 'Kanto Cards')
   check('Kanto no enseña precios: su carta, sin precio; sin horario, sin chapa', kanto && kanto.cartas.length === 1 && kanto.cartas[0] === '' && kanto.estado === null, JSON.stringify(kanto))
-  check('El Rincón, online', /Online/.test(resto.find((t) => t.nombre === 'El Rincón')?.linea || ''))
+  check('El Rincón, «Online» y nada más (sin horario)', resto.find((t) => t.nombre === 'El Rincón')?.chapas?.join('|') === 'Online')
   check('«Ver más tiendas» en pastilla, y enseña las que faltan', await pastilla(p, '#tagMas'))
   await p.click('#tagMas'); await p.waitForTimeout(300)
   check('  …las 14', (await p.locator('#tagRejilla .tag-tarjeta').count()) === 14 && await p.evaluate(() => document.getElementById('tagMas').hidden))
