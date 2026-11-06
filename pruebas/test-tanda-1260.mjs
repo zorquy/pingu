@@ -37,7 +37,7 @@ console.log('── Lo puro ──')
   check('la franja: su tipo, lo que queda y el botón', /data-tipo="concurso"/.test(f) && /Quedan 9 días/.test(f) && /data-apuntarme|data-abrir-aviso/.test(f) && /aviso-global-cerrar/.test(f))
   const t = m.tarjetaHtml(a({ cuenta_atras: true, hasta: '2026-11-15T22:59:00Z' }), { ahora })
   check('la tarjeta de Inicio: chapa del tipo, título y lo que queda', /aviso-tarjeta/.test(t) && /Concurso/.test(t) && /Quedan 9 días/.test(t))
-  check('los tipos y sus plantillas', Object.keys(m.TIPOS_DE_AVISO).join() === 'concurso,novedad,evento,aviso,mantenimiento' && m.PLANTILLAS.concurso.participar === true && m.PLANTILLAS.concurso.sitios.length === 4 && m.PLANTILLAS.mantenimiento.sitios.join() === 'franja')
+  check('los tipos y sus plantillas', Object.keys(m.TIPOS_DE_AVISO).join() === 'concurso,novedad,evento,aviso,mantenimiento' && m.PLANTILLAS.concurso.participar === false && m.PLANTILLAS.concurso.boton_texto === 'Apuntarme' && m.PLANTILLAS.concurso.sitios.length === 4 && m.PLANTILLAS.mantenimiento.sitios.join() === 'franja')
   check('las cifras: suma de días y el porcentaje', JSON.stringify(m.sumarCifras([{ vistos: 10, clics: 3, cerrados: 2 }, { vistos: 30, clics: 7, cerrados: 1 }])) === JSON.stringify({ vistos: 40, clics: 10, cerrados: 3, porcentaje: 25 }) && m.sumarCifras([]).porcentaje === null)
 }
 
