@@ -9,23 +9,14 @@ const REPO = process.env.PD_RAIZ || '/home/user/pingu'
 let fails = 0
 const check = (l, ok, extra = '') => { if (!ok) fails++; console.log(`${ok ? '  ok ' : '  FALLA '} ${l}${extra ? ' — ' + String(extra).slice(0, 300) : ''}`) }
 
-console.log('── Lo puro ──')
+// Lo puro de la 1120 (un solo aviso en site_settings) lo sustituyó la 1260:
+// las reglas de ahora las prueba test-tanda-1260.mjs. Queda la migración, que
+// sigue siendo la de «mandarlo a la campanita» (avisos_enviados).
+console.log('── La campanita sigue pudiéndose apagar ──')
 {
-  const m = await import(`${REPO}/js/aviso-puro.js`)
-  const ahora = new Date('2026-11-01T12:00:00Z')
-  const a = (x) => ({ texto: 'Torneo el sábado', activo: true, ...x })
-  check('sin texto no hay aviso; apagado, tampoco', m.estadoDeAviso({ activo: true, texto: '  ' }, ahora) === 'vacio' && m.estadoDeAviso(a({ activo: false }), ahora) === 'apagado')
-  check('desde y hasta: programado, activo y caducado', m.estadoDeAviso(a({ desde: '2026-11-02T00:00:00Z' }), ahora) === 'programado' && m.estadoDeAviso(a({ desde: '2026-10-30T00:00:00Z', hasta: '2026-11-03T00:00:00Z' }), ahora) === 'activo' && m.estadoDeAviso(a({ hasta: '2026-11-01T11:59:00Z' }), ahora) === 'caducado')
-  check('a quién: con cuenta y en el móvil', m.seVeAviso(a({ publico: 'cuenta' }), { ahora }) === false && m.seVeAviso(a({ publico: 'cuenta' }), { ahora, conCuenta: true }) === true && m.seVeAviso(a({ publico: 'movil' }), { ahora }) === false && m.seVeAviso(a({ publico: 'movil' }), { ahora, movil: true }) === true && m.seVeAviso(a({}), { ahora }) === true)
-  check('los avisos de antes (tono) siguen: «aviso» es aviso y lo demás, novedad', m.tipoDeAviso({ tono: 'aviso' }) === 'aviso' && m.tipoDeAviso({ tono: 'info' }) === 'novedad' && m.tipoDeAviso({ tipo: 'mantenimiento', tono: 'aviso' }) === 'mantenimiento')
-  check('el enlace: de la casa o https; javascript: y // no', m.enlaceDeAviso({ enlace: '/torneos' }) === '/torneos' && m.enlaceDeAviso({ enlace: 'https://x.com/pokedoc_es' }) === 'https://x.com/pokedoc_es' && m.enlaceDeAviso({ enlace: 'javascript:alert(1)' }) === '' && m.enlaceDeAviso({ enlace: '//malo.com' }) === '' && m.enlaceDeAviso({ enlace: 'http://x.com' }) === '')
-  const f = m.franjaHtml(a({ texto: '<b>ojo</b>', tipo: 'mantenimiento', enlace: 'https://pokedoc.es/x', texto_enlace: 'Más' }))
-  check('la franja: su tipo, el texto escapado, el enlace fuera en otra pestaña', /data-tipo="mantenimiento"/.test(f) && /&lt;b&gt;ojo/.test(f) && /href="https:\/\/pokedoc\.es\/x" target="_blank" rel="noopener">Más</.test(f) && /aviso-global-cerrar/.test(f))
-  check('  …y sin enlace válido, sin enlace', !/<a /.test(m.franjaHtml(a({ enlace: 'javascript:x' }))))
-  check('la huella cambia con otro texto o con otra fecha de salida (vuelve a salir)', m.huellaDeAviso(a({})) !== m.huellaDeAviso(a({ texto: 'Otro' })) && m.huellaDeAviso(a({})) !== m.huellaDeAviso(a({ desde: '2026-11-05T10:00:00Z' })) && m.huellaDeAviso(a({})) === m.huellaDeAviso(a({ publico: 'movil' })))
   const prefs = await import(`${REPO}/js/avisos-prefs.js`)
   check('«Novedades y avisos del equipo» se puede apagar en Ajustes', prefs.GRUPOS_CAMPANITA.some((g) => g.tipos.includes('aviso_equipo')) && /aviso_equipo:/.test(readFileSync(`${REPO}/js/notifications.js`, 'utf8')))
-  check('la franja salió de components.css y va en su hoja', !/\.aviso-global/.test(readFileSync(`${REPO}/css/components.css`, 'utf8')) && /hojaInyectada\('css\/aviso-global\.css'\)/.test(readFileSync(`${REPO}/js/aviso-global.js`, 'utf8')))
+  check('la franja va en su hoja, fuera de components.css', !/\.aviso-global/.test(readFileSync(`${REPO}/css/components.css`, 'utf8')) && /hojaInyectada\('css\/aviso-global\.css'\)/.test(readFileSync(`${REPO}/js/aviso-global.js`, 'utf8')))
 }
 
 console.log('── La migración, contra PostgreSQL ──')
