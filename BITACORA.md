@@ -4,6 +4,17 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-06 (500) — PINGU-Claude (nota: migraciones de tiendas ejecutadas)
+
+**Hecho**: PINGU confirma que ya están ejecutadas en la base las migraciones
+pendientes de las tiendas: 1244, 1245, 1250, 1251, 1253, 1254 y 1255. Lo que
+iba detrás de `sinMigracion` en esas tandas ya va por el camino nuevo. Sin
+cambios de código.
+
+**Ficheros**: solo esta bitácora.
+
+**Pendiente**: nada de migraciones.
+
 ## 2026-11-06 (499) — PINGU-Claude (1259 — el chat que se recargaba al subir)
 
 **Hecho**: lo de la 1258 no bastaba. PINGU lo vio: al subir por una
