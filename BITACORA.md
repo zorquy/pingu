@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-06 (498) — PINGU-Claude (1258 — bandera de Corea y el chat que te bajaba)
+
+**Hecho**:
+- **Bandera de Corea** (`css/cardmarket.css`): con un sol rojo y azul se
+  confundía con la de Japón. Ahora el círculo partido (rojo arriba, azul
+  abajo, inclinado) y los cuatro trigramas negros en las esquinas.
+- **Mensajes privados en el móvil** (PINGU: «se actualiza cuando vas a subir y
+  te lleva abajo otra vez»): el hilo bajaba al final SIN mirar dónde estabas
+  cada vez que la ventana cambiaba de alto (en el iPhone, al deslizar entra y
+  sale la barra del navegador), cambiaba una clase de `<html>` o volvías a la
+  página; y el sondeo/vivo repintaba el hilo entero sin nada nuevo. Ahora
+  `pegado` (lo apunta el scroll del hilo) decide si se baja, y una firma de lo
+  pintado salta los repintados sin cambios (las ofertas fuerzan con `forzar`).
+
+**Ficheros**: `css/cardmarket.css`, `js/mensajes.js`, SCHEMA, novedades.
+Rama pruebas: `test-tanda-1258-pantalla.mjs` (cae con el código de antes).
+
+**Pendiente**: nada nuevo.
+
 ## 2026-11-06 (497) — PINGU-Claude (1257 — Vender con foto y el orden de Buscar)
 
 **Hecho**:

@@ -36,6 +36,18 @@
     {
       "fecha": "2026-11-06",
       "tipo": "arreglo",
+      "texto": "Mensajes privados en el móvil: al subir para leer lo de antes, la conversación ya no te devuelve abajo sola. Si llega algo nuevo, te avisa con «1 nuevo».",
+      "enlace": "/mensajes"
+    },
+    {
+      "fecha": "2026-11-06",
+      "tipo": "arreglo",
+      "texto": "La bandera de Corea ya no se confunde con la de Japón: ahora lleva su círculo rojo y azul y los trazos negros de las esquinas.",
+      "enlace": "/cartas"
+    },
+    {
+      "fecha": "2026-11-06",
+      "tipo": "arreglo",
       "texto": "Buscar: ordenar en ascendente o descendente ya cambia la lista (antes, buscando por ejemplo «Charizard», salía igual), y «Expansión y número» ordena las expansiones por fecha y las cartas por número.",
       "enlace": "/cartas?ver=buscar"
     },

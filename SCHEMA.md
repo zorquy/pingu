@@ -55178,3 +55178,28 @@ Prueba: `test-tanda-1257-pantalla.mjs` (nombre, expansión y número y fecha en
 los dos sentidos; cae con el código de antes) y Vender con foto. Una prueba
 con fotos bloquea el service worker (`serviceWorkers: 'block'`): sin eso las
 pide el worker, `route` no las ve y la cadena de respaldos las quita.
+
+## Tanda 1258 — la bandera de Corea y el chat que te devolvía abajo
+
+- `.pv-bandera[data-idioma='ko']`: el taegeuk partido con un
+  `linear-gradient(155deg, rojo 50%, azul 50%)` recortado en círculo por un
+  `radial-gradient` blanco encima, y cuatro `repeating-linear-gradient` negros
+  de 4×3 px en las esquinas (los trigramas). Antes era un sol de dos colores y
+  a 18 px no se distinguía del japonés.
+- `/mensajes` (una conversación): tres caminos bajaban al final a ciegas —el
+  `resize` de `visualViewport` (en el iPhone salta al deslizar, con la barra
+  del navegador), el `MutationObserver` de las clases de `<html>` y
+  `pageshow`— y el repintado del sondeo (cada 10 s sin vivo) o del vivo
+  reescribía el hilo entero aunque no hubiera cambios, con las fotos y las
+  cartas volviendo a cargar. Ahora:
+  · `pegado` lo pone el scroll del hilo (`cercaDelFinal`, 160 px) y esos tres
+    caminos llaman a `siPegado()`: solo bajan si ya estabas abajo.
+  · `refreshMessages(opciones)` calcula una firma (id, borrado, editado,
+    texto y adjuntos de cada mensaje, el «visto» y las reacciones) y no pinta
+    si no cambia; las tarjetas de oferta, cuyo estado no va en la firma,
+    llaman con `{ forzar: true }`. Lo puede llamar `setInterval`, que en
+    Firefox le pasa un número: por eso `opciones?.forzar === true`.
+
+Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
+ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
+del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.

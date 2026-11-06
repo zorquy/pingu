@@ -325,7 +325,17 @@ a.pv-fila-enlace:hover span:first-of-type {
 .pv-bandera[data-idioma='pt'] { background: linear-gradient(90deg, #006600 40%, #d40000 40%); }
 .pv-bandera[data-idioma='nl'] { background: linear-gradient(#ae1c28 33%, var(--blanco-fijo) 33% 66%, #21468b 66%); }
 .pv-bandera[data-idioma='ja'] { background: radial-gradient(circle at 50% 50%, #bc002d 32%, var(--blanco-fijo) 34%); }
-.pv-bandera[data-idioma='ko'] { background: radial-gradient(circle at 50% 50%, #cd2e3a 0 14%, #0047a0 14% 28%, var(--blanco-fijo) 28%); }
+/* Corea (1258): el círculo partido (rojo arriba, azul abajo) y los cuatro
+   trigramas negros en las esquinas; con un sol a secas se confundía con Japón. */
+.pv-bandera[data-idioma='ko'] {
+  background:
+    repeating-linear-gradient(#000 0 1px, transparent 1px 2px) 2px 2px / 4px 3px no-repeat,
+    repeating-linear-gradient(#000 0 1px, transparent 1px 2px) 12px 2px / 4px 3px no-repeat,
+    repeating-linear-gradient(#000 0 1px, transparent 1px 2px) 2px 8px / 4px 3px no-repeat,
+    repeating-linear-gradient(#000 0 1px, transparent 1px 2px) 12px 8px / 4px 3px no-repeat,
+    radial-gradient(circle at 50% 50%, transparent 3.6px, var(--blanco-fijo) 4px),
+    linear-gradient(155deg, #cd2e3a 50%, #0047a0 50%);
+}
 .pv-bandera[data-idioma='zh'] { background: linear-gradient(#de2910, #de2910) 0 0 / 100% 100%, #de2910; }
 
 .pv-gradeadas {

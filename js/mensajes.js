@@ -450,7 +450,7 @@ async function renderThread(session, conversationId) {
   const ofertaM = async () => {
     if (ofertaMod) return ofertaMod
     ofertaMod = await import('./mensajes-oferta.js')
-    ofertaMod.engancharOfertas(el, { alCambiar: () => refreshMessages(), miId })
+    ofertaMod.engancharOfertas(el, { alCambiar: () => refreshMessages({ forzar: true }), miId })
     return ofertaMod
   }
   let ultimos = []
@@ -487,18 +487,25 @@ async function renderThread(session, conversationId) {
   }
   window.scrollTo(0, 0)
   medirHilo()
+  // Bajar SOLO si ya estabas abajo (1258, PINGU: «se actualiza cuando vas a
+  // subir y te lleva abajo otra vez»): en el iPhone la ventana cambia de alto
+  // mientras deslizas (la barra del navegador entra y sale), y cada cambio
+  // —o una clase nueva en <html>— te devolvía al último mensaje aunque
+  // estuvieras leyendo arriba. `pegado` lo apunta el propio scroll del hilo.
+  let pegado = true
+  const siPegado = () => { if (pegado) bajarAlFinal() }
   window.addEventListener('resize', medirHilo)
-  window.visualViewport?.addEventListener('resize', () => { medirHilo(); bajarAlFinal() })
+  window.visualViewport?.addEventListener('resize', () => { medirHilo(); siPegado() })
   // La barra del móvil llega por `import()` y cambia el relleno de arriba
   // de la página (704): el hilo se vuelve a medir cuando el <html> cambia
   // de clases y un par de veces más por si acaso, que una medida tomada
   // antes de tiempo deja un hueco de 50 px entre el cuadro y la barra.
-  new MutationObserver(() => { medirHilo(); bajarAlFinal() }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-  for (const ms of [250, 1000]) setTimeout(() => { medirHilo(); bajarAlFinal() }, ms)
+  new MutationObserver(() => { medirHilo(); siPegado() }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+  for (const ms of [250, 1000]) setTimeout(() => { medirHilo(); siPegado() }, ms)
   // Al cerrar el teclado, al volver a la pestaña o al volver atrás (la página
   // sale de la caché con la medida de antes), se mide otra vez.
   document.addEventListener('focusout', () => setTimeout(medirHilo, 350))
-  window.addEventListener('pageshow', () => { medirHilo(); bajarAlFinal() })
+  window.addEventListener('pageshow', () => { medirHilo(); siPegado() })
   document.addEventListener('visibilitychange', () => { if (!document.hidden) medirHilo() })
 
   const cercaDelFinal = () => scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 160
@@ -507,7 +514,10 @@ async function renderThread(session, conversationId) {
     pastillaNuevos.classList.add('hidden')
   }
   pastillaNuevos.addEventListener('click', () => bajarAlFinal(true))
-  scroller.addEventListener('scroll', () => { if (cercaDelFinal()) pastillaNuevos.classList.add('hidden') }, { passive: true })
+  scroller.addEventListener('scroll', () => {
+    pegado = cercaDelFinal()
+    if (pegado) pastillaNuevos.classList.add('hidden')
+  }, { passive: true })
 
   let ultimoIdPintado = null
   let primeraPintada = true
@@ -549,7 +559,15 @@ async function renderThread(session, conversationId) {
     el.querySelectorAll('[data-delete-msg]').forEach((b) => b.addEventListener('click', () => pedirBorrar(b.dataset.deleteMsg, messages)))
     wireReportButtons(el, session)
   }
-  async function refreshMessages() {
+  // Lo que se pintó la última vez (1258): el sondeo de cada 10 s y el vivo
+  // volvían a escribir el hilo ENTERO aunque no hubiera nada nuevo, y con las
+  // fotos y las cartas cargando otra vez el alto bailaba bajo el dedo. Sin
+  // cambios, no se toca. `forzar` lo piden las tarjetas de oferta, cuyo
+  // estado no va en la firma.
+  let firmaPintada = ''
+  async function refreshMessages(opciones) {
+    // Lo llama también `setInterval`, que en Firefox le pasa un número.
+    const forzar = opciones?.forzar === true
     if (pintando) return
     pintando = true
     try {
@@ -578,6 +596,9 @@ async function renderThread(session, conversationId) {
       ultimasOfertas = ultimosDeOfertas(messages)
       ultimos = messages
       const vistoId = ultimoVisto(messages, miId, otroLeyoHasta)
+      const firma = JSON.stringify([messages.map((m) => [m.id, m.deleted_at, m.edited_at, m.body, m.adjuntos]), vistoId, reacciones])
+      if (!forzar && !primeraPintada && firma === firmaPintada) return
+      firmaPintada = firma
       const estabaAbajo = primeraPintada || cercaDelFinal()
       const nuevoAjeno = messages.length && messages[messages.length - 1].id !== ultimoIdPintado && messages[messages.length - 1].sender_id !== miId && ultimoIdPintado !== null
       // Lo que estaba escribiendo ya ha llegado: fuera el «escribiendo…».
