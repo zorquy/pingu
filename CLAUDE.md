@@ -1131,6 +1131,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   conversación (pedida con `*`) trae `fijada_at`; las reacciones son las del
   foro (`REACCIONES_MENSAJE`), una por persona y nunca a lo tuyo, y una
   respuesta solo cita un mensaje de su conversación (lo impone la base).
+  En la app instalada, «tirar hacia abajo para recargar» (`js/tirar-refrescar.js`)
+  no arranca dentro de una caja que se desliza por dentro y no está arriba
+  (`dentroDeCajaQueSube`, 1259) ni en una página con `data-sin-refrescar`: una
+  conversación lo lleva en el `<body>` (se actualiza sola). Una pantalla nueva
+  que se actualice en tiempo real hace lo mismo.
 - **Las fotos de los mensajes privados van en un cubo PRIVADO y se piden
   FIRMADAS** (tanda 891). `mensajes-adjuntos` no es público: una carpeta
   por conversación y `mensajes_adjunto_es_mio(name)` en las tres políticas;

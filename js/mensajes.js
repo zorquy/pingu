@@ -463,6 +463,10 @@ async function renderThread(session, conversationId) {
   const hilo = root.querySelector('.msg-hilo')
   const scroller = document.getElementById('msgScroll')
   document.body.classList.add('msg-hilo-abierto')
+  // Una conversación se actualiza sola (el vivo y el sondeo): sin «tirar
+  // hacia abajo para recargar» en la app instalada (1259, PINGU: «que no se
+  // pueda recargar la página, sino que se refresque en tiempo real»).
+  document.body.setAttribute('data-sin-refrescar', '')
   // La ventana VISUAL solo cuando se está escribiendo (1189): con la app
   // instalada, iOS deja `visualViewport.height` encogida con el alto del
   // teclado después de cerrarlo, y el hilo se quedaba a media pantalla con el

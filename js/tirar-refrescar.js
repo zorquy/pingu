@@ -24,6 +24,18 @@ export function dentroDeFilaLateral(el, win = window) {
   return false
 }
 
+// ¿Empieza el dedo en una caja que se desliza por DENTRO y no está arriba del
+// todo (1259)? Entonces tirar hacia abajo es subir por esa caja, no recargar:
+// en una conversación la página está siempre arriba y los mensajes van en su
+// propia caja, así que subir a leer lo de antes enseñaba la Poké Ball y
+// recargaba (PINGU: «intento ir para arriba y se recarga»).
+export function dentroDeCajaQueSube(el, win = window) {
+  for (let x = el; x && x.nodeType === 1 && x !== win.document?.body; x = x.parentElement) {
+    if (x.scrollTop > 0 && x.scrollHeight > x.clientHeight + 1 && /auto|scroll/.test(win.getComputedStyle(x).overflowY)) return true
+  }
+  return false
+}
+
 export function montarTirarRefrescar({ doc = document, win = window, recargar = () => win.location.reload() } = {}) {
   const marca = doc.createElement('div')
   marca.className = 'bm-refrescar'
@@ -35,7 +47,7 @@ export function montarTirarRefrescar({ doc = document, win = window, recargar = 
   doc.addEventListener('touchstart', (e) => {
     const t = e.touches[0]
     const dentro = e.target.closest?.('dialog[open], [data-sin-refrescar], .bm-burbuja, .mc-pestanias, .nav-user-dropdown')
-    inicio = e.touches.length === 1 && win.scrollY <= 0 && !dentro && !doc.querySelector('dialog[open]') && !dentroDeFilaLateral(e.target, win) ? { x: t.clientX, y: t.clientY } : null
+    inicio = e.touches.length === 1 && win.scrollY <= 0 && !dentro && !doc.querySelector('dialog[open]') && !dentroDeFilaLateral(e.target, win) && !dentroDeCajaQueSube(e.target, win) ? { x: t.clientX, y: t.clientY } : null
   }, { passive: true })
   doc.addEventListener('touchmove', (e) => {
     if (!inicio) return

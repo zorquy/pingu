@@ -55203,3 +55203,25 @@ pide el worker, `route` no las ve y la cadena de respaldos las quita.
 Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
+
+## Tanda 1259 — el tirón de recargar y las cajas que se deslizan por dentro
+
+El tirón de la app instalada (732) arranca si `window.scrollY <= 0`. En una
+conversación eso es verdad SIEMPRE (la página no se mueve; los mensajes van en
+`#msgScroll`), así que subir a leer lo de antes era tirar hacia abajo desde
+arriba: salía la Poké Ball y a 80 px recargaba. La 1258 había quitado los
+saltos al final, pero no esto.
+- `dentroDeCajaQueSube(el)`: sube por los padres del dedo y, si alguno se
+  desliza en vertical (`overflow-y: auto|scroll`, más alto por dentro que por
+  fuera) y no está arriba (`scrollTop > 0`), el gesto es suyo. Vale para
+  cualquier lista con su propio scroll, no solo para Mensajes.
+- Una conversación pone `data-sin-refrescar` en el `<body>` (el `closest` del
+  tirón lo encuentra desde cualquier sitio): se actualiza sola y no hay nada
+  que recargar. Y `html:has(body.msg-hilo-abierto) { overscroll-behavior-y:
+  none }` apaga el del navegador (Safari y Chrome, fuera de la app).
+- Una página nueva que se actualice sola en tiempo real y no deba recargarse
+  con el gesto pone lo mismo.
+
+Prueba: `test-tanda-1259-pantalla.mjs` (con el toque de verdad por CDP: en la
+conversación ni bola ni recarga; en una caja con scroll a media altura,
+tampoco; fuera, desde arriba, el tirón recarga).

@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-06",
       "tipo": "arreglo",
+      "texto": "Mensajes en la app instalada: subir por una conversación ya no la recarga (salía la Poké Ball de recargar). Las conversaciones se actualizan solas, sin tirar hacia abajo.",
+      "enlace": "/mensajes"
+    },
+    {
+      "fecha": "2026-11-06",
+      "tipo": "arreglo",
       "texto": "Mensajes privados en el móvil: al subir para leer lo de antes, la conversación ya no te devuelve abajo sola. Si llega algo nuevo, te avisa con «1 nuevo».",
       "enlace": "/mensajes"
     },

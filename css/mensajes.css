@@ -1456,3 +1456,7 @@ button.msg-reaccion {
 .msg-burbuja .msg-propuesta-ayuda svg { flex-shrink: 0; }
 .msg-burbuja .msg-propuesta-ayuda:hover { text-decoration: underline; }
 @media (pointer: coarse) { .msg-burbuja .msg-propuesta-ayuda { min-height: 44px; } }
+
+/* En una conversación tampoco recarga el gesto del navegador (1259): se
+   actualiza sola, y tirar hacia abajo es subir por los mensajes. */
+html:has(body.msg-hilo-abierto) { overscroll-behavior-y: none; }

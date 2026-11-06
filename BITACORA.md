@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-06 (499) — PINGU-Claude (1259 — el chat que se recargaba al subir)
+
+**Hecho**: lo de la 1258 no bastaba. PINGU lo vio: al subir por una
+conversación en la app instalada salía la Poké Ball de «tirar para recargar»
+y recargaba. El tirón (`js/tirar-refrescar.js`, 732) solo miraba si la PÁGINA
+estaba arriba, y en una conversación la página está siempre arriba: los
+mensajes se deslizan en su propia caja.
+- Una conversación lleva `data-sin-refrescar` en el `<body>`: sin tirón (se
+  actualiza sola, por el vivo y el sondeo), y `overscroll-behavior-y: none`
+  en el `<html>` para que tampoco recargue el gesto del navegador.
+- En TODA la web: si el dedo empieza en una caja que se desliza por dentro y
+  no está arriba del todo (`dentroDeCajaQueSube`), el gesto es de la caja.
+  En las demás páginas el tirón sigue igual (PINGU: «no deberíamos quitarlo»).
+
+**Ficheros**: `js/tirar-refrescar.js`, `js/mensajes.js`, `css/mensajes.css`,
+SCHEMA, novedades. Rama pruebas: `test-tanda-1259-pantalla.mjs` (cae con el
+código de antes).
+
+**Pendiente**: nada nuevo.
+
 ## 2026-11-06 (498) — PINGU-Claude (1258 — bandera de Corea y el chat que te bajaba)
 
 **Hecho**:
