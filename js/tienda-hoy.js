@@ -101,14 +101,20 @@ async function pintarPendientes() {
   if (!caja2) return
   const yo = (await supabase.auth.getSession()).data?.session?.user?.id
   if (!yo) return
-  const [o, f] = await Promise.all([
+  const [o, f, pp] = await Promise.all([
     supabase.from('tienda_ofertas').select('id', { count: 'exact', head: true }).eq('tienda_id', yo).eq('estado', 'abierta').eq('turno', 'tienda').then((r) => (r.error ? 0 : r.count || 0), () => 0),
     supabase.from('tienda_fotos_pedidas').select('id', { count: 'exact', head: true }).eq('tienda_id', yo).is('atendida_at', null).then((r) => (r.error ? 0 : r.count || 0), () => 0),
+    // Lo comprado en el Mostrador que espera precio (1255): sin la migración, 0.
+    supabase.from('tienda_stock').select('id', { count: 'exact', head: true }).eq('tienda_id', yo).eq('por_poner', true).gt('unidades', 0).then((r) => (r.error ? 0 : r.count || 0), () => 0),
   ])
   caja2.innerHTML = [
     o ? `<a class="tdh-aviso tdh-pill-toca" href="/tienda?ver=ofertas" data-ver="ofertas"><b class="tdh-pill-n">${o}</b><span>${o === 1 ? 'oferta por contestar' : 'ofertas por contestar'}</span>${icons.chevronRight(14)}</a>` : '',
     f ? `<a class="tdh-aviso tdh-pill-toca" href="/tienda?ver=ofertas" data-ver="ofertas"><b class="tdh-pill-n">${f}</b><span>${f === 1 ? 'te pide fotos' : 'te piden fotos'}</span>${icons.chevronRight(14)}</a>` : '',
+    pp ? `<a class="tdh-aviso tdh-pill-toca" href="/tienda?ver=stock&amp;porponer=1" data-ver="stock" data-porponer><b class="tdh-pill-n">${pp}</b><span>por poner a la venta</span>${icons.chevronRight(14)}</a>` : '',
   ].join('')
+  // La caja de hoy (1256): siempre a mano, al final; la abre el Mostrador sin navegar.
+  const cajaHoy = $('.tdh-caja-hoy')
+  if (cajaHoy) cajaHoy.innerHTML = `<a class="tdh-aviso" href="/tienda?caja=1" data-ver="caja">${icons.receipt(14)}<span>Caja de hoy</span>${icons.chevronRight(14)}</a>`
 }
 
 function pintar(d, ultimas) {
@@ -354,7 +360,7 @@ export function montarHoy(destino) {
           <div class="tdh-grafica"></div>
           <div class="tdh-cifras"></div>
         </section>
-        <div class="tdh-pendientes" aria-label="Lo que te espera"><div class="tdh-espera"></div><div class="tdh-avisos"></div></div>
+        <div class="tdh-pendientes" aria-label="Lo que te espera"><div class="tdh-espera"></div><div class="tdh-avisos"></div><div class="tdh-caja-hoy"></div></div>
         <div class="tdh-dos">
           <section class="tdh-tarjeta"><h3>${icons.heart(18)} Lo que busca la gente y tienes</h3><ul class="tdh-demanda"></ul></section>
           <div class="tdh-col">

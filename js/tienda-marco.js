@@ -37,11 +37,14 @@ export const SECCIONES_DE_TIENDA = [
 const comoSeccion = (s) => ({ nombre: s.nombre, ver: s.ver, icono: s.icono, clase: s.clase, menu: s.menu, fija: true, enlaces: [{ href: s.href, texto: s.nombre }] })
 export const seccionesDeTienda = () => SECCIONES_DE_TIENDA.map(comoSeccion)
 
-// VENDER (1072) no es una página: es la hoja de js/tienda-vender.js. En el
-// móvil va en el centro de la barra (cinco huecos: Ventas, Escaparate y Datos,
-// desde la hoja «Tú»); en el PC, como botón arriba.
-export const VENDER = { nombre: 'Vender', ver: 'vender', icono: 'coins', href: '/tienda?vender=1', clase: 'bm-vender' }
-export const seccionesDelMovil = () => ['Panel', 'Colección', 'Vender', 'Stock', 'Mensajes'].map((n) => comoSeccion(n === 'Vender' ? VENDER : SECCIONES_DE_TIENDA.find((s) => s.nombre === n)))
+// EL MOSTRADOR (1254; «Vender» desde la 1072) no es una página: en el móvil
+// es el centro de la barra (cinco huecos: Ventas, Escaparate y Datos, desde la
+// hoja «Tú») y abre el abanico de js/tienda-mostrador.js (Comprar, Vender,
+// Escanear, Caja de hoy); en el PC, arriba, el botón partido Comprar | Vender.
+export const MOSTRADOR = { nombre: 'Mostrador', ver: 'mostrador', icono: 'arrowLeftRight', href: '/tienda?mostrador=1', clase: 'bm-vender bm-mostrador' }
+export const seccionesDelMovil = () => ['Panel', 'Colección', 'Mostrador', 'Stock', 'Mensajes'].map((n) => comoSeccion(n === 'Mostrador' ? MOSTRADOR : SECCIONES_DE_TIENDA.find((s) => s.nombre === n)))
+const DIBUJO_COMPRAR = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>'
+const DIBUJO_VENDER = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/></svg>'
 
 export const BUSCAR_EN_STOCK = { href: '/tienda?ver=stock&buscar=1', texto: 'Busca en tu stock…' }
 
@@ -96,13 +99,11 @@ export function montarMarcoDeTienda({ doc = document, win = window } = {}) {
     caja.id = 'navSearch'
     caja.innerHTML = `<a class="nav-search-btn" id="navSearchBtn" href="${BUSCAR_EN_STOCK.href}" data-ver="stock" data-buscar aria-label="Buscar en tu stock" title="Buscar en tu stock (Ctrl+K)">${icons.search(19)}</a>`
     derecha.insertBefore(caja, yo)
-    // Vender, siempre a mano en el PC (en el móvil va en la barra de abajo).
-    const vender = doc.createElement('a')
-    vender.className = 'btn-primary tdm-vender'
-    vender.href = VENDER.href
-    vender.dataset.ver = 'vender'
-    vender.innerHTML = `${icons.coins(18)}<span>Vender</span>`
-    derecha.insertBefore(vender, caja)
+    // Comprar | Vender, siempre a mano en el PC (en el móvil, el Mostrador).
+    const partido = doc.createElement('span')
+    partido.className = 'tdm-vender tdm-partido'
+    partido.innerHTML = `<a class="tdm-p-comprar" href="/tienda?comprar=1" data-ver="comprar" title="Comprar">${DIBUJO_COMPRAR}<span>Comprar</span></a><a class="tdm-p-vender" href="/tienda?vender=1" data-ver="vender" title="Vender">${DIBUJO_VENDER}<span>Vender</span></a>`
+    derecha.insertBefore(partido, caja)
   }
   doc.addEventListener('keydown', (e) => {
     if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
@@ -118,4 +119,7 @@ export function montarMarcoDeTienda({ doc = document, win = window } = {}) {
     import('./barra-lateral.js').then((m) => m.montarBarraLateral({ conSesion: true, secciones, actual, buscarTexto: BUSCAR_EN_STOCK.texto, yoTexto: 'Tu tienda', apoyar: false })).catch(() => {})
   }
   doc.addEventListener('pokedoc:tienda-ver', (e) => marcarSeccion(e.detail))
+  // El Mostrador y sus hojas, en cualquier página de la tienda (1254). Hasta
+  // que llega el módulo, sus enlaces llevan a /tienda con lo mismo.
+  import('./tienda-mostrador.js').then((m) => m.engancharMostrador(doc)).catch(() => {})
 }

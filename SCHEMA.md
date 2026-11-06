@@ -55048,3 +55048,107 @@ el de la TIENDA: `pokedoc.es/s/<tienda>/<SKU>` (`enlaceDeSku`).
   teléfono ya lo lee); un lector de barras dentro de la web sería una
   dependencia o la Shape Detection API, que en iOS no está (la 447).
 
+
+## Tandas 1254–1256 — el Mostrador: comprar y vender rápido en un evento
+
+PINGU: «estoy en un card show… unos quieren comprar, otros quieren vender…
+el botón central debería llamarse otra cosa… que sea algo que se despliegue
+y que mole». Propuesta con imágenes y PINGU: «adelante, me flipa… dale caña»
+(todo lo recomendado: A «Mostrador», B «Por poner a la venta», C «Vale» como
+`valorado` y precio de partida, D forma de pago en ventas y compras, E «Vendido
+en» plegado y recordado, F «Caja de hoy»).
+
+### 1254 — el Mostrador y Vender rápido
+
+- **El botón del centro** del móvil es `MOSTRADOR` (`js/tienda-marco.js`,
+  `/tienda?mostrador=1`, clase `bm-vender bm-mostrador`) y abre el ABANICO de
+  `js/tienda-mostrador.js`: un velo (z 94), la barra encima (z 97, para
+  cerrarlo con el mismo botón, que pasa a «Cerrar» con una «×»), y el panel
+  (z 96) con Comprar y Vender en tarjetas grandes, «Escanear etiqueta»
+  (Vender con el cursor esperando al lector), «Caja de hoy» y la línea «Hoy:
+  N ventas · X € / N compras · Y €» (de `cajaDeHoy`). Se cierra con la «×»,
+  tocando fuera o con Escape. Nada navega: `engancharMostrador` coge los
+  `a[data-ver=mostrador|comprar|vender|caja]` de cualquier página de la
+  tienda (también Mensajes) y abre la hoja ahí mismo.
+- **En el PC** el botón de arriba se parte: `.tdm-partido` con Comprar (azul,
+  `--tdm-compra`) y Vender (`--acento`). Entre 1.240 y 1.440 px solo los
+  iconos: con las palabras la barra se salía 3 px (lo cazó la 1090).
+- **Vender** (`js/tienda-vender.js`, reescrita; exporta lo mismo:
+  `detalleDeLinea`, `deshacerVenta`, `abrirVender`): busca solo en el stock
+  con unidades y QUITA lo que está por poner a la venta (una consulta de ids
+  a `tienda_stock`; sin la 1255 la columna no existe y no quita nada). Cada
+  línea: idioma, estado o gradeo y set; «Tu precio» (el de la oferta mientras
+  dure) fijo y «Vendido por» VACÍO con ese precio en gris (`precioCobrado`:
+  vacío es su precio, no cero); unidades; «Todo junto por» con dos o más
+  (`repartirTotal`). Abajo «Te paga con» (`PAGOS_VENTA`, recordado en
+  `pd-tienda-pago-venta`), la suma (`cuentaDeMostrador`: a tu precio, rebaja
+  —solo lo de debajo—, cobras, ganas) y «Vendido en» en un desplegable
+  recordado (`pd-tienda-donde`). Al vender la hoja se queda abierta y vacía
+  (el siguiente cliente ya está delante), con Deshacer y Recibo.
+- **Migración** `supabase-migration-1254-tienda-mostrador.sql`:
+  `tienda_ventas.pago` y `precio_lista` (lo pone la BASE con
+  `tienda_precio_de`, no el navegador), y `tienda_vender(lineas, donde, pago)`
+  con la de dos parámetros BORRADA (con las dos, una llamada con dos sería
+  ambigua). Sin ella, la web llama con `p_pago`, recibe PGRST202, vende por el
+  camino de antes y deja de preguntar cómo se paga (`sinPago`).
+- El **recibo** dice «Pagado con …» (pide `pago` y, con 42703, sin él).
+- Lo compartido vive en `tienda-mostrador.js`: `modoHtml` (Comprar | Vender
+  arriba de las dos hojas), `pagosHtml`, `recordado`/`recordar` y los
+  `DIBUJOS` de pago (no van en `icons.js`: lo baja toda la web y cuenta en la
+  portada). La hoja `css/tienda-mostrador.css` la inyectan el abanico, las
+  tres hojas y el Stock; sus reglas que pisan las de `tienda-vender.css` van
+  con `.tdv` delante, porque el orden de carga depende de qué se abrió antes.
+- El doble acepta en `__RPC_ERRORES__` una FUNCIÓN de los argumentos: falla
+  la llamada nueva y deja pasar el respaldo (así se prueba «sin la migración»).
+
+### 1255 — Comprar rápido y «Por poner a la venta»
+
+- **Comprar** (`js/tienda-comprar.js`, reescrita; exporta `abrirComprar` y
+  `deshacerCompra`) en tres pasos dentro de la misma hoja:
+  1. Buscar: occidental, japonés y sellado A LA VEZ (`buscarComoEnCartas` con
+     `market` WEST y JP, y `buscarProductos`, ocho de cada), cada fila con su
+     chapa (Occidental / Japón / Sellado). Uno que falle no tapa a los otros.
+  2. La carta: los idiomas de SU set (`idiomasParaAnadirEn` +
+     `idiomasDeSetSinEsperar`, el último elegido por catálogo en
+     `pd-tienda-compra-idioma-<market>`), «Sin gradear» (estados con
+     `chapaDeEstadoHtml`) o «Gradeada» (casas y notas de `notasDeCasa`), la
+     versión si hay más de una, Cardmarket de ese idioma, versión y gradeo
+     (orientativo), «Vale» vacío con Cardmarket en gris, «Pagas» con los
+     tantos por ciento 50/60/70/80 (recordado; `pagasPorPct`, a los 10
+     céntimos) y «Si la vendes por lo que vale, ganas X €».
+  3. Terminar: las líneas con Vale y Pagas, «O todo junto por» (se reparte por
+     lo que vale cada una), a quién y «Le pagas con» (`PAGOS_COMPRA`, con
+     «Otro» y sin tarjeta; `pd-tienda-pago-compra`).
+  El botón de abajo es uno y cambia por paso («Terminar · N cartas · X €»,
+  «Añadir a la compra · X €», «Comprada · X €»). Al comprar, la hoja vuelve a
+  buscar y el aviso dice «Te espera en Por poner a la venta».
+- **Migración** `supabase-migration-1255-tienda-comprar-rapido.sql`:
+  `tienda_stock.valorado` y `por_poner` (lo comprado entra OCULTO, sin
+  precio, y como escaparate, Mercado y «En tiendas» miran `visible`, no lo
+  enseñan sin tocarlos), `tienda_compras.pago` y `valorado`,
+  `tienda_comprar(lineas, cliente, pago)` (la de dos, borrada) y
+  `tienda_poner_a_la_venta(ids, precio)`: sin precio, el que tenga o su
+  `valorado`; lo que no tiene ninguno se salta y se cuenta (`sin_precio`).
+- **Por poner a la venta** (`js/tienda-por-poner.js`): la franja del Stock
+  («N compradas por poner a la venta»), la hoja con «A la venta» de una en una
+  (con el precio escrito o, vacío, lo que vale en gris) y «Todas a la venta»,
+  `/tienda?ver=stock&porponer=1` y la pastilla del Panel (`tdh-pill-toca`:
+  le toca a la tienda).
+
+### 1256 — La caja de hoy
+
+- `js/tienda-caja.js`: `cajaDeHoy()` pide lo de hoy de `tienda_ventas` y
+  `tienda_compras` (con `pago`, `precio_lista`; 42703 → sin ellas) y lo cuenta
+  `cuentaDeCaja` (`tiendas-puro.js`): vendido, comprado, ganado, rebajado, por
+  forma de pago (lo que no lo dice, «Sin decir») y el efectivo que debería
+  haber (entra en efectivo − sale en efectivo, sin el cambio de partida). La
+  abren el abanico y la pastilla «Caja de hoy» del Panel (al final, en
+  `.tdh-caja-hoy`). Sin migración propia.
+- **Queda**: el cierre del mes por forma de pago necesita que
+  `tienda_ventas_lista` devuelva `pago` (otra migración); no se hizo.
+
+Pruebas: `test-tanda-1254.mjs` y `test-tanda-1255.mjs` (PostgreSQL),
+`test-tanda-1256.mjs` (las cuentas), `test-tanda-1254-pantalla.mjs` (abanico,
+PC, Vender sin lo por poner y sin la migración, la caja, «Por poner a la
+venta» y el recibo), y las de la 1071, 1072, 1075, 1091, 1252 y 1253 puestas
+al día.

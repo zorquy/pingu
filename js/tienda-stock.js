@@ -1161,6 +1161,23 @@ export async function abrirPorSku(sku) {
 }
 
 // Poner unos filtros desde fuera (los avisos de Hoy, 1073).
+// «Por poner a la venta · N» (1255): lo comprado en el Mostrador que aún no se
+// ve. Sin la migración, ninguna y la franja no sale.
+async function pintarPorPoner() {
+  const franja = $('.tdpp-caja')
+  if (!franja) return
+  const m = await import('./tienda-por-poner.js').catch(() => null)
+  const n = m ? await m.cuantasPorPoner().catch(() => 0) : 0
+  franja.hidden = !n
+  franja.innerHTML = n ? `<button type="button" class="tdpp-franja" data-tdpp-abrir><b>${n}</b><span>${n === 1 ? 'comprada por poner a la venta' : 'compradas por poner a la venta'}</span>${icons.chevronRight(16)}</button>` : ''
+}
+
+export function abrirPorPoner() {
+  return import('./tienda-por-poner.js')
+    .then((m) => m.abrirPorPoner({ alTerminar: () => { pedir(); pintarPorPoner() } }))
+    .catch(() => showToast('No se ha podido abrir. Recarga la página.', 'error'))
+}
+
 export function filtrarStock(filtros) {
   if (!caja) return
   const q = $('[data-tds-q]')
@@ -1179,6 +1196,8 @@ export function montarStock(destino, { perfil: p }) {
   hojaInyectada('css/carta-holo.css')
   // El botón de las fotos (1235) sale en la tabla antes de abrir nada.
   hojaInyectada('css/tienda-fotos.css')
+  // La franja de «Por poner a la venta» (1255).
+  hojaInyectada('css/tienda-mostrador.css')
   caja.innerHTML = `
     <div class="tds">
       <aside class="tds-filtros" aria-label="Filtros del stock"></aside>
@@ -1211,6 +1230,7 @@ export function montarStock(destino, { perfil: p }) {
           </span>
           </div>
         </div>
+        <div class="tdpp-caja" hidden></div>
         <div class="tds-vistas"></div>
         <div class="tds-aplicados"></div>
         <div class="tds-tabla-caja"><p class="tds-vacio">Cargando tu stock…</p></div>
@@ -1304,6 +1324,7 @@ export function montarStock(destino, { perfil: p }) {
       supabase.from('tienda_vistas').delete().eq('id', quitarVista.dataset.quitarVista).then(() => cargarVistas())
       return
     }
+    if (e.target.closest('[data-tdpp-abrir]')) return abrirPorPoner()
     const estrella = e.target.closest('[data-estrella]')
     if (estrella) return alternarEstrella(estrella.dataset.estrella)
     const fotos = e.target.closest('[data-fotos]')
@@ -1366,8 +1387,13 @@ export function montarStock(destino, { perfil: p }) {
     }
   })
 
-  // Lo vendido (1072) cambia las unidades: la tabla se vuelve a pedir.
-  document.addEventListener('pokedoc:tienda-vendida', () => pedir())
+  // Lo vendido (1072) cambia las unidades: la tabla se vuelve a pedir. Y lo
+  // comprado (1255) entra por poner a la venta: la franja se vuelve a contar.
+  document.addEventListener('pokedoc:tienda-vendida', () => {
+    pedir()
+    pintarPorPoner()
+  })
+  pintarPorPoner()
   pintarVistaBotones()
   pedir()
   cargarVistas()

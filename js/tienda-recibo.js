@@ -15,7 +15,7 @@ import { euros } from './cardmarket.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { cargarImagen, redondeado, comoBlob, descargarLienzo } from './imagen-compartir.js'
-import { cuentaDeRecibo, pdfDeJpeg, DONDE_NOMBRE } from './tiendas-puro.js'
+import { cuentaDeRecibo, pdfDeJpeg, DONDE_NOMBRE, NOMBRE_DE_PAGO } from './tiendas-puro.js'
 
 const ANCHO = 1080
 const C = { papel: '#ffffff', tinta: '#0d1b2a', suave: '#52717f', raya: '#e1eaee', marca: '#1e5175', fondo: '#e1f0f4' }
@@ -25,9 +25,13 @@ const TITULO = 'Outfit, Inter, system-ui, sans-serif'
 // Una compra (1091) es el mismo recibo, para quien las vende: lo que se le
 // paga sale de `coste`, y la fecha de `comprada_el`.
 async function datosDelTicket(ticket, compra = false) {
-  const { data: crudas, error } = compra
-    ? await supabase.from('tienda_compras').select('id,ticket,card_id,market,product_id,idioma,estado,variante,gradeo,unidades,coste,comprada_el').eq('ticket', ticket).order('created_at')
-    : await supabase.from('tienda_ventas').select('id,ticket,card_id,market,product_id,idioma,estado,variante,gradeo,unidades,precio,donde,vendida_el').eq('ticket', ticket).order('created_at')
+  // Con la forma de pago (1254 y 1255); sin la migración, la columna no
+  // existe (42703) y se pide sin ella.
+  const pedir = (conPago) => compra
+    ? supabase.from('tienda_compras').select(`id,ticket,card_id,market,product_id,idioma,estado,variante,gradeo,unidades,coste,comprada_el${conPago ? ',pago' : ''}`).eq('ticket', ticket).order('created_at')
+    : supabase.from('tienda_ventas').select(`id,ticket,card_id,market,product_id,idioma,estado,variante,gradeo,unidades,precio,donde,vendida_el${conPago ? ',pago' : ''}`).eq('ticket', ticket).order('created_at')
+  let { data: crudas, error } = await pedir(true)
+  if (error?.code === '42703') ({ data: crudas, error } = await pedir(false))
   if (error || !crudas?.length) return null
   const lineas = compra ? crudas.map(({ coste, comprada_el, ...l }) => ({ ...l, precio: coste, vendida_el: comprada_el })) : crudas
   const ids = [...new Set(lineas.filter((l) => l.card_id).map((l) => l.card_id))]
@@ -148,10 +152,14 @@ export async function dibujarRecibo({ lineas, perfil, tienda, compra = false }) 
   ctx.fillText(euros(total), ANCHO - 72, y + 40)
   ctx.textAlign = 'left'
   const NOMBRE_DONDE = DONDE_NOMBRE
-  if (!compra && primera.donde && primera.donde !== 'otro') {
+  const pie = [
+    !compra && primera.donde && primera.donde !== 'otro' ? `Venta: ${String(NOMBRE_DONDE[primera.donde] || primera.donde).toLowerCase()}` : '',
+    primera.pago ? `Pagado con ${String(NOMBRE_DE_PAGO[primera.pago] || primera.pago)}` : '',
+  ].filter(Boolean).join(' · ')
+  if (pie) {
     ctx.fillStyle = C.suave
     ctx.font = `500 26px ${LETRA}`
-    ctx.fillText(`Venta: ${String(NOMBRE_DONDE[primera.donde] || primera.donde).toLowerCase()}`, 72, y + 74)
+    ctx.fillText(pie, 72, y + 74)
   }
 
   // Abajo, el enlace a su escaparate y la marca.

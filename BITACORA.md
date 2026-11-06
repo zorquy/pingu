@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-06 (496) — PINGU-Claude (1254, 1255 y 1256 — el Mostrador)
+
+**Hecho**: la propuesta del Mostrador entera, con todo lo recomendado
+(PINGU: «adelante, me flipa… dale caña»).
+- **1254**: el botón del centro del móvil se llama «Mostrador» y abre un
+  abanico (Comprar, Vender, Escanear etiqueta, Caja de hoy y lo de hoy); en el
+  PC, Comprar | Vender arriba. Vender reescrito: solo tu stock (sin lo que está
+  por poner a la venta), «Tu precio» y «Vendido por» vacío con el precio en
+  gris, cómo te pagan (efectivo, tarjeta, Bizum, PayPal), «Vendido en»
+  plegado, y la hoja se queda abierta para el siguiente. Migración 1254:
+  `tienda_ventas.pago` y `precio_lista`, `tienda_vender` con `p_pago`. El
+  recibo dice cómo se pagó.
+- **1255**: Comprar reescrito en tres pasos (buscar en occidental, japonés y
+  sellado a la vez; la carta con idiomas de su set, sin gradear/gradeada,
+  versión, «Vale» y «Pagas» por porcentaje; terminar con total redondo, a
+  quién y cómo le pagas). Lo comprado entra en «Por poner a la venta»
+  (oculto, sin precio): franja en el Stock, hoja para ponerlo a la venta de
+  una en una o todas, y pastilla en el Panel. Migración 1255.
+- **1256**: la caja de hoy (vendido, comprado, ganado, rebajado, por forma de
+  pago y el efectivo que debería haber), desde el abanico y el Panel.
+
+**Ficheros**: las migraciones 1254 y 1255; `js/tienda-mostrador.js`,
+`js/tienda-caja.js`, `js/tienda-por-poner.js`, `css/tienda-mostrador.css`
+(nuevos); `js/tienda-vender.js` y `js/tienda-comprar.js` (reescritos);
+`js/tiendas-puro.js`, `js/tienda.js`, `js/tienda-marco.js`, `js/tienda-stock.js`,
+`js/tienda-hoy.js`, `js/tienda-recibo.js`, `css/tienda.css`, CLAUDE.md, SCHEMA,
+novedades. Rama pruebas: `test-tanda-1254.mjs`, `test-tanda-1255.mjs`,
+`test-tanda-1256.mjs`, `test-tanda-1254-pantalla.mjs`; puestas al día la 1071,
+1071-pantalla, 1072-pantalla, 1075-pantalla, 1091-pantalla, 1252-pantalla y
+1253-pantalla; el doble acepta errores de RPC como función de los argumentos.
+
+**Pendiente**: PINGU, ejecutar la 1254 y después la 1255 (y antes las que
+faltaran: 1244, 1245, 1250, 1251, 1253). Sin ellas todo funciona como antes:
+Vender no pregunta cómo se paga y lo comprado entra a la venta sin precio,
+como en la 1091. El cierre del mes por forma de pago queda para otra tanda
+(necesita que `tienda_ventas_lista` devuelva el pago).
+
 ## 2026-11-05 (495) — PINGU-Claude (1253 — el SKU con código de barras y QR)
 
 **Hecho**: la última tanda de la propuesta de tiendas («dale con lo

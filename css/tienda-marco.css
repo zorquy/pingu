@@ -46,3 +46,50 @@ html.con-barra-movil .tdm-vender { display: none; }
   color: var(--acento-texto);
 }
 .bm a.bm-vender { color: var(--text); }
+
+/* El Mostrador (1254): sus colores y el botón partido del PC. El resto, en
+   tienda-mostrador.css (entra al abrir el abanico o una hoja). */
+:root {
+  --tdm-compra: #1f5f8b;
+  --tdm-compra-bg: #e3eef7;
+  --tdm-venta: var(--acento);
+  --tdm-venta-bg: #e2f3f4;
+  --tdm-sobre: var(--blanco-fijo);
+}
+:root[data-theme='dark'] {
+  --tdm-compra: #7cbae4;
+  --tdm-compra-bg: #142a3b;
+  --tdm-venta-bg: #12302f;
+  --tdm-sobre: #0b1219;
+}
+
+/* ── El botón partido del PC: Comprar | Vender ── */
+.tdm-vender.tdm-partido {
+  display: inline-flex;
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+html.con-barra-movil .tdm-vender.tdm-partido { display: none; }
+.tdm-partido a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 40px;
+  padding: 0 var(--e-sm);
+  color: var(--tdm-sobre);
+  font-size: var(--t-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+/* Entre 1.240 y 1.440 px la barra va justa con los enlaces: solo los iconos. */
+@media (min-width: 1240px) and (max-width: 1440px) {
+  .tdm-partido a span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .tdm-partido a { min-width: 44px; justify-content: center; }
+}
+.tdm-partido .tdm-p-comprar { background: var(--tdm-compra); }
+.tdm-partido .tdm-p-vender { background: var(--tdm-venta); color: var(--acento-texto); }
+.tdm-partido a:hover { filter: brightness(1.08); }
+.tdm-partido a:focus-visible { outline: none; box-shadow: inset var(--shadow-ring); }
+.tdm-partido svg { width: 18px; height: 18px; }

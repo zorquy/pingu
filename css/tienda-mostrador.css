@@ -1,0 +1,312 @@
+/* El Mostrador (tandas 1254–1256): el abanico del botón del centro, el botón
+   partido del PC y lo que comparten Comprar, Vender y la caja. La inyectan
+   js/tienda-mostrador.js y las tres hojas. Por qué así, en SCHEMA 1254. */
+/* Los colores (--tdm-*) y el botón partido del PC viven en tienda-marco.css:
+   se ven al cargar, antes de abrir nada. */
+/* ── El botón del centro: con el abanico abierto, su círculo es una «×» y
+   la barra queda por encima del velo ── */
+html.tdm-abierto .bm { z-index: 97; }
+
+/* ── El abanico (móvil) ── */
+.tdm-velo {
+  position: fixed;
+  inset: 0;
+  z-index: 94;
+  background: rgb(13 27 42 / 55%);
+  animation: tdm-aparece 0.16s ease both;
+}
+.tdm-panel {
+  position: fixed;
+  left: var(--e-md);
+  right: var(--e-md);
+  bottom: calc(72px + var(--seguro-abajo) + var(--e-md));
+  z-index: 96;
+  display: grid;
+  gap: var(--e-sm);
+  max-width: 480px;
+  margin: 0 auto;
+  animation: tdm-sube 0.22s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.tdm-dos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
+.tdm-gran {
+  position: relative;
+  display: grid;
+  align-content: space-between;
+  gap: var(--e-sm);
+  min-height: 128px;
+  padding: var(--e-md);
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-lg);
+  color: var(--tdm-sobre);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: var(--shadow-lg);
+}
+.tdm-gran-comprar { background: var(--tdm-compra); }
+.tdm-gran-vender { background: var(--tdm-venta); color: var(--acento-texto); }
+.tdm-gran::after {
+  content: '';
+  position: absolute;
+  right: -16px;
+  top: -16px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgb(255 255 255 / 12%);
+}
+.tdm-gran svg { width: 28px; height: 28px; }
+.tdm-gran span { display: grid; gap: var(--e-xs); }
+.tdm-gran b { font-family: var(--font-display); font-size: var(--t-2xl); line-height: 1; }
+.tdm-gran small { font-size: var(--t-xs); line-height: 1.3; opacity: 0.9; }
+.tdm-gran:focus-visible { outline: none; box-shadow: var(--shadow-ring), var(--shadow-lg); }
+.tdm-gran:active { transform: scale(0.98); }
+
+.tdm-finas { display: flex; gap: var(--e-sm); }
+.tdm-finas button {
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.tdm-finas svg { flex: none; color: var(--acento); }
+.tdm-finas button:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+.tdm-hoy {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--e-xs) var(--e-sm);
+  margin: 0;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+.tdm-hoy b { color: var(--text); font-variant-numeric: tabular-nums; }
+
+@keyframes tdm-aparece { from { opacity: 0; } }
+@keyframes tdm-sube { from { opacity: 0; transform: translateY(24px) scale(0.96); } }
+@media (prefers-reduced-motion: reduce) {
+  .tdm-velo,
+  .tdm-panel { animation: none; }
+}
+
+/* ── Lo que comparten las hojas ── */
+.tdv .tdm-cab { justify-content: flex-start; }
+.tdm-cab .tdv-cerrar { margin-left: auto; }
+.tdm-modo { display: inline-flex; padding: 4px; border-radius: var(--radius-pill); background: var(--ice); }
+.tdm-modo button {
+  min-height: 36px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+.tdm-modo [data-modo='comprar'][aria-pressed='true'] { background: var(--tdm-compra); color: var(--tdm-sobre); }
+.tdm-modo [data-modo='vender'][aria-pressed='true'] { background: var(--tdm-venta); color: var(--acento-texto); }
+.tdm-modo button:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+
+.tdm-busca-caja { position: relative; }
+/* Con `.tdv` delante: la hoja de Vender puede llegar después y su borde ganaría. */
+.tdv .tdm-busca { width: 100%; box-sizing: border-box; border-radius: var(--radius-pill); border-width: 2px; border-color: var(--tdm-venta); padding-inline: var(--e-lg); }
+.tdv.tdm-hoja-comprar .tdm-busca { border-color: var(--tdm-compra); }
+
+.tdm-chapas { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs); }
+.tdm-idi { display: inline-flex; align-items: center; gap: 4px; font-weight: 700; color: var(--text); }
+
+.tdm-etq {
+  margin: 0 0 var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.tdm-pagos { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-sm); }
+.tdm-pagos button {
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  min-height: 56px;
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+.tdm-pagos button[aria-pressed='true'] { border-color: var(--tdm-venta); background: var(--tdm-venta-bg); color: var(--text); box-shadow: inset 0 0 0 1px var(--tdm-venta); }
+.tdm-hoja-comprar .tdm-pagos button[aria-pressed='true'] { border-color: var(--tdm-compra); background: var(--tdm-compra-bg); box-shadow: inset 0 0 0 1px var(--tdm-compra); }
+.tdm-pagos button:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+
+/* Una línea de Vender: «Tu precio» fijo y «Vendido por» con ese precio en gris. */
+.tdv .tdm-linea { gap: var(--e-sm); }
+.tdm-linea-cab { display: flex; align-items: flex-start; gap: var(--e-sm); }
+.tdm-linea-cab .tdv-linea-que { flex: 1; }
+.tdm-linea .tdv-linea-que small { white-space: normal; }
+.tdm-dos-campos { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
+.tdm-campo { display: grid; gap: 2px; min-width: 0; }
+.tdm-campo > span:first-child { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; }
+.tdm-campo-fijo b,
+.tdm-input input { font-family: var(--font-display); font-size: var(--t-lg); font-weight: 700; font-variant-numeric: tabular-nums; }
+.tdm-campo-fijo b { display: flex; align-items: center; min-height: 44px; }
+.tdm-input { display: flex; align-items: center; gap: var(--e-xs); min-height: 44px; padding: 0 var(--e-sm); border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--white); color: var(--text-mid); }
+.tdm-input:focus-within { border-color: transparent; box-shadow: var(--shadow-ring); }
+.tdv .tdm-input input { flex: 1; min-width: 0; width: 100%; min-height: 40px; border: 0; border-radius: 0; padding: 0; background: transparent; color: var(--text); }
+.tdv .tdm-input input:focus { outline: none; border: 0; box-shadow: none; }
+.tdm-input input::placeholder { color: var(--text-dim); opacity: 1; }
+.tdm-uds { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); color: var(--text-mid); font-size: var(--t-sm); }
+
+.tdm-total { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); color: var(--text-mid); font-size: var(--t-sm); }
+.tdm-total span { display: inline-flex; align-items: center; gap: var(--e-xs); }
+.tdm-total input { width: 120px; min-height: 40px; padding: 0 var(--e-sm); border: 1px solid var(--border-strong); border-radius: var(--radius-md); background: var(--white); color: var(--text); font: inherit; text-align: right; font-variant-numeric: tabular-nums; }
+.tdm-total input:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+
+.tdv .tdm-suma { display: grid; gap: var(--e-xs); padding-top: var(--e-sm); border-top: 1px dashed var(--border-strong); color: var(--text-mid); font-size: var(--t-sm); }
+.tdm-suma div { display: flex; justify-content: space-between; gap: var(--e-sm); }
+.tdm-suma b { color: var(--text); font-variant-numeric: tabular-nums; }
+.tdm-suma .tdm-suma-grande b { font-family: var(--font-display); font-size: var(--t-xl); }
+.tdm-suma b.tdv-verde { color: var(--success); }
+.tdm-suma b.tdv-rojo { color: var(--danger); }
+
+.tdm-donde { display: flex; align-items: center; gap: var(--e-sm); color: var(--text-mid); font-size: var(--t-sm); }
+.tdm-donde select { min-height: 36px; padding: 0 var(--e-sm); border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--white); color: var(--text); font: inherit; font-size: var(--t-sm); font-weight: 600; }
+.tdm-donde select:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+
+.tdm-boton-vender { background: var(--tdm-venta); color: var(--acento-texto); }
+.tdm-hoja-comprar .tdm-boton-vender { background: var(--tdm-compra); color: var(--tdm-sobre); }
+
+@media (pointer: coarse) {
+  .tdm-modo button,
+  .tdm-donde select,
+  .tdm-total input { min-height: 44px; }
+}
+
+/* ── La caja de hoy (1256) ── */
+.tdk-fecha { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.tdk-fecha::first-letter { text-transform: uppercase; }
+.tdk-cifras { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
+.tdk-cifras span { display: grid; padding: var(--e-sm) var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-md); min-width: 0; }
+.tdk-cifras small { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.tdk-cifras b { font-family: var(--font-display); font-size: var(--t-xl); font-variant-numeric: tabular-nums; }
+.tdk-cifras em { color: var(--text-mid); font-size: var(--t-xs); font-style: normal; }
+.tdk-tabla { width: 100%; border-collapse: collapse; font-size: var(--t-sm); }
+.tdk-tabla th,
+.tdk-tabla td { padding: var(--e-sm) var(--e-xs); border-bottom: 1px solid var(--border); text-align: right; font-variant-numeric: tabular-nums; }
+.tdk-tabla thead th { color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.tdk-tabla th:first-child { text-align: left; }
+.tdk-tabla tbody th { font-weight: 600; }
+.tdk-tabla tbody th svg { vertical-align: middle; margin-right: var(--e-sm); color: var(--text-mid); }
+.tdk-efectivo-caja { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); padding: var(--e-md); border-radius: var(--radius-md); background: var(--tdm-venta-bg); }
+.tdk-efectivo-caja > span { display: inline-flex; align-items: center; gap: var(--e-sm); font-weight: 600; }
+.tdk-efectivo-caja b { font-family: var(--font-display); font-size: var(--t-2xl); font-variant-numeric: tabular-nums; }
+.tdk-nota,
+.tdk-nada { margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
+.tdk-nada { font-size: var(--t-sm); }
+
+/* ── Comprar (1255) ── */
+.tdc-paso { display: grid; gap: var(--e-md); align-content: start; min-width: 0; }
+.tdc-pista { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.tdc-resultados { max-height: none; }
+.tdv .tdc-resultado { justify-content: flex-start; align-items: center; }
+.tdv .tdc-res-que { display: grid; min-width: 0; text-align: left; }
+.tdc-cat { padding: 0 var(--e-sm); border-radius: var(--radius-pill); font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
+.tdc-cat-occ { background: var(--tdm-compra-bg); color: var(--text); }
+.tdc-cat-jp { background: var(--danger-bg); color: var(--danger); }
+.tdc-cat-sel { background: var(--warning-bg); color: var(--text); }
+.tdc-foto-grande { width: 72px; border-radius: 6px; }
+.tdc-volver { justify-self: start; min-height: 36px; padding: 0; border: 0; background: none; color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 600; cursor: pointer; }
+.tdc-ficha-top { display: flex; align-items: center; gap: var(--e-md); }
+.tdc-ficha-top strong { font-family: var(--font-display); font-size: var(--t-lg); }
+.tdc-elige { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.tdc-elige-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+.tdc-elige-chip[aria-pressed='true'] { border-color: transparent; box-shadow: inset 0 0 0 2px var(--tdm-compra); background: var(--tdm-compra-bg); }
+.tdc-elige-chip:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+.tdc-estados .tdc-elige-chip,
+.tdc-casas .tdc-elige-chip { padding: 0 var(--e-xs); }
+.tdc-estados .tdc-elige-chip[aria-pressed='false'],
+.tdc-casas .tdc-elige-chip[aria-pressed='false'] { opacity: 0.55; }
+.tdc-notas .tdc-elige-chip { min-width: 40px; justify-content: center; }
+.tdc-raw { margin-bottom: var(--e-sm); }
+.tdc-raw [aria-pressed='true'] { background: var(--white); color: var(--text); box-shadow: var(--shadow-sm); }
+.tdc-precios { display: grid; gap: var(--e-sm); padding: var(--e-md); border-radius: var(--radius-md); background: var(--tdm-compra-bg); }
+.tdc-cm-fila { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); color: var(--text-mid); font-size: var(--t-sm); }
+.tdc-cm-fila b { color: var(--text); font-variant-numeric: tabular-nums; }
+.tdc-pcts { display: flex; gap: var(--e-xs); }
+.tdc-pcts button { flex: 1 1 0; min-height: 36px; border: 0; border-radius: var(--radius-pill); background: var(--white); color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 700; cursor: pointer; }
+.tdc-pcts button[aria-pressed='true'] { background: var(--tdm-compra); color: var(--tdm-sobre); }
+.tdc-pcts button:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+.tdc-margen { margin: 0; color: var(--success); font-size: var(--t-xs); font-weight: 600; }
+.tdc-margen:empty { display: none; }
+.tdc-margen.tdv-rojo { color: var(--danger); }
+.tdc-otra { justify-self: start; }
+.tdc-pct [aria-pressed='true'] { border-color: var(--tdm-compra); }
+.tdc-elige-chip .pv-bandera { flex: none; }
+
+@media (pointer: coarse) {
+  .tdc-elige-chip,
+  .tdc-pcts button,
+  .tdc-volver { position: relative; }
+  .tdc-elige-chip::after,
+  .tdc-pcts button::after,
+  .tdc-volver::after { content: ''; position: absolute; inset: -4px 0; }
+}
+
+/* ── Por poner a la venta (1255) ── */
+.tdpp-linea .tdpp-poner { justify-self: end; min-height: 40px; background: var(--tdm-venta); color: var(--acento-texto); }
+.tdpp-franja {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  width: 100%;
+  min-height: 44px;
+  margin-bottom: var(--e-sm);
+  padding: var(--e-sm) var(--e-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--tdm-compra-bg);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.tdpp-franja b { font-family: var(--font-display); font-size: var(--t-lg); color: var(--tdm-compra); }
+.tdpp-franja span { flex: 1; min-width: 0; }
+.tdpp-franja svg { flex: none; color: var(--text-mid); }
+.tdpp-franja:focus-visible { outline: none; box-shadow: var(--shadow-ring); }

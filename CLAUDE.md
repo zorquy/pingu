@@ -169,6 +169,21 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   de una etiqueta es `enlaceDeSku` → `/s/<tienda>/<SKU>`: escaparate con el
   pop-up, o su línea si escanea la tienda. Las barras son `js/codigo-barras.js`
   (Code 128, módulo de píxeles enteros): no metas otra librería de barras.
+  El MOSTRADOR (1254–1256, PINGU: «que sea algo que se despliegue y que mole»)
+  es el botón del centro del móvil (`MOSTRADOR` en `js/tienda-marco.js`) y
+  abre el abanico de `js/tienda-mostrador.js` (Comprar, Vender, Escanear, Caja
+  de hoy); en el PC, Comprar | Vender arriba. Comprar, Vender y la caja son
+  hojas que se abren en cualquier página de la tienda sin navegar
+  (`data-ver` de mostrador, comprar, vender o caja); al vender o comprar la
+  hoja se queda abierta para el siguiente. Vender: «Vendido por» VACÍO es su
+  precio (`precioCobrado`), nunca cero, y cómo te pagan va en `p_pago`
+  (`PAGOS_VENTA`); la base apunta el `precio_lista`. Comprar busca en
+  occidental, japonés y sellado a la vez, y lo comprado entra POR PONER A LA
+  VENTA (`por_poner`, oculto y sin precio; «Vale» es `valorado`, el precio de
+  partida): se publica por `tienda_poner_a_la_venta` (`js/tienda-por-poner.js`),
+  y lo que liste stock PARA VENDER quita lo que está por poner. La caja del día
+  es `cuentaDeCaja` (`js/tienda-caja.js`). Una forma de pago nueva va en
+  `PAGOS_VENTA`/`PAGOS_COMPRA` y en el `check` de la base a la vez.
   «Pedir fotos» (1251) es `tienda_pedir_fotos`; al subirlas avisa el
   DISPARADOR de `tienda_stock_fotos` (`trg_tienda_fotos_subidas`), así que un
   camino nuevo para subir fotos de una copia no tiene que avisar a mano.

@@ -764,3 +764,86 @@ export function textoDePaso(p, { soy, nombreTienda = 'La tienda', nombreComprado
   if (p.quien === soy) return `${PASO_TU[p.que] || p.que}${euros}`
   return `${p.quien === 'tienda' ? nombreTienda : nombreComprador} ${PASO_EL[p.que] || p.que}${euros}`
 }
+
+// ── EL MOSTRADOR (1254–1256) ──
+// Cómo se paga en el mostrador. Al vender, también con tarjeta; al comprar
+// (le pagas tú al cliente), «otro» por si es una transferencia o un cambio.
+export const PAGOS_VENTA = [['efectivo', 'Efectivo'], ['tarjeta', 'Tarjeta'], ['bizum', 'Bizum'], ['paypal', 'PayPal']]
+export const PAGOS_COMPRA = [['efectivo', 'Efectivo'], ['bizum', 'Bizum'], ['paypal', 'PayPal'], ['otro', 'Otro']]
+export const NOMBRE_DE_PAGO = Object.fromEntries([...PAGOS_VENTA, ...PAGOS_COMPRA])
+
+// Lo que se cobra de una línea de Vender: lo escrito en «Vendido por» o, si
+// está vacío, su precio (`lista`). Vacío NO es cero.
+export function precioCobrado(l) {
+  const escrito = l?.cobrar
+  if (escrito != null && escrito !== '' && Number.isFinite(Number(escrito))) return Number(escrito)
+  return l?.lista != null && Number.isFinite(Number(l.lista)) ? Number(l.lista) : null
+}
+
+// La cuenta de abajo de Vender: a tu precio, la rebaja (solo lo que se cobra
+// por DEBAJO de tu precio; por encima no es una rebaja negativa), lo que
+// cobras y lo que ganas (la de siempre, `cuentaDeVenta`).
+export function cuentaDeMostrador(lineas) {
+  let aTuPrecio = 0
+  let rebaja = 0
+  let cobras = 0
+  for (const l of lineas || []) {
+    const n = Number(l.vender) || 0
+    const p = precioCobrado(l)
+    if (!(n > 0) || p == null) continue
+    cobras += p * n
+    if (l.lista != null && Number.isFinite(Number(l.lista))) {
+      aTuPrecio += Number(l.lista) * n
+      if (Number(l.lista) > p) rebaja += (Number(l.lista) - p) * n
+    } else aTuPrecio += p * n
+  }
+  const venta = cuentaDeVenta((lineas || []).map((l) => ({ unidades: l.vender, precio: precioCobrado(l), coste: l.coste })))
+  const r = (x) => Math.round(x * 100) / 100
+  return { aTuPrecio: r(aTuPrecio), rebaja: r(rebaja), cobras: r(cobras), beneficio: venta.beneficio, margen: venta.margen }
+}
+
+// Lo que pagas por lo que vale, con el tanto por ciento: redondeado a los 10
+// céntimos (en un mostrador nadie paga 24,72 €).
+export function pagasPorPct(vale, pct) {
+  const v = Number(vale)
+  const p = Number(pct)
+  if (vale == null || vale === '' || !(v > 0) || !Number.isFinite(p) || p < 0) return null
+  return Math.round((v * p) / 10) / 10
+}
+
+// La caja del día (1256): ventas y compras por forma de pago. `ventas`:
+// filas de `tienda_ventas` (ticket, unidades, precio, coste, pago,
+// precio_lista); `compras`: de `tienda_compras` (ticket, unidades, coste,
+// pago). Lo que no dice cómo se pagó va en «sin decir». El efectivo de la
+// caja es lo que entró en efectivo menos lo que salió en efectivo.
+export function cuentaDeCaja(ventas = [], compras = []) {
+  const r = (x) => Math.round(x * 100) / 100
+  const metodos = {}
+  const de = (p) => (metodos[p || 'sin'] ??= { entra: 0, sale: 0 })
+  let vendido = 0
+  let comprado = 0
+  let ganado = 0
+  let sinCoste = 0
+  let rebajas = 0
+  for (const v of ventas) {
+    const n = Number(v.unidades) || 0
+    const total = Number(v.precio) * n
+    vendido += total
+    de(v.pago).entra += total
+    if (v.coste == null) sinCoste++
+    else ganado += (Number(v.precio) - Number(v.coste)) * n
+    if (v.precio_lista != null && Number(v.precio_lista) > Number(v.precio)) rebajas += (Number(v.precio_lista) - Number(v.precio)) * n
+  }
+  for (const c of compras) {
+    const total = Number(c.coste) * (Number(c.unidades) || 0)
+    comprado += total
+    de(c.pago).sale += total
+  }
+  for (const m of Object.values(metodos)) { m.entra = r(m.entra); m.sale = r(m.sale) }
+  const ef = metodos.efectivo || { entra: 0, sale: 0 }
+  return {
+    vendido: r(vendido), comprado: r(comprado), ganado: r(ganado), sinCoste, rebajas: r(rebajas),
+    ventas: new Set(ventas.map((v) => v.ticket)).size, compras: new Set(compras.map((c) => c.ticket)).size,
+    metodos, efectivo: r(ef.entra - ef.sale),
+  }
+}

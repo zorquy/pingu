@@ -74,21 +74,17 @@ function montarVentasSiToca(v) {
     .catch(() => { ventasMontadas = false; $('tdVentas').innerHTML = '<p class="subtext">No se han podido abrir tus ventas. Recarga la página.</p>' })
 }
 
-// VENDER (1072): la hoja, desde el botón de arriba, la barra del móvil,
-// Ventas o el stock. Al vender, quien pinta stock o ventas se repinta.
+// VENDER y COMPRAR (1072, 1091; el Mostrador desde la 1254): las hojas,
+// desde el botón del centro, el de arriba, Ventas, el stock o la ficha de una
+// línea. Las abre js/tienda-mostrador.js (también desde Mensajes o la
+// Colección); al terminar, quien pinta stock, ventas o el Panel se repinta.
+const mostrador = () => import('./tienda-mostrador.js')
 function abrirVender(filas = []) {
-  import('./tienda-vender.js')
-    .then(({ abrirVender }) => abrirVender({ filas, alTerminar: () => document.dispatchEvent(new CustomEvent('pokedoc:tienda-vendida')) }))
-    .catch(() => showToast('No se ha podido abrir Vender. Recarga la página.', 'error'))
+  mostrador().then((m) => m.abrirVenderRapido({ filas })).catch(() => showToast('No se ha podido abrir Vender. Recarga la página.', 'error'))
 }
 document.addEventListener('pokedoc:tienda-vender', (e) => abrirVender(e.detail || []))
-
-// COMPRAR A UN CLIENTE (1091): la hoja, desde Vender, «+ Añadir» del Stock y
-// Ventas → Compras. Lo comprado entra al stock: se repinta como al vender.
 function abrirComprar() {
-  import('./tienda-comprar.js')
-    .then(({ abrirComprar }) => abrirComprar({ alTerminar: () => document.dispatchEvent(new CustomEvent('pokedoc:tienda-vendida')) }))
-    .catch(() => showToast('No se ha podido abrir Comprar. Recarga la página.', 'error'))
+  mostrador().then((m) => m.abrirComprarRapido()).catch(() => showToast('No se ha podido abrir Comprar. Recarga la página.', 'error'))
 }
 document.addEventListener('pokedoc:tienda-comprar', () => abrirComprar())
 
@@ -139,6 +135,10 @@ function pestana(cual) {
   else url.searchParams.set('ver', v)
   url.searchParams.delete('buscar')
   url.searchParams.delete('vender')
+  url.searchParams.delete('comprar')
+  url.searchParams.delete('mostrador')
+  url.searchParams.delete('caja')
+  url.searchParams.delete('porponer')
   url.searchParams.delete('filtro')
   history.replaceState(null, '', url)
   // Las barras de la tienda (js/tienda-marco.js) marcan la misma.
@@ -217,8 +217,15 @@ async function arrancar() {
     pestana('stock')
     montarStockSiToca('stock')?.then((m) => m?.abrirPorSku(params.get('sku').toUpperCase()))
   }
+  // Lo comprado por poner a la venta (1255), desde la pastilla del Panel.
+  if (params.has('porponer')) {
+    pestana('stock')
+    montarStockSiToca('stock')?.then((m) => m?.abrirPorPoner())
+  }
   if (params.has('vender')) abrirVender()
   if (params.has('comprar')) abrirComprar()
+  if (params.has('mostrador')) mostrador().then((m) => m.abrirMostrador()).catch(() => {})
+  if (params.has('caja')) mostrador().then((m) => m.abrirCajaDeHoy()).catch(() => {})
 }
 
 // Las secciones de las barras y de la hoja «Tú» llevan `data-ver`: dentro del
@@ -228,12 +235,14 @@ document.addEventListener('click', (e) => {
   if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return
   if ($('tdPanel')?.classList.contains('hidden')) return
   if (new URL(a.href, location.href).pathname.replace(/\.html$/, '') !== '/tienda') return
+  if (['mostrador', 'comprar', 'vender', 'caja'].includes(a.dataset.ver)) return
   e.preventDefault()
   $('navUserDropdown')?.classList.add('hidden')
-  if (a.dataset.ver === 'vender') return abrirVender()
   if (a.dataset.filtro) stockFiltrado(a.dataset.filtro)
   else if (a.hasAttribute('data-buscar')) buscarEnStock()
   else pestana(a.dataset.ver)
+  // La pastilla del Panel (1255): el Stock con «Por poner a la venta» abierto.
+  if (a.hasAttribute('data-porponer')) montarStockSiToca('stock')?.then((m) => m?.abrirPorPoner())
   window.scrollTo({ top: 0 })
 })
 

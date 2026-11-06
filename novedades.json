@@ -34,6 +34,18 @@
   ],
   "entradas": [
     {
+      "fecha": "2026-11-06",
+      "tipo": "nuevo",
+      "texto": "Tiendas: el Mostrador. El botón del centro abre Comprar y Vender para ir rápido en un evento: vendes de tu stock con tu precio en gris (si lo rebajas, lo escribes) y eliges cómo te pagan; compras buscando en occidental, japonés y sellado a la vez, con idioma, estado o gradeo, lo que vale y lo que pagas.",
+      "enlace": "/para-tiendas"
+    },
+    {
+      "fecha": "2026-11-06",
+      "tipo": "nuevo",
+      "texto": "Tiendas: lo que compras espera en «Por poner a la venta» hasta que le pones precio, y la caja de hoy te dice lo vendido y comprado por forma de pago y cuánto efectivo debería haber.",
+      "enlace": "/para-tiendas"
+    },
+    {
       "fecha": "2026-11-05",
       "tipo": "nuevo",
       "texto": "Tiendas: cada etiqueta lleva el SKU con su código de barras para el lector del mostrador (en Vender y en el Stock, escanear y listo), y su QR abre esa carta en tu escaparate; si lo escaneas tú, su línea en tu stock.",
