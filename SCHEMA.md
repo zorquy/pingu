@@ -55204,6 +55204,25 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1260b — El botón de un concurso lleva al concurso
+
+PINGU publicó el concurso de los Funko Pop y vio el fallo: «el me apunto…
+debería llevarte al concurso. Es decir, debería ser un enlace». La plantilla
+de concurso venía con `participar` encendido, así que el botón apuntaba a la
+lista de PokeDoc en vez de llevar al tema del foro donde se participa.
+- `PLANTILLAS.concurso` lleva ahora `participar: false` y el botón
+  «Apuntarme»: hay que poner a dónde lleva.
+- En el editor, «El botón» son dos opciones con su frase debajo: «Lleva a un
+  enlace» (por defecto) y «Me apunto aquí (lista y sorteo)», para un concurso
+  que se lleva en PokeDoc solo para cuentas. Con texto y sin enlace no se
+  publica y lo dice.
+- La franja salía también en /admin, pegada a la barra lateral (allí no hay
+  `.navbar` y el primer `nav` es el menú): `pintarAvisoGlobal` no pinta en
+  /admin; el equipo los ve en la vista previa.
+- Ojo con las cifras de un botón que navega: el clic se cuenta con una
+  llamada a la base justo antes de irse, y un navegador puede cortarla al
+  cambiar de página, así que «pulsaron» puede quedarse algo corto.
+
 ## Tanda 1260 — Los avisos del equipo, renovados
 
 PINGU: «los avisos eran un poco pochos… hemos cambiado mucho la web», con el

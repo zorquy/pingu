@@ -21,6 +21,9 @@ import {
 } from '../../js/aviso-puro.js'
 
 const CUBO = 'avisos'
+// Qué hace el botón (1260b, PINGU: «debería ser un enlace… apuntarme sería
+// cuando hago un concurso para usuarios registrados»): por defecto, un enlace.
+const BOTONES = { enlace: 'Lleva a un enlace', apuntarse: 'Me apunto aquí (lista y sorteo)' }
 const ESTADOS = { en_marcha: 'En marcha', programado: 'Programados', borrador: 'Borradores', terminado: 'Terminados' }
 // Dibujos de los sitios (icons.js no tiene «pop-up» ni «franja»).
 const ICONO_SITIO = {
@@ -138,9 +141,10 @@ function editorHtml(a) {
             <button type="button" class="link-btn" id="avImagenQuitar" ${a.imagen ? '' : 'hidden'}>Quitar</button>
             <input type="hidden" id="avImagen" value="${escapeHtml(a.imagen || '')}" />
           </div>
-          <label class="av-interruptor"><input type="checkbox" id="avParticipar" ${a.participar ? 'checked' : ''} /> <span><b>«Me apunto»</b> — la gente se apunta con su cuenta y tú sorteas aquí</span></label>
+          <div class="av-campo"><span>El botón</span>${chipsHtml('boton', BOTONES, a.participar ? 'apuntarse' : 'enlace')}
+            <small class="av-nota" id="avBotonNota"></small></div>
           <div class="av-dos" id="avBoton" ${a.participar ? 'hidden' : ''}>
-            <label class="av-campo"><span>Botón</span><input type="text" id="avBotonTexto" maxlength="30" placeholder="Ver más" value="${escapeHtml(a.boton_texto || '')}" /></label>
+            <label class="av-campo"><span>Texto del botón</span><input type="text" id="avBotonTexto" maxlength="30" placeholder="Apuntarme" value="${escapeHtml(a.boton_texto || '')}" /></label>
             <label class="av-campo"><span>Lleva a</span><input type="text" id="avBotonEnlace" placeholder="/tema/… o https://…" value="${escapeHtml(a.boton_enlace || '')}" /></label>
           </div>
           <div class="av-dos">
@@ -180,7 +184,7 @@ function editorHtml(a) {
 function leer(form, base) {
   const v = (id) => form.querySelector(id).value.trim()
   const sitios = [...form.querySelectorAll('[data-sitio]:checked')].map((x) => x.dataset.sitio)
-  const participar = form.querySelector('#avParticipar').checked
+  const participar = form.querySelector('[data-av-boton].on')?.dataset.avBoton === 'apuntarse'
   return {
     ...base,
     tipo: form.querySelector('[data-av-tipo].on')?.dataset.avTipo || 'novedad',
@@ -218,6 +222,9 @@ function validar(form, a) {
   form.querySelector('#avFechasNota').hidden = !malFechas
   form.querySelector('#avRecordarFila').hidden = !a.sitios.includes('campanita')
   form.querySelector('#avBoton').hidden = a.participar
+  form.querySelector('#avBotonNota').textContent = a.participar
+    ? 'La gente se apunta con su cuenta en PokeDoc; tú ves la lista y sorteas aquí.'
+    : 'El botón lleva adonde pongas: un tema del foro, Instagram… Para un concurso que se lleva fuera de PokeDoc.'
   const r = []
   if (a.sitios.length) r.push(`Sale en: ${a.sitios.map((x) => SITIOS_DE_AVISO[x].nombre.toLowerCase()).join(', ')}.`)
   if (a.hasta) r.push(`Se apaga solo el ${fechaHora(a.hasta)}.`)
@@ -226,6 +233,7 @@ function validar(form, a) {
   if (!a.titulo) return 'El aviso necesita un título.'
   if (!a.sitios.length) return 'Elige al menos un sitio donde salga.'
   if (malEnlace) return 'Los enlaces empiezan por / o por https://.'
+  if (!a.participar && a.boton_texto && !a.boton_enlace) return 'Pon a dónde lleva el botón (por ejemplo, el tema del foro).'
   if (malFechas) return '«Hasta» va después de «Desde».'
   return null
 }
@@ -275,7 +283,11 @@ function abrirEditor(base) {
     if (chip.dataset.avTipo && !a.id) {
       const p = PLANTILLAS[chip.dataset.avTipo]
       form.querySelectorAll('[data-sitio]').forEach((x) => { x.checked = p.sitios.includes(x.dataset.sitio) })
-      form.querySelector('#avParticipar').checked = p.participar
+      for (const c of form.querySelectorAll('[data-av-boton]')) {
+        const on = c.dataset.avBoton === (p.participar ? 'apuntarse' : 'enlace')
+        c.classList.toggle('on', on)
+        c.setAttribute('aria-checked', String(on))
+      }
       form.querySelector('#avCuenta').checked = p.cuenta_atras
       form.querySelector('#avRecordar').checked = p.recordar
       if (!form.querySelector('#avBotonTexto').value) form.querySelector('#avBotonTexto').value = p.boton_texto

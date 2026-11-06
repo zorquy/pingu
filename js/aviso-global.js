@@ -143,6 +143,9 @@ async function popupSolo(lista) {
 }
 
 export async function pintarAvisoGlobal() {
+  // /admin carga app.js pero no es la web: su `nav` es la barra lateral, y la
+  // franja acababa pegada debajo de ella. El equipo los ve en la vista previa.
+  if (/^\/admin/.test(location.pathname)) return
   try {
     const [todos, ctx] = await Promise.all([avisosEnMarcha(), contexto()])
     const lista = todos.filter((a) => seVeAviso(a, ctx))

@@ -1964,8 +1964,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   avisos eran un poco pochos»; antes, UN JSON en `site_settings.aviso_global`,
   que sigue saliendo solo sin la migración): varios a la vez, cada uno con sus
   `sitios` (pop-up una vez por persona, franja, tarjeta de Inicio y campanita),
-  su imagen (cubo público `avisos`), su botón o «Me apunto» (`participar`), y
-  sus fechas. Las reglas y las CUATRO piezas que se pintan (`popHtml`,
+  su imagen (cubo público `avisos`), su botón y sus fechas. El botón LLEVA a un
+  enlace por defecto, también en un concurso (1260b, PINGU: «debería ser un
+  enlace… apuntarme sería cuando hago un concurso para usuarios registrados»):
+  la lista de «Me apunto» (`participar`) se elige a propósito en el editor. Las reglas y las CUATRO piezas que se pintan (`popHtml`,
   `franjaHtml`, `tarjetaHtml`, `campanitaHtml`) viven en `js/aviso-puro.js`:
   las pinta la web (`js/aviso-global.js`, `js/aviso-pop.js`) y la vista previa
   de /admin → Avisos, así que un campo nuevo va ahí, no en otra copia. Un sitio

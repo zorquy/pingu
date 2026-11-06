@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-06 (502) — PINGU-Claude (1260b — el botón del concurso lleva al foro)
+
+**Hecho**: PINGU publicó el concurso y el botón era «Me apunto» (la lista de
+PokeDoc) cuando se participa en un tema del foro: «debería ser un enlace».
+La plantilla de concurso ya no enciende `participar` (botón «Apuntarme» que
+lleva a un enlace), y el editor elige entre «Lleva a un enlace» y «Me apunto
+aquí (lista y sorteo)», con su frase; con texto y sin enlace no publica.
+Y de paso: la franja de la web salía también en /admin (debajo de la barra
+lateral, que es el primer `nav`): `pintarAvisoGlobal` ya no pinta en /admin.
+El aviso que ya está publicado se arregla abriéndolo en /admin → Avisos,
+eligiendo «Lleva a un enlace» y poniendo el tema del foro.
+
+**Ficheros**: `admin/js/avisos-admin.js`, `js/aviso-puro.js` (PLANTILLAS),
+`js/aviso-global.js`,
+SCHEMA, CLAUDE.md, novedades. Rama pruebas: 1260 y 1260-pantalla al día (el
+editor nuevo y un concurso con enlace en la franja y el pop-up).
+
+**Pendiente**: lo de la 501 (la migración 1260, si no está ejecutada).
+
 ## 2026-11-06 (501) — PINGU-Claude (1260 — los avisos del equipo, renovados)
 
 **Hecho**: PINGU: «los avisos eran un poco pochos… cámbiame el panel… y

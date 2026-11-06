@@ -29,7 +29,9 @@ export const PUBLICOS_DE_AVISO = { todos: 'Todo el mundo', cuenta: 'Con cuenta',
 
 // Lo que suele llevar cada tipo: al elegirlo en el editor se rellena así.
 export const PLANTILLAS = {
-  concurso: { sitios: ['popup', 'franja', 'inicio', 'campanita'], participar: true, cuenta_atras: true, recordar: true, boton_texto: '' },
+  // El botón de un concurso LLEVA a donde se participa (un tema del foro): la
+  // lista de «Me apunto» es para cuando el concurso se lleva aquí (1260b).
+  concurso: { sitios: ['popup', 'franja', 'inicio', 'campanita'], participar: false, cuenta_atras: true, recordar: true, boton_texto: 'Apuntarme' },
   novedad: { sitios: ['franja', 'campanita'], participar: false, cuenta_atras: false, recordar: false, boton_texto: 'Ver más' },
   evento: { sitios: ['franja', 'inicio', 'campanita'], participar: false, cuenta_atras: true, recordar: true, boton_texto: 'Ver el evento' },
   aviso: { sitios: ['franja'], participar: false, cuenta_atras: false, recordar: false, boton_texto: '' },
