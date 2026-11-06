@@ -12,7 +12,7 @@
 // vuelve a su sitio. Lo monta barra-movil.js: el escritorio no lo baja.
 
 // Las hojas: la «Tú» y los diálogos que en el móvil suben desde abajo.
-export const HOJAS = '#navUserDropdown:not(.hidden), dialog[open].mc-bandeja, dialog[open].mc-panel-filtros, dialog[open].mc-editor, dialog[open].mc-dlg-adorno, dialog[open].foro-elegir'
+export const HOJAS = '#navUserDropdown:not(.hidden), dialog[open].mc-bandeja, dialog[open].mc-panel-filtros, dialog[open].mc-editor, dialog[open].mc-dlg-adorno, dialog[open].foro-elegir, dialog[open].aviso-pop'
 // Lo que el dedo usa para otra cosa.
 const SUYO = 'input[type="range"], textarea, select, [contenteditable="true"], [data-sin-arrastre]'
 

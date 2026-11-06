@@ -1960,11 +1960,23 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   con su número en el menú (`ponerContadorNav`); una cola nueva que espere al
   equipo es una entrada más ahí, no otra cifra suelta. Nada de cifras de
   adorno en «Hoy»: eso es Analítica.
-- **El aviso del equipo (la franja de arriba) es `site_settings.aviso_global`
-  y sus reglas viven en `js/aviso-puro.js`** (tanda 1120): las usa la web y la
-  vista previa de /admin → Avisos, así que un campo nuevo del aviso va ahí y en
-  `franjaHtml`, no en otra copia. A la campanita de todos solo se manda por
-  `admin_aviso_campanita` (tipo `aviso_equipo`, que se puede apagar).
+- **Los avisos del equipo son la tabla `avisos`** (tanda 1260, PINGU: «los
+  avisos eran un poco pochos»; antes, UN JSON en `site_settings.aviso_global`,
+  que sigue saliendo solo sin la migración): varios a la vez, cada uno con sus
+  `sitios` (pop-up una vez por persona, franja, tarjeta de Inicio y campanita),
+  su imagen (cubo público `avisos`), su botón o «Me apunto» (`participar`), y
+  sus fechas. Las reglas y las CUATRO piezas que se pintan (`popHtml`,
+  `franjaHtml`, `tarjetaHtml`, `campanitaHtml`) viven en `js/aviso-puro.js`:
+  las pinta la web (`js/aviso-global.js`, `js/aviso-pop.js`) y la vista previa
+  de /admin → Avisos, así que un campo nuevo va ahí, no en otra copia. Un sitio
+  nuevo va en `SITIOS_DE_AVISO`, en el `check` de la base y en las dos
+  pantallas; un tipo nuevo, en `TIPOS_DE_AVISO` y `PLANTILLAS`. Las cifras
+  van por `aviso_contar` (sin quién, una vez por navegador), apuntarse por
+  `aviso_apuntarme`, sortear por `admin_aviso_sortear`, y la campanita por
+  `admin_aviso_avisar` (al publicar) o `avisos_al_dia` (cada hora, entre las
+  10 y las 22): nunca un insert del navegador. `?aviso=<id>` abre su pop-up en
+  cualquier página (el enlace de la campanita); una tienda solo ve el de
+  mantenimiento.
 - **En /admin, «Cartas» es «Marcas legales»** (tanda 1123): las marcas de
   la temporada y, plegadas, las herramientas de diagnóstico. El catálogo se
   llena solo (TCGGO); la marca de cada set y su código de TCG Live se corrigen

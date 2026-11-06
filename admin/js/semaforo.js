@@ -33,6 +33,8 @@ export const PASADAS = [
   ['enviar_push', 'Avisos push'],
   // Los silencios y baneos con fecha de fin (1121).
   ['moderacion_al_dia', 'Moderación caducada'],
+  // La campanita de los avisos programados y el «se acaba pronto» (1260).
+  ['avisos_al_dia', 'Avisos a la campanita'],
 ]
 
 const DIA_MS = 24 * 60 * 60 * 1000

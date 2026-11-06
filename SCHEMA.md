@@ -55204,6 +55204,64 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1260 — Los avisos del equipo, renovados
+
+PINGU: «los avisos eran un poco pochos… hemos cambiado mucho la web», con el
+concurso de los Funko Pop de los iniciales de Kanto (hasta el 15 de
+noviembre) de ejemplo. Propuesta con maquetas y «dale» a lo recomendado.
+
+**La base** (`supabase-migration-1260-avisos.sql`):
+- `avisos`: tipo (concurso, novedad, evento, aviso, mantenimiento), título,
+  texto, imagen (https), botón o `participar`, enlace pequeño, `sitios`
+  (popup, franja, inicio, campanita; al menos uno), `cuenta_atras`,
+  `recordar`, `publico` (todos, cuenta, sin_cuenta, movil), desde, hasta,
+  `publicado` y las marcas `avisado_at` / `recordado_at` / `ganador_id`. La
+  política deja a la gente leer SOLO lo que está en marcha; el equipo, todo.
+- `aviso_cifras` (aviso, día, vistos, clics, cerrados): la suma `aviso_contar`
+  solo para un aviso en marcha. El navegador recuerda qué ha contado
+  (`pd-avisos-contados`), así que cuenta personas por navegador, no páginas.
+- `aviso_participantes`: lo escribe `aviso_apuntarme` (con cuenta, aviso en
+  marcha con `participar`, nunca una tienda); `aviso_participacion` dice
+  cuántos van y si estás; el equipo lista con `admin_aviso_participantes` y
+  sortea con `admin_aviso_sortear`, que guarda el ganador y, si se repite,
+  deja fuera al de antes.
+- La campanita: `aviso_mandar` (interna) avisa a quien no apagó
+  `aviso_equipo`, sin tiendas salvo en mantenimiento, a nadie si es «sin
+  cuenta», y en el recordatorio sin los apuntados; enlace `/?aviso=<id>`.
+  `admin_aviso_avisar` lo hace al publicar (una vez: marca `avisado_at` antes)
+  y `avisos_al_dia(p_ahora)` cada hora desde `avisos-recordatorio`: los
+  programados que ya salieron y, a menos de 30 h del final, «Se acaba
+  pronto: …» (una vez, `recordado_at`), solo entre las 10 y las 22 de Madrid;
+  si acaba de salir (menos de 12 h), no recuerda.
+- El cubo público `avisos` (3 MB, solo el equipo escribe) y el aviso de antes
+  copiado como franja si la tabla está vacía.
+
+**La web**: `js/aviso-global.js` pide los avisos UNA vez por página
+(`avisosEnMarcha`) y pinta la franja (la más urgente por `orden`; cerrada, se
+queda cerrada por huella en `pd-avisos-cerrados`), la tarjeta encima de
+`.portada-principal` en Inicio y, una vez por persona (`pd-avisos-vistos`),
+el pop-up: a los 1,2 s, nunca encima de otra ventana, ni preparando la página
+(985), ni a un navegador automático, ni en /auth y /admin. `?aviso=<id>` lo
+abre siempre (lo usa la campanita y la vuelta del registro). El pop-up
+(`js/aviso-pop.js`) es centrado en el PC (imagen a la izquierda) y hoja desde
+abajo en el móvil; «Me apunto» cambia YA y deshace si falla (896); sin cuenta
+lleva a `/auth.html?registro=1&volver=<página>?aviso=<id>` (cierra el diálogo
+antes de irse: con él abierto se abortaba la transición). La línea «Ya se han
+apuntado N» ocupa su sitio desde el principio: Chrome centra un modal al
+abrirlo y crecer después lo descentraba. En el móvil la franja no tiene botón
+y tocarla abre el pop-up. Los tokens de color de cada tipo son locales
+(`--aviso-c`, `--aviso-bg`, `--aviso-arte` por `[data-tipo]`).
+
+**El panel** (`admin/js/avisos-admin.js`): lista por estado (En marcha,
+Programados, Borradores, Terminados) con miniatura, dónde sale y cifras;
+editor con plantillas por tipo (`PLANTILLAS`, solo en uno nuevo), foto
+comprimida al subir (`js/imagen-comprimir.js`), «Me apunto», los cuatro
+sitios, fechas, cuenta atrás y a quién; la vista previa pinta los cuatro
+sitios con las piezas de la web; un aviso abierto enseña cifras, apuntados,
+«Sortear» (y «Escribirle» al ganador), Apagar ahora, Pasar a borrador,
+Duplicar y Borrar (con confirmación en la página). Sin la migración dice qué
+falta. «Hoy» cuenta los que hay en marcha o programados.
+
 ## Tanda 1259 — el tirón de recargar y las cajas que se deslizan por dentro
 
 El tirón de la app instalada (732) arranca si `window.scrollY <= 0`. En una

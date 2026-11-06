@@ -4,6 +4,47 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-06 (501) — PINGU-Claude (1260 — los avisos del equipo, renovados)
+
+**Hecho**: PINGU: «los avisos eran un poco pochos… cámbiame el panel… y
+proponme cómo mostrarlos» (para el concurso de los Funko Pop de los iniciales
+de Kanto, hasta el 15 de noviembre). Propuesta con imágenes y «dale» a lo
+recomendado: «Me apunto» con sorteo, foto subida, los cuatro sitios y cifras.
+- **Migración `supabase-migration-1260-avisos.sql` (PENDIENTE de ejecutar)**:
+  tabla `avisos` (varios a la vez; la gente solo lee los que están en marcha),
+  `aviso_cifras` + `aviso_contar` (vistos, clics y cerrados por día, sin
+  quién), `aviso_participantes` + `aviso_apuntarme` / `aviso_participacion`,
+  `admin_aviso_participantes` / `admin_aviso_sortear` (sortear otra vez deja
+  fuera al de antes), la campanita (`admin_aviso_avisar` al publicar y
+  `avisos_al_dia` cada hora, entre las 10 y las 22, para los programados y el
+  «se acaba pronto») y el cubo público `avisos`. Copia dentro el aviso de antes.
+- `js/aviso-puro.js` reescrito: estados, a quién (también «sin cuenta» y las
+  tiendas), cuál gana, cuenta atrás y las cuatro piezas (pop-up, franja,
+  tarjeta de Inicio y fila de campanita).
+- La web: `js/aviso-global.js` (franja nueva, tarjeta encima de los bloques de
+  Inicio, cifras, el pop-up solo una vez y nunca a un navegador automático) y
+  `js/aviso-pop.js` (por `import()`; `?aviso=<id>` lo abre; «Me apunto» con y
+  sin cuenta). Hoja `css/aviso-global.css`; el pop-up entra en las hojas que se
+  arrastran (`js/hoja-arrastre.js`).
+- /admin → Avisos rehecho (`admin/js/avisos-admin.js`): lista por estado con
+  cifras, editor con plantillas, foto, «Me apunto», dónde sale, vista previa
+  de los cuatro sitios, apuntados, «Sortear», Apagar, Duplicar y Borrar.
+- `netlify/functions/avisos-recordatorio.mjs` (cada hora, `avisos_al_dia`) y su
+  clave en `PASADAS`.
+
+**Ficheros**: la migración, `js/aviso-puro.js`, `js/aviso-global.js`,
+`js/aviso-pop.js` (nuevo), `css/aviso-global.css`, `js/hoja-arrastre.js`,
+`admin/js/avisos-admin.js`, `admin/js/semaforo.js`, `admin/css/admin.css`,
+`admin/index.html`, la función, SCHEMA, CLAUDE.md, novedades. Rama pruebas:
+`test-tanda-1260.mjs` (lo puro y la migración contra PostgreSQL, también
+sentencia a sentencia) y `test-tanda-1260-pantalla.mjs`; la 1120 pierde su
+parte pura y su prueba de pantalla (las sustituyen las de la 1260).
+
+**Pendiente**: que PINGU ejecute `supabase-migration-1260-avisos.sql`. Hasta
+entonces la web enseña la franja de antes y el panel dice qué falta. Rojas
+que ya estaban (no son de esta tanda): 983 (/perfil en la ola 3), 310
+(duraciones e imágenes de otras pantallas), 311 y 315.
+
 ## 2026-11-06 (500) — PINGU-Claude (nota: migraciones de tiendas ejecutadas)
 
 **Hecho**: PINGU confirma que ya están ejecutadas en la base las migraciones

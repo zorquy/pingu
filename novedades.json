@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-06",
+      "tipo": "nuevo",
+      "texto": "Los avisos del equipo, renovados: los concursos y novedades ahora salen con imagen y cuenta atrás, en una ventana al entrar, en la franja de arriba y en Inicio. Y en los concursos te apuntas con un botón, «Me apunto».",
+      "enlace": "/"
+    },
+    {
+      "fecha": "2026-11-06",
       "tipo": "arreglo",
       "texto": "Mensajes en la app instalada: subir por una conversación ya no la recarga (salía la Poké Ball de recargar). Las conversaciones se actualizan solas, sin tirar hacia abajo.",
       "enlace": "/mensajes"
