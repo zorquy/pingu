@@ -55152,3 +55152,29 @@ Pruebas: `test-tanda-1254.mjs` y `test-tanda-1255.mjs` (PostgreSQL),
 PC, Vender sin lo por poner y sin la migración, la caja, «Por poner a la
 venta» y el recibo), y las de la 1071, 1072, 1075, 1091, 1252 y 1253 puestas
 al día.
+
+## Tanda 1257 — Vender con foto y el orden de Buscar
+
+- **Vender** pinta la foto de cada resultado y de cada línea (`fotoHtml` con
+  `completarFotos`: `tcg_cards` por mercado con `COLUMNAS_CARTA_DE_SET` y
+  `tcg_products.image`), en la caja `.tdc-foto` de Comprar. Se pide a la vez
+  que los nombres de los sets, antes de pintar.
+- **El orden de Buscar** (Mi colección y /cartas → Buscar). Sergio: «ascendente
+  o descendente, no cambia». Dos causas, las dos sin error:
+  1. `ordenarLineas` aplicaba el sentido a la clave y NO al desempate (set y
+     número). Con claves iguales —buscando «Charizard», el nombre— el orden lo
+     ponía solo el desempate, siempre hacia arriba. Ahora el sentido va a los
+     dos (también en Mi colección: «Expansión» descendente invierte números).
+  2. Los resultados se agrupan por expansión y `pintarResultadosBuscar`
+     preguntaba `ordenCatalogo === 'fecha'`, que no existe (es `'salida'`):
+     los grupos salían siempre de lo más nuevo a lo más viejo y deshacían el
+     orden. `gruposPorExpansion` acepta `enOrden` (los grupos en el orden de
+     su primera carta) y lo usan «Fecha de salida» y «Expansión y número».
+  «Expansión y número» se ordena por la clave de `salida` (la fecha de la
+  expansión) con el desempate de set y número; por el NOMBRE del set no era un
+  orden útil y los grupos lo deshacían.
+
+Prueba: `test-tanda-1257-pantalla.mjs` (nombre, expansión y número y fecha en
+los dos sentidos; cae con el código de antes) y Vender con foto. Una prueba
+con fotos bloquea el service worker (`serviceWorkers: 'block'`): sin eso las
+pide el worker, `route` no las ve y la cadena de respaldos las quita.

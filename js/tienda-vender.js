@@ -24,6 +24,8 @@ import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { nombreDeSet } from './catalogo-series.js'
 import { chapaDeEstadoHtml } from './estado-chapa.js'
 import { chapaDeGradeoHtml } from './gradeo-elegir.js'
+import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
+import { COLUMNAS_CARTA_DE_SET } from './mi-coleccion/columnas-set.js'
 import { DONDE_VENTA, PAGOS_VENTA, precioQueCuenta, ofertaDe, pareceSku, cuentaDeMostrador, precioCobrado, repartirTotal } from './tiendas-puro.js'
 import { modoHtml, pagosHtml, recordado, recordar, abrirComprarRapido } from './tienda-mostrador.js'
 
@@ -55,11 +57,47 @@ function chapasHtml(f) {
   return `<span class="tdm-idi">${escapeHtml(String(f.idioma || '').toUpperCase())}</span>${f.gradeo ? chapaDeGradeoHtml(f.gradeo) : chapaDeEstadoHtml(f.estado)}<span>${escapeHtml([f.set_id ? nombreSet(f.set_id) : '', f.numero, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : ''].filter(Boolean).join(' · '))}</span>`
 }
 
+// Los nombres de los sets y, a la vez, lo que hace falta para la FOTO de cada
+// línea (PINGU: «para reconocerlo visualmente, igual que en comprar»): la
+// carta del catálogo (por su mercado) o el producto.
 async function completarSets(filas) {
   const faltan = [...new Set(filas.map((f) => f.set_id).filter((id) => id && !sets.has(id)))]
-  if (!faltan.length) return
-  const { data } = await supabase.from('tcg_sets').select('id,name,name_en,market').in('id', faltan)
-  for (const s of data || []) sets.set(s.id, nombreDeSet(s) || s.id)
+  const nombres = async () => {
+    if (!faltan.length) return
+    const { data } = await supabase.from('tcg_sets').select('id,name,name_en,market').in('id', faltan)
+    for (const s of data || []) sets.set(s.id, nombreDeSet(s) || s.id)
+  }
+  await Promise.all([nombres().catch(() => {}), completarFotos(filas).catch(() => {})])
+}
+const cartas = new Map()
+const productos = new Map()
+const claveCarta = (f) => `${f.market === 'JP' ? 'JP' : 'WEST'}|${f.card_id}`
+async function completarFotos(filas) {
+  const porMercado = { WEST: [], JP: [] }
+  for (const f of filas) if (f.card_id && !cartas.has(claveCarta(f))) porMercado[f.market === 'JP' ? 'JP' : 'WEST'].push(f.card_id)
+  const prods = [...new Set(filas.filter((f) => f.product_id && !productos.has(String(f.product_id))).map((f) => f.product_id))]
+  const deMercado = async (market, ids) => {
+    const { data } = await supabase.from('tcg_cards').select(COLUMNAS_CARTA_DE_SET).eq('market', market).in('id', [...new Set(ids)].slice(0, 150))
+    for (const c of data || []) cartas.set(`${market}|${c.id}`, c)
+  }
+  const deProductos = async () => {
+    const { data } = await supabase.from('tcg_products').select('id,image').in('id', prods)
+    for (const p of data || []) productos.set(String(p.id), p)
+  }
+  await Promise.all([
+    ...Object.entries(porMercado).filter(([, ids]) => ids.length).map(([m, ids]) => deMercado(m, ids)),
+    prods.length ? deProductos() : null,
+  ])
+}
+// En su caja: si ninguna foto contesta, queda el hueco con su forma (la 441).
+function fotoHtml(f) {
+  if (f.product_id) {
+    const p = productos.get(String(f.product_id))
+    return `<span class="tdc-foto tdc-foto-producto">${p?.image ? `<img src="${escapeHtml(p.image)}" alt="" width="40" height="40" loading="lazy" onerror="this.remove()" />` : ''}</span>`
+  }
+  const c = cartas.get(claveCarta(f))
+  const attrs = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : null
+  return `<span class="tdc-foto">${attrs ? `<img ${attrs} alt="" width="245" height="342" loading="lazy" />` : ''}</span>`
 }
 const nombreSet = (id) => sets.get(id) || id
 
@@ -116,7 +154,7 @@ function montar() {
       await completarSets(filas)
       if (yo !== pedido) return
       caja.innerHTML = filas.length
-        ? filas.map((f) => `<li><button type="button" class="tdv-resultado tdm-resultado" data-fila='${escapeHtml(JSON.stringify(f))}'><span><strong>${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small class="tdm-chapas">${chapasHtml(f)} · ${f.unidades} ${f.unidades === 1 ? 'ud.' : 'uds.'}</small></span><span class="tdv-res-der">${precioQueCuenta(f) != null ? `<b>${euros(precioQueCuenta(f))}</b><small>${ofertaDe(f) ? 'de oferta' : 'tu precio'}</small>` : '<small>Sin precio</small>'}</span></button></li>`).join('')
+        ? filas.map((f) => `<li><button type="button" class="tdv-resultado tdm-resultado tdm-res-foto" data-fila='${escapeHtml(JSON.stringify(f))}'>${fotoHtml(f)}<span class="tdm-res-que"><strong>${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small class="tdm-chapas">${chapasHtml(f)} · ${f.unidades} ${f.unidades === 1 ? 'ud.' : 'uds.'}</small></span><span class="tdv-res-der">${precioQueCuenta(f) != null ? `<b>${euros(precioQueCuenta(f))}</b><small>${ofertaDe(f) ? 'de oferta' : 'tu precio'}</small>` : '<small>Sin precio</small>'}</span></button></li>`).join('')
         : `<li class="tdv-nada">Nada con unidades en tu stock que case con «${escapeHtml(q)}».</li>`
     }, 200)
   })
@@ -239,7 +277,7 @@ function pintarLineas() {
   const caja = $('#tdvLineas')
   caja.innerHTML = lineas.length
     ? lineas.map((l) => `<li class="tdv-linea tdm-linea" data-linea="${escapeHtml(l.id)}">
-        <div class="tdm-linea-cab"><div class="tdv-linea-que"><strong>${escapeHtml(l.nombre || l.card_id || 'Producto')}</strong><small class="tdm-chapas">${chapasHtml(l)} · te ${l.unidades === 1 ? 'queda 1' : `quedan ${l.unidades}`}</small></div><button type="button" class="tdv-quitar" data-quitar aria-label="Quitar ${escapeHtml(l.nombre || '')}">&times;</button></div>
+        <div class="tdm-linea-cab">${fotoHtml(l)}<div class="tdv-linea-que"><strong>${escapeHtml(l.nombre || l.card_id || 'Producto')}</strong><small class="tdm-chapas">${chapasHtml(l)} · te ${l.unidades === 1 ? 'queda 1' : `quedan ${l.unidades}`}</small></div><button type="button" class="tdv-quitar" data-quitar aria-label="Quitar ${escapeHtml(l.nombre || '')}">&times;</button></div>
         <div class="tdm-dos-campos">
           <span class="tdm-campo tdm-campo-fijo"><span>Tu precio</span><b>${l.lista != null ? euros(l.lista) : '—'}</b></span>
           <label class="tdm-campo"><span>Vendido por</span><span class="tdm-input"><input type="number" inputmode="decimal" min="0" step="0.01" data-precio value="${dinero(l.cobrar)}" placeholder="${l.lista != null ? dinero(l.lista).replace('.', ',') : 'Precio'}" /> €</span></label>

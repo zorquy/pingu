@@ -4972,7 +4972,12 @@ async function buscarEnTodo({ variantes = null } = {}) {
   // cuándo se ha llegado al tope: ordenar 120 de 400 por fecha no da «las
   // más nuevas del catálogo», da «las más nuevas de estas 120», y callarlo
   // sería enseñar una lista que parece lo que no es.
-  lista = ordenarCartas(lista, ordenCatalogo, sentidoCatalogo, {
+  // «Expansión y número» es por expansión en el tiempo y, dentro, por número
+  // (1257): la clave de la fecha de salida con su desempate de siempre (set y
+  // número), los dos en el sentido elegido. Por el nombre del set no era orden
+  // de nada, y los grupos de abajo lo deshacían.
+  const ordenReal = ordenCatalogo === 'coleccion' ? 'salida' : ordenCatalogo
+  lista = ordenarCartas(lista, ordenReal, sentidoCatalogo, {
     nombre: (c) => nombreDe(c),
     valor: () => null,
     rango: rangoDeRareza,
@@ -5036,13 +5041,17 @@ function resultadoHtml(c, v = null) {
           <span class="mc-resultado-set">${escapeHtml(nombreDeSet(c.tcg_sets) || c.set_id)} · ${escapeHtml(c.local_id)}</span>
         </a>`
 }
-export function gruposPorExpansion(lista, { asc = false } = {}) {
+// `enOrden` (1257): los grupos salen en el orden en que aparece su primera
+// carta en la lista YA ordenada (para ordenar por expansión o por fecha, en
+// los dos sentidos); sin él, de la expansión más nueva a la más vieja.
+export function gruposPorExpansion(lista, { asc = false, enOrden = false } = {}) {
   const porSet = new Map()
   for (const c of lista) {
     const k = c.set_id
     if (!porSet.has(k)) porSet.set(k, { set: c.tcg_sets || { id: k }, cartas: [] })
     porSet.get(k).cartas.push(c)
   }
+  if (enOrden) return [...porSet.values()]
   const fecha = (g) => String(g.set?.release_date || '')
   return [...porSet.values()].sort((a, b) => (asc ? fecha(a).localeCompare(fecha(b)) : fecha(b).localeCompare(fecha(a))) || String(a.set.id).localeCompare(String(b.set.id)))
 }
@@ -5069,7 +5078,9 @@ function pintarResultadosBuscar() {
     return
   }
   const sets = new Map((todosLosSets || []).map((x) => [x.id, x]))
-  const grupos = gruposPorExpansion(lista, { asc: ordenCatalogo === 'fecha' && sentidoCatalogo === 'asc' })
+  // El orden se llamaba 'fecha' aquí y 'salida' en la lista de órdenes: los
+  // grupos no seguían nunca al sentido (1257).
+  const grupos = gruposPorExpansion(lista, { enOrden: ordenCatalogo === 'salida' || ordenCatalogo === 'coleccion' })
   // Separadas, como en una expansión (1004): una casilla por versión AUNQUE
   // sea la única, con su chapa (la Holo de una Rara Doble).
   caja.innerHTML = grupos.map((g) => {

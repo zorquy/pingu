@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-06 (497) — PINGU-Claude (1257 — Vender con foto y el orden de Buscar)
+
+**Hecho**:
+- **Vender con foto** (PINGU: «para reconocerlo visualmente, igual que en
+  comprar»): cada resultado y cada línea de la venta llevan la foto de la carta
+  o del producto a la izquierda (`completarFotos` en `js/tienda-vender.js`,
+  con las columnas de siempre y `cadenaDeEscaneo`).
+- **Ascendente y descendente en Buscar** (Sergio, por PINGU: «se queda trabado
+  y no cambian»): los resultados van agrupados por expansión, y (1) el
+  desempate por número iba siempre hacia arriba —buscando «Charizard» casi
+  todas las de una expansión se llaman igual, así que las dos listas salían
+  idénticas—, y (2) los grupos salían siempre de lo más nuevo a lo más viejo:
+  el código preguntaba por el orden 'fecha' y en la lista se llama 'salida'.
+  Ahora el desempate va en el sentido elegido (`ordenarLineas`, también en
+  Mi colección), «Expansión y número» es por expansión en el tiempo y número,
+  y con ese orden o con «Fecha de salida» los grupos siguen la lista.
+- «‹ Buscar otra» de Comprar ya no se parte en dos líneas.
+
+**Ficheros**: `js/tienda-vender.js`, `js/mi-coleccion.js`,
+`js/mi-coleccion/filtros.js`, `css/tienda-mostrador.css`, SCHEMA, novedades.
+Rama pruebas: `test-tanda-1257-pantalla.mjs` (cae con el código de antes).
+
+**Pendiente**: nada nuevo. Siguen las migraciones 1254 y 1255 por ejecutar.
+
 ## 2026-11-06 (496) — PINGU-Claude (1254, 1255 y 1256 — el Mostrador)
 
 **Hecho**: la propuesta del Mostrador entera, con todo lo recomendado

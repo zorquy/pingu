@@ -110,7 +110,11 @@ export function ordenarLineas(lineas, orden, sentido, ayudas) {
   const con = lineas.map((l) => ({ l, k: claveDe(orden, l, ayudas) }))
   const sabidas = con.filter((x) => x.k !== null && x.k !== undefined)
   const sinSaber = con.filter((x) => x.k === null || x.k === undefined)
-  sabidas.sort((x, y) => vuelta * comparaClaves(x.k, y.k) || desempate(x.l, y.l, ayudas))
+  // El desempate va TAMBIÉN en el sentido elegido (1257, Sergio por PINGU:
+  // «ascendente o descendente, no cambia»): buscando «Charizard», casi todas
+  // las de una expansión se llaman igual y solo las separa el número; con el
+  // desempate siempre hacia arriba, las dos listas salían idénticas.
+  sabidas.sort((x, y) => vuelta * (comparaClaves(x.k, y.k) || desempate(x.l, y.l, ayudas)))
   sinSaber.sort((x, y) => desempate(x.l, y.l, ayudas))
   return [...sabidas, ...sinSaber].map((x) => x.l)
 }

@@ -236,7 +236,7 @@ html.tdm-abierto .bm { z-index: 97; }
 .tdc-cat-jp { background: var(--danger-bg); color: var(--danger); }
 .tdc-cat-sel { background: var(--warning-bg); color: var(--text); }
 .tdc-foto-grande { width: 72px; border-radius: 6px; }
-.tdc-volver { justify-self: start; min-height: 36px; padding: 0; border: 0; background: none; color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 600; cursor: pointer; }
+.tdc-volver { justify-self: start; min-height: 36px; white-space: nowrap; padding: 0; border: 0; background: none; color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 600; cursor: pointer; }
 .tdc-ficha-top { display: flex; align-items: center; gap: var(--e-md); }
 .tdc-ficha-top strong { font-family: var(--font-display); font-size: var(--t-lg); }
 .tdc-elige { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
@@ -310,3 +310,9 @@ html.tdm-abierto .bm { z-index: 97; }
 .tdpp-franja span { flex: 1; min-width: 0; }
 .tdpp-franja svg { flex: none; color: var(--text-mid); }
 .tdpp-franja:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+
+/* Vender con foto (1257, PINGU: «para reconocerlo visualmente»): la carta a la
+   izquierda, como en Comprar. */
+.tdv .tdm-res-foto { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; justify-content: stretch; }
+.tdv .tdm-res-que { display: grid; min-width: 0; text-align: left; }
+.tdm-linea-cab .tdc-foto { width: 40px; }
