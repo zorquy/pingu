@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-06",
+      "tipo": "mejora",
+      "texto": "En el escaparate de las tiendas cada carta enseña su idioma con la bandera, al lado del estado, para verlo de un vistazo.",
+      "enlace": "/tiendas"
+    },
+    {
+      "fecha": "2026-11-06",
       "tipo": "arreglo",
       "texto": "Los avisos de un cambio (aceptado, anulado…) ya se quitan al abrir Cruces, y el botón Cruces dice cuántos tienes pendientes. Antes el número se quedaba puesto en Deseos y cambios.",
       "enlace": "/mi-coleccion?ver=cambios"

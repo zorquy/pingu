@@ -25,6 +25,7 @@ import { enlaceAMapa, enlacesDeTienda } from './tiendas-puro.js'
 import { icons } from './icons.js'
 import { chapaDeGradeoHtml } from './gradeo-elegir.js'
 import { chapaDeEstadoHtml } from './estado-chapa.js'
+import { banderaHtml } from './precio-vista.js'
 import { fotosDeStock, verFotosDeStock, cuantasFotos } from './tienda-fotos.js'
 import { ATRIBUTOS_DE_TIENDA } from './rangos.js'
 
@@ -114,7 +115,12 @@ function baldosaHtml(f) {
   const foto = c ? atributosDeEscaneo(cadenaDeEscaneo(c)) : p?.image ? `src="${escapeHtml(p.image)}" onerror="this.remove()"` : null
   const href = c ? rutaDeCarta(c) : f.product_id ? rutaDeProducto({ id: f.product_id }) : null
   // Una gradeada lleva su etiqueta sobre la foto y no dice estado (1234).
-  const detalle = f.product_id ? 'Sellado' : [String(f.idioma || '').toUpperCase(), f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : null].filter(Boolean).join(' · ')
+  // El idioma con su bandera (1263, PINGU: «el estado se ve con iconos… el
+  // idioma no se ve con banderas»): bandera + sigla, como en el resto de la web.
+  const idioma = f.product_id || !f.idioma ? '' : `<span class="pt-idioma">${banderaHtml(f.idioma)}${escapeHtml(String(f.idioma).toUpperCase())}</span>`
+  const detalle = f.product_id ? 'Sellado' : f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : ''
+  const trozos = [detalle, f.unidades > 1 ? `${f.unidades} uds.` : ''].filter(Boolean).join(' · ')
+  const resto = trozos ? `${idioma ? ' · ' : ''}${trozos}` : ''
   // Una oferta (1082): el precio rebajado, el de siempre tachado y cuánto baja.
   const antes = f.precio_antes != null && f.precio != null && Number(f.precio_antes) > Number(f.precio) ? Number(f.precio_antes) : null
   const baja = antes ? Math.round((1 - Number(f.precio) / antes) * 100) : 0
@@ -127,7 +133,7 @@ function baldosaHtml(f) {
     <a class="pt-foto${f.product_id ? ' pt-foto-producto' : ''}" href="${escapeHtml(href || '#')}" data-pt-abrir="${escapeHtml(f.id)}"${c ? ` data-marca-carta="${escapeHtml(c.id)}"` : ''} aria-label="${escapeHtml(nombre)}">${foto ? `<img ${foto} alt="" width="245" height="342" loading="lazy" />` : ''}${chapas ? `<span class="pt-chapas-foto">${chapas}</span>` : ''}${f.gradeo && !f.product_id ? chapaDeGradeoHtml(f.gradeo, { clase: 'chapa-gradeo-foto' }) : ''}${f.de_tu_lista ? `<span class="pt-tuya" title="De tu lista">${ICONOS_COLECCION.corazon(14)}</span>` : ''}</a>
     <span class="pt-precio">${precio}</span>
     <span class="pt-nombre">${escapeHtml(nombre)}</span>
-    <span class="pt-detalle">${f.product_id || f.gradeo ? '' : chapaDeEstadoHtml(f.estado)}${escapeHtml(detalle)}${f.unidades > 1 ? ` · ${f.unidades} uds.` : ''}</span>
+    <span class="pt-detalle">${f.product_id || f.gradeo ? '' : chapaDeEstadoHtml(f.estado)}${idioma}${escapeHtml(resto)}</span>
     ${fotosVerHtml(f)}
     ${interesaHtml(f)}
   </article>`
@@ -296,6 +302,8 @@ function contarVisita(perfil, sesion, qr) {
 export async function montarPerfilTienda(destino, perfil, sesion, { previa = false } = {}) {
   await hojaInyectada('css/perfil-tienda.css')
   hojaInyectada('css/tienda-fotos.css')
+  // Las banderas de los idiomas (.pv-bandera) viven en cardmarket.css (1263).
+  hojaInyectada('css/cardmarket.css')
   caja = destino
   est.perfil = perfil
   est.sesion = sesion

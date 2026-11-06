@@ -315,6 +315,8 @@ async function prepararCompra() {
 export async function abrirCartaDeTienda({ tienda, nombreTienda, sesion = null, previa = false, carta = null, producto = null, lineas, elegida = null, fotos = null, sinPrecios = false, alCerrar = null }) {
   if (!lineas?.length) return false
   await hojaInyectada('css/tienda-carta.css')
+  // Las banderas de cada opción (.pv-bandera) son de cardmarket.css (1263).
+  hojaInyectada('css/cardmarket.css')
   dialogo()
   est = { tienda, nombreTienda, sesion, previa, propia: sesion?.user?.id === tienda.id, carta, producto, lineas, elegida: elegida || lineas[0].id, fotos, sinPrecios, alCerrar, condiciones: null, vivas: new Map(), compra: null, enviando: false }
   await prepararCompra()

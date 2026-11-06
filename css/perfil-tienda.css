@@ -600,3 +600,11 @@
     transform: none;
   }
 }
+
+/* El idioma de una carta con su bandera (1263), en la línea del estado. */
+.pt-idioma {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  vertical-align: -2px;
+}

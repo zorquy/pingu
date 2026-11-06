@@ -55204,6 +55204,23 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1263 — El idioma con bandera en el escaparate de una tienda
+
+PINGU, con una captura del escaparate: el estado sale en su chapa de color
+(1249) y el idioma era una sigla gris («JA · 2 uds.»). Ahora la tarjeta lleva
+`chapaDeEstadoHtml` + la bandera con su sigla (`banderaHtml` de
+`precio-vista.js`, en `.pt-idioma`) y detrás la versión y las unidades.
+Las `.pv-bandera` están en `css/cardmarket.css`, que /tiendas/<usuario>
+(usuario.html) no carga: `montarPerfilTienda` y `abrirCartaDeTienda` la
+inyectan. Sin ella, la bandera del pop-up de la carta (1249) era un `<i>` sin
+tamaño, invisible y sin error. Una pantalla nueva que pinte `banderaHtml` mira
+que su página tenga esa hoja.
+
+Prueba: `test-tanda-1263-pantalla.mjs` (PC y móvil: cada tarjeta con la
+bandera de su idioma, dibujada de verdad —ancho y fondo—, la sigla y lo demás
+detrás sin « · » colgando, y el pop-up con sus banderas). Cae con el código de
+antes.
+
 ## Tanda 1262 — Un aviso se lee también al cambiar de vista sin recargar
 
 PINGU: un trato anulado dejaba el número en Colección y en Deseos y cambios

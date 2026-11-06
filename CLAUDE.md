@@ -148,7 +148,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `enlaceDeTienda` con la carta (y la línea si la sabe). Su SKU es
   `skuDe` (`tiendas-puro.js`, general: el mismo en todas las tiendas). Y el
   estado de una copia se PINTA con `chapaDeEstadoHtml` (`js/estado-chapa.js`,
-  los colores de Cardmarket, en toda la web), nunca la sigla suelta.
+  los colores de Cardmarket, en toda la web), nunca la sigla suelta; y su
+  idioma, con la bandera y la sigla (`banderaHtml`, 1263), cargando
+  `css/cardmarket.css` en la página, que es donde están las banderas.
   Comprarle a una tienda es una OFERTA (1250): `tienda_oferta_enviar` /
   `_responder` / `_paso` (aceptar RESERVA 7 días; «hecha» es la venta con
   `donde = 'pokedoc'`), y se sigue en Mensajes con la tarjeta de

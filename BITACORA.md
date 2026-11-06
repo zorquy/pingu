@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-06 (504) — PINGU-Claude (1263 — banderas en el escaparate de las tiendas)
+
+**Hecho**: PINGU: «el estado se ve con iconos NM, EX… pero el idioma no se ve
+con banderas, quizá mejor para hacerlo más visual». En las tarjetas del
+escaparate (`baldosaHtml` de `js/perfil-tienda.js`) el idioma va con su
+bandera y la sigla (`banderaHtml` + `.pt-idioma`), detrás de la chapa del
+estado; versión y unidades siguen detrás con « · ». Y /tiendas/<usuario> no
+cargaba `css/cardmarket.css`, donde viven las `.pv-bandera`: las banderas
+que ya pintaba el pop-up de la carta (`tienda-carta.js`) salían vacías. Ahora
+la inyectan los dos (`hojaInyectada`, como el Stock y Comprar).
+
+**Ficheros**: `js/perfil-tienda.js`, `js/tienda-carta.js`,
+`css/perfil-tienda.css`, SCHEMA, CLAUDE.md, novedades. Rama pruebas:
+`test-tanda-1263-pantalla.mjs` (cae con el código de antes).
+
+**Pendiente**: lo de la 503.
+
 ## 2026-11-06 (503) — PINGU-Claude (1262 — el número de un trato anulado no se iba)
 
 **Hecho**: PINGU: «me han anulado una propuesta de cambio y se me ha quedado
