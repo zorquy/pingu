@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-06 (503) — PINGU-Claude (1262 — el número de un trato anulado no se iba)
+
+**Hecho**: PINGU: «me han anulado una propuesta de cambio y se me ha quedado
+la notificación en comunidad y en deseos y cambios, pero no hay nada». El
+aviso de un trato apunta a Cruces (`/mi-coleccion?ver=cambios#oferta-…`) y
+solo se daba por leído al CARGAR esa dirección (`leerLasDeAqui` al abrir la
+página o al volver a la pestaña). Pero Deseos y cambios abre en Mercado y
+Cruces se abre sin recargar (`cambiarPestania` con `replaceState`): no casaba
+nunca y el número se quedaba para siempre.
+- `cambiarPestania` e `irA` lanzan `pd-ruta-cambiada`; `notifications.js` lo
+  escucha y vuelve a pasar `leerLasDeAqui` (y repinta si algo quedó leído).
+- El botón «Cruces» lleva el número de lo que apunta a `ver=cambios`
+  (`paginas.cruces` en `cuentasDeSecciones`), para saber dónde entrar. Solo
+  el del segmento: la chapa «Buscan N» también lleva `data-deseos-vista`.
+- Comunidad NO cuenta los tratos (solo `forum_*`): si allí queda un número, es
+  de un aviso del foro.
+
+**Ficheros**: `js/notifications.js`, `js/mi-coleccion.js`,
+`js/numeros-seccion.js`, `css/mi-coleccion.css`, SCHEMA, CLAUDE.md,
+novedades. Rama pruebas: `test-tanda-1262-pantalla.mjs` (cae con el código de
+antes, 8 rojos) y la 1142 con `cruces` en el objeto de páginas.
+
+**Pendiente**: lo de la 501 (la migración 1260). Y la 1168-pantalla tiene un
+rojo de antes («Cargar más» al llegar al final), igual con el código viejo:
+no es de esta tanda, sin mirar todavía.
+
 ## 2026-11-06 (502) — PINGU-Claude (1260b — el botón del concurso lleva al foro)
 
 **Hecho**: PINGU publicó el concurso y el botón era «Me apunto» (la lista de

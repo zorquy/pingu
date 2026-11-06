@@ -323,6 +323,15 @@ export async function renderNotificationBell(session) {
   // /avisos (1168) marca leídos desde fuera: deja `window.__pdAvisos` al día y
   // avisa con este evento para que la chapa y los números se repinten.
   window.addEventListener('pd-avisos-cambiados', () => updateBadge(window.__pdAvisos || []))
+  // Una pantalla que cambia de vista sin recargar (las pestañas de Mi
+  // colección: de «Deseos y cambios» a «Cruces») avisa con este evento, y lo
+  // que apunta a la vista nueva se da por leído igual que al llegar (1262: un
+  // trato anulado dejaba el número puesto porque solo se miraba al cargar).
+  window.addEventListener('pd-ruta-cambiada', async () => {
+    const antes = window.__pdAvisos || []
+    const despues = await leerLasDeAqui(antes)
+    if (despues.length !== antes.length) updateBadge(despues)
+  })
   // Con la pestaña de fondo no se da nada por leído; al volver a ella, sí.
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState !== 'visible') return

@@ -15222,6 +15222,22 @@ body[data-tienda] .mc-sel-abajo {
   line-height: 1;
 }
 
+/* El mismo número en «Cruces» (1262), en línea: es donde está lo que espera. */
+.mc-deseos-seg [data-deseos-vista='cruces'] .sec-num-pagina {
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  margin-left: var(--e-xs);
+  padding: 0 var(--e-xs);
+  border-radius: var(--radius-pill);
+  background: var(--danger-solid);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  line-height: 1;
+}
+
 /* ── 1164 (C1): con una expansión abierta, la cabecera de la página se recoge
    también en el PC (en el móvil ya lo hacía la 1040): arriba queda solo la de
    la expansión. La clase la pone el guion de la cabecera antes del primer

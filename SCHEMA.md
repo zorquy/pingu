@@ -55204,6 +55204,28 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1262 — Un aviso se lee también al cambiar de vista sin recargar
+
+PINGU: un trato anulado dejaba el número en Colección y en Deseos y cambios
+«y no se quita». `leerLasDeAqui` (1142) da por leído lo que apunta a la página
+abierta, pero solo al cargar o al volver a la pestaña. Mi colección cambia de
+vista con `history.replaceState`, así que llegar a Cruces desde Mercado no
+volvía a mirar, y el aviso (`?ver=cambios#oferta-…`) no casaba nunca.
+- Lo que cambie la dirección sin recargar lanza `pd-ruta-cambiada`
+  (`window`): hoy `cambiarPestania` e `irA` de `js/mi-coleccion.js`. La
+  campanita lo escucha, vuelve a pasar `leerLasDeAqui` y, si quedó algo leído,
+  `updateBadge` (que repinta la campana, los números y `pd-avisos`).
+- `cuentasDeSecciones` cuenta además `paginas.cruces` (los avisos sin leer de
+  Colección cuyo `link` lleva `ver=cambios`) y `pintarNumeros` lo pone en el
+  botón Cruces del segmento (`.mc-deseos-seg [data-deseos-vista="cruces"]`;
+  la chapa «Buscan N» lleva el mismo atributo y no debe llevar número).
+- Una pantalla nueva que cambie de vista con `pushState`/`replaceState`
+  lanza `pd-ruta-cambiada` después.
+
+Prueba: `test-tanda-1262-pantalla.mjs` (móvil y PC: en Mercado el aviso sigue
+sin leer y Deseos y cambios y Cruces dicen 1; al tocar Cruces queda leído en
+la base y no queda número de Colección). Cae con el código de antes.
+
 ## Tanda 1260b — El botón de un concurso lleva al concurso
 
 PINGU publicó el concurso de los Funko Pop y vio el fallo: «el me apunto…

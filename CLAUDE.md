@@ -1077,6 +1077,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   aviso se da por LEÍDO al abrir la página a la que apunta
   (`casaConLaPagina`: misma ruta y sus parámetros, el ancla no cuenta, la
   portada nunca): un tipo nuevo de aviso lleva un `link` a donde se lee. Y
+  también al cambiar de vista SIN recargar (1262: un trato anulado dejaba el
+  número porque Cruces se abre desde Mercado con `replaceState`): lo que cambie
+  la dirección así lanza `pd-ruta-cambiada` después. Y
   TODOS los avisos, leídos también, están en `/avisos` (1168, `js/avisos.js`):
   la misma fila de la campana (`tramosHtml`), por días y meses, con chips por
   sección (`js/avisos-chips.js`); la campana sigue siendo solo lo sin leer y

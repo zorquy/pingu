@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-06",
+      "tipo": "arreglo",
+      "texto": "Los avisos de un cambio (aceptado, anulado…) ya se quitan al abrir Cruces, y el botón Cruces dice cuántos tienes pendientes. Antes el número se quedaba puesto en Deseos y cambios.",
+      "enlace": "/mi-coleccion?ver=cambios"
+    },
+    {
+      "fecha": "2026-11-06",
       "tipo": "nuevo",
       "texto": "Los avisos del equipo, renovados: los concursos y novedades ahora salen con imagen y cuenta atrás, en una ventana al entrar, en la franja de arriba y en Inicio, con un botón que te lleva a participar.",
       "enlace": "/"

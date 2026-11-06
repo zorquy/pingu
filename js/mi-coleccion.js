@@ -235,6 +235,7 @@ function irA(cambios, { push = true } = {}) {
   if (url.href === location.href) return
   if (push) history.pushState(null, '', url)
   else history.replaceState(null, '', url)
+  window.dispatchEvent(new Event('pd-ruta-cambiada'))
 }
 
 // Reconstruye la pantalla desde la dirección. Es lo que corre al dar
@@ -5425,6 +5426,8 @@ function cambiarPestania(nueva, { push = true } = {}) {
   // NIVELES (una expansión, un Pokémon, un álbum) la añaden. Así atrás,
   // el gesto del iPhone y el botón de Android siempre suben un nivel.
   history.replaceState(null, '', url)
+  // La campanita mira si algún aviso apuntaba a esta vista (1262).
+  window.dispatchEvent(new Event('pd-ruta-cambiada'))
   // Otra pestaña empieza ARRIBA (747). PINGU: con la de antes bajada, al
   // tocar Álbumes o Buscar «te empieza más hacia abajo», a media página de
   // algo que no has visto. Solo al pulsar (`push`): con «atrás» el

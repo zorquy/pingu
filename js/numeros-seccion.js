@@ -37,6 +37,9 @@ const PAGINA_DE_SECCION = { Comunidad: 'foro', Jugar: 'torneos', 'Colección': '
 // Qué página es un enlace de la burbuja, del cajón o del menú de Mi colección
 // (Deseos y cambios es su pestaña `mercado`).
 export function paginaDeEnlace(el) {
+  // El botón «Cruces» de Deseos y cambios (1262): los tratos y los cruces que
+  // te esperan están DENTRO de él, no en Mercado.
+  if (el?.dataset?.deseosVista === 'cruces') return 'cruces'
   if (el?.dataset?.pestania === 'mercado') return 'cambios'
   const href = el?.getAttribute?.('href') || ''
   if (/[?&]ver=(mercado|cambios)(&|#|$)/.test(href)) return 'cambios'
@@ -82,13 +85,14 @@ const numeroDeChapa = (texto) => {
 export function cuentasDeSecciones(avisos = [], mensajes = 0) {
   const m = numeroDeChapa(mensajes)
   const cuentas = { Comunidad: 0, Jugar: 0, 'Colección': 0, Mensajes: m }
-  const paginas = { foro: 0, torneos: 0, cambios: 0, mensajes: m }
+  const paginas = { foro: 0, torneos: 0, cambios: 0, cruces: 0, mensajes: m }
   for (const a of avisos || []) {
     if (a?.read_at) continue
     const s = seccionDeAviso(a?.type)
     if (!s) continue
     cuentas[s] += 1
     paginas[PAGINA_DE_SECCION[s]] += 1
+    if (/[?&]ver=cambios(&|#|$)/.test(a?.link || '')) paginas.cruces += 1
   }
   Object.defineProperty(cuentas, 'paginas', { value: paginas, enumerable: false })
   return cuentas
@@ -122,7 +126,7 @@ export function pintarNumeros(doc, cuentas) {
   // Y la página: en línea, al final de la píldora o de la fila (una burbuja
   // que se desliza recortaría una chapa puesta encima del icono).
   const paginas = cuentas.paginas || {}
-  for (const el of doc.querySelectorAll('.bm-burbuja-item, .lat-paginas a, .mc-pestania')) {
+  for (const el of doc.querySelectorAll('.bm-burbuja-item, .lat-paginas a, .mc-pestania, .mc-deseos-seg [data-deseos-vista="cruces"]')) {
     const pagina = paginaDeEnlace(el)
     const texto = textoDeNumero(pagina ? paginas[pagina] || 0 : 0)
     let chapa = el.querySelector('.sec-num')
