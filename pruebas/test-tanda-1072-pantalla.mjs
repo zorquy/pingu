@@ -28,7 +28,7 @@ const VENTAS = {
   filas: [
     { id: 'v1', ticket: 'tk1', stock_id: 's1', card_id: 'carta-1', market: 'WEST', nombre: 'Charizard ex', set_id: 'set-0', numero: '199', idioma: 'es', estado: 'NM', variante: 'normal', unidades: 1, precio: 179, coste: 125, donde: 'mostrador', vendida_el: new Date(ahora - 6e4).toISOString() },
     { id: 'v2', ticket: 'tk2', stock_id: 's9', product_id: 501, market: 'WEST', nombre: 'ETB Prismatic Evolutions', idioma: 'en', estado: 'sellado', variante: 'normal', unidades: 1, precio: 89.95, coste: 65, donde: 'mostrador', vendida_el: new Date(ahora - 12e4).toISOString() },
-    { id: 'v3', ticket: 'tk3', stock_id: 's2', card_id: 'carta-2', market: 'WEST', nombre: 'Umbreon VMAX', set_id: 'set-0', numero: '215', idioma: 'en', estado: 'EX', variante: 'reverse', unidades: 1, precio: 95, coste: 58, donde: 'cardmarket', vendida_el: new Date(ahora - 30 * 36e5).toISOString() },
+    { id: 'v3', ticket: 'tk3', stock_id: 's2', card_id: 'carta-2', market: 'WEST', nombre: 'Umbreon VMAX', set_id: 'set-0', numero: '215', idioma: 'en', estado: 'EX', variante: 'reverse', unidades: 1, precio: 95, coste: 58, donde: 'cardmarket', vendida_el: new Date(new Date().setHours(12, 0, 0, 0) - 864e5).toISOString() },
   ],
 }
 const VENDIDA = { ticket: 'tk9', lineas: 1, total: 340, beneficio: 90, sin_coste: 0 }
@@ -55,38 +55,46 @@ const llamadas = (p, n) => p.evaluate((nombre) => (window.__RPCS__ || []).filter
 const ultima = async (p, n) => (await llamadas(p, n)).at(-1)
 
 console.log('── 1. Vender, desde el botón de arriba ──')
+// Desde la 1254 (el Mostrador): el botón de arriba se parte en Comprar | Vender,
+// cada línea lleva «Tu precio» y «Vendido por» (vacío, con el precio en gris),
+// se elige cómo te pagan y la hoja se queda abierta para el siguiente.
 {
   const { p, ctx, errs } = await abrir('/tienda.html')
   check('sin errores', !errs.length, errs.join(' | '))
-  check('el botón Vender está arriba, en el color de la sección', (await p.isVisible('.tdm-vender')) && (await p.evaluate(() => getComputedStyle(document.querySelector('.tdm-vender')).backgroundColor)) === 'rgb(11, 114, 133)')
-  await p.click('.tdm-vender'); await p.waitForTimeout(800)
+  check('arriba, Comprar | Vender; Vender en el color de la sección', (await p.isVisible('.tdm-partido .tdm-p-vender')) && (await p.evaluate(() => getComputedStyle(document.querySelector('.tdm-p-vender')).backgroundColor)) === 'rgb(11, 114, 133)')
+  await p.click('.tdm-p-vender'); await p.waitForTimeout(800)
   check('abre la hoja, con el cursor en el buscador', (await p.isVisible('.tdv')) && (await p.evaluate(() => document.activeElement?.id)) === 'tdvBusca')
   check('  …y vacía lo dice', /Busca una carta de tu stock/.test(await p.textContent('#tdvLineas')) && (await p.isDisabled('#tdvVendida')))
   await p.fill('#tdvBusca', 'char'); await p.waitForTimeout(800)
   const busca = await ultima(p, 'tienda_stock_lista')
   check('busca en el stock, solo lo que tiene unidades', busca?.p_filtros?.q === 'char' && JSON.stringify(busca.p_filtros.unidades) === '["una","varias"]', JSON.stringify(busca))
   const res = await p.$$eval('.tdv-resultado', (bs) => bs.map((x) => x.innerText.replace(/\s+/g, ' ')))
-  check('  …con su set, número, idioma, estado y versión, precio y unidades', res.length === 3 && /Charizard ex Obsidian Flames · 199 · ES · NM 179,00\s€ 2 uds\./.test(res[0]) && /EN · EX · Reverse holo/.test(res[1]), res.join(' | '))
+  check('  …con su idioma, estado, set, número y versión, precio y unidades', res.length === 3 && /Charizard ex ES NM .*Obsidian Flames · 199 · 2 uds\. 179,00\s€/.test(res[0]) && /EN EX .*Obsidian Flames · 215 · Reverse holo/.test(res[1]), res.join(' | '))
   await p.click('.tdv-resultado >> nth=0'); await p.waitForTimeout(300)
-  check('elegir una: a la lista, con su precio puesto, y la búsqueda se va', (await p.inputValue('[data-precio]')) === '179' && (await p.isHidden('#tdvResultados')) && (await p.inputValue('#tdvBusca')) === '')
-  check('  …lo que costó y la cuenta (179 €, +54 €, 43 %)', /Te costó 125,00\s€/.test(await p.textContent('.tdv-linea')) && /179,00\s€/.test(await p.textContent('#tdvCuenta')) && /\+54,00\s€/.test(await p.textContent('#tdvCuenta')) && /43 %/.test(await p.textContent('#tdvCuenta')))
+  check('elegir una: «Tu precio» 179 € y «Vendido por» vacío con el precio en gris', /179,00\s€/.test(await p.textContent('.tdm-campo-fijo')) && (await p.inputValue('[data-precio]')) === '' && (await p.getAttribute('[data-precio]', 'placeholder')) === '179,00' && (await p.isHidden('#tdvResultados')))
+  const c1 = (await p.innerText('#tdvCuenta')).replace(/\s+/g, ' ')
+  check('  …lo que costó y la cuenta (cobras 179 €, ganas 54 €)', /Te costó 125,00\s€/.test(await p.textContent('.tdv-linea')) && /Cobras 179,00\s€/.test(c1) && /Ganas \+54,00\s€/.test(c1) && !/Rebaja/.test(c1), c1)
   check('  …una menos, no (ya es una)', await p.isDisabled('[data-paso="-1"]'))
   await p.click('[data-paso="1"]')
   check('una más: dos, y no más (hay dos)', (await p.textContent('.tdv-paso b')) === '2' && (await p.isDisabled('[data-paso="1"]')))
   await p.fill('[data-precio]', '170')
-  check('cambiar el precio cambia la cuenta (340 €, +90 €)', /340,00\s€/.test(await p.textContent('#tdvCuenta')) && /\+90,00\s€/.test(await p.textContent('#tdvCuenta')) && /Vendida · 340,00\s€/.test(await p.textContent('#tdvVendida')))
+  const c2 = (await p.innerText('#tdvCuenta')).replace(/\s+/g, ' ')
+  check('«Vendido por» 170: a tu precio 358, rebaja 18, cobras 340, ganas 90', /A tu precio 358,00\s€/.test(c2) && /Rebaja −18,00\s€/.test(c2) && /Cobras 340,00\s€/.test(c2) && /Ganas \+90,00\s€/.test(c2) && /Vendida · 340,00\s€/.test(await p.textContent('#tdvVendida')), c2)
   await p.fill('#tdvBusca', 'pid'); await p.waitForTimeout(800)
   await p.click('.tdv-resultado >> nth=2'); await p.waitForTimeout(300)
-  check('una sin precio: hay que ponerlo antes de vender', (await p.isDisabled('#tdvVendida')) && /Pon el precio/.test(await p.textContent('#tdvError')))
+  check('una sin precio: hay que ponerlo antes de vender', (await p.isDisabled('#tdvVendida')) && /no tiene precio/.test(await p.textContent('#tdvError')))
   await p.click('.tdv-linea:nth-child(2) [data-quitar]')
   check('  …quitarla deja vender', !(await p.isDisabled('#tdvVendida')))
-  await p.click('[data-donde="cardmarket"]')
-  check('dónde: Mostrador de entrada, Cardmarket al tocarlo', (await p.getAttribute('[data-donde="cardmarket"]', 'aria-pressed')) === 'true' && (await p.getAttribute('[data-donde="mostrador"]', 'aria-pressed')) === 'false')
+  check('cómo te paga: efectivo de entrada', (await p.getAttribute('[data-pago="efectivo"]', 'aria-pressed')) === 'true' && (await p.locator('.tdm-pagos button').count()) === 4)
+  await p.click('[data-pago="tarjeta"]')
+  check('  …tarjeta al tocarla', (await p.getAttribute('[data-pago="tarjeta"]', 'aria-pressed')) === 'true' && (await p.getAttribute('[data-pago="efectivo"]', 'aria-pressed')) === 'false')
+  check('dónde: Mostrador de entrada, en un desplegable', (await p.inputValue('[data-donde]')) === 'mostrador')
+  await p.selectOption('[data-donde]', 'cardmarket')
   await p.click('#tdvVendida'); await p.waitForTimeout(800)
   const v = await ultima(p, 'tienda_vender')
-  check('«Vendida» pide la venta: la línea, dos unidades a 170, en Cardmarket', JSON.stringify(v?.p_lineas) === '[{"stock_id":"s1","unidades":2,"precio":170}]' && v?.p_donde === 'cardmarket', JSON.stringify(v))
-  check('  …cierra la hoja y lo dice, con Deshacer', !(await p.isVisible('.tdv')) && /Vendidas 2 · 340,00\s€ · \+90,00\s€/.test(await p.textContent('.toast')) && (await p.isVisible('.toast-accion')))
-  check('  …y recuerda dónde para la próxima', (await p.evaluate(() => localStorage.getItem('pd-tienda-donde'))) === 'cardmarket')
+  check('«Vendida» pide la venta: la línea, dos a 170, en Cardmarket, con tarjeta', JSON.stringify(v?.p_lineas) === '[{"stock_id":"s1","unidades":2,"precio":170}]' && v?.p_donde === 'cardmarket' && v?.p_pago === 'tarjeta', JSON.stringify(v))
+  check('  …la hoja se queda abierta y vacía para el siguiente, y avisa con Deshacer', (await p.isVisible('.tdv')) && /Busca una carta de tu stock/.test(await p.textContent('#tdvLineas')) && /Vendidas 2 · 340,00\s€/.test(await p.textContent('.toast')) && (await p.isVisible('.toast-accion')))
+  check('  …y recuerda dónde y cómo para la próxima', (await p.evaluate(() => localStorage.getItem('pd-tienda-donde'))) === 'cardmarket' && (await p.evaluate(() => localStorage.getItem('pd-tienda-pago-venta'))) === 'tarjeta')
   // Desde la 1084 el aviso lleva también «Recibo»: se pulsa Deshacer por su nombre.
   await p.click('.toast-accion:has-text("Deshacer")'); await p.waitForTimeout(600)
   check('Deshacer deshace esa venta', (await ultima(p, 'tienda_deshacer_venta'))?.p_ticket === 'tk9')
@@ -94,7 +102,7 @@ console.log('── 1. Vender, desde el botón de arriba ──')
 }
 {
   const { p, ctx } = await abrir('/tienda.html', { errores: { tienda_vender: { code: '22023', message: 'No quedan tantas: de una línea hay 1.' } } })
-  await p.click('.tdm-vender'); await p.waitForTimeout(500)
+  await p.click('.tdm-p-vender'); await p.waitForTimeout(500)
   await p.fill('#tdvBusca', 'char'); await p.waitForTimeout(800)
   await p.click('.tdv-resultado >> nth=0'); await p.click('#tdvVendida'); await p.waitForTimeout(600)
   check('si la base dice que no, lo dice y la hoja se queda', (await p.isVisible('.tdv')) && /No quedan tantas/.test(await p.textContent('#tdvError')) && !(await p.isDisabled('#tdvVendida')))
@@ -170,16 +178,20 @@ console.log('── 4. El móvil ──')
   check('sin errores', !errs.length, errs.join(' | '))
   check('arriba no hay botón Vender (va en la barra)', !(await p.isVisible('.tdm-vender')))
   const r = await p.evaluate(() => { const a = document.querySelector('.bm a.bm-vender svg').getBoundingClientRect(); const o = document.querySelector('.bm a[data-ver="stock"] span').getBoundingClientRect(); const v = document.querySelector('.bm a.bm-vender span').getBoundingClientRect(); return { circulo: Math.round(a.width), fila: Math.abs(v.top - o.top) } })
-  check('Vender en el centro, en su círculo, con la palabra en la fila de las otras', r.circulo === 40 && r.fila <= 2, JSON.stringify(r))
-  await p.tap('.bm a.bm-vender'); await p.waitForTimeout(800)
+  check('el Mostrador en el centro, en su círculo, con la palabra en la fila de las otras', r.circulo === 40 && r.fila <= 2, JSON.stringify(r))
+  // Desde la 1254, el centro abre el abanico (Comprar y Vender) y Vender la hoja.
+  await p.tap('.bm a.bm-vender'); await p.waitForTimeout(500)
+  check('el centro abre el abanico con Comprar y Vender', (await p.isVisible('.tdm-gran-comprar')) && (await p.isVisible('.tdm-gran-vender')))
+  await p.tap('.tdm-gran-vender'); await p.waitForTimeout(800)
   const caja = await p.evaluate(() => { const d = document.querySelector('.tdv').getBoundingClientRect(); return { abajo: Math.round(innerHeight - d.bottom), ancho: Math.round(d.width) } })
-  check('abre la hoja, desde abajo y a lo ancho', (await p.isVisible('.tdv')) && caja.abajo <= 1 && caja.ancho >= 388, JSON.stringify(caja))
+  check('Vender abre la hoja, desde abajo y a lo ancho', (await p.isVisible('.tdv')) && caja.abajo <= 1 && caja.ancho >= 388 && !(await p.isVisible('.tdm-gran-vender')), JSON.stringify(caja))
   await ctx.close()
 }
 {
   const { p, ctx } = await abrir('/mensajes.html', { movil: true })
-  await p.tap('.bm a.bm-vender'); await p.waitForTimeout(2500)
-  check('desde Mensajes: al panel, con la hoja abierta', /\/tienda/.test(p.url()) && (await p.isVisible('.tdv')) && !/vender=/.test(p.url()), p.url())
+  await p.tap('.bm a.bm-vender'); await p.waitForTimeout(600)
+  await p.tap('.tdm-gran-vender'); await p.waitForTimeout(1500)
+  check('desde Mensajes: la hoja se abre ahí mismo, sin salir', /\/mensajes/.test(p.url()) && (await p.isVisible('.tdv')), p.url())
   await ctx.close()
 }
 {

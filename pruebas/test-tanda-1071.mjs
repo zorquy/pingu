@@ -33,7 +33,8 @@ check('  …y su enlace no se cambia por Mi colección (fija)', seccionesDeTiend
 check('en la forma de la barra: un enlace cada una y su icono', seccionesDeTienda().every((s) => s.enlaces.length === 1 && s.icono))
 check('/tienda sin pestaña es el Panel', seccionDeTienda('/tienda', '') === 'Panel' && seccionDeTienda('/tienda.html', '?ver=raro') === 'Panel')
 check('/tienda?ver=stock es Stock y ?ver=datos, Datos', seccionDeTienda('/tienda', '?ver=stock') === 'Stock' && seccionDeTienda('/tienda.html', '?ver=datos') === 'Datos')
-check('el móvil: cinco huecos, Vender en el centro (1072)', seccionesDelMovil().map((s) => s.nombre).join(',') === 'Panel,Colección,Vender,Stock,Mensajes' && seccionesDelMovil()[2].clase === 'bm-vender' && seccionesDelMovil()[2].enlaces[0].href === '/tienda?vender=1')
+// Desde la 1254 el centro es el Mostrador (Comprar y Vender en un abanico).
+check('el móvil: cinco huecos, el Mostrador en el centro (1072, 1254)', seccionesDelMovil().map((s) => s.nombre).join(',') === 'Panel,Colección,Mostrador,Stock,Mensajes' && seccionesDelMovil()[2].clase.split(' ').includes('bm-vender') && seccionesDelMovil()[2].enlaces[0].href === '/tienda?mostrador=1')
 check('/tienda?ver=ventas es Ventas', seccionDeTienda('/tienda', '?ver=ventas') === 'Ventas')
 check('/mensajes es Mensajes; su perfil, ninguna', seccionDeTienda('/mensajes.html', '?with=x') === 'Mensajes' && seccionDeTienda('/usuario/prueba', '') === null)
 const html = enlacesHtml('Stock')

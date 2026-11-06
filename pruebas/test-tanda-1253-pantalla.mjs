@@ -188,7 +188,7 @@ console.log('── 4. El lector USB en el Stock ──')
 console.log('── 5. Vender con el lector ──')
 {
   const { p, ctx, errs } = await abrir('/tienda.html?vender=1', { sesion: 'tienda-1' })
-  check('Vender dice que se puede escanear', /SKU/.test(await p.getAttribute('#tdvBusca', 'placeholder')))
+  check('Vender dice que se puede escanear', /escanea la etiqueta/.test(await p.getAttribute('#tdvBusca', 'placeholder')))
   await p.fill('#tdvBusca', 'OBF-1-ES-NM'); await p.press('#tdvBusca', 'Enter'); await p.waitForTimeout(1200)
   const una = await p.evaluate(() => [...document.querySelectorAll('.tdv [data-linea]')].map((l) => l.dataset.linea))
   check('un SKU y un Intro: la línea entra en la venta y la caja se vacía', JSON.stringify(una) === '["st-1"]' && (await p.inputValue('#tdvBusca')) === '' && (await p.locator('#tdvResultados:not([hidden])').count()) === 0, JSON.stringify(una) + errs.join(' | '))

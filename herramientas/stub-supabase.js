@@ -1656,7 +1656,14 @@ export const supabase = {
     // Hacer fallar una función a propósito (tanda 512): lo que pasa cuando
     // la base dice que no es justo lo que una prueba de «éxito» nunca ve.
     const fallos = (typeof window !== 'undefined' && window.__RPC_ERRORES__) || {}
-    if (nombre in fallos) return { data: null, error: fallos[nombre] }
+    // Una función de los argumentos (1254): falla solo con unos (la llamada
+    // nueva sin la migración) y deja pasar el respaldo.
+    if (nombre in fallos) {
+      const f = fallos[nombre]
+      if (typeof f !== 'function') return { data: null, error: f }
+      const error = f(args)
+      if (error) return { data: null, error }
+    }
     // Hacer TARDAR una función (tanda 596): lo que llega tarde a una
     // ventana que ya no es la suya solo se ve si algo llega tarde.
     const retraso = (typeof window !== 'undefined' && window.__RPC_RETRASO__?.[nombre]) || 0
