@@ -24,10 +24,15 @@ import { conVueltaAtras, terminoParaFiltro } from './busqueda.js'
 import { perfilesMencionados, enlazarMenciones, porNombre } from './menciones.js'
 import { atributosDeRango } from './rangos.js'
 import { showToast } from './toast.js'
-import { agruparPorDia, horaDe, ultimoVisto, resumenDeUltimo, adjuntosDe, cartasDe, propuestaDe, cabenAdjuntos, enterEnvia, MAX_FOTOS, estaArchivada, REACCIONES_MENSAJE, reaccionesDeMensaje, citaDe, ofertaTiendaDe, ultimosDeOfertas, fotosTiendaDe } from './mensajes-puro.js'
+import { agruparPorDia, horaDe, ultimoVisto, resumenDeUltimo, adjuntosDe, cartasDe, propuestaDe, cabenAdjuntos, enterEnvia, MAX_FOTOS, estaArchivada, REACCIONES_MENSAJE, reaccionesDeMensaje, citaDe, ofertaTiendaDe, ultimosDeOfertas, fotosTiendaDe, esOtraVistaDeMensajes } from './mensajes-puro.js'
 
 const root = document.getElementById('messagesRoot')
-const params = new URLSearchParams(window.location.search)
+// `let`: cambiar de conversación sin recargar (1267) vuelve a leer la dirección.
+let params = new URLSearchParams(window.location.search)
+// Lo que deja enganchado el hilo abierto (oyentes de la ventana, el sondeo,
+// el canal en vivo, «escribiendo…»): se suelta al abrir otra cosa.
+let desmontarHilo = null
+let montaje = 0
 
 function timeAgo(iso) {
   const diffMs = Date.now() - new Date(iso).getTime()
@@ -134,6 +139,19 @@ function listaHtml(list, miId, actual) {
 async function pintarListaLateral(session, actual) {
   const caja = document.getElementById('msgLista')
   if (!caja || !enPC()) return null
+  // Ya pintada (se ha cambiado de conversación sin recargar, 1267): se marca
+  // la nueva al momento y luego se ponen al día las filas, sin tocar el
+  // buscador, los chips ni dónde estaba la lista.
+  const filas = caja.querySelector('.msg-filas')
+  if (filas) {
+    marcarActiva(caja, actual)
+    const list = await listConversations(session.user.id).catch(() => null)
+    if (!list || !filas.isConnected) return list
+    filas.innerHTML = listaHtml(list, session.user.id, actual)
+    aplicarFiltros(caja)
+    marcarEnLineaEn(caja)
+    return list
+  }
   const list = await listConversations(session.user.id).catch(() => [])
   caja.innerHTML = `<div class="msg-lista-cabeza"><h2>Mensajes</h2><a class="btn-primary msg-nueva" href="/mensajes.html?new=1" aria-label="Nueva conversación">${icons.edit(14)} Nueva</a></div>${chipsHtml(list)}${buscadorHtml(list.length)}<div class="msg-filas">${listaHtml(list, session.user.id, actual)}</div>`
   engancharBuscador(caja)
@@ -141,6 +159,19 @@ async function pintarListaLateral(session, actual) {
   caja.classList.remove('hidden')
   document.querySelector('.msg-dos')?.classList.add('con-lista')
   return list
+}
+
+// La fila abierta, marcada (y ya leída) sin esperar a la base.
+function marcarActiva(caja, actual) {
+  for (const a of caja.querySelectorAll('.msg-fila')) {
+    const si = !!actual && new URL(a.href, location.href).searchParams.get('c') === actual
+    a.classList.toggle('activa', si)
+    if (si) {
+      a.setAttribute('aria-current', 'page')
+      a.classList.remove('noleida')
+      a.removeAttribute('data-sin-leer')
+    } else a.removeAttribute('aria-current')
+  }
 }
 
 // Sin conversaciones, con quién podrías hablar (1167, M3): la gente que
@@ -237,7 +268,8 @@ async function renderNewConversation(session) {
         if (starting) return
         starting = true
         const conversationId = await findOrCreateConversation(session.user.id, btn.dataset.userId)
-        window.location.href = `/mensajes.html?c=${conversationId}`
+        history.pushState(null, '', `/mensajes.html?c=${conversationId}`)
+        void pintarDireccion(session)
       })
     )
   })
@@ -324,7 +356,22 @@ function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta, cita = nul
 
 async function renderThread(session, conversationId) {
   const miId = session.user.id
+  // Todo lo que este hilo engancha fuera de su caja se suelta con `sig`
+  // (1267): al pasar a otra conversación sin recargar, el hilo de antes no
+  // puede seguir midiendo, sondeando ni escuchando.
+  const mio = montaje
+  const ac = new AbortController()
+  const sig = ac.signal
+  const alSoltar = []
+  desmontarHilo = () => {
+    ac.abort()
+    for (const f of alSoltar) try { f() } catch {}
+    document.body.classList.remove('msg-hilo-abierto')
+    document.body.removeAttribute('data-sin-refrescar')
+  }
+  const sigue = () => mio === montaje && !sig.aborted
   const [amIParticipant, otherProfile, miFila] = await Promise.all([isParticipant(conversationId, miId), getOtherParticipant(conversationId, miId), miFilaDeConversacion(conversationId, miId).catch(() => null)])
+  if (!sigue()) return
   // Responder, reaccionar, fijar y archivar (1141) llegan con su migración:
   // la fila propia trae `fijada_at` si está.
   const con1141 = !!miFila && 'fijada_at' in miFila
@@ -335,6 +382,7 @@ async function renderThread(session, conversationId) {
   }
 
   await markConversationRead(conversationId, miId)
+  if (!sigue()) return
   void pintarListaLateral(session, conversationId)
 
   const name = otherProfile.display_name || otherProfile.username || 'Usuario'
@@ -498,19 +546,21 @@ async function renderThread(session, conversationId) {
   // estuvieras leyendo arriba. `pegado` lo apunta el propio scroll del hilo.
   let pegado = true
   const siPegado = () => { if (pegado) bajarAlFinal() }
-  window.addEventListener('resize', medirHilo)
-  window.visualViewport?.addEventListener('resize', () => { medirHilo(); siPegado() })
+  window.addEventListener('resize', medirHilo, { signal: sig })
+  window.visualViewport?.addEventListener('resize', () => { medirHilo(); siPegado() }, { signal: sig })
   // La barra del móvil llega por `import()` y cambia el relleno de arriba
   // de la página (704): el hilo se vuelve a medir cuando el <html> cambia
   // de clases y un par de veces más por si acaso, que una medida tomada
   // antes de tiempo deja un hueco de 50 px entre el cuadro y la barra.
-  new MutationObserver(() => { medirHilo(); siPegado() }).observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
-  for (const ms of [250, 1000]) setTimeout(() => { medirHilo(); siPegado() }, ms)
+  const vigiaClases = new MutationObserver(() => { medirHilo(); siPegado() })
+  vigiaClases.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] })
+  alSoltar.push(() => vigiaClases.disconnect())
+  for (const ms of [250, 1000]) setTimeout(() => { if (sigue()) { medirHilo(); siPegado() } }, ms)
   // Al cerrar el teclado, al volver a la pestaña o al volver atrás (la página
   // sale de la caché con la medida de antes), se mide otra vez.
-  document.addEventListener('focusout', () => setTimeout(medirHilo, 350))
-  window.addEventListener('pageshow', () => { medirHilo(); siPegado() })
-  document.addEventListener('visibilitychange', () => { if (!document.hidden) medirHilo() })
+  document.addEventListener('focusout', () => setTimeout(() => { if (sigue()) medirHilo() }, 350), { signal: sig })
+  window.addEventListener('pageshow', () => { medirHilo(); siPegado() }, { signal: sig })
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) medirHilo() }, { signal: sig })
 
   const cercaDelFinal = () => scroller.scrollHeight - scroller.scrollTop - scroller.clientHeight < 160
   const bajarAlFinal = (suave = false) => {
@@ -572,7 +622,7 @@ async function renderThread(session, conversationId) {
   async function refreshMessages(opciones) {
     // Lo llama también `setInterval`, que en Firefox le pasa un número.
     const forzar = opciones?.forzar === true
-    if (pintando) return
+    if (pintando || !sigue()) return
     pintando = true
     try {
       const [messages, otroLeyoHasta, reac] = await Promise.all([loadThreadMessages(conversationId), otherLastReadAt(conversationId, miId), con1141 ? reaccionesDe(conversationId) : null])
@@ -736,10 +786,10 @@ async function renderThread(session, conversationId) {
   })
   document.addEventListener('click', (e) => {
     if (selector && !e.target.closest('.msg-selector, [data-reaccionar]')) cerrarSelector()
-  })
+  }, { signal: sig })
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') cerrarSelector()
-  })
+  }, { signal: sig })
   // Deslizar a la derecha para responder (el móvil): a partir de 60 px. Si
   // el dedo va más en vertical, es un scroll y se suelta.
   let toque = null
@@ -804,7 +854,7 @@ async function renderThread(session, conversationId) {
     })
     document.addEventListener('click', (e) => {
       if (!e.target.closest('.msg-mas-caja')) cerrarMenu()
-    })
+    }, { signal: sig })
   }
 
   await refreshMessages()
@@ -1035,7 +1085,9 @@ async function renderThread(session, conversationId) {
   // así el servidor solo evalúa los mensajes de ESTE hilo. Aquí SÍ va
   // sondeo de respaldo: cuando el vivo conecta, baja a una vez por minuto.
   const { escuchar, sondeoAdaptable, difundir } = await import('./vivo.js')
+  if (!sigue()) return
   const sondeo = sondeoAdaptable(refreshMessages, 10000)
+  alSoltar.push(() => sondeo.parar())
   // «Escribiendo…» (1140): como mucho una señal cada dos segundos y medio
   // mientras tecleas; la otra punta la enseña cinco segundos.
   const difusion = difundir({
@@ -1049,13 +1101,15 @@ async function renderThread(session, conversationId) {
       apagarEscribe = setTimeout(pintarEstado, 5100)
     },
   })
+  alSoltar.push(() => difusion.parar?.())
+  alSoltar.push(() => clearTimeout(apagarEscribe))
   let ultimaSenal = 0
   caja.addEventListener('input', () => {
     if (!caja.value.trim() || Date.now() - ultimaSenal < 2500) return
     ultimaSenal = Date.now()
     difusion.enviar({ quien: miId })
   })
-  escuchar({
+  const dejarDeEscuchar = escuchar({
     nombre: `mensajes-${conversationId}`,
     tablas: [
       { tabla: 'private_messages', filtro: `conversation_id=eq.${conversationId}` },
@@ -1064,12 +1118,19 @@ async function renderThread(session, conversationId) {
     alCambiar: () => refreshMessages(),
     alEstado: (vivo) => sondeo.conVivo(vivo),
   })
+  alSoltar.push(dejarDeEscuchar)
 }
 
-async function init() {
-  const session = await requireAuth()
-  if (!session) return
-
+// Lo que dice la dirección, se pinta. Sirve para la primera vez y para
+// cambiar de conversación (o volver a la bandeja) SIN RECARGAR la página
+// (1267, PINGU: «vas de una conversación a otra y te recarga toda la
+// página»): la barra, la lista de la izquierda y el vivo de los avisos se
+// quedan; solo cambia el hilo.
+async function pintarDireccion(session) {
+  params = new URLSearchParams(window.location.search)
+  montaje++
+  desmontarHilo?.()
+  desmontarHilo = null
   const withUserId = params.get('with')
   const conversationId = params.get('c')
   const isNew = params.get('new')
@@ -1089,8 +1150,34 @@ async function init() {
   } else if (isNew) {
     await renderNewConversation(session)
   } else {
+    document.title = 'Mensajes — PokeDoc'
     await renderInbox(session)
   }
+}
+
+async function init() {
+  const session = await requireAuth()
+  if (!session) return
+  await pintarDireccion(session)
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest?.('a[href]')
+    if (!a || e.defaultPrevented || e.button > 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === '_blank' || a.hasAttribute('download')) return
+    // Un enlace a otra vista de Mensajes (una fila, «‹», «Nueva»): sin
+    // recargar. En captura, para que la barra de progreso (que escucha en
+    // burbuja) lo vea ya prevenido y no atenúe la página.
+    if (!esOtraVistaDeMensajes(a.href, location.href)) return
+    e.preventDefault()
+    const u = new URL(a.href, location.href)
+    if (u.href !== location.href) history.pushState(null, '', u.pathname + u.search)
+    window.scrollTo(0, 0)
+    void pintarDireccion(session)
+    // Los avisos se dan por leídos al cambiar de vista sin recargar (1262).
+    document.dispatchEvent(new CustomEvent('pd-ruta-cambiada'))
+  }, true)
+  window.addEventListener('popstate', () => {
+    void pintarDireccion(session)
+    document.dispatchEvent(new CustomEvent('pd-ruta-cambiada'))
+  })
 }
 
 init()

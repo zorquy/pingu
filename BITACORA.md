@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-07 (508) — PINGU-Claude (1267 — Mensajes cambia de conversación sin recargar)
+
+**Hecho**: PINGU: «vas de una conversación a otra y te recarga toda la página.
+No debería». Las filas, «‹», «Nueva», Atrás y Adelante ya no navegan:
+`pintarDireccion` lee la dirección y pinta el hilo, la bandeja o «Nueva» en la
+misma página (un oyente de clics en CAPTURA, para que la barra de progreso lo
+vea ya prevenido; `popstate` para Atrás/Adelante; y lanza `pd-ruta-cambiada`
+para los avisos). Antes de pintar otra cosa se suelta el hilo de antes
+(`desmontarHilo`): los oyentes de ventana y documento con un `AbortController`,
+el vigía de clases, el sondeo, el canal en vivo, «escribiendo…» y las clases del
+`<body>`; y un hilo que llega tarde (`montaje`) no se pinta encima. En el PC la
+lista de la izquierda no se rehace: marca la nueva al momento (y la da por
+leída) y pone al día las filas sin tocar el buscador. Un ancla de la misma
+conversación (una cita) no cambia de vista (`esOtraVistaDeMensajes`, en
+`mensajes-puro.js`).
+
+**Ficheros**: `js/mensajes.js`, `js/mensajes-puro.js`, SCHEMA, CLAUDE.md,
+novedades. Rama pruebas: `test-tanda-1267-pantalla.mjs` (PC y móvil, Atrás y
+Adelante, solo una conversación escucha a la vez) y las demás de Mensajes.
+
+**Pendiente**: lo de la 507 (migración 1266) y la 505 (1264 y 1260).
+
 ## 2026-11-07 (507) — PINGU-Claude (1266 — el Cambio en el Mostrador de las tiendas)
 
 **Hecho**: una tienda en un evento: «yo compro al 80 %… viene un chico con una

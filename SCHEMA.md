@@ -55204,6 +55204,45 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1267 — Mensajes cambia de conversación sin recargar
+
+PINGU: «vas de una conversación a otra y te recarga toda la página. No
+debería». Cada fila de la lista era un enlace de verdad a
+`/mensajes.html?c=<id>`, y `renderThread` se montaba UNA vez por página:
+dejaba oyentes en `window` y `document` (medir el hilo al cambiar la ventana,
+el foco, `pageshow`, cerrar menús), un `MutationObserver` sobre `<html>`, el
+sondeo, el canal en vivo y el de «escribiendo…», sin forma de soltarlos. Por
+eso cambiar de hilo era recargar.
+
+**Ahora la página se pinta desde la dirección** (`pintarDireccion`): la
+primera vez y cada vez que cambia. Un oyente de clics en CAPTURA intercepta
+los enlaces a otra vista de Mensajes (`esOtraVistaDeMensajes` en
+`mensajes-puro.js`: otra conversación, la bandeja o «Nueva»; un ancla de la
+misma conversación, como una cita, no lo es), hace `pushState` y pinta. Va en
+captura para que la barra de progreso (`js/progreso.js`, en burbuja) lo vea ya
+prevenido y no atenúe la página. `popstate` hace lo mismo con Atrás y Adelante,
+y los dos lanzan `pd-ruta-cambiada` (la 1262: los avisos de la vista nueva se
+dan por leídos). Elegir a alguien en «Nueva» también abre su conversación así.
+
+**El hilo se desmonta** (`desmontarHilo`, que pone `renderThread` al
+empezar): un `AbortController` cuyo `signal` llevan todos sus oyentes de
+ventana y documento, y una lista `alSoltar` con el vigía de clases, el sondeo
+(`parar`), «escribiendo…» (`parar` y su temporizador) y el canal en vivo (la
+función que devuelve `escuchar`); también quita `msg-hilo-abierto` y
+`data-sin-refrescar` del `<body>`. Y como un hilo se monta con varios `await`
+por medio, `montaje` dice cuál es el último: uno que llega tarde (se pulsaron
+dos filas seguidas) no se pinta encima ni engancha nada (`sigue()`).
+`refreshMessages` tampoco hace nada si su hilo ya no está.
+
+**La lista de la izquierda (PC) no se rehace**: `pintarListaLateral`, si ya
+está, marca la nueva fila al momento (`marcarActiva`, que además la da por
+leída) y luego pone al día solo las filas (`.msg-filas`), con los chips y el
+buscador como estaban (`aplicarFiltros`).
+
+Una pantalla nueva dentro de Mensajes que enganche algo fuera de su caja lo
+hace con el `signal` del hilo o lo apunta en `alSoltar`; si no, seguirá vivo
+en la conversación siguiente.
+
 ## Tanda 1266 — El Cambio en el Mostrador: cartas por cartas y la diferencia en dinero
 
 Una tienda en un evento: «yo compro al 80 %… viene un chico con una carta que

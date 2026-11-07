@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-07",
+      "tipo": "mejora",
+      "texto": "En Mensajes, pasar de una conversación a otra (o volver a la lista) ya no recarga la página: cambia al momento.",
+      "enlace": "/mensajes"
+    },
+    {
+      "fecha": "2026-11-07",
       "tipo": "nuevo",
       "texto": "Las tiendas tienen «Cambio» en el Mostrador: cartas por cartas y la diferencia en dinero. Lo que te dan cuenta un tanto por ciento de lo que vale para ti, lo tuyo va a tu precio, y la hoja dice quién paga a quién.",
       "enlace": "/para-tiendas"

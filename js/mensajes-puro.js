@@ -259,3 +259,17 @@ export function fotosTiendaDe(mensaje) {
   const a = Array.isArray(mensaje?.adjuntos) ? mensaje.adjuntos.find((x) => x && x.tipo === 'fotos_tienda' && x.stock_id) : null
   return a ? { stock_id: String(a.stock_id), evento: String(a.evento || '') } : null
 }
+
+// ¿Lleva este enlace a OTRA vista de Mensajes (1267)? Una conversación, la
+// bandeja o «Nueva» se abren sin recargar; un ancla de la misma vista
+// (`#msg-…`, las citas) no es otra vista, y lo de fuera tampoco.
+export function esOtraVistaDeMensajes(href, actual) {
+  try {
+    const a = new URL(actual)
+    const u = new URL(href, a)
+    if (u.origin !== a.origin || !/^\/mensajes(\.html)?$/.test(u.pathname)) return false
+    return !(u.search === a.search && /^\/mensajes(\.html)?$/.test(a.pathname) && u.hash)
+  } catch {
+    return false
+  }
+}

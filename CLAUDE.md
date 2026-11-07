@@ -1154,6 +1154,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   (`dentroDeCajaQueSube`, 1259) ni en una página con `data-sin-refrescar`: una
   conversación lo lleva en el `<body>` (se actualiza sola). Una pantalla nueva
   que se actualice en tiempo real hace lo mismo.
+  Cambiar de conversación (o volver a la bandeja) NO recarga (1267, PINGU:
+  «te recarga toda la página. No debería»): `pintarDireccion` pinta lo que
+  dice la dirección, un clic en captura a otra vista (`esOtraVistaDeMensajes`)
+  hace `pushState` y `popstate` hace lo mismo. Lo que el hilo engancha FUERA de
+  su caja (ventana, documento, sondeo, vivo) lleva el `signal` del hilo o va en
+  `alSoltar`, o seguirá vivo en la conversación siguiente.
 - **Las fotos de los mensajes privados van en un cubo PRIVADO y se piden
   FIRMADAS** (tanda 891). `mensajes-adjuntos` no es público: una carpeta
   por conversación y `mensajes_adjunto_es_mio(name)` en las tres políticas;
