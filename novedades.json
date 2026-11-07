@@ -36,6 +36,12 @@
     {
       "fecha": "2026-11-07",
       "tipo": "arreglo",
+      "texto": "Las expansiones nuevas salen en Colección en cuanto aparecen sus cartas, sin esperar días. Dominio Delta llega así.",
+      "enlace": "/cartas"
+    },
+    {
+      "fecha": "2026-11-07",
+      "tipo": "arreglo",
       "texto": "Lo que hablas con una tienda (ofertas, fotos) ya solo te avisa en Mensajes, no en Deseos y cambios. Y «Ver las fotos» te dice qué pasa si no puede enseñarlas.",
       "enlace": "/mensajes"
     },

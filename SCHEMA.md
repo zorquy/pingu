@@ -55204,6 +55204,33 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1265 — Una expansión recién salida se mira por sí misma
+
+PINGU: «ha salido Dominio Delta pero en PokeDoc no sale el set en Colección».
+La 756 crea el set de una expansión FUTURA escondido (para el calendario) y lo
+apunta en `estado.vacias`; volvía a pendiente solo cuando la lista de
+expansiones decía `cartas > 0`. Dos agujeros:
+- la lista la pide el emparejador una vez al día (`DIAS_DE_EPISODIOS`) y la
+  cuenta de TCGGO llega tarde: el día que sale, «0 cartas» todavía;
+- si al pedir sus cartas solo había sobres y cajas (`esCartaSuelta` las
+  aparta), la expansión se daba por hecha la semana entera, ya fuera de las
+  vacías, y no se volvía a mirar hasta el lunes.
+
+Ahora `porMirar` reabre una vacía si la lista dice que tiene cartas O si es
+recién salida (`esRecienSalida`: desde su día y `DIAS_DE_RECIEN` = 14), y en
+los dos casos solo si no se miró en las últimas `HORAS_ENTRE_MIRADAS` (3,
+`estado.miradas[mercado][id]`). Una reabierta no toma el atajo de «la lista
+dice cero, apúntala sin pedir»: se le piden sus cartas. Sin cartas sueltas,
+vuelve a las vacías. Coste: una petición por mirada, ~8 al día por expansión,
+dos semanas como mucho (frente a las 15.000 del plan); la vieja de cero cartas
+(las energías) no se mira nunca.
+
+Prueba: `test-tanda-1265.mjs` (la víspera, escondida y sin pedir; el día que
+sale con la lista en cero se le piden; solo sobres, sigue escondida y en las
+vacías; una hora después no se pide; tres horas y pico después, con cartas,
+entran en su set y se enseña; y una que la lista da con cartas pero solo son
+sobres vuelve a mirarse cada tres horas, no en cada pasada).
+
 ## Tanda 1264 — Lo de las tiendas va por privado, y «Ver las fotos» habla
 
 PINGU, de cliente: pidió fotos, la tienda las subió y (1) se le marcó «Deseos

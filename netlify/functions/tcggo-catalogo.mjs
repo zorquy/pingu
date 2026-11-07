@@ -58,6 +58,16 @@ export const MAXIMO_INTENTOS_EPISODIO = 3
 // Cada vez que un arreglo deja escribir lo que fallaba, se sube y lo que
 // estaba en `fallidos` se vuelve a pedir una vez.
 export const REABRIR_FALLIDOS = 807
+// Una expansión recién salida (1265): cuántos días se la mira por sí misma
+// y cada cuántas horas, como mucho.
+export const DIAS_DE_RECIEN = 14
+export const HORAS_ENTRE_MIRADAS = 3
+export function esRecienSalida(episodio, ahora) {
+  const f = typeof episodio?.fecha === 'string' ? Date.parse(episodio.fecha.slice(0, 10) + 'T00:00:00Z') : NaN
+  if (!Number.isFinite(f)) return false
+  const dias = (ahora.getTime() - f) / 86_400_000
+  return dias >= 0 && dias <= DIAS_DE_RECIEN
+}
 
 async function rest(ruta, clave, opciones = null) {
   const res = await fetch(`${SUPABASE_URL}/rest/v1/${ruta}`, {
@@ -249,10 +259,23 @@ export async function procesar({
     // pendientes: es la expansión que acaba de salir.
     if (!estado.vacias || typeof estado.vacias !== 'object') estado.vacias = {}
     if (!Array.isArray(estado.vacias[mercado])) estado.vacias[mercado] = []
-    const yaConCartas = estado.vacias[mercado].filter((id) => episodios.some((e) => e.id === id && e.cartas > 0))
-    if (yaConCartas.length) {
-      estado.hechos[mercado] = estado.hechos[mercado].filter((id) => !yaConCartas.includes(id))
-      estado.vacias[mercado] = estado.vacias[mercado].filter((id) => !yaConCartas.includes(id))
+    // Y una RECIÉN SALIDA se mira por sí misma (1265, PINGU: «ha salido
+    // Dominio Delta pero en PokeDoc no sale»): la lista se pide una vez al
+    // día y su cuenta de cartas llega tarde, así que en sus primeros
+    // `DIAS_DE_RECIEN` se le piden las cartas directamente, como mucho cada
+    // `HORAS_ENTRE_MIRADAS` (una petición por mirada: ~8 al día, dos semanas).
+    if (!estado.miradas || typeof estado.miradas !== 'object') estado.miradas = {}
+    if (!estado.miradas[mercado] || typeof estado.miradas[mercado] !== 'object') estado.miradas[mercado] = {}
+    const porMirar = new Set(estado.vacias[mercado].filter((id) => {
+      const e = episodios.find((x) => x.id === id)
+      if (!e) return false
+      const ultima = estado.miradas[mercado][id] ? new Date(estado.miradas[mercado][id]).getTime() : 0
+      if (ahora.getTime() - ultima < HORAS_ENTRE_MIRADAS * 3_600_000) return false
+      return e.cartas > 0 || esRecienSalida(e, ahora)
+    }))
+    if (porMirar.size) {
+      estado.hechos[mercado] = estado.hechos[mercado].filter((id) => !porMirar.has(id))
+      estado.vacias[mercado] = estado.vacias[mercado].filter((id) => !porMirar.has(id))
     }
     // El set que ya lleva su expansión (756): el de una futura que se creó
     // vacía, o el de un calco japonés que casó por la huella.
@@ -263,7 +286,7 @@ export async function procesar({
       if (parado || gastadas >= tope || !quedaTiempo()) break
       // Una expansión que su lista da con CERO cartas (las Trainer Gallery,
       // las energías) se apunta sin pedirla: no hay nada que casar.
-      if (episodio.cartas === 0) {
+      if (episodio.cartas === 0 && !porMirar.has(episodio.id)) {
         // Si es FUTURA, su set, escondido, para el calendario (756).
         let proxima = null
         if (typeof episodio.fecha === 'string' && episodio.fecha.slice(0, 10) > dia) {
@@ -308,6 +331,7 @@ export async function procesar({
         pagina++
       }
       if (!completo) break
+      if (porMirar.has(episodio.id)) estado.miradas[mercado][episodio.id] = ahora.toISOString()
       // Las versiones de una carta (806) cuentan como UNA: sin esto la
       // Reverse Holo entraba como carta nueva al lado de la normal.
       const { principales, versiones } = separarVersiones(suyas)
@@ -344,6 +368,10 @@ export async function procesar({
       for (const h of setsHermanos(destinos[0], idsNuestros)) if (!destinos.includes(h)) destinos.push(h)
       if (!suyas.length) {
         estado.hechos[mercado].push(episodio.id)
+        // Sin cartas sueltas todavía (solo sobres y cajas): sigue en las
+        // vacías, para volver a mirarla, en vez de darla por hecha toda la
+        // semana (1265).
+        if (!estado.vacias[mercado].includes(episodio.id)) estado.vacias[mercado].push(episodio.id)
         esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, suyas: 0, nota: 'vacía' })
         await persistir()
         continue

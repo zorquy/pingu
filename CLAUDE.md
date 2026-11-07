@@ -1696,7 +1696,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   de Cardmarket y el inglés de TCGGO— y, elegido por la huella, se
   comprueba que es la misma expansión antes de escribir. Lo viejo
   (`precios-espejo`, el repaso de `scrydex-huecos`) no toca lo que lleva
-  `tcggo_id`.
+  `tcggo_id`. Y una expansión NUEVA (1265) no espera a que la lista de TCGGO
+  cuente sus cartas: en sus primeros 14 días se le piden cada tres horas como
+  mucho (`esRecienSalida`, `estado.miradas`), y sin cartas sueltas sigue en
+  las vacías; su set escondido (756) se enseña al llegar.
 - **Un cambio de DATOS que no quiera SQL va en una función con la clave
   de servicio** (tanda 654). PINGU no quiso ejecutar la migración del 30
   aniversario («da igual la migración SQL»), y la única forma de escribir

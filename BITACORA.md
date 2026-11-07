@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-07 (506) — PINGU-Claude (1265 — una expansión recién salida se mira por sí misma)
+
+**Hecho**: PINGU: «ha salido Dominio Delta pero en PokeDoc no sale el set en
+Colección». Delta Reign (TCGGO 437) tiene su set creado ESCONDIDO desde la 756
+para el calendario, y `tcggo-catalogo` solo lo volvía a mirar cuando la LISTA
+de expansiones (que pide el emparejador una vez al día) decía `cards_total > 0`;
+y si al mirarla solo había sobres y cajas, la daba por hecha TODA LA SEMANA.
+- Una expansión de las vacías que ha salido hace menos de `DIAS_DE_RECIEN`
+  (14) se mira por sí misma (sus cartas, una petición), sin fiarse de la cuenta
+  de la lista, como mucho cada `HORAS_ENTRE_MIRADAS` (3): ~8 peticiones al día
+  y por expansión, dos semanas. El mismo freno vale para la que la lista da
+  con cartas (`estado.miradas`).
+- Si al mirarla no hay cartas sueltas, vuelve a las vacías en vez de quedarse
+  hecha la semana entera.
+- Cuando llegan, entran en SU set (por `tcggo_id`) y se enseña, como en la 756.
+- No he podido ver el estado real (desde el contenedor no se llega a la base
+  ni a TCGGO): si TCGGO ya tiene sus cartas, Delta Reign sale en la primera
+  pasada después del despliegue (cada cinco minutos); si no, en cuanto las
+  publique, como mucho tres horas después.
+
+**Ficheros**: `netlify/functions/tcggo-catalogo.mjs`, SCHEMA, CLAUDE.md,
+novedades. Rama pruebas: `test-tanda-1265.mjs` (puro + las pasadas de Delta
+Reign del anuncio a sus cartas, y una con «cartas» que solo son sobres); 640,
+655 y 756 siguen en verde.
+
+**Pendiente**: lo de la 505 (migraciones 1264 y 1260). Si mañana Delta Reign
+sigue sin salir, mirar /admin → «Estado del catálogo de TCGGO» (`esteTurno`
+de la 437: si dice «vacía» es que TCGGO aún no tiene sus cartas sueltas).
+
 ## 2026-11-07 (505) — PINGU-Claude (1264 — lo de las tiendas va por privado, y «Ver las fotos»)
 
 **Hecho**: PINGU, probando como cliente: pidió fotos a una tienda, al subirlas
