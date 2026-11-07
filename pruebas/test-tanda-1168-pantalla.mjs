@@ -25,7 +25,7 @@ console.log('── Puro: tramos por meses, agrupar por tramo, chips ──')
   check('la campana sigue juntando las tres en una de hoy', campana.length === 1 && campana[0].tramo === 'Hoy' && campana[0].grupos[0].n === 3, JSON.stringify(campana))
   check('/avisos las parte por tramo: una de hoy y dos juntas en Octubre, con `leido`', pagina.map((t) => `${t.tramo}:${t.grupos.map((g) => `${g.n}${g.leido ? 'L' : ''}`).join(',')}`).join('|') === 'Hoy:1|Octubre:2L', JSON.stringify(pagina))
   const avisos = [{ type: 'forum_reply' }, { type: 'trade_match', read_at: 'x' }, { type: 'torneo_ronda' }, { type: 'new_follower' }, { type: 'aviso_precio' }]
-  check('chips: «Para ti» es lo sin sección; las cuentas son lo SIN LEER', casaConChip(avisos[3], 'para-ti') && !casaConChip(avisos[0], 'para-ti') && casaConChip(avisos[0], 'Comunidad') && JSON.stringify(cuentasDeChips(avisos)) === '{"todos":4,"para-ti":1,"Comunidad":1,"Colección":1,"Jugar":1}', JSON.stringify(cuentasDeChips(avisos)))
+  check('chips: «Para ti» es lo sin sección; las cuentas son lo SIN LEER', casaConChip(avisos[3], 'para-ti') && !casaConChip(avisos[0], 'para-ti') && casaConChip(avisos[0], 'Comunidad') && JSON.stringify(cuentasDeChips(avisos)) === '{"todos":4,"para-ti":1,"Comunidad":1,"Colección":1,"Jugar":1,"Mensajes":0}', JSON.stringify(cuentasDeChips(avisos)))
 }
 
 const b = await chromium.launch()
@@ -52,7 +52,7 @@ console.log('── /avisos en el PC ──')
   const { p, ctx, errores } = await abrir('/avisos', false, muchos())
   check('sin errores', errores.length === 0, errores.join(' | '))
   let r = await estado(p)
-  check('los chips con lo SIN LEER de cada uno; «Todos» activo', JSON.stringify(r.chips) === JSON.stringify(['Todos 4', 'Para ti 1', 'Comunidad 1', 'Colección 1', 'Jugar 1']) && r.activo === 'todos', JSON.stringify(r))
+  check('los chips con lo SIN LEER de cada uno; «Todos» activo', JSON.stringify(r.chips) === JSON.stringify(['Todos 4', 'Para ti 1', 'Comunidad 1', 'Colección 1', 'Jugar 1', 'Mensajes']) && r.activo === 'todos', JSON.stringify(r))
   check('las filas de la campana, por días y por meses, con los leídos también', r.filas > 15 && r.sinLeer === 4 && r.tramos.includes('Hoy') && r.tramos.includes('Octubre') && !r.tramos.includes('Antes'), JSON.stringify(r))
   check('  …lo sin leer con punto, «Cargar más» (son 70, de 60 en 60) y «Marcar todo como leído» a la vista', r.punto === '8px' && r.pie === 'Cargar más' && r.leerTodo && !r.desborda, JSON.stringify(r))
   await p.click('.av-chip[data-chip="Jugar"]')
@@ -74,7 +74,7 @@ console.log('── /avisos en el PC ──')
   await p.waitForTimeout(600)
   const r = await estado(p)
   const campana = await p.evaluate(() => ({ chapa: document.getElementById('navBellBadge')?.classList.contains('hidden'), avisos: (window.__pdAvisos || []).filter((a) => !a.read_at).length }))
-  check('«Marcar todo como leído»: sin puntos, sin números y el botón se va; la campana se entera', r.sinLeer === 0 && JSON.stringify(r.chips) === JSON.stringify(['Todos', 'Para ti', 'Comunidad', 'Colección', 'Jugar']) && !r.leerTodo && campana.chapa && campana.avisos === 0, JSON.stringify({ r, campana }))
+  check('«Marcar todo como leído»: sin puntos, sin números y el botón se va; la campana se entera', r.sinLeer === 0 && JSON.stringify(r.chips) === JSON.stringify(['Todos', 'Para ti', 'Comunidad', 'Colección', 'Jugar', 'Mensajes']) && !r.leerTodo && campana.chapa && campana.avisos === 0, JSON.stringify({ r, campana }))
   await ctx.close()
 }
 {

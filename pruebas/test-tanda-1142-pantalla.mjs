@@ -21,7 +21,7 @@ console.log('── 1. Lo puro ──')
   const avisos = [{ type: 'forum_reply' }, { type: 'cambio_propuesta' }, { type: 'aviso_precio' }, { type: 'torneo_ronda' }, { type: 'new_follower' }, { type: 'new_follower', read_at: 'x' }]
   const c = N.cuentasDeSecciones(avisos, '2')
   check('cuentas por sección (Comunidad sin los mensajes, 1169b)', c.Comunidad === 1 && c.Jugar === 1 && c['Colección'] === 2 && c.Mensajes === 2, JSON.stringify(c))
-  check('  …y por página', JSON.stringify(c.paginas) === JSON.stringify({ foro: 1, torneos: 1, cambios: 2, cruces: 0, mensajes: 2 }), JSON.stringify(c.paginas))
+  check('  …y por página', JSON.stringify(c.paginas) === JSON.stringify({ foro: 1, torneos: 1, cambios: 1, cruces: 0, mensajes: 2 }), JSON.stringify(c.paginas))
   check('la campana: solo lo sin leer y sin sección', N.avisosSinSeccion(avisos).length === 1)
   const loc = (u) => { const x = new URL(u, 'https://pokedoc.es'); return { pathname: x.pathname, search: x.search, host: x.host } }
   check('A1: el tema con su ancla casa con el tema', N.casaConLaPagina('/tema/12#mensaje-80', loc('/tema/12')) && N.casaConLaPagina('/tema/12', loc('/tema/12?p=2')))
