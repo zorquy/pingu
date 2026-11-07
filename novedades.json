@@ -34,6 +34,12 @@
   ],
   "entradas": [
     {
+      "fecha": "2026-11-07",
+      "tipo": "arreglo",
+      "texto": "Lo que hablas con una tienda (ofertas, fotos) ya solo te avisa en Mensajes, no en Deseos y cambios. Y «Ver las fotos» te dice qué pasa si no puede enseñarlas.",
+      "enlace": "/mensajes"
+    },
+    {
       "fecha": "2026-11-06",
       "tipo": "mejora",
       "texto": "En el escaparate de las tiendas cada carta enseña su idioma con la bandera, al lado del estado, para verlo de un vistazo.",

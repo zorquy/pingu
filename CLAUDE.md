@@ -186,7 +186,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y lo que liste stock PARA VENDER quita lo que está por poner. La caja del día
   es `cuentaDeCaja` (`js/tienda-caja.js`). Una forma de pago nueva va en
   `PAGOS_VENTA`/`PAGOS_COMPRA` y en el `check` de la base a la vez.
-  «Pedir fotos» (1251) es `tienda_pedir_fotos`; al subirlas avisa el
+  «Pedir fotos» (1251) es `tienda_pedir_fotos`, y quien las pidió (o tiene
+  una oferta por esa copia) las ve aunque esté reservada u oculta
+  (`tienda_foto_se_ve`, 1264); al subirlas avisa el
   DISPARADOR de `tienda_stock_fotos` (`trg_tienda_fotos_subidas`), así que un
   camino nuevo para subir fotos de una copia no tiene que avisar a mano.
   Una tienda DE PRUEBAS (`tiendas.de_pruebas`, 1245, PINGU: «un perfil como
@@ -1070,7 +1072,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   Mensajes no está en su burbuja ni en su cajón, así que van solo en el sobre
   y en el avatar (y en la sección Mensajes de una tienda). Un tipo de aviso nuevo que sea de una sección va en
   `seccionDeAviso` (Comunidad el foro, Jugar los torneos, Colección los
-  cambios, cruces, alertas de precio y tiendas, 1142), y en una fila de
+  cambios, cruces, alertas de precio y «la tiene una tienda», 1142; lo que se
+  habla con una tienda —ofertas, fotos— es de Mensajes, 1264: llega con su
+  mensaje, lo cuenta el sobre y no suma en ninguna otra parte; y Deseos y
+  cambios cuenta solo `cambio_*` y `trade_match*`), y en una fila de
   `SECCIONES_AVISOS` (`js/avisos-prefs.js`, 1149: la tabla de Ajustes; sin
   fila cae en «Otros»). Un aviso se cuenta en UN
   sitio (1142, PINGU: «la campana… ¿tiene sentido?»): la campana y el avatar

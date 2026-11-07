@@ -175,11 +175,26 @@ export function engancharOfertas(raiz, { alCambiar, miId = null }) {
     const subir = e.target.closest('[data-fotos-subir]')
     const ver = e.target.closest('[data-fotos-ver]')
     if (subir || ver) {
-      const id = (subir || ver).dataset.fotosSubir || (subir || ver).dataset.fotosVer
-      const m = await import('./tienda-fotos.js')
-      const fotos = (await m.fotosDeStock([id]).catch(() => null))?.get(id) || null
-      if (ver) return m.verFotosDeStock({ nombre: 'La carta', detalle: '', fotos })
-      return m.abrirFotosDeStock({ stockId: id, tiendaId: miId, nombre: 'la carta que te piden', fotos, alCambiar: () => alCambiar?.() })
+      // Nunca en silencio (1264, PINGU: «le doy a Ver las fotos y no hace
+      // nada»): si el módulo, la consulta o las fotos no llegan, se dice.
+      const boton = subir || ver
+      const id = boton.dataset.fotosSubir || boton.dataset.fotosVer
+      boton.disabled = true
+      try {
+        const m = await import('./tienda-fotos.js')
+        const mapa = await m.fotosDeStock([id]).catch(() => null)
+        const fotos = mapa?.get(id) || null
+        if (subir) return m.abrirFotosDeStock({ stockId: id, tiendaId: miId, nombre: 'la carta que te piden', fotos, alCambiar: () => alCambiar?.() })
+        if (!mapa) return showToast('No se han podido cargar las fotos. Prueba otra vez en un momento.', 'error')
+        if (!fotos) return showToast('Esa copia ya no tiene fotos a la vista: puede que la tienda las haya quitado. Pregúntale por aquí.', 'info')
+        return m.verFotosDeStock({ nombre: 'La carta', detalle: '', fotos })
+      } catch (err) {
+        const { recargarSiDesajuste } = await import('./error-log.js')
+        if (!recargarSiDesajuste(err)) showToast('No se han podido abrir las fotos. Prueba otra vez.', 'error')
+      } finally {
+        boton.disabled = false
+      }
+      return
     }
     const copiar = e.target.closest('[data-oferta-copiar]')
     if (copiar) {

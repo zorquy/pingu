@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-07 (505) — PINGU-Claude (1264 — lo de las tiendas va por privado, y «Ver las fotos»)
+
+**Hecho**: PINGU, probando como cliente: pidió fotos a una tienda, al subirlas
+le llegó el aviso y (1) se le marcó «Deseos y cambios» («las tiendas van por
+privado, no en Cruces») y (2) en Mensajes «Ver las fotos» no hacía nada.
+- `seccionDeAviso`: `tienda_oferta` y `tienda_fotos` son de **Mensajes** (cada
+  uno llega con su mensaje, que ya cuenta el sobre): no suman en Colección, ni
+  en Deseos y cambios, ni en la campana. /avisos tiene el chip «Mensajes».
+- Deseos y cambios y Cruces cuentan SOLO los tratos entre personas y los cruces
+  (`cambio_*`, `trade_match*`): una alerta de precio o «la tiene una tienda»
+  siguen en Colección, pero no marcan esa pestaña (llevan a otra parte y su
+  número ahí no se iba).
+- `casaConLaPagina`: un aviso a `/usuario/<tienda>` se lee en `/tiendas/<tienda>`
+  (el 301 de la 1243 dejaba «la tiene una tienda» sin leer para siempre).
+- «Ver las fotos» ya no se calla: si la consulta falla, o la copia ya no tiene
+  fotos a la vista, lo dice; un desajuste de despliegue recarga.
+- **Migración `supabase-migration-1264-fotos-para-quien-las-pidio.sql`
+  (PENDIENTE de ejecutar)**: `tienda_foto_se_ve` deja ver las fotos a quien
+  las pidió o tiene una oferta por esa copia, aunque esté reservada, sin
+  unidades u oculta. Es la causa más probable de lo de PINGU: la base
+  contestaba «no hay» (vacío, sin error) en cuanto la copia salía de la vista.
+
+**Ficheros**: `js/numeros-seccion.js`, `js/avisos-grupos.js`,
+`js/avisos-chips.js`, `js/avisos.js`, `js/mensajes-oferta.js`, la migración,
+SCHEMA, CLAUDE.md, novedades. Rama pruebas: `test-tanda-1264.mjs`
+(PostgreSQL) y `test-tanda-1264-pantalla.mjs` (cae con el código de antes, 8
+rojos); 1142 y 1168 al día con la regla nueva.
+
+**Pendiente**: ejecutar la 1264 (y la 1260 si no está). La 1168-pantalla
+sigue con su rojo de antes («Cargar más»).
+
 ## 2026-11-06 (504) — PINGU-Claude (1263 — banderas en el escaparate de las tiendas)
 
 **Hecho**: PINGU: «el estado se ve con iconos NM, EX… pero el idioma no se ve

@@ -55204,6 +55204,36 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1264 — Lo de las tiendas va por privado, y «Ver las fotos» habla
+
+PINGU, de cliente: pidió fotos, la tienda las subió y (1) se le marcó «Deseos
+y cambios» y (2) «Ver las fotos» no hacía nada.
+
+**Los números.** `tienda_oferta` y `tienda_fotos` ya no son de Colección: son
+de `Mensajes`, porque cada aviso de esos llega con su mensaje (adjuntos
+`oferta_tienda` / `fotos_tienda`) y el sobre ya lo cuenta. `cuentasDeSecciones`
+no los suma en ninguna parte (ni la campana: `avisosSinSeccion` los deja fuera);
+la campana los lista en «En tus secciones» con la etiqueta «Mensajes» y /avisos
+tiene su chip. Y la página Deseos y cambios (y su Cruces, 1262) cuenta solo
+`cambio_*` y `trade_match*`: lo demás de Colección (alerta de precio, «la tiene
+una tienda») lleva a otra parte, y un número en una página que no lo lee no se
+quita nunca. `casaConLaPagina` toma `/tiendas/<u>` por `/usuario/<u>` (el 301
+de la 1243).
+
+**Las fotos.** Se leen por la política de `tienda_stock_fotos`
+(`tienda_foto_se_ve`, 1235): solo con la copia a la vista y con unidades. Una
+copia reservada (1092), aceptada en una oferta (1250) u oculta dejaba a quien
+las pidió con una lista VACÍA, sin error, y el botón no hacía nada
+(`verFotosDeStock` devuelve null sin fotos). La migración 1264 añade a quien
+las pidió (`tienda_fotos_pedidas`) y a quien tiene una oferta por esa copia
+(`tienda_ofertas`). Y el botón ya no se calla: error de la consulta, «ya no
+tiene fotos a la vista» o recarga por desajuste (`recargarSiDesajuste`).
+
+Pruebas: `test-tanda-1264.mjs` (PostgreSQL: sin unidades u oculta, Ane —que
+las pidió— las ve y Bea no; con una oferta, Bea también; sin cuenta, solo a la
+vista) y `test-tanda-1264-pantalla.mjs` (lo puro; Deseos y cambios sin número
+con un aviso de fotos; la campana tampoco; «Ver las fotos» sin fotos lo dice).
+
 ## Tanda 1263 — El idioma con bandera en el escaparate de una tienda
 
 PINGU, con una captura del escaparate: el estado sale en su chapa de color

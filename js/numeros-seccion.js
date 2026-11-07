@@ -23,9 +23,18 @@ export function seccionDeAviso(tipo = '') {
   const t = String(tipo || '')
   if (t.startsWith('forum_')) return 'Comunidad'
   if (t.startsWith('torneo_') || t.startsWith('tournament_')) return 'Jugar'
-  if (t.startsWith('cambio_') || t.startsWith('trade_match') || t === 'aviso_precio' || t === 'tienda_la_tiene' || t === 'tienda_oferta' || t === 'tienda_fotos') return 'Colección'
+  if (t.startsWith('cambio_') || t.startsWith('trade_match') || t === 'aviso_precio' || t === 'tienda_la_tiene') return 'Colección'
+  // Lo que se habla con una tienda (una oferta, unas fotos) va por privado
+  // (1264, PINGU: «no debería marcarse en Deseos y cambios, solo por mensaje»):
+  // cada aviso llega con su mensaje, que ya cuenta el sobre.
+  if (t === 'tienda_oferta' || t === 'tienda_fotos') return 'Mensajes'
   return null
 }
+
+// Deseos y cambios (y su Cruces) cuentan solo los tratos entre personas y los
+// cruces (1264): una alerta de precio o «la tiene una tienda» llevan a otra
+// parte y su número ahí no se iría nunca.
+const esDeDeseosYCambios = (tipo = '') => /^(cambio_|trade_match)/.test(String(tipo || ''))
 
 // Lo que cuenta la campana (A2): lo sin leer que no lleva número en otra parte.
 export const avisosSinSeccion = (avisos = []) => (avisos || []).filter((a) => a && !a.read_at && !seccionDeAviso(a.type))
@@ -51,8 +60,10 @@ export function paginaDeEnlace(el) {
 // sin `.html`) y todos los parámetros del enlace con el mismo valor aquí; el
 // ancla no cuenta (`#mensaje-80` está DENTRO del tema). La portada no «lee»
 // nada: un aviso que lleva a `/` se lee en la campana.
+// Una tienda vive en /tiendas/<usuario> y meta-social manda ahí con un 301
+// desde /usuario/ (1243): el aviso que dice /usuario/ryu se lee en /tiendas/ryu.
 const rutaLimpia = (p) => {
-  const r = String(p || '').replace(/\.html$/, '').replace(/\/+$/, '')
+  const r = String(p || '').replace(/\.html$/, '').replace(/\/+$/, '').replace(/^\/tiendas\/(?=[^/]+$)/, '/usuario/')
   return r === '' || r === '/index' ? '/' : r
 }
 export function casaConLaPagina(link, loc) {
@@ -89,10 +100,14 @@ export function cuentasDeSecciones(avisos = [], mensajes = 0) {
   for (const a of avisos || []) {
     if (a?.read_at) continue
     const s = seccionDeAviso(a?.type)
-    if (!s) continue
+    // Los de Mensajes ya los cuenta el sobre por su mensaje: no se suman dos veces.
+    if (!s || s === 'Mensajes') continue
     cuentas[s] += 1
-    paginas[PAGINA_DE_SECCION[s]] += 1
-    if (/[?&]ver=cambios(&|#|$)/.test(a?.link || '')) paginas.cruces += 1
+    if (s !== 'Colección') paginas[PAGINA_DE_SECCION[s]] += 1
+    else if (esDeDeseosYCambios(a?.type)) {
+      paginas.cambios += 1
+      if (/[?&]ver=cambios(&|#|$)/.test(a?.link || '')) paginas.cruces += 1
+    }
   }
   Object.defineProperty(cuentas, 'paginas', { value: paginas, enumerable: false })
   return cuentas

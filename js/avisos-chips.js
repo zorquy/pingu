@@ -10,6 +10,8 @@ export const CHIPS = [
   { id: 'Comunidad', texto: 'Comunidad', llave: 'comunidad' },
   { id: 'Colección', texto: 'Colección', llave: 'cartas' },
   { id: 'Jugar', texto: 'Jugar', llave: 'jugar' },
+  // Lo de las tiendas (ofertas, fotos) va con su mensaje (1264).
+  { id: 'Mensajes', texto: 'Mensajes', llave: 'mensajes' },
 ]
 
 // Si un aviso entra en un chip.

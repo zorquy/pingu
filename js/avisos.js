@@ -21,7 +21,7 @@ import { icons } from './icons.js'
 // web como la portada»). La fila sigue siendo la de la campana (`tramosHtml`):
 // aquí, después de pintarla, se le pone delante el icono y la sección pasa a
 // la línea de la fecha («Comunidad · hace 3 h»). La campana no cambia.
-const ICONO_DE_SECCION = { comunidad: icons.messageSquare, cartas: icons.refreshCw, jugar: icons.trophy, ti: icons.users }
+const ICONO_DE_SECCION = { comunidad: icons.messageSquare, cartas: icons.refreshCw, jugar: icons.trophy, mensajes: icons.mail, ti: icons.users }
 function vestirFilas(lista) {
   for (const fila of lista.querySelectorAll('.nav-bell-item')) {
     if (fila.querySelector('.av-ico')) continue

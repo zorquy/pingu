@@ -124,7 +124,7 @@ function timeAgo(iso) {
 
 // La etiqueta de color de un aviso que ya cuenta en una sección (1142): dice
 // de dónde sale el número de la barra. El color es el de la sección.
-const LLAVE_DE_SECCION = { Comunidad: 'comunidad', Jugar: 'jugar', 'Colección': 'cartas' }
+const LLAVE_DE_SECCION = { Comunidad: 'comunidad', Jugar: 'jugar', 'Colección': 'cartas', Mensajes: 'mensajes' }
 const etiquetaDeSeccion = (tipo) => {
   const s = seccionDeAviso(tipo)
   return s ? ` <span class="nav-bell-seccion" data-seccion="${LLAVE_DE_SECCION[s]}">${escapeHtml(s)}</span>` : ''
