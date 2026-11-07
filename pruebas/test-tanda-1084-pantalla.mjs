@@ -88,7 +88,7 @@ console.log('── Desde Ventas ──')
 console.log('── Desde el aviso de una venta ──')
 {
   const { p, ctx } = await abrir('/tienda.html')
-  await p.click('.tdm-vender'); await p.waitForTimeout(500)
+  await p.click('.tdm-p-vender'); await p.waitForTimeout(500)
   await p.fill('#tdvBusca', 'char'); await p.waitForTimeout(800)
   await p.click('.tdv-resultado >> nth=0'); await p.click('#tdvVendida'); await p.waitForTimeout(800)
   const acciones = await p.locator('.toast .toast-accion').allTextContents()
