@@ -55204,6 +55204,92 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1266 — El Cambio en el Mostrador: cartas por cartas y la diferencia en dinero
+
+Una tienda en un evento: «yo compro al 80 %… viene un chico con una carta que
+vale 100… me está dando 80 y luego me tiene que dar 20 en cash. Eso se podría
+poner como otro botón en las opciones de tienda». PINGU eligió lo recomendado
+en la propuesta (con maquetas): un tanto por ciento propio para cambios, tu
+carta a tu precio, lo recibido a «Por poner a la venta» y una venta y una
+compra enlazadas. Y pidió una cosa más: «el campo del valor está ahí, pero en
+gris por si quieres cambiarlo», como en Comprar.
+
+**Dónde está.** En el móvil, en el abanico del Mostrador, a lo ancho debajo de
+Comprar y Vender (`.tdm-gran-cambio`); en el PC, en medio del botón partido
+(`.tdm-p-cambio`); arriba de las tres hojas (`MODOS` de `tienda-mostrador.js`)
+y por `/tienda?cambio=1`. Su color son las dos mitades (`--tdm-cambio`, en
+`tienda-marco.css`, que se carga en todas las páginas de la tienda).
+
+**Es la hoja de Comprar en otro modo** (`modo = 'cambio'` en
+`js/tienda-comprar.js`), no otra hoja: lo de tasar una carta del cliente
+(idiomas del set, gradeo, versión, Cardmarket, «Vale» en gris) ya estaba ahí,
+y copiarlo era tener dos. En modo cambio:
+- «Pagas» se llama «Cuenta» y el tanto por ciento es otro (`PCTS_CAMBIO`,
+  60–90; `PCT_CAMBIO` = 80 de partida; se recuerda en `pd-tienda-cambio-pct`,
+  aparte de `pd-tienda-compra-pct`). Lo normal en una tienda es dar más en
+  cambio que en dinero, porque no sale dinero de la caja.
+- Se abre en «terminar», con los dos lados a la vista; «+ Añadir carta suya»
+  va a buscar y «Añadir al cambio» vuelve.
+- Debajo va «Le das» (`js/tienda-cambio.js`, `montarLeDas`, por `import()` la
+  primera vez): el buscador del stock de Vender (`buscarEnStock`, que quita lo
+  que está por poner) y el lector de SKU (`filaPorSku`), las líneas con «Tu
+  precio» fijo y «Lo dejas en» vacío con ese precio en gris (`precioCobrado`).
+  Sus atributos van con `data-tdx-…`: la hoja de Comprar escucha
+  `data-paso`/`data-quitar`/`data-linea` para sus líneas y un clic de aquí no
+  debe tocarlas.
+- Pasar de Comprar a Cambio (o al revés) CONSERVA las líneas, y las que no se
+  escribieron a mano pasan al tanto por ciento del modo: el cliente que venía a
+  vender y se encapricha de una carta no vuelve a empezar.
+
+**La cuenta** es `cuentaDeCambio(teDa, leDas)` (`tiendas-puro.js`): recibido
+(lo que cuentan sus cartas), entregado (lo tuyo a lo que lo dejas) y la
+diferencia = entregado − recibido. Positiva, «Te paga» con las formas de pago
+de una venta (`PAGOS_VENTA`, recordada en la llave de Vender); negativa, «Le
+pagas» con las de una compra; cero, «Quedáis en paz» y sin forma de pago. La
+frase es `textoDeCambio`, la misma en la hoja, el aviso y el título del
+recibo. Una línea sin cifra no cuenta como cero: el botón no se enciende.
+
+**La base** (`supabase-migration-1266-tienda-cambio.sql`):
+- `tienda_cambios`: entregado, recibido, diferencia, pago de la diferencia,
+  tanto por ciento, cliente y los tickets de su venta y su compra (únicos). El
+  `check` de su pago es el de venta si es positiva y el de compra si es
+  negativa.
+- `tienda_cambio(p_te_da, p_le_das, p_pago, p_cliente, p_donde, p_pct)` llama
+  a `tienda_vender` (sin pago) y a `tienda_comprar` (sin pago; lo recibido
+  entra por poner a la venta con lo que contó de coste y su valor), y luego
+  marca las dos mitades con `pago = 'cambio'`. Todo en una función: si una
+  mitad falla (no quedan tantas, una carta que no está), no se hace nada.
+  Pide los dos lados: sin uno es una venta o una compra.
+- «cambio» entra en el `check` de `tienda_ventas.pago` y `tienda_compras.pago`,
+  pero NO en `PAGOS_VENTA`/`PAGOS_COMPRA` de la web: no se elige a mano. Se
+  nombra («En cartas») en `NOMBRE_DE_PAGO`.
+- `tienda_deshacer_cambio(id)` acepta el id o el ticket de cualquiera de las
+  dos mitades (lo que tiene a mano la lista), borra la fila y deshace las dos
+  (la compra primero: si ya se vendió algo de lo recibido, no deja y no se
+  toca nada). `tienda_deshacer_venta`/`_compra` se redefinen iguales salvo que
+  no dejan deshacer media un cambio.
+- `tienda_ventas_lista` y `tienda_compras_lista` se redefinen iguales con
+  `pago` en cada fila, para la chapa.
+
+**La caja** (`cuentaDeCaja(ventas, compras, cambios)`): la venta y la compra
+de un cambio cuentan enteras en lo vendido y lo comprado (el Panel y el cierre
+del mes no se quedan cortos), pero de lo vendido solo se pagó «En cartas» lo
+que contaron las suyas; la diferencia se mueve a su forma de pago. Con un
+cambio de 100 por 72 y 28 con tarjeta: «En cartas» entra 72 y sale 72, la
+tarjeta entra 28 y el efectivo no se entera. Encima de la tabla, «De ello, N
+cambios: +X € en dinero». Sin la migración, `tienda_cambios` no existe y no hay
+cambios (no es un fallo).
+
+**El recibo** (`abrirReciboDeCambio`, `tienda-recibo.js`): el mismo papel con
+dos bloques, «Nos das» (lo que cuentan sus cartas) y «Te llevas», y abajo
+«Nos pagas» / «Te pagamos» / «Cambio en paz» con la forma de pago. Nunca el
+coste ni lo que ganas. El diálogo del recibo es uno (`mostrar`), para la
+venta, la compra y el cambio.
+
+**Las listas** (`tienda-ventas.js`): una línea con `pago = 'cambio'` lleva la
+chapa «Cambio», y su hoja, «Recibo del cambio» y «Deshacer el cambio» (que pide
+confirmar «Las dos mitades»).
+
 ## Tanda 1265 — Una expansión recién salida se mira por sí misma
 
 PINGU: «ha salido Dominio Delta pero en PokeDoc no sale el set en Colección».

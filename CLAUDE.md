@@ -186,6 +186,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y lo que liste stock PARA VENDER quita lo que está por poner. La caja del día
   es `cuentaDeCaja` (`js/tienda-caja.js`). Una forma de pago nueva va en
   `PAGOS_VENTA`/`PAGOS_COMPRA` y en el `check` de la base a la vez.
+  El CAMBIO (1266: cartas por cartas y la diferencia en dinero) es la hoja de
+  Comprar en `modo = 'cambio'` («Te da», con «Cuenta» a su tanto por ciento,
+  `PCTS_CAMBIO`) más «Le das» (`js/tienda-cambio.js`, el buscador de Vender);
+  la cuenta es `cuentaDeCambio` y se cierra por `tienda_cambio`, que es una
+  venta y una compra marcadas con el pago «cambio» (en los `check`, no en las
+  listas de la web: no se elige a mano) y la diferencia en `tienda_cambios`.
+  Medio cambio no se deshace solo (`tienda_deshacer_cambio`), y lo que sume
+  dinero de la caja pasa los cambios a `cuentaDeCaja`.
   «Pedir fotos» (1251) es `tienda_pedir_fotos`, y quien las pidió (o tiene
   una oferta por esa copia) las ve aunque esté reservada u oculta
   (`tienda_foto_se_ve`, 1264); al subirlas avisa el

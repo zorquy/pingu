@@ -55,6 +55,8 @@ html.con-barra-movil .tdm-vender { display: none; }
   --tdm-venta: var(--acento);
   --tdm-venta-bg: #e2f3f4;
   --tdm-sobre: var(--blanco-fijo);
+  /* El Cambio (1266): las dos mitades, compra y venta. */
+  --tdm-cambio: linear-gradient(135deg, var(--tdm-compra) 0 50%, var(--tdm-venta) 50% 100%);
 }
 :root[data-theme='dark'] {
   --tdm-compra: #7cbae4;
@@ -63,7 +65,7 @@ html.con-barra-movil .tdm-vender { display: none; }
   --tdm-sobre: #0b1219;
 }
 
-/* ── El botón partido del PC: Comprar | Vender ── */
+/* ── El botón partido del PC: Comprar | Cambio | Vender ── */
 .tdm-vender.tdm-partido {
   display: inline-flex;
   gap: 0;
@@ -90,6 +92,7 @@ html.con-barra-movil .tdm-vender.tdm-partido { display: none; }
 }
 .tdm-partido .tdm-p-comprar { background: var(--tdm-compra); }
 .tdm-partido .tdm-p-vender { background: var(--tdm-venta); color: var(--acento-texto); }
+.tdm-partido .tdm-p-cambio { background: var(--tdm-cambio); }
 .tdm-partido a:hover { filter: brightness(1.08); }
 .tdm-partido a:focus-visible { outline: none; box-shadow: inset var(--shadow-ring); }
 .tdm-partido svg { width: 18px; height: 18px; }

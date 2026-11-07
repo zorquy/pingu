@@ -770,7 +770,9 @@ export function textoDePaso(p, { soy, nombreTienda = 'La tienda', nombreComprado
 // (le pagas tú al cliente), «otro» por si es una transferencia o un cambio.
 export const PAGOS_VENTA = [['efectivo', 'Efectivo'], ['tarjeta', 'Tarjeta'], ['bizum', 'Bizum'], ['paypal', 'PayPal']]
 export const PAGOS_COMPRA = [['efectivo', 'Efectivo'], ['bizum', 'Bizum'], ['paypal', 'PayPal'], ['otro', 'Otro']]
-export const NOMBRE_DE_PAGO = Object.fromEntries([...PAGOS_VENTA, ...PAGOS_COMPRA])
+// «cambio» (1266) no se elige: es lo que se pagó EN CARTAS en un cambio, y
+// solo lo pone `tienda_cambio`. Por eso no está en ninguna de las dos listas.
+export const NOMBRE_DE_PAGO = Object.fromEntries([...PAGOS_VENTA, ...PAGOS_COMPRA, ['cambio', 'En cartas']])
 
 // Lo que se cobra de una línea de Vender: lo escrito en «Vendido por» o, si
 // está vacío, su precio (`lista`). Vacío NO es cero.
@@ -816,7 +818,11 @@ export function pagasPorPct(vale, pct) {
 // precio_lista); `compras`: de `tienda_compras` (ticket, unidades, coste,
 // pago). Lo que no dice cómo se pagó va en «sin decir». El efectivo de la
 // caja es lo que entró en efectivo menos lo que salió en efectivo.
-export function cuentaDeCaja(ventas = [], compras = []) {
+// Con cambios (1266): su venta y su compra llevan el pago «cambio» enteras,
+// pero de lo vendido solo se pagó en cartas lo que contaron las suyas; la
+// diferencia entró (o salió) por SU forma de pago. `cambios`: filas de
+// `tienda_cambios` (diferencia, pago).
+export function cuentaDeCaja(ventas = [], compras = [], cambios = []) {
   const r = (x) => Math.round(x * 100) / 100
   const metodos = {}
   const de = (p) => (metodos[p || 'sin'] ??= { entra: 0, sale: 0 })
@@ -839,11 +845,59 @@ export function cuentaDeCaja(ventas = [], compras = []) {
     comprado += total
     de(c.pago).sale += total
   }
+  let enCambios = 0
+  for (const c of cambios) {
+    const d = Number(c.diferencia) || 0
+    if (!d) continue
+    enCambios += d
+    if (d > 0) { de('cambio').entra -= d; de(c.pago).entra += d } else { de('cambio').sale += d; de(c.pago).sale -= d }
+  }
   for (const m of Object.values(metodos)) { m.entra = r(m.entra); m.sale = r(m.sale) }
   const ef = metodos.efectivo || { entra: 0, sale: 0 }
   return {
     vendido: r(vendido), comprado: r(comprado), ganado: r(ganado), sinCoste, rebajas: r(rebajas),
     ventas: new Set(ventas.map((v) => v.ticket)).size, compras: new Set(compras.map((c) => c.ticket)).size,
     metodos, efectivo: r(ef.entra - ef.sale),
+    cambios: cambios.length, enCambios: r(enCambios),
   }
+}
+
+// ── El cambio (1266) ──
+// Cartas por cartas y la diferencia en dinero. Lo suyo cuenta un tanto por
+// ciento de lo que VALE para la tienda (Cardmarket en gris, o lo que escriba);
+// el tanto por ciento de cambio va aparte del de Comprar y empieza en 80.
+export const PCTS_CAMBIO = [60, 70, 80, 90]
+export const PCT_CAMBIO = 80
+
+// `teDa`: líneas de Comprar ({ unidades, pagas }: lo que CUENTA cada una);
+// `leDas`: líneas de Vender ({ vender, lista, cobrar }). La diferencia es
+// entregado − recibido: positiva, te paga; negativa, le pagas; cero, en paz.
+// `falta` dice si alguna línea no tiene cifra (y entonces no se puede hacer).
+export function cuentaDeCambio(teDa = [], leDas = []) {
+  const r = (x) => Math.round(x * 100) / 100
+  let recibido = 0
+  let entregado = 0
+  let falta = false
+  for (const l of teDa) {
+    const p = Number(l.pagas)
+    if (l.pagas == null || l.pagas === '' || !Number.isFinite(p) || p < 0) { falta = true; continue }
+    recibido += p * (Number(l.unidades) || 0)
+  }
+  for (const l of leDas) {
+    const p = precioCobrado(l)
+    if (p == null || p < 0) { falta = true; continue }
+    entregado += p * (Number(l.vender) || 0)
+  }
+  recibido = r(recibido)
+  entregado = r(entregado)
+  const diferencia = r(entregado - recibido)
+  return { recibido, entregado, diferencia, quien: diferencia > 0 ? 'te-paga' : diferencia < 0 ? 'le-pagas' : 'en-paz', falta, listo: !falta && teDa.length > 0 && leDas.length > 0 }
+}
+
+// La frase de la diferencia, la misma en la hoja, el aviso y el recibo.
+export function textoDeCambio(diferencia, euros = (n) => `${n} €`) {
+  const d = Number(diferencia) || 0
+  if (d > 0) return `Te paga ${euros(d)}`
+  if (d < 0) return `Le pagas ${euros(-d)}`
+  return 'Quedáis en paz'
 }

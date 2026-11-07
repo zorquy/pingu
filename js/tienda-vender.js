@@ -27,7 +27,7 @@ import { chapaDeGradeoHtml } from './gradeo-elegir.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { COLUMNAS_CARTA_DE_SET } from './mi-coleccion/columnas-set.js'
 import { DONDE_VENTA, PAGOS_VENTA, precioQueCuenta, ofertaDe, pareceSku, cuentaDeMostrador, precioCobrado, repartirTotal } from './tiendas-puro.js'
-import { modoHtml, pagosHtml, recordado, recordar, abrirComprarRapido } from './tienda-mostrador.js'
+import { modoHtml, pagosHtml, recordado, recordar, abrirComprarRapido, abrirCambioRapido } from './tienda-mostrador.js'
 
 const CLAVE_DONDE = 'pd-tienda-donde'
 const CLAVE_PAGO = 'pd-tienda-pago-venta'
@@ -52,7 +52,8 @@ export function detalleDeLinea(f, nombreSet = (id) => id || '') {
 }
 
 // Lo mismo, con las chapas de la web (idioma, estado o casa y nota) delante.
-function chapasHtml(f) {
+// La usa también «Le das» del Cambio (1266, js/tienda-cambio.js).
+export function chapasHtml(f) {
   if (f.product_id) return `<span class="tdm-idi">${escapeHtml(String(f.idioma || '').toUpperCase())}</span><span>Sellado</span>`
   return `<span class="tdm-idi">${escapeHtml(String(f.idioma || '').toUpperCase())}</span>${f.gradeo ? chapaDeGradeoHtml(f.gradeo) : chapaDeEstadoHtml(f.estado)}<span>${escapeHtml([f.set_id ? nombreSet(f.set_id) : '', f.numero, f.variante && f.variante !== 'normal' ? nombreDeVariante(f.variante) : ''].filter(Boolean).join(' · '))}</span>`
 }
@@ -60,7 +61,7 @@ function chapasHtml(f) {
 // Los nombres de los sets y, a la vez, lo que hace falta para la FOTO de cada
 // línea (PINGU: «para reconocerlo visualmente, igual que en comprar»): la
 // carta del catálogo (por su mercado) o el producto.
-async function completarSets(filas) {
+export async function completarSets(filas) {
   const faltan = [...new Set(filas.map((f) => f.set_id).filter((id) => id && !sets.has(id)))]
   const nombres = async () => {
     if (!faltan.length) return
@@ -90,7 +91,7 @@ async function completarFotos(filas) {
   ])
 }
 // En su caja: si ninguna foto contesta, queda el hueco con su forma (la 441).
-function fotoHtml(f) {
+export function fotoHtml(f) {
   if (f.product_id) {
     const p = productos.get(String(f.product_id))
     return `<span class="tdc-foto tdc-foto-producto">${p?.image ? `<img src="${escapeHtml(p.image)}" alt="" width="40" height="40" loading="lazy" onerror="this.remove()" />` : ''}</span>`
@@ -103,9 +104,42 @@ const nombreSet = (id) => sets.get(id) || id
 
 // Lo comprado y aún por poner a la venta (1255) no se vende: sin la migración
 // la columna no existe y no hay ninguna (no es un fallo).
-async function cargarPorPoner() {
-  const { data, error } = await supabase.from('tienda_stock').select('id').eq('por_poner', true).limit(1000)
-  porPoner = new Set(error ? [] : (data || []).map((f) => f.id))
+let porPonerCargado = null
+export function cargarPorPoner() {
+  porPonerCargado = supabase.from('tienda_stock').select('id').eq('por_poner', true).limit(1000).then(({ data, error }) => {
+    porPoner = new Set(error ? [] : (data || []).map((f) => f.id))
+  }, () => {})
+  return porPonerCargado
+}
+
+// Buscar en el stock lo que se puede vender: con unidades y no por poner a la
+// venta, con sus sets y sus fotos ya pedidos. `null` si no se ha podido.
+export async function buscarEnStock(q) {
+  await (porPonerCargado || cargarPorPoner())
+  const { data, error } = await supabase.rpc('tienda_stock_lista', { p_filtros: { q, unidades: ['una', 'varias'] }, p_orden: 'nombre', p_desde: 0, p_cuantas: 30 })
+  if (error || !data) return null
+  const filas = (data.filas || []).filter((f) => !porPoner.has(f.id))
+  await completarSets(filas)
+  return filas
+}
+
+// Un resultado del buscador, igual en Vender y en «Le das».
+export const resultadoHtml = (f) => `<li><button type="button" class="tdv-resultado tdm-resultado tdm-res-foto" data-fila='${escapeHtml(JSON.stringify(f))}'>${fotoHtml(f)}<span class="tdm-res-que"><strong>${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small class="tdm-chapas">${chapasHtml(f)} · ${f.unidades} ${f.unidades === 1 ? 'ud.' : 'uds.'}</small></span><span class="tdv-res-der">${precioQueCuenta(f) != null ? `<b>${euros(precioQueCuenta(f))}</b><small>${ofertaDe(f) ? 'de oferta' : 'tu precio'}</small>` : '<small>Sin precio</small>'}</span></button></li>`
+
+// Por SKU (1253): la primera línea con unidades que aún no va entera
+// (`yaVan(id)` dice cuántas lleva ya). Devuelve la fila completa (precio,
+// oferta, coste, de la lista del stock) o el aviso que toca.
+export async function filaPorSku(sku, yaVan = () => 0) {
+  await (porPonerCargado || cargarPorPoner())
+  const r = await supabase.rpc('tienda_sku_buscar', { p_tienda: null, p_sku: sku })
+  if (r.error) return { aviso: /tienda_sku_buscar|schema cache|does not exist/i.test(r.error.message || '') ? 'Para buscar por SKU falta un paso en la base (la migración 1253).' : 'No se ha podido buscar ese SKU.', tipo: 'error' }
+  const libre = (r.data || []).find((f) => f.unidades > 0 && !porPoner.has(f.id) && yaVan(f.id) < f.unidades)
+  if (!libre) return { aviso: (r.data || []).length ? `No te quedan más de ${sku}.` : `Nada en tu stock con el SKU ${sku}.`, tipo: 'info' }
+  const { data } = await supabase.rpc('tienda_stock_lista', { p_filtros: { q: libre.nombre || '', unidades: ['una', 'varias'] }, p_orden: 'nombre', p_desde: 0, p_cuantas: 100 })
+  const f = (data?.filas || []).find((x) => x.id === libre.id)
+  if (!f) return { aviso: 'No se ha podido añadir esa carta. Búscala por su nombre.', tipo: 'error' }
+  await completarSets([f])
+  return { fila: f }
 }
 
 function montar() {
@@ -142,19 +176,16 @@ function montar() {
     }
     espera = setTimeout(async () => {
       const yo = ++pedido
-      const { data, error } = await supabase.rpc('tienda_stock_lista', { p_filtros: { q, unidades: ['una', 'varias'] }, p_orden: 'nombre', p_desde: 0, p_cuantas: 30 })
+      const filas = await buscarEnStock(q)
       if (yo !== pedido) return
       const caja = $('#tdvResultados')
       caja.hidden = false
-      if (error || !data) {
+      if (!filas) {
         caja.innerHTML = '<li class="tdv-nada">No se ha podido buscar. Inténtalo de nuevo.</li>'
         return
       }
-      const filas = (data.filas || []).filter((f) => !porPoner.has(f.id))
-      await completarSets(filas)
-      if (yo !== pedido) return
       caja.innerHTML = filas.length
-        ? filas.map((f) => `<li><button type="button" class="tdv-resultado tdm-resultado tdm-res-foto" data-fila='${escapeHtml(JSON.stringify(f))}'>${fotoHtml(f)}<span class="tdm-res-que"><strong>${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small class="tdm-chapas">${chapasHtml(f)} · ${f.unidades} ${f.unidades === 1 ? 'ud.' : 'uds.'}</small></span><span class="tdv-res-der">${precioQueCuenta(f) != null ? `<b>${euros(precioQueCuenta(f))}</b><small>${ofertaDe(f) ? 'de oferta' : 'tu precio'}</small>` : '<small>Sin precio</small>'}</span></button></li>`).join('')
+        ? filas.map(resultadoHtml).join('')
         : `<li class="tdv-nada">Nada con unidades en tu stock que case con «${escapeHtml(q)}».</li>`
     }, 200)
   })
@@ -174,11 +205,11 @@ function montar() {
 
   dialogo.addEventListener('click', (e) => {
     if (e.target === dialogo || e.target.closest('[data-tdv="cerrar"]')) return dialogo.close()
-    // Comprar es la otra mitad del mostrador.
-    const modo = e.target.closest('[data-modo="comprar"]')
+    // Comprar y Cambio son las otras dos hojas del mostrador.
+    const modo = e.target.closest('[data-modo="comprar"], [data-modo="cambio"]')
     if (modo) {
       dialogo.close()
-      return abrirComprarRapido()
+      return modo.dataset.modo === 'cambio' ? abrirCambioRapido() : abrirComprarRapido()
     }
     const res = e.target.closest('.tdv-resultado')
     if (res) {
@@ -246,19 +277,13 @@ function repartirSiHayTotal() {
 // La fila completa (precio, oferta, coste) sale de la lista del stock, la
 // misma que da el buscador.
 async function anadirPorSku(sku) {
-  const r = await supabase.rpc('tienda_sku_buscar', { p_tienda: null, p_sku: sku })
-  if (r.error) return showToast(/tienda_sku_buscar|schema cache|does not exist/i.test(r.error.message || '') ? 'Para vender por SKU falta un paso en la base (la migración 1253).' : 'No se ha podido buscar ese SKU.', 'error')
-  const libre = (r.data || []).find((f) => f.unidades > 0 && !porPoner.has(f.id) && (lineas.find((l) => l.id === f.id)?.vender || 0) < f.unidades)
-  if (!libre) return showToast((r.data || []).length ? `No te quedan más de ${sku}.` : `Nada en tu stock con el SKU ${sku}.`, 'info')
-  const { data } = await supabase.rpc('tienda_stock_lista', { p_filtros: { q: libre.nombre || '', unidades: ['una', 'varias'] }, p_orden: 'nombre', p_desde: 0, p_cuantas: 100 })
-  const f = (data?.filas || []).find((x) => x.id === libre.id)
-  if (!f) return showToast('No se ha podido añadir esa carta. Búscala por su nombre.', 'error')
-  await completarSets([f])
-  anadir(f)
+  const r = await filaPorSku(sku, (id) => lineas.find((l) => l.id === id)?.vender || 0)
+  if (!r.fila) return showToast(r.aviso, r.tipo)
+  anadir(r.fila)
   $('#tdvBusca').focus()
 }
 
-const nueva = (f) => ({ ...f, vender: 1, lista: precioQueCuenta(f), cobrar: null })
+export const nueva = (f) => ({ ...f, vender: 1, lista: precioQueCuenta(f), cobrar: null })
 
 function anadir(f) {
   const ya = lineas.find((x) => x.id === f.id)

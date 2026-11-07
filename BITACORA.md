@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-07 (507) — PINGU-Claude (1266 — el Cambio en el Mostrador de las tiendas)
+
+**Hecho**: una tienda en un evento: «yo compro al 80 %… viene un chico con una
+carta que vale 100… me está dando 80 y luego me tiene que dar 20 en cash. Eso
+se podría poner como otro botón». Propuesta con maquetas (PINGU eligió lo
+recomendado, y pidió que la carta del cliente lleve «Vale» con Cardmarket en
+gris para cambiarlo, como en Comprar):
+- **Cambio** en el abanico del móvil (a lo ancho, con los dos colores), en el
+  botón partido del PC (Comprar | Cambio | Vender), arriba de las tres hojas y
+  por `/tienda?cambio=1`.
+- Es la hoja de Comprar en `modo = 'cambio'`: «Te da» son sus líneas (Vale con
+  Cardmarket en gris, «Cuenta» a un tanto por ciento PROPIO, 60–90 y 80 de
+  partida, `pd-tienda-cambio-pct`) y «Le das» es `js/tienda-cambio.js` (el
+  buscador y el SKU de Vender, que ahora exporta `buscarEnStock` y
+  `filaPorSku`; «Lo dejas en» con tu precio en gris). Pasar de Comprar a
+  Cambio conserva las líneas.
+- La cuenta es `cuentaDeCambio` (te paga / le pagas / en paz) y el pago de la
+  diferencia es de venta o de compra según el signo.
+- Migración **1266**: `tienda_cambios` y `tienda_cambio(te_da, le_das, pago,
+  cliente, donde, pct)`: llama a `tienda_vender` y `tienda_comprar` (todo o
+  nada), marca las dos mitades con el pago «cambio» (en el `check` de las dos
+  tablas) y apunta la diferencia. `tienda_deshacer_cambio` deshace las dos;
+  la venta o la compra de un cambio ya no se deshacen solas. Las listas de
+  Ventas y Compras traen `pago`.
+- Caja de hoy: «En cartas» aparte, la diferencia por su forma de pago y «De
+  ello, N cambios: +X € en dinero». Ventas y Compras: chapa «Cambio», «Recibo
+  del cambio» (los dos bloques, sin coste) y «Deshacer el cambio».
+
+**Ficheros**: `supabase-migration-1266-tienda-cambio.sql`, `js/tienda-cambio.js`
+(nuevo), `js/tienda-comprar.js`, `js/tienda-vender.js`, `js/tienda-mostrador.js`,
+`js/tienda-marco.js`, `js/tienda.js`, `js/tienda-caja.js`, `js/tienda-recibo.js`,
+`js/tienda-ventas.js`, `js/tiendas-puro.js`, `css/tienda-mostrador.css`,
+`css/tienda-marco.css`, `css/tienda.css`, SCHEMA, CLAUDE.md, novedades. Rama
+pruebas: `test-tanda-1266.mjs` (lo puro y la migración contra PostgreSQL) y
+`test-tanda-1266-pantalla.mjs`; 1072, 1084, 1088, 1089b, 1091, 1094, 1253,
+1254, 1255, 1256 y 1257 siguen en verde.
+
+**Pendiente**: **ejecutar la migración 1266** (sin ella el botón dice que
+falta y no toca nada). Sigue lo de la 505 (migraciones 1264 y 1260).
+
 ## 2026-11-07 (506) — PINGU-Claude (1265 — una expansión recién salida se mira por sí misma)
 
 **Hecho**: PINGU: «ha salido Dominio Delta pero en PokeDoc no sale el set en

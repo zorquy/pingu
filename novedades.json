@@ -35,6 +35,12 @@
   "entradas": [
     {
       "fecha": "2026-11-07",
+      "tipo": "nuevo",
+      "texto": "Las tiendas tienen «Cambio» en el Mostrador: cartas por cartas y la diferencia en dinero. Lo que te dan cuenta un tanto por ciento de lo que vale para ti, lo tuyo va a tu precio, y la hoja dice quién paga a quién.",
+      "enlace": "/para-tiendas"
+    },
+    {
+      "fecha": "2026-11-07",
       "tipo": "arreglo",
       "texto": "Las expansiones nuevas salen en Colección en cuanto aparecen sus cartas, sin esperar días. Dominio Delta llega así.",
       "enlace": "/cartas"

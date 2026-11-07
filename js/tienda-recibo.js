@@ -3,6 +3,9 @@
 // para imprimir. Sale del ticket (`tienda_ventas`, que solo ve su tienda) y
 // NUNCA lleva el coste ni el beneficio: es para quien compra.
 //
+// Un CAMBIO (1266) es el mismo papel con dos bloques, «Nos das» (lo que
+// cuentan sus cartas) y «Te llevas» (lo tuyo), y abajo quién paga a quién.
+//
 // Entra por `import()` desde el aviso de una venta («Recibo») y desde
 // Ventas. Un lienzo pinta con colores fijos: el recibo es un papel, igual
 // en el tema claro que en el oscuro.
@@ -15,7 +18,7 @@ import { euros } from './cardmarket.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
 import { nombreDeVariante } from './mi-coleccion/variantes.js'
 import { cargarImagen, redondeado, comoBlob, descargarLienzo } from './imagen-compartir.js'
-import { cuentaDeRecibo, pdfDeJpeg, DONDE_NOMBRE, NOMBRE_DE_PAGO } from './tiendas-puro.js'
+import { cuentaDeRecibo, pdfDeJpeg, DONDE_NOMBRE, NOMBRE_DE_PAGO, textoDeCambio } from './tiendas-puro.js'
 
 const ANCHO = 1080
 const C = { papel: '#ffffff', tinta: '#0d1b2a', suave: '#52717f', raya: '#e1eaee', marca: '#1e5175', fondo: '#e1f0f4' }
@@ -63,9 +66,14 @@ function cortar(ctx, texto, ancho) {
   return `${t}…`
 }
 
-export async function dibujarRecibo({ lineas, perfil, tienda, compra = false }) {
-  const { filas, total, unidades } = cuentaDeRecibo(lineas)
-  const alto = 520 + filas.length * 112 + 300
+// `cambio`: { recibidas (líneas de su compra), diferencia, pago }; entonces
+// `lineas` son las de la venta (lo que se lleva).
+export async function dibujarRecibo({ lineas, perfil, tienda, compra = false, cambio = null }) {
+  const bloques = cambio
+    ? [{ titulo: 'Nos das', ...cuentaDeRecibo(cambio.recibidas) }, { titulo: 'Te llevas', ...cuentaDeRecibo(lineas) }]
+    : [{ titulo: null, ...cuentaDeRecibo(lineas) }]
+  const { filas, total, unidades } = bloques[bloques.length - 1]
+  const alto = 520 + bloques.reduce((n, b) => n + b.filas.length * 112 + (b.titulo ? 70 : 0), 0) + 300
   const lienzo = document.createElement('canvas')
   lienzo.width = ANCHO
   lienzo.height = alto
@@ -108,7 +116,7 @@ export async function dibujarRecibo({ lineas, perfil, tienda, compra = false }) 
   const fecha = new Date(primera.vendida_el)
   ctx.fillStyle = C.tinta
   ctx.font = `700 40px ${TITULO}`
-  ctx.fillText(compra ? 'Te compramos' : 'Recibo', 72, 340)
+  ctx.fillText(cambio ? 'Cambio' : compra ? 'Te compramos' : 'Recibo', 72, 340)
   ctx.textAlign = 'right'
   ctx.fillStyle = C.suave
   ctx.font = `500 28px ${LETRA}`
@@ -118,43 +126,53 @@ export async function dibujarRecibo({ lineas, perfil, tienda, compra = false }) 
   ctx.fillStyle = C.raya
   ctx.fillRect(72, 410, ANCHO - 144, 2)
 
-  // Las líneas.
+  // Las líneas (en un cambio, cada bloque con su rótulo y su suma).
   let y = 470
-  for (const l of filas) {
-    ctx.fillStyle = C.tinta
-    ctx.font = `600 34px ${LETRA}`
-    ctx.fillText(cortar(ctx, l.nombre, ANCHO - 460), 72, y)
-    ctx.fillStyle = C.suave
-    ctx.font = `500 26px ${LETRA}`
-    ctx.fillText(cortar(ctx, l.detalle, ANCHO - 460), 72, y + 40)
-    ctx.textAlign = 'right'
-    ctx.fillStyle = C.tinta
-    ctx.font = `700 34px ${LETRA}`
-    ctx.fillText(euros(l.importe), ANCHO - 72, y)
-    if (l.unidades > 1) {
+  for (const b of bloques) {
+    if (b.titulo) {
+      ctx.fillStyle = C.marca
+      ctx.font = `700 28px ${LETRA}`
+      ctx.fillText(`${b.titulo.toUpperCase()} · ${euros(b.total)}`, 72, y - 6)
+      y += 70
+    }
+    for (const l of b.filas) {
+      ctx.fillStyle = C.tinta
+      ctx.font = `600 34px ${LETRA}`
+      ctx.fillText(cortar(ctx, l.nombre, ANCHO - 460), 72, y)
       ctx.fillStyle = C.suave
       ctx.font = `500 26px ${LETRA}`
-      ctx.fillText(`${l.unidades} × ${euros(l.precio)}`, ANCHO - 72, y + 40)
+      ctx.fillText(cortar(ctx, l.detalle, ANCHO - 460), 72, y + 40)
+      ctx.textAlign = 'right'
+      ctx.fillStyle = C.tinta
+      ctx.font = `700 34px ${LETRA}`
+      ctx.fillText(euros(l.importe), ANCHO - 72, y)
+      if (l.unidades > 1) {
+        ctx.fillStyle = C.suave
+        ctx.font = `500 26px ${LETRA}`
+        ctx.fillText(`${l.unidades} × ${euros(l.precio)}`, ANCHO - 72, y + 40)
+      }
+      ctx.textAlign = 'left'
+      y += 112
     }
-    ctx.textAlign = 'left'
-    y += 112
   }
 
-  // El total.
+  // El total (en un cambio, la diferencia: quién paga a quién).
   ctx.fillStyle = C.raya
   ctx.fillRect(72, y - 40, ANCHO - 144, 2)
   ctx.fillStyle = C.suave
   ctx.font = `600 30px ${LETRA}`
-  ctx.fillText(`${compra ? 'Te pagamos' : 'Total'} · ${unidades} ${unidades === 1 ? 'artículo' : 'artículos'}`, 72, y + 30)
+  const d = cambio ? Number(cambio.diferencia) || 0 : 0
+  ctx.fillText(cambio ? (d > 0 ? 'Nos pagas' : d < 0 ? 'Te pagamos' : 'Cambio en paz') : `${compra ? 'Te pagamos' : 'Total'} · ${unidades} ${unidades === 1 ? 'artículo' : 'artículos'}`, 72, y + 30)
   ctx.textAlign = 'right'
   ctx.fillStyle = C.tinta
   ctx.font = `800 64px ${TITULO}`
-  ctx.fillText(euros(total), ANCHO - 72, y + 40)
+  ctx.fillText(cambio ? (d ? euros(Math.abs(d)) : '') : euros(total), ANCHO - 72, y + 40)
   ctx.textAlign = 'left'
   const NOMBRE_DONDE = DONDE_NOMBRE
+  const pago = cambio ? cambio.pago : primera.pago
   const pie = [
-    !compra && primera.donde && primera.donde !== 'otro' ? `Venta: ${String(NOMBRE_DONDE[primera.donde] || primera.donde).toLowerCase()}` : '',
-    primera.pago ? `Pagado con ${String(NOMBRE_DE_PAGO[primera.pago] || primera.pago)}` : '',
+    !compra && !cambio && primera.donde && primera.donde !== 'otro' ? `Venta: ${String(NOMBRE_DONDE[primera.donde] || primera.donde).toLowerCase()}` : '',
+    pago && pago !== 'cambio' ? `Pagado con ${String(NOMBRE_DE_PAGO[pago] || pago)}` : '',
   ].filter(Boolean).join(' · ')
   if (pie) {
     ctx.fillStyle = C.suave
@@ -167,7 +185,7 @@ export async function dibujarRecibo({ lineas, perfil, tienda, compra = false }) 
   ctx.fillRect(0, alto - 150, ANCHO, 150)
   ctx.fillStyle = C.tinta
   ctx.font = `600 30px ${LETRA}`
-  ctx.fillText(compra ? '¡Gracias por confiar en nosotros!' : '¡Gracias por tu compra!', 72, alto - 86)
+  ctx.fillText(cambio ? '¡Gracias por el cambio!' : compra ? '¡Gracias por confiar en nosotros!' : '¡Gracias por tu compra!', 72, alto - 86)
   ctx.fillStyle = C.marca
   ctx.font = `500 26px ${LETRA}`
   ctx.fillText(`pokedoc.es/tiendas/${perfil.username || ''}`, 72, alto - 46)
@@ -204,7 +222,42 @@ export async function abrirRecibo(ticket, { compra = false } = {}) {
   ])
   if (!lineas || !perfil) return showToast(compra ? 'No se ha encontrado esa compra.' : 'No se ha encontrado esa venta.', 'error')
   const lienzo = await dibujarRecibo({ lineas, perfil, tienda, compra })
-  const nombreFichero = `${compra ? 'compra' : 'recibo'}-${String(ticket).slice(0, 8)}`
+  return mostrar(lienzo, {
+    perfil,
+    titulo: `Recibo · ${euros(cuentaDeRecibo(lineas).total)}`,
+    alt: compra ? 'El recibo de la compra' : 'El recibo de la venta',
+    nota: compra ? 'Lo que le pagas, sin lo que valen en Cardmarket: es para quien te las vende.' : 'Sin lo que te costó ni lo que ganas: es para quien compra.',
+    nombreFichero: `${compra ? 'compra' : 'recibo'}-${String(ticket).slice(0, 8)}`,
+  })
+}
+
+// El de un cambio (1266), por su id o el ticket de una de sus mitades.
+export async function abrirReciboDeCambio(id) {
+  hojaInyectada('css/tienda-vender.css')
+  const sesion = await getSession()
+  if (!sesion) return
+  const { data: c } = await supabase.from('tienda_cambios').select('id,venta_ticket,compra_ticket,diferencia,pago')
+    .or(`id.eq.${id},venta_ticket.eq.${id},compra_ticket.eq.${id}`).maybeSingle()
+  if (!c) return showToast('No se ha encontrado ese cambio.', 'error')
+  const [lineas, recibidas, perfil, tienda] = await Promise.all([
+    datosDelTicket(c.venta_ticket),
+    datosDelTicket(c.compra_ticket, true),
+    getProfile(sesion.user.id),
+    supabase.from('tiendas').select('ciudad,direccion').eq('user_id', sesion.user.id).maybeSingle().then((r) => r.data || null),
+  ])
+  if (!lineas || !recibidas || !perfil) return showToast('No se ha encontrado ese cambio.', 'error')
+  const lienzo = await dibujarRecibo({ lineas, perfil, tienda, cambio: { recibidas, diferencia: c.diferencia, pago: c.pago } })
+  const d = Number(c.diferencia) || 0
+  return mostrar(lienzo, {
+    perfil,
+    titulo: `Cambio · ${textoDeCambio(d, euros)}`,
+    alt: 'El recibo del cambio',
+    nota: 'Lo que cuentan sus cartas y lo que se lleva, sin lo que te costó ni lo que ganas.',
+    nombreFichero: `cambio-${String(c.id).slice(0, 8)}`,
+  })
+}
+
+async function mostrar(lienzo, { perfil, titulo, alt, nota, nombreFichero }) {
   if (!dialogo) {
     dialogo = document.createElement('dialog')
     dialogo.className = 'tdr'
@@ -212,12 +265,11 @@ export async function abrirRecibo(ticket, { compra = false } = {}) {
     document.body.appendChild(dialogo)
     dialogo.addEventListener('click', (e) => { if (e.target === dialogo || e.target.closest('[data-tdr="cerrar"]')) dialogo.close() })
   }
-  const total = cuentaDeRecibo(lineas).total
   dialogo.innerHTML = `
     <div class="tdr-caja">
-      <header class="tdr-cab"><h2 id="tdrTitulo">Recibo · ${escapeHtml(euros(total))}</h2><button type="button" class="tdv-cerrar" data-tdr="cerrar" aria-label="Cerrar">&times;</button></header>
-      <div class="tdr-vista"><img alt="${compra ? 'El recibo de la compra' : 'El recibo de la venta'}" width="${lienzo.width}" height="${lienzo.height}" /></div>
-      <p class="tdr-nota">${compra ? 'Lo que le pagas, sin lo que valen en Cardmarket: es para quien te las vende.' : 'Sin lo que te costó ni lo que ganas: es para quien compra.'}</p>
+      <header class="tdr-cab"><h2 id="tdrTitulo">${escapeHtml(titulo)}</h2><button type="button" class="tdv-cerrar" data-tdr="cerrar" aria-label="Cerrar">&times;</button></header>
+      <div class="tdr-vista"><img alt="${escapeHtml(alt)}" width="${lienzo.width}" height="${lienzo.height}" /></div>
+      <p class="tdr-nota">${escapeHtml(nota)}</p>
       <footer class="tdr-botones">
         <button type="button" class="btn-primary" data-tdr="compartir">Compartir…</button>
         <button type="button" class="btn-secondary" data-tdr="imagen">Descargar imagen</button>

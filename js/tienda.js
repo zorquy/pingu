@@ -87,6 +87,9 @@ function abrirComprar() {
   mostrador().then((m) => m.abrirComprarRapido()).catch(() => showToast('No se ha podido abrir Comprar. Recarga la página.', 'error'))
 }
 document.addEventListener('pokedoc:tienda-comprar', () => abrirComprar())
+function abrirCambio() {
+  mostrador().then((m) => m.abrirCambioRapido()).catch(() => showToast('No se ha podido abrir Cambio. Recarga la página.', 'error'))
+}
 
 // La lupa de arriba (1071): al Stock, con el cursor en su buscador.
 function buscarEnStock() {
@@ -136,6 +139,7 @@ function pestana(cual) {
   url.searchParams.delete('buscar')
   url.searchParams.delete('vender')
   url.searchParams.delete('comprar')
+  url.searchParams.delete('cambio')
   url.searchParams.delete('mostrador')
   url.searchParams.delete('caja')
   url.searchParams.delete('porponer')
@@ -224,6 +228,7 @@ async function arrancar() {
   }
   if (params.has('vender')) abrirVender()
   if (params.has('comprar')) abrirComprar()
+  if (params.has('cambio')) abrirCambio()
   if (params.has('mostrador')) mostrador().then((m) => m.abrirMostrador()).catch(() => {})
   if (params.has('caja')) mostrador().then((m) => m.abrirCajaDeHoy()).catch(() => {})
 }
@@ -235,7 +240,7 @@ document.addEventListener('click', (e) => {
   if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return
   if ($('tdPanel')?.classList.contains('hidden')) return
   if (new URL(a.href, location.href).pathname.replace(/\.html$/, '') !== '/tienda') return
-  if (['mostrador', 'comprar', 'vender', 'caja'].includes(a.dataset.ver)) return
+  if (['mostrador', 'comprar', 'cambio', 'vender', 'caja'].includes(a.dataset.ver)) return
   e.preventDefault()
   $('navUserDropdown')?.classList.add('hidden')
   if (a.dataset.filtro) stockFiltrado(a.dataset.filtro)

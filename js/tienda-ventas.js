@@ -73,12 +73,17 @@ export function rotuloDeDia(fecha, ahora = new Date()) {
   return d.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short', ...(d.getFullYear() !== ahora.getFullYear() ? { year: 'numeric' } : {}) })
 }
 
+// Una línea que fue parte de un cambio (1266): su chapa, y en su hoja el recibo
+// y el deshacer son los del cambio entero.
+const esCambio = (f) => f.pago === 'cambio'
+const chapaDeCambio = (f) => (esCambio(f) ? '<span class="tdvt-chapa-cambio">Cambio</span> ' : '')
+
 // Una compra a un cliente (1091): lo que se pagó y, si se apuntó, a quién.
 function filaCompraHtml(f) {
   const hora = new Date(f.comprada_el).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
   return `<li><button type="button" class="tdvt-fila" data-venta="${escapeHtml(f.id)}" aria-label="${escapeHtml(f.nombre || 'Producto')}: la compra, el recibo y deshacer">
     <span class="tdvt-hora">${hora}</span>
-    <span class="tdvt-que"><strong>${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(f, nombreSet))}${f.cliente ? ` · ${escapeHtml(f.cliente)}` : ''}</small></span>
+    <span class="tdvt-que"><strong>${chapaDeCambio(f)}${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(f, nombreSet))}${f.cliente ? ` · ${escapeHtml(f.cliente)}` : ''}</small></span>
     <span class="tdvt-uds">${f.unidades > 1 ? `${f.unidades} × ${euros(f.coste)}` : ''}</span>
     <span class="tdvt-importe"><b>${euros(Number(f.coste) * f.unidades)}</b>${f.cm != null ? `<small class="tdvt-sin">CM ${euros(Number(f.cm) * f.unidades)}</small>` : ''}</span>
     <span class="tdvt-ir" aria-hidden="true">${icons.chevronRight(16)}</span>
@@ -91,7 +96,7 @@ function filaHtml(f) {
   const hora = new Date(f.vendida_el).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
   return `<li><button type="button" class="tdvt-fila" data-venta="${escapeHtml(f.id)}" aria-label="${escapeHtml(f.nombre || 'Producto')}: la venta, el recibo y deshacer">
     <span class="tdvt-hora">${hora}</span>
-    <span class="tdvt-que"><strong>${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(f, nombreSet))} · ${escapeHtml(NOMBRE_DONDE[f.donde] || f.donde)}</small></span>
+    <span class="tdvt-que"><strong>${chapaDeCambio(f)}${escapeHtml(f.nombre || f.card_id || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(f, nombreSet))} · ${escapeHtml(NOMBRE_DONDE[f.donde] || f.donde)}</small></span>
     <span class="tdvt-uds">${f.unidades > 1 ? `${f.unidades} × ${euros(f.precio)}` : ''}</span>
     <span class="tdvt-importe"><b>${euros(Number(f.precio) * f.unidades)}</b>${beneficio == null ? '<small class="tdvt-sin">sin coste</small>' : `<small class="${beneficio < 0 ? 'tdvt-rojo' : 'tdvt-verde'}">${beneficio > 0 ? '+' : ''}${euros(beneficio)}</small>`}</span>
     <span class="tdvt-ir" aria-hidden="true">${icons.chevronRight(16)}</span>
@@ -128,13 +133,13 @@ function abrirVenta(id) {
       <p class="tdvt-hoja-cuando">${escapeHtml(rotuloDeDia(f.vendida_el))}, ${fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })} · ${escapeHtml(NOMBRE_DONDE[f.donde] || f.donde)}${beneficio == null ? '' : ` · <span class="${beneficio < 0 ? 'tdvt-rojo' : 'tdvt-verde'}">${beneficio > 0 ? '+' : ''}${euros(beneficio)}</span>`}</p>
       <ul class="tdvt-hoja-lineas">${lineas.map((l) => `<li><span><strong>${escapeHtml(l.nombre || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(l, nombreSet))}</small></span><b>${l.unidades > 1 ? `${l.unidades} × ` : ''}${euros(l.precio)}</b></li>`).join('')}</ul>
       <div class="tdvt-hoja-botones">
-        <button type="button" class="btn-primary" data-recibo="${escapeHtml(f.ticket)}">${icons.receipt(18)}<span>Recibo</span></button>
-        <button type="button" class="btn-secondary tdvt-deshacer" data-deshacer="${escapeHtml(f.ticket)}">Deshacer la venta</button>
+        <button type="button" class="btn-primary" data-recibo="${escapeHtml(f.ticket)}">${icons.receipt(18)}<span>Recibo${esCambio(f) ? ' del cambio' : ''}</span></button>
+        <button type="button" class="btn-secondary tdvt-deshacer" data-deshacer="${escapeHtml(f.ticket)}"${esCambio(f) ? ' data-cambio' : ''}>${esCambio(f) ? 'Deshacer el cambio' : 'Deshacer la venta'}</button>
       </div>
     </div>`
   d.onclick = (e) => {
     const r = e.target.closest('[data-recibo]')
-    if (r) import('./tienda-recibo.js').then((m) => m.abrirRecibo(r.dataset.recibo)).catch(() => showToast('No se ha podido hacer el recibo.', 'error'))
+    if (r) import('./tienda-recibo.js').then((m) => (esCambio(f) ? m.abrirReciboDeCambio(r.dataset.recibo) : m.abrirRecibo(r.dataset.recibo))).catch(() => showToast('No se ha podido hacer el recibo.', 'error'))
     const x = e.target.closest('[data-deshacer]')
     if (x) deshacer(x).then((hecho) => { if (hecho) d.close() })
   }
@@ -154,13 +159,13 @@ function abrirCompra(f) {
       <p class="tdvt-hoja-cuando">${escapeHtml(rotuloDeDia(f.comprada_el))}, ${fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}${f.cliente ? ` · ${escapeHtml(f.cliente)}` : ''}</p>
       <ul class="tdvt-hoja-lineas">${lineas.map((l) => `<li><span><strong>${escapeHtml(l.nombre || 'Producto')}</strong><small>${escapeHtml(detalleDeLinea(l, nombreSet))}${l.cm != null ? ` · CM ${escapeHtml(euros(Number(l.cm)))}` : ''}</small></span><b>${l.unidades > 1 ? `${l.unidades} × ` : ''}${euros(l.coste)}</b></li>`).join('')}</ul>
       <div class="tdvt-hoja-botones">
-        <button type="button" class="btn-primary" data-recibo="${escapeHtml(f.ticket)}">${icons.receipt(18)}<span>Recibo</span></button>
-        <button type="button" class="btn-secondary tdvt-deshacer" data-deshacer="${escapeHtml(f.ticket)}">Deshacer la compra</button>
+        <button type="button" class="btn-primary" data-recibo="${escapeHtml(f.ticket)}">${icons.receipt(18)}<span>Recibo${esCambio(f) ? ' del cambio' : ''}</span></button>
+        <button type="button" class="btn-secondary tdvt-deshacer" data-deshacer="${escapeHtml(f.ticket)}"${esCambio(f) ? ' data-cambio' : ''}>${esCambio(f) ? 'Deshacer el cambio' : 'Deshacer la compra'}</button>
       </div>
     </div>`
   d.onclick = (e) => {
     const r = e.target.closest('[data-recibo]')
-    if (r) import('./tienda-recibo.js').then((m) => m.abrirRecibo(r.dataset.recibo, { compra: true })).catch(() => showToast('No se ha podido hacer el recibo.', 'error'))
+    if (r) import('./tienda-recibo.js').then((m) => (esCambio(f) ? m.abrirReciboDeCambio(r.dataset.recibo) : m.abrirRecibo(r.dataset.recibo, { compra: true }))).catch(() => showToast('No se ha podido hacer el recibo.', 'error'))
     const x = e.target.closest('[data-deshacer]')
     if (x) deshacer(x).then((hecho) => { if (hecho) d.close() })
   }
@@ -229,18 +234,20 @@ async function exportar() {
 // Deshacer pide un segundo toque: devuelve unidades al stock. Dice si se hizo.
 let armado = null
 async function deshacer(boton) {
-  const texto = compras() ? 'Deshacer la compra' : 'Deshacer la venta'
+  const cambio = boton.hasAttribute('data-cambio')
+  const texto = cambio ? 'Deshacer el cambio' : compras() ? 'Deshacer la compra' : 'Deshacer la venta'
   if (armado !== boton) {
     armado = boton
     boton.classList.add('armado')
-    boton.textContent = compras() ? '¿Seguro? Sale del stock' : '¿Seguro? Vuelve al stock'
+    boton.textContent = cambio ? '¿Seguro? Las dos mitades' : compras() ? '¿Seguro? Sale del stock' : '¿Seguro? Vuelve al stock'
     setTimeout(() => { if (armado === boton) { boton.classList.remove('armado'); boton.textContent = texto; armado = null } }, 4000)
     return false
   }
   armado = null
   boton.disabled = true
   try {
-    if (compras()) await (await import('./tienda-comprar.js')).deshacerCompra(boton.dataset.deshacer)
+    if (cambio) await (await import('./tienda-comprar.js')).deshacerCambio(boton.dataset.deshacer)
+    else if (compras()) await (await import('./tienda-comprar.js')).deshacerCompra(boton.dataset.deshacer)
     else await (await import('./tienda-vender.js')).deshacerVenta(boton.dataset.deshacer)
     document.dispatchEvent(new CustomEvent('pokedoc:tienda-vendida'))
     return true

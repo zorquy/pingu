@@ -4,9 +4,11 @@
 // despliegue y que mole».
 //
 // El botón del centro de la barra de abajo (`Mostrador`, js/tienda-marco.js)
-// abre aquí un abanico: Comprar y Vender en grande, «Escanear etiqueta» (Vender
+// abre aquí un abanico: Comprar y Vender en grande, Cambio a lo ancho (1266:
+// cartas por cartas y la diferencia en dinero), «Escanear etiqueta» (Vender
 // con el cursor esperando al lector) y «Caja de hoy», y debajo lo que llevas
-// hoy. En el PC no hay abanico: el botón de arriba se parte en Comprar | Vender.
+// hoy. En el PC no hay abanico: el botón de arriba se parte en
+// Comprar | Cambio | Vender.
 // Comprar, Vender y la caja se abren en cualquier página de la tienda (son
 // hojas), y al terminar avisan con `pokedoc:tienda-vendida` a quien pinte.
 //
@@ -29,12 +31,14 @@ export const DIBUJOS = {
   otro: trazo('<path d="M7 7h10M7 12h10M7 17h6"/>'),
   comprar: trazo('<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/>'),
   vender: trazo('<path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/>'),
+  cambio: trazo('<path d="M7 7h13l-4-4"/><path d="M17 17H4l4 4"/>'),
   escanear: trazo('<path d="M3 7V5a2 2 0 0 1 2-2h2M17 3h2a2 2 0 0 1 2 2v2M21 17v2a2 2 0 0 1-2 2h-2M7 21H5a2 2 0 0 1-2-2v-2"/><path d="M7 8v8M10 8v8M13 8v8M17 8v8"/>'),
 }
 
-// «Comprar | Vender» arriba de las dos hojas: cambiar de una a otra sin
-// cerrar el mostrador.
-export const modoHtml = (actual) => `<div class="tdm-modo" role="group" aria-label="Comprar o vender">${[['comprar', 'Comprar'], ['vender', 'Vender']].map(([v, t]) => `<button type="button" data-modo="${v}" aria-pressed="${v === actual}">${t}</button>`).join('')}</div>`
+// «Comprar · Cambio · Vender» arriba de las hojas: pasar de una a otra sin
+// cerrar el mostrador. Cambio (1266) es la hoja de Comprar en otro modo.
+export const MODOS = [['comprar', 'Comprar'], ['cambio', 'Cambio'], ['vender', 'Vender']]
+export const modoHtml = (actual) => `<div class="tdm-modo" role="group" aria-label="Comprar, cambio o vender">${MODOS.map(([v, t]) => `<button type="button" data-modo="${v}" aria-pressed="${v === actual}">${t}</button>`).join('')}</div>`
 
 // Los botones de cómo se paga (uno siempre elegido).
 export const pagosHtml = (lista, actual, titulo) => `<div class="tdm-pagos-caja"><p class="tdm-etq">${escapeHtml(titulo)}</p><div class="tdm-pagos" role="group" aria-label="${escapeHtml(titulo)}">${lista.map(([v, t]) => `<button type="button" data-pago="${v}" aria-pressed="${v === actual}">${DIBUJOS[v] || ''}<span>${t}</span></button>`).join('')}</div></div>`
@@ -65,6 +69,10 @@ export function abrirVenderRapido(opciones = {}) {
 export function abrirComprarRapido(opciones = {}) {
   cerrarAbanico()
   return import('./tienda-comprar.js').then((m) => m.abrirComprar({ alTerminar: avisar, ...opciones })).catch(fallo('Comprar'))
+}
+export function abrirCambioRapido(opciones = {}) {
+  cerrarAbanico()
+  return import('./tienda-comprar.js').then((m) => m.abrirComprar({ alTerminar: avisar, ...opciones, modo: 'cambio' })).catch(fallo('Cambio'))
 }
 export function abrirCajaDeHoy() {
   cerrarAbanico()
@@ -110,6 +118,7 @@ export function abrirMostrador() {
         <button type="button" class="tdm-gran tdm-gran-comprar" data-tdm="comprar">${DIBUJOS.comprar}<span><b>Comprar</b><small>Te venden cartas: tasa y entra al stock</small></span></button>
         <button type="button" class="tdm-gran tdm-gran-vender" data-tdm="vender">${DIBUJOS.vender}<span><b>Vender</b><small>Te compran: de tu stock, al momento</small></span></button>
       </div>
+      <button type="button" class="tdm-gran tdm-gran-cambio" data-tdm="cambio">${DIBUJOS.cambio}<span><b>Cambio</b><small>Cartas por cartas, y la diferencia en dinero</small></span></button>
       <div class="tdm-finas">
         <button type="button" data-tdm="escanear">${DIBUJOS.escanear}<span>Escanear etiqueta</span></button>
         <button type="button" data-tdm="caja">${icons.receipt(18)}<span>Caja de hoy</span></button>
@@ -136,6 +145,7 @@ export function abrirMostrador() {
     if (que === 'cerrar') return cerrarAbanico()
     if (que === 'comprar') return abrirComprarRapido()
     if (que === 'vender') return abrirVenderRapido()
+    if (que === 'cambio') return abrirCambioRapido()
     if (que === 'escanear') return abrirVenderRapido({ escanear: true })
     if (que === 'caja') return abrirCajaDeHoy()
   })
@@ -151,15 +161,16 @@ export function abrirMostrador() {
     .catch(() => linea.remove())
 }
 
-// El botón del centro (y lo que lleve `data-ver` de mostrador, comprar o
-// vender) en cualquier página de la tienda: sin navegar.
+// El botón del centro (y lo que lleve `data-ver` de mostrador, comprar,
+// cambio, vender o caja) en cualquier página de la tienda: sin navegar.
 export function engancharMostrador(doc = document) {
   doc.addEventListener('click', (e) => {
-    const a = e.target.closest('a[data-ver="mostrador"], a[data-ver="comprar"], a[data-ver="vender"], a[data-ver="caja"]')
+    const a = e.target.closest('a[data-ver="mostrador"], a[data-ver="comprar"], a[data-ver="vender"], a[data-ver="cambio"], a[data-ver="caja"]')
     if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return
     e.preventDefault()
     if (a.dataset.ver === 'mostrador') return abrirMostrador()
     if (a.dataset.ver === 'comprar') return abrirComprarRapido()
+    if (a.dataset.ver === 'cambio') return abrirCambioRapido()
     if (a.dataset.ver === 'caja') return abrirCajaDeHoy()
     return abrirVenderRapido()
   })

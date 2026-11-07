@@ -1400,6 +1400,7 @@ html:has(.tds-dialogo[open]) {
 .tdvt-hora { color: var(--text-mid); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
 .tdvt-que { display: grid; min-width: 0; }
 .tdvt-que small { overflow: hidden; color: var(--text-mid); font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.tdvt-chapa-cambio { display: inline-block; margin-right: var(--e-xs); padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--tdm-cambio); color: var(--tdm-sobre); font-size: var(--t-2xs); font-weight: 700; line-height: 1.7; vertical-align: 1px; }
 .tdvt-uds { color: var(--text-mid); font-size: var(--t-xs); font-variant-numeric: tabular-nums; }
 .tdvt-importe { display: grid; text-align: right; font-variant-numeric: tabular-nums; }
 .tdvt-importe small { font-size: var(--t-xs); font-weight: 600; }

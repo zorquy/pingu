@@ -121,6 +121,7 @@ html.tdm-abierto .bm { z-index: 97; }
 }
 .tdm-modo [data-modo='comprar'][aria-pressed='true'] { background: var(--tdm-compra); color: var(--tdm-sobre); }
 .tdm-modo [data-modo='vender'][aria-pressed='true'] { background: var(--tdm-venta); color: var(--acento-texto); }
+.tdm-modo [data-modo='cambio'][aria-pressed='true'] { background: var(--tdm-cambio); color: var(--tdm-sobre); }
 .tdm-modo button:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
 
 .tdm-busca-caja { position: relative; }
@@ -196,6 +197,24 @@ html.tdm-abierto .bm { z-index: 97; }
 
 .tdm-boton-vender { background: var(--tdm-venta); color: var(--acento-texto); }
 .tdm-hoja-comprar .tdm-boton-vender { background: var(--tdm-compra); color: var(--tdm-sobre); }
+
+/* ── El Cambio (1266): la hoja de Comprar con «Te da» y «Le das» ── */
+.tdm-gran.tdm-gran-cambio { display: flex; align-items: center; gap: var(--e-md); min-height: 72px; background: var(--tdm-cambio); }
+.tdx-teda { display: grid; gap: var(--e-md); min-width: 0; }
+.tdx-ledas { display: grid; gap: var(--e-sm); min-width: 0; }
+.tdm-hoja-cambio .tdx-teda,
+.tdm-hoja-cambio .tdx-ledas { padding: var(--e-sm); border-radius: var(--radius-lg); }
+.tdm-hoja-cambio .tdx-teda { background: var(--tdm-compra-bg); }
+.tdm-hoja-cambio .tdx-ledas { background: var(--tdm-venta-bg); }
+.tdx-lado-cab { display: flex; align-items: baseline; justify-content: space-between; gap: var(--e-sm); padding: 0 var(--e-xs); color: var(--text-mid); font-size: var(--t-xs); }
+.tdx-lado-titulo { margin: 0; font-family: var(--font-display); font-size: var(--t-md); }
+.tdx-teda .tdx-lado-titulo { color: var(--tdm-compra); }
+.tdx-ledas .tdx-lado-titulo { color: var(--tdm-venta); }
+.tdv.tdm-hoja-comprar .tdx-busca { border-color: var(--tdm-venta); }
+.tdm-hoja-cambio .tdm-boton-vender { background: var(--tdm-cambio); color: var(--tdm-sobre); }
+.tdm-hoja-cambio .tdm-pagos[aria-label='Te paga con'] button[aria-pressed='true'] { border-color: var(--tdm-venta); background: var(--tdm-venta-bg); box-shadow: inset 0 0 0 1px var(--tdm-venta); }
+.tdk-cambios { display: flex; align-items: center; gap: var(--e-sm); margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.tdk-cambios b { color: var(--text); }
 
 @media (pointer: coarse) {
   .tdm-modo button,

@@ -40,10 +40,12 @@ export const seccionesDeTienda = () => SECCIONES_DE_TIENDA.map(comoSeccion)
 // EL MOSTRADOR (1254; «Vender» desde la 1072) no es una página: en el móvil
 // es el centro de la barra (cinco huecos: Ventas, Escaparate y Datos, desde la
 // hoja «Tú») y abre el abanico de js/tienda-mostrador.js (Comprar, Vender,
-// Escanear, Caja de hoy); en el PC, arriba, el botón partido Comprar | Vender.
+// Cambio, Escanear, Caja de hoy); en el PC, arriba, el botón partido
+// Comprar | Cambio | Vender (Cambio desde la 1266).
 export const MOSTRADOR = { nombre: 'Mostrador', ver: 'mostrador', icono: 'arrowLeftRight', href: '/tienda?mostrador=1', clase: 'bm-vender bm-mostrador' }
 export const seccionesDelMovil = () => ['Panel', 'Colección', 'Mostrador', 'Stock', 'Mensajes'].map((n) => comoSeccion(n === 'Mostrador' ? MOSTRADOR : SECCIONES_DE_TIENDA.find((s) => s.nombre === n)))
 const DIBUJO_COMPRAR = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>'
+const DIBUJO_CAMBIO = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h13l-4-4"/><path d="M17 17H4l4 4"/></svg>'
 const DIBUJO_VENDER = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21V9"/><path d="m7 14 5-5 5 5"/><path d="M4 7V5a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v2"/></svg>'
 
 export const BUSCAR_EN_STOCK = { href: '/tienda?ver=stock&buscar=1', texto: 'Busca en tu stock…' }
@@ -99,10 +101,10 @@ export function montarMarcoDeTienda({ doc = document, win = window } = {}) {
     caja.id = 'navSearch'
     caja.innerHTML = `<a class="nav-search-btn" id="navSearchBtn" href="${BUSCAR_EN_STOCK.href}" data-ver="stock" data-buscar aria-label="Buscar en tu stock" title="Buscar en tu stock (Ctrl+K)">${icons.search(19)}</a>`
     derecha.insertBefore(caja, yo)
-    // Comprar | Vender, siempre a mano en el PC (en el móvil, el Mostrador).
+    // Comprar | Cambio | Vender, siempre a mano en el PC (en el móvil, el Mostrador).
     const partido = doc.createElement('span')
     partido.className = 'tdm-vender tdm-partido'
-    partido.innerHTML = `<a class="tdm-p-comprar" href="/tienda?comprar=1" data-ver="comprar" title="Comprar">${DIBUJO_COMPRAR}<span>Comprar</span></a><a class="tdm-p-vender" href="/tienda?vender=1" data-ver="vender" title="Vender">${DIBUJO_VENDER}<span>Vender</span></a>`
+    partido.innerHTML = `<a class="tdm-p-comprar" href="/tienda?comprar=1" data-ver="comprar" title="Comprar">${DIBUJO_COMPRAR}<span>Comprar</span></a><a class="tdm-p-cambio" href="/tienda?cambio=1" data-ver="cambio" title="Cambio">${DIBUJO_CAMBIO}<span>Cambio</span></a><a class="tdm-p-vender" href="/tienda?vender=1" data-ver="vender" title="Vender">${DIBUJO_VENDER}<span>Vender</span></a>`
     derecha.insertBefore(partido, caja)
   }
   doc.addEventListener('keydown', (e) => {
