@@ -12,7 +12,8 @@ const sinMigracion = (e) => ['PGRST202', 'PGRST205', '42P01', '42883'].includes(
 
 // LA REPUTACIÓN (1224, PINGU: «que se vea que has completado trades… y así
 // ver que eres confiable»). Cuenta los tratos HECHOS (cambio, venta o compra
-// que llegan a «Hecho», y los «Cambio hecho» de Mensajes) y cómo dijo el otro
+// que llegan a «Hecho», y los «Cambio hecho» que se marcaron a mano en Mensajes
+// hasta la 1269, que siguen contando) y cómo dijo el otro
 // que fue. Cuatro niveles (PINGU eligió los recomendados): «Nuevo en los
 // cambios» sin ninguno, «N tratos», «De fiar» con 5 o más y ningún problema,
 // y «Muy de fiar» con 20 o más y al menos un 95 % «todo bien». Los problemas
@@ -64,32 +65,6 @@ export async function reputacionDe(userId) {
   if (fila) return fila
   // Sin la función (o si falla), lo de antes: el sello no se pierde por esto.
   return cambiosDe(userId)
-}
-
-// Los cambios con UNA persona, para saber qué botón toca en la conversación.
-export async function cambiosCon(yo, otro) {
-  const [a, b] = [yo, otro].sort()
-  const { data, error } = await supabase.from('trade_confirmations').select('*').eq('user_a', a).eq('user_b', b).order('created_at', { ascending: false }).limit(5)
-  if (error) return sinMigracion(error) ? null : []
-  return data || []
-}
-
-// Qué le toca hacer a `yo` con el último cambio con esa persona. Puro.
-export function estadoDelCambio(filas, yo) {
-  const f = (filas || [])[0]
-  if (!f) return { paso: 'marcar' }
-  const soyA = f.user_a === yo
-  const mio = soyA ? f.hecho_a_at : f.hecho_b_at, suyo = soyA ? f.hecho_b_at : f.hecho_a_at
-  const valoracion = soyA ? f.valoracion_a : f.valoracion_b
-  if (mio && suyo) return valoracion ? { paso: 'hecho', fila: f, valoracion } : { paso: 'valorar', fila: f }
-  if (mio) return { paso: 'esperando', fila: f }
-  return { paso: suyo ? 'confirmar' : 'marcar', fila: f }
-}
-
-export async function marcarCambio(otro) {
-  const { data, error } = await supabase.rpc('cambio_marcar', { p_otro: otro })
-  if (error) throw new Error(sinMigracion(error) ? `Falta ejecutar ${FICHERO_MIGRACION} en Supabase.` : error.message)
-  return data
 }
 
 export async function valorarCambio(id, valor, nota = null) {

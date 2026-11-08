@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-08 (511) — PINGU-Claude (1269 — el trato en Mensajes, sin «Ya nos cambiamos»)
+
+**Hecho**: PINGU eligió lo recomendado de la propuesta de perfiles y Mensajes;
+esta es la primera de tres tandas (SCHEMA 1269). Fuera «Ya nos cambiamos» (no
+movía cartas y se podía farmear reputación), con una migración que deja
+`cambio_marcar` sin efecto; lo ya marcado sigue contando. En Mensajes, el trato
+vivo es la tarjeta de «En curso» arriba, con su pop-up para responder ahí
+mismo, que se encoge al leer o escribir; el mensaje del trato en el hilo es una
+línea con «Ver».
+
+**Ficheros**: `supabase-migration-1269-sin-cambio-a-mano.sql` (nueva, PINGU la
+tiene que ejecutar), `js/mensajes.js`, `js/cambio-propuesta.js`
+(`pintarPropuestasCon`), `js/cambios-hechos.js`, `js/cambio-boton.js` (borrado),
+`css/mensajes.css`, CLAUDE.md, novedades. Rama pruebas:
+`test-tanda-1269-pantalla.mjs` (nueva) y 795, 899, 942, 1100, 1101, 1146, 1238
+al día (todas en verde, con 1102, 1103 y 1217).
+
+**Pendiente**: 1270 (cabecera del perfil) y 1271 (pestañas), en curso por mí:
+`perfil.html`, `usuario.html`, `js/perfil*.js`, `js/usuario.js`, `css/perfil.css`.
+Lo de antes: `xp_sumar` (510), 1266 (507), 1264 y 1260 (505).
+
 ## 2026-11-08 (510) — PINGU-Claude (1268, parte 2 — los seis retos por el árbitro)
 
 **Hecho**: la web de la 1268 (SCHEMA 1268). Las funciones del día sirven la

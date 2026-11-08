@@ -55204,6 +55204,51 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1269 — El trato en Mensajes, y sin «Ya nos cambiamos»
+
+PINGU, con una propuesta recién llegada en la pantalla: «no sé si se puede
+mejorar esto un poco» y «el botón de ya nos cambiamos creo que da pie a
+confusión. ¿Qué hace realmente? ¿Es necesario?». Eligió lo recomendado de la
+propuesta con imágenes.
+
+**«Ya nos cambiamos» se va.** Era el «Cambio hecho» de la 795, de antes de las
+propuestas (942): uno lo marcaba, el otro también, y quedaba un trato hecho
+para la reputación sin mover una carta. Salía al lado de la propuesta como si
+fuera aceptarla, y con «Marcar otro» dos amigos podían salir «Muy de fiar» en un
+minuto (`reputacion_de` lo cuenta como «cambio»). Fuera `js/cambio-boton.js`, y
+de `cambios-hechos.js` lo que solo usaba él (`cambiosCon`, `estadoDelCambio`,
+`marcarCambio`). La migración `supabase-migration-1269-sin-cambio-a-mano.sql`
+cierra la puerta de atrás: `cambio_marcar` lanza un error y se le quita el
+`execute` a todos (sin ella, se podría seguir marcando desde la consola). Lo
+marcado antes SIGUE contando (la A). `trade_confirmations` no tiene política de
+escritura, así que la única fila nueva posible es la de una propuesta cerrada.
+`cambio_valorar` sigue: «¿Qué tal fue?» de los tratos hechos.
+
+**El trato vivo arriba de la conversación.** Antes lo mismo salía tres veces (la
+tira de la 1100, la tarjeta de la 1101 en el hilo y la caja verde del cruce) y
+para responder había que irse a Cruces. Ahora `pintarPropuestasCon` (solo la usa
+Mensajes) pinta LA tarjeta de «En curso» de la 1217 con `tratosEnTarjetasHtml`
+(sin pasadas, con `conEstado` para «Te toca» en la cabecera) y engancha
+`engancharAcciones` y `engancharDialogos`: tocarla abre el mismo pop-up de la
+1223 aquí, con los mismos botones y su «?». Sin trato vivo no hay nada (ni la
+tira de «Tus cambios»). En Mensajes la tarjeta no lleva cara ni nombre.
+
+- Va en `.msg-trato`, pegada arriba del hilo (sticky). Al ponerse a leer (rueda,
+  dedo) o a escribir (foco en el cuadro) se le pone `.msg-trato-encogida`: una
+  tira con las minis, el dinero y «Ver y responder». Lo que mueve el hilo solo
+  (bajar al llegar, un mensaje nuevo) no la encoge.
+- Con un trato vivo se esconden «Proponer cambio» (una propuesta nueva sustituye
+  a la de antes y va desde el pop-up) y `#msgCruce`, por CSS con `:has`.
+- El mensaje de un trato en el hilo es una línea centrada (icono, título, el
+  texto cortado y «Ver»); «Ver» abre el pop-up de arriba si es ese trato, o va al
+  historial si es uno pasado. Se fue «¿Primera vez? Así funciona un trato» del
+  hilo: la ayuda es el «?» del pop-up.
+
+Pruebas (rama pruebas): `test-tanda-1269-pantalla.mjs` (móvil y PC: la tarjeta
+con «Te toca», sin el botón, sin «Proponer» ni el cruce, el pop-up aquí, el «Ver»
+de la línea, el encogido, sin trato vivo y la migración), y puestas al día 795,
+899, 942, 1100, 1101, 1146 y 1238.
+
 ## Tanda 1268 — Los retos sin trampas: la base es el árbitro
 
 PINGU: «revisa todos los minijuegos… en ¿qué carta es? cogías la imagen, la

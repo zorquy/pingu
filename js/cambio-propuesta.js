@@ -1088,13 +1088,13 @@ function engancharAcciones(caja, contexto, recargar) {
 // Las propuestas con UNA persona, para Mensajes: las vivas arriba y
 // «Proponer un cambio» si no hay ninguna. `cruce`: lo que os cruzáis, para
 // rellenar la propuesta nueva.
-export async function pintarPropuestasCon(caja, { sesion, otro, cruce = null, sinProponer = false } = {}) {
+export async function pintarPropuestasCon(caja, { sesion, otro } = {}) {
   if (!caja || !sesion?.user?.id || !otro?.id) return
   hojaInyectada('css/cambio-propuesta.css')
   caja.classList.add('cp-caja')
   const yo = sesion.user.id
   const estado = { yo, sesion, ofertas: [], perfiles: new Map([[otro.id, otro]]), cartaDe: () => null }
-  const recargar = () => pintarPropuestasCon(caja, { sesion, otro, cruce, sinProponer })
+  const recargar = () => pintarPropuestasCon(caja, { sesion, otro })
   let ofertas
   try {
     ofertas = await cargarOfertas(yo, { con: otro.id })
@@ -1105,33 +1105,36 @@ export async function pintarPropuestasCon(caja, { sesion, otro, cruce = null, si
   }
   const vivas = ofertas.filter(estaViva)
   estado.ofertas = vivas
+  caja.dataset.vivas = String(vivas.length)
+  // EN MENSAJES, LA TARJETA DEL TRATO (1269, PINGU eligió la recomendada:
+  // «Responder» sin salir de la conversación). Es la MISMA tarjeta de Cruces →
+  // «En curso» (1217) con el mismo pop-up y los mismos botones, así que lo que
+  // se hace aquí y allí no puede salir distinto. Hasta la 1268 era una tira que
+  // llevaba a Cruces (1100). Sin trato vivo no hay nada: «Proponer cambio» va
+  // en la cabecera (1221) y lo pasado está en el historial de Cruces.
+  if (!vivas.length) {
+    caja.innerHTML = ''
+    caja.hidden = true
+    caja.classList.remove('cp-caja-tira')
+    return
+  }
+  ;[estado.cartaDe, estado.miDir, estado.misCobros] = await Promise.all([
+    fichasDe(vivas.flatMap((o) => o.items)),
+    vivas.some((o) => o.direcciones && vaPorCorreo(o)) ? miDireccion(yo) : null,
+    vivas.some((o) => o.cobros && quienCobra(o) === yo) ? miCobro(yo) : null,
+  ])
+  const abiertos = new Set([...caja.querySelectorAll('details.cp-trato[open]')].map((d) => d.id))
+  const avisos = caja.querySelector('.toast-container')
+  if (avisos) document.body.appendChild(avisos)
+  const toca = (o) => estadoDe(o, yo).tono === 'toca'
   caja.hidden = false
-  // EN MENSAJES, UNA TIRA (1100, PINGU: «que en cruces aparezca el proceso de
-  // cómo va… y si quieres mandarle un mensaje, que lo discutas por mensaje
-  // privado»): el trato se sigue en Cruces → «En curso»; aquí, en qué está y
-  // un enlace. La conversación vuelve a ser para hablar.
-  caja.innerHTML = `${vivas.map((o) => {
-    const est = estadoDe(o, yo, nombreDePersona(otro))
-    return `<a class="cp-tira tono-${est.tono}" href="/mi-coleccion?ver=cambios#oferta-${escapeHtml(o.id)}" data-oferta="${escapeHtml(o.id)}">
-      <span class="cp-tira-texto"><b>${escapeHtml(tituloDe(o, yo, nombreDePersona(otro)))}</b><small>${escapeHtml(est.frase || est.texto)}</small></span>
-      <span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span><span class="cp-tira-ver" aria-hidden="true">Ver</span>
-    </a>`
-  }).join('')}
-    ${vivas.length || (sinProponer && !ofertas.length) ? '' : sinProponer ? '<div class="cp-proponer-fila"><a class="link-btn" href="/mi-coleccion?ver=cambios">Tus cambios</a></div>' : `<div class="cp-proponer-fila">
-      <button type="button" class="btn-secondary" data-cp-nueva>${icons.refreshCw(15)}<span>Proponer un cambio</span></button>
-      ${ofertas.length ? '<a class="link-btn" href="/mi-coleccion?ver=cambios">Tus cambios</a>' : ''}
-    </div>`}`
-  // Con un trato en marcha, la tira se queda arriba de la conversación al
-  // bajar (la conversación abre ya bajada). Otra propuesta, desde «En
-  // curso» (una viva por pareja: una nueva sustituye a la de antes).
-  caja.classList.toggle('cp-caja-tira', vivas.length > 0)
-  // En una conversación «Proponer cambio» va en la cabecera (1221): sin nada
-  // vivo ni pasado, la caja no ocupa sitio.
-  if (sinProponer && !vivas.length && !ofertas.length) caja.hidden = true
+  caja.classList.add('cp-caja-tira')
+  // En Mensajes la cara y el nombre sobran (ya se sabe con quién) y en su
+  // sitio va en qué está, «Te toca» (`conEstado`).
+  caja.innerHTML = tratosEnTarjetasHtml(vivas, [], { yo, estado, otroDe: () => otro, toca, conEstado: true })
+  for (const id of abiertos) { const d = id && caja.querySelector(`details.cp-trato[id="${CSS.escape(id)}"]`); if (d) d.open = true }
   engancharAcciones(caja, () => estado, recargar)
-  // En el propio botón y no en la caja: la caja se repinta al contestar, y
-  // un oyente en ella recogía el clic de «Aceptar» como si fuera este.
-  caja.querySelector('[data-cp-nueva]')?.addEventListener('click', () => void abrirPropuesta({ sesion, otro, prefill: cruce || {}, alEnviar: recargar }))
+  engancharDialogos(caja)
 }
 
 // «Das 2 cartas · recibes 20,00 €»: lo que sale y lo que entra, con el dinero.
@@ -1163,7 +1166,7 @@ function botonAyudaHtml(o, yo, nombre) {
   const correo = o.estado === 'enviada' ? (o.envio === 'correo' ? '' : 'no') : vaPorCorreo(o) ? 'si' : 'no'
   return `<button type="button" class="cp-dlg-ico cp-dlg-ayuda" data-cp-ayuda data-cay-tipo-trato="${escapeHtml(tipoDe(o.items || [], yo))}" data-cay-correo="${correo}" data-cay-propones="${o.de === yo ? 'si' : 'no'}" data-cay-nombre="${escapeHtml(nombre)}" data-cay-paso="${pasoDeAyuda(o, yo) ?? ''}" aria-label="Cómo funciona un trato" title="Cómo funciona">${icons.helpCircle(18)}</button>`
 }
-function tratosEnTarjetasHtml(vivas, pasadas, { yo, estado, otroDe, toca, primeraVez = false }) {
+function tratosEnTarjetasHtml(vivas, pasadas, { yo, estado, otroDe, toca, primeraVez = false, conEstado = false }) {
   // El pop-up de un trato (1223): el mismo para los vivos y para los del
   // historial (estos, sin botones: ya no les queda nada por hacer).
   const dialogo = (o, p, est) => `
@@ -1188,7 +1191,7 @@ function tratosEnTarjetasHtml(vivas, pasadas, { yo, estado, otroDe, toca, primer
     const pasos = nombres.map((n, k) => `<i class="${k < paso ? 'hecho' : ''}" title="${escapeHtml(n)}"></i>`).join('')
     return `<details class="cp-linea cp-trato${toca(o) ? ' cp-toca' : ''}" id="oferta-${escapeHtml(o.id)}">
       <summary>
-        <span class="cp-trato-cab">${avatarHtml(p)}<span class="cp-trato-quien"><b>${escapeHtml(nombreDePersona(p))}</b><small>${escapeHtml(haceCuanto(o.updated_at || o.created_at))}</small></span><span class="cp-trato-tipo">${TIPO_CORTO[tipoDe(o.items || [], yo)]}</span></span>
+        <span class="cp-trato-cab">${avatarHtml(p)}<span class="cp-trato-quien"><b>${escapeHtml(nombreDePersona(p))}</b><small>${escapeHtml(haceCuanto(o.updated_at || o.created_at))}</small></span><span class="cp-trato-tipo">${TIPO_CORTO[tipoDe(o.items || [], yo)]}</span>${conEstado ? `<span class="cp-estado tono-${est.tono}">${escapeHtml(est.texto)}</span>` : ''}</span>
         <span class="cp-trato-lados">${ladoDeTratoHtml('Das', das, queRecibe(o, p.id).dinero, estado.cartaDe)}<span class="cp-trato-flecha" aria-hidden="true">${icons.refreshCw(16)}</span>${ladoDeTratoHtml('Recibes', recibes, queRecibe(o, yo).dinero, estado.cartaDe)}</span>
         <span class="cp-trato-pasos" role="img" aria-label="Paso ${paso} de ${nombres.length}: ${escapeHtml(nombres[paso - 1] || '')}">${pasos}</span>
         <span class="cp-trato-pie"><small>${escapeHtml(est.frase || est.texto)}</small><span class="cp-linea-ver">${toca(o) ? 'Ver y responder' : 'Ver la propuesta'}</span></span>

@@ -321,14 +321,16 @@ function burbujaHtml(m, { mia, mencionados, urls, visto, miId, carta, cita = nul
   const fotos = fotosHtml(adjuntosDe(m), urls)
   // Las cartas de «Me interesa» (1080), con su módulo ya cargado.
   const cartas = carta ? cartasDe(m).map((a) => carta.cartaHtml(a, { miId, mia })).join('') : ''
-  // El mensaje de un cambio (1101): una tarjeta con su título y el botón.
+  // El mensaje de un cambio (1101): desde la 1269, UNA LÍNEA con su hora y
+  // «Ver». El trato vivo ya está entero arriba (la tarjeta de «En curso», con
+  // su «?» de ayuda en el pop-up); aquí queda lo que pasó y cuándo, sin
+  // repetirlo. Antes era otra tarjeta con «Ver propuesta» que sacaba a Cruces.
   const prop = propuestaDe(m)
   const propuesta = prop
-    ? `<div class="msg-propuesta" data-evento="${escapeHtml(prop.evento)}">
-        <span class="msg-propuesta-icono" aria-hidden="true">${(ICONO_DE_EVENTO[prop.evento] || icons.refreshCw)(16)}</span>
-        <span class="msg-propuesta-texto"><b>${escapeHtml(prop.titulo)}</b><small>${escapeHtml(prop.texto)}</small></span>
-        <a class="btn-secondary msg-propuesta-ver" href="${escapeHtml(prop.enlace)}">Ver propuesta</a>
-        ${!mia && (prop.evento === 'cambio_propuesta' || prop.evento === 'cambio_contraoferta') ? `<button type="button" class="msg-propuesta-ayuda" data-trato-ayuda>${icons.helpCircle(14)}<span>¿Primera vez? Así funciona un trato</span></button>` : ''}
+    ? `<div class="msg-propuesta" data-evento="${escapeHtml(prop.evento)}" title="${escapeHtml(prop.texto)}">
+        <span class="msg-propuesta-icono" aria-hidden="true">${(ICONO_DE_EVENTO[prop.evento] || icons.refreshCw)(13)}</span>
+        <span class="msg-propuesta-texto"><b>${escapeHtml(prop.titulo)}</b>${prop.texto ? ` · ${escapeHtml(prop.texto)}` : ''}</span>
+        <a class="msg-propuesta-ver" href="${escapeHtml(prop.enlace)}" data-trato-ver>Ver</a>
       </div>`
     : ''
   // Una compra a una tienda (1250): la tarjeta viva en su último mensaje.
@@ -403,7 +405,6 @@ async function renderThread(session, conversationId) {
       <div class="msg-scroll" id="msgScroll">
         <div class="msg-trato">
           <div id="msgPropuestas" hidden aria-live="polite"></div>
-          <div class="msg-cambio" id="msgCambio"></div>
         </div>
         <section class="perfil-cruce hidden" id="msgCruce" aria-live="polite"></section>
         <div class="msg-mensajes" id="threadMessages" aria-live="polite"><div class="skeleton msg-esqueleto"></div></div>
@@ -436,12 +437,33 @@ async function renderThread(session, conversationId) {
       <div class="msg-arrastre" id="msgArrastre" hidden>${icons.image(22)} Suelta la imagen para adjuntarla</div>
     </div>`
 
-  // «Cambio hecho» (795, NU4): solo si la migración está; si no, nada.
-  import('./cambio-boton.js').then((m) => m.pintarBotonDeCambio(document.getElementById('msgCambio'), miId, otherProfile.id, name)).catch(() => {})
-  // Las propuestas de cambio con esta persona (942): las vivas, con sus
-  // botones, y «Proponer un cambio». Si la migración no está, nada.
-  const pintarPropuestas = () => import('./cambio-propuesta.js').then((m) => m.pintarPropuestasCon(document.getElementById('msgPropuestas'), { sesion: session, otro: otherProfile, sinProponer: true })).catch(() => {})
+  // «Ya nos cambiamos» (795) se fue en la 1269 (PINGU: «da pie a confusión»):
+  // no movía cartas, salía al lado de una propuesta como si fuera aceptarla y
+  // cualquiera podía marcarse cambios para subir la reputación. Un cambio se
+  // apunta solo al cerrar su propuesta (942), también uno en mano.
+  // El trato vivo con esta persona (1269): la tarjeta de «En curso» arriba,
+  // con su pop-up para responder aquí mismo. Sin migración, nada.
+  const pintarPropuestas = () => import('./cambio-propuesta.js').then((m) => m.pintarPropuestasCon(document.getElementById('msgPropuestas'), { sesion: session, otro: otherProfile })).catch(() => {})
   void pintarPropuestas()
+  // Al ponerse a leer o a escribir, la tarjeta se encoge a una tira (1269):
+  // entera se come media pantalla del móvil. Lo que mueve el hilo por su
+  // cuenta (bajar al llegar, un mensaje nuevo) no la encoge; el dedo, sí.
+  const tratoBarra = root.querySelector('.msg-trato')
+  const encoger = () => tratoBarra?.classList.add('msg-trato-encogida')
+  const scrollEl = document.getElementById('msgScroll')
+  scrollEl?.addEventListener('wheel', encoger, { passive: true, signal: sig })
+  scrollEl?.addEventListener('touchmove', encoger, { passive: true, signal: sig })
+  document.getElementById('msgBody')?.addEventListener('focus', encoger, { signal: sig })
+  // «Ver» de la línea de un trato en la conversación: si es el que está arriba,
+  // se abre su pop-up aquí; si es uno pasado, el enlace lleva al historial.
+  root.querySelector('#threadMessages')?.addEventListener('click', (e) => {
+    const a = e.target.closest?.('[data-trato-ver]')
+    const id = a && /#oferta-(.+)$/.exec(a.getAttribute('href') || '')?.[1]
+    const d = id && document.querySelector(`#msgPropuestas details[id="oferta-${CSS.escape(id)}"]`)
+    if (!d) return
+    e.preventDefault()
+    d.open = true
+  }, { signal: sig })
   // Lo que os podéis cambiar, encima de la conversación (798, PA13): solo si hay algo.
   // Y cuántas de las que buscas tiene, en la cabecera (1221): «tiene 5 cartas
   // que buscas», con «Proponer cambio» al lado.
@@ -1181,11 +1203,3 @@ async function init() {
 }
 
 init()
-
-// «¿Primera vez? Así funciona un trato» (1238): la hoja de los pasos, por
-// `import()` (con su hoja de estilos) solo cuando se pulsa.
-document.addEventListener('click', (e) => {
-  const b = e.target.closest?.('[data-trato-ayuda]')
-  if (!b) return
-  import('./cambio-ayuda.js').then((m) => m.abrirAyuda({ tipo: 'cambio', correo: null, propones: false })).catch(() => {})
-})

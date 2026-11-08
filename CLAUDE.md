@@ -901,11 +901,18 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   recibe solo elige eso o en mano al aceptar (`cambio_aceptar` lo calcula) y
   en una venta lo paga quien compra (`pagaElEnvio`). El total de una venta se
   escribe y se reparte entre las cartas (`repartirTotal`, 1106). Un trato se SIGUE en Cruces → «En curso» (1100,
-  `#oferta-<id>`); en Mensajes solo hay una tira que lleva allí: no vuelvas a
-  meter la tarjeta entera en la conversación. Lo que pasa en un trato
-  llega a la conversación como una tarjeta con «Ver propuesta» (1101,
-  `propuestaDe`): un paso nuevo avisa por `cambio_avisar`, que le pone el
-  adjunto `propuesta`. La dirección de un trato por correo (1102) la pone
+  `#oferta-<id>`) y, desde la 1269 (PINGU eligió la recomendada), también se
+  RESPONDE en Mensajes: arriba de la conversación va LA tarjeta de «En curso»
+  (`tratosEnTarjetasHtml` con `conEstado`, desde `pintarPropuestasCon`) con su
+  pop-up y sus botones, que se encoge a una tira al leer o escribir; no hay otra
+  tarjeta ni otros botones. Lo que pasa en un trato llega a la conversación como
+  UNA LÍNEA con «Ver» (1101, `propuestaDe`), que abre ese pop-up: un paso nuevo
+  avisa por `cambio_avisar`, que le pone el adjunto `propuesta`. «Ya nos
+  cambiamos» (795) ya no existe (1269: no movía cartas y cualquiera podía
+  marcarse tratos): `cambio_marcar` no abre nada y nadie la llama; un trato se
+  apunta SOLO al cerrarse su propuesta (también uno en mano). Lo que se marcó a
+  mano antes sigue contando en la reputación; no vuelvas a poner un camino que
+  apunte un trato sin propuesta. La dirección de un trato por correo (1102) la pone
   quien recibe cartas y va en `trade_offer_direcciones`, que solo se lee
   por `cambio_direcciones` (la del otro, con el trato aceptado): nunca en
   un mensaje, un perfil ni una consulta directa. Lo enviado y su número de
