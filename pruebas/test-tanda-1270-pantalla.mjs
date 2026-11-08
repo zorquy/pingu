@@ -47,6 +47,14 @@ console.log('── 1. Tu perfil en el PC ──')
     return { hero: Math.round(r('#profileHero').width), heroR: r('#profileHero').right, tabsL: r('#profileTabs').left, pegada: getComputedStyle(document.querySelector('.perfil-lado')).position, trueque: r('#perfilTrueque').top > r('#profileHero').bottom - 1 && Math.abs(r('#perfilTrueque').left - r('#profileHero').left) < 2 }
   })
   check('dos columnas: quién es (320) y la tarjeta debajo, a la izquierda y quietas; pestañas a la derecha', col.hero === 320 && col.tabsL > col.heroR && col.pegada === 'sticky' && col.trueque, JSON.stringify(col))
+  // 1272 (PINGU: «coge todo el ancho y está horrible»): en una pantalla ancha
+  // el perfil va en la columna de toda la web, como el foro o las guías.
+  await page.setViewportSize({ width: 1920, height: 1000 })
+  await page.waitForTimeout(300)
+  const ancho = await page.evaluate(() => Math.round(document.querySelector('.perfil-pagina').getBoundingClientRect().width))
+  check('1272: con la ventana a 1920, el perfil no pasa de la columna de la web (1.160)', ancho <= 1160 && ancho >= 1100, ancho)
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.waitForTimeout(300)
   // 1271: se entra por el Resumen.
   const pest = await page.$$eval('#profileTabs .tab-btn:not([hidden])', (bs) => bs.map((x) => `${x.dataset.ptab}:${x.firstChild.textContent.trim()}${x.classList.contains('active') ? '*' : ''}`))
   check('1271: las pestañas empiezan por «Resumen» (abierta) y la Vitrina se llama «Colección»', pest[0] === 'resumen:Resumen*' && pest[1] === 'vitrina:Colección', pest.join(' | '))
