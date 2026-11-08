@@ -1139,7 +1139,8 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   1271, PINGU eligió lo recomendado): seguidores en caras (`pintarSocial`), las
   losas de colección, guías y torneos (`cifrasHtml`), y UNA tarjeta de cambios
   (`js/perfil-trueque.js`) con la reputación, lo que da y busca y lo que tenéis en
-  común; en el PC, dos columnas (quién es y la tarjeta a la izquierda, quietas).
+  común; en el PC, dos columnas (quién es y la tarjeta a la izquierda, quietas)
+  DENTRO de la columna de 1.160 de la web (1272, PINGU: «coge todo el ancho»).
   Se entra por «Resumen» (`js/perfil-resumen.js`) y nada salta solo a otra pestaña;
   la Vitrina se llama «Colección». Algo nuevo de los cambios de alguien va en la
   tarjeta (no otra chapa en la cabecera), y una pestaña nueva lleva su bloque en el

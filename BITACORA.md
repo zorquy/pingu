@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-08 (513) — PINGU-Claude (1272 — el perfil en la columna de la web)
+
+**Hecho**: PINGU, con la 1269 ya ejecutada: «el perfil en PC es demasiado ancho,
+coge todo el ancho». La 1270 había puesto `.perfil-pagina { max-width: none }` en
+el PC; fuera, y el perfil vuelve a la columna de 1.160 como el foro o las guías.
+El tope de 720 de la 1150 pasa a ser solo de menos de 1.000 px (entre 1.000 y
+1.099 dejaba las dos columnas en 720). Y las dos columnas empiezan a la misma
+altura: la izquierda es `sticky` a 88 y la página empieza a 70, así que bajaba
+18 px respecto a las losas; la rejilla lleva 24 de aire arriba (SCHEMA 1272).
+
+**Ficheros**: `css/perfil.css`, SCHEMA, CLAUDE.md, novedades. Rama pruebas:
+`test-tanda-1270-pantalla.mjs` (a 1920, el perfil no pasa de 1.160); 1150, 306,
+309, 1167, 1233 en verde; 981 solo con su rojo de antes (/mi-coleccion 0,487).
+
+**Pendiente**: nada de esto.
+
 ## 2026-11-08 (512) — PINGU-Claude (1270 y 1271 — el perfil nuevo)
 
 **Hecho**: el resto de la propuesta de perfiles, con lo recomendado (SCHEMA 1270 y

@@ -1279,8 +1279,9 @@ button.perfil-logro-chapa {
 }
 
 /* El perfil a lo ancho de la 1150 (cabecera de lado a lado con las cifras a
-   la derecha) lo sustituye la 1270: dos columnas, al final de esta hoja. */
-@media (max-width: 1099px) {
+   la derecha) lo sustituye la 1270: dos columnas, al final de esta hoja. En el
+   PC va en la columna de toda la web (1272, PINGU: «coge todo el ancho»). */
+@media (max-width: 999px) {
   .perfil-pagina {
     max-width: 720px;
   }
@@ -1724,12 +1725,12 @@ html:has(.logro-ficha[open]) {
 /* En el PC: quién es y la tarjeta de cambios a la izquierda, quietas al bajar;
    las losas, de lado, y las pestañas a la derecha. */
 @media (min-width: 1000px) {
-  .perfil-pagina { max-width: none; }
   .perfil-rejilla {
     display: grid;
     grid-template-columns: 320px minmax(0, 1fr);
     gap: var(--e-lg);
     align-items: start;
+    padding-top: var(--e-xl);
   }
   .perfil-lado { position: sticky; top: 88px; }
   .perfil-lado .profile-hero { display: block; margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); }

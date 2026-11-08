@@ -55204,6 +55204,22 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1272 — El perfil, en la columna de la web
+
+PINGU, con una captura del PC: «coge todo el ancho y está horrible. Los apartados
+de la web nunca están tan anchos». La 1270 quitó el tope de `.perfil-pagina` en el
+PC (`max-width: none`) para que cupieran las dos columnas, y en una pantalla de
+1.920 el perfil iba de la lateral al borde. La regla de la 1161 ya lo decía: lo
+que se lee (y un perfil se lee) se queda en su columna de 1.160; solo crecen las
+rejillas de cartas. Con 1.160 caben de sobra los 320 de quién es y las pestañas.
+
+- Fuera el `max-width: none`; el tope de 720 de la 1150 queda para menos de
+  1.000 px (con él, entre 1.000 y 1.099 las dos columnas iban apretadas en 720).
+- La columna de la izquierda es `sticky` a 88 px y la página empieza a 70: en
+  reposo ya estaba «pegada» y bajaba 18 px respecto a las losas. La rejilla lleva
+  `padding-top: var(--e-xl)` y las dos empiezan a la misma altura (94).
+- La prueba de la 1270 abre el perfil a 1.920 y exige que no pase de 1.160.
+
 ## Tanda 1271 — Las pestañas del perfil: Resumen, Colección y cada una con su molde
 
 Segunda mitad de la propuesta de perfiles (PINGU: «dale a todo lo recomendado»).
