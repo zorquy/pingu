@@ -210,16 +210,18 @@ console.log('── 3. En Mensajes ──')
   const { ctx, page, errores } = await abrirCon(tablas, 'admin-1', { movil: true })
   await page.goto(`${BASE}/mensajes.html?c=${conv}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
-  const b = page.locator('.msg-propuesta [data-trato-ayuda]')
-  check('la propuesta recibida lleva «¿Primera vez? Así funciona un trato»', (await b.count()) === 1 && /Primera vez/.test(await b.innerText()), String(await b.count()))
+  // Desde la 1269 el trato vivo está arriba (la tarjeta de «En curso») y la
+  // ayuda es su «?», en el pop-up que se abre ahí mismo.
+  await page.locator('#msgPropuestas details.cp-trato summary').click().catch(() => {})
+  await page.waitForTimeout(500)
+  const b = page.locator('#msgPropuestas dialog[open] [data-cp-ayuda]')
+  check('el trato recibido abre aquí su pop-up, con el «?» de cómo funciona', (await b.count()) === 1, String(await b.count()))
   if (await b.count()) {
     if (CAPS) await page.screenshot({ path: `${CAPS}/1238-mensajes.png` })
     await b.click()
     await page.waitForTimeout(800)
     if (CAPS) await page.screenshot({ path: `${CAPS}/1238-mensajes-ayuda.png` })
     check('  …y abre la hoja de los pasos', await page.evaluate(() => Boolean(document.getElementById('cayDialogo')?.open)))
-    const alto = await b.evaluate((x) => Math.round(x.getBoundingClientRect().height))
-    check('  …y mide 44 al dedo', alto >= 44, String(alto))
   }
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()

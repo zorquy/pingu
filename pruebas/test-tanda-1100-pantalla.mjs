@@ -173,8 +173,11 @@ console.log('── 3. En Mensajes ──')
   await page.route(/\/mensajes\.html/, (r) => r.continue())
   await ir(page, `/mensajes.html?c=${deLucia.conversacion}`)
   const caja = page.locator('#msgPropuestas')
-  check('la tira, sin la tarjeta entera ni «Otra propuesta»', (await caja.locator('.cp-tira').count()) === 1 && (await caja.locator('.cp-tarjeta').count()) === 0 && (await caja.locator('[data-cp-nueva]').count()) === 0)
-  check('  …y lleva a ese trato en «En curso»', (await caja.locator('.cp-tira').getAttribute('href')) === `/mi-coleccion?ver=cambios#oferta-${deLucia.id}`)
+  // Desde la 1269 no es una tira que lleva a Cruces: es LA tarjeta de «En
+  // curso», con su pop-up para responder ahí mismo, sin «Otra propuesta».
+  await page.waitForSelector('#msgPropuestas details.cp-trato', { timeout: 8000 }).catch(() => {})
+  check('1269: la tarjeta del trato, sin «Otra propuesta»', (await caja.locator('details.cp-trato').count()) === 1 && (await caja.locator('.cp-tira').count()) === 0 && (await caja.locator('[data-cp-nueva]').count()) === 0)
+  check('  …y es ese trato', (await caja.locator('details.cp-trato').getAttribute('id')) === `oferta-${deLucia.id}`)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

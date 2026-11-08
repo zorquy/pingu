@@ -97,19 +97,11 @@ for (const movil of [true, false]) {
   const page = await ctx.newPage()
   const err = []; page.on('pageerror', (e) => err.push(String(e).slice(0, 150)))
   await page.goto(`${BASE}/mensajes.html?c=conv-1`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.msg-trato [data-cambio="preguntar"]', { timeout: 8000 }).catch(() => {})
-  const fila = await page.$$eval('.msg-trato button', (bs) => bs.map((x) => ({ t: x.innerText.trim(), y: Math.round(x.getBoundingClientRect().top) })))
-  const t = fila.map((x) => x.t)
-  // Desde la 1221 «Proponer cambio» va en la cabecera de la conversación (la
-  // maqueta) y la barra fina se queda con «Ya nos cambiamos».
-  check(`${movil ? 'móvil' : 'PC'}: «Proponer cambio» en la cabecera y «Ya nos cambiamos» en la barra fina`, (await page.locator('.msg-cabecera #msgProponer').count()) === 1 && t.includes('Ya nos cambiamos') && !t.includes('Proponer un cambio') && new Set(fila.map((x) => x.y)).size === 1, JSON.stringify(fila))
-  check('  …sin el párrafo de explicación de entrada', (await page.locator('.msg-trato').innerText()).includes('¿Os habéis') === false)
-  await page.click('[data-cambio="preguntar"]')
-  check('  …al tocar «Ya nos cambiamos», la explicación con «Marcar el cambio»', (await page.locator('.msg-cambio').innerText()).includes('¿Os habéis cambiado cartas?') && (await page.locator('[data-cambio="marcar"]').count()) === 1)
-  await page.click('[data-cambio="cancelar"]')
-  check('  …y «Ahora no» lo deja como estaba', (await page.locator('[data-cambio="preguntar"]').count()) === 1 && !(await page.locator('.msg-cambio').innerText()).includes('¿Os habéis'))
-  const alto = await page.$eval('.msg-trato', (x) => x.getBoundingClientRect().height)
-  check('  …la barra es fina (una fila)', alto < 72, alto)
+  await page.waitForTimeout(1500)
+  // Desde la 1269 «Ya nos cambiamos» no existe: sin trato vivo no hay barra,
+  // y «Proponer cambio» sigue en la cabecera (1221).
+  check(`${movil ? 'móvil' : 'PC'}: «Proponer cambio» en la cabecera y sin «Ya nos cambiamos»`, (await page.locator('.msg-cabecera #msgProponer').isVisible()) && (await page.locator('[data-cambio]').count()) === 0 && !(await page.locator('body').innerText()).includes('Ya nos cambiamos'))
+  check('  …y sin trato, la barra no ocupa sitio', await page.$eval('.msg-trato', (x) => getComputedStyle(x).display === 'none'))
   check('  …sin errores', !err.length, err.join(' | '))
   await ctx.close()
 }
@@ -117,8 +109,8 @@ for (const movil of [true, false]) {
   const ctx = await contexto(b, true, 'user-1', conConversacion())
   const page = await ctx.newPage()
   await page.goto(`${BASE}/mensajes.html?c=conv-1&vivo=1`, { waitUntil: 'domcontentloaded' })
-  await page.waitForSelector('.msg-trato .cp-tira', { timeout: 8000 }).catch(() => {})
-  check('con un trato en marcha: su tira en la barra, sin «Proponer un cambio»', (await page.locator('.msg-trato .cp-tira').count()) === 1 && (await page.locator('.msg-trato [data-cp-nueva]').count()) === 0)
+  await page.waitForSelector('.msg-trato details.cp-trato', { timeout: 8000 }).catch(() => {})
+  check('con un trato en marcha: su tarjeta en la barra (1269), sin «Proponer cambio»', (await page.locator('.msg-trato details.cp-trato').count()) === 1 && (await page.locator('.msg-trato [data-cp-nueva]').count()) === 0 && !(await page.locator('#msgProponer').isVisible()))
   check('  …y la barra se queda arriba al bajar', await page.$eval('.msg-trato', (x) => getComputedStyle(x).position === 'sticky'))
   await ctx.close()
 }

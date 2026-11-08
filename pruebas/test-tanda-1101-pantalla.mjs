@@ -133,7 +133,8 @@ for (const sin of [false, true]) {
   await ir(page, `/mensajes.html?c=${o.conversacion}`)
   const tarjeta = page.locator('#threadMessages .msg-propuesta').first()
   const t = (await tarjeta.innerText().catch(() => '')).replace(/\s+/g, ' ')
-  check('el mensaje es una tarjeta: «Propuesta de cambio», lo que lleva y «Ver propuesta»', /Propuesta de cambio/.test(t) && /doy 1 carta y recibo 1 carta/.test(t) && /Ver propuesta/.test(t), t)
+  // Desde la 1269 es UNA LÍNEA (el trato vivo está entero arriba): título, lo que lleva y «Ver».
+  check('el mensaje es una línea: «Propuesta de cambio», lo que lleva y «Ver»', /Propuesta de cambio/.test(t) && /doy 1 carta y recibo 1 carta/.test(t) && /Ver/.test(t), t)
   check('  …sin el texto plano debajo', (await page.locator('#threadMessages .msg-burbuja.con-propuesta p').count()) === 0)
   check(`  …y el botón lleva ${sin ? 'a «En curso»' : 'a ese trato en «En curso»'}`, (await tarjeta.locator('.msg-propuesta-ver').getAttribute('href')) === (sin ? '/mi-coleccion?ver=cambios' : `/mi-coleccion?ver=cambios#oferta-${o.id}`))
   if (!sin && OUT) await page.screenshot({ path: `${OUT}/msg-propuesta.jpg`, type: 'jpeg', quality: 72 })

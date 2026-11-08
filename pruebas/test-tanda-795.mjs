@@ -21,7 +21,11 @@ check('solo entre dos que han hablado por Mensajes', /conversation_participants 
 check('lo público no cuenta los problemas', /returns table \(hechos bigint, bien bigint\)/.test(sql) && !/returns table[^)]*problema/.test(sql))
 check('  …y lo lee cualquiera; marcar y valorar, solo con cuenta', /cambios_de\(uuid\) to anon, authenticated/.test(sql) && /cambio_marcar\(uuid\) to authenticated;/.test(sql))
 check('sin tablas temporales (la 631)', !/temp(orary)? table/i.test(sql))
-check('la conversación lleva el botón y el perfil la confianza', /cambio-boton\.js/.test(leer('js/mensajes.js')) && /textoDeConfianza|ponerSello/.test(leer('js/usuario.js')))
+// Desde la 1269 el botón de Mensajes ya no existe y la base no deja marcar
+// (supabase-migration-1269-sin-cambio-a-mano.sql); lo marcado sigue contando.
+check('1269: la conversación ya no lleva el botón y el perfil sigue con la confianza', !/cambio-boton\.js/.test(leer('js/mensajes.js')) && /textoDeConfianza|ponerSello/.test(leer('js/usuario.js')))
+const sql1269 = leer('supabase-migration-1269-sin-cambio-a-mano.sql')
+check('1269: cambio_marcar ya no abre nada y nadie puede llamarla', /raise exception/.test(sql1269) && !/insert into public\.trade_confirmations/.test(sql1269) && /revoke execute on function public\.cambio_marcar\(uuid\) from authenticated/.test(sql1269))
 
 console.log('── 2. Lo puro ──')
 const b = await chromium.launch()
@@ -29,22 +33,15 @@ const p = await b.newPage()
 await p.goto(`${BASE}/index.html`, { waitUntil: 'domcontentloaded' })
 const r = await p.evaluate(async () => {
   const m = await import('/js/cambios-hechos.js')
-  const fila = (o) => ({ id: 'c', user_a: 'a', user_b: 'b', hecho_a_at: null, hecho_b_at: null, valoracion_a: null, valoracion_b: null, ...o })
   return {
     t: [m.textoDeConfianza({ hechos: 12, bien: 12 }), m.textoDeConfianza({ hechos: 1, bien: 0 }), m.textoDeConfianza({ hechos: 5, bien: 3 }), m.textoDeConfianza({ hechos: 0, bien: 0 }), m.textoDeConfianza(null)],
-    p: [
-      m.estadoDelCambio([], 'a').paso,
-      m.estadoDelCambio([fila({ hecho_a_at: 'x' })], 'a').paso,
-      m.estadoDelCambio([fila({ hecho_a_at: 'x' })], 'b').paso,
-      m.estadoDelCambio([fila({ hecho_a_at: 'x', hecho_b_at: 'y' })], 'b').paso,
-      m.estadoDelCambio([fila({ hecho_a_at: 'x', hecho_b_at: 'y', valoracion_b: 'bien' })], 'b').paso,
-    ],
+    sinMarcar: typeof m.marcarCambio === 'undefined' && typeof m.estadoDelCambio === 'undefined',
   }
 })
 // Desde la 1224 son «tratos» (cambio, venta o compra) y con niveles: 12 todos
 // bien es «De fiar»; sin la migración (sin `problemas`) no se dice cuántos.
 check('el rótulo: todos bien, sin valorar, algunos, y nada sin cambios', JSON.stringify(r.t) === JSON.stringify(['De fiar · 12 tratos', '1 trato', '5 tratos', '', '']), JSON.stringify(r.t))
-check('los pasos: marcar, esperar, confirmar, valorar, hecho', r.p.join() === 'marcar,esperando,confirmar,valorar,hecho', r.p.join())
+check('1269: sin marcar a mano en el módulo', r.sinMarcar)
 await b.close()
 
 console.log(fails ? `\n❌ ${fails} FALLAN` : '\n✅ TODO BIEN')

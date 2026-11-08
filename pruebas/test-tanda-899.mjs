@@ -24,7 +24,7 @@ console.log('── 1. Lo estático: ninguno se apaga a esperar ──')
   check('La quiero: `alternar` avisa con la lista provisional, y /carta y la ficha pintan con ella', /alCambiar = \(\) => \{\}/.test(leer('js/la-quiero.js')) && /alCambiar: \(d\) => laQuiero\.pintarLoseta\(b, carta\.id, d\)/.test(leer('js/carta-mercado.js')) && /alCambiar: \(d\) => \{ deseos = d; pintarLoseta\(id\)(; refrescarCorazones\(\))? \}/.test(leer('js/mi-coleccion.js')))
   check('  …y el Mercado ya no apaga la baldosa', !/boton\.disabled = true/.test(leer('js/mi-coleccion/mercado.js')))
   check('aviso de precio: entra en la lista ya, atenuado', /fila\.className = 'pv-aviso-fila pv-aviso-provisional'/.test(leer('js/avisos-precio.js')) && /pv-aviso-provisional \{ opacity: 0\.55/.test(leer('css/cardmarket.css')))
-  check('cambio hecho: el paso siguiente se pinta ya y vuelve si falla', /const provisional = siguiente\[e\.paso\]\?\.\[accion\]/.test(leer('js/cambio-boton.js')) && /caja\.innerHTML = antes\s*caja\.insertAdjacentHTML/.test(leer('js/cambio-boton.js')))
+  // «Cambio hecho» (cambio-boton.js) se fue en la 1269: no hay paso que pintar.
   check('liga de retos: el interruptor no se apaga', !/e\.target\.disabled = true/.test(leer('js/retos-comunidad.js')))
   check('sugerencias: se va de la lista ya y vuelve a su sitio si falla', /lista\.splice\(donde, 1\)\s*pintar\(\)\s*const \{ error \}/.test(leer('js/perfil.js')) && /lista\.splice\(donde, 0, s\)/.test(leer('js/perfil.js')))
 }

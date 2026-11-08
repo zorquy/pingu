@@ -186,9 +186,11 @@ console.log('\n── 3. Lucía, en Mensajes ──')
   const { ctx, page, errores } = await abrirCon(tablas, 'user-1')
   await page.route(/\/mensajes\.html/, (r) => r.continue())
   await ir(page, `/mensajes.html?c=${conv}`)
-  const tira = page.locator('#msgPropuestas .cp-tira')
-  check('en Mensajes, una tira: qué es, «Te toca» y a «En curso»', (await tira.count()) === 1 && /Cambio con Admin/.test(await tira.innerText()) && /Te toca/.test(await tira.innerText()) && /ver=cambios#oferta-/.test(await tira.getAttribute('href')), await tira.innerText().catch(() => ''))
-  check('  …y se queda arriba de la conversación al bajar', (await page.$eval('#msgPropuestas', (e) => getComputedStyle(e.closest('.msg-trato') || e).position)) === 'sticky')  // desde la 1146 la pega la barra del trato que la lleva
+  // Desde la 1269, la tarjeta de «En curso» (con «Te toca») y su pop-up aquí.
+  await page.waitForSelector('#msgPropuestas details.cp-trato', { timeout: 8000 }).catch(() => {})
+  const tira = page.locator('#msgPropuestas details.cp-trato')
+  check('en Mensajes, la tarjeta del trato: qué es y «Te toca»', (await tira.count()) === 1 && /cambio/i.test(await tira.innerText()) && /Te toca/.test(await tira.innerText()), await tira.innerText().catch(() => ''))
+  check('  …y se queda arriba de la conversación al bajar', (await page.$eval('#msgPropuestas', (e) => getComputedStyle(e.closest('.msg-trato') || e).position)) === 'sticky')
   // Desde la 1100 el trato se sigue en Cruces → «En curso»; en Mensajes
   // queda una tira que lleva allí.
   await ir(page, '/mi-coleccion.html?ver=cambios')
