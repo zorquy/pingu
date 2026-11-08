@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-08 (512) — PINGU-Claude (1270 y 1271 — el perfil nuevo)
+
+**Hecho**: el resto de la propuesta de perfiles, con lo recomendado (SCHEMA 1270 y
+1271). Cabecera: seguidores en caras («entre ellos…»), tres losas (colección,
+guías, torneos), la tarjeta de cambios (reputación + da/busca + en común) en vez
+del sello y la chapa, y dos columnas en el PC. Pestañas: «Resumen» primera y de
+entrada, «Vitrina» → «Colección», Torneos con tres cifras, guías de otros en
+portadas y el logro destacado arriba de Logros.
+
+**Ficheros**: `perfil.html`, `usuario.html`, `js/perfil.js`, `js/usuario.js`,
+`js/perfil-cabecera.js`, `js/perfil-cifras.js`, `js/perfil-pestanias.js`,
+`js/perfil-cambios.js`, `js/perfil-torneos.js`, `js/cruce-persona.js`,
+`js/cambios-hechos.js` (fuera `ponerSello`), `js/perfil-trueque.js` y
+`js/perfil-resumen.js` (nuevos), `css/perfil.css`, `css/cambios-hechos.css`,
+`css/perfil-cambios.css`, CLAUDE.md, novedades. Rama pruebas:
+`test-tanda-1270-pantalla.mjs` y 306, 309, 743, 795, 867, 887, 944, 974, 1105,
+1150, 1167 al día; 299, 305, 312, 313, 984, 1233 y 981 (/perfil 0,061) en verde.
+Rojos de antes: 887 («Su perfil» de Cruces), 944 (placeholder y ViewTransition),
+981 (/mi-coleccion 0,487), 310, 311, 1016, 1040 (/glosario).
+
+**Pendiente**: PINGU ejecuta `supabase-migration-1269-sin-cambio-a-mano.sql`. Lo
+de antes: `xp_sumar` (510), 1266 (507), 1264 y 1260 (505).
+
 ## 2026-11-08 (511) — PINGU-Claude (1269 — el trato en Mensajes, sin «Ya nos cambiamos»)
 
 **Hecho**: PINGU eligió lo recomendado de la propuesta de perfiles y Mensajes;

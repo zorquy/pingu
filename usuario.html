@@ -143,6 +143,11 @@
     <nav class="breadcrumb" aria-label="Dónde estás"><a href="/">Inicio</a> <span>›</span> <a href="/usuarios">Gente</a> <span>›</span> <span id="migaNombre"></span></nav>
     <!-- La ficha de otra persona: la misma de /perfil (867) con Seguir y
          Mensaje donde allí va Editar. -->
+    <!-- Dos columnas en el PC (1270): a la izquierda quién es y la tarjeta de
+         cambios, quietas al bajar; a la derecha las tres losas y las pestañas.
+         En el móvil, una detrás de otra. SCHEMA 1270. -->
+    <div class="perfil-rejilla">
+    <aside class="perfil-lado" aria-label="Quién es">
     <div class="profile-hero" id="profileHero">
       <div class="profile-hero-banner" id="heroBanner"></div>
       <div class="profile-hero-body">
@@ -155,12 +160,19 @@
           <a class="btn-outline hidden" id="btnMessageUser"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Mensaje</a>
         </div>
       </div>
-      <div class="perfil-cifras">
-        <div class="perfil-cifras-lote" id="profileStats"></div>
-        <button class="perfil-cifra" id="btnShowFollowers" type="button"><span class="valor" id="followersCount">0</span><span class="rotulo">Seguidores</span></button>
-        <button class="perfil-cifra" id="btnShowFollowing" type="button"><span class="valor" id="followingCount">0</span><span class="rotulo">Siguiendo</span></button>
+      <!-- Los seguidores en caras (1270): los pinta pintarSocial (perfil-cabecera.js). -->
+      <div class="perfil-social" id="perfilSocial">
+        <button class="perfil-social-btn" id="btnShowFollowers" type="button"><span class="perfil-caras" id="seguidoresCaras" aria-hidden="true"></span><span><b class="valor" id="followersCount">0</b> <span id="seguidoresRotulo">seguidores</span><span id="seguidoresConocidos"></span></span></button>
+        <button class="perfil-social-btn" id="btnShowFollowing" type="button"><span>Sigue a <b class="valor" id="followingCount">0</b></span></button>
       </div>
     </div>
+    <!-- La tarjeta de cambios (1270, js/perfil-trueque.js): la reputación, lo que
+         da y lo que busca. Sin tratos ni nada que cambiar, no sale. -->
+    <section class="perfil-trueque" id="perfilTrueque" aria-label="Cambios" hidden></section>
+    </aside>
+    <div class="perfil-cuerpo">
+    <!-- Colección, guías y torneos en tres losas (1270, cifrasHtml). -->
+    <div class="perfil-losas" id="profileStats"></div>
 
     <!-- El cruce del modo evento (794, 1029): sale al llegar por el QR (/evento/<usuario> o ?cruce=1). -->
     <section class="perfil-cruce hidden" id="perfilCruce" aria-live="polite"></section>
@@ -168,14 +180,17 @@
     <!-- UNA fila de pestañas (867); lo maneja js/perfil-pestanias.js. La
          Vitrina solo sale si tiene cartas; se abre por lo que tenga algo. -->
     <div class="tabs perfil-pestanas" id="profileTabs" role="tablist" aria-label="La ficha">
-      <button class="tab-btn" data-ptab="vitrina" role="tab" aria-selected="false" hidden>Vitrina</button>
+      <button class="tab-btn active" data-ptab="resumen" role="tab" aria-selected="true">Resumen</button>
+      <button class="tab-btn" data-ptab="vitrina" role="tab" aria-selected="false" hidden>Colección</button>
       <button class="tab-btn" data-ptab="cambios" role="tab" aria-selected="false" hidden>Cambios</button>
-      <button class="tab-btn active" data-ptab="guides" role="tab" aria-selected="true">Guías</button>
+      <button class="tab-btn" data-ptab="guides" role="tab" aria-selected="false">Guías</button>
       <button class="tab-btn" data-ptab="foro" role="tab" aria-selected="false">Foro</button>
       <button class="tab-btn" data-ptab="torneos" role="tab" aria-selected="false">Torneos</button>
       <button class="tab-btn" data-ptab="logros" role="tab" aria-selected="false">Logros</button>
     </div>
 
+    <!-- Resumen (1271, js/perfil-resumen.js): lo último de cada cosa. Es la de entrada. -->
+    <div class="tab-panel active" id="ptab-resumen"><div class="perfil-resumen" id="perfilResumen"><div class="skeleton" style="height: 90px;"></div></div></div>
     <div class="tab-panel" id="ptab-vitrina">
       <section class="vitrina" id="perfilVitrina" aria-label="Vitrina" hidden></section>
       <section class="perfil-coleccion" id="perfilColeccion" aria-label="Colección" hidden></section>
@@ -184,25 +199,29 @@
     <!-- Lo que da y lo que busca (887); lo pinta js/perfil-cambios.js. -->
     <div class="tab-panel" id="ptab-cambios"><div id="perfilCambios"><div class="skeleton" style="height: 90px;"></div></div></div>
 
-    <div class="tab-panel active" id="ptab-guides">
-      <h2 class="section-title">Guías publicadas</h2>
+    <div class="tab-panel" id="ptab-guides">
+      <h2 class="section-title sr-only">Guías publicadas</h2>
       <div id="publishedGuides"></div>
     </div>
 
     <div class="tab-panel" id="ptab-foro">
-      <h2 class="section-title">En el foro</h2>
+      <h2 class="section-title sr-only">En el foro</h2>
       <div id="foroActividad"><div class="skeleton" style="height: 90px;"></div></div>
     </div>
 
     <div class="tab-panel" id="ptab-torneos">
-      <h2 class="section-title">Torneos</h2>
+      <h2 class="section-title sr-only">Torneos</h2>
       <div id="misTorneos"><div class="skeleton" style="height: 90px;"></div></div>
     </div>
 
     <div class="tab-panel" id="ptab-logros">
+      <!-- Su logro destacado, arriba y en grande (1271; hasta entonces en la cabecera). -->
+      <button type="button" class="perfil-logro-destacado" id="logroDestacado" hidden></button>
       <div class="perfil-medallero" id="medalleroPerfil" hidden></div>
       <h2 class="section-title">Logros <span class="perfil-trofeos-cuenta" id="achievementsCount"></span></h2>
       <div class="achievements-grid" id="achievementsGrid"></div>
+    </div>
+    </div>
     </div>
   </main>
 

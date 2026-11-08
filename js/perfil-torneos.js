@@ -52,6 +52,22 @@ function palmaresHtml(definiciones, logros, userId, jugados) {
   return `<div class="palmares-fila">${vitrina}<p class="subtext torneo-palmares">${escapeHtml(resumen)}</p></div>`
 }
 
+// Tres cifras arriba (1271, como la maqueta): cuántos ha jugado, su mejor
+// puesto y cuántos podios. Puro: lo prueba node.
+export function cifrasDeTorneosHtml(jugados, userId) {
+  let mejor = null
+  let podios = 0
+  for (const t of jugados) {
+    const p = t.champion_id === userId ? 0 : Array.isArray(t.podium) ? t.podium.indexOf(userId) : -1
+    if (p >= 0) {
+      podios++
+      if (mejor === null || p < mejor) mejor = p
+    }
+  }
+  const cifra = (valor, texto) => `<div><b>${valor}</b><small>${texto}</small></div>`
+  return `<div class="perfil-tres-cifras">${cifra(jugados.length, jugados.length === 1 ? 'torneo' : 'torneos')}${cifra(mejor === null ? '—' : `${mejor + 1}.º`, 'mejor puesto')}${cifra(podios, podios === 1 ? 'podio' : 'podios')}</div>`
+}
+
 export async function pintarTorneosDe(caja, { userId, propia = false, logros = [] }) {
   if (!caja || !userId) return
   const { data: inscripciones, error } = await supabase.from('tournament_registrations').select('tournament_id, status').eq('user_id', userId)
@@ -102,5 +118,5 @@ export async function pintarTorneosDe(caja, { userId, propia = false, logros = [
     grupo('Jugando ahora', jugando.map((t) => fila(t, '<span class="mis-torneos-puesto vivo">En juego</span>'))) +
     grupo(propia ? 'Apuntado' : 'Apuntado a', apuntado.map((t) => fila(t, `<span class="mis-torneos-puesto subtext">${estadoInscripcion.get(t.id) === 'waitlisted' ? 'En lista de espera' : 'Inscrito'}</span>`))) +
     grupo('Jugados', jugados.map((t) => fila(t, puestoDe(t))))
-  caja.innerHTML = (jugados.length ? palmaresHtml(definiciones, logros, userId, jugados) : '') + (lista || vacio(propia))
+  caja.innerHTML = (jugados.length ? cifrasDeTorneosHtml(jugados, userId) + palmaresHtml(definiciones, logros, userId, jugados) : '') + (lista || vacio(propia))
 }

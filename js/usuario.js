@@ -4,9 +4,10 @@ import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profilePara
 import { urlParaCss } from './html.js'
 import { contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { pintarTorneosDe } from './perfil-torneos.js'
-import { lineaDeQuienHtml, medalleroHtml } from './perfil-cabecera.js'
+import { lineaDeQuienHtml, medalleroHtml, pintarSocial } from './perfil-cabecera.js'
 import { showToast } from './toast.js'
-import { cifrasHtml, contarCartasYTorneos, urlDeColeccion } from './perfil-cifras.js'
+import { tarjetaDeGuia } from './guia-tarjeta.js'
+import { cifrasHtml, contarCartasYTorneos, urlDeColeccion, ponerCartasEnLosa } from './perfil-cifras.js'
 import { createNotification } from './notifications.js'
 import { icons } from './icons.js'
 import { inlineIconHtml } from './content-icon.js'
@@ -101,8 +102,14 @@ async function loadHeader() {
     ${profile.username ? `<p class="perfil-arroba">@${escapeHtml(profile.username)}</p>` : ''}
     ${lineaDeQuienHtml({ xp, racha: rachaVisible(profile) })}
     ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
-    ${showcase ? `<button type="button" class="achievement-tile perfil-logro-chapa" data-logro="${escapeHtml(showcase.id)}"><span class="icon rarity-${showcase.rarity || 'bronze'}">${achievementIconHtml(showcase, 16)}</span><span class="name">${escapeHtml(showcase.title)}</span></button>` : ''}`
-  document.querySelector('#heroInfo .perfil-logro-chapa')?.addEventListener('click', () => abrirFichaDeLogro(showcase))
+`
+  // Su logro destacado ya no va en la cabecera (1271): arriba de Logros, en grande.
+  const destacado = document.getElementById('logroDestacado')
+  if (destacado && showcase) {
+    destacado.hidden = false
+    destacado.innerHTML = `<span class="icon rarity-${escapeHtml(showcase.rarity || 'bronze')}">${achievementIconHtml(showcase, 22)}</span><span class="perfil-logro-destacado-t"><b>${escapeHtml(showcase.title)}</b><small>Su logro destacado</small></span>`
+    destacado.onclick = () => abrirFichaDeLogro(showcase)
+  }
 
   document.getElementById('btnLevelInfo').addEventListener('click', () => openModal(levelLadderHtml(xp)))
 
@@ -122,7 +129,7 @@ async function loadReputationAndGuides() {
     contarCartasYTorneos(supabase, profileId),
     supabase
       .from('guides')
-      .select('title, slug, cover_emoji, categories(name)')
+      .select('id, slug, title, description, kind, level, estimated_mins, cover_image, guide_rarity, categories(name, slug, emoji)')
       .eq('author_id', profileId)
       .eq('review_status', 'approved')
       .order('published_at', { ascending: false }),
@@ -137,6 +144,8 @@ async function loadReputationAndGuides() {
   const coleccion = profile?.coleccion_publica && profile.username ? urlDeColeccion(profile.username) : ''
   lote.innerHTML = cifrasHtml({ cartas, guias: approvedCount ?? null, servido, torneos, coleccion })
   for (const b of lote.querySelectorAll('[data-ver]')) b.addEventListener('click', () => abrirPestania(b.dataset.ver))
+  // Si la vitrina llegó antes que las cifras, sus cartas a la losa ya (1270).
+  ponerCartasEnLosa(lote, document.getElementById('perfilVitrina'))
   contarPestania('torneos', torneos || 0)
 
   // El rango NO es una cifra —es un título, con su icono— así que sube
@@ -156,15 +165,9 @@ async function loadReputationAndGuides() {
     container.innerHTML = `<p class="empty-state">Todavía no tiene guías publicadas.</p>`
     return
   }
-  container.innerHTML = guides
-    .map(
-      (g) => `
-    <a href="/guia/${encodeURIComponent(g.slug)}" class="completed-course-row" style="text-decoration:none; color:inherit;">
-      <span>${inlineIconHtml(g.cover_emoji, 16, 'bookOpen')}${escapeHtml(g.title)}</span>
-      <span class="date">${escapeHtml(g.categories?.name || '')}</span>
-    </a>`
-    )
-    .join('')
+  // En portadas, el molde de Aprender (1271, «Guías en portadas»): antes era
+  // una lista de títulos.
+  container.innerHTML = `<div class="guia-rejilla perfil-guias">${guides.map((g) => tarjetaDeGuia(g)).join('')}</div>`
 }
 
 // La actividad del foro se carga la PRIMERA vez que se abre su pestaña, y
@@ -288,9 +291,6 @@ async function loadFollowSummary() {
     supabase.from('user_follows').select('follower_id').eq('following_id', profileId),
   ])
 
-  document.getElementById('followingCount').textContent = following?.length || 0
-  document.getElementById('followersCount').textContent = followers?.length || 0
-
   const followingIds = (following || []).map((f) => f.following_id)
   const followerIds = (followers || []).map((f) => f.follower_id)
   const allIds = [...new Set([...followingIds, ...followerIds])]
@@ -303,6 +303,13 @@ async function loadFollowSummary() {
 
   followingCache = followingIds.map((id) => profilesById[id] || { id })
   followerCache = followerIds.map((id) => profilesById[id] || { id })
+  // En caras (1270), con la gente que TÚ sigues delante: «entre ellos…».
+  let conocidos = new Set()
+  if (currentSession && currentSession.user.id !== profileId && followerIds.length) {
+    const { data: mios } = await supabase.from('user_follows').select('following_id').eq('follower_id', currentSession.user.id).in('following_id', followerIds)
+    conocidos = new Set((mios || []).map((f) => f.following_id))
+  }
+  pintarSocial({ seguidores: followerCache, siguiendo: followingIds.length, conocidos })
 }
 
 // ── Logros ──
@@ -393,14 +400,10 @@ async function init() {
   }
 
   loadMessageButton()
-  // «12 cambios · todos bien» (795, NU4), en un sello que abre Cambios (1105):
-  // sin cambios o sin la migración, nada.
-  import('./cambios-hechos.js').then((m) => m.ponerSello(document.getElementById('heroInfo'), profile.id, {
-    alPulsar: () => {
-      abrirPestania('cambios')
-      document.getElementById('ptab-cambios')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-    },
-  })).catch(() => {})
+  // La tarjeta de cambios (1270): la reputación, lo que da y lo que busca y lo
+  // que tenéis en común, en una (antes, el sello de la 1105 y la chapa de la
+  // 887 sueltos en la cabecera). Sin nada que contar, no sale.
+  import('./perfil-trueque.js').then((m) => m.montarTrueque(document.getElementById('perfilTrueque'), { persona: profile, sesion: currentSession, propia: false })).catch(() => {})
   // Quien escanea el QR del modo evento (1029/1030) llega a /evento/<usuario>:
   // sin cuenta, la puerta a registrarse arriba (las listas se ven igual, en
   // Cambios); con cuenta, el cruce lo pinta la propia pestaña. `?cruce=1` es
@@ -414,11 +417,17 @@ async function init() {
   // Y su nivel (752): sale si hay algo que enseñar y se abre si tiene cartas.
   // Debajo, su colección si la tiene pública (944): con ella la pestaña
   // sale aunque la vitrina esté vacía. Sale ya, sin esperar a las cifras (983).
+  // El Resumen (1271), la pestaña de entrada: lo último de cada cosa.
+  const resumen = import('./perfil-resumen.js')
+  resumen.then((m) => m.pintarResumen(document.getElementById('perfilResumen'), { userId: profile.id, logros: profile?.achievements || [] })).catch(() => {})
   const vitrina = import('./vitrina.js').then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), profile?.id || profileId)).catch(() => null)
   const coleccion = import('./perfil-coleccion.js').then((m) => m.pintarColeccionDe(document.getElementById('perfilColeccion'), profile)).catch(() => false)
   Promise.all([vitrina, coleccion]).then(([r, hayColeccion]) => {
     const conCartas = (r?.estado === 'ok' && r.cartas.length > 0) || hayColeccion
     vitrinaLista({ visible: conCartas, conCartas })
+    // Tres cartas de su vitrina en la losa de la colección (1270).
+    ponerCartasEnLosa(document.getElementById('profileStats'), document.getElementById('perfilVitrina'))
+    resumen.then((m) => m.ponerVitrinaEnResumen(document.getElementById('perfilResumen'), document.getElementById('perfilVitrina'))).catch(() => {})
   })
   await Promise.all([loadReputationAndGuides(), loadFollowButton(), loadFollowSummary(), loadAchievementsGrid(), loadMedallero(), contarElForo()])
   if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarTorneosUnaVez()

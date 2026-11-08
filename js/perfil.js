@@ -9,10 +9,10 @@ import { servidoDeAutor } from './guias-servido.js'
 import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.js'
 import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirPestania, vitrinaLista } from './perfil-pestanias.js'
 import { pintarTorneosDe } from './perfil-torneos.js'
-import { lineaDeQuienHtml, medalleroHtml } from './perfil-cabecera.js'
+import { lineaDeQuienHtml, medalleroHtml, pintarSocial } from './perfil-cabecera.js'
 import { showToast } from './toast.js'
 import { vistaVigilada, claveDeVista } from './ultima-vista.js'
-import { cifrasHtml, contarCartasYTorneos } from './perfil-cifras.js'
+import { cifrasHtml, contarCartasYTorneos, ponerCartasEnLosa } from './perfil-cifras.js'
 import { estadoDeGuia, ESTADOS } from './guia-estado.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
 
@@ -69,12 +69,6 @@ async function loadProfile(session, { fresco = false } = {}) {
   return profile
 }
 
-// Abrir la pestaña Cambios y bajar a ella (el sello de la 1105).
-function abrirCambios() {
-  abrirPestania('cambios')
-  document.getElementById('ptab-cambios')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-}
-
 async function loadStats(session, profile) {
   // A cuántos les han servido SUS GUÍAS (974), no una nota puesta a la
   // persona; a la vez que lo demás (983).
@@ -94,6 +88,8 @@ async function loadStats(session, profile) {
   const lote = document.getElementById('profileStats')
   lote.innerHTML = cifrasHtml({ cartas, guias: approvedGuidesCount ?? null, servido, torneos, propia: true })
   for (const b of lote.querySelectorAll('[data-ver]')) b.addEventListener('click', () => abrirPestania(b.dataset.ver))
+  // Si la vitrina llegó antes que las cifras, sus cartas a la losa ya (1270).
+  ponerCartasEnLosa(lote, document.getElementById('perfilVitrina'))
 
   // El rango NO es una cifra —es un título, con su icono— así que sube
   // a la fila de chapas, junto al nivel, en vez de desentonar entre
@@ -147,7 +143,7 @@ async function loadAchievements(profile) {
   if (linea) {
     linea.hidden = false
     linea.innerHTML = destacado
-      ? `<span class="icon rarity-${escapeHtml(destacado.rarity || 'bronze')}">${achievementIconHtml(destacado, 16)}</span><span>Logro destacado: <strong>${escapeHtml(destacado.title)}</strong></span><button type="button" class="link-btn" data-editar-perfil>Cambiar</button>`
+      ? `<span class="icon rarity-${escapeHtml(destacado.rarity || 'bronze')}">${achievementIconHtml(destacado, 22)}</span><span class="perfil-logro-destacado-t"><b>${escapeHtml(destacado.title)}</b><small>Tu logro destacado</small></span><button type="button" class="link-btn" data-editar-perfil>Cambiar</button>`
       : `<span>Sin logro destacado.</span><button type="button" class="link-btn" data-editar-perfil>Elegir uno</button>`
     linea.querySelector('[data-editar-perfil]').addEventListener('click', () => document.getElementById('btnEditProfile')?.click())
   }
@@ -211,9 +207,6 @@ async function loadFollowSummary(session) {
     supabase.from('user_follows').select('follower_id').eq('following_id', session.user.id),
   ])
 
-  document.getElementById('followingCount').textContent = following?.length || 0
-  document.getElementById('followersCount').textContent = followers?.length || 0
-
   const followingIds = (following || []).map((f) => f.following_id)
   const followerIds = (followers || []).map((f) => f.follower_id)
   const allIds = [...new Set([...followingIds, ...followerIds])]
@@ -226,6 +219,8 @@ async function loadFollowSummary(session) {
 
   followingCache = followingIds.map((id) => profilesById[id] || { id })
   followerCache = followerIds.map((id) => profilesById[id] || { id })
+  // En caras (1270); en el tuyo, los que tú sigues van delante.
+  pintarSocial({ seguidores: followerCache, siguiendo: followingIds.length, conocidos: new Set(followingIds) })
 }
 
 function openFollowListModal(title, list, emptyMessage) {
@@ -743,8 +738,9 @@ async function init() {
   vistaVigilada(claveDeVista('perfil', session.user.id), ['heroInfo', 'heroAvatar', 'profileStats', 'followersCount', 'followingCount', 'achievementsCount', 'achievementsGrid', 'myGuidesList'], { atributos: ['heroBanner', 'heroAvatar'] })
 
   const profile = await loadProfile(session)
-  // Tus cambios hechos, en un sello debajo del nombre que abre Cambios (1105).
-  import('./cambios-hechos.js').then((m) => m.ponerSello(document.getElementById('heroInfo'), session.user.id, { alPulsar: abrirCambios })).catch(() => {})
+  // Tu tarjeta de cambios (1270): tu reputación y lo que das y buscas (antes
+  // el sello de la 1105 y la chapa de la 887, sueltos en la cabecera).
+  import('./perfil-trueque.js').then((m) => m.montarTrueque(document.getElementById('perfilTrueque'), { persona: { ...(currentProfile || {}), id: session.user.id }, sesion: session, propia: true })).catch(() => {})
   // Lo de abajo solo necesita el perfil, no lo uno de lo otro: todo a la vez
   // (983). Antes los logros esperaban a las cifras, y la vitrina, a los logros.
   // Lo que das y lo que buscas (887): tu pestaña Cambios, siempre.
@@ -754,9 +750,16 @@ async function init() {
   import('./perfil-coleccion.js').then((m) => m.pintarColeccionDe(document.getElementById('perfilColeccion'), { ...(currentProfile || {}), id: session.user.id }, { propia: true, avisar: showToast })).catch(() => {})
   // La vitrina (743): la tuya, con «Elegir cartas»; su pestaña se abre en
   // cuanto existe (867: aunque esté vacía, que invita a elegir).
+  // Tu Resumen (1271), la pestaña de entrada: lo último de cada cosa.
+  const resumen = import('./perfil-resumen.js')
+  resumen.then((m) => m.pintarResumen(document.getElementById('perfilResumen'), { userId: session.user.id, propia: true, logros: currentProfile?.achievements || [] })).catch(() => {})
   import('./vitrina.js')
     .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast, usuario: currentProfile?.username || '' }))
-    .then((r) => vitrinaLista({ visible: r?.estado === 'ok', conCartas: r?.estado === 'ok' && r.cartas.length > 0 }))
+    .then((r) => {
+      vitrinaLista({ visible: r?.estado === 'ok', conCartas: r?.estado === 'ok' && r.cartas.length > 0 })
+      ponerCartasEnLosa(document.getElementById('profileStats'), document.getElementById('perfilVitrina'))
+      resumen.then((m) => m.ponerVitrinaEnResumen(document.getElementById('perfilResumen'), document.getElementById('perfilVitrina'))).catch(() => {})
+    })
     .catch(() => vitrinaLista({ visible: false, conCartas: false }))
   await Promise.all([
     loadStats(session, profile),

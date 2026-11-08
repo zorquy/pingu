@@ -1,21 +1,5 @@
 /* La pestaña «Cambios» del perfil (887). La inyecta js/perfil-cambios.js; el porqué en SCHEMA 887. */
 
-.perfil-chapa-cambia {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--e-xs);
-  min-height: 32px;
-  padding: 0 var(--e-sm);
-  border: 1px solid var(--success);
-  border-radius: var(--radius-pill);
-  background: var(--success-bg);
-  color: var(--success);
-  font-size: var(--t-sm);
-  font-weight: 600;
-  cursor: pointer;
-}
-.perfil-chapa-cambia svg { color: var(--success); }
-
 .pc-bloque { margin-top: var(--e-lg); }
 .pc-bloque .section-title { margin-bottom: var(--e-sm); }
 .pc-cruce { margin-top: var(--e-md); }

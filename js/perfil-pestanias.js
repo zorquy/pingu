@@ -17,7 +17,7 @@ const CONTENEDOR = 'profileTabs'
 // Nombres viejos que siguen llegando por enlaces guardados: «about» eran
 // los trofeos y «medallas» la pestaña de los logros hasta la 1117;
 // «actividad», «wall» y «muro» ya no son nada y abren lo que toque.
-const ALIAS = { about: 'logros', medallas: 'logros', actividad: null, wall: null, muro: null }
+const ALIAS = { about: 'logros', medallas: 'logros', coleccion: 'vitrina', actividad: null, wall: null, muro: null }
 
 // El orden para «la que tenga algo» NO es el de la fila: lo que más dice de
 // alguien es lo que escribe, luego lo que habla, luego lo que juega.
@@ -31,6 +31,11 @@ let alAbrir = null
 let propia = false
 
 const botones = () => [...document.querySelectorAll(`#${CONTENEDOR} .tab-btn`)]
+// DESDE LA 1271 SE ENTRA POR «RESUMEN» (PINGU eligió la recomendada): con esa
+// pestaña en la página, nada salta solo a otra al ir llegando las cuentas; solo
+// lo que pida la dirección (`?ver=`, `#`). La Vitrina se llama «Colección» en la
+// fila (su clave sigue siendo `vitrina`, y `?ver=coleccion` también la abre).
+const hayResumen = () => botones().some((b) => b.dataset.ptab === 'resumen')
 const botonDe = (nombre) => botones().find((b) => b.dataset.ptab === nombre)
 // /evento/<usuario> (1029) pide Cambios sin decirlo en la consulta.
 const pedidaEnDireccion = () => new URLSearchParams(location.search).get('ver') || window.location.hash.replace('#', '') || (/^\/evento\//.test(location.pathname) ? 'cambios' : '')
@@ -77,7 +82,7 @@ export function vitrinaLista({ visible, conCartas }) {
   btn.hidden = !visible
   if (!visible && btn.classList.contains('active')) abrirLaQueTengaAlgo({ aunqueVacia: true })
   const pedida = nombreReal(pedidaEnDireccion())
-  if (visible && !laHaTocado && (pedida === 'vitrina' || (!pedida && (conCartas || propia)))) abrirPestania('vitrina')
+  if (visible && !laHaTocado && (pedida === 'vitrina' || (!pedida && !hayResumen() && (conCartas || propia)))) abrirPestania('vitrina')
 }
 
 // Una pestaña que llega tarde y puede no tener nada (Cambios, 887): sale
@@ -99,6 +104,11 @@ export function pestaniaLista(nombre, visible) {
 // se queda.
 export function abrirLaQueTengaAlgo({ aunqueVacia = false } = {}) {
   if (laHaTocado || nombreReal(pedidaEnDireccion())) return
+  // Con «Resumen» (1271) se queda en él; si la que estaba abierta se va, a él.
+  if (hayResumen()) {
+    if (!botones().some((b) => b.classList.contains('active') && !b.hidden)) abrirPestania('resumen')
+    return
+  }
   const vitrina = botonDe('vitrina')
   if (vitrina && !vitrina.hidden && vitrina.classList.contains('active')) return
   const conAlgo = ORDEN.find((n) => cuentas[n] > 0 && botonDe(n))

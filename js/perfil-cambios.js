@@ -215,21 +215,11 @@ function vaciaHtml(propia, { daVacio, buscaVacio }) {
 
 // La chapa de la cabecera, al lado del nivel y la racha. Es un botón que
 // abre la pestaña: la primera señal de que esa persona cambia.
-function ponerChapa(texto, { propia }) {
-  const sitio = document.querySelector('.perfil-chapas')
-  if (!sitio) return
-  sitio.querySelector('.perfil-chapa-cambia')?.remove()
-  if (!texto) return
-  const b = document.createElement('button')
-  b.type = 'button'
-  b.className = 'perfil-chapa-cambia'
-  b.innerHTML = `${icons.refreshCw(14)} ${escapeHtml(texto)}`
-  b.title = propia ? 'Lo que das y lo que buscas' : 'Lo que da y lo que busca'
-  b.addEventListener('click', () => {
-    abrirPestania('cambios')
-    document.getElementById('ptab-cambios')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  })
-  sitio.appendChild(b)
+// Lo que da y busca va a la tarjeta de cambios del perfil (1270), que junta
+// la reputación con estas dos cifras; hasta la 1269 era la chapa «Cambia · da
+// N · busca M» en la cabecera (`textoDeChapa` sigue en lo puro).
+function ponerCuentasEnTarjeta(cuentas) {
+  import('./perfil-trueque.js').then((m) => m.ponerCuentas(cuentas)).catch(() => {})
 }
 
 // TUS ÚLTIMOS CAMBIOS (1105), solo en tu perfil: con quién y cuándo (nada de
@@ -285,7 +275,7 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
 
   contarPestania('cambios', total)
   pestaniaLista('cambios', total > 0 || propia)
-  ponerChapa(textoDeChapa(cuentas), { propia })
+  ponerCuentasEnTarjeta(cuentas)
   if (total > 0) abrirLaQueTengaAlgo()
 
   const hechos = propia && miId ? hechosHtml(miId).catch(() => '') : Promise.resolve('')
@@ -370,7 +360,14 @@ export async function pintarCambiosDe(caja, persona, sesion, { propia = false } 
   // Vuestro cruce, arriba: el de la 794, siempre y no solo por el QR, con
   // «Escribir» y el mensaje redactado.
   if (miId && !propia) {
-    import('./cruce-persona.js').then((m) => m.pintarCruce(document.getElementById('pcCruce'), persona, sesion, { escribir: true, miniaturas: true })).catch(() => {})
+    // Lo que tenéis en común sube también a la tarjeta de cambios (1270).
+    import('./cruce-persona.js')
+      .then((m) => m.pintarCruce(document.getElementById('pcCruce'), persona, sesion, { escribir: true, miniaturas: true }))
+      .then(() => {
+        const c = document.getElementById('pcCruce')
+        if (c?.dataset.teDa != null) import('./perfil-trueque.js').then((m) => m.ponerComun({ teDa: Number(c.dataset.teDa) || 0, leDas: Number(c.dataset.leDas) || 0 })).catch(() => {})
+      })
+      .catch(() => {})
   }
   return cuentas
 }

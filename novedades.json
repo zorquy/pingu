@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-08", "tipo": "mejora", "texto": "Los perfiles, nuevos: tu colección, tus guías y tus torneos en grande, los seguidores con sus caras, una tarjeta con tu reputación en los cambios y lo que das y buscas, y una pestaña Resumen con lo último de todo.", "enlace": "/perfil" },
     { "fecha": "2026-11-08", "tipo": "mejora", "texto": "En Mensajes, cuando tienes un trato en marcha lo ves arriba de la conversación con las cartas de cada lado, y respondes ahí mismo sin irte a Cruces. Y adiós al botón «Ya nos cambiamos», que liaba: un cambio se apunta solo al cerrar su propuesta.", "enlace": "/mensajes" },
     { "fecha": "2026-11-08", "tipo": "arreglo", "texto": "Los retos diarios ya no tienen trampa: la respuesta no está en la página (ni con F12), la carta borrosa y la silueta llegan ya borrosas, y la experiencia la da el servidor al acabar.", "enlace": "/retos" },
     {

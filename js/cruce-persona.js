@@ -75,6 +75,8 @@ export async function pintarCruce(caja, persona, sesion, { soloSiHay = false, es
     // Cuántas de las tuyas tiene, para quien lo pinte al lado (la cabecera de
     // una conversación, 1221).
     caja.dataset.teDa = String(teDa.length)
+    // Y cuántas de las suyas tienes tú, para la tarjeta del perfil (1270).
+    caja.dataset.leDas = String(leDas.length)
     if (soloSiHay && !teDa.length && !leDas.length) { caja.classList.add('hidden'); return }
     caja.classList.remove('hidden')
     caja.innerHTML = `<h2>Vuestro cruce</h2>

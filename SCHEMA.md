@@ -55204,6 +55204,65 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1271 — Las pestañas del perfil: Resumen, Colección y cada una con su molde
+
+Segunda mitad de la propuesta de perfiles (PINGU: «dale a todo lo recomendado»).
+
+- **«Resumen», la primera y la de entrada** (`js/perfil-resumen.js`): la vitrina en
+  tira, la última guía, el último torneo (con su medalla si quedó en el podio), lo
+  último que dijo en el foro y sus logros, cada bloque con su «Ver ›» a la pestaña.
+  Consultas de una fila (`limit(1)`); la vitrina no se vuelve a pedir: se copian las
+  fotos que ya pintó vitrina.js (`ponerVitrinaEnResumen`). Lo que no hay no sale.
+- **Con «Resumen» nada salta solo a otra pestaña** (`hayResumen` en
+  `perfil-pestanias.js`): ni la vitrina con cartas ni «la que tenga algo»; solo lo
+  que pida la dirección. Si la abierta se esconde, se vuelve al Resumen.
+- **«Vitrina» se llama «Colección»** en la fila; su clave sigue siendo `vitrina`
+  (enlaces viejos) y `?ver=coleccion` también la abre (ALIAS).
+- **Torneos con tres cifras** arriba (`cifrasDeTorneosHtml`: torneos, mejor puesto,
+  podios) antes del palmarés de siempre.
+- **Las guías de otra persona en portadas** (`tarjetaDeGuia`, el molde de Aprender;
+  antes, una lista de títulos). Las tuyas siguen con sus cifras y sus botones.
+- **El logro destacado** sale de la cabecera y va arriba de Logros, en grande
+  (`.perfil-logro-destacado` como botón que abre su ficha).
+- Los títulos que repetían la pestaña («Guías publicadas», «En el foro», «Torneos»)
+  quedan para el lector (`sr-only`).
+- No se hizo el selector «En común · Da · Busca» de la maqueta en la pestaña Cambios:
+  la pestaña ya los enseña uno debajo de otro con el cruce arriba.
+
+## Tanda 1270 — La cabecera del perfil: caras, tres losas, la tarjeta de cambios y dos columnas
+
+PINGU, con su perfil delante: «hay mucha información que sobra… cartas, guías y
+torneos es muy importante mostrarlo, pero quizá es más visual mostrar los seguidores
+aparte… la reputación por hacer tratos es muy importante pero está como ahí… y lo de
+cambia da 25 busca 229 también está ahí como en bloque». Eligió lo recomendado.
+
+- **Seguidores en caras** (`pintarSocial`, `perfil-cabecera.js`): hasta tres caras,
+  «N seguidores, entre ellos Ibai y Laura» (los que sigue quien mira van primero: una
+  consulta más a `user_follows` con `in`) y «Sigue a M». Los botones y sus ids
+  (`btnShowFollowers`, `followersCount`…) siguen en el HTML desde el principio.
+- **Tres losas** (`cifrasHtml`, ahora losas con dibujo y color de su sección):
+  Colección (con tres cartas de la vitrina en abanico, `ponerCartasEnLosa`), Guías
+  (a cuántos les han servido) y Torneos. Siguen siendo `.perfil-cifra` con `.valor`
+  y `.rotulo`; la nota de lo servido es la única `.perfil-cifra-nota`.
+- **La tarjeta de cambios** (`js/perfil-trueque.js`): escudo y nivel de la
+  reputación (`reputacionDe`/`nivelDe`/`textoDeConfianza`, los de la 1224), lo que da
+  y lo que busca en dos cifras y, con sesión, lo que tenéis en común (del cruce de la
+  pestaña, `ponerComun`), con «Proponer» (o «Tus cambios» en el tuyo). Junta y
+  sustituye el sello de la 1105 (`ponerSello`, borrado) y la chapa de la 887
+  (`ponerChapa`, borrada). Le llegan tres cosas a destiempo y cada una repinta; sin
+  tratos ni nada que cambiar, no sale.
+- **Dos columnas en el PC** (≥1000 px): `.perfil-lado` (quién es + la tarjeta,
+  `sticky` a 88 px) y `.perfil-cuerpo` (losas, pestañas). Sustituye a la 1150 (perfil
+  a lo ancho). Por debajo, `display: contents` y `order` para el orden de la maqueta:
+  quién es, losas, tarjeta, lo demás.
+- Fuera de la cabecera: el rango sigue como chapa, la racha al lado del nivel; el
+  logro destacado se va a Logros (1271).
+- La 981 (saltos): las losas tienen su sitio reservado (`:empty`); /perfil queda en
+  0,061.
+
+Pruebas (rama pruebas): `test-tanda-1270-pantalla.mjs` (las dos tandas) y puestas al
+día 306, 309, 743, 795, 867, 887, 944, 974, 1105, 1150 y 1167.
+
 ## Tanda 1269 — El trato en Mensajes, y sin «Ya nos cambiamos»
 
 PINGU, con una propuesta recién llegada en la pantalla: «no sé si se puede

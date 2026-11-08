@@ -1135,6 +1135,15 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y el propio `click` de Playwright (`noWaitAfter`); con la navegación
   pendiente `evaluate` no contesta, así que lo apunta la página y lo manda
   con `exposeFunction`. Y `mouse.up` encima de un enlace es un clic.
+- **El perfil es quién es + tres losas + la tarjeta de cambios** (tandas 1270 y
+  1271, PINGU eligió lo recomendado): seguidores en caras (`pintarSocial`), las
+  losas de colección, guías y torneos (`cifrasHtml`), y UNA tarjeta de cambios
+  (`js/perfil-trueque.js`) con la reputación, lo que da y busca y lo que tenéis en
+  común; en el PC, dos columnas (quién es y la tarjeta a la izquierda, quietas).
+  Se entra por «Resumen» (`js/perfil-resumen.js`) y nada salta solo a otra pestaña;
+  la Vitrina se llama «Colección». Algo nuevo de los cambios de alguien va en la
+  tarjeta (no otra chapa en la cabecera), y una pestaña nueva lleva su bloque en el
+  Resumen con su «Ver ›».
 - **El perfil tiene la pestaña «Cambios»** (tanda 887, pedida por
   soyfedeegb en el foro): lo que da y lo que busca una persona, con
   vuestro cruce arriba y la chapa «Cambia · da N · busca M» en la

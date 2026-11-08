@@ -20,23 +20,44 @@ export const urlDeColeccion = (username) => `/mi-coleccion?u=${encodeURIComponen
 const n = (v) => (typeof v === 'number' && Number.isFinite(v) ? v.toLocaleString('es-ES', { useGrouping: 'always' }) : '—')
 
 // Puro: lo prueba node.
+// DESDE LA 1270, TRES LOSAS (PINGU eligió lo recomendado: «cartas, guías y
+// torneos es muy importante mostrarlo»): cada una con su dibujo, la cifra
+// grande y una línea debajo, del color de su sección. Siguen siendo
+// `.perfil-cifra` con `.valor` y `.rotulo` (lo que las pruebas y la caché de
+// la 984 conocen); seguidores y siguiendo ya no van aquí, van en caras
+// (`pintarSocial`, perfil-cabecera.js). En el PC la de la colección se llena
+// con tres cartas de la vitrina (`ponerCartasEnLosa`).
 export function cifrasHtml({ cartas = null, guias = null, servido = null, torneos = null, propia = false, coleccion = '' } = {}) {
   const conServido = typeof servido === 'number' && servido > 0
-  const cifra = (valor, rotulo, { href = '', ver = '', title = '' } = {}) => {
-    const dentro = `<span class="valor">${valor}</span><span class="rotulo">${rotulo}</span>`
+  const losa = (seccion, icono, valor, rotulo, { href = '', ver = '', title = '', nota = '' } = {}) => {
+    const dentro = `<span class="perfil-losa-dib" aria-hidden="true">${icono}</span><span class="perfil-losa-t"><span class="rotulo">${rotulo}</span><span class="valor">${valor}</span>${nota}</span>`
     const t = title ? ` title="${escapeHtml(title)}"` : ''
-    if (href) return `<a class="perfil-cifra" href="${escapeHtml(href)}"${t}>${dentro}</a>`
-    if (ver) return `<button type="button" class="perfil-cifra" data-ver="${ver}"${t}>${dentro}</button>`
-    return `<div class="perfil-cifra"${t}>${dentro}</div>`
+    const attrs = `class="perfil-cifra perfil-losa" data-losa="${seccion}"${t}`
+    if (href) return `<a ${attrs} href="${escapeHtml(href)}">${dentro}</a>`
+    if (ver) return `<button type="button" ${attrs} data-ver="${ver}">${dentro}</button>`
+    return `<div ${attrs}>${dentro}</div>`
   }
+  const notaServido = conServido ? `<small class="perfil-cifra-nota">${icons.sprout(12)} le han servido a ${n(servido)}</small>` : ''
   return (
-    cifra(n(cartas), 'Cartas', { href: propia ? '/mi-coleccion' : coleccion }) +
-    cifra(`${n(guias)}${conServido ? ` <small class="perfil-cifra-nota">${icons.sprout(12)} ${n(servido)}</small>` : ''}`, 'Guías', {
+    losa('cartas', icons.cards(20), n(cartas), 'Cartas', { href: propia ? '/mi-coleccion' : coleccion, nota: `<small class="perfil-losa-sub">en ${propia ? 'tu' : 'su'} colección</small>` }) +
+    losa('aprender', icons.bookOpen(20), n(guias), 'Guías', {
       ver: 'guides',
       title: conServido ? (servido === 1 ? 'A 1 persona le han servido sus guías' : `A ${n(servido)} personas les han servido sus guías`) : '',
+      nota: notaServido || '<small class="perfil-losa-sub">publicadas</small>',
     }) +
-    cifra(n(torneos), 'Torneos', { ver: 'torneos' })
+    losa('jugar', icons.trophy(20), n(torneos), 'Torneos', { ver: 'torneos', nota: '<small class="perfil-losa-sub">jugados</small>' })
   )
+}
+
+// La losa de la colección con tres cartas de la vitrina en abanico, en vez del
+// icono (1270): «es más visual». Se copian las fotos ya cargadas; sin vitrina,
+// se queda el icono.
+export function ponerCartasEnLosa(lote, vitrina) {
+  const dib = lote?.querySelector('[data-losa="cartas"] .perfil-losa-dib')
+  const fotos = [...(vitrina?.querySelectorAll('img') || [])].map((i) => i.currentSrc || i.src).filter(Boolean).slice(0, 3)
+  if (!dib || !fotos.length) return
+  dib.classList.add('perfil-losa-abanico')
+  dib.innerHTML = fotos.map((src) => `<img src="${escapeHtml(src)}" alt="" width="28" height="39" loading="lazy" decoding="async">`).join('')
 }
 
 // Cuántas cartas distintas tiene en su colección y en cuántos torneos se ha

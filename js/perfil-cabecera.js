@@ -7,6 +7,8 @@
 import { levelProgress, levelBadgeHtml } from './gamification.js'
 import { barraDeRango } from './rango-barra.js'
 import { icons } from './icons.js'
+import { escapeHtml } from './html.js'
+import { avatarStyle, getInitial } from './app.js'
 
 // La racha solo si la hay: un «0 días» no cuenta nada (como en la hoja «Tú»).
 export function lineaDeQuienHtml({ xp = 0, racha = 0 } = {}) {
@@ -35,4 +37,24 @@ export function medalleroHtml(medallas) {
     <span class="medalla-chip medalla-bronce">${cuenta.bronce}</span>
     <span class="medallero-restante">en ${jugados} ${jugados === 1 ? 'curso' : 'cursos'}</span>
   </a>`
+}
+
+// LOS SEGUIDORES EN CARAS (1270, PINGU eligió la recomendada: «quizá es más
+// visual mostrar los seguidores y siguiendo aparte»): hasta tres caras, «N
+// seguidores» y, si entre ellos hay gente que TÚ sigues, «entre ellos Ibai y
+// Laura» (esa gente va primero, también en las caras). Pinta en los huecos que
+// ya trae el HTML (los botones llevan su oyente desde el principio).
+// `seguidores`: perfiles; `conocidos`: ids que sigue quien mira.
+export function pintarSocial({ seguidores = [], siguiendo = 0, conocidos = new Set() } = {}) {
+  const $ = (id) => document.getElementById(id)
+  const n = seguidores.length
+  const nombre = (p) => p.display_name || p.username || 'Alguien'
+  const orden = [...seguidores.filter((p) => conocidos.has(p.id)), ...seguidores.filter((p) => !conocidos.has(p.id))]
+  if ($('followersCount')) $('followersCount').textContent = n.toLocaleString('es-ES')
+  if ($('followingCount')) $('followingCount').textContent = Number(siguiendo || 0).toLocaleString('es-ES')
+  if ($('seguidoresRotulo')) $('seguidoresRotulo').textContent = n === 1 ? 'seguidor' : 'seguidores'
+  const caras = $('seguidoresCaras')
+  if (caras) caras.innerHTML = orden.slice(0, 3).map((p) => `<span class="mini-avatar" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre(p)))}</span>`).join('')
+  const suyos = orden.filter((p) => conocidos.has(p.id)).slice(0, 2).map((p) => `<b>${escapeHtml(nombre(p))}</b>`)
+  if ($('seguidoresConocidos')) $('seguidoresConocidos').innerHTML = suyos.length ? `, entre ellos ${suyos.join(' y ')}` : ''
 }

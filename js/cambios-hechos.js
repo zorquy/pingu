@@ -98,25 +98,6 @@ export async function ponerConfianza(raiz) {
 
 // ── En el perfil y en el trato (tanda 1105, PINGU: «dale» a lo recomendado) ──
 
-// El sello de confianza debajo del nombre, en los dos perfiles: «12 cambios ·
-// todos bien», que abre la pestaña Cambios. Sin cambios, nada.
-export async function ponerSello(sitio, userId, { alPulsar = null } = {}) {
-  if (!sitio || !userId) return
-  hojaInyectada('css/cambios-hechos.css')
-  const r = await reputacionDe(userId)
-  const t = textoDeConfianza(r)
-  sitio.querySelector('.perfil-confianza')?.remove()
-  if (!t || !sitio.isConnected) return
-  const b = document.createElement('button')
-  b.type = 'button'
-  b.className = 'perfil-confianza'
-  b.dataset.nivel = nivelDe(r)
-  b.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>${escapeHtml(t)}`
-  b.title = 'Tratos hechos en PokeDoc'
-  if (alPulsar) b.addEventListener('click', alPulsar)
-  sitio.appendChild(b)
-}
-
 // La tarjeta de reputación (1224), arriba de la pestaña Cambios del perfil:
 // el nivel con su escudo, cuántos tratos de cada tipo, el último y desde
 // cuándo. Con quién no sale nunca. Sin tratos, nada.
