@@ -1,15 +1,19 @@
 // «¿De qué expansión es?» en pantalla (tanda 835). Lo puro vive en
 // js/que-expansion.js; las cinco rondas, en netlify/functions/que-expansion.mjs.
+//
+// Desde la 1268 la página no sabe la buena: la mesa trae la foto de cada
+// ronda (sin dirección que diga el set) y sus cuatro opciones, y cada
+// respuesta la corrige la base (`retos_jugar`), que dice cuál era.
 import { escapeHtml } from './html.js'
 import { getSession, getProfile } from './app.js'
 import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { nombreDeCarta, nombreDeSet, logosDePago } from './catalogo-series.js'
-import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { urlDeLogo } from './carta-ruta.js'
 import { RONDAS, numeroDelDia, textoParaCompartir, ENLACE } from './que-expansion.js'
 import { xpDe, mejorQue } from './retos-xp.js'
-import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
+import { estadisticas, misNumeros } from './retos-datos.js'
+import { partida } from './reto-arbitro.js'
 import { premiosHtml, cuentaAtras, salidasHtml, avisoLibreHtml } from './retos-ui.js'
 import { hechoHoy } from './retos-siguiente.js'
 import { rachaDeDias } from './reto-compartir.js'
@@ -28,7 +32,10 @@ const CLAVE_DIAS = 'pokedoc-que-expansion-jugados'
 let dia = null
 let rondas = []
 // La expansión que elegiste en cada ronda (su id).
-let estado = { dia: null, elegidas: [] }
+let estado = { dia: null, elegidas: [], tira: [] }
+// Las buenas de las rondas ya contestadas (las dice la base al contestar).
+let buenas = []
+let arbitro = null
 let sesion = null
 let guardado = null
 let pasando = false
@@ -37,18 +44,23 @@ const leer = (clave, defecto) => { try { return JSON.parse(localStorage.getItem(
 const escribir = (clave, v) => { try { localStorage.setItem(clave, JSON.stringify(v)) } catch {} }
 const ronda = () => estado.elegidas.length
 const terminado = () => ronda() >= RONDAS
-// La respuesta buena es la expansión en la que se VE la carta (`set_id` de
-// la ronda, 976): la de una Trainer Gallery es su expansión. Lo que llegue
-// sin él (de antes) sigue con el set de la carta.
-const buena = (r) => r?.set_id || r?.carta?.set_id
-const nombreBueno = (r) => nombreDeSet(r.opciones?.find((s) => s.id === buena(r)) || r.carta.tcg_sets) || buena(r)
-const tira = () => estado.elegidas.map((id, i) => id === buena(rondas[i]))
+// La buena de cada ronda la dice la base al contestarla (1268): es la
+// expansión en la que se VE la carta (976).
+const nombreBueno = (i) => nombreDeSet(rondas[i]?.opciones?.find((s) => s.id === buenas[i])) || buenas[i] || ''
+const tira = () => (estado.tira || []).map(Boolean)
+
+// Lo que contesta la base, a la pantalla (y al navegador, para «Mi día»).
+function aplicar(r) {
+  const e = r?.estado || {}
+  estado = { dia, elegidas: e.elegidas || [], tira: e.tira || [] }
+  buenas = e.buenas || []
+  if (r?.guardado) guardado = r.guardado
+  escribir(CLAVE, estado)
+}
 const diasJugados = () => { const d = leer(CLAVE_DIAS, []); return Array.isArray(d) ? d : [] }
 
-const fotoHtml = (c) => {
-  const a = atributosDeEscaneo(cadenaDeEscaneo(c, c?.tcg_sets?.tcg_online_code || null, 'high'))
-  return a ? `<img ${a} alt="Carta de la ronda" width="245" height="342" loading="eager" />` : ''
-}
+// La foto llega por /reto-foto (1268): su dirección no dice de qué set es.
+const fotoHtml = (r) => (r?.foto ? `<img src="${escapeHtml(r.foto)}" alt="Carta de la ronda" width="245" height="342" loading="eager" draggable="false" />` : '')
 
 // El logo, con su cadena de respaldos (TCGdex y luego los de pago).
 function logoHtml(s) {
@@ -71,10 +83,10 @@ function pintarPasos() {
 function pintarRonda(revelar = null) {
   const i = revelar ?? Math.min(ronda(), RONDAS - 1)
   const r = rondas[i]
-  $('qxCarta').innerHTML = fotoHtml(r.carta)
+  $('qxCarta').innerHTML = fotoHtml(r)
   const elegida = estado.elegidas[i]
   $('qxOpciones').innerHTML = r.opciones.map((s) => {
-    const clase = elegida ? (s.id === buena(r) ? ' acierto' : s.id === elegida ? ' fallo' : '') : ''
+    const clase = elegida ? (s.id === buenas[i] ? ' acierto' : s.id === elegida ? ' fallo' : '') : ''
     const ano = String(s.release_date || '').slice(0, 4)
     return `<button type="button" class="qx-opcion${clase}" data-set="${escapeHtml(s.id)}"${elegida ? ' disabled' : ''}><span class="qx-logo">${logoHtml(s)}</span><span><b>${escapeHtml(nombreDeSet(s) || s.id)}</b>${ano ? `<small>${ano}</small>` : ''}</span>${clase === ' acierto' ? icons.checkCircle(22) : clase === ' fallo' ? icons.xCircle(22) : ''}</button>`
   }).join('')
@@ -91,7 +103,7 @@ function pintarFinal() {
   f.innerHTML = `
     <p class="rj-final-titulo">${aciertos === RONDAS ? '¡Las cinco!' : `${aciertos} de ${RONDAS}`}</p>
     <p class="subtext" style="margin:0" id="qxGente">${libre ? 'Partida libre' : `Reto #${numeroDelDia(dia)}`}</p>
-    <ol class="qx-repaso">${rondas.map((r, i) => `<li class="${t[i] ? 'si' : ''}"><span class="qx-mini">${fotoHtml(r.carta)}</span><span>${t[i] ? icons.checkCircle(14) : icons.xCircle(14)} ${escapeHtml(nombreBueno(r))}</span></li>`).join('')}</ol>
+    <ol class="qx-repaso">${rondas.map((r, i) => `<li class="${t[i] ? 'si' : ''}"><span class="qx-mini">${fotoHtml(r)}</span><span>${t[i] ? icons.checkCircle(14) : icons.xCircle(14)} ${escapeHtml(nombreBueno(i))}</span></li>`).join('')}</ol>
     <div id="qxPremios"></div>
     ${salidasHtml({ juego: 'expansion', ruta: '/que-expansion', dia: hoy, libre, compartirId: 'qxCompartir', cuentaId: 'qxCuenta' })}`
   f.classList.remove('hidden')
@@ -122,40 +134,33 @@ function pintarTodo() {
   $('qxSub').textContent = `${libre ? 'Partida libre' : `Reto #${numeroDelDia(dia)}`} · ${terminado() ? 'resuelto' : `carta ${ronda() + 1} de ${RONDAS}`}`
 }
 
-async function guardar() {
-  if (libre || !terminado() || estado.guardado) return
-  const r = await guardarResultado('expansion', dia, { aciertos: tira().filter(Boolean).length, total: RONDAS, tira: tira() }).catch(() => ({ error: true }))
-  if (r && (r.nuevo === true || r.nuevo === false)) { estado.guardado = true; escribir(CLAVE, estado); guardado = r } else if (r?.sinCuenta) guardado = r
-  pintarPremios()
-}
-
-function elegir(setId) {
+async function elegir(setId) {
   if (terminado() || pasando) return
   const i = ronda()
-  estado.elegidas.push(setId)
-  // La carta de cada ronda contestada (1111): si el día se revisa y una
-  // ronda cambia de carta, lo contestado desde ahí ya no vale.
-  estado.cartas = rondas.slice(0, estado.elegidas.length).map((r) => r.carta.id)
-  // Los aciertos, también en lo guardado: el menú de /retos los lee sin
-  // tener las rondas.
-  estado.tira = tira()
-  escribir(CLAVE, estado)
+  pasando = true
+  let r
+  try {
+    r = await arbitro.jugar({ set: setId })
+  } catch (e) {
+    pasando = false
+    showToast(e.message || 'No se ha podido comprobar. Inténtalo de nuevo.', 'error')
+    return
+  }
+  aplicar(r)
   if (terminado() && !libre) {
     const d = diasJugados()
     if (!d.includes(dia)) escribir(CLAVE_DIAS, [...d, dia].slice(-400))
   }
-  const bien = setId === buena(rondas[i])
+  const bien = Boolean(r.eco?.bien)
   pintarRonda(i)
   pintarPasos()
   const v = $('qxVeredicto')
   v.className = `qx-veredicto${bien ? '' : ' mal'}`
-  v.innerHTML = bien ? `${icons.checkCircle(22)} ¡Bien!${sesion && !libre ? ' +4 XP' : ''}` : `${icons.xCircle(22)} Era ${escapeHtml(nombreBueno(rondas[i]))}`
-  pasando = true
+  v.innerHTML = bien ? `${icons.checkCircle(22)} ¡Bien!${sesion && !libre ? ' +4 XP' : ''}` : `${icons.xCircle(22)} Era ${escapeHtml(nombreBueno(i))}`
   setTimeout(() => {
     pasando = false
     v.classList.add('hidden')
     pintarTodo()
-    if (terminado()) guardar()
   }, window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 600 : 1400)
 }
 
@@ -188,22 +193,6 @@ function sinTablero(texto) {
   $('qxSub').classList.add('hidden')
 }
 
-// Una ronda que ha cambiado de carta (se cambió por no tener foto) vuelve a
-// jugarse, si el reto no estaba ya acabado y guardado. Lo guardado antes de
-// la 1111 no lleva las cartas: ahí, la primera ronda cuya respuesta no está
-// entre sus opciones.
-function ajustarEstado() {
-  if (estado.guardado || !estado.elegidas.length) return
-  const desde = Array.isArray(estado.cartas)
-    ? estado.cartas.findIndex((id, i) => rondas[i]?.carta?.id !== id)
-    : estado.elegidas.findIndex((id, i) => !rondas[i]?.opciones?.some((s) => s.id === id))
-  if (desde < 0) return
-  estado.elegidas = estado.elegidas.slice(0, desde)
-  estado.cartas = rondas.slice(0, desde).map((x) => x.carta.id)
-  estado.tira = tira()
-  escribir(CLAVE, estado)
-}
-
 // «Cambiar esta carta», solo para admins (1111b): por si una foto mala (un
 // dorso que la fuente sirve como foto) se escapa a lo automático. Cambia la
 // ronda para todo el mundo; pide una segunda pulsación.
@@ -221,7 +210,6 @@ async function ponerCambiarCarta() {
       const r = await res.json()
       if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
       rondas = (r.rondas || []).slice(0, RONDAS)
-      ajustarEstado()
       pintarTodo()
       showToast(r.sinFoto?.length ? 'No había otra carta con foto para cambiarla.' : 'Carta cambiada para todos.', r.sinFoto?.length ? 'error' : 'success')
     } catch (e) {
@@ -237,7 +225,7 @@ async function ponerCambiarCarta() {
 async function init() {
   let r
   try {
-    r = await traerRetoConFotos('que-expansion', { libre, cartasDe: (x) => (x.rondas || []).map((ronda) => ronda.carta), calidad: 'high' })
+    r = await traerRetoConFotos('que-expansion', { libre, cadenasDe: (x) => (x.rondas || []).map((ronda) => [ronda.foto]) })
   } catch (e) {
     sinTablero(e.sinFoto ? TEXTO_SIN_FOTO : 'Hoy no se han podido traer las cartas. Vuelve en un rato.')
     return
@@ -245,12 +233,14 @@ async function init() {
   dia = r.dia
   rondas = (r.rondas || []).slice(0, RONDAS)
   if (rondas.length < RONDAS) { sinTablero('Hoy no hay cartas para este reto. Vuelve mañana.'); return }
-  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
-  if (!libre) await traerPartidaDeHoy('expansion', dia).catch(() => false)
+  try {
+    arbitro = partida('expansion', { dia, libre })
+    aplicar(await arbitro.abrir())
+  } catch (e) {
+    sinTablero(e.sinArbitro ? e.message : 'Hoy no se han podido traer las cartas. Vuelve en un rato.')
+    return
+  }
   if (libre) $('qxSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('expansion'), '/que-expansion'))
-  const g = leer(CLAVE, null)
-  estado = g && g.dia === dia && Array.isArray(g.elegidas) ? g : { dia, elegidas: [] }
-  ajustarEstado()
   sesion = await getSession().catch(() => null)
   pintarTodo()
   if (sesion && !libre) ponerCambiarCarta()
@@ -258,9 +248,8 @@ async function init() {
     const b = e.target.closest('[data-set]')
     if (b && !b.disabled) elegir(b.dataset.set)
   })
-  if (sesion && terminado() && !libre) {
-    if (!estado.guardado) guardar()
-    else misNumeros(1).then((n) => { if (n?.hoy?.expansion) { guardado = { nuevo: false, xp: n.hoy.expansion.xp }; pintarPremios() } }).catch(() => {})
+  if (sesion && terminado() && !libre && !guardado) {
+    misNumeros(1).then((n) => { if (n?.hoy?.expansion) { guardado = { nuevo: false, xp: n.hoy.expansion.xp }; pintarPremios() } }).catch(() => {})
   }
 }
 

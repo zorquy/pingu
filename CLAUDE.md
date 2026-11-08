@@ -1914,6 +1914,20 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `de_pokedoc`, y la web pinta «PokeDoc» con `firmaPokedoc` /
   `PERFIL_POKEDOC` (`js/foro-comun.js`). Algo nuevo que escriba en el foro
   como PokeDoc pasa por una función así, nunca por un insert del navegador.
+- **Un reto diario no lleva su respuesta a la página: la corrige la base**
+  (tanda 1268, PINGU: «para que ningún listillo haga trampa»). La función del
+  día parte lo que elige con `netlify/lib/reto-mesa.mjs`: la MESA (sin ids,
+  precios, la buena ni la foto nítida) va a la página y lo del árbitro a
+  `retos_arbitro`; cada jugada pasa por `retos_jugar` (`js/reto-arbitro.js`,
+  `partida(juego)`), que con cuenta guarda la partida en `retos_partidas` y
+  apunta la XP al acabar (`retos_guardar` ya no se llama desde fuera), y sin
+  cuenta la lleva en una ficha cifrada. Las fotos de un reto van por
+  `/reto-foto` con la dirección cifrada y ya borrosas o en silueta
+  (`urlDeFoto`), nunca la nítida con CSS encima. Lo que elige el día lleva la
+  semilla del servidor (`semillaDelDia`). Un reto nuevo: su `partir…`, su rama
+  en `retos_mover`/`retos_vista`/`retos_resultado` y su prueba en
+  `test-tanda-1268`; y si cuenta algo que la web también cuenta (las casillas
+  de la carta), la prueba compara las dos.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

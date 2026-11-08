@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-08", "tipo": "arreglo", "texto": "Los retos diarios ya no tienen trampa: la respuesta no está en la página (ni con F12), la carta borrosa y la silueta llegan ya borrosas, y la experiencia la da el servidor al acabar.", "enlace": "/retos" },
     {
       "fecha": "2026-11-07",
       "tipo": "mejora",

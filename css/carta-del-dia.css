@@ -27,8 +27,8 @@
   min-width: 0;
 }
 
-/* La carta borrosa (tanda 572). El `scale` tapa el borde que el
-   desenfoque deja transparente; `--cd-desenfoque` lo pone el JS. */
+/* La carta borrosa (tanda 572; la foto llega borrosa desde la 1268). El
+   `scale` tapa el borde que el desenfoque deja más claro. */
 .cd-recorte {
   position: relative;
   width: min(100%, 340px);
@@ -40,9 +40,9 @@
   box-shadow: 0 20px 50px rgb(0 0 0 / 35%);
 }
 
-/* Mientras se juega, la foto no se arrastra, no se abre con el botón derecho
-   ni se guarda con el dedo (1046): el desenfoque es CSS y la imagen
-   arrastrada o abierta sale nítida (SCHEMA 1046). */
+/* Mientras se juega, la foto no se arrastra ni se guarda con el dedo (1046).
+   Desde la 1268 llega YA borrosa del servidor (/reto-foto): la arrastrada
+   tampoco dice nada (SCHEMA 1268). */
 .cd-recorte:not(.abrible) img {
   pointer-events: none;
   user-select: none;
@@ -56,8 +56,6 @@
   height: 100%;
   object-fit: cover;
   transform: scale(1.08);
-  filter: blur(var(--cd-desenfoque, 28px));
-  transition: filter 0.3s ease;
 }
 
 .cd-recorte.abrible {

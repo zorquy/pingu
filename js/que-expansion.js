@@ -21,7 +21,9 @@ const dias = (a, b) => Math.abs((Date.parse(a || '1990-01-01') - Date.parse(b ||
 // El orden, por la fecha del reto y la ronda: todo el mundo ve las mismas.
 // Y dos con el MISMO nombre no van juntas (976): «Trainer Gallery» al lado
 // de «Trainer Gallery» no se puede acertar más que a suerte.
-export function opcionesDeExpansion(bueno, sets, dia, ronda = 0) {
+// `secreto` (1268): lo suma el servidor; sin él, el sitio de la buena entre
+// las cuatro salía de la fecha y se podía calcular desde la página.
+export function opcionesDeExpansion(bueno, sets, dia, ronda = 0, secreto = 0) {
   const nombre = (s) => String(nombreDeSet(s) || s?.id || '').trim().toLowerCase()
   const vistos = new Set([nombre(bueno)])
   const otros = (sets || []).filter((s) => {
@@ -32,8 +34,8 @@ export function opcionesDeExpansion(bueno, sets, dia, ronda = 0) {
   const cerca = (lista) => [...lista].sort((a, b) => dias(a.release_date, bueno?.release_date) - dias(b.release_date, bueno?.release_date))
   const deLaEra = cerca(otros.filter((s) => s.serie_id && s.serie_id === bueno?.serie_id)).slice(0, 6)
   const elegidas = []
-  let sal = 1300 + ronda * 31
-  while (elegidas.length < OPCIONES - 1 && deLaEra.length > elegidas.length && sal < 1300 + ronda * 31 + 200) {
+  let sal = 1300 + ronda * 31 + secreto
+  while (elegidas.length < OPCIONES - 1 && deLaEra.length > elegidas.length && sal < 1300 + ronda * 31 + secreto + 200) {
     const c = deLaEra[Math.floor(azarDelDia(dia, sal) * deLaEra.length) % deLaEra.length]
     sal++
     if (!elegidas.includes(c)) elegidas.push(c)
@@ -42,7 +44,7 @@ export function opcionesDeExpansion(bueno, sets, dia, ronda = 0) {
     if (elegidas.length >= OPCIONES - 1) break
     if (!elegidas.includes(s)) elegidas.push(s)
   }
-  const sitio = Math.floor(azarDelDia(dia, 1700 + ronda) * (elegidas.length + 1)) % (elegidas.length + 1)
+  const sitio = Math.floor(azarDelDia(dia, 1700 + ronda + secreto) * (elegidas.length + 1)) % (elegidas.length + 1)
   const todas = [...elegidas]
   todas.splice(sitio, 0, bueno)
   return todas.filter(Boolean)

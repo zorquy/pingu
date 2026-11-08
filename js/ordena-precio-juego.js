@@ -3,15 +3,20 @@
 //
 // Se tocan en orden (1, 2, 3, 4). Al comprobar, las que están en su sitio se
 // quedan fijas en verde y el resto se vuelve a ordenar: tres intentos.
+//
+// Desde la 1268 los precios no están en la página: cada carta va con una
+// llave que no dice nada (a, b, c, d), cada orden lo corrige la base
+// (`retos_jugar`) y los precios llegan al acabar.
 import { escapeHtml } from './html.js'
 import { getSession } from './app.js'
 import { icons } from './icons.js'
 import { nombreDeCarta } from './catalogo-series.js'
-import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { euros } from './cardmarket.js'
-import { CARTAS, INTENTOS, numeroDelDia, ordenBueno, enSuSitio, textoParaCompartir, ENLACE } from './ordena-precio.js'
+import { CARTAS, INTENTOS, numeroDelDia, ordenBueno, textoParaCompartir, ENLACE } from './ordena-precio.js'
 import { xpDe, xpSiAciertasOrdena } from './retos-xp.js'
-import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
+import { estadisticas, misNumeros } from './retos-datos.js'
+import { partida } from './reto-arbitro.js'
+import { showToast } from './toast.js'
 import { premiosHtml, cuentaAtras, genteHtml, salidasHtml, avisoLibreHtml } from './retos-ui.js'
 import { hechoHoy } from './retos-siguiente.js'
 import { rachaDeDias } from './reto-compartir.js'
@@ -31,6 +36,12 @@ let dia = null
 let cartas = []
 let porId = new Map()
 let estado = { dia: null, intentos: [], acertada: false }
+// Lo que dijo la base de cada intento (cuáles están en su sitio) y, al
+// acabar, los precios.
+let bienes = []
+let precios = null
+let arbitro = null
+let jugando = false
 // Lo que llevas puesto en este intento: un id por posición, o null.
 let puestos = Array(CARTAS).fill(null)
 let sesion = null
@@ -38,14 +49,26 @@ let guardado = null
 
 const leer = (clave, defecto) => { try { return JSON.parse(localStorage.getItem(clave) || 'null') ?? defecto } catch { return defecto } }
 const escribir = (clave, v) => { try { localStorage.setItem(clave, JSON.stringify(v)) } catch {} }
-const terminado = () => estado.acertada || estado.intentos.length >= INTENTOS
+const terminado = () => Boolean(estado.terminada) || estado.acertada || estado.intentos.length >= INTENTOS
+// Con los precios (al acabar), cada carta con el suyo.
+const conPrecio = () => cartas.map((c) => ({ ...c, precio: precios?.[c.id] ?? null }))
+
+// Lo que contesta la base, a la pantalla (y al navegador, para «Mi día»).
+function aplicar(r) {
+  const e = r?.estado || {}
+  estado = { dia, intentos: e.intentos || [], acertada: Boolean(e.acertada), terminada: Boolean(e.terminada) }
+  bienes = e.bien || []
+  precios = e.precios || null
+  if (r?.guardado) guardado = r.guardado
+  escribir(CLAVE, estado)
+}
 const diasAcertados = () => { const d = leer(CLAVE_DIAS, []); return Array.isArray(d) ? d : [] }
 
 // Las posiciones que el último intento acertó: se quedan puestas.
 function fijas() {
   const ultimo = estado.intentos.at(-1)
   if (!ultimo) return Array(CARTAS).fill(null)
-  const bien = enSuSitio(ultimo, cartas)
+  const bien = bienes.at(-1) || []
   return ultimo.map((id, i) => (bien[i] ? id : null))
 }
 
@@ -53,16 +76,15 @@ function empezarIntento() {
   puestos = fijas()
 }
 
-const fotoHtml = (c) => {
-  const a = atributosDeEscaneo(cadenaDeEscaneo(c, c?.tcg_sets?.tcg_online_code || null))
-  return a ? `<img ${a} alt="" width="245" height="342" loading="lazy" />` : ''
-}
+// La foto llega por /reto-foto (1268): su dirección no dice qué carta es.
+const fotoHtml = (c) => (c?.foto ? `<img src="${escapeHtml(c.foto)}" alt="" width="245" height="342" loading="lazy" />` : '')
 
 function pintarCartas() {
   const fija = fijas()
-  const lista = terminado() ? ordenBueno(cartas).map((id) => porId.get(id)) : cartas
+  const bueno = terminado() && precios ? ordenBueno(conPrecio()) : null
+  const lista = bueno ? bueno.map((id) => porId.get(id)) : cartas
   $('opCartas').innerHTML = lista.map((c) => {
-    const pos = terminado() ? ordenBueno(cartas).indexOf(c.id) : puestos.indexOf(c.id)
+    const pos = bueno ? bueno.indexOf(c.id) : puestos.indexOf(c.id)
     // Al acabar se enseñan en su orden bueno y con precio: verdes si las
     // ordenaste tú, sin marca si no (ese orden ya no es el tuyo).
     const esFija = terminado() ? estado.acertada : fija.includes(c.id)
@@ -71,7 +93,7 @@ function pintarCartas() {
       <span class="op-foto">${fotoHtml(c)}</span>
       ${pos >= 0 ? `<span class="op-numero">${pos + 1}</span>` : ''}
       <span class="op-nombre">${escapeHtml(nombreDeCarta(c))}</span>
-      ${terminado() ? `<span class="op-precio">${euros(c.precio)}</span>` : ''}
+      ${bueno ? `<span class="op-precio">${euros(precios[c.id])}</span>` : ''}
     </button>`
   }).join('')
   $('opComprobar').disabled = puestos.some((x) => !x)
@@ -79,7 +101,7 @@ function pintarCartas() {
 
 function pintarIntentos() {
   $('opIntentos').innerHTML = estado.intentos.map((o, n) => {
-    const bien = enSuSitio(o, cartas)
+    const bien = bienes[n] || []
     return `<li class="op-intento"><b>${n + 1}.º</b><span class="op-intento-mini">${o.map((id, i) => `<span class="${bien[i] ? 'si' : ''}">${fotoHtml(porId.get(id) || {})}</span>`).join('')}</span><span>${bien.filter(Boolean).length} de ${CARTAS} en su sitio</span></li>`
   }).join('')
 }
@@ -127,7 +149,7 @@ function pintarTodo() {
   pintarFinal()
   // Tras un intento, lo que dice: las verdes se quedan.
   const ultimo = estado.intentos.at(-1)
-  const pista = ultimo ? ` · ${enSuSitio(ultimo, cartas).filter(Boolean).length} de ${CARTAS} en su sitio; las verdes se quedan` : ' · toca de la más barata a la más cara'
+  const pista = ultimo ? ` · ${(bienes.at(-1) || []).filter(Boolean).length} de ${CARTAS} en su sitio; las verdes se quedan` : ' · toca de la más barata a la más cara'
   $('opSub').textContent = `${libre ? 'Partida libre' : `Reto #${numeroDelDia(dia)}`} · ${terminado() ? 'resuelto' : `intento ${estado.intentos.length + 1} de ${INTENTOS}${pista}`}`
 }
 
@@ -142,32 +164,34 @@ function tocar(id) {
   pintarCartas()
 }
 
-async function guardar() {
-  if (libre || !terminado() || estado.guardado) return
-  const r = await guardarResultado('ordena', dia, { aciertos: estado.acertada ? 1 : 0, total: 1, intentos: estado.intentos.length, acertada: estado.acertada }).catch(() => ({ error: true }))
-  if (r && (r.nuevo === true || r.nuevo === false)) { estado.guardado = true; escribir(CLAVE, estado); guardado = r } else if (r?.sinCuenta) guardado = r
-  pintarPremios()
-}
-
-function comprobar() {
-  if (terminado() || puestos.some((x) => !x)) return
-  estado.intentos.push([...puestos])
-  if (enSuSitio(puestos, cartas).every(Boolean)) {
-    estado.acertada = true
+async function comprobar() {
+  if (terminado() || jugando || puestos.some((x) => !x)) return
+  jugando = true
+  $('opComprobar').disabled = true
+  let r
+  try {
+    r = await arbitro.jugar({ orden: [...puestos] })
+  } catch (e) {
+    jugando = false
+    $('opComprobar').disabled = false
+    showToast(e.message || 'No se ha podido comprobar. Inténtalo de nuevo.', 'error')
+    return
+  }
+  jugando = false
+  aplicar(r)
+  if (estado.acertada) {
     const d = diasAcertados()
     if (!libre && !d.includes(dia)) escribir(CLAVE_DIAS, [...d, dia].slice(-400))
   }
-  escribir(CLAVE, estado)
   empezarIntento()
   pintarTodo()
-  if (terminado()) guardar()
 }
 
 // La hoja de compartir (871): el texto y la imagen, con una fila de cuatro
 // casillas por intento.
 async function compartir() {
   const { abrirHojaCompartir } = await import('./compartir-hoja.js')
-  const texto = textoParaCompartir({ dia, intentos: estado.intentos, cartas, acertada: estado.acertada })
+  const texto = textoParaCompartir({ dia, intentos: estado.intentos, cartas: conPrecio(), acertada: estado.acertada })
   await abrirHojaCompartir({ titulo: 'Ordena por precio', texto, imagen: imagenDelResultado, nombre: `ordena-precio-${numeroDelDia(dia)}` })
 }
 
@@ -178,7 +202,7 @@ async function imagenDelResultado(formato) {
     cuenta: `${estado.acertada ? estado.intentos.length : 'X'}/${INTENTOS}`,
     numero: numeroDelDia(dia),
     lema: 'Ordena cartas por su precio, cada día',
-    filas: estado.intentos.map((o) => enSuSitio(o, cartas)),
+    filas: estado.intentos.map((_, n) => bienes[n] || []),
     racha: rachaDeDias(diasAcertados(), dia),
     enlace: ENLACE,
     formato,
@@ -195,7 +219,7 @@ function sinTablero(texto) {
 async function init() {
   let r
   try {
-    r = await traerRetoConFotos('ordena-precio', { libre, cartasDe: (x) => x.cartas || [] })
+    r = await traerRetoConFotos('ordena-precio', { libre, cadenasDe: (x) => (x.cartas || []).map((c) => [c.foto]) })
   } catch (e) {
     sinTablero(e.sinFoto ? TEXTO_SIN_FOTO : 'Hoy no se han podido traer las cartas. Vuelve en un rato.')
     return
@@ -204,11 +228,14 @@ async function init() {
   cartas = (r.cartas || []).slice(0, CARTAS)
   if (cartas.length < CARTAS) { sinTablero('Hoy no hay cartas suficientes con precio. Vuelve mañana.'); return }
   porId = new Map(cartas.map((c) => [c.id, c]))
-  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
-  if (!libre) await traerPartidaDeHoy('ordena', dia).catch(() => false)
+  try {
+    arbitro = partida('ordena', { dia, libre })
+    aplicar(await arbitro.abrir())
+  } catch (e) {
+    sinTablero(e.sinArbitro ? e.message : 'Hoy no se han podido traer las cartas. Vuelve en un rato.')
+    return
+  }
   if (libre) $('opSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('ordena'), '/ordena-precio'))
-  const g = leer(CLAVE, null)
-  estado = g && g.dia === dia && Array.isArray(g.intentos) ? g : { dia, intentos: [], acertada: false }
   sesion = await getSession().catch(() => null)
   empezarIntento()
   pintarTodo()
@@ -218,9 +245,8 @@ async function init() {
   })
   $('opComprobar').addEventListener('click', comprobar)
   $('opLimpiar').addEventListener('click', () => { empezarIntento(); pintarCartas() })
-  if (sesion && terminado() && !libre) {
-    if (!estado.guardado) guardar()
-    else misNumeros(1).then((n) => { if (n?.hoy?.ordena) { guardado = { nuevo: false, xp: n.hoy.ordena.xp }; pintarPremios() } }).catch(() => {})
+  if (sesion && terminado() && !libre && !guardado) {
+    misNumeros(1).then((n) => { if (n?.hoy?.ordena) { guardado = { nuevo: false, xp: n.hoy.ordena.xp }; pintarPremios() } }).catch(() => {})
   }
 }
 

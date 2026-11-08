@@ -6,13 +6,16 @@ import { getSession } from './app.js'
 import { icons } from './icons.js'
 import { POKEMON_POR_DEX } from './torneos/sprites-pokemon.js'
 import { hoyISO } from './reto-diario.js'
-import { INTENTOS, numeroDelDia, pokemonDelDia, opcionesDelDia, urlsDelDibujo, textoParaCompartir, ENLACE } from './quien-es.js'
+import { INTENTOS, numeroDelDia, urlsDelDibujo, textoParaCompartir, ENLACE } from './quien-es.js'
 import { xpDe, xpSiAciertasSilueta } from './retos-xp.js'
-import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
+import { estadisticas, misNumeros } from './retos-datos.js'
+import { partida } from './reto-arbitro.js'
+import { traerRetoConFotos } from './reto-fotos.js'
+import { showToast } from './toast.js'
 import { premiosHtml, cuentaAtras, genteHtml, salidasHtml, avisoLibreHtml } from './retos-ui.js'
 import { hechoHoy } from './retos-siguiente.js'
 import { rachaDeDias } from './reto-compartir.js'
-import { libreDeDireccion, diaLibre, claveLibre } from './retos-libre.js'
+import { libreDeDireccion, claveLibre } from './retos-libre.js'
 
 const $ = (id) => document.getElementById(id)
 // Una partida libre (988, `?libre=N`) se juega como otro día y en su propia
@@ -22,33 +25,51 @@ const hoy = hoyISO()
 const CLAVE = claveLibre('pokedoc-quien-es', libre)
 const CLAVE_DIAS = 'pokedoc-quien-es-acertados'
 
-const dia = libre ? diaLibre(libre) : hoy
-const buena = pokemonDelDia(dia)
-const opciones = opcionesDelDia(dia)
+// El Pokémon del día ya no sale de la fecha en la página (1268): lo elige el
+// servidor con su semilla secreta y lo sabe la base. La página tiene las
+// cuatro opciones y la silueta (negra y borrosa, hecha en el servidor); el
+// número de la buena llega al acabar.
+let dia = null
+let opciones = []
+let foto = null
+let buena = null
+let arbitro = null
+let jugando = false
 const nombre = (dex) => POKEMON_POR_DEX[dex - 1] || `#${dex}`
-let estado = { dia, elegidos: [], acertada: false }
+let estado = { dia: null, elegidos: [], acertada: false }
 let sesion = null
 let guardado = null
 
 const leer = (clave, defecto) => { try { return JSON.parse(localStorage.getItem(clave) || 'null') ?? defecto } catch { return defecto } }
 const escribir = (clave, v) => { try { localStorage.setItem(clave, JSON.stringify(v)) } catch {} }
 
-function cargarEstado() {
-  const g = leer(CLAVE, null)
-  if (g && g.dia === dia && Array.isArray(g.elegidos)) estado = g
+const fallos = () => (estado.acertada ? estado.elegidos.slice(0, -1) : estado.elegidos)
+const terminado = () => Boolean(estado.terminada) || estado.acertada || fallos().length >= INTENTOS
+
+// Lo que contesta la base, a la pantalla (y al navegador, para «Mi día»).
+function aplicar(r) {
+  const e = r?.estado || {}
+  estado = { dia, elegidos: e.elegidos || [], acertada: Boolean(e.acertada), terminada: Boolean(e.terminada) }
+  if (e.foto) foto = e.foto
+  if (e.buena) buena = Number(e.buena)
+  if (r?.guardado) guardado = r.guardado
+  escribir(CLAVE, estado)
 }
-const fallos = () => estado.elegidos.filter((d) => d !== buena)
-const terminado = () => estado.acertada || fallos().length >= INTENTOS
 const diasAcertados = () => { const d = leer(CLAVE_DIAS, []); return Array.isArray(d) ? d : [] }
 
 function pintarDibujo() {
   const img = $('qeDibujo')
-  if (!img.dataset.puesto) {
-    img.dataset.puesto = '1'
-    const urls = urlsDelDibujo(buena)
-    let i = 0
-    img.onerror = () => { i++; if (i < urls.length) img.src = urls[i] }
-    img.src = urls[0]
+  const urls = terminado() && buena ? urlsDelDibujo(buena) : foto ? [foto] : []
+  if (urls.length && img.dataset.puesto !== urls[0]) {
+    img.dataset.puesto = urls[0]
+    // La siguiente silueta se carga antes de cambiarla: sin parpadeo.
+    const antes = new Image()
+    antes.onload = antes.onerror = () => {
+      let i = 0
+      img.onerror = () => { i++; if (i < urls.length) img.src = urls[i] }
+      img.src = urls[0]
+    }
+    antes.src = urls[0]
   }
   $('qeEscena').classList.toggle('revelado', terminado())
   // 991: borroso en el primer intento y más claro con cada fallo.
@@ -59,7 +80,7 @@ function pintarDibujo() {
 function pintarOpciones() {
   $('qeOpciones').innerHTML = opciones.map((dex) => {
     const elegido = estado.elegidos.includes(dex)
-    const clase = dex === buena && (estado.acertada || terminado()) ? ' acierto' : elegido ? ' fallo' : ''
+    const clase = dex === buena && terminado() ? ' acierto' : elegido ? ' fallo' : ''
     return `<button type="button" class="qe-opcion${clase}" data-dex="${dex}"${elegido || terminado() ? ' disabled' : ''}>${escapeHtml(nombre(dex))}</button>`
   }).join('')
 }
@@ -72,7 +93,7 @@ function pintarBote() {
 
 function pintarFinal() {
   const f = $('qeFinal')
-  if (!terminado()) { f.classList.add('hidden'); return }
+  if (!terminado() || !buena) { f.classList.add('hidden'); return }
   const n = fallos().length + 1
   f.className = `qe-final rj-final${estado.acertada ? '' : ' fallado'}`
   f.innerHTML = `
@@ -107,24 +128,24 @@ function pintarTodo() {
   $('qeSub').textContent = `${libre ? 'Partida libre' : `Reto #${numeroDelDia(dia)}`} · ${terminado() ? 'resuelto' : fallos().length ? `intento ${fallos().length + 1} de ${INTENTOS}: ahora se ve mejor` : `intento 1 de ${INTENTOS}: borroso, y cada fallo lo aclara`}`
 }
 
-async function guardar() {
-  if (libre || !terminado() || estado.guardado) return
-  const r = await guardarResultado('silueta', dia, { aciertos: estado.acertada ? 1 : 0, total: 1, intentos: fallos().length + (estado.acertada ? 1 : 0), acertada: estado.acertada }).catch(() => ({ error: true }))
-  if (r && (r.nuevo === true || r.nuevo === false)) { estado.guardado = true; escribir(CLAVE, estado); guardado = r } else if (r?.sinCuenta) guardado = r
-  pintarPremios()
-}
-
-function elegir(dex) {
-  if (terminado() || estado.elegidos.includes(dex)) return
-  estado.elegidos.push(dex)
-  if (dex === buena) {
-    estado.acertada = true
+async function elegir(dex) {
+  if (terminado() || jugando || estado.elegidos.includes(dex)) return
+  jugando = true
+  let r
+  try {
+    r = await arbitro.jugar({ dex })
+  } catch (e) {
+    jugando = false
+    showToast(e.message || 'No se ha podido comprobar. Inténtalo de nuevo.', 'error')
+    return
+  }
+  jugando = false
+  aplicar(r)
+  if (estado.acertada) {
     const d = diasAcertados()
     if (!libre && !d.includes(dia)) escribir(CLAVE_DIAS, [...d, dia].slice(-400))
   }
-  escribir(CLAVE, estado)
   pintarTodo()
-  if (terminado()) guardar()
 }
 
 // La hoja de compartir (871): el texto y la imagen, con el dibujo del
@@ -156,9 +177,18 @@ async function imagenDelResultado(formato) {
 }
 
 async function init() {
-  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
-  if (!libre) await traerPartidaDeHoy('silueta', dia).catch(() => false)
-  cargarEstado()
+  try {
+    const r = await traerRetoConFotos('quien-es', { libre, cadenasDe: (x) => (x.foto ? [[x.foto]] : []) })
+    if (!r.dia || !r.foto || !Array.isArray(r.opciones)) throw new Error('sin reto')
+    dia = r.dia
+    opciones = r.opciones
+    foto = r.foto
+    arbitro = partida('silueta', { dia, libre })
+    aplicar(await arbitro.abrir())
+  } catch (err) {
+    $('qeSub').textContent = err.sinArbitro ? err.message : 'Hoy no se ha podido traer el reto. Vuelve en un rato.'
+    return
+  }
   sesion = await getSession().catch(() => null)
   if (libre) $('qeSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('silueta'), '/quien-es'))
   pintarTodo()
@@ -166,9 +196,8 @@ async function init() {
     const b = e.target.closest('[data-dex]')
     if (b) elegir(Number(b.dataset.dex))
   })
-  if (sesion && terminado() && !libre) {
-    if (!estado.guardado) guardar()
-    else misNumeros(1).then((n) => { if (n?.hoy?.silueta) { guardado = { nuevo: false, xp: n.hoy.silueta.xp }; pintarPremios() } }).catch(() => {})
+  if (sesion && terminado() && !libre && !guardado) {
+    misNumeros(1).then((n) => { if (n?.hoy?.silueta) { guardado = { nuevo: false, xp: n.hoy.silueta.xp }; pintarPremios() } }).catch(() => {})
   }
 }
 

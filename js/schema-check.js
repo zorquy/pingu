@@ -98,6 +98,8 @@ export const REQUISITOS = [
   { tabla: 'tcg_eras', columna: 'market', fichero: 'supabase-migration-colecciones-editables.sql', rompe: 'Las eras del catálogo no se pueden editar desde /admin.' },
   { tabla: 'carta_del_dia', columna: 'day', fichero: 'supabase-migration-carta-del-dia.sql', rompe: 'El reto «¿Qué carta es?» no tiene carta.' },
   { tabla: 'mas_caro_del_dia', columna: 'day', fichero: 'supabase-migration-mas-caro.sql', rompe: 'El reto «¿Más caro o más barato?» no tiene partida.' },
+  // 1268: el árbitro de los retos. Sin ella, ningún reto se puede jugar.
+  { rpc: 'retos_jugar', args: { p_juego: 'carta', p_dia: '1900-01-02', p_libre: 1 }, fichero: 'supabase-migration-1268-retos-arbitro.sql', rompe: 'Los retos diarios no se pueden jugar (dicen «Este reto se está actualizando»).' },
   { tabla: 'enlaces_cortos', columna: 'id', fichero: 'supabase-migration-enlaces-cortos.sql', rompe: 'Los enlaces cortos no se crean (el largo sigue funcionando).' },
   { tabla: 'tcg_card_prices', columna: 'cm_url', fichero: 'supabase-migration-precios-url.sql', rompe: 'Las fichas no enlazan a la página exacta de Cardmarket.' },
   { tabla: 'tcg_card_prices', columna: 'tp_normal_market', fichero: 'supabase-migration-precios-tcgplayer.sql', rompe: 'Los precios de TCGplayer no se guardan.' },

@@ -39,9 +39,20 @@ export async function cartasSinFoto(cartas, calidad = 'low') {
   return lista.filter((_, i) => r[i] === 'falla').map((c) => c.id)
 }
 
+// Cuántas de esas cadenas no dan ninguna foto. Desde la 1268 la mesa de un
+// reto trae las fotos ya hechas (/reto-foto, con la dirección cifrada): cada
+// una es su propia cadena de una dirección.
+async function cuantasSinFoto(cadenas) {
+  const r = await Promise.all((cadenas || []).map((c) => probarCadena(c)))
+  return r.filter((x) => x === 'falla').length
+}
+
 // Trae el reto de `funcion` y comprueba sus fotos. Devuelve la respuesta, o
-// lanza: `e.sinFoto` si sigue faltando alguna después de revisar.
-export async function traerRetoConFotos(funcion, { libre = null, cartasDe, calidad = 'low' }) {
+// lanza: `e.sinFoto` si sigue faltando alguna después de revisar. Las fotos
+// salen de `cadenasDe(r)` (listas de direcciones) o, si no, de las cartas
+// de `cartasDe(r)` por su cadena de respaldos.
+export async function traerRetoConFotos(funcion, { libre = null, cartasDe, cadenasDe = null, calidad = 'low' }) {
+  const faltan = async (r) => (cadenasDe ? cuantasSinFoto(cadenasDe(r)) : (await cartasSinFoto(cartasDe(r), calidad)).length)
   const pedir = async (revisar) => {
     const q = new URLSearchParams()
     if (libre) q.set('libre', libre)
@@ -49,14 +60,15 @@ export async function traerRetoConFotos(funcion, { libre = null, cartasDe, calid
     // La 1111b acortó lo que el navegador guarda la respuesta del día (era
     // hasta medianoche): con otra dirección, lo guardado antes no se usa. Solo
     // el día: una libre se guarda poco y Parejas la pide antes por su dirección.
-    if (!libre) q.set('v', '2')
+    // Y la 1268 cambió lo que contesta (la mesa, sin respuestas): la v=3.
+    if (!libre) q.set('v', '3')
     const res = await fetch(`/.netlify/functions/${funcion}${q.toString() ? `?${q}` : ''}`, { headers: { accept: 'application/json' }, ...(revisar ? { cache: 'no-store' } : {}) })
     const r = await res.json()
     if (!res.ok || r.error) throw new Error(r.error || `HTTP ${res.status}`)
     return r
   }
   const r = await pedir(false)
-  if (!(await cartasSinFoto(cartasDe(r), calidad)).length) return r
+  if (!(await faltan(r))) return r
   const revisado = await pedir(true)
   if (!revisado.sinFoto?.length) return revisado
   const e = new Error('sin foto')

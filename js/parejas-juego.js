@@ -3,6 +3,11 @@
 //
 // Doce cartas boca abajo. Se vuelven dos: si son la misma se quedan, y si no,
 // se vuelven a tapar al rato. Un movimiento es cada par de cartas vueltas.
+//
+// Desde la 1268 la página NO sabe dónde está cada carta: la mesa se baraja
+// por partida en la base (`retos_jugar`) y cada carta que vuelves la dice
+// ella. Hasta la 1267 la mesa salía de la fecha y las doce caras estaban en
+// la página, tapadas solo con CSS.
 import { escapeHtml } from './html.js'
 import { getSession } from './app.js'
 import { icons } from './icons.js'
@@ -10,8 +15,10 @@ import { nombreDeCarta } from './catalogo-series.js'
 import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { rutaDeCarta } from './carta-ruta.js'
 import { hoyISO } from './reto-diario.js'
-import { PAREJAS, numeroDelDia, mesaDelDia, mover, acabada, xpQueQueda, xpDeMovimientos, textoParaCompartir, ENLACE } from './parejas.js'
-import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
+import { PAREJAS, numeroDelDia, xpQueQueda, xpDeMovimientos, textoParaCompartir, ENLACE } from './parejas.js'
+import { estadisticas, misNumeros } from './retos-datos.js'
+import { partida } from './reto-arbitro.js'
+import { showToast } from './toast.js'
 import { premiosHtml, cuentaAtras, salidasHtml, avisoLibreHtml } from './retos-ui.js'
 import { hechoHoy } from './retos-siguiente.js'
 import { rachaDeDias } from './reto-compartir.js'
@@ -30,17 +37,31 @@ const ESPERA = 900
 
 let dia = null
 let cartas = []
-let mesa = []
+const HUECOS = PAREJAS * 2
 let estado = { dia: null, movimientos: 0, hechas: [], tira: [] }
-// Los huecos vueltos ahora mismo (no se guardan: al volver, todo tapado).
+// Lo que se sabe de la mesa: qué carta hay en cada hueco ya visto (los de
+// las parejas hechas y los que están vueltos ahora mismo).
+let vistas = {}
+// Los huecos vueltos ahora mismo.
 let abiertas = []
+let arbitro = null
 let bloqueado = false
 let sesion = null
 let guardado = null
 
 const leer = (clave, defecto) => { try { return JSON.parse(localStorage.getItem(clave) || 'null') ?? defecto } catch { return defecto } }
 const escribir = (clave, v) => { try { localStorage.setItem(clave, JSON.stringify(v)) } catch {} }
-const terminado = () => acabada(estado)
+const terminado = () => Boolean(estado.terminada) || (estado.hechas || []).length >= PAREJAS
+
+// Lo que contesta la base, a la pantalla (y al navegador, para «Mi día»).
+function aplicar(r) {
+  const e = r?.estado || {}
+  estado = { dia, movimientos: e.movimientos || 0, hechas: e.hechas || [], tira: e.tira || [], terminada: Boolean(e.terminada) }
+  vistas = { ...vistas, ...(e.descubiertas || {}) }
+  if (e.abierta) { vistas[e.abierta.hueco] = e.abierta.carta; abiertas = [e.abierta.hueco] }
+  if (r?.guardado) guardado = r.guardado
+  escribir(CLAVE, estado)
+}
 const diasJugados = () => { const d = leer(CLAVE_DIAS, []); return Array.isArray(d) ? d : [] }
 
 function fotoHtml(c, carga = 'eager') {
@@ -48,14 +69,15 @@ function fotoHtml(c, carga = 'eager') {
   return a ? `<img ${a} alt="" width="245" height="342" loading="${carga}" draggable="false" />` : ''
 }
 
+// Una carta tapada no lleva su cara en la página (1268): solo la que se ve.
 function pintarMesa() {
-  $('paMesa').innerHTML = mesa.map((i, k) => {
-    const hecha = estado.hechas.includes(i)
-    const vuelta = hecha || abiertas.includes(k)
-    const nombre = nombreDeCarta(cartas[i])
-    return `<button type="button" class="pa-carta${vuelta ? ' vuelta' : ''}${hecha ? ' hecha' : ''}" data-hueco="${k}"${hecha || terminado() ? ' disabled' : ''} aria-label="${vuelta ? escapeHtml(nombre) : `Carta ${k + 1}, boca abajo`}">
+  $('paMesa').innerHTML = Array.from({ length: HUECOS }, (_, k) => {
+    const i = vistas[k]
+    const hecha = i != null && estado.hechas.includes(i)
+    const vuelta = i != null && (hecha || abiertas.includes(k))
+    return `<button type="button" class="pa-carta${vuelta ? ' vuelta' : ''}${hecha ? ' hecha' : ''}" data-hueco="${k}"${hecha || terminado() ? ' disabled' : ''} aria-label="${vuelta ? escapeHtml(nombreDeCarta(cartas[i])) : `Carta ${k + 1}, boca abajo`}">
       <span class="pa-dorso" aria-hidden="true"></span>
-      <span class="pa-cara">${fotoHtml(cartas[i])}</span>
+      <span class="pa-cara">${vuelta ? fotoHtml(cartas[i]) : ''}</span>
     </button>`
   }).join('')
 }
@@ -112,32 +134,53 @@ function pintarTodo() {
   pintarFinal()
 }
 
-async function guardar() {
-  if (libre || !terminado() || estado.guardado) return
-  const r = await guardarResultado('parejas', dia, { aciertos: PAREJAS, total: PAREJAS, intentos: estado.movimientos, acertada: true, tira: estado.tira }).catch(() => ({ error: true }))
-  if (r && (r.nuevo === true || r.nuevo === false)) { estado.guardado = true; escribir(CLAVE, estado); guardado = r } else if (r?.sinCuenta) guardado = r
-  pintarPremios()
-}
+// Mientras la base contesta la primera de dos, la segunda que se toca espera
+// en cola (un toque rápido no se pierde).
+let enVuelo = false
+let enCola = null
 
-function tocar(k) {
-  if (bloqueado || terminado() || abiertas.includes(k) || estado.hechas.includes(mesa[k])) return
-  abiertas.push(k)
-  if (abiertas.length < 2) { pintarMesa(); return }
-  const [a, b] = abiertas
-  const r = mover(estado, a, b, mesa)
-  estado = r.estado
-  escribir(CLAVE, estado)
-  if (r.pareja) {
-    abiertas = []
+async function tocar(k) {
+  if (enVuelo) { if (!abiertas.includes(k)) enCola = k; return }
+  if (bloqueado || terminado() || abiertas.includes(k) || (vistas[k] != null && estado.hechas.includes(vistas[k]))) return
+  bloqueado = true
+  enVuelo = true
+  let r
+  try {
+    r = await arbitro.jugar({ hueco: k })
+  } catch (e) {
+    bloqueado = false
+    enVuelo = false
+    enCola = null
+    showToast(e.message || 'No se ha podido dar la vuelta. Inténtalo de nuevo.', 'error')
+    return
+  }
+  enVuelo = false
+  const eco = r.eco || {}
+  vistas[k] = eco.carta
+  if (eco.otro == null) {
+    // La primera de dos: se queda vuelta esperando a la otra.
+    aplicar(r)
+    abiertas = [k]
+    bloqueado = false
     pintarTodo()
-    if (terminado()) {
-      if (!libre) { const d = diasJugados(); if (!d.includes(dia)) escribir(CLAVE_DIAS, [...d, dia].slice(-400)) }
-      guardar()
-    }
+    const cola = enCola
+    enCola = null
+    if (cola != null && cola !== k) tocar(cola)
+    return
+  }
+  enCola = null
+  vistas[eco.otro] = eco.otraCarta
+  abiertas = [eco.otro, k]
+  const yaAcabada = terminado()
+  aplicar(r)
+  if (eco.pareja) {
+    abiertas = []
+    bloqueado = false
+    pintarTodo()
+    if (terminado() && !yaAcabada && !libre) { const d = diasJugados(); if (!d.includes(dia)) escribir(CLAVE_DIAS, [...d, dia].slice(-400)) }
     return
   }
   // No es pareja: se ven las dos un momento y se tapan.
-  bloqueado = true
   pintarMesa()
   pintarMarcador()
   setTimeout(() => { abiertas = []; bloqueado = false; pintarMesa() }, ESPERA)
@@ -180,12 +223,8 @@ function sinMesa(texto) {
 const pedirCartas = (n) => fetch(`/.netlify/functions/parejas?libre=${n}`, { headers: { accept: 'application/json' } })
 
 async function init() {
-  // La mesa ya sale tapada desde el HTML (990). Las tres cosas que hacen
-  // falta para jugar se piden a la vez: antes iban una detrás de otra.
-  const diaUTC = new Date().toISOString().slice(0, 10)
+  // La mesa ya sale tapada desde el HTML (990). La cuenta se pide a la vez.
   const cuenta = getSession().catch(() => null)
-  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
-  const partida = libre ? Promise.resolve(false) : traerPartidaDeHoy('parejas', diaUTC).catch(() => false)
   let r
   try {
     r = await traerRetoConFotos('parejas', { libre, cartasDe: (x) => x.cartas || [] })
@@ -196,11 +235,16 @@ async function init() {
   dia = r.dia
   cartas = (r.cartas || []).slice(0, PAREJAS)
   if (cartas.length < PAREJAS) { sinMesa('Hoy no hay cartas para este reto. Vuelve mañana.'); return }
-  mesa = mesaDelDia(dia)
-  await partida
-  if (!libre && dia !== diaUTC) await traerPartidaDeHoy('parejas', dia).catch(() => false)
-  const g = leer(CLAVE, null)
-  estado = g && g.dia === dia && Array.isArray(g.hechas) ? g : { dia, movimientos: 0, hechas: [], tira: [] }
+  // Las seis caras se cargan ya (no dicen dónde está cada una): al dar la
+  // vuelta salen al momento.
+  for (const c of cartas) { const u = cadenaDeEscaneo(c, c?.tcg_sets?.tcg_online_code || null)[0]; if (u) new Image().src = u }
+  try {
+    arbitro = partida('parejas', { dia, libre })
+    aplicar(await arbitro.abrir())
+  } catch (e) {
+    sinMesa(e.sinArbitro ? e.message : 'Hoy no se han podido traer las cartas. Vuelve en un rato.')
+    return
+  }
   sesion = await cuenta
   $('paMesa').removeAttribute('aria-busy')
   if (libre) $('paSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('parejas'), '/parejas'))
@@ -209,9 +253,8 @@ async function init() {
     const b = e.target.closest('[data-hueco]')
     if (b && !b.disabled) tocar(Number(b.dataset.hueco))
   })
-  if (sesion && terminado() && !libre) {
-    if (!estado.guardado) guardar()
-    else misNumeros(1).then((n) => { if (n?.hoy?.parejas) { guardado = { nuevo: false, xp: n.hoy.parejas.xp }; pintarPremios() } }).catch(() => {})
+  if (sesion && terminado() && !libre && !guardado) {
+    misNumeros(1).then((n) => { if (n?.hoy?.parejas) { guardado = { nuevo: false, xp: n.hoy.parejas.xp }; pintarPremios() } }).catch(() => {})
   }
 }
 

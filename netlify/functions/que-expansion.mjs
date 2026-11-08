@@ -20,6 +20,9 @@ import { diaLibre } from '../../js/retos-libre.js'
 import { conFoto, sinFoto, revisarDePeticion, CABECERAS_REVISADO } from '../lib/fotos-reto.mjs'
 import { idDeAdmin, tokenDe } from '../lib/admin.mjs'
 import { purgarEtiquetas } from '../lib/purgar.mjs'
+import { semillaDelDia } from '../lib/reto-secreto.mjs'
+import { mesaDelReto, partirExpansion } from '../lib/reto-mesa.mjs'
+import { puertas } from './mas-caro.mjs'
 
 export const JUEGO = 'expansion'
 export const CANDIDATAS = 20
@@ -35,7 +38,9 @@ const sinTabla = (e) => /retos_reto_del_dia|42P01|PGRST205/.test(String(e?.messa
 const enLista = (ids) => ids.map((id) => `"${String(id).replace(/"/g, '')}"`).join(',')
 
 // Con `libre` (988), una partida libre: el día suyo, sin la tabla del día.
-export async function elegirExpansion({ dia, pedir, guardar, actualizar = null, libre = null, revisar = false, forzar = [], alCambiar = null, probar }) {
+// `secreto` (1268): la semilla del servidor (las cartas y el sitio de la
+// buena entre las opciones ya no salen solo de la fecha).
+export async function elegirExpansion({ dia, pedir, guardar, actualizar = null, libre = null, revisar = false, forzar = [], alCambiar = null, probar, secreto = 0 }) {
   if (libre) dia = diaLibre(libre)
   const todos = ((await pedir(`tcg_sets?select=${COLUMNAS_SET}&market=eq.WEST&oculto=is.false&limit=1000`)).datos || []).filter(esDelTCG)
   // LAS EXPANSIONES COMO LAS ENSEÑA LA WEB (976): plegadas. Sin esto una
@@ -55,7 +60,7 @@ export async function elegirExpansion({ dia, pedir, guardar, actualizar = null, 
   const nuevas = async (cuantas, { sal = SAL, ocupadas = [], fuera = [] } = {}) => {
     const { total } = await pedir(`tcg_cards?select=id,tcg_sets!inner(oculto)&${FILTRO_CARTAS}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
     if (!total) return []
-    const filas = await Promise.all(indicesDelDia(dia, total, Math.min(CANDIDATAS, total), sal)
+    const filas = await Promise.all(indicesDelDia(dia, total, Math.min(CANDIDATAS, total), sal + secreto)
       .map((i) => pedir(`tcg_cards?select=${COLUMNAS_CARTA}&${FILTRO_CARTAS}&order=id.asc&limit=1&offset=${i}`).then((r) => r.datos?.[0] || null)))
     const usadas = [...ocupadas]
     const elegidas = []
@@ -83,7 +88,7 @@ export async function elegirExpansion({ dia, pedir, guardar, actualizar = null, 
   if (!rondas?.length) {
     const elegidas = await nuevas(RONDAS)
     if (elegidas.length < RONDAS) return { error: 'No se han podido elegir cinco cartas.' }
-    rondas = elegidas.map((c, r) => ({ card_id: c.id, set_ids: opcionesDeExpansion(expansionDe(c.set_id), sets, dia, r).map((s) => s.id) }))
+    rondas = elegidas.map((c, r) => ({ card_id: c.id, set_ids: opcionesDeExpansion(expansionDe(c.set_id), sets, dia, r, secreto).map((s) => s.id) }))
     if (!libre) try {
       await guardar('retos_reto_del_dia', { juego: JUEGO, day: dia, datos: { rondas, fotos_revisadas: true } })
       const otra = (await pedir(`retos_reto_del_dia?select=datos&juego=eq.${JUEGO}&day=eq.${dia}&limit=1`)).datos
@@ -112,7 +117,7 @@ export async function elegirExpansion({ dia, pedir, guardar, actualizar = null, 
       if (otras.length === cambiar.length) {
         rondas = rondas.map((r, i) => {
           const k = cambiar.indexOf(i)
-          return k < 0 ? r : { card_id: otras[k].id, set_ids: opcionesDeExpansion(expansionDe(otras[k].set_id), sets, dia, i).map((s) => s.id) }
+          return k < 0 ? r : { card_id: otras[k].id, set_ids: opcionesDeExpansion(expansionDe(otras[k].set_id), sets, dia, i, secreto).map((s) => s.id) }
         })
         try {
           await actualizar('retos_reto_del_dia', `juego=eq.${JUEGO}&day=eq.${dia}`, { datos: { ...(datos || {}), rondas, fotos_revisadas: true, cambiadas: [...(datos?.cambiadas || []), ...cambiar] } })
@@ -149,6 +154,20 @@ export const ETIQUETA_CACHE = 'reto-expansion'
 // al momento, en vez de quedarse con el roto hasta mañana.
 export const cabecerasDelDia = (hasta) => ({ 'cache-control': 'public, max-age=60', 'netlify-cdn-cache-control': `public, max-age=${hasta}`, 'netlify-cache-tag': ETIQUETA_CACHE })
 
+// Lo que se sirve (1268): la foto de cada ronda (sin dirección que diga el
+// set) y sus cuatro opciones. La buena, a `retos_arbitro`.
+export async function mesaExpansion({ dia, libre = null, revisar = false, forzar = [], alCambiar = null, secreto = 0, foto, pedir, guardar, actualizar, escribir, probar }) {
+  return mesaDelReto({
+    juego: JUEGO,
+    dia: libre ? diaLibre(libre) : dia,
+    revisar: revisar || forzar.length > 0,
+    pedir,
+    escribir,
+    elegir: () => elegirExpansion({ dia, libre, revisar, forzar, alCambiar, pedir, guardar, actualizar, probar, secreto }),
+    partir: (r) => partirExpansion(r, foto),
+  })
+}
+
 export default async (req) => {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return Response.json({ error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' }, { status: 500 })
@@ -164,16 +183,16 @@ export default async (req) => {
     forzar = [ronda]
     revisar = true
   }
+  const dia = hoyUTC()
   try {
-    const r = await elegirExpansion({
-      dia: hoyUTC(),
+    const r = await mesaExpansion({
+      dia,
       libre,
-      pedir: (ruta, o = {}) => rest(ruta, clave, o),
-      guardar: (tabla, fila) => rest(tabla, clave, { metodo: 'POST', cuerpo: [fila], cabeceras: { prefer: 'resolution=ignore-duplicates,return=minimal' } }),
-      actualizar: (tabla, filtro, cambios) => rest(`${tabla}?${filtro}`, clave, { metodo: 'PATCH', cuerpo: cambios, cabeceras: { prefer: 'return=minimal' } }),
       revisar,
       forzar,
       alCambiar: () => purgarEtiquetas([ETIQUETA_CACHE]),
+      secreto: semillaDelDia(libre ? diaLibre(libre) : dia, clave),
+      ...puertas(clave),
     })
     if (r.error) return Response.json(r, { status: 503, headers: { 'cache-control': 'no-store' } })
     return Response.json(r, { headers: libre ? CABECERAS_LIBRE : revisar ? CABECERAS_REVISADO : cabecerasDelDia(segundosHastaManana()) })

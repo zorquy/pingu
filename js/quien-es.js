@@ -21,19 +21,22 @@ export const ENLACE = 'pokedoc.es/quien-es'
 // Una sal propia para no sacar los mismos números que los otros retos.
 const SAL = 7001
 
-export function pokemonDelDia(dia) {
-  return 1 + (Math.floor(azarDelDia(dia, SAL) * TOTAL_POKEDEX) % TOTAL_POKEDEX)
+// `secreto` (1268): lo suma el servidor con un número que sale de su clave
+// (netlify/lib/reto-secreto.mjs). Sin él, la fecha bastaba para saber el de
+// hoy desde la página; la página ya no lo calcula.
+export function pokemonDelDia(dia, secreto = 0) {
+  return 1 + (Math.floor(azarDelDia(dia, SAL + secreto) * TOTAL_POKEDEX) % TOTAL_POKEDEX)
 }
 
 // Las cuatro opciones, en un orden que no delata cuál es: la buena y tres
 // de OTRAS familias (con Haunter al lado de Gengar, la silueta se parece
 // demasiado y deja de ser un juego de reconocer).
-export function opcionesDelDia(dia) {
-  const buena = pokemonDelDia(dia)
+export function opcionesDelDia(dia, secreto = 0) {
+  const buena = pokemonDelDia(dia, secreto)
   const elegidas = [buena]
   const familias = new Set([cadenaDe(buena)])
-  let sal = SAL + 1
-  while (elegidas.length < OPCIONES && sal < SAL + 400) {
+  let sal = SAL + secreto + 1
+  while (elegidas.length < OPCIONES && sal < SAL + secreto + 400) {
     const dex = 1 + (Math.floor(azarDelDia(dia, sal) * TOTAL_POKEDEX) % TOTAL_POKEDEX)
     sal++
     if (elegidas.includes(dex) || familias.has(cadenaDe(dex))) continue
@@ -41,7 +44,7 @@ export function opcionesDelDia(dia) {
     familias.add(cadenaDe(dex))
   }
   // El sitio de la buena entre las cuatro, también por la fecha.
-  const sitio = Math.floor(azarDelDia(dia, SAL + 500) * elegidas.length) % elegidas.length
+  const sitio = Math.floor(azarDelDia(dia, SAL + secreto + 500) * elegidas.length) % elegidas.length
   const [b, ...resto] = elegidas
   resto.splice(sitio, 0, b)
   return resto

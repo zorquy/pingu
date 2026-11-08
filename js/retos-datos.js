@@ -39,6 +39,14 @@ export async function guardarResultado(juego, dia, r = {}) {
   let { data, error } = await supabase.rpc('retos_guardar', partida ? { ...args, p_estado: partida } : args)
   if (error && partida && noHayFuncion(error)) ({ data, error } = await supabase.rpc('retos_guardar', args))
   if (error) return noHayFuncion(error) ? { faltaMigracion: true } : { error: error.message }
+  return celebrarGuardado(data, { antes, session })
+}
+
+// Lo que se celebra al apuntar un reto: la liga (si subes), el nivel, el día
+// perfecto, la racha y los logros. Desde la 1268 lo apunta la base al acabar
+// la partida (`retos_jugar`) y la página solo celebra lo que conteste;
+// `antes` es tu puesto en la liga antes de la última jugada.
+export async function celebrarGuardado(data, { antes = null, session = null } = {}) {
   if (data?.nuevo && antes !== null) {
     const despues = await puestoEnLiga()
     if (despues) data = { ...data, liga: { antes, despues } }
@@ -49,7 +57,8 @@ export async function guardarResultado(juego, dia, r = {}) {
       if (Number.isFinite(data.totalXp)) celebrarSiSubeDeNivel(data.totalXp - ganado, data.totalXp)
       if (data.perfecto) showToast(`¡Día perfecto! Los seis retos de hoy: +${data.xpPerfecto} XP`, 'success')
       if (data.bonoRacha) showToast(`${data.racha} días seguidos jugando retos: +${data.xpRacha} XP`, 'success')
-      await checkAchievements(session.user.id)
+      const s = session || (await getSession().catch(() => null))
+      if (s) await checkAchievements(s.user.id)
     } catch {
       // Una celebración no tumba el guardado.
     }
@@ -58,7 +67,7 @@ export async function guardarResultado(juego, dia, r = {}) {
 }
 
 // Tu puesto en la liga de la semana: 0 si no estás, null si no se sabe.
-async function puestoEnLiga() {
+export async function puestoEnLiga() {
   try {
     const { data, error } = await supabase.rpc('portada_clasificacion', { p_periodo: 'semana' })
     if (error || !data) return null

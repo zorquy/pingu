@@ -16,11 +16,12 @@ import { buscarComoEnCartas, buscarCartasUnaVez } from './buscar-cartas.js'
 import { ordenarPorExpansion, TOPE_CARTAS } from './buscador.js'
 import { setsDelCatalogo } from './sets-catalogo.js'
 import {
-  INTENTOS, DESENFOQUES, PISTAS, ORDEN_CASILLAS, compararDetallado, comoBooleanas, textoParaCompartir, rachaDeDias, numeroDelDia, ENLACE,
+  INTENTOS, PISTAS, ORDEN_CASILLAS, comoBooleanas, textoParaCompartir, rachaDeDias, numeroDelDia, ENLACE,
 } from './carta-del-dia.js'
-import { mismaFamilia } from './familias-pokemon.js'
 import { xpDe, xpSiAciertasCarta } from './retos-xp.js'
-import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
+import { estadisticas, misNumeros } from './retos-datos.js'
+import { partida } from './reto-arbitro.js'
+import { showToast } from './toast.js'
 import { premiosHtml, repartoHtml, cuentaAtras, genteHtml, salidasHtml, avisoLibreHtml } from './retos-ui.js'
 import { hechoHoy } from './retos-siguiente.js'
 import { libreDeDireccion, claveLibre } from './retos-libre.js'
@@ -42,7 +43,16 @@ const CLAVE_HISTORIAL = 'pokedoc-carta-del-dia-historial'
 const COLUMNAS_INTENTO = 'id,market,set_id,local_id,name,name_es,name_en,image_path,image_scrydex,image_tcggo,types,rarity,rarity_en,dex_ids,tcg_sets(name,name_en,tcg_online_code,serie_id,serie_name,serie_name_en,oculto,release_date)'
 
 let dia = null
+// La carta del día: no se sabe hasta que se acaba (1268). La corrige la base
+// (`retos_jugar`) y al final dice su id.
 let respuesta = null
+let foto = null
+let pistas = {}
+let arbitro = null
+let jugando = false
+// Las cartas que has dicho, para pintarlas (salen del buscador o, al volver,
+// del catálogo por su id).
+const conocidas = new Map()
 let ayer = null
 let eras = new Map()
 let sesion = null
@@ -65,10 +75,6 @@ const escribirJson = (clave, valor) => {
   try { localStorage.setItem(clave, JSON.stringify(valor)) } catch {}
 }
 
-function cargarEstado() {
-  const g = leerJson(CLAVE, null)
-  estado = g && g.dia === dia && Array.isArray(g.intentos) ? g : { dia, intentos: [], acertada: false }
-}
 const guardarEstado = () => escribirJson(CLAVE, estado)
 function diasAcertados() {
   const d = leerJson(CLAVE_DIAS, [])
@@ -87,7 +93,7 @@ function apuntarHistorial() {
   escribirJson(CLAVE_HISTORIAL, Object.fromEntries(Object.entries(h).slice(-200)))
 }
 
-const terminado = () => estado.acertada || estado.intentos.length >= INTENTOS
+const terminado = () => Boolean(estado.terminada) || estado.acertada || estado.intentos.length >= INTENTOS
 // El estado de una casilla, también de las partidas guardadas antes de la
 // 835 (que solo tenían verdadero/falso).
 const estadoDe = (it, k) => it.det?.[k]?.estado || (it.casillas?.[k] ? 'si' : 'no')
@@ -96,31 +102,38 @@ const nombreDeEra = (c) => eras.get(String(c?.tcg_sets?.serie_id || '').toLowerC
 
 // ── La carta, borrosa ──
 //
-// Un <img> con `filter: blur()` que se afloja con cada intento (tanda
-// 572). Al acabar, nítida y con su brillo.
+// Desde la 1268 la foto llega YA borrosa (/reto-foto, con la dirección
+// cifrada): antes era la nítida con un `blur` de CSS encima, y arrastrándola
+// o abriéndola en otra pestaña salía entera (PINGU). Cada fallo trae otra,
+// menos borrosa. Al acabar, la de verdad.
+function ponerFoto(img, cadena) {
+  let i = 0
+  img.onerror = () => {
+    i++
+    if (i < cadena.length) img.src = cadena[i]
+    else img.remove()
+  }
+  img.src = cadena[0] || ''
+}
+
 function pintarFoto() {
   const img = $('cdFoto')
-  const cadena = cadenaDeEscaneo(respuesta, respuesta?.tcg_sets?.tcg_online_code || null, 'high')
+  const cadena = terminado() && respuesta ? cadenaDeEscaneo(respuesta, respuesta?.tcg_sets?.tcg_online_code || null, 'high') : foto ? [foto] : []
   // Sin `img` es que su cadena se agotó y se quitó (1111): lo demás sigue,
   // o el intento siguiente se rompía con la partida a medias.
-  if (img && !img.dataset.puesta) {
-    img.dataset.puesta = '1'
-    let i = 0
-    img.onerror = () => {
-      i++
-      if (i < cadena.length) img.src = cadena[i]
-      else img.remove()
-    }
-    img.src = cadena[0] || ''
+  if (img && cadena.length && img.dataset.puesta !== cadena[0]) {
+    img.dataset.puesta = cadena[0]
+    // La siguiente se carga antes de cambiarla: sin parpadeo entre una y otra.
+    const antes = new Image()
+    antes.onload = antes.onerror = () => ponerFoto(img, cadena)
+    antes.src = cadena[0]
   }
   const n = estado.intentos.length
-  const px = terminado() ? 0 : DESENFOQUES[Math.min(n, DESENFOQUES.length - 1)]
-  $('cdRecorte').style.setProperty('--cd-desenfoque', `${px}px`)
   $('cdRecorte').classList.toggle('resuelta', terminado() && estado.acertada)
   // Resuelta, la carta es el enlace a su ficha (988).
   const recorte = $('cdRecorte')
-  recorte.classList.toggle('abrible', terminado())
-  if (terminado()) {
+  recorte.classList.toggle('abrible', terminado() && Boolean(respuesta))
+  if (terminado() && respuesta) {
     recorte.setAttribute('role', 'link')
     recorte.tabIndex = 0
     recorte.setAttribute('aria-label', `Ver la ficha de ${nombreDeCarta(respuesta)}`)
@@ -133,18 +146,20 @@ function pintarFoto() {
 }
 
 // ── Las pistas, en baldosas ──
+// Las pistas abiertas las da la base, una por fallo (1268): antes salían de
+// la carta, que estaba entera en la página.
 function pista(cual) {
-  const s = respuesta.tcg_sets || {}
-  if (cual === 'era') return ['Era', eras.get(String(s.serie_id || '').toLowerCase()) || s.serie_id || '—', 'layers']
-  if (cual === 'tipo') return ['Tipo', tipoEs((respuesta.types || [])[0]) || '—', 'droplet']
-  if (cual === 'rareza') return ['Rareza', rarezaDeCarta(respuesta) || '—', 'gem']
-  if (cual === 'ilustrador') return ['Ilustrador', respuesta.illustrator || '—', 'palette']
-  if (cual === 'inicial') return ['Empieza por', `«${String(nombreDeCarta(respuesta) || '?').charAt(0)}»`, 'hash']
+  const v = pistas[cual]
+  if (cual === 'era') return ['Era', eras.get(String(v || '').toLowerCase()) || v || '—', 'layers']
+  if (cual === 'tipo') return ['Tipo', tipoEs(v) || '—', 'droplet']
+  if (cual === 'rareza') return ['Rareza', rarezaDeCarta(v || {}) || '—', 'gem']
+  if (cual === 'ilustrador') return ['Ilustrador', v || '—', 'palette']
+  if (cual === 'inicial') return ['Empieza por', `«${v || '?'}»`, 'hash']
   return ['', '', 'lightbulb']
 }
 
 function pintarPistas() {
-  const abiertas = terminado() ? PISTAS.length : Math.min(estado.intentos.length, PISTAS.length)
+  const abiertas = PISTAS.filter((p) => p in pistas).length
   $('cdPistas').innerHTML = PISTAS.map((p, i) => {
     const [rotulo, valor, icono] = pista(p)
     return i < abiertas
@@ -198,6 +213,7 @@ function pintarFinal() {
     return
   }
   $('cdAcciones').classList.add('hidden')
+  if (!respuesta) { final.classList.add('hidden'); return }
   const n = estado.intentos.length
   const nombre = nombreDeCarta(respuesta)
   final.className = `cd-final rj-final${estado.acertada ? '' : ' fallado'}`
@@ -235,19 +251,6 @@ function pintarPremios() {
   }
   if (estado.acertada && !Object.keys(cuentas).length) cuentas = { [estado.intentos.length]: 1 }
   $('cdReparto').innerHTML = Object.keys(cuentas).length ? repartoHtml(cuentas, { tuyo: estado.acertada ? estado.intentos.length : null }) : ''
-}
-
-async function guardar() {
-  if (libre || !terminado() || estado.guardado) return
-  const r = await guardarResultado('carta', dia, { aciertos: estado.acertada ? 1 : 0, total: 1, intentos: estado.intentos.length, acertada: estado.acertada }).catch(() => ({ error: true }))
-  if (r && (r.nuevo === true || r.nuevo === false)) {
-    estado.guardado = true
-    guardarEstado()
-    guardado = r
-  } else if (r?.sinCuenta) {
-    guardado = r
-  }
-  pintarPremios()
 }
 
 // La imagen del resultado (tanda 583): la carta del día TAPADA (924: la
@@ -309,32 +312,62 @@ export function abrirSobre(caja) {
   return true
 }
 
-function intentar(carta) {
-  if (terminado()) return
-  const det = compararDetallado(carta, respuesta, { familia: mismaFamilia })
-  estado.intentos.push({
-    id: carta.id,
-    nombre: nombreDeCarta(carta),
+// Lo que se pinta de una carta que has dicho (de su fila del catálogo).
+function intentoDe(id, det) {
+  const carta = conocidas.get(id) || { id }
+  return {
+    id,
+    nombre: nombreDeCarta(carta) || id,
     set: nombreDeSet(carta.tcg_sets) || carta.set_id || '',
     num: carta.local_id || '',
-    foto: cadenaDeEscaneo(carta, carta?.tcg_sets?.tcg_online_code || null)[0] || '',
+    foto: carta.name ? cadenaDeEscaneo(carta, carta?.tcg_sets?.tcg_online_code || null)[0] || '' : '',
     det,
     casillas: comoBooleanas(det),
-    valores: { era: nombreDeEra(carta), tipo: tipoEs((carta.types || [])[0]) || '—', rareza: rarezaDeCarta(carta) || '—' },
-  })
-  if (det.nombre.estado === 'si') {
-    estado.acertada = true
-    apuntarAcierto()
+    valores: carta.name ? { era: nombreDeEra(carta), tipo: tipoEs((carta.types || [])[0]) || '—', rareza: rarezaDeCarta(carta) || '—' } : {},
   }
-  if (terminado()) apuntarHistorial()
+}
+
+// Lo que contesta la base, a la pantalla: los intentos, las pistas, la foto
+// y, al acabar, la carta (que entonces sí se pide al catálogo).
+async function aplicar(r) {
+  const e = r?.estado || {}
+  const faltan = (e.intentos || []).map((it) => it.id).filter((id) => !conocidas.get(id)?.name)
+  if (e.respuesta && !conocidas.get(e.respuesta)?.name) faltan.push(e.respuesta)
+  if (faltan.length) {
+    const { data } = await supabase.from('tcg_cards').select(`${COLUMNAS_INTENTO},illustrator`).eq('market', 'WEST').in('id', [...new Set(faltan)])
+    for (const c of data || []) conocidas.set(c.id, c)
+  }
+  estado = { dia, intentos: (e.intentos || []).map((it) => intentoDe(it.id, it.det)), acertada: Boolean(e.acertada), terminada: Boolean(e.terminada) }
+  pistas = e.pistas || {}
+  foto = e.foto || foto
+  respuesta = e.respuesta ? conocidas.get(e.respuesta) || null : null
+  if (r?.guardado) guardado = r.guardado
   guardarEstado()
+}
+
+async function intentar(carta) {
+  if (terminado() || jugando) return
+  jugando = true
+  conocidas.set(carta.id, carta)
+  const antes = terminado()
+  let r
+  try {
+    r = await arbitro.jugar({ carta: carta.id })
+  } catch (e) {
+    jugando = false
+    showToast(e.message || 'No se ha podido comprobar. Inténtalo de nuevo.', 'error')
+    return
+  }
+  jugando = false
+  await aplicar(r)
+  if (estado.acertada) apuntarAcierto()
+  if (terminado()) apuntarHistorial()
   $('nvElegir').close()
   // Lo buscado, fuera (939): PINGU, «buscas algo, fallas y cuando vuelves a
   // buscar sigue estando el texto anterior».
   vaciarBuscador()
   pintarTodo()
-  if (terminado()) abrirSobre($('cdRecorte'))
-  if (terminado()) guardar()
+  if (terminado() && !antes) abrirSobre($('cdRecorte'))
 }
 
 // ── El buscador (939): el de Cartas, por expansión ──
@@ -442,24 +475,23 @@ async function init() {
   $('cdLupa').innerHTML = icons.search(18)
   let r
   try {
-    // Con su foto comprobada (1111): sin foto no hay nada que adivinar.
-    r = await traerRetoConFotos('carta-del-dia', { libre, cartasDe: (x) => (x.carta ? [x.carta] : []), calidad: 'high' })
-    // Sin día o sin carta tampoco hay reto: el mismo aviso (780, LO9).
-    if (!r.dia || !r.carta) throw new Error('sin carta')
+    // Con su foto comprobada (1111): sin foto no hay nada que adivinar. La
+    // mesa (1268) no trae la carta: solo su foto borrosa y lo de ayer.
+    r = await traerRetoConFotos('carta-del-dia', { libre, cadenasDe: (x) => (x.foto ? [[x.foto]] : []) })
+    if (!r.dia || !r.foto) throw new Error('sin carta')
+    dia = r.dia
+    foto = r.foto
+    ayer = r.ayer || null
+    arbitro = partida('carta', { dia, libre })
+    await aplicar(await arbitro.abrir())
   } catch (err) {
-    $('cdSub').textContent = err.sinFoto ? TEXTO_SIN_FOTO : 'Hoy no se ha podido traer la carta. Vuelve en un rato.'
+    $('cdSub').textContent = err.sinFoto ? TEXTO_SIN_FOTO : err.sinArbitro ? err.message : 'Hoy no se ha podido traer la carta. Vuelve en un rato.'
     $('cdAcciones').classList.add('hidden')
     return
   }
-  dia = r.dia
-  respuesta = r.carta
-  ayer = r.ayer || null
-  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
-  if (!libre) await traerPartidaDeHoy('carta', dia).catch(() => false)
-  cargarEstado()
   if (libre) $('cdSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('carta'), '/carta-del-dia'))
   // La carta resuelta se toca y abre su ficha (988: sin botón «Ver la carta»).
-  const abrirFicha = () => { if (terminado()) location.href = rutaDeCarta(respuesta) }
+  const abrirFicha = () => { if (terminado() && respuesta) location.href = rutaDeCarta(respuesta) }
   $('cdRecorte').addEventListener('click', abrirFicha)
   $('cdRecorte').addEventListener('keydown', (e) => { if (e.key === 'Enter') abrirFicha() })
   // «Ayer era X»: lo que hace volver a quien no jugó ayer.
@@ -474,12 +506,9 @@ async function init() {
     eras = new Map((data || []).map((e) => [String(e.id).toLowerCase(), e.nombre]))
   } catch {}
   pintarTodo()
-  // Tus números (lo ganado hoy y tu reparto) y, si se acabó antes sin
-  // guardarse (sin red, sin cuenta entonces), se guarda ahora.
-  if (sesion && !libre) {
-    misNumeros(400).then((n) => { numeros = n; pintarPremios() }).catch(() => {})
-    if (terminado() && !estado.guardado) guardar()
-  }
+  // Tus números (lo ganado hoy y tu reparto). Apuntar el resultado ya no va
+  // aquí: lo hace la base al acabar (1268).
+  if (sesion && !libre) misNumeros(400).then((n) => { numeros = n; pintarPremios() }).catch(() => {})
   // Las expansiones del buscador, de fondo.
   setsDelMercado('WEST').then((sets) => {
     $('nvSet').innerHTML = '<option value="">Todas</option>' + sets.map((s) => `<option value="${escapeHtml(s.id)}">${escapeHtml(nombreDeSet(s) || s.id)}</option>`).join('')

@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-08 (510) — PINGU-Claude (1268, parte 2 — los seis retos por el árbitro)
+
+**Hecho**: la web de la 1268 (SCHEMA 1268). Las funciones del día sirven la
+mesa sin respuestas y guardan lo del árbitro; los seis juegos juegan contra
+`retos_jugar` (`js/reto-arbitro.js`); las fotos llegan borrosas o en silueta
+desde `/reto-foto` (sharp, dirección cifrada); la elección del día lleva la
+semilla secreta; Parejas ya no pinta las caras tapadas; «¿Quién es?» se elige
+en una función nueva (`quien-es.mjs`). /admin avisa si falta la migración.
+
+**Ficheros**: `netlify/lib/reto-secreto.mjs`, `netlify/lib/reto-mesa.mjs`,
+`netlify/functions/{reto-foto,quien-es}.mjs` (nuevas) y las cuatro del día,
+`netlify.toml`, `js/reto-arbitro.js` (nuevo), los seis `*-juego.js`,
+`js/quien-es.js`, `js/que-expansion.js`, `js/reto-fotos.js`,
+`js/retos-datos.js`, `js/schema-check.js`, `css/carta-del-dia.css`,
+`css/quien-es.css`, CLAUDE.md, novedades. Rama pruebas: `test-tanda-1268.mjs`,
+`test-tanda-1268-pantalla.mjs`, el árbitro del doble y `retos-falsos.mjs`, y
+las pruebas de los retos pasadas a él (todas en verde; 988 «sin errores»,
+326, 780, 857, 860 «Mis mazos» y 1157 fallan igual con el código de antes).
+
+**Pendiente**: `xp_sumar` (la XP de guías, cursos, logros) sigue aceptando
+hasta 500 por llamada desde la consola: mover esos premios al servidor es
+otra tanda. Lo de la 507 (1266) y la 505 (1264 y 1260).
+
 ## 2026-11-08 (509) — PINGU-Claude (1268, parte 1 — la migración del árbitro de los retos)
 
 **Hecho**: PINGU pidió revisar los retos «para que ningún listillo haga

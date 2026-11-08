@@ -14,6 +14,8 @@ import { diaLibre } from '../../js/retos-libre.js'
 export { libreDePeticion, CABECERAS_LIBRE } from './carta-del-dia.mjs'
 import { libreDePeticion, CABECERAS_LIBRE } from './carta-del-dia.mjs'
 import { conFoto, sinFoto, revisarDePeticion, CABECERAS_REVISADO } from '../lib/fotos-reto.mjs'
+import { semillaDelDia, urlDeFoto } from '../lib/reto-secreto.mjs'
+import { mesaDelReto, partirCaro } from '../lib/reto-mesa.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 
@@ -59,14 +61,16 @@ export async function cartasConPrecio(ids, pedir) {
 }
 
 // Con `libre` (988), una partida libre: el día suyo, sin la tabla del día.
-export async function elegirMasCaro({ dia, pedir, guardar, actualizar = null, libre = null, revisar = false, probar }) {
+// `secreto` (1268): la semilla del servidor; sin ella las seis se podían
+// sacar desde fuera repitiendo la cuenta, y con ellas sus precios.
+export async function elegirMasCaro({ dia, pedir, guardar, actualizar = null, libre = null, revisar = false, probar, secreto = 0 }) {
   if (libre) dia = diaLibre(libre)
   // Seis con foto de verdad (1111); null si no hay precios, [] si no salen.
   const elegirIds = async (sal, fuera = []) => {
     const { total } = await pedir(`tcg_card_prices?select=card_id&${FILTRO_PRECIOS}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
     if (!total || total < CARTAS_POR_DIA) return null
     const candidatas = []
-    for (const i of indicesDelDia(dia, total, Math.min(CANDIDATAS, total), sal)) {
+    for (const i of indicesDelDia(dia, total, Math.min(CANDIDATAS, total), sal + secreto)) {
       const fila = (await pedir(`tcg_card_prices?select=card_id&${FILTRO_PRECIOS}&order=card_id.asc&limit=1&offset=${i}`)).datos?.[0]
       if (fila?.card_id && !fuera.includes(fila.card_id)) candidatas.push(fila.card_id)
     }
@@ -102,6 +106,30 @@ export async function elegirMasCaro({ dia, pedir, guardar, actualizar = null, li
   return libre ? { dia, libre, cartas } : { dia, numero: numeroDelDia(dia), cartas, ...(revisar ? { sinFoto: quedanSinFoto } : {}) }
 }
 
+// Lo que se sirve (1268): las seis SIN precio. Los precios (los de este
+// momento, para que la partida no cambie si se mueven en el día) van a
+// `retos_arbitro`, y cada respuesta la corrige `retos_jugar`.
+export async function mesaMasCaro({ dia, libre = null, revisar = false, secreto = 0, foto, pedir, guardar, actualizar, escribir, probar }) {
+  return mesaDelReto({
+    juego: 'caro',
+    dia: libre ? diaLibre(libre) : dia,
+    revisar,
+    pedir,
+    escribir,
+    elegir: () => elegirMasCaro({ dia, libre, revisar, pedir, guardar, actualizar, probar, secreto }),
+    partir: (r) => partirCaro(r, foto),
+  })
+}
+
+// Lo común de servir una mesa: las puertas a la base con la clave de servicio.
+export const puertas = (clave) => ({
+  foto: (spec) => urlDeFoto(spec, clave),
+  pedir: (ruta, o = {}) => rest(ruta, clave, o),
+  guardar: (tabla, fila) => rest(tabla, clave, { metodo: 'POST', cuerpo: [fila], cabeceras: { prefer: 'resolution=ignore-duplicates,return=minimal' } }),
+  actualizar: (tabla, filtro, cambios) => rest(`${tabla}?${filtro}`, clave, { metodo: 'PATCH', cuerpo: cambios, cabeceras: { prefer: 'return=minimal' } }),
+  escribir: (ruta, filas) => rest(ruta, clave, { metodo: 'POST', cuerpo: filas, cabeceras: { prefer: 'resolution=merge-duplicates,return=minimal' } }),
+})
+
 export default async (req) => {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return Response.json({ error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' }, { status: 500 })
@@ -109,14 +137,7 @@ export default async (req) => {
   const libre = libreDePeticion(req)
   const revisar = !libre && revisarDePeticion(req)
   try {
-    const r = await elegirMasCaro({
-      dia,
-      libre,
-      pedir: (ruta, o = {}) => rest(ruta, clave, o),
-      guardar: (tabla, fila) => rest(tabla, clave, { metodo: 'POST', cuerpo: [fila], cabeceras: { prefer: 'resolution=ignore-duplicates,return=minimal' } }),
-      actualizar: (tabla, filtro, cambios) => rest(`${tabla}?${filtro}`, clave, { metodo: 'PATCH', cuerpo: cambios, cabeceras: { prefer: 'return=minimal' } }),
-      revisar,
-    })
+    const r = await mesaMasCaro({ dia, libre, revisar, secreto: semillaDelDia(libre ? diaLibre(libre) : dia, clave), ...puertas(clave) })
     if (r.error) return Response.json(r, { status: 503, headers: { 'cache-control': 'no-store' } })
     return Response.json(r, { headers: libre ? CABECERAS_LIBRE : revisar ? CABECERAS_REVISADO : { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
   } catch (err) {

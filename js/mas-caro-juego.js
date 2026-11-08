@@ -2,17 +2,19 @@
 // la maqueta que aprobó PINGU). Lo puro —el día, qué acierta, el texto que
 // se comparte— vive en js/mas-caro.js; la XP, en js/retos-xp.js y en la base.
 //
-// La partida se guarda en el navegador: se juega sin cuenta. Con cuenta,
-// al acabar se manda el resultado a `retos_guardar`, que da la XP.
+// Desde la 1268 los precios no están en la página: cada respuesta la corrige
+// la base (`retos_jugar`), que dice el precio de B al contestar, y con cuenta
+// apunta el resultado ella sola al acabar.
 import { escapeHtml } from './html.js'
 import { getSession } from './app.js'
 import { icons } from './icons.js'
 import { nombreDeCarta, nombreDeSet } from './catalogo-series.js'
-import { cadenaDeEscaneo, atributosDeEscaneo } from './escaneo-carta.js'
 import { euros } from './cardmarket.js'
-import { RONDAS, numeroDelDia, acierta, textoParaCompartir, rachaDeDias, ENLACE } from './mas-caro.js'
+import { RONDAS, numeroDelDia, textoParaCompartir, rachaDeDias, ENLACE } from './mas-caro.js'
 import { xpDe, xpDelSiguienteCaro, mejorQue } from './retos-xp.js'
-import { guardarResultado, estadisticas, misNumeros, traerPartidaDeHoy } from './retos-datos.js'
+import { estadisticas, misNumeros } from './retos-datos.js'
+import { partida } from './reto-arbitro.js'
+import { showToast } from './toast.js'
 import { premiosHtml, cuentaAtras, salidasHtml, avisoLibreHtml } from './retos-ui.js'
 import { hechoHoy } from './retos-siguiente.js'
 import { libreDeDireccion, claveLibre } from './retos-libre.js'
@@ -30,20 +32,23 @@ const CLAVE_DIAS = 'pokedoc-mas-caro-jugados'
 let dia = null
 let cartas = []
 let estado = { dia: null, respuestas: [] } // respuestas: true/false por ronda
+// Los precios que ya se han destapado (el de la primera y el de cada B
+// contestada): los demás los sabe solo la base.
+let precios = []
+let arbitro = null
 let destapando = false
 let sesion = null
 let guardado = null
 let pararCuenta = () => {}
 const sinMovimiento = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
-function cargarEstado() {
-  try {
-    const g = JSON.parse(localStorage.getItem(CLAVE) || 'null')
-    if (g && g.dia === dia && Array.isArray(g.respuestas)) estado = g
-    else estado = { dia, respuestas: [] }
-  } catch {
-    estado = { dia, respuestas: [] }
-  }
+// Lo que contesta la base, a la pantalla (y al navegador, para «Mi día»).
+function aplicar(r) {
+  const e = r?.estado || {}
+  estado = { dia, respuestas: e.respuestas || [] }
+  precios = (e.precios || []).map(Number)
+  if (r?.guardado) guardado = r.guardado
+  guardarEstado()
 }
 
 function guardarEstado() {
@@ -73,9 +78,9 @@ function apuntarDia() {
 const ronda = () => estado.respuestas.length
 const terminado = () => ronda() >= RONDAS
 
+// La foto llega por /reto-foto (1268): su dirección no dice qué carta es.
 function pintarCarta(caja, carta, { precio = null, veredicto = null } = {}) {
-  const escaneo = atributosDeEscaneo(cadenaDeEscaneo(carta, carta?.tcg_sets?.tcg_online_code || null))
-  caja.querySelector('.mcr-foto').innerHTML = escaneo ? `<img ${escaneo} alt="" width="245" height="342" loading="lazy" />` : ''
+  caja.querySelector('.mcr-foto').innerHTML = carta?.foto ? `<img src="${escapeHtml(carta.foto)}" alt="" width="245" height="342" loading="lazy" />` : ''
   caja.querySelector('.mcr-nombre').textContent = nombreDeCarta(carta)
   caja.querySelector('.mcr-set').textContent = `${nombreDeSet(carta?.tcg_sets) || carta?.set_id || ''}${carta?.local_id ? ` · ${carta.local_id}` : ''}`
   const p = caja.querySelector('.mcr-precio')
@@ -117,9 +122,9 @@ function pintarPar() {
   const a = cartas[i]
   const b = cartas[i + 1]
   if (!a || !b) return
-  pintarCarta($('mcrA'), a, { precio: a.precio })
-  pintarCarta($('mcrB'), b, terminado() ? { precio: b.precio, veredicto: estado.respuestas[RONDAS - 1] } : {})
-  $('mcrDiferencia').innerHTML = terminado() ? diferenciaHtml(a.precio, b.precio) : ''
+  pintarCarta($('mcrA'), a, { precio: precios[i] ?? null })
+  pintarCarta($('mcrB'), b, terminado() ? { precio: precios[i + 1] ?? null, veredicto: estado.respuestas[RONDAS - 1] } : {})
+  $('mcrDiferencia').innerHTML = terminado() ? diferenciaHtml(precios[i], precios[i + 1]) : ''
 }
 
 function diferenciaHtml(pa, pb) {
@@ -143,8 +148,8 @@ function pintarFinal() {
   const rondas = estado.respuestas.map((bien, i) => {
     const a = cartas[i]
     const b = cartas[i + 1]
-    const signo = Number(b?.precio) > Number(a?.precio) ? '&lt;' : '&gt;'
-    return `<li class="mcr-ronda"><span class="${bien ? 'ok' : 'mal'}" aria-label="${bien ? 'acierto' : 'fallo'}">${bien ? icons.checkCircle(18) : icons.xCircle(18)}</span><span>${escapeHtml(nombreDeCarta(a))}<em>${euros(a?.precio)}</em></span><b aria-hidden="true">${signo}</b><span>${escapeHtml(nombreDeCarta(b))}<em>${euros(b?.precio)}</em></span></li>`
+    const signo = Number(precios[i + 1]) > Number(precios[i]) ? '&lt;' : '&gt;'
+    return `<li class="mcr-ronda"><span class="${bien ? 'ok' : 'mal'}" aria-label="${bien ? 'acierto' : 'fallo'}">${bien ? icons.checkCircle(18) : icons.xCircle(18)}</span><span>${escapeHtml(nombreDeCarta(a))}<em>${euros(precios[i])}</em></span><b aria-hidden="true">${signo}</b><span>${escapeHtml(nombreDeCarta(b))}<em>${euros(precios[i + 1])}</em></span></li>`
   }).join('')
   final.innerHTML = `
     <div class="mcr-final-cab">
@@ -176,21 +181,6 @@ function pintarPremios() {
     volver: '/mas-caro',
     racha: rachaDeDias(diasJugados(), dia),
   })
-}
-
-async function guardar() {
-  if (libre || !terminado() || estado.guardado) return
-  const r = await guardarResultado('caro', dia, {
-    aciertos: estado.respuestas.filter(Boolean).length,
-    total: RONDAS,
-    tira: estado.respuestas,
-  }).catch(() => ({ error: true }))
-  if (r && (r.nuevo === true || r.nuevo === false)) {
-    estado.guardado = true
-    guardarEstado()
-    guardado = r
-  } else if (r?.sinCuenta) guardado = r
-  pintarPremios()
 }
 
 function pintarTodo() {
@@ -226,26 +216,32 @@ async function imagenDelResultado(formato) {
   })
 }
 
-// Responder: el precio de B sube contando, la carta se ilumina, se dice lo
-// que vale el acierto y un momento después B pasa a ser la A de la
-// siguiente ronda.
-function responder(respuesta) {
+// Responder: la base dice si acierta y el precio de B, que sube contando;
+// la carta se ilumina, se dice lo que vale el acierto y un momento después
+// B pasa a ser la A de la siguiente ronda.
+async function responder(respuesta) {
   if (terminado() || destapando) return
   const i = ronda()
-  const a = cartas[i]
   const b = cartas[i + 1]
-  const bien = acierta(a.precio, b.precio, respuesta)
-  const vale = bien ? xpDelSiguienteCaro(estado.respuestas) : 0
-  estado.respuestas.push(bien)
-  guardarEstado()
-  if (terminado()) apuntarDia()
+  const vale = xpDelSiguienteCaro(estado.respuestas)
   destapando = true
-  pintarCarta($('mcrB'), b, { precio: b.precio, veredicto: bien })
-  contarHasta($('mcrB').querySelector('.mcr-precio'), b.precio)
-  $('mcrDiferencia').innerHTML = diferenciaHtml(a.precio, b.precio)
+  let r
+  try {
+    r = await arbitro.jugar({ respuesta })
+  } catch (e) {
+    destapando = false
+    showToast(e.message || 'No se ha podido comprobar. Inténtalo de nuevo.', 'error')
+    return
+  }
+  aplicar(r)
+  const bien = Boolean(r.eco?.bien)
+  if (terminado()) apuntarDia()
+  pintarCarta($('mcrB'), b, { precio: precios[i + 1], veredicto: bien })
+  contarHasta($('mcrB').querySelector('.mcr-precio'), precios[i + 1])
+  $('mcrDiferencia').innerHTML = diferenciaHtml(precios[i], precios[i + 1])
   const ver = $('mcrVeredicto')
   ver.className = `mcr-veredicto${bien ? '' : ' mal'}`
-  const dice = Number(b.precio) > Number(a.precio) ? 'Vale más' : 'Vale menos'
+  const dice = Number(precios[i + 1]) > Number(precios[i]) ? 'Vale más' : 'Vale menos'
   ver.innerHTML = `<b>${bien ? icons.checkCircle(24) : icons.xCircle(24)} ${bien ? `¡Bien! ${dice}` : `¡Vaya! ${dice}`}</b>${bien && !libre ? `<span class="rj-chip xp">${icons.zap(14)} +${vale} XP${vale === 6 ? ' (×2)' : ''}</span>` : ''}`
   pintarTira()
   // Con «menos movimiento» no hay pausa que esperar: se pasa ya.
@@ -254,7 +250,6 @@ function responder(respuesta) {
     destapando = false
     if (!terminado()) ver.classList.add('hidden')
     pintarTodo()
-    if (terminado()) guardar()
   }, pausa)
 }
 
@@ -273,7 +268,7 @@ async function init() {
   $('mcrIconoMenos').innerHTML = `<span style="display:inline-flex;transform:scaleY(-1)">${icons.trendingUp(24)}</span>`
   let r
   try {
-    r = await traerRetoConFotos('mas-caro', { libre, cartasDe: (x) => x.cartas || [] })
+    r = await traerRetoConFotos('mas-caro', { libre, cadenasDe: (x) => (x.cartas || []).map((c) => [c.foto]) })
   } catch (err) {
     sinTablero(err.sinFoto ? TEXTO_SIN_FOTO : 'Hoy no se han podido traer las cartas. Vuelve en un rato.')
     return
@@ -284,15 +279,18 @@ async function init() {
     sinTablero('Hoy no hay cartas suficientes con precio. Vuelve mañana.')
     return
   }
-  // Si hoy ya lo jugaste en otro aparato, la partida baja de la base (841).
-  if (!libre) await traerPartidaDeHoy('caro', dia).catch(() => false)
+  try {
+    arbitro = partida('caro', { dia, libre })
+    aplicar(await arbitro.abrir())
+  } catch (err) {
+    sinTablero(err.sinArbitro ? err.message : 'Hoy no se han podido traer las cartas. Vuelve en un rato.')
+    return
+  }
   if (libre) $('mcrSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('caro'), '/mas-caro'))
-  cargarEstado()
   sesion = await getSession().catch(() => null)
   pintarTodo()
-  if (sesion && terminado() && !libre) {
-    if (!estado.guardado) guardar()
-    else misNumeros(1).then((n) => { if (n?.hoy?.caro) { guardado = { nuevo: false, xp: n.hoy.caro.xp }; pintarPremios() } }).catch(() => {})
+  if (sesion && terminado() && !libre && !guardado) {
+    misNumeros(1).then((n) => { if (n?.hoy?.caro) { guardado = { nuevo: false, xp: n.hoy.caro.xp }; pintarPremios() } }).catch(() => {})
   }
   $('mcrAcciones').addEventListener('click', (e) => {
     const b = e.target.closest('[data-respuesta]')

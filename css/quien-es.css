@@ -36,17 +36,15 @@
   width: 72%;
   height: 86%;
   object-fit: contain;
-  filter: brightness(0) drop-shadow(0 12px 18px rgb(0 0 0 / 35%));
+  filter: drop-shadow(0 12px 18px rgb(0 0 0 / 35%));
   transition: filter 0.3s ease, transform 0.3s ease;
 }
 
-/* 991: el primer intento, borroso; el segundo, menos; el tercero, nítido. */
+/* 991: el primer intento, borroso; el segundo, menos; el tercero, nítido.
+   Desde la 1268 la silueta (negra y borrosa) la hace el servidor: el dibujo
+   de verdad no llega a la página hasta que se acaba. */
 .qe-escena[data-intento='1'] .qe-dibujo {
-  filter: brightness(0) blur(14px);
-}
-
-.qe-escena[data-intento='2'] .qe-dibujo {
-  filter: brightness(0) blur(6px) drop-shadow(0 12px 18px rgb(0 0 0 / 35%));
+  filter: none;
 }
 
 .qe-escena.revelado .qe-dibujo {

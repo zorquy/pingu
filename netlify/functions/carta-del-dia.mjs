@@ -14,6 +14,8 @@ import { indiceDelDia, numeroDelDia } from '../../js/carta-del-dia.js'
 import { ID_DE_POCKET } from '../../js/catalogo-series.js'
 import { numeroLibre, diaLibre } from '../../js/retos-libre.js'
 import { fotoContesta, revisarDePeticion, CABECERAS_REVISADO } from '../lib/fotos-reto.mjs'
+import { semillaDelDia, urlDeFoto } from '../lib/reto-secreto.mjs'
+import { mesaDelReto, partirCarta } from '../lib/reto-mesa.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 
@@ -71,7 +73,10 @@ async function rest(ruta, clave, { metodo = 'GET', cuerpo = null, cabeceras = {}
 //   guardar(ruta, fila)        → inserta ignorando duplicados
 // Con `libre` (988, «Jugar otra vez»), la carta de una partida libre: la
 // misma cuenta con el día de esa partida, sin leer ni escribir la del día.
-export async function elegirCartaDelDia({ dia, pedir, guardar, actualizar = null, libre = null, revisar = false, probar }) {
+// `secreto` (1268): la semilla del servidor (netlify/lib/reto-secreto.mjs).
+// Sin ella, contando las elegibles por la API pública y repitiendo esta
+// cuenta, se sacaba la carta de hoy desde fuera.
+export async function elegirCartaDelDia({ dia, pedir, guardar, actualizar = null, libre = null, revisar = false, probar, secreto = 0 }) {
   if (libre) dia = diaLibre(libre)
   // La de su sitio en la lista o, si no tiene foto de verdad (1111), la
   // siguiente que la tenga (hasta ocho más allá). `lejos` empieza en la otra
@@ -79,7 +84,7 @@ export async function elegirCartaDelDia({ dia, pedir, guardar, actualizar = null
   const elegirId = async ({ lejos = false, fuera = null } = {}) => {
     const { total } = await pedir(`tcg_cards?select=id&${FILTRO_ELEGIBLES}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
     if (!total) return { error: 'No hay cartas elegibles.' }
-    const i = (indiceDelDia(dia, total) + (lejos ? Math.floor(total / 2) : 0)) % total
+    const i = (indiceDelDia(dia, total) + (secreto % total) + (lejos ? Math.floor(total / 2) : 0)) % total
     for (let k = 0; k < Math.min(9, total); k++) {
       const c = (await pedir(`tcg_cards?select=${COLUMNAS_CARTA}&${FILTRO_ELEGIBLES}&order=id.asc&limit=1&offset=${(i + k) % total}`)).datos?.[0]
       if (!c?.id || c.id === fuera) continue
@@ -137,6 +142,22 @@ export async function elegirCartaDelDia({ dia, pedir, guardar, actualizar = null
   return { dia, numero: numeroDelDia(dia), carta, ayer, ...(revisar ? { sinFoto: quedanSinFoto } : {}) }
 }
 
+// Lo que se sirve (1268): la MESA, sin la carta. La carta, sus pistas y las
+// seis fotos borrosas van a `retos_arbitro`, y cada intento lo corrige
+// `retos_jugar` en la base. Antes esto devolvía la carta entera: con F12 se
+// leía su nombre.
+export async function mesaCartaDelDia({ dia, libre = null, revisar = false, secreto = 0, foto, pedir, guardar, actualizar, escribir, probar }) {
+  return mesaDelReto({
+    juego: 'carta',
+    dia: libre ? diaLibre(libre) : dia,
+    revisar,
+    pedir,
+    escribir,
+    elegir: () => elegirCartaDelDia({ dia, libre, revisar, pedir, guardar, actualizar, probar, secreto }),
+    partir: (r) => partirCarta(r, foto),
+  })
+}
+
 export default async (req) => {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return Response.json({ error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' }, { status: 500 })
@@ -144,13 +165,16 @@ export default async (req) => {
   const libre = libreDePeticion(req)
   const revisar = !libre && revisarDePeticion(req)
   try {
-    const r = await elegirCartaDelDia({
+    const r = await mesaCartaDelDia({
       dia,
       libre,
+      revisar,
+      secreto: semillaDelDia(libre ? diaLibre(libre) : dia, clave),
+      foto: (spec) => urlDeFoto(spec, clave),
       pedir: (ruta, o = {}) => rest(ruta, clave, o),
       guardar: (tabla, fila) => rest(tabla, clave, { metodo: 'POST', cuerpo: [fila], cabeceras: { prefer: 'resolution=ignore-duplicates,return=minimal' } }),
       actualizar: (tabla, filtro, cambios) => rest(`${tabla}?${filtro}`, clave, { metodo: 'PATCH', cuerpo: cambios, cabeceras: { prefer: 'return=minimal' } }),
-      revisar,
+      escribir: (ruta, filas) => rest(ruta, clave, { metodo: 'POST', cuerpo: filas, cabeceras: { prefer: 'resolution=merge-duplicates,return=minimal' } }),
     })
     if (r.error) return Response.json(r, { status: 503, headers: { 'cache-control': 'no-store' } })
     return Response.json(r, { headers: libre ? CABECERAS_LIBRE : revisar ? CABECERAS_REVISADO : { 'cache-control': `public, max-age=${segundosHastaManana()}` } })

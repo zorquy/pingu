@@ -9,6 +9,11 @@
   external_node_modules = ["sharp", "@resvg/resvg-js"]
   included_files = ["node_modules/@img/**/*", "node_modules/@resvg/**/*", "node_modules/detect-libc/**/*", "node_modules/semver/**/*"]
 
+# Las fotos de los retos (tanda 1268): borrosas o en silueta, con sharp.
+[functions.reto-foto]
+  external_node_modules = ["sharp"]
+  included_files = ["node_modules/@img/**/*", "node_modules/detect-libc/**/*", "node_modules/semver/**/*"]
+
 # Las Edge Functions viven en netlify/edge-functions/, que es donde
 # Netlify las busca por defecto; cada fichero declara sus rutas en su
 # propio `export const config`. Hoy solo hay una: meta-social.js, que

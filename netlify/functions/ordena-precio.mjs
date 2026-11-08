@@ -12,6 +12,9 @@ import { cartasQueSirven, numeroDelDia, CARTAS } from '../../js/ordena-precio.js
 import { FILTRO_PRECIOS, cartasConPrecio, hoyUTC, segundosHastaManana, rest, libreDePeticion, CABECERAS_LIBRE } from './mas-caro.mjs'
 import { diaLibre } from '../../js/retos-libre.js'
 import { conFoto, sinFoto, revisarDePeticion, CABECERAS_REVISADO } from '../lib/fotos-reto.mjs'
+import { semillaDelDia } from '../lib/reto-secreto.mjs'
+import { mesaDelReto, partirOrdena } from '../lib/reto-mesa.mjs'
+import { puertas } from './mas-caro.mjs'
 
 export const JUEGO = 'ordena'
 export const CANDIDATAS = 24
@@ -22,14 +25,15 @@ export const SAL_REPARO = 59000
 const sinTabla = (e) => /retos_reto_del_dia|42P01|PGRST205/.test(String(e?.message || e))
 
 // Con `libre` (988), una partida libre: el día suyo, sin la tabla del día.
-export async function elegirOrdena({ dia, pedir, guardar, actualizar = null, libre = null, revisar = false, probar }) {
+// `secreto` (1268): la semilla del servidor, como en «Más caro».
+export async function elegirOrdena({ dia, pedir, guardar, actualizar = null, libre = null, revisar = false, probar, secreto = 0 }) {
   if (libre) dia = diaLibre(libre)
   // Cuatro con foto de verdad (1111); null si no hay precios, [] si no salen.
   const elegirIds = async (sal, fuera = []) => {
     const { total } = await pedir(`tcg_card_prices?select=card_id&${FILTRO_PRECIOS}&limit=1`, { cabeceras: { prefer: 'count=exact' } })
     if (!total || total < CARTAS) return null
     const candidatas = []
-    for (const i of indicesDelDia(dia, total, Math.min(CANDIDATAS, total), sal)) {
+    for (const i of indicesDelDia(dia, total, Math.min(CANDIDATAS, total), sal + secreto)) {
       const fila = (await pedir(`tcg_card_prices?select=card_id&${FILTRO_PRECIOS}&order=card_id.asc&limit=1&offset=${i}`)).datos?.[0]
       if (fila?.card_id && !fuera.includes(fila.card_id)) candidatas.push(fila.card_id)
     }
@@ -76,20 +80,28 @@ export async function elegirOrdena({ dia, pedir, guardar, actualizar = null, lib
   return libre ? { dia, libre, cartas } : { dia, numero: numeroDelDia(dia), cartas, ...(revisar ? { sinFoto: quedanSinFoto } : {}) }
 }
 
+// Lo que se sirve (1268): las cuatro sin precio y con una llave que no dice
+// cuál es cuál; los precios, a `retos_arbitro`.
+export async function mesaOrdena({ dia, libre = null, revisar = false, secreto = 0, foto, pedir, guardar, actualizar, escribir, probar }) {
+  return mesaDelReto({
+    juego: JUEGO,
+    dia: libre ? diaLibre(libre) : dia,
+    revisar,
+    pedir,
+    escribir,
+    elegir: () => elegirOrdena({ dia, libre, revisar, pedir, guardar, actualizar, probar, secreto }),
+    partir: (r) => partirOrdena(r, foto),
+  })
+}
+
 export default async (req) => {
   const clave = process.env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return Response.json({ error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' }, { status: 500 })
+  const dia = hoyUTC()
   const libre = libreDePeticion(req)
   const revisar = !libre && revisarDePeticion(req)
   try {
-    const r = await elegirOrdena({
-      dia: hoyUTC(),
-      libre,
-      pedir: (ruta, o = {}) => rest(ruta, clave, o),
-      guardar: (tabla, fila) => rest(tabla, clave, { metodo: 'POST', cuerpo: [fila], cabeceras: { prefer: 'resolution=ignore-duplicates,return=minimal' } }),
-      actualizar: (tabla, filtro, cambios) => rest(`${tabla}?${filtro}`, clave, { metodo: 'PATCH', cuerpo: cambios, cabeceras: { prefer: 'return=minimal' } }),
-      revisar,
-    })
+    const r = await mesaOrdena({ dia, libre, revisar, secreto: semillaDelDia(libre ? diaLibre(libre) : dia, clave), ...puertas(clave) })
     if (r.error) return Response.json(r, { status: 503, headers: { 'cache-control': 'no-store' } })
     return Response.json(r, { headers: libre ? CABECERAS_LIBRE : revisar ? CABECERAS_REVISADO : { 'cache-control': `public, max-age=${segundosHastaManana()}` } })
   } catch (err) {
