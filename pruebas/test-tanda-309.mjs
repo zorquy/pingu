@@ -238,9 +238,9 @@ console.log('\n── 5. Los bordes tienen escala ──')
   // épocas distintas una al lado de la otra.
   const { page: perfil } = await abrir('/perfil')
   const bordeFicha = await perfil.locator('.profile-hero').evaluate((n) => getComputedStyle(n).borderTopWidth)
-  // Desde la 748 (J4) la cabecera del perfil ya no es una tarjeta: el
-  // banner va a sangre y el resto sobre el fondo, sin borde ninguno.
-  check('  …y la cabecera del perfil ya no es una tarjeta (sin borde)', bordeFicha === '0px', `${bordeFicha} vs ${borde}`)
+  // La 748 (J4) le quitó la tarjeta; la 1270 la devuelve en el PC (la columna
+  // de quién es, a la izquierda), con el MISMO borde fino que la de guía.
+  check('  …y la cabecera del perfil, en el PC, con el mismo borde fino (1270)', bordeFicha === borde, `${bordeFicha} vs ${borde}`)
   await perfil.close()
   await page.close()
 

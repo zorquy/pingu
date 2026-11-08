@@ -114,8 +114,11 @@ const ve = (page, sel) => page.locator(sel).first().isVisible().catch(() => fals
   const { page, ctx, errores } = await abrir('/usuario.html?id=user-2')
   check('sin errores de JavaScript', !errores.length, errores.join(' | '))
   check('la pestaña Cambios sale, con su cuenta (2 da + 3 busca = 5)', await ve(page, '[data-ptab="cambios"]') && (await page.locator('[data-ptab="cambios"] .pest-cuenta').innerText()) === '5', await page.locator('[data-ptab="cambios"]').innerText().catch(() => ''))
-  check('  …y es la que se abre: sin vitrina, lo que da y busca es lo que más dice', await page.locator('[data-ptab="cambios"]').evaluate((b) => b.classList.contains('active')))
-  check('la chapa de la cabecera: «Cambia · da 2 · busca 3»', /Cambia · da 2 · busca 3/.test(await page.locator('.perfil-chapa-cambia').innerText().catch(() => '')), await page.locator('.perfil-chapa-cambia').innerText().catch(() => 'sin chapa'))
+  // Desde la 1271 se entra por el Resumen; Cambios sale con su cuenta.
+  check('  …y se entra por el Resumen (1271)', await page.locator('[data-ptab="resumen"]').evaluate((b) => b.classList.contains('active')))
+  // Desde la 1270 la chapa es la tarjeta de cambios: «2 cartas que da · 3 que busca».
+  const tarjeta = (await page.locator('#perfilTrueque').innerText().catch(() => '')).replace(/\s+/g, ' ')
+  check('1270: la tarjeta de cambios: 2 cartas que da y 3 que busca', /2 cartas que da/.test(tarjeta) && /3 cartas que busca/.test(tarjeta), tarjeta)
   check('«Da 2 cartas» con dos baldosas', /Da 2 cartas/.test(await page.locator('#perfilCambios').innerText()) && (await page.locator('#pcRejillaDa .pc-carta').count()) === 2)
   const primera = await page.locator('#pcRejillaDa .pc-carta').first().innerText()
   check('  …la de dos idiomas dice «Da 2 · Español, Inglés · Near Mint»', /Da 2 · Español, Inglés · Near Mint/.test(primera), primera)
@@ -132,9 +135,9 @@ const ve = (page, sel) => page.locator(sel).first().isVisible().catch(() => fals
   check('  …con «Escribir» a la conversación y el mensaje redactado (las dos listas)', /mensajes\.html\?with=user-2&texto=/.test(escribir || '') && /Das%20estas%20cartas/.test(escribir || '') && /que%20tengo%20para%20cambio/.test(escribir || ''), escribir)
   // La chapa abre la pestaña.
   await page.locator('[data-ptab="guides"]').click()
-  await page.locator('.perfil-chapa-cambia').click()
+  await page.locator('#perfilTrueque [data-pt-ver]').first().click()
   await page.waitForTimeout(200)
-  check('la chapa de arriba abre la pestaña', await page.locator('[data-ptab="cambios"]').evaluate((b) => b.classList.contains('active')))
+  check('1270: sus cifras abren la pestaña', await page.locator('[data-ptab="cambios"]').evaluate((b) => b.classList.contains('active')))
   await ctx.close()
 }
 {
@@ -146,7 +149,7 @@ const ve = (page, sel) => page.locator(sel).first().isVisible().catch(() => fals
 }
 {
   const { page, ctx } = await abrir('/usuario.html?id=user-2', { conCambios: false })
-  check('sin nada que cambiar: ni pestaña ni chapa', (await page.locator('[data-ptab="cambios"]').evaluate((b) => b.hidden)) && (await page.locator('.perfil-chapa-cambia').count()) === 0)
+  check('sin nada que cambiar: ni pestaña ni tarjeta (1270)', (await page.locator('[data-ptab="cambios"]').evaluate((b) => b.hidden)) && (await page.locator('#perfilTrueque').evaluate((x) => x.hidden)))
   check('  …y se abre otra', !(await page.locator('[data-ptab="cambios"]').evaluate((b) => b.classList.contains('active'))))
   await ctx.close()
 }

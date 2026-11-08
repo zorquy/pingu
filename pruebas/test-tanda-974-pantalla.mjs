@@ -93,7 +93,7 @@ console.log('\n── 3. Lo que era una media de estrellas ──')
   const { page, errores } = await abrir('/perfil', 'admin-1')
   check('/perfil sin errores', errores.length === 0, errores.join(' | '))
   const nota = ((await page.textContent('#profileStats .perfil-cifra-nota').catch(() => '')) || '').trim()
-  check('  …y su cifra dice 2 (las de su guía publicada)', nota === '2', nota)
+  check('  …y su cifra dice 2 (las de su guía publicada)', /(^|\s)2$/.test(nota), nota)
   await page.close()
 }
 

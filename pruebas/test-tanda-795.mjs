@@ -23,7 +23,7 @@ check('  …y lo lee cualquiera; marcar y valorar, solo con cuenta', /cambios_de
 check('sin tablas temporales (la 631)', !/temp(orary)? table/i.test(sql))
 // Desde la 1269 el botón de Mensajes ya no existe y la base no deja marcar
 // (supabase-migration-1269-sin-cambio-a-mano.sql); lo marcado sigue contando.
-check('1269: la conversación ya no lleva el botón y el perfil sigue con la confianza', !/cambio-boton\.js/.test(leer('js/mensajes.js')) && /textoDeConfianza|ponerSello/.test(leer('js/usuario.js')))
+check('1269: la conversación ya no lleva el botón y el perfil sigue con la confianza', !/cambio-boton\.js/.test(leer('js/mensajes.js')) && /textoDeConfianza/.test(leer('js/perfil-trueque.js')) && /perfil-trueque/.test(leer('js/usuario.js')))
 const sql1269 = leer('supabase-migration-1269-sin-cambio-a-mano.sql')
 check('1269: cambio_marcar ya no abre nada y nadie puede llamarla', /raise exception/.test(sql1269) && !/insert into public\.trade_confirmations/.test(sql1269) && /revoke execute on function public\.cambio_marcar\(uuid\) from authenticated/.test(sql1269))
 

@@ -69,6 +69,8 @@ console.log('── 2. Tu perfil ──')
   check('las cifras del lote: cartas (las ocho tuyas), guías y torneos', JSON.stringify(cifras.map((c) => c.split(':')[0])) === JSON.stringify(['Cartas', 'Guías', 'Torneos']) && cifras[0] === 'Cartas:8', JSON.stringify(cifras))
   const v = await vitrina(page)
   check('la vitrina, con tu carta, cinco huecos y «Cambiar»', v?.visto && JSON.stringify(v.cartas) === JSON.stringify(['Carta 2']) && v.huecos === 5 && v.boton === 'Cambiar', JSON.stringify(v))
+  // Desde la 1271 se entra por el Resumen: la vitrina está en «Colección».
+  await page.click('#profileTabs [data-ptab="vitrina"]')
   await page.click('#perfilVitrina .vitrina-editar')
   await page.waitForTimeout(1200)
   const s = await page.evaluate(() => ({ open: document.getElementById('vitrinaElegir')?.open, opciones: document.querySelectorAll('#vitrinaOpciones .vitrina-opcion').length, marcadas: [...document.querySelectorAll('#vitrinaOpciones [aria-pressed="true"]')].map((b) => b.textContent.trim()), cuenta: document.getElementById('vitrinaCuenta')?.textContent }))

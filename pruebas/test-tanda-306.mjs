@@ -63,57 +63,34 @@ console.log('\n── 1. Un perfil es UNA tarjeta, no tres cajas ──')
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 2. Las cifras van todas en la MISMA fila ──')
+console.log('\n── 2. Las cifras: tres losas y los seguidores en caras (1270) ──')
 {
-  // Siete en los dos desde la 743: cartas, racha, guías y torneos + tres.
-  // La tira mezcla lo que pinta el JS (#profileStats) con los tres
-  // contadores que ya vienen en el HTML. Si `display: contents` fallara,
-  // el lote sería una caja y las cifras saldrían en dos bloques.
-  // Cinco desde la 867: cartas, guías y torneos + seguidores y siguiendo.
-  for (const [ruta, sesion, cuantas] of [['/usuario?u=Ash', 'user-2', 5], ['/perfil', 'user-1', 5]]) {
+  // Desde la 1270 la tira de cinco se partió (PINGU: «cartas, guías y torneos
+  // es muy importante… los seguidores aparte»): tres LOSAS en su fila y los
+  // seguidores en una línea con caras, dentro de la tarjeta de quién es.
+  for (const [ruta, sesion] of [['/usuario?u=Ash', 'user-2'], ['/perfil', 'user-1']]) {
     const { page, errores } = await abrir(ruta, { sesion })
     check(`${ruta}: sin errores de JavaScript`, errores.length === 0, errores[0] || '')
-    const n = await page.locator('.perfil-cifra').count()
-    check(`${ruta}: salen las ${cuantas} cifras`, n === cuantas, String(n))
-    // Todas dentro de la tira, y el lote SIN caja propia: si alguien le
-    // quitara el `display: contents`, las cifras que pinta el JS se
-    // agruparían en un bloque aparte y la fila se partiría en dos.
-    const dentroTodas = await page.locator('.perfil-cifra').evaluateAll((ns) => ns.every((x) => x.closest('.perfil-cifras')))
-    check(`${ruta}: todas viven dentro de la tira`, dentroTodas)
-    const sinCaja = await page.locator('.perfil-cifras-lote').evaluate((n) => getComputedStyle(n).display)
-    check(`${ruta}: y el lote del JS no hace caja`, sinCaja === 'contents', sinCaja)
-    const filas = await page.locator('.perfil-cifra').evaluateAll((ns) => [...new Set(ns.map((x) => Math.round(x.getBoundingClientRect().top)))])
-    // Desde la 748 (J4) son DOS renglones a propósito: las cuatro grandes
-    // y, debajo, «0 seguidores · 0 siguiendo · 0 trofeos» en pequeño.
-    check(`${ruta}: en escritorio, las cinco en un renglón (867)`, filas.length === 1, `${filas.length} renglones`)
-    // La tarjeta las contiene: si la tira se saliera, esto cambiaría.
-    const dentro = await page.evaluate(() => !!document.querySelector('.profile-hero .perfil-cifras'))
-    check(`${ruta}: la tira va dentro de la tarjeta`, dentro)
+    const n = await page.locator('#profileStats .perfil-losa').count()
+    check(`${ruta}: salen las 3 losas`, n === 3, String(n))
+    const filas = await page.locator('#profileStats .perfil-losa').evaluateAll((ns) => [...new Set(ns.map((x) => Math.round(x.getBoundingClientRect().top)))])
+    check(`${ruta}: en una fila`, filas.length === 1, `${filas.length} renglones`)
+    check(`${ruta}: los seguidores, en la tarjeta de quién es`, await page.evaluate(() => !!document.querySelector('.profile-hero #perfilSocial #btnShowFollowers') && !document.querySelector('.perfil-cifras')))
     await page.close()
   }
 }
 
 // ═════════════════════════════════════════════════════════════════════
-console.log('\n── 3. Nada más puede colarse dentro de la tira ──')
+console.log('\n── 3. Nada más puede colarse entre las losas ──')
 {
-  // LA FORMA DEL FALLO, no el caso: `display: contents` convierte a
-  // cualquier hermano del lote en una celda más de la fila. El panel de
-  // «Invita a un amigo» se colgaba de #profileStats con `.after()` y
-  // aterrizaba en medio de los números como si fuera una cifra.
-  //
-  // Así que la regla no es «el panel de invitar va fuera», es: dentro de
-  // .perfil-cifras SOLO hay cifras. Cualquier cosa que alguien cuelgue
-  // ahí en el futuro la caza esto.
+  // La forma del fallo de la 306 (algo colgado con `.after()` que cae entre
+  // las cifras), ahora con las losas: en #profileStats solo hay losas.
   const { page } = await abrir('/perfil', { sesion: 'user-1' })
-  const intrusos = await page.evaluate(() =>
-    [...document.querySelectorAll('.perfil-cifras > *')]
-      .filter((n) => !n.classList.contains('perfil-cifra') && !n.classList.contains('perfil-cifras-lote'))
-      .map((n) => n.id || n.className)
-  )
-  check('en la tira solo hay cifras', intrusos.length === 0, intrusos.join(', '))
+  const intrusos = await page.evaluate(() => [...document.querySelectorAll('#profileStats > *')].filter((n) => !n.classList.contains('perfil-losa')).map((n) => n.id || n.className))
+  check('entre las losas solo hay losas', intrusos.length === 0, intrusos.join(', '))
   const invitarFuera = await page.evaluate(() => {
     const p = document.getElementById('panelInvitar')
-    return !p || !p.closest('.perfil-cifras')
+    return !p || !p.closest('#profileStats')
   })
   check('  …y el panel de invitar cae fuera', invitarFuera)
   await page.close()

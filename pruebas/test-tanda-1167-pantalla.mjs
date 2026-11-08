@@ -39,12 +39,14 @@ console.log('── M2: el perfil de otra persona en el móvil ──')
   const r = await p.evaluate(() => {
     const m = (s) => { const e = document.querySelector(s); return e ? Math.round(e.getBoundingClientRect().height) : null }
     const botones = [...document.querySelectorAll('.perfil-acciones > *')].filter((x) => x.getBoundingClientRect().width > 0)
-    const cifras = [...document.querySelectorAll('.perfil-cifra')].map((x) => Math.round(x.getBoundingClientRect().top))
-    return { banner: m('.profile-hero-banner, .profile-hero-banner-vacio'), avatar: m('.profile-hero-avatar'), botones: botones.map((x) => Math.round(x.getBoundingClientRect().width)), botonesMismaLinea: new Set(botones.map((x) => Math.round(x.getBoundingClientRect().top))).size === 1, cifrasUnaLinea: new Set(cifras).size === 1, tabs: Math.round(document.getElementById('profileTabs').getBoundingClientRect().top), contenido: Math.round(document.querySelector('.tab-panel.active').getBoundingClientRect().top), vh: innerHeight, nombre: document.querySelector('.profile-hero-info h1')?.textContent.trim(), desborda: document.documentElement.scrollWidth > innerWidth }
+    const cifras = [...document.querySelectorAll('#profileStats .perfil-losa')].map((x) => Math.round(x.getBoundingClientRect().top))
+    return { banner: m('.profile-hero-banner, .profile-hero-banner-vacio'), avatar: m('.profile-hero-avatar'), botones: botones.map((x) => Math.round(x.getBoundingClientRect().width)), botonesMismaLinea: new Set(botones.map((x) => Math.round(x.getBoundingClientRect().top))).size === 1, cifrasUnaLinea: new Set(cifras).size === 1, losas: Math.round(document.getElementById('profileStats').getBoundingClientRect().top), tabs: Math.round(document.getElementById('profileTabs').getBoundingClientRect().top), contenido: Math.round(document.querySelector('.tab-panel.active').getBoundingClientRect().top), vh: innerHeight, nombre: document.querySelector('.profile-hero-info h1')?.textContent.trim(), desborda: document.documentElement.scrollWidth > innerWidth }
   })
   check('banner de 56 y avatar de 48', r.banner === 56 && r.avatar === 48, JSON.stringify(r))
   check('los dos botones a media anchura, en una línea; las cifras en una fila', r.botones.length === 2 && r.botonesMismaLinea && Math.abs(r.botones[0] - r.botones[1]) < 8 && r.cifrasUnaLinea, JSON.stringify(r))
-  check('las pestañas antes de 300 px y lo que vienes a ver antes del 40 %', r.tabs < 300 && r.contenido < r.vh * 0.4, JSON.stringify(r))
+  // Desde la 1270 lo primero que se viene a ver son las tres losas (colección,
+  // guías, torneos), y las pestañas van debajo de ellas y de la tarjeta de cambios.
+  check('1270: las losas (lo que vienes a ver) antes del 40 %', r.losas < r.vh * 0.4, JSON.stringify(r))
   check('el nombre sigue siendo el título, y nada desborda', r.nombre === 'Misty' && !r.desborda, JSON.stringify(r))
   await ctx.close()
   const propio = await abrir('/perfil', true)

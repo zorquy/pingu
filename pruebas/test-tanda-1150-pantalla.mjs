@@ -1,6 +1,5 @@
 // Tanda 1150 — de «Cuatro pantallas más»:
-//   C3 · el perfil a lo ancho en el PC (cabecera de lado a lado, cifras a la
-//        derecha, pestañas y vitrina con todo el ancho).
+//   C3 · el perfil a lo ancho en el PC; desde la 1270, en dos columnas.
 //   C4 · Mis mazos compactos: una fila por mazo en el móvil; en el PC, la
 //        franja de foto más baja.
 import { chromium, contexto, BASE } from './fixtures-app.mjs'
@@ -20,14 +19,17 @@ for (const ruta of ['/perfil.html', '/usuario/Misty']) {
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
+  // Desde la 1270 son DOS columnas (PINGU eligió la recomendada): quién es y la
+  // tarjeta de cambios a la izquierda, quietas al bajar; losas y pestañas a la
+  // derecha, una al lado de la otra.
   const m = await page.evaluate(() => {
     const r = (s) => document.querySelector(s)?.getBoundingClientRect()
-    const main = r('main'), hero = r('#profileHero'), tabs = r('#profileTabs'), cifras = r('.perfil-cifras'), nombre = r('.profile-hero-info h1')
-    return { main: main?.width, hero: hero?.width, tabsW: tabs?.width, tabsTop: tabs?.top, heroBottom: hero?.bottom, cifrasX: cifras?.left, nombreX: nombre?.left, cifrasY: cifras?.top, nombreY: nombre?.top }
+    const hero = r('#profileHero'), tabs = r('#profileTabs'), losas = r('#profileStats')
+    return { heroW: hero?.width, heroR: hero?.right, tabsL: tabs?.left, losasL: losas?.left, losasTop: losas?.top, heroTop: hero?.top, pegada: getComputedStyle(document.querySelector('.perfil-lado')).position }
   })
-  check(`${ruta}: la cabecera ocupa todo el ancho`, m.hero > m.main * 0.9, JSON.stringify(m))
-  check('  …las pestañas van DEBAJO y también a lo ancho', m.tabsTop >= m.heroBottom - 1 && m.tabsW > m.main * 0.9, JSON.stringify(m))
-  check('  …y las cifras a la derecha del nombre, en la misma franja', m.cifrasX > m.nombreX + 300 && Math.abs(m.cifrasY - m.nombreY) < 120, JSON.stringify(m))
+  check(`${ruta}: quién es, en una columna de 320 a la izquierda`, Math.round(m.heroW) === 320, JSON.stringify(m))
+  check('  …las losas y las pestañas a su derecha', m.tabsL > m.heroR && m.losasL > m.heroR && Math.abs(m.losasTop - m.heroTop) < 80, JSON.stringify(m))
+  check('  …y la columna de la izquierda se queda quieta al bajar', m.pegada === 'sticky', m.pegada)
   check('  …sin errores', !err.length, err.join(' | '))
   await ctx.close()
 }
@@ -36,7 +38,7 @@ for (const ruta of ['/perfil.html', '/usuario/Misty']) {
   const page = await ctx.newPage()
   await page.goto(`${BASE}/perfil.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2000)
-  check('en el móvil, el perfil sigue en columna (sin desbordar)', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && getComputedStyle(document.getElementById('profileHero')).display !== 'grid'))
+  check('en el móvil, el perfil sigue en columna (sin desbordar)', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth && getComputedStyle(document.querySelector('.perfil-rejilla')).display !== 'grid'))
   await ctx.close()
 }
 
