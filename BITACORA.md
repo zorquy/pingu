@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-08 (514) — PINGU-Claude (1273 — el perfil con la cabecera ancha)
+
+**Hecho**: propuesta con maquetas (A cabecera ancha, B columna ordenada, C carnet)
+y PINGU: «dale a todo lo recomendado». La A: cabecera a lo ancho con el rango al
+lado del nombre, «En PokeDoc desde…» y la descripción en grande; la franja de
+progreso (nivel con su barra entera, racha, logros, seguidores); las losas
+debajo; y las pestañas con una columna de 340 a la derecha (cambios y una
+tarjeta nueva de seguidores). Letra a tamaño de PC. Proponer arriba en el perfil
+de otra persona. En el móvil, casi igual (SCHEMA 1273).
+
+**Ficheros**: `perfil.html`, `usuario.html`, `js/perfil-cabecera.js` (fuera
+`lineaDeQuienHtml`; `nivelDeFranjaHtml`, `pintarFranja`, `ponerLogrosEnFranja`,
+`arrobaHtml`), `js/perfil.js`, `js/usuario.js`, `js/perfil-trueque.js`,
+`css/perfil.css`, CLAUDE.md, novedades. Rama pruebas: 1270, 1150, 306, 789,
+867 y 1040 al día; 299, 305, 309, 312, 313, 743, 795, 974, 1105, 1124, 1167 en
+verde. Rojos de antes: 310, 311 (otras hojas), 887, 944, 981 (/mi-coleccion),
+1040 (/glosario y Laboratorio).
+
+**Pendiente**: nada de esto.
+
 ## 2026-11-08 (513) — PINGU-Claude (1272 — el perfil en la columna de la web)
 
 **Hecho**: PINGU, con la 1269 ya ejecutada: «el perfil en PC es demasiado ancho,

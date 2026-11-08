@@ -1,25 +1,70 @@
-// La línea de la cabecera de una ficha de persona (867): nivel (una
-// píldora con su barrita; tocarla abre la escalera), el rango de
-// colaborador si lo hay (lo rellena quien cuenta las guías, en el hueco) y
-// la racha. Lo comparten /perfil y /usuario; antes cada uno la escribía a
-// su manera y la tuya llevaba además una barra de XP con «N XP para el
-// siguiente nivel» que ya dice la píldora.
-import { levelProgress, levelBadgeHtml } from './gamification.js'
-import { barraDeRango } from './rango-barra.js'
+// LA CABECERA DE UNA FICHA DE PERSONA (1273, PINGU eligió la «A · Cabecera
+// ancha»: «la descripción, la exp y esas cosas están fuera de lugar»). Debajo
+// del nombre, una FRANJA de progreso con sus celdas: el nivel con la barra
+// entera y lo que falta (antes «9.995 de 10.000 XP para Alto Mando» partido en
+// 320 px), la racha, los logros y los seguidores. Lo comparten /perfil y
+// /usuario: las celdas están en el HTML y esto las rellena.
+import { levelProgress, levelBadgeHtml, LEVEL_THRESHOLDS } from './gamification.js'
+import { milesXp } from './niveles.js'
 import { icons } from './icons.js'
 import { escapeHtml } from './html.js'
-import { avatarStyle, getInitial } from './app.js'
+import { avatarStyle, getInitial, profileUrl } from './app.js'
+import { abrirPestania } from './perfil-pestanias.js'
+
+// Puro: el botón del nivel (tocarlo abre la escalera, `btnLevelInfo`).
+export function nivelDeFranjaHtml(xp = 0) {
+  const p = levelProgress(Number(xp) || 0)
+  const i = LEVEL_THRESHOLDS.findIndex((l) => l.level === p.level)
+  const sig = LEVEL_THRESHOLDS[i + 1]
+  const cifra = sig ? `${milesXp(xp)} / ${milesXp(sig.min)} XP` : `${milesXp(xp)} XP`
+  const falta = sig ? `${milesXp(sig.min - xp)} XP para ${sig.level}` : 'Nivel máximo'
+  return `<button type="button" class="pf-nivel-btn" id="btnLevelInfo" title="Ver los niveles">
+      <span class="pf-rotulo">Nivel</span>
+      <span class="pf-nivel-l">${levelBadgeHtml(p.level)}<b>${cifra}</b><span class="pf-falta">${escapeHtml(falta)}</span></span>
+      <span class="pf-barra" aria-hidden="true"><i style="--pct:${sig ? p.pct : 100}"></i></span>
+    </button>`
+}
 
 // La racha solo si la hay: un «0 días» no cuenta nada (como en la hoja «Tú»).
-export function lineaDeQuienHtml({ xp = 0, racha = 0 } = {}) {
-  const progress = levelProgress(xp)
+export function rachaDeFranjaHtml(racha = 0) {
   const dias = Number(racha) || 0
-  return `
-    <div class="perfil-chapas">
-      <button type="button" class="profile-level" id="btnLevelInfo">${levelBadgeHtml(progress.level)} ${barraDeRango(xp)}</button>
-      <span id="rangoHueco"></span>
-      ${dias > 0 ? `<span class="perfil-racha">${icons.flame(14)} ${dias} ${dias === 1 ? 'día' : 'días'} de racha</span>` : ''}
-    </div>`
+  if (dias <= 0) return ''
+  return `<span class="pf-rotulo">Racha</span><b class="pf-grande perfil-racha">${icons.flame(18)}${dias.toLocaleString('es-ES')} <em>${dias === 1 ? 'día' : 'días'}</em></b>`
+}
+
+// «En PokeDoc desde marzo de 2026», de la fecha de alta; sin fecha, nada.
+export function desdeTexto(iso) {
+  const d = iso ? new Date(iso) : null
+  if (!d || Number.isNaN(d.getTime())) return ''
+  return `En PokeDoc desde ${d.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`
+}
+
+// La línea de debajo del nombre: «@pingu · En PokeDoc desde marzo de 2026».
+export function arrobaHtml(username, creado) {
+  const partes = [username ? `@${escapeHtml(username)}` : '', desdeTexto(creado)].filter(Boolean)
+  return partes.length ? `<p class="perfil-arroba">${partes.join('<span aria-hidden="true"> · </span>')}</p>` : ''
+}
+
+export function pintarFranja({ xp = 0, racha = 0 } = {}) {
+  const nivel = document.getElementById('franjaNivel')
+  if (nivel) nivel.innerHTML = nivelDeFranjaHtml(xp)
+  const celda = document.getElementById('franjaRacha')
+  if (celda) {
+    celda.innerHTML = rachaDeFranjaHtml(racha)
+    celda.hidden = !celda.innerHTML
+  }
+}
+
+// Los logros, cuando se saben: «39 de 64». Tocarlos abre su pestaña.
+export function ponerLogrosEnFranja(ganados, total) {
+  const celda = document.getElementById('franjaLogros')
+  if (!celda) return
+  celda.innerHTML = `<span class="pf-rotulo">Logros</span><b class="pf-grande">${Number(ganados || 0).toLocaleString('es-ES')}${total ? ` <em>de ${Number(total).toLocaleString('es-ES')}</em>` : ''}</b>`
+  celda.hidden = false
+  celda.onclick = () => {
+    abrirPestania('logros')
+    document.getElementById('profileTabs')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
 }
 
 // El medallero de los cursos para la pestaña Medallas: con las mismas chapas
@@ -57,4 +102,16 @@ export function pintarSocial({ seguidores = [], siguiendo = 0, conocidos = new S
   if (caras) caras.innerHTML = orden.slice(0, 3).map((p) => `<span class="mini-avatar" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre(p)))}</span>`).join('')
   const suyos = orden.filter((p) => conocidos.has(p.id)).slice(0, 2).map((p) => `<b>${escapeHtml(nombre(p))}</b>`)
   if ($('seguidoresConocidos')) $('seguidoresConocidos').innerHTML = suyos.length ? `, entre ellos ${suyos.join(' y ')}` : ''
+  // La tarjeta de la derecha en el PC (1273): hasta doce caras, cada una a su
+  // perfil, y «Ver los N», que abre la misma lista que el botón de la franja.
+  const tarjeta = $('perfilSeguidores')
+  if (tarjeta) {
+    tarjeta.hidden = !n
+    tarjeta.innerHTML = n
+      ? `<header class="ps-cab"><h2>Seguidores</h2><button type="button" class="ps-ver" data-ps-ver>${n === 1 ? 'Ver' : `Ver los ${n.toLocaleString('es-ES')}`} ${icons.chevronRight(14)}</button></header>
+        <div class="ps-caras">${orden.slice(0, 12).map((p) => `<a class="mini-avatar" href="${escapeHtml(profileUrl(p))}" title="${escapeHtml(nombre(p))}" aria-label="${escapeHtml(nombre(p))}" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre(p)))}</a>`).join('')}</div>
+        ${suyos.length ? `<p class="ps-pie">Entre ellos ${suyos.join(' y ')}</p>` : ''}`
+      : ''
+    tarjeta.querySelector('[data-ps-ver]')?.addEventListener('click', () => $('btnShowFollowers')?.click())
+  }
 }

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-08", "tipo": "mejora", "texto": "El perfil en el ordenador, rehecho: quién eres arriba y a lo ancho, tu nivel con su barra entera y lo que te falta, la racha, los logros y los seguidores en una franja, y a la derecha tus cambios y tus seguidores. Todo más grande y en la columna de la web.", "enlace": "/perfil" },
     { "fecha": "2026-11-08", "tipo": "arreglo", "texto": "El perfil en el ordenador ya no se estira de lado a lado: va en la misma columna que el resto de la web.", "enlace": "/perfil" },
     { "fecha": "2026-11-08", "tipo": "mejora", "texto": "Los perfiles, nuevos: tu colección, tus guías y tus torneos en grande, los seguidores con sus caras, una tarjeta con tu reputación en los cambios y lo que das y buscas, y una pestaña Resumen con lo último de todo.", "enlace": "/perfil" },
     { "fecha": "2026-11-08", "tipo": "mejora", "texto": "En Mensajes, cuando tienes un trato en marcha lo ves arriba de la conversación con las cartas de cada lado, y respondes ahí mismo sin irte a Cruces. Y adiós al botón «Ya nos cambiamos», que liaba: un cambio se apunta solo al cerrar su propuesta.", "enlace": "/mensajes" },

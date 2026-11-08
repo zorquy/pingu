@@ -1722,38 +1722,193 @@ html:has(.logro-ficha[open]) {
 .perfil-losa-sub { display: block; color: var(--text-mid); font-size: var(--t-2xs); font-weight: 400; line-height: 1.3; }
 .perfil-losas .perfil-cifra-nota svg { display: none; }
 
-/* En el PC: quién es y la tarjeta de cambios a la izquierda, quietas al bajar;
-   las losas, de lado, y las pestañas a la derecha. */
+/* ── 1273: la cabecera ancha (SCHEMA 1273, PINGU eligió la «A»): quién es a
+   lo ancho con su franja de progreso; debajo las losas, y las pestañas con
+   una columna a la derecha (cambios y seguidores). ── */
+.perfil-nombre { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-sm); }
+.perfil-nombre h1 { margin: 0; }
+
+/* La franja: nivel (con su barra entera), racha, logros y seguidores. */
+.perfil-franja { display: flex; flex-wrap: wrap; align-items: stretch; }
+.pf-celda { min-width: 0; }
+.pf-celda[hidden] { display: none; }
+.pf-rotulo {
+  display: block;
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.pf-nivel-btn {
+  display: grid;
+  gap: var(--e-xs);
+  width: 100%;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.pf-nivel-l { display: flex; align-items: center; gap: var(--e-sm); min-width: 0; }
+.pf-nivel-l b { overflow: hidden; min-width: 0; font-family: var(--font-marca); font-size: var(--t-lg); text-overflow: ellipsis; white-space: nowrap; }
+.pf-nivel-l .nivel-chapa { flex-shrink: 0; }
+.pf-falta { overflow: hidden; min-width: 0; margin-left: auto; color: var(--text-mid); font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
+.pf-nivel-btn:hover .pf-falta { color: var(--text); }
+.pf-barra { display: block; overflow: hidden; height: 8px; border-radius: var(--radius-pill); background: var(--ice); }
+.pf-barra i { display: block; width: calc(var(--pct) * 1%); height: 100%; border-radius: inherit; background: var(--navy); }
+.pf-grande { display: flex; overflow: hidden; min-width: 0; align-items: center; gap: var(--e-xs); color: var(--text); font-family: var(--font-marca); font-size: var(--t-xl); line-height: 1.2; white-space: nowrap; }
+.pf-grande em { color: var(--text-mid); font-family: var(--font-body); font-size: var(--t-sm); font-style: normal; font-weight: 500; }
+.pf-grande svg { color: var(--warning); }
+button.pf-logros { min-height: 44px; border: 0; background: none; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+button.pf-logros:hover em { color: var(--text); }
+.pf-social .perfil-social { padding: 0; }
+
+/* Las tarjetas de la derecha: cambios y seguidores. */
+.pt-cab,
+.ps-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); }
+.pt-cab h2,
+.ps-cab h2 { margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
+.ps-ver {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--navy);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.perfil-seguidores {
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+}
+.perfil-seguidores[hidden] { display: none; }
+.ps-caras { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--e-sm); }
+.ps-caras .mini-avatar {
+  display: grid;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  color: var(--blanco-fijo);
+  font-size: var(--t-md);
+  font-weight: 700;
+  place-items: center;
+  text-decoration: none;
+}
+.ps-pie { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.ps-pie b { color: var(--text); }
+
+/* En el PC: la cabecera a lo ancho de la columna de 1.160, las losas, y las
+   pestañas con la columna de 340 a la derecha, quieta al bajar. */
 @media (min-width: 1000px) {
   .perfil-rejilla {
     display: grid;
-    grid-template-columns: 320px minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 340px;
     gap: var(--e-lg);
     align-items: start;
     padding-top: var(--e-xl);
   }
-  .perfil-lado { position: sticky; top: 88px; }
-  .perfil-lado .profile-hero { display: block; margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); }
-  .perfil-lado .profile-hero-banner { border-radius: 0; }
-  .perfil-lado .profile-hero-body { flex-wrap: wrap; padding: 0 var(--e-lg) var(--e-sm); }
-  .perfil-lado .profile-hero-info { flex-basis: 100%; order: 2; }
-  .perfil-lado .perfil-acciones { order: 3; flex-basis: 100%; }
-  .perfil-losas { margin-top: 0; }
-  .perfil-losas .perfil-cifra { flex-direction: row; align-items: center; gap: var(--e-md); }
-  .perfil-losas .perfil-cifra .valor { font-size: var(--t-2xl); }
-  .perfil-cuerpo .perfil-pestanas { margin-top: var(--e-lg); }
+  .perfil-rejilla > .profile-hero,
+  .perfil-rejilla > .perfil-losas { grid-column: 1 / -1; }
+  .perfil-cuerpo { grid-column: 1; }
+  .perfil-lado { grid-column: 2; position: sticky; top: 88px; }
+  .perfil-rejilla > .profile-hero { margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); }
+  .perfil-rejilla .profile-hero-banner { height: 200px; border-radius: 0; }
+  .perfil-rejilla .profile-hero-banner.profile-hero-banner-vacio { height: 136px; }
+  .perfil-rejilla .profile-hero-body {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: end;
+    gap: var(--e-lg);
+    padding: 0 var(--e-xl) var(--e-lg);
+  }
+  .perfil-rejilla .profile-hero-avatar-wrap { margin-top: -80px; }
+  .perfil-rejilla .profile-hero-avatar { width: 160px; height: 160px; box-shadow: 0 0 0 6px var(--white); font-size: var(--t-3xl); }
+  .perfil-rejilla .profile-hero-info { padding-top: var(--e-md); }
+  .perfil-rejilla .profile-hero-info h1 { font-size: var(--t-3xl); }
+  .perfil-rejilla .perfil-arroba { font-size: var(--t-lg); }
+  .perfil-rejilla .profile-bio { max-width: 640px; margin-top: var(--e-sm); color: var(--text); font-size: var(--t-lg); }
+  .perfil-rejilla .perfil-acciones { margin: 0; }
+  .perfil-franja { flex-wrap: nowrap; border-top: 1px solid var(--border); }
+  .pf-celda { display: flex; flex: 1 1 0; flex-direction: column; justify-content: center; gap: var(--e-xs); padding: var(--e-md) var(--e-lg); border-left: 1px solid var(--border); }
+  .pf-celda:first-child { border-left: 0; }
+  .pf-nivel { flex-grow: 2.4; }
+  .pf-social { flex-grow: 1.6; }
+  .pf-social #seguidoresConocidos { display: none; }
+  .perfil-losas { margin-top: 0; gap: var(--e-md); }
+  .perfil-losas .perfil-cifra { flex-direction: row; align-items: center; gap: var(--e-md); padding: var(--e-lg); }
+  .perfil-losas .perfil-cifra .valor { font-size: var(--t-3xl); }
+  .perfil-losas .perfil-cifra .rotulo { font-size: var(--t-xs); }
+  .perfil-losas .perfil-cifra-nota,
+  .perfil-losa-sub { font-size: var(--t-sm); }
+  .perfil-losa-dib { width: 56px; height: 56px; }
+  .perfil-losa-dib svg { width: 26px; height: 26px; }
+  .perfil-losa-abanico img { width: 36px; }
+  .perfil-losa-abanico img + img { margin-left: -16px; }
+  /* A tamaño de ordenador: pestañas a 16, títulos del Resumen a 20. */
+  .perfil-cuerpo .perfil-pestanas { margin-top: 0; }
+  .perfil-pestanas .tab-btn { font-size: var(--t-lg); }
+  .perfil-cuerpo .perfil-resumen { gap: var(--e-xl); }
+  .perfil-resumen .pr-cab h3 { font-size: var(--t-xl); }
+  .perfil-resumen .pr-ver { font-size: var(--t-md); }
+  .perfil-resumen .pr-fila { padding: var(--e-md) var(--e-lg); }
+  .perfil-resumen .pr-fila-t b { font-size: var(--t-lg); }
+  .perfil-resumen .pr-fila-t small { font-size: var(--t-sm); }
+  .perfil-resumen .pr-ico,
+  .perfil-resumen .pr-medalla { width: 44px; height: 44px; }
+  .perfil-resumen .pr-cartas { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); overflow: visible; }
+  .perfil-resumen .pr-cartas img { width: 100%; }
+  .perfil-resumen .pr-logros { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  .perfil-resumen .pr-logro .icon { width: 40px; height: 40px; }
+  .perfil-resumen .pr-logro small { font-size: var(--t-xs); }
+  .perfil-trueque { gap: var(--e-md); padding: var(--e-lg); }
+  .pt-rep-t b { font-size: var(--t-lg); }
+  .pt-rep-t small { font-size: var(--t-sm); }
+  .pt-cifra b { font-size: var(--t-2xl); }
+  .pt-cifra small { font-size: var(--t-sm); }
+  .perfil-seguidores { padding: var(--e-lg); }
+  /* Proponer va arriba, con Seguir y Mensaje; en la tarjeta sobraría. */
+  .perfil-lado [data-pt-proponer] { display: none; }
 }
 
-/* Por debajo del PC, una columna en el orden de la maqueta: quién es, las
-   tres losas, la tarjeta de cambios y luego lo demás. Las dos columnas se
-   deshacen (`contents`) para poder ordenar lo de dentro. */
+/* Por debajo del PC, una columna en el orden de siempre: quién es, las tres
+   losas, la tarjeta de cambios y luego lo demás. La columna de la derecha se
+   deshace (`contents`) para colocar su tarjeta; la de seguidores no sale (la
+   franja ya los lleva). */
 @media (max-width: 999px) {
-  .perfil-lado,
-  .perfil-cuerpo { display: contents; }
-  .perfil-cuerpo > * { order: 3; }
-  .perfil-lado .profile-hero { order: 0; }
-  .perfil-cuerpo > .perfil-losas { order: 1; }
+  .perfil-lado { display: contents; }
+  .perfil-rejilla > .profile-hero { order: 0; }
+  .perfil-rejilla > .perfil-losas { order: 1; }
   .perfil-lado .perfil-trueque { order: 2; margin-top: var(--e-sm); }
+  .perfil-cuerpo { order: 3; }
+  .perfil-lado .perfil-seguidores,
+  .pf-logros,
+  #btnProponerCambio { display: none !important; }
+  .perfil-franja { align-items: center; gap: 0 var(--e-md); padding: 0 var(--e-sm); }
+  /* Racha y seguidores en UNA fila: «entre ellos…» no cabe al lado. */
+  .pf-social #seguidoresConocidos { display: none; }
+  .pf-social .perfil-social { flex-wrap: nowrap; gap: 0 var(--e-sm); }
+  .pf-nivel { flex-basis: 100%; padding-bottom: var(--e-xs); }
+  .pf-celda .pf-rotulo { display: none; }
+  .pf-nivel-btn { gap: var(--e-xs); }
+  .pf-nivel-l b { font-size: var(--t-md); }
+  .pf-falta { font-size: var(--t-xs); }
+  .pf-grande { color: var(--text-mid); font-family: var(--font-body); font-size: var(--t-sm); font-weight: 600; }
+  .pf-grande em { font-weight: 600; }
 }
 
 /* En el teléfono, las losas más prietas (caben tres de ~110 px). */

@@ -4,7 +4,7 @@ import { escapeHtml, getInitial, getSession, getProfile, profileUrl, profilePara
 import { urlParaCss } from './html.js'
 import { contributorTier, getAllAchievements, levelLadderHtml, tierLadderHtml } from './gamification.js'
 import { pintarTorneosDe } from './perfil-torneos.js'
-import { lineaDeQuienHtml, medalleroHtml, pintarSocial } from './perfil-cabecera.js'
+import { pintarFranja, ponerLogrosEnFranja, arrobaHtml, medalleroHtml, pintarSocial } from './perfil-cabecera.js'
 import { showToast } from './toast.js'
 import { tarjetaDeGuia } from './guia-tarjeta.js'
 import { cifrasHtml, contarCartasYTorneos, urlDeColeccion, ponerCartasEnLosa } from './perfil-cifras.js'
@@ -98,9 +98,8 @@ async function loadHeader() {
     <!-- El nombre es el <h1> de la página desde la tanda 313: era
          la única pantalla del sitio sin ninguno, y el título de una
          ficha de persona es la persona. -->
-    <h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1>
-    ${profile.username ? `<p class="perfil-arroba">@${escapeHtml(profile.username)}</p>` : ''}
-    ${lineaDeQuienHtml({ xp, racha: rachaVisible(profile) })}
+    <div class="perfil-nombre"><h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1><span id="rangoHueco"></span></div>
+    ${arrobaHtml(profile.username, profile.created_at)}
     ${profile.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}
 `
   // Su logro destacado ya no va en la cabecera (1271): arriba de Logros, en grande.
@@ -111,6 +110,8 @@ async function loadHeader() {
     destacado.onclick = () => abrirFichaDeLogro(showcase)
   }
 
+  // El nivel y la racha, en la franja de debajo (1273).
+  pintarFranja({ xp, racha: rachaVisible(profile) })
   document.getElementById('btnLevelInfo').addEventListener('click', () => openModal(levelLadderHtml(xp)))
 
   return true
@@ -207,6 +208,12 @@ function loadMessageButton() {
   }
   btn.classList.remove('hidden')
   btn.href = `/mensajes.html?with=${profileId}`
+  // Proponer un cambio, al lado (1273): el mismo pop-up que la tarjeta de cambios.
+  const proponer = document.getElementById('btnProponerCambio')
+  if (proponer) {
+    proponer.classList.remove('hidden')
+    proponer.onclick = () => import('./cambio-propuesta.js').then((m) => m.abrirPropuesta({ sesion: currentSession, otro: profile })).catch(() => {})
+  }
 }
 
 // ── Seguir / Dejar de seguir ──
@@ -332,6 +339,7 @@ async function loadAchievementsGrid() {
   const unlocked = profile?.achievements || []
   achievementsCache = await getAllAchievements()
   document.getElementById('achievementsCount').textContent = `${unlocked.length} de ${achievementsCache.length}`
+  ponerLogrosEnFranja(unlocked.length, achievementsCache.length)
   contarPestania('logros', unlocked.length)
   const grid = document.getElementById('achievementsGrid')
   grid.innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
@@ -356,7 +364,7 @@ async function init() {
   // La clave lleva a quien mira (lo que ve depende de si la sigue, de si es
   // su colección…).
   currentSession = await getSession()
-  if (usernameParam || profileId) vistaVigilada(claveDeVista(`usuario:${(usernameParam || profileId).toLowerCase()}`, currentSession?.user?.id), ['heroInfo', 'heroAvatar', 'profileStats', 'followersCount', 'followingCount', 'achievementsCount', 'achievementsGrid', 'publishedGuides'], { atributos: ['heroBanner', 'heroAvatar'] })
+  if (usernameParam || profileId) vistaVigilada(claveDeVista(`usuario:${(usernameParam || profileId).toLowerCase()}`, currentSession?.user?.id), ['heroInfo', 'franjaNivel', 'heroAvatar', 'profileStats', 'followersCount', 'followingCount', 'achievementsCount', 'achievementsGrid', 'publishedGuides'], { atributos: ['heroBanner', 'heroAvatar'] })
   const found = await resolveProfileId()
   // Lo que no existe, con salida (1149, C2): la gente con ese nombre.
   const noEncontrado = () => import('./no-encontrado.js').then((m) => m.pintarNoEncontrado(document.querySelector('main'), { tipo: 'usuario', trozo: usernameParam || '' })).catch(() => {

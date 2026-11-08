@@ -44,7 +44,8 @@ export function truequeHtml({ rep = null, cuentas = null, comun = null, propia =
   const leDas = Number(comun?.leDas) || 0
   const partes = [teDa ? `Tiene ${n(teDa)} ${teDa === 1 ? 'carta' : 'cartas'} que buscas` : '', leDas ? `${teDa ? 'tú tienes' : 'Tienes'} ${n(leDas)} que busca` : ''].filter(Boolean)
   const lineaComun = comun && !propia && partes.length ? `<p class="pt-comun">${partes.join(' · ')}</p>` : ''
-  return `<div class="pt-rep" data-nivel="${nivel}">
+  return `<header class="pt-cab"><h2>Cambios</h2><button type="button" class="ps-ver" data-pt-ver>Ver ${icons.chevronRight(14)}</button></header>
+    <div class="pt-rep" data-nivel="${nivel}">
       <button type="button" class="pt-rep-boton" data-pt-ver title="Sus tratos y lo que da y busca">${escudo}<span class="pt-rep-t"><b>${escapeHtml(titulo)}</b><small>${escapeHtml(detalle)}</small></span></button>
       ${accion}
     </div>

@@ -1135,15 +1135,21 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   y el propio `click` de Playwright (`noWaitAfter`); con la navegación
   pendiente `evaluate` no contesta, así que lo apunta la página y lo manda
   con `exposeFunction`. Y `mouse.up` encima de un enlace es un clic.
-- **El perfil es quién es + tres losas + la tarjeta de cambios** (tandas 1270 y
-  1271, PINGU eligió lo recomendado): seguidores en caras (`pintarSocial`), las
-  losas de colección, guías y torneos (`cifrasHtml`), y UNA tarjeta de cambios
-  (`js/perfil-trueque.js`) con la reputación, lo que da y busca y lo que tenéis en
-  común; en el PC, dos columnas (quién es y la tarjeta a la izquierda, quietas)
-  DENTRO de la columna de 1.160 de la web (1272, PINGU: «coge todo el ancho»).
-  Se entra por «Resumen» (`js/perfil-resumen.js`) y nada salta solo a otra pestaña;
-  la Vitrina se llama «Colección». Algo nuevo de los cambios de alguien va en la
-  tarjeta (no otra chapa en la cabecera), y una pestaña nueva lleva su bloque en el
+- **El perfil es una cabecera ANCHA con su franja, tres losas y, debajo, las
+  pestañas con una columna a la derecha** (tandas 1270, 1271 y 1273, PINGU eligió
+  lo recomendado): quién es a lo ancho (nombre con su rango al lado, «@ · En
+  PokeDoc desde…» por `arrobaHtml`, la descripción en letra de lectura) y la
+  FRANJA de progreso (`pintarFranja`, `ponerLogrosEnFranja`: nivel con la barra
+  entera y lo que falta, racha, logros y seguidores en caras); las losas de
+  colección, guías y torneos (`cifrasHtml`); y a la derecha, en 340 px quietos,
+  la tarjeta de cambios (`js/perfil-trueque.js`) y la de seguidores
+  (`pintarSocial` → `#perfilSeguidores`). Todo dentro de la columna de 1.160
+  (1272, PINGU: «coge todo el ancho»), y en el PC a tamaño de PC (pestañas a 16,
+  títulos del Resumen a 20). En el móvil, una columna: lo mismo sin la tarjeta
+  de seguidores. Se entra por «Resumen» (`js/perfil-resumen.js`) y nada salta
+  solo a otra pestaña; la Vitrina se llama «Colección». Algo nuevo de quién es
+  va en la cabecera o en una celda de la franja, no en otra línea de chapas;
+  algo de los cambios, en su tarjeta; y una pestaña nueva lleva su bloque en el
   Resumen con su «Ver ›».
 - **El perfil tiene la pestaña «Cambios»** (tanda 887, pedida por
   soyfedeegb en el foro): lo que da y lo que busca una persona, con

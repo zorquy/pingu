@@ -143,11 +143,11 @@
     <nav class="breadcrumb" aria-label="Dónde estás"><a href="/">Inicio</a> <span>›</span> <a href="/usuarios">Gente</a> <span>›</span> <span id="migaNombre"></span></nav>
     <!-- La ficha de otra persona: la misma de /perfil (867) con Seguir y
          Mensaje donde allí va Editar. -->
-    <!-- Dos columnas en el PC (1270): a la izquierda quién es y la tarjeta de
-         cambios, quietas al bajar; a la derecha las tres losas y las pestañas.
-         En el móvil, una detrás de otra. SCHEMA 1270. -->
+    <!-- La cabecera ancha (1273, PINGU eligió la «A»): quién es a lo ancho con
+         su franja de progreso, las tres losas y, debajo, las pestañas con una
+         columna a la derecha (cambios y seguidores) que se queda quieta al
+         bajar. En el móvil, una detrás de otra. SCHEMA 1273. -->
     <div class="perfil-rejilla">
-    <aside class="perfil-lado" aria-label="Quién es">
     <div class="profile-hero" id="profileHero">
       <div class="profile-hero-banner" id="heroBanner"></div>
       <div class="profile-hero-body">
@@ -158,22 +158,29 @@
         <div class="perfil-acciones">
           <button class="btn-primary hidden" id="btnFollowToggle"></button>
           <a class="btn-outline hidden" id="btnMessageUser"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg> Mensaje</a>
+          <!-- Proponer un cambio, arriba en el PC (1273); en el móvil va en la tarjeta de cambios. -->
+          <button class="btn-outline hidden" id="btnProponerCambio" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Proponer</button>
         </div>
       </div>
-      <!-- Los seguidores en caras (1270): los pinta pintarSocial (perfil-cabecera.js). -->
-      <div class="perfil-social" id="perfilSocial">
-        <button class="perfil-social-btn" id="btnShowFollowers" type="button"><span class="perfil-caras" id="seguidoresCaras" aria-hidden="true"></span><span><b class="valor" id="followersCount">0</b> <span id="seguidoresRotulo">seguidores</span><span id="seguidoresConocidos"></span></span></button>
-        <button class="perfil-social-btn" id="btnShowFollowing" type="button"><span>Sigue a <b class="valor" id="followingCount">0</b></span></button>
+      <!-- La franja de progreso (1273): nivel con su barra, racha, logros y los
+           seguidores en caras. La rellena perfil-cabecera.js. -->
+      <div class="perfil-franja" id="perfilFranja">
+        <div class="pf-celda pf-nivel" id="franjaNivel"></div>
+        <div class="pf-celda pf-racha" id="franjaRacha" hidden></div>
+        <button type="button" class="pf-celda pf-logros" id="franjaLogros" hidden></button>
+        <div class="pf-celda pf-social">
+          <span class="pf-rotulo">Seguidores</span>
+          <div class="perfil-social" id="perfilSocial">
+            <button class="perfil-social-btn" id="btnShowFollowers" type="button"><span class="perfil-caras" id="seguidoresCaras" aria-hidden="true"></span><span><b class="valor" id="followersCount">0</b> <span id="seguidoresRotulo">seguidores</span><span id="seguidoresConocidos"></span></span></button>
+            <button class="perfil-social-btn" id="btnShowFollowing" type="button"><span>Sigue a <b class="valor" id="followingCount">0</b></span></button>
+          </div>
+        </div>
       </div>
     </div>
-    <!-- La tarjeta de cambios (1270, js/perfil-trueque.js): la reputación, lo que
-         da y lo que busca. Sin tratos ni nada que cambiar, no sale. -->
-    <section class="perfil-trueque" id="perfilTrueque" aria-label="Cambios" hidden></section>
-    </aside>
-    <div class="perfil-cuerpo">
     <!-- Colección, guías y torneos en tres losas (1270, cifrasHtml). -->
     <div class="perfil-losas" id="profileStats"></div>
 
+    <div class="perfil-cuerpo">
     <!-- El cruce del modo evento (794, 1029): sale al llegar por el QR (/evento/<usuario> o ?cruce=1). -->
     <section class="perfil-cruce hidden" id="perfilCruce" aria-live="polite"></section>
 
@@ -222,6 +229,13 @@
       <div class="achievements-grid" id="achievementsGrid"></div>
     </div>
     </div>
+    <!-- A la derecha en el PC (1273): la tarjeta de cambios (1270,
+         js/perfil-trueque.js) y los seguidores en caras (pintarSocial). Sin
+         tratos ni nada que cambiar, la de cambios no sale. -->
+    <aside class="perfil-lado" aria-label="Cambios y seguidores">
+      <section class="perfil-trueque" id="perfilTrueque" aria-label="Cambios" hidden></section>
+      <section class="perfil-seguidores" id="perfilSeguidores" aria-label="Seguidores" hidden></section>
+    </aside>
     </div>
   </main>
 

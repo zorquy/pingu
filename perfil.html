@@ -130,11 +130,11 @@
          de pestañas. Lo que no vería otra persona (avisos, cuenta,
          privacidad, borrar) está en /ajustes; el muro y la invitación se
          fueron (SCHEMA 867). -->
-    <!-- Dos columnas en el PC (1270): a la izquierda quién es y la tarjeta de
-         cambios, quietas al bajar; a la derecha las tres losas y las pestañas.
-         En el móvil, una detrás de otra. SCHEMA 1270. -->
+    <!-- La cabecera ancha (1273, PINGU eligió la «A»): quién es a lo ancho con
+         su franja de progreso, las tres losas y, debajo, las pestañas con una
+         columna a la derecha (cambios y seguidores) que se queda quieta al
+         bajar. En el móvil, una detrás de otra. SCHEMA 1273. -->
     <div class="perfil-rejilla">
-    <aside class="perfil-lado" aria-label="Quién es">
     <div class="profile-hero" id="profileHero">
       <div class="profile-hero-banner" id="heroBanner">
         <button class="profile-hero-edit-btn" id="btnEditBanner" type="button"><svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg> Banner</button>
@@ -152,20 +152,25 @@
           <button class="profile-hero-edit-btn perfil-compartir" id="btnCompartirPerfil" type="button" aria-label="Compartir tu perfil" title="Compartir tu perfil"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg></button>
         </div>
       </div>
-      <!-- Los seguidores en caras (1270): los pinta pintarSocial (perfil-cabecera.js). -->
-      <div class="perfil-social" id="perfilSocial">
-        <button class="perfil-social-btn" id="btnShowFollowers" type="button"><span class="perfil-caras" id="seguidoresCaras" aria-hidden="true"></span><span><b class="valor" id="followersCount">0</b> <span id="seguidoresRotulo">seguidores</span><span id="seguidoresConocidos"></span></span></button>
-        <button class="perfil-social-btn" id="btnShowFollowing" type="button"><span>Sigues a <b class="valor" id="followingCount">0</b></span></button>
+      <!-- La franja de progreso (1273): nivel con su barra, racha, logros y los
+           seguidores en caras. La rellena perfil-cabecera.js. -->
+      <div class="perfil-franja" id="perfilFranja">
+        <div class="pf-celda pf-nivel" id="franjaNivel"></div>
+        <div class="pf-celda pf-racha" id="franjaRacha" hidden></div>
+        <button type="button" class="pf-celda pf-logros" id="franjaLogros" hidden></button>
+        <div class="pf-celda pf-social">
+          <span class="pf-rotulo">Seguidores</span>
+          <div class="perfil-social" id="perfilSocial">
+            <button class="perfil-social-btn" id="btnShowFollowers" type="button"><span class="perfil-caras" id="seguidoresCaras" aria-hidden="true"></span><span><b class="valor" id="followersCount">0</b> <span id="seguidoresRotulo">seguidores</span><span id="seguidoresConocidos"></span></span></button>
+            <button class="perfil-social-btn" id="btnShowFollowing" type="button"><span>Sigues a <b class="valor" id="followingCount">0</b></span></button>
+          </div>
+        </div>
       </div>
     </div>
-    <!-- La tarjeta de cambios (1270, js/perfil-trueque.js): la reputación, lo que
-         da y lo que busca. Sin tratos ni nada que cambiar, no sale. -->
-    <section class="perfil-trueque" id="perfilTrueque" aria-label="Cambios" hidden></section>
-    </aside>
-    <div class="perfil-cuerpo">
     <!-- Colección, guías y torneos en tres losas (1270, cifrasHtml). -->
     <div class="perfil-losas" id="profileStats"></div>
 
+    <div class="perfil-cuerpo">
     <!-- UNA fila de pestañas (867); lo maneja js/perfil-pestanias.js. La
          tuya abre por la Vitrina aunque esté vacía: invita a elegir. -->
     <div class="tabs perfil-pestanas" id="profileTabs" role="tablist" aria-label="El perfil">
@@ -220,6 +225,13 @@
       <div id="completedCourses" hidden></div>
     </div>
     </div>
+    <!-- A la derecha en el PC (1273): la tarjeta de cambios (1270,
+         js/perfil-trueque.js) y los seguidores en caras (pintarSocial). Sin
+         tratos ni nada que cambiar, la de cambios no sale. -->
+    <aside class="perfil-lado" aria-label="Cambios y seguidores">
+      <section class="perfil-trueque" id="perfilTrueque" aria-label="Cambios" hidden></section>
+      <section class="perfil-seguidores" id="perfilSeguidores" aria-label="Seguidores" hidden></section>
+    </aside>
     </div>
   </main>
 

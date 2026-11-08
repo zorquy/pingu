@@ -9,7 +9,7 @@ import { servidoDeAutor } from './guias-servido.js'
 import { sugerenciasPendientes, resolverSugerencia } from './guide-suggestions.js'
 import { montarPestanias, contarPestania, abrirLaQueTengaAlgo, abrirPestania, vitrinaLista } from './perfil-pestanias.js'
 import { pintarTorneosDe } from './perfil-torneos.js'
-import { lineaDeQuienHtml, medalleroHtml, pintarSocial } from './perfil-cabecera.js'
+import { pintarFranja, ponerLogrosEnFranja, arrobaHtml, medalleroHtml, pintarSocial } from './perfil-cabecera.js'
 import { showToast } from './toast.js'
 import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 import { cifrasHtml, contarCartasYTorneos, ponerCartasEnLosa } from './perfil-cifras.js'
@@ -59,11 +59,12 @@ async function loadProfile(session, { fresco = false } = {}) {
     <!-- El nombre es el <h1> de la página desde la tanda 313: era
          la única pantalla del sitio sin ninguno, y el título de una
          ficha de persona es la persona. -->
-    <h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1>
-    ${profile?.username ? `<p class="perfil-arroba">@${escapeHtml(profile?.username)}</p>` : ''}
-    ${lineaDeQuienHtml({ xp, racha: profile?.current_streak })}
+    <div class="perfil-nombre"><h1>${escapeHtml(name)}${MOSTRAR_PLANES && profile?.is_pro ? ' <span class="badge badge-pro">Pro</span>' : ''}</h1><span id="rangoHueco"></span></div>
+    ${arrobaHtml(profile?.username, profile?.created_at)}
     ${profile?.bio ? `<p class="profile-bio">${escapeHtml(profile.bio)}</p>` : ''}`
 
+  // El nivel y la racha, en la franja de debajo (1273).
+  pintarFranja({ xp, racha: profile?.current_streak })
   document.getElementById('btnLevelInfo').addEventListener('click', () => openModal(levelLadderHtml(xp)))
 
   return profile
@@ -116,6 +117,7 @@ async function loadAchievements(profile) {
   const grid = document.getElementById('achievementsGrid')
   achievementsCache = await getAllAchievements()
   document.getElementById('achievementsCount').textContent = `${unlocked.length} de ${achievementsCache.length}`
+  ponerLogrosEnFranja(unlocked.length, achievementsCache.length)
   grid.innerHTML = achievementsCache.map((a) => achievementTileHtml(a, unlocked)).join('')
   import('./logros-reparto.js').then((m) => m.ponerReparto(grid)).catch(() => {})
   contarPestania('logros', unlocked.length)
@@ -735,7 +737,7 @@ async function init() {
   // Lo de la última vez, ya (984): cabecera, cifras y trofeos; lo de ahora lo
   // sustituye en cuanto llega. El banner solo por su aspecto: dentro lleva
   // sus botones, que no se tocan.
-  vistaVigilada(claveDeVista('perfil', session.user.id), ['heroInfo', 'heroAvatar', 'profileStats', 'followersCount', 'followingCount', 'achievementsCount', 'achievementsGrid', 'myGuidesList'], { atributos: ['heroBanner', 'heroAvatar'] })
+  vistaVigilada(claveDeVista('perfil', session.user.id), ['heroInfo', 'franjaNivel', 'heroAvatar', 'profileStats', 'followersCount', 'followingCount', 'achievementsCount', 'achievementsGrid', 'myGuidesList'], { atributos: ['heroBanner', 'heroAvatar'] })
 
   const profile = await loadProfile(session)
   // Tu tarjeta de cambios (1270): tu reputación y lo que das y buscas (antes

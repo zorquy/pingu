@@ -55204,6 +55204,57 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1273 — El perfil con la cabecera ancha
+
+PINGU, con una captura de su perfil en el PC: «no me convence demasiado. Hay
+cosas como la descripción, la exp y esas cosas que están fuera de lugar. Además
+toda la interfaz es muy pequeña en PC. ¿Se podría hacer más moderno?». Se le
+propusieron tres estructuras con maquetas (A cabecera ancha, B la columna de la
+1270 ordenada, C carnet de entrenador) y eligió todo lo recomendado: la A, la
+letra a tamaño de PC, el nivel en barra y «En PokeDoc desde…».
+
+Lo que no encajaba, y por qué: la columna de 320 de la 1270 no tenía sitio para
+«9.995 de 10.000 XP para Alto Mando» (se partía en dos, centrado, con la barra
+aplastada), el rango de colaborador se caía solo a la línea siguiente y la
+descripción iba con letra de metadato. Las pestañas y los títulos del Resumen
+iban a 14 px en una columna de 1.160.
+
+- **La cabecera**, a lo ancho de la columna: banner de 200 con foto (136 sin
+  ella), avatar de 160, el nombre a `--t-3xl` con el rango AL LADO
+  (`.perfil-nombre`, donde cae `#rangoHueco`), «@usuario · En PokeDoc desde
+  marzo de 2026» (`arrobaHtml`, de `user_profiles.created_at`) y la descripción
+  a `--t-lg` con el color del texto. Los botones, a la derecha. En la de otra
+  persona, Seguir, Mensaje y **Proponer** (`#btnProponerCambio`, el mismo
+  `abrirPropuesta` de la tarjeta), y la tarjeta de cambios esconde el suyo en el
+  PC para no repetirlo. En el móvil Proponer sigue en la tarjeta.
+- **La franja de progreso** (`#perfilFranja`, en el HTML; la rellena
+  `perfil-cabecera.js`): el nivel (`nivelDeFranjaHtml`: la chapa, «4.820 / 6.000
+  XP», «1.180 XP para As» y la barra entera; en el último nivel, «Nivel
+  máximo» y la barra llena), la racha (solo si la hay), los logros («39 de 64»,
+  que abre su pestaña) y los seguidores en caras (el `#perfilSocial` de la 1270,
+  movido aquí). Sustituye a `lineaDeQuienHtml` y a la línea de chapas: la barra
+  del rango de la 789 (`barraDeRango`) ya no se pinta en el perfil.
+- **Las losas**, debajo de la cabecera y a lo ancho, con la cifra a `--t-3xl`.
+- **Debajo, dos columnas**: las pestañas y su panel, y a la derecha 340 px que
+  se quedan quietos al bajar con la tarjeta de cambios (con su cabecera
+  «Cambios · Ver ›») y la nueva de **seguidores** (`#perfilSeguidores`: hasta
+  doce caras, cada una a su perfil, «Entre ellos…» y «Ver los N», que abre la
+  lista de siempre). En la franja del PC el «entre ellos» se calla porque lo
+  dice la tarjeta.
+- **A tamaño de PC** (solo desde 1.000 px): pestañas a `--t-lg`, títulos del
+  Resumen a `--t-xl`, filas a `--t-lg`, la vitrina del Resumen a seis por fila y
+  los logros también. Los selectores llevan `.perfil-resumen` delante porque el
+  bloque de la 1271 va DESPUÉS en la hoja y, con la misma especificidad, ganaba.
+- **En el móvil** casi nada: la misma columna (quién es, losas, cambios, lo
+  demás). El nivel va a lo ancho con su barra y la racha y los seguidores en UNA
+  fila (sin «entre ellos», que no cabe al lado); la tarjeta de seguidores y la
+  celda de logros no salen.
+- Pruebas: la 1270 mira la cabecera ancha, la franja en una línea, los tamaños
+  (16, 20 y 34) y Proponer arriba; la 1150 las dos columnas de debajo; la 306 el
+  banner con foto a 200 en el PC; la 867 y la 789 leen la franja; la 1040 abre
+  «Colección» antes de buscar los botones de la vitrina (desde la 1271 se entra
+  por el Resumen y estaban escondidos).
+
 ## Tanda 1272 — El perfil, en la columna de la web
 
 PINGU, con una captura del PC: «coge todo el ancho y está horrible. Los apartados
