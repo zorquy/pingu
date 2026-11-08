@@ -122,7 +122,8 @@ console.log('\n── 4. El banner sin foto sigue midiendo 64 px (679; eran 96) 
     semillas: { __FAKE_PERFILES__: [{ id: 'user-1', banner_url: 'https://ejemplo/x.png' }] },
   })
   const alto = await page.locator('#heroBanner').evaluate((n) => n.getBoundingClientRect().height)
-  check('con foto, lo mismo: 136', alto === 136, String(alto))
+  // Desde la 1273, en el PC la cabecera es ancha y con foto el banner sube a 200.
+  check('con foto, 200 en el PC (1273)', alto === 200, String(alto))
   await page.close()
 }
 

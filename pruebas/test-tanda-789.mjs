@@ -21,8 +21,8 @@ check('  …Editar, Borrar, la solución y Reportar, en un «⋯»', /<details c
 check('  …y sin «0» visitas', /\$\{tema\.view_count \? /.test(tema))
 check('PA11: Gente con la vitrina de cada persona (una consulta)', /from\('user_showcase'\)[^\n]*\.in\('user_id', ids\)/.test(leer('js/gente-vitrinas.js')))
 check('SI7: el buscador en pastilla, con su lupa y ganándole a input[type=text]', /\.search-input-wrap \.search-input \{[^}]*border-radius: var\(--radius-pill\)/.test(leer('css/components.css')) && /\.search-input-wrap::before \{/.test(leer('css/components.css')))
-check('PA12: el perfil a dos columnas en el PC', /class="page-content container perfil-pagina"/.test(leer('usuario.html')) && /class="page-content container perfil-pagina"/.test(leer('perfil.html')))
-check('  …con el rango en barra', /barraDeRango\(xp\)/.test(leer('js/usuario.js')) && /barraDeRango\(xp\)/.test(leer('js/perfil.js')))
+check('PA12: el perfil en su columna', /class="page-content container perfil-pagina[ "]/.test(leer('usuario.html')) && /class="page-content container perfil-pagina"/.test(leer('perfil.html')))
+check('  …con el nivel en barra (en la franja desde la 1273)', /pintarFranja\(\{ xp/.test(leer('js/usuario.js')) && /pintarFranja\(\{ xp/.test(leer('js/perfil.js')) && /pf-barra/.test(leer('js/perfil-cabecera.js')))
 check('  …y el banner sin foto de un color propio, no el rosa de todos', /bannerPorDefecto\(profile\)/.test(leer('js/usuario.js')) && !/'var\(--arte-rosa\)'/.test(leer('js/usuario.js')))
 check('PA13: Mensajes en dos paneles en el PC', /id="msgLista"/.test(leer('mensajes.html')) && /css\/mensajes\.css/.test(leer('mensajes.html')))
 
@@ -44,7 +44,7 @@ const b = await chromium.launch()
   await p.waitForTimeout(2500)
   const g = await p.evaluate(() => {
     const m = document.querySelector('.perfil-pagina'), h = document.getElementById('profileHero')
-    return { columnas: getComputedStyle(m).gridTemplateColumns.split(' ').length, pegada: getComputedStyle(h).position, barra: !!document.querySelector('.rango-barra') }
+    return { columnas: getComputedStyle(m).gridTemplateColumns.split(' ').length, pegada: getComputedStyle(h).position, barra: !!document.querySelector('#franjaNivel .pf-barra') }
   })
   // Desde la 1150 (C3), la cabecera a lo ancho: una columna y sin pegar.
   check('PA12→1150: en el PC, la cabecera a lo ancho (una columna)', g.columnas === 1 && g.pegada !== 'sticky', JSON.stringify(g))

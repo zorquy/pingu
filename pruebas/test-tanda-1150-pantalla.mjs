@@ -19,17 +19,17 @@ for (const ruta of ['/perfil.html', '/usuario/Misty']) {
   await page.setViewportSize({ width: 1440, height: 900 })
   await page.goto(`${BASE}${ruta}`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
-  // Desde la 1270 son DOS columnas (PINGU eligió la recomendada): quién es y la
-  // tarjeta de cambios a la izquierda, quietas al bajar; losas y pestañas a la
-  // derecha, una al lado de la otra.
+  // Desde la 1273 (PINGU eligió la «A · Cabecera ancha»): quién es A LO ANCHO,
+  // las losas debajo, y las pestañas con una columna de 340 a la derecha
+  // (cambios y seguidores), quieta al bajar.
   const m = await page.evaluate(() => {
     const r = (s) => document.querySelector(s)?.getBoundingClientRect()
-    const hero = r('#profileHero'), tabs = r('#profileTabs'), losas = r('#profileStats')
-    return { heroW: hero?.width, heroR: hero?.right, tabsL: tabs?.left, losasL: losas?.left, losasTop: losas?.top, heroTop: hero?.top, pegada: getComputedStyle(document.querySelector('.perfil-lado')).position }
+    const hero = r('#profileHero'), tabs = r('#profileTabs'), losas = r('#profileStats'), lado = r('.perfil-lado')
+    return { heroW: Math.round(hero.width), losasW: Math.round(losas.width), heroL: Math.round(hero.left), tabsL: Math.round(tabs.left), tabsR: Math.round(tabs.right), ladoL: Math.round(lado.left), ladoW: Math.round(lado.width), losasDebajo: losas.top >= hero.bottom - 1, tabsDebajo: tabs.top >= losas.bottom - 1, pegada: getComputedStyle(document.querySelector('.perfil-lado')).position }
   })
-  check(`${ruta}: quién es, en una columna de 320 a la izquierda`, Math.round(m.heroW) === 320, JSON.stringify(m))
-  check('  …las losas y las pestañas a su derecha', m.tabsL > m.heroR && m.losasL > m.heroR && Math.abs(m.losasTop - m.heroTop) < 80, JSON.stringify(m))
-  check('  …y la columna de la izquierda se queda quieta al bajar', m.pegada === 'sticky', m.pegada)
+  check(`${ruta}: quién es, a lo ancho de la columna, con las losas debajo`, m.heroW === m.losasW && m.heroW > 1000 && m.losasDebajo, JSON.stringify(m))
+  check('  …las pestañas debajo, y a su derecha la columna de 340', m.tabsDebajo && m.tabsL === m.heroL && m.ladoL > m.tabsR && m.ladoW === 340, JSON.stringify(m))
+  check('  …que se queda quieta al bajar', m.pegada === 'sticky', m.pegada)
   check('  …sin errores', !err.length, err.join(' | '))
   await ctx.close()
 }

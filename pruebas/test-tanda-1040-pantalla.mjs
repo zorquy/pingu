@@ -150,6 +150,9 @@ console.log('── 7. Perfil: la cabecera más baja ──')
     return { banner: m('.profile-hero-banner, .profile-hero-banner-vacio'), avatar: m('.profile-hero-avatar'), bioLineas: bio ? Math.round(bio.getBoundingClientRect().height / lh) : 0 }
   })
   check('banner de 88, avatar de 72 y la bio en una línea', r.banner === 88 && r.avatar === 72 && r.bioLineas <= 1, JSON.stringify(r))
+  // Desde la 1271 se entra por el Resumen: la vitrina está en «Colección».
+  await page.click('#profileTabs [data-ptab="vitrina"]').catch(() => {})
+  await page.waitForTimeout(400)
   const v = await page.evaluate(() => [...document.querySelectorAll('#perfilVitrina .vitrina-compartir, #perfilVitrina .vitrina-editar')].map((x) => ({ w: Math.round(x.getBoundingClientRect().width), h: Math.round(x.getBoundingClientRect().height), et: x.getAttribute('aria-label') })))
   check('«Compartir» y «Cambiar» en iconos de 44, con su etiqueta', v.length === 2 && v.every((x) => x.w === 44 && x.h >= 44 && x.et), JSON.stringify(v))
   check('«Vitrina» no se repite (ya lo dice la pestaña)', (await soloLector(page, '#perfilVitrina .vitrina-cabeza .section-title')) === true)
