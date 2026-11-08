@@ -55204,6 +55204,99 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1268 — Los retos sin trampas: la base es el árbitro
+
+PINGU: «revisa todos los minijuegos… en ¿qué carta es? cogías la imagen, la
+arrastrabas fuera y te llevabas la imagen completa… igual haciendo un F12, en
+el de ordena por precio te puede salir el precio… para que ningún listillo
+haga trampa». La revisión, juego a juego:
+
+| Reto | Por dónde se veía la respuesta |
+|---|---|
+| ¿Qué carta es? | La función mandaba la carta ENTERA (nombre, set, número); la foto era la nítida con un `blur` de CSS (arrastrar, «abrir imagen», o la pestaña Red) |
+| ¿Más caro? | Los seis precios en la respuesta de la función |
+| Ordena por precio | Los cuatro precios, igual |
+| ¿De qué expansión es? | `set_id` (la buena) en cada ronda, y la dirección de la foto lleva el set |
+| ¿Quién es? | El Pokémon salía de la FECHA en la página (`pokemonDelDia`), el dibujo se pedía por su número de Pokédex y la silueta era CSS |
+| Parejas | La mesa salía de la fecha y las doce caras estaban en el HTML, tapadas con CSS |
+| Todos | La XP la daba `retos_guardar` creyéndose lo que le mandaba la página: una línea en la consola eran +50 XP sin jugar |
+| Todos | La elección del día (y el sitio de la buena entre las opciones) salía de la fecha con el generador de la página: contando las cartas por la API pública se repetía desde fuera |
+| Todos | Las tablas del día (`carta_del_dia`, `mas_caro_del_dia`, `retos_reto_del_dia`) eran de lectura pública: con su id, la carta |
+
+**El arreglo.** Cada función del día parte lo que elige en dos
+(`netlify/lib/reto-mesa.mjs`): la MESA, que va a la página (y a la CDN) sin
+una sola respuesta —ni ids, ni precios, ni la buena, ni la foto nítida—, y lo
+del ÁRBITRO, que se guarda en `retos_arbitro` (sin permisos para nadie más que
+la clave de servicio) con lo que hace falta para corregir: la carta con su
+familia, las pistas y las seis fotos borrosas; los precios de ese momento; la
+buena de cada ronda; el Pokémon y sus tres siluetas. Una partida libre se
+elige UNA vez y se guarda como un día más (de 1900), así que no cambia aunque
+crezca el catálogo.
+
+Cada jugada va a `retos_jugar` (la base), que corrige con eso y devuelve SOLO
+lo que esa jugada destapa: las casillas y la pista de un fallo, el precio de B
+al contestar, cuáles están en su sitio, la buena de esa ronda, qué carta hay en
+el hueco que vuelves. La respuesta llega al acabar. Con cuenta, la partida vive
+en `retos_partidas` (una por reto y día: no se empieza otra) y al acabar la
+misma función apunta el resultado con `retos_guardar`, que deja de poder
+llamarse desde fuera. Sin cuenta, o en una partida libre, la partida viaja en
+una FICHA cifrada (`pgp_sym_encrypt` con la llave de `retos_llave`): el
+navegador la guarda y la manda, pero no la lee ni la retoca. Lo empezado sin
+cuenta se trae al entrar, salvo Parejas (con la ficha se podría repetir una
+jugada desde el mismo punto para ver huecos sin que cuenten).
+
+Las casillas de «¿Qué carta es?» se cuentan en SQL (`retos_carta_det`,
+`retos_rango_rareza`, `retos_clave_nombre`) con las mismas reglas que
+`compararDetallado`; la familia de la buena (`familiaDe`) va precalculada en lo
+del árbitro, para no copiar la tabla de cadenas evolutivas.
+`test-tanda-1268.mjs` compara las dos con todas las parejas de nueve cartas
+(81) y el rango con todas las rarezas del vocabulario: si cambia una, cambia la
+otra.
+
+**Las fotos** las sirve `/reto-foto` (`netlify/functions/reto-foto.mjs`, con
+sharp): la dirección va CIFRADA (`netlify/lib/reto-secreto.mjs`, AES-GCM con
+una llave sacada de la clave de servicio; el vector sale de un HMAC de lo
+cifrado, así que la misma foto tiene la misma dirección y la guarda la CDN) y
+dentro va de dónde sacarla y qué hacerle: desenfocar a 340 px de ancho (los
+mismos píxeles que pintaba el CSS) o la silueta (el canal alfa en negro, y
+borrosa en los dos primeros intentos). Lo que se arrastra, se abre en otra
+pestaña o se ve en la pestaña Red es ya la borrosa. No es un proxy abierto:
+solo sirve lo que ha cifrado una función nuestra.
+
+**La semilla del día** suma a la fecha un número que sale de la clave de
+servicio (`semillaDelDia`): sigue siendo determinista (dos funciones que
+eligen a la vez eligen lo mismo) pero ya no se puede repetir desde fuera. Vale
+para las cartas de cada reto, el sitio de la buena entre las opciones de
+«Expansión» y el Pokémon de la silueta (`pokemonDelDia(dia, secreto)`).
+
+**Lo que no se puede evitar** (y se le dijo a PINGU): el reto es el mismo para
+todo el mundo, así que quien lo juega antes en una ventana privada, con otra
+cuenta o se lo chiva un amigo, se sabe la respuesta. Pasa en todos los juegos
+diarios. Lo que se cierra es que la respuesta esté en la página y que la XP se
+pida sin jugar. En «¿Más caro?» y «Ordena» la carta se ve (es el juego): su
+precio se puede buscar fuera, como cualquier pregunta de trivial; lo que ya no
+hay es un id con el que pedirlo a nuestra API de un tirón.
+
+Y aparte, fuera de esta tanda: `xp_sumar` (la XP de guías, cursos, logros…)
+sigue aceptando hasta 500 por llamada desde la consola. Lo dice la propia 388
+(«para cerrarlo habría que mover cada premio al servidor»); queda apuntado.
+
+**El orden de la subida**: la migración primero (un push solo con ella), PINGU
+la ejecuta, y después la web. Al revés, los retos dirían «Este reto se está
+actualizando» hasta ejecutarla; y la migración quita `retos_guardar` a la web
+de antes, así que entre las dos subidas un reto que se acabe no se apunta.
+
+Pruebas (rama pruebas): `test-tanda-1268.mjs` (sin base: cifrado, semilla,
+mesas sin respuestas y /reto-foto; contra PostgreSQL: nadie lee lo del árbitro,
+`retos_guardar` cerrado, los seis juegos jugados con y sin cuenta, fichas
+inventadas, días que no son, partidas libres y las casillas iguales que la
+web) y `test-tanda-1268-pantalla.mjs` (cada reto sin jugar: ni el HTML ni la
+red llevan la respuesta, las fotos son de /reto-foto y Parejas no tiene caras
+tapadas). El doble de Supabase tiene un árbitro pequeño (`retos_jugar`) y
+`pruebas/retos-falsos.mjs` monta las mesas con `reto-mesa.mjs` de verdad; se
+pasaron a él las de los retos (570, 583, 835, 841, 860, 871, 939, 976, 988,
+989, 991, 1046, 1111…).
+
 ## Tanda 1267 — Mensajes cambia de conversación sin recargar
 
 PINGU: «vas de una conversación a otra y te recarga toda la página. No

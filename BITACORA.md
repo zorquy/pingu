@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-08 (509) — PINGU-Claude (1268, parte 1 — la migración del árbitro de los retos)
+
+**Hecho**: PINGU pidió revisar los retos «para que ningún listillo haga
+trampa». En los seis se podía: la respuesta viajaba a la página (la carta del
+día entera, los precios, la expansión buena; el Pokémon y la mesa de Parejas
+salían de la fecha), la foto borrosa era la nítida con CSS, y `retos_guardar`
+daba la XP que le dijeras desde la consola. El arreglo (SCHEMA 1268): la base
+corrige cada jugada (`retos_jugar`) con lo que guardan las funciones del día en
+`retos_arbitro`, que no lee nadie, y apunta ella la XP al acabar. Esta subida
+lleva SOLO la migración: la web nueva la necesita ya ejecutada.
+
+**Ficheros**: `supabase-migration-1268-retos-arbitro.sql`, SCHEMA.
+
+**Pendiente**: PINGU ejecuta la migración 1268 y en cuanto lo diga sube la
+parte 2 (la web). Entre una cosa y otra, un reto que se acabe no se apunta (la
+migración le quita `retos_guardar` a la web de antes). Sigue lo de la 507
+(1266) y la 505 (1264 y 1260).
+
 ## 2026-11-07 (508) — PINGU-Claude (1267 — Mensajes cambia de conversación sin recargar)
 
 **Hecho**: PINGU: «vas de una conversación a otra y te recarga toda la página.
