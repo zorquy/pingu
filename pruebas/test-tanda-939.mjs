@@ -15,6 +15,8 @@
 //      la expansión entera.
 import { readFileSync } from 'node:fs'
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
+// 1268: el reto del día se sirve sin respuestas y lo corrige el árbitro.
+import { instalarRetos } from './retos-falsos.mjs'
 
 const RAIZ = process.env.PD_RAIZ || '/home/user/pingu'
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
@@ -98,7 +100,7 @@ console.log('\n── 3. El buscador de «¿Qué carta es?» ──')
   const page = await browser.newPage({ viewport: { width: 1000, height: 1000 } })
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
-  await page.route('**/.netlify/functions/carta-del-dia**', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ dia: hoy, numero: 1, carta: RESPUESTA, ayer: null }) }))
+  await instalarRetos(page, { carta: { dia: hoy, numero: 1, carta: RESPUESTA, ayer: null } })
   await page.route('**/assets.tcgdex.net/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: SVG }))
   await page.route(/limitlesstcg|pokemontcg\.io|images\.tcggo|scrydex/, (r) => r.abort())
   await page.addInitScript(([sets, cartas]) => {

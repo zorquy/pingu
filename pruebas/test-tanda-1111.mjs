@@ -12,6 +12,8 @@
 //     lo arreglado (lo contestado de una ronda que cambió vuelve a jugarse);
 //     si el servidor dice que sigue sin foto, el reto no se abre.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
+// 1268: la mesa sin respuestas, las fotos por /reto-foto y el árbitro.
+import { instalarRetos, recetaDe, fichaFalsa } from './retos-falsos.mjs'
 
 const RAIZ = process.env.PD_RAIZ || '/home/user/pingu'
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
@@ -235,15 +237,12 @@ console.log('── 4. En el navegador (¿De qué expansión es?) ──')
     // Sin service worker: el de la web pide las fotos él, y `route` no le llega.
     const ctx = await browser.newContext({ viewport: { width: 1200, height: 900 }, serviceWorkers: 'block' })
     const pedidas = []
-    await ctx.route('**/.netlify/functions/que-expansion**', (r) => {
-      const rev = r.request().url().includes('revisar=1')
-      pedidas.push(rev ? 'revisar' : 'normal')
-      r.fulfill({ contentType: 'application/json', body: JSON.stringify(rev ? revisado : { dia: hoy, numero: 91, rondas: ROTAS }) })
-    })
-    await ctx.route(/assets\.tcgdex\.net|limitlesstcg|pokemontcg|tcggo|scrydex/, (r) => (r.request().url().includes('rota-') || !r.request().url().includes('assets.tcgdex') ? r.fulfill({ status: 404, body: '' }) : r.fulfill({ contentType: 'image/svg+xml', body: SVG })))
+    ctx.on('request', (r) => { if (/functions\/que-expansion/.test(r.url())) pedidas.push(r.url().includes('revisar=1') ? 'revisar' : 'normal') })
+    // Una foto «no contesta» si de su cadena solo queda lo roto o lo que no es TCGdex (como antes).
+    await instalarRetos(ctx, { expansion: { dia: hoy, numero: 91, rondas: ROTAS } }, { revisado: { expansion: revisado }, fotoRota: (rc) => !(rc?.u || []).some((u) => u.includes('assets.tcgdex') && !u.includes('rota-')) })
     await ctx.addInitScript((g) => {
       window.__FAKE_SESSION__ = 'none'
-      if (g && !sessionStorage.getItem('puesto')) { localStorage.setItem('pokedoc-que-expansion', JSON.stringify(g)); sessionStorage.setItem('puesto', '1') }
+      if (g && !sessionStorage.getItem('puesto')) { for (const [k, v] of Object.entries(g)) localStorage.setItem(k, JSON.stringify(v)); sessionStorage.setItem('puesto', '1') }
     }, guardado)
     const page = await ctx.newPage()
     const errores = []
@@ -252,11 +251,12 @@ console.log('── 4. En el navegador (¿De qué expansión es?) ──')
     await page.waitForTimeout(2500)
     return { browser, page, pedidas, errores }
   }
-  // Ya había contestado la 1 (bien) y la 2 (a ciegas, con el dorso).
-  const v = await abrir({ revisado: { dia: hoy, numero: 91, rondas: ARREGLADAS, sinFoto: [] }, guardado: { dia: hoy, elegidas: ['s0', 's1'] } })
+  // Ya había contestado la 1 (bien). Desde la 1268 lo contestado lo guarda el
+  // árbitro (aquí, la ficha de sin cuenta).
+  const v = await abrir({ revisado: { dia: hoy, numero: 91, rondas: ARREGLADAS, sinFoto: [] }, guardado: fichaFalsa('expansion', hoy, { elegidas: ['s0'], tira: [true] }) })
   check('con la foto de la ronda 2 rota, pide la revisión', v.pedidas.join() === 'normal,revisar', v.pedidas.join())
-  check('  …y juega con lo arreglado: la ronda 2 es la carta nueva', (await v.page.locator('#qxCarta img').getAttribute('src'))?.includes('/x/c7/'), await v.page.locator('#qxCarta').innerHTML())
-  check('  …lo contestado de la ronda que cambió vuelve a jugarse (la 1 se queda)', /carta 2 de 5/.test(await v.page.locator('#qxSub').innerText()) && (await v.page.locator('#qxPasos .rj-paso.si').count()) === 1, await v.page.locator('#qxSub').innerText())
+  check('  …y juega con lo arreglado: la ronda 2 es la carta nueva', recetaDe(await v.page.locator('#qxCarta img').getAttribute('src'))?.u?.[0]?.includes('/x/c7/'), await v.page.locator('#qxCarta').innerHTML())
+  check('  …y sigue por donde iba (la 1, contestada)', /carta 2 de 5/.test(await v.page.locator('#qxSub').innerText()) && (await v.page.locator('#qxPasos .rj-paso.si').count()) === 1, await v.page.locator('#qxSub').innerText())
   check('  …y entre las opciones está la suya', (await v.page.locator('#qxOpciones [data-set="s7"]').count()) === 1)
   check('  …sin errores', v.errores.length === 0, v.errores.join(' | '))
   await v.browser.close()
@@ -269,8 +269,8 @@ console.log('── 4. En el navegador (¿De qué expansión es?) ──')
     const browser = await chromium.launch()
     const ctx = await browser.newContext({ serviceWorkers: 'block' })
     const pedidas = []
-    await ctx.route('**/.netlify/functions/que-expansion**', (r) => { pedidas.push(r.request().url()); r.fulfill({ contentType: 'application/json', body: JSON.stringify({ dia: hoy, numero: 91, rondas: ARREGLADAS }) }) })
-    await ctx.route(/assets\.tcgdex\.net/, (r) => r.fulfill({ contentType: 'image/svg+xml', body: SVG }))
+    ctx.on('request', (r) => { if (/functions\/que-expansion/.test(r.url())) pedidas.push(r.url()) })
+    await instalarRetos(ctx, { expansion: { dia: hoy, numero: 91, rondas: ARREGLADAS } })
     await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'none' })
     const page = await ctx.newPage()
     await page.goto(`${BASE}/que-expansion.html`, { waitUntil: 'domcontentloaded' })

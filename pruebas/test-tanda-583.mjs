@@ -5,6 +5,8 @@
 // responder, y que al acabar se pueda compartir en texto y en imagen.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { numeroDelDia, RONDAS } from '/home/user/pingu/js/mas-caro.js'
+// 1268: el reto del día se sirve sin respuestas y lo corrige el árbitro.
+import { instalarRetos } from './retos-falsos.mjs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -28,7 +30,7 @@ const page = await browser.newPage({ viewport: { width: 420, height: 900 } })
 const errores = []
 page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))
 await page.addInitScript(() => { window.__FAKE_SESSION__ = 'none' })
-await page.route('**/.netlify/functions/mas-caro**', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ dia: hoy, numero: numeroDelDia(hoy), cartas: CARTAS }) }))
+await instalarRetos(page, { caro: { dia: hoy, numero: numeroDelDia(hoy), cartas: CARTAS } })
 await page.route('**/assets.tcgdex.net/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: CARTA_SVG }))
 await page.route('**/limitlesstcg.nyc3.cdn.digitaloceanspaces.com/**', (r) => r.abort())
 await page.route('**/.netlify/functions/imagen-carta**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: CARTA_SVG }))

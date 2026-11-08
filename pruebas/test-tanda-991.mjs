@@ -7,6 +7,8 @@ import { readFileSync, existsSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
+// 1268: la silueta la hace el servidor y el Pokémon lo sabe el árbitro.
+import { instalarRetos, recetaDe } from './retos-falsos.mjs'
 const RAIZ = process.env.PD_RAIZ || '/home/user/pingu'
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const AQUI = dirname(fileURLToPath(import.meta.url))
@@ -58,26 +60,28 @@ const browser = await chromium.launch()
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
   const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="475" height="475"><circle cx="237" cy="260" r="160" fill="#e8b000"/></svg>'
   await page.route(/official-artwork/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: svg }))
+  const hoy = new Date().toISOString().slice(0, 10)
+  await instalarRetos(page, { silueta: { dia: hoy, numero: 1, buena: 25, opciones: [1, 25, 7, 133] } })
   await page.goto(`${BASE}/quien-es.html`, { waitUntil: 'domcontentloaded' })
-  await page.waitForTimeout(1200)
-  const borrosidad = () => page.evaluate(() => { const f = getComputedStyle(document.getElementById('qeDibujo')).filter; const m = f.match(/blur\(([\d.]+)px\)/); return { intento: document.getElementById('qeEscena').dataset.intento, blur: m ? Number(m[1]) : 0, negro: /brightness\(0\)/.test(f), bote: document.getElementById('qeBote').textContent, sub: document.getElementById('qeSub').textContent } })
+  await page.waitForTimeout(1500)
+  // Desde la 1268 lo borroso y lo negro lo hace el servidor (/reto-foto con
+  // la silueta de nivel 1, 2 o 3); al acertar llega el dibujo de verdad.
+  const borrosidad = () => page.evaluate(() => ({ intento: document.getElementById('qeEscena').dataset.intento, src: document.getElementById('qeDibujo').src, bote: document.getElementById('qeBote').textContent, sub: document.getElementById('qeSub').textContent })).then((x) => ({ ...x, nivel: recetaDe(x.src)?.e?.s ?? null, color: /official-artwork/.test(x.src) }))
   const uno = await borrosidad()
-  check('el primer intento, borroso y en negro, y avisado', uno.intento === '1' && uno.blur >= 10 && uno.negro && /borroso/.test(uno.sub), JSON.stringify(uno))
+  check('el primer intento, la silueta más borrosa del servidor, y avisado', uno.intento === '1' && uno.nivel === 1 && /borroso/.test(uno.sub), JSON.stringify(uno))
   check('  …y vale +30', /\+30 XP/.test(uno.bote), uno.bote)
-  const buena = await page.evaluate(async () => { const m = await import('/js/quien-es.js'); const d = await import('/js/reto-diario.js'); return String(m.pokemonDelDia(d.hoyISO())) })
-  const malas = (await page.$$eval('.qe-opcion', (bs) => bs.map((b) => b.dataset.dex))).filter((d) => d !== buena)
-  await page.click(`.qe-opcion[data-dex="${malas[0]}"]`)
-  await page.waitForTimeout(400)
-  const dos = await borrosidad()
-  check('tras un fallo, menos borroso, y vale +20', dos.intento === '2' && dos.blur > 0 && dos.blur < uno.blur && /\+20 XP/.test(dos.bote), JSON.stringify(dos))
-  await page.click(`.qe-opcion[data-dex="${malas[1]}"]`)
-  await page.waitForTimeout(400)
-  const tres = await borrosidad()
-  check('tras dos, la silueta nítida de siempre, y vale +10', tres.intento === '3' && tres.blur === 0 && tres.negro && /\+10 XP/.test(tres.bote), JSON.stringify(tres))
-  await page.click(`.qe-opcion[data-dex="${buena}"]`)
+  await page.click('.qe-opcion[data-dex="1"]')
   await page.waitForTimeout(600)
+  const dos = await borrosidad()
+  check('tras un fallo, menos borrosa, y vale +20', dos.intento === '2' && dos.nivel === 2 && /\+20 XP/.test(dos.bote), JSON.stringify(dos))
+  await page.click('.qe-opcion[data-dex="7"]')
+  await page.waitForTimeout(600)
+  const tres = await borrosidad()
+  check('tras dos, la silueta nítida, y vale +10', tres.intento === '3' && tres.nivel === 3 && /\+10 XP/.test(tres.bote), JSON.stringify(tres))
+  await page.click('.qe-opcion[data-dex="25"]')
+  await page.waitForTimeout(900)
   const fin = await borrosidad()
-  check('al acertar se ve en color, sin borrón', !fin.negro && fin.blur === 0, JSON.stringify(fin))
+  check('al acertar se ve en color: el dibujo de verdad', fin.color, JSON.stringify(fin))
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
 }

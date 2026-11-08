@@ -9,6 +9,8 @@
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 import { numeroDelDia } from '/home/user/pingu/js/reto-compartir.js'
 import { textoParaCompartir } from '/home/user/pingu/js/mas-caro.js'
+// 1268: el reto del día se sirve sin respuestas y lo corrige el árbitro.
+import { instalarRetos } from './retos-falsos.mjs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -39,7 +41,7 @@ async function contexto({ movil = true, conPartidas = true } = {}) {
       }
     } catch {}
   }, { hoy, conPartidas })
-  await ctx.route('**/.netlify/functions/mas-caro**', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ dia: hoy, numero: numeroDelDia(hoy), cartas: CARTAS }) }))
+  await instalarRetos(ctx, { caro: { dia: hoy, numero: numeroDelDia(hoy), cartas: CARTAS } })
   await ctx.route('**/assets.tcgdex.net/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: CARTA_SVG }))
   await ctx.route('**/limitlesstcg.nyc3.cdn.digitaloceanspaces.com/**', (r) => r.abort())
   await ctx.route('**/.netlify/functions/imagen-carta**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: CARTA_SVG }))
@@ -159,7 +161,7 @@ console.log('── 5. Los otros cuatro retos y el cuestionario van por la misma
   const quien = readFileSync(`${RAIZ}/js/quien-es-juego.js`, 'utf8')
   check('«¿Quién es?» pinta el dibujo del Pokémon cuadrado (fotoProporcion: 1)', /fotoProporcion: 1/.test(quien) && /urlsDelDibujo\(buena\)/.test(quien))
   const ordena = readFileSync(`${RAIZ}/js/ordena-precio-juego.js`, 'utf8')
-  check('«Ordena» pinta una fila de cuatro por intento', /filas: estado\.intentos\.map\(\(o\) => enSuSitio\(o, cartas\)\)/.test(ordena))
+  check('«Ordena» pinta una fila de cuatro por intento (lo que dijo el árbitro de cada uno, 1268)', /filas: estado\.intentos\.map\(\(_, n\) => bienes\[n\] \|\| \[\]\)/.test(ordena))
 }
 
 await browser.close()

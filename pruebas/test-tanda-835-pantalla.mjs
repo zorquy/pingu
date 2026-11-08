@@ -7,6 +7,8 @@
 // con la XP que contesta la base (el doble) y sin cuenta.
 import { readFileSync } from 'node:fs'
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
+// 1268: el reto del día se sirve sin respuestas y lo corrige el árbitro.
+import { instalarRetos, fichaFalsa } from './retos-falsos.mjs'
 
 const RAIZ = '/home/user/pingu'
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
@@ -141,9 +143,10 @@ async function abrir(pagina, { sesion = 'none', local = {}, rpc = {}, movil = fa
   const ctx = await browser.newContext(movil ? { ...devices['iPhone 13'], locale: 'es-ES' } : { viewport: { width: 1280, height: 900 }, locale: 'es-ES' })
   await ctx.route('**/assets.tcgdex.net/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: FOTO }))
   await ctx.route('**/official-artwork/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: FOTO }))
-  await ctx.route('**/.netlify/functions/mas-caro**', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ dia: hoy, numero: 11, cartas: SEIS }) }))
-  await ctx.route('**/.netlify/functions/ordena-precio**', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ dia: hoy, numero: 1, cartas: SEIS.slice(0, 4) }) }))
-  await ctx.route('**/.netlify/functions/que-expansion**', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ dia: hoy, numero: 1, rondas: RONDAS_X }) }))
+  await instalarRetos(ctx, { caro: { dia: hoy, numero: 11, cartas: SEIS } })
+  await instalarRetos(ctx, { ordena: { dia: hoy, numero: 1, cartas: SEIS.slice(0, 4) } })
+  await instalarRetos(ctx, { expansion: { dia: hoy, numero: 1, rondas: RONDAS_X } })
+  await instalarRetos(ctx, { silueta: { dia: hoy, numero: 1, buena: qe.pokemonDelDia(hoy), opciones: qe.opcionesDelDia(hoy) } })
   await ctx.addInitScript(([s, l, rp]) => {
     window.__FAKE_SESSION__ = s
     window.__RPC_RESPUESTAS__ = rp
@@ -194,7 +197,7 @@ const GUARDADO = (x) => ({ retos_guardar: { nuevo: true, xp: x, perfecto: false,
 }
 {
   // ¿Más caro?: la racha dentro del reto y lo que vale cada acierto.
-  const { page, ctx, errores } = await abrir('mas-caro', { local: { 'pokedoc-mas-caro': { dia: hoy, respuestas: [true, true] } } })
+  const { page, ctx, errores } = await abrir('mas-caro', { local: { 'pokedoc-mas-caro': { dia: hoy, respuestas: [true, true] }, ...fichaFalsa('caro', hoy, { respuestas: [true, true] }) } })
   check('Más caro: sin errores', !errores.length, errores.join(' | '))
   check('  …tras dos aciertos, «Racha ×2»', await page.locator('#mcrCombo').isVisible() && /×2/.test(await page.locator('#mcrCombo').innerText()))
   // Ronda 3: A = a3 (15), B = a4 (40): «vale más».
@@ -215,12 +218,13 @@ const GUARDADO = (x) => ({ retos_guardar: { nuevo: true, xp: x, perfecto: false,
   await page.click(`.qe-opcion[data-dex="${buena}"]`)
   await page.waitForTimeout(700)
   check('  …el acierto revela el dibujo y lo dice', (await page.locator('#qeEscena.revelado').count()) === 1 && /¡Es /.test(await page.locator('#qeFinal').innerText()))
-  const rpcs = await page.evaluate(() => window.__RPCS__.filter((r) => r.nombre === 'retos_guardar'))
-  check('  …se manda a la base: silueta, hoy, 2 intentos, acertada', rpcs.length === 1 && rpcs[0].args.p_juego === 'silueta' && rpcs[0].args.p_dia === hoy && rpcs[0].args.p_intentos === 2 && rpcs[0].args.p_acertada === true, JSON.stringify(rpcs))
+  // 1268: lo apunta la base al acabar (el árbitro), no la página.
+  const rpcs = await page.evaluate(() => window.__RPCS__.filter((r) => r.nombre === 'retos_apuntar'))
+  check('  …lo apunta la base: silueta, hoy, 2 intentos, acertada (y la página no llama a retos_guardar)', rpcs.length === 1 && rpcs[0].args.juego === 'silueta' && rpcs[0].args.dia === hoy && rpcs[0].args.intentos === 2 && rpcs[0].args.acertada === true && !(await page.evaluate(() => window.__RPCS__.some((r) => r.nombre === 'retos_guardar'))), JSON.stringify(rpcs))
   check('  …y enseña la XP que contestó la base', /\+10 XP/.test(await page.locator('#qePremios').innerText()))
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1200)
-  check('  …al volver sigue resuelto y no se manda otra vez', (await page.locator('#qeEscena.revelado').count()) === 1 && (await page.evaluate(() => window.__RPCS__.filter((r) => r.nombre === 'retos_guardar').length)) === 0)
+  check('  …al volver sigue resuelto y no se manda otra vez', (await page.locator('#qeEscena.revelado').count()) === 1 && (await page.evaluate(() => window.__RPCS__.filter((r) => r.nombre === 'retos_apuntar').length)) === 0)
   await ctx.close()
 }
 {
@@ -229,13 +233,14 @@ const GUARDADO = (x) => ({ retos_guardar: { nuevo: true, xp: x, perfecto: false,
   check('Ordena: sin errores', !errores.length, errores.join(' | '))
   check('  …cuatro cartas y «Comprobar» apagado hasta tener las cuatro', (await page.locator('.op-carta').count()) === 4 && (await page.locator('#opComprobar').isDisabled()))
   // Bueno: a1 (10), a3 (15), a2 (20), a4 (40). Se dice a1, a2, a3, a4: dos bien.
-  for (const id of ['a1', 'a2', 'a3', 'a4']) await page.click(`.op-carta[data-id="${id}"]`)
+  // Desde la 1268 las cartas llevan llaves que no dicen nada: a1..a4 son a..d.
+  for (const id of ['a', 'b', 'c', 'd']) await page.click(`.op-carta[data-id="${id}"]`)
   check('  …cada carta lleva su número', (await page.$$eval('.op-numero', (ns) => ns.map((n) => n.textContent).join())) === '1,2,3,4')
   await page.click('#opComprobar')
   await page.waitForTimeout(300)
   check('  …tras comprobar, las dos que están en su sitio se quedan fijas', (await page.locator('.op-carta.fija').count()) === 2 && /2 de 4 en su sitio/.test(await page.locator('#opSub').innerText()), await page.locator('#opSub').innerText())
-  await page.click('.op-carta[data-id="a3"]')
-  await page.click('.op-carta[data-id="a2"]')
+  await page.click('.op-carta[data-id="c"]')
+  await page.click('.op-carta[data-id="b"]')
   await page.click('#opComprobar')
   await page.waitForTimeout(300)
   check('  …y al acertar: «¡Ordenadas en 2!» con los precios', /¡Ordenadas en 2!/.test(await page.locator('#opFinal').innerText()) && (await page.locator('.op-precio').count()) === 4)

@@ -15,7 +15,7 @@ const BASE = process.env.PD_BASE || 'http://localhost:8892'
 const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
 
 console.log('── 1. En el código ──')
-check('el sobre se abre al terminar EN la visita', /if \(terminado\(\)\) abrirSobre\(\$\('cdRecorte'\)\)/.test(leer('js/carta-del-dia-juego.js')))
+check('el sobre se abre al terminar EN la visita', /if \(terminado\(\) && !antes\) abrirSobre\(\$\('cdRecorte'\)\)/.test(leer('js/carta-del-dia-juego.js')))
 check('la «×» de la ficha devuelve la carta a su hueco', /volverAlHueco\(\(\) => \$\('mcEditor'\)\.close\(\)\)/.test(leer('js/mi-coleccion.js')))
 const css = leer('css/mi-coleccion.css')
 check('la hoja gira sobre el lomo', /@keyframes mc-hoja-entra-derecha \{\s*from \{ opacity: 0\.5; transform: perspective\(1600px\) rotateY\(-62deg\); \}/.test(css))

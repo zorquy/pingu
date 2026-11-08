@@ -8,6 +8,8 @@
 //    hacía nada); en Mi colección sube un nivel o quita los filtros sin
 //    recargar.
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
+// 1268: la silueta la sabe el árbitro; la partida con cuenta vive en la base.
+import { instalarRetos } from './retos-falsos.mjs'
 
 const RAIZ = process.env.PD_RAIZ || '/home/user/pingu'
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
@@ -34,7 +36,7 @@ const { RETOS } = await import(`${RAIZ}/js/retos-xp.js`)
 const browser = await chromium.launch()
 const hoy = new Date().toISOString().slice(0, 10)
 const { pokemonDelDia } = await import(`${RAIZ}/js/quien-es.js`)
-const buena = pokemonDelDia(hoy)
+const buena = 25
 const semilla = ({ hoy, buena }) => {
   window.__FAKE_SESSION__ = 'user-1'
   try {
@@ -42,6 +44,8 @@ const semilla = ({ hoy, buena }) => {
     // La silueta de hoy acertada a la primera, y «Ordena por precio» hecho:
     // el siguiente tiene que saltárselo.
     localStorage.setItem('pokedoc-quien-es', JSON.stringify({ dia: hoy, elegidos: [buena], acertada: true }))
+    // …y en «la base» (el árbitro de mentira), que es lo que manda desde la 1268.
+    localStorage.setItem(`__arbitro__:user-1:silueta:${hoy}`, JSON.stringify({ e: { dia: hoy, elegidos: [buena], acertada: true }, guardado: { nuevo: false, xp: 30 } }))
     localStorage.setItem('pokedoc-ordena-precio', JSON.stringify({ dia: hoy, intentos: [[1, 2, 3, 4]], acertada: true }))
   } catch { /* sin memoria */ }
   window.__FAKE_CATEGORIAS__ = [{ id: 'cat-mazos', name: 'Mazos', slug: 'mazos' }]
@@ -59,6 +63,7 @@ async function abrir(ruta, { movil = true } = {}) {
   await ctx.addInitScript(semilla, { hoy, buena })
   await ctx.route(/assets\.tcgdex\.net|images\.tcggo\.com|r2\.limitlesstcg|raw\.githubusercontent|pokeapi|jsdelivr/, (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="245" height="342"/>' }))
   await ctx.route(/\/\.netlify\/functions\//, (r) => r.fulfill({ status: 404, contentType: 'application/json', body: '{}' }))
+  await instalarRetos(ctx, { silueta: { dia: hoy, numero: 1, buena, opciones: [1, buena, 7, 133] } })
   const page = await ctx.newPage()
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 180)))

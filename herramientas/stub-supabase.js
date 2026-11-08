@@ -1586,6 +1586,162 @@ function consulta(tabla, estado = {}) {
 // cliente pida las columnas que debe (por ejemplo, que un visitante sin
 // cuenta NO pida `*` de las inscripciones, porque en la base real el
 // rol anon no tiene permiso sobre todas y la consulta fallaría entera).
+// ── El ÁRBITRO de los retos (tanda 1268) ──
+// `retos_jugar` en la base corrige cada jugada con lo de `retos_arbitro`. Aquí,
+// lo mismo en pequeño: `window.__RETOS_FALSOS__[juego]` trae `datos` (lo que
+// guarda la función del día, hecho con netlify/lib/reto-mesa.mjs de verdad
+// por pruebas/retos-falsos.mjs) y, para la carta, la carta entera
+// (`respuesta`) para comparar con `compararDetallado` de la web. La partida
+// con cuenta vive en localStorage (como si fuera la base) y la de sin cuenta
+// en una ficha (aquí sin cifrar). Lo que la base apunta al acabar se deja en
+// RPCS como `retos_apuntar`.
+const RESPUESTAS_DE_RETOS = new Set(['carta', 'caro', 'silueta', 'ordena', 'expansion', 'parejas'])
+function retoInicial(juego, dia, f) {
+  const base = { dia }
+  if (juego === 'carta') return { ...base, intentos: [], acertada: false }
+  if (juego === 'caro') return { ...base, respuestas: [] }
+  if (juego === 'silueta') return { ...base, elegidos: [], acertada: false }
+  if (juego === 'ordena') return { ...base, intentos: [], acertada: false }
+  if (juego === 'expansion') return { ...base, elegidas: [], tira: [] }
+  return { ...base, movimientos: 0, hechas: [], tira: [], abierta: null, mesa: f?.mesa || [0, 1, 2, 3, 4, 5, 5, 4, 3, 2, 1, 0] }
+}
+function retoTerminado(juego, e) {
+  if (e.cerrada) return true
+  if (juego === 'carta') return Boolean(e.acertada) || e.intentos.length >= 6
+  if (juego === 'caro') return e.respuestas.length >= 5
+  if (juego === 'silueta') return Boolean(e.acertada) || e.elegidos.length - (e.acertada ? 1 : 0) >= 3
+  if (juego === 'ordena') return Boolean(e.acertada) || e.intentos.length >= 3
+  if (juego === 'expansion') return e.elegidas.length >= 5
+  return e.hechas.length >= 6
+}
+const errorDeReto = (m) => Object.assign(new Error(`reto: ${m}`), { reto: true })
+function ordenaBien(precios, orden) {
+  const bueno = Object.keys(precios).sort((a, b) => precios[a] - precios[b] || (a < b ? -1 : 1))
+  return orden.map((k, i) => k === bueno[i])
+}
+async function retoMover(juego, f, e, j) {
+  const d = f.datos || {}
+  if (retoTerminado(juego, e)) throw errorDeReto('esta partida ya está acabada')
+  e = JSON.parse(JSON.stringify(e))
+  if (juego === 'carta') {
+    const { compararDetallado } = await import('./carta-del-dia.js')
+    const { mismaFamilia } = await import('./familias-pokemon.js')
+    const g = T.tcg_cards.find((c) => c.id === j.carta && (c.market || 'WEST') === 'WEST')
+    if (!g) throw errorDeReto('esa carta no está en el catálogo')
+    const set = T.tcg_sets.find((x) => x.id === g.set_id && (x.market || 'WEST') === 'WEST') || g.tcg_sets || {}
+    const det = compararDetallado({ ...g, tcg_sets: set }, f.respuesta, { familia: mismaFamilia })
+    e.intentos.push({ id: g.id, det })
+    if (det.nombre.estado === 'si') e.acertada = true
+    return { e, eco: { det } }
+  }
+  if (juego === 'caro') {
+    if (!['mas', 'menos'].includes(j.respuesta)) throw errorDeReto('respuesta desconocida')
+    const n = e.respuestas.length
+    const a = d.precios[n]
+    const b = d.precios[n + 1]
+    const bien = (j.respuesta === 'mas' && b > a) || (j.respuesta === 'menos' && b < a)
+    e.respuestas.push(bien)
+    return { e, eco: { bien, precio: b } }
+  }
+  if (juego === 'silueta') {
+    if (!d.opciones.includes(j.dex)) throw errorDeReto('esa opción no está')
+    if (e.elegidos.includes(j.dex)) throw errorDeReto('esa ya la has dicho')
+    e.elegidos.push(j.dex)
+    const bien = j.dex === d.buena
+    if (bien) e.acertada = true
+    return { e, eco: { bien } }
+  }
+  if (juego === 'ordena') {
+    const ks = Object.keys(d.precios)
+    if (!Array.isArray(j.orden) || j.orden.length !== ks.length || new Set(j.orden).size !== ks.length || j.orden.some((k) => !ks.includes(k))) throw errorDeReto('ese orden no vale')
+    const bien = ordenaBien(d.precios, j.orden)
+    e.intentos.push(j.orden)
+    if (bien.every(Boolean)) e.acertada = true
+    return { e, eco: { bien } }
+  }
+  if (juego === 'expansion') {
+    const n = e.elegidas.length
+    if (!d.opciones?.[n]?.includes(j.set)) throw errorDeReto('esa expansión no está entre las de esta carta')
+    const bien = j.set === d.buenas[n]
+    e.elegidas.push(j.set)
+    e.tira.push(bien)
+    return { e, eco: { bien, buena: d.buenas[n] } }
+  }
+  const k = Number(j.hueco)
+  if (!(k >= 0 && k <= 11)) throw errorDeReto('ese hueco no existe')
+  const carta = e.mesa[k]
+  if (e.hechas.includes(carta)) throw errorDeReto('esa pareja ya está hecha')
+  if (e.abierta == null) { e.abierta = k; return { e, eco: { hueco: k, carta } } }
+  if (e.abierta === k) throw errorDeReto('esa ya está vuelta')
+  const otro = e.abierta
+  const pareja = e.mesa[otro] === carta
+  e.abierta = null
+  e.movimientos++
+  e.tira.push(pareja)
+  if (pareja) e.hechas.push(carta)
+  return { e, eco: { hueco: k, carta, otro, otraCarta: e.mesa[otro], pareja } }
+}
+function retoVista(juego, f, e) {
+  const d = f.datos || {}
+  const fin = retoTerminado(juego, e)
+  const { mesa, abierta, cerrada, ...pub } = e
+  if (juego === 'carta') {
+    const n = e.intentos.length
+    const pistas = {}
+    ;['era', 'tipo', 'rareza', 'ilustrador', 'inicial'].forEach((k, i) => { if (fin || i < n) pistas[k] = d.pistas?.[k] ?? null })
+    return { ...pub, terminada: fin, pistas, foto: fin ? null : d.fotos?.[Math.min(n, 5)] ?? null, respuesta: fin ? d.respuesta?.id : null }
+  }
+  if (juego === 'caro') return { ...pub, terminada: fin, precios: d.precios.slice(0, e.respuestas.length + 1) }
+  if (juego === 'silueta') {
+    const fallos = e.elegidos.length - (e.acertada ? 1 : 0)
+    return { ...pub, terminada: fin, foto: fin ? null : d.fotos?.[Math.min(fallos, 2)] ?? null, buena: fin ? d.buena : null }
+  }
+  if (juego === 'ordena') return { ...pub, terminada: fin, bien: e.intentos.map((o) => ordenaBien(d.precios, o)), precios: fin ? d.precios : null }
+  if (juego === 'expansion') return { ...pub, terminada: fin, buenas: (d.buenas || []).slice(0, e.elegidas.length) }
+  const descubiertas = {}
+  e.mesa.forEach((c, h) => { if (e.hechas.includes(c)) descubiertas[h] = c })
+  return { ...pub, terminada: fin, descubiertas, abierta: e.abierta != null ? { hueco: e.abierta, carta: e.mesa[e.abierta] } : null }
+}
+function retoResultado(juego, e) {
+  if (juego === 'carta') return { aciertos: e.acertada ? 1 : 0, total: 1, intentos: e.intentos.length, acertada: Boolean(e.acertada) }
+  if (juego === 'caro') return { aciertos: e.respuestas.filter(Boolean).length, total: 5, tira: e.respuestas }
+  if (juego === 'silueta') return { aciertos: e.acertada ? 1 : 0, total: 1, intentos: e.elegidos.length, acertada: Boolean(e.acertada) }
+  if (juego === 'ordena') return { aciertos: e.acertada ? 1 : 0, total: 1, intentos: e.intentos.length, acertada: Boolean(e.acertada) }
+  if (juego === 'expansion') return { aciertos: e.tira.filter(Boolean).length, total: 5, tira: e.tira }
+  return { aciertos: 6, total: 6, intentos: e.movimientos, acertada: true, tira: e.tira }
+}
+async function arbitroFalso({ p_juego: juego, p_dia: dia, p_libre: libre = null, p_jugada: jugada = null, p_ficha: ficha = null }) {
+  const todos = (typeof window !== 'undefined' && window.__RETOS_FALSOS__) || {}
+  const f = (libre && todos[`${juego}:libre`]) || todos[juego]
+  if (!RESPUESTAS_DE_RETOS.has(juego)) throw errorDeReto('juego desconocido')
+  if (!f) throw errorDeReto('todavía no hay reto para ese día')
+  const cuenta = Boolean(sesion) && !libre
+  const llave = `__arbitro__:${sesion?.user?.id || ''}:${juego}:${dia}`
+  let e = null
+  let guardado = null
+  if (cuenta) {
+    try { const g = JSON.parse(localStorage.getItem(llave) || 'null'); if (g) { e = g.e; guardado = g.guardado } } catch {}
+  }
+  if (!e && ficha) {
+    try { const g = JSON.parse(decodeURIComponent(escape(atob(ficha)))); if (g.j === juego && g.d === dia && (g.l ?? null) === (libre ?? null)) e = g.e } catch {}
+    if (e && cuenta && juego === 'parejas') e = null
+  }
+  if (!e) e = retoInicial(juego, dia, f)
+  let eco = null
+  if (jugada) ({ e, eco } = await retoMover(juego, f, e, jugada))
+  if (cuenta) {
+    if (retoTerminado(juego, e) && !guardado) {
+      const { xpDe } = await import('./retos-xp.js')
+      const r = retoResultado(juego, e)
+      RPCS.push({ nombre: 'retos_apuntar', args: { juego, dia, ...r } })
+      guardado = (typeof window !== 'undefined' && (window.__RETOS_GUARDADO__ || window.__RPC_RESPUESTAS__?.retos_guardar)) || { nuevo: true, xp: xpDe(juego, r) }
+    }
+    try { localStorage.setItem(llave, JSON.stringify({ e, guardado })) } catch {}
+  }
+  const nueva = cuenta ? null : btoa(unescape(encodeURIComponent(JSON.stringify({ j: juego, d: dia, l: libre ?? null, e }))))
+  return { juego, dia, cuenta, estado: retoVista(juego, f, e), eco, ficha: nueva, guardado }
+}
+
 export const CONSULTAS = { n: 0, porTabla: {}, columnas: {}, igualdades: {} }
 
 const FUERA_DEL_MERCADO = new Set(['mercado_con_tiendas', 'intercambios_mercado', 'intercambios_de_carta', 'intercambios_quien_tiene', 'intercambios_de_persona'])
@@ -1631,6 +1787,10 @@ export const supabase = {
   // `forum_ver_tema` suma la visita ahí mismo, que es barato y hace que
   // el contador de la ficha se comporte como en la web de verdad.
   rpc: async (nombre, args = {}) => {
+    if (nombre === 'retos_jugar') {
+      RPCS.push({ nombre, args })
+      try { return { data: await arbitroFalso(args), error: null } } catch (err) { return { data: null, error: { message: err.message, code: err.reto ? 'P0001' : 'XX000' } } }
+    }
     // 1109: lo que está en una propuesta enviada o aceptada no se ofrece en el
     // Mercado, los cruces ni el perfil (`cambio_libres_de` en la base). Se
     // simula dándoles una colección con lo libre en `cambio`, y se devuelve

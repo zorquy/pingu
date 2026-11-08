@@ -14,6 +14,8 @@ import { readFileSync } from 'node:fs'
 import { numeroDelDia, indiceDelDia, compararIntento, textoParaCompartir, filaEmoji, rachaDeDias, claveDeNombre, INTENTOS, ENLACE } from '/home/user/pingu/js/carta-del-dia.js'
 import { DIA_UNO, numeroDelDia as numeroComun } from '/home/user/pingu/js/reto-compartir.js'
 import { elegirCartaDelDia, segundosHastaManana, FILTRO_ELEGIBLES } from '/home/user/pingu/netlify/functions/carta-del-dia.mjs'
+// 1268: el reto del día se sirve sin respuestas y lo corrige el árbitro.
+import { instalarRetos, recetaDe } from './retos-falsos.mjs'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -97,7 +99,7 @@ console.log('── 3. En el navegador ──')
   const pedidas = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
   page.on('request', (r) => pedidas.push(r.url()))
-  await page.route('**/.netlify/functions/carta-del-dia**', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ dia: hoy, numero: numeroDelDia(hoy), carta: RESPUESTA, ayer: { id: 'sv8-9', name: 'Gastly', name_es: 'Gastly', local_id: '9', tcg_sets: { name: 'Surging Sparks' } } }) }))
+  await instalarRetos(page, { carta: { dia: hoy, numero: numeroDelDia(hoy), carta: RESPUESTA, ayer: { id: 'sv8-9', name: 'Gastly', name_es: 'Gastly', local_id: '9', tcg_sets: { name: 'Surging Sparks' } } } })
   await page.route('**/assets.tcgdex.net/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: CARTA }))
   await page.route('**/limitlesstcg.nyc3.cdn.digitaloceanspaces.com/**', (r) => r.abort())
   await page.route('**/images.pokemontcg.io/**', (r) => r.abort())
@@ -134,8 +136,10 @@ console.log('── 3. En el navegador ──')
   check('las cinco pistas, cerradas', (await page.locator('.cd-pista-cerrada').count()) === 5)
   // La carta entera, borrosa (572): la foto grande se pide y el
   // desenfoque del primer intento es el más fuerte.
-  check('se ha pedido la foto grande', pedidas.some((u) => /assets\.tcgdex\.net.*high/.test(u)), pedidas.filter((u) => /tcgdex/.test(u)).slice(0, 2).join(' | '))
-  const desenfoque = () => page.evaluate(() => parseFloat(getComputedStyle(document.getElementById('cdFoto')).filter.replace(/[^\d.]/g, '')))
+  // Desde la 1268 la borrosa la hace el servidor (/reto-foto, con su receta):
+  // la nítida no se pide hasta acabar.
+  check('se ha pedido la foto grande, pero BORROSA y al servidor', pedidas.some((u) => /reto-foto/.test(u) && /high/.test(JSON.stringify(recetaDe(u)))) && !pedidas.some((u) => /assets\.tcgdex\.net/.test(u)), pedidas.filter((u) => /tcgdex|reto-foto/.test(u)).slice(0, 2).join(' | '))
+  const desenfoque = () => page.evaluate(() => document.getElementById('cdFoto')?.src || '').then((u) => (/reto-foto/.test(u) ? recetaDe(u)?.e?.d ?? NaN : 0))
   check('empieza muy borrosa (28 px)', (await desenfoque()) === 28, String(await desenfoque()))
   check('y dice la de ayer', /Ayer era Gastly/.test(await page.locator('#cdAyer').innerText()), await page.locator('#cdAyer').innerText())
 
@@ -173,8 +177,8 @@ console.log('── 3. En el navegador ──')
   await page.reload({ waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
   check('al recargar siguen los dos intentos', (await page.locator('.cd-intento:not(.cd-intento-vacio)').count()) === 2)
-  // Otra impresión del mismo nombre acierta.
-  await intentar('pikachu', 'sv8-3')
+  // Acertar es la carta exacta desde la 1046 (otra impresión es «casi»).
+  await intentar('pikachu', 'sv8-25')
   check('acertar el nombre acaba la partida', !(await page.locator('#cdFinal').evaluate((e) => e.classList.contains('hidden'))))
   check('  …y lo dice en grande: «¡Acertada en 3!», con cuál era', /¡Acertada en 3!/.test(await page.locator('.cd-final-titulo').innerText()) && /Pikachu ex/.test(await page.locator('#cdFinal').innerText()), await page.locator('#cdFinal').innerText())
   check('  …y la fila del acierto es verde entera, «¡Es esta!» (835: antes salía en rojo con otra impresión)', (await page.locator('.cd-intento.acierto').count()) === 1 && /¡Es esta!/.test(await page.locator('.cd-intento.acierto').innerText()))

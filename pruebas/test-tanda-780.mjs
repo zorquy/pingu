@@ -35,7 +35,8 @@ check('guía: la rareza con su nombre en español (LO5)', /NOMBRE_RAREZA\s*=\s*\
 check('portada: la racha del saludo, solo en el móvil (LO6)', /racha > 0 && matchMedia\('\(max-width: 900px\)'\)\.matches/.test(leer('js/home.js')))
 const curso = leer('js/curso.js')
 check('/curso sin curso va a Aprender (LO9)', /if \(!slug\) \{\s*location\.replace\('\/aprender'\)/.test(curso) && !/Curso no encontrado/.test(curso))
-check('carta del día sin día ni carta: el aviso de siempre (LO9)', /!r\.dia \|\| !r\.carta/.test(leer('js/carta-del-dia-juego.js')))
+// 1268: la mesa ya no trae la carta (la sabe el árbitro): sin día o sin su foto.
+check('carta del día sin día ni carta: el aviso de siempre (LO9)', /!r\.dia \|\| !r\.foto/.test(leer('js/carta-del-dia-juego.js')))
 check('ficha: debilidad y resistencia que no se saben, sin pintar (LO9)', /if \(!Array\.isArray\(filas\) && !sabido\) return ''/.test(leer('js/carta-nucleo.js')))
 
 console.log('── 3. En el navegador ──')

@@ -16,6 +16,8 @@
 //   5. «¿Qué carta es?» libre pide su carta a la función con `?libre=N`, y la
 //      carta resuelta se toca y abre su ficha.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
+// 1268: el reto del día se sirve sin respuestas y lo corrige el árbitro.
+import { instalarRetos } from './retos-falsos.mjs'
 
 const RAIZ = process.env.PD_RAIZ || '/home/user/pingu'
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
@@ -125,11 +127,8 @@ async function abrirCarta(vp, ruta = '/carta-del-dia.html', pedidas = []) {
   const page = await browser.newPage({ viewport: vp })
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
-  await page.route('**/.netlify/functions/carta-del-dia**', (r) => {
-    pedidas.push(r.request().url())
-    const libre = new URL(r.request().url()).searchParams.get('libre')
-    r.fulfill({ contentType: 'application/json', body: JSON.stringify(libre ? { dia: L.diaLibre(Number(libre)), libre: Number(libre), carta: CARTAS[4], ayer: null } : { dia: hoy, numero: 1, carta: CARTAS[0], ayer: null }) })
-  })
+  page.on('request', (r) => { if (/functions\/carta-del-dia/.test(r.url())) pedidas.push(r.url()) })
+  await instalarRetos(page, { carta: { dia: hoy, numero: 1, carta: CARTAS[0], ayer: null } }, { libres: { carta: { dia: hoy, carta: CARTAS[4], ayer: null } } })
   await page.route('**/assets.tcgdex.net/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: SVG }))
   await page.route(/limitlesstcg|pokemontcg\.io|images\.tcggo|scrydex/, (r) => r.abort())
   await page.addInitScript(([sets, cartas]) => {
@@ -169,9 +168,11 @@ for (const [nombre, vp, porFila] of [['móvil', { width: 390, height: 844 }, 3],
 }
 
 console.log('\n── 4. «¿Quién es?»: la de hoy y la libre ──')
+const SILUETA = { dia: hoy, numero: 1, buena: 25, opciones: [1, 25, 7, 133] }
 {
   const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } })
   await ctx.route(/jsdelivr|githubusercontent/, (r) => r.fulfill({ contentType: 'image/png', body: PNG }))
+  await instalarRetos(ctx, { silueta: SILUETA })
   const page = await ctx.newPage()
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
@@ -213,6 +214,7 @@ console.log('\n── 4. «¿Quién es?»: la de hoy y la libre ──')
   // Una libre con la de hoy SIN hacer: el botón grande lleva a la de hoy.
   const otro = await browser.newContext({ viewport: { width: 390, height: 844 } })
   await otro.route(/jsdelivr|githubusercontent/, (r) => r.fulfill({ contentType: 'image/png', body: PNG }))
+  await instalarRetos(otro, { silueta: SILUETA })
   const p2 = await otro.newPage()
   await p2.goto(`${BASE}/quien-es.html?libre=3`, { waitUntil: 'domcontentloaded' })
   await p2.waitForTimeout(1500)

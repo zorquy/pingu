@@ -74,7 +74,8 @@ console.log('── 1. El reto «¿De qué expansión es?» ──')
   const op = opcionesDeExpansion(iguales[0], iguales, '2026-10-22', 0)
   check('opcionesDeExpansion: dos con el mismo nombre no van juntas', op.length === 4 && op.filter((s) => s.name === 'Trainer Gallery').length === 1, op.map((s) => s.id).join())
   const juego = (await import('node:fs')).readFileSync(`${RAIZ}/js/que-expansion-juego.js`, 'utf8')
-  check('la página corrige con la expansión de la ronda (`set_id`)', /const buena = \(r\) => r\?\.set_id \|\| r\?\.carta\?\.set_id/.test(juego) && !/=== r\.carta\.set_id|=== rondas\[i\]\.carta\.set_id/.test(juego))
+  // 1268: la buena la dice el árbitro al contestar (la mesa ya no la trae).
+  check('la página no corrige sola: la buena la dice la base (`buenas`)', /buenas = e\.buenas/.test(juego) && !/carta\.set_id/.test(juego))
 }
 
 const browser = await chromium.launch()

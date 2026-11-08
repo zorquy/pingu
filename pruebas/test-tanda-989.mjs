@@ -18,6 +18,8 @@ import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
 import { readFileSync } from 'node:fs'
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
+// 1268: la mesa se baraja por partida y la sabe el árbitro (aquí, la de la prueba).
+import { instalarRetos } from './retos-falsos.mjs'
 
 const AQUI = new URL('.', import.meta.url).pathname
 const RAIZ = process.env.PD_RAIZ || '/home/user/pingu'
@@ -158,11 +160,8 @@ const CARTAS = COLORES.map((c, i) => ({ id: `sv8-${i + 1}`, market: 'WEST', set_
 async function abrirParejas(ruta = '/parejas.html', { sesion = 'none', init = null, movil = false } = {}) {
   const ctx = await browser.newContext(movil ? { ...devices['iPhone 13'] } : { viewport: { width: 1200, height: 900 } })
   const pedidas = []
-  await ctx.route('**/.netlify/functions/parejas**', (r) => {
-    pedidas.push(r.request().url())
-    const libre = new URL(r.request().url()).searchParams.get('libre')
-    r.fulfill({ contentType: 'application/json', body: JSON.stringify(libre ? { dia: L.diaLibre(Number(libre)), libre: Number(libre), cartas: [...CARTAS].reverse() } : { dia: hoy, numero: P.numeroDelDia(hoy), cartas: CARTAS }) })
-  })
+  ctx.on('request', (r) => { if (/functions\/parejas/.test(r.url())) pedidas.push(r.url()) })
+  await instalarRetos(ctx, { parejas: { dia: hoy, numero: P.numeroDelDia(hoy), cartas: CARTAS, mesa: MESA } }, { libres: { parejas: { dia: hoy, cartas: [...CARTAS].reverse(), mesa: MESA_LIBRE } } })
   await ctx.route('**/assets.tcgdex.net/**', (r) => r.fulfill({ contentType: 'image/svg+xml', body: '<svg xmlns="http://www.w3.org/2000/svg" width="245" height="342"><rect width="245" height="342" fill="#ccc"/></svg>' }))
   await ctx.route(/limitlesstcg|pokemontcg\.io|images\.tcggo|scrydex/, (r) => r.abort())
   await ctx.addInitScript(([s]) => { window.__FAKE_SESSION__ = s; try { localStorage.setItem('pokedoc-instalar-no', String(Date.now())) } catch {} }, [sesion])
@@ -174,9 +173,11 @@ async function abrirParejas(ruta = '/parejas.html', { sesion = 'none', init = nu
   await page.waitForTimeout(1500)
   return { ctx, page, errores, pedidas }
 }
-// Juega la mesa del día `dia`: un fallo y luego todo bien.
-async function jugar(page, dia) {
-  const mesa = P.mesaDelDia(dia)
+// La mesa de la prueba (desde la 1268 la baraja la base por partida).
+const MESA = P.mesaDelDia(hoy)
+const MESA_LIBRE = P.mesaDelDia(L.diaLibre(1))
+// Juega una mesa: un fallo y luego todo bien.
+async function jugar(page, mesa) {
   const otra = mesa.findIndex((x) => x !== mesa[0])
   await page.click('[data-hueco="0"]')
   await page.click(`[data-hueco="${otra}"]`)
@@ -200,7 +201,7 @@ console.log('\n── 4. La pantalla de Parejas ──')
   check('doce cartas boca abajo, cuatro por fila en el móvil', (await page.locator('.pa-carta').count()) === 12 && (await page.locator('.pa-carta.vuelta').count()) === 0 && (await page.$$eval('.pa-carta', (cs) => cs.filter((c) => Math.round(c.getBoundingClientRect().top) === Math.round(cs[0].getBoundingClientRect().top)).length)) === 4)
   check('  …de 44 px o más, y con su proporción de carta', await page.$$eval('.pa-carta', (cs) => cs.every((c) => { const r = c.getBoundingClientRect(); return r.width >= 44 && Math.abs(r.height - (r.width * 342) / 245) < 2 })))
   check('  …«Con cuenta, ahora vale +30 XP»', /\+30 XP/.test(await page.locator('#paBote').innerText()))
-  const { vueltas, tapadas } = await jugar(page, hoy)
+  const { vueltas, tapadas } = await jugar(page, MESA)
   check('un fallo: se ven las dos y se vuelven a tapar', vueltas === 2 && tapadas === 0, `${vueltas} → ${tapadas}`)
   check('al acabar: «¡Hecho en 7 movimientos!» y las seis cartas, que llevan a su ficha', /¡Hecho en 7 movimientos!/.test(await page.locator('#paFinal').innerText()) && (await page.locator('.pa-repaso a[href*="/carta/"]').count()) === 6)
   check('  …sin cuenta, lo que habría dado (+30)', /\+30 XP/.test(await page.locator('#paPremios').innerText()) && /Crea tu cuenta/.test(await page.locator('#paPremios').innerText()))
@@ -228,7 +229,7 @@ console.log('\n── 4. La pantalla de Parejas ──')
   await page.waitForTimeout(1500)
   const n = Number(new URL(page.url()).searchParams.get('libre'))
   check('«Jugar otra vez»: libre, con su aviso y boca abajo', (await page.locator('.rj-libre').count()) === 1 && (await page.locator('.pa-carta.vuelta').count()) === 0 && (await page.locator('#paBote').isHidden()))
-  await jugar(page, L.diaLibre(n))
+  await jugar(page, MESA_LIBRE)
   check('  …se juega entera y acaba con «Otra más», sin Compartir', /Hecho en 7/.test(await page.locator('#paFinal').innerText()) && (await page.locator('#paCompartir').count()) === 0 && /Otra más/.test(await page.locator('#paFinal .rj-otra').innerText()))
   check('  …y la de hoy, intacta', (await page.evaluate(() => localStorage.getItem('pokedoc-parejas'))) === hecha)
   await ctx.close()
@@ -244,10 +245,11 @@ console.log('\n── 4. La pantalla de Parejas ──')
       Object.defineProperty(window, '__FAKE_CLASIFICACION__', { get: () => ({ tu: { puesto: n++ === 0 ? 5 : 3, xp: 90 } }) })
     },
   })
-  await jugar(page, hoy)
+  await jugar(page, MESA)
   await page.waitForTimeout(800)
-  const g = await page.evaluate(() => (window.__RPCS__ || []).find((r) => r.nombre === 'retos_guardar')?.args)
-  check('con cuenta, guarda Parejas con sus 7 movimientos y la tira', g?.p_juego === 'parejas' && g.p_intentos === 7 && g.p_aciertos === 6 && g.p_acertada === true && g.p_tira?.length === 7, JSON.stringify(g))
+  // 1268: lo apunta la base (el árbitro), con lo que se ha jugado en ella.
+  const g = await page.evaluate(() => (window.__RPCS__ || []).find((r) => r.nombre === 'retos_apuntar')?.args)
+  check('con cuenta, la base apunta Parejas con sus 7 movimientos y la tira', g?.juego === 'parejas' && g.intentos === 7 && g.aciertos === 6 && g.acertada === true && g.tira?.length === 7, JSON.stringify(g))
   check('  …enseña la XP que da la base', /\+30 XP/.test(await page.locator('#paPremios').innerText()))
   const liga = page.locator('.rj-liga')
   check('  …y la liga: «¡Subes del 5.º al 3.º en la liga de la semana!», a la clasificación', (await liga.count()) === 1 && /Subes del 5\.º al 3\.º/.test(await liga.innerText()) && (await liga.getAttribute('href')) === '/retos#clasificacion', await page.locator('#paPremios').innerText())

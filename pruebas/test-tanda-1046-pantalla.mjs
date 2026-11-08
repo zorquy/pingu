@@ -8,6 +8,8 @@
 //     el de Neo Revelation daba «¡Es esta!». Ahora es la carta exacta; el
 //     mismo nombre en otra impresión sale «Otra impresión» y no acaba.
 import { chromium } from '/opt/node22/lib/node_modules/playwright/index.mjs'
+// Desde la 1268 el reto se sirve sin respuestas y lo corrige el árbitro.
+import { instalarRetos, recetaDe } from './retos-falsos.mjs'
 
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
 let fails = 0
@@ -32,7 +34,10 @@ async function abrir() {
   const page = await browser.newPage({ viewport: { width: 1200, height: 900 } })
   const errores = []
   page.on('pageerror', (e) => errores.push(String(e).slice(0, 200)))
-  await page.route('**/.netlify/functions/carta-del-dia**', (r) => r.fulfill({ contentType: 'application/json', body: JSON.stringify({ dia: hoy, numero: 1, carta: RESPUESTA, ayer: null }) }))
+  const pedidas = []
+  page.on('request', (r) => pedidas.push(r.url()))
+  page.on('response', async (r) => { if (/functions\/carta-del-dia/.test(r.url())) pedidas.push(`RESPUESTA:${await r.text().catch(() => '')}`) })
+  await instalarRetos(page, { carta: { dia: hoy, numero: 1, carta: RESPUESTA, ayer: null } })
   await page.route(/assets\.tcgdex\.net|limitlesstcg|pokemontcg\.io|images\.tcggo|scrydex/, (r) => r.fulfill({ contentType: 'image/svg+xml', body: SVG }))
   await page.addInitScript(([sets, cartas]) => {
     window.__FAKE_SESSION__ = 'none'
@@ -42,7 +47,7 @@ async function abrir() {
   }, [SETS, CARTAS])
   await page.goto(`${BASE}/carta-del-dia.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
-  return { page, errores }
+  return { page, errores, pedidas }
 }
 const adivinar = async (page, texto, id) => {
   await page.locator('#cdAdivinar').click()
@@ -55,14 +60,18 @@ const adivinar = async (page, texto, id) => {
 
 console.log('── 1. La carta borrosa no se puede sacar ──')
 {
-  const { page, errores } = await abrir()
+  const { page, errores, pedidas } = await abrir()
   const f = await page.evaluate(() => {
     const img = document.getElementById('cdFoto')
     const r = img.getBoundingClientRect()
     const encima = document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2)
-    return { arrastra: img.draggable, puntero: getComputedStyle(img).pointerEvents, encima: encima?.id || encima?.tagName, borrosa: getComputedStyle(img).filter }
+    return { arrastra: img.draggable, puntero: getComputedStyle(img).pointerEvents, encima: encima?.id || encima?.tagName, src: img.src }
   })
-  check('mientras se juega, la foto no se arrastra ni recibe el puntero (lo que se toca es la caja)', f.arrastra === false && f.puntero === 'none' && f.encima !== 'cdFoto' && f.encima !== 'IMG' && /blur/.test(f.borrosa), JSON.stringify(f))
+  // 1268: la foto que hay en la página es YA la borrosa (la hace /reto-foto):
+  // arrastrada o abierta en otra pestaña tampoco dice nada.
+  check('mientras se juega, la foto no se arrastra ni recibe el puntero (lo que se toca es la caja)', f.arrastra === false && f.puntero === 'none' && f.encima !== 'cdFoto' && f.encima !== 'IMG', JSON.stringify(f))
+  check('  …y la que hay es la BORROSA del servidor, no la nítida con CSS encima (1268)', /reto-foto/.test(f.src) && recetaDe(f.src)?.e?.d === 28, f.src)
+  check('  …ni la respuesta del día ni la página piden nada que diga qué carta es', !pedidas.some((u) => /ex11-49|Chinchou|ex11\/49/.test(u)), pedidas.filter((u) => /ex11|Chinchou/.test(u)).join(' '))
   // Arrastrar de verdad: no sale ningún «dragstart» con la imagen.
   const r = await page.evaluate(() => {
     let arrastrado = null
@@ -85,6 +94,8 @@ console.log('── 1. La carta borrosa no se puede sacar ──')
   })
   check('el Chinchou de Neo Revelation NO es «¡Es esta!»: dice «Otra impresión» en amarillo', !fila.acierto && fila.casilla === 'Otra impresión' && /casi/.test(fila.clase || ''), JSON.stringify(fila))
   check('  …y la partida sigue (la foto, aún borrosa y sin puntero)', await page.evaluate(() => getComputedStyle(document.getElementById('cdFoto')).pointerEvents === 'none' && !document.getElementById('cdFinal') || document.getElementById('cdFinal').classList.contains('hidden')))
+  const otra = await page.evaluate(() => document.getElementById('cdFoto').src)
+  check('  …con una foto menos borrosa, pedida al servidor', recetaDe(otra)?.e?.d === 20, otra)
 
   console.log('── 3. La de Power Keepers, sí ──')
   await adivinar(page, 'chinchou', 'ex11-49')
@@ -98,11 +109,15 @@ console.log('── 1. La carta borrosa no se puede sacar ──')
 console.log('── 4. La silueta de «¿Quién es?», igual ──')
 {
   const page = await browser.newPage({ viewport: { width: 1200, height: 900 } })
+  const pedidas = []
+  page.on('request', (r) => pedidas.push(r.url()))
   await page.route(/jsdelivr|githubusercontent|limitlesstcg|pokeapi/, (r) => r.fulfill({ contentType: 'image/svg+xml', body: SVG }))
+  await instalarRetos(page, { silueta: { dia: hoy, numero: 1, buena: 25, opciones: [1, 25, 7, 133] } })
   await page.goto(`${BASE}/quien-es.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1500)
-  const s = await page.evaluate(() => { const i = document.getElementById('qeDibujo'); return { arrastra: i.draggable, puntero: getComputedStyle(i).pointerEvents } })
+  const s = await page.evaluate(() => { const i = document.getElementById('qeDibujo'); return { arrastra: i.draggable, puntero: getComputedStyle(i).pointerEvents, src: i.src } })
   check('mientras se juega, la silueta no se arrastra ni recibe el puntero', s.arrastra === false && s.puntero === 'none', JSON.stringify(s))
+  check('  …y es la silueta del servidor: el dibujo de verdad (con su número) no se pide (1268)', recetaDe(s.src)?.e?.s === 1 && !pedidas.some((u) => /official-artwork/.test(u)), s.src)
   await page.close()
 }
 
