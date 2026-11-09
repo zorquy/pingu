@@ -44,6 +44,8 @@ const sets = new Map()
 
 // «151 · 199 · ES · NM · Reverse holo» (o «Sellado · EN»).
 export function detalleDeLinea(f, nombreSet = (id) => id || '') {
+  // Un lote sin desglosar (1277): cuántas cartas trae, si se dijo.
+  if (f.lote_id) return [f.cartas ? `${f.cartas} cartas` : '', 'por desglosar'].filter(Boolean).join(' · ')
   if (f.product_id) return ['Sellado', String(f.idioma || '').toUpperCase()].filter(Boolean).join(' · ')
   return [
     f.set_id ? nombreSet(f.set_id) : '', f.numero, String(f.idioma || '').toUpperCase(), f.estado,

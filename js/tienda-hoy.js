@@ -95,21 +95,24 @@ async function completarCartas(lista) {
 }
 
 // Lo que te espera (1252): las ofertas por contestar y las fotos que te piden
-// (1250, 1251), en pastillas que llevan a Ofertas. Sin las migraciones, nada.
+// (1250, 1251), en pastillas que llevan a Ofertas; los lotes por desglosar
+// (1277), que abren su hoja. Sin las migraciones, nada.
 async function pintarPendientes() {
   const caja2 = $('.tdh-espera')
   if (!caja2) return
   const yo = (await supabase.auth.getSession()).data?.session?.user?.id
   if (!yo) return
-  const [o, f, pp] = await Promise.all([
+  const [o, f, pp, lt] = await Promise.all([
     supabase.from('tienda_ofertas').select('id', { count: 'exact', head: true }).eq('tienda_id', yo).eq('estado', 'abierta').eq('turno', 'tienda').then((r) => (r.error ? 0 : r.count || 0), () => 0),
     supabase.from('tienda_fotos_pedidas').select('id', { count: 'exact', head: true }).eq('tienda_id', yo).is('atendida_at', null).then((r) => (r.error ? 0 : r.count || 0), () => 0),
     // Lo comprado en el Mostrador que espera precio (1255): sin la migración, 0.
     supabase.from('tienda_stock').select('id', { count: 'exact', head: true }).eq('tienda_id', yo).eq('por_poner', true).gt('unidades', 0).then((r) => (r.error ? 0 : r.count || 0), () => 0),
+    supabase.from('tienda_lotes').select('id', { count: 'exact', head: true }).eq('tienda_id', yo).eq('estado', 'por_desglosar').then((r) => (r.error ? 0 : r.count || 0), () => 0),
   ])
   caja2.innerHTML = [
     o ? `<a class="tdh-aviso tdh-pill-toca" href="/tienda?ver=ofertas" data-ver="ofertas"><b class="tdh-pill-n">${o}</b><span>${o === 1 ? 'oferta por contestar' : 'ofertas por contestar'}</span>${icons.chevronRight(14)}</a>` : '',
     f ? `<a class="tdh-aviso tdh-pill-toca" href="/tienda?ver=ofertas" data-ver="ofertas"><b class="tdh-pill-n">${f}</b><span>${f === 1 ? 'te pide fotos' : 'te piden fotos'}</span>${icons.chevronRight(14)}</a>` : '',
+    lt ? `<a class="tdh-aviso tdh-pill-toca" href="/tienda?lotes=1" data-ver="lotes"><b class="tdh-pill-n">${lt}</b><span>${lt === 1 ? 'lote por desglosar' : 'lotes por desglosar'}</span>${icons.chevronRight(14)}</a>` : '',
     pp ? `<a class="tdh-aviso tdh-pill-toca" href="/tienda?ver=stock&amp;porponer=1" data-ver="stock" data-porponer><b class="tdh-pill-n">${pp}</b><span>por poner a la venta</span>${icons.chevronRight(14)}</a>` : '',
   ].join('')
   // La caja de hoy (1256): siempre a mano, al final; la abre el Mostrador sin navegar.

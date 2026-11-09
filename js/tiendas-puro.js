@@ -866,8 +866,28 @@ export function cuentaDeCaja(ventas = [], compras = [], cambios = []) {
 // Cartas por cartas y la diferencia en dinero. Lo suyo cuenta un tanto por
 // ciento de lo que VALE para la tienda (Cardmarket en gris, o lo que escriba);
 // el tanto por ciento de cambio va aparte del de Comprar y empieza en 80.
-export const PCTS_CAMBIO = [60, 70, 80, 90]
 export const PCT_CAMBIO = 80
+
+// El tanto por ciento es LIBRE (1277, PINGU: «hay algunos que venden al 85,
+// otros al 90, otros al 75»): «−» y «+» van de 5 en 5 hasta el siguiente
+// múltiplo (83 → 85 o 80), y el número se escribe tal cual, de 0 a 200 (la
+// base deja hasta 200: hay quien da más de lo que vale en un cambio).
+export const PASO_PCT = 5
+export const PCT_MAX = 200
+export function pctConPaso(pct, paso) {
+  const p = Number(pct) || 0
+  const s = Number(paso) || 0
+  const sig = s > 0 ? Math.floor(p / PASO_PCT) * PASO_PCT + PASO_PCT : s < 0 ? Math.ceil(p / PASO_PCT) * PASO_PCT - PASO_PCT : p
+  return Math.min(PCT_MAX, Math.max(0, sig))
+}
+// Lo escrito en el campo: un número entero de 0 a 200 (la base lo guarda
+// entero), o null si no lo es (se queda el de antes).
+export function pctDeCampo(texto) {
+  const t = String(texto ?? '').trim().replace(/\s*%$/, '')
+  if (!/^\d{1,3}$/.test(t)) return null
+  const v = Number(t)
+  return v >= 0 && v <= PCT_MAX ? v : null
+}
 
 // `teDa`: líneas de Comprar ({ unidades, pagas }: lo que CUENTA cada una);
 // `leDas`: líneas de Vender ({ vender, lista, cobrar }). La diferencia es

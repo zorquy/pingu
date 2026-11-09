@@ -4,6 +4,42 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-09 (519) — PINGU-Claude (1277 — el lote sin desglosar y el % libre)
+
+**Hecho**: PINGU eligió la opción A de la propuesta del cambio rápido y pidió
+el tanto por ciento libre.
+
+- **El %**: en Comprar y Cambio, «− 80 % +» de 5 en 5, y el número se escribe
+  (0–200). Lo mismo en la carta y abajo.
+- **«+ Lote sin desglosar»** (también como atajo bajo el buscador): lo que
+  vale en total, el %, cuántas cartas y una foto. Se cierra al momento, y la
+  venta, la caja y el coste quedan bien.
+- **El Panel** avisa con «N lotes por desglosar». Desglosar es la hoja de
+  Comprar en modo lote, con la foto arriba y el coste repartido según lo que
+  vale cada una.
+
+Migración nueva: **`supabase-migration-1277-tienda-lotes.sql`** (necesita la
+1255 y la 1266), para que la ejecute PINGU. Sin ella, la pastilla no sale y
+comprar un lote avisa de que falta. SCHEMA 1277, una línea en novedades y la
+regla en CLAUDE.md.
+
+**Ficheros**: `js/tienda-comprar.js`, `js/tienda-lotes.js` (nuevo),
+`js/tiendas-puro.js` (`pctConPaso`, `pctDeCampo`; fuera `PCTS_CAMBIO`),
+`js/tienda-hoy.js` (pastilla), `js/tienda-mostrador.js` y `js/tienda.js`
+(`data-ver="lotes"`, `?lotes=1`), `js/tienda-vender.js` (`detalleDeLinea` de
+un lote), `js/tienda-recibo.js`, `css/tienda-mostrador.css`, la migración,
+SCHEMA, CLAUDE.md, novedades.
+
+Rama pruebas: `test-tanda-1277.mjs` (PostgreSQL) y
+`test-tanda-1277-pantalla.mjs` (nuevas); la 1091 y la 1266 (y su pantalla) al
+día con el mando nuevo. En verde: 1277, 1277-pantalla, 1266, 1266-pantalla,
+1091-pantalla, 1252-pantalla, 1254-pantalla, 1255 e imports.
+
+**Pendiente**: lo añadido a un lote a medio desglosar se guarda solo mientras
+la página siga abierta (no en el navegador). Si todas las líneas de un
+desglose llevan varias unidades, puede quedar algún céntimo sin repartir (como
+«O todo junto por»). La foto de un lote deshecho se queda en el cubo.
+
 ## 2026-11-09 (518) — PINGU-Claude (1276 — lo pagado por un producto sellado)
 
 **Hecho**: en la ficha de un producto sellado, cada línea (idioma) tiene su

@@ -286,23 +286,57 @@ html.tdm-abierto .bm { z-index: 97; }
 .tdc-precios { display: grid; gap: var(--e-sm); padding: var(--e-md); border-radius: var(--radius-md); background: var(--tdm-compra-bg); }
 .tdc-cm-fila { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); color: var(--text-mid); font-size: var(--t-sm); }
 .tdc-cm-fila b { color: var(--text); font-variant-numeric: tabular-nums; }
-.tdc-pcts { display: flex; gap: var(--e-xs); }
-.tdc-pcts button { flex: 1 1 0; min-height: 36px; border: 0; border-radius: var(--radius-pill); background: var(--white); color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 700; cursor: pointer; }
-.tdc-pcts button[aria-pressed='true'] { background: var(--tdm-compra); color: var(--tdm-sobre); }
-.tdc-pcts button:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+/* El tanto por ciento libre (1277): «− 80 % +», de 5 en 5, y se escribe. */
+.tdc-pct-mando { display: inline-flex; align-items: center; gap: 2px; padding: 2px; border-radius: var(--radius-pill); background: var(--white); box-shadow: inset 0 0 0 1px var(--border-strong); }
+.tdc-pct-paso { display: inline-grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: var(--tdm-compra-bg); color: var(--text); font: inherit; font-size: var(--t-lg); font-weight: 700; cursor: pointer; }
+.tdc-pct-paso:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+.tdc-pct-num { display: inline-flex; align-items: center; gap: 2px; padding: 0 var(--e-xs); border-radius: var(--radius-sm); color: var(--text); font-family: var(--font-display); font-size: var(--t-lg); font-weight: 700; }
+.tdv .tdc-pct-num input { width: 3.2ch; min-height: 40px; padding: 0; border: 0; background: transparent; color: var(--text); font: inherit; text-align: right; font-variant-numeric: tabular-nums; }
+.tdv .tdc-pct-num input:focus { outline: none; box-shadow: none; }
+.tdc-pct-num:focus-within { box-shadow: var(--shadow-ring); }
+.tdc-pct-fuera { opacity: 0.6; }
+.tdc-pct-ficha { justify-content: space-between; }
+.tdc-pct-ficha .tdc-pct-mando { background: var(--white); }
 .tdc-margen { margin: 0; color: var(--success); font-size: var(--t-xs); font-weight: 600; }
 .tdc-margen:empty { display: none; }
 .tdc-margen.tdv-rojo { color: var(--danger); }
 .tdc-otra { justify-self: start; }
-.tdc-pct [aria-pressed='true'] { border-color: var(--tdm-compra); }
+.tdc-pct[hidden],
+.tdc-campo[hidden],
+.tdc-otra[hidden],
+.tdc-lote-atajo[hidden],
+.tdc-lote-cab[hidden] { display: none; }
+
+/* El lote sin desglosar (1277) */
+.tdc-otras { display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.tdc-lote-atajo { display: flex; align-items: center; gap: var(--e-sm); width: 100%; min-height: 44px; padding: var(--e-sm) var(--e-md); border: 1px dashed var(--border-strong); border-radius: var(--radius-md); background: transparent; color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 600; text-align: left; cursor: pointer; }
+.tdc-lote-atajo svg { flex: none; color: var(--tdm-compra); }
+.tdc-lote-atajo:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+.tdc-foto-lote { display: grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--tdm-compra-bg); color: var(--tdm-compra); overflow: hidden; }
+.tdc-foto-lote img { width: 100%; height: 100%; object-fit: cover; }
+.tdc-lote-extra { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: var(--e-sm); }
+.tdc-lote-foto { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 44px; cursor: pointer; }
+.tdc-lote-foto:focus-within { box-shadow: var(--shadow-ring); }
+.tdc-lote-foto-hecha svg { color: var(--success); }
+.tdc-lote-cab { display: flex; align-items: center; gap: var(--e-md); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--tdm-compra-bg); }
+.tdc-lote-mini { flex: none; display: grid; place-items: center; width: 56px; height: 56px; padding: 0; border: 0; border-radius: var(--radius-sm); background: var(--white); color: var(--tdm-compra); overflow: hidden; cursor: zoom-in; }
+.tdc-lote-mini img { width: 100%; height: 100%; object-fit: cover; }
+.tdc-lote-mini:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+.tdc-lote-que { display: grid; gap: 2px; min-width: 0; }
+.tdc-lote-que strong { font-family: var(--font-display); }
+.tdc-lote-que small { color: var(--text-mid); font-size: var(--t-xs); }
+.tdc-lote-que b { color: var(--text); }
+.tdc-lote-cab-grande { flex-direction: column; align-items: stretch; }
+.tdc-lote-cab-grande .tdc-lote-mini { width: 100%; height: auto; aspect-ratio: 4 / 3; cursor: zoom-out; }
+.tdc-lote-cab-grande .tdc-lote-mini img { object-fit: contain; }
+.tdc-lote-titulo { font-family: var(--font-display); font-size: var(--t-lg); }
+.tdc-nota { margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
 .tdc-elige-chip .pv-bandera { flex: none; }
 
 @media (pointer: coarse) {
   .tdc-elige-chip,
-  .tdc-pcts button,
   .tdc-volver { position: relative; }
   .tdc-elige-chip::after,
-  .tdc-pcts button::after,
   .tdc-volver::after { content: ''; position: absolute; inset: -4px 0; }
 }
 
@@ -335,3 +369,13 @@ html.tdm-abierto .bm { z-index: 97; }
 .tdv .tdm-res-foto { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; justify-content: stretch; }
 .tdv .tdm-res-que { display: grid; min-width: 0; text-align: left; }
 .tdm-linea-cab .tdc-foto { width: 40px; }
+
+/* Lotes por desglosar (1277): la hoja que abre la pastilla del Panel. */
+.tdl-lista { display: grid; gap: var(--e-sm); margin: 0; padding: 0; list-style: none; }
+.tdl-lote { display: flex; align-items: center; gap: var(--e-md); padding: var(--e-sm) var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--white); }
+.tdl-lote .tdc-lote-que { flex: 1; }
+.tdv .tdl-desglosar { flex: none; background: var(--tdm-compra); color: var(--tdm-sobre); }
+@media (max-width: 480px) {
+  .tdl-lote { flex-wrap: wrap; }
+  .tdv .tdl-desglosar { width: 100%; }
+}

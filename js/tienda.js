@@ -142,6 +142,7 @@ function pestana(cual) {
   url.searchParams.delete('cambio')
   url.searchParams.delete('mostrador')
   url.searchParams.delete('caja')
+  url.searchParams.delete('lotes')
   url.searchParams.delete('porponer')
   url.searchParams.delete('filtro')
   history.replaceState(null, '', url)
@@ -231,6 +232,7 @@ async function arrancar() {
   if (params.has('cambio')) abrirCambio()
   if (params.has('mostrador')) mostrador().then((m) => m.abrirMostrador()).catch(() => {})
   if (params.has('caja')) mostrador().then((m) => m.abrirCajaDeHoy()).catch(() => {})
+  if (params.has('lotes')) mostrador().then((m) => m.abrirLotesPorDesglosar()).catch(() => {})
 }
 
 // Las secciones de las barras y de la hoja «Tú» llevan `data-ver`: dentro del
@@ -240,7 +242,7 @@ document.addEventListener('click', (e) => {
   if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return
   if ($('tdPanel')?.classList.contains('hidden')) return
   if (new URL(a.href, location.href).pathname.replace(/\.html$/, '') !== '/tienda') return
-  if (['mostrador', 'comprar', 'cambio', 'vender', 'caja'].includes(a.dataset.ver)) return
+  if (['mostrador', 'comprar', 'cambio', 'vender', 'caja', 'lotes'].includes(a.dataset.ver)) return
   e.preventDefault()
   $('navUserDropdown')?.classList.add('hidden')
   if (a.dataset.filtro) stockFiltrado(a.dataset.filtro)

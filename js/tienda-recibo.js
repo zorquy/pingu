@@ -30,10 +30,13 @@ const TITULO = 'Outfit, Inter, system-ui, sans-serif'
 async function datosDelTicket(ticket, compra = false) {
   // Con la forma de pago (1254 y 1255); sin la migración, la columna no
   // existe (42703) y se pide sin ella.
-  const pedir = (conPago) => compra
-    ? supabase.from('tienda_compras').select(`id,ticket,card_id,market,product_id,idioma,estado,variante,gradeo,unidades,coste,comprada_el${conPago ? ',pago' : ''}`).eq('ticket', ticket).order('created_at')
+  // Una compra puede llevar un lote (1277, `lote_id`): sin esa migración, se
+  // pide sin él, y sin la de la 1255, también sin el pago.
+  const pedir = (conPago, conLote = false) => compra
+    ? supabase.from('tienda_compras').select(`id,ticket,card_id,market,product_id,idioma,estado,variante,gradeo,unidades,coste,comprada_el${conPago ? ',pago' : ''}${conLote ? ',lote_id' : ''}`).eq('ticket', ticket).order('created_at')
     : supabase.from('tienda_ventas').select(`id,ticket,card_id,market,product_id,idioma,estado,variante,gradeo,unidades,precio,donde,vendida_el${conPago ? ',pago' : ''}`).eq('ticket', ticket).order('created_at')
-  let { data: crudas, error } = await pedir(true)
+  let { data: crudas, error } = await pedir(true, compra)
+  if (error?.code === '42703' && compra) ({ data: crudas, error } = await pedir(true))
   if (error?.code === '42703') ({ data: crudas, error } = await pedir(false))
   if (error || !crudas?.length) return null
   const lineas = compra ? crudas.map(({ coste, comprada_el, ...l }) => ({ ...l, precio: coste, vendida_el: comprada_el })) : crudas
@@ -50,6 +53,7 @@ async function datosDelTicket(ticket, compra = false) {
   const porSet = new Map(sets.map((s) => [s.id, nombreDeSet(s) || s.id]))
   return lineas.map((l) => {
     const c = l.card_id ? porCarta.get(l.card_id) : null
+    if (l.lote_id) return { ...l, nombre: 'Lote de cartas', detalle: 'Varias cartas, tasadas juntas' }
     const nombre = c ? nombreDeCarta(c) : porProducto.get(String(l.product_id))?.name || 'Producto'
     const detalle = l.product_id
       ? ['Sellado', String(l.idioma || '').toUpperCase()].filter(Boolean).join(' · ')

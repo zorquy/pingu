@@ -78,6 +78,11 @@ export function abrirCajaDeHoy() {
   cerrarAbanico()
   return import('./tienda-caja.js').then((m) => m.abrirCaja()).catch(fallo('la caja'))
 }
+// Los lotes por desglosar (1277), desde la pastilla del Panel.
+export function abrirLotesPorDesglosar() {
+  cerrarAbanico()
+  return import('./tienda-lotes.js').then((m) => m.abrirLotes({ alTerminar: avisar })).catch(fallo('los lotes'))
+}
 
 // ── El abanico (móvil) ──
 let abanico = null
@@ -162,16 +167,17 @@ export function abrirMostrador() {
 }
 
 // El botón del centro (y lo que lleve `data-ver` de mostrador, comprar,
-// cambio, vender o caja) en cualquier página de la tienda: sin navegar.
+// cambio, vender, caja o lotes) en cualquier página de la tienda: sin navegar.
 export function engancharMostrador(doc = document) {
   doc.addEventListener('click', (e) => {
-    const a = e.target.closest('a[data-ver="mostrador"], a[data-ver="comprar"], a[data-ver="vender"], a[data-ver="cambio"], a[data-ver="caja"]')
+    const a = e.target.closest('a[data-ver="mostrador"], a[data-ver="comprar"], a[data-ver="vender"], a[data-ver="cambio"], a[data-ver="caja"], a[data-ver="lotes"]')
     if (!a || e.defaultPrevented || e.metaKey || e.ctrlKey || e.shiftKey || e.button > 0) return
     e.preventDefault()
     if (a.dataset.ver === 'mostrador') return abrirMostrador()
     if (a.dataset.ver === 'comprar') return abrirComprarRapido()
     if (a.dataset.ver === 'cambio') return abrirCambioRapido()
     if (a.dataset.ver === 'caja') return abrirCajaDeHoy()
+    if (a.dataset.ver === 'lotes') return abrirLotesPorDesglosar()
     return abrirVenderRapido()
   })
   doc.addEventListener('keydown', (e) => {

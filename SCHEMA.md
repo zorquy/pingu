@@ -55204,6 +55204,72 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1277 — El lote sin desglosar y el tanto por ciento libre
+
+PINGU, de un amigo con tienda en un card show: el cambio es lento porque cada
+carta del cliente hay que buscarla (idioma, estado, versión) con él delante, y
+acaba haciendo una foto y echando las cuentas después. Se le propusieron tres
+salidas con maquetas y eligió la A, «Cambio rápido con lote». Y añadió: «el
+porcentaje debería estar a elección del vendedor… hay algunos que venden al
+85, otros al 90, otros al 75».
+
+- **El tanto por ciento es libre** en Comprar y en Cambio: «− 80 % +», de 5 en
+  5 hasta el siguiente múltiplo (83 → 85 o 80, `pctConPaso`), y el número se
+  escribe (`pctDeCampo`: entero de 0 a 200, que es lo que deja la base). Es el
+  mismo mando abajo y en la carta (`pctHtml`). Al escribir no se repinta lo
+  que lleva el campo (`ponerPct(v, { escribiendo })`): el cursor se queda.
+  Lo que no es un número no cuenta y, al salir, vuelve el de antes. Se sigue
+  recordando por modo (`pd-tienda-compra-pct`, `pd-tienda-cambio-pct`), y el
+  mando se apaga (`.tdc-pct-fuera`) cuando las cifras no salen de él (un total
+  redondo o una cifra escrita a mano). `PCTS_CAMBIO` ya no existe.
+- **«+ Lote sin desglosar»** es una línea más en Comprar y en «Te da» del
+  Cambio (y un atajo bajo el buscador): «Vale en total», «Pagas» o «Cuenta» al
+  tanto por ciento, cuántas cartas (opcional) y una foto (opcional, con la
+  cámara). La foto se comprime (la 891) y se sube a `tienda-fotos/<tienda>/
+  lotes/` ANTES de apuntar la compra; si no sube, el lote se apunta sin ella y
+  lo dice.
+- **En la base** (`supabase-migration-1277-tienda-lotes.sql`):
+  - `tienda_lotes`: el lote (lo que vale, lo que costó, el %, las cartas, la
+    foto, el cliente y si ya se desglosó). Solo lo lee su tienda.
+  - El lote es UNA LÍNEA de la compra (`tienda_compras.lote_id`, ni carta ni
+    producto: `num_nonnulls(card_id, product_id, lote_id) = 1`). Así la caja,
+    el cierre del mes, Compras, el recibo, el cambio y Deshacer lo cuentan sin
+    tocarlos. No entra al stock: no se sabe qué lleva.
+  - `tienda_comprar` acepta `{ lote: true, coste, valorado, cartas, foto, pct }`
+    y comprueba que la foto es de la carpeta de la tienda (la del cubo, 1235).
+  - `tienda_lote_desglosar(lote, lineas)` cambia la línea del lote por sus
+    cartas con el MISMO ticket, día, pago y cliente; cada una lleva su parte
+    del coste y `de_lote`. Las cartas entran por poner a la venta, como en
+    Comprar. La caja de aquel día no se mueve.
+  - El reparto es `tienda_repartir`, `repartirTotal` de la web paso a paso
+    (según lo que vale cada una; lo que no tiene valor pesa como la media; los
+    céntimos que sobran, a una línea de una unidad). Si TODAS llevan varias
+    unidades puede quedar algún céntimo sin repartir, como ya pasaba con «O
+    todo junto por». `test-tanda-1277` compara la base con la web.
+  - `tienda_deshacer_compra` se lleva el lote, y `tienda_compras_lista` lo
+    nombra («Lote sin desglosar», con sus cartas, y se busca por «lote»).
+- **El Panel** lleva la pastilla «N lotes por desglosar» (`.tdh-pill-toca`,
+  de las que le tocan a la tienda), que abre `js/tienda-lotes.js` sin navegar
+  (`data-ver="lotes"`, o `/tienda?lotes=1`): cada lote con su foto, si viene
+  de un cambio o una compra, cuándo, a quién, lo que costó y a qué %.
+- **Desglosar** es la hoja de Comprar en `modo = 'lote'`: arriba la foto (se
+  agranda al tocarla) y «Llevas X de los Y tasados · N de M cartas»; el
+  buscador de siempre; la carta sin «Pagas» ni %, y en la lista el «Coste» de
+  cada una (`costesDeLote`), que se reparte otra vez al cambiar lo que vale
+  una. «Terminar el desglose» llama a `tienda_lote_desglosar`. Lo añadido se
+  guarda por lote mientras la página siga abierta (`borradores`), aunque se
+  cierre la hoja; al salir vuelve la compra que hubiera (`entrarEnLote`,
+  `salirDeLote`).
+- Sin la migración: la pastilla no sale, la hoja de lotes lo dice, y comprar
+  un lote avisa de que falta la 1277 (la compra de la 1255 no sabe qué es).
+
+Pruebas (rama `pruebas`): `test-tanda-1277.mjs` (lo puro del % y la
+migración contra PostgreSQL: comprar y cambiar con lote, la foto, desglosar,
+el reparto igual que la web y deshacer) y `test-tanda-1277-pantalla.mjs` (el
+mando del %, la línea de lote con foto, el cambio, la pastilla, la hoja de
+lotes, desglosar y volver, Compras y el móvil). La 1091 y la 1266 de pantalla
+pulsan el mando nuevo.
+
 ## Tanda 1276 — Lo que pagaste por un producto sellado
 
 PINGU: «me han pedido que se pueda añadir el valor pagado por el producto
