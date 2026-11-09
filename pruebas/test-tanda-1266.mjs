@@ -12,8 +12,8 @@ const MIGRACIONES = ['1254-tienda-mostrador', '1255-tienda-comprar-rapido', '126
 console.log('── Lo puro: la cuenta del cambio y la caja ──')
 {
   const P = await import(`${REPO}/js/tiendas-puro.js`)
-  const { cuentaDeCambio, textoDeCambio, cuentaDeCaja, PAGOS_VENTA, PAGOS_COMPRA, NOMBRE_DE_PAGO, PCTS_CAMBIO, PCT_CAMBIO, pagasPorPct } = P
-  check('el tanto por ciento de cambio: 60–90 y 80 de partida', PCTS_CAMBIO.join() === '60,70,80,90' && PCT_CAMBIO === 80)
+  const { cuentaDeCambio, textoDeCambio, cuentaDeCaja, PAGOS_VENTA, PAGOS_COMPRA, NOMBRE_DE_PAGO, PCT_CAMBIO, pagasPorPct } = P
+  check('el tanto por ciento de cambio empieza en 80 (libre desde la 1277)', PCT_CAMBIO === 80)
   check('  …y Cardmarket 100 valorada en 90, al 80 %, cuenta 72', pagasPorPct(90, 80) === 72)
   let c = cuentaDeCambio([{ unidades: 1, pagas: 72 }], [{ vender: 1, lista: 100, cobrar: null }])
   check('te paga: lo suyo 72, lo tuyo a tu precio 100 → 28', c.recibido === 72 && c.entregado === 100 && c.diferencia === 28 && c.quien === 'te-paga' && c.listo, JSON.stringify(c))
