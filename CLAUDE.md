@@ -1736,7 +1736,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `tcggo_id`. Y una expansión NUEVA (1265) no espera a que la lista de TCGGO
   cuente sus cartas: en sus primeros 14 días se le piden cada tres horas como
   mucho (`esRecienSalida`, `estado.miradas`), y sin cartas sueltas sigue en
-  las vacías; su set escondido (756) se enseña al llegar.
+  las vacías; su set escondido (756) se enseña al llegar. Y sus PRECIOS (1274,
+  Delta Reign: cartas sin precio, sin idiomas y «0 cartas»): la pasada de
+  precios toma también los sets occidentales por su `tcggo_id` de fila cuando
+  el emparejador no casó nada (sin veredicto o con cero pares), como el japonés
+  de la 671, y el emparejador vuelve a mirar un set casado con su expansión
+  vacía o reciente sin casar (cada 20 h; los sobres sin id de Cardmarket ya no
+  lo paran). Un camino nuevo que meta sets antes de que salgan cuenta con eso.
 - **Un cambio de DATOS que no quiera SQL va en una función con la clave
   de servicio** (tanda 654). PINGU no quiso ejecutar la migración del 30
   aniversario («da igual la migración SQL»), y la única forma de escribir

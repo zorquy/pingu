@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-09", "tipo": "arreglo", "texto": "Las expansiones recién salidas (como Delta Reign) ya cogen sus precios, su número de cartas y sus idiomas solas: antes se quedaban sin precio si su set se había creado antes de salir.", "enlace": "/cartas" },
     { "fecha": "2026-11-08", "tipo": "mejora", "texto": "El perfil en el ordenador, rehecho: quién eres arriba y a lo ancho, tu nivel con su barra entera y lo que te falta, la racha, los logros y los seguidores en una franja, y a la derecha tus cambios y tus seguidores. Todo más grande y en la columna de la web.", "enlace": "/perfil" },
     { "fecha": "2026-11-08", "tipo": "arreglo", "texto": "El perfil en el ordenador ya no se estira de lado a lado: va en la misma columna que el resto de la web.", "enlace": "/perfil" },
     { "fecha": "2026-11-08", "tipo": "mejora", "texto": "Los perfiles, nuevos: tu colección, tus guías y tus torneos en grande, los seguidores con sus caras, una tarjeta con tu reputación en los cambios y lo que das y buscas, y una pestaña Resumen con lo último de todo.", "enlace": "/perfil" },

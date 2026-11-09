@@ -55204,6 +55204,49 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1274 — Una expansión que sale después de crear su set coge sus precios
+
+PINGU: «ha salido Delta Reign… pone que hay cero cartas, se pueden ver las
+cartas pero ninguna tiene precio, y en el panel no tiene los idiomas; en TCGGO
+ya está, con precios, productos y todo».
+
+Por qué: los precios de una carta occidental, la cuenta de cartas, el logo y la
+fecha de su set los escribe `tcggo-precios`, y solo para los sets que el
+EMPAREJADOR casó (`tcggo_pares.hechos`). Delta Reign tenía su set desde antes de
+salir (756) y el emparejador lo miró entonces: su expansión estaba vacía (o
+traía solo sobres y cajas, sin id de Cardmarket, que además PARABAN el
+emparejador entero en el set más nuevo, el primero de su lista). Se quedó con un
+veredicto de cero pares (o ninguno) y no se volvía a mirar nunca. El catálogo
+metió sus cartas (1265, por el `tcggo_id` del set), pero la pasada de precios
+no las visitaba: sin precios, «0 cartas» y sin idiomas, que salen de los
+precios (`idiomas_de_set_calculados`). Desde aquí no se pudo mirar la base (la
+red del contenedor cierra Supabase), así que el arreglo cubre los tres estados
+posibles del emparejador.
+
+- **`tcggo-precios`**: además de los pares, lee los sets occidentales con
+  `tcggo_id` en su fila (la 671 del japonés, en el occidental). La fila manda
+  cuando el emparejador no casó nada (sin veredicto, o con `pares: 0`); si casó
+  algo, manda él, y un sospechoso sigue fuera. Un veredicto de cero pares con
+  OTRA expansión deja de atarlo a ella. Lo que entra así por primera vez se
+  pasa HOY (`estado.porFila`: se quita de `hechos` y se vuelve a apuntar la fila
+  del set), una sola vez.
+- **`tcggo-emparejar`**: solo cuenta las CARTAS (`esCartaSuelta`), así que los
+  sobres sin id ya no lo paran; un set casado con su expansión vacía se apunta
+  `vacio` y se vuelve a mirar cada `HORAS_ENTRE_VACIOS` (20), como mucho
+  `VECES_SI_VACIO` (30) veces; lo mismo uno RECIENTE (`DIAS_DE_RECIENTE`, 45)
+  casado con cero pares de antes de la marca; y uno reciente que no casó con
+  ninguna expansión se vuelve a decidir (mirar la lista guardada, sin
+  peticiones).
+- Lo que pasará con Delta Reign: el emparejador de las y 41 lo vuelve a casar
+  (sus cartas, con su id de Cardmarket), y la pasada de precios siguiente le
+  pone precios, «129 cartas», logo y fecha; los idiomas salen de esos precios.
+- Prueba: `test-tanda-1274.mjs` (sin veredicto, entra por su fila con precios y
+  la cuenta; ya pasada hoy sin él, se repite una vez; un cero con otra
+  expansión no lo ata, uno con pares sí manda, un sospechoso no entra; solo
+  sobres no para el emparejador, vacío se repite a las 20 h y casa; uno reciente
+  de antes de la marca también, uno viejo no; y uno reciente sin expansión se
+  vuelve a decidir).
+
 ## Tanda 1273 — El perfil con la cabecera ancha
 
 PINGU, con una captura de su perfil en el PC: «no me convence demasiado. Hay

@@ -158,6 +158,46 @@ export async function procesar({
       for (const setId of [...lista]) for (const h of setsHermanos(setId, idsWest)) if (!lista.includes(h)) lista.push(h)
     }
   } catch { /* sin la consulta, los sets de los pares y ya */ }
+  // LOS SETS QUE EL EMPAREJADOR NO CASÓ, POR SU FILA (1274). PINGU: «ha
+  // salido Delta Reign… se pueden ver las cartas pero ninguna tiene precio, y
+  // no tiene los idiomas». Un set que el catálogo creó ANTES de que saliera
+  // (756) lleva su `tcggo_id` en la fila, pero el emparejador lo miró cuando
+  // su expansión estaba vacía: sin veredicto (o con uno de cero pares) no
+  // entraba aquí, y sin esto no tenía precios, ni su cuenta de cartas, ni
+  // idiomas (que salen de los precios). Es la 671 del japonés en el
+  // occidental: la fila manda cuando el emparejador no casó nada; si casó
+  // algo, manda él. Los sospechosos, fuera.
+  const porFila = new Set()
+  try {
+    const filasWest = (await pedir('tcg_sets?select=id,tcggo_id&market=eq.WEST&tcggo_id=not.is.null&limit=2000')) || []
+    for (const s of filasWest) {
+      const id = Number(s.tcggo_id)
+      if (!Number.isInteger(id) || id <= 0 || !s.id) continue
+      const h = hechosPares[s.id]
+      if (h?.sospechoso) continue
+      if (h && Number.isInteger(h.episodio) && Number(h.pares) > 0) continue
+      // Un veredicto de cero pares con OTRA expansión no lo ata a ella.
+      if (h && Number.isInteger(h.episodio) && h.episodio !== id) {
+        const resto = (setsPorEpisodio.get(h.episodio) || []).filter((x) => x !== s.id)
+        if (resto.length) setsPorEpisodio.set(h.episodio, resto)
+        else setsPorEpisodio.delete(h.episodio)
+      }
+      const lista = setsPorEpisodio.get(id) || []
+      if (!lista.includes(s.id)) {
+        setsPorEpisodio.set(id, lista.concat([s.id]))
+        porFila.add(id)
+      }
+    }
+  } catch { /* sin la consulta, los de los pares */ }
+  // Lo que entra así por primera vez se hace HOY, aunque la expansión ya se
+  // hubiera pasado hoy sin ese set (y su logo, fecha y cuenta, también).
+  const antesPorFila = new Set(Array.isArray(estado.porFila) ? estado.porFila : [])
+  const nuevasPorFila = [...porFila].filter((id) => !antesPorFila.has(id))
+  if (nuevasPorFila.length) {
+    estado.hechos = estado.hechos.filter((id) => !nuevasPorFila.includes(id))
+    estado.setsApuntados = false
+  }
+  estado.porFila = [...porFila]
   // Y las japonesas (642): las que `tcggo-catalogo` ha casado con un set…
   const setsPorEpisodioJp = new Map()
   for (const [id, sets] of Object.entries(catalogo?.setsPorEpisodio?.JP || {})) {

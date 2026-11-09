@@ -35,7 +35,7 @@
 // TCGGO_TOPE_DIARIO.
 import { idDeAdmin, tokenDe } from '../lib/admin.mjs'
 import {
-  cabeceras, baseDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, episodioDeSet, alternativasDe, emparejarPorNumero, esLimiteDelPlan, POR_PAGINA_CARTAS,
+  cabeceras, baseDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, episodioDeSet, alternativasDe, emparejarPorNumero, esLimiteDelPlan, POR_PAGINA_CARTAS, esCartaSuelta,
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_GUIA } from './cardmarket-precios.mjs'
 // Solo la CLAVE: importar la función entera sería un ciclo (ella importa
@@ -45,6 +45,12 @@ import { ID_DE_POCKET } from '../../js/catalogo-series.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 export const CLAVE_ESTADO = 'tcggo_pares'
+// Un set casado con su expansión vacía (1274): cada cuántas horas y cuántas
+// veces se vuelve a mirar.
+export const HORAS_ENTRE_VACIOS = 20
+export const VECES_SI_VACIO = 30
+// …y hasta cuántos días después de su salida se repite uno de cero pares.
+export const DIAS_DE_RECIENTE = 45
 const MS_DE_MARGEN = 20_000
 // Cada día (756): una expansión anunciada tiene que llegar al calendario
 // sin esperar una semana. Son cinco peticiones.
@@ -200,9 +206,19 @@ export async function procesar({
   // que salió mal sin volver a pedir los 177).
   const solo = Array.isArray(soloSets) && soloSets.length ? new Set(soloSets.map((x) => String(x).trim().toLowerCase()).filter(Boolean)) : null
   const idsNuestros = new Set(sets.map((s) => String(s.id).toLowerCase()))
+  // Un set que se casó con su expansión VACÍA (la de una que aún no había
+  // salido: Delta Reign, 1274) se vuelve a mirar una vez al día, como mucho
+  // `VECES_SI_VACIO` días: el día que salgan sus cartas, se casan.
+  // También uno RECIENTE casado con cero pares antes de que existiera la
+  // marca (`vacio`): Delta Reign se casó así el día que se creó su set.
+  const reciente = (set) => typeof set.release_date === 'string' && ahora.getTime() - Date.parse(set.release_date.slice(0, 10) + 'T00:00:00Z') <= DIAS_DE_RECIENTE * 86_400_000
+  const vacioParaRepetir = (h, set) => !h?.sospechoso && (h?.vacio || (Number(h?.pares) === 0 && reciente(set))) && (Number(h.vecesVacio) || 1) < VECES_SI_VACIO && ahora.getTime() - new Date(h.fecha || 0).getTime() >= HORAS_ENTRE_VACIOS * 3_600_000
+  // Y uno reciente que no casó con ninguna expansión (su lista aún no la
+  // traía): decidirlo es mirar la lista guardada, no cuesta peticiones.
+  const sinEpisodioParaRepetir = (v, set) => reciente(set) && ahora.getTime() - new Date(v?.fecha || 0).getTime() >= HORAS_ENTRE_VACIOS * 3_600_000
   const pendientes = solo
     ? sets.filter((s) => solo.has(String(s.id).toLowerCase()))
-    : sets.filter((s) => !estado.hechos[s.id] && !estado.sinEpisodio[s.id])
+    : sets.filter((s) => (!estado.hechos[s.id] || vacioParaRepetir(estado.hechos[s.id], s)) && (!estado.sinEpisodio[s.id] || sinEpisodioParaRepetir(estado.sinEpisodio[s.id], s)))
 
   for (const set of pendientes) {
     if (parado || gastadas >= tope || !quedaTiempo()) break
@@ -231,7 +247,10 @@ export async function procesar({
       for (;;) {
         const r = await pedirTcggo(urlCartasDeEpisodio(candidata.id, pagina, base))
         if (!r.datos) break
-        lista.push(...(r.datos.data || []))
+        // Solo las CARTAS (1274): antes de salir, una expansión trae solo
+        // sobres y cajas, sin id de Cardmarket, y eso paraba el emparejador
+        // entero («sin cardmarket_id») en el set más nuevo, el primero.
+        lista.push(...(r.datos.data || []).filter(esCartaSuelta))
         if (!hayMasPaginas(r.datos) || (r.datos.data || []).length < POR_PAGINA_CARTAS) {
           entera = true
           break
@@ -292,7 +311,8 @@ export async function procesar({
       ...(r.sinPar.length && r.ejemplosSuyos.length ? { numerosSuyosLibres: r.ejemplosSuyos } : {}),
       ...(ajeno ? { SOSPECHOSO: `sus cartas llevan el id de nuestro set «${ajeno}», no de «${set.id}»: no se escribe` } : {}),
     }
-    estado.hechos[set.id] = { episodio: episodio.id, pares: r.pares.length, sinPar: r.sinPar.length, fecha: ahora.toISOString(), ...(ajeno ? { sospechoso: ajeno } : {}) }
+    estado.hechos[set.id] = { episodio: episodio.id, pares: r.pares.length, sinPar: r.sinPar.length, fecha: ahora.toISOString(), ...(ajeno ? { sospechoso: ajeno } : {}), ...(suyas.length ? {} : { vacio: true, vecesVacio: (Number(estado.hechos[set.id]?.vecesVacio) || 0) + 1 }) }
+    delete estado.sinEpisodio[set.id]
     esteTurno.push(fila)
     tocados.add(set.id)
     await persistir()

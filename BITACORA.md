@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-09 (515) — PINGU-Claude (1274 — los precios de Delta Reign)
+
+**Hecho**: Delta Reign salió y sus cartas no tenían precio, ni cuenta, ni
+idiomas. La pasada de precios solo visitaba los sets que casó el emparejador, y
+el emparejador lo miró cuando su expansión estaba vacía. Ahora la de precios usa
+también el `tcggo_id` de la fila del set cuando el emparejador no casó nada, y
+el emparejador vuelve a mirar los sets vacíos o recientes sin casar (y los
+sobres sin id ya no lo paran). SCHEMA 1274. No pude mirar la base desde aquí
+(la red cierra Supabase): el arreglo cubre los tres estados posibles.
+
+**Ficheros**: `netlify/functions/tcggo-precios.mjs`,
+`netlify/functions/tcggo-emparejar.mjs`, SCHEMA, CLAUDE.md, novedades. Rama
+pruebas: `test-tanda-1274.mjs` (nueva); 588, 589, 640, 643, 646, 655, 756, 853,
+929 y 1265 en verde.
+
+**Pendiente**: comprobar con PINGU en una hora que Delta Reign tiene precios y
+«129 cartas»; si no, mirar /admin → «Hoy» (semáforo de precios y emparejador).
+
 ## 2026-11-08 (514) — PINGU-Claude (1273 — el perfil con la cabecera ancha)
 
 **Hecho**: propuesta con maquetas (A cabecera ancha, B columna ordenada, C carnet)
