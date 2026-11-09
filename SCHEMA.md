@@ -55204,6 +55204,75 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1275 — «Actualizar desde TCGGO» en el editor de un set
+
+PINGU, con Delta Reign recién salida y sin precios: «¿puedes desarrollar un
+botón en el admin, en la parte de colecciones, donde ese botón traiga de TCGGO
+todo lo relacionado con el set? Sería como una actu manual».
+
+**Qué hace.** /admin → Colecciones → un set → «Actualizar desde TCGGO». Cuatro
+pasos, un renglón cada uno con lo que ha pasado:
+
+1. **Emparejar** (solo el occidental): `tcggo-emparejar` con `soloSets: [set]`.
+   Dice qué expansión es y pone el id de Cardmarket a las cartas que casan.
+2. **Cartas**: `tcggo-catalogo` con `soloEpisodio`. Escribe las que falten;
+   un set escondido que ya tiene cartas se enseña (756).
+3. **Precios e idiomas**: `tcggo-precios` con `soloEpisodio`. Los precios de
+   cada carta (de ahí salen los idiomas del set, 956) y la FILA del set: logo,
+   fecha, cartas, impresas y valor.
+4. **Productos**: `tcggo-productos` con `soloExpansion`. Al acabar se vacía
+   la copia de la CDN (`sets`) y el panel llama a `avisarALaWeb()`.
+
+**Una expansión, aunque esté hecha.** Las tres pasadas aceptan
+`{ mercado, id, set, nombre }` (normalizado por `soloDe`, en
+`tcggo-catalogo.mjs`) y con eso:
+
+- sacan esa expansión de sus `hechos` (y de las `vacias` del catálogo);
+- no miran ninguna otra;
+- no piden la lista de expansiones (son páginas). El catálogo usa la
+  guardada o, si no la trae, la expansión con lo que se sabe.
+
+Además:
+
+- **Catálogo.** Si nada dice a qué set van las cartas (ni el par, ni el
+  `tcggo_id` de la fila, ni el código o el nombre), van al set desde el que
+  se pulsó. Nunca a uno nuevo.
+- **Precios.** Se salta el bloque del día que escribe las filas de TODOS los
+  sets. Una expansión que la pasada de siempre dejó a medias (`enCurso`) se
+  deja donde estaba. La fila del set sale de la PRIMERA página de cartas: cada
+  carta de `/cards` trae su `episode` entero (`cards_total`, `logo`,
+  `prices.*.total`, visto en la respuesta real de
+  `pruebas/fixtures/tcggo-cards-ejemplo.json`). Pasa por `resumirEpisodio` y
+  `filaDeSetTcggo`, como la lista. Por eso dice 129 cartas aunque la lista
+  guardada dijera 0.
+
+**Por pasos.** `netlify/functions/tcggo-set-ahora.mjs` hace UN paso por
+llamada (`paso` en el cuerpo), porque los cuatro juntos no caben en el tiempo
+de una función. `admin/js/tcggo-set-ahora.js` (por `import()`) los encadena con
+`actualizarSetDesdeTcggo` y repite un paso que contesta `sigue` (sin tiempo)
+hasta `REPETIR` = 4 veces. Para en un fallo nuestro (`ok: false`) o de TCGGO
+(`parado`). Cada paso cuenta en el tope diario de su pasada y para en un 429
+o 403 como ella. Los textos son `textoDePaso`.
+
+**Qué expansión es** (`episodioDelSet`):
+
+- **Occidental.** Manda el emparejador si casó algo. Si no, el `tcggo_id`
+  de la fila. Si tampoco, lo que eligiera el emparejador aunque fuera vacío.
+  Un sospechoso no vale.
+- **Japonés.** La fila o el mapa `setsPorEpisodio.JP` del catálogo; no hay
+  emparejador.
+
+Sin ninguna de esas, el paso lo dice y no inventa.
+
+**La excepción a la 1123.** La norma dice que no se vuelvan a poner botones de
+pasada a mano en el panel. Este lo pidió PINGU, y no es otra pasada: son las
+mismas, para un set.
+
+Pruebas (rama `pruebas`): `test-tanda-1275.mjs`. Rigor a mano con tres
+mutaciones, cazadas: quitar el «solo» de precios, el destino del set pulsado
+y devolver la `enCurso` ajena. 1274 en verde. 807, 808, 830, 945 y los que no
+arrancan (657, 827, 929, 935, 937, 987) dan lo mismo con y sin la tanda.
+
 ## Tanda 1274 — Una expansión que sale después de crear su set coge sus precios
 
 PINGU: «ha salido Delta Reign… pone que hay cero cartas, se pueden ver las

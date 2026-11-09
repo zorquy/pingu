@@ -2054,6 +2054,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   llena solo (TCGGO); la marca de cada set y su código de TCG Live se corrigen
   en Colecciones. No vuelvas a poner un importador o un botón de pasada a mano
   en el panel: si una pasada falla, lo dice el semáforo de «Hoy».
+  La excepción es «Actualizar desde TCGGO» en el editor de un set (1275, PINGU
+  la pidió): las MISMAS pasadas para UNA expansión (`soloEpisodio` en catálogo y
+  precios, `soloExpansion` en productos), paso a paso por `tcggo-set-ahora`. Lo
+  nuevo que haya que traer de un set va como un paso más ahí (`PASOS`), no en
+  otro botón.
 - **Los textos de los correos los cambia el equipo** (tanda 1122,
   `correo_textos`): asunto como plantilla con `{asunto}`, texto de arriba,
   botón y pie, por tipo. Lo que pinte un correo pasa por `renderFilaDeCola` /

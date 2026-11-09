@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-09 (516) — PINGU-Claude (1275 — «Actualizar desde TCGGO» en un set)
+
+**Hecho**: PINGU pidió un botón en /admin → Colecciones que traiga de TCGGO
+todo lo de un set, «como una actu manual». En el editor de cada set:
+«Actualizar desde TCGGO», con cuatro pasos y un renglón para cada uno:
+emparejar, cartas, precios e idiomas (con la fila del set: logo, fecha, cuenta
+y valor, sacados de la propia carta) y productos. Son las mismas pasadas de
+siempre para UNA expansión, aunque ya estuviera hecha. No pisan lo que lleva
+a medias la pasada programada. SCHEMA 1275, y la excepción a la 1123 en
+CLAUDE.md. Sin línea en novedades: es del panel y la gente no lo nota.
+
+**Ficheros**: `netlify/functions/tcggo-set-ahora.mjs` (nueva),
+`admin/js/tcggo-set-ahora.js` (nuevo), `admin/js/colecciones.js`,
+`admin/css/admin.css`, `netlify/functions/tcggo-catalogo.mjs` (`soloEpisodio`,
+`soloDe`), `netlify/functions/tcggo-precios.mjs` (`soloEpisodio`),
+`netlify/functions/tcggo-productos.mjs` (`soloExpansion`), SCHEMA, CLAUDE.md.
+Rama pruebas: `test-tanda-1275.mjs` (nueva), 1274 en verde. Los rojos de 807,
+808, 830, 945 y los que no arrancan (657, 827, 929, 935, 937, 987) son de
+antes: dan lo mismo sin la tanda.
+
+**Pendiente**: que PINGU lo pulse en Delta Reign y diga qué pone cada renglón.
+No lo he podido probar contra TCGGO ni la base: la red del contenedor cierra
+las dos.
+
 ## 2026-11-09 (515) — PINGU-Claude (1274 — los precios de Delta Reign)
 
 **Hecho**: Delta Reign salió y sus cartas no tenían precio, ni cuenta, ni

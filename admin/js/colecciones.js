@@ -818,6 +818,9 @@ function abrirEditor(id) {
     <p class="admin-note"><code>${escapeHtml(s.id)}</code> · ${escapeHtml(mercado)}${s.tcggo_id ? ` · TCGGO ${escapeHtml(String(s.tcggo_id))}` : ''}${s.origen === 'mano' ? ' · escrita a mano' : ''}${corr.size ? ` · ${corr.size} ${corr.size === 1 ? 'corrección' : 'correcciones'}` : ''}</p>
     ${notaDePadre(s)}
     <p><button class="btn-secondary btn-small" id="colCartas">Ver y editar sus cartas →</button></p>
+    <div class="col-relleno"><p class="admin-note">Las pasadas de TCGGO lo traen solas, cada una a su ritmo. Esto lo hace ahora para este set: casarlo, sus cartas, sus precios (y con ellos los idiomas), su logo, fecha y cuenta, y sus productos.</p>
+      <p><button class="btn-secondary btn-small" id="colTcggoAhora">Actualizar desde TCGGO</button></p>
+      <ol class="admin-note col-tcggo-pasos" id="colTcggoRes" aria-live="polite" hidden></ol></div>
     ${relleno ? `<div class="col-relleno"><p class="admin-note">Este set se completa desde TCGdex cada ${relleno.cadaDias} días (${escapeHtml(relleno.motivo)}).</p>
       <p><button class="btn-secondary btn-small" id="colTcgdexAhora">Traer ahora lo que falta de TCGdex</button></p>
       <p class="admin-note" id="colTcgdexRes" aria-live="polite"></p></div>` : ''}
@@ -907,6 +910,37 @@ function abrirEditor(id) {
       if (r?.ok && r.hecho?.escritas) { await cargar(); pintarColecciones() }
     } catch (err) {
       if (res) res.textContent = textoDeRelleno({ ok: false, error: String(err?.message || err).slice(0, 140) })
+    } finally {
+      boton.disabled = false
+    }
+  })
+
+  // «Actualizar desde TCGGO» (1275): los cuatro pasos, un renglón cada uno.
+  $('colTcggoAhora')?.addEventListener('click', async (e) => {
+    const boton = e.currentTarget
+    const lista = $('colTcggoRes')
+    boton.disabled = true
+    const { PASOS_TCGGO, textoDePaso, actualizarSetDesdeTcggo } = await import('./tcggo-set-ahora.js')
+    lista.hidden = false
+    lista.innerHTML = PASOS_TCGGO.map((p) => `<li data-paso="${p.paso}"><b>${escapeHtml(p.rotulo)}:</b> <span>esperando…</span></li>`).join('')
+    const renglon = (paso) => lista.querySelector(`[data-paso="${paso}"] span`)
+    try {
+      const { data: { session } = {} } = await supabase.auth.getSession()
+      if (renglon('emparejar')) renglon('emparejar').textContent = 'pidiendo a TCGGO…'
+      const hecho = await actualizarSetDesdeTcggo({
+        set: s.id, mercado, token: session?.access_token,
+        alPaso: (paso, r, intento) => {
+          const sigue = r?.ok && r.sigue
+          if (renglon(paso)) renglon(paso).textContent = sigue ? `a medias, sigue (vuelta ${intento + 1})…` : textoDePaso(paso, r)
+          const i = PASOS_TCGGO.findIndex((p) => p.paso === paso)
+          const siguiente = PASOS_TCGGO[i + 1]
+          if (!sigue && siguiente && r?.ok !== false && !r?.parado && renglon(siguiente.paso)) renglon(siguiente.paso).textContent = 'pidiendo a TCGGO…'
+        },
+      })
+      for (const { paso } of PASOS_TCGGO) if (!hecho[paso] && renglon(paso)?.textContent === 'esperando…') renglon(paso).textContent = 'no se ha hecho.'
+      if (hecho.cartas?.turno?.escritas || hecho.precios?.filaDelSet) { avisarALaWeb(); await cargar(); pintarColecciones() }
+    } catch (err) {
+      showToast(String(err?.message || err).slice(0, 140), 'error')
     } finally {
       boton.disabled = false
     }

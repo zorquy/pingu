@@ -755,6 +755,7 @@ body {
 .cmb-que { flex: 1; min-width: 0; display: grid; }
 .cmb-que small { color: var(--text-mid); font-size: var(--t-xs); }
 .col-relleno { border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 0 var(--e-sm); }
+.col-tcggo-pasos { margin: 0 0 var(--e-sm); padding-left: var(--e-lg); display: grid; gap: var(--e-xs); }
 .cat-quitar { background: none; border: 0; padding: 0; color: var(--navy); font-size: var(--t-2xs); cursor: pointer; text-decoration: underline; min-height: 24px; }
 .cat-foto-caja { display: flex; gap: var(--e-sm); align-items: flex-start; margin-bottom: var(--e-sm); }
 .cat-foto-ver { width: 72px; height: 100px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: var(--bg); border-radius: 6px; overflow: hidden; }

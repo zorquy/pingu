@@ -33,6 +33,7 @@ import {
 import { numeroComparable } from '../lib/scrydex.mjs'
 import { setsHermanos } from '../../js/catalogo-series.js'
 import { CLAVE_ESTADO as CLAVE_PARES, TOPE_DIARIO, PAUSA_MS } from './tcggo-emparejar.mjs'
+import { soloDe } from './tcggo-catalogo.mjs'
 // Solo la clave: importar la función sería un ciclo.
 const CLAVE_CATALOGO = 'tcggo_catalogo'
 
@@ -66,10 +67,14 @@ export const hoyUTC = () => new Date().toISOString().slice(0, 10)
 export async function procesar({
   env = process.env, fetchImpl = fetch, restImpl = null, guardarImpl = null, corregirImpl = null, guardarSetsImpl = null, fotoImpl = null, estadoImpl = null, guardarEstadoImpl = null, guardarVersionesImpl = null,
   reloj = () => Date.now(), ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)),
-  peticiones = 60,
+  peticiones = 60, soloEpisodio = null,
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: false, error: 'Falta SUPABASE_SERVICE_ROLE_KEY' }
+  // «Actualizar desde TCGGO» (1275): UNA expansión, aunque esté hecha hoy,
+  // y la fila del set con lo que trae la primera página (cada carta lleva su
+  // expansión entera: logo, cuenta y valor), sin la lista de expansiones.
+  const solo = soloDe(soloEpisodio)
   const claveTcggo = env.TCGGO_API_KEY
   if (!claveTcggo) return { ok: true, saltado: 'falta TCGGO_API_KEY en Netlify' }
   const pausaMs = env.TCGGO_PAUSA_MS !== undefined && env.TCGGO_PAUSA_MS !== '' && Number(env.TCGGO_PAUSA_MS) >= 0 ? Number(env.TCGGO_PAUSA_MS) : PAUSA_MS
@@ -112,7 +117,7 @@ export async function procesar({
   }
   const hechosPares = pares?.hechos && typeof pares.hechos === 'object' ? pares.hechos : {}
   const episodios = Array.isArray(pares?.episodios?.lista) ? pares.episodios.lista : []
-  if (!Object.keys(hechosPares).length) return { ok: true, saltado: 'todavía no hay sets emparejados con TCGGO (/admin → Cartas → Emparejar con TCGGO)' }
+  if (!Object.keys(hechosPares).length && !solo) return { ok: true, saltado: 'todavía no hay sets emparejados con TCGGO (/admin → Cartas → Emparejar con TCGGO)' }
 
   estado = estado && typeof estado === 'object' ? estado : {}
   if (estado.dia !== dia) estado = { ...estado, dia, hechos: [], hechosJp: [], setsApuntados: false, resumenJp: {}, enCurso: null }
@@ -230,8 +235,16 @@ export async function procesar({
   // El japonés bloqueado por el PLAN (671): si TCGGO contesta que el
   // catálogo japonés pide Ultra, no se le vuelve a pedir en todo el día.
   const jpBloqueado = estado.jpBloqueado?.dia === dia
-  const pendientes = [...setsPorEpisodio.keys()].filter((id) => !estado.hechos.includes(id))
-  const pendientesJp = jpBloqueado ? [] : [...setsPorEpisodioJp.keys()].filter((id) => !estado.hechosJp.includes(id))
+  if (solo) {
+    if (solo.mercado === 'JP' && jpBloqueado) return { ok: true, saltado: 'el plan de TCGGO no da el japonés hoy' }
+    const mapa = solo.mercado === 'JP' ? setsPorEpisodioJp : setsPorEpisodio
+    const lista = mapa.get(solo.id) || []
+    if (solo.set && !lista.includes(solo.set)) mapa.set(solo.id, lista.concat([solo.set]))
+    if (solo.mercado === 'JP') estado.hechosJp = estado.hechosJp.filter((id) => id !== solo.id)
+    else estado.hechos = estado.hechos.filter((id) => id !== solo.id)
+  }
+  const pendientes = solo ? (solo.mercado === 'WEST' ? [solo.id] : []) : [...setsPorEpisodio.keys()].filter((id) => !estado.hechos.includes(id))
+  const pendientesJp = solo ? (solo.mercado === 'JP' ? [solo.id] : []) : jpBloqueado ? [] : [...setsPorEpisodioJp.keys()].filter((id) => !estado.hechosJp.includes(id))
   if (!pendientes.length && !pendientesJp.length) {
     if (!estado.hecho) { estado.hecho = true; await persistir() }
     return { ok: true, dia, hecho: true, saltado: `los precios de ${dia} ya están puestos`, episodios: setsPorEpisodio.size + setsPorEpisodioJp.size }
@@ -284,7 +297,7 @@ export async function procesar({
   const listaSinValor = episodios.length > 0 && !episodios.some((e) => e.valorCm != null)
   // Y también si los sets JAPONESES no se han apuntado hoy (672): el mapa
   // japonés creció con la 671 y sus valores no podían esperar a mañana.
-  if (!estado.setsApuntados || (listaSinValor && !estado.setsConValor) || (!estado.setsJpApuntados && setsPorEpisodioJp.size)) {
+  if (!solo && (!estado.setsApuntados || (listaSinValor && !estado.setsConValor) || (!estado.setsJpApuntados && setsPorEpisodioJp.size))) {
     let lista = episodios
     if (lista.length && (!lista.some((e) => e.logo) || listaSinValor)) {
       const nueva = []
@@ -397,6 +410,9 @@ export async function procesar({
   // Las que se saltan en esta pasada por no traer ids (no vuelven a entrar
   // en la misma pasada).
   const saltadasSinCm = []
+  // La que estaba a medias de la pasada de siempre se deja como estaba.
+  const enCursoAjeno = solo && estado.enCurso && !(estado.enCurso.mercado === solo.mercado && estado.enCurso.episodio === solo.id) ? estado.enCurso : null
+  let episodioFresco = null
   const comoCarta = (e) => ({ id: e.id, image: e.foto ? 'x' : '', attacks: e.juego ? [1] : [] })
   for (const { mercado, pendientes: lista0, mapa, hechos } of tandas) {
     const enCursoAqui = estado.enCurso?.mercado === mercado ? estado.enCurso.episodio : null
@@ -415,6 +431,10 @@ export async function procesar({
       if (r.fin === 'plan-jp') { planJp = true; break }
       if (!r.datos) break
       const pagina = r.datos.data || []
+      if (solo && !episodioFresco) {
+        const ep = pagina.find((s) => Number(s?.episode?.id) === idEpisodio)?.episode
+        if (ep) episodioFresco = resumirEpisodio(ep)
+      }
       const ahoraVan = new Map()
       for (const s of pagina) {
         enCurso.suyas++
@@ -678,6 +698,23 @@ export async function procesar({
     await persistir()
     }
   }
+  // La fila del set (1275): logo, fecha, cuenta y valor de lo que acaba de
+  // llegar. Delta Reign decía «0 cartas» porque la lista guardada era de
+  // antes de que TCGGO las contara.
+  let filaDelSet = null
+  if (solo) {
+    if (!estado.enCurso && enCursoAjeno) estado.enCurso = enCursoAjeno
+    if (episodioFresco) {
+      const mapa = solo.mercado === 'JP' ? setsPorEpisodioJp : setsPorEpisodio
+      const filas = (mapa.get(solo.id) || []).map((setId) => filaDeSetTcggo(setId, episodioFresco))
+      try {
+        if (filas.length) setsApuntados = Number(await guardarSets(solo.mercado === 'JP' ? sinSetsRepetidos(filas) : sinSetsRepetidos(filas, hechosPares), solo.mercado)) || 0
+        filaDelSet = { cartas: episodioFresco.cartas, impresas: episodioFresco.impresas, fecha: episodioFresco.fecha, logo: Boolean(episodioFresco.logo), valorCm: episodioFresco.valorCm, escritos: setsApuntados }
+      } catch (e) {
+        filaDelSet = { error: String(e?.message || e).slice(0, 200) }
+      }
+    }
+  }
   const quedan = [...setsPorEpisodio.keys()].filter((id) => !estado.hechos.includes(id)).length + [...setsPorEpisodioJp.keys()].filter((id) => !estado.hechosJp.includes(id)).length
   let fotoHistorial = null
   if (!quedan && !parado) {
@@ -695,6 +732,7 @@ export async function procesar({
     ok: true, dia, hecho: !quedan && !parado, fotoHistorial, peticionesEstaPasada: gastadas, peticionesHoy: estado.gasto.peticiones, topeDiario, pausaMs, puerta: base,
     episodios: setsPorEpisodio.size + setsPorEpisodioJp.size, hechasHoy: estado.hechos.length + estado.hechosJp.length, quedan, escritas, sinPar, setsApuntados, hechasAhora, parado, ...(saltadasSinCm.length ? { saltadasSinCm } : {}), ...(estado.errorSets?.dia === dia ? { errorSets: estado.errorSets.error } : {}),
     ...(quedan && !parado ? { nota: 'sin tiempo o sin peticiones: sigue en la próxima pasada' } : {}),
+    ...(solo ? { solo: { ...solo, terminada: hechasAhora.some((h) => h.episodio === solo.id), filaDelSet } } : {}),
   }
 }
 

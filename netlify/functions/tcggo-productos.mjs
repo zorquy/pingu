@@ -129,7 +129,11 @@ export function expansionesQueTocan(sets, hechos = {}, hoy) {
 // petición (1026, `include_contained_items=1`): no cuesta una más.
 export const urlDeProductos = (plantilla, id, pagina, base, { contenido = false } = {}) => `${base}${plantilla.replace('{id}', encodeURIComponent(id)).replace('{pagina}', pagina)}${contenido ? '&include_contained_items=1' : ''}`
 
-export async function procesar({ env = process.env, fetchImpl = fetch, restImpl = null, ahora = new Date() } = {}) {
+export async function procesar({ env = process.env, fetchImpl = fetch, restImpl = null, ahora = new Date(), soloExpansion = null } = {}) {
+  // «Actualizar desde TCGGO» (1275): los productos de UNA expansión, aunque
+  // ya se hubieran mirado esta semana.
+  const soloId = Number(soloExpansion?.id)
+  const solo = Number.isInteger(soloId) && soloId > 0 ? { id: soloId, mercado: soloExpansion.mercado === 'JP' ? 'JP' : 'WEST' } : null
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { error: 'Falta SUPABASE_SERVICE_ROLE_KEY.' }
   if (!env.TCGGO_API_KEY) return { saltado: 'sin TCGGO_API_KEY' }
@@ -193,7 +197,9 @@ export async function procesar({ env = process.env, fetchImpl = fetch, restImpl 
     }
     estado.revisionSueltos = REVISION_SUELTOS
   }
-  const toca = expansionesQueTocan([...comoSets, ...(sets || [])].filter(sirve), estado.hechos, hoy).slice(0, MAX_EXPANSIONES)
+  const toca = solo
+    ? (sirve({ market: solo.mercado }) ? [{ id: solo.id, mercado: solo.mercado, clave: claveDe(solo.mercado, solo.id), fecha: null }] : [])
+    : expansionesQueTocan([...comoSets, ...(sets || [])].filter(sirve), estado.hechos, hoy).slice(0, MAX_EXPANSIONES)
   const { base, host } = baseDe(env)
   const bases = { WEST: base, JP: baseJpDe(base) }
   // La ruta de cada catálogo, apuntada por separado: que la occidental

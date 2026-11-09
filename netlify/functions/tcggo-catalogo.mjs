@@ -86,14 +86,26 @@ async function rest(ruta, clave, opciones = null) {
 }
 
 // La semana, como número: lo que hace que una pasada sepa si ya pasó.
+// Lo que llega de /admin (1275): { mercado, id, set, nombre }, o null.
+export function soloDe(e) {
+  const id = Number(e?.id)
+  if (!e || !Number.isInteger(id) || id <= 0) return null
+  return { mercado: e.mercado === 'JP' ? 'JP' : 'WEST', id, set: e.set ? String(e.set) : null, nombre: String(e.nombre || '') }
+}
+
 export const semanaDe = (fecha) => Math.floor(fecha.getTime() / (7 * 86_400_000))
 
 export async function procesar({
   env = process.env, fetchImpl = fetch, restImpl = null, guardarCartasImpl = null, crearSetsImpl = null, nombrarSetImpl = null, estadoImpl = null, guardarEstadoImpl = null,
   reloj = () => Date.now(), ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)), peticiones = 60,
+  soloEpisodio = null,
 } = {}) {
   const clave = env.SUPABASE_SERVICE_ROLE_KEY
   if (!clave) return { ok: false, error: 'Falta SUPABASE_SERVICE_ROLE_KEY' }
+  // «Actualizar desde TCGGO» de /admin → Colecciones (1275): UNA expansión,
+  // aunque esté hecha esta semana, con la lista guardada (o sin ella) y sin
+  // pedir ninguna otra. Lo demás es la pasada de siempre.
+  const solo = soloDe(soloEpisodio)
   const claveTcggo = env.TCGGO_API_KEY
   if (!claveTcggo) return { ok: true, saltado: 'falta TCGGO_API_KEY en Netlify' }
   const pausaMs = env.TCGGO_PAUSA_MS !== undefined && env.TCGGO_PAUSA_MS !== '' && Number(env.TCGGO_PAUSA_MS) >= 0 ? Number(env.TCGGO_PAUSA_MS) : PAUSA_MS
@@ -236,7 +248,12 @@ export async function procesar({
   let quedanTotal = 0
   for (const mercado of MERCADOS) {
     if (parado || gastadas >= tope || !quedaTiempo()) break
-    const episodios = await episodiosDe(mercado)
+    if (solo && mercado !== solo.mercado) continue
+    // Con una sola expansión no se pide la lista japonesa (son páginas): vale
+    // la guardada, y si no la trae, la expansión con lo que se sabe de ella.
+    const episodios = solo
+      ? ((mercado === 'WEST' ? pares?.episodios?.lista : estado.episodiosJp?.lista) || [])
+      : await episodiosDe(mercado)
     if (!episodios) { quedanTotal += 1; continue }
     // Nuestros sets de ese mercado, y de qué expansión cuelga cada uno
     // (en WEST lo dijo el emparejador; en JP se decide aquí por el código).
@@ -280,13 +297,19 @@ export async function procesar({
     // El set que ya lleva su expansión (756): el de una futura que se creó
     // vacía, o el de un calco japonés que casó por la huella.
     const porTcggoId = (id) => sets.filter((s) => Number(s.tcggo_id) === id).map((s) => s.id)
-    const pendientes = episodios.filter((e) => !estado.hechos[mercado].includes(e.id))
+    if (solo) {
+      estado.hechos[mercado] = estado.hechos[mercado].filter((id) => id !== solo.id)
+      estado.vacias[mercado] = estado.vacias[mercado].filter((id) => id !== solo.id)
+    }
+    const pendientes = solo
+      ? [episodios.find((e) => e.id === solo.id) || { id: solo.id, nombre: solo.nombre, codigo: null, cartas: null, fecha: null }]
+      : episodios.filter((e) => !estado.hechos[mercado].includes(e.id))
     quedanTotal += pendientes.length
     for (const episodio of pendientes) {
       if (parado || gastadas >= tope || !quedaTiempo()) break
       // Una expansión que su lista da con CERO cartas (las Trainer Gallery,
       // las energías) se apunta sin pedirla: no hay nada que casar.
-      if (episodio.cartas === 0 && !porMirar.has(episodio.id)) {
+      if (episodio.cartas === 0 && !porMirar.has(episodio.id) && !solo) {
         // Si es FUTURA, su set, escondido, para el calendario (756).
         let proxima = null
         if (typeof episodio.fecha === 'string' && episodio.fecha.slice(0, 10) > dia) {
@@ -342,6 +365,8 @@ export async function procesar({
       // nombre, o uno nuevo.
       let destinos = setsPorEpisodio.get(episodio.id) || []
       if (!destinos.length) destinos = porTcggoId(episodio.id)
+      // El set desde el que se pulsó, si nada más lo dice: nunca uno nuevo.
+      if (!destinos.length && solo?.set && idsNuestros.has(solo.set)) destinos = [solo.set]
       let setNuevo = null
       if (!destinos.length) {
         const r = setDeEpisodio(episodio, sets)
