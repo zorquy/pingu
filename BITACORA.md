@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-09 (517) — PINGU-Claude (1275b — Delta Reign sin ids de Cardmarket)
+
+**Hecho**: PINGU pulsó el botón y se paró en «Emparejar: TCGGO devuelve las
+cartas sin cardmarket_id». Pegó la respuesta: las 141 cartas traen precios de
+Cardmarket por idioma pero `cardmarket_id: null`, y la expansión dice 0 cartas.
+
+- El emparejador ya no se para entero: apunta el set «sin id» y sigue.
+- Los precios occidentales casan por el `tcggo_id` de la carta cuando falta
+  el id, como el japonés.
+- El botón cuenta las cartas si TCGGO dice 0, y solo corta la cadena por un
+  fallo nuestro o por el plan.
+
+La pasada programada también lo hace sola. SCHEMA 1275b.
+
+**Ficheros**: `netlify/functions/tcggo-emparejar.mjs`,
+`netlify/functions/tcggo-precios.mjs`, `admin/js/tcggo-set-ahora.js`,
+`admin/js/colecciones.js`, SCHEMA, CLAUDE.md. Rama pruebas: 1275 §9 con la
+respuesta real (`fixtures/tcggo-cards-dlr-1275.json`), y 588 al día (exigía el
+parón). 589 y 1274 en verde. Los rojos de antes (807, 808, 830, 945) siguen
+iguales.
+
+**Pendiente**: que PINGU vuelva a pulsar «Actualizar desde TCGGO» en Delta
+Reign. El botón «Ver en Cardmarket» de esas cartas no tiene id exacto
+mientras TCGGO no lo dé.
+
 ## 2026-11-09 (516) — PINGU-Claude (1275 — «Actualizar desde TCGGO» en un set)
 
 **Hecho**: PINGU pidió un botón en /admin → Colecciones que traiga de TCGGO

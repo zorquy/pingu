@@ -267,10 +267,20 @@ export async function procesar({
     if (!completo || !episodio) break
     if (episodio.id !== elegida.episodio.id) por = `${elegida.por}; «${elegida.episodio.nombre}» vacía → alternativa`
     if (suyas.length && !suyas.some((s) => s.cardmarket_id)) {
-      // Una respuesta sin un solo id no es «ninguna casa»: es que el
-      // campo no viene. Se para y se enseña, no se apunta como hecho.
-      parado = `TCGGO devuelve las cartas de «${episodio.nombre}» sin cardmarket_id: no se puede emparejar nada`
-      break
+      // Una respuesta sin un solo id no es «ninguna casa»: es que el campo
+      // no viene. Antes PARABA el emparejador entero, y Delta Reign (1275b)
+      // salió así —precios sí, `cardmarket_id: null` en todas—: era el set
+      // más nuevo, el primero de la lista, y no se emparejaba nada más. Se
+      // apunta como vacío (se vuelve a mirar cada `HORAS_ENTRE_VACIOS`,
+      // hasta que TCGGO ponga los ids) y se sigue con los demás; mientras,
+      // los precios casan por el `tcggo_id` de las cartas.
+      const fila = { set: set.id, nombre: set.name, codigo: set.tcg_online_code || null, episodio: episodio.id, episodioNombre: episodio.nombre, por, suyas: suyas.length, pares: 0, sinCm: true }
+      estado.hechos[set.id] = { episodio: episodio.id, pares: 0, sinPar: 0, sinCm: true, vacio: true, vecesVacio: (Number(estado.hechos[set.id]?.vecesVacio) || 0) + 1, fecha: ahora.toISOString() }
+      delete estado.sinEpisodio[set.id]
+      esteTurno.push(fila)
+      tocados.add(set.id)
+      await persistir()
+      continue
     }
     let cartas
     try {

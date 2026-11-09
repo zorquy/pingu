@@ -29,6 +29,7 @@ export function textoDePaso(paso, r) {
     if (!t) return 'No se ha tocado (sin tiempo o sin peticiones).'
     if (t.sinEpisodio) return `No se encuentra su expansión en TCGGO (${t.sinEpisodio}).`
     if (t.SOSPECHOSO) return `Sospechoso, no se escribe: ${t.SOSPECHOSO}.`
+    if (t.sinCm) return `Es «${t.episodioNombre}» (TCGGO ${t.episodio}), pero TCGGO aún no da el id de Cardmarket de sus ${n(t.suyas)} cartas: los precios se casan por su id de TCGGO, y se vuelve a mirar sola.`
     return `Es «${t.episodioNombre}» (TCGGO ${t.episodio}): ${n(t.pares)} de ${n(t.nuestras)} cartas casadas${t.escritas ? `, ${n(t.escritas)} con su id de Cardmarket nuevo` : ''}${t.suyas ? '' : '; TCGGO aún no da sus cartas'}.`
   }
   if (paso === 'cartas') {
@@ -43,7 +44,7 @@ export function textoDePaso(paso, r) {
     const f = r.filaDelSet
     const partes = [h ? `${n(h.escritas)} precios escritos (${n(h.nuestras)} de nuestras cartas, de ${n(h.suyas)} suyas).` : 'Precios: sin cambios.']
     if (f?.error) partes.push(`La fila del set no se ha podido escribir: ${f.error}.`)
-    else if (f) partes.push(`El set: ${n(f.cartas)} cartas${f.impresas ? ` (${n(f.impresas)} impresas)` : ''}${f.fecha ? `, sale el ${f.fecha}` : ''}${euros(f.valorCm) ? `, vale ${euros(f.valorCm)}` : ''}${f.logo ? ', con logo' : ''}.`)
+    else if (f) partes.push(`El set: ${n(f.cartas)} cartas${f.contadas ? ' (contadas aquí: TCGGO aún dice 0)' : ''}${f.impresas ? ` (${n(f.impresas)} impresas)` : ''}${f.fecha ? `, sale el ${f.fecha}` : ''}${euros(f.valorCm) ? `, vale ${euros(f.valorCm)}` : ''}${f.logo ? ', con logo' : ''}.`)
     return partes.join(' ')
   }
   const web = r.web?.ok ? ' La web ya lo enseña.' : ' La web puede tardar hasta diez minutos en enseñarlo.'
@@ -51,8 +52,11 @@ export function textoDePaso(paso, r) {
 }
 
 // Los cuatro pasos en orden. `alPaso(paso, r, intento)` se llama con cada
-// respuesta; un fallo de NUESTRA base para (seguir sería escribir encima de
-// algo roto), uno de TCGGO también (`parado`), y lo demás sigue.
+// respuesta. Un fallo de NUESTRA base para (seguir sería escribir encima de
+// algo roto), y uno del PLAN de TCGGO también (sin peticiones no hay nada que
+// hacer); un `parado` de un paso por otra cosa (1275b: el emparejador sin ids
+// de Cardmarket) no impide los demás.
+export const paraLaCadena = (r) => r?.ok === false || /RapidAPI|plan|tope diario/i.test(String(r?.parado || ''))
 export async function actualizarSetDesdeTcggo({ set, mercado, token, fetchImpl = fetch, alPaso = () => {} }) {
   const resultados = {}
   for (const { paso } of PASOS_TCGGO) {
@@ -72,7 +76,7 @@ export async function actualizarSetDesdeTcggo({ set, mercado, token, fetchImpl =
       if (!(r?.ok && r.sigue)) break
     }
     resultados[paso] = r
-    if (r?.ok === false || r?.parado) break
+    if (paraLaCadena(r)) break
   }
   return resultados
 }

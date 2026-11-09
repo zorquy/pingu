@@ -55273,6 +55273,45 @@ mutaciones, cazadas: quitar el «solo» de precios, el destino del set pulsado
 y devolver la `enCurso` ajena. 1274 en verde. 807, 808, 830, 945 y los que no
 arrancan (657, 827, 929, 935, 937, 987) dan lo mismo con y sin la tanda.
 
+### 1275b — Delta Reign sin ids de Cardmarket
+
+PINGU pulsó el botón y el primer renglón dijo «Parado: TCGGO devuelve las
+cartas de «Delta Reign» sin cardmarket_id». Luego pegó la respuesta. Las 141
+cartas llegan así:
+
+- `cardmarket_id: null` y `tcgid: null`;
+- precios de Cardmarket por idioma, que son de verdad (TCGGO enlaza la carta
+  por dentro, `links.cardmarket` → `tcggo.com/external/cm/<id>`);
+- su expansión con `cards_total: 0`.
+
+Toda la cadena occidental casaba por ese id que falta. Tres cambios:
+
+- **Emparejador.** Ya no PARA entero: era el set más nuevo, el primero de la
+  lista, y con él la pasada de cada hora no emparejaba nada. El set queda
+  `sinCm: true, vacio: true, pares: 0`, se vuelve a mirar cada
+  `HORAS_ENTRE_VACIOS` hasta que TCGGO ponga los ids, y se sigue con los
+  demás.
+- **Precios.** En el occidental, las cartas suyas SIN id de Cardmarket casan
+  por el `tcggo_id` de las nuestras, como el japonés de la 830. Las nuestras
+  las escribió el catálogo como `tcggo-<id>` con su `tcggo_id`. No se
+  corrige nada de la fila de la carta (eso sigue siendo solo del japonés),
+  ni se inventa un `cm_id_product`. Solo es un tropiezo («sin id, se salta y
+  se reintenta», la 589) si no se ha escrito NINGÚN precio. Así, la pasada
+  programada también pone sus precios: el set entra por su fila (1274),
+  porque el emparejador lo dejó con cero pares.
+- **Fila del set.** Con «Actualizar desde TCGGO», si la expansión dice 0
+  cartas, se cuentan las que han llegado, por número. El panel lo dice:
+  «contadas aquí: TCGGO aún dice 0».
+
+Y la cadena del panel solo se corta por un fallo nuestro o por el plan o el
+tope de TCGGO (`paraLaCadena`). Un «parado» de un paso por otra cosa no
+impide los demás.
+
+Pruebas: `test-tanda-1275.mjs` §9, con dos cartas de la respuesta REAL
+(`pruebas/fixtures/tcggo-cards-dlr-1275.json`). La 588 se pone al día:
+exigía que el emparejador se parase. Rigor a mano: deshacer el emparejador o
+quitar el casado por `tcggo_id` da 3 fallos cada uno. 589 y 1274 en verde.
+
 ## Tanda 1274 — Una expansión que sale después de crear su set coge sus precios
 
 PINGU: «ha salido Delta Reign… pone que hay cero cartas, se pueden ver las

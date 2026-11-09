@@ -28,7 +28,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes, filaDeLaCarta, sinSetsRepetidos, sinVersionesRepetidas, preciosDeEdiciones,
+  cabeceras, baseDe, baseJpDe, urlEpisodios, esCartaSuelta, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes, filaDeLaCarta, sinSetsRepetidos, sinVersionesRepetidas, preciosDeEdiciones,
 } from '../lib/tcggo.mjs'
 import { numeroComparable } from '../lib/scrydex.mjs'
 import { setsHermanos } from '../../js/catalogo-series.js'
@@ -413,6 +413,9 @@ export async function procesar({
   // La que estaba a medias de la pasada de siempre se deja como estaba.
   const enCursoAjeno = solo && estado.enCurso && !(estado.enCurso.mercado === solo.mercado && estado.enCurso.episodio === solo.id) ? estado.enCurso : null
   let episodioFresco = null
+  // Sus cartas, contadas por número (1275b): Delta Reign trae
+  // `cards_total: 0` en su expansión aunque tenga sus 141 cartas.
+  const numerosVistos = new Set()
   const comoCarta = (e) => ({ id: e.id, image: e.foto ? 'x' : '', attacks: e.juego ? [1] : [] })
   for (const { mercado, pendientes: lista0, mapa, hechos } of tandas) {
     const enCursoAqui = estado.enCurso?.mercado === mercado ? estado.enCurso.episodio : null
@@ -468,6 +471,13 @@ export async function procesar({
       // son los de nuestro emparejamiento (587).
       const porTcggo = new Map()
       if (mercado === 'JP') for (const s of pagina) if (Number.isInteger(Number(s.id)) && Number(s.id) > 0) porTcggo.set(Number(s.id), s)
+      // Y EN EL OCCIDENTAL RECIÉN SALIDO (1275b). Delta Reign llegó con
+      // precios y SIN `cardmarket_id` en ninguna carta (PINGU pegó la
+      // respuesta): las nuestras las escribió el catálogo con su `tcggo_id`,
+      // así que se casan por él, como el japonés. Solo las que vienen sin id:
+      // las demás siguen casando por el del emparejador (587).
+      if (mercado !== 'JP') for (const s of pagina) if (!(Number(s.cardmarket_id) > 0) && Number.isInteger(Number(s.id)) && Number(s.id) > 0) porTcggo.set(Number(s.id), s)
+      if (solo) for (const s of pagina) if (Number(s?.episode?.id) === idEpisodio && esCartaSuelta(s)) numerosVistos.add(numeroComparable(s.card_number) || `t${s.id}`)
       if ((ahoraVan.size || porTcggo.size) && sets.length) {
         let cartas
         const enSets = `set_id=in.(${sets.map((x) => `"${encodeURIComponent(x)}"`).join(',')})`
@@ -475,7 +485,9 @@ export async function procesar({
         try {
           cartas = (await pedir(mercado === 'JP'
             ? `tcg_cards?select=id,set_id,local_id,name,cm_id_product_propio,tcggo_id&market=eq.JP&${enSets}&or=(${porProducto},tcggo_id.in.(${[...porTcggo.keys()].join(',') || '0'}))&limit=1000`
-            : `tcg_cards?select=id,set_id,cm_id_product_propio&market=eq.${mercado}&${enSets}&cm_id_product_propio=in.(${[...ahoraVan.keys()].join(',')})&limit=1000`)) || []
+            : porTcggo.size
+              ? `tcg_cards?select=id,set_id,cm_id_product_propio,tcggo_id&market=eq.${mercado}&${enSets}&or=(${porProducto},tcggo_id.in.(${[...porTcggo.keys()].join(',')}))&limit=1000`
+              : `tcg_cards?select=id,set_id,cm_id_product_propio&market=eq.${mercado}&${enSets}&cm_id_product_propio=in.(${[...ahoraVan.keys()].join(',')})&limit=1000`)) || []
         } catch (e) {
           fallo = `nuestra base: ${String(e?.message || e).slice(0, 160)}`
           break
@@ -568,7 +580,7 @@ export async function procesar({
           if (suya) {
             const bueno = Number(suya.cardmarket_id)
             const conCm = Number.isInteger(bueno) && bueno > 0
-            if ((conCm && Number(c.cm_id_product_propio) !== bueno) || c.mover || c.adoptar) {
+            if (mercado === 'JP' && ((conCm && Number(c.cm_id_product_propio) !== bueno) || c.mover || c.adoptar)) {
               // Sin id de Cardmarket de TCGGO (832) no se toca el nuestro:
               // esas filas van sin sus tres columnas (y en su propio lote).
               corregir.push({ id: c.id, market: mercado, set_id: c.mover || c.set_id, local_id: c.local_id, name: c.name, tcggo_id: Number(c.tcggo_id), ...(conCm ? { cm_id_product_propio: bueno, cm_por: 'tcggo', cm_emparejado_at: ahora.toISOString() } : {}) })
@@ -673,7 +685,9 @@ export async function procesar({
     // siguiente y a la tercera vez del día se da por hecha (`sinCm`). Antes
     // paraba la pasada entera, y con la 526 y la 610 delante, las de detrás
     // esperaban quince minutos por cada una.
-    if (enCurso.suyas && !elegidas.length) {
+    // Si se casaron por su `tcggo_id` (1275b) y se escribió algo, no es un
+    // tropiezo: es una expansión que aún no tiene ids de Cardmarket.
+    if (enCurso.suyas && !elegidas.length && !enCurso.escritas) {
       const clave = `${mercado}:${idEpisodio}`
       const veces = (estado.sinCmIntentos?.dia === dia ? Number(estado.sinCmIntentos[clave]) || 0 : 0) + 1
       estado.sinCmIntentos = { ...(estado.sinCmIntentos?.dia === dia ? estado.sinCmIntentos : { dia }), [clave]: veces }
@@ -706,10 +720,12 @@ export async function procesar({
     if (!estado.enCurso && enCursoAjeno) estado.enCurso = enCursoAjeno
     if (episodioFresco) {
       const mapa = solo.mercado === 'JP' ? setsPorEpisodioJp : setsPorEpisodio
+      const terminadaYa = hechasAhora.some((h) => h.episodio === solo.id)
+      if (!(episodioFresco.cartas > 0) && terminadaYa && numerosVistos.size) episodioFresco = { ...episodioFresco, cartas: numerosVistos.size, contadas: true }
       const filas = (mapa.get(solo.id) || []).map((setId) => filaDeSetTcggo(setId, episodioFresco))
       try {
         if (filas.length) setsApuntados = Number(await guardarSets(solo.mercado === 'JP' ? sinSetsRepetidos(filas) : sinSetsRepetidos(filas, hechosPares), solo.mercado)) || 0
-        filaDelSet = { cartas: episodioFresco.cartas, impresas: episodioFresco.impresas, fecha: episodioFresco.fecha, logo: Boolean(episodioFresco.logo), valorCm: episodioFresco.valorCm, escritos: setsApuntados }
+        filaDelSet = { contadas: Boolean(episodioFresco.contadas), cartas: episodioFresco.cartas, impresas: episodioFresco.impresas, fecha: episodioFresco.fecha, logo: Boolean(episodioFresco.logo), valorCm: episodioFresco.valorCm, escritos: setsApuntados }
       } catch (e) {
         filaDelSet = { error: String(e?.message || e).slice(0, 200) }
       }

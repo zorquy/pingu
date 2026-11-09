@@ -2059,6 +2059,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   precios, `soloExpansion` en productos), paso a paso por `tcggo-set-ahora`. Lo
   nuevo que haya que traer de un set va como un paso más ahí (`PASOS`), no en
   otro botón.
+  Y una expansión occidental que TCGGO da SIN `cardmarket_id` (Delta Reign,
+  1275b: precios sí, ids no) no para el emparejador: se apunta `sinCm` y los
+  precios casan por el `tcggo_id` de nuestras cartas, como el japonés. Nunca
+  se inventa un id de Cardmarket para ella.
 - **Los textos de los correos los cambia el equipo** (tanda 1122,
   `correo_textos`): asunto como plantilla con `{asunto}`, texto de arriba,
   botón y pie, por tipo. Lo que pinte un correo pasa por `renderFilaDeCola` /

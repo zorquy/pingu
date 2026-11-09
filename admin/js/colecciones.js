@@ -920,7 +920,7 @@ function abrirEditor(id) {
     const boton = e.currentTarget
     const lista = $('colTcggoRes')
     boton.disabled = true
-    const { PASOS_TCGGO, textoDePaso, actualizarSetDesdeTcggo } = await import('./tcggo-set-ahora.js')
+    const { PASOS_TCGGO, textoDePaso, actualizarSetDesdeTcggo, paraLaCadena } = await import('./tcggo-set-ahora.js')
     lista.hidden = false
     lista.innerHTML = PASOS_TCGGO.map((p) => `<li data-paso="${p.paso}"><b>${escapeHtml(p.rotulo)}:</b> <span>esperando…</span></li>`).join('')
     const renglon = (paso) => lista.querySelector(`[data-paso="${paso}"] span`)
@@ -934,7 +934,7 @@ function abrirEditor(id) {
           if (renglon(paso)) renglon(paso).textContent = sigue ? `a medias, sigue (vuelta ${intento + 1})…` : textoDePaso(paso, r)
           const i = PASOS_TCGGO.findIndex((p) => p.paso === paso)
           const siguiente = PASOS_TCGGO[i + 1]
-          if (!sigue && siguiente && r?.ok !== false && !r?.parado && renglon(siguiente.paso)) renglon(siguiente.paso).textContent = 'pidiendo a TCGGO…'
+          if (!sigue && siguiente && !paraLaCadena(r) && renglon(siguiente.paso)) renglon(siguiente.paso).textContent = 'pidiendo a TCGGO…'
         },
       })
       for (const { paso } of PASOS_TCGGO) if (!hecho[paso] && renglon(paso)?.textContent === 'esperando…') renglon(paso).textContent = 'no se ha hecho.'
