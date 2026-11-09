@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-09 (520) — PINGU-Claude (los pushes se juntan)
+
+**Hecho**: norma nueva en CLAUDE.md, «Los pushes se JUNTAN». PINGU enseñó
+el consumo de Netlify: 4.910 créditos en el periodo, 3.240 de ellos en 216
+despliegues a 15 cada uno, con un plan de 1.000 y paquetes extra. Desde
+ahora cada tanda va en su commit, pero se sube junta con las demás: cuando
+PINGU lo pida, unas dos veces al día como mucho y siempre antes de acabar
+la sesión. Lo urgente (algo roto, datos, seguridad) se sube al momento. El
+punto 2 de la bitácora ahora habla de cada commit, no de cada push.
+**IBAI: esto vale también para tu sesión.** Este push va solo para que
+veas la norma ya.
+
+**Ficheros**: CLAUDE.md, BITACORA.md.
+
+**Pendiente**: nada.
+
 ## 2026-11-09 (519) — PINGU-Claude (1277 — el lote sin desglosar y el % libre)
 
 **Hecho**: PINGU eligió la opción A de la propuesta del cambio rápido y pidió

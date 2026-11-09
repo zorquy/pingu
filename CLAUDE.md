@@ -10,10 +10,12 @@ sitio:
 1. **Antes de tocar nada**: `git pull` y lee `BITACORA.md` — la entrada
    de arriba es lo último que hizo el otro. Ahí está qué ficheros tocó
    y qué dejó a medias.
-2. **Antes de cada push**: añade TU entrada ARRIBA de la bitácora con
-   el formato que ya verás dentro (fecha, quién, qué, ficheros, qué
-   queda pendiente). Un push sin entrada en la bitácora es un push a
-   ciegas para el otro.
+2. **En cada commit de una tanda**: añade TU entrada ARRIBA de la
+   bitácora con el formato que ya verás dentro (fecha, quién, qué,
+   ficheros, qué queda pendiente). Los pushes van JUNTOS (ver «Los pushes
+   se juntan», abajo), así que un push lleva las entradas de todas sus
+   tandas. Un push sin entrada en la bitácora es un push a ciegas para el
+   otro.
 3. **Si vas a tocar un fichero que la última entrada del otro marca
    como «en curso»**, no lo toques: pregunta a tu humano primero.
 
@@ -52,6 +54,32 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   DIRECTAMENTE a producción. Cada push sale en vivo en minutos: no
   subas nada roto. Las funciones de servidor van en `netlify/functions/`
   (patrón inyectable, mira las que hay).
+- **Los pushes se JUNTAN** (PINGU, 2026-11-09, con la factura delante):
+  cada despliegue a producción cuesta 15 créditos de Netlify, y en un
+  periodo se fueron 3.240 de 4.910 en 216 despliegues (el plan trae 3.000 y
+  lo que pasa se paga aparte). Además, tras cada despliegue la web guardada
+  en el móvil de cada visitante vuelve a preguntar por sus ficheros, y eso
+  suma peticiones. Así que:
+  - Cada tanda va en su COMMIT (con su entrada de bitácora, SCHEMA y
+    novedades), pero no se sube sola: se sube junto con las demás.
+  - Se sube en estos casos: cuando PINGU lo pide («sube», «quiero
+    probarlo»); como mucho unas DOS veces al día, juntando lo pendiente;
+    y siempre antes de acabar una sesión, que el contenedor se recicla
+    tras un rato sin uso y se lleva los commits sin subir.
+  - Un ARREGLO URGENTE (algo roto en producción, datos que se pierden, un
+    agujero de seguridad) se sube al momento, solo o con lo pendiente si
+    eso ya está probado.
+  - Una tanda con migración se sube cuando PINGU la vaya a ejecutar: la
+    web no puede pedir una columna antes que su migración (la 624).
+  - La rama `pruebas` no la despliega Netlify: subirla no cuesta nada y
+    se sube cuando se quiera.
+  - Antes del push, lo de siempre: `git fetch` y PARAR si el otro subió
+    algo. Con varios commits esperando es más probable: se hace
+    `git pull --rebase`, se deja la bitácora con lo más nuevo arriba, se
+    vuelve a pasar `test-imports.mjs` y `comprobar-arbol.sh`, y entonces
+    se sube.
+  - Al acabar una tanda que no se sube aún, se le dice a PINGU que está
+    lista y que sale en el próximo push, y qué queda pendiente de subir.
 - **Presupuesto de peso**: la portada (index.html + su grafo de JS +
   CSS) debe caber en 170 KB gzip. **A 2026-10-14 (835) van 149,2 y quedan
   20,8** (la 835 metió 1,3 con los logros de los retos en `gamification.js`; a la 796 eran 147,9; de la 786 a la 796, 1,9 más; a la 785 eran 146,0: la 784 metió la píldora y los efectos, la 785 el escaparate; la 782 puso la cabecera común; la 781 metió el «Ver todo» y el vacío con abanico); la 780 mudó a SCHEMA los comentarios largos de `style.css`,
