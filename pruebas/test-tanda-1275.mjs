@@ -12,6 +12,8 @@ import { CLAVE_ESTADO as CLAVE_PARES } from '/home/user/pingu/netlify/functions/
 import { actualizarSet, episodioDelSet, PASOS } from '/home/user/pingu/netlify/functions/tcggo-set-ahora.mjs'
 import { actualizarSetDesdeTcggo, textoDePaso, PASOS_TCGGO, REPETIR } from '/home/user/pingu/admin/js/tcggo-set-ahora.js'
 import { readFileSync } from 'node:fs'
+import { procesar as emparejar } from '/home/user/pingu/netlify/functions/tcggo-emparejar.mjs'
+import { paraLaCadena } from '/home/user/pingu/admin/js/tcggo-set-ahora.js'
 
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -231,6 +233,74 @@ console.log('── 8. El botón está en el editor del set ──')
   check('«Actualizar desde TCGGO» en el editor, con su lista de pasos', /id="colTcggoAhora">Actualizar desde TCGGO</.test(col) && /id="colTcggoRes"/.test(col))
   check('  …y entra por import() (no pesa al abrir Colecciones)', /import\('\.\/tcggo-set-ahora\.js'\)/.test(col) && !/from '\.\/tcggo-set-ahora\.js'/.test(col))
   check('  …y avisa a la web al acabar', /colTcggoAhora[\s\S]{0,2500}avisarALaWeb\(\)/.test(col))
+}
+
+console.log('── 9. La respuesta REAL de Delta Reign: precios, sin ids de Cardmarket (1275b) ──')
+{
+  // Pegada por PINGU (dos de sus cartas, tal cual): `cardmarket_id: null` en
+  // todas, `cards_total: 0` en su expansión, y precios por idioma.
+  const REAL = JSON.parse(readFileSync('/tmp/wt-pruebas/pruebas/fixtures/tcggo-cards-dlr-1275.json', 'utf8'))
+  const real = async (url) => ({ ok: true, status: 200, text: async () => JSON.stringify(Number(new URL(url).searchParams.get('episode_id')) === 437 ? REAL : { data: [], paging: { current: 1, total: 1 } }) })
+  // a) El emparejador ya no se para entero: apunta el set y sigue con el siguiente.
+  const estadosE = { [CLAVE_PARES]: { episodios: { fecha: AHORA.toISOString(), lista: [{ id: 437, nombre: 'Delta Reign', codigo: 'DLR', cartas: 0, fecha: '2026-11-06' }, { id: 415, nombre: 'Pitch Black', codigo: 'PBL', cartas: 120, fecha: '2026-07-17' }] }, hechos: {}, sinEpisodio: {} } }
+  const urlsE = []
+  const re = await emparejar({
+    env: ENV, ahora: AHORA, pausa: sinPausa,
+    fetchImpl: async (url) => { urlsE.push(url); const ep = Number(new URL(url).searchParams.get('episode_id')); return ep === 437 ? real(url) : respuesta(ep === 415 ? SUYAS_PBL : []) },
+    restImpl: async (ruta) => {
+      if (ruta.startsWith('tcg_sets?')) return [{ id: 'me3', name: 'Delta Reign', tcg_online_code: 'DLR', release_date: '2026-11-06' }, { id: 'me05', name: 'Pitch Black', tcg_online_code: 'PBL', release_date: '2026-07-17' }]
+      if (/set_id=eq\.me05/.test(ruta)) return [{ id: 'me05-1', local_id: '1', cm_id_product_propio: null }]
+      if (/set_id=eq\./.test(ruta)) return []
+      return []
+    },
+    guardarImpl: async (f) => f.length,
+    estadoImpl: async () => estadosE[CLAVE_PARES], guardarEstadoImpl: async (k, v) => { estadosE[k] = copia(v) },
+  })
+  const c = re.cuerpo || {}
+  const dlr = (c.esteTurno || []).find((x) => x.set === 'me3')
+  check('el emparejador no se para: Delta Reign queda «sin id de Cardmarket» y sigue con Pitch Black', !c.parado && dlr?.sinCm === true && (c.esteTurno || []).some((x) => x.set === 'me05' && x.pares === 1), JSON.stringify({ parado: c.parado, turno: c.esteTurno }))
+  check('  …y se volverá a mirar (vacío, cero pares)', estadosE[CLAVE_PARES].hechos.me3?.vacio === true && estadosE[CLAVE_PARES].hechos.me3?.pares === 0 && estadosE[CLAVE_PARES].hechos.me3?.episodio === 437)
+  check('  …y el panel lo dice', /aún no da el id de Cardmarket de sus 2 cartas/.test(textoDePaso('emparejar', { ok: true, turno: dlr })))
+  // b) Los precios casan por el `tcggo_id` de nuestras cartas.
+  const estados = { [CLAVE_PARES]: { episodios: { fecha: AHORA.toISOString(), lista: LISTA }, hechos: { me3: { episodio: 437, pares: 0, vacio: true, sinCm: true }, me05: { episodio: 415, pares: 20 } } }, tcggo_catalogo: {}, [CLAVE_PRECIOS]: {} }
+  const escritas = []
+  const sets = []
+  const rutas = []
+  const r = await precios({
+    env: ENV, ahora: AHORA, pausa: sinPausa, fetchImpl: real,
+    soloEpisodio: { mercado: 'WEST', id: 437, set: 'me3', nombre: 'Delta Reign' },
+    restImpl: async (ruta) => {
+      rutas.push(ruta)
+      if (/^tcg_sets\?/.test(ruta)) return [{ id: 'me3', tcggo_id: 437 }]
+      if (/tcggo_id\.in\.\(81852,81871\)/.test(ruta)) return [{ id: 'tcggo-81852', set_id: 'me3', cm_id_product_propio: null, tcggo_id: 81852 }, { id: 'tcggo-81871', set_id: 'me3', cm_id_product_propio: null, tcggo_id: 81871 }]
+      return []
+    },
+    guardarImpl: async (f) => { escritas.push(...f) },
+    guardarSetsImpl: async (f) => { sets.push(...f); return f.length },
+    guardarVersionesImpl: async () => {}, fotoImpl: async () => {},
+    estadoImpl: async (k) => estados[k], guardarEstadoImpl: async (k, v) => { estados[k] = copia(v) },
+  })
+  const groudon = escritas.find((f) => f.card_id === 'tcggo-81871')
+  check('Groudon 111 tiene sus precios por idioma (16 € en español, 25,50 € en francés)', groudon?.cm_low_es === 16 && groudon?.cm_low_fr === 25.5 && groudon?.cm_low_it === 12.5, JSON.stringify(groudon))
+  check('  …y Emcee\'s Hype también', escritas.some((f) => f.card_id === 'tcggo-81852' && f.cm_low_es === 0.02))
+  check('  …sin inventarse un id de Cardmarket', !('cm_id_product' in (groudon || {})))
+  check('  …buscando nuestras cartas por su id de TCGGO', rutas.some((x) => /or=\(cm_id_product_propio\.in\.\(0\),tcggo_id\.in\.\(81852,81871\)\)/.test(x)), rutas.filter((x) => /tcg_cards/.test(x)).join(' | '))
+  const fila = sets.find((x) => x.id === 'me3')
+  check('  …y el set, con sus cartas CONTADAS (TCGGO dice 0), su logo y su valor', fila?.cartas === 2 && /deltareignlogo/.test(fila?.logo || '') && fila?.valor_cm === 871.62 && r.solo?.filaDelSet?.contadas === true, JSON.stringify(fila))
+  check('  …y el panel lo cuenta', /2 cartas \(contadas aquí: TCGGO aún dice 0\)/.test(textoDePaso('precios', { ok: true, hecha: { escritas: 2, nuestras: 2, suyas: 2 }, filaDelSet: r.solo.filaDelSet })))
+  // c) En el occidental, una carta CON id de Cardmarket sigue casando por él.
+  const conCm = await precios({
+    env: ENV, ahora: AHORA, pausa: sinPausa, fetchImpl: tcggo([]),
+    soloEpisodio: { mercado: 'WEST', id: 437, set: 'dlr', nombre: 'Delta Reign' },
+    restImpl: async (ruta) => (/^tcg_sets\?/.test(ruta) ? [] : /cm_id_product_propio=in\.\(900001,900002\)/.test(ruta) && !/tcggo_id/.test(ruta) ? [{ id: 'tcggo-60001', set_id: 'dlr', cm_id_product_propio: 900001 }] : []),
+    guardarImpl: async (f) => { escritas.push(...f.map((x) => ({ ...x, conCm: true }))) },
+    guardarSetsImpl: async (f) => f.length, guardarVersionesImpl: async () => {}, fotoImpl: async () => {},
+    estadoImpl: async (k) => ({ ...estados, [CLAVE_PRECIOS]: {} })[k], guardarEstadoImpl: async () => {},
+  })
+  check('  …y con id de Cardmarket, la consulta de siempre', escritas.some((f) => f.conCm && f.card_id === 'tcggo-60001') && conCm.ok !== false)
+  // d) Un paso parado por otra cosa no corta la cadena; el plan, sí.
+  check('la cadena sigue tras un «parado» que no es del plan', !paraLaCadena({ ok: true, parado: 'TCGGO devuelve las cartas sin cardmarket_id' }))
+  check('  …y se corta por el plan, el tope o un fallo nuestro', paraLaCadena({ ok: true, parado: 'RapidAPI 429: el plan no da más por ahora' }) && paraLaCadena({ ok: true, parado: 'tope diario: hoy ya van 95 peticiones de 95' }) && paraLaCadena({ ok: false }))
 }
 
 console.log(fails ? `\n${fails} FALLOS` : '\nTodo verde')

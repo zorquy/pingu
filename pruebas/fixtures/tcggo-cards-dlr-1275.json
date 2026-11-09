@@ -1,0 +1,172 @@
+{
+    "data": [
+        {
+            "id": 81852,
+            "name": "Emcee's Hype",
+            "name_numbered": "Emcee's Hype 92",
+            "slug": "emcees-hype",
+            "card_code_number": "DLR 92",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 92,
+            "hp": null,
+            "rarity": "Common",
+            "supertype": null,
+            "tcgid": null,
+            "cardmarket_id": null,
+            "tcgplayer_id": 726548,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 0.03,
+                    "lowest_near_mint_EU_only": 0.02,
+                    "lowest_near_mint_DE": 0.02,
+                    "lowest_near_mint_DE_EU_only": 0.02,
+                    "lowest_near_mint_FR": 0.02,
+                    "lowest_near_mint_FR_EU_only": 0.02,
+                    "lowest_near_mint_ES": 0.02,
+                    "lowest_near_mint_ES_EU_only": 0.02,
+                    "lowest_near_mint_IT": 0.02,
+                    "lowest_near_mint_IT_EU_only": 0.02,
+                    "30d_average": 0.05,
+                    "7d_average": 0.05,
+                    "available_items": 1387,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": null
+                }
+            },
+            "episode": {
+                "id": 437,
+                "name": "Delta Reign",
+                "slug": "delta-reign",
+                "lang": "en",
+                "released_at": "2026-11-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/40198/deltareignlogo.png",
+                "symbol": null,
+                "code": "DLR",
+                "cards_total": 0,
+                "cards_printed_total": 0,
+                "prices": {
+                    "cardmarket": {
+                        "total": 871.62,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 0,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 17,
+                    "name": "Mega Evolution",
+                    "slug": "mega-evolution"
+                }
+            },
+            "artist": {
+                "id": 429,
+                "name": "DOM",
+                "slug": "dom"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/73975/emcees-hype-dlr-92-delta-reign.webp",
+            "tcggo_url": "https://www.tcggo.com/pokemon/delta-reign/emcees-hype-1",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/81852",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/81852"
+            }
+        },
+        {
+            "id": 81871,
+            "name": "Groudon",
+            "name_numbered": "Groudon 111",
+            "slug": "groudon",
+            "card_code_number": "DLR 111",
+            "type": "singles",
+            "lang": "en",
+            "card_number": 111,
+            "hp": null,
+            "rarity": "Illustration Rare",
+            "supertype": null,
+            "tcgid": null,
+            "cardmarket_id": null,
+            "tcgplayer_id": 726563,
+            "prices": {
+                "cardmarket": {
+                    "currency": "EUR",
+                    "lowest_near_mint": 14.82,
+                    "lowest_near_mint_EU_only": 16.99,
+                    "lowest_near_mint_DE": 14.99,
+                    "lowest_near_mint_DE_EU_only": 14.99,
+                    "lowest_near_mint_FR": 25.5,
+                    "lowest_near_mint_FR_EU_only": 25.5,
+                    "lowest_near_mint_ES": 16,
+                    "lowest_near_mint_ES_EU_only": 16,
+                    "lowest_near_mint_IT": 12.5,
+                    "lowest_near_mint_IT_EU_only": 12.5,
+                    "30d_average": 19.83,
+                    "7d_average": 19.83,
+                    "available_items": 204,
+                    "graded": []
+                },
+                "tcg_player": {
+                    "currency": "EUR",
+                    "market_price": null
+                }
+            },
+            "episode": {
+                "id": 437,
+                "name": "Delta Reign",
+                "slug": "delta-reign",
+                "lang": "en",
+                "released_at": "2026-11-06",
+                "logo": "https://images.tcggo.com/tcggo/storage/40198/deltareignlogo.png",
+                "symbol": null,
+                "code": "DLR",
+                "cards_total": 0,
+                "cards_printed_total": 0,
+                "prices": {
+                    "cardmarket": {
+                        "total": 871.62,
+                        "currency": "EUR"
+                    },
+                    "tcgplayer": {
+                        "total": 0,
+                        "currency": "EUR"
+                    }
+                },
+                "game": {
+                    "name": "Pokémon",
+                    "slug": "pokemon"
+                },
+                "series": {
+                    "id": 17,
+                    "name": "Mega Evolution",
+                    "slug": "mega-evolution"
+                }
+            },
+            "artist": {
+                "id": 486,
+                "name": "Ryota Murayama",
+                "slug": "ryota-murayama"
+            },
+            "image": "https://images.tcggo.com/tcggo/storage/73994/groudon-dlr-111-delta-reign.webp",
+            "tcggo_url": "https://www.tcggo.com/pokemon/delta-reign/groudon-19",
+            "links": {
+                "cardmarket": "https://www.tcggo.com/external/cm/81871",
+                "tcgplayer": "https://www.tcggo.com/external/tcgplayer/81871"
+            }
+        }
+    ],
+    "paging": {
+        "current": 1,
+        "total": 1,
+        "per_page": 100
+    },
+    "results": 2
+}

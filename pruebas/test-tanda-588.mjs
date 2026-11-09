@@ -327,7 +327,11 @@ console.log('── 6. Los frenos ──')
   const b5 = baseDeMentira()
   await procesar({ env: ENV, ...b5, fetchImpl: fetch5, pausa: sinPausa, ahora: AHORA, peticiones: 9 })
   const r5 = await procesar({ env: ENV, ...b5, fetchImpl: fetch5, pausa: sinPausa, ahora: AHORA, peticiones: 9 })
-  check('cartas sin cardmarket_id: se para diciéndolo y no se escribe nada', /sin cardmarket_id/.test(r5.cuerpo.parado) && b5.escrituras.length === 0 && !b5.estados[CLAVE_ESTADO].hechos.me05, JSON.stringify(r5.cuerpo.parado))
+  // Desde la 1275b NO para el emparejador entero (Delta Reign salió así y
+  // era el primero de la lista): el set queda «sin id» y vacío, para volver
+  // a mirarlo, y no se escribe nada.
+  const h5 = b5.estados[CLAVE_ESTADO].hechos.me05
+  check('cartas sin cardmarket_id: no se escribe nada de ese set, queda apuntado «sin id» y no para (los demás siguen)', !r5.cuerpo.parado && !b5.escrituras.some((e) => String(e.id).startsWith('me05')) && b5.escrituras.some((e) => String(e.id).startsWith('me04')) && h5?.sinCm === true && h5?.vacio === true && h5?.pares === 0, JSON.stringify([r5.cuerpo.parado, h5]))
   // Sin tiempo: para sin dar el set por hecho.
   let tic = 0
   const r6 = await procesar({ env: ENV, ...baseDeMentira(), fetchImpl: tcggoDeMentira().fetchImpl, pausa: sinPausa, ahora: AHORA, peticiones: 9, reloj: () => (tic++ > 3 ? 1e9 : 0) })
