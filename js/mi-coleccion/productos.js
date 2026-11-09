@@ -31,7 +31,8 @@ import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
 import { marcaCardmarket } from '../cardmarket-marca.js'
 import { banderaHtml } from '../precio-vista.js'
-import { TIPOS, OTRO, nombreDeTipo, tipoDeProducto, precioDeProducto, esPreventa, valorDeProductos, preciosPorIdioma, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto, idiomasDeProducto, nombreDeIdioma, precioDeProductoEnIdioma, cuentaDelPack, porUnidad, relacionConPvp } from '../productos.js'
+import { TIPOS, OTRO, nombreDeTipo, tipoDeProducto, precioDeProducto, esPreventa, valorDeProductos, preciosPorIdioma, enlaceCardmarketDeProducto, enlaceTcgplayerDeProducto, idiomasDeProducto, nombreDeIdioma, precioDeProductoEnIdioma, cuentaDelPack, porUnidad, relacionConPvp, pagadoDeLineas } from '../productos.js'
+import { dineroDe } from './importar-csv.js'
 import { nombreDeSet } from '../catalogo-series.js'
 import { misProductos, productosPorIds, buscarProductos } from '../productos-valor.js'
 import { esStockDeTienda } from './datos.js'
@@ -448,9 +449,9 @@ async function cargarSets() {
 // EN UNA TIENDA, LO SELLADO ES SU STOCK (1075): la misma pestaña apunta en
 // `tienda_stock` (estado «sellado»), con la forma de una línea de
 // `user_products` para que lo demás no cambie.
-const productoDeStock = (f) => ({ id: f.id, product_id: Number(f.product_id), idioma: f.idioma, cantidad: f.unidades })
+const productoDeStock = (f) => ({ id: f.id, product_id: Number(f.product_id), idioma: f.idioma, cantidad: f.unidades, pagado: f.coste ?? null })
 async function misProductosDeTienda(tiendaId) {
-  const { data, error } = await supabase.from('tienda_stock').select('id,product_id,idioma,unidades').eq('tienda_id', tiendaId).not('product_id', 'is', null).gt('unidades', 0)
+  const { data, error } = await supabase.from('tienda_stock').select('id,product_id,idioma,unidades,coste').eq('tienda_id', tiendaId).not('product_id', 'is', null).gt('unidades', 0)
   if (error) return null
   return (data || []).map(productoDeStock)
 }
@@ -464,8 +465,8 @@ async function cambiarEnStock(id, idioma, linea, nueva) {
   }
   const f = fichas.get(id)
   const r = linea
-    ? await tabla().update({ unidades: nueva }).eq('id', linea.id).select('id,product_id,idioma,unidades').single()
-    : await tabla().insert({ product_id: id, estado: 'sellado', variante: 'normal', idioma: idioma || f?.lang || 'en', market: f?.market === 'JP' ? 'JP' : 'WEST', unidades: nueva }).select('id,product_id,idioma,unidades').single()
+    ? await tabla().update({ unidades: nueva }).eq('id', linea.id).select('id,product_id,idioma,unidades,coste').single()
+    : await tabla().insert({ product_id: id, estado: 'sellado', variante: 'normal', idioma: idioma || f?.lang || 'en', market: f?.market === 'JP' ? 'JP' : 'WEST', unidades: nueva }).select('id,product_id,idioma,unidades,coste').single()
   if (r.error) throw r.error
   if (!r.data) throw new Error('No se ha podido guardar en tu stock.')
   mios = linea ? mios.map((m) => (m === linea ? productoDeStock(r.data) : m)) : [...mios, productoDeStock(r.data)]
@@ -630,8 +631,72 @@ function pintarMandoDeFicha(f) {
   sitio.innerHTML = mios === null
     ? ''
     : n
-      ? `<p class="mc-prodf-tienes">${n === 1 ? 'Lo tienes' : `Tienes ${n}`}</p><div class="mc-prodf-copias">${copias.map((m) => mandoDeLineaHtml(f, m, { conNombre: true })).join('')}</div>${idiomasDeProducto(f).length > 1 ? `<button type="button" class="mc-prod-anadir mc-prodf-otro" data-prod-anadir="${f.id}">+ En otro idioma</button>` : ''}`
+      ? `<p class="mc-prodf-tienes">${n === 1 ? 'Lo tienes' : `Tienes ${n}`}</p><div class="mc-prodf-copias">${copias.map((m) => `<div class="mc-prodf-linea">${mandoDeLineaHtml(f, m, { conNombre: true })}${pagadoDeLineaHtml(f, m)}</div>`).join('')}</div>${balanceDeFichaHtml(f, copias)}${idiomasDeProducto(f).length > 1 ? `<button type="button" class="mc-prod-anadir mc-prodf-otro" data-prod-anadir="${f.id}">+ En otro idioma</button>` : ''}`
       : mandoHtml(f, [])
+}
+
+// LO QUE PAGASTE, en cada línea de la ficha (1276, «que se pueda añadir el
+// valor pagado por el producto sellado»). Por unidad, como el de una carta;
+// en una tienda es el coste de esa línea de su stock. Se guarda al salir del
+// campo (`guardarPagado`).
+function pagadoDeLineaHtml(f, m) {
+  if (!m?.id) return ''
+  const idioma = m.idioma ? ` en ${nombreDeIdioma(m.idioma).toLowerCase()}` : ''
+  const valor = m.pagado == null ? '' : importeDeCampo(m.pagado)
+  return `<label class="mc-prodf-pagado"><span>${esStockDeTienda() ? 'Coste' : 'Pagaste'}</span><input type="text" inputmode="decimal" autocomplete="off" placeholder="€ / ud." value="${escapeHtml(valor)}" data-prod-pagado="${escapeHtml(String(m.id))}" data-prod="${f.id}" aria-label="${escapeHtml(`${esStockDeTienda() ? 'Coste' : 'Lo que pagaste'} por unidad de ${f.name}${idioma} (€)`)}" /></label>`
+}
+
+// Un importe como se escribe en el campo: «18,50», sin el símbolo ni puntos
+// de miles (lo lee `dineroDe` al guardar).
+const importeDeCampo = (n) => Number(n).toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: false })
+
+// Lo pagado en total y lo que valen hoy esas mismas unidades.
+function balanceDeFichaHtml(f, copias) {
+  const b = pagadoDeLineas(f, copias)
+  if (!b) return ''
+  const dif = b.vale == null ? null : Math.round((b.vale - b.pagado) * 100) / 100
+  const signo = dif == null ? '' : dif > 0 ? 'sube' : dif < 0 ? 'baja' : ''
+  return `<p class="mc-prodf-balance"><span>${esStockDeTienda() ? 'Coste' : 'Pagaste'} <b>${escapeHtml(euros(b.pagado))}</b></span>${b.vale != null ? `<span>Hoy vale <b>${escapeHtml(euros(b.vale))}</b></span>${dif ? `<span class="mc-prodf-dif ${signo}">${dif > 0 ? '+' : '−'}${escapeHtml(euros(Math.abs(dif)))}</span>` : ''}` : '<span>Sin precio de hoy para comparar</span>'}</p>`
+}
+
+// Guarda lo que pagaste en una línea: se pinta ya y, si la base dice que no,
+// vuelve a lo de antes con su aviso (896).
+async function guardarPagado(campo) {
+  const id = campo.dataset.prodPagado
+  const linea = (mios || []).find((m) => String(m.id) === id)
+  if (!linea || !ctx.sesion) return
+  const crudo = campo.value.trim()
+  const valor = crudo ? dineroDe(crudo) : null
+  const antes = linea.pagado ?? null
+  if (crudo && valor == null) {
+    campo.value = antes == null ? '' : importeDeCampo(antes)
+    return showToast('Escribe solo el importe, por ejemplo 89,95.', 'error')
+  }
+  if ((antes == null ? null : Number(antes)) === valor) return
+  linea.pagado = valor
+  const f = fichas.get(Number(campo.dataset.prod))
+  if (abiertoEnFicha === f?.id) pintarBalanceDeFicha(f)
+  const r = esStockDeTienda()
+    ? await supabase.from('tienda_stock').update({ coste: valor }).eq('id', linea.id)
+    : await supabase.from('user_products').update({ pagado: valor }).eq('id', linea.id).eq('user_id', ctx.sesion.user.id)
+  if (r.error) {
+    linea.pagado = antes
+    if (document.activeElement !== campo) campo.value = antes == null ? '' : importeDeCampo(antes)
+    if (abiertoEnFicha === f?.id) pintarBalanceDeFicha(f)
+    return showToast(r.error.message || 'No se ha podido guardar lo que pagaste.', 'error')
+  }
+  showToast(valor == null ? 'Quitado lo que pagaste.' : esStockDeTienda() ? 'Coste guardado.' : 'Guardado lo que pagaste.', 'success')
+}
+
+// Solo el balance: repintar el mando entero se llevaría el campo que estás
+// escribiendo.
+function pintarBalanceDeFicha(f) {
+  const sitio = $('mcProdFichaMando')
+  if (!sitio || !f) return
+  const nuevo = balanceDeFichaHtml(f, copiasDe(f.id))
+  const viejo = sitio.querySelector('.mc-prodf-balance')
+  if (viejo) viejo.outerHTML = nuevo || ''
+  else if (nuevo) sitio.querySelector('.mc-prodf-copias')?.insertAdjacentHTML('afterend', nuevo)
 }
 
 export function fichaDeProductoHtml(f, s = null) {
@@ -857,6 +922,14 @@ export async function abrir(contexto) {
       }
     })
     d?.addEventListener('close', () => { abiertoEnFicha = null })
+    // Lo que pagaste se guarda al salir del campo o con Intro (1276).
+    d?.addEventListener('change', (e) => {
+      const campo = e.target.closest('input[data-prod-pagado]')
+      if (campo) void guardarPagado(campo)
+    })
+    d?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && e.target.closest('input[data-prod-pagado]')) e.target.blur()
+    })
     // Al lado no es modal: Escape la cierra igual.
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && d?.open && d.classList.contains('mc-prodf-al-lado')) d.close()

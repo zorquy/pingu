@@ -202,6 +202,29 @@ export function precioDeProductoEnIdioma(f, idioma) {
   return precioDeProducto(f)
 }
 
+// LO QUE PAGASTE POR UN PRODUCTO (1276): `pagado` de `user_products` (o el
+// `coste` de una línea de stock en una tienda) es POR UNIDAD, como «Lo que
+// pagaste» de una carta. La suma solo cuenta las líneas que lo llevan, y lo
+// que valen HOY esas mismas líneas, en su idioma: comparar lo pagado de dos
+// cajas con lo que valen cinco diría que vas ganando sin ir. Sin ninguna
+// línea con lo pagado, null (no se sabe, no «cero»: la 319).
+export function pagadoDeLineas(f, lineas) {
+  const con = (lineas || []).filter((m) => m?.pagado != null && Number.isFinite(Number(m.pagado)) && Number(m.cantidad) > 0)
+  if (!con.length) return null
+  let pagado = 0
+  let vale = 0
+  let sinPrecio = 0
+  for (const m of con) {
+    const n = Number(m.cantidad)
+    pagado += Number(m.pagado) * n
+    const v = precioDeProductoEnIdioma(f, m.idioma || null)?.valor
+    if (v == null) sinPrecio += n
+    else vale += v * n
+  }
+  const r = (x) => Math.round(x * 100) / 100
+  return { pagado: r(pagado), vale: sinPrecio ? null : r(vale), unidades: con.reduce((t, m) => t + Number(m.cantidad), 0) }
+}
+
 // En preventa: sale después de hoy (la fecha de su expansión).
 export function esPreventa(f, hoy = new Date().toISOString().slice(0, 10)) {
   return Boolean(f?.release_date) && String(f.release_date) > hoy

@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-09 (518) — PINGU-Claude (1276 — lo pagado por un producto sellado)
+
+**Hecho**: en la ficha de un producto sellado, cada línea (idioma) tiene su
+campo «Pagaste» (por unidad), y debajo va lo pagado contra lo que vale hoy. En
+una tienda, el campo es el «Coste» de su línea de stock. Sin migración: las
+columnas ya existían (`user_products.pagado`, `tienda_stock.coste`). SCHEMA
+1276 y una línea en novedades.
+
+**Ficheros**: `js/mi-coleccion/productos.js`, `js/productos.js`
+(`pagadoDeLineas`), `css/mi-coleccion-productos.css`, SCHEMA, novedades. Rama
+pruebas: `test-tanda-1276-pantalla.mjs` (nueva). 969, 1026, 1075, 968 (pura) e
+imports en verde.
+
+**Pendiente**: lo sellado no suma en el balance de Estadísticas (sigue siendo
+de cartas). Si se pide, es otra tanda.
+
 ## 2026-11-09 (517) — PINGU-Claude (1275b — Delta Reign sin ids de Cardmarket)
 
 **Hecho**: PINGU pulsó el botón y se paró en «Emparejar: TCGGO devuelve las

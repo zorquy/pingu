@@ -55204,6 +55204,42 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1276 — Lo que pagaste por un producto sellado
+
+PINGU: «me han pedido que se pueda añadir el valor pagado por el producto
+sellado que tenemos». Hay dónde guardarlo desde la tanda de los productos:
+`user_products.pagado` (en `supabase-migration-productos.sql`). En una tienda
+es el `coste` de su línea de `tienda_stock`. Ninguna pantalla los usaba, así
+que no hace falta migración.
+
+- **En la ficha de un producto**, cada línea (idioma) lleva su campo:
+  «Pagaste» para una persona y «Coste» para una tienda
+  (`pagadoDeLineaHtml`). Es POR UNIDAD, como «Lo que pagaste» de una carta.
+  Se guarda al salir del campo o con Intro (`guardarPagado`). Se lee con
+  `dineroDe` (`importar-csv.js`: «18,50 €», «1.234,56»). Vacío lo quita, y
+  un texto que no es dinero no se guarda y avisa.
+- **Se pinta ya y se deshace si la base dice que no** (896). El valor del
+  campo es `importeDeCampo` («18,50»).
+- **Debajo, el balance** (`balanceDeFichaHtml` con `pagadoDeLineas`, en
+  `js/productos.js`): lo pagado en total y lo que valen HOY esas mismas
+  unidades en su idioma, con la diferencia en verde o rojo.
+  - Solo cuentan las líneas con lo pagado: comparar lo pagado de dos cajas
+    con lo que valen cinco diría que vas ganando sin ir.
+  - Sin ninguna línea con lo pagado, no hay balance (null, no «cero»: la
+    319). Un 0 sí es un valor (un regalo).
+  - Al escribir solo se repinta el balance (`pintarBalanceDeFicha`): repintar
+    el mando entero se llevaría el campo que estás escribiendo.
+- **En una tienda**, las tres lecturas de su stock en la pestaña Productos
+  piden `coste`, y `productoDeStock` lo pasa como `pagado`.
+
+**Lo que NO entra:** el balance de Estadísticas (`diapoDelBalance`) sigue
+siendo de cartas. Sumar ahí lo sellado es otra tanda, si se pide.
+
+Pruebas (rama `pruebas`): `test-tanda-1276-pantalla.mjs`. Cubre la cuenta
+pura, tu colección (guardar, «+» que lo conserva, texto malo, vaciar, fallo
+de la base que deshace), una tienda (`tienda_stock.coste`) y el móvil (44 px
+y letra de 16).
+
 ## Tanda 1275 — «Actualizar desde TCGGO» en el editor de un set
 
 PINGU, con Delta Reign recién salida y sin precios: «¿puedes desarrollar un

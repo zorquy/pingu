@@ -379,6 +379,73 @@
   margin-top: var(--e-xs);
 }
 
+/* 1276: lo que pagaste por cada línea y el balance (SCHEMA 1276). */
+.mc-prodf-linea {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs) var(--e-sm);
+}
+
+.mc-prodf-linea .mc-prod-mando {
+  flex: 1 1 200px;
+  min-width: 0;
+}
+
+.mc-prodf-pagado {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-prodf-pagado input {
+  width: 96px;
+  min-height: 36px;
+  padding: 0 var(--e-sm);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.mc-prodf-pagado input:focus {
+  outline: none;
+  box-shadow: var(--shadow-ring);
+}
+
+.mc-prodf-balance {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs) var(--e-md);
+  margin: var(--e-xs) 0 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.mc-prodf-balance b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-prodf-dif {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-prodf-dif.sube { color: var(--success); }
+.mc-prodf-dif.baja { color: var(--danger); }
+
+@media (pointer: coarse) {
+  .mc-prodf-pagado input {
+    min-height: 44px;
+  }
+}
+
 /* 1026: el PVP y «qué lleva dentro» / «viene en» en la ficha (SCHEMA 1026). */
 .mc-prod-pvp {
   padding: 0 var(--e-sm);
