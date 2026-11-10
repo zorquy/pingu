@@ -5,230 +5,312 @@
 <body style="background:#0b1219">
 <script type="module">
 // El carrusel de las tiendas en beta (PINGU, 2026-11-10: «una imagen o un
-// carrusel para subir a Instagram y a Twitter… está en beta, necesitamos
-// gente que lo pruebe»). Con EL MARCO de las redes (js/redes-marco.js, 1156)
-// y el verde azulado de las tiendas (--rango-tienda en oscuro, 1243).
+// carrusel… está en beta, necesitamos gente que lo pruebe»; y luego «¿puede
+// ser más visual?»). Con EL MARCO de las redes (js/redes-marco.js, 1156), el
+// verde azulado de las tiendas (--rango-tienda en oscuro, 1243) y piezas de
+// verdad: la etiqueta con el SKU de skuDe, el código de barras de
+// codigo-barras.js y QR de qr.js que se pueden escanear. Los Pokémon son el
+// dibujo oficial (PokeAPI, como js/arte-pokemon.js), en /carrusel-arte/.
 import { pintarMarco, prepararMarco, chapa, TITULAR, TEXTO } from '/js/redes-marco.js'
 import { redondeado } from '/js/imagen-compartir.js'
 import { icons } from '/js/icons.js'
+import { svgQR } from '/js/qr.js'
+import { dibujarCodigo } from '/js/codigo-barras.js'
+import { skuDe, enlaceDeSku } from '/js/tiendas-puro.js'
 
 const TEAL = '#3cc8c0'
 const OSCURO = '#0b1219'
+const APP = { fondo: '#0f1a24', caja: '#182430', borde: '#26394a', texto: '#e8f1f7', medio: '#9fb3bd', verde: '#2fb47c', rosa: '#f06c9b' }
 const ENLACE = 'pokedoc.es/para-tiendas'
 const TOTAL = 5
 
-const alfa = (hex, a) => {
-  const n = parseInt(hex.slice(1), 16)
-  return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`
-}
+const alfa = (hex, a) => { const n = parseInt(hex.slice(1), 16); return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})` }
+const cargar = async (src) => { const i = new Image(); i.src = src; await i.decode(); return i }
+const ARTE = {}
+for (const n of [6, 25, 94, 197, 151, 384, 448, 133, 249, 445]) ARTE[n] = await cargar(`/carrusel-arte/${n}.png`)
 async function icono(nombre, color, lado) {
-  const svg = icons[nombre](lado).replace(/currentColor/g, color)
-  const img = new Image()
-  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)
-  await img.decode()
-  return img
+  return cargar('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(icons[nombre](lado).replace(/currentColor/g, color)))
 }
-function lineas(ctx, texto, ancho) {
-  const out = []
-  let l = ''
-  for (const p of String(texto).split(' ')) {
-    const prueba = l ? `${l} ${p}` : p
-    if (l && ctx.measureText(prueba).width > ancho) { out.push(l); l = p } else l = prueba
-  }
-  if (l) out.push(l)
-  return out
+const qr = (texto, tam) => cargar('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgQR(texto, { tam })))
+
+function texto(ctx, t, x, y, { cuerpo = 24, peso = 600, color = APP.texto, fuente = TEXTO, alinear = 'left', base = 'alphabetic' } = {}) {
+  ctx.save(); ctx.font = `${peso} ${cuerpo}px ${fuente}`; ctx.fillStyle = color; ctx.textAlign = alinear; ctx.textBaseline = base
+  ctx.fillText(t, x, y); const w = ctx.measureText(t).width; ctx.restore(); return w
+}
+function pildora(ctx, t, { x, y, cuerpo, fondo, color, alinear = 'left', borde = null, peso = 700, fuente = TEXTO }) {
+  ctx.save(); ctx.font = `${peso} ${cuerpo}px ${fuente}`
+  const w = ctx.measureText(t).width + cuerpo * 1.3, h = cuerpo * 1.8
+  const x0 = alinear === 'center' ? x - w / 2 : alinear === 'right' ? x - w : x
+  ctx.fillStyle = fondo; redondeado(ctx, x0, y, w, h, h / 2); ctx.fill()
+  if (borde) { ctx.strokeStyle = borde; ctx.lineWidth = Math.max(2, cuerpo * 0.1); ctx.stroke() }
+  ctx.fillStyle = color; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x0 + w / 2, y + h / 2 + 1)
+  ctx.restore(); return w
 }
 
-// Una carta de mentira con su precio: borde dorado, arte en degradado y
-// rayas de texto. Sin fotos de nadie.
-function carta(ctx, { x, y, w, h, de, a, angulo = 0, precio = '', oferta = '' }) {
+// Una carta con el dibujo del Pokémon: marco dorado, ventana con su color,
+// nombre arriba y rayas de texto abajo. Con su precio en una píldora.
+function carta(ctx, { x, y, w, arte, de, a, nombre = '', precio = '', angulo = 0, oferta = '', sombra = true }) {
+  const h = w / 0.716
   ctx.save()
-  ctx.translate(x + w / 2, y + h / 2)
-  ctx.rotate((angulo * Math.PI) / 180)
+  ctx.translate(x + w / 2, y + h / 2); ctx.rotate((angulo * Math.PI) / 180)
+  const x0 = -w / 2, y0 = -h / 2, m = w * 0.055
+  if (sombra) { ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = w * 0.18; ctx.shadowOffsetY = w * 0.07 }
+  ctx.fillStyle = '#f5cd4f'; redondeado(ctx, x0, y0, w, h, w * 0.055); ctx.fill()
+  ctx.shadowColor = 'transparent'
+  const g = ctx.createLinearGradient(x0, y0, x0 + w, y0 + h); g.addColorStop(0, de); g.addColorStop(1, a)
+  ctx.fillStyle = g; redondeado(ctx, x0 + m, y0 + m, w - m * 2, h - m * 2, w * 0.03); ctx.fill()
+  // nombre
+  ctx.fillStyle = 'rgba(255,255,255,0.92)'; ctx.font = `800 ${w * 0.085}px ${TITULAR}`; ctx.textBaseline = 'alphabetic'
+  ctx.fillText(nombre, x0 + m * 1.8, y0 + m + w * 0.11)
+  // ventana del dibujo
+  const vx = x0 + m * 1.6, vy = y0 + h * 0.15, vw = w - m * 3.2, vh = h * 0.42
+  const v = ctx.createRadialGradient(vx + vw / 2, vy + vh / 2, 0, vx + vw / 2, vy + vh / 2, vw * 0.7)
+  v.addColorStop(0, 'rgba(255,255,255,0.85)'); v.addColorStop(1, alfa(de, 0.9))
+  ctx.fillStyle = v; redondeado(ctx, vx, vy, vw, vh, w * 0.02); ctx.fill()
+  ctx.save(); redondeado(ctx, vx, vy, vw, vh, w * 0.02); ctx.clip()
+  const lado = vh * 1.12; ctx.drawImage(arte, vx + vw / 2 - lado / 2, vy + vh / 2 - lado / 2 + vh * 0.05, lado, lado)
+  ctx.restore()
+  ctx.strokeStyle = '#f5cd4f'; ctx.lineWidth = Math.max(2, w * 0.012); redondeado(ctx, vx, vy, vw, vh, w * 0.02); ctx.stroke()
+  // rayas de ataque
+  ctx.fillStyle = 'rgba(255,255,255,0.55)'
+  for (let i = 0; i < 3; i++) { redondeado(ctx, x0 + m * 1.8, y0 + h * (0.64 + i * 0.075), (w - m * 3.6) * (i === 2 ? 0.55 : 1), h * 0.028, h * 0.014); ctx.fill() }
+  ctx.restore()
+  if (precio) pildora(ctx, precio, { x: x + w / 2, y: y + h - w * 0.1, cuerpo: Math.round(w * 0.105), fondo: OSCURO, color: '#ffffff', alinear: 'center', borde: TEAL, peso: 800, fuente: TITULAR })
+  if (oferta) pildora(ctx, oferta, { x: x + w / 2, y: y - w * 0.07, cuerpo: Math.round(w * 0.07), fondo: APP.rosa, color: '#ffffff', alinear: 'center', peso: 800 })
+  return h
+}
+const CARTAS = {
+  charizard: { arte: 6, nombre: 'Charizard ex', de: '#f38b3c', a: '#c8323e' },
+  pikachu: { arte: 25, nombre: 'Pikachu ex', de: '#f6d43c', a: '#e89a1a' },
+  gengar: { arte: 94, nombre: 'Gengar', de: '#8a63d2', a: '#3e2a7a' },
+  umbreon: { arte: 197, nombre: 'Umbreon ex', de: '#3b4a6b', a: '#121a2e' },
+  mew: { arte: 151, nombre: 'Mew ex', de: '#f6a6c8', a: '#c3609a' },
+  rayquaza: { arte: 384, nombre: 'Rayquaza', de: '#3fbf7f', a: '#16704a' },
+  lucario: { arte: 448, nombre: 'Lucario', de: '#5b8fd1', a: '#283f8a' },
+  eevee: { arte: 133, nombre: 'Eevee', de: '#d9a46a', a: '#9a6233' },
+}
+const c = (k, o) => ({ ...CARTAS[k], arte: ARTE[CARTAS[k].arte], ...o })
+// El ancho de un móvil que cabe entero en el alto de la caja.
+const anchoQueCabe = (k, maximo) => Math.min(maximo, Math.floor(k.h * 430 / 930))
+
+// Un móvil: lo de dentro se pinta en un lienzo aparte (pantalla de 390 de
+// ancho a escala) y se pega con su marco, girado si hace falta.
+async function movil(ctx, { x, y, w, angulo = 0, pintar }) {
+  const esc = w / 430, sw = 390, sh = 844
+  const lienzo = document.createElement('canvas'); lienzo.width = sw * 2; lienzo.height = sh * 2
+  const p = lienzo.getContext('2d'); p.scale(2, 2)
+  p.fillStyle = APP.fondo; p.fillRect(0, 0, sw, sh)
+  await pintar(p, sw, sh)
+  const h = 930 * esc
+  ctx.save()
+  ctx.translate(x + w / 2, y + h / 2); ctx.rotate((angulo * Math.PI) / 180)
+  ctx.shadowColor = 'rgba(0,0,0,0.55)'; ctx.shadowBlur = 70 * esc; ctx.shadowOffsetY = 34 * esc
+  ctx.fillStyle = '#05090d'; redondeado(ctx, -w / 2, -h / 2, w, h, 64 * esc); ctx.fill()
+  ctx.shadowColor = 'transparent'
+  ctx.strokeStyle = '#3a4c5c'; ctx.lineWidth = 3 * esc; ctx.stroke()
+  const bx = -w / 2 + 20 * esc, by = -h / 2 + 43 * esc
+  ctx.save(); redondeado(ctx, bx, by, sw * esc, sh * esc, 46 * esc); ctx.clip()
+  ctx.drawImage(lienzo, bx, by, sw * esc, sh * esc); ctx.restore()
+  ctx.fillStyle = '#05090d'; redondeado(ctx, -55 * esc, -h / 2 + 52 * esc, 110 * esc, 30 * esc, 15 * esc); ctx.fill()
+  ctx.restore()
+  return h
+}
+// Cabecera de app dentro del móvil.
+function barraApp(p, sw, titulo) {
+  p.fillStyle = APP.caja; p.fillRect(0, 0, sw, 96)
+  texto(p, '9:41', 28, 34, { cuerpo: 15, peso: 700 })
+  texto(p, titulo, 22, 80, { cuerpo: 22, peso: 800, fuente: TITULAR })
+}
+async function barraAbajo(p, sw, sh, activo = 2) {
+  p.fillStyle = APP.caja; p.fillRect(0, sh - 74, sw, 74)
+  const ic = ['home', 'store', 'tag', 'messageSquare', 'user']
+  for (let i = 0; i < 5; i++) {
+    const cx = sw * (i + 0.5) / 5, cy = sh - 42
+    if (i === activo) { p.fillStyle = TEAL; p.beginPath(); p.arc(cx, cy, 24, 0, Math.PI * 2); p.fill() }
+    const img = await icono(ic[i], i === activo ? OSCURO : APP.medio, 24); p.drawImage(img, cx - 12, cy - 12, 24, 24)
+  }
+}
+
+// ── Las pantallas ──
+async function pantallaEscaparate(p, sw, sh) {
+  const g = p.createLinearGradient(0, 0, sw, 150); g.addColorStop(0, '#1f8f8a'); g.addColorStop(1, '#14425c')
+  p.fillStyle = g; p.fillRect(0, 0, sw, 150)
+  texto(p, '9:41', 28, 34, { cuerpo: 15, peso: 700, color: '#ffffff' })
+  p.fillStyle = TEAL; p.beginPath(); p.arc(62, 160, 40, 0, Math.PI * 2); p.fill()
+  p.strokeStyle = APP.fondo; p.lineWidth = 5; p.stroke()
+  texto(p, 'T', 62, 162, { cuerpo: 38, peso: 800, color: OSCURO, fuente: TITULAR, alinear: 'center', base: 'middle' })
+  texto(p, 'Tu tienda', 116, 196, { cuerpo: 26, peso: 800, color: TEAL, fuente: TITULAR })
+  let x = 22
+  x += pildora(p, 'Tienda física', { x, y: 220, cuerpo: 13, fondo: 'rgba(255,255,255,0.1)', color: APP.texto }) + 8
+  pildora(p, '● Abierta ahora', { x, y: 220, cuerpo: 13, fondo: alfa(APP.verde, 0.22), color: '#7be3b2' })
+  texto(p, 'Destacadas', 22, 290, { cuerpo: 19, peso: 800, fuente: TITULAR })
+  const w = (sw - 22 * 2 - 16) / 2
+  const sel = [['charizard', '34,90 €', 'Oferta'], ['umbreon', '24,50 €'], ['pikachu', '12,00 €'], ['gengar', '6,90 €']]
+  sel.forEach(([k, pr, of], i) => carta(p, { ...c(k, { precio: pr, oferta: of || '' }), x: 22 + (i % 2) * (w + 16), y: 312 + Math.floor(i / 2) * (w / 0.716 + 26), w, sombra: false }))
+}
+async function pantallaMostrador(p, sw, sh) {
+  barraApp(p, sw, 'Panel')
+  // lo de debajo, apagado
+  texto(p, 'Vendido hoy', 22, 230, { cuerpo: 15, peso: 600, color: APP.medio })
+  texto(p, '286,40 €', 22, 280, { cuerpo: 44, peso: 800, fuente: TITULAR })
+  p.strokeStyle = TEAL; p.lineWidth = 3; p.beginPath()
+  ;[[22, 390], [80, 370], [140, 380], [200, 340], [260, 352], [320, 315], [368, 300]].forEach(([a, b], i) => (i ? p.lineTo(a, b) : p.moveTo(a, b))); p.stroke()
+  texto(p, 'Últimas ventas', 22, 440, { cuerpo: 17, peso: 800, fuente: TITULAR })
+  const ventas = [['pikachu', '12,00 €'], ['gengar', '6,90 €'], ['eevee', '3,50 €']]
+  ventas.forEach(([k, pr], i) => {
+    const y = 458 + i * 74
+    p.fillStyle = APP.caja; redondeado(p, 18, y, sw - 36, 64, 16); p.fill()
+    carta(p, { ...c(k), x: 30, y: y + 6, w: 37, sombra: false })
+    texto(p, CARTAS[k].nombre, 80, y + 29, { cuerpo: 15, peso: 700 })
+    texto(p, 'NM · ES', 80, y + 50, { cuerpo: 12, peso: 500, color: APP.medio })
+    texto(p, pr, sw - 32, y + 38, { cuerpo: 16, peso: 800, alinear: 'right', fuente: TITULAR })
+  })
+  p.fillStyle = 'rgba(5,9,13,0.72)'; p.fillRect(0, 0, sw, sh)
+  // el aviso de arriba
+  p.fillStyle = APP.caja; redondeado(p, 18, 110, sw - 36, 70, 22); p.fill()
+  p.fillStyle = APP.verde; p.beginPath(); p.arc(52, 145, 18, 0, Math.PI * 2); p.fill()
+  p.drawImage(await icono('checkCircle', '#ffffff', 22), 41, 134, 22, 22)
+  texto(p, 'Vendido · Pikachu ex', 82, 140, { cuerpo: 16, peso: 700 })
+  texto(p, '12,00 € · Bizum', 82, 163, { cuerpo: 14, peso: 500, color: APP.medio })
+  // el abanico
+  const cx = sw / 2, cy = sh - 56
+  const items = [['package', 'Comprar', -152], ['tag', 'Vender', -112], ['scan', 'Escanear', -68], ['receipt', 'Caja de hoy', -28]]
+  for (const [ic, et, ang] of items) {
+    const r = 150, a = (ang * Math.PI) / 180
+    const bx = cx + Math.cos(a) * r, by = cy + Math.sin(a) * r
+    p.fillStyle = APP.caja; p.beginPath(); p.arc(bx, by, 36, 0, Math.PI * 2); p.fill()
+    p.strokeStyle = alfa(TEAL, 0.6); p.lineWidth = 2; p.stroke()
+    p.drawImage(await icono(ic, TEAL, 30), bx - 15, by - 15, 30, 30)
+    texto(p, et, bx, by + 58, { cuerpo: 15, peso: 700, alinear: 'center' })
+  }
+  p.fillStyle = TEAL; p.beginPath(); p.arc(cx, cy, 34, 0, Math.PI * 2); p.fill()
+  p.drawImage(await icono('x', OSCURO, 30), cx - 15, cy - 15, 30, 30)
+}
+async function pantallaMercado(p, sw, sh) {
+  barraApp(p, sw, 'Mercado')
+  p.fillStyle = APP.caja; redondeado(p, 18, 112, sw - 36, 48, 24); p.fill()
+  p.drawImage(await icono('search', APP.medio, 20), 34, 126, 20, 20)
+  texto(p, 'umbreon', 64, 143, { cuerpo: 17, peso: 500 })
+  // la carta encontrada
+  p.fillStyle = APP.caja; redondeado(p, 18, 180, sw - 36, 200, 22); p.fill()
+  carta(p, { ...c('umbreon'), x: 34, y: 196, w: 120, sombra: false })
+  texto(p, 'Umbreon ex', 170, 226, { cuerpo: 21, peso: 800, fuente: TITULAR })
+  texto(p, 'Prismatic Evolutions', 170, 252, { cuerpo: 14, peso: 500, color: APP.medio })
+  texto(p, 'Desde 24,50 €', 170, 300, { cuerpo: 22, peso: 800, color: TEAL, fuente: TITULAR })
+  texto(p, '3 tiendas la tienen', 170, 326, { cuerpo: 14, peso: 600, color: APP.medio })
+  texto(p, 'En tiendas', 22, 420, { cuerpo: 19, peso: 800, fuente: TITULAR })
+  const tiendas = [['Tu tienda', '24,50 €', TEAL], ['Cartas del Sur', '26,00 €', '#e4b44a'], ['El Rincón', '27,90 €', '#9b7bff']]
+  for (let i = 0; i < 3; i++) {
+    const [n, pr, col] = tiendas[i], y = 440 + i * 92
+    p.fillStyle = APP.caja; redondeado(p, 18, y, sw - 36, 80, 18); p.fill()
+    if (i === 0) { p.strokeStyle = TEAL; p.lineWidth = 2; p.stroke() }
+    p.fillStyle = col; p.beginPath(); p.arc(52, y + 40, 20, 0, Math.PI * 2); p.fill()
+    texto(p, n[0], 52, y + 41, { cuerpo: 18, peso: 800, color: OSCURO, fuente: TITULAR, alinear: 'center', base: 'middle' })
+    texto(p, n, 84, y + 36, { cuerpo: 16, peso: 700, color: col })
+    texto(p, `${pr} · NM · ES`, 84, y + 58, { cuerpo: 13, peso: 500, color: APP.medio })
+    pildora(p, 'Me interesa', { x: sw - 32, y: y + 24, cuerpo: 13, fondo: i === 0 ? TEAL : 'rgba(255,255,255,0.1)', color: i === 0 ? OSCURO : APP.texto, alinear: 'right' })
+  }
+  await barraAbajo(p, sw, sh, 1)
+}
+
+// La etiqueta de una carta, como sale de la impresora: nombre, SKU, código
+// de barras y QR (los dos de verdad, se escanean).
+async function etiqueta(ctx, { x, y, w, angulo = 0 }) {
+  const h = w * 0.5
+  const sku = skuDe({ set_id: 'obf', numero: '125', idioma: 'es', estado: 'NM' }, 'OBF')
+  const q = await qr(enlaceDeSku('tutienda', sku), 400)
+  ctx.save(); ctx.translate(x + w / 2, y + h / 2); ctx.rotate((angulo * Math.PI) / 180)
   const x0 = -w / 2, y0 = -h / 2
-  ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 14
-  ctx.fillStyle = '#f2c94c'; redondeado(ctx, x0, y0, w, h, w * 0.06); ctx.fill()
-  ctx.shadowColor = 'transparent'
-  const m = w * 0.06
-  const g = ctx.createLinearGradient(x0, y0, x0 + w, y0 + h)
-  g.addColorStop(0, de); g.addColorStop(1, a)
-  ctx.fillStyle = '#fbf6e4'; redondeado(ctx, x0 + m, y0 + m, w - m * 2, h - m * 2, w * 0.03); ctx.fill()
-  ctx.fillStyle = g; redondeado(ctx, x0 + m * 1.6, y0 + h * 0.13, w - m * 3.2, h * 0.42, w * 0.02); ctx.fill()
-  // brillo
-  const b = ctx.createLinearGradient(x0, y0 + h * 0.13, x0 + w, y0 + h * 0.55)
-  b.addColorStop(0, 'rgba(255,255,255,0)'); b.addColorStop(0.5, 'rgba(255,255,255,0.35)'); b.addColorStop(1, 'rgba(255,255,255,0)')
-  ctx.fillStyle = b; redondeado(ctx, x0 + m * 1.6, y0 + h * 0.13, w - m * 3.2, h * 0.42, w * 0.02); ctx.fill()
-  ctx.fillStyle = 'rgba(30,40,50,0.55)'
-  ctx.fillRect(x0 + m * 1.6, y0 + h * 0.06, w * 0.45, h * 0.035)
-  for (let i = 0; i < 3; i++) ctx.fillRect(x0 + m * 1.6, y0 + h * (0.62 + i * 0.08), (w - m * 3.2) * (i === 2 ? 0.6 : 1), h * 0.03)
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 22
+  ctx.fillStyle = '#ffffff'; redondeado(ctx, x0, y0, w, h, 26); ctx.fill(); ctx.shadowColor = 'transparent'
+  const pad = w * 0.05, ql = h - pad * 2
+  ctx.drawImage(q, x0 + w - pad - ql, y0 + pad, ql, ql)
+  const tx = x0 + pad, ta = w - pad * 3 - ql
+  texto(ctx, 'Charizard ex', tx, y0 + pad + w * 0.06, { cuerpo: w * 0.058, peso: 800, color: '#0d1b2a', fuente: TITULAR })
+  texto(ctx, 'OBF 125 · NM · Español', tx, y0 + pad + w * 0.105, { cuerpo: w * 0.032, peso: 600, color: '#4b5d6b' })
+  texto(ctx, '34,90 €', tx, y0 + pad + w * 0.19, { cuerpo: w * 0.07, peso: 800, color: '#0a7480', fuente: TITULAR })
+  dibujarCodigo(ctx, sku, { x: tx, y: y0 + h - pad - w * 0.13, ancho: ta, alto: w * 0.09, tinta: '#0d1b2a' })
+  texto(ctx, sku, tx + ta / 2, y0 + h - pad, { cuerpo: w * 0.026, peso: 700, color: '#0d1b2a', alinear: 'center', fuente: 'ui-monospace, monospace' })
   ctx.restore()
-  if (precio) {
-    const c = Math.round(w * 0.12)
-    ctx.save()
-    ctx.font = `800 ${c}px ${TITULAR}`
-    const pw = ctx.measureText(precio).width + c * 1.2
-    const px = x + w / 2 - pw / 2, py = y + h - c * 0.9
-    ctx.fillStyle = OSCURO; redondeado(ctx, px, py, pw, c * 1.7, c * 0.85); ctx.fill()
-    ctx.strokeStyle = TEAL; ctx.lineWidth = 3; ctx.stroke()
-    ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-    ctx.fillText(precio, x + w / 2, py + c * 0.88)
-    ctx.restore()
-  }
-  if (oferta) chapa(ctx, oferta, { x: x + w * 0.5, y: y - 18, cuerpo: Math.round(w * 0.075), fondo: '#f06c9b', color: '#ffffff' })
+  return { h, sku }
 }
 
-// El escaparate de una tienda, dibujado: cabecera con su nombre y burbujas,
-// y tres cartas con precio.
-function escaparate(ctx, { x, y, w, h }) {
-  ctx.save()
-  ctx.fillStyle = 'rgba(255,255,255,0.06)'; redondeado(ctx, x, y, w, h, 36); ctx.fill()
-  ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2; ctx.stroke()
-  const pad = Math.round(w * 0.05)
-  const av = Math.round(Math.min(w * 0.13, h * 0.2))
-  ctx.fillStyle = TEAL; ctx.beginPath(); ctx.arc(x + pad + av / 2, y + pad + av / 2, av / 2, 0, Math.PI * 2); ctx.fill()
-  ctx.fillStyle = OSCURO; ctx.font = `800 ${Math.round(av * 0.5)}px ${TITULAR}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-  ctx.fillText('T', x + pad + av / 2, y + pad + av / 2 + 2)
-  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'
-  const tx = x + pad + av + Math.round(pad * 0.6)
-  ctx.fillStyle = TEAL; ctx.font = `800 ${Math.round(av * 0.42)}px ${TITULAR}`
-  ctx.fillText('Tu tienda', tx, y + pad + av * 0.46)
-  const c = Math.round(av * 0.2)
-  const w1 = chapa(ctx, 'Tienda física', { x: tx, y: y + pad + av * 0.6, cuerpo: c, fondo: 'rgba(255,255,255,0.12)', color: '#ffffff', mayusculas: false, fuente: TEXTO, peso: 600 })
-  chapa(ctx, '● Abierta ahora', { x: tx + w1 + 10, y: y + pad + av * 0.6, cuerpo: c, fondo: alfa('#2fb47c', 0.22), color: '#7be3b2', mayusculas: false, fuente: TEXTO, peso: 600 })
-  const top = y + pad + av + pad
-  const disp = h - (top - y) - pad * 1.4
-  const cw = Math.min((w - pad * 2) / 3.4, disp / 1.4 * 0.716 * 1.4 / 1.4)
-  const ch = cw / 0.716
-  const gap = (w - pad * 2 - cw * 3) / 2
-  const cy = top + Math.max(10, (disp - ch) / 2)
-  carta(ctx, { x: x + pad, y: cy, w: cw, h: ch, de: '#f6a04d', a: '#d9445a', angulo: -3, precio: '12,50 €' })
-  carta(ctx, { x: x + pad + cw + gap, y: cy - 14, w: cw, h: ch, de: '#5bc0eb', a: '#3a4fd1', angulo: 0, precio: '39,00 €', oferta: 'Oferta' })
-  carta(ctx, { x: x + pad + (cw + gap) * 2, y: cy, w: cw, h: ch, de: '#9be15d', a: '#00a37a', angulo: 3, precio: '4,90 €' })
-  ctx.restore()
-}
-
-// Una fila de lo que trae: icono en su círculo, título y una línea.
-async function rasgos(ctx, caja, filas) {
-  const gap = 18
-  const n = filas.length
-  const alto = Math.min(150, (caja.h - gap * (n - 1)) / n)
-  const total = alto * n + gap * (n - 1)
-  let y = caja.y + (caja.h - total) / 2
-  for (const f of filas) {
-    ctx.save()
-    ctx.fillStyle = 'rgba(255,255,255,0.06)'; redondeado(ctx, caja.x, y, caja.w, alto, 28); ctx.fill()
-    ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 2; ctx.stroke()
-    const r = alto * 0.3
-    const cx = caja.x + 28 + r, cy = y + alto / 2
-    ctx.fillStyle = alfa(TEAL, 0.18); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill()
-    const img = await icono(f.icono, TEAL, Math.round(r * 1.05))
-    ctx.drawImage(img, cx - r * 0.525, cy - r * 0.525, r * 1.05, r * 1.05)
-    const tx = cx + r + 28
-    const ancho = caja.x + caja.w - 28 - tx
-    const ct = Math.round(Math.min(38, alto * 0.27))
-    const cs = Math.round(Math.min(27, alto * 0.2))
-    ctx.font = `500 ${cs}px ${TEXTO}`
-    const ls = lineas(ctx, f.texto, ancho).slice(0, 2)
-    const bloque = ct + 10 + ls.length * cs * 1.3
-    let ty = cy - bloque / 2 + ct
-    ctx.fillStyle = '#ffffff'; ctx.font = `800 ${ct}px ${TITULAR}`; ctx.textBaseline = 'alphabetic'
-    ctx.fillText(f.titulo, tx, ty)
-    ctx.fillStyle = '#cfe3f1'; ctx.font = `500 ${cs}px ${TEXTO}`
-    ls.forEach((l, i) => ctx.fillText(l, tx, ty + 12 + cs * (1 + i * 1.3)))
-    ctx.restore()
-    y += alto + gap
-  }
-}
-
-function boton(ctx, texto, { x, y, w, cuerpo = 40 }) {
-  ctx.save()
+function boton(ctx, t, { x, y, w, cuerpo = 40 }) {
   const alto = cuerpo * 2.2
-  ctx.shadowColor = alfa(TEAL, 0.45); ctx.shadowBlur = 40
-  ctx.fillStyle = TEAL; redondeado(ctx, x, y, w, alto, alto / 2); ctx.fill()
-  ctx.shadowColor = 'transparent'
-  ctx.fillStyle = OSCURO; ctx.font = `800 ${cuerpo}px ${TITULAR}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-  ctx.fillText(texto, x + w / 2, y + alto / 2 + 2)
-  ctx.restore()
+  ctx.save(); ctx.shadowColor = alfa(TEAL, 0.5); ctx.shadowBlur = 40
+  ctx.fillStyle = TEAL; redondeado(ctx, x, y, w, alto, alto / 2); ctx.fill(); ctx.restore()
+  texto(ctx, t, x + w / 2, y + alto / 2 + 2, { cuerpo, peso: 800, color: OSCURO, fuente: TITULAR, alinear: 'center', base: 'middle' })
   return alto
 }
 
-async function pasos(ctx, caja) {
-  const filas = [
-    ['1', 'Pide acceso', 'En pokedoc.es/para-tiendas, en un minuto'],
-    ['2', 'Te damos de alta', 'Te llega un correo con tu invitación'],
-    ['3', 'Monta tu escaparate', 'Sube tu stock y empieza a vender'],
-  ]
-  const alto = 128, gap = 18
-  const btn = 40 * 2.2
-  const total = filas.length * alto + (filas.length - 1) * gap + 40 + btn
-  let y = caja.y + (caja.h - total) / 2
-  for (const [n, t, s] of filas) {
-    ctx.save()
-    ctx.fillStyle = 'rgba(255,255,255,0.06)'; redondeado(ctx, caja.x, y, caja.w, alto, 28); ctx.fill()
-    const r = 38, cx = caja.x + 28 + r, cy = y + alto / 2
-    ctx.fillStyle = TEAL; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill()
-    ctx.fillStyle = OSCURO; ctx.font = `800 40px ${TITULAR}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
-    ctx.fillText(n, cx, cy + 2)
-    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'
-    ctx.fillStyle = '#ffffff'; ctx.font = `800 38px ${TITULAR}`; ctx.fillText(t, cx + r + 28, cy - 4)
-    ctx.fillStyle = '#cfe3f1'; ctx.font = `500 27px ${TEXTO}`; ctx.fillText(s, cx + r + 28, cy + 34)
-    ctx.restore()
-    y += alto + gap
-  }
-  boton(ctx, 'Pide acceso  →', { x: caja.x, y: y + 22, w: caja.w })
-}
-
+// ── Las piezas ──
 const BASE = { acento: TEAL, chapa: 'Tiendas · beta', enlace: ENLACE }
 const PIEZAS = [
   { nombre: 'tiendas-1', formato: 'historia', chapaPie: `1/${TOTAL}`,
-    titulo: 'Las *tiendas* llegan a PokeDoc',
-    entradilla: 'Tu tienda o tu compraventa, dentro de la comunidad española de Pokémon TCG. Está en beta y buscamos quien la pruebe.',
-    pieza: async (ctx, caja) => escaparate(ctx, caja) },
+    titulo: 'Las *tiendas* llegan a PokeDoc', entradilla: 'Beta abierta: buscamos tiendas que lo prueben.',
+    pieza: async (ctx, k) => {
+      const w = anchoQueCabe(k, 400), h = 930 * w / 430
+      carta(ctx, { ...c('rayquaza', { precio: '18,50 €' }), x: k.x - 10, y: k.y + k.h * 0.22, w: 240, angulo: -12 })
+      carta(ctx, { ...c('mew', { precio: '29,00 €' }), x: k.x + k.w - 230, y: k.y + k.h * 0.3, w: 240, angulo: 11 })
+      await movil(ctx, { x: k.x + k.w / 2 - w / 2, y: k.y + (k.h - h) / 2, w, pintar: pantallaEscaparate })
+    } },
   { nombre: 'tiendas-2', formato: 'historia', chapaPie: `2/${TOTAL}`,
-    titulo: 'Tu stock, *ordenado*',
-    entradilla: 'Todo lo que vendes en un sitio, con el precio de Cardmarket al lado.',
-    pieza: (ctx, caja) => rasgos(ctx, caja, [
-      { icono: 'tag', titulo: 'SKU y etiquetas con QR', texto: 'Imprímelas y escanéalas para vender en un segundo' },
-      { icono: 'coins', titulo: 'Precio de Cardmarket', texto: 'A la vista, en el idioma de cada copia' },
-      { icono: 'camera', titulo: 'Fotos de verdad', texto: 'Frontal y trasera de cada carta' },
-      { icono: 'sparkles', titulo: 'Ofertas y destacadas', texto: 'Con precio tachado y fecha de fin' },
-    ]) },
+    titulo: 'Etiquetas con *QR* y código de barras', entradilla: 'Imprímelas, pégalas en la funda y vende escaneando.',
+    pieza: async (ctx, k) => {
+      carta(ctx, { ...c('charizard'), x: k.x + k.w * 0.5 - 170, y: k.y + 6, w: 340, angulo: 6 })
+      await etiqueta(ctx, { x: k.x + 6, y: k.y + k.h - k.w * 0.48 - 10, w: k.w - 12, angulo: -3 })
+    } },
   { nombre: 'tiendas-3', formato: 'historia', chapaPie: `3/${TOTAL}`,
-    titulo: 'El *mostrador*, en tu móvil',
-    entradilla: 'Vende, compra y cambia en un evento sin soltar el teléfono.',
-    pieza: (ctx, caja) => rasgos(ctx, caja, [
-      { icono: 'scan', titulo: 'Vender', texto: 'Busca o escanea la etiqueta, cobra y listo' },
-      { icono: 'package', titulo: 'Comprar a tu %', texto: 'Al 85, al 90… el tanto por ciento que uses' },
-      { icono: 'arrowLeftRight', titulo: 'Cambios', texto: 'Cartas por cartas y la diferencia en dinero' },
-      { icono: 'layers', titulo: 'Lotes', texto: 'Apúntalo con una foto y desglósalo después' },
-      { icono: 'receipt', titulo: 'La caja de hoy', texto: 'Lo que entra y lo que sale, cuadrado' },
-    ]) },
+    titulo: 'El *mostrador* en tu bolsillo', entradilla: 'Vende, compra y cambia en un evento con una mano.',
+    pieza: async (ctx, k) => {
+      const w = anchoQueCabe(k, 420), h = 930 * w / 430
+      carta(ctx, { ...c('pikachu', { precio: '12,00 €' }), x: k.x + k.w - 260, y: k.y + k.h * 0.12, w: 250, angulo: 10 })
+      await movil(ctx, { x: k.x + k.w / 2 - w / 2 - 90, y: k.y + (k.h - h) / 2, w, angulo: -3, pintar: pantallaMostrador })
+    } },
   { nombre: 'tiendas-4', formato: 'historia', chapaPie: `4/${TOTAL}`,
-    titulo: 'La gente te *encuentra*',
-    entradilla: 'Tu escaparate, delante de los más de 550 miembros de PokeDoc.',
-    pieza: (ctx, caja) => rasgos(ctx, caja, [
-      { icono: 'store', titulo: 'Tu escaparate', texto: 'Público, con tu horario y tus destacadas' },
-      { icono: 'search', titulo: 'En el Mercado', texto: 'Sales cuando alguien busca una carta que tienes' },
-      { icono: 'messageSquare', titulo: 'Me interesa y ofertas', texto: 'Te escriben con la carta dentro del mensaje' },
-      { icono: 'bell', titulo: 'Avisa a quien la busca', texto: 'Un toque y les llega que la tienes' },
-      { icono: 'clock', titulo: 'Reservas', texto: 'Aparta una carta unos días para quien la quiere' },
-    ]) },
+    titulo: 'Que te *encuentren*', entradilla: 'Si alguien busca una carta que tienes, sales tú.',
+    pieza: async (ctx, k) => {
+      const w = anchoQueCabe(k, 420), h = 930 * w / 430
+      await movil(ctx, { x: k.x + 30, y: k.y + (k.h - h) / 2, w, angulo: 3, pintar: pantallaMercado })
+      // el mensaje que te llega
+      const bx = k.x + k.w - 380, by = k.y + k.h * 0.18
+      ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 40; ctx.shadowOffsetY = 18
+      ctx.fillStyle = '#ffffff'; redondeado(ctx, bx, by, 380, 170, 34); ctx.fill(); ctx.restore()
+      texto(ctx, 'Nuevo mensaje', bx + 30, by + 46, { cuerpo: 22, peso: 700, color: '#4b5d6b' })
+      texto(ctx, '¡Me interesa!', bx + 30, by + 98, { cuerpo: 40, peso: 800, color: '#0d1b2a', fuente: TITULAR })
+      texto(ctx, 'Umbreon ex · 24,50 €', bx + 30, by + 138, { cuerpo: 24, peso: 600, color: '#0a7480' })
+      carta(ctx, { ...c('umbreon'), x: bx + 150, y: by + 200, w: 190, angulo: 8 })
+    } },
   { nombre: 'tiendas-5', formato: 'historia', chapaPie: `5/${TOTAL}`,
-    titulo: 'Buscamos tiendas para la *beta*',
-    entradilla: 'Tiendas físicas y particulares que se dedican a la compraventa. Pruébalo y dinos qué le falta.',
-    pieza: (ctx, caja) => pasos(ctx, caja) },
+    titulo: '¿Te apuntas a la *beta*?', entradilla: 'Tiendas físicas y particulares que se dedican a la compraventa.',
+    pieza: async (ctx, k) => {
+      const lado = Math.min(520, k.h - 200)
+      const qx = k.x + k.w / 2 - lado / 2, qy = k.y + (k.h - lado - 48 - 60 - 88) / 2 + 24
+      carta(ctx, { ...c('lucario'), x: qx - 200, y: qy + 60, w: 230, angulo: -14 })
+      carta(ctx, { ...c('eevee'), x: qx + lado - 30, y: qy + 80, w: 230, angulo: 13 })
+      ctx.save(); ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 20
+      ctx.fillStyle = '#ffffff'; redondeado(ctx, qx - 24, qy - 24, lado + 48, lado + 48, 40); ctx.fill(); ctx.restore()
+      ctx.drawImage(await qr('https://pokedoc.es/para-tiendas', 600), qx, qy, lado, lado)
+      boton(ctx, 'Pide acceso  →', { x: k.x + 40, y: qy + lado + 60, w: k.w - 80 })
+    } },
   { nombre: 'tiendas-historia', formato: 'larga', chapaPie: 'Beta',
-    titulo: 'Las *tiendas* llegan a PokeDoc',
-    entradilla: 'Stock, escaparate, mostrador y caja, dentro de la comunidad. Está en beta: buscamos tiendas que lo prueben.',
-    pieza: async (ctx, caja) => {
-      const btn = 40 * 2.2
-      escaparate(ctx, { x: caja.x, y: caja.y, w: caja.w, h: caja.h - btn - 48 })
-      boton(ctx, 'Pide acceso  →', { x: caja.x, y: caja.y + caja.h - btn, w: caja.w })
+    titulo: 'Las *tiendas* llegan a PokeDoc', entradilla: 'Beta abierta: buscamos tiendas y compraventas que lo prueben.',
+    pieza: async (ctx, k) => {
+      const btn = 88, w = Math.min(440, Math.floor((k.h - btn - 40) * 430 / 930)), h = 930 * w / 430
+      const y0 = k.y + Math.max(0, (k.h - btn - 40 - h) / 2)
+      carta(ctx, { ...c('rayquaza', { precio: '18,50 €' }), x: k.x - 20, y: y0 + h * 0.3, w: 250, angulo: -12 })
+      carta(ctx, { ...c('mew', { precio: '29,00 €' }), x: k.x + k.w - 230, y: y0 + h * 0.38, w: 250, angulo: 11 })
+      await movil(ctx, { x: k.x + k.w / 2 - w / 2, y: y0, w, pintar: pantallaEscaparate })
+      boton(ctx, 'Pide acceso  →', { x: k.x, y: k.y + k.h - btn, w: k.w })
     } },
   { nombre: 'tiendas-x', formato: 'apaisada',
-    titulo: 'Las *tiendas* llegan a PokeDoc',
-    entradilla: 'Está en beta: buscamos tiendas y compraventas que lo prueben.',
-    pieza: async (ctx, caja) => escaparate(ctx, caja) },
+    titulo: 'Las *tiendas* llegan a PokeDoc', entradilla: 'Beta abierta: buscamos tiendas y compraventas que lo prueben.',
+    pieza: async (ctx, k) => {
+      const w = 220
+      carta(ctx, { ...c('charizard', { precio: '34,90 €' }), x: k.x + 10, y: k.y + 70, w: 170, angulo: -10 })
+      carta(ctx, { ...c('umbreon', { precio: '24,50 €' }), x: k.x + k.w - 170, y: k.y + 90, w: 170, angulo: 10 })
+      await movil(ctx, { x: k.x + k.w / 2 - w / 2, y: k.y - 10, w, pintar: pantallaEscaparate })
+    } },
 ]
 
 await prepararMarco()
