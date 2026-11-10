@@ -12,7 +12,7 @@ import { validarSolicitud, instagramDe } from './tiendas-puro.js'
 
 const $ = (id) => document.getElementById(id)
 
-for (const el of document.querySelectorAll('.tiendas-icono[data-icono]')) {
+for (const el of document.querySelectorAll('main [data-icono]')) {
   el.innerHTML = icons[el.dataset.icono]?.(22) || ''
 }
 

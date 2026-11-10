@@ -36,6 +36,35 @@ pasada de test-tanda-631** (ejecuta las migraciones sentencia a sentencia).
 espere, la línea de novedades sí). La próxima expansión de TCGGO llegará otra
 vez sin ficha hasta que se automatice (anotado en CLAUDE.md).
 
+## 2026-11-10 (524) — PINGU-Claude (1281 — /para-tiendas rehecha y el dossier en PDF)
+
+(Ojo: la sesión de IBAI subió otra 1281, la de las cartas nuevas para jugar. Las
+dos son 1281; esta es la de las tiendas.)
+
+**Hecho**: PINGU pidió un PDF largo sobre las tiendas («el principal atractivo
+es poder gestionar tu inventario de una manera sencilla y virtual») y rehacer
+la página de pedir acceso («más info, poder agregar el pdf para que se
+descargue desde ahí y que sea todo más visual»). El dossier son diez páginas A4
+con capturas REALES del panel (Stock, añadir, etiquetas, Mostrador, Comprar,
+la caja, escaparate, el pop-up de una carta y el Mercado) con las cuatro cartas
+que pasó PINGU, y va en `descargas/`. /para-tiendas es ahora una página de
+venta: héroe con el móvil del Stock y dos cartas, tres partes con el inventario
+marcado, un bloque por función con su captura, «tus números son tuyos», tres
+pasos, el dossier para descargar y el formulario de siempre (mismos ids) con
+cuatro preguntas. Hoja propia, `css/para-tiendas.css`; lo del formulario sale
+de `css/tiendas.css`.
+
+**Ficheros**: para-tiendas.html, css/para-tiendas.css (nueva), css/tiendas.css,
+js/para-tiendas.js, assets/tiendas/ (10 webp), descargas/pokedoc-para-tiendas.pdf,
+netlify/lib/tarjetas-fijas.mjs, SCHEMA.md, novedades.json, BITACORA.md. En
+`pruebas`: test-tanda-1281-pantalla (nueva), la 1067 y la 1074 al título nuevo,
+y `herramientas/dossier-tiendas/` (el HTML del dossier y los scripts de las
+capturas) y `herramientas/carrusel-tiendas/` (el carrusel de redes).
+
+**Pendiente**: sin subir (los pushes se juntan). Sin migración. En la 1067
+siguen rojas las de /alta-tienda y en la 1074 la de Datos, que no tocan esta
+página.
+
 ## 2026-11-10 (523) — PINGU-Claude (1280 — el occidental sigue al id de Cardmarket que corrige TCGGO)
 
 **Hecho**: TCGGO anunció en su Discord que está limpiando `cardmarket_id` mal

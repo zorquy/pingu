@@ -55285,6 +55285,56 @@ clasificada que no se toca); segunda pasada, cero filas.
 otra vez sin ficha. Hasta que se automatice (TCGdex por set y número, como el
 relleno de la 1158), se repite lo de A con sus ficheros de cards-database.
 
+## Tanda 1281 — /para-tiendas rehecha, con capturas de verdad y el dossier en PDF
+
+PINGU: «prepárame un pdf más extenso sobre todo el tema de las tiendas… el
+principal atractivo es poder gestionar tu inventario de una manera sencilla y
+virtual», y «rediséñame la pantalla de tiendas, de cuando se registran… más
+info, poder agregar el pdf para que se descargue desde ahí y que sea todo más
+visual».
+
+**La página** (`para-tiendas.html` + `css/para-tiendas.css`, su hoja propia;
+`css/tiendas.css` ya no lleva lo del formulario y /para-tiendas no la carga):
+- el héroe con el título del inventario, «Pide acceso» (a `#pide`, el
+  formulario de la misma página) y «Descarga el dossier», con un móvil del
+  Stock y dos cartas detrás;
+- tres partes (Inventario marcado, Mostrador, Escaparate) y un bloque por
+  cada una: el Stock en el PC con seis puntos, las cuatro formas de dar de
+  alta, las etiquetas, el Mostrador en el móvil, el escaparate en tres móviles
+  (que en el móvil se deslizan de lado), «Tu dinero y tus números son tuyos»,
+  los tres pasos, el dossier y el formulario con cuatro preguntas plegadas;
+- el color es el de las tiendas (`--acento: var(--rango-tienda)` dentro de
+  `.pt`, en oscuro con el texto oscuro encima), no el rosa de Comunidad;
+- el formulario es el de siempre (1067, 1074), con los mismos ids, así que
+  `js/para-tiendas.js` solo cambia en que pinta TODOS los `[data-icono]` de
+  `main`.
+
+**Las capturas** (`assets/tiendas/*.webp`) son de la web de verdad, sacadas en
+el doble con una tienda de ejemplo y las cuatro cartas reales que pasó PINGU
+(Charizard ex OBF 223, Umbreon ex PRE 161, Pikachu ex SSP 238, Mew ex SVP 053).
+Los scripts viven en la rama `pruebas` (`herramientas/dossier-tiendas/`:
+`capturas.mjs`, `convertir.mjs`, `web.mjs`): si cambia una pantalla, se vuelven
+a sacar. Todas llevan `width`/`height` (313) y las de abajo `loading="lazy"`.
+
+**El dossier** (`descargas/pokedoc-para-tiendas.pdf`, diez páginas A4) sale de
+`herramientas/dossier-tiendas/dossier.html` imprimido por Chromium
+(`hacer.mjs`): portada, qué es, inventario, dar de alta, etiquetas, mostrador,
+caja y cifras, escaparate, vender online y cómo empezar (con el QR a
+/para-tiendas). Pesa ~4 MB, casi todo las dos letras variables que Chromium
+incrusta enteras; la página dice lo que pesa y `test-tanda-1281` comprueba que
+lo que dice cuadra. Va en `descargas/` y no en `assets/`: el service worker
+guarda en caché lo de `/assets/` (`esFichero`) y un PDF de 4 MB no pinta nada
+ahí. Si cambia lo que cuenta, se rehace el HTML y se vuelve a imprimir.
+
+La tarjeta del enlace (`tarjetas-fijas.mjs`) dice lo mismo que el héroe
+(`?v=1281`).
+
+Prueba: `test-tanda-1281-pantalla.mjs` (las imágenes existen y llevan tamaño;
+el PDF existe, es un PDF y pesa lo que dice; «Pide acceso» lleva al
+formulario; los dos botones lo descargan; ni imágenes rotas ni errores ni
+salirse de ancho en PC y móvil, claro y oscuro). La 1067 y la 1074 miran ahora
+el título y el héroe nuevos.
+
 ## Tanda 1280 — El occidental sigue al id de Cardmarket que corrige TCGGO
 
 TCGGO (Discord, 9 de noviembre) está limpiando `cardmarket_id` mal puestos. En
