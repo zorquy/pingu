@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<title>PokeDoc para tiendas</title>
+<!-- El dossier de las tiendas (1281, PINGU: «un pdf más extenso sobre todo el
+     tema de las tiendas… el principal atractivo es poder gestionar tu
+     inventario de una manera sencilla y virtual»). A4, una .hoja por página,
+     con capturas REALES del panel (capturas.mjs) y las cuatro cartas de PINGU.
+     Lo pasa a PDF hacer.mjs; el PDF va en assets/tiendas/ de la web. -->
+<style>
+@font-face { font-family: Outfit; src: url(/assets/fonts/outfit-variable-latin.woff2) format('woff2'); font-weight: 100 900; }
+@font-face { font-family: Inter; src: url(/assets/fonts/inter-variable-latin.woff2) format('woff2'); font-weight: 100 900; }
+@page { size: A4; margin: 0 }
+:root { --tinta: #0d1b2a; --medio: #4b5d6b; --suave: #eef5f6; --linea: #d7e4e8; --navy: #1e5175; --teal: #0f7f80; --teal-claro: #3cc8c0; --oscuro: #0b1219; --oro: #f5cd4f; }
+* { box-sizing: border-box; margin: 0; padding: 0 }
+html { -webkit-print-color-adjust: exact; print-color-adjust: exact }
+body { font-family: Inter, system-ui, sans-serif; color: var(--tinta); font-size: 12pt; line-height: 1.5; background: #fff }
+h1, h2, h3, .cifra, .marca { font-family: Outfit, Inter, sans-serif; letter-spacing: -0.01em }
+.hoja { width: 210mm; height: 297mm; position: relative; overflow: hidden; page-break-after: always; padding: 18mm 16mm 16mm }
+.hoja:last-child { page-break-after: auto }
+.pie { position: absolute; left: 16mm; right: 16mm; bottom: 9mm; display: flex; justify-content: space-between; font-size: 9pt; color: var(--medio) }
+.pie b { color: var(--teal) }
+.eti { display: inline-block; font-size: 9.5pt; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--teal); margin-bottom: 3mm }
+h2 { font-size: 36pt; line-height: 1.04; margin-bottom: 5mm; max-width: 170mm }
+h2 em, h1 em { font-style: normal; color: var(--teal) }
+.entrada { font-size: 14pt; line-height: 1.45; color: var(--medio); max-width: 168mm; margin-bottom: 9mm }
+h3 { font-size: 14pt; margin-bottom: 1mm }
+p + p { margin-top: 2mm }
+/* Ventana de navegador para las capturas del PC */
+.pc { border-radius: 4mm; overflow: hidden; border: 1px solid var(--linea); box-shadow: 0 6mm 14mm rgba(13, 27, 42, 0.14); background: #fff }
+.pc::before { content: ''; display: block; height: 6mm; background: #e9f0f2 radial-gradient(circle at 5mm 3mm, #ff6b6b 1mm, transparent 1.1mm), #e9f0f2; background-image: radial-gradient(circle at 5mm 3mm, #f0857c 0.9mm, transparent 1mm), radial-gradient(circle at 9mm 3mm, #f4c55b 0.9mm, transparent 1mm), radial-gradient(circle at 13mm 3mm, #6ccf8a 0.9mm, transparent 1mm) }
+.pc img { display: block; width: 100% }
+.recorte { overflow: hidden }
+.recorte img { display: block; width: 100% }
+/* Un móvil */
+.movil { background: #05090d; border-radius: 9mm; padding: 2.4mm; box-shadow: 0 8mm 18mm rgba(13, 27, 42, 0.35); border: 0.4mm solid #3a4c5c }
+.movil img { display: block; width: 100%; border-radius: 7mm }
+/* Puntos con icono */
+.puntos { display: grid; gap: 6mm }
+.punto { display: grid; grid-template-columns: 11mm 1fr; gap: 4mm; align-items: start }
+.punto i { width: 11mm; height: 11mm; border-radius: 3.5mm; font-size: 12pt; background: var(--suave); color: var(--teal); display: grid; place-items: center; font-style: normal; font-weight: 800; font-family: Outfit }
+.punto i svg { width: 5mm; height: 5mm }
+.punto p { color: var(--medio); font-size: 11pt }
+.cajas { display: grid; grid-template-columns: repeat(2, 1fr); gap: 6mm 7mm }
+.caja { background: var(--suave); border-radius: 4mm; padding: 5mm 6mm }
+.caja p { color: var(--medio); font-size: 11pt }
+.chapa { display: inline-block; padding: 0.6mm 2.6mm; border-radius: 9mm; background: var(--suave); color: var(--teal); font-weight: 700; font-size: 8.5pt; margin: 0 1mm 1mm 0 }
+.nota { font-size: 10.5pt; color: var(--medio); margin-top: 3mm }
+/* Portada */
+.portada { background: radial-gradient(120mm 120mm at 85% 45%, rgba(60, 200, 192, 0.35), transparent 70%), linear-gradient(160deg, #1e5175 0%, #0f2c40 55%, #0b1219 100%); color: #fff; padding: 20mm 18mm }
+.portada .marca { display: flex; align-items: center; gap: 3mm; font-size: 17pt; font-weight: 800 }
+.portada .marca span.p { width: 11mm; height: 11mm; border-radius: 3mm; background: #7cc0f2; color: #0d1b2a; display: grid; place-items: center; font-size: 15pt }
+.portada .marca b { color: #7cc0f2 }
+.portada .beta { position: absolute; top: 21mm; right: 18mm; background: var(--teal-claro); color: var(--oscuro); font-weight: 800; letter-spacing: 0.12em; font-size: 9pt; padding: 2mm 5mm; border-radius: 9mm }
+.portada h1 { font-size: 52pt; line-height: 0.98; margin-top: 22mm; max-width: 150mm }
+.portada h1 em { color: var(--teal-claro) }
+.portada .lema { font-size: 15pt; color: #cfe3ea; margin-top: 6mm; max-width: 120mm; line-height: 1.35 }
+.portada .escena { position: absolute; left: 0; right: 0; bottom: 18mm; height: 128mm }
+.portada .carta { position: absolute; width: 58mm; border-radius: 3mm; box-shadow: 0 8mm 16mm rgba(0, 0, 0, 0.55) }
+.portada .pie { color: #cfe3ea }
+.portada .pie b { color: var(--teal-claro) }
+/* Cierre */
+.cierre { background: linear-gradient(160deg, #0f2c40, #0b1219); color: #fff }
+.cierre h2 em { color: var(--teal-claro) }
+.cierre .entrada { color: #cfe3ea }
+.pasos { display: grid; gap: 5mm; margin: 6mm 0 10mm }
+.paso { display: grid; grid-template-columns: 12mm 1fr; gap: 4mm; align-items: start }
+.paso b { width: 12mm; height: 12mm; border-radius: 50%; background: var(--teal-claro); color: var(--oscuro); display: grid; place-items: center; font-family: Outfit; font-size: 15pt }
+.paso p { color: #cfe3ea }
+.qr { background: #fff; border-radius: 5mm; padding: 5mm; width: 52mm }
+.qr svg { display: block; width: 100%; height: auto }
+.preg { border-top: 1px solid rgba(255, 255, 255, 0.15); padding: 3.2mm 0 }
+.preg h3 { font-size: 13pt; color: #fff }
+.preg p { color: #cfe3ea; font-size: 11pt }
+.cierre .pie { color: #cfe3ea }
+</style></head>
+<body>
+
+<!-- 1 · PORTADA -->
+<section class="hoja portada">
+  <div class="marca"><span class="p">P</span><span>Poke<b>Doc</b></span></div>
+  <span class="beta">TIENDAS · BETA</span>
+  <h1>Tu inventario de cartas, <em>ordenado y siempre a mano</em></h1>
+  <p class="lema">El panel de PokeDoc para tiendas y para quien se dedica a la compraventa: stock, mostrador, caja y escaparate en un solo sitio.</p>
+  <div class="escena">
+    <img class="carta" src="/carrusel-arte/real-charizard.webp" style="left:16mm; top:30mm; transform:rotate(-13deg)" alt="">
+    <img class="carta" src="/carrusel-arte/real-umbreon.webp" style="right:16mm; top:38mm; transform:rotate(12deg)" alt="">
+    <div class="movil" style="position:absolute; left:50%; top:0; width:58mm; transform:translateX(-50%)"><img src="/dossier-capturas/m-stock.jpg" alt="El Stock de una tienda en el móvil"></div>
+  </div>
+  <div class="pie"><span>pokedoc.es/para-tiendas</span><span>Dossier para tiendas · <b>2026</b></span></div>
+</section>
+
+<!-- 2 · QUÉ ES -->
+<section class="hoja">
+  <span class="eti">Qué es</span>
+  <h2>Deja el Excel. Lleva tu stock <em>en el bolsillo.</em></h2>
+  <p class="entrada">PokeDoc es la comunidad española de Pokémon TCG. Con la cuenta de tienda tienes un panel propio para llevar tu inventario carta a carta, vender y comprar en el mostrador o en un evento desde el móvil, y enseñar lo que tienes a la gente que busca cartas en PokeDoc.</p>
+  <div class="pc" style="margin-bottom:7mm"><div class="recorte" style="height:78mm"><img src="/dossier-capturas/pc-panel.jpg" alt="El Panel de una tienda"></div></div>
+  <div class="cajas" style="grid-template-columns:repeat(3,1fr)">
+    <div class="caja"><h3>1 · Inventario</h3><p>Cada carta con su idioma, estado, versión, coste, precio y lo que vale en Cardmarket. Lo principal, y por donde empieza todo.</p></div>
+    <div class="caja"><h3>2 · Mostrador</h3><p>Vender, comprar y cambiar en segundos, con la caja del día cuadrada sola por forma de pago.</p></div>
+    <div class="caja"><h3>3 · Escaparate</h3><p>Tu tienda en PokeDoc: si alguien busca una carta que tienes, sales tú, con tu precio.</p></div>
+  </div>
+  <div class="caja" style="margin-top:5mm; background:#fff; border:1px solid var(--linea)">
+    <h3>Para quién</h3>
+    <p>Para tiendas con local y para particulares que se dedican a la compraventa desde casa. No hace falta tener tienda física: solo el nombre es obligatorio.</p>
+  </div>
+  <div class="pie"><span>PokeDoc para tiendas</span><span><b>2</b></span></div>
+</section>
+
+<!-- 3 · INVENTARIO -->
+<section class="hoja">
+  <span class="eti">Inventario · lo principal</span>
+  <h2>Todo tu stock, <em>carta a carta</em></h2>
+  <p class="entrada">Una tabla que se entiende de un vistazo: qué tienes, cuántas, lo que te costó, a cuánto lo vendes, lo que vale en Cardmarket en ese idioma y lo que ganas con cada una.</p>
+  <div class="pc" style="margin-bottom:7mm"><div class="recorte" style="height:92mm"><img src="/dossier-capturas/pc-stock.jpg" alt="El Stock en el PC"></div></div>
+  <div class="cajas">
+    <div class="punto"><i data-i="coins"></i><div><h3>Margen en cada línea</h3><p>Coste, tu precio y Cardmarket lado a lado, con el beneficio en euros y en tanto por ciento.</p></div></div>
+    <div class="punto"><i data-i="globe"></i><div><h3>Idioma, estado y versión</h3><p>Cada copia con su bandera, su estado con los colores de Cardmarket (MT a PO) y su versión: Holo, Reverse, ediciones…</p></div></div>
+    <div class="punto"><i data-i="medal"></i><div><h3>Gradeadas</h3><p>PSA, Beckett y CGC con su nota, como una línea más del stock.</p></div></div>
+    <div class="punto"><i data-i="search"></i><div><h3>Busca y filtra</h3><p>Por nombre, número o SKU, y por expansión, idioma, estado, rareza o dónde está guardada.</p></div></div>
+    <div class="punto"><i data-i="clock"></i><div><h3>Lo que no rota</h3><p>Los días que lleva cada carta; lo que pasa de 90 días se marca en rojo.</p></div></div>
+    <div class="punto"><i data-i="eye"></i><div><h3>Visible u oculta</h3><p>Tú decides qué se enseña en tu escaparate y qué se queda solo para ti.</p></div></div>
+  </div>
+  <div class="pie"><span>PokeDoc para tiendas</span><span><b>3</b></span></div>
+</section>
+
+<!-- 4 · DAR DE ALTA -->
+<section class="hoja">
+  <span class="eti">Inventario · dar de alta</span>
+  <h2>Meter cartas es <em>rápido</em></h2>
+  <p class="entrada">No tienes que escribir nada a mano: el catálogo ya está en PokeDoc (cartas occidentales, japonesas y producto sellado), con su foto, su número y su precio. Tú solo eliges cuál y cómo es tu copia.</p>
+  <div class="pc" style="margin-bottom:7mm"><div class="recorte" style="height:72mm"><img src="/dossier-capturas/pc-anadir.jpg" alt="Las formas de añadir al stock"></div></div>
+  <div class="cajas">
+    <div class="caja"><h3>Buscar una carta</h3><p>Por nombre o número. Eliges idioma, estado, versión, unidades, coste y precio.</p></div>
+    <div class="caja"><h3>Desde la Colección, de golpe</h3><p>Abres una expansión, la Pokédex o los productos y marcas todas las que tienes a la vez.</p></div>
+    <div class="caja"><h3>Importar un CSV</h3><p>Si ya llevas el stock en un Excel, lo subes y entra entero.</p></div>
+    <div class="caja"><h3>Comprar a un cliente</h3><p>Tasas lo que te traen y entra al stock con lo que pagaste de coste, listo para ponerle precio.</p></div>
+  </div>
+  <p class="nota">¿Te traen una caja entera? Cómprala como un <b>lote</b> (lo que vale, el % que pagas, una foto) y desglósala cuando tengas tiempo: el coste se reparte solo entre las cartas.</p>
+  <div class="pie"><span>PokeDoc para tiendas</span><span><b>4</b></span></div>
+</section>
+
+<!-- 5 · ETIQUETAS Y PRECIOS -->
+<section class="hoja">
+  <span class="eti">Inventario · etiquetas</span>
+  <h2>Etiquetas con <em>SKU, QR</em> y código de barras</h2>
+  <p class="entrada">Cada copia tiene su SKU (expansión, número, idioma y estado, el mismo en todas las tiendas) y PokeDoc te lo imprime en una etiqueta para la funda.</p>
+  <div class="pc" style="margin-bottom:7mm"><img src="/dossier-capturas/pc-etiquetas.jpg" alt="Las etiquetas para imprimir"></div>
+  <div class="cajas">
+    <div class="punto"><i data-i="receipt"></i><div><h3>Hoja A4 o una por carta</h3><p>Hojas de 24 etiquetas (70 × 37 mm), empezando en la que quieras de una hoja a medias, o rollo de 62 × 29 mm.</p></div></div>
+    <div class="punto"><i data-i="scan"></i><div><h3>Lector de códigos</h3><p>Con un lector USB, escaneas la etiqueta en la lupa del Stock o en Vender y aparece esa carta.</p></div></div>
+    <div class="punto"><i data-i="link"></i><div><h3>El QR abre la carta</h3><p>Si lo escanea un cliente, ve esa carta en tu escaparate; si lo escaneas tú, su línea en tu stock.</p></div></div>
+    <div class="punto"><i data-i="trendingUp"></i><div><h3>Precio de Cardmarket</h3><p>El mínimo de cada carta en SU idioma, actualizado a diario. Orientativo: el precio lo pones tú.</p></div></div>
+  </div>
+  <div class="pie"><span>PokeDoc para tiendas</span><span><b>5</b></span></div>
+</section>
+
+<!-- 6 · MOSTRADOR -->
+<section class="hoja">
+  <span class="eti">Mostrador</span>
+  <h2>Vende y compra <em>con una mano</em></h2>
+  <p class="entrada">El botón del centro del móvil abre el Mostrador: Comprar, Vender, Cambio, Escanear y la Caja de hoy. Pensado para el mostrador de la tienda y para la mesa de un evento.</p>
+  <div style="display:grid; grid-template-columns:70mm 1fr; gap:9mm; align-items:start">
+    <div class="movil"><img src="/dossier-capturas/m-mostrador.jpg" alt="El Mostrador en el móvil"></div>
+    <div>
+      <div class="pc" style="margin-bottom:6mm"><div class="recorte" style="height:84mm"><img src="/dossier-capturas/pc-comprar2.jpg" alt="Comprar una carta: lo que vale y el % que pagas" style="width:200%; margin-left:-56%; margin-top:-26mm"></div></div>
+      <div class="puntos">
+        <div class="punto"><i data-i="tag"></i><div><h3>Vender</h3><p>Busca o escanea, y «Vendida». Si regateas, escribe el precio; cobras en efectivo, tarjeta, Bizum o PayPal. La hoja se queda abierta para la siguiente.</p></div></div>
+        <div class="punto"><i data-i="package"></i><div><h3>Comprar</h3><p>Lo que vale en Cardmarket, el tanto por ciento que pagas (el que tú quieras) y lo que ganarías al venderla. Entra «por poner a la venta» hasta que le pongas precio.</p></div></div>
+        <div class="punto"><i data-i="arrowLeftRight"></i><div><h3>Cambio</h3><p>Cartas por cartas y la diferencia en dinero: lo que te da, lo que le das y la cuenta hecha.</p></div></div>
+      </div>
+    </div>
+  </div>
+  <div class="pie"><span>PokeDoc para tiendas</span><span><b>6</b></span></div>
+</section>
+
+<!-- 7 · CAJA Y CIFRAS -->
+<section class="hoja">
+  <span class="eti">Caja y cifras</span>
+  <h2>Sabes lo que ganas, <em>cada día</em></h2>
+  <p class="entrada">Al cerrar, la caja del día te dice cuánto entró por cada forma de pago y cuánto efectivo debería haber. Y el Panel, lo que vendes, lo que ganas y lo que pide atención.</p>
+  <div class="pc" style="margin-bottom:7mm"><div class="recorte" style="height:108mm"><img src="/dossier-capturas/pc-caja.jpg" alt="La caja de hoy" style="width:150%; margin-left:-37%; margin-top:-24mm"></div></div>
+  <div class="cajas">
+    <div class="punto"><i data-i="coins"></i><div><h3>Vendido, beneficio y margen</h3><p>Por día, semana, mes y año, con la gráfica y cómo vas contra el periodo anterior.</p></div></div>
+    <div class="punto"><i data-i="triangleAlert"></i><div><h3>Lo que pide atención</h3><p>Lo que vendes por debajo de Cardmarket o con pérdida, lo que lleva meses parado y lo agotado.</p></div></div>
+    <div class="punto"><i data-i="heart"></i><div><h3>Lo que busca la gente</h3><p>Cuánta gente tiene en su lista de deseos cartas que tú tienes, y un botón para avisarles.</p></div></div>
+    <div class="punto"><i data-i="barChart"></i><div><h3>Cierre del mes</h3><p>Ventas, compras y beneficio del mes en PDF y en CSV, para ti o para tu gestoría.</p></div></div>
+  </div>
+  <div class="pie"><span>PokeDoc para tiendas</span><span><b>7</b></span></div>
+</section>
+
+<!-- 8 · ESCAPARATE Y MERCADO -->
+<section class="hoja">
+  <span class="eti">Escaparate</span>
+  <h2>Que te encuentren <em>los que buscan</em></h2>
+  <p class="entrada">Tu stock visible es tu escaparate en PokeDoc, en pokedoc.es/tiendas/tu-tienda. Y cuando alguien busca una carta en el Mercado, ve las tiendas que la tienen, con su precio.</p>
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:10mm; padding:0 8mm; margin-bottom:8mm">
+    <div class="movil"><img src="/dossier-capturas/m-escaparate.jpg" alt="El escaparate de una tienda"></div>
+    <div class="movil"><img src="/dossier-capturas/m-mercado.jpg" alt="Una carta en el Mercado con las tiendas que la tienen"></div>
+  </div>
+  <div class="cajas">
+    <div class="punto"><i data-i="star"></i><div><h3>Destacadas y ofertas</h3><p>Hasta ocho destacadas, y ofertas con el precio de antes tachado y su fecha de fin.</p></div></div>
+    <div class="punto"><i data-i="share"></i><div><h3>Tu QR</h3><p>Para el mostrador, tu mesa de un evento o tus redes: abre tu escaparate.</p></div></div>
+  </div>
+  <div class="pie"><span>PokeDoc para tiendas</span><span><b>8</b></span></div>
+</section>
+
+<!-- 9 · VENDER ONLINE -->
+<section class="hoja">
+  <span class="eti">Vender online</span>
+  <h2>De «me interesa» <em>a vendida</em></h2>
+  <p class="entrada">Quien ve una carta en tu escaparate te escribe con la carta dentro del mensaje. Todo lo que pasa después va en la misma conversación.</p>
+  <div style="display:grid; grid-template-columns:1fr 62mm; gap:8mm; align-items:start; margin-bottom:6mm">
+  <div class="puntos" style="gap:4mm">
+    <div class="punto"><i data-i="mail"></i><div><h3>«Me interesa»</h3><p>Te llega un mensaje con esa copia concreta: su foto, su estado y su precio. Desde ahí la vendes sin buscarla.</p></div></div>
+    <div class="punto"><i data-i="tag"></i><div><h3>Ofertas</h3><p>Pueden ofrecerte un precio; tú aceptas, respondes o la rechazas. Aceptar la reserva 7 días.</p></div></div>
+    <div class="punto"><i data-i="pin"></i><div><h3>Reservas</h3><p>Lo reservado sale del escaparate mientras dura y vuelve solo si caduca. Recogerla es una venta.</p></div></div>
+    <div class="punto"><i data-i="camera"></i><div><h3>Fotos de verdad</h3><p>Te pueden pedir fotos de la copia (frente y dorso); al subirlas, les llega el aviso.</p></div></div>
+    <div class="punto"><i data-i="bell"></i><div><h3>Avisar a los que la buscan</h3><p>Con un botón, a quien tiene esa carta en su lista le llega tu tienda y la carta. Tú solo ves cuántos, nunca quiénes.</p></div></div>
+    <div class="punto"><i data-i="receipt"></i><div><h3>Recibo</h3><p>Cada venta tiene su recibo para el cliente, con lo que se pagó y cómo. Nunca lleva tu coste ni tu beneficio.</p></div></div>
+  </div>
+  <div class="movil"><img src="/dossier-capturas/m-popup.jpg" alt="Una carta del escaparate con «Me interesa»"></div>
+  </div>
+  <div class="caja">
+    <h3>Tu dinero es tuyo</h3>
+    <p>PokeDoc no cobra por ti ni se queda nada de tus ventas: cobras como siempre (efectivo, tarjeta, Bizum o PayPal) y PokeDoc lo apunta para que la caja te cuadre. Tu coste y tu margen solo los ves tú.</p>
+  </div>
+  <div class="pie"><span>PokeDoc para tiendas</span><span><b>9</b></span></div>
+</section>
+
+<!-- 10 · CÓMO EMPEZAR -->
+<section class="hoja cierre">
+  <span class="eti" style="color:var(--teal-claro)">Cómo empezar</span>
+  <h2>Estamos en <em>beta</em>. ¿Te apuntas?</h2>
+  <p class="entrada">Empezamos con unas pocas tiendas para hacerlo con ellas. La cuenta de tienda entra solo por invitación.</p>
+  <div style="display:grid; grid-template-columns:1fr 58mm; gap:10mm; align-items:start">
+    <div class="pasos">
+      <div class="paso"><b>1</b><div><h3>Pide acceso</h3><p>En pokedoc.es/para-tiendas, con el nombre de la tienda y su email.</p></div></div>
+      <div class="paso"><b>2</b><div><h3>Te invitamos</h3><p>Lo miramos y te escribimos, tanto si sí como si no. La invitación llega a ese email.</p></div></div>
+      <div class="paso"><b>3</b><div><h3>Sube tu stock</h3><p>Crea la cuenta con la invitación, importa tu CSV o añade cartas, y listo.</p></div></div>
+    </div>
+    <div><div class="qr" id="qr"></div><p class="nota" style="color:#cfe3ea; text-align:center">pokedoc.es/para-tiendas</p></div>
+  </div>
+  <div style="margin-top:4mm">
+    <div class="preg"><h3>¿Necesito tener local?</h3><p>No. Vale igual si vendes desde casa o solo en eventos.</p></div>
+    <div class="preg"><h3>¿Ve alguien lo que me costó cada carta?</h3><p>Nunca. El coste y el beneficio solo los ves tú; ni el escaparate ni el recibo los llevan.</p></div>
+    <div class="preg"><h3>Ya lo llevo en un Excel.</h3><p>Lo importas en CSV y entra entero, con tus precios.</p></div>
+    <div class="preg"><h3>¿Puedo usarlo en el móvil?</h3><p>Sí: es la web de PokeDoc, se puede instalar en el móvil como una app, y el Mostrador está pensado para usarlo con una mano.</p></div>
+  </div>
+  <div class="pie"><span>pokedoc.es/para-tiendas</span><span><b>PokeDoc</b> · la comunidad española de Pokémon TCG</span></div>
+</section>
+
+<script type="module">
+import { svgQR } from '/js/qr.js'
+import { icons } from '/js/icons.js'
+document.getElementById('qr').innerHTML = svgQR('https://pokedoc.es/para-tiendas', { tam: 400 })
+for (const i of document.querySelectorAll('[data-i]')) i.innerHTML = icons[i.dataset.i](20)
+await document.fonts.ready
+await Promise.all([...document.images].map((i) => i.decode().catch(() => {})))
+window.__listo = true
+</script>
+</body></html>

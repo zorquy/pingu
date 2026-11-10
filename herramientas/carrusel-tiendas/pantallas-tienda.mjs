@@ -64,4 +64,10 @@ const TIENDA = { id: 't1', username: 'tutienda', display_name: 'Tu tienda', tipo
   await p.screenshot({ path: SAL + '-mercado-ficha.png' })
   await ctx.close()
 }
+{
+  const { p, ctx } = await abrir('/usuario?u=tutienda&carta=carta-3&linea=e3', { sesion: 'user-2', rpc: { tienda_escaparate: '__ESC__', tienda_reservas_al_dia: 0 }, filas: { tiendas: [{ user_id: 't1', ciudad: 'Bilbao', precio_visible: true, con_local: true, nombre: 'Tu tienda' }] }, perfiles: [TIENDA] })
+  await p.waitForTimeout(800)
+  await p.screenshot({ path: SAL + '-popup.png' })
+  await ctx.close()
+}
 await b.close()
