@@ -55316,12 +55316,11 @@ Los scripts viven en la rama `pruebas` (`herramientas/dossier-tiendas/`:
 `capturas.mjs`, `convertir.mjs`, `web.mjs`): si cambia una pantalla, se vuelven
 a sacar. Todas llevan `width`/`height` (313) y las de abajo `loading="lazy"`.
 
-**El dossier** (`descargas/pokedoc-para-tiendas.pdf`, diez páginas A4) sale de
+**El dossier** (`descargas/pokedoc-para-tiendas.pdf`, dieciocho páginas A4, «más como la web»: cada página con la barra de arriba, la banda de sección y tarjetas como /para-tiendas) sale de
 `herramientas/dossier-tiendas/dossier.html` imprimido por Chromium
 (`hacer.mjs`): portada, qué es, inventario, dar de alta, etiquetas, mostrador,
-caja y cifras, escaparate, vender online y cómo empezar (con el QR a
-/para-tiendas). Pesa ~4 MB, casi todo las dos letras variables que Chromium
-incrusta enteras; la página dice lo que pesa y `test-tanda-1281` comprueba que
+por qué, el Stock columna a columna (con marcas numeradas), cada copia, dar de alta, comprar a un cliente, precios, etiquetas y SKU, el Mostrador, vender, caja y ventas, el Panel, el escaparate, el Mercado, ofertas y reservas, tus datos con «un día en la tienda» y cómo empezar (con el QR a
+/para-tiendas). Pesa ~3,4 MB: los degradados van como JPEG (`fondos.mjs`; en CSS Chromium mete un patrón con máscara de 200 KB por página) y las letras son las estáticas de @fontsource por grosor (las variables salían como Type 3); la página dice lo que pesa y `test-tanda-1281` comprueba que
 lo que dice cuadra. Va en `descargas/` y no en `assets/`: el service worker
 guarda en caché lo de `/assets/` (`esFichero`) y un PDF de 4 MB no pinta nada
 ahí. Si cambia lo que cuenta, se rehace el HTML y se vuelve a imprimir.

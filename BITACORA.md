@@ -44,7 +44,7 @@ dos son 1281; esta es la de las tiendas.)
 **Hecho**: PINGU pidió un PDF largo sobre las tiendas («el principal atractivo
 es poder gestionar tu inventario de una manera sencilla y virtual») y rehacer
 la página de pedir acceso («más info, poder agregar el pdf para que se
-descargue desde ahí y que sea todo más visual»). El dossier son diez páginas A4
+descargue desde ahí y que sea todo más visual»). El dossier son dieciocho páginas A4 con el aspecto de la web (barra, banda de sección, tarjetas; PINGU pidió «más como la web» y «más extenso»), cada función explicada paso a paso
 con capturas REALES del panel (Stock, añadir, etiquetas, Mostrador, Comprar,
 la caja, escaparate, el pop-up de una carta y el Mercado) con las cuatro cartas
 que pasó PINGU, y va en `descargas/`. /para-tiendas es ahora una página de
