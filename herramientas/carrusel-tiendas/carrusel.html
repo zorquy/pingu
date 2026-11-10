@@ -34,9 +34,10 @@ const REAL = {}
 for (const n of ['umbreon', 'pikachu', 'charizard', 'mew']) REAL[n] = await cargar(`/carrusel-arte/real-${n}.webp`)
 // La pantalla DE VERDAD del Mostrador (PINGU: «es mucho mejor la que tenemos
 // ahora»): una captura de /tienda en un iPhone, en oscuro, con el abanico
-// abierto (pantalla-mostrador.mjs, a 390×797: lo que queda bajo la barra de
+// abierto (pantalla-mostrador.mjs; el escaparate y el Mercado, pantallas-tienda.mjs; a 390×797: lo que queda bajo la barra de
 // estado de un 390×844).
-const PANTALLA = { mostrador: await cargar('/carrusel-arte/pantalla-mostrador.png'), panel: await cargar('/carrusel-arte/pantalla-panel.png') }
+const PANTALLA = {}
+for (const n of ['mostrador', 'panel', 'escaparate', 'mercado']) PANTALLA[n] = await cargar(`/carrusel-arte/pantalla-${n}.png`)
 // Pinta una captura bajo una barra de estado con la hora, del color de arriba
 // de la propia captura.
 const conCaptura = (img) => async (p, sw, sh) => {
@@ -327,7 +328,7 @@ const PIEZAS = [
       halo(ctx, k.x + k.w / 2, k.y + k.h / 2, k.w * 0.62)
       carta(ctx, { ...c('charizard', { precio: '79,90 €' }), x: k.x - 30, y: k.y + k.h * 0.14, w: 330, angulo: -13 })
       carta(ctx, { ...c('umbreon', { precio: '1.150 €' }), x: k.x + k.w - 300, y: k.y + k.h * 0.24, w: 330, angulo: 12 })
-      await movil(ctx, { x: k.x + k.w / 2 - w / 2, y: k.y + (k.h - h) / 2, w, pintar: pantallaEscaparate })
+      await movil(ctx, { x: k.x + k.w / 2 - w / 2, y: k.y + (k.h - h) / 2, w, pintar: conCaptura(PANTALLA.escaparate) })
     } },
   { nombre: 'tiendas-2', formato: 'historia', chapaPie: `2/${TOTAL}`,
     titulo: 'Etiquetas con *QR* y código de barras', entradilla: 'Imprímelas, pégalas en la funda y vende escaneando.',
@@ -361,7 +362,7 @@ const PIEZAS = [
     pieza: async (ctx, k) => {
       const w = anchoQueCabe(k, 420), h = 930 * w / 430
       halo(ctx, k.x + k.w - 190, k.y + k.h * 0.62, 360, '#8a6cff', 0.4)
-      await movil(ctx, { x: k.x + 10, y: k.y + (k.h - h) / 2, w, angulo: 3, pintar: pantallaMercado })
+      await movil(ctx, { x: k.x + 10, y: k.y + (k.h - h) / 2, w, pintar: conCaptura(PANTALLA.mercado) })
       // la carta y el mensaje que te llega por ella
       carta(ctx, { ...c('umbreon'), x: k.x + k.w - 330, y: k.y + k.h * 0.3, w: 320, angulo: 9 })
       const bx = k.x + k.w - 400, by = k.y + k.h * 0.08
@@ -394,7 +395,7 @@ const PIEZAS = [
       halo(ctx, k.x + k.w / 2, y0 + h / 2, k.w * 0.65)
       carta(ctx, { ...c('charizard', { precio: '79,90 €' }), x: k.x - 40, y: y0 + h * 0.18, w: 330, angulo: -13 })
       carta(ctx, { ...c('umbreon', { precio: '1.150 €' }), x: k.x + k.w - 290, y: y0 + h * 0.3, w: 330, angulo: 12 })
-      await movil(ctx, { x: k.x + k.w / 2 - w / 2, y: y0, w, pintar: pantallaEscaparate })
+      await movil(ctx, { x: k.x + k.w / 2 - w / 2, y: y0, w, pintar: conCaptura(PANTALLA.escaparate) })
       boton(ctx, 'Pide acceso  →', { x: k.x, y: k.y + k.h - btn, w: k.w })
     } },
   { nombre: 'tiendas-x', formato: 'apaisada',
@@ -404,7 +405,7 @@ const PIEZAS = [
       halo(ctx, k.x + k.w / 2, k.y + 230, 330)
       carta(ctx, { ...c('charizard', { precio: '79,90 €' }), x: k.x - 10, y: k.y + 60, w: 200, angulo: -11 })
       carta(ctx, { ...c('umbreon', { precio: '1.150 €' }), x: k.x + k.w - 190, y: k.y + 80, w: 200, angulo: 11 })
-      await movil(ctx, { x: k.x + k.w / 2 - w / 2, y: k.y - 10, w, pintar: pantallaEscaparate })
+      await movil(ctx, { x: k.x + k.w / 2 - w / 2, y: k.y - 10, w, pintar: conCaptura(PANTALLA.escaparate) })
     } },
 ]
 
