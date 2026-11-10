@@ -32,6 +32,21 @@ for (const n of [6, 25, 94, 197, 151, 384, 448, 133, 249, 445]) ARTE[n] = await 
 // reales»): los escaneos que pasó él, en /carrusel-arte/real-*.webp.
 const REAL = {}
 for (const n of ['umbreon', 'pikachu', 'charizard', 'mew']) REAL[n] = await cargar(`/carrusel-arte/real-${n}.webp`)
+// La pantalla DE VERDAD del Mostrador (PINGU: «es mucho mejor la que tenemos
+// ahora»): una captura de /tienda en un iPhone, en oscuro, con el abanico
+// abierto (pantalla-mostrador.mjs, a 390×797: lo que queda bajo la barra de
+// estado de un 390×844).
+const PANTALLA = { mostrador: await cargar('/carrusel-arte/pantalla-mostrador.png'), panel: await cargar('/carrusel-arte/pantalla-panel.png') }
+// Pinta una captura bajo una barra de estado con la hora, del color de arriba
+// de la propia captura.
+const conCaptura = (img) => async (p, sw, sh) => {
+  const est = 47
+  p.drawImage(img, 0, est, sw, sh - est)
+  const m = document.createElement('canvas').getContext('2d'); m.drawImage(img, 0, 0, 1, 1, 0, 0, 1, 1)
+  const [r, g, b] = m.getImageData(0, 0, 1, 1).data
+  p.fillStyle = `rgb(${r},${g},${b})`; p.fillRect(0, 0, sw, est)
+  texto(p, '9:41', 34, 32, { cuerpo: 16, peso: 700, color: '#ffffff' })
+}
 async function icono(nombre, color, lado) {
   return cargar('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(icons[nombre](lado).replace(/currentColor/g, color)))
 }
@@ -334,9 +349,12 @@ const PIEZAS = [
     titulo: 'El *mostrador* en tu bolsillo', entradilla: 'Vende, compra y cambia en un evento con una mano.',
     pieza: async (ctx, k) => {
       const w = anchoQueCabe(k, 420), h = 930 * w / 430
-      halo(ctx, k.x + k.w - 150, k.y + k.h * 0.35, 380, '#ffd23c', 0.35)
-      carta(ctx, { ...c('pikachu', { precio: '420 €' }), x: k.x + k.w - 300, y: k.y + k.h * 0.06, w: 310, angulo: 11 })
-      await movil(ctx, { x: k.x + k.w / 2 - w / 2 - 110, y: k.y + (k.h - h) / 2, w, angulo: -3, pintar: pantallaMostrador })
+      // El móvil derecho y grande, que la pantalla se lea; la carta vendida
+      // asoma detrás, con su precio.
+      halo(ctx, k.x + k.w - 170, k.y + k.h * 0.4, 400, '#ffd23c', 0.35)
+      halo(ctx, k.x + k.w * 0.4, k.y + k.h * 0.6, 420)
+      carta(ctx, { ...c('pikachu', { precio: '420 €' }), x: k.x + k.w - 330, y: k.y + k.h * 0.1, w: 330, angulo: 12 })
+      await movil(ctx, { x: k.x + k.w * 0.4 - w / 2, y: k.y + (k.h - h) / 2, w, pintar: conCaptura(PANTALLA.mostrador) })
     } },
   { nombre: 'tiendas-4', formato: 'historia', chapaPie: `4/${TOTAL}`,
     titulo: 'Que te *encuentren*', entradilla: 'Si alguien busca una carta que tienes, sales tú.',
