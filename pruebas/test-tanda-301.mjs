@@ -233,44 +233,81 @@ console.log('\n── 5. Lo que ya funcionaba sigue funcionando ──')
   await page.close()
 }
 
-console.log('\n── 6. Con 200 personas no se scrollea hasta el infinito ──')
+console.log('\n── 6. La gente va por páginas de doce (1279) ──')
 {
-  // PINGU: «los usuarios, como ya son 200, hay que scrollear demasiado».
-  // 200 tarjetas son 100 filas hasta el pie de la página, y las 190 de
-  // abajo no las mira nadie: la lista va por XP, así que a alguien
-  // concreto se llega por el buscador.
-  const muchos = Array.from({ length: 24 }, (_, i) => ({
+  // PINGU: «los usuarios, como ya son 200, hay que scrollear demasiado» (la
+  // 304 enseñaba diez y un botón), y en la 1279: con diez, la décima se
+  // quedaba sola en su fila del PC («hay una fila que sobra») y «Ver 190
+  // personas más» las soltaba todas. Ahora: páginas de doce, que llenan
+  // filas de una, dos, tres o cuatro, con el paginador arriba y abajo.
+  const muchos = Array.from({ length: 30 }, (_, i) => ({
     id: `p${i}`, username: `persona${i}`, display_name: `Persona ${i}`,
-    total_xp: 2400 - i * 50, current_streak: 0, last_active_date: HOY,
+    total_xp: 3000 - i * 50, current_streak: 0, last_active_date: HOY,
   }))
   const { page } = await abrir('/usuarios.html', { gente: muchos })
-  const cuantas = () => page.locator('.com-persona').count()
-  check('de entrada salen diez', (await cuantas()) === 10, String(await cuantas()))
-  const btn = page.locator('#btnVerTodaLaGente')
-  // La cuenta va EN el botón: «Ver más» no dice nada, «Ver 19 personas
-  // más» dice que hay más y cuántas.
-  check('  …y el botón dice cuántas faltan', /Ver \d+ personas más/.test((await btn.textContent()) || ''),
-    await btn.textContent())
-  await btn.click()
+  const nombres = () => page.$$eval('#userDirectoryGrid .com-persona', (xs) => xs.map((x) => x.querySelector('.com-persona-nombre, h3, strong')?.textContent?.trim() || x.textContent.trim().slice(0, 12)))
+  const cuantas = () => page.locator('#userDirectoryGrid .com-persona').count()
+  check('de entrada salen doce', (await cuantas()) === 12, String(await cuantas()))
+  check('  …sin el botón de ver más', (await page.locator('#btnVerTodaLaGente').count()) === 0)
+  const filas = await page.$$eval('#userDirectoryGrid .com-persona', (xs) => {
+    const tops = new Map()
+    for (const x of xs) { const t = Math.round(x.getBoundingClientRect().top); tops.set(t, (tops.get(t) || 0) + 1) }
+    return [...tops.values()]
+  })
+  check('  …y todas las filas van llenas (ninguna sola al final)', filas.length > 0 && new Set(filas).size === 1, JSON.stringify(filas))
+  check('el paginador, arriba y abajo, con tres páginas', (await page.locator('#userDirectoryArriba .paginacion-arriba').count()) === 1 &&
+    (await page.locator('#userDirectoryPie .paginacion').count()) === 1 &&
+    (await page.locator('#userDirectoryPie .pag-ancho [data-pagina="3"]').count()) === 1)
+  const primera = await nombres()
+  await page.locator('#userDirectoryPie .pag-ancho [data-pagina="2"]').click()
   await page.waitForTimeout(400)
-  check('  …y al pulsarlo salen todas', (await cuantas()) > 10, String(await cuantas()))
-  check('  …y el botón se va', (await page.locator('#btnVerTodaLaGente').count()) === 0)
+  const segunda = await nombres()
+  check('la 2 trae otras doce', segunda.length === 12 && !segunda.some((n) => primera.includes(n)), JSON.stringify(segunda.slice(0, 3)))
+  check('  …y lo dice en la dirección (?p=2)', new URL(page.url()).searchParams.get('p') === '2', page.url())
+  await page.locator('#userDirectoryArriba .pag-ancho [data-pagina="3"]').click()
+  await page.waitForTimeout(400)
+  // Lo que quede en la tercera: las del doble se suman a las treinta.
+  const total = Number((await page.locator('#chipGente').textContent())?.trim())
+  const enLaUltima = total - 24
+  check('la última, con las que quedan', total > 24 && total <= 36 && (await cuantas()) === enLaUltima, `${await cuantas()} de ${total}`)
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(1500)
+  check('volver a la página la deja en la 3', (await cuantas()) === enLaUltima && (await page.locator('#userDirectoryPie .pag-actual').first().textContent())?.trim() === '3')
+  await page.fill('#userSearchInput', 'Persona 1')
+  await page.waitForTimeout(400)
+  // Persona 1 y Persona 10..19: once, en una página y sin paginador.
+  check('buscando, el resultado empieza en la primera', (await cuantas()) === 11 && (await page.locator('#userDirectoryPie .paginacion').count()) === 0,
+    String(await cuantas()))
+  await page.fill('#userSearchInput', 'Persona')
+  await page.waitForTimeout(400)
+  check('  …y si da para más, también va por páginas', (await cuantas()) === 12 && (await page.locator('#userDirectoryPie .paginacion').count()) === 1)
+  await page.fill('#userSearchInput', '')
+  await page.waitForTimeout(400)
+  check('  …y al borrar vuelves a la página en la que estabas', (await cuantas()) === enLaUltima, String(await cuantas()))
   await page.close()
 }
 {
-  // Buscando NO se recorta: si has escrito un nombre, pedirte otro clic
-  // para ver el resultado es absurdo.
-  const muchos = Array.from({ length: 24 }, (_, i) => ({
+  // En el móvil solo abajo (1279): arriba bajaba la primera persona del 40 %.
+  const muchos = Array.from({ length: 30 }, (_, i) => ({
     id: `p${i}`, username: `persona${i}`, display_name: `Persona ${i}`,
-    total_xp: 2400 - i * 50, current_streak: 0, last_active_date: HOY,
+    total_xp: 3000 - i * 50, current_streak: 0, last_active_date: HOY,
+  }))
+  const { page } = await abrir('/usuarios.html', { gente: muchos, ancho: 390 })
+  check('en el móvil, el paginador solo abajo', !(await page.locator('#userDirectoryArriba .paginacion').isVisible()) &&
+    (await page.locator('#userDirectoryPie .paginacion').isVisible()))
+  await page.close()
+}
+{
+  // Toda la gente, no las 200 con más XP: con páginas, la de la página 40
+  // también se tiene que poder ver. El doble corta a 1.000 como la base.
+  const muchos = Array.from({ length: 1030 }, (_, i) => ({
+    id: `q${i}`, username: `gente${i}`, display_name: `Gente ${i}`,
+    total_xp: 100000 - i, current_streak: 0, last_active_date: '2026-01-01',
   }))
   const { page } = await abrir('/usuarios.html', { gente: muchos })
-  await page.fill('#userSearchInput', 'Persona 1')
-  await page.waitForTimeout(400)
-  // Persona 1 y Persona 10..19: once, y las once tienen que verse.
-  check('buscando se ven todas las que coinciden', (await page.locator('.com-persona').count()) === 11,
-    String(await page.locator('.com-persona').count()))
-  check('  …y no sale el botón de ver más', (await page.locator('#btnVerTodaLaGente').count()) === 0)
+  await page.fill('#userSearchInput', 'Gente 1029')
+  await page.waitForTimeout(500)
+  check('sale hasta la última de más de mil', (await page.locator('#userDirectoryGrid .com-persona').count()) === 1)
   await page.close()
 }
 
