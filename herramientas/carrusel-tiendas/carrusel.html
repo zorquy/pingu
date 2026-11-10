@@ -1,0 +1,244 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<link rel="stylesheet" href="/css/style.css">
+<title>Carrusel tiendas</title></head>
+<body style="background:#0b1219">
+<script type="module">
+// El carrusel de las tiendas en beta (PINGU, 2026-11-10: «una imagen o un
+// carrusel para subir a Instagram y a Twitter… está en beta, necesitamos
+// gente que lo pruebe»). Con EL MARCO de las redes (js/redes-marco.js, 1156)
+// y el verde azulado de las tiendas (--rango-tienda en oscuro, 1243).
+import { pintarMarco, prepararMarco, chapa, TITULAR, TEXTO } from '/js/redes-marco.js'
+import { redondeado } from '/js/imagen-compartir.js'
+import { icons } from '/js/icons.js'
+
+const TEAL = '#3cc8c0'
+const OSCURO = '#0b1219'
+const ENLACE = 'pokedoc.es/para-tiendas'
+const TOTAL = 5
+
+const alfa = (hex, a) => {
+  const n = parseInt(hex.slice(1), 16)
+  return `rgba(${n >> 16},${(n >> 8) & 255},${n & 255},${a})`
+}
+async function icono(nombre, color, lado) {
+  const svg = icons[nombre](lado).replace(/currentColor/g, color)
+  const img = new Image()
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg)
+  await img.decode()
+  return img
+}
+function lineas(ctx, texto, ancho) {
+  const out = []
+  let l = ''
+  for (const p of String(texto).split(' ')) {
+    const prueba = l ? `${l} ${p}` : p
+    if (l && ctx.measureText(prueba).width > ancho) { out.push(l); l = p } else l = prueba
+  }
+  if (l) out.push(l)
+  return out
+}
+
+// Una carta de mentira con su precio: borde dorado, arte en degradado y
+// rayas de texto. Sin fotos de nadie.
+function carta(ctx, { x, y, w, h, de, a, angulo = 0, precio = '', oferta = '' }) {
+  ctx.save()
+  ctx.translate(x + w / 2, y + h / 2)
+  ctx.rotate((angulo * Math.PI) / 180)
+  const x0 = -w / 2, y0 = -h / 2
+  ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 14
+  ctx.fillStyle = '#f2c94c'; redondeado(ctx, x0, y0, w, h, w * 0.06); ctx.fill()
+  ctx.shadowColor = 'transparent'
+  const m = w * 0.06
+  const g = ctx.createLinearGradient(x0, y0, x0 + w, y0 + h)
+  g.addColorStop(0, de); g.addColorStop(1, a)
+  ctx.fillStyle = '#fbf6e4'; redondeado(ctx, x0 + m, y0 + m, w - m * 2, h - m * 2, w * 0.03); ctx.fill()
+  ctx.fillStyle = g; redondeado(ctx, x0 + m * 1.6, y0 + h * 0.13, w - m * 3.2, h * 0.42, w * 0.02); ctx.fill()
+  // brillo
+  const b = ctx.createLinearGradient(x0, y0 + h * 0.13, x0 + w, y0 + h * 0.55)
+  b.addColorStop(0, 'rgba(255,255,255,0)'); b.addColorStop(0.5, 'rgba(255,255,255,0.35)'); b.addColorStop(1, 'rgba(255,255,255,0)')
+  ctx.fillStyle = b; redondeado(ctx, x0 + m * 1.6, y0 + h * 0.13, w - m * 3.2, h * 0.42, w * 0.02); ctx.fill()
+  ctx.fillStyle = 'rgba(30,40,50,0.55)'
+  ctx.fillRect(x0 + m * 1.6, y0 + h * 0.06, w * 0.45, h * 0.035)
+  for (let i = 0; i < 3; i++) ctx.fillRect(x0 + m * 1.6, y0 + h * (0.62 + i * 0.08), (w - m * 3.2) * (i === 2 ? 0.6 : 1), h * 0.03)
+  ctx.restore()
+  if (precio) {
+    const c = Math.round(w * 0.12)
+    ctx.save()
+    ctx.font = `800 ${c}px ${TITULAR}`
+    const pw = ctx.measureText(precio).width + c * 1.2
+    const px = x + w / 2 - pw / 2, py = y + h - c * 0.9
+    ctx.fillStyle = OSCURO; redondeado(ctx, px, py, pw, c * 1.7, c * 0.85); ctx.fill()
+    ctx.strokeStyle = TEAL; ctx.lineWidth = 3; ctx.stroke()
+    ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+    ctx.fillText(precio, x + w / 2, py + c * 0.88)
+    ctx.restore()
+  }
+  if (oferta) chapa(ctx, oferta, { x: x + w * 0.5, y: y - 18, cuerpo: Math.round(w * 0.075), fondo: '#f06c9b', color: '#ffffff' })
+}
+
+// El escaparate de una tienda, dibujado: cabecera con su nombre y burbujas,
+// y tres cartas con precio.
+function escaparate(ctx, { x, y, w, h }) {
+  ctx.save()
+  ctx.fillStyle = 'rgba(255,255,255,0.06)'; redondeado(ctx, x, y, w, h, 36); ctx.fill()
+  ctx.strokeStyle = 'rgba(255,255,255,0.12)'; ctx.lineWidth = 2; ctx.stroke()
+  const pad = Math.round(w * 0.05)
+  const av = Math.round(Math.min(w * 0.13, h * 0.2))
+  ctx.fillStyle = TEAL; ctx.beginPath(); ctx.arc(x + pad + av / 2, y + pad + av / 2, av / 2, 0, Math.PI * 2); ctx.fill()
+  ctx.fillStyle = OSCURO; ctx.font = `800 ${Math.round(av * 0.5)}px ${TITULAR}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+  ctx.fillText('T', x + pad + av / 2, y + pad + av / 2 + 2)
+  ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'
+  const tx = x + pad + av + Math.round(pad * 0.6)
+  ctx.fillStyle = TEAL; ctx.font = `800 ${Math.round(av * 0.42)}px ${TITULAR}`
+  ctx.fillText('Tu tienda', tx, y + pad + av * 0.46)
+  const c = Math.round(av * 0.2)
+  const w1 = chapa(ctx, 'Tienda física', { x: tx, y: y + pad + av * 0.6, cuerpo: c, fondo: 'rgba(255,255,255,0.12)', color: '#ffffff', mayusculas: false, fuente: TEXTO, peso: 600 })
+  chapa(ctx, '● Abierta ahora', { x: tx + w1 + 10, y: y + pad + av * 0.6, cuerpo: c, fondo: alfa('#2fb47c', 0.22), color: '#7be3b2', mayusculas: false, fuente: TEXTO, peso: 600 })
+  const top = y + pad + av + pad
+  const disp = h - (top - y) - pad * 1.4
+  const cw = Math.min((w - pad * 2) / 3.4, disp / 1.4 * 0.716 * 1.4 / 1.4)
+  const ch = cw / 0.716
+  const gap = (w - pad * 2 - cw * 3) / 2
+  const cy = top + Math.max(10, (disp - ch) / 2)
+  carta(ctx, { x: x + pad, y: cy, w: cw, h: ch, de: '#f6a04d', a: '#d9445a', angulo: -3, precio: '12,50 €' })
+  carta(ctx, { x: x + pad + cw + gap, y: cy - 14, w: cw, h: ch, de: '#5bc0eb', a: '#3a4fd1', angulo: 0, precio: '39,00 €', oferta: 'Oferta' })
+  carta(ctx, { x: x + pad + (cw + gap) * 2, y: cy, w: cw, h: ch, de: '#9be15d', a: '#00a37a', angulo: 3, precio: '4,90 €' })
+  ctx.restore()
+}
+
+// Una fila de lo que trae: icono en su círculo, título y una línea.
+async function rasgos(ctx, caja, filas) {
+  const gap = 18
+  const n = filas.length
+  const alto = Math.min(150, (caja.h - gap * (n - 1)) / n)
+  const total = alto * n + gap * (n - 1)
+  let y = caja.y + (caja.h - total) / 2
+  for (const f of filas) {
+    ctx.save()
+    ctx.fillStyle = 'rgba(255,255,255,0.06)'; redondeado(ctx, caja.x, y, caja.w, alto, 28); ctx.fill()
+    ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 2; ctx.stroke()
+    const r = alto * 0.3
+    const cx = caja.x + 28 + r, cy = y + alto / 2
+    ctx.fillStyle = alfa(TEAL, 0.18); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill()
+    const img = await icono(f.icono, TEAL, Math.round(r * 1.05))
+    ctx.drawImage(img, cx - r * 0.525, cy - r * 0.525, r * 1.05, r * 1.05)
+    const tx = cx + r + 28
+    const ancho = caja.x + caja.w - 28 - tx
+    const ct = Math.round(Math.min(38, alto * 0.27))
+    const cs = Math.round(Math.min(27, alto * 0.2))
+    ctx.font = `500 ${cs}px ${TEXTO}`
+    const ls = lineas(ctx, f.texto, ancho).slice(0, 2)
+    const bloque = ct + 10 + ls.length * cs * 1.3
+    let ty = cy - bloque / 2 + ct
+    ctx.fillStyle = '#ffffff'; ctx.font = `800 ${ct}px ${TITULAR}`; ctx.textBaseline = 'alphabetic'
+    ctx.fillText(f.titulo, tx, ty)
+    ctx.fillStyle = '#cfe3f1'; ctx.font = `500 ${cs}px ${TEXTO}`
+    ls.forEach((l, i) => ctx.fillText(l, tx, ty + 12 + cs * (1 + i * 1.3)))
+    ctx.restore()
+    y += alto + gap
+  }
+}
+
+function boton(ctx, texto, { x, y, w, cuerpo = 40 }) {
+  ctx.save()
+  const alto = cuerpo * 2.2
+  ctx.shadowColor = alfa(TEAL, 0.45); ctx.shadowBlur = 40
+  ctx.fillStyle = TEAL; redondeado(ctx, x, y, w, alto, alto / 2); ctx.fill()
+  ctx.shadowColor = 'transparent'
+  ctx.fillStyle = OSCURO; ctx.font = `800 ${cuerpo}px ${TITULAR}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+  ctx.fillText(texto, x + w / 2, y + alto / 2 + 2)
+  ctx.restore()
+  return alto
+}
+
+async function pasos(ctx, caja) {
+  const filas = [
+    ['1', 'Pide acceso', 'En pokedoc.es/para-tiendas, en un minuto'],
+    ['2', 'Te damos de alta', 'Te llega un correo con tu invitación'],
+    ['3', 'Monta tu escaparate', 'Sube tu stock y empieza a vender'],
+  ]
+  const alto = 128, gap = 18
+  const btn = 40 * 2.2
+  const total = filas.length * alto + (filas.length - 1) * gap + 40 + btn
+  let y = caja.y + (caja.h - total) / 2
+  for (const [n, t, s] of filas) {
+    ctx.save()
+    ctx.fillStyle = 'rgba(255,255,255,0.06)'; redondeado(ctx, caja.x, y, caja.w, alto, 28); ctx.fill()
+    const r = 38, cx = caja.x + 28 + r, cy = y + alto / 2
+    ctx.fillStyle = TEAL; ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill()
+    ctx.fillStyle = OSCURO; ctx.font = `800 40px ${TITULAR}`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'
+    ctx.fillText(n, cx, cy + 2)
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'
+    ctx.fillStyle = '#ffffff'; ctx.font = `800 38px ${TITULAR}`; ctx.fillText(t, cx + r + 28, cy - 4)
+    ctx.fillStyle = '#cfe3f1'; ctx.font = `500 27px ${TEXTO}`; ctx.fillText(s, cx + r + 28, cy + 34)
+    ctx.restore()
+    y += alto + gap
+  }
+  boton(ctx, 'Pide acceso  →', { x: caja.x, y: y + 22, w: caja.w })
+}
+
+const BASE = { acento: TEAL, chapa: 'Tiendas · beta', enlace: ENLACE }
+const PIEZAS = [
+  { nombre: 'tiendas-1', formato: 'historia', chapaPie: `1/${TOTAL}`,
+    titulo: 'Las *tiendas* llegan a PokeDoc',
+    entradilla: 'Tu tienda o tu compraventa, dentro de la comunidad española de Pokémon TCG. Está en beta y buscamos quien la pruebe.',
+    pieza: async (ctx, caja) => escaparate(ctx, caja) },
+  { nombre: 'tiendas-2', formato: 'historia', chapaPie: `2/${TOTAL}`,
+    titulo: 'Tu stock, *ordenado*',
+    entradilla: 'Todo lo que vendes en un sitio, con el precio de Cardmarket al lado.',
+    pieza: (ctx, caja) => rasgos(ctx, caja, [
+      { icono: 'tag', titulo: 'SKU y etiquetas con QR', texto: 'Imprímelas y escanéalas para vender en un segundo' },
+      { icono: 'coins', titulo: 'Precio de Cardmarket', texto: 'A la vista, en el idioma de cada copia' },
+      { icono: 'camera', titulo: 'Fotos de verdad', texto: 'Frontal y trasera de cada carta' },
+      { icono: 'sparkles', titulo: 'Ofertas y destacadas', texto: 'Con precio tachado y fecha de fin' },
+    ]) },
+  { nombre: 'tiendas-3', formato: 'historia', chapaPie: `3/${TOTAL}`,
+    titulo: 'El *mostrador*, en tu móvil',
+    entradilla: 'Vende, compra y cambia en un evento sin soltar el teléfono.',
+    pieza: (ctx, caja) => rasgos(ctx, caja, [
+      { icono: 'scan', titulo: 'Vender', texto: 'Busca o escanea la etiqueta, cobra y listo' },
+      { icono: 'package', titulo: 'Comprar a tu %', texto: 'Al 85, al 90… el tanto por ciento que uses' },
+      { icono: 'arrowLeftRight', titulo: 'Cambios', texto: 'Cartas por cartas y la diferencia en dinero' },
+      { icono: 'layers', titulo: 'Lotes', texto: 'Apúntalo con una foto y desglósalo después' },
+      { icono: 'receipt', titulo: 'La caja de hoy', texto: 'Lo que entra y lo que sale, cuadrado' },
+    ]) },
+  { nombre: 'tiendas-4', formato: 'historia', chapaPie: `4/${TOTAL}`,
+    titulo: 'La gente te *encuentra*',
+    entradilla: 'Tu escaparate, delante de los más de 550 miembros de PokeDoc.',
+    pieza: (ctx, caja) => rasgos(ctx, caja, [
+      { icono: 'store', titulo: 'Tu escaparate', texto: 'Público, con tu horario y tus destacadas' },
+      { icono: 'search', titulo: 'En el Mercado', texto: 'Sales cuando alguien busca una carta que tienes' },
+      { icono: 'messageSquare', titulo: 'Me interesa y ofertas', texto: 'Te escriben con la carta dentro del mensaje' },
+      { icono: 'bell', titulo: 'Avisa a quien la busca', texto: 'Un toque y les llega que la tienes' },
+      { icono: 'clock', titulo: 'Reservas', texto: 'Aparta una carta unos días para quien la quiere' },
+    ]) },
+  { nombre: 'tiendas-5', formato: 'historia', chapaPie: `5/${TOTAL}`,
+    titulo: 'Buscamos tiendas para la *beta*',
+    entradilla: 'Tiendas físicas y particulares que se dedican a la compraventa. Pruébalo y dinos qué le falta.',
+    pieza: (ctx, caja) => pasos(ctx, caja) },
+  { nombre: 'tiendas-historia', formato: 'larga', chapaPie: 'Beta',
+    titulo: 'Las *tiendas* llegan a PokeDoc',
+    entradilla: 'Stock, escaparate, mostrador y caja, dentro de la comunidad. Está en beta: buscamos tiendas que lo prueben.',
+    pieza: async (ctx, caja) => {
+      const btn = 40 * 2.2
+      escaparate(ctx, { x: caja.x, y: caja.y, w: caja.w, h: caja.h - btn - 48 })
+      boton(ctx, 'Pide acceso  →', { x: caja.x, y: caja.y + caja.h - btn, w: caja.w })
+    } },
+  { nombre: 'tiendas-x', formato: 'apaisada',
+    titulo: 'Las *tiendas* llegan a PokeDoc',
+    entradilla: 'Está en beta: buscamos tiendas y compraventas que lo prueben.',
+    pieza: async (ctx, caja) => escaparate(ctx, caja) },
+]
+
+await prepararMarco()
+const salida = {}
+for (const p of PIEZAS) {
+  const lienzo = document.createElement('canvas')
+  const { ctx, caja } = pintarMarco(lienzo, { ...BASE, formato: p.formato, titulo: p.titulo, entradilla: p.entradilla, chapaPie: p.chapaPie || '' })
+  await p.pieza(ctx, caja)
+  salida[p.nombre] = lienzo.toDataURL('image/png')
+}
+window.__carrusel = salida
+</script>
+</body></html>
