@@ -210,11 +210,11 @@ const tabla = (page) => page.evaluate(() => (window.__TABLAS__.user_products || 
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=resumen', { mios: [{ product_id: 48447, cantidad: 3 }] })
   await page.waitForTimeout(800)
-  const r = (await page.innerText('#mcCarteraReparto').catch(() => '')).replace(/\s+/g, ' ')
-  // Desde la 766 (PR2) la cifra grande es la SUMA y debajo van la franja y
-  // las dos fichas (lo mira entero la 766-pantalla).
+  const r = (await page.innerText('#mcValorCaja .mc-reparto-leyenda').catch(() => '')).replace(/\s+/g, ' ')
+  // Desde la 766 (PR2) la cifra grande es la SUMA; desde la 1278 lo de cada
+  // parte es una leyenda (dentro de la gráfica; aquí, sin historia, arriba).
   // 969: las copias de antes quedan en inglés (el idioma del producto) y valen el inglés, 3 × 10,99.
-  check('el Panel: debajo de la cifra, «Cartas · Productos»', /Cartas 10,00 €/.test(r) && /Productos 32,97 €/.test(r) && (await page.isVisible('#mcCarteraReparto')), r)
+  check('el Panel: en la gráfica, «Cartas · Productos»', /Cartas 10,00 €/.test(r) && /Productos 32,97 €/.test(r) && (await page.isVisible('#mcValorCaja .mc-reparto-leyenda')), r)
   check('  …y la cifra grande es la suma (la de la portada también)', /42,97/.test(await page.textContent('.mc-cartera-cifra')), await page.textContent('.mc-cartera-cifra'))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
@@ -222,7 +222,7 @@ const tabla = (page) => page.evaluate(() => (window.__TABLAS__.user_products || 
 {
   const { ctx, page } = await abrir('/mi-coleccion.html?ver=resumen')
   await page.waitForTimeout(600)
-  check('sin productos, el Panel no dice nada de ellos', !(await page.isVisible('#mcCarteraReparto')))
+  check('sin productos, el Panel no dice nada de ellos', !(await page.isVisible('#mcCarteraReparto')) && (await page.locator('.mc-reparto-leyenda').count()) === 0)
   await ctx.close()
 }
 {

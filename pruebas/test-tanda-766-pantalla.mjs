@@ -1,8 +1,8 @@
 // Tanda 766 — lo que faltaba de la ronda 3.
 //
 // PINGU: «¿está todo hecho seguro? Hay cosas que faltan». Lo que se mira:
-//   · PR2: la cifra grande del Panel suma cartas y productos, con su franja
-//     y dos fichas; la portada suma lo mismo.
+//   · PR2: la cifra grande del Panel suma cartas y productos (desde la 1278
+//     con una leyenda en vez de la franja y las fichas); la portada suma lo mismo.
 //   · AL5 y AL4: cada bolsillo vacío con su número y su destello; las fundas
 //     con relieve.
 //   · PR1: la expansión con su logo en Productos, lo tuyo con ✓ o «×2», y
@@ -83,13 +83,12 @@ console.log('── 2. PR2: el Panel suma cartas y productos ──')
   await page.waitForTimeout(800)
   const cifra = limpio(await page.textContent('#mcValorCaja .mc-cartera-cifra'))
   check('la cifra grande es la suma: 40 € de cartas + 60 € de productos', /100,00/.test(cifra), cifra)
-  const franja = await page.$$eval('#mcCarteraReparto .mc-reparto-franja i', (is) => is.map((i) => i.style.getPropertyValue('--ancho')))
-  check('  …con la franja de lo que pesa cada parte', franja.join() === '40%,60%', JSON.stringify(franja))
-  const fichas = await page.$$eval('#mcCarteraReparto .mc-reparto-ficha', (bs) => bs.map((b) => `${b.dataset.irA}:${b.innerText.replace(/\s+/g, ' ').trim()}`))
-  check('  …y dos fichas, cada una con lo suyo', fichas.length === 2 && /^cartas:Cartas 40,00 € 4 cartas · 40 %/.test(fichas[0]) && /^productos:Productos 60,00 € 3 productos · 60 %/.test(fichas[1]), JSON.stringify(fichas))
-  check('  …que se tocan (44)', (await page.$$eval('#mcCarteraReparto .mc-reparto-ficha', (bs) => bs.every((b) => b.getBoundingClientRect().height >= 44))))
+  // Desde la 1278 la franja y las fichas son una leyenda dentro de la gráfica
+  // (la mira entera test-tanda-1278-pantalla).
+  const ley = limpio(await page.innerText('#mcValorCaja .mc-reparto-leyenda').catch(() => ''))
+  check('  …con lo de cada parte en la leyenda', /Cartas 40,00 €/.test(ley) && /Productos 60,00 €/.test(ley), ley)
   if (CAPS) await page.screenshot({ path: `${CAPS}/766-panel.png` })
-  await page.click('#mcCarteraReparto [data-ir-a="productos"]')
+  await page.click('#mcValorCaja .mc-reparto-leyenda [data-ir-a="productos"]')
   await page.waitForTimeout(1200)
   check('la de productos lleva a Productos', new URL(page.url()).searchParams.get('ver') === 'productos' && (await page.isVisible('#mcPanelProductos')))
 
