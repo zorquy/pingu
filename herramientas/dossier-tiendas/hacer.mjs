@@ -12,6 +12,7 @@ const p = await b.newPage()
 p.on('pageerror', (e) => console.log('ERROR', e.message))
 await p.goto('http://localhost:8892/dossier-tiendas.html')
 await p.waitForFunction(() => window.__listo, null, { timeout: 30000 })
+console.log('saliente', JSON.stringify(await p.evaluate(() => window.__saliente)))
 await p.pdf({ path: SALIDA, format: 'A4', printBackground: true, preferCSSPageSize: true })
 if (process.argv[3]) { await p.setViewportSize({ width: 794, height: 1123 }); await p.screenshot({ path: process.argv[3], fullPage: true }) }
 await b.close()
