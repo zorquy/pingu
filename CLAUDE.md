@@ -1070,7 +1070,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   que no es un bloque va ahí). Cambios, Tu mes y las alertas NO son bloques
   del Panel: cada cosa en su pestaña, y las alertas avisan por la campana.
   Lo pagado vive en la ficha de la carta y en Estadísticas (`diapoDelBalance`),
-  no en el Panel. Un bloque nuevo del Panel es una tira con ese molde, con su
+  no en el Panel. Con productos, lo de cartas y productos es una LEYENDA dentro
+  de la gráfica (1278, `ponerLeyendaDeProductos`, PINGU: «son 2 líneas más»), no
+  otra fila encima. Un bloque nuevo del Panel es una tira con ese molde, con su
   `order` y su «Ver todas» a su vista; una cifra suelta o una frase, no.
   Lo que no es un bloque (una acción, un ajuste) va como chip en «Más»
   (`vistazoDeAcciones`, 1176), no como bloque nuevo; y los bloques se

@@ -1588,13 +1588,18 @@ function fichasDeCartera() {
 
 // LO QUE VALE TODO: CARTAS MÁS PRODUCTOS (766, PR2; era la 762, que los
 // enseñaba aparte). Con productos, la cifra grande es la SUMA —la portada
-// suma lo mismo—, y debajo una franja con lo que pesa cada parte y dos
-// fichas que llevan a cada una. La gráfica sigue siendo la de las cartas,
-// que es de lo que hay historia, y lo dice. El módulo entra solo si hace
-// falta y una pintada vieja no pisa a la nueva (la 663).
+// suma lo mismo— y lo de cada parte va como LEYENDA dentro de la gráfica
+// (1278, PINGU eligió la D: la franja y las dos fichas de la 766 eran dos
+// líneas más y le quitaban sitio a la gráfica). El punto de «Cartas» es del
+// color de la línea, que es la de las cartas, así que lo dice sin escribirlo;
+// «Productos ›» lleva a la pestaña. El módulo entra solo si hace falta y una
+// pintada vieja no pisa a la nueva (la 663).
 let repartoVersion = 0
 // Lo que valen tus productos, cuando el Panel ya lo sabe (1205).
 let productosDelPanel = 0
+// La leyenda ya montada: la gráfica se repinta entera al cambiar de rango y
+// la vuelve a poner (`ponerLeyendaDeProductos`, desde panel.js).
+let leyendaDeProductos = ''
 export function repartoDeValor(cartasValor, productos) {
   const c = Math.max(0, Number(cartasValor) || 0)
   const p = Math.max(0, Number(productos?.total) || 0)
@@ -1602,30 +1607,53 @@ export function repartoDeValor(cartasValor, productos) {
   const pct = (x) => (total > 0 ? Math.round((x / total) * 100) : 0)
   return { total, cartas: c, productos: p, pctCartas: pct(c), pctProductos: total > 0 ? 100 - pct(c) : 0 }
 }
+export function leyendaDeProductosHtml(r, unidades = 0, sinPrecio = 0) {
+  const e = (x) => escapeHtml(eurosConMiles(x))
+  const cuantos = `${unidades} ${unidades === 1 ? 'producto' : 'productos'}${sinPrecio ? `, ${sinPrecio} sin precio` : ''}`
+  return `<div class="mc-reparto-leyenda">
+    <span class="mc-reparto-dato"><i class="mc-reparto-punto mc-reparto-cartas" aria-hidden="true"></i>Cartas <b>${e(r.cartas)}</b></span>
+    <button type="button" class="mc-reparto-dato mc-reparto-ir" data-ir-a="productos" aria-label="Productos: ${e(r.productos)} (${escapeHtml(cuantos)}). Ver tus productos"><i class="mc-reparto-punto mc-reparto-productos" aria-hidden="true"></i>Productos <b>${e(r.productos)}</b><span aria-hidden="true">›</span></button>
+  </div>`
+}
+// Dentro del lienzo de la gráfica. Mientras la gráfica no ha llegado, espera
+// (la pondrá ella); si no hay lienzo —no se pudo pintar, o aún no hay dos
+// días de historia— va en su hueco de arriba para que el reparto no se pierda.
+function ponerLeyendaDeProductos() {
+  document.querySelectorAll('#mcValorCaja .mc-reparto-leyenda').forEach((x) => x.remove())
+  const fuera = $('mcCarteraReparto')
+  fuera?.classList.add('hidden')
+  if (!leyendaDeProductos) return
+  const lienzo = document.querySelector('#mcCarteraGrafica .mc-valor-lienzo')
+  if (lienzo) {
+    lienzo.insertAdjacentHTML('beforeend', leyendaDeProductos)
+    // Tocar la leyenda no es leer la gráfica: sin esto, el dedo en
+    // «Productos» saca el globo del día antes de navegar.
+    lienzo.querySelector('.mc-reparto-leyenda')?.addEventListener('pointerdown', (e) => e.stopPropagation())
+  } else if (fuera && !$('mcCarteraGrafica')?.hasAttribute('aria-busy')) {
+    fuera.innerHTML = leyendaDeProductos
+    fuera.classList.remove('hidden')
+  }
+}
 async function pintarRepartoProductos() {
   const mia = ++repartoVersion
   let v = null
   try {
     v = await (await import('./productos-valor.js')).valorParaElPanel(sesion?.user?.id)
   } catch { v = null }
-  const caja = $('mcCarteraReparto')
-  if (mia !== repartoVersion || !caja) return
+  if (mia !== repartoVersion || !$('mcValorCaja')) return
   productosDelPanel = v?.unidades ? Number(v.total) || 0 : 0
-  if (!v?.unidades) return caja.classList.add('hidden')
+  if (!v?.unidades) {
+    leyendaDeProductos = ''
+    return ponerLeyendaDeProductos()
+  }
   const r = repartoDeValor(valorDeAhora(), v)
   const cifra = document.querySelector('#mcValorCaja .mc-cartera-cifra')
   if (cifra) {
     cifra.textContent = eurosConMiles(r.total)
     import('./contar.js').then(({ contarCifra }) => contarCifra(cifra, 'valor', r.total, eurosConMiles)).catch(() => {})
   }
-  const copias = resumenHero?.copias ?? lineas.reduce((n, l) => n + (Number(l.cantidad) || 0), 0)
-  caja.innerHTML = `<span class="mc-reparto-franja" role="img" aria-label="Cartas ${r.pctCartas} %, productos ${r.pctProductos} %"><i class="mc-reparto-cartas" style="--ancho:${r.pctCartas}%"></i><i class="mc-reparto-productos" style="--ancho:${r.pctProductos}%"></i></span>
-    <span class="mc-reparto-fichas">
-      <button type="button" class="mc-reparto-ficha" data-ir-a="cartas"><i class="mc-reparto-punto mc-reparto-cartas" aria-hidden="true"></i><span>Cartas</span><b>${escapeHtml(eurosConMiles(r.cartas))}</b><small>${copias.toLocaleString('es-ES')} ${copias === 1 ? 'carta' : 'cartas'} · ${r.pctCartas} %</small></button>
-      <button type="button" class="mc-reparto-ficha" data-ir-a="productos"><i class="mc-reparto-punto mc-reparto-productos" aria-hidden="true"></i><span>Productos</span><b>${escapeHtml(eurosConMiles(r.productos))}</b><small>${v.unidades} ${v.unidades === 1 ? 'producto' : 'productos'} · ${r.pctProductos} %${v.sinPrecio ? ` · ${v.sinPrecio} sin precio` : ''}</small></button>
-    </span>
-    <small class="mc-reparto-nota">La gráfica es la de las cartas.</small>`
-  caja.classList.remove('hidden')
+  leyendaDeProductos = leyendaDeProductosHtml(r, v.unidades, v.sinPrecio)
+  ponerLeyendaDeProductos()
 }
 
 let historico = null
@@ -1786,6 +1814,7 @@ const ctxPanel = {
   valorDeAhora,
   fichasDeCartera,
   pintarRepartoProductos,
+  ponerLeyendaDeProductos,
   barrasHtml,
   filaDeCartaHtml,
   tarjetaDeSet,

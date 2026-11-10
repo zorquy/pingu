@@ -816,11 +816,15 @@ export async function pintarValorEnElTiempo() {
     engancharRangosDelValor()
     // Y la lectura al pasar el dedo (653), sobre el lienzo recién pintado.
     ctx.historico.grafica.engancharLectura(sitio.querySelector('.mc-valor-lienzo'))
+    // Con productos, su leyenda va dentro de la gráfica (1278) y el repintado
+    // de cada rango se la acaba de llevar.
+    if (ctx.esMia) ctx.ponerLeyendaDeProductos?.()
     pintarCambioDelMes()
   } catch {
     // Una gráfica que no llega no puede tumbar el resumen: se quita el
     // hueco de la gráfica y la cifra de ahora sigue ahí.
     $('mcCarteraGrafica')?.remove()
+    if (ctx.esMia) ctx.ponerLeyendaDeProductos?.()
   }
 }
 

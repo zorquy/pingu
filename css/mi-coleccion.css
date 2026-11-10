@@ -9187,79 +9187,98 @@ button.mc-cifra-ficha:hover { background: var(--ice-dark); }
   margin: var(--e-md) 0 var(--e-sm);
 }
 
-/* 766 (PR2): la franja de cartas y productos y sus dos fichas. */
-.mc-reparto-franja {
-  display: flex;
-  overflow: hidden;
+/* 1278: lo de cartas y productos, como leyenda DENTRO de la gráfica, abajo
+   a la izquierda (la D de PINGU; el porqué, en SCHEMA). Dos líneas en el
+   móvil y una fila en el PC. El velo de detrás es para que se lea si la
+   línea pasa por debajo. */
+.mc-reparto-leyenda {
+  position: absolute;
+  /* En el móvil el lienzo sangra 24 px (--e-xl): así el texto de la leyenda
+     cae en la misma columna que «4 cartas · 1 distinta». */
+  left: calc(var(--e-xl) - var(--e-sm));
+  bottom: var(--e-xs);
+  z-index: 1;
+  display: grid;
+  justify-items: start;
+  gap: 2px;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--white) 72%, transparent);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  line-height: 1.3;
+}
+
+.mc-reparto-dato {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  white-space: nowrap;
+}
+
+.mc-reparto-dato b {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-reparto-ir {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.mc-reparto-ir:hover b {
+  text-decoration: underline;
+}
+
+/* Al dedo, 44 de alto sin cambiar el dibujo (312). */
+@media (pointer: coarse) {
+  .mc-reparto-ir::after {
+    content: '';
+    position: absolute;
+    inset: -16px -8px;
+  }
+}
+
+.mc-reparto-punto {
+  flex: 0 0 auto;
+  width: 8px;
   height: 8px;
-  margin-bottom: var(--e-sm);
-  border-radius: var(--radius-pill);
-  background: var(--border);
+  border-radius: 50%;
 }
 
-.mc-reparto-franja i {
-  flex: 0 0 var(--ancho);
-}
-
+/* El de las cartas, del color de la línea: la gráfica ES la de las cartas. */
 .mc-reparto-cartas {
-  background: var(--navy);
+  background: var(--valor-tono);
 }
 
 .mc-reparto-productos {
   background: var(--pink);
 }
 
-.mc-reparto-fichas {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: var(--e-sm);
+/* Si la gráfica no se pudo pintar, la leyenda va arriba, en su sitio. */
+.mc-cartera-reparto .mc-reparto-leyenda {
+  position: static;
+  padding: 0;
+  background: none;
 }
 
-.mc-reparto-ficha {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  column-gap: var(--e-sm);
-  min-height: 44px;
-  padding: var(--e-sm) var(--e-md);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--white);
-  color: var(--text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
+.mc-cartera-reparto .mc-reparto-cartas {
+  background: var(--success);
 }
 
-.mc-reparto-ficha:hover {
-  border-color: var(--navy);
-}
-
-.mc-reparto-ficha b,
-.mc-reparto-ficha small {
-  grid-column: 2;
-}
-
-.mc-reparto-ficha b {
-  font-size: var(--t-lg);
-}
-
-.mc-reparto-ficha small {
-  color: var(--text-mid);
-  font-size: var(--t-xs);
-}
-
-.mc-reparto-punto {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.mc-reparto-nota {
-  display: block;
-  margin-top: var(--e-xs);
-  color: var(--text-mid);
-  font-size: var(--t-xs);
+@media (min-width: 600px) {
+  .mc-reparto-leyenda {
+    display: flex;
+    gap: var(--e-md);
+    left: var(--e-md);
+    bottom: var(--e-sm);
+    font-size: var(--t-xs);
+  }
 }
 
 /* 766 (DC1): quién de los que sigues la tiene, bajo el nombre. */

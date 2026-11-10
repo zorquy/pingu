@@ -668,7 +668,7 @@ function chapasHtml(l) {
 // lo que pagas (o cuenta), cuántas cartas y la foto.
 function loteHtml(l) {
   return `<li class="tdv-linea tdm-linea tdc-linea tdc-lote" data-linea="${escapeHtml(l.clave)}">
-    <div class="tdm-linea-cab"><span class="tdc-foto tdc-foto-lote">${l.fotoUrl ? `<img src="${escapeHtml(l.fotoUrl)}" alt="" width="40" height="40" />` : icons.layers(22)}</span><div class="tdv-linea-que"><strong>Lote sin desglosar</strong><small>Lo desglosas luego, con la foto delante</small></div><button type="button" class="tdv-quitar" data-quitar aria-label="Quitar el lote">&times;</button></div>
+    <div class="tdm-linea-cab"><span class="tdc-foto tdc-foto-lote">${l.fotoUrl ? `<img src="${escapeHtml(l.fotoUrl)}" alt="" width="40" height="40" loading="lazy" />` : icons.layers(22)}</span><div class="tdv-linea-que"><strong>Lote sin desglosar</strong><small>Lo desglosas luego, con la foto delante</small></div><button type="button" class="tdv-quitar" data-quitar aria-label="Quitar el lote">&times;</button></div>
     <div class="tdm-dos-campos">
       <label class="tdm-campo"><span>Vale en total</span><span class="tdm-input"><input type="number" inputmode="decimal" min="0" step="0.01" data-vale value="${dinero(l.vale)}" placeholder="Lo que vale" /> €</span></label>
       <label class="tdm-campo"><span>${rotuloPagas()}</span><span class="tdm-input tdc-pagas"><input type="number" inputmode="decimal" min="0" step="0.01" data-pagas value="${dinero(l.pagas)}" placeholder="—" /> €</span></label>
@@ -790,7 +790,7 @@ function pintarLoteCab() {
   const fecha = new Date(lote.creado_el || Date.now()).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
   caja.hidden = false
   caja.innerHTML = `${lote.foto
-    ? `<button type="button" class="tdc-lote-mini" data-lote-grande aria-label="Ver la foto del lote más grande"><img src="${escapeHtml(urlDeFotoDeTienda(lote.foto))}" alt="" width="56" height="56" onerror="this.remove()" /></button>`
+    ? `<button type="button" class="tdc-lote-mini" data-lote-grande aria-label="Ver la foto del lote más grande"><img src="${escapeHtml(urlDeFotoDeTienda(lote.foto))}" alt="" width="56" height="56" loading="lazy" onerror="this.remove()" /></button>`
     : `<span class="tdc-lote-mini">${icons.layers(24)}</span>`}
     <div class="tdc-lote-que"><strong>${lote.cartas ? `Lote de ${lote.cartas} cartas` : 'Lote'} · ${escapeHtml(fecha)}</strong>
       <small>Llevas <b>${euros(r2(valen))}</b>${lote.vale ? ` de los ${euros(Number(lote.vale))} tasados` : ''} · ${n}${lote.cartas ? ` de ${lote.cartas}` : ''} ${n === 1 ? 'carta' : 'cartas'}</small>

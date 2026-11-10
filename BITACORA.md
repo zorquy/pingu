@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-10 (521) — PINGU-Claude (1278 — la leyenda de productos dentro de la gráfica)
+
+**Hecho**: PINGU vio el Panel con productos («quita mucho protagonismo al
+gráfico»), pidió algo más mínimo y eligió la D de la segunda propuesta. Fuera
+la franja de colores, las dos fichas y «La gráfica es la de las cartas»: lo de
+cada parte va como LEYENDA dentro de la gráfica, abajo a la izquierda (dos
+líneas en el móvil, una fila en el PC), con el punto de «Cartas» del color de
+la línea y «Productos ›», que lleva a la pestaña. La cifra grande sigue siendo
+la suma. La gráfica se repinta al cambiar de rango y la vuelve a poner; si no
+hubiera lienzo, va en su hueco de arriba. Sin productos, nada. De paso, las
+dos fotos del lote de la 1277 piden carga diferida (la 310 lo cantaba).
+
+**Ficheros**: js/mi-coleccion.js, js/mi-coleccion/panel.js,
+css/mi-coleccion.css, js/tienda-comprar.js, SCHEMA.md, novedades.json,
+BITACORA.md. En `pruebas`: test-tanda-1278-pantalla (nueva), 762 y 766
+leen la leyenda.
+
+**Pendiente**: no se ha subido (los pushes se juntan): sale en el próximo.
+Fallos de antes, que no son de esta tanda: la 766 (los bolsillos vacíos del
+álbum), la 762 (la pestaña en el menú y la estantería de preventa), la 310
+(duraciones e imágenes sin `lazy` en otros ficheros) y la 311 (auth,
+bienvenida-seccion, torneos).
+
 ## 2026-11-09 (520) — PINGU-Claude (los pushes se juntan)
 
 **Hecho**: norma nueva en CLAUDE.md, «Los pushes se JUNTAN». PINGU enseñó

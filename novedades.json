@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-10", "tipo": "mejora", "texto": "Si tienes productos sellados, el Panel de tu colección ya no mete dos líneas encima de la gráfica: lo que valen tus cartas y tus productos va como leyenda dentro de ella, y tocando «Productos» vas a ellos.", "enlace": "/mi-coleccion?ver=resumen" },
     { "fecha": "2026-11-09", "tipo": "nuevo", "texto": "Las tiendas pueden comprar o cambiar un lote entero sin buscar carta a carta: escriben lo que vale en total, su tanto por ciento y le hacen una foto. Las cartas se apuntan luego, con calma, y el coste se reparte solo. Y el tanto por ciento ya es libre: el que use cada tienda, de 5 en 5 o escrito.", "enlace": "/para-tiendas" },
     { "fecha": "2026-11-09", "tipo": "nuevo", "texto": "En tus productos sellados ya puedes apuntar lo que pagaste por cada uno, y ver al momento lo que valen hoy y cuánto vas ganando o perdiendo.", "enlace": "/mi-coleccion?ver=productos" },
     { "fecha": "2026-11-09", "tipo": "arreglo", "texto": "Las expansiones recién salidas (como Delta Reign) ya cogen sus precios, su número de cartas y sus idiomas solas: antes se quedaban sin precio si su set se había creado antes de salir.", "enlace": "/cartas" },

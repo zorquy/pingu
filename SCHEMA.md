@@ -55204,6 +55204,33 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1278 — La leyenda de productos, dentro de la gráfica del Panel
+
+PINGU, con el Panel delante: la franja y las dos fichas de la 766 «quitan
+mucho protagonismo al gráfico» y, de la primera propuesta, «son 2 líneas más».
+Eligió la D de la segunda: la leyenda dentro de la gráfica.
+
+- `pintarRepartoProductos` (js/mi-coleccion.js) ya no pinta en
+  `#mcCarteraReparto`: monta `leyendaDeProductosHtml(r, unidades, sinPrecio)`
+  y la guarda en `leyendaDeProductos`. `ponerLeyendaDeProductos()` la mete al
+  final de `#mcCarteraGrafica .mc-valor-lienzo` (que es `position: relative`).
+- La gráfica se repinta ENTERA al cambiar de rango (`innerHTML` del sitio),
+  así que `pintarValorEnElTiempo` (panel.js) llama a
+  `ctx.ponerLeyendaDeProductos()` después de pintar, solo con `ctx.esMia`
+  (la de otro no lleva tus productos). Si la gráfica falla y se quita, la
+  leyenda va a `#mcCarteraReparto`, arriba; mientras la gráfica está cargando
+  (`aria-busy`), espera a que la ponga ella. Así no salta de sitio.
+- «Cartas» no se toca (estás en ellas); su punto es `var(--valor-tono)`, el de
+  la línea, que es lo que dice «esta gráfica es la de las cartas». «Productos»
+  es un botón `data-ir-a="productos"` con el oyente de siempre, 44 al dedo por
+  `::after` y su `pointerdown` parado, o el dedo saca el globo de lectura.
+- Un velo `color-mix` de `--white` detrás, para que se lea si la línea pasa por
+  abajo a la izquierda (una colección que crece empieza ahí).
+- La cifra grande sigue siendo la suma (`repartoDeValor`), como en la 766.
+
+Lo vigila `test-tanda-1278-pantalla.mjs` (PC y móvil, cambio de rango, sin
+productos, un solo día).
+
 ## Tanda 1277 — El lote sin desglosar y el tanto por ciento libre
 
 PINGU, de un amigo con tienda en un card show: el cambio es lento porque cada
