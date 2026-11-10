@@ -11,11 +11,12 @@ import { initPeticiones } from './peticiones.js'
 import { rachaVisible } from './racha-visible.js'
 import { tiendasDePruebas } from './tiendas-fantasma.js'
 import { sinFantasmas } from './tiendas-puro.js'
+import { paginacionHtml } from './paginacion.js'
 
 let allUsers = []
-// Si hay algo escrito en el buscador: manda el resultado entero, sin
-// recortar a diez.
+// Si hay algo escrito en el buscador (la dirección no se toca mientras).
 let buscando = false
+let paginaAntesDeBuscar = 1
 let allCommunityGuides = []
 let communityGuidesPage = 1
 
@@ -80,25 +81,42 @@ async function ponerLoQueTeDan(lista) {
   return true
 }
 
-// Cuántas caras se enseñan de entrada (tanda 304).
+// Cuántas personas se enseñan a la vez (tandas 304 y 1279).
 //
-// PINGU: «los usuarios, como ya son 200, hay que scrollear demasiado».
-// Y tiene razón: 200 tarjetas son 100 filas de scroll para llegar al pie
-// de la página, y las 190 de abajo no las mira nadie — están ordenadas
-// por XP, así que quien busca a alguien concreto usa el buscador.
-//
-// Diez es lo que cabe en una pantalla sin bajar. El resto está a un
-// clic y la cuenta va en el botón, para que se vea que hay más y
-// cuántos: «Ver los 190 restantes» dice algo, «Ver más» no.
-const GENTE_DE_ENTRADA = 10
+// PINGU: «los usuarios, como ya son 200, hay que scrollear demasiado». Y
+// después (1279), con la lista de diez: en el PC, de tres en tres, la décima
+// quedaba sola en su fila («hay una fila que sobra»), y «Ver 190 personas
+// más» las soltaba todas de golpe. Ahora van por PÁGINAS de doce —doce cabe
+// entero en una, dos, tres o cuatro columnas, así que ninguna fila sale
+// coja— con el paginador del foro arriba y abajo (`js/paginacion.js`).
+// Buscando también se pagina: el resultado empieza en la primera.
+const GENTE_POR_PAGINA = 12
+let paginaGente = paginaDeLaDireccion()
 
-let genteDesplegada = false
+function paginaDeLaDireccion() {
+  try { return Math.max(1, Number(new URLSearchParams(location.search).get('p')) || 1) } catch { return 1 }
+}
 
-function render(list) {
+// La página va en la dirección (sin recargar): entrar en un perfil y volver
+// deja a cada uno donde estaba.
+function apuntarPagina(n) {
+  try {
+    const url = new URL(location.href)
+    if (n > 1) url.searchParams.set('p', String(n))
+    else url.searchParams.delete('p')
+    history.replaceState(history.state, '', url)
+  } catch {}
+}
+
+let listaGente = []
+function render(list, pagina = paginaGente) {
+  listaGente = list
   const grid = document.getElementById('userDirectoryGrid')
   const empty = document.getElementById('userDirectoryEmpty')
   const pie = document.getElementById('userDirectoryPie')
+  const arriba = document.getElementById('userDirectoryArriba')
   if (pie) pie.innerHTML = ''
+  if (arriba) arriba.innerHTML = ''
   if (list.length === 0) {
     grid.innerHTML = ''
     empty.innerHTML = `<p class="empty-state">No hay usuarios que coincidan con tu búsqueda.</p>`
@@ -106,23 +124,32 @@ function render(list) {
   }
   empty.innerHTML = ''
 
-  // Buscando se ven TODOS los que coinciden: si has escrito un nombre,
-  // recortar el resultado a diez y pedirte otro clic es absurdo.
-  const recorta = !buscando && !genteDesplegada && list.length > GENTE_DE_ENTRADA
-  const visibles = recorta ? list.slice(0, GENTE_DE_ENTRADA) : list
-  grid.innerHTML = visibles.map(userCardHtml).join('')
+  const total = Math.ceil(list.length / GENTE_POR_PAGINA)
+  paginaGente = Math.min(Math.max(1, pagina), total)
+  if (!buscando) apuntarPagina(paginaGente)
+  const desde = (paginaGente - 1) * GENTE_POR_PAGINA
+  grid.innerHTML = list.slice(desde, desde + GENTE_POR_PAGINA).map(userCardHtml).join('')
   // El punto verde de quien está en línea (1140).
   import('./en-linea.js').then((m) => m.marcarEnLinea(grid)).catch(() => {})
   import('./gente-vitrinas.js').then(({ pintarVitrinasDeGente }) => pintarVitrinasDeGente(grid)).catch(() => {})
 
-  if (recorta && pie) {
-    const faltan = list.length - GENTE_DE_ENTRADA
-    pie.innerHTML = `<button type="button" class="btn-secondary com-ver-todos" id="btnVerTodaLaGente">Ver ${faltan} ${
-      faltan === 1 ? 'persona más' : 'personas más'
-    }</button>`
-    document.getElementById('btnVerTodaLaGente').addEventListener('click', () => {
-      genteDesplegada = true
-      render(list)
+  if (pie) pie.innerHTML = paginacionHtml(paginaGente, total)
+  if (arriba) arriba.innerHTML = paginacionHtml(paginaGente, total, { arriba: true })
+}
+
+// Un oyente por caja, una vez: el paginador se repinta entero en cada página.
+function engancharPaginas() {
+  for (const id of ['userDirectoryArriba', 'userDirectoryPie']) {
+    const caja = document.getElementById(id)
+    if (!caja || caja.dataset.enganchado) continue
+    caja.dataset.enganchado = '1'
+    caja.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-pagina]')
+      if (!b) return
+      render(listaGente, Number(b.dataset.pagina))
+      // Desde el de abajo, la página nueva empieza arriba de la lista.
+      const ancla = document.getElementById('userDirectoryArriba') || document.getElementById('userDirectoryGrid')
+      if (ancla && ancla.getBoundingClientRect().top < 0) ancla.scrollIntoView({ block: 'start', behavior: 'smooth' })
     })
   }
 }
@@ -266,15 +293,32 @@ async function cargarLateral(perfiles) {
   }
 }
 
-async function loadUsers() {
-  const [{ data }, { data: approvedGuides }, { data: mensajes }, fantasmas] = await Promise.all([
-    supabase
+// TODA la gente (1279: con páginas, la de la página 40 también se ve; antes,
+// las 200 con más XP). Supabase corta cada respuesta a 1.000 filas sin avisar
+// (la 808), así que va a trozos por `range` hasta que uno llega corto.
+async function todaLaGente() {
+  const TROZO = 1000
+  const todos = []
+  for (let desde = 0; desde < 20000; desde += TROZO) {
+    const { data, error } = await supabase
       .from('user_profiles')
       // Y el rango (tanda 386): sin estas dos columnas todo el
       // directorio saldría en azul y parecería que no hay ni un admin.
       .select(`id, username, display_name, level, total_xp, avatar_url, banner_color, current_streak, last_active_date, ${COLUMNAS_RANGO}`)
       .order('total_xp', { ascending: false })
-      .limit(200),
+      .order('id', { ascending: true })
+      .range(desde, desde + TROZO - 1)
+    if (error) return todos.length ? { data: todos } : { data: null, error }
+    todos.push(...(data || []))
+    if (!data || data.length < TROZO) break
+  }
+  return { data: todos }
+}
+
+async function loadUsers() {
+  engancharPaginas()
+  const [{ data }, { data: approvedGuides }, { data: mensajes }, fantasmas] = await Promise.all([
+    todaLaGente(),
     supabase.from('guides').select('author_id').eq('review_status', 'approved').not('author_id', 'is', null),
     // Cuántos mensajes ha escrito cada uno: es la mitad del «qué ha
     // hecho» de la tarjeta. Se trae SOLO la columna del autor y se
@@ -313,12 +357,16 @@ async function loadUsers() {
     // Se filtra sobre la lista ya cargada, así que el plegado de acentos
     // se hace aquí en el navegador: "jesus" encuentra a "Jesús".
     const q = plegarTexto(e.target.value.trim())
+    const antes = buscando
     buscando = Boolean(q)
+    // Al empezar a buscar se guarda la página en la que estabas, y al
+    // borrar se vuelve a ella; un resultado empieza siempre en la primera.
+    if (buscando && !antes) paginaAntesDeBuscar = paginaGente
     if (!q) {
-      render(allUsers)
+      render(allUsers, paginaAntesDeBuscar)
       return
     }
-    render(allUsers.filter((p) => contienePlegado(p.display_name, q) || contienePlegado(p.username, q)))
+    render(allUsers.filter((p) => contienePlegado(p.display_name, q) || contienePlegado(p.username, q)), 1)
   })
 }
 

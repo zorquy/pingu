@@ -714,6 +714,9 @@
   #ctab-users .search-input-wrap { margin: 0 0 var(--e-sm); }
 
   .user-directory-grid { grid-template-columns: minmax(0, 1fr); }
+  /* 1279: en el móvil, el paginador solo abajo: el de arriba bajaba a la
+     primera persona del 40 % de la pantalla (contenido primero, 1040). */
+  #userDirectoryArriba { display: none; }
 
   .com-persona {
     display: grid;

@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-10 (522) — PINGU-Claude (1279 — Gente por páginas)
+
+**Hecho**: PINGU, con la captura de Gente en el PC: «hay una fila que sobra»
+(la décima persona sola en su fila de tres) y «yo metería páginas y no el
+botón de ver 190 personas más». Ahora Gente va por páginas de DOCE (llenan
+filas de 1, 2, 3 o 4 columnas) con el paginador del foro (`js/paginacion.js`)
+arriba y abajo en el PC, y solo abajo en el móvil (arriba bajaba la primera
+persona del 40 %). La página va en la dirección (`?p=`), buscar empieza en la
+1 y al borrar vuelves a la tuya. Y salen TODOS los miembros, no los 200 con
+más XP: se piden a trozos de 1.000 (`todaLaGente`).
+
+**Ficheros**: js/usuarios.js, usuarios.html, css/comunidad.css, SCHEMA.md,
+novedades.json, BITACORA.md. En `pruebas`: la 301 (sección 6 nueva) y
+`foto-1279.mjs`.
+
+**Pendiente**: no se ha subido (los pushes se juntan): sale en el próximo,
+con la 1278.
+
 ## 2026-11-10 (521) — PINGU-Claude (1278 — la leyenda de productos dentro de la gráfica)
 
 **Hecho**: PINGU vio el Panel con productos («quita mucho protagonismo al

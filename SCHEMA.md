@@ -55204,6 +55204,34 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1279 — Gente por páginas
+
+PINGU, con la captura del PC: la décima tarjeta quedaba sola en su fila de tres
+(«hay una fila que sobra») y prefería páginas al botón «Ver 190 personas más»
+(de la 304).
+
+- `render(list, pagina)` (js/usuarios.js) pinta DOCE (`GENTE_POR_PAGINA`):
+  doce llena filas de una, dos, tres y cuatro columnas (`auto-fill` de 210 px
+  da tres en la columna del PC y una en el móvil). El paginador es
+  `paginacionHtml` en `#userDirectoryArriba` (con `arriba`) y
+  `#userDirectoryPie`; `engancharPaginas` pone un oyente por caja una vez, y el
+  de abajo sube a la lista si quedó por encima. `css/paginacion.css` va en el
+  HTML.
+- En el móvil el de arriba se esconde (`comunidad.css`, ≤ 600 px): con él la
+  primera persona bajaba de 284 a 340 px en un iPhone de 844, pasado el 40 % de
+  la 1165 y el 35 % de la 1040.
+- La página va en `?p=` con `replaceState` (`apuntarPagina`), y se lee al abrir
+  (`paginaDeLaDireccion`): volver de un perfil deja donde estabas. Buscando no
+  se toca la dirección; el resultado empieza en la 1 y al vaciar la caja se
+  vuelve a la página de antes (`paginaAntesDeBuscar`).
+- `todaLaGente()` pide TODOS los perfiles, por `range` de 1.000 (Supabase corta
+  ahí sin avisar, la 808), con `id` de desempate para que los trozos no se
+  pisen. Antes eran los 200 con más XP, y con páginas la de la 40 tiene que
+  existir. El podio y «Por aquí hoy» reciben la lista entera, como antes.
+
+Lo vigila la sección 6 de `test-tanda-301.mjs` (doce, filas llenas, arriba y
+abajo, `?p=`, recargar, buscar y volver, el móvil y más de mil personas).
+
 ## Tanda 1278 — La leyenda de productos, dentro de la gráfica del Panel
 
 PINGU, con el Panel delante: la franja y las dos fichas de la 766 «quitan
