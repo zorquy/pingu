@@ -55204,6 +55204,38 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1280 — El occidental sigue al id de Cardmarket que corrige TCGGO
+
+TCGGO (Discord, 9 de noviembre) está limpiando `cardmarket_id` mal puestos. En
+el japonés la pasada de precios ya cambiaba el nuestro (830). En el occidental
+no: casaba solo por `cm_id_product_propio`, el emparejador no vuelve a un set
+hecho y `tcggo_guardar_cartas` no pisa un id que ya está. Una carta corregida
+por ellos se quedaba sin precio nuevo o, si su id viejo pasaba a otra carta
+suya, enseñaba el precio de esa, sin error.
+
+- **La regla**, pura y con nombre: `cmQueCorregirWest(cartas, suyas, { aMano })`
+  en `netlify/lib/tcggo.mjs`. Se cambia el nuestro solo si es la misma carta
+  por `tcggo_id` (lo escribe el catálogo cada semana), el número coincide
+  (`numeroComparable`), no está corregido a mano y el id nuevo no lo tiene otra
+  carta nuestra que se vaya a quedar con él. Un intercambio entre dos cartas sí
+  vale, porque las dos se corrigen a la vez. Lo que no pasa por número o por id
+  ocupado cuenta como dudosa.
+- **En la pasada** (`tcggo-precios`, occidental): la consulta de siempre no
+  cambia (forma, columnas y dobles de las pruebas viejas). Aparte, una segunda
+  consulta por `tcggo_id` de la página, dentro de sus sets, que trae número y
+  nombre (la corrección los repite, la 526) y completa las ya encontradas. Las
+  correcciones a mano se leen una vez por pasada
+  (`tcg_correcciones … columna=eq.cm_id_product_propio`); sin la tabla, ninguna.
+  El id se cambia en memoria antes del bucle, así que el precio de esa pasada
+  ya sale del producto bueno; se escribe con `corregirCartas`, como en el
+  japonés, con `cm_por = 'tcggo'`.
+- **Para /admin**: `estado.cmWest` (`dia`, `corregidas`, `dudosas`, `ultimas`
+  con `de` y `a`), en la línea de PRECIOS del diagnóstico.
+
+Lo vigila `test-tanda-1280.mjs`: la regla suelta (número escrito distinto, sin
+id, otro número, a mano, intercambio, id ocupado, sin id todavía) y una pasada
+entera con un doble que devuelve solo las columnas pedidas.
+
 ## Tanda 1279 — Gente por páginas
 
 PINGU, con la captura del PC: la décima tarjeta quedaba sola en su fila de tres

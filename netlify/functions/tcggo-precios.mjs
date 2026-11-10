@@ -28,7 +28,7 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlEpisodios, esCartaSuelta, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes, filaDeLaCarta, sinSetsRepetidos, sinVersionesRepetidas, preciosDeEdiciones,
+  cabeceras, baseDe, baseJpDe, urlEpisodios, esCartaSuelta, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS, filaDePreciosTcggo, filaDeSetTcggo, esMasPrincipal, filasDeVariantes, filaDeLaCarta, sinSetsRepetidos, sinVersionesRepetidas, preciosDeEdiciones, cmQueCorregirWest,
 } from '../lib/tcggo.mjs'
 import { numeroComparable } from '../lib/scrydex.mjs'
 import { setsHermanos } from '../../js/catalogo-series.js'
@@ -366,6 +366,9 @@ export async function procesar({
 
   // ── Expansión a expansión: primero las occidentales, luego las japonesas ──
   let escritas = 0
+  // Las cartas occidentales con el id de Cardmarket corregido a mano (885), una
+  // vez por pasada y solo si hace falta (1280).
+  let aManoWest = null
   // Nuestras cartas sin carta suya: desde la 826 se piden por producto, así
   // que esa cuenta ya no se sabe (null, no 0: la 319).
   const sinPar = null
@@ -467,8 +470,9 @@ export async function procesar({
       // `tcggo_guardar_cartas` no pisa un id que ya está: por producto no casa
       // nunca, ni precio ni enlace. Se busca también por `tcggo_id`, y si su
       // id de Cardmarket no es el de TCGGO se cambia por el de TCGGO (el
-      // japonés sale entero de TCGGO, 806). En el occidental no: ahí los ids
-      // son los de nuestro emparejamiento (587).
+      // japonés sale entero de TCGGO, 806). En el occidental, los ids son los
+      // de nuestro emparejamiento (587), y desde la 1280 siguen al que corrige
+      // TCGGO con más cuidado (`cmQueCorregirWest`, más abajo).
       const porTcggo = new Map()
       if (mercado === 'JP') for (const s of pagina) if (Number.isInteger(Number(s.id)) && Number(s.id) > 0) porTcggo.set(Number(s.id), s)
       // Y EN EL OCCIDENTAL RECIÉN SALIDO (1275b). Delta Reign llegó con
@@ -488,6 +492,24 @@ export async function procesar({
             : porTcggo.size
               ? `tcg_cards?select=id,set_id,cm_id_product_propio,tcggo_id&market=eq.${mercado}&${enSets}&or=(${porProducto},tcggo_id.in.(${[...porTcggo.keys()].join(',')}))&limit=1000`
               : `tcg_cards?select=id,set_id,cm_id_product_propio&market=eq.${mercado}&${enSets}&cm_id_product_propio=in.(${[...ahoraVan.keys()].join(',')})&limit=1000`)) || []
+          // En el occidental, también las de la página por su `tcggo_id`
+          // (1280): una carta cuyo id de Cardmarket corrigió TCGGO ya no casa
+          // por el nuestro, y solo se la encuentra por el suyo. Aparte (la de
+          // siempre se pide igual) y dentro de SUS sets; es nuestra base, no
+          // cuesta nada. Trae el número y el nombre, que la corrección repite
+          // (la 526), y completa las que ya habían salido por su producto.
+          if (mercado !== 'JP') {
+            const idsDePagina = pagina.map((x) => Number(x?.id)).filter((x) => Number.isInteger(x) && x > 0)
+            if (idsDePagina.length) {
+              const porId = new Map(cartas.map((c) => [c.id, c]))
+              const porSuId = (await pedir(`tcg_cards?select=id,set_id,local_id,name,cm_id_product_propio,tcggo_id&market=eq.${mercado}&${enSets}&tcggo_id=in.(${idsDePagina.join(',')})&limit=1000`)) || []
+              for (const c of Array.isArray(porSuId) ? porSuId : []) {
+                const ya = porId.get(c.id)
+                if (ya) Object.assign(ya, { local_id: c.local_id, name: c.name, tcggo_id: c.tcggo_id })
+                else cartas.push(c)
+              }
+            }
+          }
         } catch (e) {
           fallo = `nuestra base: ${String(e?.message || e).slice(0, 160)}`
           break
@@ -573,6 +595,29 @@ export async function procesar({
         const versiones = []
         const corregir = []
         const yaVan = new Set()
+        // EL OCCIDENTAL SIGUE AL ID QUE CORRIGE TCGGO (1280; la regla, en
+        // `cmQueCorregirWest`). Se cambia en memoria antes del bucle, así que
+        // el precio de esta misma pasada ya sale del producto bueno.
+        if (mercado !== 'JP') {
+          if (!aManoWest) {
+            try {
+              aManoWest = new Set(((await pedir('tcg_correcciones?select=id&tabla=eq.tcg_cards&market=eq.WEST&columna=eq.cm_id_product_propio&limit=1000')) || []).map((x) => x.id))
+            } catch {
+              // Sin la tabla (885) no hay correcciones a mano que respetar.
+              aManoWest = new Set()
+            }
+          }
+          const r = cmQueCorregirWest(cartas, pagina, { aMano: aManoWest })
+          const cmw = estado.cmWest?.dia === dia ? estado.cmWest : { dia, corregidas: 0, dudosas: 0, ultimas: [] }
+          for (const { carta: c, de, a } of r.corregir) {
+            corregir.push({ id: c.id, market: mercado, set_id: c.set_id, local_id: c.local_id, name: c.name, tcggo_id: Number(c.tcggo_id), cm_id_product_propio: a, cm_por: 'tcggo', cm_emparejado_at: ahora.toISOString() })
+            c.cm_id_product_propio = a
+            cmw.ultimas = [{ id: c.id, de, a }, ...(cmw.ultimas || [])].slice(0, 20)
+          }
+          cmw.corregidas += r.corregir.length
+          cmw.dudosas += r.dudosas
+          if (r.corregir.length || r.dudosas) estado.cmWest = cmw
+        }
         for (const c of cartas) {
           if (yaVan.has(c.id)) continue
           const suya = porTcggo.get(Number(c.tcggo_id))

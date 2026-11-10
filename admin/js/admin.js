@@ -2286,6 +2286,8 @@ async function tcggoEstado() {
         // La expansión a medias (826): se sigue página a página.
         p.enCurso ? `  en curso: ${p.enCurso.mercado} #${p.enCurso.episodio} ${de('tcggo_calco_jp')?.valor?.lista?.episodios?.find((e) => e.id === p.enCurso.episodio)?.nombre || ''}, por la página ${p.enCurso.pagina} (${p.enCurso.suyas} cartas suyas, ${p.enCurso.escritas} precios escritos)` : '',
         Object.keys(p.sinCm || {}).length ? `  sin id de Cardmarket en TCGGO (dadas por hechas a la tercera): ${Object.keys(p.sinCm).join(', ')}` : '',
+        // El id de Cardmarket que TCGGO corrige, seguido en el occidental (1280).
+        p.cmWest?.dia === p.dia && (p.cmWest.corregidas || p.cmWest.dudosas) ? `  occidental de hoy: ${p.cmWest.corregidas} cartas con el id de Cardmarket cambiado por el que corrigió TCGGO${p.cmWest.dudosas ? ` · ${p.cmWest.dudosas} sin tocar por dudosas (otro número, o el id nuevo ya lo tiene otra carta nuestra)` : ''}${(p.cmWest.ultimas || []).length ? ` · últimas: ${p.cmWest.ultimas.slice(0, 5).map((x) => `${x.id} ${x.de ?? '—'}→${x.a}`).join(', ')}` : ''}` : '',
         p.jpBloqueado ? `  ⚠ JAPONÉS BLOQUEADO el ${p.jpBloqueado.dia}: TCGGO dice que el catálogo japonés pide el plan Ultra — ${p.jpBloqueado.motivo}` : '',
         p.faltaMigracionKoZh ? `  ⚠ falta ejecutar supabase-migration-tcggo-corea-china.sql (visto el ${p.faltaMigracionKoZh}): el coreano y el chino se están tirando; se vuelve a probar mañana` : '',
         // Cada expansión japonesa de hoy (825): de quién es la culpa de que

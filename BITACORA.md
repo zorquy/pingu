@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-10 (523) — PINGU-Claude (1280 — el occidental sigue al id de Cardmarket que corrige TCGGO)
+
+**Hecho**: TCGGO anunció en su Discord que está limpiando `cardmarket_id` mal
+puestos. En el japonés ya seguíamos al suyo (830); en el occidental la pasada de
+precios casaba solo por el id que guardamos y el emparejador no vuelve a mirar
+un set hecho, así que una carta corregida por ellos se quedaba sin precio nuevo
+o con el de otra carta. PINGU: «sí, haz la 1280». Ahora la pasada de precios
+busca también las cartas de cada página por su `tcggo_id` (aparte de la
+consulta de siempre, que no cambia) y cambia nuestro id por el suyo con
+`cmQueCorregirWest` (netlify/lib/tcggo.mjs): misma carta por `tcggo_id`, mismo
+número, nada corregido a mano (`tcg_correcciones`, una consulta por pasada) y
+el id nuevo sin otra carta nuestra que se quede con él (un intercambio entre
+dos sí vale). El precio de esa misma pasada ya sale del producto bueno.
+/admin → Diagnóstico de TCGGO enseña cuántas se corrigieron hoy, cuántas se
+dejaron por dudosas y las últimas. Delta Reign no necesitaba nada: el
+emparejador la vuelve a mirar cada 20 h y casará sola ahora que TCGGO da sus ids.
+
+**Ficheros**: netlify/lib/tcggo.mjs, netlify/functions/tcggo-precios.mjs,
+admin/js/admin.js, CLAUDE.md, SCHEMA.md, BITACORA.md. En `pruebas`:
+test-tanda-1280 (nueva); la 830 y la 831 decían «el occidental no busca por
+tcggo_id» y ahora dicen «solo dentro de sus sets».
+
+**Pendiente**: sin subir (los pushes se juntan). Sin migración. Las pruebas
+de precios que ya estaban rojas siguen igual (807, 827, 830, 929, 930, 931,
+935, 937, 945, 987: los mismos rojos que antes de la tanda).
+
 ## 2026-11-10 (522) — PINGU-Claude (1279 — Gente por páginas)
 
 **Hecho**: PINGU, con la captura de Gente en el PC: «hay una fila que sobra»

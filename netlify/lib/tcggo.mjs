@@ -1237,3 +1237,55 @@ export function filaDeVersion(suya, carta, { ahora = new Date() } = {}) {
     actualizado_at: ahora.toISOString(),
   }
 }
+
+// EL ID DE CARDMARKET QUE TCGGO CORRIGE, EN EL OCCIDENTAL (1280). TCGGO está
+// limpiando `cardmarket_id` mal puestos (su anuncio del 9 de noviembre). En el
+// japonés la pasada de precios ya cambia el nuestro por el suyo (830); en el
+// occidental casaba SOLO por el id que guardamos, y el emparejador no vuelve a
+// mirar un set hecho: si TCGGO arreglaba el de una carta, la nuestra se
+// quedaba con el viejo y dejaba de recibir precio, o —si su id viejo pasaba a
+// otra carta suya— enseñaba el precio de otra carta, sin error.
+//
+// Se cambia el nuestro solo si TODO dice que es la misma carta y el mismo
+// cambio:
+//  · es la suya por su `tcggo_id` (lo escribe el catálogo cada semana);
+//  · el número coincide (un `tcggo_id` mal puesto no se lleva un id ajeno);
+//  · nadie lo ha corregido a mano en /admin (`aMano`: lo de la 885 manda);
+//  · y el id nuevo no lo tiene otra carta nuestra que se vaya a quedar con él
+//    (dos cartas con el mismo producto se enseñarían el mismo precio).
+// Devuelve las correcciones ({ carta, de, a }) y cuántas se dejaron por duda.
+export function cmQueCorregirWest(cartas, suyas, { aMano = new Set() } = {}) {
+  const porTcggo = new Map()
+  for (const s of suyas || []) {
+    const id = Number(s?.id)
+    if (Number.isInteger(id) && id > 0) porTcggo.set(id, s)
+  }
+  const propuestas = []
+  let dudosas = 0
+  for (const c of cartas || []) {
+    const suya = porTcggo.get(Number(c?.tcggo_id))
+    if (!suya) continue
+    const a = Number(suya.cardmarket_id)
+    if (!Number.isInteger(a) || a <= 0) continue
+    const de = Number(c.cm_id_product_propio) || null
+    if (de === a) continue
+    if (aMano.has(c.id)) continue
+    const nuestro = numeroComparable(c.local_id)
+    if (!nuestro || nuestro !== numeroComparable(suya.card_number)) { dudosas++; continue }
+    propuestas.push({ carta: c, de, a })
+  }
+  // Quién se queda con cada id después de corregir.
+  const cambia = new Map(propuestas.map((p) => [p.carta.id, p.a]))
+  const titulares = new Map()
+  for (const c of cartas || []) {
+    const queda = cambia.has(c.id) ? cambia.get(c.id) : Number(c.cm_id_product_propio) || null
+    if (!queda) continue
+    titulares.set(queda, (titulares.get(queda) || 0) + 1)
+  }
+  const corregir = []
+  for (const p of propuestas) {
+    if (titulares.get(p.a) > 1) { dudosas++; continue }
+    corregir.push(p)
+  }
+  return { corregir, dudosas }
+}

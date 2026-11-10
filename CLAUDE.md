@@ -790,7 +790,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   TCGplayer en euros y las gradeadas; `tcggo-emparejar` (admin) decide los
   pares por código de set + número y `tcggo-precios` (cada 10 min) los
   precios. TCGdex se queda para el ESPAÑOL (nombres, textos, imágenes) y
-  como respaldo de precio. El bloque de precio es UNO
+  como respaldo de precio. Y si TCGGO CORRIGE un `cardmarket_id`, el nuestro lo
+  sigue en la pasada de precios: el japonés siempre (830) y el occidental desde
+  la 1280 (`cmQueCorregirWest`: misma carta por `tcggo_id`, mismo número, nada
+  corregido a mano y el id nuevo sin otra carta nuestra que se quede con él).
+  Lo que lo cambie por otro camino respeta esas cuatro cosas. El bloque de precio es UNO
   (`js/precio-vista.js`) para /carta y la ficha de /mi-coleccion. El plan
   es de pago por peticiones: cualquier función que llame a TCGGO cuenta
   cada petición, tiene tope diario y para en 429/403. Y desde la 640 **el
