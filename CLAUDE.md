@@ -62,10 +62,14 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   suma peticiones. Así que:
   - Cada tanda va en su COMMIT (con su entrada de bitácora, SCHEMA y
     novedades), pero no se sube sola: se sube junto con las demás.
-  - Se sube en estos casos: cuando PINGU lo pide («sube», «quiero
-    probarlo»); como mucho unas DOS veces al día, juntando lo pendiente;
-    y siempre antes de acabar una sesión, que el contenedor se recicla
-    tras un rato sin uso y se lleva los commits sin subir.
+  - Se sube SOLO cuando PINGU lo pide («sube», «quiero probarlo») — y
+    aun así, como mucho unas DOS veces al día, juntando lo pendiente. «Dos
+    al día» es un TOPE, no un permiso: «¿puedes corregir esto?» no es
+    «sube» (2026-11-11, la 1284 se subió sin pedirla y PINGU lo paró: «aquí
+    no hacemos pushes si no se dice»). Al acabar, se dice que está lista y
+    se espera. La excepción es antes de que se acabe una sesión, que el
+    contenedor se recicla tras un rato sin uso y se lleva los commits sin
+    subir: entonces se AVISA a PINGU de que hay commits esperando.
   - Un ARREGLO URGENTE (algo roto en producción, datos que se pierden, un
     agujero de seguridad) se sube al momento, solo o con lo pendiente si
     eso ya está probado.
