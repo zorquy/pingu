@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-11 — IBAI-Claude (1281 — las cartas nuevas, con su ficha de juego)
+
+**Hecho** (Ibai: «quiero que clasifiques todas las nuevas cartas que añade la
+colección de PokeDoc para que funcione correctamente en todo el apartado de
+jugar»). Medido en producción con la clave pública: 1.604 cartas occidentales
+sin categoría (1.491 `tcggo-…`): Delta Reign y la 30th Celebration enteras,
+los nueve Prize Pack, 29 MEP, 20 SVP, las cuatro Trainer Gallery de Espada y
+Escudo y una docena de sueltas. Sin categoría no salen en los filtros del
+constructor, el laboratorio no las juega y las repeticiones no las reconocen.
+- **MIGRACIÓN `supabase-migration-1281-cartas-nuevas-para-jugar.sql`,
+  PENDIENTE DE EJECUTAR.** Solo rellena lo vacío. A: la ficha entera desde
+  tcgdex/cards-database (503 cartas; textos en español como el engorde, enums
+  canónicos; las que TCGGO numera raro van a mano por su número). B: las
+  reimpresiones copian la original que ya tenemos (1.008; un «NNN/MMM» va al
+  set de MMM cartas; con dos impresiones posibles, no se toca). C: Entrenadores
+  por nombre (12) y energías básicas (81). Medido antes con las mismas reglas
+  en JavaScript: salen las 1.604. El último SELECT dice lo que quede.
+- Sin código: Jugar ya lee esas columnas. No toca nombres, fotos, precios ni
+  `detalle_lang`; lo corregido a mano gana; dos ejecuciones = una.
+- Delta Reign sigue sin marca de regulación (TCGdex no la da todavía): siguen
+  legales por colección reciente, como hasta hoy.
+
+**Ficheros**: `supabase-migration-1281-cartas-nuevas-para-jugar.sql` (nueva),
+SCHEMA (1281), CLAUDE.md (la nota de Jugar), novedades, BITACORA. Probada en un
+PostgreSQL 16 con 25 casos y el disparador de la 885; la segunda pasada no
+cambia ninguna fila. No he podido pasar la suite (`pruebas`): **PINGU, una
+pasada de test-tanda-631** (ejecuta las migraciones sentencia a sentencia).
+
+**Pendiente**: ejecutar la migración y subir (sin prisa: no hay código que la
+espere, la línea de novedades sí). La próxima expansión de TCGGO llegará otra
+vez sin ficha hasta que se automatice (anotado en CLAUDE.md).
+
 ## 2026-11-10 (523) — PINGU-Claude (1280 — el occidental sigue al id de Cardmarket que corrige TCGGO)
 
 **Hecho**: TCGGO anunció en su Discord que está limpiando `cardmarket_id` mal

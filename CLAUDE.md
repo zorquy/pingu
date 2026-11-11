@@ -360,6 +360,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   lo que le falte a la que gane se copia de otra de la misma carta
   (`js/constructor/gemelas.js`), sin inventar: la original de un «129/162»
   o lo que todas dicen igual, y lo de jugar solo con los mismos PS.
+  Desde la 1281 la ficha de las de TCGGO va EN LA BASE (migración desde
+  tcgdex/cards-database y copiando la original de cada reimpresión), pero
+  **una expansión nueva que llegue de TCGGO nace otra vez sin categoría**:
+  hasta que se automatice, se le hace lo mismo (SCHEMA 1281).
 - **La ficha de una carta es la de Dex** (tanda 915): carta arriba, versión
   con check, «− Tienes N +» (el «+» suma una IGUAL con Deshacer; otra
   distinta va por «Tus copias» → «Añadir otra copia») y los precios en

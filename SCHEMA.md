@@ -55204,6 +55204,87 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1281 — Las cartas nuevas, con su ficha de juego
+
+IBAI: «quiero que clasifiques todas las nuevas cartas que añade la colección de
+PokeDoc para que funcione correctamente en todo el apartado de jugar». Medido el
+2026-11-11 (lectura con la clave pública): **1.604 cartas occidentales sin
+`category`**, 1.491 de ellas `tcggo-<id>`. Las crea TCGGO con número, nombre,
+foto y precio, y el engorde de TCGdex no las visita (nacen con `detalle_at`
+puesto y su id no existe en TCGdex). Por set: Delta Reign 141 (entera), 30th
+Celebration 191 (entera, con la Classic Collection), los nueve Prize Pack 1.061,
+MEP 29, SVP 20, SWSH 9, las cuatro Trainer Gallery de Espada y Escudo 109 (de
+TCGdex, pero con un id que su API no conoce: `detalle_error = 'respuesta
+vacía'`), McDonald's 10 y una docena de duplicados viejos.
+
+Sin categoría una carta no es nada en Jugar: no sale en los filtros del
+constructor (`aplicarFiltros` pide `category in (…)`), el laboratorio no la pone
+en juego, las repeticiones no la reconocen y `mejorPorNombre` la salta. Las
+gemelas de la 913 lo apañaban al vuelo solo para las que tienen otra impresión
+con ficha; Delta Reign y la 30th no la tienen.
+
+**Sin código: es una migración de datos**,
+`supabase-migration-1281-cartas-nuevas-para-jugar.sql`, que SOLO rellena lo
+vacío (`coalesce` columna a columna, y solo filas con `category is null`):
+
+- **A. Desde tcgdex/cards-database** (commit 00d5de7, 2026-11-09; leídos como
+  datos, sin ejecutar sus `.ts`): Delta Reign, 30th Celebration + 30th Classic
+  Collection, las 29 MEP, las cuatro Trainer Gallery, las SVP 173–225, SWSH299 y
+  SWSH301, McDonald's 2023 y 2024 y el Raichu del kit HS. Lo mismo que escribe el
+  engorde: enums canónicos en inglés (`Pokemon`, `Basic`, `Grass`…), textos de
+  ataques y habilidades en español si TCGdex los tiene TODOS (si no, inglés;
+  `Ability` → `Habilidad` como la API en español), debilidad `×2`, `dex_ids`,
+  `regulation_mark` si la trae, `name_es`, ilustrador, y en Entrenadores y
+  energías especiales su texto en `description` (como la ficha de respaldo de
+  la 1160). Casa por set + clave del nombre (inglés o español:
+  `regexp_replace(immutable_unaccent(lower(name)), '[^a-z0-9]', '', 'g')`) +
+  dígitos del número; si el nombre es único en el set de TCGdex, basta el
+  nombre. Lo que TCGGO numera a su manera va por su número EXACTO (A0): las
+  Classic Collection con el código del set original (`AQ149`, `BS058`,
+  `TM099`…), las tres Mew `R/RGB`, `G/RGB`, `B/RGB`, `087 Nidoran [F]`, los seis
+  estadios `(Left)/(Right)` de Delta Reign y sus tres energías `Bubbly [W]
+  Energy`. Una Pokémon de la 30th con un número que no es de ninguna Pikachu NO
+  casa con «la Pikachu» de la Classic (el nombre no es único).
+- **B. Reimpresiones, copiadas de la original que ya tenemos engordada**: mismo
+  nombre (`name`, `name_en` o `name_es`) y, por prioridad, 1) mismo set y
+  número, 2) el set con `card_count_official = MMM` y el número NNN de un
+  «NNN/MMM» (Prize Pack), 3) el mismo número escrito igual (`SWSH111`, `SVP
+  173` = `SVP173`). Se queda la mejor prioridad y solo si a ese nivel todas las
+  candidatas son la MISMA impresión (set y número); de ellas, la que tiene
+  ataques, no es de TCGGO ni a mano y está en español. Los Prize Pack nunca son
+  origen. Copia también la rareza (de ahí sale «AS TÁCTICO», `esAsTactico`).
+- **C1. Entrenadores y energías especiales por nombre**, si TODAS las cartas de
+  ese nombre son de la misma clase y las que dicen subclase dicen la misma
+  (canónica: `Objeto` = `Item`; las impresiones viejas sin subclase no
+  cuentan): «Energy Retrieval» con un 106 que no es el suyo, el «Boss's Orders
+  172/193» que nuestra Paldea Evolved no numera así, «Energy Switch» del kit
+  HS. Un Pokémon nunca.
+- **C2. Energías básicas por nombre** (`Basic Grass Energy`, `Grass Energy`,
+  `Lightning Energy`): `Energy` y `Normal`, sin tipo en la fila, como las de SVE.
+- Último: un SELECT con lo que siga sin categoría por set.
+
+Medido antes de escribirla, contra la base de verdad desde el navegador (las
+mismas reglas en JavaScript): **A casa 503** (todas las de sus sets, una a una
+y sin dobles), **B 1.008** (ninguna con duda), **C1 12** y **C2 81**: las
+1.604. Lo que el SELECT final diga que queda se corrige en /admin → Catálogo.
+
+No toca `name`, la foto, el precio ni `detalle_lang` (marca el idioma del
+NOMBRE, la 335). Lo corregido a mano gana (disparador de la 885). Ejecutarla
+dos veces no cambia nada la segunda. **Sin marca de Delta Reign**: TCGdex
+todavía no la da y no se inventa; siguen legales por colección reciente
+(`coleccionesRecientes`), como hasta hoy. Las 30 de la 30th Classic Collection
+tampoco traen letra en TCGdex y siguen igual que antes.
+
+Probada en un PostgreSQL 16 con el disparador de la 885 y 25 casos (los raros
+de TCGGO, un Prize Pack con DOS sets de 198 que se queda sin rellenar, un
+Pokémon por nombre que no se rellena, un Entrenador con dos subclases que
+tampoco, la corrección a mano que gana, el AS TÁCTICO de un Prize Pack, la ya
+clasificada que no se toca); segunda pasada, cero filas.
+
+**Lo que queda para otra tanda**: una expansión NUEVA que llegue de TCGGO sale
+otra vez sin ficha. Hasta que se automatice (TCGdex por set y número, como el
+relleno de la 1158), se repite lo de A con sus ficheros de cards-database.
+
 ## Tanda 1280 — El occidental sigue al id de Cardmarket que corrige TCGGO
 
 TCGGO (Discord, 9 de noviembre) está limpiando `cardmarket_id` mal puestos. En
