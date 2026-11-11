@@ -2528,6 +2528,13 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   barra de cita, no un contorno; y hay dos sitios donde un `border` dibuja
   una figura (la lupa del buscador, el canto de una carta) que van
   declarados como excepción en la prueba. Las tarjetas, todas a 1px.
+- **Una guía o noticia abre con SU portada: `js/articulo-cabecera.js`**
+  (tanda 1283, PINGU: «más moderno, más visual»), pura, y la pintan las dos
+  mitades de abajo con la misma función; el servidor deja el hueco de la franja
+  (`franjaReservadaHtml`). Lo nuevo de la cabecera va ahí, no en una copia. Una
+  caja del texto (Consejo, Ojo, Dato) es una cita con su clase y el rótulo lo
+  pone el CSS; un tipo nuevo va en `CAJAS` (richtext-editor), en
+  `CLASES_PERMITIDAS` y en guia.css a la vez.
 - **El texto del artículo lo pintan DOS mitades** y tienen que coincidir:
   `js/guia.js` en el navegador y `netlify/edge-functions/meta-social.js`
   en el servidor. Si cambias los envoltorios (`.article-header`,

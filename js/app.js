@@ -26,17 +26,11 @@ export function tintClassForKey(key) {
   return `icon-tint-${tintIndexForKey(key)}`
 }
 
-// La portada de una guía que no trae imagen: uno de seis degradados
-// (.arte-1..6 en components.css). Se elige por el SLUG y no al azar —
-// si cambiara en cada pintada, la rejilla de /aprender parpadearía al
-// filtrar. Lo llaman la portada y /aprender, de ahí que viva aquí.
-const ARTES = 6
-export function arteDe(algo) {
-  const clave = String(algo?.slug || algo?.id || algo || '')
-  let suma = 0
-  for (let i = 0; i < clave.length; i++) suma = (suma * 31 + clave.charCodeAt(i)) % 100000
-  return (suma % ARTES) + 1
-}
+// El degradado de una portada sin imagen: vive en js/arte-de.js (puro, 1283)
+// y se sigue pidiendo aquí. Se IMPORTA además de reexportarse: lo usa
+// `bannerPorDefecto` (la 624: un reexport no crea el nombre).
+import { arteDe } from './arte-de.js'
+export { arteDe }
 
 // El banner de un perfil sin foto (789, PA12): uno de los seis colores de
 // arte, el mismo siempre para la misma persona. Antes todos llevaban el rosa

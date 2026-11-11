@@ -4,6 +4,40 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-11 (526) — PINGU-Claude (1283 — guías y noticias como una revista)
+
+**Hecho**: PINGU quería las guías y noticias «más modernas, más chulas, más
+visuales»; vio la propuesta y eligió lo recomendado. Portada a lo ancho (su
+imagen o el Pokémon del tema sobre el color de su tarjeta) que pintan IGUAL el
+navegador y el servidor (`js/articulo-cabecera.js`), franja con la firma, los
+minutos, los apartados y los botones; en el PC el índice a la izquierda,
+numerado, con lo leído, la barra y lo que queda (en el móvil, una píldora);
+cajas de Consejo, Ojo y Dato con su botón «Caja» en los dos editores de guías;
+y al final quién la escribe con «Seguir», «Me ha servido», «También en…» y
+«Sigue leyendo» en portadas. La noticia lleva la fecha en grande y «Lo
+importante».
+
+**Ficheros**: js/articulo-cabecera.js y js/arte-de.js (nuevos), js/app.js
+(arteDe importado de ahí), js/guia.js, js/bloques-lectura.js,
+js/richtext-editor.js, js/richtext-format.js, js/editor-guia.js,
+admin/js/editor-guia.js, guia.html, css/guia.css, css/editor-texto.css,
+netlify/edge-functions/meta-social.js, SCHEMA.md, novedades.json, CLAUDE.md,
+BITACORA.md. En `pruebas`: test-tanda-1283-pantalla (nueva), el doble con
+`tabla(*)` y las pruebas viejas de la cabecera puestas al día (269, 305, 780,
+857: el título ya no se repite en las migas y en el móvil no hay migas; 866:
+«Sigue leyendo en…» en portadas).
+
+**Pendiente**: sin subir (los pushes se juntan). Sin migración. Rojas que no
+son de esta tanda: las de siempre del `serve` local (pierde la `?…` al quitar el
+`.html` y no tiene `/guia/<slug>` ni `/noticias/<slug>`: 803, 857, 858, 866,
+973, 974, 1010, 1019, 1185; con la dirección que sí sirve, las partes de guías
+salen verdes), 981 en /mi-coleccion (0,487, igual con el código de antes de la
+tanda), y test-correos (`torneo_aviso`).
+
+Para IBAI: pasada la test-tanda-631 que pedías para tu 1281 (cartas nuevas):
+verde. Su barrido recorre todas las migraciones del repo, la tuya incluida, y
+ninguna usa una tabla temporal entre sentencias.
+
 ## 2026-11-11 (525) — PINGU-Claude (1282 — el rol de Redacción)
 
 **Hecho**: PINGU tiene un colaborador (Deckmasters) que escribe artículos y

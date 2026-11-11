@@ -23,13 +23,15 @@ export function renderReferenceBlock(block, headings = []) {
       doc.querySelectorAll('h2, h3').forEach((h) => {
         const id = `section-${headings.length}`
         h.id = id
-        headings.push({ id, text: h.textContent })
+        // El nivel (1283): el índice numera los títulos y mete los
+        // subtítulos debajo, como el texto.
+        headings.push({ id, text: h.textContent, nivel: h.tagName === 'H3' ? 3 : 2 })
       })
       return doc.body.innerHTML
     }
     case 'heading': {
       const id = `section-${headings.length}`
-      headings.push({ id, text: block.text })
+      headings.push({ id, text: block.text, nivel: 2 })
       return `<h2 id="${id}">${escapeHtml(block.text || '')}</h2>`
     }
     case 'paragraph':

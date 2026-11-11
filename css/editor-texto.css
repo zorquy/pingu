@@ -616,3 +616,21 @@
 }
 .emoji-picker-etiqueta { flex-basis: 100%; margin: 0; }
 .editor-icono-portada { grid-column: 1 / -1; }
+
+/* Las cajas de un artículo en el editor (1283): una raya de su color y el
+   rótulo, para saber qué es cada una mientras se escribe. En la guía las
+   pinta guia.css. */
+.rte-surface blockquote.caja-consejo,
+.rte-surface blockquote.caja-ojo,
+.rte-surface blockquote.caja-dato { border-left: 4px solid var(--success); background: var(--success-bg); }
+.rte-surface blockquote.caja-ojo { border-left-color: var(--warning); background: var(--warning-bg); }
+.rte-surface blockquote.caja-dato { border-left-color: var(--navy-solid); background: var(--ice); }
+.rte-surface blockquote[class^='caja-']::before { display: block; font-size: var(--t-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; }
+.rte-surface blockquote.caja-consejo::before { content: 'Consejo'; color: var(--success); }
+.rte-surface blockquote.caja-ojo::before { content: 'Ojo'; color: var(--warning); }
+.rte-surface blockquote.caja-dato::before { content: 'Dato'; color: var(--navy-solid); }
+.rte-paleta-cajas { flex-direction: column; min-width: 140px; }
+.rte-caja { min-height: 36px; padding: 0 var(--e-md); border-radius: var(--radius-md); text-align: left; font-weight: 600; }
+.rte-caja-consejo { color: var(--success); }
+.rte-caja-ojo { color: var(--warning); }
+.rte-caja-dato { color: var(--navy-solid); }

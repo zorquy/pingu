@@ -16,13 +16,11 @@ import { contributorBadgeHtml } from './contributor-badge.js'
 import { montarSugerencia, creditosHtml } from './guide-suggestions.js'
 import { laVeLaGente, estadoDeGuia } from './guia-estado.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
+import { portadaDeArticuloHtml, importanteHtml, minutosQueQuedan, numerarApartados, indiceHtml } from './articulo-cabecera.js'
 
-// La clave es inglesa (la columna); lo que se lee, en español (780, LO5).
-const NOMBRE_RAREZA = { bronze: 'Bronce', silver: 'Plata', gold: 'Oro', platinum: 'Platino' }
 
 const slug = slugDeArticuloEnLaUrl()
 
-const LEVEL_LABELS = { beginner: 'Básico', intermediate: 'Intermedio', advanced: 'Avanzado' }
 
 // CAMBIA YA, CONFIRMA DESPUÉS, DESHAZ SI FALLA (896, R6): el marcador se
 // pinta como queda en el acto y la base lo confirma detrás; antes se
@@ -94,24 +92,80 @@ function setupReadTracking(session, guide, esNoticia = false) {
   observer.observe(sentinel)
 }
 
-async function pintarMasDelTema(guide) {
+// SIGUE LEYENDO (866; portadas desde la 1283): al acabar, tres más del mismo
+// tema —o, en una noticia, las tres últimas noticias— con la portada de
+// /aprender (js/guia-portada.js, su hoja la carga guia.html).
+async function pintarMasDelTema(guide, esNoticia) {
   const caja = document.getElementById('guiaMasDelTema')
   if (!caja) return
-  const COLS = 'id, slug, title, description, kind, level, estimated_mins, blocks, cover_image, published_at'
+  const COLS = 'id, slug, title, description, kind, level, estimated_mins, blocks, cover_image, published_at, category_id'
   const pedir = (filtrar) => {
-    const q = supabase.from('guides').select(COLS).eq('category_id', guide.category_id).neq('id', guide.id).not('published_at', 'is', null).order('published_at', { ascending: false }).limit(3)
+    let q = supabase.from('guides').select(COLS).neq('id', guide.id).not('published_at', 'is', null).order('published_at', { ascending: false }).limit(3)
+    if (esNoticia) return q.eq('kind', 'news')
+    q = q.eq('category_id', guide.category_id)
     return filtrar ? q.eq('kind', 'guide') : q
   }
-  const { data } = await conVueltaAtrasDeTipo(() => pedir(true), () => pedir(false))
+  const { data } = esNoticia ? await pedir(true) : await conVueltaAtrasDeTipo(() => pedir(true), () => pedir(false))
   if (!data?.length) return
-  const { filaDeGuia } = await import('./guia-fila.js')
+  const { portadaDeGuia } = await import('./guia-portada.js')
   const tema = guide.categories || {}
   const nombre = tema.name || tema.slug || 'este tema'
+  const temaDe = esNoticia ? { nombre: 'Noticia', slug: 'noticias' } : { nombre, slug: tema.slug }
   caja.innerHTML = `
-    <h2 class="guia-mas-tema-titulo">Más de ${escapeHtml(nombre)}</h2>
-    <div class="guia-mas-tema-lista">${data.map((g) => filaDeGuia(g, { progreso: null })).join('')}</div>
-    ${tema.slug ? `<a class="link-btn guia-mas-tema-todo" href="/aprender?tema=${encodeURIComponent(tema.slug)}">Todo el tema →</a>` : ''}`
+    <div class="guia-mas-tema-cab">
+      <h2 class="guia-mas-tema-titulo">${esNoticia ? 'Más noticias' : `Sigue leyendo en ${escapeHtml(nombre)}`}</h2>
+      ${esNoticia ? '<a class="link-btn guia-mas-tema-todo" href="/noticias">Todas →</a>' : tema.slug ? `<a class="link-btn guia-mas-tema-todo" href="/aprender?tema=${encodeURIComponent(tema.slug)}">Todo el tema →</a>` : ''}
+    </div>
+    <div class="guia-mas-tema-lista">${data.map((g) => portadaDeGuia(g, { tema: temaDe })).join('')}</div>`
   caja.classList.remove('hidden')
+}
+
+// QUIEN LA ESCRIBE, al final (1283): su nombre con la chapa, cuántas guías
+// tiene publicadas y «Seguir» (lo mismo que la tarjeta flotante, hovercard.js).
+function autorFinalHtml(author, nombre, estiloAvatar) {
+  return `
+    <a class="mini-avatar gf-avatar" href="${profileUrl(author)}" style="${estiloAvatar}" aria-hidden="true" tabindex="-1">${author.avatar_url ? '' : getInitial(nombre)}</a>
+    <div class="gf-autor-texto">
+      <span class="gf-autor-quien">Escrita por</span>
+      <a class="gf-autor-nombre" href="${profileUrl(author)}"${atributosDeRango(author)}>${escapeHtml(nombre)}</a>${author.is_writer ? '<span class="guia-chapa-redaccion">Redacción</span>' : ''}
+      <span class="gf-autor-cuenta" id="guiaAutorCuenta"></span>
+    </div>
+    <div class="gf-autor-botones">
+      <button type="button" class="btn-primary gf-seguir hidden" id="guiaSeguir">Seguir</button>
+      <a class="btn-secondary" href="${profileUrl(author)}?ver=guides">Ver sus guías</a>
+    </div>`
+}
+
+async function montarAutorFinal(author, session) {
+  const cuenta = document.getElementById('guiaAutorCuenta')
+  const boton = document.getElementById('guiaSeguir')
+  if (!cuenta || !boton) return
+  const { count } = await supabase.from('guides').select('id', { count: 'exact', head: true }).eq('author_id', author.id).eq('kind', 'guide').not('published_at', 'is', null)
+  if (count) cuenta.textContent = `${count} ${count === 1 ? 'guía publicada' : 'guías publicadas'} en PokeDoc`
+  if (session?.user.id === author.id) return
+  if (!session) {
+    boton.classList.remove('hidden')
+    boton.addEventListener('click', () => { window.location.href = `/auth.html?volver=${encodeURIComponent(location.pathname)}` })
+    return
+  }
+  const { data } = await supabase.from('user_follows').select('follower_id').eq('follower_id', session.user.id).eq('following_id', author.id).maybeSingle()
+  let sigo = !!data
+  const pintar = () => {
+    boton.classList.toggle('btn-primary', !sigo)
+    boton.classList.toggle('btn-secondary', sigo)
+    boton.textContent = sigo ? 'Siguiendo' : 'Seguir'
+  }
+  pintar()
+  boton.classList.remove('hidden')
+  // Cambia ya, confirma después y deshace si falla (896, R6).
+  boton.addEventListener('click', async () => {
+    sigo = !sigo
+    pintar()
+    const { error } = sigo
+      ? await supabase.from('user_follows').insert({ follower_id: session.user.id, following_id: author.id })
+      : await supabase.from('user_follows').delete().eq('follower_id', session.user.id).eq('following_id', author.id)
+    if (error) { sigo = !sigo; pintar(); showToast('No se ha podido. Vuelve a intentarlo.') }
+  })
 }
 
 async function init() {
@@ -143,7 +197,7 @@ async function init() {
 
   const { data: guide, error } = await supabase
     .from('guides')
-    .select('*, categories(name, slug, emoji)')
+    .select('*, categories(*)')
     .eq('slug', slug)
     .single()
 
@@ -233,8 +287,7 @@ async function init() {
         }</span>
         ${author ? `<a href="${profileUrl(author)}"${atributosDeRango(author, 'font-weight:700; color:var(--navy)')}>${escapeHtml(authorName)}</a>${author.is_writer ? '<span class="guia-chapa-redaccion" title="Redacción de PokeDoc">Redacción</span>' : ''}${authorBadge}` : `<strong>${escapeHtml(authorName)}</strong>`}
       </div>
-    </div>
-    ${creditos}`
+    </div>`
 
   const session = await getSession()
   const profile = session ? await getProfile(session.user.id) : null
@@ -281,20 +334,19 @@ async function init() {
       </div>`
     : ''
 
+  // LA PORTADA (1283): la misma que pinta el servidor (js/articulo-cabecera.js)
+  // y, debajo, la franja de quien la firma con lo que se tarda y los botones.
+  // Lo de debajo de la franja (créditos, «Lo importante», el índice del móvil)
+  // va en la misma caja de arriba, a lo ancho en el PC.
+  const apartados = numerarApartados(headings).filter((h) => h.n).length
+  const indiceMovil = headings.length >= 2
+    ? `<details class="gi-movil">
+        <summary>${icons.listOrdered(16)}<span>${apartados} ${apartados === 1 ? 'apartado' : 'apartados'}</span><span class="gi-barra" aria-hidden="true"><i></i></span><span class="gi-queda-corto">${minutosLectura} min</span></summary>
+        <ol class="gi-lista">${indiceHtml(headings)}</ol>
+      </details>`
+    : ''
   main.innerHTML = `
-    <nav class="breadcrumb" aria-label="Dónde estás">
-      <a href="/">Inicio</a> <span>›</span>
-      ${
-        // Con la sección delante (857): «Inicio › Guías › Mazos › Título». Sin
-        // tema, el paso del tema no se pinta: salía «Inicio › › Título», con un
-        // enlace vacío que en el móvil era el paso de volver — y no se veía.
-        esNoticia
-          ? `<a href="/noticias">Noticias</a>`
-          : `<a href="/aprender">Guías</a>${guide.categories?.slug ? ` <span>›</span> <a href="/aprender?tema=${encodeURIComponent(guide.categories.slug)}">${escapeHtml(guide.categories.name || guide.categories.slug)}</a>` : ''}`
-      }
-      <span>›</span> <span>${escapeHtml(guide.title)}</span>
-    </nav>
-    <div class="article-header">
+    <div class="gh-arriba">
       ${
         // Una guía sin publicar se veía EXACTAMENTE igual que una
         // publicada, y de ahí venía el lío: creer que tienes una guía viva
@@ -324,33 +376,22 @@ async function init() {
             }</p>`
           : ''
       }
-      <span class="guide-label">${esNoticia ? 'Noticia' : escapeHtml(guide.categories?.name || '')}</span>
-      <h1>${escapeHtml(guide.title)}</h1>
-      <p class="lead">${escapeHtml(guide.description || '')}</p>
-      ${opHeaderHtml}
-      <div class="article-meta">
-        ${
-          // En una noticia lo primero que se mira es CUÁNDO. El <time>
-          // con `datetime` no es decoración: es de donde Google saca la
-          // fecha de publicación.
-          esNoticia
-            ? `<time class="time-tag" datetime="${escapeHtml(fechaMaquina(guide.published_at))}">${escapeHtml(fechaLarga(guide.published_at))}</time>`
-            : ''
-        }
-        <span class="time-tag" title="Tiempo de lectura estimado">${minutosLectura} min de lectura</span>
-        ${
-          // El nivel y la rareza son de las guías: una noticia no es
-          // «básica» ni «de bronce», y ponerle esas chapas la hace
-          // parecer lo que no es.
-          esNoticia ? '' : `<span class="time-tag">${LEVEL_LABELS[guide.level] || 'Básico'}</span>
-        <span class="rarity-chip rarity-${guide.guide_rarity || 'bronze'}">${escapeHtml(NOMBRE_RAREZA[guide.guide_rarity] || 'Bronce')}</span>`
-        }
-        ${MOSTRAR_PLANES && !esNoticia ? `<span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
-        <!-- Los botones van en su propio grupo, no sueltos entre las
-             etiquetas. Sueltos, el "margin-left: auto" lo llevaba solo
-             Guardar: en cuanto la línea no cabía, Compartir se caía a la
-             línea de abajo él solo y con el tamaño de botón grande. El
-             grupo se envuelve entero o no se envuelve. -->
+      ${portadaDeArticuloHtml(guide, { tema: guide.categories })}
+      <div class="gh-franja">
+        ${opHeaderHtml}
+        <div class="gh-datos">
+          ${
+            // En una noticia lo primero que se mira es CUÁNDO. El <time>
+            // con `datetime` no es decoración: es de donde Google saca la
+            // fecha de publicación.
+            esNoticia
+              ? `<time class="time-tag gh-dato" datetime="${escapeHtml(fechaMaquina(guide.published_at))}">${escapeHtml(fechaLarga(guide.published_at))}</time>`
+              : ''
+          }
+          <span class="gh-dato" title="Tiempo de lectura estimado">${icons.clock(14)} ${minutosLectura} min</span>
+          ${apartados >= 2 ? `<span class="gh-dato">${icons.listOrdered(14)} ${apartados} apartados</span>` : ''}
+          ${MOSTRAR_PLANES && !esNoticia ? `<span class="badge ${guide.is_pro ? 'badge-pro' : 'badge-free'}">${guide.is_pro ? 'Pro' : 'Gratis'}</span>` : ''}
+        </div>
         <div class="guia-acciones">
           <button class="btn-secondary guia-accion-icono" id="btnSave" aria-label="Guardar">${icons.bookmark(16)}</button>
           ${
@@ -361,15 +402,16 @@ async function init() {
           }
           ${
             // Y si la guía es tuya y ya está publicada, a editarla desde
-            // aquí. Es donde su autor la relee y donde ve la errata, no
-            // en una lista de su perfil. La pendiente ya tiene su propio
-            // "Seguir editando" arriba, dentro del aviso de revisión.
+            // aquí. Es donde su autor la relee y donde ve la errata.
             esMia && guide.review_status === 'approved'
               ? `<a class="btn-secondary guia-editar-mia" href="/editor-guia.html?id=${encodeURIComponent(guide.id)}">${icons.edit(14)} Editar</a>`
               : ''
           }
         </div>
       </div>
+      ${creditos}
+      ${importanteHtml(guide)}
+      ${indiceMovil}
     </div>
     ${
       // UNA sola llamada al curso (1014, L5), antes del texto: una tarjeta
@@ -398,10 +440,20 @@ async function init() {
     <div class="tab-panel" id="atab-pro"><div class="article-body">${proBodyHtml}</div></div>`
         : `<div class="article-body">${bodyHtml}</div>`
     }
-    ${tambienEnHtml(guide)}
     <div id="articleEndSentinel" aria-hidden="true"></div>
-    <div id="guideHelpful"></div>
-    <div id="guideSuggestion"></div>
+    <div class="gf">
+      ${
+        // EL FINAL (1283): quien la escribe (con «Seguir») y «Me ha servido»
+        // en una fila; debajo, «También en…» (Redacción, la 1282) y «Sigue
+        // leyendo». Antes el artículo se acababa sin más.
+        author && !esNoticia ? `<div class="gf-autor" id="guiaAutor">${autorFinalHtml(author, authorName, authorAvatarStyle)}</div>` : ''
+      }
+      <div class="gf-servido">
+        <div id="guideHelpful"></div>
+        <div id="guideSuggestion"></div>
+      </div>
+    </div>
+    ${tambienEnHtml(guide)}
     <div class="guia-mas-tema hidden" id="guiaMasDelTema"></div>
     <div id="guideWriteInvite"></div>
     <section class="guide-forum">
@@ -466,7 +518,8 @@ async function init() {
   // MÁS DE ESTE TEMA (866): al acabar de leer, tres guías más del mismo
   // tema y el enlace al tema entero; es el «siguiente reto» de la 860
   // llevado a las guías. Antes una guía terminaba en la valoración.
-  if (!esNoticia && guide.category_id) void pintarMasDelTema(guide)
+  if (esNoticia || guide.category_id) void pintarMasDelTema(guide, esNoticia)
+  if (author && !esNoticia) montarAutorFinal(author, session).catch(() => {})
 
   // Invitación a escribir, al terminar de leer.
   //
@@ -492,24 +545,47 @@ async function init() {
       </p>`
   }
 
+  // EL ÍNDICE (1283): numerado, con lo leído marcado, la barra de lectura y
+  // los minutos que quedan. En el PC va al lado; en el móvil, la píldora de
+  // arriba (`.gi-movil`) lleva la misma barra y la misma lista.
   if (headings.length > 0) {
     document.getElementById('articleSidebar').innerHTML = `
-      <h4>En esta guía</h4>
-      ${headings.map((h) => `<a href="#${h.id}">${escapeHtml(h.text)}</a>`).join('')}`
+      <div class="gi-caja">
+        <h4>En esta ${esNoticia ? 'noticia' : 'guía'}</h4>
+        <div class="gi-barra" aria-hidden="true"><i></i></div>
+        <ol class="gi-lista">${indiceHtml(headings)}</ol>
+        <p class="gi-queda" id="giQueda">${minutosLectura} min de lectura</p>
+      </div>`
 
-    // El índice marca por dónde vas: la última sección cuyo título ya
-    // pasó por debajo de la navbar es "la actual". Se mira en scroll y
-    // no con IntersectionObserver a propósito: con secciones más altas
-    // que la pantalla, el observador pierde el título de vista y el
-    // índice se quedaría sin sección marcada a mitad de lectura.
-    const enlaces = [...document.querySelectorAll('#articleSidebar a')]
+    // La sección actual es la última cuyo título ya pasó por debajo de la
+    // barra. Se mira en scroll y no con IntersectionObserver a propósito:
+    // con secciones más altas que la pantalla, el observador pierde el
+    // título de vista y el índice se quedaría sin sección a mitad.
+    const cuerpo = main.querySelector('.article-body')
+    const pasos = [...document.querySelectorAll('#articleSidebar .gi-paso, .gi-movil .gi-paso')]
+    const barras = [...document.querySelectorAll('.gi-barra i')]
+    const queda = document.getElementById('giQueda')
+    const quedaCorto = main.querySelector('.gi-queda-corto')
     const titulos = headings.map((h) => document.getElementById(h.id))
     const marcarSeccion = () => {
       let actual = 0
       titulos.forEach((t, i) => {
         if (t && t.getBoundingClientRect().top <= 140) actual = i
       })
-      enlaces.forEach((a, i) => a.classList.toggle('activo', i === actual))
+      pasos.forEach((a) => {
+        const i = Number(a.dataset.i)
+        a.classList.toggle('activo', i === actual)
+        a.classList.toggle('hecho', i < actual)
+      })
+      if (!cuerpo) return
+      const r = cuerpo.getBoundingClientRect()
+      const fraccion = r.height > 0 ? (window.innerHeight * 0.6 - r.top) / r.height : 0
+      const pct = Math.round(Math.min(1, Math.max(0, fraccion)) * 100)
+      barras.forEach((b) => { b.style.width = `${pct}%` })
+      const min = minutosQueQuedan(minutosLectura, fraccion)
+      const texto = pct <= 0 ? `${minutosLectura} min de lectura` : min > 0 ? `Te quedan unos ${min} min` : 'Ya casi está'
+      if (queda) queda.textContent = texto
+      if (quedaCorto) quedaCorto.textContent = pct <= 0 ? `${minutosLectura} min` : min > 0 ? `${min} min` : 'Listo'
     }
     window.addEventListener('scroll', marcarSeccion, { passive: true })
     marcarSeccion()

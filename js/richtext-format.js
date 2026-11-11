@@ -103,6 +103,8 @@ export const CLASES_PERMITIDAS = new Set([
   ...COLORES_FONDO.map((c) => c.clase),
   ...CLASES_ALINEACION,
   ...CLASES_FIGURA,
+  // Las cajas de un artículo (1283): Consejo, Ojo y Dato.
+  'caja-consejo', 'caja-ojo', 'caja-dato',
 ])
 
 const PORHEX_TEXTO = Object.fromEntries(COLORES_TEXTO.map((c) => [c.hex, c.clase]))

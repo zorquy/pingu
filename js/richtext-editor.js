@@ -146,7 +146,17 @@ function barraBloqueHtml() {
   </div>`
 }
 
-export function richTextToolbarHtml() {
+// CONSEJO, OJO Y DATO (1283): las cajas de un artículo. Son una cita
+// (<blockquote>) con su clase; el rótulo y el icono los pone la hoja del
+// artículo (guia.css). Solo las piden los dos editores de guías: el foro, el
+// perfil y los torneos no tienen dónde enseñarlas.
+export const CAJAS = [
+  { tipo: 'consejo', nombre: 'Consejo' },
+  { tipo: 'ojo', nombre: 'Ojo' },
+  { tipo: 'dato', nombre: 'Dato' },
+]
+
+export function richTextToolbarHtml({ cajas = false } = {}) {
   const botones = ACCIONES.map((a, i) => {
     if (a.separador) return '<span class="rte-sep" aria-hidden="true"></span>'
     if (a.color) {
@@ -166,6 +176,17 @@ export function richTextToolbarHtml() {
         ${EMOJIS.map((e) => `<button type="button" data-emoji="${e}">${e}</button>`).join('')}
       </div>
     </span>
+    ${
+      cajas
+        ? `<span class="rte-color-wrap">
+      <button type="button" data-action="caja" title="Caja: Consejo, Ojo o Dato">${icons.lightbulb(15)} Caja</button>
+      <div class="rte-paleta rte-paleta-cajas hidden" data-paleta="cajas">
+        ${CAJAS.map((c) => `<button type="button" class="rte-caja rte-caja-${c.tipo}" data-caja="${c.tipo}">${c.nombre}</button>`).join('')}
+        <button type="button" class="rte-caja" data-caja="quitar">Quitar</button>
+      </div>
+    </span>`
+        : ''
+    }
     <span class="rte-sep" aria-hidden="true"></span>
     <button type="button" data-action="image" title="Insertar imágenes (puedes elegir varias de una vez)">${icons.image(15)} Imagen</button>
     <button type="button" data-action="cards" title="Insertar cartas del catálogo">${icons.layers(15)} Cartas</button>
@@ -447,6 +468,41 @@ export function initRichTextEditor({ toolbarEl, surfaceEl, initialHtml, onChange
   // Se insertan como TEXTO con insertText: pasan por la pila de entrada
   // normal, así que el historial los apunta y el saneador los deja pasar
   // como cualquier otra letra. Valen también en el título de un spoiler.
+  // ── Las cajas (1283) ──
+  // Se pone una cita donde está el cursor (o se reutiliza la que ya hay) y se
+  // le da la clase del tipo; «Quitar» la devuelve a párrafo.
+  const btnCaja = toolbarEl.querySelector('[data-action="caja"]')
+  if (btnCaja) {
+    btnCaja.addEventListener('click', (e) => {
+      e.preventDefault()
+      const paleta = btnCaja.parentElement.querySelector('.rte-paleta-cajas')
+      const abierta = !paleta.classList.contains('hidden')
+      cerrarPaletas()
+      paleta.classList.toggle('hidden', abierta)
+    })
+    const citaDelCursor = () => {
+      const nodo = window.getSelection()?.anchorNode
+      const el = nodo?.nodeType === 1 ? nodo : nodo?.parentElement
+      const cita = el?.closest?.('blockquote')
+      return cita && surfaceEl.contains(cita) ? cita : null
+    }
+    toolbarEl.querySelectorAll('[data-caja]').forEach((btn) => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault()
+        cerrarPaletas()
+        devolverCursor()
+        if (btn.dataset.caja === 'quitar') {
+          if (citaDelCursor()) ordenSilenciosa('formatBlock', 'P')
+        } else {
+          if (!citaDelCursor()) ordenSilenciosa('formatBlock', 'BLOCKQUOTE')
+          const cita = citaDelCursor()
+          if (cita) cita.className = `caja-${btn.dataset.caja}`
+        }
+        emit()
+      })
+    })
+  }
+
   const btnEmoji = toolbarEl.querySelector('[data-action="emoji"]')
   if (btnEmoji) {
     btnEmoji.addEventListener('click', (e) => {

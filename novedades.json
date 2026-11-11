@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-11", "tipo": "mejora", "texto": "Las guías y las noticias, rehechas: portada a lo ancho con su imagen (o el Pokémon de su tema), un índice que te dice por dónde vas y cuánto te queda, cajas de Consejo, Ojo y Dato, y al final quién la escribe y qué leer después.", "enlace": "/aprender" },
     { "fecha": "2026-11-11", "tipo": "nuevo", "texto": "Las guías de Redacción: quien escribe con nosotros publica sus guías al momento, con su firma de Redacción y, al final, el enlace a su web.", "enlace": "/aprender" },
     { "fecha": "2026-11-11", "tipo": "arreglo", "texto": "Las cartas nuevas ya juegan: Delta Reign, la 30th Celebration, los Prize Pack, las últimas promos y las Trainer Gallery tienen su tipo, PS, ataques y debilidad, así que salen en los filtros del constructor y funcionan en el laboratorio y en las repeticiones.", "enlace": "/constructor" },
     { "fecha": "2026-11-10", "tipo": "mejora", "texto": "La página para tiendas, rehecha: cómo es llevar el inventario en PokeDoc con capturas de verdad (el stock, las etiquetas, el mostrador y el escaparate), lo que preguntan siempre y un dossier en PDF para descargar o pasárselo a tu socio.", "enlace": "/para-tiendas" },

@@ -92,7 +92,7 @@ function updateCourseGate() {
 
 function renderRef() {
   const toolbarEl = document.getElementById('refRteToolbar')
-  toolbarEl.innerHTML = richTextToolbarHtml()
+  toolbarEl.innerHTML = richTextToolbarHtml({ cajas: true })
   // Si la guía es de antes del editor WYSIWYG, tenía varios bloques
   // (encabezado/párrafo/imagen...); los convertimos una vez a HTML para
   // seguir editándolos en la superficie continua nueva.

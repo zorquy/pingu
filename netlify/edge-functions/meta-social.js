@@ -56,6 +56,7 @@ import { nivelDeXp } from '../../js/niveles.js'
 import { TIPOS as TIPOS_DE_EVENTO, fechaLarga, entradasDe, desdePrecio, siglasDe } from '../../js/eventos-puro.js'
 import { numeroDelDia } from '../../js/reto-compartir.js'
 import { rutaDeArticulo } from '../../js/articulos.js'
+import { portadaDeArticuloHtml, franjaReservadaHtml, importanteHtml } from '../../js/articulo-cabecera.js'
 import { RETOS } from '../../js/retos-xp.js'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
@@ -416,7 +417,7 @@ export function cuerpoDeBloques(bloques) {
 // JavaScript pinta el resto en cuanto carga.
 const CUERPO_MAXIMO = 60000
 
-export function cuerpoDeArticulo({ titulo, entradilla, bloques }) {
+export function cuerpoDeArticulo({ titulo, entradilla, bloques, guia = null, esNoticia = false }) {
   const dentro = cuerpoDeBloques(bloques)
   if (!dentro) return ''
   // Se corta por el final de una etiqueta, no por donde caiga: partir un
@@ -443,10 +444,16 @@ export function cuerpoDeArticulo({ titulo, entradilla, bloques }) {
   // Con los envoltorios puestos, el primer pintado YA es el bueno y el
   // relevo del cliente no se nota. Si estas clases cambian en guia.js,
   // tienen que cambiar aquí: las dos mitades pintan lo mismo.
+  //
+  // Desde la 1283 lo de arriba es LA PORTADA (js/articulo-cabecera.js, la
+  // misma función que usa guia.js) y el hueco de la franja de la firma, que
+  // pinta el navegador: así el texto no baja cuando llega el JavaScript.
+  const fila = { ...(guia || {}), title: titulo, description: entradilla, kind: esNoticia ? 'news' : 'guide' }
   return (
-    '<div class="article-header">' +
-    `<h1>${escaparAtributo(titulo)}</h1>` +
-    (entradilla ? `<p class="lead">${escaparAtributo(entradilla)}</p>` : '') +
+    '<div class="gh-arriba">' +
+    portadaDeArticuloHtml(fila, { tema: guia?.categories || null }) +
+    franjaReservadaHtml() +
+    importanteHtml(fila) +
     '</div>' +
     `<div class="article-body">${recortado}</div>`
   )
@@ -549,7 +556,9 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
   // quedaría SIN etiquetas sociales. Antes de añadir una aquí, hay que
   // verla en la base.
   const base = `guides?slug=eq.${encodeURIComponent(slug)}&published_at=not.is.null&select=`
-  const columnas = 'title,description,cover_image,search_content,published_at,author_id,reference_blocks,categories(name,slug)'
+  // `categories(*)` y no los dos campos (1283): la portada usa su Pokémon
+  // (`pokemon`, de la 1226), que con la columna sin crear no se puede nombrar.
+  const columnas = 'title,slug,description,cover_image,search_content,published_at,author_id,level,guide_rarity,reference_blocks,categories(*)'
   // `og_image` (1157, la tarjeta del enlace con el marco) se pide primero;
   // sin la migración, la consulta de siempre.
   const guia = (await pedir(`${base}${columnas},updated_at,og_image&limit=1`)) || (await pedirConVueltaAtras(
@@ -585,7 +594,7 @@ async function metaDeGuia(url, esCurso, esNoticia = false) {
     // El texto del artículo, para que esté en el HTML sin tener que
     // ejecutar JavaScript. En un curso no: ahí el artículo de referencia
     // puede estar bajo llave, y lo que se juega es otra cosa.
-    cuerpo: esCurso ? '' : cuerpoDeArticulo({ titulo: guia.title, entradilla: guia.description, bloques: guia.reference_blocks }),
+    cuerpo: esCurso ? '' : cuerpoDeArticulo({ titulo: guia.title, entradilla: guia.description, bloques: guia.reference_blocks, guia, esNoticia }),
     titulo: esCurso ? `Curso: ${guia.title} — PokeDoc` : `${guia.title} — PokeDoc`,
     descripcion: esCurso ? `Curso interactivo paso a paso. ${descripcion}` : descripcion,
     imagen,

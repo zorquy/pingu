@@ -99,7 +99,7 @@ function renderPro() {
 
   updateProStatusBadge()
   const toolbarEl = document.getElementById('proRteToolbar')
-  toolbarEl.innerHTML = richTextToolbarHtml()
+  toolbarEl.innerHTML = richTextToolbarHtml({ cajas: true })
   const initialHtml = proBlocks[0]?.html || ''
   initRichTextEditor({
     toolbarEl,
@@ -148,7 +148,7 @@ function updateCourseGate() {
 
 function renderRef() {
   const toolbarEl = document.getElementById('refRteToolbar')
-  toolbarEl.innerHTML = richTextToolbarHtml()
+  toolbarEl.innerHTML = richTextToolbarHtml({ cajas: true })
   const initialHtml = refBlocks.length === 1 && refBlocks[0].type === 'richtext' ? refBlocks[0].html : renderReferenceBlocksHtml(refBlocks)
   initRichTextEditor({
     toolbarEl,

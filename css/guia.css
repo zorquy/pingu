@@ -540,3 +540,408 @@ a.rater-name:hover {
   font-size: var(--t-sm);
   white-space: nowrap;
 }
+
+/* ══ 1283 — El artículo como una revista (SCHEMA 1283) ══ */
+
+/* En el PC la portada va a lo ancho y el índice a la izquierda del texto: el
+   <article> se «abre» (display: contents) y sus hijos caen en la rejilla de
+   .article-layout. La portada y su franja (.gh-arriba) ocupan las dos
+   columnas; el índice, la columna 1 a la altura del texto. */
+@media (min-width: 1024px) {
+  .article-layout {
+    display: grid;
+    grid-template-columns: 232px minmax(0, 1fr);
+    /* Sin hueco entre filas: el `gap: 48px` de la versión flex de arriba
+       también separaría cada bloque del artículo (cada uno es una fila). */
+    gap: 0 48px;
+    align-items: start;
+  }
+  .article-main { display: contents; }
+  .article-main > * { grid-column: 2; min-width: 0; max-width: 760px; }
+  .article-main > .gh-arriba,
+  .article-main > .esq-articulo { grid-column: 1 / -1; max-width: none; }
+  .article-sidebar {
+    grid-column: 1;
+    grid-row: 2 / span 3;
+    width: auto;
+    align-self: start;
+  }
+}
+
+/* ── La portada ── */
+.gh {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  min-height: 300px;
+  margin: var(--e-sm) 0 0;
+  padding: 0;
+  border-radius: var(--radius-xl);
+  background-color: #0b1219;
+  color: var(--blanco-fijo);
+}
+/* En oscuro el fondo de la portada es el de la página: un borde la recorta. */
+:root[data-theme='dark'] .gh { box-shadow: inset 0 0 0 1px var(--border); }
+.gh::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(90deg, rgb(11 18 25 / 92%) 0, rgb(11 18 25 / 70%) 42%, rgb(11 18 25 / 0%) 78%);
+}
+.gh-sin-foto::after { background: linear-gradient(90deg, rgb(11 18 25 / 78%) 0, rgb(11 18 25 / 38%) 48%, rgb(11 18 25 / 0%) 75%); }
+.gh-foto {
+  position: absolute;
+  inset: 0 0 0 auto;
+  z-index: -2;
+  width: 64%;
+  height: 100%;
+  object-fit: cover;
+}
+.gh-arte {
+  position: absolute;
+  right: 5%;
+  bottom: -8%;
+  z-index: -2;
+  width: auto;
+  height: 112%;
+  max-width: 46%;
+  object-fit: contain;
+  filter: drop-shadow(0 16px 28px rgb(0 0 0 / 40%));
+}
+.gh-dentro {
+  position: relative;
+  width: min(100%, 620px);
+  padding: var(--e-2xl) 40px;
+}
+.gh .breadcrumb {
+  margin: 0 0 var(--e-lg);
+  color: rgb(255 255 255 / 82%);
+  font-size: var(--t-xs);
+}
+.gh .breadcrumb a { color: inherit; }
+.gh .breadcrumb .gh-migas-aqui { display: none; }
+.gh-chips { display: flex; flex-wrap: wrap; gap: var(--e-xs); margin-bottom: var(--e-md); }
+.gh .gh-chip {
+  margin: 0;
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgb(255 255 255 / 16%);
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  backdrop-filter: blur(6px);
+}
+.gh .gh-chip-tipo { background: var(--gh-tono, #0f7f55); }
+.gh[data-tipo='noticia'] { --gh-tono: #c62a5c; }
+.gh .gh-chip-bronze { background: linear-gradient(135deg, #f3d3b0, #c08552); color: #3b1d06; }
+.gh .gh-chip-silver { background: linear-gradient(135deg, #eef2f4, #a9b8c0); color: #0b1219; }
+.gh .gh-chip-gold { background: linear-gradient(135deg, #fdeaa0, #d6a419); color: #3b2a02; }
+.gh .gh-chip-platinum { background: linear-gradient(135deg, #e6f6fb, #8fd0e4); color: #062b36; }
+.gh h1 {
+  margin: 0 0 var(--e-sm);
+  max-width: 20ch;
+  font-family: var(--font-display);
+  font-size: var(--t-3xl);
+  line-height: 1.08;
+  letter-spacing: -0.5px;
+  text-wrap: balance;
+  text-shadow: 0 2px 12px rgb(0 0 0 / 35%);
+}
+.gh .lead {
+  max-width: 52ch;
+  color: rgb(255 255 255 / 88%);
+  font-size: var(--t-lg);
+}
+.gh-fecha {
+  display: inline-grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  margin: 0 0 var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--blanco-fijo);
+  color: #0b1219;
+  line-height: 1;
+  text-align: center;
+}
+.gh-fecha b { display: block; font-family: var(--font-display); font-size: var(--t-2xl); }
+.gh-fecha small { display: block; margin-top: 2px; color: #c62a5c; font-size: var(--t-2xs); font-weight: 700; text-transform: uppercase; }
+
+/* ── La franja de quien la firma ── */
+.gh-franja {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--e-md) var(--e-lg);
+  min-height: 76px;
+  padding: var(--e-md) var(--e-xs);
+  border-bottom: 1px solid var(--border);
+}
+.gh-franja .guide-author { margin: 0; min-width: 0; }
+.gh-datos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-xs) var(--e-lg);
+  margin-left: auto;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+.gh-dato { display: inline-flex; align-items: center; gap: var(--e-xs); }
+.gh-datos .time-tag { padding: 0; background: none; color: inherit; font-size: inherit; }
+.gh-franja .guia-acciones { margin-left: 0; }
+.gh-arriba { margin-bottom: var(--e-xl); }
+
+/* «Lo importante» de una noticia. */
+.gh-importante {
+  margin-top: var(--e-lg);
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-left: 4px solid #c62a5c;
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.gh-importante h2 {
+  margin: 0 0 var(--e-xs);
+  color: #c62a5c;
+  font-size: var(--t-xs);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.gh-importante ul { margin: 0; padding-left: var(--e-lg); display: grid; gap: var(--e-xs); list-style: disc; }
+.gh-importante li::marker { color: #c62a5c; }
+
+/* ── El índice ── */
+.gi-caja {
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.gi-caja h4 { margin-bottom: var(--e-sm); }
+.gi-barra {
+  display: block;
+  height: 4px;
+  margin-bottom: var(--e-sm);
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: var(--border);
+}
+.gi-barra i { display: block; width: 0; height: 100%; border-radius: inherit; background: var(--acento); transition: width 0.3s var(--ease); }
+.gi-lista { margin: 0; padding: 0; list-style: none; display: grid; gap: 2px; }
+.article-sidebar .gi-paso,
+.gi-paso {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 36px;
+  padding: var(--e-xs);
+  border: 0;
+  border-radius: var(--radius-md);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  text-decoration: none;
+}
+.gi-paso em {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--navy);
+  font-size: var(--t-2xs);
+  font-style: normal;
+  font-weight: 700;
+}
+.gi-sub .gi-paso { padding-left: var(--e-lg); font-size: var(--t-xs); }
+.gi-sub .gi-paso em { width: 8px; height: 8px; justify-self: center; background: var(--border-strong); }
+.gi-paso.hecho em { background: var(--acento); color: var(--acento-texto); }
+.article-sidebar .gi-paso.activo,
+.gi-paso.activo { background: color-mix(in srgb, var(--acento) 12%, transparent); color: var(--text); font-weight: 600; }
+.gi-paso.activo em { background: var(--white); box-shadow: inset 0 0 0 2px var(--acento); color: var(--acento); }
+.gi-queda { margin: var(--e-sm) 0 0; padding-top: var(--e-sm); border-top: 1px solid var(--border); color: var(--text-mid); font-size: var(--t-xs); }
+
+/* En el móvil, una píldora que se despliega con la misma lista. */
+.gi-movil { margin-top: var(--e-md); }
+.gi-movil summary {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  cursor: pointer;
+  list-style: none;
+}
+.gi-movil summary::-webkit-details-marker { display: none; }
+.gi-movil summary .gi-barra { flex: 1; margin: 0; }
+.gi-movil summary .gi-queda-corto { color: var(--text-mid); font-weight: 500; }
+.gi-movil[open] summary { border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+.gi-movil .gi-lista { padding: var(--e-sm); border: 1px solid var(--border); border-top: 0; border-radius: 0 0 var(--radius-lg) var(--radius-lg); background: var(--white); }
+@media (min-width: 1024px) {
+  .gi-movil { display: none; }
+}
+
+/* ── El texto ── */
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) { counter-reset: apartado; font-size: var(--t-lg); line-height: 1.75; }
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) h2 { counter-increment: apartado; display: flex; align-items: baseline; gap: var(--e-md); }
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) h2::before {
+  content: counter(apartado, decimal-leading-zero);
+  color: var(--acento);
+  font-family: var(--font-display);
+  font-size: var(--t-sm);
+  letter-spacing: 0.04em;
+}
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) ul > li::marker { color: var(--acento); }
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) > img,
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) > p > img:only-child,
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) figure img {
+  max-height: 520px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+}
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) figcaption { margin-top: var(--e-xs); color: var(--text-mid); font-size: var(--t-sm); text-align: center; }
+
+/* Consejo, Ojo y Dato. Una cita sin tipo (las de antes) es un Consejo; el
+   bloque «destacado» del editor viejo, un Dato. El rótulo y el icono los pone
+   el CSS: el texto que se guarda es solo el de la caja, y las dos mitades
+   (navegador y servidor) lo pintan igual. */
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) blockquote,
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) .block-highlight {
+  --caja-tono: var(--success);
+  --caja-fondo: var(--success-bg);
+  --caja-icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z'/%3E%3C/svg%3E");
+  --caja-rotulo: 'Consejo';
+  position: relative;
+  margin: var(--e-xl) 0;
+  padding: 36px var(--e-lg) var(--e-md) 64px;
+  border: 0;
+  border-radius: var(--radius-lg);
+  background: var(--caja-fondo);
+  color: var(--text);
+  font-size: var(--t-md);
+  font-style: normal;
+  font-weight: 400;
+}
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) blockquote::before,
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) .block-highlight::before {
+  content: '';
+  position: absolute;
+  top: var(--e-md);
+  left: var(--e-md);
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--caja-tono) var(--caja-icono) center / 18px no-repeat;
+}
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) blockquote::after,
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) .block-highlight::after {
+  content: var(--caja-rotulo);
+  position: absolute;
+  top: var(--e-md);
+  left: 64px;
+  color: var(--caja-tono);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) blockquote > :last-child { margin-bottom: 0; }
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) blockquote.caja-ojo {
+  --caja-tono: var(--warning);
+  --caja-fondo: var(--warning-bg);
+  --caja-icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M12 7v6M12 17h.01'/%3E%3C/svg%3E");
+  --caja-rotulo: 'Ojo';
+}
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) blockquote.caja-dato,
+:is(.article-main > .article-body, .article-main > .tab-panel > .article-body) .block-highlight {
+  --caja-tono: var(--navy-solid);
+  --caja-fondo: var(--ice);
+  --caja-icono: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='M12 11v6M12 7h.01'/%3E%3C/svg%3E");
+  --caja-rotulo: 'Dato';
+}
+:root[data-theme='dark'] :is(.article-main > .article-body, .article-main > .tab-panel > .article-body) blockquote.caja-dato,
+:root[data-theme='dark'] :is(.article-main > .article-body, .article-main > .tab-panel > .article-body) .block-highlight { --caja-tono: var(--navy-solid-light); }
+
+/* ── El final ── */
+.gf {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--e-md);
+  margin-top: var(--e-xl);
+}
+.gf-autor,
+.gf-servido {
+  padding: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.gf-autor {
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr);
+  align-items: center;
+  gap: var(--e-md);
+}
+.gf-avatar { width: 56px; height: 56px; font-size: var(--t-lg); }
+.gf-autor-texto { min-width: 0; }
+.gf-autor-quien { display: block; color: var(--text-mid); font-size: var(--t-xs); }
+.gf-autor-nombre { font-family: var(--font-display); font-size: var(--t-lg); font-weight: 700; }
+.gf-autor-cuenta { display: block; color: var(--text-mid); font-size: var(--t-sm); }
+.gf-autor-botones { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: var(--e-sm); }
+.gf-servido { display: grid; align-content: center; justify-items: center; gap: var(--e-sm); text-align: center; }
+.gf-servido #guideHelpful,
+.gf-servido #guideSuggestion { margin: 0; }
+.gf .guia-tambien { grid-column: 1 / -1; margin: 0; }
+.article-main > .guia-tambien { margin-top: var(--e-md); }
+
+/* Sigue leyendo: las portadas de /aprender, tres en fila. */
+.guia-mas-tema { border-top: 0; padding-top: 0; }
+.guia-mas-tema-cab { display: flex; align-items: baseline; justify-content: space-between; gap: var(--e-md); margin-bottom: var(--e-sm); }
+.guia-mas-tema-cab .guia-mas-tema-todo { margin: 0; }
+.guia-mas-tema .guia-mas-tema-titulo { margin: 0; font-size: var(--t-xl); }
+.guia-mas-tema .guia-mas-tema-lista { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-md); }
+.guia-mas-tema .guia-portada { aspect-ratio: 4 / 3; }
+
+/* ── En el móvil ── */
+@media (max-width: 1023px) {
+  .gh { min-height: 0; margin-top: 0; flex-direction: column; align-items: stretch; }
+  .gh-con-foto { padding-top: 56.25%; }
+  .gh-foto { inset: 0 0 auto 0; width: 100%; height: auto; aspect-ratio: 16 / 9; }
+  .gh-con-foto::after { background: linear-gradient(180deg, rgb(11 18 25 / 0%) 0, rgb(11 18 25 / 0%) 30%, #0b1219 calc(56.25vw - 8px)); }
+  .gh-sin-foto { padding-top: 104px; }
+  .gh-sin-foto::after { background: linear-gradient(180deg, rgb(11 18 25 / 0%) 0, rgb(11 18 25 / 30%) 40%, rgb(11 18 25 / 86%) 75%); }
+  .gh-arte { top: var(--e-sm); right: 4%; bottom: auto; height: 148px; max-width: 56%; }
+  /* La fecha de una noticia, arriba a la izquierda: en el móvil no gasta una
+     fila entera encima del título. */
+  .gh-fecha { position: absolute; top: var(--e-md); left: var(--e-lg); z-index: 1; width: 52px; height: 52px; margin: 0; }
+  .gh-fecha b { font-size: var(--t-xl); }
+  .gh-dentro { position: static; width: 100%; padding: var(--e-lg); }
+  .gh .breadcrumb { display: none; }
+  .gh h1 { font-size: var(--t-2xl); }
+  .gh .lead { font-size: var(--t-md); }
+  .gh-franja { display: grid; grid-template-columns: minmax(0, 1fr) auto; min-height: 116px; }
+  .gh-datos { grid-column: 1 / -1; grid-row: 2; margin-left: 0; }
+  .guia-mas-tema .guia-mas-tema-lista { grid-template-columns: 1fr; }
+  .guia-mas-tema .guia-portada { aspect-ratio: 16 / 9; }
+}
+@media (max-width: 560px) {
+  .gh-franja .guia-acciones { width: auto; }
+}
+/* El esqueleto, con la forma de la portada. */
+.esq-articulo .esq-portada { height: 300px; margin: var(--e-sm) 0 var(--e-xl); border-radius: var(--radius-xl); }
+@media (max-width: 1023px) {
+  .esq-articulo .esq-portada { height: 340px; margin-top: 0; }
+}

@@ -55204,6 +55204,57 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1283 — La guía y la noticia como una revista
+
+PINGU: «las guías las podemos mejorar… la cabecera, el índice, modernizarlo un
+poco, porque al final es un texto sencillo… lo mismo para las noticias». Vio la
+propuesta y dijo «haz lo recomendado»: portada a lo ancho; sin imagen, el
+Pokémon del tema; cajas de Consejo, Ojo y Dato con botón en el editor; y al
+final autor, «Me ha servido» y «Sigue leyendo».
+
+- **La portada** sale de `js/articulo-cabecera.js` (`portadaDeArticuloHtml`),
+  PURO, y la pintan las dos mitades: `js/guia.js` y `meta-social.js`
+  (`cuerpoDeArticulo`, que ahora recibe la fila y si es noticia). Su imagen
+  (`cover_image`) a la derecha con el degradado; sin ella, el Pokémon del tema
+  (`pokemonDelTema`, el de /aprender; si el tema no tiene, `pokemonDe(slug)`)
+  sobre el color de su tarjeta (`arteDe`, que se mudó a `js/arte-de.js` para
+  que el servidor lo pueda importar; app.js lo importa y lo reexporta). Las
+  migas, los chips (tema, nivel, rareza; en una noticia, «Noticia») y el título
+  van encima. En una noticia, la fecha en grande (`diaYMes`, en hora de España
+  en los dos lados) y, si su entradilla tiene varias frases, «Lo importante»
+  (`importanteHtml`) en vez de la entradilla debajo del título.
+- **La franja** (solo el navegador; el servidor deja su hueco del mismo alto,
+  `franjaReservadaHtml`): la firma de siempre (`.guide-author`), los minutos,
+  los apartados (solo los títulos `h2`), y Guardar, Compartir y Editar.
+- **El PC**: el `<article>` va con `display: contents` y sus hijos caen en la
+  rejilla de `.article-layout` (232 px + el texto): la caja de arriba
+  (`.gh-arriba`) a lo ancho y el índice en la columna 1 a la altura del texto.
+  Sin `gap` entre filas (cada bloque del artículo es una fila).
+- **El índice**: numerado como el texto (el número de cada `h2` lo pone el CSS
+  con un contador; los `h3` van debajo sin número: `numerarApartados` y
+  `bloques-lectura.js` apunta el `nivel`), lo leído en verde, el apartado actual,
+  la barra de lectura y «Te quedan unos N min» (`minutosQueQuedan`). En el móvil,
+  una píldora (`<details class="gi-movil">`) con lo mismo.
+- **Consejo, Ojo y Dato**: una cita con su clase (`caja-consejo`, `caja-ojo`,
+  `caja-dato`, en `CLASES_PERMITIDAS`). El rótulo y el icono los pone el CSS
+  (`--caja-rotulo`, `--caja-icono`), así el texto guardado es solo el de la caja
+  y las dos mitades lo pintan igual. Una cita sin clase (las de antes) es un
+  Consejo; el bloque «destacado» del editor viejo, un Dato. En el editor,
+  «Caja» (`richTextToolbarHtml({ cajas: true })`, solo los dos editores de
+  guías) pone la cita o le cambia el tipo, y «Quitar» la vuelve párrafo.
+- **El final** (`.gf`): quién la escribe (`autorFinalHtml` + `montarAutorFinal`:
+  cuántas guías tiene y «Seguir», que cambia ya y deshace si falla) y «Me ha
+  servido» con «Sugiere una corrección» al lado; debajo «También en…» (1282) y
+  «Sigue leyendo en <tema>» con las portadas de /aprender (`portadaDeGuia`, por
+  eso guia.html carga `css/guia-portada.css`). En una noticia, «Más noticias».
+- **Para Google**: la consulta del servidor pide `categories(*)` (la columna
+  `pokemon` de la 1226 puede no estar) y `slug, level, guide_rarity`. La
+  `<time datetime>` de una noticia sigue en la franja.
+
+Pruebas: `test-tanda-1283-pantalla.mjs` (lo puro, que el servidor pinte la
+misma portada, el PC, sin portada, la noticia, el móvil y el botón del
+editor). El doble de Supabase aprende `tabla(*)` en un `select` embebido.
+
 ## Tanda 1282 — El rol de Redacción: guías y noticias sin revisión
 
 PINGU consiguió un colaborador, Deckmasters (cuenta de Instagram y web con
