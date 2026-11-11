@@ -25,7 +25,7 @@ console.log('── Lo puro ──')
     { id: 'b', display_name: 'Bea', username: 'bea_tcg', is_muted: true, total_xp: 900, created_at: '2026-03-01' },
     { id: 'c', display_name: 'Cartas Norte', username: 'cartasnorte', tipo: 'tienda', total_xp: 10, created_at: '2026-02-01' },
   ]
-  check('ocho filtros, con Tiendas', FILTROS.map((f) => f.id).join() === 'todos,equipo,moderacion,torneos,noticias,silenciados,baneados,tiendas')
+  check('nueve filtros, con Redacción (1282) y Tiendas', FILTROS.map((f) => f.id).join() === 'todos,equipo,moderacion,torneos,noticias,redaccion,silenciados,baneados,tiendas')
   check('el buscador, sin acentos y con @', filtrarUsuarios(L, { texto: 'ander' }).map((u) => u.id).join() === 'a' && filtrarUsuarios(L, { texto: '@BEA' }).map((u) => u.id).join() === 'b')
   check('los chips filtran', filtrarUsuarios(L, { filtro: 'silenciados' }).map((u) => u.id).join() === 'b' && filtrarUsuarios(L, { filtro: 'tiendas' }).map((u) => u.id).join() === 'c' && filtrarUsuarios(L, { filtro: 'equipo' }).map((u) => u.id).join() === 'a')
   check('el orden: las más nuevas, más XP o por nombre', filtrarUsuarios(L).map((u) => u.id).join() === 'b,c,a' && filtrarUsuarios(L, { orden: 'xp' }).map((u) => u.id).join() === 'b,a,c' && filtrarUsuarios(L, { orden: 'nombre' }).map((u) => u.id).join() === 'a,b,c')
