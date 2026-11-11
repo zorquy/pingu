@@ -60,9 +60,11 @@ for (const movil of [false, true]) {
     check('guía: sin errores', errores.length === 0, errores.join(' | '))
     const m = await migas(page)
     if (movil) {
-      check('guía: en el móvil queda el botón «‹ Mazos» (su tema), de 44 px, con borde y flecha, encima del título', m?.visible && JSON.stringify(m.vistos) === JSON.stringify(['Mazos']) && m.alto >= 44 && m.borde === '1px' && m.flecha === '2px' && m.encima, JSON.stringify(m))
+      // 1283: en el móvil la portada no lleva migas (la cabecera de la app, 1019, ya vuelve).
+      check('guía: en el móvil la portada no lleva migas', m && !m.visible, JSON.stringify(m))
     } else {
-      check('guía: «Inicio › Guías › Mazos › Cómo jugar Charizard ex», sin huecos', m?.visible && m.vistos.join('|') === 'Inicio|›|Guías|›|Mazos|›|Cómo jugar Charizard ex' && m.vacios === 0, JSON.stringify(m))
+      // 1283: en la portada el título va justo debajo en grande; en las migas queda para el lector, sin verse.
+      check('guía: «Inicio › Guías › Mazos ›» y el título, sin huecos', m?.visible && m.vistos.join('|') === 'Inicio|›|Guías|›|Mazos|›' && /Cómo jugar Charizard ex$/.test(m.texto) && m.vacios === 0 && m.encima, JSON.stringify(m))
     }
     check('  …y el tema lleva a su página', /tema=mazos/.test(m?.href || ''), String(m?.href))
     await ctx.close()
@@ -70,7 +72,7 @@ for (const movil of [false, true]) {
   {
     const { page, ctx } = await abrir('/guia.html?slug=sin-tema', { movil })
     const m = await migas(page)
-    check(`guía sin tema: ${movil ? '«‹ Guías»' : '«Inicio › Guías › Título»'}, sin el hueco de antes`, m && m.vacios === 0 && m.ultimo === 'Guías' && m.href === '/aprender' && (movil ? JSON.stringify(m.vistos) === JSON.stringify(['Guías']) : m.vistos.length === 5), JSON.stringify(m))
+    check(`guía sin tema: ${movil ? 'sin migas en el móvil' : '«Inicio › Guías ›» y el título'}, sin el hueco de antes`, m && m.vacios === 0 && m.ultimo === 'Guías' && m.href === '/aprender' && (movil ? !m.visible : m.vistos.length === 4 && /Una guía sin tema$/.test(m.texto)), JSON.stringify(m))
     await ctx.close()
   }
   {

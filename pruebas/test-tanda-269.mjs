@@ -158,9 +158,9 @@ console.log('\n── 5. La noticia, leída ──')
   check('la chapa dice Noticia', (await page.locator('.guide-label').textContent()) === 'Noticia')
   const migas = await page.locator('.breadcrumb').textContent()
   check('las migas pasan por Noticias', migas.includes('Noticias'), migas.replace(/\s+/g, ' ').trim())
-  check('sale la fecha de publicación', (await page.locator('.article-meta time').count()) === 1)
+  check('sale la fecha de publicación', (await page.locator('.gh-franja time').count()) === 1) // 1283: en la franja
   // Ni nivel ni rareza: una noticia no es «básica» ni «de bronce».
-  check('sin chapa de rareza', (await page.locator('.article-meta .rarity-chip').count()) === 0)
+  check('sin chapa de rareza', (await page.locator('.gh [class*="gh-chip-"]:not(.gh-chip-tipo)').count()) === 0)
   // UNA dirección por artículo.
   check('la barra de direcciones se corrige sola',
     new URL(page.url()).pathname === '/noticias/noticia-1', page.url())
@@ -174,7 +174,7 @@ console.log('\n── 6. Una guía sigue siendo una guía ──')
   const { page, errores } = await abrir('/guia?slug=guia-1')
   check('sin errores', errores.length === 0, errores[0] || '')
   check('no la disfraza de noticia', (await page.locator('.guide-label').textContent()) !== 'Noticia')
-  check('conserva su chapa de rareza', (await page.locator('.article-meta .rarity-chip').count()) === 1)
+  check('conserva su chapa de rareza', (await page.locator('.gh [class*="gh-chip-"]:not(.gh-chip-tipo)').count()) === 1) // 1283: en la portada
   check('y su dirección no se toca', page.url().includes('slug=guia-1') && !page.url().includes('/noticias/'), page.url())
   await page.close()
 }

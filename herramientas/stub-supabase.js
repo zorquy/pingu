@@ -1097,8 +1097,9 @@ function consulta(tabla, estado = {}) {
           (r) => r.id === fila[e.fk] && tambien.every(([c, pordefecto]) => (r[c] ?? pordefecto) === (fila[c] ?? pordefecto)))
         // Sin relación, `null` — que es lo que devuelve PostgREST, y lo
         // que las páginas ya saben manejar con `?.`.
+        // `tabla(*)` trae la fila relacionada entera (1283), como PostgREST.
         copia[e.clave] = relacionada
-          ? Object.fromEntries(e.campos.map((c) => [c, relacionada[c]]))
+          ? e.campos.includes('*') ? { ...relacionada } : Object.fromEntries(e.campos.map((c) => [c, relacionada[c]]))
           : null
       }
       return copia

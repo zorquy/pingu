@@ -31,7 +31,9 @@ check('el porqué vive en SCHEMA (S780.1 en adelante)', /\*\*S780\.1\*\*/.test(l
 
 console.log('── 2. Lo pequeño ──')
 const guia = leer('js/guia.js')
-check('guía: la rareza con su nombre en español (LO5)', /NOMBRE_RAREZA\s*=\s*\{\s*bronze:\s*'Bronce'/.test(guia) && !/escapeHtml\(guide\.guide_rarity/.test(guia))
+// 1283: la portada (con la rareza) vive en js/articulo-cabecera.js, que pintan las dos mitades.
+const cabecera = leer('js/articulo-cabecera.js')
+check('guía: la rareza con su nombre en español (LO5)', /RAREZAS\s*=\s*\{\s*bronze:\s*'Bronce'/.test(cabecera) && !/escapeHtml\(guide\.guide_rarity/.test(guia) && !/>\$\{escapeHtml\(g\?\.guide_rarity/.test(cabecera))
 check('portada: la racha del saludo, solo en el móvil (LO6)', /racha > 0 && matchMedia\('\(max-width: 900px\)'\)\.matches/.test(leer('js/home.js')))
 const curso = leer('js/curso.js')
 check('/curso sin curso va a Aprender (LO9)', /if \(!slug\) \{\s*location\.replace\('\/aprender'\)/.test(curso) && !/Curso no encontrado/.test(curso))

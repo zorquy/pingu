@@ -125,7 +125,7 @@ console.log('\n── 4. El artículo carga con la forma de un artículo ──'
     check(`${que}: lo primero que se ve tiene forma de artículo`, await esqueleto.isVisible())
     // Titular, firma y párrafos: no es un rectángulo gris, es la silueta
     // de lo que va a llegar.
-    check(`  …con titular`, (await page.locator('.esq-titular').count()) >= 1)
+    check(`  …con titular (o, desde la 1283, la portada)`, (await page.locator('.esq-titular, .esq-portada').count()) >= 1)
     check(`  …con firma`, (await page.locator('.esq-firma').count()) >= 1)
     // DOS párrafos de TRES renglones, no «al menos cuatro líneas»: con
     // ese listón el rigor le quitó un párrafo entero al curso y la
