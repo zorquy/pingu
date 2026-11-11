@@ -125,7 +125,9 @@ async function loadReputationAndGuides() {
       .from('guides')
       .select('*', { count: 'exact', head: true })
       .eq('author_id', profileId)
-      .eq('review_status', 'approved'),
+      .eq('review_status', 'approved')
+      // Guías de verdad: en `guides` viven también las noticias (1284).
+      .eq('kind', 'guide'),
     servidoDeAutor(profileId),
     contarCartasYTorneos(supabase, profileId),
     supabase
@@ -133,6 +135,7 @@ async function loadReputationAndGuides() {
       .select('id, slug, title, description, kind, level, estimated_mins, cover_image, guide_rarity, categories(name, slug, emoji)')
       .eq('author_id', profileId)
       .eq('review_status', 'approved')
+      .eq('kind', 'guide')
       .order('published_at', { ascending: false }),
   ])
 

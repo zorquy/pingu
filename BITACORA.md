@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-11 (527) — PINGU-Claude (1284 — las noticias no cuentan como guías en el perfil)
+
+**Hecho**: PINGU vio «53 guías» en su perfil y, al abrirlas, noticias entre
+ellas. En `guides` viven las dos cosas y siete consultas contaban o listaban
+todo lo aprobado de una persona sin mirar `kind`: la losa «Guías», el rango de
+colaborador y «le han servido a N» (perfil propio y de fuera), las pestañas
+Guías de los dos perfiles, la chapa de colaborador de las firmas, el rango de
+las tarjetas de Gente y la cuenta de los logros de «escribir guías». Ahora
+todas piden `kind = 'guide'`. Sin migración.
+
+**Ficheros**: js/perfil.js, js/usuario.js, js/contributor-badge.js,
+js/usuarios.js, js/guias-servido.js, js/gamification.js, SCHEMA.md,
+novedades.json, BITACORA.md. En `pruebas`: test-tanda-1284-pantalla (nueva).
+
+**Pendiente**: nada. El rango de quien escribe noticias baja a lo que dicen sus
+guías (es lo correcto); los logros ya ganados no se quitan.
+
 ## 2026-11-11 (526) — PINGU-Claude (1283 — guías y noticias como una revista)
 
 **Hecho**: PINGU quería las guías y noticias «más modernas, más chulas, más

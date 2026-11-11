@@ -319,7 +319,7 @@ async function loadUsers() {
   engancharPaginas()
   const [{ data }, { data: approvedGuides }, { data: mensajes }, fantasmas] = await Promise.all([
     todaLaGente(),
-    supabase.from('guides').select('author_id').eq('review_status', 'approved').not('author_id', 'is', null),
+    supabase.from('guides').select('author_id').eq('review_status', 'approved').eq('kind', 'guide').not('author_id', 'is', null),
     // Cuántos mensajes ha escrito cada uno: es la mitad del «qué ha
     // hecho» de la tarjeta. Se trae SOLO la columna del autor y se
     // cuenta aquí — una consulta, no doscientas.

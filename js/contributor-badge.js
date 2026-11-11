@@ -25,6 +25,7 @@ export async function contributorCounts(userIds) {
       .from('guides')
       .select('author_id')
       .eq('review_status', 'approved')
+      .eq('kind', 'guide')
       .in('author_id', pendientes)
 
     // Si la consulta falla, se apunta 0 igualmente: una chapita que no

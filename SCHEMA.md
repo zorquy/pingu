@@ -55204,6 +55204,31 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1284 — Las noticias no cuentan como guías en el perfil
+
+PINGU: «pone que he escrito 53 guías. Pero es mentira… hay algunas noticias que
+las coge como guías». En `guides` viven guías y noticias (`kind`, `not null
+default 'guide'`, migración de noticias), y la regla ya estaba escrita en
+CLAUDE.md («una cifra de guías cuenta `kind = 'guide'`», 1137) pero siete
+consultas de la web no la cumplían: contaban o listaban lo APROBADO de un autor
+a secas.
+
+- `js/perfil.js`: la cuenta de la losa (y del rango) y «Mis guías» (la pestaña
+  propia, que lista también pendientes y rechazadas).
+- `js/usuario.js`: la cuenta y la lista de la pestaña Guías de otra persona.
+- `js/guias-servido.js` (`servidoDeAutor`): «le han servido a N» suma solo lo
+  de sus guías.
+- `js/contributor-badge.js`: la chapa de colaborador de las firmas.
+- `js/usuarios.js`: el rango en las tarjetas de Gente.
+- `js/gamification.js` (`checkAchievements`): la cuenta de los logros de guías.
+
+`js/perfil-resumen.js` («Tu última guía») ya lo hacía. Las noticias de alguien
+no se enseñan en su perfil: se gestionan desde /admin y salen en /noticias.
+
+`test-tanda-1284-pantalla.mjs`: cada consulta de guías aprobadas por autor en
+esos ficheros lleva su `kind`, y una persona con dos guías y dos noticias dice
+2 y lista 2, en /perfil y en /usuario.
+
 ## Tanda 1283 — La guía y la noticia como una revista
 
 PINGU: «las guías las podemos mejorar… la cabecera, el índice, modernizarlo un

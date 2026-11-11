@@ -23,7 +23,7 @@ export async function servidoPorGuia(ids, cliente = supabase) {
 // null = no se ha podido preguntar (no se pinta).
 export async function servidoDeAutor(authorId, cliente = supabase) {
   if (!authorId) return null
-  const { data: guias, error } = await cliente.from('guides').select('id').eq('author_id', authorId).eq('review_status', 'approved')
+  const { data: guias, error } = await cliente.from('guides').select('id').eq('author_id', authorId).eq('review_status', 'approved').eq('kind', 'guide')
   if (error) return null
   const ids = (guias || []).map((g) => g.id)
   if (!ids.length) return 0

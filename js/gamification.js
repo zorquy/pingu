@@ -492,7 +492,8 @@ export async function checkAchievements(userId, extra = null) {
       .from('guides')
       .select('*', { count: 'exact', head: true })
       .eq('author_id', userId)
-      .eq('review_status', 'approved'),
+      .eq('review_status', 'approved')
+      .eq('kind', 'guide'),
     supabase
       .from('user_profiles')
       .select('total_xp, achievements, quiz_correct_count, referred_by')

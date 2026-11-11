@@ -78,7 +78,9 @@ async function loadStats(session, profile) {
       .from('guides')
       .select('*', { count: 'exact', head: true })
       .eq('author_id', session.user.id)
-      .eq('review_status', 'approved'),
+      .eq('review_status', 'approved')
+      // Guías de verdad: en `guides` viven también las noticias (1284).
+      .eq('kind', 'guide'),
     contarCartasYTorneos(supabase, session.user.id),
     servidoDeAutor(session.user.id),
   ])
@@ -354,6 +356,7 @@ async function loadMyGuides(session) {
       // algo que no lo está: `review_status` solo no lo sabe.
       .select('id, title, slug, cover_emoji, review_status, published_at, rejection_reason, categories(name)')
       .eq('author_id', session.user.id)
+      .eq('kind', 'guide')
       .order('submitted_at', { ascending: false, nullsFirst: false }),
     loadGuideStats(session.user.id),
   ])
