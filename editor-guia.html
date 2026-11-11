@@ -181,6 +181,13 @@
           </div>
         </div>
         <div class="form-group"><label>Descripción</label><textarea id="mgDescription" placeholder="De qué trata esta guía"></textarea></div>
+        <!-- «Publicado también en» (1282): solo Redacción. Sale al final del
+             artículo como la caja «También en…»; la base lo borra si lo
+             manda otra persona. -->
+        <div class="editor-general-grid hidden" id="mgTambienCampo">
+          <div class="form-group"><label for="mgTambienNombre">Publicado también en</label><input id="mgTambienNombre" maxlength="40" placeholder="Nombre de tu web" /></div>
+          <div class="form-group"><label for="mgTambienUrl">Enlace a tu artículo</label><input id="mgTambienUrl" type="url" inputmode="url" placeholder="https://…" /></div>
+        </div>
         <p class="subtext">La rareza, el XP y si se destaca en la web los decide el equipo de moderación al aprobarla.</p>
       </section>
 

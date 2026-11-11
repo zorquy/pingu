@@ -10,6 +10,9 @@ import { initRichTextEditor, richTextToolbarHtml } from './richtext-editor.js'
 import { showToast } from './toast.js'
 import { loadDraft, clearDraft, startAutosave } from './editor-autosave.js'
 import { attachEmojiPicker } from './emoji-picker.js'
+import { rutaDeArticulo } from './articulos.js'
+import { addXP } from './gamification.js'
+import { createNotification } from './notifications.js'
 
 const params = new URLSearchParams(window.location.search)
 const guideId = params.get('id')
@@ -28,6 +31,10 @@ let soyAdmin = false
 // su artículo como noticia y publicarlo sin pasar por la cola. Lo de
 // publicar lo decide la base (supabase-migration-redactor-noticias.sql).
 let soyRedactor = false
+// Redacción (`is_writer`, tanda 1282, PINGU para Deckmasters): publica
+// también sus GUÍAS sin pasar por la cola. Lo decide la base
+// (supabase-migration-1282-redaccion.sql); esto es lo que se enseña.
+let soyRedaccion = false
 const esNoticia = () => soyRedactor && document.getElementById('mgKind').value === 'news'
 
 function updateCoverImagePreview() {
@@ -139,7 +146,7 @@ function marcarPublicada() {
 //
 // Una noticia de un redactor se publica directamente: es lo que da el rol.
 const estadoDelBotonPrincipal = () =>
-  existingGuide?.review_status === 'approved' || esNoticia() ? 'approved' : 'pending'
+  existingGuide?.review_status === 'approved' || esNoticia() || soyRedaccion ? 'approved' : 'pending'
 
 // El botón, el título y el aviso dicen lo que va a pasar al guardar, que
 // con una noticia de redactor es «se publica», no «se manda a revisión».
@@ -153,17 +160,29 @@ function vestirSegunElTipo() {
   document.getElementById('btnSubmit').textContent =
     estado === 'approved' ? 'Guardar cambios'
       : noticia ? 'Publicar noticia'
-        : estado === 'pending' ? 'Guardar cambios'
+        : soyRedaccion ? 'Publicar guía'
+          : estado === 'pending' ? 'Guardar cambios'
           : 'Enviar a revisión'
   const aviso = document.getElementById('editorAvisoRevision')
   if (noticia && estado === 'approved') {
     aviso.textContent = 'Esta noticia está publicada. Lo que guardes aquí se ve en la web al momento, así que revísalo antes.'
   } else if (noticia && estado === 'pending') {
     aviso.textContent = 'Esta noticia está en la cola de revisión. Como redactor/a, puedes publicarla tú.'
+  } else if (!noticia && soyRedaccion && estado !== 'approved') {
+    document.getElementById('btnSaveDraft').classList.toggle('hidden', estado === 'pending')
+    aviso.textContent = estado === 'pending'
+      ? 'Esta guía está en la cola de revisión. Con el rol de Redacción puedes publicarla tú.'
+      : 'Tienes el rol de Redacción: al publicar, la guía sale en la web al momento.'
+    aviso.classList.remove('hidden')
   } else if (estado === 'approved') {
     marcarPublicada()
   } else if (estado === 'pending') {
     marcarEnRevision()
+  } else if (noticia) {
+    // Una noticia nueva no lleva aviso (al cambiar de Guía a Noticia se va
+    // el de Redacción) y sí su borrador.
+    aviso.classList.add('hidden')
+    document.getElementById('btnSaveDraft').classList.remove('hidden')
   }
 }
 
@@ -217,6 +236,14 @@ function buildPayload(reviewStatus) {
     // Solo se manda si quien edita es del equipo: para todos los demás la
     // fila se queda como está y no se pisa el valor que ya tuviera.
     ...(soyRedactor ? { kind: document.getElementById('mgKind').value } : {}),
+    // «Publicado también en» (1282): solo lo manda Redacción, que es quien
+    // tiene la columna a la vista; la base lo borra si lo manda otro.
+    ...(soyRedaccion
+      ? {
+          tambien_en_nombre: document.getElementById('mgTambienNombre').value.trim() || null,
+          tambien_en_url: document.getElementById('mgTambienUrl').value.trim() || null,
+        }
+      : {}),
     blocks: courseBlocks,
     reference_blocks: refBlocks,
     // El buscador busca en `search_content`, no dentro de
@@ -324,20 +351,38 @@ async function save(reviewStatus) {
   }
   stopAutosave()
   clearDraft(draftScope)
-  if (reviewStatus === 'approved' && esNoticia() && id) {
+  if (reviewStatus === 'approved' && (esNoticia() || soyRedaccion) && id) {
     // Se lee de la base lo que ha quedado: si sale sin publicar, no se
     // presume de nada. (Ya no se abre hilo en el foro: la 876.)
     const { data: fila } = await supabase
       .from('guides')
-      .select('id, kind, slug, published_at')
+      .select('id, kind, slug, title, published_at, xp_reward')
       .eq('id', id)
       .maybeSingle()
-    if (fila?.kind === 'news' && fila.published_at) {
-      window.location.href = `/noticias/${encodeURIComponent(fila.slug)}`
+    if (fila?.published_at) {
+      // Lo que hace el panel al aprobar una guía de la comunidad (avisar a
+      // quien te sigue y el XP), la primera vez que Redacción publica la
+      // suya. Nunca frena la salida.
+      if (fila.kind === 'guide' && existingGuide?.review_status !== 'approved') {
+        await avisarDeGuiaPublicada(fila).catch(() => {})
+      }
+      window.location.href = rutaDeArticulo(fila.kind, fila.slug)
       return
     }
   }
   window.location.href = 'perfil.html'
+}
+
+// La primera vez que Redacción publica una guía suya: lo que el panel hace al
+// aprobar una de la comunidad (admin/js/editor-guia.js). El XP no a un admin,
+// que tampoco se lo da el panel al publicar lo suyo.
+async function avisarDeGuiaPublicada(fila) {
+  const yo = currentSession.user.id
+  if (!soyAdmin) await addXP(yo, fila.xp_reward || 20)
+  const { data: seguidores } = await supabase.from('user_follows').select('follower_id').eq('following_id', yo)
+  for (const s of seguidores || []) {
+    await createNotification({ recipientId: s.follower_id, actorId: yo, type: 'followed_guide_published', title: 'Nueva guía publicada', body: fila.title, link: rutaDeArticulo('guide', fila.slug) })
+  }
 }
 
 function wireTabs() {
@@ -373,7 +418,13 @@ async function init() {
   // interruptor no salía nunca, ni al admin.
   const miPerfil = await getProfile(currentSession.user.id)
   soyAdmin = !!miPerfil?.is_admin
-  soyRedactor = soyAdmin || !!miPerfil?.is_news_writer
+  soyRedaccion = soyAdmin || !!miPerfil?.is_writer
+  soyRedactor = soyAdmin || soyRedaccion || !!miPerfil?.is_news_writer
+  if (soyRedaccion) {
+    document.getElementById('mgTambienCampo').classList.remove('hidden')
+    document.getElementById('mgTambienNombre').value = existingGuide?.tambien_en_nombre || ''
+    document.getElementById('mgTambienUrl').value = existingGuide?.tambien_en_url || ''
+  }
   if (soyRedactor) {
     const tipo = document.getElementById('mgKind')
     document.getElementById('mgKindCampo').classList.remove('hidden')

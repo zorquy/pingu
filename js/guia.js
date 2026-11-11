@@ -197,11 +197,15 @@ async function init() {
   // edición. Lo que cambia es lo que se ENSEÑA.
   let author = null
   if (guide.author_id && !esNoticia) {
-    const { data } = await supabase
+    // `is_writer` (Redacción, 1282) se pide con respaldo: sin la migración la
+    // columna no existe y la consulta entera fallaría (la 624).
+    const pedir = (extra) => supabase
       .from('user_profiles')
-      .select(`id, display_name, username, avatar_url, ${COLUMNAS_RANGO}`)
+      .select(`id, display_name, username, avatar_url, ${COLUMNAS_RANGO}${extra}`)
       .eq('id', guide.author_id)
       .single()
+    let { data, error: e } = await pedir(', is_writer')
+    if (e && /is_writer|column/i.test(e.message || '')) ({ data } = await pedir(''))
     author = data
   }
   const authorName = author ? author.display_name || author.username || 'un colaborador' : 'PokeDoc'
@@ -227,7 +231,7 @@ async function init() {
           // publicada. Se dice lo que sí es cierto — que la ha escrito.
           author ? (guide.review_status === 'pending' ? 'Escrita por' : 'Publicada por') : esNoticia ? 'Noticia de' : 'Guía oficial de'
         }</span>
-        ${author ? `<a href="${profileUrl(author)}"${atributosDeRango(author, 'font-weight:700; color:var(--navy)')}>${escapeHtml(authorName)}</a>${authorBadge}` : `<strong>${escapeHtml(authorName)}</strong>`}
+        ${author ? `<a href="${profileUrl(author)}"${atributosDeRango(author, 'font-weight:700; color:var(--navy)')}>${escapeHtml(authorName)}</a>${author.is_writer ? '<span class="guia-chapa-redaccion" title="Redacción de PokeDoc">Redacción</span>' : ''}${authorBadge}` : `<strong>${escapeHtml(authorName)}</strong>`}
       </div>
     </div>
     ${creditos}`
@@ -394,6 +398,7 @@ async function init() {
     <div class="tab-panel" id="atab-pro"><div class="article-body">${proBodyHtml}</div></div>`
         : `<div class="article-body">${bodyHtml}</div>`
     }
+    ${tambienEnHtml(guide)}
     <div id="articleEndSentinel" aria-hidden="true"></div>
     <div id="guideHelpful"></div>
     <div id="guideSuggestion"></div>
@@ -546,3 +551,18 @@ async function init() {
 }
 
 init()
+
+// «También en…» (1282): el artículo también está en la web de quien lo
+// escribe (Redacción). La base solo deja una dirección https sin nada raro;
+// aquí se vuelve a mirar porque se pinta en un enlace.
+function tambienEnHtml(guide) {
+  const url = guide?.tambien_en_url
+  if (!url || !/^https:\/\/[^\s"'<>`]+$/.test(url)) return ''
+  let sitio = guide.tambien_en_nombre
+  if (!sitio) { try { sitio = new URL(url).hostname.replace(/^www\./, '') } catch { return '' } }
+  return `<a class="guia-tambien" href="${escapeHtml(url)}" target="_blank" rel="noopener">
+    <span class="guia-tambien-logo" aria-hidden="true">${escapeHtml(sitio.slice(0, 2).toUpperCase())}</span>
+    <span class="guia-tambien-texto"><b>También en ${escapeHtml(sitio)}</b><small>El artículo en la web de su autor</small></span>
+    <span class="guia-tambien-ir">Leer allí ${icons.arrowRight(14)}</span>
+  </a>`
+}

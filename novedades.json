@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-11", "tipo": "nuevo", "texto": "Las guías de Redacción: quien escribe con nosotros publica sus guías al momento, con su firma de Redacción y, al final, el enlace a su web.", "enlace": "/aprender" },
     { "fecha": "2026-11-11", "tipo": "arreglo", "texto": "Las cartas nuevas ya juegan: Delta Reign, la 30th Celebration, los Prize Pack, las últimas promos y las Trainer Gallery tienen su tipo, PS, ataques y debilidad, así que salen en los filtros del constructor y funcionan en el laboratorio y en las repeticiones.", "enlace": "/constructor" },
     { "fecha": "2026-11-10", "tipo": "mejora", "texto": "La página para tiendas, rehecha: cómo es llevar el inventario en PokeDoc con capturas de verdad (el stock, las etiquetas, el mostrador y el escaparate), lo que preguntan siempre y un dossier en PDF para descargar o pasárselo a tu socio.", "enlace": "/para-tiendas" },
     { "fecha": "2026-11-10", "tipo": "mejora", "texto": "La lista de Gente va por páginas de doce, sin filas a medias, y ya están todos los miembros: antes salían los 200 con más experiencia y un botón que los soltaba todos de golpe.", "enlace": "/usuarios" },

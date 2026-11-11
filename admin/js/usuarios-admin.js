@@ -13,8 +13,8 @@ import { icons } from '../../js/icons.js'
 
 // Lo que se pide; las opcionales (cada una de su migración) se quitan de una
 // en una si la base dice que no existen, en vez de dejar la lista en blanco.
-const COLUMNAS = ['id', 'username', 'display_name', 'avatar_url', 'created_at', 'total_xp', 'level', 'is_admin', 'is_banned', 'is_muted', 'is_moderator', 'forum_title', 'forum_title_color', 'is_tournament_admin', 'is_news_writer', 'tipo', 'achievements']
-const OPCIONALES = new Set(['avatar_url', 'is_moderator', 'forum_title', 'forum_title_color', 'is_tournament_admin', 'is_news_writer', 'tipo', 'achievements'])
+const COLUMNAS = ['id', 'username', 'display_name', 'avatar_url', 'created_at', 'total_xp', 'level', 'is_admin', 'is_banned', 'is_muted', 'is_moderator', 'forum_title', 'forum_title_color', 'is_tournament_admin', 'is_news_writer', 'is_writer', 'tipo', 'achievements']
+const OPCIONALES = new Set(['avatar_url', 'is_moderator', 'forum_title', 'forum_title_color', 'is_tournament_admin', 'is_news_writer', 'is_writer', 'tipo', 'achievements'])
 
 // Los roles: qué columna, cómo se llama, qué da y qué se pregunta al darlo.
 export const ROLES = [
@@ -22,6 +22,8 @@ export const ROLES = [
   { col: 'is_moderator', nombre: 'Moderación del foro', chapa: 'Moderación', que: 'Fija, cierra, edita y borra en el foro. No entra aquí.' },
   { col: 'is_tournament_admin', nombre: 'Organización de torneos', chapa: 'Torneos', que: 'Crea y lleva cualquier torneo de «Jugar», y de nada más: ni este panel, ni foro, ni guías. Lo único que no puede es marcar un torneo como oficial.', migracion: 'supabase-migration-torneos-organizadores.sql' },
   { col: 'is_news_writer', nombre: 'Redacción de noticias', chapa: 'Noticias', que: 'Escribe y publica noticias sin revisión. Nada más.', migracion: 'supabase-migration-redactor-noticias.sql' },
+  // 1282 (PINGU, para Deckmasters): lo de arriba y además sus guías.
+  { col: 'is_writer', nombre: 'Redacción', chapa: 'Redacción', que: 'Escribe y publica guías y noticias sin revisión, y puede enlazar su web al final. Nada más: ni este panel, ni el foro, ni lo de otros.', migracion: 'supabase-migration-1282-redaccion.sql' },
 ]
 
 // Los chips de arriba: cada uno, su prueba sobre la fila (y la columna que necesita).
@@ -31,6 +33,7 @@ export const FILTROS = [
   { id: 'moderacion', nombre: 'Moderación', col: 'is_moderator', es: (u) => u.is_moderator },
   { id: 'torneos', nombre: 'Torneos', col: 'is_tournament_admin', es: (u) => u.is_tournament_admin },
   { id: 'noticias', nombre: 'Noticias', col: 'is_news_writer', es: (u) => u.is_news_writer },
+  { id: 'redaccion', nombre: 'Redacción', col: 'is_writer', es: (u) => u.is_writer },
   { id: 'silenciados', nombre: 'Silenciados', col: 'is_muted', es: (u) => u.is_muted },
   { id: 'baneados', nombre: 'Baneados', col: 'is_banned', es: (u) => u.is_banned },
   { id: 'tiendas', nombre: 'Tiendas', col: 'tipo', es: (u) => u.tipo === 'tienda' },

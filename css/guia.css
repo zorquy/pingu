@@ -487,3 +487,56 @@ a.rater-name:hover {
 .article-body [id] {
   scroll-margin-top: 56px;
 }
+
+/* ── Redacción (1282): la chapa de la firma y «También en…» ── */
+.guia-chapa-redaccion {
+  margin-left: var(--e-xs);
+  padding: 0 var(--e-sm);
+  line-height: 1.6;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--acento) 14%, transparent);
+  color: var(--acento);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+}
+.guia-tambien {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  gap: var(--e-sm);
+  align-items: center;
+  margin-top: var(--e-xl);
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  text-decoration: none;
+}
+.guia-tambien:hover { border-color: var(--border-strong); }
+.guia-tambien-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-md);
+  display: grid;
+  place-items: center;
+  background: var(--text);
+  color: var(--bg);
+  font-family: var(--font-display);
+  font-weight: 800;
+}
+.guia-tambien-texto { min-width: 0; }
+.guia-tambien-texto b { display: block; }
+.guia-tambien-texto small { color: var(--text-mid); font-size: var(--t-xs); }
+.guia-tambien-ir {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+  padding: 0 var(--e-md);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--navy);
+  font-weight: 600;
+  font-size: var(--t-sm);
+  white-space: nowrap;
+}

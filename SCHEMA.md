@@ -55204,6 +55204,49 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1282 — El rol de Redacción: guías y noticias sin revisión
+
+PINGU consiguió un colaborador, Deckmasters (cuenta de Instagram y web con
+artículos): escribe en PokeDoc, enlaza desde su web y desde PokeDoc a la suya.
+«Sus guías no hace falta que vayan a revisión… diferéncialo con el redactor de
+noticias: otro rol que valga para los dos». Eligió lo recomendado de la
+propuesta: el rol se llama «Redacción», su firma lleva la chapa y sus artículos
+pueden llevar la caja «También en…».
+
+- **La base** (`supabase-migration-1282-redaccion.sql`): `user_profiles.is_writer`
+  y `soy_redactor()` (admin o Redacción). `soy_redactor_de_noticias()` cuenta
+  también a Redacción. `guardar_lo_que_no_es_del_autor` deja pasar a
+  `approved` una NOTICIA de redactor (803) o CUALQUIER artículo suyo de
+  Redacción, con la fecha puesta por la base; lo demás, como antes (no se
+  despublica, no se toca la fecha). `guides_solo_admin_publica_noticias`,
+  `solo_admin_da_titulos` y `perfil_guarda_columnas` se redefinen enteras con
+  la columna nueva (nadie se la da a sí mismo, ni al crear la fila).
+- **«También en…»**: `guides.tambien_en_url` y `tambien_en_nombre`, que solo
+  escribe Redacción o el equipo (`guides_tambien_en`; a cualquier otro se le
+  borra al crear y se le conserva al editar), https sin comillas ni `<`, y el
+  nombre a 40 letras. La web lo vuelve a mirar antes de pintarlo
+  (`tambienEnHtml` en `js/guia.js`) y lo pinta al final del artículo.
+- **El correo de «la hemos aprobado»** (`on_guide_review_email`, la de la 350)
+  no sale si quien la publica es su autor.
+- **La cuenta de guías del tema** la lleva la base (`guides_cuenta_del_tema`,
+  después de cada cambio de `published_at` o `category_id`): `categories` no la
+  puede escribir quien no es del equipo. Sin `update of …` A PROPÓSITO: la
+  fecha la pone un disparador ANTES y `update of` solo mira las columnas de la
+  sentencia — con él, publicar no sumaba (lo cazó la prueba).
+- **El editor** (`js/editor-guia.js`): `soyRedaccion` (admin o `is_writer`).
+  «Publicar guía», el aviso de que sale al momento, «Publicado también en»
+  (nombre y enlace) y, la primera vez que publica una guía, lo que hace el
+  panel al aprobar: el XP (no a un admin) y el aviso a quien le sigue. Luego,
+  al artículo publicado.
+- **/admin → Usuarios**: el rol en `ROLES` (con su migración) y el chip
+  «Redacción» en `FILTROS`. La firma de la guía pide `is_writer` con respaldo
+  (sin la migración, la consulta sin la columna).
+
+Pruebas: `test-tanda-1282.mjs` (contra PostgreSQL: quién publica, quién no,
+que nadie se dé el rol, «También en…», el correo y la cuenta del tema; cuatro
+mutaciones cazadas) y `test-tanda-1282-pantalla.mjs` (editor con y sin el rol,
+la chapa y la caja). La 1121 cuenta nueve filtros.
+
 ## Tanda 1281 — Las cartas nuevas, con su ficha de juego
 
 IBAI: «quiero que clasifiques todas las nuevas cartas que añade la colección de

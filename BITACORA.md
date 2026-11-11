@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-11 (525) — PINGU-Claude (1282 — el rol de Redacción)
+
+**Hecho**: PINGU tiene un colaborador (Deckmasters) que escribe artículos y
+enlaza su web con PokeDoc y al revés; sus guías no deben pasar por revisión, y
+el rol tiene que ser otro que «Redacción de noticias» y valer para las dos
+cosas. Eligió lo recomendado: rol «Redacción» (`is_writer`), chapa en la firma
+y caja «También en…» con el enlace a su web. La base le deja publicar guías y
+noticias suyas, nadie se lo da a sí mismo, no le llega el correo de «la hemos
+aprobado» al publicarse lo suyo y la cuenta de guías del tema la lleva la base.
+En el editor, «Publicar guía», el aviso y «Publicado también en»; en /admin →
+Usuarios, el interruptor y el chip.
+
+**Ficheros**: supabase-migration-1282-redaccion.sql (nueva), js/editor-guia.js,
+editor-guia.html, js/guia.js, css/guia.css, admin/js/usuarios-admin.js,
+SCHEMA.md, novedades.json, BITACORA.md. En `pruebas`: test-tanda-1282 y
+1282-pantalla (nuevas) y la 1121 a nueve filtros.
+
+**Pendiente**: la MIGRACIÓN la tiene que ejecutar PINGU antes de subir (la web
+la pide en el editor y en la caja; sin ella, el rol no se puede dar). Luego, en
+/admin → Usuarios, dar «Redacción» a la cuenta de Deckmasters. Sin subir (los
+pushes se juntan). Rojas que no son de esta tanda: 803 (3), 1010 (1) y 1185 en
+el `serve` local, que pierde la `?…` al quitar el `.html`; 805, 869, 798 y 340,
+de antes.
+
 ## 2026-11-11 — IBAI-Claude (1281 — las cartas nuevas, con su ficha de juego)
 
 **Hecho** (Ibai: «quiero que clasifiques todas las nuevas cartas que añade la
