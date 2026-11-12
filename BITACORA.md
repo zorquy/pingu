@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (534) — PINGU-Claude (1291 — las MEP que TCGGO no daba en su lista)
+
+**Hecho**: con el panel nuevo de la 1290 se vio que las 34 «nuevas» con lápida
+eran versiones ya juntadas (Staff, Pokémon Center, Oversized: bien fuera). Lo
+que faltaba de verdad no llegaba ni a eso: TCGGO anuncia `results: 164` en las
+MEP y al botón le dio 139 (de 100 en 100); las 25 que faltaban eran las promos
+más nuevas, como Masquerain MEP 111. Ahora, en «Actualizar desde TCGGO» y en el
+repaso semanal de las promos, si la lista da menos de lo que anuncia se vuelve a
+pedir de 20 en 20 (como su web) y se añade lo que no estaba; cada carta una vez
+por su id. El panel lo dice («TCGGO dice que tiene 164, pero su lista dio 139…»,
+y cuántas no son cartas sueltas). Y las nuevas que crea el botón llevan el
+número como las nuestras («111», no «MEP 111», que hizo repetidas en la 996),
+solo si lo de delante es el código de la expansión.
+
+**Ficheros**: netlify/lib/tcggo.mjs (`anunciadasDe`, `porPagina` en
+`urlCartasDeEpisodio`, `numeroComoLosNuestros` mudada aquí),
+netlify/functions/tcggo-catalogo.mjs, netlify/functions/tcggo-reemplazar-set.mjs,
+admin/js/tcggo-set-ahora.js, SCHEMA.md, BITACORA.md. En `pruebas`:
+test-tanda-1290 ampliada.
+
+**Pendiente**: subir y darle otra vez a «Actualizar desde TCGGO» en MEP. Si
+TCGGO las da sin id de Cardmarket (MEP 111 viene con `cardmarket_id: null`),
+entran sin precio hasta que TCGGO lo tenga.
+
 ## 2026-11-12 (533) — PINGU-Claude (1290 — «Actualizar desde TCGGO» dice qué nuevas no se han escrito)
 
 **Hecho**: PINGU, con las MEP Black Star Promos: el botón decía «TCGGO tiene

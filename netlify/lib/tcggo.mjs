@@ -49,7 +49,7 @@ export const urlEpisodios = (pagina = 1, base = URL_BASE) => `${base}/episodes?p
 // `/cards?episode_id=` y no `/episodes/{id}/cards`: en su documentación el
 // primero es el que enseña `cardmarket_id` en la respuesta; el ejemplo del
 // segundo no lo trae, y no se da por hecho lo que un ejemplo no enseña.
-export const urlCartasDeEpisodio = (idEpisodio, pagina = 1, base = URL_BASE, { versiones = false } = {}) => `${base}/cards?episode_id=${idEpisodio}&per_page=${POR_PAGINA_CARTAS}&page=${pagina}${versiones ? '&include_variants=1' : ''}`
+export const urlCartasDeEpisodio = (idEpisodio, pagina = 1, base = URL_BASE, { versiones = false, porPagina = POR_PAGINA_CARTAS } = {}) => `${base}/cards?episode_id=${idEpisodio}&per_page=${porPagina}&page=${pagina}${versiones ? '&include_variants=1' : ''}`
 // Hasta 20 cartas por su id de TCGGO en una petición (la «batch lookup»
 // de su documentación, 929): así se piden los precios por idioma de las
 // versiones que alguien tiene.
@@ -57,6 +57,12 @@ export const POR_LOTE_DE_IDS = 20
 export const urlCartasPorIds = (ids, base = URL_BASE) => `${base}/cards?ids=${ids.slice(0, POR_LOTE_DE_IDS).join(',')}&per_page=${POR_LOTE_DE_IDS}`
 
 // ¿Quedan páginas? Su `paging` es { current, total, per_page }.
+// Cuántas cartas dice TCGGO que tiene la lista (`results`), o null (1291).
+export function anunciadasDe(respuesta) {
+  const n = Number(respuesta?.results)
+  return Number.isInteger(n) && n >= 0 ? n : null
+}
+
 export function hayMasPaginas(respuesta) {
   const p = respuesta?.paging
   if (p && Number.isFinite(Number(p.total)) && Number.isFinite(Number(p.current))) return Number(p.current) < Number(p.total)
@@ -1288,4 +1294,16 @@ export function cmQueCorregirWest(cartas, suyas, { aMano = new Set() } = {}) {
     corregir.push(p)
   }
   return { corregir, dudosas }
+}
+
+// El número de una carta de TCGGO escrito como los de nuestro set (1000,
+// movida aquí en la 1291): «MEP 016» → «016» si casi todos los nuestros son
+// cifras, con su mismo ancho. Si no, tal cual.
+export function numeroComoLosNuestros(suyo, nuestros) {
+  const t = suyo == null ? '' : String(suyo).trim()
+  const m = t.match(/^[A-Za-z]+[\s-]*(\d+)$/)
+  const cifras = (nuestros || []).map((n) => String(n ?? '').trim()).filter((n) => /^\d+$/.test(n))
+  if (!m || !cifras.length || cifras.length * 2 < (nuestros || []).length) return t
+  const ancho = Math.max(...cifras.map((n) => n.length))
+  return String(Number(m[1])).padStart(ancho, '0')
 }

@@ -50,7 +50,9 @@ export function textoDePaso(paso, r) {
     if (!t) return 'Sin respuesta de la expansión.'
     if (!t.suyas) return `TCGGO todavía no da cartas sueltas de esta expansión${t.nota ? ` (${t.nota})` : ''}.`
     const base = `TCGGO tiene ${n(t.suyas)} cartas: ${n(t.casadas)} ya estaban${t.nuevas ? `, ${n(t.nuevas)} nuevas` : ''}; ${n(t.escritas)} escritas.`
-    return t.noEscritasTotal ? `${base} ${noEscritasTexto(t)}` : base
+    const lista = t.anunciadas ? ` TCGGO dice que tiene ${n(t.anunciadas)}, pero su lista dio ${n(t.recibidas)}: se ha vuelto a pedir de 20 en 20 y ${t.recuperadas ? `han aparecido ${n(t.recuperadas)} más` : 'no ha aparecido ninguna más'}.` : ''
+    const fuera = t.descartadas ? ` ${n(t.descartadas)} no son cartas sueltas (sobres, cajas) y no entran.` : ''
+    return `${base}${lista}${fuera}${t.noEscritasTotal ? ` ${noEscritasTexto(t)}` : ''}`
   }
   if (paso === 'precios') {
     if (r.sinCm) return 'TCGGO da sus cartas sin id de Cardmarket: sin precios por ahora.'

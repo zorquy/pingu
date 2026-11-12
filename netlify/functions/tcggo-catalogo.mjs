@@ -41,8 +41,8 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY;
 // opcionales TCGGO_BASE, TCGGO_TOPE_DIARIO, TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS,
-  emparejarPorNumero, setDeEpisodio, serieDeEpisodio, filaDeSetNuevo, filaDeCartaTcggo, esCartaSuelta, separarVersiones,
+  cabeceras, baseDe, baseJpDe, urlEpisodios, urlCartasDeEpisodio, hayMasPaginas, anunciadasDe, resumirEpisodio, esLimiteDelPlan, POR_PAGINA_CARTAS,
+  emparejarPorNumero, setDeEpisodio, serieDeEpisodio, filaDeSetNuevo, filaDeCartaTcggo, esCartaSuelta, separarVersiones, numeroComoLosNuestros,
 } from '../lib/tcggo.mjs'
 import { CLAVE_ESTADO as CLAVE_PARES, TOPE_DIARIO, PAUSA_MS } from './tcggo-emparejar.mjs'
 import { setsHermanos } from '../../js/catalogo-series.js'
@@ -357,17 +357,43 @@ export async function procesar({
       let descartadas = 0
       let pagina = 1
       let completo = false
+      // Cada carta una vez (por su id de TCGGO): una página que se repite
+      // entre dos peticiones no puede meter la misma dos veces.
+      const vistas = new Set()
+      const meter = (s) => {
+        if (s?.id == null || vistas.has(s.id)) return false
+        vistas.add(s.id)
+        if (esCartaSuelta(s)) suyas.push(s)
+        else descartadas++
+        return true
+      }
+      let anunciadas = null
       for (;;) {
         const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, pagina, bases[mercado]))
         if (!r.datos) break
-        for (const s of r.datos.data || []) {
-          if (esCartaSuelta(s)) suyas.push(s)
-          else descartadas++
-        }
+        anunciadas = anunciadasDe(r.datos) ?? anunciadas
+        for (const s of r.datos.data || []) meter(s)
         if (!hayMasPaginas(r.datos) || (r.datos.data || []).length < POR_PAGINA_CARTAS) { completo = true; break }
         pagina++
       }
       if (!completo) break
+      // LA LISTA QUE DA MENOS DE LO QUE ANUNCIA (1291). PINGU, con las MEP:
+      // TCGGO dice `results: 164` (pidiendo de 20 en 20, salen todas) y al
+      // botón le llegaron 139 de 100 en 100: las 25 que faltaban eran las
+      // promos más nuevas (MEP 111 Masquerain…), y no había forma de verlo.
+      // Si lo recibido no llega a lo anunciado, se pide otra vez de 20 en 20
+      // (como su web) y se añade lo que no estaba. Solo cuando falta algo: una
+      // expansión que cuadra no gasta ni una petición más.
+      const recibidas = vistas.size
+      let recuperadas = 0
+      if (anunciadas && recibidas < anunciadas) {
+        for (let p = 1; p <= 40; p++) {
+          const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, p, bases[mercado], { porPagina: 20 }))
+          if (!r.datos) break
+          for (const s of r.datos.data || []) if (meter(s)) recuperadas++
+          if (!hayMasPaginas(r.datos) || !(r.datos.data || []).length || vistas.size >= anunciadas) break
+        }
+      }
       if (porMirar.has(episodio.id)) estado.miradas[mercado][episodio.id] = ahora.toISOString()
       // Las versiones de una carta (806) cuentan como UNA: sin esto la
       // Reverse Holo entraba como carta nueva al lado de la normal.
@@ -482,8 +508,19 @@ export async function procesar({
       //    demás son galerías que ya casaron por número).
       let nuevas = 0
       const filasNuevas = []
+      // Su número como los nuestros (1291): TCGGO escribe «MEP 111» y las
+      // nuestras de ese set van «111»; con su número, la 996 ya hizo
+      // repetidas («SVP 205»). Solo si lo de delante es el CÓDIGO de la
+      // expansión: un «TG01» no es un «001».
+      const numerosDestino = nuestras.filter((c) => c.set_id === destinos[0]).map((c) => c.local_id)
+      const codigo = String(episodio.codigo || '').trim().toUpperCase()
+      const comoLosNuestros = (numero) => {
+        const prefijo = String(numero || '').trim().match(/^([A-Za-z]+)[\s-]*\d+$/)?.[1]?.toUpperCase()
+        return codigo && prefijo === codigo ? numeroComoLosNuestros(numero, numerosDestino) : numero
+      }
       for (const s of suyaPorId.values()) {
         const f = filaDeCartaTcggo(s, { setId: destinos[0] })
+        f.local_id = comoLosNuestros(f.local_id)
         filas.push(f)
         filasNuevas.push(f)
         nuevas++
@@ -554,7 +591,7 @@ export async function procesar({
       creadas += nuevas - (noEscritas?.length || 0)
       estado.setsPorEpisodio[mercado][episodio.id] = destinos
       estado.hechos[mercado].push(episodio.id)
-      esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, sets: destinos, setNuevo: setNuevo?.id || null, suyas: suyas.length, descartadas, nuestras: nuestras.length, casadas: filas.length - nuevas, nuevas, escritas: escritasAqui, nuestrasSinSuya: nuestras.length - usadas.size, ...(noEscritas?.length ? { noEscritas: noEscritas.slice(0, 60), noEscritasTotal: noEscritas.length } : {}) })
+      esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, sets: destinos, setNuevo: setNuevo?.id || null, suyas: suyas.length, descartadas, nuestras: nuestras.length, casadas: filas.length - nuevas, nuevas, escritas: escritasAqui, nuestrasSinSuya: nuestras.length - usadas.size, ...(anunciadas != null && recibidas < anunciadas ? { anunciadas, recibidas, recuperadas } : {}), ...(noEscritas?.length ? { noEscritas: noEscritas.slice(0, 60), noEscritasTotal: noEscritas.length } : {}) })
       await persistir()
     }
   }

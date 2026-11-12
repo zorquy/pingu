@@ -57,14 +57,14 @@
 // VARIABLES DE ENTORNO: SUPABASE_SERVICE_ROLE_KEY, TCGGO_API_KEY; opcionales
 // TCGGO_BASE y TCGGO_PAUSA_MS.
 import {
-  cabeceras, baseDe, baseJpDe, urlCartasDeEpisodio, hayMasPaginas, esCartaSuelta, esLimiteDelPlan, filaDeCartaTcggo, nombreComparable, soloDigitos, separarVersiones, muestraDeCarta,
+  cabeceras, baseDe, baseJpDe, urlCartasDeEpisodio, hayMasPaginas, anunciadasDe, esCartaSuelta, esLimiteDelPlan, filaDeCartaTcggo, nombreComparable, soloDigitos, separarVersiones, muestraDeCarta,
 } from '../lib/tcggo.mjs'
 import { numeroComparable } from '../lib/scrydex.mjs'
 import { tieneCJK } from '../../js/texto.js'
 import { CLAVE_ESTADO as CLAVE_PARES, PAUSA_MS } from './tcggo-emparejar.mjs'
 import { CLAVE_ESTADO as CLAVE_CATALOGO } from './tcggo-catalogo.mjs'
 import { CLAVE_ESTADO as CLAVE_PRECIOS } from './tcggo-precios.mjs'
-import { episodioDeSet } from '../lib/tcggo.mjs'
+import { episodioDeSet, numeroComoLosNuestros } from '../lib/tcggo.mjs'
 
 const SUPABASE_URL = 'https://zqamujmfavwrsqlgbead.supabase.co'
 const MS_DE_MARGEN = 22_000
@@ -289,14 +289,8 @@ export function numerosNuevos(suyas, porTcggoId) {
 // las promos con su prefijo («MEP 016») y las nuestras de TCGdex van a pelo
 // («016»). Si los nuestros son cifras, el suyo con prefijo de letras pasa a
 // sus cifras con los ceros de los nuestros; lo demás, tal cual. Puro.
-export function numeroComoLosNuestros(suyo, nuestros) {
-  const t = suyo == null ? '' : String(suyo).trim()
-  const m = t.match(/^[A-Za-z]+[\s-]*(\d+)$/)
-  const cifras = (nuestros || []).map((n) => String(n ?? '').trim()).filter((n) => /^\d+$/.test(n))
-  if (!m || !cifras.length || cifras.length * 2 < (nuestros || []).length) return t
-  const ancho = Math.max(...cifras.map((n) => n.length))
-  return String(Number(m[1])).padStart(ancho, '0')
-}
+// `numeroComoLosNuestros` vive en ../lib/tcggo.mjs desde la 1291 (la usa también el catálogo).
+export { numeroComoLosNuestros }
 
 export function paresPorNumero(nuestras, suyas) {
   const pares = []
@@ -387,25 +381,46 @@ export async function procesar({
   const suyas = []
   let descartadas = 0
   let peticiones = 0
-  let pagina = 1
-  for (;;) {
-    if (!quedaTiempo()) return { ok: false, error: 'No ha dado tiempo a pedir la expansión entera; no se ha tocado nada. Vuelve a intentarlo.' }
-    if (peticiones && pausaMs) await pausa(pausaMs)
-    peticiones++
-    const res = await fetchImpl(urlCartasDeEpisodio(idEpisodio, pagina, baseMercado), { headers: cabeceras(claveTcggo, host) })
-    const texto = await res.text()
-    if (!res.ok) return { ok: false, peticiones, error: esLimiteDelPlan(res.status, texto) ? `RapidAPI ${res.status}: el plan no da más por ahora` : `TCGGO ${res.status}: ${texto.slice(0, 160)}` }
-    let datos
-    try { datos = JSON.parse(texto) } catch { return { ok: false, peticiones, error: 'TCGGO ha contestado algo que no es JSON' } }
-    for (const s of datos.data || []) {
-      if (esCartaSuelta(s)) suyas.push(s)
-      else descartadas++
+  // Cada carta una vez, por su id de TCGGO (1291).
+  const vistas = new Set()
+  let anunciadas = null
+  const pedirPaginas = async (porPagina, maximo) => {
+    let pagina = 1
+    let nuevas = 0
+    for (;;) {
+      if (!quedaTiempo()) return { ok: false, error: 'No ha dado tiempo a pedir la expansión entera; no se ha tocado nada. Vuelve a intentarlo.' }
+      if (peticiones && pausaMs) await pausa(pausaMs)
+      peticiones++
+      const res = await fetchImpl(urlCartasDeEpisodio(idEpisodio, pagina, baseMercado, { porPagina }), { headers: cabeceras(claveTcggo, host) })
+      const texto = await res.text()
+      if (!res.ok) return { ok: false, peticiones, error: esLimiteDelPlan(res.status, texto) ? `RapidAPI ${res.status}: el plan no da más por ahora` : `TCGGO ${res.status}: ${texto.slice(0, 160)}` }
+      let datos
+      try { datos = JSON.parse(texto) } catch { return { ok: false, peticiones, error: 'TCGGO ha contestado algo que no es JSON' } }
+      anunciadas = anunciadasDe(datos) ?? anunciadas
+      for (const s of datos.data || []) {
+        if (s?.id == null || vistas.has(s.id)) continue
+        vistas.add(s.id)
+        nuevas++
+        if (esCartaSuelta(s)) suyas.push(s)
+        else descartadas++
+      }
+      // Se sigue mientras SU `paging` diga que queda página (y con tope,
+      // por si lo dijera siempre): una página corta no es el final si
+      // paging dice lo contrario.
+      if (!hayMasPaginas(datos) || !(datos.data || []).length || pagina >= maximo) break
+      pagina++
     }
-    // Se sigue mientras SU `paging` diga que queda página (y con tope,
-    // por si lo dijera siempre): una página corta no es el final si
-    // paging dice lo contrario.
-    if (!hayMasPaginas(datos) || !(datos.data || []).length || pagina >= MAXIMO_PAGINAS) break
-    pagina++
+    return { nuevas }
+  }
+  const primera = await pedirPaginas(undefined, MAXIMO_PAGINAS)
+  if (primera.ok === false) return primera
+  // Si la lista da menos de lo que anuncia (las MEP: 139 de 164), otra vez
+  // de 20 en 20, como su web, y se añade lo que no estaba (1291).
+  let recuperadas = 0
+  if (anunciadas && vistas.size < anunciadas) {
+    const otra = await pedirPaginas(20, 40)
+    if (otra.ok === false) return otra
+    recuperadas = otra.nuevas
   }
   if (!suyas.length) return { ok: false, peticiones, error: `TCGGO no da ninguna carta en la expansión ${idEpisodio}: no se reemplaza nada por nada.` }
   // Las versiones de una carta (806) son UNA carta: la principal.
@@ -613,7 +628,7 @@ export async function procesar({
 
   return {
     ok: true, mercado, episodio: idEpisodio, destino: setDestino, sets: idsSets, peticiones, entero,
-    suyas: suyas.length, versiones: versiones.length, descartadas, escritas, conservadas: conservadas.length, porNumero: porNumero.length, renumeradas: renumeradas.size, recolocadasPorNumero: [...equiv.values()].filter((e) => e.por === 'numero').length, ajustadas: ajustes.length, nuevas: filas.length - conservadas.length,
+    suyas: suyas.length, versiones: versiones.length, descartadas, ...(recuperadas ? { recuperadas, anunciadas } : {}), escritas, conservadas: conservadas.length, porNumero: porNumero.length, renumeradas: renumeradas.size, recolocadasPorNumero: [...equiv.values()].filter((e) => e.por === 'numero').length, ajustadas: ajustes.length, nuevas: filas.length - conservadas.length,
     borradas: seBorran.length, fueraDeSuLista: sinBorrar ? fueraDeSuLista.length : undefined, equivalencias: [...equiv].map(([de, e]) => ({ de, a: e.a, por: e.por })),
     lineasMovidas, deseosMovidos, albumesTocados,
     seQuedan: seQuedan.map((c) => ({ id: c.id, nombre: c.name_en || c.name, motivo: c.origen === 'relleno' ? 'rellenada desde Scrydex (TCGGO no la lista)' : aMano(c) ? 'escrita a mano desde /admin' : 'alguien la tiene y TCGGO no tiene ninguna con ese nombre' })),

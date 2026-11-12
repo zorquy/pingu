@@ -55204,6 +55204,35 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1291 — La lista de TCGGO que da menos de lo que anuncia
+
+Con la 1290 delante, las 34 «nuevas» con lápida de las MEP resultaron ser las
+versiones (Staff, Pokémon Center, Oversized), que TCGGO da como cartas aparte
+con `"version"` y su producto, y que ya estaban juntadas: bien fuera. Lo que
+faltaba no llegaba: la lista de la expansión 412 anuncia `results: 164` y, de
+100 en 100, dio 139. Las 25 de menos eran las más nuevas (Masquerain MEP 111,
+id 83581, sin `cardmarket_id` ni precios). Pedida de 20 en 20 —como en su
+playground— salen todas. No se sabe si es una caché suya por dirección o una
+paginación sin orden estable; el arreglo vale para las dos.
+
+- `anunciadasDe(respuesta)` (`netlify/lib/tcggo.mjs`): el `results` de la lista,
+  o null. `urlCartasDeEpisodio` acepta `porPagina`.
+- `tcggo-catalogo` (el botón y la pasada semanal) y `tcggo-reemplazar-set` (el
+  repaso de `mep-promos`): cada carta una vez por su id; si lo recibido no llega
+  a lo anunciado, otra vuelta de 20 en 20 (como mucho 40 páginas) que añade lo
+  que falte. Una expansión que cuadra no gasta ni una petición más. El turno
+  lleva `anunciadas`, `recibidas` y `recuperadas`, y el panel lo dice junto con
+  las `descartadas` (lo que no es «singles»).
+- Las nuevas que crea el catálogo llevan el número como las del set
+  (`numeroComoLosNuestros`, mudada a la lib desde el reemplazo): «MEP 111» →
+  «111», solo si el prefijo es el código de la expansión (un «TG01» no es un
+  «001»). Sin esto el botón habría creado repetidas con el número de TCGGO,
+  como la 996 con las «SVP 205».
+
+`test-tanda-1290.mjs` (2b): una lista que da 2 de 3 de 100 en 100 se repite de
+20 en 20 y entra Masquerain como «111», con sus cifras y su frase; si cuadra,
+una sola petición.
+
 ## Tanda 1290 — Las nuevas de TCGGO que la base no escribe, con nombre
 
 PINGU, con las MEP: «TCGGO tiene 139 cartas: 105 ya estaban, 34 nuevas; 105
