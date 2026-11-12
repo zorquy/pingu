@@ -78,7 +78,8 @@ console.log('\n── 2. La función: pide la expansión entera y reemplaza ─�
   const b = montar({ nuestras: NUESTRAS, lineas: [{ id: 'l1', card_id: '30th-c-001' }, { id: 'l2', card_id: '30th-c-004' }, { id: 'l3', card_id: '30th-002' }], deseos: [{ id: 'd1', card_id: '30th-c-001' }], albumes: [{ id: 'a1', cartas: [{ id: '30th-c-001', pos: 0 }, { id: 'otra', pos: 1 }] }] })
   const r = await procesar({ env: ENV, ...b, sets: ['30th', '30th-c'], episodio: 552, destino: '30th', pausa: async () => {} })
   check('va bien', r.ok === true, JSON.stringify(r).slice(0, 300))
-  check('pide las dos páginas de la expansión', r.peticiones === 2 && b.urls.every((u) => /episode_id=552/.test(u)), b.urls.join(' '))
+  // Las dos páginas de 100 y el contraste de la 1291b (la primera de 20).
+  check('pide las dos páginas de la expansión (y la primera de 20, de contraste)', r.peticiones === 3 && b.urls.every((u) => /episode_id=552/.test(u)) && /per_page=20&page=1/.test(b.urls[2]), b.urls.join(' '))
   check('seis cartas suyas, el sobre apartado', r.suyas === 6 && r.descartadas === 1)
   check('Ho-Oh conserva su id (ya era la misma carta); las demás entran como tcggo-<id>', r.conservadas === 1 && r.nuevas === 5 && b.guardadas.some((f) => f.id === '30th-001' && f.set_id === '30th') && b.guardadas.filter((f) => /^tcggo-/.test(f.id)).length === 5 && b.guardadas.every((f) => f.set_id === '30th'), JSON.stringify(b.guardadas.map((f) => f.id)))
   check('  …y con la foto y el id de Cardmarket de TCGGO', b.guardadas.every((f) => f.image_tcggo && f.cm_id_product))

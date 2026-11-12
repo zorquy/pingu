@@ -97,7 +97,8 @@ console.log('\n── 2b. La lista que da menos de lo que anuncia (1291) ──'
       urls.push(url)
       const pp = Number(new URL(url).searchParams.get('per_page'))
       const data = pp === 20 ? TODAS : TODAS.slice(0, 2)
-      return { ok: true, status: 200, text: async () => JSON.stringify({ data, paging: { current: 1, total: 1, per_page: pp }, results: 3 }) }
+      // La de 100 es una foto VIEJA que no avisa (1291b): dice 2 de sus 2.
+      return { ok: true, status: 200, text: async () => JSON.stringify({ data, paging: { current: 1, total: 1, per_page: pp }, results: pp === 20 ? 3 : 2 }) }
     },
     soloEpisodio: { mercado: 'WEST', id: 412, set: 'mep', nombre: 'MEP Black Star Promos' },
     restImpl: async (ruta, opciones) => {
@@ -126,7 +127,7 @@ console.log('\n── 2b. La lista que da menos de lo que anuncia (1291) ──'
     guardarCartasImpl: async (f) => f.length, crearSetsImpl: async () => 0,
     estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) },
   })
-  check('si la lista cuadra, ni una petición más', urls2.length === 1 && !urls2.some((u) => /per_page=20/.test(u)), urls2.join(' | '))
+  check('si la lista cuadra, solo el contraste: la primera página de 20 y nada más', urls2.length === 2 && /per_page=20&page=1/.test(urls2[1]), urls2.join(' | '))
 }
 
 console.log('\n── 3. La frase del panel ──')
