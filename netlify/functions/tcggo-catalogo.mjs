@@ -368,8 +368,17 @@ export async function procesar({
         return true
       }
       let anunciadas = null
+      // Lo que contestó TCGGO a cada petición de la lista (1291c): con el
+      // botón, el panel lo enseña tal cual. Las MEP seguían en 139 con la
+      // 1291b subida y sin esto no había forma de saber qué le llegaba al
+      // servidor (el playground de PINGU daba 164).
+      const pedidas = []
+      const apuntar = (pp, pag, r) => {
+        if (pedidas.length < 20) pedidas.push({ pp, pag, n: (r?.datos?.data || []).length, dice: anunciadasDe(r?.datos), total: Number(r?.datos?.paging?.total) || null, fin: r?.fin || null })
+      }
       for (;;) {
         const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, pagina, bases[mercado]))
+        apuntar(POR_PAGINA_CARTAS, pagina, r)
         if (!r.datos) break
         { const a = anunciadasDe(r.datos); if (a != null) anunciadas = Math.max(anunciadas ?? 0, a) }
         for (const s of r.datos.data || []) meter(s)
@@ -396,6 +405,7 @@ export async function procesar({
       let desde = 1
       if (solo || porMirar.has(episodio.id)) {
         const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, 1, bases[mercado], { porPagina: 20 }))
+        apuntar(20, 1, r)
         if (r.datos) {
           anunciadas = Math.max(anunciadas ?? 0, anunciadasDe(r.datos) ?? 0) || null
           for (const s of r.datos.data || []) if (meter(s)) recuperadas++
@@ -406,6 +416,7 @@ export async function procesar({
       if (anunciadas && vistas.size < anunciadas) {
         for (let p = desde; p <= 40; p++) {
           const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, p, bases[mercado], { porPagina: 20 }))
+          apuntar(20, p, r)
           if (!r.datos) break
           for (const s of r.datos.data || []) if (meter(s)) recuperadas++
           if (!hayMasPaginas(r.datos) || !(r.datos.data || []).length || vistas.size >= anunciadas) break
@@ -608,7 +619,7 @@ export async function procesar({
       creadas += nuevas - (noEscritas?.length || 0)
       estado.setsPorEpisodio[mercado][episodio.id] = destinos
       estado.hechos[mercado].push(episodio.id)
-      esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, sets: destinos, setNuevo: setNuevo?.id || null, suyas: suyas.length, descartadas, nuestras: nuestras.length, casadas: filas.length - nuevas, nuevas, escritas: escritasAqui, nuestrasSinSuya: nuestras.length - usadas.size, ...(anunciadas != null && recibidas < anunciadas ? { anunciadas, recibidas, recuperadas } : {}), ...(noEscritas?.length ? { noEscritas: noEscritas.slice(0, 60), noEscritasTotal: noEscritas.length } : {}) })
+      esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, sets: destinos, setNuevo: setNuevo?.id || null, suyas: suyas.length, descartadas, nuestras: nuestras.length, casadas: filas.length - nuevas, nuevas, escritas: escritasAqui, nuestrasSinSuya: nuestras.length - usadas.size, ...(anunciadas != null && recibidas < anunciadas ? { anunciadas, recibidas, recuperadas } : {}), ...(solo ? { pedidas } : {}), ...(noEscritas?.length ? { noEscritas: noEscritas.slice(0, 60), noEscritasTotal: noEscritas.length } : {}) })
       await persistir()
     }
   }

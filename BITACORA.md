@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (536) — PINGU-Claude (1291c — el botón dice qué contestó TCGGO a cada petición)
+
+**Hecho**: con la 1291b subida (media hora antes), el botón de MEP siguió en
+139 sin la frase de «TCGGO dice que tiene…»: o sea, lo que le llega al servidor
+no es lo que PINGU ve en el playground (164 de 20 en 20, la página 9 con 4).
+Desde aquí no se puede preguntar a TCGGO (la clave vive en Netlify), así que
+la línea «Cartas» del botón dice ahora cada petición de la lista: de cuánto en
+cuánto, qué página de cuántas, cuántas cartas trajo y cuántas dice que hay
+(«de 100, pág. 1/2 → 100 (dice 139); de 20, pág. 1/9 → 20 (dice 164)»), o
+«sin respuesta (tope/tiempo/error)».
+
+**Ficheros**: netlify/functions/tcggo-catalogo.mjs (`pedidas` en el turno, solo
+con el botón), admin/js/tcggo-set-ahora.js, BITACORA.md. En `pruebas`:
+test-tanda-1290.
+
+**Pendiente**: subir cuando PINGU diga, darle otra vez a MEP y leer esa línea.
+
 ## 2026-11-12 (535) — PINGU-Claude (1291b — contrastar la lista de 100 con la de 20)
 
 **Hecho**: tras subir la 1291, PINGU volvió a pulsar «Actualizar desde TCGGO»
