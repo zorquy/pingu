@@ -146,6 +146,7 @@ const T = {
   site_settings: [],
   push_subscriptions: [],
   achievement_definitions: [],
+  adviento_casillas: [],
   // Quién dio o quitó un logro a mano (1118).
   logros_a_mano: [],
   // 1120: lo que el equipo manda a la campanita de todos.
@@ -937,6 +938,7 @@ sembrar('__FAKE_COLABORA__', 'collab_applications', (i) => ({
   updated_at: '2026-09-28T10:00:00Z',
 }))
 
+sembrar('__FAKE_ADVIENTO__', 'adviento_casillas', () => ({ user_id: quienSoy, anio: 2026, abierta_at: '2026-12-01T10:00:00Z' }))
 sembrar('__FAKE_LOGROS__', 'achievement_definitions', (i) => ({
   id: `logro-${i + 1}`,
   title: `Logro ${i + 1}`,
@@ -1846,6 +1848,32 @@ export const supabase = {
     // Los logros (793 y 1118), CALCULADOS de las tablas como en Postgres:
     // cuánta gente tiene cada uno, y dar y quitar a mano (solo un admin, con
     // la XP del logro y el aviso al darlo).
+    // El Calendario de Adviento (1285), con la regla de la base: el día de
+    // España, la XP solo la primera vez y el logro con la 24.ª. La de verdad
+    // se prueba contra PostgreSQL (test-tanda-1285).
+    if (nombre === 'adviento_abrir') {
+      const yo = typeof window !== 'undefined' ? window.__FAKE_SESSION__ : null
+      if (!yo) return { data: null, error: { code: 'P0001', message: 'hay que tener sesión para abrir el calendario' } }
+      const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid', year: 'numeric', month: 'numeric', day: 'numeric' }).formatToParts(new Date()).map((x) => [x.type, Number(x.value)]))
+      const d = Number(args.p_dia)
+      if (p.month !== 12) return { data: null, error: { code: 'P0001', message: 'el calendario de Adviento es de diciembre' } }
+      if (!(d >= 1 && d <= 24 && d <= p.day)) return { data: null, error: { code: 'P0001', message: 'esa casilla todavía no se puede abrir' } }
+      const perfil = T.user_profiles.find((x) => x.id === yo)
+      const nueva = !T.adviento_casillas.some((c) => c.user_id === yo && c.anio === p.year && c.dia === d)
+      let xp = 0
+      if (nueva) { T.adviento_casillas.push({ user_id: yo, anio: p.year, dia: d, abierta_at: new Date().toISOString() }); xp = 10; if (perfil) perfil.total_xp = (Number(perfil.total_xp) || 0) + 10 }
+      const abiertas = T.adviento_casillas.filter((c) => c.user_id === yo && c.anio === p.year).length
+      let logro = null
+      const id = `adviento_${p.year}`
+      const def = T.achievement_definitions.find((x) => x.id === id)
+      if (abiertas >= 24 && def && perfil && !(perfil.achievements || []).includes(id)) {
+        perfil.achievements = [...(perfil.achievements || []), id]
+        perfil.total_xp = (Number(perfil.total_xp) || 0) + (Number(def.xp_reward) || 0)
+        xp += Number(def.xp_reward) || 0
+        logro = id
+      }
+      return { data: { nueva, xp, abiertas, logro, total_xp: perfil?.total_xp ?? null }, error: null }
+    }
     if (nombre === 'logros_reparto') {
       const total = T.user_profiles.length
       return { data: T.achievement_definitions.map((d) => ({ id: d.id, personas: T.user_profiles.filter((p) => (p.achievements || []).includes(d.id)).length, total })), error: null }

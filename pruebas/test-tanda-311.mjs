@@ -156,6 +156,9 @@ console.log('\n── 2. El rojo de peligro tiene nombre ──')
   //    rojo de PSA es EL rojo de PSA —es su marca, no un aviso— y
   //    aclararlo en oscuro dejaría de nombrarla, que es su único trabajo.
   //    Paleta cerrada y con blanco encima, como las otras.
+  //  · --adv-* y --fiesta-* (css/adviento.css 1285, y las hojas de las
+  //    fiestas): el rojo de Navidad. Es la decoración de unos días, no un
+  //    aviso, y lleva blanco encima (el regalo, el botón).
   //
   // Los rgba() translúcidos no entran: un tinte al 10% se lee igual sobre
   // los dos fondos a propósito, y eso está comentado donde toca.
@@ -175,7 +178,7 @@ console.log('\n── 2. El rojo de peligro tiene nombre ──')
   const aMano = []
   for (const hoja of HOJAS) {
     for (const m of sinBanderas(sinComentarios(leer(hoja))).matchAll(/([a-z-]+)\s*:\s*([^;{]*#[0-9a-f]{6}[^;{]*);/gi)) {
-      if (m[1].startsWith('--rt-') || m[1] === '--tipo-energia' || m[1] === '--casa' || m[1].startsWith('--casa-') || m[1].startsWith('--estado-')) continue
+      if (m[1].startsWith('--rt-') || m[1] === '--tipo-energia' || m[1] === '--casa' || m[1].startsWith('--casa-') || m[1].startsWith('--estado-') || m[1].startsWith('--adv-') || m[1].startsWith('--fiesta-')) continue
       for (const h of m[2].matchAll(/#[0-9a-f]{6}/gi)) {
         if (esRojo(h[0]) && !/^--danger/.test(m[1])) aMano.push(`${hoja}: ${m[1]}: ${h[0]}`)
       }
