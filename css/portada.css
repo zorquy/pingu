@@ -530,3 +530,10 @@ html[data-adviento] .adviento { display: grid; min-height: 112px; margin-top: va
   :root.con-sesion[data-adviento] #bienvenidaSeccion { display: flex; flex-direction: column; }
   html[data-adviento] .adviento { order: -1; margin: 0 0 var(--e-md); }
 }
+/* Nochevieja (1288): su sitio el 31 y el 1, como el Adviento. */
+.nochevieja { display: none; }
+html[data-fiesta='nochevieja'] .nochevieja { display: grid; min-height: 132px; margin-top: var(--e-md); }
+@media (max-width: 640px) {
+  :root.con-sesion[data-fiesta='nochevieja'] #bienvenidaSeccion { display: flex; flex-direction: column; }
+  html[data-fiesta='nochevieja'] .nochevieja { order: -2; margin: 0 0 var(--e-md); }
+}

@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (531) — PINGU-Claude (1288 — Nochevieja y «Tu 2026 en PokeDoc»)
+
+**Hecho**: el 31 y el 1, en Inicio (con cuenta), una tarjeta de noche con
+fuegos artificiales y la cuenta atrás hasta las 00:00 de España; a esa hora,
+«¡Feliz 2027!». Con «Ver tu 2026», tu año en historias que pasan solas (o
+tocando a un lado o al otro): cartas añadidas en el año, tu primera carta del
+año, tu mejor racha de retos, tus mensajes del foro y guías leídas, y al final
+el resumen con «Compartir mi 2026» (la imagen con el marco de redes en
+dorado). Una cifra a cero no sale. Todo de tus propias filas: sin migración.
+Era la idea pendiente «Tu 2026».
+
+**Ficheros**: js/nochevieja.js, js/nochevieja-puro.js y css/nochevieja.css
+(nuevos), js/fiestas.js (la engancha), js/fiestas-puro.js (en la decoración de
+Ajustes), index.html (su hueco), css/portada.css (su sitio reservado),
+SCHEMA.md, novedades.json, CLAUDE.md, BITACORA.md. En `pruebas`:
+test-tanda-1288-pantalla.
+
+**Pendiente**: 1289 Reyes.
+
 ## 2026-11-12 (530) — PINGU-Claude (1287 — los Inocentes: todo Ditto)
 
 **Hecho**: el 28 de diciembre la marca dice «PokeDitto» (la «P» en morado) y

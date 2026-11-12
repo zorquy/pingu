@@ -55204,6 +55204,45 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1288 — Nochevieja: fuegos, cuenta atrás y «Tu 2026 en PokeDoc»
+
+PINGU eligió «Sí, con la temporada»: es lo que más se comparte en redes.
+
+**Cuándo**: `data-fiesta="nochevieja"` el 31 y el 1 (la cabecera, desde la
+1287). `portada.css` reserva su sitio en Inicio (132 px, dentro de
+`#bienvenidaSeccion`, que solo ve quien tiene cuenta; en el móvil, encima del
+saludo y del Adviento) y `js/fiestas.js` baja `js/nochevieja.js`.
+
+**La tarjeta**: de NOCHE en los dos temas, a propósito (un cielo con fuegos y
+blanco encima). Los fuegos son cuatro estallidos de puntos con `box-shadow`
+detrás del texto (en el móvil, dos y arriba a la derecha), quietos con «menos
+movimiento». La cuenta atrás es `cuentaAtras` (`js/nochevieja-puro.js`): hasta
+las 00:00 del 1 de enero en España (UTC+1), que no es la medianoche del
+aparato de cada uno; a las 00:00 la tarjeta se repinta con «¡Feliz 2027!».
+
+**Tu año** (`datosDelAnio`): de tus filas y de lo que ya lee la web, cada cosa
+por su lado y lo que falle cuenta cero: las copias de `user_collection` creadas
+en el año (por páginas de 1.000, sumando `cantidad`), la primera de ellas con
+su carta, `retos_mis_numeros` (366 días: mejor racha y retos), tus mensajes de
+`forum_posts` y tus guías leídas de `user_progress` en el año (cuenta sin
+filas), y los logros y el nivel de tu perfil (los logros no llevan fecha: son
+los que tienes). `diapositivas` arma la portada, una por cifra que no sea cero
+y el final; `resumenFinal`, las cifras del final y de la imagen. El año que se
+resume es el que se acaba (`anioDelResumen`: el 1 de enero, el de ayer).
+
+**Las historias**: un `dialog` a pantalla completa en el móvil y como un móvil
+en el PC, con una barra por historia que se llena (6 s) y pasa sola, menos la
+última y con «menos movimiento»; tocar a la derecha pasa y a la izquierda
+vuelve (dos zonas que son botones). La carta de «tu primera carta» no es un
+enlace: en una historia tocar es pasar. «Compartir mi 2026» abre la hoja de
+siempre con el marco de redes en dorado y las cifras en baldosas.
+
+`test-tanda-1288-pantalla.mjs`: lo puro (la cuenta en hora de España, el año,
+las diapositivas sin ceros), la cabecera (30, 31, 1 y 2), la tarjeta con su
+sitio reservado, el reloj que corre y «¡Feliz 2027!» a las 00:00 (con el reloj
+falso de Playwright), el móvil, las historias con tus cifras de 2026 (y no las
+de 2025), pasar y volver, compartir y que pasan solas.
+
 ## Tanda 1287 — Los Inocentes: el 28 de diciembre, todo Ditto
 
 PINGU eligió «Sí, todo Ditto»: solo los sprites y la marca; cartas, precios y

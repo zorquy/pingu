@@ -7,7 +7,7 @@ import { hoyEnEspana } from './adviento-puro.js'
 
 // Las que se pueden quitar con «Quitar la decoración» (`pd-sin-<fiesta>`).
 // Una fiesta nueva con hoja propia entra aquí.
-export const FIESTAS_CON_DECORACION = ['halloween', 'navidad', 'inocentes']
+export const FIESTAS_CON_DECORACION = ['halloween', 'navidad', 'inocentes', 'nochevieja']
 
 // Del 22 de diciembre al 6 de enero: la misma regla que la cabecera.
 export function esNavidad(fecha = new Date()) {

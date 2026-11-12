@@ -1,0 +1,131 @@
+/* NOCHEVIEJA (tanda 1288, SCHEMA): la tarjeta de Inicio (su sitio lo reserva
+   portada.css) y las historias de «Tu año en PokeDoc». La inyecta
+   js/nochevieja.js. La tarjeta es de NOCHE en los dos temas, a propósito: es
+   un cielo con fuegos, y lleva blanco encima. */
+:root {
+  --nv-cielo: #0f1b33;
+  --nv-cielo-2: #2a1650;
+  --fiesta-oro: #f4c542;
+  --fiesta-rojo-claro: #e0525c;
+  --fiesta-azul: #7cbae4;
+}
+
+/* La tarjeta. */
+html[data-fiesta='nochevieja'] .nochevieja {
+  position: relative;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  padding: var(--e-lg);
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(120deg, var(--nv-cielo), var(--nv-cielo-2));
+  color: var(--blanco-fijo);
+}
+.nv-texto { position: relative; display: grid; gap: var(--e-xs); min-width: 0; }
+.nv-texto small { color: var(--blanco-fijo); opacity: 0.8; font-size: var(--t-sm); }
+.nv-texto > small:first-child { font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.nv-cuenta { font-family: var(--font-display); font-size: var(--t-lg); font-weight: 600; }
+.nv-cuenta b { color: var(--fiesta-oro); font-variant-numeric: tabular-nums; }
+.nv-feliz { font-family: var(--font-display); font-size: var(--t-2xl); color: var(--fiesta-oro); }
+.nochevieja .btn-primary.nv-boton { position: relative; background: var(--fiesta-oro); color: var(--nv-cielo); white-space: nowrap; }
+
+/* Los fuegos: cuatro estallidos de puntos que se abren y se apagan, detrás
+   del texto. Con «menos movimiento», quietos. */
+.nv-fuegos { position: absolute; inset: 0; pointer-events: none; }
+.nv-fuegos i { position: absolute; width: 4px; height: 4px; border-radius: 50%; }
+.nv-fuegos i::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  box-shadow:
+    0 -24px currentColor, 17px -17px currentColor, 24px 0 currentColor, 17px 17px currentColor,
+    0 24px currentColor, -17px 17px currentColor, -24px 0 currentColor, -17px -17px currentColor;
+  animation: nv-estalla 2.4s ease-out infinite;
+}
+.nv-fuegos i:nth-child(1) { top: 28%; left: 58%; color: var(--fiesta-oro); }
+.nv-fuegos i:nth-child(2) { top: 60%; left: 72%; color: var(--fiesta-rojo-claro); }
+.nv-fuegos i:nth-child(3) { top: 24%; left: 86%; color: var(--fiesta-azul); }
+.nv-fuegos i:nth-child(4) { top: 74%; left: 62%; color: var(--fiesta-oro); }
+.nv-fuegos i:nth-child(2)::before { animation-delay: 0.6s; }
+.nv-fuegos i:nth-child(3)::before { animation-delay: 1.2s; }
+.nv-fuegos i:nth-child(4)::before { animation-delay: 1.8s; }
+@keyframes nv-estalla {
+  0% { transform: scale(0.1); opacity: 0; }
+  20% { opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* Las historias: a pantalla completa en el móvil y como un móvil en el PC. */
+.nv-historias[open] {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  width: min(420px, 100%);
+  max-width: none;
+  height: min(760px, 100dvh);
+  max-height: none;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--radius-xl);
+  background: linear-gradient(170deg, var(--nv-cielo), var(--nv-cielo-2));
+  color: var(--blanco-fijo);
+}
+.nv-historias::backdrop { background: rgba(4, 8, 16, 0.8); }
+html:has(.nv-historias[open]) { overflow: hidden; }
+.nv-barras { position: absolute; top: calc(var(--e-md) + env(safe-area-inset-top, 0px)); left: var(--e-md); right: 64px; z-index: 3; display: flex; gap: var(--e-xs); }
+.nv-barras i { flex: 1; height: 4px; overflow: hidden; border-radius: 2px; background: rgba(255, 255, 255, 0.25); }
+.nv-barras i.nv-vista { background: var(--blanco-fijo); }
+.nv-barras i.nv-ahora { background: linear-gradient(var(--blanco-fijo), var(--blanco-fijo)) 0 0 / 100% 100% no-repeat, rgba(255, 255, 255, 0.25); }
+.nv-barras i.nv-ahora[style] { animation: nv-llena var(--nv-paso) linear both; }
+@keyframes nv-llena { from { background-size: 0 100%, auto; } }
+.nv-x { position: absolute; top: calc(var(--e-xs) + env(safe-area-inset-top, 0px)); right: var(--e-xs); z-index: 3; display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; color: var(--blanco-fijo); cursor: pointer; }
+.nv-diapo {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--e-md);
+  padding: var(--e-2xl) var(--e-xl);
+  text-align: center;
+  pointer-events: none;
+}
+.nv-diapo a, .nv-diapo button { pointer-events: auto; }
+.nv-diapo h2 { margin: 0; font-family: var(--font-display); font-size: var(--t-3xl); line-height: 1.1; }
+.nv-diapo p { max-width: 30ch; margin: 0; color: var(--blanco-fijo); opacity: 0.85; font-size: var(--t-md); }
+.nv-anio { position: relative; font-family: var(--font-display); font-size: var(--t-3xl); font-weight: 800; color: var(--fiesta-oro); }
+.nv-grande { font-family: var(--font-display); font-size: calc(var(--t-3xl) * 2.4); font-weight: 800; line-height: 1; color: var(--fiesta-oro); }
+.nv-icono { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: rgba(255, 255, 255, 0.1); color: var(--fiesta-oro); }
+.nv-antes { font-weight: 600; }
+.nv-carta { display: block; width: 200px; aspect-ratio: 63 / 88; overflow: hidden; border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.1); box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5); }
+.nv-carta img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.nv-cifras { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-sm); width: 100%; margin: 0; padding: 0; list-style: none; }
+.nv-cifras li { display: grid; gap: var(--e-xs); padding: var(--e-md); border-radius: var(--radius-md); background: rgba(255, 255, 255, 0.08); }
+.nv-cifras b { font-family: var(--font-display); font-size: var(--t-2xl); color: var(--fiesta-oro); }
+.nv-cifras small { color: var(--blanco-fijo); opacity: 0.8; font-size: var(--t-sm); }
+.nv-botones { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-sm); width: 100%; }
+.nv-botones > * { min-height: 44px; }
+.nv-historias .btn-primary { background: var(--fiesta-oro); color: var(--nv-cielo); }
+.nv-cargando { opacity: 0.8; }
+/* Tocar a la derecha pasa, a la izquierda vuelve (como una historia). */
+.nv-zona { position: absolute; top: 64px; bottom: 0; z-index: 0; width: 40%; border: 0; background: none; cursor: pointer; }
+.nv-atras { left: 0; }
+.nv-alante { right: 0; width: 60%; }
+.nv-historias .nv-fuegos { z-index: 0; }
+
+@media (max-width: 640px) {
+  html[data-fiesta='nochevieja'] .nochevieja { grid-template-columns: minmax(0, 1fr); padding: var(--e-md); }
+  /* En el móvil el texto va a lo ancho: los fuegos, solo arriba a la derecha. */
+  .nochevieja .nv-fuegos i:nth-child(n + 3) { display: none; }
+  .nochevieja .nv-fuegos i:nth-child(1) { top: 16%; left: 88%; }
+  .nochevieja .nv-fuegos i:nth-child(2) { top: 12%; left: 70%; }
+  .nv-historias[open] { width: 100%; height: 100dvh; border-radius: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nv-fuegos i::before,
+  .nv-barras i.nv-ahora[style] { animation: none; }
+}

@@ -1988,7 +1988,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   fiesta de UN día dentro de la Navidad es `data-fiesta` (1287), y su módulo se
   engancha en `js/fiestas.js` (app.js solo entra ahí). La broma de Inocentes
   cambia lo que `dittoDe` reconoce por su dirección: una carta, un precio o un
-  texto no se tocan nunca.
+  texto no se tocan nunca. Una cuenta de una fiesta (Nochevieja, 1288) es en
+  hora de ESPAÑA (`hoyEnEspana`), no la del aparato, y «Tu año» sale de tus
+  filas (`datosDelAnio`): una cifra a cero no se enseña.
 - **El hueco de abajo es `var(--seguro-abajo)`, nunca `env(safe-area-inset-bottom)`
   a pelo** (tanda 1135): iOS a veces lo deja con el alto del teclado y la barra
   de abajo crecía hasta media pantalla con la burbuja flotando. El token lleva
