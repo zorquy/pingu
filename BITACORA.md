@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (550) — PINGU-Claude (1303 — «Ligas en curso» en /torneos y las jornadas en el Calendario)
+
+**Hecho**: la T1 de «Ligas y jornadas» (PINGU: «al ser un torneo en proceso, no
+se está viendo que ha habido jornadas»). Encima de la lista, una tarjeta ancha
+por liga en marcha: portada con «Jornada 6 · mañana», la tira de jornadas (las
+jugadas en morado, la siguiente en verde), «5 jugadas · Jornada 6 de 10 ·
+Termina el…», el día y la hora, «N de M ya han mandado lista», los tres primeros
+de la clasificación y el botón («Manda tu lista» si estás dentro y no la has
+mandado; si no, «Ver la liga»). La liga ya no sale repetida en «Por empezar» /
+«En juego» (sí en «Tus torneos»), y la banda dice «1 liga en curso». En el
+Calendario y la semana cada jornada sale en su día, con su hora y «Liga FDN ·
+Jornada 6». El podio y las listas llegan después en un hueco que mide lo mismo.
+
+**Ficheros**: js/torneos/ligas-franja.js (nuevo), js/torneos/torneos.js,
+torneos.html, css/torneos.css, CLAUDE.md, SCHEMA.md, BITACORA.md,
+novedades.json. En `pruebas`: test-tanda-1303-pantalla (nueva), 850-pantalla
+(la liga entre jornadas va a la franja), 1164 y 1040 (lo primero de /torneos
+puede ser la franja).
+
+**Pendiente**: «N de M ya han mandado lista» necesita la migración 1302 (sin ella
+no sale esa frase, lo demás sí). Subir cuando PINGU diga.
+
 ## 2026-11-12 (549) — PINGU-Claude (1302 — los avisos de cada jornada de una liga)
 
 **Hecho**: la J1 de «Ligas y jornadas» (PINGU: «no se están enviando al Telegram

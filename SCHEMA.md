@@ -55204,6 +55204,33 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1303 — «Ligas en curso» en /torneos y las jornadas en el Calendario
+
+La T1 de «Ligas y jornadas». Una liga entre jornadas iba a «Por empezar» (850) y
+la banda decía «0 en juego»: parecía que no había nada en marcha.
+
+- **La franja**: `#torneosLigas` (torneos.html, tras la barra del torneo vivo),
+  pintada por `pintarLigas` (torneos.js) con `ligaFranjaHtml` de
+  `js/torneos/ligas-franja.js` para cada liga `in_progress` cuyas rondas se
+  conocen (la consulta de rondas de las ligas pide ahora `id`, `started_at` y
+  `closed_at`). Va en la caché de la última vista (894).
+- **Dos tiempos, sin saltos (981)**: la tarjeta sale entera con las rondas; el
+  podio (`podioHtml`, siempre tres filas de 28 px) y la línea de listas
+  (`.lc-listas`, min-height de una línea) los rellena `completarLiga`
+  (inscripciones, mesas, `match_results`, `clasificacionDeLiga`, perfiles que
+  falten y `liga_listas_jornada`). Sin la migración 1302 esa frase no sale.
+- **El botón** (`botonDeLiga`): «Manda tu lista» → `#torneoMisJornadas` solo si
+  estás inscrito, la siguiente jornada está pendiente y no hay lista tuya para
+  ella (lo sabe `completarLiga`); si no, «Ver la liga».
+- **Las listas**: una liga en la franja no sale en «Por empezar» ni en «En
+  juego» (sí en «Tus torneos»). La cifra del centro de la banda suma las ligas
+  en curso y, si solo hay ligas, su rótulo (`#tNEnJuegoTexto`) dice «liga en
+  curso».
+- **Calendario y semana**: `conJornadas(torneos)` (ligas-franja.js, pura) da una
+  entrada por jornada con `start_at` = su fecha y `jornadaDeLiga`; la liga suelta
+  solo si su comienzo no cae ya en una jornada. El día lleva `.con-jornada` (una
+  raya verde abajo), el título «· J6» y el panel «· Jornada 6» con su hora.
+
 ## Tanda 1302 — Los avisos de cada jornada de una liga
 
 PINGU eligió la J1 de «Ligas y jornadas»: la víspera y los resultados, en

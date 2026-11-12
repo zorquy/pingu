@@ -2864,6 +2864,15 @@ opción A): al motor le llega solo lo de SU jornada, renumerado
 cruces de la jornada. La CLASIFICACIÓN no pasa por ahí: sigue sumando la
 liga entera con `montarSnapshot`.
 
+**Las jornadas de una liga se cuentan en `js/torneos/liga-en-curso.js`**
+(tandas 1302 y 1303, PINGU eligió la J1 y la T1): qué jornadas están hechas,
+cuál es la siguiente, la víspera, la recién terminada y la clasificación. Lo
+usan la franja «Ligas en curso» de /torneos (`js/torneos/ligas-franja.js`) y la
+función `ligas-jornadas`, que avisa la víspera (Telegram y campanita
+`torneo_jornada`) y los resultados, una vez cada uno por
+`tournament_matchday_avisos`. Algo nuevo que hable de las jornadas de una liga
+pasa por ahí, no por otra cuenta.
+
 **Los arquetipos (tanda 230) NO se guardan**: se deducen de la decklist
 al pintarla. Eso es lo que hace que la regla de visibilidad no se pueda
 equivocar — se ve el mazo de alguien exactamente cuando la base deja ver

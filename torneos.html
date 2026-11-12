@@ -132,7 +132,7 @@
         <p class="banda-s-lema cab-lema">Te apuntas aquí, juegas en TCG Live y reportas el resultado: pareos suizos, top cut y clasificación en vivo.</p>
         <div class="banda-s-cifras">
           <span class="banda-s-cifra"><b id="tNAbiertas">—</b><small>abiertos</small></span>
-          <span class="banda-s-cifra"><b id="tNEnJuego">—</b><small>en juego</small></span>
+          <span class="banda-s-cifra"><b id="tNEnJuego">—</b><small id="tNEnJuegoTexto">en juego</small></span>
           <span class="banda-s-cifra"><b id="tNTerminados">—</b><small>terminados</small></span>
         </div>
         <!-- Tu próximo torneo (1215): el más cercano en el que estás inscrito,
@@ -152,6 +152,11 @@
     <!-- La barra del torneo que estás jugando ahora mismo (tanda 297).
          La rellena torneos.js solo si lo hay; si no, ni ocupa. -->
     <div id="torneoVivo" class="torneo-vivo hidden"></div>
+
+    <!-- Ligas en curso (1303): una tarjeta ancha por liga en marcha, con su
+         tira de jornadas y los tres primeros. La pinta js/torneos/ligas-franja.js
+         desde torneos.js; sin ligas en marcha, ni ocupa. -->
+    <section id="torneosLigas" class="lc-franja" aria-label="Ligas en curso" hidden></section>
 
     <!-- Crear torneo: el wizard por pasos de TrainerArena, sin el paso
          de pago (aquí todo es gratis). torneos.js gobierna los pasos;

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-12", "tipo": "mejora", "texto": "Las ligas se ven en Torneos: arriba, cada liga en marcha con sus jornadas (las jugadas y la siguiente, con su día), los tres primeros de la clasificación y un botón para mandar tu lista. Y en el calendario cada jornada sale en su día.", "enlace": "/torneos" },
     { "fecha": "2026-11-12", "tipo": "nuevo", "texto": "Las ligas avisan de cada jornada: la víspera sale en el Telegram de la comunidad y te llega un aviso si estás inscrito (con «manda tu lista» si aún no la tienes), y al acabar cada jornada, el Telegram cuenta cómo va la clasificación.", "enlace": "/torneos" },
     { "fecha": "2026-11-12", "tipo": "mejora", "texto": "El panel de Inicio tiene más vida: cada tarjeta lleva el color de su sección, la liga enseña en qué jornada vas y el próximo lanzamiento se va llenando según se acerca. Y la mascota te cuenta lo de hoy: si juegas, qué carta tuya sube más, los retos que te quedan y cómo va tu colección este mes.", "enlace": "/" },
     { "fecha": "2026-11-12", "tipo": "mejora", "texto": "El perfil, más bonito: la vitrina es ahora una vitrina de cristal con su luz, sus baldas y una placa con tu nombre; los botones de cada bloque son botones de verdad, y las pestañas van en una barra más pequeña con un icono de color en cada una.", "enlace": "/perfil" },

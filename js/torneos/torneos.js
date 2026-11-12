@@ -18,6 +18,7 @@ import { officialStructure } from './motor.js'
 import { ESTADOS, estadoDeTorneo, fechaBonita, puedeBorrarTorneo, colorDeNombre, hayPremios, resumenDePremios, premiosParaGuardar, PREMIOS_MAXIMO, PUESTO_MAXIMO, PREMIO_MAXIMO } from './comun.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
+import { ligaFranjaHtml, completarLiga, conJornadas } from './ligas-franja.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -416,6 +417,25 @@ let verTodosLosTerminados = false
 let quienMira = { session: null, perfil: null }
 const recargarLista = () => cargarLista(quienMira.session, quienMira.perfil)
 
+// LIGAS EN CURSO (1303): la franja de arriba. La tarjeta sale entera con las
+// rondas que ya se tienen; el podio y las listas caen después en su hueco.
+function pintarLigas(ligas, { rondasDe, miEstado, ocupadasDe, gente, session }) {
+  const caja = $('torneosLigas')
+  if (!caja) return
+  caja.hidden = !ligas.length
+  if (!ligas.length) return void (caja.innerHTML = '')
+  const userId = session?.user?.id || null
+  caja.innerHTML = ligas
+    .map((t) => ligaFranjaHtml(t, rondasDe[t.id], { inscrito: miEstado[t.id] === 'active' }))
+    .join('')
+  return Promise.all(
+    ligas.map((t) => {
+      const tarjeta = caja.querySelector(`[data-liga="${CSS.escape(String(t.id))}"]`)
+      return tarjeta ? completarLiga(supabase, tarjeta, t, rondasDe[t.id], { userId, inscrito: miEstado[t.id] === 'active', inscritos: ocupadasDe[t.id] || 0, gente }).catch(() => {}) : null
+    })
+  )
+}
+
 async function cargarLista(session, perfil = null) {
   quienMira = { session, perfil }
   const vacio = $('torneosVacio')
@@ -425,7 +445,7 @@ async function cargarLista(session, perfil = null) {
   pintarUltimaVista(clave)
   const guardar = () => {
     vistaAlDia()
-    guardarVista(clave, tomarPartes(['torneoVivo', 'torneosSemana', 'listaTorneos', 'torneosVacio']), { visibles: visiblesDe(['torneoVivo', 'torneosSemana', 'torneosVacio']) })
+    guardarVista(clave, tomarPartes(['torneoVivo', 'torneosLigas', 'torneosSemana', 'listaTorneos', 'torneosVacio']), { visibles: visiblesDe(['torneoVivo', 'torneosLigas', 'torneosSemana', 'torneosVacio']) })
   }
   // Los torneos y las inscripciones no dependen una de otra: a la vez
   // (894, R3). Una sola consulta de inscripciones da la ocupación de cada
@@ -486,7 +506,7 @@ async function cargarLista(session, perfil = null) {
   // dependen una de otra: a la vez (894, R3).
   const [rondasRes, perfilesRes] = await Promise.all([
     ligasEnJuego.length
-      ? supabase.from('rounds').select('tournament_id, round_number, status, phase').in('tournament_id', ligasEnJuego)
+      ? supabase.from('rounds').select('id, tournament_id, round_number, status, phase, started_at, closed_at').in('tournament_id', ligasEnJuego)
       : Promise.resolve(null),
     quienes.size
       ? supabase
@@ -556,14 +576,21 @@ async function cargarLista(session, perfil = null) {
   // contradecía. En juego es lo que tiene la R1 arrancada, y nada más.
   // Una liga entre jornadas está esperando a la siguiente (850): va con lo
   // que está por empezar, no con lo que se juega ahora.
-  const porEmpezar = torneos.filter((t) => t.status === 'registration_closed' || (t.status === 'in_progress' && enPausa(t))).map((t) => tarjeta(t))
-  const enJuego = torneos.filter((t) => t.status === 'in_progress' && !enPausa(t)).map((t) => tarjeta(t))
+  // Una LIGA EN CURSO (1303) va en su franja de arriba, con sus jornadas y su
+  // clasificación, y no repetida en «Por empezar» o «En juego» (sí en «Tus
+  // torneos»). Solo si se saben sus rondas: si no, va donde iba.
+  const ligasEnCurso = torneos.filter((t) => t.format === 'league' && t.status === 'in_progress' && rondasDe[t.id])
+  const enFranja = new Set(ligasEnCurso.map((t) => t.id))
+  const porEmpezar = torneos.filter((t) => !enFranja.has(t.id) && (t.status === 'registration_closed' || (t.status === 'in_progress' && enPausa(t)))).map((t) => tarjeta(t))
+  const enJuegoT = torneos.filter((t) => !enFranja.has(t.id) && t.status === 'in_progress' && !enPausa(t))
+  const enJuego = enJuegoT.map((t) => tarjeta(t))
+  const ligasListas = pintarLigas(ligasEnCurso, { rondasDe, miEstado, ocupadasDe, gente, session })
   const acabados = torneos.filter((t) => ['finished', 'cancelled'].includes(t.status))
   const terminados = (verTodosLosTerminados ? acabados : acabados.slice(0, TERMINADOS_DE_GOLPE)).map((t) => tarjeta(t))
   const ocultos = acabados.length - terminados.length
   const borradores = torneos.filter((t) => t.status === 'draft').map((t) => tarjeta(t))
 
-  pintarSemana(torneos)
+  pintarSemana(conJornadas(torneos))
   // Tu próximo torneo en la banda (1215): el más cercano en el que estás
   // inscrito y que todavía no ha empezado.
   const proximo = torneos
@@ -576,10 +603,14 @@ async function cargarLista(session, perfil = null) {
     document.querySelector('.torneos-heroe')?.classList.toggle('con-proximo', Boolean(proximo))
   }
   // Las cifras de la banda (1212), de los torneos ya cargados.
-  for (const [id, n] of [['tNAbiertas', abiertas.length], ['tNEnJuego', enJuego.length], ['tNTerminados', acabados.length]]) {
+  // «En juego» cuenta también las ligas en curso (1303), y si solo hay ligas
+  // lo dice: «1 liga en curso» (entre jornadas una liga no «se juega»).
+  for (const [id, n] of [['tNAbiertas', abiertas.length], ['tNEnJuego', enJuego.length + ligasEnCurso.length], ['tNTerminados', acabados.length]]) {
     const el = $(id)
     if (el) el.textContent = String(n)
   }
+  const textoEnJuego = $('tNEnJuegoTexto')
+  if (textoEnJuego) textoEnJuego.textContent = ligasEnCurso.length && !enJuego.length ? (ligasEnCurso.length === 1 ? 'liga en curso' : 'ligas en curso') : 'en juego'
   pintarGrupos([
     { id: 'mios', texto: 'Tus torneos', filas: mios },
     { id: 'abiertas', texto: 'Abiertas', filas: abiertas },
@@ -597,6 +628,7 @@ async function cargarLista(session, perfil = null) {
   // lleguen la barra del torneo en juego y los sprites del meta.
   guardar()
   Promise.resolve(vivoListo).then(guardar, () => {})
+  Promise.resolve(ligasListas).then(guardar, () => {})
   // Los torneos sin imagen llevan los sprites del meta (796, SI4).
   // Y los terminados, el mazo de su campeón (1216), encima de los del meta.
   import('./arte-meta.js').then(async (m) => { await m.ponerArteDeCampeones(document, torneosCargados).catch(() => {}); await m.ponerArteDelMeta(document) }).catch(() => {}).then(guardar)
@@ -622,16 +654,13 @@ function claveDeDia(fecha) {
 
 function torneosPorDia() {
   const porDia = new Map()
-  for (const t of torneosCargados) {
-    if (t.status === 'cancelled') continue
-    const fechas = [t.start_at]
-    if (t.format === 'league' && Array.isArray(t.matchday_dates)) fechas.push(...t.matchday_dates)
-    for (const f of fechas) {
-      if (!f) continue
-      const clave = claveDeDia(f)
-      if (!porDia.has(clave)) porDia.set(clave, [])
-      if (!porDia.get(clave).some((x) => x.id === t.id)) porDia.get(clave).push(t)
-    }
+  // Cada jornada de una liga es un día de juego con su nombre (1303): «Liga
+  // FDN · J6» y su hora, no la fecha de la liga.
+  for (const t of conJornadas(torneosCargados)) {
+    if (t.status === 'cancelled' || !t.start_at) continue
+    const clave = claveDeDia(t.start_at)
+    if (!porDia.has(clave)) porDia.set(clave, [])
+    if (!porDia.get(clave).some((x) => x.id === t.id)) porDia.get(clave).push(t)
   }
   return porDia
 }
@@ -670,9 +699,10 @@ function pintarCalendario(direccion = 0) {
       // los de la comunidad. Un día con de los dos cuenta como oficial
       // (es el color que más importa no perder).
       const conOficial = deEsteDia?.some(esOficial) ? ' oficial' : ''
+      const conJornada = deEsteDia?.some((t) => t.jornadaDeLiga) ? ' con-jornada' : ''
       dias += deEsteDia
-        ? `<button type="button" class="torneo-cal-dia con-torneo${conOficial}${esHoy}" data-cal-dia="${clave}"
-            title="${escapeHtml(deEsteDia.map((t) => `${t.name}${esOficial(t) ? ' (oficial)' : ''}`).join(' · '))}">${dia}</button>`
+        ? `<button type="button" class="torneo-cal-dia con-torneo${conOficial}${conJornada}${esHoy}" data-cal-dia="${clave}"
+            title="${escapeHtml(deEsteDia.map((t) => `${t.name}${t.jornadaDeLiga ? ` · J${t.jornadaDeLiga}` : ''}${esOficial(t) ? ' (oficial)' : ''}`).join(' · '))}">${dia}</button>`
         : `<span class="torneo-cal-dia${esHoy}">${dia}</span>`
     }
     const esMesActual = `${anio}-${mes}` === mesDeHoy
@@ -733,7 +763,7 @@ function pintarCalendario(direccion = 0) {
                 ? `<img class="torneo-tarjeta-imagen" src="${escapeHtml(t.image_url)}" alt="" loading="lazy" onerror="this.style.display='none'" />`
                 : ''
             }
-            <span class="torneo-cal-torneo-nombre"><strong>${escapeHtml(t.name)}</strong>
+            <span class="torneo-cal-torneo-nombre"><strong>${escapeHtml(t.name)}${t.jornadaDeLiga ? ` · Jornada ${t.jornadaDeLiga}` : ''}</strong>
               <span class="subtext">${escapeHtml(fechaBonita(t.start_at))}</span></span>
             ${t.is_private ? CHAPA_PRIVADO() : ''}
             ${esOficial(t) ? CHAPA_OFICIAL() : ''}

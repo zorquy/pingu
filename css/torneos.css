@@ -3787,3 +3787,91 @@ html.torneo-jugando #torneoNombre {
   .torneo-tarjeta-sin-imagen .torneo-arte { height: 72px; }
   .torneo-arte-sprite { width: 56px; height: 56px; margin-left: -12px; }
 }
+
+/* ── Ligas en curso (1303, js/torneos/ligas-franja.js) ──
+   Una tarjeta ancha por liga en marcha, encima de la lista: portada, la tira
+   de jornadas (hechas en el acento de Jugar, la siguiente en verde), los tres
+   primeros y su botón. El podio mide lo mismo vacío que lleno (llega después)
+   para que nada salte (la 981). El porqué largo, en SCHEMA (1303). */
+.lc-franja { display: grid; gap: var(--e-md); margin-block: var(--e-md); }
+.lc-franja[hidden] { display: none; }
+.lc-tarjeta {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr) 240px;
+  border: 1px solid color-mix(in srgb, var(--acento) 30%, var(--border));
+  border-radius: var(--radius-xl);
+  background: linear-gradient(120deg, color-mix(in srgb, var(--acento) 8%, var(--white)), var(--white) 60%);
+  overflow: hidden;
+}
+.lc-portada { position: relative; display: block; min-height: 168px; }
+.lc-portada .torneo-arte-imagen { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.lc-chapa {
+  position: absolute;
+  left: var(--e-sm);
+  bottom: var(--e-sm);
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--acento);
+  color: var(--acento-texto);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+.lc-cuerpo { display: flex; flex-direction: column; gap: var(--e-xs); padding: var(--e-md); min-width: 0; }
+.lc-ceja { font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-mid); }
+.lc-nombre { margin: 0; font-family: var(--font-display); font-size: var(--t-xl); line-height: 1.2; }
+.lc-nombre a { color: var(--text); text-decoration: none; }
+.lc-tira { display: flex; gap: var(--e-xs); margin: var(--e-xs) 0; padding: 0; list-style: none; flex-wrap: wrap; }
+.lc-j {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+.lc-j-hecha { background: var(--acento); color: var(--acento-texto); }
+.lc-j-saltada { background: transparent; border: 1px dashed var(--border-strong); color: var(--text-mid); }
+.lc-j-siguiente { background: var(--success-bg); color: var(--success); box-shadow: inset 0 0 0 2px var(--success); }
+.lc-j-en-juego { background: var(--success); color: var(--blanco-fijo); }
+.lc-datos, .lc-cita { margin: 0; font-size: var(--t-sm); color: var(--text-mid); }
+.lc-cita { display: flex; align-items: center; gap: var(--e-xs); flex-wrap: wrap; color: var(--text); font-weight: 600; }
+.lc-cita svg { color: var(--success); flex-shrink: 0; }
+.lc-listas { margin: 0; min-height: 1.5em; font-size: var(--t-sm); color: var(--text-mid); }
+.lc-listas svg { color: var(--success); vertical-align: -2px; }
+.lc-lado { display: flex; flex-direction: column; justify-content: space-between; gap: var(--e-sm); padding: var(--e-md); border-left: 1px solid var(--border); }
+.lc-podio { display: grid; gap: var(--e-xs); margin: 0; padding: 0; list-style: none; }
+.lc-p { display: flex; align-items: center; gap: var(--e-sm); height: 28px; font-size: var(--t-sm); }
+.lc-p-pos {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+.lc-p:first-child .lc-p-pos { background: var(--acento); color: var(--acento-texto); }
+.lc-p-nombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.lc-p b { font-family: var(--font-display); }
+.lc-p-vacia .lc-p-nombre { height: 8px; border-radius: var(--radius-pill); background: var(--ice); }
+.lc-p-vacia.esq-linea { margin: 0; width: auto; height: 28px; background: none; }
+.lc-boton { justify-content: center; }
+@media (max-width: 860px) {
+  .lc-tarjeta { grid-template-columns: 140px minmax(0, 1fr); }
+  .lc-lado { grid-column: 1 / -1; flex-direction: row; align-items: center; border-left: 0; border-top: 1px solid var(--border); }
+  .lc-podio { flex: 1; min-width: 0; }
+}
+@media (max-width: 560px) {
+  .lc-tarjeta { grid-template-columns: minmax(0, 1fr); }
+  .lc-portada { min-height: 112px; }
+  .lc-tira { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding-block: var(--e-xs); scrollbar-width: none; }
+  .lc-j { flex-shrink: 0; }
+  .lc-lado { flex-direction: column; align-items: stretch; }
+}
+/* Una jornada de liga en el calendario (1303): su día lleva una raya abajo. */
+.torneo-cal-dia.con-jornada { box-shadow: inset 0 -3px 0 var(--success); }
