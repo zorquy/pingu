@@ -396,7 +396,7 @@ export async function procesar({
       if (!res.ok) return { ok: false, peticiones, error: esLimiteDelPlan(res.status, texto) ? `RapidAPI ${res.status}: el plan no da más por ahora` : `TCGGO ${res.status}: ${texto.slice(0, 160)}` }
       let datos
       try { datos = JSON.parse(texto) } catch { return { ok: false, peticiones, error: 'TCGGO ha contestado algo que no es JSON' } }
-      anunciadas = anunciadasDe(datos) ?? anunciadas
+      { const a = anunciadasDe(datos); if (a != null) anunciadas = Math.max(anunciadas ?? 0, a) }
       for (const s of datos.data || []) {
         if (s?.id == null || vistas.has(s.id)) continue
         vistas.add(s.id)
@@ -416,12 +416,18 @@ export async function procesar({
   if (primera.ok === false) return primera
   // Si la lista da menos de lo que anuncia (las MEP: 139 de 164), otra vez
   // de 20 en 20, como su web, y se añade lo que no estaba (1291).
+  // Y como la lista de 100 puede ser una foto vieja que no avisa (dice
+  // `results: 139` de sus 139, 1291b), se pregunta siempre la primera página
+  // de 20, la de su web: si anuncia más, la pasada de 20 en 20 entera.
   let recuperadas = 0
+  const antes = vistas.size
+  const contraste = await pedirPaginas(20, 1)
+  if (contraste.ok === false) return contraste
   if (anunciadas && vistas.size < anunciadas) {
     const otra = await pedirPaginas(20, 40)
     if (otra.ok === false) return otra
-    recuperadas = otra.nuevas
   }
+  recuperadas = vistas.size - antes
   if (!suyas.length) return { ok: false, peticiones, error: `TCGGO no da ninguna carta en la expansión ${idEpisodio}: no se reemplaza nada por nada.` }
   // Las versiones de una carta (806) son UNA carta: la principal.
   const { principales, versiones } = separarVersiones(suyas)

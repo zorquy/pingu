@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (535) — PINGU-Claude (1291b — contrastar la lista de 100 con la de 20)
+
+**Hecho**: tras subir la 1291, PINGU volvió a pulsar «Actualizar desde TCGGO»
+en MEP y salió lo mismo (139, sin la frase de «TCGGO dice que tiene 164»). La
+red de la 1291 solo saltaba si la lista de 100 en 100 confesaba que le faltaba
+algo; si esa dirección es una foto VIEJA de TCGGO (cada dirección se guarda por
+su lado), dice `results: 139` de sus 139 y no salta nunca. Ahora, al pulsar el
+botón de un set, en las expansiones que se están mirando (recién salidas) y en
+el repaso semanal de las promos (`tcggo-reemplazar-set`), se pide además la
+primera página de 20 (la que enseña su web): una petición; si anuncia más, la
+pasada de 20 en 20 entera. Lo anunciado es el MAYOR de los dos.
+
+**Ficheros**: netlify/functions/tcggo-catalogo.mjs,
+netlify/functions/tcggo-reemplazar-set.mjs, SCHEMA.md, BITACORA.md. En
+`pruebas`: test-tanda-1290 (la de 100 vieja que no avisa) y test-tanda-654 (la
+petición de contraste).
+
+**Pendiente**: subir cuando PINGU diga y volver a darle a MEP. Si aun así da
+139, TCGGO no las tiene en su API todavía (aunque su web sí): hay que mirar la
+última página de 20 en su playground.
+
 ## 2026-11-12 (534) — PINGU-Claude (1291 — las MEP que TCGGO no daba en su lista)
 
 **Hecho**: con el panel nuevo de la 1290 se vio que las 34 «nuevas» con lápida

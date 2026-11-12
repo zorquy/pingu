@@ -55233,6 +55233,21 @@ paginación sin orden estable; el arreglo vale para las dos.
 20 en 20 y entra Masquerain como «111», con sus cifras y su frase; si cuadra,
 una sola petición.
 
+
+### 1291b — contrastar con la primera página de 20
+
+La red de arriba solo salta si la lista de 100 en 100 avisa (`results` mayor
+que lo recibido). Con las MEP no avisó: tras subirla, el botón siguió diciendo
+139 y sin la frase. TCGGO (o RapidAPI) guarda cada dirección por su lado, y la
+de `per_page=100` puede ser una foto vieja coherente consigo misma (`results:
+139` de 139), mientras la de `per_page=20` (la de su web y la del playground de
+PINGU) dice 164. Por eso, en el botón (`soloEpisodio`), en las expansiones que se
+están mirando (`porMirar`) y siempre en `tcggo-reemplazar-set`, se pide además
+la primera página de 20: lo anunciado es el MAYOR de las respuestas, lo que trae
+entra (una vez por id) y, si falta algo, la pasada de 20 en 20 sigue desde la
+página 2. El barrido semanal del catálogo entero no lo hace: serían cientos de
+peticiones para casi nada, y lo nuevo cae en `porMirar` o en el repaso de promos.
+
 ## Tanda 1290 — Las nuevas de TCGGO que la base no escribe, con nombre
 
 PINGU, con las MEP: «TCGGO tiene 139 cartas: 105 ya estaban, 34 nuevas; 105

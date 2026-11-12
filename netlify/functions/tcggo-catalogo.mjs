@@ -371,7 +371,7 @@ export async function procesar({
       for (;;) {
         const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, pagina, bases[mercado]))
         if (!r.datos) break
-        anunciadas = anunciadasDe(r.datos) ?? anunciadas
+        { const a = anunciadasDe(r.datos); if (a != null) anunciadas = Math.max(anunciadas ?? 0, a) }
         for (const s of r.datos.data || []) meter(s)
         if (!hayMasPaginas(r.datos) || (r.datos.data || []).length < POR_PAGINA_CARTAS) { completo = true; break }
         pagina++
@@ -384,10 +384,27 @@ export async function procesar({
       // Si lo recibido no llega a lo anunciado, se pide otra vez de 20 en 20
       // (como su web) y se añade lo que no estaba. Solo cuando falta algo: una
       // expansión que cuadra no gasta ni una petición más.
+      //
+      // Y la cuenta de la lista de 100 puede no avisar (1291b): TCGGO guarda
+      // cada dirección por su lado, y la de 100 en 100 puede ser una foto vieja
+      // que dice `results: 139` de sus 139. Por eso, al pulsar el botón de un
+      // set y en las expansiones que se están mirando (recién salidas), se
+      // pregunta además la primera página de 20, que es la que su web enseña:
+      // UNA petición, y si anuncia más, la pasada de 20 en 20 entera.
       const recibidas = vistas.size
       let recuperadas = 0
-      if (anunciadas && recibidas < anunciadas) {
-        for (let p = 1; p <= 40; p++) {
+      let desde = 1
+      if (solo || porMirar.has(episodio.id)) {
+        const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, 1, bases[mercado], { porPagina: 20 }))
+        if (r.datos) {
+          anunciadas = Math.max(anunciadas ?? 0, anunciadasDe(r.datos) ?? 0) || null
+          for (const s of r.datos.data || []) if (meter(s)) recuperadas++
+          if (!hayMasPaginas(r.datos)) desde = Infinity
+          else desde = 2
+        }
+      }
+      if (anunciadas && vistas.size < anunciadas) {
+        for (let p = desde; p <= 40; p++) {
           const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, p, bases[mercado], { porPagina: 20 }))
           if (!r.datos) break
           for (const s of r.datos.data || []) if (meter(s)) recuperadas++
