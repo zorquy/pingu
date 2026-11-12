@@ -1,4 +1,4 @@
-// Tanda 1290 — «Actualizar desde TCGGO» dice qué cartas nuevas NO se han
+// Tandas 1290 y 1291 — «Actualizar desde TCGGO» dice qué cartas nuevas NO se han
 // escrito y por qué. PINGU, con las MEP Black Star Promos: «TCGGO tiene 139
 // cartas: 105 ya estaban, 34 nuevas; 105 escritas» y las nuevas no estaban.
 // El disparador de las correcciones (934) se salta sin error la fila de una
@@ -72,9 +72,61 @@ async function correr(escribe) {
 }
 {
   const t = await correr('una')
-  check('la base escribe 1 de 3: el turno dice qué nuevas faltan y cuál tiene lápida', t.nuevas === 2 && t.noEscritasTotal === 2 && t.noEscritas?.map((x) => `${x.numero}:${x.lapida}`).join() === 'MEP 093:true,MEP 094:false', JSON.stringify(t).slice(0, 400))
+  check('la base escribe 1 de 3: el turno dice qué nuevas faltan y cuál tiene lápida', t.nuevas === 2 && t.noEscritasTotal === 2 && t.noEscritas?.map((x) => `${x.numero}:${x.lapida}`).join() === '093:true,094:false', JSON.stringify(t).slice(0, 400))
   const t2 = await correr('todo')
   check('si lo escribe todo, no hay `noEscritas`', t2.nuevas === 2 && t2.escritas === 3 && !t2.noEscritas, JSON.stringify(t2).slice(0, 300))
+}
+
+console.log('\n── 2b. La lista que da menos de lo que anuncia (1291) ──')
+{
+  // De 100 en 100, TCGGO da 2 de 3 (`results: 3`); de 20 en 20, las 3.
+  const urls = []
+  const TODAS = [
+    { id: 900, card_number: '001', name: 'Pikachu', type: 'singles', cardmarket_id: 5001, episode: EP },
+    { id: 902, card_number: 'MEP 094', name: 'Mew', type: 'singles', cardmarket_id: 5094, episode: EP },
+    { id: 83581, card_number: 'MEP 111', name: 'Masquerain', type: 'singles', cardmarket_id: null, episode: EP },
+  ]
+  const estados = {
+    [CLAVE_PARES]: { episodios: { fecha: AHORA.toISOString(), lista: [{ id: 412, nombre: 'MEP Black Star Promos', codigo: 'MEP', cartas: 3 }] }, hechos: { mep: { episodio: 412, pares: 1 } } },
+    [CLAVE_CATALOGO]: { semana: Math.floor(AHORA.getTime() / (7 * 86_400_000)), hechos: { WEST: [412], JP: [] }, vacias: { WEST: [], JP: [] }, gasto: { dia: '2026-11-12', peticiones: 0 } },
+  }
+  const guardadas = []
+  const r = await cat.procesar({
+    env: { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k', TCGGO_PAUSA_MS: '0', TCGGO_TOPE_DIARIO: '14000' }, ahora: AHORA, pausa: async () => {},
+    fetchImpl: async (url) => {
+      urls.push(url)
+      const pp = Number(new URL(url).searchParams.get('per_page'))
+      const data = pp === 20 ? TODAS : TODAS.slice(0, 2)
+      return { ok: true, status: 200, text: async () => JSON.stringify({ data, paging: { current: 1, total: 1, per_page: pp }, results: 3 }) }
+    },
+    soloEpisodio: { mercado: 'WEST', id: 412, set: 'mep', nombre: 'MEP Black Star Promos' },
+    restImpl: async (ruta, opciones) => {
+      if (opciones?.method === 'PATCH') return null
+      if (/^tcg_sets\?/.test(ruta)) return [{ id: 'mep', name: 'MEP Black Star Promos', name_en: 'MEP Black Star Promos', tcggo_id: 412 }]
+      if (/^tcg_cards\?select=id,set_id/.test(ruta)) return [{ id: 'mep-001', set_id: 'mep', local_id: '001', name: 'Pikachu', cm_id_product_propio: 5001, tcggo_id: null }]
+      return []
+    },
+    guardarCartasImpl: async (filas) => { guardadas.push(...filas); return filas.length },
+    crearSetsImpl: async () => 0,
+    estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) },
+  })
+  const t = (r.esteTurno || []).find((x) => x.episodio === 412) || r
+  check('vuelve a pedir de 20 en 20 y Masquerain MEP 111 entra, con el número como los nuestros («111»)', urls.some((u) => /per_page=20/.test(u)) && guardadas.some((f) => f.id === 'tcggo-83581' && f.local_id === '111'), JSON.stringify(guardadas.map((f) => f.id)))
+  check('  …y lo cuenta: anunciadas 3, recibidas 2, recuperadas 1', t.anunciadas === 3 && t.recibidas === 2 && t.recuperadas === 1, JSON.stringify(t).slice(0, 300))
+  const s = panel.textoDePaso('cartas', { ok: true, turno: t })
+  check('  …y el panel lo dice', /TCGGO dice que tiene 3, pero su lista dio 2: se ha vuelto a pedir de 20 en 20 y han aparecido 1 más\./.test(s), s)
+  // Si cuadra, ni una petición más.
+  const urls2 = []
+  estados[CLAVE_CATALOGO].hechos.WEST = [412]
+  await cat.procesar({
+    env: { SUPABASE_SERVICE_ROLE_KEY: 's', TCGGO_API_KEY: 'k', TCGGO_PAUSA_MS: '0', TCGGO_TOPE_DIARIO: '14000' }, ahora: AHORA, pausa: async () => {},
+    fetchImpl: async (url) => { urls2.push(url); return { ok: true, status: 200, text: async () => JSON.stringify({ data: TODAS, paging: { current: 1, total: 1 }, results: 3 }) } },
+    soloEpisodio: { mercado: 'WEST', id: 412, set: 'mep', nombre: 'MEP Black Star Promos' },
+    restImpl: async (ruta) => (/^tcg_sets\?/.test(ruta) ? [{ id: 'mep', name: 'MEP', tcggo_id: 412 }] : []),
+    guardarCartasImpl: async (f) => f.length, crearSetsImpl: async () => 0,
+    estadoImpl: async (k) => estados[k] || {}, guardarEstadoImpl: async (k, v) => { estados[k] = JSON.parse(JSON.stringify(v)) },
+  })
+  check('si la lista cuadra, ni una petición más', urls2.length === 1 && !urls2.some((u) => /per_page=20/.test(u)), urls2.join(' | '))
 }
 
 console.log('\n── 3. La frase del panel ──')
