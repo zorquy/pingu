@@ -116,6 +116,7 @@ console.log('\n── 2b. La lista que da menos de lo que anuncia (1291) ──'
   check('  …y lo cuenta: anunciadas 3, recibidas 2, recuperadas 1', t.anunciadas === 3 && t.recibidas === 2 && t.recuperadas === 1, JSON.stringify(t).slice(0, 300))
   const s = panel.textoDePaso('cartas', { ok: true, turno: t })
   check('  …y el panel lo dice', /TCGGO dice que tiene 3, pero su lista dio 2: se ha vuelto a pedir de 20 en 20 y han aparecido 1 más\./.test(s), s)
+  check('  …y dice lo que contestó TCGGO a cada petición (1291c)', /Lo que contestó TCGGO: de 100, pág\. 1\/1 → 2 \(dice 2\); de 20, pág\. 1\/1 → 3 \(dice 3\)\./.test(s), s)
   // Si cuadra, ni una petición más.
   const urls2 = []
   estados[CLAVE_CATALOGO].hechos.WEST = [412]
