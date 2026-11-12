@@ -16,6 +16,19 @@ export const REPETIR = 4
 const n = (x) => (Number.isFinite(Number(x)) ? Number(x).toLocaleString('es-ES') : '?')
 const euros = (x) => (Number.isFinite(Number(x)) ? `${Number(x).toLocaleString('es-ES', { maximumFractionDigits: 2 })} €` : null)
 
+// Las nuevas que la base no ha escrito (1290): con lápida (se borraron en
+// /admin o se juntaron como repetidas, y el disparador no deja que vuelvan) o
+// por otra cosa, con sus números para buscarlas.
+export function noEscritasTexto(t) {
+  const lista = t.noEscritas || []
+  const conLapida = lista.filter((x) => x.lapida).length
+  const otras = lista.length - conLapida
+  const cuales = lista.slice(0, 12).map((x) => `${x.numero || '?'} ${x.nombre || ''}`.trim()).join(', ')
+  const mas = (t.noEscritasTotal || lista.length) > 12 ? ` y ${n((t.noEscritasTotal || lista.length) - 12)} más` : ''
+  const por = [conLapida ? `${n(conLapida)} porque se borraron o se juntaron como repetidas en /admin (tienen lápida y no se vuelven a crear)` : '', otras ? `${n(otras)} por otro motivo` : ''].filter(Boolean).join(' y ')
+  return `${n(t.noEscritasTotal || lista.length)} nuevas NO se han escrito: ${por}. Son: ${cuales}${mas}.`
+}
+
 // Lo que se dice de cada paso, en una frase para el panel.
 export function textoDePaso(paso, r) {
   if (!r) return 'No ha contestado.'
@@ -36,7 +49,8 @@ export function textoDePaso(paso, r) {
     const t = r.turno
     if (!t) return 'Sin respuesta de la expansión.'
     if (!t.suyas) return `TCGGO todavía no da cartas sueltas de esta expansión${t.nota ? ` (${t.nota})` : ''}.`
-    return `TCGGO tiene ${n(t.suyas)} cartas: ${n(t.casadas)} ya estaban${t.nuevas ? `, ${n(t.nuevas)} nuevas` : ''}; ${n(t.escritas)} escritas.`
+    const base = `TCGGO tiene ${n(t.suyas)} cartas: ${n(t.casadas)} ya estaban${t.nuevas ? `, ${n(t.nuevas)} nuevas` : ''}; ${n(t.escritas)} escritas.`
+    return t.noEscritasTotal ? `${base} ${noEscritasTexto(t)}` : base
   }
   if (paso === 'precios') {
     if (r.sinCm) return 'TCGGO da sus cartas sin id de Cardmarket: sin precios por ahora.'

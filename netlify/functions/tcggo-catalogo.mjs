@@ -95,6 +95,20 @@ export function soloDe(e) {
 
 export const semanaDe = (fecha) => Math.floor(fecha.getTime() / (7 * 86_400_000))
 
+// Las filas NUEVAS que no han llegado a la base (1290): qué ids no están
+// después de escribir y cuáles tienen lápida. Por trozos, que un `in.(…)`
+// muy largo no cabe en la dirección.
+export async function nuevasSinEscribir(pedir, filasNuevas, mercado) {
+  const estan = new Set()
+  const lapidas = new Set()
+  for (let i = 0; i < filasNuevas.length; i += 80) {
+    const ids = filasNuevas.slice(i, i + 80).map((f) => `"${encodeURIComponent(f.id)}"`).join(',')
+    for (const x of (await pedir(`tcg_cards?select=id&market=eq.${mercado}&id=in.(${ids})`)) || []) estan.add(x.id)
+    for (const x of (await pedir(`tcg_correcciones?select=id&tabla=eq.tcg_cards&columna=eq.__borrada&market=eq.${mercado}&id=in.(${ids})`)) || []) lapidas.add(x.id)
+  }
+  return filasNuevas.filter((f) => !estan.has(f.id)).map((f) => ({ id: f.id, numero: f.local_id || '', nombre: f.name || '', lapida: lapidas.has(f.id) }))
+}
+
 export async function procesar({
   env = process.env, fetchImpl = fetch, restImpl = null, guardarCartasImpl = null, crearSetsImpl = null, nombrarSetImpl = null, estadoImpl = null, guardarEstadoImpl = null,
   reloj = () => Date.now(), ahora = new Date(), pausa = (ms) => new Promise((r) => setTimeout(r, ms)), peticiones = 60,
@@ -467,8 +481,11 @@ export async function procesar({
       //    (el primero: en una expansión con varios sets nuestros, los
       //    demás son galerías que ya casaron por número).
       let nuevas = 0
+      const filasNuevas = []
       for (const s of suyaPorId.values()) {
-        filas.push(filaDeCartaTcggo(s, { setId: destinos[0] }))
+        const f = filaDeCartaTcggo(s, { setId: destinos[0] })
+        filas.push(f)
+        filasNuevas.push(f)
         nuevas++
       }
       // Y una sentencia no puede llevar dos filas con el mismo id: la
@@ -524,10 +541,20 @@ export async function procesar({
       // decirlo. (Si escribe alguna, deja de contar como vacía.)
       if (filas.length && !escritasAqui) estado.vacios[mercado][episodio.id] = { nombre: episodio.nombre, filas: filas.length, sets: destinos, fecha: ahora.toISOString() }
       else delete estado.vacios[mercado][episodio.id]
-      creadas += nuevas
+      // LAS NUEVAS QUE LA BASE NO HA QUERIDO (1290). PINGU, con las MEP: «me
+      // dice que sí, que me he traído cartas… no se las ha traído». El
+      // disparador de las correcciones se salta SIN ERROR la fila de una
+      // carta con lápida (`__borrada`, 934: se borró en /admin o se juntó
+      // como repetida), y el panel decía «34 nuevas; 105 escritas» sin decir
+      // cuáles faltaban ni por qué. Si se ha escrito menos de lo mandado, se
+      // mira (gratis, nuestra base) qué nuevas no están y cuáles tienen
+      // lápida, y va en el turno.
+      let noEscritas = null
+      if (filasNuevas.length && escritasAqui < filas.length) noEscritas = await nuevasSinEscribir(pedir, filasNuevas, mercado).catch(() => null)
+      creadas += nuevas - (noEscritas?.length || 0)
       estado.setsPorEpisodio[mercado][episodio.id] = destinos
       estado.hechos[mercado].push(episodio.id)
-      esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, sets: destinos, setNuevo: setNuevo?.id || null, suyas: suyas.length, descartadas, nuestras: nuestras.length, casadas: filas.length - nuevas, nuevas, escritas: escritasAqui, nuestrasSinSuya: nuestras.length - usadas.size })
+      esteTurno.push({ mercado, episodio: episodio.id, nombre: episodio.nombre, sets: destinos, setNuevo: setNuevo?.id || null, suyas: suyas.length, descartadas, nuestras: nuestras.length, casadas: filas.length - nuevas, nuevas, escritas: escritasAqui, nuestrasSinSuya: nuestras.length - usadas.size, ...(noEscritas?.length ? { noEscritas: noEscritas.slice(0, 60), noEscritasTotal: noEscritas.length } : {}) })
       await persistir()
     }
   }

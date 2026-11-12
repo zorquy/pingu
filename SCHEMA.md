@@ -55204,6 +55204,29 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1290 — Las nuevas de TCGGO que la base no escribe, con nombre
+
+PINGU, con las MEP: «TCGGO tiene 139 cartas: 105 ya estaban, 34 nuevas; 105
+escritas», y ninguna nueva en la web. `tcggo_guardar_cartas` es un
+`insert … on conflict do update` de todas las filas, pero el disparador de las
+correcciones (885, con la lápida desde la 934) devuelve `null` para una carta
+con `__borrada` en `tcg_correcciones`: la fila se salta sin error y el
+`row_count` no la cuenta. Así que «escritas» menos que lo mandado solo puede ser
+eso, y el panel no lo decía.
+
+`nuevasSinEscribir(pedir, filasNuevas, mercado)` (`tcggo-catalogo.mjs`): tras
+escribir, si `escritasAqui < filas.length`, pregunta (gratis, nuestra base, por
+trozos de 80) qué ids nuevos no están en `tcg_cards` y cuáles tienen lápida. El
+turno lleva `noEscritas` (60 como mucho, con número, nombre y `lapida`) y
+`noEscritasTotal`, y `creadas` ya no cuenta las que no entraron. El panel
+(`noEscritasTexto`, `admin/js/tcggo-set-ahora.js`) lo dice tras la línea de
+siempre, con los doce primeros números. La lápida sigue mandando a propósito:
+lo borrado o fundido a mano no vuelve solo.
+
+`test-tanda-1290.mjs`: la consulta (con lápida y sin ella, por trozos),
+`procesar` con una base que escribe menos (y con una que lo escribe todo) y la
+frase del panel.
+
 ## Tanda 1289 — Los Reyes: lo más a mano de tu «La quiero»
 
 PINGU eligió «Delibird el 25 y los Reyes el 6».

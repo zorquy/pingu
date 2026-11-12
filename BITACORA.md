@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (533) — PINGU-Claude (1290 — «Actualizar desde TCGGO» dice qué nuevas no se han escrito)
+
+**Hecho**: PINGU, con las MEP Black Star Promos: el botón decía «TCGGO tiene
+139 cartas: 105 ya estaban, 34 nuevas; 105 escritas» y las nuevas no estaban.
+Las 34 se mandaron a la base y no entró ninguna: el disparador de las
+correcciones (934) se salta SIN ERROR la fila de una carta con lápida
+(`__borrada`: se borró en /admin o se juntó como repetida). Ahora, si se
+escribe menos de lo mandado, el paso «Cartas» mira qué nuevas no están y
+cuáles tienen lápida, y el panel lo dice con sus números («34 nuevas NO se han
+escrito: N porque se borraron o se juntaron como repetidas… Son: MEP 093…»).
+Sin migración.
+
+**Ficheros**: netlify/functions/tcggo-catalogo.mjs (`nuevasSinEscribir`),
+admin/js/tcggo-set-ahora.js (`noEscritasTexto`), SCHEMA.md, BITACORA.md. En
+`pruebas`: test-tanda-1290 (nueva).
+
+**Pendiente**: con la lista delante, ver si entre las 34 hay promos de verdad
+nuevas con lápida (entonces hace falta «Volver a traer»: quitar la lápida, una
+RPC de admin) o si son versiones ya fundidas (están bien fuera).
+
 ## 2026-11-12 (532) — PINGU-Claude (1289 — los Reyes)
 
 **Hecho**: cierre de la temporada. El 5 y el 6 de enero, corona en la «P» y,
