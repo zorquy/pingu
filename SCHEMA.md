@@ -55204,6 +55204,18 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1297 — Los enlaces del evento, dentro del póster
+
+La web, el Instagram y TCG Map Spain de un evento salían en `.ev-sobre`, debajo
+del póster, como chapas sueltas (PINGU: «salen fuera de la tarjeta»). Ahora son
+`<ul class="ev-enlaces">` dentro de `.ev-poster-titulo`, debajo de
+`.ev-cuando-largo`: pastillas de cristal (blanco al 12 % con borde al 22 % y
+`backdrop-filter`) que se leen sobre cualquier color o cartel; en el táctil miden
+32 a la vista y 44 al dedo con un `::after`. Los juegos van como otra
+`.ev-chapa` (`.ev-chapa-juegos`) al lado del tipo. En `.ev-datos` solo queda la
+dirección, y solo si no hay losa de «Dónde». Un enlace nuevo de un evento va en
+`enlaces` (eventos.js), no debajo del póster.
+
 ## Tanda 1296 — Fotos del perfil con su cadena, «colección privada» y «Recién llegado» por turnos
 
 **Las fotos rotas del perfil.** El Resumen (`ponerVitrinaEnResumen`) y la losa de

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-12", "tipo": "mejora", "texto": "En la página de un evento, la web, el Instagram y TCG Map van dentro del cartel, debajo de la fecha, y los juegos al lado del tipo de evento.", "enlace": "/eventos" },
     { "fecha": "2026-11-12", "tipo": "arreglo", "texto": "En algunos perfiles las cartas de arriba y las del Resumen salían como imágenes rotas: ahora buscan otra foto, como ya hacía la pestaña Colección. Y una colección privada dice «colección privada» en vez de «0 cartas».", "enlace": "/usuarios" },
     { "fecha": "2026-11-12", "tipo": "mejora", "texto": "En Tiendas, «Recién llegado» llena la fila en el ordenador: hasta ocho cartas, repartidas entre las tiendas.", "enlace": "/tiendas" },
     { "fecha": "2026-11-12", "tipo": "nuevo", "texto": "En la página de cada evento se ve quién va: las caras de la gente de PokeDoc amontonadas como un público, primero los que sigues. Al apuntarte te dice qué número eres y puedes compartir «Voy a…» en Instagram.", "enlace": "/eventos" },

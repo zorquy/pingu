@@ -322,14 +322,14 @@ async function pintarFicha(slug, sesion) {
         ${visibles.length ? `<button type="button" class="ev-quien-ver" data-ver-quien aria-expanded="${verQuien}" aria-controls="evGente">${verQuien ? 'Ocultar' : 'Ver quién va'}</button>
         <ul class="ev-gente" id="evGente"${verQuien ? '' : ' hidden'}>${visibles.map((x) => `<li><a href="${profileUrl(x)}">${caraHtml(x, 32)}<span>${escapeHtml(nombre(x))}</span></a></li>`).join('')}</ul>` : ''}
       </section>`
-    // Lo de leer, en chapas como las de una tienda: juegos y enlaces.
-    const datos = [
-      // La dirección va en «Dónde» con su «Cómo llegar» (1199): aquí solo si no hay losa de «Dónde».
-      lugar && !mapa ? `<li>${ic('pin', 16)}<span>${escapeHtml([e.sitio, e.direccion, e.ciudad, e.provincia && e.provincia !== e.ciudad ? e.provincia : ''].filter(Boolean).join(', '))}</span></li>` : '',
-      e.juegos ? `<li>${ic('cards', 16)}<span>${escapeHtml(e.juegos)}</span></li>` : '',
-      web ? `<li>${ic('link', 16)}<a href="${escapeHtml(web)}" target="_blank" rel="noopener nofollow">${escapeHtml(web.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</a></li>` : '',
-      insta ? `<li>${ic('camera', 16)}<a href="${escapeHtml(insta.url)}" target="_blank" rel="noopener nofollow">@${escapeHtml(insta.usuario)}</a></li>` : '',
-      tcgmap ? `<li class="ev-dato-tcgmap">${ic('pin', 16)}<a href="${escapeHtml(tcgmap)}" target="_blank" rel="noopener">Ver en TCG Map Spain</a></li>` : '',
+    // Debajo del póster solo queda la dirección, cuando no hay losa de «Dónde»
+    // (1199). Los juegos van con el tipo y los enlaces DENTRO del póster (1297,
+    // PINGU: «los enlaces salen fuera de la tarjeta»).
+    const datos = lugar && !mapa ? `<li>${ic('pin', 16)}<span>${escapeHtml([e.sitio, e.direccion, e.ciudad, e.provincia && e.provincia !== e.ciudad ? e.provincia : ''].filter(Boolean).join(', '))}</span></li>` : ''
+    const enlaces = [
+      web ? `<li><a href="${escapeHtml(web)}" target="_blank" rel="noopener nofollow">${ic('link', 14)}<span>${escapeHtml(web.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</span></a></li>` : '',
+      insta ? `<li><a href="${escapeHtml(insta.url)}" target="_blank" rel="noopener nofollow">${ic('camera', 14)}<span>@${escapeHtml(insta.usuario)}</span></a></li>` : '',
+      tcgmap ? `<li class="ev-dato-tcgmap"><a href="${escapeHtml(tcgmap)}" target="_blank" rel="noopener">${ic('pin', 14)}<span>TCG Map Spain</span></a></li>` : '',
     ].filter(Boolean).join('')
     // El fondo del póster: el cartel difuminado o, sin él, el logo muy
     // difuminado sobre su color (el ambiente de la 1196), con trama de puntos.
@@ -357,9 +357,10 @@ async function pintarFicha(slug, sesion) {
           <div class="ev-poster-info">
             ${logoHtml(e, 'ev-logo ev-logo-flota')}
             <div class="ev-poster-titulo">
-              <span class="ev-chips">${e.destacado && !pasado ? `<span class="ev-chapa-destacado">${ic('star', 12)} Destacado</span>` : ''}<span class="ev-chapa">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>${pasado ? '<span class="ev-chapa">Ya pasó</span>' : ''}</span>
+              <span class="ev-chips">${e.destacado && !pasado ? `<span class="ev-chapa-destacado">${ic('star', 12)} Destacado</span>` : ''}<span class="ev-chapa">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>${e.juegos ? `<span class="ev-chapa ev-chapa-juegos">${escapeHtml(e.juegos)}</span>` : ''}${pasado ? '<span class="ev-chapa">Ya pasó</span>' : ''}</span>
               <h1>${escapeHtml(e.nombre)}</h1>
               <p class="ev-cuando-largo">${escapeHtml([fechaLarga(e), lugar].filter(Boolean).join(' · '))}</p>
+              ${enlaces ? `<ul class="ev-enlaces" aria-label="Enlaces del evento">${enlaces}</ul>` : ''}
             </div>
           </div>
           ${salaHtml(e, { yo, sigo, pasado, recien, sigues: visibles.filter((p) => sigo.has(p.id)) })}

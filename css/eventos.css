@@ -622,6 +622,31 @@
 
 .ev-poster .ev-cuando-largo { color: rgba(255, 255, 255, 0.82); }
 .ev-poster .ev-chapa { background: rgba(255, 255, 255, 0.14); color: var(--blanco-fijo); }
+/* Los enlaces del evento, DENTRO del póster (1297): pastillas de cristal. */
+.ev-enlaces { display: flex; flex-wrap: wrap; gap: var(--e-sm); margin: var(--e-xs) 0 0; padding: 0; list-style: none; }
+.ev-enlaces a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 36px;
+  max-width: 100%;
+  padding: 0 var(--e-md);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  color: var(--blanco-fijo);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-decoration: none;
+}
+.ev-enlaces a span { overflow-wrap: anywhere; }
+.ev-enlaces a:hover { background: rgba(255, 255, 255, 0.22); }
+/* Al dedo miden 44 con una franja invisible, sin engordar la pastilla. */
+@media (pointer: coarse) {
+  .ev-enlaces a { position: relative; min-height: 32px; padding: 0 var(--e-sm); font-size: var(--t-xs); }
+  .ev-enlaces a::after { content: ''; position: absolute; inset: -6px 0; }
+}
 .ev-poster .ev-chapa-destacado { position: static; }
 .ev-poster.pasado .ev-poster-fondo { filter: grayscale(0.85); }
 

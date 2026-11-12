@@ -4,6 +4,20 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (544) — PINGU-Claude (1297 — los enlaces del evento dentro del póster)
+
+**Hecho**: la A de la propuesta «Enlaces e invitaciones» (PINGU: «los enlaces
+salen fuera de la tarjeta»). La web, el Instagram y TCG Map Spain van dentro del
+póster, en pastillas de cristal debajo de la fecha; los juegos («Pokémon») van
+con el tipo, arriba del nombre. Debajo del póster queda la descripción (y la
+dirección solo si no hay losa de «Dónde», como antes).
+
+**Ficheros**: js/eventos.js, css/eventos.css, SCHEMA.md, BITACORA.md,
+novedades.json. En `pruebas`: test-tanda-1294-pantalla con las comprobaciones
+de la 1297.
+
+**Pendiente**: subir cuando PINGU diga (con 1295b y 1296).
+
 ## 2026-11-12 (543) — PINGU-Claude (1296 — las fotos rotas del perfil, «colección privada» y «Recién llegado» lleno)
 
 **Hecho**: lo que vio PINGU en perfiles ajenos. Las cartas de la losa «Cartas» y
