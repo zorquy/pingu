@@ -181,8 +181,9 @@ console.log('── 7. La portada ──')
   const t = await caja(page, 'torneoPortadaSeccion')
   check('el próximo evento sale en la portada, en la fila del torneo', ev && (!t || t.y === ev.y), JSON.stringify([t, ev]))
   const tx = await page.textContent('#eventoPortada')
-  // Desde la 1202 lleva a la AGENDA (PINGU: «mejor tener una visión general»).
-  check('  …el más cercano, con quién va, y lleva a la agenda', /Castellón Card Show/.test(tx) && /3 van/.test(tx) && /Ver eventos/.test(tx) && (await page.getAttribute('#eventoPortada a', 'href')) === '/eventos', tx.replace(/\s+/g, ' '))
+  // La 1202 lo llevó a la agenda; desde la 1293 (la franja fina, «haz lo
+  // recomendado») va a la FICHA y el «¡Voy!» funciona desde aquí.
+  check('  …el más cercano, con quién va, y lleva a su ficha', /Castellón Card Show/.test(tx) && /3 van/.test(tx) && /¡Voy!/.test(tx) && /^\/eventos\/./.test(await page.getAttribute('#eventoPortada a.pe-nombre', 'href') || ''), tx.replace(/\s+/g, ' '))
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
   const lejos = () => { const x = new Date(); x.setDate(x.getDate() + 40); window.__FAKE_EVENTOS__ = [{ id: 'x', slug: 'lejos', nombre: 'Lejos', tipo: 'card_show', empieza: x.toISOString(), publicado: true, asistentes: [] }] }

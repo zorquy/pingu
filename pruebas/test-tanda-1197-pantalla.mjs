@@ -108,7 +108,9 @@ console.log('── 4. /admin: el hilo se abre al publicar y se pone al día al 
   const { ctx, page, errores } = await abrir(b, '/admin/?ver=eventos', { quien: 'admin-1' })
   await page.waitForSelector('#evNuevo', { timeout: 8000 })
   await page.click('#evNuevo')
-  check('la casilla «Abrir el hilo en el foro», marcada', await page.isChecked('#evf-hilo'))
+  // Desde la 1292 va DESMARCADA (PINGU: «por ahora no abriría post»): se marca a mano.
+  check('la casilla «Abrir el hilo en el foro», desmarcada (1292)', !(await page.isChecked('#evf-hilo')))
+  await page.check('#evf-hilo')
   await page.fill('#evf-nombre', 'Trade Night Bilbao')
   await page.selectOption('#evf-tipo', 'trade_night')
   const dia = await page.evaluate(() => { const d = new Date(); d.setDate(d.getDate() + 6); const p = (n) => String(n).padStart(2, '0'); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}` })

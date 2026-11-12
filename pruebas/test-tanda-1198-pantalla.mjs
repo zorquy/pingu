@@ -144,6 +144,7 @@ console.log('── 3. /admin: el hilo lo abre PokeDoc (y pasa a PokeDoc el de a
   if (!(await page.$(`[data-cal-dia="${dia}"]`))) await page.click('[data-cal-mes="1"]')
   await page.click(`[data-cal-dia="${dia}"]`)
   await page.fill('#evf-ciudad', 'Zaragoza')
+  await page.check('#evf-hilo') // desmarcada desde la 1292
   await page.click('#evfGuardar')
   await page.waitForTimeout(900)
   const r = await page.evaluate(async () => {
@@ -174,6 +175,7 @@ console.log('── 3. /admin: el hilo lo abre PokeDoc (y pasa a PokeDoc el de a
   await sin.page.fill('#evf-nombre', 'Sin la 1198')
   if (!(await sin.page.$(`[data-cal-dia="${dia}"]`))) await sin.page.click('[data-cal-mes="1"]')
   await sin.page.click(`[data-cal-dia="${dia}"]`)
+  await sin.page.check('#evf-hilo')
   await sin.page.click('#evfGuardar')
   await sin.page.waitForTimeout(900)
   const s = await sin.page.evaluate(async () => {
