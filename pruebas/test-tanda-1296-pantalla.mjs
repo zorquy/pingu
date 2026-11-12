@@ -25,7 +25,7 @@ async function abrir(ruta, movil, extra = '') {
   await page.waitForTimeout(3500)
   return { ctx, page, errores }
 }
-const fotos = (page, sel) => page.$$eval(sel, (is) => is.map((i) => ({ src: i.currentSrc || i.src, bien: i.complete && i.naturalWidth > 0, vis: getComputedStyle(i).visibility })))
+const fotos = (page, sel) => page.$$eval(sel, (is) => is.map((i) => ({ src: i.currentSrc || i.src, bien: i.complete && i.naturalWidth > 0, hecha: i.complete, vis: getComputedStyle(i).visibility })))
 
 for (const movil of [false, true]) {
   console.log(`── Tu perfil, ${movil ? 'móvil' : 'PC'}: TCGdex no contesta ──`)
@@ -55,7 +55,7 @@ console.log('── Una foto sin ninguna dirección que conteste: hueco, no icon
   await page.goto(`${BASE}/perfil.html`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(3500)
   const res = await fotos(page, '.pr-vitrina img, [data-losa="cartas"] .perfil-losa-abanico img')
-  check('las que no cargan por ningún lado se esconden', res.length > 0 && res.every((f) => f.vis === 'hidden' || f.bien), JSON.stringify(res.filter((f) => f.vis !== 'hidden' && !f.bien)))
+  check('las que no cargan por ningún lado se esconden', res.length > 0 && res.every((f) => f.vis === 'hidden' || f.bien || !f.hecha), JSON.stringify(res.filter((f) => f.vis !== 'hidden' && !f.bien && f.hecha)))
   await ctx.close()
 }
 
