@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (543) — PINGU-Claude (1296 — las fotos rotas del perfil, «colección privada» y «Recién llegado» lleno)
+
+**Hecho**: lo que vio PINGU en perfiles ajenos. Las cartas de la losa «Cartas» y
+de la vitrina del Resumen salían ROTAS (en Colección no): las dos copiaban la
+foto de la vitrina antes de que su cadena de respaldo saltara —la vitrina está en
+una pestaña escondida y sus fotos ni se habían pedido— y se quedaban con la de
+TCGdex aunque no contestara. Ahora se llevan la cadena (`js/fotos-cadena.js`) y
+saltan igual; sin ninguna que conteste, hueco y no icono roto. La losa de una
+colección PRIVADA decía «0 en su colección» (la RLS devuelve vacío): ahora «—» y
+«colección privada». Y en /tiendas «Recién llegado» enseñaba 3 cartas en una fila
+de 8 del PC: la web ya pedía 8, pero la base dejaba dos por tienda; ahora reparte
+por turnos (la más nueva de cada tienda, luego la segunda…) hasta llenar.
+
+**Ficheros**: js/fotos-cadena.js (nuevo), js/perfil-resumen.js,
+js/perfil-cifras.js (`privada`), js/usuario.js,
+supabase-migration-1296-tiendas-recien.sql (nueva), SCHEMA.md, BITACORA.md,
+novedades.json. En `pruebas`: test-tanda-1296 (PostgreSQL) y 1296-pantalla.
+
+**Pendiente**: ejecutar la migración 1296 (sin ella «Recién llegado» sigue como
+antes, sin romper nada) y subir con la 1295b cuando PINGU diga.
+
 ## 2026-11-12 (542) — PINGU-Claude (1295b — la barra de la ficha sin huecos y el número con la gente)
 
 **Hecho**: lo que vio PINGU en la ficha de Tradeitto 2. La cuenta atrás va a la

@@ -55204,6 +55204,35 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1296 — Fotos del perfil con su cadena, «colección privada» y «Recién llegado» por turnos
+
+**Las fotos rotas del perfil.** El Resumen (`ponerVitrinaEnResumen`) y la losa de
+«Cartas» (`ponerCartasEnLosa`) copiaban `img.src` de la vitrina. La vitrina pinta
+la PRIMERA dirección de `cadenaDeEscaneo` y salta a la siguiente con su
+`data-cadena` al fallar; pero vive en la pestaña Colección, escondida al entrar, y
+sus fotos `lazy` no se piden hasta abrirla. Así que la copia se llevaba la primera
+dirección sin saber que no contesta, y sin cadena se quedaba rota. Ahora:
+`fotosDe(origen, máximo)` copia dirección + lo que queda de cadena + alt,
+`imgDeFoto(f, ancho, alto)` lo pinta con su `data-cadena`, y
+`engancharCadena(caja)` (un oyente de `error` en captura, una vez por caja) salta
+a la siguiente o esconde la foto (`visibility: hidden`) cuando no queda ninguna.
+Lo que copie fotos de cartas de un sitio a otro pasa por ahí.
+
+**«Colección privada».** `user_collection` no se ve de otra persona con la
+colección privada (RLS: `coleccion_es_publica`), y la RLS devuelve una lista
+vacía, no un error (la 510): la losa decía «0 en su colección». `cifrasHtml`
+recibe `privada` (de `coleccion_publica === false`) y, si no es tu perfil, pinta
+«—» y «colección privada».
+
+**«Recién llegado a las tiendas» por turnos** (migración 1296). `tiendas_recien`
+dejaba DOS por tienda (`de_la_tienda <= 2`): con dos tiendas, 3 o 4 cartas en una
+fila de 8 del PC. Ahora ordena por `de_la_tienda, entro_el desc` y corta en lo
+pedido: una de cada tienda antes que la segunda de ninguna, y con pocas tiendas la
+fila se llena. Lo elegido se enseña lo más nuevo primero, como antes; lo demás es
+la de la 1245 (con `tienda_publica`). La web no cambia (pide 8; en el móvil es una
+tira que se desliza). Sin la migración, como antes. Prueba: `test-tanda-1296`
+contra PostgreSQL.
+
 ## Tanda 1295 — La sala del evento: que se vea quién va
 
 PINGU: «que tenga importancia quiénes van, porque al final es algo de

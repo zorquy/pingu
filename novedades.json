@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-12", "tipo": "arreglo", "texto": "En algunos perfiles las cartas de arriba y las del Resumen salían como imágenes rotas: ahora buscan otra foto, como ya hacía la pestaña Colección. Y una colección privada dice «colección privada» en vez de «0 cartas».", "enlace": "/usuarios" },
+    { "fecha": "2026-11-12", "tipo": "mejora", "texto": "En Tiendas, «Recién llegado» llena la fila en el ordenador: hasta ocho cartas, repartidas entre las tiendas.", "enlace": "/tiendas" },
     { "fecha": "2026-11-12", "tipo": "nuevo", "texto": "En la página de cada evento se ve quién va: las caras de la gente de PokeDoc amontonadas como un público, primero los que sigues. Al apuntarte te dice qué número eres y puedes compartir «Voy a…» en Instagram.", "enlace": "/eventos" },
     { "fecha": "2026-11-12", "tipo": "mejora", "texto": "La página de cada evento, rehecha como un cartel: el logo en grande, la cuenta atrás en días, horas y minutos, «¡Voy!» a mano, cuándo, las entradas y dónde en tres bloques, y quién va de PokeDoc con sus caras.", "enlace": "/eventos" },
     { "fecha": "2026-11-12", "tipo": "mejora", "texto": "El evento de Inicio ocupa menos: una franja fina con el logo, la fecha, quién va y cuántos días faltan, y «¡Voy!» se marca desde ahí. Toca la franja para abrir el evento.", "enlace": "/" },

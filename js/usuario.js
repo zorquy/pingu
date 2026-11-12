@@ -146,7 +146,7 @@ async function loadReputationAndGuides() {
   const lote = document.getElementById('profileStats')
   // Con la colección pública, «Cartas» la abre entera (944).
   const coleccion = profile?.coleccion_publica && profile.username ? urlDeColeccion(profile.username) : ''
-  lote.innerHTML = cifrasHtml({ cartas, guias: approvedCount ?? null, servido, torneos, coleccion })
+  lote.innerHTML = cifrasHtml({ cartas, guias: approvedCount ?? null, servido, torneos, coleccion, privada: profile?.coleccion_publica === false })
   for (const b of lote.querySelectorAll('[data-ver]')) b.addEventListener('click', () => abrirPestania(b.dataset.ver))
   // Si la vitrina llegó antes que las cifras, sus cartas a la losa ya (1270).
   ponerCartasEnLosa(lote, document.getElementById('perfilVitrina'))

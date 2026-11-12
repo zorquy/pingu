@@ -14,6 +14,7 @@ import { rutaDeArticulo } from './articulos.js'
 import { abrirPestania } from './perfil-pestanias.js'
 import { getAllAchievements } from './gamification.js'
 import { achievementIconHtml } from './app.js'
+import { fotosDe, imgDeFoto, engancharCadena } from './fotos-cadena.js'
 
 const bloque = (ver, titulo, dentro, texto = 'Ver') => `<section class="pr-bloque" data-pr="${ver}">
     <header class="pr-cab"><h3>${escapeHtml(titulo)}</h3><button type="button" class="pr-ver" data-pr-ver="${ver}">${escapeHtml(texto)} ${icons.chevronRight(14)}</button></header>
@@ -91,13 +92,15 @@ export async function pintarResumen(caja, { userId, propia = false, logros = [] 
 // La vitrina, cuando llega: sus fotos en una tira, con «Ver» a Colección.
 export function ponerVitrinaEnResumen(caja, vitrina) {
   if (!caja) return
-  const fotos = [...(vitrina?.querySelectorAll('img') || [])].map((i) => ({ src: i.currentSrc || i.src, alt: i.alt || '' })).filter((f) => f.src).slice(0, 8)
+  // Con su cadena de respaldo (1296): copiar solo `src` se llevaba la rota.
+  const fotos = fotosDe(vitrina, 8)
   let sitio = caja.querySelector('.pr-vitrina')
   if (!sitio) {
     caja.insertAdjacentHTML('afterbegin', '<section class="pr-bloque pr-vitrina" data-pr="vitrina" hidden></section>')
     sitio = caja.querySelector('.pr-vitrina')
   }
   if (!fotos.length) return
-  sitio.outerHTML = bloque('vitrina', 'Vitrina', `<div class="pr-cartas">${fotos.map((f) => `<img src="${escapeHtml(f.src)}" alt="${escapeHtml(f.alt)}" width="63" height="88" loading="lazy" decoding="async">`).join('')}</div>`, 'Colección').replace('class="pr-bloque"', 'class="pr-bloque pr-vitrina"')
+  sitio.outerHTML = bloque('vitrina', 'Vitrina', `<div class="pr-cartas">${fotos.map((f) => imgDeFoto(f, 63, 88)).join('')}</div>`, 'Colección').replace('class="pr-bloque"', 'class="pr-bloque pr-vitrina"')
+  engancharCadena(caja.querySelector('.pr-vitrina'))
   caja.querySelector('.pr-vacio')?.remove()
 }

@@ -13,6 +13,7 @@
 // ninguno.
 import { escapeHtml } from './html.js'
 import { icons } from './icons.js'
+import { fotosDe, imgDeFoto, engancharCadena } from './fotos-cadena.js'
 
 // La colección entera de alguien, en la vista con buscador y filtros (944).
 export const urlDeColeccion = (username) => `/mi-coleccion?u=${encodeURIComponent(username)}&ver=cartas`
@@ -27,7 +28,9 @@ const n = (v) => (typeof v === 'number' && Number.isFinite(v) ? v.toLocaleString
 // la 984 conocen); seguidores y siguiendo ya no van aquí, van en caras
 // (`pintarSocial`, perfil-cabecera.js). En el PC la de la colección se llena
 // con tres cartas de la vitrina (`ponerCartasEnLosa`).
-export function cifrasHtml({ cartas = null, guias = null, servido = null, torneos = null, propia = false, coleccion = '' } = {}) {
+// `privada` (1296): su colección no se enseña, y la base, en vez de decir que
+// no, cuenta cero filas (la RLS no da error, la 510). Ese «0» sería mentira.
+export function cifrasHtml({ cartas = null, guias = null, servido = null, torneos = null, propia = false, coleccion = '', privada = false } = {}) {
   const conServido = typeof servido === 'number' && servido > 0
   const losa = (seccion, icono, valor, rotulo, { href = '', ver = '', title = '', nota = '' } = {}) => {
     const dentro = `<span class="perfil-losa-dib" aria-hidden="true">${icono}</span><span class="perfil-losa-t"><span class="rotulo">${rotulo}</span><span class="valor">${valor}</span>${nota}</span>`
@@ -39,7 +42,9 @@ export function cifrasHtml({ cartas = null, guias = null, servido = null, torneo
   }
   const notaServido = conServido ? `<small class="perfil-cifra-nota">${icons.sprout(12)} le han servido a ${n(servido)}</small>` : ''
   return (
-    losa('cartas', icons.cards(20), n(cartas), 'Cartas', { href: propia ? '/mi-coleccion' : coleccion, nota: `<small class="perfil-losa-sub">en ${propia ? 'tu' : 'su'} colección</small>` }) +
+    (privada && !propia
+      ? losa('cartas', icons.cards(20), '—', 'Cartas', { nota: '<small class="perfil-losa-sub">colección privada</small>' })
+      : losa('cartas', icons.cards(20), n(cartas), 'Cartas', { href: propia ? '/mi-coleccion' : coleccion, nota: `<small class="perfil-losa-sub">en ${propia ? 'tu' : 'su'} colección</small>` })) +
     losa('aprender', icons.bookOpen(20), n(guias), 'Guías', {
       ver: 'guides',
       title: conServido ? (servido === 1 ? 'A 1 persona le han servido sus guías' : `A ${n(servido)} personas les han servido sus guías`) : '',
@@ -54,10 +59,12 @@ export function cifrasHtml({ cartas = null, guias = null, servido = null, torneo
 // se queda el icono.
 export function ponerCartasEnLosa(lote, vitrina) {
   const dib = lote?.querySelector('[data-losa="cartas"] .perfil-losa-dib')
-  const fotos = [...(vitrina?.querySelectorAll('img') || [])].map((i) => i.currentSrc || i.src).filter(Boolean).slice(0, 3)
+  // Con su cadena de respaldo (1296), como en el Resumen.
+  const fotos = fotosDe(vitrina, 3).map((f) => ({ ...f, alt: '' }))
   if (!dib || !fotos.length) return
   dib.classList.add('perfil-losa-abanico')
-  dib.innerHTML = fotos.map((src) => `<img src="${escapeHtml(src)}" alt="" width="28" height="39" loading="lazy" decoding="async">`).join('')
+  dib.innerHTML = fotos.map((f) => imgDeFoto(f, 28, 39)).join('')
+  engancharCadena(dib)
 }
 
 // Cuántas cartas distintas tiene en su colección y en cuántos torneos se ha
