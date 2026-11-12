@@ -73,8 +73,11 @@ const leer = (page) => page.evaluate(() => {
     entra: !!document.querySelector('.ev-sala-cara.entra'),
     dentro: !!caja && caras.every((c) => { const r = c.getBoundingClientRect(); const cx = r.left + r.width / 2, cy = r.top + r.height / 2; return cx >= caja.left - 2 && cx <= caja.right + 2 && cy >= caja.top - 2 && cy <= caja.bottom + 2 }),
     enlaces: caras.filter((c) => c.tagName === 'A' && (c.getAttribute('href') || '').length > 1).length,
-    barraSigues: document.querySelector('.ev-barra .ev-sigues:not(.vacio)')?.textContent.replace(/\s+/g, ' ').trim() || '',
-    numero: document.querySelector('.ev-numero')?.textContent.replace(/\s+/g, ' ').trim() || '',
+    barraSigues: document.querySelector('.ev-sala .ev-sigues')?.textContent.replace(/\s+/g, ' ').trim() || '',
+    lineaNumero: !!document.querySelector('.ev-numero'),
+    ocultoEnQuien: !!document.querySelector('.ev-quien #evOculto'),
+    compartirVoy: !!document.querySelector('.ev-barra .ev-atajos [data-compartir-voy]'),
+    numero: document.querySelector('.ev-sala-tu')?.textContent.replace(/\s+/g, ' ').trim() || '',
     salaAlLado: (() => { const i = document.querySelector('.ev-poster-info')?.getBoundingClientRect(); const s = document.querySelector('.ev-sala')?.getBoundingClientRect(); return i && s ? s.left >= i.right - 4 : false })(),
     ancho: document.documentElement.scrollWidth <= innerWidth,
   }
@@ -89,7 +92,7 @@ for (const movil of [false, true]) {
   check('las caras en la sala, las rayadas incluidas', r.caras === 25 && r.rayadas === 2, `${r.caras} / ${r.rayadas}`)
   check('  …todas dentro de su caja', r.dentro)
   check('  …y cada cara lleva a su perfil', r.enlaces === 23, r.enlaces)
-  check('los 2 que sigues, marcados en la sala y en la barra', r.sigues === 2 && /Van 2 que sigues: Ash y Misty/.test(r.barraSigues), r.barraSigues)
+  check('los 2 que sigues, marcados en la sala y bajo su número', r.sigues === 2 && /Van 2 que sigues: Ash y Misty/.test(r.barraSigues), r.barraSigues)
   if (!movil) check('en el PC la sala va AL LADO del nombre', r.salaAlLado)
   check('no se sale de lado', r.ancho)
   check('sin ir, ni aro ni número', r.tu === 0 && !r.numero)
@@ -98,7 +101,8 @@ for (const movil of [false, true]) {
   await page.waitForTimeout(900)
   r = await leer(page)
   check('«¡Voy!»: entras en la sala con tu aro (y entrando)', r.tu === 1 && r.entra && r.num === '26', `${r.tu} ${r.entra} ${r.num}`)
-  check('  …y «Eres el nº 26 de PokeDoc · Compártelo»', /Eres el nº 26 de PokeDoc · Compártelo/.test(r.numero), r.numero)
+  check('  …y «Tú eres el nº 26» en la sala, sin otra línea en la barra (1295b)', r.numero === 'Tú eres el nº 26' && !r.lineaNumero, r.numero)
+  check('  …«Compartir» de la barra abre «Voy a…», e «Ir sin decirlo» va en «Quién va»', r.compartirVoy && r.ocultoEnQuien)
   if (!movil) await page.locator('.ev-poster').screenshot({ path: '/tmp/1295-pc-voy.png' })
   check('sin errores', !errores.length, errores.join(' | '))
   await ctx.close()
@@ -107,7 +111,7 @@ for (const movil of [false, true]) {
 console.log('── «Compártelo»: la imagen «Voy a…» ──')
 {
   const { ctx, page, errores } = await abrir({ asistentes: [{ user_id: 'user-1' }, { user_id: 'admin-1' }] })
-  check('ya vas: «Eres el nº 2»', /Eres el nº 2 de PokeDoc/.test(await page.textContent('.ev-numero')))
+  check('ya vas: «Tú eres el nº 2»', /Tú eres el nº 2/.test(await page.textContent('.ev-sala-tu')))
   await page.click('[data-compartir-voy]')
   await page.waitForSelector('dialog[open]', { timeout: 8000 }).catch(() => {})
   await page.waitForTimeout(1500)
@@ -141,11 +145,11 @@ console.log('── «Compártelo»: la imagen «Voy a…» ──')
 console.log('── Sin la migración 1295 ──')
 {
   const todos = await abrir({ sin1295: true, asistentes: [{ user_id: 'user-1' }, { user_id: 'admin-1' }] })
-  check('si todos se ven, el número igual (por orden)', /Eres el nº 2 de PokeDoc/.test(await todos.page.textContent('.ev-numero')))
+  check('si todos se ven, el número igual (por orden)', /Tú eres el nº 2/.test(await todos.page.textContent('.ev-sala-tu')))
   await todos.ctx.close()
   const conOcultos = await abrir({ sin1295: true, asistentes: [{ user_id: 'oc-1', oculto: true }, { user_id: 'admin-1' }] })
-  const t = await conOcultos.page.textContent('.ev-numero')
-  check('si alguien va sin decirlo, sin número (no se sabe seguro) y «Cuenta que vas»', !/nº/.test(t) && /Cuenta que vas/.test(t), t)
+  const t = await conOcultos.page.textContent('.ev-sala')
+  check('si alguien va sin decirlo, sin número (no se sabe seguro)', !/nº/.test(t) && !!(await conOcultos.page.$('.ev-atajos [data-compartir-voy]')), t)
   check('sin errores', !conOcultos.errores.length, conOcultos.errores.join(' | '))
   await conOcultos.ctx.close()
 }
