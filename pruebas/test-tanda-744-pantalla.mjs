@@ -39,7 +39,7 @@ console.log('── 1. Las reglas ──')
   // ya no está): sin saber lo de hoy, la de «Seis retos · quedan N h».
   check('los retos: lo de hoy, o la ficha sin cifras si no se sabe', /2\/6/.test(f({ retos: { hechos: new Set(['carta', 'caro']), total: 6, xp: 10 } })) && /<span>quedan \d+ h<\/span>/.test(f({ retos: null })))
   // Desde la 1010, los temas que sigues con algo nuevo (no los avisos).
-  check('los temas: con cifra, «nada nuevo», o el foro a secas si no se sabe', /<b>2 sin leer<\/b>/.test(f({ hilos: { cuenta: 2 } })) && /Nada nuevo/.test(f({ hilos: { cuenta: 0 } })) && /<b>El foro<\/b>/.test(f({ hilos: null })))
+  check('los temas: con cifra, «Al día» (1301), o el foro a secas si no se sabe', /<b>2 sin leer<\/b>/.test(f({ hilos: { cuenta: 2 } })) && /Al día/.test(f({ hilos: { cuenta: 0 } })) && /<b>El foro<\/b>/.test(f({ hilos: null })))
   check('el valor: sin la migración no sale; sin fotos, invita', valorHtml(null) === '' && /Empieza a llevarla/.test(valorHtml([])))
 }
 
@@ -88,7 +88,7 @@ console.log('── 2. La portada con cuenta ──')
   check('  …el próximo lanzamiento', /Sale mañana Héroes Ascendentes/.test(t), t)
   // Desde la 1010, los temas que sigues; los avisos ya no cuentan, y sin
   // suscripciones sembradas no hay ninguno.
-  check('  …y los temas que sigues', /Nada nuevo en los temas que sigues/.test(t), t)
+  check('  …y los temas que sigues', /Al día en los temas que sigues/.test(t), t)
   check('todo se pulsa con 44 o más', await page.$$eval('#hoyPortada a', (as) => as.length === 5 && as.every((a) => a.getBoundingClientRect().height >= 44)))
   await ctx.close()
 }

@@ -81,14 +81,14 @@ console.log('── 2. La portada con cuenta ──')
   const fichas = await page.$$eval('#hoyPortada .hoy-ficha', (as) => as.map((a) => ({ t: a.innerText.replace(/\s+/g, ' ').trim(), href: a.getAttribute('href'), logo: a.querySelector('.hoy-ficha-logo img')?.getAttribute('src') || '', alto: a.querySelector('.hoy-ficha-logo img')?.getBoundingClientRect().height || 0 })))
   const lanz = fichas.find((f) => f.href === '/lanzamientos.html')
   check('la ficha del lanzamiento enseña el logo del set, a 32 px', lanz?.logo === 'https://images.tcggo.com/dr.png' && Math.round(lanz.alto) === 32 && /^Sale/.test(lanz.t), JSON.stringify(lanz))
-  const foro = fichas.find((f) => /tema|foro|Nada nuevo/i.test(f.t))
+  const foro = fichas.find((f) => /tema|foro|Nada nuevo|Al día/i.test(f.t))
   check('la del foro cuenta solo el tema que sigues con algo de otro sin ver, y lleva a él', foro?.t === "1 sin leer Tema A" && foro.href === '/tema/tema-a', JSON.stringify(foro))
   await ctx.close()
 }
 {
   const { page, ctx } = await abrir('/index.html', 'user-1', { __FAKE_LECTURAS__: [{ thread_id: 'tema-a', user_id: 'user-1', last_read_at: new Date().toISOString() }, { thread_id: 'tema-b', user_id: 'user-1', last_read_at: new Date().toISOString() }] })
   const t = n(await page.locator('#hoyPortada').innerText())
-  check('  …y con todo leído, «Nada nuevo» (aunque haya avisos sin leer)', /Nada nuevo en los temas que sigues/.test(t), t)
+  check('  …y con todo leído, «Al día» (1301; antes «Nada nuevo») aunque haya avisos sin leer', /Al día en los temas que sigues/.test(t), t)
   await ctx.close()
 }
 
