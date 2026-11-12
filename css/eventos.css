@@ -532,10 +532,10 @@
 .ev-poster-fondo {
   position: relative;
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: end;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: stretch;
   gap: var(--e-xl);
-  min-height: 220px;
+  min-height: 300px;
   padding: var(--e-xl);
   overflow: hidden;
   isolation: isolate;
@@ -580,9 +580,17 @@
   font-weight: 800;
 }
 
+.ev-poster-info {
+  display: grid;
+  align-content: end;
+  justify-items: start;
+  gap: var(--e-lg);
+  min-width: 0;
+}
+
 .ev-logo-flota {
-  width: 148px;
-  height: 148px;
+  width: 112px;
+  height: 112px;
   border-radius: var(--radius-xl);
   box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
   transform: rotate(-4deg);
@@ -613,10 +621,132 @@
 .ev-poster .ev-chapa-destacado { position: static; }
 .ev-poster.pasado .ev-poster-fondo { filter: grayscale(0.85); }
 
-/* La barra: cuenta atrás · ¡Voy! · atajos. */
+/* La sala (1295): las caras de los que van, amontonadas como un público, y el
+   número en grande. Cada cara se coloca en tanto por ciento (`salaDe`). */
+.ev-sala {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: var(--e-sm);
+  min-width: 0;
+}
+
+.ev-sala-caras {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  height: 190px;
+}
+
+.ev-sala-cara {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: center / cover no-repeat;
+  box-shadow: 0 0 0 3px #12223a;
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  text-decoration: none;
+  transform: translate(-50%, -50%);
+  transition: transform 0.15s var(--ease);
+}
+
+a.ev-sala-cara:hover { z-index: 2; transform: translate(-50%, -50%) scale(1.15); color: var(--blanco-fijo); }
+.ev-sala-cara.m { width: 40px; height: 40px; font-size: var(--t-sm); }
+.ev-sala-cara.g { width: 52px; height: 52px; font-size: var(--t-md); }
+.ev-sala-cara.sigues { box-shadow: 0 0 0 3px #12223a, 0 0 0 5px rgba(124, 186, 228, 0.7); }
+.ev-sala-cara.tu { z-index: 1; box-shadow: 0 0 0 3px #12223a, 0 0 0 6px #34d399; }
+.ev-sala-cara.oculto { background: repeating-linear-gradient(45deg, #2b3a46 0 4px, #24323e 4px 8px); }
+.ev-sala-cara.hueco { border: 2px dashed rgba(255, 255, 255, 0.35); background: rgba(255, 255, 255, 0.06); box-shadow: none; color: rgba(255, 255, 255, 0.6); }
+.ev-sala-cara.entra { animation: ev-entra 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes ev-entra {
+  from { opacity: 0; transform: translate(-50%, -50%) scale(0.2); }
+  to { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+}
+
+.ev-sala-mas {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  padding: 2px var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.14);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+
+.ev-sala-num {
+  display: grid;
+  justify-items: center;
+  margin: 0;
+  color: var(--blanco-fijo);
+  text-align: center;
+}
+
+.ev-sala-num b {
+  font-family: var(--font-display);
+  font-size: calc(var(--t-3xl) * 1.6);
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.ev-sala-num span { color: rgba(255, 255, 255, 0.82); font-size: var(--t-sm); font-weight: 600; }
+.ev-sala-num small { color: #f9a8d4; font-size: var(--t-xs); font-weight: 700; }
+
+/* «Van 3 que sigues», en la barra. */
+.ev-sigues {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-width: 0;
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.ev-sigues > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-sigues .ev-caras .ev-cara { margin-left: calc(var(--e-sm) * -1); box-shadow: 0 0 0 2px var(--white); }
+.ev-sigues .ev-caras .ev-cara:first-child { margin-left: 0; }
+
+/* «Eres el nº 14 de PokeDoc · Compártelo». */
+.ev-numero {
+  margin: 0;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  text-align: center;
+}
+
+.ev-numero b { color: var(--success); font-family: var(--font-display); }
+.ev-numero.recien { animation: ev-salto 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+
+@keyframes ev-salto {
+  from { opacity: 0; transform: translateY(8px) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+
+.ev-numero-compartir {
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--acento);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ev-numero-compartir:hover { text-decoration: underline; }
+
+/* La barra: los que sigues · cuenta atrás · ¡Voy! · atajos. */
 .ev-barra {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) auto auto auto;
   align-items: center;
   gap: var(--e-lg);
   padding: var(--e-lg) var(--e-xl);
@@ -973,7 +1103,14 @@
 
   /* El póster en una columna: el logo más pequeño, encima del nombre. */
   .ev-poster-fondo { grid-template-columns: minmax(0, 1fr); align-items: start; gap: var(--e-md); min-height: 0; padding: var(--e-lg); }
-  .ev-logo-flota { width: 84px; height: 84px; border-radius: var(--radius-lg); }
+  .ev-poster-info { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--e-md); }
+  .ev-logo-flota { width: 64px; height: 64px; border-radius: var(--radius-lg); }
+  .ev-sala-caras { height: 132px; }
+  .ev-sala-cara { width: 26px; height: 26px; }
+  .ev-sala-cara.m { width: 32px; height: 32px; }
+  .ev-sala-cara.g { width: 40px; height: 40px; }
+  .ev-sigues { grid-column: 1 / -1; }
+  .ev-sigues.vacio { display: none; }
   .ev-logo-flota b { font-size: var(--t-lg); }
   .ev-poster h1 { font-size: var(--t-2xl); }
   .ev-barra { grid-template-columns: auto minmax(0, 1fr); gap: var(--e-md); padding: var(--e-md) var(--e-lg); }
@@ -999,4 +1136,10 @@
   /* Quieto, con la luz dorada parada a un lado. */
   .ev-tarjeta.destacado,
   .ev-poster.destacado { animation: none; --ev-giro: 300deg; }
+
+  .ev-sala-cara,
+  .ev-sala-cara.entra,
+  .ev-numero.recien { animation: none; transition: none; }
+
+  a.ev-sala-cara:hover { transform: translate(-50%, -50%); }
 }

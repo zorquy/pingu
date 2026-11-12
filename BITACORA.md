@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (541) — PINGU-Claude (1295 — la sala del evento: las caras de los que van, «Eres el nº N» y «Voy a…»)
+
+**Hecho**: lo recomendado de la propuesta «Que se vea quién va». El póster de la
+ficha tiene ahora a la derecha la SALA: las caras de los que van amontonadas
+como un público, con el número en grande (los que van sin decirlo, rayadas). Tú
+con aro verde, los que sigues con aro azul y delante, y en la barra «Van 3 que
+sigues». Al pulsar «¡Voy!» tu cara entra en la sala y sale «Eres el nº 26 de
+PokeDoc · Compártelo», que abre la imagen «Voy a…» para Instagram y X.
+
+**Ficheros**: js/eventos.js (`salaHtml`, `siguesHtml`, `numeroHtml`, los que
+sigues), js/eventos-puro.js (`salaDe`, `miNumeroDe`, `textoDeSigues`,
+`textoDeVoy`), js/evento-compartir.js (nuevo), css/eventos.css,
+supabase-migration-1295-eventos-mi-numero.sql (nueva), SCHEMA.md,
+novedades.json. En `pruebas`: test-tanda-1295 (PostgreSQL), 1295-pantalla, el
+doble con `mi_numero` (y `__SIN_1295__`), y la 1294 con el logo más pequeño.
+
+**Pendiente**: subir con 1292–1294 cuando PINGU diga; antes, ejecutar las
+migraciones 1292 y 1295 (sin la 1295 el número sale solo cuando nadie va «sin
+decirlo»).
+
 ## 2026-11-12 (540) — PINGU-Claude (1294 — la ficha del evento como un póster)
 
 **Hecho**: lo recomendado de la propuesta v2 para la ficha (PINGU: «se ve muy

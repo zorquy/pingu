@@ -55204,6 +55204,50 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1295 — La sala del evento: que se vea quién va
+
+PINGU: «que tenga importancia quiénes van, porque al final es algo de
+comunidad». De la propuesta «Que se vea quién va», «haz lo recomendado»: la A
+(«La sala llena») con tres piezas: los que sigues primero, «Eres el nº N» y la
+imagen «Voy a…».
+
+- **La sala** (`salaHtml` en js/eventos.js, colocada por `salaDe` en
+  eventos-puro, pura): la mitad derecha del póster son las caras de los que van,
+  amontonadas como un público, y el número en grande («25 · de PokeDoc van · 2
+  sin decirlo»). Orden: tú (con aro verde), los que sigues (aro azul), y luego
+  por llegada; los que van «sin decirlo», caras rayadas sin nombre ni enlace (si
+  tú vas así, tu aro va en una de ellas). Las tres primeras grandes, las seis
+  siguientes medianas. 30 como mucho y «+N». Cada una, `left/top` en tanto por
+  ciento por una espiral de girasol que se encoge con poca gente (`abre`), así
+  no se ve dispersa. Con menos de 5, huecos con «?» y «¿Te apuntas?»; sin nadie,
+  «Sé el primero de PokeDoc». Cada cara es un enlace a su perfil. En el móvil,
+  la sala va debajo del nombre (el logo a su lado, más pequeño).
+- **Los que sigues**: la ficha pide aparte `user_follows` (de quien mira, solo
+  ids de los que van) y repinta: aro en la sala, primeros en la lista de abajo y
+  «Van 3 que sigues: Ana, Bea y Carlos» (`textoDeSigues`) a la izquierda de la
+  barra.
+- **Tu número**: «Eres el nº 26 de PokeDoc · Compártelo» bajo el «¡Voy!»
+  (`numeroHtml`). Lo da la base: `mi_numero` en `evento_json` (migración
+  `supabase-migration-1295-eventos-mi-numero.sql`: tu puesto por `created_at`
+  contando a los que van sin decirlo; empates por user_id; el upsert de «sin
+  decirlo» no te mueve). Sin la migración, `miNumeroDe` lo saca de `caras` SOLO
+  si nadie va sin decirlo (si no, no se sabe seguro y sale «Cuenta que vas» sin
+  número). Al apuntarte, tu cara entra en la sala (`.entra`) y el número da un
+  saltito (`.recien`), los dos quietos con «menos movimiento».
+- **«Voy a…»** (`js/evento-compartir.js`, por `import()`): la hoja de compartir
+  de siempre con el marco de redes (sección Comunidad): «Voy a *Nombre*», fecha
+  y sitio, el logo inclinado (del cubo con CORS; si no llega en 3 s, las
+  siglas), tu cara y las de los que van con su INICIAL sobre su color —las fotos
+  de perfil de fuera mancharían el lienzo y no se podría descargar— y «Soy el nº
+  N de PokeDoc que va» con la dirección de la ficha. El texto es `textoDeVoy`
+  (eventos-puro).
+
+Pruebas: `test-tanda-1295.mjs` (PostgreSQL: el puesto con un «sin decirlo»
+delante, pasar a sin decirlo no mueve, sin ir 0, la agenda lo lleva, la función
+sigue sin llamarse a pelo) y `test-tanda-1295-pantalla.mjs` (lo puro; la sala
+en PC y móvil con 25, rayadas, enlaces, los que sigues, «¡Voy!» con aro y nº;
+la imagen se pinta y se exporta; sin la migración; sin nadie y sin cuenta).
+
 ## Tanda 1294 — La ficha del evento, como un póster
 
 PINGU: «la página del evento… se ve como muy plana». De la propuesta v2, «haz lo

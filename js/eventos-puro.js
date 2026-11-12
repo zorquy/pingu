@@ -263,6 +263,76 @@ export function cuentaRegresiva(e, ahora = new Date()) {
   return { dias: Math.floor(total / 1440), horas: Math.floor((total % 1440) / 60), min: total % 60 }
 }
 
+// ── La sala (1295, la A de «Que se vea quién va») ──
+// Las caras de los que van, amontonadas como un público. Delante tú (con su
+// aro) y los que sigues, luego por orden de llegada; los que van «sin
+// decirlo», como caras rayadas y sin nombre. Las primeras, más grandes. Con
+// menos de 5 van huecos («¿Te apuntas?»), para que la sala no se vea vacía.
+// Cada una lleva su sitio en tanto por ciento (espiral desde el centro), así
+// la pinta igual el HTML que una prueba.
+export function salaDe({ caras = [], van = 0, voy = false, oculto = false, yo = null, sigo = new Set(), max = 30, minimo = 5 } = {}) {
+  const vistos = caras.filter(Boolean)
+  const esYo = (p) => yo && p.id === yo
+  const orden = [
+    ...vistos.filter(esYo),
+    ...vistos.filter((p) => !esYo(p) && sigo.has(p.id)),
+    ...vistos.filter((p) => !esYo(p) && !sigo.has(p.id)),
+  ]
+  const sinDecir = Math.max(0, (Number(van) || 0) - vistos.length)
+  const plazas = [
+    ...orden.map((p) => ({ persona: p, tu: !!esYo(p), sigues: sigo.has(p.id) })),
+    ...Array.from({ length: sinDecir }, (_, i) => ({ oculto: true, tu: voy && oculto && i === 0 })),
+  ]
+  const fuera = Math.max(0, plazas.length - max)
+  const sala = plazas.slice(0, max)
+  while (sala.length < minimo) sala.push({ hueco: true })
+  const n = sala.length
+  // Con poca gente, más juntas: la espiral se encoge (con 5, a un tercio).
+  const abre = Math.min(1, Math.max(0.36, n / 22))
+  return {
+    fuera,
+    caras: sala.map((c, i) => {
+      // La espiral de girasol: cada una a 137,5° de la anterior y más lejos.
+      const ang = i * 2.39996
+      const r = n === 1 ? 0 : (0.06 + Math.sqrt((i + 1) / n) * 0.42) * abre
+      return { ...c, tam: i < 3 ? 'g' : i < 9 ? 'm' : 'p', x: +(50 + Math.cos(ang) * r * 100).toFixed(1), y: +(50 + Math.sin(ang) * r * 90).toFixed(1) }
+    }),
+  }
+}
+
+// Tu puesto entre los que van. La base lo da (`mi_numero`, migración 1295);
+// sin ella solo se sabe si nadie va «sin decirlo» (todos están en `caras`, en
+// orden de llegada) y tú tampoco. Si no se puede saber seguro, null: un número
+// equivocado es peor que ninguno.
+export function miNumeroDe(e, yo) {
+  if (!e?.voy) return null
+  const n = Number(e.mi_numero)
+  if (Number.isInteger(n) && n > 0) return n
+  const caras = Array.isArray(e.caras) ? e.caras : []
+  if (e.oculto || !yo || caras.length !== Number(e.van)) return null
+  const i = caras.findIndex((p) => p?.id === yo)
+  return i >= 0 ? i + 1 : null
+}
+
+// «Van 3 que sigues: Albert, Luis y Eevee» (los nombres, hasta tres).
+export function textoDeSigues(personas, nombreDe = (p) => p?.display_name || p?.username || 'Alguien') {
+  const n = personas.length
+  if (!n) return ''
+  const nombres = personas.slice(0, 3).map(nombreDe)
+  const lista = n > 3 ? `${nombres.join(', ')} y ${n - 3} más` : nombres.length > 1 ? `${nombres.slice(0, -1).join(', ')} y ${nombres.at(-1)}` : nombres[0]
+  return `${n === 1 ? 'Va 1 que sigues' : `Van ${n} que sigues`}: ${lista}`
+}
+
+// Lo que acompaña a la imagen «Voy a…» (y lo que se escribe en X). Los
+// emojis van a propósito (568): es lo que se pega fuera, no la interfaz.
+export function textoDeVoy({ nombre, fecha = '', lugar = '', numero = null, van = 0, url = '' }) {
+  return [
+    `🎟️ Voy a ${nombre}${fecha ? ` (${fecha})` : ''}${lugar ? ` · ${lugar}` : ''}`,
+    numero ? `Soy el nº ${numero} de PokeDoc que va. ¿Te vienes?` : van > 1 ? `Vamos ${van} de PokeDoc. ¿Te vienes?` : '¿Te vienes?',
+    url || 'pokedoc.es',
+  ].join('\n')
+}
+
 // Para agrupar la agenda: «Noviembre 2026».
 export const mesDe = (e) => { const d = new Date(e.empieza); return `${MESES_LARGOS[d.getMonth()][0].toUpperCase()}${MESES_LARGOS[d.getMonth()].slice(1)} ${d.getFullYear()}` }
 

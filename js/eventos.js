@@ -18,7 +18,7 @@ import { sinMigracion } from './sin-migracion.js'
 import { showToast } from './toast.js'
 import {
   TIPOS, fechaLarga, siglasDe, filtrar, separar, webSegura, instagramDe, mapaDe, vanTexto,
-  horarioDe, icsDeEvento, fechaDeDia, entradasDe, precioTexto, desdePrecio, pastillaDe, cuentaAtras, mesDe, esEntradaVip, horasDe, esPasado, cuentaRegresiva,
+  horarioDe, icsDeEvento, fechaDeDia, entradasDe, precioTexto, desdePrecio, pastillaDe, cuentaAtras, mesDe, esEntradaVip, horasDe, esPasado, cuentaRegresiva, salaDe, miNumeroDe, textoDeSigues,
 } from './eventos-puro.js'
 
 const $ = (id) => document.getElementById(id)
@@ -196,6 +196,43 @@ async function alternarVoy(e, voy, oculto, repintar, alDia = null) {
 }
 
 // ── La ficha ──
+// La sala (1295): las caras de los que van, amontonadas como un público, con
+// el número en grande. Las coloca `salaDe` (eventos-puro); aquí solo se pintan.
+function salaHtml(e, { yo, sigo, pasado, recien }) {
+  const van = Number(e.van) || 0
+  const { caras, fuera } = salaDe({ caras: e.caras || [], van, voy: e.voy, oculto: e.oculto, yo, sigo, minimo: pasado ? 0 : 5 })
+  const ocultos = Math.max(0, van - (e.caras || []).length)
+  const cara = (c) => {
+    const pos = `left:${c.x}%;top:${c.y}%`
+    const clase = `ev-sala-cara ${c.tam}${c.tu ? ' tu' : ''}${c.tu && recien ? ' entra' : ''}${c.sigues ? ' sigues' : ''}`
+    if (c.hueco) return `<span class="${clase} hueco" style="${pos}" aria-hidden="true">?</span>`
+    if (c.oculto) return `<span class="${clase} oculto" style="${pos}" title="${c.tu ? 'Tú, sin decirlo' : 'Va sin decirlo'}" aria-hidden="true"></span>`
+    const p = c.persona
+    return `<a class="${clase}" href="${profileUrl(p)}" style="${pos};${avatarStyle(p)}" title="${escapeHtml(c.tu ? 'Tú' : nombre(p))}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre(p)))}<span class="sr-only">${escapeHtml(c.tu ? 'Tú' : nombre(p))}</span></a>`
+  }
+  const lema = van
+    ? `de PokeDoc ${pasado ? (van === 1 ? 'fue' : 'fueron') : van === 1 ? 'va' : 'van'}${ocultos ? ` · ${ocultos} sin decirlo` : ''}`
+    : pasado ? 'Nadie de PokeDoc marcó que iba' : 'Sé el primero de PokeDoc'
+  return `<div class="ev-sala${van < 5 && !pasado ? ' poca' : ''}" aria-label="${escapeHtml(`${van} ${lema}`)}">
+      ${caras.length ? `<div class="ev-sala-caras">${caras.map(cara).join('')}${fuera ? `<span class="ev-sala-mas">+${fuera}</span>` : ''}</div>` : ''}
+      <p class="ev-sala-num">${van ? `<b>${van}</b>` : ''}<span>${escapeHtml(lema)}</span>${van && van < 5 && !pasado ? '<small>¿Te apuntas?</small>' : ''}</p>
+    </div>`
+}
+
+// «Van 3 que sigues: Albert, Luis y Eevee», con sus caras. Sin nadie, nada.
+function siguesHtml(personas) {
+  if (!personas.length) return '<span class="ev-sigues vacio"></span>'
+  return `<p class="ev-sigues"><span class="ev-caras">${personas.slice(0, 3).map((p) => caraHtml(p, 28)).join('')}</span><span>${escapeHtml(textoDeSigues(personas, nombre))}</span></p>`
+}
+
+// «Eres el nº 14 de PokeDoc · Compártelo» (solo si se sabe seguro, `miNumeroDe`).
+// Recién apuntado, con un pequeño salto.
+function numeroHtml(e, yo, { pasado, recien }) {
+  if (pasado || !e.voy) return ''
+  const n = miNumeroDe(e, yo)
+  return `<p class="ev-numero${recien ? ' recien' : ''}">${n ? `Eres el <b>nº ${n}</b> de PokeDoc · ` : ''}<button type="button" class="ev-numero-compartir" data-compartir-voy>${n ? 'Compártelo' : 'Cuenta que vas'}</button></p>`
+}
+
 // La cuenta atrás del póster (1294): días, horas y minutos en casillas; ya
 // empezado, «En marcha»; pasado, nada. `data-regresiva` la repinta cada medio
 // minuto sin tocar lo demás.
@@ -257,8 +294,20 @@ async function pintarFicha(slug, sesion) {
   }
   // La lista de quién va, plegada o no: se conserva al repintar.
   let verQuien = false
+  // La sala (1295): a quién sigues de los que van (se pide aparte y repinta)
+  // y si acabas de apuntarte (tu cara entra con su aro y sale tu número).
+  const yo = sesion?.user?.id || null
+  let sigo = new Set()
+  let recien = false
+  const pedirSeguidos = () => {
+    const ids = (e.caras || []).map((p) => p.id).filter((id) => id && id !== yo)
+    if (!yo || !ids.length) return
+    supabase.from('user_follows').select('following_id').eq('follower_id', yo).in('following_id', ids.slice(0, 500))
+      .then(({ data: f }) => { if (f?.length) { sigo = new Set(f.map((x) => x.following_id)); pintar() } }).catch(() => {})
+  }
   const pintar = () => {
-    const visibles = e.caras || []
+    // Los que sigues, los primeros también en la lista de abajo.
+    const visibles = [...(e.caras || [])].sort((a, b) => (sigo.has(b.id) ? 1 : 0) - (sigo.has(a.id) ? 1 : 0))
     const ocultos = Math.max(0, (e.van || 0) - visibles.length)
     // Quién va (1294): una FRANJA con las caras y los primeros nombres; la
     // lista entera se despliega debajo («Ver quién va»), no en una caja alta.
@@ -306,17 +355,22 @@ async function pintarFicha(slug, sesion) {
         <div class="ev-poster-fondo${cartel ? ' con-cartel' : ''}">
           ${cartel ? `<span class="ev-poster-cartel" style="background-image:url('${cartel}')" role="img" aria-label="${escapeHtml(`Cartel de ${e.nombre}`)}"></span>` : logoAmb ? `<span class="ev-ambiente" style="background-image:url('${logoAmb}')" aria-hidden="true"></span>` : ''}
           ${cuenta ? `<span class="ev-poster-cuenta">${escapeHtml(cuenta)}</span>` : ''}
-          ${logoHtml(e, 'ev-logo ev-logo-flota')}
-          <div class="ev-poster-titulo">
-            <span class="ev-chips">${e.destacado && !pasado ? `<span class="ev-chapa-destacado">${ic('star', 12)} Destacado</span>` : ''}<span class="ev-chapa">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>${pasado ? '<span class="ev-chapa">Ya pasó</span>' : ''}</span>
-            <h1>${escapeHtml(e.nombre)}</h1>
-            <p class="ev-cuando-largo">${escapeHtml([fechaLarga(e), lugar].filter(Boolean).join(' · '))}</p>
+          <div class="ev-poster-info">
+            ${logoHtml(e, 'ev-logo ev-logo-flota')}
+            <div class="ev-poster-titulo">
+              <span class="ev-chips">${e.destacado && !pasado ? `<span class="ev-chapa-destacado">${ic('star', 12)} Destacado</span>` : ''}<span class="ev-chapa">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>${pasado ? '<span class="ev-chapa">Ya pasó</span>' : ''}</span>
+              <h1>${escapeHtml(e.nombre)}</h1>
+              <p class="ev-cuando-largo">${escapeHtml([fechaLarga(e), lugar].filter(Boolean).join(' · '))}</p>
+            </div>
           </div>
+          ${salaHtml(e, { yo, sigo, pasado, recien })}
         </div>
         <div class="ev-barra">
+          ${siguesHtml(visibles.filter((p) => sigo.has(p.id)))}
           ${regresivaHtml(e, pasado)}
           <div class="ev-acciones">
             ${voyHtml(e, sesion, { pasado })}
+            ${numeroHtml(e, yo, { pasado, recien })}
             ${sesion && e.voy && !pasado ? `<label class="ev-oculto"><input type="checkbox" id="evOculto"${e.oculto ? ' checked' : ''}> Ir sin decirlo</label>` : ''}
           </div>
           <div class="ev-atajos">
@@ -333,17 +387,22 @@ async function pintarFicha(slug, sesion) {
       ${quien}`
   }
   pintar()
+  pedirSeguidos()
   // La cuenta atrás se repinta sola; lo demás, no.
   if (!pasado) setInterval(() => { const r = caja.querySelector('[data-regresiva]'); if (r) r.outerHTML = regresivaHtml(e, pasado) }, 30000)
   // En la ficha, la lista de quién va sale de la base: tras «Voy» o «sin
   // decirlo» se vuelve a pedir, para que salgas (o no) donde toca.
   const alDia = async () => {
     const { data: nuevo } = await supabase.rpc('evento_ficha', { p_slug: slug })
-    if (nuevo) { e.caras = nuevo.caras; e.van = nuevo.van }
+    if (nuevo) { e.caras = nuevo.caras; e.van = nuevo.van; e.mi_numero = nuevo.mi_numero }
   }
   caja.addEventListener('click', async (ev) => {
     if (ev.target.closest('[data-ver-quien]')) { verQuien = !verQuien; pintar(); return }
-    if (ev.target.closest('[data-voy]')) await alternarVoy(e, !e.voy, false, pintar, alDia)
+    if (ev.target.closest('[data-compartir-voy]')) {
+      import('./evento-compartir.js').then((m) => m.compartirVoy({ evento: e, numero: miNumeroDe(e, yo), yo, url: `${location.origin}${rutaDe(e)}` })).catch(() => showToast('No se ha podido preparar la imagen.'))
+      return
+    }
+    if (ev.target.closest('[data-voy]')) { recien = !e.voy; await alternarVoy(e, !e.voy, false, pintar, alDia); if (recien) setTimeout(() => { recien = false }, 2500) }
     if (ev.target.closest('#evCalendario')) { descargarCalendario(e); return }
     if (ev.target.closest('#evCompartir')) {
       const url = `${location.origin}${rutaDe(e)}`
