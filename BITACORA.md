@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (537) — PINGU-Claude (1291d — la lista de TCGGO con un parámetro que cambia: la de siempre da una copia vieja)
+
+**Hecho**: PINGU pasó del playground las dos páginas de 100 de las MEP: 100 + 64
+= 164 y `results: 164`. Nuestro servidor dice 139 = 164 menos EXACTAMENTE las 25
+más nuevas (ids 83575–83600: Slowpoke 086, Binacle 087, Mega Zeraora/Darkrai/
+Dragonite 089–091, Paradise Resort 092, Masquerain 111… RUN Pikachu 131 y los
+Staff/Pokémon Center de 082–085, 111–114 y 117), y sin la frase de la 1291 (o
+sea, su lista dice 139 de 139). Le llega una copia vieja de la lista por la
+dirección de siempre. Ahora el botón (y el repaso semanal de las promos) pide la
+lista con `&_=<hora>`, que cambia cada vez; si TCGGO rechazara el parámetro con
+un 4xx que no es del plan, se pide como siempre. Se queda la línea de la 1291c
+(qué contestó a cada petición) para verlo.
+
+**Ficheros**: netlify/lib/tcggo.mjs (`fresco` en `urlCartasDeEpisodio`),
+netlify/functions/tcggo-catalogo.mjs (`pedirLista`),
+netlify/functions/tcggo-reemplazar-set.mjs, SCHEMA.md, BITACORA.md. En
+`pruebas`: test-tanda-1290 (2c: la copia vieja sin `_=` y el 400).
+
+**Pendiente**: subir cuando PINGU diga y darle a MEP. Si la línea dice otra vez
+139 con `_=`, la copia no es por dirección y hay que preguntar a TCGGO.
+
 ## 2026-11-12 (536) — PINGU-Claude (1291c — el botón dice qué contestó TCGGO a cada petición)
 
 **Hecho**: con la 1291b subida (media hora antes), el botón de MEP siguió en

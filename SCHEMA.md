@@ -55248,6 +55248,20 @@ entra (una vez por id) y, si falta algo, la pasada de 20 en 20 sigue desde la
 página 2. El barrido semanal del catálogo entero no lo hace: serían cientos de
 peticiones para casi nada, y lo nuevo cae en `porMirar` o en el repaso de promos.
 
+
+### 1291c y 1291d — qué contestó TCGGO, y la lista con `fresco`
+
+La 1291b no lo arregló: con las páginas de 100 del playground de PINGU delante
+(100 + 64 = 164, `results: 164`), lo que llega a nuestro servidor son 139 = las
+164 menos las 25 de id más alto (83575–83600), con una cuenta que cuadra consigo
+misma. La dirección de siempre devuelve una COPIA VIEJA. La 1291c pone en el
+turno del botón `pedidas` (de cuánto en cuánto, página, cuántas trajo, cuántas
+dice) y el panel lo enseña tal cual. La 1291d pide la lista con `&_=<hora>`
+(`fresco` en `urlCartasDeEpisodio`): con el botón (`pedirLista` en el catálogo)
+y en `tcggo-reemplazar-set`; si TCGGO contestara un 4xx que no es del plan
+(429/403), se pide sin él y no se para. El barrido semanal no lo lleva: lo nuevo
+cae en `porMirar`, el repaso de promos o el botón.
+
 ## Tanda 1290 — Las nuevas de TCGGO que la base no escribe, con nombre
 
 PINGU, con las MEP: «TCGGO tiene 139 cartas: 105 ya estaban, 34 nuevas; 105

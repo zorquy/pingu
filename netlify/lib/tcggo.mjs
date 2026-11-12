@@ -49,7 +49,12 @@ export const urlEpisodios = (pagina = 1, base = URL_BASE) => `${base}/episodes?p
 // `/cards?episode_id=` y no `/episodes/{id}/cards`: en su documentación el
 // primero es el que enseña `cardmarket_id` en la respuesta; el ejemplo del
 // segundo no lo trae, y no se da por hecho lo que un ejemplo no enseña.
-export const urlCartasDeEpisodio = (idEpisodio, pagina = 1, base = URL_BASE, { versiones = false, porPagina = POR_PAGINA_CARTAS } = {}) => `${base}/cards?episode_id=${idEpisodio}&per_page=${porPagina}&page=${pagina}${versiones ? '&include_variants=1' : ''}`
+// `fresco` (1291d): un parámetro que cambia en cada pulsación del botón. Las
+// MEP llegaban al servidor SIN las 25 cartas más nuevas (ids 83575–83600)
+// mientras el playground de PINGU, con la misma clave, daba las 164: la
+// dirección de siempre devuelve una copia vieja. Con una dirección nueva no
+// hay copia que valga.
+export const urlCartasDeEpisodio = (idEpisodio, pagina = 1, base = URL_BASE, { versiones = false, porPagina = POR_PAGINA_CARTAS, fresco = null } = {}) => `${base}/cards?episode_id=${idEpisodio}&per_page=${porPagina}&page=${pagina}${versiones ? '&include_variants=1' : ''}${fresco ? `&_=${fresco}` : ''}`
 // Hasta 20 cartas por su id de TCGGO en una petición (la «batch lookup»
 // de su documentación, 929): así se piden los precios por idioma de las
 // versiones que alguien tiene.

@@ -384,6 +384,7 @@ export async function procesar({
   // Cada carta una vez, por su id de TCGGO (1291).
   const vistas = new Set()
   let anunciadas = null
+  let fresco = Date.now()
   const pedirPaginas = async (porPagina, maximo) => {
     let pagina = 1
     let nuevas = 0
@@ -391,7 +392,15 @@ export async function procesar({
       if (!quedaTiempo()) return { ok: false, error: 'No ha dado tiempo a pedir la expansión entera; no se ha tocado nada. Vuelve a intentarlo.' }
       if (peticiones && pausaMs) await pausa(pausaMs)
       peticiones++
-      const res = await fetchImpl(urlCartasDeEpisodio(idEpisodio, pagina, baseMercado, { porPagina }), { headers: cabeceras(claveTcggo, host) })
+      // Con `fresco` (1291d): la dirección de siempre puede dar una copia vieja
+      // de la lista (las MEP sin sus 25 cartas más nuevas). Si TCGGO lo
+      // rechazara con un 4xx que no es del plan, se pide como siempre.
+      let res = await fetchImpl(urlCartasDeEpisodio(idEpisodio, pagina, baseMercado, { porPagina, fresco }), { headers: cabeceras(claveTcggo, host) })
+      if (fresco && !res.ok && res.status >= 400 && res.status < 500 && res.status !== 429 && res.status !== 403) {
+        fresco = null
+        peticiones++
+        res = await fetchImpl(urlCartasDeEpisodio(idEpisodio, pagina, baseMercado, { porPagina }), { headers: cabeceras(claveTcggo, host) })
+      }
       const texto = await res.text()
       if (!res.ok) return { ok: false, peticiones, error: esLimiteDelPlan(res.status, texto) ? `RapidAPI ${res.status}: el plan no da más por ahora` : `TCGGO ${res.status}: ${texto.slice(0, 160)}` }
       let datos

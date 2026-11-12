@@ -376,8 +376,21 @@ export async function procesar({
       const apuntar = (pp, pag, r) => {
         if (pedidas.length < 20) pedidas.push({ pp, pag, n: (r?.datos?.data || []).length, dice: anunciadasDe(r?.datos), total: Number(r?.datos?.paging?.total) || null, fin: r?.fin || null })
       }
+      // Con el botón, cada petición de la lista lleva su `fresco` (1291d); si
+      // TCGGO lo rechazara (un 4xx que no es del plan), se pide como siempre.
+      let fresco = solo ? ahora.getTime() || Date.now() : null
+      const pedirLista = async (pag, porPagina) => {
+        if (fresco) {
+          const antes = parado
+          const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, pag, bases[mercado], { porPagina, fresco }))
+          if (r.datos || r.fin !== 'error' || /plan no da/.test(parado || '')) return r
+          parado = antes
+          fresco = null
+        }
+        return pedirTcggo(urlCartasDeEpisodio(episodio.id, pag, bases[mercado], { porPagina }))
+      }
       for (;;) {
-        const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, pagina, bases[mercado]))
+        const r = await pedirLista(pagina, POR_PAGINA_CARTAS)
         apuntar(POR_PAGINA_CARTAS, pagina, r)
         if (!r.datos) break
         { const a = anunciadasDe(r.datos); if (a != null) anunciadas = Math.max(anunciadas ?? 0, a) }
@@ -404,7 +417,7 @@ export async function procesar({
       let recuperadas = 0
       let desde = 1
       if (solo || porMirar.has(episodio.id)) {
-        const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, 1, bases[mercado], { porPagina: 20 }))
+        const r = await pedirLista(1, 20)
         apuntar(20, 1, r)
         if (r.datos) {
           anunciadas = Math.max(anunciadas ?? 0, anunciadasDe(r.datos) ?? 0) || null
@@ -415,7 +428,7 @@ export async function procesar({
       }
       if (anunciadas && vistas.size < anunciadas) {
         for (let p = desde; p <= 40; p++) {
-          const r = await pedirTcggo(urlCartasDeEpisodio(episodio.id, p, bases[mercado], { porPagina: 20 }))
+          const r = await pedirLista(p, 20)
           apuntar(20, p, r)
           if (!r.datos) break
           for (const s of r.datos.data || []) if (meter(s)) recuperadas++
