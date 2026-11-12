@@ -288,9 +288,13 @@ export function getProfile(userId, { fresco = false } = {}) {
 
 const MAX_IMAGE_MB = 5
 
+// Solo fotos (1305): un SVG también es «image/», pero puede llevar código, y
+// los cubos de fotos ya solo admiten estos tipos.
+export const TIPOS_DE_FOTO = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif', 'image/avif', 'image/heic', 'image/heif']
+
 export function validateImageFile(file, maxMB = MAX_IMAGE_MB) {
-  if (!file.type.startsWith('image/')) {
-    throw new Error('Ese archivo no es una imagen.')
+  if (!TIPOS_DE_FOTO.includes(String(file.type || '').toLowerCase())) {
+    throw new Error('Ese archivo no es una foto (vale JPG, PNG, WebP o GIF).')
   }
   if (file.size > maxMB * 1024 * 1024) {
     throw new Error(`La imagen pesa demasiado (máximo ${maxMB} MB).`)
@@ -313,6 +317,9 @@ export function passwordStrengthError(password) {
 
 export async function uploadProfileImage(userId, file, kind) {
   validateImageFile(file)
+  // Un HEIC del iPhone, a JPG antes de subir (1305): el cubo ya solo admite
+  // los formatos que se ven en todos los navegadores.
+  file = await convertirImagenRara(file)
   // La extensión, del TIPO y no del nombre que puso cada uno (804): el
   // nombre llegaba entero a la dirección pública de la foto.
   const ext = extensionDeImagen(file)

@@ -4,6 +4,45 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (552) — PINGU-Claude (1305 — lo interno no se publica, cabeceras de seguridad y cubos con tope)
+
+**Hecho**: de la auditoría de la noche. (1) Netlify publicaba la RAÍZ del repo
+entera: /SCHEMA.md, /CLAUDE.md, /BITACORA.md, las migraciones, el código de las
+funciones y /herramientas se podían leer desde fuera (el mapa entero de la base
+y de sus funciones). Una función de borde nueva, `internos`, contesta 404 con
+`noindex` a esas rutas (`RUTAS_INTERNAS`), sin tocar nada de la web. (2) Las
+cuatro cabeceras de seguridad para toda la web (`X-Frame-Options`, `nosniff`,
+`Referrer-Policy`, `Permissions-Policy`); la CSP queda para después, primero en
+modo informe. (3) Los cubos `avatars` y `guide-images` sin tope: ahora 5 MB y
+solo fotos (sin SVG, que puede llevar código), en la migración 1305; y la web
+rechaza antes de subir lo que no es foto (`TIPOS_DE_FOTO`) y pasa la del perfil
+por `convertirImagenRara` como las demás.
+
+**Ficheros**: netlify/edge-functions/internos.js (nuevo), netlify.toml,
+js/app.js, supabase-migration-1305-cubos-limites.sql, SCHEMA.md, BITACORA.md.
+En `pruebas`: test-tanda-1304 (la parte de la 1305).
+
+**Pendiente**: la migración 1305 (corta, re-ejecutable). Subir cuando PINGU diga.
+
+## 2026-11-13 (551) — PINGU-Claude (1304 — la fecha de nacimiento deja de ser pública)
+
+**Hecho**: `user_profiles` la lee cualquiera (también sin cuenta) y `birthday`
+llevaba el AÑO: la fecha de nacimiento completa de quien la puso en Ajustes
+estaba a un `select` de distancia, en una comunidad con gente de 14 años. La
+fecha entera se muda a `user_cumple` (solo la lee y escribe su dueño); en
+público queda `birthday_md` (mes y día, lo que usa el foro para felicitar), que
+pasa de columna generada a normal y la mantiene un disparador. `birthday` se
+borra del perfil. En la web, Ajustes y la hoja oficial del constructor leen y
+guardan por `js/cumple.js`, que sin la migración cae al perfil como antes.
+
+**Ficheros**: supabase-migration-1304-cumple-privado.sql, js/cumple.js (nuevo),
+js/ajustes.js, js/constructor/hoja-oficial.js, SCHEMA.md, BITACORA.md,
+novedades.json. En `pruebas`: stub (`user_cumple`), test-tanda-1304 (nueva,
+con PostgreSQL), 834 y 868-pantalla (el cumpleaños se guarda en su tabla).
+
+**Pendiente**: la migración 1304 (re-ejecutable; la web aguanta sin ella).
+Subir junto con la migración.
+
 ## 2026-11-12 (550) — PINGU-Claude (1303 — «Ligas en curso» en /torneos y las jornadas en el Calendario)
 
 **Hecho**: la T1 de «Ligas y jornadas» (PINGU: «al ser un torneo en proceso, no

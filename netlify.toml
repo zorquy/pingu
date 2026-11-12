@@ -40,6 +40,26 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
+# Las cabeceras de seguridad de toda la web (tanda 1305). Hasta aquí no se
+# mandaba ninguna. Las cuatro no cambian nada de lo que se ve:
+#  · X-Frame-Options: nadie puede meter PokeDoc dentro de su web en un marco
+#    invisible para hacerte pulsar algo («clickjacking»). Mismo origen sí.
+#  · X-Content-Type-Options: el navegador no adivina el tipo de un fichero
+#    (una foto subida no se ejecuta como código).
+#  · Referrer-Policy: a otra web solo le llega «vengo de pokedoc.es», nunca la
+#    dirección entera (que puede llevar el id de un trato o una búsqueda).
+#  · Permissions-Policy: la cámara solo para PokeDoc (el escáner de cartas);
+#    micrófono, ubicación y pagos, para nadie.
+# La política de contenidos (CSP) va aparte y primero en modo INFORME: una CSP
+# mal puesta deja la web en blanco, así que se mide antes de exigirla.
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "SAMEORIGIN"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(self), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()"
+
 # js/vendor/ es la excepción: son librerías empaquetadas (Supabase,
 # DOMPurify) que solo cambian cuando se regeneran a mano. Revalidar 210 KB
 # en cada carga de página no tiene sentido — se cachean un año.

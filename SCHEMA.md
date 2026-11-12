@@ -55204,6 +55204,36 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1305 — lo interno no se publica, cabeceras y cubos con tope
+
+- **Lo interno, 404**: Netlify publica la carpeta del repo tal cual (no hay
+  build step), así que /SCHEMA.md, /CLAUDE.md, /BITACORA.md, cada
+  `supabase-migration-*.sql`, /netlify/… y /herramientas/… se leían desde
+  fuera. `netlify/edge-functions/internos.js` va por `config.path =
+  RUTAS_INTERNAS` (patrones de URLPattern) y devuelve la página 404 con
+  estado 404 y `x-robots-tag: noindex`. Un fichero nuevo que no sea de la web
+  y viva en la raíz va en esa lista (la prueba 1304 comprueba que las rutas de
+  la web no casan).
+- **Cabeceras** en `[[headers]] for = "/*"`: `X-Frame-Options: SAMEORIGIN`,
+  `X-Content-Type-Options: nosniff`, `Referrer-Policy:
+  strict-origin-when-cross-origin`, `Permissions-Policy` (cámara solo propia
+  para el escáner; micro, ubicación, pagos y USB fuera). La CSP irá primero en
+  `Content-Security-Policy-Report-Only`.
+- **Cubos**: `avatars` y `guide-images` con `file_size_limit` 5 MB y
+  `allowed_mime_types` de fotos (sin SVG). En la web, `TIPOS_DE_FOTO` en
+  `js/app.js` y `validateImageFile` lo dice antes de subir.
+
+## Tanda 1304 — la fecha de nacimiento, privada
+
+- `user_cumple(user_id pk, birthday date, updated_at)`, RLS `user_cumple_mio`
+  (solo su dueño, para todo). `user_profiles.birthday` se borra;
+  `birthday_md` (MM-DD) deja de ser generada y la escribe el disparador
+  `trg_cumple_al_perfil` (security definer) al poner, cambiar o quitar.
+- La web pasa por `js/cumple.js`: `leerCumple(supabase, id, perfil)` →
+  `{ fecha, privado }` (privado = la tabla existe) y `guardarCumple`, que sin
+  la migración escribe en el perfil como antes. Lo que lea la fecha de
+  nacimiento de alguien pasa por ahí; lo público es solo `birthday_md`.
+
 ## Tanda 1303 — «Ligas en curso» en /torneos y las jornadas en el Calendario
 
 La T1 de «Ligas y jornadas». Una liga entre jornadas iba a «Por empezar» (850) y
