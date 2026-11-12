@@ -1,0 +1,125 @@
+/* EL CALENDARIO DE ADVIENTO (tanda 1285, SCHEMA). La tira de Inicio (su alto
+   lo reserva portada.css) y el pop-up con las 24 casillas. La inyecta
+   js/adviento.js; lo de abrir y cerrar el diálogo va en [open] (la 473). */
+:root {
+  --adv-rojo: #c62f3a;
+  --adv-rojo-suave: #fbe9ea;
+  --adv-rojo-texto: #9b1c27;
+}
+:root[data-theme='dark'] {
+  --adv-rojo: #e0525c;
+  --adv-rojo-suave: #3a1a1e;
+  --adv-rojo-texto: #f6a3aa;
+}
+
+/* La tira: regalo y texto, el botón a la derecha y los 24 puntos debajo. */
+html[data-adviento] .adviento {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-sm) var(--e-md);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(120deg, var(--adv-rojo-suave), var(--white) 70%);
+}
+.adv-tira-toque {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  min-width: 0;
+  min-height: 44px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.adv-regalo {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--adv-rojo);
+  color: var(--blanco-fijo);
+}
+.adv-texto { display: grid; min-width: 0; }
+.adv-texto b { font-family: var(--font-display); font-size: var(--t-md); }
+.adv-texto small { overflow: hidden; color: var(--text-mid); font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
+.adv-boton { white-space: nowrap; }
+.adviento .btn-primary.adv-boton { background: var(--adv-rojo); color: var(--blanco-fijo); }
+.adv-puntos { display: grid; grid-column: 1 / -1; grid-template-columns: repeat(24, minmax(0, 1fr)); gap: var(--e-xs); }
+.adv-punto { display: block; height: 8px; border-radius: 4px; background: var(--border); }
+.adv-punto.adv-abierta { background: var(--success); }
+.adv-punto.adv-hoy { background: var(--adv-rojo); }
+.adv-punto.adv-pendiente { background: var(--adv-rojo-suave); box-shadow: inset 0 0 0 1px var(--adv-rojo); }
+
+/* El pop-up: centrado en el PC y hoja desde abajo en el móvil (la 1045). */
+.adv-pop {
+  box-sizing: border-box;
+  width: min(520px, calc(100vw - 32px));
+  max-width: none;
+  max-height: calc(100dvh - var(--e-xl) * 2);
+  inset: 0;
+  margin: auto;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+.adv-pop[open] { position: fixed; display: flex; flex-direction: column; }
+.adv-pop::backdrop { background: rgb(0 0 0 / 40%); }
+html:has(.adv-pop[open]) { overflow: hidden; }
+.adv-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); padding: var(--e-md) var(--e-lg); border-bottom: 1px solid var(--border); }
+.adv-cab h2 { margin: 0; font-size: var(--t-lg); }
+.adv-cerrar { display: grid; place-items: center; width: 44px; height: 44px; border: 0; border-radius: 50%; background: none; color: var(--text-mid); cursor: pointer; }
+.adv-cuerpo { display: grid; gap: var(--e-md); min-height: 0; padding: var(--e-md) var(--e-lg) var(--e-lg); overflow-y: auto; overscroll-behavior: contain; }
+.adv-lema { margin: 0; font-weight: 600; }
+.adv-nota { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.adv-rejilla { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: var(--e-sm); }
+.adv-casilla {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  min-height: 44px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--text-mid);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  font-weight: 800;
+  cursor: pointer;
+}
+.adv-casilla:disabled { cursor: default; opacity: 0.6; }
+.adv-casilla.adv-abierta { border-color: transparent; background: var(--success-bg); color: var(--success); }
+.adv-casilla.adv-pendiente { border-color: var(--adv-rojo); background: var(--adv-rojo-suave); color: var(--adv-rojo-texto); }
+.adv-casilla.adv-hoy { border-color: var(--adv-rojo); background: var(--adv-rojo); color: var(--blanco-fijo); box-shadow: 0 0 0 2px var(--white), 0 0 0 4px var(--adv-rojo); }
+
+/* Lo que sale al abrir una casilla. */
+.adv-revelo { display: grid; justify-items: center; gap: var(--e-sm); text-align: center; }
+.adv-numero { color: var(--adv-rojo-texto); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
+.adv-dibujo { display: grid; place-items: center; width: 168px; height: 168px; border-radius: 50%; background: radial-gradient(circle, var(--ice) 0 55%, transparent 56%); }
+.adv-dibujo img { width: 152px; height: 152px; object-fit: contain; }
+.adv-revelo h3 { margin: 0; font-size: var(--t-xl); }
+.adv-revelo p { max-width: 38ch; margin: 0; color: var(--text-mid); }
+.adv-chapa { display: inline-flex; padding: var(--e-xs) var(--e-sm); border-radius: var(--radius-pill); background: var(--success-bg); color: var(--success); font-size: var(--t-sm); font-weight: 700; }
+.adv-chapa-ya, .adv-chapa-espera { background: var(--ice); color: var(--text-mid); }
+.adv-botones { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--e-sm); margin-top: var(--e-sm); }
+
+@media (max-width: 640px) {
+  .adv-pop { width: 100%; max-height: 92dvh; margin: auto 0 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
+  .adv-cuerpo { padding-bottom: calc(var(--e-lg) + var(--seguro-abajo)); }
+  .adv-texto small { white-space: normal; }
+}
+.adv-casilla.adv-hoy { animation: adv-late 2.4s ease-in-out infinite; }
+@keyframes adv-late { 50% { transform: scale(1.06); } }
+@media (prefers-reduced-motion: reduce) {
+  .adv-casilla.adv-hoy { animation: none; }
+}

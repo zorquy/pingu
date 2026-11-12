@@ -353,6 +353,9 @@ const pintarHeroe = () => Promise.all([loadHeroGuideCount(), cargarNumerosComuni
 
 async function init() {
   setupModals()
+  // El Calendario de Adviento (1285): solo en diciembre, que es cuando la
+  // cabecera le reserva el sitio.
+  if (document.documentElement.hasAttribute('data-adviento')) import('./adviento.js').then((m) => m.montarAdviento()).catch(() => {})
   const session = await getSession()
   if (session) pintarPortadaGuardada(session)
 

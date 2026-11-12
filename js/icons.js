@@ -115,6 +115,7 @@ export const icons = {
   coins: (size) => icon('<ellipse cx="12" cy="6" rx="8" ry="3"></ellipse><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6"></path><path d="M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"></path>', size),
   gem: (size) => icon('<path d="M6 3h12l4 6-10 12L2 9z"></path><path d="M2 9h20"></path><path d="M12 21 8 9l2-6"></path><path d="m12 21 4-12-2-6"></path>', size),
   target: (size) => icon('<circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="1.5"></circle>', size),
+  gift: (size) => icon('<rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"></path>', size),
   snowflake: (size) => icon('<line x1="12" y1="2" x2="12" y2="22"></line><line x1="3.3" y1="7" x2="20.7" y2="17"></line><line x1="3.3" y1="17" x2="20.7" y2="7"></line><path d="m9 5 3-3 3 3"></path><path d="m9 19 3 3 3-3"></path>', size),
   gamepad: (size) => icon('<line x1="7" y1="12" x2="11" y2="12"></line><line x1="9" y1="10" x2="9" y2="14"></line><line x1="15" y1="13" x2="15.01" y2="13"></line><line x1="17.5" y1="11" x2="17.51" y2="11"></line><rect x="2" y="6" width="20" height="12" rx="5"></rect>', size),
   droplet: (size) => icon('<path d="M12 2.7 6.7 8a7.5 7.5 0 1 0 10.6 0z"></path>', size),

@@ -521,3 +521,12 @@
 @media (min-width: 960px) {
   #noticiaPortada > .skeleton { height: 392px !important; }
 }
+
+/* El Calendario de Adviento (1285): su sitio desde el primer pintado en diciembre. */
+.adviento { display: none; }
+html[data-adviento] .adviento { display: grid; min-height: 112px; margin-top: var(--e-md); }
+/* En el móvil, encima del saludo: debajo de la banda quedaba fuera de la primera pantalla. */
+@media (max-width: 640px) {
+  :root.con-sesion[data-adviento] #bienvenidaSeccion { display: flex; flex-direction: column; }
+  html[data-adviento] .adviento { order: -1; margin: 0 0 var(--e-md); }
+}

@@ -55204,6 +55204,51 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1285 — El Calendario de Adviento
+
+PINGU pidió las fiestas de la web tras Halloween y eligió lo recomendado: el
+Adviento primero (tiene que estar antes del 1 de diciembre), con XP y logro.
+
+**La línea de la temporada se genera** (`generar-temporada.mjs`): el `<script>`
+de la cabecera que decide la fiesta antes del primer pintado iba copiado a mano
+en 55 páginas desde la 1134. Ahora vive en `LINEA` y el generador lo reescribe
+(`conLinea`, que reconoce la vieja y la nueva por su comentario); la prueba
+1285-pantalla exige que el repo lleve lo que sale de ahí. Fechas en
+`mes*100+día`. Del 1 al 31 de diciembre pone `data-adviento` en `<html>` (no es
+decoración: no se quita con `pd-sin-*`); un navegador automático no lo ve salvo
+con `?temporada=adviento`.
+
+**La base** (`supabase-migration-1285-adviento.sql`):
+- `adviento_casillas (user_id, anio, dia 1..24, abierta_at)`, clave las tres,
+  RLS con solo «ver las mías»: no hay política de escribir.
+- `adviento_hoy()`: la fecha de Madrid (las pruebas la sustituyen).
+- `adviento_abrir(p_dia)` (security definer, solo `authenticated`): fuera de
+  diciembre o con un día que aún no ha llegado dice que no; la primera vez suma
+  10 XP y pone el nivel en el mismo `update`; con las 24 da `adviento_<año>` con
+  su `xp_reward`. Devuelve `{nueva, xp, abiertas, logro, total_xp}`.
+- El logro `adviento_2026` (oro, 50 XP) lleva la condición `{"type":"adviento"}`,
+  que no cuenta nada: `checkAchievements` del navegador no lo da nunca, solo la
+  función. Su frase y su fila del desplegable de /admin, en `logro-objetivo.js`.
+
+**La web**: `js/adviento-puro.js` (las 24 casillas `[dex, nombre, dato]`, la
+fecha de España, el estado de cada casilla, la frase y la siguiente por abrir) y
+`js/adviento.js` (`montarAdviento`, por `import()` desde home.js solo con
+`data-adviento`). Sin sesión, fuera de diciembre en Madrid o sin la migración,
+quita `data-adviento` y no pinta nada. La tira va dentro de
+`#bienvenidaSeccion` (que solo ve quien tiene cuenta), con su alto reservado en
+`portada.css` (112 px) y, en el móvil, encima del saludo para que se vea sin
+bajar. Abrir pinta la casilla YA y la base confirma (la 896); si falla, vuelve
+al calendario con su aviso. El dibujo es el artwork oficial de PokeAPI por
+jsDelivr con GitHub de respaldo; «Ver sus cartas» busca en /cartas.
+`css/adviento.css` entra por `hojaInyectada` (la portada no pesa más que la
+tira vacía); el rojo (`--adv-*`) es de identidad, como las casas de gradeo, y
+311 lo declara.
+
+Pruebas: `test-tanda-1285.mjs` contra PostgreSQL (días, XP, nivel, repetir,
+el logro a la 24, fuera de diciembre, sin cuenta) y `test-tanda-1285-pantalla`
+(generador, lo puro, la cabecera, Inicio el 12 de diciembre, el logro, sin
+cuenta, el 31 y el móvil).
+
 ## Tanda 1284 — Las noticias no cuentan como guías en el perfil
 
 PINGU: «pone que he escrito 53 guías. Pero es mentira… hay algunas noticias que

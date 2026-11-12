@@ -1973,6 +1973,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   `pd-halloween-visto`, nunca encima de otra ventana ni preparando la página).
   Un navegador automático no la ve (`navigator.webdriver`) salvo con
   `?temporada=halloween`: una prueba de una fiesta la enciende así.
+  Desde la 1285 esa línea la escribe `generar-temporada.mjs` (`LINEA`): una
+  fiesta nueva se añade ahí y se corre el generador, nunca a mano en las
+  páginas. El Calendario de Adviento (1285) va por `data-adviento` (sitio
+  reservado en Inicio) y lo abre y lo paga la base (`adviento_abrir`, fecha de
+  Madrid): la XP o un logro de una fiesta pasan por una función así, nunca por
+  el navegador. El rojo de las fiestas es `--adv-*`/`--fiesta-*` (identidad).
 - **El hueco de abajo es `var(--seguro-abajo)`, nunca `env(safe-area-inset-bottom)`
   a pelo** (tanda 1135): iOS a veces lo deja con el alto del teclado y la barra
   de abajo crecía hasta media pantalla con la burbuja flotando. El token lleva

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-12", "tipo": "nuevo", "texto": "El 1 de diciembre llega a Inicio el Calendario de Adviento: cada día una casilla con un Pokémon de invierno y su curiosidad, experiencia por abrirla y un logro si abres las 24.", "enlace": "/" },
     { "fecha": "2026-11-11", "tipo": "arreglo", "texto": "Las guías de un perfil ya no cuentan las noticias: la cifra, el rango de colaborador y la pestaña Guías dicen solo las guías que ha escrito.", "enlace": "/perfil" },
     { "fecha": "2026-11-11", "tipo": "mejora", "texto": "Las guías y las noticias, rehechas: portada a lo ancho con su imagen (o el Pokémon de su tema), un índice que te dice por dónde vas y cuánto te queda, cajas de Consejo, Ojo y Dato, y al final quién la escribe y qué leer después.", "enlace": "/aprender" },
     { "fecha": "2026-11-11", "tipo": "nuevo", "texto": "Las guías de Redacción: quien escribe con nosotros publica sus guías al momento, con su firma de Redacción y, al final, el enlace a su web.", "enlace": "/aprender" },

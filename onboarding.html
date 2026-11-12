@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script>
-  <script>/* Temporada (1134, SCHEMA): Halloween el 31 y el 1, antes del primer pintado; las pruebas automáticas no lo ven salvo con ?temporada=halloween. */(function(){try{var n=new Date(),m=n.getMonth(),d=n.getDate();if(/[?&]temporada=halloween/.test(location.search)||!navigator.webdriver&&((m===9&&d===31||m===10&&d===1)&&localStorage.getItem('pd-sin-halloween')!=='1')){var r=document.documentElement;r.dataset.temporada='halloween';r.dataset.theme='dark';document.write('<link rel="stylesheet" href="/css/temporada.css">')}}catch(e){}})();</script>
+  <script>/* Temporada (1134 y 1285, generar-temporada.mjs): la fiesta de hoy antes del primer pintado; las pruebas automáticas no la ven salvo con ?temporada=… */(function(){try{var n=new Date(),k=(n.getMonth()+1)*100+n.getDate(),q=/[?&]temporada=([a-z]+)/.exec(location.search),a=navigator.webdriver,r=document.documentElement,t=q?q[1]:a?'':k==1031||k==1101?'halloween':'';if(k>=1201&&k<=1231&&!a||t=='adviento')r.setAttribute('data-adviento','');if(t=='halloween'&&(q||localStorage.getItem('pd-sin-'+t)!=='1')){r.dataset.temporada=t;r.dataset.theme='dark';document.write('<link rel="stylesheet" href="/css/temporada.css">')}}catch(e){}})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <script>if(window.matchMedia('(max-width: 900px)').matches)document.documentElement.classList.add('con-barra-movil')</script>
   <title>Bienvenido — PokeDoc</title>

@@ -25,6 +25,7 @@ const FRASES = {
   primeros_pasos: () => 'Completa los primeros pasos de la portada.',
   referrals_count: (n) => (UNO(n) ? 'Invita a alguien que se registre con tu enlace.' : `Invita a ${n} personas que se registren con tu enlace.`),
   was_referred: () => 'Regístrate con el enlace de invitación de alguien.',
+  adviento: () => 'Abre las 24 casillas del Calendario de Adviento de diciembre.',
   retos_racha: (n) => `Juega algún reto diario ${n} días seguidos.`,
   retos_perfectos: (n) => (UNO(n) ? 'Completa todos los retos de un mismo día.' : `Completa todos los retos del día ${n} días.`),
   retos_jugados: (n) => `Juega ${n} retos diarios.`,
@@ -111,6 +112,7 @@ export const TIPOS = [
   { tipo: 'primeros_pasos', etiqueta: 'Primeros pasos de la portada', familia: 'comunidad' },
   { tipo: 'referrals_count', etiqueta: 'Personas invitadas', familia: 'comunidad' },
   { tipo: 'was_referred', etiqueta: 'Entró con una invitación', familia: 'comunidad' },
+  { tipo: 'adviento', etiqueta: 'Calendario de Adviento completo (lo da la base)', familia: 'comunidad' },
   { tipo: 'manual', etiqueta: 'A mano o por un torneo', familia: 'torneos' },
 ]
 

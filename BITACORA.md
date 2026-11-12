@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (528) — PINGU-Claude (1285 — el Calendario de Adviento)
+
+**Hecho**: primera de las fiestas que PINGU eligió («haz lo recomendado»). Del
+1 al 24 de diciembre, en Inicio y para quien tiene cuenta, una tira bajo el
+saludo (en el móvil, encima) con «Abrir la N» y 24 puntos; al tocarla, el
+calendario en un pop-up con las 24 casillas. Cada casilla es un Pokémon de
+invierno con un dato de su Pokédex (el 24, Delibird), da 10 XP la primera vez y
+con las 24 llega el logro «Adviento 2026» (50 XP). Las de días pasados se abren
+hasta el 31. Lo decide y lo paga la base (`adviento_abrir`, fecha de Madrid).
+La línea de la temporada de la cabecera ya no se copia a mano en 55 páginas: la
+escribe `generar-temporada.mjs`, que reserva el sitio de la tira con
+`data-adviento` (sin saltos).
+
+**Ficheros**: supabase-migration-1285-adviento.sql (nueva), generar-temporada.mjs
+(nuevo), js/adviento.js, js/adviento-puro.js y css/adviento.css (nuevos),
+js/home.js, js/icons.js (gift), js/logro-objetivo.js, css/portada.css,
+index.html y las 55 páginas con la línea de temporada, SCHEMA.md,
+novedades.json, CLAUDE.md, BITACORA.md. En `pruebas`: test-tanda-1285 (contra
+PostgreSQL) y test-tanda-1285-pantalla (nuevas), el doble con
+`adviento_casillas` y `adviento_abrir`, y 311 con el rojo de las fiestas como
+identidad.
+
+**Pendiente**: ejecutar la migración 1285 y subir ANTES del 1 de diciembre
+(sin ella la tira no sale: el hueco se devuelve). Siguen 1286 Navidad, 1287
+Inocentes, 1288 Nochevieja y 1289 Reyes.
+
 ## 2026-11-11 (527) — PINGU-Claude (1284 — las noticias no cuentan como guías en el perfil)
 
 **Hecho**: PINGU vio «53 guías» en su perfil y, al abrirlas, noticias entre
