@@ -55204,6 +55204,75 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1293 — El evento de Inicio, en una franja fina; el destacado brilla
+
+PINGU vio la propuesta v2 de eventos («me gusta que ocupe poquito y a lo
+ancho… el destacado que se mantenga en su sitio pero que destaque con brillo»)
+y dijo «haz lo recomendado»: la A «Limpio» para Inicio y la opción 1 para la
+agenda.
+
+- **Inicio** (`js/evento-portada.js`, CSS en `portada.css`): una franja de 64 px
+  con el logo SIN caja (con `logo_sin_fondo`, tal cual y con sombra; si no, en
+  su cuadradito; sin logo, las siglas en su color), la hojita de calendario
+  (`pastillaDe`), el nombre y una línea con las caras, «N van» y «faltan N
+  días», y el «¡Voy!» en forma de entrada (`.pe-voy`, la de la agenda en
+  pequeño). Toda la franja abre la FICHA (el nombre es el enlace y se estira
+  con `::after`; el «¡Voy!» va por encima con `z-index`), ya no la agenda de la
+  1202. «¡Voy!» funciona desde aquí: cambia ya, `evento_voy` y deshace si falla
+  (la 896); sin sesión lleva a registrarse con `volver` a la ficha. En el móvil
+  la hojita se va y la fecha corta baja a la línea (con su punto DENTRO del
+  `span`, para no dejar un «·» suelto delante en el PC). El nombre y la línea
+  se recortan en su propia caja: `ellipsis` sobre un flex no hace nada (la 320).
+- **Cuál sale**: `eventoDePortada` (eventos-puro): el destacado mientras no haya
+  pasado, esté cuando esté; si no, `proximoEvento` (14 días) como antes. El
+  destacado cuenta los días sin tope (`cuentaAtras(e, ahora, Infinity)`).
+- **El brillo**: una luz dorada que recorre el borde, despacio (6 s). Es la caja
+  de borde con un `conic-gradient` que gira por una propiedad registrada
+  (`@property --pe-giro` / `--ev-giro`); el fondo va en `padding-box`, así que
+  no hace falta un `::before` ni recortar. Con «menos movimiento», quieta.
+- **Agenda**: la tarjeta del destacado se queda en su sitio (por fecha) y a su
+  tamaño (2 px de borde contra 1: dos píxeles más de alto), con la luz y la
+  chapa «★ Destacado» abajo a la izquierda de la franja (`.ev-chapa-destacado`,
+  sale en `cartelHtml` mientras no haya pasado). `logoHtml` pone `sin-fondo` a
+  un logo con `logo_sin_fondo`: sin caja de color, sin el blanco detrás, con
+  `object-fit: contain` y una sombra que sigue la silueta.
+- El CSS va en `portada.css` y no en una hoja inyectada: la última vista
+  (`vistaVigilada` guarda el HTML de `eventoPortada`) se pinta antes de que
+  llegue el módulo, y sin su hoja saldría sin estilo. Cabe: 24,9 KB de margen.
+
+Prueba: `test-tanda-1293-pantalla.mjs` (lo puro, Inicio en PC y móvil con el
+destacado a 30 días, «¡Voy!» de ida y vuelta guardado en la base, sin destacado
+y sin sesión, «menos movimiento», la agenda en PC y móvil). La parte de pantalla
+de la 1204 se pasó aquí; la 1192 mira que lleva a la ficha.
+
+## Tanda 1292 — El destacado y el logo sin fondo, en /admin
+
+Migración `supabase-migration-1292-eventos-destacado.sql`: `eventos.destacado`
+y `eventos.logo_sin_fondo` (booleanos, `false` por defecto). `evento_json` es
+`to_jsonb(e)`, así que las funciones de la 1192 los devuelven sin tocarlas.
+
+- **Uno solo**: el disparador `trg_eventos_uno_destacado` (antes de insertar o
+  de cambiar `destacado`, solo cuando queda a `true`) desmarca el anterior. Así
+  /admin no tiene que acordarse y dos pestañas no dejan dos. El formulario lo
+  dice: «ahora lo es X, que deja de serlo».
+- **Logo sin fondo**: al subir el logo, `esquinasTransparentes` lo pinta a 64×64
+  en un lienzo y `esquinasTransparentesDe` (eventos-puro, pura y probada) mira
+  un cuadradito de 3×3 en cada esquina: sin fondo si las cuatro tienen alfa ≤ 24
+  (un borde suavizado deja el píxel de la esquina a medias). Un JPEG nunca lo
+  es; lo que no se deja leer, tampoco. La casilla se marca sola y se cambia a
+  mano; la vista previa la sigue.
+- **El hilo del foro, desmarcado** (PINGU: «por ahora no abriría post»): se
+  abre solo si se marca.
+- Sin la migración (`con1292`, la consulta de prueba de siempre), el formulario
+  dice cuál falta y guarda lo demás sin mandar las columnas.
+
+Pruebas: `test-tanda-1292.mjs` (PostgreSQL: sentencia a sentencia y dos veces,
+uno solo al actualizar y al dar de alta, guardar sin cambiarlo no lo quita, la
+gente no destaca, la lista y la ficha lo devuelven) y
+`test-tanda-1292-pantalla.mjs` (la chapa en la lista, las casillas, un PNG
+recortado y uno opaco hechos a mano, guardar, y sin la migración). La 1197 y la
+1198 marcan ahora la casilla del hilo a mano.
+
 ## Tanda 1291 — La lista de TCGGO que da menos de lo que anuncia
 
 Con la 1290 delante, las 34 «nuevas» con lápida de las MEP resultaron ser las

@@ -164,9 +164,6 @@
   transition: transform 0.15s var(--ease);
 }
 
-/* Un evento lleva su color (o su cartel), oscurecido: lleva blanco encima (1194). */
-.portada-evento { --ev-color: #c62a5c; background: linear-gradient(120deg, color-mix(in srgb, var(--ev-color) 40%, #0b1219), color-mix(in srgb, var(--ev-color) 62%, #0b1219)); }
-.portada-evento.con-imagen { background: linear-gradient(90deg, rgba(11, 18, 25, 0.88), rgba(11, 18, 25, 0.5)), var(--ev-cartel) center / cover; }
 
 .portada-torneo:hover {
   transform: translateY(-1px);
@@ -226,20 +223,96 @@
   font-weight: 700;
 }
 
-/* El evento (1204): logo, nombre y una línea con la fecha y quién va. */
-.pe-logo { flex-shrink: 0; display: grid; place-items: center; width: 52px; height: 52px; border-radius: var(--radius-md); background: rgba(0, 0, 0, 0.28); overflow: hidden; }
-.pe-logo img { width: 100%; height: 100%; object-fit: contain; padding: 4px; }
-.pe-logo b { font-family: var(--font-display); font-size: var(--t-md); letter-spacing: 0.02em; }
-.pe-nombre { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.portada-torneo-cuerpo .pe-linea { display: flex; align-items: center; gap: var(--e-xs); font-weight: 600; white-space: nowrap; overflow: hidden; }
+/* El evento (1293, la A «Limpio»): una franja fina, toda enlace a la ficha
+   (el nombre se estira con ::after) y el «¡Voy!» encima. Azul fijo con un
+   reflejo del color del evento detrás del logo; lleva blanco encima. */
+.portada-evento {
+  --ev-color: #c62a5c;
+  --pe-fondo: radial-gradient(60% 180% at 0% 50%, color-mix(in srgb, var(--ev-color) 38%, transparent), transparent 70%), linear-gradient(100deg, #1d3554, #15263b 60%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  min-height: 64px;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--pe-fondo);
+  box-shadow: inset 0 0 0 1px rgba(124, 186, 228, 0.14);
+  color: var(--blanco-fijo);
+}
+/* El destacado: una luz dorada que recorre el borde, despacio. */
+@property --pe-giro { syntax: '<angle>'; inherits: false; initial-value: 0deg; }
+@keyframes pe-giro { to { --pe-giro: 360deg; } }
+.portada-evento.destacado {
+  border: 2px solid transparent;
+  background: radial-gradient(60% 180% at 0% 50%, color-mix(in srgb, var(--ev-color) 38%, transparent), transparent 70%) padding-box, linear-gradient(100deg, #1d3554, #15263b 60%) padding-box, conic-gradient(from var(--pe-giro), rgba(244, 197, 66, 0.3) 0 60%, #f4c542 74%, #fff4c9 80%, #f4c542 86%, rgba(244, 197, 66, 0.3) 96%) border-box;
+  box-shadow: 0 6px 20px rgba(244, 197, 66, 0.16);
+  animation: pe-giro 6s linear infinite;
+}
+.pe-logo { flex-shrink: 0; display: grid; place-items: center; width: 44px; height: 44px; overflow: hidden; border-radius: var(--radius-md); }
+.pe-logo img { width: 100%; height: 100%; object-fit: cover; }
+.pe-logo.sin-fondo { overflow: visible; border-radius: 0; }
+.pe-logo.sin-fondo img { object-fit: contain; filter: drop-shadow(0 3px 8px rgba(0, 0, 0, 0.45)); }
+.pe-siglas { background: var(--ev-color); }
+.pe-siglas b { font-family: var(--font-display); font-size: var(--t-xs); letter-spacing: 0.02em; }
+/* La hojita de calendario: el día grande y, encima, en rojo, el día de la semana. */
+.pe-cal { flex-shrink: 0; min-width: 44px; padding: var(--e-xs); border-radius: var(--radius-sm); background: var(--blanco-fijo); color: #0d1b2a; font-family: var(--font-display); font-size: var(--t-md); font-weight: 800; line-height: 1; text-align: center; }
+.pe-cal small { display: block; margin-bottom: 2px; color: #c62a5c; font-family: inherit; font-size: var(--t-2xs); }
+.pe-cuerpo { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.pe-nombre { display: flex; align-items: center; gap: var(--e-xs); min-width: 0; color: var(--blanco-fijo); font-family: var(--font-display); font-size: var(--t-md); font-weight: 700; text-decoration: none; }
+/* El recorte va en SU caja: sobre un flex, `ellipsis` no hace nada (la 320). */
+.pe-nombre-txt { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.pe-nombre::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
+.pe-nombre:hover { color: var(--blanco-fijo); text-decoration: underline; }
+.pe-estrella { display: inline-grid; flex-shrink: 0; color: #f4c542; }
+.pe-estrella svg { fill: currentColor; }
+.pe-linea { display: block; min-width: 0; overflow: hidden; color: rgba(255, 255, 255, 0.78); font-size: var(--t-xs); font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }
+.pe-linea > * { vertical-align: middle; }
+.pe-punto { margin: 0 var(--e-xs); }
+.pe-fecha { display: none; }
+.pe-quien { display: inline-flex; align-items: center; gap: var(--e-xs); }
+.pe-cuenta { color: #f4c542; }
 .pe-caras { display: inline-flex; }
-.pe-caras .pb-cara { margin-left: calc(var(--e-xs) * -1); box-shadow: 0 0 0 2px rgba(11, 18, 25, 0.55); font-size: var(--t-2xs); }
+.pe-caras .pb-cara { margin-left: calc(var(--e-xs) * -1); box-shadow: 0 0 0 2px #1a2d47; font-size: var(--t-2xs); }
 .pe-caras .pb-cara:first-child { margin-left: 0; }
-.pe-flecha { display: none; }
+/* El «¡Voy!»: la entrada de la agenda en pequeño, por encima del enlace. */
+.pe-voy {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: stretch;
+  min-height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-md);
+  background: linear-gradient(90deg, #f472b6, #f9a8d4);
+  color: #3a0b25;
+  font: inherit;
+  font-family: var(--font-display);
+  font-size: var(--t-sm);
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-mask: radial-gradient(circle 6px at 0 50%, transparent 5.5px, #000 6px) left / 51% 100% no-repeat, radial-gradient(circle 6px at 100% 50%, transparent 5.5px, #000 6px) right / 51% 100% no-repeat;
+  mask: radial-gradient(circle 6px at 0 50%, transparent 5.5px, #000 6px) left / 51% 100% no-repeat, radial-gradient(circle 6px at 100% 50%, transparent 5.5px, #000 6px) right / 51% 100% no-repeat;
+}
+.pe-voy:hover { color: #3a0b25; }
+.pe-voy-cuerpo { display: inline-flex; align-items: center; gap: var(--e-xs); padding: 0 var(--e-md); }
+.pe-voy-talon { display: grid; place-items: center; min-width: 32px; padding: 0 var(--e-sm); border-left: 2px dashed rgba(58, 11, 37, 0.45); font-variant-numeric: tabular-nums; }
+.pe-voy[aria-pressed='true'] { background: #d6f5e3; color: #11643a; }
+.pe-voy[aria-pressed='true'] .pe-voy-talon { border-left-color: rgba(17, 100, 58, 0.4); }
+@media (pointer: coarse) { .pe-voy { min-height: 44px; } }
+/* En el móvil la fecha baja a la línea y la hojita se va. */
 @media (max-width: 600px) {
-  .pe-boton { display: grid; place-items: center; width: 36px; height: 36px; padding: 0; }
-  .pe-largo { display: none; }
-  .pe-flecha { display: contents; }
+  .portada-evento { gap: var(--e-sm); }
+  .pe-cal { display: none; }
+  .pe-fecha { display: inline; }
+  .pe-nombre { font-size: var(--t-sm); }
+  .pe-voy-talon { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .portada-evento.destacado { animation: none; --pe-giro: 300deg; }
 }
 
 /* S780.183 */

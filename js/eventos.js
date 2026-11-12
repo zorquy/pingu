@@ -18,7 +18,7 @@ import { sinMigracion } from './sin-migracion.js'
 import { showToast } from './toast.js'
 import {
   TIPOS, fechaLarga, siglasDe, filtrar, separar, webSegura, instagramDe, mapaDe, vanTexto,
-  horarioDe, mismoHorario, icsDeEvento, fechaDeDia, entradasDe, precioTexto, desdePrecio, pastillaDe, cuentaAtras, mesDe, esEntradaVip, horasDe,
+  horarioDe, mismoHorario, icsDeEvento, fechaDeDia, entradasDe, precioTexto, desdePrecio, pastillaDe, cuentaAtras, mesDe, esEntradaVip, horasDe, esPasado,
 } from './eventos-puro.js'
 
 const $ = (id) => document.getElementById(id)
@@ -41,6 +41,8 @@ const colorDe = (e) => (/^#[0-9a-f]{6}$/i.test(e.color || '') ? e.color : '')
 function logoHtml(e, clase = 'ev-logo') {
   const color = colorDe(e)
   const foto = webSegura(e.logo_url)
+  // Un PNG recortado (1292) va tal cual, sin la caja de color.
+  if (foto && e.logo_sin_fondo) clase += ' sin-fondo'
   return `<span class="${clase}"${color ? ` style="--ev-color:${color}"` : ''} aria-hidden="true">${foto ? `<img src="${escapeHtml(foto)}" alt="" loading="lazy" decoding="async" onerror="this.remove()">` : ''}<b>${escapeHtml(siglasDe(e))}</b></span>`
 }
 
@@ -61,6 +63,7 @@ function cartelHtml(e, { ahora = new Date(), conPastilla = true, conTipo = true,
       ${conTipo ? `<span class="ev-tipo">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>` : ''}
       ${conPastilla && p.dia ? `<span class="ev-pastilla"><small>${escapeHtml(p.arriba)}</small><b>${escapeHtml(p.dia)}</b></span>` : ''}
       ${cuenta ? `<span class="ev-cuenta">${escapeHtml(cuenta)}</span>` : ''}
+      ${e.destacado && !esPasado(e, ahora) ? `<span class="ev-chapa-destacado">${ic('star', 12)} Destacado</span>` : ''}
       ${foto || !conPastilla ? '' : logoHtml(e, 'ev-logo ev-logo-cartel')}
     </span>`
 }
@@ -100,7 +103,7 @@ function tarjetaHtml(e, sesion, ahora) {
   const horas = horasDe(e)
   const caras = (e.caras || []).slice(0, 3)
   const desde = desdePrecio(entradasDe(e))
-  return `<li class="ev-tarjeta${pasado ? ' pasado' : ''}" data-ev="${escapeHtml(e.slug)}">
+  return `<li class="ev-tarjeta${pasado ? ' pasado' : e.destacado ? ' destacado' : ''}" data-ev="${escapeHtml(e.slug)}">
     <a class="ev-tarjeta-enlace" href="${rutaDe(e)}">
       ${cartelHtml(e, { ahora: pasado ? NUNCA : ahora })}
       <span class="ev-tarjeta-texto"><strong>${escapeHtml(e.nombre)}</strong><small>${escapeHtml([donde, horas].filter(Boolean).join(' · '))}</small></span>

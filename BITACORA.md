@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (539) — PINGU-Claude (1293 — el evento de Inicio en una franja fina; el destacado brilla en Inicio y en la agenda)
+
+**Hecho**: lo recomendado de la propuesta v2 de eventos. Inicio: franja de 64 px
+con el logo sin caja, la hojita de calendario, el nombre, las caras con «N van»
+y «faltan N días», y el «¡Voy!» de entrada que funciona desde ahí; toda la
+franja abre la ficha. Sale el destacado (esté cuando esté) o, si no hay, el
+siguiente de dos semanas. El destacado lleva estrella y una luz dorada que
+recorre el borde (quieta con «menos movimiento»). En la agenda el destacado se
+queda en su sitio, con la luz y la chapa «Destacado». Los logos sin fondo se
+pintan tal cual.
+
+**Ficheros**: js/evento-portada.js, css/portada.css, index.html (alto del
+esqueleto), js/eventos.js (`logoHtml`, `cartelHtml`, `tarjetaHtml`),
+css/eventos.css, js/eventos-puro.js (`eventoDePortada`, `cuentaAtras` con tope),
+SCHEMA.md, novedades.json. En `pruebas`: test-tanda-1293-pantalla (nueva), 1204
+(solo la fecha) y 1192 (a la ficha).
+
+**Pendiente**: la 1294 (la ficha como póster). Necesita la migración 1292 para
+que haya destacado; sin ella todo sale como antes, con la franja nueva.
+
+## 2026-11-12 (538) — PINGU-Claude (1292 — /admin → Eventos: Destacado, Logo sin fondo y el hilo desmarcado)
+
+**Hecho**: migración `supabase-migration-1292-eventos-destacado.sql` con
+`destacado` y `logo_sin_fondo`, y un disparador que deja UNO destacado como
+mucho. En /admin: «Destacado» (dice cuál lo es ahora), «Logo sin fondo» (se
+marca solo al subir un PNG con las esquinas transparentes; se cambia a mano) y
+«Abrir el hilo en el foro» desmarcado de serie. Sin la migración, dice cuál
+falta y guarda lo demás.
+
+**Ficheros**: supabase-migration-1292-eventos-destacado.sql (nueva),
+admin/js/eventos-admin.js, admin/css/admin.css, js/eventos-puro.js
+(`esquinasTransparentesDe`), css/eventos.css (`.ev-logo.sin-fondo`), SCHEMA.md,
+BITACORA.md. En `pruebas`: test-tanda-1292 (PostgreSQL), 1292-pantalla, y 1197
+y 1198 marcan el hilo a mano.
+
+**Pendiente**: que PINGU ejecute la migración 1292 ANTES de subir esto (la web
+aguanta sin ella, pero sin ella no hay destacado ni logo sin fondo).
+
 ## 2026-11-12 (537) — PINGU-Claude (1291d — la lista de TCGGO con un parámetro que cambia: la de siempre da una copia vieja)
 
 **Hecho**: PINGU pasó del playground las dos páginas de 100 de las MEP: 100 + 64

@@ -176,6 +176,27 @@ export function proximoEvento(eventos, ahora = new Date(), dias = 14) {
   return e && diasEntre(ahora, e.empieza) <= dias ? e : null
 }
 
+// El de Inicio (1292): el DESTACADO mientras no haya pasado, esté cuando esté;
+// si no hay, el siguiente de los próximos `dias` días como siempre.
+export function eventoDePortada(eventos, ahora = new Date(), dias = 14) {
+  const destacado = separar(eventos, ahora).proximos.find((e) => e.destacado)
+  return destacado || proximoEvento(eventos, ahora, dias)
+}
+
+// ¿Es un logo recortado? `datos` son los píxeles RGBA de la imagen (un
+// ImageData pequeño): sin fondo si las cuatro esquinas son casi transparentes.
+// Se mira un cuadradito de cada esquina y no un píxel, que un borde con
+// suavizado deja el píxel justo de la esquina a medias.
+export function esquinasTransparentesDe(datos, ancho, alto, { lado = 3, umbral = 24 } = {}) {
+  if (!datos || ancho < lado * 2 || alto < lado * 2) return false
+  const alfa = (x, y) => datos[(y * ancho + x) * 4 + 3]
+  const esquinas = [[0, 0], [ancho - lado, 0], [0, alto - lado], [ancho - lado, alto - lado]]
+  return esquinas.every(([x0, y0]) => {
+    for (let y = y0; y < y0 + lado; y++) for (let x = x0; x < x0 + lado; x++) if (alfa(x, y) > umbral) return false
+    return true
+  })
+}
+
 // Un enlace de fuera solo si es http(s): lo escribe el equipo, pero una
 // dirección «javascript:» no se pinta nunca.
 export function webSegura(url) {
@@ -219,15 +240,27 @@ export function pastillaDe(e) {
   return { arriba: `${DIAS_PASTILLA[a.getDay()]}–${DIAS_PASTILLA[b.getDay()]}`, dia: `${a.getDate()}–${b.getDate()}` }
 }
 
-// La cuenta atrás: «Hoy», «Mañana», «Faltan N días» (hasta dos semanas), y
+// La cuenta atrás: «Hoy», «Mañana», «Faltan N días» (hasta dos semanas, o `tope`), y
 // «En marcha» si ya empezó y no ha acabado. Más lejos o pasado, nada.
-export function cuentaAtras(e, ahora = new Date()) {
+// `tope` es hasta cuántos días se cuenta (el destacado de Inicio, sin tope).
+export function cuentaAtras(e, ahora = new Date(), tope = 14) {
   if (esPasado(e, ahora)) return ''
   const d = diasEntre(ahora, e.empieza)
   if (d < 0) return 'En marcha'
   if (d === 0) return 'Hoy'
   if (d === 1) return 'Mañana'
-  return d <= 14 ? `Faltan ${d} días` : ''
+  return d <= tope ? `Faltan ${d} días` : ''
+}
+
+// La cuenta atrás del póster (1294): días, horas y minutos hasta que EMPIEZA.
+// Empezado o pasado, null (la barra dice «En marcha» o nada). Los minutos se
+// redondean hacia arriba: a las 9:59:30 de un evento a las 10:00 falta «1 min»,
+// no «0».
+export function cuentaRegresiva(e, ahora = new Date()) {
+  const ms = new Date(e.empieza) - new Date(ahora)
+  if (!(ms > 0)) return null
+  const total = Math.ceil(ms / 60000)
+  return { dias: Math.floor(total / 1440), horas: Math.floor((total % 1440) / 60), min: total % 60 }
 }
 
 // Para agrupar la agenda: «Noviembre 2026».

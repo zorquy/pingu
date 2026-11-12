@@ -1439,6 +1439,7 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
 .evadm-cuerpo { display: grid; flex: 1; gap: 2px; min-width: 0; }
 .evadm-cuerpo small { color: var(--text-mid); font-size: var(--t-xs); }
 .evadm-chapa { padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); color: var(--text-mid); font-size: var(--t-2xs); font-weight: 700; }
+.evadm-chapa.evadm-destacado { background: #f4c542; color: #3b2a00; }
 .evadm-form { display: grid; gap: var(--e-md); margin-bottom: var(--e-lg); }
 .evadm-form h2 { margin: 0; font-size: var(--t-lg); }
 .evadm-rejilla { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--e-md); }

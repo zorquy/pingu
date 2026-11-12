@@ -18,6 +18,7 @@ import { sinMigracion } from '../../js/sin-migracion.js'
 import {
   TIPOS, MESES, slugDeEvento, siglasDe, webSegura, horarioDe, mismoHorario, extremosDeHorario,
   fechaLarga, diaDe, fechaDeDia, entradasDe, resumenEntradas, tituloDeHilo, cuerpoDeHilo,
+  esquinasTransparentesDe,
 } from '../../js/eventos-puro.js'
 
 const CAMPOS = ['nombre', 'tipo', 'sitio', 'direccion', 'ciudad', 'provincia', 'juegos', 'descripcion', 'web', 'instagram', 'tcgmap_url', 'logo_url', 'siglas', 'color']
@@ -34,6 +35,8 @@ let con1193 = true
 let con1194 = true
 // 1197: el hilo del foro de cada evento (`hilo_id` y el foro «eventos»).
 let con1197 = true
+// 1292: el destacado (uno como mucho) y el logo sin fondo.
+let con1292 = true
 // Lo que se está editando de los días y las entradas (el resto vive en los campos).
 let borr = null
 
@@ -52,6 +55,8 @@ async function cargar() {
   con1194 = !sinCartel
   const { error: sinHilo } = await supabase.from('eventos').select('id, hilo_id').limit(1)
   con1197 = !sinHilo
+  const { error: sinDestacado } = await supabase.from('eventos').select('id, destacado, logo_sin_fondo').limit(1)
+  con1292 = !sinDestacado
   pintar()
 }
 
@@ -71,6 +76,7 @@ function filaHtml(e) {
   return `<div class="admin-card evadm-fila${pasado ? ' pasado' : ''}">
     <span class="evadm-fecha"><b>${escapeHtml(f.dia)}</b><small>${escapeHtml(f.mes)}</small></span>
     <span class="evadm-cuerpo"><b>${escapeHtml(e.nombre)}</b><small>${escapeHtml([TIPOS[e.tipo], e.sitio, e.ciudad].filter(Boolean).join(' · '))}</small></span>
+    ${e.destacado ? '<span class="evadm-chapa evadm-destacado">Destacado</span>' : ''}
     ${e.publicado === false ? '<span class="evadm-chapa">Sin publicar</span>' : ''}
     <a class="btn-secondary" href="/eventos/${encodeURIComponent(e.slug)}" target="_blank" rel="noopener">Ver</a>
     <button type="button" class="btn-secondary" data-ev-editar="${escapeHtml(e.id)}">Editar</button>
@@ -192,11 +198,12 @@ function formHtml(e) {
       </div>
     </fieldset>
     <div class="evadm-logo">
-      <span class="ev-logo grande" id="evfLogoVista"></span>
+      <span class="ev-logo grande${e?.logo_sin_fondo ? ' sin-fondo' : ''}" id="evfLogoVista"></span>
       <div class="evadm-logo-mandos">
         <label class="av-campo"><span class="av-eti">Logo</span><input type="file" id="evf-logo" accept="image/*"></label>
         <input type="hidden" id="evf-logo_url" value="${v('logo_url')}">
         ${e?.logo_url ? '<button type="button" class="btn-secondary" id="evfQuitarLogo">Quitar el logo</button>' : ''}
+        ${con1292 ? `<label class="av-interruptor"><input type="checkbox" id="evf-logo_sin_fondo"${e?.logo_sin_fondo ? ' checked' : ''}> <span>Logo sin fondo<small class="av-nota"> · un PNG recortado se pinta tal cual, sin la caja de color (se marca solo al subirlo)</small></span></label>` : ''}
         <div class="av-dos">
           ${campo('siglas', 'Siglas (sin logo)', 'maxlength="8" placeholder="IBE"')}
           <label class="av-campo"><span class="av-eti">Color</span><input type="color" id="evf-color" value="${/^#[0-9a-f]{6}$/i.test(e?.color || '') ? e.color : '#1f5175'}"></label>
@@ -204,9 +211,11 @@ function formHtml(e) {
       </div>
     </div>
     <label class="av-interruptor"><input type="checkbox" id="evf-publicado" ${e?.publicado === false ? '' : 'checked'}> <span>Publicado (sale en la agenda)</span></label>
+    ${con1292 ? `<label class="av-interruptor"><input type="checkbox" id="evf-destacado"${e?.destacado ? ' checked' : ''}> <span>Destacado<small class="av-nota"> · sale en Inicio en vez del siguiente y brilla en la agenda; ${(() => { const otro = eventos.find((x) => x.destacado && x.id !== e?.id); return otro ? `ahora lo es «${escapeHtml(otro.nombre)}», que deja de serlo` : 'solo puede haber uno' })()}</small></span></label>`
+      : '<p class="av-nota">Para destacar un evento y pintar logos sin fondo, ejecuta <code>supabase-migration-1292-eventos-destacado.sql</code>.</p>'}
     ${!con1197 ? '<p class="av-nota">Para abrir el hilo del foro de cada evento, ejecuta <code>supabase-migration-1197-eventos-foro.sql</code>.</p>'
       : e?.hilo_id ? `<p class="av-nota">Tiene su hilo en el foro: <a href="/tema/${escapeHtml(e.hilo_id)}" target="_blank" rel="noopener">verlo</a>. Al guardar, su primer mensaje se pone al día.</p>`
-        : '<label class="av-interruptor"><input type="checkbox" id="evf-hilo" checked> <span>Abrir el hilo en el foro<small class="av-nota"> · en Comunidad → Eventos y quedadas, a tu nombre</small></span></label>'}
+        : '<label class="av-interruptor"><input type="checkbox" id="evf-hilo"> <span>Abrir el hilo en el foro<small class="av-nota"> · en Comunidad → Eventos y quedadas, a tu nombre</small></span></label>'}
     <p class="av-nota av-mal" id="evfError" role="alert"></p>
     <div class="av-acciones">
       <button type="submit" class="btn-primary" id="evfGuardar">${e?.id ? 'Guardar' : 'Publicar el evento'}</button>
@@ -243,6 +252,7 @@ function pintarLogo() {
   const url = webSegura(raiz.querySelector('#evf-logo_url').value)
   const color = raiz.querySelector('#evf-color').value
   vista.style.setProperty('--ev-color', color)
+  vista.classList.toggle('sin-fondo', !!url && !!raiz.querySelector('#evf-logo_sin_fondo')?.checked)
   vista.innerHTML = `${url ? `<img src="${escapeHtml(url)}" alt="">` : ''}<b>${escapeHtml(siglasDe({ siglas: raiz.querySelector('#evf-siglas').value, nombre: raiz.querySelector('#evf-nombre').value }))}</b>`
 }
 
@@ -273,6 +283,22 @@ function abrirFormulario(e) {
   editando = e
   borr = editando ? borradorDe(editando) : null
   pintar()
+}
+
+// ¿Es un logo recortado? Se mira la imagen en pequeño: si las cuatro esquinas
+// son transparentes, no tiene fondo (la regla, en `esquinasTransparentesDe`).
+// Un JPEG no tiene canal alfa, así que nunca lo es; lo que no se deja leer, no.
+async function esquinasTransparentes(fichero) {
+  if (!/png|webp|gif|svg/i.test(fichero.type || '')) return false
+  try {
+    const bmp = await createImageBitmap(fichero)
+    const lado = 64
+    const lienzo = document.createElement('canvas')
+    lienzo.width = lado; lienzo.height = lado
+    const c = lienzo.getContext('2d', { willReadFrequently: true })
+    c.drawImage(bmp, 0, 0, lado, lado)
+    return esquinasTransparentesDe(c.getImageData(0, 0, lado, lado).data, lado, lado)
+  } catch { return false }
 }
 
 async function guardar() {
@@ -307,6 +333,11 @@ async function guardar() {
   fila.entrada = resumenEntradas(entradas) || null
   if (con1193) { fila.horario = horario; fila.entradas = entradas }
   if (con1194) fila.cartel_url = val('cartel_url') || null
+  // El disparador de la 1292 desmarca el destacado anterior.
+  if (con1292) {
+    fila.destacado = !!raiz.querySelector('#evf-destacado')?.checked
+    fila.logo_sin_fondo = !!raiz.querySelector('#evf-logo_sin_fondo')?.checked
+  }
 
   fila.slug = val('slug') || slugDeEvento(fila.nombre, fila.empieza)
   if (!/^[a-z0-9]+(-[a-z0-9]+)*$/.test(fila.slug)) return (err.textContent = 'La dirección solo lleva minúsculas, números y guiones.')
@@ -430,6 +461,7 @@ export async function montarEventos(panel) {
       return
     }
     if (ev.target.id === 'evf-tipo') { pintarCartel(); return }
+    if (ev.target.id === 'evf-logo_sin_fondo') { pintarLogo(); return }
     const cual = { 'evf-logo': 'logo_url', 'evf-cartel': 'cartel_url' }[ev.target.id]
     if (!cual || !ev.target.files?.[0]) return
     const err = raiz.querySelector('#evfError')
@@ -437,6 +469,10 @@ export async function montarEventos(panel) {
       const sesion = await getSession()
       const url = await uploadGuideImage(sesion.user.id, ev.target.files[0])
       raiz.querySelector(`#evf-${cual}`).value = url
+      // Un PNG recortado (esquinas transparentes) se pinta sin caja: se marca
+      // solo, y se puede desmarcar.
+      const sinFondo = raiz.querySelector('#evf-logo_sin_fondo')
+      if (cual === 'logo_url' && sinFondo) sinFondo.checked = await esquinasTransparentes(ev.target.files[0])
       if (cual === 'cartel_url') raiz.querySelector('#evfQuitarCartel')?.removeAttribute('hidden')
       err.textContent = ''
       pintarLogo()
