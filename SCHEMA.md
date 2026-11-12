@@ -55204,6 +55204,29 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1289 — Los Reyes: lo más a mano de tu «La quiero»
+
+PINGU eligió «Delibird el 25 y los Reyes el 6».
+
+**Cuándo**: `data-fiesta="reyes"` el 5 y el 6 (la Navidad sigue puesta) y
+`/css/reyes.css`: la corona en la «P» (el mismo `::after` del gorro, que se
+pisa; si la Navidad está quitada, la hoja lo pone entero).
+
+**El pop-up** (`js/reyes.js`, desde `js/fiestas.js`): con cuenta, no a una
+tienda (`esTienda`), una vez por persona y año (`claveDeReyes`). Lee tus
+`user_wants` (carta, mercado e idioma), sus filas de `tcg_card_prices` en
+trozos de 150 y les pone el precio de la ficha: `valorDe(precioDeFila(fila),
+idioma)`, el mínimo de Cardmarket en el idioma en que la quieres (español si no
+dice). `masBaratas` (`js/fiestas-puro.js`) se queda con las tres más baratas,
+una vez cada carta y sin las que no tienen precio. Cada una enlaza a su ficha
+(`rutaDeCarta`: el pop-up, con sus tiendas y su precio), y abajo «Ver en el
+Mercado». Con la lista vacía, el mismo pop-up manda a «La quiero». Nunca encima
+de otra ventana; «Quitar la decoración» apaga `pd-sin-reyes`.
+
+`test-tanda-1289-pantalla.mjs`: lo puro, la cabecera (4, 5, 6 y 7) y la
+corona, las tres más baratas en el idioma pedido (una inglesa a su precio
+inglés), «Ver en el Mercado», una vez, la lista vacía, sin cuenta y una tienda.
+
 ## Tanda 1288 — Nochevieja: fuegos, cuenta atrás y «Tu 2026 en PokeDoc»
 
 PINGU eligió «Sí, con la temporada»: es lo que más se comparte en redes.

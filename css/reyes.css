@@ -1,0 +1,80 @@
+/* LOS REYES (tanda 1289, SCHEMA): solo baja el 5 y el 6 de enero, lo escribe
+   la línea de la cabecera. La corona en la «P» (en lugar del gorro) y el
+   pop-up de js/reyes.js. */
+:root {
+  --fiesta-oro: #f4c542;
+  --reyes-morado: #5b2a86;
+  --reyes-morado-suave: #efe6f7;
+}
+:root[data-theme='dark'] { --reyes-morado-suave: #2c1d3d; }
+
+html[data-fiesta='reyes'] .nav-logo { position: relative; }
+html[data-fiesta='reyes'] .nav-logo::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - 28px);
+  left: -4px;
+  width: 24px;
+  height: 20px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 20'%3E%3Cpath d='M2 7l5 4 5-8 5 8 5-4-2 11H4Z' fill='%23f4c542' stroke='%23b8860b' stroke-width='1'/%3E%3Ccircle cx='12' cy='3' r='1.6' fill='%23e0525c'/%3E%3Ccircle cx='2' cy='7' r='1.4' fill='%237cbae4'/%3E%3Ccircle cx='22' cy='7' r='1.4' fill='%237cbae4'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: rotate(-12deg);
+}
+
+/* El pop-up: centrado en el PC y hoja desde abajo en el móvil (1045). */
+.reyes-pop[open] {
+  display: grid;
+  gap: var(--e-md);
+  justify-items: center;
+  text-align: center;
+  inset: 0;
+  margin: auto;
+  width: min(520px, calc(100% - var(--e-2xl)));
+  max-width: none;
+  max-height: calc(100dvh - var(--e-2xl));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: radial-gradient(circle at 50% 0%, var(--reyes-morado-suave) 0%, transparent 60%), var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+}
+.reyes-pop::backdrop { background: rgba(8, 12, 18, 0.55); }
+html:has(.reyes-pop[open]) { overflow: hidden; }
+.reyes-coronas { display: flex; align-items: flex-end; gap: var(--e-sm); color: var(--fiesta-oro); }
+.reyes-pop h2 { margin: 0; font-family: var(--font-display); font-size: var(--t-2xl); line-height: 1.15; }
+.reyes-pop p { max-width: 40ch; margin: 0; color: var(--text-mid); font-size: var(--t-md); }
+.reyes-cartas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-sm); width: 100%; }
+.reyes-carta { display: grid; gap: var(--e-xs); justify-items: center; min-width: 0; color: var(--text); text-decoration: none; }
+.reyes-foto { display: block; width: 100%; aspect-ratio: 63 / 88; overflow: hidden; border-radius: var(--radius-md); background: var(--ice); box-shadow: var(--shadow-sm); }
+.reyes-foto img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.reyes-carta b { max-width: 100%; overflow: hidden; font-size: var(--t-sm); text-overflow: ellipsis; white-space: nowrap; }
+.reyes-carta small { color: var(--text-mid); font-size: var(--t-xs); }
+.reyes-botones { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-sm); width: 100%; }
+.reyes-botones > * { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.reyes-pop .btn-primary { background: var(--reyes-morado); color: var(--blanco-fijo); }
+.reyes-quitar {
+  min-height: 32px;
+  background: none;
+  border: 0;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-xs);
+  text-decoration: underline;
+  cursor: pointer;
+}
+@media (max-width: 599px) {
+  .reyes-pop[open] {
+    inset: auto 0 0;
+    margin: 0;
+    width: 100%;
+    max-height: calc(100dvh - 48px);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding-bottom: calc(var(--e-xl) + var(--seguro-abajo));
+  }
+}
+@media (pointer: coarse) {
+  .reyes-quitar { min-height: 44px; }
+}

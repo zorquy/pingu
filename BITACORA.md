@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (532) — PINGU-Claude (1289 — los Reyes)
+
+**Hecho**: cierre de la temporada. El 5 y el 6 de enero, corona en la «P» y,
+una vez por persona y año (con cuenta, nunca a una tienda), «Los Reyes Magos
+han pasado por PokeDoc»: las tres cartas de tu «La quiero» que menos cuestan
+hoy en Cardmarket, en el idioma en que las quieres (la regla de la ficha,
+`valorDe`), cada una a su ficha, y «Ver en el Mercado». Sin precio no entra; con
+la lista vacía, te invita a apuntar lo que buscas. Sin migración.
+
+**Ficheros**: js/reyes.js y css/reyes.css (nuevos), js/fiestas-puro.js
+(`masBaratas`, `claveDeReyes`, Reyes en la decoración), js/fiestas.js,
+generar-temporada.mjs (la hoja de Reyes) y las 55 páginas regeneradas,
+SCHEMA.md, novedades.json, CLAUDE.md, BITACORA.md. En `pruebas`:
+test-tanda-1289-pantalla.
+
+**Pendiente**: nada de la temporada de Navidad. Siguen, cada una unas dos
+semanas antes: San Valentín, Día de Pokémon, el cumpleaños de PokeDoc (falta
+que PINGU diga el día) y el Mundial.
+
 ## 2026-11-12 (531) — PINGU-Claude (1288 — Nochevieja y «Tu 2026 en PokeDoc»)
 
 **Hecho**: el 31 y el 1, en Inicio (con cuenta), una tarjeta de noche con

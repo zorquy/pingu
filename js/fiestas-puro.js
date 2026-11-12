@@ -7,7 +7,7 @@ import { hoyEnEspana } from './adviento-puro.js'
 
 // Las que se pueden quitar con «Quitar la decoración» (`pd-sin-<fiesta>`).
 // Una fiesta nueva con hoja propia entra aquí.
-export const FIESTAS_CON_DECORACION = ['halloween', 'navidad', 'inocentes', 'nochevieja']
+export const FIESTAS_CON_DECORACION = ['halloween', 'navidad', 'inocentes', 'nochevieja', 'reyes']
 
 // Del 22 de diciembre al 6 de enero: la misma regla que la cabecera.
 export function esNavidad(fecha = new Date()) {
@@ -84,3 +84,21 @@ export function dittoDe(src) {
   if (/PokeAPI\/sprites/i.test(src)) return DITTO.pixel
   return DITTO.sprite
 }
+
+// ── Reyes (1289): lo que tienes más a mano de tu «La quiero» ──
+// De tus deseos con su precio (el mínimo de Cardmarket en el idioma que
+// quieres, `valorDe`), las `n` cartas más baratas, una vez cada una. Una sin
+// precio no entra: los Reyes no regalan nada inventado.
+export function masBaratas(lista, n = 3) {
+  const mejor = new Map()
+  for (const d of lista || []) {
+    const v = Number(d?.valor)
+    if (!d?.card_id || !(v > 0)) continue
+    const ya = mejor.get(d.card_id)
+    if (!ya || v < ya.valor) mejor.set(d.card_id, { ...d, valor: v })
+  }
+  return [...mejor.values()].sort((a, b) => a.valor - b.valor).slice(0, n)
+}
+
+// La llave del pop-up de Reyes: una vez por persona y año.
+export const claveDeReyes = (fecha = new Date()) => `pd-reyes-${hoyEnEspana(fecha).anio}`

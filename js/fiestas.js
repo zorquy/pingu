@@ -9,4 +9,5 @@ export function montarFiestas(raiz = document.documentElement) {
   else if (temporada === 'navidad') import('./navidad.js').then((m) => m.montarNavidad()).catch(() => {})
   if (fiesta === 'inocentes') import('./inocentes.js').then((m) => m.montarInocentes()).catch(() => {})
   else if (fiesta === 'nochevieja') import('./nochevieja.js').then((m) => m.montarNochevieja()).catch(() => {})
+  else if (fiesta === 'reyes') import('./reyes.js').then((m) => m.montarReyes()).catch(() => {})
 }

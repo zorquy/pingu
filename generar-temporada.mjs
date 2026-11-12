@@ -24,7 +24,7 @@ import { join } from 'node:path'
 const RAIZ = new URL('.', import.meta.url).pathname
 
 // El script, en una línea (las fechas van en mes*100+día: 1031 es el 31 de octubre).
-export const LINEA = '  <script>/* Temporada (1134, 1285-1287, generar-temporada.mjs): la fiesta de hoy antes del primer pintado; las pruebas automáticas no la ven salvo con ?temporada=… */' +
+export const LINEA = '  <script>/* Temporada (1134, 1285-1289, generar-temporada.mjs): la fiesta de hoy antes del primer pintado; las pruebas automáticas no la ven salvo con ?temporada=… */' +
   "(function(){try{var n=new Date(),k=(n.getMonth()+1)*100+n.getDate(),q=/[?&]temporada=([a-z]+)/.exec(location.search),a=navigator.webdriver,r=document.documentElement," +
   "t=q?q[1]:a?'':k==1031||k==1101?'halloween':k>=1222||k<=106?'navidad':'',f=q?q[1]:a?'':{1228:'inocentes',1231:'nochevieja',101:'nochevieja',105:'reyes',106:'reyes'}[k]||'',l=localStorage;" +
   "if(/^(inocentes|nochevieja|reyes)$/.test(f)){t='navidad';if(l.getItem('pd-sin-'+f)!=='1'&&!(f=='inocentes'&&l.getItem('pd-tienda')))r.dataset.fiesta=f}" +
@@ -33,6 +33,7 @@ export const LINEA = '  <script>/* Temporada (1134, 1285-1287, generar-temporada
   "if(t=='halloween'&&s){r.dataset.temporada=t;r.dataset.theme='dark';document.write('<link rel=\"stylesheet\" href=\"/css/temporada.css\">')}" +
   "if(t=='navidad'&&s){r.dataset.temporada=t;document.write('<link rel=\"stylesheet\" href=\"/css/navidad.css\">')}" +
   "if(r.dataset.fiesta=='inocentes')document.write('<link rel=\"stylesheet\" href=\"/css/inocentes.css\">');" +
+  "if(r.dataset.fiesta=='reyes')document.write('<link rel=\"stylesheet\" href=\"/css/reyes.css\">');" +
   '}catch(e){}})();</script>'
 
 // La línea vieja o la nueva: todo lo que empiece por el comentario de la
