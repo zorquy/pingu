@@ -37,7 +37,7 @@ const LISTAS = [
   ['/usuarios', '.com-persona'],
   ['/tiendas', '#tagRejilla .tag-tarjeta:not(.skeleton), #tagRejilla .tag-vacio'],
   ['/avisos', '.av-lista .nav-bell-item'],
-  ['/torneos', '.torneos-rejilla > *'],
+  ['/torneos', '#torneosLigas:not([hidden]) .lc-tarjeta, .torneos-rejilla > *'],
   ['/mis-partidas', '#partidasHero'],
   ['/laboratorio', 'section.lp-bloque'],
   ['/repeticiones', '#repTexto'],

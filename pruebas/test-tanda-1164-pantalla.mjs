@@ -44,7 +44,7 @@ console.log('── J1: Torneos, una fila de mandos en el PC ──')
     const chips = document.querySelector('.torneo-pestanas-chips')
     const conm = document.querySelector('.torneo-vista-conmutador')
     const filas = new Set([...chips.children].map((x) => Math.round(x.getBoundingClientRect().top)))
-    return { dentro: conm?.parentElement === chips, primero: chips.firstElementChild === conm, filas: filas.size, semana: getComputedStyle(document.getElementById('torneosSemana')).display, mandos: getComputedStyle(document.querySelector('.torneos-mandos')).display, primerTorneo: Math.round(document.querySelector('.torneo-card, .torneo-tarjeta, #listaTorneos article')?.getBoundingClientRect().top || 0) }
+    return { dentro: conm?.parentElement === chips, primero: chips.firstElementChild === conm, filas: filas.size, semana: getComputedStyle(document.getElementById('torneosSemana')).display, mandos: getComputedStyle(document.querySelector('.torneos-mandos')).display, primerTorneo: Math.round(document.querySelector('#torneosLigas:not([hidden]) .lc-tarjeta, .torneo-card, .torneo-tarjeta, #listaTorneos article')?.getBoundingClientRect().top || 0) }
   })
   check('Lista/Calendario delante de los chips de estado, en una fila', r.dentro && r.primero && r.filas === 1, JSON.stringify(r))
   check('  …sin la semana ni su fila', r.semana === 'none' && r.mandos === 'none', JSON.stringify(r))

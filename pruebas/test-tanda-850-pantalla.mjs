@@ -126,11 +126,13 @@ console.log('── 2. La lista de /torneos ──')
     await page.waitForTimeout(300)
     return ((await page.locator('.torneo-tarjeta', { hasText: nombre }).first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ')
   }
-  const liga = await tarjetaDe('porempezar', 'Liga FDN')
-  check('la liga entre jornadas va a «Por empezar», no a «En juego»', grupos.includes('porempezar') && /Entre jornadas · J2/i.test(liga), liga)
-  // Desde la 1221 el botón dice «Ver» y lo largo va en su aria-label.
-  const accion = (await page.locator('.torneo-tarjeta', { hasText: 'Liga FDN' }).first().locator('.torneo-pie-accion').getAttribute('aria-label').catch(() => '')) || ''
-  check('  …con «Ver la liga» y no «Ver el directo»', /^Ver la liga/.test(accion) && !/directo/.test(liga + accion), accion)
+  // Desde la 1303 una liga en curso va en su franja «Ligas en curso», arriba,
+  // con la jornada que viene; ni en «Por empezar» ni en «En juego».
+  const liga = ((await page.locator('#torneosLigas .lc-tarjeta', { hasText: 'Liga FDN' }).first().innerText().catch(() => '')) || '').replace(/\s+/g, ' ')
+  const porEmpezar = await tarjetaDe('porempezar', 'Liga FDN')
+  check('la liga entre jornadas va a su franja (1303), con la jornada que viene, no a «En juego»', /Jornada 2/i.test(liga) && !porEmpezar, liga)
+  const accion = (await page.locator('#torneosLigas .lc-boton').first().innerText().catch(() => '')) || ''
+  check('  …con «Ver la liga» (o «Manda tu lista») y no «Ver el directo»', /^(Ver la liga|Manda tu lista)$/.test(accion) && !/directo/.test(liga + accion), accion)
   const otro = await tarjetaDe('enjuego', 'Torneo del sábado')
   check('el torneo que se juega sigue en «En juego» con su punto', /en juego/i.test(otro) && (await page.locator('.torneo-tarjeta', { hasText: 'Torneo del sábado' }).locator('.torneo-punto').count()) >= 1, otro)
   check('  …y la liga no está ahí', !/Liga FDN/.test(await texto(page, '.torneos-rejilla')))
