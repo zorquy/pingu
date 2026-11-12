@@ -218,11 +218,14 @@ export async function abrirHojaOficial(ctx) {
     if (guardados.player_id && vacio('cmHojaPlayerId')) $('cmHojaPlayerId').value = guardados.player_id
     if (guardados.birth_date && vacio('cmHojaNacimiento')) $('cmHojaNacimiento').value = guardados.birth_date
   }
-  // Sin fecha guardada aquí, la del cumpleaños del perfil (la pública), si
-  // la puso: es la misma persona y la misma fecha.
+  // Sin fecha guardada aquí, la de tu cumpleaños de Ajustes, si la pusiste:
+  // es la misma persona y la misma fecha (desde la 1304, de su tabla privada).
   if (userId && vacio('cmHojaNacimiento')) {
-    const { data } = await supabase.from('user_profiles').select('birthday').eq('id', userId).maybeSingle()
-    if (data?.birthday && vacio('cmHojaNacimiento')) $('cmHojaNacimiento').value = data.birthday
+    const { leerCumple } = await import('../cumple.js')
+    let { fecha, privado } = await leerCumple(supabase, userId)
+    // Sin la migración 1304, la de antes (en el perfil).
+    if (!privado) fecha = (await supabase.from('user_profiles').select('birthday').eq('id', userId).maybeSingle()).data?.birthday || ''
+    if (fecha && vacio('cmHojaNacimiento')) $('cmHojaNacimiento').value = fecha
   }
   if (!elegido('cmHojaDivision')) {
     const division = divisionPorNacimiento($('cmHojaNacimiento').value)

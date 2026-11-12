@@ -237,8 +237,8 @@ function cuentaHtml() {
     </form>
     <h3>Cumpleaños <span class="subtext">(opcional)</span></h3>
     <div class="aj-form">
-      <input type="date" id="ajCumple" value="${escapeHtml(perfil?.birthday || '')}" aria-label="Cumpleaños" />
-      <p class="aj-nota">Si lo pones, el día señalado el foro te felicita en «El foro en números». Bórralo cuando quieras.</p>
+      <input type="date" id="ajCumple" value="" aria-label="Cumpleaños" disabled />
+      <p class="aj-nota">Si lo pones, el día señalado el foro te felicita en «El foro en números». Solo se ve el día y el mes, nunca el año. Bórralo cuando quieras.</p>
     </div>
     <h3>Play! Pokémon <span class="subtext">(privado)</span></h3>
     <p class="aj-nota">Para que la decklist oficial del constructor salga ya rellena. Esto no se ve en tu perfil: solo lo ves tú.</p>
@@ -265,10 +265,20 @@ function montarCuenta(panel) {
     campo.value = ''
     showToast('Contraseña cambiada.', 'success')
   })
-  // El cumpleaños es opcional: vacío = quitarlo (null).
-  panel.querySelector('#ajCumple').addEventListener('change', async (e) => {
-    if (await guardar({ birthday: e.target.value || null })) showToast(e.target.value ? 'Cumpleaños guardado.' : 'Cumpleaños quitado.', 'success')
-  })
+  // El cumpleaños es opcional: vacío = quitarlo. Desde la 1304 la fecha
+  // entera va en su tabla privada (js/cumple.js); en público, solo día y mes.
+  ;(async () => {
+    const campo = panel.querySelector('#ajCumple')
+    const { leerCumple, guardarCumple } = await import('./cumple.js')
+    const { fecha, privado } = await leerCumple(supabase, session.user.id, perfil)
+    campo.value = fecha
+    campo.disabled = false
+    campo.addEventListener('change', async (e) => {
+      const error = await guardarCumple(supabase, session.user.id, e.target.value, privado)
+      if (error) return showToast('No se ha podido guardar: ' + error.message)
+      showToast(e.target.value ? 'Cumpleaños guardado.' : 'Cumpleaños quitado.', 'success')
+    })
+  })().catch(() => {})
   // Play! Pokémon (834), de su tabla PRIVADA: se lee aparte y se guarda
   // aparte, para que si falta su migración el resto se guarde igual.
   ;(async () => {
