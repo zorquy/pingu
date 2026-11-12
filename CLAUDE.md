@@ -1984,7 +1984,11 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   -1` (detrás del contenido), la guirnalda y el gorro no se pulsan. Un pop-up
   de fiesta sale una vez por persona, nunca encima de otra ventana ni a una
   tienda, y una fiesta nueva con hoja va en `FIESTAS_CON_DECORACION`
-  (`js/fiestas-puro.js`) para que el interruptor de Ajustes la apague.
+  (`js/fiestas-puro.js`) para que el interruptor de Ajustes la apague. Una
+  fiesta de UN día dentro de la Navidad es `data-fiesta` (1287), y su módulo se
+  engancha en `js/fiestas.js` (app.js solo entra ahí). La broma de Inocentes
+  cambia lo que `dittoDe` reconoce por su dirección: una carta, un precio o un
+  texto no se tocan nunca.
 - **El hueco de abajo es `var(--seguro-abajo)`, nunca `env(safe-area-inset-bottom)`
   a pelo** (tanda 1135): iOS a veces lo deja con el alto del teclado y la barra
   de abajo crecía hasta media pantalla con la burbuja flotando. El token lleva

@@ -767,10 +767,9 @@ export async function initNavbar() {
   // Una carta se abre en el pop-up y no en otra página (SCHEMA 1043). Va
   // ANTES que la barra de progreso: si el clic se queda aquí, no navega.
   document.addEventListener('click', abrirCartaEnPopup)
-  // Las fiestas (SCHEMA 1134 y 1286): solo si la cabecera ha dicho que toca.
-  const fiesta = document.documentElement.dataset.temporada
-  if (fiesta === 'halloween') import('./temporada.js').then((m) => m.montarTemporada()).catch(() => {})
-  else if (fiesta === 'navidad') import('./navidad.js').then((m) => m.montarNavidad()).catch(() => {})
+  // Las fiestas (SCHEMA 1134, 1286 y 1287): solo si la cabecera ha dicho que toca.
+  const { temporada, fiesta } = document.documentElement.dataset
+  if (temporada || fiesta) import('./fiestas.js').then((m) => m.montarFiestas()).catch(() => {})
   // La bienvenida de la sección (SCHEMA 1239), la primera vez: se baja solo si toca.
   const sec = document.documentElement.dataset.seccion
   let vistaSec = true

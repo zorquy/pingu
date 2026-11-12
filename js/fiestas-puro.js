@@ -7,7 +7,7 @@ import { hoyEnEspana } from './adviento-puro.js'
 
 // Las que se pueden quitar con «Quitar la decoración» (`pd-sin-<fiesta>`).
 // Una fiesta nueva con hoja propia entra aquí.
-export const FIESTAS_CON_DECORACION = ['halloween', 'navidad']
+export const FIESTAS_CON_DECORACION = ['halloween', 'navidad', 'inocentes']
 
 // Del 22 de diciembre al 6 de enero: la misma regla que la cabecera.
 export function esNavidad(fecha = new Date()) {
@@ -58,4 +58,29 @@ export const elegir = (lista, azar = Math.random()) => lista[Math.floor(azar * l
 export function cartaDeRegalo(filas, azar = Math.random()) {
   const con = (filas || []).filter((c) => c?.image_path || c?.image_tcggo)
   return con.length ? elegir(con, azar) : null
+}
+
+// ── Inocentes (1287): todo Ditto el 28 de diciembre ──
+// Un sprite o dibujo de Pokémon se reconoce por su DIRECCIÓN: Limitless (los
+// sprites de mazos), PokeAPI (sprites y dibujos oficiales) y nuestra /sprite.
+// Las fotos de cartas van por otros sitios (TCGdex, TCGGO, el escaneo de
+// Limitless), así que no se tocan: la broma no cambia una carta ni un precio.
+const LIMITLESS = 'https://r2.limitlesstcg.net/pokemon/gen9'
+const POKEAPI = 'https://cdn.jsdelivr.net/gh/PokeAPI/sprites@master/sprites/pokemon'
+export const DITTO = {
+  sprite: `${LIMITLESS}/ditto.png`,
+  pixel: `${POKEAPI}/132.png`,
+  arte: `${POKEAPI}/other/official-artwork/132.png`,
+}
+const ES_POKEMON = /r2\.limitlesstcg\.net\/pokemon\/|PokeAPI\/sprites|^\/sprite\/|\/\/[^/]+\/sprite\//i
+
+export const esPokemon = (src) => ES_POKEMON.test(String(src || ''))
+
+// El Ditto que va en su lugar, del mismo estilo y tamaño: un dibujo oficial
+// por otro, un sprite por otro. null si no es un Pokémon (o ya es Ditto).
+export function dittoDe(src) {
+  if (!esPokemon(src) || Object.values(DITTO).includes(src)) return null
+  if (/official-artwork|other\/home/.test(src)) return DITTO.arte
+  if (/PokeAPI\/sprites/i.test(src)) return DITTO.pixel
+  return DITTO.sprite
 }

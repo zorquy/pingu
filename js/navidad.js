@@ -166,7 +166,7 @@ function abrirPop(doc, win) {
 
 // Una tienda está trabajando: ve la decoración, no el regalo. La marca de la
 // última vez lo dice al momento; la primera vez, su perfil.
-async function esTienda(doc) {
+export async function esTienda(doc = document) {
   if (tiendaRecordada() || doc.documentElement.dataset.seccion === 'tienda' || doc.body?.hasAttribute('data-tienda')) return true
   try {
     const { getSession, getProfile } = await import('./app.js')

@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (530) — PINGU-Claude (1287 — los Inocentes: todo Ditto)
+
+**Hecho**: el 28 de diciembre la marca dice «PokeDitto» (la «P» en morado) y
+cada sprite o dibujo de Pokémon de la web —los que hay y los que llegan— es
+Ditto. Las fotos de las cartas, los precios y los textos no se tocan: lo que se
+cambia se reconoce por la dirección (Limitless, PokeAPI, /sprite). Al tocar un
+Ditto por primera vez, «¡Inocente!» (y no navega); después, cada uno lleva a
+donde llevaba. Una tienda no lo ve. Se quita con la decoración de Ajustes.
+La línea de la cabecera aprende `data-fiesta` (el día dentro de la Navidad:
+Inocentes, Nochevieja, Reyes) y app.js entra por un solo `import()` a
+`js/fiestas.js`, que baja el módulo de cada fiesta. Sin migración.
+
+**Ficheros**: js/inocentes.js, js/fiestas.js y css/inocentes.css (nuevos),
+js/fiestas-puro.js (`dittoDe`), js/navidad.js (`esTienda` exportada),
+js/app.js, generar-temporada.mjs y las 55 páginas regeneradas, SCHEMA.md,
+novedades.json, CLAUDE.md, BITACORA.md. En `pruebas`: test-tanda-1287-pantalla.
+
+**Pendiente**: 1288 Nochevieja y 1289 Reyes (su `data-fiesta` ya lo pone la
+cabecera; falta lo que pintan).
+
 ## 2026-11-12 (529) — PINGU-Claude (1286 — la Navidad)
 
 **Hecho**: segunda de las fiestas («haz lo recomendado», opción A: tus colores).

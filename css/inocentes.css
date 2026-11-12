@@ -1,0 +1,7 @@
+/* LOS INOCENTES (tanda 1287, SCHEMA): solo baja el 28 de diciembre, lo escribe
+   la línea de la cabecera. La marca dice «PokeDitto» y la «P» se pone del
+   color de Ditto; los sprites los cambia js/inocentes.js. */
+:root { --ditto: #9b7ad1; }
+html[data-fiesta='inocentes'] .nav-logo::before { background: var(--ditto); color: var(--blanco-fijo); }
+html[data-fiesta='inocentes'] .nav-logo span { font-size: 0; }
+html[data-fiesta='inocentes'] .nav-logo span::before { content: 'Ditto'; color: var(--ditto); font-size: var(--t-xl); }

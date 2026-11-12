@@ -55204,6 +55204,41 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1287 — Los Inocentes: el 28 de diciembre, todo Ditto
+
+PINGU eligió «Sí, todo Ditto»: solo los sprites y la marca; cartas, precios y
+textos intactos.
+
+**La cabecera** (`generar-temporada.mjs`) aprende `data-fiesta`: el día de una
+fiesta DENTRO de la Navidad (`inocentes` el 28, `nochevieja` el 31 y el 1,
+`reyes` el 5 y el 6). Ese día la temporada sigue siendo `navidad` (también con
+`?temporada=inocentes`), cada fiesta se quita con su `pd-sin-<fiesta>` y la
+broma no se le pone a una tienda (`pd-tienda`). El 28 escribe además
+`/css/inocentes.css`: la «P» en el color de Ditto (`--ditto`) y «Doc» cambiado
+por «Ditto» con un `::before` (el texto real no se toca).
+
+**La puerta de las fiestas** (`js/fiestas.js`): app.js, que lo baja todo el
+mundo, ya no lleva un `import()` por fiesta; con `data-temporada` o
+`data-fiesta` entra a `montarFiestas`, que baja `temporada.js`, `navidad.js` o
+`inocentes.js`. Una fiesta nueva se engancha ahí.
+
+**La broma** (`js/inocentes.js`): `dittoDe(src)` (`js/fiestas-puro.js`) dice
+si una dirección es de un Pokémon —Limitless `/pokemon/`, PokeAPI (sprite o
+dibujo oficial) o nuestra `/sprite/`— y qué Ditto le toca, del mismo estilo; las
+de cartas (TCGdex, el escaneo de Limitless, TCGGO, `/escaneo`) dan null. Se
+cambian todas al montar y lo que llega después por un `MutationObserver`
+(nodos nuevos y cambios de `src`, con tope de tres por imagen para que una
+cadena de respaldos no dé vueltas); si el Ditto de Limitless no carga, el de
+PokeAPI. Tocar un Ditto la primera vez de la visita para el clic y saca
+«¡Inocente!»; después navega como siempre. Una tienda (la marca o su perfil,
+`esTienda` de navidad.js) se queda sin la broma. «Decoración de las fiestas»
+de Ajustes la apaga (`inocentes` está en `FIESTAS_CON_DECORACION`).
+
+`test-tanda-1287-pantalla.mjs`: lo puro (sprites, dibujos, /sprite y que una
+carta no), la cabecera (28 sí con la Navidad, 27 no, quitada), la marca, el
+sprite que estaba, lo que llega, un `src` que cambia, el «¡Inocente!» y el
+segundo toque, y una tienda.
+
 ## Tanda 1286 — La Navidad: nieve, guirnalda, gorro y el regalo de Delibird
 
 PINGU eligió la A de la propuesta de fiestas: con los colores de cada uno (no

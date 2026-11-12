@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-12", "tipo": "nuevo", "texto": "El 28 de diciembre pasa algo raro con los Pokémon de la web. No decimos más.", "enlace": "/meta" },
     { "fecha": "2026-11-12", "tipo": "nuevo", "texto": "Del 22 de diciembre al 6 de enero la web se viste de Navidad: nieve, guirnalda y gorro, con tus colores de siempre. Y el día 25 Delibird te deja un regalo. Si prefieres la web de siempre, se quita en Ajustes → Apariencia.", "enlace": "/ajustes" },
     { "fecha": "2026-11-12", "tipo": "nuevo", "texto": "El 1 de diciembre llega a Inicio el Calendario de Adviento: cada día una casilla con un Pokémon de invierno y su curiosidad, experiencia por abrirla y un logro si abres las 24.", "enlace": "/" },
     { "fecha": "2026-11-11", "tipo": "arreglo", "texto": "Las guías de un perfil ya no cuentan las noticias: la cifra, el rango de colaborador y la pestaña Guías dicen solo las guías que ha escrito.", "enlace": "/perfil" },
