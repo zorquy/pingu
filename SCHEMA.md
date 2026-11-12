@@ -55204,6 +55204,35 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1298 — El enlace de invitación, a la vista
+
+Lo de la migración de referidos (`user_profiles.referred_by`, el enlace
+`/r/<usuario>` → `auth.html?r=`, los logros `embajador`, `embajador-oro` e
+`invitado-de-honor`) no cambia; solo se enseña.
+
+- **Lo puro**: `js/invitar-puro.js` — `enlaceDeInvitacion` (con
+  `usuarioValido`, la misma regla con la que auth.js guarda el padrino),
+  `progresoEmbajador` (siguiente logro, cuántos faltan, %), `EMBAJADOR` (las
+  cuentas de la migración: si cambian allí, cambian aquí) y los textos.
+- **La tarjeta** (`js/invitar.js`, `montarTarjetaInvitar`): `#perfilInvitar`
+  en `.perfil-lado` de perfil.html, solo en TU perfil y nunca en una tienda.
+  `traidosDe(uid)` cuenta `referred_by = uid` (con `count: 'exact'`) y trae las
+  cinco últimas caras; si la consulta falla, la tarjeta sale sin cifras («no se
+  sabe» no es «cero»). Estilo en `css/perfil.css` (`--inv`, el rosa de
+  Comunidad). En el PC la columna de la derecha deja de ir pegada si la pantalla
+  mide menos de 860 de alto (tres tarjetas no caben y su final no se vería); en
+  el móvil va después de la de cambios, sin la frase ni los logros.
+- **La hoja** (`js/invitar-hoja.js`, `abrirInvitar`): la abren la tarjeta y la
+  fila «Invita a un amigo» del menú del avatar (`menu-tu.js`, solo con usuario).
+  Va aparte de la tarjeta para que el menú, que está en todas las páginas, no
+  arrastre sus clases (la 299). La imagen es `pintarMarco` (sección Comunidad,
+  chapa «Invitación», «Únete a *PokeDoc*») con tu cara (la foto si deja
+  pintarse, si no la inicial) y un QR dibujado con `matrizQR`.
+- **La llegada** (`js/auth.js`, `pintarPadrino`): con `?r=` se abre el registro
+  y, si el usuario existe, `#authPadrino` encima de «Crea tu cuenta» con su cara,
+  «X te invita a PokeDoc» y el logro «Invitado de honor». Uno que no existe deja
+  el registro de siempre.
+
 ## Tanda 1297 — Los enlaces del evento, dentro del póster
 
 La web, el Instagram y TCG Map Spain de un evento salían en `.ev-sobre`, debajo

@@ -746,6 +746,9 @@ async function init() {
   // Tu tarjeta de cambios (1270): tu reputación y lo que das y buscas (antes
   // el sello de la 1105 y la chapa de la 887, sueltos en la cabecera).
   import('./perfil-trueque.js').then((m) => m.montarTrueque(document.getElementById('perfilTrueque'), { persona: { ...(currentProfile || {}), id: session.user.id }, sesion: session, propia: true })).catch(() => {})
+  // Invita a tus amigos (1298): tu enlace /r/<usuario>, quién ha llegado con
+  // él y los logros de Embajador. Una tienda no tiene esta tarjeta.
+  import('./invitar.js').then((m) => m.montarTarjetaInvitar(document.getElementById('perfilInvitar'), { perfil: { ...(currentProfile || {}), id: session.user.id }, uid: session.user.id })).catch(() => {})
   // Lo de abajo solo necesita el perfil, no lo uno de lo otro: todo a la vez
   // (983). Antes los logros esperaban a las cifras, y la vitrina, a los logros.
   // Lo que das y lo que buscas (887): tu pestaña Cambios, siempre.

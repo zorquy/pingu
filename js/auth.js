@@ -1,5 +1,6 @@
 import { supabase } from './supabase.js'
-import { uniqueUsername, passwordStrengthError } from './app.js'
+import { uniqueUsername, passwordStrengthError, avatarStyle, getInitial } from './app.js'
+import { escapeHtml } from './html.js'
 import { showToast } from './toast.js'
 import { friendlyAuthError } from './auth-errores.js'
 
@@ -30,10 +31,33 @@ if (new URLSearchParams(window.location.search).get('registro') === '1') {
 // apunta en el navegador y lo consume el onboarding al terminar: así
 // sobrevive al viaje por el registro, la confirmación de correo y el
 // OAuth de Google, que pierden la query por el camino.
+const padrinoDeLaDireccion = (() => {
+  const p = new URLSearchParams(window.location.search).get('r')
+  return p && /^[a-z0-9_-]{1,40}$/i.test(p) ? p : null
+})()
 try {
-  const padrino = new URLSearchParams(window.location.search).get('r')
-  if (padrino && /^[a-z0-9_-]{1,40}$/i.test(padrino)) localStorage.setItem('pokedoc-referido', padrino)
+  if (padrinoDeLaDireccion) localStorage.setItem('pokedoc-referido', padrinoDeLaDireccion)
 } catch {}
+
+// La llegada de una invitación (1298, PINGU: «que la persona invitada sepa
+// quién la invita»): quien llega por /r/<usuario> viene a crear cuenta, así
+// que se abre el registro, y encima va la cara de quien invita y el logro que
+// se lleva. Un usuario que no existe deja el registro de siempre, sin aviso.
+async function pintarPadrino(usuario) {
+  showStep('register')
+  const caja = document.getElementById('authPadrino')
+  if (!caja) return
+  try {
+    const { data: p } = await supabase.from('user_profiles').select('id, username, display_name, avatar_url').eq('username', usuario).maybeSingle()
+    if (!p) return
+    const nombre = p.display_name || p.username
+    caja.innerHTML = `<span class="auth-padrino-cara" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
+      <p class="auth-padrino-t"><b>${escapeHtml(nombre)}</b> te invita a PokeDoc</p>
+      <p class="auth-padrino-logro">Al crear tu cuenta, logro «Invitado de honor» · +25 XP</p>`
+    caja.hidden = false
+  } catch {}
+}
+if (padrinoDeLaDireccion) pintarPadrino(padrinoDeLaDireccion)
 
 function setError(stepEl, message) {
   const errorEl = stepEl.querySelector('.auth-error')

@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (545) — PINGU-Claude (1298 — el enlace de invitación a la vista)
+
+**Hecho**: R1 + R2 + R3 de la propuesta «Enlaces e invitaciones» (PINGU: «dale
+con lo recomendado»). El enlace /r/<usuario> y sus logros ya existían, pero solo
+en Ajustes. Ahora: (R1) la tarjeta «Invita a tus amigos» en TU perfil —en el PC
+en la columna de la derecha, en el móvil después de la de cambios—, con el
+enlace y Copiar, «Compartir invitación», a quién has traído con sus caras y lo
+que falta para «Embajador» / «Embajador de oro»; (R2) «Invita a un amigo» en el
+menú del avatar; las dos abren la hoja de compartir con una imagen nueva (el
+marco de las redes, «Únete a PokeDoc», tu cara y un QR a tu enlace); (R3) quien
+llega por /r/<usuario> ve el registro abierto y encima «X te invita a PokeDoc»
+con su cara y el logro «Invitado de honor». Sin migración.
+
+**Ficheros**: js/invitar-puro.js, js/invitar.js, js/invitar-hoja.js (nuevos),
+js/perfil.js, perfil.html, css/perfil.css, js/menu-tu.js, auth.html,
+js/auth.js, css/auth.css, SCHEMA.md, BITACORA.md, novedades.json. En `pruebas`:
+test-tanda-1298-pantalla.
+
+**Pendiente**: subir cuando PINGU diga (con 1295b, 1296 y 1297). La propuesta
+«Vitrina y perfil» (vitrina, botones, pestañas, pegar la lista de un set) espera
+su respuesta.
+
 ## 2026-11-12 (544) — PINGU-Claude (1297 — los enlaces del evento dentro del póster)
 
 **Hecho**: la A de la propuesta «Enlaces e invitaciones» (PINGU: «los enlaces

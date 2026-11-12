@@ -1812,6 +1812,80 @@ button.pf-logros:hover em { color: var(--text); }
 .ps-pie { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
 .ps-pie b { color: var(--text); }
 
+/* Invita a tus amigos (1298, js/invitar.js): solo en tu perfil. Un tinte del
+   acento de Comunidad para que se distinga de cambios y seguidores. */
+.perfil-invitar {
+  --inv: #c62a5c;
+  --inv-texto: var(--blanco-fijo);
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-sm);
+  padding: var(--e-md);
+  border: 1px solid color-mix(in srgb, var(--inv) 35%, var(--border));
+  border-radius: var(--radius-xl);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--inv) 14%, var(--white)) 0%, var(--white) 70%);
+}
+.perfil-invitar[hidden] { display: none; }
+/* El rosa de Comunidad (el de su `--acento`), también fuera de su sección. */
+:root[data-theme='dark'] .perfil-invitar { --inv: #f06c9b; --inv-texto: #0b1219; }
+.inv-cab h2 { display: flex; align-items: center; gap: var(--e-xs); margin: 0; font-size: var(--t-md); }
+.inv-cab svg { color: var(--inv); }
+.inv-lema { margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.inv-enlace {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-width: 0;
+  padding: var(--e-xs) var(--e-xs) var(--e-xs) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+}
+.inv-enlace code { flex: 1; min-width: 0; overflow: hidden; font-size: var(--t-xs); text-overflow: ellipsis; white-space: nowrap; }
+.inv-copiar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 32px;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  cursor: pointer;
+}
+.inv-compartir { justify-content: center; width: 100%; background: var(--inv); color: var(--inv-texto); }
+.inv-traidos { display: flex; align-items: center; gap: var(--e-sm); margin: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.inv-caras { display: flex; }
+.inv-caras .mini-avatar {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  margin-left: calc(-1 * var(--e-xs));
+  border: 2px solid var(--white);
+  border-radius: 50%;
+  color: var(--blanco-fijo);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  place-items: center;
+}
+.inv-caras .mini-avatar:first-child { margin-left: 0; }
+/* Al dedo, Copiar mide 44 (la 312). */
+@media (pointer: coarse) { .inv-copiar { min-height: 44px; } }
+.inv-progreso { display: grid; gap: var(--e-xs); }
+.inv-progreso small { color: var(--text-mid); font-size: var(--t-xs); }
+.inv-barra { display: block; height: 8px; overflow: hidden; border-radius: var(--radius-pill); background: var(--ice); }
+.inv-barra i { display: block; width: calc(var(--pct, 0) * 1%); height: 100%; border-radius: inherit; background: var(--inv); }
+.inv-logros { display: flex; flex-wrap: wrap; gap: var(--e-xs); margin: 0; padding: 0; list-style: none; font-size: var(--t-xs); font-weight: 600; }
+.inv-logros li { display: inline-flex; align-items: center; gap: var(--e-xs); padding: 2px var(--e-sm) 2px 2px; border-radius: var(--radius-pill); background: var(--ice); color: var(--text-mid); }
+.inv-logros li span { display: grid; width: 20px; height: 20px; border-radius: 50%; background: var(--border-strong); color: var(--text); font-size: var(--t-2xs); place-items: center; }
+.inv-logros li.si { color: var(--text); }
+.inv-logros li.si span { background: #f5c04a; color: #2a1a00; }
+
 /* En el PC: la cabecera a lo ancho de la columna de 1.160, las losas, y las
    pestañas con la columna de 340 a la derecha, quieta al bajar. */
 @media (min-width: 1000px) {
@@ -1826,6 +1900,8 @@ button.pf-logros:hover em { color: var(--text); }
   .perfil-rejilla > .perfil-losas { grid-column: 1 / -1; }
   .perfil-cuerpo { grid-column: 1; }
   .perfil-lado { grid-column: 2; position: sticky; top: 88px; }
+  /* Con tres tarjetas (1298) no cabe en una pantalla baja: pegada, su final no se vería. */
+  @media (max-height: 860px) { .perfil-lado { position: static; } }
   .perfil-rejilla > .profile-hero { margin: 0; overflow: hidden; border: 1px solid var(--border); border-radius: var(--radius-xl); background: var(--white); }
   .perfil-rejilla .profile-hero-banner { height: 200px; border-radius: 0; }
   .perfil-rejilla .profile-hero-banner.profile-hero-banner-vacio { height: 136px; }
@@ -1894,6 +1970,8 @@ button.pf-logros:hover em { color: var(--text); }
   .perfil-rejilla > .profile-hero { order: 0; }
   .perfil-rejilla > .perfil-losas { order: 1; }
   .perfil-lado .perfil-trueque { order: 2; margin-top: var(--e-sm); }
+  .perfil-lado .perfil-invitar { order: 2; margin-top: var(--e-sm); }
+  .perfil-invitar .inv-lema, .perfil-invitar .inv-logros { display: none; }
   .perfil-cuerpo { order: 3; }
   .perfil-lado .perfil-seguidores,
   .pf-logros,

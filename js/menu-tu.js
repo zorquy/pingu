@@ -119,6 +119,7 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
     <div class="tu-avisos-sitio"></div>
     <nav class="tu-lista" aria-label="Más">
       ${tienda ? `<a href="${miEscaparate}">${icons.users(20)}<span>Tu perfil público</span></a>` : `${doc.documentElement.dataset.seccion ? `<button type="button" data-tu="bienvenida">${icons.compass(20)}<span>Qué hay en esta sección</span></button>` : ''}
+      ${profile?.username ? `<button type="button" data-tu="invitar">${icons.gift(20)}<span>Invita a un amigo</span></button>` : ''}
       <a href="/ajustes">${icons.settings(20)}<span>Ajustes</span></a>
       <a class="tu-apoyar" href="${KOFI}" target="_blank" rel="noopener" title="Un café en Ko-fi">${taza(20)}<span>Apoyar PokeDoc</span></a>`}
       <button type="button" class="tu-salir" id="navUserSignOut">${icons.logOut(20)}<span>Salir</span></button>
@@ -166,6 +167,12 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
         t.innerHTML = aOscuro ? icons.sun(18) : icons.moon(18)
         t.setAttribute('aria-label', aOscuro ? 'Cambiar al tema claro' : 'Cambiar al tema oscuro')
       }, 0)
+      return
+    }
+    // Invita a un amigo (1298): la hoja con tu enlace y la imagen, aquí mismo.
+    if (e.target.closest('[data-tu="invitar"]')) {
+      dropdown.classList.add('hidden')
+      import('./invitar-hoja.js').then((m) => m.abrirInvitar(profile)).catch(() => {})
       return
     }
     // La bienvenida de la sección (1239), cuando quieras: se cierra el menú.
