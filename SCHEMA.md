@@ -55204,6 +55204,38 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1302 — Los avisos de cada jornada de una liga
+
+PINGU eligió la J1 de «Ligas y jornadas»: la víspera y los resultados, en
+Telegram y en la campanita. Hasta aquí solo se avisaba al abrir inscripciones
+(telegram-torneos, torneos-barredor), y una liga abre una vez.
+
+- **Lo puro**: `js/torneos/liga-en-curso.js`. `jornadasDeLiga(t, rondas)` da cada
+  jornada con su estado (`hecha`, `saltada` —cerrada sin `started_at`, la 833—,
+  `en_juego`, `pendiente`), su fecha (`matchday_dates`) y su cierre (el
+  `closed_at` más tardío de sus rondas), y la `siguiente`. Las cuentas de rondas
+  por jornada son las de rondas-jornada.js. `jornadaDeVispera` (fecha en las
+  próximas 24 h y sin empezar), `jornadaRecienTerminada` (la última jugada,
+  cerrada hace menos de 24 h; una saltada no cuenta) y `clasificacionDeLiga`,
+  que monta el snapshot como `montarSnapshot` de ronda.js y pasa por
+  `computeStandings` del motor, sin los que se dieron de baja.
+- **La función**: `netlify/functions/ligas-jornadas.mjs`, cada 15 minutos, por
+  las ligas en `registration_open/closed` o `in_progress`. Telegram con
+  `mensajeDeJornada` / `mensajeDeResultados` (netlify/lib/telegram.mjs, «Hoy» o
+  «Mañana» por el día de Madrid con `diaRelativoEs`). La campanita, tipo
+  `torneo_jornada` con `pushed_at` a null (la empuja enviar-push), con
+  `campanitaDeVispera` según tenga lista o no, enlace a `#torneoMisJornadas`.
+- **Una vez**: `tournament_matchday_avisos (tournament_id, matchday, canal)` con
+  canal `telegram`, `campanita` o `resultados`. La campanita se apunta ANTES
+  (ignore-duplicates con `return=representation`: si no vuelve fila, otra pasada
+  se adelantó); Telegram DESPUÉS (si falla, se reintenta; el freno es el tiempo,
+  porque fuera de su día ya no toca). Sin la tabla no se manda nada y el estado
+  dice `parado` (/admin en rojo). Estado en `scrydex_estado.ligas_jornadas`, en
+  `PASADAS`.
+- **`liga_listas_jornada(p_torneo, p_jornada)`**: cuántos inscritos activos han
+  mandado lista para una jornada (security definer, solo el número), para la
+  franja de la 1303.
+
 ## Tanda 1301 — El panel de Inicio con color y la mascota que habla
 
 PINGU eligió la A de «El panel de Inicio» («me parece que está muy plano… me

@@ -16,7 +16,7 @@ export const GRUPOS_CAMPANITA = [
   { id: 'foro', titulo: 'Respuestas y reacciones en el foro', tipos: ['forum_reply', 'forum_reaction'] },
   { id: 'seguidores', titulo: 'Nuevos seguidores', tipos: ['new_follower'] },
   { id: 'seguidos', titulo: 'Guías nuevas de quien sigues', tipos: ['followed_guide_published'] },
-  { id: 'torneo', titulo: 'Tu torneo: la ronda, tu partida, la plaza y el final', tipos: ['torneo_ronda', 'torneo_partida', 'torneo_final', 'torneo_cancelado', 'torneo_recordatorio', 'torneo_plaza'] },
+  { id: 'torneo', titulo: 'Tu torneo: la ronda, tu partida, la plaza, la jornada de tu liga y el final', tipos: ['torneo_ronda', 'torneo_partida', 'torneo_final', 'torneo_cancelado', 'torneo_recordatorio', 'torneo_plaza', 'torneo_jornada'] },
   { id: 'torneo-apertura', titulo: 'Torneos nuevos con inscripciones abiertas', tipos: ['torneo_apertura'] },
   { id: 'torneo-juez', titulo: 'Cuando llaman a un juez en un torneo tuyo', tipos: ['torneo_juez'] },
   { id: 'cambios', titulo: 'Cuando alguien da una carta que buscas', tipos: ['trade_match', 'trade_match_seguido'] },
@@ -33,7 +33,7 @@ export const GRUPOS_CORREO = [
   { id: 'seguidores', titulo: 'Seguidores nuevos', tipos: ['new_follower'] },
   { id: 'revision', titulo: 'Cuando tu guía se aprueba o necesita cambios', tipos: ['guide_approved', 'guide_rejected'] },
   { id: 'resumen', titulo: 'El resumen semanal de la comunidad', tipos: ['weekly_digest'] },
-  { id: 'torneo', titulo: 'Tu torneo: la ronda, tu partida, la plaza y el final', tipos: ['torneo_partida', 'torneo_recordatorio', 'torneo_cancelado', 'torneo_plaza', 'torneo_ronda', 'torneo_final'] },
+  { id: 'torneo', titulo: 'Tu torneo: la ronda, tu partida, la plaza, la jornada de tu liga y el final', tipos: ['torneo_partida', 'torneo_recordatorio', 'torneo_cancelado', 'torneo_plaza', 'torneo_jornada', 'torneo_ronda', 'torneo_final'] },
 ]
 
 // Los grupos que tienen sentido para ESTA lista de tipos, y un grupo propio
@@ -93,7 +93,7 @@ export const SECCIONES_AVISOS = [
     { id: 'seguidos', titulo: 'Guías nuevas de quien sigues', tipos: ['followed_guide_published'] },
   ] },
   { id: 'torneos', titulo: 'Torneos', filas: [
-    { id: 'torneo', titulo: 'Tu torneo: la ronda, tu partida, la plaza y el final', tipos: ['torneo_ronda', 'torneo_partida', 'torneo_final', 'torneo_cancelado', 'torneo_recordatorio', 'torneo_plaza'] },
+    { id: 'torneo', titulo: 'Tu torneo: la ronda, tu partida, la plaza, la jornada de tu liga y el final', tipos: ['torneo_ronda', 'torneo_partida', 'torneo_final', 'torneo_cancelado', 'torneo_recordatorio', 'torneo_plaza', 'torneo_jornada'] },
     { id: 'torneo-aviso', titulo: 'Avisos del organizador durante un torneo', tipos: ['torneo_aviso'] },
     { id: 'torneo-apertura', titulo: 'Torneos nuevos con inscripciones abiertas', tipos: ['torneo_apertura'] },
     { id: 'torneo-juez', titulo: 'Cuando llaman a un juez en un torneo tuyo', tipos: ['torneo_juez'] },

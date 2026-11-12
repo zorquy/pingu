@@ -39,6 +39,7 @@ export const NOTIFICATION_TYPES = {
   torneo_cancelado: 'Si se cancela un torneo en el que estás',
   torneo_recordatorio: 'Aviso de que tu torneo va a empezar',
   torneo_plaza: 'Cuando la lista de espera te da plaza',
+  torneo_jornada: 'La víspera de cada jornada de tu liga',
   torneo_apertura: 'Torneos nuevos con inscripciones abiertas',
   // Solo le llega a quien organiza o arbitra un torneo.
   torneo_juez: 'Cuando llaman a un juez en un torneo tuyo',
@@ -116,6 +117,7 @@ export const EMAIL_TYPES = {
   torneo_recordatorio: 'Aviso de que tu torneo va a empezar',
   torneo_cancelado: 'Si se cancela un torneo en el que estás',
   torneo_plaza: 'Cuando la lista de espera te da plaza',
+  torneo_jornada: 'La víspera de cada jornada de tu liga',
   torneo_ronda: 'Cuando empieza tu ronda',
   torneo_aviso: 'Avisos del organizador durante un torneo',
   // `torneo_apertura` ya no está: desde el 2026-09-02 la apertura de un

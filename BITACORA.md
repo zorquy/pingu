@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (549) — PINGU-Claude (1302 — los avisos de cada jornada de una liga)
+
+**Hecho**: la J1 de «Ligas y jornadas» (PINGU: «no se están enviando al Telegram
+avisos porque no es un nuevo torneo»). Función programada nueva
+`ligas-jornadas` (cada 15 min): la VÍSPERA de cada jornada (24 h antes, si no ha
+empezado) sale a Telegram, al tema de torneos con la portada («Jornada 6 de 10 ·
+Mañana, viernes 13 a las 19:00 · manda tu lista»), y a la campanita de los
+inscritos (tipo nuevo `torneo_jornada`; el push lo empuja enviar-push): «Ya tienes
+tu lista» o «Manda tu lista». Al CERRARSE una jornada (en el día), a Telegram con
+los tres primeros de la clasificación de la liga. Cada aviso una vez, apuntado en
+`tournament_matchday_avisos`; una liga con código no sale en Telegram. Lo puro
+(jornadas, víspera, terminada, clasificación) en `js/torneos/liga-en-curso.js`,
+que usa también la web.
+
+**Ficheros**: js/torneos/liga-en-curso.js, netlify/functions/ligas-jornadas.mjs,
+supabase-migration-1302-ligas-jornadas.sql (nuevos), netlify/lib/telegram.mjs,
+admin/js/semaforo.js, js/avisos-prefs.js, js/notifications.js, SCHEMA.md,
+BITACORA.md, novedades.json. En `pruebas`: test-tanda-1302 (lo puro, la función
+con dobles y la migración contra PostgreSQL).
+
+**Pendiente**: ejecutar `supabase-migration-1302-ligas-jornadas.sql`. Sin ella la
+función no manda nada (no podría apuntarlo) y /admin la pone en rojo «falta la
+migración 1302». Subir cuando PINGU diga.
+
 ## 2026-11-12 (548) — PINGU-Claude (1301 — el panel de Inicio con color y la mascota que habla)
 
 **Hecho**: la A de la propuesta «El panel de Inicio» (PINGU: «me gusta la

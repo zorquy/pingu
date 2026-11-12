@@ -89,6 +89,48 @@ export function mensajeDeTorneo(torneo, { limite = 1024, ahora = new Date() } = 
   return `${titulo}${ficha ? `\n\n${ficha}` : ''}${resumen ? `\n\n${resumen}` : ''}${enlace}`
 }
 
+// «Hoy» o «Mañana» en la hora de España (la víspera de una jornada cae en
+// una de las dos); null si es otro día. Se mira el DÍA de Madrid, no la
+// resta de horas: a las 23:00 una jornada de las 19:00 del día siguiente es
+// «mañana» aunque falten 20 horas.
+export function diaRelativoEs(iso, ahora = new Date()) {
+  const dia = (d) => new Intl.DateTimeFormat('en-CA', { timeZone: 'Europe/Madrid' }).format(d)
+  const f = new Date(iso)
+  if (Number.isNaN(f.getTime())) return null
+  if (dia(f) === dia(ahora)) return 'Hoy'
+  if (dia(f) === dia(new Date(ahora.getTime() + 24 * 3600e3))) return 'Mañana'
+  return null
+}
+
+const corto = (nombre) => String(nombre || '').replace(/\s*\[[^\]]*\]\s*/g, ' ').trim()
+
+// La víspera de una jornada de liga (1302, la J1 de «Ligas y jornadas»): qué
+// jornada es, cuándo y que manden su lista, porque sin lista no se juega.
+export function mensajeDeJornada(torneo, { n, total, fecha }, { ahora = new Date() } = {}) {
+  const url = `${SITIO}/torneo?slug=${encodeURIComponent(torneo.slug || '')}`
+  const dia = diaRelativoEs(fecha, ahora)
+  const cuando = fechaLargaEs(fecha, { ahora })
+  const linea = cuando ? `${dia ? `${dia}, ` : ''}${cuando}` : ''
+  return [
+    `📅 <b>${escaparTelegram(torneo.name)}</b> · Jornada ${n}${total ? ` de ${total}` : ''}`,
+    linea ? escaparTelegram(linea.charAt(0).toUpperCase() + linea.slice(1)) + '.' : '',
+    'Manda tu lista antes de empezar: sin lista no juegas esta jornada (y sigues en la liga).',
+    `<a href="${escaparTelegram(url)}">Ir a la liga</a>`,
+  ].filter(Boolean).join('\n\n')
+}
+
+// Al cerrar una jornada: los tres primeros de la clasificación de la liga.
+// `podio` son filas { nombre, puntos }.
+export function mensajeDeResultados(torneo, n, podio) {
+  const url = `${SITIO}/torneo?slug=${encodeURIComponent(torneo.slug || '')}`
+  const filas = (podio || []).slice(0, 3).map((p, i) => `${i + 1}. ${escaparTelegram(p.nombre)} — ${p.puntos} ${p.puntos === 1 ? "pt" : "pts"}`)
+  return [
+    `🏆 <b>${escaparTelegram(corto(torneo.name))}</b> · Jornada ${n} terminada`,
+    filas.join('\n'),
+    `<a href="${escaparTelegram(url)}">Clasificación entera</a>`,
+  ].filter(Boolean).join('\n\n')
+}
+
 // La portada, en una dirección que Telegram pueda abrir.
 //
 // A la foto no la sube PokeDoc: se le pasa la URL y va Telegram, desde

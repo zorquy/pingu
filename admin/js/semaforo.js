@@ -35,6 +35,8 @@ export const PASADAS = [
   ['moderacion_al_dia', 'Moderación caducada'],
   // La campanita de los avisos programados y el «se acaba pronto» (1260).
   ['avisos_al_dia', 'Avisos a la campanita'],
+  // La víspera y los resultados de cada jornada de liga (1302).
+  ['ligas_jornadas', 'Jornadas de liga'],
 ]
 
 const DIA_MS = 24 * 60 * 60 * 1000
