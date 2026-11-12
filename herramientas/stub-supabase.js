@@ -24,6 +24,8 @@ const TABLAS_CON_DUENO = ['user_collection', 'user_albums', 'user_wants', 'user_
 
 const T = {
   user_profiles: [],
+  // El cumpleaños, privado (1304); sin la migración, `__SIN_TABLAS__`.
+  user_cumple: [],
   // Las tiendas (1067).
   tiendas: [],
   tienda_solicitudes: [],

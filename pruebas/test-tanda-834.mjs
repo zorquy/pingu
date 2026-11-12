@@ -322,7 +322,7 @@ async function perfil({ play = null, sinTablas = [] } = {}) {
   await page.fill('#ajCumple', '1999-05-20')
   await page.dispatchEvent('#ajCumple', 'change')
   await page.waitForTimeout(900)
-  check('  …y el resto de la cuenta se guarda igual (el cumpleaños)', (await tablas(page)).user_profiles.find((p) => p.id === 'user-1')?.birthday === '1999-05-20', await toasts(page))
+  check('  …y el resto de la cuenta se guarda igual (el cumpleaños, en su tabla privada desde la 1304)', (await tablas(page)).user_cumple.find((p) => p.user_id === 'user-1')?.birthday === '1999-05-20', await toasts(page))
   check('sin errores', !errores.length, errores[0])
   await page.close()
 }
