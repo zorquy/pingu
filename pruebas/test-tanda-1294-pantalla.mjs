@@ -82,6 +82,10 @@ for (const movil of [false, true]) {
       quienAlto: caja('.ev-quien')?.h,
       sobre: q('.ev-sobre .ev-desc')?.textContent,
       datos: document.querySelectorAll('.ev-sobre .ev-datos li').length,
+      enlaces: [...document.querySelectorAll('.ev-poster .ev-enlaces a')].map((a) => a.textContent.trim()),
+      juegos: q('.ev-poster .ev-chips .ev-chapa-juegos')?.textContent,
+      enlacesFuera: document.querySelectorAll('.ev-sobre a[href*="iberiancardshow"]').length,
+      enlacesBlancos: [...document.querySelectorAll('.ev-poster .ev-enlaces a')].every((a) => getComputedStyle(a).color === 'rgb(255, 255, 255)'),
       ancho: document.documentElement.scrollWidth <= innerWidth,
     }
   })
@@ -96,7 +100,9 @@ for (const movil of [false, true]) {
   else check('  …del mismo ancho y del mismo alto', new Set(r.anchos).size === 1 && new Set(r.altos).size === 1, `${r.anchos} / ${r.altos}`)
   check('Quién va: franja con caras, «4 personas van (1 sin decirlo)» y los nombres', r.caras === 3 && /4 personas van/.test(r.quien) && /1 sin decirlo/.test(r.quien) && r.nombres?.split(',').length === 3, JSON.stringify([r.quien, r.nombres]))
   check('  …una franja baja, con la lista plegada', r.quienAlto <= (movil ? 160 : 100) && r.gente === 3 && !r.genteVisible, `${r.quienAlto}px`)
-  check('la descripción y los datos, debajo', r.sobre === 'Más de 120 mesas de compraventa.' && r.datos >= 2)
+  check('la descripción debajo; sin dirección suelta (hay losa de «Dónde»)', r.sobre === 'Más de 120 mesas de compraventa.' && r.datos === 0, r.datos)
+  check('1297: la web DENTRO del póster, en pastilla blanca, y no debajo', r.enlaces.join() === 'iberiancardshow.com' && r.enlacesBlancos && r.enlacesFuera === 0, JSON.stringify(r.enlaces))
+  check('1297: los juegos, con el tipo', r.juegos === 'Pokémon · One Piece', r.juegos)
   check('nada se sale de la pantalla', r.ancho)
   await page.screenshot({ path: `/tmp/1294-${movil ? 'movil' : 'pc'}.png`, fullPage: true })
   await page.click('[data-ver-quien]')
