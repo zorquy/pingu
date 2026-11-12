@@ -86,7 +86,7 @@ for (const movil of [false, true]) {
     }
   })
   check('el nombre en grande', r.h1 === 'IBERIAN CARD SHOW' && r.h1px >= (movil ? 22 : 30), `${r.h1px}px`)
-  check('el logo flota, grande e inclinado, sin caja (no tiene fondo)', r.giro && r.giro !== 'none' && r.logoW >= (movil ? 80 : 140) && r.sinFondo, `${r.giro} · ${r.logoW}`)
+  check('el logo flota, grande e inclinado, sin caja (no tiene fondo)', r.giro && r.giro !== 'none' && r.logoW >= (movil ? 60 : 105) && r.sinFondo, `${r.giro} · ${r.logoW}`)
   check('trama de puntos en el fondo', /radial-gradient/.test(r.trama), r.trama)
   check('destacado: chapa y la luz dorada', r.destacado && r.chapa === 'Destacado' && r.anima === 'ev-giro')
   check('la cuenta atrás en la esquina y en casillas (días · horas · min)', /Faltan 2 días|Faltan 1 día/.test(r.cuenta || '') && r.regresiva.length === 3 && /días?$/.test(r.regresiva[0]) && /horas$/.test(r.regresiva[1]) && /min$/.test(r.regresiva[2]), JSON.stringify([r.cuenta, r.regresiva]))

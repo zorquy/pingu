@@ -3106,7 +3106,9 @@ export const supabase = {
         const caras = as.filter((a) => !a.oculto).slice(0, n).map((a) => { const p = T.user_profiles.find((x) => x.id === a.user_id) || { id: a.user_id }; return { id: p.id, username: p.username, display_name: p.display_name, avatar_url: p.avatar_url || null } })
         const mia = as.find((a) => a.user_id === yo)
         const { asistentes, ...resto } = e
-        return { ...resto, van: as.length, caras, voy: !!mia, oculto: !!mia?.oculto }
+        // 1295: tu puesto contando a todos (también los «sin decirlo»); `__SIN_1295__` lo quita.
+        const extra = (typeof window !== 'undefined' && window.__SIN_1295__) ? {} : { mi_numero: mia ? as.indexOf(mia) + 1 : 0 }
+        return { ...resto, van: as.length, caras, voy: !!mia, oculto: !!mia?.oculto, ...extra }
       }
       const pub = evs.filter((e) => e.publicado !== false)
       if (nombre === 'eventos_lista') return { data: pub.slice().sort((a, b) => new Date(a.empieza) - new Date(b.empieza)).map((e) => json(e, 5)), error: null }
