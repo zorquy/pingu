@@ -99,14 +99,46 @@ export function cuandoEs(fecha, ahora = Date.now()) {
 // detalle debajo. `rotulo` se queda para quien escucha: «Reto de hoy:
 // Hecho, 4 de 5». Con `logo` (1010, el del set que sale), el logo va en el
 // sitio del detalle; si no carga, se queda el nombre.
-const ficha = ({ href, icono, rotulo, titular, sub, logo = '', hecho = false, destaca = false }) => `
-  <a class="hoy-ficha${hecho ? ' hoy-hecho' : ''}${destaca ? ' hoy-destaca' : ''}" href="${escapeHtml(href)}" aria-label="${escapeHtml([rotulo, titular, sub].filter(Boolean).join(': '))}">
+// La barra de un lanzamiento (1301): se llena en los últimos 90 días; con
+// más de 90, un poquito. Puro.
+export function barraDeLanzamiento(fecha, ahora = Date.now()) {
+  const d = Math.round((Date.parse(`${String(fecha).slice(0, 10)}T00:00:00Z`) - Date.parse(`${hoyISO(ahora)}T00:00:00Z`)) / DIA)
+  if (!Number.isFinite(d)) return null
+  return Math.max(4, Math.min(100, 100 - (d / 90) * 100))
+}
+
+// Lo que dice la mascota (1301): dos frases como mucho, de lo más urgente a lo
+// menos (jugar hoy o mañana, lo que más sube, los retos que quedan, la
+// colección). Sin nada que decir, null y no sale el bocadillo. Puro.
+export function fraseDeHoy({ torneo = null, retos = null, mes = null, sube = null } = {}, ahora = Date.now()) {
+  const frases = []
+  const cuando = torneo ? cuandoEs(torneo.start_at, ahora) : ''
+  if (torneo && /^(hoy|mañana)$/.test(cuando)) {
+    const quien = torneo.jornada ? `la jornada ${torneo.jornada} de ${nombreCorto(torneo.name)}` : nombreCorto(torneo.name)
+    frases.push(`${cuando === 'hoy' ? 'Hoy' : 'Mañana'} juegas ${quien}.`)
+  }
+  if (sube?.nombre && sube.pct > 0) frases.push(`¡${sube.nombre} sube un ${Math.round(sube.pct)} %!`)
+  if (retos) {
+    const quedan = retos.total - retos.hechos
+    if (quedan > 0) frases.push(quedan === retos.total ? `Tienes ${retos.total} retos esperándote.` : `Te ${quedan === 1 ? 'queda 1 reto' : `quedan ${quedan} retos`} de hoy.`)
+    else frases.push('¡Has hecho todos los retos de hoy!')
+  }
+  if (mes && Math.abs(mes.cambio) >= 1) frases.push(`Tu colección ${mes.cambio > 0 ? 'sube' : 'baja'} ${conMiles.format(Math.abs(mes.cambio))} este mes.`)
+  return frases.length ? frases.slice(0, 2).join(' ') : null
+}
+
+// Desde la 1301 (PINGU eligió la A de «Cinco maneras de que el panel de
+// Inicio no sea plano»): cada ficha lleva el color de su SECCIÓN (`sec`) y,
+// si se sabe, una barra de «cuánto» (`pct`: la jornada de la liga, lo que
+// falta para el lanzamiento).
+const ficha = ({ href, icono, rotulo, titular, sub, logo = '', hecho = false, destaca = false, sec = '', pct = null }) => `
+  <a class="hoy-ficha${sec ? ` hoy-sec-${sec}` : ''}${hecho ? ' hoy-hecho' : ''}${destaca ? ' hoy-destaca' : ''}" href="${escapeHtml(href)}" aria-label="${escapeHtml([rotulo, titular, sub].filter(Boolean).join(': '))}"${pct != null ? ` style="--pct:${Math.max(4, Math.min(100, Math.round(pct)))}"` : ''}>
     <span class="hoy-ficha-icono" aria-hidden="true">${icons[icono]?.(22) || ''}</span>
     <b>${escapeHtml(titular)}</b>${
       logo
         ? `<span class="hoy-ficha-logo"><img src="${escapeHtml(logo)}" alt="${escapeHtml(sub || '')}" width="120" height="32" loading="lazy" decoding="async" referrerpolicy="no-referrer" onerror="this.replaceWith(this.alt)"></span>`
         : sub ? `<span>${escapeHtml(sub)}</span>` : ''
-    }
+    }${pct != null ? '<i class="hoy-barra" aria-hidden="true"></i>' : ''}
   </a>`
 
 // La ficha del foro (1010): los temas que sigues —escribir en uno te
@@ -115,9 +147,10 @@ const ficha = ({ href, icono, rotulo, titular, sub, logo = '', hecho = false, de
 // nuevo» con temas por leer. Con uno solo, la ficha lleva a ese tema. Puro.
 function fichaForo(hilos) {
   const n = hilos?.cuenta
-  if (n == null) return { href: '/foro.html', icono: 'messageSquare', rotulo: 'Tus temas', titular: 'El foro', sub: 'De lo que se habla' }
-  if (!n) return { href: '/foro.html', icono: 'messageSquare', rotulo: 'Tus temas', titular: 'Nada nuevo', sub: 'en los temas que sigues' }
+  if (n == null) return { href: '/foro.html', icono: 'messageSquare', rotulo: 'Tus temas', titular: 'El foro', sub: 'De lo que se habla', sec: 'comunidad' }
+  if (!n) return { href: '/foro.html', icono: 'messageSquare', rotulo: 'Tus temas', titular: 'Al día', sub: 'en los temas que sigues', sec: 'comunidad' }
   return {
+    sec: 'comunidad',
     href: n === 1 && hilos.uno ? urlTema(hilos.uno) : '/foro.html',
     icono: 'messageSquare',
     rotulo: 'Tus temas',
@@ -131,6 +164,7 @@ function fichaForo(hilos) {
 export function fichasHtml({ retos = null, torneo = null, lanzamiento = null, hilos = null } = {}, ahora = Date.now()) {
   const cuando = torneo ? cuandoEs(torneo.start_at, ahora) : ''
   // Con la hora si es hoy o mañana (879): «Torneo hoy a las 19:00».
+  const jornadas = Array.isArray(torneo?.matchday_dates) ? torneo.matchday_dates.length : 0
   const hora = torneo && /^(hoy|mañana)$/.test(cuando) && Number.isFinite(Date.parse(torneo.start_at)) ? ` a las ${new Date(torneo.start_at).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}` : ''
   return [
     // Los seis retos (843); sin saber lo de hoy, la ficha sin cuenta (989:
@@ -138,13 +172,13 @@ export function fichasHtml({ retos = null, torneo = null, lanzamiento = null, hi
     fichaRetosHtml(retos),
     ficha(
       torneo
-        ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: /^\d/.test(cuando) ? `Torneo el ${cuando}` : `Torneo ${cuando}${hora}`, sub: torneo.jornada ? `${nombreCorto(torneo.name)} · jornada ${torneo.jornada}` : nombreCorto(torneo.name) }
-        : { href: '/torneos.html', icono: 'trophy', rotulo: 'Torneos', titular: 'Torneos', sub: 'Ninguno a la vista' }
+        ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', sec: 'jugar', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: /^\d/.test(cuando) ? `Torneo el ${cuando}` : `Torneo ${cuando}${hora}`, sub: torneo.jornada ? `${nombreCorto(torneo.name)} · jornada ${torneo.jornada}${jornadas ? ` de ${jornadas}` : ''}` : nombreCorto(torneo.name), pct: torneo.jornada && jornadas ? (torneo.jornada / jornadas) * 100 : null }
+        : { href: '/torneos.html', icono: 'trophy', sec: 'jugar', rotulo: 'Torneos', titular: 'Torneos', sub: 'Ninguno a la vista' }
     ),
     ficha(
       lanzamiento
-        ? { href: '/lanzamientos.html', icono: 'calendar', rotulo: 'Próximo lanzamiento', titular: `Sale ${cuandoEs(lanzamiento.fecha, ahora)}`, sub: lanzamiento.nombre, logo: lanzamiento.logo || '' }
-        : { href: '/lanzamientos.html', icono: 'calendar', rotulo: 'Lanzamientos', titular: 'Lanzamientos', sub: 'El calendario' }
+        ? { href: '/lanzamientos.html', icono: 'calendar', sec: 'cartas', rotulo: 'Próximo lanzamiento', titular: `Sale ${cuandoEs(lanzamiento.fecha, ahora)}`, sub: lanzamiento.nombre, logo: lanzamiento.logo || '', pct: barraDeLanzamiento(lanzamiento.fecha, ahora) }
+        : { href: '/lanzamientos.html', icono: 'calendar', sec: 'cartas', rotulo: 'Lanzamientos', titular: 'Lanzamientos', sub: 'El calendario' }
     ),
     ficha(fichaForo(hilos)),
   ].join('')
@@ -237,7 +271,7 @@ export function valorHtml(filas, { productos = 0 } = {}) {
   const mes = cambioDelMes(filas)
   const tono = mes ? (mes.cambio > 0 ? 'sube' : mes.cambio < 0 ? 'baja' : 'igual') : ''
   const sentido = mes && mes.cambio > 0 ? 'Sube ' : mes && mes.cambio < 0 ? 'Baja ' : ''
-  return `<a class="hoy-valor" href="/mi-coleccion">
+  return `<a class="hoy-valor hoy-sec-cartas" href="/mi-coleccion">
     <span class="hoy-valor-texto">
       <small>Tu colección</small>
       <b>${escapeHtml(conMiles.format(Number(ultimo.valor) + (Number(productos) || 0)))}</b>
@@ -372,6 +406,23 @@ export async function montarHoy(session, { doc = document } = {}) {
   // El logo, el mismo que la miniatura de la portada sin cuenta (home.js).
   const lanzamiento = sets?.[0] ? { nombre: sets[0].name || sets[0].name_en, fecha: sets[0].release_date, logo: sets[0].logo_scrydex || sets[0].logo_tcggo || '' } : null
   caja.querySelector('.hoy-rejilla').innerHTML = valorHtml(valor ?? null, { productos: productos?.unidades ? productos.total : 0 }) + fichasHtml({ retos: retos ?? null, torneo, lanzamiento, hilos: hilos ?? null })
+  // Lo que dice la mascota (1301): un bocadillo al lado del abanico, con lo
+  // de hoy; si llega después lo que más sube (escaparate.js), se rehace.
+  const decir = () => {
+    const hueco = doc.querySelector('.banda .bienvenida')
+    const abanico = hueco?.querySelector('.banda-abanico')
+    if (!abanico) return
+    const frase = fraseDeHoy({ torneo, retos: retos ? { hechos: retos.hechos.size, total: retos.total } : null, mes: valor?.length ? cambioDelMes(valor) : null, sube: globalThis.__pdSube || null })
+    let globo = hueco.querySelector('.banda-bocadillo')
+    if (!frase) return globo?.remove()
+    if (!globo) {
+      abanico.insertAdjacentHTML('beforebegin', '<p class="banda-bocadillo" aria-live="polite"></p>')
+      globo = hueco.querySelector('.banda-bocadillo')
+    }
+    globo.textContent = frase
+  }
+  decir()
+  doc.addEventListener('pd-sube', decir, { once: true })
   // La cifra cuenta desde la de la última vez (783, MV2).
   const cifra = caja.querySelector('.hoy-valor b:not(.hoy-valor-invita)')
   if (cifra && valor?.length) {

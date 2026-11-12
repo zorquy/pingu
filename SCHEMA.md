@@ -55204,6 +55204,29 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1301 — El panel de Inicio con color y la mascota que habla
+
+PINGU eligió la A de «El panel de Inicio» («me parece que está muy plano… me
+gusta cómo has dinamizado lo de las cartas que más suben y la mascota»).
+
+- **Color por sección**: `ficha()` (js/hoy.js) recibe `sec` y pone
+  `hoy-sec-<sec>`; `css/hoy.css` da `--sec` a cada una (claro y oscuro) y pinta
+  una franja de 4 px con `::before` (un `border-top` en una caja redondeada se
+  curvaba en arco) y la caja del icono teñida. Retos (portada-retos.js) y la
+  colección (`valorHtml`) también la llevan.
+- **Barras**: `pct` en `ficha()` escribe `--pct` y un `<i class="hoy-barra">`.
+  El torneo: jornada/`matchday_dates.length` en una liga. El lanzamiento:
+  `barraDeLanzamiento(fecha)`, de 4 a 100 en los 90 días anteriores.
+- **El bocadillo**: `fraseDeHoy({torneo, retos, mes, sube})`, pura, dos frases
+  como mucho en este orden: jugar hoy/mañana, lo que más sube (de
+  `globalThis.__pdSube`, que pone el abanico de `escaparate.js` al pintarse y
+  avisa con `pd-sube`), los retos y el cambio del mes (`cambioDelMes`). Se pinta
+  en `.banda-bocadillo` antes del abanico, con `aria-live`; null = no se pinta.
+  En el móvil va a lo ancho y sin cola.
+- **Perfil (arreglo de la 1298)**: `#perfilInvitar` nace sin `hidden` y, vacía
+  en el móvil, ocupa 160 px (`:empty`), porque llegaba con la sesión encima de
+  las pestañas (CLS 0,128 en la 981). Si su módulo falla, se esconde.
+
 ## Tanda 1300 — «Pegar lista» de un set en /admin
 
 - **Lo puro** (`admin/js/lista-set-puro.js`): `filasDeLista(texto)` entiende

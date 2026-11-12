@@ -295,3 +295,107 @@
   letter-spacing: 0.08em;
   white-space: nowrap;
 }
+
+/* 1301 (la A de «Cinco maneras…»): cada ficha con el color de su SECCIÓN
+   (los de `--acento` de style.css), una franja arriba y su icono teñido, y la
+   barra de «cuánto» (`--pct`). Y el bocadillo de la mascota. */
+.hoy-sec-cartas { --sec: #9a5f06; }
+.hoy-sec-aprender { --sec: #0f7f55; }
+.hoy-sec-comunidad { --sec: #c62a5c; }
+.hoy-sec-jugar { --sec: #5f43d9; }
+:root[data-theme='dark'] .hoy-sec-cartas { --sec: #e4b44a; }
+:root[data-theme='dark'] .hoy-sec-aprender { --sec: #2fb47c; }
+:root[data-theme='dark'] .hoy-sec-comunidad { --sec: #f06c9b; }
+:root[data-theme='dark'] .hoy-sec-jugar { --sec: #9b7bff; }
+.hoy-valor[class*='hoy-sec-'],
+.hoy-ficha[class*='hoy-sec-'] {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s var(--ease), box-shadow 0.2s var(--ease), border-color 0.2s var(--ease);
+}
+.hoy-valor[class*='hoy-sec-']::before,
+.hoy-ficha[class*='hoy-sec-']::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--sec);
+}
+.hoy-valor[class*='hoy-sec-']:hover,
+.hoy-ficha[class*='hoy-sec-']:hover {
+  border-color: var(--sec);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
+}
+.hoy-ficha[class*='hoy-sec-']:not(.hoy-destaca) .hoy-ficha-icono {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--sec) 16%, transparent);
+  color: var(--sec);
+  place-items: center;
+}
+.hoy-barra {
+  display: block;
+  height: 6px;
+  margin-top: auto;
+  overflow: hidden;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--sec) 14%, var(--ice));
+}
+.hoy-barra::before {
+  content: '';
+  display: block;
+  width: calc(var(--pct, 0) * 1%);
+  height: 100%;
+  border-radius: inherit;
+  background: var(--sec);
+  animation: hoy-barra-llena 0.9s var(--ease) both;
+}
+.hoy-ficha:has(.hoy-barra) > span:last-of-type { margin-bottom: var(--e-sm); }
+@keyframes hoy-barra-llena { from { width: 0; } }
+
+/* El bocadillo de la mascota, a su izquierda, con la cola hacia ella. */
+.banda-bocadillo {
+  position: relative;
+  align-self: center;
+  max-width: 300px;
+  margin: 0 var(--e-sm) 0 auto;
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  box-shadow: var(--shadow-md);
+  color: var(--text);
+  font-size: var(--t-sm);
+  font-weight: 600;
+  line-height: 1.35;
+  animation: hoy-globo 0.4s var(--ease) both;
+}
+.banda-bocadillo::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -8px;
+  border: 8px solid transparent;
+  border-right: 0;
+  border-left-color: var(--white);
+  transform: translateY(-50%);
+}
+.banda-bocadillo + .banda-abanico { margin-left: 0; }
+@keyframes hoy-globo { from { opacity: 0; transform: translateY(4px) scale(0.96); } }
+@media (max-width: 900px) {
+  .banda-bocadillo { max-width: 200px; font-size: var(--t-xs); }
+}
+@media (max-width: 600px) {
+  .banda-bocadillo { grid-column: 1 / -1; max-width: none; margin: 0; }
+  .banda-bocadillo::after { display: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hoy-barra::before,
+  .banda-bocadillo { animation: none; }
+  .hoy-valor[class*='hoy-sec-'],
+  .hoy-ficha[class*='hoy-sec-'] { transition: none; }
+  .hoy-valor[class*='hoy-sec-']:hover,
+  .hoy-ficha[class*='hoy-sec-']:hover { transform: none; }
+}

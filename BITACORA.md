@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (548) — PINGU-Claude (1301 — el panel de Inicio con color y la mascota que habla)
+
+**Hecho**: la A de la propuesta «El panel de Inicio» (PINGU: «me gusta la
+propuesta recomendada»). Cada ficha de «Hoy» lleva arriba una franja del color
+de su sección (Colección, Aprender, Jugar, Comunidad) y su icono en una caja
+teñida; la del torneo y la del lanzamiento tienen su barra (la liga, «jornada N
+de M»; el lanzamiento se llena según se acerca). La mascota de la banda dice lo
+de hoy en un bocadillo: si juegas hoy o mañana, la carta tuya que más sube, los
+retos que te quedan y cuánto sube o baja tu colección este mes (dos frases como
+mucho; `fraseDeHoy`). El foro sin nada nuevo dice «Al día». De paso, la tarjeta
+de invitar del perfil (1298) llegaba tarde en el móvil y empujaba las pestañas
+166 px (la 981 lo cantó): su sitio va reservado desde el HTML.
+
+**Ficheros**: js/hoy.js, js/portada-retos.js, js/escaparate.js, css/hoy.css,
+perfil.html, css/perfil.css, js/perfil.js, SCHEMA.md, BITACORA.md,
+novedades.json. En `pruebas`: test-tanda-1301 (nueva), 744-pantalla y
+1010-pantalla («Al día»). La portada pesa 146,1 KB (hoy.css solo con sesión).
+
+**Pendiente**: rojos que ya estaban antes de la 1296 (comprobado contra ese
+commit): 981 en /mi-coleccion (0,487), 748 (perfil viejo), 311 (auth.css,
+.bvs-flecha, torneos.css 10px), 1040 /glosario y 1162. Subir cuando PINGU diga.
+
 ## 2026-11-12 (547) — PINGU-Claude (1300 — «Pegar lista» de un set en /admin)
 
 **Hecho**: la L1 de la propuesta (PINGU: «poder pegar una lista o una captura y

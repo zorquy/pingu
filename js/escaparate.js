@@ -68,6 +68,9 @@ export async function pintarAbanico(caja) {
       <img src="${escapeHtml(urlDeImagen(c.image_path, 'low', c.market))}" alt="${escapeHtml(nombreDeCarta(c))}" width="245" height="342" decoding="async" onerror="this.remove()">
       <span class="banda-sube">+${Math.round(sube * 100)} %</span>
     </a>`).join('')}`
+  // Para la mascota (1301): la que más sube, a quien lo quiera contar.
+  globalThis.__pdSube = { nombre: nombreDeCarta(tres[0].carta), pct: tres[0].sube * 100 }
+  caja.ownerDocument?.dispatchEvent(new CustomEvent('pd-sube'))
   return true
 }
 

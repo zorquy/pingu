@@ -231,8 +231,10 @@
     <aside class="perfil-lado" aria-label="Cambios y seguidores">
       <section class="perfil-trueque" id="perfilTrueque" aria-label="Cambios" hidden></section>
       <section class="perfil-seguidores" id="perfilSeguidores" aria-label="Seguidores" hidden></section>
-      <!-- Invita a tus amigos (1298, js/invitar.js): solo en TU perfil. -->
-      <section class="perfil-invitar" id="perfilInvitar" aria-label="Invita a tus amigos" hidden></section>
+      <!-- Invita a tus amigos (1298, js/invitar.js): solo en TU perfil. Sin
+           `hidden`: en el móvil va encima de las pestañas y su sitio se
+           reserva vacío hasta que llega (1301, la 981 lo vio saltar). -->
+      <section class="perfil-invitar" id="perfilInvitar" aria-label="Invita a tus amigos"></section>
     </aside>
     </div>
   </main>

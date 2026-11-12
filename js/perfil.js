@@ -748,7 +748,7 @@ async function init() {
   import('./perfil-trueque.js').then((m) => m.montarTrueque(document.getElementById('perfilTrueque'), { persona: { ...(currentProfile || {}), id: session.user.id }, sesion: session, propia: true })).catch(() => {})
   // Invita a tus amigos (1298): tu enlace /r/<usuario>, quién ha llegado con
   // él y los logros de Embajador. Una tienda no tiene esta tarjeta.
-  import('./invitar.js').then((m) => m.montarTarjetaInvitar(document.getElementById('perfilInvitar'), { perfil: { ...(currentProfile || {}), id: session.user.id }, uid: session.user.id })).catch(() => {})
+  import('./invitar.js').then((m) => m.montarTarjetaInvitar(document.getElementById('perfilInvitar'), { perfil: { ...(currentProfile || {}), id: session.user.id }, uid: session.user.id })).catch(() => { const c = document.getElementById('perfilInvitar'); if (c && !c.childElementCount) c.hidden = true })
   // Lo de abajo solo necesita el perfil, no lo uno de lo otro: todo a la vez
   // (983). Antes los logros esperaban a las cifras, y la vitrina, a los logros.
   // Lo que das y lo que buscas (887): tu pestaña Cambios, siempre.

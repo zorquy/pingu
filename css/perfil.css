@@ -2000,7 +2000,7 @@ button.pf-logros:hover em { color: var(--text); }
   border-radius: var(--radius-xl);
   background: linear-gradient(150deg, color-mix(in srgb, var(--inv) 14%, var(--white)) 0%, var(--white) 70%);
 }
-.perfil-invitar[hidden] { display: none; }
+.perfil-invitar[hidden], .perfil-invitar:empty { display: none; }
 /* El rosa de Comunidad (el de su `--acento`), también fuera de su sección. */
 :root[data-theme='dark'] .perfil-invitar { --inv: #f06c9b; --inv-texto: #0b1219; }
 .inv-cab h2 { display: flex; align-items: center; gap: var(--e-xs); margin: 0; font-size: var(--t-md); }
@@ -2142,6 +2142,8 @@ button.pf-logros:hover em { color: var(--text); }
   .perfil-rejilla > .perfil-losas { order: 1; }
   .perfil-lado .perfil-trueque { order: 2; margin-top: var(--e-sm); }
   .perfil-lado .perfil-invitar { order: 2; margin-top: var(--e-sm); }
+  /* Vacía, su sitio guardado: llega con la sesión y empujaba las pestañas (1301). */
+  .perfil-lado .perfil-invitar:empty:not([hidden]) { display: block; min-height: 160px; border-color: transparent; background: var(--ice); }
   .perfil-invitar .inv-lema, .perfil-invitar .inv-logros { display: none; }
   .perfil-cuerpo { order: 3; }
   .perfil-lado .perfil-seguidores,
