@@ -15,6 +15,7 @@ import { showToast } from './toast.js'
 import { hojaInyectada } from './hoja.js'
 import { NOTIFICATION_TYPES, EMAIL_TYPES, EMAIL_TYPES_EQUIPO } from './notifications.js'
 import { estaActivo, conGrupo, seccionesDeAvisos, estadoDeSeccion, tiposEn } from './avisos-prefs.js'
+import { FIESTAS_CON_DECORACION } from './fiestas-puro.js'
 
 const APARTADOS = [
   { id: 'avisos', nombre: 'Avisos', sub: 'Campanita, correo y push', icono: 'bell' },
@@ -414,9 +415,27 @@ const aparienciaHtml = () => `
     <div class="seg aj-tema" role="group" aria-label="Tema">
       ${[['light', icons.sun(16), 'Claro'], ['dark', icons.moon(16), 'Oscuro'], ['auto', icons.settings(16), 'El del sistema']]
         .map(([v, ic, t]) => `<button type="button" class="seg-btn" data-tema="${v}" aria-pressed="${temaGuardado() === v}">${ic}<span>${t}</span></button>`).join('')}
-    </div>`
+    </div>
+    <h3>Fiestas</h3>
+    ${interruptor({ id: 'decoracion', texto: 'Decoración de las fiestas', detalle: 'Halloween, Navidad… La web se viste sola en las fechas señaladas.', activo: conDecoracion() })}`
+
+// La decoración de las fiestas (1286): apagarla es `pd-sin-<fiesta>` en este
+// navegador, la misma llave que «Quitar la decoración» del pop-up.
+function conDecoracion() {
+  try { return FIESTAS_CON_DECORACION.every((f) => localStorage.getItem(`pd-sin-${f}`) !== '1') } catch { return true }
+}
 
 function montarApariencia(panel) {
+  panel.querySelector('[data-interruptor="decoracion"]')?.addEventListener('change', (e) => {
+    try {
+      for (const f of FIESTAS_CON_DECORACION) {
+        if (e.target.checked) localStorage.removeItem(`pd-sin-${f}`)
+        else localStorage.setItem(`pd-sin-${f}`, '1')
+      }
+    } catch { /* sin almacenamiento: no se puede recordar */ }
+    // Si hoy hay fiesta, se ve al momento.
+    if (document.documentElement.dataset.temporada || e.target.checked) location.reload()
+  })
   panel.addEventListener('click', async (e) => {
     const b = e.target.closest('[data-tema]')
     if (!b) return

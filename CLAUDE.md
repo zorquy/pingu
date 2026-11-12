@@ -1979,6 +1979,12 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   reservado en Inicio) y lo abre y lo paga la base (`adviento_abrir`, fecha de
   Madrid): la XP o un logro de una fiesta pasan por una función así, nunca por
   el navegador. El rojo de las fiestas es `--adv-*`/`--fiesta-*` (identidad).
+  La Navidad (1286) va con los colores de cada uno (no fuerza el oscuro) y su
+  decoración no tapa NADA: la nieve son `html::before/::after` con `z-index:
+  -1` (detrás del contenido), la guirnalda y el gorro no se pulsan. Un pop-up
+  de fiesta sale una vez por persona, nunca encima de otra ventana ni a una
+  tienda, y una fiesta nueva con hoja va en `FIESTAS_CON_DECORACION`
+  (`js/fiestas-puro.js`) para que el interruptor de Ajustes la apague.
 - **El hueco de abajo es `var(--seguro-abajo)`, nunca `env(safe-area-inset-bottom)`
   a pelo** (tanda 1135): iOS a veces lo deja con el alto del teclado y la barra
   de abajo crecía hasta media pantalla con la burbuja flotando. El token lleva

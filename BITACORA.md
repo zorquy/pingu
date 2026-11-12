@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (529) — PINGU-Claude (1286 — la Navidad)
+
+**Hecho**: segunda de las fiestas («haz lo recomendado», opción A: tus colores).
+Del 22 de diciembre al 6 de enero la web lleva el acento en rojo (claro y
+oscuro), nieve DETRÁS del contenido (se para con «menos movimiento»),
+guirnalda bajo la barra y gorro en la «P». Del 25 al 4 de enero, Delibird deja
+un regalo: un pop-up una vez por persona («Luego» no lo gasta) con una carta de
+invierno al azar del catálogo, su enlace y «Compartir» en imagen con el marco
+de redes. Una tienda ve la decoración pero no el regalo. Ajustes → Apariencia
+tiene «Decoración de las fiestas» (apaga Halloween y Navidad). Sin migración.
+
+**Ficheros**: js/navidad.js, js/fiestas-puro.js y css/navidad.css (nuevos),
+generar-temporada.mjs (Navidad en la línea) y las 55 páginas regeneradas,
+js/app.js (entra navidad.js), js/ajustes.js, SCHEMA.md, novedades.json,
+CLAUDE.md, BITACORA.md. En `pruebas`: test-tanda-1286-pantalla (nueva).
+
+**Pendiente**: 1287 Inocentes, 1288 Nochevieja y 1289 Reyes, que irán sobre
+`data-temporada="navidad"` con su día aparte.
+
 ## 2026-11-12 (528) — PINGU-Claude (1285 — el Calendario de Adviento)
 
 **Hecho**: primera de las fiestas que PINGU eligió («haz lo recomendado»). Del

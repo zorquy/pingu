@@ -55204,6 +55204,49 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1286 — La Navidad: nieve, guirnalda, gorro y el regalo de Delibird
+
+PINGU eligió la A de la propuesta de fiestas: con los colores de cada uno (no
+forzar la web a oscuro dos semanas, como Halloween) y el acento en rojo.
+
+**Cuándo**: la línea de `generar-temporada.mjs` pone `data-temporada="navidad"`
+y `/css/navidad.css` del 22 de diciembre al 6 de enero (fecha del aparato, como
+Halloween), salvo con `pd-sin-navidad`. Las fiestas de esos días (Inocentes,
+Nochevieja, Reyes) irán encima, con su día aparte: la Navidad sigue puesta.
+
+**La hoja** (`css/navidad.css`, solo esos días):
+- `--fiesta-rojo` (y `-suave`, `-texto`) en los dos temas; el acento de todas
+  las secciones pasa a él con el selector repetido (`:root:root:root[…]`, que
+  gana a los `[data-theme][data-seccion]` de style.css). El rojo de las fiestas
+  es identidad, no peligro: 311 lo declara por su prefijo.
+- La nieve son `html::before` y `html::after`, fijos y con `z-index: -1` en la
+  raíz: se pintan sobre el fondo del lienzo y DEBAJO de todo el contenido, así
+  que se ven en los huecos y nunca tapan un botón (la prueba mira el centro de
+  cada enlace y botón con `elementFromPoint`). Miden una pantalla más 600 px y
+  bajan 600, múltiplo de sus baldosas: la vuelta no salta. No van en
+  `body::before` (la barra lateral del PC) ni en `body::after` (la del móvil).
+- La guirnalda es `.navbar::after` (16 px, sin pulsarse) y el gorro
+  `.nav-logo::after`, que vale para la barra de arriba y la lateral.
+
+**El regalo** (`js/navidad.js`, por `import()` desde app.js con la temporada
+puesta): del 25 al 4 en España (`regaloToca`; el 5 y el 6 son de los Reyes),
+una vez por persona y temporada (`claveDeRegalo`: el 2 de enero sigue siendo
+la de 2026). Nunca encima de otra ventana (`dialog:modal`) ni mientras
+escribes; «Luego» no lo gasta (sale en otra visita). «Abrir el regalo» elige un
+Pokémon de `REGALOS` (`js/fiestas-puro.js`) y una carta suya del catálogo
+occidental con foto (`cartaDeRegalo`); sin carta, su dibujo y «Ver sus cartas».
+«Compartir» abre la hoja de siempre con el marco de redes en rojo («Delibird me
+ha traído *X*»), con la foto por `fotoParaElLienzo`. Una tienda (la marca o,
+la primera vez, su perfil) no lo ve.
+
+**Ajustes → Apariencia**: «Decoración de las fiestas» pone o quita
+`pd-sin-<fiesta>` para todas las de `FIESTAS_CON_DECORACION`.
+
+`test-tanda-1286-pantalla.mjs`: lo puro, la cabecera (21, 22, 6, 7, quitada,
+automática, Halloween igual), Inicio el 26 en los dos temas con la nieve detrás
+y parada con menos movimiento, el regalo (sale, se abre, una vez, «Luego», el
+23 no, una tienda no) y el interruptor de Ajustes.
+
 ## Tanda 1285 — El Calendario de Adviento
 
 PINGU pidió las fiestas de la web tras Halloween y eligió lo recomendado: el

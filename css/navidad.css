@@ -1,0 +1,181 @@
+/* LA NAVIDAD (tanda 1286, SCHEMA): solo baja del 22 de diciembre al 6 de
+   enero, lo escribe la línea de la cabecera. Con tus colores de siempre (claro
+   u oscuro): cambia el acento a rojo y añade nieve detrás del contenido, la
+   guirnalda bajo la barra y el gorro en la «P». El pop-up del regalo de
+   Delibird lo pinta js/navidad.js. */
+:root {
+  --fiesta-rojo: #c62f3a;
+  --fiesta-rojo-suave: #fbe9ea;
+  --fiesta-rojo-texto: #9b1c27;
+  --nieve: rgba(120, 160, 200, 0.45);
+}
+:root[data-theme='dark'] {
+  --fiesta-rojo: #e0525c;
+  --fiesta-rojo-suave: #3a1a1e;
+  --fiesta-rojo-texto: #f6a3aa;
+  --nieve: rgba(255, 255, 255, 0.55);
+}
+/* El acento de todas las secciones, en rojo: el selector repetido gana a los
+   de cada sección (0,3,0), como Halloween. */
+:root:root:root[data-temporada='navidad'] { --acento: var(--fiesta-rojo); --acento-texto: var(--blanco-fijo); }
+:root:root[data-temporada='navidad'][data-theme='dark'] { --acento: var(--fiesta-rojo); --acento-texto: #0b1219; }
+
+/* La nieve: dos capas fijas DETRÁS del contenido (z-index -1 en la raíz: se
+   ve en los huecos del fondo, nunca encima de un botón ni de un texto) que
+   bajan a distinta velocidad. Cada capa mide una pantalla más 600 px y baja
+   600, que es múltiplo de sus baldosas: la vuelta no se nota. */
+html[data-temporada='navidad']::before,
+html[data-temporada='navidad']::after {
+  content: '';
+  position: fixed;
+  top: -600px;
+  left: 0;
+  right: 0;
+  height: calc(100vh + 600px);
+  z-index: -1;
+  pointer-events: none;
+}
+html[data-temporada='navidad']::before {
+  background-image:
+    radial-gradient(circle at 24px 40px, var(--nieve) 1.5px, transparent 2px),
+    radial-gradient(circle at 130px 150px, var(--nieve) 1px, transparent 1.5px),
+    radial-gradient(circle at 210px 60px, var(--nieve) 2px, transparent 2.5px);
+  background-size: 200px 200px, 200px 200px, 300px 300px;
+  animation: navidad-nieve 60s linear infinite;
+}
+html[data-temporada='navidad']::after {
+  background-image:
+    radial-gradient(circle at 80px 110px, var(--nieve) 2.5px, transparent 3px),
+    radial-gradient(circle at 420px 320px, var(--nieve) 3px, transparent 3.5px);
+  background-size: 300px 300px, 600px 600px;
+  animation: navidad-nieve 34s linear infinite;
+}
+@keyframes navidad-nieve { to { transform: translate3d(0, 600px, 0); } }
+
+/* La guirnalda: una tira de bombillas colgando del borde de la barra. No se
+   pulsa y mide 16 px. */
+html[data-temporada='navidad'] .navbar::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  height: 16px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 16'%3E%3Cpath d='M0 3Q24 12 48 3T96 3' stroke='%232f5d3a' stroke-width='1.2' fill='none'/%3E%3Cellipse cx='12' cy='10' rx='2.6' ry='3.4' fill='%23e0525c'/%3E%3Cellipse cx='36' cy='10' rx='2.6' ry='3.4' fill='%23f4c542'/%3E%3Cellipse cx='60' cy='10' rx='2.6' ry='3.4' fill='%233fae6b'/%3E%3Cellipse cx='84' cy='10' rx='2.6' ry='3.4' fill='%235aa9e6'/%3E%3C/svg%3E") left top / 96px 16px repeat-x;
+}
+
+/* El gorro en la «P» (la de arriba y la de la barra lateral del PC). */
+html[data-temporada='navidad'] .nav-logo { position: relative; }
+html[data-temporada='navidad'] .nav-logo::after {
+  content: '';
+  position: absolute;
+  top: calc(50% - 28px);
+  left: -8px;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 16Q8 3 18 5Q21 8 20 13Q15 8 13 16Z' fill='%23d6303c'/%3E%3Crect x='2' y='15' width='15' height='5' rx='2.5' fill='%23ffffff'/%3E%3Ccircle cx='20' cy='14' r='2.6' fill='%23ffffff'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: rotate(-18deg);
+}
+
+/* El regalo de Delibird (del 25 al 4): una vez por persona. Centrado en el PC
+   y hoja desde abajo en el móvil, como los demás (1045). */
+.navidad-pop[open] {
+  display: grid;
+  gap: var(--e-md);
+  justify-items: center;
+  text-align: center;
+  inset: 0;
+  margin: auto;
+  width: min(400px, calc(100% - var(--e-2xl)));
+  max-width: none;
+  max-height: calc(100dvh - var(--e-2xl));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: radial-gradient(circle at 50% 0%, var(--fiesta-rojo-suave) 0%, transparent 60%), var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-md);
+}
+.navidad-pop::backdrop { background: rgba(8, 12, 18, 0.55); }
+html:has(.navidad-pop[open]) { overflow: hidden; }
+.navidad-paso:not([hidden]) { display: grid; gap: var(--e-sm); justify-items: center; }
+.navidad-pop h2 { font-family: var(--font-display); font-size: var(--t-2xl); line-height: 1.15; }
+.navidad-pop p { color: var(--text-mid); font-size: var(--t-md); max-width: 32ch; }
+.navidad-pop .nav-delibird { width: 128px; height: 128px; object-fit: contain; animation: navidad-flota 4s ease-in-out infinite; }
+.navidad-botones { display: grid; grid-template-columns: 1fr 1fr; gap: var(--e-sm); width: 100%; margin-top: var(--e-sm); }
+.navidad-botones > * { min-height: 44px; display: inline-flex; align-items: center; justify-content: center; }
+.navidad-pop .btn-primary { background: var(--fiesta-rojo); color: var(--blanco-fijo); }
+.navidad-caja { display: grid; place-items: center; width: 96px; height: 96px; color: var(--fiesta-rojo); animation: navidad-agita 0.5s ease-in-out infinite; }
+.navidad-chapa {
+  padding: var(--e-xs) var(--e-md);
+  border-radius: var(--radius-pill);
+  background: var(--fiesta-rojo-suave);
+  color: var(--fiesta-rojo-texto);
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+.navidad-carta {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 168px;
+  aspect-ratio: 63 / 88;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  box-shadow: 0 12px 32px rgba(198, 47, 58, 0.35);
+  animation: navidad-gira 0.7s var(--ease) both;
+}
+.navidad-carta img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.navidad-carta-sin img { width: 88%; height: auto; object-fit: contain; }
+.navidad-brillo {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, 0.55) 48%, transparent 62%) 120% 0 / 250% 100% no-repeat;
+  animation: navidad-brillo 2.8s ease-in-out 0.7s infinite;
+}
+.navidad-quitar {
+  min-height: 32px;
+  background: none;
+  border: 0;
+  color: var(--text-mid);
+  font: inherit;
+  font-size: var(--t-xs);
+  text-decoration: underline;
+  cursor: pointer;
+}
+@keyframes navidad-flota {
+  0%, 100% { transform: translateY(0) rotate(-4deg); }
+  50% { transform: translateY(-8px) rotate(2deg); }
+}
+@keyframes navidad-agita {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg) scale(1.05); }
+}
+@keyframes navidad-gira { from { transform: perspective(600px) rotateY(180deg) scale(0.8); opacity: 0; } }
+@keyframes navidad-brillo { 0% { background-position: 120% 0; } 60%, 100% { background-position: -120% 0; } }
+@media (prefers-reduced-motion: reduce) {
+  html[data-temporada='navidad']::before,
+  html[data-temporada='navidad']::after,
+  .navidad-pop .nav-delibird,
+  .navidad-caja,
+  .navidad-carta,
+  .navidad-brillo { animation: none; }
+}
+@media (max-width: 599px) {
+  .navidad-pop[open] {
+    inset: auto 0 0;
+    margin: 0;
+    width: 100%;
+    max-height: calc(100dvh - 48px);
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding-bottom: calc(var(--e-xl) + var(--seguro-abajo));
+  }
+}
+@media (pointer: coarse) {
+  .navidad-quitar { min-height: 44px; }
+}
