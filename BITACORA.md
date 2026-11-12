@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (547) — PINGU-Claude (1300 — «Pegar lista» de un set en /admin)
+
+**Hecho**: la L1 de la propuesta (PINGU: «poder pegar una lista o una captura y
+que el panel me detecte la lista del set, para no pedírtelo»). En Colecciones →
+un set → «Ver y editar sus cartas» hay un botón «Pegar lista»: se pega el texto
+(tabla de Bulbapedia, Serebii, Limitless, Cardmarket…, o una carta por línea) o
+una captura (Ctrl+V o elegirla; se lee en el servidor y su texto cae en la caja
+para corregirlo). Sale una tabla editable con número, nombre, inglés, rareza
+(las siglas C, U, RR, AR, SAR, UR, ACE… traducidas a nuestro inglés) y tipo, y
+qué se hace con cada una: «Nueva», «Completa lo vacío» (nunca pisa nada) o «Ya
+está»; lo que no se entiende sale aparte con su línea. «Crear N y completar M»
+pasa por `catalogo_corregir`, como «Nueva carta».
+
+**Ficheros**: admin/js/lista-set-puro.js, admin/js/pegar-lista.js,
+netlify/functions/leer-lista.mjs (nuevos), admin/js/catalogo-cartas.js,
+admin/css/admin.css, SCHEMA.md, BITACORA.md. En `pruebas`: test-tanda-1300 (lo
+puro y la función) y 1300-pantalla.
+
+**Pendiente**: la captura necesita `OCR_API_KEY` en Netlify (la del escáner de
+cartas); sin ella el botón lo dice y vale pegar texto. Subir cuando PINGU diga.
+
 ## 2026-11-12 (546) — PINGU-Claude (1299 — la vitrina de cristal, botones en pastilla y pestañas en cápsula)
 
 **Hecho**: lo recomendado de la propuesta «Vitrina y perfil» (V1 + B1 + P1).

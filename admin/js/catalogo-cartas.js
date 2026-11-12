@@ -120,6 +120,7 @@ export function pintarLista() {
       <button class="btn-secondary btn-small" id="catLote">Versiones de todas</button>
       <button class="btn-secondary btn-small" id="catVarias">Una versión a varias</button>
       <button class="btn-secondary btn-small" id="catFotos">Fotos de todas</button>
+      <button class="btn-secondary btn-small" id="catPegarLista">Pegar lista</button>
       <button class="btn-primary btn-small" id="catNueva">Nueva carta</button>
     </div>
     <ul class="cat-lista" id="catLista">${visibles.map(filaDeCarta).join('') || '<li class="empty-state">Ninguna carta coincide.</li>'}</ul>`)
@@ -130,6 +131,11 @@ export function pintarLista() {
     escucharLista()
   })
   $('catNueva').addEventListener('click', () => abrirFicha(null))
+  // Pegar la lista del set, texto o captura (1300), en su módulo.
+  $('catPegarLista').addEventListener('click', async () => {
+    const { abrirPegarLista } = await import('./pegar-lista.js')
+    abrirPegarLista({ set, mercado, cartas, hoja, volver: async ({ recargar = false } = {}) => { if (recargar) await cargar(); pintarLista() } })
+  })
   // Las versiones de muchas cartas a la vez (949), en su módulo.
   $('catLote').addEventListener('click', async () => {
     const { abrirVersionesDeTodas } = await import('./versiones-lote.js')

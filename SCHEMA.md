@@ -55204,6 +55204,33 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1300 — «Pegar lista» de un set en /admin
+
+- **Lo puro** (`admin/js/lista-set-puro.js`): `filasDeLista(texto)` entiende
+  una carta por línea con el número delante («001/198» → «001»), separada por
+  tabuladores, «·», «|», «;» o dos espacios. Con columnas reconoce tipos
+  (inglés y español → el inglés de `types`), categoría y tipo de Entrenador o
+  Energía, y la rareza (solo DESPUÉS del nombre: «Rare Candy» es un nombre).
+  Sin columnas, solo pela del final unas siglas (`SIGLAS_DE_RAREZA`) o un nombre
+  de rareza entero, y un precio. La rareza sale en el inglés con el que la
+  guardamos (`rarezaCanonica`); unas siglas desconocidas entran tal cual. Lo que
+  no se entiende va a `raras` con su línea y motivo (sin número, sin nombre,
+  número repetido). `planDeLista(filas, cartas)` casa por número comparable
+  (`numeroComparable`: sin ceros delante, sin mayúsculas) y decide «nueva»,
+  «completa» (SOLO las columnas vacías de la carta: `RELLENABLES`) o «igual», y
+  avisa con `otroNombre` si el nombre no se parece a ninguno de los tres de la
+  carta. `cambiosDeNueva` es lo que se manda al crear, con el id de «Nueva
+  carta» (`idDeNueva`).
+- **La pantalla** (`admin/js/pegar-lista.js`, botón `#catPegarLista` del
+  editor de cartas): caja de texto o captura, tabla editable y «Crear N y
+  completar M». Todo por `catalogo_corregir` (crear con `p_crear`), así que es
+  una corrección y la pasada siguiente no la pisa; al acabar, `avisarALaWeb()`.
+- **La captura** (`netlify/functions/leer-lista.mjs`): solo admin
+  (`idDeAdmin`); OCR.space con `isTable` (una fila por línea), la clave del
+  escáner (`laClave` de leer-carta.mjs) y 1 MB como mucho (el panel la pasa a
+  JPEG y la reduce). Devuelve texto; sin clave, 503 con `sinConfigurar`. El
+  texto va a la caja, no a la base: se corrige antes.
+
 ## Tanda 1299 — Vitrina de cristal, botones en pastilla y pestañas en cápsula
 
 - **La vitrina** (`.vitrina-cristal`, perfil.css): envuelve la rejilla de la

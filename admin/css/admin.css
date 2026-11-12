@@ -1492,3 +1492,26 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
   .evadm-entrada [data-campo='url'] { grid-column: 1 / -1; grid-row: 3; }
   .evadm-cartel { grid-template-columns: 1fr; }
 }
+
+/* «Pegar lista» de un set (1300, admin/js/pegar-lista.js). */
+.pl-modos { display: flex; gap: var(--e-xs); margin: var(--e-sm) 0; }
+.pl-modo { min-height: 36px; padding: 0 var(--e-md); border: 0; border-radius: var(--radius-pill); background: var(--ice); color: var(--text); font: inherit; font-size: var(--t-sm); font-weight: 700; cursor: pointer; }
+.pl-modo.activo { background: var(--navy-solid); color: var(--blanco-fijo); }
+.pl-captura[hidden] { display: none; }
+.pl-soltar { display: grid; min-height: 96px; margin: var(--e-sm) 0; padding: var(--e-md); border: 2px dashed var(--border-strong); border-radius: var(--radius-lg); background: var(--white); color: var(--text-mid); place-items: center; text-align: center; cursor: pointer; }
+.pl-soltar:focus { border-color: var(--navy); outline: none; box-shadow: var(--shadow-ring); }
+.pl-raras { margin: var(--e-sm) 0; color: var(--danger); font-size: var(--t-sm); }
+.pl-tabla-caja { max-width: 100%; overflow-x: auto; }
+.pl-tabla { width: 100%; border-collapse: collapse; font-size: var(--t-sm); }
+.pl-tabla th { padding: var(--e-xs) var(--e-sm); background: var(--ice); color: var(--text-mid); font-size: var(--t-2xs); letter-spacing: 0.04em; text-align: left; text-transform: uppercase; }
+.pl-tabla td { padding: var(--e-xs) var(--e-sm); border-top: 1px solid var(--border); vertical-align: top; }
+.pl-tabla input:not([type='checkbox']),
+.pl-tabla select { width: 100%; min-width: 64px; padding: 2px var(--e-xs); border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--white); color: var(--text); font: inherit; }
+.pl-tabla input[readonly] { border-color: transparent; background: transparent; }
+.pl-apagada { opacity: 0.55; }
+.pl-aviso { display: block; color: var(--danger); font-size: var(--t-2xs); }
+.pl-estado { display: inline-block; padding: 2px var(--e-sm); border-radius: var(--radius-pill); font-size: var(--t-2xs); font-weight: 800; white-space: nowrap; }
+.pl-nueva { background: var(--success-bg); color: var(--success); }
+.pl-completa { background: var(--ice); color: var(--navy); }
+.pl-igual { background: var(--ice); color: var(--text-mid); }
+.pl-tabla td small { display: block; color: var(--text-mid); font-size: var(--t-2xs); }
