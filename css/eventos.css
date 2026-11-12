@@ -26,6 +26,7 @@
    encima es blanco o va en su chapa. */
 .ev-cartel {
   --ev-color: var(--navy-solid);
+  clip-path: inset(0 round calc(var(--radius-xl) - 2px) calc(var(--radius-xl) - 2px) 0 0);
   position: relative;
   display: grid;
   place-items: center;
@@ -531,6 +532,9 @@
 
 .ev-poster-fondo {
   position: relative;
+  /* En Safari lo difuminado (filter) se sale del redondeo del padre aunque
+     tenga overflow: hidden: se recorta aquí también. */
+  clip-path: inset(0 round calc(var(--radius-xl) - 2px) calc(var(--radius-xl) - 2px) 0 0);
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
   align-items: stretch;
@@ -699,54 +703,36 @@ a.ev-sala-cara:hover { z-index: 2; transform: translate(-50%, -50%) scale(1.15);
 .ev-sala-num span { color: rgba(255, 255, 255, 0.82); font-size: var(--t-sm); font-weight: 600; }
 .ev-sala-num small { color: #f9a8d4; font-size: var(--t-xs); font-weight: 700; }
 
-/* «Van 3 que sigues», en la barra. */
-.ev-sigues {
-  display: flex;
-  align-items: center;
-  gap: var(--e-sm);
-  min-width: 0;
-  margin: 0;
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-}
-
-.ev-sigues > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ev-sigues .ev-caras .ev-cara { margin-left: calc(var(--e-sm) * -1); box-shadow: 0 0 0 2px var(--white); }
-.ev-sigues .ev-caras .ev-cara:first-child { margin-left: 0; }
-
-/* «Eres el nº 14 de PokeDoc · Compártelo». */
-.ev-numero {
-  margin: 0;
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-  text-align: center;
-}
-
-.ev-numero b { color: var(--success); font-family: var(--font-display); }
-.ev-numero.recien { animation: ev-salto 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+/* Bajo el número de la sala: tu puesto y los que sigues (1295b). */
+.ev-sala-num .ev-sala-tu { color: #6ee7b7; font-size: var(--t-sm); }
+.ev-sala-tu.recien { animation: ev-salto 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
 
 @keyframes ev-salto {
   from { opacity: 0; transform: translateY(8px) scale(0.9); }
   to { opacity: 1; transform: none; }
 }
 
-.ev-numero-compartir {
-  min-height: 44px;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--acento);
-  font: inherit;
-  font-weight: 700;
-  cursor: pointer;
+.ev-sigues {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--e-sm);
+  max-width: 100%;
+  min-width: 0;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: var(--t-xs);
 }
 
-.ev-numero-compartir:hover { text-decoration: underline; }
+.ev-sigues > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ev-sigues .ev-caras .ev-cara { margin-left: calc(var(--e-sm) * -1); box-shadow: 0 0 0 2px #12223a; }
+.ev-sigues .ev-caras .ev-cara:first-child { margin-left: 0; }
 
-/* La barra: los que sigues · cuenta atrás · ¡Voy! · atajos. */
+/* La barra (1295b): la cuenta atrás a la izquierda y en grande, el «¡Voy!» en
+   medio y los atajos a la derecha. */
 .ev-barra {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto auto;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: var(--e-lg);
   padding: var(--e-lg) var(--e-xl);
@@ -754,13 +740,14 @@ a.ev-sala-cara:hover { z-index: 2; transform: translate(-50%, -50%) scale(1.15);
 
 .ev-regresiva {
   display: flex;
+  justify-self: start;
   gap: var(--e-sm);
 }
 
 .ev-regresiva > span {
   display: grid;
-  min-width: 56px;
-  padding: var(--e-sm) var(--e-xs);
+  min-width: 76px;
+  padding: var(--e-md) var(--e-sm);
   border-radius: var(--radius-md);
   background: var(--ice);
   line-height: 1;
@@ -769,7 +756,7 @@ a.ev-sala-cara:hover { z-index: 2; transform: translate(-50%, -50%) scale(1.15);
 
 .ev-regresiva b {
   font-family: var(--font-display);
-  font-size: var(--t-xl);
+  font-size: var(--t-3xl);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
 }
@@ -802,14 +789,18 @@ a.ev-sala-cara:hover { z-index: 2; transform: translate(-50%, -50%) scale(1.15);
 
 .ev-oculto {
   display: inline-flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--e-xs);
   min-height: 44px;
   color: var(--text-mid);
   font-size: var(--t-sm);
+  cursor: pointer;
 }
 
-.ev-barra .ev-atajos { justify-content: flex-end; }
+.ev-oculto small { color: var(--text-dim); }
+
+.ev-barra .ev-atajos { justify-self: end; justify-content: flex-end; }
 
 /* La descripción y los datos, debajo del póster. */
 .ev-sobre {
@@ -1102,22 +1093,22 @@ a.ev-sala-cara:hover { z-index: 2; transform: translate(-50%, -50%) scale(1.15);
   .ev-caja { padding: var(--e-lg); }
 
   /* El póster en una columna: el logo más pequeño, encima del nombre. */
-  .ev-poster-fondo { grid-template-columns: minmax(0, 1fr); align-items: start; gap: var(--e-md); min-height: 0; padding: var(--e-lg); }
+  .ev-poster-fondo { grid-template-columns: minmax(0, 1fr); align-items: start; gap: var(--e-md); min-height: 0; padding: var(--e-lg); padding-top: calc(var(--e-lg) + var(--e-2xl)); }
+  /* La chapa de la cuenta, arriba a la izquierda y fuera del paso de las chapas del nombre. */
+  .ev-poster-cuenta { top: var(--e-md); right: auto; left: var(--e-lg); }
   .ev-poster-info { grid-template-columns: auto minmax(0, 1fr); align-items: center; gap: var(--e-md); }
   .ev-logo-flota { width: 64px; height: 64px; border-radius: var(--radius-lg); }
   .ev-sala-caras { height: 132px; }
   .ev-sala-cara { width: 26px; height: 26px; }
   .ev-sala-cara.m { width: 32px; height: 32px; }
   .ev-sala-cara.g { width: 40px; height: 40px; }
-  .ev-sigues { grid-column: 1 / -1; }
-  .ev-sigues.vacio { display: none; }
   .ev-logo-flota b { font-size: var(--t-lg); }
   .ev-poster h1 { font-size: var(--t-2xl); }
   .ev-barra { grid-template-columns: auto minmax(0, 1fr); gap: var(--e-md); padding: var(--e-md) var(--e-lg); }
   .ev-acciones { justify-items: end; }
   .ev-acciones .ev-voy { min-height: 48px; font-size: var(--t-md); }
-  .ev-regresiva > span { min-width: 44px; }
-  .ev-regresiva b { font-size: var(--t-lg); }
+  .ev-regresiva > span { min-width: 52px; padding: var(--e-sm) var(--e-xs); }
+  .ev-regresiva b { font-size: var(--t-xl); }
   .ev-barra .ev-atajos { grid-column: 1 / -1; justify-content: space-around; }
   .ev-losas { grid-template-columns: minmax(0, 1fr); }
   .ev-quien { grid-template-columns: auto minmax(0, 1fr); padding: var(--e-md) var(--e-lg); }
@@ -1139,7 +1130,7 @@ a.ev-sala-cara:hover { z-index: 2; transform: translate(-50%, -50%) scale(1.15);
 
   .ev-sala-cara,
   .ev-sala-cara.entra,
-  .ev-numero.recien { animation: none; transition: none; }
+  .ev-sala-tu.recien { animation: none; transition: none; }
 
   a.ev-sala-cara:hover { transform: translate(-50%, -50%); }
 }

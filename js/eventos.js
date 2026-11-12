@@ -198,7 +198,7 @@ async function alternarVoy(e, voy, oculto, repintar, alDia = null) {
 // ── La ficha ──
 // La sala (1295): las caras de los que van, amontonadas como un público, con
 // el número en grande. Las coloca `salaDe` (eventos-puro); aquí solo se pintan.
-function salaHtml(e, { yo, sigo, pasado, recien }) {
+function salaHtml(e, { yo, sigo, pasado, recien, sigues = [] }) {
   const van = Number(e.van) || 0
   const { caras, fuera } = salaDe({ caras: e.caras || [], van, voy: e.voy, oculto: e.oculto, yo, sigo, minimo: pasado ? 0 : 5 })
   const ocultos = Math.max(0, van - (e.caras || []).length)
@@ -210,27 +210,26 @@ function salaHtml(e, { yo, sigo, pasado, recien }) {
     const p = c.persona
     return `<a class="${clase}" href="${profileUrl(p)}" style="${pos};${avatarStyle(p)}" title="${escapeHtml(c.tu ? 'Tú' : nombre(p))}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre(p)))}<span class="sr-only">${escapeHtml(c.tu ? 'Tú' : nombre(p))}</span></a>`
   }
+  // Tu número (1295) va aquí, con la gente, y no en la barra (PINGU: «no
+  // tiene sentido» al lado del botón de compartir). Sin ir, «¿Te apuntas?».
+  const n = pasado ? null : miNumeroDe(e, yo)
+  const tuNumero = n ? `<small class="ev-sala-tu${recien ? ' recien' : ''}">Tú eres el nº ${n}</small>`
+    : van && van < 5 && !pasado && !e.voy ? '<small>¿Te apuntas?</small>' : ''
   const lema = van
     ? `de PokeDoc ${pasado ? (van === 1 ? 'fue' : 'fueron') : van === 1 ? 'va' : 'van'}${ocultos ? ` · ${ocultos} sin decirlo` : ''}`
     : pasado ? 'Nadie de PokeDoc marcó que iba' : 'Sé el primero de PokeDoc'
   return `<div class="ev-sala${van < 5 && !pasado ? ' poca' : ''}" aria-label="${escapeHtml(`${van} ${lema}`)}">
       ${caras.length ? `<div class="ev-sala-caras">${caras.map(cara).join('')}${fuera ? `<span class="ev-sala-mas">+${fuera}</span>` : ''}</div>` : ''}
-      <p class="ev-sala-num">${van ? `<b>${van}</b>` : ''}<span>${escapeHtml(lema)}</span>${van && van < 5 && !pasado ? '<small>¿Te apuntas?</small>' : ''}</p>
+      <p class="ev-sala-num">${van ? `<b>${van}</b>` : ''}<span>${escapeHtml(lema)}</span>${tuNumero}</p>
+      ${siguesHtml(sigues)}
     </div>`
 }
 
-// «Van 3 que sigues: Albert, Luis y Eevee», con sus caras. Sin nadie, nada.
+// «Van 3 que sigues: Albert, Luis y Eevee», con sus caras, bajo el número de
+// la sala. Sin nadie, nada.
 function siguesHtml(personas) {
-  if (!personas.length) return '<span class="ev-sigues vacio"></span>'
+  if (!personas.length) return ''
   return `<p class="ev-sigues"><span class="ev-caras">${personas.slice(0, 3).map((p) => caraHtml(p, 28)).join('')}</span><span>${escapeHtml(textoDeSigues(personas, nombre))}</span></p>`
-}
-
-// «Eres el nº 14 de PokeDoc · Compártelo» (solo si se sabe seguro, `miNumeroDe`).
-// Recién apuntado, con un pequeño salto.
-function numeroHtml(e, yo, { pasado, recien }) {
-  if (pasado || !e.voy) return ''
-  const n = miNumeroDe(e, yo)
-  return `<p class="ev-numero${recien ? ' recien' : ''}">${n ? `Eres el <b>nº ${n}</b> de PokeDoc · ` : ''}<button type="button" class="ev-numero-compartir" data-compartir-voy>${n ? 'Compártelo' : 'Cuenta que vas'}</button></p>`
 }
 
 // La cuenta atrás del póster (1294): días, horas y minutos en casillas; ya
@@ -319,7 +318,7 @@ async function pintarFicha(slug, sesion) {
     const quien = `<section class="ev-quien" aria-labelledby="evQuienT">
         <h2 id="evQuienT" class="sr-only">Quién va de PokeDoc</h2>
         ${visibles.length ? `<span class="ev-caras ev-quien-caras" aria-hidden="true">${visibles.slice(0, 6).map((x) => caraHtml(x, 36)).join('')}</span>` : `<span class="ev-quien-ic" aria-hidden="true">${ic('users', 20)}</span>`}
-        <div class="ev-quien-texto">${cuantos}${nombres.length ? `<small class="ev-quien-nombres">${escapeHtml(nombres.join(', '))}${resto > 0 ? ` y ${resto} más` : ''}</small>` : ''}</div>
+        <div class="ev-quien-texto">${cuantos}${nombres.length ? `<small class="ev-quien-nombres">${escapeHtml(nombres.join(', '))}${resto > 0 ? ` y ${resto} más` : ''}</small>` : ''}${sesion && e.voy && !pasado ? `<label class="ev-oculto"><input type="checkbox" id="evOculto"${e.oculto ? ' checked' : ''}> Ir sin decirlo <small>(cuentas, pero sin tu cara ni tu nombre)</small></label>` : ''}</div>
         ${visibles.length ? `<button type="button" class="ev-quien-ver" data-ver-quien aria-expanded="${verQuien}" aria-controls="evGente">${verQuien ? 'Ocultar' : 'Ver quién va'}</button>
         <ul class="ev-gente" id="evGente"${verQuien ? '' : ' hidden'}>${visibles.map((x) => `<li><a href="${profileUrl(x)}">${caraHtml(x, 32)}<span>${escapeHtml(nombre(x))}</span></a></li>`).join('')}</ul>` : ''}
       </section>`
@@ -363,18 +362,15 @@ async function pintarFicha(slug, sesion) {
               <p class="ev-cuando-largo">${escapeHtml([fechaLarga(e), lugar].filter(Boolean).join(' · '))}</p>
             </div>
           </div>
-          ${salaHtml(e, { yo, sigo, pasado, recien })}
+          ${salaHtml(e, { yo, sigo, pasado, recien, sigues: visibles.filter((p) => sigo.has(p.id)) })}
         </div>
         <div class="ev-barra">
-          ${siguesHtml(visibles.filter((p) => sigo.has(p.id)))}
           ${regresivaHtml(e, pasado)}
           <div class="ev-acciones">
             ${voyHtml(e, sesion, { pasado })}
-            ${numeroHtml(e, yo, { pasado, recien })}
-            ${sesion && e.voy && !pasado ? `<label class="ev-oculto"><input type="checkbox" id="evOculto"${e.oculto ? ' checked' : ''}> Ir sin decirlo</label>` : ''}
           </div>
           <div class="ev-atajos">
-            ${atajo('share', 'Compartir', { id: 'evCompartir' })}
+            ${e.voy && !pasado ? atajo('share', 'Compartir', { 'data-compartir-voy': '', 'aria-label': 'Compartir que vas' }) : atajo('share', 'Compartir', { id: 'evCompartir' })}
             ${!pasado && dias.length ? atajo('calendar', 'Calendario', { id: 'evCalendario', 'aria-label': 'Añadir al calendario' }) : ''}
             ${mapa ? atajo('pin', 'Cómo llegar', { href: mapa, target: '_blank', rel: 'noopener' }) : ''}
             ${e.hilo_id ? atajo('messageSquare', mensajes ? `Foro · ${mensajes}` : 'Foro', { href: `/tema/${e.hilo_id}`, id: 'evForo' }) : ''}

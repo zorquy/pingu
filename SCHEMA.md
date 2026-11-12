@@ -55248,6 +55248,30 @@ sigue sin llamarse a pelo) y `test-tanda-1295-pantalla.mjs` (lo puro; la sala
 en PC y móvil con 25, rayadas, enlaces, los que sigues, «¡Voy!» con aro y nº;
 la imagen se pinta y se exporta; sin la migración; sin nadie y sin cuenta).
 
+### 1295b — La barra sin huecos, y el número con la gente
+
+PINGU vio la ficha en producción (Tradeitto 2): «hay mucho espacio
+desaprovechado», «el día y la hora más a la izquierda y más grande», «lo de vas
+más centrado», la línea «Eres el nº 1 de PokeDoc · Compártelo» «no tiene
+sentido» con el botón de compartir al lado, e «Ir sin decirlo» quedaba raro.
+
+- **La barra** es `1fr auto 1fr`: la cuenta atrás a la izquierda y grande
+  (casillas de 76 px, cifras a `--t-3xl`), el «¡Voy!»/«Vas» en medio y los
+  atajos a la derecha. «Van N que sigues» ya no va en la barra (dejaba una
+  columna vacía sin seguidos): va en la sala, bajo el número.
+- **Tu número** va en la sala, bajo «1 de PokeDoc va»: «Tú eres el nº 1»
+  (`.ev-sala-tu`, verde, con su saltito al apuntarte). Fuera `numeroHtml` y
+  `.ev-numero`.
+- **Compartir**: si vas, el atajo de la barra abre la imagen «Voy a…»
+  (`data-compartir-voy`); si no, comparte el enlace como antes.
+- **«Ir sin decirlo»** va en la franja de «Quién va», con lo que significa
+  («cuentas, pero sin tu cara ni tu nombre»).
+- **Móvil**: la chapa «Faltan N días» va arriba a la izquierda, con hueco
+  propio, y no pisa las chapas del nombre. Y en Safari lo difuminado del fondo
+  se salía del redondeo aunque el padre tuviera `overflow: hidden`: el fondo del
+  póster y la franja de la agenda se recortan además con `clip-path: inset(0
+  round …)`.
+
 ## Tanda 1294 — La ficha del evento, como un póster
 
 PINGU: «la página del evento… se ve como muy plana». De la propuesta v2, «haz lo

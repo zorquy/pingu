@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (542) — PINGU-Claude (1295b — la barra de la ficha sin huecos y el número con la gente)
+
+**Hecho**: lo que vio PINGU en la ficha de Tradeitto 2. La cuenta atrás va a la
+izquierda y más grande, el «¡Voy!»/«Vas» en el centro y los atajos a la derecha.
+Fuera la línea «Eres el nº 1 · Compártelo»: el número va en la sala («Tú eres el
+nº 1») y el botón Compartir, si vas, abre la imagen «Voy a…». «Van N que sigues»
+va también en la sala. «Ir sin decirlo» baja a la franja de «Quién va». En el
+móvil, «Faltan N días» ya no pisa las chapas, y el fondo difuminado no se sale
+del redondeo en Safari.
+
+**Ficheros**: js/eventos.js, css/eventos.css, SCHEMA.md, BITACORA.md. En
+`pruebas`: test-tanda-1295-pantalla al sitio nuevo de cada cosa.
+
+**Pendiente**: las capturas del móvil que va a mandar PINGU («sobresalen los
+colores del redondeo»); subir cuando lo diga.
+
 ## 2026-11-12 (541) — PINGU-Claude (1295 — la sala del evento: las caras de los que van, «Eres el nº N» y «Voy a…»)
 
 **Hecho**: lo recomendado de la propuesta «Que se vea quién va». El póster de la
