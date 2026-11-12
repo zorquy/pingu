@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (540) — PINGU-Claude (1294 — la ficha del evento como un póster)
+
+**Hecho**: lo recomendado de la propuesta v2 para la ficha (PINGU: «se ve muy
+plana»). Arriba un póster: el logo grande e inclinado flotando sobre el color
+del evento (o su cartel difuminado) con trama de puntos, el nombre en grande y
+«Faltan N días» en la esquina; debajo una barra con la cuenta atrás en días,
+horas y minutos (se mueve sola), el «¡Voy!» grande y los atajos. Luego la
+descripción con sus datos, tres losas iguales (Cuándo, Entrada, Dónde: solo las
+que tienen algo) y «Quién va» en una franja con las caras, los nombres y «Ver
+quién va», que despliega la lista. En el móvil, todo en una columna.
+
+**Ficheros**: js/eventos.js (`pintarFicha`, `regresivaHtml`), css/eventos.css,
+js/eventos-puro.js (`cuentaRegresiva`), SCHEMA.md, novedades.json. En `pruebas`:
+test-tanda-1294-pantalla (nueva); 1194, 1196, 1198 y 1199 al póster.
+
+**Pendiente**: con 1292 y 1293, subir cuando PINGU diga y DESPUÉS de que
+ejecute la migración 1292.
+
 ## 2026-11-12 (539) — PINGU-Claude (1293 — el evento de Inicio en una franja fina; el destacado brilla en Inicio y en la agenda)
 
 **Hecho**: lo recomendado de la propuesta v2 de eventos. Inicio: franja de 64 px

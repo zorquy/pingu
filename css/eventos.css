@@ -418,7 +418,7 @@
 
 .ev-pasados { margin-top: var(--e-xl); }
 
-/* ── La ficha: el cartel a lo ancho y la cabecera con todo lo que se lee ── */
+/* ── La ficha: un PÓSTER (1294) ── */
 .ev-volver {
   display: inline-flex;
   align-items: center;
@@ -428,71 +428,6 @@
   color: var(--navy);
   font-weight: 600;
   text-decoration: none;
-}
-
-.ev-cartel-ficha {
-  height: 140px;
-  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-}
-
-.ev-cartel-ficha .ev-tipo,
-.ev-cartel-ficha .ev-cuenta {
-  font-size: var(--t-xs);
-}
-
-.ev-cartel-ficha .ev-cuenta {
-  top: var(--e-md);
-  right: var(--e-md);
-  bottom: auto;
-}
-
-.ev-cartel-ficha .ev-tipo {
-  top: var(--e-md);
-  left: var(--e-md);
-}
-
-.ev-cab {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  grid-template-areas:
-    'logo texto acciones'
-    'pie pie pie';
-  gap: var(--e-lg) var(--e-xl);
-  align-items: start;
-  margin-bottom: var(--e-xl);
-  padding: 0 var(--e-xl) var(--e-xl);
-  border: 1px solid var(--border);
-  border-top: 0;
-  border-radius: 0 0 var(--radius-xl) var(--radius-xl);
-  background: var(--white);
-}
-
-.ev-cab > .ev-logo {
-  grid-area: logo;
-  margin-top: -56px;
-}
-
-.ev-cab-texto {
-  grid-area: texto;
-  display: grid;
-  justify-items: start;
-  gap: var(--e-xs);
-  min-width: 0;
-  padding-top: var(--e-lg);
-}
-
-.ev-cab h1 {
-  margin: 0;
-  font-size: var(--t-3xl);
-  line-height: 1.1;
-  text-wrap: balance;
-  overflow-wrap: anywhere;
-}
-
-.ev-cuando-largo {
-  margin: 0;
-  color: var(--text);
-  font-weight: 600;
 }
 
 .ev-chips {
@@ -517,20 +452,6 @@
   margin: var(--e-xs) 0 0;
   color: var(--text-mid);
   white-space: pre-line;
-}
-
-/* El pie de la cabecera (1198): los datos a la izquierda y los atajos a la
-   derecha, a la misma altura (PINGU: «abajo de la tarjeta, a la derecha de la
-   ubicación»). */
-.ev-cab-pie {
-  grid-area: pie;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--e-md) var(--e-xl);
-  padding-top: var(--e-md);
-  border-top: 1px solid var(--border);
 }
 
 /* Dónde, juegos, web, Instagram y TCG Map Spain: chapas como las de una tienda. */
@@ -570,70 +491,6 @@
 
 .ev-datos a { color: inherit; }
 
-.ev-acciones {
-  grid-area: acciones;
-  width: 272px;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: var(--e-sm);
-  padding-top: var(--e-lg);
-}
-
-.ev-acciones > * {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--e-xs);
-}
-
-.ev-oculto {
-  min-height: 44px;
-  color: var(--text-mid);
-  font-size: var(--t-sm);
-}
-
-/* La rejilla de la ficha (1196, PINGU: «que esté bien alineada»): las cajas
-   de una fila miden lo mismo. Arriba Entradas y, al lado, Quién va (y Cuándo
-   si los días tienen horarios distintos); abajo, Dónde a lo ancho. */
-.ev-rejilla {
-  display: grid;
-  align-items: stretch;
-  gap: var(--e-lg);
-}
-
-@media (min-width: 900px) {
-  .ev-rejilla { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
-  .ev-r-ancha { grid-column: 1 / -1; }
-}
-
-.ev-r-lado {
-  display: flex;
-  flex-direction: column;
-  gap: var(--e-lg);
-  min-width: 0;
-}
-
-.ev-r-lado > :last-child { flex: 1; }
-
-.ev-donde {
-  display: grid;
-  align-items: center;
-  gap: var(--e-lg);
-}
-
-@media (min-width: 900px) {
-  .ev-donde { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
-}
-
-.ev-donde-texto {
-  display: grid;
-  justify-items: start;
-  gap: var(--e-sm);
-}
-
-.ev-donde-texto h2 { margin: 0; }
-
 .ev-caja {
   display: grid;
   align-content: start;
@@ -649,6 +506,257 @@
   font-family: var(--font-display);
   font-size: var(--t-lg);
 }
+
+/* El póster (1294, PINGU: «se ve muy plana»): el logo grande e inclinado
+   flotando sobre el color del evento (o su cartel difuminado), con trama de
+   puntos, el nombre grande, y debajo una barra con la cuenta atrás, el
+   «¡Voy!» y los atajos. Siempre oscuro: lo de encima va en blanco. */
+.ev-poster {
+  --ev-color: var(--navy-solid);
+  overflow: hidden;
+  margin-bottom: var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+}
+
+.ev-poster.destacado {
+  border: 2px solid transparent;
+  background:
+    linear-gradient(var(--white), var(--white)) padding-box,
+    conic-gradient(from var(--ev-giro), rgba(244, 197, 66, 0.35) 0 55%, #f4c542 70%, #fff4c9 76%, #f4c542 82%, rgba(244, 197, 66, 0.35) 95%) border-box;
+  box-shadow: 0 8px 28px rgba(244, 197, 66, 0.18);
+  animation: ev-giro 6s linear infinite;
+}
+
+.ev-poster-fondo {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: var(--e-xl);
+  min-height: 220px;
+  padding: var(--e-xl);
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    radial-gradient(60% 120% at 20% 40%, color-mix(in srgb, var(--ev-color) 75%, transparent), transparent 70%),
+    radial-gradient(50% 100% at 85% 15%, color-mix(in srgb, var(--ev-color) 35%, transparent), transparent 70%),
+    linear-gradient(130deg, color-mix(in srgb, var(--ev-color) 30%, #0e1726), #0e1726);
+  color: var(--blanco-fijo);
+}
+
+/* La trama de puntos, más fuerte en medio. */
+.ev-poster-fondo::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.09) 1px, transparent 1px);
+  background-size: 14px 14px;
+  -webkit-mask: linear-gradient(transparent, #000 30%, transparent);
+  mask: linear-gradient(transparent, #000 30%, transparent);
+}
+
+.ev-poster-fondo > .ev-ambiente { z-index: -2; }
+
+.ev-poster-cartel {
+  position: absolute;
+  inset: -24px;
+  z-index: -2;
+  background: center / cover no-repeat;
+  filter: blur(14px) brightness(0.55) saturate(1.2);
+}
+
+.ev-poster-cuenta {
+  position: absolute;
+  top: var(--e-lg);
+  right: var(--e-lg);
+  padding: 2px var(--e-md);
+  border-radius: var(--radius-pill);
+  background: #e4b44a;
+  color: #1c1405;
+  font-size: var(--t-xs);
+  font-weight: 800;
+}
+
+.ev-logo-flota {
+  width: 148px;
+  height: 148px;
+  border-radius: var(--radius-xl);
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+  transform: rotate(-4deg);
+}
+
+.ev-logo-flota b { font-size: var(--t-2xl); }
+.ev-logo-flota.sin-fondo { box-shadow: none; }
+.ev-logo-flota.sin-fondo img { filter: drop-shadow(0 12px 22px rgba(0, 0, 0, 0.5)); }
+
+.ev-poster-titulo {
+  display: grid;
+  justify-items: start;
+  gap: var(--e-sm);
+  min-width: 0;
+}
+
+.ev-poster h1 {
+  margin: 0;
+  color: var(--blanco-fijo);
+  font-size: var(--t-3xl);
+  line-height: 1.05;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.ev-poster .ev-cuando-largo { color: rgba(255, 255, 255, 0.82); }
+.ev-poster .ev-chapa { background: rgba(255, 255, 255, 0.14); color: var(--blanco-fijo); }
+.ev-poster .ev-chapa-destacado { position: static; }
+.ev-poster.pasado .ev-poster-fondo { filter: grayscale(0.85); }
+
+/* La barra: cuenta atrás · ¡Voy! · atajos. */
+.ev-barra {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: var(--e-lg);
+  padding: var(--e-lg) var(--e-xl);
+}
+
+.ev-regresiva {
+  display: flex;
+  gap: var(--e-sm);
+}
+
+.ev-regresiva > span {
+  display: grid;
+  min-width: 56px;
+  padding: var(--e-sm) var(--e-xs);
+  border-radius: var(--radius-md);
+  background: var(--ice);
+  line-height: 1;
+  text-align: center;
+}
+
+.ev-regresiva b {
+  font-family: var(--font-display);
+  font-size: var(--t-xl);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.ev-regresiva small {
+  margin-top: var(--e-xs);
+  color: var(--text-mid);
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ev-regresiva > .ev-regresiva-ya {
+  display: inline-flex;
+  min-width: 0;
+  padding: var(--e-sm) var(--e-md);
+  background: var(--success-bg);
+  color: var(--success);
+  font-weight: 800;
+}
+
+.ev-acciones {
+  display: grid;
+  justify-items: center;
+  gap: var(--e-xs);
+}
+
+.ev-acciones .ev-voy { min-height: 52px; font-size: var(--t-lg); }
+
+.ev-oculto {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--e-xs);
+  min-height: 44px;
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+}
+
+.ev-barra .ev-atajos { justify-content: flex-end; }
+
+/* La descripción y los datos, debajo del póster. */
+.ev-sobre {
+  display: grid;
+  gap: var(--e-md);
+  margin-bottom: var(--e-lg);
+}
+
+.ev-sobre .ev-desc { margin: 0; }
+
+/* Las tres losas: solo las que tienen datos, y del mismo ancho. */
+.ev-losas {
+  display: grid;
+  grid-template-columns: repeat(var(--losas, 3), minmax(0, 1fr));
+  align-items: stretch;
+  gap: var(--e-lg);
+  margin-bottom: var(--e-lg);
+}
+
+.ev-losa h2 {
+  color: var(--text-mid);
+  font-family: inherit;
+  font-size: var(--t-xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ev-losa .ev-dias,
+.ev-losa .ev-entradas { grid-template-columns: minmax(0, 1fr); }
+.ev-losa .ev-mapa { height: 88px; }
+.ev-donde .ev-desc { margin: 0; }
+
+/* Quién va: una franja con las caras, cuántos y los primeros nombres. */
+.ev-quien {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-md) var(--e-lg);
+  padding: var(--e-md) var(--e-xl);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+}
+
+.ev-quien-caras .ev-cara { margin-left: calc(var(--e-sm) * -1); box-shadow: 0 0 0 3px var(--white); }
+.ev-quien-caras .ev-cara:first-child { margin-left: 0; }
+
+.ev-quien-ic {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--ice);
+  color: var(--acento);
+}
+
+.ev-quien-texto { display: grid; gap: 2px; min-width: 0; }
+.ev-quien-texto .ev-cuantos { font-weight: 600; }
+.ev-quien-nombres { overflow: hidden; color: var(--text-mid); white-space: nowrap; text-overflow: ellipsis; }
+
+.ev-quien-ver {
+  min-height: 44px;
+  padding: 0 var(--e-lg);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ev-quien-ver[aria-expanded='true'] { background: color-mix(in srgb, var(--acento) 14%, var(--ice)); }
+.ev-quien > .ev-gente { grid-column: 1 / -1; padding-top: var(--e-md); border-top: 1px solid var(--border); }
+.ev-quien > .ev-gente[hidden] { display: none; }
 
 /* Las entradas, como entradas: con su talón troquelado. */
 .ev-entradas {
@@ -844,7 +952,7 @@
   color: var(--acento);
 }
 
-/* ── El móvil: un cartel a lo ancho y la cabecera en una columna ── */
+/* ── El móvil: el póster en una columna ── */
 @media (max-width: 700px) {
   /* Los filtros, en UNA fila que se desliza (1040). */
   .ev-mandos {
@@ -856,37 +964,27 @@
   }
 
   .ev-mandos > * { flex-shrink: 0; }
-  .ev-cartel-ficha { height: 88px; }
 
   .ev-datos { gap: var(--e-xs); font-size: var(--t-xs); }
   .ev-datos li { min-height: 32px; padding: 0 var(--e-sm); }
 
-  .ev-cab {
-    grid-template-columns: auto minmax(0, 1fr);
-    grid-template-areas:
-      'logo .'
-      'texto texto'
-      'acciones acciones'
-      'pie pie';
-    gap: var(--e-md);
-    padding: 0 var(--e-lg) var(--e-lg);
-  }
-
-  .ev-cab > .ev-logo { margin-top: -40px; }
-  .ev-logo.grande { width: 72px; height: 72px; }
-  .ev-logo.grande b { font-size: var(--t-xl); }
-  .ev-cab-texto { padding-top: 0; }
-  .ev-cab h1 { font-size: var(--t-2xl); }
-
-  .ev-acciones {
-    width: auto;
-    padding-top: 0;
-  }
-
-  .ev-cab-pie { padding-top: var(--e-md); }
-  .ev-cab-pie .ev-atajos { flex: 1 1 100%; justify-content: space-around; }
 
   .ev-caja { padding: var(--e-lg); }
+
+  /* El póster en una columna: el logo más pequeño, encima del nombre. */
+  .ev-poster-fondo { grid-template-columns: minmax(0, 1fr); align-items: start; gap: var(--e-md); min-height: 0; padding: var(--e-lg); }
+  .ev-logo-flota { width: 84px; height: 84px; border-radius: var(--radius-lg); }
+  .ev-logo-flota b { font-size: var(--t-lg); }
+  .ev-poster h1 { font-size: var(--t-2xl); }
+  .ev-barra { grid-template-columns: auto minmax(0, 1fr); gap: var(--e-md); padding: var(--e-md) var(--e-lg); }
+  .ev-acciones { justify-items: end; }
+  .ev-acciones .ev-voy { min-height: 48px; font-size: var(--t-md); }
+  .ev-regresiva > span { min-width: 44px; }
+  .ev-regresiva b { font-size: var(--t-lg); }
+  .ev-barra .ev-atajos { grid-column: 1 / -1; justify-content: space-around; }
+  .ev-losas { grid-template-columns: minmax(0, 1fr); }
+  .ev-quien { grid-template-columns: auto minmax(0, 1fr); padding: var(--e-md) var(--e-lg); }
+  .ev-quien-ver { grid-column: 1 / -1; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -899,5 +997,6 @@
   .ev-voy:hover { transform: none; }
 
   /* Quieto, con la luz dorada parada a un lado. */
-  .ev-tarjeta.destacado { animation: none; --ev-giro: 300deg; }
+  .ev-tarjeta.destacado,
+  .ev-poster.destacado { animation: none; --ev-giro: 300deg; }
 }

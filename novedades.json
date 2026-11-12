@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-12", "tipo": "mejora", "texto": "La página de cada evento, rehecha como un cartel: el logo en grande, la cuenta atrás en días, horas y minutos, «¡Voy!» a mano, cuándo, las entradas y dónde en tres bloques, y quién va de PokeDoc con sus caras.", "enlace": "/eventos" },
     { "fecha": "2026-11-12", "tipo": "mejora", "texto": "El evento de Inicio ocupa menos: una franja fina con el logo, la fecha, quién va y cuántos días faltan, y «¡Voy!» se marca desde ahí. Toca la franja para abrir el evento.", "enlace": "/" },
     { "fecha": "2026-11-12", "tipo": "nuevo", "texto": "Eventos destacados: el que elige el equipo sale en Inicio y brilla en la agenda con una luz dorada. Y los logos sin fondo se ven tal cual, sin recuadro.", "enlace": "/eventos" },
     { "fecha": "2026-11-12", "tipo": "nuevo", "texto": "El día de Reyes, los Reyes Magos miran tu «La quiero» y te enseñan las tres cartas que menos cuestan hoy, en el idioma en que las quieres.", "enlace": "/mi-coleccion?ver=quiero" },

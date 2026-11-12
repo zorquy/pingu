@@ -18,7 +18,7 @@ import { sinMigracion } from './sin-migracion.js'
 import { showToast } from './toast.js'
 import {
   TIPOS, fechaLarga, siglasDe, filtrar, separar, webSegura, instagramDe, mapaDe, vanTexto,
-  horarioDe, mismoHorario, icsDeEvento, fechaDeDia, entradasDe, precioTexto, desdePrecio, pastillaDe, cuentaAtras, mesDe, esEntradaVip, horasDe, esPasado,
+  horarioDe, icsDeEvento, fechaDeDia, entradasDe, precioTexto, desdePrecio, pastillaDe, cuentaAtras, mesDe, esEntradaVip, horasDe, esPasado, cuentaRegresiva,
 } from './eventos-puro.js'
 
 const $ = (id) => document.getElementById(id)
@@ -196,6 +196,17 @@ async function alternarVoy(e, voy, oculto, repintar, alDia = null) {
 }
 
 // ── La ficha ──
+// La cuenta atrás del póster (1294): días, horas y minutos en casillas; ya
+// empezado, «En marcha»; pasado, nada. `data-regresiva` la repinta cada medio
+// minuto sin tocar lo demás.
+function regresivaHtml(e, pasado) {
+  if (pasado) return '<div class="ev-regresiva" data-regresiva></div>'
+  const r = cuentaRegresiva(e)
+  if (!r) return '<div class="ev-regresiva" data-regresiva><span class="ev-regresiva-ya">En marcha</span></div>'
+  const casilla = (n, txt) => `<span><b>${n}</b><small>${txt}</small></span>`
+  return `<div class="ev-regresiva" data-regresiva role="timer" aria-label="${escapeHtml(`Faltan ${r.dias} días, ${r.horas} horas y ${r.min} minutos`)}">${casilla(r.dias, r.dias === 1 ? 'día' : 'días')}${casilla(r.horas, 'horas')}${casilla(r.min, 'min')}</div>`
+}
+
 // Las entradas como entradas (1194): la VIP en dorado, la gratis en verde, y
 // «Comprar ›» si tiene dónde.
 function entradaHtml(x) {
@@ -244,40 +255,70 @@ async function pintarFicha(slug, sesion) {
     supabase.from('forum_threads').select('post_count').eq('id', e.hilo_id).maybeSingle()
       .then(({ data: h }) => { if (h) { mensajes = h.post_count || 0; pintar() } }).catch(() => {})
   }
+  // La lista de quién va, plegada o no: se conserva al repintar.
+  let verQuien = false
   const pintar = () => {
     const visibles = e.caras || []
     const ocultos = Math.max(0, (e.van || 0) - visibles.length)
-    const quien = e.van
-      ? `<p class="ev-cuantos"><b>${e.van}</b> ${e.van === 1 ? (pasado ? 'persona fue' : 'persona va') : pasado ? 'personas fueron' : 'personas van'}${ocultos ? ` <small>(${ocultos} sin decirlo)</small>` : ''}</p>
-         ${visibles.length ? `<ul class="ev-gente">${visibles.map((p) => `<li><a href="${profileUrl(p)}">${caraHtml(p, 32)}<span>${escapeHtml(nombre(p))}</span></a></li>`).join('')}</ul>` : ''}`
+    // Quién va (1294): una FRANJA con las caras y los primeros nombres; la
+    // lista entera se despliega debajo («Ver quién va»), no en una caja alta.
+    const cuantos = e.van
+      ? `<p class="ev-cuantos"><b>${e.van}</b> ${e.van === 1 ? (pasado ? 'persona fue' : 'persona va') : pasado ? 'personas fueron' : 'personas van'}${ocultos ? ` <small>(${ocultos} sin decirlo)</small>` : ''}</p>`
       : `<p class="ev-cuantos">${pasado ? 'Nadie de PokeDoc marcó que iba.' : 'Todavía no ha marcado nadie que va. ¡Sé el primero!'}</p>`
-    // Lo de leer, en chapas como las de una tienda: dónde, juegos y enlaces.
+    const nombres = visibles.slice(0, 3).map(nombre)
+    const resto = visibles.length - nombres.length
+    const quien = `<section class="ev-quien" aria-labelledby="evQuienT">
+        <h2 id="evQuienT" class="sr-only">Quién va de PokeDoc</h2>
+        ${visibles.length ? `<span class="ev-caras ev-quien-caras" aria-hidden="true">${visibles.slice(0, 6).map((x) => caraHtml(x, 36)).join('')}</span>` : `<span class="ev-quien-ic" aria-hidden="true">${ic('users', 20)}</span>`}
+        <div class="ev-quien-texto">${cuantos}${nombres.length ? `<small class="ev-quien-nombres">${escapeHtml(nombres.join(', '))}${resto > 0 ? ` y ${resto} más` : ''}</small>` : ''}</div>
+        ${visibles.length ? `<button type="button" class="ev-quien-ver" data-ver-quien aria-expanded="${verQuien}" aria-controls="evGente">${verQuien ? 'Ocultar' : 'Ver quién va'}</button>
+        <ul class="ev-gente" id="evGente"${verQuien ? '' : ' hidden'}>${visibles.map((x) => `<li><a href="${profileUrl(x)}">${caraHtml(x, 32)}<span>${escapeHtml(nombre(x))}</span></a></li>`).join('')}</ul>` : ''}
+      </section>`
+    // Lo de leer, en chapas como las de una tienda: juegos y enlaces.
     const datos = [
-      // La dirección ya va en «Dónde» con su «Cómo llegar» (1199, PINGU: «la
-      // hace más ancha y más fea»): aquí solo si no hay caja de «Dónde».
+      // La dirección va en «Dónde» con su «Cómo llegar» (1199): aquí solo si no hay losa de «Dónde».
       lugar && !mapa ? `<li>${ic('pin', 16)}<span>${escapeHtml([e.sitio, e.direccion, e.ciudad, e.provincia && e.provincia !== e.ciudad ? e.provincia : ''].filter(Boolean).join(', '))}</span></li>` : '',
       e.juegos ? `<li>${ic('cards', 16)}<span>${escapeHtml(e.juegos)}</span></li>` : '',
       web ? `<li>${ic('link', 16)}<a href="${escapeHtml(web)}" target="_blank" rel="noopener nofollow">${escapeHtml(web.replace(/^https?:\/\/(www\.)?/, '').replace(/\/$/, ''))}</a></li>` : '',
       insta ? `<li>${ic('camera', 16)}<a href="${escapeHtml(insta.url)}" target="_blank" rel="noopener nofollow">@${escapeHtml(insta.usuario)}</a></li>` : '',
       tcgmap ? `<li class="ev-dato-tcgmap">${ic('pin', 16)}<a href="${escapeHtml(tcgmap)}" target="_blank" rel="noopener">Ver en TCG Map Spain</a></li>` : '',
     ].filter(Boolean).join('')
+    // El fondo del póster: el cartel difuminado o, sin él, el logo muy
+    // difuminado sobre su color (el ambiente de la 1196), con trama de puntos.
+    const cartel = urlParaCss(webSegura(e.cartel_url))
+    const logoAmb = urlParaCss(webSegura(e.logo_url))
+    const color = colorDe(e)
+    const cuenta = pasado ? '' : cuentaAtras(e, ahora, Infinity)
+    // Las tres losas (1294): solo las que tienen datos, y miden lo mismo.
+    const losas = [
+      dias.length ? `<section class="ev-caja ev-losa" aria-labelledby="evCuandoT"><h2 id="evCuandoT">Cuándo</h2><ul class="ev-dias">${dias.map(diaHtml).join('')}</ul></section>` : '',
+      entradas.length || e.entrada ? `<section class="ev-caja ev-losa" aria-labelledby="evEntradasT"><h2 id="evEntradasT">${entradas.length > 1 ? 'Entradas' : 'Entrada'}</h2>${entradas.length ? `<ul class="ev-entradas">${entradas.map(entradaHtml).join('')}</ul>` : `<p class="ev-desc">${escapeHtml(e.entrada)}</p>`}</section>` : '',
+      mapa ? `<section class="ev-caja ev-losa ev-donde" aria-labelledby="evDondeT">
+          <h2 id="evDondeT">Dónde</h2>
+          <a class="ev-mapa" href="${escapeHtml(mapa)}" target="_blank" rel="noopener" aria-label="Ver ${escapeHtml(lugar || 'el sitio')} en el mapa"><span class="ev-mapa-pin">${ic('pin', 22)}</span></a>
+          <p class="ev-desc">${escapeHtml([e.sitio, e.direccion, e.ciudad].filter(Boolean).join(', '))}</p>
+          <a class="ev-llegar" href="${escapeHtml(mapa)}" target="_blank" rel="noopener"><span class="ev-llegar-ic">${ic('pin', 20)}</span><span>Cómo llegar<small>Abrir en Google Maps</small></span>${ic('chevronRight', 18)}</a>
+        </section>` : '',
+    ].filter(Boolean)
     caja.innerHTML = `
       <a class="ev-volver" href="/eventos">${ic('chevronLeft', 16)} Eventos</a>
-      ${cartelHtml(e, { ahora: pasado ? NUNCA : ahora, conPastilla: false, conTipo: false, clase: 'ev-cartel ev-cartel-ficha', etiqueta: `Cartel de ${e.nombre}` })}
-      <header class="ev-cab">
-        ${logoHtml(e, 'ev-logo grande')}
-        <div class="ev-cab-texto">
-          <span class="ev-chips"><span class="ev-chapa">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>${pasado ? '<span class="ev-chapa">Ya pasó</span>' : ''}</span>
-          <h1>${escapeHtml(e.nombre)}</h1>
-          <p class="ev-cuando-largo">${escapeHtml(fechaLarga(e))}</p>
-          ${e.descripcion ? `<p class="ev-desc">${escapeHtml(e.descripcion)}</p>` : ''}
+      <header class="ev-poster${e.destacado && !pasado ? ' destacado' : ''}${pasado ? ' pasado' : ''}"${color ? ` style="--ev-color:${color}"` : ''}>
+        <div class="ev-poster-fondo${cartel ? ' con-cartel' : ''}">
+          ${cartel ? `<span class="ev-poster-cartel" style="background-image:url('${cartel}')" role="img" aria-label="${escapeHtml(`Cartel de ${e.nombre}`)}"></span>` : logoAmb ? `<span class="ev-ambiente" style="background-image:url('${logoAmb}')" aria-hidden="true"></span>` : ''}
+          ${cuenta ? `<span class="ev-poster-cuenta">${escapeHtml(cuenta)}</span>` : ''}
+          ${logoHtml(e, 'ev-logo ev-logo-flota')}
+          <div class="ev-poster-titulo">
+            <span class="ev-chips">${e.destacado && !pasado ? `<span class="ev-chapa-destacado">${ic('star', 12)} Destacado</span>` : ''}<span class="ev-chapa">${escapeHtml(TIPOS[e.tipo] || 'Evento')}</span>${pasado ? '<span class="ev-chapa">Ya pasó</span>' : ''}</span>
+            <h1>${escapeHtml(e.nombre)}</h1>
+            <p class="ev-cuando-largo">${escapeHtml([fechaLarga(e), lugar].filter(Boolean).join(' · '))}</p>
+          </div>
         </div>
-        <div class="ev-acciones">
-          ${voyHtml(e, sesion, { pasado })}
-          ${sesion && e.voy && !pasado ? `<label class="ev-oculto"><input type="checkbox" id="evOculto"${e.oculto ? ' checked' : ''}> Ir sin decirlo</label>` : ''}
-        </div>
-        <div class="ev-cab-pie">
-          ${datos ? `<ul class="ev-datos">${datos}</ul>` : '<span></span>'}
+        <div class="ev-barra">
+          ${regresivaHtml(e, pasado)}
+          <div class="ev-acciones">
+            ${voyHtml(e, sesion, { pasado })}
+            ${sesion && e.voy && !pasado ? `<label class="ev-oculto"><input type="checkbox" id="evOculto"${e.oculto ? ' checked' : ''}> Ir sin decirlo</label>` : ''}
+          </div>
           <div class="ev-atajos">
             ${atajo('share', 'Compartir', { id: 'evCompartir' })}
             ${!pasado && dias.length ? atajo('calendar', 'Calendario', { id: 'evCalendario', 'aria-label': 'Añadir al calendario' }) : ''}
@@ -287,23 +328,13 @@ async function pintarFicha(slug, sesion) {
           </div>
         </div>
       </header>
-      <div class="ev-rejilla">
-        ${entradas.length || e.entrada ? `<section class="ev-caja" aria-labelledby="evEntradasT"><h2 id="evEntradasT">${entradas.length > 1 ? 'Entradas' : 'Entrada'}</h2>${entradas.length ? `<ul class="ev-entradas">${entradas.map(entradaHtml).join('')}</ul>` : `<p class="ev-desc">${escapeHtml(e.entrada)}</p>`}</section>` : ''}
-        <div class="ev-r-lado${entradas.length || e.entrada ? '' : ' ev-r-ancha'}">
-          <section class="ev-caja" aria-labelledby="evQuienT"><h2 id="evQuienT">Quién va de PokeDoc</h2>${quien}</section>
-          ${dias.length && !mismoHorario(dias) ? `<section class="ev-caja" aria-labelledby="evCuandoT"><h2 id="evCuandoT">Cuándo</h2><ul class="ev-dias">${dias.map(diaHtml).join('')}</ul></section>` : ''}
-        </div>
-        ${mapa ? `<section class="ev-caja ev-r-ancha ev-donde" aria-labelledby="evDondeT">
-          <a class="ev-mapa" href="${escapeHtml(mapa)}" target="_blank" rel="noopener" aria-label="Ver ${escapeHtml(lugar || 'el sitio')} en el mapa"><span class="ev-mapa-pin">${ic('pin', 22)}</span></a>
-          <div class="ev-donde-texto">
-            <h2 id="evDondeT">Dónde</h2>
-            <p class="ev-desc">${escapeHtml([e.sitio, e.direccion, e.ciudad].filter(Boolean).join(', '))}</p>
-            <a class="ev-llegar" href="${escapeHtml(mapa)}" target="_blank" rel="noopener"><span class="ev-llegar-ic">${ic('pin', 20)}</span><span>Cómo llegar<small>Abrir en Google Maps</small></span>${ic('chevronRight', 18)}</a>
-          </div>
-        </section>` : ''}
-      </div>`
+      ${e.descripcion || datos ? `<div class="ev-sobre">${e.descripcion ? `<p class="ev-desc">${escapeHtml(e.descripcion)}</p>` : ''}${datos ? `<ul class="ev-datos">${datos}</ul>` : ''}</div>` : ''}
+      ${losas.length ? `<div class="ev-losas" style="--losas:${losas.length}">${losas.join('')}</div>` : ''}
+      ${quien}`
   }
   pintar()
+  // La cuenta atrás se repinta sola; lo demás, no.
+  if (!pasado) setInterval(() => { const r = caja.querySelector('[data-regresiva]'); if (r) r.outerHTML = regresivaHtml(e, pasado) }, 30000)
   // En la ficha, la lista de quién va sale de la base: tras «Voy» o «sin
   // decirlo» se vuelve a pedir, para que salgas (o no) donde toca.
   const alDia = async () => {
@@ -311,6 +342,7 @@ async function pintarFicha(slug, sesion) {
     if (nuevo) { e.caras = nuevo.caras; e.van = nuevo.van }
   }
   caja.addEventListener('click', async (ev) => {
+    if (ev.target.closest('[data-ver-quien]')) { verQuien = !verQuien; pintar(); return }
     if (ev.target.closest('[data-voy]')) await alternarVoy(e, !e.voy, false, pintar, alDia)
     if (ev.target.closest('#evCalendario')) { descargarCalendario(e); return }
     if (ev.target.closest('#evCompartir')) {

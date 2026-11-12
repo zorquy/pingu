@@ -55204,6 +55204,48 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1294 — La ficha del evento, como un póster
+
+PINGU: «la página del evento… se ve como muy plana». De la propuesta v2, «haz lo
+recomendado»: el póster. `pintarFicha` (js/eventos.js) y su CSS (eventos.css)
+se rehicieron; lo que se lee es lo mismo.
+
+- **El póster** (`header.ev-poster`): el fondo es el color del evento con dos
+  brillos y una trama de puntos (`::after`, con máscara para que se vea en
+  medio); con cartel, el cartel DIFUMINADO detrás (`.ev-poster-cartel`, sin
+  recortar a mano), y sin cartel, el logo muy difuminado (`.ev-ambiente`, la
+  1196). Encima, el logo grande e inclinado (`.ev-logo-flota`, 148 px y
+  −4°; sin fondo, con sombra que sigue la silueta), las chapas (Destacado,
+  tipo, «Ya pasó»), el nombre en grande y «fecha · sitio, ciudad» (la
+  DIRECCIÓN sigue solo en «Dónde», la 1199). «Faltan N días» en la esquina,
+  sin tope de dos semanas. Destacado (1292): la misma luz dorada que en la
+  agenda.
+- **La barra**: la cuenta atrás en casillas (días · horas · min,
+  `cuentaRegresiva` en eventos-puro, pura; ya empezado, «En marcha»; pasado,
+  nada), que se repinta sola cada 30 s por `data-regresiva` sin tocar lo demás;
+  el «¡Voy!» grande con «Ir sin decirlo»; y los atajos de la 1197 a la derecha.
+  En el móvil, la cuenta y el «¡Voy!» en una fila y los atajos debajo.
+- **Debajo**: la descripción y los datos (juegos, web, Instagram, TCG Map) en
+  `.ev-sobre`; luego las LOSAS (`.ev-losas`, `--losas` con cuántas hay): Cuándo
+  (siempre que haya días, ahora también con el mismo horario), Entrada(s) y
+  Dónde (mapa dibujado, la dirección y «Cómo llegar»), solo las que tienen
+  datos y del mismo ancho y alto; en el móvil, una debajo de otra.
+- **Quién va** (`.ev-quien`): una franja con hasta seis caras, «N personas van
+  (M sin decirlo)», los tres primeros nombres y «Ver quién va», que despliega la
+  lista de siempre (`.ev-gente`). Es un botón con `aria-expanded` y la lista con
+  `hidden`, no un `<details>` con `display: contents` (en Chromium deja ver lo
+  de dentro cerrado); y `.ev-gente` lleva su regla `[hidden]`, que su `display:
+  grid` le ganaba al navegador. Se conserva abierta al repintar (tras «Voy»).
+- Se fueron `.ev-cab*`, `.ev-cartel-ficha`, `.ev-rejilla` y `.ev-r-*`; la
+  agenda sigue con `cartelHtml`.
+
+Prueba: `test-tanda-1294-pantalla.mjs` (lo puro de la cuenta atrás; el póster
+en PC y móvil: logo inclinado y sin caja, trama, destacado, casillas, «¡Voy!» y
+atajos en la barra, tres losas iguales, la franja baja con la lista plegada y
+desplegable, «¡Voy!» desde el póster; un evento sin datos: una losa a lo ancho,
+nadie, siglas, sin cuenta a registrarse). La 1194, 1196, 1198 y 1199 miran ahora
+el póster y las losas en vez de la cabecera de antes.
+
 ## Tanda 1293 — El evento de Inicio, en una franja fina; el destacado brilla
 
 PINGU vio la propuesta v2 de eventos («me gusta que ocupe poquito y a lo
