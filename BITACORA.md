@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-12 (546) — PINGU-Claude (1299 — la vitrina de cristal, botones en pastilla y pestañas en cápsula)
+
+**Hecho**: lo recomendado de la propuesta «Vitrina y perfil» (V1 + B1 + P1).
+La vitrina es una vitrina: caja con el brillo del cristal, luz cálida arriba,
+cada fila de cartas sobre su balda, las cartas centradas y una placa dorada
+«Vitrina de <nombre>» (la misma en Resumen y en Colección; dos baldas de tres en
+el móvil). Los «Ver» del Resumen son botones en pastilla que dicen adónde van
+(«Ver colección», «Todos los torneos», «Todo en el foro», «Ver los N»). Las
+pestañas van en una cápsula a 13 px con un icono del color de cada sección; la
+abierta, rellena; caben las siete en el PC.
+
+**Ficheros**: js/vitrina.js, js/perfil-resumen.js, js/perfil-pestanias.js,
+js/perfil.js, js/usuario.js, css/perfil.css, SCHEMA.md, BITACORA.md,
+novedades.json. En `pruebas`: test-tanda-1299-pantalla; la 1270, a las pestañas
+de 13 px y con el texto sin el icono.
+
+**Pendiente**: subir cuando PINGU diga. Sigue la 1300 («Pegar lista» del admin).
+
 ## 2026-11-12 (545) — PINGU-Claude (1298 — el enlace de invitación a la vista)
 
 **Hecho**: R1 + R2 + R3 de la propuesta «Enlaces e invitaciones» (PINGU: «dale

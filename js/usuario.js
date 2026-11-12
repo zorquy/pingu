@@ -431,14 +431,14 @@ async function init() {
   // El Resumen (1271), la pestaña de entrada: lo último de cada cosa.
   const resumen = import('./perfil-resumen.js')
   resumen.then((m) => m.pintarResumen(document.getElementById('perfilResumen'), { userId: profile.id, logros: profile?.achievements || [] })).catch(() => {})
-  const vitrina = import('./vitrina.js').then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), profile?.id || profileId)).catch(() => null)
+  const vitrina = import('./vitrina.js').then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), profile?.id || profileId, { nombre: profile?.display_name || profile?.username || '' })).catch(() => null)
   const coleccion = import('./perfil-coleccion.js').then((m) => m.pintarColeccionDe(document.getElementById('perfilColeccion'), profile)).catch(() => false)
   Promise.all([vitrina, coleccion]).then(([r, hayColeccion]) => {
     const conCartas = (r?.estado === 'ok' && r.cartas.length > 0) || hayColeccion
     vitrinaLista({ visible: conCartas, conCartas })
     // Tres cartas de su vitrina en la losa de la colección (1270).
     ponerCartasEnLosa(document.getElementById('profileStats'), document.getElementById('perfilVitrina'))
-    resumen.then((m) => m.ponerVitrinaEnResumen(document.getElementById('perfilResumen'), document.getElementById('perfilVitrina'))).catch(() => {})
+    resumen.then((m) => m.ponerVitrinaEnResumen(document.getElementById('perfilResumen'), document.getElementById('perfilVitrina'), profile?.display_name || profile?.username || '')).catch(() => {})
   })
   await Promise.all([loadReputationAndGuides(), loadFollowButton(), loadFollowSummary(), loadAchievementsGrid(), loadMedallero(), contarElForo()])
   if (document.getElementById('ptab-torneos')?.classList.contains('active')) cargarTorneosUnaVez()

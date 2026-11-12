@@ -807,6 +807,142 @@ button.perfil-cifra:hover .rotulo {
   gap: var(--e-md);
 }
 
+/* LA VITRINA DE CRISTAL (1299, V1; PINGU: «que sea una vitrina y no las
+   cartas ahí»): una caja con el brillo del cristal en diagonal, una tira de luz
+   cálida arriba, cada carta de pie sobre una balda (el `::after` de cada celda,
+   que se junta con el de al lado a lo ancho de la fila) y la placa con el
+   nombre. La misma en la pestaña Colección y en el Resumen (SCHEMA 1299). */
+.vitrina-cristal {
+  --vc-fondo: linear-gradient(180deg, #eef5f8, #f9fcfd);
+  --vc-borde: var(--border-strong);
+  --vc-balda: linear-gradient(180deg, #c9d8e0, #a9bcc7);
+  --vc-luz: rgba(255, 214, 120, 0.55);
+  --vc-brillo: rgba(255, 255, 255, 0.55);
+  position: relative;
+  padding: var(--e-lg) var(--e-lg) var(--e-2xl);
+  overflow: hidden;
+  border: 1px solid var(--vc-borde);
+  border-radius: var(--radius-xl);
+  background: var(--vc-fondo);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6), var(--shadow-sm);
+}
+:root[data-theme='dark'] .vitrina-cristal {
+  --vc-fondo: linear-gradient(180deg, #132232, #0d1822);
+  --vc-borde: #2e4356;
+  --vc-balda: linear-gradient(180deg, #3a5166, #1c2b38);
+  --vc-luz: rgba(255, 236, 180, 0.4);
+  --vc-brillo: rgba(255, 255, 255, 0.08);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08), 0 12px 28px rgba(0, 0, 0, 0.4);
+}
+.vitrina-cristal::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(115deg, transparent 30%, var(--vc-brillo) 42%, transparent 48%, transparent 62%, var(--vc-brillo) 68%, transparent 72%);
+  background-position: 100% 0;
+  background-size: 200% 100%;
+  pointer-events: none;
+  transition: background-position 0.9s var(--ease);
+}
+.vitrina-cristal:hover::before { background-position: 0 0; }
+.vitrina-cristal::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 8%;
+  left: 8%;
+  height: 4px;
+  border-radius: 0 0 4px 4px;
+  background: linear-gradient(90deg, transparent, var(--vc-luz), transparent);
+  box-shadow: 0 0 24px 8px var(--vc-luz);
+  pointer-events: none;
+}
+.vitrina-cristal .vitrina-rejilla { row-gap: var(--e-2xl); }
+.vitrina-cristal .vitrina-carta,
+.vitrina-cristal .vitrina-hueco,
+.vitrina-cristal .vc-celda { position: relative; display: block; min-width: 0; }
+/* Las cartas centradas y del tamaño de seis por fila (tres en el móvil),
+   tengan las que tengan: `--vc-n` y `--vc-n3` los pone vitrina.js. */
+.vitrina-cristal .vitrina-rejilla {
+  grid-template-columns: repeat(var(--vc-n, 6), calc((100% - 5 * var(--e-md)) / 6));
+  justify-content: center;
+}
+/* La balda: la pone la PRIMERA celda de cada fila, a lo ancho de toda la
+   vitrina (la caja recorta lo que sobra). */
+.vitrina-cristal .vitrina-rejilla > :nth-child(6n + 1)::after {
+  content: '';
+  position: absolute;
+  right: -2000px;
+  bottom: -16px;
+  left: -2000px;
+  height: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.35);
+  background: var(--vc-balda);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25);
+}
+.vitrina-cristal .vitrina-carta img,
+.vitrina-cristal .vc-celda img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 63 / 88;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  box-shadow: 0 10px 18px rgba(0, 0, 0, 0.35);
+}
+.vitrina-cristal .vitrina-carta > span:not([class]) {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.vitrina-cristal .vitrina-hueco { display: flex; z-index: 1; background: color-mix(in srgb, var(--white) 50%, transparent); }
+.vitrina-placa {
+  position: absolute;
+  bottom: var(--e-xs);
+  left: 50%;
+  z-index: 3;
+  max-width: calc(100% - 2 * var(--e-lg));
+  overflow: hidden;
+  padding: 2px var(--e-md);
+  border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, #e3bd66, #a77c2a);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.35);
+  color: #2a1a00;
+  font-family: var(--font-display);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+@media (max-width: 640px) {
+  .vitrina-cristal .vitrina-rejilla { grid-template-columns: repeat(var(--vc-n3, 3), calc((100% - 2 * var(--e-md)) / 3)); }
+  .vitrina-cristal .vitrina-rejilla > :nth-child(6n + 1)::after { content: none; }
+  .vitrina-cristal .vitrina-rejilla > :nth-child(3n + 1)::after {
+    content: '';
+    position: absolute;
+    right: -2000px;
+    bottom: -16px;
+    left: -2000px;
+    height: 12px;
+    border-top: 1px solid rgba(255, 255, 255, 0.35);
+    background: var(--vc-balda);
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.25);
+  }
+}
+.pr-cartas.vitrina-cristal { display: block; overflow: hidden; padding-bottom: var(--e-2xl); }
+.pr-cartas.vitrina-cristal img { width: 100%; }
+@media (prefers-reduced-motion: reduce) {
+  .vitrina-cristal::before { transition: none; }
+}
+
+
 .vitrina-carta,
 .vitrina-hueco {
   display: flex;
@@ -1166,9 +1302,48 @@ button.perfil-cifra:hover .rotulo {
   margin: var(--e-lg) 0 var(--e-md);
 }
 
-.perfil-pestanas .tab-btn {
-  margin-right: var(--e-md);
+/* Las pestañas en UNA cápsula (1299, P1): cada una con su icono del color de
+   su sección y su chapita; la abierta, rellena del acento. Caben las siete en
+   el PC; en el móvil la cápsula se desliza de lado. */
+.perfil-pestanas {
+  width: max-content;
+  max-width: 100%;
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  box-sizing: border-box;
 }
+.perfil-pestanas .tab-btn {
+  gap: var(--e-xs);
+  min-height: 36px;
+  margin: 0;
+  padding: 0 var(--e-sm);
+  border: 0;
+  border-radius: var(--radius-pill);
+  font-size: var(--t-sm);
+  font-weight: 600;
+}
+.perfil-pestanas .tab-btn.active { padding: 0 var(--e-md); }
+.perfil-pestanas .tab-btn:hover { background: var(--ice); }
+.perfil-pestanas .tab-btn.active { background: var(--acento); color: var(--acento-texto); font-weight: 800; }
+.perfil-pestanas .tab-btn.active .pest-ic { color: inherit; }
+.perfil-pestanas .tab-btn.active .pest-cuenta { background: color-mix(in srgb, currentColor 18%, transparent); color: inherit; }
+.pest-ic { display: inline-flex; }
+.perfil-pestanas .pest-cuenta { padding: 0 var(--e-xs); }
+.perfil-pestanas [data-ptab='resumen'] .pest-ic { color: var(--navy); }
+.perfil-pestanas [data-ptab='vitrina'] .pest-ic,
+.perfil-pestanas [data-ptab='cambios'] .pest-ic { color: #9a5f06; }
+.perfil-pestanas [data-ptab='guides'] .pest-ic { color: #0f7f55; }
+.perfil-pestanas [data-ptab='foro'] .pest-ic { color: #c62a5c; }
+.perfil-pestanas [data-ptab='torneos'] .pest-ic { color: #5f43d9; }
+.perfil-pestanas [data-ptab='logros'] .pest-ic { color: #b7791f; }
+:root[data-theme='dark'] .perfil-pestanas [data-ptab='vitrina'] .pest-ic,
+:root[data-theme='dark'] .perfil-pestanas [data-ptab='cambios'] .pest-ic { color: #e4b44a; }
+:root[data-theme='dark'] .perfil-pestanas [data-ptab='guides'] .pest-ic { color: #2fb47c; }
+:root[data-theme='dark'] .perfil-pestanas [data-ptab='foro'] .pest-ic { color: #f06c9b; }
+:root[data-theme='dark'] .perfil-pestanas [data-ptab='torneos'] .pest-ic { color: #9b7bff; }
+:root[data-theme='dark'] .perfil-pestanas [data-ptab='logros'] .pest-ic { color: #f5c04a; }
 
 .perfil-pestanas .tab-btn[hidden] { display: none; }
 
@@ -1937,17 +2112,13 @@ button.pf-logros:hover em { color: var(--text); }
   .perfil-losa-abanico img + img { margin-left: -16px; }
   /* A tamaño de ordenador: pestañas a 16, títulos del Resumen a 20. */
   .perfil-cuerpo .perfil-pestanas { margin-top: 0; }
-  .perfil-pestanas .tab-btn { font-size: var(--t-lg); }
   .perfil-cuerpo .perfil-resumen { gap: var(--e-xl); }
   .perfil-resumen .pr-cab h3 { font-size: var(--t-xl); }
-  .perfil-resumen .pr-ver { font-size: var(--t-md); }
   .perfil-resumen .pr-fila { padding: var(--e-md) var(--e-lg); }
   .perfil-resumen .pr-fila-t b { font-size: var(--t-lg); }
   .perfil-resumen .pr-fila-t small { font-size: var(--t-sm); }
   .perfil-resumen .pr-ico,
   .perfil-resumen .pr-medalla { width: 44px; height: 44px; }
-  .perfil-resumen .pr-cartas { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); overflow: visible; }
-  .perfil-resumen .pr-cartas img { width: 100%; }
   .perfil-resumen .pr-logros { grid-template-columns: repeat(6, minmax(0, 1fr)); }
   .perfil-resumen .pr-logro .icon { width: 40px; height: 40px; }
   .perfil-resumen .pr-logro small { font-size: var(--t-xs); }
@@ -2007,22 +2178,29 @@ button.pf-logros:hover em { color: var(--text); }
 .perfil-resumen { display: flex; flex-direction: column; gap: var(--e-lg); }
 .pr-bloque { display: flex; flex-direction: column; gap: var(--e-sm); }
 .pr-bloque[hidden] { display: none; }
-.pr-cab { display: flex; align-items: baseline; justify-content: space-between; gap: var(--e-sm); }
+.pr-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); }
 .pr-cab h3 { margin: 0; font-family: var(--font-display); font-size: var(--t-md); }
+/* El «Ver» de cada bloque, un botón suave en pastilla (1299, B1). */
 .pr-ver {
   display: inline-flex;
+  flex-shrink: 0;
   align-items: center;
-  gap: 2px;
-  min-height: 44px;
-  padding: 0;
+  gap: var(--e-xs);
+  min-height: 36px;
+  padding: 0 var(--e-sm) 0 var(--e-md);
   border: 0;
-  background: none;
-  color: var(--navy);
+  border-radius: var(--radius-pill);
+  background: var(--ice);
+  color: var(--text);
   font: inherit;
   font-size: var(--t-sm);
-  font-weight: 600;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
+.pr-ver:hover { background: var(--ice-dark); }
+.pr-ver svg { color: var(--navy); }
+@media (pointer: coarse) { .pr-ver { min-height: 44px; } }
 .pr-cartas { display: flex; gap: var(--e-sm); overflow-x: auto; overflow-y: hidden; padding-bottom: var(--e-xs); }
 .pr-cartas img {
   flex: none;

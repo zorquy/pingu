@@ -64,7 +64,7 @@ const foto = (c, ancho) => {
 
 // El HTML de la vitrina. La tuya enseña los huecos que quedan y «Elegir»;
 // la de otro, solo lo que hay (y nada si no hay nada).
-export function vitrinaHtml(cartas, { propia = false } = {}) {
+export function vitrinaHtml(cartas, { propia = false, nombre = '' } = {}) {
   if (!propia && !cartas.length) return ''
   const llenos = cartas
     .map((c) => `<a class="vitrina-carta" href="${escapeHtml(rutaDeCarta(c))}"${propia ? '' : ` data-marca-carta="${escapeHtml(c.id)}"`} title="${escapeHtml(`${nombreDeCarta(c)} · ${nombreDeSet(c.tcg_sets) || ''}`)}">${foto(c, 120)}<span>${escapeHtml(nombreDeCarta(c))}</span></a>`)
@@ -73,8 +73,13 @@ export function vitrinaHtml(cartas, { propia = false } = {}) {
   // «Compartir» (873) solo en la tuya y con cartas: una vitrina vacía no se enseña.
   const compartir = propia && cartas.length ? `<button type="button" class="link-btn vitrina-compartir" data-vitrina-compartir aria-label="Compartir la vitrina">${icons.share(14)}<span>Compartir</span></button>` : ''
   return `<div class="vitrina-cabeza"><h2 class="section-title">Vitrina</h2><span class="vitrina-acciones">${compartir}${propia ? `<button type="button" class="link-btn vitrina-editar" data-vitrina-elegir aria-label="${cartas.length ? 'Cambiar las cartas de la vitrina' : 'Elegir cartas para la vitrina'}">${icons.edit(14)}<span>${cartas.length ? 'Cambiar' : 'Elegir cartas'}</span></button>` : ''}</span></div>
-    <div class="vitrina-rejilla">${llenos}${vacios}</div>`
+    <div class="vitrina-cristal"><div class="vitrina-rejilla" style="${cuentasDeVitrina(cartas.length + (propia ? HUECOS - cartas.length : 0))}">${llenos}${vacios}</div>${placaHtml(nombre)}</div>`
 }
+
+// La placa dorada de la vitrina de cristal (1299, PINGU: «que sea una vitrina
+// y no las cartas ahí»). Sin nombre, sin placa.
+export const cuentasDeVitrina = (n) => `--vc-n:${Math.max(1, Math.min(6, n))};--vc-n3:${Math.max(1, Math.min(3, n))}`
+export const placaHtml = (nombre) => (nombre ? `<span class="vitrina-placa">Vitrina de ${escapeHtml(nombre)}</span>` : '')
 
 // Una foto que no carga pasa a la siguiente de su cadena (la 441).
 function engancharFotos(caja) {
@@ -92,7 +97,7 @@ function engancharFotos(caja) {
 
 // Monta la vitrina en `caja`. Con `propia`, «Elegir» abre el selector con
 // las cartas de TU colección.
-export async function montarVitrina(caja, userId, { propia = false, avisar = () => {}, usuario = '' } = {}) {
+export async function montarVitrina(caja, userId, { propia = false, avisar = () => {}, usuario = '', nombre = '' } = {}) {
   if (!caja || !userId) return null
   const r = await leerVitrina(userId).catch(() => ({ estado: 'error' }))
   if (r.estado !== 'ok') {
@@ -101,7 +106,7 @@ export async function montarVitrina(caja, userId, { propia = false, avisar = () 
   }
   let cartas = r.cartas
   const pintar = () => {
-    caja.innerHTML = vitrinaHtml(cartas, { propia })
+    caja.innerHTML = vitrinaHtml(cartas, { propia, nombre: nombre || usuario })
     caja.hidden = !caja.innerHTML
   }
   pintar()

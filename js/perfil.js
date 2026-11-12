@@ -762,11 +762,11 @@ async function init() {
   const resumen = import('./perfil-resumen.js')
   resumen.then((m) => m.pintarResumen(document.getElementById('perfilResumen'), { userId: session.user.id, propia: true, logros: currentProfile?.achievements || [] })).catch(() => {})
   import('./vitrina.js')
-    .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast, usuario: currentProfile?.username || '' }))
+    .then((m) => m.montarVitrina(document.getElementById('perfilVitrina'), session.user.id, { propia: true, avisar: showToast, usuario: currentProfile?.username || '', nombre: currentProfile?.display_name || currentProfile?.username || '' }))
     .then((r) => {
       vitrinaLista({ visible: r?.estado === 'ok', conCartas: r?.estado === 'ok' && r.cartas.length > 0 })
       ponerCartasEnLosa(document.getElementById('profileStats'), document.getElementById('perfilVitrina'))
-      resumen.then((m) => m.ponerVitrinaEnResumen(document.getElementById('perfilResumen'), document.getElementById('perfilVitrina'))).catch(() => {})
+      resumen.then((m) => m.ponerVitrinaEnResumen(document.getElementById('perfilResumen'), document.getElementById('perfilVitrina'), currentProfile?.display_name || currentProfile?.username || '')).catch(() => {})
     })
     .catch(() => vitrinaLista({ visible: false, conCartas: false }))
   await Promise.all([

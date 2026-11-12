@@ -12,6 +12,8 @@
 //    algo; en la tuya, siempre la vitrina (vacía, invita a elegir).
 //  · Llegar con la pestaña puesta: `?ver=logros` (859) o `#foro`.
 
+import { icons } from './icons.js'
+
 const CONTENEDOR = 'profileTabs'
 
 // Nombres viejos que siguen llegando por enlaces guardados: «about» eran
@@ -119,9 +121,20 @@ export function abrirLaQueTengaAlgo({ aunqueVacia = false } = {}) {
 // `alAbrir` recibe el nombre de la pestaña: es donde cada página engancha
 // lo que carga con pereza (el foro, los torneos). `propia` dice si es tu
 // ficha, que abre por la vitrina aunque esté vacía.
+// Cada pestaña con su icono, del color de su sección (1299, PINGU: «más
+// vistoso y no un texto sencillo»). El color lo pone perfil.css por `data-ptab`.
+const ICONO_DE_PESTANIA = { resumen: 'home', vitrina: 'cards', cambios: 'arrowLeftRight', guides: 'bookOpen', foro: 'messageSquare', torneos: 'trophy', logros: 'star' }
+export function ponerIconos(raiz = document) {
+  for (const btn of raiz.querySelectorAll('[data-ptab]')) {
+    const ic = icons[ICONO_DE_PESTANIA[btn.dataset.ptab]]
+    if (ic && !btn.querySelector('.pest-ic')) btn.insertAdjacentHTML('afterbegin', `<span class="pest-ic" aria-hidden="true">${ic(15)}</span>`)
+  }
+}
+
 export function montarPestanias({ alAbrir: cb, propia: esMia = false } = {}) {
   const caja = document.getElementById(CONTENEDOR)
   if (!caja) return
+  ponerIconos(caja)
   alAbrir = cb
   propia = esMia
   for (const btn of botones()) {

@@ -55204,6 +55204,27 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1299 — Vitrina de cristal, botones en pastilla y pestañas en cápsula
+
+- **La vitrina** (`.vitrina-cristal`, perfil.css): envuelve la rejilla de la
+  vitrina en Colección (`vitrinaHtml`) y en el Resumen (`ponerVitrinaEnResumen`,
+  cada foto en una `.vc-celda`). Tokens propios `--vc-*` en los dos temas;
+  `::before` es el brillo del cristal (se desliza al pasar, quieto con «menos
+  movimiento») y `::after` la tira de luz. La BALDA la pone la primera celda de
+  cada fila (`:nth-child(6n+1)`, en el móvil `3n+1`) con `left/right: -2000px`, y
+  la caja recorta: así va a lo ancho aunque haya tres cartas. Las cartas miden lo
+  de seis por fila y van centradas: `--vc-n` / `--vc-n3` en la rejilla
+  (`cuentasDeVitrina`). La placa (`placaHtml`) lleva el nombre que le pasen
+  `montarVitrina({ nombre })` y `ponerVitrinaEnResumen(caja, vitrina, nombre)`.
+  El nombre de cada carta se queda para el lector (y en el `title`).
+- **Los «Ver» del Resumen** (`.pr-ver`): botón suave en pastilla, 36 px a la
+  vista y 44 al dedo, con el destino escrito en `bloque(…, texto)`.
+- **Las pestañas** (`.perfil-pestanas`): una cápsula; cada `.tab-btn` en
+  pastilla a 13 px con su icono (`ponerIconos`, `ICONO_DE_PESTANIA` en
+  perfil-pestanias.js) del color de su sección por `data-ptab`; la abierta va en
+  `--acento`. Una pestaña nueva lleva su icono en `ICONO_DE_PESTANIA` y su color
+  en perfil.css, o sale sin él.
+
 ## Tanda 1298 — El enlace de invitación, a la vista
 
 Lo de la migración de referidos (`user_profiles.referred_by`, el enlace

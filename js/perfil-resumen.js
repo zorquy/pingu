@@ -16,8 +16,10 @@ import { getAllAchievements } from './gamification.js'
 import { achievementIconHtml } from './app.js'
 import { fotosDe, imgDeFoto, engancharCadena } from './fotos-cadena.js'
 
+// El «Ver» de cada bloque es un BOTÓN en pastilla que dice adónde lleva (1299,
+// PINGU: «que fuesen botones, no letras»).
 const bloque = (ver, titulo, dentro, texto = 'Ver') => `<section class="pr-bloque" data-pr="${ver}">
-    <header class="pr-cab"><h3>${escapeHtml(titulo)}</h3><button type="button" class="pr-ver" data-pr-ver="${ver}">${escapeHtml(texto)} ${icons.chevronRight(14)}</button></header>
+    <header class="pr-cab"><h3>${escapeHtml(titulo)}</h3><button type="button" class="pr-ver" data-pr-ver="${ver}"><span>${escapeHtml(texto)}</span>${icons.chevronRight(14)}</button></header>
     ${dentro}
   </section>`
 
@@ -47,16 +49,16 @@ async function ultimoDelForo(userId) {
 export function resumenHtml({ guia = null, torneo = null, foro = null, logros = [], userId = '', propia = false }) {
   const partes = []
   partes.push('<section class="pr-bloque pr-vitrina" data-pr="vitrina" hidden></section>')
-  if (guia) partes.push(bloque('guides', propia ? 'Tu última guía' : 'Su última guía', fila(rutaDeArticulo(guia.kind, guia.slug), `<span class="pr-ico pr-ico-aprender" aria-hidden="true">${icons.bookOpen(18)}</span>`, guia.title, [guia.categories?.name, guia.published_at ? haceCuanto(guia.published_at) : ''].filter(Boolean).join(' · ')), 'Guías'))
+  if (guia) partes.push(bloque('guides', propia ? 'Tu última guía' : 'Su última guía', fila(rutaDeArticulo(guia.kind, guia.slug), `<span class="pr-ico pr-ico-aprender" aria-hidden="true">${icons.bookOpen(18)}</span>`, guia.title, [guia.categories?.name, guia.published_at ? haceCuanto(guia.published_at) : ''].filter(Boolean).join(' · ')), 'Todas las guías'))
   if (torneo) {
     const p = torneo.champion_id === userId ? 0 : Array.isArray(torneo.podium) ? torneo.podium.indexOf(userId) : -1
     const medalla = p === 0 ? '<span class="pr-medalla pr-oro">1.º</span>' : p > 0 ? `<span class="pr-medalla${p === 1 ? ' pr-plata' : p === 2 ? ' pr-bronce' : ''}">${p + 1}.º</span>` : `<span class="pr-ico pr-ico-jugar" aria-hidden="true">${icons.trophy(18)}</span>`
     const sub = [torneo.status === 'in_progress' ? 'En juego' : p === 0 ? 'Campeón' : p > 0 ? `${p + 1}.º puesto` : 'Jugado', String(torneo.start_at || '').slice(0, 10)].filter(Boolean).join(' · ')
-    partes.push(bloque('torneos', propia ? 'Tu último torneo' : 'Su último torneo', fila(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, medalla, torneo.name, sub), 'Torneos'))
+    partes.push(bloque('torneos', propia ? 'Tu último torneo' : 'Su último torneo', fila(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, medalla, torneo.name, sub), 'Todos los torneos'))
   }
-  if (foro) partes.push(bloque('foro', 'En el foro', fila(`/tema/${encodeURIComponent(foro.id)}`, `<span class="pr-ico pr-ico-comunidad" aria-hidden="true">${icons.messageSquare(18)}</span>`, foro.title, `${foro.abrio ? 'Abrió el tema' : 'Respondió'} · ${haceCuanto(foro.created_at)}`), 'Foro'))
+  if (foro) partes.push(bloque('foro', 'En el foro', fila(`/tema/${encodeURIComponent(foro.id)}`, `<span class="pr-ico pr-ico-comunidad" aria-hidden="true">${icons.messageSquare(18)}</span>`, foro.title, `${foro.abrio ? 'Abrió el tema' : 'Respondió'} · ${haceCuanto(foro.created_at)}`), 'Todo en el foro'))
   if (logros.length) {
-    partes.push(bloque('logros', 'Logros', `<div class="pr-logros">${logros.slice(0, 6).map((a) => `<span class="pr-logro" title="${escapeHtml(a.title)}"><span class="icon rarity-${escapeHtml(a.rarity || 'bronze')}">${achievementIconHtml(a, 18)}</span><small>${escapeHtml(a.title)}</small></span>`).join('')}</div>`, `Ver ${logros.length}`))
+    partes.push(bloque('logros', 'Logros', `<div class="pr-logros">${logros.slice(0, 6).map((a) => `<span class="pr-logro" title="${escapeHtml(a.title)}"><span class="icon rarity-${escapeHtml(a.rarity || 'bronze')}">${achievementIconHtml(a, 18)}</span><small>${escapeHtml(a.title)}</small></span>`).join('')}</div>`, `Ver los ${logros.length}`))
   }
   return partes.join('')
 }
@@ -90,7 +92,7 @@ export async function pintarResumen(caja, { userId, propia = false, logros = [] 
 }
 
 // La vitrina, cuando llega: sus fotos en una tira, con «Ver» a Colección.
-export function ponerVitrinaEnResumen(caja, vitrina) {
+export function ponerVitrinaEnResumen(caja, vitrina, nombre = '') {
   if (!caja) return
   // Con su cadena de respaldo (1296): copiar solo `src` se llevaba la rota.
   const fotos = fotosDe(vitrina, 8)
@@ -100,7 +102,10 @@ export function ponerVitrinaEnResumen(caja, vitrina) {
     sitio = caja.querySelector('.pr-vitrina')
   }
   if (!fotos.length) return
-  sitio.outerHTML = bloque('vitrina', 'Vitrina', `<div class="pr-cartas">${fotos.map((f) => imgDeFoto(f, 63, 88)).join('')}</div>`, 'Colección').replace('class="pr-bloque"', 'class="pr-bloque pr-vitrina"')
+  // La vitrina de cristal (1299), la misma de la pestaña Colección: cada carta
+  // en su celda (la balda es un `::after` de la celda) y la placa con el nombre.
+  const placa = nombre ? `<span class="vitrina-placa">Vitrina de ${escapeHtml(nombre)}</span>` : ''
+  sitio.outerHTML = bloque('vitrina', 'Vitrina', `<div class="vitrina-cristal pr-cartas"><div class="vitrina-rejilla" style="--vc-n:${Math.min(6, fotos.length)};--vc-n3:${Math.min(3, fotos.length)}">${fotos.map((f) => `<span class="vc-celda">${imgDeFoto(f, 120, 168)}</span>`).join('')}</div>${placa}</div>`, 'Ver colección').replace('class="pr-bloque"', 'class="pr-bloque pr-vitrina"')
   engancharCadena(caja.querySelector('.pr-vitrina'))
   caja.querySelector('.pr-vacio')?.remove()
 }
