@@ -103,8 +103,9 @@ console.log('── 3. La ficha de un evento: la dirección solo en «Dónde» �
     const page = await ctx.newPage()
     await page.goto(`${BASE}/eventos/castellon`, { waitUntil: 'domcontentloaded' })
     await page.waitForTimeout(1500)
-    const r = await page.evaluate(() => ({ cab: document.querySelector('.ev-cab').textContent, datos: [...document.querySelectorAll('.ev-datos li')].map((l) => l.textContent.trim()), donde: document.querySelector('.ev-donde')?.textContent || '' }))
-    check(`${movil ? 'móvil' : 'PC'}: la cabecera no repite la dirección; lleva la web y el Instagram`, !/Carpa Multiusos|José Ribera/.test(r.cab) && r.datos.join('|') === 'castelloncardshow.com|@castelloncardshow', JSON.stringify(r.datos))
+    const r = await page.evaluate(() => ({ cab: document.querySelector('.ev-poster').textContent, datos: [...document.querySelectorAll('.ev-datos li')].map((l) => l.textContent.trim()), donde: document.querySelector('.ev-donde')?.textContent || '' }))
+    // Desde la 1294 el póster dice «sitio, ciudad» bajo el nombre (como la maqueta); la DIRECCIÓN, no.
+    check(`${movil ? 'móvil' : 'PC'}: el póster no repite la dirección; los datos llevan la web y el Instagram`, !/José Ribera/.test(r.cab) && r.datos.join('|') === 'castelloncardshow.com|@castelloncardshow', JSON.stringify(r.datos))
     check(`${movil ? 'móvil' : 'PC'}: …y «Dónde» la tiene con «Cómo llegar»`, /Carpa Multiusos/.test(r.donde) && /Cómo llegar/.test(r.donde))
     if (!movil) await page.screenshot({ path: '/tmp/1199-ficha.png', clip: { x: 0, y: 0, width: 1280, height: 560 } })
     await ctx.close()

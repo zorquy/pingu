@@ -62,31 +62,29 @@ console.log('── 1. La ficha: los atajos al pie de la cabecera ──')
 for (const movil of [false, true]) {
   const { ctx, page, errores } = await abrir(b, '/eventos/castellon', { movil })
   const r = await page.evaluate(() => {
-    const pie = document.querySelector('.ev-cab-pie')
-    const datos = pie?.querySelector('.ev-datos')?.getBoundingClientRect()
-    const atajos = pie?.querySelector('.ev-atajos')?.getBoundingClientRect()
+    // Desde la 1294 los atajos van en la BARRA del póster, al lado del «¡Voy!».
+    const barra = document.querySelector('.ev-barra')
+    const atajos = barra?.querySelector('.ev-atajos')?.getBoundingClientRect()
     const voy = document.querySelector('.ev-acciones .ev-voy')?.getBoundingClientRect()
-    const cab = document.querySelector('.ev-cab').getBoundingClientRect()
+    const cab = document.querySelector('.ev-poster').getBoundingClientRect()
     return {
-      enPie: !!datos && !!atajos,
+      enBarra: !!atajos,
       enAcciones: !!document.querySelector('.ev-acciones .ev-atajos'),
-      atajos: [...(pie?.querySelectorAll('.ev-atajo') || [])].map((a) => a.textContent.trim()),
-      datos: datos && { top: Math.round(datos.top), right: Math.round(datos.right), bottom: Math.round(datos.bottom) },
+      atajos: [...(barra?.querySelectorAll('.ev-atajo') || [])].map((a) => a.textContent.trim()),
       at: atajos && { top: Math.round(atajos.top), left: Math.round(atajos.left), right: Math.round(atajos.right), bottom: Math.round(atajos.bottom) },
-      voy: voy && Math.round(voy.bottom),
+      voy: voy && { top: Math.round(voy.top), right: Math.round(voy.right), bottom: Math.round(voy.bottom) },
       cabRight: Math.round(cab.right),
       ancho: document.documentElement.scrollWidth - innerWidth,
     }
   })
   const lado = movil ? 'móvil' : 'PC'
-  check(`${lado}: los datos y los atajos, en el pie de la cabecera (y no bajo el Voy)`, r.enPie && !r.enAcciones, JSON.stringify(r))
+  check(`${lado}: los atajos, en la barra del póster (y no bajo el Voy)`, r.enBarra && !r.enAcciones, JSON.stringify(r))
   check(`${lado}: con Compartir, Calendario, Cómo llegar y Foro`, ['Compartir', 'Calendario', 'Cómo llegar'].every((t) => r.atajos.includes(t)) && r.atajos.some((t) => /^Foro/.test(t)), r.atajos.join(' · '))
-  check(`${lado}: el pie va debajo del Voy`, r.at && r.voy && r.at.top > r.voy, JSON.stringify(r))
   if (!movil) {
-    check('PC: los atajos a la DERECHA de los datos, en la misma franja', r.at.left >= r.datos.right && r.at.top < r.datos.bottom && r.at.bottom > r.datos.top, JSON.stringify(r))
-    check('PC: …pegados al borde derecho de la tarjeta', r.cabRight - r.at.right <= 40, r.cabRight - r.at.right)
+    check('PC: los atajos a la DERECHA del Voy, en la misma barra', r.at.left >= r.voy.right && r.at.top < r.voy.bottom && r.at.bottom > r.voy.top, JSON.stringify(r))
+    check('PC: …pegados al borde derecho del póster', r.cabRight - r.at.right <= 40, r.cabRight - r.at.right)
   } else {
-    check('móvil: los atajos debajo de los datos y sin salirse de lado', r.at.top >= r.datos.bottom && r.ancho <= 0, JSON.stringify(r))
+    check('móvil: los atajos debajo del Voy y sin salirse de lado', r.at.top >= r.voy.bottom && r.ancho <= 0, JSON.stringify(r))
   }
   // La cara de Misty, con su foto entera.
   const cara = await page.$eval('.ev-gente .ev-cara', (c) => { const s = getComputedStyle(c); return { tam: s.backgroundSize, pos: s.backgroundPosition, img: s.backgroundImage } })

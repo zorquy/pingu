@@ -72,18 +72,19 @@ console.log('── 2. Con cartel: la imagen, sin el logo encima ──')
 console.log('── 3. La ficha: todo lo que se lee, arriba ──')
 {
   const { ctx, page, errores } = await abrir(b, '/eventos/iberian-card-show-2026')
-  const cab = await page.$eval('.ev-cab', (h) => ({
-    desc: h.querySelector('.ev-desc')?.textContent,
-    datos: [...h.querySelectorAll('.ev-datos li')].map((li) => li.textContent.trim()),
-    logo: !!h.querySelector('.ev-logo.grande'),
-    voy: !!h.querySelector('[data-voy]'),
+  // Desde la 1294 la cabecera es el PÓSTER y la descripción y los datos van justo debajo.
+  const cab = await page.evaluate(() => ({
+    desc: document.querySelector('.ev-sobre .ev-desc')?.textContent,
+    datos: [...document.querySelectorAll('.ev-sobre .ev-datos li')].map((li) => li.textContent.trim()),
+    logo: !!document.querySelector('.ev-poster .ev-logo-flota'),
+    voy: !!document.querySelector('.ev-poster [data-voy]'),
   }))
   // La dirección va en «Dónde» y no en la cabecera desde la 1199 (PINGU).
   check('la cabecera lleva el logo, la descripción, juegos, web, @ y TCG Map Spain (la dirección, solo en «Dónde»)', cab.logo && cab.voy && cab.desc === 'Más de 120 mesas de compraventa.' && !cab.datos.some((d) => /Pabellón Cristal/.test(d)) && cab.datos.includes('iberiancardshow.es') && cab.datos.includes('@iberiancardshow') && cab.datos.includes('Ver en TCG Map Spain') && cab.datos.some((d) => /One Piece/.test(d)), JSON.stringify(cab))
   const pliegue = await page.evaluate(() => { const d = document.querySelector('.ev-datos'); return d.getBoundingClientRect().bottom <= innerHeight })
   check('  …y se ve sin bajar (PC)', pliegue)
-  check('el tipo sale una vez (en la cabecera, no en el cartel)', (await page.$$('.ev-cartel-ficha .ev-tipo')).length === 0 && /Card show/i.test(await page.textContent('.ev-cab .ev-chapa')))
-  check('la cuenta atrás, en el cartel', (await page.textContent('.ev-cartel-ficha .ev-cuenta')) === 'Faltan 4 días')
+  check('el tipo sale una vez (en su chapa del póster)', (await page.$$('.ev-poster .ev-tipo')).length === 0 && /Card show/i.test(await page.textContent('.ev-poster .ev-chapa')))
+  check('la cuenta atrás, en la esquina del póster', (await page.textContent('.ev-poster-cuenta')) === 'Faltan 4 días')
   const ent = await page.$$eval('.ev-entrada', (l) => l.map((x) => ({ c: x.className, comprar: x.querySelector('.ev-comprar')?.href || '' })))
   check('las entradas: la VIP en dorado, la gratis en verde, «Comprar ›» solo donde hay enlace', ent.length === 3 && /vip/.test(ent[1].c) && /gratis/.test(ent[2].c) && ent[0].comprar === 'https://entradas.example/ics' && !ent[1].comprar, JSON.stringify(ent))
   check('los días, cada uno con su horario', (await page.$$('.ev-dia')).length === 2 && /10:00 – 18:00/.test(await page.textContent('.ev-dias')))

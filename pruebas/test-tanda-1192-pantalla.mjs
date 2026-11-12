@@ -84,7 +84,7 @@ console.log('── 2. «Voy» que falla se deshace ──')
 console.log('── 3. La ficha ──')
 {
   const { ctx, page, errores } = await abrir(b, '/eventos/castellon-card-show-2026')
-  check('el título y la cabecera', (await page.textContent('.ev-cab h1')) === 'Castellón Card Show' && /Castellón Card Show/.test(await page.title()))
+  check('el título y la cabecera', (await page.textContent('.ev-poster h1')) === 'Castellón Card Show' && /Castellón Card Show/.test(await page.title()))
   const gente = await textos(page, '.ev-gente li')
   check('quién va: los que se ven, y el número con los que no', gente.length === 2 && /3 personas van/.test(await page.textContent('.ev-cuantos')) && /1 sin decirlo/.test(await page.textContent('.ev-cuantos')), JSON.stringify(gente))
   const enlaces = await page.$$eval('.ev-datos a, .ev-caja a', (as) => as.map((a) => a.href))
