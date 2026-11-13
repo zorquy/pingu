@@ -23,11 +23,12 @@ import { direccionDeX } from '../../js/compartir-x.js'
 import {
   TIPOS, REDES, piezaDeNoticia, piezaDeGuia, piezasDeTorneo, hechosDe, filtrarPiezas, ordenarPiezas, cuentasDe,
   piezaDeEvento, piezaSemanaDeEventos, piezaDeLanzamiento, piezaDeNovedadesDelMes,
+  piezaDelMeta, piezaQueMasSuben, piezasDeHitos, hoyToca,
 } from '../../js/redes-textos.js'
 
 const iconoInstagram = (s) => icon('<rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>', s)
 const iconoDescargar = (s) => icon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>', s)
-const ICONO_TIPO = { noticia: 'newspaper', guia: 'bookOpen', torneo: 'trophy', evento: 'calendar', lanzamiento: 'cards', novedades: 'sparkles' }
+const ICONO_TIPO = { noticia: 'newspaper', guia: 'bookOpen', torneo: 'trophy', evento: 'calendar', lanzamiento: 'cards', novedades: 'sparkles', meta: 'barChart', precios: 'trendingUp', hito: 'medal' }
 
 const LOCAL = 'pd-redes-hechos'
 const faltaTabla = (e) => /redes_compartido|PGRST205|42P01|does not exist|Could not find the table/i.test(`${e?.code} ${e?.message}`)
@@ -162,6 +163,40 @@ async function cargarNovedades() {
   return [piezaDeNovedadesDelMes(nov, este), piezaDeNovedadesDelMes(nov, pasado)].filter(Boolean)
 }
 
+// ── El meta, las que más suben y los hitos (1337) ──
+async function cargarMeta() {
+  const { data, error } = await supabase.rpc('meta_resumen', { p_dias: 7, p_fuente: null })
+  if (error || !data?.length) return []
+  const [{ urlDeIcono }, { CDN_SPRITES }] = await Promise.all([import('../../js/meta/nucleo.js'), import('../../js/torneos/sprites-pokemon.js')])
+  const p = piezaDelMeta(data, { iconos: (i) => urlDeIcono(i, CDN_SPRITES) })
+  return p ? [p] : []
+}
+
+// Las mismas que la banda de la portada (escaparate.js): de las que pasan de
+// 10 €, las que más suben de la media de 30 días a la de 7.
+async function cargarSuben() {
+  const { data: precios, error } = await supabase.from('tcg_card_prices').select('card_id, cm_trend, cm_avg7, cm_avg30').gt('cm_trend', 10).order('cm_trend', { ascending: false }).limit(200)
+  if (error || !precios?.length) return []
+  const { lasQueMasSuben } = await import('../../js/escaparate.js')
+  const suben = lasQueMasSuben(precios, 8)
+  if (suben.length < 3) return []
+  const { data: cartas } = await supabase.from('tcg_cards').select('id, name, name_es, image_path, market').eq('market', 'WEST').in('id', suben.map((x) => x.id))
+  const porId = new Map((cartas || []).map((c) => [c.id, c]))
+  const { urlDeImagen } = await import('../../js/carta-ruta.js')
+  const lista = suben.filter((x) => porId.has(x.id)).map((x) => {
+    const c = porId.get(x.id)
+    return { nombre: c.name_es || c.name, imagen: c.image_path ? urlDeImagen(c.image_path, 'high', c.market) : null, precio: x.precio, sube: x.sube }
+  })
+  const p = piezaQueMasSuben(lista)
+  return p ? [p] : []
+}
+
+async function cargarHitos() {
+  const { data, error } = await supabase.rpc('sobre_cifras')
+  if (error || !data) return []
+  return piezasDeHitos(data)
+}
+
 async function cargarHechos() {
   const { data, error } = await supabase.from('redes_compartido').select('clave, red, hecho_at')
   if (error) {
@@ -216,16 +251,24 @@ function filaHtml(p) {
 
 function pintar() {
   const cuentas = cuentasDe(piezas, hechos)
-  const filtros = { sin: 'Sin compartir', todo: 'Todo', ...Object.fromEntries(Object.entries(TIPOS).map(([k, v]) => [k, v.nombre])) }
+  // Los tipos sin nada no se enseñan (eran doce chapas en el móvil), salvo el que está puesto.
+  const tipos = Object.entries(TIPOS).filter(([k]) => cuentas[k] || k === filtro)
+  const filtros = { hoy: 'Hoy toca', sin: 'Sin compartir', todo: 'Todo', ...Object.fromEntries(tipos.map(([k, v]) => [k, v.nombre])) }
+  const toca = hoyToca()
   const lista = filtrarPiezas(piezas, filtro, hechos)
   raiz.innerHTML = `
     <div class="rd-panel">
       ${sinTabla ? '<p class="admin-note admin-note-warn rd-sin-tabla">Lo compartido se apunta solo en este navegador hasta que se ejecute <code>supabase-migration-1335-redes-compartido.sql</code>; con ella lo ve todo el equipo.</p>' : ''}
+      <div class="rd-hoy">
+        <span class="rd-hoy-ico" aria-hidden="true">${icons.calendar(18)}</span>
+        <p><b>Hoy, ${escapeHtml(toca.dia)}, toca ${escapeHtml(toca.texto)}.</b> ${cuentas.hoy ? `Hay ${cuentas.hoy} sin compartir.` : 'Ya está todo lo de hoy.'}</p>
+        ${cuentas.hoy && filtro !== 'hoy' ? '<button type="button" class="btn-secondary rd-hoy-ver" data-rd-filtro="hoy">Ver lo de hoy</button>' : ''}
+      </div>
       <div class="av-pestanas rd-filtros" role="tablist" aria-label="Qué enseñar">
         ${Object.entries(filtros).map(([k, v]) => `<button type="button" role="tab" class="av-pestana${k === filtro ? ' on' : ''}" aria-selected="${k === filtro}" data-rd-filtro="${k}">${escapeHtml(v)} <b>${cuentas[k] ?? 0}</b></button>`).join('')}
       </div>
       <div class="rd-lista">
-        ${lista.length ? lista.map(filaHtml).join('') : `<p class="av-vacio rd-vacio">${filtro === 'sin' ? 'Todo compartido: no queda nada pendiente.' : 'Aquí no hay nada todavía.'}</p>`}
+        ${lista.length ? lista.map(filaHtml).join('') : `<p class="av-vacio rd-vacio">${filtro === 'sin' ? 'Todo compartido: no queda nada pendiente.' : filtro === 'hoy' ? 'Lo de hoy ya está compartido. Mira «Sin compartir» por si queda algo de otros días.' : 'Aquí no hay nada todavía.'}</p>`}
       </div>
     </div>`
   if (abierta) pintarPrevias(abierta)
@@ -380,11 +423,13 @@ export async function montarRedes(el) {
   raiz = el
   raiz.innerHTML = '<p class="admin-note">Cargando lo que se puede compartir…</p>'
   const nada = () => []
-  const [a, b, c, d, e, h] = await Promise.all([
+  const [h, ...grupos] = await Promise.all([
+    cargarHechos().catch(() => new Map()),
     cargarGuias().catch(nada), cargarTorneos().catch(nada), cargarEventos().catch(nada),
-    cargarLanzamientos().catch(nada), cargarNovedades().catch(nada), cargarHechos().catch(() => new Map()),
+    cargarLanzamientos().catch(nada), cargarNovedades().catch(nada),
+    cargarMeta().catch(nada), cargarSuben().catch(nada), cargarHitos().catch(nada),
   ])
-  piezas = ordenarPiezas([...a, ...b, ...c, ...d, ...e])
+  piezas = ordenarPiezas(grupos.flat())
   hechos = h
   escuchar()
   pintar()

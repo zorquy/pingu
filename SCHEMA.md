@@ -55204,6 +55204,31 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1337 — Redes: el meta, las que más suben, los hitos y «Hoy toca»
+
+En `redes-textos.js`: `piezaDelMeta(filas, { iconos })` (las filas de
+`meta_resumen`; cinco con más cuota, null con menos de tres; `iconos` es una
+función icono → URL que pone quien llama, en /admin `urlDeIcono(i,
+CDN_SPRITES)`; clave `meta:<lunes>`), `piezaQueMasSuben(lista)` (lista de
+`{ nombre, imagen, precio, sube }`; clave `suben:<lunes>`, tipo `precios`;
+reusa el pintor `lanzamiento-caras` con `cabecera`, `chapa`, `entradilla`,
+`enlace` y `debajo`), `piezasDeHitos(cifras)` (de `sobre_cifras`; `hitoDe` da
+el escalón de `ESCALONES` alcanzado; clave `hito:<cosa>:<escalón>`; fecha null
+para que vayan al final) y `hoyToca(ahora)` → `PLAN_SEMANA[día en España]`
+(`{ dia, tipos, texto }`). `filtrarPiezas(…, 'hoy')` = de esos tipos y que les
+falte alguna red; `cuentasDe` lleva `hoy`.
+
+En `redes-piezas.js`, los pintores `meta` (filas con sprites —por posición,
+`imagenesDe` carga los `iconos` de cada fila— barra de cuota relativa al
+primero y ▲/▼) y `hito` («Gracias por *estar*», el número grande y lo que es).
+
+El panel pide `rpc('meta_resumen', { p_dias: 7 })`, `tcg_card_prices` de más
+de 10 € (200) con `lasQueMasSuben` de escaparate.js, y `rpc('sobre_cifras')`.
+La franja `.rd-hoy` va encima de los filtros; los tipos con cuenta cero no se
+enseñan salvo el puesto.
+
+Prueba: `test-tanda-1337.mjs`.
+
 ## Tanda 1336 — Redes: eventos, lanzamientos, novedades y «Compartir» con imagen
 
 `redes-textos.js` suma `piezaDeEvento` (null si no está publicado o ya pasó,

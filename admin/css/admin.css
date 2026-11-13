@@ -1551,6 +1551,11 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
 .rd-panel { display: grid; gap: var(--e-md); }
 .rd-panel [hidden] { display: none !important; }
 .rd-lista { display: grid; gap: var(--e-sm); }
+/* «Hoy toca» (1337): el plan del día, encima de los filtros. */
+.rd-hoy { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm) var(--e-md); padding: var(--e-sm) var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--indigo-bg); color: var(--text); }
+.rd-hoy p { margin: 0; flex: 1 1 240px; min-width: 0; font-size: var(--t-sm); }
+.rd-hoy-ico { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--white); color: var(--indigo); flex: none; }
+.rd-hoy-ver { display: inline-flex; align-items: center; min-height: 40px; }
 .rd-fila { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: var(--e-sm) var(--e-md); align-items: center; padding: var(--e-sm) var(--e-md) var(--e-sm) var(--e-sm); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
 .rd-mini { width: 96px; height: 60px; border-radius: var(--radius-md); overflow: hidden; display: grid; place-items: center; background: var(--ice); color: var(--text-mid); }
 .rd-fila[data-tipo='guia'] .rd-mini { background: var(--success-bg); color: var(--success); }

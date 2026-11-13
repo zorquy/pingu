@@ -34,7 +34,9 @@ export async function imagenesDe(d) {
     // Las cartas van en su sitio aunque falte alguna (null): «la 2.ª más cara» no puede pasar a ser la 1.ª.
     Promise.all((Array.isArray(x.cartas) ? x.cartas : []).slice(0, 3).map((c) => cargar(c.imagen))),
   ])
-  return { portada, sprites: sprites.filter(Boolean), cartas }
+  // Los iconos del meta (1337), en el orden de sus filas y sin quitar los que fallan: van por posición.
+  const iconos = await Promise.all((x.filas || []).flatMap((f) => (f.iconos || []).map(cargar)))
+  return { portada, sprites: sprites.filter(Boolean), cartas, iconos }
 }
 
 // Una imagen entera dentro de la caja, sin recortar (un logo con su
@@ -352,10 +354,11 @@ function lanzamientoCaras(lienzo, x, { formato, n, total, cartas = [] }) {
   const { ctx, caja, acento } = pintarMarco(lienzo, {
     formato,
     seccion: 'coleccion',
-    chapa: 'Las más caras',
-    titulo: `Lo más caro de *${x.titulo}*`,
-    entradilla: 'Precio de tendencia en Cardmarket',
-    enlace: 'pokedoc.es/lanzamientos',
+    // También «Las que más suben» (1337): la misma pieza con otra cabecera.
+    chapa: x.chapa || 'Las más caras',
+    titulo: x.cabecera || `Lo más caro de *${x.titulo}*`,
+    entradilla: x.entradilla || 'Precio de tendencia en Cardmarket',
+    enlace: x.enlace || 'pokedoc.es/lanzamientos',
     linea: formato === 'apaisada' ? '' : 'Todas las cartas, con su precio',
     chapaPie: formato === 'apaisada' ? '' : pagina(n, total),
     maxLineas: 3,
@@ -390,7 +393,7 @@ function lanzamientoCaras(lienzo, x, { formato, n, total, cartas = [] }) {
     }
     ctx.textBaseline = 'alphabetic'
     lineaQueCabe(ctx, c.precioTexto, { x: cx + ancho / 2, y: cy + alto + altoPrecio * 1.05, ancho, cuerpo: altoPrecio, peso: 800, fuente: TITULAR, color: i === 0 ? acento : '#ffffff', alinear: 'center' })
-    lineaQueCabe(ctx, c.nombre, { x: cx + ancho / 2, y: cy + alto + altoPrecio * 1.6, ancho, cuerpo: Math.round(altoPrecio * 0.42), peso: 600, color: '#9fb3bd', alinear: 'center' })
+    lineaQueCabe(ctx, c.debajo ? `${c.nombre} · ${c.debajo}` : c.nombre, { x: cx + ancho / 2, y: cy + alto + altoPrecio * 1.6, ancho, cuerpo: Math.round(altoPrecio * 0.42), peso: 600, color: '#9fb3bd', alinear: 'center' })
   })
   ctx.restore()
 }
@@ -452,6 +455,85 @@ function novedadesDestacada(lienzo, x, { formato, n, total }) {
   ctx.restore()
 }
 
+// ── El meta ── (1337): una fila por arquetipo con sus dos Pokémon, la barra
+// de su cuota y lo que sube o baja.
+function meta(lienzo, x, { formato, iconos = [] }) {
+  const { ctx, caja, acento } = pintarMarco(lienzo, {
+    formato,
+    seccion: 'jugar',
+    chapa: 'Meta',
+    titulo: 'El meta de *esta semana*',
+    entradilla: 'Lo que más se juega en los torneos de los últimos 7 días',
+    enlace: 'pokedoc.es/meta',
+    linea: formato === 'apaisada' ? '' : formato === 'larga' ? 'Enlace en la bio' : 'Las listas y cómo les va, en la web',
+    maxLineas: 2,
+  })
+  const filas = x.filas || []
+  if (caja.h < 80 || !filas.length) return
+  const hueco = 14
+  const alto = Math.min(140, (caja.h - hueco * (filas.length - 1)) / filas.length)
+  const arriba = caja.y + Math.max(0, (caja.h - (alto * filas.length + hueco * (filas.length - 1))) / 2)
+  const maxCuota = Math.max(...filas.map((f) => f.cuota))
+  let k = 0
+  ctx.save()
+  filas.forEach((f, i) => {
+    const y = arriba + i * (alto + hueco)
+    ctx.fillStyle = 'rgba(255,255,255,0.07)'
+    redondeado(ctx, caja.x, y, caja.w, alto, 22)
+    ctx.fill()
+    // Los sprites (o el puesto, si no cargan).
+    const lado = alto * 0.78
+    const suyos = f.iconos.map(() => iconos[k++]).filter(Boolean)
+    const xs = caja.x + 16
+    if (suyos.length) suyos.slice(0, 2).forEach((img, j) => ctx.drawImage(img, xs + j * lado * 0.62, y + (alto - lado) / 2, lado, lado))
+    else {
+      ctx.fillStyle = acento
+      ctx.textBaseline = 'middle'
+      ctx.textAlign = 'center'
+      ctx.font = `800 ${Math.round(alto * 0.45)}px ${TITULAR}`
+      ctx.fillText(String(i + 1), xs + lado * 0.5, y + alto / 2)
+    }
+    const tx = xs + lado * 1.7
+    const derecha = caja.x + caja.w - 24
+    const anchoTexto = derecha - tx - 200
+    ctx.textBaseline = 'alphabetic'
+    lineaQueCabe(ctx, f.nombre, { x: tx, y: y + alto * 0.46, ancho: anchoTexto, cuerpo: Math.round(alto * 0.27), peso: 800, fuente: TITULAR })
+    // La barra de la cuota, proporcional a la del primero.
+    const anchoBarra = (derecha - tx - 200) * (f.cuota / maxCuota)
+    ctx.fillStyle = 'rgba(255,255,255,0.12)'
+    redondeado(ctx, tx, y + alto * 0.62, derecha - tx - 200, alto * 0.12, alto * 0.06)
+    ctx.fill()
+    ctx.fillStyle = acento
+    redondeado(ctx, tx, y + alto * 0.62, Math.max(alto * 0.12, anchoBarra), alto * 0.12, alto * 0.06)
+    ctx.fill()
+    lineaQueCabe(ctx, f.cuotaTexto, { x: derecha, y: y + alto * 0.5, ancho: 180, cuerpo: Math.round(alto * 0.3), peso: 800, fuente: TITULAR, alinear: 'right' })
+    if (f.cambio) lineaQueCabe(ctx, `${f.cambio > 0 ? '▲' : '▼'} ${Math.abs(f.cambio).toLocaleString('es-ES')}`, { x: derecha, y: y + alto * 0.8, ancho: 180, cuerpo: Math.round(alto * 0.17), peso: 700, color: f.cambio > 0 ? '#5fd39a' : '#f08a8a', alinear: 'right' })
+  })
+  ctx.restore()
+}
+
+// ── Un hito ── (1337): «Gracias por estar», el número en grande y lo que es
+// debajo (en el título iba repetido).
+function hito(lienzo, x, { formato }) {
+  const { ctx, caja, acento } = pintarMarco(lienzo, {
+    formato,
+    seccion: 'comunidad',
+    chapa: 'Hito',
+    titulo: 'Gracias por *estar*',
+    entradilla: `${x.frase} ${x.numero} ${x.que}.`,
+    enlace: 'pokedoc.es',
+    linea: formato === 'apaisada' ? '' : 'Esto lo hacemos entre todos',
+    maxLineas: 3,
+  })
+  if (caja.h < 80) return
+  ctx.save()
+  ctx.textBaseline = 'middle'
+  const cuerpo = Math.round(Math.min(caja.h * 0.5, 380))
+  const usado = lineaQueCabe(ctx, x.numero, { x: caja.x + caja.w / 2, y: caja.y + caja.h * 0.42, ancho: caja.w * 0.95, cuerpo, peso: 800, fuente: TITULAR, color: acento, alinear: 'center' })
+  lineaQueCabe(ctx, x.que, { x: caja.x + caja.w / 2, y: caja.y + caja.h * 0.42 + usado * 0.62, ancho: caja.w * 0.9, cuerpo: Math.round(Math.max(30, usado * 0.16)), peso: 700, color: '#ffffff', alinear: 'center' })
+  ctx.restore()
+}
+
 const PINTORES = {
   'guia-portada': guiaPortada,
   'guia-clave': guiaClave,
@@ -464,16 +546,18 @@ const PINTORES = {
   'lanzamiento-caras': lanzamientoCaras,
   'novedades-portada': novedadesPortada,
   'novedades-destacada': novedadesDestacada,
+  meta,
+  hito,
 }
 
 // Dibuja la diapositiva `n` (desde 1) de `total` en el tamaño pedido.
 export async function pintarDiapositiva(lienzo, d, { formato = 'historia', n = 1, total = 1 } = {}) {
   await prepararMarco()
-  const { portada, sprites, cartas } = await imagenesDe(d)
+  const { portada, sprites, cartas, iconos } = await imagenesDe(d)
   if (d.pintor === 'noticia') return pintarNoticia(lienzo, { ...d.datos, portada, formato, fecha: d.datos.fecha })
   const pintor = PINTORES[d.pintor]
   if (!pintor) throw new Error(`No hay pintor para «${d.pintor}»`)
-  pintor(lienzo, d.datos, { formato, n, total, portada, sprites, cartas })
+  pintor(lienzo, d.datos, { formato, n, total, portada, sprites, cartas, iconos })
   return lienzo
 }
 

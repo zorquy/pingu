@@ -27,6 +27,9 @@ export const TIPOS = {
   evento: { nombre: 'Eventos', chapa: 'Evento' },
   lanzamiento: { nombre: 'Lanzamientos', chapa: 'Lanzamiento' },
   novedades: { nombre: 'Novedades', chapa: 'Novedades' },
+  meta: { nombre: 'Meta', chapa: 'Meta' },
+  precios: { nombre: 'Precios', chapa: 'Precios' },
+  hito: { nombre: 'Hitos', chapa: 'Hito' },
 }
 export const REDES = { x: 'X', instagram: 'Instagram' }
 
@@ -40,6 +43,9 @@ const ETIQUETAS = {
   evento: ['#PokémonEspaña', '#CardShow'],
   lanzamiento: ['#NuevaExpansión', '#PokémonCartas'],
   novedades: ['#Novedades'],
+  meta: ['#MetaPokémon', '#PokémonTCGLive'],
+  precios: ['#Cardmarket', '#PokémonCartas'],
+  hito: ['#ComunidadPokémon'],
 }
 export const etiquetasDe = (tipo) => [...ETIQUETAS_BASE, ...(ETIQUETAS[tipo] || [])].join(' ')
 
@@ -408,6 +414,120 @@ export function piezaDeNovedadesDelMes(novedades, mes) {
   }
 }
 
+// ── El meta de la semana ── (1337), de `meta_resumen(7)`: los cinco
+// arquetipos con más cuota, con lo que suben o bajan respecto a la semana de
+// antes. `iconos` es una función que da la URL de un icono (la pone quien
+// llama: aquí no hay CDN).
+const pct = (n) => `${(Math.round(Number(n) * 10) / 10).toLocaleString('es-ES', { maximumFractionDigits: 1 })} %`
+
+export function piezaDelMeta(filas, { ahora = new Date(), iconos = () => null } = {}) {
+  const top = [...(filas || [])].filter((f) => f && Number(f.cuota) > 0).sort((a, b) => Number(b.cuota) - Number(a.cuota)).slice(0, 5)
+  if (top.length < 3) return null
+  const lunes = lunesDe(ahora)
+  const filasPieza = top.map((f) => {
+    const antes = f.cuota_anterior == null ? null : Number(f.cuota_anterior)
+    const cambio = antes == null ? null : Math.round((Number(f.cuota) - antes) * 10) / 10
+    return { nombre: limpio(f.nombre || f.arquetipo), cuota: Number(f.cuota), cuotaTexto: pct(f.cuota), cambio, iconos: (f.iconos || []).slice(0, 2).map(iconos).filter(Boolean) }
+  })
+  const url = `${SITIO}/meta`
+  // «↑3,3» y «↓1»: puntos de cuota respecto a la semana de antes.
+  const flecha = (c) => (c == null || c === 0 ? '' : c > 0 ? ` ↑${pct(c).replace(' %', '')}` : ` ↓${pct(-c).replace(' %', '')}`)
+  return {
+    clave: claveDe('meta', lunes),
+    tipo: 'meta',
+    titulo: `El meta de la semana: ${filasPieza[0].nombre} manda`,
+    linea: `Meta · ${filasPieza.slice(0, 3).map((f) => `${f.nombre} ${f.cuotaTexto}`).join(' · ')}`,
+    fecha: `${lunes}T07:00:00Z`,
+    url,
+    miniatura: null,
+    x: { texto: textoParaX({ titulo: 'El meta de esta semana en Pokémon TCG', descripcion: filasPieza.map((f, i) => `${i + 1}. ${f.nombre} ${f.cuotaTexto}${flecha(f.cambio)}`).join(' · ') }), url },
+    caption: captionDe({ titulo: 'El meta de esta semana', cuerpo: 'Los mazos que más se están jugando en los torneos de los últimos siete días:', puntos: filasPieza.map((f, i) => `${i + 1}. ${f.nombre}: ${f.cuotaTexto}${flecha(f.cambio)}`), cierre: 'Las listas y cómo les va, en la web: enlace en la bio (pokedoc.es/meta).', tipo: 'meta' }),
+    diapositivas: [{ pintor: 'meta', datos: { filas: filasPieza } }],
+  }
+}
+
+// ── Las que más suben ── (1337): `lista` = [{ nombre, imagen, precio, sube }]
+// (sube: 0,23 = +23 %), de la media de 7 días contra la de 30 de Cardmarket.
+export function piezaQueMasSuben(lista, { ahora = new Date() } = {}) {
+  const tres = (lista || []).filter((c) => c && c.nombre && Number(c.sube) > 0).slice(0, 3)
+  if (tres.length < 3) return null
+  const lunes = lunesDe(ahora)
+  const cartas = tres.map((c) => ({ nombre: limpio(c.nombre), imagen: c.imagen || null, precio: Number(c.precio) || 0, precioTexto: `+${Math.round(Number(c.sube) * 100)} %`, debajo: Number(c.precio) > 0 ? eurosDe(c.precio) : '' }))
+  const url = `${SITIO}/cartas`
+  return {
+    clave: claveDe('suben', lunes),
+    tipo: 'precios',
+    titulo: `Las que más suben: ${cartas[0].nombre} ${cartas[0].precioTexto}`,
+    linea: `Precios · ${cartas.map((c) => `${c.nombre} ${c.precioTexto}`).join(' · ')}`,
+    fecha: `${lunes}T07:30:00Z`,
+    url,
+    miniatura: cartas[0].imagen,
+    x: { texto: textoParaX({ titulo: 'Las cartas que más suben esta semana en Cardmarket', descripcion: cartas.map((c, i) => `${i + 1}. ${c.nombre}: ${c.precioTexto}${c.debajo ? ` (${c.debajo})` : ''}`).join(' · ') }), url },
+    caption: captionDe({ titulo: 'Las que más suben esta semana', cuerpo: 'La media de siete días en Cardmarket, contra la del mes:', puntos: cartas.map((c, i) => `${i + 1}. ${c.nombre}: ${c.precioTexto}${c.debajo ? `, ahora ${c.debajo}` : ''}`), cierre: '¿La tienes? Apúntala en tu colección y mira lo que vale: enlace en la bio.', tipo: 'precios' }),
+    diapositivas: [{ pintor: 'lanzamiento-caras', datos: { titulo: 'esta semana', cabecera: 'Las que más *suben*', chapa: 'Precios', entradilla: 'Media de 7 días contra la del mes, en Cardmarket', enlace: 'pokedoc.es/cartas', cartas } }],
+  }
+}
+
+// ── Hitos ── (1337), de `sobre_cifras()`: la cifra redonda más alta a la que
+// ha llegado cada cosa. La clave lleva el hito: compartido el de 1.000, el
+// siguiente que sale es el de 2.500.
+export const ESCALONES = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000, 50000, 100000, 250000, 500000, 1000000, 2500000, 5000000, 10000000]
+const QUE_ES = {
+  personas: { varios: 'personas en PokeDoc', frase: 'Ya somos', enlace: '/usuarios' },
+  cartas: { varios: 'cartas apuntadas en colecciones', frase: 'Ya hay', enlace: '/cartas' },
+  temas: { varios: 'temas en el foro', frase: 'Ya hay', enlace: '/foro' },
+  torneos: { varios: 'torneos jugados en PokeDoc', frase: 'Ya van', enlace: '/torneos' },
+}
+export const miles = (n) => Number(n).toLocaleString('es-ES', { useGrouping: 'always' })
+
+export function hitoDe(valor) {
+  const v = Number(valor) || 0
+  return [...ESCALONES].reverse().find((e) => v >= e) || null
+}
+
+export function piezasDeHitos(cifras) {
+  const salen = []
+  for (const [clave, que] of Object.entries(QUE_ES)) {
+    const hito = hitoDe(cifras?.[clave])
+    // Por debajo de 100 no es un hito que contar en público.
+    if (!hito || hito < 100) continue
+    const url = `${SITIO}${que.enlace}`
+    const numero = miles(hito)
+    salen.push({
+      clave: claveDe('hito', clave, hito),
+      tipo: 'hito',
+      titulo: `${que.frase} ${numero} ${que.varios}`,
+      linea: `Hito · ahora mismo, ${miles(cifras[clave])}`,
+      // Sin fecha: un hito no es «lo último», va al final de la lista.
+      fecha: null,
+      url,
+      miniatura: null,
+      x: { texto: textoParaX({ titulo: `${que.frase} ${numero} ${que.varios}`, descripcion: '¡Gracias por estar! Esto lo hacemos entre todos.' }), url },
+      caption: captionDe({ titulo: `${que.frase} ${numero} ${que.varios}`, cuerpo: 'Gracias a cada uno de vosotros. Esto lo hacemos entre todos.', cierre: 'Si aún no estás, te esperamos: enlace en la bio (pokedoc.es).', tipo: 'hito' }),
+      diapositivas: [{ pintor: 'hito', datos: { numero, frase: que.frase, que: que.varios } }],
+    })
+  }
+  return salen
+}
+
+// ── «Hoy toca» ── (1337): un plan para cada día de la semana, para no
+// pensar qué sacar. Lo que hay ese día en «Sin compartir» de ese tipo es lo
+// que se propone.
+export const PLAN_SEMANA = [
+  { dia: 'domingo', tipos: ['novedades', 'hito'], texto: 'lo nuevo de la web o un hito' },
+  { dia: 'lunes', tipos: ['meta'], texto: 'el meta de la semana' },
+  { dia: 'martes', tipos: ['guia'], texto: 'una guía (en carrusel)' },
+  { dia: 'miércoles', tipos: ['precios'], texto: 'las cartas que más suben' },
+  { dia: 'jueves', tipos: ['evento'], texto: 'los eventos del finde' },
+  { dia: 'viernes', tipos: ['lanzamiento', 'torneo'], texto: 'un lanzamiento o un torneo' },
+  { dia: 'sábado', tipos: ['torneo', 'noticia'], texto: 'resultados de torneos o una noticia' },
+]
+
+export function hoyToca(ahora = new Date()) {
+  const d = new Date(`${hoyEnEspana(ahora)}T12:00:00Z`).getUTCDay()
+  return PLAN_SEMANA[d]
+}
+
 // ── Lo compartido ──
 // Las filas de `redes_compartido` en un mapa clave → { x, instagram } (la
 // fecha de cada red, o nada).
@@ -429,6 +549,11 @@ export const faltaAlgo = (pieza, hechos) => {
 
 export function filtrarPiezas(piezas, filtro = 'todo', hechos = new Map()) {
   if (filtro === 'sin') return piezas.filter((p) => faltaAlgo(p, hechos))
+  // «Hoy toca» (1337): lo de los tipos del día que aún falta.
+  if (filtro === 'hoy') {
+    const tipos = hoyToca().tipos
+    return piezas.filter((p) => tipos.includes(p.tipo) && faltaAlgo(p, hechos))
+  }
   if (TIPOS[filtro]) return piezas.filter((p) => p.tipo === filtro)
   return piezas
 }
@@ -444,7 +569,7 @@ export function ordenarPiezas(piezas) {
 
 // Cuántas hay en cada filtro, para los números de las pestañas.
 export function cuentasDe(piezas, hechos) {
-  const c = { todo: piezas.length, sin: piezas.filter((p) => faltaAlgo(p, hechos)).length }
+  const c = { todo: piezas.length, sin: piezas.filter((p) => faltaAlgo(p, hechos)).length, hoy: filtrarPiezas(piezas, 'hoy', hechos).length }
   for (const k of Object.keys(TIPOS)) c[k] = piezas.filter((p) => p.tipo === k).length
   return c
 }

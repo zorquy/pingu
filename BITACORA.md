@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (586) — PINGU-Claude (1337 — Redes: el meta, las que más suben, los hitos y «Hoy toca»)
+
+**Hecho**: lo tercero y último de «Redes desde el panel».
+- **El meta de la semana** (de `meta_resumen` a 7 días): los cinco mazos con
+  más cuota, con sus Pokémon, una barra de cuota y lo que suben o bajan
+  respecto a la semana de antes (↑3,3 · ↓1).
+- **Las que más suben**: las tres cartas de más de 10 € cuya media de 7 días
+  más sube sobre la de 30 (las mismas cuentas que la banda de la portada), con
+  «+23 %» y su precio.
+- **Hitos** (de `sobre_cifras`, la de /sobre): la cifra redonda más alta a la
+  que han llegado personas, cartas apuntadas, temas del foro y torneos («Gracias
+  por estar · Ya somos 1.000 personas en PokeDoc»). La clave lleva el hito:
+  compartido el de 1.000, el siguiente que sale es el de 2.500. Por debajo de
+  100, nada.
+- **«Hoy toca»**: una franja arriba del panel con el plan del día (lunes el
+  meta, martes una guía, miércoles precios, jueves eventos, viernes un
+  lanzamiento o un torneo, sábado resultados o una noticia, domingo lo nuevo o
+  un hito) y el filtro «Hoy toca» con lo de ese día que aún falta.
+- Los filtros con cero ya no salen (en el móvil eran doce chapas), y los hitos
+  van al final de la lista.
+
+**Pendiente para PINGU**: ejecutar `supabase-migration-1335-redes-compartido.sql`
+(lo único de las tres tandas de redes). Mirar en /admin → Redes que el meta y
+las que más suben salen con los datos de verdad.
+
+**Lo que NO va**: nada automático, como se pidió. El plan de «Hoy toca» es una
+sugerencia: lo de otros días sigue en «Sin compartir».
+
+**Ficheros**: js/redes-textos.js, js/redes-piezas.js, admin/js/redes-admin.js,
+admin/css/admin.css. En `pruebas`: test-tanda-1337.mjs.
+
 ## 2026-11-13 (585) — PINGU-Claude (1336 — Redes: eventos, lanzamientos, novedades y «Compartir» con imagen)
 
 **Hecho**: lo segundo de «Redes desde el panel».
