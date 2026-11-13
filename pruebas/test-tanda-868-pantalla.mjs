@@ -80,7 +80,7 @@ console.log('── 1. El PC: la lista y el apartado, abriendo por Avisos ──
   check('sin errores', errores.length === 0, errores.join(' | '))
   let m = await estado(page)
   // 1102 puso «Envío y pagos».
-  check('ocho apartados a la izquierda, Avisos abierto a la derecha', m.lista.join('|') === 'Avisos|Cuenta|Envío|Privacidad|Apariencia|Tus|Invitar|Borrar' && m.listaVisible && m.panelVisible && m.actual === 'avisos' && m.h2 === 'Avisos', JSON.stringify(m))
+  check('nueve apartados a la izquierda (Seguridad desde la 1307), Avisos abierto a la derecha', m.lista.join('|') === 'Avisos|Cuenta|Envío|Seguridad|Privacidad|Apariencia|Tus|Invitar|Borrar' && m.listaVisible && m.panelVisible && m.actual === 'avisos' && m.h2 === 'Avisos', JSON.stringify(m))
   // Desde la 1149, en el PC una TABLA aviso × canal (sin las pestañas de canal).
   check('en el PC, la tabla con los avisos agrupados, todos puestos', (await page.locator('.aj-tabla').count()) === 1 && !(await page.locator('.aj-canales').isVisible()) && m.interruptores.length >= 20 && m.interruptores.every((x) => /:1$/.test(x)), JSON.stringify(m.interruptores))
   // Apagar un grupo escribe TODOS sus tipos; volver a encenderlo los quita.
@@ -152,7 +152,7 @@ console.log('── 3. En el iPhone: la lista, y cada apartado una pantalla ─�
   const { page, ctx, errores } = await abrir('/ajustes.html', { movil: true })
   check('sin errores', errores.length === 0, errores.join(' | '))
   let m = await estado(page)
-  check('sin ?ver=, la lista de apartados (con su texto pequeño) y ningún apartado', m.modo === 'lista' && m.listaVisible && !m.panelVisible && m.lista.length === 8, JSON.stringify(m))
+  check('sin ?ver=, la lista de apartados (con su texto pequeño) y ningún apartado', m.modo === 'lista' && m.listaVisible && !m.panelVisible && m.lista.length === 9, JSON.stringify(m))
   const alto = await page.evaluate(() => Math.min(...[...document.querySelectorAll('#ajLista a')].map((a) => a.getBoundingClientRect().height)))
   check('  …cada fila se puede tocar', alto >= 44, String(alto))
   await page.click('#ajLista [data-ver="avisos"]')
