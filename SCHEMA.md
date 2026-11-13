@@ -55204,6 +55204,23 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1350 — Rondas en una liga y las mesas como duelos
+
+`selectorDeLigaHtml(vista)` (`js/torneos/ronda.js`): en una liga con
+`rondasPorJornada > 1` y una ronda suiza a la vista, sustituye a las
+pastillas `.torneo-rondas-chips`. Pinta `.torneo-tira-j` (un
+`button.torneo-tj.fin|viva|saltada` por jornada con rondas, con
+`data-ver-ronda` a la ronda que toca; `.activa` la de la vista; `span.torneo-tj`
+las que no han llegado) y `.torneo-selector-rondas` (un `.seg` con un
+`seg-btn` por ronda de la jornada, `#cuentaGrande` como `.torneo-tj-reloj` si
+la ronda está activa con hora de fin, y las del corte como pastillas). El
+clic lo recoge el `[data-ver-ronda]` de siempre. En `pintarRondas`, con esa
+liga, la línea `.torneo-linea` no se pinta (queda solo `#cuentaCheckin`).
+
+`pintarMesas`: cada lado lleva `caraDe(id)` (en vez de la inicial de
+`colorDeNombre`), `.pierde` en el que perdió una mesa cerrada, y el centro
+`b.torneo-mesa-marcador` con `score_a–score_b` si el resultado los trae.
+
 ## Tanda 1349 — Mi mesa entre jornadas
 
 `#torneoProximaCaja` (`.torneo-proxima`, la primera caja del panel `jugar`) la

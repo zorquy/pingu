@@ -4534,3 +4534,44 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 .torneo-como-vas .torneo-jcara { flex: none; }
 .torneo-como-vas-nombre .torneo-mov { margin-left: var(--e-xs); }
 .torneo-como-vas-nombre .torneo-forma { margin-top: 2px; }
+
+/* ── 1350: Rondas — jornada y ronda en dos toques, mesas como duelos (SCHEMA 1350) ── */
+.torneo-selector-liga { display: grid; gap: var(--e-sm); margin: 0 0 var(--e-md); }
+.torneo-tira-j { display: flex; flex-wrap: wrap; gap: 4px; }
+.torneo-tj {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--text-dim);
+  font: inherit;
+  font-size: var(--t-xs);
+  font-weight: 800;
+}
+button.torneo-tj { cursor: pointer; }
+.torneo-tj.fin { background: var(--navy-solid); color: var(--blanco-fijo); }
+.torneo-tj.saltada { background: var(--bg); color: var(--text-dim); text-decoration: line-through; }
+.torneo-tj.viva { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
+.torneo-tj.activa { box-shadow: 0 0 0 3px var(--white), 0 0 0 5px var(--navy); }
+.torneo-tj:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+.torneo-selector-rondas { display: flex; align-items: center; gap: var(--e-sm); flex-wrap: wrap; }
+.torneo-selector-rot { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+.torneo-tj-reloj {
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+/* Las mesas, como duelos: caras, marcador en medio, el que pierde apagado. */
+.torneo-mesa-lado .torneo-jcara { flex: none; }
+.torneo-mesa-lado.pierde { opacity: 0.55; }
+.torneo-mesa-lado.pierde .torneo-jcara { filter: grayscale(0.6); }
+.torneo-mesa-lado.gana .torneo-mesa-jugador::after { content: ' ★'; color: #c9a227; font-size: var(--t-2xs); }
+.torneo-mesa-centro { display: grid; justify-items: center; gap: 2px; }
+.torneo-mesa-marcador { font-family: var(--font-marca); font-size: var(--t-lg); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }

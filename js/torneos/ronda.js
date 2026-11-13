@@ -1613,10 +1613,14 @@ function pintarMesas(ronda) {
       // se busca al mirar una mesa cerrada.
       const ganaA = terminal && (res?.winner_id === m.player_a_id || m.status === 'bye' || m.status === 'forfeit_b')
       const ganaB = terminal && res?.winner_id === m.player_b_id
+      // El que pierde, apagado (1350): en una mesa cerrada se ve de un golpe
+      // quién se la llevó, sin leer la chapa.
+      const pierdeA = terminal && ganaB
+      const pierdeB = terminal && ganaA && m.status !== 'bye'
       const lado = (id, gana, listo, derecha) =>
         id
-          ? `<span class="torneo-mesa-lado ${gana ? 'gana' : ''} ${derecha ? 'der' : ''}">
-              <span class="torneo-mesa-cara" style="background:${colorDeNombre(nombreDe(id))}">${escapeHtml(nombreDe(id).slice(0, 1).toUpperCase())}</span>
+          ? `<span class="torneo-mesa-lado ${gana ? 'gana' : ''} ${(derecha ? pierdeB : pierdeA) ? 'pierde' : ''} ${derecha ? 'der' : ''}">
+              ${caraDe(id)}
               <span class="torneo-mesa-jugador">${escapeHtml(nombreDe(id))}${yo === id ? ' <em>(tú)</em>' : ''}</span>
               ${chapaDe(id)}
               ${listo ? '<span class="torneo-mesa-listo" title="Check-in hecho">✓</span>' : ''}
@@ -1655,7 +1659,7 @@ function pintarMesas(ronda) {
       <div class="torneo-mesa ${esMia ? 'mia' : ''} ${TERMINALES.has(m.status) || m.status === 'bye' ? 'terminada' : 'falta'}">
         <span class="torneo-mesa-num">${m.table_number}</span>
         ${lado(m.player_a_id, ganaA, m.check_in_a_at, false)}
-        <span class="torneo-mesa-centro">${chapaDeMesa(m)}</span>
+        <span class="torneo-mesa-centro">${terminal && res && res.score_a != null && res.score_b != null && m.status !== 'bye' ? `<b class="torneo-mesa-marcador">${res.score_a}–${res.score_b}</b>` : ''}${chapaDeMesa(m)}</span>
         ${lado(m.player_b_id, ganaB, m.check_in_b_at, true)}
         ${resolver}
         ${enfrentados}
@@ -1880,7 +1884,13 @@ function pintarRondas() {
   if (ctx.torneo.top_cut_size && !rondas.some((r) => r.phase === 'top_cut')) {
     pasos.push({ rotulo: `Top ${ctx.torneo.top_cut_size}`, estado: 'Por jugar', clase: '' })
   }
-  const linea = pasos.length
+  // En una liga de varias rondas por jornada (1350), la línea de diez cajas con
+  // su barra de desplazamiento se va: la tira de jornadas de las mesas hace
+  // de línea y de selector a la vez.
+  const lineaDeLiga = esLiga() && rondasPorJornada(ctx.torneo) > 1
+  const linea = lineaDeLiga
+    ? '<span class="torneo-cuenta-checkin hidden" id="cuentaCheckin"></span>'
+    : pasos.length
     ? `<div class="torneo-linea">${pasos
         .map(
           (p) =>
@@ -1936,6 +1946,44 @@ function pintarRondas() {
   pintarRondasResto(actual)
 }
 
+// El selector de una liga (1350, PINGU: las dieciocho pastillas «J1·R1…J6·R3»
+// eran un lío): arriba la tira de jornadas, con su color (jugada, en juego, no
+// se jugó), y debajo las rondas de la jornada elegida. Null si no es una liga
+// de varias rondas por jornada (entonces van las pastillas de siempre).
+function selectorDeLigaHtml(vista) {
+  if (!esLiga() || rondasPorJornada(ctx.torneo) <= 1 || !vista || vista.phase === 'top_cut') return null
+  const t = ctx.torneo
+  const jVista = jornadaDeRonda(t, vista.round_number)
+  const suizas = rondas.filter((r) => r.phase !== 'top_cut')
+  const tira = []
+  for (let j = 1; j <= numJornadas(t); j++) {
+    const delJ = suizas.filter((r) => jornadaDeRonda(t, r.round_number) === j).sort((a, b) => a.round_number - b.round_number)
+    if (!delJ.length) {
+      tira.push(`<span class="torneo-tj" aria-hidden="true">${j}</span>`)
+      continue
+    }
+    const viva = delJ.some((r) => r.status !== 'finished')
+    const saltada = delJ.every((r) => rondaSaltada(r))
+    const destino = j === jVista ? vista : delJ.find((r) => r.status !== 'finished') || delJ[delJ.length - 1]
+    tira.push(
+      `<button type="button" class="torneo-tj ${viva ? 'viva' : saltada ? 'saltada' : 'fin'}${j === jVista ? ' activa' : ''}" data-ver-ronda="${destino.id}" aria-pressed="${j === jVista}" title="Jornada ${j}${saltada ? ' · no se jugó' : viva ? ' · en juego' : ''}">${j}</button>`
+    )
+  }
+  const deJ = suizas.filter((r) => jornadaDeRonda(t, r.round_number) === jVista).sort((a, b) => a.round_number - b.round_number)
+  const seg = deJ
+    .map((r) => `<button type="button" class="seg-btn${r.id === vista.id ? ' activa' : ''}" data-ver-ronda="${r.id}">R${rondaEnJornada(t, r.round_number)}</button>`)
+    .join('')
+  const reloj = vista.status === 'active' && vista.ends_at ? '<span class="torneo-tj-reloj" id="cuentaGrande" role="timer" aria-label="Tiempo restante de la ronda">–:––</span>' : ''
+  const cortes = rondas
+    .filter((r) => r.phase === 'top_cut')
+    .map((r) => `<button type="button" class="torneo-ronda-chip" data-ver-ronda="${r.id}">Cut R${r.round_number}</button>`)
+    .join('')
+  return `<div class="torneo-selector-liga">
+    <div class="torneo-tira-j" role="group" aria-label="Jornada">${tira.join('')}</div>
+    <div class="torneo-selector-rondas"><span class="torneo-selector-rot">Jornada ${jVista}</span><div class="seg" role="group" aria-label="Ronda de la jornada ${jVista}">${seg}</div>${reloj}${cortes}</div>
+  </div>`
+}
+
 // Lo que dice el mando al lado de su botón (1344).
 function textoDelMando(actual) {
   if (ctx.torneo.status === 'finished') return 'Torneo terminado'
@@ -1957,7 +2005,7 @@ function pintarRondasResto(actual) {
   // /ronda/:n del original, aquí como pestañitas). Sin elegir, la viva.
   const elegida = rondas.find((r) => r.id === rondaVista) || null
   const paraMesas = elegida || actual || rondas[rondas.length - 1]
-  const pestanas =
+  const pestanas = selectorDeLigaHtml(paraMesas) ?? (
     rondas.length > 1
       ? `<div class="torneo-rondas-chips">${rondas
           .map(
@@ -1965,7 +2013,7 @@ function pintarRondasResto(actual) {
               `<button class="torneo-ronda-chip ${paraMesas?.id === r.id ? 'activa' : ''}" data-ver-ronda="${r.id}">${r.phase === 'top_cut' ? `Cut R${r.round_number}` : esLiga() ? nombreDeRondaDeLiga(ctx.torneo, r.round_number, { corto: true }) : `R${r.round_number}`}</button>`
           )
           .join('')}</div>`
-      : ''
+      : '')
   // Igual que «Tu partida»: la tabla de mesas se vuelve a montar con cada
   // evento en vivo del torneo, y ahí dentro están los botones del juez.
   // Si sale el mismo HTML, no se toca (y así los escuchas de abajo tampoco

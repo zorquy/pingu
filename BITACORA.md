@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (600) — PINGU-Claude (1350 — Rondas: jornada y ronda en dos toques, y cada mesa como un duelo)
+
+**Hecho**:
+- **En una liga**, las dieciocho pastillas «J1·R1…J6·R3» y la línea de diez
+  cajas con barra de desplazamiento se van: una **tira de jornadas** (azul las
+  jugadas, roja la que está en juego, tachada la que no se jugó, gris las que
+  vienen) y debajo **R1 · R2 · R3** de la elegida, con el reloj si la ronda
+  está viva. Los torneos de un día siguen con su línea de siempre.
+- **Cada mesa es un duelo**: la cara de cada uno, el marcador en medio
+  («1–0», «2–1»), el que gana con su estrella y el que pierde apagado.
+
+**Ficheros**: `js/torneos/ronda.js`, `css/torneos.css`, `novedades.json`.
+
+**Pendiente**: 1351. Sin migración.
+
 ## 2026-11-13 (599) — PINGU-Claude (1349 — Mi mesa entre jornadas: cuándo juegas, qué te falta y cómo vas con caras)
 
 **Hecho**:

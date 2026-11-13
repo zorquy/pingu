@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En las rondas de una liga eliges la jornada en una tira del 1 al 10 y luego la ronda, sin dieciocho botoncitos; y cada mesa se ve como un duelo: las dos caras, el marcador y el ganador con su estrella.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En una liga, entre jornadas, «Mi mesa» empieza por tu próxima jornada: el día, la cuenta atrás y si te falta la lista. Y «Cómo vas» sale con la cara de cada uno, sus últimos resultados y si ha subido o bajado puestos.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En Torneos, la tarjeta de tu liga te dice en qué puesto vas, el podio sale con caras y cada torneo enseña en la esquina si fuiste campeón, si te retiraste o si estás dentro. Duplicar y Borrar pasan al «⋯».", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En Torneos ya no hay dos cabeceras: una liga en juego se sigue en su propia tarjeta, con la jornada, la ronda, el tiempo que queda e «Ir a tu mesa»; y en un torneo de un día el aviso de arriba cuenta sus rondas y el top de verdad.", "enlace": "/torneos" },
