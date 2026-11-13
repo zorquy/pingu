@@ -69,7 +69,7 @@ html:has(.bvs-dialogo[open]) { overflow: hidden; }
 .bvs-fila-texto > span { color: var(--text-mid); font-size: var(--t-xs); line-height: 1.4; }
 .bvs-aqui { padding: 0 var(--e-sm); border-radius: var(--radius-pill); background: var(--acento); color: var(--acento-texto); font-family: inherit; font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
 .bvs-nueva { background: var(--ice); color: var(--text); }
-.bvs-flecha { color: var(--text-dim); }
+.bvs-flecha { color: var(--text-mid); }
 .bvs-pie { display: grid; gap: var(--e-xs); justify-items: center; padding: var(--e-sm) var(--e-lg) var(--e-lg); }
 .bvs-entendido { width: 100%; max-width: 320px; }
 .bvs-nota { color: var(--text-mid); font-size: var(--t-2xs); text-align: center; }

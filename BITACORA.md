@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (583) — PINGU-Claude (1334 — lo pequeño de la noche)
+
+**Hecho**: I5 del plan.
+- **Colores y medidas sueltos** (311): el abanico de /auth usa `--arte-ambar`
+  en vez de un rojo a mano, la flecha de la bienvenida de sección va en
+  `--text-mid` (se pulsa) y el pie de una tarjeta de torneo usa la escala
+  (`--e-sm --e-md`). La 311 sale en verde.
+- **El aviso de transición** («Transition was aborted…»): lo lanza Chromium
+  cuando una página redirige al cargar (/buscar?en=cartas → /cartas) y no tiene
+  efecto a la vista. El registro de errores ya no lo apunta (`error-log.js`).
+  Lo que no se ha podido es que la consola de la página de destino deje de
+  enseñarlo: ni atrapando las promesas en `pagereveal`/`pageswap` desde la
+  cabecera ni saltando la transición; por eso la 909 sigue roja en «sin
+  errores» (ya lo estaba en HEAD).
+- **Pruebas viejas al día**: la 487 sabe que /admin ya no importa cartas
+  (1123); la 829 da por buenas `/foro/<foro>` y `/tema/<id>` (son redirecciones);
+  la 1162 acepta «La gente de PokeDoc» (1209). Y el buscador de /cartas pierde
+  sus «…».
+- La 17 de torneos ya pasa en este contenedor. El «Reto del día» del manifiesto
+  fue en A1.
+
+**Sigue en rojo, y ya lo estaba antes de estas tandas** (comprobado contra el
+HEAD de antes de la 1328): 748 (mide la cabecera del perfil de antes de la
+1270), 981 (/mi-coleccion salta 0,487 con sesión), 1040 (/glosario: la
+cabecera y lo primero a 411 px), dos de la 829 (las destacadas sin dibujo desde
+la 1217 y «nuevo para ti»), la paleta de la 968, la 893 (el menú del meta) y la
+909 de arriba. Cada una pide mirar su pantalla, no solo la prueba.
+
+**Ficheros**: js/error-log.js, css/auth.css, css/bienvenida-seccion.css,
+css/torneos.css, mi-coleccion.html, cartas.html, supabase-esquema-actual.sql
+(305 migraciones: no cuenta las borradas). En `pruebas`: 487, 829, 1162.
+
 ## 2026-11-13 (582) — PINGU-Claude (1333 — CLAUDE.md por capítulos)
 
 **Hecho**: I4 del plan. CLAUDE.md pasa de 206 KB a 12 KB: se queda lo que
@@ -27,7 +59,7 @@ al tocar su área. La 487 de `pruebas` ya mira también `normas/catalogo.md`.
 
 **Hecho**: I3 del plan. `supabase-esquema-actual.sql` (raíz, ~970 KB, no se
 sirve: `/supabase-*` es ruta interna) es el volcado sin datos de `public` tras
-aplicar las 308 migraciones en el orden en que entraron (la fecha del commit que
+aplicar las 305 migraciones que existen, en el orden en que entraron (la fecha del commit que
 añadió cada una) sobre un PostgreSQL vacío con lo justo de Supabase delante
 (roles, auth, storage, cron, net, vault) y la base de partida que describe el
 primer SCHEMA.md (las tablas de antes de la primera migración, con tipos

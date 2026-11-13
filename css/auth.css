@@ -198,7 +198,7 @@
 }
 .pd-abanico span:nth-child(1) { background: linear-gradient(150deg, #0ea5e9, #1e3a8a); transform: translateX(-52px) rotate(-14deg); }
 .pd-abanico span:nth-child(2) { z-index: 1; transform: translateY(-8px); }
-.pd-abanico span:nth-child(3) { background: linear-gradient(150deg, #f97316, #9a3412); transform: translateX(52px) rotate(14deg); }
+.pd-abanico span:nth-child(3) { background: var(--arte-ambar); transform: translateX(52px) rotate(14deg); }
 
 @media (min-width: 900px) {
   /* Las dos mitades en una rejilla: así miden lo mismo de alto. */

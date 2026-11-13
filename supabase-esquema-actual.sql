@@ -3,7 +3,7 @@
 -- Solo para LEER cómo es hoy una tabla o una función sin recorrer las
 -- migraciones. Lo que manda siguen siendo las supabase-migration-*.sql, que
 -- es lo que un humano ejecuta. Se rehace con  node herramientas/esquema-actual.mjs
--- (rama pruebas), aplicando las 308 migraciones en el orden en que
+-- (rama pruebas), aplicando las 305 migraciones en el orden en que
 -- entraron sobre un PostgreSQL vacío con lo justo de Supabase delante y la base
 -- de partida del primer SCHEMA.md (las tablas de antes de la primera migración:
 -- sus TIPOS son aproximados).

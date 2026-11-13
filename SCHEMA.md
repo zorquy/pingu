@@ -55204,6 +55204,15 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1334 — lo pequeño (I5)
+
+`initErrorLogging` deja pasar sin apuntar un rechazo `InvalidStateError` o
+`AbortError` cuyo mensaje es «Transition was aborted/skipped»: es una
+transición entre páginas cortada por una redirección al cargar, no un fallo.
+Atraparlo en la propia página no basta: Chromium lo lanza en la de destino
+antes de que ningún módulo exista, y `pagereveal` llega sin `viewTransition`.
+El resto son tokens donde había valores sueltos y pruebas puestas al día.
+
 ## Tanda 1333 — CLAUDE.md por capítulos (I4)
 
 CLAUDE.md lleva lo que vale siempre y la tabla de capítulos; cada área en

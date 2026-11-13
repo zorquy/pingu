@@ -115,7 +115,13 @@ export function recargarSiDesajuste(error) {
 
 export function initErrorLogging() {
   window.addEventListener('error', (e) => apuntar(e.message, e.error))
-  window.addEventListener('unhandledrejection', (e) => apuntar(e.reason?.message || String(e.reason), e.reason))
+  window.addEventListener('unhandledrejection', (e) => {
+    // Una transición entre páginas que corta una navegación (una página que
+    // redirige al cargar, I5 de la 1334) no es un fallo: el navegador la
+    // aborta y avisa con una promesa que nadie espera.
+    if (/^(InvalidStateError|AbortError)$/.test(e.reason?.name || '') && /Transition was (aborted|skipped)/.test(e.reason?.message || '')) return void e.preventDefault()
+    apuntar(e.reason?.message || String(e.reason), e.reason)
+  })
   // La CSP en modo informe (1313): lo que bloquearía, a los errores del panel.
   document.addEventListener('securitypolicyviolation', (e) => {
     let de = e.blockedURI || ''

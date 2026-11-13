@@ -558,7 +558,7 @@
 .torneo-pie-accion { margin-left: auto; flex-shrink: 0; }
 /* 1021: la acción del pie, más corta, para que «Inscrito · Organiza…» tenga
    sitio al lado y no salga «Ins…» (en una tarjeta de 350 px). */
-.torneo-pie .torneo-pie-accion.btn-secondary { padding: 10px 12px; font-size: var(--t-sm); }
+.torneo-pie .torneo-pie-accion.btn-secondary { padding: var(--e-sm) var(--e-md); font-size: var(--t-sm); }
 /* «Apuntarme» en verde: es la única acción de toda la sección que suma
    gente, y tiene que distinguirse de «ver» a un metro de distancia. */
 .torneo-btn-apuntarse {
