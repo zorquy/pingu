@@ -43,10 +43,17 @@
   <link rel="modulepreload" href="/js/tienda-puertas.js" />
   <link rel="modulepreload" href="/js/arte-de.js" />
   <link rel="modulepreload" href="/js/espera-prerender.js" />
+  <!-- precargas: las escribe generar-precargas.mjs (1315) -->
+  <link rel="modulepreload" href="/js/sobre.js" />
+  <link rel="modulepreload" href="/js/sin-migracion.js" />
+  <link rel="modulepreload" href="/js/sobre-puro.js" />
+  <link rel="modulepreload" href="/js/novedades-datos.js" />
+  <!-- /precargas -->
   <!-- /precargas -->
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
   <link rel="stylesheet" href="css/legal.css" />
+  <link rel="stylesheet" href="css/sobre.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
 <body>
@@ -141,6 +148,9 @@
       <p class="subtext">La comunidad en español de cartas Pokémon. Gratis, sin anuncios y hecha por aficionados.</p>
     </div>
 
+    <!-- Cifras vivas (1326): salen de sobre_cifras(); sin ella, la caja se esconde. -->
+    <div class="sobre-cifras" id="sobreCifras" aria-busy="true" aria-label="PokeDoc en cifras"></div>
+
     <div class="mascota-fila" style="margin-bottom: 26px;">
       <img src="/assets/images/mascota.webp" class="mascota" alt="" width="523" height="791" decoding="async" />
       <div class="mascota-texto">
@@ -226,12 +236,46 @@
     <p>PokeDoc es un proyecto hecho por y para aficionados. Detrás no hay una empresa: hay una persona construyéndolo y una comunidad escribiéndolo. Si quieres contar algo, proponer una guía o avisar de un fallo, escribe a <a href="mailto:info@pokedoc.es">info@pokedoc.es</a> o usa el botón de feedback dentro de la web.</p>
     <p>PokeDoc no está afiliado, patrocinado ni respaldado por Nintendo, Game Freak, Creatures Inc. ni The Pokémon Company. «Pokémon» y los nombres, imágenes y logotipos relacionados son marcas registradas de sus respectivos propietarios, y se mencionan aquí únicamente con fines descriptivos.</p>
 
+    <section id="sobreEquipoSec" class="sobre-sec">
+      <h2>Quién lo hace</h2>
+      <p>Un equipo pequeño de aficionados, y todo el que escribe una guía o responde en el foro.</p>
+      <div class="sobre-equipo" id="sobreEquipo"></div>
+    </section>
+
+    <section id="sobreLineaSec" class="sobre-sec">
+      <h2>Cómo ha ido</h2>
+      <p>Lo que ha cambiado cada mes, sacado de <a href="/novedades">Novedades</a>.</p>
+      <ol class="sobre-linea" id="sobreLinea"></ol>
+    </section>
+
+    <section class="sobre-sec sobre-prensa">
+      <h2>Para prensa y tiendas</h2>
+      <div class="sobre-prensa-rejilla">
+        <div class="sobre-prensa-caja">
+          <h3>El logo</h3>
+          <p>En PNG, para fondo claro u oscuro.</p>
+          <a class="btn-secondary" href="/assets/app-icon-512.png" download="pokedoc-logo.png">Descargar el logo</a>
+        </div>
+        <div class="sobre-prensa-caja">
+          <h3>Contacto</h3>
+          <p>Escríbenos a <a href="mailto:info@pokedoc.es">info@pokedoc.es</a> o por <a href="https://www.instagram.com/pokedoc_es" target="_blank" rel="noopener">Instagram</a>.</p>
+        </div>
+        <div class="sobre-prensa-caja">
+          <h3>Tiendas</h3>
+          <p>Inventario, mostrador y escaparate en PokeDoc, gratis.</p>
+          <a class="btn-secondary" href="/descargas/pokedoc-para-tiendas.pdf">El dossier (PDF)</a>
+          <a class="sobre-mas" href="/para-tiendas">Más sobre tiendas ›</a>
+        </div>
+      </div>
+    </section>
+
     <h2>Empieza por aquí</h2>
     <div class="hero-actions" style="margin: 14px 0 8px;">
       <a href="/aprender.html" class="btn-primary">Ver las guías →</a>
       <a href="/foro.html" class="btn-outline">Entrar en el foro</a>
     </div>
     <p style="margin-top: 14px;">Y si te quedas, <a href="/auth.html">crea tu cuenta</a>: es gratis y es lo que hace que se te guarde el progreso.</p>
+
   </main>
 
   <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres
@@ -286,5 +330,6 @@
   </footer>
 
   <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/sobre.js"></script>
 </body>
 </html>

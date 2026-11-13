@@ -1,0 +1,37 @@
+/* /sobre (tanda 1326, D1): cifras vivas, equipo, línea del tiempo y prensa.
+   Solo la pinta /sobre; el porqué largo, en SCHEMA 1326. */
+
+.sobre-cifras { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--e-md); margin: 0 0 var(--e-xl); min-height: 88px; }
+.sobre-cifras[hidden] { display: none; }
+.sobre-cifra { display: flex; flex-direction: column; justify-content: center; gap: var(--e-xs); padding: var(--e-lg); min-height: 88px; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); color: inherit; text-decoration: none; transition: border-color 0.15s; }
+.sobre-cifra:hover { border-color: var(--acento); }
+.sobre-cifra strong { font-family: var(--font-display); font-size: var(--t-2xl); line-height: 1.1; color: var(--text); font-variant-numeric: tabular-nums; }
+.sobre-cifra span { font-size: var(--t-sm); color: var(--text-mid); }
+@media (max-width: 640px) { .sobre-cifras { grid-template-columns: repeat(2, minmax(0, 1fr)); min-height: 188px; } }
+
+.sobre-sec { margin-top: var(--e-2xl); }
+.legal-page .sobre-sec h2 { margin-top: 0; }
+
+.sobre-equipo { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: var(--e-md); margin-top: var(--e-lg); }
+.sobre-persona { display: grid; grid-template-columns: 48px minmax(0, 1fr); grid-template-rows: auto auto; column-gap: var(--e-md); row-gap: var(--e-xs); align-items: center; padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); color: inherit; text-decoration: none; }
+.sobre-persona:hover { border-color: var(--acento); }
+.sobre-avatar { grid-row: 1 / 3; width: 48px; height: 48px; border-radius: 50%; display: grid; place-items: center; background-size: cover; background-position: center; color: var(--blanco-fijo); font-weight: 700; font-size: var(--t-lg); }
+.sobre-persona-txt { display: flex; flex-direction: column; min-width: 0; }
+.sobre-persona-txt strong, .sobre-persona-txt span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sobre-persona-txt span { font-size: var(--t-xs); color: var(--text-mid); }
+.sobre-papeles { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.sobre-papel { font-size: var(--t-2xs); font-weight: 600; padding: var(--e-xs) var(--e-sm); border-radius: var(--radius-pill); background: var(--ice); color: var(--text-mid); }
+
+.legal-page .sobre-linea { list-style: none; margin: var(--e-lg) 0 0; padding: 0 0 0 var(--e-sm); }
+.legal-page .sobre-mes { position: relative; margin: 0; padding: 0 0 var(--e-lg) var(--e-lg); border-left: 2px solid var(--border); }
+.sobre-mes::before { content: ""; position: absolute; left: -8px; top: var(--e-xs); width: 12px; height: 12px; border-radius: 50%; background: var(--acento); }
+.legal-page .sobre-mes-cab { margin: 0; color: var(--text); }
+.sobre-mes-cab span { font-size: var(--t-xs); color: var(--text-mid); margin-left: var(--e-xs); }
+.legal-page .sobre-mes ul { margin: var(--e-xs) 0 0; padding-left: var(--e-lg); }
+
+.sobre-prensa-rejilla { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-md); margin-top: var(--e-lg); }
+.sobre-prensa-caja { display: flex; flex-direction: column; align-items: flex-start; gap: var(--e-sm); padding: var(--e-lg); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
+.legal-page .sobre-prensa-caja h3 { margin: 0; font-size: var(--t-lg); }
+.legal-page .sobre-prensa-caja p { margin: 0; flex: 1; }
+.sobre-mas { font-size: var(--t-sm); }
+@media (max-width: 760px) { .sobre-prensa-rejilla { grid-template-columns: 1fr; } }

@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (574) — PINGU-Claude (1326 — /sobre con cifras vivas y quién lo hace)
+
+**Hecho**: D1 del plan. /sobre lleva arriba **cuatro cifras vivas** (personas,
+cartas apuntadas, temas del foro, torneos jugados; cada una enlaza a su sitio),
+y antes de «Empieza por aquí» tres secciones nuevas: **Quién lo hace** (el
+equipo con su cara y su papel: Administración, Moderación, Redacción, sacado
+de los roles), **Cómo ha ido** (la línea del tiempo por meses, sacada de
+`novedades.json`: cuántos cambios y las tres destacadas, o lo nuevo de ese mes)
+y **Para prensa y tiendas** (el logo para descargar, el contacto y el dossier
+de /para-tiendas). Las cifras y el equipo salen de una función nueva,
+`sobre_cifras()` (migración 1326); sin ella, esas dos cosas se esconden y el
+resto de la página se ve igual.
+
+**Pendiente para PINGU**: ejecutar `supabase-migration-1326-sobre.sql`.
+
+**Lo que NO va**: la cara de redacción «a mano» (sale de quien tenga el rol)
+ni un logo en SVG aparte (se descarga el icono de 512 px de la app).
+
+**Ficheros**: supabase-migration-1326-sobre.sql (nuevo), js/sobre-puro.js
+(nuevo), js/sobre.js (nuevo), css/sobre.css (nuevo), sobre.html (y sus
+precargas), SCHEMA.md, novedades.json. En `pruebas`: test-tanda-1326 y el
+doble (`sobre_cifras` sin la migración da PGRST202).
+
 ## 2026-11-13 (573) — PINGU-Claude (1325 — ninguna página vacía sin salida)
 
 **Hecho**: D2 del plan. Un molde común de vacío, `vacioHtml` (`js/vacio.js`

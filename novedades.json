@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "mejora", "texto": "«Qué es PokeDoc» ahora cuenta cuánta gente somos, cuántas cartas tenemos apuntadas, los temas del foro y los torneos jugados, quién lo hace, cómo ha ido mes a mes y, para prensa y tiendas, el logo, el contacto y el dossier.", "enlace": "/sobre" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Las pantallas vacías ya no te dejan tirado: la agenda de eventos sin eventos o el reto de la carta cuando no carga te dicen qué irá ahí y te dan a dónde ir.", "enlace": "/eventos" },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Letra más grande y más contraste: en Ajustes › Apariencia eliges entre tres tamaños de letra para toda la web y puedes marcar más los textos grises y los bordes.", "enlace": "/ajustes?ver=apariencia" },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Tu temporada de liga, en tu perfil: en la pestaña Torneos, cada liga con tu puesto jornada a jornada en una línea que sube o baja, tus puntos, el resultado de cada jornada y los dos Pokémon de tu mazo.", "enlace": "/perfil?ver=torneos" },

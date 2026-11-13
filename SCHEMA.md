@@ -55204,6 +55204,25 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1326 — /sobre con cifras vivas, equipo y línea del tiempo
+
+D1 del plan. `sobre_cifras()` (migración 1326, `security definer`, la pueden
+llamar `anon` y `authenticated`) devuelve `{ personas, cartas, temas, torneos,
+equipo }`: personas sin tiendas ni baneados, la suma de `user_collection.cantidad`
+(la RLS no deja contarla desde la web, y una suma no dice nada de nadie), todos
+los `forum_threads` y los `tournaments` en `finished`; el equipo, quien tiene
+`is_admin`, `is_moderator` o `is_writer` (sin tiendas ni baneados), admins
+primero y por antigüedad, con lo de un perfil público y nada más.
+Lo puro, en `js/sobre-puro.js`: `cifrasHtml` (sin los cuatro números no pinta
+nada: no se sabe ≠ cero; punto de miles siempre, que el es-ES de los
+navegadores no lo pone a las de cuatro cifras), `papelesDe`/`equipoHtml` (el
+avatar y el enlace se los pasa la página: `avatarStyle` y `profileUrl`) y
+`lineaDelTiempo`/`lineaDelTiempoHtml` (por meses desde `novedades.json`: las
+destacadas del mes o, si no hay, lo `nuevo` recortado con `frasecorta`).
+`js/sobre.js` lo pide y pinta; sin la función (o sin red) esconde `#sobreCifras`
+y `#sobreEquipoSec`. CSS en `css/sobre.css` (`.sobre-cifras` con su alto
+reservado y su `[hidden]`: un `display: grid` le gana al atributo).
+
 ## Tanda 1325 — ninguna página vacía sin salida
 
 D2 del plan. `vacioHtml({ titulo, texto, salidas, mascota })` (`js/vacio.js`,
