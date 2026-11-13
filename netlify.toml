@@ -1,3 +1,11 @@
+# Antes de publicar (tanda 1309, C3 del plan): si un import está roto, una
+# página pide un fichero que no existe o un JSON no se lee, el despliegue se
+# para y la web sigue como estaba. Tarda menos de un segundo y no instala
+# nada. Si alguna vez para un despliegue que debía salir, el mensaje del
+# registro de Netlify dice qué fichero y qué línea.
+[build]
+  command = "node herramientas/antes-de-salir.mjs"
+
 [functions]
   directory = "netlify/functions"
 

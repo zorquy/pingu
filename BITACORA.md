@@ -4,6 +4,23 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (556) — PINGU-Claude (1309 — antes de salir: Netlify no publica nada roto)
+
+**Hecho**: la C3. `herramientas/antes-de-salir.mjs` corre como `[build]
+command` en `netlify.toml`: comprueba en un cuarto de segundo que cada
+`import { x }` apunta a un fichero que existe y exporta `x` (también
+`import()`), que cada `<script src>` y hoja de las páginas existe, y que
+`novedades.json` y el manifiesto se leen. Si algo falla, el despliegue se para
+y la web sigue como estaba: lo roto no llega a nadie y no hace falta gastar
+otro despliegue (15 créditos) en arreglarlo. Es la regla de `test-imports`,
+pero en la rama que se despliega.
+
+**Ficheros**: herramientas/antes-de-salir.mjs (nuevo), netlify.toml,
+SCHEMA.md, BITACORA.md. En `pruebas`: lo vigila test-tanda-1310.
+
+**Pendiente**: nada. Si un día falla un despliegue con «✋ No se publica», el
+registro de Netlify dice qué fichero y qué nombre.
+
 ## 2026-11-13 (555) — PINGU-Claude (1308 — frenos contra el spam)
 
 **Hecho**: la S4, todo en la base (migración 1308). Tres frenos: (1) ritmo por

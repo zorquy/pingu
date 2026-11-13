@@ -55204,6 +55204,16 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1309 — antes de salir
+
+`herramientas/antes-de-salir.mjs` es el `[build] command` de `netlify.toml`
+(sin dependencias, en Node). Mira: los imports con nombre y los `import()` de
+`js/`, `admin/js/` y `netlify/`; los `<script src>`, hojas, `modulepreload` y
+manifiesto de las páginas de la raíz y de `admin/`; y que `novedades.json` y
+`manifest.webmanifest` sean JSON. Con un fallo sale con 1 y Netlify no
+publica. Se corre también a mano antes de cada push. Algo nuevo que la web
+LEA al cargar y pueda romperla entera (otro JSON) va en su lista 3.
+
 ## Tanda 1308 — frenos contra el spam
 
 Migración `supabase-migration-1308-frenos.sql`. Todo en la base: la web no
