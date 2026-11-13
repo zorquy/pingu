@@ -86,6 +86,15 @@
   de esa página: `partidas-fila` ya era la fila de una partida —con su
   borde— y la fila de mandos la pisó sin un solo error (de ahí
   `partidas-mandos`).
+- **Dentro de un torneo, la barra de abajo es la del torneo** (tanda 1352,
+  PINGU aprobó «Torneos como app»): en el móvil las pestañas de la ficha
+  (Hoy · Mesas · Tabla · Info) son la barra fija y la de la web (`.bm`) se
+  esconde con `html.torneo-app`; se sale con la flecha de la cabecera de
+  detalle. Es la ÚNICA página con su propia barra: otra no se añade sin que
+  PINGU la pida. En el PC las mismas pestañas van en una columna estrecha
+  (72 px, icono y nombre) porque desde 1.400 px la web lleva su menú lateral
+  al lado y dos columnas de menú con nombre se comían la tabla. El elemento es
+  uno y lo mueve `js/torneos/pestanas.js` según el ancho.
 - **Lo que una página ESCRIBE al abrirse no puede pasar si Chrome solo la
   está preparando** (tanda 985): desde la 985 las listas de `PREPARABLES`
   (`js/precarga.js`) se preparan enteras al tocar su enlace, y una preparada

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-14", "tipo": "mejora", "texto": "Dentro de un torneo, en el móvil, la barra de abajo es la del torneo: Hoy, Mesas, Tabla e Info, como en una app. En el PC, esas mismas secciones van en una columna a la izquierda.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "arreglo", "texto": "«Compartir» en la ficha de un torneo vuelve a sacar la imagen del anuncio con las plazas que quedan, no solo el enlace.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "La clasificación de los torneos lleva la cara de cada uno, si ha subido o bajado y sus últimos resultados; los desempates se ven al tocar a un jugador. Los jugadores salen en mosaico con su cara y el tablón junta los avisos automáticos en uno.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En las rondas de una liga eliges la jornada en una tira del 1 al 10 y luego la ronda, sin dieciocho botoncitos; y cada mesa se ve como un duelo: las dos caras, el marcador y el ganador con su estrella.", "enlace": "/torneos" },

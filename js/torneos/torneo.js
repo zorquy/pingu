@@ -40,6 +40,7 @@ import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { sanitizeRichText } from '../richtext-format.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 import { pintarSiCambia, textoSiCambia } from './pintar.js'
+import { montarPestanas, pintarPestanas, irAPestana } from './pestanas.js'
 import { textoDePrecio } from './torneo-tienda.js'
 import { atributosDeRango, COLUMNAS_RANGO } from '../rangos.js'
 
@@ -1706,130 +1707,8 @@ function pintarInscritos() {
   )
 }
 
-// ── Las pestañas de la ficha ──
-// Una pantalla única era demasiado bloque (palabra de los admins): cada
-// zona vive en su pestaña, y las que no tienen nada que enseñar ni
-// siquiera aparecen. Si estás jugando, se abre directamente en Jugar.
-
-// Desde la 1341 (la propuesta de torneo de PINGU): «Torneo» es «Info» y
-// «Jugar» es «Mi mesa» (Jugar ya es la sección de la web), y el ORDEN depende
-// del momento: antes de empezar, Info y Jugadores; en juego, tu mesa primero;
-// al terminar, la clasificación. Los ids no cambian: `?ver=jugar` sigue valiendo.
-const PESTANAS = {
-  torneo: 'Info',
-  jugadores: 'Jugadores',
-  jugar: 'Mi mesa',
-  rondas: 'Rondas',
-  clasificacion: 'Clasificación',
-  meta: 'Meta',
-  jueces: 'Jueces',
-}
-const ORDEN_DE_PESTANAS = {
-  antes: ['torneo', 'jugadores', 'jugar', 'rondas', 'clasificacion', 'meta', 'jueces'],
-  juego: ['jugar', 'rondas', 'clasificacion', 'meta', 'torneo', 'jueces'],
-  fin: ['clasificacion', 'rondas', 'meta', 'torneo', 'jugar', 'jueces'],
-}
-let pestanaActiva = null
-// `?ver=jueces` llegaba antes que los datos de jueces: la pestaña aún no
-// existía y se abría otra para siempre (1345). Mientras nadie elija a mano,
-// la pedida gana en cuanto aparece.
-let pestanaElegidaAMano = false
-
-function faseDeLaFicha() {
-  if (['finished', 'cancelled'].includes(torneo?.status)) return 'fin'
-  if (torneo?.status === 'in_progress') return 'juego'
-  return 'antes'
-}
-
-// La que se abre si nadie dice otra: Info antes de empezar; tu mesa si estás
-// jugando (o Rondas si no); la clasificación al terminar.
-function pestanaDeEntrada(fase, visibles) {
-  const hay = (id) => visibles.some((p) => p.id === id)
-  if (fase === 'fin') return hay('clasificacion') ? 'clasificacion' : 'torneo'
-  if (fase === 'juego') return hay('jugar') ? 'jugar' : hay('rondas') ? 'rondas' : 'torneo'
-  return 'torneo'
-}
-
-function pintarPestanas() {
-  const fase = faseDeLaFicha()
-  // Los inscritos: su pestaña antes de empezar; luego, al final de Info (con
-  // el torneo en juego, cuatro pestañas caben en el móvil; seis no).
-  const inscritos = $('torneoInscritosCaja')
-  const suSitio = document.querySelector(`[data-panel="${fase === 'antes' ? 'jugadores' : 'torneo'}"]`)
-  if (inscritos && suSitio && inscritos.parentNode !== suSitio) suSitio.appendChild(inscritos)
-  const visibles = ORDEN_DE_PESTANAS[fase]
-    .map((id) => ({ id, texto: PESTANAS[id] }))
-    .filter((p) => {
-      const panel = document.querySelector(`[data-panel="${p.id}"]`)
-      return panel && [...panel.children].some((caja) => !caja.classList.contains('hidden'))
-    })
-  if (!pestanaActiva) {
-    // La que diga la dirección (859: `?ver=rondas`, para compartir «la
-    // clasificación de este torneo» y para que recargar no te devuelva a
-    // la primera); si no, la de entrada del momento.
-    const pedida = new URLSearchParams(location.search).get('ver')
-    pestanaActiva = visibles.some((p) => p.id === pedida) ? pedida : pestanaDeEntrada(fase, visibles)
-  }
-  const pedidaEnUrl = new URLSearchParams(location.search).get('ver')
-  if (!pestanaElegidaAMano && pedidaEnUrl && pestanaActiva !== pedidaEnUrl && visibles.some((p) => p.id === pedidaEnUrl)) pestanaActiva = pedidaEnUrl
-  if (!visibles.some((p) => p.id === pestanaActiva)) pestanaActiva = visibles[0]?.id || 'torneo'
-  // La pestaña abierta, en la raíz: la pastilla del reloj no sale en Mi mesa,
-  // que ya lleva el reloj grande (1343).
-  document.documentElement.dataset.torneoPestana = pestanaActiva
-
-  const nav = $('torneoPestanas')
-  // Una barra con UNA sola pestaña no es una barra: es un botón que no
-  // lleva a ninguna parte (tanda 310). Cuando el torneo solo está
-  // abierto a inscripciones queda «Torneo» y nada más, y ahí flotaba
-  // suelta entre el cartel y la primera tarjeta. Se esconde.
-  nav.classList.toggle('hidden', visibles.length < 2)
-  // La de jueces lleva cuántas cosas esperan (tanda 394): quien no ha
-  // hecho check-in, llamadas sin atender y disputas. Con la pestaña
-  // cerrada, el número es lo único que avisa.
-  const pendientes = pendientesDeJuez()
-  const html = visibles
-    .map((p) => {
-      const cuenta =
-        p.id === 'jueces' && pendientes
-          ? ` <span class="torneo-pestana-aviso">${pendientes}<span class="sr-only"> pendiente${pendientes === 1 ? '' : 's'}</span></span>`
-          : p.id === 'jugadores' && activos()
-            ? ` <span class="torneo-pestana-cuenta">${activos()}</span>`
-            : ''
-      return `<button type="button" class="seg-btn${p.id === pestanaActiva ? ' activa' : ''}" data-pestana="${p.id}">${p.texto}${cuenta}</button>`
-    })
-    .join('')
-  // Las pestañas son lo PRIMERO de la página: rehacerlas mueve todo lo
-  // que hay debajo. Se repintan solo si cambian de verdad (una pestaña
-  // nueva, u otra activa); esconder y enseñar paneles no las toca.
-  const cambiaron = pintarSiCambia(nav, html)
-  document.querySelectorAll('.torneo-panel').forEach((s) => {
-    s.classList.toggle('hidden', s.dataset.panel !== pestanaActiva)
-  })
-  // El «Leer más» se decide midiendo, y con Info cerrada no hay nada que medir.
-  if (pestanaActiva === 'torneo' && $('torneoDescripcion')) ponerMasEnDescripcion($('torneoDescripcion'))
-  if (!cambiaron) return
-  nav.querySelectorAll('[data-pestana]').forEach((b) =>
-    b.addEventListener('click', () => {
-      pestanaActiva = b.dataset.pestana
-      pestanaElegidaAMano = true
-      // En la dirección, SUSTITUYENDO la entrada (859): una pestaña no es
-      // un paso del historial, igual que en Mi colección (la 856).
-      const url = new URL(location.href)
-      if (pestanaActiva === pestanaDeEntrada(faseDeLaFicha(), visibles)) url.searchParams.delete('ver')
-      else url.searchParams.set('ver', pestanaActiva)
-      history.replaceState(null, '', url)
-      pintarPestanas()
-    })
-  )
-}
-
-// Saltar a una pestaña desde otra caja (tanda 635: de «Tus jornadas» a
-// «Tu decklist»).
-function irAPestana(id) {
-  pestanaActiva = id
-  pestanaElegidaAMano = true
-  pintarPestanas()
-}
+// ── Las pestañas de la ficha ── viven en pestanas.js desde la 1352 (y se
+// colocan solas: barra de abajo en el móvil, columna en el PC).
 
 // ── Arranque ──
 
@@ -1884,6 +1763,13 @@ async function recargar() {
 }
 
 async function init() {
+  montarPestanas({
+    torneo: () => torneo,
+    pendientesDeJuez,
+    activos,
+    pintarSiCambia,
+    alAbrirInfo: () => $('torneoDescripcion') && ponerMasEnDescripcion($('torneoDescripcion')),
+  })
   session = await getSession()
   perfil = session ? await getProfile(session.user.id) : null
   soloMirando = !session

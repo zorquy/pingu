@@ -4641,3 +4641,97 @@ button.torneo-tj { cursor: pointer; }
 .torneo-meta > .mini-avatar { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55); }
 .torneo-historial-desempates { text-align: left; }
 .torneo-inscritos-mosaico .torneo-inscrito-nombre a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }
+
+/* ── 1352: la ficha como app (SCHEMA 1352) ── */
+/* El icono de cada pestaña sale en la barra de abajo y en la columna del PC. */
+.torneo-pestanas-pastillas .torneo-tab-ic { display: none; }
+.torneo-pestanas-pastillas .torneo-tab-ic svg { display: block; }
+.torneo-tab-menu.hidden { display: none; }
+/* Al cambiar de pestaña, la nueva entra suave. */
+@media (prefers-reduced-motion: no-preference) {
+  .torneo-panel:not(.hidden) { animation: torneo-panel-entra 0.2s var(--ease); }
+}
+@keyframes torneo-panel-entra { from { opacity: 0; transform: translateY(var(--e-sm)); } }
+@media (prefers-reduced-motion: reduce) {
+  .torneo-panel:not(.hidden) { animation: none; }
+}
+
+/* Móvil: las pestañas son la barra de abajo; la de la web se esconde. */
+@media (max-width: 900px) {
+  html.torneo-app .bm { display: none; }
+  html.torneo-app #torneoPestanas {
+    position: fixed;
+    inset-inline: 0;
+    bottom: 0;
+    z-index: 95;
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 2px;
+    max-width: none;
+    margin: 0;
+    padding: var(--e-xs) var(--e-xs) calc(var(--e-xs) + var(--seguro-abajo));
+    border: 0;
+    border-top: 1px solid var(--border);
+    border-radius: 0;
+    background: var(--white);
+  }
+  html.torneo-app #torneoPestanas .seg-btn {
+    position: relative;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    min-width: 0;
+    min-height: 56px;
+    padding: 0 var(--e-xs);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--text-mid);
+    font-size: var(--t-2xs);
+  }
+  html.torneo-app #torneoPestanas .torneo-tab-ic { display: grid; place-items: center; width: 56px; height: 30px; border-radius: var(--radius-pill); }
+  html.torneo-app #torneoPestanas .torneo-tab-txt { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+  html.torneo-app #torneoPestanas .seg-btn.activa { background: transparent; color: var(--acento); font-weight: 700; }
+  html.torneo-app #torneoPestanas .seg-btn.activa .torneo-tab-ic { background: color-mix(in srgb, var(--acento) 16%, transparent); }
+  html.torneo-app #torneoPestanas .seg-btn > :is(.torneo-pestana-aviso, .torneo-pestana-cuenta) { position: absolute; top: 2px; left: calc(50% + var(--e-sm)); margin: 0; }
+  html.torneo-app .torneo-tab-punto { position: absolute; top: var(--e-xs); left: calc(50% + var(--e-md)); width: 8px; height: 8px; border-radius: 50%; background: var(--danger); }
+  html.torneo-app .torneo-tab-menu {
+    position: absolute;
+    right: var(--e-sm);
+    bottom: calc(100% + var(--e-sm));
+    display: grid;
+    gap: 2px;
+    min-width: 200px;
+    padding: var(--e-xs);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    background: var(--white);
+    box-shadow: var(--shadow-lg);
+  }
+  html.torneo-app #torneoPestanas .torneo-tab-menu .seg-btn { flex-direction: row; justify-content: flex-start; gap: var(--e-sm); min-height: 44px; padding: 0 var(--e-md); font-size: var(--t-sm); }
+  html.torneo-app #torneoPestanas .torneo-tab-menu .torneo-tab-ic { width: auto; height: auto; }
+  html.torneo-app #torneoPestanas .torneo-tab-menu .seg-btn > :is(.torneo-pestana-aviso, .torneo-pestana-cuenta) { position: static; margin-left: auto; }
+  /* Con el teclado fuera, la barra estorba: mientras se escribe, se va. */
+  html.torneo-app body:has(:is(input:not([type='checkbox']):not([type='radio']):not([type='range']), textarea, [contenteditable='true']):focus) #torneoPestanas { display: none; }
+}
+
+/* PC: las pestañas en una columna estrecha a la izquierda (icono y nombre,
+   como la barra del móvil de pie); el tablón, a la derecha. Estrecha porque a
+   partir de 1.400 px la web ya lleva su menú lateral al lado. */
+@media (min-width: 1100px) {
+  .torneo-ficha-cuerpo:has(> .torneo-rail) { display: grid; grid-template-columns: 72px minmax(0, 1fr); gap: var(--e-lg); align-items: start; }
+  .torneo-ficha-cuerpo:has(> .torneo-rail):has(.torneo-tablon:not(.hidden)) { grid-template-columns: 72px minmax(0, 1fr) 320px; }
+  .torneo-rail { position: sticky; top: calc(86px + var(--torneo-pegado-alto, 0px)); min-width: 0; }
+  .torneo-rail .torneo-pestanas-pastillas { display: flex; flex-direction: column; flex-wrap: nowrap; gap: var(--e-xs); width: 100%; margin: 0; padding: 0; border: 0; border-radius: 0; background: none; }
+  .torneo-rail .seg-btn { position: relative; flex-direction: column; justify-content: center; gap: 2px; min-height: 60px; padding: 0; border: 0; border-radius: var(--radius-lg); background: transparent; color: var(--text-mid); font-size: var(--t-2xs); }
+  .torneo-rail .torneo-tab-ic { display: grid; place-items: center; width: 48px; height: 30px; border-radius: var(--radius-pill); }
+  .torneo-rail .seg-btn:not(.activa):hover .torneo-tab-ic { background: var(--ice); }
+  .torneo-rail .seg-btn.activa { background: transparent; color: var(--acento); font-weight: 700; }
+  .torneo-rail .seg-btn.activa .torneo-tab-ic { background: color-mix(in srgb, var(--acento) 16%, transparent); }
+  .torneo-rail .seg-btn > :is(.torneo-pestana-aviso, .torneo-pestana-cuenta) { position: absolute; top: 2px; left: calc(50% + var(--e-sm)); margin: 0; }
+}
+/* Con la columna de pestañas y el tablón, la tabla no cabe entera hasta 1.600
+   px: el usuario de TCG Live se ve en el historial de cada uno. */
+@media (min-width: 1100px) and (max-width: 1599px) {
+  .torneo-ficha-cuerpo:has(> .torneo-rail) .torneo-clasificacion-tabla .col-tcg { display: none; }
+}

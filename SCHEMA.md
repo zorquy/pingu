@@ -55204,6 +55204,25 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1352 — La ficha del torneo como app: la barra del torneo
+
+`js/torneos/pestanas.js` (nuevo) tiene lo que antes vivía en torneo.js:
+`PESTANAS` (`id → [nombre, icono]`: torneo Info, jugadores, jugar **Hoy**,
+rondas **Mesas**, clasificacion **Tabla**, meta, jueces), el orden por fase,
+`pestanaDeEntrada`, `pintarPestanas(forzar)` e `irAPestana(id)`.
+`montarPestanas({ torneo, pendientesDeJuez, activos, pintarSiCambia,
+alAbrirInfo })` lo engancha desde `init()` de torneo.js y escucha los cambios
+de ancho. Cada botón: `.torneo-tab-ic` (icono) + `.torneo-tab-txt`.
+
+`colocar(nav, visible)` mueve el MISMO `#torneoPestanas`: ≤ 900 px al final de
+`<body>` y pone `html.torneo-app` (la hoja esconde `.bm` y la fija abajo); ≥
+1.100 px a `#torneoRail` (`.torneo-rail`, creado como primer hijo de
+`.torneo-ficha-cuerpo`, rejilla `72px 1fr [320px]`); entre medias, al principio
+de `#torneoPegado`. Con más de cinco en el móvil: cuatro + `.torneo-tab-mas`
+que abre `#torneoTabMenu`. `--torneo-pegado-alto` (ResizeObserver) baja la
+columna del PC por debajo de lo pegado. Animación `torneo-panel-entra` solo
+con movimiento. Iconos nuevos en icons.js: `info`, `layoutGrid`.
+
 ## Tanda 1351b — avatar.js y lo que cazó la suite
 
 `js/avatar.js` (nuevo, puro): `getInitial`, `avatarColorForKey` (con

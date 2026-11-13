@@ -217,3 +217,6 @@ nuevo del torneo (formato, premios, jornadas, normas) va en la caja de Info
 usa en cada ronda va en «⋯» (`#torneoMasMenu`), no en una fila de botones. Y lo
 pegado arriba (`#torneoPegado`: pestañas, pastilla y la línea del tablón) es de
 UNA línea cada cosa: lo que no quepa en una línea va en su pestaña.
+Las pestañas (cuáles hay en cada momento, su orden, la de entrada y dónde
+van según el ancho) viven en `js/torneos/pestanas.js` desde la 1352; los ids
+no cambian (`?ver=jugar` sigue abriendo Hoy).

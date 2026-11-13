@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-14 (603) — PINGU-Claude (1352 — la ficha del torneo como app: la barra del torneo)
+
+**Hecho** (primera tanda de «Torneos como app», que PINGU aprobó):
+- **En el móvil, dentro de un torneo, la barra de abajo es la del torneo**:
+  Hoy · Mesas · Tabla · Info (y Jugadores, Meta o Jueces cuando tocan; si son
+  más de cinco, las últimas van en «Más»). La de la web se esconde mientras
+  estás dentro y vuelve al salir con la flecha de arriba.
+- **En el PC, las pestañas en una columna estrecha a la izquierda** (icono y
+  nombre debajo), con el tablón a la derecha. Estrecha porque desde 1.400 px la
+  web ya lleva su menú lateral; con nombre al lado se comía la tabla. Entre
+  1.100 y 1.600 px la tabla esconde la columna de TCG Live (está en el
+  historial de cada uno).
+- **Nombres nuevos**: Mi mesa → Hoy, Rondas → Mesas, Clasificación → Tabla.
+  Los ids no cambian (`?ver=jugar` sigue valiendo).
+- Al cambiar de pestaña, la nueva entra suave (sin «menos movimiento») y
+  empieza por arriba.
+- **Sitio en torneo.js**: las pestañas salen a `js/torneos/pestanas.js`
+  (30,6 → 28,7 KB gzip de 31).
+- Iconos nuevos `info` y `layoutGrid`. Normas: la barra del torneo es la
+  excepción a «la barra de abajo es fija» (interfaz) y dónde viven las
+  pestañas (jugar).
+
+**Ficheros**: `js/torneos/pestanas.js` (nuevo), `js/torneos/torneo.js`,
+`js/icons.js`, `css/torneos.css`, `torneo.html` (precargas),
+`normas/interfaz.md`, `normas/jugar.md`, `novedades.json`.
+
+**Pendiente**: 1353 (Hoy del jugador), 1354 (Mesas y Tabla), 1355 (antes de
+empezar y /torneos), 1356 (Mando), 1357 (Cola del juez). Sin migración.
+
 ## 2026-11-13 (602) — PINGU-Claude (1351b — lo que cazó la suite de torneos)
 
 **Hecho**:
