@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (558) — PINGU-Claude (1311 — las huellas: el worker deja de preguntar fichero a fichero)
+
+**Hecho**: la C4. Al desplegar, `herramientas/generar-huellas.mjs` (detrás de
+antes-de-salir en el `[build] command`) escribe `huellas.txt` (la versión de
+todo) y `huellas.json` (la huella de cada fichero de css/, js/ y assets/: 669).
+El service worker ya no revisa por detrás cada fichero que sirve de la caché
+(eran 25–30 peticiones por pantalla, hubiera despliegue o no): mira
+`huellas.txt` como mucho una vez por minuto, y solo si ha cambiado baja el
+mapa y renueva copiando sin preguntar lo que tiene la misma huella. Un fichero
+que no casa con su huella (la red aún da el de antes) no se guarda. Sin
+huellas, todo como antes. Las huellas NO van en el repo (`.gitignore`): unas
+viejas dirían «no ha cambiado» de algo que sí.
+
+**Ficheros**: herramientas/generar-huellas.mjs (nuevo), sw.js, netlify.toml,
+.gitignore, CLAUDE.md (una frase en la regla del service worker), SCHEMA.md,
+BITACORA.md. En `pruebas`: test-tanda-1311 (nueva, el sw.js de verdad en una
+caja con reloj), y 786 y 982 al día.
+
+**Pendiente**: nada. La primera visita de cada uno tras el push hace una
+renovación completa (como un despliegue de los de antes); a partir de ahí,
+una petición pequeña por minuto.
+
 ## 2026-11-13 (557) — PINGU-Claude (1310 — programadas espaciadas y el timbre de la base)
 
 **Hecho**: la C1 y la C2. (C1) Quince funciones programadas van más despacio,

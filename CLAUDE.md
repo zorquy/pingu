@@ -1897,7 +1897,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   la web, o va por generaciones o no es de la web. Solo
   la dirección PELADA de una página se guarda (`esPaginaDeCache`): una
   página nueva que meta-social reescriba por su consulta, o que no deba
-  abrirse al momento, va en `SIN_PAGINA`. Y **`route` de Playwright NO
+  abrirse al momento, va en `SIN_PAGINA`. Desde la 1311 no pregunta fichero a
+  fichero: el despliegue escribe `huellas.txt`/`huellas.json`
+  (`herramientas/generar-huellas.mjs`, nunca a mano ni en el repo) y lo que
+  no casa con su huella no se guarda. Y **`route` de Playwright NO
   llega a lo que pide el worker**: un despliegue se simula escribiendo en
   el sitio servido (`PD_SITIO`) con la fecha del fichero adelantada
   (`utimesSync`), no con `fulfill`.

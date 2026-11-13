@@ -55204,6 +55204,25 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1311 — las huellas del service worker
+
+- `herramientas/generar-huellas.mjs` (en el despliegue, después de
+  `antes-de-salir.mjs`): `huellasDe(raíz)` → `{ v, f }`, con `f` ruta → los
+  doce primeros hex del SHA-1 del contenido (css/, js/, assets/) y `v` la del
+  listado. Escribe `huellas.json` y `huellas.txt` (solo `v`). Fuera del repo.
+- `sw.js`: `huellasDeLaRed()` pide `huellas.txt` como mucho cada
+  `HUELLAS_CADA_MS` (60 s) y `huellas.json` solo si la versión es nueva (y
+  solo si su `v` es la del txt). Cada generación guarda su mapa en
+  `pokedoc-estado-1` como `/__huellas-<g>` (se borra con la generación).
+  `alDia` sustituye a `revisar` para lo servido de la caché: misma versión →
+  nada; distinta → `renovar(g, null, null, mapa)`, que copia lo que tiene la
+  misma huella en los dos mapas, deja fuera lo que ya no está y pregunta lo
+  demás. `casaConHuella` (SHA-1 en el worker) impide guardar en una generación
+  un fichero que no es el de su mapa (en `renovar`, `revisar` y `precargar`).
+- Sin `huellas.txt` (o mal formado) todo sigue como en la 982.
+- Un fichero de la web fuera de css/js/assets no lleva huella y se revisa como
+  siempre; uno nuevo dentro sí, sin hacer nada.
+
 ## Tanda 1310 — programadas espaciadas y el timbre
 
 **C1, horarios.** Cada `export const config = { schedule }` lleva encima su

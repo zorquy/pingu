@@ -96,6 +96,58 @@ async function distintas(guardada, fresca) {
 }
 const sirve = (r) => r.ok && r.type === 'basic' && !r.redirected
 
+// LAS HUELLAS (1311, C4). El despliegue escribe huellas.txt (la versión de
+// todo, doce cifras) y huellas.json (la huella de cada fichero de css/, js/
+// y assets/), con herramientas/generar-huellas.mjs. Antes, cada fichero que
+// se servía de la caché se volvía a preguntar por detrás: 25 o 30 peticiones
+// por pantalla aunque no hubiera cambiado nada. Ahora se pregunta huellas.txt
+// como mucho una vez por minuto; si es la misma de la generación activa, no
+// se pregunta nada más. Si ha cambiado (un despliegue), se baja huellas.json
+// y `renovar` copia sin preguntar lo que tiene la misma huella y pide solo lo
+// que ha cambiado. Sin huellas (la web de antes, un fallo), todo como antes.
+const HUELLAS_CADA_MS = 60000
+let huellasVistas = null
+let huellasMiradas = 0
+let ultimoMapa = null
+const llaveDeHuellas = (g) => `/__huellas-${g}`
+const rutaDe = (req) => new URL(req.url || req, self.location.href).pathname
+const esMapa = (m) => Boolean(m && typeof m.v === 'string' && m.f && typeof m.f === 'object')
+async function huellasDeGeneracion(g) {
+  try {
+    const r = await (await caches.open(ESTADO)).match(llaveDeHuellas(g))
+    const m = r ? await r.json() : null
+    return esMapa(m) ? m : null
+  } catch {
+    return null
+  }
+}
+function huellasDeLaRed() {
+  if (huellasVistas && Date.now() - huellasMiradas < HUELLAS_CADA_MS) return huellasVistas
+  huellasMiradas = Date.now()
+  huellasVistas = (async () => {
+    const r = await fetch('/huellas.txt', { cache: 'no-cache', credentials: 'same-origin' })
+    if (!r.ok) return null
+    const v = (await r.text()).trim()
+    if (!/^[0-9a-f]{12}$/.test(v)) return null
+    if (ultimoMapa?.v === v) return ultimoMapa
+    const suyas = await huellasDeGeneracion(await genActiva())
+    if (suyas?.v === v) return (ultimoMapa = suyas)
+    const m = await (await fetch('/huellas.json', { cache: 'no-cache', credentials: 'same-origin' })).json()
+    // El txt y el json se piden en dos veces: uno de otro despliegue no vale.
+    return esMapa(m) && m.v === v ? (ultimoMapa = m) : null
+  })().catch(() => null)
+  return huellasVistas
+}
+// ¿Es esto lo que dice su huella? Sin mapa, o con un fichero que no está en
+// él, sí: lo que no se sabe no se rechaza. Lo que no casa (la red aún sirve
+// lo de antes, o ya lo de después) no se guarda: se pedirá cuando haga falta.
+async function casaConHuella(req, r, mapa) {
+  const h = mapa?.f?.[rutaDe(req)]
+  if (!h) return true
+  const bytes = new Uint8Array(await crypto.subtle.digest('SHA-1', await r.clone().arrayBuffer()))
+  return [...bytes].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 12) === h
+}
+
 // ¿Ha cambiado esto? Con la firma de lo guardado: un 304 es «no», sin bajar nada.
 async function comoQuedaEn(req, guardada) {
   const cab = {}
@@ -106,11 +158,14 @@ async function comoQuedaEn(req, guardada) {
   return sirve(r) ? r : null
 }
 
-function renovar(g, disparo, fresca) {
+function renovar(g, disparo, fresca, mapa = null) {
   if (renovando) return renovando
   const n = g + 1
   renovandoA = n
   renovando = (async () => {
+    // Con las huellas de la generación de ahora y las nuevas, lo que no ha
+    // cambiado se copia sin preguntar.
+    const viejo = mapa ? await huellasDeGeneracion(g) : null
     const pares = [
       [await caches.open(ficheros(g)), await caches.open(ficheros(n))],
       [await caches.open(paginas(g)), await caches.open(paginas(n))],
@@ -126,24 +181,38 @@ function renovar(g, disparo, fresca) {
           if (await nueva.match(req)) return
           const guardada = await vieja.match(req)
           if (!guardada) return
+          if (mapa && esFichero(new URL(req.url))) {
+            const ruta = rutaDe(req)
+            // Ya no está en la web: no pasa a la generación nueva.
+            if (!mapa.f[ruta]) return
+            if (viejo?.f?.[ruta] === mapa.f[ruta]) {
+              await nueva.put(req, guardada)
+              return
+            }
+          }
           preguntadas++
           const r = await comoQuedaEn(req, guardada).catch(() => null)
           // Lo que no se ha podido preguntar no entra: se pedirá a la red.
-          if (r) await nueva.put(req, r)
-          else sinRespuesta++
+          if (!r) sinRespuesta++
+          else if (await casaConHuella(req, r, mapa)) await nueva.put(req, r)
         }))
       }
     }
     // Si se ha ido la red a mitad, cambiar dejaría una caché medio vacía (y
     // sin nada para cuando no haya cobertura): se queda la de antes.
     if (sinRespuesta > preguntadas / 2) throw new Error('sin red para renovar')
-    await (await caches.open(ESTADO)).put('/__generacion', new Response(String(n)))
+    const estado = await caches.open(ESTADO)
+    if (mapa) await estado.put(llaveDeHuellas(n), new Response(JSON.stringify(mapa)))
+    await estado.put('/__generacion', new Response(String(n)))
     activa = Promise.resolve(n)
     fallos = 0
     // La de antes se queda para las pestañas que aún la usan; las anteriores, fuera.
     for (const k of await caches.keys()) {
       const m = DE_GENERACION.exec(k)
-      if (m && Number(m[2]) < g) await caches.delete(k)
+      if (m && Number(m[2]) < g) {
+        await caches.delete(k)
+        await estado.delete(llaveDeHuellas(Number(m[2])))
+      }
     }
   })()
     .catch(async () => {
@@ -173,8 +242,25 @@ async function revisar(peticion, tipo, guardada, g) {
     if (g === actual) await renovar(g, peticion, fresca.clone())
     return fresca
   }
-  if (g === actual || g === renovandoA) await (await caches.open(tipo === 'ficheros' ? ficheros(g) : paginas(g))).put(peticion, fresca.clone())
+  if (g === actual || g === renovandoA) {
+    // Un fichero que no casa con las huellas de su generación es de otro
+    // despliegue: se usa, pero no se guarda en ella.
+    if (tipo !== 'ficheros' || (await casaConHuella(peticion, fresca, await huellasDeGeneracion(g)))) {
+      await (await caches.open(tipo === 'ficheros' ? ficheros(g) : paginas(g))).put(peticion, fresca.clone())
+    }
+  }
   return fresca
+}
+
+// Un fichero servido de la caché: ¿sigue al día? Con huellas, se mira la
+// versión (una petición pequeña por minuto como mucho); sin ellas, el fichero.
+async function alDia(req, guardada, g) {
+  const mapa = await huellasDeLaRed()
+  if (!mapa) return revisar(req, 'ficheros', guardada, g)
+  // Una pestaña de una generación pasada: lo nuevo ya lo trajo otra.
+  if (g !== (await genActiva())) return
+  if ((await huellasDeGeneracion(g))?.v === mapa.v) return
+  return renovar(g, null, null, mapa)
 }
 
 // Una página de la casa: la copia guardada ya, y la red por detrás (897).
@@ -199,7 +285,7 @@ async function ficheroDeCasa(req, e) {
   const g = await genDelCliente(e.clientId)
   const guardada = await (await caches.open(ficheros(g))).match(req)
   if (guardada) {
-    e.waitUntil(revisar(req, 'ficheros', guardada, g).catch(() => {}))
+    e.waitUntil(alDia(req, guardada, g).catch(() => {}))
     return guardada
   }
   return revisar(req, 'ficheros', null, g)
@@ -220,6 +306,7 @@ async function precargar(rutas) {
   const g = await genActiva()
   const pc = await caches.open(paginas(g))
   const fc = await caches.open(ficheros(g))
+  const mapa = await huellasDeGeneracion(g)
   const vistos = new Set()
   const cola = []
   const pedir = async (url) => {
@@ -248,7 +335,7 @@ async function precargar(rutas) {
     if (!r) {
       r = await pedir(href)
       if (!r || (await genActiva()) !== g) return
-      await fc.put(href, r.clone())
+      if (await casaConHuella(href, r, mapa)) await fc.put(href, r.clone())
     }
     if (u.pathname.endsWith('.js')) for (const m of (await r.text()).matchAll(DE_MODULO)) cola.push(new URL(m[1], u).href)
   }
