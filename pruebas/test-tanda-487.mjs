@@ -81,9 +81,13 @@ console.log('\n── 4. Los dos sitios que escriben cartas lo usan ──')
 {
   const admin = leer('admin/js/admin.js')
   const asia = leer('netlify/functions/catalogo-asia.mjs')
-  check('/admin lo importa', /porImagen/.test(admin) && /from '\.\.\/\.\.\/js\/tcgdex\.js'/.test(admin))
-  check('  …y parte el upsert', /const \{ con, sin \} = porImagen\(filas\)/.test(admin))
-  check('  …escribiendo los DOS grupos', /for \(const grupo of \[con, sin\]\)/.test(admin))
+  // Desde la 1123 /admin ya no importa cartas (lo llenan las pasadas): si
+  // un día vuelve a escribir `tcg_cards`, tiene que partir el upsert igual.
+  if (/from\('tcg_cards'\)\s*\.upsert\(/.test(admin)) {
+    check('/admin lo importa', /porImagen/.test(admin) && /from '\.\.\/\.\.\/js\/tcgdex\.js'/.test(admin))
+    check('  …y parte el upsert', /const \{ con, sin \} = porImagen\(filas\)/.test(admin))
+    check('  …escribiendo los DOS grupos', /for \(const grupo of \[con, sin\]\)/.test(admin))
+  } else check('/admin ya no escribe cartas (1123): nada que partir', !/tcg_cards\?on_conflict=/.test(admin))
   check('`catalogo-asia` lo importa', /porImagen/.test(asia))
   check('  …y parte el insert', /const \{ con, sin \} = porImagen\(filas\)/.test(asia))
   check('  …escribiendo los DOS grupos', /for \(const grupo of \[con, sin\]\)/.test(asia))
@@ -118,7 +122,7 @@ console.log('\n── 5. El barrido: nadie escribe `tcg_cards` sin partir ──
     const txt = leer(f)
     return /from\('tcg_cards'\)\s*\.upsert\(/.test(txt) || /tcg_cards\?on_conflict=/.test(txt)
   })
-  check('  …y el barrido encuentra los que hay', conUpsert.length >= 2, conUpsert.join(', '))
+  check('  …y el barrido encuentra los que hay (catalogo-asia, al menos)', conUpsert.length >= 1, conUpsert.join(', '))
 }
 
 console.log('\n── 6. El porqué está escrito donde se va a leer ──')
@@ -126,7 +130,8 @@ console.log('\n── 6. El porqué está escrito donde se va a leer ──')
   const puro = leer('js/catalogo-tcgdex.js')
   check('`porImagen` explica qué pisa el null', /PISA una foto/.test(puro))
   check('  …y por qué son DOS sentencias', /LAS MISMAS claves/.test(puro))
-  check('y `CLAUDE.md` tiene los números medidos', /7\.365/.test(leer('CLAUDE.md')))
+  // Desde la 1333 (I4) las normas de cada área van en normas/: se miran todas.
+check('y las normas (CLAUDE.md y normas/) tienen los números medidos', /7\.365/.test(leer('CLAUDE.md') + leer('normas/catalogo.md')))
 }
 
 console.log(fails === 0 ? '\n✅ TODO BIEN' : `\n❌ ${fails} fallan`)

@@ -92,8 +92,10 @@ async function abrir(ruta, { sesion = 'none', ancho = 1200 } = {}) {
 }
 
 console.log('\n── 1. /cartas sin cuenta: todas las expansiones, la de Mi colección ──')
+// Con `?sin-local`: sin el modo «colección en este navegador» (1328), que
+// tiene su bloque abajo. Así la ficha sigue diciendo «entra» como antes.
 {
-  const { page, errores } = await abrir('/cartas')
+  const { page, errores } = await abrir('/cartas?sin-local')
   check('sin errores', errores.length === 0, errores.join(' | '))
   check('el título de la página es el del catálogo y se ve', limpio(await page.locator('main h1').innerText()) === 'Cartas de Pokémon TCG' && (await page.locator('main h1').isVisible()))
   check('  …y solo hay un h1', (await page.locator('h1').count()) === 1)
@@ -121,8 +123,18 @@ console.log('\n── 1. /cartas sin cuenta: todas las expansiones, la de Mi col
   check('tocar una carta abre la ficha emergente', await ficha.evaluate((d) => d.open))
   check('  …que dice «entra» en vez de ofrecer añadir', (await page.locator('#mcEdEntrarBloque').isVisible()) && !(await page.locator('#mcEdAcciones').isVisible()) && !(await page.locator('#mcEdCopiaBloque').isVisible()))
   const volver = await page.locator('#mcEdEntrar').getAttribute('href')
-  check('  …y el enlace de entrar vuelve a esta página con la expansión abierta', /^\/auth\.html\?volver=%2Fcartas%3Fset%3Dme02/.test(volver || ''), volver)
+  check('  …y el enlace de entrar vuelve a esta página con la expansión abierta', /^\/auth\.html\?volver=%2Fcartas%3F.*set%3Dme02/.test(volver || ''), volver)
   check('  …con el camino a la ficha completa', /^\/carta\//.test((await page.locator('#mcEdFicha').getAttribute('href')) || ''))
+  await page.close()
+}
+
+console.log('\n── 1b. /cartas sin cuenta y con el modo local (1328): la ficha ofrece añadir ──')
+{
+  const { page, errores } = await abrir('/cartas?set=me02')
+  await page.locator('#mcAlbum .mc-bolsillo-enlace').first().click()
+  await page.waitForTimeout(900)
+  check('la ficha ofrece añadir (en este navegador), sin el bloque de entrar', (await page.locator('#mcEdAcciones').isVisible()) && !(await page.locator('#mcEdEntrarBloque').isVisible()))
+  check('sin errores', errores.length === 0, errores.join(' | '))
   await page.close()
 }
 

@@ -75,9 +75,12 @@ console.log('── 1. El «+» en cada carta (657) ──')
   check('  …y con el dedo abre el diálogo', await cuad.page.locator('#mcAnadirDialogo').evaluate((d) => d.open))
   await cuad.page.close()
 
-  const sin = await abrir('/cartas.html?ver=album&set=xy5', { sesion: 'none' })
-  check('sin cuenta (el catálogo público) no hay «+»: no hay a dónde añadir', (await sin.page.locator('#mcAlbum .mc-mas').count()) === 0 && (await sin.page.locator('#mcAlbum .mc-bolsillo-enlace').count()) === 2)
+  const sin = await abrir('/cartas.html?ver=album&set=xy5&sin-local', { sesion: 'none' })
+  check('sin cuenta y sin el modo local no hay «+»: no hay a dónde añadir', (await sin.page.locator('#mcAlbum .mc-mas').count()) === 0 && (await sin.page.locator('#mcAlbum .mc-bolsillo-enlace').count()) === 2)
   await sin.page.close()
+  const loc = await abrir('/cartas.html?ver=album&set=xy5', { sesion: 'none' })
+  check('con el modo local (1328) sí hay «+»: se apunta en este navegador', (await loc.page.locator('#mcAlbum .mc-mas').count()) === 2)
+  await loc.page.close()
 }
 
 console.log('\n── 2. La chispa del mes (658) ──')

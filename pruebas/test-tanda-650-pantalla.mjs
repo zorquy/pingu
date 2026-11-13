@@ -132,11 +132,18 @@ console.log('\n── 2. Una que ya tienes en español: «Ya tienes 1» arriba, 
   await page.close()
 }
 
-console.log('\n── 3. Sin cuenta no hay «+»: la ficha dice «entra» ──')
+console.log('\n── 3. Sin cuenta y sin el modo local no hay «+»: la ficha dice «entra» ──')
 {
-  const { page } = await abrir('/cartas?set=xy5', { sesion: 'none' })
+  const { page } = await abrir('/cartas?set=xy5&sin-local', { sesion: 'none' })
   await abrirFicha(page, 'xy5-1')
   check('sin acciones bajo la carta y con el bloque de entrar', !(await page.locator('#mcEdAcciones').isVisible()) && (await page.locator('#mcEdEntrarBloque').isVisible()))
+  await page.close()
+}
+{
+  // 1328: sin cuenta, lo que se apunta va a este navegador, así que hay «+».
+  const { page } = await abrir('/cartas?set=xy5', { sesion: 'none' })
+  await abrirFicha(page, 'xy5-1')
+  check('con el modo local (1328) sí hay «+» y no el bloque de entrar', (await page.locator('#mcEdAcciones').isVisible()) && !(await page.locator('#mcEdEntrarBloque').isVisible()))
   await page.close()
 }
 

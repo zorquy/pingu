@@ -11,7 +11,8 @@
 //   · Seleccionar marca cartas en la Pokédex y en Buscar (la barra de abajo
 //     cuenta), y no abre la ficha;
 //   · en el móvil, los iconos delante;
-//   · sin cuenta (/cartas), no hay «Seleccionar».
+//   · sin cuenta (/cartas), no hay «Seleccionar» — salvo probando sin cuenta
+//     (1328: lo tuyo en el navegador), que lo lleva como con cuenta.
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
 let fails = 0
@@ -152,14 +153,22 @@ const tarjetas = (page, zona) => page.$$eval(`${zona} a[data-carta]`, (as) => as
   await ctx.close()
 }
 
-// 5. Sin cuenta, sin «Seleccionar»
+// 5. Sin cuenta y sin colección en el navegador (`?sin-local`, 1328), sin
+// «Seleccionar». Probando sin cuenta (lo de siempre desde la 1328) sí lo hay.
 {
-  const { ctx, page } = await abrir('/cartas.html?ver=buscar', { sesion: false })
+  const { ctx, page } = await abrir('/cartas.html?ver=buscar&sin-local', { sesion: false })
   await page.fill('#mcBuscarTodo', 'pikachu').catch(() => {})
   await page.waitForTimeout(1500)
   const visibles = await page.evaluate(() => [...document.querySelectorAll('[data-seleccionar]')].filter((b) => b.getBoundingClientRect().width > 0).length)
   check('sin cuenta (/cartas), ningún «Seleccionar» a la vista', visibles === 0, visibles)
   check('  …ni Todas/Tengo/Faltan en Buscar', !(await page.locator('#mcBuscarQue').isVisible()))
+  await ctx.close()
+}
+{
+  const { ctx, page } = await abrir('/cartas.html?ver=buscar', { sesion: false })
+  await page.fill('#mcBuscarTodo', 'pikachu').catch(() => {})
+  await page.waitForTimeout(1500)
+  check('probando sin cuenta (1328), Seleccionar y Todas/Tengo/Faltan, como con cuenta', await page.evaluate(() => document.documentElement.classList.contains('mc-puede-marcar')) && (await page.locator('#mcBuscarQue').isVisible()))
   await ctx.close()
 }
 
