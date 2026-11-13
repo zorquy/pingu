@@ -42,7 +42,8 @@ check('el mes más reciente tiene exactamente tres destacadas, cada una con su d
 const RUTAS = new Set(['/', '/foro', '/retos', '/glosario', '/cartas', '/mi-coleccion', '/evento', '/novedades', '/noticias'])
 const existe = (h) => {
   const ruta = h.split(/[?#]/)[0]
-  if (RUTAS.has(ruta) || /^\/ilustrador\/[a-z0-9-]+$/.test(ruta)) return true
+  // /foro/<foro> y /tema/<id> son redirecciones de netlify.toml, no ficheros.
+  if (RUTAS.has(ruta) || /^\/(ilustrador|foro|tema)\/[a-z0-9-]+$/.test(ruta)) return true
   return existsSync(`${RAIZ}${ruta.endsWith('.html') ? ruta : `${ruta}.html`}`)
 }
 const enlaces = [...json.entradas, ...json.destacadas].map((x) => x.enlace).filter(Boolean)

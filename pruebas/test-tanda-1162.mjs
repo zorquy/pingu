@@ -24,7 +24,9 @@ const ficheros = (dir, ext) => {
 
 console.log('── T1: un nombre para cada cosa ──')
 const usuarios = leer('usuarios.html')
-check('la lista de personas se titula «Gente»', /<h1>Gente<\/h1>/.test(usuarios) && /<title>Gente — PokeDoc<\/title>/.test(usuarios) && !/La comunidad<\/h1>/.test(usuarios))
+// Desde la 1209 el h1 dice «La gente de PokeDoc» (la banda de la sección); la
+// pestaña y el menú siguen siendo «Gente».
+check('la lista de personas se titula «Gente»', /<h1>(La gente de PokeDoc|Gente)<\/h1>/.test(usuarios) && /<title>Gente — PokeDoc<\/title>/.test(usuarios) && !/La comunidad<\/h1>/.test(usuarios))
 check('  …también en og:title y twitter:title', (usuarios.match(/content="Gente — PokeDoc"/g) || []).length === 2)
 const barra = leer('js/barra-movil.js')
 check('la burbuja y la lateral dicen «Mis partidas», como el título', /'mis-partidas': 'Mis partidas'/.test(barra) && !/'mis-partidas': 'Partidas'/.test(barra))
