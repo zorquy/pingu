@@ -55204,6 +55204,18 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1320 — el glosario al pasar, en hoja y con interruptor
+
+P5 del plan sobre `js/glosario.js` (792). `subrayarGlosario` sale sin hacer
+nada si `glosarioApagado()` (`js/glosario-ajuste.js`, la llave
+`pd-sin-glosario`; el interruptor está en Ajustes › Apariencia). El globo es
+`abrir(b, { alPasar })`: con `(hover: hover) and (pointer: fine)` lo abre
+`mouseover` tras 250 ms y lo cierra `cerrarSiFuera` cuando ni la palabra ni el
+globo están bajo el ratón; un clic sobre uno abierto al pasar le quita
+`data-al-pasar` y lo deja fijo. Con `(max-width: 640px)` lleva `.glosa-hoja`
+(fija abajo, `z-index: 120`, por encima de la barra, con `--seguro-abajo`) y
+no se coloca junto a la palabra.
+
 ## Tanda 1319 — «Respuesta útil» en el foro
 
 P4 del plan, sobre lo que ya había (foro-extras: `forum_threads.solved_post_id`

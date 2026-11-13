@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (568) — PINGU-Claude (1320 — el glosario: al pasar, en hoja y con interruptor)
+
+**Hecho**: P5 del plan. El subrayado de la primera vez y su globo ya existían
+(792, en guías y foro). Lo nuevo:
+- En el **PC** se abre al pasar el ratón (con 250 ms de respiro) y se va al
+  salir de la palabra y del globo; un clic lo deja fijo.
+- En el **móvil**, una hoja desde abajo, a lo ancho y encima de la barra, en
+  vez del globo pegado a la palabra.
+- «Ver en el glosario ›» como salida.
+- **Ajustes › Apariencia › Lectura**: «Definiciones del glosario», encendido
+  de serie; apagado (`pd-sin-glosario`, `js/glosario-ajuste.js`) no subraya
+  nada. Ajustes no se baja la lista de palabras por el interruptor.
+- De paso: el QR del doble factor (1307) con `loading="lazy"` (la 310).
+
+**Ficheros**: js/glosario.js, js/glosario-ajuste.js (nuevo), css/glosario.css,
+js/ajustes.js, js/ajustes-seguridad.js, SCHEMA.md, novedades.json. En
+`pruebas`: test-tanda-1320.
+
+**Pendiente (de antes)**: la 310 sigue en rojo por cosas viejas (duraciones de
+transición sueltas e imágenes sin `lazy` en escaparate, mi-coleccion,
+temporada y tienda-*).
+
 ## 2026-11-13 (567) — PINGU-Claude (1319 — «Respuesta útil» en el foro)
 
 **Hecho**: P4 del plan. Marcar la solución de un tema YA existía

@@ -57,7 +57,7 @@ async function pintarDobleFactor(caja) {
       return
     }
     caja.innerHTML = `<ol class="aj-seg-pasos">
-        <li>Abre tu app de códigos y escanea esto:<br><img class="aj-seg-qr" src="${escapeHtml(alta.qr)}" width="176" height="176" alt="Código QR para tu app de códigos" /></li>
+        <li>Abre tu app de códigos y escanea esto:<br><img class="aj-seg-qr" src="${escapeHtml(alta.qr)}" width="176" height="176" loading="lazy" alt="Código QR para tu app de códigos" /></li>
         <li>¿No puedes escanear? Escribe esta clave a mano: <code class="aj-seg-clave">${escapeHtml(alta.secreto)}</code></li>
         <li><label for="ajDfCodigo">Escribe el código que te da la app:</label>
           <input id="ajDfCodigo" class="campo aj-seg-codigo" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="000000" /></li>

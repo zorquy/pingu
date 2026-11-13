@@ -16,6 +16,7 @@ import { hojaInyectada } from './hoja.js'
 import { NOTIFICATION_TYPES, EMAIL_TYPES, EMAIL_TYPES_EQUIPO } from './notifications.js'
 import { estaActivo, conGrupo, seccionesDeAvisos, estadoDeSeccion, tiposEn } from './avisos-prefs.js'
 import { FIESTAS_CON_DECORACION } from './fiestas-puro.js'
+import { LLAVE_SIN_GLOSARIO, glosarioApagado } from './glosario-ajuste.js'
 
 const APARTADOS = [
   { id: 'avisos', nombre: 'Avisos', sub: 'Campanita, correo y push', icono: 'bell' },
@@ -23,7 +24,7 @@ const APARTADOS = [
   { id: 'direccion', nombre: 'Envío y pagos', sub: 'Tu dirección, tu Bizum y tu PayPal', icono: 'package' },
   { id: 'seguridad', nombre: 'Seguridad', sub: 'Doble factor y sesiones abiertas', icono: 'shield' },
   { id: 'privacidad', nombre: 'Privacidad', sub: 'Tu actividad en Comunidad', icono: 'eye' },
-  { id: 'apariencia', nombre: 'Apariencia', sub: 'Tema claro, oscuro o el del sistema', icono: 'palette' },
+  { id: 'apariencia', nombre: 'Apariencia', sub: 'Tema, fiestas y el glosario', icono: 'palette' },
   { id: 'datos', nombre: 'Tus datos', sub: 'Descargar todo, exportar e importar', icono: 'upload' },
   { id: 'instalar', nombre: 'Instalar PokeDoc', sub: 'Como una app, en el móvil o el ordenador', icono: 'home' },
   { id: 'invitar', nombre: 'Invitar a un amigo', sub: 'Tu enlace de invitación', icono: 'users' },
@@ -432,7 +433,9 @@ const aparienciaHtml = () => `
         .map(([v, ic, t]) => `<button type="button" class="seg-btn" data-tema="${v}" aria-pressed="${temaGuardado() === v}">${ic}<span>${t}</span></button>`).join('')}
     </div>
     <h3>Fiestas</h3>
-    ${interruptor({ id: 'decoracion', texto: 'Decoración de las fiestas', detalle: 'Halloween, Navidad… La web se viste sola en las fechas señaladas.', activo: conDecoracion() })}`
+    ${interruptor({ id: 'decoracion', texto: 'Decoración de las fiestas', detalle: 'Halloween, Navidad… La web se viste sola en las fechas señaladas.', activo: conDecoracion() })}
+    <h3>Lectura</h3>
+    ${interruptor({ id: 'glosario', texto: 'Definiciones del glosario', detalle: 'En guías y en el foro, las palabras del glosario salen subrayadas y te dicen qué significan. Quítalo si ya te las sabes.', activo: !glosarioApagado() })}`
 
 // La decoración de las fiestas (1286): apagarla es `pd-sin-<fiesta>` en este
 // navegador, la misma llave que «Quitar la decoración» del pop-up.
@@ -441,6 +444,12 @@ function conDecoracion() {
 }
 
 function montarApariencia(panel) {
+  panel.querySelector('[data-interruptor="glosario"]')?.addEventListener('change', (e) => {
+    try {
+      if (e.target.checked) localStorage.removeItem(LLAVE_SIN_GLOSARIO)
+      else localStorage.setItem(LLAVE_SIN_GLOSARIO, '1')
+    } catch { /* sin almacenamiento: no se puede recordar */ }
+  })
   panel.querySelector('[data-interruptor="decoracion"]')?.addEventListener('change', (e) => {
     try {
       for (const f of FIESTAS_CON_DECORACION) {

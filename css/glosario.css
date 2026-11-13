@@ -42,6 +42,15 @@
   font-weight: 600;
 }
 
+/* En el móvil, una hoja desde abajo (1320), por encima de la barra. */
+.glosa-pop.glosa-hoja {
+  position: fixed;
+  inset: auto 0 0;
+  z-index: 120;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  padding: var(--e-lg) var(--e-lg) calc(var(--e-lg) + var(--seguro-abajo));
+}
+
 .glosa-ejemplo {
   color: var(--text-mid);
   font-style: italic;

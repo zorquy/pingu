@@ -5,13 +5,15 @@ import { hojaInyectada } from './hoja.js'
 import { escapeHtml } from './html.js'
 import { GLOSARIO, formasDelGlosario, primerasApariciones } from './glosario-datos.js'
 import { normalizeSearch } from './texto.js'
+import { glosarioApagado } from './glosario-ajuste.js'
 
 const POR_ID = new Map(GLOSARIO.map((g) => [g.id, g]))
 const NO_ENTRAR = 'a, button, code, pre, h1, h2, h3, h4, .glosa, .glosa-pop, textarea, input, select'
 let formas = null
 
 export function subrayarGlosario(raiz, vistos = new Set()) {
-  if (!raiz) return 0
+  // Apagado en Ajustes › Apariencia (1320): ni subrayado ni globos.
+  if (!raiz || glosarioApagado()) return 0
   hojaInyectada('css/glosario.css')
   formas ||= formasDelGlosario()
   const textos = []
@@ -44,8 +46,30 @@ export function subrayarGlosario(raiz, vistos = new Set()) {
   if (puestos && !raiz.dataset.glosario) {
     raiz.dataset.glosario = '1'
     raiz.addEventListener('click', alTocar)
+    // En el PC, al pasar el ratón (1320): se abre con un respiro y se cierra
+    // al salir de la palabra y del globo. El clic sigue valiendo.
+    if (globalThis.matchMedia?.('(hover: hover) and (pointer: fine)').matches) {
+      raiz.addEventListener('mouseover', (e) => {
+        const b = e.target.closest?.('.glosa')
+        if (!b || b.getAttribute('aria-expanded') === 'true') return
+        clearTimeout(temporizador)
+        temporizador = setTimeout(() => abrir(b, { alPasar: true }), 250)
+      })
+      raiz.addEventListener('mouseout', (e) => {
+        if (!e.target.closest?.('.glosa')) return
+        clearTimeout(temporizador)
+        temporizador = setTimeout(cerrarSiFuera, 250)
+      })
+    }
   }
   return puestos
+}
+
+let temporizador = null
+function cerrarSiFuera() {
+  if (document.querySelector('.glosa-pop:hover, .glosa:hover')) return
+  const pop = document.querySelector('.glosa-pop')
+  if (pop?.dataset.alPasar) cerrar()
 }
 
 function cerrar() {
@@ -57,22 +81,40 @@ function alTocar(e) {
   const b = e.target.closest('.glosa')
   if (!b) return
   const abierta = b.getAttribute('aria-expanded') === 'true'
+  // Abierto al pasar el ratón, el clic lo deja fijo en vez de cerrarlo.
+  const alPasar = document.querySelector('.glosa-pop')?.dataset.alPasar
+  if (abierta && alPasar) { delete document.querySelector('.glosa-pop').dataset.alPasar; return }
   cerrar()
   if (abierta) return
+  abrir(b)
+}
+
+function abrir(b, { alPasar = false } = {}) {
+  cerrar()
   const g = POR_ID.get(b.dataset.glosa)
   if (!g) return
   const pop = document.createElement('div')
   pop.className = 'glosa-pop'
   pop.setAttribute('role', 'note')
-  pop.innerHTML = `<strong>${escapeHtml(g.termino)}</strong>${g.en && g.en !== g.termino ? ` <span lang="en">(${escapeHtml(g.en)})</span>` : ''}<p>${escapeHtml(g.def)}</p>${g.ejemplo ? `<p class="glosa-ejemplo">${escapeHtml(g.ejemplo)}</p>` : ''}<a href="/glosario#${escapeHtml(g.id)}">Ver el glosario</a>`
+  pop.innerHTML = `<strong>${escapeHtml(g.termino)}</strong>${g.en && g.en !== g.termino ? ` <span lang="en">(${escapeHtml(g.en)})</span>` : ''}<p>${escapeHtml(g.def)}</p>${g.ejemplo ? `<p class="glosa-ejemplo">${escapeHtml(g.ejemplo)}</p>` : ''}<a href="/glosario#${escapeHtml(g.id)}">Ver en el glosario ›</a>`
+  if (alPasar) {
+    pop.dataset.alPasar = '1'
+    pop.addEventListener('mouseleave', () => { clearTimeout(temporizador); temporizador = setTimeout(cerrarSiFuera, 250) })
+  }
   document.body.append(pop)
+  b.setAttribute('aria-expanded', 'true')
+  setTimeout(() => document.addEventListener('click', (ev) => { if (!ev.target.closest('.glosa-pop, .glosa')) cerrar() }, { once: true }), 0)
+  // En el móvil, una hoja desde abajo (1320): un globo pegado a la palabra
+  // se sale de la pantalla o tapa lo que se lee.
+  if (globalThis.matchMedia?.('(max-width: 640px)').matches) {
+    pop.classList.add('glosa-hoja')
+    return
+  }
   const r = b.getBoundingClientRect()
   const ancho = Math.min(320, innerWidth - 32)
   pop.style.width = `${ancho}px`
   pop.style.left = `${Math.max(16, Math.min(r.left + scrollX, scrollX + innerWidth - ancho - 16))}px`
   pop.style.top = `${r.bottom + scrollY + 8}px`
-  b.setAttribute('aria-expanded', 'true')
-  setTimeout(() => document.addEventListener('click', (ev) => { if (!ev.target.closest('.glosa-pop, .glosa')) cerrar() }, { once: true }), 0)
 }
 
 // La letra por la que se ordena un término (sin acento: «Ñ» y «N» van juntas).
