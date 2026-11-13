@@ -55204,6 +55204,22 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1332 — el esquema de hoy en un fichero (I3)
+
+`supabase-esquema-actual.sql`: `pg_dump --schema-only --schema=public
+--no-owner --no-comments` tras aplicar todas las migraciones existentes en el
+orden de `git log --diff-filter=A` (las sin commitear, al final), cada fichero
+con `ON_ERROR_STOP=0` (cada sentencia por su lado, como el SQL Editor). Delante,
+`PRELUDIO` (extensiones, roles anon/authenticated/service_role, `auth.users`,
+`auth.sessions`, `auth.uid()`, `storage.buckets/objects/foldername`, `cron`,
+`net`, `vault`, la publicación de realtime) y `BASE_ORIGINAL` (categories,
+learning_paths, guide_collections, guides, guide_routes,
+achievement_definitions, home_config, notifications, user_profiles,
+user_progress e `is_admin()`, del SCHEMA.md del commit 994c594d). La cabecera del
+fichero lista las migraciones con sentencias que no entraron. Se quitan del
+volcado las líneas que cambian de una pasada a otra (versión, `\restrict`), y
+por eso «está al día» es comparar texto.
+
 ## Tanda 1331 — las tiendas organizan sus torneos (G11)
 
 **Qué es un torneo de tienda.** El que crea una cuenta de tipo `tienda`: no hay

@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (581) — PINGU-Claude (1332 — el esquema de hoy en un fichero)
+
+**Hecho**: I3 del plan. `supabase-esquema-actual.sql` (raíz, ~970 KB, no se
+sirve: `/supabase-*` es ruta interna) es el volcado sin datos de `public` tras
+aplicar las 308 migraciones en el orden en que entraron (la fecha del commit que
+añadió cada una) sobre un PostgreSQL vacío con lo justo de Supabase delante
+(roles, auth, storage, cron, net, vault) y la base de partida que describe el
+primer SCHEMA.md (las tablas de antes de la primera migración, con tipos
+aproximados). Sin esa base fallaban 205 migraciones en cascada; con ella, una
+(`telegram-torneos`, una consulta de diagnóstico). Lo genera
+`herramientas/esquema-actual.mjs` (rama `pruebas`); test-tanda-1332 comprueba
+que está, que no se sirve, que lleva lo de siempre y que regenerarlo da el mismo
+texto. **Una migración nueva → `node herramientas/esquema-actual.mjs`.** Solo
+para leer: lo que manda siguen siendo las migraciones.
+
+**Ficheros**: supabase-esquema-actual.sql (nuevo). En `pruebas`:
+herramientas/esquema-actual.mjs, test-tanda-1332.
+
 ## 2026-11-13 (580) — PINGU-Claude (1331 — las tiendas organizan sus torneos)
 
 **Hecho**: G11 del plan. Una cuenta de tienda ya puede crear y llevar torneos
