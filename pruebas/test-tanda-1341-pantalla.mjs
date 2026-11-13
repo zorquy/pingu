@@ -92,7 +92,7 @@ for (const ancho of [390, 1280]) {
     linea: document.getElementById('torneoTablonLinea')?.textContent || '',
     scroll: document.documentElement.scrollWidth - innerWidth,
   }))
-  check(`${ancho}: en juego, las pestañas empiezan por Mi mesa`, datos.pestanas[0] === 'Mi mesa' && datos.activa === 'jugar', datos.pestanas.join(','))
+  check(`${ancho}: en juego, las pestañas empiezan por Hoy`, datos.pestanas[0] === 'Hoy' && datos.activa === 'jugar', datos.pestanas.join(','))
   check(`${ancho}: «Info» en vez de «Torneo»`, datos.pestanas.includes('Info') && !datos.pestanas.includes('Torneo'))
   check(`${ancho}: la cabecera mide poco (≤ 150 px)`, datos.cabecera <= 150, datos.cabecera)
   check(`${ancho}: el formato vive en Info`, datos.formatoEnInfo)
