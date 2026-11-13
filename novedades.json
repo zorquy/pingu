@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En Torneos, la tarjeta de tu liga te dice en qué puesto vas, el podio sale con caras y cada torneo enseña en la esquina si fuiste campeón, si te retiraste o si estás dentro. Duplicar y Borrar pasan al «⋯».", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En Torneos ya no hay dos cabeceras: una liga en juego se sigue en su propia tarjeta, con la jornada, la ronda, el tiempo que queda e «Ir a tu mesa»; y en un torneo de un día el aviso de arriba cuenta sus rondas y el top de verdad.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En la clasificación de un torneo en juego ves arriba quién va primero, segundo y tercero, y en el móvil la tabla cabe sin moverla de lado. Si eres juez, tienes arriba cuánta gente falta por hacer check-in, las llamadas y las disputas.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Si organizas un torneo, en Rondas tienes una tarjeta con lo que pasa y un solo botón, el que toca; «Deshacer» queda apartado en «⋯» para no pulsarlo sin querer. Y con muchas mesas puedes ver solo las que faltan.", "enlace": "/torneos" },

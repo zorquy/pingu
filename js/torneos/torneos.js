@@ -150,7 +150,7 @@ export function proximoHtml(t, ocupadas = 0, ahora = Date.now()) {
 }
 
 function tarjetaHtml(t, datos) {
-  const { ocupadas = 0, miEstado = null, caras = [], organiza = null, campeon = null, puedeBorrar = false, rondas = null, deTienda = false } = datos || {}
+  const { ocupadas = 0, miEstado = null, caras = [], organiza = null, campeon = null, campeonPerfil = null, soyCampeon = false, puedeBorrar = false, rondas = null, deTienda = false } = datos || {}
   // El precio de la inscripción (1331): informativo, se paga en persona.
   const precio = textoDePrecio(t.precio_entrada, { deTienda })
   // Una liga entre jornadas se dice así, sin el punto que late (850).
@@ -184,6 +184,16 @@ function tarjetaHtml(t, datos) {
         <span class="torneo-arte-chapas">
           <span class="torneo-estado ${estado.clase}">${viva ? `<span class="torneo-punto"></span>` : ''}${estado.texto}${estado.pausa && estado.proxima ? ` · J${estado.proxima.n}` : ''}</span>
           <span class="torneo-arte-chapas-der">
+            ${
+              // Lo tuyo en la esquina (1348): campeón, retirado o inscrito.
+              soyCampeon
+                ? `<span class="torneo-mio-arte campeon">${icons.trophy(11)} Campeón</span>`
+                : miEstado === 'dropped'
+                  ? '<span class="torneo-mio-arte retirado">Retirado</span>'
+                  : miEstado
+                    ? '<span class="torneo-mio-arte">Inscrito</span>'
+                    : ''
+            }
             ${t.is_private ? CHAPA_PRIVADO() : ''}
             ${esOficial(t) ? CHAPA_OFICIAL() : ''}
             ${deTienda ? `<span class="torneo-oficial torneo-de-tienda" title="Lo organiza una tienda: se juega allí">${icons.store(11)} Torneo de tienda</span>` : ''}
@@ -210,7 +220,7 @@ function tarjetaHtml(t, datos) {
         </span>
         ${
           campeon
-            ? `<span class="torneo-campeon">${icons.trophy(15)} Campeón: <b>${escapeHtml(campeon)}</b></span>`
+            ? `<span class="torneo-campeon">${campeonPerfil ? caraHtml(campeonPerfil) : icons.trophy(15)} Campeón: <b>${escapeHtml(campeon)}</b></span>`
             : `<span class="torneo-ocupacion">
                  ${caras.length ? `<span class="torneo-caras">${caras.map(caraHtml).join('')}${sobran ? `<span class="torneo-cara torneo-cara-mas">+${sobran}</span>` : ''}</span>` : ''}
                  ${sinLimite ? '' : `<span class="torneo-ocupacion-barra ${apurado ? 'apurada' : ''}"><span class="torneo-ocupacion-relleno" style="width:${porcentaje}%"></span></span>`}
@@ -221,24 +231,22 @@ function tarjetaHtml(t, datos) {
     </a>
     <div class="torneo-pie">
       <span class="torneo-pie-quien">
-        ${miEstado ? `<span class="torneo-mio ${miEstado === 'dropped' ? 'retirado' : ''}">${miEstado === 'dropped' ? 'Retirado' : 'Inscrito'}</span>` : ''}
         ${organiza ? `<span class="torneo-pie-organiza">${escapeHtml(organiza)}</span>` : ''}
       </span>
-      ${
-        // Duplicar (tanda 218): la liga semanal se monta igual cada vez,
-        // así que un torneo pasado sirve de plantilla.
-        ['finished', 'cancelled'].includes(t.status)
+      ${(() => {
+        // Duplicar (218) y Borrar (223), en el «⋯» desde la 1348 (PINGU eligió
+        // la recomendada): con cuatro botones abajo, la tarjeta no decía cuál
+        // era el bueno. Los mismos `data-*` de siempre: el clic se recoge igual.
+        const duplicar = ['finished', 'cancelled'].includes(t.status)
           ? `<button type="button" class="btn-secondary torneo-duplicar" data-duplicar="${escapeHtml(t.id)}">Duplicar</button>`
           : ''
-      }
-      ${
-        // Borrar desde la lista (tanda 223): antes había que entrar a la
-        // ficha para deshacerse de un torneo de prueba. Misma regla que
-        // allí — quien lleva los torneos o quien lo creó — y dos toques.
-        puedeBorrar
+        const borrar = puedeBorrar
           ? `<button type="button" class="torneo-borrar torneo-borrar-fila" data-borrar="${escapeHtml(t.id)}" data-nombre="${escapeHtml(t.name)}" data-dentro="${ocupadas}">Borrar</button>`
           : ''
-      }
+        return duplicar || borrar
+          ? `<details class="torneo-mas torneo-tarjeta-mas"><summary class="torneo-mas-boton" aria-label="Más opciones: ${escapeHtml(t.name)}">⋯</summary><div class="torneo-mas-menu">${duplicar}${borrar}</div></details>`
+          : ''
+      })()}
       <a class="${accion.clase} torneo-pie-accion" href="${url}"${accion.corto ? ` aria-label="${escapeHtml(/^Ver /.test(accion.texto) ? accion.texto : `Ver ${accion.texto.toLowerCase()}`)}: ${escapeHtml(t.name)}"` : ''}>${accion.corto || accion.texto}</a>
     </div>
   </article>`
@@ -580,6 +588,8 @@ async function cargarLista(session, perfil = null) {
       // lo firma PokeDoc, no la persona que le dio al botón.
       organiza: esOficial(t) ? 'Organiza el equipo' : gente[t.admin_id]?.username ? `Organiza ${gente[t.admin_id].username}` : '',
       campeon: t.status === 'finished' ? gente[t.champion_id]?.username || null : null,
+      campeonPerfil: t.status === 'finished' ? gente[t.champion_id] || null : null,
+      soyCampeon: Boolean(session?.user?.id && t.status === 'finished' && t.champion_id === session.user.id),
       puedeBorrar: puedeBorrarTorneo(perfil, t, session?.user?.id),
       rondas: rondasDe[t.id] || null,
       deTienda: esTorneoDeTienda(t, gente),
@@ -1079,6 +1089,11 @@ function engancharFormulario(session, perfil) {
   // Borrar desde la tarjeta (tanda 223). Dos toques como en la ficha: el
   // primero avisa —y dice a cuánta gente afecta—, el segundo va. La
   // tarjeta es un enlace al torneo, de ahí el preventDefault.
+  // Los «⋯» de las tarjetas (1348): se cierran al tocar fuera. Y como la
+  // tarjeta es un enlace, abrirlos no navega.
+  document.addEventListener('click', (e) => {
+    for (const mas of document.querySelectorAll('details.torneo-tarjeta-mas[open]')) if (!mas.contains(e.target)) mas.open = false
+  })
   document.addEventListener('click', async (e) => {
     const boton = e.target.closest('[data-borrar]')
     if (!boton) return

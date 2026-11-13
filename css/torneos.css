@@ -4389,7 +4389,7 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
    La cara de cada jugador, su forma (los últimos resultados en cuadritos) y
    la flecha de cuánto ha subido o bajado. Las usan Mi mesa, Rondas,
    Clasificación, Jugadores y el tablón. */
-.torneo-cara {
+.torneo-jcara {
   display: inline-grid;
   place-items: center;
   flex: none;
@@ -4402,9 +4402,9 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
   font-size: var(--t-xs);
   font-weight: 800;
 }
-.torneo-cara-p { width: 22px; height: 22px; border-radius: 8px; font-size: var(--t-2xs); }
-.torneo-cara-g { width: 44px; height: 44px; border-radius: 12px; font-size: var(--t-md); }
-.torneo-cara-xg { width: 64px; height: 64px; border-radius: 16px; font-size: var(--t-xl); }
+.torneo-jcara-p { width: 22px; height: 22px; border-radius: 8px; font-size: var(--t-2xs); }
+.torneo-jcara-g { width: 44px; height: 44px; border-radius: 12px; font-size: var(--t-md); }
+.torneo-jcara-xg { width: 64px; height: 64px; border-radius: 16px; font-size: var(--t-xl); }
 .torneo-forma { display: inline-flex; gap: 2px; vertical-align: middle; }
 .torneo-forma i {
   display: grid;
@@ -4443,3 +4443,44 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 @media (max-width: 640px) {
   .torneo-pegado .torneo-viva-cuenta { display: none; }
 }
+
+/* ── 1348: /torneos con caras (SCHEMA 1348) ── */
+/* Lo tuyo en la esquina del cartel. */
+.torneo-mio-arte {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  background: var(--blanco-fijo);
+  color: var(--navy-solid);
+  font-size: var(--t-2xs);
+  font-weight: 800;
+}
+.torneo-mio-arte.campeon { color: #a06008; }
+.torneo-mio-arte.retirado { color: #52717f; }
+/* El campeón, con su cara. */
+.torneo-campeon .torneo-cara { margin-left: 0; }
+/* Duplicar y Borrar, en el «⋯» de la tarjeta. */
+.torneo-tarjeta-mas { margin-left: auto; }
+.torneo-tarjeta-mas .torneo-mas-boton { border-color: var(--border); background: var(--white); color: var(--text); }
+.torneo-tarjeta-mas .torneo-mas-boton:hover { background: var(--bg); }
+.torneo-tarjeta-mas .torneo-mas-menu { top: auto; bottom: calc(100% + 8px); min-width: 180px; }
+.torneo-tarjeta-mas .torneo-mas-menu > .torneo-borrar { color: var(--danger); }
+.torneo-tarjeta-mas + .torneo-pie-accion { margin-left: 0; }
+/* Tu puesto en la tarjeta de tu liga. */
+.lc-tu {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: var(--e-xs) var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+  line-height: 1.1;
+}
+.lc-tu[hidden] { display: none; }
+.lc-tu span { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+.lc-tu b { font-family: var(--font-marca); font-size: var(--t-2xl); }
+.lc-tu small { font-size: var(--t-xs); color: var(--text-mid); }
+.lc-p .torneo-jcara { margin-right: 2px; }

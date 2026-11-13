@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (598) — PINGU-Claude (1348 — /torneos: tu puesto en tu liga, lo tuyo en cada cartel y el «⋯»)
+
+**Hecho**:
+- **Tu liga dice cómo vas**: la tarjeta de «Ligas en curso» lleva arriba a la
+  derecha «Vas 6.º de 24 · 21 pts» si juegas, y el podio con la cara de cada uno.
+- **Lo tuyo en la esquina de cada cartel**: «Campeón» (con la copa), «Retirado»
+  o «Inscrito»; y el campeón de un torneo terminado, con su cara.
+- **Duplicar y Borrar, en el «⋯»** de cada tarjeta (PINGU eligió la
+  recomendada): la tarjeta lleva un botón y el menú se cierra al tocar fuera.
+- La cara nueva de 1347 pasa a llamarse `.torneo-jcara`: `.torneo-cara` ya era la
+  de los inscritos de las tarjetas y se pisaban.
+
+**No hecho**: los terminados en filas (la maqueta). Siguen como carteles para
+no perder el arte del mazo del campeón (1216), que se pinta en la portada de
+la tarjeta; ya llevan la cara del campeón y tu resultado.
+
+**Ficheros**: `js/torneos/torneos.js`, `js/torneos/ligas-franja.js`,
+`js/torneos/caras.js`, `css/torneos.css`.
+
+**Pendiente**: 1349–1351. Sin migración.
+
 ## 2026-11-13 (597) — PINGU-Claude (1347 — torneos con caras: las piezas comunes y el día entre jornadas)
 
 **Hecho**: primera tanda de la propuesta «Torneos con caras» (PINGU: «visualmente

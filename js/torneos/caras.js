@@ -8,7 +8,7 @@ import { escapeHtml, avatarStyle, getInitial } from '../app.js'
 // `tam`: '' (30 px), 'p' (22), 'g' (44) o 'xg' (64).
 export function caraHtml(perfil, nombre, tam = '') {
   const n = nombre || perfil?.username || '?'
-  return `<span class="torneo-cara${tam ? ` torneo-cara-${tam}` : ''}" style="${avatarStyle(perfil || { username: n })}" aria-hidden="true">${
+  return `<span class="torneo-jcara${tam ? ` torneo-jcara-${tam}` : ''}" style="${avatarStyle(perfil || { username: n })}" aria-hidden="true">${
     perfil?.avatar_url ? '' : escapeHtml(getInitial(n))
   }</span>`
 }

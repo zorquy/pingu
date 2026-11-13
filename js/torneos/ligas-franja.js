@@ -12,6 +12,7 @@ import { escapeHtml } from '../html.js'
 import { icons } from '../icons.js'
 import { jornadasDeLiga, clasificacionDeLiga } from './liga-en-curso.js'
 import { rondasPorJornada, rondaEnJornada } from './rondas-jornada.js'
+import { caraHtml } from './caras.js'
 
 const DIA_MS = 864e5
 const ARTES = 6
@@ -118,6 +119,7 @@ export function ligaFranjaHtml(t, rondas, { ahora = Date.now(), inscrito = false
       ${cita ? `<p class="lc-cita">${cita}</p><p class="lc-listas" data-lc-listas>${listasHtml(listas, conLista)}</p>` : ''}
     </div>
     <div class="lc-lado">
+      ${inscrito ? '<p class="lc-tu" data-lc-tu hidden></p>' : ''}
       <ol class="lc-podio" aria-label="Los tres primeros" data-lc-podio>${podioHtml(podio)}</ol>
       <a class="${boton.clase} lc-boton" href="${boton.href}" data-lc-boton>${escapeHtml(boton.texto)}</a>
     </div>
@@ -131,7 +133,7 @@ export function podioHtml(podio) {
     .map((i) => {
       const p = podio?.[i]
       return p
-        ? `<li class="lc-p"><span class="lc-p-pos">${i + 1}</span><span class="lc-p-nombre">${escapeHtml(p.nombre)}</span><b>${p.puntos}</b></li>`
+        ? `<li class="lc-p"><span class="lc-p-pos">${i + 1}</span>${caraHtml(p.perfil || null, p.nombre, 'p')}<span class="lc-p-nombre">${escapeHtml(p.nombre)}</span><b>${p.puntos}</b></li>`
         : `<li class="lc-p lc-p-vacia${podio ? '' : ' esq-linea'}" aria-hidden="true"><span class="lc-p-pos">${i + 1}</span><span class="lc-p-nombre"></span></li>`
     })
     .join('')
@@ -164,13 +166,21 @@ export async function completarLiga(supabase, caja, t, rondas, { userId = null, 
   const res = matchIds.length ? await supabase.from('match_results').select('match_id, result').in('match_id', matchIds) : { data: [] }
   let podio = []
   if (!insc.error && !partidas.error && !res.error) {
-    const tabla = clasificacionDeLiga(t, { inscripciones: insc.data || [], rondas, partidas: partidas.data || [], resultados: res.data || [] }).filter((e) => e.matchPoints > 0).slice(0, 3)
+    const entera = clasificacionDeLiga(t, { inscripciones: insc.data || [], rondas, partidas: partidas.data || [], resultados: res.data || [] })
+    const tabla = entera.filter((e) => e.matchPoints > 0).slice(0, 3)
     const faltan = tabla.map((e) => e.playerId).filter((id) => !gente[id])
     if (faltan.length) {
-      const { data } = await supabase.from('user_profiles').select('id, username').in('id', faltan)
+      const { data } = await supabase.from('user_profiles').select('id, username, avatar_url').in('id', faltan)
       for (const p of data || []) gente[p.id] = p
     }
-    podio = tabla.map((e) => ({ nombre: gente[e.playerId]?.username || 'Alguien', puntos: e.matchPoints }))
+    podio = tabla.map((e) => ({ nombre: gente[e.playerId]?.username || 'Alguien', puntos: e.matchPoints, perfil: gente[e.playerId] || null }))
+    // Tu puesto (1348): «Vas 6.º de 24 · 21 pts», lo primero que se busca.
+    const mio = userId && inscrito ? entera.findIndex((e) => e.playerId === userId) : -1
+    const tu = caja.querySelector('[data-lc-tu]')
+    if (tu && mio >= 0) {
+      tu.innerHTML = `<span>Vas</span><b>${mio + 1}.º</b><small>de ${entera.length} · ${entera[mio].matchPoints} pts</small>`
+      tu.hidden = false
+    }
   }
   const hueco = caja.querySelector('[data-lc-podio]')
   if (hueco) hueco.innerHTML = podioHtml(podio)

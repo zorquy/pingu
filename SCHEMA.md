@@ -55204,10 +55204,26 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1348 — /torneos con caras
+
+`tarjetaHtml` (`js/torneos/torneos.js`) recibe además `campeonPerfil` y
+`soyCampeon`: en `.torneo-arte-chapas-der` va `.torneo-mio-arte` (`campeon`,
+`retirado` o nada) y el campeón lleva la cara de la lista (`caraHtml` del
+fichero). Duplicar (`data-duplicar`) y Borrar (`data-borrar`) van en un
+`details.torneo-mas.torneo-tarjeta-mas` (el menú se abre hacia arriba); los
+manejadores delegados no cambian, y otro listener cierra los `[open]` al tocar
+fuera. `.torneo-mio` del pie se fue.
+
+La tarjeta de una liga (`ligaFranjaHtml`, `js/torneos/ligas-franja.js`) lleva,
+si estás inscrito, `p.lc-tu[data-lc-tu]` (oculto) que `completarLiga` rellena
+con tu puesto en la clasificación entera; el podio (`podioHtml`) pinta la cara
+(`caraHtml` de `caras.js`) de cada uno, con `avatar_url` pedido en la consulta
+de perfiles que faltan.
+
 ## Tanda 1347 — Torneos con caras: las piezas
 
 `js/torneos/caras.js` (puro salvo `avatarStyle`): `caraHtml(perfil, nombre,
-tam)` → `.torneo-cara` (`-p` 22 px, normal 30, `-g` 44, `-xg` 64);
+tam)` → `.torneo-jcara` (`-p` 22 px, normal 30, `-g` 44, `-xg` 64);
 `formaHtml(['V','D','E','B'])` → `.torneo-forma` con un `i.torneo-forma-<l>` por
 resultado y el texto entero en `.sr-only`; `movimientoHtml(antes, ahora)` →
 `.torneo-mov.sube|baja|igual`; `faltaPara(fecha)` → «6 d 23 h».
