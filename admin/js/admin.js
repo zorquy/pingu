@@ -39,6 +39,21 @@ async function checkAccess() {
     window.location.href = '/'
     return null
   }
+  // Doble factor (1307): con él puesto, la base no da poderes de admin sin
+  // el código, así que se pide aquí antes de abrir nada. Sin él, el panel
+  // abre como antes y avisa de que conviene ponerlo.
+  const { asegurarCodigo, estadoMfa } = await import('../../js/doble-factor.js')
+  if (!(await asegurarCodigo(supabase, { titulo: 'Tu código para entrar al panel', texto: 'El panel del equipo pide el código de tu app de doble factor.', textoCancelar: 'Volver a la web' }))) {
+    window.location.href = '/'
+    return null
+  }
+  estadoMfa(supabase).then((e) => {
+    if (e.factores.length) return
+    const aviso = document.createElement('p')
+    aviso.className = 'admin-note admin-aviso-mfa'
+    aviso.innerHTML = 'Pon el <b>doble factor</b> en <a href="/ajustes?ver=seguridad">Ajustes › Seguridad</a>: con él, tu contraseña sola no basta para usar este panel.'
+    document.getElementById('adminLayout')?.prepend(aviso)
+  }).catch(() => {})
   document.getElementById('adminGate').classList.add('hidden')
   document.getElementById('adminLayout').classList.remove('hidden')
   return session

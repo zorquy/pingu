@@ -492,3 +492,113 @@
     transition: none;
   }
 }
+
+/* Seguridad (1307): doble factor y sesiones. SCHEMA 1307. */
+.aj-seg-caja {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-lg);
+}
+
+.aj-seg-estado {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  margin: 0;
+  color: var(--text);
+  font-size: var(--t-sm);
+}
+
+.aj-seg-estado svg {
+  color: var(--success);
+  flex: none;
+}
+
+.aj-seg-pasos {
+  margin: 0;
+  padding-left: var(--e-lg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--e-md);
+  font-size: var(--t-sm);
+}
+
+.aj-seg-qr {
+  display: block;
+  margin-top: var(--e-sm);
+  border-radius: var(--radius-md);
+  background: var(--blanco-fijo);
+  padding: var(--e-sm);
+}
+
+.aj-seg-clave {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: var(--t-sm);
+  word-break: break-all;
+  background: var(--ice);
+  padding: 2px var(--e-xs);
+  border-radius: var(--radius-sm);
+}
+
+.aj-seg-codigo {
+  display: block;
+  margin-top: var(--e-xs);
+  max-width: 200px;
+  font: 600 var(--t-xl) / 1.2 var(--font-display);
+  letter-spacing: 0.3em;
+  text-align: center;
+}
+
+.aj-seg-error {
+  margin: 0;
+  min-height: 1.4em;
+  color: var(--danger);
+  font-size: var(--t-sm);
+}
+
+.aj-seg-botones {
+  display: flex;
+  gap: var(--e-sm);
+}
+
+.aj-seg-sesiones {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  width: 100%;
+}
+
+.aj-seg-sesion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-md);
+  min-height: 56px;
+  padding: var(--e-xs) 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.aj-seg-quien {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  font-size: var(--t-sm);
+}
+
+.aj-seg-quien small {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+
+.aj-seg-esta {
+  display: inline-block;
+  margin-left: var(--e-xs);
+  padding: 0 var(--e-sm);
+  border-radius: var(--radius-pill);
+  background: var(--success-bg);
+  color: var(--success);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}

@@ -55204,6 +55204,22 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1307 — doble factor y sesiones abiertas
+
+- `is_admin_base()`: la `is_admin()` de antes, copiada con `pg_get_functiondef`
+  la primera vez (una segunda pasada no la pisa). `is_admin()` = `is_admin_base()
+  and sesion_cumple_mfa()`. `sesion_cumple_mfa()`: `aal2` en el JWT, o ningún
+  factor `verified` en `auth.mfa_factors`.
+- `mis_sesiones()` → `(id, creada, ultima, navegador, esta, con_codigo)` de
+  `auth.sessions` (sin IP); `cerrar_sesion(p_id)` borra una tuya que no sea la de
+  ahora (sus tokens de refresco caen con ella; el de acceso caduca en una hora).
+- Web: `js/doble-factor.js` (`estadoMfa`, `faltaCodigo`, `verificar`,
+  `empezarAlta`, `quitar`, `pedirCodigo`, `asegurarCodigo`, `nombreDeNavegador`;
+  su CSS va dentro). La ventana del código la usan `/auth` (tras la contraseña),
+  `/admin` (`checkAccess`, sin «Cancelar» que deje el panel abierto) y Ajustes
+  (quitarlo). `js/ajustes-seguridad.js`, el apartado. «Cerrar todas menos esta»
+  es `signOut({ scope: 'others' })` y funciona sin la migración.
+
 ## Tanda 1306 — el perfil público, solo con lo que se enseña
 
 - `user_privado(user_id pk → user_profiles, saved_guides uuid[], referred_by

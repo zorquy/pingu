@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Ajustes › Seguridad: activa el doble factor (un código de tu app además de la contraseña) y mira dónde tienes la sesión abierta, para cerrar las que no sean tuyas.", "enlace": "/ajustes?ver=seguridad" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Más privacidad: tus guías guardadas y quién te invitó ya no las puede ver nadie, si escondes tu actividad tampoco sale cuándo estás en línea, y en Ajustes › Privacidad puedes ver tu perfil tal como lo ve alguien sin cuenta.", "enlace": "/ajustes?ver=privacidad" },
     { "fecha": "2026-11-13", "tipo": "arreglo", "texto": "Tu fecha de nacimiento ya no la puede ver nadie: el foro sigue felicitándote el día de tu cumpleaños, pero el año se queda solo para ti." },
     { "fecha": "2026-11-12", "tipo": "mejora", "texto": "Las ligas se ven en Torneos: arriba, cada liga en marcha con sus jornadas (las jugadas y la siguiente, con su día), los tres primeros de la clasificación y un botón para mandar tu lista. Y en el calendario cada jornada sale en su día.", "enlace": "/torneos" },

@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (554) — PINGU-Claude (1307 — doble factor para el equipo y sesiones abiertas)
+
+**Hecho**: la S6 y la S12. Ajustes › Seguridad (apartado nuevo, por `import()`):
+activar el doble factor (QR, clave a mano y el código para confirmar), quitarlo
+(pide el código), tus sesiones abiertas con «Esta», «Cerrar» cada una y «Cerrar
+todas menos esta». Al entrar con contraseña, quien lo tiene puesto escribe el
+código antes de seguir (si cancela, se cierra la sesión). /admin pide el código
+antes de abrir el panel y, si no lo tienes puesto, avisa arriba. Y lo exige la
+BASE: `is_admin()` (que no salió de ninguna migración del repo) se copia tal
+cual a `is_admin_base()` y pasa a ser «lo de antes Y la sesión pasó el código si
+esa persona tiene doble factor». Mismo nombre: las ~130 políticas no se tocan.
+Sin doble factor, como antes (nadie se queda fuera el día que se ejecuta).
+
+**Ficheros**: supabase-migration-1307-doble-factor.sql, js/doble-factor.js y
+js/ajustes-seguridad.js (nuevos), js/ajustes.js, js/auth.js, admin/js/admin.js,
+css/ajustes.css, SCHEMA.md, BITACORA.md, novedades.json. En `pruebas`: stub
+(`auth.mfa`, `signOut({ scope })`, las dos funciones nuevas) y test-tanda-1307
+(nueva, con PostgreSQL).
+
+**Pendiente**: la migración 1307. En Supabase → Authentication → Multi-Factor,
+TOTP tiene que estar activado (lo está por defecto). Después, PINGU (y el
+equipo) lo ponen en Ajustes › Seguridad. Moderación y redacción no van por
+`is_admin()`: lo suyo, más adelante si hace falta.
+
 ## 2026-11-13 (553) — PINGU-Claude (1306 — el perfil público, solo con lo que se enseña)
 
 **Hecho**: la S3 del Plan PokeDoc 2027, y algo peor que salió mirándola: el

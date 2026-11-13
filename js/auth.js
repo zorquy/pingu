@@ -170,6 +170,17 @@ btnLogin?.addEventListener('click', async () => {
     return
   }
 
+  // Con doble factor (1307), el código antes de seguir. Si se cancela, se
+  // sale: una sesión a medias (sin el código) no debe quedarse abierta.
+  try {
+    const { asegurarCodigo } = await import('./doble-factor.js')
+    if (!(await asegurarCodigo(supabase, { titulo: 'Escribe tu código', texto: 'Tienes el doble factor puesto: abre tu app de códigos y escribe el de PokeDoc.' }))) {
+      await supabase.auth.signOut()
+      setError(steps.login, 'Sin el código no se puede entrar. Vuelve a probar cuando tengas tu app a mano.')
+      return
+    }
+  } catch { /* sin el módulo, como antes */ }
+
   await afterAuth(data.user.id)
 })
 

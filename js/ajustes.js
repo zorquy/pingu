@@ -21,6 +21,7 @@ const APARTADOS = [
   { id: 'avisos', nombre: 'Avisos', sub: 'Campanita, correo y push', icono: 'bell' },
   { id: 'cuenta', nombre: 'Cuenta', sub: 'Correo, contraseña, cumpleaños, Play! Pokémon', icono: 'user' },
   { id: 'direccion', nombre: 'Envío y pagos', sub: 'Tu dirección, tu Bizum y tu PayPal', icono: 'package' },
+  { id: 'seguridad', nombre: 'Seguridad', sub: 'Doble factor y sesiones abiertas', icono: 'shield' },
   { id: 'privacidad', nombre: 'Privacidad', sub: 'Tu actividad en Comunidad', icono: 'eye' },
   { id: 'apariencia', nombre: 'Apariencia', sub: 'Tema claro, oscuro o el del sistema', icono: 'palette' },
   { id: 'datos', nombre: 'Tus datos', sub: 'Exportar e importar la colección', icono: 'upload' },
@@ -530,6 +531,8 @@ const SECCIONES = {
   avisos: [avisosHtml, montarAvisos],
   cuenta: [cuentaHtml, montarCuenta],
   direccion: [direccionHtml, montarDireccion],
+  // Seguridad (1307) entra por import(): solo la baja quien la abre.
+  seguridad: [() => '<h2>Seguridad</h2><p class="aj-nota">Cargando…</p>', (panel) => import('./ajustes-seguridad.js').then((m) => { panel.innerHTML = m.seguridadHtml(); m.montarSeguridad(panel) }).catch(() => { panel.innerHTML = '<h2>Seguridad</h2><p class="aj-nota">No se ha podido cargar. Recarga la página.</p>' })],
   privacidad: [privacidadHtml, montarPrivacidad],
   apariencia: [aparienciaHtml, montarApariencia],
   datos: [datosHtml, () => {}],
