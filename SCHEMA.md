@@ -55204,6 +55204,21 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1326b — la guía de estilo viva en /admin
+
+D6 del plan. `admin/js/guia-estilo.js`, por `import()` al abrir la sección
+`estilo`. Lo puro: `tokensDeHoja(css)` (las declaraciones del PRIMER `:root` de
+una hoja, sin comentarios), `grupoDeToken` (por el nombre: `--t-`, `--e-`,
+`--radius-`, `--shadow-`, `--font-`; lo que parece un color, a colores; lo
+demás, a «otros», que no se pinta) y `APARTADOS` (título y dónde vive cada
+cosa). `guiaHtml(tokens)` pinta cada apartado con la función de verdad
+(`chapaDeEstadoHtml` con todos los `ESTADOS`, `chapaDeGradeoHtml`,
+`chapaDeVersionHtml`, `banderaHtml`, `atributosDeRango`, `vacioHtml`, todos los
+`icons`); `montarGuiaEstilo` lee `/css/style.css`, pinta y lee los valores con
+`getComputedStyle` (así se ven los del tema que está puesto). Prefijo `gde-`
+en admin.css (`ge-` es del gradeo). Una pieza común nueva (una chapa, un molde)
+va también aquí, con su «dónde».
+
 ## Tanda 1326 — /sobre con cifras vivas, equipo y línea del tiempo
 
 D1 del plan. `sobre_cifras()` (migración 1326, `security definer`, la pueden

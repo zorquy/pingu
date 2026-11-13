@@ -1515,3 +1515,34 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
 .pl-completa { background: var(--ice); color: var(--navy); }
 .pl-igual { background: var(--ice); color: var(--text-mid); }
 .pl-tabla td small { display: block; color: var(--text-mid); font-size: var(--t-2xs); }
+
+/* ── Guía de estilo (1326b, D6): lo común pintado de verdad; SCHEMA 1326b ── */
+.gde-intro { color: var(--text-mid); max-width: 70ch; margin: 0 0 var(--e-lg); }
+.gde-barra-arriba { position: sticky; top: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-sm); padding: var(--e-sm) 0; background: var(--bg); }
+.gde-indice { display: flex; flex-wrap: wrap; gap: var(--e-xs) var(--e-md); font-size: var(--t-sm); }
+.gde-apartado { border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); padding: var(--e-lg); margin-top: var(--e-lg); scroll-margin-top: 64px; }
+.gde-apartado header { margin-bottom: var(--e-md); }
+.gde-apartado h2 { margin: 0; font-size: var(--t-xl); font-family: var(--font-display); }
+.gde-apartado header p, .gde-nota { margin: var(--e-xs) 0 0; font-size: var(--t-sm); color: var(--text-mid); }
+.gde-apartado code { font-size: var(--t-xs); }
+.gde-colores { display: grid; grid-template-columns: repeat(auto-fill, minmax(168px, 1fr)); gap: var(--e-md); }
+.gde-color { display: grid; grid-template-columns: 40px minmax(0, 1fr); column-gap: var(--e-sm); align-items: center; }
+.gde-muestra { grid-row: 1 / 3; width: 40px; height: 40px; border-radius: var(--radius-md); border: 1px solid var(--border); }
+.gde-color code, .gde-color small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.gde-color small { font-size: var(--t-xs); color: var(--text-mid); }
+.gde-filas { display: flex; flex-direction: column; gap: var(--e-md); }
+.gde-fila { display: grid; grid-template-columns: 168px minmax(0, 1fr) auto; gap: var(--e-md); align-items: center; }
+.gde-fila-libre { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
+.gde-filas + .gde-fila-libre, .gde-fila-libre + .gde-fila-libre, .gde-fila-libre + .tabs { margin-top: var(--e-md); }
+.gde-display { font-family: var(--font-display); font-size: var(--t-2xl); font-weight: 700; }
+.gde-barra { display: block; height: 12px; border-radius: var(--radius-sm); background: var(--acento); }
+.gde-radios { display: flex; flex-wrap: wrap; gap: var(--e-lg); }
+.gde-radios > div { display: flex; flex-direction: column; align-items: center; gap: var(--e-xs); }
+.gde-radio { width: 64px; height: 48px; background: var(--ice); border: 1px solid var(--border); }
+.gde-idioma { display: inline-flex; align-items: center; gap: var(--e-xs); font-size: var(--t-xs); font-weight: 600; }
+.gde-marco { border: 1px dashed var(--border); border-radius: var(--radius-md); }
+.gde-iconos { display: grid; grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: var(--e-sm); }
+.gde-icono { display: flex; flex-direction: column; align-items: center; gap: var(--e-xs); padding: var(--e-sm); border-radius: var(--radius-md); color: var(--text); }
+.gde-icono code { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 640px) { .gde-fila { grid-template-columns: minmax(0, 1fr); gap: var(--e-xs); } }
+.gde-sombra { background: var(--white); border-color: transparent; }

@@ -119,6 +119,7 @@
         <button class="admin-nav-item" data-section="correos"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"></rect><path d="m22 7-10 6L2 7"></path></svg> Correos</button>
         <button class="admin-nav-item" data-section="errors"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="8" y="6" width="8" height="14" rx="4"></rect><path d="M19 7l-3 2"></path><path d="M5 7l3 2"></path><path d="M19 19l-3-2"></path><path d="M5 19l3-2"></path><path d="M12 6V2"></path><path d="M9 2h6"></path></svg> Errores</button>
         <button class="admin-nav-item" data-section="database"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="5" rx="9" ry="3"></ellipse><path d="M3 5v14a9 3 0 0 0 18 0V5"></path><path d="M3 12a9 3 0 0 0 18 0"></path></svg> Base de datos</button>
+        <button class="admin-nav-item" data-section="estilo"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="13.5" cy="6.5" r="1.5"></circle><circle cx="17.5" cy="10.5" r="1.5"></circle><circle cx="8.5" cy="7.5" r="1.5"></circle><circle cx="6.5" cy="12.5" r="1.5"></circle><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.9 0 1.7-.8 1.7-1.7 0-.4-.2-.8-.4-1.1-.3-.3-.4-.7-.4-1.1 0-.9.8-1.7 1.7-1.7H16c3.1 0 5.6-2.5 5.6-5.6C22 6 17.5 2 12 2z"></path></svg> Guía de estilo</button>
       </nav>
       <a href="/" class="admin-back">← Volver a PokeDoc</a>
     </aside>
@@ -390,6 +391,14 @@
         <h1>Bajas</h1>
         <p style="color: var(--text-mid); font-size: 13px; margin: -14px 0 20px;">Solicitudes de borrado de cuenta. Marcar como "hecha" NO borra nada por sí solo — hay que borrar la cuenta a mano desde el dashboard de Supabase primero.</p>
         <div id="accountDeletionTable"></div>
+      </section>
+
+      <section class="admin-section" id="section-estilo">
+        <div class="admin-section-header">
+          <h1>Guía de estilo</h1>
+        </div>
+        <p class="gde-intro">Lo común de la web, pintado con las mismas funciones y hojas que lo pintan fuera. Antes de inventar un botón, una chapa o un color, mira si ya está aquí.</p>
+        <div id="estiloGuia"></div>
       </section>
 
       <section class="admin-section" id="section-database">

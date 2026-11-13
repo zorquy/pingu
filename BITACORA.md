@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (575) — PINGU-Claude (1326b — la guía de estilo viva en /admin)
+
+**Hecho**: D6 del plan. /admin → Sistema → **Guía de estilo** (`?ver=estilo`):
+lo común de la web pintado con las MISMAS funciones y hojas que lo pintan fuera
+(color, escala de letra, espaciado, esquinas, sombras, botones, chips y
+pestañas, chapas de estado/gradeo/versión/idioma, nombres con rango, el vacío,
+avisos y pop-up, y los 91 iconos de icons.js), cada apartado con dónde vive.
+Los tokens se LEEN del `:root` de style.css, así que uno nuevo sale solo; «Ver
+en el otro tema» cambia el tema en esa pestaña (sin guardarlo) y repinta los
+valores.
+
+**Ojo, para quien venga**: el prefijo `ge-` YA era del selector de gradeo
+(`.ge-nota`, `.ge-casa` en components.css) y la nota de los botones salió en
+columnas; la guía va con `gde-`. Lo de la regla de siempre: grepa el nombre.
+
+**Ficheros**: admin/js/guia-estilo.js (nuevo), admin/index.html,
+admin/js/admin.js, admin/css/admin.css, SCHEMA.md, CLAUDE.md. En `pruebas`:
+test-tanda-1326b-pantalla.
+
 ## 2026-11-13 (574) — PINGU-Claude (1326 — /sobre con cifras vivas y quién lo hace)
 
 **Hecho**: D1 del plan. /sobre lleva arriba **cuatro cifras vivas** (personas,

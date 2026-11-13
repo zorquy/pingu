@@ -2035,6 +2035,10 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   en `retos_mover`/`retos_vista`/`retos_resultado` y su prueba en
   `test-tanda-1268`; y si cuenta algo que la web también cuenta (las casillas
   de la carta), la prueba compara las dos.
+- **Lo común se ve en /admin → Guía de estilo** (tanda 1326b,
+  `admin/js/guia-estilo.js`): los tokens salen solos del `:root` de style.css
+  y cada pieza la pinta su función. Una pieza común nueva (chapa, molde,
+  botón) entra en `APARTADOS` con su «dónde»; antes de inventar una, mira ahí.
 - **Iconos SVG de js/icons.js, nunca emojis sueltos en la interfaz**
   (única excepción deliberada: la banderita 🇪🇸).
 - **Los tamaños de letra salen de la escala** (`--t-2xs`…`--t-3xl` en

@@ -73,6 +73,8 @@ function initSidebar() {
       if (btn.dataset.section === 'tiendas') iniciarTiendas()
       if (btn.dataset.section === 'users') loadUsers()
       if (btn.dataset.section === 'correos') pintarCorreos()
+      // La guía de estilo (1326b, D6): entra al abrirla.
+      if (btn.dataset.section === 'estilo') import('./guia-estilo.js').then((m) => m.montarGuiaEstilo(document.getElementById('estiloGuia')))
       if (btn.dataset.section === 'eventos' && !eventosMontados) {
         eventosMontados = true
         import('./eventos-admin.js').then((m) => m.montarEventos(document.getElementById('eventosPanel')))
