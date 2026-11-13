@@ -92,6 +92,7 @@ export function leerCsv(texto, sep = separadorDe(texto)) {
 // nombres de columna casan con el mismo campo se queda el primero que
 // aparezca en el fichero.
 const SINONIMOS = {
+  // `idproduct`/`cardmarketid` (Cardmarket) no es nuestro id: va aparte y no se usa para casar.
   id: ['tcgdex_id', 'tcgdex id', 'card_id', 'card id', 'id', 'id carta', 'identificador'],
   nombre: ['name', 'card name', 'card_name', 'card', 'carta', 'nombre', 'pokemon', 'pokémon'],
   set: ['set', 'set name', 'set_name', 'expansion', 'expansión', 'expansion name', 'coleccion', 'colección', 'edition'],
@@ -101,6 +102,8 @@ const SINONIMOS = {
   estado: ['condition', 'cond', 'estado', 'state'],
   idioma: ['language', 'lang', 'idioma'],
   variante: ['variant', 'variante', 'finish', 'version', 'versión', 'printing', 'foil', 'type of print', 'edition type'],
+  // Cardmarket lo dice con un sí/no (1329): en lo moderno, un foil es la Reverse.
+  foil: ['isfoil', 'is foil', 'foil?'],
   casa: ['grading company', 'grade company', 'grade_company', 'grading_company', 'company', 'casa', 'grader'],
   gradeo: ['grade', 'grade_value', 'grade value', 'grading', 'gradeo', 'graded', 'nota'],
   precioCompra: ['purchase price', 'purchase_price', 'price paid', 'paid', 'precio de compra', 'precio compra', 'precio_compra', 'lo que pagaste', 'lo que pagaste (€)', 'buy price', 'cost', 'coste'],
@@ -133,7 +136,11 @@ export function reconocerColumnas(cabecera) {
         ? 'TCG Vault'
         : tiene('price paid') || (tiene('set') && tiene('number') && tiene('variant'))
           ? 'Dex'
-          : null
+          : tiene('simple name') || (tiene('product id') && tiene('printing'))
+            ? 'TCGplayer'
+            : tiene('idproduct') || tiene('cardmarketid') || tiene('isfoil')
+              ? 'Cardmarket'
+              : null
   const sinUsar = cabecera.filter((_, i) => !Object.values(columnas).includes(i))
   return { columnas, origen, sinUsar }
 }
@@ -245,14 +252,15 @@ export function entradasDe(filas, columnas, { idiomaSiFalta = 'es' } = {}) {
     return {
       fila: i + 2, // la línea del fichero, con la cabecera en la 1
       id: celda(fila, 'id').trim() || null,
-      nombre: celda(fila, 'nombre').trim(),
+      // TCGplayer pega el número al nombre («Pikachu ex - 063/191»).
+      nombre: celda(fila, 'nombre').trim().replace(/\s+-\s+[\w-]+\/[\w-]+$/, ''),
       set: celda(fila, 'set').trim(),
       codigo: celda(fila, 'codigo').trim(),
       numero: numeroDe(celda(fila, 'numero')),
       cantidad,
       estado: estadoDe(celda(fila, 'estado')),
       idioma: columnas.idioma === undefined ? idiomaSiFalta : idiomaDe(celda(fila, 'idioma'), idiomaSiFalta),
-      variante: varianteDe(celda(fila, 'variante')),
+      variante: columnas.variante === undefined && /^(1|true|yes|si|sí|x)$/i.test(celda(fila, 'foil').trim()) ? 'reverse' : varianteDe(celda(fila, 'variante')),
       gradeo: gradeoDe(celda(fila, 'casa'), celda(fila, 'gradeo')),
       precio_compra: dineroDe(celda(fila, 'precioCompra')),
       valor_manual: dineroDe(celda(fila, 'valor')),

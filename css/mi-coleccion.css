@@ -16078,3 +16078,8 @@ html.con-barra-movil .mc-prod-banda { display: none; }
 .mc-local-franja strong { font-family: var(--font-display); font-size: var(--t-lg); }
 .mc-local-franja span { font-size: var(--t-sm); color: var(--text-mid); }
 .mc-local-franja.fuerte { background: var(--white); border: 1px solid var(--acento); }
+/* Importar de otras apps (1329): de dónde viene y lo que no casa. */
+.mc-imp-apps { margin: 0 0 var(--e-md); }
+.mc-imp-apps-fila { display: flex; flex-wrap: wrap; gap: var(--e-xs); margin: var(--e-xs) 0; }
+.mc-imp-perdidas-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-sm); }
+.mc-imp-buscar { font-size: var(--t-sm); white-space: nowrap; }

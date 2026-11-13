@@ -55204,6 +55204,21 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1329 — traer tu colección de otras apps
+
+G5 del plan. `js/mi-coleccion/importar-apps.js` (puro): `APPS` (id, nombre y
+qué se lee), `pasosDe(id)` (cómo sacarla, en general: un menú de otra app
+nombrado aquí afirmaría que existe), `appDeCabecera`, `busquedaDePerdida`,
+`perdidasHtml(perdidas)` (con `.mc-imp-buscar` a `/mi-coleccion?ver=buscar&q=`
+y `[data-imp-descargar-perdidas]`) y `csvDePerdidas`. En `importar-csv.js`:
+el campo `foil` (`isfoil`) → `reverse` cuando no hay columna de versión, el
+nombre sin « - 063/191», y `reconocerColumnas` dice «TCGplayer» (`simple name`,
+o `product id` + `printing`) y «Cardmarket» (`idproduct`, `cardmarketid` o
+`isfoil`). En `importar.js`, `montarApps()` inyecta `#mcImpApps` en el paso 1
+(chips `.chip-filtro`), y `descargarCsv` es el de la exportación con su BOM. Un
+formato nuevo de otra app va en `SINONIMOS` y en `reconocerColumnas`, y su fila
+en `APPS`.
+
 ## Tanda 1328 — probar sin cuenta
 
 G4 del plan. `js/coleccion-local.js` (puro, almacén inyectable): `LLAVE`

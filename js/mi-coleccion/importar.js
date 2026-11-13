@@ -10,6 +10,7 @@ import { showToast } from '../toast.js'
 import * as datos from './datos.js'
 import { nombreDeCarta } from '../catalogo-series.js'
 import { leerCsv, reconocerColumnas, faltanColumnas, entradasDe, emparejar, exportarCsv } from './importar-csv.js'
+import { APPS, pasosDe, perdidasHtml, csvDePerdidas } from './importar-apps.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -75,12 +76,8 @@ async function analizar({ mercado }) {
     ${columnas.idioma === undefined && listas.length ? `<p class="subtext">El fichero no dice el idioma: se guardan todas en ${escapeHtml($('mcImpIdioma').selectedOptions[0]?.textContent || '')}.</p>` : ''}
     ${nombresRaros ? `<p class="subtext">${nombresRaros} ${nombresRaros === 1 ? 'nombre no coincide' : 'nombres no coinciden'} con el de nuestro catálogo (suele ser el mismo en otro idioma): se importan igual por expansión y número.</p>` : ''}
     ${sinUsar.length ? `<p class="subtext">Columnas que no se usan: ${escapeHtml(sinUsar.join(', '))}.</p>` : ''}`
-  $('mcImpPerdidas').innerHTML = perdidas.length
-    ? `<p class="mc-imp-titulo">Sin encontrar (no se importan):</p><ul class="mc-imp-lista">${perdidas
-        .slice(0, 60)
-        .map((p) => `<li><span>Línea ${p.entrada.fila}${p.entrada.nombre ? ` · ${escapeHtml(p.entrada.nombre)}` : ''}</span> <span class="subtext">${escapeHtml(p.motivo)}</span></li>`)
-        .join('')}${perdidas.length > 60 ? `<li class="subtext">…y ${perdidas.length - 60} más</li>` : ''}</ul>`
-    : ''
+  // Lo que no casa (1329, G5): cada una con «Buscarla» y todas en un CSV.
+  $('mcImpPerdidas').innerHTML = perdidasHtml(perdidas)
   $('mcImpLista').innerHTML = listas.length
     ? `<p class="mc-imp-titulo">Se van a añadir:</p><ul class="mc-imp-lista">${listas
         .slice(0, 60)
@@ -124,11 +121,37 @@ async function confirmar({ sesion, mercado, alTerminar }) {
 
 let enganchado = false
 
+// De dónde viene (1329, G5): elegir la app no cambia cómo se lee el fichero
+// (`reconocerColumnas` lo adivina solo); dice cómo sacarlo de allí y qué se lee.
+function montarApps() {
+  const paso = $('mcImpPaso1')
+  if (!paso || $('mcImpApps')) return
+  const caja = document.createElement('div')
+  caja.id = 'mcImpApps'
+  caja.className = 'mc-imp-apps'
+  caja.innerHTML = `<p class="mc-imp-titulo">¿De dónde la traes?</p>
+    <div class="mc-imp-apps-fila" role="group" aria-label="De qué app">${APPS.map((a) => `<button type="button" class="chip-filtro" data-imp-app="${a.id}" aria-pressed="false">${escapeHtml(a.nombre)}</button>`).join('')}</div>
+    <p class="mc-nota" id="mcImpPasos" hidden></p>`
+  paso.prepend(caja)
+  caja.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-imp-app]')
+    if (!b) return
+    for (const x of caja.querySelectorAll('[data-imp-app]')) {
+      x.setAttribute('aria-pressed', String(x === b))
+      x.classList.toggle('active', x === b)
+    }
+    const p = $('mcImpPasos')
+    p.textContent = pasosDe(b.dataset.impApp)
+    p.hidden = false
+  })
+}
+
 // Abre la bandeja de importar. `alTerminar` recarga la colección.
 export function abrirImportar({ sesion, mercado = 'WEST', alTerminar } = {}) {
   const d = $('mcImportarDialogo')
   if (!d) return
   emparejado = null
+  montarApps()
   $('mcImpTexto').value = ''
   $('mcImpEstado').textContent = ''
   pintarPaso(1)
@@ -148,6 +171,10 @@ export function abrirImportar({ sesion, mercado = 'WEST', alTerminar } = {}) {
     $('mcImpVolver')?.addEventListener('click', () => pintarPaso(1))
     $('mcImpConfirmar')?.addEventListener('click', () => confirmar({ sesion, mercado, alTerminar }))
     $('mcImportarCerrar')?.addEventListener('click', () => d.close())
+    $('mcImpPerdidas')?.addEventListener('click', (e) => {
+      if (!e.target.closest('[data-imp-descargar-perdidas]') || !emparejado?.perdidas?.length) return
+      descargarCsv(csvDePerdidas(emparejado.perdidas), 'cartas-sin-encontrar.csv')
+    })
   }
   d.showModal()
 }
@@ -155,7 +182,10 @@ export function abrirImportar({ sesion, mercado = 'WEST', alTerminar } = {}) {
 // Descarga la colección entera como CSV, con el id de cada carta para
 // que se pueda volver a importar aquí tal cual.
 export function descargarExport({ lineas, cartaDe, nombreFichero = 'mi-coleccion-pokedoc.csv' }) {
-  const csv = exportarCsv(lineas, cartaDe)
+  return descargarCsv(exportarCsv(lineas, cartaDe), nombreFichero)
+}
+
+function descargarCsv(csv, nombreFichero) {
   // El BOM es para Excel: sin él abre las tildes como basura.
   const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' })
   const url = URL.createObjectURL(blob)

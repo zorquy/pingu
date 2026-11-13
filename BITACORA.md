@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (578) — PINGU-Claude (1329 — traer tu colección de otras apps)
+
+**Hecho**: G5 del plan. El importador de CSV ya reconocía Dex, Collectr y TCG
+Vault; ahora además:
+- **«¿De dónde la traes?»** arriba del todo: Dex, Collectr, TCGplayer,
+  Cardmarket, Pokellector y «Excel u otra». Elegir no cambia cómo se lee (las
+  columnas se adivinan solas): dice cómo sacarla («busca Exportar…», sin
+  inventarse menús de otras apps) y qué se lee de su fichero.
+- **TCGplayer y Cardmarket** se reconocen («formato de …»), el nombre de
+  TCGplayer con el número pegado («Pikachu ex - 063/191») se limpia, y el
+  `isFoil` de Cardmarket entra como Reverse.
+- **Lo que no casa** sale con «Buscarla» (abre Buscar con su nombre, o con
+  expansión y número) y «Descargar las que faltan» (un CSV con el porqué de
+  cada una), para añadirlas a mano o arreglar el fichero.
+
+**Ficheros**: js/mi-coleccion/importar-apps.js (nuevo),
+js/mi-coleccion/importar.js, js/mi-coleccion/importar-csv.js,
+css/mi-coleccion.css, SCHEMA.md, novedades.json. En `pruebas`: test-tanda-1329.
+
 ## 2026-11-13 (577) — PINGU-Claude (1328 — probar sin cuenta: tu colección empieza antes de registrarte)
 
 **Hecho**: G4 del plan. En /cartas **sin cuenta** el «+» funciona: abre la
