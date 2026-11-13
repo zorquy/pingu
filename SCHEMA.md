@@ -55204,6 +55204,14 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1316 — el CSS que nadie pinta
+
+`herramientas/css-sin-usar.mjs`: `clasesDeCss(css)` (las clases de los
+selectores: lo de antes del último `{` de cada trozo, sin comentarios ni
+`url()`), `usoDelCodigo(textos)` (palabras y prefijos de nombres compuestos:
+`algo-${` o `'algo-' +`) y `sinUsar`. Marca de menos a propósito: una palabra
+igual en cualquier sitio (también `data-x`) cuenta como uso.
+
 ## Tanda 1315 — las precargas de módulos
 
 `generar-precargas.mjs`: `modulosDe(html, página)` (las entradas

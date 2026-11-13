@@ -4,6 +4,21 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (564) — PINGU-Claude (1316 — la lista del CSS que nadie pinta)
+
+**Hecho**: la R3. `herramientas/css-sin-usar.mjs` cruza cada clase de las
+100 hojas con todo el HTML y el JS (también /admin y las funciones) y lista
+las que no aparecen en ninguna parte, perdonando por PREFIJO las que se arman
+en ejecución (`medalla-${x}`, la 498). Hoy: **148 candidatas en 20 hojas**,
+63 de ellas en mi-coleccion.css. Es una lista para revisar a mano, nunca para
+borrar sola: no se ha quitado nada. `--todo` las enseña una a una.
+
+**Ficheros**: herramientas/css-sin-usar.mjs (nuevo), SCHEMA.md, BITACORA.md.
+En `pruebas`: test-tanda-1316 (lo puro).
+
+**Pendiente**: repasar la lista (empezando por mi-coleccion.css, que va con
+la R1) y quitar lo que de verdad sobre, grepando cada clase a mano.
+
 ## 2026-11-13 (563) — PINGU-Claude (1313b — R4 ya estaba; el freno también para page_vitals)
 
 **Hecho**: la R4 del plan (la velocidad real de la gente en Analítica) YA
