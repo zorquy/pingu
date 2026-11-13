@@ -39,26 +39,49 @@
     li span { color: var(--text-mid); }
     li b { font-variant-numeric: tabular-nums; }
     .pequeno { font-size: var(--t-xs); }
+    .cabeza { display: flex; align-items: center; gap: var(--e-lg); }
+    .cabeza img { flex: none; width: 72px; height: auto; }
+    .salidas { display: grid; gap: var(--e-sm); margin-top: var(--e-lg); }
+    .salida { display: flex; align-items: center; gap: var(--e-md); min-height: 56px; padding: var(--e-sm) var(--e-lg); border: 1px solid var(--border); border-radius: 14px; background: var(--white); color: var(--text); text-decoration: none; font-weight: 700; }
+    .salida span { display: block; font-weight: 400; font-size: var(--t-sm); color: var(--text-mid); }
+    .salida:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
+    .estado { margin-top: var(--e-md); font-size: var(--t-sm); }
+    details { margin-top: var(--e-xl); }
+    summary { min-height: 44px; display: flex; align-items: center; font-weight: 700; cursor: pointer; }
   </style>
 </head>
 <body>
   <a class="salta-al-contenido" href="#contenido">Saltar al contenido</a>
   <main id="contenido">
     <section class="aviso">
-      <h1>Sin conexión</h1>
-      <p>No llega la red, así que esta página no se ha podido abrir. En cuanto vuelva, se carga sola.</p>
-      <button type="button" id="reintentar">Reintentar</button>
+      <div class="cabeza">
+        <img src="data:image/webp;base64,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" alt="" width="72" height="110" />
+        <div>
+          <h1>Sin cobertura</h1>
+          <p>No llega la red. Esto sí funciona sin ella:</p>
+        </div>
+      </div>
+      <nav class="salidas" aria-label="Lo que funciona sin red">
+        <a class="salida" id="irColeccion" href="/mi-coleccion" hidden>Tu colección<span id="irColeccionTexto">Tal como la guardaste en este navegador</span></a>
+        <a class="salida" id="irEvento" href="/evento" hidden>Modo evento<span>Tus listas de cambio, con sus fotos</span></a>
+      </nav>
+      <p class="estado" id="estado" role="status">En cuanto vuelva la red, esta página se recarga sola.</p>
+      <button type="button" id="reintentar">Reintentar ahora</button>
+    </section>
+    <section id="guias" hidden>
+      <h2>Las guías que leíste</h2>
+      <nav class="salidas" id="guiasLista" aria-label="Guías guardadas"></nav>
     </section>
     <section id="cola" hidden>
       <h2>Por guardar</h2>
       <p>Lo que añadiste sin red. Se guarda solo la próxima vez que abras Mi colección con conexión.</p>
       <ul id="colaLista"></ul>
     </section>
-    <section id="copia" hidden>
-      <h2>Tu colección</h2>
+    <details id="copia" hidden>
+      <summary>La lista de tu colección</summary>
       <p class="pequeno" id="copiaCuando"></p>
       <ul id="copiaLista"></ul>
-    </section>
+    </details>
   </main>
   <script>
     (function () {
@@ -66,6 +89,34 @@
       var texto = function (t) { var s = document.createElement('span'); s.textContent = t == null ? '' : String(t); return s.innerHTML }
       document.getElementById('reintentar').addEventListener('click', function () { location.reload() })
       window.addEventListener('online', function () { location.reload() })
+      // D3 (1318): se reintenta solo cada 10 s, preguntando por algo pequeño
+      // que no guarda el worker; si contesta, se recarga.
+      setInterval(function () {
+        fetch('/huellas.txt?sin-red=' + Date.now(), { cache: 'no-store' }).then(function (r) { if (r.ok || r.status === 404) location.reload() }).catch(function () {})
+      }, 10000)
+      // Tu colección: si este navegador tiene su copia (1318, js/mi-coleccion/sin-red.js).
+      try { if (localStorage.getItem('pokedoc-sin-red-yo')) document.getElementById('irColeccion').hidden = false } catch (e) {}
+      if (window.caches) {
+        // El modo evento, si se guardó alguna vez.
+        caches.match('/evento').then(function (r) { if (r) document.getElementById('irEvento').hidden = false }).catch(function () {})
+        // Las guías y noticias leídas que guarda el worker (pokedoc-lectura-1).
+        caches.open('pokedoc-lectura-1').then(function (c) {
+          return c.keys().then(function (reqs) {
+            return Promise.all(reqs.slice(-8).reverse().map(function (q) {
+              return c.match(q).then(function (r) { return r ? r.text() : '' }).then(function (html) {
+                var m = /<title>([^<]*)<\/title>/i.exec(html || '')
+                var titulo = (m ? m[1] : '').replace(/\s*[—-]\s*PokeDoc\s*$/, '').trim()
+                return titulo ? { url: new URL(q.url).pathname, titulo: titulo } : null
+              })
+            }))
+          })
+        }).then(function (lista) {
+          lista = (lista || []).filter(Boolean)
+          if (!lista.length) return
+          document.getElementById('guias').hidden = false
+          document.getElementById('guiasLista').innerHTML = lista.map(function (g) { return '<a class="salida" href="' + texto(g.url) + '">' + texto(g.titulo) + '</a>' }).join('')
+        }).catch(function () {})
+      }
       var cola = leer('pokedoc-cola-anadir')
       if (Array.isArray(cola) && cola.length) {
         document.getElementById('cola').hidden = false

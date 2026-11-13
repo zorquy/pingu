@@ -642,7 +642,9 @@ export function cargarDeseos() {
   if (!cargandoDeseos) {
     cargandoDeseos = (async () => {
       ctx.cambios = ctx.cambios || (await import('./cambios.js'))
-      ctx.deseos = await ctx.cambios.deseosDe(ctx.sesion.user.id)
+      // Con su copia en este navegador, como las líneas (1318, A4).
+      const { conCopia } = await import('./sin-red.js')
+      ctx.deseos = await conCopia(`${ctx.sesion.user.id}:deseos`, () => ctx.cambios.deseosDe(ctx.sesion.user.id))
       return ctx.deseos
     })().catch((err) => {
       cargandoDeseos = null

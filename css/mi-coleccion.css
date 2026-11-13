@@ -16069,3 +16069,6 @@ html.con-barra-movil .mc-prod-banda { display: none; }
     padding: var(--e-xs) 0;
   }
 }
+
+/* Sin cobertura (1318): de cuándo es la copia que se ve. */
+.mc-sin-red { margin: 0 0 var(--e-md); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--ice); color: var(--text); font-size: var(--t-sm); font-weight: 600; }

@@ -87,6 +87,7 @@ import { entenderBusqueda, partirBusqueda } from './mi-coleccion/busqueda.js'
 import { buscarCartas as buscarCartasComun, buscarPorIlustrador as buscarPorIlustradorComun, buscarComoEnCartas } from './buscar-cartas.js'
 import { albumesDeLaLateral, albumesHtml, engancharArrastre } from './mi-coleccion/arrastrar-a-album.js'
 import { encolar, vaciarCola, copiaDeColeccion, guardarCopia } from './mi-coleccion/cola.js'
+import * as sinRed from './mi-coleccion/sin-red.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -7240,6 +7241,12 @@ async function iniciar() {
   llenarAnillosAlVerlos()
   albumes.iniciarAlbumes(contexto)
   sesion = await getSession().catch(() => null)
+  // Sin red y sin poder renovar la sesión (1318): la copia de quien la guardó
+  // en este navegador, para mirarla. Lo que añada va a la cola de siempre.
+  if (!sesion && !modoCatalogo) {
+    const yo = sinRed.quienEraSinRed()
+    if (yo) sesion = { user: { id: yo }, sinRed: true }
+  }
   if (modoCatalogo) return iniciarCatalogo()
   const idAlbum = params.get('album')
   if (idAlbum) {
@@ -7544,6 +7551,20 @@ window.pokedocAbrirCarta = (carta) => {
   return true
 }
 
+// Sin cobertura (1318): la franja de «sin conexión» (sin-conexion.js) dice
+// además de cuándo es lo que se ve.
+function avisarDeLaCopia(en) {
+  let a = document.getElementById('sinRedAviso')
+  if (!a) {
+    a = document.createElement('div')
+    a.id = 'sinRedAviso'
+    a.setAttribute('role', 'status')
+    a.className = 'mc-sin-red'
+    $('mcContenido')?.prepend(a)
+  }
+  a.textContent = sinRed.textoDeLaCopia(en)
+}
+
 // La carga, suelta desde la tanda 437 porque se hace DOS veces: al entrar
 // y cada vez que se cambia de catálogo. Copiarla habría dejado dos cargas
 // que se separan sin que nadie se entere.
@@ -7560,9 +7581,15 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
     // Si la entera falla, el Panel se queda con la del catálogo y lo demás
     // sigue: es peor número, pero es un número — y los ayudantes ya caen
     // solos a `lineas` cuando `lineasTodo` está vacío.
+    // Lo tuyo se guarda en este navegador al llegar y, si la red no contesta,
+    // se pinta la copia (1318, A4: `sin-red.js`). Lo de otra persona y el
+    // stock de una tienda, no.
+    const copiable = esMia && !modoTienda
+    const cc = (clave, pedir, opc) => (copiable ? sinRed.conCopia(`${duenoId}:${clave}`, pedir, opc) : pedir())
+    if (copiable) sinRed.recordarQuienSoy(duenoId)
     ;[lineas, lineasTodo] = await Promise.all([
-      datos.lineasDe(duenoId, mercado),
-      datos.lineasDeTodo(duenoId).catch(() => []),
+      cc(`lineas:${mercado}`, () => datos.lineasDe(duenoId, mercado)),
+      cc('lineas:todo', () => datos.lineasDeTodo(duenoId)).catch(() => []),
     ])
     const ids = lineas.map((l) => l.card_id)
     // Los PRECIOS se piden con las ids de las DOS: `tcg_card_prices` va por
@@ -7570,9 +7597,9 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
     // colecciones y pedirlo dos veces sería pedir lo mismo.
     const idsTodo = [...new Set([...ids, ...lineasTodo.map((l) => l.card_id)])]
     ;[cartas, cartasTodo, guardados] = await Promise.all([
-      datos.cartasPorIds(ids, mercado),
-      datos.cartasPorClaves(lineasTodo).catch(() => new Map()),
-      datos.preciosGuardados(idsTodo),
+      cc(`cartas:${mercado}`, () => datos.cartasPorIds(ids, mercado), { esMapa: true }),
+      cc('cartas:todo', () => datos.cartasPorClaves(lineasTodo), { esMapa: true }).catch(() => new Map()),
+      cc('precios', () => datos.preciosGuardados(idsTodo), { esMapa: true }),
     ])
     for (const [k, v] of cartasDeFuera) if (!cartas.has(k)) cartas.set(k, v)
     for (const [k, v] of preciosDeFuera) if (!guardados.has(k)) guardados.set(k, v)
@@ -7581,7 +7608,8 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
     // Y desde la 929 también la Reverse, la Holo y la 1.ª: TCGGO las trae con
     // su precio (`include_variants`), y una Reverse no vale lo que la normal.
     const conVersion = [...new Set(lineas.filter((l) => l.variante && l.variante !== 'normal').map((l) => l.card_id))]
-    if (conVersion.length) pegarVersiones([...cartas.values()], await datos.versionesDeCartas(conVersion).catch(() => []))
+    if (conVersion.length) pegarVersiones([...cartas.values()], await cc(`versiones:${mercado}`, () => datos.versionesDeCartas(conVersion)).catch(() => []))
+    if (copiable && sinRed.fechaDeLaCopia()) avisarDeLaCopia(sinRed.fechaDeLaCopia())
     // Una copia en «normal» de una carta que solo existe en holo es la holo
     // (927): si no, sale la insignia «N» y al separar se pierde su ✓.
     corregirVersionesImposibles(lineas, (l) => cartas.get(l.card_id))

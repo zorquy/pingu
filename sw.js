@@ -281,6 +281,15 @@ async function paginaDeCasa(req, e) {
   return revisar(req.url, 'paginas', null, de).catch(async () => (await caches.match(PAGINA)) || Response.error())
 }
 
+async function paginaPeladaGuardada(url) {
+  if (url.origin !== self.location.origin || !url.search) return null
+  const pelada = new URL(url.pathname, url.origin)
+  if (!esPaginaDeCache(pelada)) return null
+  const c = await caches.open(paginas(await genActiva()))
+  const sinHtml = pelada.href.replace(/\.html$/, '')
+  return (await c.match(sinHtml)) || (await c.match(`${sinHtml}.html`)) || null
+}
+
 async function ficheroDeCasa(req, e) {
   const g = await genDelCliente(e.clientId)
   const guardada = await (await caches.open(ficheros(g))).match(req)
@@ -408,7 +417,10 @@ self.addEventListener('fetch', (e) => {
       e.respondWith(paginaDeCasa(req, e))
       return
     }
-    e.respondWith(fetch(req).catch(async () => (await caches.match(PAGINA)) || Response.error()))
+    // Una página de la casa con su consulta (`/mi-coleccion?ver=quiero`) no
+    // se guarda, pero sin red se abre la pelada guardada: la página lee la
+    // consulta ella sola (1318: tu colección sin cobertura).
+    e.respondWith(fetch(req).catch(async () => (await paginaPeladaGuardada(new URL(req.url))) || (await caches.match(PAGINA)) || Response.error()))
     return
   }
   if (req.method !== 'GET') return

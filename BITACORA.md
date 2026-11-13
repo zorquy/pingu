@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (566) — PINGU-Claude (1318 — tu colección sin cobertura y la página sin conexión con salidas)
+
+**Hecho**: A4 y D3 del plan.
+- **A4**: `js/mi-coleccion/sin-red.js`. Lo que carga Mi colección (tus
+  líneas de un catálogo y de todos, sus cartas, los precios, las versiones y
+  «La quiero») se guarda en IndexedDB (`pokedoc-sin-red`) cada vez que llega
+  de la red, con la llave de quien lo guarda; si la petición falla POR LA
+  RED, se pinta la copia con «Sin cobertura: tu colección tal como estaba hoy
+  a las…». Red primero siempre, y un error de la base (columna, permiso) se
+  sigue viendo: no se tapa con datos viejos. Sin conexión no se guarda nunca
+  (las versiones se tragan su error y devolverían vacío) y un vacío sin
+  conexión mira la copia. Sin red y sin poder renovar la sesión, la copia se
+  enseña a quien la guardó en este navegador (`pokedoc-sin-red-yo`); al salir
+  de la cuenta se borra todo. Añadir sin red ya existía (la cola de la 745).
+- El worker abre `/mi-coleccion?ver=quiero` (o cualquier página de la casa
+  con consulta) sin red sirviendo la pelada guardada, que lee la consulta
+  ella sola.
+- **Arreglo de paso** (app.js): sin red, `getProfile` devuelve null y la web
+  mandaba a la bienvenida («elige tu nombre») a cualquiera. Ahora solo si se
+  SABE cómo es el perfil (`perfilSinRespuesta`); también pasaba con mala
+  cobertura.
+- **D3**: /sin-conexion es «Sin cobertura» con la mascota (incrustada: sin red
+  no se baja nada), botones grandes a lo que funciona (tu colección si hay
+  copia, el modo evento si se guardó, las guías y noticias que leíste, con su
+  título, de la caché de lectura), la lista de lo que añadiste sin red, y se
+  reintenta sola cada 10 s.
+
+**Lo que NO hace aún**: las fotos de las cartas sin red (son de otro sitio y
+la caché del navegador decide; guardarlas en el worker cuesta mucha cuota con
+respuestas opacas). Editar y borrar sin red siguen sin cola, a propósito.
+
+**Ficheros**: js/mi-coleccion/sin-red.js (nuevo), js/mi-coleccion.js,
+js/mi-coleccion/deseos.js, js/app.js, sw.js, sin-conexion.html,
+css/mi-coleccion.css, precargas de 2 páginas, SCHEMA.md, novedades.json. En
+`pruebas`: test-tanda-1318 (nueva), 745 al día, y el doble aprende
+`__FAKE_SIN_RED__`.
+
+**Pendiente**: 751-pantalla busca una cifra del Panel que no existe desde la
+1179 (rojo de antes, no de esta tanda).
+
 ## 2026-11-13 (565) — PINGU-Claude (1317 — la app: atajos, compartir a PokeDoc, el número en el icono, instalar en el buen momento)
 
 **Hecho**: A1, A7, A2 y A3 del plan.

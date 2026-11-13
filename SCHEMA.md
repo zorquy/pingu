@@ -55204,6 +55204,48 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1318 — tu colección sin cobertura y la página sin conexión
+
+A4 y D3 del plan.
+
+**La copia (`js/mi-coleccion/sin-red.js`).** IndexedDB `pokedoc-sin-red`,
+almacén `copias`, llave `<userId>:<qué>` y valor `{ valor, en }`.
+`conCopia(clave, pedir, { esMapa })`: pide; si llega, guarda (sin esperar) y
+devuelve; si falla y `esFalloDeRed` (sin conexión, o «Failed to fetch» /
+«Load failed» / «NetworkError»), devuelve la copia y apunta su fecha
+(`fechaDeLaCopia`, la más vieja de lo que se usó). Un error que no es de red se
+lanza igual. Con `navigator.onLine === false` no se guarda nada y un resultado
+vacío cuenta como fallo: hay lectores que se tragan su error (`versionesDeCartas`
+hace `break`) y pisarían la buena. Un Map se guarda como pares.
+`cargarColeccion` lo usa solo con `esMia && !modoTienda` (`cc`): líneas del
+catálogo y de todo, cartas de las dos, precios y versiones; `cargarDeseos`
+(deseos.js) para «La quiero». El aviso es la franja `#sinRedAviso` (la misma
+id que la de sin-conexion.js, que la reescribe si ya está) con
+`textoDeLaCopia`.
+
+**Sin sesión.** Sin red, supabase-js puede no renovar la sesión: `iniciar`
+toma `{ user: { id } }` de `quienEraSinRed()` (solo con `onLine === false`),
+que `recordarQuienSoy` apunta al cargar lo tuyo. Lo que se añada así va a la
+cola de la 745 con ese id y se envía con la sesión de verdad. `signOut`
+llama a `olvidarQuienSoy` y `olvidarCopias`.
+
+**El perfil sin respuesta (app.js).** `getProfile` apunta en
+`perfilesSinRespuesta` cuándo la consulta falló por algo que no es «no hay
+fila» (PGRST116), y la guarda de la bienvenida (onboarding) no manda a nadie
+si `perfilSinRespuesta(id)`. Antes, sin red, se iba a «elige tu nombre».
+
+**El worker.** Una navegación a una página de la casa CON consulta no se
+guarda (`esPaginaDeCache`), pero si la red falla se sirve la pelada de la
+generación activa (`paginaPeladaGuardada`, con y sin `.html`); si no está,
+/sin-conexion.
+
+**/sin-conexion (D3).** Va entera dentro (sin hojas ni scripts de fuera; la
+mascota en `data:` de 5 KB). Botones: tu colección (si existe
+`pokedoc-sin-red-yo`), el modo evento (si `caches.match('/evento')`) y las
+ocho últimas guías o noticias de `pokedoc-lectura-1` con su `<title>`. Se
+reintenta con `online` y cada 10 s pidiendo `/huellas.txt?sin-red=…` (que el
+worker no guarda); con respuesta, recarga.
+
 ## Tanda 1317 — la app: atajos, compartir a PokeDoc, el número en el icono e instalar en el buen momento
 
 A1, A7, A2 y A3 del plan.

@@ -272,6 +272,8 @@ export async function getSession() {
 // pedían cada uno, y el de la pantalla esperaba al de la barra. Cada quien
 // recibe su copia; lo que no llega no se guarda.
 const perfilesPedidos = new Map()
+const perfilesSinRespuesta = new Set()
+export const perfilSinRespuesta = (userId) => perfilesSinRespuesta.has(userId)
 export function getProfile(userId, { fresco = false } = {}) {
   // `fresco`: justo después de guardarlo, lo de antes ya no vale.
   if (fresco) perfilesPedidos.delete(userId)
@@ -281,7 +283,12 @@ export function getProfile(userId, { fresco = false } = {}) {
       .select('*')
       .eq('id', userId)
       .single()
-      .then(({ data }) => data)
+      .then(({ data, error }) => {
+        // Sin respuesta (sin red, un fallo) no es «no tiene perfil» (1318).
+        if (error && error.code !== 'PGRST116') perfilesSinRespuesta.add(userId)
+        else perfilesSinRespuesta.delete(userId)
+        return data
+      })
     perfilesPedidos.set(userId, pedido)
     pedido.then((d) => { if (!d) perfilesPedidos.delete(userId) }, () => perfilesPedidos.delete(userId))
   }
@@ -491,6 +498,8 @@ export async function signOut() {
   recordarTienda(null)
   // Lo pintado la última vez (894) es de quien se va.
   await import('./ultima-vista.js').then((m) => m.olvidarVistas()).catch(() => {})
+  // Y la copia de tu colección para cuando no hay red (1318).
+  await import('./mi-coleccion/sin-red.js').then((m) => { m.olvidarQuienSoy(); return m.olvidarCopias() }).catch(() => {})
   window.location.href = '/'
 }
 
@@ -730,7 +739,9 @@ export async function initNavbar() {
     // el mismo motivo.
     const hasNavbar = !!document.getElementById('nav-user')
     const hasName = !!(profile?.display_name || profile?.username)
-    if (hasNavbar && (!hasName || profile?.onboarding_completed === false)) {
+    // Solo si se SABE cómo es el perfil: sin respuesta (sin cobertura) no se
+    // manda a nadie a elegir nombre (1318).
+    if (hasNavbar && !perfilSinRespuesta(session.user.id) && (!hasName || profile?.onboarding_completed === false)) {
       window.location.href = '/onboarding.html'
       return session
     }
