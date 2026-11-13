@@ -165,6 +165,14 @@ el sondeo de respaldo detrás (la ficha entera se refresca sola desde
 torneo.js: cada 10 s, o cada minuto si el vivo está conectado) y cierres
 automáticos con función programada por minuto.
 
+**Escribiendo, la ficha no se repinta, pero los chats sí** (tanda 1340): el
+refresco de la ficha se aplaza mientras el foco está en una caja (`tic` en
+`torneo.js`) y se hace al salir (`focusout`); los chats se ponen al día solos
+(`refrescarChats`), porque solo pintan su lista. Antes el refresco saltado se
+perdía y el chat de la mesa no se movía mientras escribías. Una caja nueva que
+se repinte con el refresco no puede ser la de un chat; y una tabla nueva de
+mensajes va en el vivo y en `refrescarChats`.
+
 **En una LIGA cada jornada se juega con SU lista** (tanda 635, que
 sustituye a la 634): jugar la jornada N es tener fila en
 `tournament_matchday_decklists` para N, escrita solo por la RPC

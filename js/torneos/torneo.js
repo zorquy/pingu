@@ -1988,13 +1988,36 @@ let sondeoFicha = null
 // estado de todos— y se pasa de varios repintados por segundo a uno.
 let refrescando = false
 let refrescoPendiente = false
+// Un refresco que se saltó por estar escribiendo (1340). Antes se perdía: con
+// el cursor en la caja del chat, el mensaje del rival no salía hasta el
+// siguiente aviso o el sondeo de un minuto.
+let refrescoAplazado = false
+
+// Los chats abiertos (el de la mesa y el del juez) se ponen al día SOLOS: solo
+// pintan su lista de mensajes, nunca la caja de escribir, así que no hace falta
+// esperar a que dejes de escribir (1340).
+function refrescarChats() {
+  for (const id of ['chatDeMesa', 'chatDeLlamada']) void document.getElementById(id)?.refrescarMensajes?.()
+  for (const marcador of document.querySelectorAll('[data-chat-llamada]')) void marcador.refrescarMensajes?.()
+}
+
+const escribiendoEnUnaCaja = () => {
+  const activo = document.activeElement
+  return Boolean(activo && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activo.tagName))
+}
 
 function arrancarSondeoFicha() {
   if (sondeoFicha) return
   const tic = async () => {
     if (document.hidden) return
-    const activo = document.activeElement
-    if (activo && ['INPUT', 'TEXTAREA', 'SELECT'].includes(activo.tagName)) return
+    // Escribiendo, la ficha no se repinta (te borraría lo tecleado), pero los
+    // chats sí, y el refresco entero queda apuntado para cuando salgas.
+    if (escribiendoEnUnaCaja()) {
+      refrescarChats()
+      refrescoAplazado = true
+      return
+    }
+    refrescoAplazado = false
     if (refrescando) {
       refrescoPendiente = true
       return
@@ -2012,6 +2035,14 @@ function arrancarSondeoFicha() {
     }
   }
   sondeoFicha = setInterval(tic, 10000)
+  // Al salir de la caja (tocar fuera, o enviar y que el botón se lleve el
+  // foco), lo que se aplazó se hace ya. El `setTimeout` deja que el foco
+  // llegue a su sitio: si va a otra caja, se sigue esperando.
+  document.addEventListener('focusout', () => {
+    setTimeout(() => {
+      if (refrescoAplazado && !escribiendoEnUnaCaja()) void tic()
+    }, 0)
+  })
 
   // ── En vivo (tanda 227) ──
   // Lo que de verdad cambia mientras miras una ficha: el chat de tu
@@ -2043,10 +2074,18 @@ function arrancarSondeoFicha() {
           { tabla: 'tournament_updates', filtro: `tournament_id=eq.${torneo.id}` },
           { tabla: 'tournament_matches' },
           { tabla: 'match_messages' },
+          // Los chats con el juez no se escuchaban (1340): llegaban con el
+          // sondeo, que con el vivo puesto es de un minuto.
+          { tabla: 'judge_messages' },
           { tabla: 'match_reports' },
           { tabla: 'match_results' },
         ],
-        alCambiar: () => tic(),
+        alCambiar: (cambio) => {
+          // Un mensaje de chat: los chats se ponen al día al momento, sin
+          // esperar a que la ficha entera se recargue (1340).
+          if (cambio?.table === 'match_messages' || cambio?.table === 'judge_messages') refrescarChats()
+          void tic()
+        },
         alEstado: (vivo) => sondeo.conVivo(vivo),
       })
     })

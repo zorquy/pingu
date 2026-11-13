@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (589) — PINGU-Claude (1340 — el chat del torneo al momento y el menú de la izquierda)
+
+**Hecho**: dos fallos que PINGU vio jugando la liga.
+- **El chat «no se actualiza seguido».** La ficha se saltaba el refresco
+  mientras el cursor estaba en una caja (para no borrar lo que tecleas), y la
+  caja del chat es una: si mandabas un mensaje y te quedabas dentro, el del
+  rival no salía. Ese refresco saltado ni se apuntaba, así que con el vivo
+  puesto el siguiente era al minuto. Ahora:
+  - los chats (el de la mesa y los del juez) se ponen al día aunque estés
+    escribiendo: solo pintan su lista, nunca la caja;
+  - un mensaje en vivo pone al día los chats al momento;
+  - lo que se salta por estar escribiendo queda aplazado y se hace en cuanto
+    sales de la caja;
+  - los chats con el juez (`judge_messages`) también se escuchan en vivo (antes
+    solo por el sondeo);
+  - y «Fulano está escribiendo…» debajo del chat, por la difusión de Mensajes
+    (1140): no se guarda nada.
+- **El menú de la izquierda se iba** («aparece la hamburguesa antigua»). Con
+  la página abierta en una ventana estrecha y ensanchada después, el CSS le
+  guardaba el hueco a la lateral y escondía los enlaces de arriba, pero la
+  lateral solo se montaba al cargar: columna vacía y, con un torneo en juego,
+  la hamburguesa vieja. Ahora se monta al cruzar el ancho.
+
+**Ficheros**: `js/torneos/torneo.js`, `js/torneos/jueces.js`,
+`css/torneos.css`, `js/app.js`, `normas/jugar.md`, `normas/interfaz.md`,
+`novedades.json`. Prueba (rama `pruebas`): `test-tanda-1340-pantalla.mjs`
+(con el código de antes, nueve rojos: los de PINGU).
+
+**Pendiente**: el rediseño del torneo (propuesta aprobada: 1341–1346). Sin
+migración.
+
 ## 2026-11-13 (588) — PINGU-Claude (1339 — «Pegar lista» con un set sin números)
 
 **Hecho**: PINGU no podía meter el 10th Movie Commemoration Set: sus cartas no

@@ -2071,6 +2071,16 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   flex: 0 0 auto;
 }
 
+/* «Está escribiendo…» (1340): su línea siempre reservada, para que el aviso
+   aparezca y se vaya sin mover la caja de escribir. */
+.torneo-chat-escribe {
+  min-height: 1.4em;
+  margin: 2px 0 4px;
+  font-size: var(--t-xs);
+  font-style: italic;
+  color: var(--text-mid);
+}
+
 .torneo-llamar-juez { margin-top: 12px; }
 
 /* ── Cola del juez y solicitudes ── */

@@ -789,6 +789,16 @@ export async function initNavbar() {
     // Y la lateral del ordenador (SCHEMA 739), igual: solo quien la usa.
     import('./barra-lateral.js').then((m) => m.montarBarraLateral({ conSesion: !!session })).catch(() => {})
   }
+  // Abierta con la ventana estrecha y ensanchada después (1340): el CSS ya le
+  // guarda el hueco a la lateral y esconde los enlaces de arriba, así que si no
+  // se monta en ese momento queda una columna vacía y sin menú (con un torneo
+  // en juego, encima, la hamburguesa vieja). Se monta al cruzar el ancho.
+  if (!deTienda && document.getElementById('navbar')) {
+    const ancha = window.matchMedia?.('(min-width: 1400px) and (pointer: fine)')
+    ancha?.addEventListener?.('change', () => {
+      if (ancha.matches && !document.querySelector('.lat')) import('./barra-lateral.js').then((m) => m.montarBarraLateral({ conSesion: !!session })).catch(() => {})
+    })
+  }
   // Una carta se abre en el pop-up y no en otra página (SCHEMA 1043). Va
   // ANTES que la barra de progreso: si el clic se queda aquí, no navega.
   document.addEventListener('click', abrirCartaEnPopup)

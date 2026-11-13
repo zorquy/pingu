@@ -131,6 +131,12 @@
   burbuja sale solo en las páginas de la lista de la sección, no en una
   ficha; en Mi colección las ajenas van al final de la suya. Una página de detalle dice de qué sección es en
   `SECCION_DE`.
+- **Lo que el CSS reserva por ancho, el JS lo monta por ancho, no solo al
+  cargar** (tanda 1340): la lateral tiene su hueco por `@media (min-width:
+  1400px)` desde el primer pintado, y se montaba solo si la ventana ya era ancha
+  al abrir. Abierta estrecha y ensanchada después: columna vacía, sin menú y,
+  con un torneo en juego, la hamburguesa vieja. `app.js` escucha el `change` de
+  la consulta y la monta. Una pieza nueva que dependa del ancho, igual.
 - **Una página tiene UNA dirección para Google** (tanda 906). La canónica
   la arma `urlCanonica` (meta-social.js): sin `.html`, en pokedoc.es y solo
   con los parámetros que eligen el contenido (`PARAMETROS_CANONICOS`); la de

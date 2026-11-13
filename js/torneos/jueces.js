@@ -416,7 +416,50 @@ function montarChat(marcador, { tabla, columna, id, titulo, cerrado, abierto = f
     marcador.querySelector('.torneo-chat-envio input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') enviarMensaje()
     })
+    montarEscribiendo(marcador, `escribe-${tabla}-${id}`)
   }
+}
+
+// «Fulano está escribiendo…» (1340), por la difusión de Mensajes (1140): va de
+// pestaña a pestaña y no se guarda. Un canal por caja de chat; al volver a
+// montar esa caja (otra mesa, otra llamada) se suelta el de antes.
+const canalesEscribiendo = new Map()
+
+function montarEscribiendo(marcador, tema) {
+  const input = marcador.querySelector('.torneo-chat-envio input')
+  const envio = marcador.querySelector('.torneo-chat-envio')
+  if (!input || !envio) return
+  const clave = marcador.id || marcador.dataset.chatLlamada || tema
+  canalesEscribiendo.get(clave)?.parar()
+  canalesEscribiendo.delete(clave)
+  // Con su sitio guardado (una línea): que aparezca no mueve el botón Enviar.
+  const aviso = document.createElement('p')
+  aviso.className = 'torneo-chat-escribe'
+  aviso.setAttribute('aria-live', 'polite')
+  envio.before(aviso)
+  let apagar = null
+  let ultimo = 0
+  import('../vivo.js')
+    .then(({ difundir }) => {
+      const canal = difundir({
+        tema,
+        evento: 'escribe',
+        alRecibir: (p) => {
+          if (!p?.quien || p.quien === yo()) return
+          aviso.textContent = `${nombreDe(p.quien)} está escribiendo…`
+          clearTimeout(apagar)
+          apagar = setTimeout(() => { aviso.textContent = '' }, 4000)
+        },
+      })
+      canalesEscribiendo.set(clave, canal)
+      // Como mucho un aviso cada dos segundos, aunque teclees deprisa.
+      input.addEventListener('input', () => {
+        if (!input.value.trim() || Date.now() - ultimo < 2000) return
+        ultimo = Date.now()
+        canal.enviar({ quien: yo() })
+      })
+    })
+    .catch(() => {})
 }
 
 // ── Tu partida: chat de mesa y llamar al juez ──

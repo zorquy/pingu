@@ -55204,6 +55204,29 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1340 — El chat del torneo al momento y el menú de la izquierda
+
+**El chat** (`js/torneos/torneo.js`): `tic()` ya no vuelve sin más cuando el
+foco está en un INPUT/TEXTAREA/SELECT (`escribiendoEnUnaCaja`): llama a
+`refrescarChats()` (el `refrescarMensajes` de `#chatDeMesa`, `#chatDeLlamada`
+y cada `[data-chat-llamada]`, que solo repintan la lista) y apunta
+`refrescoAplazado`; un `focusout` en el documento hace el `tic` aplazado en
+cuanto el foco no está en una caja. El vivo escucha también `judge_messages`,
+y un cambio de `match_messages` o `judge_messages` llama a `refrescarChats()`
+antes del `tic`.
+
+**«Está escribiendo…»** (`js/torneos/jueces.js`, `montarEscribiendo`): cada
+caja de chat abierta monta una difusión (`difundir` de `js/vivo.js`, tema
+`escribe-<tabla>-<id>`, evento `escribe`, carga `{ quien }`); al teclear se
+avisa como mucho cada 2 s, y al recibir sale «<nombre> está escribiendo…» en
+`.torneo-chat-escribe` (línea reservada, `min-height`) durante 4 s. Un canal
+por caja (`canalesEscribiendo`, por id del marcador): al volver a montarla se
+suelta el anterior.
+
+**El menú** (`js/app.js`): además de montar la lateral al cargar si la
+ventana ya es ancha, escucha el `change` de `(min-width: 1400px) and
+(pointer: fine)` y la monta si aún no hay `.lat` (no en las páginas de tienda).
+
 ## Tanda 1339 — «Pegar lista» con un set sin números
 
 En `admin/js/lista-set-puro.js`, `filasDeLista`:
