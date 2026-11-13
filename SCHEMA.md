@@ -55204,6 +55204,60 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1317 — la app: atajos, compartir a PokeDoc, el número en el icono e instalar en el buen momento
+
+A1, A7, A2 y A3 del plan.
+
+**El manifiesto (A1).** `id: "/"` (la app es la misma aunque cambie
+`start_url`), `launch_handler.client_mode = ["navigate-existing", "auto"]`
+(un enlace o un atajo abre en la ventana que ya está abierta) y
+`handle_links: "preferred"`. Cuatro atajos: Añadir (`/mi-coleccion?ver=buscar`),
+Mensajes, Retos y La quiero, cada uno con su icono de 192 px del color de su
+sección (`assets/atajos/`, hechos con sharp a partir de los SVG de icons.js).
+El de Escanear que decía la propuesta no va: el escáner sigue sin puerta
+desde la 758. Sin `screenshots` todavía: tienen que ser capturas de verdad.
+
+**Compartir A PokeDoc (A7).** `share_target`: POST `multipart/form-data` a
+`/compartir` con `title`, `text`, `url` y `foto` (image/*). Es una NAVEGACIÓN
+con POST, así que el service worker la mira lo PRIMERO del `fetch` (la rama de
+navegaciones respondía con la red y el POST se perdía). `recibirCompartido`:
+- una foto se guarda en la caché `pokedoc-compartido` (`/__compartido/foto`,
+  que `activate` no borra) y redirige con 303 a
+  `/mi-coleccion?ver=buscar&compartida=1`; Mi colección abre el escáner y
+  `leerCompartida()` (escaner-ui.js) la lee UNA vez y la borra;
+- lo demás va con 303 a `/compartir?url&text&title`, una página `noindex`
+  (`SIN_PAGINA` en el worker) cuyo `compartir-pagina.js` salta a
+  `destinoCompartido` (`js/compartir-puro.js`, puro): un enlace de pokedoc.es
+  a su ruta —siempre `/` + la ruta sin barras delante, o `//otra.web` sería
+  una redirección abierta—, uno de Cardmarket al buscador con el nombre que
+  va en su dirección (sin `-V3` ni el código del final), y cualquier texto al
+  buscador. Las direcciones del 303 van absolutas (`self.location.origin`).
+No confundir con `js/compartir.js`, que son los botones de compartir DESDE
+PokeDoc.
+
+**El número en el icono (A2).** `totalSinLeer(avisos, mensajes)` en
+numeros-seccion.js (lo sin leer de `__pdAvisos` más el sobre) va a
+`navigator.setAppBadge` / `clearAppBadge` cada vez que se repintan los
+números, y solo si cambia. El worker lo enciende (sin número) al llegar un
+push. Donde no existe la API, no hace nada.
+
+**Instalar en el buen momento (A3).** `js/exito.js`: `avisarExito(motivo)`
+lanza `pd-exito` y lo deja en `sessionStorage` (`pd-exito-pendiente`) por si
+la página cambia justo después; `exitoDeColeccion` cuenta tus líneas tras
+añadir hasta que llegan a 10, una vez en la vida del navegador
+(`pd-exito-10-cartas`). Lo llaman `datos.anadir`, `reto-arbitro.js` (la
+jugada que acaba el reto, no reabrir uno hecho) y la inscripción a un torneo.
+`instalar.js` (solo móvil, por barra-movil, en cualquier página) escucha y
+pinta la tarjeta (`TITULOS_DE_EXITO`) si `tocaTrasExito`: no instalada, no
+callada en el último mes, no ofrecida en la última semana
+(`pokedoc-instalar-ultima`). En el iPhone «Instalar» abre la hoja de Safari;
+fuera, el permiso que app.js guardó al llegar (`window.__pdInstalar`, con
+`preventDefault` para que el navegador no ofrezca el suyo pronto), y sin él
+no sale tarjeta. Ajustes › «Instalar PokeDoc» es `js/ajustes-instalar.js`
+(aparte porque pinta clases de ajustes.css y instalar.js lo baja el móvil en
+todas las páginas: la 299). Una cosa que salga bien y merezca ofrecer instalar
+llama a `avisarExito` con su motivo y su frase en `TITULOS_DE_EXITO`.
+
 ## Tanda 1316 — el CSS que nadie pinta
 
 `herramientas/css-sin-usar.mjs`: `clasesDeCss(css)` (las clases de los

@@ -9,6 +9,7 @@
 // que guarda el navegador y se manda con cada jugada: la abre solo la base,
 // así que no se puede leer ni retocar.
 import { supabase } from './supabase.js'
+import { avisarExito } from './exito.js'
 import { getSession } from './app.js'
 import { celebrarGuardado, puestoEnLiga } from './retos-datos.js'
 
@@ -52,6 +53,8 @@ export function partida(juego, { dia, libre = null } = {}) {
     }
     if (data?.ficha) escribirFicha(juego, libre, dia, data.ficha)
     if (data?.guardado?.nuevo) data.guardado = await celebrarGuardado(data.guardado, { antes: ligaAntes })
+    // Un reto acabado con esta jugada (no al volver a abrir uno ya hecho).
+    if (jugada != null && data?.estado?.terminada) avisarExito('reto')
     return data
   }
   return {

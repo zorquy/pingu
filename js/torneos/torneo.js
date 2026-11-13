@@ -6,6 +6,7 @@
 // ABIERTA AL PÚBLICO desde la tanda 252, igual que /torneos: la ficha
 // se ve sin cuenta y la visibilidad fina la decide la política de la base.
 import { supabase } from '../supabase.js'
+import { avisarExito } from '../exito.js'
 import { escapeHtml, getSession, getProfile, burstConfetti, avatarStyle, getInitial } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
@@ -1283,6 +1284,7 @@ function engancharInscripcion(aLaCola = false) {
         : '¡Inscrito! Ahora te quedan 2 pasos: entrega tu decklist y confirma tu participación (mira «Tu plaza»).',
       'success'
     )
+    avisarExito('torneo')
   })
 }
 

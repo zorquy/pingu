@@ -4,6 +4,51 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (565) — PINGU-Claude (1317 — la app: atajos, compartir a PokeDoc, el número en el icono, instalar en el buen momento)
+
+**Hecho**: A1, A7, A2 y A3 del plan.
+- **A1**: el manifiesto con `id` fijo, `launch_handler` (abre en la ventana
+  que ya está abierta), `handle_links` y cuatro atajos con su icono del color
+  de su sección: Añadir, Mensajes, Retos y La quiero. El de **Escanear** de la
+  propuesta NO va: el escáner está escondido desde la 758 («no funciona muy
+  bien»), así que el cuarto es La quiero. Capturas para el cuadro grande de
+  instalar: pendientes de hacerlas con datos de verdad.
+- **A7**: `share_target` (Android con la app instalada). El service worker
+  recoge el POST a /compartir ANTES que las navegaciones (es una navegación:
+  la rama de navegar se lo comía). Una foto va a la caché `pokedoc-compartido`
+  y abre el escáner (`?compartida=1`, `leerCompartida`); un enlace o un texto
+  van a /compartir, que salta: PokeDoc a su página (siempre una ruta de la
+  casa, nunca `//otra.web`), Cardmarket al buscador con el nombre de la carta,
+  lo demás al buscador con el texto (`js/compartir-puro.js`).
+- **A2**: `setAppBadge` con lo sin leer (avisos + mensajes) al contar los
+  números de sección, y el service worker lo enciende al llegar un push.
+- **A3**: instalar ya no sale al llegar: sale tras un buen momento (tu carta
+  número 10, acabar un reto, inscribirte en un torneo: `avisarExito` en
+  `js/exito.js`), como mucho una vez a la semana, «Ahora no» lo calla un mes,
+  y en cualquier página del móvil. app.js guarda el permiso del navegador
+  (`window.__pdInstalar`). Y Ajustes › «Instalar PokeDoc»
+  (`js/ajustes-instalar.js`): el botón si el navegador lo ofrece, los pasos
+  de Safari en el iPhone, dónde está el botón en Android y en el ordenador.
+  La banda de la 892 se fue (y su CSS).
+
+**R1 (aplazada, apunte)**: medido, el 18 % de mi-coleccion.css solo lo usan
+módulos que entran por `import()`, pero mudar lo seguro (Deseos) da ~3 KB
+gzip, y álbumes y archivador no se pueden mudar porque mi-coleccion.js
+nombra esas clases. Va con la I1 (partir mi-coleccion.js), con PINGU mirando.
+
+**Ficheros**: manifest.webmanifest, sw.js, assets/atajos/*.png (nuevos),
+compartir.html, js/compartir-pagina.js y js/compartir-puro.js (nuevos;
+js/compartir.js es OTRA cosa, los botones de compartir), js/exito.js y
+js/ajustes-instalar.js (nuevos), js/instalar.js, js/app.js, js/barra-movil.js,
+js/invitar-push.js, js/numeros-seccion.js, js/mi-coleccion.js,
+js/mi-coleccion/escaner-ui.js, js/mi-coleccion/datos.js, js/reto-arbitro.js,
+js/torneos/torneo.js, js/ajustes.js, css/ajustes.css, css/movil.css, las
+precargas de 12 páginas, SCHEMA.md, novedades.json. En `pruebas`:
+test-tanda-1317 (nueva) y 732, 753, 868, 892 al día.
+
+**Pendiente**: las capturas del manifiesto; A4 (la colección sin cobertura)
+y D3 (la página sin conexión), que van juntas.
+
 ## 2026-11-13 (564) — PINGU-Claude (1316 — la lista del CSS que nadie pinta)
 
 **Hecho**: la R3. `herramientas/css-sin-usar.mjs` cruza cada clase de las

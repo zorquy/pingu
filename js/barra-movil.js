@@ -475,9 +475,9 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   if (esDetalle) montarCabeceraDetalle({ doc, win: window, seccion, conSesion })
   // Instalar en la pantalla de inicio (A1) y, ya instalada —sin barra del
   // navegador—, tirar hacia abajo para refrescar (X4). Tanda 732; desde la
-  // 753 se ofrece en la portada y en las páginas de la lista de cada sección.
+  // 1317 se ofrece tras un buen momento, en cualquier página (instalar.js).
   import('./instalar.js')
-    .then((m) => (m.estaInstalada(window) ? import('./tirar-refrescar.js').then((t) => t.montarTirarRefrescar()) : m.montarInstalar({ aqui: clave === 'index' || Boolean(enLista) })))
+    .then((m) => (m.estaInstalada(window) ? import('./tirar-refrescar.js').then((t) => t.montarTirarRefrescar()) : m.montarInstalar()))
     .catch(() => {})
   // Y los avisos en el móvil (994): con cuenta y en las mismas páginas.
   if (conSesion && (clave === 'index' || enLista)) import('./invitar-push.js').then((m) => m.montarInvitarPush()).catch(() => {})

@@ -39,7 +39,7 @@ export async function montarInvitarPush({ doc = document, win = window, almacen 
   if (!tocaInvitar({ ...estado, hayClave: !!clave, callada: leerCallada(almacen) })) return null
   await new Promise((r) => setTimeout(r, espera))
   // La de instalar va primero: dos tarjetas a la vez no caben.
-  if (doc.querySelector('.bm-instalar, .bm-instalar-banda')) return null
+  if (doc.querySelector('.bm-instalar')) return null
   try { win.sessionStorage.setItem(EN_SESION, '1') } catch {}
 
   const tarjeta = doc.createElement('div')

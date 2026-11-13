@@ -42,20 +42,33 @@
       "url": "/mi-coleccion?ver=buscar",
       "icons": [
         {
-          "src": "/assets/app-icon-192.png",
+          "src": "/assets/atajos/anadir.png",
           "sizes": "192x192",
           "type": "image/png"
         }
       ]
     },
     {
-      "name": "Reto del día",
-      "short_name": "Reto",
-      "description": "El reto de hoy, con tu racha",
-      "url": "/retos.html",
+      "name": "Mensajes",
+      "short_name": "Mensajes",
+      "description": "Tus conversaciones y tus tratos",
+      "url": "/mensajes",
       "icons": [
         {
-          "src": "/assets/app-icon-192.png",
+          "src": "/assets/atajos/mensajes.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Retos",
+      "short_name": "Retos",
+      "description": "Los retos de hoy, con tu racha",
+      "url": "/retos",
+      "icons": [
+        {
+          "src": "/assets/atajos/retos.png",
           "sizes": "192x192",
           "type": "image/png"
         }
@@ -68,24 +81,42 @@
       "url": "/mi-coleccion?ver=quiero",
       "icons": [
         {
-          "src": "/assets/app-icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "Mi colección",
-      "short_name": "Colección",
-      "description": "Tu panel: lo que tienes y lo que vale",
-      "url": "/mi-coleccion",
-      "icons": [
-        {
-          "src": "/assets/app-icon-192.png",
+          "src": "/assets/atajos/la-quiero.png",
           "sizes": "192x192",
           "type": "image/png"
         }
       ]
     }
-  ]
+  ],
+  "id": "/",
+  "launch_handler": {
+    "client_mode": [
+      "navigate-existing",
+      "auto"
+    ]
+  },
+  "handle_links": "preferred",
+  "categories": [
+    "games",
+    "entertainment",
+    "social"
+  ],
+  "share_target": {
+    "action": "/compartir",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url",
+      "files": [
+        {
+          "name": "foto",
+          "accept": [
+            "image/*"
+          ]
+        }
+      ]
+    }
+  }
 }

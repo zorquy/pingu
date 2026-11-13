@@ -22,7 +22,7 @@ self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches
       .keys()
-      .then((ks) => Promise.all(ks.filter((k) => k.startsWith('pokedoc-') && k !== CACHE && k !== LECTURA && k !== ESTADO && !DE_GENERACION.test(k)).map((k) => caches.delete(k))))
+      .then((ks) => Promise.all(ks.filter((k) => k.startsWith('pokedoc-') && k !== CACHE && k !== LECTURA && k !== ESTADO && k !== 'pokedoc-compartido' && !DE_GENERACION.test(k)).map((k) => caches.delete(k))))
       .catch(() => {})
       .then(() => self.clients.claim())
   )
@@ -43,7 +43,7 @@ const esFichero = (url) => url.origin === self.location.origin && /^\/(css|js|as
 // Fuera también las que son otra cosa: el evento y las de leer tienen su
 // caché, /sin-conexion es el respaldo, y /auth, /reset-password, /onboarding
 // y /admin no se abren «al momento» desde ninguna barra.
-const SIN_PAGINA = new Set(['evento', 'feria', 'sin-conexion', 'auth', 'reset-password', 'onboarding', 'admin', 'guia', 'carta', 'coleccion', 'curso', 'categoria', 'editor-guia', '404'])
+const SIN_PAGINA = new Set(['evento', 'compartir', 'feria', 'sin-conexion', 'auth', 'reset-password', 'onboarding', 'admin', 'guia', 'carta', 'coleccion', 'curso', 'categoria', 'editor-guia', '404'])
 function esPaginaDeCache(url) {
   if (url.origin !== self.location.origin || url.search) return false
   const m = /^\/([a-z0-9-]*)(\.html)?$/.exec(url.pathname)
@@ -380,6 +380,14 @@ async function paginaDeLeer(req, e) {
 
 self.addEventListener('fetch', (e) => {
   const req = e.request
+  // Compartir A PokeDoc desde otra app (1317, A7; `share_target` del
+  // manifiesto): llega un POST a /compartir, que es una NAVEGACIÓN, así que va
+  // antes que ellas. Una foto se guarda para que la lea el escáner; un enlace
+  // o un texto se pasan por la dirección a la página /compartir.
+  if (req.method === 'POST' && new URL(req.url).pathname === '/compartir') {
+    e.respondWith(recibirCompartido(req))
+    return
+  }
   if (req.mode === 'navigate') {
     // El modo evento (794 como feria, 1029) es la única PÁGINA que se guarda:
     // se abre en un pabellón sin cobertura. Red primero, y la copia de la
@@ -415,6 +423,27 @@ self.addEventListener('fetch', (e) => {
   e.respondWith(ficheroDeCasa(req, e).catch(() => fetch(req)))
 })
 
+async function recibirCompartido(req) {
+  const a = (ruta) => Response.redirect(new URL(ruta, self.location.origin).href, 303)
+  try {
+    const datos = await req.formData()
+    const foto = datos.getAll('foto').find((f) => f && typeof f === 'object' && /^image\//.test(f.type || ''))
+    if (foto) {
+      const c = await caches.open('pokedoc-compartido')
+      await c.put('/__compartido/foto', new Response(foto, { headers: { 'content-type': foto.type } }))
+      return a('/mi-coleccion?ver=buscar&compartida=1')
+    }
+    const q = new URLSearchParams()
+    for (const k of ['url', 'text', 'title']) {
+      const v = String(datos.get(k) || '').slice(0, 2000)
+      if (v) q.set(k, v)
+    }
+    return a(`/compartir?${q}`)
+  } catch {
+    return a('/compartir')
+  }
+}
+
 self.addEventListener('push', (e) => {
   // El cuerpo lo cifra la función de Netlify: { title, body, link }.
   let datos = {}
@@ -423,6 +452,9 @@ self.addEventListener('push', (e) => {
   } catch {
     datos = { body: e.data ? e.data.text() : '' }
   }
+  // El punto en el icono de la app (1317, A2): la página pone el número de
+  // verdad al abrirse; aquí, solo que hay algo nuevo.
+  if (self.navigator?.setAppBadge) self.navigator.setAppBadge().catch(() => {})
   e.waitUntil(
     self.registration.showNotification(datos.title || 'PokeDoc', {
       body: datos.body || '',

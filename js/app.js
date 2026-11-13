@@ -14,6 +14,8 @@ export function getInitial(name) {
 }
 
 const TINT_COUNT = 5
+// Instalar (1317): lo que el navegador ofrece al llegar se guarda para el buen momento (instalar.js).
+if (typeof window !== 'undefined') window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.__pdInstalar = e })
 
 function tintIndexForKey(key) {
   const str = String(key ?? '')

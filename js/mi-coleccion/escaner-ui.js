@@ -121,6 +121,25 @@ export async function abrirEscaner() {
 // APAGAR LA CÁMARA AL CERRAR, y esto no es limpieza opcional: una pista de
 // vídeo que se queda viva deja el piloto del móvil encendido y se come la
 // batería hasta que recargas la página.
+// Una foto compartida desde otra app (1317, A7): el service worker la deja en
+// la caché `pokedoc-compartido` y manda aquí con `?compartida=1`. Se abre el
+// escáner y se lee como una de la galería; después se borra.
+export const CACHE_COMPARTIDO = 'pokedoc-compartido'
+export async function leerCompartida() {
+  let foto = null
+  try {
+    const c = await caches.open(CACHE_COMPARTIDO)
+    const r = await c.match('/__compartido/foto')
+    if (r) foto = new File([await r.blob()], 'compartida', { type: r.headers.get('content-type') || 'image/jpeg' })
+    await c.delete('/__compartido/foto')
+  } catch {
+    // Sin la caché (un navegador sin service worker): no hay foto que leer.
+  }
+  await abrirEscaner()
+  if (foto) await leerFotos([foto])
+  else showToast('No ha llegado la foto. Prueba a hacerla desde aquí.')
+}
+
 export function cerrarEscaner() {
   const caja = $('mcEscanerCaja')
   const video = $('mcEscanerVideo')

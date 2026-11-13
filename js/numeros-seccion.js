@@ -163,6 +163,21 @@ export function pintarNumeros(doc, cuentas) {
   }
 }
 
+// El número en el icono de la app instalada (1317, A2): lo sin leer de verdad
+// (avisos y mensajes), como cualquier app. Sin la API (o fuera de la app
+// instalada) no hace nada; el service worker lo pone también al llegar un push.
+export function totalSinLeer(avisos = [], mensajes = 0) {
+  const n = (avisos || []).filter((a) => a && !a.read_at).length + (Number.parseInt(mensajes, 10) || 0)
+  return Math.max(0, n)
+}
+let ultimoNumero = null
+function ponerNumeroEnElIcono(win, n) {
+  const nav = win.navigator
+  if (!nav?.setAppBadge || n === ultimoNumero) return
+  ultimoNumero = n
+  ;(n > 0 ? nav.setAppBadge(n) : nav.clearAppBadge()).catch(() => {})
+}
+
 export function montarNumerosDeSeccion({ doc = document, win = window } = {}) {
   if (doc.documentElement.dataset.secNumeros) return
   doc.documentElement.dataset.secNumeros = '1'
@@ -175,6 +190,7 @@ export function montarNumerosDeSeccion({ doc = document, win = window } = {}) {
       const sobre = doc.getElementById('navMsgBadge')
       const mensajes = sobre && !sobre.classList.contains('hidden') ? sobre.textContent : 0
       pintarNumeros(doc, cuentasDeSecciones(win.__pdAvisos || [], mensajes))
+      ponerNumeroEnElIcono(win, totalSinLeer(win.__pdAvisos || [], mensajes))
     })
   }
   win.addEventListener('pd-avisos', pintar)

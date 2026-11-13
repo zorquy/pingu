@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Abriendo — PokeDoc</title>
+  <meta name="robots" content="noindex,follow" />
+  <link rel="canonical" href="https://pokedoc.es/compartir" />
+  <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#1e5175" />
+  <!-- precargas: las escribe generar-precargas.mjs (1315) -->
+  <link rel="modulepreload" href="/js/compartir-pagina.js" />
+  <link rel="modulepreload" href="/js/compartir-puro.js" />
+  <!-- /precargas -->
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body>
+  <!-- Lo que se comparte A PokeDoc desde otra app (1317, A7): el service
+       worker manda aquí el enlace o el texto, y esta página salta a donde
+       toca (js/compartir-puro.js). -->
+  <main id="contenido" class="page-content container-narrow" style="padding-top: 48px; text-align: center;">
+    <h1>Abriendo en PokeDoc…</h1>
+    <p class="subtext"><a href="/cartas?ver=buscar">Si no pasa nada, busca la carta aquí</a>.</p>
+  </main>
+  <script type="module" src="/js/compartir-pagina.js"></script>
+</body>
+</html>

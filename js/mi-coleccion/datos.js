@@ -1,6 +1,7 @@
 // Las consultas de «Mi colección» (tanda 365). Lo usan /mi-coleccion y
 // el bloque de precio y colección de la ficha de una carta.
 import { supabase } from '../supabase.js'
+import { exitoDeColeccion } from '../exito.js'
 import { urlDePrecio, precioDe, precioDeFila, claveDeLinea, valorDeLinea } from '../cardmarket.js'
 // El mercado por defecto NO se escribe aquí a mano (tanda 485): `market` es
 // `not null default 'WEST'` en la base, así que una línea que no diga nada ES
@@ -308,6 +309,7 @@ export async function anadir(userId, linea, mercado = 'WEST') {
     puesta = data
   }
   await tacharDeseos(userId, [puesta], puesta)
+  void exitoDeColeccion(supabase, userId)
   return puesta
 }
 

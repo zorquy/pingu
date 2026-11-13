@@ -33,6 +33,9 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Con PokeDoc instalado en Android, compártele una foto de una carta desde la galería o WhatsApp y se abre el escáner, o un enlace de Cardmarket y te busca esa carta." },
+    { "fecha": "2026-11-13", "tipo": "mejora", "texto": "La app instalada enseña en su icono cuántas cosas tienes sin leer, y al mantenerlo pulsado tienes atajos a Añadir, Mensajes, Retos y La quiero." },
+    { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Instalar PokeDoc ya no te sale nada más entrar: te lo ofrecemos después de algo que ha ido bien, y siempre lo tienes en Ajustes, con los pasos para iPhone.", "enlace": "/ajustes?ver=instalar" },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Descarga todo lo tuyo en un ZIP (también tu colección en CSV) y, si un día quieres irte, borra tu cuenta tú solo, con 14 días para arrepentirte.", "enlace": "/ajustes?ver=datos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "La política de privacidad, en un minuto: seis tarjetas con lo importante y qué ha cambiado.", "enlace": "/privacidad" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Al crear una cuenta confirmas que tienes 14 años o más, y el registro y la entrada están preparados contra los bots.", "enlace": "/auth?registro=1" },

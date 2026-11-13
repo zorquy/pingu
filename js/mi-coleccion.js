@@ -7627,7 +7627,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   // «Escanear una carta» desde /buscar, la paleta o la burbuja (718, 719)
   // entra con la cámara pedida: se abre en cuanto se sabe qué tienes, que
   // es lo que la bandeja enseña al lado de cada carta leída.
-  if (primeraVez && esMia && pestania === 'buscar' && params.get('escanear')) void abrirEscaner()
+  if (primeraVez && esMia && pestania === 'buscar' && params.get('compartida')) void escanerModulo().then((m) => m.leerCompartida()).catch(() => showToast('No se ha podido cargar el escáner.', 'error'))
   if (primeraVez) void abrirCartaDeDireccion()
   // Los álbumes de la barra lateral (741), si ya está puesta; si llega
   // después, avisa ella (`pokedoc:lateral`).
