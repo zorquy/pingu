@@ -29,7 +29,12 @@ export function ordenDeMigraciones(repo = REPO) {
     if (linea.startsWith('@')) t = Number(linea.slice(1))
     else if (linea.trim() && !vistos.has(linea.trim())) vistos.set(linea.trim(), t)
   }
-  const sinCommit = correr('git', ['-C', repo, 'ls-files', '--others', '--exclude-standard', '--', 'supabase-migration-*.sql']).stdout.split('\n').filter(Boolean)
+  // Las que aún no tienen commit: sin añadir (`--others`) o ya añadidas al
+  // índice (`diff --cached`); las dos van al final, que son las últimas.
+  const sinCommit = [
+    ...correr('git', ['-C', repo, 'ls-files', '--others', '--exclude-standard', '--', 'supabase-migration-*.sql']).stdout.split('\n'),
+    ...correr('git', ['-C', repo, 'diff', '--cached', '--name-only', '--diff-filter=A', '--', 'supabase-migration-*.sql']).stdout.split('\n'),
+  ].filter(Boolean)
   for (const f of sinCommit) if (!vistos.has(f)) vistos.set(f, Number.MAX_SAFE_INTEGER)
   return [...vistos.entries()].filter(([f]) => existsSync(`${repo}/${f}`)).sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0])).map(([f]) => f)
 }
