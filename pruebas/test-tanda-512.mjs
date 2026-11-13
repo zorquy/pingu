@@ -238,8 +238,9 @@ console.log('\n── 3. Los casos raros ──')
   await page.evaluate(() => {
     window.__TABLAS__.tournament_matches.find((m) => m.id === 'mesa-1').check_in_a_at = new Date().toISOString()
   })
-  // «Actualizar» vive en la pestaña de rondas; vale igual pulsado desde aquí.
-  await page.evaluate(() => document.getElementById('btnActualizarCiclo').click())
+  // Desde la 1344 no hay «Actualizar» (la ficha se refresca sola): el aviso en
+  // vivo de que la mesa cambió hace el mismo repintado.
+  await page.evaluate(() => window.__VIVO__.emitir(null, { table: 'tournament_matches', new: { id: 'mesa-1' } }))
   await page.waitForFunction(() => !document.querySelector('#btnCheckin'), null, { timeout: 6000 }).catch(() => null)
   const repintado = (await page.locator('#btnCheckin').count()) === 0
   check('(se ha repintado: el botón de check-in ya no está)', repintado)

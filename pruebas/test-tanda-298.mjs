@@ -92,7 +92,8 @@ console.log('\n── 1. La cabecera dice lo que es el torneo, de un vistazo ─
   check('  …con el sello de oficial', (await cab.locator('#torneoChapaOficial').count()) === 1)
   // Cinco chapas y no cuatro cajas del mismo tamaño: con cuatro cajas
   // iguales no destacaba ninguna.
-  const datos = await cab.locator('.torneo-dato').allTextContents()
+  // Desde la 1341 los datos viven en el cartel de Info, no en la cabecera.
+  const datos = await page.locator('#torneoFormato .torneo-dato').allTextContents()
   check('  …y los datos en chapas', datos.length >= 4, datos.join(' | '))
   check('  …que incluyen la estructura', datos.some((d) => /3 rondas suizas/.test(d)), datos.join(' | '))
   check('  …y el corte', datos.some((d) => /Top 4/.test(d)), datos.join(' | '))
@@ -105,6 +106,10 @@ console.log('\n── 1. La cabecera dice lo que es el torneo, de un vistazo ─
 console.log('\n── 2. La barra viva ──')
 {
   const { page } = await abrir()
+  // Desde la 1341 la barra es la pastilla de lo pegado, y en Mi mesa no sale
+  // (allí va el reloj grande): se mira desde Rondas.
+  await page.evaluate(() => document.querySelector('[data-pestana="rondas"]')?.click())
+  await page.waitForTimeout(300)
   const viva = page.locator('#torneoBarraViva')
   check('sale con una ronda en marcha', await viva.isVisible())
   check('  …y dice por qué ronda va', (await page.locator('#torneoVivaRotulo').textContent())?.includes('Ronda suiza 2 de 3'),
@@ -122,7 +127,7 @@ console.log('\n── 2. La barra viva ──')
   check('  …y pide lo que falta', /Misty aún no ha hecho check-in/.test(der || ''), der)
   check('  …sin pedirte lo que ya hiciste', !/Te falta el check-in/.test(der || ''), der)
   // Pegada arriba: es lo que hace que no se pierda con el scroll.
-  const pegada = await viva.evaluate((e) => getComputedStyle(e).position)
+  const pegada = await page.locator('#torneoPegado').evaluate((e) => getComputedStyle(e).position)
   check('  …y va pegada arriba', pegada === 'sticky', pegada)
   await page.close()
 
@@ -130,12 +135,15 @@ console.log('\n── 2. La barra viva ──')
   // en juego dice qué ronda se cerró y qué viene—. Antes desaparecía y la
   // ficha se quedaba muda justo cuando más se pregunta «¿y ahora?».
   const parado = await abrir({ rondas: [{ id: 'ronda-1', tournament_id: 'torneo-1', round_number: 1, status: 'finished', phase: 'swiss' }] })
+  await parado.page.evaluate(() => document.querySelector('[data-pestana="rondas"]')?.click())
+  await parado.page.waitForTimeout(300)
   check('sin ronda en marcha, la barra se queda y dice qué viene', (await parado.page.locator('#torneoBarraViva').isVisible()) && /Pareando la ronda 2…/.test((await parado.page.locator('#torneoVivaTitular').textContent()) || ''), await parado.page.locator('#torneoVivaTitular').textContent())
   check('  …con la ronda cerrada de rótulo y sin reloj', /[Rr]onda 1 de 3 · cerrada/.test((await parado.page.locator('#torneoVivaRotulo').textContent()) || '') && (await parado.page.locator('#torneoVivaAnillo').textContent()).trim() === '—', await parado.page.locator('#torneoVivaRotulo').textContent())
   // Y al refrescar sin ronda (lo que pasa el día del torneo cuando el
   // organizador la cierra), sigue igual: ni se va ni se duplica.
   await pestana(parado.page, 'rondas')
-  await parado.page.locator('#btnActualizarCiclo').click()
+  // Sin «Actualizar» desde la 1344: el aviso en vivo hace el mismo refresco.
+  await parado.page.evaluate(() => window.__VIVO__?.emitir(null, { table: 'rounds', new: { tournament_id: 'torneo-1' } }))
   await parado.page.waitForTimeout(1200)
   check('  …y al refrescar sigue ahí, con lo mismo', (await parado.page.locator('#torneoBarraViva').isVisible()) && /Pareando la ronda 2…/.test((await parado.page.locator('#torneoVivaTitular').textContent()) || ''))
   await parado.page.close()

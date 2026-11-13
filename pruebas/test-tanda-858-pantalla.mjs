@@ -98,8 +98,12 @@ console.log('── 4. El torneo ──')
   const { page, ctx, errores } = await abrir('/torneo.html?slug=copa')
   check('sin errores', errores.length === 0, errores.join(' | '))
   await bajar(page, 1500)
+  // Desde la 1341 el torneo no monta la barra pegada de las fichas: lo que se
+  // queda arriba al bajar son sus pestañas (y la pastilla y el tablón), y dos
+  // cosas pegadas a la vez se comían media pantalla.
   const b = await barra(page)
-  check('la flecha a los torneos, el nombre y el estado', b?.visible && b.href === '/torneos.html' && b.titulo === 'Copa Medida' && b.cifra === 'En juego', JSON.stringify(b))
+  const pegado = await page.evaluate(() => { const p = document.getElementById('torneoPegado'); const r = p.getBoundingClientRect(); return { pos: getComputedStyle(p).position, top: Math.round(r.top), alto: Math.round(r.height) } })
+  check('al bajar, se quedan arriba las pestañas del torneo (y no la barra de fichas)', !b?.visible && pegado.pos === 'sticky' && pegado.top >= 0 && pegado.top < 200 && pegado.alto > 30, JSON.stringify({ b, pegado }))
   await ctx.close()
 }
 

@@ -28,9 +28,13 @@ console.log('── 1. Torneo en el móvil ──')
     const comp = document.getElementById('btnCompartirTorneo')
     const plaza = [...document.querySelectorAll('h2, h3')].find((h) => /Tu plaza/.test(h.textContent))
     return {
-      unaFila: new Set(tops).size === 1 && tops.length >= 4,
-      desliza: f.scrollWidth > f.clientWidth,
-      calEnCabecera: !!cal?.closest('.torneo-cabecera'),
+      // Desde la 1341 los datos van en el cartel de Info, en chapas que bajan de
+      // línea: lo que importa es que se ven todos sin salirse de lado.
+      unaFila: tops.length >= 4,
+      desliza: f.scrollWidth <= f.clientWidth + 1,
+      // Desde la 1342 el calendario va junto al día, en Info.
+      calEnCabecera: !!cal?.closest('.torneo-cuando-fila'),
+      alto: innerHeight,
       iconos: [cal, comp].every((x) => x && Math.round(x.getBoundingClientRect().width) <= 48 && x.getAttribute('aria-label')),
       plaza: plaza ? Math.round(plaza.getBoundingClientRect().top) : null,
       desc: Math.round(document.getElementById('torneoDescripcion').getBoundingClientRect().height),
@@ -38,14 +42,14 @@ console.log('── 1. Torneo en el móvil ──')
       ancho: document.documentElement.scrollWidth <= innerWidth + 1,
     }
   })
-  check('los datos en una fila que se desliza', d.unaFila && d.desliza, JSON.stringify(d))
-  check('Compartir y Calendario, iconos en la cabecera (con su nombre para el lector)', d.calEnCabecera && d.iconos, JSON.stringify(d))
-  check('la descripción larga, en dos líneas con «Más»', d.desc < 60 && d.mas, JSON.stringify(d))
+  check('los datos, todos y sin salirse de lado (1341: en el cartel de Info)', d.unaFila && d.desliza, JSON.stringify(d))
+  check('Compartir en la cabecera y Calendario junto al día (1342), iconos con su nombre para el lector', d.calEnCabecera && d.iconos, JSON.stringify(d))
+  check('la descripción larga, plegada (tres líneas desde la 1342) con «Leer más»', d.desc < 90 && d.mas, JSON.stringify(d))
   await page.click('#torneoDescMas')
   await page.waitForTimeout(200)
   const abierta = await page.evaluate(() => ({ h: Math.round(document.getElementById('torneoDescripcion').getBoundingClientRect().height), mas: document.getElementById('torneoDescMas').hidden }))
   check('  …y «Más» la abre entera', abierta.h > d.desc + 20 && abierta.mas, JSON.stringify(abierta))
-  check('«Tu plaza» se ve sin bajar (antes, a ~635 px)', d.plaza !== null && d.plaza < 560, d.plaza)
+  check('«Tu plaza» asoma en la primera pantalla (desde la 1341 va bajo el cartel de Info)', d.plaza !== null && d.plaza < d.alto, d.plaza)
   check('nada se sale de lado', d.ancho)
   check('sin errores', !errores.length, errores.join(' | '))
   await page.screenshot({ path: '/tmp/1145-torneo.png' })

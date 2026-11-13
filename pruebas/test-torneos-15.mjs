@@ -149,7 +149,8 @@ console.log('\n── 2. Inscritos: columnas de verdad, no cada fila a su aire �
       status: 'active', participation_confirmed_at: null, registered_at: `2026-08-2${i}T10:00:00Z`,
     })),
   })
-  await ir(dos, 'torneo')
+  // Desde la 1341, antes de empezar los inscritos van en la pestaña Jugadores.
+  await ir(dos, 'jugadores')
   const apiladas = await dos.evaluate(() =>
     [...document.querySelectorAll('.torneo-inscrito:not(.torneo-inscrito-cola)')].map((f) =>
       [...f.querySelectorAll('.torneo-decklist-marca')]

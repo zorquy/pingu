@@ -219,14 +219,19 @@ console.log('\n── 4. El contador de mesas, sin recargar ──')
   // Una marca en la ventana: si la página se recargara, se perdería.
   await page.evaluate(() => { window.__sinRecargar = true })
   const barra = page.locator('#torneoVivaMesas')
-  check('la barra viva lleva el contador', await barra.isVisible())
+  // Desde la 1341 el contador de la barra no se enseña en la pastilla de una
+  // línea (va junto al título de las mesas, en Rondas), pero sigue pintándose
+  // y avisando al lector de pantalla.
+  check('la barra viva lleva el contador', (await barra.count()) === 1 && /mesas/i.test(await barra.textContent()))
   const texto = async () => (await barra.textContent()).replace(/\s+/g, ' ').trim()
   check('  …dice 1/4: el bye no es una mesa', /\b1\/4\b/.test(await texto()) && /mesas terminadas/i.test(await texto()), await texto())
   check('  …y al lector de pantalla, la frase entera', /1 de 4 mesas han terminado/.test(await barra.locator('.sr-only').textContent()))
   check('  …en una región que avisa sola', (await barra.getAttribute('role')) === 'status')
   // Desde la 877, quien ya ha terminado lee «Has terminado · esperando a N mesas» en vez de su partida.
   check('  …también a quien ya ha jugado (Ash: «Has terminado», y a quién se espera)', /Has terminado · esperando a \d mesas?/.test(await page.locator('#torneoVivaTitular').textContent()), await page.locator('#torneoVivaTitular').textContent())
-  const anchoBarra = async () => page.locator('#torneoVivaMesas .torneo-mesas-barra > span').evaluate((n) => n.getBoundingClientRect().width / n.parentElement.getBoundingClientRect().width)
+  await page.evaluate(() => document.querySelector('[data-pestana="rondas"]')?.click())
+  await page.waitForTimeout(300)
+  const anchoBarra = async () => page.locator('#mesasContenido .torneo-mesas-progreso .torneo-mesas-barra > span').evaluate((n) => n.getBoundingClientRect().width / n.parentElement.getBoundingClientRect().width)
   check('  …y su barrita va por el 25 %', Math.abs((await anchoBarra()) - 0.25) < 0.03, (await anchoBarra()).toFixed(2))
 
   // Se cierra una mesa EN OTRO SITIO: llega por el tiempo real.

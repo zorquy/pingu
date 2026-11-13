@@ -84,6 +84,8 @@ console.log('\n── 4. El editor del torneo entra al pulsar ──')
   check('al abrir la ficha no se baja el editor', !c.js.has('js/torneos/torneo-editor.js') && !c.errores.length, c.errores.join(' | '))
   const hayEditar = await c.p.locator('#btnEditarTorneo').count()
   if (hayEditar) {
+    // Desde la 1341, «Editar» vive en el «⋯» de la cabecera.
+    if (await c.p.locator('#torneoMas summary').count()) await c.p.click('#torneoMas summary')
     await c.p.click('#btnEditarTorneo')
     await c.p.waitForTimeout(1500)
     check('al pulsar «Editar» baja el editor y aparece el formulario', c.js.has('js/torneos/torneo-editor.js') && (await c.p.locator('#torneoEditor #editarNombre').count()) === 1 && !c.errores.length, [...c.js].filter((x) => /editor/.test(x)).join() + ' ' + c.errores.join(' | '))

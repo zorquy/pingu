@@ -165,6 +165,9 @@ console.log('\n── 6. Los inscritos tienen cara ──')
   // dos chapas y el botón de expulsar.
   const { page, errores } = await abrir('/torneo?slug=copa', { sesion: 'admin-1', semillas })
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
+  // Desde la 1341 los inscritos van en la pestaña Jugadores antes de empezar.
+  await page.evaluate(() => { const p = document.getElementById('torneoInscritosCaja')?.closest('[data-panel]')?.dataset.panel; document.querySelector(`[data-pestana="${p}"]`)?.click() })
+  await page.waitForTimeout(300)
   const caras = await page.locator('#listaInscritos .mini-avatar').count()
   check('cada inscrito tiene su cara (lista de espera incluida)', caras === 5, String(caras))
   // Sin foto, la inicial: nunca un círculo vacío.

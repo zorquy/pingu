@@ -60,9 +60,18 @@ console.log('── 2. El torneo ──')
   const activa = () => page.evaluate(() => document.querySelector('#torneoPestanas .seg-btn.activa')?.dataset.pestana)
   check('con ?ver=rondas se abre en Rondas', (await activa()) === 'rondas', await activa())
   const n0 = await largo(page)
-  await page.click('#torneoPestanas [data-pestana="torneo"]')
+  // Desde la 1341 la pestaña de entrada depende del momento (en juego, tu
+  // mesa; si no juegas, Rondas): es la primera, y tocarla limpia `ver`.
+  const entrada = await page.evaluate(() => document.querySelector('#torneoPestanas .seg-btn')?.dataset.pestana)
+  await page.click(`#torneoPestanas [data-pestana="${entrada}"]`)
   await page.waitForTimeout(500)
-  check('tocar Torneo limpia `ver`', !/ver=/.test(await donde(page)) && (await activa()) === 'torneo', await donde(page))
+  if (entrada === 'rondas') {
+    await page.click('#torneoPestanas [data-pestana="torneo"]')
+    await page.waitForTimeout(300)
+    await page.click('#torneoPestanas [data-pestana="rondas"]')
+    await page.waitForTimeout(300)
+  }
+  check('tocar la pestaña de entrada limpia `ver`', !/ver=/.test(await donde(page)) && (await activa()) === entrada, await donde(page))
   await page.click('#torneoPestanas [data-pestana="rondas"]')
   await page.waitForTimeout(500)
   check('tocar Rondas la escribe, sin alargar el historial', /ver=rondas/.test(await donde(page)) && (await largo(page)) === n0, `${await donde(page)} · ${n0} → ${await largo(page)}`)

@@ -196,6 +196,9 @@ console.log('\n── 6. Con cuenta, todo sigue igual que antes ──')
     sesion: 'admin-1', torneos: [TORNEO], inscripciones: INSCRIPCIONES,
   })
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
+  // Desde la 1341 los inscritos van en su pestaña (Jugadores antes de empezar).
+  await page.evaluate(() => { const p = document.getElementById('torneoInscritosCaja')?.closest('[data-panel]')?.dataset.panel; document.querySelector(`[data-pestana="${p}"]`)?.click() })
+  await page.waitForTimeout(300)
   const cuerpo = await page.locator('body').innerText()
   check('el organizador SÍ ve el usuario de TCG Live', /AshKetchum/.test(cuerpo))
   check('y tiene sus acciones', (await page.locator('#torneoAdminAcciones button').count()) > 0)

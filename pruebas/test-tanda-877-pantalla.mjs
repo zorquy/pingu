@@ -165,7 +165,9 @@ console.log('\n── 5. Sin cuenta: lo mismo, sin lo tuyo; y en el móvil ─�
   check('«Ronda en marcha» y «Faltan 2 mesas por reportar · mesas 1 y 2»', b.titular === 'Ronda en marcha' && /Faltan 2 mesas por reportar · mesas 1 y 2/.test(b.estado), JSON.stringify(b))
   await ctx.close()
   const m = await abrir({ movil: true, rondas: [R1, R2], mesas })
-  const ancho = await m.page.evaluate(() => ({ doc: document.documentElement.scrollWidth, win: innerWidth, estado: document.getElementById('torneoVivaEstado').getBoundingClientRect().width }))
+  // Desde la 1341 «qué falta» no va en la pastilla de una línea (se lee en
+  // Rondas); se pinta igual y la página no se sale de lado.
+  const ancho = await m.page.evaluate(() => ({ doc: document.documentElement.scrollWidth, win: innerWidth, estado: document.getElementById('torneoVivaEstado').textContent.length }))
   check('en el móvil no se sale de la pantalla', ancho.doc <= ancho.win + 1 && ancho.estado > 0, JSON.stringify(ancho))
   check('sin errores', m.errores.length === 0, m.errores.join(' | '))
   await m.ctx.close()
