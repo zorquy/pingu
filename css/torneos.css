@@ -3932,7 +3932,7 @@ html.torneo-jugando #torneoNombre {
 .torneo-mas-menu {
   position: absolute;
   right: 0;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   z-index: 60;
   display: grid;
   gap: 2px;
@@ -4015,7 +4015,7 @@ html.torneo-jugando #torneoNombre {
   flex-wrap: nowrap;
   gap: var(--e-sm);
   margin: 0;
-  padding: 4px 6px 4px 4px;
+  padding: 4px 8px 4px 4px;
   border-radius: var(--radius-pill);
   box-shadow: none;
 }
@@ -4033,7 +4033,7 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 .torneo-pegado .torneo-viva-espera { display: none; }
 .torneo-pegado .torneo-viva-der { flex: none; flex-wrap: nowrap; gap: var(--e-xs); width: auto; margin-left: auto; }
 .torneo-pegado .torneo-viva-der > * { flex: none; }
-.torneo-pegado .torneo-viva-pide { padding: 6px 10px; font-size: var(--t-xs); white-space: nowrap; }
+.torneo-pegado .torneo-viva-pide { padding: 4px 12px; font-size: var(--t-xs); white-space: nowrap; }
 .torneo-pegado .torneo-viva-boton { min-height: 36px; padding: 0 var(--e-md); font-size: var(--t-sm); white-space: nowrap; }
 @media (max-width: 640px) {
   .torneo-pegado .torneo-viva { padding: 4px 4px 4px 4px; }
@@ -4256,7 +4256,7 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 }
 .torneo-mesa-reloj-estado {
   justify-self: start;
-  padding: 2px 10px;
+  padding: 2px 12px;
   border-radius: var(--radius-pill);
   background: var(--white);
   color: var(--text-mid);
@@ -4275,7 +4275,7 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 .torneo-mesa-reloj .torneo-viva-anillo::before { background: var(--white); }
 @media (max-width: 640px) {
   .torneo-mesa-anillo { width: 76px; height: 76px; }
-  .torneo-mesa-anillo::before { inset: 7px; }
+  .torneo-mesa-anillo::before { inset: 8px; }
   .torneo-mesa-anillo b { font-size: var(--t-md); }
 }
 
@@ -4375,7 +4375,7 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 }
 .lc-vivo b { color: var(--text); }
 .lc-vivo-reloj {
-  padding: 2px 10px;
+  padding: 2px 12px;
   border-radius: var(--radius-pill);
   background: var(--danger-bg);
   color: var(--danger);

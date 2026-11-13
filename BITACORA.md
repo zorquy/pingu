@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (596) — PINGU-Claude (1346b — lo que cazó la suite antes de subir 1341–1346)
+
+**Hecho**: la suite de torneos, comparada con el código de antes, dio doce
+rojos de estas tandas:
+- **torneo.js se pasó de su presupuesto** (895: 31 KB gzip; iba por 33,5). Lo
+  nuevo de arriba de la ficha —compartir, calendario, el día del cartel,
+  «Inscribirme», buscar gente, lo pegado y los «⋯»— se va a
+  `js/torneos/ficha-arriba.js`; torneo.js vuelve a 29,6.
+- Espaciados fuera de la escala (6, 7 y 10 px → 4, 8 y 12) y la caja de buscar
+  gente sin `enterkeyhint="search"` (311 y 723).
+- Diez pruebas viejas miraban el diseño de antes (los datos en la cabecera,
+  «Actualizar», la barra pegada de fichas, los inscritos en la pestaña
+  Torneo…): puestas al día en `pruebas` (298, 306, 394, 512, 858, 859, 877,
+  895, 1145, torneos-15, torneos-20), cada una contando el porqué.
+
+Los demás rojos ya lo eran antes (sin PostgreSQL ni PIL en la máquina,
+ficheros de pruebas viejas que ya no están, tiendas, perfil…).
+
+**Ficheros**: `js/torneos/ficha-arriba.js` (nuevo), `js/torneos/torneo.js`,
+`css/torneos.css`, `torneo.html`.
+
 ## 2026-11-13 (595) — PINGU-Claude (1346 — /torneos con una sola cabecera: la liga, en vivo en su tarjeta)
 
 **Hecho**: PINGU: «hay como dos cabeceras… ronda 17 de 30… eso lo quitaría, o

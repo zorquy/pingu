@@ -55204,6 +55204,16 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1346b — ficha-arriba.js
+
+`js/torneos/ficha-arriba.js` exporta `ponerMasEnDescripcion`, `cuandoHtml`,
+`montarCompartir(f)`, `ponerBotonCalendario(f, acciones)`,
+`pintarApuntarse(f)`, `engancharApuntarse(f)`, `engancharBuscarGente`,
+`filtrarGente` y `engancharLoPegado(f)`. No guarda estado: `f` es el objeto
+`ficha` de `torneo.js` (`torneo()`, `inscripciones()`, `activos()`,
+`soloMirando()`, `irAPestana(id)`), que se lee en el momento porque la ficha
+se recarga sola. Salió para que `torneo.js` siga bajo los 31 KB gzip de la 895.
+
 ## Tanda 1346 — /torneos: la liga en vivo en su tarjeta
 
 **La tarjeta** (`ligaFranjaHtml` en `js/torneos/ligas-franja.js`): si la
