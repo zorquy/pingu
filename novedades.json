@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "arreglo", "texto": "«Compartir» en la ficha de un torneo vuelve a sacar la imagen del anuncio con las plazas que quedan, no solo el enlace.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "La clasificación de los torneos lleva la cara de cada uno, si ha subido o bajado y sus últimos resultados; los desempates se ven al tocar a un jugador. Los jugadores salen en mosaico con su cara y el tablón junta los avisos automáticos en uno.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En las rondas de una liga eliges la jornada en una tira del 1 al 10 y luego la ronda, sin dieciocho botoncitos; y cada mesa se ve como un duelo: las dos caras, el marcador y el ganador con su estrella.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En una liga, entre jornadas, «Mi mesa» empieza por tu próxima jornada: el día, la cuenta atrás y si te falta la lista. Y «Cómo vas» sale con la cara de cada uno, sus últimos resultados y si ha subido o bajado puestos.", "enlace": "/torneos" },

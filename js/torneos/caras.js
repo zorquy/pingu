@@ -3,7 +3,9 @@
 // más fácil»). La misma cara en la clasificación, las mesas, los inscritos,
 // el podio y el tablón: la foto si la hay y, si no, la inicial sobre el color
 // de la casa (avatarStyle), como en el resto de la web.
-import { escapeHtml, avatarStyle, getInitial } from '../app.js'
+import { escapeHtml } from '../html.js'
+// De avatar.js y no de app.js: ligas-franja.js es puro y se prueba en Node.
+import { avatarStyle, getInitial } from '../avatar.js'
 
 // `tam`: '' (30 px), 'p' (22), 'g' (44) o 'xg' (64).
 export function caraHtml(perfil, nombre, tam = '') {

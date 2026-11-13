@@ -4413,7 +4413,7 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
   height: 16px;
   border-radius: 4px;
   font-style: normal;
-  font-size: 9px;
+  font-size: var(--t-2xs);
   font-weight: 800;
 }
 .torneo-forma-v, .torneo-forma-b { background: var(--success-bg); color: var(--success); }
@@ -4429,7 +4429,7 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 :root[data-theme='dark'] .torneo-viva-anillo-dia { background: var(--ice-dark); }
 .torneo-viva-anillo-dia::before { display: none; }
 .torneo-viva-dia { display: grid; justify-items: center; line-height: 1; font-family: var(--font-marca); font-size: var(--t-md); color: var(--navy); }
-.torneo-viva-dia small { font-size: 8px; font-weight: 800; letter-spacing: 0.08em; font-family: var(--font-body); }
+.torneo-viva-dia small { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.08em; font-family: var(--font-body); }
 .torneo-viva-cuenta {
   display: inline-flex;
   align-items: center;
@@ -4532,8 +4532,11 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 /* «Cómo vas», con caras y forma. */
 .torneo-como-vas li { align-items: center; }
 .torneo-como-vas .torneo-jcara { flex: none; }
-.torneo-como-vas-nombre .torneo-mov { margin-left: var(--e-xs); }
-.torneo-como-vas-nombre .torneo-forma { margin-top: 2px; }
+/* El nombre va solo en su caja (se corta con «…»); la flecha y la forma, al lado y debajo. */
+.torneo-como-vas-quien { flex: 1; min-width: 0; }
+.torneo-como-vas-quien > .torneo-como-vas-nombre { display: inline-block; max-width: calc(100% - 32px); vertical-align: bottom; }
+.torneo-como-vas-quien .torneo-mov { margin-left: var(--e-xs); }
+.torneo-como-vas-quien .torneo-forma { margin-top: 2px; }
 
 /* ── 1350: Rondas — jornada y ronda en dos toques, mesas como duelos (SCHEMA 1350) ── */
 .torneo-selector-liga { display: grid; gap: var(--e-sm); margin: 0 0 var(--e-md); }

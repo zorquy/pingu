@@ -55204,6 +55204,22 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1351b — avatar.js y lo que cazó la suite
+
+`js/avatar.js` (nuevo, puro): `getInitial`, `avatarColorForKey` (con
+`COLORES_AVATAR`) y `avatarStyle`, mudados tal cual de `js/app.js`, que los
+importa y reexporta (los que los pedían a app.js siguen igual).
+`js/torneos/caras.js` los importa de avatar.js y `escapeHtml` de html.js, para
+que `ligas-franja.js` siga cargando en Node.
+
+`montarCompartir` (`ficha-arriba.js`): `piezasDeTorneo(f.torneo(), …)`.
+
+`pintarRondas` (`ronda.js`): `lineaDeLiga` exige además alguna ronda suiza;
+sin rondas se pinta la `.torneo-linea` de jornadas de la 849. En
+`selectorDeLigaHtml`, `viva` también cuando la jornada tiene menos rondas que
+`rondasPorJornada`. `pintarComoVas`: `.torneo-como-vas-quien` envuelve
+`.torneo-como-vas-nombre` (solo el nombre), la flecha y la forma.
+
 ## Tanda 1351 — La gente con cara: clasificación, jugadores, tablón y cabecera
 
 `pintarClasificacion` (`js/torneos/ronda.js`): la celda del jugador va en

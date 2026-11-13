@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (602) — PINGU-Claude (1351b — lo que cazó la suite de torneos)
+
+**Hecho**:
+- **«Compartir» de la ficha del torneo volvía a dar solo el enlace**, sin la
+  imagen del anuncio: al mudarlo a `ficha-arriba.js` (1346b, ya en producción)
+  se quedó llamando a `torneo`, que ahí no existe. El `try` lo tapaba.
+  Ahora usa `f.torneo()`. Lo cazó `test-tanda-1336`.
+- **La cara, la inicial y el color del avatar** salen de `js/app.js` a
+  `js/avatar.js` (sin cambiar nada; app.js los importa y reexporta).
+  `caras.js` los pide ahí: si no, `ligas-franja.js`, que es puro y se prueba
+  en Node, arrastraba app.js y fallaba («document is not defined»). Las
+  precargas de las 57 páginas, regeneradas.
+- **Rondas de una liga** (1350): antes de la primera ronda vuelve a salir la
+  línea de jornadas (no había ni línea ni tira), y una jornada a medias
+  (1 de 3 rondas cerradas) se pinta «en juego», no acabada.
+- **Cómo vas**: el nombre va en su caja y la flecha y la forma fuera (el
+  nombre leía «Tú▲2 Últimos resultados…»).
+- La forma y el día de la pastilla, a `--t-2xs` (había 8 y 9 px sueltos).
+- Pruebas puestas al día con el diseño nuevo: 297, 311, 849, 878, 879, 1303;
+  y nueva `test-tanda-1347-pantalla.mjs` (1347–1351).
+
+**Ficheros**: `js/avatar.js` (nuevo), `js/app.js`, `js/torneos/caras.js`,
+`js/torneos/ficha-arriba.js`, `js/torneos/ronda.js`, `css/torneos.css`, las
+57 páginas (precargas), `novedades.json`.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-13 (601) — PINGU-Claude (1351 — Clasificación, Jugadores, tablón y cabecera con caras)
 
 **Hecho**:

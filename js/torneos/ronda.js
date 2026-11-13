@@ -1887,7 +1887,8 @@ function pintarRondas() {
   // En una liga de varias rondas por jornada (1350), la línea de diez cajas con
   // su barra de desplazamiento se va: la tira de jornadas de las mesas hace
   // de línea y de selector a la vez.
-  const lineaDeLiga = esLiga() && rondasPorJornada(ctx.torneo) > 1
+  // Hasta la primera ronda no hay mesas ni tira: ahí la línea sigue saliendo.
+  const lineaDeLiga = esLiga() && rondasPorJornada(ctx.torneo) > 1 && rondas.some((r) => r.phase !== 'top_cut')
   const linea = lineaDeLiga
     ? '<span class="torneo-cuenta-checkin hidden" id="cuentaCheckin"></span>'
     : pasos.length
@@ -1962,7 +1963,9 @@ function selectorDeLigaHtml(vista) {
       tira.push(`<span class="torneo-tj" aria-hidden="true">${j}</span>`)
       continue
     }
-    const viva = delJ.some((r) => r.status !== 'finished')
+    // A medias (1 de 3 rondas cerradas) cuenta como en juego: pintarla como
+    // acabada diría que esa jornada ya no tiene más rondas.
+    const viva = delJ.some((r) => r.status !== 'finished') || delJ.length < rondasPorJornada(t)
     const saltada = delJ.every((r) => rondaSaltada(r))
     const destino = j === jVista ? vista : delJ.find((r) => r.status !== 'finished') || delJ[delJ.length - 1]
     tira.push(
@@ -3063,7 +3066,7 @@ function pintarComoVas() {
       <li class="${f.yo ? 'torneo-fila-yo' : ''}"${f.yo ? ' aria-current="true"' : ''}>
         <span class="torneo-pos${f.pos <= 3 ? ` torneo-pos-${f.pos}` : ''}">${f.pos}</span>
         ${caraDe(f.e.playerId, 'p')}
-        <span class="torneo-como-vas-nombre">${f.yo ? 'Tú' : escapeHtml(nombreDe(f.e.playerId))}${movimientoHtml(antes?.get(f.e.playerId), f.pos)}<br>${formaHtml(formaDe(f.e.playerId))}</span>
+        <span class="torneo-como-vas-quien"><span class="torneo-como-vas-nombre">${f.yo ? 'Tú' : escapeHtml(nombreDe(f.e.playerId))}</span>${movimientoHtml(antes?.get(f.e.playerId), f.pos)}<br>${formaHtml(formaDe(f.e.playerId))}</span>
         <span class="torneo-como-vas-vde">${f.e.wins}-${f.e.losses}-${f.e.draws}</span>
         <strong>${f.e.matchPoints} pts</strong>
       </li>`)

@@ -62,7 +62,7 @@ export function montarCompartir(f) {
     try {
       const { piezasDeTorneo } = await import('../redes-textos.js')
       const nombres = Object.fromEntries(f.inscripciones().filter((i) => i.perfil?.username).map((i) => [i.user_id, i.perfil.username]))
-      const piezas = piezasDeTorneo(torneo, { inscritos: f.activos(), nombres })
+      const piezas = piezasDeTorneo(f.torneo(), { inscritos: f.activos(), nombres })
       const pieza = piezas.find((p) => p.clave.endsWith(':resultados')) || piezas[0]
       if (pieza) {
         const { compartirPieza } = await import('../redes-compartir.js')
