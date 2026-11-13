@@ -55204,6 +55204,16 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1333 — CLAUDE.md por capítulos (I4)
+
+CLAUDE.md lleva lo que vale siempre y la tabla de capítulos; cada área en
+`normas/<área>.md` (tiendas, catalogo, coleccion, comunidad, jugar, interfaz,
+servidor, pruebas). El reparto lo hizo un guion que movía cada punto ENTERO
+(por índice, comprobando que no quedaba ninguno sin sitio ni repetido) y se
+comprobó que toda línea del fichero viejo está en el nuevo conjunto. Una norma
+nueva: en el capítulo de su área; si vale para todo, en CLAUDE.md; nunca en los
+dos. `test-tanda-487` lee CLAUDE.md + `normas/catalogo.md`.
+
 ## Tanda 1332 — el esquema de hoy en un fichero (I3)
 
 `supabase-esquema-actual.sql`: `pg_dump --schema-only --schema=public

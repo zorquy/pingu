@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (582) — PINGU-Claude (1333 — CLAUDE.md por capítulos)
+
+**Hecho**: I4 del plan. CLAUDE.md pasa de 206 KB a 12 KB: se queda lo que
+vale SIEMPRE (bitácora, propuestas con imágenes, qué es la web, Vanilla,
+Supabase, Netlify, los pushes que se juntan, el presupuesto de la portada, los
+imports, novedades, la guía de estilo, iconos, idioma) y una tabla con los
+ocho capítulos de `normas/`: tiendas, catálogo y precios, colección, comunidad,
+jugar (con la sección de torneos), interfaz, servidor y pruebas (con la
+sección de pruebas). **Ni una norma ha cambiado de texto**: cada punto se ha
+movido entero a su capítulo (comprobado línea a línea: solo falta el título
+«## Pruebas», que ahora es el del capítulo). La regla nueva va arriba: antes de
+tocar un área se lee su capítulo entero, y una norma nueva va en su capítulo.
+Ni `normas/` ni CLAUDE.md se sirven (`/*.md` en las rutas internas).
+
+**Para IBAI**: tu sesión carga CLAUDE.md sola; los capítulos hay que abrirlos
+al tocar su área. La 487 de `pruebas` ya mira también `normas/catalogo.md`.
+
+**Ficheros**: CLAUDE.md, normas/*.md (nuevos). En `pruebas`: test-tanda-487.
+
 ## 2026-11-13 (581) — PINGU-Claude (1332 — el esquema de hoy en un fichero)
 
 **Hecho**: I3 del plan. `supabase-esquema-actual.sql` (raíz, ~970 KB, no se
