@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (569) — PINGU-Claude (1321 — tu calendario de PokeDoc en el del móvil)
+
+**Hecho**: P7 del plan. Ajustes › **Calendario**: una dirección secreta tuya
+(`/cal/<clave>.ics`, 64 cifras al azar) a la que te suscribes UNA vez en Google
+Calendar o en el iPhone (botones «Suscribirme en…», con `webcal://` y el `cid`
+de Google) y se actualiza sola: tus torneos (no los que dejaste ni los
+cancelados) con una cita por jornada si es una liga, los eventos con «Voy» y,
+si lo enciendes, los lanzamientos de los catálogos que coleccionas. «Copiar
+dirección» y «Cambiar la clave» (dos toques; la vieja deja de valer).
+- Base: migración 1321 (`calendario_claves` sin políticas; `calendario_mio`,
+  `calendario_poner`, `calendario_cambiar_clave` con cuenta, y
+  `calendario_de(clave)` sin cuenta: la clave es la llave).
+- Función `calendario` detrás de `/cal/*` (lee la RUTA, la 633), con freno de
+  60 por minuto y por IP, `cache-control: private`.
+- El .ics lo arma `js/calendario-puro.js`, que reutiliza los VEVENT de los
+  eventos (`veventosDeEvento`, sacado de `icsDeEvento` en eventos-puro.js).
+
+**Ficheros**: supabase-migration-1321-calendario.sql (nueva),
+netlify/functions/calendario.mjs (nueva), js/calendario-puro.js (nuevo),
+js/ajustes-calendario.js (nuevo), js/eventos-puro.js, js/ajustes.js,
+css/ajustes.css, netlify.toml, SCHEMA.md, novedades.json. En `pruebas`:
+test-tanda-1321 (PostgreSQL + función + navegador) y 868 al día (once
+apartados).
+
+**Pendiente**: ejecutar la migración 1321 (sin ella, Ajustes › Calendario dice
+que llega pronto).
+
 ## 2026-11-13 (568) — PINGU-Claude (1320 — el glosario: al pasar, en hoja y con interruptor)
 
 **Hecho**: P5 del plan. El subrayado de la primera vez y su globo ya existían

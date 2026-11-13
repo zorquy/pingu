@@ -349,17 +349,25 @@ export function horasDe(e) {
 // Un .ics con un VEVENT por día (cada uno con su horario; sin hora, el día
 // entero). Las horas van en UTC desde la hora de aquí: así lo entienden Google,
 // Apple y Outlook sin tener que mandar la zona horaria.
-const icsTexto = (t) => String(t || '').replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([,;])/g, '\\$1')
-const icsUtc = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
-const icsDia = (dia) => dia.replace(/-/g, '')
+export const icsTexto = (t) => String(t || '').replace(/\\/g, '\\\\').replace(/\r?\n/g, '\\n').replace(/([,;])/g, '\\$1')
+export const icsUtc = (d) => d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '')
+export const icsDia = (dia) => dia.replace(/-/g, '')
 // Las líneas de más de 75 caracteres se doblan (la norma lo pide).
-const icsDoblar = (linea) => linea.match(/.{1,74}/g).join('\r\n ')
+export const icsDoblar = (linea) => linea.match(/.{1,74}/g).join('\r\n ')
 
 export function icsDeEvento(e, url = '', ahora = new Date()) {
+  const lineas = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//PokeDoc//Eventos//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH', ...veventosDeEvento(e, url, ahora)]
+  lineas.push('END:VCALENDAR')
+  return lineas.map(icsDoblar).join('\r\n') + '\r\n'
+}
+
+// Los VEVENT de un evento, sin el sobre (1321: el calendario de cada uno
+// los mete junto a sus torneos).
+export function veventosDeEvento(e, url = '', ahora = new Date()) {
   const dias = horarioDe(e)
   const lugar = [e.sitio, e.direccion, e.ciudad].filter(Boolean).join(', ')
   const desc = [e.descripcion, url].filter(Boolean).join('\n\n')
-  const lineas = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//PokeDoc//Eventos//ES', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH']
+  const lineas = []
   for (const x of dias) {
     lineas.push('BEGIN:VEVENT', `UID:${e.slug || e.id}-${icsDia(x.dia)}@pokedoc.es`, `DTSTAMP:${icsUtc(ahora)}`)
     if (x.desde) {
@@ -378,8 +386,7 @@ export function icsDeEvento(e, url = '', ahora = new Date()) {
     if (url) lineas.push(`URL:${url}`)
     lineas.push('END:VEVENT')
   }
-  lineas.push('END:VCALENDAR')
-  return lineas.map(icsDoblar).join('\r\n') + '\r\n'
+  return lineas
 }
 
 // ── El hilo del foro (1197) ──

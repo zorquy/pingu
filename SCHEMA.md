@@ -55204,6 +55204,39 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1321 — tu calendario en el del móvil
+
+P7 del plan.
+
+**Base** (migración 1321). `calendario_claves (user_id, clave, torneos,
+eventos, lanzamientos)`, RLS sin políticas. `calendario_mio()` la crea la
+primera vez (`calendario_clave_nueva`: dos uuid sin guiones, 64 hex) y la
+devuelve; `calendario_poner(t, e, l)` (null = no tocar) y
+`calendario_cambiar_clave()`, las tres con cuenta. `calendario_de(p_clave)`
+(anon y authenticated; null con una clave corta o que no existe) devuelve
+`{ torneos, eventos, lanzamientos }`: torneos con inscripción no `dropped`,
+no cancelados y de los últimos 180 días, con `jornadas` =
+`to_jsonb(t)->'matchday_dates'` (por si una base no tiene la columna);
+eventos con fila en `evento_asistentes`, hasta 30 días atrás; lanzamientos
+de −7 a +180 días de los `market` en los que tienes líneas, más el occidental.
+
+**El .ics** (`js/calendario-puro.js`, puro): `icsDeCalendario(datos)` con
+`X-WR-CALNAME`, `REFRESH-INTERVAL` y `X-PUBLISHED-TTL` a 6 h; una liga es una
+cita por jornada (con hora, 2 h; un día suelto, de día entero), un torneo sin
+jornadas una de 4 h, cada evento sus VEVENT de `veventosDeEvento` (eventos-puro,
+que ahora exporta también `icsTexto`, `icsUtc`, `icsDia` y `icsDoblar`), y cada
+lanzamiento un día entero. `enlacesDeCalendario(clave)` da la https, la webcal y
+la de Google (`calendar.google.com/calendar/r?cid=<webcal>`).
+
+**Función** `netlify/functions/calendario.mjs` detrás de `/cal/*`
+(`claveDeRuta`: solo 32–128 hex, lee la ruta), pide `calendario_de` con la clave
+pública de la casa, 404 si no hay calendario, `text/calendar`, `private,
+max-age=1800`, `x-robots-tag: noindex`, y 60 por minuto por IP.
+
+**Ajustes** › Calendario (`js/ajustes-calendario.js`, por `import()`): los
+tres interruptores (`data-cal`), los dos botones de suscribirse, copiar la
+dirección y «cambia la clave» con confirmación en el propio botón.
+
 ## Tanda 1320 — el glosario al pasar, en hoja y con interruptor
 
 P5 del plan sobre `js/glosario.js` (792). `subrayarGlosario` sale sin hacer

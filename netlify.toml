@@ -263,6 +263,13 @@
   to = "/.netlify/functions/tarjeta"
   status = 200
 
+# Tu calendario (tanda 1321): /cal/<clave>.ics, al que se suscribe Google
+# Calendar o el del iPhone. La función lee la RUTA (la 633).
+[[redirects]]
+  from = "/cal/*"
+  to = "/.netlify/functions/calendario"
+  status = 200
+
 # El canal RSS (tanda 271). Igual que el sitemap: se genera en la
 # petición, porque las direcciones salen de Supabase.
 [[redirects]]

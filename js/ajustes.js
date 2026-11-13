@@ -26,6 +26,7 @@ const APARTADOS = [
   { id: 'privacidad', nombre: 'Privacidad', sub: 'Tu actividad en Comunidad', icono: 'eye' },
   { id: 'apariencia', nombre: 'Apariencia', sub: 'Tema, fiestas y el glosario', icono: 'palette' },
   { id: 'datos', nombre: 'Tus datos', sub: 'Descargar todo, exportar e importar', icono: 'upload' },
+  { id: 'calendario', nombre: 'Calendario', sub: 'Tus torneos y eventos en el calendario del móvil', icono: 'calendar' },
   { id: 'instalar', nombre: 'Instalar PokeDoc', sub: 'Como una app, en el móvil o el ordenador', icono: 'home' },
   { id: 'invitar', nombre: 'Invitar a un amigo', sub: 'Tu enlace de invitación', icono: 'users' },
   { id: 'borrar', nombre: 'Borrar mi cuenta', sub: '', icono: 'trash', peligro: true },
@@ -633,6 +634,8 @@ const SECCIONES = {
   privacidad: [privacidadHtml, montarPrivacidad],
   apariencia: [aparienciaHtml, montarApariencia],
   datos: [datosHtml, montarDatos],
+  // Calendario (1321): js/ajustes-calendario.js, solo para quien lo abre.
+  calendario: [() => '<h2>Calendario</h2><p class="aj-nota">Cargando…</p>', (panel) => import('./ajustes-calendario.js').then((m) => m.montarCalendario(panel)).catch(() => { panel.innerHTML = '<h2>Calendario</h2><p class="aj-nota">No se ha podido cargar. Recarga la página.</p>' })],
   // Instalar (1317): js/ajustes-instalar.js, que solo baja quien lo abre.
   instalar: [() => '<h2>Instalar PokeDoc</h2><p class="aj-nota">Cargando…</p>', (panel) => import('./ajustes-instalar.js').then((m) => { panel.innerHTML = m.instalarHtml(); m.montarInstalarEnAjustes(panel) }).catch(() => { panel.innerHTML = '<h2>Instalar PokeDoc</h2><p class="aj-nota">No se ha podido cargar. Recarga la página.</p>' })],
   invitar: [invitarHtml, montarInvitar],
