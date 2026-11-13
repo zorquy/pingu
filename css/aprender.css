@@ -576,3 +576,78 @@
   .ap-cab.banda-s { flex-wrap: nowrap; }
   .ap-cab .banda-s-texto { flex: 1 1 auto; }
 }
+
+/* ── 1338: los temas son un FILTRO que se queda (PINGU: «que el filtro
+   seleccionado mantuviese el color y los otros se pusiesen gris») ──
+   El elegido, con un aro de su color y su ✕; los demás, en gris y más
+   tenues (al pasar por encima recuperan algo de color, para que se vea que
+   se pueden pulsar). Debajo, la línea del tema; y «En orden» con los grupos
+   del tema como títulos. En el móvil, los seis en cuadrados de 3 × 2 (la B
+   de la propuesta): sin deslizar y sin «Sigue donde lo dejaste» (ya está en
+   Inicio). */
+.ap-baldosas > .ap-baldosa { transition: filter 0.2s, opacity 0.2s, box-shadow 0.2s, border-color 0.15s; }
+.ap-baldosas.con-tema > .ap-baldosa:not(.on) { filter: grayscale(1); opacity: 0.5; }
+.ap-baldosas.con-tema > .ap-baldosa:not(.on):hover { opacity: 0.85; }
+.ap-baldosas > .ap-baldosa.on { border-color: var(--c); box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--c); }
+.ap-baldosa-quitar { display: none; }
+.ap-baldosas > .ap-baldosa.on .ap-baldosa-quitar {
+  position: absolute;
+  top: calc(-1 * var(--e-sm));
+  right: calc(-1 * var(--e-sm));
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--c);
+  color: var(--blanco-fijo);
+  box-shadow: var(--shadow-sm);
+}
+/* El aro y la ✕ salen por fuera: la fila no los recorta. */
+.ap-baldosas { overflow: visible; padding-top: var(--e-sm); }
+.ap-baldosas > .ap-baldosa.on { overflow: visible; }
+
+.ap-tema-linea { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-md); margin: 0 0 var(--e-md); }
+.ap-tema-linea[hidden] { display: none; }
+.ap-tema-linea-nombre { font-family: var(--font-display); font-size: var(--t-lg); }
+.ap-tema-linea-desc { flex: 1 1 260px; min-width: 0; color: var(--text-mid); font-size: var(--t-sm); }
+.ap-tema-linea-leidas { color: var(--success); font-size: var(--t-sm); font-weight: 700; }
+.ap-tema-quitar { display: inline-flex; align-items: center; gap: var(--e-xs); margin-left: auto; }
+.ap-orden { flex-wrap: wrap; }
+.ap-orden .seg-btn[hidden] { display: none; }
+.ap-orden .ap-solo-cursos { display: inline-flex; align-items: center; gap: var(--e-xs); }
+.ap-grupo { margin: var(--e-lg) 0 var(--e-sm); font-family: var(--font-display); font-size: var(--t-lg); }
+.ap-grupo:first-child { margin-top: 0; }
+
+@media (max-width: 599px) {
+  /* «Sigue donde lo dejaste» ya está en Inicio: aquí, la pantalla para las guías. */
+  #categoriesList > .aprender-seguir { display: none; }
+  /* Los seis de golpe: tres arriba y tres abajo. */
+  .ap-baldosas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-sm); margin: 0 0 var(--e-sm); padding: var(--e-sm) 0 0; overflow: visible; }
+  .ap-baldosas > .ap-baldosa {
+    flex: none;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    align-content: center;
+    gap: 2px;
+    min-height: 84px;
+    padding: var(--e-sm) var(--e-xs);
+    text-align: center;
+    border-bottom: 3px solid var(--c);
+  }
+  .ap-baldosas .ap-baldosa-arte,
+  .ap-baldosas .ap-baldosa-icono { order: -1; width: 40px; height: 40px; }
+  .ap-baldosas .ap-baldosa-texto { justify-items: center; }
+  .ap-baldosas .ap-baldosa-nombre { font-size: var(--t-xs); line-height: 1.15; -webkit-line-clamp: 2; }
+  .ap-baldosas .ap-baldosa-sub { display: none; }
+  /* El nombre corto va en `data-corto`: el texto del enlace sigue siendo el entero. */
+  .ap-baldosa-nombre[data-corto] .ap-nombre-largo { display: none; }
+  .ap-baldosa-nombre[data-corto]::after { content: attr(data-corto); }
+  .ap-tema-linea { margin-bottom: var(--e-sm); }
+  .ap-tema-linea-desc { display: none; }
+}
+/* Dentro de un grupo, todas del mismo tamaño: con dos o tres guías, la grande dejaba un hueco. */
+.ap-grupo + .ap-portadas > .guia-portada:first-child { grid-column: auto; }
+.ap-grupo + .ap-portadas > .guia-portada:first-child .guia-portada-sobre strong { font-size: inherit; }

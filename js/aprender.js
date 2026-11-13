@@ -3,7 +3,7 @@ import { conVueltaAtrasDeTipo } from './articulos.js'
 import { escapeHtml, getSession, tintClassForKey, categoryIconHtml } from './app.js'
 import { vistaVigilada, claveDeVista } from './ultima-vista.js'
 import { guideHasCourse } from './guia-contenido.js'
-import { tarjetaDeGuia, avanceDeGuia } from './guia-tarjeta.js'
+import { avanceDeGuia } from './guia-tarjeta.js'
 import { portadaDeGuia, artePokemonHtml } from './guia-portada.js'
 import { icons } from './icons.js'
 // El lápiz de «Escribir una guía» (1015, L10): en el móvil el botón es solo él.
@@ -208,18 +208,19 @@ async function loadCategories(session) {
     document.getElementById('apEmpezadasCifra')?.removeAttribute('hidden')
   }
 
-  // UN TEMA (863): /aprender?tema=<slug> es la página del tema, a la que
-  // vuelve una guía. Antes era /categoria.html, la vista vieja. Si el slug
-  // no existe —enlace viejo, tema borrado— se sigue como siempre: todas.
-  const tema = temaDeLaUrl ? (categories || []).find((c) => c.slug === temaDeLaUrl) : null
-  if (tema) {
-    temaDeLaUrl = null
-    return pintarTema({ tema, guias: guias.filter((g) => g.category_id === tema.id), progreso, session, list })
-  }
 
-  // Un `?tema=` que no casa con ningún tema (enlace viejo, tema borrado)
-  // no filtra nada: se ven todas, que es mejor que una pantalla vacía.
+  // UN TEMA (863 → 1338): /aprender?tema=<slug> ya no es otra página. PINGU:
+  // «cuando entras en una categoría se muestran las guías como antiguamente…
+  // y se va el menú de categorías. Me gustaría que fuese un filtro que se
+  // mantuviese». Las baldosas se quedan arriba: la elegida conserva su color y
+  // las demás se ponen en gris; abajo, la MISMA rejilla, solo con las suyas.
+  // Cambiar de tema no recarga: cambia la dirección (para compartir y para el
+  // botón de atrás) y se repinta. Un slug que no existe no filtra nada.
+  const porSlug = new Map((categories || []).map((c) => [c.slug, c]))
+  const temaDeSlug = (slug) => (slug && porSlug.get(slug)) || null
+  let tema = temaDeSlug(temaDeLaUrl)
   temaDeLaUrl = null
+  if (tema) orden = 'orden'
 
   // La caja se arma UNA vez: el buscador no se repinta mientras escribes
   // (perdería el foco a cada letra). Lo que cambia es la lista.
@@ -227,14 +228,16 @@ async function loadCategories(session) {
   list.innerHTML = `
     ${seguirHtml(guias, progreso)}
     ${temasHtml(categories || [], guias, progreso, session)}
+    <div class="ap-tema-linea" id="apTemaLinea" hidden></div>
     <div class="ap-herramientas">
       <label class="ap-buscar">${icons.search(16)}<input type="search" id="apBuscar" enterkeyhint="search" placeholder="Busca una guía" aria-label="Buscar guías" autocomplete="off" /></label>
       <div class="ap-orden" role="group" aria-label="Ordenar">
-        ${[['recientes', 'Recientes'], ['utiles', 'Más útiles'], ['cortas', 'Cortas']].map(([k, t]) => `<button type="button" class="seg-btn" data-ap-orden="${k}" aria-pressed="${orden === k}">${t}</button>`).join('')}
+        ${[['orden', 'En orden'], ['recientes', 'Recientes'], ['utiles', 'Más útiles'], ['cortas', 'Cortas']].map(([k, t]) => `<button type="button" class="seg-btn" data-ap-orden="${k}" aria-pressed="${orden === k}"${k === 'orden' && !tema ? ' hidden' : ''}>${t}</button>`).join('')}
+        ${guias.some((g) => guideHasCourse(g)) ? `<button type="button" class="seg-btn ap-solo-cursos" id="apSoloCursos" aria-pressed="false">${icons.graduationCap(14)} Solo cursos</button>` : ''}
       </div>
     </div>
     <div class="ap-lista" id="apLista"></div>`
-  const caja = { lista: list.querySelector('#apLista') }
+  const caja = { lista: list.querySelector('#apLista'), linea: list.querySelector('#apTemaLinea'), temas: list.querySelector('#apTemas') }
   const seguidaId = guiaSeguida(guias, progreso)?.g.id || null
   ponerEscribir()
   ponerSeguir()
@@ -242,32 +245,112 @@ async function loadCategories(session) {
 
   // El tema de cada guía, para la chapa-enlace de la tarjeta (866).
   const temaDe = new Map((categories || []).map((c) => [c.id, { nombre: c.name, slug: c.slug, emoji: c.emoji || '' }]))
-  const pintar = () => {
-    const q = normalizeSearch(busqueda)
-    const filtradas = guias.filter((g) => !q || normalizeSearch(`${g.title || ''} ${g.description || ''}`).includes(q))
-    const visibles = ordenar(filtradas)
-    if (!visibles.length) {
-      caja.lista.innerHTML = '<p class="empty-state">Ninguna guía habla de eso. Prueba con otra palabra.</p>'
-      return
+  // Los grupos de un tema (`guide_collections`), como títulos dentro de la
+  // rejilla «En orden». Se piden la primera vez que hacen falta.
+  let grupos = null
+  const pedirGrupos = async () => {
+    if (grupos) return grupos
+    try {
+      const { data } = await supabase.from('guide_collections').select('id, title')
+      grupos = new Map((data || []).map((x) => [x.id, x.title]))
+    } catch { grupos = new Map() }
+    return grupos
+  }
+  let soloCursos = false
+
+  // Lo de arriba según el tema: baldosas en color o en gris, la línea del
+  // tema, el chip «En orden» y lo que dice el buscador.
+  const pintarTemaElegido = () => {
+    caja.temas?.classList.toggle('con-tema', Boolean(tema))
+    for (const b of caja.temas?.querySelectorAll('.ap-baldosa') || []) {
+      const es = Boolean(tema) && b.dataset.tema === tema.slug
+      b.classList.toggle('on', es)
+      if (es) b.setAttribute('aria-current', 'true')
+      else b.removeAttribute('aria-current')
     }
-    const [primera, ...resto] = ordenConDestacada(visibles, seguidaId, Boolean(q))
-    caja.lista.innerHTML = movil.matches
-      ? `${tarjetaDeGuia(primera, { progreso, tema: temaDe.get(primera.category_id) || null })}${resto.length ? `<div class="ap-filas">${resto.map((g) => filaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>` : ''}`
-      : `<div class="ap-portadas en-cascada">${[primera, ...resto].map((g) => portadaDeGuia(g, { progreso, tema: temaDe.get(g.category_id) || null })).join('')}</div>`
+    const suyas = tema ? guias.filter((g) => g.category_id === tema.id) : []
+    const leidas = suyas.filter((g) => leida(g, progreso)).length
+    caja.linea.hidden = !tema
+    caja.linea.innerHTML = tema
+      ? `<b class="ap-tema-linea-nombre">${escapeHtml(tema.name)}</b>
+         ${tema.description ? `<span class="ap-tema-linea-desc">${escapeHtml(tema.description)}</span>` : ''}
+         ${session ? `<span class="ap-tema-linea-leidas">${leidas} de ${suyas.length} ${suyas.length === 1 ? 'leída' : 'leídas'}</span>` : ''}
+         <button type="button" class="btn-secondary ap-tema-quitar" data-ap-quitar>${icons.x(14)} Quitar</button>`
+      : ''
+    const chipOrden = list.querySelector('[data-ap-orden="orden"]')
+    if (chipOrden) chipOrden.hidden = !tema
+    const input = document.getElementById('apBuscar')
+    if (input) {
+      input.placeholder = tema ? `Busca en ${tema.name}` : 'Busca una guía'
+      input.setAttribute('aria-label', tema ? `Buscar en ${tema.name}` : 'Buscar guías')
+    }
+    document.title = tema ? `${tema.name} · Aprender · PokeDoc` : 'Aprender — PokeDoc'
   }
 
-  // Ordenar: «Más útiles» pide a cuántos les ha servido cada una (una
-  // consulta, la primera vez); «Cortas», las de 6 minutos o menos primero.
+  const pintar = async () => {
+    const q = normalizeSearch(busqueda)
+    const filtradas = guias.filter((g) => {
+      if (tema && g.category_id !== tema.id) return false
+      if (soloCursos && !guideHasCourse(g)) return false
+      return !q || normalizeSearch(`${g.title || ''} ${g.description || ''}`).includes(q)
+    })
+    const visibles = ordenar(filtradas)
+    if (!visibles.length) {
+      caja.lista.innerHTML = `<p class="empty-state">${q ? 'Ninguna guía habla de eso. Prueba con otra palabra.' : soloCursos ? 'Todavía no hay cursos aquí.' : 'Todavía no hay guías en este tema.'}</p>`
+      return
+    }
+    // En el móvil, todas en filas (1338, PINGU: «que la primera no esté como
+    // destacada y grande»): arriba ya están los seis temas.
+    const pieza = (g) => (movil.matches ? filaDeGuia : portadaDeGuia)(g, { progreso, tema: temaDe.get(g.category_id) || null })
+    const envolver = (html) => (movil.matches ? `<div class="ap-filas">${html}</div>` : `<div class="ap-portadas en-cascada">${html}</div>`)
+    // «En orden» con grupos: cada grupo con su título encima (si hay dos o más).
+    const ids = [...new Set(visibles.map((g) => g.collection_id).filter(Boolean))]
+    if (tema && orden === 'orden' && !q && ids.length >= 2) {
+      const nombres = await pedirGrupos()
+      const bloques = []
+      let actual = undefined
+      for (const g of visibles) {
+        const grupo = g.collection_id || null
+        if (grupo !== actual) {
+          actual = grupo
+          bloques.push({ titulo: grupo ? nombres.get(grupo) || '' : 'Más guías', guias: [] })
+        }
+        bloques[bloques.length - 1].guias.push(g)
+      }
+      caja.lista.innerHTML = bloques.map((b) => `${b.titulo ? `<h2 class="ap-grupo">${escapeHtml(b.titulo)}</h2>` : ''}${envolver(b.guias.map(pieza).join(''))}`).join('')
+      return
+    }
+    const lista = movil.matches || q || tema ? visibles : ordenConDestacada(visibles, seguidaId, false)
+    caja.lista.innerHTML = envolver(lista.map(pieza).join(''))
+  }
+
+  // Ordenar: «En orden» es el del temario (dentro de un tema); «Más útiles»
+  // pide a cuántos les ha servido cada una (una consulta, la primera vez);
+  // «Cortas», las de 6 minutos o menos primero.
   const ordenar = (lista) => {
+    if (orden === 'orden' && tema) {
+      return [...lista].sort((a, b) => {
+        const oa = a.collection_order ?? Infinity
+        const ob = b.collection_order ?? Infinity
+        return oa !== ob ? oa - ob : new Date(b.published_at || 0) - new Date(a.published_at || 0)
+      })
+    }
     if (orden === 'cortas') return [...lista].sort((a, b) => (a.estimated_mins || 99) - (b.estimated_mins || 99))
     if (orden === 'utiles' && servidoDe) return [...lista].sort((a, b) => (servidoDe[b.id] || 0) - (servidoDe[a.id] || 0))
     return lista
   }
+  const marcarOrden = () => { for (const x of list.querySelectorAll('[data-ap-orden]')) x.setAttribute('aria-pressed', String(x.dataset.apOrden === orden)) }
   list.querySelector('.ap-orden').addEventListener('click', async (e) => {
+    const cursos = e.target.closest('#apSoloCursos')
+    if (cursos) {
+      soloCursos = !soloCursos
+      cursos.setAttribute('aria-pressed', String(soloCursos))
+      return pintar()
+    }
     const b = e.target.closest('[data-ap-orden]')
     if (!b) return
     orden = b.dataset.apOrden
-    for (const x of list.querySelectorAll('[data-ap-orden]')) x.setAttribute('aria-pressed', String(x === b))
+    marcarOrden()
     if (orden === 'utiles' && !servidoDe) {
       try {
         const { servidoPorGuia } = await import('./guias-servido.js')
@@ -277,6 +360,35 @@ async function loadCategories(session) {
     pintar()
   })
 
+  // Elegir o quitar un tema: sin recargar, con la dirección al día.
+  const ponerTema = (nuevo, { apuntar = true } = {}) => {
+    tema = nuevo
+    if (tema && orden === 'recientes') orden = 'orden'
+    if (!tema && orden === 'orden') orden = 'recientes'
+    marcarOrden()
+    if (apuntar) {
+      const url = tema ? `/aprender?tema=${encodeURIComponent(tema.slug)}` : '/aprender'
+      try { history.pushState({ tema: tema?.slug || null }, '', url) } catch {}
+    }
+    pintarTemaElegido()
+    pintar()
+  }
+  caja.temas?.addEventListener('click', (e) => {
+    const b = e.target.closest('.ap-baldosa[data-tema]')
+    if (!b || e.metaKey || e.ctrlKey || e.shiftKey || e.button === 1) return
+    e.preventDefault()
+    const elegido = temaDeSlug(b.dataset.tema)
+    ponerTema(tema && elegido && tema.id === elegido.id ? null : elegido)
+  })
+  caja.linea.addEventListener('click', (e) => {
+    if (e.target.closest('[data-ap-quitar]')) ponerTema(null)
+  })
+  window.addEventListener('popstate', () => {
+    let slug = null
+    try { slug = new URLSearchParams(location.search).get('tema') } catch {}
+    ponerTema(temaDeSlug(slug), { apuntar: false })
+  })
+
   // Por id y no dentro de `list`: en el móvil la caja ya se ha mudado debajo
   // de la banda (1229).
   document.getElementById('apBuscar').addEventListener('input', (e) => {
@@ -284,8 +396,21 @@ async function loadCategories(session) {
     pintar()
   })
   movil.addEventListener?.('change', pintar)
+  pintarTemaElegido()
   pintar()
 }
+
+const leida = (g, progreso) => Boolean(progreso[g.id]?.read_at) || progreso[g.id]?.status === 'completed'
+
+// Los nombres cortos de los temas para los cuadrados del móvil (1338): que
+// quepan en dos líneas sin cortarse. Lo que no está aquí va con su nombre.
+const NOMBRES_CORTOS = {
+  'comprar, vender & mercado': 'Comprar y vender',
+  '¿es real o fake?': '¿Real o fake?',
+  'historia & curiosidades': 'Historia',
+  'mazos & estrategia': 'Mazos y estrategia',
+}
+export const nombreCortoDeTema = (nombre) => NOMBRES_CORTOS[String(nombre || '').trim().toLowerCase()] || nombre
 
 // ── LOS TEMAS COMO BALDOSAS (tanda 864) ──
 //
@@ -311,9 +436,11 @@ function temasHtml(categorias, guias, progreso, session) {
     const sub = `${n(suyas.length, 'guía', 'guías')}${cursos ? ` · ${n(cursos, 'curso', 'cursos')}` : ''}`
     const dex = pokemonDelTema(c)
     const porque = dex ? porqueDelPokemon(dex) : null
-    return `<a class="ap-baldosa ap-tema-${tintClassForKey(c.id)}" href="/aprender?tema=${encodeURIComponent(c.slug)}" aria-label="${escapeHtml(`${c.name}: ${sub}${session ? `, ${leidas} leídas` : ''}`)}">
+    const corto = nombreCortoDeTema(c.name)
+    return `<a class="ap-baldosa ap-tema-${tintClassForKey(c.id)}" href="/aprender?tema=${encodeURIComponent(c.slug)}" data-tema="${escapeHtml(c.slug)}" aria-label="${escapeHtml(`${c.name}: ${sub}${session ? `, ${leidas} leídas` : ''}`)}">
+      <span class="ap-baldosa-quitar" aria-hidden="true">${icons.x(12)}</span>
       <span class="ap-baldosa-texto">
-        <span class="ap-baldosa-nombre">${escapeHtml(c.name)}</span>
+        <span class="ap-baldosa-nombre"${corto !== c.name ? ` data-corto="${escapeHtml(corto)}"` : ''}><span class="ap-nombre-largo">${escapeHtml(c.name)}</span></span>
         <span class="ap-baldosa-sub">${escapeHtml(sub)}</span>
         ${porque ? `<span class="ap-baldosa-porque">${escapeHtml(`${porque.nombre}: ${porque.porque}`)}</span>` : ''}
         ${session ? `<span class="ap-baldosa-barra" aria-hidden="true"><i style="width:${Math.round((leidas / suyas.length) * 100)}%"></i></span>` : ''}
@@ -323,133 +450,6 @@ function temasHtml(categorias, guias, progreso, session) {
   }).join('')
   if (!baldosas) return ''
   return `<nav class="ap-baldosas en-cascada" id="apTemas" aria-label="Temas">${baldosas}</nav>`
-}
-
-// ── LA PÁGINA DE UN TEMA (tanda 863) ──
-//
-// PINGU: «si el botón de para atrás te lleva a la categoría, deberíamos
-// tener la categoría renovada, no con la vista antigua». La vieja
-// (/categoria.html) tenía su cabecera grande, su barra y unas tarjetas de
-// antes de la 676. Esto es el mismo contenido con las piezas de ahora: las
-// migas (en el móvil, «‹ Aprender»), una cabecera compacta con el icono,
-// el nombre, la descripción y el aro de lo leído, Guías · Cursos en un
-// segmentado (los chips de nivel se fueron en la 1039), la MISMA tarjeta de guía
-// que el resto de la web y, al bajar en el móvil, la barra pegada (858).
-// Los grupos («colecciones») del tema se conservan como títulos.
-let vistaTema = 'guias'
-
-const leida = (g, progreso) => Boolean(progreso[g.id]?.read_at) || progreso[g.id]?.status === 'completed'
-
-function cabeceraDeTemaHtml(tema, guias, progreso, session) {
-  const cursos = guias.filter((g) => guideHasCourse(g))
-  const leidas = guias.filter((g) => leida(g, progreso)).length
-  const hechos = cursos.filter((g) => progreso[g.id]?.status === 'completed').length
-  const n = (x, uno, varios) => `${x} ${x === 1 ? uno : varios}`
-  const cuenta = session
-    ? `${leidas} de ${n(guias.length, 'guía leída', 'guías leídas')}${cursos.length ? ` · ${hechos} de ${n(cursos.length, 'curso hecho', 'cursos hechos')}` : ''}`
-    : `${n(guias.length, 'guía', 'guías')}${cursos.length ? ` · ${n(cursos.length, 'curso', 'cursos')}` : ''}`
-  return `
-    <div class="ap-tema-cab" id="apTemaCab">
-      <span class="ap-tema-icono ${tintClassForKey(tema.id)}">${categoryIconHtml(tema, 28)}</span>
-      <div class="ap-tema-texto">
-        <h1>${escapeHtml(tema.name)}</h1>
-        ${tema.description ? `<p>${escapeHtml(tema.description)}</p>` : ''}
-        <p class="ap-tema-cuenta">${escapeHtml(cuenta)}</p>
-      </div>
-      ${session && guias.length ? `<span class="aprender-aro ap-tema-aro" style="--vuelta:${(leidas / guias.length).toFixed(3)}" aria-hidden="true"><b>${leidas}/${guias.length}</b></span>` : ''}
-    </div>`
-}
-
-function pintarTema({ tema, guias, progreso, session, list }) {
-  document.title = `${tema.name} · Aprender · PokeDoc`
-  // La banda de Aprender (1211) da paso a la cabecera del tema.
-  const cabecera = document.querySelector('.ap-cab')
-  if (cabecera) {
-    cabecera.insertAdjacentHTML('beforebegin', `<nav class="breadcrumb" aria-label="Dónde estás"><a href="/">Inicio</a> <span>›</span> <a href="/aprender">Aprender</a> <span>›</span> <span>${escapeHtml(tema.name)}</span></nav>`)
-    cabecera.outerHTML = cabeceraDeTemaHtml(tema, guias, progreso, session)
-  }
-  if (!guias.length) {
-    list.innerHTML = '<p class="empty-state">Todavía no hay guías en este tema.</p>'
-    return
-  }
-  const cursos = guias.filter((g) => guideHasCourse(g))
-  // Dentro del tema, el orden es el del temario (la vieja lo respetaba):
-  // primero las ordenadas, luego las nuevas.
-  const ordenadas = [...guias].sort((a, b) => {
-    const oa = a.collection_order ?? Infinity
-    const ob = b.collection_order ?? Infinity
-    return oa !== ob ? oa - ob : new Date(b.published_at || 0) - new Date(a.published_at || 0)
-  })
-  list.innerHTML = `
-    <div class="ap-herramientas">
-      <div class="ap-tema-filtros">
-        ${cursos.length ? `<div class="seg ap-seg" role="group" aria-label="Guías o cursos" id="apSeg">
-          <button type="button" class="seg-btn" data-vista="guias" aria-pressed="true">Guías <span class="aprender-chip-n">${guias.length}</span></button>
-          <button type="button" class="seg-btn" data-vista="cursos" aria-pressed="false">Cursos <span class="aprender-chip-n">${cursos.length}</span></button>
-        </div>` : ''}
-        <label class="ap-buscar">${icons.search(16)}<input type="search" id="apBuscar" enterkeyhint="search" placeholder="Busca en este tema" aria-label="Buscar en este tema" autocomplete="off" /></label>
-      </div>
-    </div>
-    <div class="ap-lista" id="apLista"></div>`
-  const caja = { lista: list.querySelector('#apLista'), seg: list.querySelector('#apSeg') }
-  const pintar = () => {
-    const q = normalizeSearch(busqueda)
-    const visibles = ordenadas.filter((g) => {
-      if (vistaTema === 'cursos' && !guideHasCourse(g)) return false
-      if (q && !normalizeSearch(`${g.title || ''} ${g.description || ''}`).includes(q)) return false
-      return true
-    })
-    if (!visibles.length) {
-      caja.lista.innerHTML = `<p class="empty-state">${q ? 'Ninguna guía de este tema habla de eso.' : 'Todavía no hay cursos en este tema.'}</p>`
-      return
-    }
-    caja.lista.innerHTML = movil.matches
-      ? `<div class="ap-filas">${visibles.map((g) => filaDeGuia(g, { progreso })).join('')}</div>`
-      : `<div class="guia-rejilla">${visibles.map((g) => tarjetaDeGuia(g, { progreso })).join('')}</div>`
-  }
-  caja.seg?.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-vista]')
-    if (!b) return
-    vistaTema = b.dataset.vista
-    for (const x of caja.seg.querySelectorAll('[data-vista]')) x.setAttribute('aria-pressed', String(x === b))
-    pintar()
-  })
-  // Ordenar: «Más útiles» pide a cuántos les ha servido cada una (una
-  // consulta, la primera vez); «Cortas», las de 6 minutos o menos primero.
-  const ordenar = (lista) => {
-    if (orden === 'cortas') return [...lista].sort((a, b) => (a.estimated_mins || 99) - (b.estimated_mins || 99))
-    if (orden === 'utiles' && servidoDe) return [...lista].sort((a, b) => (servidoDe[b.id] || 0) - (servidoDe[a.id] || 0))
-    return lista
-  }
-  // El tema va en el orden del temario y no lleva «Ordenar» (1221: sin el
-  // `?.`, /aprender?tema= se paraba aquí con un TypeError desde la 1215).
-  list.querySelector('.ap-orden')?.addEventListener('click', async (e) => {
-    const b = e.target.closest('[data-ap-orden]')
-    if (!b) return
-    orden = b.dataset.apOrden
-    for (const x of list.querySelectorAll('[data-ap-orden]')) x.setAttribute('aria-pressed', String(x === b))
-    if (orden === 'utiles' && !servidoDe) {
-      try {
-        const { servidoPorGuia } = await import('./guias-servido.js')
-        servidoDe = (await servidoPorGuia(guias.map((g) => g.id))) || {}
-      } catch { servidoDe = {} }
-    }
-    pintar()
-  })
-
-  list.querySelector('#apBuscar').addEventListener('input', (e) => { busqueda = e.target.value; pintar() })
-  movil.addEventListener?.('change', pintar)
-  pintar()
-  // La barra pegada del móvil (858): la flecha a Aprender, el tema y lo leído.
-  if (matchMedia('(max-width: 900px)').matches) {
-    import('./barra-pegada.js').then((m) => m.montarBarraPegada({
-      cabecera: document.getElementById('apTemaCab'),
-      titulo: tema.name,
-      volverHref: '/aprender',
-      volverTexto: 'Volver a Aprender',
-      cifra: () => (session ? `${guias.filter((g) => leida(g, progreso)).length} de ${guias.length} leídas` : `${guias.length} ${guias.length === 1 ? 'guía' : 'guías'}`),
-    })).catch(() => {})
-  }
 }
 
 async function init() {

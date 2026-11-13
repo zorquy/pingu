@@ -55204,6 +55204,33 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1338 — Aprender: los temas como filtro
+
+`/aprender?tema=<slug>` ya no es una página aparte (la que hizo la 863): es la
+misma lista con el filtro puesto. En `js/aprender.js`:
+
+- `temaDeSlug(slug)` lee el tema de la URL; uno que no existe no filtra.
+- La pantalla es, en orden: `seguirHtml` (banda del PC; en el móvil
+  `#categoriesList > .aprender-seguir {display:none}`), `#apTemas` (las
+  baldosas, cada una con `data-tema` y una `.ap-baldosa-quitar` que solo se ve
+  en la `.on`), `#apTemaLinea` (nombre, descripción, «N de M leídas» con
+  sesión, y `[data-ap-quitar]`), `.ap-herramientas` (búsqueda, `.ap-orden` con
+  «En orden» oculto sin tema, y `#apSoloCursos` si alguna guía tiene curso) y
+  `#apLista`.
+- `ponerTema(nuevo)` hace `history.pushState` y repinta; `popstate` relee la
+  URL. Un clic con ctrl/meta/shift o el botón del medio sigue siendo enlace
+  (cada baldosa conserva su `href`).
+- `.con-tema` en `#apTemas` pone las no elegidas en gris (`grayscale(1)`,
+  `opacity:.5`).
+- Orden `orden` (solo con tema): `collection_order` y después lo más nuevo.
+  Con orden `orden`, sin búsqueda y con dos colecciones distintas o más, se
+  piden una vez los títulos de `guide_collections` (id, title) y cada grupo
+  lleva su `<h2 class="ap-grupo">` antes de su envoltorio.
+- Móvil (≤599px): `.ap-baldosas` en rejilla de tres columnas; el nombre corto
+  sale de `data-corto` por `::after` (`NOMBRES_CORTOS`, exportado como
+  `nombreCortoDeTema`), así `textContent` sigue siendo el nombre entero; las
+  guías van todas con `filaDeGuia` en `.ap-filas`, sin destacada.
+
 ## Tanda 1337 — Redes: el meta, las que más suben, los hitos y «Hoy toca»
 
 En `redes-textos.js`: `piezaDelMeta(filas, { iconos })` (las filas de

@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (587) — PINGU-Claude (1338 — Aprender: los temas como filtro)
+
+**Hecho**: lo que pidió PINGU con la propuesta delante («que fuese un filtro…
+que se mantuviese en la cabecera»), con las opciones recomendadas.
+- **Título**: «Aprende Pokémon TCG» (antes «Aprende a jugar mejor»).
+- **Los temas ya no abren otra página**: tocar una baldosa FILTRA la lista
+  de abajo. Las baldosas se quedan; la elegida mantiene su color con un aro y
+  una ✕, y las demás se ponen en gris. Debajo, una línea con el nombre del
+  tema, su descripción, «N de M leídas» (con cuenta) y «Quitar». La dirección
+  cambia a `/aprender?tema=x` sin recargar (se puede compartir, y «atrás»
+  vuelve), y volver a tocar el tema elegido lo quita.
+- **Dentro de un tema**: el orden «En orden» (el del temario) va primero, y
+  si las guías tienen colecciones salen con su título de grupo dentro de la
+  rejilla. Siguen Recientes, Más útiles y Cortas, y hay un chip «Solo cursos».
+- **Móvil**: los seis temas en cuadrados de tres por fila (dos filas, sin
+  deslizar, con nombres cortos: «Comprar y vender», «Historia»…), todas las
+  guías en filas (sin la primera grande) y sin «Sigue donde lo dejaste», que
+  sigue en la banda del PC.
+- La página vieja de cada tema (cabecera con aro, migas, barra pegada) se fue
+  de `js/aprender.js`.
+
+**Ficheros**: `aprender.html`, `js/aprender.js`, `css/aprender.css`.
+Pruebas (rama `pruebas`): `test-tanda-1338-pantalla.mjs` nueva; puestas al
+día al filtro 300, 312, 316, 319, 863, 864, 865, 866, 1039, 1154, 1215 y 1226.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-13 (586) — PINGU-Claude (1337 — Redes: el meta, las que más suben, los hitos y «Hoy toca»)
 
 **Hecho**: lo tercero y último de «Redes desde el panel».

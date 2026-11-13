@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En Aprender, los temas ahora son un filtro: tocas uno y abajo se quedan solo sus guías, en el orden en que conviene leerlas, sin salir de la página; y en el móvil los seis temas caben de un vistazo.", "enlace": "/aprender" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "«Compartir» en una guía, un torneo, un evento o el próximo lanzamiento ya te da una imagen lista para Instagram o X, con el texto y el enlace puestos.", "enlace": "/lanzamientos" },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Las tiendas ya organizan sus torneos en PokeDoc: salen en Torneos con «Torneo de tienda» y lo que cuesta apuntarse (se paga en la tienda), y en el escaparate de cada tienda verás sus próximos torneos.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "¿Juegas desde Latinoamérica? En Ajustes › Apariencia puedes ver los precios en pesos mexicanos, argentinos, chilenos o colombianos, o en dólares, al cambio del día. Y hay un foro nuevo para México.", "enlace": "/ajustes?ver=apariencia" },
