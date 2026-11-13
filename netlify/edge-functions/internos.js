@@ -30,6 +30,7 @@ export const RUTAS_INTERNAS = [
   '/supabase-*',
   '/netlify/*',
   '/herramientas/*',
+  '/.github/*',
   '/node_modules/*',
   '/package.json',
   '/package-lock.json',

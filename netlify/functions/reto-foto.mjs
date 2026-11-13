@@ -64,3 +64,8 @@ export default async (req) => {
   if (r.estado !== 200) return new Response('Sin foto', { status: 404, headers: { 'cache-control': 'public, max-age=600', 'x-motivo': r.motivo } })
   return new Response(r.datos, { headers: { 'content-type': 'image/webp', 'cache-control': CACHE, 'netlify-cdn-cache-control': `${CACHE}, durable` } })
 }
+
+// Tope por persona (tanda 1313, S7): cada partida pide unas veinte fotos;
+// 120 por minuto deja jugar de sobra. Pasado el tope, Netlify contesta 429
+// sin despertar la función (no se paga). Por IP: cada uno el suyo.
+export const config = { rateLimit: { windowLimit: 120, windowSize: 60, aggregateBy: ['ip', 'domain'] } }

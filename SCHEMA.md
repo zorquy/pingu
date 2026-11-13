@@ -55204,6 +55204,32 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1313 — topes, freno de la analítica, CSP en informe y copia diaria
+
+- **Topes (S7).** `export const config = { rateLimit: { windowLimit, windowSize:
+  60, aggregateBy: ['ip', 'domain'] } }` en tarjeta (120), reto-foto (120),
+  leer-carta (20), leer-lista (20), cardmarket-buscar (30), tcggo-historial
+  (30) y tcggo-versiones-ahora (30). Netlify lo lee del fichero (literal, no
+  importado). Una función nueva que gaste por llamada y se pueda llamar sin
+  cuenta lleva el suyo.
+- **Freno de la analítica (S8).** `freno_de_telemetria()` (`before insert`,
+  argumento: tope por minuto) en `page_views` (300) y `client_errors` (60):
+  `user_id` := `auth.uid()` si no coincide; recortes (path 300, origen y
+  campaña 120, aparato 60; mensaje 600, traza 4000, url 500, agente 300);
+  `status` siempre `new`; cuenta en `telemetria_ritmo(tabla, minuto, n)` (sin
+  políticas) y pasado el tope `return null` (sin error). Un insert nuevo de
+  la web en estas tablas no tiene que hacer nada.
+- **CSP (S9).** En `[[headers]] for = "/*"`, en modo informe. Las
+  violaciones las apunta `js/error-log.js` (`securitypolicyviolation`) en
+  `client_errors` como «CSP (informe) <directiva>: <origen>». Un origen nuevo
+  del que la web cargue scripts, conexiones o iframes va en esa línea.
+- **Copia (S10).** `.github/workflows/copia-base.yml` (03:23 UTC, y a mano):
+  Postgres 17 de servicio, `copia-seguridad.sh`, la estructura de
+  `auth.users` aparte, `probar-copia.sh <copia> <auth.sql>` (vacía la base de
+  prueba, crea roles y `auth.uid/role/jwt` de mentira, restaura y compara las
+  filas de ocho tablas con las del volcado), `gpg --symmetric` y artefacto de
+  30 días. Secretos: `SUPABASE_DB_URL`, `COPIA_CLAVE`. Solo corre desde `main`.
+
 ## Tanda 1312 — la edad y «soy una persona» en el registro
 
 - La casilla `#registerEdad` (/auth) y `#altaEdad` (/alta-tienda), clase

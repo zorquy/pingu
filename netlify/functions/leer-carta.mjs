@@ -207,3 +207,8 @@ function json(cuerpo, estado = 200) {
 }
 
 export { leerFranja, limpiar, esRecorte, laClave, clavesALaVista, IDIOMAS, NOMBRES_CLAVE, LIMITE }
+
+// Tope por persona (tanda 1313, S7): leer una carta por foto: nadie hace más
+// de veinte por minuto con la cámara. Pasado el tope, Netlify contesta 429
+// sin despertar la función (no se paga). Por IP: cada uno el suyo.
+export const config = { rateLimit: { windowLimit: 20, windowSize: 60, aggregateBy: ['ip', 'domain'] } }

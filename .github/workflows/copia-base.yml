@@ -1,0 +1,84 @@
+# Copia de la base, sola y probada (tanda 1313, S10 del plan).
+#
+# Cada noche: copia la base con herramientas/copia-seguridad.sh, la restaura
+# en un Postgres de prueba con herramientas/probar-copia.sh (una copia que
+# nunca se ha restaurado no se sabe si vale), la CIFRA y la guarda 30 días
+# como artefacto de la ejecución. Si algo falla, GitHub avisa por correo.
+#
+# Lo que hace falta (una vez, en GitHub → el repositorio → Settings →
+# Secrets and variables → Actions), y nunca en el chat ni en el repo:
+#   SUPABASE_DB_URL  la cadena de conexión de Supabase (Project Settings →
+#                    Database → Connection string → URI, la del «Session
+#                    pooler»).
+#   COPIA_CLAVE      una frase larga para cifrar la copia. Sin ella no se abre:
+#                    guárdala con tus contraseñas.
+# Y GitHub solo programa los trabajos del fichero que está en la rama
+# principal (main): hasta que este fichero llegue a main, no corre.
+#
+# Abrir una copia:  gpg --decrypt pokedoc-<fecha>.sql.gz.gpg > pokedoc.sql.gz
+name: Copia de la base
+
+on:
+  schedule:
+    - cron: '23 3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  copia:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    services:
+      prueba:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: prueba
+          POSTGRES_DB: prueba
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      PGURL: ${{ secrets.SUPABASE_DB_URL }}
+      PGURL_PRUEBA: postgresql://postgres:prueba@localhost:5432/prueba
+      DESTINO: ${{ runner.temp }}/copias
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cliente de Postgres 17
+        run: |
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+          sudo apt-get update -qq && sudo apt-get install -y -qq postgresql-client-17
+          echo "/usr/lib/postgresql/17/bin" >> "$GITHUB_PATH"
+      - name: Faltan las claves
+        if: env.PGURL == ''
+        run: |
+          echo "::error::Falta el secreto SUPABASE_DB_URL (ver la cabecera de este fichero)."
+          exit 1
+      - name: Copiar
+        run: bash herramientas/copia-seguridad.sh
+      - name: Restaurar y comprobar
+        run: |
+          COPIA=$(ls -t "$DESTINO"/pokedoc-*.sql.gz | head -1)
+          pg_dump "$PGURL" --no-owner --no-privileges --schema-only --table=auth.users > "$RUNNER_TEMP/auth-users.sql"
+          bash herramientas/probar-copia.sh "$COPIA" "$RUNNER_TEMP/auth-users.sql"
+      - name: Cifrar
+        env:
+          COPIA_CLAVE: ${{ secrets.COPIA_CLAVE }}
+        run: |
+          if [ -z "$COPIA_CLAVE" ]; then echo "::error::Falta el secreto COPIA_CLAVE: sin cifrar no se guarda."; exit 1; fi
+          COPIA=$(ls -t "$DESTINO"/pokedoc-*.sql.gz | head -1)
+          gpg --batch --yes --pinentry-mode loopback --passphrase "$COPIA_CLAVE" --symmetric --cipher-algo AES256 -o "$COPIA.gpg" "$COPIA"
+          rm -f "$COPIA"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: copia-pokedoc-${{ github.run_number }}
+          path: ${{ runner.temp }}/copias/*.gpg
+          retention-days: 30
+          if-no-files-found: error

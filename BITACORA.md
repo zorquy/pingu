@@ -4,6 +4,43 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (560) — PINGU-Claude (1313 — topes, freno de la analítica, CSP en informe y copia diaria)
+
+**Hecho**: S7, S8, S9 y S10.
+- (S7) Topes por persona (IP) en las funciones caras, con `rateLimit` en su
+  `config` (todos los planes de Netlify; pasado el tope contesta 429 sin
+  despertar la función): tarjeta y reto-foto 120/min, leer-carta y
+  leer-lista 20, cardmarket-buscar y las dos de TCGGO a demanda 30.
+- (S8) Migración 1313: un disparador delante de `page_views` y
+  `client_errors` pone el `user_id` de quien escribe (nunca otro), recorta los
+  textos largos y, pasado el tope del minuto (300 visitas, 60 errores entre
+  todos), descarta sin error. Por minuto y no por navegador: estas filas no
+  llevan quién las manda (1065), a propósito.
+- (S9) `Content-Security-Policy-Report-Only` para toda la web en
+  `netlify.toml`: no bloquea nada; lo que bloquearía llega a /admin →
+  Errores como «CSP (informe) …» (`securitypolicyviolation` en
+  js/error-log.js, gratis: sin función de Netlify).
+- (S10) `.github/workflows/copia-base.yml`: cada noche copia la base
+  (copia-seguridad.sh), la restaura en un Postgres de prueba y compara las
+  filas (`herramientas/probar-copia.sh`, nuevo, probado aquí de punta a
+  punta), la cifra con AES256 y la guarda 30 días. `/.github/*` no se publica.
+
+**Ficheros**: supabase-migration-1313-telemetria-freno.sql,
+herramientas/probar-copia.sh y .github/workflows/copia-base.yml (nuevos);
+netlify/functions/{tarjeta,reto-foto,leer-carta,leer-lista,
+cardmarket-buscar,tcggo-historial,tcggo-versiones-ahora}.mjs, netlify.toml,
+js/error-log.js, netlify/edge-functions/internos.js, SCHEMA.md,
+BITACORA.md. En `pruebas`: test-tanda-1313 (nueva, con PostgreSQL) y 868 con
+el apartado Seguridad (1307). Portada: 146,8 KB, caben 23,2.
+
+**Pendiente**: la migración 1313. La copia: (1) en GitHub → Settings →
+Secrets → Actions, `SUPABASE_DB_URL` y `COPIA_CLAVE` (nunca en el chat);
+(2) GitHub solo programa lo que está en `main`: el fichero tiene que llegar
+a `main` (necesito permiso para eso, o lo copias tú). La CSP: dentro de dos
+semanas mirar los «CSP» de /admin → Errores y pasarla a
+`Content-Security-Policy`. Rojo que no es de aquí: 1159-pantalla (dos
+`.col-relleno` en /admin).
+
 ## 2026-11-13 (559) — PINGU-Claude (1312 — registro: la edad y «soy una persona»)
 
 **Hecho**: la S5. En /auth (crear cuenta) y en /alta-tienda, la casilla

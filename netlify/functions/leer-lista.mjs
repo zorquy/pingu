@@ -60,3 +60,8 @@ export async function responder(req, { env = process.env, fetchImpl = fetch, esA
 }
 
 export default (req) => responder(req)
+
+// Tope por persona (tanda 1313, S7): leer una lista pegada o fotografiada.
+// Pasado el tope, Netlify contesta 429 sin despertar la función (no se
+// paga). Por IP: cada uno el suyo.
+export const config = { rateLimit: { windowLimit: 20, windowSize: 60, aggregateBy: ['ip', 'domain'] } }

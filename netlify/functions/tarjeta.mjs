@@ -138,3 +138,9 @@ export default async function handler(req) {
     },
   })
 }
+
+// Tope por persona (tanda 1313, S7): dibuja una imagen con resvg en cada
+// llamada; los rastreadores de redes piden varias, por eso 120. Pasado el
+// tope, Netlify contesta 429 sin despertar la función (no se paga). Por IP:
+// cada uno el suyo.
+export const config = { rateLimit: { windowLimit: 120, windowSize: 60, aggregateBy: ['ip', 'domain'] } }

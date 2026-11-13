@@ -140,3 +140,8 @@ export default async (req) => {
     return json(502, { error: String(e?.message || e).slice(0, 300) })
   }
 }
+
+// Tope por persona (tanda 1313, S7): pide a TCGGO (de pago) los idiomas de
+// una versión; además tiene su tope diario. Pasado el tope, Netlify contesta
+// 429 sin despertar la función (no se paga). Por IP: cada uno el suyo.
+export const config = { rateLimit: { windowLimit: 30, windowSize: 60, aggregateBy: ['ip', 'domain'] } }

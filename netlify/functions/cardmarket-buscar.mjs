@@ -54,3 +54,8 @@ export async function responder(req, { fetchImpl = fetch, esAdmin = (t) => idDeA
 }
 
 export default (req) => responder(req)
+
+// Tope por persona (tanda 1313, S7): busca en el catálogo de Cardmarket
+// desde /admin. Pasado el tope, Netlify contesta 429 sin despertar la
+// función (no se paga). Por IP: cada uno el suyo.
+export const config = { rateLimit: { windowLimit: 30, windowSize: 60, aggregateBy: ['ip', 'domain'] } }
