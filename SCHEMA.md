@@ -55204,6 +55204,26 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1345 — Clasificación, Jueces y las dos columnas del PC
+
+**Quién va** (`lideresHtml(tabla)` en `js/torneos/ronda.js`): con el torneo
+`in_progress`, sin podio ni campeón y al menos tres en la tabla general, la
+clasificación abre con `.torneo-lideres` (tres `.torneo-lider`, ordenados 2-1-3
+con `order`; `.yo` en la tuya).
+
+**Tabla del móvil**: las celdas del usuario de TCG Live llevan `.col-tcg`, las
+de OWP/OOWP `.col-owp` y la de «Ver lista» `.col-lista`; por debajo de 640 px
+se esconden `.col-tcg` y `.col-owp`.
+
+**Cifras de jueces** (`pintarCifrasJuez()` en `js/torneos/jueces.js`, la
+primera de `pintarJueces`): `#torneoJuezCifras`, solo para quien tiene mando o
+es juez y con el torneo en juego, con tres `a.torneo-juez-cifra` (`.hay` si
+pasan de 0) que enlazan a `#torneoSinCheckinCaja` y `#torneoColaCaja`.
+
+**`?ver=` tardío** (`js/torneos/torneo.js`): `pintarPestanas` cambia a la
+pestaña de `?ver=` en cuanto aparece mientras `pestanaElegidaAMano` sea falso
+(lo ponen el clic en una pestaña e `irAPestana`).
+
 ## Tanda 1344 — Rondas: el mando y filtrar las mesas
 
 **El mando** (`pintarRondas` en `js/torneos/ronda.js`): con `admin` no vacío,

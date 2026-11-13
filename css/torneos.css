@@ -4311,3 +4311,54 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 .torneo-mesas-filtro { margin: 0 0 var(--e-sm); }
 #mesasContenido[data-filtro='faltan'] .torneo-mesa.terminada,
 #mesasContenido[data-filtro='terminadas'] .torneo-mesa.falta { display: none; }
+
+/* ── 1345: Clasificación y Jueces (SCHEMA 1345) ── */
+/* Mientras se juega, quién va arriba: tres cajas, la primera más alta. */
+.torneo-lideres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-sm); align-items: end; margin: 0 0 var(--e-md); }
+.torneo-lider {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  padding: var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  text-align: center;
+  min-width: 0;
+}
+.torneo-lider strong { max-width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.torneo-lider-pos { font-family: var(--font-marca); font-size: var(--t-xl); color: var(--navy); }
+.torneo-lider-1 { order: 2; padding-block: var(--e-md); border-color: var(--acento); }
+.torneo-lider-1 .torneo-lider-pos { font-size: var(--t-2xl); }
+.torneo-lider-2 { order: 1; }
+.torneo-lider-3 { order: 3; }
+.torneo-lider.yo { box-shadow: inset 0 0 0 2px var(--navy); }
+/* En el móvil la tabla se queda en cuatro columnas: puesto, jugador, puntos y
+   V-D-E. Los desempates y el usuario de TCG Live, en el historial de cada uno. */
+@media (max-width: 640px) {
+  .torneo-clasificacion-tabla .col-tcg,
+  .torneo-clasificacion-tabla .col-owp { display: none; }
+  .torneo-clasificacion-tabla .col-lista .torneo-ver-lista { padding: 0 var(--e-sm); font-size: var(--t-xs); }
+}
+
+/* Jueces: lo que espera, en tres cifras arriba. */
+.torneo-juez-cifras { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--e-sm); margin: 0 0 var(--e-md); }
+.torneo-juez-cifras.hidden { display: none; }
+.torneo-juez-cifra {
+  display: grid;
+  gap: 2px;
+  justify-items: center;
+  padding: var(--e-md) var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-align: center;
+  text-decoration: none;
+}
+.torneo-juez-cifra b { font-family: var(--font-marca); font-size: var(--t-2xl); color: var(--text-dim); line-height: 1; }
+.torneo-juez-cifra.hay { border-color: var(--warning); background: var(--warning-bg); color: var(--warning); }
+.torneo-juez-cifra.hay b { color: var(--warning); }
+.torneo-lider .subtext { white-space: nowrap; }
+@media (max-width: 640px) { .torneo-lider-vde { display: none; } }

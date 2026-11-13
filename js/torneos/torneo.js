@@ -1898,6 +1898,10 @@ const ORDEN_DE_PESTANAS = {
   fin: ['clasificacion', 'rondas', 'meta', 'torneo', 'jugar', 'jueces'],
 }
 let pestanaActiva = null
+// `?ver=jueces` llegaba antes que los datos de jueces: la pestaña aún no
+// existía y se abría otra para siempre (1345). Mientras nadie elija a mano,
+// la pedida gana en cuanto aparece.
+let pestanaElegidaAMano = false
 
 function faseDeLaFicha() {
   if (['finished', 'cancelled'].includes(torneo?.status)) return 'fin'
@@ -1934,6 +1938,8 @@ function pintarPestanas() {
     const pedida = new URLSearchParams(location.search).get('ver')
     pestanaActiva = visibles.some((p) => p.id === pedida) ? pedida : pestanaDeEntrada(fase, visibles)
   }
+  const pedidaEnUrl = new URLSearchParams(location.search).get('ver')
+  if (!pestanaElegidaAMano && pedidaEnUrl && pestanaActiva !== pedidaEnUrl && visibles.some((p) => p.id === pedidaEnUrl)) pestanaActiva = pedidaEnUrl
   if (!visibles.some((p) => p.id === pestanaActiva)) pestanaActiva = visibles[0]?.id || 'torneo'
   // La pestaña abierta, en la raíz: la pastilla del reloj no sale en Mi mesa,
   // que ya lleva el reloj grande (1343).
@@ -1973,6 +1979,7 @@ function pintarPestanas() {
   nav.querySelectorAll('[data-pestana]').forEach((b) =>
     b.addEventListener('click', () => {
       pestanaActiva = b.dataset.pestana
+      pestanaElegidaAMano = true
       // En la dirección, SUSTITUYENDO la entrada (859): una pestaña no es
       // un paso del historial, igual que en Mi colección (la 856).
       const url = new URL(location.href)
@@ -1988,6 +1995,7 @@ function pintarPestanas() {
 // «Tu decklist»).
 function irAPestana(id) {
   pestanaActiva = id
+  pestanaElegidaAMano = true
   pintarPestanas()
 }
 

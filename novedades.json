@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En la clasificación de un torneo en juego ves arriba quién va primero, segundo y tercero, y en el móvil la tabla cabe sin moverla de lado. Si eres juez, tienes arriba cuánta gente falta por hacer check-in, las llamadas y las disputas.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Si organizas un torneo, en Rondas tienes una tarjeta con lo que pasa y un solo botón, el que toca; «Deshacer» queda apartado en «⋯» para no pulsarlo sin querer. Y con muchas mesas puedes ver solo las que faltan.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En un torneo, el tiempo de la ronda está ahora dentro de tu mesa, en grande y con color: ámbar mientras dura el check-in, verde jugando y rojo en los últimos minutos.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Antes de que empiece un torneo: el día en grande con «Añadir al calendario» al lado, la descripción plegada con «Leer más», «Inscribirme» siempre arriba mientras haya plazas, tu plaza en verde cuando ya estás dentro y un buscador en Jugadores.", "enlace": "/torneos" },

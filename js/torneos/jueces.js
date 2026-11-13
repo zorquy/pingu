@@ -735,7 +735,23 @@ async function decidirJuez(solicitudId, decision) {
 
 // ── Arranque ──
 
+// Las tres cifras de arriba de Jueces (1345): lo que espera, de un vistazo,
+// antes de bajar a cada caja. Cada una lleva a la suya.
+function pintarCifrasJuez() {
+  const caja = $('torneoJuezCifras')
+  if (!caja) return
+  const soyJuez = mando() || ctx.esJuez
+  caja.classList.toggle('hidden', !soyJuez || ctx.torneo.status !== 'in_progress')
+  if (!soyJuez) return
+  const cifra = (n, texto, destino) =>
+    `<a class="torneo-juez-cifra${n ? ' hay' : ''}" href="#${destino}"><b>${n}</b><span>${texto}</span></a>`
+  const abiertas = llamadas.filter((c) => c.status === 'open').length
+  const html = cifra(faltanCheckin.length, 'sin check-in', 'torneoSinCheckinCaja') + cifra(abiertas, abiertas === 1 ? 'llamada' : 'llamadas', 'torneoColaCaja') + cifra(disputadas.length, disputadas.length === 1 ? 'disputa' : 'disputas', 'torneoColaCaja')
+  if (caja.innerHTML !== html) caja.innerHTML = html
+}
+
 function pintarJueces() {
+  pintarCifrasJuez()
   pintarSinCheckin()
   pintarSolicitudes()
   pintarCola()

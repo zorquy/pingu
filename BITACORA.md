@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (594) — PINGU-Claude (1345 — Clasificación con quién va arriba, tabla del móvil y Jueces con cifras)
+
+**Hecho**:
+- **Clasificación, mientras se juega**: arriba, los tres primeros en tres
+  cajas (1.º en el centro, más alto; tu caja marcada). El podio y el cuadro
+  del top que ya salían al terminar (217 y el bracket) siguen igual.
+- **La tabla en el móvil**, a cuatro columnas: puesto, jugador, puntos y
+  V-D-E. El usuario de TCG Live y los desempates (OWP/OOWP) se quedan en el PC
+  (y en el historial de cada jugador).
+- **Jueces**: tres cifras arriba —sin check-in, llamadas y disputas—, en ámbar
+  cuando hay algo, que llevan a su caja.
+- **PC a dos columnas**: la ronda a la izquierda y el tablón a la derecha (ya
+  montado en la 1341).
+- `?ver=jueces` (y cualquier pestaña que aparece cuando llegan sus datos) ya
+  se abre aunque al principio no estuviera; antes se quedaba en otra.
+
+**Nota a la 1344**: el cuadro del top ya existía, en Clasificación al llegar
+al corte; lo que falta es enseñarlo también en Rondas.
+
+**Ficheros**: `js/torneos/ronda.js`, `js/torneos/jueces.js`,
+`js/torneos/torneo.js`, `torneo.html`, `css/torneos.css`, `novedades.json`.
+
+**Pendiente**: 1346. Sin migración.
+
 ## 2026-11-13 (593) — PINGU-Claude (1344 — Rondas: el mando del organizador y filtrar las mesas)
 
 **Hecho**:

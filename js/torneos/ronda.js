@@ -2974,6 +2974,21 @@ function pintarComoVas() {
   })
 }
 
+// Mientras se juega (1345): los tres de arriba, en tres cajas, con sus puntos.
+// No es el podio del final (ese sale con el torneo cerrado): dice «va».
+function lideresHtml(tabla) {
+  return `<div class="torneo-lideres" aria-label="Quién va primero">${tabla
+    .slice(0, 3)
+    .map(
+      (e, i) => `<div class="torneo-lider torneo-lider-${i + 1}${e.playerId === miId() ? ' yo' : ''}">
+        <span class="torneo-lider-pos">${i + 1}.º</span>
+        <strong>${escapeHtml(nombreDe(e.playerId))}</strong>
+        <span class="subtext">${e.matchPoints} pts<span class="torneo-lider-vde"> · ${e.wins}-${e.losses}-${e.draws}</span></span>
+      </div>`
+    )
+    .join('')}</div>`
+}
+
 function pintarClasificacion() {
   const caja = $('torneoClasificacionCaja')
   const hayPuntos = partidas.some((m) => TERMINALES.has(m.status))
@@ -3023,7 +3038,7 @@ function pintarClasificacion() {
           ? ` <span class="torneo-marca-top">Top ${corte}</span>`
           : ''
       const verLista = verListas
-        ? `<td><button class="btn-secondary torneo-ver-lista" data-ver-lista="${escapeHtml(e.playerId)}">Ver lista</button></td>`
+        ? `<td class="col-lista"><button class="btn-secondary torneo-ver-lista" data-ver-lista="${escapeHtml(e.playerId)}">Ver lista</button></td>`
         : ''
       // El puesto como MEDALLA en los tres primeros, y tu fila marcada
       // (tanda 298): en una tabla de dieciséis filas iguales, lo primero
@@ -3034,11 +3049,11 @@ function pintarClasificacion() {
         <td><span class="torneo-pos${medalla}">${i + 1}</span></td>
         <td><button type="button" class="torneo-jugador-historial" data-historial="${escapeHtml(e.playerId)}"
           title="Ver sus partidas del torneo">${escapeHtml(nombreDe(e.playerId))}</button>${chapaDe(e.playerId)}${retirado}${dentro}</td>
-        ${verTcgLive ? `<td class="subtext">${escapeHtml(insc?.tcg_live_username || '—')}</td>` : ''}
+        ${verTcgLive ? `<td class="subtext col-tcg">${escapeHtml(insc?.tcg_live_username || '—')}</td>` : ''}
         <td><strong>${e.matchPoints}</strong></td>
         <td>${e.wins}-${e.losses}-${e.draws}${e.byesReceived ? ` (+${e.byesReceived} bye)` : ''}</td>
-        <td>${(e.owp * 100).toFixed(2)} %</td>
-        <td>${(e.oowp * 100).toFixed(2)} %</td>
+        <td class="col-owp">${(e.owp * 100).toFixed(2)} %</td>
+        <td class="col-owp">${(e.oowp * 100).toFixed(2)} %</td>
         ${verLista}
       </tr>`
     })
@@ -3068,7 +3083,9 @@ function pintarClasificacion() {
       </div>`
     : campeon
       ? `<div class="torneo-campeon">${icons.trophy(20)} Campeón del torneo: <strong>${escapeHtml(nombreDe(campeon))}</strong></div>`
-      : ''
+      : ctx.torneo.status === 'in_progress' && tabla.length >= 3
+        ? lideresHtml(tabla)
+        : ''
   const htmlClasif = `
     ${banner}
     ${general ? repartoDePremiosHtml() : ''}
@@ -3077,7 +3094,7 @@ function pintarClasificacion() {
     ${general ? '' : `<p class="subtext">Solo cuentan las mesas de la jornada ${vistaClasificacion}.</p>`}
     <div class="torneo-clasificacion-tabla">
       <table>
-        <thead><tr><th>#</th><th>Jugador</th>${verTcgLive ? '<th>TCG Live</th>' : ''}<th>Puntos</th><th>V-D-E</th><th>OWP</th><th>OOWP</th>${verListas ? '<th></th>' : ''}</tr></thead>
+        <thead><tr><th>#</th><th>Jugador</th>${verTcgLive ? '<th class="col-tcg">TCG Live</th>' : ''}<th>Puntos</th><th>V-D-E</th><th class="col-owp">OWP</th><th class="col-owp">OOWP</th>${verListas ? '<th class="col-lista"></th>' : ''}</tr></thead>
         <tbody>${filas}</tbody>
       </table>
     </div>
