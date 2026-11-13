@@ -55204,6 +55204,22 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1322 — «Tu semana en PokeDoc» en el correo de los lunes
+
+P6 del plan. `tuSemana` (resumen-semanal.mjs) recibe además `cruces` (avisos
+`trade_match`/`trade_match_seguido` de los últimos 7 días), `torneos` (con
+`matchday_dates`, abiertos o en juego) e `inscripciones` (no `dropped`) →
+`jornadas` de los próximos 7 días, `eventos` de la semana y sus `asistentes` →
+`eventos`, y `perfiles` → `racha` (`current_streak` ≥ 3; sin la columna, se
+pide el perfil sin ella). `hayAlgoTuyo(t)` es lo mismo que pinta
+`lineasDeTuSemana` (email-plantilla.js), que añade una línea por cada cosa con
+su ruta (`/mi-coleccion?ver=cambios`, `/torneo?id=`, `/eventos/<slug>`,
+`/retos`) y el día en hora de Madrid. El asunto (en la fila de `email_outbox`
+y en `renderResumenSemanal`) es «Tu semana en PokeDoc» cuando hay algo tuyo.
+Sin nada de la comunidad (`hayComun` falso), los destinatarios son solo los que
+tienen algo suyo; sin ninguno, «semana sin contenido». La campanita de los lunes
+sigue siendo `lunes.mjs` (`resumen_lunes`): esta función solo encola el correo.
+
 ## Tanda 1321 — tu calendario en el del móvil
 
 P7 del plan.

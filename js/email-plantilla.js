@@ -398,11 +398,23 @@ export function lineasDeTuSemana(tu) {
     lineas.push({ texto: `Tu colección vale ${eur(tu.valor)}${cambio}`, ruta: '/mi-coleccion' })
   }
   if (tu.respuestas > 0) lineas.push({ texto: `${tu.respuestas} ${tu.respuestas === 1 ? 'mensaje nuevo' : 'mensajes nuevos'} en temas que sigues`, ruta: '/foro' })
+  // Lo de la 1322 (P6): cruces, tus jornadas y eventos de esta semana, tu racha.
+  if (tu.cruces > 0) lineas.push({ texto: `${tu.cruces} ${tu.cruces === 1 ? 'cruce nuevo' : 'cruces nuevos'}: gente que da cartas de tu «La quiero»`, ruta: '/mi-coleccion?ver=cambios' })
+  for (const j of (tu.jornadas || []).slice(0, 3)) lineas.push({ texto: `${j.torneo} · Jornada ${j.n}, ${diaDeLaSemana(j.fecha)}`, ruta: `/torneo?id=${encodeURIComponent(j.id)}` })
+  for (const e of (tu.eventos || []).slice(0, 3)) lineas.push({ texto: `${e.nombre}, ${diaDeLaSemana(e.empieza)}: vas`, ruta: `/eventos/${encodeURIComponent(e.slug)}` })
+  if (tu.racha >= 3) lineas.push({ texto: `Llevas ${tu.racha} días de racha en los retos: no la pierdas`, ruta: '/retos' })
   return lineas
 }
 
+// «el jueves 19» (hora de Madrid).
+function diaDeLaSemana(f) {
+  const d = new Date(f)
+  return Number.isNaN(d.getTime()) ? 'esta semana' : `el ${d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', timeZone: 'Europe/Madrid' })}`
+}
+
 export function renderResumenSemanal({ temas = [], guia = null, noticias = [], lanzamientos = [], tu = null, siteUrl, unsubscribeUrl, propio = null }) {
-  const asunto = sanitizeHeader(asuntoConPropio('Lo mejor de PokeDoc esta semana', propio))
+  // Con algo tuyo, el asunto es tuyo (1322): «Tu semana en PokeDoc».
+  const asunto = sanitizeHeader(asuntoConPropio(lineasDeTuSemana(tu).length ? 'Tu semana en PokeDoc' : 'Lo mejor de PokeDoc esta semana', propio))
   const { cta: verbo, pie } = textosDeTipo('weekly_digest', propio)
   const urlForo = absoluteUrl(siteUrl, '/foro')
 

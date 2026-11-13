@@ -70,7 +70,7 @@ export async function lanzamientosDeLaSemana(rest, clave, ahora = new Date()) {
 //     de `user_collection_value`, tanda 377);
 //   · cuántos mensajes nuevos, de OTROS, hay en los temas que sigue.
 // Lo que no se sabe no se pone: sin las dos fotos, no hay cifra de valor.
-export function tuSemana({ valoresHoy = [], valoresAntes = [], suscripciones = [], posts = [] }) {
+export function tuSemana({ valoresHoy = [], valoresAntes = [], suscripciones = [], posts = [], cruces = [], torneos = [], inscripciones = [], eventos = [], asistentes = [], perfiles = [], ahora = new Date() }) {
   const antes = new Map(valoresAntes.map((v) => [v.user_id, Number(v.valor)]))
   const porUsuario = new Map()
   const de = (id) => { if (!porUsuario.has(id)) porUsuario.set(id, {}); return porUsuario.get(id) }
@@ -90,8 +90,38 @@ export function tuSemana({ valoresHoy = [], valoresAntes = [], suscripciones = [
       t.respuestas = (t.respuestas || 0) + 1
     }
   }
+  // 1322 (P6): los cruces de la semana (los avisos `trade_match*`).
+  for (const c of cruces) { const t = de(c.recipient_id); t.cruces = (t.cruces || 0) + 1 }
+  // Las jornadas de tus ligas en los próximos siete días.
+  const hasta = ahora.getTime() + 7 * 86400e3
+  const proximas = new Map()
+  for (const tor of torneos) {
+    const fechas = Array.isArray(tor.matchday_dates) ? tor.matchday_dates : []
+    fechas.forEach((f, i) => {
+      const ms = Date.parse(f)
+      if (ms >= ahora.getTime() && ms <= hasta) (proximas.get(tor.id) || proximas.set(tor.id, []).get(tor.id)).push({ id: tor.id, torneo: tor.name, n: i + 1, fecha: f })
+    })
+  }
+  for (const r of inscripciones) {
+    if (r.status === 'dropped' || !proximas.has(r.tournament_id)) continue
+    const t = de(r.user_id)
+    t.jornadas = [...(t.jornadas || []), ...proximas.get(r.tournament_id)]
+  }
+  // Los eventos con «Voy» de esta semana.
+  const porEvento = new Map(eventos.map((e) => [e.id, e]))
+  for (const a of asistentes) {
+    const e = porEvento.get(a.evento_id)
+    if (!e) continue
+    const t = de(a.user_id)
+    t.eventos = [...(t.eventos || []), { nombre: e.nombre, slug: e.slug, empieza: e.empieza }]
+  }
+  // La racha de los retos, si es de verdad (tres días o más).
+  for (const p of perfiles) if (Number(p.current_streak) >= 3) de(p.id).racha = Number(p.current_streak)
   return porUsuario
 }
+
+// ¿Tiene algo que contar lo tuyo? (lo mismo que pinta lineasDeTuSemana).
+export const hayAlgoTuyo = (t) => Boolean(t && (Number.isFinite(t.valor) || t.respuestas > 0 || t.cruces > 0 || t.jornadas?.length || t.eventos?.length || t.racha >= 3))
 
 // Junta el contenido de la semana: los 3 temas con más mensajes en los
 // últimos 7 días y la guía aprobada más reciente (si es de esta semana).
@@ -155,21 +185,29 @@ export async function procesar({ env = process.env, rest = restReal, ahora = new
 
   // Semana sin vida = sin correo. Mejor callar que escribir para nada.
   // Una semana con noticias SÍ tiene algo que contar aunque el foro haya
-  // estado tranquilo, y una con un lanzamiento también (821).
-  if (temas.length === 0 && !guia && (noticias || []).length === 0 && lanzamientos.length === 0) {
-    return { ok: true, saltado: 'semana sin contenido: no se manda nada' }
-  }
+  // estado tranquilo, y una con un lanzamiento también (821). Desde la 1322,
+  // lo TUYO también cuenta: sin nada de la comunidad, solo le llega a quien
+  // tiene algo suyo.
+  const hayComun = !(temas.length === 0 && !guia && (noticias || []).length === 0 && lanzamientos.length === 0)
 
   // «Tu semana» (821). Cada consulta va por su lado y en un `try`: si una
   // tabla no está (o falla), el resumen sale igual, sin esa línea.
   const dia = (n) => new Date(ahora.getTime() - n * 86400e3).toISOString().slice(0, 10)
   const pedir = async (ruta) => { try { return await todas(rest, ruta, clave) } catch { return [] } }
-  const [valoresHoy, valoresAntes, suscripciones] = await Promise.all([
+  const desde = new Date(ahora.getTime() - 7 * 86400e3).toISOString()
+  const dentroDeUnaSemana = new Date(ahora.getTime() + 7 * 86400e3).toISOString()
+  const [valoresHoy, valoresAntes, suscripciones, cruces, torneos, eventos] = await Promise.all([
     pedir(`user_collection_value?dia=eq.${dia(1)}&select=user_id,valor`),
     pedir(`user_collection_value?dia=eq.${dia(8)}&select=user_id,valor`),
     pedir(`forum_subscriptions?select=user_id,thread_id`),
+    pedir(`user_notifications?type=in.(trade_match,trade_match_seguido)&created_at=gte.${encodeURIComponent(desde)}&select=recipient_id`),
+    pedir(`tournaments?status=in.(registration_open,registration_closed,in_progress)&matchday_dates=not.is.null&select=id,name,matchday_dates`),
+    pedir(`eventos?empieza=gte.${encodeURIComponent(ahora.toISOString())}&empieza=lte.${encodeURIComponent(dentroDeUnaSemana)}&select=id,slug,nombre,empieza`),
   ])
-  const tuyo = tuSemana({ valoresHoy, valoresAntes, suscripciones, posts })
+  const [inscripciones, asistentes] = await Promise.all([
+    torneos.length ? pedir(`tournament_registrations?tournament_id=in.(${torneos.map((t) => t.id).join(',')})&select=tournament_id,user_id,status`) : [],
+    eventos.length ? pedir(`evento_asistentes?evento_id=in.(${eventos.map((e) => e.id).join(',')})&select=evento_id,user_id`) : [],
+  ])
 
   // El cuerpo va ESTRUCTURADO (JSON en `preview`): send-emails lo pinta
   // con la plantilla propia del resumen (renderResumenSemanal, en
@@ -186,10 +224,15 @@ export async function procesar({ env = process.env, rest = restReal, ahora = new
   const previewDe = (id) => JSON.stringify(tuyo.has(id) ? { ...comun, tu: tuyo.get(id) } : comun)
 
   // A quién: todos los perfiles con el resumen semanal encendido (a trozos).
-  const perfiles = await todas(rest, `user_profiles?select=id,notification_email_disabled&order=id`, clave)
+  // La racha viene con el perfil; sin la columna, se pide sin ella.
+  let perfiles
+  try { perfiles = await todas(rest, `user_profiles?select=id,notification_email_disabled,current_streak&order=id`, clave) } catch { perfiles = await todas(rest, `user_profiles?select=id,notification_email_disabled&order=id`, clave) }
+  const tuyo = tuSemana({ valoresHoy, valoresAntes, suscripciones, posts, cruces, torneos, inscripciones, eventos, asistentes, perfiles, ahora })
   const destinatarios = (perfiles || [])
     .filter((p) => !(p.notification_email_disabled || []).includes('weekly_digest'))
+    .filter((p) => hayComun || hayAlgoTuyo(tuyo.get(p.id)))
     .map((p) => p.id)
+  if (!destinatarios.length && !hayComun) return { ok: true, saltado: 'semana sin contenido: no se manda nada' }
 
   // La dedupe: quien ya tenga el resumen de ESTA semana encolado o
   // enviado no repite.
@@ -202,7 +245,7 @@ export async function procesar({ env = process.env, rest = restReal, ahora = new
   const filas = nuevos.map((id) => ({
     recipient_id: id,
     type: 'weekly_digest',
-    subject: 'Lo mejor de PokeDoc esta semana',
+    subject: hayAlgoTuyo(tuyo.get(id)) ? 'Tu semana en PokeDoc' : 'Lo mejor de PokeDoc esta semana',
     preview: previewDe(id),
     link: '/foro',
     thread_key: semana,
@@ -210,6 +253,8 @@ export async function procesar({ env = process.env, rest = restReal, ahora = new
   // A trozos también al escribir: una petición con miles de filas es lenta y
   // si falla, falla entera.
   for (let i = 0; i < filas.length; i += 500) await rest(`email_outbox`, clave, { method: 'POST', body: JSON.stringify(filas.slice(i, i + 500)) })
+
+  // La campanita de los lunes ya la pone lunes.mjs (794, `resumen_lunes`): aquí solo el correo.
 
   return { ok: true, semana, encolados: nuevos.length, temas: temas.length, guia: !!guia }
 }

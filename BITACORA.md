@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (570) — PINGU-Claude (1322 — «Tu semana en PokeDoc» en el correo de los lunes)
+
+**Hecho**: P6 del plan, sobre lo que había: el correo de los lunes
+(`resumen-semanal`, 272/821) ya llevaba tu colección y las respuestas en tus
+temas, y la campanita de los lunes (`lunes.mjs`, 794, `resumen_lunes`) ya
+existe — no se ha duplicado. Lo nuevo en el correo:
+- **Tus cruces de la semana** (los avisos `trade_match*` de los últimos 7
+  días), **tus jornadas de liga** de los próximos 7 días (no las de quien dejó
+  la liga), **tus eventos con «Voy»** de la semana y **tu racha** de retos
+  (de 3 días en adelante), cada uno con su enlace.
+- Con algo tuyo, el asunto es **«Tu semana en PokeDoc»**.
+- Sale aunque la comunidad haya estado tranquila, pero entonces SOLO a quien
+  tiene algo suyo (`hayAlgoTuyo`); sin nada de nadie, no sale. La baja de un
+  clic y el `weekly_digest` apagado, como siempre.
+- No va «lo que más subió» de tu colección: calcularlo para todos cabe mal en
+  los 30 s de la función; lo dice ya la campanita de los lunes (bajadas) y el
+  Panel.
+
+**Ficheros**: netlify/functions/resumen-semanal.mjs, js/email-plantilla.js,
+SCHEMA.md, novedades.json. En `pruebas`: test-tanda-1322 (272 y 823 siguen
+en verde).
+
 ## 2026-11-13 (569) — PINGU-Claude (1321 — tu calendario de PokeDoc en el del móvil)
 
 **Hecho**: P7 del plan. Ajustes › **Calendario**: una dirección secreta tuya
