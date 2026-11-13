@@ -1705,7 +1705,9 @@ ahora **torneos** (portados de TrainerArena, de Ibai — ver la sección
   movimiento», en `style.css`). No la edites a mano: si cambias la barra de
   arriba o las secciones, `node generar-barra-movil.mjs && node
   generar-cartas.mjs`; `test-tanda-753-pantalla.mjs` comprueba que el repo
-  lleva lo que sale del generador. `js/barra-movil.js` la remata (Cartas →
+  lleva lo que sale del generador. Y tras tocar los `import` fijos de una
+  página (o crear una), `node generar-precargas.mjs` (1315: sus
+  `modulepreload`, nunca lo de `import()`; lo vigila `test-tanda-1315`). `js/barra-movil.js` la remata (Cartas →
   Mi colección con cuenta), no la crea.
 - **Añadir una carta pasa SIEMPRE por `datos.anadir`, nunca por
   `actualizar`** (tanda 650). El bloque de añadir solo salía en la ficha

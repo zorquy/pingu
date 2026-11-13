@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (562) — PINGU-Claude (1315 — las precargas de módulos, generadas)
+
+**Hecho**: la R2. `generar-precargas.mjs` recorre cada página (57, con
+/admin), sus `<script type="module" src>` y todo lo que importan de forma
+fija, y escribe sus `<link rel="modulepreload">` entre `<!-- precargas: … -->`
+y `<!-- /precargas -->`, detrás de los seis de siempre y sin repetirlos. Así
+el navegador pide a la vez lo que antes descubría nivel a nivel (la ficha de
+un torneo tenía seis). Lo de `import()` no se precarga: se sigue bajando solo
+al tocarlo. La portada sube 0,1 KB (146,9; caben 23,1).
+
+**Ficheros**: generar-precargas.mjs (nuevo), las 57 páginas (solo el
+bloque), CLAUDE.md (la regla de los generadores), SCHEMA.md, BITACORA.md. En
+`pruebas`: test-tanda-1315 (nueva). Verdes también 753, 649, 1285, 299, 985 y
+test-imports. 981 en /mi-coleccion sigue en rojo como antes de esta noche.
+
+**Pendiente**: nada. Tras tocar los imports fijos de una página, correr el
+generador (lo canta test-tanda-1315).
+
 ## 2026-11-13 (561) — PINGU-Claude (1314 — tus datos: descargar todo y borrar la cuenta tú solo; la privacidad en un minuto)
 
 **Hecho**: la S11 y la D4.

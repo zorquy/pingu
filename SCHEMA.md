@@ -55204,6 +55204,16 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1315 — las precargas de módulos
+
+`generar-precargas.mjs`: `modulosDe(html, página)` (las entradas
+`<script type="module" src>` y el cierre de sus `import`/`export … from`
+fijos, sin comentarios), `bloqueDe` (sin los `modulepreload` que la página ya
+lleva a mano), `conPrecargas` (lo pone detrás del último a mano o antes de la
+primera hoja) y `paginas()` (raíz y admin/). Orden de los generadores:
+barra-movil → cartas → precargas. El service worker (`precargar`, 985) lee
+también estos `link`, con su tope de 120.
+
 ## Tanda 1314 — descargar tus datos y borrar tu cuenta tú solo
 
 - `js/mis-datos.js`: `TABLAS_MIAS` (tabla, columna con tu id), `prepararMisDatos
