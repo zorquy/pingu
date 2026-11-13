@@ -98,7 +98,7 @@ console.log('\n── 1. Una tarjeta por torneo, y UNA acción ──')
   check('cada tarjeta tiene UNA acción', (await copa.locator('.torneo-pie-accion').count()) === 1)
   // user-1 está inscrito en la Copa: no se le ofrece apuntarse otra vez.
   check('inscrito → «Ver el torneo»', (await copa.locator('.torneo-pie-accion').evaluate(accionDe)) === 'Ver el torneo')
-  check('  …y se le marca que está dentro', (await copa.locator('.torneo-mio').count()) === 1)
+  check('  …y se le marca que está dentro', (await copa.locator('.torneo-mio-arte').count()) === 1)
   // Y el enlace de la tarjeta y el del botón van al MISMO sitio: si se
   // separan, pulsar el botón te lleva a otro torneo.
   const hrefTarjeta = await copa.locator('.torneo-tarjeta-enlace').getAttribute('href')

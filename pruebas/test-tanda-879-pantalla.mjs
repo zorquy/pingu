@@ -86,7 +86,8 @@ console.log('\n── 2. La ficha entre jornadas: cuándo es la siguiente, no «
   const hoy = await abrir([aLas(-7), aLas(0, 23), aLas(7)])
   check('sin errores', hoy.errores.length === 0, hoy.errores.join(' | '))
   check('«Jornada 1 de 3 · cerrada» y «Jornada 2 hoy a las 23:00»', hoy.b.visible && /Jornada 1 de 3 · cerrada/.test(hoy.b.rotulo) && /^Jornada 2 hoy a las 23:00$/.test(hoy.b.titular), JSON.stringify(hoy.b))
-  check('  …y dice que a esa hora salen los pareos (no que se están pareando)', /A esa hora salen aquí los pareos/.test(hoy.b.der) && !/[Pp]areando/.test(hoy.b.titular), hoy.b.der)
+  // Desde la 1347 la derecha lleva la cuenta atrás y «Tu lista» en vez de la frase.
+  check('  …y la cuenta atrás hasta esa hora (no que se están pareando)', /Faltan/.test(hoy.b.der) && /Tu lista/.test(hoy.b.der) && !/[Pp]areando/.test(hoy.b.titular), hoy.b.der)
   const manana = await abrir([aLas(-7), aLas(1), aLas(8)])
   check('con la jornada mañana: «Jornada 2 mañana a las 19:00»', /^Jornada 2 mañana a las 19:00$/.test(manana.b.titular), manana.b.titular)
   const sinFecha = await abrir([aLas(-7)])

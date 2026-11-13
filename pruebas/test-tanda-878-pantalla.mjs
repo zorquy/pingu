@@ -102,15 +102,17 @@ console.log('\n── 1. Un jugador lo ve: la lista con lo humano y lo automáti
   check('sin errores', errores.length === 0, errores.join(' | '))
   const v = await leer(page)
   check('el tablón está, con «6 avisos» y sin caja de escribir (Ash no organiza)', v.visible && v.cuenta === '6 avisos' && !v.form, JSON.stringify({ visible: v.visible, cuenta: v.cuenta, form: v.form }))
-  check('cinco a la vista y «Ver los 6»', v.filas.length === 5 && v.mas === 'Ver los 6', `${v.filas.length} · ${v.mas}`)
+  // Desde la 1351 lo automático SEGUIDO va en una fila: de los cinco a la
+  // vista, la R2 en marcha y la R1 cerrada se juntan. Quedan cuatro filas.
+  check('cinco avisos a la vista (cuatro filas) y «Ver los 6»', v.filas.length === 4 && v.mas === 'Ver los 6', `${v.filas.length} · ${v.mas}`)
   check('la primera es el aviso de jesus (organizador) con su papel', !v.filas[0].auto && /jesus/.test(v.filas[0].texto) && /organizador/.test(v.filas[0].texto) && /Esperamos 5 minutos/.test(v.filas[0].texto), v.filas[0].texto)
-  check('la segunda es automática, en su estilo', v.filas[1].auto && /Ronda 2 en marcha/.test(v.filas[1].texto), v.filas[1].texto)
-  check('el juez sale como juez', /Brock/.test(v.filas[3].texto) && /juez/.test(v.filas[3].texto), v.filas[3].texto)
+  check('la segunda es automática, en su estilo, con la otra dentro', v.filas[1].auto && /Ronda 2 en marcha/.test(v.filas[1].texto) && /y 1 aviso más/.test(v.filas[1].texto), v.filas[1].texto)
+  check('el juez sale como juez', /Brock/.test(v.filas[2].texto) && /juez/.test(v.filas[2].texto), v.filas[2].texto)
   check('en la barra de estado, el último aviso humano con quién y hace cuánto', !v.barraOculta && /jesus/.test(v.barra) && /hace 2 min/.test(v.barra) && /«Esperamos 5 minutos/.test(v.barra), v.barra)
   await page.locator('#torneoTablonMas').click()
   await page.waitForTimeout(300)
   const v2 = await leer(page)
-  check('«Ver los 6» los enseña todos', v2.filas.length === 6 && /Bienvenidos/.test(v2.filas[5].texto), String(v2.filas.length))
+  check('«Ver los 6» los enseña todos', v2.filas.length === 5 && /Bienvenidos/.test(v2.filas[4].texto), String(v2.filas.length))
   check('un jugador no puede borrar nada', (await page.locator('[data-borrar-aviso]').count()) === 0)
   await ctx.close()
 }

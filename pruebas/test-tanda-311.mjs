@@ -144,7 +144,7 @@ console.log('\n── 2. El rojo de peligro tiene nombre ──')
   //    los tipos de energía del TCG. El rojo del tipo Fuego es EL rojo
   //    del tipo Fuego: si cambiara con el tema dejaría de nombrar al
   //    tipo, que es su único trabajo. Paleta cerrada, como las otras dos.
-  //  · COLORES_AVATAR (js/app.js): el color del avatar se deduce del
+  //  · COLORES_AVATAR (js/avatar.js, antes en app.js): el color del avatar se deduce del
   //    identificador de cada persona y no puede cambiar al cambiar de
   //    tema. Aquí llegó a colarse `var(--danger)`, que en oscuro vuelve
   //    el rojo rosado y deja la inicial blanca encima en 2,4.

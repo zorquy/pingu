@@ -65,7 +65,7 @@ for (const movil of [false, true]) {
     return {
       hay: Boolean(t),
       chapa: t?.querySelector('.lc-chapa')?.textContent,
-      podio: [...(t?.querySelectorAll('.lc-p') || [])].map((x) => x.textContent.replace(/\s+/g, ' ').trim()),
+      podio: [...(t?.querySelectorAll('.lc-p') || [])].map((x) => { const c = x.cloneNode(true); c.querySelectorAll('.torneo-jcara').forEach((e) => e.remove()); return c }).map((x) => x.textContent.replace(/\s+/g, ' ').trim()),
       cita: [t?.querySelector('.lc-cita'), t?.querySelector('.lc-listas')].map((x) => x?.textContent.replace(/\s+/g, ' ').trim()).join(' | '),
       boton: t?.querySelector('.lc-boton')?.textContent,
       banda: `${document.getElementById('tNEnJuego')?.textContent} ${document.getElementById('tNEnJuegoTexto')?.textContent}`,
