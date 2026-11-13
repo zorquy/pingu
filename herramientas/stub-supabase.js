@@ -1576,7 +1576,12 @@ function consulta(tabla, estado = {}) {
       // tabla (tanda 718): «no se ha podido preguntar» es un estado de la
       // pantalla, y una prueba que nunca lo provoca no lo está mirando.
       const falla = typeof window !== 'undefined' && window.__FAKE_FALLA__?.[tabla]
-      const valor = falla
+      // `window.__FAKE_SIN_RED__ = true` (tanda 1318): TODO falla como falla
+      // un fetch sin cobertura, con el mensaje que da supabase-js.
+      const sinRed = typeof window !== 'undefined' && window.__FAKE_SIN_RED__
+      const valor = sinRed
+        ? { data: null, error: { code: '', message: 'TypeError: Failed to fetch', details: 'TypeError: Failed to fetch' } }
+        : falla
         ? { data: null, error: { code: '500', message: `stub: ${tabla} falla a propósito` } }
         : st.columnaQueFalta
         ? { data: null, error: { code: '42703', message: `column ${tabla}.${st.columnaQueFalta} does not exist` } }

@@ -117,7 +117,7 @@ console.log('── 3. La página «Sin conexión» ──')
     await page.goto(`${ORIGEN}/torneos.html`, { waitUntil: 'domcontentloaded' }).catch(() => {})
     await page.waitForTimeout(500)
     const s = await page.evaluate(() => ({ h1: document.querySelector('h1')?.textContent, copia: [...document.querySelectorAll('#copiaLista li')].map((l) => l.textContent), cola: [...document.querySelectorAll('#colaLista li')].map((l) => l.textContent) }))
-    check('sin red, la página «Sin conexión»', s.h1 === 'Sin conexión', JSON.stringify(s))
+    check('sin red, la página «Sin cobertura» (1318)', s.h1 === 'Sin cobertura', JSON.stringify(s))
     check('  …con tu colección guardada', s.copia.length === 2 && /Charizard · Set Básico×3/.test(s.copia[0]), JSON.stringify(s.copia))
     check('  …y lo que queda por guardar', s.cola.length === 1 && /Mewtwo×1/.test(s.cola[0]), JSON.stringify(s.cola))
   } finally {
