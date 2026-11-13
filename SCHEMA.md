@@ -55204,6 +55204,43 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1335 — /admin → Redes (noticias, guías y torneos)
+
+Tres piezas, de lo puro a la pantalla:
+- `js/redes-textos.js` (sin DOM, lo prueba Node) arma cada PIEZA:
+  `{ clave, tipo, titulo, linea, fecha, url, miniatura, x: { texto, url },
+  caption, diapositivas: [{ pintor, datos }] }`. `piezaDeNoticia`,
+  `piezaDeGuia` (carrusel con `clavesDeGuia`: los `<h2>` del `richtext` o los
+  `heading` viejos, sin «Introducción», «Conclusión»…, con la primera frase de
+  debajo; si hay menos de dos, las frases de la entradilla; si tampoco, una
+  imagen) y `piezasDeTorneo` (anuncio si está abierto o en juego y no empezó
+  hace más de un día; resultados si `status = finished` y hay `podium`; nada si
+  es privado, borrador o cancelado). `TIPOS` es la lista de los filtros: las
+  tandas siguientes añaden ahí su tipo.
+- `js/redes-piezas.js` dibuja las diapositivas con `pintarMarco` (1156):
+  `guia-portada`, `guia-clave` (el número grande en el verde de Aprender),
+  `guia-cierre`, `torneo-anuncio` (el cartel del torneo en tarjeta, o una caja
+  con las plazas que quedan) y `torneo-resultados` (podio 2-1-3 y, si cargan,
+  los sprites del mazo del campeón). `noticia` es `pintarNoticia` tal cual.
+  Una imagen que no carga se queda en null y se dibuja sin ella.
+- `admin/js/redes-admin.js` (`montarRedes`, entra por `import()` al abrir la
+  sección): lee `guides` publicadas (80), `tournaments` no privados (40) con
+  sus inscritos activos, los nombres del podio y el mazo del campeón (si
+  `decklist_visibility` no es `nunca`), y `redes_compartido`.
+
+`redes_compartido (clave, red 'x'|'instagram', hecho_at, hecho_por default
+auth.uid())`, clave primaria `(clave, red)`, RLS `is_admin()` para todo. La
+`clave` es la de la pieza: `noticia:<slug>`, `guia:<slug>`,
+`torneo:<id>:anuncio`, `torneo:<id>:resultados`. Marcar es un `upsert` con
+`onConflict: 'clave,red'`; quitar, un `delete`. Sin la tabla
+(PGRST205/42P01) se guarda en `localStorage` (`pd-redes-hechos`) y lo dice.
+«Sin compartir» = le falta X o Instagram (`faltaAlgo`).
+
+Prueba: `test-tanda-1335.mjs` (la migración contra PostgreSQL con RLS; lo
+puro; el panel en PC y móvil: filtros y cuentas, X con su enlace y la marca,
+el carrusel de 5 a 1080×1350, copiar, descargar las 5 numeradas, quitar una
+marca y el modo sin migración).
+
 ## Tanda 1334 — lo pequeño (I5)
 
 `initErrorLogging` deja pasar sin apuntar un rechazo `InvalidStateError` o

@@ -3,7 +3,7 @@
 -- Solo para LEER cómo es hoy una tabla o una función sin recorrer las
 -- migraciones. Lo que manda siguen siendo las supabase-migration-*.sql, que
 -- es lo que un humano ejecuta. Se rehace con  node herramientas/esquema-actual.mjs
--- (rama pruebas), aplicando las 305 migraciones en el orden en que
+-- (rama pruebas), aplicando las 306 migraciones en el orden en que
 -- entraron sobre un PostgreSQL vacío con lo justo de Supabase delante y la base
 -- de partida del primer SCHEMA.md (las tablas de antes de la primera migración:
 -- sus TIPOS son aproximados).
@@ -13623,6 +13623,19 @@ CREATE TABLE public.question_stats (
 );
 
 --
+-- Name: redes_compartido; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.redes_compartido (
+    clave text NOT NULL,
+    red text NOT NULL,
+    hecho_at timestamp with time zone DEFAULT now() NOT NULL,
+    hecho_por uuid DEFAULT auth.uid(),
+    CONSTRAINT redes_compartido_clave_check CHECK (((char_length(clave) >= 3) AND (char_length(clave) <= 160))),
+    CONSTRAINT redes_compartido_red_check CHECK ((red = ANY (ARRAY['x'::text, 'instagram'::text])))
+);
+
+--
 -- Name: replay_puzzle_answers; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -15883,6 +15896,13 @@ ALTER TABLE ONLY public.push_subscriptions
 
 ALTER TABLE ONLY public.question_stats
     ADD CONSTRAINT question_stats_pkey PRIMARY KEY (guide_id, question_key);
+
+--
+-- Name: redes_compartido redes_compartido_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.redes_compartido
+    ADD CONSTRAINT redes_compartido_pkey PRIMARY KEY (clave, red);
 
 --
 -- Name: replay_puzzle_answers replay_puzzle_answers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
@@ -18887,6 +18907,13 @@ ALTER TABLE ONLY public.question_stats
     ADD CONSTRAINT question_stats_guide_id_fkey FOREIGN KEY (guide_id) REFERENCES public.guides(id) ON DELETE CASCADE;
 
 --
+-- Name: redes_compartido redes_compartido_hecho_por_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.redes_compartido
+    ADD CONSTRAINT redes_compartido_hecho_por_fkey FOREIGN KEY (hecho_por) REFERENCES auth.users(id) ON DELETE SET NULL;
+
+--
 -- Name: replay_puzzle_answers replay_puzzle_answers_puzzle_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -21150,6 +21177,18 @@ ALTER TABLE public.question_stats ENABLE ROW LEVEL SECURITY;
 --
 
 CREATE POLICY question_stats_select ON public.question_stats FOR SELECT USING (true);
+
+--
+-- Name: redes_compartido; Type: ROW SECURITY; Schema: public; Owner: -
+--
+
+ALTER TABLE public.redes_compartido ENABLE ROW LEVEL SECURITY;
+
+--
+-- Name: redes_compartido redes_compartido_equipo; Type: POLICY; Schema: public; Owner: -
+--
+
+CREATE POLICY redes_compartido_equipo ON public.redes_compartido TO authenticated USING (public.is_admin()) WITH CHECK (public.is_admin());
 
 --
 -- Name: tcg_repetidas_distintas repetidas_distintas_admin; Type: POLICY; Schema: public; Owner: -
@@ -24332,6 +24371,12 @@ GRANT SELECT,INSERT ON TABLE public.page_vitals TO authenticated;
 --
 
 GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.private_message_reactions TO authenticated;
+
+--
+-- Name: TABLE redes_compartido; Type: ACL; Schema: public; Owner: -
+--
+
+GRANT SELECT,INSERT,DELETE,UPDATE ON TABLE public.redes_compartido TO authenticated;
 
 --
 -- Name: TABLE replay_puzzles; Type: ACL; Schema: public; Owner: -

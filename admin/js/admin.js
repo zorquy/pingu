@@ -24,6 +24,7 @@ let categories = []
 let perfilAdmin = null
 let avisosMontados = false
 let eventosMontados = false
+let redesMontadas = false
 let guidesCache = []
 
 // ── Access gate ──
@@ -52,7 +53,9 @@ async function checkAccess() {
     const aviso = document.createElement('p')
     aviso.className = 'admin-note admin-aviso-mfa'
     aviso.innerHTML = 'Pon el <b>doble factor</b> en <a href="/ajustes?ver=seguridad">Ajustes › Seguridad</a>: con él, tu contraseña sola no basta para usar este panel.'
-    document.getElementById('adminLayout')?.prepend(aviso)
+    // En el contenido y no en #adminLayout (1335): ese es un flex de dos
+    // columnas, y el aviso se quedaba de tercera empujando el menú al centro.
+    document.querySelector('#adminLayout .admin-main')?.prepend(aviso)
   }).catch(() => {})
   document.getElementById('adminGate').classList.add('hidden')
   document.getElementById('adminLayout').classList.remove('hidden')
@@ -82,6 +85,11 @@ function initSidebar() {
       if (btn.dataset.section === 'avisos' && !avisosMontados) {
         avisosMontados = true
         import('./avisos-admin.js').then((m) => m.montarAvisos(document.getElementById('avisosPanel')))
+      }
+      // Redes (1335): lo que se puede compartir en las redes de PokeDoc.
+      if (btn.dataset.section === 'redes' && !redesMontadas) {
+        redesMontadas = true
+        import('./redes-admin.js').then((m) => m.montarRedes(document.getElementById('redesPanel')))
       }
     })
   })

@@ -1546,3 +1546,42 @@ img.icono-bola.icono-version { display: inline-block; image-rendering: pixelated
 .gde-icono code { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 @media (max-width: 640px) { .gde-fila { grid-template-columns: minmax(0, 1fr); gap: var(--e-xs); } }
 .gde-sombra { background: var(--white); border-color: transparent; }
+
+/* ── Redes (1335): lo que se puede compartir en las redes de PokeDoc ── */
+.rd-panel { display: grid; gap: var(--e-md); }
+.rd-panel [hidden] { display: none !important; }
+.rd-lista { display: grid; gap: var(--e-sm); }
+.rd-fila { display: grid; grid-template-columns: 96px minmax(0, 1fr) auto; gap: var(--e-sm) var(--e-md); align-items: center; padding: var(--e-sm) var(--e-md) var(--e-sm) var(--e-sm); border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
+.rd-mini { width: 96px; height: 60px; border-radius: var(--radius-md); overflow: hidden; display: grid; place-items: center; background: var(--ice); color: var(--text-mid); }
+.rd-fila[data-tipo='guia'] .rd-mini { background: var(--success-bg); color: var(--success); }
+.rd-fila[data-tipo='torneo'] .rd-mini { background: var(--indigo-bg); color: var(--indigo); }
+.rd-mini img { width: 100%; height: 100%; object-fit: cover; }
+.rd-info { display: grid; gap: 2px; min-width: 0; }
+.rd-arriba { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-sm); font-size: var(--t-xs); color: var(--text-mid); }
+.rd-tipo { font-size: var(--t-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.rd-titulo { font-weight: 700; color: var(--text); text-decoration: none; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.rd-titulo:hover { text-decoration: underline; }
+.rd-linea { font-size: var(--t-sm); color: var(--text-mid); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rd-estados { display: flex; flex-wrap: wrap; gap: var(--e-xs); margin-top: var(--e-xs); }
+.rd-hecho { min-height: 28px; padding: 0 var(--e-sm); border: 1px dashed var(--border-strong); border-radius: var(--radius-pill); background: transparent; color: var(--text-mid); font: inherit; font-size: var(--t-xs); font-weight: 600; display: inline-flex; align-items: center; gap: var(--e-xs); cursor: pointer; }
+.rd-hecho span { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.rd-hecho[aria-pressed='true'] { border-style: solid; border-color: var(--success); background: var(--success-bg); color: var(--success); }
+.rd-acciones { display: flex; flex-direction: column; align-items: stretch; gap: var(--e-xs); }
+.rd-acciones > * { display: inline-flex; align-items: center; justify-content: center; gap: var(--e-xs); white-space: nowrap; }
+.rd-cajon { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: var(--e-md); padding-top: var(--e-sm); border-top: 1px solid var(--border); }
+.rd-previas { display: flex; gap: var(--e-sm); overflow-x: auto; padding-bottom: var(--e-xs); min-width: 0; scroll-snap-type: x mandatory; }
+.rd-previa { flex: none; width: 216px; height: auto; aspect-ratio: 1080 / 1350; border-radius: var(--radius-md); box-shadow: var(--shadow-sm); scroll-snap-align: start; }
+.rd-cargando { color: var(--text-mid); font-size: var(--t-sm); }
+.rd-lado { display: grid; gap: var(--e-sm); align-content: start; min-width: 0; }
+.rd-texto { margin: 0; max-height: 220px; overflow: auto; padding: var(--e-sm) var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--bg); color: var(--text); font: inherit; font-size: var(--t-sm); white-space: pre-wrap; overflow-wrap: anywhere; }
+.rd-botones { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.rd-botones > * { display: inline-flex; align-items: center; gap: var(--e-xs); }
+.rd-nota { margin: 0; font-size: var(--t-xs); color: var(--text-mid); }
+@media (max-width: 760px) {
+  .rd-fila { grid-template-columns: 64px minmax(0, 1fr); }
+  .rd-mini { width: 64px; height: 64px; }
+  .rd-acciones { grid-column: 1 / -1; flex-direction: row; }
+  .rd-acciones > * { flex: 1 1 0; }
+  .rd-cajon { grid-template-columns: minmax(0, 1fr); }
+  .rd-previa { width: 72vw; max-width: 260px; }
+}

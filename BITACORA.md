@@ -4,6 +4,44 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (584) — PINGU-Claude (1335 — /admin → Redes: noticias, guías y torneos)
+
+**Hecho**: lo primero de «Redes desde el panel» (PINGU: «esto es para mí, para
+compartir en las redes oficiales… lo de automático no»). /admin → Redes, en
+Contenido, junta lo que se puede sacar, lo más nuevo arriba:
+- **Noticias** (la imagen de siempre, 1156), **guías** (un CARRUSEL de hasta 5:
+  portada, «lo importante» con los tres primeros apartados de la guía y la
+  primera frase de cada uno, y «Léela entera») y **torneos** (el anuncio
+  mientras se apunta la gente, con día y hora de España, formato, plazas que
+  quedan e inscripción; y los resultados con el podio cuando termina).
+- Cada fila: **Compartir en X** (abre el cuadro con el texto y el enlace, como
+  PINGU ya hacía) e **Instagram** (un cajón con las imágenes de la publicación,
+  1080×1350, el texto para pegar con «enlace en la bio» y las etiquetas,
+  «Descargar las N», «Copiar texto» e «Historia» de 1080×1920). En el móvil
+  «Descargar» abre el menú del sistema con todas a la vez.
+- **Lo compartido se apunta** (tabla `redes_compartido`, migración 1335): al
+  usar X o descargar para Instagram se marca esa red, con fecha; la marca se
+  quita pulsándola. «Sin compartir» (por defecto) enseña lo que aún le falta
+  alguna de las dos redes. Sin la migración funciona igual y lo guarda en el
+  navegador (y lo dice).
+- De paso: el aviso de «Pon el doble factor» (1307) se metía como tercera
+  columna del panel y empujaba el menú al centro en el PC; ahora va arriba del
+  contenido.
+
+**Pendiente para PINGU**: ejecutar `supabase-migration-1335-redes-compartido.sql`
+(para que las marcas sean del equipo y no de un navegador). Siguen las tandas
+1336 (eventos, lanzamientos, novedades del mes y «Compartir» en cada página) y
+1337 (meta, las que más suben, hitos y «Hoy toca»).
+
+**Lo que NO va**: nada se publica solo. Los Pokémon del mazo del campeón encima
+del podio salen solo si el CDN de los sprites deja dibujarlos (CORS); si no, el
+podio sale sin ellos. No va línea en novedades: es del equipo, la gente no lo ve.
+
+**Ficheros**: supabase-migration-1335-redes-compartido.sql, js/redes-textos.js,
+js/redes-piezas.js, admin/js/redes-admin.js, admin/js/admin.js,
+admin/index.html, admin/css/admin.css, supabase-esquema-actual.sql. En
+`pruebas`: test-tanda-1335.mjs.
+
 ## 2026-11-13 (583) — PINGU-Claude (1334 — lo pequeño de la noche)
 
 **Hecho**: I5 del plan.
