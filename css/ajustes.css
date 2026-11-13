@@ -671,3 +671,6 @@
 .aj-aa-2 { font-size: var(--t-lg); }
 .aj-aa-3 { font-size: var(--t-xl); }
 .aj-vista-letra { margin: var(--e-sm) 0 var(--e-lg); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--ice); }
+.aj-moneda { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
+.aj-moneda select { min-height: 44px; padding: 0 var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-pill); background: var(--white); color: var(--text); font: inherit; }
+.aj-moneda select:focus { outline: none; box-shadow: var(--shadow-ring); }

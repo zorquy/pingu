@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "¿Juegas desde Latinoamérica? En Ajustes › Apariencia puedes ver los precios en pesos mexicanos, argentinos, chilenos o colombianos, o en dólares, al cambio del día. Y hay un foro nuevo para México.", "enlace": "/ajustes?ver=apariencia" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Traer tu colección de otra app es más fácil: al importar eliges de dónde viene (Dex, Collectr, TCGplayer, Cardmarket…) y te decimos cómo sacarla; entendemos los ficheros de TCGplayer y Cardmarket, y las cartas que no encontremos puedes buscarlas una a una o descargarlas en un CSV.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Prueba antes de registrarte: en Cartas, sin cuenta, ya puedes apuntar las cartas que tienes con el «+»; se guardan en tu navegador con lo que valen y, cuando crees tu cuenta, se pasan a ella solas.", "enlace": "/cartas" },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Las imágenes que compartes en una historia de Instagram llevan abajo tu dirección de PokeDoc y un QR: quien lo escanea ve lo que compartiste (tu reto de hoy, tu colección) y puede jugarlo sin cuenta o unirse con tu invitación.", "enlace": "/retos" },

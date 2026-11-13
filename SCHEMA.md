@@ -55204,6 +55204,22 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1330 — precios en tu moneda y foro de México
+
+G9 del plan. `js/moneda.js` (puro, sin imports): `MONEDAS` (símbolo, locale y
+decimales: CLP, COP y ARS sin), `LLAVE_MONEDA` (`pd-moneda`), `LLAVE_CAMBIO`
+(`pd-cambio`: `{ fecha, fuente, tasas }`, unidades por euro), `monedaElegida`,
+`cambioGuardado`, `enMoneda(eur, moneda, cambio)` («≈ MX$ 251.92», o null y se
+pinta el euro) y `cambioViejo`. `euros()` de cardmarket.js pregunta primero a
+`enMoneda`. `js/moneda-cambio.js` (`traerCambio`, `alDia`) entra por `import()`
+desde Ajustes al elegir y desde app.js si hay moneda elegida y el cambio es de
+otro día. `netlify/functions/cambio.mjs` (`responder` inyectable, `tasasDe`):
+open.er-api.com → Frankfurter (BCE), `netlify-cdn-cache-control` de 12 h, 503
+sin caché si no hay ninguna. Un importe que se pinte a mano con «€» no cambia:
+para que siga la moneda, que pase por `euros()`. Los campos que se escriben
+(lo que pagaste, el precio de una tienda) siguen en euros. Migración 1330:
+sección «Latinoamérica» (al final) y foro `mexico`, sin repetirse.
+
 ## Tanda 1329 — traer tu colección de otras apps
 
 G5 del plan. `js/mi-coleccion/importar-apps.js` (puro): `APPS` (id, nombre y

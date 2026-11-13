@@ -714,6 +714,9 @@ export async function initNavbar() {
   if (!session && marca) recordarTienda(null)
   // La marca de la cabecera esconde las barras de una persona hasta saberlo (1089b).
   if (!session) document.documentElement.classList.remove('pd-tienda')
+  // Precios en tu moneda (1330): el cambio del día, una vez al día y solo si
+  // elegiste otra que no sea el euro.
+  try { const m = localStorage.getItem('pd-moneda'); if (m && m !== 'EUR') import('./moneda-cambio.js').then((x) => x.alDia()).catch(() => {}) } catch {}
   if (session) {
     montarFeedbackEnElPie()
     // Lo que apuntó sin cuenta en este navegador (1328), a su cuenta.

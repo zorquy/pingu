@@ -17,6 +17,7 @@ import { NOTIFICATION_TYPES, EMAIL_TYPES, EMAIL_TYPES_EQUIPO } from './notificat
 import { estaActivo, conGrupo, seccionesDeAvisos, estadoDeSeccion, tiposEn } from './avisos-prefs.js'
 import { FIESTAS_CON_DECORACION } from './fiestas-puro.js'
 import { LLAVE_SIN_GLOSARIO, glosarioApagado } from './glosario-ajuste.js'
+import { MONEDAS, LLAVE_MONEDA, monedaElegida, cambioGuardado, enMoneda } from './moneda.js'
 
 const APARTADOS = [
   { id: 'avisos', nombre: 'Avisos', sub: 'Campanita, correo y push', icono: 'bell' },
@@ -440,6 +441,11 @@ const aparienciaHtml = () => `
     </div>
     ${interruptor({ id: 'contraste', texto: 'Más contraste', detalle: 'Los textos grises y los bordes, más marcados.', activo: contrasteGuardado() })}
     <p class="aj-vista-letra" aria-hidden="true">Así se verá: <b>Lugia V</b> · 212,40 € · <span class="subtext">hace 2 h</span></p>
+    <h3>Moneda</h3>
+    <label class="aj-moneda">Ver los precios en
+      <select id="ajMoneda">${Object.entries(MONEDAS).map(([id, m]) => `<option value="${id}"${monedaElegida() === id ? ' selected' : ''}>${m.nombre} (${m.simbolo})</option>`).join('')}</select>
+    </label>
+    <p class="aj-nota" id="ajMonedaNota">${textoDeMoneda()}</p>
     <h3>Fiestas</h3>
     ${interruptor({ id: 'decoracion', texto: 'Decoración de las fiestas', detalle: 'Halloween, Navidad… La web se viste sola en las fechas señaladas.', activo: conDecoracion() })}
     <h3>Lectura</h3>
@@ -460,7 +466,25 @@ function conDecoracion() {
   try { return FIESTAS_CON_DECORACION.every((f) => localStorage.getItem(`pd-sin-${f}`) !== '1') } catch { return true }
 }
 
+// La moneda (1330, G9): los precios de Cardmarket son en euros; otra moneda se
+// ve al cambio del día, con «≈». En este navegador, como la letra.
+function textoDeMoneda(m = monedaElegida(), c = cambioGuardado()) {
+  if (m === 'EUR') return 'Los precios de Cardmarket, tal cual: en euros.'
+  const uno = enMoneda(1, m, c)
+  return uno ? `1 € ${uno} · cambio del ${String(c.fecha).split('-').reverse().join('/')}. Es orientativo: Cardmarket cobra en euros.` : 'Trayendo el cambio de hoy…'
+}
+
 function montarApariencia(panel) {
+  panel.querySelector('#ajMoneda')?.addEventListener('change', async (e) => {
+    const m = e.target.value
+    try { if (m === 'EUR') localStorage.removeItem(LLAVE_MONEDA); else localStorage.setItem(LLAVE_MONEDA, m) } catch {}
+    const nota = panel.querySelector('#ajMonedaNota')
+    nota.textContent = textoDeMoneda()
+    if (m === 'EUR') return
+    const { traerCambio } = await import('./moneda-cambio.js')
+    const c = await traerCambio()
+    nota.textContent = c ? textoDeMoneda(m, c) : 'No hemos podido traer el cambio de hoy: de momento sigues viendo euros.'
+  })
   panel.querySelector('.aj-letra')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-letra]')
     if (!b) return

@@ -29,6 +29,8 @@
 //
 // Sin DOM y sin Supabase: se prueba en Node.
 
+import { enMoneda } from './moneda.js'
+
 const API = 'https://api.tcgdex.net/v2'
 const CM = 'https://www.cardmarket.com/es/Pokemon'
 
@@ -482,8 +484,10 @@ export function urlDePrecio(cardId) {
 }
 
 const fmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2, useGrouping: 'always' })
+// En otra moneda si la has elegido en Ajustes (1330, G9): «≈ MX$ 251,92». Sin
+// cambio guardado, el euro, que es lo que dice Cardmarket.
 export function euros(v) {
-  return typeof v === 'number' && Number.isFinite(v) ? fmt.format(v) : '—'
+  return typeof v === 'number' && Number.isFinite(v) ? enMoneda(v) ?? fmt.format(v) : '—'
 }
 
 // ── El enlace ──

@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (579) — PINGU-Claude (1330 — Latinoamérica: precios en tu moneda y foro de México)
+
+**Hecho**: G9 del plan. **Ajustes › Apariencia › Moneda**: euro, dólar, peso
+mexicano, argentino, chileno y colombiano. Con otra que no sea el euro, todos los
+precios de la web (los que pasan por `euros()` de cardmarket.js, que son casi
+todos) salen al **cambio del día** con «≈» delante («≈ MX$ 251.92»), porque
+Cardmarket cobra en euros; Ajustes dice «1 € ≈ … · cambio del dd/mm/aaaa. Es
+orientativo». El cambio lo trae la función `cambio` (open.er-api.com y, si no
+contesta, el BCE), cacheada en la CDN medio día, y la web lo guarda una vez al
+día. Y un **foro para México** en una sección nueva, «Latinoamérica», al final
+del índice (migración 1330).
+
+**Pendiente para PINGU**: ejecutar `supabase-migration-1330-latam.sql`.
+
+**Lo que NO va**: la referencia de TCGplayer en dólares aparte, los otros países
+del foro (se añaden con una línea más en la migración cuando haya gente) y el
+portugués.
+
+**Ficheros**: js/moneda.js y js/moneda-cambio.js (nuevos),
+netlify/functions/cambio.mjs (nueva), js/cardmarket.js, js/app.js,
+js/ajustes.js, css/ajustes.css, supabase-migration-1330-latam.sql, SCHEMA.md,
+novedades.json. En `pruebas`: test-tanda-1330.
+
 ## 2026-11-13 (578) — PINGU-Claude (1329 — traer tu colección de otras apps)
 
 **Hecho**: G5 del plan. El importador de CSV ya reconocía Dex, Collectr y TCG
