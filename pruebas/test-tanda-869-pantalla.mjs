@@ -62,7 +62,10 @@ const hoja = (page) => page.evaluate(() => {
     cabeza: { tag: d.querySelector('.tu-cabeza')?.tagName, href: d.querySelector('.tu-cabeza')?.getAttribute('href'), texto: t('.tu-quien'), alto: alto(d.querySelector('.tu-cabeza')) },
     verPerfil: Boolean(d.querySelector('.tu-perfil')),
     baldosas: [...d.querySelectorAll('.tu-baldosas > *')].map((x) => ({ texto: x.querySelector('span').textContent.trim(), href: x.getAttribute('href'), cuenta: x.querySelector('.tu-n:not([hidden])')?.textContent || null, alto: alto(x), ancho: ancho(x) })),
-    lista: [...d.querySelectorAll('.tu-lista > *')].map((x) => ({ clase: x.className, texto: x.textContent.replace(/\s+/g, ' ').trim(), href: x.getAttribute('href'), alto: alto(x), visible: ancho(x) > 0 })),
+    // «Qué hay en esta sección» (1239) e «Invita a un amigo» (1298) van delante
+    // de los tres de siempre, según la página y la cuenta: se cuentan aparte.
+    extras: [...d.querySelectorAll('.tu-lista > [data-tu="bienvenida"], .tu-lista > [data-tu="invitar"]')].map((x) => x.textContent.trim()),
+    lista: [...d.querySelectorAll('.tu-lista > *:not([data-tu="bienvenida"]):not([data-tu="invitar"])')].map((x) => ({ clase: x.className, texto: x.textContent.replace(/\s+/g, ' ').trim(), href: x.getAttribute('href'), alto: alto(x), visible: ancho(x) > 0 })),
     tema: document.documentElement.dataset.theme,
     temaBoton: tema && { ancho: ancho(tema), alto: alto(tema), label: tema.getAttribute('aria-label') },
     novedades: /Novedades/.test(d.textContent),
@@ -84,7 +87,7 @@ console.log('── 1. En el iPhone ──')
   check('el tema, un botón redondo de 44 al lado de quién eres', m.temaBoton && m.temaBoton.ancho >= 44 && m.temaBoton.alto >= 44, JSON.stringify(m.temaBoton))
   check('Novedades ya no está en la hoja (918)', !m.novedades)
   // Eran quince en la 869 (y doce después): perfil, tema, seis y tres.
-  check('once cosas que tocar', m.tocables === 11, String(m.tocables))
+  check('once cosas que tocar, más «Qué hay en esta sección» e «Invita a un amigo»', m.tocables === 11 + m.extras.length && m.extras.join() === 'Qué hay en esta sección,Invita a un amigo', String(m.tocables) + ' ' + m.extras.join())
   // El tema: un botón, claro ↔ oscuro.
   const antes = m.tema
   await page.click('#navUserDropdown [data-tema-ciclo]')

@@ -89,7 +89,8 @@ console.log('\n── 2. Lo que falla cuenta y para; el plan bloquea el día ─
 console.log('\n── 3. Lo estático ──')
 {
   const fn = readFileSync(`${RAIZ}/netlify/functions/tcggo-calco-jp.mjs`, 'utf8')
-  check('programada cada dos minutos, en los impares', /schedule: '1-59\/2 \* \* \* \*'/.test(fn))
+  // Desde la 1310 (C1), cada seis minutos y siempre en impares (las versiones, en pares).
+  check('programada cada seis minutos, en los impares', /schedule: '1-59\/6 \* \* \* \*'/.test(fn))
   check('escribe por `procesar` (el reemplazo de la 654) y crea sets por la RPC del catálogo', /from '\.\/tcggo-reemplazar-set\.mjs'/.test(fn) && /rpc\/tcggo_crear_sets/.test(fn))
   check('/admin lo enseña', /CALCO JAPONÉS \(tcggo_calco_jp, 674\)/.test(readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')))
 }

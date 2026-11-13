@@ -182,7 +182,8 @@ console.log('\n── 3. La pasada programada: sola, una vez, y apuntada ──'
 console.log('\n── 4. Lo estático ──')
 {
   const fn = readFileSync(`${RAIZ}/netlify/functions/tcggo-reemplazar-set.mjs`, 'utf8')
-  check('es programada, a y 4 de cada cinco minutos', /schedule: '4-59\/5 \* \* \* \*'/.test(fn))
+  // Desde la 1310 (C1), una vez por hora: lo que tiene que hacer lo hace en una.
+  check('es programada, a y 4 de cada hora', /schedule: '4 \* \* \* \*'/.test(fn))
   check('escribe por la RPC del catálogo (sin SQL nuevo)', /rpc\/tcggo_guardar_cartas/.test(fn) && !/create or replace function/.test(fn))
   const html = readFileSync(`${RAIZ}/admin/index.html`, 'utf8')
   const js = readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')

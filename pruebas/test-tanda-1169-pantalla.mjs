@@ -40,7 +40,8 @@ console.log('── Gente ──')
 {
   const { p, ctx, errores } = await abrir('/usuarios', muchos)
   const r = await p.evaluate(() => document.getElementById('comHoy')?.innerText.replace(/\s+/g, ' ').trim())
-  check('«Por aquí hoy · 58» con la cuenta de la base y «+51» tras las siete caras', /Por aquí hoy · 58/.test(r) && /\+51/.test(r) && errores.length === 0, r + ' ' + errores.join(' | '))
+  // Desde la 1306 Gente tampoco cuenta a quien esconde su actividad (como el foro): 57.
+  check('«Por aquí hoy · 57» con la cuenta de la base (sin quien se esconde) y «+50» tras las siete caras', /Por aquí hoy · 57/.test(r) && /\+50/.test(r) && errores.length === 0, r + ' ' + errores.join(' | '))
   await ctx.close()
 }
 await b.close()

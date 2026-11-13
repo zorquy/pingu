@@ -26,6 +26,8 @@ const T = {
   user_profiles: [],
   // El cumpleaños, privado (1304); sin la migración, `__SIN_TABLAS__`.
   user_cumple: [],
+  // Lo privado del perfil (1306): sin filas, la web lee el perfil como antes.
+  user_privado: [],
   // Las tiendas (1067).
   tiendas: [],
   tienda_solicitudes: [],
@@ -233,7 +235,10 @@ if (retoqueDePerfil && typeof retoqueDePerfil === 'object') {
   const fila = T.user_profiles.find((p) => p.id === quienSoy)
   if (fila) Object.assign(fila, retoqueDePerfil)
 }
-const sesion = quienSoy === 'none' ? null : { user: { id: quienSoy, email: `${quienSoy}@pruebas.test` } }
+// «Ver como un desconocido» (1306), como js/supabase.js: la página va sin sesión.
+export const comoDesconocido = typeof location !== 'undefined' && new URLSearchParams(location.search).get('como') === 'desconocido'
+if (comoDesconocido) import('./como-desconocido.js').catch(() => {})
+const sesion = quienSoy === 'none' || comoDesconocido ? null : { user: { id: quienSoy, email: `${quienSoy}@pruebas.test` } }
 
 // ── Las semillas ──
 // Cada gancho rellena una tabla; los campos que no se digan toman un
@@ -3326,14 +3331,33 @@ export const supabase = {
     // El Mercado con tiendas (1069) solo existe si la prueba lo da: si no, la
     // base no tiene la migración y el cliente vuelve a `intercambios_mercado`,
     // que el doble sí calcula. Un vacío sin error sería un Mercado vacío.
-    if (['mercado_con_tiendas', 'tiendas_con_la_carta', 'tiendas_agenda', 'tiendas_recien'].includes(nombre)) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
+    if (['mercado_con_tiendas', 'tiendas_con_la_carta', 'tiendas_agenda', 'tiendas_recien', 'mis_invitados', 'poner_padrino', 'mis_sesiones', 'cerrar_sesion'].includes(nombre)) return { data: null, error: { code: 'PGRST202', message: `Could not find the function public.${nombre}` } }
     // (1236: las dos de la agenda y las tiendas de una carta, igual.)
     return { data: null, error: null }
   },
   auth: {
     getSession: async () => ({ data: { session: sesion } }),
+    // Doble factor (1307): `window.__FAKE_MFA__ = { factores: [{ id, status }],
+    // nivel: 'aal1', codigo: '123456' }`. Sin él, nadie lo tiene puesto.
+    mfa: (() => {
+      const M = () => (typeof window !== 'undefined' && window.__FAKE_MFA__) || (window.__FAKE_MFA__ = { factores: [], nivel: 'aal1', codigo: '123456' })
+      const apunta = (que, datos = {}) => { AUTH.push({ que, ...datos }) }
+      return {
+        listFactors: async () => { const f = M().factores; return { data: { all: f.map((x) => ({ factor_type: 'totp', ...x })), totp: f.filter((x) => x.status === 'verified') }, error: null } },
+        getAuthenticatorAssuranceLevel: async () => ({ data: { currentLevel: M().nivel, nextLevel: M().factores.some((x) => x.status === 'verified') ? 'aal2' : 'aal1' }, error: null }),
+        enroll: async (d) => { apunta('mfa.enroll', d); const f = { id: `factor-${M().factores.length + 1}`, status: 'unverified' }; M().factores.push(f); return { data: { id: f.id, totp: { qr_code: 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="10" height="10"/>', secret: 'JBSWY3DPEHPK3PXP' } }, error: null } },
+        challenge: async ({ factorId }) => { apunta('mfa.challenge', { factorId }); return { data: { id: `reto-${factorId}` }, error: null } },
+        verify: async ({ factorId, code }) => {
+          apunta('mfa.verify', { factorId, code })
+          if (code !== M().codigo) return { data: null, error: { message: 'Invalid TOTP code entered' } }
+          const f = M().factores.find((x) => x.id === factorId); if (f) f.status = 'verified'
+          M().nivel = 'aal2'; return { data: {}, error: null }
+        },
+        unenroll: async ({ factorId }) => { apunta('mfa.unenroll', { factorId }); M().factores = M().factores.filter((x) => x.id !== factorId); return { data: {}, error: null } },
+      }
+    })(),
     getUser: async () => ({ data: { user: sesion?.user || null } }),
-    signOut: async () => { AUTH.push({ que: 'signOut' }); return { error: null } },
+    signOut: async (o = {}) => { AUTH.push({ que: 'signOut', ...o }); return { error: null } },
     resetPasswordForEmail: async (email, opciones) => { AUTH.push({ que: 'resetPasswordForEmail', email, ...opciones }); return { data: {}, error: null } },
     onAuthStateChange: () => ({ data: { subscription: { unsubscribe() {} } } }),
     // Crear cuenta, entrar y Google (1067, el alta de una tienda): se apuntan

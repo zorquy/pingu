@@ -265,9 +265,10 @@ console.log('\n── 3c. Con todo recorrido: el refresco ──')
 console.log('\n── 3d. Lo que cuesta ──')
 {
   const [min] = fn.config.schedule.split(' ')
-  check('va en los minutos pares (el calco japonés, en los impares)', min === '0-58/2')
-  const alDia = fn.POR_PASADA * 30 * 24
-  check(`8 por pasada × 720 pasadas = ${alDia}, y el tope (${fn.TOPE_DIARIO}) lo deja por debajo del plan (15.000)`, fn.POR_PASADA <= 8 && fn.TOPE_DIARIO <= 5000)
+  // Desde la 1310 (C1), cada seis minutos: 240 pasadas, siempre en pares.
+  check('va en los minutos pares (el calco japonés, en los impares)', min === '0-54/6')
+  const alDia = fn.POR_PASADA * 10 * 24
+  check(`8 por pasada × 240 pasadas = ${alDia}, y el tope (${fn.TOPE_DIARIO}) lo deja por debajo del plan (15.000)`, fn.POR_PASADA <= 8 && fn.TOPE_DIARIO <= 5000)
   const admin = readFileSync(`${RAIZ}/admin/js/admin.js`, 'utf8')
   // Desde la 817 las claves que lee /admin son las del semáforo (PASADAS).
   const semaforo = readFileSync(`${RAIZ}/admin/js/semaforo.js`, 'utf8')

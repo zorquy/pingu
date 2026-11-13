@@ -61,7 +61,7 @@ console.log('── 2. En un iPhone: la barra de arriba ──')
   // tema en tres (claro, oscuro, auto) y «Salir».
   const filas = limpio(await page.locator('#navUserDropdown .tu-baldosas').innerText())
   check('arriba: avisos (3) y mensajes (2)', /Avisos\s*3/.test(filas) && /Mensajes\s*2/.test(filas), filas)
-  check('y debajo, «Ver perfil», lo tuyo y «Salir»', (await page.locator('#navUserDropdown a[href="/perfil.html"]').count()) === 1 && (await page.locator('#navUserDropdown .tu-baldosas > *').count()) === 6 && (await page.locator('#navUserDropdown .tu-lista > *').count()) === 3 + (await page.locator('#navUserDropdown [data-tu="bienvenida"]').count()) /* baldosas desde la 918; y «Qué hay en esta sección» en una página con sección (1239) */ && (await page.locator('#navUserSignOut').count()) === 1)
+  check('y debajo, «Ver perfil», lo tuyo y «Salir»', (await page.locator('#navUserDropdown a[href="/perfil.html"]').count()) === 1 && (await page.locator('#navUserDropdown .tu-baldosas > *').count()) === 6 && (await page.locator('#navUserDropdown .tu-lista > *').count()) === 3 + (await page.locator('#navUserDropdown [data-tu="bienvenida"], #navUserDropdown [data-tu="invitar"]').count()) /* baldosas desde la 918; «Qué hay en esta sección» en una página con sección (1239) e «Invita a un amigo» con usuario (1298) */ && (await page.locator('#navUserSignOut').count()) === 1)
   const temaAntes = await page.evaluate(() => document.documentElement.dataset.theme)
   await page.click('#navUserDropdown [data-tema-ciclo]')
   await page.waitForTimeout(300)
