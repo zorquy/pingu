@@ -55204,6 +55204,22 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1344 — Rondas: el mando y filtrar las mesas
+
+**El mando** (`pintarRondas` en `js/torneos/ronda.js`): con `admin` no vacío,
+`#rondasAdmin` lleva `.torneo-mando` con `.torneo-mando-texto` (lo que dice
+`textoDelMando(actual)`) y `.torneo-rondas-botones` con el botón del paso
+(`#btnCerrarRonda` pasa a `btn-primary`) y, si hay rondas, un
+`details.torneo-mas.torneo-mando-mas` con `#btnDeshacerRonda` dentro. Se fue
+`#btnActualizarCiclo`. Los `details.torneo-mas` abiertos se cierran al tocar
+fuera o al elegir algo de su menú (`engancharLoPegado`, en `torneo.js`).
+
+**Filtrar mesas**: cada `.torneo-mesa` lleva `terminada` (cerrada o bye) o
+`falta`. `filtroDeMesasHtml(ronda)` pinta un `.seg.torneo-mesas-filtro` con
+Todas/Faltan/Terminadas (`data-filtro-mesas`) si la ronda está activa y tiene
+más de cuatro mesas; el elegido (`filtroMesas`, del módulo) va en
+`#mesasContenido[data-filtro]` y el CSS esconde lo que no toca.
+
 ## Tanda 1343 — El reloj de la ronda, dentro de tu mesa
 
 `pintarMiPartida` (`js/torneos/ronda.js`), con la ronda activa, pinta antes

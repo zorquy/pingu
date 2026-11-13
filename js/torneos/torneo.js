@@ -2083,13 +2083,13 @@ function engancharLoPegado() {
     irAPestana('jugar')
     window.scrollTo({ top: 0, behavior: 'smooth' })
   })
-  const mas = document.getElementById('torneoMas')
-  if (!mas) return
+  // Vale para todos los «⋯» de la ficha (el de la cabecera y el del mando de
+  // Rondas, 1344): se cierran al tocar fuera o al elegir algo de dentro.
   document.addEventListener('click', (e) => {
-    if (mas.open && !mas.contains(e.target)) mas.open = false
-  })
-  document.getElementById('torneoMasMenu')?.addEventListener('click', (e) => {
-    if (e.target.closest('button, a')) setTimeout(() => (mas.open = false), 0)
+    for (const mas of document.querySelectorAll('details.torneo-mas[open]')) {
+      if (!mas.contains(e.target)) mas.open = false
+      else if (e.target.closest('.torneo-mas-menu button, .torneo-mas-menu a')) setTimeout(() => (mas.open = false), 0)
+    }
   })
 }
 

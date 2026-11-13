@@ -4278,3 +4278,36 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
   .torneo-mesa-anillo::before { inset: 7px; }
   .torneo-mesa-anillo b { font-size: var(--t-md); }
 }
+
+/* ── 1344: el mando y las mesas (SCHEMA 1344) ──
+   Quien lleva el torneo tiene UNA tarjeta: qué pasa, el botón que toca y el
+   «⋯» con deshacer. */
+.torneo-mando {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  flex-wrap: wrap;
+  margin: var(--e-md) 0;
+  padding: var(--e-md);
+  border: 1px solid var(--navy);
+  border-radius: var(--radius-lg);
+  background: var(--ice);
+}
+:root[data-theme='dark'] .torneo-mando { background: var(--ice-dark); }
+.torneo-mando-texto { display: grid; gap: 2px; flex: 1 1 200px; min-width: 0; }
+.torneo-mando-rotulo { font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+.torneo-mando-texto b { font-size: var(--t-md); }
+.torneo-mando .torneo-rondas-botones { align-items: center; }
+.torneo-mando-mas .torneo-mas-boton { border-color: var(--border); background: var(--white); color: var(--text); }
+.torneo-mando-mas .torneo-mas-boton:hover { background: var(--bg); }
+.torneo-mando-mas .torneo-mas-menu { min-width: 220px; }
+.torneo-mando-mas .torneo-mas-menu > .torneo-deshacer { color: var(--danger); }
+@media (max-width: 640px) {
+  .torneo-mando .torneo-rondas-botones { width: 100%; flex-wrap: nowrap; }
+  .torneo-mando .torneo-rondas-botones > .btn-primary { flex: 1; justify-content: center; }
+}
+
+/* Filtrar las mesas: con veinte, encontrar las que faltan es lo que se busca. */
+.torneo-mesas-filtro { margin: 0 0 var(--e-sm); }
+#mesasContenido[data-filtro='faltan'] .torneo-mesa.terminada,
+#mesasContenido[data-filtro='terminadas'] .torneo-mesa.falta { display: none; }

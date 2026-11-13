@@ -48,6 +48,18 @@ let reloj = null
 // El tictac del reloj, a mano (1343): «Tu partida» se repinta entera y su
 // anillo nace en «–:––»; se llama al momento para no esperar al segundo.
 let tictacYa = null
+// Qué mesas se ven en Rondas (1344): todas, las que faltan o las terminadas.
+let filtroMesas = 'todas'
+
+// Los filtros salen con la ronda en juego y más de cuatro mesas: con menos,
+// se ven todas de un vistazo.
+function filtroDeMesasHtml(ronda) {
+  const mesas = partidas.filter((m) => m.round_id === ronda.id)
+  if (ronda.status !== 'active' || mesas.length <= 4) return ''
+  const faltan = mesas.filter((m) => !TERMINALES.has(m.status) && m.status !== 'bye').length
+  const opcion = (id, texto) => `<button type="button" class="seg-btn${filtroMesas === id ? ' activa' : ''}" data-filtro-mesas="${id}">${texto}</button>`
+  return `<div class="seg torneo-mesas-filtro">${opcion('todas', `Todas · ${mesas.length}`)}${opcion('faltan', `Faltan · ${faltan}`)}${opcion('terminadas', `Terminadas · ${mesas.length - faltan}`)}</div>`
+}
 let rondaVista = null // qué ronda se está mirando en «Mesas» (null = la viva)
 // Los arquetipos (tanda 230): userId → {id, nombre, iconos, curado}.
 // Se deducen de las decklists que la base nos deja leer, así que existen
@@ -1596,7 +1608,7 @@ function pintarMesas(ronda) {
               .join('')}</div>`
           : ''
       return `
-      <div class="torneo-mesa ${esMia ? 'mia' : ''}">
+      <div class="torneo-mesa ${esMia ? 'mia' : ''} ${TERMINALES.has(m.status) || m.status === 'bye' ? 'terminada' : 'falta'}">
         <span class="torneo-mesa-num">${m.table_number}</span>
         ${lado(m.player_a_id, ganaA, m.check_in_a_at, false)}
         <span class="torneo-mesa-centro">${chapaDeMesa(m)}</span>
@@ -1743,7 +1755,7 @@ function pintarRondas() {
     } else if (actual?.status === 'pending') {
       admin = `<button class="btn-primary" id="btnIniciarRonda">Iniciar ${actual.phase === 'swiss' && esLiga() ? `la ${nombreDeRonda(actual.round_number)}` : `ronda ${actual.round_number}`}</button>`
     } else if (actual?.status === 'active') {
-      admin = `<button class="btn-secondary" id="btnCerrarRonda">Cerrar ${actual.phase === 'swiss' && esLiga() ? `la ${nombreDeRonda(actual.round_number)}` : `ronda ${actual.round_number}`}</button>`
+      admin = `<button class="btn-primary" id="btnCerrarRonda">Cerrar ${actual.phase === 'swiss' && esLiga() ? `la ${nombreDeRonda(actual.round_number)}` : `ronda ${actual.round_number}`}</button>`
     } else if (!actual && rondas.length && ctx.torneo.status === 'in_progress') {
       // Todas las rondas cerradas y sin camino adelante: el estado en
       // el que te deja DESHACER una ronda del cut (o la siembra) tras
@@ -1764,11 +1776,13 @@ function pintarRondas() {
     // del paso normal del ciclo, siempre que haya algo que deshacer.
     if (rondas.length) {
       const ultima = rondas[rondas.length - 1]
-      admin += `<button class="btn-secondary torneo-deshacer" id="btnDeshacerRonda">${
+      // Desde la 1344 va en el «⋯» del mando: al lado del botón de siempre se
+      // pulsaba sin querer, y deshacer una ronda no es lo de cada ronda.
+      admin += `<details class="torneo-mas torneo-mando-mas"><summary class="torneo-mas-boton" aria-label="Más acciones de la ronda">⋯</summary><div class="torneo-mas-menu"><button class="btn-secondary torneo-deshacer" id="btnDeshacerRonda">${
         rondaSaltada(ultima)
           ? `Recuperar la jornada ${jornadaDeRonda(ctx.torneo, ultima.round_number)}`
           : `Deshacer ${ultima.status === 'pending' ? `los pareos (R${ultima.round_number})` : `la ronda ${ultima.round_number}`}`
-      }</button>`
+      }</button></div></details>`
     }
   }
   // El reloj protagonista, como la pantalla «ronda actual» del original:
@@ -1838,15 +1852,16 @@ function pintarRondas() {
   // aviso de check-in y los botones del organizador. Rehacerla en cada
   // refresco movía TODO lo que hay debajo — «Tu partida» incluida — y es
   // media explicación de los clics perdidos (tanda 259).
+  // EL MANDO (1344): lo que lleva el torneo, en una tarjeta con UN botón que
+  // cambia según el momento (generar, iniciar, cerrar, continuar) y el «⋯»
+  // con lo de deshacer. «Actualizar» se fue: la ficha se refresca sola (en
+  // vivo y cada 10 s) desde hace muchas tandas.
   const htmlRondas = `
     ${linea}
-    <div class="torneo-rondas-cabecera">
-      <span class="torneo-rondas-botones">${admin}<button class="btn-secondary" id="btnActualizarCiclo">Actualizar</button></span>
-    </div>${adminAvisos}${jornadasAdminHtml()}`
+    ${admin ? `<div class="torneo-mando"><div class="torneo-mando-texto"><span class="torneo-mando-rotulo">Llevas el torneo</span><b>${escapeHtml(textoDelMando(actual))}</b></div>
+      <span class="torneo-rondas-botones">${admin}</span>
+    </div>` : ''}${adminAvisos}${jornadasAdminHtml()}`
   if (!pintarSiCambia($('rondasAdmin'), htmlRondas)) return pintarRondasResto(actual)
-  // Actualizar refresca la ficha ENTERA (ciclo, chats y cola de jueces):
-  // es el botón de «a ver si mi rival ya ha hecho algo».
-  $('btnActualizarCiclo').addEventListener('click', () => ctx.recargarFicha())
   if ($('btnGenerarPareos')) $('btnGenerarPareos').addEventListener('click', generarPareos)
   if ($('btnSaltarJornada')) $('btnSaltarJornada').addEventListener('click', saltarJornada)
   $('torneoJornadasAdmin')?.addEventListener('click', (e) => {
@@ -1875,6 +1890,16 @@ function pintarRondas() {
     })
 
   pintarRondasResto(actual)
+}
+
+// Lo que dice el mando al lado de su botón (1344).
+function textoDelMando(actual) {
+  if (ctx.torneo.status === 'finished') return 'Torneo terminado'
+  if (!actual) return rondas.length ? 'Entre rondas' : 'Listo para empezar'
+  const nombre = actual.phase === 'top_cut' ? `Top cut ${actual.round_number}` : esLiga() ? conMayuscula(nombreDeRonda(actual.round_number)) : `Ronda ${actual.round_number}`
+  if (actual.status === 'pending') return `${nombre}: pareos hechos, falta iniciarla`
+  const p = progresoDeMesas(partidas.filter((m) => m.round_id === actual.id))
+  return p.todas ? `${nombre}: todas las mesas han terminado` : `${nombre} en juego`
 }
 
 // Lo que va DEBAJO de la cabecera de rondas. Vive aparte para poder
@@ -1907,13 +1932,21 @@ function pintarRondasResto(actual) {
   const contador =
     paraMesas?.status === 'active' ? contadorDeMesasHtml(progresoDeMesas(partidas.filter((m) => m.round_id === paraMesas.id))) : ''
   const htmlMesas = paraMesas
-    ? `<div class="torneo-mesas-cabecera"><h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ${nombreDeRonda(paraMesas.round_number)}`}${paraMesas.status === 'finished' ? (rondaSaltada(paraMesas) ? '' : ' (cerrada)') : ''}</h4>${contador ? `<div class="torneo-mesas-progreso">${contador}</div>` : ''}</div>${pestanas}${pintarMesas(paraMesas)}`
+    ? `${filtroDeMesasHtml(paraMesas)}<div class="torneo-mesas-cabecera"><h4 class="torneo-mesas-titulo">${paraMesas.phase === 'top_cut' ? 'Top cut — mesas' : `Mesas de la ${nombreDeRonda(paraMesas.round_number)}`}${paraMesas.status === 'finished' ? (rondaSaltada(paraMesas) ? '' : ' (cerrada)') : ''}</h4>${contador ? `<div class="torneo-mesas-progreso">${contador}</div>` : ''}</div>${pestanas}${pintarMesas(paraMesas)}`
     : ''
   // El reloj se rearma SIEMPRE, antes de la guarda: se apaga y se vuelve
   // a poner en cada pasada, y saltárselo lo dejaría parado.
   arrancarReloj(actual)
   if (yaEstaPintado('mesas', htmlMesas)) return
   $('mesasContenido').innerHTML = htmlMesas
+  $('mesasContenido').dataset.filtro = filtroMesas
+  $('mesasContenido').querySelectorAll('[data-filtro-mesas]').forEach((b) =>
+    b.addEventListener('click', () => {
+      filtroMesas = b.dataset.filtroMesas
+      $('mesasContenido').dataset.filtro = filtroMesas
+      $('mesasContenido').querySelectorAll('[data-filtro-mesas]').forEach((o) => o.classList.toggle('activa', o === b))
+    })
+  )
   document.querySelectorAll('[data-ver-ronda]').forEach((b) =>
     b.addEventListener('click', () => {
       rondaVista = b.dataset.verRonda
@@ -2605,7 +2638,7 @@ function pintarMiPartida() {
     bo === 3
       ? panelBo3(mia, soyA)
       : miReporte
-        ? '<p class="subtext">Resultado reportado: falta que tu rival lo confirme (pulsa Actualizar si tarda).</p>'
+        ? '<p class="subtext">Resultado reportado: falta que tu rival lo confirme (se actualiza solo).</p>'
         : `<h4 class="torneo-mesas-titulo">Reportar resultado</h4>
       <div class="torneo-reportar">
         <button class="torneo-boton-resultado victoria" data-reporte="win">Victoria</button>

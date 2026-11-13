@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (593) — PINGU-Claude (1344 — Rondas: el mando del organizador y filtrar las mesas)
+
+**Hecho**:
+- **El mando**: quien lleva el torneo (o es juez con mando) tiene en Rondas una
+  tarjeta «Llevas el torneo» que dice qué pasa («Ronda 2 en juego», «todas las
+  mesas han terminado», «pareos hechos, falta iniciarla»…) con UN botón, el
+  que toca (generar, iniciar, cerrar, continuar), ahora en color. «Deshacer la
+  ronda» se va a su «⋯»: al lado del botón de siempre se pulsaba sin querer.
+- **Fuera «Actualizar»**: la ficha se refresca sola. El texto de «pulsa
+  Actualizar si tarda» pasa a «se actualiza solo».
+- **Filtrar las mesas** (con la ronda en juego y más de cuatro mesas): Todas,
+  Faltan y Terminadas, con su número.
+- Los «⋯» de la ficha (cabecera y mando) se cierran al tocar fuera.
+
+**No hecho**: el cuadro del top (bracket) de la maqueta; el top se sigue
+viendo en la línea de rondas y en sus mesas. Queda para otra tanda.
+
+**Ficheros**: `js/torneos/ronda.js`, `js/torneos/torneo.js`,
+`css/torneos.css`, `novedades.json`.
+
+**Pendiente**: 1345 y 1346. Sin migración.
+
 ## 2026-11-13 (592) — PINGU-Claude (1343 — el reloj de la ronda, dentro de tu mesa)
 
 **Hecho**: PINGU: «el cronómetro de ronda está arriba y debería estar en la
