@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (588) — PINGU-Claude (1339 — «Pegar lista» con un set sin números)
+
+**Hecho**: PINGU no podía meter el 10th Movie Commemoration Set: sus cartas no
+tienen número ni rareza (en Bulbapedia, «—» en esas columnas), y el lector de
+«Pegar lista» (1300) exigía un número al principio de cada línea, así que ni
+el texto ni la captura entraban («no empieza por un número»).
+- Una línea que empieza por un guion es una carta sin número; y si en todo lo
+  pegado no hay NI UN número (lo que lee el OCR de una captura), cada línea es
+  una carta. Los guiones sueltos (la columna de rareza vacía) y el título del
+  set («… Set», «Collection») no cuentan.
+- Las que no traen número se numeran por ORDEN (1, 2, 3…), saltando los que
+  ya usa otra línea; el panel lo dice en el resumen y se puede cambiar en la
+  columna Nº antes de crear.
+
+**Ficheros**: `admin/js/lista-set-puro.js`, `admin/js/pegar-lista.js`,
+`normas/catalogo.md`. Prueba (rama `pruebas`): `test-tanda-1339.mjs` (falla
+con el lector de antes: seis rojos).
+
+**Pendiente**: nada. Sin migración. Mientras no se suba, la lista numerada a
+mano («1 · Striking Back Mewtwo · Psychic») ya entra con el lector de hoy.
+
 ## 2026-11-13 (587) — PINGU-Claude (1338 — Aprender: los temas como filtro)
 
 **Hecho**: lo que pidió PINGU con la propuesta delante («que fuese un filtro…

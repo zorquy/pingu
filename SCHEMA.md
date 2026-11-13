@@ -55204,6 +55204,22 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1339 — «Pegar lista» con un set sin números
+
+En `admin/js/lista-set-puro.js`, `filasDeLista`:
+
+- `NUMERADA` es la expresión de siempre (número al principio). `GUION`: una
+  línea que empieza por «—», «–», «―» o «-» seguido de separador es una carta
+  sin número. `sinNumeros` (ninguna línea de lo pegado tiene número de verdad)
+  hace que cada línea suelta sea una carta, salvo `SOLO_GUIONES` (se ignora) y
+  `TITULO_DE_SET` (`set|collection|colección|expansion|expansión`, va a
+  `raras` con «parece el título del set»).
+- Esas filas llevan `sinNumero: true` y `local_id` por orden de aparición (1,
+  2, 3…), saltando los números que ya usa otra línea (`vistos`). Sin columnas,
+  un guion largo al final del nombre (la rareza vacía) se quita.
+- `pegar-lista.js` cuenta las `sinNumero` en el resumen («van numeradas por
+  orden; cámbialo en la columna Nº si hace falta»).
+
 ## Tanda 1338 — Aprender: los temas como filtro
 
 `/aprender?tema=<slug>` ya no es una página aparte (la que hizo la 863): es la

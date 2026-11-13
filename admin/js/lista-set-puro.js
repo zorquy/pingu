@@ -73,17 +73,41 @@ const RAREZAS_AL_FINAL = [...new Set([...Object.values(SIGLAS_DE_RAREZA).filter(
 
 export const numeroComparable = (n) => String(n || '').trim().toLowerCase().replace(/^([a-z]*)0+(\d)/, '$1$2')
 
+// Un set sin número en sus cartas (1339, el 10th Movie Commemoration Set: en
+// Bulbapedia la columna «No.» es un guion). La línea empieza por ese guion…
+const GUION = /^[—–―-]+(?:\s*(?:\t|·|\||;)\s*|\s+)(.+)$/
+// …o, si en lo pegado no hay NI UN número (una captura que el OCR lee sin la
+// columna), es solo el nombre. Lo que no es carta en ese caso: una línea de
+// guiones sueltos (la columna de rareza vacía) o el título del set.
+const SOLO_GUIONES = /^[—–―-]+$/
+const TITULO_DE_SET = /\b(set|collection|colección|expansion|expansión)\b/i
+const NUMERADA = /^#?\s*([A-Za-z]{0,5}-?\d{1,4}[A-Za-z]?)(?:\s*\/\s*[A-Za-z]{0,5}\d{1,4})?(?:\s*(?:\t|·|\||;|:|\.|-)\s*|\s+)(.+)$/
+
 export function filasDeLista(texto) {
   const filas = []
   const raras = []
   const vistos = new Map()
+  // ¿Hay alguna línea con número de verdad? Si no, cada línea es una carta.
+  const sinNumeros = !String(texto || '').split(/\r?\n/).map((l) => l.replace(/ /g, ' ').trim())
+    .some((t) => t && !TITULOS.test(t) && !GUION.test(t) && NUMERADA.test(t))
   String(texto || '').split(/\r?\n/).forEach((linea, i) => {
     const t = linea.replace(/ /g, ' ').trim()
     if (!t || TITULOS.test(t)) return
-    const m = /^#?\s*([A-Za-z]{0,5}-?\d{1,4}[A-Za-z]?)(?:\s*\/\s*[A-Za-z]{0,5}\d{1,4})?(?:\s*(?:\t|·|\||;|:|\.|-)\s*|\s+)(.+)$/.exec(t)
-    if (!m) return void raras.push({ linea: i + 1, texto: t, motivo: 'no empieza por un número' })
-    const numero = m[1].replace('-', '')
-    const fila = { linea: i + 1, local_id: numero, name: '', name_en: null, rarity: null, types: [], category: null, trainer_type: null, energy_type: null, image_path: null }
+    if (SOLO_GUIONES.test(t)) return
+    let m = GUION.test(t) ? null : NUMERADA.exec(t)
+    let sinNumero = false
+    if (!m) {
+      const g = GUION.exec(t)
+      if (g) m = [t, null, g[1]]
+      else if (sinNumeros) {
+        if (TITULO_DE_SET.test(t)) return void raras.push({ linea: i + 1, texto: t, motivo: 'parece el título del set' })
+        m = [t, null, t]
+      }
+      if (!m) return void raras.push({ linea: i + 1, texto: t, motivo: 'no empieza por un número' })
+      sinNumero = true
+    }
+    const numero = sinNumero ? null : m[1].replace('-', '')
+    const fila = { linea: i + 1, local_id: numero, sinNumero, name: '', name_en: null, rarity: null, types: [], category: null, trainer_type: null, energy_type: null, image_path: null }
     let trozos = m[2].split(SEPARADOR).map((x) => x.trim()).filter(Boolean)
     const columnas = trozos.length > 1
     const nombres = []
@@ -102,7 +126,8 @@ export function filasDeLista(texto) {
     // siglas en mayúsculas («… ex RR») o el nombre entero («… Double Rare»).
     if (!columnas && nombres.length === 1) {
       // Un precio pegado al final (Cardmarket) no es parte del nombre.
-      let n = nombres[0].replace(/\s+(?:€\s*)?\d+[.,]\d{2}\s*(?:€|\$)?$/, '')
+      // Y la columna de rareza vacía (un guion) que el OCR deja en la misma línea.
+      let n = nombres[0].replace(/\s+(?:€\s*)?\d+[.,]\d{2}\s*(?:€|\$)?$/, '').replace(/\s+[—–―]+$/, '')
       const sig = /\s+([A-Z]{1,4}|ACE|PR|●|◆|★★?)$/.exec(n)
       if (sig && SIGLAS_DE_RAREZA[sig[1].toLowerCase()]) { fila.rarity = SIGLAS_DE_RAREZA[sig[1].toLowerCase()]; n = n.slice(0, sig.index) }
       else {
@@ -113,11 +138,22 @@ export function filasDeLista(texto) {
     }
     ;[fila.name, fila.name_en] = [nombres[0] || '', nombres[1] || null]
     if (!fila.name) return void raras.push({ linea: i + 1, texto: t, motivo: 'falta el nombre' })
+    if (sinNumero) return void filas.push(fila)
     const clave = numeroComparable(numero)
     if (vistos.has(clave)) return void raras.push({ linea: i + 1, texto: t, motivo: `el número ${numero} ya está en la línea ${vistos.get(clave)}` })
     vistos.set(clave, i + 1)
     filas.push(fila)
   })
+  // Las que no traen número se numeran por ORDEN (1, 2, 3…), saltando los
+  // números que ya usa otra línea: es como las cuenta la lista. En la tabla se
+  // ve y se puede cambiar antes de crear.
+  let siguiente = 1
+  for (const f of filas) {
+    if (!f.sinNumero) continue
+    while (vistos.has(String(siguiente))) siguiente++
+    f.local_id = String(siguiente)
+    vistos.set(String(siguiente), f.linea)
+  }
   return { filas, raras }
 }
 

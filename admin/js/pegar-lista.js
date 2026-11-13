@@ -43,7 +43,7 @@ export function abrirPegarLista({ set, mercado, cartas, hoja, volver }) {
         <select id="plIdioma"><option value="en">Inglés</option><option value="es">Español</option><option value="ja">Japonés</option></select></label>
     </div>
     <label class="cat-campo">La lista <small>(una carta por línea: número, nombre y, si hay, nombre en inglés, rareza y tipo)</small>
-      <textarea id="plTexto" rows="8" placeholder="001/198 · Pineco · Grass · Common&#10;002/198 · Shiftry ex · Darkness · RR"></textarea></label>
+      <textarea id="plTexto" rows="8" placeholder="001/198 · Pineco · Grass · Common&#10;002/198 · Shiftry ex · Darkness · RR&#10;(sin número, una por línea: se numeran por orden)"></textarea></label>
     <p class="admin-note" id="plResumen" aria-live="polite"></p>
     <div id="plRaras"></div>
     <div class="pl-tabla-caja"><table class="pl-tabla" id="plTabla"></table></div>
@@ -71,8 +71,10 @@ export function abrirPegarLista({ set, mercado, cartas, hoja, volver }) {
 
   const pintarTabla = (raras = []) => {
     const n = cuentaDelPlan(plan)
+    // Un set sin números (1339): se numeran por orden y se dice, que el número es la llave de la carta.
+    const sinNumero = plan.filter((p) => p.sinNumero).length
     $('plResumen').textContent = plan.length
-      ? `${plan.length} ${plan.length === 1 ? 'carta leída' : 'cartas leídas'}: ${n.nuevas} ${n.nuevas === 1 ? 'nueva' : 'nuevas'}, ${n.completa} que ${n.completa === 1 ? 'se completa' : 'se completan'} y ${n.igual} que ya ${n.igual === 1 ? 'está' : 'están'}.${n.otroNombre ? ` Ojo: ${n.otroNombre} con el número de una que se llama distinto.` : ''}`
+      ? `${plan.length} ${plan.length === 1 ? 'carta leída' : 'cartas leídas'}: ${n.nuevas} ${n.nuevas === 1 ? 'nueva' : 'nuevas'}, ${n.completa} que ${n.completa === 1 ? 'se completa' : 'se completan'} y ${n.igual} que ya ${n.igual === 1 ? 'está' : 'están'}.${n.otroNombre ? ` Ojo: ${n.otroNombre} con el número de una que se llama distinto.` : ''}${sinNumero ? ` ${sinNumero === plan.length ? 'Ninguna trae' : `${sinNumero} no traen`} número: van numeradas por orden (1, 2, 3…); cámbialo en la columna Nº si hace falta.` : ''}`
       : ''
     $('plRaras').innerHTML = raras.length ? `<details class="pl-raras"><summary>${raras.length} ${raras.length === 1 ? 'línea no se entiende' : 'líneas no se entienden'}</summary><ul>${raras.map((r) => `<li>Línea ${r.linea}: «${escapeHtml(r.texto.slice(0, 60))}» — ${escapeHtml(r.motivo)}</li>`).join('')}</ul></details>` : ''
     $('plTabla').innerHTML = plan.length ? `<thead><tr><th></th><th>Nº</th><th>Nombre</th><th>Inglés</th><th>Rareza</th><th>Tipo</th><th>Qué se hace</th></tr></thead><tbody>${plan.map(fila).join('')}</tbody>` : ''

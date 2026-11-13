@@ -21,6 +21,11 @@
   columnas que embebe `tcg_sets` pide `release_date` (953). Una promo dice
   «Promo»: brilla por su NOMBRE (EX, GX, V, ex, ◇…), y una rareza que no está
   en el vocabulario, por sus palabras, sin traducirla (954).
+- **Un set puede no tener NÚMEROS, y la llave de una carta es su número**
+  (tanda 1339): el 10th Movie Commemoration Set lleva «—» en «No.» y en la
+  rareza, y «Pegar lista» lo rechazaba entero. Ahora se numeran por orden de
+  la lista y el panel lo dice. Un lector nuevo de listas no da por hecho que
+  hay número: que diga qué hace sin él, en vez de tirar la línea.
 - **Los idiomas de un set y las versiones de cada idioma se corrigen a
   mano en /admin** (tanda 956): `tcg_set_idiomas_mano` manda sobre lo
   calculado de la 911, y `tcg_version_idioma` dice qué versión NO salió en un
