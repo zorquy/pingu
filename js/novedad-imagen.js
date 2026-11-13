@@ -108,6 +108,7 @@ export async function compartirNovedad(d, captura = null) {
   const { abrirHojaCompartir } = await import('./compartir-hoja.js')
   let icono
   return abrirHojaCompartir({
+    invitar: false, // (1327) ya es una invitación, o es de PokeDoc y no de quien la comparte
     titulo: 'Imagen para redes',
     texto: textoDeNovedad(d),
     nombre: `novedad-${String(d.titulo || 'pokedoc').toLowerCase().normalize('NFD').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40)}`,

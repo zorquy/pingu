@@ -37,6 +37,8 @@ import { hojaInyectada } from './hoja.js'
 import { icon, icons } from './icons.js'
 import { showToast } from './toast.js'
 import { prepararMarco } from './redes-marco.js'
+import { matrizQR } from './qr.js'
+import { compartidoDeNombre, enlaceDeImagen } from './invitar-puro.js'
 
 // Dos iconos que solo se ven aquí: dibujados aquí y no en icons.js, que lo
 // baja la portada (la 452).
@@ -55,7 +57,10 @@ export const ALTO_HISTORIA = 1920
 // La historia de verdad: la vertical (1080×1350) en medio de un lienzo de
 // 1080×1920 cuyo fondo es ella misma, ampliada y desenfocada. Así no hay
 // bandas de color de otra cosa y vale para cualquier dibujo.
-export function historiaDe(vertical, doc = document) {
+// `invita` (1327, G1): { corto, qr } de quien comparte. Va en la franja de
+// abajo, la del fondo desenfocado, que en una historia está libre siempre: una
+// píldora blanca con el QR a /r/<tú>/<qué> y tu dirección corta.
+export function historiaDe(vertical, doc = document, invita = null) {
   const W = vertical.width || 1080
   const H = Math.round((W * ALTO_HISTORIA) / 1080)
   const lienzo = doc.createElement('canvas')
@@ -92,7 +97,59 @@ export function historiaDe(vertical, doc = document) {
   ctx.clip()
   ctx.drawImage(vertical, x, y, w, h)
   ctx.restore()
+  if (invita?.qr && invita?.corto) estamparInvitacion(ctx, { W, H, abajo: y + h, invita })
   return lienzo
+}
+
+function estamparInvitacion(ctx, { W, H, abajo, invita }) {
+  const hueco = H - abajo
+  const alto = Math.min(176, Math.round(hueco * 0.62))
+  if (alto < 96) return
+  const lado = alto - 32
+  ctx.save()
+  ctx.font = `700 ${Math.round(alto * 0.25)}px Outfit, Inter, sans-serif`
+  const anchoTexto = Math.max(ctx.measureText(invita.corto).width, 260)
+  const ancho = Math.min(W - 80, lado + 48 + anchoTexto + 40)
+  const x = Math.round((W - ancho) / 2)
+  const y = Math.round(abajo + (hueco - alto) / 2)
+  ctx.shadowColor = 'rgba(0, 0, 0, 0.35)'
+  ctx.shadowBlur = 24
+  ctx.fillStyle = '#ffffff'
+  ctx.beginPath()
+  if (ctx.roundRect) ctx.roundRect(x, y, ancho, alto, alto / 2.4)
+  else ctx.rect(x, y, ancho, alto)
+  ctx.fill()
+  ctx.shadowColor = 'transparent'
+  // El QR, con dos módulos de margen blanco (la píldora ya es blanca).
+  const m = matrizQR(invita.qr)
+  const mod = lado / (m.length + 2)
+  const qx = x + 24
+  const qy = y + 16
+  ctx.fillStyle = '#0d1b2a'
+  m.forEach((fila, j) => fila.forEach((v, i) => { if (v) ctx.fillRect(qx + (i + 1) * mod, qy + (j + 1) * mod, Math.ceil(mod), Math.ceil(mod)) }))
+  const tx = qx + lado + 24
+  ctx.textBaseline = 'alphabetic'
+  ctx.fillStyle = '#52717f'
+  ctx.font = `600 ${Math.round(alto * 0.16)}px Inter, sans-serif`
+  ctx.fillText('Escanéalo y únete', tx, y + alto * 0.42)
+  ctx.fillStyle = '#0d1b2a'
+  ctx.font = `700 ${Math.round(alto * 0.25)}px Outfit, Inter, sans-serif`
+  ctx.fillText(invita.corto, tx, y + alto * 0.76, x + ancho - tx - 24)
+  ctx.restore()
+}
+
+// Quién invita con la imagen: tu dirección si tienes cuenta y usuario (una
+// tienda no: no trae gente con /r/). Sin cuenta o sin red, nadie: la imagen
+// sale como siempre.
+async function invitacionDe(nombre) {
+  try {
+    const { getSession, getProfile } = await import('./app.js')
+    const s = await getSession()
+    if (!s?.user?.id) return null
+    const p = await getProfile(s.user.id)
+    if (!p?.username || p.tipo === 'tienda') return null
+    return enlaceDeImagen(p.username, compartidoDeNombre(nombre))
+  } catch { return null }
 }
 
 let dialogo = null
@@ -171,12 +228,14 @@ function guardarEleccion(clave, eleccion) {
   }
 }
 
-export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', imagen = null, nombre = 'pokedoc', x = null, historiaPropia = false, opciones = null } = {}) {
+export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', imagen = null, nombre = 'pokedoc', x = null, historiaPropia = false, opciones = null, invitar = true } = {}) {
   await hojaInyectada('css/compartir-hoja.css')
   const d = asegurarDialogo()
   const conImagen = typeof imagen === 'function'
   let forma = 'historia'
   const lienzos = {}
+  // Tu dirección para la historia (1327): se pide una vez, mientras se dibuja.
+  const invitacion = typeof imagen === 'function' && invitar ? invitacionDe(nombre) : Promise.resolve(null)
   const { direccionDeX } = await import('./compartir-x.js')
   const op = conImagen && opciones ? opciones : {}
   const eleccion = eleccionInicial(op, leerEleccion(op.recordar))
@@ -240,9 +299,9 @@ export async function abrirHojaCompartir({ titulo = 'Compartir', texto = '', ima
     // Las letras y el logo del marco antes del primer trazo (1156): un lienzo
     // con una fuente que no ha llegado pinta con otra y no avisa.
     await prepararMarco()
-    if (f === 'historia' && historiaPropia) return (lienzos[clave] = await imagen('larga', pedido))
+    if (f === 'historia' && historiaPropia) return (lienzos[clave] = await imagen('larga', { ...pedido, invita: await invitacion })) // con la invitación, por si la pinta (1327)
     const dibujo = await imagen(FORMAS[f].pide, pedido)
-    lienzos[clave] = f === 'historia' ? historiaDe(dibujo) : dibujo
+    lienzos[clave] = f === 'historia' ? historiaDe(dibujo, document, await invitacion) : dibujo
     return lienzos[clave]
   }
   const fichero = () => `${nombre}${FORMAS[forma].sufijo}.png`

@@ -82,6 +82,7 @@ export async function abrirInvitar(perfil) {
   const { abrirHojaCompartir } = await import('./compartir-hoja.js')
   const texto = textoDeInvitacion({ nombre: nombreDe(perfil), enlace })
   return abrirHojaCompartir({
+    invitar: false, // (1327) ya es una invitación, o es de PokeDoc y no de quien la comparte
     titulo: 'Invita a tus amigos',
     texto,
     x: { texto: texto.split('\n')[0], url: enlace },

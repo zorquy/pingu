@@ -55204,6 +55204,24 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1327 — cada imagen que se comparte invita
+
+G1 del plan. En `js/invitar-puro.js`: `COMPARTIDO` (clave → prefijo del nombre
+de fichero, frase, botón y ruta de la llegada; las de los retos son las de
+`RETOS`), `compartidoDeNombre(nombre)` (el prefijo más largo que casa: `expansion-`
+es una expansión tuya y `que-expansion-` el reto), `enlaceDeImagen(usuario, de)`
+→ `{ corto: 'pokedoc.es/r/<u>', qr: 'https://pokedoc.es/r/<u>/<de>' }` y
+`llegadaDeCompartido(usuario, de)`. En `js/compartir-hoja.js`:
+`abrirHojaCompartir({ …, invitar = true })` pide una vez `invitacionDe(nombre)`
+(sesión y perfil por `import('./app.js')`; sin cuenta, sin usuario o una tienda,
+nada) y `historiaDe(vertical, doc, invita)` pinta con `estamparInvitacion` la
+píldora (QR de `matrizQR` y la dirección en Outfit) en la franja de debajo de la
+vertical. Con `historiaPropia`, la invitación va en `pedido.invita`. netlify.toml:
+`/r/:username/:de` → `auth.html?r=…&de=…` (302), ANTES de `/r/:username`; auth.js
+pinta `.auth-padrino-de` y `.auth-padrino-ir`. Una imagen nueva que se comparte
+invita sola; si es de PokeDoc y no de quien la comparte, `invitar: false`, y si
+se quiere que la llegada la nombre, una entrada en `COMPARTIDO`.
+
 ## Tanda 1326b — la guía de estilo viva en /admin
 
 D6 del plan. `admin/js/guia-estilo.js`, por `import()` al abrir la sección

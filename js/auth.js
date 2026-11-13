@@ -3,6 +3,7 @@ import { uniqueUsername, passwordStrengthError, avatarStyle, getInitial } from '
 import { escapeHtml } from './html.js'
 import { showToast } from './toast.js'
 import { friendlyAuthError } from './auth-errores.js'
+import { llegadaDeCompartido } from './invitar-puro.js'
 import { prepararTurnstile, conToken } from './turnstile.js'
 
 const steps = {
@@ -54,9 +55,18 @@ async function pintarPadrino(usuario) {
     const nombre = p.display_name || p.username
     caja.innerHTML = `<span class="auth-padrino-cara" style="${avatarStyle(p)}">${p.avatar_url ? '' : escapeHtml(getInitial(nombre))}</span>
       <p class="auth-padrino-t"><b>${escapeHtml(nombre)}</b> te invita a PokeDoc</p>
-      <p class="auth-padrino-logro">Al crear tu cuenta, logro «Invitado de honor» · +25 XP</p>`
+      <p class="auth-padrino-logro">Al crear tu cuenta, logro «Invitado de honor» · +25 XP</p>${compartidoHtml(p.username)}`
     caja.hidden = false
   } catch {}
+}
+// Lo que te enseñó con la imagen (1327, G1): /r/<usuario>/<qué> llega con
+// ?de=<qué>. Un reto se juega sin cuenta («¿Le ganas?»); lo demás se mira.
+function compartidoHtml(usuario) {
+  const de = new URLSearchParams(window.location.search).get('de')
+  const l = llegadaDeCompartido(usuario, de)
+  if (!l) return ''
+  return `<p class="auth-padrino-de">${escapeHtml(l.frase)}${l.reto ? ' · ¿Le ganas? Se juega sin cuenta.' : ''}</p>
+      <a class="btn-secondary auth-padrino-ir" href="${escapeHtml(l.ruta)}">${escapeHtml(l.boton)}</a>`
 }
 if (padrinoDeLaDireccion) pintarPadrino(padrinoDeLaDireccion)
 

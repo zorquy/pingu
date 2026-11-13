@@ -40,3 +40,49 @@ export function textoDeFalta(p) {
 // Lo que se comparte con la imagen: corto, con el enlace al final.
 export const textoDeInvitacion = ({ nombre, enlace }) =>
   `${nombre ? `${nombre} te invita a PokeDoc` : 'Te invito a PokeDoc'}: tu colección y lo que vale, cambios con gente de confianza, guías, retos diarios y torneos. Todo gratis.\n${enlace}`
+
+// ── Cada imagen que se comparte invita (1327, G1 del plan 2027) ──
+// La hoja de compartir sabe qué imagen es por el nombre de su fichero; con eso,
+// su QR lleva a /r/<tú>/<qué> y la llegada enseña lo que viste («Su reto de
+// hoy: ¿Le ganas?»). Lo que no se reconoce invita igual, a /r/<tú> a secas.
+// Las rutas de los retos son las de RETOS (js/retos-xp.js): si cambian allí,
+// aquí.
+export const COMPARTIDO = {
+  carta: { prefijo: 'carta-del-dia', frase: 'Su reto de hoy: ¿Qué carta es?', boton: 'Jugar el reto', ruta: () => '/carta-del-dia', reto: true },
+  caro: { prefijo: 'mas-caro', frase: 'Su reto de hoy: ¿Más caro o más barato?', boton: 'Jugar el reto', ruta: () => '/mas-caro', reto: true },
+  silueta: { prefijo: 'quien-es', frase: 'Su reto de hoy: ¿Quién es ese Pokémon?', boton: 'Jugar el reto', ruta: () => '/quien-es', reto: true },
+  ordena: { prefijo: 'ordena-precio', frase: 'Su reto de hoy: Ordena por precio', boton: 'Jugar el reto', ruta: () => '/ordena-precio', reto: true },
+  expansion: { prefijo: 'que-expansion', frase: 'Su reto de hoy: ¿De qué expansión es?', boton: 'Jugar el reto', ruta: () => '/que-expansion', reto: true },
+  parejas: { prefijo: 'parejas', frase: 'Su reto de hoy: Parejas', boton: 'Jugar el reto', ruta: () => '/parejas', reto: true },
+  vitrina: { prefijo: 'vitrina', frase: 'Te ha enseñado su colección', boton: 'Ver su colección', ruta: (u) => `/usuario/${encodeURIComponent(u)}?ver=coleccion` },
+  set: { prefijo: 'expansion-', frase: 'Te ha enseñado cómo lleva una expansión', boton: 'Ver su colección', ruta: (u) => `/usuario/${encodeURIComponent(u)}?ver=coleccion` },
+  partida: { prefijo: 'partida-', frase: 'Te ha enseñado una partida suya', boton: 'Ver su perfil', ruta: (u) => `/usuario/${encodeURIComponent(u)}?ver=torneos` },
+  torneo: { prefijo: 'torneo-', frase: 'Te ha enseñado cómo le fue en un torneo', boton: 'Ver los torneos', ruta: () => '/torneos' },
+  logro: { prefijo: 'logro-', frase: 'Te ha enseñado un logro suyo', boton: 'Ver sus logros', ruta: (u) => `/usuario/${encodeURIComponent(u)}?ver=logros` },
+}
+
+// Qué es una imagen, por el nombre de su fichero. `expansion-` (una expansión
+// de tu colección) no es `que-expansion-` (el reto): el más largo gana.
+export function compartidoDeNombre(nombre) {
+  const n = String(nombre || '').toLowerCase()
+  let mejor = null
+  for (const [clave, c] of Object.entries(COMPARTIDO)) {
+    if (n.startsWith(c.prefijo) && (!mejor || c.prefijo.length > COMPARTIDO[mejor].prefijo.length)) mejor = clave
+  }
+  return mejor
+}
+
+// La dirección que lleva la imagen (sin «https://») y la del QR (con ella).
+export function enlaceDeImagen(usuario, de = null, origen = 'https://pokedoc.es') {
+  const base = enlaceDeInvitacion(usuario, origen)
+  if (!base) return null
+  const largo = COMPARTIDO[de] ? `${base}/${de}` : base
+  return { largo, corto: enlaceCorto(base), qr: largo }
+}
+
+// Lo que dice la llegada (auth.js) de lo compartido; null si no se sabe.
+export function llegadaDeCompartido(usuario, de) {
+  const c = COMPARTIDO[de]
+  if (!c || !usuarioValido(usuario)) return null
+  return { frase: c.frase, boton: c.boton, ruta: c.ruta(usuario), reto: Boolean(c.reto) }
+}

@@ -64,6 +64,7 @@ export async function compartirNoticia(guide) {
     return pintarNoticia(document.createElement('canvas'), { ...datos, portada, formato })
   }
   return abrirHojaCompartir({
+    invitar: false, // (1327) ya es una invitación, o es de PokeDoc y no de quien la comparte
     titulo: 'Compartir la noticia',
     texto: textoConEnlace({ ...datos, url }),
     imagen,

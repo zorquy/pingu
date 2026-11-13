@@ -326,3 +326,6 @@
   justify-content: center;
   margin-top: var(--e-sm);
 }
+/* Lo que te enseñó con la imagen (1327). */
+.auth-padrino-de { margin: var(--e-xs) 0 0; color: var(--text-mid); font-size: var(--t-sm); }
+.auth-padrino-ir { margin-top: var(--e-xs); background: var(--white); }

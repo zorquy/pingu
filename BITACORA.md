@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (576) — PINGU-Claude (1327 — cada imagen que se comparte invita)
+
+**Hecho**: G1 del plan. Lo de invitar ya estaba (1298: /r/<usuario>, «Invita a
+un amigo» en el avatar, los logros Embajador y la llegada con el padrino);
+faltaba lo central:
+- **La historia de cualquier imagen** (retos, expansión, logros, Navidad…)
+  lleva abajo, en la franja desenfocada que siempre está libre, una píldora
+  blanca con un QR y **pokedoc.es/r/<tú>**. Solo con cuenta y usuario, nunca
+  en una tienda, y no en la propia invitación, las noticias ni las novedades
+  (son de PokeDoc, no tuyas). La Publicación y la de X no cambian.
+- **El QR sabe qué compartiste**: lleva a /r/<tú>/<qué> (carta, silueta, caro,
+  ordena, expansion, parejas, vitrina, set, partida, torneo, logro), y la
+  llegada al registro lo dice: «Su reto de hoy: ¿Qué carta es? · ¿Le ganas? Se
+  juega sin cuenta» con «Jugar el reto», o «Ver su colección», etc.
+- Las que dibujan su propia historia (vitrina, partidas, tu mes, Navidad,
+  Nochevieja) reciben la invitación en `pedido.invita` pero aún no la pintan.
+
+**Lo que NO va**: los logros a las 3 y 10 personas de la propuesta (ya hay
+Embajador con 1 y 5; no los dupliqué) ni la cuenta de entradas por imagen.
+
+**Ficheros**: js/invitar-puro.js, js/compartir-hoja.js, js/auth.js,
+css/auth.css, js/invitar-hoja.js, js/noticia-compartir.js,
+js/novedad-imagen.js, netlify.toml, precargas de auth, SCHEMA.md,
+novedades.json. En `pruebas`: test-tanda-1327.
+
 ## 2026-11-13 (575) — PINGU-Claude (1326b — la guía de estilo viva en /admin)
 
 **Hecho**: D6 del plan. /admin → Sistema → **Guía de estilo** (`?ver=estilo`):
