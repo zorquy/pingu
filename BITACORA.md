@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (595) — PINGU-Claude (1346 — /torneos con una sola cabecera: la liga, en vivo en su tarjeta)
+
+**Hecho**: PINGU: «hay como dos cabeceras… ronda 17 de 30… eso lo quitaría, o
+que se actualice la liga en curso».
+- **La liga en vivo en su tarjeta**: con la jornada jugándose, la tarjeta de
+  «Ligas en curso» dice «Jornada 4 · ronda 1 de 3», lleva el reloj de la ronda
+  y, si juegas, el botón pasa a «Ir a tu mesa». El borde se pone en rojo.
+- **Fuera el aviso de arriba para las ligas**: el «En juego · Ronda 17 de 30»
+  contaba las 30 rondas de la temporada como si fueran de un día. Ahora solo
+  sale para los torneos de un día.
+- **Y en esos, las rondas de verdad**: «Ronda 2 de 4 · luego, top 4», y en el
+  corte «Top cut · ronda N» (antes salía «Ronda 5 de 4»); los puntos de las
+  rondas llevan uno más para el corte.
+
+**Ficheros**: `js/torneos/torneos.js`, `js/torneos/ligas-franja.js`,
+`css/torneos.css`, `novedades.json`.
+
+**Pendiente**: las pruebas de la tanda del torneo (1341–1346) en la rama
+`pruebas`. Sin migración.
+
 ## 2026-11-13 (594) — PINGU-Claude (1345 — Clasificación con quién va arriba, tabla del móvil y Jueces con cifras)
 
 **Hecho**:

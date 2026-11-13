@@ -253,6 +253,7 @@ function tarjetaHtml(t, datos) {
 // Solo se pide la ronda cuando HAY un torneo tuyo en juego: quien no
 // esté jugando nada no paga ninguna consulta de más.
 let relojVivo = null
+let relojLigas = null
 
 function textoCuenta(ms) {
   const s = Math.max(0, Math.floor(ms / 1000))
@@ -273,19 +274,27 @@ async function pintarVivo(torneo) {
   }
   const { data: rondas } = await supabase
     .from('rounds')
-    .select('round_number, status, ends_at')
+    .select('round_number, status, ends_at, phase')
     .eq('tournament_id', torneo.id)
     .eq('status', 'active')
     .limit(1)
   const ronda = (rondas || [])[0] || null
+  // Las rondas de verdad (1346): las suizas y, si hay corte, «Top N» detrás;
+  // en el corte, la ronda dice «Top cut», no «Ronda 4 de 3».
   const total = torneo.swiss_rounds || 0
+  const enCorte = ronda?.phase === 'top_cut'
+  const rotuloRonda = !ronda
+    ? 'Entre rondas'
+    : enCorte
+      ? `Top cut · ronda ${ronda.round_number}`
+      : `Ronda ${ronda.round_number}${total ? ` de ${total}` : ''}${torneo.top_cut_size ? ` · luego, top ${torneo.top_cut_size}` : ''}`
   caja.classList.remove('hidden')
   caja.innerHTML = `
     <span class="torneo-vivo-texto">
       <span class="torneo-vivo-chapa"><span class="torneo-punto"></span>En juego</span>
       <strong>${escapeHtml(torneo.name)}</strong>
-      ${total ? `<span class="torneo-vivo-rondas" aria-hidden="true">${Array.from({ length: total }, (_, i) => `<i class="${ronda && i + 1 < ronda.round_number ? 'hecha' : ronda && i + 1 === ronda.round_number ? 'ahora' : ''}"></i>`).join('')}</span>` : ''}
-      <span class="torneo-vivo-sub">${ronda ? `Ronda ${ronda.round_number}${total ? ` de ${total}` : ''}` : 'Entre rondas'}</span>
+      ${total && total <= 12 ? `<span class="torneo-vivo-rondas" aria-hidden="true">${Array.from({ length: total }, (_, i) => `<i class="${enCorte || (ronda && i + 1 < ronda.round_number) ? 'hecha' : ronda && i + 1 === ronda.round_number ? 'ahora' : ''}"></i>`).join('')}${torneo.top_cut_size ? `<i class="corte${enCorte ? ' ahora' : ''}"></i>` : ''}</span>` : ''}
+      <span class="torneo-vivo-sub">${escapeHtml(rotuloRonda)}</span>
     </span>
     <span class="torneo-vivo-der">
       ${ronda?.ends_at ? '<span class="torneo-vivo-reloj"><span class="torneo-vivo-rotulo">Queda de ronda</span><b id="torneoVivoReloj">—</b></span>' : ''}
@@ -433,6 +442,16 @@ function pintarLigas(ligas, { rondasDe, miEstado, ocupadasDe, gente, session }) 
   caja.innerHTML = ligas
     .map((t) => ligaFranjaHtml(t, rondasDe[t.id], { inscrito: miEstado[t.id] === 'active' }))
     .join('')
+  // El reloj de la ronda en la tarjeta de una liga en vivo (1346), con el
+  // mismo tictac orientativo que el aviso de arriba.
+  if (relojLigas) clearInterval(relojLigas)
+  relojLigas = null
+  const relojes = [...caja.querySelectorAll('[data-lc-reloj]')]
+  if (relojes.length) {
+    const tic = () => relojes.forEach((r) => (r.textContent = textoCuenta(new Date(r.dataset.lcReloj).getTime() - Date.now())))
+    tic()
+    relojLigas = setInterval(tic, 1000)
+  }
   return Promise.all(
     ligas.map((t) => {
       const tarjeta = caja.querySelector(`[data-liga="${CSS.escape(String(t.id))}"]`)
@@ -511,7 +530,7 @@ async function cargarLista(session, perfil = null) {
   // dependen una de otra: a la vez (894, R3).
   const [rondasRes, perfilesRes] = await Promise.all([
     ligasEnJuego.length
-      ? supabase.from('rounds').select('id, tournament_id, round_number, status, phase, started_at, closed_at').in('tournament_id', ligasEnJuego)
+      ? supabase.from('rounds').select('id, tournament_id, round_number, status, phase, started_at, closed_at, ends_at').in('tournament_id', ligasEnJuego)
       : Promise.resolve(null),
     quienes.size
       ? supabase
@@ -567,9 +586,11 @@ async function cargarLista(session, perfil = null) {
     })
   // El tuyo en juego: el que manda la barra de arriba. Si hubiera dos
   // (raro pero posible), el que empezó antes — es el que lleva prisa.
+  // Una liga en curso con sus rondas ya va EN VIVO en su tarjeta de la franja
+  // (1346): el aviso de arriba solo para los torneos de un día.
   const vivoListo = pintarVivo(
     torneos
-      .filter((t) => t.status === 'in_progress' && miEstado[t.id] === 'active' && !enPausa(t))
+      .filter((t) => t.status === 'in_progress' && miEstado[t.id] === 'active' && !enPausa(t) && !(t.format === 'league' && rondasDe[t.id]))
       .sort((a, b) => new Date(a.start_at) - new Date(b.start_at))[0] || null
   )
 

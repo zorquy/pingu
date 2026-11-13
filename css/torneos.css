@@ -4362,3 +4362,25 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 .torneo-juez-cifra.hay b { color: var(--warning); }
 .torneo-lider .subtext { white-space: nowrap; }
 @media (max-width: 640px) { .torneo-lider-vde { display: none; } }
+
+/* ── 1346: la liga en vivo, en su tarjeta (SCHEMA 1346) ── */
+.lc-vivo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  flex-wrap: wrap;
+  margin: 0;
+  font-size: var(--t-sm);
+  color: var(--danger);
+}
+.lc-vivo b { color: var(--text); }
+.lc-vivo-reloj {
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--danger-bg);
+  color: var(--danger);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.lc-tarjeta.lc-en-vivo { border-color: var(--danger); }
+.torneo-vivo-rondas i.corte { width: 14px; border-radius: 3px; }

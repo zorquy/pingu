@@ -11,6 +11,7 @@
 import { escapeHtml } from '../html.js'
 import { icons } from '../icons.js'
 import { jornadasDeLiga, clasificacionDeLiga } from './liga-en-curso.js'
+import { rondasPorJornada, rondaEnJornada } from './rondas-jornada.js'
 
 const DIA_MS = 864e5
 const ARTES = 6
@@ -92,8 +93,18 @@ export function ligaFranjaHtml(t, rondas, { ahora = Date.now(), inscrito = false
   const cita = s?.fecha
     ? `${icons.calendar(14)} <span>${escapeHtml(diaCorto(s.fecha))} · ${escapeHtml(hora(s.fecha))}</span>`
     : ''
-  const boton = botonDeLiga(t, { inscrito, conLista, siguiente: s })
-  return `<article class="lc-tarjeta" data-liga="${escapeHtml(String(t.id))}">
+  let boton = botonDeLiga(t, { inscrito, conLista, siguiente: s })
+  // LA LIGA EN VIVO (1346, PINGU: «que se actualice la liga en curso y no que
+  // haya dos cabeceras»): con su jornada jugándose, la tarjeta dice qué ronda,
+  // lleva el reloj y, si juegas, «Ir a tu mesa». El aviso «Ronda 17 de 30» de
+  // arriba ya no sale para una liga.
+  const viva = s?.estado === 'en_juego' ? (rondas || []).find((r) => r.status === 'active') || null : null
+  const k = rondasPorJornada(t)
+  const vivoHtml = viva
+    ? `<p class="lc-vivo"><span class="torneo-punto"></span><b>Jornada ${s.n}${k > 1 ? ` · ronda ${rondaEnJornada(t, viva.round_number)} de ${k}` : ''}</b>${viva.ends_at ? ` <span class="lc-vivo-reloj" data-lc-reloj="${escapeHtml(viva.ends_at)}">–:––</span>` : ''}</p>`
+    : ''
+  if (viva && inscrito) boton = { texto: 'Ir a tu mesa', clase: 'btn-primary', href: url }
+  return `<article class="lc-tarjeta${viva ? ' lc-en-vivo' : ''}" data-liga="${escapeHtml(String(t.id))}">
     <a class="lc-portada torneo-arte torneo-arte-${arteDe(t)}" href="${url}" data-torneo="${escapeHtml(String(t.id))}" tabindex="-1" aria-hidden="true">
       ${t.image_url ? `<img class="torneo-arte-imagen" src="${escapeHtml(t.image_url)}" alt="" loading="lazy" onerror="this.style.display='none'" />` : ''}
       <span class="lc-chapa">${escapeHtml(chapaDeLiga(j, ahora))}</span>
@@ -101,6 +112,7 @@ export function ligaFranjaHtml(t, rondas, { ahora = Date.now(), inscrito = false
     <div class="lc-cuerpo">
       <span class="lc-ceja">Liga en curso</span>
       <h3 class="lc-nombre"><a href="${url}">${escapeHtml(t.name)}</a></h3>
+      ${vivoHtml}
       <ol class="lc-tira" aria-label="Jornadas de la liga">${tira}</ol>
       <p class="lc-datos">${escapeHtml(datos.join(' · '))}</p>
       ${cita ? `<p class="lc-cita">${cita}</p><p class="lc-listas" data-lc-listas>${listasHtml(listas, conLista)}</p>` : ''}
@@ -166,7 +178,8 @@ export async function completarLiga(supabase, caja, t, rondas, { userId = null, 
   const listas = !cuenta.error && Number.isFinite(cuenta.data) ? { enviadas: cuenta.data, inscritos } : null
   const sitio = caja.querySelector('[data-lc-listas]')
   if (sitio) sitio.innerHTML = listasHtml(listas, conLista)
-  if (conLista !== null) {
+  // En vivo (1346) el botón ya dice «Ir a tu mesa»: no se pisa.
+  if (conLista !== null && !(inscrito && caja.classList.contains('lc-en-vivo'))) {
     const b = botonDeLiga(t, { inscrito, conLista, siguiente: s })
     const a = caja.querySelector('[data-lc-boton]')
     if (a) { a.className = `${b.clase} lc-boton`; a.href = b.href; a.textContent = b.texto }

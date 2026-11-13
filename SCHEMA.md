@@ -55204,6 +55204,22 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1346 — /torneos: la liga en vivo en su tarjeta
+
+**La tarjeta** (`ligaFranjaHtml` en `js/torneos/ligas-franja.js`): si la
+jornada siguiente está `en_juego` y hay una ronda `active` en `rondas`, pinta
+`.lc-vivo` bajo el nombre (jornada, «ronda k de K» con `rondaEnJornada` y
+`rondasPorJornada` si hay varias por jornada, y `span[data-lc-reloj=ends_at]`),
+la tarjeta lleva `.lc-en-vivo` y, inscrito, el botón es «Ir a tu mesa».
+`completarLiga` no lo pisa en ese caso. Las rondas de las ligas se piden ya
+con `ends_at`; `pintarLigas` (`js/torneos/torneos.js`) mueve los relojes con
+un intervalo (`relojLigas`).
+
+**El aviso de arriba** (`pintarVivo`): no se elige para una liga con sus
+rondas cargadas (va en la franja). Pide `phase`; el rótulo es «Ronda n de N ·
+luego, top T» o «Top cut · ronda n», y los puntos (solo hasta 12 rondas)
+llevan un `i.corte` al final si hay corte.
+
 ## Tanda 1345 — Clasificación, Jueces y las dos columnas del PC
 
 **Quién va** (`lideresHtml(tabla)` en `js/torneos/ronda.js`): con el torneo
