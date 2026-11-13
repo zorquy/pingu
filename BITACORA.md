@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (573) — PINGU-Claude (1325 — ninguna página vacía sin salida)
+
+**Hecho**: D2 del plan. Un molde común de vacío, `vacioHtml` (`js/vacio.js`
++ `.vacio` en style.css): la mascota, qué irá aquí y dos salidas que hacen
+algo (la primera, principal). Aplicado a:
+- **/eventos** sin eventos («Aún no hay eventos», con «¿Organizas algo?
+  Cuéntanoslo» → /colabora y «Ver los torneos»), sin la migración («La agenda
+  llega muy pronto», las mismas salidas) y si no carga («Reintentar»). Antes,
+  una frase pequeña en medio de la pantalla.
+- **«¿Qué carta es?»** cuando no puede traer la carta del día: «Otros retos de
+  hoy» y «Reintentar» debajo del aviso (antes, el aviso y nada).
+
+**Lo que NO va**: «Avísame cuando haya un evento cerca» (pide avisos por
+ciudad, que no existen) y la prueba que abre TODAS las páginas con la base
+vacía (la de esta tanda mira las que se han cambiado).
+
+**Ficheros**: js/vacio.js (nuevo), css/style.css, js/eventos.js,
+js/carta-del-dia-juego.js, precargas de eventos.html, SCHEMA.md,
+novedades.json. En `pruebas`: test-tanda-1325. La 1194-pantalla falla en la
+cabecera de la ficha de un evento también sin esta tanda (de antes).
+
 ## 2026-11-13 (572) — PINGU-Claude (1324 — tamaño de letra y más contraste)
 
 **Hecho**: D5 del plan. Ajustes › **Apariencia**: «Letra» en tres tamaños

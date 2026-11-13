@@ -11,6 +11,7 @@
 // lado del logo (PINGU: «como en las tiendas… que no tengas que bajar para ver
 // sobre el evento»); debajo, las entradas, los días, quién va y dónde.
 import { supabase } from './supabase.js'
+import { vacioHtml } from './vacio.js'
 import { escapeHtml, urlParaCss } from './html.js'
 import { avatarStyle, getInitial, getSession, profileUrl } from './app.js'
 import { icons } from './icons.js'
@@ -130,14 +131,15 @@ function porMeses(eventos, sesion, ahora) {
 async function pintarAgenda(sesion) {
   const { data, error } = await supabase.rpc('eventos_lista')
   if (error) {
+    // Con salida (1325): mientras la agenda no está, lo que sí hay.
     caja.innerHTML = sinMigracion(error)
-      ? '<p class="empty-state">La agenda de eventos llega muy pronto.</p>'
-      : '<p class="empty-state">No se ha podido cargar la agenda. Vuelve a intentarlo en un momento.</p>'
+      ? vacioHtml({ titulo: 'La agenda de eventos llega muy pronto', texto: 'Card shows, trade nights y torneos de tiendas, con quién va. Mientras, puedes jugar un torneo en PokeDoc.', salidas: [{ texto: 'Ver los torneos', href: '/torneos' }, { texto: '¿Organizas algo? Cuéntanoslo', href: '/colabora' }] })
+      : vacioHtml({ titulo: 'No se ha podido cargar la agenda', texto: 'Puede ser la conexión.', salidas: [{ texto: 'Reintentar', href: location.pathname + location.search }, { texto: 'Ver los torneos', href: '/torneos' }] })
     return
   }
   const todos = data || []
   if (!todos.length) {
-    caja.innerHTML = '<p class="empty-state">Todavía no hay eventos en la agenda. El equipo los irá añadiendo; si conoces uno, <a href="/foro.html">cuéntalo en el foro</a>.</p>'
+    caja.innerHTML = vacioHtml({ titulo: 'Aún no hay eventos', texto: 'Quedadas, trade nights y torneos de tiendas salen aquí. El equipo los va añadiendo.', salidas: [{ texto: '¿Organizas algo? Cuéntanoslo', href: '/colabora' }, { texto: 'Ver los torneos', href: '/torneos' }] })
     return
   }
   const ahora = new Date()

@@ -55204,6 +55204,18 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1325 — ninguna página vacía sin salida
+
+D2 del plan. `vacioHtml({ titulo, texto, salidas, mascota })` (`js/vacio.js`,
+puro salvo el escape): `div.vacio[role=status]` con la mascota
+(`/assets/images/mascota.webp`, 72 px, `lazy`), `h2.vacio-titulo`,
+`p.vacio-texto` y `div.vacio-salidas` con dos enlaces como mucho (`btn-primary`
+y `btn-secondary`; `principal` lo cambia). El CSS va en style.css porque un
+vacío puede salir en cualquier página (~0,3 KB). Un vacío nuevo pasa por aquí:
+qué irá aquí y dos salidas que lleven a algo que funcione. Lo usa /eventos
+(vacía, sin migración y sin carga); «¿Qué carta es?» pone la fila
+`.vacio-salidas` debajo de su aviso de fallo.
+
 ## Tanda 1324 — tamaño de letra y más contraste
 
 D5 del plan. Detrás del guion del tema de cada página va otro de una línea:

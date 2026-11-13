@@ -487,6 +487,8 @@ async function init() {
   } catch (err) {
     $('cdSub').textContent = err.sinFoto ? TEXTO_SIN_FOTO : err.sinArbitro ? err.message : 'Hoy no se ha podido traer la carta. Vuelve en un rato.'
     $('cdAcciones').classList.add('hidden')
+    // Con salida (1325): los otros retos del día sí pueden estar.
+    $('cdSub').insertAdjacentHTML('afterend', `<div class="vacio-salidas">${['<a class="btn-primary" href="/retos">Otros retos de hoy</a>', '<a class="btn-secondary" href="/carta-del-dia">Reintentar</a>'].join('')}</div>`)
     return
   }
   if (libre) $('cdSub').insertAdjacentHTML('afterend', avisoLibreHtml(hechoHoy(hoy)('carta'), '/carta-del-dia'))
