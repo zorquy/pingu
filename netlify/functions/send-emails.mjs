@@ -64,6 +64,19 @@ async function rest(ruta, clave, opciones = {}) {
   return res.status === 204 ? null : res.json()
 }
 
+// El token del enlace de baja vive en `user_privado` desde la 1306 (estaba
+// en el perfil, que lee cualquiera). Sin la migración, donde estaba. Sin
+// token, el correo sale igual sin el enlace de un clic.
+async function tokenDeBaja(userId, clave) {
+  for (const ruta of [`user_privado?user_id=eq.${userId}&select=email_unsubscribe_token`, `user_profiles?id=eq.${userId}&select=email_unsubscribe_token`]) {
+    try {
+      const [fila] = await rest(ruta, clave)
+      if (fila?.email_unsubscribe_token) return fila
+    } catch { /* la tabla o la columna no están: el siguiente sitio */ }
+  }
+  return null
+}
+
 // La dirección de correo vive en auth.users, que PostgREST no expone. Se
 // pide por la API de administración, que sí necesita la clave de servicio.
 async function buscarDestinatario(userId, clave) {
@@ -213,10 +226,7 @@ export default async () => {
         continue
       }
 
-      const [perfil] = await rest(
-        `user_profiles?id=eq.${fila.recipient_id}&select=email_unsubscribe_token`,
-        clave
-      )
+      const perfil = await tokenDeBaja(fila.recipient_id, clave)
       const unsubscribeUrl = perfil?.email_unsubscribe_token
         ? `${siteUrl}/baja-correo?t=${perfil.email_unsubscribe_token}&tipo=${encodeURIComponent(fila.type)}`
         : null

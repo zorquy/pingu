@@ -20,20 +20,20 @@ import { icons } from './icons.js'
 import { servidoPorGuia, frasePersonas } from './guias-servido.js'
 import { medallasPorCurso, chipMedallaHtml } from './medallero.js'
 import { atributosDeRango, COLUMNAS_RANGO } from './rangos.js'
+import { leerPrivado, guardarGuias } from './perfil-privado.js'
 
+// Los guardados son privados desde la 1306 (js/perfil-privado.js).
 export async function toggleSaved(session, guideId) {
-  const { data: profile } = await supabase.from('user_profiles').select('saved_guides').eq('id', session.user.id).single()
-  const saved = profile?.saved_guides || []
-  const isSaved = saved.includes(guideId)
-  const next = isSaved ? saved.filter((id) => id !== guideId) : [...saved, guideId]
-  await supabase.from('user_profiles').update({ saved_guides: next }).eq('id', session.user.id)
+  const p = await leerPrivado(supabase, session.user.id)
+  const isSaved = (p.saved_guides || []).includes(guideId)
+  const next = isSaved ? p.saved_guides.filter((id) => id !== guideId) : [...(p.saved_guides || []), guideId]
+  await guardarGuias(supabase, session.user.id, next, p.privado)
   return !isSaved
 }
 
 async function getSavedIds(session) {
   if (!session) return []
-  const { data: profile } = await supabase.from('user_profiles').select('saved_guides').eq('id', session.user.id).single()
-  return profile?.saved_guides || []
+  return (await leerPrivado(supabase, session.user.id)).saved_guides || []
 }
 
 // Rellena el estado de guardado y cuántas veces han servido las tarjetas ya

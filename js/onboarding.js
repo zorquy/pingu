@@ -83,12 +83,9 @@ async function apuntarPadrino(session) {
       .neq('id', session.user.id)
       .maybeSingle()
     if (!quien?.id) return
-    const { error } = await supabase
-      .from('user_profiles')
-      .update({ referred_by: quien.id })
-      .eq('id', session.user.id)
-      .is('referred_by', null)
-    if (!error) {
+    // Quién te invitó es privado desde la 1306: se pone por su función.
+    const { ponerPadrino } = await import('./perfil-privado.js')
+    if (await ponerPadrino(supabase, session.user.id, quien.id)) {
       const { checkAchievements } = await import('./gamification.js')
       await checkAchievements(session.user.id).catch(() => {})
     }

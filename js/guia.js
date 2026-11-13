@@ -33,10 +33,9 @@ async function toggleSave(session, guideId, btn) {
   const estaba = btn.getAttribute('aria-label') !== 'Guardar'
   pintarGuardada(btn, !estaba)
   if (!estaba) import('./efectos.js').then(({ latir }) => latir(btn)).catch(() => {})
-  const profile = await getProfile(session.user.id)
-  const saved = profile?.saved_guides || []
-  const next = estaba ? saved.filter((id) => id !== guideId) : [...new Set([...saved, guideId])]
-  const { error } = await supabase.from('user_profiles').update({ saved_guides: next }).eq('id', session.user.id)
+  // Los guardados son privados desde la 1306: se leen y se escriben por su sitio.
+  const { cambiarGuardada } = await import('./perfil-privado.js')
+  const { error } = await cambiarGuardada(supabase, session.user.id, guideId, !estaba)
   if (error) {
     pintarGuardada(btn, estaba)
     showToast('No se ha podido guardar. Vuelve a intentarlo.')
@@ -595,11 +594,12 @@ async function init() {
   if (!session) {
     btnSave.addEventListener('click', () => (window.location.href = 'auth.html'))
   } else {
-    if ((profile?.saved_guides || []).includes(guide.id)) {
-      btnSave.innerHTML = icons.bookmark(16, true)
-      btnSave.setAttribute('aria-label', 'Guardada · quitar de guardados')
-    }
     btnSave.addEventListener('click', () => toggleSave(session, guide.id, btnSave))
+    // Si está guardada llega aparte (privado, 1306): sin esperarlo para pintar.
+    import('./perfil-privado.js')
+      .then(({ leerPrivado }) => leerPrivado(supabase, session.user.id))
+      .then((p) => { if ((p.saved_guides || []).includes(guide.id) && btnSave.getAttribute('aria-label') === 'Guardar') pintarGuardada(btnSave, true) })
+      .catch(() => {})
   }
 
   // Una noticia se comparte con su hoja (880): el texto para X, la

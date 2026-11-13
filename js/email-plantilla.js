@@ -130,6 +130,7 @@ export const TEXTOS_POR_TIPO = {
   torneo_final: { cta: 'Ver la clasificación', pie: 'Recibes este correo porque has jugado este torneo.' },
   torneo_juez: { cta: 'Atender la llamada', pie: 'Recibes este correo porque eres juez u organizador de este torneo.' },
   torneo_aviso: { cta: 'Ver el torneo', pie: 'Recibes este correo porque estás inscrito en este torneo.' },
+  torneo_jornada: { cta: 'Ver la liga', pie: 'Recibes este correo porque estás inscrito en esta liga.' },
 
   // Tiendas (1067): van a un email sin cuenta, desde tienda-decidir.
   tienda_aceptada: { cta: 'Crear la cuenta de la tienda', pie: 'Recibes este correo porque pediste acceso para tu tienda en PokeDoc.' },
@@ -174,6 +175,7 @@ export const FAMILIA_POR_TIPO = {
   torneo_final: 'torneos',
   torneo_juez: 'torneos',
   torneo_aviso: 'torneos',
+  torneo_jornada: 'torneos',
   tienda_aceptada: 'tiendas',
   tienda_rechazada: 'tiendas',
 }
@@ -628,6 +630,13 @@ export const EJEMPLOS_DE_CORREO = [
     donde: 'torneos_tablon_escribir (supabase-migration-878-tablon-torneo.sql)',
     subject: 'Aviso del torneo — Liga FDN',
     preview: 'La ronda 2 empieza a las 19:30; id yendo a vuestras mesas.',
+    link: '/torneo?slug=liga-fdn',
+  },
+  {
+    type: 'torneo_jornada',
+    donde: 'ligas-jornadas (netlify/functions/ligas-jornadas.mjs, 1302)',
+    subject: 'Mañana, Jornada 6 de la Liga FDN',
+    preview: 'Jueves 13 a las 19:00. Aún no has mandado tu lista.',
     link: '/torneo?slug=liga-fdn',
   },
   {

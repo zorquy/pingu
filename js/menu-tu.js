@@ -72,8 +72,13 @@ async function contarLoTuyo(profile) {
         return null
       }
     }
-    const [quiero, mazos, partidas] = await Promise.all([cuenta('user_wants'), cuenta('user_decks'), cuenta('match_log')])
-    Object.assign(cuentas, { quiero, mazos, partidas })
+    // Los guardados, de su sitio privado (1306); sin él, lo del perfil.
+    const guardados = import('./perfil-privado.js')
+      .then(({ leerPrivado }) => leerPrivado(supabase, profile.id))
+      .then((p) => (p.error ? cuentas.guardados : (p.saved_guides || []).length))
+      .catch(() => cuentas.guardados)
+    const [quiero, mazos, partidas, g] = await Promise.all([cuenta('user_wants'), cuenta('user_decks'), cuenta('match_log'), guardados])
+    Object.assign(cuentas, { quiero, mazos, partidas, guardados: g })
   } catch { /* sin base, sin cuentas */ }
   return cuentas
 }

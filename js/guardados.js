@@ -13,6 +13,7 @@ import { tarjetaDeGuia } from './guia-tarjeta.js'
 import { abanicoHtml } from './banda-seccion.js'
 import { showToast } from './toast.js'
 import { servidoPorGuia, frasePersonas } from './guias-servido.js'
+import { leerPrivado, guardarGuias } from './perfil-privado.js'
 // El PC pinta portadas y los chips en la banda (1217); el móvil, las tarjetas
 // y los chips encima de la lista.
 const movil = window.matchMedia('(max-width: 599px)')
@@ -62,10 +63,9 @@ async function pintarParaEmpezar() {
 // Lee la lista de la base cada vez que escribe: si has guardado algo en otra
 // pestaña mientras tanto, no se pisa.
 async function escribir(session, cambiar) {
-  const { data, error } = await supabase.from('user_profiles').select('saved_guides').eq('id', session.user.id).single()
-  if (error) throw error
-  const next = cambiar(data?.saved_guides || [])
-  const { error: e2 } = await supabase.from('user_profiles').update({ saved_guides: next }).eq('id', session.user.id)
+  const p = await leerPrivado(supabase, session.user.id)
+  if (p.error) throw p.error
+  const e2 = await guardarGuias(supabase, session.user.id, cambiar(p.saved_guides || []), p.privado)
   if (e2) throw e2
 }
 
@@ -109,8 +109,8 @@ function ponerCifras(porLeer, medias, leidas) {
 async function loadSaved(session) {
   const list = document.getElementById('savedList')
 
-  const { data: profile, error } = await supabase.from('user_profiles').select('saved_guides').eq('id', session.user.id).single()
-  if (error) {
+  const profile = await leerPrivado(supabase, session.user.id)
+  if (profile.error) {
     list.innerHTML = '<p class="empty-state">No se han podido cargar tus guardados. Vuelve a intentarlo en un momento.</p>'
     return
   }

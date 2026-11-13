@@ -59,7 +59,7 @@ export function loQueHace(p, hoy = new Date().toISOString().slice(0, 10)) {
   if (p.approvedGuidesCount > 0) return p.approvedGuidesCount === 1 ? 'Ha escrito una guía' : `Ha escrito ${p.approvedGuidesCount} guías`
   if (p.racha >= 7) return `Lleva ${p.racha} días seguidos`
   if (p.mensajes > 0) return `${p.mensajes} ${p.mensajes === 1 ? 'mensaje' : 'mensajes'} en el foro`
-  if (p.last_active_date === hoy) return 'Hoy por aquí'
+  if (p.last_active_date === hoy && !p.hide_activity) return 'Hoy por aquí'
   return 'Acaba de llegar'
 }
 
@@ -246,7 +246,8 @@ async function cargarPodio(perfiles) {
 // ── Quién anda por aquí hoy, y lo último que ha pasado ──
 async function cargarLateral(perfiles) {
   const hoy = new Date().toISOString().slice(0, 10)
-  const activos = (perfiles || []).filter((p) => p.last_active_date === hoy)
+  // Quien esconde su actividad no sale ni cuenta (1306), como en el foro.
+  const activos = (perfiles || []).filter((p) => p.last_active_date === hoy && !p.hide_activity)
   // El NÚMERO es la cuenta exacta de la base (1169): `perfiles` son los 200
   // con más XP, y contar los de hoy entre ellos se quedaba corto en cuanto
   // había más de 200 miembros. Si la cuenta falla, vale la de la lista.
@@ -254,6 +255,7 @@ async function cargarLateral(perfiles) {
     .from('user_profiles')
     .select('id', { count: 'exact', head: true })
     .eq('last_active_date', hoy)
+    .or('hide_activity.is.null,hide_activity.eq.false')
     .then(({ count, error }) => (error || count == null ? activos.length : count))
     .catch(() => activos.length)
   // La misma cuenta, como cifra de la banda (1216, de la propuesta): con el
@@ -304,7 +306,7 @@ async function todaLaGente() {
       .from('user_profiles')
       // Y el rango (tanda 386): sin estas dos columnas todo el
       // directorio saldría en azul y parecería que no hay ni un admin.
-      .select(`id, username, display_name, level, total_xp, avatar_url, banner_color, current_streak, last_active_date, ${COLUMNAS_RANGO}`)
+      .select(`id, username, display_name, level, total_xp, avatar_url, banner_color, current_streak, last_active_date, hide_activity, ${COLUMNAS_RANGO}`)
       .order('total_xp', { ascending: false })
       .order('id', { ascending: true })
       .range(desde, desde + TROZO - 1)

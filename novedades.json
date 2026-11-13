@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Más privacidad: tus guías guardadas y quién te invitó ya no las puede ver nadie, si escondes tu actividad tampoco sale cuándo estás en línea, y en Ajustes › Privacidad puedes ver tu perfil tal como lo ve alguien sin cuenta.", "enlace": "/ajustes?ver=privacidad" },
     { "fecha": "2026-11-13", "tipo": "arreglo", "texto": "Tu fecha de nacimiento ya no la puede ver nadie: el foro sigue felicitándote el día de tu cumpleaños, pero el año se queda solo para ti." },
     { "fecha": "2026-11-12", "tipo": "mejora", "texto": "Las ligas se ven en Torneos: arriba, cada liga en marcha con sus jornadas (las jugadas y la siguiente, con su día), los tres primeros de la clasificación y un botón para mandar tu lista. Y en el calendario cada jornada sale en su día.", "enlace": "/torneos" },
     { "fecha": "2026-11-12", "tipo": "nuevo", "texto": "Las ligas avisan de cada jornada: la víspera sale en el Telegram de la comunidad y te llega un aviso si estás inscrito (con «manda tu lista» si aún no la tienes), y al acabar cada jornada, el Telegram cuenta cómo va la clasificación.", "enlace": "/torneos" },

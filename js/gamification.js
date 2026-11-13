@@ -482,6 +482,7 @@ export async function checkAchievements(userId, extra = null) {
     achievements,
     { count: leidasCount },
     { count: mensajesForoCount },
+    privado,
   ] = await Promise.all([
     supabase
       .from('user_progress')
@@ -496,7 +497,7 @@ export async function checkAchievements(userId, extra = null) {
       .eq('kind', 'guide'),
     supabase
       .from('user_profiles')
-      .select('total_xp, achievements, quiz_correct_count, referred_by')
+      .select('total_xp, achievements, quiz_correct_count')
       .eq('id', userId)
       .single(),
     getAllAchievements(),
@@ -508,6 +509,8 @@ export async function checkAchievements(userId, extra = null) {
       .eq('user_id', userId)
       .not('read_at', 'is', null),
     supabase.from('forum_posts').select('*', { count: 'exact', head: true }).eq('author_id', userId),
+    // Quién te invitó es privado desde la 1306 (y sin la migración, del perfil).
+    import('./perfil-privado.js').then(({ leerPrivado }) => leerPrivado(supabase, userId)).catch(() => ({})),
   ])
 
   // Para los trofeos del foro: temas abiertos y reacciones recibidas.
@@ -522,11 +525,8 @@ export async function checkAchievements(userId, extra = null) {
   }
   let invitados = 0
   if (tiposActivos.has('referrals_count')) {
-    const { count } = await supabase
-      .from('user_profiles')
-      .select('id', { count: 'exact', head: true })
-      .eq('referred_by', userId)
-    invitados = count || 0
+    const { misInvitados } = await import('./perfil-privado.js')
+    invitados = (await misInvitados(supabase, userId)).total || 0
   }
   if (tiposActivos.has('forum_reactions_received')) {
     // El mismo join embebido que usa el perfil (foro-comun tiene su
@@ -564,7 +564,7 @@ export async function checkAchievements(userId, extra = null) {
     temasForo,
     reaccionesRecibidas: reaccionesForo,
     invitados,
-    invitado: profile.referred_by ? 1 : 0,
+    invitado: privado?.referred_by ? 1 : 0,
     coleccion: extra?.coleccion || null,
     retos,
     primerosPasos:

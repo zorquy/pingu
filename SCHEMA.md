@@ -55204,6 +55204,31 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1306 — el perfil público, solo con lo que se enseña
+
+- `user_privado(user_id pk → user_profiles, saved_guides uuid[], referred_by
+  uuid → auth.users, email_unsubscribe_token uuid único, updated_at)`. RLS: su
+  dueño lee (`user_privado_mio`) y cambia (`user_privado_mio_cambiar`), y el
+  permiso de UPDATE es solo de `saved_guides` y `updated_at`. Cada perfil nuevo
+  nace con su fila (`trg_privado_al_nacer`). `user_profiles` pierde las tres
+  columnas.
+- `poner_padrino(p_padrino)` (una vez, nunca uno mismo ni alguien que no
+  existe) y `mis_invitados()` (lo público de quien trajiste). Las dos, solo con
+  cuenta.
+- `guide_author_stats` cuenta los guardados en `user_privado`.
+- `latido_en_linea(p_token, p_thread)`: con `hide_activity`, `user_id` y
+  `thread_id` a null (y lo de antes de esa pestaña se borra al esconderse).
+- Web: `js/perfil-privado.js` (`leerPrivado`, `guardarGuias`,
+  `cambiarGuardada`, `ponerPadrino`, `misInvitados`). Regla: si `user_privado`
+  no contesta o no tiene tu fila, se lee y se escribe en el perfil (sin la
+  migración); un 42703 del perfil es «no hay nada», no un error. Una pantalla
+  nueva que lea guardados o padrinos pasa por ahí.
+- Servidor: `send-emails` (`tokenDeBaja`) y `baja-correo` buscan el token en
+  `user_privado` y caen al perfil.
+- `?como=desconocido` (`comoDesconocido` en `js/supabase.js`): cliente sin
+  sesión (`persistSession: false`) y la franja de `js/como-desconocido.js` (su
+  CSS va dentro: la portada no paga). El doble de pruebas hace lo mismo.
+
 ## Tanda 1305 — lo interno no se publica, cabeceras y cubos con tope
 
 - **Lo interno, 404**: Netlify publica la carpeta del repo tal cual (no hay

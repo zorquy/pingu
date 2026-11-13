@@ -1,6 +1,7 @@
 // Darse de baja de los avisos por correo SIN iniciar sesión.
 //
-// Va con token (`user_profiles.email_unsubscribe_token`) porque quien
+// Va con token (`user_privado.email_unsubscribe_token` desde la 1306; antes
+// en el perfil, que lee cualquiera, y se leen los dos sitios) porque quien
 // recibe un correo puede no tener la sesión abierta —o estar leyéndolo en
 // el móvil, o haber dejado de usar la web—. Obligar a iniciar sesión para
 // dejar de recibir correo es de las cosas que hacen que en vez de darse
@@ -55,6 +56,9 @@ const NOMBRES = {
   torneo_apertura: 'los avisos de torneos nuevos',
   torneo_final: 'los avisos de cuando termina un torneo',
   torneo_juez: 'los avisos de llamada a un juez',
+  // Faltaban (1306): sin ellos, darse de baja de uno apagaba TODOS los correos.
+  torneo_aviso: 'los avisos del organizador de un torneo',
+  torneo_jornada: 'los avisos de la víspera de cada jornada de tu liga',
 }
 const TIPOS = Object.keys(NOMBRES)
 
@@ -95,11 +99,16 @@ export default async (req) => {
 
   const cabeceras = { apikey: clave, authorization: `Bearer ${clave}`, 'content-type': 'application/json' }
 
-  const res = await fetch(
-    `${SUPABASE_URL}/rest/v1/user_profiles?email_unsubscribe_token=eq.${token}&select=id,notification_email_disabled`,
-    { headers: cabeceras }
-  )
-  const [perfil] = res.ok ? await res.json() : []
+  // De quién es el token: primero en su sitio privado, luego donde estaba.
+  let id = null
+  const privado = await fetch(`${SUPABASE_URL}/rest/v1/user_privado?email_unsubscribe_token=eq.${token}&select=user_id`, { headers: cabeceras })
+  if (privado.ok) id = (await privado.json())[0]?.user_id || null
+  if (!id) {
+    const viejo = await fetch(`${SUPABASE_URL}/rest/v1/user_profiles?email_unsubscribe_token=eq.${token}&select=id`, { headers: cabeceras })
+    if (viejo.ok) id = (await viejo.json())[0]?.id || null
+  }
+  const res = id ? await fetch(`${SUPABASE_URL}/rest/v1/user_profiles?id=eq.${id}&select=id,notification_email_disabled`, { headers: cabeceras }) : null
+  const [perfil] = res?.ok ? await res.json() : []
   if (!perfil) {
     return respuestaHtml(pagina('Enlace no válido', 'Este enlace de baja no es correcto o ha caducado. Puedes cambiar tus avisos desde <b>Ajustes › Avisos</b> en la web.', false), 404)
   }

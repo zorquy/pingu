@@ -9,7 +9,7 @@
 // pieza de la 857). La dirección lleva el apartado (`?ver=avisos`), así que
 // «Ajustes» del menú y los enlaces de los correos llegan al sitio.
 import { supabase } from './supabase.js'
-import { escapeHtml, requireAuth, passwordStrengthError } from './app.js'
+import { escapeHtml, requireAuth, passwordStrengthError, profileUrl } from './app.js'
 import { icons } from './icons.js'
 import { showToast } from './toast.js'
 import { hojaInyectada } from './hoja.js'
@@ -403,7 +403,10 @@ const privacidadHtml = () => `
     <div class="aj-filas">
       ${interruptor({ id: 'hide_activity', texto: 'No mostrar mi actividad en Comunidad', detalle: 'Lo que leas y los cursos que hagas dejan de aparecer en el hilo de actividad y de ser visibles para el resto.', activo: Boolean(perfil?.hide_activity) })}
       ${interruptor({ id: 'coleccion_publica', texto: 'Mi colección es pública', detalle: 'Cualquiera con el enlace puede ver tus cartas y lo que valen. Privada, solo la ves tú. Desde Mi colección se copia el enlace.', activo: Boolean(perfil?.coleccion_publica) })}
-    </div>`
+    </div>
+    <h3>Lo que ve alguien sin cuenta</h3>
+    <p class="aj-nota">Tu nombre, tu foto, tu nivel y tus logros, tus temas y guías y, si es pública, tu colección. Nunca tu cumpleaños con el año, tus guardados, quién te invitó ni tus datos de envío o de pago.</p>
+    ${perfil?.id ? `<a class="btn-secondary" href="${profileUrl(perfil)}${perfil.username ? '?' : '&'}como=desconocido" data-ver-desconocido>${icons.eye(16)} Ver mi perfil como un desconocido</a>` : ''}`
 
 function montarPrivacidad(panel) {
   panel.querySelector('[data-interruptor="hide_activity"]').addEventListener('change', async (e) => {
@@ -492,9 +495,10 @@ async function montarInvitar(panel) {
     }
   })
   try {
-    const { count, error } = await supabase.from('user_profiles').select('id', { count: 'exact', head: true }).eq('referred_by', session.user.id)
+    const { misInvitados } = await import('./perfil-privado.js')
+    const { total: count, error } = await misInvitados(supabase, session.user.id)
     const hueco = panel.querySelector('#ajTraidos')
-    if (!error && hueco) hueco.textContent = ` Has traído a ${count || 0} ${count === 1 ? 'persona' : 'personas'}.`
+    if (!error && count != null && hueco) hueco.textContent = ` Has traído a ${count || 0} ${count === 1 ? 'persona' : 'personas'}.`
   } catch {}
 }
 

@@ -4,6 +4,47 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (553) — PINGU-Claude (1306 — el perfil público, solo con lo que se enseña)
+
+**Hecho**: la S3 del Plan PokeDoc 2027, y algo peor que salió mirándola: el
+token del enlace «darme de baja» de los correos (`email_unsubscribe_token`)
+estaba en `user_profiles`, que lee cualquiera sin cuenta, así que cualquiera
+podía dar de baja de los correos a quien quisiera. Ese token, las guías
+guardadas y quién te invitó se mudan a `user_privado` (solo su dueño; el token
+y el padrino no se cambian desde la web). Lo de otros va por funciones:
+`mis_invitados()` (Invita, Ajustes, el logro de embajador) y `poner_padrino()`
+(la bienvenida). `latido_en_linea` ya no apunta quién eres ni qué tema lees si
+escondes tu actividad (antes solo lo respetaba la pantalla, y `online_now` la
+lee cualquiera); Gente tampoco cuenta ni nombra «Hoy por aquí» a quien la
+esconde. En Ajustes › Privacidad, qué ve alguien sin cuenta y «Ver mi perfil
+como un desconocido»: con `?como=desconocido` la página arranca SIN tu sesión
+(en memoria; la de verdad ni se lee) y una franja lo dice. La web lee y escribe
+por `js/perfil-privado.js`, que sin la migración (o sin tu fila) va al perfil
+como antes.
+
+**De paso, dos fallos de la 1302 en los correos**: el tipo `torneo_jornada`
+(y `torneo_aviso`, de antes) no estaba en la página de baja de correos, así que
+darse de baja de él desde un correo apagaba TODOS los correos de esa persona;
+ahora está, con su botón, su pie y su ejemplo en /admin → Correos.
+
+**Se queda público, a propósito**: las preferencias de avisos (las leen diez
+funciones de la base y no dicen nada de nadie) y `last_active_date` (solo el
+día; lo necesitan la racha y «Hoy por aquí», y las pantallas ya no la enseñan de
+quien se esconde).
+
+**Ficheros**: supabase-migration-1306-perfil-privado.sql, js/perfil-privado.js
+y js/como-desconocido.js (nuevos), js/supabase.js, js/guide-card.js,
+js/guia.js, js/guardados.js, js/menu-tu.js, js/gamification.js,
+js/onboarding.js, js/invitar.js, js/ajustes.js, js/usuarios.js,
+netlify/functions/send-emails.mjs, netlify/functions/baja-correo.mjs,
+SCHEMA.md, BITACORA.md, novedades.json. En `pruebas`: stub (`user_privado`,
+`?como=desconocido`, las dos funciones nuevas «no existen» sin la migración) y
+test-tanda-1306 (nueva, con PostgreSQL).
+
+**Pendiente**: la migración 1306. Ojo: borra las tres columnas del perfil; si
+algo de la base que NO salió de una migración del repo las usa, fallará (no he
+encontrado nada). Subir junto con ella.
+
 ## 2026-11-13 (552) — PINGU-Claude (1305 — lo interno no se publica, cabeceras de seguridad y cubos con tope)
 
 **Hecho**: de la auditoría de la noche. (1) Netlify publicaba la RAÍZ del repo

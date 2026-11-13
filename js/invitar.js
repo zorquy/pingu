@@ -18,15 +18,14 @@ import {
 const nombreDe = (p) => p?.display_name || p?.username || ''
 
 // Quién ha llegado con tu enlace: cuántos y los últimos cinco (para las caras).
-// La RLS deja leer los perfiles; si la columna no está (sin la migración de
-// referidos), `null`: «no se sabe», que no es «cero».
+// Desde la 1306 por `mis_invitados` (quién te invitó es privado); sin la
+// migración, del perfil. Si no se puede saber, `null`: «no se sabe» no es «cero».
 export async function traidosDe(uid) {
   try {
-    const { data, count, error } = await supabase.from('user_profiles')
-      .select('id, username, display_name, avatar_url', { count: 'exact' })
-      .eq('referred_by', uid).order('created_at', { ascending: false }).limit(5)
-    if (error) return null
-    return { n: count ?? (data || []).length, caras: data || [] }
+    const { misInvitados } = await import('./perfil-privado.js')
+    const r = await misInvitados(supabase, uid, { limite: 5 })
+    if (r.error || r.total == null) return null
+    return { n: r.total, caras: r.lista }
   } catch { return null }
 }
 
