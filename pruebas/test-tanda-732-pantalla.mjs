@@ -10,7 +10,7 @@
 import { chromium, devices } from '/opt/node22/lib/node_modules/playwright/index.mjs'
 
 const RAIZ = process.env.PD_RAIZ || '/home/user/pingu'
-const { tocaOfrecer } = await import(`${RAIZ}/js/instalar.js`).catch(() => ({}))
+const { tocaTrasExito } = await import(`${RAIZ}/js/instalar.js`).catch(() => ({}))
 const { tocaRefrescar } = await import(`${RAIZ}/js/tirar-refrescar.js`)
 let fails = 0
 const check = (l, ok, extra = '') => {
@@ -20,15 +20,15 @@ const check = (l, ok, extra = '') => {
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
 
 console.log('── 1. Las reglas ──')
-if (tocaOfrecer) {
+// Desde la 1317 (A3) se ofrece tras un buen momento, una vez a la semana como mucho.
+if (tocaTrasExito) {
   const ahora = Date.now()
-  check('a la primera visita, no', !tocaOfrecer({ instalada: false, visitas: 1 }))
-  check('a la segunda, sí', tocaOfrecer({ instalada: false, visitas: 2 }))
-  // Desde la 753 también a la tercera página vista de la primera visita.
-  check('  …o a la tercera página vista, aunque sea la primera visita', tocaOfrecer({ instalada: false, visitas: 1, vistas: 3 }) && !tocaOfrecer({ instalada: false, visitas: 1, vistas: 2 }))
-  check('instalada, nunca', !tocaOfrecer({ instalada: true, visitas: 9 }))
-  check('«Ahora no» hace dos semanas: no', !tocaOfrecer({ instalada: false, visitas: 5, calladaEn: ahora - 14 * 864e5, ahora }))
-  check('  …hace dos meses: otra vez sí', tocaOfrecer({ instalada: false, visitas: 5, calladaEn: ahora - 60 * 864e5, ahora }))
+  check('la primera vez, sí', tocaTrasExito({ instalada: false, ahora }))
+  check('instalada, nunca', !tocaTrasExito({ instalada: true }))
+  check('ofrecida hace tres días: no', !tocaTrasExito({ instalada: false, ultimaEn: ahora - 3 * 864e5, ahora }))
+  check('  …hace ocho: otra vez sí', tocaTrasExito({ instalada: false, ultimaEn: ahora - 8 * 864e5, ahora }))
+  check('«Ahora no» hace dos semanas: no', !tocaTrasExito({ instalada: false, calladaEn: ahora - 14 * 864e5, ahora }))
+  check('  …hace dos meses: otra vez sí', tocaTrasExito({ instalada: false, calladaEn: ahora - 60 * 864e5, ahora }))
 } else check('instalar.js se puede importar sin navegador', false)
 check('el tirón: desde arriba y 80 px hacia abajo', tocaRefrescar({ arriba: true, dy: 90, dx: 5 }) && !tocaRefrescar({ arriba: true, dy: 50, dx: 0 }) && !tocaRefrescar({ arriba: false, dy: 120, dx: 0 }) && !tocaRefrescar({ arriba: true, dy: 90, dx: 80 }))
 
@@ -44,43 +44,41 @@ const abrir = async (ctx) => {
 // la vista (la maqueta A1), con «Ahora no» y «Entendido».
 const banda = (page) => page.evaluate(() => { const b = document.querySelector('.bm-instalar'); return b ? { texto: b.textContent.replace(/\s+/g, ' ').trim(), botones: [...b.querySelectorAll('[data-instalar]')].map((x) => x.textContent.trim()) } : null })
 
-console.log('── 2. En el navegador del iPhone ──')
+console.log('── 2. En el navegador del iPhone (desde la 1317, tras un buen momento) ──')
 {
   const ctx = await browser.newContext(iPhone)
-  await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'none' })
+  await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'none'; try { localStorage.setItem('pokedoc-visitas', '6') } catch {} })
   let page = await abrir(ctx)
-  check('a la primera visita no sale', (await banda(page)) === null)
-  await page.close()
-  // Otra visita es otra pestaña (la cuenta va por sesión del navegador).
-  page = await abrir(ctx)
-  // Desde la 892 lo que sale es una BANDA de una línea; la hoja se abre al
-  // tocarla. Lo demás (pasos, botones, «Ahora no» un mes) sigue igual.
-  check('a la segunda sale la banda', (await page.locator('.bm-instalar-banda').count()) === 1 && (await banda(page)) === null)
-  await page.click('.bm-instalar-banda [data-instalar="abrir"]')
+  check('al llegar no sale nada, aunque sea la sexta visita', (await page.locator('.bm-instalar, .bm-instalar-banda').count()) === 0)
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('pd-exito', { detail: { motivo: 'reto' } })))
+  await page.waitForTimeout(300)
+  const t = await page.evaluate(() => { const c = document.querySelector('.bm-instalar-tarjeta'); return c && c.textContent.replace(/\s+/g, ' ').trim() })
+  check('tras un buen momento, la tarjeta con lo que ha salido bien', /¡Reto hecho!/.test(t || '') && /como una app/.test(t || ''), t)
+  await page.click('.bm-instalar-tarjeta [data-instalar="si"]')
   await page.waitForTimeout(300)
   const b = await banda(page)
-  check('  …y al tocarla, la hoja: qué es y por qué', /Ten PokeDoc como una app/.test(b?.texto || '') && /pantalla completa/.test(b?.texto || ''), JSON.stringify(b))
+  check('  …«Instalar» abre la hoja: qué es y por qué', /Ten PokeDoc como una app/.test(b?.texto || '') && /pantalla completa/.test(b?.texto || ''), JSON.stringify(b))
   check('  …con los tres pasos de Safari a la vista', await page.evaluate(() => { const o = document.querySelector('.bm-instalar-pasos'); const li = [...(o?.querySelectorAll('li') || [])]; return li.length === 3 && /Compartir/.test(li[0].textContent) && /Añadir a pantalla de inicio/.test(li[1].textContent) && /Añadir/.test(li[2].textContent) && li.every((x) => x.querySelector('svg') && x.getBoundingClientRect().height > 0) }))
   check('  …y «Ahora no» / «Entendido»', JSON.stringify(b?.botones) === JSON.stringify(['Ahora no', 'Entendido']), JSON.stringify(b?.botones))
   check('  …desde abajo y sin salirse', await page.evaluate(() => { const r = document.querySelector('.bm-instalar').getBoundingClientRect(); return Math.abs(r.bottom - innerHeight) <= 1 && r.right <= innerWidth + 1 && r.left >= -1 }))
   await page.click('.bm-instalar [data-instalar="no"]')
   check('«Ahora no» la quita (con su velo)', (await banda(page)) === null && (await page.locator('.bm-instalar-velo').count()) === 0)
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent('pd-exito', { detail: { motivo: 'torneo' } })))
+  await page.waitForTimeout(300)
+  check('  …y otro buen momento ya no la trae', (await banda(page)) === null)
   await page.close()
-  page = await abrir(ctx)
-  check('  …y en la visita siguiente no vuelve', (await banda(page)) === null)
-  await page.close()
+  // Un buen momento justo antes de cambiar de página (inscribirse recarga).
   const ctx2 = await browser.newContext(iPhone)
-  await ctx2.addInitScript(() => { window.__FAKE_SESSION__ = 'none'; try { localStorage.setItem('pokedoc-visitas', '4') } catch {} })
-  // Desde la 753 sale en las páginas de la lista de cada sección (el foro
-  // sí); en una ficha o en un hilo, no: estás haciendo otra cosa.
-  const foro = await ctx2.newPage()
-  await foro.goto(`${BASE}/foro.html`, { waitUntil: 'domcontentloaded' })
-  await foro.waitForTimeout(1800)
-  check('en la lista del foro sí sale', (await foro.locator('.bm-instalar-banda').count()) === 1)
-  await foro.evaluate(() => sessionStorage.removeItem('pokedoc-instalar-banda'))
-  await foro.goto(`${BASE}/tema.html?id=1`, { waitUntil: 'domcontentloaded' })
-  await foro.waitForTimeout(1800)
-  check('  …y en un hilo, no', (await foro.locator('.bm-instalar-banda, .bm-instalar').count()) === 0)
+  await ctx2.addInitScript(() => { window.__FAKE_SESSION__ = 'none' })
+  const p2 = await ctx2.newPage()
+  await p2.goto(`${BASE}/foro.html`, { waitUntil: 'domcontentloaded' })
+  await p2.evaluate(() => sessionStorage.setItem('pd-exito-pendiente', 'torneo'))
+  await p2.goto(`${BASE}/torneos.html`, { waitUntil: 'domcontentloaded' })
+  await p2.waitForTimeout(1800)
+  check('lo que salió bien justo antes de cambiar de página sale en la siguiente', /¡Ya estás dentro!/.test((await p2.locator('.bm-instalar-tarjeta').textContent().catch(() => '')) || ''))
+  await p2.reload({ waitUntil: 'domcontentloaded' })
+  await p2.waitForTimeout(1500)
+  check('  …una vez (y la semana que viene, otra)', (await p2.locator('.bm-instalar').count()) === 0)
   await ctx2.close()
   page = await abrir(ctx)
   check('en el navegador no se monta el tirón (ya lo hace él)', (await page.locator('.bm-refrescar').count()) === 0)

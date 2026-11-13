@@ -43,7 +43,8 @@ console.log('\n── 2. Lo estático ──')
   check('la barra de progreso existe y respeta «menos movimiento»', /@keyframes progreso-avanza \{ from \{ width: 0; \} to \{ width: 82%/.test(css) && /prefers-reduced-motion: reduce\)[\s\S]*\.progreso-pagina\.andando i, \.progreso-pagina\.lista i \{ animation: none/.test(css))
   check('app.js la monta para todo el mundo', /import\('\.\/progreso\.js'\)/.test(leer('js/app.js')))
   check('la barra del móvil marca la sección tocada al instante', /EL ICONO SE MARCA YA \(892\)/.test(leer('js/barra-movil.js')))
-  check('instalar: una banda, una vez por sesión, que abre la hoja', /bandaDeInstalar\(doc, callar\)/.test(leer('js/instalar.js')) && /sessionStorage\.getItem\(BANDA\)/.test(leer('js/instalar.js')))
+  // La banda de la 892 se fue en la 1317: ahora es una tarjeta tras un buen momento.
+  check('instalar: ya no sale al llegar, sino tras un buen momento (1317)', /addEventListener\('pd-exito'/.test(leer('js/instalar.js')) && !/bandaDeInstalar/.test(leer('js/instalar.js')))
 }
 
 console.log('\n── 3. En el iPhone ──')
@@ -108,34 +109,8 @@ const b = await chromium.launch()
   await ctx.close()
 }
 
-console.log('\n── 4. La banda de instalar (iPhone, tercera página vista) ──')
-{
-  const ctx = await b.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
-  await ctx.addInitScript(() => { window.__FAKE_SESSION__ = 'none'; try { localStorage.setItem('pokedoc-visitas', '4') } catch {} })
-  const p = await ctx.newPage()
-  await p.goto(`${BASE}/foro.html`, { waitUntil: 'domcontentloaded' })
-  await p.waitForTimeout(1800)
-  const banda = await p.evaluate(() => { const b = document.querySelector('.bm-instalar-banda'); if (!b) return null; const r = b.getBoundingClientRect(); const main = document.getElementById('contenido').getBoundingClientRect(); return { texto: b.textContent.replace(/\s+/g, ' ').trim(), alto: r.height, arriba: r.top <= main.top + 40, hoja: !!document.querySelector('.bm-instalar-hoja') } })
-  check('sale una banda de una línea encima del contenido, no la hoja', banda && /Ten PokeDoc como una app/.test(banda.texto) && banda.alto <= 56 && banda.arriba && !banda.hoja, JSON.stringify(banda))
-  await p.click('.bm-instalar-banda [data-instalar="abrir"]')
-  await p.waitForTimeout(300)
-  check('al tocarla se abre la hoja con los tres pasos', (await p.$$eval('.bm-instalar-pasos li', (li) => li.length)) === 3)
-  await p.click('.bm-instalar [data-instalar="no"]')
-  await p.waitForTimeout(200)
-  check('«Ahora no» cierra la hoja y quita la banda', (await p.locator('.bm-instalar-hoja').count()) === 0 && (await p.locator('.bm-instalar-banda').count()) === 0)
-  await ctx.close()
-
-  const ctx2 = await b.newContext({ ...devices['iPhone 13'], locale: 'es-ES' })
-  await ctx2.addInitScript(() => { window.__FAKE_SESSION__ = 'none'; try { localStorage.setItem('pokedoc-visitas', '4') } catch {} })
-  const q = await ctx2.newPage()
-  await q.goto(`${BASE}/foro.html`, { waitUntil: 'domcontentloaded' })
-  await q.waitForTimeout(1500)
-  check('sin contestar, en la primera página de la sesión sale', (await q.locator('.bm-instalar-banda').count()) === 1)
-  await q.goto(`${BASE}/torneos.html`, { waitUntil: 'domcontentloaded' })
-  await q.waitForTimeout(1500)
-  check('…y en la siguiente de la MISMA sesión ya no (una vez por sesión)', (await q.locator('.bm-instalar-banda').count()) === 0)
-  await ctx2.close()
-}
+// La banda de instalar de la 892 se fue en la 1317 (A3): ya no sale al
+// llegar, sino tras un buen momento (test-tanda-732-pantalla y 1317).
 await b.close()
 
 console.log(fails ? `\n❌ ${fails} fallos` : '\n✅ TODO BIEN')
