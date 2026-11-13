@@ -88,6 +88,7 @@ import { buscarCartas as buscarCartasComun, buscarPorIlustrador as buscarPorIlus
 import { albumesDeLaLateral, albumesHtml, engancharArrastre } from './mi-coleccion/arrastrar-a-album.js'
 import { encolar, vaciarCola, copiaDeColeccion, guardarCopia } from './mi-coleccion/cola.js'
 import * as sinRed from './mi-coleccion/sin-red.js'
+import * as enNavegador from './coleccion-local.js'
 
 const $ = (id) => document.getElementById(id)
 const params = new URLSearchParams(location.search)
@@ -1250,7 +1251,7 @@ let valorOficial = null // { firma, total }
 let pidiendoValor = ''
 function valorDeAhora() {
   const todas = lineasTodo.length ? lineasTodo : lineas
-  if (esMia && !modoTienda && sesion?.user?.id && lineasTodo.length) {
+  if (esMia && !modoTienda && !sesion?.local && sesion?.user?.id && lineasTodo.length) {
     const firma = datos.firmaDeLineas(lineasTodo)
     if (valorOficial?.firma === firma) return valorOficial.total
     if (pidiendoValor !== firma) {
@@ -1840,9 +1841,12 @@ function pintarVistazos(...a) {
   return panelMod ? panelMod.pintarVistazos(...a) : panel().then((m) => m.pintarVistazos(...a))
 }
 function pintarCambioDelMes(...a) {
+  // Sin cuenta (1328) no hay histórico: ni se baja el Panel.
+  if (sesion?.local) return Promise.resolve()
   return panelMod ? panelMod.pintarCambioDelMes(...a) : panel().then((m) => m.pintarCambioDelMes(...a))
 }
 function pintarValorEnElTiempo(...a) {
+  if (sesion?.local) return Promise.resolve()
   return panelMod ? panelMod.pintarValorEnElTiempo(...a) : panel().then((m) => m.pintarValorEnElTiempo(...a))
 }
 
@@ -3315,7 +3319,7 @@ async function pintarHermanos(setId) {
     caja.innerHTML = ''
     return
   }
-  const mia = esMia && sesion
+  const mia = conProgreso()
   // La fila de volver va la primera (856): donde estaban las pestañas.
   caja.innerHTML = `<button type="button" class="mc-hermanos-volver" id="mcHermanosVolver"><span class="mc-miga-flecha" aria-hidden="true"></span>Expansiones</button><h3 class="mc-hermanos-era">${escapeHtml(grupo.titulo || '')}</h3><ul>${grupo.sets.map((x) => {
     const total = totalDe(x)
@@ -3355,8 +3359,11 @@ function totalDe(set) {
 // ciento en `--pct`; la completa lleva la marca y va en verde. Solo cuando
 // es TU colección y el set tiene numeración: sin cuenta no hay progreso
 // que enseñar, y un 0 % en cada tarjeta del catálogo afirmaría algo falso.
+// El progreso de cada expansión: con cuenta, o sin ella cuando ya has apuntado
+// algo en este navegador (1328: con cero, todo serían anillos vacíos).
+const conProgreso = () => Boolean(esMia && sesion && (!sesion.local || enNavegador.hayLocales()))
 function anilloDeSet(tengo, total) {
-  if (!esMia || !sesion || !total) return ''
+  if (!conProgreso() || !total) return ''
   const pct = Math.min(100, Math.round((tengo / total) * 100))
   const completo = tengo >= total
   return `<span class="mc-set-anillo${completo ? ' completo' : ''}" style="--pct:${pct}" role="img" aria-label="${tengo} de ${total}"><i aria-hidden="true"></i>`
@@ -3497,7 +3504,7 @@ function tarjetaDeSet(set, tengo) {
             ${codigo ? `<span class="mc-set-codigo">${escapeHtml(codigo)}</span>` : ''}
           </span>
           ${era || fecha ? `<span class="mc-set-sub">${escapeHtml([era, fecha].filter(Boolean).join(' · '))}</span>` : ''}
-          ${total ? `<span class="mc-set-corta">${esMia && sesion ? `${tengo} de ${total}${completo ? ' · completa' : ''}` : `${total} cartas`}</span>` : ''}
+          ${total ? `<span class="mc-set-corta">${conProgreso() ? `${tengo} de ${total}${completo ? ' · completa' : ''}` : `${total} cartas`}</span>` : ''}
         </span>
         ${anilloDeSet(tengo, total)}
       </span>
@@ -3505,7 +3512,7 @@ function tarjetaDeSet(set, tengo) {
         ${v?.ahora ? `<span class="mc-set-cifra mc-set-valor" title="Lo que vale la expansión entera: la suma de sus mínimos en Cardmarket"><i>Valor</i>${chispaHtml(serie)}<b>${escapeHtml(fmtEnteroEuros.format(v.ahora))} €</b></span>` : ''}
         ${semanal ? `<span class="mc-set-cifra"><i>Semanal</i>${semanal}</span>` : ''}
         ${total
-          ? `<span class="mc-set-cifra mc-set-progreso"><i>${esMia && sesion ? 'Tienes' : 'Cartas'}</i><span class="mc-set-cuenta">${esMia && sesion ? `${tengo} de ${total}${completo ? ' · completa' : ''}` : total}</span>${esMia && sesion ? `<span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}</span>`
+          ? `<span class="mc-set-cifra mc-set-progreso"><i>${conProgreso() ? 'Tienes' : 'Cartas'}</i><span class="mc-set-cuenta">${conProgreso() ? `${tengo} de ${total}${completo ? ' · completa' : ''}` : total}</span>${conProgreso() ? `<span class="mc-barra" aria-hidden="true"><i style="--ancho:${pct}%"></i></span>` : ''}</span>`
           : '<span class="mc-set-cifra"><i>Cartas</i><span class="mc-set-cuenta">Sin numeración</span></span>'}
       </span>
       ${graficaDeSetHtml(serie)}
@@ -3545,7 +3552,7 @@ function filaDeSet(set, tengo) {
   const completo = total && tengo >= total
   const codigo = set.tcg_online_code || (/^tcggo-/i.test(String(set.id)) ? '' : String(set.id).toUpperCase().slice(0, 6))
   const dibujos = dibujosDeSet(set)
-  const mia = esMia && sesion
+  const mia = conProgreso()
   const cuenta = !total ? 'Sin numeración' : mia ? `${tengo}/${total}` : `${total} cartas`
   // EL LOGO EN LA FILA Y SU COLOR DETRÁS (749, E1 y E2). PINGU: «se les ha
   // quitado el logo y daban bastante personalidad». El logo va donde iba el
@@ -3622,6 +3629,7 @@ function pintarEstrella() {
 }
 
 async function cambiarFavorita() {
+  if (sesion?.local) return pedirCuenta('marcar tus expansiones favoritas')
   if (!(favoritos instanceof Set) || !album.set) return
   const marcada = favoritos.has(album.set)
   // Se pinta antes de guardar: el botón tiene que responder al dedo. Si
@@ -5585,7 +5593,7 @@ function recargarCarpetas() { return carpetasModulo().then((m) => m.recargarCarp
 function pintarAlbumesDeLaFicha(c, l) {
   const caja = $('mcEdAlbumes')
   if (!caja) return
-  if (!sesion || !c?.id) return void caja.classList.add('hidden')
+  if (!sesion || sesion.local || !c?.id) return void caja.classList.add('hidden')
   import('./en-tus-albumes.js')
     .then((m) => m.pintarEnTusAlbumes(caja, { carta: c, userId: sesion.user.id, variante: l?.id ? l.variante || null : null }))
     .catch(() => caja.classList.add('hidden'))
@@ -5827,6 +5835,7 @@ function quererCarta(...a) {
 // ficha o con «Idioma» en «La quiero». Devuelve cuántas entraron, o null si
 // se cancela la pregunta.
 async function quererVarias(ids) {
+  if (sesion?.local) { pedirCuenta('apuntar las cartas que quieres'); return null }
   const cambios = await import('./mi-coleccion/cambios.js')
   const { preguntarDeseo } = await import('./idioma-deseo.js')
   if (!Array.isArray(deseos)) await cargarDeseos().catch(() => {})
@@ -5893,6 +5902,7 @@ function compartirLoQueDoy(...a) {
 
 
 function repintar() {
+  if (sesion?.local) pintarFranjaLocal()
   pintarResumen()
   pintarFiltros()
   pintarCartas()
@@ -6116,6 +6126,7 @@ function enganchar() {
   $('mcEdQuiero')?.addEventListener('click', async () => {
     const b = $('mcEdQuiero')
     const id = b.dataset.quiero
+    if (sesion?.local) return pedirCuenta('apuntar las cartas que quieres')
     if (!id || !Array.isArray(deseos)) return
     // La loseta cambia ya (899); si la base dice que no, vuelve.
     const antes = deseos
@@ -7352,7 +7363,8 @@ async function iniciar() {
   // colección: para cuando lleguen las líneas están cargados y los puentes
   // pintan en el mismo cuadro (sin saltos). /cartas y las colecciones
   // ajenas no los bajan.
-  if (esMia) {
+  // Sin cuenta (1328) tampoco: /cartas sigue ligera hasta que abras el Panel.
+  if (esMia && !sesion?.local) {
     void panel().catch(() => {})
     if (sesion) void deseosModulo().catch(() => {})
     // Marcar varias (1011): en un rato libre, que mantener pulsada una carta
@@ -7482,6 +7494,16 @@ async function iniciarCatalogo() {
     recordarTienda(null)
     location.reload()
     return
+  } else if (probarSinCuenta()) {
+    // Probar sin cuenta (1328, G4: «tu colección empieza antes de
+    // registrarte»): el «+» funciona y lo tuyo se guarda en este navegador
+    // (`datos.usarColeccionLocal`, js/coleccion-local.js). Lo que necesita una
+    // cuenta de verdad (álbumes, cambios, «La quiero», favoritas) la pide.
+    datos.usarColeccionLocal()
+    sesion = { user: { id: enNavegador.SIN_CUENTA }, local: true }
+    dueno = { id: enNavegador.SIN_CUENTA }
+    esMia = true
+    for (const id of ['mcBloqueAlbumes', 'mcBloqueCambios']) $(id)?.classList.add('hidden')
   } else {
     dueno = null
     esMia = false
@@ -7553,6 +7575,33 @@ window.pokedocAbrirCarta = (carta) => {
 
 // Sin cobertura (1318): la franja de «sin conexión» (sin-conexion.js) dice
 // además de cuándo es lo que se ve.
+// ── Sin cuenta (1328) ──
+// Se puede apagar con `?sin-local` (las pruebas de siempre de /cartas sin
+// cuenta) y no entra en el navegador que no deja guardar nada.
+function probarSinCuenta() {
+  if (params.has('sin-local')) return false
+  try { localStorage.setItem('pd-prueba', '1'); localStorage.removeItem('pd-prueba'); return true } catch { return false }
+}
+function pedirCuenta(que) {
+  showToast(`Para ${que}, crea tu cuenta: es gratis y te llevas lo que has apuntado.`, 'info', { accion: { texto: 'Crear cuenta', alPulsar: () => { location.href = contexto.urlDeRegistro() } } })
+}
+// La franja de arriba: cuántas llevas y lo que valen, y desde la quinta,
+// «Crear cuenta para no perderlas» (`franjaDe`). El valor, el de la ficha
+// (`valorDeLineas` con los precios guardados), como en el Panel.
+function pintarFranjaLocal() {
+  const f = enNavegador.franjaDe(lineasTodo.length ? lineasTodo : lineas, datos.valorDeLineas(lineasTodo.length ? lineasTodo : lineas, guardados))
+  let a = document.getElementById('mcLocalFranja')
+  if (!f) return void a?.remove()
+  if (!a) {
+    a = document.createElement('div')
+    a.id = 'mcLocalFranja'
+    a.setAttribute('role', 'status')
+    $('mcContenido')?.prepend(a)
+  }
+  a.className = `mc-local-franja${f.fuerte ? ' fuerte' : ''}`
+  a.innerHTML = `<div><strong>${escapeHtml(f.titulo)}</strong><span>${escapeHtml(f.texto)}</span></div><a class="${f.fuerte ? 'btn-primary' : 'btn-secondary'}" href="${escapeHtml(contexto.urlDeRegistro())}">${escapeHtml(f.boton)}</a>`
+}
+
 function avisarDeLaCopia(en) {
   let a = document.getElementById('sinRedAviso')
   if (!a) {
@@ -7584,7 +7633,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
     // Lo tuyo se guarda en este navegador al llegar y, si la red no contesta,
     // se pinta la copia (1318, A4: `sin-red.js`). Lo de otra persona y el
     // stock de una tienda, no.
-    const copiable = esMia && !modoTienda
+    const copiable = esMia && !modoTienda && !sesion?.local
     const cc = (clave, pedir, opc) => (copiable ? sinRed.conCopia(`${duenoId}:${clave}`, pedir, opc) : pedir())
     if (copiable) sinRed.recordarQuienSoy(duenoId)
     ;[lineas, lineasTodo] = await Promise.all([
@@ -7616,10 +7665,10 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
     corregirVersionesImposibles(lineasTodo, (l) => cartasTodo.get(datos.claveDeLineaEnMercado(l)))
     // Las favoritas van aparte y sin parar nada: si fallan, la estantería
     // se pinta igual, solo que sin su grupo de arriba.
-    if (esMia) favoritos = await datos.favoritosDeSets(duenoId).catch(() => null)
+    if (esMia && !sesion?.local) favoritos = await datos.favoritosDeSets(duenoId).catch(() => null)
     // «La quiero» (751), sin parar nada: el Panel la cuenta y la ficha
     // pinta su corazón. Si falla, las dos se callan (null = no se sabe).
-    if (esMia && sesion && primeraVez && !modoTienda) {
+    if (esMia && sesion && !sesion.local && primeraVez && !modoTienda) {
       void cargarDeseos().then(() => {
         if (pestania === 'resumen') void pintarVistazos()
         pintarLoseta()
@@ -7637,7 +7686,7 @@ async function cargarColeccion(duenoId, { primeraVez = false } = {}) {
   // también `cambiarPestania` por su cuenta, y si llega con el esqueleto
   // aún puesto, aparece debajo y luego salta hacia arriba (la 748 lo mide).
   coleccionCargada()
-  if (esMia && !modoTienda) await Promise.all([panel(), sesion ? deseosModulo() : null]).catch(() => {})
+  if (esMia && !modoTienda && !sesion?.local) await Promise.all([panel(), sesion ? deseosModulo() : null]).catch(() => {})
   panelFiable = true
   repintar()
   if (pestania === 'album') pintarEstanteria()

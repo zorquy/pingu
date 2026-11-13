@@ -55204,6 +55204,27 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1328 — probar sin cuenta
+
+G4 del plan. `js/coleccion-local.js` (puro, almacén inyectable): `LLAVE`
+(`pd-coleccion-local`), `SIN_CUENTA` (el uuid de ceros: lo que pregunte a la base
+por él recibe un vacío, no un error de tipo), `lineasDe(mercado)`,
+`lineasDeCarta`, `anadir` (suma a una igual por `market|claveDeLinea`),
+`actualizar`, `borrar`, `vaciar`, `paraSubir` (por catálogo y sin id, dueño ni
+fechas) y `franjaDe(lineas, valor)` (`AVISO_DESDE = 5`). En `datos.js`,
+`usarColeccionLocal()` enciende `deNavegador` y `lineasDe`, `lineasDeTodo`,
+`lineasDeCarta`, `anadir`, `anadirVarias`, `actualizar` y `borrar` van ahí. En
+`mi-coleccion.js`, `iniciarCatalogo` sin sesión y con `probarSinCuenta()` pone
+`sesion = { user: { id: SIN_CUENTA }, local: true }` y `esMia`; lo que necesita
+cuenta mira `sesion.local` y llama a `pedirCuenta(que)`; no hay copia sin red
+(`copiable`), y `repintar` pinta `#mcLocalFranja` (`pintarFranjaLocal`, valor
+con `valorDeLineas`). `app.js` (initNavbar, con sesión): si hay `LLAVE`,
+`import('./coleccion-local-subir.js')` → `subirAlEntrar(uid)`: no para tiendas,
+vacía ANTES de subir (otra pestaña no lo repite), sube con `datos.anadir` y
+devuelve lo que falle. Un camino nuevo que meta cartas en /cartas pasa por
+`datos.anadir`, y así funciona también sin cuenta; uno que necesite cuenta mira
+`sesion.local`.
+
 ## Tanda 1327 — cada imagen que se comparte invita
 
 G1 del plan. En `js/invitar-puro.js`: `COMPARTIDO` (clave → prefijo del nombre

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Prueba antes de registrarte: en Cartas, sin cuenta, ya puedes apuntar las cartas que tienes con el «+»; se guardan en tu navegador con lo que valen y, cuando crees tu cuenta, se pasan a ella solas.", "enlace": "/cartas" },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Las imágenes que compartes en una historia de Instagram llevan abajo tu dirección de PokeDoc y un QR: quien lo escanea ve lo que compartiste (tu reto de hoy, tu colección) y puede jugarlo sin cuenta o unirse con tu invitación.", "enlace": "/retos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "«Qué es PokeDoc» ahora cuenta cuánta gente somos, cuántas cartas tenemos apuntadas, los temas del foro y los torneos jugados, quién lo hace, cómo ha ido mes a mes y, para prensa y tiendas, el logo, el contacto y el dossier.", "enlace": "/sobre" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Las pantallas vacías ya no te dejan tirado: la agenda de eventos sin eventos o el reto de la carta cuando no carga te dicen qué irá ahí y te dan a dónde ir.", "enlace": "/eventos" },

@@ -16072,3 +16072,9 @@ html.con-barra-movil .mc-prod-banda { display: none; }
 
 /* Sin cobertura (1318): de cuándo es la copia que se ve. */
 .mc-sin-red { margin: 0 0 var(--e-md); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--ice); color: var(--text); font-size: var(--t-sm); font-weight: 600; }
+/* Probar sin cuenta (1328): cuántas llevas en este navegador y crear cuenta. */
+.mc-local-franja { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-sm) var(--e-md); margin: 0 0 var(--e-md); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--ice); }
+.mc-local-franja > div { display: flex; flex-direction: column; min-width: 0; }
+.mc-local-franja strong { font-family: var(--font-display); font-size: var(--t-lg); }
+.mc-local-franja span { font-size: var(--t-sm); color: var(--text-mid); }
+.mc-local-franja.fuerte { background: var(--white); border: 1px solid var(--acento); }

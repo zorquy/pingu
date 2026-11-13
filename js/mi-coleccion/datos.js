@@ -2,6 +2,7 @@
 // el bloque de precio y colección de la ficha de una carta.
 import { supabase } from '../supabase.js'
 import { exitoDeColeccion } from '../exito.js'
+import * as enNavegador from '../coleccion-local.js'
 import { urlDePrecio, precioDe, precioDeFila, claveDeLinea, valorDeLinea } from '../cardmarket.js'
 // El mercado por defecto NO se escribe aquí a mano (tanda 485): `market` es
 // `not null default 'WEST'` en la base, así que una línea que no diga nada ES
@@ -81,6 +82,15 @@ function faltaLaColumnaCambio(error) {
 // su stock a su precio, como en el Panel). Lo enciende mi-coleccion.js al
 // ver que la cuenta es de tienda, y solo en esa página.
 let deTienda = false
+// Y sin cuenta (1328, G4: «tu colección empieza antes de registrarte»): las
+// líneas viven en el navegador (js/coleccion-local.js) con la misma forma, y
+// todo lo de abajo que lee o escribe líneas pasa por ahí. Lo enciende
+// mi-coleccion.js en /cartas sin sesión; al entrar, app.js las sube.
+let deNavegador = false
+export const esColeccionLocal = () => deNavegador
+export function usarColeccionLocal() {
+  deNavegador = true
+}
 export const esStockDeTienda = () => deTienda
 export function usarStockDeTienda() {
   deTienda = true
@@ -181,6 +191,7 @@ async function anadirAlStock(tiendaId, linea, mercado) {
 // memoria con la id a secas mezclaría dos cartas DISTINTAS sin dar ningún
 // error. Mientras cada pantalla mira un solo mercado, el choque no existe.
 export async function lineasDe(userId, mercado = 'WEST') {
+  if (deNavegador) return enNavegador.lineasDe(mercado)
   if (deTienda) return (await stockDe(userId, { mercado })).map(lineaDeStock)
   const filas = []
   // Con paginación: una colección grande pasa de las 1.000 filas que
@@ -232,6 +243,7 @@ export const claveDeCarta = (id, market) => `${id}|${market || MERCADO_POR_DEFEC
 export const claveDeLineaEnMercado = (l) => claveDeCarta(l?.card_id, l?.market)
 
 export async function lineasDeTodo(userId) {
+  if (deNavegador) return enNavegador.lineasDe()
   if (deTienda) return (await stockDe(userId)).map(lineaDeStock)
   const filas = []
   for (let desde = 0; ; desde += 1000) {
@@ -286,6 +298,7 @@ export async function cartasPorClaves(lineas) {
 }
 
 export async function lineasDeCarta(userId, cardId) {
+  if (deNavegador) return enNavegador.lineasDeCarta(cardId)
   if (deTienda) return (await stockDe(userId, { cardId })).map(lineaDeStock)
   const { data, error } = await supabase.from('user_collection').select(COLUMNAS_LINEA).eq('user_id', userId).eq('card_id', cardId)
   if (error) throw traducir(error)
@@ -298,6 +311,7 @@ export async function lineasDeCarta(userId, cardId) {
 export async function anadir(userId, linea, mercado = 'WEST') {
   // Al stock no se tacha nada: lo que una tienda tiene no cumple un deseo suyo.
   if (deTienda) return anadirAlStock(userId, linea, mercado)
+  if (deNavegador) return enNavegador.anadir(linea, mercado)
   const existentes = await lineasDeCarta(userId, linea.card_id)
   const igual = existentes.find((l) => claveDeLinea(l) === claveDeLinea(linea))
   let puesta
@@ -366,6 +380,7 @@ export async function anadirVarias(userId, nuevasLineas, mercado = 'WEST') {
     for (const l of porMeter) puestas.push(await anadirAlStock(userId, l, mercado))
     return puestas
   }
+  if (deNavegador) return porMeter.map((l) => enNavegador.anadir(l, mercado))
   const { data, error } = await supabase
     .from('user_collection')
     .select(COLUMNAS_LINEA)
@@ -405,6 +420,7 @@ export async function anadirVarias(userId, nuevasLineas, mercado = 'WEST') {
 }
 
 export async function actualizar(id, cambios) {
+  if (deNavegador) return enNavegador.actualizar(id, cambios)
   if (deTienda) return escribirStock(id, cambiosDeStock(cambios))
   // El puente otra vez, y aquí en el CUERPO y no en el `select`: sin la
   // migración, mandar `cambio` en el update devuelve 42703 y el
@@ -420,6 +436,7 @@ export async function actualizar(id, cambios) {
 }
 
 export async function borrar(id) {
+  if (deNavegador) return enNavegador.borrar(id)
   const { data, error } = await supabase.from(deTienda ? 'tienda_stock' : 'user_collection').delete().eq('id', id).select('id')
   if (error) throw traducir(error)
   if (!data?.length) throw new Error('No se ha podido borrar: esa línea no es tuya o ya no existe.')

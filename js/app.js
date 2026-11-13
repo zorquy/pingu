@@ -716,6 +716,8 @@ export async function initNavbar() {
   if (!session) document.documentElement.classList.remove('pd-tienda')
   if (session) {
     montarFeedbackEnElPie()
+    // Lo que apuntó sin cuenta en este navegador (1328), a su cuenta.
+    try { if (localStorage.getItem('pd-coleccion-local')) import('./coleccion-local-subir.js').then((m) => m.subirAlEntrar(session.user.id)).catch(() => {}) } catch {}
     const profile = await getProfile(session.user.id)
     if (profile?.is_banned) {
       await supabase.auth.signOut()

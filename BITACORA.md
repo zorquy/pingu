@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (577) — PINGU-Claude (1328 — probar sin cuenta: tu colección empieza antes de registrarte)
+
+**Hecho**: G4 del plan. En /cartas **sin cuenta** el «+» funciona: abre la
+hoja de añadir de siempre y la carta se guarda **en el navegador**
+(`js/coleccion-local.js`, misma forma que una línea de `user_collection`), con
+la marca de «la tienes», Seleccionar y todo lo que lee líneas, porque
+`datos.js` desvía lecturas y escrituras ahí (`usarColeccionLocal`, como el
+stock de tienda). Arriba, una franja: «Llevas N cartas · X €» (el valor de la
+ficha) y, **desde la quinta**, «Crear cuenta para no perderlas» en principal.
+Lo que pide una cuenta de verdad (La quiero, favoritas, álbumes, cambios) lo
+dice con un aviso y «Crear cuenta». **Al entrar** con cuenta, cualquier página
+sube lo guardado (`coleccion-local-subir.js`, por `import()` desde app.js solo
+si hay algo) y lo vacía: «Hemos guardado en tu cuenta las 5 cartas…». Una
+tienda no las sube.
+
+**Lo que NO va**: /mi-coleccion sin cuenta sigue pidiendo entrar (su Panel con
+lo del navegador sería la siguiente tanda), y «La quiero» sin cuenta tampoco.
+Se apaga con `?sin-local` y en un navegador que no deja guardar nada.
+
+**Tras la regresión de /cartas sin cuenta**: con nada apuntado no salen
+anillos «0 de N» (`conProgreso`), sin cuenta no se baja ni el Panel ni los
+deseos (895) y «+ Añadir» de un producto sigue pidiendo cuenta. Las pruebas
+viejas que daban por hecho «sin cuenta no hay +» (649, 650, 657, 1054) miran
+las dos cosas: con `?sin-local` lo de antes y sin él el modo local.
+
+**Ficheros**: js/coleccion-local.js y js/coleccion-local-subir.js (nuevos),
+js/mi-coleccion/datos.js, js/mi-coleccion.js, js/app.js, css/mi-coleccion.css,
+cartas.html (generado) y precargas, SCHEMA.md, novedades.json. En `pruebas`:
+test-tanda-1328.
+
 ## 2026-11-13 (576) — PINGU-Claude (1327 — cada imagen que se comparte invita)
 
 **Hecho**: G1 del plan. Lo de invitar ya estaba (1298: /r/<usuario>, «Invita a

@@ -476,7 +476,7 @@ async function cambiarEnStock(id, idioma, linea, nueva) {
 // ya existe se toca por su id (vale con y sin la migración); una nueva se
 // inserta con su idioma, y sin la columna todavía, sin él.
 async function cambiarCantidad(id, idioma, paso) {
-  if (!ctx.sesion) return showToast('Entra con tu cuenta para apuntar tus productos.', 'error')
+  if (!ctx.sesion || ctx.sesion.local) return showToast('Entra con tu cuenta para apuntar tus productos.', 'error')
   const linea = copiasDe(id).find((m) => (m.idioma || '') === (idioma || ''))
   const nueva = (Number(linea?.cantidad) || 0) + paso
   const tabla = () => supabase.from('user_products')
@@ -525,7 +525,7 @@ function idiomaRecordado() {
 function preguntarIdioma(id, { varios = 0, alElegir = null } = {}) {
   const f = fichas.get(id)
   if (!f) return
-  if (!ctx.sesion) return showToast('Entra con tu cuenta para apuntar tus productos.', 'error')
+  if (!ctx.sesion || ctx.sesion.local) return showToast('Entra con tu cuenta para apuntar tus productos.', 'error')
   const idiomas = idiomasDeProducto(f)
   if (idiomas.length === 1) return void cambiarCantidad(id, idiomas[0], 1)
   let d = $('mcProdIdioma')
