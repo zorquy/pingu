@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (572) — PINGU-Claude (1324 — tamaño de letra y más contraste)
+
+**Hecho**: D5 del plan. Ajustes › **Apariencia**: «Letra» en tres tamaños
+(Normal, Grande +12,5 %, Muy grande +25 %) con una frase de muestra, y «Más
+contraste» (los grises de texto y los bordes, un tono más marcados; el gris más
+claro pasa de 4,5 en los dos temas). Se guarda en este navegador (`pd-letra`,
+`pd-contraste`) y la cabecera de cada página lo pone ANTES del primer pintado,
+con un guion de una línea detrás del del tema (58 páginas), así que no salta.
+Como toda la letra va en rem desde la escala, cambiar el tamaño de la web es
+cambiar el de la raíz.
+
+**Lo que NO va**: guardarlo también en tu cuenta (de momento, por navegador,
+como el tema).
+
+**Ficheros**: las 58 páginas con tema (una línea en la cabecera; cartas.html
+regenerada desde mi-coleccion.html), css/style.css (cuatro reglas),
+js/ajustes.js, css/ajustes.css, SCHEMA.md, novedades.json. En `pruebas`:
+test-tanda-1324. La 311 sigue con sus rojos de antes.
+
 ## 2026-11-13 (571) — PINGU-Claude (1323 — tu temporada de liga en el perfil)
 
 **Hecho**: P3 del plan. En la pestaña **Torneos** del perfil (tuyo y de

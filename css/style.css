@@ -2021,3 +2021,9 @@ html.uv-actualizando .page-content h1::after { content: ''; display: inline-bloc
   -webkit-mask: var(--dibujo) center / contain no-repeat;
   mask: var(--dibujo) center / contain no-repeat;
 }
+
+/* Letra y contraste (1324, D5): Ajustes › Apariencia, puestos antes del primer pintado (SCHEMA 1324). */
+:root[data-letra="grande"] { font-size: 112.5%; }
+:root[data-letra="muy-grande"] { font-size: 125%; }
+:root[data-contraste="1"] { --text-mid: #2f4a56; --text-dim: #4f6b78; --border: #a9bcc5; }
+:root[data-theme='dark'][data-contraste="1"] { --text-mid: #d3dee4; --text-dim: #aabcc6; --border: #5a6d79; }

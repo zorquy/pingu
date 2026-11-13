@@ -55204,6 +55204,19 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1324 — tamaño de letra y más contraste
+
+D5 del plan. Detrás del guion del tema de cada página va otro de una línea:
+lee `pd-letra` (`grande` | `muy-grande`) y `pd-contraste` (`1`) y pone
+`data-letra` / `data-contraste` en `<html>` antes del primer pintado. En
+style.css: `:root[data-letra="grande"] { font-size: 112.5% }`,
+`[data-letra="muy-grande"]` al 125 % (la escala `--t-*` va en rem, así que crece
+toda la letra y nada más; el espaciado va en px), y `[data-contraste="1"]`
+redefine `--text-mid`, `--text-dim` y `--border` en claro y en oscuro (el
+`--text-dim` pasa de 4,5:1). Ajustes › Apariencia (`.aj-letra`, el interruptor
+`contraste`) escribe la llave y el atributo al momento. Una página nueva con el
+guion del tema lleva también este (lo comprueba test-tanda-1324).
+
 ## Tanda 1323 — tu temporada de liga en el perfil
 
 P3 del plan. `js/perfil-liga.js`: `temporadaDeLiga(t, { userId, rondas,

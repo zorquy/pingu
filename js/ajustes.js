@@ -24,7 +24,7 @@ const APARTADOS = [
   { id: 'direccion', nombre: 'Envío y pagos', sub: 'Tu dirección, tu Bizum y tu PayPal', icono: 'package' },
   { id: 'seguridad', nombre: 'Seguridad', sub: 'Doble factor y sesiones abiertas', icono: 'shield' },
   { id: 'privacidad', nombre: 'Privacidad', sub: 'Tu actividad en Comunidad', icono: 'eye' },
-  { id: 'apariencia', nombre: 'Apariencia', sub: 'Tema, fiestas y el glosario', icono: 'palette' },
+  { id: 'apariencia', nombre: 'Apariencia', sub: 'Tema, letra, contraste y fiestas', icono: 'palette' },
   { id: 'datos', nombre: 'Tus datos', sub: 'Descargar todo, exportar e importar', icono: 'upload' },
   { id: 'calendario', nombre: 'Calendario', sub: 'Tus torneos y eventos en el calendario del móvil', icono: 'calendar' },
   { id: 'instalar', nombre: 'Instalar PokeDoc', sub: 'Como una app, en el móvil o el ordenador', icono: 'home' },
@@ -433,10 +433,26 @@ const aparienciaHtml = () => `
       ${[['light', icons.sun(16), 'Claro'], ['dark', icons.moon(16), 'Oscuro'], ['auto', icons.settings(16), 'El del sistema']]
         .map(([v, ic, t]) => `<button type="button" class="seg-btn" data-tema="${v}" aria-pressed="${temaGuardado() === v}">${ic}<span>${t}</span></button>`).join('')}
     </div>
+    <h3>Letra</h3>
+    <div class="seg aj-letra" role="group" aria-label="Tamaño de la letra">
+      ${[['', 'Normal', 'aj-aa-1'], ['grande', 'Grande', 'aj-aa-2'], ['muy-grande', 'Muy grande', 'aj-aa-3']]
+        .map(([v, t, c]) => `<button type="button" class="seg-btn" data-letra="${v}" aria-pressed="${letraGuardada() === v}"><span class="${c}" aria-hidden="true">Aa</span><span>${t}</span></button>`).join('')}
+    </div>
+    ${interruptor({ id: 'contraste', texto: 'Más contraste', detalle: 'Los textos grises y los bordes, más marcados.', activo: contrasteGuardado() })}
+    <p class="aj-vista-letra" aria-hidden="true">Así se verá: <b>Lugia V</b> · 212,40 € · <span class="subtext">hace 2 h</span></p>
     <h3>Fiestas</h3>
     ${interruptor({ id: 'decoracion', texto: 'Decoración de las fiestas', detalle: 'Halloween, Navidad… La web se viste sola en las fechas señaladas.', activo: conDecoracion() })}
     <h3>Lectura</h3>
     ${interruptor({ id: 'glosario', texto: 'Definiciones del glosario', detalle: 'En guías y en el foro, las palabras del glosario salen subrayadas y te dicen qué significan. Quítalo si ya te las sabes.', activo: !glosarioApagado() })}`
+
+// La letra y el contraste (1324, D5): en este navegador, y los aplica la
+// cabecera de cada página antes del primer pintado (como el tema).
+function letraGuardada() {
+  try { const l = localStorage.getItem('pd-letra'); return l === 'grande' || l === 'muy-grande' ? l : '' } catch { return '' }
+}
+function contrasteGuardado() {
+  try { return localStorage.getItem('pd-contraste') === '1' } catch { return false }
+}
 
 // La decoración de las fiestas (1286): apagarla es `pd-sin-<fiesta>` en este
 // navegador, la misma llave que «Quitar la decoración» del pop-up.
@@ -445,6 +461,20 @@ function conDecoracion() {
 }
 
 function montarApariencia(panel) {
+  panel.querySelector('.aj-letra')?.addEventListener('click', (e) => {
+    const b = e.target.closest('[data-letra]')
+    if (!b) return
+    const v = b.dataset.letra
+    try { if (v) localStorage.setItem('pd-letra', v); else localStorage.removeItem('pd-letra') } catch {}
+    if (v) document.documentElement.dataset.letra = v
+    else delete document.documentElement.dataset.letra
+    for (const x of panel.querySelectorAll('[data-letra]')) x.setAttribute('aria-pressed', String(x === b))
+  })
+  panel.querySelector('[data-interruptor="contraste"]')?.addEventListener('change', (e) => {
+    try { if (e.target.checked) localStorage.setItem('pd-contraste', '1'); else localStorage.removeItem('pd-contraste') } catch {}
+    if (e.target.checked) document.documentElement.dataset.contraste = '1'
+    else delete document.documentElement.dataset.contraste
+  })
   panel.querySelector('[data-interruptor="glosario"]')?.addEventListener('change', (e) => {
     try {
       if (e.target.checked) localStorage.removeItem(LLAVE_SIN_GLOSARIO)
