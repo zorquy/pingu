@@ -4,6 +4,32 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (559) — PINGU-Claude (1312 — registro: la edad y «soy una persona»)
+
+**Hecho**: la S5. En /auth (crear cuenta) y en /alta-tienda, la casilla
+«Tengo 14 años o más y he leído la política de privacidad», obligatoria
+también para Google; la cuenta guarda cuándo se marcó (`user_metadata.
+edad_14_aceptada`). Y Cloudflare Turnstile en entrar, crear cuenta,
+recuperar la contraseña y el alta de tiendas (`js/turnstile.js`), DORMIDO
+mientras no haya clave: sin `site_settings.turnstile_site_key` no carga nada
+y no manda token. Con clave, pasa `captchaToken` a Supabase y reinicia la caja
+tras cada uso. `friendlyAuthError` explica un fallo del captcha.
+
+**Ficheros**: js/turnstile.js (nuevo), auth.html, js/auth.js,
+alta-tienda.html, js/alta-tienda.js, js/auth-errores.js, css/auth.css,
+SCHEMA.md, BITACORA.md, novedades.json. En `pruebas`: test-tanda-1312
+(nueva), stub (signIn con sus opciones) y 1067-pantalla con la casilla.
+
+**Pendiente (PINGU, cuando quiera encenderlo, en este orden)**: 1) crear el
+sitio en Cloudflare → Turnstile (gratis) con pokedoc.es; 2) poner la clave
+PÚBLICA en la base: `insert into site_settings (key, value) values
+('turnstile_site_key', '"LA-CLAVE-PUBLICA"') on conflict (key) do update set
+value = excluded.value;`; 3) comprobar que en /auth sale la caja; 4) y solo
+entonces, en Supabase → Authentication → Attack Protection, activar el
+captcha con la clave SECRETA. Al revés (Supabase primero), nadie podría
+entrar. Rojos que no son de aquí: 1067-pantalla «cinco pestañas» (el panel
+de tienda tiene seis desde la 1250) y 1144 (columnas del glosario).
+
 ## 2026-11-13 (558) — PINGU-Claude (1311 — las huellas: el worker deja de preguntar fichero a fichero)
 
 **Hecho**: la C4. Al desplegar, `herramientas/generar-huellas.mjs` (detrás de

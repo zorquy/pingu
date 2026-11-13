@@ -71,6 +71,7 @@
       <div id="altaCuenta" class="alta-paso hidden">
         <h2>Crea la cuenta de <span data-alta-nombre></span></h2>
         <p class="subtext">Es la cuenta de la tienda: con ella entrarás a su panel. Tu cuenta personal, si tienes, sigue aparte.</p>
+        <label class="auth-edad"><input type="checkbox" id="altaEdad" /> <span>Tengo 14 años o más y he leído la <a href="/privacidad" target="_blank" rel="noopener">política de privacidad</a></span></label>
         <button type="button" id="altaGoogle" class="btn-outline btn-block auth-google-btn" style="margin-top: 16px;">Continuar con Google</button>
         <p class="auth-o"><span>o con contraseña</span></p>
         <label class="alta-etiqueta" for="altaEmail">Email (el de la invitación)</label>
@@ -78,6 +79,7 @@
         <div class="form-group" style="margin-top: 10px;">
           <input type="password" id="altaPassword" class="auth-input" placeholder="Elige una contraseña" autocomplete="new-password" />
         </div>
+        <div class="auth-turnstile" id="altaCuentaTurnstile" hidden></div>
         <p class="auth-error" id="altaCuentaError"></p>
         <button type="button" id="altaCrear" class="btn-primary btn-block" style="margin-top: 8px;">Crear la cuenta →</button>
         <p class="auth-switch">¿Ya la creaste? <button type="button" id="altaVerEntrar">Entra</button></p>
@@ -89,6 +91,7 @@
         <div class="form-group" style="margin-top: 10px;">
           <input type="password" id="altaEntrarPassword" class="auth-input" placeholder="Contraseña" autocomplete="current-password" />
         </div>
+        <div class="auth-turnstile" id="altaEntrarTurnstile" hidden></div>
         <p class="auth-error" id="altaEntrarError"></p>
         <button type="button" id="altaEntrarBtn" class="btn-primary btn-block" style="margin-top: 8px;">Entrar</button>
         <p class="auth-switch"><button type="button" id="altaVerCuenta">← Crear la cuenta</button></p>

@@ -6,6 +6,10 @@ export function friendlyAuthError(error) {
   if (msg.includes('rate limit') || msg.includes('too many')) {
     return 'Demasiados intentos seguidos. Espera un minuto e inténtalo de nuevo.'
   }
+  // El «soy una persona» (1312): sin token, o uno caducado o ya usado.
+  if (msg.includes('captcha')) {
+    return 'No hemos podido comprobar que eres una persona. Espera a que se marque la casilla de Cloudflare (o recarga la página) y vuelve a probar.'
+  }
   if (msg.includes('invalid login credentials') || msg.includes('invalid_credentials')) {
     return 'Email o contraseña incorrectos.'
   }

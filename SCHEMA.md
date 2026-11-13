@@ -55204,6 +55204,23 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1312 — la edad y «soy una persona» en el registro
+
+- La casilla `#registerEdad` (/auth) y `#altaEdad` (/alta-tienda), clase
+  `.auth-edad` (css/auth.css): sin ella no hay `signUp` ni Google. El
+  `signUp` lleva `options.data.edad_14_aceptada` (ISO). Con Google no queda
+  apuntado: el clic con la casilla marcada es la aceptación.
+- `js/turnstile.js`: `prepararTurnstile(supabase, caja)` lee
+  `site_settings.turnstile_site_key` (texto o `{ clave }`), carga el script de
+  Cloudflare con `render=explicit` y pinta en la caja (`.auth-turnstile`,
+  `hidden` hasta entonces, `appearance: interaction-only`). Devuelve
+  `{ activo, token(), reiniciar() }`; sin clave, uno dormido que da
+  `undefined`. `conToken(opciones, token)` añade `captchaToken` solo si hay.
+  Lo usan `signInWithPassword` y `signUp` (/auth y /alta-tienda) y
+  `resetPasswordForEmail`. Un camino nuevo que llame a esas tres de Supabase
+  pasa por aquí, o el día que se encienda el captcha ese camino falla.
+- Encender: clave pública en `site_settings` ANTES que el captcha de Supabase.
+
 ## Tanda 1311 — las huellas del service worker
 
 - `herramientas/generar-huellas.mjs` (en el despliegue, después de

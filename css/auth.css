@@ -298,3 +298,31 @@
 }
 .auth-padrino-t { margin: var(--e-xs) 0 0; font-family: var(--font-display); font-size: var(--t-lg); }
 .auth-padrino-logro { margin: 0; padding: 2px var(--e-sm); border-radius: var(--radius-pill); background: var(--white); color: var(--text-mid); font-size: var(--t-xs); font-weight: 600; }
+
+/* La edad y el «soy una persona» (1312). La casilla mide 44 al dedo con su
+   texto; la caja de Turnstile solo ocupa sitio si Cloudflare pide algo. */
+.auth-edad {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--e-sm);
+  min-height: 44px;
+  margin-top: var(--e-md);
+  color: var(--text-mid);
+  font-size: var(--t-sm);
+  line-height: 1.4;
+  text-align: left;
+  cursor: pointer;
+}
+.auth-edad input {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  accent-color: var(--navy);
+}
+.auth-edad a { color: var(--navy); }
+.auth-turnstile:not([hidden]) {
+  display: flex;
+  justify-content: center;
+  margin-top: var(--e-sm);
+}

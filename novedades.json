@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Al crear una cuenta confirmas que tienes 14 años o más, y el registro y la entrada están preparados contra los bots.", "enlace": "/auth?registro=1" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Menos spam: el foro y los mensajes frenan a quien publica a lo loco, las cuentas recién creadas no pueden poner enlaces el primer día, y un mensaje que denuncian varios usuarios se esconde hasta que lo revisa el equipo." },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Ajustes › Seguridad: activa el doble factor (un código de tu app además de la contraseña) y mira dónde tienes la sesión abierta, para cerrar las que no sean tuyas.", "enlace": "/ajustes?ver=seguridad" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Más privacidad: tus guías guardadas y quién te invitó ya no las puede ver nadie, si escondes tu actividad tampoco sale cuándo estás en línea, y en Ajustes › Privacidad puedes ver tu perfil tal como lo ve alguien sin cuenta.", "enlace": "/ajustes?ver=privacidad" },

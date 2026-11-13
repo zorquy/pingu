@@ -3,6 +3,7 @@ import { uniqueUsername, passwordStrengthError, avatarStyle, getInitial } from '
 import { escapeHtml } from './html.js'
 import { showToast } from './toast.js'
 import { friendlyAuthError } from './auth-errores.js'
+import { prepararTurnstile, conToken } from './turnstile.js'
 
 const steps = {
   login: document.getElementById('stepLogin'),
@@ -129,7 +130,30 @@ async function signInWithGoogle(e) {
 }
 
 document.getElementById('btnGoogleLogin')?.addEventListener('click', signInWithGoogle)
-document.getElementById('btnGoogleRegister')?.addEventListener('click', signInWithGoogle)
+// Con Google también se pide la casilla de la edad (1312): la cuenta se crea igual.
+const edadMarcada = () => document.getElementById('registerEdad')?.checked
+const FALTA_EDAD = 'Para crear una cuenta tienes que tener 14 años o más. Marca la casilla de arriba.'
+document.getElementById('btnGoogleRegister')?.addEventListener('click', (e) => {
+  if (!edadMarcada()) {
+    setError(steps.register, FALTA_EDAD)
+    document.getElementById('registerEdad')?.focus()
+    return
+  }
+  signInWithGoogle(e)
+})
+
+// «Soy una persona» (1312): dormido sin clave en site_settings. Se prepara
+// al cargar, cada paso con su caja.
+const humanos = {
+  login: prepararTurnstile(supabase, document.getElementById('loginTurnstile')),
+  register: prepararTurnstile(supabase, document.getElementById('registerTurnstile')),
+  forgot: prepararTurnstile(supabase, document.getElementById('forgotTurnstile')),
+}
+async function tokenDe(paso) {
+  const h = await humanos[paso]
+  const t = await h.token()
+  return { t, listo: () => h.reiniciar() }
+}
 
 // ── Navegación entre pasos ──
 document.getElementById('btnGoToRegister')?.addEventListener('click', () => showStep('register'))
@@ -156,7 +180,9 @@ btnLogin?.addEventListener('click', async () => {
   btnLogin.disabled = true
   btnLogin.textContent = 'Entrando...'
 
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  const humano = await tokenDe('login')
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password, options: conToken({}, humano.t) })
+  humano.listo()
 
   btnLogin.disabled = false
   btnLogin.textContent = 'Entrar'
@@ -227,6 +253,10 @@ btnRegister?.addEventListener('click', async () => {
   const password = document.getElementById('registerPassword').value
   setError(steps.register, '')
 
+  if (!edadMarcada()) {
+    setError(steps.register, FALTA_EDAD)
+    return
+  }
   if (name.length < 2) {
     setError(steps.register, 'Escribe tu nombre.')
     return
@@ -253,14 +283,17 @@ btnRegister?.addEventListener('click', async () => {
   btnRegister.disabled = true
   btnRegister.textContent = 'Creando cuenta...'
 
+  const humano = await tokenDe('register')
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
     // Sin esto, el enlace del email de confirmación vuelve al "Site URL"
     // del proyecto de Supabase (el dominio de Netlify) en vez de al
-    // dominio desde el que la persona se ha registrado.
-    options: { emailRedirectTo: `${window.location.origin}/index.html` },
+    // dominio desde el que la persona se ha registrado. Y en los datos de la
+    // cuenta queda cuándo dijo que tiene 14 años o más (1312).
+    options: conToken({ emailRedirectTo: `${window.location.origin}/index.html`, data: { edad_14_aceptada: new Date().toISOString() } }, humano.t),
   })
+  humano.listo()
 
   btnRegister.disabled = false
   btnRegister.textContent = 'Crear cuenta →'
@@ -309,9 +342,11 @@ btnSendReset?.addEventListener('click', async () => {
   btnSendReset.disabled = true
   btnSendReset.textContent = 'Enviando...'
 
-  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+  const humano = await tokenDe('forgot')
+  const { error } = await supabase.auth.resetPasswordForEmail(email, conToken({
     redirectTo: `${window.location.origin}/reset-password.html`,
-  })
+  }, humano.t))
+  humano.listo()
 
   btnSendReset.disabled = false
   btnSendReset.textContent = 'Enviar enlace'

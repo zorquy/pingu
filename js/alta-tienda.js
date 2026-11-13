@@ -11,6 +11,7 @@ import { supabase } from './supabase.js'
 import { passwordStrengthError, slugify, uniqueUsername } from './app.js'
 import { icons } from './icons.js'
 import { friendlyAuthError } from './auth-errores.js'
+import { prepararTurnstile, conToken } from './turnstile.js'
 import { FORMA_DE_USUARIO, MOTIVOS_DE_INVITACION as MOTIVOS, tokenDeAlta, instagramDe } from './tiendas-puro.js'
 
 const $ = (id) => document.getElementById(id)
@@ -102,7 +103,16 @@ $('altaUsuario')?.addEventListener('input', () => {
 $('altaVerEntrar')?.addEventListener('click', () => ver('altaEntrar'))
 $('altaVerCuenta')?.addEventListener('click', () => ver('altaCuenta'))
 
+// La edad y el «soy una persona» (1312), como en /auth.
+const FALTA_EDAD = 'Para crear la cuenta tienes que tener 14 años o más. Marca la casilla de arriba.'
+const humanoCuenta = prepararTurnstile(supabase, $('altaCuentaTurnstile'))
+const humanoEntrar = prepararTurnstile(supabase, $('altaEntrarTurnstile'))
+
 $('altaGoogle')?.addEventListener('click', async (e) => {
+  if (!$('altaEdad')?.checked) {
+    $('altaCuentaError').textContent = FALTA_EDAD
+    return
+  }
   e.currentTarget.disabled = true
   const { error } = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: volverAqui() } })
   e.currentTarget.disabled = false
@@ -113,6 +123,10 @@ $('altaCrear')?.addEventListener('click', async () => {
   const error = $('altaCuentaError')
   error.textContent = ''
   const password = $('altaPassword').value
+  if (!$('altaEdad')?.checked) {
+    error.textContent = FALTA_EDAD
+    return
+  }
   const mal = passwordStrengthError(password)
   if (mal) {
     error.textContent = mal
@@ -121,11 +135,13 @@ $('altaCrear')?.addEventListener('click', async () => {
   const boton = $('altaCrear')
   boton.disabled = true
   boton.textContent = 'Creando…'
+  const humano = await humanoCuenta
   const { data, error: fallo } = await supabase.auth.signUp({
     email: invitacion.email,
     password,
-    options: { emailRedirectTo: volverAqui() },
+    options: conToken({ emailRedirectTo: volverAqui(), data: { edad_14_aceptada: new Date().toISOString() } }, await humano.token()),
   })
+  humano.reiniciar()
   boton.disabled = false
   boton.textContent = 'Crear la cuenta →'
   if (fallo) {
@@ -141,7 +157,9 @@ $('altaCrear')?.addEventListener('click', async () => {
 $('altaEntrarBtn')?.addEventListener('click', async () => {
   const error = $('altaEntrarError')
   error.textContent = ''
-  const { data, error: fallo } = await supabase.auth.signInWithPassword({ email: invitacion.email, password: $('altaEntrarPassword').value })
+  const humano = await humanoEntrar
+  const { data, error: fallo } = await supabase.auth.signInWithPassword({ email: invitacion.email, password: $('altaEntrarPassword').value, options: conToken({}, await humano.token()) })
+  humano.reiniciar()
   if (fallo) {
     error.textContent = /invalid/i.test(fallo.message || '') ? 'Contraseña incorrecta.' : friendlyAuthError(fallo)
     return
