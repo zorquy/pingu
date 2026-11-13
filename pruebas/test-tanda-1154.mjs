@@ -68,6 +68,8 @@ console.log('── E4 · Aprender sin repetirse ──')
   await page.waitForTimeout(2400)
   const r = await page.evaluate(() => {
     const seguir = document.querySelector('.aprender-seguir')
+    // Desde la 1338 el móvil no tiene destacada ni «Sigue donde lo dejaste»
+    // (va en la banda del PC): todas en filas.
     const dest = document.querySelector('#apLista > .guia-tarjeta')
     return {
       seguir: seguir?.querySelector('strong')?.textContent,
@@ -76,14 +78,10 @@ console.log('── E4 · Aprender sin repetirse ──')
       arte: Math.round(dest?.querySelector('.guia-arte')?.getBoundingClientRect().height || 0),
     }
   })
-  check('«Sigue donde lo dejaste» es la guía que sigues', r.seguir === 'Guía número 12', JSON.stringify(r))
-  check('  …y lleva su barra (50 %)', r.barra === '50%', r.barra)
-  check('la destacada no la repite: la siguiente de su tema', r.destacada === 'Guía número 6', r.destacada)
-  check('  …y su franja mide 52 px', r.arte === 52, r.arte)
-  await page.fill('#apBuscar', 'número 12')
-  await page.waitForTimeout(500)
-  const buscando = await page.locator('#apLista > .guia-tarjeta .guia-titulo').first().textContent().catch(() => '')
-  check('buscándola, sí sale arriba (manda lo que buscas)', buscando === 'Guía número 12', buscando)
+  const seguirVisible = await page.locator('.aprender-seguir').isVisible().catch(() => false)
+  check('en el móvil no sale «Sigue donde lo dejaste» ni una destacada grande (1338)', !seguirVisible && !r.destacada, JSON.stringify(r))
+  const filas = await page.locator('#apLista .guia-fila').count()
+  check('  …todas las guías van en filas', filas > 0, filas)
   check('sin errores', !err.length, err.join(' | '))
   await ctx.close()
 }

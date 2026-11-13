@@ -112,12 +112,21 @@ console.log('\n── 2. Y /aprender sigue diciendo lo mismo ──')
   // olvidó — que es exactamente lo que pasó.
   // Desde la 1219 la lista general del PC son portadas; la tarjeta con su
   // frase de progreso sigue en la página de un tema, que es la que se mira.
+  // Desde la 1338 el tema es un filtro de /aprender: en el móvil, las guías
+  // en filas (filaDeGuia, la misma de la portada), que dicen lo suyo.
   const { page } = await abrir('/aprender?tema=hist')
-  const cartas = await tarjetas(page, '.guia-rejilla')
-  check('salen las cuatro guías', cartas.length === 4, String(cartas.length))
-  for (const c of cartas) {
-    const esperado = ESPERADO[c.titulo]
-    if (esperado) check(`«${c.titulo}» dice «${esperado[0]}»`, c.estado === esperado[0], `dice «${c.estado}»`)
+  await page.setViewportSize({ width: 390, height: 844 })
+  await page.reload({ waitUntil: 'domcontentloaded' })
+  await page.waitForTimeout(2800)
+  const filas = await page.evaluate(() => [...document.querySelectorAll('#apLista .guia-fila')].map((n) => {
+    const txt = n.querySelector('small')?.textContent || ''
+    const barra = n.querySelector('.guia-fila-barra i')?.style.width
+    return { titulo: n.querySelector('strong')?.textContent.trim(), estado: /✓ hecha/.test(txt) ? 'hecho' : /✓ leída/.test(txt) ? 'leida' : barra || 'sin' }
+  }))
+  check('salen las cuatro guías', filas.length === 4, JSON.stringify(filas))
+  for (const f of filas) {
+    const esperado = ESPERADO_PORTADA[f.titulo]
+    if (esperado) check(`«${f.titulo}» dice «${esperado}»`, f.estado === esperado, `dice «${f.estado}»`)
   }
   await page.close()
 }

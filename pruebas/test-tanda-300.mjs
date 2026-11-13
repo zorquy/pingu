@@ -172,17 +172,18 @@ console.log('\n── 4. /aprender sabe leer el tema de la URL ──')
   // .html se comprueba arriba, en el bloque 3.
   const { page, errores } = await abrir('/aprender?tema=mazos')
   check('sin errores de JavaScript', errores.length === 0, errores.join(' | '))
-  // Desde la 863, ?tema= es la PÁGINA del tema (la vieja /categoria se fue):
-  // cabecera con su nombre, solo sus guías, y «‹ Aprender» para verlas todas.
-  const h1 = await page.locator('#apTemaCab h1').textContent().catch(() => null)
-  check('el tema viene ya puesto: la cabecera lleva su nombre', (h1 || '').includes('Construir mazos'), h1)
-  const titulos = await page.locator('.guia-titulo').allTextContents()
+  // Desde la 1338, ?tema= es el FILTRO de Aprender puesto: su línea lleva el
+  // nombre y solo se ven sus guías («Quitar» para verlas todas).
+  const h1 = await page.locator('#apTemaLinea .ap-tema-linea-nombre').textContent().catch(() => null)
+  check('el tema viene ya puesto: la línea del filtro lleva su nombre', (h1 || '').includes('Construir mazos'), h1)
+  const titulos = await page.locator('#apLista .guia-titulo, #apLista .guia-portada-sobre strong').allTextContents()
   const deMazos = GUIAS.filter((g) => g.category_id === 'cat-3').map((g) => g.title)
   check('  …y solo se ven las suyas', titulos.length === deMazos.length && titulos.every((t) => deMazos.includes(t)),
     titulos.join(' | '))
   // Y a un clic se ven todas: la puerta no puede ser una trampa.
-  const volver = await page.evaluate(() => [...document.querySelectorAll('.breadcrumb a')].pop()?.getAttribute('href'))
-  check('  …y el volver lleva a /aprender, donde están todas', volver === '/aprender', String(volver))
+  // Desde la 1338, «Quitar» en la línea del filtro.
+  const quitar = await page.locator('#apTemaLinea [data-ap-quitar]').count()
+  check('  …y «Quitar» deja ver todas', quitar === 1, String(quitar))
   await page.goto(`${BASE}/aprender`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(1500)
   // En la lista general del PC son portadas desde la 1219.

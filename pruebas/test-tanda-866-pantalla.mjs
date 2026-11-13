@@ -68,7 +68,7 @@ console.log('── 1. /aprender: la chapa del tema es un enlace ──')
   // En el móvil, las filas llevan el tema de texto delante del nivel.
   const m = await abrir('/aprender.html', { movil: true })
   const filas = await m.page.evaluate(() => [...document.querySelectorAll('#apLista .guia-fila small')].map((s) => s.textContent.replace(/\s+/g, ' ').trim()))
-  check('en el móvil, cada fila dice su tema delante del nivel', filas.length === 4 && filas.every((f) => /^(Mazos & estrategia|Reglas) · Principiante · 4 min/.test(f)), JSON.stringify(filas))
+  check('en el móvil, cada fila dice su tema delante del nivel (todas en filas desde la 1338)', filas.length === 5 && filas.every((f) => /^(Mazos & estrategia|Reglas) · Principiante · 4 min/.test(f)), JSON.stringify(filas))
   await m.ctx.close()
 }
 

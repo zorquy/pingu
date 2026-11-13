@@ -58,7 +58,8 @@ console.log('── 1. Aprender en el móvil ──')
   check('  …y dice qué hace', /escribir/i.test(r.escribir?.etiqueta || ''), r.escribir?.etiqueta)
   const temas = await page.evaluate(() => [...document.querySelectorAll('.ap-baldosa')].map((x) => { const a = getComputedStyle(x, '::after'); return { alto: Math.round(x.getBoundingClientRect().height), franja: -parseFloat(a.top) - parseFloat(a.bottom), icono: !!x.querySelector('.ap-baldosa-icono')?.getBoundingClientRect().width } }))
   // Desde la 1217/1226 los temas son baldosas con su Pokémon, no chips.
-  check('los temas, baldosas de una línea de alto parejo (menos de 72 px)', temas.length >= 3 && temas.every((x) => x.alto < 72 && x.alto === temas[0].alto), JSON.stringify(temas))
+  // Desde la 1338, cuadrados de 3 × 2 (menos de 100 px cada uno), todos iguales.
+  check('los temas, cuadrados de alto parejo (menos de 100 px)', temas.length >= 3 && temas.every((x) => x.alto < 100 && x.alto === temas[0].alto), JSON.stringify(temas))
   const sub = await visto(page, '.aprender-seguir-sub')
   check('«Sigue donde lo dejaste» en una línea (sin el bloque)', !sub)
   const top = await empieza(page, '#apLista .guia-tarjeta, #apLista .ap-fila, #apLista a')

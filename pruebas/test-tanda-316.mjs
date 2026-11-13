@@ -81,41 +81,14 @@ console.log('\n── 1. Una guía se dibuja IGUAL en /aprender, y la portada di
   const chapaA = (await g.page.locator('.guia-portada .guia-portada-tema').first().textContent({ timeout: 1500 }).catch(() => ''))?.trim()
   await g.page.close()
   check('  …y en /aprender la portada dice su tema', !!chapaA && CATS.some((c) => c.name === chapaA), chapaA || '(sin chapa)')
-  const min = (await a.page.locator('.guia-tarjeta .guia-chapa-min').first().textContent().catch(() => ''))?.trim()
+  // Desde la 1338 el tema es un filtro y pinta portadas: los minutos van en su chapa.
+  const min = (await a.page.locator('#apLista .guia-portada-mins').first().textContent().catch(() => ''))?.trim()
   check('  …y cuánto cuesta leerla', /\d+ min/.test(min || ''), min || '(vacía)')
   await a.page.close()
   check('  …y ya no existe el molde viejo', !/class="recent-card"/.test(leer('js/home.js')))
-  // La rareza se mudó de la franja a la fila de etiquetas, y ahí tiene
-  // que seguir llevando SU color. No es un detalle: `.guia-etiqueta`
-  // pinta de gris y `.rareza-*` de bronce/plata/oro, las dos con la
-  // misma especificidad — así que quien quede detrás gana. Al mudar el
-  // bloque a components.css quedó detrás la gris y la rareza salió
-  // apagada sin que nada diera error (es la trampa de la tanda 306).
-  {
-    const { page } = await abrir('/aprender?tema=empezar')
-    const colores = await page.evaluate(() => {
-      const r = document.querySelector('.guia-rareza')
-      const otra = [...document.querySelectorAll('.guia-etiqueta')].find((e) => !e.classList.contains('guia-rareza'))
-      const s = getComputedStyle(document.documentElement)
-      if (!r || !otra) return null
-      // El token es un hex y lo computado viene en rgb(): se pasa por el
-      // navegador para compararlos en el mismo idioma.
-      const sonda = document.createElement('span')
-      sonda.style.color = s.getPropertyValue('--rarity-bronze').trim()
-      document.body.appendChild(sonda)
-      const tokenRgb = getComputedStyle(sonda).color
-      sonda.remove()
-      return { rareza: getComputedStyle(r).color, etiqueta: getComputedStyle(otra).color,
-               tokenRgb, clase: r.className }
-    })
-    // No basta con «distinta del gris»: poniéndole `inherit` sale del
-    // color del texto normal, que también es distinto, y la mutación se
-    // colaba. Tiene que ser EL color de su rareza.
-    check('la rareza conserva su color propio',
-      !!colores && colores.rareza === colores.tokenRgb && colores.rareza !== colores.etiqueta,
-      JSON.stringify(colores))
-    await page.close()
-  }
+  // (Hasta la 1338 aquí se miraba el color de la rareza en la tarjeta de un
+  // tema de /aprender; desde entonces el tema es un filtro que pinta portadas
+  // y la tarjeta con etiquetas solo sale en el perfil y en Guardados.)
   // (Hasta la 1188 aquí se exigía que la portada pintara la tarjeta de
   // /aprender; desde entonces pinta portadas, a propósito: arriba.)
 }
@@ -281,9 +254,7 @@ console.log('\n── 7. La tarjeta se mide a sí misma, no a la ventana ──'
   // Hasta la 1188 se comparaba con la portada; desde entonces la portada pinta
   // portadas (`.pb-portada`) y no la tarjeta. Se queda lo de /aprender.
   // Desde la 1219, en la página de un tema (la general son portadas).
-  const aprender960 = await anchoDe('/aprender?tema=empezar', 960, '.guia-rejilla .guia-tarjeta')
-  check('hay tarjeta en /aprender', !!aprender960, JSON.stringify({ aprender960 }))
-  if (aprender960) check('  …y la ancha conserva la franja', aprender960.arte === 100, String(aprender960.arte))
+  // (Desde la 1338 /aprender no pinta la tarjeta: queda la declaración.)
   check('la declaración está en la hoja que bajan las dos',
     /container-type:\s*inline-size/.test(leer('css/components.css')) && /@container guia/.test(leer('css/components.css')))
 }

@@ -49,61 +49,14 @@ console.log('\n── 1. La franja de color de la tarjeta de guía dice algo ─
   // Eran 100 px —un tercio de la tarjeta— con un degradado y nada
   // dentro. Y la CATEGORÍA no salía en la tarjeta por ningún lado,
   // aunque los chips de arriba filtren justo por eso.
-  // Desde la 1219 la tarjeta vive en la página de un tema (la lista general
-  // del PC son portadas).
+  // Desde la 1338 el tema es un filtro de /aprender y pinta PORTADAS: la
+  // tarjeta con franja y pie (lo que medía esta prueba) ya no sale ahí, solo
+  // en el perfil y en Guardados. Lo que queda en /aprender: cada portada con
+  // sus minutos de lectura.
   const { page, errores } = await abrir('/aprender?tema=mazos')
   check('sin errores de JavaScript', errores.length === 0, errores[0] || '')
-  const m = await page.evaluate(() => {
-    const arte = document.querySelector('.guia-tarjeta .guia-arte')
-    if (!arte) return null
-    const info = arte.querySelector('.guia-arte-info')
-    const cat = arte.querySelector('.guia-chapa-cat')
-    const min = arte.querySelector('.guia-chapa-min')
-    const ca = arte.getBoundingClientRect()
-    const trozo = (n) => (n ? n.getBoundingClientRect() : null)
-    return {
-      texto: { cat: cat?.textContent.trim() || null, min: min?.textContent.trim() || null },
-      // Que estén DENTRO de la franja y no debajo: una chapa que se
-      // pinta bien pero cae fuera de la caja no ha llenado nada.
-      // La categoría se fue de la tarjeta de /aprender en la 682 (los chips
-      // de arriba ya la dicen); si está, dentro; los minutos, siempre.
-      dentro: [trozo(cat), trozo(min)].every((r, i) => (i === 0 && !r) || (r && r.top >= ca.top - 1 && r.bottom <= ca.bottom + 1)),
-      // Y una a cada lado, que es lo que reparte el hueco.
-      catIzq: trozo(cat)?.left, minDer: trozo(min)?.right, arteIzq: ca.left, arteDer: ca.right,
-      hayInfo: !!info,
-    }
-  })
-  check('la franja lleva su fila de información', m?.hayInfo === true)
-  // Desde la 682 la categoría no va en la tarjeta de /aprender (los chips
-  // de arriba ya la dicen): solo los minutos, a la derecha.
-  check('  …sin la chapa de categoría (682)', m?.texto.cat === null, JSON.stringify(m?.texto))
-  check('  …y los minutos de lectura', m?.texto.min === '8 min', JSON.stringify(m?.texto))
-  check('  …DENTRO de la franja', m?.dentro === true, JSON.stringify(m))
-  check('  …y a la derecha', m && m.arteDer - m.minDer < 24, JSON.stringify(m))
-
-  // El pie de la tarjeta: la barra se pinta SIEMPRE. Antes aparecía solo
-  // si habías empezado, así que dos tarjetas seguidas tenían pies de
-  // altura distinta y la rejilla se veía descuadrada.
-  const pie = await page.evaluate(() => {
-    const p = document.querySelector('.guia-progreso')
-    const b = p?.querySelector('.guia-barra')
-    if (!p || !b) return null
-    const rp = p.getBoundingClientRect(), rb = b.getBoundingClientRect()
-    const rt = p.querySelector('.guia-progreso-texto').getBoundingClientRect()
-    return {
-      hayBarra: true,
-      // En LÍNEA, no apilados: el texto y la barra a la misma altura.
-      mismaLinea: Math.abs(rb.top + rb.height / 2 - (rt.top + rt.height / 2)) < 6,
-      textoIzq: rt.left < rb.left,
-      raya: getComputedStyle(p).borderTopWidth,
-      relleno: p.querySelector('.guia-barra i')?.style.width,
-    }
-  })
-  check('la barra de progreso está aunque no hayas empezado', pie?.hayBarra === true)
-  check('  …con el relleno a cero', pie?.relleno === '0%', pie?.relleno)
-  check('  …en la misma línea que el estado, y a su derecha',
-    pie?.mismaLinea === true && pie?.textoIzq === true, JSON.stringify(pie))
-  check('  …separada del resumen por una raya', pie && pie.raya !== '0px', pie?.raya)
+  const mins = await page.$$eval('#apLista .guia-portada', (xs) => xs.map((x) => x.querySelector('.guia-portada-mins')?.textContent.trim() || null))
+  check('cada portada del tema dice sus minutos de lectura', mins.length > 0 && mins.every((m) => /\d+ min/.test(m || '')), JSON.stringify(mins))
   await page.close()
 }
 

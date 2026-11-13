@@ -71,8 +71,9 @@ console.log('── 1. La puerta en el PC ──')
   check('  …y debajo, la lista de siempre, sin títulos de sección', document_sinSeccion(await page.evaluate(() => document.querySelectorAll('.ap-seccion').length)) && (await page.locator('#apLista .guia-portada, #apLista .guia-tarjeta').count()) === 6)
   await page.click('#apTemas .ap-baldosa[href="/aprender?tema=mazos"]')
   await page.waitForTimeout(1800)
-  const t = await page.evaluate(() => ({ h1: document.querySelector('#apTemaCab h1')?.textContent, baldosas: Boolean(document.getElementById('apTemas')) }))
-  check('tocar una abre su página, sin baldosas', t.h1 === 'Mazos & estrategia' && !t.baldosas, JSON.stringify(t))
+  // Desde la 1338 el tema es un filtro: las baldosas se quedan y la elegida se marca.
+  const t = await page.evaluate(() => ({ url: location.search, on: document.querySelector('#apTemas .ap-baldosa.on')?.dataset.tema, baldosas: document.querySelectorAll('#apTemas .ap-baldosa').length, guias: document.querySelectorAll('#apLista .guia-portada, #apLista .guia-tarjeta').length }))
+  check('tocar una filtra: las baldosas se quedan, la elegida marcada y solo sus guías', t.url === '?tema=mazos' && t.on === 'mazos' && t.baldosas === 3 && t.guias === 3, JSON.stringify(t))
   await ctx.close()
 }
 
@@ -81,12 +82,11 @@ console.log('── 2. En el iPhone ──')
   const { page, ctx, errores } = await abrir('/aprender.html', { movil: true })
   check('sin errores', errores.length === 0, errores.join(' | '))
   const b = await baldosas(page)
-  // Desde la 1039 los temas son chips de texto en UNA fila (36 a la vista,
-  // 44 al dedo con su franja); con tres temas caben sin deslizar.
+  // Desde la 1338, cuadrados de tres por fila: con tres temas, UNA fila, sin deslizar.
   const fila = await page.evaluate(() => new Set([...document.querySelectorAll('#apTemas .ap-baldosa')].map((x) => Math.round(x.getBoundingClientRect().top))).size)
-  check('una fila (que se desliza si no caben), de menos de 100 px (las baldosas de la 1226), y la lista empieza en la primera pantalla', b.hay && fila === 1 && b.alto < 100 && b.listaY < 700, JSON.stringify({ fila, desliza: b.desliza, alto: b.alto, listaY: b.listaY }))
-  const toca = await page.evaluate(() => { const x = document.querySelector('#apTemas .ap-baldosa'); const r = x.getBoundingClientRect(); const a = getComputedStyle(x, '::after'); return [Math.round(r.width), Math.round(r.height) - parseFloat(a.top) - parseFloat(a.bottom)] })
-  check('  …y cada chip se puede tocar (≥ 44 px con su franja)', toca[0] >= 44 && toca[1] >= 44, toca.join('×'))
+  check('una fila de tres cuadrados, sin deslizar, de menos de 110 px, y la lista empieza en la primera pantalla', b.hay && fila === 1 && !b.desliza && b.alto < 110 && b.listaY < 700, JSON.stringify({ fila, desliza: b.desliza, alto: b.alto, listaY: b.listaY }))
+  const toca = await page.evaluate(() => { const r = document.querySelector('#apTemas .ap-baldosa').getBoundingClientRect(); return [Math.round(r.width), Math.round(r.height)] })
+  check('  …y cada cuadrado se puede tocar (≥ 44 px)', toca[0] >= 44 && toca[1] >= 44, toca.join('×'))
   await ctx.close()
 }
 

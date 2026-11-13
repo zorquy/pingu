@@ -75,7 +75,8 @@ for (const movil of [false, true]) {
     check('«Competitivo» → Alakazam', de('Competitivo')?.dex === '65', JSON.stringify(de('Competitivo')))
     check('«Coleccionar» no casa: su icono, sin Pokémon', de('Coleccionar')?.dex === null && de('Coleccionar')?.icono, JSON.stringify(de('Coleccionar')))
   } else {
-    check('móvil: fila de baldosas de 160 px', t.length >= 3 && t.every((x) => x.ancho === 160) && t[0].top === t[1].top, t.map((x) => `${x.ancho}@${x.top}`).join())
+    // Desde la 1338, en cuadrados de tres por fila (sin deslizar).
+    check('móvil: cuadrados de tres por fila, iguales', t.length >= 3 && t.every((x) => Math.abs(x.ancho - t[0].ancho) <= 1 && x.ancho < 140) && t[0].top === t[1].top && t[1].top === t[2].top, t.map((x) => `${x.ancho}@${x.top}`).join())
     check('móvil: sin el porqué', t.every((x) => x.ver === 'none'))
   }
   // Un nombre largo (el «Comprar, vender & mercado» de producción) se corta a
@@ -92,6 +93,8 @@ for (const movil of [false, true]) {
     // FUERA de ella. Se mira si sobra texto y si se ve.
     const sobra = el.scrollHeight > el.clientHeight + 1 && getComputedStyle(el).overflowY === 'visible'
     if (sobra) return `se sale y se ve (${el.scrollHeight} > ${el.clientHeight})`
+    // En el móvil (1338) la línea de debajo no sale: el nombre tiene que caber en su cuadrado.
+    if (!sub.height) return Math.round(n.bottom) <= Math.round(a.getBoundingClientRect().bottom) ? 'no' : `${Math.round(n.bottom)} > ${Math.round(a.getBoundingClientRect().bottom)}`
     return Math.round(n.bottom) <= Math.round(sub.top) + 1 ? 'no' : `${Math.round(n.bottom)} > ${Math.round(sub.top)}`
   })
   check(`${movil ? 'móvil' : 'PC'}: un nombre largo no pisa la línea de debajo`, pisa === 'no', pisa)

@@ -43,8 +43,9 @@ for (const movil of [false, true]) {
 console.log('── 2. Aprender: el orden y las baldosas con su color ──')
 {
   const { ctx, p, errores } = await abrir('/aprender')
-  const chips = p.locator('.ap-orden button')
-  check('tres órdenes (recientes, útiles, cortas)', (await chips.count()) === 3, await chips.allTextContents())
+  // Desde la 1338 hay un cuarto, «En orden», que solo sale con un tema puesto.
+  const chips = p.locator('.ap-orden [data-ap-orden]:visible')
+  check('tres órdenes a la vista sin tema (recientes, útiles, cortas)', (await chips.count()) === 3, await chips.allTextContents())
   const antes = await p.locator('.ap-rejilla .guia-tarjeta h3, .ap-rejilla .guia-tarjeta .guia-titulo').allTextContents()
   await chips.nth(2).click()
   await p.waitForTimeout(500)

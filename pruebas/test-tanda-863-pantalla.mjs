@@ -62,51 +62,37 @@ async function abrir(ruta, { movil = false, sesion = 'user-1' } = {}) {
   await page.waitForTimeout(2200)
   return { page, ctx, errores }
 }
-const cabecera = (page) => page.evaluate(() => {
-  const c = document.getElementById('apTemaCab')
-  const migas = document.querySelector('.breadcrumb')
-  const ultimo = [...(migas?.querySelectorAll('a') || [])].pop()
-  const r = ultimo?.getBoundingClientRect()
-  return c && {
-    h1: c.querySelector('h1')?.textContent, desc: c.querySelector('p')?.textContent, cuenta: c.querySelector('.ap-tema-cuenta')?.textContent,
-    aro: c.querySelector('.ap-tema-aro b')?.textContent, vuelta: c.querySelector('.ap-tema-aro')?.style.getPropertyValue('--vuelta'),
-    icono: Boolean(c.querySelector('.ap-tema-icono')),
-    migas: migas?.textContent.replace(/\s+/g, ' ').trim(), volver: ultimo?.textContent.trim(), volverHref: ultimo?.getAttribute('href'), volverAlto: r ? Math.round(r.height) : 0,
-    sinMedallero: document.getElementById('medallero')?.classList.contains('hidden') !== false,
-    titulo: document.title, cartas: !/Cartas/.test(migas?.textContent || ''),
+// Desde la 1338 el tema ya no tiene página propia: es un FILTRO de Aprender
+// (las baldosas se quedan, la elegida con su color) y una línea con su nombre,
+// su descripción, «N de M leídas» y «Quitar».
+const linea = (page) => page.evaluate(() => {
+  const c = document.getElementById('apTemaLinea')
+  return c && !c.hidden && {
+    nombre: c.querySelector('.ap-tema-linea-nombre')?.textContent, desc: c.querySelector('.ap-tema-linea-desc')?.textContent,
+    leidas: c.querySelector('.ap-tema-linea-leidas')?.textContent ?? null, quitar: Boolean(c.querySelector('[data-ap-quitar]')),
+    on: document.querySelector('#apTemas .ap-baldosa.on')?.dataset.tema, baldosas: document.querySelectorAll('#apTemas .ap-baldosa').length,
+    titulo: document.title,
   }
 })
 const lista = (page) => page.evaluate(() => ({
-  titulos: [...document.querySelectorAll('#apLista .guia-titulo, #apLista .gf-titulo, #apLista a')].map((x) => x.textContent.trim()).filter(Boolean),
-  n: document.querySelectorAll('#apLista .guia-tarjeta, #apLista .guia-fila').length,
-  cuenta: document.getElementById('apCuenta')?.textContent,
-  chipsTema: document.querySelectorAll('#apChips [data-cat]').length,
-  seg: [...document.querySelectorAll('#apSeg [data-vista]')].map((b) => `${b.dataset.vista}:${b.getAttribute('aria-pressed')}`),
+  titulos: [...document.querySelectorAll('#apLista .guia-portada-sobre strong, #apLista .gf-titulo, #apLista .guia-titulo')].map((x) => x.textContent.trim()).filter(Boolean),
+  n: document.querySelectorAll('#apLista .guia-portada, #apLista .guia-tarjeta, #apLista .guia-fila').length,
 }))
 
 console.log('── 1. El tema en el PC ──')
 {
   const { page, ctx, errores } = await abrir('/aprender.html?tema=mazos')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const c = await cabecera(page)
-  check('migas «Inicio › Aprender › Mazos & estrategia», sin ningún «Cartas»', c?.migas === 'Inicio › Aprender › Mazos & estrategia' && c.cartas, JSON.stringify(c))
-  check('cabecera compacta: icono, nombre, descripción, «2 de 3 guías leídas · 1 de 1 curso hecho» y el aro 2/3', c?.icono && c.h1 === 'Mazos & estrategia' && /por qué funcionan/.test(c.desc || '') && c.cuenta === '2 de 3 guías leídas · 1 de 1 curso hecho' && c.aro === '2/3' && Math.abs(parseFloat(c.vuelta) - 0.667) < 0.01, JSON.stringify(c))
-  check('  …el medallero no sale y el título de la pestaña es el tema', c?.sinMedallero && /Mazos & estrategia · Aprender/.test(c.titulo))
+  const c = await linea(page)
+  check('el tema puesto como filtro: su baldosa marcada, las dos siguen, y la línea con nombre, descripción, «2 de 3 leídas» y Quitar', c && c.on === 'mazos' && c.baldosas === 2 && c.nombre === 'Mazos & estrategia' && /por qué funcionan/.test(c.desc || '') && c.leidas === '2 de 3 leídas' && c.quitar, JSON.stringify(c))
+  check('  …y el título de la pestaña es el tema', /Mazos & estrategia · Aprender/.test(c?.titulo || ''))
   let l = await lista(page)
-  check('las tres guías del tema, en tarjetas, en el orden del temario (1, 2, luego la nueva); sin chips de tema', l.n === 3 && l.chipsTema === 0, JSON.stringify(l))
-  check('  …y Guías · Cursos como segmentado, Guías puesto', l.seg.join() === 'guias:true,cursos:false', JSON.stringify(l.seg))
-  await page.click('#apSeg [data-vista="cursos"]')
-  await page.waitForTimeout(300)
-  l = await lista(page)
-  check('Cursos: solo la que tiene curso', l.n === 1 && l.seg.join() === 'guias:false,cursos:true', JSON.stringify(l))
-  await page.click('#apSeg [data-vista="guias"]')
-  // «Sin leer» y la cuenta «3 guías» se fueron en la 1039: lo leído ya lo
-  // dicen la cabecera («2 de 3 guías leídas») y cada tarjeta.
+  check('las tres guías del tema', l.n === 3, JSON.stringify(l))
   check('sin chips de nivel ni «Sin leer» (1039)', (await page.locator('[data-nivel], [data-sinleer]').count()) === 0)
   await page.fill('#apBuscar', 'mental')
-  await page.waitForTimeout(300)
+  await page.waitForTimeout(400)
   l = await lista(page)
-  check('buscar dentro del tema', l.n === 1 && /claves mentales/.test(l.titulos.join(' ')), JSON.stringify(l))
+  check('buscar dentro del tema', l.n === 1, JSON.stringify(l))
   await ctx.close()
 }
 
@@ -114,31 +100,22 @@ console.log('── 2. En el iPhone ──')
 {
   const { page, ctx, errores } = await abrir('/aprender.html?tema=mazos', { movil: true })
   check('sin errores', errores.length === 0, errores.join(' | '))
-  const c = await cabecera(page)
-  check('el botón «‹ Aprender» de 44 px (la pieza de la 857) y la cabecera', c?.volver === 'Aprender' && c.volverHref === '/aprender' && c.volverAlto >= 44 && c.h1 === 'Mazos & estrategia', JSON.stringify(c))
+  const c = await linea(page)
+  check('el filtro puesto y su línea', c?.on === 'mazos' && c.nombre === 'Mazos & estrategia' && c.quitar, JSON.stringify(c))
   const l = await lista(page)
-  check('las guías en filas', l.n === 3, JSON.stringify(l))
-  await page.evaluate(() => window.scrollTo({ top: 1500, behavior: 'instant' }))
-  await page.waitForTimeout(700)
-  const b = await page.evaluate(() => {
-    const b = document.getElementById('barraPegada')
-    const r = b?.getBoundingClientRect()
-    return b && { visible: getComputedStyle(b).display !== 'none' && r.height > 0, titulo: b.querySelector('.barra-pegada-titulo')?.textContent, cifra: b.querySelector('.barra-pegada-cifra')?.textContent, href: b.querySelector('.barra-pegada-volver')?.getAttribute('href') }
-  })
-  check('al bajar, la barra pegada: flecha a Aprender, el tema y «2 de 3 leídas»', b?.visible && b.titulo === 'Mazos & estrategia' && b.cifra === '2 de 3 leídas' && b.href === '/aprender', JSON.stringify(b))
+  check('las guías en filas', l.n === 3 && (await page.locator('#apLista .guia-fila').count()) === 3, JSON.stringify(l))
   await ctx.close()
 }
 
 console.log('── 3. Sin cuenta, y un tema que no existe ──')
 {
   const { page, ctx } = await abrir('/aprender.html?tema=mazos', { sesion: 'none' })
-  const c = await cabecera(page)
-  check('sin cuenta: «3 guías · 1 curso», sin aro ni «Sin leer»', c?.cuenta === '3 guías · 1 curso' && !c.aro && (await page.locator('#apChips [data-sinleer]').count()) === 0, JSON.stringify(c))
+  const c = await linea(page)
+  check('sin cuenta: la línea sin «leídas»', c?.nombre === 'Mazos & estrategia' && c.leidas === null, JSON.stringify(c))
   await ctx.close()
   const otro = await abrir('/aprender.html?tema=no-existe')
   const l = await lista(otro.page)
-  // (Desde la 865 la lista ya no lleva chips de tema: son las baldosas.)
-  check('un tema que no existe: la lista de siempre, con todas', l.n === 4 && !(await cabecera(otro.page)), JSON.stringify(l))
+  check('un tema que no existe: la lista de siempre, con todas y sin filtro', l.n === 4 && !(await linea(otro.page)), JSON.stringify(l))
   await otro.ctx.close()
 }
 
