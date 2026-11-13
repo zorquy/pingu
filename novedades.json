@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Tu temporada de liga, en tu perfil: en la pestaña Torneos, cada liga con tu puesto jornada a jornada en una línea que sube o baja, tus puntos, el resultado de cada jornada y los dos Pokémon de tu mazo.", "enlace": "/perfil?ver=torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "El correo de los lunes ahora es «Tu semana en PokeDoc»: además de tu colección, tus cruces nuevos, las jornadas de tus ligas y los eventos a los que vas esa semana, y tu racha de retos. Si no hay nada tuyo ni de la comunidad, no te escribimos." },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Tus torneos, las jornadas de tus ligas, los eventos a los que vas y, si quieres, los lanzamientos, en el calendario de tu móvil: suscríbete una vez desde Ajustes › Calendario y se actualiza solo.", "enlace": "/ajustes?ver=calendario" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Las palabras del glosario en guías y en el foro: en el ordenador te dicen qué significan con solo pasar el ratón, en el móvil salen en una hoja desde abajo, y si ya te las sabes puedes quitarlas en Ajustes › Apariencia.", "enlace": "/ajustes?ver=apariencia" },

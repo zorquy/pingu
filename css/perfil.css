@@ -2292,3 +2292,18 @@ button.perfil-logro-destacado,
 
 /* Las guías de alguien, en portadas (el molde de Aprender). */
 .perfil-guias { margin-top: var(--e-xs); }
+
+/* Tu temporada de liga (1323): una tarjeta por liga con la línea del puesto. */
+.pl-ligas { display: grid; gap: var(--e-md); margin-bottom: var(--e-lg); }
+.pl-liga { padding: var(--e-md) var(--e-lg); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--white); }
+.pl-cabeza h3 { margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
+.pl-cabeza a { color: var(--text); text-decoration: none; }
+.pl-cabeza p { margin: var(--e-xs) 0 var(--e-sm); }
+.pl-linea { display: block; max-width: 100%; height: auto; margin: var(--e-sm) 0; }
+.pl-linea polyline { stroke: var(--acento); }
+.pl-linea circle { fill: var(--white); stroke: var(--acento); stroke-width: 2; }
+.pl-jornadas { display: flex; flex-wrap: wrap; gap: var(--e-sm); margin: 0; padding: 0; list-style: none; }
+.pl-jornada { display: flex; align-items: center; gap: var(--e-xs); padding: var(--e-xs) var(--e-sm); border-radius: 999px; background: var(--ice); font-size: var(--t-sm); }
+.pl-j { color: var(--text-mid); font-weight: 700; }
+.pl-sprites { display: inline-flex; }
+.pl-sprite { width: 32px; height: 32px; object-fit: contain; }

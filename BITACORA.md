@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (571) — PINGU-Claude (1323 — tu temporada de liga en el perfil)
+
+**Hecho**: P3 del plan. En la pestaña **Torneos** del perfil (tuyo y de
+otros), arriba, una tarjeta por cada liga en la que estás (sin las que
+dejaste ni las canceladas): el nombre sin la temporada entre corchetes, «2.º de
+18 · 12 puntos · 5 de 10 jornadas» (y «temporada completa» si las has jugado
+todas), una **línea con tu puesto jornada a jornada** (el 1.º arriba) y una
+pastilla por jornada con su resultado («2–1») y los **dos Pokémon de tu lista
+de esa jornada**, si la base deja verla (en el perfil de otro, solo cuando ya
+es pública, la RLS de la 230).
+- El puesto de cada jornada es el de la ficha (`clasificacionDeLiga`) con las
+  rondas HASTA esa jornada: el que tenías al acabarla.
+- `js/perfil-liga.js` (puro + `pintarLigasDe`), por `import()` desde
+  perfil-torneos.js, que ahora pide también las columnas de la liga.
+
+**Lo que NO va todavía** de la propuesta: compartir la temporada en imagen y el
+logro «Temporada completa» (un logro nuevo pide su condición en la base).
+
+**Ficheros**: js/perfil-liga.js (nuevo), js/perfil-torneos.js, css/perfil.css,
+SCHEMA.md, novedades.json. En `pruebas`: test-tanda-1323 (contra el motor de
+verdad). La 867-pantalla falla en la cabecera del perfil (de la 1270, no de
+esta tanda).
+
 ## 2026-11-13 (570) — PINGU-Claude (1322 — «Tu semana en PokeDoc» en el correo de los lunes)
 
 **Hecho**: P6 del plan, sobre lo que había: el correo de los lunes

@@ -79,7 +79,7 @@ export async function pintarTorneosDe(caja, { userId, propia = false, logros = [
   const [{ data: torneos }, definiciones] = await Promise.all([
     supabase
       .from('tournaments')
-      .select('id, slug, name, status, start_at, champion_id, podium')
+      .select('id, slug, name, status, start_at, champion_id, podium, format, swiss_rounds, rounds_per_matchday, matchday_dates, pairing_seed')
       .in('id', [...new Set(inscripciones.map((i) => i.tournament_id))])
       .order('start_at', { ascending: false }),
     getAllAchievements().catch(() => []),
@@ -119,4 +119,7 @@ export async function pintarTorneosDe(caja, { userId, propia = false, logros = [
     grupo(propia ? 'Apuntado' : 'Apuntado a', apuntado.map((t) => fila(t, `<span class="mis-torneos-puesto subtext">${estadoInscripcion.get(t.id) === 'waitlisted' ? 'En lista de espera' : 'Inscrito'}</span>`))) +
     grupo('Jugados', jugados.map((t) => fila(t, puestoDe(t))))
   caja.innerHTML = (jugados.length ? cifrasDeTorneosHtml(jugados, userId) + palmaresHtml(definiciones, logros, userId, jugados) : '') + (lista || vacio(propia))
+  // Tu temporada en cada liga (1323): por su cuenta, detrás de lo de arriba.
+  const ligas = (torneos || []).filter((t) => t.format === 'league' && estadoInscripcion.get(t.id) !== 'dropped')
+  if (ligas.length) import('./perfil-liga.js').then((m) => m.pintarLigasDe(supabase, caja, { userId, torneos: ligas })).catch(() => {})
 }

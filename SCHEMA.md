@@ -55204,6 +55204,23 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1323 — tu temporada de liga en el perfil
+
+P3 del plan. `js/perfil-liga.js`: `temporadaDeLiga(t, { userId, rondas,
+inscripciones, partidas, resultados })` recorre las jornadas `hecha` de
+`jornadasDeLiga` y, para cada una, calcula `clasificacionDeLiga` con las rondas
+suizas hasta esa jornada (puesto, de cuántos, puntos) y tu resultado en ella
+(victorias con el bye, derrotas, empates; `a_wins`/`b_wins`/`draw`).
+`lineaDePuestosHtml` es un SVG de caja fija (el 1.º arriba; con una jornada no
+hay línea). `tarjetaDeLigaHtml` pinta la tarjeta con `nombreCorto`, y los
+sprites de cada jornada salen de `tournament_matchday_decklists.parsed_cards`
+(`deducirIconos` → `spriteDeCarta`) cuando la RLS deja leerla. `pintarLigasDe`
+pide, por liga: rondas, inscripciones, partidas, resultados y tus listas de
+jornada; si una falla, esa liga no sale. Entra por `import()` desde
+`pintarTorneosDe` (perfil-torneos.js), que pide ahora `format, swiss_rounds,
+rounds_per_matchday, matchday_dates, pairing_seed` (todas en producción). CSS
+`.pl-*` en perfil.css.
+
 ## Tanda 1322 — «Tu semana en PokeDoc» en el correo de los lunes
 
 P6 del plan. `tuSemana` (resumen-semanal.mjs) recibe además `cruces` (avisos
