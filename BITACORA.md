@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (590) — PINGU-Claude (1341 — la ficha del torneo: cabecera en una línea y lo que se mira, pegado)
+
+**Hecho**: primera tanda de la propuesta de torneo que aprobó PINGU («la
+cabecera es enorme», «es mucho lío, sobre todo en móvil»).
+- **Cabecera en una línea**: estado, nombre, Compartir y, para quien lo lleva,
+  «⋯». El formato, las plazas, los premios y la descripción pasan a Info.
+- **«⋯» del organizador**: Editar, Cancelar, Telegram y Borrar, en un menú que
+  se cierra al tocar fuera.
+- **Pestañas según el momento**: «Torneo» es **Info** y «Jugar» es **Mi mesa**.
+  Antes de empezar: Info y Jugadores (los inscritos, con su número); en juego:
+  Mi mesa, Rondas, Clasificación, Info (y Jueces); al acabar: Clasificación
+  primero. `?ver=` sigue valiendo con los ids de siempre.
+- **Lo pegado al bajar**: las pestañas, la **pastilla** (la barra viva en una
+  línea: anillo con el tiempo, qué ronda, contra quién e «Ir a tu mesa», que
+  ahora cambia de pestaña) y **el último aviso del tablón**, que al tocarlo
+  abre el tablón entero como hoja desde abajo. En el PC, el tablón va a la
+  derecha.
+
+**Ficheros**: `torneo.html`, `js/torneos/torneo.js`, `js/torneos/tablon.js`,
+`css/torneos.css`, `normas/jugar.md`, `novedades.json`.
+
+**Pendiente**: 1342–1346 (antes de empezar, Mi mesa con su reloj, Rondas y el
+mando, Clasificación y Jueces, /torneos). Sin migración.
+
 ## 2026-11-13 (589) — PINGU-Claude (1340 — el chat del torneo al momento y el menú de la izquierda)
 
 **Hecho**: dos fallos que PINGU vio jugando la liga.

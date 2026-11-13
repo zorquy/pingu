@@ -3403,10 +3403,9 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 
 
 /* ── 748: mientras juegas, la ronda primero (J2; SCHEMA 748) ── */
-html.torneo-jugando .torneo-meta,
-html.torneo-jugando .torneo-descripcion,
-html.torneo-jugando .torneo-formato,
-html.torneo-jugando .torneo-plazas,
+/* (1341: el formato, las plazas y la descripción ya no van en la cabecera
+   sino en Info, así que solo se aparta lo que queda en ella.) */
+html.torneo-jugando .torneo-cabecera .torneo-meta,
 html.torneo-jugando #btnCalendario {
   display: none;
 }
@@ -3891,3 +3890,234 @@ html.torneo-jugando #torneoNombre {
 
 /* El precio de la inscripción (1331): informativo, se paga en persona. */
 .torneo-etiqueta-precio { color: var(--rango-tienda); font-weight: 700; }
+
+/* ── 1341: la ficha del torneo, ordenada (la propuesta de PINGU; SCHEMA 1341) ──
+   La cabecera en una línea, y debajo, PEGADO al bajar, lo que se mira todo el
+   rato: las pestañas, la pastilla con el reloj de tu ronda y el último aviso
+   del tablón. El tablón entero es una hoja que sube desde abajo en el móvil y
+   una columna a la derecha en el PC. */
+.torneo-cab-linea { overflow: visible; margin-bottom: var(--e-sm); }
+/* Con el menú abierto, la cabecera por encima de lo pegado (que va después y
+   tiene su z-index); cerrado no, que al bajar se metería encima. */
+.torneo-cab-linea:has(.torneo-mas[open]) { z-index: 40; }
+/* Sin overflow:hidden (el menú «⋯» tiene que salir por debajo), lo que pinta
+   el fondo coge el redondeo a mano. */
+.torneo-cab-linea::before,
+.torneo-cab-linea::after,
+.torneo-cab-linea .torneo-banner { border-radius: inherit; }
+.torneo-cab-linea .torneo-cabecera-dentro { padding: var(--e-md) var(--e-lg); }
+.torneo-cab-linea h1 { margin: var(--e-xs) 0 0; font-size: clamp(1.2rem, 1.05rem + 0.9vw, 1.6rem); }
+.torneo-cab-linea .torneo-meta { margin-top: 2px; font-size: var(--t-sm); }
+.torneo-cab-linea .torneo-compartir { min-height: 36px; }
+
+/* «⋯»: lo que el organizador usa poco (editar, cancelar, Telegram, borrar). */
+.torneo-mas { position: relative; }
+.torneo-mas-boton {
+  display: inline-grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  list-style: none;
+  border: 1px solid rgba(255, 255, 255, 0.45);
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--blanco-fijo);
+  font-size: var(--t-lg);
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+.torneo-mas-boton::-webkit-details-marker { display: none; }
+.torneo-mas-boton:hover { background: rgba(255, 255, 255, 0.24); }
+.torneo-mas-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 60;
+  display: grid;
+  gap: 2px;
+  min-width: 230px;
+  padding: var(--e-xs);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  color: var(--text);
+  box-shadow: var(--shadow-lg);
+}
+.torneo-mas-menu > * {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  width: 100%;
+  min-height: 44px;
+  margin: 0;
+  padding: 0 var(--e-md);
+  border: 0;
+  border-radius: var(--radius-md);
+  background: none;
+  box-shadow: none;
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  font-weight: 600;
+  text-align: left;
+  text-decoration: none;
+  justify-content: flex-start;
+  cursor: pointer;
+}
+.torneo-mas-menu > *:hover { background: var(--bg); }
+.torneo-mas-menu > :empty,
+.torneo-mas-menu > .hidden { display: none; }
+.torneo-mas-menu > .torneo-borrar { color: var(--danger); }
+.torneo-mas-menu > .torneo-deshacer,
+.torneo-mas-menu > .btn-danger,
+.torneo-mas-menu > [data-peligro] { color: var(--danger); }
+
+/* Lo pegado. El fondo se alarga a los lados con una sombra recortada para que
+   lo que pasa por debajo no asome entre la barra y el borde. */
+.torneo-pegado {
+  position: sticky;
+  top: 70px;
+  z-index: 30;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--e-xs);
+  margin: 0 0 var(--e-md);
+  padding: var(--e-xs) 0;
+  background: var(--bg);
+  box-shadow: 0 0 0 100vmax var(--bg);
+  clip-path: inset(0 -100vmax);
+  transition: top 0.3s var(--ease);
+}
+.torneo-pegado .torneo-pestanas-pastillas {
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content;
+  max-width: 100%;
+  margin: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.torneo-pegado .torneo-pestanas-pastillas::-webkit-scrollbar { display: none; }
+.torneo-pegado .torneo-pestanas-pastillas.hidden { display: none; }
+@media (max-width: 640px) {
+  .torneo-pegado { top: calc(70px + env(safe-area-inset-top)); }
+  html.bm-escondidas .torneo-pegado { top: env(safe-area-inset-top); }
+  .torneo-pegado .torneo-pestanas-pastillas { width: 100%; }
+  .torneo-pegado .torneo-pestanas-pastillas .seg-btn { flex: 1 0 auto; justify-content: center; padding: 0 var(--e-sm); }
+}
+
+/* La pastilla: la barra viva de la 298 en UNA línea. El reloj grande vive en
+   Mi mesa, así que ahí no sale (1343). Lo de las mesas que faltan y los
+   avisos de la ronda se leen en Rondas y en la mesa. */
+.torneo-pegado .torneo-viva {
+  position: static;
+  flex-wrap: nowrap;
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 4px 6px 4px 4px;
+  border-radius: var(--radius-pill);
+  box-shadow: none;
+}
+html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
+.torneo-pegado .torneo-viva-anillo { width: 46px; height: 46px; }
+.torneo-pegado .torneo-viva-anillo::before { inset: 4px; }
+.torneo-pegado .torneo-viva-anillo b { font-family: var(--font-body); font-size: var(--t-2xs); font-weight: 700; letter-spacing: -0.02em; }
+.torneo-pegado .torneo-viva-texto { flex: 1; min-width: 0; gap: 0; }
+.torneo-pegado .torneo-viva-rotulo,
+.torneo-pegado .torneo-viva-titular { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.torneo-pegado .torneo-viva-titular { font-family: var(--font-body); font-size: var(--t-sm); font-weight: 700; }
+.torneo-pegado .torneo-viva-mesas,
+.torneo-pegado .torneo-viva-estado,
+.torneo-pegado .torneo-viva-aviso,
+.torneo-pegado .torneo-viva-espera { display: none; }
+.torneo-pegado .torneo-viva-der { flex: none; flex-wrap: nowrap; gap: var(--e-xs); width: auto; margin-left: auto; }
+.torneo-pegado .torneo-viva-der > * { flex: none; }
+.torneo-pegado .torneo-viva-pide { padding: 6px 10px; font-size: var(--t-xs); white-space: nowrap; }
+.torneo-pegado .torneo-viva-boton { min-height: 36px; padding: 0 var(--e-md); font-size: var(--t-sm); white-space: nowrap; }
+@media (max-width: 640px) {
+  .torneo-pegado .torneo-viva { padding: 4px 4px 4px 4px; }
+  .torneo-pegado .torneo-viva-titular { font-size: var(--t-sm); }
+  /* Con algo que hacer (el check-in), el recado sustituye al texto. */
+  .torneo-pegado .torneo-viva:has(.torneo-viva-pide) .torneo-viva-texto { display: none; }
+  .torneo-pegado .torneo-viva:has(.torneo-viva-pide) .torneo-viva-der { flex: 1; min-width: 0; }
+  .torneo-pegado .torneo-viva-pide { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+}
+
+/* El último aviso del tablón, en una línea que abre el tablón entero. */
+.torneo-tablon-linea {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  width: 100%;
+  min-height: 40px;
+  padding: 0 var(--e-sm) 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.torneo-tablon-linea.hidden { display: none; }
+.torneo-tablon-linea:hover { border-color: var(--border-strong); }
+.torneo-tablon-linea-auto { display: inline-flex; color: var(--navy); }
+.torneo-tablon-linea-texto { flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.torneo-tablon-linea-texto i { font-style: normal; color: var(--text-mid); }
+.torneo-tablon-linea-mas { flex: none; font-size: var(--t-xs); font-weight: 700; color: var(--navy); }
+.torneo-tablon-cerrar { display: none; }
+
+/* El tablón como hoja (móvil y tableta). */
+@media (max-width: 1099px) {
+  .torneo-tablon {
+    position: fixed;
+    inset: auto 0 0 0;
+    z-index: 1010;
+    max-height: 80vh;
+    margin: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    padding-bottom: calc(var(--e-lg) + env(safe-area-inset-bottom));
+    box-shadow: var(--shadow-lg);
+    transform: translateY(105%);
+    visibility: hidden;
+    transition: transform 0.25s var(--ease), visibility 0s linear 0.25s;
+  }
+  .torneo-tablon.abierta { transform: none; visibility: visible; transition: transform 0.25s var(--ease); }
+  .torneo-tablon-fondo { position: fixed; inset: 0; z-index: 1009; background: rgba(13, 27, 42, 0.5); }
+  .torneo-tablon-cerrar { display: inline-flex; }
+  html.torneo-hoja-abierta { overflow: hidden; }
+}
+
+/* El cartel de Info: los datos que antes iban en la cabecera oscura, ahora
+   sobre blanco. */
+.torneo-info { display: grid; gap: var(--e-md); }
+.torneo-info .torneo-formato { margin: 0; }
+.torneo-info .torneo-dato { background: var(--bg); border-color: var(--border); color: var(--text); }
+.torneo-info .torneo-dato svg { color: var(--text-mid); }
+.torneo-info .torneo-plazas { margin: 0; }
+.torneo-info .torneo-plazas-barra { background: var(--ice); }
+:root[data-theme='dark'] .torneo-info .torneo-plazas-barra { background: var(--ice-dark); }
+.torneo-info .torneo-plazas-relleno { background: var(--success); }
+.torneo-info .torneo-plazas-texto { color: var(--text-mid); }
+.torneo-info .torneo-premios { margin: 0; padding: 0; border: 0; }
+.torneo-info .torneo-descripcion { margin: 0; color: var(--text); }
+.torneo-pestanas-pastillas .torneo-pestana-cuenta { margin-left: 2px; }
+
+/* En el PC, el tablón a la derecha mientras haya tablón. */
+@media (min-width: 1100px) {
+  .torneo-ficha-cuerpo:has(.torneo-tablon:not(.hidden)) {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    gap: var(--e-lg);
+    align-items: start;
+  }
+  .torneo-lado { position: sticky; top: 180px; max-height: calc(100vh - 196px); overflow-y: auto; }
+  .torneo-lado .torneo-tablon { margin: 0; }
+  .torneo-tablon-linea,
+  .torneo-tablon-fondo { display: none !important; }
+}
+.torneo-principal { min-width: 0; }

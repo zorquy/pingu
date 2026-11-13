@@ -55204,6 +55204,41 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1341 — La ficha del torneo: cabecera en una línea y lo que se mira, pegado
+
+**Cabecera** (`torneo.html`, `.torneo-cab-linea`): solo `#torneoEstado`,
+`#btnCompartirTorneo`, `<details id="torneoMas">` con `#torneoMasMenu`,
+`#torneoNombre` y `#torneoMeta`. `#torneoFormato`, `.torneo-plazas`,
+`#torneoPremios` y `#torneoDescripcion` viven en `#torneoInfoCaja`, primera
+caja del panel `torneo` (Info). En `pintarFicha`, lo que el organizador usa
+poco (anuncio en el foro, Editar, Cancelar, Telegram, Borrar) se pinta en
+`#torneoMasMenu` (`const mas = $('torneoMasMenu') || acciones`), y `#torneoMas`
+se esconde si el menú está vacío. La cabecera no lleva `overflow: hidden` (el
+menú sale por debajo) y sube de capa solo con el menú abierto
+(`:has(.torneo-mas[open])`).
+
+**Pestañas** (`js/torneos/torneo.js`): `PESTANAS` es un mapa id → nombre
+(torneo «Info», jugar «Mi mesa», jugadores «Jugadores» nueva) y
+`ORDEN_DE_PESTANAS` da el orden por momento (`faseDeLaFicha`: antes, juego,
+fin). `pestanaDeEntrada` elige la que se abre si `?ver=` no dice otra; el
+parámetro se quita al volver a la de entrada. `#torneoInscritosCaja` se muda
+al panel `jugadores` antes de empezar y al final de Info después. La pestaña
+abierta se apunta en `html[data-torneo-pestana]`.
+
+**Lo pegado** (`#torneoPegado`, sticky bajo la barra de 70 px; en el móvil
+sube con `html.bm-escondidas`): `#torneoPestanas`, `#torneoBarraViva` (mismos
+ids que la 298, en una línea: el contador de mesas, el estado y el aviso se
+esconden ahí; no sale en Mi mesa) y `#torneoTablonLinea`. `engancharLoPegado`
+hace que `a[href="#torneoMiPartida"]` cambie a Mi mesa y cierra «⋯» al tocar
+fuera. Se fue `montarBarraPegadaDelTorneo`.
+
+**El tablón** (`js/torneos/tablon.js`): `pintarLinea()` pinta el aviso fijado
+o el último (cara y nombre, o el rayo si es automático) y «Tablón (N)»;
+`abrirHoja()` pone `.abierta` en `#torneoTablon`, enseña
+`#torneoTablonFondo` y `html.torneo-hoja-abierta`. Por debajo de 1100 px el
+tablón es una hoja fija abajo; desde 1100, `.torneo-ficha-cuerpo` es una
+rejilla con `aside.torneo-lado` a la derecha mientras haya tablón.
+
 ## Tanda 1340 — El chat del torneo al momento y el menú de la izquierda
 
 **El chat** (`js/torneos/torneo.js`): `tic()` ya no vuelve sin más cuando el

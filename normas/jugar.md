@@ -209,3 +209,11 @@ El motor puro (pareos suizos,
 desempates, top cut, decklists) está en `js/torneos/motor.js`,
 traducido 1:1 de `libs/engine` de TrainerArena — si tocas su lógica,
 respeta la SPEC de TrainerArena y anótalo.
+
+**La ficha del torneo tiene UNA cabecera de una línea y lo demás va en
+pestañas** (tanda 1341, PINGU: «es enorme», «es mucho lío en el móvil»). Un dato
+nuevo del torneo (formato, premios, jornadas, normas) va en la caja de Info
+(`#torneoInfoCaja`), no en la cabecera; una acción del organizador que no se
+usa en cada ronda va en «⋯» (`#torneoMasMenu`), no en una fila de botones. Y lo
+pegado arriba (`#torneoPegado`: pestañas, pastilla y la línea del tablón) es de
+UNA línea cada cosa: lo que no quepa en una línea va en su pestaña.

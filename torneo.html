@@ -223,86 +223,69 @@
          el móvil el botón «‹ Torneos». Antes era un enlace suelto de 12 px. -->
     <nav class="breadcrumb" aria-label="Dónde estás"><a href="/">Inicio</a> <span>›</span> <a href="/torneos.html">Torneos</a> <span>›</span> <span id="torneoMiga"></span></nav>
 
-    <!-- La ficha: siempre a la vista, con el reloj de ronda al lado del
-         estado. Debajo, TODO va por pestañas (torneo.js las gobierna):
-         petición expresa de los admins tras probarlo — una pantalla
-         única era demasiado bloque. -->
-    <!-- La cabecera (tanda 298): un panel navy con el banner de fondo,
-         en vez de una tarjeta blanca con cuatro cajitas grises todas del
-         mismo peso. El banner del torneo (tanda 242) deja de ser una
-         franja suelta y pasa a ser EL fondo. -->
-    <header class="torneo-cabecera" id="torneoCabecera">
+    <!-- La cabecera, en UNA línea (1341, PINGU: «es enorme»): estado, nombre,
+         quién organiza, Compartir y, para quien lo lleva, «⋯». El formato, las
+         plazas, los premios y la descripción viven en la pestaña Info. -->
+    <header class="torneo-cabecera torneo-cab-linea" id="torneoCabecera">
       <img id="torneoBanner" class="torneo-banner hidden" alt="" />
       <div class="torneo-cabecera-dentro">
         <div class="torneo-ficha-cabecera">
           <span class="torneo-estado" id="torneoEstado"></span>
-          <!-- Compartir: para TODO el mundo, sin cuenta incluso — el
-               enlace es el escaparate del torneo. torneo.js le pone el
-               icono y lo engancha (el HTML no puede importar icons.js). -->
           <button type="button" class="torneo-compartir" id="btnCompartirTorneo" aria-label="Compartir el torneo"></button>
+          <details class="torneo-mas hidden" id="torneoMas">
+            <summary class="torneo-mas-boton" aria-label="Más opciones del torneo">⋯</summary>
+            <div class="torneo-mas-menu" id="torneoMasMenu"></div>
+          </details>
         </div>
         <h1 id="torneoNombre"></h1>
         <p class="torneo-meta" id="torneoMeta"></p>
-        <!-- La descripción viene del editor con formato (tanda 220):
-             negrita, listas, imágenes… Se pinta saneada, como el foro. -->
-        <div id="torneoDescripcion" class="article-body torneo-descripcion hidden"></div>
-        <!-- Los datos del formato, en chapas. Los pinta torneo.js. -->
+      </div>
+    </header>
+
+    <div class="torneo-admin-acciones" id="torneoAdminAcciones"></div>
+
+    <!-- Lo que se queda pegado al bajar (1341): las pestañas, la pastilla con
+         el reloj de tu ronda (la barra viva de la 298, ahora de una línea) y
+         el último aviso del tablón, que al tocarlo abre el tablón entero. -->
+    <div class="torneo-pegado" id="torneoPegado">
+      <nav class="seg torneo-pestanas-pastillas" id="torneoPestanas" aria-label="Secciones del torneo"></nav>
+      <div class="torneo-viva hidden" id="torneoBarraViva">
+        <div class="torneo-viva-anillo" id="torneoVivaAnillo"></div>
+        <div class="torneo-viva-texto">
+          <span class="torneo-viva-rotulo" id="torneoVivaRotulo"></span>
+          <span class="torneo-viva-titular" id="torneoVivaTitular"></span>
+        </div>
+        <div class="torneo-viva-mesas hidden" id="torneoVivaMesas" role="status"></div>
+        <div class="torneo-viva-der" id="torneoVivaDer"></div>
+        <div class="torneo-viva-estado hidden" id="torneoVivaEstado" role="status"></div>
+        <div class="torneo-viva-aviso hidden" id="torneoVivaAviso"></div>
+        <span class="torneo-reloj hidden" id="torneoReloj"></span>
+      </div>
+      <button type="button" class="torneo-tablon-linea hidden" id="torneoTablonLinea" aria-controls="torneoTablon" aria-expanded="false"></button>
+    </div>
+
+    <div class="torneo-ficha-cuerpo">
+    <div class="torneo-principal">
+    <!-- Pestaña TORNEO: tu plaza, los inscritos y lo de jueces. -->
+    <section class="torneo-panel" data-panel="torneo">
+      <!-- El cartel (1341/1342): formato, plazas, jornadas, premios y la
+           descripción plegada. Antes iba todo en la cabecera. -->
+      <div class="simple-card torneo-info" id="torneoInfoCaja">
         <dl class="torneo-formato" id="torneoFormato"></dl>
         <div class="torneo-plazas">
           <div class="torneo-plazas-barra"><div class="torneo-plazas-relleno" id="torneoPlazasRelleno"></div></div>
           <span class="torneo-plazas-texto" id="torneoPlazasTexto"></span>
         </div>
+        <section class="torneo-premios hidden" id="torneoPremios" aria-labelledby="torneoPremiosTitulo"></section>
+        <div id="torneoDescripcion" class="article-body torneo-descripcion hidden"></div>
       </div>
-    </header>
-
-    <!-- Los premios (tanda 352). Fuera de la cabecera y antes de todo lo
-         demás: es lo que decide si alguien se apunta, y dentro del panel
-         navy competiría con el nombre del torneo. Sin premios ni ocupa. -->
-    <section class="torneo-premios hidden" id="torneoPremios" aria-labelledby="torneoPremiosTitulo"></section>
-
-    <!-- La barra viva (tanda 298): mientras se juega, lo único que
-         importa —cuánto queda de ronda, contra quién y qué falta— va
-         pegado arriba y no se pierde con el scroll. La rellena ronda.js;
-         sin ronda en marcha, ni ocupa. -->
-    <div class="torneo-viva hidden" id="torneoBarraViva">
-      <div class="torneo-viva-anillo" id="torneoVivaAnillo"></div>
-      <div class="torneo-viva-texto">
-        <span class="torneo-viva-rotulo" id="torneoVivaRotulo"></span>
-        <span class="torneo-viva-titular" id="torneoVivaTitular"></span>
-      </div>
-      <!-- Cuántas mesas han terminado (tanda 394), para todo el mundo: es
-           lo que mira quien ya ha jugado y espera la ronda siguiente. Es
-           una región «status» para que el lector de pantalla diga el
-           cambio sin que nadie recargue. -->
-      <div class="torneo-viva-mesas hidden" id="torneoVivaMesas" role="status"></div>
-      <div class="torneo-viva-der" id="torneoVivaDer"></div>
-      <!-- Qué falta, con nombre (877): las mesas sin reportar y las disputas.
-           Lo escribe ronda.js; sin nada que decir, ni ocupa. -->
-      <div class="torneo-viva-estado hidden" id="torneoVivaEstado" role="status"></div>
-      <!-- El último aviso del organizador (878), pegado mientras sea reciente. -->
-      <div class="torneo-viva-aviso hidden" id="torneoVivaAviso"></div>
-      <!-- El reloj de siempre: lo escribe arrancarReloj() y aquí es lo
-           que se lee dentro del anillo. -->
-      <span class="torneo-reloj hidden" id="torneoReloj"></span>
-    </div>
-
-    <!-- El tablón del torneo (878): avisos del organizador y sus jueces, y
-         los sucesos que la web apunta sola. Lo monta js/torneos/tablon.js;
-         sin nada que decir, ni ocupa. -->
-    <section class="torneo-tablon hidden" id="torneoTablon" aria-labelledby="torneoTablonTitulo"></section>
-
-    <div class="torneo-admin-acciones" id="torneoAdminAcciones"></div>
-
-    <nav class="seg torneo-pestanas-pastillas" id="torneoPestanas" aria-label="Secciones del torneo"></nav>
-
-    <!-- Pestaña TORNEO: tu plaza, los inscritos y lo de jueces. -->
-    <section class="torneo-panel" data-panel="torneo">
       <div class="simple-card" id="torneoMiPlaza">
         <h3>Tu plaza</h3>
         <div id="miPlazaContenido"></div>
       </div>
       <div class="simple-card" id="torneoInscritosCaja">
         <h3>Inscritos (<span id="inscritosNumero">0</span>)</h3>
+        <label class="torneo-buscar-gente"><span class="sr-only">Buscar a alguien</span><input type="search" id="torneoBuscarGente" placeholder="Buscar a alguien" autocomplete="off" /></label>
         <div class="torneo-inscritos" id="listaInscritos"></div>
         <p id="inscritosVacio" class="empty-state hidden">Nadie apuntado todavía.</p>
       </div>
@@ -312,7 +295,11 @@
       </div>
     </section>
 
-    <!-- Pestaña JUGAR: tu partida (con chat y juez) y tu decklist. -->
+    <!-- Pestaña JUGADORES (1342): antes de empezar, los inscritos en su
+         pestaña; con el torneo en juego la caja se muda a Info (torneo.js). -->
+    <section class="torneo-panel" data-panel="jugadores"></section>
+
+    <!-- Pestaña JUGAR («Mi mesa» desde la 1341): tu partida (con chat y juez) y tu decklist. -->
     <section class="torneo-panel" data-panel="jugar">
       <div class="simple-card hidden" id="torneoMiPartida">
         <h3>Tu partida</h3>
@@ -378,6 +365,14 @@
         <div id="decklistsJuezContenido"></div>
       </div>
     </section>
+    </div>
+    <!-- La columna de la derecha del PC (1345) y, en el móvil, la hoja que
+         sube al tocar la línea del tablón (1341). -->
+    <aside class="torneo-lado" id="torneoLado">
+      <div class="torneo-tablon-fondo" id="torneoTablonFondo" hidden></div>
+      <section class="torneo-tablon hidden" id="torneoTablon" aria-labelledby="torneoTablonTitulo"></section>
+    </aside>
+    </div>
   </main>
 
   <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres

@@ -289,7 +289,8 @@ function pintarFicha() {
   // Una liga en juego sin ronda viva y con su jornada acabada está ENTRE
   // JORNADAS (850): ni punto que late ni «En juego».
   const estado = estadoDeTorneo(torneo, jornadas?.rondas || null)
-  montarBarraPegadaDelTorneo()
+  // La barra pegada del móvil (858) ya no hace falta (1341): la cabecera es
+  // una línea y lo que se queda arriba al bajar son las pestañas.
   document.title = `${torneo.name} — PokeDoc`
   // El banner (tanda 242): solo si lo hay; si no carga, se esconde —
   // nunca el icono roto del navegador presidiendo la ficha.
@@ -415,23 +416,29 @@ function pintarFicha() {
   } else {
     pintarSiCambia(acciones, '')
   }
-  if (mando() && torneo.status !== 'draft') pintarAnuncioForo(acciones)
+  // Lo que no es el paso del momento (editar, anunciar, el canal, cancelar,
+  // borrar) va al «⋯» de la cabecera (1341): antes eran cinco botones del
+  // mismo tamaño encima de las pestañas, Borrar incluido.
+  const mas = $('torneoMasMenu') || acciones
+  if (mando() && torneo.status !== 'draft') pintarAnuncioForo(mas)
   ponerBotonCalendario(acciones)
   // Herramientas del organizador (tanda 211): editar mientras tenga
   // sentido, y cancelar mientras el torneo siga vivo.
-  anadirAccion(acciones, mando() && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status),
+  anadirAccion(mas, mando() && ['draft', 'registration_open', 'registration_closed'].includes(torneo.status),
     'btnEditarTorneo', '<button class="btn-secondary" id="btnEditarTorneo">Editar</button>',
     // El editor entra por `import()` al pulsar (895): solo lo abre quien lleva el torneo.
     () => $('btnEditarTorneo').addEventListener('click', () => import('./torneo-editor.js').then((m) => m.pintarEditor(contextoDelEditor())).catch((e) => avisarError(e, 'No se ha podido abrir el editor'))))
-  anadirAccion(acciones, mando() && !['finished', 'cancelled'].includes(torneo.status),
+  anadirAccion(mas, mando() && !['finished', 'cancelled'].includes(torneo.status),
     'btnCancelarTorneo', '<button class="btn-secondary" id="btnCancelarTorneo">Cancelar torneo</button>',
     engancharCancelar)
-  pintarTelegram(acciones)
+  pintarTelegram(mas)
   // Borrar va SIEMPRE el último y separado del resto: no es un paso más
   // del ciclo del torneo, es el que no tiene vuelta.
-  anadirAccion(acciones, puedeBorrarTorneo(perfil, torneo, session?.user?.id),
+  anadirAccion(mas, puedeBorrarTorneo(perfil, torneo, session?.user?.id),
     'btnBorrarTorneo', '<button class="torneo-borrar" id="btnBorrarTorneo">Borrar torneo</button>',
     engancharBorrar)
+  // El «⋯» solo sale si tiene algo dentro.
+  $('torneoMas')?.classList.toggle('hidden', !$('torneoMasMenu')?.children.length)
 }
 
 // ── Mandar el torneo al canal de Telegram (tanda 302) ──
@@ -452,23 +459,6 @@ function pintarFicha() {
 // Quién lo ve: el admin del SITIO, no quien LLEVA el torneo. Escribir en
 // el canal oficial de PokeDoc es un acto del sitio, del mismo tipo que el
 // sello de OFICIAL — `torneos_mando` no llega hasta ahí (ver CLAUDE.md).
-// La barra pegada del móvil (858): la flecha a /torneos, el nombre y el
-// estado («En juego», «Entre jornadas»…). Se monta una vez, al primer
-// pintado; el estado se lee al refrescar, que la ficha se repinta sola.
-let barraPegada = null
-function montarBarraPegadaDelTorneo() {
-  if (barraPegada || !torneo || !window.matchMedia?.('(max-width: 900px)').matches) return
-  barraPegada = true
-  import('../barra-pegada.js').then((m) => {
-    barraPegada = m.montarBarraPegada({
-      cabecera: $('torneoCabecera'),
-      titulo: torneo.name,
-      volverHref: '/torneos.html',
-      volverTexto: 'Volver a los torneos',
-      cifra: () => estadoDeTorneo(torneo, jornadas?.rondas || null).texto || '',
-    }) || true
-  }).catch(() => { barraPegada = null })
-}
 
 function pintarTelegram(acciones) {
   // Un torneo CON CÓDIGO sí puede salir por el canal desde la tanda 367:
@@ -1804,30 +1794,65 @@ function pintarInscritos() {
 // zona vive en su pestaña, y las que no tienen nada que enseñar ni
 // siquiera aparecen. Si estás jugando, se abre directamente en Jugar.
 
-const PESTANAS = [
-  { id: 'torneo', texto: 'Torneo' },
-  { id: 'jugar', texto: 'Jugar' },
-  { id: 'rondas', texto: 'Rondas' },
-  { id: 'clasificacion', texto: 'Clasificación' },
-  { id: 'meta', texto: 'Meta' },
-  { id: 'jueces', texto: 'Jueces' },
-]
+// Desde la 1341 (la propuesta de torneo de PINGU): «Torneo» es «Info» y
+// «Jugar» es «Mi mesa» (Jugar ya es la sección de la web), y el ORDEN depende
+// del momento: antes de empezar, Info y Jugadores; en juego, tu mesa primero;
+// al terminar, la clasificación. Los ids no cambian: `?ver=jugar` sigue valiendo.
+const PESTANAS = {
+  torneo: 'Info',
+  jugadores: 'Jugadores',
+  jugar: 'Mi mesa',
+  rondas: 'Rondas',
+  clasificacion: 'Clasificación',
+  meta: 'Meta',
+  jueces: 'Jueces',
+}
+const ORDEN_DE_PESTANAS = {
+  antes: ['torneo', 'jugadores', 'jugar', 'rondas', 'clasificacion', 'meta', 'jueces'],
+  juego: ['jugar', 'rondas', 'clasificacion', 'meta', 'torneo', 'jueces'],
+  fin: ['clasificacion', 'rondas', 'meta', 'torneo', 'jugar', 'jueces'],
+}
 let pestanaActiva = null
 
+function faseDeLaFicha() {
+  if (['finished', 'cancelled'].includes(torneo?.status)) return 'fin'
+  if (torneo?.status === 'in_progress') return 'juego'
+  return 'antes'
+}
+
+// La que se abre si nadie dice otra: Info antes de empezar; tu mesa si estás
+// jugando (o Rondas si no); la clasificación al terminar.
+function pestanaDeEntrada(fase, visibles) {
+  const hay = (id) => visibles.some((p) => p.id === id)
+  if (fase === 'fin') return hay('clasificacion') ? 'clasificacion' : 'torneo'
+  if (fase === 'juego') return hay('jugar') ? 'jugar' : hay('rondas') ? 'rondas' : 'torneo'
+  return 'torneo'
+}
+
 function pintarPestanas() {
-  const visibles = PESTANAS.filter((p) => {
-    const panel = document.querySelector(`[data-panel="${p.id}"]`)
-    return [...panel.children].some((caja) => !caja.classList.contains('hidden'))
-  })
+  const fase = faseDeLaFicha()
+  // Los inscritos: su pestaña antes de empezar; luego, al final de Info (con
+  // el torneo en juego, cuatro pestañas caben en el móvil; seis no).
+  const inscritos = $('torneoInscritosCaja')
+  const suSitio = document.querySelector(`[data-panel="${fase === 'antes' ? 'jugadores' : 'torneo'}"]`)
+  if (inscritos && suSitio && inscritos.parentNode !== suSitio) suSitio.appendChild(inscritos)
+  const visibles = ORDEN_DE_PESTANAS[fase]
+    .map((id) => ({ id, texto: PESTANAS[id] }))
+    .filter((p) => {
+      const panel = document.querySelector(`[data-panel="${p.id}"]`)
+      return panel && [...panel.children].some((caja) => !caja.classList.contains('hidden'))
+    })
   if (!pestanaActiva) {
     // La que diga la dirección (859: `?ver=rondas`, para compartir «la
     // clasificación de este torneo» y para que recargar no te devuelva a
-    // la primera); si no, Jugar si estás jugando, y si no, Torneo.
+    // la primera); si no, la de entrada del momento.
     const pedida = new URLSearchParams(location.search).get('ver')
-    const jugando = !document.getElementById('torneoMiPartida').classList.contains('hidden')
-    pestanaActiva = visibles.some((p) => p.id === pedida) ? pedida : jugando && visibles.some((p) => p.id === 'jugar') ? 'jugar' : 'torneo'
+    pestanaActiva = visibles.some((p) => p.id === pedida) ? pedida : pestanaDeEntrada(fase, visibles)
   }
   if (!visibles.some((p) => p.id === pestanaActiva)) pestanaActiva = visibles[0]?.id || 'torneo'
+  // La pestaña abierta, en la raíz: la pastilla del reloj no sale en Mi mesa,
+  // que ya lleva el reloj grande (1343).
+  document.documentElement.dataset.torneoPestana = pestanaActiva
 
   const nav = $('torneoPestanas')
   // Una barra con UNA sola pestaña no es una barra: es un botón que no
@@ -1844,7 +1869,9 @@ function pintarPestanas() {
       const cuenta =
         p.id === 'jueces' && pendientes
           ? ` <span class="torneo-pestana-aviso">${pendientes}<span class="sr-only"> pendiente${pendientes === 1 ? '' : 's'}</span></span>`
-          : ''
+          : p.id === 'jugadores' && activos()
+            ? ` <span class="torneo-pestana-cuenta">${activos()}</span>`
+            : ''
       return `<button type="button" class="seg-btn${p.id === pestanaActiva ? ' activa' : ''}" data-pestana="${p.id}">${p.texto}${cuenta}</button>`
     })
     .join('')
@@ -1862,7 +1889,7 @@ function pintarPestanas() {
       // En la dirección, SUSTITUYENDO la entrada (859): una pestaña no es
       // un paso del historial, igual que en Mi colección (la 856).
       const url = new URL(location.href)
-      if (pestanaActiva === 'torneo') url.searchParams.delete('ver')
+      if (pestanaActiva === pestanaDeEntrada(faseDeLaFicha(), visibles)) url.searchParams.delete('ver')
       else url.searchParams.set('ver', pestanaActiva)
       history.replaceState(null, '', url)
       pintarPestanas()
@@ -1950,8 +1977,31 @@ async function init() {
   document.getElementById('torneoContenido').style.display = ''
   document.getElementById('torneoContenido').style.visibility = ''
   montarCompartir()
+  engancharLoPegado()
   await recargar()
   arrancarSondeoFicha()
+}
+
+// Lo pegado arriba (1341). «Ir a tu mesa» de la pastilla es un enlace a
+// #torneoMiPartida, que vive en la pestaña Mi mesa: con la pestaña cerrada
+// el salto no iba a ningún sitio. Y el menú «⋯» se cierra al tocar fuera o
+// al elegir algo, como cualquier menú.
+function engancharLoPegado() {
+  document.getElementById('torneoPegado')?.addEventListener('click', (e) => {
+    const enlace = e.target.closest('a[href="#torneoMiPartida"]')
+    if (!enlace) return
+    e.preventDefault()
+    irAPestana('jugar')
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  })
+  const mas = document.getElementById('torneoMas')
+  if (!mas) return
+  document.addEventListener('click', (e) => {
+    if (mas.open && !mas.contains(e.target)) mas.open = false
+  })
+  document.getElementById('torneoMasMenu')?.addEventListener('click', (e) => {
+    if (e.target.closest('button, a')) setTimeout(() => (mas.open = false), 0)
+  })
 }
 
 // Sin torneo que enseñar: el enlace está mal, el torneo se ha borrado o

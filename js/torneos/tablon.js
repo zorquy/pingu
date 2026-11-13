@@ -137,6 +137,49 @@ function pintarEnBarra() {
   caja.classList.toggle('hidden', !html)
 }
 
+// LA LÍNEA DEL TABLÓN (1341): debajo de las pestañas, el último aviso en una
+// sola línea —el humano reciente si lo hay; si no, el último suceso— y, al
+// tocarla, el tablón entero sube desde abajo (en el PC va en su columna).
+let ultimaLinea = ''
+function pintarLinea() {
+  const boton = document.getElementById('torneoTablonLinea')
+  if (!boton) return
+  const caja = document.getElementById('torneoTablon')
+  const a = avisoPegado(avisos) || avisos[0] || null
+  const visible = Boolean(caja && !caja.classList.contains('hidden'))
+  const html = !visible
+    ? ''
+    : a
+      ? `${a.kind === 'auto' ? `<span class="torneo-tablon-linea-auto" aria-hidden="true">${icons.zap ? icons.zap(14) : ''}</span>` : caraHtml(a.author_id)}<span class="torneo-tablon-linea-texto">${a.kind === 'auto' ? '' : `<b>${escapeHtml(nombreDe(a.author_id))}</b> <i>${escapeHtml(haceCuanto(a.created_at))} ·</i> `}${escapeHtml(a.body)}</span><span class="torneo-tablon-linea-mas">Tablón${avisos.length > 1 ? ` (${avisos.length})` : ''}</span>`
+      : `<span class="torneo-tablon-linea-texto"><i>Todavía no hay avisos</i></span><span class="torneo-tablon-linea-mas">Escribir</span>`
+  boton.classList.toggle('hidden', !html)
+  if (html === ultimaLinea) return
+  ultimaLinea = html
+  boton.innerHTML = html
+}
+
+function abrirHoja(abrir) {
+  const caja = document.getElementById('torneoTablon')
+  const fondo = document.getElementById('torneoTablonFondo')
+  if (!caja) return
+  caja.classList.toggle('abierta', abrir)
+  if (fondo) fondo.hidden = !abrir
+  document.getElementById('torneoTablonLinea')?.setAttribute('aria-expanded', String(abrir))
+  document.documentElement.classList.toggle('torneo-hoja-abierta', abrir)
+  if (abrir) caja.querySelector('.torneo-tablon-cerrar')?.focus()
+}
+
+function engancharHoja() {
+  const boton = document.getElementById('torneoTablonLinea')
+  if (!boton || boton.dataset.enganchado) return
+  boton.dataset.enganchado = '1'
+  boton.addEventListener('click', () => abrirHoja(true))
+  document.getElementById('torneoTablonFondo')?.addEventListener('click', () => abrirHoja(false))
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('torneoTablon')?.classList.contains('abierta')) abrirHoja(false)
+  })
+}
+
 async function publicar(form) {
   const campo = form.querySelector('input[name="texto"]')
   const texto = campo.value.trim()
@@ -155,6 +198,7 @@ async function publicar(form) {
     await cargarTablon(ctx.torneo.id)
     pintarLista()
     pintarEnBarra()
+    pintarLinea()
   } finally {
     boton.disabled = false
   }
@@ -169,6 +213,7 @@ async function borrar(id) {
   await cargarTablon(ctx.torneo.id)
   pintarLista()
   pintarEnBarra()
+  pintarLinea()
 }
 
 // Monta (una vez) y repinta (en cada refresco de la ficha). La caja de
@@ -189,6 +234,7 @@ export async function montarTablon(contexto) {
   if (!avisos.length && !escribe) {
     caja.classList.add('hidden')
     pintarEnBarra()
+    pintarLinea()
     return
   }
   if (!caja.dataset.montado) {
@@ -197,6 +243,7 @@ export async function montarTablon(contexto) {
       <div class="torneo-tablon-cab">
         <h3 id="torneoTablonTitulo">${icons.megaphone ? icons.megaphone(16) : icons.messageSquare(16)} Tablón del torneo</h3>
         <span class="torneo-chapa torneo-chapa-neutra" id="torneoTablonCuenta"></span>
+        <button type="button" class="torneo-tablon-cerrar" aria-label="Cerrar el tablón">${icons.x(18)}</button>
       </div>
       <form class="torneo-tablon-escribir hidden" id="torneoTablonForm" autocomplete="off">
         <input type="text" name="texto" maxlength="${LARGO}" placeholder="Escribe un aviso para todos los inscritos…" aria-label="Aviso para los inscritos" required />
@@ -205,6 +252,8 @@ export async function montarTablon(contexto) {
       </form>
       <div id="torneoTablonLista"></div>
       <p class="subtext torneo-tablon-pie">Lo automático lo escribe la web; lo demás, quien organiza y los jueces. Se ve sin cuenta.</p>`
+    caja.querySelector('.torneo-tablon-cerrar').addEventListener('click', () => abrirHoja(false))
+    engancharHoja()
     caja.querySelector('#torneoTablonForm').addEventListener('submit', (e) => {
       e.preventDefault()
       publicar(e.currentTarget)
@@ -214,4 +263,5 @@ export async function montarTablon(contexto) {
   caja.classList.remove('hidden')
   pintarLista()
   pintarEnBarra()
+  pintarLinea()
 }
