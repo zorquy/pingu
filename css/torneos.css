@@ -4219,3 +4219,62 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
   .torneo-info .torneo-calendario { width: 44px; min-height: 44px; justify-content: center; padding: 0; }
   .torneo-info .torneo-calendario .torneo-cab-palabra { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
 }
+
+/* ── 1343: el reloj, en tu mesa (SCHEMA 1343) ──
+   El anillo de la pastilla, en grande, arriba de «Tu partida». Debajo, qué
+   toca con su color: check-in en ámbar, recta final y tiempo cumplido en
+   rojo. */
+.torneo-mesa-reloj {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  margin: 0 0 var(--e-md);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+}
+.torneo-mesa-anillo { width: 92px; height: 92px; }
+.torneo-mesa-anillo::before { inset: 8px; }
+.torneo-mesa-anillo b { font-size: var(--t-xl); }
+/* La cifra va dentro del anillo; al lado, solo qué ronda y qué toca. */
+.torneo-mesa-reloj-texto > b { display: none; }
+.torneo-mesa-reloj-estado { font-size: var(--t-sm); padding: 4px 12px; }
+.torneo-mesa-reloj-texto { display: grid; gap: 2px; min-width: 0; }
+.torneo-mesa-reloj-rotulo {
+  font-size: var(--t-2xs);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.torneo-mesa-reloj-texto > b {
+  font-family: var(--font-marca);
+  font-size: var(--t-2xl);
+  font-variant-numeric: tabular-nums;
+  line-height: 1.1;
+}
+.torneo-mesa-reloj-estado {
+  justify-self: start;
+  padding: 2px 10px;
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+.torneo-mesa-reloj[data-fase='checkin'] { border-color: var(--warning); background: var(--warning-bg); }
+.torneo-mesa-reloj[data-fase='checkin'] .torneo-mesa-reloj-estado { color: var(--warning); }
+.torneo-mesa-reloj[data-fase='final'],
+.torneo-mesa-reloj[data-fase='fuera'] { border-color: var(--danger); background: var(--danger-bg); }
+.torneo-mesa-reloj[data-fase='final'] .torneo-mesa-reloj-estado,
+.torneo-mesa-reloj[data-fase='fuera'] .torneo-mesa-reloj-estado,
+.torneo-mesa-reloj[data-fase='final'] .torneo-mesa-reloj-texto > b,
+.torneo-mesa-reloj[data-fase='fuera'] .torneo-mesa-reloj-texto > b { color: var(--danger); }
+.torneo-mesa-reloj[data-fase='juego'] .torneo-mesa-reloj-estado { color: var(--success); }
+.torneo-mesa-reloj .torneo-viva-anillo::before { background: var(--white); }
+@media (max-width: 640px) {
+  .torneo-mesa-anillo { width: 76px; height: 76px; }
+  .torneo-mesa-anillo::before { inset: 7px; }
+  .torneo-mesa-anillo b { font-size: var(--t-md); }
+}

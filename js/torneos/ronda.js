@@ -45,6 +45,9 @@ let reportes = []
 let resultados = []
 let historial = []
 let reloj = null
+// El tictac del reloj, a mano (1343): «Tu partida» se repinta entera y su
+// anillo nace en «–:––»; se llama al momento para no esperar al segundo.
+let tictacYa = null
 let rondaVista = null // qué ronda se está mirando en «Mesas» (null = la viva)
 // Los arquetipos (tanda 230): userId → {id, nombre, iconos, curado}.
 // Se deducen de las decklists que la base nos deja leer, así que existen
@@ -1411,6 +1414,7 @@ function contadorDeMesasHtml({ terminadas, total, todas }) {
 }
 
 function arrancarReloj(ronda) {
+  tictacYa = null
   if (reloj) {
     clearInterval(reloj)
     reloj = null
@@ -1472,6 +1476,33 @@ function arrancarReloj(ronda) {
       const cifra = anillo.querySelector('b')
       if (cifra) cifra.textContent = textoRonda
     }
+    // El reloj de tu mesa (1343): el mismo anillo, en grande, y debajo qué
+    // toca, con su color: check-in en ámbar, la recta final en rojo.
+    const anilloMesa = $('mesaAnillo')
+    if (anilloMesa) {
+      const total = ronda.started_at && fin ? fin - new Date(ronda.started_at).getTime() : 0
+      const queda = total > 0 ? Math.max(0, Math.min(1, (fin - ya) / total)) : 0
+      anilloMesa.style.setProperty('--vuelta', String(fin ? queda : 1))
+      anilloMesa.classList.toggle('agotandose', seAgota)
+      const cifraMesa = textoRonda ?? '∞'
+      anilloMesa.querySelector('b').textContent = cifraMesa
+      const grandeMesa = $('mesaRelojCifra')
+      if (grandeMesa) grandeMesa.textContent = fin ? cifraMesa : 'Sin límite'
+      const estadoMesa = $('mesaRelojEstado')
+      const caja = $('mesaReloj')
+      const fase = ya < cierreCheckin ? 'checkin' : fin && ya >= fin ? 'fuera' : seAgota ? 'final' : 'juego'
+      if (caja) caja.dataset.fase = fase
+      if (estadoMesa) {
+        estadoMesa.textContent =
+          fase === 'checkin'
+            ? `Check-in abierto: ${textoCuenta(cierreCheckin - ya)}`
+            : fase === 'fuera'
+              ? 'Tiempo cumplido: termina la partida en curso'
+              : fase === 'final'
+                ? 'Últimos minutos'
+                : 'En juego'
+      }
+    }
     // El aviso de «Tu partida»: la ventana de check-in con su cuenta.
     const aviso = $('avisoCheckin')
     if (aviso) {
@@ -1480,6 +1511,7 @@ function arrancarReloj(ronda) {
       if (cuenta && ya < cierreCheckin) cuenta.textContent = textoCuenta(cierreCheckin - ya)
     }
   }
+  tictacYa = pintarReloj
   pintarReloj()
   reloj = setInterval(pintarReloj, 1000)
 }
@@ -2512,10 +2544,22 @@ function pintarMiPartida() {
   // El reloj gigante se fue a la barra viva (tanda 298), que va pegada
   // arriba y no se pierde con el scroll. Aquí solo queda el aviso del
   // top cut, que no es un reloj sino lo contrario: que no lo hay.
+  // Y desde la 1343 VUELVE, en grande, dentro de tu mesa (propuesta de
+  // PINGU: «el cronómetro de ronda debería estar en la mesa»). En las demás
+  // pestañas queda la pastilla de arriba. Lo pinta el tictac de arrancarReloj.
   const reloj =
-    actual.status !== 'active' && actual.phase === 'top_cut'
-      ? '<p class="torneo-cuenta-etiqueta torneo-partida-nota">Sin límite de tiempo — se juega a acabar.</p>'
-      : ''
+    actual.status === 'active'
+      ? `<div class="torneo-mesa-reloj" id="mesaReloj">
+           <div class="torneo-viva-anillo torneo-mesa-anillo" id="mesaAnillo"><b>–:––</b></div>
+           <div class="torneo-mesa-reloj-texto">
+             <span class="torneo-mesa-reloj-rotulo">${actual.phase === 'top_cut' ? `Top cut ${actual.round_number}` : esLiga() ? conMayuscula(nombreDeRonda(actual.round_number)) : `Ronda ${actual.round_number}`}</span>
+             <b id="mesaRelojCifra">–:––</b>
+             <span class="torneo-mesa-reloj-estado" id="mesaRelojEstado"></span>
+           </div>
+         </div>`
+      : actual.phase === 'top_cut'
+        ? '<p class="torneo-cuenta-etiqueta torneo-partida-nota">Sin límite de tiempo — se juega a acabar.</p>'
+        : ''
 
   // El check-in va DENTRO del duelo, bajo cada jugador: es un estado de
   // esa persona, no una tabla aparte. El aviso de la ventana sigue
@@ -2574,6 +2618,7 @@ function pintarMiPartida() {
   const html = `${cabecera}${reloj}${checkin}${botones}${registroHtml(juego, adjuntable)}${repeticionesDeMesaHtml(mia)}`
   if (yaEstaPintado('miPartida', html)) return
   contenido.innerHTML = html
+  tictacYa?.()
   engancharRepeticiones(contenido)
   engancharRegistro(contenido, mia, juego, adjuntable, bo)
   void rellenarChapasArquetipo(contenido)

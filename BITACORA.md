@@ -4,6 +4,19 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (592) — PINGU-Claude (1343 — el reloj de la ronda, dentro de tu mesa)
+
+**Hecho**: PINGU: «el cronómetro de ronda está arriba y debería estar en la
+mesa». En «Mi mesa», arriba de tu partida, el anillo grande con el tiempo que
+queda, qué ronda es y qué toca, con su color: **check-in abierto** (con su
+cuenta) en ámbar, **en juego** en verde, **últimos minutos** y **tiempo
+cumplido** en rojo. En las demás pestañas sigue la pastilla fina de arriba
+(1341), que en Mi mesa no sale.
+
+**Ficheros**: `js/torneos/ronda.js`, `css/torneos.css`, `novedades.json`.
+
+**Pendiente**: 1344–1346. Sin migración.
+
 ## 2026-11-13 (591) — PINGU-Claude (1342 — el torneo antes de empezar: el día en grande, Inscribirme a mano y tu entrada)
 
 **Hecho**: lo de «antes de empezar» de la propuesta.

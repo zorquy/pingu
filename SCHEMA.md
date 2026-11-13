@@ -55204,6 +55204,18 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1343 — El reloj de la ronda, dentro de tu mesa
+
+`pintarMiPartida` (`js/torneos/ronda.js`), con la ronda activa, pinta antes
+del duelo `#mesaReloj` (`.torneo-mesa-reloj`): `#mesaAnillo` (la clase
+`.torneo-viva-anillo` de la 298, más grande) y `#mesaRelojEstado`. El tictac
+de `arrancarReloj` los rellena: `--vuelta`, la cifra (o «∞» sin hora de fin) y
+`data-fase` en la caja (`checkin` mientras dura el check-in, `juego`, `final`
+en los dos últimos minutos, `fuera` con el tiempo cumplido), que da el color.
+Como «Tu partida» se repinta entera y nace con «–:––», el tictac se guarda en
+`tictacYa` y se llama justo después de cada repintado (se anula al principio de
+`arrancarReloj`).
+
 ## Tanda 1342 — El torneo antes de empezar
 
 **El día** (`cuandoHtml(iso)` en `js/torneos/torneo.js`): pinta en

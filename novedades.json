@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "mejora", "texto": "En un torneo, el tiempo de la ronda está ahora dentro de tu mesa, en grande y con color: ámbar mientras dura el check-in, verde jugando y rojo en los últimos minutos.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Antes de que empiece un torneo: el día en grande con «Añadir al calendario» al lado, la descripción plegada con «Leer más», «Inscribirme» siempre arriba mientras haya plazas, tu plaza en verde cuando ya estás dentro y un buscador en Jugadores.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "La ficha de un torneo, más clara: la cabecera ocupa una línea, las pestañas se ordenan según el momento (antes de empezar, Info y Jugadores; jugando, tu mesa primero; al acabar, la clasificación) y se quedan arriba al bajar junto con el tiempo de tu ronda y el último aviso del tablón, que al tocarlo se abre entero.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "arreglo", "texto": "En los torneos, el chat de tu mesa (y el del juez) se actualiza al momento aunque tengas el cursor en la caja de escribir, y ves cuándo tu rival está escribiendo. Y el menú de la izquierda ya no desaparece si abres la web con la ventana estrecha y luego la ensanchas.", "enlace": "/torneos" },
