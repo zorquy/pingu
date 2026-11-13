@@ -16,7 +16,7 @@ const leer = (f) => readFileSync(`${RAIZ}/${f}`, 'utf8')
 console.log('── 1. Estático ──')
 check('LO8: sin el reintento con los tres parámetros', !/tresDeAntes/.test(leer('js/torneos/torneo.js')))
 const sw = leer('sw.js')
-check('LO1: el service worker sirve /css, /js y /assets desde su caché', /\^\\\/\(css\|js\|assets\)\\\//.test(sw) && /e\.waitUntil\(revisar\(req, 'ficheros', guardada, g\)/.test(sw))
+check('LO1: el service worker sirve /css, /js y /assets desde su caché', /\^\\\/\(css\|js\|assets\)\\\//.test(sw) && /e\.waitUntil\((?:revisar|alDia)\(req, (?:'ficheros', )?guardada, g\)/.test(sw)) // desde la 1311, por las huellas (alDia)
 // Desde la 982 un cambio no vacía: llena la generación siguiente y cambia de golpe (test-tanda-982).
 check('  …y al primer cambio, la generación siguiente', /await renovar\(g, peticion, fresca\.clone\(\)\)/.test(sw))
 check('MV8: el tema cambia con una ola', /startViewTransition\(cambiar\)/.test(leer('js/theme.js')) && /html\.ola-tema::view-transition-new\(root\)/.test(leer('css/style.css')))

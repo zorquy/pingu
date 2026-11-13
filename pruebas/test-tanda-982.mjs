@@ -89,7 +89,8 @@ console.log('── 1. Un cambio llena la generación siguiente y cambia de golp
   check('  …con el a.js nuevo', (await caja.textoEn('pokedoc-ficheros-2', '/js/a.js')) === 'a B')
   check('  …y b.js, c.js y la página copiados SIN bajarlos (304)', (await caja.textoEn('pokedoc-ficheros-2', '/js/b.js')) === 'b A' && (await caja.textoEn('pokedoc-ficheros-2', '/js/c.js')) === 'c A' && (await caja.textoEn('pokedoc-paginas-2', '/foro')) === 'foro A',
     JSON.stringify(caja.pedidas))
-  const conCuerpo = caja.pedidas.filter((p) => p.cuerpo).map((p) => p.ruta)
+  // huellas.txt (1311) no es un fichero de la web: este sitio no tiene huellas.
+  const conCuerpo = caja.pedidas.filter((p) => p.cuerpo && !p.ruta.startsWith('/huellas')).map((p) => p.ruta)
   check('  …la única que se bajó entera es la que cambió', conCuerpo.length === 1 && conCuerpo[0] === '/js/a.js', JSON.stringify(conCuerpo))
   check('la generación 1 se queda (la pestaña 1 aún la usa)', caja.almacen.has('pokedoc-ficheros-1'))
   const p1 = await caja.pedir('/js/a.js', { cliente: 'p1' })
