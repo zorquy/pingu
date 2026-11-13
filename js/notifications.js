@@ -23,6 +23,8 @@ export const NOTIFICATION_TYPES = {
   guide_request_fulfilled: 'Cuando se escribe una guía que pediste',
   forum_reply: 'Respuestas en tus temas del foro',
   forum_reaction: 'Reacciones a tus mensajes del foro',
+  // 1319: la respuesta que escribiste resolvió una duda (+15 XP).
+  forum_solucion: 'Cuando tu respuesta resuelve una duda',
   new_follower: 'Nuevos seguidores',
   followed_guide_published: 'Guías nuevas de quien sigues',
   guide_approved: 'Tu guía ha sido aprobada',

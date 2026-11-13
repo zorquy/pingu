@@ -55204,6 +55204,30 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1319 — «Respuesta útil» en el foro
+
+P4 del plan, sobre lo que ya había (foro-extras: `forum_threads.solved_post_id`
+y su disparador, que exige que el mensaje sea del tema; la marca la pone quien
+abrió el tema o el equipo, `alternarSolucion` en tema.js).
+
+- **Arriba**: `pintarMensajes` mete `.foro-util` detrás del primer mensaje en
+  la página 1 cuando hay solución y no es el primero (`respuestaUtilHtml`, que
+  pide el mensaje si está en otra página). Se pinta después, por su cuenta, y
+  solo si la lista pintada sigue siendo la misma (`listaPintada`).
+- **Lista**: la vista `resueltas` de `VISTAS` (foro.js) filtra
+  `solved_post_id is not null`.
+- **Google**: `metaDeTema` pide también `solved_post_id` y `created_at`; con
+  solución, `qaDeTema` (exportada, pura) sustituye al `DiscussionForumPosting`
+  por una `QAPage` con `Question` → `acceptedAnswer`, y los nombres de los dos
+  autores (`nombresDeAutores`, una consulta).
+- **XP**: `trg_foro_premiar_solucion` (after update of `solved_post_id`):
+  +15 XP con su `level` en el mismo update y un aviso `forum_solucion` con
+  `link` a `/tema/<id>#mensaje-<post>`, solo si `forum_solucion_xp` no tenía
+  ese tema (insert … on conflict do nothing returning). Sin políticas: solo la
+  escribe el disparador. `forum_solucion` va en `NOTIFICATION_TYPES` y en los
+  grupos «foro» de `avisos-prefs.js` (empieza por `forum_`: cuenta en
+  Comunidad).
+
 ## Tanda 1318 — tu colección sin cobertura y la página sin conexión
 
 A4 y D3 del plan.

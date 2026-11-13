@@ -595,6 +595,16 @@ async function pintarMensajes() {
       })
     )
     .join('')
+  // La respuesta útil, arriba (1319, P4): debajo de la pregunta, en la
+  // primera página, para quien llega buscando la respuesta y no quiere leerse
+  // el hilo. Puede estar en otra página: entonces se pide aparte.
+  if (pagina === 1 && tema.solved_post_id && lista[0]?.id !== tema.solved_post_id) {
+    void respuestaUtilHtml(lista, perfiles).then((html) => {
+      if (!html || listaPintada !== lista) return
+      elMensajes.querySelector('.foro-util')?.remove()
+      elMensajes.firstElementChild?.insertAdjacentHTML('afterend', html)
+    }).catch(() => {})
+  }
   // Las citas guardadas, con la misma cabecera y enlace que la primera (1116).
   enriquecerCitas(elMensajes)
 
@@ -1147,6 +1157,24 @@ async function alternarReaccion(postId, kind, boton) {
     }).catch(() => {})
   }
   await pintarMensajes()
+}
+
+// La caja «Respuesta útil» (1319): el mensaje marcado, su autor y un salto
+// a donde está en el hilo. Recortado a unas líneas: es un adelanto.
+async function respuestaUtilHtml(lista, perfiles) {
+  let m = lista.find((x) => x.id === tema.solved_post_id)
+  if (!m) {
+    const { data } = await supabase.from('forum_posts').select('id, author_id, body_html').eq('id', tema.solved_post_id).maybeSingle()
+    m = data
+  }
+  if (!m) return ''
+  const quien = perfiles[m.author_id] || (await perfilesPorId([m.author_id]))[m.author_id] || {}
+  const nombre = quien.display_name || quien.username || 'Alguien'
+  return `<aside class="foro-util" aria-label="Respuesta útil">
+      <p class="foro-util-cabeza">${icons.checkCircle(16)}<b>Respuesta útil</b><span>de ${escapeHtml(nombre)}</span></p>
+      <div class="foro-util-cuerpo article-body">${sanitizeRichText(m.body_html || '')}</div>
+      <a class="foro-util-ir" href="#mensaje-${escapeHtml(m.id)}" data-ir-mensaje="${escapeHtml(m.id)}">Ver en el hilo ›</a>
+    </aside>`
 }
 
 // Marcar (o desmarcar) la respuesta que resolvió el tema. Solo el autor

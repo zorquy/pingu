@@ -778,6 +778,38 @@ export function textoDeHtml(html) {
     .trim()
 }
 
+// Los nombres de unos autores (para la QAPage): username o el nombre.
+async function nombresDeAutores(ids) {
+  const limpios = [...new Set(ids.filter((x) => x && /^[0-9a-f-]{36}$/i.test(x)))]
+  if (!limpios.length) return {}
+  const filas = await pedirVarias(`user_profiles?id=in.(${limpios.join(',')})&select=id,username,display_name`)
+  return Object.fromEntries((filas || []).map((p) => [p.id, p.display_name || p.username || 'Alguien de PokeDoc']))
+}
+
+// QAPage (1319): la pregunta (el primer mensaje) y la respuesta marcada.
+export function qaDeTema({ tema, primero, util, nombres, canonica, respuestas }) {
+  const persona = (id) => ({ '@type': 'Person', name: nombres[id] || 'Alguien de PokeDoc' })
+  return {
+    '@type': 'QAPage',
+    '@id': canonica,
+    mainEntity: {
+      '@type': 'Question',
+      name: tema.title,
+      text: recortar(textoDeHtml(primero?.body_html), 600) || tema.title,
+      answerCount: Math.max(1, respuestas),
+      dateCreated: tema.created_at,
+      author: persona(primero?.author_id),
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: recortar(textoDeHtml(util.body_html), 1200),
+        dateCreated: util.created_at,
+        url: `${canonica}#mensaje-${tema.solved_post_id}`,
+        author: persona(util.author_id),
+      },
+    },
+  }
+}
+
 async function metaDeTema(url) {
   const enRuta = url.pathname.match(/^\/tema\/([^/?#]+)/)
   const id = enRuta ? decodeURIComponent(enRuta[1]) : url.searchParams.get('t')
@@ -787,10 +819,16 @@ async function metaDeTema(url) {
   // Las dos consultas a la vez: son independientes y así el robot espera
   // una vez y no dos.
   const [tema, primero] = await Promise.all([
-    pedir(`forum_threads?id=eq.${encodeURIComponent(id)}&select=title,prefix,post_count&limit=1`),
-    pedir(`forum_posts?thread_id=eq.${encodeURIComponent(id)}&order=created_at.asc&select=body_html&limit=1`),
+    pedir(`forum_threads?id=eq.${encodeURIComponent(id)}&select=title,prefix,post_count,solved_post_id,created_at&limit=1`),
+    pedir(`forum_posts?thread_id=eq.${encodeURIComponent(id)}&order=created_at.asc&select=body_html,author_id&limit=1`),
   ])
   if (!tema?.title) return null
+  // Una duda resuelta (1319, P4) es una PREGUNTA con su respuesta aceptada:
+  // Google la puede enseñar en sus resultados (QAPage).
+  const util = tema.solved_post_id && /^[0-9a-f-]{36}$/i.test(tema.solved_post_id)
+    ? await pedir(`forum_posts?id=eq.${tema.solved_post_id}&select=body_html,author_id,created_at&limit=1`)
+    : null
+  const nombres = util ? await nombresDeAutores([primero?.author_id, util.author_id]) : {}
 
   const respuestas = Math.max(0, (tema.post_count || 1) - 1)
   const descripcion =
@@ -816,7 +854,7 @@ async function metaDeTema(url) {
     datos: {
       '@context': 'https://schema.org',
       '@graph': [
-        {
+        util ? qaDeTema({ tema, primero, util, nombres, canonica, respuestas }) : {
           // El tipo propio de un hilo de foro. Google lo distingue de un
           // artículo y lo enseña con el número de respuestas.
           '@type': 'DiscussionForumPosting',

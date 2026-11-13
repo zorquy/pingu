@@ -13,7 +13,7 @@ export const GRUPOS_CAMPANITA = [
   { id: 'revision', titulo: 'Cuando tu guía se aprueba o necesita cambios', tipos: ['guide_approved', 'guide_rejected'] },
   { id: 'peticion', titulo: 'Cuando se escribe una guía que pediste', tipos: ['guide_request_fulfilled'] },
   { id: 'respuestas', titulo: 'Respuestas a tus comentarios', tipos: ['comment_reply'] },
-  { id: 'foro', titulo: 'Respuestas y reacciones en el foro', tipos: ['forum_reply', 'forum_reaction'] },
+  { id: 'foro', titulo: 'Respuestas y reacciones en el foro', tipos: ['forum_reply', 'forum_reaction', 'forum_solucion'] },
   { id: 'seguidores', titulo: 'Nuevos seguidores', tipos: ['new_follower'] },
   { id: 'seguidos', titulo: 'Guías nuevas de quien sigues', tipos: ['followed_guide_published'] },
   { id: 'torneo', titulo: 'Tu torneo: la ronda, tu partida, la plaza, la jornada de tu liga y el final', tipos: ['torneo_ronda', 'torneo_partida', 'torneo_final', 'torneo_cancelado', 'torneo_recordatorio', 'torneo_plaza', 'torneo_jornada'] },
@@ -80,7 +80,7 @@ export const SECCIONES_AVISOS = [
   ] },
   { id: 'foro', titulo: 'Foro y comentarios', filas: [
     { id: 'respuestas', titulo: 'Respuestas a tus comentarios', tipos: ['comment_reply'] },
-    { id: 'foro', titulo: 'Respuestas y reacciones en el foro', tipos: ['forum_reply', 'forum_reaction'] },
+    { id: 'foro', titulo: 'Respuestas y reacciones en el foro', tipos: ['forum_reply', 'forum_reaction', 'forum_solucion'] },
   ] },
   { id: 'guias', titulo: 'Tus guías', filas: [
     { id: 'guias', titulo: 'Comentarios en tus guías, y cuando le sirven a alguien', tipos: ['guide_comment', 'guide_helpful'] },

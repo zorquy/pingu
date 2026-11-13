@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (567) — PINGU-Claude (1319 — «Respuesta útil» en el foro)
+
+**Hecho**: P4 del plan. Marcar la solución de un tema YA existía
+(`solved_post_id`, la chapa «Resuelto», el «⋯ › Marcar como solución»). Lo
+nuevo:
+- La **respuesta útil, arriba**: en la primera página, justo debajo de la
+  pregunta, una caja con el mensaje marcado (recortado), de quién es y «Ver
+  en el hilo ›». Si está en otra página, se pide aparte.
+- **«Resueltas»** en los filtros de la lista de un foro (`?v=resueltas`).
+- **QAPage** para Google en un tema resuelto (meta-social, `qaDeTema`): la
+  pregunta (el primer mensaje) con su respuesta aceptada, autores y fechas.
+  Un tema sin resolver sigue siendo `DiscussionForumPosting`.
+- **+15 XP y un aviso** (`forum_solucion`, en la tabla de Ajustes con las
+  respuestas del foro) para quien escribió la respuesta: migración 1319, un
+  disparador y `forum_solucion_xp` para que sea UNA vez por tema (quitar y
+  poner, o pasarla a otra, no cobra otra vez) y nunca por tu propia respuesta.
+
+**Ficheros**: supabase-migration-1319-respuesta-util.sql (nueva), js/tema.js,
+js/foro.js, css/foro.css, netlify/edge-functions/meta-social.js,
+js/notifications.js, js/avisos-prefs.js, SCHEMA.md, novedades.json. En
+`pruebas`: test-tanda-1319 (PostgreSQL + navegador).
+
+**Pendiente**: ejecutar la migración 1319 (sin ella, todo lo demás funciona;
+solo no se da la XP ni el aviso).
+
 ## 2026-11-13 (566) — PINGU-Claude (1318 — tu colección sin cobertura y la página sin conexión con salidas)
 
 **Hecho**: A4 y D3 del plan.

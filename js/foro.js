@@ -45,8 +45,9 @@ const params = new URLSearchParams(window.location.search)
 const slugForo = foroDeLaRuta()
 const paginaActual = Math.max(1, Number(params.get('p') || 1))
 // El filtro de la lista de temas (813, FO2): '' = recientes, 'sin' = sin
-// respuesta, 'sigo' = los que sigues, 'mios' = los que abriste.
-const VISTAS = ['', 'sin', 'sigo', 'mios']
+// respuesta, 'sigo' = los que sigues, 'mios' = los que abriste; 'resueltas'
+// (1319, P4) = las dudas con su respuesta útil marcada.
+const VISTAS = ['', 'sin', 'resueltas', 'sigo', 'mios']
 const vistaTemas = VISTAS.includes(params.get('v') || '') ? params.get('v') || '' : ''
 const consulta = (params.get('q') || '').trim()
 // El filtro por etiqueta (?et=Duda): pinchar la etiqueta de un tema
@@ -691,6 +692,9 @@ async function pintarListaDeTemas(foro) {
   if (vista === 'sin') {
     qCuenta = qCuenta.eq('post_count', 1)
     qTemas = qTemas.eq('post_count', 1)
+  } else if (vista === 'resueltas') {
+    qCuenta = qCuenta.not('solved_post_id', 'is', null)
+    qTemas = qTemas.not('solved_post_id', 'is', null)
   } else if (vista === 'mios') {
     qCuenta = qCuenta.eq('author_id', sesion.user.id)
     qTemas = qTemas.eq('author_id', sesion.user.id)
@@ -820,12 +824,13 @@ async function pintarListaDeTemas(foro) {
     const q = u.toString()
     return `${urlForo(foro.slug)}${q ? `?${q}` : ''}`
   }
-  const vistas = [['', 'Recientes'], ['sin', 'Sin respuesta'], ...(sesion ? [['sigo', 'Siguiendo'], ['mios', 'Míos']] : [])]
+  const vistas = [['', 'Recientes'], ['sin', 'Sin respuesta'], ['resueltas', 'Resueltas'], ...(sesion ? [['sigo', 'Siguiendo'], ['mios', 'Míos']] : [])]
   const vistasHtml = `<nav class="foro-vistas" aria-label="Qué temas ver">${vistas
     .map(([v, t]) => `<a class="chip-filtro${v === vista ? ' activa' : ''}" href="${enlaceVista(v)}"${v === vista ? ' aria-current="true"' : ''}>${t}</a>`)
     .join('')}</nav>`
   const vacioDeVista = {
     sin: 'Todos los temas de aquí tienen respuesta. ¡Bien!',
+    resueltas: 'Aún no hay ninguna duda resuelta aquí. Quien pregunta marca la respuesta que le sirvió desde el «⋯» del mensaje.',
     sigo: 'No sigues ningún tema de este foro. Dale a «Seguir» dentro de uno y saldrá aquí.',
     mios: 'Todavía no has abierto ningún tema en este foro.',
   }

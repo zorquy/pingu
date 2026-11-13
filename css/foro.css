@@ -712,6 +712,13 @@
   color: var(--success);
 }
 
+/* La respuesta útil, arriba (1319): debajo de la pregunta, recortada. */
+.foro-util { margin: 0 0 var(--e-lg); padding: var(--e-md) var(--e-lg); border: 1px solid var(--success); border-radius: var(--radius-md); background: var(--white); }
+.foro-util-cabeza { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); margin: 0 0 var(--e-sm); color: var(--success); font-size: var(--t-sm); }
+.foro-util-cabeza span { color: var(--text-mid); }
+.foro-util-cuerpo { max-height: 12em; overflow: hidden; -webkit-mask-image: linear-gradient(#000 70%, transparent); mask-image: linear-gradient(#000 70%, transparent); }
+.foro-util-ir { display: inline-flex; align-items: center; min-height: 44px; font-weight: 700; }
+
 /* Escondido por denuncias (1308). */
 .foro-spam-oculto {
   margin: 0 0 var(--e-sm);

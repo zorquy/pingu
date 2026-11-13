@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Dudas resueltas en el foro: la respuesta que le sirvió a quien preguntó sale arriba, debajo de la pregunta; hay un filtro «Resueltas» en cada foro, y quien la escribió se lleva 15 de experiencia.", "enlace": "/foro" },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Tu colección y «La quiero» se abren sin cobertura, en una tienda o en un torneo: ves lo que había la última vez que la abriste, con la hora, y lo que añadas se guarda al volver la red.", "enlace": "/mi-coleccion" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Sin conexión, PokeDoc te lleva a lo que sí funciona (tu colección, el modo evento y las guías que leíste) y se recarga solo en cuanto vuelve la red." },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Con PokeDoc instalado en Android, compártele una foto de una carta desde la galería o WhatsApp y se abre el escáner, o un enlace de Cardmarket y te busca esa carta." },
