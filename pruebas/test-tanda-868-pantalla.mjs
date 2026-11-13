@@ -121,7 +121,7 @@ console.log('── 1. El PC: la lista y el apartado, abriendo por Avisos ──
   check('Invitar: el enlace /r/usuario y Copiar', /\/r\/Ash$/.test(await page.locator('#ajEnlaceInvitar').textContent()) && (await page.locator('#ajCopiarInvitar').isVisible()))
   await page.click('#ajLista [data-ver="borrar"]')
   await page.waitForTimeout(400)
-  check('Borrar mi cuenta: al final, con su botón', (await estado(page)).lista.at(-1) === 'Borrar' && (await page.locator('#ajBorrar').isVisible()))
+  check('Borrar mi cuenta: al final, con su primer paso (1314)', (await estado(page)).lista.at(-1) === 'Borrar' && (await page.locator('#ajBorrarSig').isVisible()))
   await ctx.close()
 }
 
