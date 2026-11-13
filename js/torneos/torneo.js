@@ -39,6 +39,7 @@ import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { sanitizeRichText } from '../richtext-format.js'
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 import { pintarSiCambia, textoSiCambia } from './pintar.js'
+import { textoDePrecio } from './torneo-tienda.js'
 import { atributosDeRango, COLUMNAS_RANGO } from '../rangos.js'
 
 // El módulo de las rondas, cuando llega (1011): antes, nada que leer de él.
@@ -126,7 +127,11 @@ async function cargarInscripciones() {
 // preferible una línea vacía a «Organiza undefined».
 let organizador = null
 function organizadorTexto() {
-  return organizador?.username ? `Organiza ${organizador.username}` : ''
+  // Una tienda (1331) lo dice, con lo que cuesta apuntarse (se paga allí).
+  const deTienda = organizador?.tipo === 'tienda'
+  const precio = textoDePrecio(torneo?.precio_entrada, { deTienda })
+  const quien = organizador?.username ? (deTienda ? `Torneo de la tienda ${organizador.username}` : `Organiza ${organizador.username}`) : ''
+  return [quien, precio].filter(Boolean).join(' · ')
 }
 
 // Quién es juez aprobado en este torneo, y de paso TODAS las solicitudes:

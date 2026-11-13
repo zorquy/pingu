@@ -2237,3 +2237,30 @@ html[data-td-ver='stock'] .bm-pastilla {
 @media (max-width: 600px) {
   .tds-tabla .tds-c-fotos { display: none; }
 }
+
+/* Torneos de la tienda (1331, G11; SCHEMA 1331). */
+.tdtn { display: grid; gap: var(--e-md); }
+.tdtn-cab { display: flex; align-items: center; gap: var(--e-sm); flex-wrap: wrap; }
+.tdtn-cab h2 { margin: 0; font-family: var(--font-display); font-size: var(--t-xl); }
+.tdtn-cab .btn-primary { margin-left: auto; }
+.tdtn-lema { margin: 0; }
+.tdtn-cifras { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.tdtn-titulo { margin: 0; font-family: var(--font-display); font-size: var(--t-lg); }
+.tdtn-lista { display: grid; gap: var(--e-sm); margin: 0; padding: 0; list-style: none; }
+.tdtn-fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 2px var(--e-md);
+  align-items: center;
+  padding: var(--e-md) var(--e-lg);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.tdtn-cuando { grid-column: 1; color: var(--rango-tienda); font-size: var(--t-xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+.tdtn-nombre { grid-column: 1; min-width: 0; overflow: hidden; color: var(--text); font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.tdtn-datos { grid-column: 1; color: var(--text-mid); font-size: var(--t-sm); }
+.tdtn-ir { grid-column: 2; grid-row: 1 / 4; }
+.tdtn-pasados summary { cursor: pointer; color: var(--text-mid); font-weight: 600; }
+.tdtn-pasados[open] summary { margin-bottom: var(--e-sm); }
+@media (max-width: 700px) { .tdtn-cifras { grid-template-columns: minmax(0, 1fr); } }

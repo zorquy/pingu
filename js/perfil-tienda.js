@@ -28,6 +28,7 @@ import { chapaDeEstadoHtml } from './estado-chapa.js'
 import { banderaHtml } from './precio-vista.js'
 import { fotosDeStock, verFotosDeStock, cuantasFotos } from './tienda-fotos.js'
 import { ATRIBUTOS_DE_TIENDA } from './rangos.js'
+import { textoDePrecio, proximosDeTienda } from './torneos/torneo-tienda.js'
 
 const POR_PAGINA = 60
 const COLUMNAS = COLUMNAS_CARTA_DE_SET.replace('tcg_sets(tcg_online_code,serie_id,release_date)', 'tcg_sets(name,name_en,tcg_online_code,serie_id,release_date,oculto)')
@@ -242,6 +243,7 @@ function cabeceraHtml() {
         </select>
         <span class="pt-cuenta"></span>
       </div>
+      <div class="pt-torneos" hidden></div>
       <div class="pt-tiras"></div>
       <h2 class="pt-todo-titulo" hidden>Todo el stock</h2>
       <div class="pt-rejilla"><div class="skeleton" style="height:240px"></div></div>
@@ -299,6 +301,23 @@ function contarVisita(perfil, sesion, qr) {
 
 // `previa` (1078): el mismo escaparate dentro de /tienda → Escaparate, para
 // que la tienda vea lo que ve la gente; sin botones y sin contar su visita.
+// Sus próximos torneos (1331, G11): los que creó esta cuenta, sin borradores.
+// Si no hay o no se pueden traer, el hueco se queda escondido.
+async function pintarTorneos(perfil) {
+  const hueco = $('.pt-torneos')
+  if (!hueco) return
+  const { data } = await supabase.from('tournaments').select('*').eq('admin_id', perfil.id).neq('status', 'draft').neq('status', 'finished').order('start_at', { ascending: true }).limit(12).then((r) => r, () => ({ data: null }))
+  const lista = proximosDeTienda(data || []).slice(0, 4)
+  if (!lista.length) return
+  hueco.innerHTML = `<h2 class="pt-torneos-titulo">Próximos torneos</h2><ul class="pt-torneos-lista">${lista.map((t) => {
+    const f = new Date(t.start_at)
+    const cuando = `${f.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })} · ${f.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
+    const datos = [t.format === 'league' ? 'Liga' : '', t.max_players ? `${t.max_players} plazas` : '', textoDePrecio(t.precio_entrada, { deTienda: true })].filter(Boolean).join(' · ')
+    return `<li><a class="pt-torneo" href="/torneo?slug=${encodeURIComponent(t.slug)}"><span class="pt-torneo-cuando">${escapeHtml(cuando)}</span><strong>${escapeHtml(t.name)}</strong>${datos ? `<span class="pt-torneo-datos">${escapeHtml(datos)}</span>` : ''}</a></li>`
+  }).join('')}</ul>`
+  hueco.hidden = false
+}
+
 export async function montarPerfilTienda(destino, perfil, sesion, { previa = false } = {}) {
   await hojaInyectada('css/perfil-tienda.css')
   hojaInyectada('css/tienda-fotos.css')
@@ -339,6 +358,7 @@ export async function montarPerfilTienda(destino, perfil, sesion, { previa = fal
   caja.classList.add('pt')
   caja.classList.toggle('pt-previa', previa)
   caja.innerHTML = cabeceraHtml()
+  void pintarTorneos(perfil)
   caja.addEventListener('click', (e) => {
     const fotos = e.target.closest('[data-pt-fotos]')
     if (fotos) {

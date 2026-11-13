@@ -19,6 +19,7 @@ import { ESTADOS, estadoDeTorneo, fechaBonita, puedeBorrarTorneo, colorDeNombre,
 import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.js'
 import { numJornadas, rondasPorJornada } from './rondas-jornada.js'
 import { ligaFranjaHtml, completarLiga, conJornadas } from './ligas-franja.js'
+import { esTorneoDeTienda, textoDePrecio, precioDelCampo } from './torneo-tienda.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -149,7 +150,9 @@ export function proximoHtml(t, ocupadas = 0, ahora = Date.now()) {
 }
 
 function tarjetaHtml(t, datos) {
-  const { ocupadas = 0, miEstado = null, caras = [], organiza = null, campeon = null, puedeBorrar = false, rondas = null } = datos || {}
+  const { ocupadas = 0, miEstado = null, caras = [], organiza = null, campeon = null, puedeBorrar = false, rondas = null, deTienda = false } = datos || {}
+  // El precio de la inscripción (1331): informativo, se paga en persona.
+  const precio = textoDePrecio(t.precio_entrada, { deTienda })
   // Una liga entre jornadas se dice así, sin el punto que late (850).
   const estado = estadoDeTorneo(t, rondas)
   const viva = t.status === 'in_progress' && !estado.pausa
@@ -183,6 +186,7 @@ function tarjetaHtml(t, datos) {
           <span class="torneo-arte-chapas-der">
             ${t.is_private ? CHAPA_PRIVADO() : ''}
             ${esOficial(t) ? CHAPA_OFICIAL() : ''}
+            ${deTienda ? `<span class="torneo-oficial torneo-de-tienda" title="Lo organiza una tienda: se juega allí">${icons.store(11)} Torneo de tienda</span>` : ''}
           </span>
         </span>
       </span>
@@ -198,6 +202,7 @@ function tarjetaHtml(t, datos) {
               ? `<span class="torneo-etiqueta torneo-etiqueta-premio">${icons.trophy(13)} ${escapeHtml(resumenDePremios(t))}</span>`
               : ''
           }
+          ${precio ? `<span class="torneo-etiqueta torneo-etiqueta-precio">${escapeHtml(precio)}</span>` : ''}
           <span class="torneo-etiqueta">${escapeHtml(estructuraCorta(t))}</span>
           ${t.swiss_bo === 3 ? '<span class="torneo-etiqueta">BO3</span>' : ''}
           ${t.top_cut_size ? `<span class="torneo-etiqueta">Top ${t.top_cut_size}</span>` : ''}
@@ -514,7 +519,7 @@ async function cargarLista(session, perfil = null) {
           // sin rango: aquí `is_admin` NO es un rango que pintar — es quién
           // puede poner el sello de OFICIAL de PokeDoc. Y el nombre del
           // organizador va como texto en la tarjeta (tanda 386).
-          .select('id, username, avatar_url, is_admin')
+          .select('id, username, avatar_url, is_admin, tipo')
           .in('id', [...quienes])
       : Promise.resolve(null),
   ])
@@ -558,6 +563,7 @@ async function cargarLista(session, perfil = null) {
       campeon: t.status === 'finished' ? gente[t.champion_id]?.username || null : null,
       puedeBorrar: puedeBorrarTorneo(perfil, t, session?.user?.id),
       rondas: rondasDe[t.id] || null,
+      deTienda: esTorneoDeTienda(t, gente),
     })
   // El tuyo en juego: el que manda la barra de arriba. Si hubiera dos
   // (raro pero posible), el que empezó antes — es el que lleva prisa.
@@ -1243,6 +1249,7 @@ function engancharFormulario(session, perfil) {
       // En una liga, el total de rondas es jornadas × rondas por jornada (849).
       swiss_rounds: Number($('torneoRondas').value) * (liga ? rondasPorJornadaElegidas() : 1),
       round_time_minutes: Number($('torneoMinutos').value),
+      ...(precioDelCampo($('torneoPrecio')?.value) != null ? { precio_entrada: precioDelCampo($('torneoPrecio').value) } : {}),
       checkin_minutes: Number($('torneoCheckin').value),
       swiss_bo: Number($('torneoSwissBo').value),
       top_cut_bo: Number($('torneoCorteBo').value),
@@ -1262,7 +1269,7 @@ function engancharFormulario(session, perfil) {
     // torneos tiene que seguir funcionando: si la base no conoce una
     // columna, se reintenta sin ella (del modo de listas queda el
     // booleano viejo, que dice lo mismo salvo el «nunca»).
-    for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'prizes']) {
+    for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'prizes', 'precio_entrada']) {
       if (error && (error.message || '').includes(columna)) {
         delete fila[columna]
         ;({ error } = await supabase.from('tournaments').insert(fila))

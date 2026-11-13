@@ -11,7 +11,9 @@ export const MARCA_TIENDA = 'pd-tienda'
 
 // `cartas` (1075): su Colección, el catálogo entero con su stock (la misma
 // pantalla en modo tienda, js/mi-coleccion.js). La ficha completa, /carta, no.
-const SUYAS = ['tienda', 'cartas', 'mensajes', 'privacidad', 'terminos', 'sobre', '404', 'sin-conexion', 'auth', 'alta-tienda', 'reset-password', 'onboarding']
+// /torneos y /torneo (1331): una tienda organiza sus torneos con el editor
+// de siempre (G11).
+const SUYAS = ['tienda', 'cartas', 'torneos', 'torneo', 'mensajes', 'privacidad', 'terminos', 'sobre', '404', 'sin-conexion', 'auth', 'alta-tienda', 'reset-password', 'onboarding']
 
 export function puedeAbrirTienda(ruta, buscar, tienda) {
   const tramos = String(ruta || '/').replace(/\.html$/, '').split('/').filter(Boolean)

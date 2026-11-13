@@ -11,6 +11,7 @@ import { escapeHtml } from '../app.js'
 import { showToast } from '../toast.js'
 import { premiosDeTorneo, premiosParaGuardar, PREMIOS_MAXIMO, PUESTO_MAXIMO, PREMIO_MAXIMO } from './comun.js'
 import { rondasPorJornada } from './jornadas.js'
+import { precioDelCampo } from './torneo-tienda.js'
 
 const $ = (id) => document.getElementById(id)
 
@@ -163,6 +164,7 @@ function editorHtml(torneo, estructuraBloqueada, esLiga, bloqueo, codigoActual) 
         ${esLiga ? campoRondasPorJornada(torneo) : `<label>Rondas suizas<input type="number" inputmode="numeric" id="editarRondas" min="1" max="12" value="${torneo.swiss_rounds}" ${bloqueo} /></label>`}
         <label>Top cut<select id="editarCorte" ${bloqueo}>${[0, 4, 8, 16].map((n) => `<option value="${n}" ${torneo.top_cut_size === n ? 'selected' : ''}>${n ? `Top ${n}` : 'Sin corte'}</option>`).join('')}</select></label>
         <label>Minutos por ronda<input type="number" inputmode="numeric" id="editarMinutos" min="5" max="120" value="${torneo.round_time_minutes}" ${bloqueo} /></label>
+        <label>Inscripción (€)<input type="text" inputmode="decimal" id="editarPrecio" maxlength="7" placeholder="Sin decir" value="${torneo.precio_entrada == null ? '' : escapeHtml(String(torneo.precio_entrada).replace('.', ','))}" /></label>
         <label>Check-in (min)<input type="number" inputmode="numeric" id="editarCheckin" min="0" max="30" value="${torneo.checkin_minutes ?? 5}" /></label>
         <label>Suizas al mejor de<select id="editarSwissBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.swiss_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
         <label id="editarCorteBoCampo" class="${torneo.top_cut_size ? '' : 'hidden'}">Corte al mejor de<select id="editarCorteBo" ${bloqueo}>${[1, 3].map((n) => `<option value="${n}" ${torneo.top_cut_bo === n ? 'selected' : ''}>${n}</option>`).join('')}</select></label>
@@ -478,11 +480,19 @@ async function guardarEdicion() {
     cambios.swiss_bo = Number($('editarSwissBo').value)
     cambios.top_cut_bo = Number($('editarCorteBo').value)
   }
+  // El precio (1331): se escribe solo si la fila lo trae (con la migración) o
+  // si lo has puesto; lo que no es un precio no se guarda.
+  const precio = precioDelCampo($('editarPrecio')?.value)
+  if (precio === undefined) {
+    avisarError({ message: 'La inscripción tiene que ser un precio, como 10 o 5,50.' }, 'No se ha podido guardar')
+    return
+  }
+  if ('precio_entrada' in torneo || precio != null) cambios.precio_entrada = precio
   let { error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id)
   // Si alguna migración de columna nueva aún no se ejecutó, se guarda
   // sin esa columna (del modo de listas queda el booleano viejo). El
   // comprobador de /admin ya avisa de lo que falta.
-  for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'prizes']) {
+  for (const columna of ['decklist_visibility', 'image_url', 'banner_url', 'is_private', 'prizes', 'precio_entrada']) {
     if (error && (error.message || '').includes(columna)) {
       delete cambios[columna]
       ;({ error } = await supabase.from('tournaments').update(cambios).eq('id', torneo.id))

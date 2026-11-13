@@ -36,6 +36,9 @@
   <link rel="modulepreload" href="/js/espera-prerender.js" />
   <link rel="modulepreload" href="/js/torneos/liga-en-curso.js" />
   <link rel="modulepreload" href="/js/torneos/mesas.js" />
+  <!-- precargas: las escribe generar-precargas.mjs (1315) -->
+  <link rel="modulepreload" href="/js/torneos/torneo-tienda.js" />
+  <!-- /precargas -->
   <!-- /precargas -->
   <link rel="stylesheet" href="css/style.css" />
   <link rel="stylesheet" href="css/components.css" />
@@ -253,6 +256,11 @@
               <input type="checkbox" id="torneoSinLimite" /> Sin límite
             </label>
           </div>
+          <!-- El precio (1331): informativo, se paga en persona. -->
+          <label>Inscripción (€)
+            <input type="text" inputmode="decimal" id="torneoPrecio" maxlength="7" placeholder="Sin decir" />
+            <span class="torneo-campo-pista">Solo informativo: se paga en persona. 0 es gratis.</span>
+          </label>
           <label id="torneoRondasEtiqueta">Rondas suizas
             <input type="number" inputmode="numeric" id="torneoRondas" min="1" max="12" value="4" />
           </label>

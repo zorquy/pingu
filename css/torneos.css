@@ -900,6 +900,9 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
 .torneo-arte .torneo-estado-borrador { color: var(--text-mid); }
 .torneo-arte .torneo-oficial { color: #a06008; }
 :root[data-theme='dark'] .torneo-arte .torneo-oficial { color: var(--warning); }
+/* Torneo de tienda (1331): el verde azulado de las tiendas (SCHEMA 1331). */
+.torneo-de-tienda { background: var(--white); color: var(--rango-tienda); }
+.torneo-arte .torneo-de-tienda { color: var(--rango-tienda); }
 /* «En juego» es el único que se sale del blanco: es rojo sólido porque
    no es una etiqueta, es algo que está pasando ahora. */
 .torneo-arte .torneo-estado-jugando {
@@ -3875,3 +3878,6 @@ html.torneo-jugando #torneoNombre {
 }
 /* Una jornada de liga en el calendario (1303): su día lleva una raya abajo. */
 .torneo-cal-dia.con-jornada { box-shadow: inset 0 -3px 0 var(--success); }
+
+/* El precio de la inscripción (1331): informativo, se paga en persona. */
+.torneo-etiqueta-precio { color: var(--rango-tienda); font-weight: 700; }

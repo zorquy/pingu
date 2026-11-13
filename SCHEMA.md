@@ -55204,6 +55204,37 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1331 — las tiendas organizan sus torneos (G11)
+
+**Qué es un torneo de tienda.** El que crea una cuenta de tipo `tienda`: no hay
+columna para eso, se mira `user_profiles.tipo` de `admin_id`
+(`esTorneoDeTienda(t, gente)` en `js/torneos/torneo-tienda.js`, puro). /torneos
+pide `tipo` con los perfiles de quien organiza; la ficha ya lo traía en
+`COLUMNAS_RANGO`.
+
+**El precio.** `tournaments.precio_entrada numeric(8,2)`, de 0 a 1.000 o NULL
+(migración 1331, `tournaments_precio_entrada_ok`). Es INFORMATIVO: se paga en
+persona y PokeDoc no cobra (sin pagos, como siempre). Lo puede poner cualquiera
+que organice (crear: `#torneoPrecio`; editor: `#editarPrecio`). Lo escrito pasa
+por `precioDelCampo` («10,50» → 10.5, vacío → null, lo que no es un precio →
+undefined y no se guarda) y se pinta con `textoDePrecio(precio, { deTienda })`:
+«10 € en tienda», «5,5 € inscripción», «Gratis». Crear y editar reintentan sin
+la columna si la base no la conoce (la lista de columnas de la 239).
+
+**La tienda.** `torneos` y `torneo` van en `SUYAS` (js/tienda-puertas.js) y
+«Torneos» en `SECCIONES_DE_TIENDA` (`ver: 'torneos'`); `seccionDeTienda` da
+«Torneos» también en /torneos y /torneo. La pestaña es `js/tienda-torneos.js`
+(por `import()` la primera vez, como las demás): `tournaments` por `admin_id`,
+inscritos y `tienda_ventas` de 90 días; las cifras salen de `cifrasDeTorneos`
+(la «mejora» es la media por día con ventas en días de torneo contra los demás;
+sin días de los dos tipos, null y no se pinta). Lo que vende el día del torneo ya
+entra en la caja: es una venta.
+
+**Dónde se ve.** /torneos: chapa `.torneo-oficial.torneo-de-tienda` y etiqueta
+`.torneo-etiqueta-precio` (color `--rango-tienda`). La ficha: «Torneo de la
+tienda X · 10 € en tienda» en `#torneoMeta`. El escaparate: `.pt-torneos`
+(hasta cuatro, `proximosDeTienda`, sin borradores; escondido si no hay).
+
 ## Tanda 1330 — precios en tu moneda y foro de México
 
 G9 del plan. `js/moneda.js` (puro, sin imports): `MONEDAS` (símbolo, locale y

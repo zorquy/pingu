@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (580) — PINGU-Claude (1331 — las tiendas organizan sus torneos)
+
+**Hecho**: G11 del plan. Una cuenta de tienda ya puede crear y llevar torneos
+con el editor de siempre: `/torneos` y `/torneo` entran en sus puertas
+(`SUYAS`) y su panel tiene la sección **Torneos** (`/tienda?ver=torneos`,
+`js/tienda-torneos.js`): lo que viene (con borradores) y lo jugado, cada uno con
+Editar/Ver, «+ Nuevo torneo» (va a `/torneos?crear=1`) y tres cifras: torneos
+este mes, jugadores distintos y cuánto más vende un día de torneo que uno
+cualquiera (últimos 90 días; sin días de los dos tipos no sale). En `/torneos`
+sus torneos llevan la chapa **«Torneo de tienda»** (verde azulado) y en la
+ficha «Torneo de la tienda X · 10 € en tienda». Su **escaparate** enseña
+«Próximos torneos». La **inscripción** es un precio informativo
+(`tournaments.precio_entrada`, migración 1331; se paga en persona, PokeDoc no
+cobra) que puede poner cualquiera que organice, en el formulario y en el
+editor. Lo que la tienda vende en el torneo ya entra en su caja: es una venta.
+
+**Pendiente para PINGU**: ejecutar `supabase-migration-1331-torneos-de-tienda.sql`
+(sin ella se crea y se edita igual, sin el precio).
+
+**Lo que NO va**: el «modo pantalla» del torneo (P2 no estaba en la lista) y la
+agenda de /tiendas con sus torneos.
+
+**Ficheros**: js/torneos/torneo-tienda.js y js/tienda-torneos.js (nuevos),
+js/torneos/torneos.js, js/torneos/torneo.js, js/torneos/torneo-editor.js,
+torneos.html, js/tienda-puertas.js, js/tienda-marco.js, js/tienda.js,
+tienda.html, js/perfil-tienda.js, css/torneos.css, css/tienda.css,
+css/perfil-tienda.css, supabase-migration-1331-torneos-de-tienda.sql, SCHEMA.md,
+novedades.json, precargas. En `pruebas`: test-tanda-1331.
+
 ## 2026-11-13 (579) — PINGU-Claude (1330 — Latinoamérica: precios en tu moneda y foro de México)
 
 **Hecho**: G9 del plan. **Ajustes › Apariencia › Moneda**: euro, dólar, peso

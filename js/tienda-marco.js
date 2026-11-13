@@ -25,6 +25,8 @@ export const SECCIONES_DE_TIENDA = [
   // Ofertas (1250): lo que le piden y le ofrecen, y lo reservado por una oferta.
   { nombre: 'Ofertas', ver: 'ofertas', icono: 'tag', href: '/tienda?ver=ofertas' },
   { nombre: 'Ventas', ver: 'ventas', icono: 'receipt', href: '/tienda?ver=ventas' },
+  // Torneos (1331, G11): los suyos, con el editor de /torneos.
+  { nombre: 'Torneos', ver: 'torneos', icono: 'trophy', href: '/tienda?ver=torneos' },
   { nombre: 'Escaparate', ver: 'escaparate', icono: 'eye', href: '/tienda?ver=escaparate' },
   { nombre: 'Mensajes', icono: 'mail', href: '/mensajes' },
   { nombre: 'Datos', ver: 'datos', icono: 'settings', href: '/tienda?ver=datos' },
@@ -56,6 +58,7 @@ export function seccionDeTienda(ruta, buscar) {
   const k = (String(ruta || '/').replace(/\.html$/, '').split('/').filter(Boolean)[0] || '').toLowerCase()
   if (k === 'mensajes') return 'Mensajes'
   if (k === 'cartas') return 'Colección'
+  if (k === 'torneos' || k === 'torneo') return 'Torneos'
   if (k !== 'tienda') return null
   const ver = new URLSearchParams(buscar || '').get('ver') || 'hoy'
   return SECCIONES_DE_TIENDA.find((s) => s.ver === ver)?.nombre || 'Panel'

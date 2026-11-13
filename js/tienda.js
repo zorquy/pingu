@@ -15,7 +15,7 @@ import { caraDelPanel, instagramDe } from './tiendas-puro.js'
 
 const $ = (id) => document.getElementById(id)
 const CARAS = ['tdCargando', 'tdCerrado', 'tdEntrar', 'tdEquipo', 'tdPanel']
-const PESTANAS = ['hoy', 'stock', 'ofertas', 'ventas', 'escaparate', 'datos']
+const PESTANAS = ['hoy', 'stock', 'ofertas', 'ventas', 'torneos', 'escaparate', 'datos']
 
 for (const el of document.querySelectorAll('[data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(28) || ''
 
@@ -74,6 +74,16 @@ function montarVentasSiToca(v) {
     .catch(() => { ventasMontadas = false; $('tdVentas').innerHTML = '<p class="subtext">No se han podido abrir tus ventas. Recarga la página.</p>' })
 }
 
+// Los torneos (1331, G11), igual: por `import()` la primera vez.
+let torneosMontados = false
+function montarTorneosSiToca(v) {
+  if (v !== 'torneos' || torneosMontados) return
+  torneosMontados = true
+  import('./tienda-torneos.js')
+    .then(({ montarTorneos }) => montarTorneos($('tdTorneos'), { perfil }))
+    .catch(() => { torneosMontados = false; $('tdTorneos').innerHTML = '<p class="subtext">No se han podido abrir tus torneos. Recarga la página.</p>' })
+}
+
 // VENDER y COMPRAR (1072, 1091; el Mostrador desde la 1254): las hojas,
 // desde el botón del centro, el de arriba, Ventas, el stock o la ficha de una
 // línea. Las abre js/tienda-mostrador.js (también desde Mensajes o la
@@ -121,6 +131,7 @@ function pestana(cual) {
   const v = PESTANAS.includes(cual) ? cual : 'hoy'
   montarStockSiToca(v)
   montarVentasSiToca(v)
+  montarTorneosSiToca(v)
   montarOfertasSiToca(v)
   montarHoySiToca(v)
   montarEscaparateSiToca(v).catch(() => {})
