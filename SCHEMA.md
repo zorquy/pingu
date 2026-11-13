@@ -55204,6 +55204,40 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1336 — Redes: eventos, lanzamientos, novedades y «Compartir» con imagen
+
+`redes-textos.js` suma `piezaDeEvento` (null si no está publicado o ya pasó,
+`esPasado`), `piezaSemanaDeEventos` (dos o más en siete días; clave
+`eventos:semana:<lunes>`, `lunesDe` en hora de España), `piezaDeLanzamiento`
+(ventana de 45 días adelante y 14 atrás salvo `{ todos: true }`; clave
+`lanzamiento:<set>:sale|salio`; con `caras` —tres o más— y ya en tiendas, la
+segunda diapositiva) y `piezaDeNovedadesDelMes(novedades, 'AAAA-MM')`. El
+set llega con la forma de `eventoDeSet` de lanzamientos.js. `cuandoSale` da
+«¡Sale hoy!», «Sale mañana», «Sale el viernes» (menos de una semana), «Sale el
+3 de diciembre» o «En tiendas desde el 7 de noviembre».
+
+`redes-piezas.js` suma los pintores `evento`, `eventos-semana`,
+`lanzamiento`, `lanzamiento-caras`, `novedades-portada` y
+`novedades-destacada`, y `cargar` lleva un tope de 5 s (`Promise.race`).
+OJO: en `lanzamiento` `datos.cartas` es un NÚMERO (las del set) y en
+`lanzamiento-caras` una LISTA; `imagenesDe` solo carga imágenes si es lista.
+
+El panel lee `eventos` (publicados desde hace dos días), `cargarCalendario
+('WEST')` de lanzamientos.js (el siguiente, los próximos y los cuatro últimos
+que salieron) con las tres más caras de cada set ya en tiendas (`tcg_cards`
+del set y `tcg_card_prices.cm_trend`, de 150 en 150) y `/novedades.json` (este
+mes y el anterior).
+
+`js/redes-compartir.js` → `compartirPieza(pieza, { titulo })`: la hoja de
+siempre (`abrirHojaCompartir`, `invitar: false`, `historiaPropia: true`) con la
+primera diapositiva en los tres tamaños y `x` de la pieza. La usan guia.js
+(una guía; las noticias siguen con `compartirNoticia`), torneo.js (resultados
+si los hay, si no el anuncio; sin pieza, el enlace de antes), eventos.js (la
+ficha; sin pieza, el enlace) y lanzamientos.js (`[data-lanz-compartir]` en el
+cartel del siguiente, con `pintar.siguiente`).
+
+Prueba: `test-tanda-1336.mjs`.
+
 ## Tanda 1335 — /admin → Redes (noticias, guías y torneos)
 
 Tres piezas, de lo puro a la pantalla:

@@ -22,11 +22,12 @@ import { cuandoFue } from '../../js/articulos.js'
 import { direccionDeX } from '../../js/compartir-x.js'
 import {
   TIPOS, REDES, piezaDeNoticia, piezaDeGuia, piezasDeTorneo, hechosDe, filtrarPiezas, ordenarPiezas, cuentasDe,
+  piezaDeEvento, piezaSemanaDeEventos, piezaDeLanzamiento, piezaDeNovedadesDelMes,
 } from '../../js/redes-textos.js'
 
 const iconoInstagram = (s) => icon('<rect x="2" y="2" width="20" height="20" rx="5"></rect><circle cx="12" cy="12" r="4"></circle><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line>', s)
 const iconoDescargar = (s) => icon('<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line>', s)
-const ICONO_TIPO = { noticia: 'newspaper', guia: 'bookOpen', torneo: 'trophy' }
+const ICONO_TIPO = { noticia: 'newspaper', guia: 'bookOpen', torneo: 'trophy', evento: 'calendar', lanzamiento: 'cards', novedades: 'sparkles' }
 
 const LOCAL = 'pd-redes-hechos'
 const faltaTabla = (e) => /redes_compartido|PGRST205|42P01|does not exist|Could not find the table/i.test(`${e?.code} ${e?.message}`)
@@ -102,6 +103,63 @@ async function cargarTorneos() {
     }
   }
   return salen
+}
+
+// ── Eventos, lanzamientos y novedades (1336) ──
+async function cargarEventos() {
+  const desde = new Date(Date.now() - 2 * 86400e3).toISOString()
+  const { data, error } = await supabase.from('eventos').select('*').eq('publicado', true).gte('empieza', desde).order('empieza', { ascending: true }).limit(60)
+  if (error || !data?.length) return []
+  const piezas = data.map((e) => piezaDeEvento(e)).filter(Boolean)
+  const semana = piezaSemanaDeEventos(data)
+  return semana ? [semana, ...piezas] : piezas
+}
+
+// Las tres más caras de un set: sus cartas y sus precios (tendencia de
+// Cardmarket, la que enseña la web), de 150 en 150.
+async function carasDe(setId) {
+  const { data: cartas } = await supabase.from('tcg_cards').select('id, name, name_es, image_path, market').eq('set_id', setId).eq('market', 'WEST').limit(500)
+  if (!cartas?.length) return []
+  const ids = cartas.map((c) => c.id)
+  const precios = []
+  for (let i = 0; i < ids.length; i += 150) {
+    const { data } = await supabase.from('tcg_card_prices').select('card_id, cm_trend, cm_avg7').in('card_id', ids.slice(i, i + 150))
+    precios.push(...(data || []))
+  }
+  const porId = new Map(cartas.map((c) => [c.id, c]))
+  const { urlDeImagen } = await import('../../js/carta-ruta.js')
+  return precios
+    .map((p) => ({ c: porId.get(p.card_id), precio: Number(p.cm_trend) || Number(p.cm_avg7) || 0 }))
+    .filter((x) => x.c && x.precio > 0)
+    .sort((a, b) => b.precio - a.precio)
+    .slice(0, 3)
+    .map(({ c, precio }) => ({ nombre: c.name_es || c.name, precio, imagen: c.image_path ? urlDeImagen(c.image_path, 'high', c.market) : null }))
+}
+
+async function cargarLanzamientos() {
+  const { cargarCalendario } = await import('../../js/lanzamientos.js')
+  const cal = await cargarCalendario('WEST')
+  const sets = [cal.siguiente, ...cal.proximos, ...cal.pasados.slice(0, 4)].filter(Boolean)
+  const salen = []
+  for (const set of sets) {
+    const primero = piezaDeLanzamiento(set)
+    if (!primero) continue
+    // Solo los que ya salieron tienen precios que contar.
+    const caras = primero.clave.endsWith(':salio') && set.id ? await carasDe(set.id).catch(() => []) : []
+    salen.push(caras.length ? piezaDeLanzamiento(set, { caras }) : primero)
+  }
+  return salen
+}
+
+async function cargarNovedades() {
+  const r = await fetch('/novedades.json', { cache: 'no-cache' })
+  if (!r.ok) return []
+  const nov = await r.json()
+  const ahora = new Date()
+  const mes = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+  const este = mes(ahora)
+  const pasado = mes(new Date(ahora.getFullYear(), ahora.getMonth() - 1, 15))
+  return [piezaDeNovedadesDelMes(nov, este), piezaDeNovedadesDelMes(nov, pasado)].filter(Boolean)
 }
 
 async function cargarHechos() {
@@ -321,8 +379,12 @@ function escuchar() {
 export async function montarRedes(el) {
   raiz = el
   raiz.innerHTML = '<p class="admin-note">Cargando lo que se puede compartir…</p>'
-  const [a, b, h] = await Promise.all([cargarGuias().catch(() => []), cargarTorneos().catch(() => []), cargarHechos().catch(() => new Map())])
-  piezas = ordenarPiezas([...a, ...b])
+  const nada = () => []
+  const [a, b, c, d, e, h] = await Promise.all([
+    cargarGuias().catch(nada), cargarTorneos().catch(nada), cargarEventos().catch(nada),
+    cargarLanzamientos().catch(nada), cargarNovedades().catch(nada), cargarHechos().catch(() => new Map()),
+  ])
+  piezas = ordenarPiezas([...a, ...b, ...c, ...d, ...e])
   hechos = h
   escuchar()
   pintar()

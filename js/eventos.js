@@ -404,6 +404,14 @@ async function pintarFicha(slug, sesion) {
     if (ev.target.closest('[data-voy]')) { recien = !e.voy; await alternarVoy(e, !e.voy, false, pintar, alDia); if (recien) setTimeout(() => { recien = false }, 2500) }
     if (ev.target.closest('#evCalendario')) { descargarCalendario(e); return }
     if (ev.target.closest('#evCompartir')) {
+      // Con su cartel (1336): la pieza de /admin → Redes en la hoja de
+      // compartir. Si no la hay (ya pasó), el enlace, como antes.
+      const pieza = await import('./redes-textos.js').then((m) => m.piezaDeEvento(e)).catch(() => null)
+      if (pieza) {
+        const { compartirPieza } = await import('./redes-compartir.js')
+        await compartirPieza(pieza, { titulo: 'Compartir el evento' })
+        return
+      }
       const url = `${location.origin}${rutaDe(e)}`
       try {
         if (navigator.share) await navigator.share({ title: e.nombre, text: `${e.nombre} · ${desc}`, url })

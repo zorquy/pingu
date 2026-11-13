@@ -323,6 +323,7 @@ function destacadoHtml(e) {
       <h2 class="lanz-cartel-titulo">${e.href ? `<a href="${escapeHtml(e.href)}">` : ''}${logoHtml(e, 'lanzamiento-logo-grande')}<span class="lanz-cartel-nombre">${escapeHtml(e.nombre)}</span>${e.href ? '</a>' : ''}</h2>
       <span class="lanzamiento-cuenta lanzamiento-cuenta-grande lanz-reloj" data-fecha="${escapeHtml(e.fecha)}">${relojHtml(e.fecha)}</span>
       <p class="subtext lanz-cartel-pie">${[e.cartas ? `${e.cartas} cartas` : '', e.codigo].filter(Boolean).map(escapeHtml).join(' · ')}</p>
+      <button type="button" class="btn-secondary lanz-compartir" data-lanz-compartir>${icons.share(16)} Compartir</button>
     </div>`
 }
 
@@ -364,6 +365,7 @@ async function pintar(mercado) {
     return
   }
   if (siguiente) {
+    pintar.siguiente = siguiente
     destacadoEl.innerHTML = destacadoHtml(siguiente)
     destacadoEl.classList.remove('hidden')
     // El reloj corre solo, minuto a minuto, mientras la página está abierta.
@@ -395,6 +397,13 @@ async function pintar(mercado) {
 }
 
 function init() {
+  // «Compartir» del cartel (1336): la pieza del lanzamiento, con su logo y lo
+  // que falta, en la hoja de compartir (la misma de /admin → Redes).
+  $('proximoDestacado')?.addEventListener('click', async (ev) => {
+    if (!ev.target.closest('[data-lanz-compartir]') || !pintar.siguiente) return
+    const [{ piezaDeLanzamiento }, { compartirPieza }] = await Promise.all([import('./redes-textos.js'), import('./redes-compartir.js')])
+    compartirPieza(piezaDeLanzamiento(pintar.siguiente, { todos: true }), { titulo: 'Compartir el lanzamiento' })
+  })
   // Los iconos de color de las cabeceras de bloque (1214).
   for (const el of document.querySelectorAll('.cab-bloque-ico[data-icono]')) el.innerHTML = icons[el.dataset.icono]?.(16) || ''
   const sel = $('lanzCatalogo')

@@ -4,6 +4,40 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (585) — PINGU-Claude (1336 — Redes: eventos, lanzamientos, novedades y «Compartir» con imagen)
+
+**Hecho**: lo segundo de «Redes desde el panel».
+- **/admin → Redes** saca ahora también: cada **evento** publicado que no ha
+  pasado (su cartel, o su logo, o las siglas en su color; día, sitio y entrada),
+  **«Esta semana»** cuando hay dos o más eventos en los próximos siete días, los
+  **lanzamientos** («Sale mañana», «Sale el viernes», «En tiendas desde…»; y si
+  ya salió, un carrusel con **«Las más caras»** de la expansión con su precio de
+  Cardmarket) y **lo nuevo del mes** de `novedades.json` (portada con lo que ha
+  cambiado y una diapositiva por destacada; si el mes aún no tiene destacadas,
+  sus tres últimas cosas nuevas). Filtros nuevos: Eventos, Lanzamientos y
+  Novedades.
+- **«Compartir» con imagen en las páginas** (lo que pidió PINGU: «esto a la
+  gente le interesaría»): en una **guía**, un **torneo** (el anuncio con las
+  plazas que quedan o, terminado, el podio), un **evento** y el cartel del
+  siguiente set en **/lanzamientos** se abre la hoja de compartir de las
+  noticias con la imagen de la pieza, el texto y «Publicar en X». Sin pieza
+  (un torneo privado, un evento que ya pasó) sigue el enlace de antes.
+- Una imagen externa que no contesta (un logo de un CDN) ya no deja la imagen
+  «dibujándose» para siempre: a los 5 s se dibuja sin ella.
+
+**Pendiente para PINGU**: nada nuevo que ejecutar (la migración sigue siendo la
+1335). Queda la 1337: el meta de la semana, las que más suben, los hitos y
+«Hoy toca».
+
+**Lo que NO va**: el carrusel en la hoja pública (la gente comparte la primera
+imagen; el carrusel es cosa del equipo, en el panel). Las más caras salen de la
+tendencia de Cardmarket de las cartas del set occidental.
+
+**Ficheros**: js/redes-textos.js, js/redes-piezas.js, js/redes-compartir.js
+(nuevo), admin/js/redes-admin.js, js/guia.js, js/torneos/torneo.js,
+js/eventos.js, js/lanzamientos.js, css/lanzamientos.css, novedades.json. En
+`pruebas`: test-tanda-1336.mjs; al día 880 (la guía ya abre la hoja) y 1335.
+
 ## 2026-11-13 (584) — PINGU-Claude (1335 — /admin → Redes: noticias, guías y torneos)
 
 **Hecho**: lo primero de «Redes desde el panel» (PINGU: «esto es para mí, para

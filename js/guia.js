@@ -11,7 +11,7 @@ import { showToast } from './toast.js'
 import { icons } from './icons.js'
 import { MOSTRAR_PLANES } from './planes.js'
 import { montarBotonHelpful } from './guide-helpful.js'
-import { compartirHtml, engancharCompartir } from './compartir.js'
+import { compartirHtml } from './compartir.js'
 import { contributorBadgeHtml } from './contributor-badge.js'
 import { montarSugerencia, creditosHtml } from './guide-suggestions.js'
 import { laVeLaGente, estadoDeGuia } from './guia-estado.js'
@@ -610,7 +610,12 @@ async function init() {
       compartirNoticia(guide)
     })
   } else {
-    engancharCompartir(document.getElementById('btnCompartir'), { titulo: guide.title })
+    // Una guía, con su portada dibujada (1336): la misma pieza que saca el
+    // equipo en /admin → Redes, en la hoja de compartir.
+    document.getElementById('btnCompartir')?.addEventListener('click', async () => {
+      const [{ piezaDeGuia }, { compartirPieza }] = await Promise.all([import('./redes-textos.js'), import('./redes-compartir.js')])
+      compartirPieza(piezaDeGuia(guide), { titulo: 'Compartir la guía' })
+    })
   }
 
   setupReadTracking(session, guide, esNoticia)

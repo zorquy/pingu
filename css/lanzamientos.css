@@ -597,6 +597,8 @@ html.con-barra-movil .lanz-banda h1 { position: absolute; width: 1px; height: 1p
 .lanz-cartel .lanz-avisar { order: 5; margin: 0; min-height: 44px; padding: 0 var(--e-lg); border-radius: var(--radius-pill); background: var(--oro); color: var(--blanco-fijo); border: 0; }
 :root[data-theme='dark'] .lanz-cartel .lanz-avisar { color: #0b1219; }
 .lanz-cartel .lanz-avisar svg { width: 16px; height: 16px; }
+/* Compartir (1336): detrás de «Avísame», en pastilla como él. */
+.lanz-cartel .lanz-compartir { order: 6; display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 44px; padding: 0 var(--e-lg); border-radius: var(--radius-pill); }
 .lanz-cartel .lanz-dest-sobres { position: absolute; right: var(--e-lg); bottom: var(--e-lg); margin: 0; }
 .lanz-cartel .lanz-dest-sobres img { width: 84px; height: 112px; }
 @media (max-width: 599px) {

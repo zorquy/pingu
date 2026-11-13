@@ -246,6 +246,22 @@ function montarCompartir() {
   // La palabra va en su caja: en el móvil se queda el icono solo (1145).
   boton.innerHTML = `${icons.share(14)}<span class="torneo-cab-palabra">Compartir</span>`
   boton.addEventListener('click', async () => {
+    // Con imagen (1336): el anuncio con las plazas que quedan o, terminado,
+    // el podio; la misma pieza que saca el equipo en /admin → Redes. Un
+    // torneo privado o en borrador no tiene pieza: va el enlace, como antes.
+    try {
+      const { piezasDeTorneo } = await import('../redes-textos.js')
+      const nombres = Object.fromEntries(inscripciones.filter((i) => i.perfil?.username).map((i) => [i.user_id, i.perfil.username]))
+      const piezas = piezasDeTorneo(torneo, { inscritos: activos(), nombres })
+      const pieza = piezas.find((p) => p.clave.endsWith(':resultados')) || piezas[0]
+      if (pieza) {
+        const { compartirPieza } = await import('../redes-compartir.js')
+        await compartirPieza(pieza, { titulo: 'Compartir el torneo' })
+        return
+      }
+    } catch (err) {
+      console.warn('[torneo] compartir con imagen', err)
+    }
     const url = new URL(`/torneo?slug=${encodeURIComponent(torneo.slug)}`, window.location.origin).href
     if (navigator.share) {
       // Cancelar la hoja del sistema llega como excepción: no es un
