@@ -602,3 +602,54 @@
   font-size: var(--t-xs);
   font-weight: 600;
 }
+
+/* Borrar mi cuenta en tres pasos (1314). */
+.aj-pasos {
+  display: flex;
+  gap: var(--e-sm);
+  list-style: none;
+  padding: 0;
+  margin: 0 0 var(--e-md);
+}
+.aj-pasos li {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: var(--t-sm);
+  font-weight: 700;
+  border: 2px solid var(--border-strong);
+  color: var(--text-mid);
+}
+.aj-pasos li[aria-current] { background: var(--danger-solid); border-color: var(--danger-solid); color: var(--blanco-fijo); }
+.aj-pasos li.hecho { border-color: var(--danger); color: var(--danger); }
+.aj-borrar-lista {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--e-sm) var(--e-md);
+  margin-bottom: var(--e-sm);
+}
+.aj-borrar-lista p { margin: 0; }
+.aj-borrar-lista p + p { color: var(--text-mid); font-size: var(--t-sm); margin-top: var(--e-xs); }
+.aj-borrar-botones { display: flex; gap: var(--e-sm); justify-content: flex-end; flex-wrap: wrap; margin-top: var(--e-md); }
+.aj-borrar-ya:not(:disabled) { background: var(--danger-solid); color: var(--blanco-fijo); }
+.aj-borrar-aviso {
+  background: var(--danger-bg);
+  border-radius: var(--radius-md);
+  padding: var(--e-md);
+}
+.aj-borrar-aviso p { margin: 0 0 var(--e-sm); }
+.aj-campo {
+  width: 100%;
+  min-height: 44px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  color: var(--text);
+  font: inherit;
+  font-size: var(--t-lg); /* 16 px: con menos, el iPhone hace zoom (1132) */
+  resize: vertical;
+}
+.aj-campo:focus { outline: none; box-shadow: var(--shadow-ring); }

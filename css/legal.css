@@ -40,3 +40,30 @@
 .legal-page .subtext {
   margin-bottom: 24px;
 }
+
+/* En un minuto (1314, D4): seis tarjetas antes del texto completo. */
+.pv-tarjetas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--e-md);
+  margin: var(--e-lg) 0;
+}
+.pv-tarjeta {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--e-md);
+}
+.pv-tarjeta h3 {
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  margin: 0 0 var(--e-xs);
+}
+.legal-page .pv-tarjeta p { margin: 0; font-size: var(--t-sm); }
+.pv-cambios {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: var(--e-sm) var(--e-md);
+  margin-bottom: var(--e-lg);
+}
+.pv-cambios summary { cursor: pointer; font-weight: 600; min-height: 44px; display: flex; align-items: center; }

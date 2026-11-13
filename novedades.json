@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Descarga todo lo tuyo en un ZIP (también tu colección en CSV) y, si un día quieres irte, borra tu cuenta tú solo, con 14 días para arrepentirte.", "enlace": "/ajustes?ver=datos" },
+    { "fecha": "2026-11-13", "tipo": "mejora", "texto": "La política de privacidad, en un minuto: seis tarjetas con lo importante y qué ha cambiado.", "enlace": "/privacidad" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Al crear una cuenta confirmas que tienes 14 años o más, y el registro y la entrada están preparados contra los bots.", "enlace": "/auth?registro=1" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "Menos spam: el foro y los mensajes frenan a quien publica a lo loco, las cuentas recién creadas no pueden poner enlaces el primer día, y un mensaje que denuncian varios usuarios se esconde hasta que lo revisa el equipo." },
     { "fecha": "2026-11-13", "tipo": "nuevo", "texto": "Ajustes › Seguridad: activa el doble factor (un código de tu app además de la contraseña) y mira dónde tienes la sesión abierta, para cerrar las que no sean tuyas.", "enlace": "/ajustes?ver=seguridad" },

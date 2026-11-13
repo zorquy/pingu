@@ -207,6 +207,7 @@ btnLogin?.addEventListener('click', async () => {
     }
   } catch { /* sin el módulo, como antes */ }
 
+  await ofrecerCancelarBorrado()
   await afterAuth(data.user.id)
 })
 
@@ -221,6 +222,34 @@ btnResendConfirmation?.addEventListener('click', async () => {
   btnResendConfirmation.disabled = false
   showToast(error ? friendlyAuthError(error) : 'Te hemos reenviado el enlace de confirmación.', error ? 'error' : 'success')
 })
+
+// Con el borrado pedido (1314), al entrar se ofrece cancelarlo: «entrando lo
+// cancelas». Sin la migración, la función no existe y no se pregunta nada.
+async function ofrecerCancelarBorrado() {
+  const { data, error } = await supabase.rpc('cuenta_borrado_pendiente')
+  const r = !error && (Array.isArray(data) ? data[0] : data)
+  if (!r?.borrar_at) return
+  const cuando = new Date(r.borrar_at).toLocaleDateString('es-ES', { day: 'numeric', month: 'long' })
+  // La ventana tiene la forma de la del código (1307): su CSS va con ella.
+  try { (await import('./doble-factor.js')).ponerCss() } catch { /* sin estilo, pero sale */ }
+  await new Promise((listo) => {
+    const d = document.createElement('dialog')
+    d.className = 'df-dialogo'
+    d.innerHTML = `<h2>Tu cuenta se borrará el ${escapeHtml(cuando)}</h2>
+      <p>Lo pediste hace unos días. ¿Te quedas?</p>
+      <div class="df-botones"><button type="button" class="btn-secondary" data-seguir>Seguir con el borrado</button><button type="button" class="btn-primary" data-cancelar>Cancelar el borrado</button></div>`
+    document.body.append(d)
+    const fin = () => { d.close(); d.remove(); listo() }
+    d.querySelector('[data-seguir]').addEventListener('click', fin)
+    d.querySelector('[data-cancelar]').addEventListener('click', async () => {
+      const { error: e } = await supabase.rpc('cuenta_cancelar_borrado')
+      showToast(e ? 'No se ha podido cancelar: ' + e.message : 'Cancelado. ¡Nos alegra que te quedes!', e ? 'error' : 'success')
+      fin()
+    })
+    d.addEventListener('cancel', (e) => { e.preventDefault(); fin() })
+    d.showModal()
+  })
+}
 
 // ── Registro ──
 const btnRegister = document.getElementById('btnRegister')

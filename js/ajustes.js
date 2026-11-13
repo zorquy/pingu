@@ -24,7 +24,7 @@ const APARTADOS = [
   { id: 'seguridad', nombre: 'Seguridad', sub: 'Doble factor y sesiones abiertas', icono: 'shield' },
   { id: 'privacidad', nombre: 'Privacidad', sub: 'Tu actividad en Comunidad', icono: 'eye' },
   { id: 'apariencia', nombre: 'Apariencia', sub: 'Tema claro, oscuro o el del sistema', icono: 'palette' },
-  { id: 'datos', nombre: 'Tus datos', sub: 'Exportar e importar la colección', icono: 'upload' },
+  { id: 'datos', nombre: 'Tus datos', sub: 'Descargar todo, exportar e importar', icono: 'upload' },
   { id: 'invitar', nombre: 'Invitar a un amigo', sub: 'Tu enlace de invitación', icono: 'users' },
   { id: 'borrar', nombre: 'Borrar mi cuenta', sub: '', icono: 'trash', peligro: true },
 ]
@@ -467,7 +467,8 @@ function montarApariencia(panel) {
 // ── Tus datos ──
 const datosHtml = () => `
     <h2>Tus datos</h2>
-    <p>Tu colección es tuya: te la llevas en un CSV, y traes la que tengas en otra app.</p>
+    <p>Lo tuyo es tuyo: te lo llevas entero cuando quieras, y traes tu colección de otra app.</p>
+    <div class="aj-dato"><span>Descargar todo<br><small class="subtext" id="ajDescargaEstado">Un ZIP con tu cuenta, tu perfil, tu colección (también en CSV), deseos, mazos, partidas, temas, mensajes que enviaste, tratos y avisos. Se hace en tu navegador.</small></span><button type="button" class="btn-primary" id="ajDescargar">Descargar</button></div>
     <div class="aj-dato"><span>Exportar mi colección<br><small class="subtext">Un CSV con todas tus cartas, desde el Panel de Mi colección.</small></span><a class="btn-secondary" href="/mi-coleccion">Ir al Panel</a></div>
     <div class="aj-dato"><span>Importar un CSV<br><small class="subtext">De Collectr, Dex o cualquier hoja con el formato de PokeDoc.</small></span><a class="btn-secondary" href="/mi-coleccion?importar=1">Importar</a></div>`
 
@@ -503,28 +504,114 @@ async function montarInvitar(panel) {
   } catch {}
 }
 
-// ── Borrar mi cuenta ──
+// ── Tus datos: descargar todo (1314) ──
+function montarDatos(panel) {
+  const btn = panel.querySelector('#ajDescargar')
+  const estado = panel.querySelector('#ajDescargaEstado')
+  btn?.addEventListener('click', async () => {
+    btn.disabled = true
+    const antes = estado.textContent
+    try {
+      const { prepararMisDatos } = await import('./mis-datos.js')
+      const { bytes, resumen } = await prepararMisDatos(supabase, session.user.id, (t) => { estado.textContent = t })
+      const url = URL.createObjectURL(new Blob([bytes], { type: 'application/zip' }))
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `pokedoc-${perfil?.username || 'mis-datos'}-${new Date().toISOString().slice(0, 10)}.zip`
+      document.body.append(a)
+      a.click()
+      a.remove()
+      setTimeout(() => URL.revokeObjectURL(url), 60000)
+      estado.textContent = `Listo: ${resumen.leidas.length} cosas tuyas en el ZIP.`
+    } catch (e) {
+      estado.textContent = antes
+      showToast('No se ha podido preparar la descarga: ' + (e?.message || e), 'error')
+    } finally {
+      btn.disabled = false
+    }
+  })
+}
+
+// ── Borrar mi cuenta (1314) ──
+// Tres pasos (por qué, qué se borra y qué queda, escribir tu usuario) y 14
+// días para arrepentirse. Lo hace la base (`cuenta_pedir_borrado`, migración
+// 1314); sin la migración, la solicitud de siempre para el equipo.
+const fechaLarga = (iso) => new Date(iso).toLocaleDateString('es-ES', { day: 'numeric', month: 'long', year: 'numeric' })
 const borrarHtml = () => `
     <h2>Borrar mi cuenta</h2>
-    <p>Se borra tu cuenta y tus datos. No es al instante: el equipo lo revisa y lo confirma a mano.</p>
-    <p class="aj-nota" id="ajBorrarEstado"></p>
-    <button type="button" class="btn-secondary aj-borrar hidden" id="ajBorrar">Solicitar el borrado de mi cuenta</button>`
+    <div id="ajBorrarCaja"><p class="aj-nota">Cargando…</p></div>`
 
 async function montarBorrar(panel) {
-  const btn = panel.querySelector('#ajBorrar')
-  const estado = panel.querySelector('#ajBorrarEstado')
+  const caja = panel.querySelector('#ajBorrarCaja')
+  const usuario = perfil?.username || ''
+  let paso = 1
+  let motivo = ''
+  const pintarPendiente = (r) => {
+    caja.innerHTML = r.borrar_at
+      ? `<div class="aj-borrar-aviso"><p><strong>Tu cuenta se borrará el ${escapeHtml(fechaLarga(r.borrar_at))}.</strong></p><p>Hasta entonces todo sigue igual. Si cambias de idea, cancélalo aquí.</p><button type="button" class="btn-primary" id="ajBorrarCancelar">Cancelar el borrado</button></div>`
+      : `<div class="aj-borrar-aviso"><p><strong>Tu solicitud de borrado está pendiente.</strong></p><p>Es una cuenta de tienda: el equipo la revisa para que sus ventas cuadren y te escribe.</p><button type="button" class="btn-secondary" id="ajBorrarCancelar">Cancelar la solicitud</button></div>`
+    caja.querySelector('#ajBorrarCancelar').addEventListener('click', async (e) => {
+      e.currentTarget.disabled = true
+      const { error } = await supabase.rpc('cuenta_cancelar_borrado')
+      showToast(error ? 'No se ha podido cancelar: ' + error.message : 'Cancelado. Tu cuenta sigue aquí.', error ? 'error' : 'success')
+      await pintar()
+    })
+  }
+  const pintarPaso = () => {
+    const pasos = `<ol class="aj-pasos" aria-label="Paso ${paso} de 3">${[1, 2, 3].map((n) => `<li${n === paso ? ' aria-current="step"' : ''}${n < paso ? ' class="hecho"' : ''}>${n}</li>`).join('')}</ol>`
+    if (paso === 1) {
+      caja.innerHTML = `${pasos}<p>¿Por qué te vas? (no hace falta, pero nos ayuda)</p>
+        <textarea class="aj-campo" id="ajBorrarMotivo" rows="3" maxlength="500" placeholder="Opcional">${escapeHtml(motivo)}</textarea>
+        <p class="aj-nota">¿Prefieres llevarte antes tus cosas? <a href="/ajustes?ver=datos">Descarga tus datos</a>.</p>
+        <div class="aj-borrar-botones"><button type="button" class="btn-secondary aj-borrar" id="ajBorrarSig">Siguiente</button></div>`
+    } else if (paso === 2) {
+      caja.innerHTML = `${pasos}
+        <div class="aj-borrar-lista"><p><strong>Esto se borra</strong></p><p>Tu perfil (nombre, foto, bio), tu colección, deseos, álbumes, mazos y partidas, tus mensajes privados, tus direcciones y cobros guardados, tus avisos y a quién sigues.</p></div>
+        <div class="aj-borrar-lista"><p><strong>Esto queda, sin tu nombre</strong></p><p>Tus temas y respuestas del foro y los tratos cerrados: la otra persona y el foro los necesitan. Saldrán como «Usuario borrado».</p></div>
+        <div class="aj-borrar-lista"><p><strong>Puedes volver atrás</strong></p><p>Se borra dentro de 14 días. Hasta entonces, entrando lo cancelas.</p></div>
+        <div class="aj-borrar-botones"><button type="button" class="btn-secondary" id="ajBorrarAtras">Atrás</button><button type="button" class="btn-secondary aj-borrar" id="ajBorrarSig">Siguiente</button></div>`
+    } else {
+      caja.innerHTML = `${pasos}<p>Para confirmarlo, escribe tu nombre de usuario: <strong>${escapeHtml(usuario)}</strong></p>
+        <input class="aj-campo" id="ajBorrarUsuario" autocomplete="off" autocapitalize="none" spellcheck="false" />
+        <div class="aj-borrar-botones"><button type="button" class="btn-secondary" id="ajBorrarAtras">Atrás</button><button type="button" class="btn-primary aj-borrar-ya" id="ajBorrarYa" disabled>Borrar mi cuenta</button></div>`
+      const campo = caja.querySelector('#ajBorrarUsuario')
+      const ya = caja.querySelector('#ajBorrarYa')
+      campo.addEventListener('input', () => { ya.disabled = campo.value.trim().toLowerCase() !== usuario.toLowerCase() })
+      ya.addEventListener('click', async () => {
+        ya.disabled = true
+        const r = await supabase.rpc('cuenta_pedir_borrado', { p_motivo: motivo || null })
+        if (r.error && /cuenta_pedir_borrado|PGRST202|42883/.test(`${r.error.message} ${r.error.code}`)) {
+          // Sin la migración 1314: la solicitud de antes, para el equipo.
+          const { error } = await supabase.from('account_deletion_requests').insert({ user_id: session.user.id, status: 'pending', reason: motivo || null })
+          showToast(error ? 'No se ha podido enviar: ' + error.message : 'Solicitud enviada. El equipo la confirmará.', error ? 'error' : 'success')
+        } else if (r.error) {
+          showToast('No se ha podido pedir el borrado: ' + r.error.message, 'error')
+        } else {
+          showToast(r.data ? `Hecho. Tu cuenta se borrará el ${fechaLarga(r.data)}.` : 'Hecho. El equipo revisará tu tienda.', 'success')
+        }
+        await pintar()
+      })
+    }
+    caja.querySelector('#ajBorrarAtras')?.addEventListener('click', () => { paso--; pintarPaso() })
+    caja.querySelector('#ajBorrarSig')?.addEventListener('click', () => {
+      if (paso === 1) motivo = caja.querySelector('#ajBorrarMotivo').value.trim()
+      paso++
+      pintarPaso()
+    })
+  }
   const pintar = async () => {
-    const { data } = await supabase.from('account_deletion_requests').select('status').eq('user_id', session.user.id).eq('status', 'pending').maybeSingle()
-    btn.classList.toggle('hidden', Boolean(data))
-    estado.textContent = data ? 'Ya tienes una solicitud de borrado pendiente de revisión.' : ''
+    const r = await supabase.rpc('cuenta_borrado_pendiente')
+    let pendiente = !r.error && (Array.isArray(r.data) ? r.data[0] : r.data)
+    if (r.error) {
+      // Sin la migración: la tabla de siempre.
+      const { data } = await supabase.from('account_deletion_requests').select('created_at').eq('user_id', session.user.id).eq('status', 'pending').maybeSingle()
+      pendiente = data ? { borrar_at: null } : null
+    }
+    if (pendiente) return pintarPendiente(pendiente)
+    paso = 1
+    pintarPaso()
   }
   await pintar()
-  btn.addEventListener('click', async () => {
-    if (!confirm('Vas a solicitar el borrado de tu cuenta y de tus datos. No se borra al instante — el equipo lo revisa y lo confirma a mano. ¿Continuar?')) return
-    const { error } = await supabase.from('account_deletion_requests').insert({ user_id: session.user.id, status: 'pending' })
-    showToast(error ? 'No se pudo enviar la solicitud: ' + error.message : 'Solicitud enviada. Te confirmaremos cuando esté procesada.', error ? 'error' : 'success')
-    if (!error) await pintar()
-  })
 }
 
 const SECCIONES = {
@@ -535,7 +622,7 @@ const SECCIONES = {
   seguridad: [() => '<h2>Seguridad</h2><p class="aj-nota">Cargando…</p>', (panel) => import('./ajustes-seguridad.js').then((m) => { panel.innerHTML = m.seguridadHtml(); m.montarSeguridad(panel) }).catch(() => { panel.innerHTML = '<h2>Seguridad</h2><p class="aj-nota">No se ha podido cargar. Recarga la página.</p>' })],
   privacidad: [privacidadHtml, montarPrivacidad],
   apariencia: [aparienciaHtml, montarApariencia],
-  datos: [datosHtml, () => {}],
+  datos: [datosHtml, montarDatos],
   invitar: [invitarHtml, montarInvitar],
   borrar: [borrarHtml, montarBorrar],
 }

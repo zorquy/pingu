@@ -4,6 +4,41 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (561) — PINGU-Claude (1314 — tus datos: descargar todo y borrar la cuenta tú solo; la privacidad en un minuto)
+
+**Hecho**: la S11 y la D4.
+- **Descargar todo** (Ajustes › Tus datos): un ZIP hecho EN EL NAVEGADOR
+  (`js/mis-datos.js`, sin funciones de Netlify ni librerías: el ZIP «stored»
+  son veinte líneas con su CRC32): LEEME, cuenta, perfil, un JSON por tabla
+  tuya (40 tablas, lo que no exista se apunta en el LEEME) y la colección
+  también en CSV.
+- **Borrar mi cuenta** en tres pasos (por qué, qué se borra y qué queda,
+  escribir tu usuario) y 14 días para arrepentirse; al entrar con contraseña,
+  si está pedido, se ofrece cancelarlo. Lo hace la BASE (migración 1314):
+  `cuenta_pedir_borrado` / `_cancelar_` / `_pendiente`, y `cuenta_borrar`
+  (solo el cron `pokedoc-borrar-cuentas`, 04:17) que NO borra filas de
+  `auth.users` ni de `user_profiles` (la prudencia de la migración vieja: no
+  se sabe qué harían las claves ajenas): borra lo privado (44 pares tabla ×
+  columna, mirando que existan), vacía sus mensajes privados, deja el perfil
+  como «Usuario borrado» y quita el acceso (email inventado, sin contraseña,
+  sin Google ni sesiones, `banned_until` infinito). Una tienda no se borra
+  sola: queda para el equipo, como antes.
+- **Privacidad** (D4): seis tarjetas arriba (qué, para qué, quién lo ve,
+  cuánto tiempo, lo que nunca, tus derechos), «Qué ha cambiado» y el texto al
+  día: tiendas, tratos, direcciones y Bizum (30 días), fotos de mensajes,
+  doble factor, Turnstile, copias cifradas, borrado en 14 días y la casilla de
+  la edad. Fuera la «pestaña Acerca», que ya no existía.
+
+**Ficheros**: supabase-migration-1314-borrar-cuenta.sql y js/mis-datos.js
+(nuevos), js/ajustes.js, js/auth.js, js/doble-factor.js (`ponerCss`
+exportado), css/ajustes.css, privacidad.html, css/legal.css, SCHEMA.md,
+BITACORA.md, novedades.json. En `pruebas`: test-tanda-1314 (nueva: el ZIP lo
+abre Python, la migración contra PostgreSQL y el navegador) y 868.
+
+**Pendiente**: la migración 1314 (y pg_cron activo, el de la 1310; sin él,
+`select cuentas_borrar_vencidas();` a mano de vez en cuando). Lo legal hay
+que repasarlo con alguien que sepa: está escrito para que sea fácil.
+
 ## 2026-11-13 (560) — PINGU-Claude (1313 — topes, freno de la analítica, CSP en informe y copia diaria)
 
 **Hecho**: S7, S8, S9 y S10.

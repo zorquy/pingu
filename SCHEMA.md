@@ -55204,6 +55204,25 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1314 — descargar tus datos y borrar tu cuenta tú solo
+
+- `js/mis-datos.js`: `TABLAS_MIAS` (tabla, columna con tu id), `prepararMisDatos
+  (supabase, uid, avance)` → `{ bytes, resumen }`, `zip(ficheros)` (stored,
+  UTF-8, `crc32`) y `aCsv(filas)`. Lo pide Ajustes › Tus datos (`#ajDescargar`)
+  por `import()`. Una tabla nueva con datos de una persona va en
+  `TABLAS_MIAS` y, si es privada, en `v_borrar` de `cuenta_borrar`.
+- Migración 1314: `account_deletion_requests.borrar_at` y el estado
+  `cancelled`; `user_profiles.borrado_at`. Funciones: `cuenta_borrado_pendiente()`
+  (tu solicitud), `cuenta_pedir_borrado(p_motivo)` (14 días; tienda → sin
+  fecha), `cuenta_cancelar_borrado()`, `cuenta_borrar(p_user)` y
+  `cuentas_borrar_vencidas()` (solo el cron y el SQL Editor). `cuenta_borrar`
+  mira cada tabla y columna en `information_schema` antes de tocarla.
+- La web: Ajustes › Borrar en tres pasos (`#ajBorrarSig`, `#ajBorrarUsuario`,
+  `#ajBorrarYa`), su estado pendiente con «Cancelar»; sin la migración, el
+  insert de siempre. `js/auth.js` → `ofrecerCancelarBorrado()` tras entrar.
+- /privacidad: `.pv-tarjetas` y `.pv-cambios` (css/legal.css). Un cambio de
+  lo que se guarda va en el texto Y en «Qué ha cambiado», con su fecha.
+
 ## Tanda 1313 — topes, freno de la analítica, CSP en informe y copia diaria
 
 - **Topes (S7).** `export const config = { rateLimit: { windowLimit, windowSize:

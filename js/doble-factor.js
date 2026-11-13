@@ -69,7 +69,7 @@ const CSS = `.df-dialogo{border:0;border-radius:var(--radius-xl);padding:var(--e
 .df-codigo:focus{outline:none;box-shadow:var(--shadow-ring)}
 .df-error{color:var(--danger);min-height:1.4em;margin:var(--e-sm) 0 0;font-size:var(--t-sm)}
 .df-botones{display:flex;gap:var(--e-sm);justify-content:flex-end;margin-top:var(--e-md)}`
-function ponerCss() {
+export function ponerCss() {
   if (document.getElementById('dfCss')) return
   const s = document.createElement('style')
   s.id = 'dfCss'
