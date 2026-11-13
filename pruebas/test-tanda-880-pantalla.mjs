@@ -105,13 +105,16 @@ console.log('\n── 2. Sin portada se dibuja igual (el degradado), y en el mó
   await ctx.close()
 }
 
-console.log('\n── 3. Una guía sigue como antes: la hoja del sistema con título y dirección ──')
+// Desde la 1336 una guía también abre la hoja con su imagen (la pieza de
+// /admin → Redes), con «Publicar en X» y su dirección.
+console.log('\n── 3. Una guía: la hoja con su portada dibujada (1336) ──')
 {
   const { ctx, page, errores } = await abrir('/guia/guia-1', { noticias: [], guias: [{ id: 'guia-1', slug: 'guia-1', title: 'Cómo construir tu primer mazo', description: 'Paso a paso.' }] })
   await page.click('#btnCompartir')
   await page.waitForTimeout(600)
-  const c = await page.evaluate(() => window.__compartido)
-  check('navigator.share con el título y la dirección, sin hoja propia', c?.title === 'Cómo construir tu primer mazo' && /\/guia\/guia-1$/.test(c?.url || '') && (await page.locator('.ch-hoja[open]').count()) === 0, JSON.stringify(c))
+  await page.waitForSelector('.ch-hoja[open] #chPrevia canvas, .ch-hoja[open] #chPrevia img', { timeout: 15000 }).catch(() => {})
+  const x = await page.locator('[data-ch-x]').getAttribute('href').catch(() => '')
+  check('la hoja con su imagen y «Publicar en X» con la dirección de la guía', (await page.locator('.ch-hoja[open] #chPrevia canvas, .ch-hoja[open] #chPrevia img').count()) === 1 && (x || '').includes(encodeURIComponent('https://pokedoc.es/guia/guia-1')), x)
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

@@ -66,7 +66,8 @@ check('privados, borradores y cancelados: nada', R.piezasDeTorneo({ ...ABIERTO, 
 const hechos = R.hechosDe([{ clave: pg.clave, red: 'x', hecho_at: '2026-11-12T12:00:00Z' }, { clave: pn.clave, red: 'x' }, { clave: pn.clave, red: 'instagram' }, { clave: 'z', red: 'tiktok' }])
 const todas = [pg, pn, anuncio]
 check('«Sin compartir» es que le falta alguna red (la guía solo salió en X: sigue)', R.filtrarPiezas(todas, 'sin', hechos).map((p) => p.tipo).join() === 'guia,torneo')
-check('  …y las cuentas de cada filtro', JSON.stringify(R.cuentasDe(todas, hechos)) === JSON.stringify({ todo: 3, sin: 2, noticia: 1, guia: 1, torneo: 1 }))
+const cu = R.cuentasDe(todas, hechos)
+check('  …y las cuentas de cada filtro', cu.todo === 3 && cu.sin === 2 && cu.noticia === 1 && cu.guia === 1 && cu.torneo === 1, JSON.stringify(cu))
 check('lo más nuevo arriba', R.ordenarPiezas(todas).map((p) => p.tipo).join() === 'noticia,guia,torneo')
 
 console.log('── /admin → Redes ──')
@@ -92,6 +93,8 @@ async function abrir({ movil = false, sinTabla = false, compartido = [] } = {}) 
     if (sinTabla) window.__SIN_TABLAS__ = ['redes_compartido']
   }, { filas: FILAS, sinTabla, compartido })
   await ctx.route(/\/\.netlify\/functions\//, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{}' }))
+  // Lo nuevo del mes (1336) sale de novedades.json: aquí, vacío, que esta prueba mira lo suyo.
+  await ctx.route(/\/novedades\.json/, (r) => r.fulfill({ status: 200, contentType: 'application/json', body: '{"destacadas":[],"entradas":[]}' }))
   await ctx.route((u) => /supabase\.co\/storage/.test(String(u)), (r) => r.fulfill({ status: 200, contentType: 'image/svg+xml', headers: { 'access-control-allow-origin': '*' }, body: '<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#2f6f9f"/><circle cx="600" cy="315" r="200" fill="#e4b44a"/></svg>' }))
   const page = await ctx.newPage()
   page.on('pageerror', (e) => { if (!/serviceWorker' property from 'Navigator'|ViewTransition/.test(String(e))) errores.push(String(e).slice(0, 200)) })
