@@ -4484,3 +4484,53 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 .lc-tu b { font-family: var(--font-marca); font-size: var(--t-2xl); }
 .lc-tu small { font-size: var(--t-xs); color: var(--text-mid); }
 .lc-p .torneo-jcara { margin-right: 2px; }
+
+/* ── 1349: Mi mesa entre jornadas (SCHEMA 1349) ── */
+/* Tu próxima jornada: cuándo, cuánto falta y qué te falta. */
+.torneo-proxima {
+  display: grid;
+  gap: var(--e-md);
+  margin: 0 0 var(--e-md);
+  padding: var(--e-lg);
+  border: 1px solid var(--navy);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(140deg, var(--ice), var(--white) 70%);
+}
+:root[data-theme='dark'] .torneo-proxima { background: linear-gradient(140deg, var(--ice-dark), var(--white) 70%); }
+.torneo-proxima.hidden { display: none; }
+.torneo-proxima-cab { display: flex; align-items: center; gap: var(--e-md); }
+.torneo-proxima-cab > span:last-child { display: grid; gap: 2px; }
+.torneo-proxima-cab strong { font-family: var(--font-display); font-size: var(--t-lg); }
+.torneo-proxima-rot { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-dim); }
+.torneo-proxima-cuenta { display: flex; gap: var(--e-sm); }
+.torneo-proxima-cuenta span {
+  display: grid;
+  justify-items: center;
+  min-width: 64px;
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  border: 1px solid var(--border);
+  line-height: 1.1;
+}
+.torneo-proxima-cuenta b { font-family: var(--font-marca); font-size: var(--t-2xl); font-variant-numeric: tabular-nums; }
+.torneo-proxima-cuenta small { font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-dim); }
+.torneo-proxima-pasos { display: grid; gap: var(--e-xs); margin: 0; padding: 0; list-style: none; }
+.torneo-proxima-pasos li {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: var(--e-xs) var(--e-sm);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  font-size: var(--t-sm);
+  color: var(--text-mid);
+}
+.torneo-proxima-pasos li.hecho svg { color: var(--success); }
+.torneo-proxima-pasos li.falta { background: var(--warning-bg); color: var(--warning); font-weight: 700; }
+.torneo-proxima-boton { justify-self: start; }
+/* «Cómo vas», con caras y forma. */
+.torneo-como-vas li { align-items: center; }
+.torneo-como-vas .torneo-jcara { flex: none; }
+.torneo-como-vas-nombre .torneo-mov { margin-left: var(--e-xs); }
+.torneo-como-vas-nombre .torneo-forma { margin-top: 2px; }

@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (599) — PINGU-Claude (1349 — Mi mesa entre jornadas: cuándo juegas, qué te falta y cómo vas con caras)
+
+**Hecho**:
+- **Tu próxima jornada**, lo primero de Mi mesa entre jornadas de una liga en
+  la que juegas: el día en grande, la cuenta atrás (días, horas, minutos) y
+  tres pasos: estás dentro (con tu usuario de TCG Live), tu lista de esa
+  jornada (en verde si está, en ámbar «sin ella no la juegas» si falta) y el
+  check-in. Sin lista, «Mandar mi lista» baja a tu decklist.
+- **Cómo vas** con la cara de cada uno, sus últimos cinco resultados en
+  cuadritos y la flecha de puestos desde la jornada anterior.
+
+**No hecho**: la lista dibujada como cartas con «Usar la misma» de la maqueta;
+la caja de la decklist sigue como estaba (ya trae la lista anterior puesta para
+guardarla tal cual).
+
+**Ficheros**: `torneo.html`, `js/torneos/ronda.js`, `css/torneos.css`,
+`novedades.json`.
+
+**Pendiente**: 1350 y 1351. Sin migración.
+
 ## 2026-11-13 (598) — PINGU-Claude (1348 — /torneos: tu puesto en tu liga, lo tuyo en cada cartel y el «⋯»)
 
 **Hecho**:

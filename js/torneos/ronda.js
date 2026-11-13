@@ -3000,11 +3000,14 @@ function pintarComoVas() {
   const filas = yo && hayPuntos ? filasAlrededor(computeStandings(montarSnapshot(rondas.length)), yo) : []
   caja.classList.toggle('hidden', !filas.length)
   if (!filas.length) return olvidarPintado('comoVas')
+  // Con caras, forma y flecha (1349, la propuesta «Torneos con caras»).
+  const antes = puestosAntes()
   const html = `<ol class="torneo-como-vas">${filas
     .map((f) => `${f.salto ? '<li class="torneo-como-vas-salto" aria-hidden="true">…</li>' : ''}
       <li class="${f.yo ? 'torneo-fila-yo' : ''}"${f.yo ? ' aria-current="true"' : ''}>
         <span class="torneo-pos${f.pos <= 3 ? ` torneo-pos-${f.pos}` : ''}">${f.pos}</span>
-        <span class="torneo-como-vas-nombre">${f.yo ? 'Tú' : escapeHtml(nombreDe(f.e.playerId))}</span>
+        ${caraDe(f.e.playerId, 'p')}
+        <span class="torneo-como-vas-nombre">${f.yo ? 'Tú' : escapeHtml(nombreDe(f.e.playerId))}${movimientoHtml(antes?.get(f.e.playerId), f.pos)}<br>${formaHtml(formaDe(f.e.playerId))}</span>
         <span class="torneo-como-vas-vde">${f.e.wins}-${f.e.losses}-${f.e.draws}</span>
         <strong>${f.e.matchPoints} pts</strong>
       </li>`)
@@ -3015,6 +3018,46 @@ function pintarComoVas() {
   $('comoVasContenido').querySelector('[data-ir-pestana]')?.addEventListener('click', () => {
     document.querySelector('#torneoPestanas [data-pestana="clasificacion"]')?.click()
     window.scrollTo({ top: 0, behavior: 'instant' })
+  })
+}
+
+// Tu próxima jornada (1349): entre jornadas de una liga en la que juegas, lo
+// primero de Mi mesa es cuándo es, cuánto falta y qué te falta a ti (la lista).
+function pintarProximaJornada() {
+  const caja = $('torneoProximaCaja')
+  if (!caja) return
+  const yo = miId()
+  const juego = yo && ctx.inscripciones.some((i) => i.user_id === yo && i.status === 'active')
+  const toca = esLiga() && juego && ctx.torneo.status === 'in_progress' && entreJornadas(ctx.torneo, rondas) ? proximaJornada(ctx.torneo, rondas) : null
+  const fecha = toca?.fecha && Date.parse(toca.fecha) > Date.now() ? new Date(toca.fecha) : null
+  caja.classList.toggle('hidden', !fecha)
+  if (!fecha) return olvidarPintado('proxima')
+  const ms = fecha.getTime() - Date.now()
+  const d = Math.floor(ms / 864e5)
+  const h = Math.floor((ms % 864e5) / 36e5)
+  const m = Math.floor((ms % 36e5) / 6e4)
+  const juegan = ctx.jornadas ? quienesJuegan(ctx.jornadas, toca.n) : null
+  const conLista = Boolean(juegan?.has(yo))
+  const tcg = ctx.inscripciones.find((i) => i.user_id === yo)?.tcg_live_username
+  const dia = fecha.toLocaleDateString('es-ES', { weekday: 'long' })
+  const html = `<div class="torneo-proxima-cab">
+      <span class="torneo-cuando-dia"><small>${escapeHtml(fecha.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase())}</small><b>${fecha.getDate()}</b></span>
+      <span><span class="torneo-proxima-rot">Tu próxima jornada</span><strong>Jornada ${toca.n} · ${escapeHtml(dia)} ${escapeHtml(fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }))}</strong></span>
+    </div>
+    <div class="torneo-proxima-cuenta" aria-label="Faltan ${d} días, ${h} horas y ${m} minutos">
+      <span><b>${d}</b><small>días</small></span><span><b>${h}</b><small>horas</small></span><span><b>${m}</b><small>min</small></span>
+    </div>
+    <ul class="torneo-proxima-pasos">
+      <li class="hecho">${icons.checkCircle(16)} Estás dentro${tcg ? ` como <b>${escapeHtml(tcg)}</b>` : ''}</li>
+      <li class="${conLista ? 'hecho' : 'falta'}">${conLista ? icons.checkCircle(16) : icons.triangleAlert(16)} ${conLista ? `Lista de la jornada ${toca.n} enviada` : `Te falta la lista de la jornada ${toca.n}: sin ella no la juegas`}</li>
+      <li>${icons.clock(16)} El día: check-in ${ctx.torneo.checkin_minutes ?? 5} min antes de cada ronda</li>
+    </ul>
+    ${conLista ? '' : '<a class="btn-primary torneo-proxima-boton" href="#torneoDecklistCaja">Mandar mi lista</a>'}`
+  if (yaEstaPintado('proxima', html)) return
+  caja.innerHTML = html
+  caja.querySelector('.torneo-proxima-boton')?.addEventListener('click', (e) => {
+    e.preventDefault()
+    $('torneoDecklistCaja')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   })
 }
 
@@ -3361,6 +3404,7 @@ function pintarCiclo() {
   pintarMiPartida()
   pintarClasificacion()
   pintarComoVas()
+  pintarProximaJornada()
   pintarMeta()
   ctx.alRepintar?.()
 

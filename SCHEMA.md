@@ -55204,6 +55204,21 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1349 — Mi mesa entre jornadas
+
+`#torneoProximaCaja` (`.torneo-proxima`, la primera caja del panel `jugar`) la
+pinta `pintarProximaJornada()` en `js/torneos/ronda.js` (después de
+`pintarComoVas`): solo en una liga `in_progress`, `entreJornadas`, con la
+próxima jornada (`proximaJornada`) en el futuro y tú inscrito activo. Lleva
+`.torneo-cuando-dia` (de la 1342), `.torneo-proxima-cuenta` (días, horas,
+minutos al pintar; se repinta con el refresco de la ficha) y
+`.torneo-proxima-pasos` (`li.hecho` / `li.falta`); si `quienesJuegan(jornadas,
+n)` no te incluye, `a.torneo-proxima-boton` desplaza a `#torneoDecklistCaja`.
+
+`pintarComoVas` pinta en cada fila `caraDe(id, 'p')`, el nombre con
+`movimientoHtml(puestosAntes().get(id), puesto)` y debajo
+`formaHtml(formaDe(id))`.
+
 ## Tanda 1348 — /torneos con caras
 
 `tarjetaHtml` (`js/torneos/torneos.js`) recibe además `campeonPerfil` y
