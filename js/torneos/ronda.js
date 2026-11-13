@@ -2859,11 +2859,19 @@ function abrirHistorialJugador(userId) {
       <button type="button" class="modal-close" id="btnCerrarHistorial" aria-label="Cerrar">×</button>
     </div>
     <p class="subtext torneo-historial-torneo">${escapeHtml(ctx.torneo.name)}</p>
+    ${desempatesHtml(userId)}
     <ol class="torneo-historial-lista">${filas}</ol>`
   overlay.classList.remove('hidden')
   overlay.querySelector('#btnCerrarHistorial').addEventListener('click', cerrarHistorial)
   // Las chapas de los mazos llegan después, como en la tabla.
   void rellenarChapasArquetipo(overlay)
+}
+
+// Los desempates de un jugador (1351): salieron de la tabla y viven aquí.
+function desempatesHtml(userId) {
+  const e = computeStandings(montarSnapshot(rondas.length)).find((x) => x.playerId === userId)
+  if (!e) return ''
+  return `<p class="torneo-historial-desempates">${caraDe(userId, 'g')}<span><b>${e.matchPoints} pts</b> · OWP ${(e.owp * 100).toFixed(2)} % · OOWP ${(e.oowp * 100).toFixed(2)} %<br><span class="subtext">Con los mismos puntos, desempata quien ha tenido rivales más duros.</span></span></p>`
 }
 
 // Las jornadas (no las rondas, 849) que ya tienen algún resultado.
@@ -3116,6 +3124,7 @@ function lideresHtml(tabla) {
     .slice(0, 3)
     .map(
       (e, i) => `<div class="torneo-lider torneo-lider-${i + 1}${e.playerId === miId() ? ' yo' : ''}">
+        ${caraDe(e.playerId, i === 0 ? 'xg' : 'g')}
         <span class="torneo-lider-pos">${i + 1}.º</span>
         <strong>${escapeHtml(nombreDe(e.playerId))}</strong>
         <span class="subtext">${e.matchPoints} pts<span class="torneo-lider-vde"> · ${e.wins}-${e.losses}-${e.draws}</span></span>
@@ -3162,6 +3171,7 @@ function pintarClasificacion() {
   // columna se quita entera en vez de enseñar una fila de guiones.
   const verTcgLive = Boolean(miId())
   const corte = ctx.torneo.top_cut_size || 0
+  const antes = general ? puestosAntes() : null
   const filas = tabla
     .map((e, i) => {
       const insc = ctx.inscripciones.find((x) => x.user_id === e.playerId)
@@ -3179,16 +3189,18 @@ function pintarClasificacion() {
       // (tanda 298): en una tabla de dieciséis filas iguales, lo primero
       // que busca cualquiera es dónde está él y quién va ganando.
       const medalla = i < 3 ? ` torneo-pos-${i + 1}` : ''
+      // Con cara, forma y flecha (1351); los desempates (OWP y OOWP) salen de
+      // la tabla y se ven al tocar a cada uno, en su historial (PINGU eligió
+      // la recomendada).
       return `
       <tr class="${e.playerId === miId() ? 'torneo-fila-yo' : ''}">
-        <td><span class="torneo-pos${medalla}">${i + 1}</span></td>
-        <td><button type="button" class="torneo-jugador-historial" data-historial="${escapeHtml(e.playerId)}"
-          title="Ver sus partidas del torneo">${escapeHtml(nombreDe(e.playerId))}</button>${chapaDe(e.playerId)}${retirado}${dentro}</td>
+        <td><span class="torneo-pos${medalla}">${i + 1}</span>${general ? movimientoHtml(antes?.get(e.playerId), i + 1) : ''}</td>
+        <td><span class="torneo-clasif-quien">${caraDe(e.playerId)}<span><button type="button" class="torneo-jugador-historial" data-historial="${escapeHtml(e.playerId)}"
+          title="Ver sus partidas y desempates">${escapeHtml(nombreDe(e.playerId))}</button>${chapaDe(e.playerId)}${retirado}${dentro}</span></span></td>
         ${verTcgLive ? `<td class="subtext col-tcg">${escapeHtml(insc?.tcg_live_username || '—')}</td>` : ''}
         <td><strong>${e.matchPoints}</strong></td>
         <td>${e.wins}-${e.losses}-${e.draws}${e.byesReceived ? ` (+${e.byesReceived} bye)` : ''}</td>
-        <td class="col-owp">${(e.owp * 100).toFixed(2)} %</td>
-        <td class="col-owp">${(e.oowp * 100).toFixed(2)} %</td>
+        <td class="col-forma">${formaHtml(formaDe(e.playerId))}</td>
         ${verLista}
       </tr>`
     })
@@ -3208,6 +3220,7 @@ function pintarClasificacion() {
           .map(
             (id, i) => `
           <div class="torneo-podio-puesto torneo-podio-${i + 1}">
+            ${caraDe(id, i === 0 ? 'xg' : 'g')}
             <span class="torneo-podio-icono">${i === 0 ? icons.trophy(26) : icons.medal(20)}</span>
             <strong>${escapeHtml(nombreDe(id))}</strong>
             <span class="subtext">${PUESTOS[i]}</span>
@@ -3229,7 +3242,7 @@ function pintarClasificacion() {
     ${general ? '' : `<p class="subtext">Solo cuentan las mesas de la jornada ${vistaClasificacion}.</p>`}
     <div class="torneo-clasificacion-tabla">
       <table>
-        <thead><tr><th>#</th><th>Jugador</th>${verTcgLive ? '<th class="col-tcg">TCG Live</th>' : ''}<th>Puntos</th><th>V-D-E</th><th class="col-owp">OWP</th><th class="col-owp">OOWP</th>${verListas ? '<th class="col-lista"></th>' : ''}</tr></thead>
+        <thead><tr><th>#</th><th>Jugador</th>${verTcgLive ? '<th class="col-tcg">TCG Live</th>' : ''}<th>Puntos</th><th>V-D-E</th><th class="col-forma">Últimos</th>${verListas ? '<th class="col-lista"></th>' : ''}</tr></thead>
         <tbody>${filas}</tbody>
       </table>
     </div>

@@ -4337,7 +4337,7 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
    V-D-E. Los desempates y el usuario de TCG Live, en el historial de cada uno. */
 @media (max-width: 640px) {
   .torneo-clasificacion-tabla .col-tcg,
-  .torneo-clasificacion-tabla .col-owp { display: none; }
+  .torneo-clasificacion-tabla .col-forma { display: none; }
   .torneo-clasificacion-tabla .col-lista .torneo-ver-lista { padding: 0 var(--e-sm); font-size: var(--t-xs); }
 }
 
@@ -4575,3 +4575,66 @@ button.torneo-tj { cursor: pointer; }
 .torneo-mesa-lado.gana .torneo-mesa-jugador::after { content: ' ★'; color: #c9a227; font-size: var(--t-2xs); }
 .torneo-mesa-centro { display: grid; justify-items: center; gap: 2px; }
 .torneo-mesa-marcador { font-family: var(--font-marca); font-size: var(--t-lg); font-variant-numeric: tabular-nums; letter-spacing: 0.04em; }
+
+/* ── 1351: la gente con cara (SCHEMA 1351) ── */
+/* Clasificación: cara, nombre y chapas en una línea; la flecha, junto al puesto. */
+.torneo-clasif-quien { display: flex; align-items: center; gap: var(--e-sm); min-width: 0; }
+.torneo-clasif-quien > .torneo-jcara { flex: none; }
+.torneo-clasif-quien > span:last-child { min-width: 0; }
+.torneo-clasificacion-tabla td:first-child { white-space: nowrap; }
+.torneo-clasificacion-tabla td:first-child .torneo-mov { margin-left: var(--e-xs); }
+.torneo-clasificacion-tabla .col-forma { white-space: nowrap; }
+/* Los líderes y el podio, con la cara grande arriba. */
+.torneo-lider > .torneo-jcara { margin-bottom: var(--e-xs); }
+.torneo-podio-puesto > .torneo-jcara { margin-bottom: var(--e-xs); }
+.torneo-podio-1 > .torneo-jcara { box-shadow: 0 0 0 2px #d9a406; }
+/* Los desempates viven ahora en el historial de cada uno. */
+.torneo-historial-desempates {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+  margin: 0 0 var(--e-md);
+  padding: var(--e-sm) var(--e-md);
+  border-radius: var(--radius-lg);
+  background: var(--bg);
+  font-size: var(--t-sm);
+  font-variant-numeric: tabular-nums;
+}
+.torneo-historial-desempates > .torneo-jcara { flex: none; }
+/* Jugadores en mosaico para quien juega: la cara grande y el nombre. */
+.torneo-inscritos.torneo-inscritos-mosaico {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--e-sm);
+}
+.torneo-inscritos-mosaico .torneo-inscrito,
+.torneo-inscritos-mosaico .torneo-inscrito:last-child {
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  padding: var(--e-sm) var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--white);
+}
+.torneo-inscritos-mosaico .torneo-inscrito-nombre { min-width: 0; gap: var(--e-sm); }
+.torneo-inscritos-mosaico .mini-avatar { width: 40px; height: 40px; border-radius: 12px; font-size: var(--t-md); }
+.torneo-inscritos-mosaico .torneo-inscrito > .subtext { padding-left: 48px; font-size: var(--t-xs); }
+.torneo-inscritos-mosaico .torneo-cola-titulo { grid-column: 1 / -1; }
+@media (max-width: 560px) {
+  .torneo-inscritos.torneo-inscritos-mosaico { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .torneo-inscritos-mosaico .mini-avatar { width: 32px; height: 32px; border-radius: 8px; }
+  .torneo-inscritos-mosaico .torneo-inscrito > .subtext { padding-left: 0; }
+}
+/* Quien organiza, con su cara en la cabecera. */
+.torneo-meta { display: flex; align-items: center; gap: var(--e-sm); }
+.torneo-meta > .mini-avatar { width: 24px; height: 24px; }
+/* Tablón: lo automático seguido, en una fila con «y N más». */
+.torneo-tablon-grupo { margin-top: 2px; }
+.torneo-tablon-grupo > summary { cursor: pointer; font-size: var(--t-xs); color: var(--text-mid); }
+.torneo-tablon-grupo > ul { list-style: none; margin: var(--e-xs) 0 0; padding: 0; display: grid; gap: 2px; font-size: var(--t-sm); color: var(--text-mid); }
+.torneo-tablon-grupo time { font-variant-numeric: tabular-nums; margin-right: var(--e-xs); }
+/* En la tabla, «igual» no dice nada: solo se pinta lo que se mueve. */
+.torneo-clasificacion-tabla .torneo-mov.igual { display: none; }
+.torneo-meta > .mini-avatar { box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.55); }
+.torneo-historial-desempates { text-align: left; }
+.torneo-inscritos-mosaico .torneo-inscrito-nombre a { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; overflow-wrap: normal; }

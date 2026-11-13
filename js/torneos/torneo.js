@@ -265,7 +265,16 @@ function pintarFicha() {
   // La fecha ya va en las chapas de abajo (tanda 298): aquí, en su
   // lugar, quién lo organiza — que es lo que no se decía en ningún
   // sitio de la ficha.
-  textoSiCambia($('torneoMeta'), torneo.is_official ? 'Organiza el equipo de PokeDoc' : organizadorTexto())
+  // Con su cara delante (1351): saber quién organiza es saber a quién
+  // escribir, y la cara se reconoce antes que el nombre.
+  pintarSiCambia(
+    $('torneoMeta'),
+    torneo.is_official
+      ? 'Organiza el equipo de PokeDoc'
+      : organizador?.username
+        ? `${caraDe(organizador, organizador.username)}<span>${escapeHtml(organizadorTexto())}</span>`
+        : escapeHtml(organizadorTexto())
+  )
   // La descripción sale del editor con formato (tanda 220) y se pinta
   // SANEADA por la misma lista cerrada del foro. Las descripciones de
   // antes eran texto plano: sin etiquetas dentro, se pintan como texto
@@ -1661,6 +1670,9 @@ function pintarInscritos() {
   // cada refresco y con veinte inscritos es un buen trozo de página
   // moviéndose (tanda 259).
   $('torneoBuscarGente')?.closest('label')?.classList.toggle('hidden', inscripciones.length < 8)
+  // Quien juega ve a la gente en mosaico, con la cara grande (1351); quien
+  // organiza sigue con filas, que lleva chapas y «Expulsar» por persona.
+  $('listaInscritos').classList.toggle('torneo-inscritos-mosaico', !mando())
   if (!pintarSiCambia($('listaInscritos'), htmlInscritos + htmlCola)) return
   filtrarGente()
   document.querySelectorAll('[data-expulsar]').forEach((b) =>

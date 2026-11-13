@@ -55204,6 +55204,30 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1351 — La gente con cara: clasificación, jugadores, tablón y cabecera
+
+`pintarClasificacion` (`js/torneos/ronda.js`): la celda del jugador va en
+`.torneo-clasif-quien` con `caraDe(id)` delante; la del puesto suma
+`movimientoHtml(antes.get(id), puesto)` con `antes = puestosAntes()` solo en la
+vista general. Las dos `td.col-owp` (OWP, OOWP) se sustituyen por una
+`td.col-forma` con `formaHtml(formaDe(id))`, cabecera «Últimos», oculta a
+≤640px (la tabla del móvil sigue con cuatro columnas visibles). En la tabla,
+`.torneo-mov.igual` no se pinta. `lideresHtml` y el podio final pintan
+`caraDe(id, 'xg'|'g')`. El historial (`data-historial`) pinta
+`desempatesHtml(userId)` —`p.torneo-historial-desempates`: cara, puntos, OWP y
+OOWP de `computeStandings(montarSnapshot(rondas.length))`— entre el nombre del
+torneo y la lista.
+
+`pintarInscritos` (`js/torneos/torneo.js`) pone `.torneo-inscritos-mosaico`
+en `#listaInscritos` cuando no hay mando: rejilla `auto-fill minmax(200px)`
+(dos columnas a ≤560px), cada `.torneo-inscrito` como tarjeta. Con mando sigue
+la rejilla de cinco columnas de la 306. `#torneoMeta` se pinta como HTML: el
+`caraDe(organizador)` y el texto en un `span` (el oficial, solo texto).
+
+`js/torneos/tablon.js`: `juntarLoAutomatico(lista)` junta los `kind: 'auto'`
+seguidos en `{ grupo: [...] }`; `grupoHtml` pinta el más reciente y un
+`details.torneo-tablon-grupo` «y N avisos más de la web» con el resto.
+
 ## Tanda 1350 — Rondas en una liga y las mesas como duelos
 
 `selectorDeLigaHtml(vista)` (`js/torneos/ronda.js`): en una liga con

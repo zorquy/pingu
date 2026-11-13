@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (601) — PINGU-Claude (1351 — Clasificación, Jugadores, tablón y cabecera con caras)
+
+**Hecho**:
+- **Clasificación**: cada fila lleva la cara del jugador, la flecha de cuánto
+  ha subido o bajado desde la jornada anterior (solo en la general; «igual» no
+  se pinta) y sus últimos cinco resultados en una columna «Últimos» (oculta en
+  el móvil, que sigue con cuatro columnas). **OWP y OOWP salen de la tabla**
+  (la recomendada que eligió PINGU): se ven al tocar a cada uno, arriba de su
+  historial, con una frase de qué es el desempate.
+- **Líderes y podio final** con la cara grande.
+- **Jugadores en mosaico** para quien juega (cara de 40 px, nombre y TCG
+  Live; dos columnas en el móvil). Quien organiza sigue con filas, que llevan
+  chapas de lista y confirmación y «Expulsar».
+- **Tablón**: los avisos automáticos seguidos van en UNA fila (el último y
+  «y N avisos más de la web», que se despliega). Una jornada de liga eran seis
+  rayos en fila tapando lo que escribe la organización.
+- **Cabecera**: la cara de quien organiza delante de «Organiza …».
+
+**No hecho (dicho en la propuesta)**: los terminados como filas en /torneos
+(se quedan con el arte del mazo campeón de la 1216, ver 598) y la decklist en
+tarjetas con «Usar la misma» (ver 599).
+
+**Ficheros**: `js/torneos/ronda.js`, `js/torneos/torneo.js`,
+`js/torneos/tablon.js`, `css/torneos.css`, `novedades.json`.
+
+**Pendiente**: nada de esta serie. Sin migración.
+
 ## 2026-11-13 (600) — PINGU-Claude (1350 — Rondas: jornada y ronda en dos toques, y cada mesa como un duelo)
 
 **Hecho**:

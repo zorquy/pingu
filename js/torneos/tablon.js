@@ -94,6 +94,34 @@ function filaHtml(a, puedoBorrar) {
   </li>`
 }
 
+// Lo automático seguido va en UNA fila (1351): una jornada de liga son tres
+// rondas que empiezan y se cierran, y seis rayos en fila tapaban lo que
+// escribe la organización. Se ve el último y, al tocar, el resto.
+function juntarLoAutomatico(lista) {
+  const fuera = []
+  for (const a of lista) {
+    const ultimo = fuera[fuera.length - 1]
+    if (a.kind === 'auto' && ultimo && (ultimo.grupo || ultimo.kind === 'auto')) {
+      if (ultimo.grupo) ultimo.grupo.push(a)
+      else fuera[fuera.length - 1] = { grupo: [ultimo, a] }
+    } else fuera.push(a)
+  }
+  return fuera
+}
+
+function grupoHtml(grupo) {
+  const [a, ...resto] = grupo
+  return `<li class="torneo-tablon-fila auto">
+    <time datetime="${escapeHtml(a.created_at)}" title="${escapeHtml(fechaLarga(a.created_at))}">${escapeHtml(hora(a.created_at))}</time>
+    <div class="torneo-tablon-cuerpo">
+      <span class="torneo-tablon-auto">${icons.zap(13)} ${escapeHtml(a.body)}</span>
+      <details class="torneo-tablon-grupo"><summary>y ${resto.length} ${resto.length === 1 ? 'aviso más' : 'avisos más'} de la web</summary>
+        <ul>${resto.map((r) => `<li><time datetime="${escapeHtml(r.created_at)}">${escapeHtml(hora(r.created_at))}</time> ${escapeHtml(r.body)}</li>`).join('')}</ul>
+      </details>
+    </div>
+  </li>`
+}
+
 function puedoEscribir() {
   if (!ctx?.session) return false
   if (['draft', 'cancelled'].includes(ctx.torneo.status)) return false
@@ -107,7 +135,7 @@ function pintarLista() {
   const mando = yo ? puedeLlevar(ctx.perfil, ctx.torneo, yo, ctx.esJuez) : false
   const visibles = todas ? avisos : avisos.slice(0, A_LA_VISTA)
   const html = avisos.length
-    ? `<ul class="torneo-tablon-items">${visibles.map((a) => filaHtml(a, a.kind === 'aviso' && (a.author_id === yo || mando))).join('')}</ul>
+    ? `<ul class="torneo-tablon-items">${juntarLoAutomatico(visibles).map((a) => (a.grupo ? grupoHtml(a.grupo) : filaHtml(a, a.kind === 'aviso' && (a.author_id === yo || mando)))).join('')}</ul>
        ${avisos.length > A_LA_VISTA ? `<button type="button" class="link-btn" id="torneoTablonMas">${todas ? 'Ver solo los últimos' : `Ver los ${avisos.length}`}</button>` : ''}`
     : `<p class="subtext torneo-tablon-vacio">${puedoEscribir() ? 'Todavía no hay avisos. Lo que escribas aquí lo ve todo el mundo, y la web apunta sola las rondas.' : 'Todavía no hay avisos.'}</p>`
   if (html === ultimoListaHtml) return
