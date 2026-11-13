@@ -224,7 +224,7 @@ function ponerMasEnDescripcion(desc) {
     mas.type = 'button'
     mas.id = 'torneoDescMas'
     mas.className = 'torneo-desc-mas'
-    mas.textContent = 'Más'
+    mas.textContent = 'Leer más'
     mas.addEventListener('click', () => {
       desc.classList.add('torneo-desc-abierta')
       mas.hidden = true
@@ -234,6 +234,17 @@ function ponerMasEnDescripcion(desc) {
   requestAnimationFrame(() => {
     mas.hidden = desc.classList.contains('hidden') || desc.classList.contains('torneo-desc-abierta') || desc.scrollHeight <= desc.clientHeight + 2
   })
+}
+
+// El cartel de Info (1342): «NOV 22» en una caja y al lado el día y la hora.
+function cuandoHtml(iso) {
+  const d = iso ? new Date(iso) : null
+  if (!d || Number.isNaN(d.getTime())) return ''
+  const mes = d.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase()
+  const dia = d.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })
+  const hora = d.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  return `<span class="torneo-cuando-dia"><small>${escapeHtml(mes)}</small><b>${d.getDate()}</b></span>
+    <span class="torneo-cuando-texto"><b>${escapeHtml(dia.charAt(0).toUpperCase() + dia.slice(1))}, ${escapeHtml(hora)}</b><span>Online · Pokémon TCG Live</span></span>`
 }
 
 // Se engancha UNA vez desde init(): la cabecera no se repinta, así que
@@ -345,8 +356,10 @@ function pintarFicha() {
   // cajas grises del mismo tamaño. Con cuatro cajas iguales no destacaba
   // ninguna, y la que de verdad se mira —cuántas rondas y a cuántas
   // partidas— tenía el mismo peso que los minutos de check-in.
+  // El día, en grande (1342): es lo que decide si te apuntas. Con él, la
+  // chapa de la fecha sobraba.
+  pintarSiCambia($('torneoCuando'), cuandoHtml(torneo.start_at))
   pintarSiCambia($('torneoFormato'), [
-    [icons.calendar(15), fechaBonita(torneo.start_at)],
     [icons.layers(15), esLiga ? `Liga de ${numJornadas(torneo)} jornadas${rondasPorJornada(torneo) > 1 ? ` · ${rondasPorJornada(torneo)} rondas por jornada` : ''} · BO${torneo.swiss_bo ?? 1}` : `${torneo.swiss_rounds} rondas suizas · BO${torneo.swiss_bo ?? 1}`],
     ...(torneo.top_cut_size ? [[icons.trophy(15), `Top ${torneo.top_cut_size} · BO${torneo.top_cut_bo ?? 3}`]] : []),
     // Los «?? por defecto» son los mismos de la tabla: una ficha nunca
@@ -649,9 +662,10 @@ function ponerBotonCalendario(acciones) {
   // refresco (rehacerla movía la página), así que este botón tiene que
   // mirar si ya está puesto: si no, se añadía uno nuevo cada diez
   // segundos hasta tener cinco «Añadir al calendario» en fila.
-  // Desde la 1145 va en la cabecera, al lado de Compartir (en el móvil, los
-  // dos como iconos): solo en su fila ocupaba 60 px antes de «Tu plaza».
-  const sitio = document.querySelector('.torneo-ficha-cabecera') || acciones
+  // Desde la 1145 iba en la cabecera, al lado de Compartir; desde la 1342, al
+  // lado del día en el cartel de Info, que es donde se mira la fecha (la
+  // cabecera de una línea no tenía sitio para un botón más en el móvil).
+  const sitio = document.querySelector('.torneo-cuando-fila') || document.querySelector('.torneo-ficha-cabecera') || acciones
   if (document.getElementById('btnCalendario')) return
   const boton = document.createElement('button')
   boton.type = 'button'
@@ -1020,7 +1034,7 @@ function checklistDosPasos() {
       si no entregas tu decklist y confirmas tu participación antes de que se genere la
       primera ronda, <strong>no serás emparejado y no jugarás el torneo</strong>.</p>
       <ol class="torneo-pasos-lista">
-        ${paso(listaHecha, '<strong>Entrega tu decklist</strong>', listaHecha ? '' : ' — en la pestaña «Jugar», caja «Tu decklist».')}
+        ${paso(listaHecha, '<strong>Entrega tu decklist</strong>', listaHecha ? '' : ' — en la pestaña «Mi mesa», caja «Tu decklist».')}
         ${paso(
           confirmado,
           '<strong>Confirma tu participación</strong>',
@@ -1090,6 +1104,74 @@ function engancharJornadas() {
 
 function pintarMiPlaza() {
   const caja = $('miPlazaContenido')
+  pintarMiPlazaDentro(caja)
+  // Tu entrada (1342): inscrito, la caja es un billete en verde. Y la línea
+  // de «Inscribirme» de arriba sale mientras haya formulario (o, sin cuenta,
+  // el «Crea tu cuenta»).
+  $('torneoMiPlaza')?.classList.toggle('torneo-entrada', miInscripcion?.status === 'active')
+  pintarApuntarse()
+}
+
+function pintarApuntarse() {
+  const linea = $('torneoApuntarse')
+  if (!linea) return
+  const formulario = Boolean($('formInscripcion'))
+  const sinCuenta = soloMirando && torneo.status === 'registration_open'
+  const hay = formulario || sinCuenta
+  linea.classList.toggle('hidden', !hay)
+  if (!hay) return
+  const lleno = torneo.max_players != null && activos() >= torneo.max_players
+  const plazas = torneo.max_players == null ? `${activos()} inscritos` : lleno ? 'Lleno · lista de espera' : `Quedan ${torneo.max_players - activos()} plazas`
+  pintarSiCambia(
+    linea,
+    `<span class="torneo-apuntarse-texto"><b>Inscripciones abiertas</b><span>${escapeHtml(plazas)}</span></span>
+     <button type="button" class="btn-primary" data-apuntarse>${sinCuenta ? 'Crear cuenta' : lleno ? 'Apuntarme a la espera' : 'Inscribirme'}</button>`
+  )
+}
+
+// Tocar «Inscribirme» arriba lleva a Info y al formulario, con el cursor ya
+// en tu usuario de TCG Live. Mientras «Tu plaza» se ve en pantalla, la línea
+// sobra y se aparta.
+function engancharApuntarse() {
+  const linea = $('torneoApuntarse')
+  if (!linea) return
+  linea.addEventListener('click', (e) => {
+    if (!e.target.closest('[data-apuntarse]')) return
+    if (soloMirando) {
+      $('miPlazaContenido')?.querySelector('a.btn-primary')?.click()
+      return
+    }
+    irAPestana('torneo')
+    const plaza = $('torneoMiPlaza')
+    plaza?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    setTimeout(() => $('inscripcionCodigo')?.focus() || $('inscripcionTcgLive')?.focus(), 350)
+  })
+  const plaza = $('torneoMiPlaza')
+  if (plaza && 'IntersectionObserver' in window) {
+    new IntersectionObserver(([e]) => linea.classList.toggle('torneo-apuntarse-aparte', e.isIntersecting)).observe(plaza)
+  }
+}
+
+// Buscar en la lista de inscritos (1342): en un torneo de 64 hace falta. Con
+// pocos, la caja sobra y no sale.
+function engancharBuscarGente() {
+  const caja = $('torneoBuscarGente')
+  if (!caja) return
+  caja.addEventListener('input', filtrarGente)
+}
+
+function filtrarGente() {
+  const caja = $('torneoBuscarGente')
+  if (!caja) return
+  const q = normalizarBusqueda(caja.value)
+  for (const fila of document.querySelectorAll('#listaInscritos .torneo-inscrito')) {
+    fila.hidden = Boolean(q) && !normalizarBusqueda(fila.textContent).includes(q)
+  }
+}
+
+const normalizarBusqueda = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim()
+
+function pintarMiPlazaDentro(caja) {
 
   // El escaparate (tanda 229): quien mira sin cuenta no tiene plaza que
   // enseñar, tiene una razón para crearse una. El botón lleva DIRECTO
@@ -1119,6 +1201,7 @@ function pintarMiPlaza() {
 
   if (miInscripcion?.status === 'active') {
     if (!pintarSiCambia(caja, `
+      <p class="torneo-entrada-ok">${icons.checkCircle(18)} Estás dentro${torneo.max_players != null ? ` · ${activos()} de ${torneo.max_players} plazas` : ''}</p>
       <p>Estás inscrito como <strong>${escapeHtml(miInscripcion.tcg_live_username || '—')}</strong> (tu usuario de TCG Live).
         <button type="button" class="link-btn" id="btnEditarTcg">${icons.edit(13)} Cambiarlo</button></p>
       <div id="cajaEditarTcg"></div>
@@ -1757,7 +1840,9 @@ function pintarInscritos() {
   // La lista entera de una vez, y solo si ha cambiado: se repintaba en
   // cada refresco y con veinte inscritos es un buen trozo de página
   // moviéndose (tanda 259).
+  $('torneoBuscarGente')?.closest('label')?.classList.toggle('hidden', inscripciones.length < 8)
   if (!pintarSiCambia($('listaInscritos'), htmlInscritos + htmlCola)) return
+  filtrarGente()
   document.querySelectorAll('[data-expulsar]').forEach((b) =>
     b.addEventListener('click', async () => {
       if (b.dataset.confirmar !== '1') {
@@ -1882,6 +1967,8 @@ function pintarPestanas() {
   document.querySelectorAll('.torneo-panel').forEach((s) => {
     s.classList.toggle('hidden', s.dataset.panel !== pestanaActiva)
   })
+  // El «Leer más» se decide midiendo, y con Info cerrada no hay nada que medir.
+  if (pestanaActiva === 'torneo' && $('torneoDescripcion')) ponerMasEnDescripcion($('torneoDescripcion'))
   if (!cambiaron) return
   nav.querySelectorAll('[data-pestana]').forEach((b) =>
     b.addEventListener('click', () => {
@@ -1978,6 +2065,8 @@ async function init() {
   document.getElementById('torneoContenido').style.visibility = ''
   montarCompartir()
   engancharLoPegado()
+  engancharApuntarse()
+  engancharBuscarGente()
   await recargar()
   arrancarSondeoFicha()
 }

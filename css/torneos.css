@@ -4121,3 +4121,101 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
   .torneo-tablon-fondo { display: none !important; }
 }
 .torneo-principal { min-width: 0; }
+
+/* ── 1342: antes de empezar (SCHEMA 1342) ── */
+/* El día en grande, como en un cartel: lo que decide si te apuntas. */
+.torneo-cuando { display: flex; align-items: center; gap: var(--e-md); }
+.torneo-cuando:empty { display: none; }
+.torneo-cuando-dia {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 60px;
+  height: 64px;
+  border-radius: var(--radius-md);
+  background: var(--navy-solid);
+  color: var(--blanco-fijo);
+  line-height: 1;
+}
+.torneo-cuando-dia small { font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.08em; opacity: 0.8; }
+.torneo-cuando-dia b { font-family: var(--font-marca); font-size: var(--t-2xl); }
+.torneo-cuando-texto { display: grid; gap: 2px; min-width: 0; font-size: var(--t-sm); color: var(--text-mid); }
+.torneo-cuando-texto b { font-size: var(--t-md); color: var(--text); }
+/* La descripción del organizador, en tres líneas con «Leer más». */
+.torneo-info .torneo-descripcion:not(.torneo-desc-abierta) {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+}
+.torneo-info .torneo-desc-mas { color: var(--navy); justify-self: start; }
+.torneo-info .torneo-desc-mas:not([hidden]) { display: inline; }
+
+/* «Inscribirme» siempre a mano: una línea en lo pegado. Se aparta mientras
+   «Tu plaza» está en pantalla. */
+.torneo-apuntarse {
+  display: flex;
+  align-items: center;
+  gap: var(--e-sm);
+  padding: 4px 4px 4px var(--e-md);
+  border: 1px solid var(--success);
+  border-radius: var(--radius-pill);
+  background: var(--success-bg);
+}
+.torneo-apuntarse.hidden,
+.torneo-apuntarse.torneo-apuntarse-aparte { display: none; }
+.torneo-apuntarse-texto { display: grid; flex: 1; min-width: 0; font-size: var(--t-xs); color: var(--text-mid); line-height: 1.3; }
+.torneo-apuntarse-texto b { font-size: var(--t-sm); color: var(--success); }
+.torneo-apuntarse .btn-primary { flex: none; min-height: 40px; white-space: nowrap; }
+
+/* Tu entrada: inscrito, la caja es un billete en verde. «Darme de baja» se
+   queda, pero pequeño y al final: no es lo que se viene a hacer aquí. */
+.torneo-entrada { border-color: var(--success); box-shadow: inset 4px 0 0 var(--success); }
+.torneo-entrada-ok {
+  display: flex;
+  align-items: center;
+  gap: var(--e-xs);
+  margin: 0 0 var(--e-sm);
+  font-family: var(--font-display);
+  font-size: var(--t-lg);
+  color: var(--success);
+}
+.torneo-entrada #btnBaja {
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  text-decoration: underline;
+}
+
+/* Buscar a alguien entre los inscritos. */
+.torneo-buscar-gente { display: block; margin: 0 0 var(--e-sm); }
+.torneo-buscar-gente.hidden { display: none; }
+.torneo-buscar-gente input {
+  width: 100%;
+  min-height: 44px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+}
+.torneo-buscar-gente input:focus { outline: none; box-shadow: var(--shadow-ring); }
+.torneo-inscrito[hidden] { display: none; }
+.torneo-cuando-fila { display: flex; align-items: center; gap: var(--e-sm); }
+.torneo-cuando-fila .torneo-cuando { flex: 1; min-width: 0; }
+.torneo-info .torneo-calendario {
+  flex: none;
+  min-height: 40px;
+  border-color: var(--border);
+  background: var(--white);
+  color: var(--navy);
+}
+.torneo-info .torneo-calendario:hover { border-color: var(--navy); background: var(--bg); color: var(--navy); }
+@media (max-width: 640px) {
+  .torneo-info .torneo-calendario { width: 44px; min-height: 44px; justify-content: center; padding: 0; }
+  .torneo-info .torneo-calendario .torneo-cab-palabra { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+}

@@ -55204,6 +55204,35 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1342 — El torneo antes de empezar
+
+**El día** (`cuandoHtml(iso)` en `js/torneos/torneo.js`): pinta en
+`#torneoCuando` (dentro de `.torneo-cuando-fila`, primera fila de
+`#torneoInfoCaja`) la caja `.torneo-cuando-dia` con el mes corto y el día, y
+`.torneo-cuando-texto` con el día largo, la hora y «Online · Pokémon TCG
+Live». La chapa de la fecha sale de `#torneoFormato`. `ponerBotonCalendario`
+pone `#btnCalendario` en `.torneo-cuando-fila` (antes, en la cabecera).
+
+**«Leer más»**: `ponerMasEnDescripcion` (1145) con el texto «Leer más»; en
+`.torneo-info` la descripción va a tres líneas en todos los anchos, y
+`pintarPestanas` vuelve a medir al abrir Info (cerrada, todo mide 0).
+
+**Inscribirme arriba** (`#torneoApuntarse`, en `#torneoPegado`):
+`pintarApuntarse()` la enseña si hay `#formInscripcion` o si se mira sin
+cuenta con las inscripciones abiertas; `engancharApuntarse()` hace que su
+botón (`[data-apuntarse]`) abra Info y lleve a `#torneoMiPlaza` con el foco en
+`#inscripcionCodigo` o `#inscripcionTcgLive` (sin cuenta, pulsa el «Crea tu
+cuenta» de la caja), y un IntersectionObserver pone
+`.torneo-apuntarse-aparte` mientras `#torneoMiPlaza` se ve.
+
+**Tu entrada**: `pintarMiPlaza` llama a `pintarMiPlazaDentro` (lo de siempre)
+y pone `.torneo-entrada` en `#torneoMiPlaza` con la inscripción activa; esa
+rama abre con `.torneo-entrada-ok` («Estás dentro · N de M plazas»).
+
+**Buscar gente**: `#torneoBuscarGente` filtra `#listaInscritos
+.torneo-inscrito` por su texto sin tildes (`filtrarGente`, también tras cada
+repintado); su `label` se esconde con menos de 8 inscripciones.
+
 ## Tanda 1341 — La ficha del torneo: cabecera en una línea y lo que se mira, pegado
 
 **Cabecera** (`torneo.html`, `.torneo-cab-linea`): solo `#torneoEstado`,

@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (591) — PINGU-Claude (1342 — el torneo antes de empezar: el día en grande, Inscribirme a mano y tu entrada)
+
+**Hecho**: lo de «antes de empezar» de la propuesta.
+- **El cartel de Info** abre con el día en una caja («NOV 22»), el día y la
+  hora y «Online · Pokémon TCG Live», con «Añadir al calendario» al lado (se
+  fue de la cabecera). Debajo, el formato en chapas y las plazas.
+- **La descripción**, plegada en tres líneas con «Leer más» (en el PC también).
+- **«Inscribirme» siempre a mano**: una línea verde en lo pegado de arriba
+  («Inscripciones abiertas · quedan N plazas» + el botón), que te lleva a tu
+  plaza con el cursor ya en el usuario de TCG Live, y se aparta mientras «Tu
+  plaza» se ve. Va ARRIBA y no fija abajo como en la maqueta: abajo ya están
+  la barra del móvil y la burbuja. Y el formulario sigue en «Tu plaza», sin
+  hoja: son uno o dos campos.
+- **Tu entrada**: inscrito, «Tu plaza» es un billete con el borde verde y
+  «Estás dentro · N de M plazas»; «Darme de baja» pasa a un enlace pequeño.
+- **Jugadores con buscador** (sale con 8 o más).
+- El paso de la decklist ya dice «pestaña Mi mesa», no «Jugar».
+
+**Ficheros**: `torneo.html`, `js/torneos/torneo.js`, `css/torneos.css`,
+`novedades.json`.
+
+**Pendiente**: 1343–1346. Sin migración.
+
 ## 2026-11-13 (590) — PINGU-Claude (1341 — la ficha del torneo: cabecera en una línea y lo que se mira, pegado)
 
 **Hecho**: primera tanda de la propuesta de torneo que aprobó PINGU («la
