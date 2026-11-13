@@ -3364,7 +3364,7 @@ export const supabase = {
     // en `window.__AUTH__` y contestan lo que diga `__FAKE_AUTH__` (por
     // defecto, cuenta creada sin sesión: hay que confirmar el correo).
     signUp: async (datos) => { AUTH.push({ que: 'signUp', ...datos }); const r = (typeof window !== 'undefined' && window.__FAKE_AUTH__?.signUp) || { data: { user: { id: 'nueva-1' }, session: null }, error: null }; return r },
-    signInWithPassword: async (datos) => { AUTH.push({ que: 'signInWithPassword', email: datos.email }); const r = (typeof window !== 'undefined' && window.__FAKE_AUTH__?.signInWithPassword) || { data: null, error: { message: 'Invalid login credentials' } }; return r },
+    signInWithPassword: async (datos) => { AUTH.push({ que: 'signInWithPassword', email: datos.email, options: datos.options }); const r = (typeof window !== 'undefined' && window.__FAKE_AUTH__?.signInWithPassword) || { data: null, error: { message: 'Invalid login credentials' } }; return r },
     signInWithOAuth: async (datos) => { AUTH.push({ que: 'signInWithOAuth', ...datos }); return { data: null, error: null } },
   },
   // El cubo público: lo subido contesta con una dirección de la forma de
