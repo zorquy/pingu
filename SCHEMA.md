@@ -55204,6 +55204,45 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1310 — programadas espaciadas y el timbre
+
+**C1, horarios.** Cada `export const config = { schedule }` lleva encima su
+porqué. Los de la 1310 los vigila `test-tanda-1310` (`ACORDADO`): una función
+programada no vuelve a ir más rápido sin cambiar la prueba, y antes de
+cambiarla se multiplica (pasadas al día × 30) como dice CLAUDE.md.
+
+| Función | Antes | Ahora |
+|---|---|---|
+| decks-jp-a-mano | cada 10 min | cada 6 h |
+| scrydex-decks-jp | cada 10 min | una vez al día |
+| scrydex-rellenar-set | cada 10 min | cada 6 h |
+| tcgdex-rellenar-set | cada 10 min | cada 3 h |
+| tcggo-reemplazar-set | cada 5 min | cada hora |
+| escaneos-asia, catalogo-asia | cada 4 y 3 min | cada 20 min |
+| cartas-detalle, cartas-pokedex | cada 5 y 10 min | cada 10 y 30 min |
+| tcggo-versiones, tcggo-calco-jp | cada 2 min | cada 6 min (pares e impares) |
+| tcggo-precios | cada 2 min | cada 4 min |
+| tcggo-catalogo, tcggo-versiones-idioma | cada 5 y 10 min | cada 15 y 20 min |
+| meta-limitless | cada 10 min | cada 30 min |
+
+**C2, el timbre.** Migración `supabase-migration-1310-timbre.sql`:
+- `timbre_hay_trabajo(p_que)` (`torneos`, `correos`, `push`): las condiciones
+  de `torneos-barredor`, `send-emails` y `enviar-push` en SQL. Una condición
+  nueva en una de esas funciones va también aquí, o el timbre no la oirá.
+- `timbre_tocar()`: lee `timbre_secreto` del Vault (sin ella, no hace nada) y
+  por cada trabajo pendiente `net.http_post` a
+  `/.netlify/functions/timbre?que=…` con la clave en `x-timbre`. Si la
+  consulta falla, llama igual. Apunta `ultimo`, `llamadas` y `llamadasHoy` en
+  `scrydex_estado.timbre`. Solo la ejecuta el cron (`pokedoc-timbre`, cada
+  minuto); a `anon` y `authenticated` se les quita.
+- `netlify/functions/timbre.mjs`: solo POST, la clave comparada entera
+  (`claveBuena`) contra `TIMBRE_SECRETO`, y `TRABAJOS` llama al `default` de
+  las tres funciones sin tocarlas. No lleva `config`: una función programada
+  no se deja llamar por HTTP (403), por eso va aparte. Ojo: por HTTP una
+  función corta a los 10 s (programada, 30): si el barredor se alarga, lo
+  acaba su pasada programada de respaldo.
+- Hasta que el timbre suene en verde, las tres siguen con su horario.
+
 ## Tanda 1309 — antes de salir
 
 `herramientas/antes-de-salir.mjs` es el `[build] command` de `netlify.toml`

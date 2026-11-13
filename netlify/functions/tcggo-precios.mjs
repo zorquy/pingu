@@ -831,4 +831,6 @@ export default async () => {
 // pasadas: media hora y no hora y media. No gasta más: las peticiones del
 // día son las mismas, y con el día hecho una pasada es leer el estado.
 // En los pares, como `tcggo-versiones`; el calco va en los impares.
-export const config = { schedule: '*/2 * * * *' }
+// Más espaciada desde la 1310 (C1 del plan): cada despertar se paga aunque
+// no haya nada que hacer, y esta termina su trabajo antes. SCHEMA 1310.
+export const config = { schedule: '*/4 * * * *' }

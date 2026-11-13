@@ -890,4 +890,6 @@ export default async () => {
 
 // Cada cinco minutos, a y 4 (la de precios va a y 0, el catálogo a y 2):
 // con todo hecho, una pasada es leer dos estados y nada más.
-export const config = { schedule: '4-59/5 * * * *' }
+// Más espaciada desde la 1310 (C1 del plan): cada despertar se paga aunque
+// no haya nada que hacer, y esta termina su trabajo antes. SCHEMA 1310.
+export const config = { schedule: '4 * * * *' }

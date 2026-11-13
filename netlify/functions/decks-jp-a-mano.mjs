@@ -440,4 +440,6 @@ export default async () => {
 }
 
 // Cada diez minutos; con la lista hecha es leer un estado y nada más.
-export const config = { schedule: '9-59/10 * * * *' }
+// Más espaciada desde la 1310 (C1 del plan): cada despertar se paga aunque
+// no haya nada que hacer, y esta termina su trabajo antes. SCHEMA 1310.
+export const config = { schedule: '9 */6 * * *' }

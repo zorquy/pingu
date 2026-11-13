@@ -431,4 +431,6 @@ export default async () => {
 // como mucho, y el tope diario lo deja en 5.000: el recorrido entero (unos
 // 45.000 ids, menos los que ya son cartas nuestras) son unos diez días.
 // Recorrido, una pasada es el refresco semanal de lo guardado.
-export const config = { schedule: '0-58/2 * * * *' }
+// Más espaciada desde la 1310 (C1 del plan): cada despertar se paga aunque
+// no haya nada que hacer, y esta termina su trabajo antes. SCHEMA 1310.
+export const config = { schedule: '0-54/6 * * * *' }

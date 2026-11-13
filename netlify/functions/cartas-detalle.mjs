@@ -528,4 +528,6 @@ export default async function handler() {
 // cuenta no salía: no caben en los 30 s que da Netlify. Tandas cortas y
 // más a menudo dan MÁS cartas al día (40 × 12 = 480 a la hora frente a
 // 150) y además ninguna pasada se muere a mitad.
-export const config = { schedule: '*/5 * * * *' }
+// Más espaciada desde la 1310 (C1 del plan): cada despertar se paga aunque
+// no haya nada que hacer, y esta termina su trabajo antes. SCHEMA 1310.
+export const config = { schedule: '*/10 * * * *' }

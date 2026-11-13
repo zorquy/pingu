@@ -657,4 +657,6 @@ export default async () => {
 // Cada dos minutos, en los impares (precios a los múltiplos de 5, el
 // catálogo a y 2, el reemplazo a y 4): ~210 expansiones en unas siete
 // horas, una vez. Con todo hecho, una pasada es leer el estado.
-export const config = { schedule: '1-59/2 * * * *' }
+// Más espaciada desde la 1310 (C1 del plan): cada despertar se paga aunque
+// no haya nada que hacer, y esta termina su trabajo antes. SCHEMA 1310.
+export const config = { schedule: '1-59/6 * * * *' }

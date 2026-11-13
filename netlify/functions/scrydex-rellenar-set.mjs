@@ -250,4 +250,6 @@ export default async () => {
   return new Response(JSON.stringify(r), { status: 200, headers: { 'content-type': 'application/json' } })
 }
 
-export const config = { schedule: '4-59/10 * * * *' }
+// Más espaciada desde la 1310 (C1 del plan): cada despertar se paga aunque
+// no haya nada que hacer, y esta termina su trabajo antes. SCHEMA 1310.
+export const config = { schedule: '4 */6 * * *' }

@@ -134,4 +134,6 @@ export default async function handler() {
 // cuesta una consulta que no devuelve nada, por un índice parcial que
 // para entonces está vacío. Se queda puesto para las cartas que traiga
 // cada importación nueva.
-export const config = { schedule: '*/10 * * * *' }
+// Más espaciada desde la 1310 (C1 del plan): cada despertar se paga aunque
+// no haya nada que hacer, y esta termina su trabajo antes. SCHEMA 1310.
+export const config = { schedule: '*/30 * * * *' }

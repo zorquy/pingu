@@ -4,6 +4,34 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (557) — PINGU-Claude (1310 — programadas espaciadas y el timbre de la base)
+
+**Hecho**: la C1 y la C2. (C1) Quince funciones programadas van más despacio,
+cada una con su porqué al lado del `schedule`: las de relleno que casi nunca
+tienen nada (decks, rellenos, reemplazos) pasan de cada 5–10 min a cada 1–6 h;
+el catálogo asiático y los escaneos, a cada 20 min; las de TCGGO, de cada 2 min
+a cada 4–6 (precios cada 4). Eran ~4.870 despertares al día y quedan ~1.430.
+(C2) El timbre: `pg_cron` mira cada minuto, GRATIS y dentro de la base, si hay
+trabajo de torneos, correos o push (`timbre_hay_trabajo`, las mismas
+condiciones que cada función) y solo entonces llama por `pg_net` a la función
+nueva `timbre`, que comprueba la clave y ejecuta la de siempre. Apunta en
+`scrydex_estado.timbre` (y /admin → Hoy lo enseña en el semáforo).
+
+**Ficheros**: supabase-migration-1310-timbre.sql y netlify/functions/timbre.mjs
+(nuevos), admin/js/semaforo.js y los quince `netlify/functions/*.mjs` del
+horario, SCHEMA.md, BITACORA.md. En `pruebas`: test-tanda-1310 (PostgreSQL
+con Vault, pg_net y pg_cron de mentira, la función y los horarios), y 654,
+674 y 807 con sus horarios nuevos.
+
+**Pendiente (PINGU, una vez)**: activar `pg_cron` y `pg_net` (Supabase →
+Database → Extensions); inventar una clave larga y guardarla en el Vault
+(`select vault.create_secret('LA-CLAVE', 'timbre_secreto');`) y en Netlify
+como `TIMBRE_SECRETO`; ejecutar la 1310. La clave NO va al chat ni al repo.
+Mientras tanto, el barredor, los correos y el push siguen con su horario de
+Netlify: cuando el semáforo enseñe el timbre en verde un par de días, se
+espacian (barredor a cada 15 min de red de seguridad, los otros a cada hora)
+y eso son ~1.900 despertares menos al día.
+
 ## 2026-11-13 (556) — PINGU-Claude (1309 — antes de salir: Netlify no publica nada roto)
 
 **Hecho**: la C3. `herramientas/antes-de-salir.mjs` corre como `[build]

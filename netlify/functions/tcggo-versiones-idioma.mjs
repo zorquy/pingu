@@ -211,4 +211,6 @@ export default async () => {
 // Cada diez minutos: con 6 lotes por pasada son 720 versiones a la hora, y
 // el día se acaba (`hecho`) en cuanto no queda ninguna. 300 peticiones al
 // día como mucho, de las 15.000 del plan.
-export const config = { schedule: '*/10 * * * *' }
+// Más espaciada desde la 1310 (C1 del plan): cada despertar se paga aunque
+// no haya nada que hacer, y esta termina su trabajo antes. SCHEMA 1310.
+export const config = { schedule: '*/20 * * * *' }

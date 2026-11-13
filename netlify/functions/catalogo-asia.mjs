@@ -445,4 +445,6 @@ export default async function handler() {
 //
 // Tres y no cinco para no coincidir SIEMPRE con `cartas-detalle`, que va a
 // `*/5`: así coinciden una de cada cinco pasadas en vez de todas.
-export const config = { schedule: '*/3 * * * *' }
+// Más espaciada desde la 1310 (C1 del plan): cada despertar se paga aunque
+// no haya nada que hacer, y esta termina su trabajo antes. SCHEMA 1310.
+export const config = { schedule: '*/20 * * * *' }

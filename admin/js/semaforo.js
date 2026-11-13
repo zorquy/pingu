@@ -37,6 +37,8 @@ export const PASADAS = [
   ['avisos_al_dia', 'Avisos a la campanita'],
   // La víspera y los resultados de cada jornada de liga (1302).
   ['ligas_jornadas', 'Jornadas de liga'],
+  // El timbre (1310): la base llama a torneos, correos y push solo con trabajo.
+  ['timbre', 'Timbre de la base'],
 ]
 
 const DIA_MS = 24 * 60 * 60 * 1000
