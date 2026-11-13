@@ -55204,6 +55204,30 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1308 — frenos contra el spam
+
+Migración `supabase-migration-1308-frenos.sql`. Todo en la base: la web no
+decide nada, enseña la frase del error.
+
+- `sin_freno()`: sin `auth.uid()` (servidor), admin o moderación → sin freno.
+- `freno_de_ritmo()` (disparador `before insert`, argumentos: columna del
+  autor, tope por minuto, tope por hora) en `forum_threads` (3/15),
+  `forum_posts` (6/60), `private_messages` (20/300), `user_follows` (20/200) y
+  `content_reports` (5/30). Error `PD429`.
+- `freno_de_cuenta_nueva()` con `cuenta_nueva(uid)` (menos de 24 h) y
+  `enlace_de_fuera(texto)` (un `http` que no es pokedoc.es): 3 temas el primer
+  día, sin enlaces de fuera en foro ni mensajes, 5 conversaciones nuevas.
+  Error `PD403`.
+- `forum_posts.oculto_spam_at`: lo pone `esconder_si_denuncian` (disparador en
+  `content_reports`) con 3 denunciantes distintos de más de 7 días; lo cuida
+  `guarda_oculto_spam` (el autor no lo cambia; el disparador entra con
+  `pokedoc.esconder_spam`) y lo quita o borra el mensaje `foro_spam_revisar(p_post,
+  p_borrar)`, solo del equipo, que cierra sus denuncias.
+- La web: `js/tema.js` pinta `[data-spam-oculto]` (la gente, el aviso; el
+  equipo, el mensaje con «Devolverlo» / «Borrarlo», `[data-spam-revisar]`).
+  Un camino nuevo que escriba en esas tablas enseña `error.message`: es la
+  frase para la persona.
+
 ## Tanda 1307 — doble factor y sesiones abiertas
 
 - `is_admin_base()`: la `is_admin()` de antes, copiada con `pg_get_functiondef`

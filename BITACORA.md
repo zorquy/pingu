@@ -4,6 +4,28 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (555) — PINGU-Claude (1308 — frenos contra el spam)
+
+**Hecho**: la S4, todo en la base (migración 1308). Tres frenos: (1) ritmo por
+persona en temas (3/min, 15/h), respuestas (6/60), mensajes privados (20/300),
+seguir (20/200) y denuncias (5/30), con el error `PD429` y su frase; (2) una
+cuenta de menos de 24 horas abre 3 temas, empieza 5 conversaciones y no pone
+enlaces a otras webs en el foro ni en mensajes (`PD403`); (3) un mensaje del
+foro con 3 denuncias de cuentas de más de una semana se esconde solo
+(`forum_posts.oculto_spam_at`) hasta que el equipo lo devuelve o lo borra
+(`foro_spam_revisar`); el autor no se quita la marca editando. El equipo y las
+funciones del servidor no tienen freno. En /tema la gente ve «escondido
+mientras lo revisa el equipo» y el equipo, «Devolverlo» y «Borrarlo». Las
+frases llegan solas: los caminos de publicar ya enseñan `error.message`.
+
+**Ficheros**: supabase-migration-1308-frenos.sql (nueva), js/tema.js,
+css/foro.css, SCHEMA.md, BITACORA.md, novedades.json. En `pruebas`:
+test-tanda-1308 (nueva, con PostgreSQL), y 717/869 cuentan las filas de
+«Qué hay en esta sección» (1239) e «Invita a un amigo» (1298) aparte.
+
+**Pendiente**: la migración 1308. Si algún número se queda corto en la vida
+real, se cambia en los `create trigger` (los argumentos son minuto y hora).
+
 ## 2026-11-13 (554) — PINGU-Claude (1307 — doble factor para el equipo y sesiones abiertas)
 
 **Hecho**: la S6 y la S12. Ajustes › Seguridad (apartado nuevo, por `import()`):

@@ -839,10 +839,17 @@ function mensajeHtml(m, numero, perfiles, cuentas, citadoPorId, { seguido = fals
              </blockquote>`
           : ''
       }
+      ${
+        // Escondido por tres denuncias (1308): la gente ve el aviso; el
+        // equipo, el mensaje y qué hacer con él.
+        m.oculto_spam_at && !soyStaff
+          ? `<p class="foro-spam-oculto" data-spam-oculto>Este mensaje está escondido mientras lo revisa el equipo.${esMio ? ' Si crees que es un error, no hace falta que hagas nada: lo verán.' : ''}</p>`
+          : `${m.oculto_spam_at ? `<p class="foro-spam-oculto foro-spam-equipo" data-spam-oculto>Escondido por denuncias. <button type="button" class="foro-accion" data-spam-revisar="${m.id}" data-spam-borrar="0">Devolverlo</button> <button type="button" class="foro-accion" data-spam-revisar="${m.id}" data-spam-borrar="1">Borrarlo</button></p>` : ''}
       <div class="article-body foro-mensaje-texto" data-texto="${m.id}">${enlazarMenciones(
         sanitizeRichText(m.body_html || ''),
         mencionados
-      )}</div>
+      )}</div>`
+      }
       ${
         // La firma: el mismo formato que un mensaje, pasado por el MISMO
         // saneador (se guardó saneada, pero aquí se vuelve a sanear: lo
@@ -912,6 +919,17 @@ function enganchar(perfiles) {
   )
   elMensajes.querySelectorAll('[data-reaccion]').forEach((b) =>
     b.addEventListener('click', () => alternarReaccion(b.dataset.reaccion, b.dataset.kind, b))
+  )
+  // Lo escondido por denuncias (1308): el equipo lo devuelve o lo borra.
+  elMensajes.querySelectorAll('[data-spam-revisar]').forEach((b) =>
+    b.addEventListener('click', async () => {
+      const borrar = b.dataset.spamBorrar === '1'
+      b.disabled = true
+      const { error } = await supabase.rpc('foro_spam_revisar', { p_post: b.dataset.spamRevisar, p_borrar: borrar })
+      if (error) { b.disabled = false; showToast('No se ha podido: ' + error.message); return }
+      showToast(borrar ? 'Mensaje borrado.' : 'Mensaje devuelto: ya se ve.', 'success')
+      pintarMensajes()
+    })
   )
   elMensajes.querySelectorAll('[data-resolver]').forEach((b) =>
     b.addEventListener('click', () => alternarSolucion(b.dataset.resolver))
