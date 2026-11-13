@@ -33,7 +33,9 @@ if (psql(['-c', 'select 1']).status === 0) {
     create table page_views (id uuid primary key default gen_random_uuid(), path text not null, user_id uuid, created_at timestamptz not null default now());
     alter table page_views enable row level security; create policy ins on page_views for insert with check (true); grant insert on page_views to anon, authenticated;
     create table client_errors (id uuid primary key default gen_random_uuid(), user_id uuid, message text not null, stack text, page_url text, user_agent text, status text not null default 'new', created_at timestamptz not null default now());
-    alter table client_errors enable row level security; create policy ins on client_errors for insert with check (true); grant insert on client_errors to anon, authenticated;`])
+    alter table client_errors enable row level security; create policy ins on client_errors for insert with check (true); grant insert on client_errors to anon, authenticated;
+    create table page_vitals (id uuid primary key default gen_random_uuid(), path text not null, lcp_ms integer, movil boolean not null default false, created_at timestamptz not null default now());
+    alter table page_vitals enable row level security; create policy ins on page_vitals for insert with check (true); grant insert on page_vitals to anon, authenticated;`])
   check('el andamio carga', r.status === 0, r.stderr)
   const sentencias = mig.split(/;\s*\n(?=(?:create|alter|do|grant|update|drop|insert|revoke|--|\s*$))/i).map((x) => x.trim()).filter((x) => x && !/^(--[^\n]*\n?)+$/.test(x))
   let todas = true
@@ -49,6 +51,8 @@ if (psql(['-c', 'select 1']).status === 0) {
   check('un bucle de 80 errores no da error…', bucle.ok, bucle.err)
   check('  …y solo entran 60 en el minuto (con el de antes)', q(`select count(*) from client_errors`).out === '60', q(`select count(*) from client_errors`).out)
   check('las visitas tienen su propio tope (300), y no lo gastan los errores', q(`select count(*) from page_views`).out === '2')
+  const vit = q(`do $$ begin for i in 1..130 loop insert into page_vitals (path, lcp_ms) values ('/', 1000); end loop; end $$`, 'anon')
+  check('las medidas de velocidad (sin user_id) también, con su tope de 120', vit.ok && q(`select count(*) from page_vitals`).out === '120', vit.err + q(`select count(*) from page_vitals`).out)
   check('el contador no se lee desde la web', !q(`select * from telemetria_ritmo`, 'anon').ok)
   psql(['-c', `drop database if exists ${BD}`])
 } else check('hay un PostgreSQL en /var/tmp:5433', false)
