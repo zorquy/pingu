@@ -55204,6 +55204,28 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1347 — Torneos con caras: las piezas
+
+`js/torneos/caras.js` (puro salvo `avatarStyle`): `caraHtml(perfil, nombre,
+tam)` → `.torneo-cara` (`-p` 22 px, normal 30, `-g` 44, `-xg` 64);
+`formaHtml(['V','D','E','B'])` → `.torneo-forma` con un `i.torneo-forma-<l>` por
+resultado y el texto entero en `.sr-only`; `movimientoHtml(antes, ahora)` →
+`.torneo-mov.sube|baja|igual`; `faltaPara(fecha)` → «6 d 23 h».
+
+En `js/torneos/ronda.js`: `caraDe(userId, tam)` (el perfil sale de
+`ctx.inscripciones`), `formaDe(userId, n)` (los últimos `n` resultados
+terminales por número de ronda, con `resultadoParaJugadorEn`) y
+`puestosAntes()` (un `Map` userId → puesto con la clasificación hasta el final
+de la jornada anterior en una liga, o la ronda anterior en un torneo; null si
+no hay un antes).
+
+**Entre jornadas** (`pintarBarraEntreRondas`): con la próxima jornada en el
+futuro, `#torneoVivaAnillo` lleva `b.torneo-viva-dia` (mes y día) y la clase
+`.torneo-viva-anillo-dia`, y `#torneoVivaDer` la cuenta
+(`.torneo-viva-cuenta`) y, si estás inscrito, `a[data-ir-pestana="jugar"]` a
+`#torneoDecklistCaja`. `engancharLoPegado` lleva cualquier
+`a[data-ir-pestana]` a su pestaña y a su caja.
+
 ## Tanda 1346b — ficha-arriba.js
 
 `js/torneos/ficha-arriba.js` exporta `ponerMasEnDescripcion`, `cuandoHtml`,

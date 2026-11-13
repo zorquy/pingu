@@ -11,6 +11,7 @@ import { pintarSiCambia } from './pintar.js'
 import { escapeHtml } from '../app.js'
 import { showToast } from '../toast.js'
 import { icons } from '../icons.js'
+import { caraHtml, formaHtml, movimientoHtml, faltaPara } from './caras.js'
 import {
   activePlayersForRound,
   pairRound1,
@@ -91,6 +92,37 @@ const ahora = () => new Date().toISOString()
 function nombreDe(userId) {
   const i = ctx.inscripciones.find((x) => x.user_id === userId)
   return i?.perfil?.username || 'Alguien'
+}
+
+// La cara de un jugador del torneo (1347), con su foto o su inicial.
+function caraDe(userId, tam = '') {
+  const perfil = ctx.inscripciones.find((x) => x.user_id === userId)?.perfil || null
+  return caraHtml(perfil, nombreDe(userId), tam)
+}
+
+// Sus últimos resultados (1347), del más viejo al más nuevo: V, D, E o B.
+function formaDe(userId, cuantos = 5) {
+  return partidas
+    .filter((m) => TERMINALES.has(m.status) && (m.player_a_id === userId || m.player_b_id === userId))
+    .sort((a, b) => (numeroDeRonda(a.round_id) || 0) - (numeroDeRonda(b.round_id) || 0))
+    .slice(-cuantos)
+    .map((m) => {
+      const t = resultadoParaJugadorEn(m, userId).texto
+      return t === 'Bye' ? 'B' : t
+    })
+}
+
+// El puesto de cada uno ANTES de la última jornada (liga) o la última ronda
+// (1347), para la flecha de la clasificación. Null si no hay un antes.
+function puestosAntes() {
+  const cerradas = rondas.filter((r) => r.status === 'finished' && r.phase !== 'top_cut')
+  const ultima = cerradas[cerradas.length - 1]
+  if (!ultima) return null
+  const hasta = esLiga() ? (jornadaDeRonda(ctx.torneo, ultima.round_number) - 1) * rondasPorJornada(ctx.torneo) : ultima.round_number - 1
+  if (hasta < 1) return null
+  const snapshot = montarSnapshot(hasta + 1)
+  snapshot.matches = snapshot.matches.filter((m) => m.roundNumber && m.roundNumber <= hasta)
+  return new Map(computeStandings(snapshot).map((e, i) => [e.playerId, i + 1]))
 }
 
 function numeroDeRonda(roundId) {
@@ -1375,6 +1407,8 @@ function pintarBarraEntreRondas() {
   // hasta la hora acordada a las 19:00». La jornada cerrada de rótulo y la
   // siguiente con su cita; «pareando» solo cuando ya es la hora.
   const esperandoJornada = esLiga() && entreJornadas(ctx.torneo, rondas) && !(siguiente && partidas.some((m) => m.round_id === siguiente.id))
+  // Entre jornadas con fecha, el anillo vacío («—») pasa a ser el día (1347).
+  let calendario = null
   if (esperandoJornada) {
     const { n, fecha } = proximaJornada(ctx.torneo, rondas)
     if (ultima) rotulo = `Jornada ${jornadaDeRonda(ctx.torneo, ultima.round_number)} de ${numJornadas(ctx.torneo)} · cerrada`
@@ -1382,13 +1416,19 @@ function pintarBarraEntreRondas() {
     if (!fecha) titular = `Jornada ${n} · sin fecha todavía`
     else if (Date.parse(fecha) > Date.now()) titular = `Jornada ${n} ${cita}`
     else titular = `Pareando la jornada ${n}… (era ${cita})`
-    if (fecha && Date.parse(fecha) > Date.now()) der = '<span class="torneo-viva-espera">A esa hora salen aquí los pareos y te llega un aviso</span>'
+    if (fecha && Date.parse(fecha) > Date.now()) {
+      // La cuenta atrás y, si juegas, el atajo a tu lista (1347): entre
+      // jornadas, lo que se hace es mandarla.
+      const juego = ctx.inscripciones.some((i) => i.user_id === miId() && i.status === 'active')
+      der = `<span class="torneo-viva-cuenta">Faltan ${escapeHtml(faltaPara(fecha))}</span>${juego ? '<a class="btn-secondary torneo-viva-boton" href="#torneoDecklistCaja" data-ir-pestana="jugar">Tu lista</a>' : ''}`
+      calendario = fecha
+    }
   } else if (siguiente && partidas.some((m) => m.round_id === siguiente.id)) titular = `Pareos de la ${nombre(siguiente)} listos · a punto de empezar`
   else if (siguiente) titular = `Preparando la ${nombre(siguiente)}…`
   else if (ultima && ultima.phase === 'swiss' && total && ultima.round_number >= total && ctx.torneo.top_cut_size > 0) titular = `Preparando el top ${ctx.torneo.top_cut_size}…`
   else if (ultima) titular = `Pareando la ${esLiga() ? nombreDeRondaDeLiga(ctx.torneo, ultima.round_number + 1) : `ronda ${ultima.round_number + 1}`}…`
   else titular = 'Preparando la primera ronda…'
-  const html = `${rotulo}|${titular}|${der}`
+  const html = `${rotulo}|${titular}|${der}|${calendario}`
   caja.classList.remove('hidden')
   document.documentElement.classList.remove('torneo-jugando')
   if (yaEstaPintado('barraViva', html)) return
@@ -1404,10 +1444,14 @@ function pintarBarraEntreRondas() {
   }
   const anillo = $('torneoVivaAnillo')
   if (anillo) {
-    anillo.innerHTML = '<b>—</b>'
+    const d = calendario ? new Date(calendario) : null
+    anillo.innerHTML = d
+      ? `<b class="torneo-viva-dia"><small>${escapeHtml(d.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase())}</small>${d.getDate()}</b>`
+      : '<b>—</b>'
     anillo.style.setProperty('--vuelta', '0')
     anillo.classList.remove('agotandose')
     anillo.classList.add('torneo-viva-anillo-quieto')
+    anillo.classList.toggle('torneo-viva-anillo-dia', Boolean(d))
   }
 }
 

@@ -214,11 +214,14 @@ export function filtrarGente() {
 // al elegir algo, como cualquier menú.
 export function engancharLoPegado(f) {
   document.getElementById('torneoPegado')?.addEventListener('click', (e) => {
-    const enlace = e.target.closest('a[href="#torneoMiPartida"]')
+    // «Ir a tu mesa» y, entre jornadas, «Tu lista» (1347): a su pestaña y a su caja.
+    const enlace = e.target.closest('a[href="#torneoMiPartida"], a[data-ir-pestana]')
     if (!enlace) return
     e.preventDefault()
-    f.irAPestana('jugar')
-    window.scrollTo({ top: 0, behavior: 'smooth' })
+    f.irAPestana(enlace.dataset.irPestana || 'jugar')
+    const destino = document.querySelector(enlace.getAttribute('href'))
+    if (destino && enlace.dataset.irPestana) setTimeout(() => destino.scrollIntoView({ behavior: 'smooth', block: 'start' }), 50)
+    else window.scrollTo({ top: 0, behavior: 'smooth' })
   })
   // Vale para todos los «⋯» de la ficha (el de la cabecera y el del mando de
   // Rondas, 1344): se cierran al tocar fuera o al elegir algo de dentro.

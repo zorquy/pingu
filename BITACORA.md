@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (597) — PINGU-Claude (1347 — torneos con caras: las piezas comunes y el día entre jornadas)
+
+**Hecho**: primera tanda de la propuesta «Torneos con caras» (PINGU: «visualmente
+poco llamativo… deberían salir los avatares de cada uno»; eligió las
+recomendadas).
+- `js/torneos/caras.js`: la cara de cada jugador (foto o inicial, como en el
+  resto de la web), su **forma** (últimos resultados en cuadritos V/D/E), la
+  **flecha** de puestos que ha subido o bajado y la cuenta «Faltan 6 d 23 h».
+  Las usan las tandas 1349–1351.
+- **Entre jornadas**, la línea de arriba ya no enseña un anillo vacío con «—»:
+  lleva el día de la próxima jornada, «Faltan …» y, si juegas, «Tu lista», que
+  te lleva a Mi mesa y a tu decklist.
+
+**Ficheros**: `js/torneos/caras.js` (nuevo), `js/torneos/ronda.js`,
+`js/torneos/ficha-arriba.js`, `css/torneos.css`.
+
+**Pendiente**: 1348–1351. Sin migración.
+
 ## 2026-11-13 (596) — PINGU-Claude (1346b — lo que cazó la suite antes de subir 1341–1346)
 
 **Hecho**: la suite de torneos, comparada con el código de antes, dio doce

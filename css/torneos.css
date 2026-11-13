@@ -4384,3 +4384,62 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
 }
 .lc-tarjeta.lc-en-vivo { border-color: var(--danger); }
 .torneo-vivo-rondas i.corte { width: 14px; border-radius: 3px; }
+
+/* ── 1347: las piezas con cara (SCHEMA 1347) ──
+   La cara de cada jugador, su forma (los últimos resultados en cuadritos) y
+   la flecha de cuánto ha subido o bajado. Las usan Mi mesa, Rondas,
+   Clasificación, Jugadores y el tablón. */
+.torneo-cara {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+  color: var(--blanco-fijo);
+  font-size: var(--t-xs);
+  font-weight: 800;
+}
+.torneo-cara-p { width: 22px; height: 22px; border-radius: 8px; font-size: var(--t-2xs); }
+.torneo-cara-g { width: 44px; height: 44px; border-radius: 12px; font-size: var(--t-md); }
+.torneo-cara-xg { width: 64px; height: 64px; border-radius: 16px; font-size: var(--t-xl); }
+.torneo-forma { display: inline-flex; gap: 2px; vertical-align: middle; }
+.torneo-forma i {
+  display: grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  font-style: normal;
+  font-size: 9px;
+  font-weight: 800;
+}
+.torneo-forma-v, .torneo-forma-b { background: var(--success-bg); color: var(--success); }
+.torneo-forma-d { background: var(--danger-bg); color: var(--danger); }
+.torneo-forma-e { background: var(--bg); color: var(--text-mid); }
+.torneo-mov { font-size: var(--t-2xs); font-weight: 800; line-height: 1; }
+.torneo-mov.sube { color: var(--success); }
+.torneo-mov.baja { color: var(--danger); }
+.torneo-mov.igual { color: var(--text-dim); }
+
+/* Entre jornadas, la pastilla lleva el día en vez del anillo vacío. */
+.torneo-viva-anillo-dia { background: var(--ice); border-radius: 12px; }
+:root[data-theme='dark'] .torneo-viva-anillo-dia { background: var(--ice-dark); }
+.torneo-viva-anillo-dia::before { display: none; }
+.torneo-viva-dia { display: grid; justify-items: center; line-height: 1; font-family: var(--font-marca); font-size: var(--t-md); color: var(--navy); }
+.torneo-viva-dia small { font-size: 8px; font-weight: 800; letter-spacing: 0.08em; font-family: var(--font-body); }
+.torneo-viva-cuenta {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--bg);
+  font-size: var(--t-xs);
+  font-weight: 700;
+  white-space: nowrap;
+}
+@media (max-width: 640px) {
+  .torneo-pegado .torneo-viva-cuenta { display: none; }
+}
