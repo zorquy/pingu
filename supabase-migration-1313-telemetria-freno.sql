@@ -1,14 +1,15 @@
 -- Tanda 1313 — la analítica y los errores, con freno (S8 del plan).
 --
--- `page_views` y `client_errors` aceptan filas de cualquiera, sin cuenta: es
--- lo que las hace funcionar (una visita o un error pasan antes de entrar).
+-- `page_views`, `client_errors` y `page_vitals` aceptan filas de cualquiera,
+-- sin cuenta: es lo que las hace funcionar (una visita o un error pasan antes de entrar).
 -- Pero sin límite, alguien con un bucle inventa diez mil visitas o llena la
 -- base de errores falsos, y con un `user_id` que no es el suyo. Un disparador
 -- por delante:
 --   · el `user_id` es el de quien escribe (o ninguno), nunca otro;
 --   · los textos se recortan a un largo razonable (no se rechazan: un error
 --     de verdad con una traza larga sigue entrando);
---   · y como mucho N filas por minuto entre todos (visitas 300, errores 60):
+--   · y como mucho N filas por minuto entre todos (visitas 300, errores 60,
+--     medidas de velocidad 120):
 --     lo de más se descarta SIN error, para que un bucle no aprenda nada.
 -- Por minuto y no por navegador porque estas filas no llevan quién las manda
 -- (la 1065, a propósito). Con el tráfico de hoy, el tope no se toca nunca.
@@ -35,9 +36,14 @@ declare
   v_minuto timestamptz := date_trunc('minute', now());
   v_n integer;
 begin
-  -- Nadie apunta una visita o un error a nombre de otro.
-  if new.user_id is not null and new.user_id is distinct from auth.uid() then
-    new.user_id := auth.uid();
+  -- Nadie apunta una visita o un error a nombre de otro (page_vitals no
+  -- lleva quién).
+  -- (Anidado: plpgsql no promete cortar un `and`, y `new.user_id` en
+  -- page_vitals es un error.)
+  if tg_table_name in ('page_views', 'client_errors') then
+    if new.user_id is not null and new.user_id is distinct from auth.uid() then
+      new.user_id := auth.uid();
+    end if;
   end if;
   if tg_table_name = 'page_views' then
     new.path := left(new.path, 300);
@@ -81,3 +87,13 @@ drop trigger if exists trg_freno_client_errors on public.client_errors;
 
 create trigger trg_freno_client_errors before insert on public.client_errors
   for each row execute function public.freno_de_telemetria('60');
+
+-- Las medidas de velocidad (821): una visita de cada cuatro, así que 120.
+do $$
+begin
+  if to_regclass('public.page_vitals') is not null then
+    drop trigger if exists trg_freno_page_vitals on public.page_vitals;
+    create trigger trg_freno_page_vitals before insert on public.page_vitals
+      for each row execute function public.freno_de_telemetria('120');
+  end if;
+end $$;

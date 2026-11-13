@@ -4,6 +4,22 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-13 (563) — PINGU-Claude (1313b — R4 ya estaba; el freno también para page_vitals)
+
+**Hecho**: la R4 del plan (la velocidad real de la gente en Analítica) YA
+EXISTÍA desde la 821 (`js/vitales.js`, una visita de cada cuatro,
+`vitales_resumen`, la tarjeta «Lo que tarda de verdad» en Técnico): la
+auditoría de la noche no la vio. Lo único que le faltaba es lo de la S8:
+`page_vitals` también acepta filas de cualquiera, así que la migración 1313
+(aún sin ejecutar) le pone el mismo disparador con tope 120 por minuto. Y el
+disparador ya no lee `new.user_id` en una tabla que no lo tiene (anidado:
+plpgsql no promete cortar un `and`).
+
+**Ficheros**: supabase-migration-1313-telemetria-freno.sql, BITACORA.md. En
+`pruebas`: test-tanda-1313 con page_vitals.
+
+**Pendiente**: la migración 1313, como estaba.
+
 ## 2026-11-13 (562) — PINGU-Claude (1315 — las precargas de módulos, generadas)
 
 **Hecho**: la R2. `generar-precargas.mjs` recorre cada página (57, con

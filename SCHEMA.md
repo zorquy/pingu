@@ -55242,7 +55242,8 @@ también estos `link`, con su tope de 120.
   importado). Una función nueva que gaste por llamada y se pueda llamar sin
   cuenta lleva el suyo.
 - **Freno de la analítica (S8).** `freno_de_telemetria()` (`before insert`,
-  argumento: tope por minuto) en `page_views` (300) y `client_errors` (60):
+  argumento: tope por minuto) en `page_views` (300), `client_errors` (60) y
+  `page_vitals` (120, 1313b; sin `user_id`):
   `user_id` := `auth.uid()` si no coincide; recortes (path 300, origen y
   campaña 120, aparato 60; mensaje 600, traza 4000, url 500, agente 300);
   `status` siempre `new`; cuenta en `telemetria_ritmo(tabla, minuto, n)` (sin
