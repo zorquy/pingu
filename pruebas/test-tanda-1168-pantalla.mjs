@@ -118,7 +118,7 @@ console.log('── La campana: «Ver todos los avisos» (PC y hoja «Tú» del 
   const { p, ctx, errores } = await abrir('/avisos', true, muchos())
   const r = await estado(p)
   const cab = await p.evaluate(() => ({ cab: document.querySelector('.av-cab').getBoundingClientRect().height, boton: document.getElementById('avLeerTodo').innerText.trim(), chipsScroll: (() => { const c = document.getElementById('avChips'); return c.scrollWidth > c.clientWidth && getComputedStyle(c).overflowX === 'auto' })() }))
-  check('en el móvil: sin errores ni desbordes, cabecera de una línea con «Marcar todo» y los chips en una fila que se desliza', errores.length === 0 && !r.desborda && cab.cab < 70 && cab.boton === 'Marcar todo' && cab.chipsScroll, JSON.stringify({ r, cab, errores }))
+  check('en el móvil: sin errores ni desbordes, cabecera de una línea con «Marcar todo» (la tira de la banda desde la 1359) y los chips en una fila que se desliza', errores.length === 0 && !r.desborda && cab.cab <= 72 && cab.boton === 'Marcar todo' && cab.chipsScroll, JSON.stringify({ r, cab, errores }))
   await p.click('#navUserBtn', { timeout: 3000 }).catch(() => null)
   await p.waitForTimeout(600)
   await p.click('[data-tu="avisos"]', { timeout: 3000 }).catch(() => null)

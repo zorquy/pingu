@@ -53,7 +53,10 @@ console.log('── 1. Foro: los foros en filas de una línea, sin chips ──'
 {
   const { ctx, page } = await abrir('/foro')
   check('sin chips de sección', (await page.locator('.foro-chips-secciones').count()) === 0)
-  check('«Foro» no ocupa sitio', (await soloLector(page, '#foroTitulo')) === true, await soloLector(page, '#foroTitulo'))
+  // Desde la 1359 («Igualar la web») el nombre se ve, pero en la MISMA fila
+  // que «Leído», la lupa y «Escribir»: sigue sin ocupar un renglón suyo.
+  const fila = await page.evaluate(() => { const h = document.getElementById('foroTitulo').getBoundingClientRect(); const e = document.getElementById('foroEscribir').getBoundingClientRect(); return h.width > 40 && Math.abs((h.top + h.bottom) / 2 - (e.top + e.bottom) / 2) < 12 })
+  check('«Foro» no ocupa un renglón suyo (va en la fila de sus botones, 1359)', fila)
   const f = await page.evaluate(() => [...document.querySelectorAll('.foro-seccion > .foro-fila')].map((x) => ({ alto: Math.round(x.getBoundingClientRect().height), ancho: Math.round(x.getBoundingClientRect().width) })))
   check('cada foro es una fila a lo ancho, de menos de 72 px', f.length >= 4 && f.every((x) => x.alto <= 72 && x.ancho > 300), JSON.stringify(f))
   await ctx.close()
