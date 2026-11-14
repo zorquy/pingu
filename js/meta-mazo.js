@@ -331,7 +331,7 @@ async function pintarCoste(caja, l) {
   }
 }
 
-// Guardar una lista de otro en «Mis mazos» (tanda 413): sin pasar por
+// Guardar una lista de otro en «Mazos» (tanda 413): sin pasar por
 // el constructor, como mazo privado. Al terminar, el botón pasa a ser el
 // enlace a la copia, que es lo siguiente que se quiere hacer con ella.
 async function guardarEnMisMazos(boton, l) {

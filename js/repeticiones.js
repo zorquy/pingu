@@ -1378,7 +1378,7 @@ function textoDeApuntar(yo, resultado) {
   if (!yo) return 'Apuntarla en tus partidas sueltas (antes, dinos cuál de los dos eres)'
   if (!resultado) return 'Apuntarla en tus partidas sueltas (antes, dinos cómo acabó)'
   const p = partidaParaApuntar(yo, null, resultado)
-  return `Apuntarla en tus partidas sueltas de «Mis partidas» como ${COMO_ACABO[resultado]}: ${p.mi_mazo_nombre} contra ${p.rival_mazo_nombre}`
+  return `Apuntarla en tus partidas sueltas de «Partidas» como ${COMO_ACABO[resultado]}: ${p.mi_mazo_nombre} contra ${p.rival_mazo_nombre}`
 }
 
 // ¿Quién eres? (tanda 553) Cada jugador con el mazo que se le vio y quién
@@ -1507,7 +1507,7 @@ function dialogoGuardar() {
       if (!mia) return
       const ya = await datos.partidaApuntada(R.sesion.user.id, o.id).catch(() => false)
       if (!ya || !caja.isConnected) return
-      caja.innerHTML = '<p class="rep-dialogo-texto">Ya está apuntada en tus partidas sueltas de <a href="/mis-partidas">Mis partidas</a>.</p>'
+      caja.innerHTML = '<p class="rep-dialogo-texto">Ya está apuntada en tus partidas sueltas de <a href="/mis-partidas">Partidas</a>.</p>'
     })
   cuerpo.querySelector('#repFormGuardar').addEventListener('submit', async (e) => {
     e.preventDefault()
@@ -1550,9 +1550,9 @@ function dialogoGuardar() {
           const mazoGuardado = cuerpo.querySelector('#repMazoGuardado')?.value || null
           const arqGuardado = mazoGuardado ? await arquetipoDelGuardado(mazoGuardado).catch(() => null) : null
           const r = await datos.apuntarPartida(partidaParaApuntar(elegido, R.origen.id, resultado, { mazoGuardado, arqGuardado, conVinculo: Boolean(R.enlazar?.vinculo) }))
-          aviso = r.ya ? `${aviso} La partida ya estaba en «Mis partidas».` : mia ? 'Cambios guardados y partida apuntada en «Mis partidas».' : 'Guardada y apuntada en tus partidas sueltas de «Mis partidas».'
+          aviso = r.ya ? `${aviso} La partida ya estaba en «Partidas».` : mia ? 'Cambios guardados y partida apuntada en «Partidas».' : 'Guardada y apuntada en tus partidas sueltas de «Partidas».'
         } catch (err) {
-          aviso = `${aviso} Pero no se ha podido apuntar en «Mis partidas»: ${err.message}`
+          aviso = `${aviso} Pero no se ha podido apuntar en «Partidas»: ${err.message}`
           tipo = 'error'
         }
       }

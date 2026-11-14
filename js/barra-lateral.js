@@ -14,7 +14,7 @@ import { icons } from './icons.js'
 import { hojaInyectada } from './hoja.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
 import { esNueva } from './paginas-nuevas.js'
-import { ICONOS, claveDePagina, seccionesDeLaBarra, seccionActual, destinoDe, iconoDePagina, rotuloCorto } from './barra-movil.js'
+import { ICONOS, claveDePagina, cubrePagina, seccionesDeLaBarra, seccionActual, destinoDe, iconoDePagina, rotuloCorto } from './barra-movil.js'
 
 export const CONSULTA = '(min-width: 1400px) and (pointer: fine)'
 
@@ -86,7 +86,7 @@ export function lateralHtml(secciones, actual, clave, { conSesion = false, abier
           : paginasDe(s)
             .map((e) => {
               const k = claveDePagina(e.href)
-              return `<li><a href="${e.href}"${k === clave ? ' aria-current="page"' : ''}>${icons[iconoDePagina(k)]?.(18) || ''}<span>${rotuloCorto(k, e.texto)}</span>${esNueva(k) ? '<em class="lat-nuevo">Nuevo</em>' : ''}</a></li>`
+              return `<li><a href="${e.href}"${cubrePagina(e.href, clave) ? ' aria-current="page"' : ''}>${icons[iconoDePagina(k)]?.(18) || ''}<span>${rotuloCorto(k, e.texto)}</span>${esNueva(k) ? '<em class="lat-nuevo">Nuevo</em>' : ''}</a></li>`
             })
             .join('')}</ul></div>`
         : ''
@@ -98,7 +98,7 @@ export function lateralHtml(secciones, actual, clave, { conSesion = false, abier
       // Las pestañas de una misma página (las de /tienda, 1071) comparten la
       // clave: la que está aquí es la activa.
       const esLaPagina = s.ver ? activa : claveDePagina(destinoDe(s, conSesion)) === clave
-      const aquiDebajo = conCajon && paginasDe(s).some((e) => claveDePagina(e.href) === clave)
+      const aquiDebajo = conCajon && paginasDe(s).some((e) => cubrePagina(e.href, clave))
       return `<li class="lat-seccion${activa ? ' lat-activa' : ''}"><div class="lat-fila"><a class="lat-seccion-enlace" href="${destinoDe(s, conSesion)}" title="${s.nombre}"${s.ver ? ` data-ver="${s.ver}"` : ''}${esLaPagina && !aquiDebajo ? ' aria-current="page"' : ''}>${icons[s.icono || ICONOS[s.nombre]]?.(20) || ''}<span>${s.nombre}</span></a>${flecha}</div>${cajon}</li>`
     })
     .join('')

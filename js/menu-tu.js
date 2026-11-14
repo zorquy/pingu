@@ -119,7 +119,7 @@ export function pintarMenuTu(dropdown, { profile, name, estiloAvatar, inicial, n
       <a href="/tienda?ver=datos" data-ver="datos">${icons.settings(20)}<span>Datos</span></a>` : `${baldosa('/guardados.html', icons.bookmark(20), 'Guardados', 'guardados')}
       ${baldosa('/mi-coleccion?ver=quiero', ICONOS_COLECCION.corazon(20), 'La quiero', 'quiero')}
       ${baldosa('/mazos', icons.layers(20), 'Mis mazos', 'mazos')}
-      ${baldosa('/mis-partidas', icons.gamepad(20), 'Mis partidas', 'partidas')}`}
+      ${baldosa('/mis-partidas', icons.gamepad(20), 'Partidas', 'partidas')}`}
     </nav>
     <div class="tu-avisos-sitio"></div>
     <nav class="tu-lista" aria-label="Más">

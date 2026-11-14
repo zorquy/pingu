@@ -55,12 +55,12 @@ const estado = {
   formato: 'standard',
   publico: false,
   entradas: new Map(), // id de carta → { carta, n }
-  // La carta que hace de portada en «Mis mazos» (tanda 413). Null = la
+  // La carta que hace de portada en «Mazos» (tanda 413). Null = la
   // elige el constructor al guardar; con una puesta, se respeta mientras
   // siga en el mazo — antes se recalculaba en CADA guardado y pisaba la
-  // que hubieras elegido en «Mis mazos».
+  // que hubieras elegido en «Mazos».
   portada: null,
-  // …o aunque NO esté, si se eligió de fuera: en «Mis mazos» se puede
+  // …o aunque NO esté, si se eligió de fuera: en «Mazos» se puede
   // buscar cualquier carta de portada, y el constructor solo elige entre
   // las del mazo, así que una portada que no está en él la ha puesto
   // alguien a propósito. Una que sí estaba y se ha quitado del mazo deja
@@ -885,7 +885,7 @@ async function guardar() {
       fila = await guardarMazo({ id: copia ? null : estado.id, ...datos })
     } catch (err) {
       // El mazo que se estaba editando ya no está en tu cuenta: se borró
-      // desde «Mis mazos» (o en otra pestaña), o venía de un borrador de
+      // desde «Mazos» (o en otra pestaña), o venía de un borrador de
       // otra cuenta que entró en este navegador. Antes salía «este mazo no
       // es tuyo» y no había forma de guardarlo; PINGU: «cada uno puede
       // guardar el mazo que quiera en su cuenta». Se guarda como NUEVO.
@@ -1092,7 +1092,7 @@ async function ponerFila(fila) {
 async function ponerBorrador(b) {
   const mapa = await cartasPorIds(b.cartas.map((c) => c.id))
   // El borrador vive en el NAVEGADOR, no en la cuenta: puede apuntar a un
-  // mazo que ya no existe (borrado en «Mis mazos») o que es de otra cuenta
+  // mazo que ya no existe (borrado en «Mazos») o que es de otra cuenta
   // que entró aquí antes (tanda 420). Entonces es un mazo nuevo: si no,
   // «Guardar» intentaba pisar ese y salía «este mazo no es tuyo».
   let id = b.id || null
@@ -1378,7 +1378,7 @@ function enganchar() {
     guardarBorrador()
     pintarEstadoGuardado()
     pintarCartaAbierta()
-    showToast(estado.id ? 'Portada elegida: se queda al guardar.' : 'Portada elegida: será la de «Mis mazos» al guardar.', 'success')
+    showToast(estado.id ? 'Portada elegida: se queda al guardar.' : 'Portada elegida: será la de «Mazos» al guardar.', 'success')
   })
   $('cmImportarBoton').addEventListener('click', importar)
   $('cmImportarModoTexto').addEventListener('click', () => cambiarModoImportar('texto'))

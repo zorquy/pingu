@@ -1527,6 +1527,13 @@ function engancharDecklist(jornada = null) {
   $('btnUsarMazo')?.addEventListener('click', abrirMazosGuardados)
   $('decklistTexto').addEventListener('input', pintarCuentaDecklist)
   pintarCuentaDecklist()
+  // «A un torneo» desde Mazos (1358): la lista de ese mazo, puesta sola.
+  let pedido = null
+  try { pedido = sessionStorage.getItem('pd-mazo-a-torneo') } catch {}
+  if (pedido && $('btnUsarMazo') && !$('decklistTexto').value.trim()) {
+    try { sessionStorage.removeItem('pd-mazo-a-torneo') } catch {}
+    import('../constructor/datos.js').then((m) => m.cargarMazo(pedido)).then(ponerMazoEnLista).catch(() => {})
+  }
   $('btnGuardarDecklist').addEventListener('click', async () => {
     if (guardando) return
     const texto = $('decklistTexto').value

@@ -87,12 +87,8 @@
           <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
           <div class="nav-sub">
             <a href="/torneos.html">Torneos</a>
-            <a href="/meta">Mazos del meta</a>
-            <a href="/constructor">Constructor de mazos</a>
-            <a href="/laboratorio">Laboratorio</a>
-            <a href="/mazos">Mis mazos</a>
-            <a href="/mis-partidas">Mis partidas</a>
-            <a href="/repeticiones">Repeticiones</a>
+            <a href="/meta">Mazos</a>
+            <a href="/mis-partidas">Partidas</a>
           </div>
         </div>
       </div>
@@ -124,12 +120,8 @@
       <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
         <summary>Jugar</summary>
         <a href="/torneos.html">Torneos</a>
-        <a href="/meta">Mazos del meta</a>
-        <a href="/constructor">Constructor de mazos</a>
-        <a href="/laboratorio">Laboratorio</a>
-        <a href="/mazos">Mis mazos</a>
-        <a href="/mis-partidas">Mis partidas</a>
-        <a href="/repeticiones">Repeticiones</a>
+        <a href="/meta">Mazos</a>
+        <a href="/mis-partidas">Partidas</a>
       </details>
     </div>
   </nav>
@@ -181,6 +173,8 @@
          tira de jornadas y los tres primeros. La pinta js/torneos/ligas-franja.js
          desde torneos.js; sin ligas en marcha, ni ocupa. -->
     <section id="torneosLigas" class="lc-franja" aria-label="Ligas en curso" hidden></section>
+    <!-- «A un torneo» desde Mazos (1358): qué mazo llevas mientras eliges. -->
+    <p class="t-mazo-elegido" id="torneosMazoElegido" role="status" hidden></p>
 
     <!-- Crear torneo: el wizard por pasos de TrainerArena, sin el paso
          de pago (aquí todo es gratis). torneos.js gobierna los pasos;

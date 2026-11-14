@@ -100,12 +100,8 @@
           <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
           <div class="nav-sub">
             <a href="/torneos.html">Torneos</a>
-            <a href="/meta">Mazos del meta</a>
-            <a href="/constructor">Constructor de mazos</a>
-            <a href="/laboratorio">Laboratorio</a>
-            <a href="/mazos">Mis mazos</a>
-            <a href="/mis-partidas">Mis partidas</a>
-            <a href="/repeticiones">Repeticiones</a>
+            <a href="/meta">Mazos</a>
+            <a href="/mis-partidas">Partidas</a>
           </div>
         </div>
       </div>
@@ -137,12 +133,8 @@
       <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
         <summary>Jugar</summary>
         <a href="/torneos.html">Torneos</a>
-        <a href="/meta">Mazos del meta</a>
-        <a href="/constructor">Constructor de mazos</a>
-        <a href="/laboratorio">Laboratorio</a>
-        <a href="/mazos">Mis mazos</a>
-        <a href="/mis-partidas">Mis partidas</a>
-        <a href="/repeticiones">Repeticiones</a>
+        <a href="/meta">Mazos</a>
+        <a href="/mis-partidas">Partidas</a>
       </details>
     </div>
   </nav>
@@ -157,8 +149,8 @@
          siempre (título y periodo). -->
     <header class="meta-cabecera banda-s cab-lista">
       <div class="banda-s-texto">
-        <span class="banda-s-ceja">Jugar · Meta</span>
-        <h1>Mazos del meta</h1>
+        <span class="banda-s-ceja">Jugar · Mazos · Meta</span>
+        <h1>Mazos</h1>
         <p class="meta-lema banda-s-lema cab-lema">Lo que más se juega en Estándar: torneos oficiales, Limitless y los de PokeDoc.</p>
         <div class="banda-s-cifras meta-banda-cifras">
           <span class="banda-s-cifra"><b id="metaNListas">—</b><small>listas</small></span>
@@ -172,6 +164,13 @@
            meta.js los mantiene a la par. -->
       <select class="meta-periodo-menu" id="metaPeriodoMenu" aria-label="Periodo"></select>
     </header>
+    <!-- Las tres pestañas de Mazos (1358, «Jugar en tres»): son páginas, así
+         que van como enlaces; la activa la marca el HTML. -->
+    <nav class="seg jugar-pestanas" aria-label="Mazos">
+      <a class="seg-btn activa" href="/meta" aria-current="page">Meta</a>
+      <a class="seg-btn" href="/mazos">Los míos</a>
+      <a class="seg-btn" href="/laboratorio">Probar</a>
+    </nav>
     <div class="meta-filtros-cab">
       <div class="seg" id="metaFuente" role="group" aria-label="Torneos"></div>
       <div class="seg" id="metaPeriodo" role="group" aria-label="Periodo"></div>

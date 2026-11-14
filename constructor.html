@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" data-seccion="jugar">
+<html lang="es" data-seccion="jugar" data-detalle>
 <head>
   <meta charset="UTF-8" />
   <script>(function(){var t=localStorage.getItem('pokedoc-theme');var d=t?t==='dark':window.matchMedia('(prefers-color-scheme: dark)').matches;document.documentElement.dataset.theme=d?'dark':'light';})();</script><script>try{var pe=document.documentElement,pl=localStorage.getItem('pd-letra');if(pl==='grande'||pl==='muy-grande')pe.dataset.letra=pl;if(localStorage.getItem('pd-contraste')==='1')pe.dataset.contraste='1'}catch(x){}</script>
@@ -111,12 +111,8 @@
           <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
           <div class="nav-sub">
             <a href="/torneos.html">Torneos</a>
-            <a href="/meta">Mazos del meta</a>
-            <a href="/constructor">Constructor de mazos</a>
-            <a href="/laboratorio">Laboratorio</a>
-            <a href="/mazos">Mis mazos</a>
-            <a href="/mis-partidas">Mis partidas</a>
-            <a href="/repeticiones">Repeticiones</a>
+            <a href="/meta">Mazos</a>
+            <a href="/mis-partidas">Partidas</a>
           </div>
         </div>
       </div>
@@ -148,12 +144,8 @@
       <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
         <summary>Jugar</summary>
         <a href="/torneos.html">Torneos</a>
-        <a href="/meta">Mazos del meta</a>
-        <a href="/constructor">Constructor de mazos</a>
-        <a href="/laboratorio">Laboratorio</a>
-        <a href="/mazos">Mis mazos</a>
-        <a href="/mis-partidas">Mis partidas</a>
-        <a href="/repeticiones">Repeticiones</a>
+        <a href="/meta">Mazos</a>
+        <a href="/mis-partidas">Partidas</a>
       </details>
     </div>
   </nav>
@@ -162,6 +154,9 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container cm-pagina">
+    <!-- 1358: el constructor ya no está en el menú; se llega desde Mazos y se
+         vuelve a «Los míos» (la miga es también la flecha del móvil). -->
+    <nav class="breadcrumb" aria-label="Dónde estás"><a href="/meta">Mazos</a> <span>›</span> <a href="/mazos">Los míos</a></nav>
     <div class="cm-cabecera-pagina">
       <h1>Constructor de mazos</h1>
     </div>

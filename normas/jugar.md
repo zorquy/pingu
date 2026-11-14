@@ -220,3 +220,10 @@ UNA línea cada cosa: lo que no quepa en una línea va en su pestaña.
 Las pestañas (cuáles hay en cada momento, su orden, la de entrada y dónde
 van según el ancho) viven en `js/torneos/pestanas.js` desde la 1352; los ids
 no cambian (`?ver=jugar` sigue abriendo Hoy).
+
+**Jugar son TRES cosas en el menú: Torneos, Mazos y Partidas** (tanda 1358,
+PINGU eligió «Jugar en tres»). Mazos son /meta, /mazos y /laboratorio con sus
+pestañas Meta · Los míos · Probar; Partidas son /mis-partidas y /repeticiones.
+El constructor no está en el menú: se abre desde «Nuevo mazo» o «Editar» y
+vuelve a Los míos. Una página nueva de Jugar va como pestaña de uno de los
+tres (y en `HERMANAS` de `js/barra-movil.js`), no como cuarto enlace.

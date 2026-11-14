@@ -98,12 +98,8 @@
           <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
           <div class="nav-sub">
             <a href="/torneos.html">Torneos</a>
-            <a href="/meta">Mazos del meta</a>
-            <a href="/constructor">Constructor de mazos</a>
-            <a href="/laboratorio">Laboratorio</a>
-            <a href="/mazos">Mis mazos</a>
-            <a href="/mis-partidas">Mis partidas</a>
-            <a href="/repeticiones">Repeticiones</a>
+            <a href="/meta">Mazos</a>
+            <a href="/mis-partidas">Partidas</a>
           </div>
         </div>
       </div>
@@ -135,12 +131,8 @@
       <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
         <summary>Jugar</summary>
         <a href="/torneos.html">Torneos</a>
-        <a href="/meta">Mazos del meta</a>
-        <a href="/constructor">Constructor de mazos</a>
-        <a href="/laboratorio">Laboratorio</a>
-        <a href="/mazos">Mis mazos</a>
-        <a href="/mis-partidas">Mis partidas</a>
-        <a href="/repeticiones">Repeticiones</a>
+        <a href="/meta">Mazos</a>
+        <a href="/mis-partidas">Partidas</a>
       </details>
     </div>
   </nav>
@@ -154,8 +146,8 @@
          (las pone js/mazos.js). En el móvil, la fila de siempre. -->
     <div class="mz-cabecera banda-s cab-lista">
       <div class="banda-s-texto">
-        <span class="banda-s-ceja">Jugar · Mis mazos</span>
-        <h1>Mis mazos</h1>
+        <span class="banda-s-ceja">Jugar · Mazos · Los míos</span>
+        <h1>Mazos</h1>
         <p class="subtext cm-mazos-cuenta cab-lema" id="mzCuenta"></p>
         <div class="banda-s-cifras mz-banda-cifras">
           <span class="banda-s-cifra"><b id="mzNMazos">—</b><small>mazos</small></span>
@@ -168,6 +160,13 @@
         <a class="btn-primary cm-btn" href="/constructor?nuevo=1"><span data-icono="sparkles"></span>Nuevo mazo</a>
       </div>
     </div>
+    <!-- Las tres pestañas de Mazos (1358, «Jugar en tres»): son páginas, así
+         que van como enlaces; la activa la marca el HTML. -->
+    <nav class="seg jugar-pestanas" aria-label="Mazos">
+      <a class="seg-btn" href="/meta">Meta</a>
+      <a class="seg-btn activa" href="/mazos" aria-current="page">Los míos</a>
+      <a class="seg-btn" href="/laboratorio">Probar</a>
+    </nav>
     <div id="cmAviso" class="cm-aviso hidden" role="status"></div>
     <p class="subtext" id="mzCargando">Cargando tus mazos…</p>
     <div class="cm-mazos" id="mzLista"></div>

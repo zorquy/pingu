@@ -2078,9 +2078,9 @@ async function init() {
   for (const el of document.querySelectorAll('.partidas-filtrar [data-icono]')) el.innerHTML = ICONOS_COLECCION[el.dataset.icono]?.(16) || ''
   colocarMandos('torneos')
   telefono?.addEventListener?.('change', () => colocarMandos(document.querySelector('#partidasTabs .seg-btn[aria-pressed="true"]')?.dataset.vista || 'torneos'))
-  document.querySelectorAll('#partidasTabs .seg-btn').forEach((btn) =>
+  document.querySelectorAll('#partidasTabs .seg-btn[data-vista]').forEach((btn) =>
     btn.addEventListener('click', () => {
-      document.querySelectorAll('#partidasTabs .seg-btn').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)))
+      document.querySelectorAll('#partidasTabs .seg-btn[data-vista]').forEach((b) => b.setAttribute('aria-pressed', String(b === btn)))
       for (const v of ['torneos', 'sueltas', 'stats']) {
         $(`vista-${v}`).classList.toggle('active', v === btn.dataset.vista)
       }
@@ -2107,7 +2107,7 @@ async function init() {
     if (boton && boton.dataset.vista !== 'torneos') boton.click()
     else pestaniaInicialPendiente = !boton
   }
-  document.querySelectorAll('#partidasTabs .seg-btn').forEach((btn) => btn.addEventListener('click', () => { try { localStorage.setItem(CLAVE_VISTA, btn.dataset.vista) } catch {} }))
+  document.querySelectorAll('#partidasTabs .seg-btn[data-vista]').forEach((btn) => btn.addEventListener('click', () => { try { localStorage.setItem(CLAVE_VISTA, btn.dataset.vista) } catch {} }))
 
   $('btnApuntarPartida').addEventListener('click', () => {
     // Si ya está abierto en modo suelto, el botón lo cierra; si está en

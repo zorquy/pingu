@@ -610,7 +610,7 @@ export async function guardarMazo({ id, name, format, cards, cover_card, is_publ
   return data
 }
 
-// Cambiar SOLO la portada (tanda 413, «Mis mazos»): sin tocar las
+// Cambiar SOLO la portada (tanda 413, «Mazos»): sin tocar las
 // cartas ni el nombre, para no pisar un cambio hecho en otra pestaña.
 // Con `.select()` como guardarMazo: un update que la política rechaza
 // vuelve vacío y sin error.

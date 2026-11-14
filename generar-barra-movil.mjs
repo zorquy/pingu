@@ -18,7 +18,7 @@
 import { readFileSync, writeFileSync, readdirSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { dirname, join } from 'node:path'
-import { claveDePagina, seccionActual, destinoDe, seccionesDe, ICONOS } from './js/barra-movil.js'
+import { claveDePagina, cubrePagina, seccionActual, destinoDe, seccionesDe, ICONOS } from './js/barra-movil.js'
 import { icons } from './js/icons.js'
 
 const RAIZ = dirname(fileURLToPath(import.meta.url))
@@ -70,7 +70,7 @@ export function esDetalle(html, fichero) {
   const actual = seccionActual(secciones, clave)
   if (!actual || clave === 'index') return false
   const seccion = secciones.find((s) => s.nombre === actual)
-  return !seccion.enlaces.some((e) => claveDePagina(e.href) === clave)
+  return !seccion.enlaces.some((e) => cubrePagina(e.href, clave))
 }
 export function conSeccion(html, fichero) {
   const seccion = seccionDe(html, fichero)

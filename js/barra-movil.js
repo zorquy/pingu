@@ -39,6 +39,17 @@ export const SECCION_DE = {
   Inicio: ['index', 'noticias', 'lanzamientos', 'novedades'],
 }
 
+// UN ENLACE DEL MENÚ QUE CUBRE VARIAS PÁGINAS (1358, «Jugar en tres» de
+// PINGU): «Mazos» es /meta, /mazos y /laboratorio (sus pestañas Meta, Los
+// míos y Probar), y «Partidas» es /mis-partidas y /repeticiones. Estando en
+// cualquiera de ellas, ese enlace es el activo y la página es de lista (con
+// burbuja), no de detalle.
+export const HERMANAS = { meta: ['mazos', 'laboratorio'], 'mis-partidas': ['repeticiones'] }
+export const cubrePagina = (href, clave) => {
+  const k = claveDePagina(href)
+  return k === clave || (HERMANAS[k] || []).includes(clave)
+}
+
 // «/mi-coleccion», «/mi-coleccion.html» y «mi-coleccion.html?ver=panel»
 // son la misma página: su clave es el primer tramo sin extensión.
 export function claveDePagina(href, origen = 'https://pokedoc.es') {
@@ -71,7 +82,7 @@ export function seccionesDe(grupos, sueltos) {
 
 // La sección de la página actual: por sus enlaces, y si no, por la tabla.
 export function seccionActual(secciones, clave) {
-  const porEnlace = secciones.find((s) => s.enlaces.some((e) => claveDePagina(e.href) === clave))
+  const porEnlace = secciones.find((s) => s.enlaces.some((e) => cubrePagina(e.href, clave)))
   if (porEnlace) return porEnlace.nombre
   return Object.keys(SECCION_DE).find((n) => SECCION_DE[n].includes(clave)) || null
 }
@@ -85,11 +96,11 @@ export function destinoDe(seccion, conSesion) {
 }
 
 // El icono de cada página de una sección (lo que hay en js/icons.js).
-export const ICONO_DE_PAGINA = { index: 'home', noticias: 'newspaper', aprender: 'bookOpen', retos: 'zap', guardados: 'bookmark', cartas: 'cards', lanzamientos: 'calendar', novedades: 'sparkles', 'mi-coleccion': 'layers', foro: 'messageSquare', eventos: 'calendar', tiendas: 'store', usuarios: 'users', torneos: 'trophy', meta: 'trendingUp', constructor: 'edit', laboratorio: 'lightbulb', mazos: 'package', 'mis-partidas': 'gamepad', repeticiones: 'eye' }
+export const ICONO_DE_PAGINA = { index: 'home', noticias: 'newspaper', aprender: 'bookOpen', retos: 'zap', guardados: 'bookmark', cartas: 'cards', lanzamientos: 'calendar', novedades: 'sparkles', 'mi-coleccion': 'layers', foro: 'messageSquare', eventos: 'calendar', tiendas: 'store', usuarios: 'users', torneos: 'trophy', meta: 'layers', constructor: 'edit', laboratorio: 'lightbulb', mazos: 'package', 'mis-partidas': 'gamepad', repeticiones: 'eye' }
 export const iconoDePagina = (clave) => ICONO_DE_PAGINA[clave] || 'compass'
-// En una burbuja la palabra es corta: «Constructor de mazos» pide 160 px
-// y «Constructor» dice lo mismo debajo de un lápiz.
-export const ROTULO_CORTO = { aprender: 'Guías', retos: 'Retos', cartas: 'Catálogo', 'mi-coleccion': 'Mi colección', meta: 'Meta', constructor: 'Constructor', 'mis-partidas': 'Mis partidas', usuarios: 'Gente' }
+// En una burbuja la palabra es corta («Guías y cursos» pide el doble que
+// «Guías»). Jugar ya va corto desde la 1358: Torneos, Mazos, Partidas.
+export const ROTULO_CORTO = { aprender: 'Guías', retos: 'Retos', cartas: 'Catálogo', 'mi-coleccion': 'Mi colección', usuarios: 'Gente' }
 export const rotuloCorto = (clave, texto) => ROTULO_CORTO[clave] || texto
 
 // Una burbuja con más de lo que cabe lleva un degradado en el lado por el
@@ -468,7 +479,7 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   // colección, que ya tiene la suya, las otras páginas de Cartas se
   // cuelgan al final de esa misma burbuja: dos burbujas no caben.
   const seccion = secciones.find((s) => s.nombre === actual)
-  const enLista = seccion?.enlaces.some((e) => claveDePagina(e.href) === clave)
+  const enLista = seccion?.enlaces.some((e) => cubrePagina(e.href, clave))
   // La cabecera de detalle (1019): lo decide `data-detalle`, que puso el
   // generador; sin él (una página vieja en caché), lo mismo que decide él.
   const esDetalle = detalle ?? (doc.documentElement.hasAttribute('data-detalle') || Boolean(seccion && !enLista && clave !== 'index'))
@@ -483,7 +494,7 @@ export function montarBarraMovil({ conSesion = false, doc = document, clave = cl
   if (conSesion && (clave === 'index' || enLista)) import('./invitar-push.js').then((m) => m.montarInvitarPush()).catch(() => {})
   const propia = clave === 'mi-coleccion' ? doc.querySelector('.mc-pestanias') : null
   if (seccion && enLista && (propia || seccion.enlaces.length > 1)) {
-    const item = (e, clase) => { const k = claveDePagina(e.href); return `<a class="${clase}" href="${e.href}"${k === clave ? ' aria-current="page"' : ''} title="${e.texto}">${icons[iconoDePagina(k)]?.(24) || ''}<span class="bm-texto">${rotuloCorto(k, e.texto)}</span>${esNueva(k) ? '<i class="bm-nuevo"><span class="sr-only">Nuevo</span></i>' : ''}</a>` }
+    const item = (e, clase) => { const k = claveDePagina(e.href); return `<a class="${clase}" href="${e.href}"${cubrePagina(e.href, clave) ? ' aria-current="page"' : ''} title="${e.texto}">${icons[iconoDePagina(k)]?.(24) || ''}<span class="bm-texto">${rotuloCorto(k, e.texto)}</span>${esNueva(k) ? '<i class="bm-nuevo"><span class="sr-only">Nuevo</span></i>' : ''}</a>` }
     // SIN ESCANEAR (758): PINGU, «ocúltalo, que no funciona muy bien». Se
     // va de la burbuja, de la paleta y del atajo del icono; el código del
     // escáner se queda en Mi colección, sin ninguna puerta que lleve a él.

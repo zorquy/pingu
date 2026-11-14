@@ -816,6 +816,21 @@ function pintarCalendario(direccion = 0) {
 
 // El conmutador Lista/Calendario. La elección se recuerda por
 // navegador: quien piensa en fechas vuelve a encontrarse su calendario.
+// «A un torneo» desde Mazos (1358): mientras eliges, una línea dice qué mazo
+// llevas; la ficha del torneo pone su lista al ir a inscribirte.
+function pintarMazoElegido() {
+  const caja = document.getElementById('torneosMazoElegido')
+  let nombre = null
+  try { nombre = sessionStorage.getItem('pd-mazo-a-torneo') && sessionStorage.getItem('pd-mazo-a-torneo-nombre') } catch {}
+  if (!caja || !nombre) return
+  caja.innerHTML = `${icons.layers?.(16) || ''}<span>Elige torneo para <b>${escapeHtml(nombre)}</b>: al inscribirte, su lista va puesta.</span><button type="button" class="link-btn">Quitar</button>`
+  caja.hidden = false
+  caja.querySelector('button').addEventListener('click', () => {
+    try { sessionStorage.removeItem('pd-mazo-a-torneo'); sessionStorage.removeItem('pd-mazo-a-torneo-nombre') } catch {}
+    caja.hidden = true
+  })
+}
+
 function engancharVistas() {
   const aplicar = () => {
     document.querySelectorAll('[data-vista-torneos]').forEach((b) =>
@@ -1405,6 +1420,7 @@ async function init() {
   }
   engancharFormulario(session, perfil)
   engancharVistas()
+  pintarMazoElegido()
   // «Crear uno» desde /colabora (1153): `?crear=1` abre el formulario ya.
   // Sin cuenta el botón está escondido y el formulario no serviría: se queda
   // la lista (el registro lo pide el propio /colabora).

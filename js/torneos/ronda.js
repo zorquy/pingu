@@ -3008,7 +3008,7 @@ async function abrirListaRival(userId) {
 // ── Guardarse la lista de otro (tanda 413) ──
 //
 // PINGU: «que tú siempre te puedas guardar el mazo que quieras». Desde la
-// ventana de la lista, a «Mis mazos» de un toque —como mazo privado— o al
+// ventana de la lista, a «Mazos» de un toque —como mazo privado— o al
 // constructor para tocarlo antes.
 const nombreDeLaCopia = (userId) => {
   const arq = arquetipos.get(userId)

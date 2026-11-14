@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-14 (604) — PINGU-Claude (1358 — Jugar en tres: Torneos, Mazos y Partidas)
+
+**Hecho** (la propuesta «Jugar en tres», que PINGU aprobó: «me gusta la propuesta, dale»):
+- **El menú de Jugar pasa de siete páginas a tres**: Torneos, Mazos (/meta) y
+  Partidas (/mis-partidas), en el lateral del PC, en la burbuja del móvil y en
+  el menú de arriba de las 50 páginas. El pie sigue con todas, por Google.
+- **Un enlace cubre varias páginas** (`HERMANAS` y `cubrePagina` en
+  `js/barra-movil.js`): Mazos es /meta, /mazos y /laboratorio; Partidas es
+  /mis-partidas y /repeticiones. En cualquiera, ese enlace va marcado y la
+  página es de lista (con burbuja). Lo usan la burbuja, el lateral y el
+  generador (`esDetalle`).
+- **Pestañas**: Meta · Los míos · Probar en las tres de Mazos; Repeticiones
+  como cuarta pestaña de Partidas (enlace dentro de `#partidasTabs`, que ahora
+  solo engancha `[data-vista]`), y en /repeticiones las cuatro. Los `<h1>` son
+  «Mazos» y «Partidas»; el `<title>` de cada página no cambia.
+- **El constructor sale del menú**: es página de detalle (`data-detalle`) con
+  su miga «Mazos › Los míos», que en el móvil es la flecha de vuelta.
+- **Cada mazo tuyo**: Editar, Probar y «A un torneo» a la vista (Abrir sale
+  del «⋯»). «A un torneo» apunta el mazo (`pd-mazo-a-torneo` en
+  sessionStorage), /torneos lo recuerda en una línea con «Quitar», y la ficha
+  del torneo pone su lista sola al abrir el editor de la decklist vacío.
+- Textos: «Mis mazos» → «Mazos», «Mis partidas» → «Partidas»; la bienvenida
+  de Jugar con tres tarjetas.
+
+**Ficheros**: las 50 páginas con menú (y su barra regenerada), `meta.html`,
+`mazos.html`, `laboratorio.html`, `mis-partidas.html`, `repeticiones.html`,
+`constructor.html`, `mazo-meta.html`, `torneos.html`, `js/barra-movil.js`,
+`js/barra-lateral.js`, `generar-barra-movil.mjs`, `js/mazos.js`,
+`js/mis-partidas.js`, `js/torneos/torneos.js`, `js/torneos/torneo.js`,
+`js/bienvenida-seccion.js`, textos en `js/constructor.js`,
+`js/constructor/datos.js`, `js/repeticiones.js`, `js/guardar-lista.js`,
+`js/laboratorio-pagina.js`, `js/meta-mazo.js`, `js/torneos/ronda.js`;
+`css/seccion.css`, `css/partidas.css`, `css/torneos.css`, `normas/jugar.md`,
+`normas/interfaz.md`, `novedades.json`.
+
+**Pendiente**: lo de los torneos sigue: 1353 (Hoy del jugador), 1354 (Mesas y
+Tabla), 1355 (antes de empezar y /torneos), 1356 (Mando), 1357 (Cola del
+juez). Las filas del meta siguen llevando a la ficha del mazo, que es donde
+están Copiar y Probar. Sin migración.
+
 ## 2026-11-14 (603) — PINGU-Claude (1352 — la ficha del torneo como app: la barra del torneo)
 
 **Hecho** (primera tanda de «Torneos como app», que PINGU aprobó):

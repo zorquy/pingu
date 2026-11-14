@@ -55204,6 +55204,39 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1358 — Jugar en tres: Torneos, Mazos y Partidas
+
+El desplegable de Jugar (las 50 páginas con menú) lleva tres enlaces:
+`/torneos.html` Torneos, `/meta` Mazos y `/mis-partidas` Partidas. El pie no
+cambia (los enlaces de todas las páginas están ahí para Google).
+
+`js/barra-movil.js`: `HERMANAS = { meta: ['mazos', 'laboratorio'],
+'mis-partidas': ['repeticiones'] }` y `cubrePagina(href, clave)`, verdadero
+si la clave de la página es la del enlace o una de sus hermanas. Lo usan
+`seccionActual`, el `enLista` y el `aria-current` de la burbuja,
+`barra-lateral.js` (la página marcada y `aquiDebajo`) y `esDetalle` de
+`generar-barra-movil.mjs`. `ROTULO_CORTO` ya no lleva meta, constructor ni
+mis-partidas (los rótulos del menú ya son cortos) e `ICONO_DE_PAGINA.meta` es
+`layers`. /constructor queda fuera de los enlaces: es página de detalle, con
+la miga `Mazos › Los míos` (la última miga es la vuelta del móvil).
+
+Pestañas: `<nav class="seg jugar-pestanas">` con `a.seg-btn` (la activa con
+`.activa` y `aria-current="page"`) escrita en el HTML de /meta, /mazos,
+/laboratorio (Meta · Los míos · Probar) y /repeticiones (Torneos ·
+Partidas · Estadísticas · Repeticiones, las tres primeras a
+`/mis-partidas?ver=torneos|sueltas|stats`). En /mis-partidas la cuarta es un
+`<a class="seg-btn" href="/repeticiones">` dentro de `#partidasTabs`; sus
+manejadores buscan `.seg-btn[data-vista]`. CSS en `css/seccion.css`
+(`grid-column: 1 / -1` para la rejilla del laboratorio; en el móvil, columnas
+iguales y, con cuatro, `--t-xs`).
+
+«A un torneo» (`[data-a-torneo]` en la tarjeta de `js/mazos.js`): guarda
+`pd-mazo-a-torneo` (id) y `pd-mazo-a-torneo-nombre` en sessionStorage y va a
+/torneos. `pintarMazoElegido()` de `js/torneos/torneos.js` pinta
+`#torneosMazoElegido` («Elige torneo para X…» + Quitar). En la ficha,
+`engancharDecklist` de torneo.js: si hay pedido, el editor es editable y el
+texto está vacío, `cargarMazo(id)` → `ponerMazoEnLista` y se borra el pedido.
+
 ## Tanda 1352 — La ficha del torneo como app: la barra del torneo
 
 `js/torneos/pestanas.js` (nuevo) tiene lo que antes vivía en torneo.js:

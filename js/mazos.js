@@ -121,11 +121,12 @@ function tarjetaHtml(m) {
       </div>
       <div class="cm-mazo-pie">
         <p class="cm-mazo-coste${r && r.total && !r.faltan ? ' entero' : ''}" data-coste-caja aria-live="polite">${costeHtml(m)}</p>
+        <a class="btn-secondary cm-btn" href="${enlace}">Editar</a>
         <a class="btn-secondary cm-btn" href="/laboratorio?mazo=${escapeHtml(m.id)}">Probar</a>
+        <a class="btn-secondary cm-btn" href="/torneos.html" data-a-torneo>A un torneo</a>
         <details class="cm-mazo-mas">
           <summary class="btn-secondary cm-btn" aria-label="Más opciones de ${escapeHtml(m.name)}">${icono('moreHorizontal', 18)}</summary>
           <div class="cm-mazo-menu">
-            <a href="${enlace}">${icono('edit')} Abrir</a>
             <button type="button" data-portada>${icono('image')} Portada</button>
             <button type="button" data-duplicar>${icono('layers')} Duplicar</button>
             ${ajustesEnBase ? `<button type="button" data-predeterminado>${icono('star')} ${predeterminado?.user_deck_id === m.id ? 'Quitar de predeterminado' : 'Mi mazo predeterminado'}</button>` : ''}
@@ -358,6 +359,12 @@ async function iniciar() {
     if (!tarjeta) return
     const mazo = mazos.find((m) => m.id === tarjeta.dataset.id)
     if (!mazo) return
+    // «A un torneo» (1358): se apunta el mazo y se va a elegir torneo; al
+    // inscribirte, la ficha del torneo pone su lista sola (torneo.js).
+    if (e.target.closest('[data-a-torneo]')) {
+      try { sessionStorage.setItem('pd-mazo-a-torneo', mazo.id); sessionStorage.setItem('pd-mazo-a-torneo-nombre', mazo.name) } catch {}
+      return
+    }
     if (e.target.closest('.cm-mazo-menu button')) tarjeta.querySelector('.cm-mazo-mas')?.removeAttribute('open')
     if (e.target.closest('[data-portada]')) {
       abrirPortada(mazo, tarjeta.querySelector('.cm-mazo-mas summary'))

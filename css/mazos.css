@@ -169,13 +169,15 @@
 
 .cm-mazo-pie {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: var(--e-sm);
   padding: var(--e-sm) var(--e-sm) var(--e-sm) var(--e-md);
   border-top: 1px solid var(--border);
 }
 
-.cm-mazo-coste { flex: 1; min-width: 0; margin: 0; font-size: var(--t-sm); color: var(--text-mid); }
+/* Con Editar, Probar y «A un torneo» (1358) el coste va en su renglón. */
+.cm-mazo-coste { flex: 1 1 100%; min-width: 0; margin: 0; font-size: var(--t-sm); color: var(--text-mid); }
 .cm-mazo-coste b { color: var(--warning); }
 .cm-mazo-coste.entero b { color: var(--success); }
 

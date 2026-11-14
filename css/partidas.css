@@ -1062,3 +1062,6 @@
 @media (prefers-reduced-motion: reduce) {
   .partidas-mes-lista.en-cascada > * { animation: none; }
 }
+
+/* La pestaña Repeticiones es un enlace (1358). */
+.partidas-tabs a.seg-btn { text-decoration: none; }

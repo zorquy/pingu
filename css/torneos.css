@@ -4080,7 +4080,7 @@ html[data-torneo-pestana='jugar'] .torneo-pegado .torneo-viva { display: none; }
     overflow-y: auto;
     overscroll-behavior: contain;
     border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-    padding-bottom: calc(var(--e-lg) + env(safe-area-inset-bottom));
+    padding-bottom: calc(var(--e-lg) + var(--seguro-abajo));
     box-shadow: var(--shadow-lg);
     transform: translateY(105%);
     visibility: hidden;
@@ -4735,3 +4735,9 @@ button.torneo-tj { cursor: pointer; }
 @media (min-width: 1100px) and (max-width: 1599px) {
   .torneo-ficha-cuerpo:has(> .torneo-rail) .torneo-clasificacion-tabla .col-tcg { display: none; }
 }
+
+/* El mazo que llevas al elegir torneo (1358). */
+.t-mazo-elegido { display: flex; align-items: center; gap: var(--e-sm); margin: 0 0 var(--e-md); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-pill); background: color-mix(in srgb, var(--acento) 12%, transparent); color: var(--text); font-size: var(--t-sm); }
+.t-mazo-elegido[hidden] { display: none; }
+.t-mazo-elegido span { flex: 1; min-width: 0; }
+.t-mazo-elegido svg { color: var(--acento); flex: none; }

@@ -67,12 +67,8 @@ export const BIENVENIDAS = {
     lema: 'Torneos, mazos y todo lo que necesitas para practicar.',
     paginas: [
       { nombre: 'Torneos', icono: 'trophy', href: '/torneos', clave: 'torneos', texto: 'Apúntate a torneos de PokeDoc: emparejamientos, resultados y clasificación en vivo.' },
-      { nombre: 'Mazos del meta', icono: 'trendingUp', href: '/meta', clave: 'meta', texto: 'Los mazos que más se juegan y ganan, con sus listas para copiar a TCG Live.' },
-      { nombre: 'Constructor de mazos', icono: 'edit', href: '/constructor', clave: 'constructor', texto: 'Monta tu mazo carta a carta y comprueba que es legal en Estándar.' },
-      { nombre: 'Laboratorio', icono: 'target', href: '/laboratorio', clave: 'laboratorio', texto: 'Prueba tu mazo contra un muñeco o contra ti, con las probabilidades de robo en vivo.' },
-      { nombre: 'Mis mazos', icono: 'cards', href: '/mazos', clave: 'mazos', texto: 'Tus listas guardadas, para editarlas o llevarlas a un torneo.' },
-      { nombre: 'Mis partidas', icono: 'checkSquare', href: '/mis-partidas', clave: 'mis-partidas', texto: 'Apunta tus partidas y mira contra qué mazos ganas y pierdes.' },
-      { nombre: 'Repeticiones', icono: 'eye', href: '/repeticiones', clave: 'repeticiones', texto: 'Pega el registro de TCG Live y mira la partida jugada a jugada.' },
+      { nombre: 'Mazos', icono: 'layers', href: '/meta', clave: 'meta', texto: 'Los mazos que más se juegan, los tuyos y el laboratorio para probarlos: copia, edita y juega de prueba.' },
+      { nombre: 'Partidas', icono: 'checkSquare', href: '/mis-partidas', clave: 'mis-partidas', texto: 'Apunta tus partidas, mira contra qué mazos ganas y pierdes, y revive las de TCG Live jugada a jugada.' },
     ],
   },
 }

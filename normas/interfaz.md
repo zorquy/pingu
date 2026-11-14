@@ -139,7 +139,9 @@
   ni doble toque, PINGU los descartó), y dentro lo de cada página. La
   burbuja sale solo en las páginas de la lista de la sección, no en una
   ficha; en Mi colección las ajenas van al final de la suya. Una página de detalle dice de qué sección es en
-  `SECCION_DE`.
+  `SECCION_DE`. Y un enlace del menú puede cubrir varias páginas (1358):
+  `HERMANAS` en `js/barra-movil.js` (Mazos = /meta, /mazos, /laboratorio); se
+  pregunta con `cubrePagina`, nunca comparando la clave a mano.
 - **Lo que el CSS reserva por ancho, el JS lo monta por ancho, no solo al
   cargar** (tanda 1340): la lateral tiene su hueco por `@media (min-width:
   1400px)` desde el primer pintado, y se montaba solo si la ventana ya era ancha

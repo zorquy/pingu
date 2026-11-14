@@ -103,12 +103,8 @@
           <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
           <div class="nav-sub">
             <a href="/torneos.html">Torneos</a>
-            <a href="/meta">Mazos del meta</a>
-            <a href="/constructor">Constructor de mazos</a>
-            <a href="/laboratorio">Laboratorio</a>
-            <a href="/mazos">Mis mazos</a>
-            <a href="/mis-partidas">Mis partidas</a>
-            <a href="/repeticiones">Repeticiones</a>
+            <a href="/meta">Mazos</a>
+            <a href="/mis-partidas">Partidas</a>
           </div>
         </div>
       </div>
@@ -140,12 +136,8 @@
       <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
         <summary>Jugar</summary>
         <a href="/torneos.html">Torneos</a>
-        <a href="/meta">Mazos del meta</a>
-        <a href="/constructor">Constructor de mazos</a>
-        <a href="/laboratorio">Laboratorio</a>
-        <a href="/mazos">Mis mazos</a>
-        <a href="/mis-partidas">Mis partidas</a>
-        <a href="/repeticiones">Repeticiones</a>
+        <a href="/meta">Mazos</a>
+        <a href="/mis-partidas">Partidas</a>
       </details>
     </div>
   </nav>
@@ -156,7 +148,7 @@
   <main id="contenido" class="page-content container">
     <div class="page-header cabecera-pagina cab-lista" style="padding-top: 8px;">
       <div>
-        <h1>Mis partidas</h1>
+        <h1>Partidas</h1>
         <p class="cab-lema">Contra qué mazos juegas y cómo te va. Las de los torneos de PokeDoc entran solas; las de fuera las apuntas tú.</p>
       </div>
       <!-- En el móvil, el botón principal de la pestaña abierta se muda
@@ -187,6 +179,8 @@
           <button type="button" class="seg-btn" data-vista="torneos" aria-pressed="true">Torneos</button>
           <button type="button" class="seg-btn" data-vista="sueltas" aria-pressed="false">Partidas<span class="cab-largo"> sueltas</span></button>
           <button type="button" class="seg-btn" data-vista="stats" aria-pressed="false">Estadísticas</button>
+          <!-- 1358: Repeticiones es otra página; su pestaña es un enlace. -->
+          <a class="seg-btn" href="/repeticiones">Repeticiones</a>
         </div>
         <!-- «Filtrar» de la pestaña abierta, en el móvil (893). -->
         <span class="partidas-mandos-extra" id="partidasMandosExtra"></span>

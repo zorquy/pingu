@@ -127,12 +127,8 @@
           <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
           <div class="nav-sub">
             <a href="/torneos.html">Torneos</a>
-            <a href="/meta">Mazos del meta</a>
-            <a href="/constructor">Constructor de mazos</a>
-            <a href="/laboratorio">Laboratorio</a>
-            <a href="/mazos">Mis mazos</a>
-            <a href="/mis-partidas">Mis partidas</a>
-            <a href="/repeticiones">Repeticiones</a>
+            <a href="/meta">Mazos</a>
+            <a href="/mis-partidas">Partidas</a>
           </div>
         </div>
       </div>
@@ -164,12 +160,8 @@
       <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
         <summary>Jugar</summary>
         <a href="/torneos.html">Torneos</a>
-        <a href="/meta">Mazos del meta</a>
-        <a href="/constructor">Constructor de mazos</a>
-        <a href="/laboratorio">Laboratorio</a>
-        <a href="/mazos">Mis mazos</a>
-        <a href="/mis-partidas">Mis partidas</a>
-        <a href="/repeticiones">Repeticiones</a>
+        <a href="/meta">Mazos</a>
+        <a href="/mis-partidas">Partidas</a>
       </details>
     </div>
   </nav>
@@ -182,8 +174,8 @@
          cifras salen con tu cuenta (las pone js/repeticiones.js). -->
     <header class="rep-cabecera cabecera-pagina banda-s">
       <div class="banda-s-texto">
-        <span class="banda-s-ceja">Jugar · Repeticiones</span>
-        <h1>Repeticiones</h1>
+        <span class="banda-s-ceja">Jugar · Partidas · Repeticiones</span>
+        <h1>Partidas</h1>
         <!-- 1145 (W4): una línea; lo que se puede hacer va plegado en «¿Cómo se copia?». -->
         <p class="rep-lema banda-s-lema">Pega el registro de una partida de JCC Pokémon Live y mírala jugada a jugada.</p>
         <div class="banda-s-cifras" id="repBandaCifras" hidden>
@@ -192,6 +184,14 @@
         </div>
       </div>
     </header>
+    <!-- Las pestañas de Partidas (1358): Repeticiones es la cuarta; las otras
+         tres son las de /mis-partidas. -->
+    <nav class="seg jugar-pestanas" aria-label="Partidas">
+      <a class="seg-btn" href="/mis-partidas?ver=torneos">Torneos</a>
+      <a class="seg-btn" href="/mis-partidas?ver=sueltas">Partidas</a>
+      <a class="seg-btn" href="/mis-partidas?ver=stats">Estadísticas</a>
+      <a class="seg-btn activa" href="/repeticiones" aria-current="page">Repeticiones</a>
+    </nav>
 
     <section class="rep-pegar" id="repPegar" aria-labelledby="repPegarTitulo">
       <h2 id="repPegarTitulo"><span class="rep-pegar-ico" aria-hidden="true" data-icono-ojo></span>El registro de la partida</h2>

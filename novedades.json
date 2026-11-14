@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-14", "tipo": "mejora", "texto": "Jugar se ordena en tres: Torneos, Mazos y Partidas. En Mazos tienes tres pestañas, Meta, Los míos y Probar, y cada mazo tuyo lleva Editar, Probar y «A un torneo», que te pone su lista al inscribirte. Las repeticiones pasan a ser una pestaña de Partidas.", "enlace": "/meta" },
     { "fecha": "2026-11-14", "tipo": "mejora", "texto": "Dentro de un torneo, en el móvil, la barra de abajo es la del torneo: Hoy, Mesas, Tabla e Info, como en una app. En el PC, esas mismas secciones van en una columna a la izquierda.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "arreglo", "texto": "«Compartir» en la ficha de un torneo vuelve a sacar la imagen del anuncio con las plazas que quedan, no solo el enlace.", "enlace": "/torneos" },
     { "fecha": "2026-11-13", "tipo": "mejora", "texto": "La clasificación de los torneos lleva la cara de cada uno, si ha subido o bajado y sus últimos resultados; los desempates se ven al tocar a un jugador. Los jugadores salen en mosaico con su cara y el tablón junta los avisos automáticos en uno.", "enlace": "/torneos" },

@@ -117,12 +117,8 @@
           <button type="button" class="nav-grupo-btn" aria-expanded="false">Jugar</button>
           <div class="nav-sub">
             <a href="/torneos.html">Torneos</a>
-            <a href="/meta">Mazos del meta</a>
-            <a href="/constructor">Constructor de mazos</a>
-            <a href="/laboratorio">Laboratorio</a>
-            <a href="/mazos">Mis mazos</a>
-            <a href="/mis-partidas">Mis partidas</a>
-            <a href="/repeticiones">Repeticiones</a>
+            <a href="/meta">Mazos</a>
+            <a href="/mis-partidas">Partidas</a>
           </div>
         </div>
       </div>
@@ -154,12 +150,8 @@
       <details class="nav-menu-grupo nav-jugar hidden" name="nav-menu">
         <summary>Jugar</summary>
         <a href="/torneos.html">Torneos</a>
-        <a href="/meta">Mazos del meta</a>
-        <a href="/constructor">Constructor de mazos</a>
-        <a href="/laboratorio">Laboratorio</a>
-        <a href="/mazos">Mis mazos</a>
-        <a href="/mis-partidas">Mis partidas</a>
-        <a href="/repeticiones">Repeticiones</a>
+        <a href="/meta">Mazos</a>
+        <a href="/mis-partidas">Partidas</a>
       </details>
     </div>
   </nav>
@@ -179,13 +171,20 @@
          juegan (los pone js/laboratorio-pagina.js). En el móvil, sin banda. -->
     <header class="lp-cabecera cabecera-pagina banda-s">
       <div class="banda-s-texto">
-        <span class="banda-s-ceja">Jugar · Laboratorio</span>
-        <h1>Laboratorio</h1>
+        <span class="banda-s-ceja">Jugar · Mazos · Probar</span>
+        <h1>Mazos</h1>
         <p class="subtext banda-s-lema">Juega partidas de prueba con las reglas de verdad: contra el muñeco, que mide tu daño, o tú contra ti.</p>
         <div class="banda-s-cifras lp-banda-cifras"><span class="banda-s-cifra"><b>3</b><small>formas de empezar</small></span></div>
       </div>
       <div class="banda-s-derecha" id="lpAbanico" aria-hidden="true"></div>
     </header>
+    <!-- Las tres pestañas de Mazos (1358, «Jugar en tres»): son páginas, así
+         que van como enlaces; la activa la marca el HTML. -->
+    <nav class="seg jugar-pestanas" aria-label="Mazos">
+      <a class="seg-btn" href="/meta">Meta</a>
+      <a class="seg-btn" href="/mazos">Los míos</a>
+      <a class="seg-btn activa" href="/laboratorio" aria-current="page">Probar</a>
+    </nav>
     <section class="lp-bloque" aria-labelledby="lpMiosTitulo">
       <h2 id="lpMiosTitulo"><span class="lp-paso" aria-hidden="true">1</span>Con uno de tus mazos</h2>
       <div class="lp-mios" id="lpMios" aria-live="polite"><span class="skeleton lp-esqueleto"></span></div>

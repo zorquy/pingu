@@ -9,7 +9,7 @@
 // esta página: al cerrarlo se vuelve aquí y no al constructor.
 //
 // `/laboratorio?mazo=<id>` abre ese mazo nada más llegar: es a donde manda
-// «Probar» en «Mis mazos». Y las posiciones que se comparten desde el
+// «Probar» en «Mazos». Y las posiciones que se comparten desde el
 // laboratorio llegan aquí también (`/lab/<id>` → `?pos=<id>`, o la larga
 // `#pos=…`): al cerrar la mesa se queda uno en el laboratorio y no en un
 // constructor vacío. El constructor las sigue abriendo, por los enlaces

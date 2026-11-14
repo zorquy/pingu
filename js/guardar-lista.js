@@ -1,4 +1,4 @@
-// Guardar en «Mis mazos» una lista que estás VIENDO (tanda 413).
+// Guardar en «Mazos» una lista que estás VIENDO (tanda 413).
 //
 // PINGU: «que tú siempre te puedas guardar el mazo que quieras». Hasta
 // ahora una lista ajena —la de un jugador en la clasificación de un
