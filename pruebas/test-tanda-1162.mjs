@@ -29,8 +29,9 @@ const usuarios = leer('usuarios.html')
 check('la lista de personas se titula «Gente»', /<h1>(La gente de PokeDoc|Gente)<\/h1>/.test(usuarios) && /<title>Gente — PokeDoc<\/title>/.test(usuarios) && !/La comunidad<\/h1>/.test(usuarios))
 check('  …también en og:title y twitter:title', (usuarios.match(/content="Gente — PokeDoc"/g) || []).length === 2)
 const barra = leer('js/barra-movil.js')
-check('la burbuja y la lateral dicen «Mis partidas», como el título', /'mis-partidas': 'Mis partidas'/.test(barra) && !/'mis-partidas': 'Partidas'/.test(barra))
-check('  …y la hoja «Tú» también', /'Mis partidas', 'partidas'/.test(leer('js/menu-tu.js')))
+// 1358 («Jugar en tres»): el título y el menú dicen «Partidas»; la burbuja ya no lo acorta.
+check('la burbuja y la lateral dicen «Partidas», como el título', !/'mis-partidas': 'Mis partidas'/.test(barra))
+check('  …y la hoja «Tú» también', /'Partidas', 'partidas'/.test(leer('js/menu-tu.js')))
 check('la pestaña de cambios se rotula «Cambios» en la burbuja, no «Trade»', /<span class="mc-texto-corto">Cambios<\/span>/.test(leer('mi-coleccion.html')) && !/>Trade</.test(leer('mi-coleccion.html')))
 // /cartas se genera de la misma plantilla sin la pestaña de cambios (649): sin «Trade» igual.
 check('  …y /cartas, generado, tampoco dice «Trade»', !/>Trade</.test(leer('cartas.html')))

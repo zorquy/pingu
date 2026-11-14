@@ -105,7 +105,7 @@ console.log('── 3. El constructor ──')
   await ctx.close()
   const pc = await abrir('/constructor.html', { movil: false })
   const migas = await pc.page.evaluate(() => document.querySelector('.breadcrumb')?.textContent.replace(/\s+/g, ' ').trim())
-  check('en el PC, «Inicio › Mis mazos»', migas === 'Inicio › Mis mazos', migas)
+  check('en el PC, «Mazos › Los míos» (1358)', migas === 'Mazos › Los míos', migas)
   await pc.ctx.close()
 }
 

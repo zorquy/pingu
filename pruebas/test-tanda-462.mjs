@@ -656,7 +656,7 @@ const inicioDeTurno = (n) => lectura.eventos.map((e, i) => [e, i + 1]).filter(([
 console.log('\n── 4. /repeticiones ──')
 {
   const { page, errores } = await repeticion({ ejemplo: false })
-  check('la página tiene su h1 y el campo para pegar', (await page.textContent('h1')) === 'Repeticiones' && (await page.locator('#repTexto').count()) === 1)
+  check('la página tiene su h1 y el campo para pegar', (await page.textContent('h1')) === 'Partidas' && (await page.locator('#repTexto').count()) === 1)
   await page.click('#repFormulario button[type=submit]')
   check('sin texto, lo dice', /Pega primero/.test(await page.textContent('#repError')) && (await page.isVisible('#repError')))
   await page.fill('#repTexto', 'hola\nesto no es un registro')
@@ -930,8 +930,9 @@ console.log('\n── 6. El sitio ──')
 {
   const paginas = readdirSync(RAIZ).filter((f) => f.endsWith('.html'))
   const conJugar = paginas.filter((f) => /<div class="nav-grupo nav-jugar hidden">/.test(leer(f)))
-  const sinEnlace = conJugar.filter((f) => (leer(f).match(/<a href="\/repeticiones">Repeticiones<\/a>/g) || []).length !== 2)
-  check(`«Repeticiones» está en el menú «Jugar» (arriba y en el del móvil) de las ${conJugar.length} páginas que lo tienen`, conJugar.length >= 30 && !sinEnlace.length, sinEnlace.join(', '))
+  // 1358: Repeticiones es una pestaña de Partidas; el menú lleva Partidas.
+  const sinEnlace = conJugar.filter((f) => (leer(f).match(/<a href="\/mis-partidas">Partidas<\/a>/g) || []).length < 2)
+  check(`«Partidas» (con Repeticiones dentro) está en el menú «Jugar» de las ${conJugar.length} páginas que lo tienen`, conJugar.length >= 30 && !sinEnlace.length, sinEnlace.join(', '))
   check('el sitemap la lleva', /\['\/repeticiones', '0\.\d'\]/.test(leer('netlify/functions/sitemap.mjs')))
   const html = leer('repeticiones.html')
   check('la página es indexable, con su descripción y su canónica', /<meta name="description" content="[^"]{60,}"/.test(html) && /<link rel="canonical" href="https:\/\/pokedoc\.es\/repeticiones" \/>/.test(html) && !/noindex/.test(html))

@@ -87,7 +87,7 @@ const datos = (page) => page.evaluate(() => {
   check('apuntar una sección no apunta otra', reglas.otra === true)
   check('ni en una ficha ni en una página sin sección', reglas.ficha === false && reglas.sinSeccion === false)
   check('sin almacén del navegador no sale (si no, saldría en cada página)', reglas.sinAlmacen === false)
-  check('cinco secciones con sus páginas', JSON.stringify(reglas.cuentas) === '{"inicio":4,"aprender":4,"cartas":7,"comunidad":4,"jugar":7}', JSON.stringify(reglas.cuentas))
+  check('cinco secciones con sus páginas', JSON.stringify(reglas.cuentas) === '{"inicio":4,"aprender":4,"cartas":7,"comunidad":4,"jugar":3}', JSON.stringify(reglas.cuentas))
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
@@ -134,7 +134,7 @@ const datos = (page) => page.evaluate(() => {
   const { ctx, page, errores } = await abrir({ movil: true })
   await ir(page, '/torneos.html?bienvenida=1')
   const d = await datos(page)
-  check('Jugar en el móvil: siete páginas, «Estás aquí» en Torneos', d?.filas.length === 7 && JSON.stringify(d?.aqui) === '["Torneos"]', JSON.stringify(d))
+  check('Jugar en el móvil: tres (1358), «Estás aquí» en Torneos', d?.filas.length === 3 && JSON.stringify(d?.aqui) === '["Torneos"]', JSON.stringify(d))
   check('hoja pegada abajo', d && d.abajo <= 1, d?.abajo)
   check('cabe entera sin desplazarse en un iPhone', d?.cabe === true)
   check('filas y cerrar de 44 al dedo', d?.altoFila >= 44 && d?.cerrar >= 44, `${d?.altoFila} / ${d?.cerrar}`)

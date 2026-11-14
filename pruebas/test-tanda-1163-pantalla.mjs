@@ -70,7 +70,8 @@ const abrir = async (ruta, movil = false) => {
 }
 {
   const { p, ctx } = await abrir('/constructor')
-  check('el constructor no lleva migas', (await p.locator('.breadcrumb').count()) === 0)
+  // 1358: el constructor salió del menú y es una ficha; como las fichas, lleva sus migas.
+  check('el constructor, ficha desde la 1358, lleva «Mazos › Los míos»', (await p.locator('.breadcrumb').innerText()).replace(/\s+/g, ' ').trim() === 'Mazos › Los míos')
   await ctx.close()
 }
 {

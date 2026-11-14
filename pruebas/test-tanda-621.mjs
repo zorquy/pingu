@@ -58,9 +58,9 @@ console.log('\n── 1. En el menú de todas las páginas ──')
   const conBarra = paginas.filter((p) => /<nav class="navbar"/.test(leer(p)))
   const sin = conBarra.filter((p) => {
     const nav = leer(p).split('<nav class="navbar"')[1].split('</nav>')[0]
-    return (nav.match(/<a href="\/laboratorio">Laboratorio<\/a>/g) || []).length !== 2
+    return (nav.match(/<a href="\/meta">Mazos<\/a>/g) || []).length !== 2
   })
-  check(`las ${conBarra.length} páginas con barra llevan «Laboratorio» arriba y en el menú del móvil`, conBarra.length > 30 && sin.length === 0, sin.join(', '))
+  check(`las ${conBarra.length} páginas con barra llevan «Mazos» (con Probar, el laboratorio) arriba y en el menú del móvil (1358)`, conBarra.length > 30 && sin.length === 0, sin.join(', '))
   const viejas = conBarra.filter((p) => !/class="nav-grupo-btn"/.test(leer(p)))
   check('  …y ninguna conserva la barra vieja sin grupos (lo era /colabora)', viejas.length === 0, viejas.join(', '))
   check('el sitemap lista /laboratorio', /\['\/laboratorio'/.test(leer('netlify/functions/sitemap.mjs')))
@@ -94,7 +94,7 @@ const labAbierto = (page) => page.waitForSelector('.lab:not([hidden]) .lab-mesa'
 console.log('\n── 2. Sin cuenta ──')
 {
   const { page, errores } = await abrir({ sesion: 'none', borrador: { id: null, nombre: 'Lo de anoche', cartas: cards, cambiado: true, cuando: Date.now() } })
-  check('h1 «Laboratorio»', (await page.locator('h1').innerText()).trim() === 'Laboratorio')
+  check('h1 «Mazos» y la pestaña «Probar» marcada (1358)', (await page.locator('h1').innerText()).trim() === 'Mazos' && (await page.locator('.jugar-pestanas [aria-current]').innerText()).trim() === 'Probar')
   const entrar = await page.locator('#lpMios a', { hasText: 'Entrar' }).getAttribute('href')
   check('se puede entrar, y volver aquí', entrar === '/auth.html?volver=%2Flaboratorio', entrar)
   check('el mazo a medias del constructor sale, con su nombre y sus 60', /Lo de anoche/.test(await page.locator('#lpMios').innerText()) && /60\/60/.test(await page.locator('#lpMios').innerText()))

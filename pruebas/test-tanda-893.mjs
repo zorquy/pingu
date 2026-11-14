@@ -28,11 +28,12 @@ const PAGINAS = [
   { ruta: 'cartas', cab: '.mc-hero', lema: '.mc-catalogo-lema', sinClase: true, primero: '.mc-estanteria-barra' },
   { ruta: 'aprender', cab: '.ap-cab', primero: '#categoriesList' },
   { ruta: 'foro', cab: '.foro-cabecera', lema: '#foroSubtitulo', primero: '#foroDestacado, #foroPrincipal' },
-  { ruta: 'meta', cab: '.meta-cabecera', lema: '.meta-lema', primero: '.meta-filtros-cab' },
+  // 1358: en Mazos lo primero son sus pestañas (Meta · Los míos · Probar).
+  { ruta: 'meta', cab: '.meta-cabecera', lema: '.meta-lema', primero: '.jugar-pestanas' },
   // /usuarios, /lanzamientos, /noticias, /retos y /torneos: desde las tandas
   // 1209–1212 su cabecera es la banda de sección (la vigilan esas tandas y la 1040).
   { ruta: 'mis-partidas', cab: '.page-header', lema: '.page-header .cab-lema', primero: '.partidas-mandos' },
-  { ruta: 'mazos', cab: '.mz-cabecera', lema: '#mzCuenta', primero: '#mzLista, #mzVacio' },
+  { ruta: 'mazos', cab: '.mz-cabecera', lema: '#mzCuenta', primero: '.jugar-pestanas' },
 ]
 
 console.log('── 1. Lo estático: las once llevan la clase y su párrafo ──')

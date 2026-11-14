@@ -189,9 +189,9 @@ let partidaApuntada = null
   const opciones = await page.$$eval('#repQuien input', (xs) => xs.map((x) => `${x.value}:${x.checked}`))
   check('«¿Cuál de los dos eres tú?»: sin nombre recordado, el del registro (que es quien lo copió)', opciones.join() === 'Rojo:true,Azul:false,:false', opciones.join())
   const texto = async () => (await page.textContent('#repApuntarTexto')).trim()
-  check('  …y apuntarla dice cómo: ganada, con qué y contra qué', (await texto()) === "Apuntarla en tus partidas sueltas de «Mis partidas» como ganada: N's Zoroark contra Mega Greninja ex Dragapult ex", await texto())
+  check('  …y apuntarla dice cómo: ganada, con qué y contra qué', (await texto()) === "Apuntarla en tus partidas sueltas de «Partidas» como ganada: N's Zoroark contra Mega Greninja ex Dragapult ex", await texto())
   await page.click('#repQuien input[value="Azul"]')
-  check('  …siendo Azul, perdida y al revés', (await texto()) === "Apuntarla en tus partidas sueltas de «Mis partidas» como perdida: Mega Greninja ex Dragapult ex contra N's Zoroark", await texto())
+  check('  …siendo Azul, perdida y al revés', (await texto()) === "Apuntarla en tus partidas sueltas de «Partidas» como perdida: Mega Greninja ex Dragapult ex contra N's Zoroark", await texto())
   await page.click('#repQuien input[value=""]')
   check('  …y sin ser ninguno, no hay nada que apuntar', await page.isDisabled('#repApuntar') && !(await page.isChecked('#repApuntar')))
   await page.click('#repQuien input[value="Rojo"]')
@@ -208,7 +208,7 @@ let partidaApuntada = null
   check('  …se recuerda quién eres (tu nombre de TCG Live)', (await page.evaluate(() => localStorage.getItem('pokedoc-repeticion-yo'))) === 'Rojo')
   // Otra vez la misma: ya está apuntada, y se dice.
   await page.click('[data-accion="guardar"]')
-  check('abrirla otra vez dice que ya está apuntada, con el enlace', await page.waitForFunction(() => /Ya está apuntada en tus partidas sueltas de Mis partidas/.test(document.getElementById('repDialogoCuerpo').textContent), null, { timeout: 4000 }).then(() => true).catch(() => false))
+  check('abrirla otra vez dice que ya está apuntada, con el enlace', await page.waitForFunction(() => /Ya está apuntada en tus partidas sueltas de Partidas/.test(document.getElementById('repDialogoCuerpo').textContent), null, { timeout: 4000 }).then(() => true).catch(() => false))
   check('  …y ya no pregunta quién eres', (await page.locator('#repQuien').count()) === 0 && (await page.locator('#repDialogoCuerpo a[href="/mis-partidas"]').count()) === 1)
   await page.keyboard.press('Escape')
   check('sin errores', !errores.length, errores.join(' | '))
@@ -254,7 +254,7 @@ let partidaApuntada = null
   await page.click('#repFormGuardar [type=submit]')
   const toast = await page.waitForFunction(() => [...document.querySelectorAll('.toast')].map((t) => t.textContent).find((t) => /ya estaba/.test(t)) || '', null, { timeout: 4000 }).then((h) => h.jsonValue()).catch(() => '')
   const apuntadas = await page.evaluate(() => JSON.parse(sessionStorage.getItem('__escrituras__') || '[]').filter((e) => e.tabla === 'match_log').length)
-  check('guardar otra vez la misma NO la apunta dos veces, y lo dice', apuntadas === 1 && /ya estaba en «Mis partidas»/.test(toast), `${apuntadas} · ${toast}`)
+  check('guardar otra vez la misma NO la apunta dos veces, y lo dice', apuntadas === 1 && /ya estaba en «Partidas»/.test(toast), `${apuntadas} · ${toast}`)
   await ctx.close()
 }
 {

@@ -30,7 +30,8 @@ console.log('── 2. Laboratorio en el PC ──')
   await page.goto(`${BASE}/laboratorio`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2500)
   const m = await page.evaluate(() => {
-    const cab = document.querySelector('.lp-cabecera').getBoundingClientRect()
+    // 1358: debajo de la cabecera van las pestañas de Mazos; el hueco se mide desde ellas.
+    const cab = (document.querySelector('.jugar-pestanas') || document.querySelector('.lp-cabecera')).getBoundingClientRect()
     const bloques = [...document.querySelectorAll('.lp-bloque')].map((x) => x.getBoundingClientRect())
     const mazos = [...document.querySelectorAll('.lp-mazo')].map((x) => { const r = x.getBoundingClientRect(); const p = x.querySelector('.lp-mazo-probar').getBoundingClientRect(); const caja = x.closest('.lp-bloque').getBoundingClientRect(); return p.right <= r.right + 1 && r.right <= caja.right + 1 })
     return { hueco: Math.round(bloques[0].top - cab.bottom), alturas: bloques.map((x) => Math.round(x.height)), mazos, desborda: [...document.querySelectorAll('.lp-bloque')].some((x) => x.scrollWidth > x.clientWidth + 1), pasos: [...document.querySelectorAll('.lp-paso')].map((x) => x.textContent).join('') }
