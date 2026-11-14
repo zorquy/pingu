@@ -702,7 +702,7 @@
   font-size: var(--t-sm);
   cursor: pointer;
 }
-.partidas-juego-salida button[aria-pressed='true'] { border-color: var(--navy); background: var(--navy-solid); color: var(--blanco-fijo); }
+.partidas-juego-salida button[aria-pressed='true'] { border-color: var(--acento); background: var(--acento); color: var(--acento-texto); }
 .partidas-marcador { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-xs) var(--e-sm); margin: var(--e-sm) 0 0; font-weight: 600; white-space: nowrap; }
 .partidas-marcador .subtext { white-space: normal; }
 .partidas-marcador:empty { display: none; }
@@ -1065,3 +1065,16 @@
 
 /* La pestaña Repeticiones es un enlace (1358). */
 .partidas-tabs a.seg-btn { text-decoration: none; }
+
+/* En el móvil, sin la banda del PC (1359): manda la tarjeta de tus cifras. */
+@media (max-width: 900px) {
+  .partidas-cab.banda-s {
+    min-height: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+  .partidas-cab.banda-s .banda-s-ceja { display: none; }
+}

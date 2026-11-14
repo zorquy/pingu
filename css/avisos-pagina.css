@@ -45,8 +45,8 @@
 :root[data-theme='dark'] .av-chip[data-seccion='cartas'] { --tag: #e4b44a; }
 :root[data-theme='dark'] .av-chip[data-seccion='jugar'] { --tag: #9b7bff; }
 .av-chip[aria-selected='true'] .av-chip-n {
-  background: color-mix(in srgb, var(--blanco-fijo) 22%, transparent);
-  color: var(--blanco-fijo);
+  background: color-mix(in srgb, var(--acento-texto) 18%, transparent);
+  color: var(--acento-texto);
 }
 
 /* La lista: la caja de la campana, a lo ancho de la página. */
@@ -103,14 +103,13 @@
 :root[data-theme='dark'] .av-ico[data-seccion='comunidad'] { --tag: #f06c9b; }
 :root[data-theme='dark'] .av-ico[data-seccion='cartas'] { --tag: #e4b44a; }
 :root[data-theme='dark'] .av-ico[data-seccion='jugar'] { --tag: #9b7bff; }
+/* En el móvil, la tira de la banda: sus cifras a la izquierda y «Marcar
+   todo» a la derecha, como Guías, Novedades o Gente (1359; antes iba sin
+   banda y el botón flotaba solo). El título y la frase, como en las demás. */
 @media (max-width: 900px) {
   .av-cab.banda-s {
     min-height: 0;
-    padding: var(--e-sm) 0 0;
-    overflow: visible;
-    border: 0;
-    border-radius: 0;
-    background: none;
+    padding: var(--e-md) var(--e-lg);
   }
-  .av-cab.banda-s :is(.banda-s-ceja, .banda-s-cifras, .banda-s-lema) { display: none; }
+  .av-cab.banda-s .banda-s-cifras { flex-wrap: nowrap; }
 }

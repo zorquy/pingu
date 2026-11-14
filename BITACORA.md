@@ -4,6 +4,47 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-14 (605) — PINGU-Claude (1359 — Igualar la web, sin quitar nada)
+
+**Hecho** (la propuesta «Igualar la web», con capturas reales antes y después;
+PINGU: «adelante con todo»). La anterior, «PokeDoc como app», la descartó:
+las maquetas quitaban filtros y botones. Esta solo iguala seis cosas:
+- **A · El aire de arriba en el PC**: `.container { padding: 0 40px }` (≥900)
+  se comía el `padding-top` de `.page-content` y 14 de las 18 páginas de lista
+  salían pegadas a la barra. Ahora `.page-content` lleva 24 px en ese tramo
+  (style.css); Tiendas y el Foro dejan su arreglo a mano.
+- **B · Lo puesto, del color de su sección**: `.seg-btn`/`.chip-filtro`
+  activos y `.pildora` en `--acento`/`--acento-texto` (components.css), y 24
+  reglas de página que iban en azul fijo (Gente, Panel y sus rangos, Pokédex,
+  constructor, laboratorio, cambios, carta, perfil, sucesos…). Las cuentas
+  dentro de un chip activo, con `--acento-texto`.
+- **C · Filas que no caben**: `js/filas-deslizan.js` (por `import()` desde
+  app.js) pone `data-desliza` (derecha/izquierda/ambos) a las filas de chips
+  que se deslizan, y components.css desvanece ese borde con `mask-image`.
+  Gente: `.com-chip` a la medida de los demás (40/36 px).
+- **D · Filtros pegados en el móvil**: `.av-chips`, `.com-chips` y
+  `.nv-filtros` (movil.css) y `.tag-mandos` (tiendas.css) son `sticky` a
+  70 px y suben con la barra (`bm-escondidas`), como el glosario.
+- **E · La primera línea del móvil**: el Foro enseña «El foro» en la fila de
+  sus botones (foro.css, 1040); Avisos y Meta llevan la tira de la banda con
+  sus cifras y su botón (avisos-pagina.css, meta.css).
+- **F · Eventos y Partidas** con la banda de su sección en el PC (HTML con
+  `banda-s` y `seccion.css`); en el móvil quedan como estaban.
+
+Ficheros: `css/style.css`, `css/components.css`, `css/movil.css`,
+`css/comunidad.css`, `css/avisos-pagina.css`, `css/foro.css`, `css/meta.css`,
+`css/tiendas.css`, `css/eventos.css`, `css/partidas.css`, `css/aprender.css`,
+`css/torneos.css`, `css/mi-coleccion.css`, `css/mc-pokedex.css`,
+`css/constructor.css`, `css/laboratorio.css`, `css/cardmarket.css`,
+`css/carta.css`, `css/cambio-propuesta.css`, `css/perfil-cambios.css`,
+`css/comunidad-sucesos.css`, `js/filas-deslizan.js` (nuevo), `js/app.js`,
+`eventos.html`, `mis-partidas.html`, `normas/interfaz.md`, `novedades.json`.
+Prueba nueva: `test-tanda-1359-pantalla.mjs` (rama `pruebas`).
+
+**Pendiente**: «Los míos» de Mazos sigue sin tira en el móvil (sus tres cifras
+llevan etiquetas largas y no caben con «Nuevo mazo»). Lo de los torneos sigue:
+1353 a 1357. Sin migración.
+
 ## 2026-11-14 (604) — PINGU-Claude (1358 — Jugar en tres: Torneos, Mazos y Partidas)
 
 **Hecho** (la propuesta «Jugar en tres», que PINGU aprobó: «me gusta la propuesta, dale»):

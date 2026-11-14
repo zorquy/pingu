@@ -289,12 +289,27 @@
      (1170b) suben con la barra: pegados a 72 px con la barra escondida
      dejaban una franja por la que se leía el texto de detrás. */
   .mc-rotulo-pegado,
-  .glosario-mandos {
+  .glosario-mandos,
+  .av-chips,
+  .com-chips,
+  .nv-filtros {
     transition: top 0.3s var(--ease);
   }
   html.bm-escondidas .mc-rotulo-pegado,
-  html.bm-escondidas .glosario-mandos {
+  html.bm-escondidas .glosario-mandos,
+  html.bm-escondidas :is(.av-chips, .com-chips, .nv-filtros) {
     top: 0;
+  }
+  /* Los filtros de una lista se quedan arriba al bajar, como el rótulo de
+     Deseos y cambios (1359, D de «Igualar la web»): de borde a borde y con
+     el fondo de la página, para que no se lea nada por detrás. */
+  :is(.av-chips, .com-chips, .nv-filtros) {
+    position: sticky;
+    z-index: 3;
+    top: 70px;
+    margin-inline: calc(var(--e-xl) * -1);
+    padding: var(--e-sm) var(--e-xl);
+    background: var(--bg);
   }
   .glosario-mandos {
     box-shadow: 0 0 0 var(--e-md) var(--bg);
@@ -307,7 +322,10 @@
   .mc-pestanias,
   html.con-barra-movil .carta-scan .carta-acciones,
   .mc-rotulo-pegado,
-  .glosario-mandos {
+  .glosario-mandos,
+  .av-chips,
+  .com-chips,
+  .nv-filtros {
     transition: none;
   }
 }

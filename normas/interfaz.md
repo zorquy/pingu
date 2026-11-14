@@ -254,6 +254,17 @@
   deshabilitada»); y el cajón de Inicio en la lateral no repite la portada
   (`paginasDe`): la burbuja del móvil sí la lleva. La página activa dentro del
   cajón de la lateral también va en `--acento` (1025), no en `--navy`.
+- **Las listas se parecen** (tanda 1359, «Igualar la web», PINGU: «me gusta
+  como está la web, solo te hace falta igualarlo»): lo PUESTO (chip, pestaña,
+  rango, segmento) va en `--acento` con `--acento-texto`, nunca en
+  `--navy-solid` escrito a mano; una fila de chips que se desliza va en
+  `FILAS` de `js/filas-deslizan.js` (se desvanece por donde sigue, nunca un
+  chip cortado); los filtros de una lista larga en el móvil van pegados a 70 px
+  y a 0 con `bm-escondidas` (movil.css, como `.glosario-mandos`); y en el PC el
+  aire bajo la barra es el de `.page-content` (24 px): una página no se pone
+  el suyo. Y una propuesta de interfaz se enseña con CAPTURAS REALES de la
+  página con el cambio puesto, contando que no falte ningún mando (PINGU: «las
+  capturas no son reales porque me estás quitando un montón de filtros»).
 - **En el móvil nada flota sobre el contenido salvo la barra y la burbuja**
   (tanda 1023, regla 1 de «PokeDoc como app»): un botón «siempre a mano»
   va en la cabecera o pegado bajo las pestañas, no fijo sobre las

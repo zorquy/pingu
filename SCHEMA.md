@@ -55204,6 +55204,75 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1359 — Igualar la web, sin quitar nada
+
+Seis igualaciones (propuesta con capturas reales antes/después, PINGU:
+«adelante con todo»). Ningún botón, filtro ni cifra sale de ninguna página:
+la propuesta contó lo que se puede tocar en 18 páginas, en móvil y en PC, y
+salió lo mismo antes y después.
+
+**A. El aire de arriba (PC).** `style.css`, `@media (min-width: 900px)`:
+`.container { padding: 0 40px }` es un `padding` corto y ponía a 0 el
+`padding-top` de `.page-content` (76 px, que ya no usaba nadie), así que las
+bandas salían pegadas a la barra. Ahora `.page-content { padding-top:
+var(--e-xl) }` en ese mismo bloque. Las páginas que se lo ponían a mano
+(`.tag-pagina` de Tiendas, el `margin-top` de `.foro-banda`) lo dejan; Mi
+colección y Meta ya llevaban 24. La portada con sesión sigue con su 16
+(`:root.con-sesion .page-content`, más fuerte).
+
+**B. Lo puesto, del color de su sección.** El activo de `.seg-btn` y
+`.chip-filtro` y la `.pildora` (784) pasan de `--navy-solid` a `--acento`,
+con `--acento-texto` encima: en las páginas sin sección es el azul de
+siempre (en oscuro, el claro con letra oscura, 1024). Lo mismo en las
+reglas de página que lo tenían escrito a mano: `.com-chip.active`,
+`.aprender-chip.activa`, `.suc-filtro.activo`, `.mc-valor-rango.activo` (y la
+de `.mc-cartera`), `.pdx-region.activa`, `.cm-vista.activa`,
+`.lab-btn-panel`, `.mc-icono-mando`, `.mc-dlg-opcion`, `.mc-menu-opcion`,
+`.mc-seg-sueltas`, `.mc-lista-cats`, `.mc-chip-mando` de álbumes,
+`#mcVistaVariantes`, `#pdxVariantes`, `.mc-version`, `.carta-historial-rango`,
+`.mc-idioma-chip`, `.coleccion-faltan`, `.cp-chip` (y sus variantes),
+`.cp-hist-chip`, `.partidas-juego-salida`, `.pc-todas-chip`. Las cuentas
+dentro de un chip puesto (`.av-chip-n`, `.com-chip-n`, `.aprender-chip-n`,
+`.torneo-pestana-cuenta`) van en `--acento-texto` sobre un 18 % de él. Los
+puntos de un carrusel y el selector de emoji no son «lo puesto» y no cambian.
+
+**C. Filas que se deslizan.** `js/filas-deslizan.js`: `FILAS` (las filas de
+chips que se deslizan de lado, más `.seg`), `ladoQueSigue({scrollLeft,
+scrollWidth, clientWidth})` → `''`, `derecha`, `izquierda` o `ambos` (un
+píxel de holgura), y `vigilarFilas()` (desde app.js por `import()`, no pesa
+en la portada): mira cada fila al hacer scroll, con un `ResizeObserver` y,
+como las filas llegan tarde y crecen con sus cuentas, con un
+`MutationObserver` del body que repasa todas una vez por fotograma.
+components.css: `[data-desliza=…]` con `mask-image` de 40 px. `.com-chip`
+pasa a `min-height: 40px`, `padding: 0 var(--e-md)` y `--t-sm`, la medida
+de `.chip-filtro` (en el móvil, 36 por la regla de 1038).
+
+**D. Filtros pegados (móvil).** movil.css, en el bloque de la 709:
+`.av-chips`, `.com-chips` y `.nv-filtros` son `sticky` a 70 px (el alto de
+la barra), de borde a borde (`margin-inline` −24 px) con el fondo de la
+página, y a `top: 0` con `html.bm-escondidas`, con su transición y su
+«menos movimiento». En Tiendas es `.tag-mandos` (buscador y chips juntos,
+porque `.tag-chips` vive en una caja que no llega al final de la lista), en
+tiendas.css ≤599.
+
+**E. La primera línea (móvil).** Foro (foro.css, bloque 1040 ≤599):
+`#foroTitulo` vuelve a verse a `--t-xl` y la cabecera reparte
+(`space-between`); no ocupa más alto porque va en la fila de «Leído», la
+lupa y «Escribir». Avisos (avisos-pagina.css) y Meta (meta.css): la banda
+deja de quitarse el fondo en el móvil y enseña sus cifras en una fila
+(`nowrap`); el título y la frase se esconden como en todas las bandas
+(seccion.css). Meta pone su menú de periodo a la derecha y sin el abanico.
+«Los míos» (/mazos) no se tocó: tres cifras con etiquetas largas más
+«Nuevo mazo» no caben en 342 px.
+
+**F. Eventos y Partidas (PC).** `eventos.html` y `mis-partidas.html` cargan
+`/css/seccion.css` y su cabecera es `banda-s` con `banda-s-texto`, ceja
+(«Comunidad · Eventos», «Jugar · Partidas») y `banda-s-lema`; en Partidas,
+`#partidasAcciones` es la `banda-s-derecha` (el JS de la 893 sigue mudando
+ahí el botón). En el móvil (eventos.css y partidas.css, ≤900) se le quita la
+banda: Eventos vuelve a su título con la raya (`h1::after`), Partidas sigue
+sin título (manda su tarjeta).
+
 ## Tanda 1358 — Jugar en tres: Torneos, Mazos y Partidas
 
 El desplegable de Jugar (las 50 páginas con menú) lleva tres enlaces:

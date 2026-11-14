@@ -41,8 +41,10 @@
   background: var(--white);
   border: 1px solid var(--border);
   border-radius: var(--radius-pill);
-  padding: 8px 16px;
-  font-size: var(--t-md);
+  /* La medida de los demás chips (1359): eran 4 px más gordos y no cabían. */
+  min-height: 40px;
+  padding: 0 var(--e-md);
+  font-size: var(--t-sm);
   font-weight: 600;
   color: var(--text-mid);
   cursor: pointer;
@@ -56,9 +58,9 @@
 }
 
 .com-chip.active {
-  background: var(--navy);
-  border-color: var(--navy);
-  color: var(--blanco-fijo);
+  background: var(--acento);
+  border-color: var(--acento);
+  color: var(--acento-texto);
 }
 
 .com-chip-n {
@@ -75,8 +77,8 @@
 }
 
 .com-chip.active .com-chip-n {
-  background: rgba(255, 255, 255, 0.22);
-  color: var(--blanco-fijo);
+  background: color-mix(in srgb, var(--acento-texto) 18%, transparent);
+  color: var(--acento-texto);
 }
 
 /* ── Las dos columnas ── */

@@ -230,9 +230,9 @@ html.lab-abierto {
 }
 
 .lab-btn-panel[aria-pressed='true'] {
-  background: var(--navy-solid);
-  border-color: var(--navy-solid);
-  color: var(--blanco-fijo);
+  background: var(--acento);
+  border-color: var(--acento);
+  color: var(--acento-texto);
 }
 
 .lab-cerrar {

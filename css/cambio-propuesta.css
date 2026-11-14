@@ -129,7 +129,7 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
   font-weight: 600;
   cursor: pointer;
 }
-.cp-chip[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+.cp-chip[aria-pressed='true'] { background: var(--acento); color: var(--acento-texto); }
 .cp-dinero-fila { display: flex; flex-wrap: wrap; align-items: center; gap: var(--e-sm); }
 .cp-cantidad { display: inline-flex; align-items: center; gap: var(--e-xs); font-weight: 700; }
 .cp-cantidad input {
@@ -311,14 +311,14 @@ html:has(.cp-dialogo[open]) { overflow: hidden; }
 @media (pointer: coarse) { .cp-precio-campo input { min-height: 44px; } }
 .cp-precio-total { background: var(--white); border: 1px solid var(--border); }
 .cp-precio-total .cp-chip { background: var(--bg); }
-.cp-precio-total .cp-chip[aria-pressed="true"] { background: var(--navy-solid); color: var(--blanco-fijo); }
+.cp-precio-total .cp-chip[aria-pressed="true"] { background: var(--acento); color: var(--acento-texto); }
 .cp-importe { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--e-sm); margin: 0; }
 .cp-importe b { font-family: var(--font-display); font-size: var(--t-2xl); }
 .cp-importe s, .cp-importe small { color: var(--text-mid); font-size: var(--t-xs); }
 .cp-envio { display: grid; gap: var(--e-xs); padding: var(--e-md); border: 1px solid var(--border); border-radius: var(--radius-lg); }
 .cp-envio h3 { margin: 0; color: var(--text-mid); font-size: var(--t-xs); font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; }
 .cp-envio .cp-chip { background: var(--bg); }
-.cp-envio .cp-chip[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+.cp-envio .cp-chip[aria-pressed='true'] { background: var(--acento); color: var(--acento-texto); }
 .cp-envio .subtext { margin: 0; }
 .cp-t-envio { display: grid; gap: var(--e-xs); padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--bg); }
 .cp-t-envio p { margin: 0; font-size: var(--t-sm); font-weight: 600; }
@@ -656,7 +656,7 @@ html:has(.cp-trato-dialogo[open]) { overflow: hidden; }
 .cp-hist-chips { display: inline-flex; gap: var(--e-xs); }
 .cp-hist-chip { display: inline-flex; align-items: center; gap: var(--e-xs); min-height: 32px; padding: 0 var(--e-md); border: 0; border-radius: var(--radius-pill); background: var(--ice); color: var(--text-mid); font: inherit; font-size: var(--t-sm); font-weight: 600; cursor: pointer; }
 .cp-hist-chip small { color: inherit; font-weight: 600; opacity: 0.8; }
-.cp-hist-chip[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+.cp-hist-chip[aria-pressed='true'] { background: var(--acento); color: var(--acento-texto); }
 @media (pointer: coarse) { .cp-hist-chip { min-height: 44px; } }
 .cp-hist-rep { margin-left: auto; color: var(--success); font-size: var(--t-xs); font-weight: 600; text-decoration: none; }
 .cp-hist-rep:empty { display: none; }

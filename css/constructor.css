@@ -431,8 +431,8 @@
 }
 
 .cm-vista.activa {
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 @media (pointer: coarse) {

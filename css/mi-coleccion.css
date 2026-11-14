@@ -3590,10 +3590,8 @@ html.mc-seleccionando .mc-pagina {
 }
 
 .mc-valor-rango.activo {
-  background: var(--navy-solid);
-  /* Blanco FIJO: `--white` es la superficie y en oscuro vale #182430, así
-     que dejaría letra oscura sobre azul (la 315). */
-  color: var(--blanco-fijo);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 /* Un rango sin dos puntos no se puede dibujar, así que su chapa se apaga:
@@ -4132,8 +4130,8 @@ html.mc-seleccionando .mc-pagina {
 .mc-icono-mando.activa,
 .mc-icono-mando[aria-pressed='true'] {
   border-color: transparent;
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 @media (pointer: coarse) {
@@ -4431,8 +4429,8 @@ html.mc-seleccionando .mc-pagina {
 
 .mc-dlg-opcion.activa {
   border-color: transparent;
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 .mc-dlg-rotulo {
@@ -5462,10 +5460,8 @@ html.mc-seleccionando .mc-pagina {
    sin decir cuál tienes puesta — que es justo lo que se va a mirar. */
 .mc-menu-opcion[aria-checked='true'],
 .mc-menu-opcion[aria-pressed='true'] {
-  background: var(--navy-solid);
-  /* Blanco FIJO: `--white` es la superficie de la página y en oscuro vale
-     #182430, así que dejaría letra oscura sobre azul (tanda 315). */
-  color: var(--blanco-fijo);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 .mc-menu-icono {
@@ -6737,9 +6733,9 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
 
 .mc-panel-filtros .mc-seg-chips button[aria-checked='true'],
 .mc-seg.mc-seg-sueltas button[aria-pressed='true'] {
-  border-color: var(--navy-solid);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  border-color: var(--acento);
+  background: var(--acento);
+  color: var(--acento-texto);
   box-shadow: none;
 }
 
@@ -6845,8 +6841,8 @@ body:has(#mcCartas:empty) #mcFuente { visibility: hidden; }
   font-size: var(--t-sm);
 }
 .mc-cartera .mc-valor-rango.activo {
-  border-color: var(--navy-solid);
-  background: var(--navy-solid);
+  border-color: var(--acento);
+  background: var(--acento);
 }
 .mc-cartera .mc-valor-rango:disabled {
   border-style: dashed;
@@ -11535,9 +11531,9 @@ button.mc-fila:hover {
   }
 
   .mc-editor .mc-versiones .mc-version.activa {
-    background: var(--navy-solid);
+    background: var(--acento);
     box-shadow: none;
-    color: var(--blanco-fijo);
+    color: var(--acento-texto);
   }
 
   /* En el chip, el dibujo va suelto (930): la baldosa no cabe en el chip, y
@@ -12249,8 +12245,8 @@ button.mc-fila:hover {
 }
 
 #mcVistaVariantes[aria-pressed='true'] {
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 .mc-album-busca > .mc-album-filtros {
@@ -12295,8 +12291,8 @@ button.mc-fila:hover {
 
 [data-seleccionar][aria-pressed='true'],
 #pdxVariantes[aria-pressed='true'] {
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 /* «Seleccionar» solo en TU colección y con cuenta (1054: lo dice la clase
@@ -15313,8 +15309,8 @@ html.mc-set-abierta .mc-hero { display: none; }
   color: var(--acento-texto);
 }
 .mc-alb-fila .mc-chip-mando[aria-pressed='true'] {
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 .mc-alb-ciclo-n {
   font-size: var(--t-xs);
@@ -15786,7 +15782,7 @@ html.con-barra-movil .mc-prod-banda { display: none; }
    una pastilla con la elegida resaltada; en el PC, al final de la barra. */
 .mc-seg.mc-lista-cats { display: inline-flex; width: max-content; max-width: 100%; gap: 2px; padding: 2px; border-radius: var(--radius-pill); background: var(--ice); }
 .mc-seg.mc-lista-cats button { min-height: 32px; border: 0; background: transparent; color: var(--text-mid); }
-.mc-seg.mc-lista-cats button[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+.mc-seg.mc-lista-cats button[aria-pressed='true'] { background: var(--acento); color: var(--acento-texto); }
 :is(.mc-mandos, .mc-mercado-barra) > .mc-lista-cats { margin-left: auto; }
 /* Cruces del mismo tamaño (1222, PINGU: «deberían ser todos iguales»): cada
    lado es UNA fila de tres casillas (tablon.js), la rejilla iguala el alto de

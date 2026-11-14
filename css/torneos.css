@@ -2188,8 +2188,8 @@ button.torneo-cal-dia.elegido { box-shadow: 0 0 0 2px var(--white), 0 0 0 4px va
   font-weight: 700;
 }
 .chip-filtro.activa .torneo-pestana-cuenta {
-  background: rgba(255, 255, 255, 0.22);
-  color: var(--blanco-fijo);
+  background: color-mix(in srgb, var(--acento-texto) 18%, transparent);
+  color: var(--acento-texto);
 }
 
 .torneo-panel > .simple-card { margin-bottom: 16px; }

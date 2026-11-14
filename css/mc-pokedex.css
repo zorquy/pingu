@@ -338,9 +338,9 @@
 }
 
 .pdx-region.activa {
-  border-color: var(--navy-solid);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  border-color: var(--acento);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 /* El número arriba a la izquierda y el símbolo a la derecha, como en la

@@ -140,7 +140,7 @@
   cursor: pointer;
 }
 .suc-filtro:hover { border-color: var(--border-strong); color: var(--text); }
-.suc-filtro.activo { background: var(--navy); border-color: var(--navy); color: var(--blanco-fijo); }
+.suc-filtro.activo { background: var(--acento); border-color: var(--acento); color: var(--acento-texto); }
 @media (pointer: coarse) {
   .suc-filtro { min-height: 44px; }
 }

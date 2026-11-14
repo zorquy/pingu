@@ -192,7 +192,7 @@
   transition: border-color 0.15s, color 0.15s;
 }
 .aprender-chip:hover { border-color: var(--navy); color: var(--navy); }
-.aprender-chip.activa { background: var(--navy); border-color: var(--navy); color: var(--blanco-fijo); }
+.aprender-chip.activa { background: var(--acento); border-color: var(--acento); color: var(--acento-texto); }
 .aprender-chip-n {
   background: var(--ice);
   color: var(--navy);
@@ -201,7 +201,7 @@
   font-weight: 700;
   padding: 0 8px;
 }
-.aprender-chip.activa .aprender-chip-n { background: rgba(255, 255, 255, 0.22); color: var(--blanco-fijo); }
+.aprender-chip.activa .aprender-chip-n { background: color-mix(in srgb, var(--acento-texto) 18%, transparent); color: var(--acento-texto); }
 /* Los interruptores, un paso más discretos que los temas. */
 .ap-interruptores .aprender-chip { border-style: dashed; font-weight: 500; }
 .ap-interruptores .aprender-chip.activa { border-style: solid; }

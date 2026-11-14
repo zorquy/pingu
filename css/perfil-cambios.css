@@ -174,7 +174,7 @@
   font-weight: 600;
   cursor: pointer;
 }
-.pc-todas-chip[aria-pressed='true'] { background: var(--navy-solid); color: var(--blanco-fijo); }
+.pc-todas-chip[aria-pressed='true'] { background: var(--acento); color: var(--acento-texto); }
 .pc-todas-cuenta { margin: var(--e-sm) var(--e-lg) 0; }
 .pc-todas .pc-rejilla { padding: var(--e-sm) var(--e-lg) var(--e-lg); }
 @media (max-width: 600px) {

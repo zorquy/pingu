@@ -1159,3 +1159,19 @@ a.ev-sala-cara:hover { z-index: 2; transform: translate(-50%, -50%) scale(1.15);
 
   a.ev-sala-cara:hover { transform: translate(-50%, -50%); }
 }
+
+/* En el móvil, la cabecera de una línea de las listas (893): la banda es
+   solo del PC (1359). */
+@media (max-width: 900px) {
+  .ev-cab.banda-s {
+    min-height: 0;
+    padding: var(--e-xs) 0;
+    overflow: visible;
+    border: 0;
+    border-radius: 0;
+    background: none;
+  }
+  .ev-cab.banda-s .banda-s-ceja { display: none; }
+  .ev-cab.banda-s h1 { position: static; width: auto; height: auto; clip-path: none; }
+  .ev-cab.banda-s h1::after { content: ''; }
+}

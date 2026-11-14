@@ -2838,20 +2838,21 @@ html:has(#temaResponder) {
 }
 
 /* ── 1040: el índice en el teléfono, contenido primero (SCHEMA 1040). El
-   título no ocupa sitio (lo dice la burbuja; sigue para el lector), «Leído»,
-   la lupa y «Escribir» a la derecha, y cada foro es UNA fila: su icono, el
-   nombre con sus nuevos y «N temas · hace X». ── */
+   nombre, «Leído», la lupa y «Escribir» en UNA fila (desde la 1359 el nombre
+   se ve: la izquierda se quedaba vacía y los botones flotando), y cada foro
+   es UNA fila: su icono, el nombre con sus nuevos y «N temas · hace X». ── */
 @media (max-width: 599px) {
-  .foro-en-indice #foroTitulo {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
+  .foro-en-indice .foro-banda #foroTitulo {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
+    font-size: var(--t-xl);
     white-space: nowrap;
   }
   .foro-en-indice .foro-cabecera {
-    justify-content: flex-end;
+    justify-content: space-between;
     min-height: 0;
     margin-bottom: var(--e-sm);
   }
@@ -2911,7 +2912,7 @@ html:has(#temaResponder) {
    banda de Comunidad en el PC y cada foro con su icono de color. En el
    móvil la cabecera sigue siendo la fila de mandos, y «Lo último» va al
    final de la lista (la lateral no se ve ahí). */
-.foro-cabecera.foro-banda { margin: var(--e-md) 0 var(--e-xl); }
+.foro-cabecera.foro-banda { margin: 0 0 var(--e-xl); }
 .foro-banda .foro-cabecera-derecha { position: relative; z-index: 1; }
 .foro-banda .foro-buscador input { background: color-mix(in srgb, var(--white) 70%, transparent); }
 .foro-fila-numeros-indice span { gap: 0; }

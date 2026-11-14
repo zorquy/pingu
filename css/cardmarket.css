@@ -603,7 +603,7 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
   cursor: pointer;
 }
 .carta-historial-rango:hover:not(:disabled) { color: var(--text); }
-.carta-historial-rango.activo { background: var(--navy-solid); color: var(--blanco-fijo); }
+.carta-historial-rango.activo { background: var(--acento); color: var(--acento-texto); }
 .carta-historial-rango:disabled { color: var(--text-dim); cursor: default; }
 .carta-historial-rango:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 @media (pointer: coarse) {
@@ -1049,9 +1049,9 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
 }
 
 .mc-idioma-chip.activo {
-  border-color: var(--navy);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  border-color: var(--acento);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 /* Un idioma en que la versión elegida no salió (1006): se ve, no se toca. */

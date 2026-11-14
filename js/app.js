@@ -745,6 +745,8 @@ export async function initNavbar() {
   if (document.querySelector('link[href*="seccion.css"], .banda-s')) import('./cifras-cuentan.js').catch(() => {})
   // La barra de progreso al tocar un enlace (SCHEMA 892).
   import('./progreso.js').then((m) => m.montarProgreso()).catch(() => {})
+  // Las filas de chips que no caben se desvanecen por donde siguen (SCHEMA 1359).
+  import('./filas-deslizan.js').then((m) => m.vigilarFilas()).catch(() => {})
   // Precarga al posar el dedo (SCHEMA 723).
   import('./precarga.js').then((m) => m.montarPrecarga()).catch(() => {})
   // El aviso de «sin conexión» (SCHEMA 745): se baja con red y se queda escuchando.

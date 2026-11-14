@@ -387,6 +387,10 @@ body:has(> .footer) .page-content {
   .container {
     padding: 0 40px;
   }
+  /* El mismo aire bajo la barra en todas (1359, SCHEMA). */
+  .page-content {
+    padding-top: var(--e-xl);
+  }
 }
 
 /* S780.16 */

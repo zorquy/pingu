@@ -56,6 +56,7 @@
   <!-- /precargas -->
   <link rel="stylesheet" href="/css/style.css" />
   <link rel="stylesheet" href="/css/components.css" />
+  <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="/css/eventos.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
@@ -139,9 +140,14 @@
   <main id="contenido" class="page-content container">
     <!-- La agenda (1192) o, con /eventos/<slug>, la ficha de un evento: las
          dos las pinta js/eventos.js en #eventos. -->
-    <div class="page-header cab-lista" id="eventosCabecera">
-      <h1>Eventos</h1>
-      <p class="cab-lema">Card shows, trade days y quedadas en España<span class="cab-largo">, y quién de PokeDoc va a cada uno</span>.</p>
+    <!-- La banda de su sección en el PC, como las demás listas (1359); en el
+         móvil, la cabecera de una línea de siempre (eventos.css). -->
+    <div class="page-header cab-lista banda-s ev-cab" id="eventosCabecera">
+      <div class="banda-s-texto">
+        <span class="banda-s-ceja">Comunidad · Eventos</span>
+        <h1>Eventos</h1>
+        <p class="banda-s-lema cab-lema">Card shows, trade days y quedadas en España<span class="cab-largo">, y quién de PokeDoc va a cada uno</span>.</p>
+      </div>
     </div>
     <div id="eventos" aria-live="polite"><div class="skeleton" style="height: 420px;"></div></div>
   </main>

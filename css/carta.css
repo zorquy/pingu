@@ -686,9 +686,9 @@
 }
 
 .coleccion-faltan[aria-pressed='true'] {
-  border-color: var(--navy-solid);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  border-color: var(--acento);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 .coleccion-filtro-orden {

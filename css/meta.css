@@ -929,14 +929,19 @@
 @media (min-width: 901px) {
   .meta-filtros-cab { justify-content: space-between; }
 }
+/* En el móvil, la tira de la banda: las cifras a la izquierda y el menú del
+   periodo a la derecha, en una fila (1359; antes iba sin banda y el menú
+   flotaba solo). El abanico no cabe. */
 @media (max-width: 900px) {
   .meta-cabecera.banda-s {
+    flex-wrap: nowrap;
+    gap: var(--e-md);
     min-height: 0;
-    padding: 0;
-    overflow: visible;
-    border: 0;
-    border-radius: 0;
-    background: none;
+    padding: var(--e-md) var(--e-lg);
   }
-  .meta-cabecera.banda-s :is(.banda-s-ceja, .banda-s-cifras, .banda-s-derecha) { display: none; }
+  .meta-cabecera.banda-s .banda-s-derecha { display: none; }
+  /* El periodo ya lo dice el menú de al lado: su cifra repetida no cabe. */
+  .meta-cabecera .banda-s-cifra:has(#metaNDias) { display: none; }
+  .meta-cabecera.banda-s .banda-s-cifras { flex-wrap: nowrap; }
+  .meta-cabecera .meta-periodo-menu { margin-left: auto; }
 }

@@ -2,7 +2,7 @@
 
 /* /tiendas, un escaparate de escaparates (1244; la agenda era de la 1236). El
    porqué de cada pieza, en SCHEMA 1244. */
-.tag-pagina { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: var(--e-xl); padding-top: var(--e-lg); }
+.tag-pagina { display: grid; grid-template-columns: minmax(0, 1fr); align-content: start; gap: var(--e-xl); }
 .tag-banda {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -100,9 +100,15 @@
   .tag-cifras div { text-align: left; }
   .tag-cifras dd { font-size: var(--t-lg); }
   .tag { gap: var(--e-md); }
-  .tag-mandos { gap: var(--e-xs); }
+  /* El buscador y los filtros se quedan arriba al bajar (1359), como los de
+     Avisos, Gente y Novedades (movil.css). */
+  .tag-mandos { position: sticky; z-index: 3; top: 70px; gap: var(--e-xs); margin-inline: calc(-1 * var(--e-xl)); padding: var(--e-sm) var(--e-xl); background: var(--bg); transition: top 0.3s var(--ease); }
+  html.bm-escondidas .tag-mandos { top: 0; }
   .tag-chips { flex: 1 1 100%; min-width: 0; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding-block: var(--e-xs); margin-inline: calc(-1 * var(--e-lg)); padding-inline: var(--e-lg); scrollbar-width: none; }
   .tag-chips > * { flex: 0 0 auto; }
   .tag-tira { grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: 104px; overflow-x: auto; overflow-y: hidden; padding-block: var(--e-xs); scroll-snap-type: x mandatory; scrollbar-width: none; }
   .tag-nov { scroll-snap-align: start; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tag-mandos { transition: none; }
 }

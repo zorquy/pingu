@@ -133,9 +133,10 @@
 .chip-filtro[aria-pressed='true'],
 .chip-filtro[aria-selected='true'],
 .chip-filtro.activa {
-  border-color: var(--navy-solid);
-  background: var(--navy-solid);
-  color: var(--blanco-fijo);
+  /* Lo puesto, del color de su sección (1359). */
+  border-color: var(--acento);
+  background: var(--acento);
+  color: var(--acento-texto);
 }
 
 .seg-btn:focus-visible,
@@ -143,6 +144,11 @@
   outline: 2px solid var(--navy);
   outline-offset: 2px;
 }
+
+/* Una fila que no cabe se desvanece por donde sigue (1359; js/filas-deslizan.js). */
+[data-desliza='derecha'] { mask-image: linear-gradient(90deg, #000 calc(100% - 40px), transparent); }
+[data-desliza='izquierda'] { mask-image: linear-gradient(90deg, transparent, #000 40px); }
+[data-desliza='ambos'] { mask-image: linear-gradient(90deg, transparent, #000 40px, #000 calc(100% - 40px), transparent); }
 
 /* Acciones sobre una lista, en UN grupo (1042, SCHEMA 1042). */
 .grupo-acciones {
@@ -1303,7 +1309,7 @@ tcg-deck {
   top: 0;
   left: 0;
   z-index: -1;
-  background: var(--navy-solid);
+  background: var(--acento);
   pointer-events: none;
 }
 

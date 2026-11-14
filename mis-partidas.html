@@ -65,6 +65,7 @@
   <link rel="stylesheet" href="css/components.css" />
   <!-- CSS propio de esta página: components.css lo baja TODO el mundo y
        la portada anda justa de presupuesto (norma de CLAUDE.md). -->
+  <link rel="stylesheet" href="/css/seccion.css" />
   <link rel="stylesheet" href="css/partidas.css" />
   <link rel="stylesheet" href="/css/movil.css" media="(max-width: 900px)">
 </head>
@@ -146,14 +147,17 @@
   <!-- /barra-movil -->
 
   <main id="contenido" class="page-content container">
-    <div class="page-header cabecera-pagina cab-lista" style="padding-top: 8px;">
-      <div>
+    <!-- La banda de su sección en el PC, como Mazos y Torneos (1359); en el
+         móvil, sin banda (partidas.css). -->
+    <div class="page-header cabecera-pagina cab-lista banda-s partidas-cab">
+      <div class="banda-s-texto">
+        <span class="banda-s-ceja">Jugar · Partidas</span>
         <h1>Partidas</h1>
-        <p class="cab-lema">Contra qué mazos juegas y cómo te va. Las de los torneos de PokeDoc entran solas; las de fuera las apuntas tú.</p>
+        <p class="banda-s-lema cab-lema">Contra qué mazos juegas y cómo te va. Las de los torneos de PokeDoc entran solas; las de fuera las apuntas tú.</p>
       </div>
       <!-- En el móvil, el botón principal de la pestaña abierta se muda
            aquí (893); en el PC se queda en su barra. Lo mueve mis-partidas.js. -->
-      <div class="cab-acciones" id="partidasAcciones"></div>
+      <div class="cab-acciones banda-s-derecha" id="partidasAcciones"></div>
     </div>
 
     <!-- Sin sesión no hay nada que enseñar: esto es el cuaderno de cada
