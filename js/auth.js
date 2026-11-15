@@ -1,4 +1,4 @@
-import { supabase } from './supabase.js'
+import { supabase, vueltaConError } from './supabase.js'
 import { uniqueUsername, passwordStrengthError, avatarStyle, getInitial } from './app.js'
 import { escapeHtml } from './html.js'
 import { showToast } from './toast.js'
@@ -27,6 +27,28 @@ if (new URLSearchParams(window.location.search).get('banned') === '1') {
 // `volver` de la URL sigue funcionando igual al terminar.
 if (new URLSearchParams(window.location.search).get('registro') === '1') {
   showStep('register')
+}
+
+// Un registro o una entrada que salió mal (1360): Supabase vuelve con el motivo
+// detrás y antes nadie lo leía (se acababa en Inicio sin cuenta). Se explica
+// encima del paso que toca, se limpia la dirección y se apunta en /admin.
+if (vueltaConError || /[?&]vuelta=/.test(location.search)) {
+  import('./auth-vuelta.js').then(({ vueltaDeEntrar, explicarVuelta }) => {
+    const v = vueltaDeEntrar(vueltaConError, location.search)
+    if (!v) return
+    const t = `${v.codigo} ${v.error} ${v.texto}`.toLowerCase()
+    const paso = /expired|invalid|already|exists/.test(t) ? 'login' : 'register'
+    showStep(paso)
+    const aviso = document.createElement('p')
+    aviso.className = 'auth-vuelta'
+    aviso.setAttribute('role', 'alert')
+    aviso.textContent = explicarVuelta(v)
+    steps[paso].querySelector('h2').after(aviso)
+    const limpia = new URLSearchParams(location.search)
+    limpia.delete('vuelta')
+    history.replaceState(null, '', location.pathname + (limpia.size ? `?${limpia}` : ''))
+    import('./error-log.js').then((m) => m.logClientError(`Vuelta de Supabase con fallo: ${[v.error, v.codigo, v.texto].filter(Boolean).join(' · ')}`)).catch(() => {})
+  }).catch(() => {})
 }
 
 // El enlace de invitación (/r/<usuario> redirige aquí con ?r=). Se

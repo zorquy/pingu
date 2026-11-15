@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-15 (606) — PINGU-Claude (1360 — El registro que fallaba sin decir nada)
+
+**Hecho** (PINGU: «creo que el registro está roto, al registrarme me reenvía
+al home sin registrarme, revísalo, muy importante»). Cuando entrar con Google
+o el enlace del correo de confirmación sale mal, Supabase vuelve a
+`/index.html` con el motivo detrás (`#error=…&error_code=…&error_description=…`)
+y la web no lo leía: se acababa en Inicio sin cuenta, sin saber por qué, y a
+nosotros no nos llegaba nada. Desde aquí no se llega ni a pokedoc.es ni a
+Supabase, así que el motivo REAL de PINGU aún no se sabe: esta tanda hace que
+se vea y que se apunte.
+- `js/supabase.js` (y el doble de pruebas) guarda `vueltaConError` ANTES de
+  crear el cliente, que lee esa misma dirección al arrancar.
+- `js/app.js`: con un fallo en la dirección, fuera de Entrar, se va a
+  `/auth.html?vuelta=…` (por `import()` de `js/auth-vuelta.js`, nuevo).
+- `js/auth.js`: explica el fallo encima del paso que toca (enlace caducado o
+  cuenta que ya existe → «Hola de nuevo»; lo demás → «Crea tu cuenta»),
+  limpia la dirección y lo apunta en `client_errors` («Vuelta de Supabase con
+  fallo: …»), que se ve en /admin → Errores.
+- `css/auth.css`: `.auth-vuelta`, el aviso con su borde rojo.
+
+Ficheros: `js/auth-vuelta.js` (nuevo), `js/supabase.js`, `js/app.js`,
+`js/auth.js`, `css/auth.css`, `novedades.json`, `SCHEMA.md`.
+Pruebas (rama `pruebas`): `test-tanda-1360-pantalla.mjs` (nueva) y
+`herramientas/stub-supabase.js` con `vueltaConError`.
+
+**Pendiente**: cuando esté subida, PINGU vuelve a probar el registro; el
+aviso dirá el porqué y /admin → Errores lo tendrá con su texto exacto. Si es
+«Database error saving new user», es la base (un disparador al crear la
+cuenta); si es `otp_expired`, el correo abre el enlace antes que la persona.
+
 ## 2026-11-14 (605) — PINGU-Claude (1359 — Igualar la web, sin quitar nada)
 
 **Hecho** (la propuesta «Igualar la web», con capturas reales antes y después;

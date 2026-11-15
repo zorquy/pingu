@@ -1,4 +1,4 @@
-import { supabase } from './supabase.js'
+import { supabase, vueltaConError } from './supabase.js'
 import { icons } from './icons.js'
 import { contentIconHtml } from './content-icon.js'
 
@@ -627,6 +627,10 @@ export async function initNavbar() {
   // carga dispara los DOS manejadores globales (error y
   // unhandledrejection), así que cada fallo se registraba por duplicado.
   import('./error-log.js').then(({ initErrorLogging }) => initErrorLogging()).catch(() => {})
+  // Un registro que falló vuelve aquí con el motivo detrás (1360): a Entrar, que lo explica.
+  if (vueltaConError && !document.getElementById('stepLogin') && !/reset-password/.test(location.pathname)) {
+    import('./auth-vuelta.js').then((m) => m.mandarAEntrar(vueltaConError)).catch(() => {})
+  }
   // Una cuenta de tienda solo tiene su panel (1071): con la marca de la
   // última vez se va a /tienda antes de esperar a la sesión.
   const conBarra = !!document.getElementById('navbar')

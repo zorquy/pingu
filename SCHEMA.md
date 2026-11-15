@@ -55204,6 +55204,38 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1360 — El registro que fallaba sin decir nada
+
+**El porqué.** Supabase no avisa cuando un registro con Google o un enlace del
+correo fallan: redirige a la dirección de vuelta (`/index.html`, la que piden
+`signInWithOAuth`, `signUp` y `resend`) con `#error`, `error_code` y
+`error_description` detrás. supabase-js lo lee al arrancar, lanza un
+`AuthImplicitGrantRedirectError` que nadie recoge y deja la sesión vacía: la
+persona ve Inicio sin cuenta y nosotros no vemos nada. PINGU lo vivió como
+«me reenvía al home sin registrarme».
+
+**Cómo va.**
+- `js/supabase.js` exporta `vueltaConError` (el hash y la query tal cual) si
+  traen `error_description=`, `error_code=` o `error=`. Se lee antes de
+  `createClient` para no depender de si el cliente la limpia o no.
+- `js/app.js` (`initNavbar`), fuera de `auth.html` y `reset-password`, carga
+  `js/auth-vuelta.js` y llama a `mandarAEntrar`: `location.replace` a
+  `/auth.html?vuelta=error|codigo|texto` (300 caracteres como mucho).
+- `js/auth.js` lo recibe por las dos vías (`vueltaDeEntrar`: directo de
+  Supabase si la vuelta fue a Entrar, o por `?vuelta=`), pinta
+  `explicarVuelta` en un `p.auth-vuelta[role=alert]` bajo el `h2` del paso,
+  quita `?vuelta=` y el hash con `history.replaceState`, y lo apunta con
+  `logClientError`.
+- `js/auth-vuelta.js` es puro (sin imports) y se prueba en Node. Los casos:
+  enlace caducado o ya usado (`otp_expired`), registros cerrados
+  (`signup_disabled`), fallo de la base (`Database error saving new user`,
+  `server_error`, `unexpected_failure`), cuenta que ya existe, Google
+  cancelado o no permitido (`access_denied`, p. ej. cuentas de colegio con
+  `admin_policy_enforced`) y, si no se conoce, el texto real entre comillas.
+
+**Peso.** La portada sube 0,3 KB (149,4 de 170): la línea de `supabase.js` y
+la de `app.js`; lo demás llega por `import()` solo con un fallo.
+
 ## Tanda 1359 — Igualar la web, sin quitar nada
 
 Seis igualaciones (propuesta con capturas reales antes/después, PINGU:

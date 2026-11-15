@@ -5,6 +5,10 @@ import { fetchQueEspera } from './espera-prerender.js'
 // ni se lee ni se toca. Es lo que ve alguien sin cuenta, no una imitación.
 export const comoDesconocido = typeof location !== 'undefined' && new URLSearchParams(location.search).get('como') === 'desconocido'
 
+// Un registro o una entrada que falla vuelve con el motivo en la dirección
+// (1360): se guarda antes de que el cliente la lea. Lo trata auth-vuelta.js.
+export const vueltaConError = typeof location !== 'undefined' && /error_description=|error_code=|[#&?]error=/.test(location.hash + location.search) ? location.hash + location.search : ''
+
 export const supabase = createClient(
   'https://zqamujmfavwrsqlgbead.supabase.co',
   'sb_publishable_ohfCPNNVCoqcVBainTbDlg_04mJliQZ',

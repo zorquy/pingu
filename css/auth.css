@@ -93,6 +93,17 @@
   min-height: 18px;
 }
 
+.auth-vuelta {
+  margin-top: var(--e-md);
+  padding: var(--e-md);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--danger);
+  background: color-mix(in srgb, var(--danger) 10%, transparent);
+  font-size: var(--t-sm);
+  line-height: 1.45;
+  text-align: left;
+}
+
 .auth-switch {
   font-size: var(--t-sm);
   color: var(--text-mid);
