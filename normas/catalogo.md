@@ -791,3 +791,12 @@
   pintar. Y una columna nueva del histórico (`cm_avg30`) se pide y se guarda
   con RESPALDO en `tcggo-historial`: sin su migración, una consulta que la
   nombra deja la gráfica en blanco (la 624).
+- **El valor de una expansión tiene dos fuentes y un orden** (tanda 1365): el
+  de cada día lo apunta la pasada de precios (`tcggo_guardar_sets`) y el pasado
+  lo rellena `tcggo-valor-historico`, que NUNCA pisa un día con `valor_cm`
+  (sus filas llevan `origen = 'tcggo-historico'`). El sellado va solo en
+  `valor_sellado` y se escribe sin las demás columnas, para no borrar lo de
+  las cartas en el upsert. El histórico de TCGGO viene en páginas de 30
+  fechas: una pasada nueva que lo pida cuenta por página, guarda lo pedido si
+  se le acaba el tiempo (`enCurso`) y no escribe un trozo como si fuera el
+  año entero.

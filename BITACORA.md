@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-15 (611) — PINGU-Claude (1365 — TCGGO: el valor de cada expansión en el tiempo)
+
+**Hecho.** La E y la F de la segunda propuesta de TCGGO (PINGU: «las dos, y
+el sellado semanal»), con su `/episodes/{id}/history-prices` nuevo.
+- `netlify/functions/tcggo-valor-historico.mjs` (programada, cada 20 min a
+  los 11/31/51): por expansión (catálogo + `tcggo_id`, la más nueva primero)
+  pide UNA vez el último año de sus CARTAS y lo mete en `tcg_set_valor`
+  (`origen = 'tcggo-historico'`, día por día con el último valor en los
+  huecos, sin pisar los días que ya había); y el SELLADO (`scope=products`)
+  en `valor_sellado`, el año la primera vez y después cada 7 días desde lo
+  último guardado. 30 peticiones por pasada, tope diario
+  `TCGGO_TOPE_VALOR_HISTORICO` (1.000), `enCurso` para seguir por su página
+  si se acaba el tiempo (a medias no escribe), plan bloqueado hasta mañana,
+  y sin la columna del sellado sigue con las cartas. En `PASADAS` de /admin.
+- Lo puro en netlify/lib/tcggo.mjs: `urlValorDeEpisodio`, `puntosDeValor`,
+  `diaPorDia`.
+- /coleccion/<set> (js/coleccion.js): pide el año (con respaldo sin
+  `valor_sellado`), añade la cifra «Valor del sellado» y monta
+  `js/valor-set.js` (por `import()`): cartas y sellado cada uno a su escala,
+  rangos 1M/3M/6M/1A (solo los que enseñan algo más) y la lectura de un día
+  al pasar el ratón o tocar. CSS en `css/carta.css`.
+- La estantería no cambia: su chispa de 39 semanas se llena sola al tener
+  días.
+- Pruebas (rama `pruebas`): `test-tanda-1365.mjs`.
+
+**Pendiente**: PINGU ejecuta la migración 1365. El relleno del pasado de
+todas las expansiones tarda unos días (tope diario); se ve en /admin → Hoy
+(«Valor de las expansiones»).
+
 ## 2026-11-15 (610) — PINGU-Claude (1364 — TCGGO: ventas de gradeadas y media de 30 días)
 
 **Hecho.** La C de «Lo nuevo de la API de TCGGO» (PINGU: «todo lo demás sí»,

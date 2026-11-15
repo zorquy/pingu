@@ -671,6 +671,89 @@
 .coleccion-cifras .sube { color: var(--success); }
 .coleccion-cifras .baja { color: var(--danger); }
 
+/* La gráfica del valor de la expansión (1365): cartas y sellado, cada una a
+   su escala (SCHEMA 1365). Lo que se lee va en HTML encima del SVG. */
+.coleccion-valor {
+  display: grid;
+  gap: var(--e-sm);
+  margin-top: var(--e-md);
+  padding: var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  background: var(--white);
+}
+.vs-mandos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--e-sm);
+}
+.vs-rangos { display: flex; gap: var(--e-xs); }
+.vs-rango {
+  min-height: 32px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 700;
+}
+.vs-rango[aria-pressed='true'] {
+  border-color: transparent;
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+@media (pointer: coarse) {
+  .vs-rango { position: relative; }
+  .vs-rango::after { content: ''; position: absolute; inset: -6px 0; }
+}
+.vs-leyenda { display: flex; flex-wrap: wrap; gap: var(--e-md); color: var(--text-mid); font-size: var(--t-xs); }
+.vs-ley { display: inline-flex; align-items: center; gap: var(--e-xs); }
+.vs-ley i { width: 16px; height: 0; border-top: 2px solid var(--acento); }
+.vs-ley i.vs-ley-sellado { border-top-style: dashed; border-top-color: var(--navy); }
+.vs-lienzo {
+  position: relative;
+  height: 180px;
+  touch-action: pan-y;
+  cursor: crosshair;
+}
+.vs-lienzo svg { display: block; width: 100%; height: 100%; }
+.vs-area { fill: color-mix(in srgb, var(--acento) 14%, transparent); }
+.vs-cartas { fill: none; stroke: var(--acento); stroke-width: 2; }
+.vs-sellado { fill: none; stroke: var(--navy); stroke-width: 2; stroke-dasharray: 5 4; }
+.vs-guia {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  border-left: 1px dashed var(--border-strong);
+  pointer-events: none;
+}
+.vs-marca {
+  position: absolute;
+  top: var(--e-xs);
+  display: grid;
+  gap: 2px;
+  padding: var(--e-xs) var(--e-sm);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--white);
+  box-shadow: var(--shadow-sm);
+  font-size: var(--t-xs);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+.vs-marca span { color: var(--text-mid); }
+.vs-marca span b { color: var(--text); }
+.vs-pie { margin: 0; color: var(--text-mid); font-size: var(--t-xs); }
+@media (min-width: 900px) {
+  .vs-lienzo { height: 220px; }
+}
+
 /* «Las que me faltan»: un chip que se pulsa, de 44 (312). */
 .coleccion-faltan {
   min-height: 44px;

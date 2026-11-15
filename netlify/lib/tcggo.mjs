@@ -993,6 +993,49 @@ export function setDeEpisodioPorHuella(episodio, sets) {
 // página son 30 fechas, que son dos o tres meses de muestras.
 export const urlHistorial = (idProduct, base = URL_BASE) => `${base}/history-prices?cardmarket_id=${idProduct}&sort=asc`
 
+// ── El valor de una EXPANSIÓN en el tiempo (tanda 1365) ──
+//
+// `/episodes/{id}/history-prices` (su anuncio de 2026-11-15): la suma de los
+// mínimos de sus cartas día a día (lo mismo que `prices.cardmarket.total` de
+// la lista, que es lo que apunta la pasada de precios en `tcg_set_valor`), y
+// con `scope=products` la de sus productos sellados. Misma forma que el
+// histórico de una carta: `data` por día ({ cm_low, tcg_player_market, … }) y
+// páginas de 30 fechas.
+export function urlValorDeEpisodio(id, { desde = null, pagina = 1, productos = false } = {}, base = URL_BASE) {
+  return `${base}/episodes/${id}/history-prices?sort=asc${desde ? `&date_from=${desde}` : ''}&page=${pagina}${productos ? '&scope=products' : ''}`
+}
+// Los puntos de una página: [{ dia, cm, tp }] por día, solo con cifra.
+export function puntosDeValor(respuesta) {
+  const datos = respuesta?.data && typeof respuesta.data === 'object' && !Array.isArray(respuesta.data) ? respuesta.data : {}
+  const fuera = []
+  for (const [dia, v] of Object.entries(datos)) {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(dia) || !v || typeof v !== 'object') continue
+    const cm = positivo(v.cm_low)
+    const tp = positivo(v.tcg_player_market)
+    if (cm || tp) fuera.push({ dia, cm, tp })
+  }
+  return fuera.sort((a, b) => a.dia.localeCompare(b.dia))
+}
+// UN DÍA POR DÍA, con el último valor conocido en los huecos (1365). Su
+// histórico no trae todos los días (son muestras), y la estantería pide el
+// valor de fechas CONCRETAS (`fechasDeValor`: hoy y una por semana hacia
+// atrás): con huecos, la mayoría no casaría y la gráfica seguiría corta. Se
+// rellena del primer punto al último, nunca más allá: lo que no se sabe no se
+// estira hasta hoy.
+export function diaPorDia(puntos) {
+  const lista = [...(puntos || [])].filter((p) => /^\d{4}-\d{2}-\d{2}$/.test(p?.dia)).sort((a, b) => a.dia.localeCompare(b.dia))
+  if (!lista.length) return []
+  const fuera = []
+  const dia = (d) => d.toISOString().slice(0, 10)
+  let k = 0
+  let ultimo = null
+  for (let t = new Date(`${lista[0].dia}T00:00:00Z`); dia(t) <= lista[lista.length - 1].dia; t = new Date(t.getTime() + 86_400_000)) {
+    while (k < lista.length && lista[k].dia <= dia(t)) ultimo = lista[k++]
+    if (ultimo) fuera.push({ dia: dia(t), cm: ultimo.cm, tp: ultimo.tp, real: ultimo.dia === dia(t) })
+  }
+  return fuera
+}
+
 // ── Las ventas de gradeadas en eBay (tanda 1364) ──
 //
 // `/ebay-sold-offers`: cada venta de una carta GRADEADA (casa, nota, precio,

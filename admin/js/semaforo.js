@@ -19,6 +19,8 @@ export const PASADAS = [
   ['tcggo_versiones_ahora', 'Versiones al abrir la ficha'],
   // Las ventas de gradeadas pedidas al abrir «Gradeadas» (1364).
   ['tcggo_ventas_gradeadas', 'Ventas gradeadas al abrir la ficha'],
+  // El pasado del valor de cada expansión y su sellado semanal (1365).
+  ['tcggo_valor_historico', 'Valor de las expansiones (histórico y sellado)'],
   ['tcggo_productos', 'Productos'],
   ['jp_lineas_viejas', 'Líneas JP viejas'],
   // Lo de Scrydex y a mano (883, 884, 886): sin estar aquí, /admin no lo

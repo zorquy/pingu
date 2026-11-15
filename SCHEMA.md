@@ -55204,6 +55204,36 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1365 — El valor de cada expansión en el tiempo
+
+`GET {base}/episodes/{id}/history-prices?sort=asc&date_from=…&page=N[&scope=products]`
+(TCGGO, 2026-11-15): la suma de los mínimos de las cartas (o, con
+`scope=products`, de los productos sellados) por día, con la forma del
+histórico de una carta y páginas de 30 fechas.
+
+**`tcggo-valor-historico`** (estado `tcggo_valor_historico`):
+
+| campo | qué es |
+|---|---|
+| `cartas["WEST:437"]` | día en que se rellenó su año (o `fallo <día>`, que se reintenta a la semana) |
+| `sellado["WEST:437"]` | `{ pedido, hasta, dias }`: se repasa con 7 días desde `pedido`, pidiendo desde `hasta − 1` |
+| `enCurso` | `{ clave, tipo, desde, pagina, puntos }`: lo pedido de una expansión a medias |
+| `peticiones`, `dia` | lo gastado hoy (tope `TCGGO_TOPE_VALOR_HISTORICO`, 1.000) |
+| `planBloqueado`, `sinSellado`, `ultimoError` | frenos (los lee el semáforo) |
+
+Cartas: `diaPorDia(puntos)` (último valor en los huecos, nunca más allá del
+último punto) y se escriben solo los días SIN `valor_cm` (lo de la pasada de
+precios manda), `origen = 'tcggo-historico'`. Sellado: filas con SOLO
+`set_id, market, dia, valor_sellado` (el upsert no toca lo demás).
+
+**La página de la expansión** pide 366 días de `tcg_set_valor`
+(`valor_cm, valor_sellado`; sin la columna, sin ella), la semanal sale de los
+últimos 8 días como antes, «Valor del sellado» del último día con él de las
+dos últimas semanas, y `montarValorSet` pinta `section.coleccion-valor`:
+`.vs-rangos` (rangos con más días que el anterior), `.vs-lienzo` con el SVG
+(`.vs-area`, `.vs-cartas`, `.vs-sellado` a trazos) y `.vs-guia` + `.vs-marca`
+en HTML para la lectura (con el dedo se queda; con el ratón se va al salir).
+
 ## Tanda 1364 — TCGGO: las últimas ventas de gradeadas y la media de 30 días
 
 **Las ventas.** `GET /.netlify/functions/tcggo-ventas-gradeadas?card=<id>`:

@@ -247,13 +247,25 @@ async function pintarCifras(set) {
   const cabecera = $('coleccionCabecera')?.querySelector('.coleccion-cabecera')
   if (!cabecera) return
   let v = null
+  // El año entero (1365): la gráfica de la expansión y, del final, la semanal.
+  // `valor_sellado` es columna nueva: sin su migración, pedirla tumba la
+  // consulta ENTERA (42703, la 624), así que se repite sin ella.
+  let filas = []
   try {
-    const desde = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
-    const { data } = await supabase.from('tcg_set_valor').select('set_id,dia,valor_cm').eq('market', MERCADO).eq('set_id', set.id).gte('dia', desde).order('dia').limit(40)
-    v = variacionSemanal(data || []).get(set.id) || null
+    const desde = new Date(Date.now() - 366 * 86_400_000).toISOString().slice(0, 10)
+    const pedir = (columnas) => supabase.from('tcg_set_valor').select(columnas).eq('market', MERCADO).eq('set_id', set.id).gte('dia', desde).order('dia').limit(400)
+    let { data, error } = await pedir('set_id,dia,valor_cm,valor_sellado')
+    if (error) ({ data } = await pedir('set_id,dia,valor_cm'))
+    filas = data || []
+    const hace8 = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10)
+    v = variacionSemanal(filas.filter((f) => String(f.dia) >= hace8 && Number(f.valor_cm) > 0)).get(set.id) || null
   } catch {
     v = null
   }
+  // Lo que vale su sellado: el último día que lo tenga, de las dos últimas
+  // semanas (se repasa una vez a la semana).
+  const hace14 = new Date(Date.now() - 14 * 86_400_000).toISOString().slice(0, 10)
+  const sellado = [...filas].reverse().find((f) => String(f.dia) >= hace14 && Number(f.valor_sellado) > 0)?.valor_sellado
   let caja = cabecera.querySelector('.coleccion-cifras')
   if (!caja) {
     caja = document.createElement('div')
@@ -263,9 +275,21 @@ async function pintarCifras(set) {
   const cifras = []
   if (v?.ahora) cifras.push(`<span><small>Valor del set</small><b>${escapeHtml(fmtEnteroEuros.format(v.ahora))} €</b></span>`)
   if (v?.pct !== null && v?.pct !== undefined) cifras.push(`<span><small>Semanal</small><b class="${v.pct > 0 ? 'sube' : v.pct < 0 ? 'baja' : ''}">${v.pct > 0 ? '+' : ''}${v.pct} %</b></span>`)
+  if (Number(sellado) > 0) cifras.push(`<span><small>Valor del sellado</small><b>${escapeHtml(fmtEnteroEuros.format(Number(sellado)))} €</b></span>`)
   caja.dataset.valor = cifras.join('')
   caja.innerHTML = cifras.join('') + (caja.dataset.tienes || '')
   caja.classList.toggle('hidden', !caja.innerHTML)
+  // La gráfica del valor (1365), con dos días de algo que pintar.
+  if (filas.filter((f) => Number(f.valor_cm) > 0 || Number(f.valor_sellado) > 0).length >= 2) {
+    let grafica = cabecera.querySelector('.coleccion-valor')
+    if (!grafica) {
+      grafica = document.createElement('section')
+      grafica.className = 'coleccion-valor'
+      grafica.setAttribute('aria-label', 'Lo que vale la expansión')
+      caja.after(grafica)
+    }
+    import('./valor-set.js').then((m) => m.montarValorSet(grafica, filas)).catch(() => grafica.remove())
+  }
 }
 
 function pintarTienes() {

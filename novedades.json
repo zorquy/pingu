@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-15", "tipo": "nuevo", "texto": "Cada expansión tiene su gráfica de valor: lo que suman sus cartas y lo que suman sus productos sellados, de un mes a un año atrás.", "enlace": "/cartas" },
     { "fecha": "2026-11-15", "tipo": "nuevo", "texto": "En la ficha de una carta, abre «Gradeadas» y verás sus últimas ventas en eBay: casa, nota, precio y fecha, con el enlace al anuncio.", "enlace": "/cartas" },
     { "fecha": "2026-11-15", "tipo": "mejora", "texto": "La gráfica de precio de una carta puede enseñar su media de 30 días, para ver si una subida es de verdad o un pico.", "enlace": "/cartas" },
     { "fecha": "2026-11-15", "tipo": "mejora", "texto": "Las expansiones se agrupan bajo el logo de su era, como Megaevolución o Escarlata y Púrpura.", "enlace": "/cartas" },
