@@ -236,6 +236,8 @@ if (retoqueDePerfil && typeof retoqueDePerfil === 'object') {
   if (fila) Object.assign(fila, retoqueDePerfil)
 }
 // «Ver como un desconocido» (1306), como js/supabase.js: la página va sin sesión.
+// Igual que el de verdad (1360): la vuelta con fallo, leída antes de nada.
+export const vueltaConError = typeof location !== 'undefined' && /error_description=|error_code=|[#&?]error=/.test(location.hash + location.search) ? location.hash + location.search : ''
 export const comoDesconocido = typeof location !== 'undefined' && new URLSearchParams(location.search).get('como') === 'desconocido'
 if (comoDesconocido) import('./como-desconocido.js').catch(() => {})
 const sesion = quienSoy === 'none' || comoDesconocido ? null : { user: { id: quienSoy, email: `${quienSoy}@pruebas.test` } }
