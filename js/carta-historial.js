@@ -64,11 +64,14 @@ export function seriesDisponibles(filas, idioma) {
   const ids = IDIOMAS_CON_PRECIO.filter((id) => id !== 'en' && serieDe(filas, (f) => valorDeFila(f, id)).length >= 2)
   const general = serieDe(filas, (f) => num(f?.cm_low)).length >= 2 ? ['todos'] : []
   const orden = idioma === 'todos' ? [...general, ...ids] : [...(ids.includes(idioma) ? [idioma] : []), ...general, ...ids.filter((id) => id !== idioma)]
+  // La media de 30 días de Cardmarket (1364): apagada de serie, como
+  // TCGplayer; sirve para ver si un pico es ruido o tendencia.
+  if (serieDe(filas, (f) => num(f?.cm_avg30)).length >= 2) orden.push('m30')
   if (serieDe(filas, (f) => num(f?.tp_market_eur)).length >= 2) orden.push('tp')
   return orden
 }
-const nombreSerie = (id, general = 'Cualquier idioma') => (id === 'todos' ? general : id === 'tp' ? 'TCGplayer (EE. UU.)' : idiomaDe(id).nombre)
-const valorSerie = (f, id) => (id === 'tp' ? num(f?.tp_market_eur) : valorDeFila(f, id))
+const nombreSerie = (id, general = 'Cualquier idioma') => (id === 'todos' ? general : id === 'tp' ? 'TCGplayer (EE. UU.)' : id === 'm30' ? 'Media de 30 días' : idiomaDe(id).nombre)
+const valorSerie = (f, id) => (id === 'tp' ? num(f?.tp_market_eur) : id === 'm30' ? num(f?.cm_avg30) : valorDeFila(f, id))
 
 const fecha = (dia, conAnio = false) => {
   const d = new Date(`${dia}T00:00:00Z`)
@@ -308,7 +311,7 @@ export async function montarHistorial(caja, cardId, idiomaActual = () => 'es', {
     const elegido = rangoElegido(filas, rangoPuesto)
     const tramo = elegido ? elegido.filas : filas
     const hay = seriesDisponibles(tramo, idioma)
-    visibles = (visibles || hay.filter((id) => id !== 'tp').slice(0, 2)).filter((id) => hay.includes(id))
+    visibles = (visibles || hay.filter((id) => id !== 'tp' && id !== 'm30').slice(0, 2)).filter((id) => hay.includes(id))
     if (!visibles.length && hay.length) visibles = [hay[0]]
     const svg = svgDeHistorial(tramo, { idioma, visibles, marcas: marcasTodas || [], alto })
     if (!svg) {

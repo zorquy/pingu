@@ -993,6 +993,46 @@ export function setDeEpisodioPorHuella(episodio, sets) {
 // página son 30 fechas, que son dos o tres meses de muestras.
 export const urlHistorial = (idProduct, base = URL_BASE) => `${base}/history-prices?cardmarket_id=${idProduct}&sort=asc`
 
+// ── Las ventas de gradeadas en eBay (tanda 1364) ──
+//
+// `/ebay-sold-offers`: cada venta de una carta GRADEADA (casa, nota, precio,
+// fecha y anuncio), la más nueva primero. Con `currency=EUR` los precios
+// llegan en euros. Va por NUESTRO `tcggo_id` (o, sin él, por el id de
+// Cardmarket): una petición por carta, que la función guarda una semana.
+export const CASAS_VENTA = ['PSA', 'BGS', 'CGC', 'SGC', 'ACE', 'TAG']
+export function urlVentasGradeadas({ tcggoId = null, idProduct = null } = {}, base = URL_BASE) {
+  const llave = Number.isInteger(tcggoId) && tcggoId > 0 ? `id=${tcggoId}` : Number.isInteger(idProduct) && idProduct > 0 ? `cardmarket_id=${idProduct}` : null
+  return llave ? `${base}/ebay-sold-offers?${llave}&per_page=30&currency=EUR` : null
+}
+// Una venta suya, en lo que guardamos: solo lo que se pinta. El enlace se
+// limpia a la dirección del anuncio (sin su rastreo) y solo si es de eBay;
+// lo que no se entiende (sin precio, sin casa conocida, sin fecha) no entra.
+export function ventaDe(o) {
+  const precio = Number(o?.price)
+  const casa = String(o?.company || '').trim().toUpperCase()
+  const nota = String(o?.grade ?? '').trim().replace(/^(psa|bgs|cgc|sgc|ace|tag)\s*/i, '')
+  const fecha = typeof o?.ended_at === 'string' && !Number.isNaN(Date.parse(o.ended_at)) ? new Date(o.ended_at).toISOString() : null
+  if (!Number.isFinite(precio) || precio <= 0 || !CASAS_VENTA.includes(casa) || !/^\d+(\.\d)?$/.test(nota) || !fecha) return null
+  let enlace = null
+  try {
+    const u = new URL(String(o?.url || ''))
+    if (u.protocol === 'https:' && /(^|\.)ebay\.[a-z.]{2,8}$/i.test(u.hostname) && /^\/itm\//.test(u.pathname)) enlace = `${u.origin}${u.pathname}`
+  } catch { enlace = null }
+  return {
+    casa,
+    nota,
+    precio: Math.round(precio * 100) / 100,
+    moneda: /^[A-Z]{3}$/.test(String(o?.currency || '')) ? o.currency : 'EUR',
+    fecha,
+    titulo: typeof o?.title === 'string' ? o.title.trim().slice(0, 140) : '',
+    enlace,
+  }
+}
+export function ventasDe(respuesta) {
+  const lista = Array.isArray(respuesta?.data) ? respuesta.data : []
+  return lista.map(ventaDe).filter(Boolean).sort((a, b) => b.fecha.localeCompare(a.fecha)).slice(0, 30)
+}
+
 // Su respuesta es un objeto por fecha: { "2026-09-11": { cm_low, cm_low_de,
 // cm_low_fr, cm_low_es, cm_low_it, tcg_player_market } }. No hay `_en`: el
 // `cm_low` a secas es el general, que en su web es el inglés. Una fila por
@@ -1013,6 +1053,10 @@ export function filasDeHistorial(cardId, respuesta) {
       cm_low_it: positivo(v.cm_low_it),
       cm_low_ja: positivo(v.cm_low_jp ?? v.cm_low_ja),
       tp_market_eur: positivo(v.tcg_player_market),
+      // La media de 30 días de Cardmarket, día a día (1364): la línea
+      // «Media de 30 días» de la gráfica. Sin la migración no hay columna y
+      // quien guarda la vuelve a intentar sin ella.
+      cm_avg30: positivo(v.avg30),
       origen: 'tcggo',
     }
     if (fila.cm_low || fila.cm_low_es || fila.cm_low_de || fila.cm_low_fr || fila.cm_low_it || fila.cm_low_ja || fila.tp_market_eur) fuera.push(fila)

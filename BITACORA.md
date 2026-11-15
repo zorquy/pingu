@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-15 (610) — PINGU-Claude (1364 — TCGGO: ventas de gradeadas y media de 30 días)
+
+**Hecho.** La C de «Lo nuevo de la API de TCGGO» (PINGU: «todo lo demás sí»,
+con el tope de 20 € propuesto).
+- `netlify/functions/tcggo-ventas-gradeadas.mjs` (nueva): `/ebay-sold-offers`
+  de TCGGO por `tcggo_id` (o id de Cardmarket; el japonés, a `pokemon-jp`),
+  30 ventas en euros, guardadas una semana en `tcg_card_ventas_gradeadas`
+  (también la lista vacía). Frenos: menos de 20 € (`cm_low` o `cm_avg30`) no
+  se pide; tope diario `TCGGO_TOPE_VENTAS` (400) en
+  `scrydex_estado.tcggo_ventas_gradeadas`, que entra en `PASADAS` de /admin;
+  `rateLimit` por IP como el histórico.
+- Lo puro en netlify/lib/tcggo.mjs: `urlVentasGradeadas`, `ventaDe`
+  (casa conocida, nota con medio punto, enlace solo de eBay y sin rastreo),
+  `ventasDe`.
+- La web: `engancharVentasGradeadas` (precio-vista.js) se llama al pintar el
+  precio en la ficha de Mi colección y en /carta, y SOLO al abrir «Gradeadas»
+  baja `js/ventas-gradeadas.js` y pide. Lista de seis con chips por casa y
+  «Ver las N ventas»; cada fila abre el anuncio. CSS en `css/cardmarket.css`.
+- La media de 30 días: `filasDeHistorial` guarda `avg30` como `cm_avg30`;
+  `tcggo-historial` la pide y la guarda con respaldo (sin la columna, repite
+  sin ella); la gráfica ofrece «Media de 30 días» (a trazos, apagada de
+  serie).
+- Pruebas (rama `pruebas`): `test-tanda-1364.mjs` (con la respuesta de su
+  documentación tal cual, la función y sus frenos, el respaldo del
+  histórico, la migración contra PostgreSQL y la ficha de verdad: no pide al
+  abrir la ficha, sí al abrir «Gradeadas»).
+
+**Pendiente**: PINGU ejecuta la migración 1364 (sin ella la función contesta
+vacío sin gastar y el histórico sigue como antes). Van en el próximo push.
+
 ## 2026-11-15 (609) — PINGU-Claude (1363 — TCGGO: clase de carta y logo de era)
 
 **Hecho.** De la propuesta «Lo nuevo de la API de TCGGO» (PINGU aprobó A, B y

@@ -781,3 +781,13 @@
   `series.logo`), no en `tcg_eras`: así llega a todas las eras, también las
   que nadie ha colocado a mano; la estantería pinta el de la expansión más
   nueva que lo tenga.
+- **Las ventas de gradeadas se piden al ABRIR «Gradeadas», y solo de cartas de
+  20 € o más** (tanda 1364): `tcggo-ventas-gradeadas` es el patrón del
+  histórico (643) con un freno más, el precio: guardadas una semana en
+  `tcg_card_ventas_gradeadas` (también la lista vacía, o se pagaría en cada
+  visita), tope diario `TCGGO_TOPE_VENTAS` y estado en `PASADAS`. La web las
+  engancha con `engancharVentasGradeadas` (precio-vista.js); una pantalla
+  nueva que pinte el bloque de precio llama a eso, nunca a la función al
+  pintar. Y una columna nueva del histórico (`cm_avg30`) se pide y se guarda
+  con RESPALDO en `tcggo-historial`: sin su migración, una consulta que la
+  nombra deja la gráfica en blanco (la 624).

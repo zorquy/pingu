@@ -55204,6 +55204,39 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1364 — TCGGO: las últimas ventas de gradeadas y la media de 30 días
+
+**Las ventas.** `GET /.netlify/functions/tcggo-ventas-gradeadas?card=<id>`:
+
+1. Lee `tcg_card_ventas_gradeadas` (card_id, market, ventas jsonb, pedido_at).
+   Pedida hace ≤ 7 días → la sirve sin pagar.
+2. Si la carta vale < 20 € (`max(cm_low, cm_avg30)` de `tcg_card_prices`) →
+   sirve lo que haya, sin pedir.
+3. Tope diario (`TCGGO_TOPE_VENTAS`, 400): cuenta ANTES de pedir (la 522).
+4. `${base}/ebay-sold-offers?id=<tcggo_id>&per_page=30&currency=EUR` (sin
+   `tcggo_id`, `cardmarket_id=`; el japonés con `baseJpDe`).
+5. `ventasDe` → `[{ casa, nota, precio, moneda, fecha, titulo, enlace }]`,
+   la más nueva primero; se guarda (también vacía) y se devuelve.
+
+Sin la migración contesta `{ ventas: [], porque: 'falta ejecutar …1364…' }`
+sin gastar. La tabla tiene RLS sin políticas y nada para `anon` ni
+`authenticated`: solo la función la toca.
+
+En la web, `engancharVentasGradeadas(raiz, cardId)` engancha el `toggle` del
+`<details class="pv-gradeadas-fuente">`; al abrirlo, `import('./ventas-gradeadas.js')`
+→ `montarVentas` (una vez por carta y pintada): `section.pv-ventas` con
+«Últimas ventas en eBay», chips por casa (`data-casa-filtro`), seis filas
+`a.pv-venta` (chapa de la casa, título, «hace N días», precio) y «Ver las N
+ventas». Sin ventas guardadas de una carta que no se ha preguntado, no pinta
+nada.
+
+**La media de 30 días.** `filasDeHistorial` → `cm_avg30` (de `avg30`), columna
+nueva de `tcg_card_history`. `tcggo-historial` la pide con respaldo (42703 →
+sin ella) y la guarda con respaldo (PGRST204 → sin ella). En la gráfica es la
+serie `m30`, «Media de 30 días», a trazos y apagada de serie como TCGplayer.
+Solo hay media en los días que vinieron del histórico de TCGGO (la foto
+diaria no la copia).
+
 ## Tanda 1363 — TCGGO: la clase de cada carta y el logo de cada era
 
 **La clase y la fase.** TCGGO añadió `card_type` y `card_subtype` a sus cartas

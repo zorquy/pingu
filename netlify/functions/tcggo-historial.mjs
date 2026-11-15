@@ -56,9 +56,14 @@ export async function procesar({
   let filas
   let carta
   let precio
+  // La media de 30 días (1364) es una columna nueva: sin su migración, pedirla
+  // tumba la consulta ENTERA (42703, la 624), así que se repite sin ella.
+  const columnas = 'dia,cm_low,cm_low_es,cm_low_en,cm_low_de,cm_low_fr,cm_low_it,cm_low_ja,tp_market_eur'
+  const historico = () => pedir(`tcg_card_history?select=${columnas},cm_avg30&card_id=eq.${id}&order=dia.asc&limit=400`)
+    .catch((e) => (/cm_avg30/.test(String(e?.message || e)) ? pedir(`tcg_card_history?select=${columnas}&card_id=eq.${id}&order=dia.asc&limit=400`) : Promise.reject(e)))
   try {
     ;[filas, carta, precio] = await Promise.all([
-      pedir(`tcg_card_history?select=dia,cm_low,cm_low_es,cm_low_en,cm_low_de,cm_low_fr,cm_low_it,cm_low_ja,tp_market_eur&card_id=eq.${id}&order=dia.asc&limit=400`),
+      historico(),
       pedir(`tcg_cards?select=id,cm_id_product_propio&id=eq.${id}&limit=1`),
       pedir(`tcg_card_prices?select=historial_at&card_id=eq.${id}&limit=1`),
     ])
@@ -96,7 +101,13 @@ export async function procesar({
   try { datos = JSON.parse(texto) } catch { return { estado: 200, cuerpo: { filas, pedido: true, porque: 'TCGGO ha contestado algo que no es JSON' } } }
   const nuevas = filasDeHistorial(cardId, datos)
   try {
-    if (nuevas.length) await guardar(nuevas)
+    // Sin la columna de la media (la base dice PGRST204 o 42703 nombrándola),
+    // se guarda lo de siempre: la media se pierde, el histórico no.
+    if (nuevas.length) {
+      await guardar(nuevas).catch((e) => (/cm_avg30/.test(String(e?.message || e))
+        ? guardar(nuevas.map(({ cm_avg30: _, ...f }) => f))
+        : Promise.reject(e)))
+    }
     await pedir(`tcg_card_prices?card_id=eq.${id}`, { method: 'PATCH', body: JSON.stringify({ historial_at: ahora.toISOString() }), headers: { prefer: 'return=minimal' } })
   } catch (e) {
     return { estado: 200, cuerpo: { filas, pedido: true, porque: `nuestra base: ${String(e?.message || e).slice(0, 120)}` } }

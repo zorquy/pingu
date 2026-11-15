@@ -90,6 +90,22 @@ export function chapasDeGradeadas(gradeadas) {
   return `<details class="pv-fuente pv-gradeadas-fuente"><summary class="pv-fuente-cab pv-gradeadas-cab"><span class="pv-fuente-nombre">Gradeadas</span><span class="pv-gradeadas-resumen"><span class="pv-chapa pv-gradeada" data-casa="${escapeHtml(mejor.casa)}"><b>${escapeHtml(mejor.casa)} ${escapeHtml(mejor.nota)}</b> ${cifraGradeada(mejor)}</span><span class="pv-pie">${lista.length} ${lista.length === 1 ? 'nota' : 'notas'} · ${casas.length} ${casas.length === 1 ? 'casa' : 'casas'}</span></span></summary><div class="pv-gradeadas pv-casas">${filas}</div>${hayEbay ? '<p class="pv-pie">Los dólares son ventas en eBay; los euros, en venta en Cardmarket.</p>' : ''}</details>`
 }
 
+// LAS ÚLTIMAS VENTAS DE GRADEADAS (1364). Quien pinta el bloque de precio
+// llama a esto con la carta: al ABRIR «Gradeadas» se baja
+// `ventas-gradeadas.js` y se piden (una petición de pago por carta nueva, de
+// ahí que no se haga al pintar). Sin «Gradeadas» (la carta no tiene ninguna
+// nota) no se engancha nada.
+export function engancharVentasGradeadas(raiz, cardId) {
+  const detalles = raiz?.querySelector?.('.pv-gradeadas-fuente')
+  if (!detalles || !cardId) return
+  const abrir = () => {
+    if (!detalles.open) return
+    import('./ventas-gradeadas.js').then((m) => m.montarVentas(detalles, cardId)).catch(() => {})
+  }
+  detalles.addEventListener('toggle', abrir)
+  abrir()
+}
+
 // La frase pequeña bajo la cifra: de qué es ese número.
 export function deQueEs(p, { idioma, estado = ESTADO_POR_DEFECTO, precio = null } = {}) {
   if (!p) return ''

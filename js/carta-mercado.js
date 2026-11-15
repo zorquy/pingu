@@ -35,7 +35,7 @@ import {
   estadoDe,
   varianteDe,
 } from './cardmarket.js'
-import { tarjetasDePrecio, chapasDeImpresiones, chipDeIdiomaHtml } from './precio-vista.js'
+import { tarjetasDePrecio, chapasDeImpresiones, chipDeIdiomaHtml, engancharVentasGradeadas } from './precio-vista.js'
 import { preciosEnVivo, preciosGuardados, lineasDeCarta, anadir, actualizar, borrar, tieneCifras, versionesDeCartas, pedirVersionesAhora, alTacharDeseos, deseosTachadosPor } from './mi-coleccion/datos.js'
 import { precioDeFila, precioParaIdioma, idiomasParaAnadirEn, versionesDeLosIdiomas, idiomasDeLaVersion, idiomaDePrecioDelSet } from './cardmarket.js'
 import { idiomasDeSet, reglasDeVersiones, sinReglas, hayReglas } from './idiomas-de-set.js'
@@ -191,6 +191,8 @@ export async function pintarMercado(carta) {
       idioma: estado.idioma, estado: estado.estado, variante: estado.variante, nombre, tcgplayerId: carta.tp_id_product_propio || null,
       rotuloActivo: estado.deTuCopia ? 'tu copia' : 'tu idioma', idiomasDelSet,
     })
+    // Las últimas ventas de gradeadas, al abrir «Gradeadas» (1364).
+    engancharVentasGradeadas($('cmPrecios'), carta.id)
   }
   // Los idiomas en los que salió su set (911): llegan después y repintan.
   let idiomasDelSet = null

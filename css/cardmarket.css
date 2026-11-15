@@ -473,6 +473,9 @@ details[open] > .pv-gradeadas-cab::after { transform: rotate(-90deg); }
 [data-serie='es'] { --serie: var(--navy); }
 [data-serie='todos'] { --serie: var(--text-mid); }
 [data-serie='tp'] { --serie: var(--text-dim); }
+/* La media de 30 días (1364): a trazos, para no confundirla con un idioma. */
+[data-serie='m30'] { --serie: var(--text-mid); }
+.carta-historial-linea[data-serie='m30'] { stroke-dasharray: 4 3; }
 [data-serie='de'] { --serie: var(--pink); }
 [data-serie='fr'] { --serie: var(--warning); }
 [data-serie='it'] { --serie: var(--indigo); }
@@ -1774,6 +1777,85 @@ a.pv-tarjeta-tuya:hover {
 
 .pv-con-tarjetas .pv-gradeadas-fuente {
   margin-top: var(--e-sm);
+}
+
+/* Las últimas ventas de gradeadas en eBay (1364), dentro de «Gradeadas». */
+.pv-ventas {
+  display: grid;
+  gap: var(--e-sm);
+  margin-top: var(--e-md);
+  padding-top: var(--e-md);
+  border-top: 1px solid var(--border);
+}
+.pv-ventas-t {
+  margin: 0;
+  font-size: var(--t-sm);
+  font-weight: 700;
+}
+.pv-ventas-casas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--e-xs);
+}
+.pv-ventas-casa {
+  min-height: 32px;
+  padding: 0 var(--e-md);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-pill);
+  background: var(--white);
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+  font-weight: 600;
+}
+.pv-ventas-casa[aria-pressed='true'] {
+  border-color: transparent;
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+.pv-ventas-lista {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.pv-venta {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--e-sm);
+  min-height: 44px;
+  padding: var(--e-xs) 0;
+  border-top: 1px solid var(--border);
+  color: var(--text);
+  text-decoration: none;
+}
+.pv-ventas-lista li:first-child .pv-venta { border-top: 0; }
+a.pv-venta:hover .pv-venta-titulo { text-decoration: underline; }
+.pv-venta-nota { min-width: 72px; justify-content: center; white-space: nowrap; }
+.pv-venta-que {
+  display: grid;
+  min-width: 0;
+}
+.pv-venta-titulo {
+  overflow: hidden;
+  font-size: var(--t-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.pv-venta-cuando {
+  color: var(--text-mid);
+  font-size: var(--t-xs);
+}
+.pv-venta-precio {
+  font-family: var(--font-display);
+  font-size: var(--t-md);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.pv-ventas-mas { justify-self: start; }
+@media (pointer: coarse) {
+  .pv-ventas-casa { position: relative; }
+  .pv-ventas-casa::after { content: ''; position: absolute; inset: -6px 0; }
 }
 
 /* ── 922: «¿Cuál tienes?» antes de añadir (SCHEMA 922) ──

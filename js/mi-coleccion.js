@@ -45,7 +45,7 @@ import {
   euros,
   valorDeLinea, deDondeSaleElValor, resumenDePrecio , precioParaIdioma, idiomasParaAnadirEn, versionesDeLosIdiomas, idiomasDeLaVersion, idiomaDePrecioDelSet } from './cardmarket.js'
 import { idiomasDeSet, reglasDeVersiones, sinReglas, hayReglas } from './idiomas-de-set.js'
-import { tarjetasDePrecio, banderaHtml, chipDeIdiomaHtml } from './precio-vista.js'
+import { tarjetasDePrecio, banderaHtml, chipDeIdiomaHtml, engancharVentasGradeadas } from './precio-vista.js'
 import { icons, icon } from './icons.js'
 import { botonOcultarHtml } from './mi-coleccion/valor-oculto.js'
 import { ICONOS_COLECCION } from './mi-coleccion/iconos.js'
@@ -805,6 +805,8 @@ function pintarPrecioDeFicha(l, c, tuya) {
     idioma: l.idioma, estado: l.estado, variante: l.variante, nombre: nombreDe(c), tcgplayerId: c?.tp_id_product_propio || null,
     rotuloActivo: tuya ? 'tu copia' : 'tu idioma', idiomasDelSet: clave ? idiomasDeLaFicha.get(clave) || null : null,
   })
+  // Las últimas ventas de gradeadas, al abrir «Gradeadas» (1364).
+  engancharVentasGradeadas($('mcEdPrecioBloque'), l.card_id)
   if (clave && !idiomasDeLaFicha.has(clave)) {
     idiomasDeLaFicha.set(clave, null)
     void idiomasDeSet(c.set_id, market).then((lista) => {
