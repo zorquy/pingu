@@ -73,7 +73,7 @@ async function abrir(coleccion, opciones = {}) {
   // pantallas necesita que la prueba diga en CUÁL mira.
   await page.goto(`${BASE}/mi-coleccion.html?ver=album`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2400)
-  await page.locator('[data-pestania="album"]').click()
+  await page.locator('#mcMenu [data-pestania="album"]').click()
   await page.waitForTimeout(1600)
   return { page, errores }
 }

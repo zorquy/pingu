@@ -21,7 +21,7 @@ check('torneos: la tira de la semana antes de la lista (PA15)', leer('torneos.ht
 check('constructor: las casillas son interruptores (SI7)', /\.cm-check input \{\s*appearance: none;/.test(leer('css/constructor.css')))
 check('constructor: el formato en chips (SI7)', /chipsDeSelect\(\$\('cmFormato'\)/.test(leer('js/constructor.js')))
 check('constructor: el anillo de 60 (PA14)', /--lleno/.test(leer('js/constructor.js')) && /conic-gradient\(var\(--anillo\) var\(--lleno\)/.test(leer('css/constructor.css')))
-check('Mis partidas: pestañas en pastilla (PA14)', /class="seg partidas-tabs" id="partidasTabs"/.test(leer('mis-partidas.html')) && !/tab-btn/.test(leer('mis-partidas.html')))
+check('Mis partidas: pestañas en pastilla (PA14)', /class="seg partidas-tabs[^"]*" id="partidasTabs"/.test(leer('mis-partidas.html')) && !/tab-btn/.test(leer('mis-partidas.html')))
 check('Laboratorio y Repeticiones: «Pegar» (PA14)', /id="lpPegar"/.test(leer('laboratorio.html')) && /id="repPegarBoton"/.test(leer('repeticiones.html')))
 
 console.log('── 2. En el navegador ──')

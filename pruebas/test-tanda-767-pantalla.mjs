@@ -74,7 +74,7 @@ console.log('── 2. El menú del PC, sin «Mi colección» ──')
     const cajon = document.querySelector('.lat .lat-cajon.lat-abierto')
     return { menu: !!cajon?.querySelector('.lat-menu-sitio > #mcMenu'), fila: [...(cajon?.querySelectorAll('.lat-paginas > li > a') || [])].map((a) => a.textContent.trim()), partes: [...(cajon?.querySelectorAll('#mcMenu > button') || [])].map((b) => b.innerText.trim()) }
   })
-  check('el cajón de Cartas ES el menú: sin la fila «Mi colección» encima', lat.menu && lat.fila.length === 0 && lat.partes.join() === 'Panel,Expansiones,Pokédex,Álbumes,Productos,Deseos y cambios,Buscar', JSON.stringify(lat))
+  check('el cajón de Cartas ES el menú: sin la fila «Mi colección» encima', lat.menu && lat.fila.length === 0 && lat.partes.join() === 'Panel,Cartas,Deseos y cambios,Buscar', JSON.stringify(lat))
   if (CAPS) await page.screenshot({ path: `${CAPS}/767-lateral.png`, clip: { x: 0, y: 0, width: 400, height: 700 } })
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
@@ -82,7 +82,7 @@ console.log('── 2. El menú del PC, sin «Mi colección» ──')
 {
   const { ctx, page } = await abrir('/lanzamientos.html', { ancho: 1440 })
   const enlaces = await page.$$eval('.lat .lat-paginas a[href^="/mi-coleccion"]', (as) => as.map((a) => a.textContent.trim()))
-  check('fuera de Mi colección, las mismas partes como enlaces (con Buscar)', enlaces.join() === 'Panel,Expansiones,Pokédex,Álbumes,Productos,Deseos y cambios,Buscar', JSON.stringify(enlaces))
+  check('fuera de Mi colección, las mismas partes como enlaces (con Buscar)', enlaces.join() === 'Panel,Cartas,Deseos y cambios,Buscar', JSON.stringify(enlaces))
   await ctx.close()
 }
 

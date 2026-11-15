@@ -171,7 +171,7 @@ console.log('\n── 3. Mi colección: Expansiones sigue en el menú, y «Ver t
   const pestanas = (await page.locator('#mcMenu .mc-pestania').allInnerTexts()).map(limpio)
   // Productos, desde la 762 (PR1); Deseos y cambios desde la 765, y Buscar
   // vuelve a ser pestaña en la 767.
-  check('el menú: Panel, Expansiones, Pokédex, Álbumes, Productos, Deseos y cambios y Buscar', pestanas.join('|') === 'Panel|Expansiones|Pokédex|Álbumes|Productos|Deseos y cambios|Buscar', pestanas.join('|'))
+  check('el menú: Panel, Cartas, Deseos y cambios y Buscar (1366)', pestanas.join('|') === 'Panel|Cartas|Deseos y cambios|Buscar', pestanas.join('|'))
   // La estantería entera desde el menú; y el «Ver todas» del Panel (que
   // enseña las EMPEZADAS con su progreso) abre la estantería con «solo las
   // empezadas» puesto (1172, P4; de la 649 a la 1172 abría todas).

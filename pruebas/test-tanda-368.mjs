@@ -170,7 +170,7 @@ console.log('\n── 3. El bolsillo del álbum: se abre Y se añade ──')
       __FAKE_COLECCION__: [{ id: 'c1', card_id: 'sv1-2', cantidad: 2 }],
     },
   })
-  await page.locator('[data-pestania="album"]').click()
+  await page.locator('#mcMenu [data-pestania="album"]').click()
   await page.waitForTimeout(1600)
   // Desde la 372 la pestaña «Álbum» abre la ESTANTERÍA, no un
   // archivador: hay que entrar en una colección. La prueba se quedó

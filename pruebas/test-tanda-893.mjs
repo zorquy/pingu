@@ -179,7 +179,7 @@ console.log('\n── 6. La burbuja baja ──')
   await p.close()
   const m = await abrir(ctx, 'mi-coleccion?ver=album')
   const mc = await m.evaluate(() => { const ps = [...document.querySelectorAll('.mc-pestania')]; return ps.map((x) => ({ h: Math.round(x.getBoundingClientRect().height), activa: x.classList.contains('activa'), palabra: (x.querySelector('.mc-menu-texto')?.getBoundingClientRect().width || 0) > 2 })) })
-  check('la de Mi colección va igual: 44 de alto, y la palabra solo en la activa', mc.length >= 5 && mc.every((x) => x.h >= 44 && x.h <= 48) && mc.filter((x) => x.palabra).length === 1 && mc.find((x) => x.activa)?.palabra, JSON.stringify(mc))
+  check('la de Mi colección va igual: 44 de alto, y la palabra solo en la activa', mc.length >= 4 && mc.every((x) => x.h >= 44 && x.h <= 48) && mc.filter((x) => x.palabra).length === 1 && mc.find((x) => x.activa)?.palabra, JSON.stringify(mc))
   await m.close()
   await ctx.close()
 }

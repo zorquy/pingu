@@ -163,7 +163,7 @@ const tabla = (page) => page.evaluate(() => (window.__TABLAS__.user_products || 
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=productos')
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('la pestaña está en el menú', (await page.locator('.mc-pestanias [data-pestania="productos"]').count()) === 1 && (await page.isVisible('#mcPanelProductos')))
+  check('la pestaña está en la fila de Cartas (1366)', (await page.locator('#mcCartasPestanas [data-pestania="productos"]').count()) === 1 && (await page.isVisible('#mcPanelProductos')))
   // Desde la 769, una estantería de expansiones (como Expansiones) en vez
   // del desplegable: la de preventa arriba (aunque esté escondida).
   const opciones = await page.$$eval('#mcProdSets [data-prod-set]', (os) => os.map((o) => `${o.dataset.prodSet}:${o.querySelector('.mc-prod-baldosa-texto b').textContent}${o.querySelector('.mc-prod-preventa') ? ' (preventa)' : ''}`))
@@ -231,7 +231,9 @@ const tabla = (page) => page.evaluate(() => (window.__TABLAS__.user_products || 
   await page.waitForTimeout(800)
   const ancho = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
   check('en el iPhone, dos por fila y sin irse de ancho', ancho <= 1 && (await page.$$eval('#mcProdRejilla .mc-prod', (as) => new Set(as.slice(0, 4).map((a) => Math.round(a.getBoundingClientRect().left))).size)) === 2, String(ancho))
-  check('  …y la burbuja lleva Productos', (await page.locator('.mc-pestanias [data-pestania="productos"]').isVisible()))
+  // Dentro de una expansión la fila de Cartas se esconde (1366): la burbuja
+  // lleva «Cartas» encendido.
+  check('  …y la burbuja lleva «Cartas» encendido (1366)', await page.locator('#mcMenu [data-pestania="album"].activa').isVisible())
   if (CAPS) await page.screenshot({ path: `${CAPS}/762-movil.png` })
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()

@@ -148,7 +148,7 @@ console.log('\n── 4. El menú, a la izquierda en el ordenador ──')
   check('  …y no se come la pantalla', sitio.menuAncho < 280, sitio.menuAncho)
   const todas = await page.locator('#mcMenu [data-pestania]').count()
   const visibles = await page.locator('#mcMenu [data-pestania]:visible').count()
-  check('se ven todas', visibles === todas && todas >= 5, `${visibles}/${todas}`)
+  check("se ven todas", visibles === todas && todas >= 4, `${visibles}/${todas}`)
   // Los iconos salen de js/icons.js y los pone el JavaScript: copiarlos a
   // mano en el HTML deja dos versiones del mismo dibujo.
   check('cada pestaña lleva su icono',

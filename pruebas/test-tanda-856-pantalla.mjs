@@ -74,7 +74,7 @@ console.log('── 2. PC: el historial sube un nivel ──')
   await page.waitForTimeout(1200)
   // Las pestañas se tocan por JS: en el PC, dentro de una expansión, el
   // menú deja su sitio a la lista de su era (748) y no se ve.
-  const pestania = (p) => page.evaluate((x) => document.querySelector(`#mcMenu [data-pestania="${x}"]`).click(), p)
+  const pestania = (p) => page.evaluate((x) => document.querySelector(`#mcMenu [data-pestania="${x}"], #mcCartasPestanas [data-pestania="${x}"]`).click(), p)
   await pestania('pokedex')
   await page.waitForTimeout(800)
   await pestania('album')

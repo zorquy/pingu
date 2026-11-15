@@ -41,7 +41,9 @@ const abrir = async (ruta = '/mi-coleccion.html?ver=cartas', ancho = 1280, alto 
 // Desde la 765 entra «Deseos y cambios»; Buscar fue una hoja en la 765 y
 // vuelve a ser pestaña en la 767.
 // Desde la 770 «Deseos y cambios» abre el Mercado; «La quiero» sigue por enlace.
-const EN_EL_MENU = ['resumen', 'album', 'pokedex', 'carpetas', 'productos', 'mercado', 'buscar']
+// Desde la 1366 («Colección en cuatro») Pokédex, Álbumes y Productos son
+// pestañas de Cartas (`album`), no del menú: se siguen abriendo por enlace.
+const EN_EL_MENU = ['resumen', 'album', 'mercado', 'buscar']
 // Pero la PANTALLA de cartas se queda y se abre por enlace: lo apuntan el
 // «Ver todas» del panel y las URLs que la gente tenga guardadas. Quitar la
 // pestaña no es quitar la página, y esta lista es la que lo vigila.
@@ -54,7 +56,7 @@ console.log('\n── 1. Cinco pestañas, y las mismas en el móvil ──')
   const { page, errores } = await abrir()
   check('sin errores', errores.length === 0, errores.join(' | '))
   const hay = await page.locator('#mcMenu [data-pestania]').evaluateAll((l) => l.map((e) => e.dataset.pestania))
-  check('son estas siete (Productos desde la 762, Deseos y cambios y Buscar desde la 767)', JSON.stringify(hay) === JSON.stringify(EN_EL_MENU), hay.join(','))
+  check('son estas cuatro (Panel, Cartas, Deseos y cambios y Buscar desde la 1366)', JSON.stringify(hay) === JSON.stringify(EN_EL_MENU), hay.join(','))
   // Y cada una tiene su panel: una pestaña sin panel no da error, deja la
   // pantalla en blanco.
   for (const p of hay) {
@@ -66,8 +68,8 @@ console.log('\n── 1. Cinco pestañas, y las mismas en el móvil ──')
 {
   // Con cinco ya caben en la barra del móvil sin un «Más» detrás.
   const { page } = await abrir('/mi-coleccion.html', 390, 820)
-  check('en el móvil se ven las siete (Buscar desde la 767)',
-    (await page.locator('#mcMenu [data-pestania]:visible').count()) === 7)
+  check('en el móvil se ven las cuatro (1366)',
+    (await page.locator('#mcMenu [data-pestania]:visible').count()) === 4)
   check('  …y ya no hace falta un «Más»', (await page.locator('#mcMenuMas').count()) === 0)
   // LOS NOMBRES YA NO SE VEN (tanda 452): el menú del móvil es una burbuja
   // de iconos, como la de Dex. Lo que se comprobaba aquí —que «Expansiones»

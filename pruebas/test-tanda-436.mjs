@@ -107,7 +107,7 @@ console.log('\n── 1. El Panel es lo primero ──')
     (await page.locator('#mcPanelCartas').isVisible()) && (await page.locator('#mcPanelResumen').isHidden()))
   await page.close()
   const pok = await abrir('/mi-coleccion.html?ver=pokedex')
-  check('`?ver=pokedex` abre la Pokédex', (await activa(pok.page)) === 'Pokédex', await activa(pok.page))
+  check('`?ver=pokedex` abre la Pokédex (con «Cartas» encendido, 1366)', (await activa(pok.page)) === 'Cartas' && await pok.page.locator('#mcPanelPokedex').isVisible(), await activa(pok.page))
   await pok.page.close()
   // Y los nombres viejos siguen mudando a donde toca (las MUDANZAS). Se
   // prueba con `?ver=anadir`, que SÍ es una mudanza: `?ver=cambios` dejó de
@@ -193,7 +193,7 @@ console.log('\n── 3. Los vistazos llevan a su pestaña ──')
   await page.waitForTimeout(1200)
   await page.locator('[data-ir-a="album"]').click()
   await page.waitForTimeout(600)
-  check('  …y el de las expansiones, a Expansiones', (await activa(page)) === 'Expansiones', await activa(page))
+  check('  …y el de las expansiones, a Expansiones (en «Cartas», 1366)', (await activa(page)) === 'Cartas' && await page.locator('#mcPanelAlbum').isVisible(), await activa(page))
 
   // Y pulsar una expansión del vistazo ABRE esa expansión, no la
   // estantería: es lo que espera quien pulsa una tarjeta con su nombre y
@@ -202,7 +202,7 @@ console.log('\n── 3. Los vistazos llevan a su pestaña ──')
   await page.waitForTimeout(1200)
   await page.locator('.mc-vistazo .mc-set-fila').first().click()
   await page.waitForTimeout(1500)
-  check('pulsar una expansión abre ESA expansión', (await activa(page)) === 'Expansiones', await activa(page))
+  check('pulsar una expansión abre ESA expansión', (await activa(page)) === 'Cartas', await activa(page))
   // La PRIMERA del vistazo es la más NUEVA desde la 451, que es Paldea.
   check('  …y no la estantería', (await page.locator('#mcAlbumTitulo').textContent()) === 'Paldea Evolved',
     await page.locator('#mcAlbumTitulo').textContent())

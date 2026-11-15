@@ -78,7 +78,7 @@ console.log('── 2. El menú y las búsquedas ──')
   const { ctx, page, errores } = await abrir('/mi-coleccion.html')
   check('sin errores', errores.length === 0, errores.join(' | '))
   const menu = await page.$$eval('#mcMenu > button', (bs) => bs.map((b) => `${b.dataset.pestania}:${b.innerText.trim()}`))
-  check('Panel, Expansiones, Pokédex, Álbumes, Productos, Deseos y cambios y Buscar', menu.join('|') === 'resumen:Panel|album:Expansiones|pokedex:Pokédex|carpetas:Álbumes|productos:Productos|mercado:Deseos y cambios|buscar:Buscar', JSON.stringify(menu))
+  check('Panel, Cartas, Deseos y cambios y Buscar (1366)', menu.join('|') === 'resumen:Panel|album:Cartas|mercado:Deseos y cambios|buscar:Buscar', JSON.stringify(menu))
   await page.click('#mcMenu [data-pestania="mercado"]')
   await page.waitForTimeout(500)
   await page.click('[data-deseos-vista="cruces"]')
@@ -106,7 +106,7 @@ console.log('── 2. El menú y las búsquedas ──')
 {
   const { ctx, page } = await abrir('/mi-coleccion.html', { movil: true })
   const textos = await page.$$eval('#mcMenu > button', (bs) => bs.map((b) => b.innerText.trim()))
-  check('en la burbuja del iPhone, «Trade»', textos.includes('Trade') && !textos.some((t) => /Deseos/.test(t)), JSON.stringify(textos))
+  check('en la burbuja del iPhone, «Cambios» (1162)', textos.includes('Cambios') && !textos.some((t) => /Deseos/.test(t)), JSON.stringify(textos))
   await ctx.close()
 }
 
