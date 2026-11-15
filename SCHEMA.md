@@ -55204,6 +55204,33 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1361 — Nadie podía crear una cuenta
+
+**El porqué.** El alta de Supabase inserta en `auth.users`, y en la misma
+transacción el disparador `on_auth_user_created` llama a
+`public.handle_new_user()`, que crea la fila de `user_profiles`. Si ese
+disparador falla, Supabase deshace todo y devuelve «Database error saving new
+user» (con Google, en la dirección de vuelta; con email, en la respuesta de
+`signUp`). Ese disparador se creó en el panel al empezar y nunca se apuntó en
+el repo; seguía escribiendo `saved_guides`, que la 1306 borró de
+`user_profiles` al moverla a `user_privado`. Ninguna prueba lo veía: el
+esquema generado solo trae `public` y las pruebas de la 1306 no tenían
+`auth.users`.
+
+**Lo nuevo** (`supabase-migration-1361-alta-de-cuentas.sql`):
+`handle_new_user()` inserta solo `(id, avatar_color)` con `on conflict do
+nothing`; XP, nivel, logros y demás salen de sus `default`. Lleva
+`set search_path = public, pg_catalog` y un `exception when others` que
+convierte un fallo del perfil en un `warning`: la cuenta se crea igual y
+`onboarding.js` (`upsert` del perfil) la completa al elegir nombre. La fila de
+`user_privado` sigue llegando por `trg_privado_al_nacer` (1306). Un perfil sin
+`display_name` ni `username` manda a `/onboarding.html` (app.js, `initNavbar`).
+
+**La prueba** (`test-tanda-1361.mjs`) arma `user_profiles` con su `CREATE
+TABLE`, `perfil_guarda_columnas`, `tienda_guarda_tipo`, `privado_al_nacer` y
+`user_privado` sacados del esquema y de la 1306, un `auth.users` mínimo y el
+disparador viejo tal como estaba en la base.
+
 ## Tanda 1360 — El registro que fallaba sin decir nada
 
 **El porqué.** Supabase no avisa cuando un registro con Google o un enlace del

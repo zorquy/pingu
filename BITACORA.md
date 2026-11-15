@@ -4,6 +4,29 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-15 (607) — PINGU-Claude (1361 — Nadie podía crear una cuenta, URGENTE)
+
+**Hecho.** Con la 1360 subida, el aviso dijo el porqué: «server_error ·
+unexpected_failure · Database error saving new user». El disparador
+`on_auth_user_created` → `public.handle_new_user()` (hecho a mano en el panel,
+nunca estuvo en el repo; PINGU lo sacó con una consulta) insertaba
+`saved_guides` en `user_profiles`, y la 1306 (13-nov) BORRÓ esa columna al
+llevarla a `user_privado`. Desde que se ejecutó la 1306, ninguna alta entraba,
+ni con Google ni con email. Es mío (la 1306).
+- `supabase-migration-1361-alta-de-cuentas.sql`: `handle_new_user` nuevo, solo
+  `id` y el color (lo demás son los `default` de la tabla), `search_path` fijo,
+  y si el perfil falla la cuenta se crea igual (la bienvenida hace `upsert`).
+- `normas/servidor.md`: antes de borrar una columna de `user_profiles`, mirar
+  este disparador.
+- Pruebas (rama `pruebas`): `test-tanda-1361.mjs` monta `user_profiles` y sus
+  disparadores de hoy con el disparador VIEJO, ve el fallo de `saved_guides`,
+  pasa la migración dos veces y comprueba el alta, el perfil y `user_privado`.
+
+**Pendiente**: PINGU ejecuta la 1361 en el SQL Editor (no hace falta
+desplegar nada: la web no cambia). Las altas fallidas no dejaron nada a medias
+(la transacción entera se deshace): esas personas solo tienen que volver a
+registrarse.
+
 ## 2026-11-15 (606) — PINGU-Claude (1360 — El registro que fallaba sin decir nada)
 
 **Hecho** (PINGU: «creo que el registro está roto, al registrarme me reenvía

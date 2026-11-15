@@ -113,3 +113,14 @@
   viven en `user_price_alerts` (migración `avisos-precio`); la
   notificación es `user_notifications` tipo `aviso_precio`, que
   `enviar-push` ya empuja sola.
+- **Antes de BORRAR o RENOMBRAR una columna de `user_profiles`, mira el
+  disparador de `auth.users`** (tanda 1361). `on_auth_user_created` →
+  `public.handle_new_user()` crea el perfil de cada cuenta nueva, y vive
+  fuera de `public`: no sale en `supabase-esquema-actual.sql` ni lo pillaba
+  ninguna prueba. La 1306 se llevó `saved_guides` a `user_privado` y ese
+  disparador seguía escribiéndola: dos días sin que NADIE pudiera crear una
+  cuenta («Database error saving new user», y la persona volvía a Inicio sin
+  aviso). Desde la 1361 solo escribe `id` y el color (lo demás, los
+  `default`), y si falla deja crear la cuenta igual. Lo vigila
+  `test-tanda-1361.mjs`; una columna nueva `not null` sin `default` en
+  `user_profiles` también rompería el perfil (no el alta).
