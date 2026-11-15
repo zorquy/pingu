@@ -374,6 +374,17 @@
   del generador. Y Mi colección CONSERVA su pestaña de Expansiones: se
   pensó quitarla y PINGU paró («creo que es muy importante»), así que para
   quien tiene cuenta son dos puertas a la misma estantería, a propósito.
+  Desde la 1366 vive dentro de «Cartas», que la abre SIEMPRE.
+- **El menú de Colección son CUATRO: Panel · Cartas · Cambios · Buscar**
+  (tanda 1366, PINGU eligió lo recomendado de «Colección en cuatro», como
+  «Jugar en tres»). Expansiones, Pokédex, Álbumes y Productos son las
+  pestañas de Cartas: UNA fila (`#mcCartasPestanas`) que
+  `ponerPestanasDeCartas` muda a la pantalla abierta y que no sale dentro de
+  una expansión, un Pokémon ni un álbum. Una vista nueva de cartas tuyas va
+  ahí (botón en la fila, panel en `PANEL_DE_CARTAS`, su `data-tambien` en el
+  botón «Cartas» y su regla de esconderse), no como un botón más del menú; y
+  lo que busque un botón de pestaña no lo busca solo en `#mcMenu` (la
+  bienvenida y los álbumes de la lateral lo hacían). /cartas no lleva la fila.
 - **Añadir una carta pasa SIEMPRE por `datos.anadir`, nunca por
   `actualizar`** (tanda 650). El bloque de añadir solo salía en la ficha
   de una carta que NO tenías; con una tuya, el único camino era el

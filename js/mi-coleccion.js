@@ -2249,7 +2249,7 @@ function ponerArrastrables() {
 let arrastreEnganchado = false
 async function montarAlbumesLaterales() {
   if (!conMenuAlLado() || !esMia) return
-  const boton = document.querySelector('#mcMenu [data-pestania="carpetas"]')
+  const boton = document.querySelector('#mcMenu [data-pestania="album"]')
   if (!boton) return
   if (!carpetas) {
     try { carpetas = await import('./mi-coleccion/carpetas.js') } catch { return }
@@ -5410,6 +5410,20 @@ function centrarPestaniaActiva() {
   menu.scrollLeft = Math.max(0, activa.offsetLeft - (menu.clientWidth - activa.offsetWidth) / 2)
 }
 
+// LAS PESTAÑAS DE CARTAS (1366, «Colección en cuatro»): Expansiones,
+// Pokédex, Álbumes y Productos son una pestaña del menú, «Cartas», con su
+// fila arriba. La fila es UNA (con sus escuchas) y se muda a la pantalla
+// abierta: en Expansiones, a su cabecera, donde ocupa el sitio del título
+// (que ya dice ella); en las otras, arriba del todo. Dentro de una
+// expansión, un Pokémon o un álbum no se ve (mi-coleccion.css, por `:has`).
+const PANEL_DE_CARTAS = { pokedex: 'mcPanelPokedex', carpetas: 'mcPanelCarpetas', productos: 'mcPanelProductos' }
+function ponerPestanasDeCartas(nueva) {
+  const fila = $('mcCartasPestanas')
+  if (!fila) return
+  const sitio = nueva === 'album' ? document.querySelector('#mcEstanteriaZona .mc-estanteria-cabeza') : $(PANEL_DE_CARTAS[nueva])
+  if (sitio && fila.parentNode !== sitio) sitio.prepend(fila)
+}
+
 function cambiarPestania(nueva, { push = true } = {}) {
   // Salir de Buscar deja de elegir: el bolsillo se queda como estaba.
   if (eligiendo && nueva !== 'buscar') dejarDeElegir()
@@ -5422,8 +5436,10 @@ function cambiarPestania(nueva, { push = true } = {}) {
     // viven en `cambios` y el botón sigue encendido.
     const activa = b.dataset.pestania === nueva || (b.dataset.tambien || '').split(' ').includes(nueva)
     b.classList.toggle('activa', activa)
-    b.setAttribute('aria-selected', String(activa))
+    // Las de Cartas (1366) son botones de una fila, no pestañas de un menú.
+    b.setAttribute(b.closest('.mc-cartas-pestanas') ? 'aria-pressed' : 'aria-selected', String(activa))
   }
+  ponerPestanasDeCartas(nueva)
   centrarPestaniaActiva()
   esqueletoDelPanel()
   for (const [id, nombre] of [['mcPanelCartas', 'cartas'], ['mcPanelAlbum', 'album'], ['mcPanelResumen', 'resumen'], ['mcPanelCarpetas', 'carpetas'], ['mcPanelPokedex', 'pokedex'], ['mcPanelBuscar', 'buscar'], ['mcPanelCambios', 'cambios'], ['mcPanelQuiero', 'quiero'], ['mcPanelProductos', 'productos'], ['mcPanelMercado', 'mercado'], ['mcPanelMovimientos', 'movimientos'], ['mcPanelRanking', 'ranking'], ['mcPanelAnadidas', 'anadidas'], ['mcPanelEstadisticas', 'estadisticas']]) {

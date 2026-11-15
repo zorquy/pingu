@@ -4,6 +4,46 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-15 (612) — PINGU-Claude (1366 — Colección en cuatro y pestañas con icono)
+
+**Hecho** (las dos propuestas, «Colección en cuatro» y «Pestañas con
+iconos»; PINGU: «dale con lo recomendado y sube cuando acabes»):
+- **Colección pasa de siete a cuatro**: Panel · Cartas · Cambios · Buscar,
+  en el lateral del PC (también fuera de /mi-coleccion,
+  `PARTES_DE_LA_COLECCION`) y en la burbuja del móvil, que ahora cabe entera.
+  «Cartas» es el botón de `album` con `data-tambien="pokedex carpetas
+  productos"`: abre SIEMPRE Expansiones y sigue encendido en las otras tres.
+- **La fila de Cartas** (`#mcCartasPestanas`: Expansiones · Pokédex · Álbumes ·
+  Productos) es UNA y `ponerPestanasDeCartas` (desde `cambiarPestania`) la
+  muda a la pantalla abierta: en Expansiones a su cabecera, donde ocupa el
+  sitio del título; en las otras, arriba. Dentro de un Pokémon, un álbum o
+  los productos de una expansión no se ve (`:has` en mi-coleccion.css). Sus
+  botones llevan `aria-pressed`; los del menú, `aria-selected`.
+- **/cartas no cambia**: `generar-cartas.mjs` quita la fila (sigue con
+  Expansiones, Productos y Buscar en su menú). La tienda, igual.
+- **Pestañas con icono «como la burbuja»** (`.seg-iconos`, components.css):
+  en el móvil, iconos y la puesta con su nombre; en el PC, icono y nombre.
+  En Cartas (iconos de la casa por `data-icono`), Mazos (Meta · Los míos ·
+  Probar) y Partidas (Torneos · Partidas · Estadísticas · Repeticiones, en
+  /mis-partidas y /repeticiones). Los de Jugar los pone `js/pestanas-iconos.js`
+  (por `import()` desde app.js) en un hueco ya reservado.
+- La bienvenida de Colección encuentra la pestaña dentro de la fila;
+  `montarAlbumesLaterales` se engancha a «Cartas». En /admin → Guía de estilo,
+  el ejemplo de `.seg-iconos`.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`, `css/mi-coleccion.css`,
+`generar-cartas.mjs`, `css/components.css`, `js/pestanas-iconos.js` (nuevo),
+`js/app.js`, `js/barra-lateral.js`, `js/bienvenida-seccion.js`, `meta.html`,
+`mazos.html`, `laboratorio.html`, `mis-partidas.html`, `repeticiones.html`,
+`admin/js/guia-estilo.js`, `normas/coleccion.md`, `normas/interfaz.md`,
+`novedades.json`. Prueba nueva: `test-tanda-1366-pantalla.mjs` (rama `pruebas`);
+puestas al día las que esperaban el menú de siete (368, 370, 372, 405, 408,
+436, 447, 649, 740, 758, 762, 765, 767, 790, 856, 893). Los rojos que quedan
+ya lo eran sin esta tanda (299, 370, 376, 446, 470, 546, 704, 719, 748, 762,
+780, 836, 893, 968, 981, 1040, 1075, 1144, 1358).
+
+**Pendiente**: nada de esta tanda. Sin migración.
+
 ## 2026-11-15 (611) — PINGU-Claude (1365 — TCGGO: el valor de cada expansión en el tiempo)
 
 **Hecho.** La E y la F de la segunda propuesta de TCGGO (PINGU: «las dos, y

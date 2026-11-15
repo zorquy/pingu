@@ -114,6 +114,35 @@
   white-space: nowrap;
 }
 
+/* Pestañas con icono, «como la burbuja» (1366, SCHEMA). */
+.seg-ico {
+  display: inline-flex;
+  flex: none;
+  width: 18px;
+  height: 18px;
+}
+@media (max-width: 899px) {
+  .seg.seg-iconos {
+    display: flex;
+    flex-wrap: nowrap;
+  }
+  .seg-iconos .seg-btn {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+  .seg-iconos :is(.activa, [aria-pressed='true'], [aria-current='page']) {
+    flex: 1 1 auto;
+  }
+  .seg-iconos .seg-btn:not(.activa, [aria-pressed='true'], [aria-current='page']) .seg-txt {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 .chip-filtro {
   border: 1px solid var(--border);
   background: var(--white);

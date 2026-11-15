@@ -16099,3 +16099,47 @@ html.con-barra-movil .mc-prod-banda { display: none; }
 .mc-imp-apps-fila { display: flex; flex-wrap: wrap; gap: var(--e-xs); margin: var(--e-xs) 0; }
 .mc-imp-perdidas-cab { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--e-sm); }
 .mc-imp-buscar { font-size: var(--t-sm); white-space: nowrap; }
+
+/* LAS PESTAÑAS DE CARTAS (1366, «Colección en cuatro»; SCHEMA 1366): una
+   fila que js/mi-coleccion.js muda a la pantalla abierta. En Expansiones va
+   en su cabecera y ocupa el sitio del título; dentro de un Pokémon, un álbum
+   o los productos de una expansión no se ve. */
+.mc-cartas-pestanas {
+  display: flex;
+  flex: 0 0 auto;
+  width: max-content;
+  max-width: 100%;
+  margin-right: auto;
+}
+.mc-estanteria-cabeza:has(> .mc-cartas-pestanas) .mc-estanteria-h {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+:is(#mcPanelPokedex, #mcPanelCarpetas, #mcPanelProductos) > .mc-cartas-pestanas {
+  margin-bottom: var(--e-lg);
+}
+#mcPanelPokedex:has(#mcPdxMandos.hidden) > .mc-cartas-pestanas,
+#mcPanelCarpetas:has(#mcAlbumesLista.hidden) > .mc-cartas-pestanas,
+#mcPanelProductos:has(#mcProdEstante.hidden) > .mc-cartas-pestanas {
+  display: none;
+}
+@media (max-width: 899px) {
+  .mc-cartas-pestanas {
+    width: 100%;
+    margin-right: 0;
+  }
+  .mc-estanteria-cabeza:has(> .mc-cartas-pestanas) {
+    flex-wrap: wrap;
+  }
+  body:not([data-modo='catalogo']) .mc-estanteria-cabeza > .mc-cartas-pestanas {
+    flex: 1 0 100%;
+    order: -1;
+  }
+  :is(#mcPanelPokedex, #mcPanelCarpetas, #mcPanelProductos) > .mc-cartas-pestanas {
+    margin-bottom: var(--e-md);
+  }
+}

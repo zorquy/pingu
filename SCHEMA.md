@@ -55204,6 +55204,42 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1366 — Colección en cuatro y pestañas con icono
+
+**El menú de Mi colección** (`#mcMenu`): Panel (`resumen`), Cartas (`album`,
+`data-tambien="pokedex carpetas productos"`), Deseos y cambios (`mercado`) y
+Buscar. Los paneles y los `?ver=` no cambian: `?ver=pokedex` sigue abriendo la
+Pokédex, con «Cartas» encendido.
+
+**`#mcCartasPestanas`** (`nav.seg.seg-iconos.mc-cartas-pestanas`): cuatro
+`button.seg-btn[data-pestania]` con `aria-pressed`. Nace en
+`.mc-estanteria-cabeza` y `ponerPestanasDeCartas(nueva)` la mueve (el mismo
+nodo, con sus escuchas) a:
+
+| pestaña | sitio | se esconde cuando |
+|---|---|---|
+| `album` | `#mcEstanteriaZona .mc-estanteria-cabeza` (el `h2` se recorta) | se abre una expansión (la zona entera se esconde) |
+| `pokedex` | primera de `#mcPanelPokedex` | `#mcPdxMandos.hidden` (una especie abierta) |
+| `carpetas` | primera de `#mcPanelCarpetas` | `#mcAlbumesLista.hidden` (un álbum abierto) |
+| `productos` | primera de `#mcPanelProductos` | `#mcProdEstante.hidden` (una expansión abierta) |
+
+`generar-cartas.mjs` la quita de /cartas (`FILA_DE_CARTAS`).
+
+**`.seg-iconos`** (components.css): cada `.seg-btn` lleva
+`<span class="seg-ico" …>` (18 × 18 desde el primer pintado) y
+`<span class="seg-txt">`. Por debajo de 900 px la fila es flex sin salto, las
+no puestas se reparten el sitio y su `.seg-txt` se recorta (sigue para el
+lector); la puesta (`.activa`, `aria-pressed="true"` o `aria-current="page"`)
+crece con su nombre. El dibujo: en Mi colección, `data-icono` (lo pinta
+`pintarIconos`); fuera, `data-seg-icono` con un nombre de `js/icons.js`, que
+pinta `js/pestanas-iconos.js` (app.js lo baja solo si hay alguno).
+
+| fila | iconos |
+|---|---|
+| Cartas | layers · pokedex · folder · package |
+| Mazos | trendingUp · package · lightbulb |
+| Partidas | trophy · gamepad · barChart · eye |
+
 ## Tanda 1365 — El valor de cada expansión en el tiempo
 
 `GET {base}/episodes/{id}/history-prices?sort=asc&date_from=…&page=N[&scope=products]`

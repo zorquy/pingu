@@ -265,6 +265,15 @@
   el suyo. Y una propuesta de interfaz se enseña con CAPTURAS REALES de la
   página con el cambio puesto, contando que no falte ningún mando (PINGU: «las
   capturas no son reales porque me estás quitando un montón de filtros»).
+- **Una fila de pestañas que junta páginas lleva sus ICONOS** (tanda 1366,
+  PINGU: «se pierden los iconos que tenía en la burbuja»): `.seg-iconos`
+  (components.css), «como la burbuja»: en el móvil, iconos y la puesta con su
+  nombre; en el PC, icono y nombre. Cada botón lleva `span.seg-ico` (el hueco
+  de 18 px reservado desde el primer pintado: el dibujo llega después y no
+  mueve nada) y `span.seg-txt`; fuera de Mi colección el dibujo es
+  `data-seg-icono` con un nombre de js/icons.js, que pinta
+  `js/pestanas-iconos.js`. Lo llevan Cartas, Mazos y Partidas; una fila nueva
+  de ese tipo, igual, y con el icono que tenía en la burbuja.
 - **En el móvil nada flota sobre el contenido salvo la barra y la burbuja**
   (tanda 1023, regla 1 de «PokeDoc como app»): un botón «siempre a mano»
   va en la cabecera o pegado bajo las pestañas, no fijo sobre las

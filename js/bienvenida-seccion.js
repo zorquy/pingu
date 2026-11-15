@@ -125,7 +125,8 @@ function contexto(doc = document) {
   const raiz = doc.documentElement
   const seccion = raiz.dataset.seccion
   const catalogo = doc.body?.dataset.modo === 'catalogo'
-  const activa = doc.querySelector('.mc-pestania[aria-selected="true"]')
+  // Dentro de Cartas (1366) manda la pestaña de su fila, no el botón del menú.
+  const activa = doc.querySelector('.mc-cartas-pestanas [aria-pressed="true"]') || doc.querySelector('.mc-pestania[aria-selected="true"]')
   const pestania = activa?.dataset.pestania || (seccion === 'cartas' ? (catalogo ? 'album' : 'resumen') : null)
   const conCuenta = Boolean(doc.getElementById('navUserBtn'))
   return { seccion, catalogo, pestania, ruta: location.pathname, conCuenta }
@@ -152,7 +153,7 @@ export async function abrirBienvenida({ doc = document } = {}) {
     // La página en la que ya estás, o una pestaña de esta misma pantalla: sin
     // recargar, se cierra y se cambia de pestaña.
     if (fila.classList.contains('aqui')) { e.preventDefault(); return d.close() }
-    const boton = fila.dataset.bvsPestania && doc.querySelector(`.mc-pestania[data-pestania="${fila.dataset.bvsPestania}"]`)
+    const boton = fila.dataset.bvsPestania && doc.querySelector(`:is(.mc-pestania, .mc-cartas-pestanas .seg-btn)[data-pestania="${fila.dataset.bvsPestania}"]`)
     if (boton) { e.preventDefault(); d.close(); boton.click() }
   })
   d.addEventListener('close', () => d.remove())

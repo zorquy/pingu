@@ -47,7 +47,7 @@ export const APARTADOS = [
   { id: 'radios', titulo: 'Esquinas', donde: '`--radius-*`' },
   { id: 'sombras', titulo: 'Sombras y foco', donde: '`--shadow-*`; el anillo de foco es `--shadow-ring` (737)' },
   { id: 'botones', titulo: 'Botones', donde: 'style.css (917, 1225): tres clases, en pastilla' },
-  { id: 'chips', titulo: 'Chips, segmentos y pestañas', donde: 'components.css: `.chip-filtro`, `.seg`, `.tabs`' },
+  { id: 'chips', titulo: 'Chips, segmentos y pestañas', donde: 'components.css: `.chip-filtro`, `.seg`, `.tabs`; con icono, `.seg-iconos` (1366: Cartas, Mazos, Partidas)' },
   { id: 'chapas', titulo: 'Chapas de una carta', donde: 'estado, gradeo, versión e idioma: sus funciones, en toda la web' },
   { id: 'nombres', titulo: 'Nombres con rango', donde: 'js/rangos.js, `atributosDeRango`' },
   { id: 'vacio', titulo: 'Una pantalla vacía', donde: 'js/vacio.js, `vacioHtml` (1325)' },
@@ -99,6 +99,7 @@ const chipsHtml = () => `<div class="gde-fila-libre">
   <button type="button" class="chip-filtro" aria-pressed="false">Y otro</button>
 </div>
 <div class="gde-fila-libre"><div class="seg" role="group"><button type="button" class="seg-btn active" aria-pressed="true">Todas</button><button type="button" class="seg-btn" aria-pressed="false">Tengo</button><button type="button" class="seg-btn" aria-pressed="false">Faltan</button></div></div>
+<div class="gde-fila-libre"><div class="seg seg-iconos" role="group"><button type="button" class="seg-btn activa" aria-pressed="true"><span class="seg-ico" aria-hidden="true">${icons.trendingUp(18)}</span><span class="seg-txt">Meta</span></button><button type="button" class="seg-btn" aria-pressed="false"><span class="seg-ico" aria-hidden="true">${icons.package(18)}</span><span class="seg-txt">Los míos</span></button><button type="button" class="seg-btn" aria-pressed="false"><span class="seg-ico" aria-hidden="true">${icons.lightbulb(18)}</span><span class="seg-txt">Probar</span></button></div></div>
 <div class="tabs" role="tablist"><button type="button" class="tab-btn active" role="tab" aria-selected="true">Resumen</button><button type="button" class="tab-btn" role="tab" aria-selected="false">Colección</button><button type="button" class="tab-btn" role="tab" aria-selected="false">Cambios</button></div>`
 
 const VERSIONES = ['normal', 'holo', 'reverse', 'primera', 'unlimited', 'shadowless', 'cosmos', 'sello', 'estrella']

@@ -75,6 +75,8 @@ const MENU_CATALOGO = `<nav class="mc-pestanias mc-menu" id="mcMenu" role="tabli
         <button type="button" role="tab" class="mc-pestania" data-pestania="buscar" data-icono="search" aria-selected="false" aria-controls="mcPanelBuscar"><span class="mc-menu-texto">Buscar</span></button>
       </nav>`
 
+const FILA_DE_CARTAS = /\s*<!-- Las pestañas de Cartas \(1366\)[\s\S]*?<nav class="seg seg-iconos mc-cartas-pestanas"[\s\S]*?<\/nav>/
+
 export function generarCartas(plantilla) {
   let html = plantilla
   for (const [de, a] of CAMBIOS) {
@@ -84,6 +86,10 @@ export function generarCartas(plantilla) {
   }
   if (!MENU.test(html)) throw new Error('no se encuentra el menú #mcMenu en mi-coleccion.html')
   html = html.replace(MENU, () => MENU_CATALOGO)
+  // Las pestañas de Cartas (1366) son de tu colección: el catálogo lleva
+  // Expansiones, Productos y Buscar en su propio menú.
+  if (!FILA_DE_CARTAS.test(html)) throw new Error('no se encuentra #mcCartasPestanas en mi-coleccion.html')
+  html = html.replace(FILA_DE_CARTAS, '')
   // La marca va DESPUÉS del doctype: un comentario delante no cambia el
   // modo del navegador, pero sí rompe a quien compruebe que la página
   // empieza por él.

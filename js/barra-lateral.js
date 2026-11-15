@@ -47,10 +47,9 @@ export const DIBUJOS = {
 // desde la 767 sin la fila «Mi colección» encima.
 export const PARTES_DE_LA_COLECCION = [
   { ver: 'resumen', texto: 'Panel', icono: () => icons.barChart(18) },
-  { ver: 'album', texto: 'Expansiones', icono: () => icons.layers(18) },
-  { ver: 'pokedex', texto: 'Pokédex', icono: () => ICONOS_COLECCION.pokedex(18) },
-  { ver: 'carpetas', texto: 'Álbumes', icono: () => icons.folder(18) },
-  { ver: 'productos', texto: 'Productos', icono: () => icons.package(18) },
+  // Cartas (1366, «Colección en cuatro»): Expansiones, Pokédex, Álbumes y
+  // Productos son sus pestañas, y abre siempre Expansiones.
+  { ver: 'album', texto: 'Cartas', icono: () => icons.cards(18) },
   // Deseos y cambios (765), que es lo que dice el menú de Mi colección; desde
   // la 770 abre por el Mercado.
   { ver: 'mercado', texto: 'Deseos y cambios', icono: () => ICONOS_COLECCION.corazon(18) },

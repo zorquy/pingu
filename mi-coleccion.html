@@ -251,21 +251,13 @@
            nombres se leen de un vistazo. -->
       <nav class="mc-pestanias mc-menu" id="mcMenu" role="tablist" aria-label="Vistas de la colección">
         <button type="button" role="tab" class="mc-pestania activa" data-pestania="resumen" data-tambien="movimientos ranking anadidas estadisticas" data-icono="barChart" aria-selected="true" aria-controls="mcPanelResumen"><span class="mc-menu-texto">Panel</span></button>
-        <!-- Y SE QUEDA (tanda 649). La misma estantería es ahora también el
-             catálogo público (/cartas, generado de esta página); se pensó
-             quitar la pestaña de aquí y PINGU paró: «alguien que quiera
-             utilizar mi colección, tener una pestaña de expansiones está
-             muy bien; creo que es muy importante». Es desde donde más se
-             añade: abres un set y tocas los huecos. -->
-        <button type="button" role="tab" class="mc-pestania" data-pestania="album" data-icono="layers" aria-selected="false" aria-controls="mcPanelAlbum"><span class="mc-menu-texto">Expansiones</span></button>
-        <button type="button" role="tab" class="mc-pestania" data-pestania="pokedex" data-icono="pokedex" aria-selected="false" aria-controls="mcPanelPokedex"><span class="mc-menu-texto">Pokédex</span></button>
-        <!-- «Álbumes» y no «Carpetas» (tanda 579): dentro hay carpetas Y
-             álbumes soñados, y PINGU: «carpetas y álbumes es muy largo».
-             Un álbum es como la gente llama a cualquier manera de juntar
-             cartas; una carpeta es una de las dos formas que hay dentro. -->
-        <button type="button" role="tab" class="mc-pestania" data-pestania="carpetas" data-icono="folder" aria-selected="false" aria-controls="mcPanelCarpetas"><span class="mc-menu-texto">Álbumes</span></button>
-        <!-- PRODUCTOS (762, PR1): sobres, cajas, ETB… de TCGGO, por expansión. -->
-        <button type="button" role="tab" class="mc-pestania" data-pestania="productos" data-icono="package" aria-selected="false" aria-controls="mcPanelProductos"><span class="mc-menu-texto">Productos</span></button>
+        <!-- CARTAS (1366, «Colección en cuatro», PINGU: «dale con lo
+             recomendado»): Expansiones, Pokédex, Álbumes y Productos salen
+             del menú y son las cuatro pestañas de Cartas (#mcCartasPestanas),
+             como Mazos lleva Meta · Los míos · Probar. El botón abre SIEMPRE
+             Expansiones (649: «es muy importante»; es desde donde más se
+             añade) y sigue encendido en las otras tres por `data-tambien`. -->
+        <button type="button" role="tab" class="mc-pestania" data-pestania="album" data-tambien="pokedex carpetas productos" data-icono="cards" aria-selected="false" aria-controls="mcPanelAlbum"><span class="mc-menu-texto">Cartas</span></button>
         <!-- DESEOS Y CAMBIOS (765, M2): lo que quieres, lo que das y los
              cruces, en una sola puerta. En la burbuja del móvil, «Cambios»
              (PINGU: «Deseos y cambios es demasiado largo para el móvil»). -->
@@ -470,6 +462,16 @@
                cómo se reparte la lista. -->
           <div class="mc-estanteria-barra">
             <div class="mc-estanteria-cabeza">
+              <!-- Las pestañas de Cartas (1366): una sola fila, que
+                   `ponerPestanasDeCartas` lleva a la pantalla abierta; con
+                   icono, «como la burbuja» (.seg-iconos). /cartas no la lleva
+                   (generar-cartas.mjs la quita). -->
+              <nav class="seg seg-iconos mc-cartas-pestanas" id="mcCartasPestanas" aria-label="Cartas">
+                <button type="button" class="seg-btn" data-pestania="album" aria-pressed="false"><span class="seg-ico" data-icono="layers" aria-hidden="true"></span><span class="seg-txt">Expansiones</span></button>
+                <button type="button" class="seg-btn" data-pestania="pokedex" aria-pressed="false"><span class="seg-ico" data-icono="pokedex" aria-hidden="true"></span><span class="seg-txt">Pokédex</span></button>
+                <button type="button" class="seg-btn" data-pestania="carpetas" aria-pressed="false"><span class="seg-ico" data-icono="folder" aria-hidden="true"></span><span class="seg-txt">Álbumes</span></button>
+                <button type="button" class="seg-btn" data-pestania="productos" aria-pressed="false"><span class="seg-ico" data-icono="package" aria-hidden="true"></span><span class="seg-txt">Productos</span></button>
+              </nav>
               <h2 class="mc-estanteria-h">Expansiones</h2>
               <button type="button" class="mc-chip-mando mc-estanteria-lupa" id="mcEstanteriaLupa" data-icono="search" aria-expanded="false" aria-controls="mcEstanteriaBusca" aria-label="Buscar una expansión"></button>
               <button type="button" class="mc-chip-mando mc-estanteria-orden" id="mcEstanteriaOrdenAbrir" aria-haspopup="dialog" aria-controls="mcEstanteriaOrden" aria-label="Orden y filtro"><span data-icono="sliders" aria-hidden="true"></span><span class="mc-q-largo">Orden</span></button>
