@@ -11,7 +11,9 @@ const COLUMNAS = 'id,market,name,name_en,serie_id,serie_name,serie_name_en,logo_
 const COLUMNA_SIMBOLO = 'symbol_tcggo'
 // Y las gemelas (1027): opcionales que se quitan de una en una si no existen.
 const COLUMNA_GEMELAS = 'tcggo_gemelos'
-let opcionales = [COLUMNA_SIMBOLO, COLUMNA_GEMELAS]
+// Y el logo de la era de cada expansión (1363).
+const COLUMNA_LOGO_ERA = 'logo_serie_tcggo'
+let opcionales = [COLUMNA_SIMBOLO, COLUMNA_GEMELAS, COLUMNA_LOGO_ERA]
 const columnasDeSets = () => (opcionales.length ? `${COLUMNAS},${opcionales.join(',')}` : COLUMNAS)
 function quitarOpcional(texto) {
   const antes = opcionales.length

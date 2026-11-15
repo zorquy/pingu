@@ -7561,6 +7561,26 @@ button.mc-cifra-ficha:hover { background: var(--ice-dark); }
   letter-spacing: 0;
   text-transform: none;
 }
+/* El logo de la era delante de su nombre (1363, de TCGGO). Alto fijo: el
+   hueco está reservado antes de que llegue. */
+.mc-era-con-logo {
+  display: flex;
+  align-items: center;
+  gap: var(--e-md);
+}
+.mc-era-logo {
+  flex: none;
+  width: auto;
+  max-width: 160px;
+  height: 32px;
+  object-fit: contain;
+}
+@media (min-width: 900px) {
+  .mc-era-logo {
+    max-width: 200px;
+    height: 40px;
+  }
+}
 /* En el ordenador, la rejilla de tarjetas de su maqueta (D1): el código y
    el anillo arriba, el nombre y la cuenta debajo. */
 @media (min-width: 900px) {

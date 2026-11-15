@@ -3254,9 +3254,15 @@ async function pintarEstanteria() {
   // mismo tres veces («TIENES 16 de 252», «252 CARTAS», «Ver →»).
   const lista = true
   $('mcEstanteriaRejilla').innerHTML = grupos
-    .map((g) => `${g.titulo ? `<h3 class="mc-estanteria-titulo">${escapeHtml(g.titulo)}</h3>` : ''}
+    .map((g) => `${g.titulo ? `<h3 class="mc-estanteria-titulo${g.logo ? ' mc-era-con-logo' : ''}">${g.logo ? `<img class="mc-era-logo" src="${escapeHtml(g.logo)}" alt="" loading="lazy" decoding="async">` : ''}${escapeHtml(g.titulo)}</h3>` : ''}
       <div class="mc-estanteria${lista ? ' mc-estanteria-lista' : ''}">${g.sets.map((x) => (lista ? filaDeSet : tarjetaDeSet)(x, cuantas.get(x.id) || 0)).join('')}</div>`)
     .join('')
+  // Un logo de era que no carga se quita: el nombre ya dice cuál es (1363).
+  for (const img of $('mcEstanteriaRejilla').querySelectorAll('.mc-era-logo')) {
+    const quitar = () => { img.closest('.mc-estanteria-titulo')?.classList.remove('mc-era-con-logo'); img.remove() }
+    if (img.complete && !img.naturalWidth) quitar()
+    else img.addEventListener('error', quitar, { once: true })
+  }
   // `hay` es el total SIN filtrar, y es lo que distingue las dos cosas:
   // sin nada en el catálogo es un estado; con doscientas y cero visibles
   // es que has filtrado de más, y eso se arregla con un botón.

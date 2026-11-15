@@ -155,7 +155,7 @@ export async function procesar({
     return { ok: false, error: m.slice(0, 200) }
   }
   estado = estado && typeof estado === 'object' ? estado : {}
-  if (estado.semana !== semana) estado = { ...estado, semana, hechos: {}, hecho: false, fallidos: {} }
+  if (estado.semana !== semana) estado = { ...estado, semana, hechos: {}, hecho: false, fallidos: {}, tiposDeCarta: {} }
   if (!estado.hechos || typeof estado.hechos !== 'object') estado.hechos = {}
   for (const m of MERCADOS) if (!Array.isArray(estado.hechos[m])) estado.hechos[m] = []
   // Lo que falló por las filas repetidas (807) se vuelve a intentar UNA
@@ -441,6 +441,15 @@ export async function procesar({
       const { principales, versiones } = separarVersiones(suyas)
       suyas.length = 0
       suyas.push(...principales)
+      // Qué clases llegan (1363): `card_type` es nuevo y no venía en su
+      // documentación, solo en su anuncio. Se apunta lo que se ve (con un
+      // tope) para saber si llega y qué valores trae; lo que no se reconoce
+      // se queda sin clase, no se adivina.
+      const tipos = estado.tiposDeCarta || (estado.tiposDeCarta = {})
+      for (const c of suyas) {
+        const clave = `${c?.card_type ?? '—'} · ${c?.card_subtype ?? '—'}`
+        if (clave in tipos || Object.keys(tipos).length < 60) tipos[clave] = (tipos[clave] || 0) + 1
+      }
       if (versiones.length) estado.versiones = { ...(estado.versiones || {}), [`${mercado}:${episodio.id}`]: versiones.length }
       // A qué set nuestro van: el emparejado, o el que case por código /
       // nombre, o uno nuevo.

@@ -94,6 +94,10 @@ export function resumirEpisodio(e) {
     impresas: Number.isInteger(e.cards_printed_total) ? e.cards_printed_total : null,
     serie: typeof e.series?.name === 'string' && e.series.name.trim() ? e.series.name.trim() : null,
     serieId: typeof e.series?.slug === 'string' && e.series.slug.trim() ? e.series.slug.trim() : null,
+    // El logo de su serie (1363, su anuncio: «series logos… in the v1 API
+    // now», una dirección entera de images.tcggo.com o null): la cabecera de
+    // cada era en la estantería.
+    serieLogo: typeof e.series?.logo === 'string' && /^https?:\/\//.test(e.series.logo) ? e.series.logo : null,
     // Lo que vale la expansión entera (646): la suma de sus mínimos en
     // Cardmarket y en TCGplayer, en euros. Es lo que su web enseña como
     // «Valor del set», y cambia cada día.
@@ -522,6 +526,8 @@ export function filaDeSetTcggo(setId, episodio) {
     // Lo ignora la función de la base hasta la migración 929 (lee sus
     // columnas por nombre): mandarlo antes no rompe nada.
     simbolo: typeof episodio?.simbolo === 'string' && /^https?:\/\//.test(episodio.simbolo) ? episodio.simbolo : null,
+    // El logo de su era (1363); lo ignora la base hasta su migración.
+    logo_serie: typeof episodio?.serieLogo === 'string' && /^https?:\/\//.test(episodio.serieLogo) ? episodio.serieLogo : null,
     fecha: typeof episodio?.fecha === 'string' && /^\d{4}-\d{2}-\d{2}/.test(episodio.fecha) ? episodio.fecha.slice(0, 10) : null,
     cartas: Number.isInteger(episodio?.cartas) && episodio.cartas > 0 ? episodio.cartas : null,
     impresas: Number.isInteger(episodio?.impresas) && episodio.impresas > 0 ? episodio.impresas : null,
@@ -546,6 +552,43 @@ export function categoriaDe(supertype) {
   if (/trainer|entrenador/.test(s)) return 'Trainer'
   if (/energ/.test(s)) return 'Energy'
   return null
+}
+
+// LA CLASE Y LA FASE DE UNA CARTA (1363). TCGGO da desde noviembre de 2026
+// `card_type` («Pokémon», «Supporter», «Item»…) y `card_subtype` («Basic»,
+// «Stage 1»…; null si no lo tienen), aparte de `supertype`, que en lo nuevo
+// llega vacío. Sin clase, en Jugar una carta no es Pokémon ni Entrenador ni
+// Energía: con Delta Reign hubo que clasificar a mano sus 141 (la 1281). Se
+// pasa a NUESTROS valores (los de TCGdex: Pokemon | Trainer | Energy, Basic
+// | Stage1 | Stage2, Supporter | Item | Stadium | Tool, Normal | Special) y
+// lo que no se reconoce se queda en null: un campo que falta no es un NO
+// (la 901), pero uno inventado sí miente.
+const simple = (t) => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim()
+export function fichaDeJuegoDe(carta) {
+  const tipo = simple(carta?.card_type)
+  const sub = simple(carta?.card_subtype)
+  const ambos = `${tipo} ${sub}`
+  const ficha = { category: null, trainer_type: null, stage: null, energy_type: null }
+  const entrenador = (clase) => Object.assign(ficha, { category: 'Trainer', trainer_type: clase })
+  // La herramienta antes que «Pokémon»: su nombre es «Pokémon Tool».
+  if (/\b(pokemon tool|tool)\b/.test(ambos) && !/\benerg/.test(tipo)) entrenador('Tool')
+  else if (/\bsupporter\b/.test(ambos)) entrenador('Supporter')
+  else if (/\bstadium\b/.test(ambos)) entrenador('Stadium')
+  else if (/\bitem\b/.test(ambos)) entrenador('Item')
+  else if (/\btrainer\b/.test(tipo)) ficha.category = 'Trainer'
+  else if (/\benerg/.test(tipo)) {
+    ficha.category = 'Energy'
+    if (/\bspecial\b/.test(ambos)) ficha.energy_type = 'Special'
+    else if (/\bbasic\b/.test(ambos)) ficha.energy_type = 'Normal'
+  } else if (/\bpokemon\b/.test(tipo)) {
+    ficha.category = 'Pokemon'
+    if (/^(basic|basico)$/.test(sub)) ficha.stage = 'Basic'
+    else if (/^(stage|fase) ?1$/.test(sub)) ficha.stage = 'Stage1'
+    else if (/^(stage|fase) ?2$/.test(sub)) ficha.stage = 'Stage2'
+  }
+  // Sin `card_type` (lo viejo, o lo que aún no lo tenga), lo de siempre.
+  if (!ficha.category) ficha.category = categoriaDe(carta?.supertype)
+  return ficha
 }
 
 // El id de un set que TCGGO tiene y nosotros no: su código en minúsculas
@@ -857,7 +900,8 @@ export function filaDeCartaTcggo(carta, { setId, nuestra = null } = {}) {
     rarity_en: rarezaCanonica(carta?.rarity),
     hp: Number.isInteger(hp) && hp > 0 ? hp : null,
     illustrator: typeof carta?.artist?.name === 'string' && carta.artist.name.trim() ? carta.artist.name.trim() : null,
-    category: categoriaDe(carta?.supertype),
+    // Clase y fase (1363): la base solo las escribe si estaban vacías.
+    ...fichaDeJuegoDe(carta),
   }
 }
 

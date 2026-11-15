@@ -33,6 +33,8 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-15", "tipo": "mejora", "texto": "Las expansiones se agrupan bajo el logo de su era, como Megaevolución o Escarlata y Púrpura.", "enlace": "/cartas" },
+    { "fecha": "2026-11-15", "tipo": "mejora", "texto": "Las cartas de una expansión recién salida ya llegan sabiendo si son Pokémon, Partidario, Objeto o Estadio, para meterlas en tus mazos desde el primer día.", "enlace": "/constructor" },
     { "fecha": "2026-11-15", "tipo": "arreglo", "texto": "Delta Reign ya enseña tu progreso como las demás expansiones: el anillo con el tanto por ciento y cuántas te faltan.", "enlace": "/lanzamientos.html" },
     { "fecha": "2026-11-15", "tipo": "arreglo", "texto": "Ya se pueden crear cuentas nuevas otra vez, con Google o con tu email. Si lo intentaste estos días y volviste a Inicio sin cuenta, prueba de nuevo.", "enlace": "/auth.html" },
     { "fecha": "2026-11-15", "tipo": "arreglo", "texto": "Si crear tu cuenta con Google o el enlace del correo sale mal, ya no acabas en Inicio sin saber qué ha pasado: te llevamos a Entrar y te explicamos el porqué.", "enlace": "/auth.html" },

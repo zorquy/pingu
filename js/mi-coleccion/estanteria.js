@@ -83,6 +83,13 @@ export function erasDeEstanteria(sets, eras = null, { vacias = false } = {}) {
   }
   if (vacias && eras?.forEach) eras.forEach((_, clave) => { if (!porEra.has(clave)) porEra.set(clave, nueva(clave, null)) })
   const listaDeEras = [...porEra.values()]
+  // El logo de la era (1363): el de su expansión MÁS NUEVA que lo tenga
+  // (TCGGO lo da por expansión, `logo_serie_tcggo`). Sin ninguno, la
+  // cabecera sigue siendo solo el nombre.
+  for (const e of listaDeEras) {
+    const conLogo = e.sets.filter((s) => typeof s.logo_serie_tcggo === 'string' && /^https:\/\//.test(s.logo_serie_tcggo))
+    e.logo = conLogo.length ? conLogo.reduce((a, b) => (cuando(b) > cuando(a) ? b : a)).logo_serie_tcggo : null
+  }
   for (const e of listaDeEras) {
     // El orden a mano gana, y solo entre los que lo tienen: un set con
     // número va antes que uno sin él, y los que no tienen ninguno siguen

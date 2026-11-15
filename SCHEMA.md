@@ -55204,6 +55204,37 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1363 — TCGGO: la clase de cada carta y el logo de cada era
+
+**La clase y la fase.** TCGGO añadió `card_type` y `card_subtype` a sus cartas
+(anuncio de 2026-11-14; no está en su documentación JSON). `fichaDeJuegoDe`:
+
+| TCGGO | category | trainer_type | stage | energy_type |
+|---|---|---|---|---|
+| Pokémon · Basic | Pokemon | | Basic | |
+| Pokémon · Stage 1 / Stage 2 | Pokemon | | Stage1 / Stage2 | |
+| Pokémon · VMAX (u otra) | Pokemon | | — | |
+| Supporter / Item / Stadium / (Pokémon) Tool | Trainer | el suyo | | |
+| Trainer (sin más) | Trainer | — | | |
+| Energy · Special / Basic Energy | Energy | | | Special / Normal |
+| sin `card_type` | `categoriaDe(supertype)` | | | |
+
+`tcggo_guardar_cartas` (migración 1363) recibe las cuatro; la categoría como
+siempre (`coalesce`), y las otras tres solo si la categoría que queda es la
+misma que manda TCGGO (un «Item» no se le cuelga a un Pokémon de TCGdex). El
+disparador de correcciones (885) sigue mandando encima. Lo visto va en
+`estado.tiposDeCarta` de `tcggo_catalogo` (`"Pokémon · Basic": 12`), con tope de
+60 claves y vaciado cada semana.
+
+**El logo de la era.** `series.logo` del episodio → `serieLogo` en la lista
+guardada → `logo_serie` en la fila de `tcggo_guardar_sets` →
+`tcg_sets.logo_serie_tcggo` (el de TCGGO cuando lo da, como `logo_tcggo`). La
+estantería lo lee como columna OPCIONAL (`COLUMNA_LOGO_ERA`, se quita sola si
+no existe) y `erasDeEstanteria` le pone a cada era el de su expansión más
+nueva. Se pinta en `.mc-estanteria-titulo.mc-era-con-logo` con
+`img.mc-era-logo` (32 px de alto en el móvil, 40 en el PC; alto reservado) y
+el nombre al lado; un logo que no carga se quita.
+
 ## Tanda 1362 — Delta Reign sin su cuenta de cartas
 
 Un set que el catálogo de TCGGO crea antes de que salga (756) nace sin

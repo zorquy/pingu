@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-15 (609) — PINGU-Claude (1363 — TCGGO: clase de carta y logo de era)
+
+**Hecho.** De la propuesta «Lo nuevo de la API de TCGGO» (PINGU aprobó A, B y
+C; la D, importar desde TCGGO, NO). Esta tanda es la A y la B.
+- A: `fichaDeJuegoDe` (netlify/lib/tcggo.mjs) traduce `card_type` /
+  `card_subtype` a `category`, `trainer_type`, `stage`, `energy_type`;
+  `filaDeCartaTcggo` los manda y `tcggo_guardar_cartas` (migración 1363) los
+  escribe SOLO si están vacíos y si la categoría casa. El catálogo apunta lo
+  que llega en `estado.tiposDeCarta` (`card_type` no está en su documentación,
+  solo en su anuncio de Discord: hay que mirarlo tras la primera pasada).
+- B: `resumirEpisodio` guarda `series.logo` (`serieLogo`), `filaDeSetTcggo`
+  lo manda como `logo_serie` y `tcggo_guardar_sets` lo escribe en
+  `tcg_sets.logo_serie_tcggo` (la pasada de precios, una vez al día). La
+  estantería (Mi colección y /cartas) pinta el logo delante del nombre de cada
+  era (`erasDeEstanteria` → `logo`, el de la expansión más nueva); si no
+  carga, se quita. La columna se pide como OPCIONAL en `sets.mjs` y
+  `sets-catalogo.js`.
+- Los «lotes de 20» de la propuesta ya existían (`pedirCartasPorIds`, 1028):
+  no se toca nada.
+- Pruebas (rama `pruebas`): `test-tanda-1363.mjs` (traductor, catálogo,
+  estantería, y la migración contra PostgreSQL con las tablas de hoy y el
+  disparador de correcciones). Las 43 pruebas que tocan estas funciones,
+  verdes salvo 1310 y 830, que ya fallaban antes.
+
+**Pendiente**: PINGU ejecuta la migración 1363 (la web no depende de ella:
+sin ella, los campos nuevos se ignoran). Después, mirar
+`scrydex_estado` → `tcggo_catalogo` → `tiposDeCarta` para ver qué valores
+llegan. Sigue la 1364 (ventas gradeadas).
+
 ## 2026-11-15 (608) — PINGU-Claude (1362 — Delta Reign sin su cuenta de cartas)
 
 **Hecho.** PINGU: «¿por qué Delta Reign está diferente?» — en Lanzamientos un

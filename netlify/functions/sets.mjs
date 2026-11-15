@@ -27,7 +27,9 @@ export const COLUMNA_SIMBOLO = 'symbol_tcggo'
 // Y las ediciones gemelas (1027), igual. Las opcionales se piden todas; si la
 // base dice que una no existe, se quita ESA y se repite (sin tirar las demás).
 export const COLUMNA_GEMELAS = 'tcggo_gemelos'
-let opcionales = [COLUMNA_SIMBOLO, COLUMNA_GEMELAS]
+// Y el logo de la era de cada expansión (1363).
+export const COLUMNA_LOGO_ERA = 'logo_serie_tcggo'
+let opcionales = [COLUMNA_SIMBOLO, COLUMNA_GEMELAS, COLUMNA_LOGO_ERA]
 export const columnasDeSets = () => (opcionales.length ? `${COLUMNAS},${opcionales.join(',')}` : COLUMNAS)
 export function quitarOpcional(texto) {
   const antes = opcionales.length

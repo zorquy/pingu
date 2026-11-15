@@ -770,3 +770,14 @@
   dar 404. Una cadena de respaldo va de menos a más pérdida, y hay que
   decidir QUÉ es la pérdida: aquí se pierde antes el estilo (Limitless →
   la misma mega en PokeAPI) que la forma.
+- **La clase y la fase de una carta de TCGGO salen de `card_type` y
+  `card_subtype`** (tanda 1363): `fichaDeJuegoDe` (netlify/lib/tcggo.mjs) las
+  pasa a NUESTROS valores (los de TCGdex) y lo que no reconoce lo deja en null
+  (un VMAX no es «Basic»); `tcggo_guardar_cartas` solo rellena lo vacío y no le
+  cuelga un tipo de entrenador a lo que ya es otra categoría. Qué valores
+  llegan de verdad lo apunta el catálogo en `estado.tiposDeCarta` (semanal,
+  con tope): si TCGGO cambia sus nombres, se mira ahí antes de tocar el
+  traductor. Y el logo de cada ERA va en el set (`logo_serie_tcggo`, de
+  `series.logo`), no en `tcg_eras`: así llega a todas las eras, también las
+  que nadie ha colocado a mano; la estantería pinta el de la expansión más
+  nueva que lo tenga.
