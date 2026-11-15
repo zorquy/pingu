@@ -273,7 +273,7 @@ export async function procesar({
     // (en WEST lo dijo el emparejador; en JP se decide aquí por el código).
     let sets
     try {
-      sets = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,serie_id,serie_name,serie_name_en,tcggo_id,oculto&market=eq.${mercado}&limit=2000`)) || []
+      sets = (await pedir(`tcg_sets?select=id,name,name_en,tcg_online_code,serie_id,serie_name,serie_name_en,tcggo_id,oculto,card_count_total,card_count_official&market=eq.${mercado}&limit=2000`)) || []
     } catch (e) {
       return { ...resumen(), ok: false, error: `nuestra base: ${String(e?.message || e).slice(0, 160)}` }
     }
@@ -613,6 +613,26 @@ export async function procesar({
             s.oculto = false
           } catch { /* la semana que viene */ }
         }
+      }
+      // LA CUENTA DEL SET QUE NACIÓ SIN ELLA (1362). PINGU: «¿por qué Delta
+      // Reign está diferente?» — sin anillo, «Sin numeración» y un «3» suelto
+      // en Lanzamientos. Se creó escondida antes de salir (756), cuando
+      // TCGGO la daba con cero cartas, y nadie volvía a apuntarle cuántas
+      // trae: la pasada de precios solo rellena con la cuenta de la LISTA de
+      // TCGGO, y esa seguía sin ella. Con sus cartas ya escritas, la cuenta
+      // es la de NUESTRO set (la misma que enseña el álbum, así «tienes N de
+      // M» casa con lo que ves). Solo si estaba vacía: el filtro va en la
+      // propia escritura, así que nunca pisa una cuenta de TCGdex o Scrydex.
+      const principal = sets.find((x) => x.id === destinos[0])
+      if (escritasAqui && principal && !principal.card_count_total && !principal.card_count_official) {
+        try {
+          const enSet = (await pedir(`tcg_cards?select=id&market=eq.${mercado}&set_id=eq.${encodeURIComponent(principal.id)}&limit=5000`)) || []
+          if (enSet.length) {
+            await pedir(`tcg_sets?market=eq.${mercado}&id=eq.${encodeURIComponent(principal.id)}&card_count_total=is.null`, { method: 'PATCH', body: JSON.stringify({ card_count_total: enSet.length }) })
+            principal.card_count_total = enSet.length
+            estado.cuentasPuestas = { ...(estado.cuentasPuestas || {}), [`${mercado}:${principal.id}`]: enSet.length }
+          }
+        } catch { /* sin cuenta, como estaba: la próxima pasada lo vuelve a intentar */ }
       }
       // Y una escritura que escribe CERO filas de una lista que no está
       // vacía se apunta: no es un error, y es justo por eso que hay que

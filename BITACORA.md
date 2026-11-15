@@ -4,6 +4,30 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-15 (608) — PINGU-Claude (1362 — Delta Reign sin su cuenta de cartas)
+
+**Hecho.** PINGU: «¿por qué Delta Reign está diferente?» — en Lanzamientos un
+«3» suelto sin anillo; en Mi colección «Sin numeración» sin barra. El set
+`tcggo-437` lo creó el catálogo ESCONDIDO antes de salir (756), con TCGGO
+dándolo a cero cartas, así que nació con `card_count_total` y
+`card_count_official` vacíos; al llegar sus 141 cartas nadie se los ponía (la
+pasada de precios, 1274, solo rellena desde la lista de TCGGO, y esa no traía
+la cuenta).
+- `netlify/functions/tcggo-catalogo.mjs`: al escribir las cartas de un set sin
+  ninguna cuenta, le pone `card_count_total` = las cartas de nuestro set (las
+  del álbum), con `card_count_total=is.null` en el PATCH (nunca pisa); se
+  apunta en `estado.cuentasPuestas`. La consulta de sets pide ahora las dos
+  cuentas.
+- `supabase-migration-1362-cuenta-de-sets-nuevos.sql`: lo rellena YA para los
+  sets de TCGGO con las dos cuentas vacías (la impresa no se inventa) y lista
+  los de TCGGO de los últimos 120 días.
+- Pruebas (rama `pruebas`): `test-tanda-1362.mjs` (la pasada con Delta Reign,
+  los que no se tocan, y la migración dos veces contra PostgreSQL). 756, 1265,
+  1274, 1275, 1290, 640, 652, 655, 657, 806 y 807 siguen verdes.
+
+**Pendiente**: PINGU ejecuta la 1362 en el SQL Editor (arregla Delta Reign al
+momento, sin desplegar). El cambio del catálogo va en el próximo push.
+
 ## 2026-11-15 (607) — PINGU-Claude (1361 — Nadie podía crear una cuenta, URGENTE)
 
 **Hecho.** Con la 1360 subida, el aviso dijo el porqué: «server_error ·

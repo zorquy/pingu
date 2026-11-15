@@ -55204,6 +55204,26 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1362 — Delta Reign sin su cuenta de cartas
+
+Un set que el catálogo de TCGGO crea antes de que salga (756) nace sin
+`card_count_total` ni `card_count_official`, porque TCGGO lo da con cero
+cartas. Sin cuenta, la web no dibuja progreso: Lanzamientos enseña lo que
+tienes a secas («3») y Mi colección «Sin numeración».
+
+- **El catálogo** (`tcggo-catalogo.mjs`): tras escribir las cartas de un set
+  cuyo destino principal no tiene NINGUNA de las dos cuentas, cuenta sus
+  cartas (`tcg_cards?select=id&set_id=eq.…`) y hace PATCH de
+  `card_count_total` con el filtro `card_count_total=is.null`. Se cuenta
+  NUESTRO set y no la lista de TCGGO: es lo que enseña el álbum, así «tienes N
+  de M» casa con lo que se ve. Queda en `estado.cuentasPuestas`
+  (`"WEST:tcggo-437": 141`).
+- **La migración 1362** hace lo mismo una vez para los sets con `tcggo_id` y
+  las dos cuentas vacías. `card_count_official` no se inventa.
+- Lo que NO cambia: la pasada de precios (1274) sigue rellenando desde la
+  lista de TCGGO cuando la trae, y Scrydex (`parcheDeSet`) igual; todas solo
+  escriben lo vacío.
+
 ## Tanda 1361 — Nadie podía crear una cuenta
 
 **El porqué.** El alta de Supabase inserta en `auth.users`, y en la misma
