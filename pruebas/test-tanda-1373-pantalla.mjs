@@ -49,7 +49,8 @@ for (const ruta of ['/mi-coleccion?ver=album', '/cartas']) {
     const m = await medir(page)
     const fila = m && Math.max(...m.centros) - Math.min(...m.centros) <= 4 && m.derecha <= m.ancho + 1
     check(`${quien}: buscar · bandera · Filtros en una fila que cabe`, fila && m.ids.includes('mcEstanteriaBusca') && m.ids.includes('mc-chapa-select') && m.ids.includes('mcEstanteriaOrdenAbrir'), JSON.stringify(m))
-    check(`${quien}: sin lupa ni el Occidental / Japonés grande`, m && !m.lupa && !m.segGrande, JSON.stringify(m))
+    // Desde la 1381 el catálogo es el slide de banderas (lo mira test-tanda-1381).
+    check(`${quien}: sin lupa aparte`, m && !m.lupa, JSON.stringify(m))
     // El buscador, ahí mismo
     const todos = await sets(page)
     await page.fill('#mcEstanteriaBuscar', 'Corona')
@@ -57,15 +58,17 @@ for (const ruta of ['/mi-coleccion?ver=album', '/cartas']) {
     const buscados = await sets(page)
     check(`${quien}: escribir en el buscador filtra`, todos.length > 1 && buscados.length >= 1 && buscados.length < todos.length, `${todos.length} → ${buscados.length}`)
     await page.fill('#mcEstanteriaBuscar', '')
+    // Mientras escribes, en el móvil la caja ocupa la fila (1381): se suelta.
+    await page.evaluate(() => document.activeElement?.blur())
     await page.waitForTimeout(500)
     // La bandera
     const valor = (texto) => page.$eval('#mcEstanteriaFila select.mc-mercado', (s, t) => [...s.options].find((o) => o.textContent.includes(t))?.value, texto)
     const jp = await valor('Japon'), occ = await valor('Occidental')
-    await page.selectOption('#mcEstanteriaFila select.mc-mercado', jp).catch(() => {})
+    await page.click(`#mcEstanteriaFila select.mc-mercado + .seg [data-vista="${jp}"]`).catch(() => {})
     await page.waitForTimeout(1200)
     const cat = await page.$eval('#mcEstanteriaFila select.mc-mercado', (s) => ({ v: s.value, cat: s.dataset.cat }))
     check(`${quien}: la bandera cambia al japonés`, cat.v === jp && cat.cat === 'ja', JSON.stringify(cat))
-    await page.selectOption('#mcEstanteriaFila select.mc-mercado', occ).catch(() => {})
+    await page.click(`#mcEstanteriaFila select.mc-mercado + .seg [data-vista="${occ}"]`).catch(() => {})
     await page.waitForTimeout(1200)
     // Filtros
     await page.click('#mcEstanteriaOrdenAbrir')
