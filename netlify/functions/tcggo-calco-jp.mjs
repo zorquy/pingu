@@ -376,6 +376,14 @@ export async function pasada({
       if (sinCasar && !setCreado) {
         try { await pedir(`tcg_sets?market=eq.${MERCADO}&id=eq.${encodeURIComponent(destino)}`, { method: 'PATCH', body: JSON.stringify(rotuloDeTcggo(pendiente)) }) } catch { /* el rótulo no para el calco */ }
       }
+      // La cuenta, nunca por debajo de las cartas que TCGGO da (1371, el 30th
+      // Celebration japonés del foro: «86/25 · Completa»). Su `cards_total`
+      // de la expansión se queda corto a veces y la fila lo copiaba; y con
+      // hermanos juntados, la del destino era la de uno solo. Solo sube.
+      const cuenta = cuentaQueSube(sets.find((s) => s.id === destino), r.suyas)
+      if (cuenta) {
+        try { await pedir(`tcg_sets?market=eq.${MERCADO}&id=eq.${encodeURIComponent(destino)}`, { method: 'PATCH', body: JSON.stringify({ card_count_total: cuenta }) }) } catch { /* la cuenta no para el calco */ }
+      }
       // Los viejos de la misma expansión, escondidos YA (809).
       if (entera) {
         const viejos = setsViejosDe(pendiente, sets, destino, estado.dudosos[pendiente.id]?.candidatos || []).filter((id) => !hermanos.includes(id))
@@ -624,6 +632,14 @@ export async function pasoDeGemelas({ pedir, estado, episodios, dia, ahora, pers
   estado.gemelas.ultima = { fecha: ahora.toISOString(), sets: sets.length, pares: r.pares, episodiosWest: episodiosWest.length, episodiosJp: (episodios || []).length, escritosAhora: escritos.length, quedan }
   await persistir()
   return { ok: !fallo, escritos: escritos.length, quedan, pares: r.pares, ...(fallo ? { error: fallo.error } : {}) }
+}
+
+// La cuenta nueva de un set tras escribirle `suyas` cartas (1371): solo si
+// sube; `null` si la de la fila ya llega (o no hay cartas que contar).
+export function cuentaQueSube(set, suyas) {
+  const n = Number(suyas) || 0
+  const ahora = Number(set?.card_count_total) || 0
+  return n > ahora ? n : null
 }
 
 // Lo que TCGGO dice de su expansión, para el set nuestro que la lleva.

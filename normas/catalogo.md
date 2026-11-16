@@ -800,3 +800,11 @@
   fechas: una pasada nueva que lo pida cuenta por página, guarda lo pedido si
   se le acaba el tiempo (`enCurso`) y no escribe un trozo como si fuera el
   año entero.
+- **Un total de expansión que tus cartas desmienten no se afirma** (tanda
+  1371, el 30th Celebration japonés del foro: «86/25 · Completa»): la cuenta de
+  la fila la escribe la pasada con el `cards_total` de TCGGO y puede quedarse
+  corta. En la web se pinta con `totalCon(set, tengo)` (0 = no se sabe si
+  tienes más distintas que el total), los logros cuentan `n === total` y el
+  calco japonés solo SUBE la cuenta (`cuentaQueSube`, con las sueltas que
+  acaba de escribir). Una pantalla nueva que enseñe «tienes N de M» de una
+  expansión pasa por `totalCon`, no por `totalDe` a secas.

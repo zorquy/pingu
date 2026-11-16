@@ -3223,7 +3223,7 @@ async function pintarEstanteria() {
     // probó a subirlas arriba y con cien empezadas la lista seguía
     // midiendo lo mismo—.
     (queSets !== 'empezadas' || cuantas.has(s.id)) &&
-    (queSets !== 'completas' || (totalDe(s) > 0 && (cuantas.get(s.id) || 0) >= totalDe(s)))
+    (queSets !== 'completas' || (totalCon(s, cuantas.get(s.id) || 0) > 0 && (cuantas.get(s.id) || 0) >= totalDe(s)))
 
   // Por ERAS, y dentro por año (tanda 409). Antes subían arriba las que
   // tenías empezadas; con cien empezadas eso no es un orden, es una lista
@@ -3235,13 +3235,13 @@ async function pintarEstanteria() {
   // Por era es lo de siempre; los otros tres órdenes son UNA lista, sin
   // rótulos: «lo que más llevas» repartido por eras no ordena nada.
   const fecha = (x) => Date.parse(x.release_date || '') || 0
-  const llevas = (x) => (totalDe(x) ? (cuantas.get(x.id) || 0) / totalDe(x) : 0)
+  const llevas = (x) => (totalCon(x, cuantas.get(x.id) || 0) ? (cuantas.get(x.id) || 0) / totalDe(x) : 0)
   // «Casi completas» (749, Y2): las empezadas que menos cartas les faltan,
   // primero; detrás las ya completas y al final las que no has empezado.
   // Es «lo que me falta poco para acabar», que no es lo mismo que «lo que
   // más llevas»: de una de 300 cartas al 90 % te faltan 30.
   const faltan = (x) => {
-    const t = totalDe(x), n = cuantas.get(x.id) || 0
+    const n = cuantas.get(x.id) || 0, t = totalCon(x, n)
     if (!t || !n) return [2, -fecha(x)]
     return n >= t ? [1, -fecha(x)] : [0, t - n]
   }
@@ -3332,8 +3332,8 @@ async function pintarHermanos(setId) {
   const mia = conProgreso()
   // La fila de volver va la primera (856): donde estaban las pestañas.
   caja.innerHTML = `<button type="button" class="mc-hermanos-volver" id="mcHermanosVolver"><span class="mc-miga-flecha" aria-hidden="true"></span>Expansiones</button><h3 class="mc-hermanos-era">${escapeHtml(grupo.titulo || '')}</h3><ul>${grupo.sets.map((x) => {
-    const total = totalDe(x)
     const tengo = cuantas.get(x.id) || 0
+    const total = totalCon(x, tengo)
     const codigo = x.tcg_online_code || (/^tcggo-/i.test(String(x.id)) ? '' : String(x.id).toUpperCase().slice(0, 6))
     const pct = total ? Math.min(100, Math.round((tengo / total) * 100)) : 0
     const actual = x.id === setId
@@ -3360,6 +3360,16 @@ function totalDe(set) {
   // 159 · 101 %» mientras la expansión decía «159 de 229». Una sola cuenta
   // en todas las pantallas: distintas que tienes sobre todas las del set.
   return set?.card_count_total || set?.card_count_official || 0
+}
+
+// El total que se puede AFIRMAR con lo que tienes (1371, el 30th Celebration
+// japonés del foro: «86/25 · Completa»). La cuenta de la fila la escribe la
+// pasada del catálogo con lo que dice TCGGO, y a veces se queda corta: si
+// tienes más cartas DISTINTAS de las que dice, la cifra es falsa. Entonces no
+// se enseña (0 = no se sabe, la 319) y nada se da por completo.
+function totalCon(set, tengo) {
+  const total = totalDe(set)
+  return total && tengo > total ? 0 : total
 }
 
 // EL ANILLO DE PROGRESO (710, C2). PINGU eligió la propuesta de las
@@ -3409,7 +3419,7 @@ function simboloDeSetHtml(set) {
 // sitio. Mismo `data-set`/`data-market`: el oyente del Panel abre la
 // expansión igual.
 function filaDeSetHtml(set, tengo) {
-  const total = totalDe(set)
+  const total = totalCon(set, tengo)
   const pct = total ? Math.round((tengo / total) * 100) : 0
   const suMercado = set.market || mercado
   const logo = urlDeLogo(set.logo_path, suMercado)
@@ -3428,7 +3438,7 @@ function filaDeSetHtml(set, tengo) {
 }
 
 function tarjetaDeSet(set, tengo) {
-  const total = totalDe(set)
+  const total = totalCon(set, tengo)
   const pct = total ? Math.round((tengo / total) * 100) : 0
   // DÓNDE SE BUSCA EL DIBUJO (tanda 415). PINGU: «hay expansiones que no
   // tienen logo; no sé de dónde los estáis sacando, pero hay un montón
@@ -3558,12 +3568,13 @@ function valorEnLinea(set) {
 }
 
 function filaDeSet(set, tengo) {
-  const total = totalDe(set)
+  const total = totalCon(set, tengo)
   const completo = total && tengo >= total
   const codigo = set.tcg_online_code || (/^tcggo-/i.test(String(set.id)) ? '' : String(set.id).toUpperCase().slice(0, 6))
   const dibujos = dibujosDeSet(set)
   const mia = conProgreso()
-  const cuenta = !total ? 'Sin numeración' : mia ? `${tengo}/${total}` : `${total} cartas`
+  // Sin un total que se pueda afirmar, lo que tienes (1371), no «Sin numeración».
+  const cuenta = !total ? (mia && tengo ? `${tengo} ${tengo === 1 ? 'carta' : 'cartas'}` : 'Sin numeración') : mia ? `${tengo}/${total}` : `${total} cartas`
   // EL LOGO EN LA FILA Y SU COLOR DETRÁS (749, E1 y E2). PINGU: «se les ha
   // quitado el logo y daban bastante personalidad». El logo va donde iba el
   // código; detrás, el MISMO logo ampliado y difuminado tiñe la fila con sus
@@ -3870,11 +3881,12 @@ function pintarPantallaMontada(setId, set) {
   const ids = idsDeColeccion(setId)
   const delSet = ids.length ? (todosLosSets || []).filter((x) => ids.includes(String(x.id).toLowerCase())) : set ? [set] : []
   const total = delSet.reduce((n, x) => n + totalDe(x), 0)
-  if (!total || album.vista === 'archivador') {
+  const tengo = cuantasPorSet().get(setId) || 0
+  // Un total que tus cartas desmienten (1371) no se pinta: el esqueleto.
+  if (!total || tengo > total || album.vista === 'archivador') {
     $('mcAlbum').innerHTML = esqueletoDeAlbum()
     return
   }
-  const tengo = cuantasPorSet().get(setId) || 0
   const pct = Math.round((tengo / total) * 100)
   const n = (x) => x.toLocaleString('es-ES', { useGrouping: 'always' })
   if ($('mcAlbumProgreso')) {
@@ -5121,8 +5133,8 @@ function pintarResultadosBuscar() {
   caja.innerHTML = grupos.map((g) => {
     const set = sets.get(g.set.id) || g.set
     const logos = contexto.logosDeSet(set)
-    const total = totalDe(set)
     const tengoDeSet = new Set(lineas.filter((l) => cartas.get(l.card_id)?.set_id === g.set.id).map((l) => l.card_id)).size
+    const total = totalCon(set, tengoDeSet)
     const partes = [esMia && sesion && total ? `tienes ${tengoDeSet} de ${total}` : total ? `${total} cartas` : '', `${g.cartas.length} ${g.cartas.length === 1 ? 'resultado' : 'resultados'}`].filter(Boolean)
     return `<div class="mc-bus-grupo" data-grupo-set="${escapeHtml(g.set.id)}">
         <span class="mc-bus-grupo-logo">${logos.length ? `<img ${atributosDeEscaneo(logos, 'this.remove()')} alt="" width="96" height="48" loading="lazy" />` : ''}</span>

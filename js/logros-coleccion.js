@@ -21,7 +21,9 @@ export function statsDeColeccion({ lineas, cartaDe, cuantasPorSet, totalDeSet, u
   let setsCompletos = 0
   for (const [set, n] of cuantasPorSet) {
     const total = totalDeSet(set)
-    if (total > 0 && n >= total) setsCompletos++
+    // Con MÁS distintas que el total, el total está mal (1371, el 30th
+    // Celebration japonés: «86/25»): no cuenta como completa.
+    if (total > 0 && n === total) setsCompletos++
   }
   let cartaMasCara = 0
   for (const l of lineas) cartaMasCara = Math.max(cartaMasCara, unidad(l) || 0)

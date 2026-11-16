@@ -55204,6 +55204,26 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1371 — Un total que tus cartas desmienten no se afirma
+
+El foro («Fallo 30 Aniversario Japonés»): «86/25 · Completa». El total de una
+fila (`card_count_total || card_count_official`, `totalDe`) lo escribe la
+pasada del catálogo con lo que dice TCGGO; si se queda corto, la estantería
+afirmaba una cuenta imposible.
+
+- `totalCon(set, tengo)` (js/mi-coleccion.js): `totalDe` salvo cuando tienes
+  más distintas que él, que devuelve 0 (no se sabe). La usan la estantería
+  (`filaDeSet`, `tarjetaDeSet`, el filtro «Completas», los órdenes), el Panel
+  (`filaDeSetHtml`), los hermanos de la cabecera y los grupos de Buscar.
+  `filaDeSet` sin total y con cartas dice «N cartas», no «Sin numeración».
+  `pintarPantallaMontada` pinta el esqueleto si tengo > total. Dentro de una
+  expansión no hace falta: cuenta `album.cartas`.
+- `statsDeColeccion` (js/logros-coleccion.js): completa es `n === total`.
+- `cuentaQueSube(set, suyas)` (tcggo-calco-jp.mjs): tras `procesar`, si las
+  sueltas de TCGGO (`r.suyas`, ya sin versiones) superan la cuenta de la
+  fila, se escribe `card_count_total = suyas`; nunca baja. Una corrección a
+  mano (`tcg_correcciones`) sigue mandando por su disparador.
+
 ## Tanda 1370 — La Pokédex en una fila
 
 La segunda de «Una fila, como Dex» (la 1369 hizo la expansión, un Pokémon y

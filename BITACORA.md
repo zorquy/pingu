@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (617) — PINGU-Claude (1371 — Una expansión no sale «completa» con un total que tus cartas desmienten)
+
+**Hecho** (David García en el foro, «Fallo 30 Aniversario Japonés»: el 30th
+Celebration japonés salía «86/25 · Completa»):
+- **La causa**: el total de una expansión japonesa lo escribe el calco de
+  TCGGO con su `cards_total`, que a veces se queda corto (y con hermanos
+  juntados, el del destino era el de uno solo). La web lo creía.
+- **La web** (`totalCon`, js/mi-coleccion.js): si tienes más cartas DISTINTAS
+  que el total, el total no se enseña ni cuenta (0 = no se sabe): la
+  estantería dice «86 cartas», sin anillo ni «Completa», el filtro
+  «Completas» y el orden «casi completas» no la toman, ni el Panel, ni los
+  hermanos, ni Buscar, ni la tira antes de abrir. Dentro de la expansión ya se
+  contaba con las cartas de verdad.
+- **El logro** de expansiones completas (`statsDeColeccion`) cuenta solo
+  `n === total`.
+- **El calco japonés** (`cuentaQueSube`): tras escribir una expansión, si
+  TCGGO da más cartas sueltas que la cuenta de la fila, la sube (nunca baja).
+
+**Ficheros**: `js/mi-coleccion.js`, `js/logros-coleccion.js`,
+`netlify/functions/tcggo-calco-jp.mjs`, `normas/catalogo.md`, `novedades.json`.
+Prueba nueva `test-tanda-1371-pantalla.mjs` (rama `pruebas`).
+
+**Pendiente**: la cuenta del 30th Celebration japonés de la BASE no la he
+podido mirar (desde aquí no se lee producción). Si el calco no vuelve a pasar
+por ella pronto, se corrige en /admin → Colecciones (total de cartas), que la
+guarda como corrección. Sin migración.
+
 ## 2026-11-16 (616) — PINGU-Claude (1370 — La Pokédex en una fila, con Faltan, Tipo y cuatro órdenes)
 
 **Hecho** (la segunda tanda de «Una fila, como Dex»; PINGU eligió la A de las
