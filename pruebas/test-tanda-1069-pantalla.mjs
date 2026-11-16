@@ -139,7 +139,9 @@ const QUE_TIENEN = [{ tienda_id: 'tienda-1', username: 'rincon', display_name: '
   check('sin errores', !errs.length, errs.join(' | '))
   const pedido = (await llamadas(p, 'mercado_con_tiendas'))[0]
   check('pide el Mercado con tiendas, «todos»', pedido?.p_quien === 'todos' && pedido.p_market === 'WEST')
-  check('«Todos / Personas / Tiendas», con Todos puesto', (await p.isVisible('#mcMercadoQuien')) && (await p.getAttribute('[data-merc-quien="todos"]', 'aria-pressed')) === 'true')
+  // Desde la 1372 los chips viven en «Mostrar», en la hoja de Filtros.
+  await p.click('#mcMercadoAbrirFiltros'); await p.waitForTimeout(300)
+  check('«Todos / Personas / Tiendas» en Filtros, con Todos puesto', (await p.isVisible('#mcMercadoQuien')) && (await p.getAttribute('[data-merc-quien="todos"]', 'aria-pressed')) === 'true')
   const b1 = p.locator('[data-merc="carta-1"]').first()
   check('la carta que dan una persona y una tienda: los dos avatares, el de la tienda cuadrado', (await b1.locator('.mc-gente-av').count()) === 2 && (await b1.locator('.mc-gente-av.tienda').count()) === 1)
   check('  …lo dice en la etiqueta («la da 1 · 1 tienda») y el precio de tienda con su nombre (1236)', /la da 1 · 1 tienda/.test(await b1.locator('[data-merc-ficha]').first().getAttribute('aria-label')) && /95,00\s€ · El Rincón/.test(await b1.textContent()))
@@ -151,6 +153,7 @@ const QUE_TIENEN = [{ tienda_id: 'tienda-1', username: 'rincon', display_name: '
   await p.click('[data-merc-quien="personas"]'); await p.waitForTimeout(500)
   check('«Personas»: solo personas, y la franja se va', (await ultima(p, 'mercado_con_tiendas')).p_quien === 'personas' && !(await p.isVisible('#mcMercadoTiendas')))
   await p.click('[data-merc-quien="todos"]'); await p.waitForTimeout(500)
+  await p.click('#mcMercadoHojaVer'); await p.waitForTimeout(300)
   await p.locator('[data-merc="carta-1"] [data-merc-ficha]').first().click(); await p.waitForTimeout(1500)
   check('la ficha del Mercado: «En tiendas», con la tienda, su precio y «de tu lista»', /En (1 tienda|\d+ tiendas)/.test(await p.textContent('#mcMercadoFichaTiendas')) && /El Rincón/.test(await p.textContent('#mcMercadoFichaTiendas')) && /95,00\s€/.test(await p.textContent("#mcMercadoFichaTiendas")) && /de tu lista/i.test(await p.textContent('#mcMercadoFichaTiendas')))
   check('  …«Su tienda» lleva a la tienda entera, y «Me interesa» a esa carta en ella (1249)', (await p.getAttribute('#mcMercadoFichaTiendas .ent-tarjeta a.btn-secondary', 'href')) === '/tiendas/rincon' && /^\/tiendas\/rincon\?carta=carta-1/.test(await p.getAttribute('#mcMercadoFichaTiendas .ent-tarjeta a.btn-primary', 'href')))

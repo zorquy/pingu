@@ -414,7 +414,9 @@ console.log('── 7. Las Expansiones son la lista de su maqueta (C2) ──')
     tarjetasPorEra: [...document.querySelectorAll('#mcEstanteriaRejilla .mc-estanteria-lista')].length,
   }))
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('la cabecera: «Expansiones» con «Orden», el buscador tras la lupa y el catálogo a la vista', cab.titulo === 'Expansiones' && cab.orden && cab.buscadorEscondido && cab.catalogo, JSON.stringify(cab))
+  // Desde la 1373 la cabecera es una fila: buscar (a la vista, sin lupa) ·
+  // bandera · Filtros; el título sigue para el lector.
+  check('la cabecera: buscar a la vista, la bandera del catálogo y Filtros', cab.titulo === 'Expansiones' && cab.orden && !cab.buscadorEscondido && (await page.isVisible('#mcEstanteriaFila select.mc-mercado')), JSON.stringify(cab))
   check('  …y las tres chapas, con «Todas» puesta', cab.chapas === 'Empezadas Todas* Completas', cab.chapas)
   check('una tarjeta por era, con una fila por expansión', cab.eras === 2 && cab.tarjetasPorEra === 2, JSON.stringify(cab))
   const fs = await filas()
@@ -439,11 +441,9 @@ console.log('── 7. Las Expansiones son la lista de su maqueta (C2) ──')
   const porProgreso = await filas()
   check('«Lo que más llevas»: una lista, de lo más lleno a lo vacío, sin rótulos de era', porProgreso.map((f) => f.set).join(',') === 'swsh12pt5,sv3,sv2,swsh12' && (await page.locator('#mcEstanteriaRejilla .mc-estanteria-titulo').count()) === 0, porProgreso.map((f) => f.set).join(','))
   check('  …y el botón de «Orden» dice que hay un orden puesto', await page.locator('#mcEstanteriaOrdenAbrir.activo').count() === 1)
-  await page.click('#mcEstanteriaLupa')
-  await page.waitForTimeout(200)
   await page.fill('#mcEstanteriaBuscar', 'tempestad')
   await page.waitForTimeout(400)
-  check('la lupa saca el buscador y busca', (await filas()).map((f) => f.set).join(',') === 'swsh12', JSON.stringify(await filas()))
+  check('el buscador de la fila busca', (await filas()).map((f) => f.set).join(',') === 'swsh12', JSON.stringify(await filas()))
   check('la página no se va de ancho', await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1))
   await ctx.close()
 }

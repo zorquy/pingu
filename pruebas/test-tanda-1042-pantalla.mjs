@@ -98,23 +98,30 @@ for (const movil of [true, false]) {
   await ctx.close()
 }
 
-console.log('── B. Las chapas del Mercado ──')
+console.log('── B. Idioma y Orden del Mercado (en la hoja desde la 1372) ──')
 {
   const { ctx, page, errores } = await abrir({ extra })
   await ir(page, '/mi-coleccion.html?ver=mercado')
-  const c = await page.evaluate(() => [...document.querySelectorAll('#mcPanelMercado .mc-mercado-opcion')].map((l) => {
-    const s = l.querySelector('select')
-    return { et: l.querySelector('.mc-op-et')?.textContent, valor: s.options[s.selectedIndex].textContent, opciones: [...s.options].map((o) => o.textContent), flecha: parseFloat(getComputedStyle(s).paddingRight), cambiada: l.classList.contains('cambiada') }
-  }))
-  check('dos chapas: «Idioma · Todos» y «Orden · Más recientes»', c.length === 2 && c[0].et === 'Idioma' && c[0].valor === 'Todos' && c[1].et === 'Orden' && c[1].valor === 'Más recientes', JSON.stringify(c))
-  check('  …los órdenes dicen qué hacen', c[1]?.opciones.join('|') === 'Más recientes|Más gente la da|Más caras', c[1]?.opciones.join('|'))
-  check('  …con sitio para la flecha y sin rellenar', c.every((x) => x.flecha >= 36 && !x.cambiada), JSON.stringify(c))
-  await page.selectOption('#mcMercadoIdioma', 'es')
-  await page.waitForTimeout(600)
-  check('elegir «Español» rellena la chapa del idioma, y la del orden no', await page.evaluate(() => document.getElementById('mcMercadoIdioma').closest('label').classList.contains('cambiada') && !document.getElementById('mcMercadoOrden').closest('label').classList.contains('cambiada')))
-  await page.selectOption('#mcMercadoIdioma', '')
+  // Desde la 1372 (Cambios en una fila) Idioma y Orden ya no son chapas de
+  // la barra: son grupos de la hoja de Filtros, en botones, y lo que se
+  // «rellenaba» con un filtro puesto ahora es el botón Filtros en color.
+  await page.click('#mcMercadoAbrirFiltros')
   await page.waitForTimeout(400)
-  check('  …y volver a «Todos» la vacía', await page.evaluate(() => !document.getElementById('mcMercadoIdioma').closest('label').classList.contains('cambiada')))
+  const c = await page.evaluate(() => [...document.querySelectorAll('#mcMercadoHoja .mc-grupo-filtro')].filter((g) => g.querySelector('select')).map((g) => ({
+    et: g.querySelector('h3')?.textContent.trim(),
+    puesto: g.querySelector('[aria-checked="true"]')?.textContent.trim(),
+    opciones: [...g.querySelectorAll('[data-valor]')].map((b) => b.textContent.trim()),
+  })))
+  check('Ordenar e Idioma en la hoja, con «Más recientes» y «Todos» puestos', c.length === 2 && c[0].et === 'Ordenar' && c[0].puesto === 'Más recientes' && c[1].et === 'Idioma' && c[1].puesto === 'Todos', JSON.stringify(c))
+  check('  …los órdenes dicen qué hacen', c[0]?.opciones.join('|') === 'Más recientes|Más gente la da|Más caras', c[0]?.opciones.join('|'))
+  check('  …y Filtros sin rellenar', !(await page.$eval('#mcMercadoAbrirFiltros', (e) => e.classList.contains('mc-filtros-puestos'))))
+  await page.click('#mcMercadoHoja [data-hoja="idioma"] [data-valor="es"]')
+  await page.waitForTimeout(600)
+  check('elegir «Español» pinta Filtros en color (y deja el orden como estaba)', (await page.$eval('#mcMercadoAbrirFiltros', (e) => e.classList.contains('mc-filtros-puestos'))) && (await page.$eval('#mcMercadoOrden', (s) => s.value)) === 'nuevo')
+  await page.click('#mcMercadoHoja [data-hoja="idioma"] [data-valor=""]')
+  await page.waitForTimeout(400)
+  check('  …y volver a «Todos» lo apaga', !(await page.$eval('#mcMercadoAbrirFiltros', (e) => e.classList.contains('mc-filtros-puestos'))))
+  await page.click('#mcMercadoHojaCerrar')
   check('sin errores', errores.length === 0, errores.join(' | '))
   await ctx.close()
 }

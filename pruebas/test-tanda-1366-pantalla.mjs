@@ -111,7 +111,8 @@ console.log('── 3. Mi colección en el PC ──')
       lateral: [...document.querySelectorAll('.lat-menu-sitio .mc-pestania')].filter((x) => x.offsetParent).map((x) => x.innerText.trim()).join('|'),
     }
   })
-  check('Expansiones: la fila ocupa el sitio del título, en la línea de «Orden»', r.enCabeza && r.titulo <= 2 && r.mismaLinea, JSON.stringify(r))
+  // Desde la 1373 Filtros va en la fila de buscar, debajo de las pestañas.
+  check('Expansiones: las pestañas ocupan el sitio del título', r.enCabeza && r.titulo <= 2, JSON.stringify(r))
   check('  …con icono y nombre en las cuatro', (await fila(page, '#mcCartasPestanas')) === 'Expansiones*|Pokédex|Álbumes|Productos', await fila(page, '#mcCartasPestanas'))
   check('  …y la lateral dice Panel|Cartas|Deseos y cambios|Buscar', r.lateral === 'Panel|Cartas|Deseos y cambios|Buscar', r.lateral)
   await ctx.close()

@@ -71,10 +71,12 @@ console.log('\n── 2. iPhone · Expansiones, /buscar, /evento y /repeticiones
     const cab = document.querySelector('.mc-estanteria-cabeza')
     // La fila de Cartas (1366) va encima, en su propia línea: no cuenta.
     const hs = [...cab.children].filter((h) => h.getBoundingClientRect().width > 2 && !h.classList.contains('mc-cartas-pestanas') && h.tagName !== 'SELECT')
-    return { filas: new Set(hs.map((h) => { const r = h.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 16) })).size, catalogo: Boolean(cab.querySelector('.seg [data-vista]')), textos: [...cab.querySelectorAll('.seg:not(.mc-cartas-pestanas) .seg-btn')].map((x) => x.innerText.trim()), fila2: getComputedStyle(document.querySelector('.mc-estanteria-fila2')).display, ancho: document.documentElement.scrollWidth <= innerWidth }
+    return { filas: new Set(hs.map((h) => { const r = h.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 16) })).size, catalogo: Boolean(cab.querySelector('.seg [data-vista]')), textos: [...cab.querySelectorAll('.seg:not(.mc-cartas-pestanas) .seg-btn')].map((x) => x.innerText.trim()), fila: (() => { const f = document.getElementById('mcEstanteriaFila'); const rs = f ? [f.querySelector('.mc-buscador'), ...f.querySelectorAll('.mc-mandos > *')].filter((x) => x && x.getBoundingClientRect().width > 2).map((x) => x.getBoundingClientRect()) : []; return rs.length >= 3 && Math.max(...rs.map((r) => r.top)) - Math.min(...rs.map((r) => r.top)) <= 4 })(), ancho: document.documentElement.scrollWidth <= innerWidth }
   })
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('Expansiones: catálogo («Occidental · Japonés», 1368), lupa y Orden en UNA fila, sin título ni fila de la cuenta', e.catalogo && e.filas === 1 && e.textos.join('|') === 'Occidental|Japonés' && e.fila2 === 'none' && e.ancho, JSON.stringify(e))
+  // Desde la 1373: buscar · bandera · Filtros en UNA fila (#mcEstanteriaFila),
+  // y en la cabecera solo las pestañas de Cartas.
+  check('Expansiones: buscar · bandera · Filtros en UNA fila, sin título encima', e.fila && e.ancho, JSON.stringify(e))
   await page.goto(`${BASE}/buscar.html?q=pikachu`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
   const bs = await page.evaluate(() => { const c = document.getElementById('bsChips'); const hs = [...c.children]; return { filas: new Set(hs.map((h) => { const r = h.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 16) })).size, desliza: c.scrollWidth > c.clientWidth, titulo: Math.round(document.querySelector('.bs-titulo').getBoundingClientRect().height), ancho: document.documentElement.scrollWidth <= innerWidth } })
