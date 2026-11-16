@@ -265,7 +265,7 @@
   siga cabiendo. La Pokédex (1370) lleva la misma fila con «Kanto ▾» (la
   región, en su hoja `#mcPdxRegionHoja`) en vez de una fila de regiones: un
   selector de muchas opciones que solo cambia QUÉ trozo de la lista se ve va
-  en un desplegable de la fila, no en otra fila de chips. Deseos y cambios (1372) va igual: el Mercado es buscar · Filtros · Seleccionar, con Mostrar, Ordenar e Idioma en `#mcMercadoHoja`; La quiero y Las que doy llevan su «Mostrar» en `#mcDeseosHoja` (una hoja para las dos, de deseos.js). Un chip suelto que filtre una de esas listas va a su hoja, no a la barra. «Seleccionar» lleva `data-seleccionar` (un oyente en el
+  en un desplegable de la fila, no en otra fila de chips. Deseos y cambios (1372) va igual: el Mercado es buscar · Filtros · Seleccionar, con Mostrar, Ordenar e Idioma en `#mcMercadoHoja`; La quiero y Las que doy llevan su «Mostrar» en `#mcDeseosHoja` (una hoja para las dos, de deseos.js). Un chip suelto que filtre una de esas listas va a su hoja, no a la barra. Y Expansiones (1373), en Mi colección y en /cartas: buscar · bandera · Filtros (`#mcEstanteriaFila`), sin lupa ni un piso para el catálogo; el select no se muda a ningún título. «Seleccionar» lleva `data-seleccionar` (un oyente en el
   documento, visible solo con `html.mc-puede-marcar`) y marca por
   `seleccion.js`; una rejilla nueva en la que se marque va en sus `ZONAS`.
   Y su hoja de Filtros es LA COMÚN (1055): los grupos con `data-hoja` en el

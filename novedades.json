@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-16", "tipo": "mejora", "texto": "Expansiones, en una fila: buscar, la bandera del catálogo y Filtros, a la vista en el móvil y en el ordenador, en tu colección y en Cartas.", "enlace": "/cartas" },
     { "fecha": "2026-11-16", "tipo": "mejora", "texto": "Deseos y cambios, en una fila: en el Mercado, La quiero y Las que doy, buscar, Filtros y Seleccionar caben a la vista también en el móvil; lo que antes iba en chips sueltos (lo que buscas, el orden, el idioma, quién la da) está dentro de Filtros.", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-11-16", "tipo": "arreglo", "texto": "Una expansión ya no sale como completa cuando su número de cartas está mal (le pasaba al 30th Celebration japonés, «86/25»): si tienes más cartas que las que dice, se enseña cuántas tienes.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-11-16", "tipo": "nuevo", "texto": "La Pokédex, en una fila: elige la región en «Kanto ▾» y, dentro de Filtros, mira los que te faltan, filtra por tipo y ordena por los que casi completas, los que más tienes o de la A a la Z. Dentro de cada Pokémon ya puedes ordenar sus cartas.", "enlace": "/mi-coleccion?ver=pokedex" },

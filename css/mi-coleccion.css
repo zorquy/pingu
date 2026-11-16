@@ -16251,3 +16251,16 @@ html.con-barra-movil .mc-prod-banda { display: none; }
   .mc-cruces-filtros { flex-wrap: nowrap; overflow: visible; gap: var(--e-xs); }
   .mc-cruces-filtros .seg-btn { flex: 0 1 auto; min-width: 0; padding: 0 var(--e-md); gap: var(--e-xs); white-space: nowrap; }
 }
+
+/* ── 1373: EXPANSIONES EN UNA FILA (SCHEMA 1373): buscar · bandera ·
+   Filtros, en Mi colección y en /cartas, en el móvil y en el PC. Las reglas
+   de la lupa (748) y del catálogo mudado al título (893, 1035) ya no aplican:
+   el buscador se ve siempre y el select vive en la fila. ── */
+#mcEstanteriaFila #mcEstanteriaBusca { display: flex; }
+.mc-estanteria-fila { margin-bottom: 0; }
+.mc-estanteria-fila > .mc-cuantas { flex: 1 1 auto; margin: 0; text-align: right; white-space: nowrap; }
+[data-modo='catalogo'] .mc-estanteria-barra { grid-template-columns: minmax(0, 1fr); }
+[data-modo='catalogo'] .mc-estanteria-cabeza { display: none; }
+@media (max-width: 599px) {
+  .mc-estanteria-fila > .mc-cuantas { display: none; }
+}

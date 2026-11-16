@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (619) — PINGU-Claude (1373 — Expansiones en una fila, en Mi colección y en /cartas)
+
+**Hecho** (la propuesta «Más mejoras», B; PINGU: «dale con lo recomendado»):
+- La estantería de Expansiones es una fila: buscar · bandera · Filtros
+  (`#mcEstanteriaFila.mc-una-fila`). Fuera la lupa, el Occidental / Japonés
+  grande en su piso y el catálogo mudado al título (893 en /cartas, 1035 en Mi
+  colección): el select vive en la fila y se pinta como bandera (1369).
+- «Orden» pasa a «Filtros» (la misma hoja `#mcEstanteriaOrden`, con título
+  «Filtros»), en color y con cuántos hay puestos
+  (`marcarFiltrosDeEstanteria`). En el PC, «N colecciones» a la derecha de la
+  fila; en el móvil no sale (como antes).
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion.js`,
+`css/mi-coleccion.css`, `cartas.html` (generado), `normas/coleccion.md`,
+`novedades.json`. Prueba `test-tanda-1373-pantalla.mjs` (rama `pruebas`).
+
+**Pendiente**: nada.
+
 ## 2026-11-16 (618) — PINGU-Claude (1372 — Cambios en una fila: Mercado, La quiero, Las que doy y Cruces)
 
 **Hecho** (la propuesta «Más mejoras», A; PINGU: «dale con lo recomendado»):

@@ -185,25 +185,9 @@ const tienesTexto = (n) => (modoTienda ? `${n} en stock` : `Tienes ${n}`)
 const A_MI_COLECCION = () => (modoTienda ? 'Añadir al stock' : 'Añadir a mi colección')
 if (modoTienda) prepararModoTienda()
 if (modoCatalogo && !PESTANAS_CATALOGO.includes(pestania)) pestania = PESTANA_POR_DEFECTO
-// EN /cartas Y EN EL MÓVIL, EL CATÁLOGO VA JUNTO AL TÍTULO (893): se muda
-// el selector de verdad (con sus manejadores), así que los `querySelectorAll
-// ('.mc-mercado')` de siempre lo siguen encontrando.
-if (modoCatalogo && window.matchMedia?.('(max-width: 900px)').matches) {
-  const sel = document.querySelector('.mc-estanteria-fila2 .mc-mercado')
-  const quien = document.querySelector('.mc-hero-quien')
-  if (sel && quien) quien.appendChild(sel)
-  // Y el de Buscar sobra (998): con el de arriba eran dos iguales a la vista.
-  if (sel && quien) document.querySelector('#mcBuscarBarra .mc-mercado')?.remove()
-}
-// Y EN MI COLECCIÓN, EN EL MÓVIL, EL CATÁLOGO OCUPA EL SITIO DEL TÍTULO
-// (1035, PINGU: «el título está ocupando espacio… ya sabes que estás ahí
-// por el menú»): «Expansiones» se esconde y el selector sube a su fila, al
-// lado de la lupa y de «Orden». Se muda el elemento de verdad (893).
-if (!modoCatalogo && window.matchMedia?.('(max-width: 599px)').matches) {
-  const sel = document.querySelector('.mc-estanteria-fila2 .mc-mercado')
-  const titulo = document.querySelector('.mc-estanteria-cabeza .mc-estanteria-h')
-  if (sel && titulo) titulo.insertAdjacentElement('afterend', sel)
-}
+// EL CATÁLOGO SE QUEDA EN LA FILA (1373). Hasta aquí se mudaba al título
+// (893 en /cartas, 1035 en Mi colección); ahora es la bandera de la fila de
+// Expansiones —buscar · bandera · Filtros—, también en el móvil.
 let albumesAbiertos = false
 
 // ── EL BOTÓN DE ATRÁS (tanda 468) ──
@@ -6590,9 +6574,18 @@ function enganchar() {
   // «Orden» se marca si algo de su hoja no está como viene: el orden, la serie
   // o, desde la 1038, qué se ve (Empezadas / Completas viven ahí).
   const ordenActivo = () => ordenSets !== 'era' || !!$('mcEstanteriaSerie')?.value || queSets !== 'todas'
+  // Filtros de la fila (1373): en color y con cuántos hay puestos.
+  const marcarFiltrosDeEstanteria = () => {
+    const n = (ordenSets !== 'era' ? 1 : 0) + ($('mcEstanteriaSerie')?.value ? 1 : 0) + (queSets !== 'todas' ? 1 : 0)
+    const b = $('mcEstanteriaOrdenAbrir')
+    b?.classList.toggle('mc-filtros-puestos', n > 0)
+    b?.classList.toggle('activo', n > 0)
+    const c = $('mcEstanteriaFiltrosCuenta')
+    if (c) { c.textContent = n ? String(n) : ''; c.classList.toggle('hidden', !n) }
+  }
   const ponerQue = (que) => {
     queSets = que
-    $('mcEstanteriaOrdenAbrir')?.classList.toggle('activo', ordenActivo())
+    marcarFiltrosDeEstanteria()
     soloEmpezadas = que === 'empezadas'
     for (const [id, v] of [['mcEstanteriaEmpezadas', 'empezadas'], ['mcEstanteriaTodas', 'todas'], ['mcEstanteriaCompletas', 'completas']]) {
       $(id)?.classList.toggle('activo', v === que)
@@ -6604,20 +6597,11 @@ function enganchar() {
   $('mcEstanteriaEmpezadas')?.addEventListener('click', () => ponerQue('empezadas'))
   $('mcEstanteriaTodas')?.addEventListener('click', () => ponerQue('todas'))
   $('mcEstanteriaCompletas')?.addEventListener('click', () => ponerQue('completas'))
-  // La lupa saca el buscador (en el catálogo está siempre a la vista).
-  $('mcEstanteriaLupa')?.addEventListener('click', () => {
-    const zona = $('mcEstanteriaZona')
-    const abierto = !zona.classList.contains('mc-busca-abierta')
-    zona.classList.toggle('mc-busca-abierta', abierto)
-    $('mcEstanteriaLupa').setAttribute('aria-expanded', abierto ? 'true' : 'false')
-    if (abierto) $('mcEstanteriaBuscar')?.focus()
-    else if ($('mcEstanteriaBuscar')?.value) { $('mcEstanteriaBuscar').value = ''; void pintarEstanteria() }
-  })
   // La hoja de «Orden»: cómo se reparte y de qué serie.
   const hojaOrden = $('mcEstanteriaOrden')
   const pintarOrdenes = () => {
     for (const b of document.querySelectorAll('[data-orden-sets]')) b.setAttribute('aria-pressed', b.dataset.ordenSets === ordenSets ? 'true' : 'false')
-    $('mcEstanteriaOrdenAbrir')?.classList.toggle('activo', ordenActivo())
+    marcarFiltrosDeEstanteria()
   }
   pintarOrdenes()
   $('mcEstanteriaOrdenAbrir')?.addEventListener('click', () => { pintarOrdenes(); if (!hojaOrden.open) hojaOrden.showModal() })
@@ -6641,7 +6625,7 @@ function enganchar() {
     if (buscar) buscar.value = ''
     const serie = $('mcEstanteriaSerie')
     if (serie) serie.value = ''
-    $('mcEstanteriaOrdenAbrir')?.classList.remove('activo')
+    marcarFiltrosDeEstanteria()
     if (ponerQueSets) ponerQueSets('todas')
     else void pintarEstanteria()
   })

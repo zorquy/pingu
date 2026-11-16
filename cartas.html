@@ -469,24 +469,28 @@
           <div class="mc-estanteria-barra">
             <div class="mc-estanteria-cabeza">
               <h2 class="mc-estanteria-h">Expansiones</h2>
-              <button type="button" class="mc-chip-mando mc-estanteria-lupa" id="mcEstanteriaLupa" data-icono="search" aria-expanded="false" aria-controls="mcEstanteriaBusca" aria-label="Buscar una expansión"></button>
-              <button type="button" class="mc-chip-mando mc-estanteria-orden" id="mcEstanteriaOrdenAbrir" aria-haspopup="dialog" aria-controls="mcEstanteriaOrden" aria-label="Orden y filtro"><span data-icono="sliders" aria-hidden="true"></span><span class="mc-q-largo">Orden</span></button>
             </div>
-            <div class="mc-buscador" id="mcEstanteriaBusca">
-              <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-              <input type="search" enterkeyhint="search" id="mcEstanteriaBuscar" placeholder="Busca una colección" aria-label="Buscar una colección" />
-            </div>
-            <!-- El catálogo, A LA VISTA (648: se elige el catálogo, no el
-                 idioma): con él escondido en «Orden», quien colecciona
-                 japonés no sabría por dónde se llega a sus sets. -->
-            <div class="mc-estanteria-fila2">
-              <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+            <!-- EXPANSIONES EN UNA FILA (1373, «Más mejoras», B): buscar ·
+                 bandera · Filtros, como la expansión y la Pokédex (1369). Antes
+                 eran tres pisos en el móvil —las pestañas, Occidental /
+                 Japonés y el buscador tras una lupa— y en el PC la lupa y
+                 «Orden» arriba y el catálogo en otro piso. El catálogo es el
+                 select de siempre, que la fila pinta como bandera. -->
+            <div class="mc-una-fila mc-estanteria-fila" id="mcEstanteriaFila">
+              <div class="mc-buscador" id="mcEstanteriaBusca">
+                <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
+                <input type="search" enterkeyhint="search" id="mcEstanteriaBuscar" placeholder="Buscar" aria-label="Buscar una colección" />
+              </div>
+              <div class="mc-mandos">
+                <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+                <button type="button" class="mc-chip-mando mc-chip-icono-movil mc-estanteria-orden" id="mcEstanteriaOrdenAbrir" data-icono="settings" aria-haspopup="dialog" aria-controls="mcEstanteriaOrden"><span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcEstanteriaFiltrosCuenta"></span></button>
+              </div>
               <p class="mc-cuantas" id="mcEstanteriaCuantas" role="status" aria-live="polite"></p>
             </div>
           </div>
           <dialog class="mc-panel-filtros mc-estanteria-hoja" id="mcEstanteriaOrden" aria-labelledby="mcEstanteriaOrdenTitulo">
             <div class="mc-panel-cabecera">
-              <h2 id="mcEstanteriaOrdenTitulo">Orden y filtro</h2>
+              <h2 id="mcEstanteriaOrdenTitulo">Filtros</h2>
               <button type="button" class="mc-panel-cerrar" id="mcEstanteriaOrdenCerrar" aria-label="Cerrar">✕</button>
             </div>
             <div class="mc-panel-cuerpo">

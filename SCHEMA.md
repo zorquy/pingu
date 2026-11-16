@@ -55204,6 +55204,18 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1373 — Expansiones en una fila
+
+`.mc-estanteria-barra` lleva la cabecera (las pestañas de Cartas, 1366) y la
+fila `#mcEstanteriaFila.mc-una-fila`: `#mcEstanteriaBusca` (siempre a la
+vista), `.mc-mandos` con el `select.mc-mercado` y `#mcEstanteriaOrdenAbrir`
+(«Filtros», `mc-chip-icono-movil`), y `#mcEstanteriaCuantas`. Se fueron
+`#mcEstanteriaLupa`, `.mc-estanteria-fila2` y los dos bloques de
+`mi-coleccion.js` que mudaban el select al título. En /cartas la cabecera
+vacía se esconde (`[data-modo='catalogo'] .mc-estanteria-cabeza`). Las reglas
+viejas de la lupa (`#mcEstanteriaBusca { display: none }`) las anula
+`#mcEstanteriaFila #mcEstanteriaBusca`.
+
 ## Tanda 1372 — Cambios en una fila
 
 La fila de la 1369 llega a Deseos y cambios. En el móvil, el Mercado tenía tres
