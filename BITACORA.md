@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (623) — PINGU-Claude (1377 — El torneo, renovado: Mesas del organizador)
+
+**Hecho** (la versión 2 de «El torneo, renovado»):
+- **El mando es UNA tarjeta**: en una liga entre jornadas, un ANILLO con cuántos
+  activos han mandado lista para la jornada que toca («0/8 listas»), «Jornada 7
+  · 16 nov», «0 de 8 han mandado lista» y el botón grande («Generar pareos…»),
+  con Saltar y «⋯» al lado. Dentro, la inscripción de ESA jornada (abierta,
+  cuántos, Cerrar); las demás jornadas, plegadas en «Las demás jornadas (N)».
+  Los avisos de quién juega y qué pasa al emparejar, plegados en «Quién juega
+  y qué pasa al emparejar». Fuera el párrafo largo de las inscripciones.
+- **Las mesas son tarjetas**; en una mesa ya cerrada, «Corregir…» y sus
+  repeticiones van en su «⋯» (una mesa viva sigue con «Resolver…» a la vista).
+  En el móvil el «⋯» va en la esquina y el «GANA …» parte en dos líneas antes
+  que cortar los nombres.
+- Entre jornadas ya no sale la pastilla de arriba: repetía la cuenta atrás de la
+  cabecera (1375).
+- De paso: la separación de las rayitas de la cabecera, 6 px (la 310 no admite
+  espaciados impares).
+
+**Ficheros**: `js/torneos/ronda.js`, `css/torneos.css`, `normas/jugar.md`.
+Prueba `test-tanda-1377-pantalla.mjs` (rama `pruebas`); se ajustan la 635, la
+833, la 849, la 850 y la 555 (abren el «⋯» de la mesa o «Las demás jornadas»).
+
+**Pendiente**: 1378 (Tabla, Info y Jueces).
+
 ## 2026-11-16 (622) — PINGU-Claude (1376 — El torneo, renovado: Hoy en tarjetas)
 
 **Hecho** (la versión 2 de «El torneo, renovado»; decisión 2: la lista en una

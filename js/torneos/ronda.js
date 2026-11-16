@@ -1661,9 +1661,9 @@ function pintarMesas(ronda) {
         ${lado(m.player_a_id, ganaA, m.check_in_a_at, false)}
         <span class="torneo-mesa-centro">${terminal && res && res.score_a != null && res.score_b != null && m.status !== 'bye' ? `<b class="torneo-mesa-marcador">${res.score_a}–${res.score_b}</b>` : ''}${chapaDeMesa(m)}</span>
         ${lado(m.player_b_id, ganaB, m.check_in_b_at, true)}
-        ${resolver}
+        ${terminal ? '' : resolver}
         ${enfrentados}
-        ${repeticionesDeMesaHtml(m, { enRondas: true })}
+        ${masDeMesa(terminal ? resolver : '', repeticionesDeMesaHtml(m, { enRondas: true }))}
       </div>`
     })
     .join('')
@@ -1673,6 +1673,14 @@ function pintarMesas(ronda) {
   // otro. Y en el móvil ya no hace falta convertirla en tarjetas con
   // `data-etiqueta`, porque nunca fue una tabla.
   return `<div class="torneo-mesas">${filas}</div>`
+}
+
+// «⋯» de cada mesa (1377, la versión 2 de «El torneo, renovado»): «Corregir»
+// una mesa ya cerrada y sus repeticiones se usan poco; plegados, la mesa es
+// solo las dos caras y quién ganó. «Resolver» una mesa viva sigue a la vista.
+function masDeMesa(...partes) {
+  const dentro = partes.filter((x) => x && x.trim()).join('')
+  return dentro ? `<details class="torneo-mesa-mas"><summary aria-label="Más de la mesa">${icons.moreHorizontal?.(18) || '⋯'}</summary><div class="torneo-mesa-mas-dentro">${dentro}</div></details>` : ''
 }
 
 // Las inscripciones de cada jornada, para quien lleva la liga (tanda
@@ -1698,10 +1706,13 @@ function jornadasAdminHtml() {
       </li>`)
   }
   if (!filas.length) return ''
+  // 1377: la inscripción de la jornada que viene, a la vista; las demás,
+  // plegadas (se cierran poco). La explicación larga se fue: cada fila dice
+  // si está abierta y cuántos tienen lista.
+  const [primera, ...resto] = filas
   return `<div class="torneo-jornadas-admin" id="torneoJornadasAdmin">
-      <p class="torneo-jornadas-admin-titulo"><strong>Inscripciones por jornada</strong></p>
-      <p class="subtext">Cada jugador juega una jornada mandando su lista para ella. Al cerrar una jornada ya nadie puede mandar ni cambiar su lista de esa jornada; las demás siguen abiertas. Emparejarla arriba también la cierra.</p>
-      <ul class="torneo-jornadas-admin-lista">${filas.join('')}</ul>
+      <ul class="torneo-jornadas-admin-lista">${primera}</ul>
+      ${resto.length ? `<details class="torneo-jornadas-mas"><summary>Las demás jornadas (${resto.length})</summary><ul class="torneo-jornadas-admin-lista">${resto.join('')}</ul></details>` : ''}
     </div>`
 }
 
@@ -1911,11 +1922,17 @@ function pintarRondas() {
   // cambia según el momento (generar, iniciar, cerrar, continuar) y el «⋯»
   // con lo de deshacer. «Actualizar» se fue: la ficha se refresca sola (en
   // vivo y cada 10 s) desde hace muchas tandas.
+  // 1377: el mando es UNA tarjeta: el anillo de cuántos han mandado lista
+  // (liga entre jornadas), qué toca, el botón grande, la inscripción de esa
+  // jornada y, plegado, quién juega y qué pasa al emparejar.
+  const anillo = anilloDeListas(actual)
   const htmlRondas = `
     ${linea}
-    ${admin ? `<div class="torneo-mando"><div class="torneo-mando-texto"><span class="torneo-mando-rotulo">Llevas el torneo</span><b>${escapeHtml(textoDelMando(actual))}</b></div>
+    ${admin ? `<div class="torneo-mando${anillo ? ' con-anillo' : ''}">${anillo?.html || ''}<div class="torneo-mando-texto"><span class="torneo-mando-rotulo">Llevas el torneo</span><b>${escapeHtml(anillo?.titulo || textoDelMando(actual))}</b>${anillo ? `<span class="torneo-mando-sub">${escapeHtml(anillo.sub)}</span>` : ''}</div>
       <span class="torneo-rondas-botones">${admin}</span>
-    </div>` : ''}${adminAvisos}${jornadasAdminHtml()}`
+      ${adminAvisos ? `<details class="torneo-mando-detalle"><summary>Quién juega y qué pasa al emparejar</summary>${adminAvisos}</details>` : ''}
+      ${jornadasAdminHtml()}
+    </div>` : `${adminAvisos}${jornadasAdminHtml()}`}`
   if (!pintarSiCambia($('rondasAdmin'), htmlRondas)) return pintarRondasResto(actual)
   if ($('btnGenerarPareos')) $('btnGenerarPareos').addEventListener('click', generarPareos)
   if ($('btnSaltarJornada')) $('btnSaltarJornada').addEventListener('click', saltarJornada)
@@ -1988,6 +2005,27 @@ function selectorDeLigaHtml(vista) {
 }
 
 // Lo que dice el mando al lado de su botón (1344).
+// El anillo del mando (1377): en una liga entre jornadas, cuántos activos han
+// mandado lista para la jornada que toca emparejar. Solo quien ve las listas
+// de todos (el que lleva la liga) lo sabe.
+function anilloDeListas(actual) {
+  if (!esLiga() || actual || !ctx.jornadas || rondas.length >= ctx.torneo.swiss_rounds) return null
+  const n = rondas.length + 1
+  if (rondaEnJornada(ctx.torneo, n) !== 1) return null
+  const j = jornadaDeRonda(ctx.torneo, n)
+  const juegan = quienesJuegan(ctx.jornadas, j)
+  if (!juegan) return null
+  const activos = ctx.inscripciones.filter((i) => i.status === 'active')
+  const con = activos.filter((i) => juegan.has(i.user_id)).length
+  const pct = activos.length ? Math.round((con / activos.length) * 100) : 0
+  const fecha = (Array.isArray(ctx.torneo.matchday_dates) ? ctx.torneo.matchday_dates : [])[j - 1]
+  return {
+    titulo: `Jornada ${j}${fecha ? ` · ${fechaCorta(fecha)}` : ''}`,
+    sub: `${con} de ${activos.length} han mandado lista`,
+    html: `<span class="torneo-anillo" style="--p:${pct}" role="img" aria-label="${con} de ${activos.length} con lista"><b>${con}/${activos.length}<small>listas</small></b></span>`,
+  }
+}
+
 function textoDelMando(actual) {
   if (ctx.torneo.status === 'finished') return 'Torneo terminado'
   if (!actual) return rondas.length ? 'Entre rondas' : 'Listo para empezar'

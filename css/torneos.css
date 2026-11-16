@@ -4694,7 +4694,7 @@ button.torneo-tj { cursor: pointer; }
 .torneo-hero-cuenta.hidden { display: none; }
 .torneo-hero-cuenta small { font-size: var(--t-2xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: #cbd5e1; }
 .torneo-hero-cuenta b { font-family: var(--font-display); font-size: var(--t-2xl); font-weight: 800; line-height: 1.1; white-space: nowrap; }
-.torneo-rayitas { grid-column: 1 / -1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 5px; }
+.torneo-rayitas { grid-column: 1 / -1; display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 6px; }
 .torneo-rayitas.hidden { display: none; }
 .torneo-rayitas i { height: 6px; border-radius: var(--radius-pill); background: rgba(255, 255, 255, 0.15); }
 .torneo-rayitas i.h { background: rgba(255, 255, 255, 0.75); }
@@ -4838,3 +4838,54 @@ button.torneo-tj { cursor: pointer; }
 .torneo-proxima { align-content: start; }
 /* Sin lista, el botón ya está en la tarjeta de tu jornada: la de tu mazo sobra. */
 #torneoProximaCaja:not(.hidden) ~ #torneoMazoCaja:has(.btn-primary) { display: none; }
+
+/* ── 1377: Mesas del organizador (SCHEMA 1377) ──
+   El mando es una tarjeta: anillo de listas, qué toca, el botón grande, la
+   inscripción de esa jornada y lo demás plegado. Las mesas, tarjetas; lo que se
+   usa poco de cada una (Corregir, repeticiones) en su «⋯». */
+/* Entre jornadas la pastilla repetía la cuenta atrás de la cabecera (1375). */
+.torneo-pegado .torneo-viva:has(.torneo-viva-dia) { display: none; }
+.torneo-mando { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--e-md); padding: var(--e-lg); border-radius: var(--radius-xl); border-color: color-mix(in srgb, var(--acento) 40%, var(--border)); background: linear-gradient(160deg, color-mix(in srgb, var(--acento) 12%, var(--white)), var(--white) 60%); }
+.torneo-mando.con-anillo { grid-template-columns: auto minmax(0, 1fr); align-items: center; }
+.torneo-mando > :not(.torneo-anillo):not(.torneo-mando-texto) { grid-column: 1 / -1; }
+.torneo-mando-texto b { font-family: var(--font-display); font-size: var(--t-xl); }
+.torneo-mando-sub { font-size: var(--t-sm); color: var(--text-mid); }
+.torneo-mando .torneo-rondas-botones { display: flex; flex-wrap: wrap; gap: var(--e-sm); align-items: center; }
+.torneo-mando .torneo-rondas-botones > .btn-primary { flex: 1 1 260px; justify-content: center; min-height: 52px; font-size: var(--t-md); }
+.torneo-anillo { --p: 0; display: grid; place-items: center; width: 84px; height: 84px; border-radius: 50%; background: conic-gradient(var(--acento) calc(var(--p) * 1%), var(--ice) 0); }
+:root[data-theme='dark'] .torneo-anillo { background: conic-gradient(var(--acento) calc(var(--p) * 1%), var(--ice-dark) 0); }
+.torneo-anillo b { display: grid; place-items: center; width: 66px; height: 66px; border-radius: 50%; background: var(--white); font-family: var(--font-display); font-size: var(--t-lg); line-height: 1; text-align: center; }
+.torneo-anillo small { display: block; font-family: var(--font-body); font-size: var(--t-2xs); font-weight: 600; color: var(--text-mid); }
+.torneo-mando-detalle > summary,
+.torneo-jornadas-mas > summary { cursor: pointer; font-size: var(--t-sm); font-weight: 700; color: var(--acento); }
+.torneo-mando-detalle[open] > summary { margin-bottom: var(--e-xs); }
+.torneo-mando .torneo-jornadas-admin { margin: 0; padding: 0; border: 0; background: none; }
+.torneo-mando .torneo-jornadas-admin-lista { margin: 0; }
+.torneo-mando .torneo-jornadas-admin-fila { padding: var(--e-sm) var(--e-md); border-radius: var(--radius-md); background: var(--bg); }
+.torneo-jornadas-mas { margin-top: var(--e-xs); }
+
+/* Las mesas, como tarjetas; en el PC, de dos en dos. */
+.torneo-mesas { display: grid; gap: var(--e-sm); }
+.torneo-mesa { position: relative; border: 1px solid var(--border); border-radius: var(--radius-lg); background: var(--white); }
+/* El «⋯», en su columna al final de la fila; abierto, lo de dentro debajo. */
+.torneo-mesa:has(> .torneo-mesa-mas) { grid-template-columns: 34px minmax(0, 1fr) auto minmax(0, 1fr) auto; }
+.torneo-mesa-mas { grid-column: 5; grid-row: 1; }
+.torneo-mesa-mas[open] { grid-column: 1 / -1; grid-row: auto; }
+.torneo-mesa-mas > summary { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; list-style: none; cursor: pointer; color: var(--text-mid); }
+.torneo-mesa-mas > summary::-webkit-details-marker { display: none; }
+.torneo-mesa-mas > summary:hover { background: var(--bg); }
+.torneo-mesa-mas[open] > summary { margin-left: auto; }
+.torneo-mesa-mas-dentro { display: grid; gap: var(--e-xs); padding-top: var(--e-xs); }
+@media (max-width: 560px) {
+  /* En el móvil el «⋯» va en la esquina: una columna más dejaba sin sitio los nombres. */
+  .torneo-mesa:has(> .torneo-mesa-mas) { grid-template-columns: 30px minmax(0, 1fr) auto; padding-right: 40px; }
+  .torneo-mesa-mas:not([open]) { position: absolute; top: 4px; right: 2px; }
+  .torneo-mesa-mas[open] { grid-column: 1 / -1; grid-row: auto; }
+  .torneo-mando .torneo-rondas-botones > .btn-primary { flex-basis: 100%; white-space: normal; text-align: center; }
+  .torneo-mando { padding: var(--e-md); }
+  /* «GANA GORKA-RUBIO» en dos líneas antes que dejar los nombres en «g..». */
+  .torneo-mesa-centro > :not(.torneo-mesa-marcador) { max-width: 6.5rem; white-space: normal; text-align: center; line-height: 1.2; }
+  .torneo-anillo { width: 72px; height: 72px; }
+  .torneo-anillo b { width: 56px; height: 56px; font-size: var(--t-md); }
+}
+

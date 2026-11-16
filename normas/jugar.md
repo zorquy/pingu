@@ -233,6 +233,13 @@ de lo tuyo (`misJornadas`), nunca de `quienesJuegan`, que solo tiene datos para
 quien ve las listas de todos: con él, a un jugador le decía siempre «te falta
 la lista».
 
+**El mando del organizador es UNA tarjeta y lo que se usa poco va plegado**
+(1377): qué toca, un anillo o una cifra, el botón grande y la inscripción de la
+jornada que toca; las demás jornadas, los avisos largos y «Corregir» de una mesa
+cerrada van en un `<details>` o en su «⋯». Una pieza nueva para quien lleva el
+torneo entra ahí, no como otro párrafo debajo. Y lo que va plegado se busca en
+las pruebas abriendo antes el `<details>`: cerrado no se puede pulsar.
+
 **Jugar son TRES cosas en el menú: Torneos, Mazos y Partidas** (tanda 1358,
 PINGU eligió «Jugar en tres»). Mazos son /meta, /mazos y /laboratorio con sus
 pestañas Meta · Los míos · Probar; Partidas son /mis-partidas y /repeticiones.

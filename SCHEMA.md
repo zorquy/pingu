@@ -55204,6 +55204,21 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1377 — El torneo, renovado: Mesas del organizador
+
+- `ronda.js`: `anilloDeListas(actual)` → `{titulo, sub, html}` o null (liga, sin
+  ronda viva, primera ronda de su jornada, y solo si `quienesJuegan` sabe: quien
+  lleva la liga). `.torneo-mando` lleva ahora el anillo (`.con-anillo`), el texto
+  (`.torneo-mando-sub`), los botones, `details.torneo-mando-detalle` con
+  `adminAvisos` y `jornadasAdminHtml()` (la primera fila a la vista, el resto en
+  `details.torneo-jornadas-mas`). Sin mando, avisos e inscripciones van sueltos
+  como antes.
+- `masDeMesa(...partes)`: `details.torneo-mesa-mas` con lo que se le pase; en
+  `pintarMesas` lleva «Corregir» (solo mesas terminadas) y las repeticiones.
+- CSS «1377»: `.torneo-anillo` (`--p` en %), mando en rejilla, `.torneo-mesa`
+  con borde y radio, y la quinta columna del «⋯» (en ≤560, en la esquina).
+  `.torneo-viva:has(.torneo-viva-dia)` no se ve (entre jornadas).
+
 ## Tanda 1376 — El torneo, renovado: Hoy en tarjetas
 
 - `js/torneos/hoy-tarjetas.js`: `nombreDeLista(parsed)` (los dos Pokémon de
