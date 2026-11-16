@@ -47,7 +47,7 @@ console.log('── 1. Dos catálogos, como en la API ──')
   // Pokédex): se lee el primero del DOM, que es el mismo repetido.
   const sel = page.locator('.mc-mercado').first()
   const ops = await sel.evaluate((n) => [...n.options].map((o) => `${o.value}=${o.textContent}`))
-  check('el desplegable ofrece Pokémon y Pokémon Japón, y nada más', ops.join(' | ') === 'es=🇬🇧 Pokémon | ja=🇯🇵 Pokémon Japón', ops.join(' | '))
+  check('el desplegable ofrece Occidental y Japonés (1368), y nada más', ops.join(' | ') === 'es=Occidental | ja=Japonés', ops.join(' | '))
   check('  …y está en el japonés, que es lo que había guardado', (await sel.evaluate((n) => n.value)) === 'ja')
 }
 

@@ -111,7 +111,7 @@ console.log('── 2. Lo que dan los demás, por carta ──')
   check('cinco cartas, las cuatro occidentales y la japonesa (1038: los dos catálogos): ni lo mío, ni lo de un baneado, ni lo que da 0', ids.slice().sort().join() === 'SV2a-201,sv2-269,sv3pt5-199,sv8-238,swsh7-215', ids.join())
   // Sin selector de catálogo (1038): cada uno en su tramo, con su rótulo.
   const rotulos = await page.$$eval('#mcMercadoRejilla .mc-catalogo-rotulo', (hs) => hs.map((h) => h.innerText.replace(/\s+/g, ' ').trim()))
-  check('  …cada catálogo con su rótulo: Pokémon 4 y Pokémon Japón 1', rotulos.join('|') === 'Pokémon 4|Pokémon Japón 1', rotulos.join('|'))
+  check('  …cada catálogo con su rótulo: Occidental 4 y Japonés 1 (1368)', rotulos.join('|') === 'Occidental 4|Japonés 1', rotulos.join('|'))
   check('  …la japonesa, al final', ids[ids.length - 1] === 'SV2a-201', ids.join())
   check('  …y ya no hay selector de catálogo', (await page.locator('[data-mercado-catalogo]').count()) === 0)
   check('  …lo último primero (Umbreon, hace 2 h)', ids[0] === 'swsh7-215', ids.join())

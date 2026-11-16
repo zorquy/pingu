@@ -60,7 +60,7 @@ console.log('── 1. iPhone · La quiero ──')
   await page.fill('#mcDeseoBuscar', 'pikachu')
   await page.waitForTimeout(1500)
   const r = await page.evaluate(() => ({ ids: [...document.querySelectorAll('#mcDeseoResultados [data-desear]')].map((x) => x.dataset.desear), rotulos: [...document.querySelectorAll('#mcDeseoResultados .mc-deseo-rotulo')].map((x) => [...x.children].map((c) => c.textContent.trim()).filter(Boolean).join(' ')) }))
-  check('apuntar busca en los dos catálogos: la occidental y debajo la japonesa, con su rótulo', r.ids.join() === 'sv8-1,SV8-1' && r.rotulos.join('|') === 'Pokémon 1|Pokémon Japón 1', JSON.stringify(r))
+  check('apuntar busca en los dos catálogos: la occidental y debajo la japonesa, con su rótulo', r.ids.join() === 'sv8-1,SV8-1' && r.rotulos.join('|') === 'Occidental 1|Japonés 1', JSON.stringify(r))
   await ctx.close()
 }
 
@@ -69,11 +69,12 @@ console.log('\n── 2. iPhone · Expansiones, /buscar, /evento y /repeticiones
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=album')
   const e = await page.evaluate(() => {
     const cab = document.querySelector('.mc-estanteria-cabeza')
-    const hs = [...cab.children].filter((h) => h.getBoundingClientRect().width > 2)
-    return { filas: new Set(hs.map((h) => { const r = h.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 16) })).size, catalogo: Boolean(cab.querySelector('.seg [data-vista]')), textos: [...cab.querySelectorAll('.seg-btn')].map((x) => x.innerText.trim()), fila2: getComputedStyle(document.querySelector('.mc-estanteria-fila2')).display, ancho: document.documentElement.scrollWidth <= innerWidth }
+    // La fila de Cartas (1366) va encima, en su propia línea: no cuenta.
+    const hs = [...cab.children].filter((h) => h.getBoundingClientRect().width > 2 && !h.classList.contains('mc-cartas-pestanas') && h.tagName !== 'SELECT')
+    return { filas: new Set(hs.map((h) => { const r = h.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 16) })).size, catalogo: Boolean(cab.querySelector('.seg [data-vista]')), textos: [...cab.querySelectorAll('.seg:not(.mc-cartas-pestanas) .seg-btn')].map((x) => x.innerText.trim()), fila2: getComputedStyle(document.querySelector('.mc-estanteria-fila2')).display, ancho: document.documentElement.scrollWidth <= innerWidth }
   })
   check('sin errores', errores.length === 0, errores.join(' | '))
-  check('Expansiones: catálogo («Pokémon · Japón»), lupa y Orden en UNA fila, sin título ni fila de la cuenta', e.catalogo && e.filas === 1 && e.textos.join('|') === 'Pokémon|Japón' && e.fila2 === 'none' && e.ancho, JSON.stringify(e))
+  check('Expansiones: catálogo («Occidental · Japonés», 1368), lupa y Orden en UNA fila, sin título ni fila de la cuenta', e.catalogo && e.filas === 1 && e.textos.join('|') === 'Occidental|Japonés' && e.fila2 === 'none' && e.ancho, JSON.stringify(e))
   await page.goto(`${BASE}/buscar.html?q=pikachu`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2200)
   const bs = await page.evaluate(() => { const c = document.getElementById('bsChips'); const hs = [...c.children]; return { filas: new Set(hs.map((h) => { const r = h.getBoundingClientRect(); return Math.round((r.top + r.height / 2) / 16) })).size, desliza: c.scrollWidth > c.clientWidth, titulo: Math.round(document.querySelector('.bs-titulo').getBoundingClientRect().height), ancho: document.documentElement.scrollWidth <= innerWidth } })

@@ -93,13 +93,13 @@ console.log('\n── 2. El selector: TRES banderas y nada más (tanda 509) ─�
   // Con dos catálogos que se llaman como en la API, la bandera va CON el
   // nombre (648): lo que se elige ya no es un idioma.
   check('  …la bandera con el nombre',
-    ops.map((o) => o.t).join(' | ') === '🇬🇧 Pokémon | 🇯🇵 Pokémon Japón', ops.map((o) => o.t).join(' | '))
+    ops.map((o) => o.t).join(' | ') === 'Occidental | Japonés', ops.map((o) => o.t).join(' | '))
   // Pero el nombre NO se pierde: una bandera a secas no se puede leer en
   // voz alta, así que va en el `title` y en el `aria-label`.
   check('  …con su nombre para quien no ve la bandera',
-    ops.map((o) => o.ti).join(',') === 'Pokémon,Pokémon Japón', ops.map((o) => o.ti).join(','))
+    ops.map((o) => o.ti).join(',') === 'Occidental,Japonés', ops.map((o) => o.ti).join(','))
   check('  …y el desplegable dice cuál está puesto',
-    /Pokémon/.test(await suyo(page).getAttribute('aria-label')), await suyo(page).getAttribute('aria-label'))
+    /Occidental/.test(await suyo(page).getAttribute('aria-label')), await suyo(page).getAttribute('aria-label'))
   check('empieza en español', (await suyo(page).inputValue()) === 'es')
   check('sin errores', !errores.length, errores[0])
   await page.close()
