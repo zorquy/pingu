@@ -12,6 +12,7 @@ import * as datos from './datos.js'
 import { FILTROS_CATALOGO, filtrosCatalogoVacios, valoresDeCartas, pasaFiltrosDeCarta } from './filtros.js'
 import { variantesDeCarta, pegarVersiones } from './variantes.js'
 import { porNumero } from './orden.js'
+import { rangoDeCarta } from '../rareza-escala.js'
 import { hojaInyectada } from '../hoja.js'
 import { meterEnLaHoja } from './hoja-filtros.js'
 
@@ -65,17 +66,26 @@ export async function abrirPokedex() {
 
 // La región que se mira en la Pokédex (748): la primera, al entrar.
 let pdxRegion = 0
+// Lo de la hoja de Filtros de la lista (1370): Mostrar, Ordenar y Tipo.
+let pdxMostrar = 'todos'
+let pdxOrden = 'dex'
+const pdxTipos = new Set()
 
 export function pintarPokedex() {
   const caja = $('mcPokedexPanel')
   $('mcPdxMandos').classList.remove('hidden')
   const mio = ctx.pokedex.loMioPorEspecie(ctx.lineas, ctx.cartas)
+  const tipos = ctx.pokedex.tiposPorEspecie(ctx.lineas, ctx.cartas)
+  // Sin tu colección no hay «los que tengo»: Mostrar no sale y no filtra.
+  const tuya = Boolean(ctx.esMia && ctx.sesion)
+  const mostrar = tuya ? pdxMostrar : 'todos'
   const filas = ctx.pokedex.filasDePokedex({
     mio,
     totales: ctx.totalesPokedex,
-    soloMios: ctx.pdxSoloMios,
+    mostrar,
     texto: $('mcPdxBuscar').value,
-    tipos: ctx.pokedex.tiposPorEspecie(ctx.lineas, ctx.cartas),
+    tipos,
+    tiposPuestos: pdxTipos,
   })
   // La cabecera con las cuatro cifras (tanda 400), y debajo la rejilla.
   // Se pinta siempre, incluso filtrando: «llevas 701 de 1.025» no puede
@@ -85,16 +95,37 @@ export function pintarPokedex() {
   // Como en su maqueta (748): el título con la región y el anillo, las
   // pestañas por región y la rejilla de UNA región. Buscando o en «los que
   // casi completas», la lista de siempre: ahí la región no ayuda.
-  const orden = $('mcPdxOrden')?.value || 'dex'
+  const orden = !tuya && (pdxOrden === 'cerca' || pdxOrden === 'mas') ? 'dex' : pdxOrden
   const buscando = Boolean(String($('mcPdxBuscar').value || '').trim())
-  const todas = ctx.pokedex.filasDePokedex({ mio, totales: ctx.totalesPokedex, soloMios: ctx.pdxSoloMios, tipos: ctx.pokedex.tiposPorEspecie(ctx.lineas, ctx.cartas) })
+  const todas = ctx.pokedex.filasDePokedex({ mio, totales: ctx.totalesPokedex, tipos })
   const encabezado = $('mcPdxEncabezado')
   // La banda del PC (1217) lleva la hoja de las bandas.
   if (encabezado) import('../hoja.js').then((m) => m.hojaInyectada('css/seccion.css')).catch(() => {})
   if (encabezado) encabezado.innerHTML = ctx.pokedex.encabezadoHtml(todas, { region: pdxRegion, registrados: resumen.registrados })
-  caja.innerHTML = buscando || orden !== 'dex'
-    ? ctx.pokedex.rejillaHtml(filas, orden)
-    : ctx.pokedex.regionesHtml(pdxRegion, ctx.pdxSoloMios ? ctx.pokedex.filasDePokedex({ mio, totales: ctx.totalesPokedex, soloMios: false, tipos: ctx.pokedex.tiposPorEspecie(ctx.lineas, ctx.cartas) }) : todas) + ctx.pokedex.rejillaDeRegionHtml(filas, pdxRegion)
+  // Las regiones salieron de la página a su hoja (1370): la fila lleva
+  // «Kanto ▾» con lo que llevas, y solo cuando la lista es por regiones.
+  const porRegiones = !buscando && orden === 'dex'
+  caja.innerHTML = porRegiones ? ctx.pokedex.rejillaDeRegionHtml(filas, pdxRegion) : ctx.pokedex.rejillaHtml(filas, orden)
+  const region = ctx.pokedex.regionDe(pdxRegion, todas)
+  const boton = $('mcPdxRegionAbrir')
+  if (boton) {
+    boton.classList.toggle('hidden', !porRegiones)
+    boton.setAttribute('aria-label', `Región: ${region.nombre}, llevas ${region.tengo} de ${region.total}`)
+    $('mcPdxRegionRotulo').textContent = region.nombre
+    $('mcPdxRegionCuenta').textContent = region.total ? `${region.tengo}/${region.total}` : ''
+  }
+  if ($('mcPdxRegionLista')) $('mcPdxRegionLista').innerHTML = ctx.pokedex.regionesHtml(pdxRegion, todas)
+  // La hoja de Filtros de la lista: la misma hoja que la de una especie, con
+  // sus grupos; se cambian enteros al pintar una u otra (`meterEnLaHoja`).
+  meterEnLaHoja($('mcPdxGrupos'), ctx.pokedex.gruposDeListaHtml({ mostrar, orden, tipos: pdxTipos, conMostrar: tuya }))
+  if ($('mcPdxFiltrosVer')) $('mcPdxFiltrosVer').textContent = filas.length ? `Ver ${filas.length.toLocaleString('es-ES', { useGrouping: 'always' })} Pokémon` : 'Ningún Pokémon: afloja algún filtro'
+  const puestos = (mostrar !== 'todos' ? 1 : 0) + pdxTipos.size
+  const cuenta = $('mcPdxFiltrosCuenta')
+  if (cuenta) {
+    cuenta.textContent = puestos ? String(puestos) : ''
+    cuenta.classList.toggle('hidden', !puestos)
+  }
+  $('mcPdxAbrirFiltros')?.classList.toggle('mc-filtros-puestos', puestos > 0)
   // El contador de arriba cuenta especies DISTINTAS, no cartas: es una
   // Pokédex, y lo que se llena son huecos de Pokémon.
   // Lo dice el anillo de arriba (748): aquí solo para quien lee en voz alta.
@@ -109,6 +140,27 @@ let cartasDeLaEspecie = []
 // que nada dijera por qué.
 const filtrosEspecie = filtrosCatalogoVacios()
 let textoEspecie = ''
+// Cómo se ordenan las cartas de una especie (1370): se queda al pasar de un
+// Pokémon a otro, como el de una expansión.
+let ordenEspecie = 'nuevas'
+const fechaDe = (c) => String(c.tcg_sets?.release_date || '')
+function ordenarEspecie(lista) {
+  const l = [...lista]
+  if (ordenEspecie === 'antiguas') return l.sort((a, b) => fechaDe(a).localeCompare(fechaDe(b)) || porNumero(a, b))
+  if (ordenEspecie === 'rareza') {
+    // Las que no se saben, al final (la regla de `ordenar`, 427).
+    return l.sort((a, b) => {
+      const ra = rangoDeCarta(a)
+      const rb = rangoDeCarta(b)
+      if (ra === null && rb === null) return porSetYNumero(a, b)
+      if (ra === null) return 1
+      if (rb === null) return -1
+      return rb - ra || porSetYNumero(a, b)
+    })
+  }
+  if (ordenEspecie === 'nombre') return l.sort((a, b) => ctx.nombreDe(a).localeCompare(ctx.nombreDe(b), 'es') || porSetYNumero(a, b))
+  return l.sort(porSetYNumero)
+}
 
 // Repinta la especie abierta con los filtros puestos. Las cartas no se
 // vuelven a pedir: están todas en memoria desde que se abrió, así que
@@ -150,11 +202,11 @@ function pintarEspecieFiltrada() {
   // de antes.
   const hueco = $('mcPdxGrupos')
   const tuya = ctx.esMia && ctx.sesion
-  meterEnLaHoja(hueco, ctx.pokedex.gruposDeEspecieHtml(grupos, filtrosEspecie, { idioma: ctx.pdxIdioma, idiomas: tuya ? ctx.idiomasDeLaVista() : [], que: ctx.pdxSoloFaltan ? 'faltan' : soloTengo ? 'tengo' : 'todas', conMostrar: tuya }))
+  meterEnLaHoja(hueco, ctx.pokedex.gruposDeEspecieHtml(grupos, filtrosEspecie, { idioma: ctx.pdxIdioma, idiomas: tuya ? ctx.idiomasDeLaVista() : [], que: ctx.pdxSoloFaltan ? 'faltan' : soloTengo ? 'tengo' : 'todas', conMostrar: tuya, orden: ordenEspecie }))
   ctx.rotularVer('mcPdxFiltrosVer', lista.length)
   caja.innerHTML = ctx.pokedex.especieHtml({
     dex: ctx.especieAbierta,
-    cartas: lista,
+    cartas: ordenarEspecie(lista),
     tuyas,
     sinCatalogo: cartasDeLaEspecie.length === 0,
     grupos,
@@ -250,27 +302,26 @@ function enganchar() {
   // pestaña: el panel se repinta entero en cada filtro, así que un
   // oyente puesto dentro se duplicaría en cada tecla. La caja de fuera
   // no se repinta nunca.
-  for (const id of ['mcPdxBuscar', 'mcPdxOrden']) {
-    $(id).addEventListener(id === 'mcPdxBuscar' ? 'input' : 'change', () => {
-      // Al filtrar se vuelve a la rejilla: filtrar con una especie
-      // abierta no significa nada.
-      ctx.especieAbierta = null
-      if (ctx.pokedexCargada) pintarPokedex()
-    })
-  }
-  // «Solo los que tengo» es una CHAPA desde la 465, así que su estado lo
-  // guarda una variable y no un `checked`.
-  $('mcPdxSoloMios').addEventListener('click', () => {
-    ctx.pdxSoloMios = !ctx.pdxSoloMios
-    $('mcPdxSoloMios').classList.toggle('activo', ctx.pdxSoloMios)
-    $('mcPdxSoloMios').setAttribute('aria-pressed', ctx.pdxSoloMios ? 'true' : 'false')
+  $('mcPdxBuscar').addEventListener('input', () => {
+    // Al filtrar se vuelve a la rejilla: filtrar con una especie
+    // abierta no significa nada.
     ctx.especieAbierta = null
     if (ctx.pokedexCargada) pintarPokedex()
   })
+  // La fila (1370): Filtros abre la hoja común y «Kanto ▾» la de regiones.
+  // Las dos hojas se cierran tocando fuera, como las demás.
+  $('mcPdxAbrirFiltros')?.addEventListener('click', () => $('mcPdxPanelFiltros').showModal())
+  $('mcPdxRegionAbrir')?.addEventListener('click', () => {
+    $('mcPdxRegionHoja').showModal()
+    $('mcPdxRegionLista')?.querySelector('.activa')?.focus()
+  })
+  $('mcPdxRegionCerrar')?.addEventListener('click', () => $('mcPdxRegionHoja').close())
+  $('mcPdxRegionHoja')?.addEventListener('click', (e) => { if (e.target === e.currentTarget) e.currentTarget.close() })
   $('mcPanelPokedex').addEventListener('click', (e) => {
     const region = e.target.closest('[data-pdx-region]')
     if (region) {
       pdxRegion = Number(region.dataset.pdxRegion) || 0
+      $('mcPdxRegionHoja')?.close()
       pintarPokedex()
       $('mcPokedexPanel')?.querySelector('.pdx-regiones .activa')?.scrollIntoView({ block: 'nearest', inline: 'center' })
       return
@@ -306,6 +357,24 @@ function enganchar() {
     }
   })
   $('mcPdxGrupos')?.addEventListener('click', (e) => {
+    // La lista (1370): Mostrar, Ordenar y Tipo.
+    const lista = e.target.closest('[data-pdxl-mostrar], [data-pdxl-orden], [data-pdxl-tipo]')
+    if (lista) {
+      if (lista.dataset.pdxlMostrar) {
+        pdxMostrar = lista.dataset.pdxlMostrar
+        ctx.pdxSoloMios = pdxMostrar === 'tengo'
+      } else if (lista.dataset.pdxlOrden) pdxOrden = lista.dataset.pdxlOrden
+      else if (pdxTipos.has(lista.dataset.pdxlTipo)) pdxTipos.delete(lista.dataset.pdxlTipo)
+      else pdxTipos.add(lista.dataset.pdxlTipo)
+      ctx.especieAbierta = null
+      return pintarPokedex()
+    }
+    // El orden de una especie (1370).
+    const ordenE = e.target.closest('[data-pdx-orden]')
+    if (ordenE) {
+      ordenEspecie = ordenE.dataset.pdxOrden
+      return pintarEspecieFiltrada()
+    }
     // Todas / Tengo / Faltan (1054; era «Solo las que me faltan», 577), en la
     // hoja desde la 1369, como en una expansión.
     const que = e.target.closest('[data-pdx-que]')
@@ -330,6 +399,13 @@ function enganchar() {
   $('mcPdxFiltrosCerrar')?.addEventListener('click', () => $('mcPdxPanelFiltros').close())
   $('mcPdxFiltrosVer')?.addEventListener('click', () => $('mcPdxPanelFiltros').close())
   $('mcPdxFiltrosLimpiar')?.addEventListener('click', () => {
+    // En la lista, Mostrar y Tipo (el orden no es un filtro y se queda).
+    if (!ctx.especieAbierta) {
+      pdxMostrar = 'todos'
+      ctx.pdxSoloMios = false
+      pdxTipos.clear()
+      return pintarPokedex()
+    }
     for (const g of FILTROS_CATALOGO) filtrosEspecie[g.id].clear()
     ctx.pdxIdioma = ''
     ctx.pdxSoloFaltan = false

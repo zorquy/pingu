@@ -55204,6 +55204,38 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1370 — La Pokédex en una fila
+
+La segunda de «Una fila, como Dex» (la 1369 hizo la expansión, un Pokémon y
+Buscar). PINGU eligió la A: las regiones en un desplegable.
+
+- `#mcPdxMandos` lleva `.mc-una-fila` (y `.pdx-mandos.mc-una-fila` en
+  css/mc-pokedex.css le gana a la rejilla de dos pisos de `.pdx-mandos`):
+  buscador, `select.mc-mercado` (la bandera, como en la 1369),
+  `#mcPdxRegionAbrir` y `#mcPdxAbrirFiltros`. En el móvil, la región va con
+  `order: -1` para quedar entre la bandera y Filtros.
+- La región: `regionDe(i, filas)` (nombre, tengo, total) rotula el botón;
+  `regionesHtml` se pinta en `#mcPdxRegionLista`, dentro de
+  `#mcPdxRegionHoja` (en `#mcPanelPokedex`: el clic de `[data-pdx-region]`
+  lo recoge el oyente de siempre, que ahora cierra la hoja). La rejilla ya no
+  lleva la fila de regiones; el botón se esconde si se busca o el orden no es
+  por número.
+- Estado de la lista en pokedex-ui.js: `pdxMostrar` ('todos'/'tengo'/
+  'faltan'), `pdxOrden` ('dex'/'cerca'/'mas'/'az') y `pdxTipos` (letras de
+  energía). `filasDePokedex` admite `mostrar` (y `soloMios`, el nombre viejo)
+  y `tiposPuestos`, que mira el tipo de la especie (`tipoDeEspecie`) o el de
+  tus cartas. `rejillaHtml` pinta 'mas' (solo los que tienes, de más a menos)
+  y 'az' (`localeCompare` en español) como lista seguida, igual que 'cerca'.
+  Sin tu colección no salen Mostrar ni los órdenes que dependen de ella.
+- La hoja es `#mcPdxPanelFiltros` para las dos vistas: `gruposDeListaHtml`
+  (con `data-pdxl-mostrar|orden|tipo`) o `gruposDeEspecieHtml` se meten con
+  `meterEnLaHoja` y se sustituyen enteros al pintar la otra. «Limpiar» en la
+  lista quita Mostrar y Tipo (el orden no es un filtro).
+- Un Pokémon: `ordenEspecie` ('nuevas' por defecto = `porSetYNumero`,
+  'antiguas', 'rareza' con `rangoDeCarta` y las desconocidas al final,
+  'nombre'), grupo `data-hoja="orden"` con `data-pdx-orden`; se queda al
+  pasar de un Pokémon a otro.
+
 ## Tanda 1369 — Una fila, como Dex
 
 PINGU, con capturas de Dex: «lo hace todo en una fila; nosotros usamos

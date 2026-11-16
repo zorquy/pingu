@@ -130,12 +130,16 @@ export function tiposPorEspecie(lineas, cartas) {
 // `total` es null cuando no se sabe (sin migración, o una especie de la
 // que el catálogo todavía no ha contado nada). `null` y `0` son cosas
 // distintas y la pantalla dice cuál es — la lección de la 319.
-export function filasDePokedex({ mio, totales, soloMios = false, texto = '', tipos = new Map() }) {
+// `mostrar` (1370): 'todos', 'tengo' o 'faltan' (los que no tienes de ningún
+// modo); `soloMios` es el nombre de antes y sigue valiendo. `tiposPuestos`,
+// las letras del filtro por tipo (vacío = todos).
+export function filasDePokedex({ mio, totales, soloMios = false, mostrar = soloMios ? 'tengo' : 'todos', texto = '', tipos = new Map(), tiposPuestos = null }) {
   const busca = String(texto || '').trim().toLowerCase()
   const filas = []
   for (let dex = 1; dex <= POKEMON_POR_DEX.length; dex++) {
     const tengo = mio.get(dex) || 0
-    if (soloMios && !tengo) continue
+    if (mostrar === 'tengo' && !tengo) continue
+    if (mostrar === 'faltan' && tengo) continue
     const nombre = POKEMON_POR_DEX[dex - 1]
     if (busca && !nombre.toLowerCase().includes(busca) && String(dex) !== busca) continue
     // El tipo de TUS cartas manda; si no lo traen, el de la especie (748):
@@ -143,7 +147,9 @@ export function filasDePokedex({ mio, totales, soloMios = false, texto = '', tip
     // tienen la columna rellena. `tipoDe` es el de la especie, también para
     // los que faltan, que llevan su símbolo en gris.
     const tipoDe = tipoDeEspecie(dex)
-    filas.push({ dex, nombre, tengo, total: totales.has(dex) ? totales.get(dex) : null, tipo: tengo ? tipos.get(dex) || tipoDe : null, tipoDe })
+    const tipo = tengo ? tipos.get(dex) || tipoDe : null
+    if (tiposPuestos?.size && !tiposPuestos.has(tipo || tipoDe)) continue
+    filas.push({ dex, nombre, tengo, total: totales.has(dex) ? totales.get(dex) : null, tipo, tipoDe })
   }
   return filas
 }
@@ -298,6 +304,31 @@ export function regionesHtml(region = 0, filas = null) {
   }).join('')}</div>`
 }
 
+// La región que se mira, para el botón «Kanto ▾» de la fila (1370): su nombre
+// y cuántos llevas de ella (de TODAS las especies, como `regionesHtml`).
+export function regionDe(i = 0, filas = []) {
+  const g = GENERACIONES[i] || GENERACIONES[0]
+  const de = filas.filter((f) => f.dex >= g.desde && f.dex <= g.hasta)
+  return { nombre: g.region, tengo: de.filter((f) => f.tengo).length, total: de.length }
+}
+
+// La hoja de Filtros de la lista (1370): Mostrar, Ordenar y Tipo, con el
+// orden y los nombres de la hoja común. El tipo es el de la especie
+// (`tipoDeEspecie`), así que también filtra los que te faltan.
+export const ORDENES_DE_POKEDEX = [['dex', 'Por número'], ['cerca', 'Los que casi completas'], ['mas', 'Los que más tienes'], ['az', 'De la A a la Z']]
+export function gruposDeListaHtml({ mostrar = 'todos', orden = 'dex', tipos = new Set(), conMostrar = true } = {}) {
+  const radio = (attr, valor, puesto, texto) => `<button type="button" class="chip-filtro${puesto ? ' activa' : ''}" role="radio" ${attr}="${valor}" aria-checked="${puesto}">${texto}</button>`
+  const mostrarHtml = conMostrar
+    ? `<div class="mc-grupo-filtro" data-hoja="mostrar"><h3>${tituloEnLaHoja('mostrar')}</h3><div class="mc-chips-filtro" role="radiogroup" aria-label="Qué Pokémon ver">${[['todos', 'Todos'], ['tengo', 'Los que tengo'], ['faltan', 'Los que me faltan']].map(([v, t]) => radio('data-pdxl-mostrar', v, mostrar === v, t)).join('')}</div></div>`
+    : ''
+  const ordenHtml = `<div class="mc-grupo-filtro" data-hoja="orden"><h3>${tituloEnLaHoja('orden')}</h3><div class="mc-chips-filtro" role="radiogroup" aria-label="Cómo se ordenan">${ORDENES_DE_POKEDEX.filter(([v]) => conMostrar || v === 'dex' || v === 'az').map(([v, t]) => radio('data-pdxl-orden', v, orden === v, t)).join('')}</div></div>`
+  const letras = Object.keys(NOMBRE_DE_LETRA).filter((l) => l !== 'Y')
+  const tipoHtml = `<div class="mc-grupo-filtro" data-hoja="energia"><h3>${tituloEnLaHoja('energia')}</h3><div class="mc-chips-filtro mc-chips-energia">${letras
+    .map((l) => `<button type="button" class="chip-filtro chip-energia${tipos.has(l) ? ' activa' : ''}" data-pdxl-tipo="${l}" aria-pressed="${tipos.has(l)}" aria-label="${escapeHtml(NOMBRE_DE_LETRA[l])}" title="${escapeHtml(NOMBRE_DE_LETRA[l])}">${simboloDeTipoHtml(l, { tam: 28 })}</button>`)
+    .join('')}</div></div>`
+  return mostrarHtml + ordenHtml + tipoHtml
+}
+
 export function rejillaDeRegionHtml(filas, region = 0) {
   const g = GENERACIONES[region] || GENERACIONES[0]
   const deLaRegion = filas.filter((f) => f.dex >= g.desde && f.dex <= g.hasta)
@@ -321,6 +352,19 @@ export function rejillaHtml(filas, orden = 'dex') {
         <small>${cerca.length}</small>
       </h3>
       <div class="pdx-rejilla">${cerca.map(filaHtml).join('')}</div>`
+  }
+  // Los que más tienes y de la A a la Z (1370): una lista seguida, como «los
+  // que casi completas»; la región no ayuda a ninguna de las dos.
+  if (orden === 'mas' || orden === 'az') {
+    const lista = orden === 'mas'
+      ? filas.filter((f) => f.tengo).sort((a, b) => b.tengo - a.tengo || a.dex - b.dex)
+      : [...filas].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'))
+    if (!lista.length) return '<p class="empty-state">Todavía no tienes cartas de ningún Pokémon: en cuanto tengas alguna, aquí salen ordenados por cuántas tienes.</p>'
+    return `<h3 class="pdx-generacion">
+        <span>${orden === 'mas' ? 'Los que más tienes' : 'De la A a la Z'}</span>
+        <small>${lista.length}</small>
+      </h3>
+      <div class="pdx-rejilla">${lista.map(filaHtml).join('')}</div>`
   }
   return porGeneraciones(filas)
     .map((g) => {
@@ -401,8 +445,18 @@ function mostrarDeEspecieHtml(que) {
     .join('')}</div></div>`
 }
 
-export function gruposDeEspecieHtml(grupos, puestos, { idioma = '', idiomas = [], que = 'todas', conMostrar = false } = {}) {
-  const mostrar = conMostrar ? mostrarDeEspecieHtml(que) : ''
+// Ordenar (1370): más nuevas (lo de siempre), más antiguas, las más raras y
+// por nombre. «Más caras» no está: los precios de las cartas de una especie
+// no se piden (serían cientos) y el orden mentiría con las que no lo tienen.
+export const ORDENES_DE_ESPECIE = [['nuevas', 'Más nuevas primero'], ['antiguas', 'Más antiguas primero'], ['rareza', 'Las más raras primero'], ['nombre', 'Por nombre']]
+function ordenDeEspecieHtml(orden) {
+  return `<div class="mc-grupo-filtro" data-hoja="orden"><h3>${tituloEnLaHoja('orden')}</h3><div class="mc-chips-filtro" role="radiogroup" aria-label="Cómo se ordenan">${ORDENES_DE_ESPECIE
+    .map(([id, t]) => `<button type="button" class="chip-filtro${orden === id ? ' activa' : ''}" role="radio" data-pdx-orden="${id}" aria-checked="${orden === id}">${t}</button>`)
+    .join('')}</div></div>`
+}
+
+export function gruposDeEspecieHtml(grupos, puestos, { idioma = '', idiomas = [], que = 'todas', conMostrar = false, orden = 'nuevas' } = {}) {
+  const mostrar = (conMostrar ? mostrarDeEspecieHtml(que) : '') + ordenDeEspecieHtml(orden)
   const chips = mostrar + grupos
     .map((g) => {
       const energia = claveEnLaHoja(g.id) === 'energia'

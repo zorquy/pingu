@@ -441,3 +441,43 @@
     margin-block: calc(-1 * var(--e-xs));
   }
 }
+
+/* ── 1370: la Pokédex en una fila (SCHEMA 1370). `.pdx-mandos` era una
+   rejilla de dos pisos; con `.mc-una-fila` es la fila de las demás. ── */
+.pdx-mandos.mc-una-fila {
+  display: flex;
+}
+.pdx-region-cuenta-fila {
+  margin-left: var(--e-xs);
+  color: inherit;
+  font-size: var(--t-xs);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.7;
+}
+.pdx-region-cuenta-fila:empty {
+  display: none;
+}
+/* Las nueve regiones, en su hoja: en rejilla, con lo que llevas de cada una. */
+#mcPdxRegionLista .pdx-regiones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: var(--e-sm);
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+#mcPdxRegionLista .pdx-region {
+  width: 100%;
+  text-align: left;
+}
+@media (max-width: 699px) {
+  .pdx-region-cuenta-fila {
+    display: none;
+  }
+  /* La bandera, la región y Filtros, en ese orden (los iconos van con
+     `order: -1` en el móvil). */
+  #mcPdxRegionAbrir {
+    order: -1;
+  }
+}

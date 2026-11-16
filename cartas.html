@@ -1570,32 +1570,34 @@
       <section id="mcPanelPokedex" class="hidden" role="tabpanel" aria-label="Pokédex">
         <!-- El título con la región y el anillo (748, la C3 de su maqueta). -->
         <div id="mcPdxEncabezado"></div>
-        <div class="pdx-mandos" id="mcPdxMandos">
+        <!-- UNA FILA, COMO DEX (1370): buscar, el catálogo, la región que se
+             mira («Kanto ▾», que abre las nueve con lo que llevas de cada una)
+             y Filtros, con Mostrar (Todos / Los que tengo / Los que me
+             faltan), Ordenar y Tipo dentro. Eran cuatro filas: buscador,
+             «Tengo» con el catálogo y el orden, y las regiones. -->
+        <div class="pdx-mandos mc-una-fila" id="mcPdxMandos">
           <div class="mc-buscador">
             <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-            <input type="search" enterkeyhint="search" id="mcPdxBuscar" placeholder="Busca un Pokémon o su número" autocomplete="off" aria-label="Busca un Pokémon" />
+            <input type="search" enterkeyhint="search" id="mcPdxBuscar" placeholder="Buscar" autocomplete="off" aria-label="Busca un Pokémon por su nombre o su número" />
           </div>
-          <!-- La misma barra que las otras dos desde la 445: el buscador en
-               su fila y los mandos en una que se desliza. La Pokédex se
-               quedó con la vieja en la 444 y se notaba — tres filas de
-               mandos y el buscador cortado a media palabra. -->
           <div class="mc-mandos">
-          <!-- CHAPA Y NO CASILLA (tanda 465), como «Solo las empezadas» de la
-               estantería y «Solo las que me faltan» de una expansión. Era la
-               única casilla suelta que quedaba en una fila de chapas. -->
-          <button type="button" class="chip-filtro mc-chip-mando" id="mcPdxSoloMios" aria-pressed="false"><span class="mc-q-largo">Solo los que tengo</span><span class="mc-q-corto">Tengo</span></button>
-          <!-- Los que casi completas (tanda 429). Lo que persigue quien
-               colecciona no es «el siguiente por número», es «¿a cuál le
-               falta UNA?», y esa lista no existía. Los dos datos ya
-               estaban en memoria. -->
-          <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
-          <select id="mcPdxOrden" class="mc-chapa-select" aria-label="Cómo se ordena la Pokédex">
-            <option value="dex">Por número</option>
-            <option value="cerca">Los que casi completas</option>
-          </select>
+            <select class="mc-chapa-select mc-mercado" aria-label="Qué catálogo se mira"></select>
+            <button type="button" class="mc-chip-mando mc-chip-desplegable" id="mcPdxRegionAbrir" aria-haspopup="dialog" aria-label="Región: Kanto">
+              <span id="mcPdxRegionRotulo">Kanto</span><small class="pdx-region-cuenta-fila" id="mcPdxRegionCuenta"></small>
+            </button>
+            <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcPdxAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+              <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcPdxFiltrosCuenta"></span>
+            </button>
           </div>
           <span class="subtext mc-cuantas" id="mcPdxCuenta"></span>
         </div>
+        <dialog class="mc-bandeja" id="mcPdxRegionHoja" aria-labelledby="mcPdxRegionTitulo">
+          <div class="mc-panel-cabecera">
+            <h2 id="mcPdxRegionTitulo">Región</h2>
+            <button type="button" class="mc-panel-cerrar" id="mcPdxRegionCerrar" aria-label="Cerrar">✕</button>
+          </div>
+          <div class="mc-panel-cuerpo" id="mcPdxRegionLista"></div>
+        </dialog>
         <div id="mcPokedexPanel"></div>
       </section>
 

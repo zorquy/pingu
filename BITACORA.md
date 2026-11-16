@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (616) — PINGU-Claude (1370 — La Pokédex en una fila, con Faltan, Tipo y cuatro órdenes)
+
+**Hecho** (la segunda tanda de «Una fila, como Dex»; PINGU eligió la A de las
+regiones, «Kanto ▾»):
+- **La lista, en una fila**: buscar · bandera · «Kanto ▾» (con «7/151» en el
+  PC) · Filtros. Fuera la fila de regiones de la página, «Tengo» y el
+  desplegable del orden (`#mcPdxSoloMios`, `#mcPdxOrden`).
+- **Las regiones, en su hoja** (`#mcPdxRegionHoja`, dentro de
+  `#mcPanelPokedex` para que su clic llegue al oyente de siempre): las nueve
+  con lo que llevas; elegir una la cierra. El botón solo sale cuando la lista
+  va por regiones (por número y sin buscar).
+- **Filtros de la lista** (`gruposDeListaHtml`, en la misma hoja que la de un
+  Pokémon): Mostrar (Todos / Los que tengo / Los que me faltan, nuevo),
+  Ordenar (por número, los que casi completas, los que más tienes y de la A a
+  la Z: los dos últimos, nuevos) y Tipo (nuevo; el de la especie, así que
+  filtra también los que faltan). Filtros cuenta Mostrar y Tipo y se pinta en
+  color.
+- **Un Pokémon se ordena**: más nuevas (lo de antes), más antiguas, las más
+  raras y por nombre (`ORDENES_DE_ESPECIE`). «Más caras» se quedó fuera: los
+  precios de las cartas de una especie no se piden y el orden mentiría.
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html` (generado),
+`js/mi-coleccion/pokedex.js`, `js/mi-coleccion/pokedex-ui.js`,
+`css/mc-pokedex.css`, `normas/coleccion.md`, `novedades.json`. Prueba nueva
+`test-tanda-1370-pantalla.mjs` y pruebas puestas al día (rama `pruebas`).
+
+**Pendiente**: Mercado, La quiero y Las que doy con la misma fila (no entraban
+en estas dos tandas). Sin migración.
+
 ## 2026-11-16 (615) — PINGU-Claude (1369 — Una fila, como Dex: expansión, un Pokémon y Buscar)
 
 **Hecho** (la propuesta «Una fila, como Dex»; PINGU: «lo hace todo en una

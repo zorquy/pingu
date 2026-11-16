@@ -262,7 +262,10 @@
   en color (`.mc-filtros-puestos`) cuando hay algo puesto. Un mando nuevo de
   una lista de cartas entra en la hoja, no en la fila; si de verdad se toca a
   cada momento, va a la fila como icono y se mira que en un móvil de 360 px
-  siga cabiendo. «Seleccionar» lleva `data-seleccionar` (un oyente en el
+  siga cabiendo. La Pokédex (1370) lleva la misma fila con «Kanto ▾» (la
+  región, en su hoja `#mcPdxRegionHoja`) en vez de una fila de regiones: un
+  selector de muchas opciones que solo cambia QUÉ trozo de la lista se ve va
+  en un desplegable de la fila, no en otra fila de chips. «Seleccionar» lleva `data-seleccionar` (un oyente en el
   documento, visible solo con `html.mc-puede-marcar`) y marca por
   `seleccion.js`; una rejilla nueva en la que se marque va en sus `ZONAS`.
   Y su hoja de Filtros es LA COMÚN (1055): los grupos con `data-hoja` en el
