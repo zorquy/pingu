@@ -54,8 +54,7 @@ for (const movil of [true, false]) {
     const m = await medirFila(page, '.mc-album-busca')
     check(`${quien} · expansión: buscador y mandos en una fila`, unaFila(m), JSON.stringify(m))
     check(`${quien} · expansión: nada se sale por la derecha`, m && m.derecha <= m.ancho + 1, JSON.stringify(m))
-    // En el móvil, vacío es la lupa de 44 que crece al tocarla (1381).
-    check(`${quien} · expansión: el buscador es pequeño (≤ 260) y se puede usar (${movil ? 'la lupa de 44' : '≥ 96'})`, m && m.buscador <= 261 && (movil ? Math.abs(m.buscador - 44) <= 1 : m.buscador >= 96), m?.buscador)
+    check(`${quien} · expansión: el buscador es pequeño (≤ 260) y se puede usar (≥ 96)`, m && m.buscador <= 261 && m.buscador >= 96, m?.buscador)
     check(`${quien} · expansión: Filtros y Seleccionar a la vista`, m && m.ids.includes('mcAlbumAbrirFiltros') && m.ids.includes('mcMarcarAbrir'), m?.ids)
     check(`${quien} · expansión: ni Todas/Tengo/Faltan ni el orden en la barra`, (await page.$$('#mcAlbumQue, #mcAlbumAbrirOrden, #mcAlbumHojaOrden')).length === 0)
     await page.click('#mcAlbumAbrirFiltros')

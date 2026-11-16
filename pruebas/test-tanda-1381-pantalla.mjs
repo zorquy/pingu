@@ -59,8 +59,8 @@ const fila = (page, sel) => page.evaluate((sel) => {
 const PANTALLAS = [
   { nombre: 'Expansiones', ruta: '/mi-coleccion?ver=album', fila: '#mcEstanteriaFila', input: '#mcEstanteriaBuscar', crece: true },
   { nombre: 'Expansiones de /cartas', ruta: '/cartas', fila: '#mcEstanteriaFila', input: '#mcEstanteriaBuscar', crece: true },
-  { nombre: 'Pokédex', ruta: '/mi-coleccion?ver=pokedex', fila: '#mcPdxMandos', input: '#mcPdxBuscar', crece: true },
-  { nombre: 'Un Pokémon', ruta: '/mi-coleccion?ver=pokedex&dex=6', fila: '#mcPokedexPanel .mc-una-fila', input: '#pdxEspecieBuscar', crece: true },
+  { nombre: 'Pokédex', ruta: '/mi-coleccion?ver=pokedex', fila: '#mcPdxMandos', input: '#mcPdxBuscar', crece: true, estrecha: true },
+  { nombre: 'Un Pokémon', ruta: '/mi-coleccion?ver=pokedex&dex=6', fila: '#mcPokedexPanel .mc-una-fila', input: '#pdxEspecieBuscar', crece: true, estrecha: true },
   { nombre: 'Una expansión', ruta: '/mi-coleccion?ver=album&set=sv08&catalogo=WEST', fila: '.mc-album-busca', input: '#mcAlbumBuscar', crece: true, sinCatalogo: true },
   { nombre: 'Buscar', ruta: '/mi-coleccion?ver=buscar', fila: '#mcBuscarBarra', input: '#mcBuscarTodo', crece: false },
 ]
@@ -83,7 +83,13 @@ for (const p of PANTALLAS) {
     if (FOTOS && ancho !== 360) await page.screenshot({ path: `${FOTOS}-${p.nombre.replace(/\W+/g, '')}-${ancho}.png`, clip: { x: 0, y: 0, width: ancho, height: movil ? 420 : 520 } })
     if (movil) {
       if (p.crece) {
-        check(`${quien}: vacía, la lupa es un círculo de 44`, Math.abs(m.busca - 44) <= 1, m.busca)
+        // 1381b (PINGU: «la barra de búsqueda lo ha reducido a nada y hay
+        // mucho espacio en la mitad»): la caja llena el hueco, sin vacío.
+        // Donde la fila lleva más mandos (Kanto, Apilar, Seleccionar) es más
+        // estrecha, pero llena el hueco y al tocarla ocupa la fila.
+        const minimo = p.estrecha ? 48 : 100
+        check(`${quien}: vacía, la caja de buscar llena el hueco (≥ ${minimo} px y la fila sin hueco)`, m.busca >= minimo && m.derecha >= m.ancho - 24 - 2, JSON.stringify(m))
+        check(`${quien}: Filtros es la rueda, sin texto`, await page.$eval(`${p.fila} [data-icono="settings"] .mc-chip-texto`, (t) => t.getBoundingClientRect().width <= 2).catch(() => true))
         await page.tap(p.input)
         await page.waitForTimeout(350)
         const f = await fila(page, p.fila)
@@ -94,7 +100,7 @@ for (const p of PANTALLAS) {
         await page.evaluate(() => document.activeElement?.blur())
         await page.waitForTimeout(350)
         const g = await fila(page, p.fila)
-        check(`${quien}: con texto y sin foco, a media fila y los mandos vuelven`, g.busca > 60 && g.busca < g.filaAncho - 60 && g.mandosVisibles, JSON.stringify(g))
+        check(`${quien}: con texto y sin foco, a media fila y los mandos vuelven`, g.busca >= (p.estrecha ? 48 : 60) && g.busca < g.filaAncho - 60 && g.mandosVisibles, JSON.stringify(g))
         if (FOTOS && ancho === 390) await page.screenshot({ path: `${FOTOS}-${p.nombre.replace(/\W+/g, '')}-con-texto.png`, clip: { x: 0, y: 0, width: ancho, height: 420 } })
       } else {
         check(`${quien}: Buscar no recoge su caja`, m.busca > 100, m.busca)
