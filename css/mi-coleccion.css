@@ -16226,3 +16226,28 @@ html.con-barra-movil .mc-prod-banda { display: none; }
   /* El ✕ no cabe: lo dice Filtros en color, y se quita con «Limpiar». */
   .mc-una-fila #mcAlbumQuitar { display: none; }
 }
+
+/* ── 1372: CAMBIOS EN UNA FILA (el porqué, SCHEMA 1372). El Mercado,
+   La quiero y Las que doy con la fila de la 1369: lo que se elegía en chips
+   sueltos (Todo / Lo que busco, Idioma, Orden; Todas / La dan / Nadie) vive
+   en su hoja de Filtros. ── */
+#mcPanelMercado .mc-una-fila > .mc-mercado-mandos {
+  position: static;
+  flex: 0 0 auto;
+  width: auto;
+  overflow: visible;
+  padding-block: 0;
+  margin-block: 0;
+}
+.mc-mercado-mostrar,
+.mc-mercado-mostrar .mc-deseos-chips { display: flex; flex-wrap: wrap; gap: var(--e-xs); }
+.mc-mercado-mostrar .mc-mercado-quien { margin: 0; }
+/* En PC el buscador de «apuntar» de La quiero, pequeño como el de la fila. */
+.mc-quiero-barra .mc-quiero-busca { flex: 0 1 260px; min-width: 0; max-width: 260px; }
+/* Filtros va detrás de la lista y de «+», no delante como los iconos del móvil. */
+#mcQuieroFiltros, #mcDoyFiltros { order: 0; }
+/* Cruces: los tres caben sin deslizar (se estrechan un poco en el móvil). */
+@media (max-width: 599px) {
+  .mc-cruces-filtros { flex-wrap: nowrap; overflow: visible; gap: var(--e-xs); }
+  .mc-cruces-filtros .seg-btn { flex: 0 1 auto; min-width: 0; padding: 0 var(--e-md); gap: var(--e-xs); white-space: nowrap; }
+}

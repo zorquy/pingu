@@ -813,15 +813,11 @@ function pintarBarraQuiero({ n, conAlguien }) {
   }
   if ($('mcQuieroListaRotulo')) $('mcQuieroListaRotulo').textContent = lista ? lista.nombre : 'Todas'
   if ($('mcQuieroListaN')) $('mcQuieroListaN').textContent = String(n)
-  const que = $('mcQuieroQue')
-  if (que) {
-    que.classList.toggle('hidden', conAlguien === null || !n)
-    for (const b of que.querySelectorAll('[data-quiero-filtro]')) b.setAttribute('aria-pressed', String(b.dataset.quieroFiltro === quieroFiltro))
-    const dan = que.querySelector('[data-quiero-n="dan"]')
-    const nadie = que.querySelector('[data-quiero-n="nadie"]')
-    if (dan) dan.textContent = conAlguien == null ? '' : String(conAlguien)
-    if (nadie) nadie.textContent = conAlguien == null ? '' : String(n - conAlguien)
-  }
+  // Filtros (1372): sale cuando hay algo que separar, y en color con un
+  // filtro puesto. Lo que se elige va en la hoja (`abrirHojaQuiero`).
+  ultimoQuiero = { n, conAlguien }
+  pintarBotonFiltros('mcQuieroFiltros', conAlguien !== null && n > 0, quieroFiltro !== 'todas')
+  if ($('mcDeseosHoja')?.open && hojaDe === 'quiero') abrirHojaQuiero()
   $('mcQuieroSeleccionar')?.setAttribute('aria-pressed', String(marcando))
 }
 
@@ -1001,9 +997,66 @@ async function accionDeSel(e) {
   }
 }
 
-// La barra (1057): la lista, «+», Seleccionar, ⋯ y Todas/La dan/Nadie.
+// LA HOJA DE FILTROS DE «LA QUIERO» Y «LAS QUE DOY» (1372). Una para las
+// dos, colgada del body: Mostrar con sus cuentas, Limpiar y «Ver N cartas».
+// Elegir repinta la lista debajo y la hoja se queda abierta hasta «Ver».
+let ultimoQuiero = { n: 0, conAlguien: null }
+let ultimoDoy = { n: 0, nBuscan: null }
+let hojaDe = null
+function pintarBotonFiltros(id, sale, puesto) {
+  const b = $(id)
+  if (!b) return
+  b.classList.toggle('hidden', !sale)
+  b.classList.toggle('mc-filtros-puestos', Boolean(sale && puesto))
+  const c = b.querySelector('.mc-filtros-cuenta')
+  if (c) { c.textContent = puesto ? '1' : ''; c.classList.toggle('hidden', !puesto) }
+}
+function hojaDeDeseos() {
+  let d = $('mcDeseosHoja')
+  if (d) return d
+  document.body.insertAdjacentHTML('beforeend', `<dialog class="mc-panel-filtros" id="mcDeseosHoja" aria-labelledby="mcDeseosHojaTitulo">
+    <div class="mc-panel-cabecera"><h2 id="mcDeseosHojaTitulo">Filtros</h2><button type="button" class="mc-panel-cerrar" data-hoja-cerrar aria-label="Cerrar los filtros">✕</button></div>
+    <div class="mc-panel-cuerpo"><div class="mc-grupo-filtro" data-hoja="mostrar"><h3>Mostrar</h3><div class="mc-seg mc-seg-chips mc-seg-sueltas" role="group" aria-label="Cuáles" id="mcDeseosHojaMostrar"></div></div></div>
+    <div class="mc-panel-pie"><button type="button" class="btn-secondary mc-panel-limpiar" data-hoja-valor="todas">Limpiar</button><button type="button" class="btn-primary" data-hoja-cerrar id="mcDeseosHojaVer">Ver resultados</button></div>
+  </dialog>`)
+  d = $('mcDeseosHoja')
+  d.addEventListener('click', (e) => {
+    if (e.target === d || e.target.closest('[data-hoja-cerrar]')) return d.close()
+    const b = e.target.closest('[data-hoja-valor]')
+    if (!b) return
+    if (hojaDe === 'quiero') { quieroFiltro = b.dataset.hojaValor; pintarQuiero() }
+    if (hojaDe === 'doy') { doyFiltro = b.dataset.hojaValor; void pintarDoy() }
+  })
+  return d
+}
+function pintarHojaDeDeseos(opciones, puesto, ver) {
+  const d = hojaDeDeseos()
+  $('mcDeseosHojaMostrar').innerHTML = opciones.map(([v, texto, n]) => `<button type="button" data-hoja-valor="${v}" aria-pressed="${v === puesto}">${texto}${n == null ? '' : ` <small>${n}</small>`}</button>`).join('')
+  $('mcDeseosHojaVer').textContent = ver === 0 ? 'Ninguna carta: cambia el filtro' : `Ver ${ver.toLocaleString('es-ES', { useGrouping: 'always' })} ${ver === 1 ? 'carta' : 'cartas'}`
+  if (!d.open) d.showModal()
+}
+function abrirHojaQuiero() {
+  hojaDe = 'quiero'
+  const { n, conAlguien } = ultimoQuiero
+  const dan = conAlguien ?? 0
+  const ver = quieroFiltro === 'dan' ? dan : quieroFiltro === 'nadie' ? n - dan : n
+  pintarHojaDeDeseos([['todas', 'Todas', null], ['dan', 'Las que alguien da', dan], ['nadie', 'Las que nadie da', n - dan]], quieroFiltro, ver)
+}
+function abrirHojaDoy() {
+  hojaDe = 'doy'
+  const { n, nBuscan } = ultimoDoy
+  const b = nBuscan ?? 0
+  const ver = doyFiltro === 'buscan' ? b : doyFiltro === 'nadie' ? n - b : n
+  pintarHojaDeDeseos([['todas', 'Todas', null], ['buscan', 'Las que busca alguien', b], ['nadie', 'Las que no busca nadie', n - b]], doyFiltro, ver)
+}
+
+// La barra (1057): la lista, «+», Filtros (1372), Seleccionar y ⋯.
 // Devuelve true si el clic era suyo.
 async function clicEnBarra(e) {
+  if (e.target.closest('#mcQuieroFiltros')) {
+    abrirHojaQuiero()
+    return true
+  }
   const filtro = e.target.closest('[data-quiero-filtro]')
   if (filtro) {
     quieroFiltro = filtro.dataset.quieroFiltro
@@ -1219,7 +1272,7 @@ async function pintarDoy() {
   const laBuscan = (f) => (buscan?.get(f.l.card_id) || []).length > 0
   const nBuscan = buscan ? todas.filter(laBuscan).length : null
   const filas = todas.filter((f) => doyFiltro === 'todas' || !buscan || (doyFiltro === 'buscan' ? laBuscan(f) : !laBuscan(f)))
-  const seg = (v, texto, n) => `<button type="button" data-doy-filtro="${v}" aria-pressed="${doyFiltro === v}">${texto}${n == null ? '' : ` <small>${n}</small>`}</button>`
+  ultimoDoy = { n: todas.length, nBuscan }
   // La barra (1057b): la misma de «La quiero», sin listas: Seleccionar,
   // la cuenta, «+» Poner más, ⋯ y Todas / La buscan / Nadie.
   // La banda (1217), como en La quiero: en el PC; en el móvil la esconde la
@@ -1240,7 +1293,7 @@ async function pintarDoy() {
       <span class="mc-doy-cifra" id="mcDoyCifra"><b>${copias.toLocaleString('es-ES', { useGrouping: 'always' })}</b> ${copias === 1 ? 'copia' : 'copias'}${suma ? ` · <b>${escapeHtml(euros(suma))}</b>` : ''}</span>
       <button type="button" class="mc-chip-mando mc-doy-mas" id="mcDoyPoner" aria-label="Poner más para cambio"><span aria-hidden="true">+</span><span class="mc-q-largo">Poner más</span></button>
       <button type="button" class="mc-chip-mando mc-quiero-menu" id="mcDoyMenu" aria-label="Más: compartir, modo evento" aria-haspopup="dialog"><span aria-hidden="true">⋯</span></button>
-      ${buscan ? `<span class="mc-seg mc-seg-sueltas mc-quiero-que" id="mcDoyQue" role="group" aria-label="Cuáles">${seg('todas', 'Todas')}${seg('buscan', 'La buscan', nBuscan)}${seg('nadie', 'Nadie', todas.length - nBuscan)}</span>` : ''}
+      ${buscan ? `<button type="button" class="mc-chip-mando mc-chip-icono-movil${doyFiltro !== 'todas' ? ' mc-filtros-puestos' : ''}" id="mcDoyFiltros" aria-haspopup="dialog">${icons.settings(18)}<span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta${doyFiltro !== 'todas' ? '' : ' hidden'}">1</span></button>` : ''}
     </div>
     <div class="mc-mercado-rejilla mc-doy-rejilla${marcandoDoy ? ' mc-doy-marcando' : ''}" id="mcDoyRejilla">${rejillaPorTramos('doy', filas, ({ l, c }) => l.market || c?.market || 'WEST', ({ l, c, precio }) => {
       const nombre = ctx.nombreDe(c) || l.card_id
@@ -1270,6 +1323,7 @@ async function pintarDoy() {
     <p class="subtext mc-doy-nota">Lo que das sale en el Mercado, con tu nombre.</p>`
   engancharDoy()
   pintarSelDoy()
+  if ($('mcDeseosHoja')?.open && hojaDe === 'doy') abrirHojaDoy()
 }
 
 // SELECCIONAR EN «LAS QUE DOY» (1057b): marcar copias y, abajo, dejar de
@@ -1300,6 +1354,7 @@ function engancharDoy() {
       doyFiltro = filtro.dataset.doyFiltro
       return void pintarDoy()
     }
+    if (e.target.closest('#mcDoyFiltros')) return abrirHojaDoy()
     if (e.target.closest('#mcDoySeleccionar')) {
       marcandoDoy = !marcandoDoy
       marcadasDoy.clear()

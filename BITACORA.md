@@ -4,6 +4,31 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (618) — PINGU-Claude (1372 — Cambios en una fila: Mercado, La quiero, Las que doy y Cruces)
+
+**Hecho** (la propuesta «Más mejoras», A; PINGU: «dale con lo recomendado»):
+- **Mercado**: buscar · Filtros · Seleccionar en una fila (`.mc-una-fila`
+  de la 1369). Todo / Lo que busco / Personas / Tiendas, Ordenar e Idioma
+  viven en la hoja `#mcMercadoHoja` (Mostrar, Ordenar, Idioma; Limpiar y «Ver
+  N cartas»). Los ids de siempre siguen (`#mcMercadoIdioma`,
+  `#mcMercadoOrden`, `#mcMercadoMias`, `data-merc-quien`); Ordenar e Idioma
+  van en botones con `segmentar`. Filtros en color con su cuenta.
+- **La quiero**: «Todas · La dan · Nadie» se va de la barra a una hoja
+  (`#mcDeseosHoja`, la pinta deseos.js y la comparten La quiero y Las que doy);
+  Filtros (`#mcQuieroFiltros`) sale cuando hay algo que separar. En el móvil,
+  sin buscador (el «+» abre el de apuntar, la recomendada); en el PC el de
+  apuntar, pequeño («Apunta una carta», 260 px).
+- **Las que doy**: lo mismo con «La buscan» (`#mcDoyFiltros`).
+- **Cruces**: Todos · Perfectos · En curso caben en el móvil sin deslizar.
+
+**Ficheros**: `mi-coleccion.html`, `js/mi-coleccion/mercado.js`,
+`js/mi-coleccion/deseos.js`, `css/mi-coleccion.css`, `cartas.html`,
+`normas/coleccion.md`, `novedades.json`. Prueba `test-tanda-1372-pantalla.mjs`
+y las viejas que tocaban los chips, al día (rama `pruebas`).
+
+**Pendiente**: nada. La quiero sigue sin orden ni idioma propios (la maqueta
+los dibujaba; no existían y no los he inventado).
+
 ## 2026-11-16 (617) — PINGU-Claude (1371 — Una expansión no sale «completa» con un total que tus cartas desmienten)
 
 **Hecho** (David García en el foro, «Fallo 30 Aniversario Japonés»: el 30th

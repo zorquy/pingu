@@ -55204,6 +55204,28 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1372 — Cambios en una fila
+
+La fila de la 1369 llega a Deseos y cambios. En el móvil, el Mercado tenía tres
+pisos y su «Idioma Todos» se salía por la derecha; La quiero y Las que doy
+cortaban «Todas · La dan · Nadie»; Cruces cortaba «En curso».
+
+- **Mercado**: `.mc-mercado-barra.mc-una-fila` con el buscador («Buscar») y
+  `.mc-mercado-mandos.mc-mandos` (Filtros, Seleccionar y, en el PC con los dos
+  catálogos, el selector `.mc-lista-cats` delante). La hoja `#mcMercadoHoja`
+  (`mc-panel-filtros`): «Mostrar» (`#mcMercadoMostrar`, donde `pintarMandos`
+  mete `#mcMercadoQuien` y `#mcMercadoMias`; el grupo se esconde si no hay nada
+  que elegir), «Ordenar» y «Idioma» (los select de siempre, con `segmentar`).
+  `pintarFiltrosMercado` cuenta lo puesto y rotula «Ver N cartas»;
+  `limpiarFiltrosMercado` lo devuelve todo sin disparar un `change` por select
+  (cada uno recargaría el Mercado).
+- **La quiero / Las que doy**: una hoja para las dos, `#mcDeseosHoja`, colgada
+  del body (`hojaDeDeseos`, `abrirHojaQuiero`, `abrirHojaDoy`): elegir repinta
+  la lista y la hoja se queda abierta hasta «Ver». `pintarBotonFiltros` saca
+  el botón cuando se sabe quién da / busca. Los atajos de la banda
+  (`data-quiero-filtro`, `data-doy-filtro`) siguen funcionando.
+- **Cruces**: en el móvil los tres chips se estrechan (`flex: 0 1 auto`).
+
 ## Tanda 1371 — Un total que tus cartas desmienten no se afirma
 
 El foro («Fallo 30 Aniversario Japonés»): «86/25 · Completa». El total de una

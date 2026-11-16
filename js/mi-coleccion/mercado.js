@@ -42,6 +42,7 @@ import { hojaInyectada } from '../hoja.js'
 import { showToast } from '../toast.js'
 import * as listasDeseo from './listas-deseo.js'
 import { lineaDeSetHtml } from './linea-set.js'
+import { segmentar } from './segmentado.js'
 import { porPagina, catalogoDe, elegirCatalogo, hastaDe, ordenDe, selectorDeCatalogoHtml, catalogoDelClic, catalogoALaBarra, listaQueCrece, listaDeDireccion } from './tramos.js'
 
 const $ = (id) => document.getElementById(id)
@@ -186,10 +187,15 @@ function pintarRejilla() {
     caja.innerHTML = `${selector}${lista.html()}`
     lista.armar(caja)
   }
-  const barra = document.querySelector('#mcPanelMercado .mc-mercado-barra')
-  catalogoALaBarra(caja, barra, { tras: barra?.querySelector(':scope > .mc-buscador') })
+  // El selector del catálogo va DENTRO de los mandos, el primero (1372): en
+  // la fila, un hijo suelto se iría a otro piso.
+  const mandos = document.querySelector('#mcPanelMercado .mc-mercado-mandos')
+  catalogoALaBarra(caja, mandos)
+  const cats = mandos?.querySelector(':scope > .mc-lista-cats')
+  if (cats) mandos.prepend(cats)
   const cuenta = $('mcMercadoCuantas')
   if (cuenta) cuenta.textContent = total ? `${total.toLocaleString('es-ES', { useGrouping: 'always' })} ${total === 1 ? 'carta' : 'cartas'} a cambio` : ''
+  pintarFiltrosMercado()
   ctx.alContar?.({ mercado: total })
 }
 
@@ -385,7 +391,8 @@ function pintarMandos() {
     }, () => {})
   }
   let quien = $('mcMercadoQuien')
-  const mandos = document.querySelector('#mcPanelMercado .mc-mercado-mandos')
+  // Los chips viven en el grupo «Mostrar» de la hoja de Filtros (1372).
+  const mandos = $('mcMercadoMostrar')
   if (!quien && mandos) {
     mandos.insertAdjacentHTML('afterbegin', `<span class="mc-deseos-chips mc-mercado-quien" id="mcMercadoQuien" role="group" aria-label="Qué enseñar">${[['todos', 'Todo'], ['personas', 'Personas'], ['tiendas', 'Tiendas']].map(([v, t]) => `<button type="button" class="seg-btn" data-merc-quien="${v}" aria-pressed="false">${t}</button>`).join('')}</span>`)
     quien = $('mcMercadoQuien')
@@ -415,6 +422,8 @@ function pintarMandos() {
       b.setAttribute('aria-pressed', String(si))
     }
   }
+  // Sin sesión y sin tiendas no hay nada que elegir en «Mostrar».
+  $('mcMercadoGrupoMostrar')?.classList.toggle('hidden', !quien || quien.classList.contains('hidden'))
   const sel = $('mcMercadoSeleccionar')
   if (sel) {
     sel.classList.toggle('hidden', !ctx.sesion)
@@ -422,6 +431,36 @@ function pintarMandos() {
     sel.classList.toggle('activo', marcando)
     sel.setAttribute('aria-label', 'Seleccionar varias')
   }
+  pintarFiltrosMercado()
+}
+
+// FILTROS DEL MERCADO (1372): cuántos hay puestos (Mostrar, Ordenar e
+// Idioma cuentan uno cada uno si no son lo de siempre), el botón en color
+// con algo puesto, y el «Ver N cartas» de la hoja.
+const segmentos = []
+const filtrosPuestos = () => (estado.soloMias || estado.quien !== 'todos' ? 1 : 0) + (estado.orden !== 'nuevo' ? 1 : 0) + (estado.idioma ? 1 : 0)
+function pintarFiltrosMercado() {
+  const n = filtrosPuestos()
+  const cuenta = $('mcMercadoFiltrosCuenta')
+  if (cuenta) {
+    cuenta.textContent = n ? String(n) : ''
+    cuenta.classList.toggle('hidden', !n)
+  }
+  $('mcMercadoAbrirFiltros')?.classList.toggle('mc-filtros-puestos', n > 0)
+  const ver = $('mcMercadoHojaVer')
+  if (ver) ver.textContent = total ? `Ver ${total.toLocaleString('es-ES', { useGrouping: 'always' })} ${total === 1 ? 'carta' : 'cartas'}` : 'Ver resultados'
+}
+function limpiarFiltrosMercado() {
+  estado.soloMias = false
+  estado.quien = 'todos'
+  estado.orden = 'nuevo'
+  estado.idioma = ''
+  // Sin `change`: cada select recargaría el Mercado por su cuenta.
+  for (const [id, v] of [['mcMercadoOrden', 'nuevo'], ['mcMercadoIdioma', '']]) if ($(id)) $(id).value = v
+  for (const seg of segmentos) seg?.pintar()
+  pintarMandos()
+  void pintarFranja()
+  void deNuevo()
 }
 
 // SELECCIONAR EN EL MERCADO (1057b): marcar varias y, abajo, «Las quiero»
@@ -814,6 +853,15 @@ function enganchar() {
   // La chapa se rellena cuando lo elegido no es lo de siempre (1042): así
   // se ve de un vistazo que hay un filtro puesto.
   const marcar = (sel) => sel.closest('.mc-mercado-opcion')?.classList.toggle('cambiada', sel.value !== sel.options[0]?.value)
+  // La hoja de Filtros (1372): Ordenar e Idioma en botones (el select sigue
+  // mandando), abrir, cerrar tocando fuera, Limpiar y Ver.
+  segmentos.push(segmentar($('mcMercadoOrden'), { etiqueta: 'Cómo se ordena', chips: true }), segmentar($('mcMercadoIdioma'), { etiqueta: 'Idioma', chips: true }))
+  const hoja = $('mcMercadoHoja')
+  $('mcMercadoAbrirFiltros')?.addEventListener('click', () => { pintarFiltrosMercado(); hoja?.showModal() })
+  $('mcMercadoHojaCerrar')?.addEventListener('click', () => hoja?.close())
+  $('mcMercadoHojaVer')?.addEventListener('click', () => hoja?.close())
+  hoja?.addEventListener('click', (e) => { if (e.target === hoja) hoja.close() })
+  $('mcMercadoHojaLimpiar')?.addEventListener('click', limpiarFiltrosMercado)
   $('mcMercadoIdioma')?.addEventListener('change', (e) => {
     estado.idioma = e.target.value
     marcar(e.target)

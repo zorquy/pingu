@@ -1101,35 +1101,65 @@
             <li><span class="mc-deseos-paso-n">3</span><span>En «Cruces», con quién encajas</span></li>
           </ol>
           <p class="mc-mercado-entrar hidden" id="mcMercadoEntrar">Esto es lo que da la gente de PokeDoc. <a href="/auth.html?registro=1" id="mcMercadoEntrarEnlace">Crea tu cuenta</a> para apuntar lo que buscas y escribirles.</p>
-          <div class="mc-mercado-barra">
+          <!-- EL MERCADO EN UNA FILA (1372, «Más mejoras», A; PINGU: «dale con lo
+               recomendado»). Eran tres pisos —un buscador a lo ancho, Todo /
+               Lo que busco, e Idioma y Orden que en el móvil se salían por la
+               derecha—. Ahora es la fila de la expansión y la Pokédex (1369):
+               buscar · Filtros · Seleccionar; lo demás, en la hoja. Los ids
+               de siempre (#mcMercadoIdioma, #mcMercadoOrden, #mcMercadoMias,
+               los chips que pinta mercado.js) siguen: solo cambian de sitio. -->
+          <div class="mc-mercado-barra mc-una-fila">
             <div class="mc-buscador">
               <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-              <input type="search" enterkeyhint="search" id="mcMercadoBuscar" placeholder="Busca una carta: Charizard, Iono, 151/165…" autocomplete="off" aria-label="Busca en lo que da la gente" />
+              <input type="search" enterkeyhint="search" id="mcMercadoBuscar" placeholder="Buscar" autocomplete="off" aria-label="Busca en lo que da la gente" />
             </div>
-            <div class="mc-mercado-mandos">
-            <label class="mc-mercado-opcion"><span class="mc-op-et">Idioma</span>
-              <select id="mcMercadoIdioma">
-                <option value="">Todos</option>
-                <option value="es">Español</option>
-                <option value="en">Inglés</option>
-                <option value="fr">Francés</option>
-                <option value="de">Alemán</option>
-                <option value="it">Italiano</option>
-                <option value="pt">Portugués</option>
-                <option value="ja">Japonés</option>
-              </select>
-            </label>
-            <label class="mc-mercado-opcion"><span class="mc-op-et">Orden</span>
-              <select id="mcMercadoOrden">
-                <option value="nuevo">Más recientes</option>
-                <option value="gente">Más gente la da</option>
-                <option value="caro">Más caras</option>
-              </select>
-            </label>
-            <button type="button" class="chip-filtro mc-mercado-mias hidden" id="mcMercadoMias" aria-pressed="false"><span data-icono-quiero aria-hidden="true"></span><span>Solo las que busco</span></button>
-            <button type="button" class="chip-filtro mc-mercado-mias mc-mercado-sel hidden" id="mcMercadoSeleccionar" aria-pressed="false"><span data-icono="checkSquare" aria-hidden="true"></span><span class="mc-q-largo">Seleccionar</span></button>
+            <div class="mc-mercado-mandos mc-mandos">
+              <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcMercadoAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+                <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcMercadoFiltrosCuenta"></span>
+              </button>
+              <button type="button" class="mc-chip-mando mc-chip-icono-movil hidden" id="mcMercadoSeleccionar" data-icono="checkSquare" aria-pressed="false"><span class="mc-chip-texto">Seleccionar</span></button>
             </div>
           </div>
+          <dialog class="mc-panel-filtros" id="mcMercadoHoja" aria-labelledby="mcMercadoHojaTitulo">
+            <div class="mc-panel-cabecera">
+              <h2 id="mcMercadoHojaTitulo">Filtros</h2>
+              <button type="button" class="mc-panel-cerrar" id="mcMercadoHojaCerrar" aria-label="Cerrar los filtros">✕</button>
+            </div>
+            <div class="mc-panel-cuerpo">
+              <!-- Mostrar: Todo · Lo que busco · Personas · Tiendas (los pinta mercado.js). -->
+              <div class="mc-grupo-filtro" id="mcMercadoGrupoMostrar" data-hoja="mostrar">
+                <h3>Mostrar</h3>
+                <div class="mc-mercado-mostrar" id="mcMercadoMostrar">
+                  <button type="button" class="chip-filtro mc-mercado-mias hidden" id="mcMercadoMias" aria-pressed="false"><span>Lo que busco</span></button>
+                </div>
+              </div>
+              <div class="mc-grupo-filtro" data-hoja="orden">
+                <h3>Ordenar</h3>
+                <select id="mcMercadoOrden" aria-label="Cómo se ordena el Mercado">
+                  <option value="nuevo">Más recientes</option>
+                  <option value="gente">Más gente la da</option>
+                  <option value="caro">Más caras</option>
+                </select>
+              </div>
+              <div class="mc-grupo-filtro" data-hoja="idioma">
+                <h3>Idioma</h3>
+                <select id="mcMercadoIdioma" aria-label="En qué idioma">
+                  <option value="">Todos</option>
+                  <option value="es">Español</option>
+                  <option value="en">Inglés</option>
+                  <option value="ja">Japonés</option>
+                  <option value="fr">Francés</option>
+                  <option value="de">Alemán</option>
+                  <option value="it">Italiano</option>
+                  <option value="pt">Portugués</option>
+                </select>
+              </div>
+            </div>
+            <div class="mc-panel-pie">
+              <button type="button" class="btn-secondary mc-panel-limpiar" id="mcMercadoHojaLimpiar">Limpiar</button>
+              <button type="button" class="btn-primary" id="mcMercadoHojaVer">Ver resultados</button>
+            </div>
+          </dialog>
           <button type="button" class="mc-mercado-aviso hidden" id="mcMercadoAviso"></button>
           <p class="mc-cuantas" id="mcMercadoCuantas" role="status" aria-live="polite"></p>
           <div class="mc-mercado-rejilla" id="mcMercadoRejilla"></div>
@@ -1169,15 +1199,13 @@
               <button type="button" class="mc-chip-mando mc-quiero-mas" id="mcQuieroMas" aria-label="Apuntar una carta" aria-expanded="false"><span aria-hidden="true">+</span></button>
               <div class="mc-buscador mc-quiero-busca">
                 <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-                <input type="search" enterkeyhint="search" id="mcDeseoBuscar" placeholder="Apunta una carta: Charizard, 151/165…" autocomplete="off" aria-label="Busca una carta para apuntarla" />
+                <input type="search" enterkeyhint="search" id="mcDeseoBuscar" placeholder="Apunta una carta" autocomplete="off" aria-label="Busca una carta para apuntarla" />
               </div>
+              <!-- «Todas · La dan · Nadie» vive en la hoja de Filtros desde la 1372
+                   (en el móvil se salía por la derecha). La hoja la pinta deseos.js. -->
+              <button type="button" class="mc-chip-mando mc-chip-icono-movil hidden" id="mcQuieroFiltros" data-icono="settings" aria-haspopup="dialog"><span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcQuieroFiltrosCuenta"></span></button>
               <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcQuieroSeleccionar" data-icono="checkSquare" aria-pressed="false"><span class="mc-chip-texto">Seleccionar</span></button>
               <button type="button" class="mc-chip-mando mc-quiero-menu" id="mcQuieroMenu" aria-label="Más: compartir, imagen, álbum, modo evento" aria-haspopup="dialog"><span aria-hidden="true">⋯</span></button>
-              <span class="mc-seg mc-seg-sueltas mc-quiero-que hidden" id="mcQuieroQue" role="group" aria-label="Cuáles">
-                <button type="button" data-quiero-filtro="todas" aria-pressed="true">Todas</button>
-                <button type="button" data-quiero-filtro="dan" aria-pressed="false">La dan <small data-quiero-n="dan"></small></button>
-                <button type="button" data-quiero-filtro="nadie" aria-pressed="false">Nadie <small data-quiero-n="nadie"></small></button>
-              </span>
             </div>
             <p class="mc-cuantas" id="mcDeseoCuantas" role="status" aria-live="polite"></p>
             <div id="mcDeseoResultados" class="mc-resultados mc-deseo-resultados hidden"></div>
