@@ -194,8 +194,9 @@ console.log('\n── 3. Las mesas se leen igual en un móvil que en un PC ─�
         // Nada asomando por los bordes de su propia mesa.
         seSalen: [...mesa.querySelectorAll('*')].filter((e) => {
           const r = e.getBoundingClientRect()
-          return r.width > 0 && (r.right > caja.right + 1 || r.left < caja.left - 1)
-        }).length,
+          // 1377: lo plegado en el «⋯» de la mesa no se ve y no asoma.
+          return r.width > 0 && e.checkVisibility() && (r.right > caja.right + 1 || r.left < caja.left - 1)
+        }).map((e) => `${e.tagName}.${e.className}`),
         arrastrar: document.querySelector('.torneo-mesas').scrollWidth > document.querySelector('.torneo-mesas').clientWidth + 1,
       }
     })
@@ -203,7 +204,7 @@ console.log('\n── 3. Las mesas se leen igual en un móvil que en un PC ─�
     check(`${ancho}px · las dos mesas de la ronda`, m && m.mesas === 2, JSON.stringify(m))
     check(`${ancho}px · con sus dos lados`, m && m.dosLados === 2, JSON.stringify(m))
     check(`${ancho}px · el número y el resultado en su sitio`, m && m.conNumero && m.conResultado, JSON.stringify(m))
-    check(`${ancho}px · nada se sale de su mesa`, m && m.seSalen === 0, JSON.stringify(m))
+    check(`${ancho}px · nada se sale de su mesa`, m && m.seSalen.length === 0, JSON.stringify(m))
     check(`${ancho}px · y no hay que arrastrar de lado`, m && !m.arrastrar, JSON.stringify(m))
     await page.close()
   }

@@ -70,10 +70,12 @@ try {
     const proxima = page.locator('#torneoProximaCaja')
     check('«Tu próxima jornada» a la vista', await proxima.isVisible())
     const txt = (await proxima.textContent()) || ''
-    check('…de la jornada 7, con la cuenta y lo que falta', /Jornada 7/.test(txt) && /D[ÍI]AS/i.test(txt) && /Mandar mi lista/.test(txt), txt.slice(0, 200))
+    // 1376: la cuenta atrás se fue a la cabecera; aquí queda lo que te toca y su botón.
+    check('…de la jornada 7, con lo que falta y su botón', /Jornada 7/.test(txt) && /Mandar mi lista/.test(txt), txt.slice(0, 200))
     check('la pastilla entre jornadas lleva el día', (await page.locator('.torneo-viva-dia').count()) === 1)
     check('…y «Tu lista»', (await page.locator('.torneo-viva a[data-ir-pestana="jugar"]').count()) === 1)
-    check('Cómo vas con caras y forma', (await page.locator('.torneo-como-vas .torneo-jcara').count()) >= 3 && (await page.locator('.torneo-como-vas .torneo-forma').count()) >= 3)
+    // 1376: «Tu puesto» en grande con tu forma, en vez de cuatro filas.
+    check('Tu puesto con su forma', (await page.locator('.torneo-puesto-num').count()) === 1 && (await page.locator('#comoVasContenido .torneo-forma').count()) === 1)
     await ctx.close()
   }
 

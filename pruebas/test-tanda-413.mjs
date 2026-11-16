@@ -494,9 +494,9 @@ print(im.size[0], im.size[1], im.getpixel((4, 4))[3])`], { encoding: 'utf8' })
 console.log('\n── 7. La pestaña «Meta» del torneo ──')
 {
   const { page, errores } = await abrir('/torneo?slug=copa', semillas(), { sesion: 'none' })
-  const pestanas = await page.locator('[data-pestana]').allInnerTexts()
-  check('un torneo terminado tiene pestaña «Meta» (también sin cuenta)', pestanas.includes('Meta'), pestanas.join(' | '))
-  await pestana(page, 'meta')
+  // 1378: el meta es un apartado de Tabla, no una pestaña.
+  await pestana(page, 'clasificacion')
+  check('un torneo terminado enseña los mazos en Tabla (también sin cuenta)', await page.locator('#torneoMetaCaja').isVisible())
   const filas = page.locator('.torneo-meta-fila')
   const textos = (await filas.allInnerTexts()).map((t) => t.replace(/\s+/g, ' '))
   check('cinco mazos', textos.length === 5, textos.join(' || '))
@@ -586,11 +586,11 @@ console.log('\n── 7. La pestaña «Meta» del torneo ──')
 
   // De lista cerrada y en juego: no hay meta que enseñar.
   const cerrado = await abrir('/torneo?slug=copa', semillas({ estado: 'in_progress' }))
-  check('en juego y de lista cerrada, NO hay pestaña «Meta»', !(await cerrado.page.locator('[data-pestana]').allInnerTexts()).includes('Meta'))
+  check('en juego y de lista cerrada, NO hay mazos en Tabla', !(await cerrado.page.locator('#torneoMetaCaja').isVisible()))
   await cerrado.page.close()
   const abierto = await abrir('/torneo?slug=copa', semillas({ estado: 'in_progress', visibilidad: 'en_juego' }))
-  check('de lista abierta y en juego, sí', (await abierto.page.locator('[data-pestana]').allInnerTexts()).includes('Meta'))
-  await pestana(abierto.page, 'meta')
+  await pestana(abierto.page, 'clasificacion')
+  check('de lista abierta y en juego, sí', await abierto.page.locator('#torneoMetaCaja').isVisible())
   check('  …y avisa de que los puestos van cambiando', /sigue en juego/.test(await abierto.page.locator('#metaContenido').innerText()))
   await abierto.page.close()
 

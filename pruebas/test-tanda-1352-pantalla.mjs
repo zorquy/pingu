@@ -68,43 +68,19 @@ async function abrir(ancho, movil = false) {
 }
 const nombres = (page) => page.$$eval('#torneoPestanas [data-pestana]', (bs) => bs.map((b) => b.querySelector('.torneo-tab-txt')?.textContent.trim()))
 
+// Desde la 1375 las pestañas van SIEMPRE arriba (PINGU: «el menú lateral es
+// demasiado pequeño y poco visible»): dónde están lo mira la prueba de la 1375.
+// Aquí queda lo de la 1352 que sigue valiendo: los nombres, los iconos y que
+// tocar una pestaña la abre y lo apunta en la dirección.
 try {
-  console.log('Móvil: la barra de abajo es la del torneo')
-  {
-    const { page, ctx, errores } = await abrir(390, true)
-    check('sin errores de página', errores.length === 0, errores.join(' | '))
-    check('Hoy, Mesas, Tabla e Info', (await nombres(page)).join() === 'Hoy,Mesas,Tabla,Info', (await nombres(page)).join())
-    const pos = await page.evaluate(() => {
-      const nav = document.getElementById('torneoPestanas')
-      const r = nav.getBoundingClientRect()
-      const bm = document.querySelector('.bm')
-      return { fija: getComputedStyle(nav).position === 'fixed', abajo: Math.round(innerHeight - r.bottom), enBody: nav.parentNode === document.body, bm: bm ? getComputedStyle(bm).display : 'no hay' }
-    })
-    check('pegada abajo, fija', pos.fija && pos.abajo <= 1 && pos.enBody, JSON.stringify(pos))
-    check('la barra de la web, escondida', pos.bm === 'none', pos.bm)
-    check('con iconos', (await page.locator('#torneoPestanas .torneo-tab-ic svg').count()) === 4)
+  for (const [quien, ancho, movil] of [['Móvil', 390, true], ['PC', 1280, false]]) {
+    const { page, ctx, errores } = await abrir(ancho, movil)
+    check(`${quien}: sin errores de página`, errores.length === 0, errores.join(' | '))
+    check(`${quien}: Hoy, Mesas, Tabla e Info`, (await nombres(page)).join() === 'Hoy,Mesas,Tabla,Info', (await nombres(page)).join())
+    check(`${quien}: con iconos`, (await page.locator('#torneoPestanas .torneo-tab-ic svg').count()) === 4)
     await page.locator('#torneoPestanas [data-pestana="clasificacion"]').click()
     await page.waitForTimeout(300)
-    check('tocar Tabla abre la tabla y lo apunta en la dirección', await page.locator('[data-panel="clasificacion"]').isVisible() && page.url().includes('ver=clasificacion'))
-    await ctx.close()
-  }
-  console.log('PC: columna estrecha a la izquierda')
-  {
-    const { page, ctx } = await abrir(1280)
-    const d = await page.evaluate(() => {
-      const nav = document.getElementById('torneoPestanas')
-      const rail = document.getElementById('torneoRail')
-      return { enRail: Boolean(rail && nav.parentNode === rail), ancho: Math.round(rail?.getBoundingClientRect().width || 0), izquierda: rail ? rail.getBoundingClientRect().right <= document.querySelector('.torneo-principal').getBoundingClientRect().left : false }
-    })
-    check('las pestañas, en la columna de la izquierda', d.enRail && d.izquierda, JSON.stringify(d))
-    check('…estrecha (72 px)', d.ancho === 72, d.ancho)
-    check('la barra de la web, como siempre', !(await page.evaluate(() => document.documentElement.classList.contains('torneo-app'))))
-    await ctx.close()
-  }
-  console.log('Tableta: arriba, como antes')
-  {
-    const { page, ctx } = await abrir(1000)
-    check('las pestañas, en lo pegado de arriba', await page.evaluate(() => document.getElementById('torneoPestanas').parentNode.id === 'torneoPegado'))
+    check(`${quien}: tocar Tabla abre la tabla y lo apunta en la dirección`, await page.locator('[data-panel="clasificacion"]').isVisible() && page.url().includes('ver=clasificacion'))
     await ctx.close()
   }
 } finally {

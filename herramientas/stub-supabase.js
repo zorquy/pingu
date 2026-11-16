@@ -2827,7 +2827,8 @@ export const supabase = {
       const perfil = T.user_profiles.find((p) => p.id === yo) || {}
       const manda = Boolean(perfil.is_admin || perfil.is_tournament_admin || t.admin_id === yo)
       const n = args.p_jornada
-      const empezada = T.rounds.some((r) => (r.tournament_id ?? 'torneo-1') === t.id && r.round_number === n)
+      // Una jornada son `rounds_per_matchday` rondas (849): la jornada n empieza en la ronda (n-1)·rpj+1.
+      const empezada = T.rounds.some((r) => (r.tournament_id ?? 'torneo-1') === t.id && Math.ceil(r.round_number / (t.rounds_per_matchday || 1)) === n)
       const cerrada = empezada || T.tournament_matchday_closures.some((c) => c.tournament_id === t.id && c.matchday === n)
       const enRango = Number.isInteger(n) && n >= 1 && n <= t.swiss_rounds
       if (nombre === 'torneos_lista_jornada') {

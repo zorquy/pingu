@@ -88,18 +88,17 @@ console.log('── 1. En Jugar, debajo de tu mesa ──')
   const orden = await page.evaluate(() => {
     const a = document.getElementById('torneoMiPartida').getBoundingClientRect()
     const b = document.getElementById('torneoComoVas').getBoundingClientRect()
-    return { mesa: !document.getElementById('torneoMiPartida').classList.contains('hidden'), vas: !document.getElementById('torneoComoVas').classList.contains('hidden'), debajo: b.top >= a.bottom - 1 }
+    return { mesa: !document.getElementById('torneoMiPartida').classList.contains('hidden'), vas: !document.getElementById('torneoComoVas').classList.contains('hidden'), debajo: b.top >= a.bottom - 1, alLado: b.left >= a.right - 1 }
   })
-  check('«Cómo vas» sale, y debajo de «Tu partida»', orden.mesa && orden.vas && orden.debajo, JSON.stringify(orden))
-  const filas = await page.$$eval('.torneo-como-vas li:not(.torneo-como-vas-salto)', (ls) => ls.map((l) => ({ pos: l.querySelector('.torneo-pos')?.textContent, nombre: l.querySelector('.torneo-como-vas-nombre')?.textContent, yo: l.classList.contains('torneo-fila-yo') && l.getAttribute('aria-current') === 'true', alto: l.getBoundingClientRect().height })))
-  const mia = filas.find((f) => f.yo)
-  check('tu fila dice «Tú» y va marcada', mia?.nombre === 'Tú', JSON.stringify(filas))
-  check('el primero siempre está, y no más de cuatro filas', filas[0]?.pos === '1' && filas.length <= 4 && filas.length >= 2, JSON.stringify(filas))
-  check('cada fila mide 44', filas.every((f) => f.alto >= 44))
+  // 1376: en el PC, «Tu puesto» va a la derecha de tu mesa; en el móvil, debajo.
+  check('«Tu puesto» sale, debajo o al lado de «Tu partida»', orden.mesa && orden.vas && (orden.debajo || orden.alLado), JSON.stringify(orden))
+  // 1376: «Tu puesto» en grande (6º de 8 · 21 puntos), no cuatro filas.
+  const mia = await page.evaluate(() => ({ pos: document.querySelector('.torneo-puesto-num')?.textContent.trim().replace('º', ''), texto: document.querySelector('.torneo-puesto-texto b')?.textContent.trim() }))
+  check('tu puesto, en grande, con los puntos', /^\d+$/.test(mia.pos || '') && /^de \d+ · \d+ puntos?$/.test(mia.texto || ''), JSON.stringify(mia))
   await page.click('[data-ir-pestana="clasificacion"]')
   await page.waitForTimeout(600)
   const enTabla = await page.$eval('tr.torneo-fila-yo .torneo-pos', (e) => e.textContent).catch(() => null)
-  check('«Ver la clasificación entera» lleva a la tabla', await page.locator('[data-panel="clasificacion"]').isVisible())
+  check('«Ver la tabla» lleva a la tabla', await page.locator('[data-panel="clasificacion"]').isVisible())
   check('  …y tu puesto es el MISMO en las dos', enTabla === mia?.pos, `${enTabla} / ${mia?.pos}`)
   await page.close()
 }

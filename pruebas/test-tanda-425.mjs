@@ -203,7 +203,7 @@ async function abrir({ sesion = 'admin-1', torneo = {}, sprite = 'magenta', resp
   }, [sesion, semillas(torneo)])
   await page.goto(`${BASE}/torneo?slug=copa`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
-  await page.click('[data-pestana="meta"]')
+  await page.click('[data-pestana="clasificacion"]') // 1378: los mazos, en Tabla
   await page.waitForTimeout(500)
   return { page, errores, pedidas }
 }

@@ -94,7 +94,8 @@ for (const ancho of [390, 1280]) {
   }))
   check(`${ancho}: en juego, las pestañas empiezan por Hoy`, datos.pestanas[0] === 'Hoy' && datos.activa === 'jugar', datos.pestanas.join(','))
   check(`${ancho}: «Info» en vez de «Torneo»`, datos.pestanas.includes('Info') && !datos.pestanas.includes('Torneo'))
-  check(`${ancho}: la cabecera mide poco (≤ 150 px)`, datos.cabecera <= 150, datos.cabecera)
+  // 1375: la cabecera lleva además el reloj y las rayitas de las rondas (≤ 170).
+  check(`${ancho}: la cabecera mide poco (≤ 170 px)`, datos.cabecera <= 170, datos.cabecera)
   check(`${ancho}: el formato vive en Info`, datos.formatoEnInfo)
   check(`${ancho}: lo de arriba va pegado (sticky)`, datos.pegado === 'sticky')
   check(`${ancho}: en Mi mesa no sale la pastilla`, datos.pastillaEnMesa === 'none', datos.pastillaEnMesa)

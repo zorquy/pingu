@@ -207,7 +207,7 @@ console.log('\n── 2. El meta junta las variantes de un mismo mazo (agruparMe
 console.log('\n── 3. Y en la pestaña Meta ──')
 {
   const { page, errores } = await abrir('/torneo?slug=copa')
-  await page.click('[data-pestana="meta"]')
+  await page.click('[data-pestana="clasificacion"]') // 1378: los mazos, en Tabla
   await page.waitForTimeout(500)
   const filas = (await page.locator('.torneo-meta-fila').allInnerTexts()).map((t) => t.replace(/\s+/g, ' '))
   check('cuatro filas para ocho listas', filas.length === 4, filas.join(' || '))

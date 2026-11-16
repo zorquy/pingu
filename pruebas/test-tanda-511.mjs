@@ -159,7 +159,7 @@ console.log('\n── 3. La imagen del meta, con /sprite caído como en producci
   }, semillas)
   await page.goto(`${BASE}/torneo?slug=copa`, { waitUntil: 'domcontentloaded' })
   await page.waitForTimeout(2600)
-  await page.click('[data-pestana="meta"]')
+  await page.click('[data-pestana="clasificacion"]') // 1378: los mazos, en Tabla
   await page.waitForTimeout(500)
   await Promise.all([page.waitForEvent('download', { timeout: 20000 }), page.click('[data-meta-imagen]')])
   const dibujos = await page.evaluate(() => window.__dibujos)
