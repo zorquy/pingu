@@ -4889,3 +4889,14 @@ button.torneo-tj { cursor: pointer; }
   .torneo-anillo b { width: 56px; height: 56px; font-size: var(--t-md); }
 }
 
+/* ── 1378: Tabla (con los mazos dentro), Info y Jueces con el mismo estilo
+   (SCHEMA 1378): tarjetas de radio grande, título con la letra de la marca y
+   aire, como Hoy y Mesas. ── */
+.torneo-panel:not(.hidden) { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--e-md); align-content: start; }
+.torneo-panel > .simple-card { min-width: 0; margin: 0; padding: var(--e-lg); border-radius: var(--radius-xl); }
+.torneo-panel > .simple-card > h3 { margin: 0 0 var(--e-sm); font-family: var(--font-display); font-size: var(--t-lg); }
+@media (max-width: 640px) {
+  .torneo-panel > .simple-card { padding: var(--e-md); }
+}
+/* «Tus jornadas» (1378): las cerradas, plegadas. */
+.torneo-mis-jornadas-pasadas > summary { cursor: pointer; margin-bottom: var(--e-xs); font-size: var(--t-sm); font-weight: 700; color: var(--acento); }

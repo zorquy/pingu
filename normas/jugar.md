@@ -240,6 +240,12 @@ cerrada van en un `<details>` o en su «⋯». Una pieza nueva para quien lleva 
 torneo entra ahí, no como otro párrafo debajo. Y lo que va plegado se busca en
 las pruebas abriendo antes el `<details>`: cerrado no se puede pulsar.
 
+**Una pestaña nueva en la ficha del torneo es la última opción** (1378): Meta
+pasó a ser un apartado de Tabla para que un jugador vea cuatro (Hoy, Mesas,
+Tabla, Info). Lo nuevo va como apartado de la pestaña a la que pertenece; si un
+enlace viejo nombra una pestaña que ya no existe, `pintarPestanas` lo traduce
+(`?ver=meta` → Tabla).
+
 **Jugar son TRES cosas en el menú: Torneos, Mazos y Partidas** (tanda 1358,
 PINGU eligió «Jugar en tres»). Mazos son /meta, /mazos y /laboratorio con sus
 pestañas Meta · Los míos · Probar; Partidas son /mis-partidas y /repeticiones.

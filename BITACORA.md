@@ -4,6 +4,27 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (624) — PINGU-Claude (1378 — El torneo, renovado: Tabla, Info y Jueces)
+
+**Hecho** (la versión 2 de «El torneo, renovado»):
+- **Meta deja de ser pestaña**: los mazos del torneo son un apartado de Tabla,
+  debajo de la clasificación («Los mazos del torneo»). Un jugador ve cuatro
+  pestañas (Hoy, Mesas, Tabla, Info); `?ver=meta` abre Tabla.
+- **Info, «Tus jornadas»**: las jornadas ya cerradas, plegadas en «Jornadas
+  cerradas (N)» (antes eran seis filas de «Ya empezó»); una línea en vez del
+  párrafo largo, y el botón grande solo en la próxima jornada (en las demás,
+  un enlace «Enviar lista»).
+- **Tabla, Info y Jueces con el mismo estilo** que Hoy y Mesas: tarjetas de
+  radio grande, título con la letra de la marca y el mismo aire entre ellas.
+
+**Ficheros**: `torneo.html`, `js/torneos/pestanas.js`, `js/torneos/jornadas.js`,
+`css/torneos.css`, `normas/jugar.md`, `novedades.json`. Prueba
+`test-tanda-1378-pantalla.mjs` (rama `pruebas`); la 413, la 421, la 425 y la
+511 abren Tabla en vez de Meta, y la torneos-15 solo cuenta lo que se ve.
+
+**Pendiente**: nada de la propuesta. Las pruebas 421, 425, 511 y 413 tienen rojos
+que ya tenían antes (necesitan PIL o imágenes de internet en esta máquina).
+
 ## 2026-11-16 (623) — PINGU-Claude (1377 — El torneo, renovado: Mesas del organizador)
 
 **Hecho** (la versión 2 de «El torneo, renovado»):

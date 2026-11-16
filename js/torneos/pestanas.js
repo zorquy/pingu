@@ -20,10 +20,11 @@ export const PESTANAS = {
   meta: ['Meta', 'barChart'],
   jueces: ['Jueces', 'shield'],
 }
+// Sin «Meta» desde la 1378: es un apartado de Tabla.
 const ORDEN_DE_PESTANAS = {
-  antes: ['torneo', 'jugadores', 'jugar', 'rondas', 'clasificacion', 'meta', 'jueces'],
-  juego: ['jugar', 'rondas', 'clasificacion', 'meta', 'torneo', 'jueces'],
-  fin: ['clasificacion', 'rondas', 'meta', 'torneo', 'jugar', 'jueces'],
+  antes: ['torneo', 'jugadores', 'jugar', 'rondas', 'clasificacion', 'jueces'],
+  juego: ['jugar', 'rondas', 'clasificacion', 'torneo', 'jueces'],
+  fin: ['clasificacion', 'rondas', 'torneo', 'jugar', 'jueces'],
 }
 // En la fila del móvil caben cinco; con más, las últimas van en «Más».
 const CABEN_ABAJO = 5
@@ -106,7 +107,9 @@ export function pintarPestanas(forzar = false) {
       const panel = document.querySelector(`[data-panel="${p.id}"]`)
       return panel && [...panel.children].some((caja) => !caja.classList.contains('hidden'))
     })
-  const pedida = new URLSearchParams(location.search).get('ver')
+  // `?ver=meta` (enlaces de antes de la 1378) abre Tabla, que es donde vive el meta.
+  const pedidaTal = new URLSearchParams(location.search).get('ver')
+  const pedida = pedidaTal === 'meta' ? 'clasificacion' : pedidaTal
   if (!pestanaActiva) pestanaActiva = visibles.some((p) => p.id === pedida) ? pedida : pestanaDeEntrada(fase, visibles)
   if (!elegidaAMano && pedida && pestanaActiva !== pedida && visibles.some((p) => p.id === pedida)) pestanaActiva = pedida
   if (!visibles.some((p) => p.id === pestanaActiva)) pestanaActiva = visibles[0]?.id || 'torneo'

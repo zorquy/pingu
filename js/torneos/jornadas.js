@@ -117,8 +117,7 @@ export function misJornadasHtml(lista, fechaBonita) {
   // La PRÓXIMA (1015, L8): la primera abierta sin lista, o la primera abierta.
   // Es la única que importa ahora, y va grande; las demás, en una lista corta.
   const proxima = (lista.find((j) => j.abierta && !j.lista) || lista.find((j) => j.abierta))?.n ?? null
-  const filas = lista
-    .map((j) => {
+  const fila = (j) => {
       const fecha = j.fecha ? ` · ${escapeHtml(fechaBonita(j.fecha))}` : ''
       // Una jornada saltada no la jugó nadie, tuviera lista o no (833).
       const estado = j.saltada
@@ -134,7 +133,8 @@ export function misJornadasHtml(lista, fechaBonita) {
           <button type="button" class="btn-secondary torneo-jornada-cambiar" data-jornada="${j.n}" data-accion="quitar"
             aria-label="No juego la jornada ${j.n}">No juego</button>`
       } else {
-        acciones = `<button type="button" class="btn-primary torneo-jornada-cambiar" data-jornada="${j.n}" data-accion="lista">Enviar lista</button>`
+        // Botón grande solo en la próxima (1378); en las de después, un enlace.
+        acciones = `<button type="button" class="${j.n === proxima ? 'btn-primary' : 'link-btn'} torneo-jornada-cambiar" data-jornada="${j.n}" data-accion="lista">Enviar lista</button>`
       }
       const esProxima = j.n === proxima
       const aviso = esProxima && !j.lista ? '<span class="torneo-mis-jornadas-aviso">Sin lista todavía. Si no la envías antes, no juegas esta jornada.</span>' : ''
@@ -142,12 +142,16 @@ export function misJornadasHtml(lista, fechaBonita) {
           <span class="torneo-mis-jornadas-cual">${icons.calendar(14)} <strong>Jornada ${j.n}</strong>${fecha}</span>
           ${estado}${aviso}<span class="torneo-mis-jornadas-acciones">${acciones}</span>
         </li>`
-    })
-    .join('')
+  }
+  // 1378: las jornadas ya cerradas, plegadas (solo decían «Ya empezó»); a la
+  // vista, las que aún admiten lista. Y una línea en vez del párrafo.
+  const cerradas = lista.filter((j) => !j.abierta)
+  const abiertas = lista.filter((j) => j.abierta)
   return `<div class="torneo-mis-jornadas" id="torneoMisJornadas">
       <p class="torneo-mis-jornadas-titulo"><strong>Tus jornadas</strong></p>
-      <p class="subtext">En una liga cada jornada se juega con su lista (puede ser la misma). Para jugar una jornada, envía tu lista antes de que se cierre; sin lista no te emparejan en ella (no suma puntos ni cuenta como derrota) y sigues en la liga.</p>
-      <ul class="torneo-mis-jornadas-lista">${filas}</ul>
+      <p class="subtext">Cada jornada se juega con su lista (puede ser la misma); sin lista, esa no la juegas y sigues en la liga.</p>
+      ${cerradas.length ? `<details class="torneo-mis-jornadas-pasadas"><summary>Jornadas cerradas (${cerradas.length})</summary><ul class="torneo-mis-jornadas-lista">${cerradas.map(fila).join('')}</ul></details>` : ''}
+      ${abiertas.length ? `<ul class="torneo-mis-jornadas-lista">${abiertas.map(fila).join('')}</ul>` : ''}
     </div>`
 }
 

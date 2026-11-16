@@ -55204,6 +55204,20 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1378 — El torneo, renovado: Tabla, Info y Jueces
+
+- `torneo.html`: `#torneoMetaCaja` vive en el panel `clasificacion`, debajo de
+  `#torneoClasificacionCaja` («Los mazos del torneo»); fuera el panel `meta`.
+- `pestanas.js`: `meta` fuera de `ORDEN_DE_PESTANAS`; `?ver=meta` se lee como
+  `clasificacion`. (`PESTANAS.meta` se queda por si algo viejo la nombra.)
+- `jornadas.js` · `misJornadasHtml`: las cerradas (`!abierta`) en
+  `details.torneo-mis-jornadas-pasadas` («Jornadas cerradas (N)»), ANTES de las
+  abiertas para conservar el orden J1…Jn; el botón «Enviar lista» es
+  `btn-primary` solo en la próxima y `link-btn` en las demás.
+- CSS «1378»: todo `.torneo-panel` visible es una rejilla de una columna con
+  `gap`; sus `.simple-card`, radio `xl`, `--e-lg` de relleno y h3 con
+  `--font-display`.
+
 ## Tanda 1377 — El torneo, renovado: Mesas del organizador
 
 - `ronda.js`: `anilloDeListas(actual)` → `{titulo, sub, html}` o null (liga, sin

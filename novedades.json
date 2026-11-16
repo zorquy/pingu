@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-16", "tipo": "mejora", "texto": "Torneos más sencillos: los mazos del torneo están ahora en la Tabla, en Info tus jornadas pasadas van plegadas, y quien organiza ve de un vistazo cuántos han mandado lista, con el botón para emparejar bien grande.", "enlace": "/torneos" },
     { "fecha": "2026-11-16", "tipo": "mejora", "texto": "En «Hoy» de cada torneo ves de un vistazo lo que te toca, con un solo botón, tu puesto en grande y tu mazo. La lista se pega en una ventana, y si juegas con la misma de la jornada anterior, la mandas de un toque.", "enlace": "/torneos" },
     { "fecha": "2026-11-16", "tipo": "mejora", "texto": "La ficha de cada torneo estrena cabecera: cuánto falta para la próxima jornada en grande, una rayita por jornada para ver por dónde va la liga, y las pestañas grandes arriba, también en el móvil.", "enlace": "/torneos" },
     { "fecha": "2026-11-16", "tipo": "arreglo", "texto": "Arreglos pequeños: la tarjeta del torneo de Inicio ya no repite la jornada ni corta el título, el perfil dice «Ver el logro» cuando solo hay uno y su cabecera va alineada en el móvil, y en la ficha de una carta el precio dice de dónde sale en una sola línea.", "enlace": "/" },
