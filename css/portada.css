@@ -264,6 +264,9 @@
 .pe-nombre-txt { min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .pe-nombre::after { content: ''; position: absolute; inset: 0; border-radius: inherit; }
 .pe-nombre:hover { color: var(--blanco-fijo); text-decoration: underline; }
+/* Sin el «encogerse al pulsar» de style.css: un `transform` vuelve al nombre la caja
+   de su ::after y el clic que empezó en la franja acaba fuera (1367). */
+.portada-evento .pe-nombre:active { transform: none; }
 .pe-estrella { display: inline-grid; flex-shrink: 0; color: #f4c542; }
 .pe-estrella svg { fill: currentColor; }
 .pe-linea { display: block; min-width: 0; overflow: hidden; color: rgba(255, 255, 255, 0.78); font-size: var(--t-xs); font-weight: 600; white-space: nowrap; text-overflow: ellipsis; }

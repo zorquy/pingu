@@ -274,6 +274,15 @@
   `data-seg-icono` con un nombre de js/icons.js, que pinta
   `js/pestanas-iconos.js`. Lo llevan Cartas, Mazos y Partidas; una fila nueva
   de ese tipo, igual, y con el icono que tenía en la burbuja.
+- **Un enlace que se ESTIRA a toda su tarjeta (`::after` con `inset: 0`) no
+  se encoge al pulsar** (tanda 1367, PINGU: «si clicas en el banner no hace
+  nada»): `a[class]:active { transform: scale(.97) }` de style.css convierte al
+  enlace en la caja de su `::after` en cuanto se aprieta, la zona pulsable se
+  reduce al nombre y el clic que se suelta en la tarjeta cae fuera. Sin error y
+  solo con el ratón de verdad (un `click()` de prueba no aprieta). El que estire
+  su enlace le quita el `transform` en `:active` con un selector que pese más
+  que `a[class]:active` (`.portada-evento .pe-nombre:active`), y su prueba
+  pulsa la tarjeta lejos del nombre con `delay`.
 - **En el móvil nada flota sobre el contenido salvo la barra y la burbuja**
   (tanda 1023, regla 1 de «PokeDoc como app»): un botón «siempre a mano»
   va en la cabecera o pegado bajo las pestañas, no fijo sobre las

@@ -4,6 +4,24 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (613) — PINGU-Claude (1367 — La franja del evento en Inicio se puede pulsar entera)
+
+**Hecho** (PINGU: «si clicas en el banner no hace nada, solo te deja clicar en
+el nombre»). La franja (1293) estira su nombre a toda la caja con `::after`,
+pero el «encogerse al pulsar» de style.css (`a[class]:active { transform:
+scale(.97) }`) hacía del enlace la caja de su `::after` en cuanto se apretaba:
+la zona pulsable se reducía al nombre en mitad del clic y el clic se perdía.
+`.portada-evento .pe-nombre:active { transform: none }` (css/portada.css; con
+más peso que la regla de style.css). Norma en `normas/interfaz.md`. Las otras
+tarjetas con enlace estirado (foro, aprender) no llevan clase en el enlace o
+estiran el propio enlace: no les pasa.
+
+**Ficheros**: `css/portada.css`, `normas/interfaz.md`, `novedades.json`.
+Prueba nueva: `test-tanda-1367-pantalla.mjs` (rama `pruebas`; sin el arreglo
+falla en PC y móvil).
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-15 (612) — PINGU-Claude (1366 — Colección en cuatro y pestañas con icono)
 
 **Hecho** (las dos propuestas, «Colección en cuatro» y «Pestañas con
