@@ -55204,6 +55204,23 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1382 — Las menciones del foro: todas enlazadas y con punto
+
+- `js/menciones.js`: `PATRON` admite `.` dentro del nombre; `limpio` quita
+  `[._-]+$`. `candidatosDe(n)` → `[con guion, sin punto, antes del punto]`.
+  `nombresMencionados(texto, { tope = 5 })`. `perfilesMencionados(html,
+  { avisar = false })`: sin `avisar`, hasta 400 nombres (filtros `username.
+  ilike` por candidato y `display_name.ilike."n"` con punto, en trozos de 60);
+  con `avisar`, cinco y un perfil por nombre. `encajeDe(nombre, mapa)` →
+  `{ perfil, entero }` (con guion > sin punto > `~display_name` > antes del
+  punto, `entero: false`); `porNombre` añade la clave `~<display_name>` si
+  lleva punto. `enlazarMenciones` enlaza el nombre entero o solo lo de antes
+  del punto.
+- Migración 1382: `menciones_de(text)` `stable security definer`: los escritos
+  (con punto, sin el del final), resueltos al usuario con la misma prioridad
+  (1 guion, 2 sin punto, 3 display_name, 4 antes del punto), distintos y como
+  mucho cinco, en orden de aparición.
+
 ## Tanda 1381 — El idioma en un slide y la lupa que crece
 
 - `.mc-una-fila select.mc-mercado` vuelve a ser el select escondido de la 678

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-16", "tipo": "arreglo", "texto": "Las menciones del foro: ahora se enlazan todas aunque un mensaje nombre a mucha gente, y los nombres con punto (como @Sergio.M) llevan a la persona correcta.", "enlace": "/foro" },
     { "fecha": "2026-11-16", "tipo": "mejora", "texto": "En Mi colección el idioma vuelve a ser un interruptor con las dos banderas, y en el móvil el buscador es una lupa que se abre al tocarla.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-11-16", "tipo": "mejora", "texto": "Las ligas ya cuentan aunque no hayan terminado: cada jornada jugada sale en el meta como un torneo, sus listas se pueden ver y sus partidas entran en Mis partidas.", "enlace": "/meta" },
     { "fecha": "2026-11-16", "tipo": "mejora", "texto": "Torneos más sencillos: los mazos del torneo están ahora en la Tabla, en Info tus jornadas pasadas van plegadas, y quien organiza ve de un vistazo cuántos han mandado lista, con el botón para emparejar bien grande.", "enlace": "/torneos" },

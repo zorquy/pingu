@@ -211,7 +211,7 @@ export function initGuideForum({ containerEl, guideId, currentSession, isAdmin =
 // nombresMencionados). Si falla, el comentario ya está publicado: esto
 // no puede tumbarlo.
 async function avisarMencionados(body, actorId, guideSlug) {
-  const gente = await perfilesMencionados(escapeHtml(body || ''))
+  const gente = await perfilesMencionados(escapeHtml(body || ''), { avisar: true })
   await Promise.all(
     gente
       .filter((p) => p.id !== actorId)

@@ -4,6 +4,35 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (628) — PINGU-Claude (1382 — Las menciones del foro: todas enlazadas y con punto)
+
+**Hecho** (PINGU, con una captura de un mensaje con quince menciones: «las
+menciones en el foro no funcionan bien y ya ves que sergio.m no lo reconoce por
+el punto»):
+- **Todas enlazadas**: el tope de cinco de `nombresMencionados` (que es para
+  AVISAR) se aplicaba también al pintar, y el tema junta los mensajes de la
+  página en un texto: pasados cinco nombres en todo el tema, el resto en texto
+  plano. Ahora `perfilesMencionados` busca todas (en trozos de 60 para no hacer
+  una URL enorme) y solo quien avisa (`tema.js` al responder,
+  `guide-forum.js` al comentar) pasa `{ avisar: true }`.
+- **Con punto**: el patrón admite puntos por dentro y quita el del final de
+  frase. «@Sergio.M» es el usuario con guion (sergio-m), sin el punto
+  (sergiom), quien se llama «Sergio.M» de cara a la gente o, si nada de eso
+  existe, «@sergio» con «.M» en texto (`encajeDe`). Antes se enlazaba a
+  @sergio, que es otra persona.
+- **Migración `supabase-migration-1382-menciones-con-punto.sql`** (HAY QUE
+  EJECUTARLA): `menciones_de` (el correo de mención) resuelve igual y devuelve
+  el usuario de cada uno; deja de ser `immutable` (mira user_profiles). Sin
+  ella, el correo sigue yendo a «sergio» por un «@sergio.M».
+
+**Ficheros**: `js/menciones.js`, `js/tema.js`, `js/guide-forum.js`,
+`supabase-migration-1382-menciones-con-punto.sql`, `normas/comunidad.md`,
+`novedades.json`. Prueba `test-tanda-1382.mjs` (rama `pruebas`: el enlazado en
+un navegador y la migración contra PostgreSQL).
+
+**Pendiente**: ejecutar la migración. Los avisos siguen siendo cinco por
+mensaje; si PINGU quiere más, es cambiar `MAXIMO` y el `limit 5`.
+
 ## 2026-11-16 (627) — PINGU-Claude (1381 — El idioma en un slide y la lupa que crece)
 
 **Hecho** (PINGU: «en PC es mejor que sea un slide entre occidental y japonés,

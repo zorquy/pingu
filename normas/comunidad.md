@@ -210,6 +210,17 @@
   motivo tal cual cuando no sale. En el móvil se INVITA a activarlos (994,
   `js/invitar-push.js`): activarlos solo no se puede, el permiso lo pide un
   toque, y en ese toque lo primero es la pregunta del sistema.
+- **Una mención se ENLAZA siempre; se AVISA a cinco** (tanda 1382, PINGU:
+  «las menciones en el foro no funcionan bien y sergio.m no lo reconoce por
+  el punto»). `perfilesMencionados(html)` busca todas (el tema junta los
+  mensajes de la página en un texto: con el tope de cinco, pasados cinco
+  nombres en TODO el tema el resto salía en texto plano); quien avisa pasa
+  `{ avisar: true }` y se queda en cinco. Y un nombre con punto («@Sergio.M»,
+  el que la gente ve) es, por este orden, el usuario con guion, sin el
+  punto, quien se llama así de cara a la gente y, solo si nada de eso
+  existe, lo de antes del punto (`encajeDe`); el punto del final de una
+  frase no es del nombre. La base hace lo mismo en `menciones_de` (migración
+  1382, el correo): si se cambia una, se cambia la otra.
 - **El paginador del foro es UNO: `js/paginacion.js`** (tanda 990), para la
   lista de temas y un tema largo: «Anterior», páginas con «…» y «Siguiente»,
   y en el móvil cinco casillas sin texto. Antes eran `.page-btn` sin una

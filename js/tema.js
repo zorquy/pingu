@@ -1634,7 +1634,7 @@ async function avisar(cuerpo) {
     }
   }
 
-  const mencionados = await perfilesMencionados(cuerpo || '')
+  const mencionados = await perfilesMencionados(cuerpo || '', { avisar: true })
   mencionados.forEach((p) => {
     if (p.id !== sesion.user.id) destinatarios.add(p.id)
   })
