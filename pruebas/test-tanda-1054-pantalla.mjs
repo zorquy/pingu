@@ -75,22 +75,30 @@ const tarjetas = (page, zona) => page.$$eval(`${zona} a[data-carta]`, (as) => as
 // 2. La Pokédex (PC)
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=pokedex&dex=25')
-  await page.waitForSelector('#pdxQue', { timeout: 6000 }).catch(() => {})
-  const fila = await page.evaluate(() => document.getElementById('pdxQue')?.parentElement?.id || document.getElementById('pdxQue')?.parentElement?.className)
-  const p = await page.evaluate(() => [...document.getElementById('pdxQue').parentElement.children].filter((e) => e.getBoundingClientRect().width > 0).map((e) => e.id || (e.matches('.mc-mercado') ? 'catalogo' : e.tagName)).join(',').replace('catalogo,SPAN', 'catalogo'))
-  check('Pokédex: Todas/Tengo/Faltan · Apilar · Filtros · Seleccionar y el catálogo (el idioma, en la hoja desde la 1055)', /^pdxQue,pdxVariantes,(pdxAbrirFiltros,)?pdxSeleccionar,catalogo$/.test(p), `${fila}: ${p}`)
+  await page.waitForSelector('#pdxVariantes', { timeout: 6000 }).catch(() => {})
+  const p = await page.evaluate(() => [...document.getElementById('pdxVariantes').parentElement.children].filter((e) => e.getBoundingClientRect().width > 0).map((e) => e.id || (e.matches('.mc-mercado') ? 'catalogo' : e.tagName)).join(','))
+  // Desde la 1369 Todas/Tengo/Faltan es «Mostrar», en la hoja de Filtros.
+  check('Pokédex: Apilar · Filtros · Seleccionar y el catálogo (Mostrar, en la hoja desde la 1369)', /^pdxVariantes,pdxAbrirFiltros,pdxSeleccionar,catalogo$/.test(p), p)
   check('  …ya sin «Solo las que me faltan» ni «Variantes juntas»', !(await page.locator('#pdxSoloFaltan').count()) && !/Variantes (juntas|separadas)/.test(await page.textContent('#mcPokedexPanel')))
   const todas = (await tarjetas(page, '#mcPokedexPanel')).length
-  await page.click('[data-pdx-que="tengo"]')
-  await page.waitForTimeout(400)
+  // Mostrar se elige en la hoja (1369): se abre, se pulsa y se cierra.
+  const mostrar = async (v) => {
+    await page.click('#pdxAbrirFiltros')
+    await page.waitForTimeout(300)
+    await page.click(`#mcPdxGrupos [data-pdx-que="${v}"]`)
+    await page.waitForTimeout(400)
+    const puesto = await page.getAttribute(`#mcPdxGrupos [data-pdx-que="${v}"]`, 'aria-checked')
+    await page.click('#mcPdxFiltrosCerrar')
+    await page.waitForTimeout(200)
+    return puesto
+  }
+  await mostrar('tengo')
   const tengo = await tarjetas(page, '#mcPokedexPanel')
-  await page.click('[data-pdx-que="faltan"]')
-  await page.waitForTimeout(400)
+  const puestoFaltan = await mostrar('faltan')
   const faltan = await tarjetas(page, '#mcPokedexPanel')
   check('  …Tengo deja las tuyas y Faltan las demás', todas === 8 && tengo.join() === 'sv8-1,sv8-2,sv8-3' && faltan.length === 5 && !faltan.includes('sv8-1'), JSON.stringify({ todas, tengo, faltan }))
-  check('  …y el botón dice cuál está puesto', (await page.getAttribute('[data-pdx-que="faltan"]', 'aria-pressed')) === 'true')
-  await page.click('[data-pdx-que="todas"]')
-  await page.waitForTimeout(400)
+  check('  …y el chip dice cuál está puesto', puestoFaltan === 'true')
+  await mostrar('todas')
   // Seleccionar
   await page.click('#pdxSeleccionar')
   await page.waitForTimeout(500)
@@ -100,8 +108,7 @@ const tarjetas = (page, zona) => page.$$eval(`${zona} a[data-carta]`, (as) => as
   await page.waitForTimeout(400)
   const sel = await page.evaluate(() => ({ marcadas: [...document.querySelectorAll('#mcPokedexPanel a[data-carta].marcada')].map((a) => a.dataset.carta), cuenta: document.getElementById('mcMarcarCuenta')?.textContent, ficha: document.getElementById('mcEditor')?.open, modo: document.getElementById('mcPokedexPanel').classList.contains('mc-cat-marcando') }))
   check('Seleccionar en la Pokédex: marca al tocar, sin abrir la ficha', sel.modo && sel.marcadas.length === 2 && sel.cuenta === '2 seleccionadas' && !sel.ficha, JSON.stringify(sel))
-  await page.click('[data-pdx-que="tengo"]')
-  await page.waitForTimeout(500)
+  await mostrar('tengo')
   const tras = await page.evaluate(() => [...document.querySelectorAll('#mcPokedexPanel a[data-carta].marcada')].map((a) => a.dataset.carta))
   check('  …y lo marcado sigue marcado aunque la rejilla se repinte', tras.length === 1, JSON.stringify(tras))
   await page.click('#mcMarcarCancelar')
@@ -116,19 +123,24 @@ const tarjetas = (page, zona) => page.$$eval(`${zona} a[data-carta]`, (as) => as
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=buscar')
   await page.fill('#mcBuscarTodo', 'pikachu')
   await page.waitForTimeout(1500)
-  const p = await page.evaluate(() => [...document.querySelector('#mcBuscarBarra .mc-mandos').children].filter((e) => e.getBoundingClientRect().width > 0).map((e) => e.id || (e.matches('.mc-mercado') ? 'catalogo' : e.tagName)).join(',').replace('catalogo,SPAN', 'catalogo'))
-  check('Buscar: Todas/Tengo/Faltan · Apilar · Orden · Filtros · Seleccionar · catálogo (serie y expansión, en la hoja desde la 1055)', /^mcBuscarQue,mcBuscarVariantes,mcBuscarAbrirOrden,mcBuscarAbrirFiltros,mcBuscarSeleccionar,catalogo$/.test(p), p)
+  const p = await page.evaluate(() => [...document.querySelector('#mcBuscarBarra .mc-mandos').children].filter((e) => e.getBoundingClientRect().width > 0).map((e) => e.id || (e.matches('.mc-mercado') ? 'catalogo' : e.tagName)).join(','))
+  check('Buscar: Apilar · Filtros · Seleccionar · catálogo (Mostrar y Ordenar, en la hoja desde la 1369)', /^mcBuscarVariantes,mcBuscarAbrirFiltros,mcBuscarSeleccionar,catalogo$/.test(p), p)
   check('  …y «Solo las que tengo» ya no está', !(await page.locator('#mcBuscarSoloMias').count()))
   const todas = (await tarjetas(page, '#mcBuscarResultados')).length
-  await page.click('[data-bus-que="tengo"]')
-  await page.waitForTimeout(400)
+  const mostrar = async (v) => {
+    await page.click('#mcBuscarAbrirFiltros')
+    await page.waitForTimeout(300)
+    await page.click(`[data-bus-que="${v}"]`)
+    await page.waitForTimeout(400)
+    await page.click('#mcBuscarFiltrosCerrar')
+    await page.waitForTimeout(200)
+  }
+  await mostrar('tengo')
   const tengo = await tarjetas(page, '#mcBuscarResultados')
-  await page.click('[data-bus-que="faltan"]')
-  await page.waitForTimeout(400)
+  await mostrar('faltan')
   const faltan = await tarjetas(page, '#mcBuscarResultados')
   check('  …Tengo y Faltan filtran lo que ha vuelto', todas === 8 && tengo.length === 3 && faltan.length === 5 && !faltan.some((x) => tengo.includes(x)), JSON.stringify({ todas, tengo, faltan }))
-  await page.click('[data-bus-que="todas"]')
-  await page.waitForTimeout(400)
+  await mostrar('todas')
   await page.click('#mcBuscarSeleccionar')
   await page.waitForTimeout(500)
   await page.locator('#mcBuscarResultados a[data-carta]').nth(1).click()
@@ -146,9 +158,9 @@ const tarjetas = (page, zona) => page.$$eval(`${zona} a[data-carta]`, (as) => as
 // 4. Móvil: los iconos delante
 {
   const { ctx, page, errores } = await abrir('/mi-coleccion.html?ver=pokedex&dex=25', { movil: true })
-  await page.waitForSelector('#pdxQue', { timeout: 6000 }).catch(() => {})
-  const x = await page.evaluate(() => Object.fromEntries(['pdxQue', 'pdxVariantes', 'pdxSeleccionar', 'pdxAbrirFiltros'].map((id) => [id, Math.round(document.getElementById(id)?.getBoundingClientRect().x ?? -1)])))
-  check('en el móvil, Apilar y Seleccionar delante, como icono', x.pdxVariantes < x.pdxQue && x.pdxSeleccionar < x.pdxQue, JSON.stringify(x))
+  await page.waitForSelector('#pdxVariantes', { timeout: 6000 }).catch(() => {})
+  const x = await page.evaluate(() => Object.fromEntries(['pdxVariantes', 'pdxSeleccionar', 'pdxAbrirFiltros'].map((id) => { const e = document.getElementById(id); const r = e?.getBoundingClientRect(); return [id, r ? { x: Math.round(r.x), fin: Math.round(r.right), texto: getComputedStyle(e.querySelector('.mc-chip-texto')).clipPath } : null] })))
+  check('en el móvil, Apilar, Filtros y Seleccionar como icono y a la vista (1369)', Object.values(x).every((v) => v && v.x >= 0 && v.fin <= 390 && v.texto !== 'none'), JSON.stringify(x))
   check('sin errores (móvil)', !errores.length, errores.join(' | '))
   await ctx.close()
 }
@@ -161,14 +173,14 @@ const tarjetas = (page, zona) => page.$$eval(`${zona} a[data-carta]`, (as) => as
   await page.waitForTimeout(1500)
   const visibles = await page.evaluate(() => [...document.querySelectorAll('[data-seleccionar]')].filter((b) => b.getBoundingClientRect().width > 0).length)
   check('sin cuenta (/cartas), ningún «Seleccionar» a la vista', visibles === 0, visibles)
-  check('  …ni Todas/Tengo/Faltan en Buscar', !(await page.locator('#mcBuscarQue').isVisible()))
+  check('  …ni Todas/Tengo/Faltan en Buscar', await page.evaluate(() => document.getElementById('mcBuscarGrupoQue').classList.contains('hidden')))
   await ctx.close()
 }
 {
   const { ctx, page } = await abrir('/cartas.html?ver=buscar', { sesion: false })
   await page.fill('#mcBuscarTodo', 'pikachu').catch(() => {})
   await page.waitForTimeout(1500)
-  check('probando sin cuenta (1328), Seleccionar y Todas/Tengo/Faltan, como con cuenta', await page.evaluate(() => document.documentElement.classList.contains('mc-puede-marcar')) && (await page.locator('#mcBuscarQue').isVisible()))
+  check('probando sin cuenta (1328), Seleccionar y Todas/Tengo/Faltan, como con cuenta', await page.evaluate(() => document.documentElement.classList.contains('mc-puede-marcar')) && (await page.evaluate(() => !document.getElementById('mcBuscarGrupoQue').classList.contains('hidden'))))
   await ctx.close()
 }
 

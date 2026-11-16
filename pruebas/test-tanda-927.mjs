@@ -32,7 +32,7 @@ console.log('── 0. Lo estático ──')
   const html = readFileSync(join(RAIZ, 'mi-coleccion.html'), 'utf8')
   const panel = html.slice(html.indexOf('id="mcAlbumPanelFiltros"'), html.indexOf('id="mcAlbumFiltrosVer"'))
   check('la vista y Apilar ya NO están en la hoja de filtros', !/id="mcAlbumVista"/.test(panel) && !/id="mcVistaVariantes"/.test(panel))
-  const fila = html.slice(html.indexOf('<div class="mc-album-busca">'), html.indexOf('id="mcAlbumQuitar"'))
+  const fila = html.slice(html.indexOf('class="mc-album-busca'), html.indexOf('id="mcAlbumQuitar"'))
   check('  …van en la fila del buscador, en su orden: buscar, vista, apilar, filtros', /id="mcAlbumBuscar"[\s\S]*id="mcAlbumVista"[\s\S]*id="mcVistaVariantes"[\s\S]*id="mcAlbumAbrirFiltros"/.test(fila))
   check('«Para cambio» y «Versión» en los filtros', /id="mcAlbumCambio"/.test(panel) && /id="mcAlbumVersion"/.test(panel))
   check('los ajustes del archivador en la hoja de la vista', /id="mcAlbumVistaHoja"[\s\S]{0,2400}id="mcAlbumBolsillos"[\s\S]{0,800}id="mcAlbumPrimera"[\s\S]{0,800}id="mcAlbumArchivadorAplicar"/.test(html))
@@ -122,7 +122,8 @@ console.log('── 2. Una fila: buscar, vista, apilar y filtros ──')
   const misma = (a, b) => Math.abs((a.t + a.b) / 2 - (b.t + b.b) / 2) < 6
   // Desde la 1053 el buscador va en su fila y los mandos debajo, también en
   // el PC (con Todas/Tengo/Faltan, el orden y Seleccionar no cabían al lado).
-  check('el buscador encima y los mandos debajo, en una fila', r.buscar.b <= r.vista.t && misma(r.vista, r.apilar) && misma(r.apilar, r.filtros), JSON.stringify(r))
+  // Desde la 1369 (una fila, como Dex), el buscador va en la MISMA fila.
+  check('el buscador y los mandos, en una fila (1369)', misma(r.buscar, r.vista) && misma(r.vista, r.apilar) && misma(r.apilar, r.filtros), JSON.stringify(r))
   check('  …en ese orden, de izquierda a derecha', r.vista.r <= r.apilar.l && r.apilar.r <= r.filtros.l, JSON.stringify(r))
   // Con el ratón son controles densos (la 312): los 44 van con el dedo, abajo.
   check('  …y los tres botones, de la misma altura', r.vista.h === r.apilar.h && r.apilar.h === r.filtros.h && r.vista.h >= 32, JSON.stringify(r))
@@ -274,7 +275,8 @@ console.log('── 6. En el móvil ──')
     const caja = (id) => { const e = document.getElementById(id); const b = e.getBoundingClientRect(); const a = getComputedStyle(e, '::after'); const f = a.position === 'absolute' ? (-parseFloat(a.top) || 0) : 0; return { t: Math.round(b.top - f), b: Math.round(b.bottom + f), l: Math.round(b.left), r: Math.round(b.right) } }
     return { buscar: caja('mcAlbumBuscar'), vista: caja('mcAlbumVista'), apilar: caja('mcVistaVariantes'), filtros: caja('mcAlbumAbrirFiltros'), ancho: innerWidth, desborda: document.documentElement.scrollWidth > innerWidth }
   })
-  check('el buscador encima y los tres mandos debajo, en una fila', r.buscar.b <= r.vista.t && Math.abs(r.vista.t - r.apilar.t) < 4 && Math.abs(r.apilar.t - r.filtros.t) < 4, JSON.stringify(r))
+  // Desde la 1369, el buscador en la misma fila que los mandos.
+  check('el buscador y los tres mandos, en una fila (1369)', Math.abs((r.buscar.t + r.buscar.b) / 2 - (r.vista.t + r.vista.b) / 2) < 6 && Math.abs(r.vista.t - r.apilar.t) < 4 && Math.abs(r.apilar.t - r.filtros.t) < 4, JSON.stringify(r))
   // Una fila que se desliza (1038): lo que no cabe se ve deslizando, sin que la PÁGINA desborde.
   check('  …sin salirse de la pantalla', !r.desborda, JSON.stringify(r))
   check('  …y con el dedo miden 44 de alto', [r.vista, r.apilar, r.filtros].every((x) => x.b - x.t >= 44), JSON.stringify(r))

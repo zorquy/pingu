@@ -270,7 +270,8 @@ console.log('── 4. Los filtros, los de su maqueta (C6) ──')
     borrar: !!document.getElementById('mcAlbumFiltrosLimpiar').closest('.mc-panel-pie'),
   }))
   // 1055: en la hoja común el Tipo va primero y «Qué cartas» detrás de la raya.
-  check('[Expansión] el Tipo primero, y «Qué cartas»: Todas (puesta), Las tengo, Me faltan (y Para cambio, 1179)', a.primero === 'Tipo' && a.que === 'Todas*|Las tengo|Me faltan|Para cambio', JSON.stringify(a))
+  // 1369: «Qué cartas» pasa a ser Mostrar, el primer grupo de la hoja.
+  check('[Expansión] Mostrar primero: Todas (puesta), Las que tengo, Las que me faltan (y Para cambio, 1179)', a.primero === 'Mostrar' && a.que === 'Todas*|Las que tengo|Las que me faltan|Para cambio', JSON.stringify(a))
   check('[Expansión]   …el tipo, con los símbolos de las que hay en la expansión', a.energias.sort().join() === 'Agua,Dragón,Fuego,Planta', JSON.stringify(a.energias))
   check('[Expansión]   …y «Limpiar» abajo', a.borrar)
   await page.click('#mcAlbumSoloFaltan')
@@ -484,7 +485,7 @@ for (const [nombre, opciones] of [['iPhone', { ...devices['iPhone 13'] }], ['por
   // Desde la 1142 la baldosa de Avisos cuenta lo que no es de una sección (la
   // campana): los avisos del foro del fixture ya llevan su número en Comunidad.
   check(`[${nombre}] avisos (con su número) y mensajes, las dos primeras baldosas`, m.dos.length === 2 && /^Avisos ?\d*$/.test(m.dos[0]) && /^Mensajes/.test(m.dos[1]), JSON.stringify(m.dos))
-  check(`[${nombre}] lo tuyo en baldosas y «Ajustes» debajo (918; «Mis partidas» desde la 1162)`, m.lista.join(' | ') === 'Guardados>/guardados.html | La quiero>/mi-coleccion?ver=quiero | Mis mazos>/mazos | Mis partidas>/mis-partidas | Ajustes>/ajustes', m.lista.join(' | '))
+  check(`[${nombre}] lo tuyo en baldosas y «Ajustes» debajo (918; «Partidas» desde la 1358)`, m.lista.join(' | ') === 'Guardados>/guardados.html | La quiero>/mi-coleccion?ver=quiero | Mis mazos>/mazos | Partidas>/mis-partidas | Ajustes>/ajustes', m.lista.join(' | '))
   check(`[${nombre}] el tema en un botón (869) y «Salir» aparte`, /^Cambiar al tema/.test(m.tema) && m.salir === 'Salir' && !m.viejo && m.dentro, JSON.stringify(m))
   check(`[${nombre}]   …y su hoja llega al abrirla`, await css())
   const temaAntes = await page.evaluate(() => document.documentElement.dataset.theme)
@@ -791,8 +792,8 @@ for (const ancho of [1440, 1280]) {
   const m = await lee()
   check(`${ancho}: sin errores`, errores.length === 0, errores.join(' | '))
   if (ancho === 1280) {
-    // Todas/Tengo/Faltan va en la barra a cualquier ancho desde la 1053.
-    check('1280: una columna, como siempre (sin la lista de al lado ni la línea)', m.hermanos === null && m.linea === null && m.chips, JSON.stringify(m))
+    // Todas/Tengo/Faltan fue en la barra de la 1053 a la 1369; desde ahí, en Filtros.
+    check('1280: una columna, como siempre (sin la lista de al lado ni la línea)', m.hermanos === null && m.linea === null && !m.chips, JSON.stringify(m))
     await page.locator('#mcAlbum [data-carta]').first().click()
     await page.waitForTimeout(900)
     check('  …y la carta se abre en su ventana de siempre', (await lee()).ficha.modal)
@@ -800,12 +801,21 @@ for (const ancho of [1440, 1280]) {
     continue
   }
   check('a la izquierda, las de su era con su código y su cuenta (y no las de otra)', JSON.stringify(m.hermanos) === JSON.stringify(['OBF Llamas Obsidianas 2/4 *', 'PAL Evoluciones en Paldea 1/4']) && m.izquierda, JSON.stringify(m))
-  check('debajo del título, «2 de 4 · 50 %», y Todas / Tengo / Faltan al lado', /^2 de 4 · 50 %/.test(m.linea || '') && m.chips, JSON.stringify(m))
-  await page.click('#mcAlbumQue [data-que="mcAlbumSoloFaltan"]')
+  // Desde la 1369 Todas/Tengo/Faltan es Mostrar, dentro de Filtros.
+  check('debajo del título, «2 de 4 · 50 %» (y Todas / Tengo / Faltan, en Filtros)', /^2 de 4 · 50 %/.test(m.linea || '') && !m.chips, JSON.stringify(m))
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(500)
+  await page.click('#mcAlbumSoloFaltan')
+  await page.waitForTimeout(500)
+  await page.click('#mcAlbumFiltrosVer')
   await page.waitForTimeout(500)
   const f = await lee()
-  check('«Faltan» deja solo las que faltan, y se queda marcada', JSON.stringify(f.cartas) === JSON.stringify(['sv3-3', 'sv3-4']) && (await page.getAttribute('#mcAlbumQue [data-que="mcAlbumSoloFaltan"]', 'aria-pressed')) === 'true', JSON.stringify(f.cartas))
-  await page.click('#mcAlbumQue [data-que="mcAlbumTodas"]')
+  check('«Faltan» deja solo las que faltan, y se queda marcada', JSON.stringify(f.cartas) === JSON.stringify(['sv3-3', 'sv3-4']) && (await page.getAttribute('#mcAlbumSoloFaltan', 'aria-pressed')) === 'true', JSON.stringify(f.cartas))
+  await page.click('#mcAlbumAbrirFiltros')
+  await page.waitForTimeout(500)
+  await page.click('#mcAlbumTodas')
+  await page.waitForTimeout(300)
+  await page.click('#mcAlbumFiltrosVer')
   await page.waitForTimeout(500)
   await page.locator('#mcAlbum [data-carta="sv3-2"]').first().click()
   await page.waitForTimeout(1000)

@@ -25,7 +25,8 @@ const check = (l, ok, extra = '') => {
 }
 const BASE = process.env.PD_BASE || 'http://localhost:8892'
 
-const ORDEN = ['Tipo', 'Rareza', 'Tipo de carta', 'Tipo de entrenador', 'Versión', 'Precio', 'Idioma de tus copias']
+// Mostrar y Ordenar, los primeros desde la 1369.
+const ORDEN = ['Mostrar', 'Ordenar', 'Tipo', 'Rareza', 'Tipo de carta', 'Tipo de entrenador', 'Versión', 'Precio', 'Idioma de tus copias']
 const browser = await chromium.launch()
 const SETS = [
   { id: 'sv8', name: 'Chispas Fulgurantes', serie_id: 'sv', market: 'WEST', release_date: '2024-11-08', card_count_official: 6, card_count_total: 6 },
@@ -129,7 +130,7 @@ const comun = (nombre, h) => {
   await page.waitForTimeout(500)
   const h = await hoja(page, 'mcAlbumPanelFiltros')
   comun('Expansión', h)
-  check('Expansión: «Tipo de carta» e «Idioma de tus copias», y «Qué cartas» detrás de la raya', h.titulos.includes('Idioma de tus copias') && h.titulos.includes('| Qué cartas') && (h.titulos.includes('Tipo de carta') || !(await page.locator('#mcAlbumGrupoTipo:not(.hidden)').count())), h.titulos.join(' · '))
+  check('Expansión: «Tipo de carta» e «Idioma de tus copias», y Mostrar (era «Qué cartas») arriba (1369)', h.titulos.includes('Idioma de tus copias') && h.titulos[0] === 'Mostrar' && (h.titulos.includes('Tipo de carta') || !(await page.locator('#mcAlbumGrupoTipo:not(.hidden)').count())), h.titulos.join(' · '))
   check('sin errores (Expansión)', !errores.length, errores.join(' | '))
   await ctx.close()
 }

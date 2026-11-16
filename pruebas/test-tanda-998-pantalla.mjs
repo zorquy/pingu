@@ -117,7 +117,8 @@ console.log('── 4. Los filtros de Buscar ──')
   // «Solo las que tengo» no sale sin cuenta: no tienes ninguna.
   // 1055: la serie y la expansión van en la hoja de filtros; en la fila,
   // Apilar, Orden y Filtros.
-  check('Apilar, Orden y Filtros en la fila (la serie y la expansión, en la hoja)', ['mcBuscarVariantes', 'mcBuscarAbrirOrden', 'mcBuscarAbrirFiltros'].every((id) => r.ids.includes(id)) && !r.ids.includes('mcBuscarSerie') && !r.ids.includes('mcBuscarSet'), r.ids.join())
+  // Desde la 1369 el orden va dentro de Filtros (el grupo «Ordenar»).
+  check('Apilar y Filtros en la fila (el orden, la serie y la expansión, en la hoja)', ['mcBuscarVariantes', 'mcBuscarAbrirFiltros'].every((id) => r.ids.includes(id)) && !r.ids.includes('mcBuscarSerie') && !r.ids.includes('mcBuscarSet'), r.ids.join())
   check('  …en UNA línea de 44 px (nada se parte en dos renglones)', r.alturas.length === 1 && r.alto <= 46, JSON.stringify(r))
   check('  …y las cartas empiezan antes de un tercio de la pantalla', r.resultados < 300, r.resultados)
   await ctx.close()

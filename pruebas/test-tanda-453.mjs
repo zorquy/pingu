@@ -130,7 +130,8 @@ const navegador = await chromium.launch()
   await p.locator('#pdxAbrirFiltros').click()
   await p.waitForTimeout(500)
   // 1055: con los nombres de la hoja común, y el idioma de tus copias aparte.
-  const grupos = await p.locator('#mcPdxGrupos .mc-grupo-filtro:not([data-hoja="idioma"]) h3').allTextContents()
+  // Mostrar y Ordenar (1369, 1370) van arriba en todas las especies.
+  const grupos = await p.locator('#mcPdxGrupos .mc-grupo-filtro:not([data-hoja="idioma"]):not([data-hoja="mostrar"]):not([data-hoja="orden"]) h3').allTextContents()
   ok(grupos.join(' | ') === 'Tipo | Rareza', 'con los grupos que esta especie tiene', grupos.join(' | '))
   await p.locator('[data-egrupo="rarity"][data-evalor="Común"]').click()
   await p.waitForTimeout(600)

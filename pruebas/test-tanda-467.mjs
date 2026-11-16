@@ -70,7 +70,9 @@ for (const ancho of [414, 1280]) {
   const { page, errores } = await abrir(ancho)
   if (ancho === 414) check('sin errores', errores.length === 0, errores.join(' | '))
   const y = await alturas(page)
-  check(`en ${ancho} px el buscador va antes que los mandos`, y.buscador < y.mandos, JSON.stringify(y))
+  // Desde la 1369 (una fila, como Dex) buscador y mandos van en la MISMA
+  // fila: lo que se defiende es que los mandos no suban por encima de ella.
+  check(`en ${ancho} px el buscador no va después de los mandos`, Math.abs(y.buscador - y.mandos) <= 6 || y.buscador < y.mandos, JSON.stringify(y))
   check(`  …los mandos antes que los datos`, y.mandos < y.datos, JSON.stringify(y))
   check(`  …y los datos antes que las cartas`, y.datos < y.cartas, JSON.stringify(y))
   // Lo que motivó el cambio: llegar a BUSCAR sin pasar por tres tarjetas.

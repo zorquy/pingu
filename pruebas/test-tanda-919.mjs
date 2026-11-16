@@ -28,7 +28,7 @@ console.log('── 0. Lo estático ──')
   const panel = html.slice(html.indexOf('id="mcAlbumPanelFiltros"'), html.indexOf('id="mcAlbumFiltrosVer"'))
   // La 927 (Dex) los sacó otra vez a la fila del buscador: lo comprueba la 927.
   check('la vista y Apilar ya no viven dentro de la hoja de filtros (927)', !/id="mcAlbumVista"/.test(panel) && !/id="mcVistaVariantes"/.test(panel))
-  check('  …y el buscador y «Filtros» van en una fila', /<div class="mc-album-busca">[\s\S]*id="mcAlbumBuscar"[\s\S]*id="mcAlbumAbrirFiltros"/.test(html))
+  check('  …y el buscador y «Filtros» van en una fila', /<div class="mc-album-busca[^"]*">[\s\S]*id="mcAlbumBuscar"[\s\S]*id="mcAlbumAbrirFiltros"/.test(html))
   check('las cifras del set van dentro del «⋯»', /id="mcAlbumMenu"[\s\S]{0,1200}id="mcAlbumCifras"/.test(html))
   const js = readFileSync(join(RAIZ, 'js/mi-coleccion.js'), 'utf8')
   check('la expansión ya no pinta el carrusel de tarjetas', !/diapoHtml\('Conjunto completo'/.test(js) && /mc-avance-barra/.test(js))
@@ -73,8 +73,9 @@ console.log('── 1–4. En el móvil ──')
     return {
       fila: [volver, titulo, menu].every(Boolean) && Math.abs(centro(volver) - centro(titulo)) < 16 && Math.abs(centro(menu) - centro(titulo)) < 16,
       volver: volver && { ancho: Math.round(r(volver).width), alto: Math.round(r(volver).height), nombre: volver.textContent.trim() },
-      // En el móvil, desde la 927, el buscador va encima y los mandos debajo.
-      filtrosAlLado: busca && filtros && r(filtros).top >= r(busca).bottom - 1,
+      // De la 927 a la 1369 el buscador iba encima y los mandos debajo; desde
+      // la 1369 (una fila, como Dex), todo en la misma fila.
+      filtrosAlLado: busca && filtros && Math.abs(centro(filtros) - centro(busca)) < 12,
       vistaEnFila: Math.abs(centro(document.getElementById('mcAlbumVista')) - centro(filtros)) < 12,
       linea: (document.querySelector('#mcAlbumProgreso .mc-avance-linea')?.textContent || '').replace(/\s+/g, ' ').trim(),
       barra: document.querySelector('#mcAlbumProgreso .mc-avance-barra')?.getAttribute('aria-valuenow'),
@@ -84,7 +85,7 @@ console.log('── 1–4. En el móvil ──')
   })
   check('una fila: volver, el nombre y «⋯»', r.fila, JSON.stringify(r))
   check('  …volver es un icono de 44 que sigue diciendo adónde (para quien no ve)', r.volver && r.volver.ancho >= 44 && r.volver.ancho <= 52 && r.volver.alto >= 44 && /Expansiones/.test(r.volver.nombre), JSON.stringify(r.volver))
-  check('el buscador encima y «Filtros» con la vista debajo, en una fila (927)', r.filtrosAlLado && r.vistaEnFila, JSON.stringify(r))
+  check('el buscador, la vista y «Filtros», en una fila (1369)', r.filtrosAlLado && r.vistaEnFila, JSON.stringify(r))
   check('una barra de progreso: «4 de 18 · 22 %» y lo que vale lo tuyo', /^4 de 18 · 22 %/.test(r.linea) && /€/.test(r.linea) && r.barra === '22' && r.relleno === '22%', JSON.stringify(r))
   check('  …y sin el carrusel ni sus puntos', r.carrusel === 0, String(r.carrusel))
 

@@ -65,7 +65,10 @@ const enLaBarra = await page.evaluate(() =>
 // «Apilar»: tres, y en ese orden. Lo demás sigue dentro del panel.
 // Desde la 1053 la barra es la común: Todas/Tengo/Faltan, vista, Apilar,
 // orden, Filtros y Seleccionar (y el buscador en su fila, encima).
-check('la barra común (1053): qué cartas, vista, Apilar, orden, Filtros y Seleccionar', enLaBarra.join(',') === 'mcAlbumQue,mcAlbumVista,mcVistaVariantes,mcAlbumAbrirOrden,mcAlbumAbrirFiltros,mcMarcarAbrir', enLaBarra.join(','))
+// Desde la 1369 (una fila, como Dex) Todas/Tengo/Faltan y el orden son
+// Mostrar y Ordenar dentro de Filtros: en la barra, vista, Apilar, Filtros
+// y Seleccionar.
+check('la barra común (1369): vista, Apilar, Filtros y Seleccionar', enLaBarra.join(',') === 'mcAlbumVista,mcVistaVariantes,mcAlbumAbrirFiltros,mcMarcarAbrir', enLaBarra.join(','))
 check('y ninguno de los dos dentro de la hoja',
   await page.evaluate(() => ['mcVistaVariantes', 'mcAlbumVista'].every((id) => !document.getElementById(id)?.closest('dialog'))),
   enLaBarra.join(','))
@@ -76,9 +79,10 @@ const dondeViven = await page.evaluate(() =>
     (id) => `${id}:${document.getElementById(id)?.closest('dialog')?.id || 'FUERA'}`
   )
 )
-// El orden, desde la 1053, en su propia hoja; los otros tres, en el panel.
-check('los filtros viven dentro del panel, y el orden en su hoja',
-  dondeViven.join(' | ') === 'mcAlbumOrden:mcAlbumHojaOrden | mcAlbumRareza:mcAlbumPanelFiltros | mcAlbumTipo:mcAlbumPanelFiltros | mcAlbumSoloFaltan:mcAlbumPanelFiltros', dondeViven.join(' | '))
+// El orden, de la 1053 a la 1369 en su propia hoja; desde la 1369, en el
+// panel con los demás (es el grupo «Ordenar»).
+check('los filtros y el orden viven dentro del panel',
+  dondeViven.join(' | ') === 'mcAlbumOrden:mcAlbumPanelFiltros | mcAlbumRareza:mcAlbumPanelFiltros | mcAlbumTipo:mcAlbumPanelFiltros | mcAlbumSoloFaltan:mcAlbumPanelFiltros', dondeViven.join(' | '))
 // Y no queda ni rastro del grupo de dos chapas.
 check('el grupo de dos chapas ya no existe',
   (await page.locator('.mc-vista-variantes, #mcVistaStack, #mcVistaSplit').count()) === 0)
@@ -196,7 +200,7 @@ console.log('\n── 8. Sin rarezas guardadas, se esconde el GRUPO entero ─�
   await p2.waitForTimeout(500)
   check('el grupo de rareza no se ve', await p2.locator('#mcAlbumGrupoRareza').isHidden())
   check('ni el de categoría', await p2.locator('#mcAlbumGrupoTipo').isHidden())
-  check('pero el orden sigue (en su chip, desde la 1053)', await p2.locator('#mcAlbumAbrirOrden').isVisible())
+  check('pero el orden sigue (el grupo «Ordenar», desde la 1369)', await p2.locator('#mcAlbumGrupoOrden').isVisible())
   check('sin errores', e2.length === 0, e2.join(' | '))
   await p2.close()
 }

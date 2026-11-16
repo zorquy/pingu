@@ -36,13 +36,15 @@ for (const movil of [false, true]) {
     }
   })
   const n = movil ? 2 : 4
-  check(`${movil ? 'móvil' : 'PC'}: la caja a lo ancho y alta`, r.alto >= (movil ? 48 : 56) && r.ancho >= r.barra * 0.95, JSON.stringify(r))
+  // Desde la 1369 la caja es la de la fila de todas (PINGU: «una barra de
+  // búsqueda más pequeñita y que no se expanda»).
+  check(`${movil ? 'móvil' : 'PC'}: la caja de la fila, pequeña (1369)`, movil ? r.ancho >= 96 : r.ancho <= 261, JSON.stringify(r))
   check(`${movil ? 'móvil' : 'PC'}: «Prueba con» en una fila`, r.sugUnaFila, JSON.stringify(r))
   check(`${movil ? 'móvil' : 'PC'}: los sets de ${n} en ${n}`, r.sets.length === 4 && r.sets.slice(0, n).every((t) => t === r.sets[0]) && (n === 4 || r.sets[2] > r.sets[0]), JSON.stringify(r.sets))
-  check(`${movil ? 'móvil' : 'PC'}: antes de escribir, sin Orden ni Seleccionar`, !r.orden && !r.seleccionar, JSON.stringify(r))
+  check(`${movil ? 'móvil' : 'PC'}: antes de escribir, sin Seleccionar (y el orden, en la hoja desde la 1369)`, !r.orden && !r.seleccionar, JSON.stringify(r))
   await p.fill('#mcBuscarTodo', 'pikachu'); await p.waitForTimeout(1200)
-  const d = await p.evaluate(() => ({ orden: document.getElementById('mcBuscarAbrirOrden').getClientRects().length > 0, sel: document.getElementById('mcBuscarSeleccionar').getClientRects().length > 0 }))
-  check(`${movil ? 'móvil' : 'PC'}: al escribir vuelven los mandos`, d.orden && d.sel, JSON.stringify(d))
+  const d = await p.evaluate(() => ({ sel: document.getElementById('mcBuscarSeleccionar').getClientRects().length > 0 }))
+  check(`${movil ? 'móvil' : 'PC'}: al escribir sale Seleccionar`, d.sel, JSON.stringify(d))
   check(`${movil ? 'móvil' : 'PC'}: sin errores`, errores.length === 0, errores.join(' | '))
   await ctx.close()
 }
