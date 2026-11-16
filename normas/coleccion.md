@@ -255,7 +255,7 @@
   (tandas 1053 y 1054, PINGU: «que sea todo consistente durante todos los
   sitios donde salgan cartas»; en una fila desde la 1369, «como Dex»: «una
   barra de búsqueda más pequeñita y que no se expanda»): `.mc-una-fila` con
-  el buscador pequeño, el catálogo como bandera con flecha, vista · Apilar ·
+  el buscador pequeño, el catálogo como SLIDE de dos banderas (1381), vista · Apilar ·
   Filtros · Seleccionar · ✕, con las piezas que tengan sentido y en ese
   orden. Todas/Tengo/Faltan y el orden NO van en la barra: son «Mostrar» y
   «Ordenar», los dos primeros grupos de la hoja de Filtros, y Filtros se pinta
@@ -265,7 +265,7 @@
   siga cabiendo. La Pokédex (1370) lleva la misma fila con «Kanto ▾» (la
   región, en su hoja `#mcPdxRegionHoja`) en vez de una fila de regiones: un
   selector de muchas opciones que solo cambia QUÉ trozo de la lista se ve va
-  en un desplegable de la fila, no en otra fila de chips. Deseos y cambios (1372) va igual: el Mercado es buscar · Filtros · Seleccionar, con Mostrar, Ordenar e Idioma en `#mcMercadoHoja`; La quiero y Las que doy llevan su «Mostrar» en `#mcDeseosHoja` (una hoja para las dos, de deseos.js). Un chip suelto que filtre una de esas listas va a su hoja, no a la barra. Y Expansiones (1373), en Mi colección y en /cartas: buscar · bandera · Filtros (`#mcEstanteriaFila`), sin lupa ni un piso para el catálogo; el select no se muda a ningún título. «Seleccionar» lleva `data-seleccionar` (un oyente en el
+  en un desplegable de la fila, no en otra fila de chips. Deseos y cambios (1372) va igual: el Mercado es buscar · Filtros · Seleccionar, con Mostrar, Ordenar e Idioma en `#mcMercadoHoja`; La quiero y Las que doy llevan su «Mostrar» en `#mcDeseosHoja` (una hoja para las dos, de deseos.js). Un chip suelto que filtre una de esas listas va a su hoja, no a la barra. Y Expansiones (1373), en Mi colección y en /cartas: buscar · bandera · Filtros (`#mcEstanteriaFila`), sin lupa ni un piso para el catálogo; el select no se muda a ningún título. **El catálogo es un slide, nunca un desplegable** (1381, PINGU: «mejor que sea un slide entre occidental y japonés, como antes»): la cápsula `.seg` que pinta `pintarVistas` junto al select escondido; en el PC con bandera y nombre, en el móvil solo las banderas. El desplegable del sistema enseñaba su lista de texto (y en móviles con la web vieja guardada, «Pokémon Japón»). **Y en el móvil la lupa crece** (1381): vacío, el buscador de la fila es un círculo de 44; al tocarlo ocupa la fila y los mandos se apartan; con texto, a media fila. Buscar no lo lleva (allí la caja es la pantalla). Una fila nueva con buscador lo hereda de `.mc-una-fila`; si la caja es lo principal, va en la excepción como `#mcBuscarBarra`. «Seleccionar» lleva `data-seleccionar` (un oyente en el
   documento, visible solo con `html.mc-puede-marcar`) y marca por
   `seleccion.js`; una rejilla nueva en la que se marque va en sus `ZONAS`.
   Y su hoja de Filtros es LA COMÚN (1055): los grupos con `data-hoja` en el

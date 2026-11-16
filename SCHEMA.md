@@ -55204,6 +55204,18 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1381 — El idioma en un slide y la lupa que crece
+
+- `.mc-una-fila select.mc-mercado` vuelve a ser el select escondido de la 678
+  (1×1 con `clip`); se ve `select.mc-mercado + .seg` (de `pintarVistas`), con
+  `order: -2`, `.seg-btn` de 34 px (40 con la cápsula; 38/44 en el móvil) y
+  bandera de 22×16. ≤ 699 px: el texto de cada botón, solo para el lector.
+- Móvil (≤ 699 px), `.mc-una-fila:not(#mcBuscarBarra) > .mc-buscador`: vacío y
+  sin foco (`:not(:focus-within):has(input:placeholder-shown)`) → 44 px con la
+  lupa centrada y el texto transparente; con foco → `flex: 1 0 100%` y
+  `.mc-mandos { display: none }`; con texto → el ancho de siempre. En
+  `#mcEstanteriaFila`, con la lupa recogida, Filtros enseña su texto.
+
 ## Tanda 1380 — «Busca», no «Buscar»
 
 - `placeholder="Busca"` en `#mcEstanteriaBuscar`, `#mcAlbumBuscar`,

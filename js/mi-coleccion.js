@@ -7811,7 +7811,8 @@ function pintarVistas() {
     if (sel.innerHTML !== opciones) sel.innerHTML = opciones
     sel.value = vista
     sel.setAttribute('aria-label', `Qué catálogo se mira: ${laVista().nombre}`)
-    // La bandera del select a la vista (1369, `.mc-una-fila`): la pinta la hoja.
+    // Qué catálogo está puesto, para la hoja (desde la 1381 en `.mc-una-fila`
+    // se ve el slide de abajo, no el select).
     sel.dataset.cat = laVista().mercado === 'JP' ? 'ja' : 'occ'
     // Lo que se VE (673): dos botones con la bandera dibujada. El select
     // se queda escondido y sigue siendo quien manda: cada botón le pone

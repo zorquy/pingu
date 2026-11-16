@@ -4,6 +4,33 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (627) — PINGU-Claude (1381 — El idioma en un slide y la lupa que crece)
+
+**Hecho** (PINGU: «en PC es mejor que sea un slide entre occidental y japonés,
+como antes… en móvil también, y que el buscar sea una barra más pequeña y
+cuando lo uses se amplíe mientras escribes… con las banderas ya valen»; eligió
+lo recomendado de la propuesta):
+- **El catálogo, en un slide** en todas las filas que lo llevan (Expansiones de
+  Mi colección y de /cartas, Pokédex, Un Pokémon y Buscar): la cápsula de dos
+  banderas de `pintarVistas` (la de Productos, con su píldora que se desliza)
+  en vez del select pintado como bandera con flecha de la 1369. En el PC con
+  bandera y nombre; en el móvil solo las banderas. El select sigue mandando,
+  escondido. Así desaparece la lista del sistema (la que en algún móvil aún
+  decía «Pokémon Japón»: era la web vieja guardada).
+- **Móvil: la lupa que crece** en Expansiones, Pokédex, una expansión y Un
+  Pokémon: vacío es un círculo de 44; al tocarlo ocupa la fila (los mandos se
+  apartan mientras escribes); con texto, a media fila. Buscar no (allí la caja
+  es lo principal). En Expansiones, con la lupa recogida, «Filtros» dice su
+  nombre.
+
+**Ficheros**: `css/mi-coleccion.css` (bloque 1369 de la bandera → 1381),
+`js/mi-coleccion.js` (un comentario), `normas/coleccion.md`, `novedades.json`.
+Pruebas (rama `pruebas`): `test-tanda-1381-pantalla.mjs` nueva (seis pantallas
+a 360, 390 y 1440); 1369 y 1373 ajustadas (el select ya no se ve; la bandera se
+toca en el slide; el foco se suelta antes de tocarla).
+
+**Pendiente**: nada.
+
 ## 2026-11-16 (626) — PINGU-Claude (1380 — «Busca», no «Buscar»)
 
 **Hecho**: las cajas de búsqueda nuevas de la 1369, 1370, 1372 y 1373 decían
