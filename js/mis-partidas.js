@@ -145,6 +145,23 @@ async function partidasDeTorneos() {
   for (const d of listas || []) {
     if (d?.parsed_cards) mazoDe.set(`${d.tournament_id}|${d.user_id}`, arquetipoDeMazo(d.parsed_cards, catalogo))
   }
+  // En una LIGA cada jornada se juega con su lista (635), y desde la 1379 la
+  // de una jornada ya jugada se puede leer aunque la liga siga en marcha: sus
+  // partidas cuentan como las de un torneo terminado (PINGU: «cada jornada de
+  // liga funciona como un torneo individual»).
+  const ligaIds = (torneos || []).filter((t) => t.format === 'league').map((t) => t.id)
+  if (ligaIds.length) {
+    const { data: deJornada } = await supabase.from('tournament_matchday_decklists').select('tournament_id, user_id, matchday, parsed_cards').in('tournament_id', ligaIds)
+    for (const d of deJornada || []) {
+      if (d?.parsed_cards) mazoDe.set(`${d.tournament_id}|${d.user_id}|j${d.matchday}`, arquetipoDeMazo(d.parsed_cards, catalogo))
+    }
+  }
+  const mazoEn = (torneoId, jugador, m) => {
+    const t = torneoPorId.get(torneoId)
+    const ronda = Number(rondaPorId.get(m.round_id)?.round_number) || 0
+    const jornada = t?.format === 'league' && ronda ? Math.ceil(ronda / Math.max(1, Number(t.rounds_per_matchday) || 1)) : null
+    return (jornada && mazoDe.get(`${torneoId}|${jugador}|j${jornada}`)) || mazoDe.get(`${torneoId}|${jugador}`)
+  }
 
   const salida = []
   const deRonda = (m, t) => {
@@ -171,8 +188,8 @@ async function partidasDeTorneos() {
     if (!resultado) continue // mesa aún sin resolver
     const torneoId = torneoDeRonda.get(m.round_id)
     const rivalId = m.player_a_id === yo ? m.player_b_id : m.player_a_id
-    const mio = mazoDe.get(`${torneoId}|${yo}`)
-    const rival = mazoDe.get(`${torneoId}|${rivalId}`)
+    const mio = mazoEn(torneoId, yo, m)
+    const rival = mazoEn(torneoId, rivalId, m)
     // Sin saber los DOS mazos la partida no dice nada en una matriz de
     // enfrentamientos: se descarta en vez de meterla en un cajón
     // «desconocido» que ensuciaría los porcentajes.
@@ -334,7 +351,7 @@ function pintarMatriz(m) {
   const caja = $('partidasMatriz')
   if (!m.filas.length) {
     caja.innerHTML = `<div class="simple-card"><p>Todavía no hay partidas que contar.</p>
-      <p class="subtext">Las de los torneos de PokeDoc entran solas cuando el torneo termina. Las de fuera, con «Apuntar una partida».</p></div>`
+      <p class="subtext">Las de los torneos de PokeDoc entran solas cuando el torneo termina (en una liga, cada jornada al jugarse). Las de fuera, con «Apuntar una partida».</p></div>`
     return
   }
   caja.innerHTML = m.filas

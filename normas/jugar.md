@@ -190,6 +190,17 @@ opción A): al motor le llega solo lo de SU jornada, renumerado
 cruces de la jornada. La CLASIFICACIÓN no pasa por ahí: sigue sumando la
 liga entera con `montarSnapshot`.
 
+**Una jornada JUGADA de una liga cuenta como un torneo terminado** (tanda 1379,
+PINGU: «cada jornada de liga funciona como un torneo individual»): sus listas se
+ven (política `listas_jornada_jugada_ver`, con la regla de
+`decklist_visibility`), entra en /meta como «Liga · jornada N» y sus partidas en
+Mis partidas con el mazo de ESA jornada. «Jugada» es lo que dice
+`torneos_jornada_jugada` en la base y `jornadasDeLiga` (estado `hecha`) en la
+web: todas sus rondas cerradas y alguna empezada. Una jornada con inscripciones
+cerradas pero sin jugar NO enseña listas. Algo nuevo que cuente torneos de
+PokeDoc (estadísticas, logros, perfil) tiene que contar también las jornadas
+jugadas, no esperar a que la liga termine.
+
 **Las jornadas de una liga se cuentan en `js/torneos/liga-en-curso.js`**
 (tandas 1302 y 1303, PINGU eligió la J1 y la T1): qué jornadas están hechas,
 cuál es la siguiente, la víspera, la recién terminada y la clasificación. Lo

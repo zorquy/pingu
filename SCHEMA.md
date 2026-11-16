@@ -55204,6 +55204,24 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1379 — Cada jornada jugada de una liga cuenta como un torneo
+
+- Migración 1379: `torneos_jornada_jugada(p_torneo uuid, p_jornada int)`
+  (estable, `security definer`): las `rpj` rondas suizas de la jornada existen,
+  todas `finished` y alguna con `started_at`. Política
+  `listas_jornada_jugada_ver` (SELECT, anon y authenticated) en
+  `tournament_matchday_decklists`: `decklist_visibility <> 'nunca'` y la
+  jornada jugada; se suma con OR a `listas_jornada_ver`. `grant select` a anon.
+- `meta-pokedoc.mjs`: además de los torneos `format=standard` terminados, las
+  ligas `in_progress|finished` públicas y sin «nunca»; por cada jornada `hecha`
+  de `jornadasDeLiga`, `meta_ingerir_torneo` con id `pokedoc-<id>-j<n>`, nombre
+  `nombreDeJornada(nombre, n)` (exportada), fecha `matchday_dates[n-1]` o el
+  último `closed_at`, las mesas de sus rondas y sus listas. `POR_PASADA` (5)
+  cuenta torneos y jornadas juntos.
+- `mis-partidas.js` · `partidasDeTorneos`: en las ligas lee
+  `tournament_matchday_decklists` y `mazoEn(torneo, jugador, mesa)` busca
+  primero la lista de la jornada de la mesa (`|j<n>`) y luego la de la liga.
+
 ## Tanda 1378 — El torneo, renovado: Tabla, Info y Jueces
 
 - `torneo.html`: `#torneoMetaCaja` vive en el panel `clasificacion`, debajo de

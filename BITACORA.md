@@ -4,6 +4,37 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (625) — PINGU-Claude (1379 — Cada jornada jugada de una liga cuenta como un torneo)
+
+**Hecho** (PINGU: «al no cerrarse la liga no se tienen en cuenta las
+estadísticas de nada; si esa jornada se ha cerrado, la lista debería ser
+pública y tendría que contar como que se ha jugado: cada jornada de liga
+funciona como un torneo individual»):
+- **Migración `supabase-migration-1379-ligas-jornadas-publicas.sql`** (HAY QUE
+  EJECUTARLA): `torneos_jornada_jugada(torneo, n)` y la política
+  `listas_jornada_jugada_ver`: la lista de una jornada YA JUGADA (sus rondas
+  cerradas y alguna empezada) se lee como la de un torneo terminado, sin
+  cuenta, con la regla de `decklist_visibility` (con «nunca», nunca). Una
+  jornada con las inscripciones cerradas pero sin jugar sigue cerrada: sería
+  enseñar las listas al rival antes de jugar. Y `grant select … to anon`.
+- **/meta**: `meta-pokedoc` mete cada jornada jugada como un torneo suelto
+  («Liga FDN [Oct–Dic] · jornada 6», id `pokedoc-<liga>-j6`, fecha de la
+  jornada) con las mesas y las listas de ESA jornada. La liga entera no entra
+  nunca (se contaría dos veces). Una jornada sin listas legibles se vuelve a
+  mirar en la siguiente pasada; sin la migración, las ligas se saltan sin
+  tumbar la pasada de los torneos.
+- **Mis partidas**: en una liga, tu mazo y el del rival salen de la lista de
+  esa jornada (antes, de la lista «de la liga», que solo se ve al terminar):
+  las partidas de cada jornada jugada entran en la matriz y las cifras.
+
+**Ficheros**: `supabase-migration-1379-ligas-jornadas-publicas.sql`,
+`netlify/functions/meta-pokedoc.mjs`, `js/mis-partidas.js`, `normas/jugar.md`,
+`novedades.json`. Prueba `test-tanda-1379.mjs` (rama `pruebas`; la migración
+contra PostgreSQL y la pasada del meta con un Supabase falso).
+
+**Pendiente**: que PINGU ejecute la migración. La pasada del meta es cada hora
+(minuto 17): a la hora siguiente salen las jornadas jugadas de la Liga FDN.
+
 ## 2026-11-16 (624) — PINGU-Claude (1378 — El torneo, renovado: Tabla, Info y Jueces)
 
 **Hecho** (la versión 2 de «El torneo, renovado»):
