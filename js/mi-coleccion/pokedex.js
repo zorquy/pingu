@@ -419,7 +419,7 @@ function barraDeEspecie(grupos, cuantos, texto, { separadas = false, puedeMarcar
   return `<div class="mc-filtros mc-una-fila">
     <div class="mc-buscador">
       <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-      <input type="search" enterkeyhint="search" id="pdxEspecieBuscar" placeholder="Buscar" autocomplete="off" aria-label="Buscar entre las cartas de este Pokémon por nombre, número o ilustrador" value="${escapeHtml(texto || '')}" />
+      <input type="search" enterkeyhint="search" id="pdxEspecieBuscar" placeholder="Busca" autocomplete="off" aria-label="Buscar entre las cartas de este Pokémon por nombre, número o ilustrador" value="${escapeHtml(texto || '')}" />
     </div>
     <div class="mc-mandos">
       <!-- Apilar (692 → 1054): juntas o separadas, con la misma memoria que

@@ -55204,6 +55204,12 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1380 — «Busca», no «Buscar»
+
+- `placeholder="Busca"` en `#mcEstanteriaBuscar`, `#mcAlbumBuscar`,
+  `#mcMercadoBuscar`, `#mcBuscarTodo`, `#mcPdxBuscar` y `#pdxEspecieBuscar`
+  (la T5 de la 1162).
+
 ## Tanda 1379 — Cada jornada jugada de una liga cuenta como un torneo
 
 - Migración 1379: `torneos_jornada_jugada(p_torneo uuid, p_jornada int)`

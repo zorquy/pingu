@@ -4,6 +4,18 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (626) — PINGU-Claude (1380 — «Busca», no «Buscar»)
+
+**Hecho**: las cajas de búsqueda nuevas de la 1369, 1370, 1372 y 1373 decían
+«Buscar»; la norma de la 1162 (T5) es «Busca…» en todas. Las cinco de
+`mi-coleccion.html` (y `/cartas`, generada) y la de un Pokémon en la Pokédex.
+Lo cazó `test-tanda-1162.mjs`.
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html` (generado),
+`js/mi-coleccion/pokedex.js`.
+
+**Pendiente**: nada.
+
 ## 2026-11-16 (625) — PINGU-Claude (1379 — Cada jornada jugada de una liga cuenta como un torneo)
 
 **Hecho** (PINGU: «al no cerrarse la liga no se tienen en cuenta las
