@@ -15821,13 +15821,9 @@ html.con-barra-movil .mc-prod-banda { display: none; }
 /* Buscar antes de escribir, como la maqueta (1231, PINGU: «se ve feo, no como
    me habías propuesto»; SCHEMA 1231): la caja grande a lo ancho, «Prueba con»
    en una fila de chips pequeños, la tira de lo último y los sets en baldosas
-   de cuatro. Los mandos de una lista (orden, filtros…) esperan a que haya
-   lista: antes de escribir solo queda el catálogo. */
-#mcBuscarBarra .mc-buscador { max-width: none; }
-#mcBuscarBarra .mc-buscador input[type="search"] { min-height: 56px; padding-left: 52px; border: 1px solid var(--border-strong); background: var(--white); font-size: var(--t-lg); }
-#mcBuscarBarra .mc-buscador input[type="search"]:focus { border-color: var(--acento); box-shadow: var(--shadow-ring); }
-#mcBuscarBarra .mc-buscador-lupa { left: var(--e-lg); }
-#mcBuscarBarra:has(~ #mcBuscarVacio:not(.hidden)) .mc-mandos > :is(.mc-chip-mando, .mc-seg-sueltas) { display: none; }
+   de cuatro. La caja grande se fue en la 1369: la barra es la fila de todas
+   (`.mc-una-fila`), y no cambia al escribir. */
+#mcBuscarBarra:has(~ #mcBuscarVacio:not(.hidden)) .mc-mandos > [data-seleccionar] { display: none; }
 #mcBuscarVacio.mc-vacio-buscar { justify-items: stretch; max-width: none; margin: var(--e-md) 0 0; padding: 0; gap: var(--e-xl); text-align: left; }
 #mcBuscarVacio .mc-vacio-buscar-texto { flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; padding-block: var(--e-xs); scrollbar-width: none; font-size: var(--t-sm); line-height: 1.3; }
 #mcBuscarVacio .mc-vacio-buscar-texto::-webkit-scrollbar { display: none; }
@@ -15846,8 +15842,6 @@ html.con-barra-movil .mc-prod-banda { display: none; }
 #mcBuscarAntes .mc-antes-logo:not(:has(img)) { background: linear-gradient(135deg, var(--acento), color-mix(in srgb, var(--acento) 45%, #000)); color: var(--blanco-fijo); font-family: var(--font-display); font-size: var(--t-sm); letter-spacing: .04em; }
 @media (max-width: 899px) { #mcBuscarAntes .mc-antes-sets { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 599px) {
-  #mcBuscarBarra .mc-buscador input[type="search"] { min-height: 48px; padding-left: 44px; }
-  #mcBuscarBarra .mc-buscador-lupa { left: var(--e-md); }
   #mcBuscarAntes .mc-antes-sets { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--e-sm); }
   #mcBuscarAntes .mc-antes-set { flex-direction: column; align-items: flex-start; gap: var(--e-sm); min-height: 0; padding: var(--e-md); }
   #mcBuscarAntes .mc-antes-set > span:last-child { width: 100%; }
@@ -16148,4 +16142,87 @@ html.con-barra-movil .mc-prod-banda { display: none; }
   :is(#mcPanelPokedex, #mcPanelCarpetas, #mcPanelProductos) > .mc-cartas-pestanas {
     margin-bottom: var(--e-md);
   }
+}
+
+/* ── 1369: UNA FILA, COMO DEX (el porqué, SCHEMA 1369). Buscador pequeño
+   que se escribe ahí mismo, el catálogo como bandera con flecha, y los
+   mandos al lado; Mostrar y Ordenar viven en la hoja de Filtros. ── */
+.mc-una-fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--e-sm);
+  margin-bottom: var(--e-md);
+}
+.mc-una-fila > .mc-buscador {
+  flex: 0 1 260px;
+  max-width: 260px;
+  min-width: 0;
+  margin: 0;
+}
+.mc-una-fila > .mc-mandos {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: nowrap;
+  gap: var(--e-sm);
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  overflow: visible;
+}
+.mc-una-fila > .mc-mandos > * { flex: none; }
+/* Lo que no es la fila (la cuenta de Buscar) va debajo, entero. */
+.mc-una-fila > :not(.mc-buscador, .mc-mandos) { flex: 1 0 100%; }
+.mc-una-fila > .mc-mandos > .mc-chip-mando { min-height: 40px; }
+.mc-chip-mando.mc-filtros-puestos {
+  background: var(--acento);
+  color: var(--acento-texto);
+}
+.mc-filtros-puestos .mc-filtros-cuenta {
+  background: var(--acento-texto);
+  color: var(--acento);
+}
+/* El catálogo, como en Dex: la bandera puesta y su flecha. Es el `<select>`
+   de siempre a la vista (los botones de `pintarVistas` sobran aquí): al
+   pulsarlo, el sistema enseña «Occidental» y «Japonés» con su nombre. */
+.mc-una-fila select.mc-mercado {
+  position: static;
+  flex: none;
+  order: -2;
+  width: 64px;
+  height: 40px;
+  overflow: hidden;
+  clip: auto;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-pill);
+  appearance: none;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a9aa6' stroke-width='1.6'/%3E%3C/svg%3E") right 12px center / 10px 6px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 26'%3E%3Crect width='36' height='26' rx='3' fill='%234b92db'/%3E%3Cg fill='none' stroke='white' stroke-width='1.6'%3E%3Ccircle cx='18' cy='13' r='8'/%3E%3Cellipse cx='18' cy='13' rx='3.6' ry='8'/%3E%3Cpath d='M10 13h16M11.2 9h13.6M11.2 17h13.6'/%3E%3C/g%3E%3C/svg%3E") left 12px center / 22px 16px no-repeat,
+    var(--ice);
+  color: transparent;
+  font-size: var(--t-sm);
+  cursor: pointer;
+}
+.mc-una-fila select.mc-mercado[data-cat='ja'] {
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238a9aa6' stroke-width='1.6'/%3E%3C/svg%3E") right 12px center / 10px 6px no-repeat,
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 26'%3E%3Crect width='36' height='26' rx='3' fill='white'/%3E%3Ccircle cx='18' cy='13' r='7' fill='%23bc002d'/%3E%3C/svg%3E") left 12px center / 22px 16px no-repeat,
+    var(--ice);
+}
+.mc-una-fila select.mc-mercado:focus-visible { outline: none; box-shadow: var(--shadow-ring); }
+.mc-una-fila select.mc-mercado option { color: var(--text); background: var(--white); }
+.mc-una-fila select.mc-mercado + .seg { display: none; }
+@media (max-width: 699px) {
+  .mc-una-fila > .mc-buscador {
+    flex: 1 1 0;
+    max-width: none;
+  }
+  .mc-una-fila > .mc-mandos { gap: var(--e-xs); }
+  .mc-una-fila > .mc-mandos > .mc-chip-mando { min-height: 44px; }
+  .mc-una-fila #mcAlbumVista::before { display: none; }
+  .mc-una-fila select.mc-mercado { width: 56px; height: 44px; background-position: right 10px center, left 8px center; }
+  /* El ✕ no cabe: lo dice Filtros en color, y se quita con «Limpiar». */
+  .mc-una-fila #mcAlbumQuitar { display: none; }
 }

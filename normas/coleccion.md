@@ -251,11 +251,18 @@
   `herramientas/aud-apilados.mjs` (rama pruebas) que no caiga en dos. Y la
   sección es «Colección» (1036), no «Cartas»; su llave de color sigue
   siendo `data-seccion="cartas"` (`SLUG_DE_SECCION`).
-- **Una pantalla de cartas lleva LA barra de la expansión** (tandas 1053 y
-  1054, PINGU: «que sea todo consistente durante todos los sitios donde
-  salgan cartas»): Todas/Tengo/Faltan · vista · Apilar · Orden · Filtros ·
-  Seleccionar, y el catálogo al final, con las piezas que tengan sentido y
-  en ese orden. «Seleccionar» lleva `data-seleccionar` (un oyente en el
+- **Una pantalla de cartas lleva LA barra de la expansión, en UNA fila**
+  (tandas 1053 y 1054, PINGU: «que sea todo consistente durante todos los
+  sitios donde salgan cartas»; en una fila desde la 1369, «como Dex»: «una
+  barra de búsqueda más pequeñita y que no se expanda»): `.mc-una-fila` con
+  el buscador pequeño, el catálogo como bandera con flecha, vista · Apilar ·
+  Filtros · Seleccionar · ✕, con las piezas que tengan sentido y en ese
+  orden. Todas/Tengo/Faltan y el orden NO van en la barra: son «Mostrar» y
+  «Ordenar», los dos primeros grupos de la hoja de Filtros, y Filtros se pinta
+  en color (`.mc-filtros-puestos`) cuando hay algo puesto. Un mando nuevo de
+  una lista de cartas entra en la hoja, no en la fila; si de verdad se toca a
+  cada momento, va a la fila como icono y se mira que en un móvil de 360 px
+  siga cabiendo. «Seleccionar» lleva `data-seleccionar` (un oyente en el
   documento, visible solo con `html.mc-puede-marcar`) y marca por
   `seleccion.js`; una rejilla nueva en la que se marque va en sus `ZONAS`.
   Y su hoja de Filtros es LA COMÚN (1055): los grupos con `data-hoja` en el
@@ -426,9 +433,9 @@
   `preserveAspectRatio="none"` un `<text>` se deforma y un `<circle>`
   sale ovalado—, colocados en tanto por ciento del lienzo.
 - **Buscar de Mi colección y Mensajes van como la maqueta** (tandas 1231 y
-  1232, PINGU: «no como me habías propuesto»): antes de escribir, la caja a lo
-  ancho, «Prueba con» en una fila y los sets de cuatro; los mandos de una lista
-  (orden, filtros, Seleccionar) salen solo cuando hay lista. En Mensajes la
+  1232, PINGU: «no como me habías propuesto»): antes de escribir, «Prueba con»
+  en una fila y los sets de cuatro. La caja grande se fue en la 1369: Buscar
+  lleva la fila de las demás (`.mc-una-fila`), que no cambia al escribir. En Mensajes la
   lista es UNA caja con filas sin borde propio (no una tarjeta por
   conversación) y lo tuyo va teñido del acento con la letra de siempre. Un
   bloque nuevo en esas pantallas sigue el molde, no vuelve a las tarjetas.

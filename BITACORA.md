@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (615) — PINGU-Claude (1369 — Una fila, como Dex: expansión, un Pokémon y Buscar)
+
+**Hecho** (la propuesta «Una fila, como Dex»; PINGU: «lo hace todo en una
+fila… una barra de búsqueda más pequeñita y que no se expanda», y «dale con
+lo recomendado»):
+- **Una fila** (`.mc-una-fila`, al final de `css/mi-coleccion.css`): buscador
+  pequeño (260 px en el PC; en el móvil, el hueco que queda), el catálogo como
+  bandera con flecha (el `select.mc-mercado` a la vista, con `data-cat` que
+  pone `pintarVistas`), la vista, Apilar, Filtros, Seleccionar y ✕. En el
+  móvil, solo iconos; el ✕ no cabe y lo dice Filtros en color.
+- **Filtros lleva Mostrar y Ordenar arriba** (`ORDEN_DE_LA_HOJA` empieza por
+  `mostrar` y `orden`): en una expansión, «Qué cartas» (con Para cambio) sube
+  como Mostrar y el `#mcAlbumOrden` entra como grupo (fuera el chip de orden y
+  su hoja de la 1053); en un Pokémon, Mostrar en `gruposDeEspecieHtml`
+  (`conMostrar`, solo con tu colección) y Filtros siempre en la barra; en
+  Buscar, `#mcBuscarQue` en `#mcBuscarGrupoQue` y el orden como chips
+  (`#mcBuscarOrdenChips`: el puesto lleva su flecha y, pulsado otra vez, da la
+  vuelta; fuera la bandeja de la 450).
+- **Filtros en color con algo puesto** (`.mc-filtros-puestos`), y ahora cuenta
+  también Mostrar en un Pokémon y en Buscar.
+- Buscar deja la caja grande de la 1231: la misma fila de las demás, que no
+  cambia al escribir.
+
+**Ficheros**: `mi-coleccion.html`, `cartas.html` (generado), `js/mi-coleccion.js`,
+`js/mi-coleccion/hoja-filtros.js`, `js/mi-coleccion/pokedex.js`,
+`js/mi-coleccion/pokedex-ui.js`, `css/mi-coleccion.css`, `normas/coleccion.md`,
+`novedades.json`. Prueba nueva `test-tanda-1369-pantalla.mjs` y pruebas puestas
+al día (rama `pruebas`).
+
+**Pendiente**: la 1370, la Pokédex en una fila («Kanto ▾», Faltan, cuatro
+órdenes y Tipo) y ordenar dentro de un Pokémon. Sin migración.
+
 ## 2026-11-16 (614) — PINGU-Claude (1368 — «Occidental» y «Japonés», con la bandera azul con el mundo)
 
 **Hecho** (la propuesta «Occidental y Japonés»; PINGU eligió la A, la bandera

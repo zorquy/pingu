@@ -55204,6 +55204,35 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1369 — Una fila, como Dex
+
+PINGU, con capturas de Dex: «lo hace todo en una fila; nosotros usamos
+demasiadas filas… una barra de búsqueda más pequeñita y que no se expanda».
+Eligió lo recomendado de la propuesta «Una fila, como Dex».
+
+- `.mc-una-fila` (css/mi-coleccion.css, al final, para ganar a las reglas
+  viejas de `.mc-album-busca`, que hacían dos filas desde la 1053): flex con
+  `wrap`, el buscador `flex: 0 1 260px` (en el móvil `1 1 0`, el hueco que
+  queda) y los mandos `flex: 0 0 auto`. Lo que no es ni buscador ni mandos (la
+  cuenta de Buscar) va debajo, a lo ancho. La llevan `.mc-album-busca`, la
+  barra de un Pokémon (`barraDeEspecie`) y `#mcBuscarBarra`.
+- El catálogo es el `select.mc-mercado` A LA VISTA dentro de la fila (64 px,
+  sin texto, la bandera y la flecha de fondo): `pintarVistas` le pone
+  `data-cat` (`occ`/`ja`) y los botones `.seg` que pinta para otras barras se
+  esconden aquí. Al pulsarlo, el sistema enseña «Occidental» y «Japonés».
+- La hoja común empieza por `mostrar` y `orden` (`ORDEN_DE_LA_HOJA`, títulos
+  «Mostrar» y «Ordenar»); `que` sale de la lista. Expansión: el grupo de
+  «Qué cartas» pasa a `data-hoja="mostrar"` arriba, y `#mcAlbumOrden` (que ya
+  se `segmentar`aba en chips) vive en `#mcAlbumGrupoOrden`; se borraron
+  `#mcAlbumQue`, `#mcAlbumAbrirOrden`, `#mcAlbumHojaOrden` y
+  `pintarRotuloDeOrdenDeAlbum`. Un Pokémon: `mostrarDeEspecieHtml` en
+  `gruposDeEspecieHtml(…, { que, conMostrar })` y su clic en el oyente de
+  `#mcPdxGrupos`; «Limpiar» lo devuelve a Todas. Buscar: `#mcBuscarQue` dentro
+  de `#mcBuscarGrupoQue` (se esconde el grupo sin lista o sin cuenta) y
+  `pintarBandejaCatalogo` pinta `#mcBuscarOrdenChips`.
+- `.mc-filtros-puestos` (acento) en el botón Filtros cuando la cuenta es más de
+  cero: Mostrar ya no se ve en la barra y esto es lo que avisa.
+
 ## Tanda 1368 — Occidental y Japonés
 
 El catálogo `WEST` se rotula «Occidental» con `data-idioma="occ"` (bandera azul

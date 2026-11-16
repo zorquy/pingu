@@ -3756,8 +3756,9 @@ async function abrirAlbum(setId, { push = true } = {}) {
   if ($('mcAlbumPegadaCuenta')) $('mcAlbumPegadaCuenta').textContent = ''
   pintarLogoDeAlbum(set)
   void pintarGemelaDeAlbum(set)
-  // Sin sesión no hay «las tuyas» que separar.
-  $('mcAlbumQue')?.classList.toggle('hidden', !sesion)
+  // Sin sesión no hay «las tuyas» que separar (desde la 1369, Mostrar vive
+  // en la hoja de Filtros).
+  $('mcAlbumTodas')?.closest('[data-hoja="mostrar"]')?.classList.toggle('hidden', !sesion)
   if ($('mcAlbumLinea')) $('mcAlbumLinea').textContent = ''
   pintarEstrella()
   pintarSoloFaltan()
@@ -4238,7 +4239,6 @@ function pintarFiltrosDeAlbum() {
   const orden = $('mcAlbumOrden')
   if (orden && !orden.options.length) {
     orden.innerHTML = ORDENES.map((o) => `<option value="${escapeHtml(o.id)}">${escapeHtml(o.nombre)}</option>`).join('')
-    pintarRotuloDeOrdenDeAlbum()
   }
   // El idioma en que cuentan tus copias (tanda 577). Los del catálogo que
   // se mira, y «cualquiera» el primero. Se rellena una vez por catálogo.
@@ -4484,17 +4484,7 @@ function cuantosFiltrosDeAlbum() {
     ($('mcAlbumVersion')?.value ? 1 : 0) +
     (album.idioma ? 1 : 0) +
     (rangoDelAlbum().puesto ? 1 : 0)
-  // El orden ya no cuenta (1053): salió de Filtros a su propio chip.
-}
-
-function pintarRotuloDeOrdenDeAlbum() {
-  const sel = $('mcAlbumOrden')
-  const rotulo = $('mcAlbumOrdenRotulo')
-  if (!sel || !rotulo) return
-  // «Número» y no «Por número», como «Precio» en Cartas: el icono ya dice
-  // que es un orden, y en el PC la barra no da para más.
-  const t = (sel.selectedOptions[0]?.textContent || '').replace(/^por\s+/i, '')
-  rotulo.textContent = t ? t[0].toUpperCase() + t.slice(1) : 'Ordenar'
+  // El orden no cuenta: ordenar no esconde ninguna carta.
 }
 
 function pintarCuentaDeFiltrosDeAlbum() {
@@ -4506,6 +4496,9 @@ function pintarCuentaDeFiltrosDeAlbum() {
   // La chapa de quitarlo todo cuenta también el texto buscado: para quien
   // mira, «lo que estoy filtrando» incluye lo que ha escrito.
   $('mcAlbumQuitar')?.classList.toggle('hidden', n === 0 && !$('mcAlbumBuscar')?.value)
+  // Con algo puesto, Filtros va en el color de la sección (1369): Mostrar ya
+  // no se ve en la barra, y esto es lo que dice que la lista está filtrada.
+  $('mcAlbumAbrirFiltros')?.classList.toggle('mc-filtros-puestos', n > 0)
 }
 
 function limpiarFiltrosDeAlbum() {
@@ -4541,7 +4534,6 @@ function pintarSoloFaltan() {
   $('mcAlbumCambio')?.setAttribute('aria-pressed', album.paraCambio ? 'true' : 'false')
   // «Todas» (748) está puesta cuando no lo está ninguna de las otras.
   $('mcAlbumTodas')?.setAttribute('aria-pressed', !album.soloFaltan && !album.soloTengo && !album.paraCambio ? 'true' : 'false')
-  for (const b of document.querySelectorAll('#mcAlbumQue [data-que]')) b.setAttribute('aria-pressed', $(b.dataset.que)?.getAttribute('aria-pressed') || 'false')
 }
 
 // La LISTA: un renglón por carta. El número PRIMERO porque es por donde
@@ -4930,34 +4922,28 @@ function pintarGruposDelCatalogo() {
 // La chapa de «Filtros» de Buscar cuenta también la serie y la expansión,
 // que desde la 1055 viven en la hoja.
 function pintarCuentaDeBuscar() {
-  const n = cuantosFiltrosCatalogo(filtrosCatalogo) + (afinar.serie ? 1 : 0) + (afinar.set ? 1 : 0)
+  const n = cuantosFiltrosCatalogo(filtrosCatalogo) + (afinar.serie ? 1 : 0) + (afinar.set ? 1 : 0) + (afinar.que && afinar.que !== 'todas' ? 1 : 0)
   const chapa = $('mcBuscarFiltrosCuenta')
   if (chapa) {
     chapa.textContent = n ? String(n) : ''
     chapa.classList.toggle('hidden', n === 0)
   }
+  // En el color de la sección con algo puesto (1369), como en una expansión.
+  $('mcBuscarAbrirFiltros')?.classList.toggle('mc-filtros-puestos', n > 0)
 }
 
+// El orden de Buscar, en la hoja de Filtros desde la 1369 (antes, la bandeja
+// de la 450 detrás de su chip): un chip por criterio, el puesto con su
+// flecha, y pulsarlo otra vez le da la vuelta.
 function pintarBandejaCatalogo() {
-  const lista = $('mcBuscarOrdenLista')
-  if (!lista) return
-  lista.innerHTML = ORDENES_CATALOGO.map((o) => {
-    const elegido = o.id === ordenCatalogo
-    return `<li><button type="button" class="mc-orden-opcion${elegido ? ' elegido' : ''}" data-borden="${escapeHtml(o.id)}" aria-current="${elegido ? 'true' : 'false'}">
-      <span class="mc-orden-icono" aria-hidden="true">${icons[o.icono] ? icons[o.icono](18) : ''}</span>
-      <span class="mc-orden-nombre">${escapeHtml(o.nombre)}</span>
-      <span class="mc-orden-marca" aria-hidden="true">${elegido ? icons.checkCircle(18) : ''}</span>
-    </button></li>`
+  const caja = $('mcBuscarOrdenChips')
+  if (!caja) return
+  caja.innerHTML = ORDENES_CATALOGO.map((o) => {
+    const puesto = o.id === ordenCatalogo
+    const flecha = puesto ? (sentidoCatalogo === 'desc' ? ' ↓' : ' ↑') : ''
+    const dice = puesto ? `${o.nombre}, ${sentidoCatalogo === 'desc' ? 'de mayor a menor' : 'de menor a mayor'}; pulsa para darle la vuelta` : o.nombre
+    return `<button type="button" data-borden="${escapeHtml(o.id)}" aria-pressed="${puesto}" aria-label="${escapeHtml(dice)}">${escapeHtml(o.nombre)}${flecha}</button>`
   }).join('')
-  for (const b of $('mcBuscarHojaOrden').querySelectorAll('[data-bsentido]')) {
-    const puesto = b.dataset.bsentido === sentidoCatalogo
-    b.classList.toggle('elegido', puesto)
-    b.setAttribute('aria-checked', puesto ? 'true' : 'false')
-  }
-  const rotulo = $('mcBuscarOrdenRotulo')
-  if (rotulo) rotulo.textContent = ORDENES_CATALOGO.find((o) => o.id === ordenCatalogo)?.nombre || 'Ordenar'
-  const flecha = $('mcBuscarOrdenFlecha')
-  if (flecha) flecha.textContent = sentidoCatalogo === 'desc' ? '↓' : '↑'
 }
 
 // Antes de escribir (1217): lo último que abriste desde aquí y los sets de
@@ -5149,7 +5135,7 @@ function pintarResultadosBuscar() {
 function pintarQueDeBuscar() {
   const seg = $('mcBuscarQue')
   if (!seg) return
-  seg.classList.toggle('hidden', !(esMia && sesion && ultimaBusqueda.length))
+  $('mcBuscarGrupoQue')?.classList.toggle('hidden', !(esMia && sesion && ultimaBusqueda.length))
   for (const b of seg.querySelectorAll('[data-bus-que]')) b.setAttribute('aria-pressed', String(b.dataset.busQue === afinar.que))
 }
 // Los desplegables de afinar salen de lo que HA VUELTO: una serie que no
@@ -6526,33 +6512,21 @@ function enganchar() {
     if (!b) return
     afinar.que = b.dataset.busQue
     pintarResultadosBuscar()
+    pintarCuentaDeBuscar()
   })
   // ── Los mandos de Buscar (tanda 450) ──
-  $('mcBuscarAbrirOrden')?.addEventListener('click', () => {
-    pintarBandejaCatalogo()
-    $('mcBuscarHojaOrden').showModal()
-  })
-  $('mcBuscarOrdenCerrar')?.addEventListener('click', () => $('mcBuscarHojaOrden').close())
-  $('mcBuscarHojaOrden')?.addEventListener('click', (e) => {
-    const sentido = e.target.closest('[data-bsentido]')
-    if (sentido) {
-      sentidoCatalogo = sentido.dataset.bsentido
-      pintarBandejaCatalogo()
-      void buscarEnTodo()
-      return
-    }
+  // El orden, en la hoja (1369): el chip puesto da la vuelta; otro se pone
+  // con su sentido de siempre (`sentidoNatural`).
+  $('mcBuscarOrdenChips')?.addEventListener('click', (e) => {
     const criterio = e.target.closest('[data-borden]')
-    if (criterio) {
+    if (!criterio) return
+    if (criterio.dataset.borden === ordenCatalogo) sentidoCatalogo = sentidoCatalogo === 'desc' ? 'asc' : 'desc'
+    else {
       ordenCatalogo = criterio.dataset.borden
       sentidoCatalogo = sentidoNatural(ordenCatalogo)
-      pintarBandejaCatalogo()
-      void buscarEnTodo()
-      $('mcBuscarHojaOrden').close()
-      return
     }
-    const c = e.currentTarget.getBoundingClientRect()
-    const dentro = e.clientX >= c.left && e.clientX <= c.right && e.clientY >= c.top && e.clientY <= c.bottom
-    if (!dentro) e.currentTarget.close()
+    pintarBandejaCatalogo()
+    void buscarEnTodo()
   })
   $('mcBuscarAbrirFiltros')?.addEventListener('click', () => {
     pintarGruposDelCatalogo()
@@ -6564,6 +6538,8 @@ function enganchar() {
     for (const g of FILTROS_CATALOGO) filtrosCatalogo[g.id].clear()
     afinar.serie = ''
     afinar.set = ''
+    afinar.que = 'todas'
+    pintarQueDeBuscar()
     pintarGruposDelCatalogo()
     void buscarEnTodo()
   })
@@ -6723,18 +6699,8 @@ function enganchar() {
   })
 
   // La Pokédex (381 → 1011) la engancha su módulo al llegar.
-  // EL ORDEN, CON SU CHIP Y SU HOJA (1053), como «Ordenar» de Cartas: el
-  // chip dice el puesto y elegir uno cierra la hoja.
-  $('mcAlbumAbrirOrden')?.addEventListener('click', () => {
-    pintarRotuloDeOrdenDeAlbum()
-    $('mcAlbumHojaOrden').showModal()
-  })
-  $('mcAlbumOrdenCerrar')?.addEventListener('click', () => $('mcAlbumHojaOrden').close())
-  $('mcAlbumHojaOrden')?.addEventListener('click', (e) => { if (e.target === $('mcAlbumHojaOrden')) $('mcAlbumHojaOrden').close() })
-  $('mcAlbumOrden')?.addEventListener('change', () => {
-    pintarRotuloDeOrdenDeAlbum()
-    $('mcAlbumHojaOrden')?.close()
-  })
+  // El orden vive en la hoja de Filtros desde la 1369 (salió de su chip y su
+  // hoja, los de la 1053): se elige como un filtro más y la hoja sigue abierta.
   for (const id of ['mcAlbumRareza', 'mcAlbumTipo', 'mcAlbumEnergia', 'mcAlbumOrden', 'mcAlbumIdioma', 'mcAlbumVersion']) {
     // Con `?.`: una página que no lleve uno de ellos (una copia vieja de
     // cartas.html en caché) no puede quedarse sin JavaScript por él.
@@ -6866,12 +6832,6 @@ function enganchar() {
   $('mcAlbumHermanos')?.addEventListener('click', (e) => {
     const b = e.target.closest('[data-hermano]')
     if (b && b.dataset.hermano !== album.set) void abrirAlbum(b.dataset.hermano)
-  })
-  // Todas / Tengo / Faltan junto al título (748, D2): pulsan los del panel
-  // de filtros, que son los que mandan.
-  $('mcAlbumQue')?.addEventListener('click', (e) => {
-    const b = e.target.closest('[data-que]')
-    if (b) $(b.dataset.que)?.click()
   })
   // Pellizcar para cambiar de 2 a 4 columnas (731, X3).
   engancharPellizco($('mcAlbum'))
@@ -7855,6 +7815,8 @@ function pintarVistas() {
     if (sel.innerHTML !== opciones) sel.innerHTML = opciones
     sel.value = vista
     sel.setAttribute('aria-label', `Qué catálogo se mira: ${laVista().nombre}`)
+    // La bandera del select a la vista (1369, `.mc-una-fila`): la pinta la hoja.
+    sel.dataset.cat = laVista().mercado === 'JP' ? 'ja' : 'occ'
     // Lo que se VE (673): dos botones con la bandera dibujada. El select
     // se queda escondido y sigue siendo quien manda: cada botón le pone
     // su valor y dispara `change`, así que todo lo que escuchaba el

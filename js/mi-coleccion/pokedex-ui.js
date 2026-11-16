@@ -149,7 +149,8 @@ function pintarEspecieFiltrada() {
   // si se pintaran dentro, abrir el panel después de filtrar enseñaría los
   // de antes.
   const hueco = $('mcPdxGrupos')
-  meterEnLaHoja(hueco, ctx.pokedex.gruposDeEspecieHtml(grupos, filtrosEspecie, { idioma: ctx.pdxIdioma, idiomas: ctx.esMia && ctx.sesion ? ctx.idiomasDeLaVista() : [] }))
+  const tuya = ctx.esMia && ctx.sesion
+  meterEnLaHoja(hueco, ctx.pokedex.gruposDeEspecieHtml(grupos, filtrosEspecie, { idioma: ctx.pdxIdioma, idiomas: tuya ? ctx.idiomasDeLaVista() : [], que: ctx.pdxSoloFaltan ? 'faltan' : soloTengo ? 'tengo' : 'todas', conMostrar: tuya }))
   ctx.rotularVer('mcPdxFiltrosVer', lista.length)
   caja.innerHTML = ctx.pokedex.especieHtml({
     dex: ctx.especieAbierta,
@@ -280,14 +281,6 @@ function enganchar() {
   })
   $('mcPokedexPanel')?.addEventListener('click', (e) => {
     if (e.target.closest('#pdxAbrirFiltros')) $('mcPdxPanelFiltros').showModal()
-    // Todas / Tengo / Faltan (1054), como en una expansión. Era «Solo las
-    // que me faltan» (577).
-    const que = e.target.closest('[data-pdx-que]')
-    if (que) {
-      ctx.pdxSoloFaltan = que.dataset.pdxQue === 'faltan'
-      soloTengo = que.dataset.pdxQue === 'tengo'
-      pintarEspecieFiltrada()
-    }
     // Juntas / separadas, la MISMA memoria que en una expansión (692):
     // quien colecciona set maestro lo quiere igual en los dos sitios.
     if (e.target.closest('#pdxVariantes')) {
@@ -313,6 +306,14 @@ function enganchar() {
     }
   })
   $('mcPdxGrupos')?.addEventListener('click', (e) => {
+    // Todas / Tengo / Faltan (1054; era «Solo las que me faltan», 577), en la
+    // hoja desde la 1369, como en una expansión.
+    const que = e.target.closest('[data-pdx-que]')
+    if (que) {
+      ctx.pdxSoloFaltan = que.dataset.pdxQue === 'faltan'
+      soloTengo = que.dataset.pdxQue === 'tengo'
+      return pintarEspecieFiltrada()
+    }
     // El idioma de tus copias (577), en la hoja desde la 1055.
     const idioma = e.target.closest('[data-pdx-idioma]')
     if (idioma) {
@@ -331,6 +332,8 @@ function enganchar() {
   $('mcPdxFiltrosLimpiar')?.addEventListener('click', () => {
     for (const g of FILTROS_CATALOGO) filtrosEspecie[g.id].clear()
     ctx.pdxIdioma = ''
+    ctx.pdxSoloFaltan = false
+    soloTengo = false
     pintarEspecieFiltrada()
   })
   $('mcPdxPanelFiltros')?.addEventListener('click', (e) => {

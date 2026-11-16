@@ -7,13 +7,18 @@
 // `meterEnLaHoja`, y lo que solo tiene una pantalla va detrás de la raya.
 // Sin dependencias: lo importan mi-coleccion.js y la Pokédex.
 
+// Mostrar y Ordenar van ARRIBA (1369, «Una fila, como Dex»): salieron de la
+// barra, que se quedó en una fila, y son lo primero que se toca al abrir.
 export const ORDEN_DE_LA_HOJA = [
+  'mostrar', 'orden',
   'energia', 'rareza', 'tipo', 'entrenador', 'version', 'precio', 'idioma',
   'raya',
-  'que', 'expansion', 'serie', 'set', 'estado', 'ilustrador', 'gradeo', 'notas',
+  'expansion', 'serie', 'set', 'estado', 'ilustrador', 'gradeo', 'notas',
 ]
 
 export const TITULO_DE_LA_HOJA = {
+  mostrar: 'Mostrar',
+  orden: 'Ordenar',
   energia: 'Tipo',
   rareza: 'Rareza',
   tipo: 'Tipo de carta',

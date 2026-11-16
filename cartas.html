@@ -665,10 +665,14 @@
           <!-- EL BUSCADOR Y UN SOLO BOTÓN DE FILTROS (919, la propuesta
                «PokeDoc más sencillo»): Archivador y Variantes juntas entran
                en la hoja de filtros, arriba del todo. -->
-          <div class="mc-album-busca">
+          <!-- UNA FILA, COMO DEX (1369, PINGU: «lo hace todo en una fila…
+               una barra de búsqueda más pequeñita y que no se expanda»):
+               buscar · vista · Apilar · Filtros · Seleccionar · ✕. Todas /
+               Tengo / Faltan y el orden se fueron DENTRO de Filtros. -->
+          <div class="mc-album-busca mc-una-fila">
           <div class="mc-buscador mc-buscador-ancho">
             <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-            <input type="search" enterkeyhint="search" id="mcAlbumBuscar" placeholder="Busca por nombre o número" aria-label="Buscar en esta colección" />
+            <input type="search" enterkeyhint="search" id="mcAlbumBuscar" placeholder="Buscar" aria-label="Buscar en esta colección por nombre o número" />
           </div>
           <!-- LOS MANDOS, EN UNA TIRA (tanda 459). PINGU, con la pantalla
                de una expansión en el móvil: «se ve fatal». Eran cuatro
@@ -702,12 +706,6 @@
                salir de la hoja de filtros, donde las metió la 919: son lo
                que se toca cada dos por tres. -->
           <div class="mc-album-filtros mc-mandos" id="mcAlbumFiltros">
-            <!-- Qué cartas (1053): en la barra, como en el álbum (1048). -->
-            <div class="mc-seg mc-seg-sueltas mc-album-que" id="mcAlbumQue" role="group" aria-label="Qué cartas ver">
-              <button type="button" data-que="mcAlbumTodas" aria-pressed="true">Todas</button>
-              <button type="button" data-que="mcAlbumSoloTengo" aria-pressed="false">Tengo</button>
-              <button type="button" data-que="mcAlbumSoloFaltan" aria-pressed="false">Faltan</button>
-            </div>
             <button type="button" class="mc-chip-mando mc-chip-desplegable mc-chip-icono-movil" id="mcAlbumVista" data-icono="image" aria-haspopup="dialog">
               <span class="mc-chip-texto" id="mcAlbumVistaRotulo">Cuadrícula</span>
             </button>
@@ -718,12 +716,7 @@
             <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcVistaVariantes" aria-pressed="true" data-icono="cards">
               <span class="mc-chip-texto" id="mcVistaVariantesRotulo">Apilar</span>
             </button>
-            <!-- EL ORDEN, FUERA DE FILTROS (1053): un chip que dice el orden
-                 puesto y abre su hoja, como en Cartas (`#mcAbrirOrden`). -->
-            <button type="button" class="mc-chip-mando mc-chip-desplegable" id="mcAlbumAbrirOrden" data-icono="listOrdered" aria-haspopup="dialog">
-              <span class="mc-chip-texto" id="mcAlbumOrdenRotulo">Número</span>
-            </button>
-            <button type="button" class="mc-chip-mando" id="mcAlbumAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+            <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcAlbumAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
               <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcAlbumFiltrosCuenta"></span>
             </button>
             <!-- SELECCIONAR (1053, PINGU: «el de marcar varias cartas lo
@@ -786,17 +779,6 @@
             </div>
           </dialog>
 
-          <!-- LA HOJA DEL ORDEN (1053): lo que estaba en «Ordenar por» del panel
-               de filtros, ahora detrás de su chip, como en Cartas. -->
-          <dialog class="mc-bandeja" id="mcAlbumHojaOrden" aria-labelledby="mcAlbumHojaOrdenTitulo">
-            <div class="mc-panel-cabecera">
-              <h2 id="mcAlbumHojaOrdenTitulo">Ordenar por</h2>
-              <button type="button" class="mc-panel-cerrar" id="mcAlbumOrdenCerrar" aria-label="Cerrar">✕</button>
-            </div>
-            <div class="mc-panel-cuerpo">
-              <select id="mcAlbumOrden" aria-label="Cómo se ordenan las cartas"></select>
-            </div>
-          </dialog>
           <!-- EL PANEL. Mismo molde que los otros tres de la sección
                (Cartas, Pokédex y Buscar): sube desde abajo en el móvil y
                sale centrado en el ordenador, con «Limpiar» y «Ver
@@ -806,12 +788,25 @@
               <h2 id="mcAlbumFiltrosTitulo">Filtros</h2>
               <button type="button" class="mc-panel-cerrar" id="mcAlbumFiltrosCerrar" aria-label="Cerrar los filtros">✕</button>
             </div>
-            <!-- La hoja común (1055): el orden de hoja-filtros.js; «Qué
-                 cartas» (con Repetidas) es lo propio de una expansión y va
-                 detrás de la raya. Las opciones de Tipo, Rareza, Tipo de carta
+            <!-- La hoja común (1055): el orden de hoja-filtros.js; Mostrar
+                 (con «Para cambio») y Ordenar van arriba desde la 1369. Las opciones de Tipo, Rareza, Tipo de carta
                  y Versión salen de las cartas de ESTA colección (la 323), y un
                  grupo con una sola opción se esconde. -->
             <div class="mc-panel-cuerpo">
+              <!-- Mostrar y Ordenar, arriba (1369): eran la barra. -->
+              <div class="mc-grupo-filtro" data-hoja="mostrar">
+                <h3>Mostrar</h3>
+                <div class="mc-seg mc-seg-chips mc-seg-sueltas mc-seg-que" role="group" aria-label="Qué cartas ver">
+                  <button type="button" id="mcAlbumTodas" aria-pressed="true">Todas</button>
+                  <button type="button" id="mcAlbumSoloTengo" aria-pressed="false">Las que tengo</button>
+                  <button type="button" id="mcAlbumSoloFaltan" aria-pressed="false">Las que me faltan</button>
+                  <button type="button" id="mcAlbumCambio" aria-pressed="false">Para cambio</button>
+                </div>
+              </div>
+              <div class="mc-grupo-filtro" id="mcAlbumGrupoOrden" data-hoja="orden">
+                <h3>Ordenar</h3>
+                <select id="mcAlbumOrden" aria-label="Cómo se ordenan las cartas"></select>
+              </div>
               <div class="mc-grupo-filtro" id="mcAlbumGrupoEnergia" data-hoja="energia">
                 <h3>Tipo</h3>
                 <select id="mcAlbumEnergia" aria-label="Filtrar por tipo de energía"></select>
@@ -852,16 +847,6 @@
               <div class="mc-grupo-filtro" id="mcAlbumGrupoIdioma" data-hoja="idioma">
                 <h3>Idioma de tus copias <small class="mc-hoja-nota">lo que cuenta como «Tengo»</small></h3>
                 <select id="mcAlbumIdioma" aria-label="En qué idioma cuentan tus copias"></select>
-              </div>
-              <hr class="mc-hoja-raya" data-hoja="raya" />
-              <div class="mc-grupo-filtro" data-hoja="que">
-                <h3>Qué cartas</h3>
-                <div class="mc-seg mc-seg-que" role="group" aria-label="Qué cartas ver">
-                  <button type="button" id="mcAlbumTodas" aria-pressed="true">Todas</button>
-                  <button type="button" id="mcAlbumSoloTengo" aria-pressed="false">Las tengo</button>
-                  <button type="button" id="mcAlbumSoloFaltan" aria-pressed="false">Me faltan</button>
-                  <button type="button" id="mcAlbumCambio" aria-pressed="false">Para cambio</button>
-                </div>
               </div>
             </div>
             <div class="mc-panel-pie">
@@ -1439,30 +1424,21 @@
           <p id="mcEligiendoTexto"></p>
           <button type="button" class="btn-secondary" id="mcEligiendoCancelar">Cancelar</button>
         </div>
-        <div class="mc-filtros" id="mcBuscarBarra">
+        <div class="mc-filtros mc-una-fila" id="mcBuscarBarra">
           <div class="mc-buscador">
             <span class="mc-buscador-lupa" data-icono="search" aria-hidden="true"></span>
-            <input type="search" enterkeyhint="search" id="mcBuscarTodo" placeholder="Busca una carta o un ilustrador" autocomplete="off" aria-label="Buscar en todo el catálogo" />
+            <input type="search" enterkeyhint="search" id="mcBuscarTodo" placeholder="Buscar" autocomplete="off" aria-label="Buscar en todo el catálogo una carta o un ilustrador" />
           </div>
           <div class="mc-mandos">
             <!-- LOS MISMOS MANDOS QUE EN CARTAS Y EN EL MISMO ORDEN (450, y
                  la barra común de la 1054): qué cartas, orden, Filtros,
                  Seleccionar y el catálogo. Lo que cambia es QUÉ ofrecen. -->
-            <div class="mc-seg mc-seg-sueltas mc-bus-que hidden" id="mcBuscarQue" role="group" aria-label="Qué cartas ver">
-              <button type="button" data-bus-que="todas" aria-pressed="true">Todas</button>
-              <button type="button" data-bus-que="tengo" aria-pressed="false">Tengo</button>
-              <button type="button" data-bus-que="faltan" aria-pressed="false">Faltan</button>
-            </div>
             <!-- Apilar (779 → 1055): el de la expansión y la Pokédex, con la
                  misma memoria (`mc-split`); sale con resultados. -->
             <button type="button" class="mc-chip-mando mc-chip-icono-movil hidden" id="mcBuscarVariantes" data-icono="cards" aria-pressed="true">
               <span class="mc-chip-texto" id="mcBuscarVariantesRotulo">Apilar</span>
             </button>
-            <button type="button" class="mc-chip-mando" id="mcBuscarAbrirOrden" data-icono="listOrdered" aria-haspopup="dialog">
-              <span class="mc-chip-texto" id="mcBuscarOrdenRotulo">Nombre</span>
-              <span class="mc-orden-flecha" id="mcBuscarOrdenFlecha" aria-hidden="true">↑</span>
-            </button>
-            <button type="button" class="mc-chip-mando" id="mcBuscarAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
+            <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcBuscarAbrirFiltros" data-icono="settings" aria-haspopup="dialog">
               <span class="mc-chip-texto">Filtros</span><span class="mc-filtros-cuenta hidden" id="mcBuscarFiltrosCuenta"></span>
             </button>
             <button type="button" class="mc-chip-mando mc-chip-icono-movil" id="mcBuscarSeleccionar" data-seleccionar data-icono="checkSquare" aria-pressed="false">
@@ -1497,24 +1473,6 @@
 
         <div class="mc-resultados" id="mcBuscarResultados"></div>
 
-        <!-- La bandeja de ordenar del catálogo. Es la MISMA pieza que la de
-             Cartas —mismo CSS, mismo molde— con otra lista: aquí no hay
-             precio de compra ni «cuántas tienes», porque la carta no es
-             tuya. -->
-        <dialog class="mc-bandeja" id="mcBuscarHojaOrden" aria-labelledby="mcBuscarOrdenTitulo">
-          <div class="mc-panel-cabecera">
-            <h2 id="mcBuscarOrdenTitulo">Ordenar por</h2>
-            <button type="button" class="mc-panel-cerrar" id="mcBuscarOrdenCerrar" aria-label="Cerrar">✕</button>
-          </div>
-          <div class="mc-sentido" role="radiogroup" aria-label="Sentido del orden">
-            <button type="button" class="mc-sentido-opcion" data-bsentido="desc" role="radio" aria-checked="false">Descendente</button>
-            <button type="button" class="mc-sentido-opcion" data-bsentido="asc" role="radio" aria-checked="true">Ascendente</button>
-          </div>
-          <div class="mc-panel-cuerpo">
-            <ul class="mc-orden-lista" id="mcBuscarOrdenLista"></ul>
-          </div>
-        </dialog>
-
         <!-- Y los filtros. Estos van EN LA CONSULTA y no en memoria: el
              catálogo tiene 21.000 cartas y la consulta trae 120, así que
              filtrar después sería filtrar la muestra y no el catálogo. -->
@@ -1528,6 +1486,21 @@
                  `pintarGruposDelCatalogo`; la serie y la expansión (761,
                  antes en la barra) salen de lo que ha vuelto. -->
             <div id="mcBuscarGrupos" class="mc-hoja-grupos">
+              <!-- Mostrar y Ordenar, arriba (1369): eran la barra. El orden se
+                   elige con un chip; el puesto lleva su flecha y, pulsado otra
+                   vez, da la vuelta (era la bandeja de la 450). -->
+              <div class="mc-grupo-filtro hidden" id="mcBuscarGrupoQue" data-hoja="mostrar">
+                <h3>Mostrar</h3>
+                <div class="mc-seg mc-seg-chips mc-seg-sueltas" id="mcBuscarQue" role="group" aria-label="Qué cartas ver">
+                  <button type="button" data-bus-que="todas" aria-pressed="true">Todas</button>
+                  <button type="button" data-bus-que="tengo" aria-pressed="false">Las que tengo</button>
+                  <button type="button" data-bus-que="faltan" aria-pressed="false">Las que me faltan</button>
+                </div>
+              </div>
+              <div class="mc-grupo-filtro" data-hoja="orden">
+                <h3>Ordenar</h3>
+                <div class="mc-seg mc-seg-chips mc-seg-sueltas" id="mcBuscarOrdenChips" role="group" aria-label="Cómo se ordenan"></div>
+              </div>
               <hr class="mc-hoja-raya" data-hoja="raya" />
               <div class="mc-grupo-filtro hidden" id="mcBuscarGrupoSerie" data-hoja="serie">
                 <h3>Serie</h3>
