@@ -55204,6 +55204,26 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1376 — El torneo, renovado: Hoy en tarjetas
+
+- `js/torneos/hoy-tarjetas.js`: `nombreDeLista(parsed)` (los dos Pokémon de
+  `deducirIconos`), `montarVentanaLista()` (la X, tocar fuera), `abrirVentanaLista()`,
+  `cerrarVentanaLista()`, `pintarTuMazo({visible, parsed, sub, boton}, pintar)`
+  en `#torneoMazoCaja` y `engancharAbrirLista()` (cualquier `[data-abrir-lista]`).
+- `torneo.html`: `#torneoDecklistCaja` vive dentro de
+  `dialog#torneoListaVentana` (fuera de los paneles, para que no cuente al
+  decidir qué pestañas hay) con `#torneoListaCerrar`; en el panel `jugar`,
+  `#torneoMazoCaja`. «Cómo vas» se titula «Tu puesto» (el h3 no se ve).
+- `torneo.js`: `pintarDecklist` / `pintarDecklistLiga` pintan también la tarjeta;
+  escucha `torneo:abrir-lista` (`detail.jornada`) para elegir la jornada y abrir
+  la ventana; `engancharJornadas` abre la ventana en vez de bajar a la caja.
+- `ronda.js`: `pintarProximaJornada` (tarjeta con `[data-abrir-jornada]`, que
+  lanza `torneo:abrir-lista`, y `[data-usar-anterior]`, que llama a
+  `enviarListaJornada` con la lista de `listaAnterior`), con `conLista` sacado de
+  `misJornadas`; `pintarComoVas` pinta `.torneo-puesto` (`-num`, `-texto`).
+- CSS «1376»: el panel `jugar` es una rejilla (`minmax(0, 1fr)`); ≥1000 px, dos
+  columnas cuando hay tarjeta de jornada o mesa.
+
 ## Tanda 1375 — El torneo, renovado: la estructura
 
 - `js/torneos/cabecera.js`: `cuentaAtras(ms)` («4 d 7 h», «7 h 33 min»,

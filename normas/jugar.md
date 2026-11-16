@@ -225,6 +225,14 @@ viven en `js/torneos/pestanas.js` desde la 1352; los ids no cambian
 (1375, PINGU: «el menú lateral es demasiado pequeño y poco visible»): ni columna
 en el PC ni barra abajo en el móvil.
 
+**Hoy es UNA tarjeta con UN botón** (1376, la versión 2 de «El torneo,
+renovado»): lo que te toca y cómo hacerlo; al lado, tu puesto y tu mazo en
+pequeño. Lo que se escribe (la lista) va en su ventana (`#torneoListaVentana`,
+un `<dialog>` fuera de los paneles), no en la página. Lo que se sabe de TI sale
+de lo tuyo (`misJornadas`), nunca de `quienesJuegan`, que solo tiene datos para
+quien ve las listas de todos: con él, a un jugador le decía siempre «te falta
+la lista».
+
 **Jugar son TRES cosas en el menú: Torneos, Mazos y Partidas** (tanda 1358,
 PINGU eligió «Jugar en tres»). Mazos son /meta, /mazos y /laboratorio con sus
 pestañas Meta · Los míos · Probar; Partidas son /mis-partidas y /repeticiones.

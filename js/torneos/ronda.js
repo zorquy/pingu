@@ -31,7 +31,7 @@ import { arquetipoDeMazo } from './arquetipos.js'
 import { botonesExportarHtml, engancharExportar } from './decklist-export.js'
 import { TERMINALES, progresoDeMesas, mesasQueFaltan, fraseDeMesas } from './mesas.js'
 import { apuntarEnTablon } from './tablon.js'
-import { cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada, rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, nombreDeRondaDeLiga, entreJornadas, proximaJornada } from './jornadas.js'
+import { misJornadas, listaAnterior, enviarListaJornada, cargarJornadas, quienesJuegan, jornadaCerrada, jornadaEmpezada, publicarListasJornada, cerrarJornada, esRondaSaltada, rondasPorJornada, numJornadas, jornadaDeRonda, rondaEnJornada, nombreDeRondaDeLiga, entreJornadas, proximaJornada } from './jornadas.js'
 import { cuandoLaCita, snapshotDeJornada } from './rondas-jornada.js'
 import { guardarListaEnMisMazos, enlaceParaEntrar } from '../guardar-lista.js'
 import { enlaceConstructor } from '../meta/nucleo.js'
@@ -3051,27 +3051,29 @@ export function filasAlrededor(tabla, yo) {
   return quiero.map((k, j) => ({ pos: k + 1, e: tabla[k], yo: k === i, salto: j > 0 && k - quiero[j - 1] > 1 }))
 }
 
+// «Tu puesto» (1376, la versión 2 de «El torneo, renovado»): en vez de cuatro
+// filas de la tabla, tu puesto en grande con los puntos, el balance, la flecha
+// y la forma. La tabla entera está a un toque, en Tabla. Sale de la MISMA
+// cuenta que la tabla (`computeStandings`).
 function pintarComoVas() {
   const caja = $('torneoComoVas')
   if (!caja) return
   const yo = miId()
   const hayPuntos = partidas.some((m) => TERMINALES.has(m.status))
-  const filas = yo && hayPuntos ? filasAlrededor(computeStandings(montarSnapshot(rondas.length)), yo) : []
-  caja.classList.toggle('hidden', !filas.length)
-  if (!filas.length) return olvidarPintado('comoVas')
-  // Con caras, forma y flecha (1349, la propuesta «Torneos con caras»).
+  const tabla = yo && hayPuntos ? computeStandings(montarSnapshot(rondas.length)) : []
+  const i = tabla.findIndex((e) => e.playerId === yo)
+  caja.classList.toggle('hidden', i < 0)
+  if (i < 0) return olvidarPintado('comoVas')
+  const e = tabla[i]
   const antes = puestosAntes()
-  const html = `<ol class="torneo-como-vas">${filas
-    .map((f) => `${f.salto ? '<li class="torneo-como-vas-salto" aria-hidden="true">…</li>' : ''}
-      <li class="${f.yo ? 'torneo-fila-yo' : ''}"${f.yo ? ' aria-current="true"' : ''}>
-        <span class="torneo-pos${f.pos <= 3 ? ` torneo-pos-${f.pos}` : ''}">${f.pos}</span>
-        ${caraDe(f.e.playerId, 'p')}
-        <span class="torneo-como-vas-quien"><span class="torneo-como-vas-nombre">${f.yo ? 'Tú' : escapeHtml(nombreDe(f.e.playerId))}</span>${movimientoHtml(antes?.get(f.e.playerId), f.pos)}<br>${formaHtml(formaDe(f.e.playerId))}</span>
-        <span class="torneo-como-vas-vde">${f.e.wins}-${f.e.losses}-${f.e.draws}</span>
-        <strong>${f.e.matchPoints} pts</strong>
-      </li>`)
-    .join('')}</ol>
-    <button type="button" class="link-btn" data-ir-pestana="clasificacion">Ver la clasificación entera</button>`
+  const plural = (n, uno, varios) => `${n} ${n === 1 ? uno : varios}`
+  const html = `<div class="torneo-puesto">
+      <span class="torneo-puesto-num">${i + 1}º</span>
+      <span class="torneo-puesto-texto"><b>de ${tabla.length} · ${plural(e.matchPoints, 'punto', 'puntos')}</b><span>${plural(e.wins, 'ganada', 'ganadas')}, ${plural(e.losses, 'perdida', 'perdidas')}${e.draws ? `, ${plural(e.draws, 'empate', 'empates')}` : ''}</span></span>
+      ${movimientoHtml(antes?.get(yo), i + 1)}
+    </div>
+    ${formaHtml(formaDe(yo))}
+    <button type="button" class="link-btn" data-ir-pestana="clasificacion">Ver la tabla</button>`
   if (yaEstaPintado('comoVas', html)) return
   $('comoVasContenido').innerHTML = html
   $('comoVasContenido').querySelector('[data-ir-pestana]')?.addEventListener('click', () => {
@@ -3082,6 +3084,10 @@ function pintarComoVas() {
 
 // Tu próxima jornada (1349): entre jornadas de una liga en la que juegas, lo
 // primero de Mi mesa es cuándo es, cuánto falta y qué te falta a ti (la lista).
+// Desde la 1376 es LA tarjeta de Hoy: lo que te toca con UN botón grande
+// («Mandar mi lista», que abre la ventana) y, si mandaste lista a una jornada
+// anterior, «o usar la de la jornada N» de un toque. La cuenta atrás ya está en
+// la cabecera (1375).
 function pintarProximaJornada() {
   const caja = $('torneoProximaCaja')
   if (!caja) return
@@ -3091,32 +3097,39 @@ function pintarProximaJornada() {
   const fecha = toca?.fecha && Date.parse(toca.fecha) > Date.now() ? new Date(toca.fecha) : null
   caja.classList.toggle('hidden', !fecha)
   if (!fecha) return olvidarPintado('proxima')
-  const ms = fecha.getTime() - Date.now()
-  const d = Math.floor(ms / 864e5)
-  const h = Math.floor((ms % 864e5) / 36e5)
-  const m = Math.floor((ms % 36e5) / 6e4)
-  const juegan = ctx.jornadas ? quienesJuegan(ctx.jornadas, toca.n) : null
-  const conLista = Boolean(juegan?.has(yo))
+  // Tu lista sale de TUS jornadas: «quién juega» (quienesJuegan) solo lo sabe
+  // quien ve las listas de todos, y a un jugador le decía siempre «te falta».
+  const mias = ctx.jornadas ? misJornadas(ctx.torneo, ctx.jornadas, yo) : []
+  const conLista = Boolean(mias[toca.n - 1]?.lista)
   const tcg = ctx.inscripciones.find((i) => i.user_id === yo)?.tcg_live_username
-  const dia = fecha.toLocaleDateString('es-ES', { weekday: 'long' })
-  const html = `<div class="torneo-proxima-cab">
-      <span class="torneo-cuando-dia"><small>${escapeHtml(fecha.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '').toUpperCase())}</small><b>${fecha.getDate()}</b></span>
-      <span><span class="torneo-proxima-rot">Tu próxima jornada</span><strong>Jornada ${toca.n} · ${escapeHtml(dia)} ${escapeHtml(fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }))}</strong></span>
-    </div>
-    <div class="torneo-proxima-cuenta" aria-label="Faltan ${d} días, ${h} horas y ${m} minutos">
-      <span><b>${d}</b><small>días</small></span><span><b>${h}</b><small>horas</small></span><span><b>${m}</b><small>min</small></span>
-    </div>
-    <ul class="torneo-proxima-pasos">
-      <li class="hecho">${icons.checkCircle(16)} Estás dentro${tcg ? ` como <b>${escapeHtml(tcg)}</b>` : ''}</li>
-      <li class="${conLista ? 'hecho' : 'falta'}">${conLista ? icons.checkCircle(16) : icons.triangleAlert(16)} ${conLista ? `Lista de la jornada ${toca.n} enviada` : `Te falta la lista de la jornada ${toca.n}: sin ella no la juegas`}</li>
-      <li>${icons.clock(16)} El día: check-in ${ctx.torneo.checkin_minutes ?? 5} min antes de cada ronda</li>
+  const anterior = !conLista && mias[toca.n - 1]?.abierta ? listaAnterior(mias, toca.n) : null
+  const deDonde = anterior ? mias.find((x) => x.lista === anterior)?.n : null
+  const cuando = `${fecha.toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' }).replace('.', '')} · ${fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}`
+  const html = `<span class="torneo-hoy-ceja">Jornada ${toca.n} · ${escapeHtml(cuando)}</span>
+    <h3 class="torneo-hoy-titulo">${conLista ? `Listo: juegas la jornada ${toca.n}` : 'Te falta mandar tu lista'}</h3>
+    <ul class="torneo-hoy-estado">
+      <li class="ok">${icons.checkCircle(15)} Inscrito${tcg ? ` como <b>${escapeHtml(tcg)}</b>` : ''}</li>
+      <li class="${conLista ? 'ok' : 'mal'}">${conLista ? `${icons.checkCircle(15)} Con lista` : `${icons.triangleAlert(15)} Sin lista: sin ella no la juegas`}</li>
+      <li>${icons.clock(15)} Check-in ${ctx.torneo.checkin_minutes ?? 5} min antes de cada ronda</li>
     </ul>
-    ${conLista ? '' : '<a class="btn-primary torneo-proxima-boton" href="#torneoDecklistCaja">Mandar mi lista</a>'}`
+    <button type="button" class="${conLista ? 'btn-secondary' : 'btn-primary'} torneo-hoy-boton" data-abrir-jornada="${toca.n}">${conLista ? 'Ver mi lista' : 'Mandar mi lista'}</button>
+    ${deDonde ? `<button type="button" class="link-btn torneo-hoy-anterior" data-usar-anterior="${toca.n}">o usar la de la jornada ${deDonde} ›</button>` : ''}`
   if (yaEstaPintado('proxima', html)) return
   caja.innerHTML = html
-  caja.querySelector('.torneo-proxima-boton')?.addEventListener('click', (e) => {
-    e.preventDefault()
-    $('torneoDecklistCaja')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  caja.querySelector('[data-abrir-jornada]')?.addEventListener('click', () => {
+    document.dispatchEvent(new CustomEvent('torneo:abrir-lista', { detail: { jornada: toca.n } }))
+  })
+  caja.querySelector('[data-usar-anterior]')?.addEventListener('click', async (e) => {
+    const boton = e.currentTarget
+    boton.disabled = true
+    const error = await enviarListaJornada(ctx.torneo.id, toca.n, anterior.raw_text, anterior.parsed_cards)
+    if (error) {
+      boton.disabled = false
+      showToast(error.message || 'No se ha podido guardar la lista', 'error')
+      return
+    }
+    showToast(`Lista de la jornada ${deDonde} puesta en la ${toca.n}: juegas esa jornada.`, 'success')
+    await ctx.recargarFicha?.()
   })
 }
 

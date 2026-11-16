@@ -108,6 +108,12 @@
   <!-- precargas: las escribe generar-precargas.mjs (1315) -->
   <link rel="modulepreload" href="/js/torneos/cabecera.js" />
   <link rel="modulepreload" href="/js/torneos/liga-en-curso.js" />
+  <!-- precargas: las escribe generar-precargas.mjs (1315) -->
+  <link rel="modulepreload" href="/js/torneos/hoy-tarjetas.js" />
+  <link rel="modulepreload" href="/js/torneos/arquetipos.js" />
+  <link rel="modulepreload" href="/js/torneos/evoluciones.js" />
+  <link rel="modulepreload" href="/js/normalizar.js" />
+  <!-- /precargas -->
   <!-- /precargas -->
   <!-- /precargas -->
   <!-- /precargas -->
@@ -327,14 +333,12 @@
       <!-- Cómo vas (721, J2): debajo de tu mesa, tu fila de la
            clasificación con el que va primero y los de al lado. -->
       <div class="simple-card hidden" id="torneoComoVas">
-        <h3>Cómo vas</h3>
+        <h3>Tu puesto</h3>
         <div id="comoVasContenido"></div>
       </div>
-      <div class="simple-card hidden" id="torneoDecklistCaja">
-        <h3>Tu decklist</h3>
-        <p class="subtext">Pega el export de Pokémon TCG Live (secciones Pokémon / Trainer / Energy). Solo la ven los jueces y el organizador, nunca los demás jugadores.</p>
-        <div id="decklistContenido"></div>
-      </div>
+      <!-- Tu mazo (1376): sus dos Pokémon y «Cambiar»; la lista se pega en la
+           ventana de abajo (#torneoListaVentana). -->
+      <div class="simple-card torneo-mazo-caja hidden" id="torneoMazoCaja"></div>
     </section>
 
     <!-- Pestaña RONDAS: el ciclo entero, organizador y mesas. -->
@@ -392,6 +396,19 @@
       <section class="torneo-tablon hidden" id="torneoTablon" aria-labelledby="torneoTablonTitulo"></section>
     </aside>
     </div>
+    <!-- «Tu decklist» en una VENTANA (1376, PINGU eligió la recomendada): la
+         caja de siempre, con sus ids, que se abre desde la tarjeta «Tu mazo»,
+         «Mandar mi lista» o «Enviar lista» de tus jornadas. -->
+    <dialog class="torneo-lista-ventana" id="torneoListaVentana" aria-labelledby="torneoListaTitulo">
+      <div class="simple-card hidden" id="torneoDecklistCaja">
+        <div class="torneo-lista-ventana-cab">
+          <h3 id="torneoListaTitulo">Tu decklist</h3>
+          <button type="button" class="torneo-lista-cerrar" id="torneoListaCerrar" aria-label="Cerrar"></button>
+        </div>
+        <p class="subtext">Pega el export de Pokémon TCG Live (secciones Pokémon / Trainer / Energy). Solo la ven los jueces y el organizador, nunca los demás jugadores.</p>
+        <div id="decklistContenido"></div>
+      </div>
+    </dialog>
   </main>
 
   <!-- El pie, de verdad (tanda 312). Antes era un copyright y tres

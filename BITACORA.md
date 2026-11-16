@@ -4,6 +4,38 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (622) — PINGU-Claude (1376 — El torneo, renovado: Hoy en tarjetas)
+
+**Hecho** (la versión 2 de «El torneo, renovado»; decisión 2: la lista en una
+ventana):
+- **La tarjeta de tu jornada** (`#torneoProximaCaja`): «Jornada 7 · lunes 16
+  nov · 19:00», «Te falta mandar tu lista» (o «Listo: juegas la jornada 7»),
+  inscrito / lista / check-in en una línea y UN botón grande. Si mandaste lista
+  a una jornada anterior, «o usar la de la jornada 6» la manda de un toque. Fuera
+  la cuenta atrás en casillas: ya está en la cabecera (1375).
+- **Arreglo de la 1349**: a un jugador que no organiza la tarjeta le decía
+  SIEMPRE «te falta la lista», porque miraba «quién juega» (solo lo sabe quien
+  ve las listas de todos). Ahora mira sus jornadas (`misJornadas`).
+- **Tu puesto** (`#torneoComoVas`): «6º · de 24 · 21 puntos · 7 ganadas, 2
+  perdidas», la flecha y la forma. Fuera las cuatro filas de la tabla.
+- **Tu mazo** (`#torneoMazoCaja`, nuevo): sus dos Pokémon, de qué jornada es la
+  lista y «Cambiar». Sin lista y con la tarjeta de tu jornada a la vista, no
+  sale (el botón ya está ahí).
+- **La lista en una VENTANA** (`#torneoListaVentana`): la caja «Tu decklist» de
+  siempre, con sus ids, dentro de un `<dialog>`. La abren «Mandar mi lista»,
+  «Cambiar» y «Enviar lista» de tus jornadas; al guardar se cierra. En el móvil
+  sube desde abajo.
+- En el PC, Hoy en dos columnas: lo que te toca (o tu mesa) a la izquierda; tu
+  puesto y tu mazo a la derecha.
+
+**Ficheros**: `torneo.html`, `js/torneos/hoy-tarjetas.js` (nuevo),
+`js/torneos/torneo.js`, `js/torneos/ronda.js`, `css/torneos.css`,
+`normas/jugar.md`. Prueba `test-tanda-1376-pantalla.mjs` (rama `pruebas`); se
+ajustan la 722, la 1341 y la 1347, y el doble de Supabase cuenta las rondas
+por jornada al cerrar una (`rounds_per_matchday`).
+
+**Pendiente**: 1377 (Mesas) y 1378 (Tabla, Info y Jueces).
+
 ## 2026-11-16 (621) — PINGU-Claude (1375 — El torneo, renovado: la estructura)
 
 **Hecho** (la versión 2 de la propuesta «El torneo, renovado»; PINGU: «dale con

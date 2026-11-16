@@ -4772,3 +4772,69 @@ button.torneo-tj { cursor: pointer; }
   .torneo-pegado .torneo-pestanas-pastillas .seg-btn > :is(.torneo-pestana-aviso, .torneo-pestana-cuenta) { position: absolute; top: 2px; left: calc(50% + var(--e-sm)); margin: 0; }
   .torneo-tab-menu .seg-btn { flex-direction: row !important; min-height: 44px !important; font-size: var(--t-sm) !important; }
 }
+
+/* ── 1376: Hoy en tarjetas (SCHEMA 1376) ──
+   Una tarjeta grande con lo que te toca y UN botón; al lado, tu puesto y tu
+   mazo en pequeño. La lista se pega en una ventana. */
+.torneo-proxima { gap: var(--e-sm); margin: 0; padding: var(--e-xl); border-color: color-mix(in srgb, var(--acento) 40%, var(--border)); background: linear-gradient(160deg, color-mix(in srgb, var(--acento) 14%, var(--white)), var(--white) 60%); }
+:root[data-theme='dark'] .torneo-proxima { background: linear-gradient(160deg, color-mix(in srgb, var(--acento) 18%, var(--white)), var(--white) 60%); }
+.torneo-hoy-ceja { font-size: var(--t-2xs); font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-mid); }
+.torneo-hoy-titulo { margin: 0; font-family: var(--font-display); font-size: var(--t-2xl); line-height: 1.15; }
+.torneo-hoy-estado { display: flex; flex-wrap: wrap; gap: var(--e-xs) var(--e-md); margin: 0; padding: 0; list-style: none; font-size: var(--t-sm); color: var(--text-mid); }
+.torneo-hoy-estado li { display: inline-flex; align-items: center; gap: 6px; }
+.torneo-hoy-estado li.ok { color: var(--success); }
+.torneo-hoy-estado li.mal { color: var(--warning); font-weight: 700; }
+.torneo-hoy-boton { justify-content: center; min-height: 52px; margin-top: var(--e-xs); font-size: var(--t-md); }
+.torneo-hoy-anterior { justify-self: start; color: var(--acento); font-weight: 700; }
+
+/* Tu puesto, en grande. */
+#torneoComoVas > h3 { display: none; }
+#comoVasContenido { display: grid; gap: var(--e-sm); }
+.torneo-puesto { display: flex; align-items: center; gap: var(--e-md); }
+.torneo-puesto-num { font-family: var(--font-display); font-size: 2.75rem; font-weight: 800; line-height: 1; color: var(--acento); }
+.torneo-puesto-texto { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.torneo-puesto-texto b { font-size: var(--t-md); }
+.torneo-puesto-texto span { font-size: var(--t-sm); color: var(--text-mid); }
+#comoVasContenido .link-btn { justify-self: start; }
+
+/* Tu mazo: sus dos Pokémon, de dónde es la lista y «Cambiar». */
+.torneo-mazo-caja { display: flex; align-items: center; gap: var(--e-md); }
+.torneo-mazo-caja.hidden { display: none; }
+.torneo-mazo-sprites { display: flex; flex: none; }
+.torneo-mazo-sprites img { width: 52px; height: 52px; object-fit: contain; border-radius: 50%; background: var(--bg); }
+.torneo-mazo-sprites img + img { margin-left: -18px; }
+.torneo-mazo-sprites.vacio { display: grid; place-items: center; width: 52px; height: 52px; border-radius: 50%; background: var(--bg); color: var(--text-mid); }
+.torneo-mazo-texto { display: grid; gap: 2px; flex: 1; min-width: 0; }
+.torneo-mazo-texto b { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.torneo-mazo-texto span { font-size: var(--t-sm); color: var(--text-mid); }
+.torneo-mazo-boton { flex: none; color: var(--acento); font-weight: 700; }
+.torneo-mazo-boton.btn-primary { color: var(--acento-texto); }
+
+/* La ventana de la lista. */
+.torneo-lista-ventana { width: min(720px, calc(100vw - 2 * var(--e-md))); max-height: calc(100vh - 2 * var(--e-xl)); margin: auto; padding: 0; border: 0; border-radius: var(--radius-xl); background: transparent; overflow: auto; }
+.torneo-lista-ventana::backdrop { background: rgba(13, 27, 42, 0.55); }
+.torneo-lista-ventana > .simple-card { margin: 0; }
+.torneo-lista-ventana-cab { display: flex; align-items: center; justify-content: space-between; gap: var(--e-sm); }
+.torneo-lista-ventana-cab h3 { margin: 0; }
+.torneo-lista-cerrar { display: grid; place-items: center; width: 40px; height: 40px; border: 0; border-radius: 50%; background: var(--bg); color: var(--text); cursor: pointer; }
+
+/* En el PC, Hoy en dos columnas: lo que te toca (o tu mesa) a la izquierda;
+   tu puesto y tu mazo a la derecha. */
+.torneo-panel[data-panel='jugar']:not(.hidden) { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--e-md); align-content: start; }
+.torneo-panel[data-panel='jugar'] > * { min-width: 0; margin: 0; }
+@media (min-width: 1000px) {
+  .torneo-panel[data-panel='jugar']:has(> :is(#torneoProximaCaja, #torneoMiPartida):not(.hidden)) { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); grid-auto-flow: row dense; }
+  .torneo-panel[data-panel='jugar'] > :is(#torneoProximaCaja, #torneoMiPartida) { grid-column: 1; grid-row: span 3; }
+  .torneo-panel[data-panel='jugar'] > :is(#torneoComoVas, #torneoMazoCaja) { grid-column: 2; }
+  .torneo-panel[data-panel='jugar']:not(:has(> :is(#torneoProximaCaja, #torneoMiPartida):not(.hidden))) > :is(#torneoComoVas, #torneoMazoCaja) { grid-column: auto; }
+  .torneo-panel[data-panel='jugar']:not(:has(> :is(#torneoProximaCaja, #torneoMiPartida):not(.hidden))) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .torneo-proxima { padding: var(--e-lg); }
+  .torneo-hoy-titulo { font-size: var(--t-xl); }
+  .torneo-lista-ventana { width: 100vw; max-width: 100vw; max-height: 92vh; margin: auto 0 0; border-radius: var(--radius-xl) var(--radius-xl) 0 0; }
+  .torneo-lista-ventana > .simple-card { border-radius: var(--radius-xl) var(--radius-xl) 0 0; padding-bottom: calc(var(--e-lg) + var(--seguro-abajo)); }
+}
+.torneo-proxima { align-content: start; }
+/* Sin lista, el botón ya está en la tarjeta de tu jornada: la de tu mazo sobra. */
+#torneoProximaCaja:not(.hidden) ~ #torneoMazoCaja:has(.btn-primary) { display: none; }

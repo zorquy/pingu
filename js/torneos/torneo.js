@@ -42,6 +42,7 @@ import { borrarTorneo, anunciarBorrado, textoConfirmarBorrado } from './borrar.j
 import { pintarSiCambia, textoSiCambia } from './pintar.js'
 import { montarPestanas, pintarPestanas, irAPestana } from './pestanas.js'
 import { pintarCabecera } from './cabecera.js'
+import { montarVentanaLista, abrirVentanaLista, cerrarVentanaLista, pintarTuMazo, engancharAbrirLista } from './hoy-tarjetas.js'
 import { textoDePrecio } from './torneo-tienda.js'
 import { atributosDeRango, COLUMNAS_RANGO } from '../rangos.js'
 
@@ -973,8 +974,8 @@ function engancharJornadas() {
       irAPestana('jugar')
       const editor = document.querySelector('.torneo-decklist-editor')
       if (editor) editor.open = true
-      $('torneoDecklistCaja')?.scrollIntoView({ block: 'start' })
-      $('decklistTexto')?.focus({ preventScroll: true })
+      // La lista se pega en su ventana (1376).
+      abrirVentanaLista()
       return
     }
     boton.disabled = true
@@ -1321,6 +1322,7 @@ function pintarDecklist() {
   // Sin inscripción no hay decklist que enseñar (la de otros, jamás).
   if (!miInscripcion) {
     caja.classList.add('hidden')
+    pintarTuMazo(null, pintarSiCambia)
     return
   }
   caja.classList.remove('hidden')
@@ -1349,6 +1351,8 @@ function pintarDecklist() {
   // un desplegable, que es lo que se edita y se vuelve a guardar.
   // El refresco automático repinta esta caja: si el editor estaba
   // abierto, se respeta.
+  // La tarjeta «Tu mazo» de Hoy (1376); la caja de abajo va en su ventana.
+  pintarTuMazo({ visible: true, parsed: miDecklist?.parsed_cards, sub: miDecklist ? `Entregada el ${fechaBonita(miDecklist.submitted_at)}` : 'Aún no has mandado tu lista', boton: miDecklist ? (editable ? 'Cambiar' : 'Ver') : 'Mandar mi lista' }, pintarSiCambia)
   const editorAbierto = document.querySelector('.torneo-decklist-editor')?.open
   if (!pintarSiCambia($('decklistContenido'), `
     ${estadoEntrega}
@@ -1492,6 +1496,7 @@ function pintarDecklistLiga() {
         }</p>`
       : `<p class="subtext">No enviaste lista para la jornada ${n}: no la juegas.</p>`
   const texto = fila.lista?.raw_text || anterior?.raw_text || ''
+  pintarTuMazo({ visible: true, parsed: fila.lista?.parsed_cards, sub: fila.lista ? `Tu lista de la jornada ${n}` : editable ? `Sin lista para la jornada ${n}` : `No juegas la jornada ${n}`, boton: fila.lista ? (editable ? 'Cambiar' : 'Ver') : editable ? 'Mandar mi lista' : 'Ver' }, pintarSiCambia)
   const editorAbierto = document.querySelector('.torneo-decklist-editor')?.open
   if (!pintarSiCambia($('decklistContenido'), `
     <label class="torneo-decklist-jornada">Jornada
@@ -1563,6 +1568,7 @@ function engancharDecklist(jornada = null) {
         return
       }
       showToast(`Lista de la jornada ${jornada} guardada: juegas esa jornada.`, 'success')
+      cerrarVentanaLista()
       await recargar()
       return
     }
@@ -1597,6 +1603,7 @@ function engancharDecklist(jornada = null) {
         : 'Decklist guardada.',
       'success'
     )
+    cerrarVentanaLista()
     await recargar()
   })
 }
@@ -1802,6 +1809,17 @@ async function init() {
   document.getElementById('torneoContenido').style.display = ''
   document.getElementById('torneoContenido').style.visibility = ''
   montarCompartir(ficha)
+  montarVentanaLista()
+  engancharAbrirLista()
+  // «Mandar mi lista» de la tarjeta de tu jornada (ronda.js) pide la ventana
+  // con esa jornada elegida (1376).
+  document.addEventListener('torneo:abrir-lista', (e) => {
+    if (e.detail?.jornada) {
+      jornadaElegida = e.detail.jornada
+      pintarDecklist()
+    }
+    abrirVentanaLista()
+  })
   engancharLoPegado(ficha)
   engancharApuntarse(ficha)
   engancharBuscarGente()
