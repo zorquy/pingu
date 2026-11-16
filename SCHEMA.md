@@ -55204,6 +55204,14 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1381b — La fila de Expansiones: caja que llena el hueco, banderas grandes, la rueda
+
+- `css/mi-coleccion.css` (≤ 699 px): fuera las reglas de la lupa recogida
+  (`:has(input:placeholder-shown)` → 44 px), las de «Filtros» con texto en
+  `#mcEstanteriaFila` y el `margin-left: auto`. Se quedan `:focus-within` →
+  `flex: 1 0 100%` y los mandos ocultos mientras se escribe. Las banderas del
+  slide: `.seg-btn` `min-width: 52px`, `.pv-bandera` 28×20.
+
 ## Tanda 1383 — Escribir en el foro: barra fija, spoiler fácil y menciones avisadas
 
 - `css/editor-texto.css`: `.rte-compacta .rte-toolbar` `position: sticky; top:

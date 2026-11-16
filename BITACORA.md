@@ -4,6 +4,25 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (630) — PINGU-Claude (1381b — La fila de Expansiones, como se pidió: caja que llena el hueco, banderas grandes, la rueda)
+
+**Hecho** (PINGU, con la captura del móvil: «los botones son demasiado
+pequeños, la barra de búsqueda lo ha reducido a nada y hay mucho espacio en la
+mitad, y los filtros deberían ser la rueda, no que ponga Filtros… ¿te lo has
+cargado?»). Malinterpreté «una barra más pequeña que se amplíe al escribir»:
+la 1381 la recogía en una lupa de 44 y «Filtros» en texto a la derecha. Ahora:
+- la caja de buscar llena el hueco entre las pestañas y los mandos (como en la
+  Pokédex) y AL ESCRIBIR ocupa la fila entera (eso se queda);
+- las banderas, 28×20 en botones de 52 de ancho;
+- Filtros vuelve a ser la rueda (sin texto).
+Subido al momento: era algo que yo había roto en producción.
+
+**Ficheros**: `css/mi-coleccion.css`, `normas/coleccion.md`. Pruebas (rama
+`pruebas`): `test-tanda-1381-pantalla.mjs` (la caja llena el hueco, Filtros sin
+texto) y `test-tanda-1369-pantalla.mjs` vuelta a como estaba.
+
+**Pendiente**: nada.
+
 ## 2026-11-16 (629) — PINGU-Claude (1383 — Escribir en el foro: barra fija, spoiler fácil y menciones avisadas)
 
 **Hecho** (PINGU, escribiendo un mensaje largo: «cada vez quería subir otra vez

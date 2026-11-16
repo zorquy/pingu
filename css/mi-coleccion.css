@@ -16210,7 +16210,10 @@ html.con-barra-movil .mc-prod-banda { display: none; }
   .mc-una-fila #mcAlbumVista::before { display: none; }
   /* En el móvil, solo las banderas (el nombre sigue en el `title` y para
      el lector). */
-  .mc-una-fila select.mc-mercado + .seg .seg-btn { min-height: 38px; padding: 0 var(--e-sm); }
+  /* Banderas grandes, que se tocan con el dedo (1381b: «los botones son
+     demasiado pequeños»). */
+  .mc-una-fila select.mc-mercado + .seg .seg-btn { min-height: 38px; min-width: 52px; justify-content: center; padding: 0 var(--e-md); }
+  .mc-una-fila select.mc-mercado + .seg .pv-bandera { width: 28px; height: 20px; }
   .mc-una-fila select.mc-mercado + .seg .seg-btn > span {
     position: absolute;
     width: 1px;
@@ -16219,39 +16222,15 @@ html.con-barra-movil .mc-prod-banda { display: none; }
     clip-path: inset(50%);
     white-space: nowrap;
   }
-  /* LA LUPA QUE CRECE (1381; PINGU: «que el buscar sea una barra más pequeña
-     y cuando lo uses se amplíe mientras escribes»). Vacío y sin tocar, el
-     buscador es un círculo de 44; al enfocarlo ocupa la fila entera (los
-     mandos se apartan mientras escribes); con algo escrito vuelve a media
-     fila con el texto. Buscar no lo lleva: allí la caja ES la pantalla. */
-  .mc-una-fila:not(#mcBuscarBarra) > .mc-buscador:not(:focus-within):has(input:placeholder-shown) {
-    flex: 0 0 44px;
-    width: 44px;
-  }
-  .mc-una-fila:not(#mcBuscarBarra) > .mc-buscador:not(:focus-within):has(input:placeholder-shown) input[type='search'] {
-    padding: 0;
-    color: transparent;
-    cursor: pointer;
-  }
-  .mc-una-fila:not(#mcBuscarBarra) > .mc-buscador:not(:focus-within):has(input:placeholder-shown) input::placeholder { color: transparent; }
-  .mc-una-fila:not(#mcBuscarBarra) > .mc-buscador:not(:focus-within):has(input:placeholder-shown) .mc-buscador-lupa {
-    left: 50%;
-    transform: translate(-50%, -50%);
-  }
+  /* EL BUSCADOR QUE CRECE (1381, corregido en la 1381b). PINGU: «que el
+     buscar sea una barra más pequeña y cuando lo uses se amplíe mientras
+     escribes». La caja ocupa el hueco que dejan las banderas y la rueda (como
+     en la Pokédex), y AL ESCRIBIR ocupa la fila entera: los mandos se apartan
+     hasta que sueltas la caja. La 1381 la recogía en una lupa de 44 y dejaba
+     un hueco en medio («la barra de búsqueda lo ha reducido a nada»).
+     Filtros sigue siendo la rueda. */
   .mc-una-fila:not(#mcBuscarBarra) > .mc-buscador:focus-within { flex: 1 0 100%; }
   .mc-una-fila:not(#mcBuscarBarra):has(> .mc-buscador:focus-within) > .mc-mandos { display: none; }
-  /* Con la lupa recogida sobra sitio: Filtros dice su nombre y se va a la
-     derecha. */
-  .mc-una-fila:not(#mcBuscarBarra):has(> .mc-buscador:not(:focus-within) input:placeholder-shown) > .mc-mandos { flex: 1 1 auto; }
-  .mc-una-fila:not(#mcBuscarBarra):has(> .mc-buscador:not(:focus-within) input:placeholder-shown) > .mc-mandos > [aria-haspopup='dialog'][data-icono='settings'] { margin-left: auto; }
-  #mcEstanteriaFila:has(> .mc-buscador:not(:focus-within) input:placeholder-shown) .mc-chip-icono-movil { padding: 0 var(--e-md); }
-  #mcEstanteriaFila:has(> .mc-buscador:not(:focus-within) input:placeholder-shown) .mc-chip-icono-movil .mc-chip-texto {
-    position: static;
-    width: auto;
-    height: auto;
-    overflow: visible;
-    clip-path: none;
-  }
   /* El ✕ no cabe: lo dice Filtros en color, y se quita con «Limpiar». */
   .mc-una-fila #mcAlbumQuitar { display: none; }
 }
