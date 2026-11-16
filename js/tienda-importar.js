@@ -37,7 +37,7 @@ export function abrirImportarStock({ perfil, alTerminar = () => {} }) {
       <p class="tds-nota">Un CSV con una fila por carta: la expansión (nombre o código) y el número, o el id de PokeDoc. Se leen también las unidades, el estado, el idioma, la versión, lo que pagaste, tu precio (PVP) y dónde está. Desde Excel, guárdalo como CSV.</p>
       <div class="tds-form-fila">
         <label>El fichero<input type="file" accept=".csv,text/csv,text/plain" data-fichero /></label>
-        <label>Catálogo<select data-mercado><option value="WEST">Pokémon</option><option value="JP">Japón</option></select></label>
+        <label>Catálogo<select data-mercado><option value="WEST">Occidental</option><option value="JP">Japonés</option></select></label>
         <label>Si no dice el idioma<select data-idioma><option value="es">Español</option><option value="en">Inglés</option><option value="fr">Francés</option><option value="de">Alemán</option><option value="it">Italiano</option><option value="pt">Portugués</option><option value="ja">Japonés</option></select></label>
       </div>
       <details><summary>O pégalo aquí</summary><textarea rows="5" data-texto placeholder="expansion;numero;unidades;coste;pvp"></textarea></details>

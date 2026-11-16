@@ -66,7 +66,7 @@ export function masDe(grupo, r, q) {
     const mas = []
     if (r.hayMas || r.total > (r.filas?.length || 0)) mas.push({ fila: { nombre: r.hayMas ? 'Ver todas las cartas' : `Ver las ${r.total} cartas`, detalle: 'En Cartas, por expansión', icono: 'cards' }, href: `/cartas?ver=buscar&q=${enc}` })
     // B3 (972): las japonesas, en su catálogo.
-    if (r.japon?.total) mas.push({ clase: 'bs-japon', fila: { nombre: 'También en Pokémon Japón', detalle: `${r.japon.hayMas ? `${r.japon.total}+` : r.japon.total} ${r.japon.total === 1 ? 'carta' : 'cartas'}`, icono: 'cards' }, href: `/cartas?catalogo=JP&ver=buscar&q=${enc}` })
+    if (r.japon?.total) mas.push({ clase: 'bs-japon', fila: { nombre: 'También en japonés', detalle: `${r.japon.hayMas ? `${r.japon.total}+` : r.japon.total} ${r.japon.total === 1 ? 'carta' : 'cartas'}`, icono: 'cards' }, href: `/cartas?catalogo=JP&ver=buscar&q=${enc}` })
     return mas
   }
   if (grupo === 'productos' && r.hayMas) {

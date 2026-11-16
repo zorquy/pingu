@@ -148,7 +148,7 @@ const mejorHtml = (estado, q = '') => (estado?.mejor ? `<section class="bs-grupo
 function lineaDeJapon(estado, q) {
   const j = estado.japon
   if (!j?.total) return ''
-  return `<a class="bs-fila bs-japon" href="/cartas?catalogo=JP&amp;ver=buscar&amp;q=${encodeURIComponent(q)}"><span class="bs-texto">También en Pokémon Japón</span><span class="bs-japon-n">${j.hayMas ? `${j.total}+` : j.total} ${j.total === 1 ? 'carta' : 'cartas'} ›</span></a>`
+  return `<a class="bs-fila bs-japon" href="/cartas?catalogo=JP&amp;ver=buscar&amp;q=${encodeURIComponent(q)}"><span class="bs-texto">También en japonés</span><span class="bs-japon-n">${j.hayMas ? `${j.total}+` : j.total} ${j.total === 1 ? 'carta' : 'cartas'} ›</span></a>`
 }
 
 // En «Todo» salen las cuatro de la expansión más nueva y el botón dice

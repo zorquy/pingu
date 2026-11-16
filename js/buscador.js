@@ -93,7 +93,7 @@ const CONSULTAS = {
   // enseñan las `limite` primeras; el precio, solo de esas.
   //
   // Y a la vez, las japonesas (972, B3): solo cuántas, para la línea
-  // «También en Pokémon Japón», que lleva a Cartas › Buscar en ese catálogo.
+  // «También en japonés» (1368), que lleva a Cartas › Buscar en ese catálogo.
   // Si esa consulta falla, la línea no sale (no se sabe), las cartas sí.
   async cartas(crudo, limite) {
     const sets = await setsDelCatalogo('WEST', { cliente: supabase }).catch(() => [])

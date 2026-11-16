@@ -46,7 +46,7 @@ const ORDENES = [
   ['unidades', 'Más unidades'],
 ]
 const ETIQUETAS = {
-  catalogo: { WEST: 'Pokémon', JP: 'Japón', sellado: 'Sellado' },
+  catalogo: { WEST: 'Occidental', JP: 'Japonés', sellado: 'Sellado' },
   margen: { pierdes: 'Pierdes', '0-20': '0–20 %', '20-50': '20–50 %', '50+': '+50 %', sin_coste: 'Sin coste' },
   contra: { debajo: 'Por debajo', igual: 'Igual (±5 %)', encima: 'Por encima' },
   dias: { 30: 'Menos de 30 días', '30-90': '30–90 días', '90+': 'Más de 90 días' },
@@ -606,7 +606,7 @@ async function abrirAnadir() {
       <div class="tds-dialogo-cab"><h2>Añadir al stock</h2><button type="button" class="tds-cerrar" data-cerrar aria-label="Cerrar">×</button></div>
       <div class="seg" role="group" aria-label="Qué añadir">
         <button type="button" class="seg-btn activa" aria-pressed="true" data-que="WEST">Cartas</button>
-        <button type="button" class="seg-btn" aria-pressed="false" data-que="JP">Japón</button>
+        <button type="button" class="seg-btn" aria-pressed="false" data-que="JP">Japonés</button>
         <button type="button" class="seg-btn" aria-pressed="false" data-que="sellado">Sellado</button>
       </div>
       <input type="search" class="tds-busca tds-busca-grande" id="tdsAnadirQ" placeholder="Nombre, número (Pikachu 25) o expansión…" autocomplete="off" />

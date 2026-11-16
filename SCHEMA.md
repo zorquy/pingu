@@ -55204,6 +55204,13 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1368 — Occidental y Japonés
+
+El catálogo `WEST` se rotula «Occidental» con `data-idioma="occ"` (bandera azul
+con el mundo, SVG en `css/cardmarket.css` y `css/lanzamientos.css`); `JP`,
+«Japonés» con la de Japón. `data-idioma="en"` sigue siendo el IDIOMA inglés de
+una copia (precios, ficha, chapas), no un catálogo.
+
 ## Tanda 1367 — La franja del evento, pulsable entera
 
 `.portada-evento .pe-nombre:active { transform: none }`: un enlace estirado con

@@ -360,7 +360,13 @@
   importe `importar.js` desde una página sin `mi-coleccion.css` se lleva sus
   clases (299): `exportarCsv` vive en `importar-csv.js` por eso.
 - **En /mi-coleccion se elige el CATÁLOGO, no el idioma** (tanda 648):
-  «Pokémon» (occidental, en español) y «Pokémon Japón», como en la API.
+  el occidental (en español) y el japonés, como en la API. Desde la 1368
+  (PINGU: «con poner japonés está bien… y occidental con algo que represente
+  Occidente») se llaman «Occidental» y «Japonés» en TODOS los sitios
+  (selectores, rótulos de las listas, buscador, tienda, Lanzamientos), y el
+  occidental lleva su propia bandera, la azul con el mundo
+  (`data-idioma="occ"`), nunca la británica: la británica es el IDIOMA inglés
+  de una carta, y ahí se queda.
   La vista «en» sigue declarada y escondida. Y la ficha desde el Panel
   busca en la colección ENTERA (`lineasTodo`, `cartaDeLineaTodo`): una
   carta de otro catálogo no está en `cartas` ni en `lineas`, y buscarla

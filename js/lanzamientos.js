@@ -88,8 +88,8 @@ export function fechaBonita(fecha) {
 // Los dos catálogos que se pueden mirar, con el nombre de /mi-coleccion
 // (648): «Pokémon» y «Pokémon Japón», como en la API.
 export const CATALOGOS = [
-  { mercado: 'WEST', nombre: 'Pokémon', bandera: '🇬🇧' },
-  { mercado: 'JP', nombre: 'Pokémon Japón', bandera: '🇯🇵' },
+  { mercado: 'WEST', nombre: 'Occidental', bandera: '' },
+  { mercado: 'JP', nombre: 'Japonés', bandera: '🇯🇵' },
 ].filter((c) => MERCADOS_VISIBLES.includes(c.mercado))
 
 const CLAVE_CATALOGO = 'lanz-catalogo'
@@ -411,14 +411,14 @@ function init() {
   let guardado = null
   try { guardado = localStorage.getItem(CLAVE_CATALOGO) } catch { guardado = null }
   let mercado = catalogoElegido(location.search, guardado)
-  sel.innerHTML = CATALOGOS.map((c) => `<option value="${c.mercado}">${c.bandera} ${escapeHtml(c.nombre)}</option>`).join('')
+  sel.innerHTML = CATALOGOS.map((c) => `<option value="${c.mercado}">${escapeHtml(c.nombre)}</option>`).join('')
   sel.value = mercado
   // Los botones con bandera (675), como el selector de Mi colección: el
   // select sigue mandando; cada botón le pone su valor y dispara change.
   const seg = $('lanzVistaSeg')
   const pintarSeg = () => {
     if (!seg) return
-    seg.innerHTML = CATALOGOS.map((c) => `<button type="button" class="seg-btn" data-mercado="${c.mercado}" aria-pressed="${c.mercado === sel.value}" title="${escapeHtml(c.nombre)}"><i class="lanz-bandera" data-idioma="${c.mercado === 'JP' ? 'ja' : 'en'}" aria-hidden="true"></i><span>${escapeHtml(c.nombre)}</span></button>`).join('')
+    seg.innerHTML = CATALOGOS.map((c) => `<button type="button" class="seg-btn" data-mercado="${c.mercado}" aria-pressed="${c.mercado === sel.value}" title="${escapeHtml(c.nombre)}"><i class="lanz-bandera" data-idioma="${c.mercado === 'JP' ? 'ja' : 'occ'}" aria-hidden="true"></i><span>${escapeHtml(c.nombre)}</span></button>`).join('')
   }
   pintarSeg()
   seg?.addEventListener('click', (e) => {

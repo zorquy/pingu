@@ -12,7 +12,7 @@ export function porCatalogo(items, mercadoDe) {
 }
 
 export function rotuloDeCatalogo(m, n) {
-  return `<h3 class="mc-catalogo-rotulo">${banderaHtml(m === 'JP' ? 'ja' : 'en')}<span>${m === 'JP' ? 'Pokémon Japón' : 'Pokémon'}</span>${n == null ? '' : `<small>${n}</small>`}</h3>`
+  return `<h3 class="mc-catalogo-rotulo">${banderaHtml(m === 'JP' ? 'ja' : 'occ')}<span>${m === 'JP' ? 'Japonés' : 'Occidental'}</span>${n == null ? '' : `<small>${n}</small>`}</h3>`
 }
 
 export function conRotulos(items, mercadoDe, pintar) {

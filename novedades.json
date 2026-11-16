@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-16", "tipo": "mejora", "texto": "Los catálogos se llaman ahora «Occidental», con una bandera azul con el mundo, y «Japonés». En el móvil el selector ocupa solo lo que necesita.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-11-16", "tipo": "arreglo", "texto": "La franja del evento en Inicio se puede tocar entera para abrir el evento, no solo su nombre.", "enlace": "/eventos" },
     { "fecha": "2026-11-15", "tipo": "mejora", "texto": "Colección tiene ahora cuatro apartados: Panel, Cartas, Cambios y Buscar. Expansiones, Pokédex, Álbumes y Productos están dentro de Cartas, con sus pestañas arriba.", "enlace": "/mi-coleccion?ver=album" },
     { "fecha": "2026-11-15", "tipo": "mejora", "texto": "Las pestañas de Cartas, Mazos y Partidas llevan su icono, como la barra flotante del móvil.", "enlace": "/meta" },

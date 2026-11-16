@@ -333,7 +333,7 @@ async function buscarParaDesear() {
   const total = tramos.reduce((a, t) => a + t.lista.length, 0)
   if (cuenta) cuenta.textContent = total ? `${total} ${total === 1 ? 'carta' : 'cartas'}${tramos.some((t) => t.lista.length >= TOPE_DESEO) ? ' · hay más, afina la búsqueda' : ''}` : ''
   caja.innerHTML = total
-    ? tramos.map((t) => `${tramos.length > 1 ? `<h3 class="mc-catalogo-rotulo mc-deseo-rotulo">${banderaHtml(t.market === 'JP' ? 'ja' : 'en')}<span>${t.market === 'JP' ? 'Pokémon Japón' : 'Pokémon'}</span><small>${t.lista.length}</small></h3>` : ''}${resultadosHtml(t, yaEstan)}`).join('')
+    ? tramos.map((t) => `${tramos.length > 1 ? `<h3 class="mc-catalogo-rotulo mc-deseo-rotulo">${banderaHtml(t.market === 'JP' ? 'ja' : 'occ')}<span>${t.market === 'JP' ? 'Japonés' : 'Occidental'}</span><small>${t.lista.length}</small></h3>` : ''}${resultadosHtml(t, yaEstan)}`).join('')
     : '<p class="subtext">Ninguna carta así. Prueba con menos letras, o con el número («151/165»).</p>'
   // Y al mapa, que es de donde lo saca la lista al repintarse.
   for (const t of tramos) for (const c of t.lista) if (!ctx.cartas.has(c.id)) ponerCarta(c.id, c)

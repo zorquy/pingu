@@ -9844,9 +9844,15 @@ button.mc-cifra-ficha:hover { background: var(--ice-dark); }
     white-space: nowrap;
   }
 
+  /* Se ajusta a sus dos botones (1368: «Japón» dejaba un hueco a la
+     derecha); la lupa y «Orden» se quedan al otro lado. */
   body:not([data-modo='catalogo']) .mc-estanteria-cabeza > .seg {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
     min-width: 0;
+  }
+  body:not([data-modo='catalogo']) .mc-estanteria-cabeza > .seg + .mc-estanteria-lupa,
+  body:not([data-modo='catalogo']) .mc-estanteria-cabeza > .mc-estanteria-lupa {
+    margin-left: auto;
   }
 
   body:not([data-modo='catalogo']) .mc-estanteria-cabeza .seg-btn {

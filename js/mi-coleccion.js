@@ -355,9 +355,11 @@ document.addEventListener('pokedoc:seccion-otra-vez', (e) => {
 // guardada vuelve al occidental, y el resto del código sigue sabiendo
 // de qué va— pero no se ofrece, igual que el chino desde la 509.
 const VISTAS = [
-  { id: 'es', bandera: '🇬🇧', nombre: 'Pokémon', mercado: 'WEST', enEspanol: true },
+  // «Occidental» y «Japonés» desde la 1368 (PINGU: «con poner japonés está
+  // bien… y occidental con algo que represente Occidente»).
+  { id: 'es', bandera: '', nombre: 'Occidental', mercado: 'WEST', enEspanol: true },
   { id: 'en', bandera: '🇬🇧', nombre: 'Pokémon (en inglés)', mercado: 'WEST', enEspanol: false, oculta: true },
-  { id: 'ja', bandera: '🇯🇵', nombre: 'Pokémon Japón', mercado: 'JP', enEspanol: true },
+  { id: 'ja', bandera: '🇯🇵', nombre: 'Japonés', mercado: 'JP', enEspanol: true },
   // EL CHINO SE ESCONDE, NO SE BORRA (tanda 509). PINGU: «el chino no lo
   // borres, pero ocúltamelo, porque Scrydex no tiene chino, vamos por
   // ahora a obviar las colecciones chinas».
@@ -7844,10 +7846,10 @@ async function cambiarVista(nuevo) {
 // `aria-label` del desplegable, que es lo que lee un lector de pantalla.
 function pintarVistas() {
   // Con dos catálogos que se llaman como en la API, la bandera va CON el
-  // nombre (648): «Pokémon» y «Pokémon Japón» se leen; una bandera sola
+  // nombre (648): «Occidental» y «Japonés» (1368) se leen; una bandera sola
   // dice un idioma, y lo que se elige ya no es un idioma.
   const opciones = VISTAS_VISIBLES
-    .map((v) => `<option value="${v.id}" title="${escapeHtml(v.nombre)}">${v.bandera} ${escapeHtml(v.nombre)}</option>`)
+    .map((v) => `<option value="${v.id}" title="${escapeHtml(v.nombre)}">${escapeHtml(v.nombre)}</option>`)
     .join('')
   for (const sel of document.querySelectorAll('.mc-mercado')) {
     if (sel.innerHTML !== opciones) sel.innerHTML = opciones
@@ -7871,7 +7873,7 @@ function pintarVistas() {
         sel.dispatchEvent(new Event('change', { bubbles: true }))
       })
     }
-    const html = VISTAS_VISIBLES.map((v) => `<button type="button" class="seg-btn" data-vista="${v.id}" aria-pressed="${v.id === vista}" title="${escapeHtml(v.nombre)}"><i class="pv-bandera" data-idioma="${v.mercado === 'JP' ? 'ja' : 'en'}" aria-hidden="true"></i><span>${v.mercado === 'JP' && v.nombre === 'Pokémon Japón' ? '<span class="mc-q-largo">Pokémon </span>Japón' : escapeHtml(v.nombre)}</span></button>`).join('')
+    const html = VISTAS_VISIBLES.map((v) => `<button type="button" class="seg-btn" data-vista="${v.id}" aria-pressed="${v.id === vista}" title="${escapeHtml(v.nombre)}"><i class="pv-bandera" data-idioma="${v.mercado === 'JP' ? 'ja' : 'occ'}" aria-hidden="true"></i><span>${escapeHtml(v.nombre)}</span></button>`).join('')
     if (seg.innerHTML !== html) seg.innerHTML = html
     else for (const b of seg.querySelectorAll('[data-vista]')) b.setAttribute('aria-pressed', String(b.dataset.vista === vista))
   }

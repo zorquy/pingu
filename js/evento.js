@@ -174,7 +174,7 @@ function listaHtml(filas) {
   const jp = filas.filter((f) => f.market === 'JP')
   const occ = filas.filter((f) => f.market !== 'JP')
   if (!jp.length || !occ.length) return filas.map(cartaHtml).join('')
-  const rotulo = (m, n) => `<li class="evento-rotulo"><span>${m === 'JP' ? 'Pokémon Japón' : 'Pokémon'}</span><small>${n}</small></li>`
+  const rotulo = (m, n) => `<li class="evento-rotulo"><span>${m === 'JP' ? 'Japonés' : 'Occidental'}</span><small>${n}</small></li>`
   return `${rotulo('WEST', occ.length)}${occ.map(cartaHtml).join('')}${rotulo('JP', jp.length)}${jp.map(cartaHtml).join('')}`
 }
 

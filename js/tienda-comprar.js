@@ -491,7 +491,7 @@ function repartirSiHayTotal() {
 }
 
 // ── 1. Buscar ──
-const CHAPA_CATALOGO = { WEST: ['occ', 'Occidental'], JP: ['jp', 'Japón'], sellado: ['sel', 'Sellado'] }
+const CHAPA_CATALOGO = { WEST: ['occ', 'Occidental'], JP: ['jp', 'Japonés'], sellado: ['sel', 'Sellado'] }
 const chapaDe = (que) => `<span class="tdc-cat tdc-cat-${CHAPA_CATALOGO[que][0]}">${CHAPA_CATALOGO[que][1]}</span>`
 
 async function buscar() {

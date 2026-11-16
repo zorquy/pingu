@@ -53,7 +53,7 @@ export function interiorDe(grupo, f) {
     const logo = atributosDeEscaneo(f.logosDelSet || [], "this.remove()")
     const dia = f.release_date ? new Date(`${String(f.release_date).slice(0, 10)}T12:00:00`).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' }) : ''
     const cartas = Number(f.card_count_total || f.card_count_official) || 0
-    const detalle = [dia, cartas ? `${cartas} cartas` : '', f.market === 'JP' ? 'Japón' : ''].filter(Boolean).join(' · ')
+    const detalle = [dia, cartas ? `${cartas} cartas` : '', f.market === 'JP' ? 'Japonés' : ''].filter(Boolean).join(' · ')
     return `<span class="bs-logo">${logo ? `<img ${logo} alt="" width="48" height="28" loading="lazy" />` : ''}</span>
       <span class="bs-texto"><b>${escapeHtml(nombreDeSet(f))}</b>${detalle ? `<small>${escapeHtml(detalle)}</small>` : ''}</span>`
   }

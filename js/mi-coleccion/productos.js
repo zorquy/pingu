@@ -267,7 +267,7 @@ function pintarEstante() {
   const especiales = baldosaEspecialesHtml()
   caja.innerHTML = lista.length || especiales
     ? especiales + lista.map(([ep, s]) => baldosaHtml(ep, s)).join('')
-    : `<p class="empty-state">Todavía no hay productos de las expansiones de ${catalogoActual() === 'JP' ? 'Pokémon Japón' : 'este catálogo'}.</p>`
+    : `<p class="empty-state">Todavía no hay productos de las expansiones ${catalogoActual() === 'JP' ? 'japonesas' : 'de este catálogo'}.</p>`
 }
 
 function pintarCatalogoBotones() {

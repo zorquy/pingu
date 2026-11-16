@@ -21,6 +21,7 @@
 /* El selector de catálogo es la cápsula compartida (`.seg`, 678). */
 .lanz-bandera { display: inline-block; width: 18px; height: 13px; border-radius: 2px; flex-shrink: 0; }
 .lanz-bandera[data-idioma='en'] { background: linear-gradient(#cf142b, #cf142b) center / 100% 3px no-repeat, linear-gradient(90deg, #cf142b, #cf142b) center / 3px 100% no-repeat, linear-gradient(var(--blanco-fijo), var(--blanco-fijo)) center / 100% 5px no-repeat, linear-gradient(90deg, var(--blanco-fijo), var(--blanco-fijo)) center / 5px 100% no-repeat, #00247d; }
+.lanz-bandera[data-idioma='occ'] { background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 26'%3E%3Crect width='36' height='26' fill='%234b92db'/%3E%3Cg fill='none' stroke='white' stroke-width='1.6'%3E%3Ccircle cx='18' cy='13' r='8'/%3E%3Cellipse cx='18' cy='13' rx='3.6' ry='8'/%3E%3Cpath d='M10 13h16M11.2 9h13.6M11.2 17h13.6'/%3E%3C/g%3E%3C/svg%3E") center / cover no-repeat; }
 .lanz-bandera[data-idioma='ja'] { background: radial-gradient(circle at 50% 50%, #bc002d 32%, var(--blanco-fijo) 34%); }
 
 /* El siguiente set, con presencia: banda con el tinte de la casa. */

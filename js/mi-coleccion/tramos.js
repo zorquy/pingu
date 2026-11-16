@@ -84,7 +84,7 @@ export function selectorDeCatalogoHtml(vista, totales, cat) {
   const j = Number(totales.JP) || 0
   if (!w || !j) return ''
   const b = (v, texto, n, bandera = '') => `<button type="button" data-lista-cat="${v}" data-lista-vista="${vista}" aria-pressed="${cat === v}">${bandera}<span>${texto}</span> <small>${miles(n)}</small></button>`
-  return `<div class="mc-seg mc-seg-sueltas mc-lista-cats" role="group" aria-label="Catálogo">${b('todas', 'Los dos', w + j)}${b('WEST', 'Pokémon', w, banderaHtml('en'))}${b('JP', 'Japón', j, banderaHtml('ja'))}</div>`
+  return `<div class="mc-seg mc-seg-sueltas mc-lista-cats" role="group" aria-label="Catálogo">${b('todas', 'Los dos', w + j)}${b('WEST', 'Occidental', w, banderaHtml('occ'))}${b('JP', 'Japonés', j, banderaHtml('ja'))}</div>`
 }
 
 // En el PC el selector va en la BARRA de su pantalla (1222, PINGU: «hay

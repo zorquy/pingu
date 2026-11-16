@@ -4,6 +4,36 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (614) — PINGU-Claude (1368 — «Occidental» y «Japonés», con la bandera azul con el mundo)
+
+**Hecho** (la propuesta «Occidental y Japonés»; PINGU eligió la A, la bandera
+azul con el mundo):
+- El catálogo se llama **Occidental** y **Japonés** en todos los sitios: el
+  selector de Expansiones, Pokédex y /cartas (`VISTAS` de mi-coleccion.js),
+  Productos, el «Los dos · Occidental · Japonés» de las listas largas
+  (tramos.js), los rótulos de Deseos y cambios y del modo evento
+  (rotulos-catalogo.js, deseos.js, evento.js y su desplegable), el «También en
+  japonés» del buscador y la paleta, Lanzamientos y la tienda (stock, importar,
+  comprar).
+- **La bandera de Occidental**: `.pv-bandera[data-idioma='occ']` (y
+  `.lanz-bandera`), un SVG en la propia hoja (azul con el mundo en blanco). La
+  británica se queda para el idioma inglés de una carta.
+- **El hueco del móvil**: el selector de Expansiones ya no se estira
+  (`flex: 0 1 auto`) y la lupa y «Orden» se van a la derecha.
+- Los `<option>` de los desplegables escondidos ya no llevan emoji.
+
+**Ficheros**: `css/cardmarket.css`, `css/lanzamientos.css`,
+`css/mi-coleccion.css`, `js/mi-coleccion.js`, `js/mi-coleccion/tramos.js`,
+`js/mi-coleccion/rotulos-catalogo.js`, `js/mi-coleccion/deseos.js`,
+`js/mi-coleccion/productos.js`, `js/evento.js`, `evento.html`, `js/search.js`,
+`js/paleta.js`, `js/buscador.js`, `js/buscador-filas.js`, `js/lanzamientos.js`,
+`js/tienda-stock.js`, `js/tienda-importar.js`, `js/tienda-comprar.js`,
+`mi-coleccion.html`, `cartas.html` (generado), `normas/coleccion.md`,
+`novedades.json`. Pruebas puestas al día (rama `pruebas`): 438, 648, 768, 770,
+972, 1033, 1034, 1038, 1125.
+
+**Pendiente**: nada. Sin migración.
+
 ## 2026-11-16 (613) — PINGU-Claude (1367 — La franja del evento en Inicio se puede pulsar entera)
 
 **Hecho** (PINGU: «si clicas en el banner no hace nada, solo te deja clicar en
