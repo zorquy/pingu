@@ -2307,3 +2307,12 @@ button.perfil-logro-destacado,
 .pl-j { color: var(--text-mid); font-weight: 700; }
 .pl-sprites { display: inline-flex; }
 .pl-sprite { width: 32px; height: 32px; object-fit: contain; }
+
+/* ── 1374: en el móvil, la cabecera al MISMO margen que lo de debajo. Las
+   losas y las pestañas van a 24 px del borde y la cabecera (avatar, botones,
+   la barra de XP) a 8–12: se veía torcida. ── */
+@media (max-width: 599px) {
+  .perfil-ajena .profile-hero-body { padding-inline: var(--e-xl); }
+  .perfil-ajena .perfil-franja { padding-inline: var(--e-xl); }
+  .perfil-ajena .perfil-social { padding-inline: 0; }
+}

@@ -33,6 +33,7 @@
     }
   ],
   "entradas": [
+    { "fecha": "2026-11-16", "tipo": "arreglo", "texto": "Arreglos pequeños: la tarjeta del torneo de Inicio ya no repite la jornada ni corta el título, el perfil dice «Ver el logro» cuando solo hay uno y su cabecera va alineada en el móvil, y en la ficha de una carta el precio dice de dónde sale en una sola línea.", "enlace": "/" },
     { "fecha": "2026-11-16", "tipo": "mejora", "texto": "Expansiones, en una fila: buscar, la bandera del catálogo y Filtros, a la vista en el móvil y en el ordenador, en tu colección y en Cartas.", "enlace": "/cartas" },
     { "fecha": "2026-11-16", "tipo": "mejora", "texto": "Deseos y cambios, en una fila: en el Mercado, La quiero y Las que doy, buscar, Filtros y Seleccionar caben a la vista también en el móvil; lo que antes iba en chips sueltos (lo que buscas, el orden, el idioma, quién la da) está dentro de Filtros.", "enlace": "/mi-coleccion?ver=mercado" },
     { "fecha": "2026-11-16", "tipo": "arreglo", "texto": "Una expansión ya no sale como completa cuando su número de cartas está mal (le pasaba al 30th Celebration japonés, «86/25»): si tienes más cartas que las que dice, se enseña cuántas tienes.", "enlace": "/mi-coleccion?ver=album" },

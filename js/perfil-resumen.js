@@ -58,7 +58,7 @@ export function resumenHtml({ guia = null, torneo = null, foro = null, logros = 
   }
   if (foro) partes.push(bloque('foro', 'En el foro', fila(`/tema/${encodeURIComponent(foro.id)}`, `<span class="pr-ico pr-ico-comunidad" aria-hidden="true">${icons.messageSquare(18)}</span>`, foro.title, `${foro.abrio ? 'Abrió el tema' : 'Respondió'} · ${haceCuanto(foro.created_at)}`), 'Todo en el foro'))
   if (logros.length) {
-    partes.push(bloque('logros', 'Logros', `<div class="pr-logros">${logros.slice(0, 6).map((a) => `<span class="pr-logro" title="${escapeHtml(a.title)}"><span class="icon rarity-${escapeHtml(a.rarity || 'bronze')}">${achievementIconHtml(a, 18)}</span><small>${escapeHtml(a.title)}</small></span>`).join('')}</div>`, `Ver los ${logros.length}`))
+    partes.push(bloque('logros', 'Logros', `<div class="pr-logros">${logros.slice(0, 6).map((a) => `<span class="pr-logro" title="${escapeHtml(a.title)}"><span class="icon rarity-${escapeHtml(a.rarity || 'bronze')}">${achievementIconHtml(a, 18)}</span><small>${escapeHtml(a.title)}</small></span>`).join('')}</div>`, logros.length === 1 ? 'Ver el logro' : `Ver los ${logros.length}`))
   }
   return partes.join('')
 }

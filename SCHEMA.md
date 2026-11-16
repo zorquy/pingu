@@ -55204,6 +55204,19 @@ Prueba: `test-tanda-1258-pantalla.mjs` (subir y que ni el alto, ni una clase,
 ni `pageshow`, ni un aviso del vivo te bajen; uno nuevo saca «1 nuevo»; abajo
 del todo, sigues abajo; y los colores de la bandera). Cae con el código de antes.
 
+## Tanda 1374 — Inicio, perfil y el precio de la ficha
+
+- `subDeTorneo(torneo, jornadas)` (js/hoy.js): nombre corto sin su «· jornada
+  N» final y «jornada N de M»; sin jornada, solo el nombre corto.
+- `.hoy-ficha > b` entra en la regla de dos líneas del móvil (1012).
+- `perfil-resumen.js`: «Ver el logro» con uno. `perfil.css` (≤599 px,
+  `.perfil-ajena`): `profile-hero-body` y `perfil-franja` con `--e-xl` a los
+  lados.
+- `deQueEsCorto(de, ahora)` (js/carta-movil.js, puro): «mínimo en X en
+  Cardmarket · NM · día» → «Cardmarket · X · NM · día» («hoy» si es hoy); lo
+  demás, igual. Solo lo usa la línea de precio de la cabecera del móvil; el
+  texto largo (`deQueEs`) sigue en la pestaña Precio.
+
 ## Tanda 1373 — Expansiones en una fila
 
 `.mc-estanteria-barra` lleva la cabecera (las pestañas de Cartas, 1366) y la

@@ -69,11 +69,12 @@ export function montarFichaMovil(doc = document, win = window) {
     if (!hay[main.dataset.pestana]) elegir('resumen')
   }
 
-  // El precio en una línea, copiado del bloque de precio cuando llega.
+  // El precio en una línea, copiado del bloque de precio cuando llega. De
+  // dónde sale, en corto (1374): en mayúsculas no cabía en una línea.
   const precioCorto = () => {
     const cifra = doc.querySelector('#cmPrecios .pv-tarjeta-tuya .pv-cifra:not(.pv-sin)')
     const de = doc.querySelector('#cmPrecios .pv-tarjeta-tuya .pv-de')
-    return cifra ? { cifra: cifra.textContent.trim(), de: de?.textContent.trim() || '' } : null
+    return cifra ? { cifra: cifra.textContent.trim(), de: deQueEsCorto(de?.textContent.trim() || '') } : null
   }
 
   // VOLVER Y COMPARTIR, FLOTANDO SOBRE EL ARTE (748, la F1 de su maqueta):
@@ -117,7 +118,7 @@ export function montarFichaMovil(doc = document, win = window) {
       // La tarjeta de su maqueta (748): de dónde sale arriba, la cifra en
       // grande y, si el histórico lo dice, cómo va en 30 días.
       const mes = doc.querySelector('#cmHistorial .carta-historial-chip:last-child')
-      const html = `<small>${p.de || 'Precio'}</small><b>${p.cifra}</b>${mes && /30 d/.test(mes.textContent) ? `<span class="carta-precio-mes ${mes.classList.contains('sube') ? 'sube' : mes.classList.contains('baja') ? 'baja' : ''}">${mes.querySelector('b')?.textContent || ''} <i>en 30 días</i></span>` : ''}`
+      const html = `<small>${(p.de || 'Precio').replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`)}</small><b>${p.cifra}</b>${mes && /30 d/.test(mes.textContent) ? `<span class="carta-precio-mes ${mes.classList.contains('sube') ? 'sube' : mes.classList.contains('baja') ? 'baja' : ''}">${mes.querySelector('b')?.textContent || ''} <i>en 30 días</i></span>` : ''}`
       if (linea.dataset.html !== html) { linea.dataset.html = html; linea.innerHTML = html }
     }
     const figura = nucleo.querySelector('.carta-scan')
@@ -140,4 +141,16 @@ export function montarFichaMovil(doc = document, win = window) {
   nucleo.addEventListener('load', pronto, true)
   asegurar()
   return { elegir }
+}
+
+// «mínimo en español en Cardmarket · NM · 16 nov» → «Cardmarket · español ·
+// NM · hoy» (1374, «Más mejoras», D). Lo que no casa se queda como venía. Puro.
+export function deQueEsCorto(de, ahora = new Date()) {
+  const hoy = ahora.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })
+  const dia = (f) => (f ? ` · ${f === hoy ? 'hoy' : f}` : '')
+  let m = /^mínimo en (.+?) en Cardmarket · NM(?: · (.+))?$/i.exec(de)
+  if (m) return `Cardmarket · ${m[1]} · NM${dia(m[2])}`
+  m = /^mínimo en Cardmarket, cualquier idioma(?: · (.+))?$/i.exec(de)
+  if (m) return `Cardmarket · cualquier idioma${dia(m[1])}`
+  return de
 }

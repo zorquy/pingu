@@ -85,6 +85,17 @@ export function chispaSvg(filas, { ancho = 160, alto = 56 } = {}) {
 // en «Liga FDN [Oct–Dic] …»; «Liga FDN · jornada 3» sí. Puro.
 export const nombreCorto = (nombre) => String(nombre || '').replace(/\s*[\[(][^\])]*[\])]/g, '').replace(/\s+/g, ' ').trim() || String(nombre || '')
 
+// El detalle de la ficha del torneo: el nombre corto y «jornada N de M»
+// (1374). El nombre de una jornada de liga YA trae «· jornada 3», y salía
+// «Liga FDN · jornada 3 · jornada 3 de 3»: se le quita antes de ponerla. Puro.
+export function subDeTorneo(torneo, jornadas = 0) {
+  const base = nombreCorto(torneo?.name)
+  if (!torneo?.jornada) return base
+  const sinJornada = base.replace(/\s*[·\-–—|,]?\s*jornada\s+\d+\s*$/i, '').trim()
+  const jornada = `ornada ${torneo.jornada}${jornadas ? ` de ${jornadas}` : ''}`
+  return sinJornada ? `${sinJornada} · j${jornada}` : `J${jornada}`
+}
+
 // «hoy», «mañana», «en 3 días» o la fecha. Puro.
 export function cuandoEs(fecha, ahora = Date.now()) {
   const d = Math.round((Date.parse(`${String(fecha).slice(0, 10)}T00:00:00Z`) - Date.parse(`${hoyISO(ahora)}T00:00:00Z`)) / DIA)
@@ -172,7 +183,7 @@ export function fichasHtml({ retos = null, torneo = null, lanzamiento = null, hi
     fichaRetosHtml(retos),
     ficha(
       torneo
-        ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', sec: 'jugar', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: /^\d/.test(cuando) ? `Torneo el ${cuando}` : `Torneo ${cuando}${hora}`, sub: torneo.jornada ? `${nombreCorto(torneo.name)} · jornada ${torneo.jornada}${jornadas ? ` de ${jornadas}` : ''}` : nombreCorto(torneo.name), pct: torneo.jornada && jornadas ? (torneo.jornada / jornadas) * 100 : null }
+        ? { href: `/torneo?slug=${encodeURIComponent(torneo.slug)}`, icono: 'trophy', sec: 'jugar', rotulo: torneo.mio ? 'Tu próximo torneo' : 'Próximo torneo', titular: /^\d/.test(cuando) ? `Torneo el ${cuando}` : `Torneo ${cuando}${hora}`, sub: subDeTorneo(torneo, jornadas), pct: torneo.jornada && jornadas ? (torneo.jornada / jornadas) * 100 : null }
         : { href: '/torneos.html', icono: 'trophy', sec: 'jugar', rotulo: 'Torneos', titular: 'Torneos', sub: 'Ninguno a la vista' }
     ),
     ficha(

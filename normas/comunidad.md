@@ -416,3 +416,7 @@
   en el servidor. Si cambias los envoltorios (`.article-header`,
   `.article-body`) en una, cámbialos en la otra — si no, lo primero que
   ve la gente es el texto sin formato y luego pega un salto.
+- **Una cifra con su «Ver» dice el singular con UNO** (tanda 1374: el perfil
+  ponía «Ver los 1»): «Ver el logro», no «Ver los 1». Y el detalle del torneo
+  de Inicio pasa por `subDeTorneo` (js/hoy.js), que no repite la jornada que
+  ya trae el nombre de una liga («· jornada 3 · jornada 3 de 3»).

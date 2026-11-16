@@ -4,6 +4,26 @@ La entrada MÁS RECIENTE va ARRIBA. Cada sesión de Claude añade la suya
 antes de cada push (ver CLAUDE.md). Formato:
 
 ```
+## 2026-11-16 (620) — PINGU-Claude (1374 — Inicio, perfil y el precio de la ficha)
+
+**Hecho** (la propuesta «Más mejoras», C y D; PINGU: «dale con lo recomendado»):
+- **Inicio**: la ficha del torneo decía «Liga FDN · jornada 3 · jornada 3 de
+  3»: el nombre de una jornada ya trae «· jornada 3». `subDeTorneo`
+  (js/hoy.js, puro) se la quita antes de poner «jornada N de M». Y el titular
+  («Torneo en 5 días») puede ir en dos líneas en el móvil, como el detalle.
+- **Perfil**: con un logro, «Ver el logro» y no «Ver los 1». En el móvil, la
+  cabecera ajena (botones, barra de XP, racha) va a 24 px como las losas y las
+  pestañas (iba a 8–12).
+- **Ficha de carta** (móvil): el rótulo del precio de arriba es
+  «Cardmarket · español · NM · hoy» (`deQueEsCorto`, js/carta-movil.js), en
+  una línea. El de la pestaña Precio y el de Mi colección no cambian.
+
+**Ficheros**: `js/hoy.js`, `css/hoy.css`, `js/perfil-resumen.js`,
+`css/perfil.css`, `js/carta-movil.js`, `normas/comunidad.md`,
+`novedades.json`. Prueba `test-tanda-1374-pantalla.mjs` (rama `pruebas`).
+
+**Pendiente**: nada.
+
 ## 2026-11-16 (619) — PINGU-Claude (1373 — Expansiones en una fila, en Mi colección y en /cartas)
 
 **Hecho** (la propuesta «Más mejoras», B; PINGU: «dale con lo recomendado»):
